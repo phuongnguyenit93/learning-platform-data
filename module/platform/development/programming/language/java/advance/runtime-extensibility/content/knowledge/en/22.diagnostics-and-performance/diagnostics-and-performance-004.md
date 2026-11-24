@@ -1,92 +1,92 @@
-# Điều tra ServiceConfigurationError từ tệp đăng ký, module hoặc constructor
+# Investigating ServiceConfigurationError from Registration Files, Modules, or Constructors
 
-Một ứng dụng Java có khả năng mở rộng thường dùng java.util.ServiceLoader để tìm implementation của một service interface (SPI) mà không cần biết trước tên class cụ thể. Việc phát hiện provider có thể dựa vào **META-INF/services** trên classpath hoặc **uses/provides** trong Java Platform Module System (JPMS). Cùng một lỗi ServiceConfigurationError có thể xuất hiện do tên file khai báo sai, cú pháp tên provider hỏng, class không tồn tại, class không thực sự triển khai SPI, thiếu constructor hợp lệ hoặc một provider method trong module hoạt động sai.
+An extensible Java application typically uses `java.util.ServiceLoader` to discover implementations of a service interface (SPI) without knowing concrete class names ahead of time. Provider discovery can rely on **META-INF/services** on the classpath or **uses/provides** in the Java Platform Module System (JPMS). The same `ServiceConfigurationError` can arise from a misnamed descriptor file, malformed provider-name syntax, a missing class, a class that does not actually implement the SPI, a missing valid constructor, or a malfunctioning module `provider()` method.
 
-Mục tiêu của bài là **điều tra có hệ thống thay vì đoán theo một thông báo lỗi**: xác định provider được tìm từ đâu, lỗi xảy ra ở bước nào, đọc cause và class loader/module metadata, rồi sửa đúng nguồn phát hành. Ta sẽ dựng hai lab Java 17+ độc lập, một trên **classpath** và một dùng **explicit named modules**, với đầu ra kiểm chứng được.
+The goal of this article is **systematic investigation rather than guessing from a single error message**: identify where the provider was discovered, at which step the failure occurred, inspect the cause and class loader/module metadata, and fix the true publishing source. We will build two independent Java 17+ labs—one on the **classpath** and one using **explicit named modules**—with verifiable output.
 
-## 1. ServiceConfigurationError là gì và xuất hiện ở đâu?
+## 1. What Is ServiceConfigurationError and Where Does It Occur?
 
-**java.util.ServiceConfigurationError extends java.lang.Error**, không phải Exception. Theo tài liệu Java 17, đây là lỗi khi **locating, loading hoặc instantiating** service provider. Bởi vậy:
+**java.util.ServiceConfigurationError extends java.lang.Error**, not `Exception`. According to the Java 17 documentation, it signals an error when **locating, loading, or instantiating** a service provider. Therefore:
 
-- catch (Exception ex) **không bắt** ServiceConfigurationError.
-- Bắt đúng ServiceConfigurationError tại ranh giới **service discovery/instantiation** có ý nghĩa khi host muốn báo lỗi cấu hình, đóng tính năng phụ thuộc hoặc cách ly một plugin tùy chọn.
-- Không bắt Throwable rồi tiếp tục như không có chuyện gì: VirtualMachineError, ThreadDeath và lỗi nghiêm trọng khác không phải lỗi provider configuration thông thường.
-- Thông báo getMessage() thường mang tên service/provider và gợi ý nguyên nhân, nhưng **văn bản không phải giao thức ổn định**. Đừng phân loại theo một chuỗi thông báo duy nhất; hãy xem stack trace, getCause() và artifact thực tế.
+- `catch (Exception ex)` **does not catch** `ServiceConfigurationError`.
+- Catching `ServiceConfigurationError` specifically at the **service discovery/instantiation** boundary makes sense when the host wants to report a configuration error, disable dependent features, or isolate an optional plugin.
+- Do not catch `Throwable` and carry on as if nothing happened: `VirtualMachineError`, `ThreadDeath`, and other severe errors are not ordinary provider configuration errors.
+- `getMessage()` often carries the service/provider name and hints at the cause, yet **its text is not a stable protocol**. Never classify failures by matching a single message string; inspect the stack trace, `getCause()`, and the actual artifact.
 
-Vòng đời discovery điển hình:
+Typical discovery lifecycle:
 
 ~~~text
 ServiceLoader.load(Service.class)
            |
            v
-Tạo ServiceLoader (chưa chắc đã duyệt provider)
+Create ServiceLoader (not necessarily iterating providers yet)
            |
            v
-iterator.hasNext() hoặc iterator.next()
+iterator.hasNext() or iterator.next()
    |
-   +--> classpath: tìm, đọc META-INF/services/<SPI>
-   |                 parse tên provider
+   +--> classpath: locate, read META-INF/services/<SPI>
+   |                 parse provider names
    |
-   +--> JPMS: tìm provides trong module đã được giải quyết
-   |             (consumer named module cần uses)
+   +--> JPMS: locate provides in resolved modules
+   |             (consumer named module requires uses)
    |
    v
-Nạp provider class / kiểm tra subtype hoặc provider()
+Load provider class / check subtype or provider()
            |
            v
-Khởi tạo bằng public no-arg constructor
-hoặc gọi public static provider() trong explicit named module
+Instantiate via public no-arg constructor
+or invoke public static provider() in explicit named module
            |
-           +--> lỗi: ServiceConfigurationError
-           |
-           v
-Nhận provider instance
+           +--> error: ServiceConfigurationError
            |
            v
-Gọi method nghiệp vụ (lỗi riêng của provider)
+Obtain provider instance
+           |
+           v
+Invoke business method (provider-specific error)
 ~~~
 
-**Chỉ gọi ServiceLoader.load(...) không phải phép kiểm tra đầy đủ**. ServiceLoader duyệt và tạo provider theo cơ chế lazy. Cả Iterator.hasNext() và Iterator.next() có thể ném ServiceConfigurationError; khi dùng stream(), lỗi có thể xảy ra ở thao tác thực sự khám phá hoặc nạp provider, kể cả Provider.get().
+**Calling `ServiceLoader.load(...)` alone is not a complete check**. `ServiceLoader` discovers and instantiates providers lazily. Both `Iterator.hasNext()` and `Iterator.next()` can throw `ServiceConfigurationError`; when using `stream()`, errors can surface during the operations that actually discover or load providers, including `Provider.get()`.
 
-Phân biệt ba nhóm:
+Distinguish three groups:
 
-| Giai đoạn | Dấu hiệu | Lỗi có thể nhận |
+| Stage | Symptom | Possible Error |
 | --- | --- | --- |
-| Không có registration hợp lệ | Không tìm thấy descriptor/provides phù hợp | Thường là **0 provider**, không nhất thiết có ServiceConfigurationError |
-| Có registration nhưng không nạp/tạo được | Class thiếu, sai subtype, constructor/factory lỗi | **ServiceConfigurationError** |
-| Provider đã tạo, gọi nghiệp vụ thất bại | Resource riêng thiếu, input sai, I/O, exception do plugin | Lỗi nghiệp vụ; **không tự động** trở thành ServiceConfigurationError |
+| No valid registration | No matching descriptor/`provides` found | Usually **0 providers**, not necessarily `ServiceConfigurationError` |
+| Registration exists but cannot load/instantiate | Missing class, wrong subtype, constructor/factory failure | **ServiceConfigurationError** |
+| Provider created, business call fails | Missing private resource, bad input, I/O, plugin exception | Business error; **does not automatically** become `ServiceConfigurationError` |
 
-Ví dụ: descriptor **sai tên file** nên không được phát hiện có thể cho tập kết quả rỗng; descriptor **đúng tên nhưng khai báo class không tồn tại** thường dẫn tới ServiceConfigurationError khi duyệt. Hai trường hợp này cần cách khắc phục khác nhau.
+For example: a descriptor with a **misspelled file name** goes undiscovered and may yield an empty result set; a descriptor with the **right name declaring a non-existent class** typically produces `ServiceConfigurationError` during iteration. These two cases require different fixes.
 
-## 2. Bản đồ nguyên nhân: file đăng ký, JPMS và constructor
+## 2. Cause Map: Registration Files, JPMS, and Constructors
 
-| Nguồn khai báo | Tình huống | Điểm cần xác minh |
+| Declaration Source | Situation | What to Verify |
 | --- | --- | --- |
-| META-INF/services trên classpath | File sai tên, đặt sai vị trí, không có trong runtime classpath | Exact path META-INF/services/<tên nhị phân SPI>, nội dung JAR |
-| META-INF/services trên classpath | Dòng không phải tên class hợp lệ, sai encoding hoặc I/O khi đọc | Nội dung file, UTF-8, số dòng, dấu # comment, khoảng trắng |
-| META-INF/services trên classpath | Tên class không tồn tại hoặc loader không nhìn thấy | Class có mặt trong JAR nào, loader nào thực sự đang được dùng |
-| META-INF/services trên classpath | Provider không là subtype của SPI | Kiểm tra interface thực sự implemented và **class identity** |
-| META-INF/services trên classpath | Provider không có public constructor không tham số | javap -public, constructors và visibility của class |
-| META-INF/services trên classpath | Constructor ném exception hoặc error | Stack trace và getCause() |
-| Explicit named module (JPMS) | Consumer thiếu uses service hoặc module provider không được resolve | module-info, module graph, cách gọi ServiceLoader.load |
-| Explicit named module (JPMS) | provides trỏ provider không load được, constructor lỗi | module descriptor runtime, loader, cause |
-| Explicit named module (JPMS) | public static provider() trả null, ném lỗi hoặc không đúng type | Chữ ký và kết quả của provider method |
-| Automatic module | Dùng kỳ vọng provider factory như explicit named module | Automatic module dùng constructor; không có provider method |
-| Bất kỳ mô hình nào | Có hai bản SPI trùng tên nhưng khác defining loader | So sánh ClassLoader và Class object, không chỉ tên class |
+| META-INF/services on classpath | Wrong file name, wrong location, missing from runtime classpath | Exact path `META-INF/services/<SPI binary name>`, JAR contents |
+| META-INF/services on classpath | Line is not a valid class name, wrong encoding, or I/O error reading | File contents, UTF-8, line numbers, `#` comments, whitespace |
+| META-INF/services on classpath | Class name does not exist or is not visible to loader | Which JAR holds the class, which loader is actually in use |
+| META-INF/services on classpath | Provider is not a subtype of the SPI | Check actually implemented interfaces and **class identity** |
+| META-INF/services on classpath | Provider lacks a public no-argument constructor | `javap -public`, constructors, and class visibility |
+| META-INF/services on classpath | Constructor throws an exception or error | Stack trace and `getCause()` |
+| Explicit named module (JPMS) | Consumer lacks `uses` service or provider module is not resolved | `module-info`, module graph, how `ServiceLoader.load` is called |
+| Explicit named module (JPMS) | `provides` points to unloadable provider, or constructor fails | Runtime module descriptor, loader, cause |
+| Explicit named module (JPMS) | `public static provider()` returns null, throws, or wrong type | Signature and return value of the provider method |
+| Automatic module | Expected to support provider factory like an explicit named module | Automatic modules use constructors; no provider method support |
+| Any model | Two copies of SPI with same name but different defining loaders | Compare `ClassLoader` and `Class` objects, not just class name |
 
-**Không mọi lỗi JPMS đều mang đúng tên ServiceConfigurationError**. Lỗi biên dịch module-info, lỗi resolution trước lúc tạo layer hoặc IllegalAccessError/NoClassDefFoundError trong code nghiệp vụ có thể mang loại exception/error khác. Ta cần xác định chặng thất bại đầu tiên thay vì quy mọi lỗi plugin về một nhãn.
+**Not every JPMS error carries the exact name `ServiceConfigurationError`**. `module-info` compilation errors, pre-layer resolution failures, or `IllegalAccessError`/`NoClassDefFoundError` in business code can carry other exception/error types. Identify the first failing stage rather than labeling every plugin error under one name.
 
-## 3. Descriptor trên classpath: những quy tắc dễ sai
+## 3. Classpath Descriptors: Rules That Are Easy to Get Wrong
 
-Trên classpath, service configuration file có **đường dẫn chính xác**:
+On the classpath, a service configuration file has an **exact path**:
 
 ~~~text
 META-INF/services/com.example.spi.MyService
 ~~~
 
-Tên file là **tên binary đầy đủ của service interface/class**, không phải tên provider, không có phần mở rộng .txt, .class hoặc .java. File này nằm tại **gốc mỗi JAR** chứa registration. Mỗi dòng hợp lệ là tên đầy đủ của một provider class; một dấu # mở đầu phần comment đến hết dòng. ServiceLoader cho phép whitespace bao quanh các dòng, nhưng tên provider không thể chứa khoảng trắng bên trong.
+The file name is the **full binary name of the service interface/class**, not the provider name, and has no `.txt`, `.class`, or `.java` extension. This file sits at the **root of each JAR** containing registrations. Each valid line is the fully qualified name of one provider class; a `#` starts a comment through the end of the line. `ServiceLoader` allows whitespace around lines, though provider names cannot contain internal whitespace.
 
-Ví dụ:
+Example:
 
 ~~~text
 # UTF-8 text; file name = META-INF/services/demo.spi.Action
@@ -94,21 +94,21 @@ demo.providers.Healthy
 demo.providers.Backup
 ~~~
 
-**Ba lỗi cần phân biệt:**
+**Three errors to distinguish:**
 
-1. Tệp bị đổi từ META-INF/services/demo.spi.Action thành META-INF/services/demo.spi.Actions. Với đúng một JAR trong classpath, loader **không thấy tệp đăng ký cho Action** và có thể trả 0 provider.
-2. Tệp đúng tên nhưng một dòng ghi demo.providers.NotPresent. Tên được đọc thành một registration; khi Java không tìm được class, ServiceConfigurationError có thể phát sinh trong lúc duyệt.
-3. Tệp đúng tên nhưng chứa "not a class name!". Đây không phải tên binary hợp lệ; parser có thể báo ServiceConfigurationError khi đang đọc descriptor, **trước khi tạo bất kỳ instance**.
+1. The file is renamed from `META-INF/services/demo.spi.Action` to `META-INF/services/demo.spi.Actions`. With a single JAR on the classpath, the loader **does not see a registration file for Action** and may return 0 providers.
+2. The file has the right name, but one line reads `demo.providers.NotPresent`. That name is parsed as a registration; when Java cannot find the class, `ServiceConfigurationError` can be thrown during iteration.
+3. The file has the right name, but contains `"not a class name!"`. That is not a valid binary name; the parser can report `ServiceConfigurationError` while reading the descriptor, **before instantiating anything**.
 
-Cả ba đều có thể khiến người dùng báo "không load được plugin", nhưng không sửa bằng cùng thao tác. Trường hợp (1) cần sửa packaging/tên file; trường hợp (2) cần sửa registration hoặc classpath; trường hợp (3) cần sửa format/encoding.
+All three can lead users to report "failed to load plugin", yet they are not fixed with the same action. Case (1) requires fixing packaging/file name; case (2) requires fixing registration or classpath; case (3) requires fixing formatting/encoding.
 
-**Đừng đọc source file trong project rồi kết luận JAR đúng.** Cần kiểm tra file thực sự có trong artifact được triển khai bằng jar --list và kiểm tra nội dung của chính entry trong artifact (có thể giải nén bản sao khi điều tra). Đường dẫn trên Windows hiển thị dấu phân cách thư mục khác nhau nhưng **tên entry trong JAR** vẫn dùng dấu /.
+**Do not read a source file in the project and conclude the JAR is right.** Verify what is actually inside the deployed artifact using `jar --list` and inspect the contents of that entry in the artifact itself (you can extract a copy while investigating). Windows paths display different directory separators, yet **entry names inside a JAR** still use `/`.
 
-## 4. Lab classpath Java 17+: tái hiện bảy biến thể
+## 4. Java 17+ Classpath Lab: Reproducing Seven Variants
 
-Lab này biên dịch cùng một tập class provider rồi đóng gói nhiều JAR có **descriptor khác nhau**. Như vậy, chỉ cần thay JAR trên runtime classpath là ta có thể phân biệt lỗi packaging, tên class, subtype và constructor.
+This lab compiles a single set of provider classes and packages multiple JARs with **different descriptors**. Thus, simply swapping JARs on the runtime classpath lets us distinguish packaging, class-name, subtype, and constructor errors.
 
-### 4.1. Cây thư mục
+### 4.1. Directory Tree
 
 ~~~text
 classpath-lab/
@@ -128,11 +128,11 @@ classpath-lab/
 │   ├── no-ctor/META-INF/services/demo.spi.Action
 │   ├── throws/META-INF/services/demo.spi.Action
 │   └── wrong-type/META-INF/services/demo.spi.Action
-├── build/               (tạo khi build)
-└── dist/                (tạo khi build)
+├── build/               (created during build)
+└── dist/                (created during build)
 ~~~
 
-### 4.2. SPI chung
+### 4.2. Shared SPI
 
 File **src/api/demo/spi/Action.java**:
 
@@ -144,9 +144,9 @@ public interface Action {
 }
 ~~~
 
-Cả host và provider cùng tham chiếu tới **dist/api.jar** khi compile. JAR provider không đóng gói lại demo/spi/Action.class.
+Both host and providers reference **dist/api.jar** at compile time. Provider JARs do not repackage `demo/spi/Action.class`.
 
-### 4.3. Provider tốt
+### 4.3. Healthy Provider
 
 File **src/providers/demo/providers/Healthy.java**:
 
@@ -165,9 +165,9 @@ public final class Healthy implements Action {
 }
 ~~~
 
-Đây là provider classpath hợp lệ: public class, implements Action, public constructor không tham số.
+This is a valid classpath provider: public class, implements `Action`, public no-argument constructor.
 
-### 4.4. Class đúng interface nhưng thiếu constructor no-arg
+### 4.4. Class Implements the Interface but Lacks a No-Arg Constructor
 
 File **src/providers/demo/providers/NeedsArgument.java**:
 
@@ -186,9 +186,9 @@ public final class NeedsArgument implements Action {
 }
 ~~~
 
-Khi đã tự khai báo **chỉ** constructor nhận String, Java không tự sinh constructor không tham số. Vì thế ServiceLoader không thể tạo instance theo quy tắc classpath, dù class tồn tại và thực sự implements Action. Đây là nguyên nhân riêng, **không phải ClassNotFoundException**.
+Once you explicitly declare **only** a constructor taking `String`, Java no longer generates a no-argument constructor. Thus `ServiceLoader` cannot instantiate it under classpath rules, even though the class exists and implements `Action`. This is a distinct root cause, **not `ClassNotFoundException`**.
 
-### 4.5. Constructor có đúng chữ ký nhưng tự ném exception
+### 4.5. Constructor Has the Right Signature but Throws an Exception
 
 File **src/providers/demo/providers/Boom.java**:
 
@@ -209,9 +209,9 @@ public final class Boom implements Action {
 }
 ~~~
 
-ServiceLoader tìm được class và constructor phù hợp, nhưng **khởi tạo thất bại**. Trong stack trace của ServiceConfigurationError, getCause() có thể thể hiện exception gốc do constructor ném. Khi điều tra, cần ghi cả cause chain chứ không chỉ nhãn "could not instantiate".
+`ServiceLoader` locates the class and matching constructor, yet **instantiation fails**. In the `ServiceConfigurationError` stack trace, `getCause()` reveals the original exception thrown by the constructor. During investigation, record the entire cause chain rather than just the label "could not instantiate".
 
-### 4.6. Class tồn tại nhưng không phải subtype của SPI
+### 4.6. Class Exists but Is Not a Subtype of the SPI
 
 File **src/providers/demo/providers/NotAction.java**:
 
@@ -223,9 +223,9 @@ public final class NotAction {
 }
 ~~~
 
-Class này cố tình **không implements Action**. Nếu descriptor ghi tên nó như một provider của demo.spi.Action, việc Java nhìn thấy class chưa đủ: kiểm tra kiểu sẽ thất bại và ServiceConfigurationError được ném khi discovery/instantiation.
+This class intentionally **does not implement `Action`**. If a descriptor lists it as a provider of `demo.spi.Action`, Java seeing the class is not enough: the type check fails and `ServiceConfigurationError` is thrown during discovery/instantiation.
 
-### 4.7. Host phân biệt lỗi cấu hình và lỗi nghiệp vụ
+### 4.7. Host Distinguishing Configuration Errors from Business Errors
 
 File **src/host/demo/host/Check.java**:
 
@@ -263,7 +263,7 @@ public final class Check {
             try {
                 System.out.println("FOUND " + action.id());
             } catch (RuntimeException failure) {
-                // Phần nghiệp vụ chạy sau khi provider đã được tạo.
+                // Business logic runs after the provider has been instantiated.
                 System.out.println("PROVIDER_RUNTIME_ERROR");
                 if (trace) {
                     failure.printStackTrace(System.err);
@@ -278,15 +278,15 @@ public final class Check {
 }
 ~~~
 
-**Vì sao try phải bao cả hasNext() lẫn next()?** Java 17 cho phép ServiceConfigurationError phát sinh ở **cả hai**. Với bad-syntax, vấn đề có thể xuất hiện trong lúc đọc config ngay tại hasNext(); với no-ctor hoặc throws, lỗi thường được phát hiện khi next() cố tạo instance.
+**Why must `try` wrap both `hasNext()` and `next()`?** Java 17 allows `ServiceConfigurationError` to be thrown by **both**. For `bad-syntax`, the issue can surface while reading config right inside `hasNext()`; for `no-ctor` or `throws`, the error is typically detected when `next()` tries to instantiate the provider.
 
-Mã này cố ý **dừng discovery sau một lỗi cấu hình**. Theo hợp đồng JDK, iterator sau ServiceConfigurationError chỉ best-effort để tìm provider tiếp theo; không được bảo đảm phục hồi. Một chiến lược thử tiếp cho plugin tùy chọn phải có hạn mức lỗi/vòng duyệt, ghi nhận trạng thái partial và không xem tập provider chưa đầy đủ là thành công. Với bài điều tra, dừng rồi sửa artifact là cách tái hiện nguyên nhân nhất quán hơn.
+This code intentionally **stops discovery after a configuration error**. Under the JDK contract, an iterator after a `ServiceConfigurationError` only makes a best-effort attempt to locate subsequent providers; recovery is not guaranteed. A continue-trying strategy for optional plugins must enforce error/iteration limits, log rejected providers, and avoid treating an incomplete provider set as full success. For investigation, stopping and fixing the artifact reproduces causes more consistently.
 
-Khi có --trace, exception được in ở **stderr**, vì vậy text stack trace/JDK-specific có thể khác nhau. Stdout ổn định chỉ chứa nhãn trong ví dụ.
+When `--trace` is passed, the exception prints to **stderr**, so JDK-specific stack trace text may vary. Stable stdout contains only the labels shown in the example.
 
-### 4.8. Nội dung bảy descriptor
+### 4.8. Contents of the Seven Descriptors
 
-Tạo các file văn bản dưới descriptors/ với **nội dung tương ứng**:
+Create the text files under `descriptors/` with their **corresponding contents**:
 
 **good/META-INF/services/demo.spi.Action**
 
@@ -294,7 +294,7 @@ Tạo các file văn bản dưới descriptors/ với **nội dung tương ứng
 demo.providers.Healthy
 ~~~
 
-**typo/META-INF/services/demo.spi.Actions** (cố ý sai **tên file**, không sai nội dung)
+**typo/META-INF/services/demo.spi.Actions** (intentionally wrong **file name**, not wrong content)
 
 ~~~text
 demo.providers.Healthy
@@ -330,11 +330,11 @@ demo.providers.Boom
 demo.providers.NotAction
 ~~~
 
-Không có file descriptor chung ở build/providers/. Ta đưa descriptor vào **từng JAR** khi đóng gói; mỗi lượt chạy chỉ dùng một JAR biến thể và api.jar.
+There is no shared descriptor file in `build/providers/`. We place each descriptor into **each JAR** during packaging; each run uses only one variant JAR and `api.jar`.
 
-### 4.9. Compile, đóng JAR và chạy
+### 4.9. Compile, Package JARs, and Run
 
-Từ thư mục **classpath-lab/**, với JDK 17+ và shell bash/POSIX:
+From the **classpath-lab/** directory, with JDK 17+ and a bash/POSIX shell:
 
 ~~~bash
 mkdir -p build/api build/providers build/host dist
@@ -365,7 +365,7 @@ do
 done
 ~~~
 
-**Stdout kỳ vọng chính xác** với đúng các JAR và classpath đã nêu:
+**Exact expected stdout** with the exact JARs and classpath listed above:
 
 ~~~text
 good -> FOUND ok
@@ -377,19 +377,19 @@ throws -> CONFIG_ERROR
 wrong-type -> CONFIG_ERROR
 ~~~
 
-Cách hiểu:
+Interpretation:
 
-- **good**: tên descriptor và constructor hợp lệ, in FOUND ok.
-- **typo**: provider class hiện diện nhưng file services có tên demo.spi.Actions thay vì demo.spi.Action. Không có registration cho SPI đang dùng, nên in NO_PROVIDER chứ **không bắt buộc có error**.
-- **missing-class**: descriptor yêu cầu một class không tồn tại trong runtime loader.
-- **bad-syntax**: tên provider không hợp lệ ngay từ nội dung file.
-- **no-ctor**: thiếu public no-arg constructor.
-- **throws**: constructor chạy rồi ném IllegalStateException.
-- **wrong-type**: class tồn tại nhưng không assignable tới Action.
+- **good**: descriptor name and constructor are valid; prints `FOUND ok`.
+- **typo**: the provider class is present, yet the services file is named `demo.spi.Actions` instead of `demo.spi.Action`. There is no registration for the queried SPI, so it prints `NO_PROVIDER` rather than **necessarily throwing an error**.
+- **missing-class**: the descriptor requests a class that does not exist in the runtime loader.
+- **bad-syntax**: the provider name is invalid directly in the file contents.
+- **no-ctor**: missing public no-arg constructor.
+- **throws**: constructor runs and throws `IllegalStateException`.
+- **wrong-type**: class exists, but is not assignable to `Action`.
 
-Nếu chạy trên Windows trong PowerShell/CMD, dấu phân cách trong -cp là dấu **;**, không phải dấu **:**. Các cú pháp for, dấu \ để xuống dòng, biến $case_name và mkdir -p thuộc bash; dùng Git Bash/WSL hoặc viết lại tương đương cho PowerShell.
+When running on Windows in PowerShell/CMD, the `-cp` separator is **;**, not **:**. The `for` syntax, line-continuation `\`, `$case_name` variable, and `mkdir -p` are bash syntax; use Git Bash/WSL or rewrite equivalently for PowerShell.
 
-Để xem nguyên nhân gốc của từng biến thể, chạy riêng:
+To inspect the root cause of each variant, run individually:
 
 ~~~bash
 java -cp "build/host:dist/api.jar:dist/throws.jar" \
@@ -402,22 +402,22 @@ javap -public -classpath "dist/api.jar:dist/no-ctor.jar" \
   demo.providers.NeedsArgument
 ~~~
 
-Lệnh javap giúp xác nhận có constructor nhận String nhưng **không có constructor rỗng**. Với throws, stack trace nên thể hiện đường khởi tạo provider và IllegalStateException gốc. Không so khớp toàn bộ stderr bằng văn bản cố định: thông điệp/stack frame phụ thuộc cách JDK thể hiện lỗi.
+The `javap` command confirms there is a constructor taking `String` and **no empty constructor**. For `throws`, the stack trace shows the provider instantiation path and the underlying `IllegalStateException`. Do not match full stderr against literal text: messages and stack frames depend on how the JDK formats errors.
 
-## 5. Quy trình chẩn đoán classpath theo bằng chứng
+## 5. Evidence-Based Classpath Diagnostic Workflow
 
-Khi ServiceLoader không thấy provider hoặc ném ServiceConfigurationError, hãy làm lần lượt:
+When `ServiceLoader` finds no providers or throws `ServiceConfigurationError`, proceed step by step:
 
-1. **Xác nhận service type thực sự là gì.** In Action.class.getName() và Action.class.getClassLoader(); không suy từ tên đơn giản hoặc một bản interface trong source tree.
-2. **Xác nhận class loader tìm provider.** ServiceLoader.load(Action.class) dùng TCCL của thread gọi; ServiceLoader.load(Action.class, explicitLoader) dùng loader được truyền. Classpath của IDE, test runner, servlet container và thread worker có thể khác nhau.
-3. **Kiểm tra chính xác runtime JAR.** Dùng jar --list --file plugin.jar để tìm META-INF/services/demo.spi.Action và class .class liên quan. Không chỉ nhìn file bên ngoài JAR.
-4. **Mở descriptor đúng tên và kiểm tra từng dòng.** Đúng tên binary class, không chứa khoảng trắng bất hợp lệ, không lẫn suffix .class, đúng UTF-8. Một dòng sai có thể làm toàn lượt discovery thất bại.
-5. **Kiểm tra class có tải được không.** Nếu tên class đúng nhưng JVM báo class not found, xem dependency còn thiếu, class loader scope, JAR version và module/classpath deployment.
-6. **Kiểm tra subclass/constructor.** So sánh SPI bằng isAssignableFrom(...) trên Class object thực tế; dùng javap -public hoặc reflection có kiểm soát để xác nhận constructor phù hợp.
-7. **Kiểm tra getCause() và stack trace.** Phân biệt lỗi parse, linkage, constructor hoặc factory code tự ném lỗi.
-8. **Sửa artifact rồi chạy trong tiến trình sạch** khi có thể; không dựa vào reload() như một thao tác "chữa" một descriptor/JAR còn sai.
+1. **Confirm what the service type actually is.** Print `Action.class.getName()` and `Action.class.getClassLoader()`; do not infer from a simple name or an interface copy in the source tree.
+2. **Confirm which class loader looks up providers.** `ServiceLoader.load(Action.class)` uses the calling thread's TCCL; `ServiceLoader.load(Action.class, explicitLoader)` uses the passed loader. Classpaths of IDEs, test runners, servlet containers, and worker threads can differ.
+3. **Inspect the exact runtime JAR.** Use `jar --list --file plugin.jar` to check for `META-INF/services/demo.spi.Action` and the relevant `.class` files. Do not look only at files outside the JAR.
+4. **Open the correctly named descriptor and inspect every line.** Verify exact binary class names, no invalid whitespace, no accidental `.class` suffix, and valid UTF-8. One bad line can fail the entire discovery pass.
+5. **Check whether the class can be loaded.** If the class name is right yet the JVM reports class not found, check missing dependencies, class loader scope, JAR version, and module/classpath deployment.
+6. **Check subclassing and constructors.** Check SPI compatibility via `isAssignableFrom(...)` on the actual `Class` object; use `javap -public` or controlled reflection to confirm a suitable constructor.
+7. **Inspect `getCause()` and the stack trace.** Distinguish parse errors, linkage errors, constructor failures, or factory code throwing exceptions.
+8. **Fix the artifact and rerun in a clean process** whenever possible; do not rely on `reload()` as a way to "heal" a broken descriptor or JAR.
 
-Lệnh tham khảo:
+Reference commands:
 
 ~~~bash
 jar --list --file dist/good.jar
@@ -426,52 +426,52 @@ javap -public -classpath "dist/api.jar:dist/good.jar" \
   demo.providers.Healthy
 ~~~
 
-Khi log trong hệ thống thật, lưu **service name, provider name (nếu đã biết), artifact path/hash, JDK version, loader identity, module name, exception class, message, cause chain và giai đoạn**. Tránh ghi full source hoặc mật khẩu cấu hình của plugin vào log. Cần quan sát riêng kết quả NO_PROVIDER, CONFIG_ERROR và PROVIDER_RUNTIME_ERROR.
+When logging in a real system, record **service name, provider name (if known), artifact path/hash, JDK version, loader identity, module name, exception class, message, cause chain, and stage**. Avoid writing full plugin source or configuration passwords to logs. Track `NO_PROVIDER`, `CONFIG_ERROR`, and `PROVIDER_RUNTIME_ERROR` separately.
 
-**Chi tiết có thể gây hiểu nhầm:** hai file JAR cùng có descriptor cho một SPI có thể khiến ServiceLoader tìm nhiều provider. Thứ tự file descriptor phụ thuộc thứ tự ClassLoader.getResources(...). Không xây logic chính xác của hệ thống dựa vào một thứ tự classpath ngẫu nhiên; càng không để một JAR hỏng đứng trước một provider tốt mà mặc định provider tốt chắc chắn được sử dụng.
+**Easily misunderstood detail:** two JAR files both containing a descriptor for the same SPI can cause `ServiceLoader` to discover multiple providers. Descriptor order depends on `ClassLoader.getResources(...)` ordering. Never build system correctness on an accidental classpath order; and certainly never place a broken JAR ahead of a good provider expecting the good provider to always be used.
 
-## 6. JPMS: điều gì thay đổi khi provider nằm trong named module?
+## 6. JPMS: What Changes When Providers Live in a Named Module?
 
-Từ Java 9, explicit named module thường khai báo provider bằng **module-info.java**:
+Since Java 9, explicit named modules typically declare providers in **module-info.java**:
 
 ~~~java
-// Trong một module provider (mã minh họa):
+// In a provider module (illustrative code):
 module demo.provider {
     requires demo.api;
     provides demo.spi.Action with demo.provider.Direct;
 }
 ~~~
 
-Consumer là **explicit named module** cần khai báo **uses demo.spi.Action** nếu gọi ServiceLoader cho service đó. Nếu thiếu uses, ServiceLoader có thể ném ServiceConfigurationError ngay khi tạo loader; kiểm tra lỗi ở bước gọi load(...) chứ không chỉ iterator.
+A consumer that is an **explicit named module** must declare **`uses demo.spi.Action`** if it calls `ServiceLoader` for that service. If `uses` is missing, `ServiceLoader` can throw `ServiceConfigurationError` immediately when creating the loader; check for errors at the `load(...)` call, not only during iteration.
 
-So với classpath descriptor:
+Comparison with classpath descriptors:
 
-| Vấn đề | Classpath/unnamed module | Explicit named module |
+| Aspect | Classpath / Unnamed Module | Explicit Named Module |
 | --- | --- | --- |
-| Nơi khai báo provider | META-INF/services/<SPI> | provides ... with ... trong module-info |
-| Phạm vi tìm | ClassLoader và các resource mà nó nhìn thấy | Graph module đã được resolve; có thể dùng load(layer, service) |
-| Consumer uses | Không có module-info | Cần uses đối với caller explicit named module |
-| Cách tạo provider | Public no-arg constructor | Public no-arg constructor **hoặc provider method** hợp lệ |
-| Provider class có cần implements SPI? | Có | Nếu dùng provider() thì class factory **không nhất thiết** implements SPI |
-| Tính hợp lệ của tên/type | Chủ yếu phát hiện khi runtime scan | Nhiều lỗi descriptor được javac phát hiện lúc compile module |
-| Resource descriptor đồng thời | Service file đăng ký classpath provider | Provider trong named module được định danh bằng provides; không nên dùng service file như nguồn đăng ký thay thế |
-| Provider discovery order | Phụ thuộc ClassLoader.getResources và từng descriptor | Thứ tự các module trong layer không được bảo đảm |
+| Where providers are declared | `META-INF/services/<SPI>` | `provides ... with ...` in `module-info` |
+| Discovery scope | `ClassLoader` and resources visible to it | Resolved module graph; can use `load(layer, service)` |
+| Consumer `uses` | No `module-info` | Requires `uses` for an explicit named module caller |
+| How provider is instantiated | Public no-arg constructor | Public no-arg constructor **or valid provider method** |
+| Must provider class implement SPI? | Yes | If using `provider()`, the factory class **does not necessarily** implement the SPI |
+| Name/type validity checks | Mostly discovered during runtime scan | Many descriptor errors are caught by `javac` at module compile time |
+| Simultaneous resource descriptors | Service file registers classpath providers | Providers in named modules are identified by `provides`; do not use service files as an alternate registration source |
+| Provider discovery order | Depends on `ClassLoader.getResources` and descriptor order | Module order within a layer is not guaranteed |
 
-**Provider method** trong explicit named module là **public static phương thức tên provider, không tham số, kiểu trả về assignable tới service**. Nếu tồn tại, ServiceLoader dùng nó để lấy instance. Method có thể trả null hoặc ném lỗi; cả hai là nguyên nhân ServiceConfigurationError lúc tạo provider.
+A **provider method** in an explicit named module is a **`public static` method named `provider`, taking no parameters, with a return type assignable to the service**. If present, `ServiceLoader` invokes it to obtain the instance. The method may return `null` or throw an error; both cause `ServiceConfigurationError` during provider creation.
 
-**Automatic module** trên module path có quy tắc khác: cần provider constructor, không hỗ trợ kiểu factory provider method của explicit named module. Vì vậy mọi hướng dẫn "chỉ cần thêm public static provider()" phải kiểm tra artifact thực sự là explicit module hay automatic module.
+**Automatic modules** on the module path follow different rules: they require a provider constructor and do not support the explicit-named-module `provider()` factory style. Therefore, any guidance saying "just add `public static provider()`" must verify whether the artifact is actually an explicit module or an automatic module.
 
-Cần phân biệt **module chưa được resolve** với **provider đã được resolve nhưng tạo thất bại**. Module có trong thư mục --module-path chưa chứng minh đã thuộc module graph được thực thi. Trong lab dưới đây, ta thêm --add-modules demo.provider để chắc chắn module provider được giải quyết.
+Distinguish **an unresolved module** from **a resolved provider that failed to instantiate**. Simply having a module in the `--module-path` directory does not prove it belongs to the executed module graph. In the lab below, we add `--add-modules demo.provider` to ensure the provider module is resolved.
 
-## 7. Lab JPMS Java 17+: direct constructor và factory provider
+## 7. Java 17+ JPMS Lab: Direct Constructor and Factory Provider
 
-Lab này tách biệt với classpath-lab để tránh nhầm tên binary giữa hai bộ mã. Chúng ta tạo ba explicit modules:
+This lab is separate from `classpath-lab` to avoid binary name collisions between the two codebases. We create three explicit modules:
 
-- **demo.api**: xuất public SPI Action.
-- **demo.provider**: đăng ký hai provider, một trực tiếp qua public constructor và một qua public static provider().
-- **demo.host**: khai báo uses và gọi ServiceLoader.
+- **demo.api**: exports the public SPI `Action`.
+- **demo.provider**: registers two providers—one directly via a public constructor and one via `public static provider()`.
+- **demo.host**: declares `uses` and calls `ServiceLoader`.
 
-### 7.1. Cây thư mục
+### 7.1. Directory Tree
 
 ~~~text
 module-lab/
@@ -487,10 +487,10 @@ module-lab/
 │   └── demo.host/
 │       ├── module-info.java
 │       └── demo/host/Main.java
-└── build/mods/              (tạo khi biên dịch)
+└── build/mods/              (created on compilation)
 ~~~
 
-### 7.2. Module API
+### 7.2. API Module
 
 File **src/demo.api/module-info.java**:
 
@@ -510,7 +510,7 @@ public interface Action {
 }
 ~~~
 
-### 7.3. Module provider và hai cơ chế khởi tạo
+### 7.3. Provider Module and Two Instantiation Mechanisms
 
 File **src/demo.provider/module-info.java**:
 
@@ -549,18 +549,18 @@ import demo.spi.Action;
 public final class Factory {
     private Factory() {}
 
-    // Trong explicit named module, ServiceLoader nhận instance từ method này.
+    // In an explicit named module, ServiceLoader receives the instance from this method.
     public static Action provider() {
         return () -> "factory";
     }
 }
 ~~~
 
-Factory **không implements Action** và có constructor private. Điều này hợp lệ vì nó công khai một provider method có kiểu trả về là Action; ServiceLoader gọi provider() và nhận lambda thực sự implements Action. **Không áp dụng mẫu này cho classpath descriptor** rồi chờ ServiceLoader classpath gọi Factory.provider(): trường hợp classpath cần class provider assignable tới SPI và public no-arg constructor.
+`Factory` **does not implement `Action`** and has a private constructor. This is valid because it exposes a `provider()` method returning `Action`; `ServiceLoader` calls `provider()` and receives a lambda that actually implements `Action`. **Do not apply this pattern to a classpath descriptor** and expect classpath `ServiceLoader` to call `Factory.provider()`: the classpath case requires the provider class to be assignable to the SPI and have a public no-arg constructor.
 
-Không cần exports demo.provider trong module-info: class dùng làm provider có thể nằm trong package không exports, và service framework vẫn có cơ chế truy cập provider phù hợp. Nếu host muốn tự reflection vào non-public member của provider thì cần phân tích opens/exports riêng, không suy từ việc ServiceLoader đã tạo được instance.
+You do not need `exports demo.provider` in `module-info`: provider classes may reside in unexported packages, and the service framework still has appropriate access to the provider. If the host itself wants to reflect on non-public members of a provider, analyze `opens`/`exports` separately—do not infer access from the fact that `ServiceLoader` could instantiate it.
 
-### 7.4. Module host có uses
+### 7.4. Host Module with `uses`
 
 File **src/demo.host/module-info.java**:
 
@@ -610,13 +610,13 @@ public final class Main {
 }
 ~~~
 
-Host gom ID rồi **sắp xếp** trước khi in vì thứ tự tìm provider từ nhiều module không được định nghĩa tổng quát. Trong lab này hai provider nằm cùng module với thứ tự provides cụ thể, nhưng sắp xếp giúp output không phụ thuộc vào chính sách thứ tự khi bài tập mở rộng thêm module.
+The host collects IDs and **sorts** them before printing because provider discovery order across multiple modules is not generally defined. In this lab both providers live in the same module with a specific `provides` order, yet sorting keeps output independent of ordering policies as exercises expand to additional modules.
 
-Lưu ý trong sản phẩm thật, method provider.id() có thể ném lỗi nghiệp vụ và nên được catch riêng. Ở đây cả hai provider có id() thuần, nên try/catch tập trung vào failure khi ServiceLoader giải quyết hoặc khởi tạo provider.
+Note that in real production code, `provider.id()` can throw business exceptions and should be caught separately. Here both providers have pure `id()` methods, so the `try/catch` focuses on failures when `ServiceLoader` resolves or instantiates providers.
 
-### 7.5. Biên dịch và chạy trên module path
+### 7.5. Compile and Run on the Module Path
 
-Từ thư mục **module-lab/**, JDK 17+ và shell bash/POSIX:
+From the **module-lab/** directory, JDK 17+ and a bash/POSIX shell:
 
 ~~~bash
 mkdir -p build/mods
@@ -630,25 +630,25 @@ java --module-path build/mods \
   -m demo.host/demo.host.Main
 ~~~
 
-Stdout kỳ vọng chính xác:
+Exact expected stdout:
 
 ~~~text
 FOUND direct
 FOUND factory
 ~~~
 
-Dùng lệnh sau để kiểm tra **module descriptor đã biên dịch**:
+Use the following commands to inspect the **compiled module descriptors**:
 
 ~~~bash
 java --module-path build/mods --describe-module demo.provider
 java --module-path build/mods --describe-module demo.host
 ~~~
 
-Lệnh --describe-module có thể in thêm tên packages, requires, exports và thứ tự khác nhau giữa JDK; điều cần xem là demo.provider chứa **provides demo.spi.Action** và demo.host có **uses demo.spi.Action**. Nếu bạn không thấy provider khi thử ở môi trường khác, kiểm tra graph đã resolve và chú ý rằng ví dụ dùng --add-modules demo.provider để đưa nó vào graph.
+`--describe-module` may print additional package names, `requires`, `exports`, and varying order across JDKs; what matters is that `demo.provider` contains **`provides demo.spi.Action`** and `demo.host` contains **`uses demo.spi.Action`**. If you see no providers when trying in another environment, inspect the resolved graph and note that the example passes `--add-modules demo.provider` to bring it into the graph.
 
-### 7.6. Tái hiện lỗi từ provider method trong module
+### 7.6. Reproducing Failures from a Module Provider Method
 
-Sau khi xác nhận lab thành công, **chỉ trong bản lab riêng**, đổi thân Factory.provider() thành:
+After confirming the lab succeeds, **only in your isolated lab copy**, change the body of `Factory.provider()` to:
 
 ~~~java
 public static Action provider() {
@@ -656,22 +656,22 @@ public static Action provider() {
 }
 ~~~
 
-Đây là **đoạn sửa một method**, không phải file Java hoàn chỉnh. Biên dịch lại module-lab bằng lệnh javac ở trên, rồi chạy lại. Trình biên dịch có thể chấp nhận vì kiểu trả về là Action, nhưng ServiceLoader khi gọi provider() nhận null sẽ ném ServiceConfigurationError. Host in:
+This is a **single-method edit snippet**, not a complete Java file. Recompile `module-lab` with the `javac` command above, then rerun. The compiler accepts it because the return type is `Action`, yet `ServiceLoader` receiving `null` from `provider()` throws `ServiceConfigurationError`. The host prints:
 
 ~~~text
 CONFIG_ERROR
 ~~~
 
-Bật --trace để xem cause/stack trace cụ thể:
+Enable `--trace` to view the specific cause/stack trace:
 
 ~~~bash
 java --module-path build/mods --add-modules demo.provider \
   -m demo.host/demo.host.Main --trace
 ~~~
 
-Một biến thể khác là để Factory.provider() ném IllegalStateException. Khi đó ServiceConfigurationError thường mang cause phản ánh lỗi bên trong factory. Lưu ý: **thông điệp/cause chi tiết phụ thuộc trường hợp và bản JDK**, nên đừng so sánh toàn bộ stack trace bằng text literal.
+Another variant is having `Factory.provider()` throw `IllegalStateException`. Then `ServiceConfigurationError` typically carries a cause reflecting the failure inside the factory. Note: **exact message/cause details depend on the case and JDK version**, so never compare full stack traces against literal text.
 
-Muốn tái hiện lỗi **constructor trong explicit named module**, khôi phục Factory.provider() hợp lệ rồi đổi constructor của Direct:
+To reproduce a **constructor failure in an explicit named module**, restore a valid `Factory.provider()` and change `Direct`'s constructor:
 
 ~~~java
 public Direct() {
@@ -679,58 +679,58 @@ public Direct() {
 }
 ~~~
 
-Lệnh compile lại vẫn có thể thành công (constructor đúng public no-arg), nhưng lúc tạo provider Direct thì ném lỗi và ServiceLoader báo ServiceConfigurationError. Đây là failure runtime. Ngược lại, nếu **bỏ hoàn toàn** public no-arg constructor khỏi Direct và Direct không có provider() hợp lệ, javac có thể từ chối câu provides ngay tại compile time; đừng gán mọi lỗi định nghĩa module đều cho một exception runtime.
+Recompilation still succeeds (valid public no-arg constructor), yet instantiating `Direct` throws and `ServiceLoader` reports `ServiceConfigurationError`. This is a runtime failure. Conversely, if you **completely remove** the public no-arg constructor from `Direct` and `Direct` has no valid `provider()`, `javac` can reject the `provides` clause at compile time; do not attribute every module definition error to a single runtime exception.
 
-### 7.7. Tái hiện consumer thiếu uses
+### 7.7. Reproducing a Consumer Missing `uses`
 
-Trong bản lab, bỏ dòng uses demo.spi.Action; khỏi module-info.java của demo.host, biên dịch lại rồi thử gọi ServiceLoader.load(Action.class). Theo hợp đồng JDK 17, caller thuộc explicit named module không khai báo uses cho service có thể gặp ServiceConfigurationError ngay ở **lời gọi load(...)**.
+In the lab, remove the `uses demo.spi.Action;` line from `demo.host`'s `module-info.java`, recompile, and call `ServiceLoader.load(Action.class)`. Per the JDK 17 contract, a caller in an explicit named module that does not declare `uses` for the service can hit `ServiceConfigurationError` right at the **`load(...)` call**.
 
-Điểm cần kiểm tra: method trong code host đã đặt lời gọi load(...) bên trong try/catch nên có thể quan sát được CONFIG_ERROR. Nếu bạn chỉ catch lỗi quanh for-loop nhưng tạo ServiceLoader **bên ngoài try**, lỗi khởi tạo service loader do thiếu uses sẽ đi qua boundary.
+Point to verify: the host code placed the `load(...)` call inside the `try/catch` block so `CONFIG_ERROR` is observed. If you only wrap the `for`-loop in `try` while constructing the `ServiceLoader` **outside `try`**, the loader creation failure from missing `uses` will escape the boundary.
 
-Để khắc phục, khôi phục uses vào module-info.java của consumer; không sửa provides ở provider module nếu lỗi thực sự xuất phát từ consumer.
+To fix it, restore `uses` in the consumer's `module-info.java`; do not modify `provides` in the provider module if the fault truly originates from the consumer.
 
-## 8. Trình tự điều tra lỗi module đúng nghĩa
+## 8. Proper Module Error Investigation Sequence
 
-Với named module, quy trình phải bắt đầu từ **cấu hình runtime**, không phải tìm ngay META-INF/services:
+For named modules, the workflow must start with **runtime configuration**, rather than immediately hunting for `META-INF/services`:
 
-1. **Xác minh provider là explicit/automatic/unnamed module.** Dùng jar --describe-module cho modular JAR hoặc java --describe-module với module path; kiểm tra module-info.class và module graph.
-2. **Xem consumer có uses hay không.** ServiceLoader.load từ explicit module yêu cầu uses tương ứng; đặt try quanh cả lời gọi tạo loader.
-3. **Xem provider có được resolve không.** Chỉ nằm trong thư mục module path chưa đủ; xác minh root modules, --add-modules, resolution hoặc ModuleLayer runtime.
-4. **Đọc provides ... with ... của provider.** Provider class phải được khai báo trong chính module cung cấp service; nhiều lỗi subtype/constructor được javac bắt sớm nếu build từ source hợp lệ.
-5. **Kiểm tra cách tạo instance:** không có provider method thì cần public no-arg constructor và assignability; nếu có public static provider() thì kiểm tra kiểu trả về, null và exception do method ném.
-6. **Kiểm tra danh tính SPI:** module API nào được consumer và provider đọc? Hai bản interface cùng tên nhưng do loader khác định nghĩa có thể không assignable.
-7. **Đọc cause chain và runtime class/module:** in class.getModule().getName(), getClassLoader() khi có Class object hợp lệ. Không chỉ dùng getName() vì không phân biệt loader.
-8. **Sửa đúng artifact và tái triển khai:** nếu module descriptor sai, xây lại module; nếu constructor/factory thất bại, sửa implementation; nếu module chưa resolve, sửa graph và cách tạo layer.
+1. **Verify whether the provider is an explicit, automatic, or unnamed module.** Run `jar --describe-module` for modular JARs or `java --describe-module` with the module path; inspect `module-info.class` and the module graph.
+2. **Check whether the consumer declares `uses`.** `ServiceLoader.load` from an explicit module requires a corresponding `uses`; wrap the loader-creation call itself in `try`.
+3. **Check whether the provider is resolved.** Simply residing in the module-path directory is insufficient; verify root modules, `--add-modules`, resolution, or runtime `ModuleLayer`.
+4. **Read the provider's `provides ... with ...`.** The provider class must be declared in the module providing the service; many subtype/constructor errors are caught early by `javac` when built cleanly from source.
+5. **Check the instantiation mechanism:** without a provider method, a public no-arg constructor and assignability are required; with `public static provider()`, verify return type, non-null return, and exceptions thrown.
+6. **Verify SPI identity:** which API module is read by consumer and provider? Two copies of an interface with the same name defined by different loaders may not be assignable.
+7. **Inspect the cause chain and runtime class/module:** print `class.getModule().getName()` and `getClassLoader()` when a valid `Class` object exists. Do not rely on `getName()` alone since it does not distinguish loaders.
+8. **Fix the right artifact and redeploy:** if the module descriptor is wrong, rebuild the module; if constructor/factory fails, fix the implementation; if the module was not resolved, fix the graph and layer construction.
 
-**Lỗi compile-time của module-info không được phép che dưới nhãn ServiceConfigurationError.** Ví dụ module-info dùng provides với provider không thuộc module hoặc không đáp ứng điều kiện JLS có thể bị javac từ chối trước lúc ứng dụng chạy. Phân định thời điểm lỗi sẽ tiết kiệm thời gian điều tra đáng kể.
+**Compile-time `module-info` errors must not be masked under the `ServiceConfigurationError` label.** For example, a `module-info` using `provides` with a provider outside the module or failing JLS requirements can be rejected by `javac` before the application ever runs. Separating failure timing saves substantial investigation time.
 
-ModuleLayer còn làm bài toán tinh tế hơn: ServiceLoader.load(layer, Action.class) tìm service trong layer và các parent layer theo hợp đồng API, **không tìm classpath/unnamed module providers** giống việc scan toàn bộ TCCL. Vì thế thiếu provider ở layer-specific lookup chưa hẳn là provider implementation hỏng; có thể host đang dùng sai layer.
+`ModuleLayer` adds further subtlety: `ServiceLoader.load(layer, Action.class)` searches for services in that layer and its parent layers per the API contract, **not scanning classpath/unnamed module providers** the way a full TCCL scan does. Therefore, missing providers in a layer-specific lookup does not necessarily mean the provider implementation is broken; the host may be querying the wrong layer.
 
-## 9. Constructor, provider method và lỗi linkage khác nhau thế nào?
+## 9. How Constructors, Provider Methods, and Linkage Errors Differ
 
-| Trường hợp | Thứ đã được chứng minh | Điều vẫn có thể sai |
+| Case | What Is Proven | What Can Still Be Wrong |
 | --- | --- | --- |
-| Class provider xuất hiện trong jar --list | Có file .class ở artifact | JAR runtime có được loader nhìn thấy? Class có phải subtype SPI? |
-| Class.forName(name, false, loader) thành công | Có thể định vị/định nghĩa class, tùy loader | Constructor public no-arg, dependency khi initialize, provider method và quyền truy cập |
-| javap cho thấy public X() | Bytecode có constructor đúng hình dạng | Constructor có thể ném exception |
-| Provider implements SPI tại source | Source có câu implements | Runtime SPI có thể là bản class identity khác |
-| Class có public static provider() | Có method đúng tên | Chỉ dùng làm provider method trong bối cảnh module hỗ trợ; return type/return value có thể sai |
-| ServiceLoader.load(...) trả object | Đã tạo ServiceLoader | Chưa chắc đã duyệt, nạp hoặc tạo provider |
-| Iterator.hasNext() trả true | Có provider candidate | Iterator.next() vẫn có thể ném ServiceConfigurationError |
-| Provider instance tạo thành công | Constructor/factory trả về instance | Method nghiệp vụ vẫn có thể ném exception hoặc dùng resource sai |
+| Provider class appears in `jar --list` | `.class` file exists in the artifact | Is the runtime JAR visible to the loader? Is the class an SPI subtype? |
+| `Class.forName(name, false, loader)` succeeds | Class can be located/defined by that loader | Public no-arg constructor, dependencies during initialization, provider method, and access permissions |
+| `javap` shows `public X()` | Bytecode has the right constructor shape | Constructor may throw an exception |
+| Provider `implements` SPI in source | Source contains the `implements` clause | Runtime SPI may have a different class identity |
+| Class has `public static provider()` | Method with matching name exists | Only used as a provider method in supporting module contexts; return type or value may be wrong |
+| `ServiceLoader.load(...)` returns an object | `ServiceLoader` created | Not yet iterated, loaded, or instantiated providers |
+| `Iterator.hasNext()` returns `true` | A provider candidate exists | `Iterator.next()` can still throw `ServiceConfigurationError` |
+| Provider instance created successfully | Constructor/factory returned an instance | Business methods can still throw exceptions or misconfigure resources |
 
-**NoClassDefFoundError không đồng nghĩa ClassNotFoundException.** Một provider class có thể tồn tại nhưng khi JVM liên kết hoặc khởi tạo nó, một dependency khác bị thiếu hoặc không tương thích. Xem cause chain và danh sách dependency, không chỉ sửa tên descriptor. Với lỗi linkage khác (NoSuchMethodError, IncompatibleClassChangeError, IllegalAccessError), cần xem ABI/JAR runtime; không mặc định mọi Error đều được ServiceLoader bọc thành ServiceConfigurationError trong mọi chặng.
+**`NoClassDefFoundError` is not synonymous with `ClassNotFoundException`.** A provider class may exist, yet when the JVM links or initializes it, another dependency is missing or incompatible. Inspect the cause chain and dependency list rather than only editing the descriptor name. For other linkage errors (`NoSuchMethodError`, `IncompatibleClassChangeError`, `IllegalAccessError`), inspect the runtime ABI/JAR; do not assume every `Error` is wrapped by `ServiceLoader` into `ServiceConfigurationError` at every step.
 
-**TCCL:** ServiceLoader.load(Service.class) dùng Thread.currentThread().getContextClassLoader(). Một worker thread có context loader khác thread main, hoặc plugin manager dùng loader riêng, có thể tìm thấy descriptor nhưng không nạp được implementation/API đúng. Nếu thiết kế cho phép, dùng ServiceLoader.load(Service.class, pluginLoader) và quản lý loader rõ ràng. Thay TCCL mà không restore trong finally có thể gây lỗi lookup dây chuyền cho request tiếp theo.
+**TCCL:** `ServiceLoader.load(Service.class)` uses `Thread.currentThread().getContextClassLoader()`. A worker thread with a different context loader than the main thread, or a plugin manager using its own loader, may locate the descriptor yet fail to load the right implementation/API. When design permits, use `ServiceLoader.load(Service.class, pluginLoader)` and manage loaders explicitly. Modifying TCCL without restoring it in `finally` can trigger cascading lookup failures on subsequent requests.
 
-**Class identity:** hai Class object có cùng tên demo.spi.Action nhưng được định nghĩa bởi hai ClassLoader khác nhau là **hai type JVM khác nhau**. Khi báo "not a subtype" dù source implements Action, kiểm tra defining loader của cả interface và implementation; tránh đóng API JAR bản riêng vào mỗi plugin nếu host cần ép provider về interface do host định nghĩa.
+**Class identity:** two `Class` objects with the same name `demo.spi.Action` defined by two different `ClassLoader` instances are **two distinct JVM types**. When seeing "not a subtype" even though source implements `Action`, check the defining loader of both the interface and implementation; avoid bundling a separate copy of the API JAR into each plugin if the host expects providers to implement the host-defined interface.
 
-## 10. Cách log đủ thông tin mà không lộ dữ liệu nhạy cảm
+## 10. Logging Sufficient Information Without Exposing Sensitive Data
 
-Đừng chỉ bắt rồi in "CONFIG_ERROR"; trong sản phẩm cần đủ ngữ cảnh để truy nguyên. Một helper đơn giản ở ranh giới lỗi có thể là:
+Do not simply catch and print `"CONFIG_ERROR"`; production needs enough context to trace back to the root cause. A simple helper at the error boundary might look like:
 
 ~~~java
-// Mã minh họa tích hợp, không phải file Java độc lập.
+// Illustrative integration snippet, not a standalone Java file.
 static void reportServiceFailure(
         Class<?> service, ServiceConfigurationError error) {
     System.err.println("service=" + service.getName());
@@ -750,70 +750,70 @@ static void reportServiceFailure(
 }
 ~~~
 
-Đối với logger structured ở production, ưu tiên các trường service, candidateProvider, artifactId, artifactHash, loaderId, moduleName, stage (LOOKUP/PARSE/LOAD/INSTANTIATE/INVOKE), exceptionClass, rootCauseClass và correlationId. Đừng dùng hashCode() của ClassLoader như một định danh toàn cục duy nhất không thể trùng; gán ID riêng trong plugin manager nếu cần.
+For structured production loggers, prefer fields for `service`, `candidateProvider`, `artifactId`, `artifactHash`, `loaderId`, `moduleName`, `stage` (`LOOKUP`/`PARSE`/`LOAD`/`INSTANTIATE`/`INVOKE`), `exceptionClass`, `rootCauseClass`, and `correlationId`. Never use a `ClassLoader`'s `hashCode()` as a globally unique identifier; assign dedicated IDs in the plugin manager when needed.
 
-Nếu getCause() là null, vẫn có thể có lỗi nghiêm trọng trong bản thân descriptor; **null cause không có nghĩa lỗi giả**. Ghi message và ngữ cảnh chính xác để chẩn đoán. Nếu provider() trả null trong named module, bản JDK có thể báo "provider method returned null" mà không có một cause là Throwable do user code ném.
+Even if `getCause()` is `null`, a serious error can exist in the descriptor itself; **a null cause does not mean a false alarm**. Log the exact message and context for diagnosis. If `provider()` returns `null` in a named module, the JDK may report `"provider method returned null"` without a user-thrown `Throwable` cause.
 
-Tránh log toàn bộ mã nguồn plugin, credential, URL có token hoặc dữ liệu người dùng; chỉ in stack trace đầy đủ vào kênh log nội bộ được bảo vệ. Với hệ thống có nhiều phiên bản JDK, đừng parse string chi tiết từ stack trace làm protocol.
+Avoid logging full plugin source code, credentials, URLs with tokens, or user data; print full stack traces only to protected internal log channels. In systems spanning multiple JDK versions, do not parse exact wording from stack traces as a programmatic protocol.
 
-## 11. Điều gì xảy ra nếu tiếp tục duyệt sau ServiceConfigurationError?
+## 11. What Happens If Iteration Continues After ServiceConfigurationError?
 
-Theo Javadoc Java 17, sau khi Iterator.hasNext() hoặc next() ném ServiceConfigurationError, những lời gọi tiếp theo **thử tốt nhất** để tìm provider còn lại, nhưng **không có bảo đảm phục hồi**. Có thể một lỗi ở tệp cấu hình làm iterator không tiến được hoặc nhiều lỗi xuất hiện liên tiếp.
+Per the Java 17 Javadoc, after `Iterator.hasNext()` or `next()` throws `ServiceConfigurationError`, subsequent calls make a **best-effort** attempt to locate remaining providers, with **no guarantee of recovery**. A malformed configuration file can stall the iterator or trigger repeated errors in sequence.
 
-Vì thế:
+Therefore:
 
-- **SPI bắt buộc** như xác thực, policy hoặc logic mà sự đầy đủ của tập provider là điều kiện an toàn: thường nên fail closed, không chạy với tập thiếu.
-- **Plugin tùy chọn** có thể cho phép degraded mode nếu host định nghĩa ranh giới lỗi, giới hạn số lần thử/steps, log provider bị từ chối và báo trạng thái partial.
-- **Không dùng while(iterator.hasNext()) với hasNext ngoài try**: lỗi parse vẫn có thể lọt.
-- **Không gọi iterator.next() vô hạn sau lỗi** với kỳ vọng tự động skip.
-- **Không gọi reload() như cách sửa descriptor**. reload() xóa cache ServiceLoader, không tự sửa JAR, module descriptor, constructor hay dependency.
-- **Không đổi nguồn JAR/loader trong khi cùng một iterator đang được sử dụng** rồi coi kết quả là có thể dự đoán. Khi deploy lại, tạo phiên loading mới đúng lifecycle.
+- **Mandatory SPIs** such as authentication, policy, or logic where completeness of the provider set is a safety invariant: typically fail closed and do not run with a partial set.
+- **Optional plugins** may allow degraded mode if the host defines an error boundary, caps retry/iteration steps, logs rejected providers, and reports partial status.
+- **Do not write `while(iterator.hasNext())` with `hasNext` outside `try`**: parse errors can still escape.
+- **Do not call `iterator.next()` indefinitely after an error** expecting automatic skipping.
+- **Do not call `reload()` as a way to fix a descriptor**. `reload()` clears the `ServiceLoader` cache; it does not repair JARs, module descriptors, constructors, or dependencies.
+- **Do not swap JAR/loader sources while the same iterator is in flight** and expect predictable results. On redeploy, create a fresh loading session following lifecycle rules.
 
-Nếu có thể tổ chức plugin theo artifact độc lập và có plugin manager kiểm soát class loader, cách ly vùng discovery theo gói giúp một JAR sai bớt ảnh hưởng plugin khác. Nhưng giải pháp này cần quản lý parent delegation và SPI identity, không chỉ tạo tùy tiện nhiều URLClassLoader.
+Where plugins can be structured as independent artifacts with a plugin manager controlling class loaders, isolating discovery per package helps keep one broken JAR from breaking other plugins. However, that approach requires managing parent delegation and SPI identity rather than spawning arbitrary `URLClassLoader` instances.
 
-## 12. Các lỗi chẩn đoán thường gặp
+## 12. Common Diagnostic Pitfalls
 
-| Triệu chứng | Sai lầm dễ mắc | Cách sửa |
+| Symptom | Common Mistake | How to Fix |
 | --- | --- | --- |
-| Class có trong JAR nhưng NO_PROVIDER | Tưởng có .class là ServiceLoader sẽ tự scan implementation | Kiểm tra META-INF/services hoặc module provides |
-| ServiceConfigurationError do wrong class name | Chỉ nhìn constructor của class đúng trong source | Xem **dòng descriptor thực tế** đang gọi tới class nào |
-| Thấy "not a subtype" dù implements ở source | Coi tên class trùng là type identity | So sánh class loader/module và API JAR runtime |
-| Constructor nhận một tham số, không có public no-arg | Cho rằng Java tự sinh default constructor | Thêm explicit public no-arg hoặc chuyển sang explicit module factory nếu phù hợp |
-| Constructor throw nhưng log không có nguyên nhân | Catch Error rồi chỉ in getMessage() | Log stack trace và getCause() |
-| Provider module không được tìm thấy | Chỉ kiểm tra JAR có trên --module-path | Kiểm tra module đã resolve và service loader scope |
-| Named consumer thiếu uses | Chỉ sửa provides ở provider | Thêm uses ở consumer named module |
-| Factory.provider() trả null | Cho rằng return null nghĩa là không có provider | Đây là lỗi cấu hình/khởi tạo; dùng cơ chế capability selection khác |
-| Module factory class không implements SPI | Áp quy tắc classpath lên explicit named module | Kiểm tra provider() public static no-arg trả subtype của SPI |
-| Việc compile module-info lỗi | Cố bắt ServiceConfigurationError ở runtime | Sửa JLS module declarations trước build |
-| Iterator không tiến sau khi catch | Vòng retry vô hạn | Dừng/giới hạn; đừng hứa hồi phục |
-| reload() rồi vẫn lỗi | Cache được xóa nhưng artifact sai nguyên trạng | Sửa JAR/module và tạo loader phù hợp |
-| Provider method chạy nhưng business method fail | Gộp lỗi business vào lỗi descriptor | Tách giai đoạn discovery khỏi invoke |
+| Class exists in JAR, yet `NO_PROVIDER` | Assuming `.class` presence lets `ServiceLoader` auto-scan implementations | Check `META-INF/services` or module `provides` |
+| `ServiceConfigurationError` from wrong class name | Inspecting only the right class's constructor in source | Inspect the **actual descriptor line** specifying which class is requested |
+| "not a subtype" despite `implements` in source | Treating identical class names as identical types | Compare class loaders/modules and the runtime API JAR |
+| Constructor takes one parameter, no public no-arg | Assuming Java always generates a default constructor | Add an explicit public no-arg constructor or switch to an explicit module factory if appropriate |
+| Constructor throws, yet log lacks cause | Catching `Error` and printing only `getMessage()` | Log stack trace and `getCause()` |
+| Provider module not found | Checking only that the JAR is on `--module-path` | Check resolved modules and service loader scope |
+| Named consumer lacks `uses` | Editing only `provides` in the provider | Add `uses` to the consumer named module |
+| `Factory.provider()` returns `null` | Thinking returning `null` means "no provider" | This is a configuration/instantiation error; use a different capability-selection mechanism |
+| Module factory class does not implement SPI | Applying classpath rules to an explicit named module | Verify `public static` no-arg `provider()` returns a subtype of the SPI |
+| `module-info` compilation fails | Trying to catch `ServiceConfigurationError` at runtime | Fix JLS module declarations before build |
+| Iterator stops advancing after catch | Infinite retry loop | Stop or cap steps; never promise recovery |
+| Error persists after `reload()` | Cache cleared, yet broken artifact remains unchanged | Fix the JAR/module and create an appropriate loader |
+| Provider method runs, yet business method fails | Lumping business errors into descriptor errors | Separate discovery phase from invocation phase |
 
-Một trường hợp ít gặp nhưng quan trọng: nếu ClassLoader.getResources tìm service descriptor qua **HTTP URL** và server trả **200 OK kèm trang HTML cho một đường dẫn không tồn tại** thay vì 404, ServiceLoader có thể cố parse HTML thành provider names và phát sinh ServiceConfigurationError. Đây là lý do phải kiểm tra nguồn resource, không chỉ nội dung JAR trong môi trường class loader dùng URL từ mạng.
+A rare but important case: if `ClassLoader.getResources` fetches a service descriptor over an **HTTP URL** and the server returns **200 OK with an HTML page for a missing path** instead of 404, `ServiceLoader` can try to parse the HTML as provider names and throw `ServiceConfigurationError`. This is why you must verify resource origins—not only JAR contents—in environments using network URLs in class loaders.
 
-## 13. Checklist điều tra nhanh
+## 13. Quick Investigation Checklist
 
-Trước khi đóng một lỗi ServiceConfigurationError, hãy trả lời được:
+Before closing a `ServiceConfigurationError` investigation, be able to answer:
 
-1. **Đây là classpath, automatic module hay explicit named module?**
-2. **Service type chính xác** là class/interface nào; ClassLoader và Module của nó là gì?
-3. **Registration đến từ đâu**: META-INF/services/<SPI> hay provides trong module-info?
-4. **Nếu classpath**: descriptor có đúng tên, vị trí, UTF-8 và tên class không; class có thật trong JAR runtime không?
-5. **Nếu JPMS**: consumer có uses, provider có provides, module đã resolve, loader/layer đúng không?
-6. **Cách khởi tạo**: public no-arg constructor hay provider() đúng bối cảnh? Có ném exception/trả null không?
-7. **Subtype và dependency**: provider có assignable với service Class object runtime không, thiếu library hoặc ABI nào không?
-8. **Stage lỗi**: ServiceLoader.load, hasNext, next, Provider.get hay business invoke?
-9. **Cause/log**: đã ghi tên service/provider, artifact, module, class loader, stack trace và cause chain chưa?
-10. **Khắc phục và regression test**: đã sửa artifact/config đúng chặng và chạy lại bằng classpath/module graph sạch chưa?
+1. **Is this classpath, an automatic module, or an explicit named module?**
+2. **What is the exact service type** (class/interface), and what are its `ClassLoader` and `Module`?
+3. **Where does the registration come from**: `META-INF/services/<SPI>` or `provides` in `module-info`?
+4. **If classpath**: does the descriptor have the exact name, location, UTF-8 encoding, and class names; does the class really exist in the runtime JAR?
+5. **If JPMS**: does the consumer declare `uses`, does the provider declare `provides`, is the module resolved, and are the loader/layer correct?
+6. **Instantiation mechanism**: public no-arg constructor or `provider()` in a supported context? Does it throw or return `null`?
+7. **Subtype and dependencies**: is the provider assignable to the runtime service `Class` object, and are any libraries or ABIs missing?
+8. **Failure stage**: `ServiceLoader.load`, `hasNext`, `next`, `Provider.get`, or business invocation?
+9. **Cause/logging**: have service/provider names, artifact, module, class loader, stack trace, and cause chain been recorded?
+10. **Fix and regression test**: was the artifact/config fixed at the right stage and re-run against a clean classpath/module graph?
 
-**Bài tập củng cố:** (a) đổi classpath-lab descriptor good thành demo.providers.DoesNotExist rồi so sánh kết quả với typo; (b) sửa NeedsArgument để có public no-arg constructor và kiểm tra no-ctor chuyển thành FOUND; (c) bật --trace để phân loại lỗi ctor throw và wrong-type; (d) trong module-lab bỏ uses khỏi consumer rồi bổ sung lại; (e) thay Factory.provider() trả null rồi sửa; (f) chạy service lookup bằng một loader không nhìn thấy descriptor và giải thích vì sao không thấy provider **không nhất thiết** là ServiceConfigurationError.
+**Reinforcement exercises:** (a) change `classpath-lab`'s `good` descriptor to `demo.providers.DoesNotExist` and compare the result with `typo`; (b) update `NeedsArgument` to add a public no-arg constructor and verify `no-ctor` turns into `FOUND`; (c) enable `--trace` to classify constructor throws vs. `wrong-type`; (d) in `module-lab`, remove `uses` from the consumer and then restore it; (e) make `Factory.provider()` return `null` and then fix it; (f) run service lookup with a loader that cannot see the descriptor and explain why finding zero providers is **not necessarily** a `ServiceConfigurationError`.
 
-## 14. Tài liệu chuẩn và kết luận
+## 14. Standard References and Conclusion
 
-- [Java SE 17 — ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html): mục *Deploying service providers*, *Errors*, iterator(), stream(), load(ModuleLayer,...), reload().
-- [Java SE 17 — ServiceConfigurationError](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceConfigurationError.html): loại Error và mục đích.
-- [Java SE 17 — ServiceLoader.Provider](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.Provider.html): type(), get() và lỗi tạo instance.
-- [JLS 17 — Module Declarations / Service Provision](https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html#jls-7.7.4): quy tắc provides và provider method.
-- [Java SE 17 — jar](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jar.html) và [javap](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html): kiểm tra nội dung artifact, constructor và API.
+- [Java SE 17 — ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html): *Deploying service providers*, *Errors*, `iterator()`, `stream()`, `load(ModuleLayer,...)`, `reload()`.
+- [Java SE 17 — ServiceConfigurationError](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceConfigurationError.html): `Error` hierarchy and purpose.
+- [Java SE 17 — ServiceLoader.Provider](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.Provider.html): `type()`, `get()`, and instantiation errors.
+- [JLS 17 — Module Declarations / Service Provision](https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html#jls-7.7.4): rules for `provides` and provider methods.
+- [Java SE 17 — jar](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jar.html) and [javap](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html): inspecting artifact contents, constructors, and APIs.
 
-**Kết luận:** ServiceConfigurationError là **tín hiệu lỗi ở ranh giới khám phá, nạp hoặc khởi tạo provider**, không phải một chẩn đoán nguyên nhân duy nhất. Muốn điều tra đúng, trước hết xác định **classpath descriptor hay JPMS registration**, sau đó đối chiếu đúng class loader/module, kiểm tra subclass/constructor hoặc provider method, đọc cause chain và tái hiện bằng một artifact tối giản. Không thấy provider, provider tạo thất bại và provider chạy lỗi là **ba trạng thái khác nhau**; phân biệt chúng là điều kiện để sửa đúng và tránh lỗi lặp lại trong hệ thống plugin.
+**Conclusion:** `ServiceConfigurationError` is an **error signal at the discovery, loading, or instantiation boundary of a provider**, not a single-cause diagnosis. To investigate properly, first identify **classpath descriptor vs. JPMS registration**, then verify the exact class loader/module, inspect subtype/constructor or provider method, read the cause chain, and reproduce with a minimal artifact. Finding no provider, failing to instantiate a provider, and failing during provider execution are **three distinct states**; distinguishing them is essential to fixing the root cause and preventing recurring issues in plugin systems.

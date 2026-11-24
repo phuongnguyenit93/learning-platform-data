@@ -1,46 +1,46 @@
-# 3.3 Phân biệt số bit, số byte, độ dài khóa và độ dài đầu ra
+# 3.3 Distinguishing Bit Count, Byte Count, Key Length, and Output Length
 
-Trong lập trình mật mã Java, các con số **128, 256, 2048, 32 hoặc 64** thường xuất hiện bên cạnh thuật toán và API. Chúng có thể biểu thị số **bit**, số **byte**, độ dài **khóa bí mật**, kích thước **modulus** của khóa bất đối xứng, độ dài **digest/MAC/tag**, hoặc số ký tự của chuỗi đã **mã hóa để hiển thị**. Những đại lượng đó liên quan nhưng **không thể thay thế cho nhau**. Nhầm đơn vị có thể khiến code không chạy, lưu trữ thiếu byte hoặc đánh giá sai độ an toàn.
+In Java cryptographic programming, numbers like **128, 256, 2048, 32, or 64** frequently appear alongside algorithms and APIs. They can denote **bits**, **bytes**, **secret key** length, asymmetric **modulus** size, **digest/MAC/tag** length, or the character count of a **display-encoded** string. These quantities are related, yet **cannot be substituted for one another**. Confusing units can break code, truncate stored bytes, or misjudge security strength.
 
-## 1. Đơn vị nền tảng: bit, byte và cách đổi
+## 1. Fundamental Units: Bits, Bytes, and Conversions
 
-- **Bit** là một vị trí nhị phân có giá trị 0 hoặc 1. Ký hiệu thường dùng: **bit** hoặc **b**.
-- **Byte** trong Java có **8 bit**: hằng số `Byte.SIZE` bằng 8. Ký hiệu thông dụng cho byte là **B**. Vì vậy **1 B = 8 bit**.
-- Nếu có đúng `n` byte, số bit cần để biểu diễn chúng là **8 × n**; nếu số bit chia hết cho 8, số byte là **số bit / 8**.
-- Với độ dài bit bất kỳ `n`, số byte **tối thiểu để chứa** giá trị đó là **ceil(n / 8)**, hay với số nguyên không âm: **(n + 7) / 8**. Byte cuối có thể chứa các bit không sử dụng.
-- `kB` = 1.000 byte, `KiB` = 1.024 byte. Phân biệt hai hệ đơn vị dung lượng này với các độ dài khóa thường biểu diễn bằng bit.
+- A **bit** is a binary position holding 0 or 1. Common symbols: **bit** or **b**.
+- A **byte** in Java has **8 bits**: the constant `Byte.SIZE` equals 8. The standard symbol for byte is **B**. Therefore **1 B = 8 bits**.
+- Given `n` bytes, the number of bits needed to represent them is **8 × n**; if a bit count is divisible by 8, the byte count is **bits / 8**.
+- For any bit length `n`, the **minimum bytes required to hold** that value is **ceil(n / 8)**, or for non-negative integers: **(n + 7) / 8**. The last byte may contain unused bits.
+- `kB` = 1,000 bytes, `KiB` = 1,024 bytes. Distinguish these storage-capacity units from key lengths typically expressed in bits.
 
-| Kích thước | Tương ứng byte | Ngữ cảnh thường gặp |
+| Size | Equivalent bytes | Common context |
 | --- | ---: | --- |
-| 64 bit | 8 byte | Giá trị số nguyên 64 bit; nonce 64 bit ở một số giao thức |
-| 96 bit | 12 byte | Nonce/IV khuyến nghị thường dùng cho AES-GCM |
-| 128 bit | 16 byte | Khóa AES-128; tag GCM 128 bit |
-| 192 bit | 24 byte | Khóa AES-192 |
-| 256 bit | 32 byte | Khóa AES-256; đầu ra SHA-256 |
-| 384 bit | 48 byte | Đầu ra SHA-384 |
-| 512 bit | 64 byte | Đầu ra SHA-512 |
-| 2.048 bit | 256 byte | Phần modulus của khóa RSA-2048 (độ dài thường dùng) |
+| 64 bits | 8 bytes | 64-bit integer value; 64-bit nonce in some protocols |
+| 96 bits | 12 bytes | Commonly recommended nonce/IV for AES-GCM |
+| 128 bits | 16 bytes | AES-128 key; 128-bit GCM tag |
+| 192 bits | 24 bytes | AES-192 key |
+| 256 bits | 32 bytes | AES-256 key; SHA-256 output |
+| 384 bits | 48 bytes | SHA-384 output |
+| 512 bits | 64 bytes | SHA-512 output |
+| 2,048 bits | 256 bytes | Modulus component of an RSA-2048 key (commonly used length) |
 
-**Cần nói rõ đại lượng:** “256 bit” chỉ là số bit; nếu không biết nó là *khóa*, *digest*, *tag*, *nonce* hay *modulus*, không thể suy ra chức năng hoặc độ mạnh bảo mật.
+**Specify the quantity explicitly:** "256 bits" is just a bit count; without knowing whether it refers to a *key*, *digest*, *tag*, *nonce*, or *modulus*, you cannot infer its role or security strength.
 
-Ví dụ tính trực tiếp: 128 bit / 8 = **16 byte**; 32 byte × 8 = **256 bit**. Một khóa RSA có modulus 2.048 bit chứa khoảng 256 byte biểu diễn modulus; **toàn bộ public/private key được mã hóa theo định dạng tệp thường dài hơn**.
+Direct calculation examples: 128 bits / 8 = **16 bytes**; 32 bytes × 8 = **256 bits**. An RSA key with a 2,048-bit modulus contains roughly 256 bytes representing the modulus; **the full file-encoded public/private key is typically longer**.
 
-### 1.1. Byte trong Java và chiều dài mảng
+### 1.1. Bytes in Java and Array Length
 
-Trong Java, `byte` là kiểu nguyên **8 bit có dấu**, biểu diễn các giá trị từ -128 đến 127. Tính có dấu chỉ là cách Java diễn giải mẫu bit thành số; **một phần tử `byte[]` vẫn mang đúng 8 bit**.
+In Java, `byte` is a **signed 8-bit** integer type representing values from -128 to 127. Signedness is merely how Java interprets the bit pattern as a number; **each element of `byte[]` still holds 8 bits**.
 
-- `byte[].length` đếm **số byte trong mảng**, không đếm bit.
+- `byte[].length` counts the **number of bytes in the array**, not bits.
 - `Byte.SIZE` = 8; `Byte.BYTES` = 1.
-- `int` là 32 bit và `long` là 64 bit trong Java, nhưng số bit của kiểu dữ liệu **không phải độ dài của nội dung được serialize hay entropy**.
-- Với số byte rất lớn, dùng phép nhân trên kiểu `long` hoặc `Math.multiplyExact` phù hợp để tránh tràn số khi đổi sang bit.
+- `int` is 32 bits and `long` is 64 bits in Java, yet a primitive type's bit width **is not the serialized content length or entropy**.
+- For very large byte counts, use `long` multiplication or `Math.multiplyExact` as appropriate to avoid integer overflow when converting to bits.
 
-### 1.2. Độ dài chuỗi ký tự không đồng nghĩa độ dài byte
+### 1.2. String Character Length Does Not Equal Byte Length
 
-`String.length()` của Java trả về **số đơn vị mã UTF-16**, không phải số ký tự Unicode theo nghĩa code point, càng không phải số byte khi gửi qua mạng.
+Java's `String.length()` returns the **number of UTF-16 code units**, not Unicode characters in the code point sense, and certainly not bytes sent over the network.
 
-Ví dụ chuỗi **“Việt”** có 4 đơn vị mã UTF-16, nhưng khi chuyển qua UTF-8 thành **6 byte = 48 bit**, vì ký tự “ệ” chiếm 3 byte UTF-8. Một emoji ngoài BMP thường có 1 code point, 2 đơn vị mã UTF-16 và 4 byte UTF-8.
+For example, the string **"Việt"** has 4 UTF-16 code units, yet when encoded to UTF-8 it becomes **6 bytes = 48 bits**, because the character "ệ" takes 3 UTF-8 bytes. A non-BMP emoji typically has 1 code point, 2 UTF-16 code units, and 4 UTF-8 bytes.
 
-Cách đếm đúng trước khi đưa text vào hash, MAC, mã hóa hay giao thức:
+How to measure properly before feeding text into hashes, MACs, encryption, or protocols:
 
 ```java
 String text = "Việt";
@@ -49,132 +49,132 @@ int bytes = data.length;
 long bits = (long) bytes * Byte.SIZE;
 ```
 
-**Hệ quả:** kiểm tra “tối đa 256 ký tự” không tương đương giới hạn “tối đa 256 byte”. Khi giới hạn payload, KDF hoặc trường binary, hãy nêu rõ **encoding** và đơn vị đếm.
+**Consequence:** enforcing "maximum 256 characters" is not equivalent to enforcing "maximum 256 bytes." When bounding payloads, KDF inputs, or binary fields, state both the **encoding** and the unit of measurement.
 
-## 2. Độ dài khóa: kích thước khóa cần khác với số byte của dữ liệu đã mã hóa
+## 2. Key Length: Key Size Differs from Encrypted Data Byte Count
 
-**Độ dài khóa (key length/key size)** là số bit của vật liệu khóa hoặc kích thước tham số khóa mà thuật toán định nghĩa. Cách biểu diễn khác nhau giữa các họ thuật toán.
+**Key length (key size)** is the bit length of key material or the key parameter size defined by the algorithm. Its representation varies across algorithm families.
 
-### 2.1. Khóa đối xứng: AES-128, AES-192, AES-256
+### 2.1. Symmetric Keys: AES-128, AES-192, AES-256
 
-AES chấp nhận khóa **128, 192 hoặc 256 bit**, lần lượt là **16, 24 hoặc 32 byte**. Con số sau “AES-” là số bit của **khóa**, không phải số byte của bản mã, không phải số vòng tự chọn và cũng không phải tag.
+AES accepts **128-, 192-, or 256-bit** keys, which are **16, 24, or 32 bytes** respectively. The number after "AES-" is the **key** bit length, not the ciphertext byte count, not an arbitrary round count, and not the tag length.
 
-- Trong Java JCA/JCE, `KeyGenerator.getInstance("AES")` tạo bộ sinh khóa AES; `KeyGenerator.init(128)` yêu cầu **128 bit**, không phải 128 byte.
-- Với khóa AES thông thường do phần mềm xuất được, `SecretKey.getEncoded()` trả về byte khóa: AES-128 dài 16 byte.
-- `SecretKey.getEncoded()` **có thể trả `null`** đối với khóa không được phép xuất, ví dụ một số khóa trên HSM/provider. Đừng xem việc có hay không có byte xuất ra là phép xác minh duy nhất cho mọi loại khóa.
-- **AES có block size cố định 128 bit (16 byte)** bất kể khóa AES dài 128, 192 hay 256 bit. Không suy ra block size từ key size.
-- Có nhiều byte khóa hơn chưa chắc làm hệ thống an toàn hơn nếu khóa được tạo từ mật khẩu yếu, bị hardcode, lộ qua log hoặc được quản trị sai.
+- In Java JCA/JCE, `KeyGenerator.getInstance("AES")` creates an AES key generator; `KeyGenerator.init(128)` requests **128 bits**, not 128 bytes.
+- For exportable software AES keys, `SecretKey.getEncoded()` returns the key bytes: AES-128 is 16 bytes long.
+- `SecretKey.getEncoded()` **can return `null`** for non-exportable keys, such as certain HSM/provider keys. Do not treat the presence or absence of exported bytes as the sole verification for all key types.
+- **AES has a fixed 128-bit (16-byte) block size** regardless of whether the AES key is 128, 192, or 256 bits. Never infer block size from key size.
+- Having more key bytes does not guarantee a more secure system if the key is derived from a weak password, hardcoded, leaked in logs, or mismanaged.
 
-Khi thấy cấu hình `AES-256-GCM`, phải tách ít nhất **khóa 256 bit**, **block AES 128 bit**, **nonce thường 96 bit**, và **tag thường 128 bit**; đây là bốn giá trị khác mục đích.
+When reading `AES-256-GCM`, separate at least four distinct-purpose quantities: **256-bit key**, **128-bit AES block**, **typically 96-bit nonce**, and **typically 128-bit tag**.
 
-### 2.2. Khóa bất đối xứng: RSA-2048 và đường cong elliptic
+### 2.2. Asymmetric Keys: RSA-2048 and Elliptic Curves
 
-**RSA-2048** nói tới độ dài **modulus n**, thông thường 2.048 bit = 256 byte, **không có nghĩa file chứa public key dài đúng 256 byte**. Public key RSA còn chứa exponent; khóa mã hóa thành X.509 SubjectPublicKeyInfo theo DER có ASN.1 và metadata. Private key PKCS#8 chứa nhiều thành phần hơn, do đó có thể dài hơn đáng kể.
+**RSA-2048** refers to the length of the **modulus n**, typically 2,048 bits = 256 bytes; **it does not mean a public key file is exactly 256 bytes**. An RSA public key also contains an exponent; a DER-encoded X.509 SubjectPublicKeyInfo has ASN.1 framing and metadata. A PKCS#8 private key contains even more components and can therefore be significantly larger.
 
-- `RSAPublicKey.getModulus().bitLength()` cho **bit length thực của modulus**.
-- `publicKey.getEncoded().length` cho **số byte của cấu trúc public key được mã hóa**. Hai số đo phục vụ hai câu hỏi khác nhau.
-- Với RSA-2048, ciphertext RSA sau một phép mã hóa có kích thước modulus, thường **256 byte**, nhưng **plaintext tối đa lại nhỏ hơn nhiều**, phụ thuộc padding; chẳng hạn RSA-OAEP với SHA-256 làm hash OAEP có giới hạn **256 − 2 × 32 − 2 = 190 byte** mỗi lần mã hóa. Lưu ý cấu hình hash cho OAEP/MGF1 cần thống nhất theo giao thức, không tự suy diễn từ tên transformation.
-- RSA chữ ký thường có kích thước bằng số byte modulus; đó không phải kích thước private key được lưu trên đĩa.
+- `RSAPublicKey.getModulus().bitLength()` gives the **actual bit length of the modulus**.
+- `publicKey.getEncoded().length` gives the **byte count of the encoded public key structure**. The two metrics answer different questions.
+- For RSA-2048, the RSA ciphertext from one encryption operation has the modulus size, typically **256 bytes**, whereas the **maximum plaintext size is much smaller**, depending on padding; for instance, RSA-OAEP with SHA-256 as the OAEP hash is bounded to **256 − 2 × 32 − 2 = 190 bytes** per encryption. Note that OAEP/MGF1 hash settings must align with the protocol rather than being assumed from the transformation name alone.
+- An RSA signature typically has the same size as the modulus byte length; that is not the size of the private key stored on disk.
 
-**P-256** là đường cong có tham số trường và bậc nhóm cỡ 256 bit; **không nên đánh đồng** nó với khóa AES-256 về mức an toàn tương đương. Public key EC có thể là điểm mã hóa dạng nén, không nén hoặc bọc X.509/DER; signature ECDSA cũng có thể ở dạng DER độ dài biến thiên hoặc dạng raw `r || s` cố định theo giao thức. Vì vậy số byte của “public key”/“signature” còn phụ thuộc **định dạng**.
+**P-256** is a curve with field parameters and group order around 256 bits; **it must not be equated** to an AES-256 key in equivalent security level. An EC public key can be encoded as a compressed point, uncompressed point, or X.509/DER wrapper; an ECDSA signature can likewise be variable-length DER or fixed protocol-defined raw `r || s`. Thus the byte length of a "public key" or "signature" also depends on **format**.
 
-### 2.3. Key size không bằng security strength
+### 2.3. Key Size Is Not Security Strength
 
-**Security strength (độ mạnh bảo mật)** ước lượng mức công việc tấn công, thường quy về số bit bảo mật đối với một mô hình tấn công cụ thể. Nó **không bằng số bit viết trong tên thuật toán**.
+**Security strength** estimates the attacker's work factor, usually expressed in equivalent security bits against a specific attack model. It **is not equal to the number of bits written in the algorithm name**.
 
-| Thuật toán/tham số | Độ dài hay nhìn thấy | Độ mạnh ước lượng cổ điển (xấp xỉ) |
+| Algorithm/parameter | Commonly seen length | Approximate classical security strength |
 | --- | --- | --- |
-| AES-128 | Khóa 128 bit | 128 bit khi khóa ngẫu nhiên, không lộ và thuật toán dùng đúng |
-| AES-256 | Khóa 256 bit | 256 bit chống vét cạn khóa trong mô hình lý tưởng |
-| RSA-2048 | Modulus 2.048 bit | Khoảng 112 bit |
-| RSA-3072 | Modulus 3.072 bit | Khoảng 128 bit |
-| ECDSA/ECDH trên P-256 | Tham số đường cong cỡ 256 bit | Khoảng 128 bit |
+| AES-128 | 128-bit key | 128 bits when key is random, secret, and algorithm is used properly |
+| AES-256 | 256-bit key | 256 bits against exhaustive key search in an ideal model |
+| RSA-2048 | 2,048-bit modulus | Roughly 112 bits |
+| RSA-3072 | 3,072-bit modulus | Roughly 128 bits |
+| ECDSA/ECDH on P-256 | ~256-bit curve parameters | Roughly 128 bits |
 
-Các số cuối là **ước lượng cổ điển, phụ thuộc giả định và hướng dẫn mật mã**; không phải cam kết tuyệt đối cho mọi hệ thống, đặc biệt khi có lỗi triển khai, kênh kề, hoặc mô hình máy tính lượng tử. **RSA-2048 không có “bảo mật 2.048 bit”.** Để chọn thuật toán và kích thước khóa cần xét mục tiêu bảo mật, thời gian bảo vệ dữ liệu, chuẩn giao thức và quy định hiện hành.
+The rightmost numbers are **classical estimates, dependent on assumptions and cryptographic guidelines**; they are not absolute guarantees for every system, especially under implementation bugs, side channels, or quantum computing models. **RSA-2048 does not provide "2,048-bit security."** Selecting algorithms and key sizes requires considering security targets, data protection lifetime, protocol standards, and current regulations.
 
-### 2.4. Độ dài vật liệu khóa và entropy là hai câu hỏi khác
+### 2.4. Key Material Length and Entropy Are Different Questions
 
-**Entropy** đo độ khó đoán nguồn sinh khóa. Một mảng 32 byte bất kỳ không tự động có 256 bit entropy: 32 byte từ `SecureRandom` được dùng phù hợp là một chuyện; 32 ký tự lặp lại từ mật khẩu yếu là chuyện khác.
+**Entropy** measures the unpredictability of the key generation source. An arbitrary 32-byte array does not automatically hold 256 bits of entropy: 32 bytes from a properly used `SecureRandom` is one thing; 32 repeated characters from a weak password is another.
 
-- Khóa ngẫu nhiên: dùng nguồn số ngẫu nhiên an toàn, ví dụ `KeyGenerator` hoặc `SecureRandom` của Java theo yêu cầu thuật toán.
-- Khóa sinh từ mật khẩu: dùng password KDF phù hợp, kết hợp **salt**, cấu hình chi phí và quản lý khóa; không cắt/đệm chuỗi mật khẩu thành 16 hoặc 32 byte rồi gọi đó là AES-128/AES-256 an toàn.
-- KDF có thể cho phép **độ dài đầu ra cấu hình được**. Ví dụ tham số `keyLength` của `PBEKeySpec` là **bit**, trong khi `salt` là **byte[]** và `iterations` là **số vòng lặp**; những con số này không cùng đơn vị.
-- Một khóa được “kéo dài” bằng KDF không tự có entropy nhiều hơn mật khẩu đầu vào; độ dài vật lý và mức khó đoán phải được đánh giá riêng.
+- Random keys: use a secure random source, such as Java's `KeyGenerator` or `SecureRandom` per algorithm requirements.
+- Password-derived keys: use an appropriate password KDF with a **salt**, cost settings, and key management; never truncate or pad a password string to 16 or 32 bytes and call it secure AES-128/AES-256.
+- A KDF may allow a **configurable output length**. For example, the `keyLength` parameter of `PBEKeySpec` is in **bits**, while `salt` is a **`byte[]`** and `iterations` is a **loop count**; these numbers do not share units.
+- A key "stretched" by a KDF does not gain more entropy than the input password; physical length and unpredictability must be evaluated separately.
 
-## 3. Độ dài đầu ra: digest, MAC, tag, ciphertext và encoded text
+## 3. Output Lengths: Digest, MAC, Tag, Ciphertext, and Encoded Text
 
-**Độ dài đầu ra** phải luôn kèm tên thao tác: đầu ra của hash, MAC, signature, encryption hay serialization. Mỗi thao tác có công thức hoặc cấu hình riêng.
+**Output length** must always state the operation: hash, MAC, signature, encryption, or serialization output. Each operation has its own formula or configuration.
 
-### 3.1. Hash/digest: kích thước đầu ra được thuật toán quy định
+### 3.1. Hash/Digest: Output Size Defined by the Algorithm
 
-| Thuật toán hash | Digest nhị phân | Biểu diễn hex thường gặp | Base64 chuẩn có padding |
+| Hash algorithm | Binary digest | Typical hex representation | Standard padded Base64 |
 | --- | ---: | ---: | ---: |
-| SHA-256 | 256 bit = **32 byte** | 64 ký tự ASCII | 44 ký tự ASCII |
-| SHA-384 | 384 bit = **48 byte** | 96 ký tự ASCII | 64 ký tự ASCII |
-| SHA-512 | 512 bit = **64 byte** | 128 ký tự ASCII | 88 ký tự ASCII |
-| SHA3-256 | 256 bit = **32 byte** | 64 ký tự ASCII | 44 ký tự ASCII |
+| SHA-256 | 256 bits = **32 bytes** | 64 ASCII chars | 44 ASCII chars |
+| SHA-384 | 384 bits = **48 bytes** | 96 ASCII chars | 64 ASCII chars |
+| SHA-512 | 512 bits = **64 bytes** | 128 ASCII chars | 88 ASCII chars |
+| SHA3-256 | 256 bits = **32 bytes** | 64 ASCII chars | 44 ASCII chars |
 
-Hash nhận đầu vào có độ dài thay đổi nhưng trả digest kích thước cố định theo thuật toán. `MessageDigest.getInstance("SHA-256").digest(bytes)` trả **mảng 32 byte**. Kích thước digest **không phụ thuộc số byte của thông điệp đầu vào**; dữ liệu 3 byte hay 3 GB đều tạo digest SHA-256 dài 32 byte.
+A hash accepts variable-length input and returns a fixed-size digest defined by the algorithm. `MessageDigest.getInstance("SHA-256").digest(bytes)` returns a **32-byte array**. Digest size **does not depend on the input message byte count**; 3 bytes or 3 GB of data both produce a 32-byte SHA-256 digest.
 
-**SHA-256 có đầu ra 256 bit không có nghĩa “chống va chạm 256 bit”**. Với hash lý tưởng 256 bit, chống va chạm tổng quát chịu giới hạn birthday khoảng **2^128 phép thử**, trong khi tìm tiền ảnh tổng quát khoảng **2^256**. Độ dài digest là kích thước dữ liệu; các mục tiêu chống tấn công phải nêu rõ loại tấn công.
+**A 256-bit SHA-256 output does not mean "256-bit collision resistance."** For an ideal 256-bit hash, generic collision resistance hits the birthday bound around **2^128 trials**, whereas generic preimage search is around **2^256**. Digest length is a data size; attack resistance targets must name the attack class.
 
-Đừng nhầm **block size của hàm nén SHA-256** (512 bit = 64 byte mỗi khối nội bộ) với **digest size** (256 bit = 32 byte). Tên SHA-256 nói tới kích thước đầu ra, không phải kích thước khóa (SHA-256 không dùng khóa).
+Do not confuse **SHA-256's compression block size** (512 bits = 64 bytes per internal block) with its **digest size** (256 bits = 32 bytes). The name SHA-256 refers to the output size, not a key size (SHA-256 takes no key).
 
-### 3.2. HMAC: độ dài khóa và độ dài tag độc lập
+### 3.2. HMAC: Key Length and Tag Length Are Independent
 
-**HmacSHA256** dùng SHA-256 trong cơ chế MAC. Java `Mac.getInstance("HmacSHA256")` thường tạo **tag 32 byte (256 bit)**, dù khóa HMAC đầu vào có thể dài **16, 32 hoặc 64 byte** nếu đáp ứng yêu cầu thiết kế; **tên “SHA256” không bắt khóa phải dài 256 bit**.
+**HmacSHA256** uses SHA-256 inside the MAC construction. Java's `Mac.getInstance("HmacSHA256")` normally produces a **32-byte (256-bit) tag**, even though the input HMAC key may be **16, 32, or 64 bytes** if it satisfies design requirements; **the "SHA256" name does not force the key to be 256 bits**.
 
-- `SecretKey` cho HMAC là khóa bí mật, thường có số byte do chương trình/giao thức chọn.
-- `Mac.getMacLength()` cho biết **độ dài MAC đầu ra tính bằng byte** của instance.
-- Một giao thức có thể cắt ngắn tag HMAC theo thông số được phê duyệt; khi đó số byte truyền/lưu **khác** digest đầy đủ. Không tự ý truncate ở cả hai đầu mà không có đặc tả về độ dài tag và mức bảo mật.
-- HMAC cung cấp bằng chứng về khóa chung và tính toàn vẹn/xác thực thông điệp, **không mã hóa** nội dung.
+- `SecretKey` for HMAC is a secret key whose byte length is typically chosen by the program/protocol.
+- `Mac.getMacLength()` reports the instance's **output MAC length in bytes**.
+- A protocol may truncate an HMAC tag per approved parameters; the transmitted/stored byte count then **differs** from the full digest. Never truncate arbitrarily on either side without specifying tag length and security level.
+- HMAC proves shared-key knowledge and message integrity/authenticity; it **does not encrypt** content.
 
-Một ví dụ phản chứng: khóa HMAC dài 64 byte không khiến HmacSHA256 xuất ra 64 byte; tag mặc định vẫn **32 byte**. Ngược lại, đổi sang HmacSHA512 đổi kích thước tag đầy đủ thành **64 byte**, nhưng không có nghĩa bắt buộc khóa dài 64 byte.
+Counterexample: a 64-byte HMAC key does not make HmacSHA256 output 64 bytes; the default tag remains **32 bytes**. Conversely, switching to HmacSHA512 changes the full tag size to **64 bytes**, without mandating a 64-byte key.
 
-### 3.3. AES-GCM: phân biệt khóa, nonce, tag và toàn bộ output
+### 3.3. AES-GCM: Distinguishing Key, Nonce, Tag, and Total Output
 
-Trong ví dụ phổ biến dùng **AES-128-GCM** với **nonce 12 byte** và **tag 128 bit = 16 byte**:
+In a common **AES-128-GCM** example with a **12-byte nonce** and **128-bit = 16-byte tag**:
 
-| Thành phần | Ví dụ độ dài | Vai trò |
+| Component | Example length | Role |
 | --- | ---: | --- |
-| AES key | 16 byte = 128 bit | Khóa bí mật |
-| GCM nonce/IV | 12 byte = 96 bit | Giá trị cần duy nhất dưới cùng khóa; không phải khóa |
-| Plaintext | 5 byte | Dữ liệu đầu vào, ví dụ text “hello” UTF-8 |
-| Ciphertext thuần | 5 byte | Phần dữ liệu đã mã hóa trong GCM, không tính tag |
-| Authentication tag | 16 byte = 128 bit | Bảo vệ toàn vẹn/xác thực ciphertext và AAD |
-| Kết quả `Cipher.doFinal(plaintext)` khi mã hóa với GCM trong JCA thông dụng | **21 byte** | **5 byte ciphertext + 16 byte tag** |
-| Nếu tự đóng gói `nonce || ciphertext || tag` | **33 byte** | **12 + 5 + 16**, chưa tính version/metadata khác |
+| AES key | 16 bytes = 128 bits | Secret key |
+| GCM nonce/IV | 12 bytes = 96 bits | Value that must be unique under the same key; not a key |
+| Plaintext | 5 bytes | Input data, e.g., UTF-8 text "hello" |
+| Raw ciphertext | 5 bytes | Encrypted data portion in GCM, excluding tag |
+| Authentication tag | 16 bytes = 128 bits | Integrity/authenticity protection for ciphertext and AAD |
+| Result of `Cipher.doFinal(plaintext)` when encrypting with GCM in standard JCA | **21 bytes** | **5-byte ciphertext + 16-byte tag** |
+| If packaged as `nonce \|\| ciphertext \|\| tag` | **33 bytes** | **12 + 5 + 16**, excluding other version/metadata |
 
-Ở đây **`GCMParameterSpec(128, nonce)` nhận độ dài tag theo bit**, còn `nonce` là `byte[]` dài 12 phần tử. **128 ở `GCMParameterSpec` không chỉ độ dài khóa AES**.
+Here, **`GCMParameterSpec(128, nonce)` takes the tag length in bits**, while `nonce` is a 12-element `byte[]`. **The 128 in `GCMParameterSpec` does not indicate the AES key length.**
 
-Nếu giao thức lưu nonce bên ngoài, `doFinal()` không tự thêm 12 byte nonce vào output. Phải định nghĩa định dạng lưu/truyền có thể giải mã được, bao gồm version, nonce, ciphertext, tag và dữ liệu AAD cần thiết. GCM không dùng padding kiểu PKCS#5 cho plaintext; ví dụ ở trên minh họa đúng độ dài đối với JCA AES/GCM/NoPadding.
+If the protocol stores the nonce externally, `doFinal()` does not prepend the 12-byte nonce to the output. You must define a decodable storage/wire format including version, nonce, ciphertext, tag, and required AAD metadata. GCM does not use PKCS#5-style plaintext padding; the table above reflects exact lengths for JCA `AES/GCM/NoPadding`.
 
-**Cảnh báo về nonce:** nonce 96 bit cần được tạo/quản lý sao cho **không lặp lại với cùng khóa**. Nó thường có thể công khai, nhưng việc lặp nonce với AES-GCM có thể phá nghiêm trọng tính bí mật và tính toàn vẹn. Không dùng độ dài “đủ 12 byte” làm bằng chứng rằng nonce là duy nhất.
+**Nonce warning:** a 96-bit nonce must be generated/managed so that it **never repeats under the same key**. It may typically be public, yet repeating a nonce in AES-GCM catastrophically breaks confidentiality and integrity. Never treat "12 bytes long" as proof that a nonce is unique.
 
-### 3.4. Encoding làm tăng số byte hiển thị, không tăng độ mạnh mật mã
+### 3.4. Encoding Increases Display Size, Not Cryptographic Strength
 
-Một byte nhị phân bất kỳ có thể không phải ký tự văn bản hợp lệ. Khi cần in/lưu byte khóa, digest hoặc ciphertext dưới dạng text, phải chọn **encoding**; kích thước text sẽ khác mảng nhị phân.
+Arbitrary binary bytes may not be valid text characters. When key, digest, or ciphertext bytes must be printed or stored as text, you must choose an **encoding**; the text size will differ from the binary array.
 
-- **Hex:** mỗi byte tạo **2 ký tự ASCII**; `n` byte → **2n ký tự**. Digest 32 byte → 64 ký tự hex.
-- **Base64 chuẩn có padding:** `n` byte → **4 × ceil(n / 3)** ký tự ASCII. Digest 32 byte → 44 ký tự, thường kết thúc bằng dấu `=`.
-- **Base64URL bỏ padding:** dùng bảng ký tự phù hợp URL và có thể ít ký tự hơn bản có padding. Với 32 byte → **43 ký tự** không padding.
-- Chuỗi hex/Base64 chứa ký tự ASCII nên khi mã hóa UTF-8 thường có **1 byte mỗi ký tự**. Tuy vậy **32 byte nhị phân ≠ 32 byte chuỗi Base64**, và số ký tự chưa nói gì về entropy mới.
+- **Hex:** each byte produces **2 ASCII characters**; `n` bytes → **2n characters**. A 32-byte digest → 64 hex characters.
+- **Standard padded Base64:** `n` bytes → **4 × ceil(n / 3)** ASCII characters. A 32-byte digest → 44 characters, typically ending with `=`.
+- **Unpadded Base64URL:** uses a URL-safe alphabet and can be shorter than the padded form. For 32 bytes → **43 characters** without padding.
+- Hex/Base64 strings consist of ASCII characters, so when UTF-8 encoded they usually take **1 byte per character**. Still, **32 binary bytes ≠ a 32-byte Base64 string**, and character count says nothing about new entropy.
 
-Hex, Base64 và Base64URL **chỉ biểu diễn byte**, không phải mã hóa để bảo mật hoặc hash. Đừng công khai key chỉ vì nó đã được chuyển sang Base64; không log hex của khóa bí mật trong ứng dụng.
+Hex, Base64, and Base64URL **only represent bytes**; they are neither security encryption nor hashing. Never expose a key just because it was Base64-encoded; never log hex of secret keys in an application.
 
-### 3.5. Signature, RSA ciphertext và định dạng container
+### 3.5. Signatures, RSA Ciphertext, and Container Formats
 
-Một chữ ký RSA với modulus 2.048 bit thường dài **256 byte** ở dạng raw signature. Chữ ký Ed25519 theo đặc tả dài **64 byte**, nhưng các định dạng đóng gói tệp có thể thêm header/chứng chỉ. ECDSA có đầu ra là cặp số `(r, s)`, nên độ dài byte phụ thuộc định dạng raw/DER và quy tắc mã hóa.
+An RSA signature with a 2,048-bit modulus is typically **256 bytes** in raw signature form. An Ed25519 signature per spec is **64 bytes**, though file packaging formats can add headers/certificates. ECDSA outputs a `(r, s)` number pair, so its byte length depends on raw vs. DER encoding and encoding rules.
 
-Với RSA-OAEP, đầu ra mã hóa (ciphertext) có độ dài bằng số byte modulus, nhưng **kích thước plaintext tối đa** bị giới hạn bởi modulus và padding. Ví dụ RSA-2048 + OAEP dùng SHA-256 làm hash OAEP: **tối đa 190 byte plaintext**, không phải 190 ký tự Unicode.
+With RSA-OAEP, encrypted output (ciphertext) equals the modulus byte length, yet the **maximum plaintext size** is constrained by modulus and padding. For example, RSA-2048 + OAEP using SHA-256 as the OAEP hash: **at most 190 bytes of plaintext**, not 190 Unicode characters.
 
-**Kết luận thực hành của mục này:** cần viết rõ “byte của payload nhị phân”, “bit của khóa”, “byte của digest”, “bit của tag”, “byte của file DER”, “ký tự Base64”, thay vì nói chung “độ dài 256”.
+**Practical takeaway of this section:** always write "bytes of binary payload", "bits of key", "bytes of digest", "bits of tag", "bytes of DER file", "Base64 characters", rather than vaguely saying "length 256."
 
-## 4. Java 17+: đo trực tiếp độ dài các loại dữ liệu mật mã
+## 4. Java 17+: Directly Measuring Cryptographic Data Lengths
 
-Chương trình sau dùng JCA/JCE của Java để so sánh: UTF-8, SHA-256, hex/Base64, AES-128, AES-GCM và HmacSHA256. Các byte khóa/nonce được sinh ngẫu nhiên nên thay đổi giữa các lần chạy, nhưng **những số đo độ dài được in ra là cố định** đối với cấu hình này.
+The following program uses Java JCA/JCE to compare: UTF-8, SHA-256, hex/Base64, AES-128, AES-GCM, and HmacSHA256. Key/nonce bytes are generated randomly and change across runs, yet **the printed length measurements are fixed** for this configuration.
 
-Lưu đúng tên file **CryptoLengthsDemo.java**:
+Save with exact filename **CryptoLengthsDemo.java**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -232,14 +232,14 @@ public class CryptoLengthsDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên, chỉ rõ UTF-8 cho mã nguồn:
+Compile and run with JDK 17 or later, specifying UTF-8 for source encoding:
 
 ```bash
 javac -encoding UTF-8 CryptoLengthsDemo.java
 java CryptoLengthsDemo
 ```
 
-Stdout kỳ vọng (các giá trị độ dài đã được kiểm tra bằng JShell):
+Expected stdout (length values verified via JShell):
 
 ```text
 Text UTF-8: 6 bytes = 48 bits
@@ -251,21 +251,21 @@ GCM nonce: 12 bytes; plaintext: 5 bytes; output: 21 bytes
 HmacSHA256 key: 32 bytes; tag: 32 bytes
 ```
 
-**Đọc kết quả theo đúng đại lượng:**
+**Reading the output with the right quantities:**
 
-1. Chữ “Việt” được biến thành 6 byte UTF-8; đây là **dung lượng biểu diễn** của text, không phải 48 bit độ ngẫu nhiên.
-2. SHA-256 digest là 32 byte, nhưng biểu diễn hex là 64 ký tự; Base64 chuẩn là 44 ký tự.
-3. `aesGenerator.init(128)` nhận **bit**, còn `aesKey.getEncoded().length` đo **byte**.
-4. `GCMParameterSpec(128, nonce)` chỉ **tag 128 bit**; kết quả của `doFinal()` là 5 byte ciphertext cộng 16 byte tag; nonce 12 byte đang được giữ **tách riêng**.
-5. Khóa HMAC do ta cố ý sinh dài 256 bit = 32 byte; HmacSHA256 trả tag 32 byte **do thuật toán MAC**, không vì chương trình bắt hai độ dài trùng nhau.
+1. The string "Việt" becomes 6 UTF-8 bytes; this is the **representation size** of the text, not 48 bits of randomness.
+2. The SHA-256 digest is 32 bytes, yet its hex representation is 64 characters; standard Base64 is 44 characters.
+3. `aesGenerator.init(128)` takes **bits**, whereas `aesKey.getEncoded().length` measures **bytes**.
+4. `GCMParameterSpec(128, nonce)` specifies a **128-bit tag**; the `doFinal()` output is 5 bytes of ciphertext plus 16 bytes of tag; the 12-byte nonce is held **separately**.
+5. The HMAC key was intentionally generated as 256 bits = 32 bytes; HmacSHA256 returns a 32-byte tag **due to the MAC algorithm**, not because the program forced the two lengths to match.
 
-Ví dụ dùng khóa có thể xuất byte từ provider phần mềm phổ biến. Đối với HSM hoặc các khóa không cho xuất, `getEncoded()` có thể trả `null`; khi đó lấy thông số khóa từ API/provider được hỗ trợ thay vì cố dump khóa để kiểm tra size. Không log hoặc gửi mảng khóa ra bên ngoài.
+This example uses exportable keys from a standard software provider. For HSMs or non-exportable keys, `getEncoded()` can return `null`; retrieve key metadata via supported provider APIs rather than trying to dump key bytes to check size. Never log or transmit key arrays externally.
 
-## 5. Java 17+: modulus RSA và kích thước tệp khóa là hai số khác nhau
+## 5. Java 17+: RSA Modulus and Key File Size Are Two Different Numbers
 
-Ví dụ độc lập này tạo cặp khóa RSA 2.048 bit, đo bit length của modulus rồi kiểm tra xem byte mã hóa X.509/PKCS#8 của key object có lớn hơn byte của modulus không.
+This standalone example generates a 2,048-bit RSA key pair, measures the modulus bit length, and checks whether the X.509/PKCS#8 encoded bytes of the key objects exceed the modulus byte count.
 
-Lưu **RsaLengthsDemo.java**:
+Save **RsaLengthsDemo.java**:
 
 ```java
 import java.security.KeyPair;
@@ -297,7 +297,7 @@ javac -encoding UTF-8 RsaLengthsDemo.java
 java RsaLengthsDemo
 ```
 
-Stdout khi dùng provider JDK thông thường:
+Stdout under a typical JDK provider:
 
 ```text
 RSA modulus: 2048 bits = 256 bytes
@@ -305,92 +305,92 @@ X.509 encoded public key exceeds modulus: true
 PKCS#8 encoded private key exceeds modulus: true
 ```
 
-**Tại sao?** `getModulus()` trả số nguyên `n` trong RSA; `bitLength()` đếm số bit cần cho `n`. `getEncoded()` của public key thường chứa SubjectPublicKeyInfo X.509, còn private key thường chứa PKCS#8, bao gồm nhiều giá trị và metadata. **Không dùng `getEncoded().length * 8` để phát biểu độ dài modulus RSA hoặc mức bảo mật.**
+**Why?** `getModulus()` returns the integer `n` in RSA; `bitLength()` counts the bits needed for `n`. `getEncoded()` on a public key typically contains an X.509 SubjectPublicKeyInfo, while a private key typically contains PKCS#8, including multiple values and metadata. **Never use `getEncoded().length * 8` to state RSA modulus size or security strength.**
 
-Việc sinh cặp khóa RSA ngẫu nhiên có thể mất thời gian tùy môi trường, nhưng số đo modulus trong ví dụ không đổi theo byte ngẫu nhiên. Các biểu diễn DER/PEM và nhà cung cấp khác nhau có thể cho độ dài file khác nhau; vì vậy chương trình **không** hardcode số byte chính xác của tệp khóa. Hãy bảo vệ private key, tránh in nội dung khóa hoặc đưa khóa thực vào tài liệu.
+Random RSA key generation timing varies by environment, yet the modulus size in the example does not vary with random bytes. Different DER/PEM encodings and providers can yield different file lengths; thus programs must **not** hardcode an exact key file byte count. Protect private keys, avoid printing key contents, and never place real keys into documentation.
 
-## 6. Cách chọn độ dài khi thiết kế API, lưu trữ và kiểm tra đầu ra
+## 6. Choosing Lengths When Designing APIs, Storage, and Output Validation
 
-Trước khi tạo schema lưu trữ hoặc truyền dữ liệu, xác định **bốn câu hỏi**:
+Before designing a storage schema or wire format, answer **four questions**:
 
-1. **Đại lượng gì?** Khóa bí mật, IV/nonce, salt, hash, MAC/tag, ciphertext, chữ ký, public key hay chuỗi biểu diễn?
-2. **Đơn vị gì?** Bit, byte, số ký tự ASCII, UTF-16 code unit hay Unicode code point?
-3. **Định dạng gì?** Raw binary, hex, Base64, Base64URL, DER, PEM, định dạng envelope có header/nonce/tag?
-4. **Do ai quyết định kích thước?** Thuật toán cố định, tham số cấu hình, độ dài plaintext, tùy chọn padding hoặc giao thức?
+1. **What quantity?** Secret key, IV/nonce, salt, hash, MAC/tag, ciphertext, signature, public key, or encoded string?
+2. **What unit?** Bits, bytes, ASCII characters, UTF-16 code units, or Unicode code points?
+3. **What format?** Raw binary, hex, Base64, Base64URL, DER, PEM, or an envelope format with header/nonce/tag?
+4. **Who determines the size?** Fixed by algorithm, configured parameter, plaintext length, padding option, or protocol?
 
-Ví dụ triển khai một trường hợp gửi **32 byte digest SHA-256**:
+Example implementing transmission of a **32-byte SHA-256 digest**:
 
-- Với trường binary, kích thước digest là **32 byte**.
-- Với trường text hex, cần chứa **64 ký tự ASCII**.
-- Với Base64 chuẩn có padding, cần chứa **44 ký tự ASCII**.
-- Nếu lưu thêm id thuật toán, version và separator, phải tính **phần overhead** ngoài digest.
-- Không biến SHA-256 thành chuỗi bằng cách gọi `new String(digest, UTF_8)`: digest là dữ liệu binary tùy ý, có thể không phải UTF-8 hợp lệ; dùng `HexFormat` hoặc `Base64` nếu thật sự cần text.
+- For a binary field, digest size is **32 bytes**.
+- For a hex text field, allocate **64 ASCII characters**.
+- For standard padded Base64, allocate **44 ASCII characters**.
+- If storing algorithm ID, version, and separators as well, account for **overhead** beyond the digest.
+- Never turn SHA-256 into a string via `new String(digest, UTF_8)`: a digest is arbitrary binary data and may not be valid UTF-8; use `HexFormat` or `Base64` if text is truly required.
 
-Ví dụ lưu kết quả mã hóa AES-GCM của plaintext 1.000 byte với tag 16 byte và nonce 12 byte: `doFinal` trong cấu hình thông thường trả **1.016 byte**, còn envelope `nonce || ciphertext || tag` yêu cầu ít nhất **1.028 byte** trước khi thêm version, AAD metadata và các trường khác. Nếu đem envelope 1.028 byte này đi Base64 chuẩn, đầu ra thành **4 × ceil(1.028/3) = 1.372 ký tự ASCII**. Mỗi bước thêm **định dạng**, không tự gia tăng độ bảo mật.
+Example storing the AES-GCM encryption result of 1,000-byte plaintext with a 16-byte tag and 12-byte nonce: `doFinal` in a standard configuration returns **1,016 bytes**, and a `nonce || ciphertext || tag` envelope needs at least **1,028 bytes** before adding version, AAD metadata, and other fields. If that 1,028-byte envelope is encoded in standard Base64, the output becomes **4 × ceil(1,028/3) = 1,372 ASCII characters**. Each step adds **formatting**, not security strength.
 
-### 6.1. Dùng API Java theo đúng đơn vị
+### 6.1. Using Java APIs with the Right Units
 
-| API Java | Giá trị/đơn vị quan trọng | Sai lầm cần tránh |
+| Java API | Key value/unit | Mistake to avoid |
 | --- | --- | --- |
-| `Byte.SIZE`, `Byte.BYTES` | 8 bit/byte và 1 byte | Xem `byte` là 1 bit do kiểu tên “byte” |
-| `byte[].length` | Số byte | Đọc thẳng thành số bit |
-| `String.length()` | Đơn vị mã UTF-16 | Coi là byte UTF-8 hoặc code point |
-| `getBytes(UTF_8).length` | Byte của văn bản sau UTF-8 | Không chốt encoding |
-| `KeyGenerator.init(128)` cho AES | Kích thước khóa tính bằng **bit** | Truyền 16 vì muốn khóa 16 byte |
-| `PBEKeySpec(..., keyLength)` | `keyLength` tính bằng **bit** | Nhầm với `salt.length` tính bằng byte |
-| `GCMParameterSpec(128, iv)` | Độ dài authentication tag tính bằng **bit** | Hiểu 128 là số byte IV hoặc key size |
-| `MessageDigest.digest(...).length` | Byte của digest thực tế | Nhìn tên SHA-256 rồi ghi 256 byte |
-| `MessageDigest.getDigestLength()` | Byte của digest (nếu provider hỗ trợ báo độ dài) | Giả định trả bit |
-| `Mac.getMacLength()` | Byte của MAC đầy đủ | Coi đó là độ dài khóa MAC |
-| `RSAPublicKey.getModulus().bitLength()` | Bit của modulus RSA | Coi `getEncoded().length` là modulus |
-| `Key.getEncoded()` | Byte của định dạng xuất khóa, hoặc `null` | Tự suy ra bit security từ byte encoded |
+| `Byte.SIZE`, `Byte.BYTES` | 8 bits/byte and 1 byte | Treating `byte` as 1 bit because of the name |
+| `byte[].length` | Byte count | Reading it directly as bit count |
+| `String.length()` | UTF-16 code units | Treating as UTF-8 bytes or code points |
+| `getBytes(UTF_8).length` | Bytes of UTF-8 text | Failing to pin encoding |
+| `KeyGenerator.init(128)` for AES | Key size in **bits** | Passing 16 when wanting a 16-byte key |
+| `PBEKeySpec(..., keyLength)` | `keyLength` in **bits** | Confusing with `salt.length` in bytes |
+| `GCMParameterSpec(128, iv)` | Authentication tag length in **bits** | Reading 128 as IV byte count or key size |
+| `MessageDigest.digest(...).length` | Actual digest bytes | Seeing SHA-256 and assuming 256 bytes |
+| `MessageDigest.getDigestLength()` | Digest bytes (if provider supports reporting length) | Assuming it returns bits |
+| `Mac.getMacLength()` | Full MAC bytes | Treating it as MAC key length |
+| `RSAPublicKey.getModulus().bitLength()` | RSA modulus bits | Treating `getEncoded().length` as modulus |
+| `Key.getEncoded()` | Exported key format bytes, or `null` | Inferring security bits from encoded bytes |
 
-### 6.2. Quy tắc lưu trữ và giới hạn
+### 6.2. Storage and Bounding Rules
 
-- Với dữ liệu cryptographic binary, lưu dưới dạng binary nếu hệ thống cho phép; chỉ encode thành text ở ranh giới thật sự cần thiết (JSON, HTTP header, cấu hình). 
-- Nếu lưu digest/hash thành hex, giới hạn cột/tệp theo **độ dài chuỗi đã encode**, không chỉ độ dài digest nhị phân.
-- Đầu ra mã hóa phụ thuộc chế độ, padding, tag, overhead và plaintext thực tế. Đừng cấp phát buffer chỉ theo kích thước khóa; dùng API hỗ trợ tính output size hoặc xử lý kết quả `doFinal()` trả về.
-- Khi thay đổi cấu hình thuật toán (ví dụ SHA-256 → SHA-512 hoặc tag 96 → 128 bit), kiểm tra schema, serialization và compatibility.
-- Dữ liệu khóa nhạy cảm không nên lưu/log dưới dạng hex, Base64 hoặc plaintext; các encoding đó không cung cấp bảo mật.
+- For cryptographic binary data, store as binary when the system supports it; encode to text only at genuine text boundaries (JSON, HTTP headers, config).
+- When storing digests/hashes as hex, size columns/files for the **encoded string length**, not just the binary digest length.
+- Encryption output depends on mode, padding, tag, overhead, and actual plaintext. Never allocate buffers solely from key size; use APIs that compute output size or handle the array returned by `doFinal()`.
+- When changing algorithm parameters (e.g., SHA-256 → SHA-512 or 96-bit → 128-bit tag), verify schemas, serialization, and compatibility.
+- Sensitive key material should not be stored or logged in hex, Base64, or plaintext; those encodings provide no confidentiality.
 
-## 7. Lỗi phổ biến và cách suy nghĩ đúng
+## 7. Common Mistakes and Correct Thinking
 
-| Nhầm lẫn | Điều đúng |
+| Misconception | Correct fact |
 | --- | --- |
-| “AES-256 cần `byte[256]`.” | AES-256 cần **256 bit = 32 byte** khóa. |
-| “Khóa AES-256 tạo ciphertext cố định 256 byte.” | Key size **không quyết định** độ dài ciphertext; nó phụ thuộc plaintext và chế độ/tag/padding. |
-| “RSA-2048 public key luôn là 256 byte.” | **Modulus** thường 256 byte; public key được encode có thêm exponent và metadata. |
-| “SHA-256 trả 256 byte.” | Digest SHA-256 là **256 bit = 32 byte**. |
-| “Chuỗi hex 64 ký tự nghĩa là digest 64 byte.” | 64 ký tự hex biểu diễn **32 byte** binary. |
-| “HmacSHA256 buộc key phải đúng 32 byte.” | Key size và tag size là hai đại lượng riêng; tag đầy đủ HmacSHA256 là **32 byte**. |
-| “Tag GCM 128 nghĩa là nonce 128 byte.” | `GCMParameterSpec(128, nonce)` có tag **128 bit = 16 byte**; nonce được truyền bằng mảng byte riêng. |
-| “Dùng Base64 làm khóa mạnh hơn.” | Base64 chỉ biến đổi biểu diễn; entropy không tăng. |
-| “32 byte mật khẩu tự có 256 bit bảo mật.” | Độ mạnh phụ thuộc cách sinh/mật khẩu và KDF, không chỉ số byte. |
-| “`String.length()` là byte length của request.” | Nó đếm UTF-16 code units; cần encode thành byte trước khi đo. |
+| "AES-256 needs `byte[256]`." | AES-256 needs **256 bits = 32 bytes** of key. |
+| "An AES-256 key produces a fixed 256-byte ciphertext." | Key size **does not determine** ciphertext length; plaintext and mode/tag/padding do. |
+| "An RSA-2048 public key is always 256 bytes." | The **modulus** is typically 256 bytes; an encoded public key includes exponent and metadata. |
+| "SHA-256 returns 256 bytes." | A SHA-256 digest is **256 bits = 32 bytes**. |
+| "A 64-character hex string means a 64-byte digest." | 64 hex characters represent **32 binary bytes**. |
+| "HmacSHA256 requires an exact 32-byte key." | Key size and tag size are separate quantities; a full HmacSHA256 tag is **32 bytes**. |
+| "GCM tag 128 means a 128-byte nonce." | `GCMParameterSpec(128, nonce)` has a **128-bit = 16-byte** tag; the nonce is passed as a separate byte array. |
+| "Base64 makes a key stronger." | Base64 only changes representation; entropy does not increase. |
+| "A 32-byte password automatically has 256-bit security." | Strength depends on generation/password and KDF, not byte count alone. |
+| "`String.length()` is the request byte length." | It counts UTF-16 code units; encode to bytes before measuring. |
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-Check Exercises
 
-**Câu 1.** KeyGenerator AES cần khóa 192 bit. Mảng byte xuất của khóa AES thông thường dài bao nhiêu?  
-**Đáp án:** **24 byte**. Trong Java dùng `aesGenerator.init(192)`, không dùng `init(24)`.
+**Q1.** An AES KeyGenerator needs a 192-bit key. How long is the exported byte array of a standard AES key?  
+**Answer:** **24 bytes**. In Java, call `aesGenerator.init(192)`, not `init(24)`.
 
-**Câu 2.** SHA-512 băm một file 8 GB. Kết quả digest dài bao nhiêu, nếu chuyển sang hex thì dài bao nhiêu?  
-**Đáp án:** **64 byte digest**; **128 ký tự hex**. Dung lượng file không đổi độ dài digest.
+**Q2.** SHA-512 hashes an 8 GB file. How long is the resulting digest, and how long is it in hex?  
+**Answer:** **64-byte digest**; **128 hex characters**. File size does not change digest length.
 
-**Câu 3.** Một MAC HmacSHA256 dùng khóa 48 byte và không cắt tag. Dự kiến tag dài bao nhiêu?  
-**Đáp án:** **32 byte**. Kích thước key 48 byte không biến tag SHA-256 thành 48 byte.
+**Q3.** An HmacSHA256 MAC uses a 48-byte key without tag truncation. How long is the expected tag?  
+**Answer:** **32 bytes**. A 48-byte key does not turn a SHA-256 tag into 48 bytes.
 
-**Câu 4.** AES-GCM mã hóa 20 byte plaintext, dùng tag 128 bit và lưu nonce 12 byte bên cạnh bản mã. Cần bao nhiêu byte cho `nonce || ciphertext || tag` trước header?  
-**Đáp án:** **12 + 20 + 16 = 48 byte**. Phần `Cipher.doFinal()` của ví dụ JCA là **36 byte** (ciphertext + tag), chưa chứa nonce.
+**Q4.** AES-GCM encrypts 20 bytes of plaintext with a 128-bit tag and stores a 12-byte nonce alongside the ciphertext. How many bytes are needed for `nonce || ciphertext || tag` before headers?  
+**Answer:** **12 + 20 + 16 = 48 bytes**. The `Cipher.doFinal()` portion in the JCA example is **36 bytes** (ciphertext + tag), excluding the nonce.
 
-**Câu 5.** Chuỗi Base64 dài 44 ký tự có chắc chắn giải mã ra đúng 44 byte không?  
-**Đáp án:** **Không.** Base64 mang 6 bit dữ liệu mỗi ký tự và có thể có padding; ví dụ 32 byte binary tạo **44 ký tự Base64 chuẩn**. Cần decode để biết byte thực.
+**Q5.** Does a 44-character Base64 string always decode to exactly 44 bytes?  
+**Answer:** **No.** Base64 carries 6 bits per character and can include padding; for example, 32 binary bytes produce **44 standard Base64 characters**. You must decode to know the actual byte count.
 
-**Câu 6.** RSA-2048 có modulus 256 byte; tại sao `publicKey.getEncoded().length` có thể lớn hơn 256?  
-**Đáp án:** Vì đó là **định dạng khóa công khai được đóng gói** với exponent, cấu trúc ASN.1 và thông tin thuật toán, không chỉ raw modulus.
+**Q6.** RSA-2048 has a 256-byte modulus; why can `publicKey.getEncoded().length` be larger than 256?  
+**Answer:** Because it is an **encoded public key format** carrying the exponent, ASN.1 structure, and algorithm info, not just the raw modulus.
 
-**Câu 7.** Một biến `String` có 4 đơn vị mã UTF-16 thì chắc chắn có 4 byte UTF-8?  
-**Đáp án:** **Không.** Các code point có thể dùng nhiều byte UTF-8. Chuỗi “Việt” trong ví dụ có 4 đơn vị mã UTF-16 nhưng 6 byte UTF-8.
+**Q7.** If a `String` variable has 4 UTF-16 code units, does it necessarily have 4 UTF-8 bytes?  
+**Answer:** **No.** Code points can take multiple UTF-8 bytes. The string "Việt" in the example has 4 UTF-16 code units yet 6 UTF-8 bytes.
 
-### Ghi nhớ khi đọc đặc tả
+### Takeaway When Reading Specifications
 
-**Luôn ghi kèm “của cái gì” và “đơn vị gì”:** *AES key 256 bit*, *GCM tag 128 bit*, *nonce 12 byte*, *SHA-256 digest 32 byte*, *hex digest 64 ký tự*, *RSA modulus 2.048 bit*, *RSA public key DER dài bao nhiêu byte*. Độ dài vật lý, độ dài sau encoding, độ mạnh bảo mật và entropy là các khái niệm riêng; muốn chọn kích thước đúng cần nhận diện cả bốn.
+**Always state "of what" and "in what unit":** *256-bit AES key*, *128-bit GCM tag*, *12-byte nonce*, *32-byte SHA-256 digest*, *64-char hex digest*, *2,048-bit RSA modulus*, *how many bytes for the DER RSA public key*. Physical length, encoded length, security strength, and entropy are distinct concepts; choosing the right sizes requires identifying all four.

@@ -1,91 +1,91 @@
-# 14.9. Đánh giá chi phí ghi, dung lượng và quyền truy cập vào file .jfr
+# 14.9. Evaluating Recording Overhead, Disk Usage, and Access Permissions for `.jfr` Files
 
-## 1. Vấn đề cần giải quyết
+## 1. The Problem to Solve
 
-**Java Flight Recorder (JFR)** giúp quan sát hành vi JVM bằng các sự kiện như hoạt động GC, cấp phát, thread, I/O và mẫu thực thi. Một bản ghi `.jfr` có thể rất hữu ích khi truy tìm độ trễ hoặc CPU bất thường; song việc bật ghi dữ liệu cũng tiêu tốn tài nguyên, sử dụng bộ nhớ đệm, tạo I/O và có thể lưu thông tin nội bộ của ứng dụng.
+**Java Flight Recorder (JFR)** lets you observe JVM behavior through events such as GC activity, allocations, threads, I/O, and execution samples. A `.jfr` recording can be invaluable when tracking down abnormal latency or CPU usage; however, enabling recording also consumes resources, uses buffers, generates I/O, and may store internal application details.
 
-Vì vậy, trước khi bật JFR cho một JVM đang phục vụ người dùng, cần trả lời **ba câu hỏi độc lập**:
+Therefore, before enabling JFR on a user-facing JVM, you must answer **three independent questions**:
 
-1. **Chi phí ghi:** với cấu hình event và tải hiện tại, JFR tác động bao nhiêu đến CPU, throughput, latency, pause, memory và I/O?
-2. **Dung lượng:** recording repository nằm ở đâu, dữ liệu tăng bao nhiêu theo thời gian, `maxage`/`maxsize` bảo vệ được phần nào, và khi xuất `.jfr` có cần chỗ trống bổ sung không?
-3. **Quyền truy cập:** ai có quyền ra lệnh ghi, tiến trình nào thực sự tạo file, ai đọc được các event, file được truyền đi/lưu giữ/xóa như thế nào?
+1. **Recording overhead:** with the current event config and load, how much does JFR affect CPU, throughput, latency, pauses, memory, and I/O?
+2. **Capacity:** where does the recording repository live, how fast does data grow over time, what do `maxage`/`maxsize` protect, and does exporting `.jfr` require extra free space?
+3. **Access permissions:** who is allowed to issue recording commands, which process actually creates the file, who can read the events, and how are files transferred, retained, and deleted?
 
-**Mục tiêu:** biết chọn `default` hoặc `profile` theo mục đích, ước tính ngân sách tài nguyên bằng số đo có căn cứ, thực hiện một phiên ghi có giới hạn, xác minh quyền và khả năng đọc file, rồi đưa ra quyết định có thể triển khai. Đây là bài vận hành và quản trị một bản ghi; phân tích nội dung sự kiện JFR chi tiết thuộc các bài khác.
+**Goal:** know how to pick `default` or `profile` for the task, estimate a resource budget from grounded measurements, run a bounded recording session, verify permissions and file readability, and make a deployable decision. This lesson covers operating and governing a recording; detailed analysis of JFR event contents is covered in other lessons.
 
-Ví dụ lệnh bên dưới dùng **HotSpot/OpenJDK 21** làm chuẩn đối chiếu. Các tùy chọn có thể khác ở JVM/JDK khác; luôn kiểm tra `jcmd <pid> help JFR.start` và `JFR.dump` trên JVM mục tiêu.
+Command examples below use **HotSpot/OpenJDK 21** as the reference baseline. Options may vary on other JVMs/JDKs; always check `jcmd <pid> help JFR.start` and `JFR.dump` on the target JVM.
 
-## 2. Mô hình dữ liệu: bộ đệm, repository và file .jfr là ba lớp khác nhau
+## 2. Data Model: Buffers, Repository, and `.jfr` Files Are Three Separate Layers
 
-JFR được tích hợp trong JVM: event được thu thập trong các buffer, sau đó có thể được ghi thành các **chunk** trong recording repository và xuất thành file `.jfr` có thể mở bằng JDK Mission Control (JMC) hoặc lệnh `jfr`.
+JFR is built into the JVM: events are collected in buffers, then optionally written as **chunks** into a recording repository, and exported as a `.jfr` file readable by JDK Mission Control (JMC) or the `jfr` tool.
 
 ~~~text
-Ứng dụng / HotSpot
-   │  tạo event (tên, thời gian, field, stack trace nếu bật)
+Application / HotSpot
+   │  emits events (name, time, fields, stack trace if enabled)
    ▼
-Bộ đệm JFR trong JVM / native memory
+JFR buffers in JVM / native memory
    │
-   ├─ disk=true ──> repository chứa các recording chunks
-   │                    │  dữ liệu rolling; chịu maxage/maxsize
+   ├─ disk=true ──> repository holding recording chunks
+   │                    │  rolling data; subject to maxage/maxsize
    │                    │
    │                    └── JFR.dump / JFR.stop(filename=...)
    │                             ▼
-   │                        file .jfr được xuất
+   │                        exported .jfr file
    │                             ▼
-   │                    lưu trữ, phân tích, chuyển giao, xóa
+   │                    storage, analysis, transfer, deletion
    │
-   └─ disk=false ──> phụ thuộc dữ liệu còn trong buffer;
-                       lịch sử bị giới hạn, không có kho chunk liên tục
+   └─ disk=false ──> relies on data still in buffers;
+                       bounded history, no continuous chunk store
 ~~~
 
-**Ba hệ quả quan trọng:**
+**Three important consequences:**
 
-- **Repository** là chỗ lưu chunk trong khi JVM ghi; mặc định thường ở thư mục tạm của hệ điều hành, có thể được cấu hình bằng `JFR.configure repositorypath=...`. Không giả định rằng vì file xuất cuối cùng là `/secure/recordings/x.jfr` thì *mọi* dữ liệu trung gian đã nằm ở thư mục bảo mật đó.
-- **File xuất** là sản phẩm khi dùng `JFR.dump`, `JFR.stop filename=...` hoặc các cơ chế dump/đóng phiên. Nó có vòng đời riêng. Xóa/rotate dữ liệu rolling trong repository **không tự động xóa** tất cả file đã dump sang nơi khác, các bản sao hay backup.
-- `JFR.dump` có thể ghi một snapshot **khi recording vẫn tiếp tục**. Cần phân biệt “xuất file lúc 12:00” với “dừng ghi lúc 12:00”. Một phiên có thể sinh nhiều file snapshot; chúng cộng thêm dung lượng và rủi ro lộ dữ liệu.
+- **Repository** is where chunks live while the JVM records; by default it is typically under the OS temp directory and can be configured via `JFR.configure repositorypath=...`. Do not assume that because the final export path is `/secure/recordings/x.jfr`, *all* intermediate data stayed in that secured directory.
+- **Exported file** is the output of `JFR.dump`, `JFR.stop filename=...`, or dump-on-close mechanisms. It has its own lifecycle. Rotating or evicting rolling data in the repository **does not automatically delete** previously dumped files, copies, or backups elsewhere.
+- `JFR.dump` can write a snapshot **while the recording continues**. Distinguish "exporting a file at 12:00" from "stopping recording at 12:00." One session can produce multiple snapshot files; each adds disk usage and data-exposure surface.
 
-`.jfr` là định dạng nhị phân có metadata và nhiều loại event, không phải file log text. Kích thước file không đơn thuần bằng số event nhân độ dài chuỗi hiển thị; thông tin schema, stack trace, pools và cấu trúc chunk cùng ảnh hưởng đến kích thước.
+`.jfr` is a binary format containing metadata and multiple event types, not a plain-text log file. File size is not simply event count times printed text length; schema metadata, stack traces, constant pools, and chunk structure all contribute to size.
 
-## 3. Những gì tạo nên chi phí JFR
+## 3. What Drives JFR Cost?
 
-| Thành phần | Nguồn chi phí | Cần đo gì? |
+| Component | Source of Cost | What to Measure? |
 | --- | --- | --- |
-| Tạo event | Thu field, timestamp, context, đôi khi lấy stack trace | CPU theo tiến trình, throughput và latency |
-| Event có volume lớn | Nhiều event/giây do I/O, phân bổ object, thread activity... | Số event theo loại qua `jfr summary`, kích thước/s |
-| Buffer và xử lý nội bộ | Native/in-JVM buffer, flush, metadata và housekeeping | Resident memory, native memory, GC và CPU |
-| Ghi chunk vào repository | Storage throughput, IOPS, áp lực đĩa/overlay filesystem | Write bytes/s, I/O wait, storage quota, free space |
-| Dump file | Đọc/chốt dữ liệu, serialize/copy sang output, có thể phát sinh I/O burst | Thời gian dump, peak I/O, dung lượng file và free space |
-| Những event đặc biệt | Sự kiện/stack trace quá chi tiết, sampling dày, heap statistics, đường đến GC root | Pause/latency lúc thu, sự kiện GC, throughput |
-| Phân tích file | JMC/`jfr` đọc, giải mã, hiển thị dữ liệu | RAM/CPU/disk của máy **phân tích**, tách khỏi JVM ghi |
+| Event emission | Capturing fields, timestamps, context, sometimes stack traces | Per-process CPU, throughput, and latency |
+| High-volume events | Many events/sec from I/O, object allocations, thread activity, etc. | Event counts by type via `jfr summary`, bytes/sec |
+| Buffers and internal work | Native/in-JVM buffers, flushes, metadata, and housekeeping | Resident memory, native memory, GC, and CPU |
+| Writing chunks to repository | Storage throughput, IOPS, disk/overlay filesystem pressure | Write bytes/sec, I/O wait, storage quota, free space |
+| Dumping files | Reading/finalizing data, serializing/copying to output, possible I/O burst | Dump duration, peak I/O, file size, and free space |
+| Special events | Overly detailed events/stack traces, dense sampling, heap statistics, GC-root paths | Capture-time pauses/latency, GC events, throughput |
+| File analysis | JMC/`jfr` reading, decoding, and rendering data | RAM/CPU/disk of the **analysis** machine, separate from the recording JVM |
 
-Tài liệu Oracle JDK 21 mô tả `default.jfc` là cấu hình ít overhead, thích hợp cho ghi liên tục và thường dưới khoảng 1% với tác vụ phù hợp; `profile.jfc` ghi nhiều thông tin hơn nên có thể tốn tài nguyên hơn. **Con số điển hình không phải cam kết cho từng ứng dụng.** Một endpoint nhạy latency, workload I/O dày hoặc cấu hình tùy chỉnh có thể khác đáng kể.
+Oracle JDK 21 documentation describes `default.jfc` as a low-overhead config suitable for continuous recording and typically under roughly 1% for appropriate workloads; `profile.jfc` records more data and can consume more resources. **Typical figures are not guarantees for every application.** Latency-sensitive endpoints, heavy I/O workloads, or custom configs can differ markedly.
 
-### 3.1. Vì sao đổi event làm overhead tăng?
+### 3.1. Why Do Event Changes Raise Overhead?
 
-- **Bật thêm event:** thêm công việc và dữ liệu, nhất là event phát sinh theo mỗi thao tác thay vì định kỳ.
-- **Giảm `threshold`:** event thời lượng ngắn trước đây bị bỏ qua bắt đầu được lưu, khiến lượng event tăng.
-- **Tăng tần suất sampling (`period`):** có thêm mẫu và nhiều thao tác thu thập hơn; phải cân bằng độ phân giải với chi phí.
-- **Bật stack trace hoặc tăng `stackdepth`:** chứa nhiều thông tin về call stack, làm tăng chi phí thu thập và file; lợi ích phụ thuộc mục đích điều tra.
-- **Bật `HeapStatistics` hoặc thu đường đến GC root:** có thể kích hoạt công việc nặng, ảnh hưởng pause. Trên JDK 21, tùy chọn diagnostic command viết là `path-to-gc-root` (số ít); đối chiếu help của JVM đang chạy. Không bật như một thiết lập thường trực chỉ vì muốn “thu đủ dữ liệu”.
-- **Ghi nhiều recording đồng thời:** cài đặt effective event settings và việc giữ/dump dữ liệu phụ thuộc trạng thái toàn JVM. Cần đo chi phí **tổng** và ngân sách storage cho toàn tiến trình, không nhân máy móc cost của một recording rồi cho rằng đúng tuyệt đối.
+- **Enabling more events:** adds work and data volume, especially per-operation events rather than periodic ones.
+- **Lowering `threshold`:** short-duration events previously skipped begin to be recorded, increasing event volume.
+- **Increasing sampling frequency (`period`):** gathers more samples and collection work; balance resolution against cost.
+- **Enabling stack traces or raising `stackdepth`:** captures more call-stack data, increasing collection cost and file size; value depends on the investigation goal.
+- **Enabling `HeapStatistics` or collecting paths to GC roots:** can trigger heavy work affecting pauses. On JDK 21, the diagnostic command option is written `path-to-gc-root` (singular); verify with `help` on the running JVM. Never leave it on permanently just to "collect everything."
+- **Running multiple concurrent recordings:** effective event settings and retention/dumping depend on JVM-wide state. Measure **total** cost and storage budget for the whole process rather than naively multiplying one recording's cost.
 
-**Không suy overhead CPU chỉ từ kích thước .jfr.** Một event có stack trace đắt hơn một event field đơn giản; workload có file nhỏ vẫn có thể chịu pause do tùy chọn chẩn đoán nặng. Ngược lại file khá lớn không tự chứng minh JFR làm ứng dụng chậm.
+**Do not infer CPU overhead from `.jfr` file size alone.** An event with a stack trace costs more than a simple-field event; a workload with a tiny file can still suffer pauses from heavy diagnostic options. Conversely, a fairly large file does not by itself prove JFR slowed down the application.
 
-### 3.2. Lựa chọn cấu hình đúng bài toán
+### 3.2. Picking the Right Configuration for the Problem
 
-| Mục đích | Cấu hình khởi đầu | Kiểm soát vận hành |
+| Purpose | Initial Configuration | Operational Controls |
 | --- | --- | --- |
-| Ghi liên tục để có lịch sử khi sự cố xảy ra | `settings=default` | `disk=true`, giới hạn `maxage` và `maxsize`, giám sát free space |
-| Tạm thời điều tra CPU, allocation, I/O sâu hơn | `settings=profile` | `duration` ngắn, giờ ít nhạy cảm, kiểm tra overhead và event volume |
-| Điều tra một loại sự kiện cụ thể | Bản sao `.jfc` có chỉnh event/threshold phù hợp | Đối chiếu bộ lọc, thử trên staging; không sửa file `default.jfc` gốc |
-| Điều tra nghi rò rỉ nghiêm trọng | Event liên quan allocation/heap và GC-root path khi thật sự cần | Chấp nhận công việc có thể nặng; lập cửa sổ/tiêu chí dừng rõ |
+| Continuous recording to keep history when incidents strike | `settings=default` | `disk=true`, `maxage` and `maxsize` caps, free-space monitoring |
+| Temporary deep dive into CPU, allocations, or I/O | `settings=profile` | Short `duration`, off-peak if possible, check overhead and event volume |
+| Investigating a specific event category | Copy of `.jfc` with tuned events/thresholds | Verify filters, test in staging; never edit the original `default.jfc` |
+| Investigating suspected severe memory leaks | Allocation/heap events and GC-root paths only when truly needed | Accept potentially heavy work; set strict windows and stop criteria |
 
-Với JFR tự động khởi động khi chạy JVM, có thể dùng `-XX:StartFlightRecording=...`; với JVM đã chạy, dùng `jcmd` để bật và kiểm tra thực tế. Cả hai cách cuối cùng đều phải giải bài toán cost, disk và quyền truy cập giống nhau.
+For JFR started automatically at JVM launch, use `-XX:StartFlightRecording=...`; for an already-running JVM, use `jcmd` to start and inspect live. Both approaches ultimately face the exact same cost, disk, and permission questions.
 
-## 4. Phiên thực hành có giới hạn với jcmd
+## 4. Bounded Practice Session with `jcmd`
 
-Giả sử tiến trình HotSpot đang chạy có PID `21891`, thư mục `/srv/app/jfr/` đã được tạo, cấp quyền phù hợp và còn chỗ trống. **PID và path là ví dụ, không phải giá trị lấy từ máy của bạn.**
+Suppose a running HotSpot process has PID `21891`, and `/srv/app/jfr/` has been created with proper permissions and free space. **The PID and path are examples, not values taken from your machine.**
 
-### 4.1. Xác minh JVM và tham số có thật
+### 4.1. Verify the Actual JVM and Parameters
 
 ~~~bash
 jcmd 21891 VM.version
@@ -94,239 +94,239 @@ jcmd 21891 help JFR.dump
 jcmd 21891 JFR.configure
 ~~~
 
-Nếu một câu lệnh trả lỗi attach/quyền hoặc không tìm thấy diagnostic command, dừng lại ở bước kiểm tra đó. Đừng mặc định rằng các JVM không phải HotSpot hoặc các bản JDK khác có chính xác cùng tham số.
+If any command returns an attach/permission error or cannot find the diagnostic command, stop at that check. Never assume non-HotSpot JVMs or different JDK versions have identical parameters.
 
-### 4.2. Ghi liên tục theo cửa sổ rolling
+### 4.2. Continuous Rolling-Window Recording
 
 ~~~bash
 jcmd 21891 JFR.start name=diag-rolling settings=default disk=true maxage=30m maxsize=256m
 jcmd 21891 JFR.check name=diag-rolling
 ~~~
 
-- `name` giúp định danh khi có nhiều recording.
-- `settings=default` chọn bộ event ít overhead hơn so với `profile`.
-- `disk=true` cho phép ghi chunk vào repository.
-- `maxage=30m` giữ dữ liệu rolling trong khoảng thời gian mục tiêu; `maxsize=256m` đặt giới hạn nominal cho dữ liệu giữ lại trên disk của recording này. **Điều kiện nào đến trước sẽ làm dữ liệu cũ bị loại**, nên một lần dump có thể không chứa đủ 30 phút khi event rate quá cao.
-- Với JDK 21, `maxsize` phải không nhỏ hơn `maxchunksize` của cấu hình JFR. Cơ chế chunk/flush khiến không nên coi đúng 256 MiB là quota cứng cho toàn bộ filesystem.
+- `name` identifies the recording when multiple recordings exist.
+- `settings=default` picks a lower-overhead event set than `profile`.
+- `disk=true` enables writing chunks to the repository.
+- `maxage=30m` keeps rolling data within the target age window; `maxsize=256m` sets a nominal cap on retained disk data for this recording. **Whichever limit is reached first evicts older data**, so a dump may contain less than 30 minutes when event rates are high.
+- On JDK 21, `maxsize` must be no smaller than JFR's configured `maxchunksize`. Chunk/flush mechanics mean you should not treat 256 MiB as a hard quota for the entire filesystem.
 
-**Thiết lập repository riêng:** nếu cần đặt chunk ở phân vùng được kiểm soát, kiểm tra `JFR.configure repositorypath=/srv/app/jfr/repository` trước khi khởi tạo recording và xác minh đường dẫn/quyền phía JVM. Một số tham số JFR chỉ có thể thay đổi trước khi hệ thống JFR được khởi tạo; hãy đối chiếu help và trạng thái VM. Đừng chuyển repository sau khi ghi bằng cách tự move các chunk đang hoạt động.
+**Setting a dedicated repository:** if chunks must sit on a controlled partition, run `JFR.configure repositorypath=/srv/app/jfr/repository` before starting recordings and verify the JVM-side path and permissions. Some JFR parameters can only be changed before JFR initializes; check `help` and VM state. Never move a repository mid-recording by manually relocating active chunks.
 
-### 4.3. Xuất snapshot rồi kết thúc có kiểm soát
+### 4.3. Export a Snapshot and Stop in a Controlled Manner
 
 ~~~bash
-# File do JVM đích ghi, path được diễn giải trong filesystem của JVM đó
+# File is written by the target JVM; path is resolved in that JVM's filesystem
 jcmd 21891 JFR.dump name=diag-rolling filename=/srv/app/jfr/diag-rolling.jfr
 
-# Kiểm tra recording vẫn chạy sau thao tác dump
+# Verify the recording is still running after the dump
 jcmd 21891 JFR.check name=diag-rolling
 
-# Dừng khi không còn cần thu thập
+# Stop when collection is no longer needed
 jcmd 21891 JFR.stop name=diag-rolling
 
-# Kiểm tra file đã xuất bằng công cụ đi kèm JDK
+# Inspect the exported file with the JDK's bundled tool
 jfr summary /srv/app/jfr/diag-rolling.jfr
 ~~~
 
-`JFR.dump` không ngụ ý stop. Trong ví dụ này, dump đã tạo file trước khi gọi stop. Lệnh `JFR.stop` **không có `filename`** không phải lệnh xuất file cuối cùng; nếu chưa dump mà muốn giữ dữ liệu, chỉ định `filename` khi stop.
+`JFR.dump` does not imply `stop`. In this example, `dump` created the file before `stop` was called. `JFR.stop` **without `filename`** does not export a final file; if you have not dumped yet and want to keep data, specify `filename` on `stop`.
 
-Một phiên profiling hữu hạn có thể bắt đầu trực tiếp như sau:
+A bounded profiling session can be started directly like this:
 
 ~~~bash
 jcmd 21891 JFR.start name=diag-profile settings=profile duration=2m disk=true filename=/srv/app/jfr/profile-2m.jfr
 ~~~
 
-Lệnh có `duration=2m` là thu theo thời hạn; file `filename` dùng khi recording kết thúc. Khi có lỗi JVM hoặc kill đột ngột, không được mặc định file sẽ hoàn chỉnh hay mọi event đã kịp flush.
+Setting `duration=2m` performs a timed capture; `filename` is used when the recording ends. On a JVM crash or sudden kill, do not assume the file is complete or all events were flushed.
 
-### 4.4. Khác nhau giữa maxage/maxsize khi start và khi dump
+### 4.4. Differences Between `maxage`/`maxsize` at Start vs. Dump
 
-| Tham số | `JFR.start` với `disk=true` | `JFR.dump` |
+| Parameter | `JFR.start` with `disk=true` | `JFR.dump` |
 | --- | --- | --- |
-| `maxage` | Giới hạn lịch sử dữ liệu **giữ trong recording** | Chọn cửa sổ lịch sử cần **xuất** nếu còn dữ liệu |
-| `maxsize` | Giới hạn nominal dung lượng dữ liệu **giữ** | Giới hạn lượng dữ liệu dùng để **xuất** |
-| `filename` | Đích cuối khi recording dừng (khi có cấu hình) | Đường dẫn xuất snapshot **ngay khi chạy lệnh** |
-| `duration` | Thời gian thu trước khi recording tự dừng | Không có cùng ý nghĩa |
-| `disk=false` | Không duy trì lịch sử chunk trên disk như `disk=true` | Không thể dùng như cách lưu lịch sử dài hạn |
+| `maxage` | Limits history **retained in the recording** | Selects the history window to **export** if data remains |
+| `maxsize` | Nominal size cap for data **retained** | Size cap for data included in the **export** |
+| `filename` | Final target when recording stops (if configured) | Snapshot output path **when the command runs** |
+| `duration` | Collection time before the recording auto-stops | Does not have the same meaning |
+| `disk=false` | Does not retain chunk history on disk like `disk=true` | Cannot be used for long-term history retention |
 
-**Cần tránh hiểu sai:** `maxage=30m` không tự lập lịch xóa file `diag-rolling.jfr` đã xuất và `maxsize=256m` không giới hạn tổng số bản sao từ mọi `JFR.dump` hay backup. Nếu chạy cron dump mỗi 5 phút, phải quản lý số lượng file, thời gian lưu trữ và quota **riêng**.
+**Avoid this misconception:** `maxage=30m` does not schedule deletion of an already-exported `diag-rolling.jfr` file, and `maxsize=256m` does not cap the cumulative size of all `JFR.dump` copies or backups. If a cron job dumps every 5 minutes, you must manage file count, retention duration, and quotas **separately**.
 
-## 5. Đo overhead bằng thử nghiệm A/B có kiểm soát
+## 5. Measuring Overhead via Controlled A/B Testing
 
-Một con số phần trăm từ tài liệu không thay cho measurement trên hệ thống thật. Quy trình tối thiểu:
+A percentage cited in documentation is no substitute for measuring on your real system. Minimum procedure:
 
-1. **Baseline:** chạy workload đại diện mà không có recording JFR bổ sung, thu ít nhất vài cửa sổ để biết độ dao động tự nhiên. Ghi JDK/vendor, GC, CPU quota, heap và load.
-2. **Default:** cùng môi trường và workload, bật `settings=default` với mục tiêu duration/retention, đo chính xác cùng chỉ tiêu.
-3. **Profile hoặc custom:** chỉ khi thật sự cần, lặp lại có giới hạn. Không so một đợt tải cao với một baseline tải thấp rồi kết luận JFR là nguyên nhân.
-4. **Tách warmup:** warmup JIT, cache và tải GC ban đầu có thể làm lệch kết quả. Dùng nhiều lượt, giữ thời gian steady-state tương tự; thử nghiệm ngược thứ tự nếu phù hợp.
-5. **Tách thời điểm dump:** đo riêng chi phí **ghi liên tục** và burst khi `JFR.dump`/`JFR.stop`; dump cũng có thể bị ảnh hưởng filesystem hoặc network volume.
-6. **Thẩm định:** so sánh median và các phân vị quan trọng qua các lượt, ghi độ dao động/noise, không chỉ một sample đẹp.
+1. **Baseline:** run a representative workload with no extra JFR recording across at least several windows to measure natural variance. Record JDK/vendor, GC, CPU quota, heap, and load.
+2. **Default:** on the same environment and workload, enable `settings=default` with your target duration/retention and measure the exact same metrics.
+3. **Profile or custom:** only when genuinely needed, repeat within a bounded window. Never compare a high-load run against a low-load baseline and blame JFR.
+4. **Separate warm-up:** JIT warm-up, caches, and initial GC load can skew results. Use multiple trials with matching steady-state windows; reverse run order if appropriate.
+5. **Separate dump timing:** measure **continuous recording** overhead separately from `JFR.dump`/`JFR.stop` bursts; dumps can also be affected by filesystem or network-volume performance.
+6. **Validate:** compare medians and key percentiles across runs, recording variance/noise rather than cherry-picking one clean sample.
 
-Bộ metric nên có:
+Recommended metric suite:
 
-| Nhóm | Metric cần thu | Cách giải thích |
+| Group | Metrics to Collect | How to Interpret |
 | --- | --- | --- |
-| Trải nghiệm | Throughput, p95/p99 latency, error rate | Chỉ tiêu nghiệp vụ quyết định có chấp nhận overhead hay không |
-| CPU | Process CPU time, CPU utilization, throttling | Đừng nhầm CPU% cao do load lớn với cost JFR |
-| Memory | Heap used/committed, process RSS, native memory khi có công cụ | JFR dùng buffer và metadata; chỉ heap used không đủ |
-| GC | Số sự kiện, pause distribution, thời gian GC | Phân biệt thay đổi workload/GC với tác động recording |
-| Storage | Disk write bytes/s, IOPS, free bytes, quota | Theo dõi cả repository và đường xuất file |
-| File | Byte size `.jfr`, duration, event count theo loại | Dùng để ước tính tốc độ dữ liệu và nhận diện event quá nhiều |
-| Dump | Wall-clock duration, peak I/O, thông báo lỗi | Một lần dump lớn có thể gây spike khác với chi phí ghi nền |
+| Experience | Throughput, p95/p99 latency, error rate | Business metrics decide whether overhead is acceptable |
+| CPU | Process CPU time, CPU utilization, throttling | Do not confuse high CPU% from heavier load with JFR cost |
+| Memory | Heap used/committed, process RSS, native memory where available | JFR uses buffers and metadata; heap used alone is insufficient |
+| GC | Event count, pause distribution, GC time | Distinguish workload/GC shifts from recording impact |
+| Storage | Disk write bytes/sec, IOPS, free bytes, quota | Monitor both repository and export paths |
+| File | `.jfr` byte size, duration, event counts by type | Used to estimate data rate and spot overly noisy events |
+| Dump | Wall-clock duration, peak I/O, error messages | A large dump can cause bursts distinct from background write cost |
 
-### 5.1. Công thức so sánh và ví dụ giả định
+### 5.1. Comparison Formulas and Hypothetical Example
 
-Nếu metric “càng thấp càng tốt” (CPU, latency), mức tăng tương đối là:
+For "lower is better" metrics (CPU, latency), relative increase is:
 
 \[
-\text{Tăng chi phí (\%)} =
-\frac{\text{Giá trị khi bật JFR} - \text{Baseline}}{\text{Baseline}}\times 100
+\text{Cost increase (\%)} =
+\frac{\text{Value with JFR enabled} - \text{Baseline}}{\text{Baseline}}\times 100
 \]
 
-Nếu metric “càng cao càng tốt” (throughput), mức suy giảm là:
+For "higher is better" metrics (throughput), relative reduction is:
 
 \[
-\text{Giảm throughput (\%)} =
-\frac{\text{Baseline} - \text{Giá trị khi bật JFR}}{\text{Baseline}}\times100
+\text{Throughput reduction (\%)} =
+\frac{\text{Baseline} - \text{Value with JFR enabled}}{\text{Baseline}}\times100
 \]
 
-Bảng dưới là **số liệu giả định để luyện cách tính**, không phải benchmark JFR hay mức chấp nhận chung:
+The table below uses **hypothetical numbers to practice the math**, not a JFR benchmark or universal acceptance threshold:
 
-| Metric | Không ghi | `default` | `profile` |
+| Metric | No Recording | `default` | `profile` |
 | --- | ---: | ---: | ---: |
-| Throughput | 1.000 req/s | 990 req/s | 950 req/s |
-| CPU tiêu thụ trung bình | 2,00 cores | 2,04 cores | 2,20 cores |
+| Throughput | 1,000 req/s | 990 req/s | 950 req/s |
+| Average CPU consumed | 2.00 cores | 2.04 cores | 2.20 cores |
 | p99 latency | 100 ms | 105 ms | 120 ms |
 
-Theo bảng: `default` giảm throughput **1%**, CPU tăng **2%**, p99 tăng **5%**. `profile` giảm throughput **5%**, CPU tăng **10%**, p99 tăng **20%**. Không được dùng kết quả giả định này để dự đoán mọi ứng dụng.
+Per the table: `default` lowers throughput by **1%**, increases CPU by **2%**, and increases p99 by **5%**. `profile` lowers throughput by **5%**, increases CPU by **10%**, and increases p99 by **20%**. Never use these hypothetical figures to predict every application.
 
-Đặc biệt, nếu CPU bị quota/throttling, một mức tăng CPU nhỏ có thể gây đột biến p99 lớn. Nếu p99 dao động tự nhiên 20 ms, chênh 5 ms trong một lượt chưa đủ kết luận. Cần thử nhiều lượt với cùng điều kiện và tiêu chí dừng do chủ hệ thống quy định.
+In particular, if CPU is capped by quotas/throttling, a small CPU increase can trigger a large p99 spike. If p99 naturally fluctuates by 20 ms, a 5 ms difference in one trial is inconclusive. Run multiple trials under identical conditions with system-owner stop criteria.
 
-## 6. Ước tính dung lượng và retention bằng dữ liệu thật
+## 6. Estimating Disk Capacity and Retention from Real Data
 
-### 6.1. Đo tốc độ sinh dữ liệu
+### 6.1. Measuring Data Generation Rate
 
-Đối với một snapshot đại diện, ghi:
+For a representative snapshot, record:
 
-- **Tổng số byte file:** dùng `stat` hoặc thông tin filesystem; quy ước rõ MB hay MiB.
-- **Thời gian chứa trong bản ghi:** tính từ timestamp thực của các event/cửa sổ; không tự lấy thời gian đã bật lệnh nếu recording bị delay, rotate hoặc thiếu đoạn.
-- **Event count theo loại:** `jfr summary file.jfr` giúp nhận diện event nào chiếm dung lượng và tổng hợp ở file.
-- **Tốc độ:** `rate = bytes / seconds` của cửa sổ quan sát. Thử cả giờ bình thường lẫn giờ cao điểm; rate có thể tăng theo số request, hoạt động GC hoặc I/O.
+- **Total file bytes:** via `stat` or filesystem metadata; state MB vs. MiB clearly.
+- **Time span contained in the recording:** derived from actual event/window timestamps; do not assume command runtime if the recording had a delay, rotation, or missing segments.
+- **Event counts by type:** `jfr summary file.jfr` identifies which events dominate space and summarizes the file.
+- **Rate:** `rate = bytes / seconds` over the observed window. Measure both normal and peak hours; rates can climb with request volume, GC activity, or I/O.
 
-Công thức ước lượng tuyến tính ban đầu:
+Initial linear estimation formula:
 
 \[
 B_\mathrm{window}\approx R_\mathrm{bytes/sec}\times T_\mathrm{seconds}
 \]
 
-Nếu có `n` JVM hoặc nhiều recording/file dump, tính tổng theo từng nguồn:
+With `n` JVMs or multiple recordings/dump files, sum across sources:
 
 \[
 B_\mathrm{total}\approx \sum_{i=1}^{n} R_i T_i
 + B_\mathrm{exports}+B_\mathrm{headroom}
 \]
 
-Đây là **ước tính ngân sách**, không phải công thức chính xác cho mọi JFR: chunk rotation, dữ liệu nén/mã hóa định dạng, profile, event mix, snapshot và độ trễ flush đều có thể làm rate biến đổi.
+This is a **budget estimate**, not an exact law for all JFR runs: chunk rotation, format compression/encoding, profile, event mix, snapshots, and flush lag can all vary the rate.
 
-**Ví dụ giả định:** một file chứa **96 MiB trong 12 phút**, tốc độ xấp xỉ **8 MiB/phút**. Để có khoảng 30 phút lịch sử với tốc độ tương tự cần khoảng **240 MiB**. Một recording cấu hình `maxage=30m maxsize=256m` sẽ có ngân sách khá sát ở tải này; khi event rate tăng, constraint kích thước có thể khiến mất các phút cũ trước khi đủ 30 phút. Ngoài ra phải dành chỗ cho chunk đang ghi, bản dump đã xuất, file của JVM khác và phần dự phòng filesystem.
+**Hypothetical example:** a file contains **96 MiB across 12 minutes**, a rate of roughly **8 MiB/minute**. Retaining about 30 minutes at a similar rate needs around **240 MiB**. A recording configured with `maxage=30m maxsize=256m` runs tight on budget at this load; if event rate rises, the size constraint can evict older minutes before reaching 30 minutes. You must also reserve space for the chunk currently being written, exported dumps, other JVMs' files, and filesystem headroom.
 
-Nếu hệ thống cần chắc chắn giữ tối thiểu 30 phút **trong giờ cao điểm**, đo percentile cao của rate rồi đặt `maxsize` và quota filesystem với headroom đủ. **Không đặt một quota bằng đúng dung lượng trung bình rồi cho rằng đã an toàn.**
+If the system must guarantee at least 30 minutes **during peak hours**, measure high-percentile rates and set `maxsize` and filesystem quotas with ample headroom. **Never set a quota equal to average usage and assume it is safe.**
 
-### 6.2. Dung lượng mà maxsize không quản lý
+### 6.2. Disk Usage That `maxsize` Does Not Control
 
-Giả sử có 8 JVM, mỗi JVM ghi rolling tối đa 256m, tức riêng các recording đã có thể tiêu thụ khoảng 8 × 256m trước khi xét repository overhead, quota chung và các recording khác. Nếu mỗi JVM còn dump file lớn mỗi 10 phút sang thư mục lưu 7 ngày, tổng file xuất có thể nhiều lần vượt ngân sách ghi rolling.
+Suppose you have 8 JVMs, each rolling up to 256m—the recordings alone can consume around 8 × 256m before counting repository overhead, shared quotas, and other recordings. If each JVM also dumps a large file every 10 minutes into a directory kept for 7 days, total exported files can exceed the rolling budget many times over.
 
-Cần phân biệt ít nhất **bốn khu vực**:
+Separate at least **four zones**:
 
-1. JFR buffer và metadata trong JVM.
-2. Repository chunks đang được JVM duy trì.
-3. Output `.jfr` sau dump/stop, có thể cùng ổ hoặc ổ khác với repository.
-4. Bản sao gửi sang object storage, máy phân tích, hệ thống ticket, backup và các artifact CI.
+1. JFR buffers and metadata inside the JVM.
+2. Repository chunks currently maintained by the JVM.
+3. `.jfr` outputs from dump/stop, on the same disk or a separate one from the repository.
+4. Copies sent to object storage, analysis hosts, ticketing systems, backups, and CI artifacts.
 
-Hạn chế quyền truy cập, quota, thời hạn xóa và monitoring cho **từng khu vực**. File quay vòng ở bước 2 không bảo đảm vòng đời file ở bước 3 hoặc 4.
+Enforce access controls, quotas, expiration policies, and monitoring for **each zone**. Rotating files in zone 2 does not manage the lifecycle of files in zone 3 or 4.
 
-### 6.3. Gợi ý giám sát dung lượng
+### 6.3. Disk Monitoring Recommendations
 
-- Theo dõi `free bytes` và `free inodes` của filesystem chứa repository và output, chứ không chỉ `du` của thư mục output.
-- Cảnh báo khi còn quá ít chỗ cho một lần dump tệ nhất; đừng chờ đến 100% đĩa.
-- Xác định ai làm housekeeping các file đã export và xử lý thất bại khi xóa/upload.
-- Tăng đột biến `.jfr` size? Dùng `jfr summary` để tìm event count theo loại; so lại với thay đổi settings/workload trước khi quy lỗi.
-- Dump có thể thất bại vì disk full, thiếu quyền, path sai, namespace hoặc lỗi ghi. Không gán file 0 byte hay file thiếu thành “không có sự kiện”.
+- Track `free bytes` and `free inodes` of the filesystems hosting the repository and output, not just `du` on the output directory.
+- Alert when remaining space drops too low for a worst-case dump; do not wait for 100% disk full.
+- Define who performs housekeeping on exported files and how failed deletes/uploads are handled.
+- Sudden `.jfr` size jump? Run `jfr summary` to find event counts by type; correlate with setting or workload changes before blaming JFR.
+- Dumps can fail due to disk full, missing permissions, wrong paths, namespaces, or write errors. Never mistake a 0-byte or missing file for "no events occurred."
 
-## 7. Quyền truy cập: ra lệnh khác với đọc file
+## 7. Access Permissions: Issuing Commands Differs from Reading Files
 
-Một ca thu thập thành công cần phân biệt **ba chủ thể**:
+A successful capture must distinguish **three actors**:
 
-| Chủ thể | Quyền cần có | Trường hợp lỗi điển hình |
+| Actor | Required Permission | Typical Failure Mode |
 | --- | --- | --- |
-| Người/công cụ gửi `jcmd` | Có thể attach và gửi diagnostic command tới JVM đích theo policy/OS | Không cùng quyền user, JVM không attach được, container PID namespace khác |
-| Tiến trình JVM ghi chunk/file | Có quyền ghi **trong filesystem mà JVM nhìn thấy** | `JFR.dump` path ở host nhưng không tồn tại trong container; thư mục không writable |
-| Người/công cụ đọc file `.jfr` | Có quyền traverse directory + đọc file; có công cụ JFR tương thích | Có file nhưng JMC/`jfr` không đọc được; ACL hoặc bản sao sai owner |
+| Person/tool sending `jcmd` | Can attach and send diagnostic commands to target JVM per policy/OS | Different user permissions, attach disabled on JVM, different container PID namespace |
+| JVM process writing chunks/files | Write access **in the filesystem seen by the JVM** | `JFR.dump` path exists on host but not inside container; directory not writable |
+| Person/tool reading `.jfr` file | Traverse directory + read file permissions; compatible JFR tools | File exists but JMC/`jfr` cannot read it; ACL or wrong file owner on copy |
 
-Người gửi `jcmd` không nhất thiết là người sở hữu file được tạo. Path đích của lệnh được xử lý **bên trong JVM đích**. Ví dụ JVM trong container có thể ghi `/srv/app/jfr/out.jfr` ở mount riêng; cùng đường dẫn chữ đó trên host không nhất thiết trỏ tới cùng đối tượng.
+The `jcmd` caller is not necessarily the owner of the created file. The target path in the command is resolved **inside the target JVM**. For instance, a JVM in a container may write `/srv/app/jfr/out.jfr` on a private mount; the same literal path on the host does not necessarily refer to the same file.
 
-### 7.1. File .jfr có thể chứa dữ liệu nhạy cảm
+### 7.1. `.jfr` Files Can Contain Sensitive Data
 
-Tùy cấu hình và event được bật, file có thể hé lộ:
+Depending on configuration and enabled events, a file may expose:
 
-- Tên package/class/method, stack trace, cấu trúc mã, đường dẫn filesystem.
-- Tên thread, tiến trình, thông tin host/JVM và thành phần ứng dụng.
-- Thông tin file/network, endpoint, thời điểm request, SQL hoặc payload **nếu** ứng dụng/framework/custom JFR event đã ghi các field đó.
-- Tên người dùng, mã định danh nghiệp vụ, URL hoặc secret nếu custom event vô tình log chúng.
+- Package/class/method names, stack traces, code structure, filesystem paths.
+- Thread names, processes, host/JVM info, and application components.
+- File/network info, endpoints, request timestamps, SQL, or payloads **if** the app/framework/custom JFR event recorded those fields.
+- Usernames, business identifiers, URLs, or secrets if custom events inadvertently logged them.
 
-Không giả định mọi `.jfr` đều chứa mật khẩu hay payload; **nội dung thực tế phụ thuộc event settings**. Nhưng cũng không coi JFR “chỉ là profiling data vô hại”. Hãy duyệt event types và field trước khi chuyển file ra khỏi môi trường được phép.
+Do not assume every `.jfr` contains passwords or payloads; **actual contents depend on event settings**. Yet never treat JFR as "harmless profiling data" either. Audit event types and fields before transferring files outside authorized environments.
 
-**Chính sách tối thiểu:** quyền cần thiết ít nhất (least privilege), nơi lưu rõ ràng, hạn sử dụng, mã hóa khi truyền/lưu nếu yêu cầu tổ chức, audit ai được đọc/tải/xóa, hạn chế chia sẻ qua chat/email/ticket không được cấp quyền và xóa bản tạm sau phân tích. Nếu lọc event bằng `jfr scrub`, hãy kiểm tra file kết quả: lọc loại event không tự động ẩn danh mọi chuỗi/field nhạy cảm còn lại.
+**Minimum policy:** least privilege, explicit storage location, retention limit, encryption in transit/at rest if required by policy, auditing who can read/download/delete, restricting sharing via unauthorized chat/email/tickets, and deleting temporary copies after analysis. If filtering events with `jfr scrub`, inspect the resulting file: filtering event types does not automatically anonymize all remaining sensitive strings or fields.
 
-### 7.2. Ví dụ trên Linux/Unix
+### 7.2. Example on Linux/Unix
 
-Giả sử ứng dụng chạy với user dịch vụ và quản trị viên đã cung cấp thư mục đúng owner. Trước khi khởi động JVM, thiết lập thư mục với quyền giới hạn:
+Suppose the application runs under a service user and administrators have provisioned a properly owned directory. Before starting the JVM, set up directories with restricted permissions:
 
 ~~~bash
-# Thực hiện bằng user dịch vụ hoặc trong provisioning có quyền tương ứng.
+# Run as the service user or during provisioning with matching privileges.
 install -d -m 700 /srv/app/jfr
 install -d -m 700 /srv/app/jfr/repository
 
-# Chỉ có ý nghĩa khi chạy cùng shell khởi động JVM:
+# Only meaningful when run in the same shell that launches the JVM:
 umask 077
 java -jar app.jar
 ~~~
 
-`umask 077` của shell gửi `jcmd` sau này **không đổi umask của JVM đang chạy**. Quyền thực tế của repository/output phụ thuộc quyền user JVM, mode thư mục, umask, ACL, triển khai JFR và filesystem. Sau dump, kiểm tra:
+A `umask 077` in a shell sending `jcmd` later **does not change the umask of the running JVM**. Actual repository/output permissions depend on the JVM user, directory mode, umask, ACLs, JFR implementation, and filesystem. After dumping, inspect:
 
 ~~~bash
 ls -ld /srv/app/jfr /srv/app/jfr/repository
 stat -c '%U %G %a %s %n' /srv/app/jfr/diag-rolling.jfr
-# Nếu môi trường có ACL:
+# If the environment uses ACLs:
 getfacl /srv/app/jfr/diag-rolling.jfr
 ~~~
 
-Nếu file quá rộng quyền, xử lý theo chính sách owner/ACL của dịch vụ; trên filesystem POSIX thông thường có thể cần `chmod 600` file sau khi tạo, nhưng không dùng `chmod 777` để chữa lỗi ghi file. Cần cấp quyền đi qua **mọi thư mục cha** cho reader hợp lệ.
+If file permissions are too broad, handle them per the service's owner/ACL policy; on typical POSIX filesystems you may need `chmod 600` after creation, but never use `chmod 777` to "fix" file-write errors. Authorized readers need traverse permission on **every parent directory**.
 
-Cũng đừng cấu hình repository trong `/tmp` dùng chung rồi chủ quan rằng chỉ file exported được bảo vệ. Nếu bắt buộc dùng tạm, kiểm tra quyền thư mục và tiến trình tạo, cleanup khi crash/restart và mount options.
+Likewise, do not place the repository in shared `/tmp` and assume only exported files need protection. If temporary space must be used, verify directory permissions, creating process, crash/restart cleanup, and mount options.
 
-### 7.3. Container, Kubernetes và Windows
+### 7.3. Containers, Kubernetes, and Windows
 
-**Container/Kubernetes:**
+**Containers/Kubernetes:**
 
-- PID host, PID trong container và quyền attach có thể khác. Sử dụng đúng JVM/PID namespace và bảo đảm tool nhìn được tiến trình.
-- `JFR.configure repositorypath` và `JFR.dump filename` phải trỏ tới path có thể ghi trong **container JVM**; nếu muốn lấy file từ ngoài, kiểm tra mount và quyền của volume.
-- Ephemeral storage có quota và có thể bị mất sau khi pod kết thúc; đừng chỉ dựa vào việc file tồn tại trong container để coi như đã lưu trữ lâu dài.
-- Volume chia sẻ, sidecar, user namespace, securityContext, read-only root filesystem có thể làm thay đổi khả năng ghi và đọc.
-- Không lưu file nhạy cảm lâu dài trong image layer, logs hoặc CI artifact công khai.
+- Host PIDs, container PIDs, and attach permissions may differ. Use the right JVM/PID namespace and ensure the tool can see the process.
+- `JFR.configure repositorypath` and `JFR.dump filename` must point to paths writable inside the **JVM container**; to retrieve files externally, check volume mounts and permissions.
+- Ephemeral storage has quotas and may vanish when a pod terminates; never treat a file existing inside a container as long-term storage.
+- Shared volumes, sidecars, user namespaces, `securityContext`, and read-only root filesystems can alter read and write access.
+- Never bake sensitive files into image layers, logs, or public CI artifacts.
 
-**Windows:** kiểm tra file/dir ACL bằng `icacls` hoặc công cụ quản trị thích hợp, kiểm tra account chạy JVM (service account), ổ đĩa/đường dẫn và cơ chế cleanup. `chmod`/`umask` ở trên là ví dụ POSIX, không áp dụng nguyên dạng cho NTFS ACL.
+**Windows:** check file/dir ACLs with `icacls` or appropriate admin tools, verify the JVM's service account, drive/path permissions, and cleanup mechanisms. `chmod`/`umask` above are POSIX examples and do not translate directly to NTFS ACLs.
 
-### 7.4. Điều gì là bảo mật, điều gì chỉ là vận hành?
+### 7.4. What Is Security vs. Merely Operations?
 
-- `maxage`/`maxsize` là biện pháp **giới hạn dữ liệu giữ**, không phải tính năng phân quyền hay mã hóa.
-- Đổi đuôi `.jfr`, zip hoặc di chuyển file vào thư mục ẩn không bảo vệ dữ liệu; cần access controls thật.
-- JFR dump thành công không chứng minh người phân tích được quyền đọc; cần kiểm tra ACL trên **output thực**.
-- File đã xóa khỏi repository có thể còn backup/copy. Retention policy phải xử lý cả bản sao và yêu cầu pháp lý của tổ chức.
+- `maxage`/`maxsize` are **data retention controls**, not access-control or encryption features.
+- Renaming `.jfr`, zipping, or moving files to a hidden directory does not protect data; real access controls are required.
+- A successful JFR dump does not prove the analyst has read access; verify ACLs on the **actual output**.
+- Files evicted from the repository may still exist in backups or copies. Retention policies must cover copies and organizational compliance requirements.
 
-## 8. Java 17+ thực hành: ghi file .jfr nhỏ, đo kích thước và kiểm tra lại event
+## 8. Java 17+ Practice: Write a Small `.jfr` File, Check Size, and Verify Events
 
-Ví dụ sau sử dụng **JFR API chính thức** `jdk.jfr` và `jdk.jfr.consumer` có sẵn trong JDK 17 trở lên. Nó tạo một loại event tùy chỉnh, bật event này, phát 200 sự kiện, dump tệp tạm `.jfr`, đọc lại để xác minh và xóa tệp. Ví dụ minh họa **khả năng đo/kiểm tra**, không phải một benchmark throughput/CPU đáng tin: không nên dùng thời gian của chương trình ngắn này làm % overhead của một dịch vụ production.
+The example below uses the **official JFR APIs** `jdk.jfr` and `jdk.jfr.consumer` included in JDK 17 and later. It defines a custom event, enables it, emits 200 events, dumps a temporary `.jfr` file, reads it back to verify, and deletes the file. This demonstrates **measurement/verification capability**, not a reliable throughput/CPU benchmark: do not use the runtime of this tiny program as the overhead % of a production service.
 
-Tệp duy nhất `JfrBudgetDemo.java`:
+Single file `JfrBudgetDemo.java`:
 
 ~~~java
 import java.nio.file.Files;
@@ -390,14 +390,14 @@ public final class JfrBudgetDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac JfrBudgetDemo.java
 java JfrBudgetDemo
 ~~~
 
-Stdout của ví dụ đã được kiểm chứng với OpenJDK 24, và logic event tương thích với JDK 17+:
+Verified stdout of the example on OpenJDK 24, with event logic compatible with JDK 17+:
 
 ~~~text
 matchingEvents=200
@@ -405,83 +405,83 @@ nonEmpty=true
 fileDeletedInFinally=true
 ~~~
 
-**Giải thích từng phần:**
+**Line-by-line explanation:**
 
-- `Configuration.getConfiguration("default")` bắt đầu từ cấu hình JFR mặc định, sau đó `enable(CostEvent.class)` bật rõ custom event. Nếu không bật event thì không thể mặc định rằng 200 lời gọi `commit()` sẽ xuất hiện trong file.
-- `withoutStackTrace()` giảm dữ liệu stack cho event của bài lab; khi điều tra call site thật, stack trace có thể cần thiết và có chi phí.
-- `setToDisk(true)`, `setMaxAge` và `setMaxSize` giới hạn lịch sử của recording; chúng **không** đặt ACL hay quota cho file xuất.
-- `recording.stop()` rồi `recording.dump(destination)` ghi file từ dữ liệu recording đã dừng. Với recording có `toDisk=true`, API cho phép dump sau stop khi recording chưa close.
-- `RecordingFile` kiểm tra event trong file, giúp phân biệt “có một file .jfr” với “file thực sự chứa event cần thiết”.
-- `Files.size` kiểm tra file không rỗng; **kích thước byte cụ thể sẽ khác giữa JDK/máy/lần chạy** nên ví dụ chỉ in boolean.
-- `try/finally` dọn file tạm cả khi một bước phát sinh exception; dòng `fileDeletedInFinally=true` mô tả nhánh cleanup sắp chạy, không phải phép xác nhận sau khi xóa. Trong ứng dụng thật, đường dẫn tạm cũng cần đáp ứng chính sách bảo mật.
+- `Configuration.getConfiguration("default")` starts from the default JFR configuration, then `enable(CostEvent.class)` explicitly enables the custom event. Without enabling it, you cannot assume 200 `commit()` calls will appear in the file.
+- `withoutStackTrace()` reduces stack data for this lab event; in a real call-site investigation, stack traces may be necessary and incur cost.
+- `setToDisk(true)`, `setMaxAge`, and `setMaxSize` bound the recording's history; they do **not** set ACLs or quotas on exported files.
+- `recording.stop()` followed by `recording.dump(destination)` writes the file from the stopped recording's data. For recordings with `toDisk=true`, the API allows dumping after `stop` before `close`.
+- `RecordingFile` inspects events in the file, distinguishing "a `.jfr` file exists" from "the file actually contains the required events."
+- `Files.size` verifies the file is non-empty; **exact byte size varies across JDKs, machines, and runs**, so the example prints only a boolean.
+- `try/finally` cleans up the temp file even if a step throws an exception; `fileDeletedInFinally=true` describes the cleanup branch about to execute, not a post-delete check. In real apps, temp paths must also satisfy security policies.
 
-**Muốn đo overhead:** giữ workload thật của ứng dụng ổn định và chạy các phiên baseline/default/profile từ phần 5. Không lấy thời gian startup JVM/JFR của chương trình nhỏ này để suy ra cost trên production. **Muốn đo kích thước:** đổi dòng `nonEmpty` thành in `Files.size(destination)`, nhưng hiểu đây là số byte của *một* file và *một* workload, không phải hệ số cố định cho mọi session.
+**To measure overhead:** keep a real application workload steady and run baseline/default/profile sessions per section 5. Do not extrapolate production cost from the JVM/JFR startup time of this small program. **To inspect size:** change the `nonEmpty` line to print `Files.size(destination)`, keeping in mind that is the byte count of *one* file under *one* workload, not a fixed constant across all sessions.
 
-**Muốn giữ file để phân tích:** dùng thư mục đã cấp quyền phù hợp và bỏ cleanup có chủ ý trong một phiên kiểm soát; thay đổi đó phải kèm chính sách giữ và xóa file. Không đặt output production mặc định vào temp công khai.
+**To keep the file for inspection:** use an appropriately permissioned directory and intentionally skip cleanup in a controlled session; accompany that change with retention and deletion policies. Never put production output into shared public temp by default.
 
-## 9. Chẩn đoán lỗi thu bản ghi theo từng lớp
+## 9. Layer-by-Layer Troubleshooting for Recording Failures
 
-| Triệu chứng | Khả năng thường gặp | Bước kiểm chứng |
+| Symptom | Likely Cause | Verification Step |
 | --- | --- | --- |
-| `jcmd` không tìm thấy PID hoặc attach failed | Sai PID/namespace; khác user; JVM dừng; attach bị chặn | `jcmd -l` trong đúng môi trường, quyền OS, `VM.version` |
-| `JFR.start` báo option invalid | JDK/VM khác, tên option sai, `maxsize` dưới `maxchunksize` | `jcmd <pid> help JFR.start` và `JFR.configure` |
-| Recording chạy nhưng không có file output | Chưa dump/stop có filename; path mong đợi sai; `disk=false` không lưu lịch sử | `JFR.check`, `JFR.dump`, vị trí mà JVM nhìn thấy |
-| Dump báo permission denied | JVM user không ghi được thư mục hoặc không traverse parent | Owner/mode/ACL của cả path, account JVM |
-| File đã được tạo nhưng người phân tích không mở được | Reader thiếu ACL, file chưa copy ra volume, file chưa hoàn tất/không hợp lệ | `stat`/`icacls`, `jfr summary`, filesystem mount |
-| Dung lượng repository tăng nhanh | Event rate cao, thiếu maxage/maxsize, nhiều recordings | `JFR.check`, settings, disk usage, event count |
-| .jfr lớn hơn dự tính | Event type/threshold thay đổi, nhiều stack traces, workload khác | `jfr summary`, so thời điểm cùng workload |
-| File .jfr nhỏ nhưng thiếu thời điểm cần điều tra | Retention quá ngắn, `maxsize` đã loại chunk cũ, recording bắt đầu muộn | Timeline, start time, `maxage`, free space, file event timestamps |
-| P99 tăng khi dump | I/O burst, GC-root path, shared disk bị bão hòa hoặc concurrency | So thời điểm dump với latency, IOPS, GC/JFR events |
-| Dung lượng trong repo giảm nhưng ổ vẫn đầy | File export/snapshot/backup tích tụ hoặc file bị giữ mở | `du`/`df`, quota, file ownership, housekeeping |
+| `jcmd` cannot find PID or attach fails | Wrong PID/namespace; different user; JVM stopped; attach blocked | `jcmd -l` in the right environment, OS permissions, `VM.version` |
+| `JFR.start` reports invalid option | Different JDK/VM, misspelled option, `maxsize` below `maxchunksize` | `jcmd <pid> help JFR.start` and `JFR.configure` |
+| Recording running but no output file | No dump/stop with filename yet; checking wrong path; `disk=false` not persisting history | `JFR.check`, `JFR.dump`, path seen by the JVM |
+| Dump reports permission denied | JVM user cannot write directory or traverse parent directories | Owner/mode/ACL along the full path, JVM service account |
+| File created but analyst cannot open it | Reader lacks ACL, file not copied out of volume, file incomplete/corrupt | `stat`/`icacls`, `jfr summary`, filesystem mounts |
+| Repository size grows rapidly | High event rate, missing `maxage`/`maxsize`, multiple recordings | `JFR.check`, settings, disk usage, event counts |
+| `.jfr` larger than expected | Event types/thresholds changed, many stack traces, different workload | `jfr summary`, compare equal-workload intervals |
+| `.jfr` small yet missing the incident timestamp | Retention too short, `maxsize` evicted old chunks, recording started late | Timeline, start time, `maxage`, free space, file event timestamps |
+| P99 rises during dump | I/O burst, GC-root paths, saturated shared disk, or concurrency | Correlate dump timing with latency, IOPS, GC/JFR events |
+| Repository usage drops yet disk remains full | Exported/snapshot/backup files accumulated or deleted files held open | `du`/`df`, quotas, file ownership, housekeeping |
 
-Trong dashboard, phân biệt `RECORDING_RUNNING`, `DUMP_SUCCEEDED`, `FILE_VALIDATED` và `FILE_SECURED`. Một trạng thái xanh cho start không thay thế xác minh file đã được tạo, có event cần thiết và được bảo vệ.
+On dashboards, separate `RECORDING_RUNNING`, `DUMP_SUCCEEDED`, `FILE_VALIDATED`, and `FILE_SECURED`. A green status for start does not replace verifying the file was created, contains the needed events, and is properly secured.
 
-## 10. Quy trình vận hành đề xuất và tiêu chí dừng
+## 10. Recommended Operational Workflow and Stop Criteria
 
-Trước khi thu: xác định câu hỏi điều tra cụ thể, thời hạn recording, phiên bản JDK, sự kiện cần thu, ai sở hữu dữ liệu, dung lượng còn lại và quyền đọc/ghi. Đặt cơ chế kiểm tra sau khi bật.
+Before capturing: define the concrete diagnostic question, recording duration, JDK version, required events, data owner, remaining disk space, and read/write permissions. Set up post-enable verification checks.
 
-Trong lúc thu: quan sát throughput/p99/CPU, free space/quota, event rate và lỗi ghi. Nếu ứng dụng vượt ngưỡng hiệu năng đã phê duyệt hoặc filesystem sắp đầy, dừng theo quy trình ứng cứu; đừng chạy mãi vì “default thường nhẹ”.
+During capture: watch throughput/p99/CPU, free space/quotas, event rates, and write errors. If the application breaches approved performance thresholds or the filesystem nears full, stop per your runbook; never leave it running blindly because "`default` is usually light."
 
-Khi kết thúc: chủ động `dump` hoặc `stop filename=...`, kiểm tra exit status, `jfr summary`, khoảng thời gian/event types, kích thước và ACL. Chỉ chuyển file tới người có quyền và giải thích mục đích/độ nhạy của nó. Thu hồi quyền tạm, xóa file không cần thiết và theo dõi các bản sao.
+At completion: explicitly `dump` or `stop filename=...`, check exit status, `jfr summary`, time span/event types, file size, and ACLs. Transfer files only to authorized recipients with context on purpose and sensitivity. Revoke temporary permissions, delete unneeded files, and track copies.
 
-### Checklist quyết định có bật JFR hay không
+### Decision Checklist Before Enabling JFR
 
-- [ ] Có câu hỏi chẩn đoán và thời gian cần giữ, thay vì thu tất cả event vô hạn.
-- [ ] Đã kiểm tra `jcmd ... help JFR.start` cho JVM cụ thể; biết settings, version và collector.
-- [ ] Đã đo hoặc ước tính hợp lý tác động đến CPU/latency và đặt ngưỡng dừng.
-- [ ] Đã xác định repository path, output path, volume/mount, filesystem quota và dung lượng dự phòng.
-- [ ] Đã chọn `maxage`/`maxsize` hoặc duration thích hợp, hiểu chunk rotation và bản dump không bị chúng xóa.
-- [ ] Đã phân biệt quyền attach, quyền JVM ghi file và quyền của người đọc.
-- [ ] Đã kiểm tra file có thể chứa dữ liệu nhạy cảm và có chính sách truyền/lưu/xóa.
-- [ ] Có lệnh xác minh sau dump (`JFR.check`, `jfr summary`, size, ACL) và có người chịu trách nhiệm cleanup.
+- [ ] Defined a diagnostic question and retention duration instead of collecting all events indefinitely.
+- [ ] Checked `jcmd ... help JFR.start` for the target JVM; know settings, version, and collector.
+- [ ] Measured or reasonably estimated CPU/latency impact and defined stop thresholds.
+- [ ] Identified repository path, output path, volume/mount, filesystem quota, and reserve space.
+- [ ] Picked `maxage`/`maxsize` or `duration` appropriately, understanding chunk rotation and that dumps are not deleted by them.
+- [ ] Separated attach permissions, JVM file-write permissions, and reader permissions.
+- [ ] Checked whether files may hold sensitive data and established transfer/storage/deletion policies.
+- [ ] Have post-dump verification (`JFR.check`, `jfr summary`, size, ACLs) and an assigned owner for cleanup.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-**Bài 1 — overhead.** Trên cùng workload, baseline 1.000 req/s và p99 = 100 ms, bật `profile` còn 950 req/s và p99 = 120 ms. Throughput giảm bao nhiêu? **5%**. p99 tăng bao nhiêu? **20%**. Có được kết luận mọi JFR đều tăng p99 20% không? **Không**; đây là dữ liệu của cấu hình, workload và cửa sổ đo cụ thể.
+**Exercise 1 — overhead.** Under the same workload, baseline is 1,000 req/s and p99 = 100 ms; with `profile` enabled, throughput is 950 req/s and p99 = 120 ms. How much did throughput drop? **5%**. How much did p99 rise? **20%**. Can you conclude all JFR recordings increase p99 by 20%? **No**; this reflects a specific config, workload, and measurement window.
 
-**Bài 2 — retention.** Một recording sinh 8 MiB/phút. Mục tiêu giữ ít nhất 30 phút lịch sử, `maxsize` chỉ 160 MiB. Ở tốc độ ổn định lý tưởng, cửa sổ 160/8 ≈ **20 phút**, trước khi xét chunk và overhead. Tăng `maxage` lên 1h có tự giải quyết không? **Không**; size bound vẫn loại dữ liệu cũ.
+**Exercise 2 — retention.** A recording generates 8 MiB/minute. The goal is to retain at least 30 minutes of history, yet `maxsize` is only 160 MiB. At an ideal steady rate, the window is 160/8 ≈ **20 minutes**, before chunk and overhead effects. Does increasing `maxage` to `1h` fix it? **No**; the size cap still evicts older data.
 
-**Bài 3 — nhiều bản dump.** Một JVM ghi rolling với `maxsize=256m` nhưng automation dump 100 MiB mỗi 5 phút trong 6 giờ và không dọn file. Khoảng bao nhiêu dữ liệu export? **72 × 100 MiB = 7.200 MiB**, chưa kể repo và các bản sao. `maxsize` không bảo vệ thư mục output khỏi tích tụ này.
+**Exercise 3 — multiple dumps.** A JVM keeps a rolling recording with `maxsize=256m`, but automation dumps 100 MiB every 5 minutes for 6 hours without cleaning up files. Roughly how much exported data accumulates? **72 × 100 MiB = 7,200 MiB**, not counting the repository and copies. `maxsize` does not protect the output directory from this accumulation.
 
-**Bài 4 — quyền container.** Operator gửi được `JFR.dump` nhưng JVM báo không tạo được `/mnt/jfr/report.jfr`. Chẩn đoán theo thứ tự: path trong container JVM có tồn tại không, process UID/GID là gì, parent directories có execute/write permission không, mount có read-only/quota không. Việc operator nhìn thấy `/mnt/jfr` trên host không chứng minh container cũng nhìn thấy cùng volume.
+**Exercise 4 — container permissions.** An operator can send `JFR.dump`, yet the JVM reports it cannot create `/mnt/jfr/report.jfr`. Diagnose in order: does the path exist inside the JVM container, what is the process UID/GID, do parent directories have execute/write permissions, and is the mount read-only or out of quota? Seeing `/mnt/jfr` on the host does not prove the container sees the same volume.
 
-**Bài 5 — chia sẻ dữ liệu.** Một bản `.jfr` có custom event chứa URL yêu cầu và user identifier. Có thể công khai chỉ vì đã dùng `jfr scrub` lọc GC event không? **Không**; phải kiểm tra những event/field còn lại, xác nhận policy và quyền người nhận.
+**Exercise 5 — data sharing.** A `.jfr` recording has custom events containing request URLs and user identifiers. Can it be published publicly simply because `jfr scrub` filtered out GC events? **No**; inspect remaining events and fields, and verify organizational policy and recipient authorization.
 
-**Bài 6 — hiệu năng.** File chỉ 4 MiB nhưng một lần recording làm p99 tăng cao lúc dừng. Có thể kết luận do dung lượng lớn không? **Không**; cần đối chiếu GC-root path, heap statistics, CPU/GC, I/O burst và các công việc JVM diễn ra trong thời điểm dump/stop.
+**Exercise 6 — performance.** The file is only 4 MiB, yet stopping one recording spiked p99. Can you blame large file size? **No**; check GC-root paths, heap statistics, CPU/GC, I/O bursts, and JVM work occurring at dump/stop time.
 
-## 12. Các điểm dễ nhớ
+## 12. Key Takeaways
 
-1. `default.jfc` là khởi điểm nhẹ cho ghi liên tục, `profile.jfc` phù hợp điều tra sâu có giới hạn; **đo overhead trên tải thật**.
-2. **Repository chunks khác output .jfr**. Quota rolling không xóa các file export/copy.
-3. `maxage` và `maxsize` giới hạn lịch sử giữ trong recording khi `disk=true`; kích thước đĩa của toàn node còn phụ thuộc số JVM, chunk và bản xuất.
-4. Quyền **gửi `jcmd`**, quyền **JVM ghi file** và quyền **đọc file** là ba bài toán độc lập.
-5. `.jfr` có thể chứa thông tin nhạy cảm. Phân quyền, kiểm tra nội dung, retention và cleanup phải đi cùng việc thu thập.
-6. Một bản ghi chỉ thực sự hữu ích khi có đúng event và khoảng thời gian cần điều tra, không làm vi phạm budget hiệu năng/dung lượng/quyền truy cập.
+1. `default.jfc` is a lightweight starting point for continuous recording, and `profile.jfc` suits bounded deep dives; **measure overhead under real load**.
+2. **Repository chunks differ from `.jfr` outputs.** Rolling quotas do not delete exported files or copies.
+3. `maxage` and `maxsize` cap retained history in a recording when `disk=true`; node-wide disk usage still depends on JVM count, chunks, and exports.
+4. Permission to **run `jcmd`**, permission for the **JVM to write files**, and permission to **read files** are three separate problems.
+5. `.jfr` files can hold sensitive information. Access controls, content review, retention, and cleanup must accompany collection.
+6. A recording is truly useful only when it has the right events and time range without violating performance, storage, or access budgets.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle Java SE 21, [Flight Recorder Configurations](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder-configurations.html) — `default.jfc`, `profile.jfc` và trade-off overhead.
-- Oracle Java SE 21, [The jcmd Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html) — `JFR.configure`, `JFR.start`, `JFR.check`, `JFR.dump`, `JFR.stop`, giới hạn size/age và tên option trên JDK 21.
-- Oracle Java SE 21, [The jfr Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html) — `summary`, `print`, `metadata`, `scrub` và phân tích file.
-- Oracle Java SE 21, [jdk.jfr.Recording API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html) và [jdk.jfr.consumer](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/package-summary.html) — tạo, dừng, dump, size/age và đọc sự kiện.
-- Oracle Java SE 21, [The java Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html) — `-XX:StartFlightRecording` và tham số JFR lúc khởi động.
+- Oracle Java SE 21, [Flight Recorder Configurations](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder-configurations.html) — `default.jfc`, `profile.jfc`, and overhead trade-offs.
+- Oracle Java SE 21, [The jcmd Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html) — `JFR.configure`, `JFR.start`, `JFR.check`, `JFR.dump`, `JFR.stop`, size/age limits, and JDK 21 option names.
+- Oracle Java SE 21, [The jfr Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html) — `summary`, `print`, `metadata`, `scrub`, and file analysis.
+- Oracle Java SE 21, [jdk.jfr.Recording API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html) and [jdk.jfr.consumer](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/package-summary.html) — creating, stopping, dumping, size/age, and reading events.
+- Oracle Java SE 21, [The java Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html) — `-XX:StartFlightRecording` and startup JFR options.

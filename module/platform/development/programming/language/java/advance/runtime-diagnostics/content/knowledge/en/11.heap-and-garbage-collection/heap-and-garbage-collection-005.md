@@ -1,71 +1,71 @@
-# 11.5. Phân biệt tần suất GC, tổng thời gian GC, pause time và thời gian tới safepoint
+# 11.5. Distinguishing GC frequency, total GC time, pause time, and time to safepoint
 
-## Mục tiêu
+## Objectives
 
-Khi điều tra hiệu năng Java, câu “GC nhiều nên ứng dụng chậm” chưa đủ để kết luận nguyên nhân. Cần phân biệt **GC diễn ra bao nhiêu lần**, **thời gian được hạch toán cho GC**, **mỗi lần ứng dụng thực sự bị dừng bao lâu**, và **JVM mất bao lâu để đưa các luồng đến safepoint**. Bốn đại lượng có đơn vị, phạm vi đo và tác động khác nhau; nhầm chúng có thể dẫn tới chỉnh heap/GC sai hướng.
+When investigating Java performance, saying "the app is slow because GC runs a lot" is not enough to identify the cause. You must distinguish **how often GC occurs**, **how much time is accounted to GC**, **how long the application actually stops each time**, and **how long the JVM takes to bring threads to a safepoint**. The four quantities have different units, measurement scopes, and impacts; confusing them can lead to tuning the heap or GC in the wrong direction.
 
-Bài này tập trung vào HotSpot/JDK 17+; tên log, bộ đếm và chi tiết hạch toán có thể khác theo JDK và garbage collector.
+This lesson focuses on HotSpot/JDK 17+; log names, counters, and accounting details may differ by JDK and garbage collector.
 
-## 1. Bốn đại lượng là gì?
+## 1. What are the four quantities?
 
-| Đại lượng | Câu hỏi trả lời | Đơn vị thường gặp | Không được hiểu nhầm |
+| Quantity | Question it answers | Common units | What must NOT be misunderstood |
 | --- | --- | --- | --- |
-| **Tần suất GC (GC frequency/rate)** | Trong một khoảng thời gian có bao nhiêu sự kiện GC thuộc loại đang xét? | lần/phút, lần/giây | Số lần cao không tự chứng minh mỗi lần dừng lâu hay GC tốn nhiều CPU. |
-| **Tổng thời gian GC (total GC time)** | Tổng thời gian mà nguồn đo hạch toán cho hoạt động thu gom trong một cửa sổ hoặc từ khi JVM chạy? | ms, s, đôi khi % của cửa sổ | Tùy nguồn đo/collector, có thể không tương đương tổng thời gian dừng ứng dụng. |
-| **Pause time (GC pause duration)** | Một lần JVM tạm dừng các luồng Java để làm công việc GC mất bao lâu? | ms, p50/p95/p99/max theo từng pause | Không phải độ dài toàn bộ chu kỳ GC khi có pha chạy đồng thời. |
-| **Time to safepoint (TTSP)** | Sau khi JVM yêu cầu safepoint, mất bao lâu để đạt trạng thái safepoint? | µs, ms, đôi khi ns trong log | Không phải thời gian thực hiện GC sau khi đã đạt safepoint. |
+| **GC frequency/rate** | How many GC events of the type under consideration occurred during an interval? | events/minute, events/second | A high count alone does not prove each stop is long or that GC consumes heavy CPU. |
+| **Total GC time** | What is the total time the measurement source accounts to collection activity over a window or since JVM startup? | ms, s, sometimes % of window | Depending on the source/collector, it may not equal total application stop time. |
+| **Pause time (GC pause duration)** | How long did the JVM pause Java threads for a single GC stop? | ms, p50/p95/p99/max per pause | Not the duration of an entire GC cycle when concurrent phases exist. |
+| **Time to safepoint (TTSP)** | After the JVM requests a safepoint, how long does it take to reach the safepoint state? | µs, ms, sometimes ns in logs | Not the time spent executing GC after the safepoint has been reached. |
 
-**Phân loại sự kiện trước khi tính tần suất:** young evacuation, mixed, full GC và các pha/chu kỳ concurrent không có cùng tác động. Một chu kỳ concurrent có thể chứa nhiều pha và nhiều lần dừng ngắn. Không đếm mỗi dòng log `gc`, `gc,phases` hay mỗi pha nội bộ thành “một GC” độc lập. Ưu tiên đối chiếu GC ID, tên sự kiện và cách collector trình bày chu kỳ.
+**Classify events before computing frequency:** young evacuation, mixed, full GC, and concurrent phases/cycles do not have the same impact. One concurrent cycle may contain multiple phases and multiple short pauses. Do not count every `gc` or `gc,phases` log line or every internal phase as an independent "GC". Prefer matching by GC ID, event name, and how the collector structures cycles.
 
-**Đặt tên đúng cho “total GC time”:** ví dụ `GarbageCollectorMXBean.getCollectionTime()`, `jstat GCT`, tổng độ dài các sự kiện GC trong log và tổng `jdk.GCPhasePause` trong JFR là những phép đo có ngữ nghĩa khác nhau. Khi báo cáo, phải ghi rõ *đang cộng cái gì*, *trong cửa sổ nào* và *dùng collector/JDK nào*.
+**Name "total GC time" accurately:** for instance, `GarbageCollectorMXBean.getCollectionTime()`, `jstat GCT`, the sum of GC event durations in logs, and the sum of `jdk.GCPhasePause` in JFR are measurements with different semantics. When reporting, state clearly *what is being summed*, *over which window*, and *with which collector/JDK*.
 
-## 2. Trục thời gian: GC, safepoint và ứng dụng
+## 2. Timeline: GC, safepoint, and the application
 
-Một hoạt động cần safepoint toàn cục có thể được nhìn theo trục thời gian khái niệm:
+An operation requiring a global safepoint can be viewed along a conceptual timeline:
 
 ```text
-JVM yêu cầu safepoint
+JVM requests safepoint
        |
        v
-[ Reaching safepoint ] -> [ At safepoint / thực hiện VM operation ] -> [ Luồng Java tiếp tục ]
-  TTSP (thời gian đạt)        thường chứa phần STW liên quan
+[ Reaching safepoint ] -> [ At safepoint / executing VM operation ] -> [ Java threads resume ]
+  TTSP (time to reach)       typically includes related STW work
 ```
 
-- **Safepoint** là cơ chế phối hợp để JVM thực hiện một số tác vụ cần trạng thái nhất quán của các luồng. Không phải safepoint nào cũng do GC; một số VM operation khác cũng có thể yêu cầu safepoint.
-- **Reaching safepoint** là khoảng JVM chờ phối hợp để đến safepoint. Một số luồng có thể đã dừng trong lúc các luồng khác chưa đến điểm an toàn; vì thế TTSP có thể góp vào độ trễ mà yêu cầu ứng dụng quan sát được.
-- **At safepoint** là phần thời gian sau khi đã đạt safepoint để thực hiện công việc được yêu cầu, có thể gồm công việc GC hoặc hoạt động JVM khác. Không mặc định toàn bộ `At safepoint` là GC.
-- **Pause GC** ghi trong GC log/JFR là thời gian của một pha GC có dừng ứng dụng theo phạm vi mà công cụ ghi nhận. Ranh giới đo của nó không nhất thiết trùng hoàn toàn với `At safepoint`; không lấy tổng safepoint trừ GC pause để suy ra TTSP nếu chưa xác nhận cùng sự kiện và ranh giới.
-- **Concurrent GC** (ví dụ một số pha marking/relocation của G1, ZGC hoặc Shenandoah) có thể làm việc khi luồng ứng dụng vẫn chạy. Vì vậy thời gian chu kỳ GC tính theo đồng hồ thực có thể dài hơn nhiều so với từng pause STW.
+- **Safepoint** is a coordination mechanism so the JVM can perform tasks requiring a consistent thread state. Not every safepoint is caused by GC; other VM operations can also request a safepoint.
+- **Reaching safepoint** is the interval the JVM waits while coordinating to arrive at the safepoint. Some threads may already be stopped while others have not yet reached a safe point; therefore, TTSP can contribute to the latency observed by application requests.
+- **At safepoint** is the portion after the safepoint is reached to perform the requested work, which may be GC work or another JVM operation. Do not assume all `At safepoint` time is GC.
+- **GC pause** recorded in GC logs/JFR is the duration of a GC phase that pauses the application within the scope measured by that tool. Its measurement boundaries do not necessarily match `At safepoint` identically; do not subtract GC pause from total safepoint time to infer TTSP unless you have confirmed the exact same event and boundaries.
+- **Concurrent GC** (for example, some marking/relocation phases of G1, ZGC, or Shenandoah) can run while application threads keep executing. Thus, wall-clock GC cycle duration can be much longer than individual STW pauses.
 
-Với HotSpot JDK 17, log `safepoint` thường có các trường `Reaching safepoint`, `At safepoint` và `Total` tính bằng nanosecond; `Total` bao gồm thời gian tới safepoint và thời gian ở safepoint theo ranh giới log của phiên bản đó. Với JDK mới hơn có thể xuất hiện thêm thành phần như `Leaving safepoint`. Đọc tên trường thực tế của chính phiên bản đang chạy.
+With HotSpot JDK 17, `safepoint` logs typically include `Reaching safepoint`, `At safepoint`, and `Total` in nanoseconds; `Total` covers time to safepoint and time at safepoint according to that version's log boundaries. Newer JDKs may add components such as `Leaving safepoint`. Read the actual field names emitted by the running version.
 
-## 3. Công thức đo theo cửa sổ và phép so sánh đúng
+## 3. Windowed formulas and valid comparisons
 
-Giả sử quan sát cửa sổ thời gian dài `T` giây, bộ đếm GC tăng từ `N0` lên `N1`:
+Suppose you observe a time window of `T` seconds, during which a GC counter increases from `N0` to `N1`:
 
-- **GC rate** = `(N1 − N0) / T` lần/giây; nhân 60 để ra lần/phút. Đếm riêng loại GC nếu muốn so sánh hành vi.
-- **GC-time delta** = `GC_time_end − GC_time_start`. Khi nguồn là bộ đếm tích lũy (như JMX/jstat), phải lấy hiệu giữa hai mẫu; giá trị từ lúc JVM khởi động không phải thời gian GC của cửa sổ hiện tại.
-- **GC time ratio** = `GC-time delta / (T × 1000 ms)`, nếu đại lượng ở tử số là ms. Chỉ gọi là “tỷ lệ thời gian GC theo nguồn đo X”; không tự đổi tên thành tỷ lệ STW khi X bao gồm hoặc hạch toán thời gian khác.
-- **STW pause fraction** = `sum(pause_duration_ms) / (T × 1000)` khi đã thu thập đầy đủ các pause trong cửa sổ. Đây mới là phần thời gian dừng theo tập pause được đo; không suy từ số lần GC.
-- **Pause mean** = tổng các pause / số pause; **p95/p99/max** cần danh sách thời gian *từng pause*. Trung bình thấp vẫn có thể che một pause rất dài.
-- **TTSP** cần phân phối riêng (max/p95/p99) và đối chiếu theo timestamp với pause, request latency và các VM operation. Không gộp TTSP vào trung bình GC pause một cách tùy ý.
+- **GC rate** = `(N1 − N0) / T` events/second; multiply by 60 for events/minute. Count each GC type separately when comparing behavior.
+- **GC-time delta** = `GC_time_end − GC_time_start`. When the source is a cumulative counter (such as JMX/jstat), take the delta between two samples; cumulative values since JVM startup are not the GC time of the current window.
+- **GC time ratio** = `GC-time delta / (T × 1000 ms)`, when the numerator is in ms. Label it only as "GC time ratio per measurement source X"; do not rename it to STW fraction when X includes or accounts for other time.
+- **STW pause fraction** = `sum(pause_duration_ms) / (T × 1000)` when all pauses in the window have been collected. This is the actual stop-time fraction for the measured set of pauses; do not infer it from GC count.
+- **Pause mean** = sum of pauses / pause count; **p95/p99/max** require the list of *individual pause durations*. A low mean can still hide a very long pause.
+- **TTSP** needs its own distribution (max/p95/p99) and timestamp correlation with pauses, request latency, and VM operations. Do not arbitrarily fold TTSP into the mean GC pause.
 
-**Lưu ý về số liệu:** Dùng cùng cửa sổ thời gian, clock và workload; loại bỏ thời gian warm-up nếu đang so sánh steady state. Bộ đếm có thể reset khi JVM khởi động lại. Kết quả của các collector, phiên bản và công cụ khác nhau không nhất thiết cộng gộp được. Khi ít mẫu, không nên xem p99 của vài pause là chỉ số ổn định về mặt thống kê.
+**Notes on metrics:** Use consistent time windows, clocks, and workloads; exclude warm-up periods when comparing steady state. Counters reset when a JVM restarts. Results across different collectors, versions, and tools cannot necessarily be summed together. With few samples, do not treat p99 of a handful of pauses as statistically stable.
 
-### Ví dụ tính tay
+### Hand-calculation example
 
-Trong một cửa sổ **60 giây**, giả sử có **4 GC pause STW** lần lượt **8 ms, 12 ms, 20 ms, 160 ms**:
+In a **60-second** window, suppose there are **4 STW GC pauses** of **8 ms, 12 ms, 20 ms, and 160 ms**:
 
-- Tần suất của *bốn sự kiện đang xét*: `4 / 60 = 0,0667` lần/giây, hay **4 lần/phút**.
-- Tổng **STW GC pause**: `8 + 12 + 20 + 160 = 200 ms`, trung bình **50 ms/pause**.
-- Tỷ lệ dừng đo được: `200 / 60.000 × 100% ≈ 0,333%` thời gian cửa sổ.
-- Pause lớn nhất: **160 ms**. Một đuôi độ trễ 160 ms vẫn đáng chú ý cho hệ thống nhạy p99, mặc dù tổng phần trăm dừng chỉ khoảng 0,33%.
+- Frequency of *these four events*: `4 / 60 = 0.0667` events/second, or **4 events/minute**.
+- Total **STW GC pause**: `8 + 12 + 20 + 160 = 200 ms`, average **50 ms/pause**.
+- Measured pause fraction: `200 / 60,000 × 100% ≈ 0.333%` of the window.
+- Largest pause: **160 ms**. A 160 ms tail spike still matters for a p99-sensitive system, even though the overall stop percentage is only around 0.33%.
 
-Nếu đúng sự kiện có pause 160 ms cũng có **Reaching safepoint = 70 ms**, một luồng đã bị giữ lại sớm có thể quan sát ảnh hưởng gần **230 ms** (70 + 160 ms, bỏ qua sai khác ranh giới và tác vụ khác). Đây là ví dụ để hiểu hai pha; không được cộng mọi TTSP với mọi GC pause mà không ghép đúng sự kiện. **200 ms ở trên là tổng pause, không tự khẳng định đó là `jstat GCT` hay tổng collection time của JMX.**
+If the exact event with the 160 ms pause also had **Reaching safepoint = 70 ms**, a thread stopped early could experience an impact near **230 ms** (70 + 160 ms, ignoring boundary differences and other tasks). This example illustrates the two phases; do not add arbitrary TTSP values to arbitrary GC pauses without matching the exact event. **The 200 ms above is total pause time; do not automatically assume it equals `jstat GCT` or JMX total collection time.**
 
-## 4. Thu thập log GC và safepoint trong JDK 17+
+## 4. Collecting GC and safepoint logs in JDK 17+
 
-Với một tiến trình Java khởi động mới, bật Unified Logging ngay ở command line:
+For a newly launched Java process, enable Unified Logging right on the command line:
 
 ```bash
 java -Xms64m -Xmx64m -XX:+UseG1GC \
@@ -73,47 +73,47 @@ java -Xms64m -Xmx64m -XX:+UseG1GC \
   GcCountersDemo
 ```
 
-Dấu `\` nối dòng dùng trong shell kiểu Unix; trên PowerShell hãy đặt lệnh trên một dòng hoặc dùng cú pháp nối dòng phù hợp. Tùy tải, `gc*` có thể tạo nhiều dòng; khi chạy lâu, cân nhắc cấu hình log rotation và dung lượng lưu trữ.
+The `\` line continuation is for Unix-style shells; in PowerShell, place the command on one line or use appropriate line continuation syntax. Depending on load, `gc*` can generate many lines; for long runs, consider log rotation and storage capacity.
 
-Một đoạn **minh họa cấu trúc** (không phải output cố định của chương trình):
+A **structural illustration** (not fixed program output):
 
 ```text
 [2026-01-01T10:00:00.000+0000][12.000s][info][gc] GC(18) Pause Young (Normal) (G1 Evacuation Pause) 40M->9M(64M) 160.000ms
 [2026-01-01T10:00:00.001+0000][12.001s][info][safepoint] Safepoint "G1CollectForAllocation", Time since last: 3000000000 ns, Reaching safepoint: 70000000 ns, At safepoint: 160000000 ns, Total: 230000000 ns
 ```
 
-Cách đọc:
+How to read it:
 
-1. Dòng `gc` mô tả một **G1 young evacuation pause**. `160.000ms` là thời lượng pause được GC log báo cho sự kiện đó; `40M->9M(64M)` lần lượt gợi ý mức heap trước/sau và tổng dung lượng heap trong log minh họa, không biểu thị thời gian.
-2. Dòng `safepoint` báo JVM mất **70 ms để đạt safepoint**, **160 ms tại safepoint** và **230 ms tổng cộng** cho VM operation tương ứng. `Time since last` là khoảng thời gian kể từ safepoint trước, **không phải TTSP**.
-3. Để ghép hai dòng trong log thật, so sánh timestamp, loại VM operation, GC ID và các pha liên quan. Không giả định mỗi dòng safepoint đều thuộc GC, hoặc mọi pause luôn có đúng một dòng safepoint tương ứng.
+1. The `gc` line describes a **G1 young evacuation pause**. `160.000ms` is the pause duration reported by the GC log for that event; `40M->9M(64M)` indicates illustrative before/after heap levels and total heap capacity, not time.
+2. The `safepoint` line reports that the JVM spent **70 ms reaching safepoint**, **160 ms at safepoint**, and **230 ms total** for the corresponding VM operation. `Time since last` is the elapsed time since the previous safepoint, **not TTSP**.
+3. To pair the two lines in real logs, compare timestamps, VM operation type, GC ID, and related phases. Do not assume every safepoint line belongs to GC, or that every pause always has an exact one-to-one safepoint line.
 
-**Mẹo chuyển đơn vị:** `1 ms = 1.000.000 ns`. Vì thế `Reaching safepoint: 70000000 ns` = **70 ms**, không phải 70.000 ms.
+**Unit conversion tip:** `1 ms = 1,000,000 ns`. Thus `Reaching safepoint: 70000000 ns` = **70 ms**, not 70,000 ms.
 
-## 5. Dùng jstat, JMX và Java code: bộ đếm, không phải phân phối pause
+## 5. Using jstat, JMX, and Java code: counters, not pause distributions
 
-### 5.1 jstat để so hai mẫu theo thời gian
+### 5.1 jstat to compare two samples over time
 
-Trên HotSpot, khi tiến trình còn sống:
+On HotSpot, while the process is still running:
 
 ```bash
 jstat -gcutil 12345 1000 10
 ```
 
-`12345` là PID ví dụ; lệnh lấy 10 mẫu cách nhau khoảng 1.000 ms. Các cột thường gặp:
+`12345` is an example PID; the command takes 10 samples spaced roughly 1,000 ms apart. Common columns:
 
-- `YGC` và `YGCT`: số sự kiện GC young và tổng thời gian được hạch toán cho chúng.
-- `FGC` và `FGCT`: số sự kiện full GC và tổng thời gian liên quan.
-- `GCT`: tổng thời gian GC theo số liệu jstat của JVM; đơn vị của các cột thời gian là **giây**, trong khi duration từ GC log thường là **ms**.
-- Tùy phiên bản/collector, còn có các cột liên quan concurrent GC (như `CGC`, `CGCT`). Bộ đếm, loại sự kiện và mức hỗ trợ khác nhau; đọc header thực tế, không suy đoán từ tên cột của một JVM khác.
+- `YGC` and `YGCT`: young GC event count and total time accounted for them.
+- `FGC` and `FGCT`: full GC event count and related total time.
+- `GCT`: total GC time per the JVM's jstat metric; the unit of time columns is **seconds**, whereas durations in GC logs are usually in **ms**.
+- Depending on version/collector, there may also be concurrent GC columns (such as `CGC`, `CGCT`). Counters, event types, and support levels vary; read the actual header rather than guessing from another JVM's columns.
 
-Ví dụ nếu trong khoảng 10 giây, `YGC` tăng từ 40 lên 45 và `YGCT` tăng từ 1,20 lên 1,32 giây, đó là **5 lần young GC/10 giây** và **0,12 giây thời gian young GC được jstat hạch toán**. Không đủ dữ liệu để biết pause lớn nhất hay p99; cần GC log/JFR chi tiết.
+For example, if over 10 seconds `YGC` increases from 40 to 45 and `YGCT` increases from 1.20 to 1.32 seconds, that is **5 young GCs / 10 seconds** and **0.12 seconds of young GC time accounted by jstat**. This is insufficient to know the longest pause or p99; detailed GC logs/JFR are required.
 
-### 5.2 Đo qua `GarbageCollectorMXBean` bằng Java 17
+### 5.2 Measuring via `GarbageCollectorMXBean` with Java 17
 
-Chương trình sau chụp bộ đếm trước/sau một đợt cấp phát. Nó minh họa rõ việc lấy **hiệu số đếm** và **hiệu thời gian**, thay vì nhầm các giá trị tích lũy từ lúc JVM khởi động với một cửa sổ ngắn.
+The following program captures counters before and after an allocation burst. It clearly demonstrates taking **count deltas** and **time deltas**, instead of confusing cumulative values since JVM startup with a short window.
 
-Lưu thành **`GcCountersDemo.java`**:
+Save as **`GcCountersDemo.java`**:
 
 ```java
 import java.lang.management.GarbageCollectorMXBean;
@@ -166,7 +166,7 @@ public class GcCountersDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 GcCountersDemo.java
@@ -175,67 +175,67 @@ java -Xms64m -Xmx64m -XX:+UseG1GC \
   GcCountersDemo
 ```
 
-`retainedBytes` luôn là **1.048.576 bytes** vì vòng đệm cuối cùng chứa 128 mảng, mỗi mảng 8.192 bytes. Các dòng số đếm/thời gian GC và thời lượng thực thi **không có stdout cố định**: phụ thuộc JDK, collector, kiến trúc máy, tối ưu hóa và điều kiện chạy. `-1` cho biết bộ đếm tương ứng không được JVM hỗ trợ. Một giá trị `eventsDelta=0` cũng hợp lệ nếu không xảy ra GC trong cửa sổ.
+`retainedBytes` is always **1,048,576 bytes** because the final ring buffer holds 128 arrays of 8,192 bytes each. The GC count/time lines and execution duration have **no fixed stdout**: they depend on the JDK, collector, machine architecture, optimizations, and runtime conditions. `-1` indicates the corresponding counter is not supported by the JVM. A value of `eventsDelta=0` is also valid if no GC occurred during the window.
 
-**Giới hạn quan trọng:** `getCollectionTime()` trả về thời gian collection tính theo mili giây mà implementation cung cấp, có thể là xấp xỉ; nó **không trả về danh sách từng pause, p99, TTSP**, và đối với collector concurrent không nên tự coi nó bằng tổng thời gian dừng ứng dụng. Tách metrics theo tên từng bean rồi đối chiếu log của collector.
+**Important limitation:** `getCollectionTime()` returns the collection time in milliseconds provided by the implementation, which may be approximate; it **does not return individual pauses, p99, or TTSP**, and for concurrent collectors it should not automatically be treated as total application stop time. Separate metrics by bean name and cross-check the collector's logs.
 
-## 6. Lấy phân phối pause bằng JFR
+## 6. Obtaining pause distributions with JFR
 
-Để nhìn từng khoảng dừng, có thể ghi Java Flight Recorder (JFR) cho tiến trình đang chạy, ví dụ:
+To inspect individual stops, you can record Java Flight Recorder (JFR) on a running process, for example:
 
 ```bash
 jcmd 12345 JFR.start name=gcdiag settings=profile duration=60s filename=gcdiag.jfr
 jfr print --events jdk.GCPhasePause gcdiag.jfr
 ```
 
-Lệnh `jfr print` cần chạy sau khi recording đã kết thúc và file tồn tại. Event `jdk.GCPhasePause` có `duration` và `gcId`, cho phép tổng hợp **tổng số ms dừng**, **max**, **p95/p99** trên các pause ghi nhận được. Một GC có thể có nhiều pause; muốn tính “tổng pause theo GC” thì nhóm theo `gcId` trước khi cộng. Event có thể không được ghi nếu cấu hình JFR không bật loại event tương ứng; kiểm tra settings và recording thực tế.
+The `jfr print` command must run after the recording finishes and the file exists. The `jdk.GCPhasePause` event carries `duration` and `gcId`, allowing you to aggregate **total pause ms**, **max**, and **p95/p99** over the recorded pauses. One GC can have multiple pauses; to compute "total pause per GC", group by `gcId` before summing. Events may not be recorded if JFR settings do not enable the corresponding event type; verify the actual settings and recording.
 
-Hãy tách riêng **safepoint timing** từ `-Xlog:safepoint=info`. JFR có thể chứa các sự kiện safepoint/GC liên quan, nhưng loại event, mức bật và trường có thể khác theo phiên bản; không giả định TTSP luôn có trong `jdk.GCPhasePause`.
+Keep **safepoint timing** from `-Xlog:safepoint=info` separate. JFR may contain related safepoint/GC events, but event types, enablement levels, and fields can vary across versions; do not assume TTSP is always present in `jdk.GCPhasePause`.
 
-## 7. Chẩn đoán theo tổ hợp, không nhìn một số đơn lẻ
+## 7. Diagnose by combinations, not a single isolated metric
 
-| Quan sát | Điều cần kiểm tra tiếp | Nhận định an toàn |
+| Observation | What to check next | Safe assessment |
 | --- | --- | --- |
-| GC xảy ra thường xuyên, pause ngắn, tổng pause thấp | Allocation rate, kích thước young generation, CPU, throughput, heap sau GC | Tần suất cao có thể chấp nhận được; chưa đủ kết luận ảnh hưởng latency. |
-| GC ít nhưng có một pause cực dài | Max/p99 pause, Full GC/mixed GC, promotion, heap occupancy, SLA | Rủi ro tail latency dù tổng thời gian dừng nhỏ. |
-| Tổng thời gian GC hạch toán tăng nhanh, nhiều pause ngắn | So tổng với danh sách STW pause; collector concurrent và CPU load | Có thể mất throughput/CPU dù từng pause nhỏ; xác định định nghĩa counter. |
-| GC log ghi pause ngắn nhưng `Reaching safepoint` lớn | Tên VM operation, thread state, JNI/native, thời điểm và luồng chậm phối hợp | Cần điều tra **TTSP** riêng; không vội tăng heap hay đổi GC. |
-| `At safepoint` dài nhưng không ghép được GC event | VM operation nào kích hoạt, thread dump/JFR/log liên quan | Safepoint có thể phục vụ công việc JVM ngoài GC. |
-| Latency của request cao, GC và TTSP đều bình thường | CPU throttling, lock contention, I/O, scheduler, mạng, application traces | Không quy mọi độ trễ của ứng dụng cho GC. |
+| Frequent GC, short pauses, low total pause | Allocation rate, young generation size, CPU, throughput, post-GC heap | High frequency may be acceptable; insufficient to conclude latency impact. |
+| Few GCs but one extremely long pause | Max/p99 pause, Full GC/mixed GC, promotion, heap occupancy, SLA | Tail-latency risk even when total pause time is small. |
+| Accounted total GC time climbs rapidly, many short pauses | Compare total with STW pause list; concurrent collector and CPU load | May lose throughput/CPU even if each pause is small; verify counter definition. |
+| GC log shows short pauses but `Reaching safepoint` is large | VM operation name, thread states, JNI/native, timestamps, and slow-coordinating threads | Investigate **TTSP** separately; do not rush to resize heap or switch GC. |
+| Long `At safepoint` with no matching GC event | Which VM operation triggered it, thread dumps/JFR/related logs | The safepoint may be serving JVM work outside GC. |
+| Request latency is high while GC and TTSP are normal | CPU throttling, lock contention, I/O, scheduler, network, application traces | Do not blame all application latency on GC. |
 
-### Quy trình điều tra thực tế
+### Practical investigation workflow
 
-1. **Ghi rõ triệu chứng:** throughput giảm, request p99 tăng, thời gian đáp ứng đứng hình hay CPU tăng. Đánh dấu mốc thời gian và PID/JDK/collector.
-2. **Chọn cửa sổ đo đồng nhất:** ví dụ một phút có tải cao; xác nhận thời điểm khởi động lại hoặc deploy.
-3. **Đo tần suất theo loại GC** và **delta thời gian tích lũy** bằng counter, sau đó xem **độ dài từng pause** bằng GC log/JFR.
-4. **Đối chiếu safepoint log**, đặc biệt `Reaching safepoint` lớn; xác định VM operation và chỗ trùng với request latency spike.
-5. **Xem áp lực bộ nhớ và CPU:** heap trước/sau GC, allocation rate, live set, promotion, system CPU/throttling. Phân biệt pause STW với CPU của các pha concurrent.
-6. **Chỉ sau khi có bằng chứng** mới thử thay đổi heap/GC, cường độ cấp phát hoặc đoạn mã gây chậm tới safepoint; đo lại trên cùng workload để so sánh p95/p99, throughput và mức CPU.
+1. **State the symptom clearly:** throughput drop, request p99 spike, response freeze, or CPU rise. Mark timestamps and PID/JDK/collector.
+2. **Choose a homogeneous measurement window:** e.g., one high-load minute; check for restarts or deployments.
+3. **Measure frequency by GC type** and **cumulative time deltas** via counters, then inspect **individual pause durations** via GC logs/JFR.
+4. **Cross-check safepoint logs**, especially large `Reaching safepoint` values; identify the VM operation and overlap with request latency spikes.
+5. **Inspect memory and CPU pressure:** heap before/after GC, allocation rate, live set, promotion, system CPU/throttling. Separate STW pauses from CPU used by concurrent phases.
+6. **Only after gathering evidence** test changing heap/GC settings, allocation intensity, or code delaying safepoint arrival; re-measure under the same workload to compare p95/p99, throughput, and CPU usage.
 
-## 8. Những lỗi diễn giải dễ gặp
+## 8. Common interpretation mistakes
 
-- **“100 GC/phút chắc chắn tệ hơn 2 GC/phút.”** Sai: phải xem loại GC, tổng chi phí và phân phối pause.
-- **“GCT = 2 giây nghĩa là ứng dụng đứng hình 2 giây liên tục.”** Sai: đó có thể là giá trị cộng dồn qua nhiều collection; ngữ nghĩa của nguồn đo cần được xác nhận.
-- **“Một chu kỳ concurrent kéo dài 800 ms là một pause 800 ms.”** Sai: các pha chạy đồng thời với Java threads không đồng nghĩa STW.
-- **“GC pause 20 ms thì thời gian đạt safepoint cũng 20 ms.”** Sai: TTSP được đo riêng; có trường hợp cao hoặc thấp hơn nhiều.
-- **“Time since last là TTSP.”** Sai: trường đó là khoảng cách thời gian từ safepoint trước, không phải thời gian chờ đạt safepoint hiện tại.
-- **“Có safepoint là có GC.”** Sai: safepoint còn phục vụ các tác vụ khác của VM.
-- **“Lấy GCT/T là tỷ lệ CPU mà GC đã dùng.”** Sai: wall/elapsed collection time và CPU time của các GC worker là các phép đo khác nhau.
-- **“Lấy tổng pause chia số GC là p99.”** Sai: đó là trung bình nếu mẫu ghép phù hợp. p99 đòi phân phối của từng pause và đủ mẫu.
-- **“Dòng nào có chữ GC trong log cũng là một lần GC.”** Sai: dòng pha, thống kê và thông điệp phụ có thể cùng thuộc một GC ID.
-- **“Tối ưu GC bằng cách đếm pause mà không nhìn workload.”** Sai: thay đổi tải, cấu hình heap, collector hoặc thời gian warm-up đều làm số liệu mất tính so sánh.
+- **"100 GCs/minute is definitely worse than 2 GCs/minute."** False: examine GC type, total cost, and pause distribution.
+- **"GCT = 2 seconds means the application froze for 2 seconds straight."** False: it can be a cumulative sum across multiple collections; the measurement source's semantics must be verified.
+- **"An 800 ms concurrent cycle is an 800 ms pause."** False: phases running concurrently with Java threads are not STW.
+- **"If GC pause is 20 ms, time to safepoint is also 20 ms."** False: TTSP is measured separately; it can be much higher or lower.
+- **"Time since last is TTSP."** False: that field is the interval since the previous safepoint, not the wait to reach the current safepoint.
+- **"If there is a safepoint, there is a GC."** False: safepoints also serve other VM tasks.
+- **"GCT/T is the fraction of CPU used by GC."** False: wall/elapsed collection time and GC worker CPU time are different measurements.
+- **"Total pause divided by GC count is p99."** False: that is the mean when samples align; p99 requires the distribution of individual pauses and enough samples.
+- **"Every log line containing GC is one GC."** False: phase lines, stats, and auxiliary messages can share one GC ID.
+- **"Tune GC by counting pauses without looking at workload."** False: changes in traffic, heap config, collector, or warm-up state break comparability.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-check questions
 
-1. Trong 60 giây có 30 young GC, mỗi pause 2 ms. Tần suất là bao nhiêu? Tổng STW pause là bao nhiêu? **Đáp án:** 0,5 lần/giây, 60 ms (0,1% của 60 giây); chỉ từ dữ liệu này chưa suy được tổng collection time của JMX.
-2. Có một Full GC pause 400 ms nhưng GC rate thấp. Với API yêu cầu p99 dưới 100 ms, chỉ nhìn rate có đủ không? **Đáp án:** Không; cần phân phối pause và đối chiếu latency/timestamp của request.
-3. Log ghi `Reaching safepoint: 80000000 ns` và `At safepoint: 15000000 ns`. Giá trị nào là TTSP? **Đáp án:** 80 ms là TTSP; 15 ms là thời gian tại safepoint; trong log JDK 17 kiểu này tổng tương ứng khoảng 95 ms.
-4. Vì sao `GarbageCollectorMXBean.getCollectionTime()` không thể tự cung cấp p99 pause? **Đáp án:** Nó là bộ đếm thời gian tích lũy theo bean, không phải chuỗi duration từng lần dừng.
-5. Thấy một safepoint mất 200 ms nhưng không có GC event tương ứng. Cần làm gì? **Đáp án:** Kiểm tra tên VM operation và nguồn safepoint/JFR khác trước khi kết luận đó là GC.
+1. In 60 seconds there are 30 young GCs, each pausing 2 ms. What is the frequency? What is the total STW pause? **Answer:** 0.5 events/second, 60 ms (0.1% of 60 seconds); from this data alone you cannot deduce JMX total collection time.
+2. There is a 400 ms Full GC pause, yet the GC rate is low. For an API requiring p99 under 100 ms, is looking only at rate enough? **Answer:** No; you need the pause distribution and correlation with request latency/timestamps.
+3. The log records `Reaching safepoint: 80000000 ns` and `At safepoint: 15000000 ns`. Which value is TTSP? **Answer:** 80 ms is TTSP; 15 ms is time at safepoint; in this style of JDK 17 log the total is about 95 ms.
+4. Why can't `GarbageCollectorMXBean.getCollectionTime()` provide p99 pause by itself? **Answer:** It is a cumulative time counter per bean, not a series of individual pause durations.
+5. You observe a 200 ms safepoint with no corresponding GC event. What should you do? **Answer:** Check the VM operation name and other safepoint/JFR sources before concluding it is GC.
 
-## Tài liệu tra cứu
+## Reference documentation
 
-- [Oracle JDK 17 — `java` / Unified Logging và `-Xlog`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html)
-- [Oracle — Troubleshoot Performance Issues Using JFR, phần GC và `jdk.GCPhasePause`](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html)
-- [Oracle — `jstat` command, ý nghĩa các bộ đếm GC](https://docs.oracle.com/en/java/javase/11/tools/jstat.html)
-- [OpenJDK — cách HotSpot ghi `Reaching safepoint`, `At safepoint` và `Total`](https://github.com/openjdk/jdk/blob/master/src/hotspot/share/runtime/safepoint.cpp)
+- [Oracle JDK 17 — `java` / Unified Logging and `-Xlog`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html)
+- [Oracle — Troubleshoot Performance Issues Using JFR, GC section and `jdk.GCPhasePause`](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html)
+- [Oracle — `jstat` command, meanings of GC counters](https://docs.oracle.com/en/java/javase/11/tools/jstat.html)
+- [OpenJDK — how HotSpot logs `Reaching safepoint`, `At safepoint`, and `Total`](https://github.com/openjdk/jdk/blob/master/src/hotspot/share/runtime/safepoint.cpp)

@@ -1,20 +1,20 @@
-# Tìm một hoặc nhiều tài nguyên bằng getResource, getResources và getResourceAsStream
+# Finding One or Multiple Resources with getResource, getResources, and getResourceAsStream
 
-Một ứng dụng Java thường cần đọc những tệp **đi cùng mã đã biên dịch**: cấu hình mặc định, template, câu lệnh SQL, bản địa hóa, dữ liệu mẫu hoặc thông tin mô tả plugin. Khi triển khai bằng JAR, nhiều tệp này **không còn là file thông thường nằm trong thư mục làm việc**. Java cung cấp cơ chế tìm **resource theo tên logic** thông qua `Class` và `ClassLoader` để chương trình hoạt động nhất quán hơn giữa môi trường phát triển, bản đóng gói JAR và hệ thống có nhiều class loader.
+A Java application often needs to read files **packaged alongside compiled code**: default configurations, templates, SQL statements, localizations, sample data, or plugin descriptor information. When deployed as a JAR, many of these files are **no longer ordinary files located in the working directory**. Java provides a mechanism to look up a **resource by logical name** through `Class` and `ClassLoader` so that programs behave more consistently across development environments, JAR packaging, and systems with multiple class loaders.
 
-Ba thao tác cốt lõi có ý nghĩa riêng:
+The three core operations each have a distinct meaning:
 
-- **`getResource(name)`**: tìm **một** resource và trả về `URL`, hoặc `null` khi không tìm được; URL phù hợp nếu cần biết vị trí nguồn hoặc muốn chủ động mở luồng đọc.
-- **`getResources(name)`**: tìm **nhiều** resource có **cùng tên chính xác**, trả về `Enumeration<URL>`; phù hợp với kiến trúc plugin có nhiều JAR đóng góp cùng một tài nguyên.
-- **`getResourceAsStream(name)`**: trả về `InputStream` để **đọc nội dung**, hoặc `null` nếu không lấy được stream; thường thuận tiện khi không cần URL.
+- **`getResource(name)`**: finds **one** resource and returns a `URL`, or `null` when not found; a URL is suitable if you need to know the source location or want to open the input stream yourself.
+- **`getResources(name)`**: finds **multiple** resources with the **exact same name**, returning an `Enumeration<URL>`; suitable for plugin architectures where multiple JARs contribute the same resource.
+- **`getResourceAsStream(name)`**: returns an `InputStream` to **read the content**, or `null` if the stream cannot be obtained; often convenient when you do not need the URL.
 
-**Phải xác định đối tượng gọi:** `SomeClass.class.getResource(...)` và `someClassLoader.getResource(...)` có quy tắc phân giải tên khác nhau. Trong ứng dụng mở rộng lúc chạy, **class loader được chọn** cũng quyết định bạn nhìn thấy những JAR/resource nào.
+**You must identify the target object being called:** `SomeClass.class.getResource(...)` and `someClassLoader.getResource(...)` have different name resolution rules. In a runtime-extensible application, **which class loader is chosen** also determines which JARs/resources are visible to you.
 
-## 1. Resource trong Java là gì?
+## 1. What Is a Resource in Java?
 
-Resource ở đây là một entry có tên mà lớp/module hoặc class loader có thể tìm được; nó không nhất thiết là một tệp độc lập trên ổ đĩa.
+A resource here is a named entry that a class/module or class loader can locate; it is not necessarily a standalone file on disk.
 
-Ví dụ, cấu trúc nguồn dự kiến:
+For example, an expected source layout:
 
 ```text
 src/
@@ -30,53 +30,53 @@ resources/
     config/choice.txt
 ```
 
-Nếu chạy ứng dụng với `resources/main` và `resources/second` trên classpath:
+If you run the application with `resources/main` and `resources/second` on the classpath:
 
-- Tên resource `demo/resources/messages/welcome.txt` chỉ tới nội dung tương ứng trong `resources/main`.
-- `config/app.properties` nằm ở gốc classpath của thư mục `resources/main`.
-- **Hai** nơi cùng cung cấp tên `config/choice.txt`; `getResources("config/choice.txt")` có thể cho cả hai vị trí theo cơ chế tìm kiếm của class loader.
-- Khi đóng `resources/main` vào JAR, tên logic trên vẫn giữ nguyên dù hệ điều hành không nhìn thấy nó như một file rời.
+- The resource name `demo/resources/messages/welcome.txt` points to the corresponding content in `resources/main`.
+- `config/app.properties` is at the classpath root of the `resources/main` directory.
+- **Two** locations both provide the name `config/choice.txt`; `getResources("config/choice.txt")` can yield both locations according to the class loader's search mechanism.
+- When `resources/main` is packaged into a JAR, the logical names above remain the same even though the operating system does not see them as individual files.
 
-**Không đồng nhất:**
+**Do not conflate:**
 
-| Khái niệm | Ý nghĩa |
+| Concept | Meaning |
 |---|---|
-| Đường dẫn resource | Tên tương đối trong không gian mà `Class`/`ClassLoader` quản lý, ví dụ `config/app.properties` |
-| Classpath entry | Một thư mục hoặc JAR mà class loader có thể tìm class/resource |
-| `URL` resource | Địa chỉ trỏ tới resource, có thể là `file:`, `jar:file:...!/`, `jrt:` hoặc giao thức khác do loader cung cấp |
-| `Path` filesystem | Đường dẫn theo filesystem provider; **không tự đồng nghĩa** với một entry nằm bên trong JAR |
-| Working directory | Thư mục hiện hành của tiến trình; không mặc định là gốc classpath hoặc gốc JAR |
+| Resource path | Relative name within the namespace managed by `Class`/`ClassLoader`, for example `config/app.properties` |
+| Classpath entry | A directory or JAR where a class loader can search for classes/resources |
+| Resource `URL` | Address pointing to the resource, which may use `file:`, `jar:file:...!/`, `jrt:`, or another protocol provided by the loader |
+| Filesystem `Path` | Path according to a filesystem provider; **does not automatically equate** to an entry inside a JAR |
+| Working directory | The current directory of the process; not the classpath root or JAR root by default |
 
-`new File("config/app.properties")` và `getResource("config/app.properties")` tìm ở hai không gian khác nhau. Lệnh `new File(...)` dùng filesystem theo thư mục hiện hành (nếu là đường dẫn tương đối), còn `getResource(...)` phụ thuộc class/module loader và tên resource.
+`new File("config/app.properties")` and `getResource("config/app.properties")` search in two different spaces. `new File(...)` uses the filesystem relative to the current directory (if given a relative path), whereas `getResource(...)` depends on the class/module loader and the resource name.
 
-## 2. Những API cần phân biệt
+## 2. APIs to Distinguish
 
-| API | Đầu vào `name` | Kết quả | Khi dùng |
+| API | `name` Input | Result | When to Use |
 |---|---|---|---|
-| `Class.getResource(String)` | Tương đối với package của class, hoặc bắt đầu bằng `/` để tính từ gốc resource | `URL` hoặc `null` | Resource gắn với chính class, package, module |
-| `Class.getResourceAsStream(String)` | Quy tắc tên như `Class.getResource` | `InputStream` hoặc `null` | Đọc template/config nằm cạnh class |
-| `ClassLoader.getResource(String)` | Tên từ gốc không gian resource, **không có dấu `/` ở đầu** | `URL` hoặc `null` | Tìm một resource bằng loader đã chọn |
-| `ClassLoader.getResources(String)` | Tên từ gốc không gian resource | `Enumeration<URL>`; có thể rỗng; phương thức có thể ném `IOException` | Tìm tất cả vị trí cùng tên để tự tổng hợp/xử lý xung đột |
-| `ClassLoader.getResourceAsStream(String)` | Tên từ gốc không gian resource | `InputStream` hoặc `null` | Đọc resource bằng loader đã chọn mà không cần URL |
+| `Class.getResource(String)` | Relative to the class's package, or starts with `/` to resolve from the resource root | `URL` or `null` | Resource associated with the class itself, its package, or its module |
+| `Class.getResourceAsStream(String)` | Same naming rules as `Class.getResource` | `InputStream` or `null` | Reading templates/configs located next to a class |
+| `ClassLoader.getResource(String)` | Name from the root of the resource namespace, **without a leading `/`** | `URL` or `null` | Finding a single resource using a chosen loader |
+| `ClassLoader.getResources(String)` | Name from the root of the resource namespace | `Enumeration<URL>`; may be empty; method may throw `IOException` | Finding all locations with the same name to aggregate or handle conflicts yourself |
+| `ClassLoader.getResourceAsStream(String)` | Name from the root of the resource namespace | `InputStream` or `null` | Reading a resource using a chosen loader without needing a URL |
 
-### 2.1. `Class.getResource`: tên tương đối và tên tuyệt đối
+### 2.1. `Class.getResource`: Relative Names and Absolute Names
 
-Giả sử class là `demo.resources.ResourceLookupDemo`:
+Suppose the class is `demo.resources.ResourceLookupDemo`:
 
 ```java
-// Tìm từ package demo.resources:
+// Lookup from package demo.resources:
 URL a = ResourceLookupDemo.class.getResource("messages/welcome.txt");
 
-// Tìm từ gốc không gian resource bằng dấu / đầu tiên:
+// Lookup from the root of the resource namespace using a leading /:
 URL b = ResourceLookupDemo.class.getResource(
         "/demo/resources/messages/welcome.txt");
 ```
 
-Cả hai dùng tên logic `demo/resources/messages/welcome.txt`. Một lời gọi như `ResourceLookupDemo.class.getResource("config/app.properties")` lại tìm `demo/resources/config/app.properties`, **không** phải `config/app.properties` ở gốc.
+Both use the logical name `demo/resources/messages/welcome.txt`. A call like `ResourceLookupDemo.class.getResource("config/app.properties")` instead searches for `demo/resources/config/app.properties`, **not** `config/app.properties` at the root.
 
-Dấu `/` đầu tiên là quy tắc **riêng của `Class.getResource`**, được xử lý để tạo tên tuyệt đối trong không gian resource. Nó không có nghĩa là đường dẫn gốc filesystem của hệ điều hành.
+The leading `/` is a rule **specific to `Class.getResource`**, processed to form an absolute name within the resource namespace. It does not mean the root directory of the operating system's filesystem.
 
-### 2.2. `ClassLoader.getResource`: luôn dùng tên từ gốc
+### 2.2. `ClassLoader.getResource`: Always Uses a Root-Based Name
 
 ```java
 ClassLoader loader = ResourceLookupDemo.class.getClassLoader();
@@ -85,13 +85,13 @@ URL a = loader.getResource("demo/resources/messages/welcome.txt");
 URL b = loader.getResource("config/app.properties");
 ```
 
-Khác với `Class`, `ClassLoader` không tự thêm package của class và không dùng `/` đầu tiên làm cú pháp “tuyệt đối” để bỏ package. Vì thế, quy tắc an toàn và rõ ràng khi gọi `ClassLoader.getResource`/`getResources`/`getResourceAsStream` là **tên không bắt đầu bằng `/`**.
+Unlike `Class`, `ClassLoader` does not automatically prepend the class's package and does not treat a leading `/` as an "absolute" syntax to omit a package. Therefore, the safe and clear rule when calling `ClassLoader.getResource`/`getResources`/`getResourceAsStream` is **a name without a leading `/`**.
 
-`Class.getClassLoader()` có thể trả `null` cho class do bootstrap loader định nghĩa. Ví dụ trên dùng class của ứng dụng do application loader nạp nên có loader. Với thư viện phổ biến, nên chọn rõ loader theo hợp đồng thư viện thay vì luôn giả định một loader duy nhất trong cả JVM.
+`Class.getClassLoader()` may return `null` for classes defined by the bootstrap loader. The example above uses an application class loaded by the application loader, so it has a loader. For general-purpose libraries, you should explicitly select a loader according to the library's contract instead of always assuming a single loader across the entire JVM.
 
-### 2.3. `getResourceAsStream`: đọc ngay, nhưng phải đóng
+### 2.3. `getResourceAsStream`: Read Immediately, but Must Be Closed
 
-Khi chỉ cần nội dung, `getResourceAsStream` tránh việc phải thao tác trực tiếp với `URL`:
+When you only need the content, `getResourceAsStream` avoids having to handle a `URL` directly:
 
 ```java
 try (InputStream in = ResourceLookupDemo.class.getResourceAsStream(
@@ -99,21 +99,21 @@ try (InputStream in = ResourceLookupDemo.class.getResourceAsStream(
     if (in == null) {
         throw new IllegalStateException("Missing welcome resource");
     }
-    // Đọc từ in trong phạm vi try, sau đó đóng tự động.
+    // Read from in within the try scope, then close automatically.
 }
 ```
 
-Đoạn trên là **minh họa một phạm vi đọc**, cần thêm `import java.io.InputStream;` và logic đọc thực tế nếu đặt trong chương trình riêng. Trong code production, kiểm tra `null` **trước** khi phụ thuộc vào stream; `try-with-resources` hỗ trợ đóng stream sau khi đọc, kể cả lúc xử lý nội dung ném lỗi. Lỗi I/O khi đọc vẫn cần được báo đúng.
+The snippet above **illustrates a reading scope**; you need to add `import java.io.InputStream;` and actual reading logic if placing it in your own program. In production code, check for `null` **before** relying on the stream; `try-with-resources` helps close the stream after reading, even if processing the content throws an exception. I/O errors during reading still need to be reported properly.
 
-Không dùng `InputStream.available()` để suy ra toàn bộ kích thước tài nguyên; nó chỉ cho biết lượng byte có thể đọc ngay trong một số điều kiện, không phải kích thước file. Với nội dung văn bản hãy chủ động chọn charset, thường là UTF-8.
+Do not use `InputStream.available()` to infer the total size of a resource; it only indicates the number of bytes that can be read immediately under certain conditions, not the file size. For text content, explicitly choose a charset, typically UTF-8.
 
-## 3. Ví dụ Java 17 chạy được: tìm một, tìm nhiều và đọc stream
+## 3. Runnable Java 17 Example: Finding One, Finding Multiple, and Reading Streams
 
-Ví dụ sau cho thấy cùng một file có thể được tìm bằng `Class` hoặc `ClassLoader`, đồng thời phát hiện hai resource trùng tên `config/choice.txt`. Để stdout không phụ thuộc vào thứ tự phát hiện từ loader, nội dung của hai resource được **sắp xếp** trước khi in.
+The following example shows how the same file can be found via `Class` or `ClassLoader`, while also detecting two duplicate-named resources `config/choice.txt`. To prevent stdout from depending on the loader's discovery order, the contents of the two resources are **sorted** before printing.
 
-### 3.1. Tạo cấu trúc và nội dung chính xác
+### 3.1. Create the Exact Structure and Content
 
-Tệp `src/demo/resources/ResourceLookupDemo.java`:
+File `src/demo/resources/ResourceLookupDemo.java`:
 
 ```java
 package demo.resources;
@@ -187,7 +187,7 @@ public final class ResourceLookupDemo {
 }
 ```
 
-Nội dung **một dòng** của từng resource (có thể kết thúc bằng newline thông thường):
+**Single-line** content for each resource (may end with a standard newline):
 
 `resources/main/demo/resources/messages/welcome.txt`:
 
@@ -213,25 +213,25 @@ base
 plugin
 ```
 
-Từ thư mục gốc chứa `src` và `resources`, dùng JDK 17 trở lên để biên dịch:
+From the root directory containing `src` and `resources`, use JDK 17 or later to compile:
 
 ```bash
 javac -d out src/demo/resources/ResourceLookupDemo.java
 ```
 
-Lệnh chạy **Windows** (classpath ngăn cách bằng dấu chấm phẩy):
+Command to run on **Windows** (classpath separated by semicolons):
 
 ```powershell
 java -cp "out;resources/main;resources/second" demo.resources.ResourceLookupDemo
 ```
 
-Lệnh chạy **Linux/macOS** (classpath ngăn cách bằng dấu hai chấm):
+Command to run on **Linux/macOS** (classpath separated by colons):
 
 ```bash
 java -cp "out:resources/main:resources/second" demo.resources.ResourceLookupDemo
 ```
 
-Stdout của ví dụ với nội dung file như trên:
+Stdout of the example with the file contents above:
 
 ```text
 Class relative: Hello from package
@@ -244,24 +244,24 @@ All matches: [base, plugin]
 Missing URL: true
 ```
 
-**Vì sao kết quả như vậy?**
+**Why is the output like this?**
 
-1. Ba URL và stream của `Class` hoặc `ClassLoader` trỏ đúng `demo/resources/messages/welcome.txt` sau khi áp dụng quy tắc tên của API tương ứng.
-2. `getResourceAsStream("config/app.properties")` đọc nội dung từ gốc classpath `resources/main`.
-3. `getResources("config/choice.txt")` tìm hai tài nguyên cùng tên ở hai classpath entry. Trong chương trình, `Collections.sort(values)` chỉ bảo đảm **thứ tự dòng in ra**, không sửa thứ tự loader đã phát hiện.
-4. Resource không tồn tại khiến `getResource(...)` trả `null`; ví dụ in `true` để biểu diễn phép kiểm tra này.
+1. The three URLs and stream from `Class` or `ClassLoader` point to `demo/resources/messages/welcome.txt` after applying the naming rules of the corresponding API.
+2. `getResourceAsStream("config/app.properties")` reads the content from the classpath root `resources/main`.
+3. `getResources("config/choice.txt")` finds two resources with the same name in two classpath entries. In the program, `Collections.sort(values)` only guarantees the **order of printed lines**, not changing the order discovered by the loader.
+4. A non-existent resource causes `getResource(...)` to return `null`; the example prints `true` to demonstrate this check.
 
-**Ranh giới ví dụ:** `firstLine` chỉ đọc **dòng đầu tiên** để kết quả ngắn và rõ. Với file cấu hình nhiều dòng hoặc JSON/YAML, phải dùng parser thích hợp; ví dụ này không phải bộ đọc tất cả nội dung.
+**Example boundary:** `firstLine` only reads the **first line** to keep the output short and clear. For multi-line config files or JSON/YAML, you must use an appropriate parser; this example is not a full-content reader.
 
-### 3.2. Thử đóng phần resource chính vào JAR
+### 3.2. Packaging the Main Resources into a JAR
 
-Từ cùng thư mục dự án, sau khi biên dịch, tạo JAR:
+From the same project directory, after compiling, create a JAR:
 
 ```bash
 jar --create --file demo.jar -C out . -C resources/main .
 ```
 
-JAR này chứa class đã biên dịch và toàn bộ resource trong `resources/main`. Để thấy hai nơi cùng đóng góp `config/choice.txt`, tiếp tục để `resources/second` ở classpath.
+This JAR contains the compiled classes and all resources in `resources/main`. To see both locations contributing `config/choice.txt`, keep `resources/second` on the classpath.
 
 Windows:
 
@@ -275,49 +275,49 @@ Linux/macOS:
 java -cp "demo.jar:resources/second" demo.resources.ResourceLookupDemo
 ```
 
-Stdout **giữ nguyên** như lần chạy từ thư mục. Sự khác biệt là URL của resource trong JAR có thể dùng dạng `jar:file:/.../demo.jar!/config/app.properties` thay vì `file:/.../resources/main/config/app.properties`; vì thế code đọc qua `InputStream` sẽ dễ tái sử dụng hơn code mặc định ép URL thành filesystem `Path`.
+Stdout **remains identical** to running from directories. The difference is that the URL for a resource inside the JAR may have the form `jar:file:/.../demo.jar!/config/app.properties` instead of `file:/.../resources/main/config/app.properties`; therefore, code that reads via `InputStream` is more reusable than code that assumes URLs can be cast to filesystem `Path`s.
 
-## 4. `getResource` và `getResources` khi có nhiều JAR
+## 4. `getResource` and `getResources` with Multiple JARs
 
-Trong Java runtime extensibility, cùng một tên có thể xuất hiện trong nhiều plugin JAR. Ví dụ, hai provider đóng góp:
+In Java runtime extensibility, the same name can appear across multiple plugin JARs. For example, two providers contribute:
 
 ```text
 plugins/alpha.jar!/META-INF/services/com.example.spi.Processor
 plugins/beta.jar!/META-INF/services/com.example.spi.Processor
 ```
 
-Khi loader có khả năng nhìn thấy cả hai JAR, `getResources("META-INF/services/com.example.spi.Processor")` có thể tìm ra hai URL. Cơ chế `ServiceLoader` của Java dựa vào việc phát hiện mô tả provider theo SPI; tuy vậy **đọc trực tiếp các resource không tương đương với việc ServiceLoader đã xác thực/nạp được implementation**. Nếu mục tiêu là chọn provider đúng hợp đồng, ưu tiên `ServiceLoader` hoặc một plugin registry thay vì tự xử lý descriptor như văn bản tùy tiện.
+When a loader can see both JARs, `getResources("META-INF/services/com.example.spi.Processor")` can find both URLs. Java's `ServiceLoader` mechanism relies on discovering provider descriptors per the SPI specification; however, **directly reading the resources is not equivalent to ServiceLoader having validated/loaded the implementation**. If the goal is to select providers conforming to a contract, prefer `ServiceLoader` or a plugin registry instead of manually parsing descriptors as arbitrary text.
 
-### 4.1. Một kết quả có nghĩa gì?
+### 4.1. What Does a Single Result Mean?
 
-`getResource("config/choice.txt")` chỉ đưa ra **một URL theo cách loader tìm kiếm**, kể cả khi có nhiều bản trùng tên. Trong các loader phổ biến, cơ chế ủy quyền cha/con và thứ tự classpath ảnh hưởng URL được trả về. **Đừng xem đó là thứ tự ưu tiên nghiệp vụ được đảm bảo trên mọi class loader**.
+`getResource("config/choice.txt")` returns only **one URL according to how the loader searches**, even when multiple duplicates exist. In common loaders, parent/child delegation and classpath order affect which URL is returned. **Do not treat that as a guaranteed business priority order across all class loaders.**
 
-Nếu cần chỉ có **một** cấu hình duy nhất, dùng `getResources` để phát hiện xung đột rồi:
+If you require **only one** unique configuration, use `getResources` to detect conflicts, then:
 
-- Không thấy: báo lỗi thiếu cấu hình hoặc dùng default **chỉ khi hợp đồng cho phép**.
-- Thấy đúng một: đọc và xác thực.
-- Thấy nhiều: thông báo danh sách nguồn và yêu cầu chỉ định tường minh, hoặc áp dụng **quy tắc merge/override đã định nghĩa rõ**.
+- None found: report a missing configuration error or use a default **only if the contract allows**.
+- Exactly one found: read and validate it.
+- Multiple found: report the list of sources and require explicit specification, or apply a **well-defined merge/override rule**.
 
-Nếu hệ thống cho phép nhiều nhà cung cấp tài nguyên, hãy quy định cách gộp và chống lặp. Chẳng hạn nhiều plugin đóng góp file quy tắc, hệ thống có thể duyệt toàn bộ URL, parse từng file và gộp theo `id`; khi hai mục trùng `id` thì phải có policy conflict hoặc từ chối. Không lấy một cách ngẫu nhiên.
+If the system allows multiple resource providers, specify how to merge and prevent duplicates. For instance, if multiple plugins contribute rule files, the system can iterate through all URLs, parse each file, and merge by `id`; when two items have a duplicate `id`, there must be a conflict policy or rejection. Do not pick one arbitrarily.
 
-### 4.2. Vì sao không nên suy luận thứ tự Enumeration?
+### 4.2. Why You Should Not Infer Order from Enumeration
 
-`Enumeration<URL>` phản ánh quy tắc của loader cụ thể, bao gồm delegation, cấu hình và cách triển khai module. Một số loader thông dụng có thể trả parent resources trước rồi child resources, nhưng loader tùy chỉnh, môi trường application server hoặc module có thể thay đổi tập kết quả và thứ tự.
+`Enumeration<URL>` reflects the rules of a specific loader, including delegation, configuration, and module deployment. Some common loaders may return parent resources first and then child resources, but custom loaders, application server environments, or modules can alter the result set and its order.
 
-Vì vậy:
+Therefore:
 
-- Không viết logic “file đầu tiên thắng” nếu thứ tự này chưa được định nghĩa và kiểm thử cho loader đang chạy.
-- Để dễ chẩn đoán, có thể chuẩn hóa URL thành chuỗi để **hiển thị**, nhưng không dùng thứ tự từ điển của URL làm chính sách đáng tin cậy nếu bản chất phụ thuộc vào ưu tiên plugin.
-- Nếu chọn theo priority, đọc manifest/metadata provider, xác thực version và chọn bằng một selector tường minh.
-- Nếu các bản cùng tên là lỗi đóng gói, fail fast với thông tin nhận dạng từng nguồn.
+- Do not write "first file wins" logic if that order has not been defined and tested for the running loader.
+- For diagnostics, you can normalize URLs to strings for **display**, but do not use the lexicographical order of URLs as a reliable policy if semantics depend on plugin priority.
+- If selecting by priority, read the provider's manifest/metadata, validate the version, and select using an explicit selector.
+- If duplicate-named copies indicate a packaging error, fail fast with identifying details for each source.
 
-Một đặc điểm quan trọng: **`getResources("folder")` không phải API duyệt tất cả file trong folder.** Nó chỉ tìm resource tên chính xác `folder`, nếu entry ấy tồn tại. Directory entry có thể không được đóng trong JAR; không dùng `getResources` như công cụ liệt kê thư mục tùy ý. Muốn biết tất cả extension, nên có index/manifest/SPI hoặc registry rõ ràng.
+One important characteristic: **`getResources("folder")` is not an API to list all files in a folder.** It only searches for a resource named `folder` exactly, if such an entry exists. Directory entries might not even be packaged inside a JAR; do not use `getResources` as an arbitrary directory listing tool. To know all extensions, maintain an explicit index/manifest/SPI or registry.
 
-## 5. Chọn class loader nào trong hệ thống plugin?
+## 5. Which Class Loader to Choose in a Plugin System?
 
-Một JVM có thể có **nhiều** class loader và module layer, mỗi loader nhìn thấy tập tài nguyên khác nhau. “Tìm resource của ứng dụng” và “tìm resource của plugin” có thể ra hai kết quả.
+A JVM can have **multiple** class loaders and module layers, each seeing a different set of resources. "Finding an application resource" and "finding a plugin resource" can yield two different results.
 
-### 5.1. Loader gắn với class
+### 5.1. Class-Bound Loader
 
 ```java
 ClassLoader pluginLoader = SomePlugin.class.getClassLoader();
@@ -326,72 +326,72 @@ URL pluginConfig = pluginLoader.getResource(
         "com/example/plugin/defaults.properties");
 ```
 
-Đây là đoạn **minh họa**; `SomePlugin` là class đã được khai báo trong plugin thực tế. Cách này hợp lý khi biết class nào sở hữu tài nguyên và muốn tra cứu trong phạm vi loader có thể nhìn thấy class ấy. Nếu tài nguyên nằm **cùng package với class**, `SomePlugin.class.getResource("defaults.properties")` thường diễn đạt chính xác hơn.
+This is an **illustrative** snippet; `SomePlugin` is a class declared in an actual plugin. This approach makes sense when you know which class owns the resource and want to look it up within the scope of the loader that can see that class. If the resource resides **in the same package as the class**, `SomePlugin.class.getResource("defaults.properties")` usually expresses the intent more accurately.
 
-**Chú ý:** class loader kiểu parent-first có thể tìm thấy một resource cùng tên ở loader cha trước bản ở plugin. `SomePlugin.class.getClassLoader()` không tự bảo đảm “chỉ lấy resource thuộc JAR của SomePlugin”. Muốn cách ly namespace và quyền ưu tiên, phải xác định chính sách riêng trong loader/registry.
+**Note:** A parent-first class loader can find a same-named resource in a parent loader before the one in the plugin. `SomePlugin.class.getClassLoader()` does not automatically guarantee "only get the resource belonging to SomePlugin's JAR." To isolate namespaces and precedence, you must define an explicit policy in your loader/registry.
 
-### 5.2. Thread context class loader (TCCL)
+### 5.2. Thread Context Class Loader (TCCL)
 
-Các framework/SPIs thường dùng:
+Frameworks/SPIs often use:
 
 ```java
 ClassLoader contextLoader =
         Thread.currentThread().getContextClassLoader();
 ```
 
-TCCL là loader gắn với thread theo ngữ cảnh chạy; nó **có thể khác** loader đã nạp một class của thư viện. `ServiceLoader.load(ServiceType.class)` mặc định dùng context class loader của thread hiện tại trong đường gọi thông dụng. Một hệ thống plugin có thể muốn dùng `ServiceLoader.load(ServiceType.class, pluginLoader)` để truyền loader tường minh.
+TCCL is a loader attached to a thread according to the execution context; it **can differ** from the loader that loaded a library's class. `ServiceLoader.load(ServiceType.class)` defaults to using the current thread's context class loader in the common call path. A plugin system may want to use `ServiceLoader.load(ServiceType.class, pluginLoader)` to pass an explicit loader.
 
-Nếu cần đổi TCCL tạm thời trong vùng gọi plugin, phải khôi phục trong `finally` để không rò ngữ cảnh sang tác vụ khác:
+If you need to temporarily switch the TCCL within a plugin invocation block, you must restore it in a `finally` block so the context does not leak to other tasks:
 
 ```java
 Thread thread = Thread.currentThread();
 ClassLoader previous = thread.getContextClassLoader();
 try {
     thread.setContextClassLoader(pluginLoader);
-    // Gọi framework cần context loader của plugin tại đây.
+    // Call frameworks that require the plugin's context loader here.
 } finally {
     thread.setContextClassLoader(previous);
 }
 ```
 
-Hai đoạn là **minh họa trong phương thức đã có** và giả định `pluginLoader` được cung cấp hợp lệ. Việc đổi TCCL không làm class loader mới tự xuất hiện, không đưa JAR mới vào runtime, không đóng class loader và không cô lập mã không tin cậy.
+Both snippets are **illustrative within an existing method** and assume `pluginLoader` is validly provided. Changing the TCCL does not cause a new class loader to appear automatically, does not bring new JARs into the runtime, does not close a class loader, and does not isolate untrusted code.
 
-### 5.3. Quan hệ với `URLClassLoader` và vòng đời plugin
+### 5.3. Relationship with `URLClassLoader` and Plugin Lifecycle
 
-Nếu hệ thống hỗ trợ thêm JAR lúc chạy, một `URLClassLoader` có thể được tạo để nhìn thấy các URL JAR mới. Khi đó cần:
+If the system supports adding JARs at runtime, a `URLClassLoader` can be created to see the new JAR URLs. When doing so, you must:
 
-1. Quy định API chung được nạp ở class loader nào để không có hai bản của cùng interface với danh tính class khác nhau.
-2. Chọn parent/child delegation và namespace resource theo hợp đồng.
-3. Khởi tạo, xác minh và đăng ký các provider được phát hiện; không giả định `getResource` đồng nghĩa class đã load thành công.
-4. Quản lý phiên bản snapshot, instance, thread và các stream đang mở khi cập nhật plugin.
-5. Đóng loader/tài nguyên khi hoàn tất và không còn tham chiếu cần dùng.
+1. Specify which class loader loads shared APIs so there are no two copies of the same interface with different class identities.
+2. Choose parent/child delegation and resource namespaces according to the contract.
+3. Instantiate, verify, and register discovered providers; do not assume `getResource` means classes have loaded successfully.
+4. Manage snapshot versions, instances, threads, and open streams when updating plugins.
+5. Close loaders/resources when finished and no longer needed by any references.
 
-Nạp lại danh sách bằng `getResources` **không** có nghĩa class loader đang dùng sẽ tự quan sát một JAR mới trên đĩa; tập URL/search scope phải được cập nhật theo cơ chế của hệ thống.
+Reloading the list via `getResources` does **not** mean the currently used class loader will automatically observe a new JAR on disk; the URL set/search scope must be updated according to the system's mechanism.
 
-## 6. Classpath và Java Platform Module System (JPMS)
+## 6. Classpath and Java Platform Module System (JPMS)
 
-Trong ứng dụng Java 9+ dùng **named modules**, resource visibility có thể bị ảnh hưởng bởi encapsulation của module, bên cạnh đường dẫn và class loader.
+In Java 9+ applications using **named modules**, resource visibility can be affected by module encapsulation, in addition to paths and class loaders.
 
-- Resource thuộc module có thể được tra cứu theo cơ chế module tương ứng; không nên giả định tất cả resource trong mọi module đều được nhìn thấy bởi một lời gọi `ClassLoader.getResource`.
-- Với resource **không phải `.class`** nằm trong package của named module, quy tắc mở package (`opens`) ảnh hưởng khả năng truy cập bằng phương thức của class loader. Một module có thể có resource nhưng lookup từ nơi khác vẫn trả `null`.
-- `Class.getResource`/`getResourceAsStream` có ngữ cảnh module của class được gọi và quy tắc riêng; thử nghiệm trên classpath không tự kiểm chứng ứng dụng chạy với `--module-path`.
-- Cần đặt tên resource đúng, kiểm tra `module-info.java`/`opens` khi cần, và test trong chính chế độ đóng gói production.
+- Resources belonging to a module can be looked up via the corresponding module mechanism; you should not assume all resources in every module are visible to a `ClassLoader.getResource` call.
+- For **non-`.class`** resources located in a package of a named module, package opening rules (`opens`) affect accessibility via class loader methods. A module may contain a resource, yet a lookup from elsewhere still returns `null`.
+- `Class.getResource`/`getResourceAsStream` has the module context of the target class and specific rules; testing on the classpath does not automatically verify an application running with `--module-path`.
+- You must name resources properly, check `module-info.java`/`opens` when needed, and test in the exact production packaging mode.
 
-**Không mở tất cả package vô điều kiện chỉ để sửa một lỗi path.** Hãy xác định resource nào cần công bố, đối tượng gọi nào thực sự sở hữu lookup và phạm vi quyền nào thích hợp. Với cấu hình nội bộ của một module, lookup tương ứng với class thuộc chính module thường dễ kiểm soát hơn.
+**Do not open all packages unconditionally just to fix a path error.** Identify which resources need to be exposed, which caller actually owns the lookup, and what permission scope is appropriate. For a module's internal configuration, looking up relative to a class belonging to that module is usually easier to control.
 
-## 7. Đọc dữ liệu đúng và quản lý tài nguyên
+## 7. Reading Data Properly and Managing Resources
 
-### 7.1. Kiểm tra thiếu resource và lỗi I/O
+### 7.1. Checking for Missing Resources and I/O Errors
 
-Ba kết quả cần phân biệt:
+Three outcomes to distinguish:
 
-- `getResource(...) == null`: không tìm thấy URL trong phạm vi lookup đang dùng.
-- `getResourceAsStream(...) == null`: không thu được stream, có thể vì không tìm thấy hoặc không mở được tài nguyên; API này không bảo đảm cung cấp chẩn đoán IOException cụ thể.
-- `getResources(...)` có thể trả enumeration rỗng, hoặc ném `IOException` trong lúc tìm; còn `url.openStream()` có thể lỗi dù URL đã tìm thấy.
+- `getResource(...) == null`: no URL found within the lookup scope being used.
+- `getResourceAsStream(...) == null`: could not obtain a stream, either because it was not found or could not be opened; this API does not guarantee specific IOException diagnostics.
+- `getResources(...)` may return an empty enumeration or throw `IOException` during search; meanwhile, `url.openStream()` can fail even after a URL is found.
 
-Nếu thiếu cấu hình bắt buộc, đừng dùng `new String(byte[0])` hoặc trả giá trị giả rồi chạy tiếp. Hãy báo resource name, loader/module liên quan và hướng dẫn đóng gói đúng. Với resource tùy chọn, dùng default đã được công bố trong hợp đồng.
+If a required configuration is missing, do not use `new String(byte[0])` or return a dummy value and continue running. Report the resource name, the relevant loader/module, and instructions for proper packaging. For optional resources, use a default published in the contract.
 
-Ví dụ mẫu đọc file UTF-8 có xử lý thiếu resource tường minh:
+Example pattern for reading a UTF-8 file with explicit missing-resource handling:
 
 ```java
 import java.io.IOException;
@@ -413,61 +413,61 @@ public final class RequiredResource {
 }
 ```
 
-`RequiredResource` là một class độc lập dùng Java 17+, nhưng không có `main` nên được thiết kế để **gọi từ ứng dụng**. `readAllBytes()` thích hợp với tài nguyên **nhỏ và đã biết giới hạn kích thước**; với file lớn hãy xử lý theo luồng để tránh chiếm nhiều bộ nhớ. `Objects.requireNonNull` ở đây giúp fail fast bằng tên resource.
+`RequiredResource` is a standalone class using Java 17+, but without a `main` method, so it is designed to be **called from an application**. `readAllBytes()` is appropriate for resources that are **small and have a known size limit**; for large files, process them via streaming to avoid consuming excessive memory. `Objects.requireNonNull` here helps fail fast with the resource name.
 
-Khi cần parse `.properties`, dùng `Properties.load(InputStream)` theo encoding/quy tắc của định dạng properties (InputStream diễn giải ISO-8859-1 và escape), hoặc `Properties.load(Reader)` nếu chủ động dùng reader UTF-8. Đừng đọc byte thành String UTF-8 rồi giả định mọi parser sẽ tự hiểu giống nhau.
+When parsing `.properties`, use `Properties.load(InputStream)` per the properties format's encoding/rules (`InputStream` interprets ISO-8859-1 and escapes), or `Properties.load(Reader)` if explicitly using a UTF-8 reader. Do not read bytes into a UTF-8 String and assume every parser will interpret them the same way.
 
-### 7.2. Tránh phụ thuộc vào đường dẫn filesystem
+### 7.2. Avoiding Dependency on Filesystem Paths
 
-Mẫu dễ lỗi:
+Error-prone pattern:
 
 ```java
 URL url = RequiredResource.class.getResource("/config/app.properties");
-// Không giả định URL này luôn có scheme "file".
+// Do not assume this URL always has the "file" scheme.
 ```
 
-Nếu URL trỏ tới entry trong JAR, `Path.of(url.toURI())` không mặc định biến nó thành một `Path` của file thông thường; `File` không biểu diễn một entry bên trong ZIP/JAR như file OS. Hãy dùng `url.openStream()` hoặc `getResourceAsStream()` khi chỉ cần đọc byte.
+If the URL points to an entry inside a JAR, `Path.of(url.toURI())` does not automatically turn it into a regular file `Path`; `File` does not represent an entry inside a ZIP/JAR as an OS file. Use `url.openStream()` or `getResourceAsStream()` when you only need to read bytes.
 
-Nếu thư viện bên thứ ba **bắt buộc nhận file thật**, đó là yêu cầu khác: có thể phải copy resource ra temp file, kiểm soát quyền truy cập, đóng stream, dùng file, rồi dọn đúng vòng đời. Không đổi API resource lookup thành lời hứa rằng lúc nào cũng có filesystem path.
+If a third-party library **strictly requires a real file**, that is a different requirement: you may need to copy the resource to a temp file, control access permissions, close the stream, use the file, and then clean it up properly according to its lifecycle. Do not turn a resource lookup API into a promise that a filesystem path always exists.
 
-### 7.3. Tài nguyên trùng tên và dữ liệu nhạy cảm
+### 7.3. Duplicate-Named Resources and Sensitive Data
 
-Tài nguyên trong JAR thường có thể được giải nén và đọc; không đóng gói password, private key hoặc token vào resource rồi coi nó là bí mật. Trong plugin system, JAR bên thứ ba có thể đóng góp resource trùng tên, nên cần kiểm tra nguồn/ID/version và không tin dữ liệu chỉ vì nó đi kèm JAR. Nếu tải tên resource do người dùng cung cấp, dùng allowlist và giới hạn namespace, kích thước, format và nguồn loader.
+Resources in a JAR can usually be extracted and read; do not package passwords, private keys, or tokens into resources and treat them as secrets. In a plugin system, third-party JARs can contribute duplicate-named resources, so you must verify the source/ID/version and not trust data merely because it came with a JAR. If loading resource names supplied by users, use an allowlist and restrict namespace, size, format, and loader source.
 
-Một stream chưa được đóng có thể giữ descriptor hoặc handle tới file/JAR tùy implementation. Sử dụng `try-with-resources` là chuẩn; trả `InputStream` ra khỏi method thì phải quy định **bên nhận chịu trách nhiệm đóng**.
+An unclosed stream can hold file descriptors or handles to files/JARs depending on the implementation. Using `try-with-resources` is standard; if returning an `InputStream` from a method, you must document that **the receiver is responsible for closing it**.
 
-## 8. Kiểm thử và chẩn đoán lookup
+## 8. Testing and Diagnosing Lookups
 
-Để test việc đóng gói thực sự, cần ít nhất một lần chạy từ **JAR đã build**, không chỉ từ IDE. Những trường hợp sau kiểm tra các failure mode thường gặp:
+To test actual packaging, you must run at least once from a **built JAR**, not just from the IDE. The following cases verify common failure modes:
 
-| Tình huống | Kỳ vọng |
+| Scenario | Expectation |
 |---|---|
-| Resource cạnh class trong package | `Class.getResource("name")` tìm đúng tên có prefix package |
-| Resource ở root classpath | `ClassLoader.getResource("config/name")` tìm được |
-| Dùng `/` ở đầu cho `ClassLoader` | Không áp dụng quy tắc tên tương đối/absolute của `Class`; sửa tên lookup cho đúng |
-| Resource bắt buộc bị thiếu | Fail fast với tên resource rõ ràng |
-| Resource tùy chọn bị thiếu | Default đã định nghĩa; không che lỗi tính năng bắt buộc |
-| Có hai JAR đóng góp cùng tên | `getResources` phát hiện tất cả resource trong phạm vi loader; xử lý xung đột |
-| Chỉ gọi `getResource` khi có hai bản | Có thể nhận một URL, không đủ bằng chứng rằng resource là duy nhất |
-| Resource trong JAR thay vì thư mục | `InputStream` vẫn đọc được, code không phụ thuộc `File` |
-| Đọc resource tiếng Việt | UTF-8 tường minh, không lệ thuộc charset mặc định |
-| Chạy qua plugin loader khác với app loader | Phải chọn đúng loader và xác minh parent/child visibility |
-| Chạy bằng named module | Test `opens`/module visibility và tên resource |
-| Stream đã đọc xong | Được đóng ngay cả khi parse ném lỗi |
+| Resource next to class in package | `Class.getResource("name")` finds the exact name with the package prefix |
+| Resource at classpath root | `ClassLoader.getResource("config/name")` finds it |
+| Leading `/` used with `ClassLoader` | `Class`'s relative/absolute naming rules do not apply; fix the lookup name accordingly |
+| Required resource is missing | Fail fast with a clear resource name |
+| Optional resource is missing | Defined default; does not mask errors in required features |
+| Two JARs contribute the same name | `getResources` detects all resources within the loader's scope; handle conflicts |
+| Calling only `getResource` when two copies exist | May receive one URL, insufficient proof that the resource is unique |
+| Resource inside a JAR instead of a directory | `InputStream` still reads it; code does not depend on `File` |
+| Reading Vietnamese resources | Explicit UTF-8, not reliant on the default charset |
+| Running through a plugin loader distinct from app loader | Must select the correct loader and verify parent/child visibility |
+| Running with named modules | Test `opens`/module visibility and resource names |
+| Stream finished reading | Closed even when parsing throws an error |
 
-Khi chẩn đoán, những log hữu ích là **tên logic resource**, class loader hoặc module chịu trách nhiệm, số lượng URL tìm được, URL ở dạng đã lược bỏ thông tin nhạy cảm, và lỗi đọc/parse riêng biệt. Không cần dump toàn bộ nội dung file cấu hình vào log.
+When diagnosing, useful log fields are the **logical resource name**, the responsible class loader or module, the number of URLs found, URLs stripped of sensitive information, and separate read/parse errors. There is no need to dump the entire contents of configuration files into logs.
 
-## 9. Những nhầm lẫn thường gặp
+## 9. Common Misconceptions
 
-1. **“Tên trong getResource là đường dẫn tương đối so với working directory.”** Sai: đó là tên resource theo package/class loader; working directory chỉ liên quan nếu code dùng API filesystem riêng.
-2. **“Class.getResource và ClassLoader.getResource nhận cùng một tên.”** Không luôn đúng: `Class` có quy tắc package-relative và cú pháp `/` đầu, còn `ClassLoader` dùng tên từ gốc.
-3. **“getResourceAsStream không cần close.”** Sai: stream vẫn chiếm tài nguyên I/O; dùng `try-with-resources`.
-4. **“Nếu có hai JAR cùng tên, getResource sẽ báo trùng.”** Sai: nó trả một URL hoặc null. Phải dùng `getResources` nếu cần kiểm tra nhiều vị trí.
-5. **“Enumeration URL có thứ tự ưu tiên plugin mặc nhiên.”** Sai: thứ tự theo cơ chế loader, không tự tương ứng chính sách nghiệp vụ.
-6. **“getResources(path) sẽ liệt kê file trong thư mục path.”** Sai: API tìm nhiều resource có đúng tên `path`.
-7. **“URL nào cũng chuyển trực tiếp thành File được.”** Sai với entry trong JAR và các giao thức không phải filesystem.
-8. **“Chạy được trong IDE thì JAR chắc chắn có resource.”** Sai: build có thể bỏ qua resource, đổi đường dẫn hoặc module visibility.
-9. **“Class loader của framework và plugin luôn giống nhau.”** Sai: TCCL, application loader, custom URLClassLoader và module layer có thể khác.
-10. **“Không tìm được resource luôn là file bị thiếu.”** Sai: có thể sai package prefix, dấu `/`, classpath/module path, module encapsulation hoặc loader search scope.
+1. **"The name in getResource is a path relative to the working directory."** False: it is a resource name resolved relative to a package/class loader; the working directory is only relevant if code uses separate filesystem APIs.
+2. **"Class.getResource and ClassLoader.getResource take the same name."** Not always true: `Class` has package-relative rules and leading `/` syntax, while `ClassLoader` takes names from the root.
+3. **"getResourceAsStream does not need to be closed."** False: the stream still occupies I/O resources; use `try-with-resources`.
+4. **"If two JARs have the same name, getResource will report a duplicate."** False: it returns one URL or null. You must use `getResources` if you need to check multiple locations.
+5. **"Enumeration URL order naturally reflects plugin priority."** False: order follows the loader's mechanism, not business policy automatically.
+6. **"getResources(path) will list files inside the path directory."** False: the API searches for multiple resources with the exact name `path`.
+7. **"Every URL can be converted directly into a File."** False for entries inside a JAR and non-filesystem protocols.
+8. **"If it runs in the IDE, the JAR definitely contains the resources."** False: builds may omit resources, alter paths, or affect module visibility.
+9. **"The framework's class loader and plugin's class loader are always the same."** False: TCCL, application loader, custom URLClassLoader, and module layers can differ.
+10. **"Not finding a resource always means the file is missing."** False: it could be a wrong package prefix, leading `/`, classpath/module path, module encapsulation, or loader search scope.
 
-**Điểm cần nhớ:** `getResource` tìm **một vị trí URL**, `getResources` tìm **nhiều vị trí cùng tên**, `getResourceAsStream` cung cấp **luồng đọc byte**. Trước khi sử dụng phải xác định **đúng tên logic**, **đúng API `Class` hay `ClassLoader`**, **đúng loader/module**, và **hành vi khi thiếu hoặc trùng resource**. Đó là nền tảng để ứng dụng Java nạp cấu hình và tài nguyên của plugin một cách dự đoán, có thể kiểm thử và hoạt động cả khi đã đóng gói JAR.
+**Key takeaway:** `getResource` finds **one URL location**, `getResources` finds **multiple locations with the same name**, and `getResourceAsStream` provides a **byte reading stream**. Before using them, you must determine the **correct logical name**, the **correct API (`Class` vs `ClassLoader`)**, the **correct loader/module**, and **the behavior when resources are missing or duplicated**. That is the foundation for Java applications to load plugin configurations and resources predictably, testably, and reliably even when packaged as JARs.

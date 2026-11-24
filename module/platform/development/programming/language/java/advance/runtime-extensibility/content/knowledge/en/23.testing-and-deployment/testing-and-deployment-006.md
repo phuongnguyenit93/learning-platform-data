@@ -1,77 +1,77 @@
-# Xác minh môi trường thiếu compiler, engine kịch bản hoặc module bắt buộc
+# Verifying Environments Missing a Compiler, Scripting Engine, or Required Module
 
-## 1. Tại sao phải kiểm tra khả năng của runtime?
+## 1. Why Check Runtime Capabilities?
 
-Một ứng dụng Java mở rộng lúc chạy có thể biên dịch source do người dùng cung cấp, thực thi script qua JSR 223, tìm provider bằng SPI hoặc nạp named modules qua JPMS. Những khả năng đó **không được bảo đảm chỉ vì chương trình đang chạy trên Java 17+**. Một runtime image tạo bằng `jlink` có thể cố ý loại `jdk.compiler`, `jdk.jshell`, `java.scripting` hoặc module khác; một JDK đầy đủ cũng không mặc nhiên cài sẵn JavaScript engine.
+An extensible Java application at runtime may compile user-provided source code, execute scripts via JSR 223, discover providers with SPI, or load named modules via JPMS. Those capabilities **are not guaranteed just because the program runs on Java 17+**. A runtime image built with `jlink` may intentionally omit `jdk.compiler`, `jdk.jshell`, `java.scripting`, or other modules; even a full JDK does not include a JavaScript engine by default.
 
-Vì vậy, trước khi kích hoạt plugin, host cần kiểm tra khả năng cần thiết trong **đúng process, module graph và class loader đang được sử dụng**, rồi phân biệt:
+Therefore, before activating a plugin, the host needs to check the required capabilities in **the exact process, module graph, and class loader being used**, and distinguish between:
 
-- **Thiếu module/API**: runtime không chứa hoặc không resolve module cần thiết.
-- **Có API nhưng thiếu implementation/provider**: ví dụ có `java.scripting` nhưng `ScriptEngineManager` không tìm thấy JavaScript engine.
-- **Có provider nhưng không sử dụng được**: lỗi version, dependency, class loader, module access, native library hoặc khi khởi tạo.
-- **Có khả năng nhưng policy cấm**: tổ chức không cho chạy compiler/script không tin cậy trong process host.
+- **Missing module/API**: the runtime does not contain or resolve the required module.
+- **API present but missing implementation/provider**: for example, `java.scripting` is present, yet `ScriptEngineManager` finds no JavaScript engine.
+- **Provider present but unusable**: errors in version, dependency, class loader, module access, native library, or initialization.
+- **Capable but disallowed by policy**: the organization forbids running untrusted compilers/scripts inside the host process.
 
-Một preflight tốt phải tạo kết quả rõ ràng để deployment hoặc UI quyết định fail-fast hay degrade theo chức năng. Không đợi đến khi nhận request đầu tiên mới phát hiện compiler hoặc engine không có.
+A good preflight should produce clear results so deployment or the UI can decide whether to fail fast or degrade by feature. Never wait until the first request arrives to discover that the compiler or engine is missing.
 
-## 2. Ma trận thành phần cần kiểm tra
+## 2. Capability Check Matrix
 
-| Khả năng | Module/API liên quan | Kiểm tra nhanh | Diễn giải đúng |
+| Capability | Related Module/API | Quick Check | Correct Interpretation |
 |---|---|---|---|
-| Compiler Java lúc chạy | `java.compiler` API, implementation thường là `jdk.compiler` | `ToolProvider.getSystemJavaCompiler()` | `null` nghĩa system compiler không khả dụng trong runtime hiện tại |
-| Script engine JSR 223 | `java.scripting` | `new ScriptEngineManager(loader).getEngineFactories()` | Danh sách rỗng: không tìm thấy factory qua manager/loader đó |
-| Engine ngôn ngữ cụ thể | Provider JSR 223 của ngôn ngữ | `getEngineByName("...")` | `null`: không có engine với alias đó trong phạm vi manager |
-| JShell nhúng | `jdk.jshell` | `ModuleLayer.boot().findModule("jdk.jshell")` và thử tạo phiên khi áp dụng | Module có mặt không đồng nghĩa execution provider khởi động thành công |
-| Named module/plugin | JPMS `ModuleFinder`, `ModuleLayer` | Xem `findModule`, resolve graph hoặc finder theo path | Module hiện diện trên disk chưa chắc đã được resolve |
-| SPI service provider | `ServiceLoader` | Duyệt providers trong loader/layer phù hợp | Đúng module, `uses`/`provides`/service descriptor và class identity đều quan trọng |
+| Runtime Java compiler | `java.compiler` API, implementation usually `jdk.compiler` | `ToolProvider.getSystemJavaCompiler()` | `null` means the system compiler is unavailable in the current runtime |
+| JSR 223 script engine | `java.scripting` | `new ScriptEngineManager(loader).getEngineFactories()` | Empty list: no factory found via that manager/loader |
+| Specific language engine | Language's JSR 223 provider | `getEngineByName("...")` | `null`: no engine with that alias within the manager's scope |
+| Embedded JShell | `jdk.jshell` | `ModuleLayer.boot().findModule("jdk.jshell")` and attempt to create a session when applicable | Module presence does not equate to successful execution provider startup |
+| Named module/plugin | JPMS `ModuleFinder`, `ModuleLayer` | Check `findModule`, resolve graph, or path finder | A module existing on disk is not necessarily resolved |
+| SPI service provider | `ServiceLoader` | Iterate providers in the appropriate loader/layer | Correct module, `uses`/`provides`/service descriptor, and class identity all matter |
 
-**Phân biệt availability và readiness:** một API hiện diện chưa chắc provider hoạt động. Khi yêu cầu nghiệp vụ quan trọng, nên thực hiện phép thử nhỏ có kiểm soát (compile probe, tạo engine, resolve module) thay vì chỉ kiểm tra tên class tồn tại.
+**Distinguish availability from readiness:** an API being present does not mean the provider works. When business requirements are critical, perform a small, controlled probe (compile probe, create engine, resolve module) rather than checking only whether a class name exists.
 
-## 3. Compiler: API có thể có nhưng compiler vắng mặt
+## 3. Compiler: API May Exist While Compiler Is Absent
 
-Java Compiler API là `javax.tools`. Gọi:
+The Java Compiler API is `javax.tools`. Call:
 
 ```java
 JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 if (compiler == null) {
-    // Không thể dùng system compiler trong runtime này.
+    // System compiler cannot be used in this runtime.
 }
 ```
 
-Đoạn trên là minh họa, cần import `javax.tools.JavaCompiler` và `javax.tools.ToolProvider`. Trên JDK thông thường có `jdk.compiler`, nhưng runtime image tối giản hoặc môi trường cung cấp JRE/runtime khác có thể không hỗ trợ. Không nên chỉ kiểm tra `Class.forName("javax.tools.JavaCompiler")`: đó là interface API, không chứng minh implementation compiler sẵn có.
+The snippet above is illustrative and requires importing `javax.tools.JavaCompiler` and `javax.tools.ToolProvider`. A standard JDK includes `jdk.compiler`, but a minimal runtime image or another JRE/runtime distribution may not support it. Do not rely solely on `Class.forName("javax.tools.JavaCompiler")`: that is an API interface and does not prove a compiler implementation is available.
 
-### 3.1. Compile probe và policy
+### 3.1. Compile Probe and Policy
 
-Khi `compiler != null`, nếu việc biên dịch là chức năng bắt buộc, host có thể thử biên dịch một đơn vị Java nhỏ trong thư mục tạm có kiểm soát. Cần đặt `-proc:none` để tránh annotation processors không cần thiết, giới hạn output directory, thu thập diagnostics, đóng file manager và dọn temporary files sau phép thử.
+When `compiler != null`, if compilation is a mandatory capability, the host can attempt to compile a small Java unit in a controlled temporary directory. Set `-proc:none` to avoid unnecessary annotation processors, restrict the output directory, collect diagnostics, close the file manager, and clean up temporary files after the probe.
 
-Nên phân biệt `compiler unavailable`, `compile probe failed` và `compiler disabled by policy` thay vì báo chung 'Java lỗi'. Nếu compiler vắng mặt nhưng sản phẩm chỉ load plugin JAR đã biên dịch trước, có thể tắt tính năng dynamic compilation và tiếp tục vận hành bình thường.
+Distinguish `compiler unavailable`, `compile probe failed`, and `compiler disabled by policy` instead of reporting a generic 'Java error'. If the compiler is absent but the product only loads precompiled plugin JARs, disable dynamic compilation and continue normal operation.
 
-## 4. Script engine: `java.scripting` không mang sẵn ngôn ngữ
+## 4. Script Engine: `java.scripting` Does Not Bundle Languages
 
-JSR 223 cung cấp interface `ScriptEngine`, `ScriptEngineFactory` và `ScriptEngineManager`. Engine cụ thể do provider cài qua class path/module path hoặc một cách triển khai phù hợp.
+JSR 223 provides the `ScriptEngine`, `ScriptEngineFactory`, and `ScriptEngineManager` interfaces. Concrete engines are supplied by providers via the class path/module path or another appropriate deployment mechanism.
 
 ```java
 ScriptEngineManager manager =
         new ScriptEngineManager(Thread.currentThread().getContextClassLoader());
 ScriptEngine engine = manager.getEngineByName("JavaScript");
 if (engine == null) {
-    // Alias JavaScript không được provider hiện tại cung cấp.
+    // The JavaScript alias is not provided by any current provider.
 }
 ```
 
-Đây là đoạn minh họa cần import `javax.script.*`. Kể từ JDK 15, Nashorn đã bị loại khỏi JDK; do đó trên JDK 17 thông thường `getEngineByName("JavaScript")` trả `null` nếu chưa cài engine tương thích. Không nên khẳng định mọi máy Java 17 đều có JavaScript.
+This is an illustrative snippet requiring `import javax.script.*`. Since JDK 15, Nashorn was removed from the JDK; thus on a typical JDK 17 installation, `getEngineByName("JavaScript")` returns `null` unless a compatible engine is installed. Never assume every Java 17 machine has JavaScript.
 
-Các kiểm tra bổ sung:
+Additional checks:
 
-1. Duyệt `manager.getEngineFactories()` để báo metadata ngôn ngữ và alias thực tế, tránh tự đoán tên.
-2. Chọn đúng class loader để khám phá JSR 223 provider; một manager tạo với loader khác có thể không thấy engine trong plugin JAR.
-3. Nếu provider nằm trong custom `ModuleLayer`, cân nhắc `ServiceLoader.load(layer, ScriptEngineFactory.class)` vì manager không tự quét mọi layer tùy ý.
-4. Đánh giá nhanh `engine.eval(...)` bằng một biểu thức nhỏ theo ngôn ngữ thực tế **chỉ khi engine được tin cậy và preflight cho phép chạy mã**.
+1. Iterate `manager.getEngineFactories()` to report actual language metadata and aliases instead of guessing names.
+2. Choose the right class loader for JSR 223 provider discovery; a manager created with another loader may fail to see engines inside plugin JARs.
+3. If the provider resides in a custom `ModuleLayer`, consider `ServiceLoader.load(layer, ScriptEngineFactory.class)` because the manager does not automatically scan arbitrary layers.
+4. Quickly evaluate `engine.eval(...)` with a small expression in the actual language **only when the engine is trusted and preflight permits executing code**.
 
-Đừng dùng script nhận từ khách hàng làm startup probe; kiểm thử engine cần source cố định, ít tác dụng phụ và có giới hạn tài nguyên.
+Do not use a client-supplied script as a startup probe; engine testing must use fixed source with minimal side effects and resource limits.
 
-## 5. Module bắt buộc: có trên đường dẫn chưa chắc được resolve
+## 5. Required Modules: Present on Path Does Not Mean Resolved
 
-JPMS tách khả năng **tìm module** (`ModuleFinder`) khỏi **đồ thị module đã resolve** (`Configuration`) và **module runtime thực tế** (`ModuleLayer`).
+JPMS separates **finding modules** (`ModuleFinder`) from the **resolved module graph** (`Configuration`) and the **live runtime modules** (`ModuleLayer`).
 
 ```java
 boolean inBoot = ModuleLayer.boot().findModule("jdk.jshell").isPresent();
@@ -79,22 +79,22 @@ boolean inImage = java.lang.module.ModuleFinder.ofSystem()
         .find("jdk.jshell").isPresent();
 ```
 
-Đây là snippet minh họa: `inImage` cho biết module có trong tập system modules mà finder nhìn thấy; `inBoot` cho biết module nằm trong boot layer hoặc ancestors được tìm. Kết quả có thể khác nhau nếu module có sẵn trong image nhưng không thuộc tập đã resolve. Khi một plugin ở child layer, cần kiểm tra `pluginLayer.findModule(...)` thay vì chỉ nhìn boot layer.
+This is an illustrative snippet: `inImage` indicates whether the module exists in the set of system modules visible to the finder; `inBoot` indicates whether the module is in the boot layer or searched ancestors. The two can differ if a module exists in the image but is not part of the resolved set. When a plugin lives in a child layer, check `pluginLayer.findModule(...)` instead of inspecting only the boot layer.
 
-### 5.1. Kiểm tra bắt buộc trước khi định nghĩa child layer
+### 5.1. Required Checks Before Defining a Child Layer
 
-Giả sử thư mục `plugins/` chứa các modular JAR. Host có thể dùng:
+Suppose the `plugins/` directory contains modular JARs. The host can use:
 
 ```java
 ModuleFinder finder = ModuleFinder.of(Path.of("plugins"));
 boolean found = finder.find("demo.plugin").isPresent();
 ```
 
-Đoạn này cần import `java.lang.module.ModuleFinder`, `java.nio.file.Path`. Có file JAR không đủ: module descriptor có thể không hợp lệ, tên module có thể khác kỳ vọng, dependency bắt buộc có thể thiếu, hoặc split packages/module conflicts khiến resolve thất bại.
+This snippet requires importing `java.lang.module.ModuleFinder` and `java.nio.file.Path`. Having a JAR file is not enough: the module descriptor may be invalid, the module name may differ from expectations, a required dependency may be missing, or split packages/module conflicts may cause resolution to fail.
 
-Để biết plugin thực sự chạy được, cần giải quyết configuration từ parent, kiểm tra dependencies rồi tạo layer theo policy. Lỗi nên được báo dưới nhóm như missing module, resolution conflict, layer instantiation failure thay vì tự động bỏ qua.
+To know whether a plugin can truly run, resolve a configuration against its parent, verify dependencies, and instantiate the layer according to policy. Failures should be reported under categories such as missing module, resolution conflict, or layer instantiation failure instead of being silently ignored.
 
-### 5.2. Lệnh chẩn đoán của JDK
+### 5.2. JDK Diagnostic Commands
 
 ```bash
 java --list-modules
@@ -103,13 +103,13 @@ java --show-module-resolution --module-path mods \
   --module demo.host/demo.host.Main
 ```
 
-Lệnh cuối là **mẫu cú pháp**, cần `mods` và module `demo.host` có thật. `--list-modules` cho biết các observable modules trong môi trường launcher, còn `--show-module-resolution` giúp quan sát graph khi chạy. Không suy ra rằng module được liệt kê đã được resolve vào mọi layer.
+The last command is a **syntax template**, requiring an actual `mods` directory and `demo.host` module. `--list-modules` shows the observable modules in the launcher environment, while `--show-module-resolution` lets you observe the graph at startup. Do not infer that a listed module has been resolved into every layer.
 
-## 6. Ví dụ hoàn chỉnh Java 17+: báo cáo preflight runtime
+## 6. Complete Java 17+ Example: Runtime Preflight Report
 
-Ví dụ sau dùng các API có trong JDK 17 đầy đủ. Nó **không yêu cầu một script engine cụ thể** và không đánh giá script không tin cậy. Thay vì in danh sách biến thiên theo máy, nó in các boolean để có thể so sánh theo cấu hình.
+The following example uses APIs available in a full JDK 17. It **does not require a specific script engine** and does not evaluate untrusted scripts. Instead of printing machine-varying lists, it prints booleans so outputs can be compared across configurations.
 
-Tạo file `RuntimePreflight.java`:
+Create `RuntimePreflight.java`:
 
 ```java
 import java.lang.module.ModuleFinder;
@@ -144,14 +144,14 @@ public final class RuntimePreflight {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+ với module API liên quan có sẵn:
+Compile and run with JDK 17+ where the relevant module APIs are present:
 
 ```bash
 javac RuntimePreflight.java
 java RuntimePreflight
 ```
 
-Trên JDK 17 **đầy đủ, thông thường, không cài thêm JavaScript engine**, một đầu ra điển hình:
+On a **standard, full JDK 17 without any additional JavaScript engine installed**, a typical output is:
 
 ```text
 compiler available: true
@@ -162,72 +162,72 @@ factory count nonnegative: true
 java.base resolved: true
 ```
 
-Đây là output **theo môi trường giả định cụ thể**; kết quả thật khác nếu runtime image tối giản, engine provider bổ sung, module bị loại bỏ hoặc class loader khác. Lệnh `javac` ở ví dụ cũng không thể chạy nếu môi trường hoàn toàn thiếu compiler. Trong môi trường không có `java.scripting`, chính chương trình có import `javax.script` có thể không link/run được; vì vậy phép thử này phù hợp cho **build đầy đủ**, không phải universal probe có thể chạy ở mọi image.
+This output corresponds to a **specific assumed environment**; actual results differ if using a minimal runtime image, extra engine providers, removed modules, or a different class loader. The `javac` command in the example also cannot run if the environment completely lacks a compiler. In an environment without `java.scripting`, a program that imports `javax.script` may itself fail to link or run; therefore this test suits a **full build**, not a universal probe runnable on every image.
 
-### 6.1. Thiết kế preflight thật sự an toàn với module thiếu
+### 6.1. Designing a Truly Safe Preflight for Missing Modules
 
-Nếu ứng dụng phải chạy trong image **không có `java.scripting`**, không nên đặt mọi phép kiểm tra engine trong entrypoint chính có static imports/đường dẫn thực thi bắt buộc. Hãy tách một bootstrap module nhỏ chỉ dùng Java SE tối thiểu, phát hiện module trước, rồi chỉ nạp class adapter JSR 223 khi API có sẵn. Có thể tổ chức các feature adapters trong JAR/module tùy chọn, hoặc sử dụng reflection có kiểm soát để tránh hard linkage ở đường code phải chạy khi API thiếu.
+If an application must run on an image **without `java.scripting`**, do not place all engine checks in a main entrypoint that has static imports or mandatory execution paths referencing it. Separate a small bootstrap module using minimal Java SE, detect modules first, and load JSR 223 adapter classes only when the API is available. Feature adapters can be organized as optional JARs/modules, or use controlled reflection to avoid hard linkage on code paths that must execute when the API is absent.
 
-Tương tự, với `jdk.jshell` và `jdk.compiler`, việc import và khởi tạo class phụ thuộc trực tiếp có thể khiến host fail khi runtime image loại module; nên thiết kế loader/feature boundary rõ, có kiểm thử bằng từng runtime image thực.
+Similarly, for `jdk.jshell` and `jdk.compiler`, importing and instantiating directly dependent classes can cause the host to fail when the runtime image omits those modules; design clear loader/feature boundaries and test against each actual runtime image.
 
-## 7. Kiểm thử thiếu khả năng bằng ma trận môi trường
+## 7. Testing Missing Capabilities with an Environment Matrix
 
-Đừng chỉ chạy test trên máy developer có full JDK. Tạo ma trận chạy với các image khác nhau và quyền thực thi khác nhau:
+Do not run tests only on a developer machine with a full JDK. Build a test matrix across different images and execution permissions:
 
-| Môi trường | Kỳ vọng |
+| Environment | Expectation |
 |---|---|
-| Full JDK 17+, không thêm engine script | Compiler thường có; JavaScript engine có thể không có |
-| Custom image `jlink` không có `jdk.compiler` | Chức năng dynamic compilation phải báo unavailable hoặc fail-fast đúng policy |
-| Custom image không có `java.scripting` | Feature script bị tắt, core host vẫn hoạt động nếu boundary tách đúng |
-| Image có `java.scripting` nhưng không có provider | Không có engine thực thi; thông báo missing provider |
-| Có engine JAR nhưng loader sai | Factory không được phát hiện; không báo nhầm là lỗi syntax script |
-| Thiếu named module bắt buộc | Resolution/activation bị chặn; không load một phần rồi tiếp tục |
-| Module có đủ nhưng provider constructor lỗi | Trạng thái provider failed; cleanup, ghi nguyên nhân |
+| Full JDK 17+, no extra script engine | Compiler is usually present; JavaScript engine may be absent |
+| Custom `jlink` image without `jdk.compiler` | Dynamic compilation feature must report unavailable or fail fast per policy |
+| Custom image without `java.scripting` | Script feature is disabled; core host continues working if boundaries are properly isolated |
+| Image has `java.scripting` but no provider | No execution engine available; report missing provider |
+| Engine JAR present but wrong loader | Factory is not discovered; do not misreport as a script syntax error |
+| Missing required named module | Resolution/activation is blocked; do not partially load and continue |
+| Module present but provider constructor fails | Provider status is failed; clean up and record the root cause |
 
-Để tạo runtime image thực tế, `jlink` yêu cầu closure module hợp lệ. Ví dụ (mang tính hướng dẫn; module set tùy ứng dụng):
+To create a real runtime image, `jlink` requires a valid module closure. Example (illustrative; exact module set depends on the application):
 
 ```bash
 jlink --add-modules java.base,java.logging \
   --output runtime-min
 ```
 
-Image này không có compiler hay script API nếu không được thêm theo dependency closure. Một host cần `java.scripting` tĩnh sẽ không thể chạy trên image trên; phải tách feature và xây lại cấu hình image phù hợp. Không dùng `jlink` đơn giản để hứa rằng mọi API Java SE đã được loại bỏ có thể được phát hiện bằng code import trực tiếp.
+This image lacks compiler or script APIs unless they are added along with their dependency closure. A host with a static dependency on `java.scripting` will not run on the image above; you must isolate the feature and rebuild an appropriate image configuration. Do not use a simplistic `jlink` invocation to claim that any removed Java SE API can be detected by code that directly imports it.
 
-## 8. Kiến trúc xử lý thiếu tính năng
+## 8. Architecture for Handling Missing Features
 
-Với từng capability, hãy xác định policy trước:
+For each capability, define the policy upfront:
 
-**Fail-fast:** Nếu sản phẩm bắt buộc compile Java lúc chạy hoặc cần một module contract thiết yếu để khởi động, trả lỗi startup có nguyên nhân và hướng xử lý, không tiếp tục một hệ thống ở trạng thái nửa hoạt động.
+**Fail-fast:** If the product strictly requires runtime Java compilation or an essential module contract to boot, return a startup error with the cause and remediation instead of continuing with a half-working system.
 
-**Graceful degradation:** Nếu scripting chỉ là tính năng tùy chọn, tắt nút/chức năng đó, báo rõ nguyên nhân và giữ phần còn lại của host hoạt động. Đừng lặng lẽ thay engine bằng một ngôn ngữ khác hoặc fallback thực thi với semantics không tương thích.
+**Graceful degradation:** If scripting is only an optional feature, disable that button/feature, report the clear reason, and keep the rest of the host operational. Never silently swap the engine for another language or fall back to executing with incompatible semantics.
 
-**Retry sau cài bổ sung:** Thêm JAR vào filesystem khi JVM đã chạy không làm class loader/module graph tự thay đổi. Cần tạo manager mới với loader thích hợp hoặc resolve/tạo child layer tương ứng; trong vài trường hợp cần restart để có module/runtime image mới.
+**Retry after installing add-ons:** Adding a JAR to the filesystem while the JVM is already running does not automatically update existing class loaders or the module graph. You must create a new manager with the appropriate loader or resolve/create a corresponding child layer; in some cases a restart is required for a new module/runtime image.
 
-### Thông tin lỗi nên công bố
+### Error Details to Expose
 
-Một kết quả preflight có cấu trúc nên có: capability name, required/optional, status (`AVAILABLE`, `MISSING_API`, `MISSING_PROVIDER`, `BROKEN_PROVIDER`, `DISABLED_BY_POLICY`), nguyên nhân kỹ thuật, version và hướng khắc phục. Tránh log full environment variables, classpath chứa secret hoặc đường dẫn người dùng không cần thiết.
+A structured preflight result should include: capability name, required/optional, status (`AVAILABLE`, `MISSING_API`, `MISSING_PROVIDER`, `BROKEN_PROVIDER`, `DISABLED_BY_POLICY`), technical cause, version, and remediation steps. Avoid logging full environment variables, classpaths containing secrets, or unnecessary user paths.
 
-## 9. Lỗi dễ gặp và cách tránh
+## 9. Common Pitfalls and How to Avoid Them
 
-| Sai lầm | Hệ quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 |---|---|---|
-| Có `javax.tools.JavaCompiler` nên chắc compiler tồn tại | System compiler có thể là `null` | Kiểm tra `ToolProvider.getSystemJavaCompiler()` |
-| Có `java.scripting` nên chắc chạy được JavaScript | JDK 17 không bao gồm Nashorn | Tìm engine provider theo alias/factory và kiểm tra thực tế |
-| Thấy JAR trong `mods/` nên kết luận module đã nạp | Module chưa chắc đã được resolve | Kiểm tra `ModuleLayer`, `Configuration` và resolution |
-| Gọi `Class.forName` với API optional ngay startup | App có thể fail trước khi kiểm tra khả năng | Tách feature adapter và lazy loading |
-| Dùng `ScriptEngineManager` sai loader | Không tìm thấy engine dù JAR tồn tại | Truyền loader thích hợp hoặc dùng ServiceLoader theo layer |
-| Tự động bỏ qua mọi lỗi provider | Che giấu deployment hỏng | Phân biệt missing và broken; giữ diagnostics |
-| Test chỉ trên full JDK | Không phát hiện lỗi khi triển khai `jlink` image | Chạy thử trên image giống production |
+| `javax.tools.JavaCompiler` exists so compiler must exist | System compiler can still be `null` | Check `ToolProvider.getSystemJavaCompiler()` |
+| `java.scripting` exists so JavaScript must run | JDK 17 does not include Nashorn | Look up engine provider by alias/factory and verify practically |
+| JAR exists in `mods/` so module is loaded | Module may not have been resolved | Check `ModuleLayer`, `Configuration`, and resolution |
+| Calling `Class.forName` on optional API at startup | App can fail before capability check runs | Isolate feature adapters and use lazy loading |
+| Using `ScriptEngineManager` with the wrong loader | Engine not found even though JAR exists | Pass the right loader or use `ServiceLoader` by layer |
+| Silently ignoring all provider errors | Hides broken deployments | Distinguish missing from broken; preserve diagnostics |
+| Testing only on a full JDK | Misses failures when deploying a `jlink` image | Test on images matching production |
 
-## 10. Checklist triển khai
+## 10. Implementation Checklist
 
-- [ ] Ghi rõ compiler, script engine, JShell và named modules nào bắt buộc/tùy chọn.
-- [ ] Module APIs, provider implementations và runtime image được kiểm tra riêng.
-- [ ] Class loader/module layer dùng cho preflight giống execution path thực tế.
-- [ ] Có thông báo khác nhau cho missing API, missing provider, provider lỗi và policy deny.
-- [ ] Có thử nghiệm trên image tối giản và image production.
-- [ ] Mọi optional feature được cách ly khỏi đường bootstrap nếu module có thể thiếu.
-- [ ] Không load/chạy mã plugin không tin cậy trong bước capability probe.
-- [ ] Có fail-fast/graceful-degradation và rollout/rollback policy rõ ràng.
+- [ ] Document which compiler, script engines, JShell, and named modules are required vs. optional.
+- [ ] Module APIs, provider implementations, and the runtime image are checked separately.
+- [ ] Class loader/module layer used for preflight matches the actual execution path.
+- [ ] Distinct messages exist for missing API, missing provider, broken provider, and policy denial.
+- [ ] Tested on both minimal images and production images.
+- [ ] All optional features are isolated from the bootstrap path if modules can be absent.
+- [ ] Untrusted plugin code is never loaded or executed during the capability probe step.
+- [ ] Clear fail-fast/graceful-degradation and rollout/rollback policies are defined.
 
-**Kết luận:** Trong hệ thống Java runtime extensibility, kiểm tra môi trường phải đi xa hơn việc tìm tên module hay class. Host cần xác minh compiler implementation, scripting provider, module graph và loader thực tế, đồng thời phân biệt chức năng bắt buộc với tùy chọn. Đưa các phép kiểm tra đó vào preflight deployment giúp tránh lỗi muộn và đưa ra trạng thái rõ ràng khi runtime image thiếu thành phần.
+**Conclusion:** In a Java runtime extensibility system, environment verification must go beyond checking for module or class names. The host must verify the compiler implementation, scripting provider, module graph, and actual loader, while separating required capabilities from optional ones. Building these checks into deployment preflight prevents late failures and produces clear status when the runtime image is missing components.

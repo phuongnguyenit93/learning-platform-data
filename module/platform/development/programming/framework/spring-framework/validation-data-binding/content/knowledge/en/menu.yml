@@ -1,0 +1,434 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Data binding là gì và vì sao cần gắn dữ liệu vào đối tượng
+  - Validation là gì và vai trò bảo vệ hợp đồng dữ liệu
+  - Chuyển đổi kiểu và định dạng dữ liệu trong Spring
+  - 'Bản đồ thuật ngữ: target, property, binder, converter và validator'
+  - Quan hệ giữa DataBinder, BindingResult và Validator
+  - Quan hệ giữa ConversionService, Converter và Formatter
+  - Phân biệt Spring Validator, Jakarta Validation và thư viện triển khai
+  - Phạm vi sử dụng ở tầng web, service và ứng dụng độc lập
+  - Phân biệt kiểm tra đầu vào, quy tắc nghiệp vụ và ràng buộc lưu trữ
+  - Lộ trình học từ dữ liệu thô đến đối tượng hợp lệ
+- level1: Luồng xử lý
+  level2:
+  - Nguồn dữ liệu, tên trường và giá trị đầu vào
+  - Lựa chọn đối tượng đích và cách khởi tạo
+  - Chuẩn hóa dữ liệu trước khi chuyển đổi
+  - Chuyển từ chuỗi sang kiểu dữ liệu đích
+  - Gắn giá trị vào constructor hoặc thuộc tính
+  - Thu thập lỗi binding và tiếp tục xử lý các trường khác
+  - Kích hoạt validator sau bước binding
+  - Đọc kết quả và quyết định có tiếp tục nghiệp vụ hay không
+  - Chuyển mã lỗi thành thông báo theo ngôn ngữ người dùng
+  - Phân biệt bind thành công với dữ liệu đạt yêu cầu nghiệp vụ
+- level1: Thiết lập
+  level2:
+  - Xác định phiên bản Spring, Java và Jakarta Validation tương thích
+  - Vai trò của spring-beans, spring-core, spring-context và mô-đun web
+  - Phân biệt Jakarta Validation API và validation provider
+  - Cấu hình LocalValidatorFactoryBean bằng Java Configuration
+  - Khai báo ConversionService và tập converter dùng chung
+  - Cấu hình FormattingConversionService cho nhu cầu nhập và hiển thị
+  - Phân biệt cấu hình Spring Framework và tự cấu hình của Spring Boot
+  - Chuyển namespace javax.validation sang jakarta.validation
+  - Tra cứu API và hành vi thay đổi theo phiên bản Framework
+- level1: Đối tượng đầu vào
+  level2:
+  - Thiết kế DTO hoặc form object theo một tác vụ cụ thể
+  - JavaBean với getter, setter và constructor không tham số
+  - Record và đối tượng bất biến dùng constructor binding
+  - Phân biệt kiểu nguyên thủy với kiểu bao khi dữ liệu bị thiếu
+  - Phân biệt không có trường, null, chuỗi rỗng và chuỗi trắng
+  - Đối tượng con, danh sách, mảng và Map trong dữ liệu đầu vào
+  - Tách đối tượng tạo mới, cập nhật và tìm kiếm
+  - Giữ dữ liệu đầu vào độc lập với entity và trạng thái nội bộ
+  - Xác định giá trị mặc định và thời điểm áp dụng
+  - Giới hạn của annotation khi dữ liệu chưa được chuyển đúng kiểu
+- level1: Spring Validator
+  level2:
+  - Hợp đồng org.springframework.validation.Validator
+  - supports và xác định các kiểu đối tượng được hỗ trợ
+  - validate và ghi lỗi vào Errors
+  - ValidationUtils.rejectIfEmpty và rejectIfEmptyOrWhitespace
+  - Phân biệt lỗi một trường với lỗi toàn đối tượng
+  - Tổ hợp validator bằng ủy quyền cho bộ kiểm tra con
+  - pushNestedPath và popNestedPath khi kiểm tra đối tượng lồng
+  - SmartValidator và truyền gợi ý kiểm tra
+  - Kiểm tra trực tiếp với validateObject từ Spring Framework 6.1
+  - Validator không trạng thái và an toàn khi dùng đồng thời
+- level1: Errors
+  level2:
+  - Errors và cách thu thập kết quả kiểm tra
+  - BindingResult mở rộng Errors với thông tin binding
+  - ObjectError và FieldError
+  - reject và rejectValue với mã lỗi, tham số và thông báo mặc định
+  - hasErrors, hasFieldErrors, getFieldErrors và getGlobalErrors
+  - Giá trị bị từ chối, giá trị trường và kiểu trường
+  - bindingFailure và phân biệt lỗi chuyển kiểu với lỗi validation
+  - BeanPropertyBindingResult, DirectFieldBindingResult và MapBindingResult
+  - Mô hình dữ liệu của BindingResult và tên đối tượng
+  - BindException và việc kết thúc DataBinder bằng close
+- level1: DataBinder
+  level2:
+  - Khởi tạo DataBinder với target và objectName
+  - PropertyValue, PropertyValues và MutablePropertyValues
+  - bind và gắn tập giá trị vào đối tượng
+  - Đặt ConversionService cho binder
+  - Đăng ký editor hoặc formatter cục bộ
+  - setValidator, addValidators và replaceValidators
+  - validate với hoặc không có validation hints
+  - getTarget và getBindingResult sau xử lý
+  - 'Phân biệt bind với validate: hai thao tác riêng biệt'
+  - Vòng đời binder theo một lần xử lý dữ liệu
+- level1: BeanWrapper
+  level2:
+  - Vai trò BeanWrapper trong truy cập thuộc tính JavaBean
+  - BeanWrapperImpl và đối tượng đang được bọc
+  - PropertyDescriptor và thông tin getter, setter
+  - getPropertyValue và setPropertyValue
+  - Đọc hoặc đặt nhiều giá trị thuộc tính
+  - isReadableProperty và isWritableProperty
+  - PropertyAccessorFactory cho truy cập theo bean hoặc trường trực tiếp
+  - initBeanPropertyAccess và initDirectFieldAccess của DataBinder
+  - Ảnh hưởng của setter tới bất biến và tác dụng phụ
+  - Phân biệt BeanWrapper, BeanUtils và công cụ ánh xạ DTO
+- level1: Đường dẫn thuộc tính
+  level2:
+  - Tên thuộc tính đơn và đường dẫn dạng address.city
+  - Chỉ số phần tử dạng items[0].name
+  - Khóa Map dạng attributes[key]
+  - Chuyển kiểu phần tử dựa trên thông tin generic
+  - Đường dẫn lồng qua đối tượng đang null
+  - autoGrowNestedPaths và điều kiện tự khởi tạo đối tượng
+  - autoGrowCollectionLimit và phạm vi áp dụng theo kiểu truy cập
+  - Lỗi thuộc tính không tồn tại, không đọc được hoặc không ghi được
+  - Phân biệt invalid field với unknown field
+  - Giới hạn độ sâu, chỉ số và số phần tử từ dữ liệu không tin cậy
+- level1: Gắn qua constructor
+  level2:
+  - Constructor binding của DataBinder từ Spring Framework 6.1
+  - Khởi tạo binder với target null và thiết lập targetType
+  - DataBinder.ValueResolver và tra cứu giá trị tham số
+  - construct và đọc đối tượng được tạo
+  - Lựa chọn constructor và thông tin tên tham số
+  - Vai trò của tùy chọn biên dịch -parameters
+  - DataBinder.NameResolver và tên tham số tùy chỉnh
+  - '@BindParam khi binding trong Spring MVC hoặc WebFlux'
+  - Khởi tạo đệ quy đối tượng con, List, Map và mảng
+  - BindingResult khi chuyển đổi hoặc khởi tạo gặp lỗi
+  - Phối hợp constructor binding và property binding một cách có chủ đích
+- level1: Quy tắc binding
+  level2:
+  - setAllowedFields và danh sách trường được phép gắn
+  - setDisallowedFields và giới hạn của danh sách loại trừ
+  - Mẫu tên trường và các quy tắc so khớp theo phiên bản
+  - setDeclarativeBinding để kiểm soát ý định binding
+  - setRequiredFields và lỗi thiếu trường khi property binding
+  - setIgnoreUnknownFields và quyết định với trường không tồn tại
+  - setIgnoreInvalidFields và đường dẫn không truy cập được
+  - getSuppressedFields và theo dõi trường bị loại bỏ
+  - DefaultBindingErrorProcessor và mã required, typeMismatch, methodInvocation
+  - Tùy chỉnh BindingErrorProcessor khi có hợp đồng lỗi riêng
+- level1: PropertyEditor
+  level2:
+  - PropertyEditor và PropertyEditorSupport theo chuẩn JavaBeans
+  - setAsText, getAsText và trạng thái giá trị bên trong editor
+  - Đăng ký editor theo kiểu hoặc đường dẫn thuộc tính
+  - StringTrimmerEditor và chuyển chuỗi rỗng thành null
+  - CustomNumberEditor, CustomBooleanEditor và CustomDateEditor
+  - Quy ước tìm lớp editor theo tên kiểu dữ liệu
+  - PropertyEditorRegistrar và tái sử dụng quy tắc đăng ký
+  - CustomEditorConfigurer trong cấu hình bean
+  - Không chia sẻ editor có trạng thái giữa các luồng
+  - Lựa chọn PropertyEditor, Converter hoặc Formatter theo nhu cầu
+- level1: Converter
+  level2:
+  - Converter<S,T> và hợp đồng chuyển đổi một cặp kiểu
+  - Xử lý nguồn không null theo hợp đồng Converter
+  - Báo đầu vào không hợp lệ bằng ngoại lệ thích hợp
+  - Viết converter từ chuỗi sang kiểu giá trị nghiệp vụ
+  - ConverterFactory cho một họ kiểu đích
+  - Chuyển đổi String sang Enum và quy tắc phân biệt chữ hoa thường
+  - ConverterRegistry và đăng ký converter theo cặp kiểu
+  - Converter có thể tái sử dụng cho phần tử mảng hoặc collection
+  - Thiết kế converter thuần và an toàn khi chạy đồng thời
+  - Phân biệt chuyển đổi dữ liệu với kiểm tra quyền hoặc truy vấn nghiệp vụ
+- level1: ConversionService
+  level2:
+  - ConversionService và API convert
+  - canConvert và giới hạn khi dự đoán khả năng chuyển đổi
+  - GenericConversionService và cơ chế tra cứu converter
+  - DefaultConversionService và các converter có sẵn
+  - Đăng ký, thay thế hoặc loại bỏ converter
+  - ConversionServiceFactoryBean và bean có tên conversionService
+  - Tích hợp ConversionService với DataBinder và BeanFactory
+  - Vai trò chuyển kiểu trong Spring Expression Language
+  - Chuyển đổi null, chuỗi rỗng và kiểu nguyên thủy
+  - ConverterNotFoundException, ConversionFailedException và TypeMismatchException
+- level1: Chuyển đổi nâng cao
+  level2:
+  - GenericConverter và nhiều cặp kiểu nguồn đích
+  - ConvertiblePair và khai báo phạm vi chuyển đổi
+  - TypeDescriptor với kiểu phần tử, generic và annotation
+  - ConditionalConverter và điều kiện matches
+  - ConditionalGenericConverter khi cần kết hợp hai cơ chế
+  - Chuyển đổi mảng, collection và Map
+  - Kiểu phần tử không xác định và thông tin generic bị mất
+  - Chuyển đổi theo annotation trên trường hoặc tham số
+  - Độ ưu tiên giữa converter cụ thể và converter tổng quát
+  - Kiểm soát chi phí, tác dụng phụ và lỗi trong converter tùy chỉnh
+- level1: Formatter
+  level2:
+  - Formatter<T> và nhu cầu nhập xuất dữ liệu theo Locale
+  - Parser.parse và Printer.print
+  - Phân biệt chuyển đổi kiểu tổng quát với định dạng hiển thị
+  - FormattingConversionService kết hợp formatter và converter
+  - DefaultFormattingConversionService và bộ định dạng mặc định
+  - FormatterRegistry và các cách đăng ký formatter
+  - Đăng ký theo kiểu trường hoặc annotation
+  - AnnotationFormatterFactory và tạo annotation định dạng riêng
+  - FormatterRegistrar và nhóm quy tắc định dạng dùng chung
+  - ParseException, IllegalArgumentException và kết quả lỗi binding
+- level1: Định dạng số
+  level2:
+  - '@NumberFormat với kiểu số, tiền tệ hoặc phần trăm'
+  - NumberStyleFormatter, CurrencyStyleFormatter và PercentStyleFormatter
+  - Mẫu số tùy chỉnh và ký hiệu phân cách theo Locale
+  - BigDecimal, độ chính xác và quy tắc làm tròn
+  - Phân biệt giá trị tỷ lệ với cách hiển thị phần trăm
+  - Tiền tệ, đơn vị và dữ liệu được phép nhập
+  - Xử lý chuỗi rỗng, dấu âm và số vượt phạm vi
+  - Kiểm tra tính nhất quán giữa parse và print
+  - Phân biệt định dạng trường của Spring với tuần tự hóa JSON
+- level1: Định dạng thời gian
+  level2:
+  - '@DateTimeFormat với ISO, pattern và style'
+  - LocalDate, LocalTime, LocalDateTime và các kiểu có múi giờ
+  - DateFormatter và DateTimeFormatterRegistrar
+  - DateFormatterRegistrar cho API thời gian cũ
+  - Cấu hình định dạng ngày giờ dùng chung
+  - Phân biệt múi giờ, độ lệch UTC và Locale
+  - fallbackPatterns và tương thích định dạng đầu vào
+  - Ảnh hưởng của phiên bản JDK tới mẫu định dạng theo Locale
+  - Định dạng Duration theo API mà phiên bản Spring hỗ trợ
+  - Kiểm thử ngày không tồn tại, năm nhuận và thời điểm chuyển giờ
+- level1: Bean Validation
+  level2:
+  - Jakarta Validation và mô hình khai báo constraint
+  - LocalValidatorFactoryBean tích hợp provider với Spring
+  - Phân biệt jakarta.validation.Validator và Spring Validator
+  - ValidatorFactory, Validator và vòng đời tài nguyên
+  - validate, validateProperty và validateValue
+  - ConstraintViolation và tập kết quả vi phạm
+  - propertyPath, invalidValue, message và messageTemplate
+  - '@Valid và ý nghĩa kích hoạt kiểm tra lan truyền'
+  - '@Validated của Spring và lựa chọn nhóm kiểm tra'
+  - Annotation chỉ có hiệu lực khi cơ chế kiểm tra được gọi
+- level1: Ràng buộc chuẩn
+  level2:
+  - '@Null và @NotNull'
+  - Phân biệt @NotNull, @NotEmpty và @NotBlank
+  - '@Size cho chuỗi, mảng, collection và Map'
+  - '@Min, @Max, @DecimalMin và @DecimalMax'
+  - '@Positive, @PositiveOrZero, @Negative và @NegativeOrZero'
+  - '@Digits và giới hạn phần nguyên, phần thập phân'
+  - '@Pattern và @Email với phạm vi kiểm tra cú pháp'
+  - '@AssertTrue và @AssertFalse'
+  - '@Past, @PastOrPresent, @Future và @FutureOrPresent'
+  - Kiểu dữ liệu được hỗ trợ và UnexpectedTypeException
+  - Ngữ nghĩa null và nhu cầu kết hợp nhiều constraint
+- level1: Kiểm tra lồng nhau
+  level2:
+  - '@Valid trên thuộc tính tham chiếu tới đối tượng con'
+  - Kiểm tra lan truyền qua List, mảng và Map
+  - Container element constraint như List<@NotBlank String>
+  - Ràng buộc trên khóa và giá trị của Map
+  - Phân biệt ràng buộc container với ràng buộc phần tử
+  - Xử lý phần tử null và đối tượng con null
+  - Optional, unwrapping và kiểm tra giá trị được chứa
+  - Đường dẫn lỗi gồm tên trường, chỉ số và khóa
+  - Đồ thị có vòng lặp và phạm vi duyệt kiểm tra
+  - Kế thừa constraint từ lớp cha và interface
+- level1: Nhóm kiểm tra
+  level2:
+  - Default group và khai báo nhóm bằng interface
+  - Áp dụng constraint cho một hoặc nhiều nhóm
+  - Truyền nhóm vào Validator hoặc @Validated
+  - Nhóm tạo mới, cập nhật và tác vụ chuyên biệt
+  - Kế thừa nhóm kiểm tra
+  - '@GroupSequence và thứ tự các giai đoạn'
+  - Dừng chuỗi nhóm khi một giai đoạn có vi phạm
+  - Định nghĩa lại Default group cho một lớp
+  - '@ConvertGroup khi kiểm tra lan truyền'
+  - Phân biệt GroupSequence với thứ tự lỗi trong kết quả
+  - Tiêu chí chọn nhiều DTO thay vì một mô hình có quá nhiều nhóm
+- level1: Ràng buộc tùy chỉnh
+  level2:
+  - Định nghĩa annotation với @Constraint
+  - message, groups và payload của constraint
+  - '@Target, @Retention và khả năng áp dụng lặp'
+  - ConstraintValidator<A,T>, initialize và isValid
+  - Quy định hành vi khi giá trị được kiểm tra là null
+  - ConstraintValidatorContext và tạo thông báo tùy chỉnh
+  - Đưa lỗi toàn đối tượng về một đường dẫn trường
+  - Ràng buộc cấp lớp cho quan hệ giữa nhiều trường
+  - Tổ hợp constraint và @ReportAsSingleViolation
+  - '@OverridesAttribute khi tùy chỉnh constraint thành phần'
+  - Tiêm phụ thuộc qua SpringConstraintValidatorFactory
+  - An toàn đồng thời và tránh trạng thái của từng lần gọi trong validator
+- level1: Hạ tầng kiểm tra
+  level2:
+  - MessageInterpolator và cơ chế nội suy thông báo
+  - ClockProvider cho ràng buộc thời gian
+  - TraversableResolver và giới hạn duyệt thuộc tính
+  - ValueExtractor cho kiểu container tùy chỉnh
+  - '@ExtractedValue, @UnwrapByDefault và chiến lược unwrapping'
+  - ParameterNameProvider và tên tham số trong kết quả
+  - Constraint metadata API và ConstraintDescriptor
+  - Cấu hình META-INF/validation.xml và ánh xạ constraint bằng XML
+  - Phân biệt tính năng chuẩn với mở rộng riêng của provider
+  - ValidationException, ConstraintDeclarationException và GroupDefinitionException
+- level1: Kiểm tra phương thức
+  level2:
+  - Ràng buộc trên tham số và giá trị trả về
+  - '@Valid với tham số và kết quả chứa đối tượng lồng'
+  - ExecutableValidator và gọi kiểm tra trực tiếp
+  - MethodValidationPostProcessor và bean có @Validated
+  - Cơ chế AOP proxy kích hoạt kiểm tra phương thức
+  - Self-invocation, phương thức final và các giới hạn proxy
+  - Lựa chọn nhóm ở cấp lớp hoặc phương thức
+  - ConstraintViolationException và MethodValidationException
+  - setAdaptConstraintViolations và kết quả kiểm tra được thích nghi
+  - Ràng buộc chéo tham số của phương thức
+  - Quy tắc kế thừa tiền điều kiện và hậu điều kiện
+  - Phân biệt kiểm tra constructor bằng API chuẩn với AOP của Spring
+- level1: Binding trong MVC
+  level2:
+  - '@ModelAttribute và gắn dữ liệu form hoặc query vào đối tượng'
+  - ServletRequestDataBinder và nguồn tham số HTTP
+  - Constructor binding và property binding trong controller
+  - BindingResult đặt ngay sau tham số được gắn dữ liệu
+  - Giữ giá trị bị từ chối để hiển thị lại form
+  - Checkbox, field marker và field default của WebDataBinder
+  - Binding collection, Map và tên trường có chỉ số
+  - MultipartFile, form multipart và trường bị thiếu
+  - '@RequestParam, @PathVariable và @RequestHeader với chuyển đổi kiểu'
+  - Phân biệt @ModelAttribute với @RequestBody và HttpMessageConverter
+- level1: Validation trong MVC
+  level2:
+  - '@Valid hoặc @Validated trên @ModelAttribute'
+  - Kiểm tra @RequestBody và @RequestPart sau giải tuần tự hóa
+  - Phân biệt dữ liệu JSON sai cú pháp với dữ liệu vi phạm constraint
+  - Ràng buộc trực tiếp trên tham số controller
+  - Method validation tích hợp từ Spring Framework 6.1
+  - Phân biệt cơ chế tích hợp MVC với @Validated qua AOP
+  - MethodArgumentNotValidException khi kiểm tra đối tượng tham số
+  - HandlerMethodValidationException khi kiểm tra phương thức
+  - Kết hợp Errors hoặc BindingResult với các kiểu kiểm tra
+  - Ràng buộc giá trị trả về và lỗi hợp đồng phía server
+  - Validator cục bộ, validator toàn cục và nhiều bộ kiểm tra
+- level1: WebFlux
+  level2:
+  - WebExchangeDataBinder và dữ liệu từ ServerWebExchange
+  - Binding @ModelAttribute trong ngăn xếp phản ứng
+  - Chuyển đổi query, path, header và dữ liệu form
+  - '@Valid hoặc @Validated với đối tượng request'
+  - Kiểm tra body được bọc trong Mono theo kiểu tham số hỗ trợ
+  - WebExchangeBindException và xử lý lỗi phản ứng
+  - HandlerMethodValidationException trong controller WebFlux
+  - Cấu hình converter, formatter và validator bằng WebFluxConfigurer
+  - Đăng ký binder bằng @InitBinder trong WebFlux
+  - Kiểm tra trong luồng phản ứng và ranh giới với method validation AOP
+  - Tránh truy vấn hoặc tác vụ chặn trong converter và validator
+- level1: Cấu hình binder
+  level2:
+  - '@InitBinder trong @Controller'
+  - Giới hạn @InitBinder theo tên đối tượng
+  - '@ControllerAdvice và cấu hình binder dùng chung'
+  - Thứ tự và phạm vi cấu hình cục bộ hoặc toàn cục
+  - WebBindingInitializer và ConfigurableWebBindingInitializer
+  - WebMvcConfigurer.addFormatters và getValidator
+  - Thêm formatter theo trường bằng addCustomFormatter
+  - Đăng ký editor cục bộ bằng registerCustomEditor
+  - Thay thế hoặc bổ sung validator mà không vô tình mất bộ mặc định
+  - Đồng bộ cấu hình binding giữa ứng dụng và kiểm thử
+- level1: Thông báo đa ngữ
+  level2:
+  - MessageSource và Locale khi hiển thị lỗi
+  - MessageSourceResolvable và phân giải ObjectError hoặc FieldError
+  - DefaultMessageCodesResolver và thứ tự mã lỗi dự phòng
+  - Mã lỗi theo tên đối tượng, trường và kiểu dữ liệu
+  - Resource bundle và quy ước tệp thông báo
+  - ValidationMessages.properties và message template của Bean Validation
+  - validationMessageSource của LocalValidatorFactoryBean
+  - Tham số constraint trong thông báo và nội suy biểu thức
+  - Phân biệt mã lỗi ổn định với thông báo đã dịch
+  - Thông báo thiếu bản dịch và giá trị mặc định
+  - Không đưa dữ liệu nhạy cảm vào thông báo hoặc biểu thức nội suy
+- level1: Phản hồi lỗi
+  level2:
+  - Thiết kế lỗi theo trường và lỗi toàn đối tượng
+  - Giữ mã lỗi, đường dẫn, tham số và thông báo cần thiết
+  - Ánh xạ đường dẫn collection hoặc Map ra hợp đồng API
+  - '@ExceptionHandler, @ControllerAdvice và ResponseEntityExceptionHandler'
+  - ProblemDetail và ErrorResponse theo khả năng phiên bản
+  - Phân biệt lỗi đầu vào của client với lỗi giá trị trả về của server
+  - Xử lý riêng lỗi thiếu dữ liệu, sai kiểu và vi phạm constraint
+  - ParameterValidationResult và nhóm lỗi theo tham số
+  - Không phụ thuộc thứ tự duyệt của Set<ConstraintViolation>
+  - Loại bỏ rejectedValue nhạy cảm và chi tiết nội bộ trước khi trả lỗi
+- level1: An toàn dữ liệu
+  level2:
+  - Nguy cơ mass assignment khi binding trực tiếp vào entity
+  - DTO theo tác vụ và danh sách trường được phép
+  - Constructor binding và giới hạn bề mặt có thể thay đổi
+  - Ngăn sửa id, vai trò, chủ sở hữu và trạng thái do server quản lý
+  - Đối tượng con, khóa Map và chỉ số collection ngoài dự kiến
+  - Giới hạn độ lớn đầu vào và chi phí biểu thức chính quy
+  - Phân biệt chuẩn hóa, validation, escaping và phân quyền
+  - Kiểm tra tính duy nhất với database và nguy cơ tranh chấp
+  - Validation không thay thế ràng buộc database hay kiểm tra nghiệp vụ
+  - Rà soát thay đổi mô hình để không mở thêm trường binding ngoài ý muốn
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử Spring Validator bằng BeanPropertyBindingResult
+  - Kiểm thử lỗi một trường, toàn đối tượng và đường dẫn lồng
+  - Kiểm thử DataBinder với giá trị đúng, sai kiểu và thiếu trường
+  - Kiểm thử allowedFields, suppressedFields và giới hạn auto-grow
+  - Kiểm thử constructor binding với record và dữ liệu không đầy đủ
+  - Kiểm thử Converter, ConverterFactory và converter có điều kiện
+  - Kiểm thử parse và print theo nhiều Locale
+  - Kiểm thử thời gian với ClockProvider hoặc đồng hồ cố định
+  - Kiểm thử constraint riêng, nhóm và kiểm tra lan truyền
+  - Kiểm thử method validation qua bean proxy thực
+  - MockMvc cho lỗi binding, validation và hợp đồng phản hồi
+  - WebTestClient cho WebFlux và lỗi trong luồng phản ứng
+  - Kiểm thử thông báo đa ngữ và che dữ liệu nhạy cảm
+- level1: Chẩn đoán
+  level2:
+  - Constraint không chạy do thiếu provider hoặc thiếu điểm kích hoạt
+  - supports trả về false và validator không phù hợp kiểu đích
+  - BindingResult không đứng đúng vị trí trong chữ ký controller
+  - Không có converter phù hợp hoặc converter không được đăng ký
+  - Formatter không áp dụng do dữ liệu đi qua JSON converter
+  - Sai Locale, charset, pattern hoặc múi giờ
+  - UnexpectedTypeException do constraint không hỗ trợ kiểu dữ liệu
+  - GroupSequence sai hoặc nhóm mong muốn không được kích hoạt
+  - Self-invocation làm bỏ qua method validation
+  - Dữ liệu đã gắn một phần khi còn lỗi và cách ngăn dùng tiếp
+  - Log có mã đối tượng, đường dẫn và giai đoạn lỗi mà không lộ dữ liệu
+- level1: Thực hành
+  level2:
+  - Xây dựng bộ kiểm tra form với Spring Validator và Errors
+  - Thực nghiệm chuỗi bind, convert, validate và đọc BindingResult
+  - Xây dựng DTO bất biến bằng constructor binding
+  - Viết converter cho mã nghiệp vụ và formatter theo Locale
+  - Thiết kế form có địa chỉ lồng, danh sách và Map
+  - Tổ chức Bean Validation cho tạo mới và cập nhật
+  - Viết constraint kiểm tra quan hệ giữa hai trường
+  - Bảo vệ form cập nhật bằng allowedFields và kiểm tra trường bị loại
+  - Xây dựng phản hồi lỗi API thống nhất cho MVC hoặc WebFlux
+  - Thực nghiệm kiểm tra tham số và giá trị trả về qua AOP proxy
+  - Đối chiếu kết quả với Javadoc và tài liệu đúng phiên bản Spring

@@ -1,111 +1,111 @@
-# 18.4. SASL Quality of Protection: `auth`, `auth-int`, `auth-conf` và giới hạn theo mechanism
+# 18.4. SASL Quality of Protection: `auth`, `auth-int`, `auth-conf`, and Mechanism Limits
 
-## 1. Bản chất của Quality of Protection (QOP)
+## 1. The Nature of Quality of Protection (QOP)
 
-**SASL (Simple Authentication and Security Layer)** là framework để giao thức ứng dụng như LDAP, IMAP hoặc SMTP tích hợp các **mechanism xác thực** có thể thay thế. Ngoài việc chứng thực danh tính, *một số* mechanism còn hỗ trợ **SASL security layer** bảo vệ dữ liệu ứng dụng sau khi phiên xác thực thành công.
+**SASL (Simple Authentication and Security Layer)** is a framework enabling application protocols such as LDAP, IMAP, or SMTP to integrate pluggable **authentication mechanisms**. Beyond verifying identity, *some* mechanisms also support a **SASL security layer** that protects application data after session authentication succeeds.
 
-**Quality of Protection (QOP)** mô tả mức bảo vệ **được thương lượng thực tế cho phiên SASL**. Ba mức thường gặp:
+**Quality of Protection (QOP)** describes the protection level **actually negotiated for a SASL session**. The three standard levels are:
 
-| QOP | Xác thực | Integrity của dữ liệu qua SASL layer | Confidentiality của dữ liệu qua SASL layer | Ý nghĩa |
+| QOP | Authentication | Data integrity via SASL layer | Data confidentiality via SASL layer | Meaning |
 | --- | --- | --- | --- | --- |
-| `auth` | Có | Không | Không | Chỉ xác thực ở SASL; dữ liệu ứng dụng không được SASL bảo vệ |
-| `auth-int` | Có | Có | Không | Bảo vệ tính toàn vẹn; phát hiện sửa đổi trái phép trong phạm vi layer |
-| `auth-conf` | Có | Có | Có | Bảo vệ tính toàn vẹn và tính bí mật trong phạm vi layer |
+| `auth` | Yes | No | No | Authentication only in SASL; application data is not protected by SASL |
+| `auth-int` | Yes | Yes | No | Integrity protection; detects unauthorized modification within the layer's scope |
+| `auth-conf` | Yes | Yes | Yes | Integrity and confidentiality protection within the layer's scope |
 
-**Integrity không phải encryption.** Ở `auth-int`, thông điệp có thể vẫn đọc được dù việc sửa đổi sẽ bị phát hiện. Ở `auth-conf`, payload được cơ chế bảo vệ cả integrity lẫn confidentiality. Khả năng ngăn phát lại, bảo đảm thứ tự thông điệp, thuật toán mật mã và khóa cụ thể thuộc về mechanism/security context, không thể suy từ một chuỗi QOP mà không kiểm tra ngữ cảnh.
+**Integrity is not encryption.** With `auth-int`, messages can still be read even though modifications will be detected. With `auth-conf`, payloads are protected by the mechanism for both integrity and confidentiality. Replay prevention, message ordering guarantees, specific cryptographic algorithms, and keys belong to the mechanism and security context and cannot be inferred from a QOP string alone without checking the context.
 
-QOP mô tả lớp **SASL**, không thay thế việc đánh giá bảo mật *toàn bộ* kết nối. Ví dụ, PLAIN xác thực bên trong TLS vẫn có SASL QOP `auth` vì TLS mới là lớp mã hóa transport. Ngược lại, `auth-conf` bảo vệ những byte thực sự đi qua SASL security layer; nó không tự che IP, độ dài kết nối, metadata nằm ngoài layer hoặc toàn bộ trao đổi trước khi kích hoạt layer.
+QOP describes the **SASL** layer and does not replace evaluating *overall* connection security. For instance, PLAIN authenticating inside TLS still has SASL QOP `auth` because TLS is what encrypts the transport. Conversely, `auth-conf` protects only the bytes that actually pass through the SASL security layer; it does not hide IP addresses, connection duration, out-of-layer metadata, or exchanges occurring before the layer is activated.
 
-## 2. Thương lượng QOP: cấu hình là yêu cầu, không phải kết quả
+## 2. Negotiating QOP: configuration is a request, not a guarantee
 
-Trong Java, hằng `Sasl.QOP` là khóa `javax.security.sasl.qop`. Giá trị cấu hình là **danh sách ưu tiên có thứ tự**, phân tách bằng dấu phẩy, ví dụ `"auth-conf,auth-int"`. Java SASL API quy định nếu không cung cấp thuộc tính này thì mặc định là `auth`.
+In Java, the constant `Sasl.QOP` is the key `javax.security.sasl.qop`. Its configured value is an **ordered preference list** separated by commas, such as `"auth-conf,auth-int"`. The Java SASL API specifies that if this property is omitted, the default is `auth`.
 
-Một QOP chỉ được chọn khi **đồng thời** đáp ứng:
+A QOP level is selected only when **all** of the following hold:
 
-1. Giao thức ứng dụng hỗ trợ SASL và quy định rõ cách đưa security layer vào luồng dữ liệu.
-2. Mechanism đã chọn **có khả năng** cung cấp mức đó; SASL framework không tự thêm mã hóa cho mọi mechanism.
-3. Client, server, provider, credentials và chính sách cho phép cùng một mức QOP.
-4. Exchange xác thực kết thúc thành công; ứng dụng đọc **QOP thực tế** và đối chiếu với mức bảo vệ bắt buộc trước khi gửi dữ liệu nghiệp vụ.
+1. The application protocol supports SASL and explicitly defines how the security layer is inserted into the data stream.
+2. The selected mechanism **is capable** of providing that level; the SASL framework does not automatically add encryption to every mechanism.
+3. Client, server, providers, credentials, and policies all permit the same QOP level.
+4. The authentication exchange completes successfully; the application reads the **actual negotiated QOP** and verifies it against required protection before sending business data.
 
 ```text
-Client: yêu cầu auth-conf,auth-int
+Client: requests auth-conf,auth-int
                  |
                  v
-       Chọn SASL mechanism
+       Select SASL mechanism
                  |
-    Exchange challenge / response
+    Challenge / response exchange
                  |
         +--------+--------+
         |                 |
-  Không có mức chung   Xác thực thành công
+   No common level    Auth succeeds
         |                 |
-     Thất bại       Đọc QOP được chọn
+       Fail         Read chosen QOP
                           |
-                  Kiểm tra chính sách
+                   Check policy
                           |
-              Chấp nhận hoặc từ chối phiên
+              Accept or reject session
 ```
 
-Nếu hai phía không có QOP tương thích, không được tự coi xác thực thành công là đủ để đáp ứng chính sách bảo mật. Nếu giao thức cho phép chọn `auth-int` nhưng ứng dụng yêu cầu confidentiality ở SASL layer, **từ chối phiên trước khi trao đổi dữ liệu ứng dụng**. Không tự đổi chính sách xuống `auth`. Nếu chính sách cho phép mã hóa bằng TLS thay vì security layer của SASL, cần xác minh TLS **riêng biệt** (đặc biệt xác thực máy chủ và cấm downgrade).
+If both sides share no compatible QOP, never treat successful authentication alone as satisfying security policy. If the protocol allows `auth-int` to be selected while the application requires confidentiality at the SASL layer, **reject the session before exchanging application data**. Never silently relax policy down to `auth`. If policy permits encrypting via TLS instead of the SASL security layer, verify TLS **separately** (especially server authentication and downgrade prevention).
 
-### Điều kiện của từng mức
+### Conditions for each level
 
-- **`auth`:** phù hợp khi lớp khác đã cung cấp mức bảo vệ cần thiết hoặc chỉ cần xác thực; riêng SASL không bảo vệ nội dung các bản tin tiếp theo.
-- **`auth-int`:** phù hợp khi cần chống sửa đổi của payload trong layer nhưng không bắt buộc bí mật dữ liệu **ở chính lớp đó**. Việc có `wrap` không chứng minh payload được mã hóa.
-- **`auth-conf`:** dùng khi chính sách yêu cầu cả bí mật và toàn vẹn trong SASL layer. Phải xác thực QOP cuối cùng, đưa mọi thông điệp thuộc phạm vi bảo vệ qua `wrap/unwrap` và tôn trọng giới hạn kích thước.
+- **`auth`:** appropriate when another layer already supplies the needed protection or only authentication is required; SASL itself does not protect subsequent message contents.
+- **`auth-int`:** appropriate when payload tampering must be prevented within the layer without requiring data secrecy **at that layer itself**. Having `wrap` does not prove payloads are encrypted.
+- **`auth-conf`:** used when policy requires both confidentiality and integrity in the SASL layer. You must validate the final QOP, route all covered messages through `wrap/unwrap`, and respect size limits.
 
-## 3. Giới hạn phụ thuộc mechanism, provider và giao thức
+## 3. Limits imposed by mechanism, provider, and protocol
 
-**Không phải mọi SASL mechanism đều hỗ trợ cả ba mức.** Tên giao thức như LDAP hay SMTP không quyết định QOP, vì cùng một giao thức có thể tích hợp nhiều mechanism khác nhau.
+**Not every SASL mechanism supports all three levels.** Protocol names like LDAP or SMTP do not determine QOP, because a single protocol can integrate multiple different mechanisms.
 
-| Mechanism / họ | Có SASL security layer không? | Lưu ý thực tế |
+| Mechanism / family | Has a SASL security layer? | Practical notes |
 | --- | --- | --- |
-| **PLAIN** | **Không** | RFC 4616 xác nhận PLAIN không có security layer. Chỉ sử dụng với kênh bảo vệ phù hợp, thường TLS; không thể cấu hình PLAIN thành `auth-conf` bằng `Sasl.QOP`. |
-| **SCRAM** (SCRAM-SHA-256, SCRAM-*-PLUS) | **Không** theo RFC 5802/7677 | SCRAM xác thực; bản PLUS hỗ trợ channel binding với kênh ngoài. Channel binding không phải SASL encryption; cần TLS/SSH hoặc lớp bảo vệ tương ứng cho payload. |
-| **EXTERNAL** | Không tự sinh security layer | Nhận danh tính từ kênh đã xác thực từ trước, ví dụ TLS client certificate; bảo vệ dữ liệu do kênh bên ngoài đảm nhiệm. |
-| **GSSAPI/Kerberos V5** | **Có thể** có `auth`, `auth-int` và `auth-conf` | RFC 4752 mô tả trao đổi hỗ trợ security layer. Integrity/confidentiality chỉ được chào/chọn nếu GSS context và hai phía thực sự có khả năng. |
-| **DIGEST-MD5** (di sản) | RFC 2831 từng mô tả đủ ba mức | **Không dùng cho triển khai mới:** RFC 6331 đã đánh dấu mechanism OBSOLETE và chuyển RFC 2831 sang Historic. |
+| **PLAIN** | **No** | RFC 4616 confirms PLAIN has no security layer. Use only with an appropriate protected channel, typically TLS; PLAIN cannot be turned into `auth-conf` via `Sasl.QOP`. |
+| **SCRAM** (SCRAM-SHA-256, SCRAM-*-PLUS) | **No** per RFC 5802/7677 | SCRAM performs authentication; `-PLUS` variants support channel binding to an outer channel. Channel binding is not SASL encryption; use TLS/SSH or an equivalent protection layer for payloads. |
+| **EXTERNAL** | Does not generate a security layer itself | Takes identity from a pre-authenticated outer channel, such as a TLS client certificate; data protection is handled by the outer channel. |
+| **GSSAPI/Kerberos V5** | **Can** offer `auth`, `auth-int`, and `auth-conf` | RFC 4752 describes negotiating security layer support. Integrity/confidentiality may be offered/selected only if the GSS context and both peers actually support it. |
+| **DIGEST-MD5** (legacy) | RFC 2831 once described all three levels | **Do not use in new deployments:** RFC 6331 marked the mechanism OBSOLETE and moved RFC 2831 to Historic. |
 
-Với **SASL GSSAPI**, thực tế thường dựa vào Kerberos V5: client cần credential/ticket phù hợp; máy chủ có service principal đúng; service name, hostname, chính sách, quyền ủy nhiệm và provider phải thống nhất. JDK có `JdkSASL` provider hỗ trợ GSSAPI cùng các thuộc tính QOP, nhưng điều đó **không bảo đảm** ứng dụng cuối cùng nhận `auth-conf`. RFC 4752 yêu cầu không quảng bá confidentiality security layer khi GSS context không có cờ khả năng tương ứng. Thư viện của giao thức bên ngoài còn có thể giới hạn các QOP mà nó cho phép.
+With **SASL GSSAPI**, deployments typically rely on Kerberos V5: the client needs suitable credentials/tickets; the server needs the proper service principal; service name, hostname, policy, delegation rules, and provider must all align. The JDK includes the `JdkSASL` provider supporting GSSAPI and QOP properties, but that **does not guarantee** the application will end up with `auth-conf`. RFC 4752 forbids advertising a confidentiality security layer when the GSS context lacks the corresponding capability flag. External protocol libraries may also restrict which QOP values they allow.
 
-SASL và **GSS-API** là hai lớp khái niệm: GSS-API cung cấp security context và các thao tác bảo vệ dữ liệu (GSS-Wrap/GSS-Unwrap); SASL quy định cách mechanism tích hợp các thao tác đó vào giao thức. Không lấy một ví dụ GSS-API bất kỳ rồi kết luận cơ chế SASL nào cũng có thể cung cấp cùng thuộc tính.
+SASL and **GSS-API** are two conceptual layers: GSS-API provides the security context and data protection operations (GSS-Wrap/GSS-Unwrap); SASL defines how a mechanism integrates those operations into a protocol. Never take an arbitrary GSS-API example and conclude that every SASL mechanism can offer the same properties.
 
-**Kết luận kiểm tra capability:** đọc tài liệu mechanism **và** provider cụ thể; kiểm tra chính sách hai đầu; xác minh QOP sau handshake; test thực tế trong giao thức ứng dụng. Tuyệt đối không gán `auth-conf` chỉ vì có JDK `javax.security.sasl` hoặc máy chủ hỗ trợ TLS.
+**Capability-check takeaway:** read both the mechanism **and** provider documentation; check policies on both ends; verify QOP after the handshake; test in the real application protocol. Never assume `auth-conf` simply because JDK `javax.security.sasl` is present or the server supports TLS.
 
-## 4. Security layer sau xác thực và ý nghĩa của `wrap/unwrap`
+## 4. Post-authentication security layer and the meaning of `wrap/unwrap`
 
-RFC 4422 định nghĩa SASL security layer chỉ được kích hoạt **sau** outcome xác thực thành công, tại vị trí mà giao thức ứng dụng chỉ rõ. Khi lớp bảo vệ đang hoạt động, dữ liệu được xử lý thành các protected buffer.
+RFC 4422 specifies that the SASL security layer is activated **only after** a successful authentication outcome, at the exact point defined by the application protocol. When the protection layer is active, data is processed into protected buffers.
 
-- Với **`auth`**, không có lớp SASL integrity/confidentiality để xử lý các payload tiếp theo.
-- Với **`auth-int`** hoặc **`auth-conf`**, client/server gọi `wrap(plain, offset, len)` để tạo protected buffer; phía nhận gọi `unwrap(protected, offset, len)` để lấy nội dung gốc hoặc phát hiện thất bại xác minh.
-- Theo RFC 4422, mỗi protected buffer trên kết nối được đóng khung bằng **4 byte độ dài theo network byte order (big-endian)** trước dữ liệu đã bảo vệ. Giao thức hoặc thư viện cao hơn có thể đã quản lý framing: không được tự thêm một lần nữa.
-- Nếu layer không thể bảo vệ hoặc giải mã một buffer, **đóng kết nối**; không chấp nhận payload chưa xác minh hoặc fallback sang truyền plaintext.
+- With **`auth`**, there is no SASL integrity/confidentiality layer processing subsequent payloads.
+- With **`auth-int`** or **`auth-conf`**, client and server call `wrap(plain, offset, len)` to produce a protected buffer; the receiver calls `unwrap(protected, offset, len)` to recover the original content or detect verification failure.
+- Per RFC 4422, each protected buffer on the wire is framed with a **4-byte length in network byte order (big-endian)** preceding the protected data. Higher-level protocols or libraries may already manage framing: never add it a second time.
+- If the layer fails to protect or unwrap a buffer, **close the connection**; never accept unverified payloads or fall back to plaintext transmission.
 
 ```text
 Business payload
       |
-      +-- QOP auth -----------> Truyền theo giao thức, không qua SASL layer
+      +-- QOP auth -----------> Sent per protocol, bypassing SASL layer
       |
       +-- QOP auth-int/conf --> wrap(...) --> [4-byte length][protected bytes]
                                                         |
-                                                      mạng
+                                                     network
                                                         |
-                                         kiểm tra frame + unwrap(...)
+                                         validate frame + unwrap(...)
                                                         |
                                                   Business payload
 ```
 
-Cần hiểu **buffer maximum** và overhead. `Sasl.MAX_BUFFER` chỉ kích thước buffer nhận tối đa của SASL layer; `Sasl.RAW_SEND_SIZE` là lượng payload gốc tối đa gửi được trong một lần `wrap` do kết quả thương lượng/provider cung cấp. Protected output có thể dài hơn input vì MAC/tag/header/padding. Thuộc tính `Sasl.STRENGTH` cho phép ưu tiên mức mạnh của thuật toán đối với mechanism hỗ trợ, nhưng **không tạo** `auth-conf` nếu mechanism không có lớp mã hóa. Không dùng `MAX_BUFFER` hay `STRENGTH` như bằng chứng duy nhất để chấp nhận chính sách.
+Understand **maximum buffer size** and overhead. `Sasl.MAX_BUFFER` specifies the maximum receive buffer size for the SASL layer; `Sasl.RAW_SEND_SIZE` is the maximum plaintext payload size sendable in one `wrap` call, supplied via negotiation/provider results. Protected output can be larger than input due to MACs, tags, headers, and padding. The `Sasl.STRENGTH` property lets you prefer stronger algorithms on mechanisms that support it, but **cannot create** `auth-conf` if the mechanism has no encryption layer. Never treat `MAX_BUFFER` or `STRENGTH` alone as proof that policy is satisfied.
 
-Khi dùng TLS **và** SASL layer, lớp ngoài TLS còn có thể bảo vệ transport; dữ liệu chỉ được bảo vệ bởi SASL trong phạm vi thực sự được đưa qua `wrap`. Thời điểm bắt đầu bảo vệ, thứ tự đóng gói, số bytes chấp nhận và chuyển trạng thái phải khớp giao thức ứng dụng; nếu thư viện đã trừu tượng hóa việc đó, ứng dụng nên dùng API chính thức của thư viện.
+When combining TLS **and** a SASL layer, the outer TLS layer may protect the transport as well; SASL protects only data actually passed through `wrap`. When protection begins, packing order, accepted byte counts, and state transitions must match the application protocol; if a library already abstracts this, use the library's official API.
 
-## 5. Java 17+: kiểm tra yêu cầu QOP an toàn
+## 5. Java 17+: safely validating QOP requirements
 
-### 5.1. Ví dụ runnable: logic chính sách
+### 5.1. Runnable example: policy logic
 
-Ví dụ đầu tiên kiểm tra quyết định **ACCEPT/REJECT** với QOP giả định đã được thương lượng. Nó **không thực hiện handshake hay mã hóa**; mục tiêu là kiểm thử quy tắc của ứng dụng trước khi tích hợp mechanism thật.
+The first example tests an **ACCEPT/REJECT** decision against a hypothetical negotiated QOP. It **performs no handshake or encryption**; the goal is to test application rules before integrating a real mechanism.
 
-Tạo tệp `SaslQopPolicyDemo.java`:
+Create the file `SaslQopPolicyDemo.java`:
 
 ```java
 import java.util.Map;
@@ -148,14 +148,14 @@ public final class SaslQopPolicyDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac SaslQopPolicyDemo.java
 java SaslQopPolicyDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 QOP preferences: auth-conf,auth-int
@@ -165,13 +165,13 @@ auth-int / I=true / C=true => REJECT
 auth / I=true / C=false => REJECT
 ```
 
-Trong chương trình này, `props` là **ưu tiên yêu cầu**; tham số `negotiated` mới là **kết quả đầu vào của kiểm tra**. Trường hợp `auth-int` không đạt yêu cầu secrecy, và `auth` không đạt yêu cầu integrity. QOP không xác định (bao gồm `null`) cũng bị từ chối. Ở hệ thống thật, sau `REJECT` phải đóng phiên và không gửi dữ liệu nghiệp vụ nhạy cảm.
+In this program, `props` holds **requested preferences**; the `negotiated` parameter is **the input to the verification check**. The `auth-int` case fails a secrecy requirement, and `auth` fails an integrity requirement. Unknown QOP values (including `null`) are also rejected. In a real system, `REJECT` must close the session and never transmit sensitive business data.
 
-### 5.2. Điểm tích hợp thực với `SaslClient`
+### 5.2. Real integration point with `SaslClient`
 
-Java SASL API nằm trong module `java.security.sasl`: `Sasl.createSaslClient` chọn provider/mechanism, `SaslClient.evaluateChallenge` xử lý token từ server, `SaslClient.isComplete` phản ánh trạng thái exchange, `SaslClient.getNegotiatedProperty` đọc giá trị thương lượng và `SaslClient.wrap/unwrap` xử lý security layer khi có.
+The Java SASL API lives in the `java.security.sasl` module: `Sasl.createSaslClient` selects the provider/mechanism, `SaslClient.evaluateChallenge` processes server tokens, `SaslClient.isComplete` reflects exchange status, `SaslClient.getNegotiatedProperty` reads negotiated values, and `SaslClient.wrap/unwrap` handles the security layer when present.
 
-Đoạn sau **chỉ minh họa điểm tích hợp** trong một ứng dụng LDAP đã có callback handler, credentials và vòng trao đổi token do giao thức quản lý; đây **không phải chương trình độc lập**:
+The snippet below **only illustrates the integration point** inside an LDAP application that already supplies a callback handler, credentials, and a protocol-managed token exchange loop; it is **not a standalone program**:
 
 ```java
 Map<String, Object> props = Map.of(
@@ -184,36 +184,36 @@ SaslClient client = Sasl.createSaslClient(
         props,
         callbackHandler);
 if (client == null) {
-    throw new SaslException("Khong tim thay SASL mechanism phu hop");
+    throw new SaslException("No matching SASL mechanism found");
 }
 ```
 
-Cần import `java.util.Map` và `javax.security.sasl.*`; biến `callbackHandler` và Kerberos security context phải được cung cấp bởi môi trường tích hợp thực. Nếu mechanism bị vô hiệu hóa, provider thiếu hoặc thông tin môi trường không hợp lệ, không nên giả định tạo client sẽ thành công. Hoàn tất trao đổi token và xác nhận outcome thành công theo **giao thức ứng dụng** trước khi truy vấn QOP.
+You need `import java.util.Map;` and `import javax.security.sasl.*;`, while `callbackHandler` and the Kerberos security context must be provided by the real integration environment. If the mechanism is disabled, a provider is missing, or environment settings are invalid, never assume client creation will succeed. Complete the token exchange and confirm a successful outcome per **the application protocol** before querying QOP.
 
-Đọc QOP và chặn mọi phiên không đủ confidentiality tại ranh giới trước dữ liệu ứng dụng:
+Read QOP and block any session lacking confidentiality at the boundary before application data:
 
 ```java
 static String requireConfidentialSaslLayer(SaslClient client)
         throws SaslException {
     if (!client.isComplete()) {
-        throw new SaslException("SASL handshake chua hoan tat");
+        throw new SaslException("SASL handshake not yet complete");
     }
     Object value = client.getNegotiatedProperty(Sasl.QOP);
     String qop = value instanceof String ? (String) value : null;
     if (!"auth-conf".equals(qop)) {
-        throw new SaslException("QOP khong dap ung: " + qop);
+        throw new SaslException("Insufficient QOP: " + qop);
     }
     return qop;
 }
 ```
 
-Đây là **phương thức tích hợp**, đặt trong class có import `Sasl`, `SaslClient`, `SaslException`. Theo hợp đồng API, gọi `getNegotiatedProperty` trước `isComplete()==true` có thể ném `IllegalStateException`; `null` nghĩa là thuộc tính không được thương lượng hoặc không áp dụng. Không so sánh `props.get(Sasl.QOP)` với chính sách rồi kết luận phiên an toàn: nó chỉ chứa danh sách mong muốn ban đầu.
+This is an **integration method** placed inside a class importing `Sasl`, `SaslClient`, and `SaslException`. Per the API contract, calling `getNegotiatedProperty` before `isComplete()==true` may throw `IllegalStateException`; `null` means the property was not negotiated or does not apply. Never compare `props.get(Sasl.QOP)` against policy and conclude the session is safe: that map only holds the initial preference list.
 
-Với phiên `auth-int`/`auth-conf`, sau khi đã kiểm tra QOP, mỗi protected payload phải đi qua `wrap/unwrap`. Phương thức Java SASL cho phép `wrap/unwrap` **chỉ sau khi** trao đổi xác thực hoàn tất *và* integrity/privacy đã được thương lượng. Dùng chúng ở QOP `auth` có thể ném `IllegalStateException`.
+For `auth-int`/`auth-conf` sessions, once QOP is verified, every protected payload must go through `wrap/unwrap`. Java SASL methods allow `wrap/unwrap` **only after** the authentication exchange completes *and* integrity/privacy has been negotiated. Calling them when QOP is `auth` can throw `IllegalStateException`.
 
-### 5.3. Framing minh họa theo RFC 4422
+### 5.3. Illustrative framing per RFC 4422
 
-Hai phương thức dưới đây minh họa cơ chế **raw stream do ứng dụng tự xử lý**: prefix độ dài 4 byte, hạn chế kích thước nhận, gọi `wrap/unwrap`. Đoạn này biên dịch được như một class hỗ trợ, nhưng **không tự khởi tạo phiên SASL**, chỉ thích hợp khi peer đã thành công xác thực và protocol yêu cầu chuẩn framing này.
+The two methods below illustrate **application-managed raw stream** framing: a 4-byte length prefix, receive size cap, and `wrap/unwrap` calls. This snippet compiles as a helper class, but **does not initiate a SASL session** and is suitable only once the peer has authenticated and the protocol requires this framing format.
 
 ```java
 import java.io.DataInputStream;
@@ -250,61 +250,61 @@ final class SaslFrameIO {
 }
 ```
 
-`DataOutputStream.writeInt` sử dụng big-endian, tương ứng network byte order. Trong ứng dụng thật, **còn phải**: kiểm tra kích thước plaintext so với `Sasl.RAW_SEND_SIZE` trước `wrap`; lấy `maxFrameBytes` từ chính sách/kết quả cơ chế hoặc protocol chứ không đoán; xử lý lỗi bằng đóng kết nối; trên server dùng `SaslServer.wrap/unwrap`; và **không tự bọc thêm** nếu thư viện LDAP/IMAP/SMTP đã làm việc này. `SaslException` kế thừa `IOException` nên hai chữ ký `throws IOException` phù hợp.
+`DataOutputStream.writeInt` writes big-endian bytes, matching network byte order. In a real application, you **must also**: check plaintext size against `Sasl.RAW_SEND_SIZE` before `wrap`; derive `maxFrameBytes` from policy, negotiated mechanism properties, or protocol limits rather than guessing; close the connection on error; use `SaslServer.wrap/unwrap` on the server; and **never double-wrap** if an LDAP/IMAP/SMTP library already handles this. `SaslException` extends `IOException`, so `throws IOException` on both signatures fits cleanly.
 
-## 6. Phân biệt rõ SASL QOP và TLS
+## 6. Clearly distinguishing SASL QOP from TLS
 
-| Ví dụ | QOP SASL thực tế | Payload được bảo vệ bởi | Kết luận |
+| Example | Actual SASL QOP | Payload protected by | Conclusion |
 | --- | --- | --- | --- |
-| **PLAIN + TLS** có xác thực máy chủ | `auth` | TLS | Có thể mã hóa kết nối đúng cách, nhưng PLAIN không tạo SASL security layer. |
-| **SCRAM-SHA-256-PLUS + TLS** | `auth` | TLS, kèm channel binding trong authentication | “PLUS” không đồng nghĩa `auth-conf`; channel binding liên kết xác thực với kênh bảo vệ. |
-| **GSSAPI `auth-int`** không có TLS | `auth-int` | SASL integrity layer | Có chống sửa đổi trong phạm vi layer; **không có confidentiality** của payload từ riêng layer này. |
-| **GSSAPI `auth-conf`** | `auth-conf` | SASL security layer | Dữ liệu thực sự đi qua `wrap` được bảo vệ integrity và confidentiality. |
-| **GSSAPI `auth` + TLS** | `auth` | TLS | Có thể đáp ứng yêu cầu *transport encryption*; không đáp ứng điều kiện bắt buộc **SASL QOP phải là `auth-conf`**. |
+| **PLAIN + TLS** with server auth | `auth` | TLS | Can properly encrypt the connection, but PLAIN creates no SASL security layer. |
+| **SCRAM-SHA-256-PLUS + TLS** | `auth` | TLS, with channel binding in authentication | "PLUS" does not mean `auth-conf`; channel binding ties authentication to the outer channel. |
+| **GSSAPI `auth-int`** without TLS | `auth-int` | SASL integrity layer | Protects against tampering within the layer; **provides no confidentiality** for payloads from this layer alone. |
+| **GSSAPI `auth-conf`** | `auth-conf` | SASL security layer | Data actually sent through `wrap` receives integrity and confidentiality protection. |
+| **GSSAPI `auth` + TLS** | `auth` | TLS | May satisfy *transport encryption* rules; fails a requirement that **SASL QOP must be `auth-conf`**. |
 
-Quy tắc bảo mật nên phát biểu chính xác: “phải có TLS được xác minh” hay “phải có SASL `auth-conf`”, hoặc cả hai. Mỗi yêu cầu phải được kiểm thử độc lập. Cách phòng tránh downgrade cũng phụ thuộc cơ chế lựa chọn mechanism, danh tính peer và việc bảo vệ kênh trước/sau xác thực, không thể chỉ kiểm tra QOP cuối cùng là đủ.
+Security rules should be stated precisely: "verified TLS is required," "SASL `auth-conf` is required," or both. Each requirement must be tested independently. Downgrade defenses also depend on mechanism selection, peer identity, and channel protection before/after authentication—checking only the final QOP is not enough.
 
-## 7. Lỗi phổ biến, dấu hiệu và cách sửa
+## 7. Common mistakes, symptoms, and fixes
 
-1. **Dùng cấu hình làm bằng chứng:** thấy `Sasl.QOP=auth-conf,auth-int` rồi ghi log “encrypted”. Sửa: chỉ báo mức bảo vệ sau khi đọc `getNegotiatedProperty(Sasl.QOP)` khi authentication thành công.
-2. **Yêu cầu privacy với mechanism không có layer:** PLAIN hay SCRAM không cho `auth-conf` từ SASL. Sửa: áp dụng TLS được xác thực hoặc chọn mechanism/protocol phù hợp, không tự hạ chính sách.
-3. **Đánh đồng `auth-int` với mã hóa:** integrity không ẩn nội dung. Sửa: đặt yêu cầu confidentiality riêng và kiểm tra `auth-conf` nếu cần ở lớp SASL.
-4. **Gọi `getNegotiatedProperty` khi exchange chưa hoàn tất:** API có thể ném `IllegalStateException`. Sửa: kiểm tra `isComplete()` và outcome thành công của giao thức.
-5. **Gọi `wrap/unwrap` với QOP `auth`:** API chỉ cho phép sau khi integrity/privacy đã được thương lượng. Sửa: không tự gọi security layer khi nó không tồn tại.
-6. **Sai framing hoặc kích thước:** thiếu 4-byte length, vượt max frame, hoặc giả định raw và protected buffer dài bằng nhau. Sửa: tuân thủ protocol, kiểm tra độ dài **trước** cấp phát và chia nhỏ payload đúng raw-send limit.
-7. **Tiếp tục khi `unwrap` thất bại:** xử lý dữ liệu lỗi như plaintext làm mất bảo đảm integrity. Sửa: dừng xử lý, đóng kết nối.
-8. **GSSAPI chưa sẵn sàng:** principal/Kerberos ticket/service name/hostname/provider không hợp lệ. Sửa: chẩn đoán xác thực/context trước khi xét negotiated QOP.
-9. **Tin rằng SASL layer phủ mọi byte:** handshake và metadata ngoài phạm vi có thể không được layer bảo vệ. Sửa: đánh giá rõ phạm vi thông điệp, áp dụng TLS khi cần.
-10. **Dùng DIGEST-MD5 vì từng hỗ trợ ba mức:** RFC 6331 đã obsoleted mechanism này. Sửa: chọn giải pháp được duy trì và kiểm chứng.
+1. **Treating configuration as proof:** seeing `Sasl.QOP=auth-conf,auth-int` and logging "encrypted". Fix: report protection level only after reading `getNegotiatedProperty(Sasl.QOP)` on successful authentication.
+2. **Demanding privacy from a layerless mechanism:** PLAIN or SCRAM will not yield SASL `auth-conf`. Fix: enforce verified TLS or choose an appropriate mechanism/protocol instead of weakening policy.
+3. **Equating `auth-int` with encryption:** integrity does not hide content. Fix: state confidentiality requirements explicitly and enforce `auth-conf` if needed at the SASL layer.
+4. **Calling `getNegotiatedProperty` before the exchange completes:** the API may throw `IllegalStateException`. Fix: verify `isComplete()` and the protocol's success outcome first.
+5. **Calling `wrap/unwrap` with QOP `auth`:** the API permits them only after integrity/privacy is negotiated. Fix: never invoke the security layer when none exists.
+6. **Wrong framing or sizes:** missing the 4-byte length, exceeding max frame size, or assuming raw and protected buffers have identical length. Fix: follow the protocol, validate length **before** allocating, and chunk payloads within the raw-send limit.
+7. **Continuing after `unwrap` fails:** treating corrupted data as plaintext destroys integrity guarantees. Fix: stop processing and close the connection.
+8. **GSSAPI not ready:** invalid principal, Kerberos ticket, service name, hostname, or provider. Fix: diagnose authentication and context setup before inspecting negotiated QOP.
+9. **Assuming the SASL layer covers every byte:** handshakes and out-of-scope metadata may remain unprotected by the layer. Fix: evaluate exact message scope and apply TLS where needed.
+10. **Using DIGEST-MD5 because it once supported all three levels:** RFC 6331 obsoleted this mechanism. Fix: choose maintained, vetted solutions.
 
-### Checklist kiểm thử tích hợp
+### Integration testing checklist
 
-- Ghi nhận mechanism chọn thực tế, provider/version, QOP yêu cầu của hai phía, **QOP thương lượng**, và trạng thái TLS; không log password, raw ticket/token hoặc plaintext nhạy cảm.
-- Test một phiên đạt yêu cầu và một phiên bị downgrade/không đủ QOP; trường hợp không đủ **phải thất bại trước khi gửi payload nghiệp vụ**.
-- Với `auth-int`, can thiệp protected frame để xác minh bị từ chối; không suy ra confidentiality từ việc test integrity thành công.
-- Với `auth-conf`, xác minh dữ liệu đi qua `wrap/unwrap`, thử frame sai độ dài và frame lỗi, kiểm tra xử lý đóng kết nối.
-- Test payload lớn để kiểm tra overhead, `MAX_BUFFER`, `RAW_SEND_SIZE`, chunking và giới hạn nhận.
-- Kiểm tra TLS và danh tính máy chủ **riêng** nếu hệ thống dựa vào bảo vệ transport.
+- Record the actually chosen mechanism, provider/version, requested QOP on both sides, **negotiated QOP**, and TLS status; never log passwords, raw tickets/tokens, or sensitive plaintext.
+- Test one compliant session and one downgraded or insufficient-QOP session; the insufficient case **must fail before sending business payloads**.
+- For `auth-int`, tamper with a protected frame to verify rejection; never infer confidentiality from a passing integrity test.
+- For `auth-conf`, verify data passes through `wrap/unwrap`, test invalid frame lengths and corrupted frames, and verify connection closure handling.
+- Test large payloads to verify overhead, `MAX_BUFFER`, `RAW_SEND_SIZE`, chunking, and receive caps.
+- Test TLS and server identity verification **separately** when the system relies on transport protection.
 
-## 8. Bài tập tình huống và đáp án
+## 8. Scenario exercises and answers
 
-**A.** Client yêu cầu `auth-conf,auth-int`, server chỉ có `auth-int`; chính sách ứng dụng bắt buộc bí mật dữ liệu trong SASL layer. **Đáp án:** Có thể chọn `auth-int` về mặt cơ chế, nhưng ứng dụng phải từ chối vì không có confidentiality.
+**A.** The client requests `auth-conf,auth-int`, and the server only offers `auth-int`; application policy mandates data secrecy in the SASL layer. **Answer:** `auth-int` could be negotiated mechanically, but the application must reject the session because confidentiality is absent.
 
-**B.** PLAIN chạy qua TLS và Java trả QOP `auth`. Có mâu thuẫn không? **Không:** PLAIN chỉ xác thực; TLS bảo vệ transport. Hai khái niệm ở hai lớp khác nhau.
+**B.** PLAIN runs over TLS and Java reports QOP `auth`. Is there a contradiction? **No:** PLAIN only authenticates; TLS protects the transport. The two concepts belong to different layers.
 
-**C.** Phiên đã chọn `auth-conf` nhưng ứng dụng viết thẳng payload vào socket, bỏ qua security layer mà protocol yêu cầu. Dữ liệu đã an toàn chưa? **Chưa:** QOP không tự bảo vệ byte đi vòng qua `wrap`.
+**C.** The session selected `auth-conf`, yet the application writes payloads straight to the socket, bypassing the protocol-mandated security layer. Is the data safe? **No:** QOP does not protect bytes that bypass `wrap`.
 
-**D.** `getNegotiatedProperty(Sasl.QOP)` trả `null` sau authentication thành công. Có thể giả sử `auth-conf` không? **Không:** thuộc tính không có/không áp dụng; nếu cần SASL security layer thì từ chối hoặc điều tra provider.
+**D.** `getNegotiatedProperty(Sasl.QOP)` returns `null` after successful authentication. Can `auth-conf` be assumed? **No:** the property is absent/not applicable; if a SASL security layer is required, reject or investigate the provider.
 
-**E.** `SCRAM-SHA-256-PLUS` có chữ “PLUS”. Nó có SASL `auth-conf` không? **Không:** PLUS là cơ chế channel binding với kênh bên ngoài, không phải security layer bảo vệ payload.
+**E.** `SCRAM-SHA-256-PLUS` contains the word "PLUS". Does it have SASL `auth-conf`? **No:** PLUS refers to channel binding to the outer channel, not a payload-protecting security layer.
 
-## 9. Tài liệu chuẩn và Java API
+## 9. Standards and Java API references
 
-- [RFC 4422 – SASL, §3.7 Security Layers](https://www.rfc-editor.org/rfc/rfc4422.html): thời điểm cài đặt layer, framing 4 byte, xử lý lỗi và giới hạn buffer.
-- [RFC 4752 – GSSAPI/Kerberos V5 SASL mechanism](https://www.rfc-editor.org/rfc/rfc4752.html): thương lượng no layer/integrity/confidentiality và điều kiện GSS context.
-- [RFC 4616 – PLAIN](https://www.rfc-editor.org/rfc/rfc4616.html): PLAIN không cung cấp security layer.
-- [RFC 5802 – SCRAM](https://www.rfc-editor.org/rfc/rfc5802.html), [RFC 7677 – SCRAM-SHA-256](https://www.rfc-editor.org/rfc/rfc7677.html): SCRAM không thương lượng security layer, channel binding là thuộc tính khác.
-- [RFC 6331 – Moving DIGEST-MD5 to Historic](https://www.rfc-editor.org/rfc/rfc6331.html): cảnh báo đối với mechanism di sản.
-- [Java SE 21 `Sasl` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.security.sasl/javax/security/sasl/Sasl.html), [`SaslClient` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.security.sasl/javax/security/sasl/SaslClient.html) và [Java 17 SASL programming guide](https://docs.oracle.com/en/java/javase/17/security/java-sasl-api-programming-and-deployment-guide1.html): tên thuộc tính, danh sách ưu tiên, kết quả negotiated, `wrap/unwrap` và provider GSSAPI.
+- [RFC 4422 – SASL, §3.7 Security Layers](https://www.rfc-editor.org/rfc/rfc4422.html): when layers are installed, 4-byte framing, error handling, and buffer limits.
+- [RFC 4752 – GSSAPI/Kerberos V5 SASL mechanism](https://www.rfc-editor.org/rfc/rfc4752.html): negotiating no layer/integrity/confidentiality and GSS context conditions.
+- [RFC 4616 – PLAIN](https://www.rfc-editor.org/rfc/rfc4616.html): PLAIN provides no security layer.
+- [RFC 5802 – SCRAM](https://www.rfc-editor.org/rfc/rfc5802.html), [RFC 7677 – SCRAM-SHA-256](https://www.rfc-editor.org/rfc/rfc7677.html): SCRAM negotiates no security layer; channel binding is a distinct feature.
+- [RFC 6331 – Moving DIGEST-MD5 to Historic](https://www.rfc-editor.org/rfc/rfc6331.html): deprecation warning for the legacy mechanism.
+- [Java SE 21 `Sasl` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.security.sasl/javax/security/sasl/Sasl.html), [`SaslClient` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.security.sasl/javax/security/sasl/SaslClient.html), and [Java 17 SASL programming guide](https://docs.oracle.com/en/java/javase/17/security/java-sasl-api-programming-and-deployment-guide1.html): property names, preference lists, negotiated results, `wrap/unwrap`, and the GSSAPI provider.
 
-**Ghi nhớ:** `auth` chỉ xác thực; `auth-int` thêm integrity; `auth-conf` thêm confidentiality. Mức QOP **thực nhận** phụ thuộc mechanism, provider, hai đầu và giao thức. Không thay thế kiểm chứng kết quả bằng cấu hình mong muốn, và không xem TLS security là một SASL QOP khác.
+**Takeaway:** `auth` only authenticates; `auth-int` adds integrity; `auth-conf` adds confidentiality. The **actual** QOP depends on the mechanism, provider, both endpoints, and the protocol. Never substitute requested preferences for verified negotiated outcomes, and never treat TLS security as another SASL QOP.

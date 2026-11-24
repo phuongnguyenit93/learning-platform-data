@@ -1,8 +1,8 @@
-# Phân tích đoạn mã hoàn chỉnh trước khi gọi JShell.eval
+# Analyzing Complete Code Snippets Before Calling `JShell.eval`
 
-## 1. Mục tiêu: không đánh giá một mảnh Java chưa hoàn chỉnh
+## 1. Goal: Never Evaluate an Incomplete Java Fragment
 
-Khi nhúng JShell vào ứng dụng Java, host thường nhận mã theo từng dòng từ terminal, editor, giao diện web hoặc từ một chuỗi chứa nhiều khai báo. Không phải mỗi dòng là một đoạn Java có thể chạy độc lập. Ví dụ người dùng nhập một method qua ba dòng:
+When embedding JShell in a Java application, the host typically receives code line by line from a terminal, editor, web UI, or a string containing multiple declarations. Not every line is an independently runnable Java snippet. For instance, a user might enter a method across three lines:
 
 ~~~java
 int square(int x) {
@@ -10,9 +10,9 @@ int square(int x) {
 }
 ~~~
 
-Nếu host gọi `JShell.eval("int square(int x) {")` ngay khi nhận dòng đầu tiên, nó đã gửi **mã còn dang dở** vào engine. Ngược lại, nếu host nối toàn bộ file chứa nhiều lệnh rồi gọi `eval` một lần, đó cũng không phải cách dùng đáng tin cậy: theo hợp đồng API, `eval(String)` nên nhận **đúng một snippet hoàn chỉnh** (một statement, expression, import, khai báo biến, method hoặc class).
+If the host calls `JShell.eval("int square(int x) {")` as soon as it receives the first line, it sends **incomplete code** into the engine. Conversely, if the host concatenates an entire file containing multiple statements and calls `eval` once, that is also unreliable: by the API contract, `eval(String)` expects **one complete snippet** (a statement, expression, import, variable declaration, method, or class).
 
-API thiết kế cho tình huống này là:
+The API designed for this scenario is:
 
 ~~~java
 SourceCodeAnalysis analysis = jshell.sourceCodeAnalysis();
@@ -20,119 +20,119 @@ SourceCodeAnalysis.CompletionInfo info =
         analysis.analyzeCompletion(pendingSource);
 ~~~
 
-Đây là đoạn minh họa; `jshell` và `pendingSource` phải được tạo trước. `SourceCodeAnalysis` phân tích ranh giới **snippet đầu tiên**, cho biết nó đã hoàn chỉnh hay cần nhận thêm đầu vào, và trả phần còn lại để lặp tiếp. Chỉ sau khi có một snippet đủ điều kiện, host mới chuyển nó cho `JShell.eval`.
+This is an illustrative snippet; `jshell` and `pendingSource` must exist beforehand. `SourceCodeAnalysis` finds the boundary of the **first snippet**, reports whether it is complete or requires more input, and returns the remaining text for the next iteration. Only when a qualified snippet is ready does the host pass it to `JShell.eval`.
 
-Sau bài này, bạn có thể xây một bộ đệm REPL an toàn về mặt **phân tách cú pháp**: tích lũy mã đa dòng, nhận nhiều snippet trong cùng một lần gửi, hiểu ý nghĩa sáu trạng thái completeness, đọc `source()`/`remaining()`, xử lý lỗi eval và tránh nhầm “hoàn chỉnh cú pháp” với “đúng ngữ nghĩa hay an toàn để chạy”.
+After this lesson, you will be able to build a REPL buffer that is safe in terms of **syntactic splitting**: accumulating multi-line code, accepting multiple snippets in a single submission, understanding the six completeness states, reading `source()`/`remaining()`, handling eval errors, and avoiding confusing "syntactically complete" with "semantically valid or safe to run."
 
-## 2. Ba đối tượng chính trong API JShell
+## 2. Three Key Objects in the JShell API
 
-### 2.1. JShell lưu trạng thái đánh giá
+### 2.1. `JShell` Holds Evaluation State
 
-`jdk.jshell.JShell` là engine chứa các định nghĩa/giá trị từ những lần gọi trước. Một shell đã đánh giá `int n = 7;` có thể dùng `n` ở snippet tiếp theo:
+`jdk.jshell.JShell` is the engine holding definitions and values from prior calls. A shell that has evaluated `int n = 7;` can use `n` in the next snippet:
 
 ~~~java
-// Minh họa về hai lần gọi, không phải chương trình độc lập.
+// Illustration of two calls, not a standalone program.
 jshell.eval("int n = 7;");
 jshell.eval("n * 3;");
 ~~~
 
-`JShell.eval` trả về `List<SnippetEvent>`, chứ **không** trả trực tiếp giá trị biểu thức. Với mỗi event cần đọc `status()`, `value()` (nếu có), `exception()`, và diagnostics khi snippet bị từ chối. Một lời gọi `eval` có thể gây event phụ trên snippet phụ thuộc khi trạng thái thay đổi, nên không giả định danh sách luôn chỉ có một phần tử.
+`JShell.eval` returns `List<SnippetEvent>`, rather than returning the expression value directly. For each event, inspect `status()`, `value()` (if present), `exception()`, and diagnostics when a snippet is rejected. A single `eval` call can trigger secondary events on dependent snippets when state changes, so never assume the list always has a single element.
 
-### 2.2. SourceCodeAnalysis phân tích mà chưa thực thi
+### 2.2. `SourceCodeAnalysis` Analyzes Without Executing
 
-Lấy analyzer từ đúng shell mà bạn sẽ eval:
+Obtain the analyzer from the exact shell instance you will use for `eval`:
 
 ~~~java
 SourceCodeAnalysis analysis = jshell.sourceCodeAnalysis();
 ~~~
 
-`analysis.analyzeCompletion(text)` tìm **snippet đầu tiên** trong `text` và phân tích mức hoàn chỉnh của nó. Phân tích này **không thực thi** lệnh Java, không định nghĩa biến/method vào JShell và không có nghĩa mọi tên kiểu/phương thức đều hợp lệ.
+`analysis.analyzeCompletion(text)` locates the **first snippet** in `text` and analyzes its completeness. This analysis **does not execute** Java statements, does not define variables or methods in JShell, and does not imply that all referenced type or method names are valid.
 
-Các chức năng khác của `SourceCodeAnalysis` như `completionSuggestions` hoặc `sourceToSnippets` giải bài toán khác. Cụ thể, `sourceToSnippets` có thể tạo các đối tượng `Snippet` để xem trước, nhưng không thay thế vòng lặp tách đầu vào cho `eval` và không tự cài đặt các khai báo vào trạng thái shell.
+Other `SourceCodeAnalysis` methods such as `completionSuggestions` or `sourceToSnippets` solve different problems. Specifically, `sourceToSnippets` can produce `Snippet` objects for previewing, but it does not replace the input-splitting loop for `eval` and does not install declarations into shell state.
 
-### 2.3. CompletionInfo là kết quả phân tích
+### 2.3. `CompletionInfo` Is the Analysis Result
 
-`SourceCodeAnalysis.CompletionInfo` có ba phương thức quan trọng:
+`SourceCodeAnalysis.CompletionInfo` provides three essential methods:
 
-| Phương thức | Câu hỏi cần trả lời |
+| Method | Question Answered |
 | --- | --- |
-| `completeness()` | Snippet đầu tiên đã hoàn chỉnh, cần thêm mã hay phân tích không quyết định được? |
-| `source()` | Chuỗi của **snippet đầu tiên** sẽ được gửi vào `eval`; dấu chấm phẩy có thể đã được bổ sung khi cần |
-| `remaining()` | Phần input **còn lại sau snippet đầu tiên**, cần đưa trở lại bộ phân tích |
+| `completeness()` | Is the first snippet complete, does it need more code, or was analysis inconclusive? |
+| `source()` | The string of the **first snippet** to pass to `eval`; a semicolon may have been appended if needed |
+| `remaining()` | The **remaining input after the first snippet**, which must be fed back into the analyzer |
 
-Với chuỗi `"int a = 1; int b = 2;"`, ta không nên đưa nguyên chuỗi vào một lần `eval`. Thay vào đó, phân tích lấy snippet `int a = 1;`; giữ phần còn lại rồi phân tích `int b = 2;` ở lượt tiếp theo.
+Given `"int a = 1; int b = 2;"`, we should not feed the entire string into a single `eval` call. Instead, analyze and extract `int a = 1;`; keep the remainder and analyze `int b = 2;` on the next iteration.
 
-**Quan trọng:** đừng tự thay `source()` bằng phép `substring` cắt tại dấu `;` hoặc `}`. Parser biết dấu chấm phẩy trong `for (...)`, dấu ngoặc trong chuỗi/comment, text block và cấu trúc Java; phép tách thuần văn bản rất dễ phá hỏng mã.
+**Important:** never replace `source()` with `substring` slicing at `;` or `}`. The parser understands semicolons inside `for (...)`, braces inside strings and comments, text blocks, and Java syntax; plain text splitting easily corrupts code.
 
-## 3. Sáu giá trị SourceCodeAnalysis.Completeness
+## 3. The Six `SourceCodeAnalysis.Completeness` Values
 
-`Completeness` là enum trong `SourceCodeAnalysis`. Phân biệt chúng giúp host biết **khi nào chờ, khi nào eval** và khi nào phải báo lỗi đầu vào.
+`Completeness` is an enum inside `SourceCodeAnalysis`. Distinguishing its values tells the host **when to wait, when to eval**, and when to report input errors.
 
-| Giá trị | Ý nghĩa | Hành vi thông thường |
+| Value | Meaning | Typical Behavior |
 | --- | --- | --- |
-| `COMPLETE` | Đầu vào có snippet đầu tiên hoàn chỉnh như hiện có | Lấy `source()` và gọi `eval` |
-| `COMPLETE_WITH_SEMI` | Snippet sẽ hoàn chỉnh nếu thêm dấu `;` ở cuối | Tùy policy giao diện: chấp nhận nguồn do `source()` cung cấp (đã bổ sung `;`) hoặc đợi người dùng xác nhận |
-| `DEFINITELY_INCOMPLETE` | Bắt buộc phải có thêm source; thêm `;` chưa đủ | **Chờ** thêm input, giữ buffer |
-| `CONSIDERED_INCOMPLETE` | Có tình huống câu lệnh kết thúc bằng một statement rỗng chưa được chấm dứt; việc tự thêm `;` hiếm khi đúng ý định | **Chờ** thêm input, không ép thêm `;` |
-| `EMPTY` | Chỉ có whitespace/comment hoặc không có snippet | Không eval; có thể bỏ phần input trống đã xử lý |
-| `UNKNOWN` | Phân tích bị cản trở bởi mã lỗi; chưa xác định chắc mức hoàn chỉnh | API **coi là complete** để `eval` có cơ hội phát diagnostics; không xem đây là bằng chứng code đúng |
+| `COMPLETE` | Input begins with a snippet that is already complete as written | Take `source()` and call `eval` |
+| `COMPLETE_WITH_SEMI` | The snippet becomes complete if a trailing `;` is added | Depends on UI policy: accept `source()` (with `;` appended) or wait for user confirmation |
+| `DEFINITELY_INCOMPLETE` | More source is strictly required; adding `;` is not enough | **Wait** for more input, keep buffer |
+| `CONSIDERED_INCOMPLETE` | Cases such as a statement ending with an unterminated empty statement; auto-appending `;` rarely matches intent | **Wait** for more input, do not force `;` |
+| `EMPTY` | Only whitespace/comments or no snippet present | Do not eval; processed blank input may be discarded |
+| `UNKNOWN` | Analysis was blocked by malformed code; completeness cannot be determined | The API **treats it as complete** so `eval` can emit diagnostics; do not treat this as valid code |
 
-Các giá trị `DEFINITELY_INCOMPLETE`, `CONSIDERED_INCOMPLETE` và `EMPTY` là **chưa hoàn chỉnh** theo `isComplete()`. Ngược lại, `UNKNOWN` được coi là hoàn chỉnh nhằm để engine báo lỗi chính xác hơn. Vì vậy:
+`DEFINITELY_INCOMPLETE`, `CONSIDERED_INCOMPLETE`, and `EMPTY` are **incomplete** according to `isComplete()`. Conversely, `UNKNOWN` is treated as complete so the engine can report accurate errors. Therefore:
 
 ~~~java
-// Quy tắc thường dùng cho một REPL có quyền đánh giá đầu vào:
+// Common rule for a REPL authorized to evaluate input:
 if (info.completeness().isComplete()) {
     jshell.eval(info.source());
 }
 ~~~
 
-Đoạn này chỉ minh họa điều kiện, **chưa xử lý phần remaining, whitespace, diagnostics hay policy bảo mật**. Ví dụ runnable ở mục 5 sẽ xử lý đầy đủ các phần ấy.
+This snippet illustrates only the condition; it **does not yet handle `remaining`, whitespace, diagnostics, or security policies**. The runnable example in section 5 handles all of those properly.
 
-Hai trường hợp hay gặp:
+Two common cases:
 
-- `"class Counter {"` hoặc `"int x ="`: còn thiếu cú pháp bắt buộc; cần thêm dòng.
-- `"1 + 2"`: có thể hoàn chỉnh bằng cách bổ sung `;`. `source()` sẽ chứa mã hoàn chỉnh để eval nếu policy cho phép.
+- `"class Counter {"` or `"int x ="`: required syntax is missing; more lines are needed.
+- `"1 + 2"`: can be completed by appending `;`. `source()` will hold the completed code ready to evaluate if policy allows.
 
-Phân tích completeness là một **kiểm tra ranh giới**, không phải trình biên dịch xác nhận kiểu, không phải bước xét quyền hạn và không phải “kiểm tra xem có exception khi chạy hay không”.
+Completeness analysis is a **boundary check**, not a type-checking compiler, not an authorization step, and not a check for whether runtime exceptions will occur.
 
-## 4. Thuật toán bộ đệm trước eval
+## 4. Pre-`eval` Buffering Algorithm
 
-Host nên giữ một bộ đệm `pending` riêng cho mỗi phiên JShell. Mỗi lần nhận thêm một dòng hoặc batch, host thực hiện:
+The host should maintain a dedicated `pending` buffer for each JShell session. Whenever a new line or batch arrives, the host does:
 
-1. **Append** phần nguồn mới vào `pending`, giữ nguyên newline nếu ghép các dòng. Không gửi riêng một dòng đầu tiên của method/class cho `eval`.
-2. Gọi `analyzeCompletion(pending)`; nếu completeness là `EMPTY` thì dọn phần whitespace/comment không còn snippet; nếu chưa complete thì giữ buffer để chờ.
-3. Nếu complete, lấy **`info.source()`**, không dùng toàn bộ buffer. Gửi đúng chuỗi đó vào `jshell.eval`.
-4. Xử lý **tất cả** `SnippetEvent` trả về: trạng thái `VALID`, `REJECTED`, recoverable statuses, giá trị biểu thức, exception, diagnostics và các thay đổi gián tiếp cần thiết.
-5. Gán `pending = info.remaining()` rồi quay về bước 2 để xử lý snippet kế tiếp **trong cùng một batch**.
-6. Tránh vòng lặp vô hạn: xác minh mỗi lần tách snippet tiến lên, hạn chế kích thước buffer/số snippet; đóng JShell khi phiên kết thúc.
+1. **Append** the new source to `pending`, preserving newlines when joining lines. Never send just the first line of a method or class to `eval`.
+2. Call `analyzeCompletion(pending)`; if completeness is `EMPTY`, clear the whitespace/comments that contain no snippet; if not complete, keep the buffer and wait.
+3. If complete, take **`info.source()`**, not the entire buffer. Pass that exact string to `jshell.eval`.
+4. Process **all** returned `SnippetEvent`s: `VALID`, `REJECTED`, recoverable statuses, expression values, exceptions, diagnostics, and any needed indirect updates.
+5. Set `pending = info.remaining()` and loop back to step 2 to process subsequent snippets **within the same batch**.
+6. Guard against infinite loops: verify each extraction makes forward progress, cap buffer size and snippet count, and close JShell when the session ends.
 
-Các trạng thái `COMPLETE_WITH_SEMI` có thể tự bổ sung chấm phẩy. Điều này **không luôn đúng ý định người dùng** nếu họ còn định nhập toán tử hoặc nối thêm một phần biểu thức. CLI thường quyết định commit khi Enter, nhưng editor nhiều dòng có thể dùng nút Run hoặc Ctrl+Enter để làm ranh giới. Hãy quy định khi nào host cho phép auto-complete bằng `;`. Ví dụ mục 5 dùng input đã có `;` để giữ stdout ổn định.
+`COMPLETE_WITH_SEMI` can automatically append a semicolon. This does **not always match user intent** if they plan to enter an operator or continue an expression on the next line. CLIs often commit on Enter, whereas multi-line editors may use a Run button or Ctrl+Enter as the boundary. Define clearly when the host permits auto-completing with `;`. The example in section 5 uses inputs that already end with `;` to keep stdout deterministic.
 
-### Không tự phân tích bằng số lượng ngoặc
+### Do Not Parse Manually by Counting Braces
 
-Các cách như `source.endsWith(";")`, đếm dấu `{`/`}` hoặc tách bằng `String.split(";")` đều thất bại với mã Java hợp lệ:
+Techniques such as `source.endsWith(";")`, counting `{`/`}`, or splitting with `String.split(";")` fail on valid Java code:
 
 ~~~java
 String s = "};";
-// Dấu } và ; ở trên thuộc nội dung string.
+// The } and ; above are inside string literal content.
 for (int i = 0; i < 2; i++) {
     System.out.println(i);
 }
 ~~~
 
-Đây là **hai snippet minh họa**. Câu lệnh `for` có hai dấu `;` bên trong header và chứa method call; không thể tách đầu vào bằng dấu `;` tùy ý. Tương tự, comment, ký tự escape, annotation, generic type, lambda và text block làm việc dựa trên regex càng thiếu tin cậy.
+These are **two illustrative snippets**. The `for` statement contains two `;` characters inside its header and a method call inside its body; input cannot be split on arbitrary `;` characters. Likewise, comments, escape sequences, annotations, generic types, lambdas, and text blocks make regex-based splitting unreliable.
 
-## 5. Ví dụ Java 17 chạy được: phân tích từng dòng trước khi eval
+## 5. Runnable Java 17 Example: Line-by-Line Analysis Before `eval`
 
-Chương trình dưới đây biên dịch và chạy trên **JDK 17 trở lên có module `jdk.jshell`**. Nó tạo `JShell`, đưa dữ liệu đầu vào theo từng lần gọi, chờ method đủ dấu `}`, tách hai snippet trên cùng một dòng, và in trạng thái/giá trị mà engine trả về. Chỉ `source()` của một snippet hoàn chỉnh mới được eval.
+The program below compiles and runs on **JDK 17 or newer with the `jdk.jshell` module**. It creates a `JShell`, feeds input line by line, waits for a method's closing `}`, splits two snippets on the same line, and prints the status and value returned by the engine. Only `source()` from a complete snippet is passed to `eval`.
 
-### 5.1. Tạo file và cấu trúc
+### 5.1. File Creation and Structure
 
 ~~~text
 jshell-completion-demo/
   src/
     CompletionGateDemo.java
-  out/              (tạo khi biên dịch)
+  out/              (created during compilation)
 ~~~
 
 **File `src/CompletionGateDemo.java`:**
@@ -213,7 +213,7 @@ public final class CompletionGateDemo {
             pending.append(rest);
 
             for (SnippetEvent event : shell.eval(snippet)) {
-                // Các event phụ có causeSnippet != null.
+                // Indirect events have causeSnippet != null.
                 if (event.causeSnippet() != null) {
                     continue;
                 }
@@ -238,19 +238,19 @@ public final class CompletionGateDemo {
 }
 ~~~
 
-**Vì sao đoạn code tách đúng?**
+**Why does this code split snippets properly?**
 
-- `pending` giữ các dòng liên tiếp của method cho đến khi `analyzeCompletion` trả một trạng thái `isComplete() == true`.
-- `info.source()` là snippet **đã được parser xác định**; `eval` không nhận nguyên `pending` chứa nhiều snippet.
-- `info.remaining()` được giữ và phân tích tiếp trong vòng `while`, vì dòng thứ tư chứa cả `square(4);` và `int n = 7;`.
-- `EMPTY` được dùng để dọn whitespace còn sót sau khi tiêu thụ hết snippet.
-- `isComplete()` cho phép `UNKNOWN` đi tới `eval` để báo lỗi. Trong hệ thống sản xuất, có thể từ chối trước khi chạy tùy chính sách nhưng không nên gọi `UNKNOWN` là “đã biên dịch hợp lệ”.
-- `SnippetEvent` có thể biểu diễn thay đổi phụ thuộc; demo chỉ in event gốc (`causeSnippet() == null`). Công cụ cần hiển thị mọi thay đổi nên không bỏ các event phụ như vậy.
-- `try (JShell shell = ...)` đóng phiên JShell khi hoàn tất, tránh giữ engine và execution resources vượt vòng đời ứng dụng.
+- `pending` holds consecutive lines of the method until `analyzeCompletion` returns a state where `isComplete() == true`.
+- `info.source()` is the snippet **identified by the parser**; `eval` never receives the raw `pending` buffer containing multiple snippets.
+- `info.remaining()` is retained and analyzed in the `while` loop, because the fourth line contains both `square(4);` and `int n = 7;`.
+- `EMPTY` clears leftover whitespace after all snippets are consumed.
+- `isComplete()` lets `UNKNOWN` proceed to `eval` for error reporting. In production systems, you may reject earlier depending on policy, but never label `UNKNOWN` as "compiled cleanly."
+- `SnippetEvent` can represent dependent updates; the demo prints only primary events (`causeSnippet() == null`). A tool that needs to display all changes should not skip secondary events like this.
+- `try (JShell shell = ...)` closes the JShell session upon completion, avoiding leaking the engine and execution resources past the application lifecycle.
 
-### 5.2. Biên dịch và chạy
+### 5.2. Compiling and Running
 
-Mở terminal trong thư mục `jshell-completion-demo`, đã tạo file nguồn trên:
+Open a terminal in the `jshell-completion-demo` directory after creating the source file above:
 
 ~~~bash
 mkdir -p out
@@ -259,9 +259,9 @@ javac --release 17 -encoding UTF-8 \
 java -cp out CompletionGateDemo
 ~~~
 
-Nếu môi trường compiler/launcher tối giản không tự resolve module `jdk.jshell`, cần đảm bảo runtime image có module này và cấu hình root modules phù hợp (ví dụ cờ `--add-modules jdk.jshell` cho launcher); trên JDK 17 đầy đủ, ví dụ chạy theo lệnh trên.
+If a minimal compiler/launcher environment does not automatically resolve the `jdk.jshell` module, verify the runtime image includes it and configure root modules appropriately (e.g., `--add-modules jdk.jshell` on the launcher); on a full JDK 17, the example runs with the commands above.
 
-**Stdout khi các snippet hoàn chỉnh và không có lỗi:**
+**Stdout when snippets are complete and error-free:**
 
 ~~~text
 waiting
@@ -275,25 +275,25 @@ status=VALID
 value=11
 ~~~
 
-Hai dòng `waiting` tương ứng sau `"int square(int x) {"` và `"return x * x;"`: method còn thiếu dấu `}`. Dòng `"}"` làm method hoàn chỉnh nên engine định nghĩa method với status `VALID`. Dòng chứa hai snippet khiến vòng `while` eval chúng **tách biệt**, tạo giá trị `16` cho `square(4)` và `7` cho biến `n`. Lần cuối tính `n + square(2) = 7 + 4 = 11`.
+The two `waiting` lines correspond to `"int square(int x) {"` and `"return x * x;"`: the method still lacks a closing `}`. The `"}"` line completes the method, so the engine defines it with status `VALID`. The line containing two snippets causes the `while` loop to evaluate them **separately**, yielding `16` for `square(4)` and `7` for variable `n`. The final evaluation computes `n + square(2) = 7 + 4 = 11`.
 
-Đây là stdout cho đúng source và input demo, **không phải** một cam kết mọi đoạn Java đều tạo một event duy nhất. Trong thực tế, cập nhật một khai báo có thể kích hoạt thêm event phụ; khi có lỗi có thể có diagnostics/exception hoặc status không phải `VALID`.
+This stdout applies to this exact demo source and input; it is **not** a promise that every Java snippet emits a single event. In practice, updating a declaration can trigger secondary events; errors can produce diagnostics/exceptions or non-`VALID` statuses.
 
-### 5.3. Trình tự phân tích theo từng lượt
+### 5.3. Step-by-Step Analysis Sequence
 
-| Input mới | Trạng thái kỳ vọng | Gọi eval? | Buffer còn lại |
+| New Input | Expected State | Call `eval`? | Remaining Buffer |
 | --- | --- | --- | --- |
-| `int square(int x) {` | `DEFINITELY_INCOMPLETE` | Không | Giữ dòng đầu |
-| `return x * x;` | Vẫn thiếu thân method kết thúc | Không | Giữ cả hai dòng |
-| `}` | `COMPLETE` | Có: method definition | Không còn snippet |
-| `square(4); int n = 7;` | Hai snippet hoàn chỉnh liên tiếp | Có: **hai lần eval** | Không còn snippet |
-| `n + square(2);` | `COMPLETE` | Có: expression | Không còn snippet |
+| `int square(int x) {` | `DEFINITELY_INCOMPLETE` | No | Keeps first line |
+| `return x * x;` | Still missing method body closing | No | Keeps both lines |
+| `}` | `COMPLETE` | Yes: method definition | No snippets left |
+| `square(4); int n = 7;` | Two consecutive complete snippets | Yes: **two `eval` calls** | No snippets left |
+| `n + square(2);` | `COMPLETE` | Yes: expression | No snippets left |
 
-Một chi tiết quan trọng: thứ tự eval theo đúng thứ tự snippet giúp khai báo `n` đã tồn tại trước khi đánh giá `n + square(2)`. Nếu gọi `eval` trên cả block hoặc thay đổi thứ tự, kết quả khác và có thể gây lỗi.
+An important detail: evaluating in exact snippet order ensures `n` exists before `n + square(2)` is evaluated. Calling `eval` on the whole block or changing order produces different results and can cause errors.
 
-## 6. Thêm một ví dụ riêng: kiểm tra mức hoàn chỉnh mà không eval
+## 6. Another Standalone Example: Checking Completeness Without `eval`
 
-Khi thiết kế editor, UI có thể muốn hiển thị trạng thái “cần nhập tiếp” mà chưa chạy mã. Một chương trình nhỏ (độc lập với mục 5) có thể chỉ dùng `SourceCodeAnalysis`:
+When designing an editor, the UI may want to show a "more input needed" indicator without running code yet. A small program (independent of section 5) can use `SourceCodeAnalysis` alone:
 
 **File `src/InspectCompletion.java`:**
 
@@ -321,14 +321,14 @@ public final class InspectCompletion {
 }
 ~~~
 
-Chạy trong cùng thư mục demo, sau khi tạo file:
+Run in the same demo directory after creating the file:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 -d out src/InspectCompletion.java
 java -cp out InspectCompletion
 ~~~
 
-**Stdout kỳ vọng:**
+**Expected stdout:**
 
 ~~~text
 complete=false, state=DEFINITELY_INCOMPLETE
@@ -336,115 +336,115 @@ complete=true, state=COMPLETE
 complete=true, state=COMPLETE_WITH_SEMI
 ~~~
 
-`"int x ="` cần một biểu thức phía sau, dấu `;` không đủ. `"int x = 10;"` là khai báo hoàn chỉnh. `"x + 2"` là biểu thức có thể được hoàn tất bằng dấu chấm phẩy mà không thay đổi cú pháp bên trong; đây là kiểm tra ranh giới, **không có ý nghĩa biến x đã tồn tại**, vì chương trình này không bao giờ gọi `eval`.
+`"int x ="` needs an expression after it; a `;` is not enough. `"int x = 10;"` is a complete declaration. `"x + 2"` is an expression that can be completed with a semicolon without changing internal syntax; this is a boundary check and **does not mean variable `x` already exists**, because this program never calls `eval`.
 
-Khi viết kiểm thử, nên kiểm tra thêm `source()` (ví dụ trường hợp `COMPLETE_WITH_SEMI` đã được thêm `;`) và `remaining()` cho input có hai snippet. Đừng dựa vào việc đọc status mà bỏ qua hai trường còn lại.
+When writing tests, also check `source()` (e.g., in `COMPLETE_WITH_SEMI` where `;` has been appended) and `remaining()` for inputs with two snippets. Do not inspect only the status while ignoring the other two fields.
 
-## 7. Phân biệt hoàn chỉnh, hợp lệ và an toàn
+## 7. Distinguishing Complete, Valid, and Safe
 
-Ba tính chất này không tương đương:
+These three properties are not equivalent:
 
-1. **Complete:** parser nhận ra ranh giới snippet; code đã đủ cấu trúc để đưa cho JShell đánh giá.
-2. **Semantically valid:** code được JShell biên dịch/chấp nhận trong trạng thái hiện tại (import, biến, classpath, method có phù hợp). `analyzeCompletion` không xác thực toàn bộ điều đó.
-3. **Safe to execute:** mã được phép chạy theo chính sách ứng dụng. Code Java “đúng” vẫn có thể ghi file, mở mạng, fork thread, tiêu tốn CPU hoặc gọi mã bên ngoài.
+1. **Complete:** the parser recognizes a snippet boundary; the code is structurally ready to pass to JShell for evaluation.
+2. **Semantically valid:** the code is compiled and accepted by JShell in the current state (matching imports, variables, classpath, and methods). `analyzeCompletion` does not verify all of that.
+3. **Safe to execute:** the code is permitted to run under application policy. "Valid" Java code can still write files, open network sockets, spawn threads, burn CPU, or invoke external code.
 
-Ví dụ:
+Example:
 
 ~~~java
 missingMethod(42);
 ~~~
 
-Đây là **một snippet hoàn chỉnh về cấu trúc** nhưng có thể bị JShell từ chối vì `missingMethod` chưa được định nghĩa. Khi đó cần kiểm tra `SnippetEvent.status() == REJECTED` và `jshell.diagnostics(snippet)` để giải thích lỗi cho người dùng; không “chữa” bằng cách thêm dấu chấm phẩy hoặc chờ thêm input.
+This is a **structurally complete snippet** that may still be rejected by JShell because `missingMethod` is undefined. In that case, check `SnippetEvent.status() == REJECTED` and `jshell.diagnostics(snippet)` to explain the error to the user; do not "fix" it by appending a semicolon or waiting for more input.
 
-Ví dụ khác:
+Another example:
 
 ~~~java
 while (true) {
-    // vòng lặp không kết thúc nếu không bị dừng bởi môi trường thực thi
+    // non-terminating loop unless stopped by the execution environment
 }
 ~~~
 
-Đây cũng là mã hoàn chỉnh về mặt cú pháp, nhưng nếu thực thi có thể treo. Host cần kiểm soát timeout, giới hạn tài nguyên, cancellation và isolation phù hợp. `SourceCodeAnalysis` **không phải bộ lọc bảo mật**, JShell **không phải sandbox** cho mã không tin cậy. Đừng tự động eval mọi request HTTP chỉ vì `isComplete()` trả true.
+This is also syntactically complete code, yet executing it can hang. The host needs appropriate timeouts, resource limits, cancellation, and isolation. `SourceCodeAnalysis` is **not a security filter**, and JShell is **not a sandbox** for untrusted code. Never automatically `eval` every HTTP request just because `isComplete()` returns true.
 
-Một số hành vi runtime cần nhớ:
+Several runtime behaviors to keep in mind:
 
-- `JShell.eval` có thể ném `IllegalStateException` nếu shell đã đóng. Code trong snippet có thể ném exception được ghi qua `SnippetEvent.exception()` hoặc khiến execution engine bị reset/terminate tùy tình huống.
-- Khai báo bị lỗi vẫn có thể sinh event `REJECTED` hoặc trạng thái recoverable nếu một số dependency chưa giải quyết được. Không suy luận “eval đã được gọi” nghĩa là code đã chạy thành công.
-- Nếu snippet sửa một definition cũ, JShell có thể tạo event `OVERWRITTEN` hoặc thay đổi trạng thái các snippet phụ thuộc; công cụ cần cập nhật lại biểu diễn trạng thái sau tất cả event.
-- Các lệnh `/exit`, `/list`, `/imports` là **command của CLI jshell**, không phải Java source snippet để đưa trực tiếp cho `JShell.eval`. Host tự thiết kế bộ xử lý lệnh riêng nếu muốn hỗ trợ cú pháp slash-command.
-- JShell snippet không hoàn toàn đồng nghĩa một file `.java` có `package` và nhiều top-level declarations. Khi nhận cả file, cân nhắc Java Compiler API thay vì giả định `eval` có thể xử lý nguyên file như một compilation unit.
+- `JShell.eval` can throw `IllegalStateException` if the shell is already closed. Code inside a snippet can throw exceptions captured via `SnippetEvent.exception()` or cause the execution engine to reset or terminate depending on the scenario.
+- A faulty declaration can emit a `REJECTED` event or a recoverable status if dependencies are unresolved. Do not infer from "eval was called" that the code executed successfully.
+- If a snippet updates an earlier definition, JShell can emit `OVERWRITTEN` events or alter the status of dependent snippets; the tool must refresh its state view after processing all events.
+- Commands like `/exit`, `/list`, and `/imports` are **`jshell` CLI commands**, not Java source snippets to pass directly to `JShell.eval`. The host must build its own command handler if it wants to support slash-command syntax.
+- A JShell snippet is not wholly synonymous with a `.java` file containing a `package` declaration and multiple top-level declarations. When accepting whole files, consider the Java Compiler API rather than assuming `eval` handles an entire file as a compilation unit.
 
-## 8. Trường hợp cạnh và lỗi khi tích lũy đầu vào
+## 8. Edge Cases and Errors When Accumulating Input
 
-### 8.1. Chỉ có whitespace hoặc comment
+### 8.1. Whitespace or Comments Only
 
-Nếu input chỉ chứa khoảng trắng/comment, completeness có thể là `EMPTY`. Host không nên gửi `eval("")` cho một lời gọi nghiệp vụ. Có thể xóa phần input không tạo snippet theo policy hoặc giữ comment nếu editor cần tái hiện văn bản gốc. Trong ví dụ, `EMPTY` làm rỗng buffer.
+If input contains only whitespace or comments, completeness may be `EMPTY`. The host should not send `eval("")` for a business-logic call. Depending on policy, discard input that produces no snippet, or retain comments if the editor needs to reconstruct the original text. In the example, `EMPTY` clears the buffer.
 
-### 8.2. Code còn dang dở khi kết thúc phiên
+### 8.2. Unfinished Code at End of Session
 
-Nếu người dùng gửi:
+If the user submits:
 
 ~~~java
 class Report {
     int total() {
 ~~~
 
-và kết thúc input, host phải báo **snippet chưa hoàn chỉnh**, không lặng lẽ bỏ buffer và cũng không tự thêm dấu `}`. Ví dụ `CompletionGateDemo` báo `incomplete input at EOF` nếu buffer còn nội dung không phải whitespace. Trong ứng dụng thật, có thể hỏi bổ sung dòng hoặc cho người dùng lưu lại draft.
+and ends input, the host must report an **incomplete snippet**, neither silently dropping the buffer nor automatically inserting closing `}` braces. The `CompletionGateDemo` example prints `incomplete input at EOF` if non-whitespace content remains in the buffer. In a real application, prompt for the remaining lines or let the user save a draft.
 
-### 8.3. Semicolon tự bổ sung
+### 8.3. Auto-Appended Semicolons
 
-Nếu input là `"1 + 2"`, trạng thái `COMPLETE_WITH_SEMI` cho biết nguồn có thể hoàn chỉnh nếu thêm dấu `;`. `info.source()` sẽ trả snippet thích hợp để eval, không nên nối thêm một dấu chấm phẩy thứ hai một cách mù quáng.
+If the input is `"1 + 2"`, `COMPLETE_WITH_SEMI` indicates the source becomes complete if a `;` is appended. `info.source()` returns the snippet ready for `eval`; do not blindly append a second semicolon.
 
-Đối với editor hỗ trợ multiline, chính sách có thể yêu cầu người dùng bấm **Run** mới cho phép auto-semi; còn Enter thông thường chỉ xuống dòng để tiếp tục viết. Tránh eval quá sớm biểu thức mà người dùng định nối thêm toán tử.
+For editors supporting multi-line editing, policy might require the user to click **Run** before allowing auto-semi, while pressing Enter simply inserts a newline to keep typing. Avoid prematurely evaluating an expression when the user intends to append another operator.
 
-### 8.4. UNKNOWN không phải “đúng”
+### 8.4. `UNKNOWN` Does Not Mean "Valid"
 
-`UNKNOWN` được xem là complete trong `isComplete()` để `eval` có thể cung cấp lỗi. Nếu host muốn tránh thực thi code không rõ nguồn gốc, nó có thể chọn báo lỗi/gửi vào môi trường cô lập thay vì eval. Nhưng không nên giải thích trạng thái này là “đúng cú pháp”.
+`UNKNOWN` is treated as complete by `isComplete()` so `eval` can emit errors. If the host wants to avoid executing unverified input, it can report an error or route to an isolated environment instead of calling `eval`. Never describe this status as "syntactically valid."
 
-### 8.5. Chuỗi và text block chứa delimiter
+### 8.5. Strings and Text Blocks Containing Delimiters
 
-Cú pháp Java cho phép `;`, `{`, `}` nằm trong string literal và text block. Parser biết ranh giới token, còn phép cắt dựa trên `indexOf(';')` không phân biệt được. Với text block (Java 17), dấu `"""` còn có thể trải qua nhiều dòng; bộ đệm phải giữ newline đúng nguyên bản.
+Java syntax allows `;`, `{`, and `}` inside string literals and text blocks. The parser tracks token boundaries, whereas slicing via `indexOf(';')` cannot tell them apart. With text blocks (Java 17), `"""` delimiters can also span multiple lines; the buffer must preserve newlines verbatim.
 
-### 8.6. Nhiều snippet và lỗi ở snippet giữa
+### 8.6. Multiple Snippets and Errors in a Middle Snippet
 
-Một batch có thể gồm `"int a = 1; missingMethod(); int b = 2;"`. Mỗi phần phải được tách riêng bằng `source()`/`remaining()`. Nếu snippet thứ hai bị `REJECTED`, chính sách của host quyết định **tiếp tục** đánh giá snippet thứ ba hay dừng batch tại lỗi. Đừng vô thức coi `eval` của cả batch là một transaction nguyên tử: JShell đã có thể lưu thay đổi từ snippet trước lỗi.
+A batch might contain `"int a = 1; missingMethod(); int b = 2;"`. Each piece must be extracted separately via `source()`/`remaining()`. If the second snippet is `REJECTED`, host policy determines whether to **continue** evaluating the third snippet or abort the batch on error. Never unconsciously treat evaluating the entire batch as an atomic transaction: JShell has already persisted state changes from snippets prior to the error.
 
-### 8.7. Đa phiên và đồng thời
+### 8.7. Multi-Session and Concurrency
 
-Không chia sẻ một buffer `pending` giữa các người dùng/phiên khác nhau. Mỗi phiên sở hữu một `JShell`, analyzer và buffer riêng (hoặc có cơ chế đồng bộ/chia tách rõ ràng). Tránh hai thread đồng thời sửa cùng `StringBuilder` rồi gọi `eval` theo thứ tự không xác định. Nếu cần nhiều người dùng, hãy có hàng đợi/điều phối cho từng shell, timeout và cơ chế hủy rõ ràng.
+Never share a single `pending` buffer across different users or sessions. Each session should own its own `JShell`, analyzer, and buffer (or enforce strict synchronization and isolation). Avoid having two threads concurrently mutate the same `StringBuilder` and invoke `eval` in non-deterministic order. For multiple users, use per-shell queues/coordinators, timeouts, and explicit cancellation.
 
-### 8.8. Giới hạn dữ liệu đầu vào và số lần lặp
+### 8.8. Input Size and Iteration Limits
 
-Không để `pending` tăng vô hạn khi người dùng gửi một khai báo chưa đóng ngoặc. Đặt giới hạn byte/ký tự theo chính sách, số snippet tối đa mỗi request và thời gian thực thi. Sau khi hoàn tất, `JShell.close()` để thu hồi tài nguyên engine; đừng lưu `SnippetEvent`/`ClassLoader`/context vượt vòng đời phiên nếu không có lý do.
+Do not let `pending` grow unboundedly when a user submits an unclosed declaration. Enforce policy limits on bytes/characters, maximum snippets per request, and execution time. When finished, call `JShell.close()` to reclaim engine resources; do not retain `SnippetEvent`/`ClassLoader`/context objects beyond the session lifecycle without reason.
 
-## 9. Kiểm thử và checklist
+## 9. Testing and Checklist
 
-Bộ kiểm thử cho host dùng `SourceCodeAnalysis` trước `eval` nên bao gồm:
+A test suite for a host using `SourceCodeAnalysis` before `eval` should cover:
 
-| Input | Điều cần xác minh |
+| Input | What to Verify |
 | --- | --- |
-| Method/class qua nhiều dòng | Không eval khi chưa đủ đóng ngoặc; eval đúng một lần khi complete |
-| Hai khai báo trên một dòng | Hai lần tách và eval đúng thứ tự, không gộp thành một snippet |
-| Biểu thức không có dấu `;` cuối | Trạng thái `COMPLETE_WITH_SEMI` và chính sách auto-semi rõ ràng |
-| Statement chỉ có `;` cuối nhưng còn thiếu operand | Không hiểu nhầm đã hoàn chỉnh khi parser báo chưa đủ |
-| Whitespace, comment | Không đánh giá một snippet rỗng |
-| Chuỗi/text block chứa `;` hoặc `}` | Không cắt nhầm token bằng phép tìm ký tự |
-| Mã sai kiểu hoặc tên method không tồn tại | Completion không thay thế diagnostics từ `eval` |
-| `UNKNOWN` | Không gắn nhãn “mã đúng” chỉ vì `isComplete` trả true |
-| Batch nhiều snippet, snippet giữa bị lỗi | Ranh giới chính xác, chính sách tiếp tục/dừng rõ ràng |
-| Đầu vào dở dang tại EOF | Báo incomplete và giữ/chuyển cho người dùng bổ sung |
-| Nhiều người dùng hoặc thread | Phân tách session/buffer, thứ tự eval nhất quán |
-| Mã không tin cậy hoặc vòng lặp vô hạn | Có policy/giới hạn thực thi riêng, không dựa vào parser |
+| Multi-line method/class | Does not eval while closing braces are missing; evaluates once when complete |
+| Two declarations on one line | Extracted twice and evaluated in order, not merged into one snippet |
+| Expression without trailing `;` | `COMPLETE_WITH_SEMI` status and explicit auto-semi policy |
+| Statement ending in `;` but missing an operand | Not mistaken for complete when the parser reports insufficient tokens |
+| Whitespace, comments | Does not evaluate an empty snippet |
+| String/text block containing `;` or `}` | Does not split inside tokens via character search |
+| Type error or nonexistent method name | Completion does not replace diagnostics from `eval` |
+| `UNKNOWN` | Not labeled "valid code" just because `isComplete` returns true |
+| Multi-snippet batch with a failing middle snippet | Accurate boundaries and clear continue/stop policy |
+| Incomplete input at EOF | Reports incomplete and retains/prompts user for completion |
+| Multiple users or threads | Isolated sessions/buffers and consistent eval ordering |
+| Untrusted code or infinite loop | Separate execution policy/limits, not relying on the parser |
 
-Checklist áp dụng cho code production:
+Production checklist:
 
-- [ ] Lấy `SourceCodeAnalysis` từ chính `JShell` đang dùng.
-- [ ] Tích lũy source cho tới khi `completeness().isComplete()` theo policy; xử lý `EMPTY` và `UNKNOWN` đúng nghĩa.
-- [ ] Dùng `info.source()` cho một lần `eval`, không tự tách bằng regex/dấu chấm phẩy.
-- [ ] Lặp với `info.remaining()` để không bỏ snippet còn lại trong batch.
-- [ ] Xử lý status, value, exception và diagnostics của `SnippetEvent`; không giả định tất cả đều VALID.
-- [ ] Không coi completeness là type-checking hay security screening.
-- [ ] Đặt giới hạn buffer, snippet count, execution time; bảo đảm ranh giới lifecycle/session.
-- [ ] Đóng `JShell` và các tài nguyên kèm theo khi kết thúc.
+- [ ] Obtain `SourceCodeAnalysis` from the exact `JShell` instance in use.
+- [ ] Accumulate source until `completeness().isComplete()` per policy; handle `EMPTY` and `UNKNOWN` accurately.
+- [ ] Pass `info.source()` to a single `eval` call; never split manually via regex or semicolons.
+- [ ] Loop with `info.remaining()` so remaining snippets in a batch are not dropped.
+- [ ] Handle `SnippetEvent` status, value, exception, and diagnostics; never assume all are `VALID`.
+- [ ] Do not treat completeness as type checking or security screening.
+- [ ] Enforce limits on buffer size, snippet count, and execution time; maintain session/lifecycle boundaries.
+- [ ] Close `JShell` and associated resources when finished.
 
-**Kết luận:** Trong JShell nhúng, `eval` là bước **đánh giá** một snippet, không phải một bộ tích lũy các dòng source tùy ý. `SourceCodeAnalysis.analyzeCompletion` quyết định lúc nào đã có **snippet đầu tiên hoàn chỉnh**, `source()` cho đúng mã cần eval và `remaining()` cho phần phải phân tích tiếp. Dùng bộ đệm, enum completeness và event diagnostics đúng cách giúp một ứng dụng REPL chạy ổn định với input đa dòng và nhiều snippet, đồng thời giữ rõ ranh giới giữa phân tích cú pháp, biên dịch và thực thi.
+**Conclusion:** In embedded JShell, `eval` is the step that **evaluates** a single snippet, not an accumulator for arbitrary source lines. `SourceCodeAnalysis.analyzeCompletion` determines when the **first complete snippet** is ready, `source()` gives the exact code to evaluate, and `remaining()` gives what must be analyzed next. Proper use of buffers, the completeness enum, and event diagnostics keeps a REPL application reliable across multi-line and multi-snippet inputs while preserving clear boundaries between parsing, compilation, and execution.

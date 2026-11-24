@@ -1,22 +1,22 @@
-# 4.4 Băm file lớn bằng luồng hoặc ByteBuffer
+# 4.4 Hashing Large Files with Streams or ByteBuffer
 
-## 1. Mục tiêu và bản chất của bài toán
+## 1. Objective and Nature of the Problem
 
-Hàm băm mật mã (cryptographic hash) như **SHA-256** biến một dãy byte dài bất kỳ thành một giá trị dài cố định: SHA-256 tạo ra **32 byte = 256 bit = 64 ký tự hex**. Khi băm file, đầu vào là **toàn bộ các byte của nội dung file, theo đúng thứ tự**, từ byte đầu đến byte cuối. Đường dẫn, tên file, thời gian sửa và kích thước file không tự động được đưa vào digest.
+A cryptographic hash function such as **SHA-256** transforms an arbitrarily long sequence of bytes into a fixed-length value: SHA-256 produces **32 bytes = 256 bits = 64 hex characters**. When hashing a file, the input is **every byte of the file's contents, in exact order**, from the first byte to the last. File path, filename, modification time, and file size are not automatically included in the digest.
 
-Với file vài GB hoặc lớn hơn bộ nhớ JVM, cách sau dễ gây tốn RAM, tràn giới hạn mảng hoặc `OutOfMemoryError`:
+For files of several GB or larger than JVM memory, the following approach easily causes excessive RAM usage, array size limits, or `OutOfMemoryError`:
 
 ```java
-// Minh họa cách KHÔNG nên dùng khi file có thể rất lớn.
+// Illustrates what NOT to do when a file can be very large.
 byte[] allBytes = Files.readAllBytes(path);
 byte[] result = MessageDigest.getInstance("SHA-256").digest(allBytes);
 ```
 
-Thay vào đó, chỉ giữ một vùng đệm cố định (ví dụ **64 KiB**), lặp cho đến EOF và gọi `MessageDigest.update(...)` cho **chính xác số byte thực sự đọc được**:
+Instead, keep only a fixed buffer (for example, **64 KiB**), loop until EOF, and call `MessageDigest.update(...)` for **the exact number of bytes actually read**:
 
 ```text
-File (N byte)
-  | read tối đa 64 KiB mỗi lượt
+File (N bytes)
+  | read at most 64 KiB per iteration
   v
 [buffer] -> digest.update(chunk 1) -> digest.update(chunk 2) -> ...
                                                   |
@@ -24,59 +24,59 @@ File (N byte)
                                            digest.digest()
                                                   |
                                                   v
-                                  SHA-256: 32 byte kết quả
+                                   SHA-256: 32-byte result
 ```
 
-Trong ký hiệu toán học, nếu nội dung file được chia thành `c1, c2, ..., ck` thì kết quả đúng là `SHA256(c1 || c2 || ... || ck)`; dấu `||` là phép nối byte. Hash theo luồng phải bằng hash đọc toàn bộ file **khi hai bên xử lý cùng một chuỗi byte**. Các ranh giới chunk không làm thay đổi digest.
+In mathematical notation, if the file contents are split into `c1, c2, ..., ck`, the correct result is `SHA256(c1 || c2 || ... || ck)`, where `||` denotes byte concatenation. Streaming hashing must equal whole-file hashing **when both process the exact same byte sequence**. Chunk boundaries do not alter the digest.
 
-- **Thời gian:** xấp xỉ O(N) thao tác băm và đọc I/O khi file có N byte.
-- **Bộ nhớ ứng dụng:** xấp xỉ O(B), với B là kích thước buffer cố định; không tăng theo dung lượng file. Provider có thể dùng thêm trạng thái/bộ nhớ nội bộ.
-- **Kết quả:** `MessageDigest.digest()` hoàn tất và reset đối tượng. Với file mới, khởi tạo `MessageDigest` mới hoặc chắc chắn reset; không vô tình ghép dữ liệu của hai file.
-- **Điều kiện quan trọng:** đọc cùng một file trong hai thời điểm **không đồng nghĩa** đọc cùng ảnh chụp dữ liệu nếu file đang bị sửa.
+- **Time:** approximately O(N) hashing and I/O read operations for an N-byte file.
+- **Application memory:** approximately O(B), where B is the fixed buffer size; does not grow with file size. The provider may use additional internal state/memory.
+- **Result:** `MessageDigest.digest()` finalizes and resets the object. For a new file, create a new `MessageDigest` or ensure a reset; do not accidentally merge two files' data.
+- **Important condition:** reading the same file at two different times **does not mean** reading the same data snapshot if the file is being modified.
 
-Bài này tập trung vào ba cách với Java 17+: `InputStream` + `byte[]`, `FileChannel` + `ByteBuffer`, và biến thể `DigestInputStream`. Sau đó xét file vượt 2 GiB, so sánh digest, hiệu năng, tính nhất quán và các lỗi thường gặp.
+This lesson focuses on three approaches in Java 17+: `InputStream` + `byte[]`, `FileChannel` + `ByteBuffer`, and the `DigestInputStream` variant. It then examines files larger than 2 GiB, digest comparison, performance, consistency, and common mistakes.
 
-## 2. Chọn API nào?
+## 2. Which API Should You Choose?
 
-| Cách | API chính | Điểm mạnh | Điểm cần chú ý |
+| Approach | Primary APIs | Strengths | Points to Watch |
 | --- | --- | --- | --- |
-| Đọc tuần tự bằng luồng | `Files.newInputStream(path)`, `InputStream.read(byte[])`, `MessageDigest.update(byte[], off, len)` | Đơn giản; áp dụng cả cho luồng dữ liệu từ file, network hoặc nội dung tải xuống | Chỉ hash `count` byte vừa đọc; dùng try-with-resources; không dùng `available()` để xác định EOF |
-| Đọc qua NIO | `FileChannel.open(path)`, `channel.read(buffer)`, `MessageDigest.update(ByteBuffer)` | Quản lý file position, dễ phối hợp với NIO và direct buffer | Phải dùng `flip()` trước `update`, `clear()` trước lượt đọc mới; `update(ByteBuffer)` thay đổi `position` |
-| Luồng tự cập nhật hash | `DigestInputStream` | Hữu ích khi đã có pipeline đọc InputStream | Không tự update digest lần nữa; phải đọc đến hết nếu cần hash toàn file |
-| Memory-mapped (tùy nhu cầu) | `FileChannel.map(READ_ONLY, offset, length)` | Có thể hữu ích khi đọc theo cửa sổ lớn | `MappedByteBuffer` một vùng map Java 17 có `size <= Integer.MAX_VALUE`; mapping không phải snapshot và vòng đời khác buffer thông thường |
+| Sequential stream reading | `Files.newInputStream(path)`, `InputStream.read(byte[])`, `MessageDigest.update(byte[], off, len)` | Simple; works for streams from files, network, or download payloads | Hash only the `count` bytes just read; use try-with-resources; never use `available()` to detect EOF |
+| Reading via NIO | `FileChannel.open(path)`, `channel.read(buffer)`, `MessageDigest.update(ByteBuffer)` | Manages file position, integrates cleanly with NIO and direct buffers | Must call `flip()` before `update` and `clear()` before the next read; `update(ByteBuffer)` advances `position` |
+| Auto-updating hash stream | `DigestInputStream` | Convenient when an InputStream pipeline already exists | Do not call `update` on the digest a second time; must read to the end to hash the entire file |
+| Memory-mapped (when needed) | `FileChannel.map(READ_ONLY, offset, length)` | Can be useful when reading in large windows | In Java 17, a single `MappedByteBuffer` mapping has `size <= Integer.MAX_VALUE`; mappings are not snapshots and have a different lifecycle from regular buffers |
 
-**Không có phương pháp nào mặc định nhanh nhất cho mọi hệ thống.** Hệ điều hành, cache trang, ổ lưu trữ, provider SHA-256, kích thước buffer và số luồng đọc ảnh hưởng kết quả. Chọn `InputStream` cho độ rõ ràng trước; cân nhắc `FileChannel` khi ứng dụng đang dùng NIO hoặc đã benchmark cho workload thực.
+**No single method is fastest by default on every system.** The OS, page cache, storage device, SHA-256 provider, buffer size, and concurrent readers all affect results. Choose `InputStream` first for clarity; consider `FileChannel` when the application already uses NIO or after benchmarking on real workloads.
 
-## 3. Vòng đời đúng của `MessageDigest` trong một lần băm file
+## 3. Correct `MessageDigest` Lifecycle for Hashing a Single File
 
 ```text
 MessageDigest.getInstance("SHA-256")
               |
               v
-       digest.update(...)   <--- lần 1
+       digest.update(...)   <--- call 1
               |
-       digest.update(...)   <--- lần 2
+       digest.update(...)   <--- call 2
               |
                ...
               |
-       digest.update(...)   <--- lần cuối, có thể ngắn hơn buffer
+       digest.update(...)   <--- final call, may be shorter than buffer
               |
               v
          digest.digest()
               |
               v
-      32 byte SHA-256; digest reset
+      32-byte SHA-256; digest reset
 ```
 
-`update(byte[], offset, len)` tiêu thụ một phần mảng; **không cần** đợi đủ 64 KiB mới cập nhật. `update(ByteBuffer)` chỉ tiêu thụ các byte trong khoảng `position` đến `limit`. Sau `digest()`, không cần gọi `reset()` nếu định dùng lại đối tượng, nhưng việc tạo instance riêng cho mỗi phép băm giúp tránh nhầm trạng thái khi xử lý đồng thời.
+`update(byte[], offset, len)` consumes a slice of an array; you **do not need** to wait for a full 64 KiB before updating. `update(ByteBuffer)` consumes only the bytes between `position` and `limit`. After `digest()`, you do not need to call `reset()` if reusing the object, though creating a dedicated instance per hash avoids state confusion under concurrency.
 
-Đặc biệt, **không** tính `digest()` sau mỗi chunk rồi nối các digest. Biểu thức `SHA256(c1) || SHA256(c2)` không bằng `SHA256(c1 || c2)` và không phải giá trị SHA-256 của file. Chỉ gọi `digest()` **một lần sau khi đã đọc hết file**.
+In particular, **do not** compute `digest()` after each chunk and concatenate those digests. `SHA256(c1) || SHA256(c2)` does not equal `SHA256(c1 || c2)` and is not the file's SHA-256 value. Call `digest()` **only once after reading the entire file**.
 
-## 4. Ví dụ hoàn chỉnh: hai cách băm cùng file
+## 4. Complete Example: Two Ways to Hash the Same File
 
-Chương trình dưới đây thực hiện hai phép đọc độc lập để so sánh `InputStream` với `FileChannel + ByteBuffer`. Nếu chạy **không đối số**, chương trình tạo một file tạm chứa đúng ba byte ASCII của chuỗi `"abc"`, rồi xóa file tạm. Trường hợp này cho đầu ra xác định để tự kiểm tra. Nếu truyền đường dẫn, chương trình băm file thật; có thể truyền thêm digest SHA-256 đáng tin cậy để xác minh.
+The program below performs two independent reads to compare `InputStream` against `FileChannel + ByteBuffer`. If run **with no arguments**, it creates a temporary file containing the exact three ASCII bytes of `"abc"`, then deletes the temporary file. This case yields deterministic output for self-checking. If a path is passed, the program hashes the real file; you can also pass a trusted SHA-256 digest to verify it.
 
-Lưu mã nguồn thành **`FileSha256Demo.java`** (Java 17+):
+Save the source code as **`FileSha256Demo.java`** (Java 17+):
 
 ```java
 import java.io.IOException;
@@ -180,14 +180,14 @@ public final class FileSha256Demo {
 }
 ```
 
-Biên dịch và chạy với đầu vào mẫu:
+Compile and run with the sample input:
 
 ```bash
 javac -encoding UTF-8 FileSha256Demo.java
 java FileSha256Demo
 ```
 
-Kết quả:
+Output:
 
 ```text
 stream=ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
@@ -196,23 +196,23 @@ same=true
 expectedMatch=true
 ```
 
-Chuỗi băm này là test vector SHA-256 chuẩn của chính xác ba byte `abc`, **không phải** hash của chuỗi có ký tự xuống dòng sau `abc`.
+This hash string is the standard SHA-256 test vector for the exact three bytes `abc`, **not** the hash of a string with a newline character after `abc`.
 
-Chạy với file thực (hãy thay đường dẫn):
+Run with a real file (replace the path):
 
 ```bash
 java FileSha256Demo "/data/large-archive.zip"
 ```
 
-Nếu đã nhận được SHA-256 hex qua một nguồn **đáng tin cậy** (ví dụ manifest đã được ký và xác minh), hãy truyền đối số thứ hai:
+If you received the expected SHA-256 hex from a **trusted source** (for example, a signed and verified manifest), pass it as the second argument:
 
 ```bash
 java FileSha256Demo "/data/large-archive.zip" "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 ```
 
-Chuỗi hex trong lệnh này chỉ minh họa định dạng đối số, **không phải checksum đúng của file ví dụ**. Khi có đối số thứ hai, `expectedMatch=true` chỉ xảy ra nếu digest của file thực khớp chính xác 32 byte mong đợi. Một file đã bị sửa mà vẫn so với checksum mới lấy từ cùng nguồn không đáng tin thì kết quả so khớp vẫn **không xác lập tính xác thực**.
+The hex string in this command only illustrates the argument format, **not the actual checksum of the example file**. When a second argument is supplied, `expectedMatch=true` occurs only if the real file's digest matches the exact 32 expected bytes. If a modified file is compared against a new checksum fetched from the same untrusted source, a match still **does not establish authenticity**.
 
-### 4.1 Giải thích cách dùng InputStream
+### 4.1 Explaining the `InputStream` Approach
 
 ```java
 byte[] chunk = new byte[64 * 1024];
@@ -227,48 +227,48 @@ try (InputStream in = Files.newInputStream(path)) {
 byte[] sha256 = digest.digest();
 ```
 
-Đoạn trên là **một phần trích từ chương trình đầy đủ**, giả sử `path` và `digest` đã được tạo.
+The snippet above is **an excerpt from the full program**, assuming `path` and `digest` have already been created.
 
-- `read(chunk)` trả về **số byte thực đọc**, có thể nhỏ hơn dung lượng mảng (ví dụ chunk cuối chỉ có 7 byte). Giá trị `-1` là EOF. Do đó phải gọi `update(chunk, 0, count)`, **không** gọi `update(chunk)` ở mọi lượt, vì những byte cũ còn nằm ở đuôi buffer sẽ bị hash lại.
-- Với buffer có độ dài dương, luồng file thông thường đọc đến khi có dữ liệu hoặc EOF. Phép kiểm tra `count > 0` giúp không cập nhật gì khi có trường hợp đọc 0 byte.
-- `Files.newInputStream` trả luồng byte; `try-with-resources` tự đóng file kể cả khi `read` hoặc `update` ném lỗi. Không dựa vào `available()` để dừng: phương thức đó ước lượng số byte đọc được ngay mà không chặn, **không** phải kích thước file hay thông báo EOF.
-- Một lần đọc không bảo đảm đầy buffer; phải lặp đến `-1`. Không đổi byte thành `String` trước khi hash, vì giải mã và mã hóa lại có thể làm đổi dữ liệu.
-- Với bulk read 64 KiB, không nhất thiết thêm `BufferedInputStream`; hãy benchmark nếu pipeline gồm nhiều phép đọc rất nhỏ.
+- `read(chunk)` returns **the number of bytes actually read**, which can be smaller than the array capacity (for example, the final chunk might have only 7 bytes). `-1` indicates EOF. Therefore you must call `update(chunk, 0, count)`, **not** `update(chunk)` on every iteration, otherwise leftover old bytes at the tail of the buffer will be hashed again.
+- With a positive-length buffer, a normal file stream reads until data is available or EOF is reached. Checking `count > 0` avoids updating anything if a 0-byte read ever occurs.
+- `Files.newInputStream` returns a byte stream; `try-with-resources` closes the file even if `read` or `update` throws an exception. Do not rely on `available()` to stop: that method estimates bytes readable immediately without blocking, **not** file size or EOF.
+- A single read is not guaranteed to fill the buffer; you must loop until `-1`. Do not convert bytes into a `String` before hashing, because decoding and re-encoding can alter the data.
+- With 64 KiB bulk reads, adding `BufferedInputStream` is not strictly necessary; benchmark if your pipeline performs many very small reads.
 
-### 4.2 Giải thích FileChannel và vòng đời ByteBuffer
+### 4.2 Explaining `FileChannel` and the `ByteBuffer` Lifecycle
 
-`FileChannel.open(path, StandardOpenOption.READ)` tạo channel đọc tuần tự; `FileChannel.read(buffer)` ghi byte vào buffer bắt đầu từ `position` hiện tại và tăng `position` theo số byte thực đọc. Chu trình cho mỗi lượt:
+`FileChannel.open(path, StandardOpenOption.READ)` creates a sequential read channel; `FileChannel.read(buffer)` writes bytes into the buffer starting at the current `position` and increments `position` by the number of bytes actually read. The cycle per iteration:
 
 ```text
-Mới allocate / sau clear:
+Newly allocated / after clear:
     position=0               limit=capacity (65536)
-Sau channel.read(...), ví dụ đọc 100 byte:
+After channel.read(...), e.g., reading 100 bytes:
     position=100             limit=65536
-Sau buffer.flip():
+After buffer.flip():
     position=0               limit=100
-Sau digest.update(buffer):
+After digest.update(buffer):
     position=100             limit=100
-Sau buffer.clear():
+After buffer.clear():
     position=0               limit=65536
 ```
 
-`buffer.flip()` chuyển buffer từ chế độ ghi sang đọc: đặt `limit` thành vị trí ghi hiện tại, rồi đưa `position` về 0. `digest.update(buffer)` tiêu thụ **đúng** các byte từ `position` đến `limit` và đưa `position` tới `limit`; nó không tự gọi `flip` và không sửa `limit`. `buffer.clear()` đưa các chỉ số về trạng thái sẵn sàng ghi lại, **không xóa nội dung cũ khỏi bộ nhớ**.
+`buffer.flip()` switches the buffer from write mode to read mode: it sets `limit` to the current write position, then resets `position` to 0. `digest.update(buffer)` consumes **exactly** the bytes from `position` to `limit` and advances `position` to `limit`; it does not call `flip` itself and does not modify `limit`. `buffer.clear()` resets the indices to be ready for writing again, **without erasing old contents from memory**.
 
-`FileChannel.read` trả `-1` ở EOF, có thể trả ít byte hoặc 0 byte theo hợp đồng API. Code vẫn gọi `flip/update/clear` an toàn nếu `count == 0`; lúc đó phạm vi dữ liệu rỗng. Với `FileChannel` đọc file ở chế độ blocking và buffer còn chỗ, việc đọc thông thường sẽ chờ có dữ liệu hoặc EOF, nên không cần triển khai vòng chờ chủ động. Đối với **kênh không blocking khác** (ví dụ socket), phải xử lý trường hợp trả 0 để tránh vòng lặp quay CPU.
+`FileChannel.read` returns `-1` at EOF, and by API contract may return fewer bytes or 0 bytes. The code still safely runs `flip/update/clear` if `count == 0`; in that case the data range is empty. With `FileChannel` reading a file in blocking mode while the buffer has remaining space, reads normally wait for data or EOF, so no busy-wait loop is needed. For **other non-blocking channels** (such as sockets), you must handle 0-byte returns to avoid CPU spin loops.
 
-`ByteBuffer.allocateDirect(64 * 1024)` cấp direct buffer, có thể giảm một số bước sao chép trong thao tác I/O, nhưng có chi phí cấp phát và sử dụng vùng nhớ ngoài heap. `ByteBuffer.allocate(...)` cấp heap buffer cũng tương thích `MessageDigest.update(ByteBuffer)`. Direct không bảo đảm luôn nhanh hơn và không nên cấp phát direct buffer lớn cho từng request mà không xét ngân sách bộ nhớ.
+`ByteBuffer.allocateDirect(64 * 1024)` allocates a direct buffer, which can avoid some copying during I/O operations, but has higher allocation overhead and uses off-heap memory. `ByteBuffer.allocate(...)` creates a heap buffer that is also compatible with `MessageDigest.update(ByteBuffer)`. Direct buffers are not guaranteed to always be faster and should not be allocated in large sizes per request without accounting for memory budgets.
 
-### 4.3 Tại sao có thể xử lý file lớn hơn 2 GiB?
+### 4.3 Why Can Files Larger Than 2 GiB Be Processed?
 
-`InputStream.read` và `FileChannel.read(ByteBuffer)` chỉ cần biết **số byte của một chunk** (kiểu `int`). Vòng lặp có thể chạy hàng chục nghìn lần cho file nhiều GB; kích thước file thực tế được quản lý bằng metadata hoặc `long` khi cần. Không yêu cầu mảng `byte[]` có kích thước bằng file, cũng không đưa tổng chiều dài file vào một `ByteBuffer` duy nhất.
+`InputStream.read` and `FileChannel.read(ByteBuffer)` only need to know **the byte count of a single chunk** (type `int`). The loop can execute tens of thousands of times for multi-GB files; total file size is tracked via metadata or `long` when needed. Neither a `byte[]` sized to the entire file nor fitting the total file length into a single `ByteBuffer` is required.
 
-Một buffer 64 KiB có thể tái sử dụng để đọc file 5 GiB, 50 GiB, ... miễn là file hệ thống/provider hỗ trợ và chương trình có đủ thời gian, dung lượng I/O. Trần kích thước là trần của hệ thống file/API/độ dài nguồn dữ liệu, chứ **không** phải 64 KiB. Nếu cần hiển thị tiến độ, dùng bộ đếm `long processed += count` mỗi lần đọc, không tăng theo `buffer.capacity()`.
+A single 64 KiB buffer can be reused to read a 5 GiB or 50 GiB file as long as the filesystem/provider supports it and the program has sufficient time and I/O bandwidth. The size ceiling is imposed by the filesystem/API/data source length, **not** by 64 KiB. If progress reporting is needed, maintain a `long processed += count` counter per read, rather than adding `buffer.capacity()`.
 
-## 5. Kiểm thử cả chunk rỗng, đúng biên và dư 1 byte
+## 5. Testing Empty Chunks, Exact Boundaries, and +1 Byte Remainder
 
-Một lỗi phổ biến chỉ xuất hiện khi file dài `65536 + 1` byte: lượt đọc cuối có 1 byte nhưng tác giả lại hash toàn bộ mảng 65536 byte. Một lỗi khác là quên `flip` khiến ByteBuffer truyền cả vùng chưa được đọc. Kiểm tra nhiều độ dài sát biên buffer giúp bắt những lỗi này.
+A common bug appears only when a file has `65536 + 1` bytes: the final read contains 1 byte, yet the author hashes the entire 65536-byte array. Another mistake is forgetting `flip`, causing `ByteBuffer` to feed unread regions. Testing multiple lengths around buffer boundaries catches these bugs.
 
-Lưu thành **`HashBoundaryCheck.java`** trong cùng thư mục với `FileSha256Demo.java`:
+Save as **`HashBoundaryCheck.java`** in the same directory as `FileSha256Demo.java`:
 
 ```java
 import java.nio.file.Files;
@@ -307,7 +307,7 @@ public final class HashBoundaryCheck {
 }
 ```
 
-`HashBoundaryCheck` là chương trình **chạy đầy đủ** nhưng **phụ thuộc** hai phương thức `FileSha256Demo.hashStream` và `FileSha256Demo.hashChannel` của lớp ví dụ trước. Chương trình tự tạo file tạm với dữ liệu nhị phân có thể tái lập, thử 7 kích thước, và xóa file khi xong. Bộ dữ liệu thử chỉ ~1 MiB ở trường hợp lớn nhất nên việc giữ mảng toàn bộ trong **kiểm thử** là hợp lý; đây không phải mẫu xử lý file lớn ngoài sản phẩm.
+`HashBoundaryCheck` is a **complete runnable** program, though it **depends** on the two methods `FileSha256Demo.hashStream` and `FileSha256Demo.hashChannel` from the previous example class. The program generates temporary files with reproducible binary data, tests 7 sizes, and deletes the file when finished. The test dataset is only ~1 MiB in the largest case, so holding the full array in memory **for testing** is reasonable; this is not a pattern for handling large files in production.
 
 ```bash
 javac -encoding UTF-8 FileSha256Demo.java HashBoundaryCheck.java
@@ -319,16 +319,16 @@ cases=7
 allMatch=true
 ```
 
-Những độ dài được kiểm tra gồm **0, 1, 65535, 65536, 65537, 131079 và 1048577** byte. SHA-256 trên byte[] nhỏ được dùng làm đáp án độc lập cho hai đường đọc chunk; ngoại lệ `AssertionError` cho biết có cách đọc khác với dữ liệu gốc.
+The tested lengths are **0, 1, 65535, 65536, 65537, 131079, and 1048577** bytes. SHA-256 over the small `byte[]` acts as the independent ground truth for both chunked readers; `AssertionError` indicates a reading path diverged from the original data.
 
-Kiểm thử nên mở rộng bằng file thực có byte 0, byte giá trị âm khi nhìn dưới dạng `byte` Java, nội dung đa ngôn ngữ ở các encoding khác nhau và file lớn hơn 2 GiB khi môi trường tích hợp hỗ trợ. Với file nhỏ, chuỗi rỗng có SHA-256 chuẩn là `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`; đây là test vector tốt để chắc chắn vòng lặp xử lý EOF ngay từ đầu.
+Testing should be expanded to include real files containing zero bytes, bytes with negative values when viewed as Java `byte`, multilingual content in various encodings, and files larger than 2 GiB when the integration environment supports them. For small cases, the empty input has standard SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`; this is a great test vector to verify the loop handles EOF right at the start.
 
-## 6. Biến thể: DigestInputStream tự cập nhật hash khi đọc
+## 6. Variant: `DigestInputStream` Auto-Updates Hash While Reading
 
-Nếu ứng dụng đã sử dụng `InputStream` để copy, parse hoặc đọc dữ liệu từ nguồn khác, có thể bọc luồng bằng `java.security.DigestInputStream` để cập nhật digest **tự động khi các byte được đọc qua wrapper**:
+If an application already uses an `InputStream` to copy, parse, or read data from another source, you can wrap the stream in `java.security.DigestInputStream` to update the digest **automatically as bytes are read through the wrapper**:
 
 ```java
-// Hàm minh họa độc lập về mặt chữ ký; đặt trong lớp Java với import:
+// Illustrative standalone-signature helper; place in a Java class with imports:
 // java.io.IOException, java.nio.file.Files, java.nio.file.Path,
 // java.security.DigestInputStream, java.security.MessageDigest,
 // java.security.NoSuchAlgorithmException.
@@ -339,26 +339,26 @@ static byte[] hashWithDigestInputStream(Path path)
                  new DigestInputStream(Files.newInputStream(path), digest)) {
         byte[] chunk = new byte[64 * 1024];
         while (input.read(chunk) != -1) {
-            // DigestInputStream da goi digest.update(...) trong read().
+            // DigestInputStream already called digest.update(...) inside read().
         }
     }
     return digest.digest();
 }
 ```
 
-Giải thích: `DigestInputStream.read(...)` sẽ gọi `digest.update(...)` khi chế độ cập nhật đang bật (mặc định bật). **Không** gọi thêm `digest.update(chunk)` trong vòng lặp: như vậy mỗi byte bị hash hai lần. Cần đọc luồng **đến EOF** để băm đủ nội dung; đóng trước khi đọc hết chỉ tạo hash của phần đã tiêu thụ. Phương thức `on(false)` có thể tắt cập nhật nếu giao thức yêu cầu bỏ qua một đoạn (ví dụ header), nhưng khi ấy giá trị digest **không còn là SHA-256 của toàn file**.
+Explanation: `DigestInputStream.read(...)` invokes `digest.update(...)` while update mode is enabled (enabled by default). **Do not** call `digest.update(chunk)` inside the loop as well: doing so hashes every byte twice. You must read the stream **all the way to EOF** to hash the full contents; closing early only hashes the consumed portion. The `on(false)` method can disable updates if a protocol requires skipping a section (such as a header), though the digest value will then **no longer be the SHA-256 of the entire file**.
 
-Cách này phù hợp khi vừa đọc dữ liệu để xử lý vừa cần hash đúng phần dữ liệu mà pipeline tiêu thụ. Nếu cần hash toàn bộ file bất kể xử lý nghiệp vụ đọc bao nhiêu byte, hãy tách việc tiêu thụ đầy đủ khỏi logic dừng sớm.
+This approach fits when you both process incoming data and want to hash the exact data consumed by the pipeline. If you must hash the entire file regardless of how many bytes the business logic reads, separate full consumption from early-stop logic.
 
-## 7. Có nên memory-map file lớn?
+## 7. Should You Memory-Map Large Files?
 
-Một số hệ thống dùng `FileChannel.map(READ_ONLY, offset, size)` để tạo `MappedByteBuffer` và đưa thẳng vào `MessageDigest.update(ByteBuffer)`. Điều đó vẫn hoạt động với cùng nguyên tắc `position/limit`, nhưng ở Java 17, overload tạo `MappedByteBuffer` có giới hạn **mỗi lần map không vượt `Integer.MAX_VALUE` byte**. Vì vậy không thể map cả file 5 GiB bằng một lời gọi.
+Some systems use `FileChannel.map(READ_ONLY, offset, size)` to create a `MappedByteBuffer` and pass it directly to `MessageDigest.update(ByteBuffer)`. That works under the same `position/limit` rules, but in Java 17, the overload creating `MappedByteBuffer` limits **each mapping to at most `Integer.MAX_VALUE` bytes**. Thus, you cannot map an entire 5 GiB file in a single call.
 
-Nếu thật sự cần mapping, phải map **theo cửa sổ có độ dài giới hạn**, với `offset` kiểu `long`; hash từng cửa sổ theo đúng thứ tự, cuối cùng gọi `digest()` một lần. Minh họa thuật toán (đoạn khung, **không** phải chương trình độc lập):
+If mapping is genuinely needed, you must map **in bounded windows** using a `long` offset; hash each window in exact order, and finally call `digest()` once. Algorithmic illustration (skeleton snippet, **not** a standalone program):
 
 ```java
-// channel: FileChannel da mo READ, digest: MessageDigest SHA-256
-final long WINDOW = 1L << 30; // 1 GiB, nho hon Integer.MAX_VALUE
+// channel: FileChannel opened for READ, digest: SHA-256 MessageDigest
+final long WINDOW = 1L << 30; // 1 GiB, smaller than Integer.MAX_VALUE
 long size = channel.size();
 for (long pos = 0; pos < size; ) {
     long length = Math.min(WINDOW, size - pos);
@@ -370,84 +370,84 @@ for (long pos = 0; pos < size; ) {
 byte[] result = digest.digest();
 ```
 
-Chú ý: vùng map có vòng đời độc lập với việc đóng channel; dữ liệu/file bị thay đổi hoặc rút ngắn sau khi map có thể gây hành vi phụ thuộc hệ điều hành, kể cả lỗi truy cập vùng map. Mapping có thể làm tăng áp lực địa chỉ bộ nhớ và khó quản lý giải phóng kịp thời. Với nhiệm vụ **chỉ băm tuần tự**, đọc `InputStream` hoặc `FileChannel.read` thường là lựa chọn dễ kiểm soát và portable hơn. Muốn kết luận mapping nhanh hơn phải đo bằng benchmark cùng môi trường và file thật.
+Caution: a mapped region has a lifecycle independent of closing the channel; if the file/data is modified or truncated after mapping, OS-dependent behavior can occur, including access faults on the mapped region. Mapping can also increase address-space pressure and make timely release harder to manage. For **purely sequential hashing**, reading via `InputStream` or `FileChannel.read` is usually easier to control and more portable. To conclude that mapping is faster, you must benchmark in the target environment on real files.
 
-## 8. Kiểm tra checksum: khớp hash khác với xác thực nguồn
+## 8. Checksum Verification: Matching Hashes vs. Authenticating Origin
 
-Một SHA-256 không có khóa cho phép kiểm tra **hai chuỗi byte có cùng digest hay không** (với xác suất va chạm cực thấp đối với SHA-256 khi dùng đúng). Nhưng hash không chứng minh người gửi là ai; ai sửa được cả file lẫn giá trị hash kèm theo đều có thể cung cấp cặp mới tự nhất quán.
+An unkeyed SHA-256 allows checking **whether two byte sequences share the same digest** (with negligible collision probability for SHA-256 when used properly). However, a hash does not prove who the sender is; anyone who can modify both the file and the accompanying hash value can supply a new, self-consistent pair.
 
-Luồng xác minh an toàn hơn:
+A safer verification workflow:
 
-1. Lấy SHA-256 mong đợi từ **nguồn đáng tin**: ví dụ metadata từ kênh đã được xác thực, hoặc manifest có **chữ ký số đã xác minh** bằng khóa tin cậy.
-2. Giải mã hex thành đúng **32 byte**; đầu vào SHA-256 thông thường phải có 64 ký tự hex, không bao gồm dấu cách hoặc tiền tố `0x` nếu parser không xử lý.
-3. Băm đúng byte của file với `MessageDigest`, không giải mã thành text.
-4. So sánh byte bằng `MessageDigest.isEqual(expected, actual)`, sau khi kiểm tra độ dài. Hàm này tránh so sánh rồi dừng ở byte đầu tiên khác; tuy nhiên cần thiết kế thêm bảo vệ về nguồn dữ liệu và ranh giới bảo mật.
-5. Nếu không khớp, **từ chối sử dụng file**; không lấy giá trị digest mới sinh để "sửa" expected nếu chưa có một nguồn tin cậy xác nhận thay đổi.
+1. Obtain the expected SHA-256 from a **trusted source**: for example, metadata over an authenticated channel, or a manifest with a **digital signature verified** using a trusted key.
+2. Decode the hex string into exactly **32 bytes**; standard SHA-256 hex input must be 64 hex characters, without spaces or a `0x` prefix unless the parser handles them.
+3. Hash the exact bytes of the file with `MessageDigest`, without decoding to text.
+4. Compare bytes using `MessageDigest.isEqual(expected, actual)` after checking lengths. This method avoids stopping at the first differing byte; however, you still need protections around data sources and security boundaries.
+5. If they do not match, **reject the file**; never take the newly computed digest to "fix" the expected value unless a trusted source confirms the update.
 
-Trong chương trình chính, `same=true` chỉ nói hai phương pháp đọc đã cho cùng digest, **không** nói file đáng tin. Khi nhận expected từ manifest tin cậy, `expectedMatch=true` mới cho phép áp dụng quy tắc của quy trình xác minh. SHA-256 không mã hóa file và không che giấu nội dung. Dùng HMAC hoặc chữ ký số nếu cần bảo đảm tính xác thực; băm file đơn thuần không thay thế chữ ký.
+In the main program, `same=true` only states that both reading methods produced the same digest, **not** that the file is trustworthy. Only when `expected` comes from a trusted manifest does `expectedMatch=true` allow proceeding under the verification workflow's rules. SHA-256 does not encrypt the file and does not hide its contents. Use HMAC or digital signatures when authenticity guarantees are needed; hashing a file alone does not replace a signature.
 
-Độ dài đầu ra là **số byte digest**, không liên quan đến kích thước file; 64 ký tự hex vì mỗi byte được biểu diễn thành hai chữ số hex. Java 17 cung cấp `HexFormat.of().formatHex(...)` và `HexFormat.of().parseHex(...)`; không cần tự chuyển các byte âm kiểu Java bằng cách nối chuỗi tùy ý.
+The output length is **the digest's byte count**, independent of file size; 64 hex characters arise because each byte is formatted as two hex digits. Java 17 provides `HexFormat.of().formatHex(...)` and `HexFormat.of().parseHex(...)`; you do not need to manually convert Java's signed negative bytes via ad-hoc string concatenation.
 
-## 9. File thay đổi khi đang hash: tính nhất quán và TOCTOU
+## 9. Files Modified During Hashing: Consistency and TOCTOU
 
-Với file rất lớn, phép băm có thể kéo dài. Trong thời gian đó, một tiến trình khác có thể ghi, truncate, thay thế hoặc đổi nội dung tại đường dẫn. Một lần đọc tuần tự **không được JCA/FileChannel bảo đảm là bản chụp nguyên tử** của file.
+For very large files, hashing can take noticeable time. Meanwhile, another process might write, truncate, replace, or alter content at that path. A sequential read **is not guaranteed by JCA/FileChannel to be an atomic snapshot** of the file.
 
-- Lượt hash `InputStream` và lượt hash `FileChannel` trong chương trình chính diễn ra **nối tiếp**, nên nếu file bị sửa giữa hai lượt, `same=false` có thể phản ánh **hai phiên bản khác nhau** thay vì lỗi thuật toán.
-- File bị kéo dài trong lúc đọc có thể khiến dữ liệu được đọc theo một biên EOF khác; file bị rút ngắn gây thất bại hoặc dữ liệu thiếu. Hash khi file đang bị sửa có thể không tương ứng với một trạng thái ổn định nào.
-- Kiểm tra `Files.size(path)` hoặc thời gian sửa **trước và sau** chỉ giúp phát hiện một số thay đổi, **không bảo đảm** file không bị sửa rồi khôi phục. `FileChannel.lock(...)` cũng không phải khóa cưỡng chế di động tuyệt đối giữa mọi tiến trình/hệ điều hành.
-- Nếu cần bằng chứng tin cậy, hash **bản snapshot bất biến**, file tạm được tạo xong rồi đóng, bản copy kiểm soát quyền ghi, hoặc đối tượng lưu trữ phiên bản cố định. Khi tải xuống, có thể hash ngay trong quá trình ghi ra file tạm, kiểm tra expected digest sau khi hoàn tất, rồi chỉ công bố/đổi tên file theo quy trình an toàn.
-- Với đường dẫn do người dùng cung cấp, cần đánh giá symlink, directory traversal, quyền truy cập và việc đường dẫn bị thay thế giữa lúc kiểm tra và mở file. Quyết định truy cập file phải dựa trên chính sách ứng dụng, không chỉ dựa vào hash.
+- The `InputStream` pass and `FileChannel` pass in the main program run **sequentially**, so if the file is modified between passes, `same=false` can reflect **two different versions** rather than an algorithm bug.
+- A file extended while being read can cause bytes to be read up to a different EOF boundary; a truncated file causes failures or incomplete data. Hashing a file while it is being mutated may correspond to no stable state at all.
+- Checking `Files.size(path)` or modification time **before and after** only catches some changes; it **does not guarantee** the file was not modified and restored. `FileChannel.lock(...)` is also not a strictly portable mandatory lock across all processes/OSes.
+- When reliable evidence is required, hash an **immutable snapshot**, a temporary file that has finished writing and been closed, a copy with write permissions controlled, or a version-pinned storage object. During downloads, you can hash on the fly while writing to a temp file, verify the expected digest upon completion, and only then publish/rename the file via a safe workflow.
+- For user-supplied paths, evaluate symlinks, directory traversal, permissions, and path replacement between check and open. File access decisions must rest on application policy, not solely on hashes.
 
-Hash chỉ phản ánh byte đã được engine tiêu thụ trong lần thực thi đó. Nếu ứng dụng muốn bảo đảm tính toàn vẹn của dữ liệu sẽ **được dùng sau này**, phải đảm bảo dữ liệu đã hash chính là dữ liệu được lưu, chuyển đi hoặc xử lý, không lấy lại file khác từ cùng đường dẫn mà không kiểm soát phiên bản.
+A hash reflects only the bytes consumed by the engine during that execution. If the application needs to guarantee the integrity of data that will **be used later**, it must ensure the exact hashed data is what gets stored, transmitted, or processed—not re-read another file from the same path without version control.
 
-## 10. Lỗi phổ biến và cách sửa
+## 10. Common Mistakes and Fixes
 
-| Lỗi | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Correct Practice |
 | --- | --- | --- |
-| `Files.readAllBytes` trên file rất lớn | O(N) RAM; có thể `OutOfMemoryError` hoặc đụng giới hạn mảng | Đọc chunk cố định bằng stream/channel |
-| `digest.update(chunk)` dù `read` chỉ trả 1 byte | Hash cả dữ liệu thừa từ lần trước trong mảng | `digest.update(chunk, 0, count)` |
-| `while (in.available() > 0)` | Có thể dừng sớm, bỏ dữ liệu | Đọc đến `read(...) == -1` |
-| Gọi `digest()` sau mỗi chunk | Cho chuỗi digest của từng chunk, không phải hash file | Chỉ final sau khi đọc xong |
-| Quên `buffer.flip()` | Hash sai vùng nhớ, kể cả byte chưa thuộc file | `read → flip → update → clear` |
-| Quên `buffer.clear()` | Buffer hết chỗ, lượt đọc kế tiếp có thể trả 0 liên tục | Clear chỉ số sau khi update; không giữ stale position |
-| Gọi `flip()` hai lần hoặc `rewind()` sai | Giới hạn/số byte hợp lệ sai, mất hoặc hash lặp dữ liệu | Theo đúng state `position/limit` của từng lượt |
-| Dùng `String`/`Reader` để băm "file văn bản" | Encoding và newline có thể thay đổi byte gốc | Băm byte từ `InputStream` hoặc `ByteBuffer` |
-| Đọc cùng `MessageDigest` từ nhiều thread | Trộn trạng thái nhiều file; digest sai | Tạo digest riêng cho mỗi tác vụ/luồng |
-| Thấy `same=true` rồi kết luận an toàn | Hai lượt có thể cùng đọc file đã bị tấn công | So với digest tin cậy; xác minh chữ ký/HMAC khi cần |
-| Dựa vào `size`/`lastModifiedTime` như snapshot | Bỏ sót thay đổi trong lúc đọc | Dùng ảnh chụp bất biến hoặc workflow có kiểm soát |
-| Nuốt `IOException` rồi vẫn trả digest | Hash của nội dung chưa đọc đủ bị coi là hoàn tất | Để exception làm thất bại toàn tác vụ; xóa/từ chối kết quả |
+| `Files.readAllBytes` on very large files | O(N) RAM; can cause `OutOfMemoryError` or hit array limits | Read fixed chunks with stream/channel |
+| `digest.update(chunk)` even when `read` returned 1 byte | Hashes stale leftover data in the array from the previous read | `digest.update(chunk, 0, count)` |
+| `while (in.available() > 0)` | Can stop early, dropping data | Read until `read(...) == -1` |
+| Calling `digest()` after every chunk | Produces a sequence of per-chunk digests, not the file hash | Finalize only once after reading finishes |
+| Forgetting `buffer.flip()` | Hashes wrong memory region, including bytes not from the file | `read → flip → update → clear` |
+| Forgetting `buffer.clear()` | Buffer runs out of space; subsequent reads may keep returning 0 | Clear indices after update; do not retain stale position |
+| Calling `flip()` twice or misusing `rewind()` | Corrupts valid range/byte count; drops or double-hashes data | Follow exact `position/limit` state on every iteration |
+| Using `String`/`Reader` to hash a "text file" | Encoding and newlines can alter original bytes | Hash raw bytes from `InputStream` or `ByteBuffer` |
+| Reading into the same `MessageDigest` from multiple threads | Interleaves state across files; corrupted digest | Create a separate digest per task/thread |
+| Seeing `same=true` and concluding the file is safe | Both passes could have read a compromised file | Compare against a trusted digest; verify signatures/HMAC when needed |
+| Relying on `size`/`lastModifiedTime` as a snapshot | Misses modifications occurring during reading | Use immutable snapshots or a controlled workflow |
+| Swallowing `IOException` and still returning a digest | Incomplete data hash is treated as complete | Let the exception fail the operation; discard/reject the result |
 
-**Lưu ý về lỗi:** `NoSuchAlgorithmException` xảy ra nếu provider không hỗ trợ thuật toán; Java SE phải hỗ trợ `SHA-256` theo danh sách chuẩn. `IOException` có thể do file không tồn tại, quyền bị từ chối, thiết bị hỏng hoặc đọc giữa chừng thất bại. Nếu hash file lỗi, không được trả một digest "tạm" như kết quả hợp lệ. `try-with-resources` đóng tài nguyên I/O kể cả khi có exception; không tự nuốt hoặc thay thế exception bằng chuỗi hash rỗng.
+**Error handling notes:** `NoSuchAlgorithmException` occurs if no provider supports the algorithm; Java SE is required to support `SHA-256` per the standard list. `IOException` can result from a missing file, permission denied, failing hardware, or mid-stream read errors. If hashing a file fails, never return a "partial" digest as a valid result. `try-with-resources` closes I/O resources even on exception; never swallow exceptions or substitute an empty hash string.
 
-## 11. Hiệu năng và bộ nhớ: đo thay vì đoán
+## 11. Performance and Memory: Measure Instead of Guessing
 
-**Bắt đầu với buffer vừa phải** như 32–256 KiB, ví dụ 64 KiB, rồi đo trên loại file và thiết bị thực tế. Buffer quá nhỏ tăng số lời gọi I/O; buffer quá lớn tăng footprint (nhất là khi hàng trăm request đồng thời), có thể gây áp lực heap hoặc direct memory mà lợi ích I/O không tăng tương ứng.
+**Start with a moderate buffer** such as 32–256 KiB, e.g., 64 KiB, and measure on real file types and storage devices. Buffers that are too small increase I/O call count; buffers that are too large increase memory footprint (especially with hundreds of concurrent requests) and can pressure heap or direct memory without proportional I/O gains.
 
-**Direct vs heap ByteBuffer:** direct buffer có thể có lợi trong một số đường truyền I/O native, nhưng cấp phát direct buffer thường đắt hơn heap buffer, và provider băm có thể phải sao chép dữ liệu vào implementation nội bộ. Đừng giả định `allocateDirect` cho throughput cao hơn; đo cả CPU, GC, direct memory, latency và số tác vụ đồng thời.
+**Direct vs. heap ByteBuffer:** direct buffers can benefit certain native I/O paths, yet allocating direct buffers is usually costlier than heap buffers, and the hash provider may still copy data into internal implementations. Do not assume `allocateDirect` yields higher throughput; measure CPU, GC, direct memory, latency, and concurrency together.
 
-**So sánh công bằng:** thử nhiều kích thước file, nhiều thiết bị và trạng thái cache. Đọc hai lần liên tiếp thường khiến lượt thứ hai được hưởng OS page cache; cần đảo thứ tự, warm-up và nhiều lần đo. Chỉ dùng `System.nanoTime` thô để chẩn đoán gần đúng; nếu muốn benchmark nghiêm túc thì dùng công cụ như JMH và đo cả I/O thực tế.
+**Fair comparisons:** test across file sizes, storage devices, and cache states. Reading twice in a row typically lets the second pass hit the OS page cache; alternate ordering, warm up, and run multiple iterations. Use raw `System.nanoTime` only for rough diagnostics; for serious benchmarking, use tools like JMH and include realistic I/O.
 
-**Không cần song song hóa digest bằng cách ghép hash chunk.** SHA-256 của một file có cấu trúc state nối tiếp; tính hash riêng cho mỗi chunk rồi nối không cho ra SHA-256 của toàn file. Các thiết kế hash tree/Merkle tree là **giao thức khác** với đầu ra khác, chỉ dùng nếu định dạng bên tiêu thụ có quy định.
+**Do not try to parallelize a digest by concatenating chunk hashes.** SHA-256 of a file has a sequential state dependency; hashing each chunk independently and concatenating does not produce the file's SHA-256. Hash tree/Merkle tree designs are **different protocols** with different outputs, to be used only when specified by the consuming format.
 
-**Một tác vụ, một instance:** `MessageDigest` có state; không chia cùng instance cho nhiều file đang xử lý song song. Nếu tối ưu tái sử dụng object theo thread, phải đảm bảo `reset()` trước thông điệp mới và không chia sẻ đồng thời; tạo mới đơn giản hơn khi chi phí chấp nhận được.
+**One task, one instance:** `MessageDigest` is stateful; do not share one instance across multiple files processed in parallel. If optimizing by reusing objects per thread, guarantee `reset()` before each new message and zero concurrent sharing; creating a fresh instance is simpler whenever cost is acceptable.
 
-## 12. Tự kiểm tra kiến thức
+## 12. Self-Check Knowledge Questions
 
-1. Một file 8 GiB có cần tạo mảng byte dài 8 GiB để lấy SHA-256 không? **Không**; chunk 64 KiB và `update` liên tục là đủ.
-2. `InputStream.read(chunk)` trả 19 khi buffer có 65536 phần tử thì nên hash bao nhiêu byte? **19 byte**: `digest.update(chunk, 0, 19)`.
-3. ByteBuffer đang có `position=19, limit=65536` sau `channel.read`; cần làm gì trước khi `digest.update`? **`flip()`**, để phạm vi đọc đúng 19 byte; sau update phải `clear()`.
-4. Tại sao không gọi `digest()` sau mỗi chunk? Vì `digest()` kết thúc **một hash** và reset state; kết quả chunk riêng **khác** hash của phép nối byte.
-5. File rỗng có digest không? **Có**: SHA-256 của luồng 0 byte là `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
-6. Hai cách đọc cho cùng digest có chứng minh file do nhà phát hành công bố không? **Không**; phải đối chiếu với digest nguồn tin cậy hoặc xác minh chữ ký số.
-7. Vì sao `lastModifiedTime` không chứng minh file ổn định khi hash? Có thể thay đổi rồi phục hồi timestamp, hoặc sửa trong lúc đọc. Cần bản snapshot hay quy trình phiên bản bất biến.
-8. Có thể băm file 10 GiB bằng một `MappedByteBuffer` từ `FileChannel.map` Java 17 không? **Không** với một vùng map kiểu `MappedByteBuffer` duy nhất; cần chia cửa sổ map hoặc dùng vòng lặp `read`.
+1. Does an 8 GiB file require creating an 8 GiB byte array to compute SHA-256? **No**; a 64 KiB chunk buffer and repeated `update` calls suffice.
+2. If `InputStream.read(chunk)` returns 19 when the buffer has 65536 elements, how many bytes should be hashed? **19 bytes**: `digest.update(chunk, 0, 19)`.
+3. A `ByteBuffer` has `position=19, limit=65536` after `channel.read`; what must you do before `digest.update`? **`flip()`**, so the read range covers exactly 19 bytes; call `clear()` after updating.
+4. Why not call `digest()` after each chunk? Because `digest()` finishes **one hash** and resets state; individual chunk results **differ** from the hash of concatenated bytes.
+5. Does an empty file have a digest? **Yes**: the SHA-256 of a 0-byte stream is `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+6. Does two reading methods producing the same digest prove the file came from the publisher? **No**; you must compare against a digest from a trusted source or verify a digital signature.
+7. Why does `lastModifiedTime` not prove a file stayed stable while hashing? A process can modify and restore the timestamp, or edit while reading. You need a snapshot or an immutable versioning workflow.
+8. Can you hash a 10 GiB file with a single `MappedByteBuffer` from Java 17 `FileChannel.map`? **No** with a single `MappedByteBuffer` mapping; you must map in windows or use a `read` loop.
 
-## Tài liệu API chính thức
+## Official API Documentation
 
 - [MessageDigest (Java SE 21): update(ByteBuffer), digest(), reset(), isEqual()](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/MessageDigest.html)
 - [Files.newInputStream(Path)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/Files.html#newInputStream(java.nio.file.Path,java.nio.file.OpenOption...))
 - [InputStream.read(byte[])](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/InputStream.html)
-- [FileChannel.read(ByteBuffer) và map()](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html)
+- [FileChannel.read(ByteBuffer) and map()](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html)
 - [ByteBuffer: flip(), clear(), position(), limit()](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html)
 - [DigestInputStream](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/DigestInputStream.html)
 - [HexFormat (Java 17+)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HexFormat.html)

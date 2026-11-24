@@ -1,35 +1,35 @@
-# 6.1 ManagementFactory, platform MXBean và ranh giới giữa API chuẩn với phần mở rộng HotSpot
+# 6.1 ManagementFactory, platform MXBeans, and the boundary between standard APIs and HotSpot extensions
 
 > **Java Advance – runtime-diagnostics** · **6. MXBeans**
 
-## 1. Bài toán: Java runtime đang cho ta quan sát những gì?
+## 1. The problem: what does the Java runtime let us observe?
 
-Khi một API Java chậm bất thường, người vận hành thường hỏi: heap hiện dùng bao nhiêu, JVM có bao nhiêu thread, GC đã chạy mấy lần, process đã tiêu thụ bao nhiêu CPU time, hay hệ điều hành có đang quá tải không? Không phải câu hỏi nào cũng cần profiler, heap dump hay agent. Nhiều số đo nền tảng được JVM cung cấp qua **platform MXBeans**, truy cập trực tiếp từ code hoặc qua **JMX (Java Management Extensions)**.
+When a Java API is unusually slow, operators often ask: how much heap is currently in use, how many threads does the JVM have, how many times has GC run, how much CPU time has the process consumed, or is the operating system overloaded? Not every question requires a profiler, a heap dump, or an agent. Many foundational metrics are provided by the JVM through **platform MXBeans**, accessed directly from code or via **JMX (Java Management Extensions)**.
 
-Trong Java, **ManagementFactory** là điểm vào thuận tiện nhất cho những MXBean này. Tuy nhiên, cần phân biệt hai tầng:
+In Java, **ManagementFactory** is the most convenient entry point for these MXBeans. However, two layers must be distinguished:
 
-- **API quản lý chuẩn của Java SE**, chủ yếu nằm trong module **java.management** và package **java.lang.management**. Đây là hợp đồng liên nền tảng, có tài liệu quy định loại bean, phương thức và trường hợp không hỗ trợ.
-- **Các phần mở rộng của JDK/HotSpot**, nổi bật là module **jdk.management**, package **com.sun.management**. Chúng có thể cung cấp process CPU time, allocated bytes theo thread, thông tin GC chuyên sâu hoặc chẩn đoán HotSpot; không nên xem đó là hợp đồng bắt buộc trên mọi bản Java SE và mọi JVM implementation.
+- **The standard Java SE management API**, primarily located in the **java.management** module and the **java.lang.management** package. This is a cross-platform contract with documentation specifying bean types, methods, and unsupported cases.
+- **JDK/HotSpot extensions**, notably the **jdk.management** module and the **com.sun.management** package. They can provide process CPU time, allocated bytes per thread, in-depth GC information, or HotSpot diagnostics; they should not be treated as a mandatory contract across every Java SE release and every JVM implementation.
 
-Bài này đi từ đối tượng API đến giá trị đo, ranh giới tương thích, cách viết ứng dụng chịu được khác biệt runtime và giới hạn khi sử dụng trong sự cố production.
+This lesson moves from API objects to measured values, compatibility boundaries, how to write applications resilient to runtime differences, and limits when used during production incidents.
 
-### Sau bài này, bạn cần làm được
+### After this lesson, you should be able to
 
-1. Giải thích mối quan hệ **ManagementFactory → platform MXBean → platform MBeanServer → JMX client/proxy**.
-2. Chọn được bean chuẩn cho memory, threads, runtime, class loading, operating system, garbage collector và memory pool.
-3. Phân biệt kiểu **một MXBean (singleton)** với **danh sách MXBeans**; tránh gọi API singleton cho một loại có nhiều thực thể.
-4. Hiểu ObjectName, JMX OpenType và vì sao getter trong code có thể trả đối tượng Java còn JMX attribute dùng CompositeData.
-5. Dùng Java 17+ truy vấn MXBean chuẩn, nhận diện **giá trị động**, **-1/không hỗ trợ**, **null** và các metric là counter/gauge.
-6. Nhận biết và kiểm tra an toàn phần mở rộng **com.sun.management**, đặc biệt OperatingSystemMXBean và HotSpotDiagnosticMXBean.
-7. Không lẫn khả năng *quan sát* với quyền *thay đổi trạng thái*; không biến một API JMX thành endpoint công khai không bảo vệ.
+1. Explain the relationship **ManagementFactory → platform MXBean → platform MBeanServer → JMX client/proxy**.
+2. Choose the standard bean for memory, threads, runtime, class loading, operating system, garbage collector, and memory pool.
+3. Distinguish between a **single MXBean (singleton)** and a **list of MXBeans**; avoid calling the singleton API for a type that has multiple instances.
+4. Understand ObjectName, JMX OpenType, and why getters in code can return Java objects while JMX attributes use CompositeData.
+5. Use Java 17+ to query standard MXBeans, recognizing **dynamic values**, **-1/unsupported**, **null**, and metrics that are counters/gauges.
+6. Recognize and safely check **com.sun.management** extensions, especially OperatingSystemMXBean and HotSpotDiagnosticMXBean.
+7. Never confuse the ability to *observe* with the permission to *mutate state*; never turn a JMX API into an unprotected public endpoint.
 
-## 2. Mô hình kiến trúc: có thể truy cập trực tiếp hoặc qua JMX
+## 2. Architectural model: direct access or access via JMX
 
 ~~~text
                          +-------------------------------+
-                         | JVM đang chạy                 |
+                         | Running JVM                   |
                          |                               |
-  Java code cùng process  |  ManagementFactory            |
+  In-process Java code   |  ManagementFactory            |
   ----------------------->|       |                       |
                          |       v                       |
                          |  Platform MXBeans             |
@@ -46,75 +46,75 @@ Bài này đi từ đối tượng API đến giá trị đo, ranh giới tươn
                           JMX client / dashboard / tool
 ~~~
 
-Có **hai đường lấy số đo** khác nhau:
+There are **two different paths to read metrics**:
 
-**Đường A – gọi trực tiếp trong chính JVM:**
+**Path A – direct call inside the same JVM:**
 
 ~~~java
-// Minh họa nằm trong một phương thức Java; đây không phải cả chương trình.
+// Illustration inside a Java method; this is not a complete program.
 java.lang.management.MemoryMXBean bean =
         java.lang.management.ManagementFactory.getMemoryMXBean();
 long heapUsedBytes = bean.getHeapMemoryUsage().getUsed();
 ~~~
 
-Đường này không cần khởi động một JMX server mạng chỉ để đọc nội bộ. Chương trình gọi interface Java tương ứng trên chính process đang chạy.
+This path does not need to start a networked JMX server just to read internally. The program invokes the corresponding Java interface on the running process itself.
 
-**Đường B – đi qua MBeanServer/JMX:**
+**Path B – going through MBeanServer/JMX:**
 
 ~~~text
 JMX client -> MBeanServerConnection -> ObjectName/attribute/operation
                                    -> platform MXBean
 ~~~
 
-JMX cung cấp cách truy cập quản lý từ các công cụ hoặc ứng dụng khác nếu có kết nối phù hợp. **Việc gọi ManagementFactory.getPlatformMBeanServer() không tự động mở một cổng JMX công khai**; xuất bản endpoint từ xa cần cấu hình connector và kiểm soát bảo mật riêng. Mở cổng quản lý không xác thực là rủi ro nghiêm trọng vì nhiều bean và operation có thể lộ dữ liệu nhạy cảm hoặc thay đổi trạng thái JVM.
+JMX provides a way to access management data from other tools or applications if an appropriate connection is available. **Calling ManagementFactory.getPlatformMBeanServer() does not automatically open a public JMX port**; publishing a remote endpoint requires configuring a connector and separate security controls. Opening an unauthenticated management port is a serious risk because many beans and operations can expose sensitive data or alter JVM state.
 
-### MXBean khác MBean như thế nào?
+### How does an MXBean differ from an MBean?
 
-**MBean** là khái niệm rộng của JMX: một managed object phơi bày attributes và operations. **MXBean** là dạng MBean có quy tắc ánh xạ kiểu dữ liệu Java sang **JMX OpenTypes** (ví dụ dữ liệu đơn giản, CompositeData, TabularData). Nhờ vậy client JMX không nhất thiết phải có đúng class Java cụ thể của object trả về để đọc dữ liệu.
+**MBean** is the broad JMX concept: a managed object exposing attributes and operations. **MXBean** is a form of MBean that has rules for mapping Java data types to **JMX OpenTypes** (e.g., simple data, CompositeData, TabularData). As a result, a JMX client does not necessarily need the exact concrete Java class of the returned object to read the data.
 
-Một đối tượng gọi trực tiếp:
+An object called directly:
 
 ~~~text
 MemoryMXBean.getHeapMemoryUsage() -> MemoryUsage
 ~~~
 
-Khi đọc attribute tương ứng qua MBeanServer:
+When reading the corresponding attribute through MBeanServer:
 
 ~~~text
 MBeanServer.getAttribute(ObjectName, "HeapMemoryUsage")
-    -> một giá trị OpenType, thường là CompositeData
+    -> an OpenType value, typically CompositeData
 ~~~
 
-Đây không phải hai metric khác nhau; đó là **hai cách biểu diễn** cùng thông tin theo hợp đồng JMX. Đừng cast giá trị từ MBeanServer sang MemoryUsage mà không xem phép ánh xạ MXBean. Ví dụ chạy được ở phần thực hành sẽ chứng minh điểm này.
+These are not two different metrics; they are **two representations** of the same information under the JMX contract. Do not cast the value from MBeanServer to MemoryUsage without considering MXBean mapping. A runnable example in the practice section will demonstrate this point.
 
-## 3. ManagementFactory: cổng vào nhất quán cho platform MXBeans
+## 3. ManagementFactory: a consistent gateway for platform MXBeans
 
-Class **java.lang.management.ManagementFactory** có các phương thức static trả về bean đã được platform cung cấp. Không cần tự tạo MemoryMXBean hay ThreadMXBean bằng constructor.
+The **java.lang.management.ManagementFactory** class has static methods returning beans provided by the platform. There is no need to instantiate MemoryMXBean or ThreadMXBean with a constructor.
 
-### 3.1 Những factory method nên nhớ
+### 3.1 Factory methods to remember
 
-| Factory method | Kiểu trả về chuẩn | Câu hỏi chẩn đoán |
+| Factory method | Standard return type | Diagnostic question |
 | --- | --- | --- |
 | getRuntimeMXBean() | RuntimeMXBean | VM name/version, uptime, start time, input arguments |
-| getMemoryMXBean() | MemoryMXBean | Heap/non-heap used/committed/max, số pending finalization nếu được cung cấp |
-| getThreadMXBean() | ThreadMXBean | Số thread live/daemon/peak, thread CPU time, deadlock và ThreadInfo khi được hỗ trợ |
+| getMemoryMXBean() | MemoryMXBean | Heap/non-heap used/committed/max, pending finalization count if provided |
+| getThreadMXBean() | ThreadMXBean | Live/daemon/peak thread count, thread CPU time, deadlock and ThreadInfo when supported |
 | getOperatingSystemMXBean() | OperatingSystemMXBean | OS name/architecture, processors available, system load average |
-| getClassLoadingMXBean() | ClassLoadingMXBean | Lớp đang được load, tổng loaded/unloaded |
-| getGarbageCollectorMXBeans() | List<GarbageCollectorMXBean> | Các GC manager hiện có, tổng collection count/time |
-| getMemoryPoolMXBeans() | List<MemoryPoolMXBean> | Eden/Old/Metaspace hoặc pool do VM định nghĩa, usage/peak/threshold |
-| getMemoryManagerMXBeans() | List<MemoryManagerMXBean> | Các memory managers và pools liên quan |
-| getCompilationMXBean() | CompilationMXBean hoặc null | Thông tin hệ biên dịch/JIT khi có |
-| getPlatformMXBean(Class<T>) | T hoặc null | Lấy platform management interface có **tối đa một** thực thể |
-| getPlatformMXBeans(Class<T>) | List<T> | Lấy **từ 0 đến nhiều** bean cùng interface |
-| getPlatformManagementInterfaces() | Set<Class<? extends PlatformManagedObject>> | Các management interfaces platform hỗ trợ, gồm cả phần mở rộng implementation |
-| getPlatformMBeanServer() | MBeanServer | Cổng JMX chuẩn trong process |
+| getClassLoadingMXBean() | ClassLoadingMXBean | Currently loaded classes, total loaded/unloaded |
+| getGarbageCollectorMXBeans() | List<GarbageCollectorMXBean> | Available GC managers, total collection count/time |
+| getMemoryPoolMXBeans() | List<MemoryPoolMXBean> | Eden/Old/Metaspace or VM-defined pools, usage/peak/threshold |
+| getMemoryManagerMXBeans() | List<MemoryManagerMXBean> | Memory managers and related pools |
+| getCompilationMXBean() | CompilationMXBean or null | Compiler/JIT system information when available |
+| getPlatformMXBean(Class<T>) | T or null | Retrieve a platform management interface with **at most one** instance |
+| getPlatformMXBeans(Class<T>) | List<T> | Retrieve **0 to many** beans of the same interface |
+| getPlatformManagementInterfaces() | Set<Class<? extends PlatformManagedObject>> | Management interfaces supported by the platform, including implementation extensions |
+| getPlatformMBeanServer() | MBeanServer | Standard in-process JMX gateway |
 
-**Số lượng có ý nghĩa.** MemoryMXBean và ThreadMXBean là singleton tiêu biểu. GarbageCollectorMXBean, MemoryManagerMXBean, MemoryPoolMXBean và BufferPoolMXBean là nhóm có thể có nhiều bean; số lượng/tên/thứ tự phụ thuộc VM, GC và cấu hình. CompilationMXBean có thể **không tồn tại** và method trả null.
+**Multiplicity matters.** MemoryMXBean and ThreadMXBean are classic singletons. GarbageCollectorMXBean, MemoryManagerMXBean, MemoryPoolMXBean, and BufferPoolMXBean belong to the group that can have multiple beans; the count, names, and order depend on the VM, GC, and configuration. CompilationMXBean may **not exist** and the method returns null.
 
-Do đó, **không** gọi getPlatformMXBean(GarbageCollectorMXBean.class) rồi cho rằng có một collector duy nhất: API singleton có thể ném IllegalArgumentException vì loại interface này không phải singleton. Hãy dùng:
+Therefore, do **not** call getPlatformMXBean(GarbageCollectorMXBean.class) assuming there is a single collector: the singleton API may throw IllegalArgumentException because this interface type is not a singleton. Use:
 
 ~~~java
-// Mảnh mã minh họa, đặt trong phương thức bất kỳ.
+// Illustrative snippet, placed inside any method.
 var collectors = java.lang.management.ManagementFactory
         .getPlatformMXBeans(java.lang.management.GarbageCollectorMXBean.class);
 for (var gc : collectors) {
@@ -122,37 +122,37 @@ for (var gc : collectors) {
 }
 ~~~
 
-Vòng lặp trên không có stdout cố định: tên GC, số bean và counter thay đổi theo JVM, cấu hình collector và thời điểm quan sát.
+The loop above has no fixed stdout: GC names, bean counts, and counters vary by JVM, collector configuration, and observation time.
 
-### 3.2 getPlatformMXBean có thể null, list có thể rỗng
+### 3.2 getPlatformMXBean can be null, and lists can be empty
 
-Với interface singleton được platform biết đến nhưng không triển khai, **getPlatformMXBean(Class<T>) có thể trả null**. Với interface quản lý không được công nhận là platform interface hoặc sử dụng singleton API cho loại nhiều instance, **IllegalArgumentException** là kết quả hợp lệ của API. Với phiên bản JDK/vendor khác, đừng mặc định mọi extension đều có mặt.
+For a singleton interface known to the platform but not implemented, **getPlatformMXBean(Class<T>) can return null**. For a management interface not recognized as a platform interface or when using the singleton API for a multi-instance type, **IllegalArgumentException** is a valid outcome of the API. Across different JDK versions/vendors, do not assume every extension is present.
 
-Với getPlatformMXBeans(Class<T>), kết quả có thể là danh sách rỗng, một hoặc nhiều bean; **thứ tự không được cam kết ổn định**. Không viết code “phần tử 0 luôn là Old GC” hoặc “tên pool luôn là G1 Old Gen”. Nếu cần phân biệt loại pool, đọc *getName()*, *getType()*, *getMemoryManagerNames()* và metadata thực tế, đồng thời chấp nhận tên có thể đổi giữa collector/version.
+For getPlatformMXBeans(Class<T>), the result can be an empty list, one bean, or many beans; **the order is not guaranteed to be stable**. Do not write code assuming "element 0 is always Old GC" or "pool name is always G1 Old Gen". If you need to distinguish pool types, read *getName()*, *getType()*, *getMemoryManagerNames()*, and actual metadata, while accepting that names may change across collectors/versions.
 
-### 3.3 getPlatformManagementInterfaces là danh mục khả năng, không phải bảo đảm mã của bạn sẽ portable
+### 3.3 getPlatformManagementInterfaces is a capability catalog, not a portability guarantee for your code
 
-Method này trả tập các interface do platform hiện tại cung cấp; trong OpenJDK/HotSpot có thể bao gồm **interface JDK extension**, không chỉ chuẩn Java SE. Việc một extension xuất hiện ở build đang thử chỉ chứng minh **build đó** hỗ trợ, không chứng minh JVM khác bắt buộc phải làm vậy.
+This method returns the set of interfaces provided by the current platform; in OpenJDK/HotSpot it may include **JDK extension interfaces**, not just Java SE standard ones. Seeing an extension appear on the build you are testing only proves **that build** supports it, not that another JVM must do so.
 
-Một thiết kế portable phải dựa trên interface Java SE khi số đo chuẩn đủ dùng; chỉ mở rộng khi có **nhu cầu chẩn đoán rõ ràng**, có kiểm tra khả năng runtime và fallback.
+A portable design should rely on Java SE interfaces when standard metrics suffice; extend only when there is a **clear diagnostic need**, with runtime capability checks and fallback.
 
-## 4. Ranh giới mô-đun và khả năng tương thích
+## 4. Module boundaries and compatibility
 
-| Nhóm | Module và package | Hợp đồng | Ví dụ |
+| Group | Module and package | Contract | Examples |
 | --- | --- | --- | --- |
-| Chuẩn Java SE | java.management / java.lang.management | API nền tảng được đặc tả trong Java SE | ManagementFactory, MemoryMXBean, ThreadMXBean, RuntimeMXBean, OperatingSystemMXBean |
-| Chuẩn JMX | java.management / javax.management và javax.management.openmbean | Kết nối và truy cập attributes/operations, OpenTypes | MBeanServer, MBeanServerConnection, ObjectName, CompositeData |
-| Phần mở rộng JDK | jdk.management / com.sun.management | API có tài liệu trong JDK, không thuộc hợp đồng Java SE cốt lõi | OperatingSystemMXBean mở rộng, ThreadMXBean mở rộng, HotSpotDiagnosticMXBean, GcInfo |
-| Cơ chế HotSpot/chẩn đoán khác | Công cụ, JFR, diagnostic commands, JDK-specific APIs | Phụ thuộc VM và tool, không thể thay thế bằng lời gọi Java SE nếu chưa có interface chuẩn | jcmd VM.*, heap dump, chi tiết GC |
+| Java SE standard | java.management / java.lang.management | Foundational API specified in Java SE | ManagementFactory, MemoryMXBean, ThreadMXBean, RuntimeMXBean, OperatingSystemMXBean |
+| JMX standard | java.management / javax.management and javax.management.openmbean | Connecting and accessing attributes/operations, OpenTypes | MBeanServer, MBeanServerConnection, ObjectName, CompositeData |
+| JDK extensions | jdk.management / com.sun.management | Documented API in the JDK, not part of the core Java SE contract | Extended OperatingSystemMXBean, extended ThreadMXBean, HotSpotDiagnosticMXBean, GcInfo |
+| Other HotSpot/diagnostic mechanisms | Tools, JFR, diagnostic commands, JDK-specific APIs | Dependent on VM and tools, cannot be replaced by Java SE calls if no standard interface exists | jcmd VM.*, heap dump, GC details |
 
-**Hai package cùng có tên OperatingSystemMXBean**:
+**Two packages both have an interface named OperatingSystemMXBean**:
 
-- **java.lang.management.OperatingSystemMXBean** chỉ có các thuộc tính cơ bản như OS name, architecture, available processors và load average.
-- **com.sun.management.OperatingSystemMXBean** extends interface chuẩn, thêm thông tin process CPU time/load, memory/cpu environment. Với JDK 17, những method thường gặp gồm *getProcessCpuTime()*, *getProcessCpuLoad()*, *getCpuLoad()*, *getTotalMemorySize()* và *getFreeMemorySize()*.
+- **java.lang.management.OperatingSystemMXBean** only has basic properties such as OS name, architecture, available processors, and load average.
+- **com.sun.management.OperatingSystemMXBean** extends the standard interface, adding process CPU time/load and memory/CPU environment information. In JDK 17, common methods include *getProcessCpuTime()*, *getProcessCpuLoad()*, *getCpuLoad()*, *getTotalMemorySize()*, and *getFreeMemorySize()*.
 
-Đừng viết import wildcard cho hai package cùng lúc rồi dùng tên *OperatingSystemMXBean* không rõ nghĩa. Trong ví dụ extension, chúng ta cố ý viết tên interface mở rộng đầy đủ để phân biệt.
+Do not write wildcard imports for both packages at the same time and then use the ambiguous name *OperatingSystemMXBean*. In extension examples, we intentionally write the full extended interface name to distinguish them.
 
-Trong **ứng dụng có module-info.java**:
+In an **application with module-info.java**:
 
 ~~~java
 module diagnostics.app {
@@ -160,7 +160,7 @@ module diagnostics.app {
 }
 ~~~
 
-Đó là module descriptor đủ cho phần dùng API chuẩn của bài (nếu app không có dependency/module khác). Chỉ khi code **tham chiếu trực tiếp** com.sun.management và JDK thực tế có module đó, mới cần:
+That is a sufficient module descriptor for the part of the lesson using standard APIs (assuming the app has no other dependencies/modules). Only when code **directly references** com.sun.management and the actual JDK has that module do you need:
 
 ~~~java
 module diagnostics.app {
@@ -169,57 +169,57 @@ module diagnostics.app {
 }
 ~~~
 
-Đây là hai ví dụ descriptor **thay thế nhau**, không đặt cùng một file. Không tự động thêm requires jdk.management vào mọi service chỉ để đọc heap used chuẩn. Module jdk.management có thể không được đóng gói vào custom runtime image nếu jlink không bao gồm, nên tham chiếu tới nó có thể khiến deployment fail ngay cả khi build tại máy phát triển thành công.
+These are two **alternative** descriptor examples; do not place both in the same file. Do not automatically add `requires jdk.management` to every service just to read standard heap used. The `jdk.management` module might not be packaged into a custom runtime image if `jlink` omits it, so referencing it can cause deployment to fail even when building on a developer machine succeeds.
 
-**Ghi nhớ:** “com.sun.management có tài liệu công khai trong JDK” khác “com.sun.management là API chuẩn bắt buộc của Java SE”; cũng khác “mọi lớp bắt đầu bằng sun.* đều được hỗ trợ”. Cách ra quyết định là theo **module/package và hợp đồng cụ thể**, không chỉ nhìn tiền tố tên package.
+**Remember:** "com.sun.management has public JDK documentation" is different from "com.sun.management is a mandatory standard Java SE API"; and both are different from "every class starting with sun.* is supported". Decisions should be based on the **specific module/package and contract**, not just the package name prefix.
 
-## 5. PlatformManagedObject và ObjectName
+## 5. PlatformManagedObject and ObjectName
 
-Mỗi platform MXBean triển khai **PlatformManagedObject**, có method *getObjectName()* dùng nhận diện object trong platform MBeanServer. Một số ObjectName ổn định trong API Java SE:
+Each platform MXBean implements **PlatformManagedObject**, which has the *getObjectName()* method used to identify the object in the platform MBeanServer. Some stable ObjectNames in the Java SE API:
 
-| Interface | ObjectName chuẩn |
+| Interface | Standard ObjectName |
 | --- | --- |
 | MemoryMXBean | java.lang:type=Memory |
 | ThreadMXBean | java.lang:type=Threading |
 | RuntimeMXBean | java.lang:type=Runtime |
 | OperatingSystemMXBean | java.lang:type=OperatingSystem |
 | ClassLoadingMXBean | java.lang:type=ClassLoading |
-| CompilationMXBean (nếu tồn tại) | java.lang:type=Compilation |
-| GarbageCollectorMXBean | java.lang:type=GarbageCollector,name=<tên collector> |
-| MemoryPoolMXBean | java.lang:type=MemoryPool,name=<tên pool> |
+| CompilationMXBean (if present) | java.lang:type=Compilation |
+| GarbageCollectorMXBean | java.lang:type=GarbageCollector,name=<collector name> |
+| MemoryPoolMXBean | java.lang:type=MemoryPool,name=<pool name> |
 
-Bảng trên minh họa quy ước đăng ký của bean chuẩn. Dòng có *name* có thể thay đổi giá trị giữa VM/collector và cần được **encode đúng theo ObjectName syntax** khi dùng JMX API. Tốt nhất **lấy trực tiếp bean.getObjectName()** khi đã có bean, thay vì tự ghép chuỗi tên. ObjectName không phải Java class name và cũng không phải PID.
+The table above illustrates the registration convention of standard beans. Rows with *name* may have values that vary across VMs/collectors and must be **properly encoded according to ObjectName syntax** when using the JMX API. It is best to **call bean.getObjectName() directly** once you have the bean, rather than concatenating name strings manually. ObjectName is neither a Java class name nor a PID.
 
-Platform MBeanServer được lấy bằng:
+The platform MBeanServer is obtained via:
 
 ~~~java
-// Mảnh mã minh họa.
+// Illustrative snippet.
 javax.management.MBeanServer server =
         java.lang.management.ManagementFactory.getPlatformMBeanServer();
 ~~~
 
-Lần lấy đầu tiên có thể khởi tạo server và đăng ký các platform MXBeans hiện hữu; những platform beans có lifecycle động có thể được đăng ký/hủy đăng ký tương ứng. Có server local **không chứng minh** có remote JMX listener mở cổng.
+The first retrieval may initialize the server and register existing platform MXBeans; platform beans with dynamic lifecycles may be registered/unregistered accordingly. Having a local server **does not prove** there is an open remote JMX listener port.
 
-### Ba cách truy cập cùng platform MXBean
+### Three ways to access the same platform MXBean
 
-1. **Direct Java interface:** getMemoryMXBean().getHeapMemoryUsage(), thuận tiện khi chạy trong cùng JVM.
-2. **MBeanServer/MBeanServerConnection:** lấy attribute bằng ObjectName, ví dụ *getAttribute(name, "HeapMemoryUsage")*, phù hợp công cụ quản lý/JMX.
-3. **Typed proxy:** *ManagementFactory.getPlatformMXBean(connection, MemoryMXBean.class)* hoặc *newPlatformMXBeanProxy(connection, name, MemoryMXBean.class)*, chuyển các lời gọi method qua MBeanServerConnection.
+1. **Direct Java interface:** `getMemoryMXBean().getHeapMemoryUsage()`, convenient when running inside the same JVM.
+2. **MBeanServer/MBeanServerConnection:** retrieve attributes by ObjectName, e.g., *getAttribute(name, "HeapMemoryUsage")*, suited for management/JMX tools.
+3. **Typed proxy:** *ManagementFactory.getPlatformMXBean(connection, MemoryMXBean.class)* or *newPlatformMXBeanProxy(connection, name, MemoryMXBean.class)*, forwarding method calls over MBeanServerConnection.
 
-Proxy dễ viết mã typed hơn so với ObjectName attribute thô, nhưng còn phụ thuộc kết nối và chuyển đổi OpenType. Một lời gọi proxy có thể phát sinh lỗi I/O (thậm chí được gói trong exception của dynamic proxy), phải xử lý disconnect, timeout và mismatch phiên bản. Truy cập local trực tiếp không gặp vấn đề kết nối mạng ấy.
+A proxy makes it easier to write typed code compared to raw ObjectName attributes, yet it still depends on the connection and OpenType conversion. A proxy call can raise I/O errors (even wrapped inside a dynamic proxy exception), so disconnects, timeouts, and version mismatches must be handled. Direct local access does not face those network connection issues.
 
-**Không dùng cùng ngữ nghĩa** cho “local bean được giữ trong một biến của JVM ứng dụng” và “remote proxy qua JMX connector”. Hai thứ có thể cùng interface nhưng khác timeout, concurrency và biên an toàn.
+**Do not apply the same semantics** to "a local bean held in a variable inside the application JVM" and "a remote proxy over a JMX connector". Both may share the same interface, yet differ in timeout, concurrency, and safety boundaries.
 
-## 6. Ví dụ Java 17+ dùng API chuẩn và OpenType: chạy độc lập
+## 6. Standalone Java 17+ example using standard APIs and OpenType
 
-Mục tiêu của ví dụ:
+Goals of the example:
 
-- Truy cập MemoryMXBean, RuntimeMXBean, ThreadMXBean và OperatingSystemMXBean qua **ManagementFactory chuẩn**.
-- Đọc các giá trị heap/thread/uptime động nhưng **không in số tuyệt đối** vì chúng khác giữa các máy.
-- Truy cập platform MBeanServer và chứng minh thuộc tính Java *MemoryUsage* được chuyển thành **CompositeData** qua JMX.
-- In các mệnh đề kiểm tra có **stdout ổn định** trên Java 17+ có platform MXBeans chuẩn.
+- Access MemoryMXBean, RuntimeMXBean, ThreadMXBean, and OperatingSystemMXBean through **standard ManagementFactory**.
+- Read dynamic heap/thread/uptime values while **avoiding printing absolute numbers** since they differ across machines.
+- Access the platform MBeanServer and demonstrate that the Java *MemoryUsage* property is converted into **CompositeData** over JMX.
+- Print check assertions with **stable stdout** on Java 17+ with standard platform MXBeans.
 
-Tạo file **StandardMxBeanDemo.java**:
+Create the file **StandardMxBeanDemo.java**:
 
 ~~~java
 import java.lang.management.ManagementFactory;
@@ -257,14 +257,14 @@ public final class StandardMxBeanDemo {
 }
 ~~~
 
-Trong thư mục chứa file:
+In the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 StandardMxBeanDemo.java
 java StandardMxBeanDemo
 ~~~
 
-**Stdout chính xác của phép thử này trên môi trường Java 17+ thông thường:**
+**Exact stdout of this test on a typical Java 17+ environment:**
 
 ~~~text
 memoryObjectName=java.lang:type=Memory
@@ -279,53 +279,53 @@ processorsPositive=true
 memoryInterfaceListed=true
 ~~~
 
-Vì chương trình in **kiểm tra điều kiện**, không in số liệu heap/uptime tuyệt đối, đầu ra có thể so khớp khi học. Đã thử biên dịch/chạy chương trình độc lập trên JDK thực tế và thu các dòng trên.
+Because the program prints **condition checks** rather than absolute heap/uptime numbers, the output can be matched while learning. This standalone program was compiled/run on an actual JDK to obtain the lines above.
 
-**Diễn giải:**
+**Interpretation:**
 
-- *memory.getObjectName()* là định danh platform bean, không phụ thuộc PID hay tên lớp implement.
-- *getHeapMemoryUsage()* trả một **MemoryUsage snapshot** có số byte tại thời điểm đo; method *getUsed()* khác phép đo RSS của process.
-- *getAttribute(..., "HeapMemoryUsage")* trả một **MXBean OpenType**, ở đây là CompositeData. Không phải phải cài cùng MemoryUsage class lên một JMX client khác mới đọc được các thành phần dữ liệu.
-- *getThreadCount()* phản ánh thread count tại thời điểm đọc, không phải số request/s; *getUptime()* tính mili giây từ khi JVM khởi động, không phải timestamp hiện tại.
-- *getPlatformManagementInterfaces()* cho biết interface MemoryMXBean nằm trong tập hỗ trợ; tập có thể chứa các interface extension của JDK đang chạy.
+- *memory.getObjectName()* is the platform bean identifier, independent of PID or implementation class name.
+- *getHeapMemoryUsage()* returns a **MemoryUsage snapshot** containing byte counts at the moment of measurement; *getUsed()* differs from the process RSS measurement.
+- *getAttribute(..., "HeapMemoryUsage")* returns an **MXBean OpenType**, here CompositeData. Another JMX client does not need the exact MemoryUsage class installed to read the data fields.
+- *getThreadCount()* reflects the thread count at read time, not requests/s; *getUptime()* measures milliseconds since JVM startup, not the current timestamp.
+- *getPlatformManagementInterfaces()* indicates that the MemoryMXBean interface is in the supported set; the set may also contain extension interfaces of the running JDK.
 
-**Giới hạn của ví dụ:** kiểm tra trên không chứng minh kết quả của tất cả JVM version/vendor. Mỗi snapshot có thể được lấy ở thời điểm khác nhau; không có thao tác chụp đồng thời nguyên tử cho toàn bộ CPU/heap/threads. Trước khi dùng làm alert, cần biết semantics, đơn vị và chính sách “không hỗ trợ”.
+**Limitations of the example:** the checks above do not prove the results for every JVM version/vendor. Each snapshot may be taken at a different instant; there is no atomic simultaneous capture of all CPU/heap/threads. Before using metrics for alerting, know their semantics, units, and "unsupported" policies.
 
-## 7. Cách đọc đúng các metric chuẩn: gauge, counter, sentinel
+## 7. How to read standard metrics properly: gauge, counter, sentinel
 
-Platform MXBeans tiện vì ít cấu hình, nhưng bản thân dữ liệu rất dễ bị suy diễn sai.
+Platform MXBeans are convenient because they require minimal configuration, yet the data itself is very easy to misinterpret.
 
-| Method | Kiểu dữ liệu/đơn vị | Kiểu metric | Bẫy thường gặp |
+| Method | Data type / unit | Metric type | Common pitfalls |
 | --- | --- | --- | --- |
-| MemoryMXBean.getHeapMemoryUsage().getUsed() | byte | Gauge/snapshot | Không phải RSS, không phải tổng đã allocate |
-| MemoryUsage.getCommitted() | byte | Gauge/snapshot | JVM đã cam kết vùng nhớ, không phải byte còn sống |
-| MemoryUsage.getMax() | byte hoặc -1 | Giới hạn nếu xác định | -1 nghĩa là max không xác định |
-| RuntimeMXBean.getUptime() | mili giây | Thời gian từ khi JVM chạy | Reset về gần 0 sau restart; không phải thời gian lịch |
-| ThreadMXBean.getThreadCount() | thread | Gauge | Không phải thông lượng xử lý request |
-| ThreadMXBean.getPeakThreadCount() | thread | High-water mark | Không phải số thread hiện tại; có thể reset qua operation |
-| ClassLoadingMXBean.getTotalLoadedClassCount() | tổng số class | Counter tích lũy | Khác getLoadedClassCount() là số hiện đang loaded |
-| ClassLoadingMXBean.getUnloadedClassCount() | tổng số class | Counter tích lũy | Không phải số class unload/s nếu chưa lấy delta |
-| GarbageCollectorMXBean.getCollectionCount() | số lần hoặc -1 | Counter nếu được hỗ trợ | Không bằng số GC pause ở mọi collector/VM |
-| GarbageCollectorMXBean.getCollectionTime() | mili giây hoặc -1 | Thời lượng tích lũy nếu được hỗ trợ | Không phải độ trễ một GC cụ thể/p99 pause |
-| OperatingSystemMXBean.getAvailableProcessors() | số processor | Trạng thái/capacity | Có thể thay đổi do quota/affinity/runtime |
-| OperatingSystemMXBean.getSystemLoadAverage() | load average hoặc âm | Chỉ báo tải hệ điều hành | Không phải CPU percentage; có thể không hỗ trợ |
+| MemoryMXBean.getHeapMemoryUsage().getUsed() | bytes | Gauge/snapshot | Not RSS, not total allocated |
+| MemoryUsage.getCommitted() | bytes | Gauge/snapshot | Memory committed by JVM, not live bytes |
+| MemoryUsage.getMax() | bytes or -1 | Limit if defined | -1 means max is undefined |
+| RuntimeMXBean.getUptime() | milliseconds | Duration since JVM started | Resets near 0 after restart; not wall-clock calendar time |
+| ThreadMXBean.getThreadCount() | threads | Gauge | Not request processing throughput |
+| ThreadMXBean.getPeakThreadCount() | threads | High-water mark | Not current thread count; can be reset via operation |
+| ClassLoadingMXBean.getTotalLoadedClassCount() | total classes | Cumulative counter | Differs from getLoadedClassCount(), which is currently loaded |
+| ClassLoadingMXBean.getUnloadedClassCount() | total classes | Cumulative counter | Not classes unloaded/s unless taking a delta |
+| GarbageCollectorMXBean.getCollectionCount() | count or -1 | Counter if supported | Not equal to GC pauses across all collectors/VMs |
+| GarbageCollectorMXBean.getCollectionTime() | milliseconds or -1 | Cumulative duration if supported | Not latency of a single GC or p99 pause |
+| OperatingSystemMXBean.getAvailableProcessors() | processor count | State/capacity | Can change due to quota/affinity/runtime |
+| OperatingSystemMXBean.getSystemLoadAverage() | load average or negative | OS load indicator | Not CPU percentage; may be unsupported |
 
-### 7.1 MemoryUsage có bốn thành phần
+### 7.1 MemoryUsage has four components
 
-Một snapshot **MemoryUsage** chứa *init*, *used*, *committed*, *max*:
+A **MemoryUsage** snapshot contains *init*, *used*, *committed*, *max*:
 
-- *init*: bộ nhớ ban đầu JVM yêu cầu hệ điều hành, có thể không xác định.
-- *used*: lượng bộ nhớ được dùng theo phạm vi quản lý của bean/pool tại snapshot.
-- *committed*: bộ nhớ đã cam kết, JVM được đảm bảo có thể sử dụng theo mô hình JVM.
-- *max*: ngưỡng tối đa có thể sử dụng nếu xác định; giá trị **-1** nghĩa là không xác định.
+- *init*: initial memory the JVM requests from the operating system, may be undefined.
+- *used*: amount of memory used within the scope managed by the bean/pool at the snapshot.
+- *committed*: committed memory guaranteed to be available for use by the JVM under the JVM model.
+- *max*: maximum usable threshold if defined; **-1** means undefined.
 
-Trong điều kiện hợp lệ, *used ≤ committed*; *committed* và *max* không phải cùng một chỉ số. **Không lấy used/max thành phần trăm khi max = -1**, vì biểu thức không có ý nghĩa. Và đừng coi heap max là toàn bộ hạn mức memory của container: process còn có metaspace, code cache, thread stacks, native allocations, direct buffers và nhiều vùng khác.
+Under valid conditions, *used ≤ committed*; *committed* and *max* are not the same metric. **Do not compute used/max as a percentage when max = -1**, because the expression has no meaning. And do not treat heap max as the entire container memory limit: the process also has metaspace, code cache, thread stacks, native allocations, direct buffers, and many other regions.
 
-**MemoryMXBean.getNonHeapMemoryUsage()** không tương đương toàn bộ RAM ngoài heap. Những phân bổ native khác nhau có thể không nằm trong cách hạch toán của non-heap MXBean; để biết RSS/native footprint cần số liệu OS/container hoặc công cụ chẩn đoán phù hợp.
+**MemoryMXBean.getNonHeapMemoryUsage()** is not equivalent to all RAM outside the heap. Various native allocations may not be included in the non-heap MXBean accounting; to determine RSS/native footprint, you need OS/container metrics or appropriate diagnostic tools.
 
-### 7.2 GC count/time là counter, không phải histogram latency
+### 7.2 GC count/time are counters, not latency histograms
 
-Ví dụ đọc hai snapshot của một collector, cách nhau \(\Delta t\):
+For example, reading two snapshots of one collector separated by \(\Delta t\):
 
 \[
 \text{GC collections/s} = \frac{C_2-C_1}{\Delta t},
@@ -333,56 +333,56 @@ Ví dụ đọc hai snapshot của một collector, cách nhau \(\Delta t\):
 \text{GC time ratio} = \frac{T_2-T_1}{1000\Delta t}
 \]
 
-Với \(T\) tính bằng **mili giây**, \(\Delta t\) tính bằng **giây**. Nhưng công thức này chỉ có ý nghĩa khi:
-- Hai snapshot thuộc **cùng JVM/collector** và counter không bị reset.
-- Cả count/time **khác -1** (được hỗ trợ).
-- Chúng có cùng phạm vi định nghĩa; hiểu cách GC vendor/collector tính thời gian.
-- Không dùng delta âm sau process restart.
+Where \(T\) is in **milliseconds** and \(\Delta t\) is in **seconds**. However, this formula is meaningful only when:
+- Both snapshots belong to the **same JVM/collector** and the counter has not reset.
+- Both count and time are **not -1** (supported).
+- They share the same definition scope; understand how the GC vendor/collector accounts for time.
+- Do not use negative deltas after a process restart.
 
-Một tổng GC collection time tăng 300 ms trong 60 s **không** đủ để biết p99 pause: cần phân bố từng pause từ JFR/GC logs/histogram phù hợp. Collection time theo bean có thể phụ thuộc cách implementation định nghĩa thời gian; đừng đánh đồng máy móc với “số mili giây tất cả thread ứng dụng bị stop-the-world”.
+A total GC collection time increase of 300 ms over 60 s is **not** enough to know p99 pause: you need individual pause distributions from JFR/GC logs/appropriate histograms. Collection time reported by the bean can depend on how the implementation defines time; do not mechanically equate it with "milliseconds during which all application threads were stopped-the-world".
 
-### 7.3 ThreadMXBean: kiểm tra support trước khi đo
+### 7.3 ThreadMXBean: check support before measuring
 
-Một số chức năng có điều kiện:
+Some capabilities are conditional:
 
-- *isThreadCpuTimeSupported()* và *isCurrentThreadCpuTimeSupported()* kiểm tra khả năng đo CPU time.
-- *isThreadCpuTimeEnabled()* kiểm tra trạng thái bật/tắt hiện tại; máy ảo có thể hỗ trợ nhưng đang tắt.
-- *getThreadCpuTime(threadId)* có thể trả **-1** nếu không hỗ trợ, không bật hoặc thread không hợp lệ/đã kết thúc theo hợp đồng.
-- *isThreadContentionMonitoringSupported()* kiểm tra hỗ trợ contention timings; bật đo có thể tạo overhead.
-- *findDeadlockedThreads()* và *dumpAllThreads(...)* có thể giúp điều tra lock, nhưng mức dữ liệu và tác động tăng theo số thread.
+- *isThreadCpuTimeSupported()* and *isCurrentThreadCpuTimeSupported()* check CPU time measurement capability.
+- *isThreadCpuTimeEnabled()* checks the current enabled/disabled state; the VM may support it while it is turned off.
+- *getThreadCpuTime(threadId)* may return **-1** if unsupported, disabled, or the thread is invalid/terminated per contract.
+- *isThreadContentionMonitoringSupported()* checks contention timing support; enabling measurement can introduce overhead.
+- *findDeadlockedThreads()* and *dumpAllThreads(...)* can assist lock investigation, but data volume and impact grow with thread count.
 
-Không gọi *setThreadCpuTimeEnabled(true)* hoặc *setThreadContentionMonitoringEnabled(true)* như một bước “chỉ đọc” trong production. Đây là **thao tác thay đổi trạng thái đo**, có chi phí và quyền truy cập riêng. Kiểm tra khả năng, policy và cần thiết trước khi bật.
+Do not call *setThreadCpuTimeEnabled(true)* or *setThreadContentionMonitoringEnabled(true)* as a "read-only" step in production. These are **measurement-state-mutating operations** with their own cost and permissions. Check capability, policy, and necessity before enabling.
 
-### 7.4 Số -1 và null không đồng nghĩa với 0
+### 7.4 -1 and null are not synonymous with 0
 
-Trong tài liệu quản lý Java, **-1** thường là sentinel “không hỗ trợ/không xác định” của method cụ thể. Nhưng không phải mọi method dùng cùng sentinel. *getCompilationMXBean()* có thể trả null nếu JVM không có compilation system; *MemoryPoolMXBean.getUsage()* có thể không khả dụng trong một số tình huống; *OperatingSystemMXBean.getSystemLoadAverage()* trả giá trị âm nếu không được cung cấp.
+In Java management documentation, **-1** is commonly the sentinel for "unsupported/undefined" for a specific method. However, not every method uses the same sentinel. *getCompilationMXBean()* can return null if the JVM has no compilation system; *MemoryPoolMXBean.getUsage()* can be unavailable in certain situations; *OperatingSystemMXBean.getSystemLoadAverage()* returns a negative value if not available.
 
-**Sai:** “System load = -1 nên máy đang thiếu tải và có thể bỏ qua.”
+**Wrong:** "System load = -1 so the machine is underloaded and can be ignored."
 
-**Đúng:** “System load average không khả dụng trên JVM/OS này; dùng metric OS khác.” Không đưa giá trị -1 vào biểu đồ CPU load như một số đo thực.
+**Right:** "System load average is unavailable on this JVM/OS; use another OS metric." Do not plot -1 on a CPU load chart as a real measurement.
 
-Nếu bean method trả *UnsupportedOperationException*, hãy phân biệt tính năng được hỗ trợ với quyền truy cập và cấu hình runtime. Không catch mọi exception rồi giả vờ số đo bằng 0, vì dashboard sẽ dễ đưa ra kết luận sai.
+If a bean method throws *UnsupportedOperationException*, distinguish between feature support, access permissions, and runtime configuration. Do not catch all exceptions and pretend the metric is 0, because dashboards will easily draw false conclusions.
 
-## 8. Phần mở rộng JDK/HotSpot: com.sun.management
+## 8. JDK/HotSpot extensions: com.sun.management
 
-Package **com.sun.management** nằm trong module **jdk.management** (JDK 17) và có tài liệu chính thức. Nó là **extension của JDK**, không phải interface cốt lõi được quy định bắt buộc trong mọi Java SE runtime.
+The **com.sun.management** package resides in the **jdk.management** module (JDK 17) and has official documentation. It is a **JDK extension**, not a core interface mandated across every Java SE runtime.
 
-### 8.1 Các interface mở rộng thường gặp
+### 8.1 Common extension interfaces
 
-| Interface JDK extension | Liên hệ với API chuẩn | Khả năng bổ sung điển hình |
+| JDK extension interface | Relation to standard API | Typical additional capabilities |
 | --- | --- | --- |
-| com.sun.management.OperatingSystemMXBean | extends java.lang.management.OperatingSystemMXBean | Process CPU time/load, CPU load của environment, physical/container memory metrics |
-| com.sun.management.UnixOperatingSystemMXBean | extends OS bean mở rộng | Thông tin file descriptor trên môi trường Unix khi có |
-| com.sun.management.ThreadMXBean | extends java.lang.management.ThreadMXBean | Số byte đã được thread cấp phát và phương thức kiểm tra hỗ trợ |
-| com.sun.management.GarbageCollectorMXBean | extends bean GC chuẩn | Thông tin về lần GC gần nhất (GcInfo) khi collector hỗ trợ |
-| com.sun.management.HotSpotDiagnosticMXBean | PlatformManagedObject riêng | VM options và các thao tác HotSpot như heap dump |
-| com.sun.management.DiagnosticCommandMBean | MBean cho diagnostic commands HotSpot | Bộ operations riêng của VM, không phải API nghiệp vụ chuẩn |
+| com.sun.management.OperatingSystemMXBean | extends java.lang.management.OperatingSystemMXBean | Process CPU time/load, environment CPU load, physical/container memory metrics |
+| com.sun.management.UnixOperatingSystemMXBean | extends extended OS bean | File descriptor information on Unix environments when available |
+| com.sun.management.ThreadMXBean | extends java.lang.management.ThreadMXBean | Bytes allocated by thread and support check methods |
+| com.sun.management.GarbageCollectorMXBean | extends standard GC bean | Information about the last GC (GcInfo) when the collector supports it |
+| com.sun.management.HotSpotDiagnosticMXBean | Dedicated PlatformManagedObject | VM options and HotSpot operations such as heap dump |
+| com.sun.management.DiagnosticCommandMBean | MBean for HotSpot diagnostic commands | VM-specific operations set, not a standard business API |
 
-Một interface xuất hiện trong package không bảo đảm mọi method **hoạt động trên tất cả cấu hình/OS**, đặc biệt với CPU time, allocation-by-thread hoặc thông tin GC chuyên sâu.
+The presence of an interface in the package does not guarantee every method **works on every configuration/OS**, especially for CPU time, per-thread allocation, or detailed GC info.
 
-### 8.2 OperatingSystemMXBean: tiêu biểu cho ranh giới chuẩn/mở rộng
+### 8.2 OperatingSystemMXBean: typical standard/extension boundary
 
-Đoạn sau **không tồn tại** trên interface chuẩn:
+The following **do not exist** on the standard interface:
 
 ~~~text
 com.sun.management.OperatingSystemMXBean.getProcessCpuTime()
@@ -391,11 +391,11 @@ com.sun.management.OperatingSystemMXBean.getTotalMemorySize()
 com.sun.management.OperatingSystemMXBean.getFreeMemorySize()
 ~~~
 
-Vì vậy mã chỉ dùng import *java.lang.management.OperatingSystemMXBean* mà gọi *getProcessCpuTime()* sẽ **không biên dịch**: không phải do JVM “thiếu CPU”, mà do **interface chuẩn không khai báo method đó**.
+Thus code that only imports *java.lang.management.OperatingSystemMXBean* and calls *getProcessCpuTime()* will **fail to compile**: not because the JVM "lacks a CPU", but because **the standard interface does not declare that method**.
 
-Để thấy process CPU time từ JDK extension trên một JVM hỗ trợ, cần truy cập interface mở rộng **có kiểm tra runtime**. Ví dụ độc lập dưới đây dùng pattern matching *instanceof* của Java 17, và cố ý phân biệt biến chuẩn với biến mở rộng.
+To observe process CPU time from the JDK extension on a supporting JVM, you need to access the extended interface **with a runtime check**. The standalone example below uses Java 17 pattern matching *instanceof*, and intentionally separates the standard variable from the extended variable.
 
-Tạo file **JdkManagementExtensionDemo.java**:
+Create the file **JdkManagementExtensionDemo.java**:
 
 ~~~java
 import java.lang.management.ManagementFactory;
@@ -419,62 +419,62 @@ public final class JdkManagementExtensionDemo {
 }
 ~~~
 
-Trong JDK 17+ có module **jdk.management** và implementation phù hợp:
+On JDK 17+ with the **jdk.management** module and a suitable implementation:
 
 ~~~bash
 javac -encoding UTF-8 JdkManagementExtensionDemo.java
 java JdkManagementExtensionDemo
 ~~~
 
-Kết quả đã quan sát được trên một JDK HotSpot hỗ trợ CPU-time:
+Observed output on a HotSpot JDK supporting CPU-time:
 
 ~~~text
 jdkExtensionAvailable=true
 processCpuTime=nonnegative
 ~~~
 
-**Đây là đầu ra của môi trường kiểm thử, không phải lời cam kết cho mọi VM.** Nếu runtime có class extension nhưng implementation không cung cấp bean, nhánh “unavailable” được dùng; nếu CPU time không được hỗ trợ, in dòng “unsupported”. Nếu JDK/runtime image **không chứa jdk.management**, mã có liên kết trực tiếp tới com.sun.management có thể **không biên dịch hoặc không khởi động được**; ở môi trường đó phải chọn bản xây dựng khác hoặc tách module/tùy chọn extension.
+**This is the output of the test environment, not a guarantee for every VM.** If the runtime has the extension class but the implementation does not provide the bean, the "unavailable" branch runs; if CPU time is unsupported, the "unsupported" line is printed. If a JDK/runtime image **does not contain jdk.management**, code directly linking to com.sun.management may **fail to compile or fail to start**; in such environments you must choose a different build or separate the extension module/option.
 
-Tại sao code dùng *instanceof*? Interface chuẩn là hợp đồng bạn có thể luôn làm việc với khi dùng Java SE có MXBean tương ứng. *instanceof* chỉ đi vào nhánh phụ thuộc JDK khi implementation thực sự thỏa interface; tránh ép kiểu không kiểm tra gây ClassCastException. Tuy nhiên guard runtime **không thay thế** việc kiểm tra sự có mặt của module trong quá trình build/deploy.
+Why does the code use *instanceof*? The standard interface is the contract you can always rely on when using Java SE with the corresponding MXBean. *instanceof* enters the JDK-dependent branch only when the implementation actually satisfies the interface, avoiding an unchecked cast that throws ClassCastException. However, a runtime guard **does not replace** verifying the module's presence during build/deploy.
 
-### 8.3 CPU time và CPU load không phải cùng đại lượng
+### 8.3 CPU time and CPU load are not the same quantity
 
-Phương thức *getProcessCpuTime()* của extension trả **CPU time tích lũy theo nanosecond** hoặc **-1** nếu không được hỗ trợ. Nếu muốn mức tiêu thụ CPU trung bình giữa hai snapshot, cần lấy:
+The extension's *getProcessCpuTime()* method returns **cumulative CPU time in nanoseconds** or **-1** if unsupported. If you want the average CPU consumption between two snapshots, compute:
 
 \[
 \frac{\Delta \text{processCpuNanos}}{\Delta \text{wallNanos}}
 \]
 
-Kết quả có thể lớn hơn 1 nếu process dùng nhiều CPU core đồng thời. Để chuyển sang tỷ lệ công suất, phải chọn cách chuẩn hóa theo **available processors/quota** và hiểu hợp đồng metric của runtime; không tùy tiện gọi nó là 100% khi có nhiều core.
+The result can be greater than 1 if the process uses multiple CPU cores concurrently. To convert to a capacity ratio, you must choose how to normalize by **available processors/quota** and understand the runtime's metric contract; do not arbitrarily call it 100% when multiple cores are present.
 
-Các method như *getProcessCpuLoad()* trả số đo về **recent CPU usage**, có thể trả giá trị âm khi không hỗ trợ. Không suy ra “process đang dùng 0% CPU” chỉ vì một lời gọi trả -1. CPU load gần thời điểm hiện tại khác CPU time tích lũy, và chúng có thể phản ứng khác nhau với sampling/containers.
+Methods like *getProcessCpuLoad()* return a measure of **recent CPU usage** and may return a negative value when unsupported. Do not infer "the process is using 0% CPU" just because a call returns -1. Recent CPU load differs from cumulative CPU time, and they can react differently to sampling/containers.
 
-Các method bộ nhớ môi trường như *getTotalMemorySize()* và *getFreeMemorySize()* thuộc extension, không nằm trong API chuẩn OS bean; việc chúng diễn giải container limit hay host capacity còn phụ thuộc môi trường và triển khai. Đừng lấy total memory trên một bản build rồi tuyên bố là memory heap max hoặc cgroup hard limit trên mọi JVM.
+Environment memory methods such as *getTotalMemorySize()* and *getFreeMemorySize()* belong to the extension, not the standard OS bean API; whether they reflect container limits or host capacity depends on the environment and implementation. Do not read total memory on one build and declare it to be max heap memory or the cgroup hard limit on every JVM.
 
-### 8.4 HotSpotDiagnosticMXBean: vượt khỏi việc đọc số đo
+### 8.4 HotSpotDiagnosticMXBean: beyond reading metrics
 
-**HotSpotDiagnosticMXBean** có ObjectName theo JDK implementation, thường là:
+**HotSpotDiagnosticMXBean** has an ObjectName defined by the JDK implementation, typically:
 
 ~~~text
 com.sun.management:type=HotSpotDiagnostic
 ~~~
 
-Nó hỗ trợ các operation điển hình:
+It supports typical operations:
 
-- *getDiagnosticOptions()*: các VM options có thể chẩn đoán/thay đổi theo khả năng.
-- *getVMOption(name)*: đọc trạng thái option được chỉ định.
-- *setVMOption(name, value)*: **thay đổi** một VM option hỗ trợ thay đổi động; không phải tất cả option đều writable.
-- *dumpHeap(path, live)*: tạo heap dump (file *.hprof*) trong filesystem mà JVM nhìn thấy.
+- *getDiagnosticOptions()*: VM options that can be diagnosed/changed depending on capabilities.
+- *getVMOption(name)*: reads the state of the specified option.
+- *setVMOption(name, value)*: **modifies** a VM option that supports dynamic updates; not all options are writable.
+- *dumpHeap(path, live)*: creates a heap dump (*.hprof* file) on the filesystem visible to the JVM.
 
-**Cảnh báo:** heap dump có thể rất lớn, tạo áp lực CPU/I/O/disk, ảnh hưởng độ trễ và chứa đối tượng/secret của ứng dụng. Dù bean tồn tại, việc gọi dumpHeap **không phải thao tác đọc nhẹ**. Tương tự, setVMOption là thao tác điều khiển runtime, cần quyền và kế hoạch vận hành. Tài liệu JDK nêu lỗi cho file đã tồn tại, path không hợp lệ, không được ghi hoặc operation không hỗ trợ.
+**Warning:** a heap dump can be very large, create CPU/I/O/disk pressure, impact latency, and contain application objects/secrets. Even though the bean exists, calling dumpHeap **is not a lightweight read operation**. Similarly, setVMOption is a runtime control operation requiring authorization and an operational plan. JDK documentation specifies errors for existing files, invalid paths, unwritable targets, or unsupported operations.
 
-Nếu chỉ cần kiểm tra ban đầu, hãy ưu tiên các API chuẩn ít xâm lấn như heap usage, thread count và runtime uptime; đừng thử dumpHeap để “test xem extension dùng được không”.
+If you only need an initial check, prefer less invasive standard APIs such as heap usage, thread count, and runtime uptime; do not try dumpHeap just to "test whether the extension works".
 
-## 9. Chiến lược thiết kế code: standard-first, kiểm tra capability, fallback
+## 9. Code design strategy: standard-first, capability check, fallback
 
-Một thư viện observability thường được tái sử dụng ở nhiều service. Nếu lớp core import com.sun.management ở mọi nơi, một runtime image tối giản hoặc implementation JVM khác có thể không chạy được, dù chức năng chuẩn vẫn có.
+An observability library is often reused across many services. If the core layer imports com.sun.management everywhere, a minimal runtime image or a different JVM implementation may fail to run, even though standard functionality is available.
 
-Thiết kế đề xuất:
+Recommended design:
 
 ~~~text
 DiagnosticsFacade
@@ -482,35 +482,35 @@ DiagnosticsFacade
     +-- StandardJmxReader (java.management)
     |     +-- memory, threads, runtime, OS basics, GC
     |
-    +-- OptionalJdkReader (jdk.management) [nếu có]
+    +-- OptionalJdkReader (jdk.management) [if available]
     |     +-- process CPU, thread allocation, HotSpot-specific
     |
     +-- Metrics exporter / structured result
-          +-- giá trị
-          +-- đơn vị
-          +-- nguồn
-          +-- phạm vi instance
+          +-- value
+          +-- unit
+          +-- source
+          +-- instance scope
           +-- availability: supported / unavailable / error
 ~~~
 
-**Các nguyên tắc cụ thể:**
+**Specific principles:**
 
-1. **Dùng chuẩn trước:** nếu muốn heap used, dùng MemoryMXBean thay vì HotSpotDiagnosticMXBean.
-2. **Phân tách dependency:** extension trong adapter/module riêng; core không luôn phải load code extension.
-3. **Capability detection:** kiểm tra interface/module và các *isXxxSupported()*, null/-1 theo contract. Không lấy tên JVM chứa chuỗi “HotSpot” làm phép kiểm duy nhất.
-4. **Định nghĩa kết quả vắng mặt:** biểu diễn *unsupported* hoặc *not available*, không làm giả số đo 0.
-5. **Ghi đơn vị và xuất xứ:** “CPU time từ JDK extension, nanosecond” khác “system load average từ Java SE, dimensionless”.
-6. **Không giả định tên bean cố định ở các loại nhiều instance:** collector/pool có thể biến đổi sau đổi GC hoặc version.
-7. **Tách read-only metrics và control operations:** một endpoint cung cấp số đo không nên ngầm kích hoạt dumpHeap hoặc setVMOption.
-8. **Thử nhiều môi trường:** ít nhất các JDK/GC/OS/container mà sản phẩm thực sự hỗ trợ; nêu phạm vi được kiểm thử.
+1. **Standard first:** if you want heap used, use MemoryMXBean instead of HotSpotDiagnosticMXBean.
+2. **Isolate dependencies:** keep extensions in a separate adapter/module; core does not always have to load extension code.
+3. **Capability detection:** check interfaces/modules and *isXxxSupported()*, null/-1 according to contract. Do not use a JVM name containing "HotSpot" as the sole check.
+4. **Define absent results:** represent *unsupported* or *not available*, do not fabricate a 0 measurement.
+5. **Record units and provenance:** "CPU time from JDK extension, nanoseconds" differs from "system load average from Java SE, dimensionless".
+6. **Do not assume fixed bean names for multi-instance types:** collectors/pools may change after switching GC or version.
+7. **Separate read-only metrics from control operations:** an endpoint serving metrics should not implicitly trigger dumpHeap or setVMOption.
+8. **Test across environments:** at least the JDKs/GCs/OSes/containers your product actually supports; document the tested scope.
 
-Ví dụ trả dữ liệu ra JSON từ một exporter: một trường “processCpuTimeNs = null; availability=unsupported; source=jdk.management” tốt hơn “processCpuTimeNs = 0”, vì số 0 có thể khiến alert suy ra process nhàn rỗi trong khi thực tế không đo được.
+For example, when emitting JSON from an exporter: a field `"processCpuTimeNs = null; availability=unsupported; source=jdk.management"` is better than `"processCpuTimeNs = 0"`, because 0 could mislead alerts into concluding the process is idle when it actually could not be measured.
 
-## 10. JMX client và MXBean proxy: portability ở tầng dữ liệu
+## 10. JMX client and MXBean proxy: portability at the data layer
 
-Khi cần đọc từ một process khác, người dùng có thể truy vấn MBeanServerConnection. **JMX connector được bảo vệ** cung cấp đường từ client tới server; ManagementFactory hỗ trợ tạo proxy typed tương ứng với MXBean trên connection đó.
+When you need to read from another process, you can query MBeanServerConnection. A **secured JMX connector** provides the path from client to server; ManagementFactory supports creating typed proxies corresponding to MXBeans over that connection.
 
-Ví dụ **mảnh mã, không độc lập** — giả sử biến *connection* là MBeanServerConnection đã kết nối an toàn:
+Example **code snippet, not standalone** — assuming the variable *connection* is a securely connected MBeanServerConnection:
 
 ~~~java
 java.lang.management.MemoryMXBean remoteMemory =
@@ -518,238 +518,238 @@ java.lang.management.MemoryMXBean remoteMemory =
                 connection, java.lang.management.MemoryMXBean.class);
 if (remoteMemory != null) {
     long bytes = remoteMemory.getHeapMemoryUsage().getUsed();
-    // Xuất bytes cùng timestamp và danh tính JVM đích.
+    // Export bytes along with timestamp and target JVM identity.
 }
 ~~~
 
-Đây là cùng interface chuẩn nhưng **truy cập remote**. Kết nối có thể mất, JVM target restart hoặc JMX client dùng version khác. Cần xử lý thời gian chờ, lỗi giao tiếp, object biến mất và các vấn đề ánh xạ OpenTypes.
+This is the same standard interface, but **accessed remotely**. The connection can drop, the target JVM can restart, or the JMX client may use a different version. Timeouts, communication errors, disappearing objects, and OpenType mapping issues must be handled.
 
-Một cách không dùng proxy là:
+A non-proxy approach is:
 
 ~~~java
-// Mảnh mã, đòi hỏi MBeanServerConnection connection có sẵn.
+// Snippet, requires an available MBeanServerConnection connection.
 javax.management.ObjectName name =
         new javax.management.ObjectName("java.lang:type=Memory");
 Object value = connection.getAttribute(name, "HeapMemoryUsage");
-// value được ánh xạ qua OpenType/CompositeData, không cast thẳng MemoryUsage.
+// value is mapped via OpenType/CompositeData, do not cast directly to MemoryUsage.
 ~~~
 
-**Không có ObjectName bí mật:** các tên chuẩn có thể biết được, nhưng điều đó không phải lý do để mở JMX ra mạng công cộng. **Authentication, TLS, network access control và quyền thao tác** là những điều cần thiết khi một JMX connector được bật từ xa, đặc biệt đối với MBeans có operations điều khiển.
+**There are no secret ObjectNames:** the standard names are well known, which is no reason to expose JMX to a public network. **Authentication, TLS, network access control, and operation authorization** are essential whenever a JMX connector is enabled remotely, especially for MBeans with control operations.
 
-JMX proxy được thiết kế cho sự tương tác liên phiên bản nhờ OpenTypes, nhưng không đảm bảo mỗi method mới/cũ trên interface có cùng ý nghĩa hay luôn tồn tại. Client nên dùng hợp đồng phiên bản phù hợp, xử lý unsupported/unknown attribute và có quy tắc fallback.
+JMX proxies are designed for cross-version interoperability thanks to OpenTypes, yet do not guarantee every new/old method on an interface keeps the same meaning or always exists. Clients should use an appropriate version contract, handle unsupported/unknown attributes, and have fallback rules.
 
-## 11. ManagementFactory không phải công cụ chẩn đoán mọi vấn đề
+## 11. ManagementFactory is not the tool for every diagnostic problem
 
-**Khi dùng MXBeans là hợp lý:**
+**When MXBeans are a good fit:**
 
-- Poll heap used/committed, thread count, class loading, GC count/time.
-- Kiểm tra runtime uptime/start time để nhận diện restart.
-- Đọc OS available processors/load average theo API chuẩn.
-- Xác định số lượng và tên pool/collector do JVM thực tế cung cấp.
-- Triển khai exporter nội bộ có chi phí thấp, kiểm tra tình trạng cơ bản thường xuyên.
+- Polling heap used/committed, thread count, class loading, GC count/time.
+- Checking runtime uptime/start time to detect restarts.
+- Reading OS available processors/load average via standard APIs.
+- Identifying the number and names of pools/collectors provided by the actual JVM.
+- Implementing a low-cost internal exporter for regular basic health checks.
 
-**Khi cần dữ liệu khác MXBeans:**
+**When data beyond MXBeans is needed:**
 
-- **p95/p99 GC pause chính xác:** GC logs, JFR hoặc histogram có ghi từng sự kiện; tổng collection time không cho distribution.
-- **Nghi object retention hoặc memory leak:** heap dump/JFR allocation profiling/công cụ phân tích; heap used một thời điểm không chứng minh leak.
-- **Deadlock hoặc lock contention chi tiết:** ThreadMXBean có khả năng hỗ trợ, nhưng cần ThreadInfo/stack/JFR và đối chiếu trạng thái trong thời gian.
-- **Native memory/RSS:** OS metrics, container metrics hoặc Native Memory Tracking/công cụ phù hợp; heap + nonheap không bằng toàn bộ RSS.
-- **Request latency và business errors:** application metrics/log/tracing; MXBean không mặc định biết route/requestId.
-- **Per-thread allocation hoặc process CPU:** có thể cần extension và kiểm tra support.
+- **Exact p95/p99 GC pause:** GC logs, JFR, or histograms recording individual events; total collection time does not give a distribution.
+- **Suspected object retention or memory leak:** heap dump/JFR allocation profiling/analysis tools; point-in-time heap used does not prove a leak.
+- **Deadlock or detailed lock contention:** ThreadMXBean has supporting capabilities, but ThreadInfo/stacks/JFR and time-correlated states are needed.
+- **Native memory/RSS:** OS metrics, container metrics, or Native Memory Tracking/appropriate tools; heap + non-heap does not equal total RSS.
+- **Request latency and business errors:** application metrics/logs/tracing; MXBeans do not inherently know route/requestId.
+- **Per-thread allocation or process CPU:** may require extensions and support checks.
 
-### Minh họa: vì sao chỉ nhìn một bean dẫn tới kết luận sai?
+### Illustration: why looking at a single bean leads to the wrong conclusion
 
-Một JVM chạy với throughput tăng mạnh, heap used dao động quanh 500 MiB. Nếu chỉ nhìn *getHeapMemoryUsage().getUsed()*, có thể kết luận “memory ổn, không có vấn đề”. Nhưng application có thể đang cấp phát object với tốc độ rất cao rồi GC liên tục; heap used không nhất thiết tăng nếu collector vẫn thu hồi kịp. Cần đọc **GC count/time qua nhiều snapshot**, allocation metrics/JFR và request latency, thay vì nhìn gauge đơn lẻ.
+A JVM runs with surging throughput while heap used fluctuates around 500 MiB. Looking only at *getHeapMemoryUsage().getUsed()*, one might conclude "memory is fine, no issue". Yet the application might be allocating objects at a very high rate and triggering GC continuously; heap used does not necessarily rise if the collector reclaims fast enough. You must read **GC count/time across multiple snapshots**, allocation metrics/JFR, and request latency, rather than looking at a single gauge.
 
-Ngược lại, heap used tăng trong giai đoạn warming rồi ổn định không đủ chứng minh leak; cần baseline, retained heap, collector behavior và tải tương đương.
+Conversely, heap used rising during warmup and then stabilizing is not enough to prove a leak; you need a baseline, retained heap, collector behavior, and comparable load.
 
-## 12. Diagnostic walkthrough: đọc đúng tín hiệu cho bốn triệu chứng
+## 12. Diagnostic walkthrough: reading the right signals for four symptoms
 
-### 12.1 Heap tăng dần sau mỗi đợt tải
+### 12.1 Heap rising steadily after each load burst
 
-**Nguồn chuẩn:** MemoryMXBean.getHeapMemoryUsage(), MemoryPoolMXBeans theo pool.
+**Standard sources:** MemoryMXBean.getHeapMemoryUsage(), MemoryPoolMXBeans by pool.
 
-**Câu hỏi:** heap used tăng trong mọi thời điểm hay chỉ trước GC? Giá trị sau GC có tăng qua nhiều chu kỳ? Committed/max thay đổi do ergonomic sizing không?
+**Questions:** is heap used rising at all times or only before GC? Does the post-GC value climb across multiple cycles? Do committed/max change due to ergonomic sizing?
 
-**Phép đo bổ sung:** GC logs/JFR, memory pool usage, native/container memory; chỉ tiến tới heap dump khi có quyền và lợi ích điều tra rõ.
+**Complementary measurements:** GC logs/JFR, memory pool usage, native/container memory; proceed to a heap dump only with authorization and clear investigative benefit.
 
-**Giới hạn:** HeapMemoryUsage không cho object graph hay ai giữ tham chiếu. DumpHeap qua extension có thể giúp nhưng là operation tác động mạnh.
+**Limitations:** HeapMemoryUsage does not show the object graph or what holds references. DumpHeap via the extension can help, but is a high-impact operation.
 
-### 12.2 Thread count tăng, API throughput lại giảm
+### 12.2 Thread count rising while API throughput drops
 
-**Nguồn chuẩn:** ThreadMXBean.getThreadCount(), getPeakThreadCount(), getAllThreadIds()/getThreadInfo() tùy nhu cầu và support.
+**Standard sources:** ThreadMXBean.getThreadCount(), getPeakThreadCount(), getAllThreadIds()/getThreadInfo() depending on need and support.
 
-**Câu hỏi:** live threads tăng do pool mở rộng, blocked/waiting, deadlock hay thread leak? Có bao nhiêu request in flight, queue depth và timeout?
+**Questions:** are live threads growing due to pool expansion, blocked/waiting threads, deadlock, or a thread leak? How many requests are in flight, what is the queue depth, and what are timeouts?
 
-**Phép đo bổ sung:** thread dump/JFR/stack, thread-pool gauges, dependency latency. Không kết luận “CPU cạn” chỉ từ số thread; thread đang WAITING có thể tiêu thụ rất ít CPU.
+**Complementary measurements:** thread dump/JFR/stacks, thread-pool gauges, dependency latency. Do not conclude "CPU exhausted" solely from thread count; threads in WAITING can consume very little CPU.
 
-**Giới hạn:** Một số thread CPU times/lock contention cần đo được hỗ trợ và bật; bật khi đang sự cố có chi phí. Số thread cũng không đồng nhất với số virtual threads ở các JVM đời mới; cần đọc tài liệu đúng release nếu ứng dụng dùng virtual threads.
+**Limitations:** some thread CPU times/lock contention metrics require support and enabling; enabling during an incident carries overhead. Thread count is also not identical to virtual thread count in newer JVMs; read the documentation for the exact release if the application uses virtual threads.
 
-### 12.3 GC count tăng, p99 xấu đi
+### 12.3 GC count rising, p99 degrading
 
-**Nguồn chuẩn:** List<GarbageCollectorMXBean>; đọc collection count/time ở hai hoặc nhiều thời điểm.
+**Standard sources:** List<GarbageCollectorMXBean>; read collection count/time at two or more timestamps.
 
-**Câu hỏi:** collection rate/tổng collection time tăng bao nhiêu? Có restart/counter reset không? Bộ đếm có trả -1 không? Dữ liệu theo collector nào?
+**Questions:** how much did collection rate/total collection time increase? Was there a restart/counter reset? Do counters return -1? Which collector does the data belong to?
 
-**Phép đo bổ sung:** GC logging/JFR pause duration và timestamp, allocation rate, heap pools, CPU. “GC count tăng” chỉ là tương quan; phải xác nhận pause có đủ độ lớn và trùng request chậm.
+**Complementary measurements:** GC logging/JFR pause duration and timestamps, allocation rate, heap pools, CPU. "GC count increased" is only a correlation; confirm pauses are large enough and coincide with slow requests.
 
-### 12.4 CPU cao trong container
+### 12.4 High CPU in a container
 
-**Nguồn chuẩn:** OperatingSystemMXBean.getAvailableProcessors()/getSystemLoadAverage().
+**Standard sources:** OperatingSystemMXBean.getAvailableProcessors()/getSystemLoadAverage().
 
-**Nguồn có thể thêm từ JDK extension:** process CPU time/load, CPU load environment. Các số đo trên có thể phụ thuộc JDK, cgroup, quota và host/container isolation.
+**Possible additions from JDK extension:** process CPU time/load, environment CPU load. These metrics may depend on JDK, cgroup, quota, and host/container isolation.
 
-**Phép đo bổ sung:** OS/container metrics về CPU throttling/quota, process CPU, thread CPU time khi hỗ trợ, JFR CPU/profile. Không lấy system load average làm phần trăm CPU và không suy ra process CPU% từ snapshot đơn lẻ của CPU time tích lũy.
+**Complementary measurements:** OS/container metrics for CPU throttling/quota, process CPU, thread CPU time when supported, JFR CPU/profile. Do not treat system load average as CPU percentage and do not infer process CPU% from a single snapshot of cumulative CPU time.
 
-## 13. Những điều phải đặc biệt cẩn trọng trong production
+## 13. Things that require special caution in production
 
-### 13.1 Những method chỉ đọc và những operation điều khiển
+### 13.1 Read-only methods vs. control operations
 
-| Nhóm | Ví dụ | Mức tác động |
+| Group | Examples | Impact level |
 | --- | --- | --- |
-| Đọc snapshot | getHeapMemoryUsage(), getThreadCount(), getUptime() | Thường thích hợp cho monitoring, nhưng vẫn có overhead khi thu liên tục quá dày |
-| Đọc danh sách runtime | getMemoryPoolMXBeans(), getGarbageCollectorMXBeans() | Phải xử lý danh sách thay đổi; không nên poll quá mức |
-| Thu stack/chi tiết khóa | ThreadInfo, dumpAllThreads() | Có thể tốn CPU/bộ nhớ, trả dữ liệu lớn |
-| Bật/tắt đo thêm | setThreadCpuTimeEnabled(), setThreadContentionMonitoringEnabled() | **Thay đổi trạng thái**, cần cân nhắc chi phí và quyền |
-| Yêu cầu GC | MemoryMXBean.gc() | **Không chỉ đọc**; yêu cầu chạy GC, không bảo đảm kết quả/thời điểm, có thể ảnh hưởng latency |
-| Dump bộ nhớ | HotSpotDiagnosticMXBean.dumpHeap() | **Tác động cao**, tốn disk/I/O, nguy cơ dữ liệu nhạy cảm |
-| Đổi VM option | HotSpotDiagnosticMXBean.setVMOption() | **Thay đổi runtime**, có thể không được hỗ trợ hoặc option không writable |
+| Snapshot reads | getHeapMemoryUsage(), getThreadCount(), getUptime() | Generally suitable for monitoring, though still has overhead if polled too frequently |
+| Runtime list reads | getMemoryPoolMXBeans(), getGarbageCollectorMXBeans() | Must handle changing lists; avoid excessive polling |
+| Stack/lock detail capture | ThreadInfo, dumpAllThreads() | Can consume CPU/memory and return large payloads |
+| Toggle extra measurement | setThreadCpuTimeEnabled(), setThreadContentionMonitoringEnabled() | **Mutates state**, requires weighing cost and permissions |
+| Request GC | MemoryMXBean.gc() | **Not read-only**; requests a GC run with no guarantee on result/timing, can hurt latency |
+| Memory dump | HotSpotDiagnosticMXBean.dumpHeap() | **High impact**, consumes disk/I/O, sensitive data risk |
+| Change VM option | HotSpotDiagnosticMXBean.setVMOption() | **Mutates runtime**, may be unsupported or option not writable |
 
-Một exporter “read-only” nên tránh expose operations điều khiển một cách không kiểm soát. Nếu phải cho phép thao tác mạnh, tách endpoint, authentication, authorization, audit, rate limit và approval riêng.
+A "read-only" exporter should avoid exposing control operations without safeguards. If heavy operations must be permitted, separate endpoints, authentication, authorization, auditing, rate limits, and approvals.
 
-### 13.2 Sampling và overhead
+### 13.2 Sampling and overhead
 
-Một bean trả số liệu tại thời điểm đọc. Lấy heap usage, GC count và thread count qua ba lời gọi không tạo **global atomic snapshot**; nếu JVM thay đổi nhanh, ba giá trị có thể phản ánh ba thời điểm khác nhau. Gắn timestamp riêng hoặc cửa sổ sampling thích hợp, và tránh việc dùng chênh lệch bất nhất làm bằng chứng chắc chắn của causal chain.
+A bean returns numbers at read time. Reading heap usage, GC count, and thread count across three calls does not produce a **global atomic snapshot**; if the JVM is changing rapidly, the three values may reflect three different instants. Attach individual timestamps or appropriate sampling windows, and avoid using slight inconsistencies as definitive proof of a causal chain.
 
-Poll mỗi vài chục mili giây có thể tăng overhead mà không cải thiện chất lượng kết luận. Ngược lại, poll mỗi 5 phút có thể bỏ qua spike ngắn. Chọn tần suất theo triệu chứng và kết hợp metrics theo lịch, event traces/JFR khi điều tra sâu.
+Polling every few tens of milliseconds can add overhead without improving conclusion quality. Conversely, polling every 5 minutes can miss brief spikes. Choose frequency based on symptoms and combine scheduled metrics with event traces/JFR when investigating deeply.
 
-### 13.3 Counter reset, đổi GC và đổi JVM instance
+### 13.3 Counter resets, GC changes, and JVM instance changes
 
-Nếu service restart, RuntimeMXBean uptime giảm và các counter GC/class loading bắt đầu chu kỳ mới. Khi autoscale, một instance mới có counters gần 0, instance cũ có thể biến mất. Tính **rate/increase theo instance trước khi aggregate**, không lấy hiệu raw total của fleet khi số instance thay đổi.
+If a service restarts, RuntimeMXBean uptime drops and GC/class-loading counters begin a new cycle. During autoscaling, a new instance starts with counters near 0 and old instances can disappear. Compute **rate/increase per instance before aggregating**; do not subtract raw fleet totals when instance counts change.
 
-Không cache tên GarbageCollectorMXBean, MemoryPoolMXBean hoặc index trong list như một hợp đồng bất biến xuyên version. Hãy ghi VM version, collector và ObjectName trong metadata quan sát.
+Do not cache GarbageCollectorMXBean names, MemoryPoolMXBean names, or list indices as an immutable contract across versions. Record VM version, collector, and ObjectName in observation metadata.
 
-### 13.4 Quyền xem và dữ liệu nhạy cảm
+### 13.4 Viewing permissions and sensitive data
 
-RuntimeMXBean.getInputArguments() có thể chứa JVM options, đường dẫn hoặc tham số nhạy cảm. JMX management interface có thể bộc lộ thông tin cấu hình hệ thống. Heap dumps có thể chứa credentials, dữ liệu khách hàng, session state. Bảo vệ quyền xem, lưu trữ, đường xuất file, thời gian retention và redaction.
+RuntimeMXBean.getInputArguments() can contain JVM options, file paths, or sensitive arguments. JMX management interfaces can reveal system configuration details. Heap dumps can contain credentials, customer data, and session state. Protect viewing permissions, storage, output paths, retention periods, and redaction.
 
-Từ xa, **JMX chưa được cấu hình bảo mật là một attack surface**. Không đưa một connector JMX/RMI ra Internet hoặc toàn cluster không hạn chế vì “chỉ để đọc CPU”. Một số operations thực sự có quyền điều khiển, và dữ liệu read-only cũng có thể nhạy cảm.
+Remotely, **unsecured JMX is an attack surface**. Do not expose a JMX/RMI connector to the Internet or unrestrictedly across an entire cluster "just to read CPU". Some operations genuinely have control capabilities, and even read-only data can be sensitive.
 
-## 14. Các hiểu nhầm và lỗi phổ biến
+## 14. Common misconceptions and errors
 
-| Sai lầm | Vì sao sai | Cách đúng |
+| Mistake | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| “ManagementFactory chỉ có interface HotSpot” | Core API nằm trong Java SE java.management | Dùng java.lang.management trước |
-| “com.sun.management là API Java SE chuẩn” | Đây là JDK extension trong jdk.management | Thiết kế fallback và kiểm tra module/vendor |
-| “Tên method OperatingSystemMXBean giống nhau nên import nào cũng được” | Interface chuẩn và extension có bộ method khác nhau | Dùng fully qualified type hoặc import rõ ràng |
-| “getPlatformMXBean cho GC collector trả singleton” | GC bean là multi-instance | Dùng getPlatformMXBeans/list |
-| “getPlatformMXBean luôn trả bean” | Có singleton platform bean tùy chọn không được hỗ trợ | Xử lý null/IllegalArgumentException đúng contract |
-| “Danh sách GC/pool có thứ tự cố định” | JVM có thể thay đổi số lượng/tên/thứ tự | Nhận dạng theo bean metadata, không theo index |
-| “getHeapMemoryUsage.used = RSS” | Heap chỉ là một phần footprint | Dùng OS/container/native memory metrics khi cần |
-| “MemoryUsage.max = -1 là không được cấp phát memory” | -1 nghĩa không xác định | Gắn trạng thái unavailable, không chia cho -1 |
-| “GC collection time là p99 pause” | Tổng thời gian tích lũy không phải phân bố | Xem GC logs/JFR/histogram |
-| “Thread count = request throughput” | Thread count là gauge | Xem request counter/rate và in-flight |
-| “ProcessCpuTime = process CPU%” | Là CPU nanoseconds tích lũy | Lấy delta theo thời gian, chuẩn hóa cẩn thận |
-| “Có platform MBeanServer là đã có JMX port” | MBeanServer local khác remote connector | Kiểm tra connector và bảo mật |
-| “MBeanServer.getAttribute trả MemoryUsage” | MXBean qua JMX dùng OpenType mapping | Xử lý CompositeData hoặc dùng typed proxy |
-| “Bật thread CPU time luôn miễn phí” | Có thể tạo overhead và thay đổi trạng thái đo | Kiểm tra support/permission/trước-sau |
-| “DumpHeap chỉ là getter vô hại” | Có thể tốn tài nguyên, lộ dữ liệu | Approval/đánh giá impact |
-| “JVM khác vendor chắc chắn có getProcessCpuLoad()” | Đây là extension, có thể thiếu/unsupported | Capability detection và fallback |
-| “Đổi module JDK không ảnh hưởng deploy” | Custom runtime image có thể thiếu jdk.management | Kiểm tra jlink/module graph khi build |
+| "ManagementFactory only has HotSpot interfaces" | Core API lives in Java SE java.management | Use java.lang.management first |
+| "com.sun.management is a standard Java SE API" | It is a JDK extension in jdk.management | Design fallbacks and check module/vendor |
+| "OperatingSystemMXBean has the same method names so either import works" | Standard and extension interfaces have different method sets | Use fully qualified type or explicit import |
+| "getPlatformMXBean for GC collector returns a singleton" | GC bean is multi-instance | Use getPlatformMXBeans/list |
+| "getPlatformMXBean always returns a bean" | Optional singleton platform beans may be unsupported | Handle null/IllegalArgumentException per contract |
+| "GC/pool lists have a fixed order" | JVM can change count/names/order | Identify by bean metadata, not by index |
+| "getHeapMemoryUsage.used = RSS" | Heap is only part of the footprint | Use OS/container/native memory metrics when needed |
+| "MemoryUsage.max = -1 means no memory allocated" | -1 means undefined | Mark status unavailable, do not divide by -1 |
+| "GC collection time is p99 pause" | Cumulative total time is not a distribution | Check GC logs/JFR/histograms |
+| "Thread count = request throughput" | Thread count is a gauge | Check request counter/rate and in-flight requests |
+| "ProcessCpuTime = process CPU%" | It is cumulative CPU nanoseconds | Take delta over time, normalize carefully |
+| "Having platform MBeanServer means a JMX port is open" | Local MBeanServer differs from remote connector | Check connector and security configuration |
+| "MBeanServer.getAttribute returns MemoryUsage" | MXBeans over JMX use OpenType mapping | Handle CompositeData or use typed proxy |
+| "Enabling thread CPU time is always free" | Can incur overhead and change measurement state | Check support/permissions/before-and-after |
+| "DumpHeap is just a harmless getter" | Can consume heavy resources and leak data | Require approval and impact assessment |
+| "Other JVM vendors definitely have getProcessCpuLoad()" | It is an extension, may be missing/unsupported | Capability detection and fallback |
+| "Changing JDK modules does not affect deployment" | Custom runtime image may omit jdk.management | Check jlink/module graph during build |
 
-## 15. Bài tập thực hành và đáp án
+## 15. Practice exercises and answers
 
-### Bài A – Chọn bean chuẩn
+### Exercise A – Choosing standard beans
 
-**Câu hỏi:** Bạn cần biết heap used, số thread live, uptime và available processors của một JVM Java 17. Có cần com.sun.management không?
+**Question:** You need to know heap used, live thread count, uptime, and available processors of a Java 17 JVM. Do you need com.sun.management?
 
-**Đáp án:** Không. Dùng MemoryMXBean, ThreadMXBean, RuntimeMXBean và java.lang.management.OperatingSystemMXBean qua ManagementFactory. Đây là các interface chuẩn, đủ để đọc bốn số đo trên.
+**Answer:** No. Use MemoryMXBean, ThreadMXBean, RuntimeMXBean, and java.lang.management.OperatingSystemMXBean via ManagementFactory. These are standard interfaces, sufficient to read all four metrics.
 
-### Bài B – Một hay nhiều bean?
+### Exercise B – One or many beans?
 
-**Câu hỏi:** Vì sao gọi getPlatformMXBean(GarbageCollectorMXBean.class) không phù hợp, trong khi getPlatformMXBean(MemoryMXBean.class) hợp lý?
+**Question:** Why is calling getPlatformMXBean(GarbageCollectorMXBean.class) inappropriate, whereas getPlatformMXBean(MemoryMXBean.class) makes sense?
 
-**Đáp án:** MemoryMXBean là singleton platform MXBean; GarbageCollectorMXBean là loại có thể có nhiều thực thể. Dùng getPlatformMXBeans(GarbageCollectorMXBean.class) hoặc getGarbageCollectorMXBeans().
+**Answer:** MemoryMXBean is a singleton platform MXBean; GarbageCollectorMXBean is a type that can have multiple instances. Use getPlatformMXBeans(GarbageCollectorMXBean.class) or getGarbageCollectorMXBeans().
 
-### Bài C – Ranh giới API
+### Exercise C – API boundary
 
-**Câu hỏi:** Java code chỉ import java.lang.management.OperatingSystemMXBean nhưng gọi getProcessCpuTime(). Vì sao javac báo không có method?
+**Question:** Java code only imports java.lang.management.OperatingSystemMXBean yet calls getProcessCpuTime(). Why does javac report no such method?
 
-**Đáp án:** Method thuộc interface com.sun.management.OperatingSystemMXBean trong module jdk.management, không nằm trong interface OS bean chuẩn. Cần JDK extension, module phù hợp, check implementation và xử lý -1 khi unsupported.
+**Answer:** The method belongs to the com.sun.management.OperatingSystemMXBean interface in the jdk.management module, not the standard OS bean interface. You need the JDK extension, appropriate module, implementation check, and handling for -1 when unsupported.
 
-### Bài D – JMX OpenType
+### Exercise D – JMX OpenType
 
-**Câu hỏi:** Trong cùng JVM, getHeapMemoryUsage() trả MemoryUsage nhưng MBeanServer.getAttribute("java.lang:type=Memory","HeapMemoryUsage") có thể trả CompositeData. Có phải lệch dữ liệu không?
+**Question:** Within the same JVM, getHeapMemoryUsage() returns MemoryUsage while MBeanServer.getAttribute("java.lang:type=Memory","HeapMemoryUsage") can return CompositeData. Is this a data mismatch?
 
-**Đáp án:** Không. MXBean mapping chuyển type Java phức hợp sang JMX OpenType cho client; có thể dùng typed proxy để mapping thuận tiện.
+**Answer:** No. MXBean mapping converts complex Java types into JMX OpenTypes for clients; you can use a typed proxy for convenient mapping.
 
-### Bài E – Sentinel và phép toán
+### Exercise E – Sentinel and arithmetic
 
-**Câu hỏi:** MemoryUsage.getMax() trả -1. Tính 100 × used/max để báo percent heap có hợp lệ không?
+**Question:** MemoryUsage.getMax() returns -1. Is computing 100 × used/max to report heap percentage valid?
 
-**Đáp án:** Không. Max chưa xác định, tỷ lệ không có ý nghĩa. Dùng metric khác hoặc biểu diễn “unknown” rõ ràng.
+**Answer:** No. Max is undefined, so the ratio is meaningless. Use another metric or represent "unknown" explicitly.
 
-### Bài F – Delta GC
+### Exercise F – GC delta
 
-**Câu hỏi:** Collector A có collectionCount từ 120 lên 132 trong 60 giây không reset. Rate theo collector là bao nhiêu?
+**Question:** Collector A has collectionCount go from 120 to 132 over 60 seconds with no reset. What is the collector's rate?
 
-**Đáp án:** 12/60 = 0,2 collection/s. Kết quả không cho biết p95/p99 GC pause. Nếu một trong hai snapshot trả -1, không thể dùng công thức.
+**Answer:** 12/60 = 0.2 collections/s. The result does not tell you p95/p99 GC pause. If either snapshot returned -1, the formula cannot be used.
 
-### Bài G – Tương thích runtime image
+### Exercise G – Runtime image compatibility
 
-**Câu hỏi:** Dự án dùng module java.management, nhưng sau khi thêm import com.sun.management và đóng gói jlink image tối giản, service không khởi động. Khả năng nào cần kiểm tra?
+**Question:** A project uses the java.management module, but after adding an import of com.sun.management and packaging a minimal jlink image, the service fails to start. What possibility should be checked?
 
-**Đáp án:** Image có thể không chứa jdk.management; phải kiểm tra module graph và bản JVM, sau đó chọn đóng gói extension đúng cách hoặc tách adapter optional. Không coi lỗi module là JVM không có CPU metrics chuẩn.
+**Answer:** The image might not contain jdk.management; inspect the module graph and JVM build, then either package the extension properly or isolate an optional adapter. Do not mistake a module error for the JVM lacking standard CPU metrics.
 
-### Bài H – Gỡ lỗi ở production
+### Exercise H – Production debugging
 
-**Câu hỏi:** Một dashboard muốn lấy heap dump định kỳ mỗi 10 giây để “đo memory”. Có hợp lý không?
+**Question:** A dashboard wants to take a heap dump every 10 seconds to "measure memory". Is that reasonable?
 
-**Đáp án:** Không. Heap dump nặng và chứa dữ liệu nhạy cảm; dùng MemoryMXBean/MemoryPoolMXBean cho monitoring, chỉ dump có kiểm soát khi cần phân tích object retention.
+**Answer:** No. Heap dumps are heavy and contain sensitive data; use MemoryMXBean/MemoryPoolMXBean for monitoring, and only dump under control when object retention analysis is needed.
 
-### Bài I – JMX remote
+### Exercise I – Remote JMX
 
-**Câu hỏi:** Code gọi getPlatformMBeanServer() rồi không thấy cổng 9010 mở. Có phải bug?
+**Question:** Code calls getPlatformMBeanServer() and then port 9010 is not open. Is that a bug?
 
-**Đáp án:** Không. Lấy local MBeanServer không tự tạo remote JMX connector; muốn kết nối remote cần cấu hình connector an toàn theo chính sách môi trường.
+**Answer:** No. Retrieving the local MBeanServer does not automatically create a remote JMX connector; to connect remotely, a secure connector must be configured according to environment policy.
 
-### Bài J – CPU time và CPU load
+### Exercise J – CPU time and CPU load
 
-**Câu hỏi:** ProcessCpuTime tăng 120 tỷ nanosecond trong 60 giây wall-clock. Giá trị 120 tỷ có phải “120% CPU” không?
+**Question:** ProcessCpuTime increases by 120 billion nanoseconds over 60 wall-clock seconds. Does 120 billion mean "120% CPU"?
 
-**Đáp án:** Không. Tỷ lệ CPU-time/wall-time = \(120\,s / 60\,s = 2\) CPU-seconds/second trung bình; có thể là khoảng hai core dùng hết trong thời gian đó. Muốn biểu thị % phải định nghĩa denominator là một core, available processors hay quota, và xét cách runtime/OS đo.
+**Answer:** No. The CPU-time/wall-time ratio is \(120\,s / 60\,s = 2\) CPU-seconds/second on average; that could be roughly two cores fully utilized during that time. To express %, you must define the denominator as one core, available processors, or quota, and account for how the runtime/OS measures it.
 
-## 16. Checklist lựa chọn API khi làm runtime diagnostics
+## 16. API selection checklist for runtime diagnostics
 
-Trước khi thêm một dòng đo MXBean vào service, hãy tự trả lời:
+Before adding an MXBean measurement line to a service, answer for yourself:
 
-1. **Câu hỏi:** tôi cần gauge, counter, rate hay một phân bố?
-2. **Chuẩn hay mở rộng:** có Java SE API trong java.lang.management trả lời đủ chưa?
-3. **Module:** dự án có java.management; nếu dùng JDK extension có jdk.management trong runtime image không?
-4. **Số lượng:** interface này singleton hay multi-instance? Có thể null/empty không?
-5. **Đơn vị:** byte, millisecond, nanosecond, class, thread, load average hay tỷ lệ?
-6. **Sentinel:** method có thể trả -1, null hoặc UnsupportedOperationException không?
-7. **Thời gian:** snapshot của JVM nào, lúc nào, có process restart hoặc đổi GC không?
-8. **Cost:** getter nhẹ hay operation thu stack/dumpHeap/thay đổi state?
-9. **Bảo mật:** dữ liệu có thể nhạy cảm, JMX server có được bảo vệ, operation có phân quyền?
-10. **Fallback:** khi extension không tồn tại, ta báo unavailable hay sử dụng metric khác?
-11. **QA:** đã thử trên JDK/vendor/GC/container thực tế và so với log/JFR/OS metrics chưa?
+1. **Question:** do I need a gauge, counter, rate, or distribution?
+2. **Standard or extension:** is a Java SE API in java.lang.management sufficient to answer it?
+3. **Module:** does the project have java.management; if using a JDK extension, is jdk.management in the runtime image?
+4. **Multiplicity:** is this interface singleton or multi-instance? Can it be null/empty?
+5. **Unit:** bytes, milliseconds, nanoseconds, classes, threads, load average, or ratio?
+6. **Sentinel:** can the method return -1, null, or throw UnsupportedOperationException?
+7. **Time:** which JVM's snapshot, when, and was there a process restart or GC change?
+8. **Cost:** is it a lightweight getter or an operation capturing stacks/dumpHeap/mutating state?
+9. **Security:** could data be sensitive, is the JMX server secured, and are operations authorized?
+10. **Fallback:** when the extension does not exist, do we report unavailable or use another metric?
+11. **QA:** has it been tested on the actual JDK/vendor/GC/container and cross-checked against logs/JFR/OS metrics?
 
-Một báo cáo tốt không ghi “CPU=0 vì MXBean không hỗ trợ”; hãy ghi “process CPU metric unavailable” và tìm nguồn khác. Không ghi “GC time cao gây latency” nếu chưa có dữ liệu thời điểm, pause distribution và trace đối chứng.
+A good report does not state "CPU=0 because MXBean is unsupported"; it states "process CPU metric unavailable" and looks for another source. It does not state "high GC time caused latency" without timestamped data, pause distributions, and corroborating traces.
 
-## 17. Tài liệu tham khảo chính thức
+## 17. Official references
 
 - Java SE 17 – ManagementFactory: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ManagementFactory.html
-- Java SE 17 – OperatingSystemMXBean chuẩn: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/OperatingSystemMXBean.html
+- Java SE 17 – standard OperatingSystemMXBean: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/OperatingSystemMXBean.html
 - Java SE 17 – ThreadMXBean: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html
 - Java SE 17 – MemoryUsage: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/MemoryUsage.html
 - Java SE 17 – GarbageCollectorMXBean: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/GarbageCollectorMXBean.html
-- JDK 17 – package com.sun.management: https://docs.oracle.com/en/java/javase/17/docs/api/jdk.management/com/sun/management/package-summary.html
+- JDK 17 – com.sun.management package: https://docs.oracle.com/en/java/javase/17/docs/api/jdk.management/com/sun/management/package-summary.html
 - JDK 17 – OperatingSystemMXBean extension: https://docs.oracle.com/en/java/javase/17/docs/api/jdk.management/com/sun/management/OperatingSystemMXBean.html
 - JDK 17 – HotSpotDiagnosticMXBean: https://docs.oracle.com/en/java/javase/17/docs/api/jdk.management/com/sun/management/HotSpotDiagnosticMXBean.html
 
-Đọc Javadoc đúng **version và implementation** của JVM đang chạy. Các loại bean, method và default behavior có thể tiến hóa theo JDK/VM.
+Read the Javadoc matching the exact **version and implementation** of the running JVM. Bean types, methods, and default behavior can evolve across JDKs/VMs.
 
-## Ghi nhớ
+## Key takeaways
 
-**ManagementFactory** là cổng vào platform MXBeans. **java.management / java.lang.management** là nền tảng chuẩn để đọc memory, thread, runtime, operating system, class loading và GC. **jdk.management / com.sun.management** mở rộng thông tin chẩn đoán của JDK/HotSpot, có ích nhưng **không được mặc định portable**. Chọn interface chuẩn trước, kiểm tra capability và sentinel, phân biệt singleton/list, biết OpenType khi đi qua JMX, rồi tách các operation thay đổi trạng thái khỏi hoạt động giám sát. Chính sự rõ ràng về hợp đồng API, đơn vị và phạm vi runtime mới khiến số liệu MXBean trở thành bằng chứng đáng tin trong chẩn đoán Java.
+**ManagementFactory** is the gateway to platform MXBeans. **java.management / java.lang.management** is the standard foundation for reading memory, threads, runtime, operating system, class loading, and GC. **jdk.management / com.sun.management** extends JDK/HotSpot diagnostic information, which is useful but **must not be assumed portable**. Choose standard interfaces first, check capabilities and sentinels, distinguish singletons from lists, understand OpenTypes when going through JMX, and separate state-mutating operations from monitoring. Clarity on API contracts, units, and runtime scope is what makes MXBean metrics trustworthy evidence in Java diagnostics.

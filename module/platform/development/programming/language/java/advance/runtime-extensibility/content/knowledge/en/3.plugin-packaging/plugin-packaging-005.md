@@ -1,14 +1,14 @@
-# Bảo toàn tệp đăng ký dịch vụ khi gộp hoặc đổi tên package trong JAR
+# Preserving Service Registration Files When Merging or Relocating Packages in JARs
 
-## 1. Vì sao plugin có thể biến mất sau khi đóng gói?
+## 1. Why Can Plugins Disappear After Packaging?
 
-Java SPI (Service Provider Interface) cho phép ứng dụng tìm implementation tại thời điểm chạy qua `java.util.ServiceLoader`, không cần liệt kê các implementation trong mã ứng dụng. Với đăng ký bằng classpath/module path kiểu JAR truyền thống, một thư viện khai báo provider bằng tệp văn bản:
+Java SPI (Service Provider Interface) allows an application to discover implementations at runtime via `java.util.ServiceLoader`, without hardcoding implementations in application code. With traditional JAR registration on the classpath/module path, a library declares providers using a text file:
 
 ```text
-META-INF/services/<tên nhị phân đầy đủ của service interface>
+META-INF/services/<fully qualified binary name of the service interface>
 ```
 
-Mỗi dòng hữu hiệu trong tệp là **tên nhị phân đầy đủ của một provider class**; dòng trống và phần sau dấu `#` là chú thích. Ví dụ:
+Each effective line in the file is the **fully qualified binary name of a provider class**; blank lines and anything after `#` are comments. For example:
 
 ```text
 # META-INF/services/com.example.spi.GreetingProvider
@@ -16,21 +16,21 @@ com.example.plugin.EnGreetingProvider
 com.example.plugin.ViGreetingProvider
 ```
 
-Khi build JAR thông thường, việc copy resources giữ nguyên tệp này. Rủi ro phát sinh ở bước **fat/uber JAR**, **shade**, **relocate** package hoặc **minimize**: class có thể vẫn tồn tại trong JAR nhưng provider không được tìm thấy; ngược lại, metadata tồn tại nhưng trỏ đến class đã đổi tên hoặc bị loại khỏi artifact. Đây là lỗi về **quan hệ giữa bytecode, tên class và tài nguyên đăng ký**, không thể sửa bằng việc chỉ chỉnh `MANIFEST.MF`.
+In a standard JAR build, resource copying preserves this file as-is. Risk arises during **fat/uber JAR** assembly, **shading**, package **relocation**, or **minimization**: the classes may still exist inside the JAR while the provider goes undiscovered; conversely, metadata may exist yet point to a class that was renamed or stripped from the artifact. This is a bug in the **relationship between bytecode, class names, and registration resources**, and cannot be fixed merely by editing `MANIFEST.MF`.
 
-## 2. Quy tắc phải giữ nguyên
+## 2. Rules That Must Stay Intact
 
-Có ba thành phần phải nhất quán:
+Three elements must remain consistent:
 
-1. **Service type:** tên sau `META-INF/services/` phải khớp với tên nhị phân đầy đủ của interface/abstract class mà `ServiceLoader.load(ServiceType.class)` yêu cầu. Nếu relocation đổi package của service interface, tên **tệp** đăng ký cũng phải được cập nhật.
-2. **Provider type:** mỗi tên class ghi trong nội dung tệp phải trỏ tới provider thực sự nằm trong JAR sau khi relocate. Nếu implementation đổi từ `com.example.plugin.Foo` sang `shaded.com.example.plugin.Foo`, tên trong nội dung phải đổi tương ứng.
-3. **Khả năng nạp:** provider phải tuân thủ hợp đồng SPI (tương thích với service type, có thể được ServiceLoader khởi tạo theo cơ chế thích hợp) và classloader/module layer sử dụng phải nhìn thấy cả metadata lẫn class.
+1. **Service type:** the name after `META-INF/services/` must match the fully qualified binary name of the interface/abstract class passed to `ServiceLoader.load(ServiceType.class)`. If relocation renames the service interface's package, the registration **filename** must also be updated.
+2. **Provider type:** every class name listed in the file contents must point to a provider actually present in the JAR after relocation. If an implementation changes from `com.example.plugin.Foo` to `shaded.com.example.plugin.Foo`, the name inside the file must change accordingly.
+3. **Loadability:** the provider must conform to the SPI contract (compatible with the service type, instantiable by ServiceLoader via the appropriate mechanism), and the active classloader/module layer must see both the metadata and the class.
 
-Ở classpath, provider thông thường là class concrete public có public constructor không tham số. Trong named Java modules, `provides ... with ...` là cơ chế khai báo chuẩn; quy định về constructor/provider method có điểm khác, vì vậy không suy diễn cơ chế classpath sang mọi module.
+On the classpath, a provider is typically a public concrete class with a public no-argument constructor. In named Java modules, `provides ... with ...` is the standard declaration mechanism; rules regarding constructors/provider methods differ, so do not extrapolate classpath rules to all modules.
 
-### Khi merge nhiều JAR
+### When Merging Multiple JARs
 
-Hai thư viện có thể chứa **cùng đường dẫn** `META-INF/services/com.example.spi.GreetingProvider`, nhưng nội dung khác nhau. Nếu công cụ đóng gói lấy một tệp và ghi đè tệp còn lại, một hoặc nhiều provider sẽ bị mất khỏi danh sách. Tệp kết quả cần giữ **hợp** các provider hợp lệ, thường là ghép từng dòng rồi xử lý trùng lặp/chú thích theo công cụ build:
+Two libraries may contain the **exact same path** `META-INF/services/com.example.spi.GreetingProvider`, yet have different contents. If the packaging tool takes one file and overwrites the other, one or more providers will be dropped from the list. The resulting file must preserve the **union** of valid providers, typically by concatenating lines and handling duplicates/comments via the build tool:
 
 ```text
 # plugin-a.jar
@@ -39,29 +39,29 @@ com.example.plugins.EnglishGreeting
 # plugin-b.jar
 com.example.plugins.VietnameseGreeting
 
-# đúng trong uber.jar, sau merge
+# correct in uber.jar, after merge
 com.example.plugins.EnglishGreeting
 com.example.plugins.VietnameseGreeting
 ```
 
-Đừng áp dụng chiến lược hợp nhất bằng cách ghi đè hoặc nối byte tùy tiện vào các tài nguyên cấu hình khác: `META-INF/services/` có ngữ nghĩa riêng. Kiểm tra riêng các tài nguyên liên quan của framework nếu chúng dùng định dạng khác.
+Do not apply a merge strategy that overwrites or arbitrarily concatenates bytes for other configuration resources: `META-INF/services/` has its own semantics. Check framework-specific resources separately if they use different formats.
 
-### Khi relocate package
+### When Relocating Packages
 
-Hãy phân biệt hai trường hợp:
+Distinguish these cases:
 
-| Thay đổi | Tên tệp đăng ký | Nội dung tệp |
+| Change | Registration Filename | File Contents |
 | --- | --- | --- |
-| Chỉ đổi package provider | Giữ tên service interface | Đổi tên provider tương ứng |
-| Đổi package service interface | Đổi theo tên service interface mới | Đổi provider nếu provider cũng relocate |
-| Chỉ gộp JAR, không relocate | Giữ nguyên | Hợp nhất danh sách provider của các JAR |
-| Provider bị loại bởi minimizer | Tệp có thể còn | Phải giữ class được khai báo hoặc bỏ đăng ký có chủ đích |
+| Only provider package relocated | Keep service interface name | Update provider name accordingly |
+| Service interface package relocated | Update to the new service interface name | Update provider if provider is also relocated |
+| JARs merged without relocation | Keep unchanged | Merge provider lists across JARs |
+| Provider stripped by minimizer | File may still remain | Must keep declared classes or intentionally remove registration |
 
-Không tự đổi tên tệp nếu ứng dụng vẫn gọi API service gốc: `ServiceLoader` tìm đúng tên service type mà nó nhận được.
+Do not rename the file if the application still calls the original service API: `ServiceLoader` looks up the exact service type name it receives.
 
-## 3. Cấu trúc ví dụ tối thiểu
+## 3. Minimal Example Structure
 
-Giả sử có API và hai plugin:
+Suppose we have an API and two plugins:
 
 ```text
 src/
@@ -131,7 +131,7 @@ public class Demo {
 }
 ```
 
-Biên dịch và chạy ví dụ trên với Java 17+ ở thư mục chứa `src` và `resources`:
+Compile and run the example above with Java 17+ in the directory containing `src` and `resources`:
 
 ```bash
 javac -d out src/com/example/spi/GreetingProvider.java src/com/example/plugin/EnglishGreeting.java src/com/example/plugin/VietnameseGreeting.java src/Demo.java
@@ -139,31 +139,31 @@ jar --create --file greetings.jar -C out . -C resources .
 java -cp greetings.jar Demo
 ```
 
-Output (theo thứ tự provider trong tệp đăng ký của ví dụ này):
+Output (in the order of providers in this example's registration file):
 
 ```text
 Hello
 Xin chào
 ```
 
-`jar -C resources .` là bước cốt yếu: phải đóng gói tệp đăng ký cùng các `.class`. Một JAR chỉ chứa class mà quên `META-INF/services` vẫn có thể chạy lệnh `java` thành công, nhưng vòng lặp `ServiceLoader` không in gì.
+`jar -C resources .` is the essential step: the registration file must be packaged alongside the `.class` files. A JAR containing only classes while omitting `META-INF/services` can still execute the `java` command cleanly, yet the `ServiceLoader` loop prints nothing.
 
-## 4. Cấu hình build khi tạo fat/shaded JAR
+## 4. Build Configuration for Fat/Shaded JARs
 
 ### Gradle Shadow
 
-Với Gradle và plugin Shadow tương thích với phiên bản Gradle đang dùng, yêu cầu merge tệp SPI bằng transformer chuyên dụng:
+With Gradle and a Shadow plugin compatible with your Gradle version, instruct it to merge SPI files using the dedicated transformer:
 
 ```groovy
-// build.gradle: ví dụ phần cấu hình khi plugin Shadow đã được áp dụng
+// build.gradle: example configuration snippet when the Shadow plugin is already applied
 tasks.named('shadowJar') {
     mergeServiceFiles()
 }
 ```
 
-`mergeServiceFiles()` hợp nhất các tệp trong `META-INF/services` từ những dependency được đưa vào Shadow JAR. Nếu có relocation, cần xác minh trong artifact cuối rằng **cả tên tệp và tên provider** đã được cập nhật đúng. Không mặc định mọi transformer hoặc mọi phiên bản plugin xử lý mọi loại metadata như nhau.
+`mergeServiceFiles()` merges files under `META-INF/services` from dependencies included in the Shadow JAR. If relocation is enabled, verify in the final artifact that **both the filename and provider names** were updated correctly. Do not assume every transformer or plugin version handles every kind of metadata identically.
 
-Một cấu hình relocation minh họa (trường hợp muốn cô lập package dependency):
+An illustrative relocation configuration (when isolating a dependency package):
 
 ```groovy
 tasks.named('shadowJar') {
@@ -172,11 +172,11 @@ tasks.named('shadowJar') {
 }
 ```
 
-Sau build, hãy mở chính Shadow JAR để kiểm tra đường dẫn `META-INF/services` và từng dòng nội dung. Nếu service interface thuộc API công khai không relocate, tên tệp của API ấy phải giữ nguyên.
+After building, open the Shadow JAR itself to inspect the `META-INF/services` paths and every line inside. If the service interface belongs to an unrelocated public API, that API's descriptor filename must remain unchanged.
 
 ### Maven Shade
 
-Với `maven-shade-plugin`, transformer `ServicesResourceTransformer` có nhiệm vụ hợp nhất các service descriptors và cập nhật tên theo relocation:
+With `maven-shade-plugin`, the `ServicesResourceTransformer` transformer merges service descriptors and updates names according to relocations:
 
 ```xml
 <plugin>
@@ -203,31 +203,31 @@ Với `maven-shade-plugin`, transformer `ServicesResourceTransformer` có nhiệ
 </plugin>
 ```
 
-Đây là đoạn cấu hình để đặt trong `<plugins>` của `pom.xml`, không phải một POM hoàn chỉnh. Khi thay đổi phiên bản plugin, kiểm tra tài liệu và kết quả build của chính phiên bản được dùng.
+This is a configuration snippet to place inside `<plugins>` in `pom.xml`, not a complete POM. When changing plugin versions, check the documentation and build output of the exact version in use.
 
-### JAR ghép thủ công
+### Manually Assembled JARs
 
-Nếu dùng script tự giải nén các dependency vào cùng một thư mục rồi đóng gói lại, việc giải nén có thể ghi đè những file SPI trùng đường dẫn. Cần thu thập tất cả service descriptors trước khi giải nén, kết hợp danh sách theo đúng service type, cập nhật tên khi relocate, rồi ghi tệp tổng hợp vào artifact. Dùng Shadow/Shade thường an toàn và dễ bảo trì hơn vì chúng có cơ chế xử lý tài nguyên SPI chuyên biệt.
+If using a custom script to unpack dependencies into a directory and re-pack them, unpacking can overwrite SPI files that share the same path. You must collect all service descriptors prior to unpacking, merge the lists by service type, update names upon relocation, and then write the consolidated file into the artifact. Using Shadow/Shade is generally safer and easier to maintain because they have specialized SPI resource handling.
 
-## 5. Cách kiểm chứng artifact cuối
+## 5. How to Verify the Final Artifact
 
-Việc nhìn vào source tree hoặc chạy unit test trên classpath của IDE chưa đủ: lỗi có thể chỉ xảy ra **sau khi package**. Hãy kiểm tra tệp JAR thực sự sẽ phân phối.
+Looking at the source tree or running unit tests on the IDE's classpath is not enough: errors can occur **only after packaging**. Inspect the actual JAR file that will be distributed.
 
-Liệt kê metadata:
+List metadata:
 
 ```bash
 jar --list --file build/libs/app-all.jar
 ```
 
-Tìm những mục bắt đầu bằng `META-INF/services/`. Xem nội dung một descriptor (lệnh `unzip -p` nếu có công cụ unzip):
+Look for entries starting with `META-INF/services/`. Inspect a descriptor's contents (`unzip -p` if the unzip tool is available):
 
 ```bash
 unzip -p build/libs/app-all.jar META-INF/services/com.example.spi.GreetingProvider
 ```
 
-Đối chiếu bằng `jar --list` xem các class provider có mặt với đường dẫn tương ứng tên binary (`com.example.plugin.EnglishGreeting` → `com/example/plugin/EnglishGreeting.class`). Với relocation, đối chiếu mọi tên **sau** thay đổi.
+Cross-check with `jar --list` to verify that provider classes are present at paths matching their binary names (`com.example.plugin.EnglishGreeting` → `com/example/plugin/EnglishGreeting.class`). With relocation, verify every name **after** transformation.
 
-Chạy smoke test trên **JAR sau đóng gói** bằng classpath/module path giống môi trường triển khai, liệt kê provider thay vì chỉ kiểm tra không ném exception:
+Run a smoke test against the **packaged JAR** using a classpath/module path matching the deployment environment, enumerating providers rather than merely checking that no exception is thrown:
 
 ```java
 long count = ServiceLoader.load(GreetingProvider.class).stream().count();
@@ -236,26 +236,26 @@ if (count != 2) {
 }
 ```
 
-Đây là **đoạn Java đặt trong một method hoặc test**, không phải câu lệnh có thể chạy trực tiếp trong shell. Với API `ServiceLoader.stream()`, việc liệt kê có thể kích hoạt kiểm tra provider/configuration; kiểm tra thêm khả năng khởi tạo và hành vi thực tế bằng cách duyệt instance như trong `Demo`.
+This is a **Java snippet placed inside a method or test**, not a command runnable directly in a shell. With the `ServiceLoader.stream()` API, iterating can trigger provider/configuration checks; also verify instantiation and actual behavior by iterating instances as in `Demo`.
 
-Một kiểm tra CI hữu ích: build artifact → đọc toàn bộ service descriptors → xác minh mỗi provider tham chiếu đến class tồn tại → chạy test `ServiceLoader` với artifact đó. Với plugin tùy chọn, kiểm tra đúng **tập provider kỳ vọng của từng cấu hình phân phối**, tránh hard-code một số lượng cho mọi môi trường.
+A useful CI check: build the artifact → read all service descriptors → verify every provider references an existing class → run a `ServiceLoader` test against that artifact. For optional plugins, verify the exact **expected provider set for each distribution configuration**, avoiding hardcoding a single count across all environments.
 
-## 6. Các lỗi hay gặp và cách xử lý
+## 6. Common Errors and Fixes
 
-| Triệu chứng | Nguyên nhân khả dĩ | Cách xử lý |
+| Symptom | Possible Cause | How to Fix |
 | --- | --- | --- |
-| `ServiceLoader` trả về 0 provider | Không đóng gói descriptor, đặt sai tên tệp hoặc classloader không nhìn thấy JAR | Kiểm tra `META-INF/services/<service FQCN>`, resource trong artifact và classloader |
-| Thiếu một số plugin sau fat JAR | Một descriptor ghi đè descriptor khác | Dùng transformer hợp nhất service files; kiểm tra toàn bộ provider sau merge |
-| `ServiceConfigurationError: Provider ... not found` | Descriptor trỏ tên cũ sau relocate hoặc class bị loại bởi minimizer | Cập nhật tên provider và quy tắc giữ class; đối chiếu nội dung JAR |
-| `ServiceConfigurationError: ... not a subtype` | Mismatch giữa provider/service API; có thể do nhân đôi API class ở classloader khác | Bảo đảm provider triển khai đúng service type được nạp |
-| Chạy ở IDE được, fat JAR không được | Build đóng gói resources khác classpath phát triển | Kiểm tra trực tiếp final JAR và chạy smoke test trên nó |
-| Plugin load bằng module path nhưng không hiện | Descriptor trên classpath không thay cho module declaration của named module | Dùng `uses` và `provides ... with ...` hợp lệ trong `module-info.java`, kiểm tra module layer |
+| `ServiceLoader` returns 0 providers | Descriptor not packaged, wrong filename, or classloader cannot see the JAR | Check `META-INF/services/<service FQCN>`, resources in the artifact, and the classloader |
+| Some plugins missing after fat JAR | One descriptor overwrote another | Use a service-file merging transformer; check all providers after merge |
+| `ServiceConfigurationError: Provider ... not found` | Descriptor points to old name after relocation or class was stripped by minimizer | Update provider names and keep rules; cross-check JAR contents |
+| `ServiceConfigurationError: ... not a subtype` | Mismatch between provider/service API; possibly duplicate API class in another classloader | Ensure provider implements the exact loaded service type |
+| Works in IDE, fails in fat JAR | Build packages resources differently from development classpath | Inspect the final JAR directly and run smoke tests against it |
+| Plugin loaded on module path does not appear | Classpath descriptor does not replace a named module's declaration | Use valid `uses` and `provides ... with ...` in `module-info.java`, check the module layer |
 
-Lưu ý thêm: `ServiceLoader` có cơ chế lazy discovery và cache; khi thay đổi classpath/plugin runtime, có thể cần tạo loader mới hoặc gọi `reload()` trên instance loader phù hợp. Tuy nhiên `reload()` **không sửa được metadata thiếu/sai trong JAR**.
+Additional note: `ServiceLoader` uses lazy discovery and caching; when changing classpath/plugins at runtime, you may need to create a new loader or call `reload()` on the appropriate loader instance. However, `reload()` **cannot fix missing or broken metadata inside the JAR**.
 
-## 7. Trường hợp Java module system (JPMS)
+## 7. The Java Module System (JPMS) Case
 
-Trong một **named module** khai báo tĩnh, provider được công bố bằng descriptor module:
+In a statically declared **named module**, providers are published via the module descriptor:
 
 ```java
 module com.example.plugin {
@@ -265,7 +265,7 @@ module com.example.plugin {
 }
 ```
 
-Module consumer thường khai báo:
+The consumer module typically declares:
 
 ```java
 module com.example.app {
@@ -274,17 +274,17 @@ module com.example.app {
 }
 ```
 
-Khi shade/relocate module có `module-info.class`, thay đổi package/class có thể làm hỏng `requires`, `exports`, `opens`, `uses`, `provides` và chữ ký/định danh module. Không giả định merge tệp `META-INF/services` là đủ để biến nhiều named module thành một named module hợp lệ. Nếu dùng **automatic module** hoặc chạy JAR trên classpath, hành vi tìm provider khác trường hợp named module có `module-info.class`; hãy test đúng chế độ triển khai.
+When shading/relocating a module that has `module-info.class`, changing packages or classes can break `requires`, `exports`, `opens`, `uses`, `provides`, and module signatures/identity. Do not assume merging `META-INF/services` files is sufficient to combine multiple named modules into one valid named module. When using **automatic modules** or running JARs on the classpath, provider discovery behaves differently from named modules with `module-info.class`; always test in the exact deployment mode.
 
-## 8. Checklist khi phát hành plugin
+## 8. Plugin Release Checklist
 
-- Xác định chính xác service interface và provider class công khai nào phải được giữ.
-- Mở mọi dependency JAR có `META-INF/services/<service>`; ghi nhận danh sách provider trước merge.
-- Cấu hình merge service descriptors khi tạo fat/uber JAR và cập nhật tên metadata khi relocate.
-- Kiểm tra minimizer/obfuscator không xóa hoặc đổi tên provider mà metadata chưa được đồng bộ; dùng keep rules hoặc tắt minimize cho SPI cần thiết.
-- Đọc descriptor và danh sách class **trong artifact cuối**, không suy luận từ source.
-- Kiểm tra `ServiceLoader` trên artifact sau package, trong classloader/module layer sẽ triển khai.
-- Chạy bài kiểm tra tích hợp với ít nhất hai provider từ hai dependency khi muốn chứng minh merge giữ đủ cả hai.
-- Nếu thư viện đóng gói theo nhiều biến thể, kiểm tra từng biến thể; không mặc định `jar` thường và `shadowJar` có cùng nội dung.
+- Identify the exact public service interfaces and provider classes that must be preserved.
+- Inspect every dependency JAR containing `META-INF/services/<service>`; record the provider list before merging.
+- Configure service descriptor merging when building fat/uber JARs and update metadata names when relocating.
+- Verify that minimizers/obfuscators do not strip or rename providers without synchronizing metadata; use keep rules or disable minimization for required SPIs.
+- Read descriptors and class lists **from the final artifact**, rather than inferring from source.
+- Test `ServiceLoader` on the packaged artifact inside the target classloader/module layer.
+- Run an integration test with at least two providers from two dependencies when proving a merge preserves both.
+- If the library is packaged in multiple variants, test each variant; do not assume a regular `jar` and `shadowJar` have identical contents.
 
-**Nguyên tắc vận hành:** bảo toàn đăng ký SPI nghĩa là giữ được cả **đường dẫn descriptor**, **nội dung tên provider** và **class bytecode tương ứng** sau mọi bước gộp, relocate hoặc tối ưu hóa. Chỉ khi kiểm chứng cả ba trên artifact cuối mới có cơ sở khẳng định plugin được tìm thấy đúng lúc chạy.
+**Operational principle:** preserving SPI registration means keeping the **descriptor path**, the **provider name contents**, and the **corresponding class bytecode** aligned after every merge, relocation, or optimization step. Only by verifying all three on the final artifact can you be sure plugins will be discovered properly at runtime.

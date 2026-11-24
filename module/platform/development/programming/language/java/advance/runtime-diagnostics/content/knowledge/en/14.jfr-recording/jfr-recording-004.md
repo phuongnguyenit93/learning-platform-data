@@ -1,52 +1,52 @@
-# 14.4. JFR.check, JFR.dump, JFR.stop và quản lý nhiều recording
+# 14.4. `JFR.check`, `JFR.dump`, `JFR.stop`, and Managing Multiple Recordings
 
-Trong Java Flight Recorder (JFR), **recording** là một phiên ghi các sự kiện về hoạt động của JVM và ứng dụng: CPU, thread, garbage collection, allocation, I/O hoặc sự kiện do ứng dụng tự định nghĩa. Khi một dịch vụ đang chạy, người vận hành thường cần ba thao tác: **xem phiên nào còn hoạt động**, **xuất dữ liệu đã ghi ra file**, và **kết thúc đúng phiên**. Bộ lệnh `jcmd` phục vụ ba việc đó bằng `JFR.check`, `JFR.dump` và `JFR.stop`.
+In Java Flight Recorder (JFR), a **recording** is a session that records events about JVM and application activity: CPU, threads, garbage collection, allocations, I/O, or application-defined events. While a service is running, operators usually need three operations: **see which sessions are active**, **export recorded data to a file**, and **end the right session**. The `jcmd` command suite handles those three tasks with `JFR.check`, `JFR.dump`, and `JFR.stop`.
 
-Tình huống quan trọng là một JVM có thể có **nhiều recording đồng thời**. Ví dụ: một recording nền chạy lâu với `settings=default`, trong khi một recording điều tra ngắn bật `settings=profile`. Dùng sai `name` có thể xuất nhầm dữ liệu, vô tình trộn dữ liệu từ nhiều phiên, hoặc dừng recording đang dùng để giám sát.
+An important scenario is that a single JVM can have **multiple concurrent recordings**. For example, a long-running background recording uses `settings=default`, while a short investigative recording enables `settings=profile`. Using the wrong `name` can export the wrong data, inadvertently mix data from multiple sessions, or stop the recording used for monitoring.
 
-Mục tiêu của bài:
-- Phân biệt chính xác hành vi và vòng đời của `JFR.check`, `JFR.dump` và `JFR.stop`.
-- Thực hiện được thao tác trên **một PID Java cụ thể** và chọn đúng recording bằng `name`.
-- Hiểu các tham số `verbose`, `filename`, `maxage`, `maxsize`, `begin` và `end` khi cần.
-- Quản lý hai recording song song, biết khi nào xuất snapshot và khi nào kết thúc để lưu artifact.
-- Kiểm tra file `.jfr` bằng công cụ của JDK và xử lý lỗi phổ biến trên host/container.
+Lesson goals:
+- Precisely distinguish the behavior and lifecycle of `JFR.check`, `JFR.dump`, and `JFR.stop`.
+- Execute operations against a **specific Java PID** and target the right recording via `name`.
+- Understand `verbose`, `filename`, `maxage`, `maxsize`, `begin`, and `end` parameters when needed.
+- Manage two concurrent recordings, knowing when to export a snapshot and when to stop to save the final artifact.
+- Inspect `.jfr` files with JDK tools and handle common host/container errors.
 
-## 1. Mô hình vòng đời: ghi, quan sát, chụp snapshot, kết thúc
+## 1. Lifecycle Model: Record, Observe, Take Snapshot, End
 
-Một luồng thao tác điển hình:
+A typical operational flow:
 
 ~~~text
-JVM đang chạy
+Running JVM
     |
     +-- JFR.start name=baseline ------> [baseline: RUNNING] ----+
-    |                                                         |
+    |                                                           |
     +-- JFR.start name=incident ------> [incident: RUNNING] --+ |
-    |                                                       | |
-    +-- JFR.check --------------------> chỉ xem trạng thái  | |
-    |                                                       | |
-    +-- JFR.dump name=incident -------> ghi incident.jfr   | |  (incident vẫn RUNNING)
-    |                                                       | |
-    +-- JFR.stop name=incident -------> [incident kết thúc] + |
-    |                                                         |
-    +-- JFR.check --------------------> baseline vẫn RUNNING --+
+    |                                                         | |
+    +-- JFR.check --------------------> inspect status only   | |
+    |                                                         | |
+    +-- JFR.dump name=incident -------> writes incident.jfr   | |  (incident still RUNNING)
+    |                                                         | |
+    +-- JFR.stop name=incident -------> [incident stopped]    + |
+    |                                                           |
+    +-- JFR.check --------------------> baseline still RUNNING -+
     |
-    +-- JFR.stop name=baseline -------> [baseline kết thúc]
+    +-- JFR.stop name=baseline -------> [baseline stopped]
 ~~~
 
-| Lệnh | Tác dụng | Có chấm dứt recording không? | File được tạo khi nào? |
+| Command | Effect | Does It End the Recording? | When Is a File Created? |
 | --- | --- | --- | --- |
-| `JFR.start` | Tạo/bắt đầu một recording | Không; khởi đầu phiên | Có thể chỉ định đích ghi khi kết thúc hoặc dump |
-| `JFR.check` | Xem danh sách và trạng thái/thiết lập recording | **Không** | Không |
-| `JFR.dump` | Ghi bản sao dữ liệu đã thu thập ra file `.jfr` | **Không**; recording tiếp tục chạy | Ngay khi dump thành công |
-| `JFR.stop` | Dừng một recording đã chỉ định | **Có**, cho riêng recording được chọn | Nếu truyền `filename` để lưu dữ liệu lúc dừng |
+| `JFR.start` | Creates/starts a recording | No; starts the session | Can specify an output destination for completion or dump |
+| `JFR.check` | Lists recordings and their status/settings | **No** | No |
+| `JFR.dump` | Writes a copy of collected data to a `.jfr` file | **No**; the recording continues running | Immediately when the dump succeeds |
+| `JFR.stop` | Stops a specified recording | **Yes**, for the selected recording only | If `filename` is passed to save data upon stopping |
 
-Phân biệt hai sản phẩm: **recording** là một phiên có vòng đời trong JVM; **file `.jfr`** là artifact của một lần dump/stop. Một recording có thể tạo nhiều file snapshot khác nhau mà vẫn hoạt động. Ngược lại, một file đã ghi không tự động là một recording đang chạy.
+Distinguish two artifacts: a **recording** is a lifecycle-managed session inside the JVM; a **`.jfr` file** is the artifact of a single dump/stop. One recording can produce multiple distinct snapshot files while remaining active. Conversely, a written file does not automatically imply a recording is still running.
 
-JFR thường có overhead thấp với cấu hình phù hợp, nhưng không phải không có chi phí: `settings=profile` và các sự kiện chi tiết có thể phát sinh overhead cao hơn `default`. Hãy xác nhận bản phân phối JDK/HotSpot đích hỗ trợ lệnh nào qua chính JVM đó.
+JFR typically has low overhead with appropriate settings, but it is not zero-cost: `settings=profile` and detailed events can incur higher overhead than `default`. Confirm which commands your target JDK/HotSpot distribution supports via that JVM itself.
 
-## 2. Chuẩn bị: đúng JVM, đúng quyền, đúng thư mục
+## 2. Preparation: Right JVM, Right Permissions, Right Directory
 
-Trong ví dụ bên dưới, PID minh họa là **12345**. Bạn **phải thay** bằng PID của tiến trình thực tế; lệnh không dùng được trên một PID không tồn tại. Trên máy có JDK:
+In the examples below, the illustrative PID is **12345**. You **must replace** it with the PID of the real process; commands will not work against a nonexistent PID. On the machine with the JDK:
 
 ~~~bash
 jcmd -l
@@ -55,155 +55,155 @@ jcmd 12345 help JFR.dump
 jcmd 12345 help JFR.stop
 ~~~
 
-- `jcmd -l` liệt kê những Java process mà công cụ hiện có thể quan sát; không cam kết liệt kê JVM ở mọi process namespace/container.
-- `jcmd 12345 help ...` hiển thị cú pháp chính xác của **JVM đích**; tên tùy chọn có thể thay đổi giữa các JDK/JVM.
-- Thao tác attach thường cần chạy trên cùng máy, với user/group và điều kiện attach phù hợp. Nếu attach bị tắt, PID không nhìn thấy hoặc quyền khác, `jcmd` có thể không kết nối được.
-- Trên Linux/container, nên dùng đường dẫn tuyệt đối có thư mục đã tồn tại, ví dụ `/var/tmp/jfr/`. `filename` được JVM đích diễn giải trong filesystem **nơi tiến trình Java chạy**, không nhất thiết là filesystem của terminal gọi `jcmd`.
-- File JFR có thể chứa class/method names, stack traces, system properties, đường dẫn và thông tin nhạy cảm của ứng dụng. Bảo vệ quyền đọc, phương thức truyền và thời hạn lưu trữ.
+- `jcmd -l` lists the Java processes visible to the tool; it is not guaranteed to list JVMs across every process namespace/container.
+- `jcmd 12345 help ...` prints the exact syntax of the **target JVM**; option names may vary across JDKs/JVMs.
+- Attaching usually requires running on the same host with matching user/group and attach permissions. If attach is disabled, the PID is invisible, or permissions differ, `jcmd` may fail to connect.
+- On Linux/containers, prefer an absolute path in an existing directory such as `/var/tmp/jfr/`. `filename` is resolved by the target JVM in the filesystem **where the Java process runs**, not necessarily the filesystem of the terminal invoking `jcmd`.
+- JFR files can contain class/method names, stack traces, system properties, paths, and sensitive application data. Protect read permissions, transfer methods, and retention periods.
 
-**Chuẩn bị thư mục** theo quyền của user chạy JVM, có dung lượng dự phòng và tên file riêng biệt từng lần chụp. Ví dụ các lệnh sau giả định thư mục `/var/tmp/jfr/` đã tồn tại, writable. Với Windows dùng đường dẫn tương ứng như `C:/jfr/incident.jfr` (sau khi tạo thư mục).
+**Prepare the directory** with permissions for the JVM's user, spare disk capacity, and distinct filenames per capture. The commands below assume `/var/tmp/jfr/` already exists and is writable. On Windows, use a corresponding path such as `C:/jfr/incident.jfr` (after creating the directory).
 
-## 3. `JFR.check`: xem recording nào đang hoạt động
+## 3. `JFR.check`: Seeing Which Recordings Are Active
 
-Cú pháp cơ bản:
+Basic syntax:
 
 ~~~bash
 jcmd 12345 JFR.check
 ~~~
 
-Khi không có tham số, HotSpot JDK 21 hiển thị thông tin các recording đang hoạt động. Kết quả thường có **recording ID**, **name**, trạng thái và những thông tin cấu hình/thời gian liên quan. Giá trị cụ thể tùy JDK và thời điểm, nên không dùng một ví dụ stdout cố định để suy ra PID/name.
+With no arguments, HotSpot JDK 21 displays information about active recordings. The output usually includes **recording ID**, **name**, state, and related configuration/timing details. Exact values depend on the JDK and timing, so do not rely on a fixed stdout example to deduce PID/name.
 
-Chỉ kiểm tra một recording:
+Inspect only one recording:
 
 ~~~bash
 jcmd 12345 JFR.check name=baseline
 ~~~
 
-Kiểm tra cùng các **thiết lập event**:
+Inspect along with **event settings**:
 
 ~~~bash
 jcmd 12345 JFR.check name=baseline verbose=true
 ~~~
 
-Tham số `verbose` mặc định `false`; bật `true` để xem cấu hình sự kiện chi tiết, rất hữu ích khi thắc mắc tại sao một loại event có/không xuất hiện. Đầu ra có thể khá dài. Lệnh chỉ đọc trạng thái, **không phải yêu cầu JVM tạo file `.jfr` hoặc dừng phiên**.
+`verbose` defaults to `false`; setting `true` reveals detailed event settings, which is very helpful when wondering why an event type is or is not appearing. Output can be quite long. The command only reads state—it **does not ask the JVM to create a `.jfr` file or stop the session**.
 
-Một chiến lược an toàn khi có nhiều recording: **luôn gọi `JFR.check` ngay trước `dump` hoặc `stop`**, xác nhận chính xác `name`; sau khi `stop`, gọi lại để kiểm tra recording khác vẫn chạy.
+A safe strategy when multiple recordings exist: **always run `JFR.check` right before `dump` or `stop`**, confirming the exact `name`; after `stop`, run it again to verify the other recording is still running.
 
-Nếu hiện “No available recordings” thì không có recording đang hoạt động mà lệnh có thể liệt kê trên JVM này. Đây không phải lỗi của lệnh `check` và cũng không chứng minh ứng dụng chưa từng có file `.jfr` trước đó.
+If it prints "No available recordings", there are no active recordings listable by the command on this JVM. That is not a failure of `check`, nor does it prove the application never produced a `.jfr` file earlier.
 
-## 4. `JFR.dump`: xuất dữ liệu mà vẫn tiếp tục thu thập
+## 4. `JFR.dump`: Exporting Data While Continuing to Collect
 
-Lệnh để xuất một recording có tên:
+Command to export a named recording:
 
 ~~~bash
 jcmd 12345 JFR.dump name=baseline filename=/var/tmp/jfr/baseline-snapshot.jfr
 ~~~
 
-Khi thành công, JVM ghi dữ liệu recording đang có vào file. **`baseline` vẫn RUNNING sau lệnh này**. Bạn có thể chụp nhiều snapshot tại các thời điểm khác nhau, mỗi lần dùng tên file mới, rồi tiếp tục thu event.
+On success, the JVM writes currently available data from the recording to the file. **`baseline` remains RUNNING after this command**. You can take multiple snapshots at different times, using a new filename each time, and keep collecting events.
 
-Lệnh không chỉ định `name`:
+Command without `name`:
 
 ~~~bash
 jcmd 12345 JFR.dump filename=/var/tmp/jfr/all-recordings.jfr
 ~~~
 
-Theo tài liệu HotSpot JDK 21, khi **không có `name`**, `JFR.dump` xuất dữ liệu từ **tất cả recordings**. Đây là hành vi có chủ đích của công cụ nhưng thường gây bất ngờ nếu mục tiêu chỉ là một phiên. Với nhiều phiên đồng thời, hãy **chỉ định `name`** để xác định scope của lần xuất. Ngay cả khi đã lọc theo tên, cấu hình event của các recording chạy song song có thể tác động đến dữ liệu được thu toàn JVM; đừng giả định chúng hoàn toàn độc lập về overhead và tập event.
+Per HotSpot JDK 21 documentation, when **`name` is omitted**, `JFR.dump` exports data from **all recordings**. This is intentional tool behavior, though it often surprises operators who intended only one session. With multiple concurrent sessions, always **specify `name`** to scope the export. Even when filtering by name, event settings across concurrent recordings can influence JVM-wide collection data and cost; do not assume they are completely isolated in overhead or event sets.
 
-### 4.1. `filename` và định danh artifact
+### 4.1. `filename` and Artifact Identification
 
-`filename` có thể là đường dẫn file hoặc thư mục để JVM tự tạo tên. Không truyền `filename`, JVM cũng có thể tự sinh tên từ PID/thời điểm theo tài liệu JDK 21, nhưng vận hành dễ kiểm soát hơn khi chỉ định đường dẫn đầy đủ. JDK 21 hỗ trợ token `%p` (PID) và `%t` (timestamp) trong tên file; chúng do lệnh JFR xử lý.
+`filename` can be a file path or a directory for the JVM to auto-generate a filename. When `filename` is omitted, the JVM can also auto-generate a name from PID/timestamp per JDK 21 docs, though operations are easier to manage when specifying the full path. JDK 21 supports `%p` (PID) and `%t` (timestamp) tokens in filenames, processed by the JFR command.
 
-Ví dụ:
+Example:
 
 ~~~bash
 jcmd 12345 JFR.dump name=baseline filename=/var/tmp/jfr/baseline-%p-%t.jfr
 ~~~
 
-Đây là snapshot mới, **không phải thêm dữ liệu vào một file `.jfr` đã có**. Không lặp các lần dump vào cùng tên file nếu cần giữ lịch sử; tên theo thời gian cũng giúp so sánh.
+This creates a new snapshot—it **does not append data to an existing `.jfr` file**. Do not overwrite the same filename across repeated dumps if you need to keep history; timestamped names also aid comparison.
 
-### 4.2. `maxage` và `maxsize`: lọc dung lượng dump, khác giới hạn lưu trữ
+### 4.2. `maxage` and `maxsize`: Filtering Dump Volume vs. Retention Limits
 
-Ví dụ chỉ lấy tối đa năm phút gần nhất từ dữ liệu **còn được giữ lại**:
+Example exporting at most the last five minutes from **still-retained** data:
 
 ~~~bash
 jcmd 12345 JFR.dump name=baseline maxage=5m filename=/var/tmp/jfr/baseline-last5m.jfr
 ~~~
 
-Ví dụ thêm giới hạn lượng dữ liệu dump:
+Example adding a size cap on dumped data:
 
 ~~~bash
 jcmd 12345 JFR.dump name=baseline maxsize=64m filename=/var/tmp/jfr/baseline-bounded.jfr
 ~~~
 
-- `JFR.dump maxage=5m` giới hạn phạm vi thời gian xuất, **không kéo dài thời gian lưu của recording**.
-- `JFR.dump maxsize=64m` là giới hạn cho dữ liệu được xuất trong lần dump, **khác** `JFR.start maxsize=...` dùng cho chính sách dữ liệu được giữ trong recording.
-- Nếu recording chỉ giữ dữ liệu của 10 phút gần đây, việc yêu cầu dump 1 giờ **không khôi phục** dữ liệu đã bị loại khỏi vùng lưu trữ.
-- Các giới hạn và chunk boundary có thể ảnh hưởng lượng dữ liệu thực tế; không dùng `maxsize` như cam kết file sau khi ghi phải có chính xác số byte đó.
+- `JFR.dump maxage=5m` limits the exported time span; it **does not extend the recording's retention window**.
+- `JFR.dump maxsize=64m` caps the data exported in that dump, **unlike** `JFR.start maxsize=...` which sets the recording's retention policy.
+- If the recording only retains the last 10 minutes of data, requesting a 1-hour dump **cannot recover** data already evicted from storage.
+- Limits and chunk boundaries can affect actual exported volume; do not treat `maxsize` as a guarantee that the written file has that exact byte size.
 
-### 4.3. `begin` và `end`: chọn khoảng thời gian
+### 4.3. `begin` and `end`: Selecting a Time Range
 
-JDK 21 còn cho phép lọc theo điểm bắt đầu/kết thúc của **timestamp event** trong dữ liệu:
+JDK 21 also supports filtering by **event timestamp** start/end boundaries within the data:
 
 ~~~bash
 jcmd 12345 JFR.dump name=baseline begin=-15m filename=/var/tmp/jfr/baseline-15m.jfr
 ~~~
 
-`begin`/`end` hỗ trợ thời gian theo các kiểu có thể parse bởi `LocalTime`, `LocalDateTime`, `Instant`, hoặc cách viết tương đối bằng số âm với hậu tố `s`, `m`, `h`, ví dụ `begin=-30s`. Khi cần một khoảng tuyệt đối, kiểm tra timezone và thời gian máy đích; mốc `end` cũng phải phù hợp với dữ liệu thực tế.
+`begin`/`end` accept times parseable as `LocalTime`, `LocalDateTime`, `Instant`, or relative negative offsets with `s`, `m`, or `h` suffixes (e.g., `begin=-30s`). When specifying an absolute range, check time zones and target host clock; `end` must also align with actual data.
 
-**Không hiểu sai:** `begin=-15m` không yêu cầu “khởi động recording từ 15 phút trước”. Nó chỉ **chọn phần lịch sử vẫn còn sẵn** trong recording đang chạy.
+**Do not misunderstand:** `begin=-15m` does not mean "start the recording 15 minutes ago." It only **selects the portion of history still available** in the running recording.
 
-### 4.4. Tác động khi dump
+### 4.4. Impact of Dumping
 
-`JFR.dump` được tài liệu JDK 21 phân loại impact thấp ở chế độ thông thường, nhưng nó vẫn tạo I/O và có thể chiếm dung lượng đĩa. Tùy chọn `path-to-gc-root=true` yêu cầu thông tin đường tới GC roots khi dump, có thể làm ứng dụng tạm dừng; chỉ bật khi đang điều tra leak cụ thể và hiểu chi phí. Không biến thao tác định kỳ thông thường thành dump liên tục không giới hạn file.
+`JFR.dump` is documented in JDK 21 as low-impact in normal mode, though it still performs I/O and consumes disk space. The `path-to-gc-root=true` option requests GC-root paths during the dump, which can pause the application; enable it only when investigating a specific memory leak and you understand the cost. Do not turn routine periodic checks into unbounded continuous file dumping.
 
-## 5. `JFR.stop`: dừng đúng recording và lưu dữ liệu cuối cùng
+## 5. `JFR.stop`: Stopping the Right Recording and Saving Final Data
 
-Dùng `name` để chọn recording cần kết thúc và `filename` để lưu artifact cuối:
+Use `name` to pick the recording to end and `filename` to save the final artifact:
 
 ~~~bash
 jcmd 12345 JFR.stop name=incident filename=/var/tmp/jfr/incident-final.jfr
 ~~~
 
-Sau khi thành công, phiên `incident` ngừng ghi. Recording khác (ví dụ `baseline`) **không bị dừng theo**. Một recording đã dừng không được khởi động lại như cùng một phiên; nếu cần tiếp tục thu dữ liệu thì tạo recording mới qua `JFR.start`.
+Once it succeeds, the `incident` session stops recording. Other recordings (such as `baseline`) are **not stopped**. A stopped recording cannot be restarted as the same session; to continue collecting data, start a new recording via `JFR.start`.
 
-Tài liệu `jcmd` JDK 21 nêu rõ **nếu không truyền `name` thì không recording nào bị stop**. Đồng thời `filename` xác định nơi lưu dữ liệu khi stop; tài liệu cảnh báo trường hợp không có đường dẫn thì dữ liệu recording có thể bị bỏ. Vì vậy, **khi cần giữ bằng chứng, luôn ghi rõ cả `name` và `filename`**, kể cả trước đó đã dump một snapshot.
+The JDK 21 `jcmd` documentation explicitly states that **if `name` is omitted, no recording is stopped**. Likewise, `filename` specifies where to save data upon stopping; the docs warn that without a path, the recording's data may be discarded. Therefore, **whenever you need to preserve evidence, specify both `name` and `filename`**, even if you previously dumped a snapshot.
 
-Ví dụ không nên dùng khi bạn muốn lưu bằng chứng cuối:
+Example to avoid when you want to save final evidence:
 
 ~~~bash
 jcmd 12345 JFR.stop name=incident
 ~~~
 
-Lệnh trên vẫn nhằm kết thúc `incident` nhưng không chỉ định file xuất tại thời điểm stop; đừng trông chờ có artifact mới. Những file `.jfr` do các lần `dump` trước tạo ra vẫn là artifact riêng và không bị “hoàn tác” chỉ vì recording đã dừng.
+The command above still targets stopping `incident` without specifying an output file at stop time; do not expect a new artifact. `.jfr` files created by earlier `dump` calls remain separate artifacts and are not "undone" just because the recording stopped.
 
-**Dừng recording ≠ dừng JVM.** `JFR.stop` quản lý phiên quan sát, không kết thúc tiến trình Java. Chạy `JFR.check` để xác minh sau thao tác, thay vì chỉ dựa vào việc lệnh trả về không có lỗi.
+**Stopping a recording ≠ stopping the JVM.** `JFR.stop` manages an observation session; it does not terminate the Java process. Run `JFR.check` afterward to verify state rather than relying solely on a zero-error return.
 
-## 6. Kịch bản hai recording đồng thời: baseline và điều tra
+## 6. Two-Recording Scenario: Baseline and Investigation
 
-Một phương án hợp lý là giữ recording nền ít chi tiết, đồng thời chạy một recording `profile` trong khoảng ngắn. Kịch bản dưới đây mô tả **một JVM duy nhất** với PID 12345; mọi lệnh đều tác động đến PID đó.
+A sound pattern is to keep a low-detail background recording running while briefly running a `profile` recording. The scenario below targets **a single JVM** with PID 12345; all commands operate on that PID.
 
-### Bước A — khởi tạo hai recording với tên riêng biệt
+### Step A — Start two recordings with distinct names
 
 ~~~bash
 jcmd 12345 JFR.start name=baseline settings=default disk=true maxage=1h maxsize=256m
 jcmd 12345 JFR.start name=incident settings=profile disk=true maxage=15m maxsize=128m
 ~~~
 
-- `name=baseline` và `name=incident` là định danh dùng cho các lệnh quản trị sau. Tên rõ nghĩa và duy nhất giúp tránh chọn nhầm.
-- `settings=default` là cấu hình cân bằng để theo dõi lâu; `profile` thu chi tiết hơn, có thể tăng overhead và dữ liệu. Chọn cấu hình theo mục tiêu, đừng mặc nhiên để profile chạy không giới hạn.
-- `disk=true` cho phép ghi dữ liệu liên quan xuống disk khi recording; `maxage` và `maxsize` giới hạn lượng dữ liệu được giữ để không tích lũy vô hạn. Đây là thông số **retention**, không đồng nghĩa “sau đúng một giờ recording tự dừng”.
-- Nếu chủ động muốn recording tự dừng sau một khoảng thời gian, `JFR.start` có `duration=...`; đừng dùng `duration` trong kịch bản mà bạn cần chủ động điều khiển `JFR.stop` ở các bước sau.
+- `name=baseline` and `name=incident` are identifiers used for subsequent management commands. Clear, unique names prevent picking the wrong one.
+- `settings=default` is a balanced config for long monitoring; `profile` collects finer detail and may raise overhead and volume. Choose settings for the goal rather than leaving `profile` running indefinitely.
+- `disk=true` allows writing recording data to disk; `maxage` and `maxsize` cap retained data so it does not grow unbounded. These are **retention** settings, not "auto-stop after one hour."
+- If you want a recording to stop automatically after an interval, `JFR.start` provides `duration=...`; omit `duration` in workflows where you explicitly control `JFR.stop` in later steps.
 
-### Bước B — xác nhận cả hai
+### Step B — Verify both
 
 ~~~bash
 jcmd 12345 JFR.check
 jcmd 12345 JFR.check name=incident verbose=true
 ~~~
 
-Kỳ vọng logic: hai recording đang hoạt động, mỗi recording có name/ID và cấu hình riêng. Đầu ra JFR được JVM sinh theo runtime nên số ID, thời điểm và dung lượng là **động**, không sao chép một kết quả cứng từ ví dụ.
+Expected logic: two active recordings, each with its own name/ID and configuration. JFR output is generated by the JVM at runtime, so IDs, timestamps, and sizes are **dynamic**—do not copy hardcoded numbers from an example.
 
-### Bước C — xuất hai snapshot độc lập theo tên
+### Step C — Export two independent snapshots by name
 
 ~~~bash
 jcmd 12345 JFR.dump name=baseline maxage=5m filename=/var/tmp/jfr/baseline-5m.jfr
@@ -211,18 +211,18 @@ jcmd 12345 JFR.dump name=incident filename=/var/tmp/jfr/incident-snapshot.jfr
 jcmd 12345 JFR.check
 ~~~
 
-Sau khi dump thành công, **cả hai recording vẫn có thể tiếp tục RUNNING**. Tên output tách biệt giúp so sánh các mục tiêu điều tra. Không dùng `JFR.dump` không kèm name nếu yêu cầu chỉ lấy `incident`.
+After dumping succeeds, **both recordings can remain RUNNING**. Distinct output filenames separate investigation targets. Do not omit `name` in `JFR.dump` if you only want `incident`.
 
-### Bước D — stop riêng recording điều tra
+### Step D — Stop only the investigation recording
 
 ~~~bash
 jcmd 12345 JFR.stop name=incident filename=/var/tmp/jfr/incident-final.jfr
 jcmd 12345 JFR.check
 ~~~
 
-Ở lần kiểm tra kế tiếp, `incident` đã kết thúc; `baseline` vẫn được duy trì. File `incident-snapshot.jfr` và `incident-final.jfr` đều có thể tồn tại, nhưng chúng **không đồng nghĩa hai phiên**: đó là hai artifact trong vòng đời của một recording.
+On the next check, `incident` has ended; `baseline` remains active. Both `incident-snapshot.jfr` and `incident-final.jfr` can exist, but they do **not mean two sessions**: they are two artifacts from the lifecycle of one recording.
 
-### Bước E — khi thực sự không cần baseline nữa
+### Step E — When baseline is truly no longer needed
 
 ~~~bash
 jcmd 12345 JFR.dump name=baseline maxage=5m filename=/var/tmp/jfr/baseline-last5m.jfr
@@ -230,15 +230,15 @@ jcmd 12345 JFR.stop name=baseline filename=/var/tmp/jfr/baseline-final.jfr
 jcmd 12345 JFR.check
 ~~~
 
-Đây là bước **tùy mục tiêu vận hành**; trong nhiều hệ thống, recording nền nên tiếp tục hoạt động để phục vụ điều tra sau này. Nếu dừng cả hai, `JFR.check` có thể báo không còn recording nào.
+This step is **optional depending on operational goals**; in many systems, the background recording stays running for future incidents. If both are stopped, `JFR.check` may report no remaining recordings.
 
-### Quan trọng: nhiều recording không đồng nghĩa hai JVM độc lập
+### Important: Multiple recordings do not mean two isolated JVMs
 
-Mỗi recording có **tên, vòng đời, thiết lập và phạm vi dump riêng**, nhưng tất cả chạy **trên cùng JVM** và chia sẻ cơ chế thu thập event của JFR. Khi các recording có thiết lập khác nhau, một event được bật bởi một recording có thể ảnh hưởng dữ liệu có sẵn/chi phí thu thập trong bối cảnh recording khác. Không lấy `settings=default` của baseline để đảm bảo tuyệt đối rằng file baseline chỉ chứa đúng những event được liệt kê trong profile đó khi recording `profile` hoạt động song song. Kiểm tra file thực tế bằng `jfr summary`/`jfr print`.
+Each recording has its own **name, lifecycle, settings, and dump scope**, yet all run **inside the same JVM** and share JFR's event-collection infrastructure. When recordings have different settings, an event enabled by one recording can affect available data or collection cost in the context of another. Do not assume a `settings=default` baseline guarantees the baseline file contains strictly only events listed in that profile while a `profile` recording runs alongside it. Verify actual file contents with `jfr summary`/`jfr print`.
 
-## 7. Kiểm tra file `.jfr` sau `dump` và `stop`
+## 7. Inspecting `.jfr` Files After `dump` and `stop`
 
-Trên máy/volume nơi JVM tạo artifact:
+On the host/volume where the JVM wrote the artifacts:
 
 ~~~bash
 ls -lh /var/tmp/jfr/incident-snapshot.jfr
@@ -246,25 +246,25 @@ ls -lh /var/tmp/jfr/incident-final.jfr
 jfr summary /var/tmp/jfr/incident-final.jfr
 ~~~
 
-`jfr summary`, thuộc JDK, đọc thống kê file `.jfr` như thời gian ghi, loại event và số lượng/kích thước event. Nếu công cụ không mở được file, hãy xác minh đúng đường dẫn, quyền, file size, tính toàn vẹn và phiên bản parser. Đừng kết luận thành công chỉ vì tên file xuất hiện nếu file rỗng hoặc hỏng.
+`jfr summary`, included with the JDK, reads `.jfr` statistics such as recording duration, event types, and event counts/sizes. If the tool cannot open the file, verify the path, permissions, file size, integrity, and parser version. Never declare success just because a filename exists if the file is empty or corrupt.
 
-Có thể lọc sự kiện theo tên:
+You can filter events by name:
 
 ~~~bash
 jfr print --events jdk.CPULoad /var/tmp/jfr/incident-final.jfr
 ~~~
 
-Lưu ý: dữ liệu chỉ xuất hiện nếu loại event đó được bật, thực sự phát sinh, còn nằm trong khoảng ghi giữ và có trong artifact đã xuất. Một dòng `jfr print` trống **không tự chứng minh JVM không có hoạt động CPU**.
+Note: data appears only if that event type was enabled, actually occurred, remained within retention, and was included in the exported artifact. An empty `jfr print` result **does not prove the JVM had no CPU activity**.
 
-Ngoài CLI, có thể mở artifact bằng **Java Mission Control (JMC)** để xem biểu đồ theo thời gian, thread, GC, CPU hoặc allocation events. Khi so hai file, nhớ đối chiếu recording name/ID, time window và settings; khác nhau về file size có thể do duration hoặc event settings, không nhất thiết do workload.
+Beyond the CLI, you can open the artifact in **Java Mission Control (JMC)** to inspect timelines, threads, GC, CPU, or allocation events. When comparing two files, cross-check recording name/ID, time window, and settings; file size differences may reflect duration or event settings rather than workload.
 
-**JFR không phải heap dump HPROF.** File `.jfr` là bản ghi event theo thời gian, còn `.hprof` là snapshot đồ thị đối tượng trên heap. `JFR.dump` và `GC.heap_dump` khác dữ liệu, độ nặng và mục tiêu phân tích; không thay thế lẫn nhau.
+**JFR is not an HPROF heap dump.** A `.jfr` file is a timeline of events, whereas `.hprof` is a snapshot of the heap object graph. `JFR.dump` and `GC.heap_dump` differ in data, runtime impact, and diagnostic purpose; they do not replace each other.
 
-## 8. Ví dụ Java 17+ để luyện tập với `jcmd`
+## 8. Java 17+ Example for Practicing with `jcmd`
 
-Chương trình dưới đây cố tình tồn tại khoảng hai phút, tạo một **custom JFR event** mỗi giây để người học có thể attach vào tiến trình và thực hành quản lý hai recording. Nó là mã độc lập, biên dịch được trên **JDK 17+ có module `jdk.jfr`**.
+The program below intentionally stays alive for about two minutes, emitting one **custom JFR event** per second so learners can attach to the process and practice managing two recordings. It is standalone code compiling on **JDK 17+ with the `jdk.jfr` module**.
 
-Lưu nguyên chương trình vào **`JfrRecordingLab.java`**:
+Save the program as **`JfrRecordingLab.java`**:
 
 ~~~java
 import jdk.jfr.Event;
@@ -298,17 +298,17 @@ public class JfrRecordingLab {
 }
 ~~~
 
-**Terminal A** — biên dịch, chạy chương trình:
+**Terminal A** — compile and run the program:
 
 ~~~bash
 javac JfrRecordingLab.java
 java JfrRecordingLab
 ~~~
 
-Ví dụ các dòng do chương trình tự in:
+Example lines printed by the program itself:
 
 ~~~text
-PID=<PID thực tế của lần chạy>
+PID=<actual PID of this run>
 Completed=30
 Completed=60
 Completed=90
@@ -316,9 +316,9 @@ Completed=120
 Done
 ~~~
 
-Dòng `PID=...` chứa số nguyên do hệ điều hành cấp và thay đổi ở mỗi lần chạy. Các dòng `Completed=...` xuất hiện mỗi 30 lần lặp; nếu bạn stop chương trình sớm hoặc tiến trình bị gián đoạn, một số dòng sẽ không xuất hiện.
+The `PID=...` line contains an OS-assigned integer that changes on every run. The `Completed=...` lines appear every 30 iterations; if you stop the program early or the process is interrupted, some lines will not appear.
 
-**Terminal B** — trong lúc chương trình còn chạy, thay `12345` bằng PID đã in. Dùng directory có thể ghi:
+**Terminal B** — while the program is still running, replace `12345` with the printed PID. Use a writable directory:
 
 ~~~bash
 jcmd 12345 JFR.start name=lab-baseline settings=default disk=true maxage=5m maxsize=64m
@@ -330,57 +330,57 @@ jcmd 12345 JFR.check
 jcmd 12345 JFR.stop name=lab-baseline filename=/var/tmp/jfr/lab-baseline-final.jfr
 ~~~
 
-Chạy các lệnh này **trước khi chương trình in `Done`**; nếu chương trình đã kết thúc thì PID không còn attach được. Nếu muốn thử lặp lại, chạy Java lần nữa và lấy PID mới.
+Run these commands **before the program prints `Done`**; once the program exits, the PID can no longer be attached to. To try again, restart Java and grab the new PID.
 
-Sau đó:
+Then:
 
 ~~~bash
 jfr summary /var/tmp/jfr/lab-incident-final.jfr
 jfr print --events lab.WorkUnit /var/tmp/jfr/lab-incident-final.jfr
 ~~~
 
-Nếu recording đang chạy trong khi `WorkUnit` được commit và custom event có hiệu lực, file có thể chứa các event mang tên `lab.WorkUnit`, kèm trường `iteration`. Số lượng event **phụ thuộc thời điểm start/dump/stop**; không có stdout số cố định của `jcmd` hay `jfr`. Cấu hình nào thực sự kích hoạt event có thể kiểm tra bằng `JFR.check name=lab-incident verbose=true` và metadata trong file.
+If the recording was active while `WorkUnit` committed and custom events were enabled, the file can contain events named `lab.WorkUnit` along with the `iteration` field. Event counts **depend on start/dump/stop timing**; there is no fixed numeric stdout from `jcmd` or `jfr`. Which configuration actually enabled the event can be checked via `JFR.check name=lab-incident verbose=true` and file metadata.
 
-## 9. Những lỗi thao tác rất dễ gặp
+## 9. Very Common Operational Mistakes
 
-| Hiện tượng / nhầm lẫn | Nguyên nhân có thể | Hành động |
+| Symptom / Misconception | Possible Cause | Action |
 | --- | --- | --- |
-| `JFR.check` báo không có recording | Recording chưa start, đã stop, hoặc đang hỏi sai PID | Kiểm tra đúng PID và start khi được phép |
-| `JFR.dump` xong mà check vẫn thấy recording | **Đây là hành vi đúng**: dump không stop | Nếu muốn dừng, gọi `JFR.stop name=...` |
-| File chứa event không mong muốn | Dump không chỉ định `name` hoặc nhiều recording làm thay đổi tập event thu thập | Chọn `name`; xem `verbose=true`, thống kê file và các recording chạy đồng thời |
-| Không còn dữ liệu cũ trong dump | `maxage`/`maxsize` khi start đã loại dữ liệu cũ; dump muộn | Tăng retention cho lần thu sau, chụp kịp thời; không thể phục hồi dữ liệu đã mất |
-| `JFR.stop` không dừng recording nào | Không truyền `name` hoặc chọn sai name | Gọi `JFR.check`, dùng đúng `name` |
-| Dừng xong không thấy artifact cuối | Không chỉ định `filename` hoặc nhầm filesystem | Dùng `JFR.stop name=... filename=/đường/dẫn/...jfr` và kiểm tra file ở JVM đích |
-| `jcmd` attach lỗi | Sai PID, thiếu quyền, process đã thoát, khác process namespace hoặc attach bị tắt | Xác minh host/user/PID/runtime; thao tác trong đúng namespace |
-| File ghi thất bại | Thư mục không tồn tại, sai quyền, disk/quota thiếu hoặc tên đụng file cũ | Tạo directory có quyền ghi, chọn tên file mới, theo dõi dung lượng |
-| `JFR.dump` có dữ liệu ít hơn dự kiến | Khoảng thời gian lọc, event settings hoặc recording mới start | So timestamps, `maxage`, `begin`, loại event và thời điểm start |
-| JFR làm tăng tải | Profile/sự kiện chi tiết, nhiều recording hoặc dump quá thường xuyên | Giới hạn duration/retention, quan sát overhead và giảm mức chi tiết |
-| Nhiều phiên nhưng chỉ muốn dừng một phiên | Nhầm recording name/ID, automation chọn sai phiên | Dùng tên duy nhất, check trước và sau stop, không stop theo suy đoán |
+| `JFR.check` reports no recordings | Recording not started, already stopped, or querying wrong PID | Verify exact PID and start when permitted |
+| After `JFR.dump`, `check` still shows the recording | **This is expected behavior**: dump does not stop | To stop it, call `JFR.stop name=...` |
+| File contains unexpected events | Dumped without `name`, or multiple recordings changed collected events | Specify `name`; inspect `verbose=true`, file stats, and concurrent recordings |
+| Older data missing from dump | Start-time `maxage`/`maxsize` evicted old data; dump was late | Increase retention for future captures, dump promptly; lost data cannot be recovered |
+| `JFR.stop` stops no recording | Omitted `name` or wrong `name` | Run `JFR.check`, use exact `name` |
+| Stopped but no final artifact found | Omitted `filename` or wrong filesystem | Use `JFR.stop name=... filename=/path/to/...jfr` and check on target JVM |
+| `jcmd` attach error | Wrong PID, missing permissions, process exited, different PID namespace, or attach disabled | Verify host/user/PID/runtime; operate in the right namespace |
+| File write fails | Directory missing, wrong permissions, disk/quota full, or filename collision | Create writable directory, pick new filename, monitor disk space |
+| `JFR.dump` has less data than expected | Filter window, event settings, or recording just started | Check timestamps, `maxage`, `begin`, event types, and start time |
+| JFR adds load | Heavy profile/events, too many recordings, or dumping too frequently | Bound duration/retention, monitor overhead, reduce detail level |
+| Multiple sessions, only want to stop one | Confused recording name/ID, automation picked wrong session | Use unique names, check before and after stop, never stop by guessing |
 
-Một số lệnh có tham số theo phiên bản JVM; hãy dùng `jcmd <PID> help JFR.dump` và các biến thể `JFR.check`/`JFR.stop` để xác nhận trên runtime cụ thể. Tài liệu tại đây đối chiếu **HotSpot JDK 21**; các JVM hoặc JDK khác có thể khác nhau.
+Some commands have JVM-version-specific parameters; use `jcmd <PID> help JFR.dump` and variants of `JFR.check`/`JFR.stop` to confirm on your runtime. This guide references **HotSpot JDK 21**; other JVMs or JDKs may differ.
 
-## 10. Thực hành lựa chọn thao tác theo yêu cầu
+## 10. Practice Choosing Operations by Requirement
 
-**Tình huống A:** Dịch vụ có baseline đang chạy; bạn cần file sự kiện của 5 phút gần nhất và vẫn phải giám sát tiếp. → `JFR.check` xác nhận tên, sau đó **`JFR.dump name=baseline maxage=5m filename=...`**. Không stop.
+**Scenario A:** The service has a running `baseline`; you need an event file for the last 5 minutes and must keep monitoring. → `JFR.check` to confirm name, then **`JFR.dump name=baseline maxage=5m filename=...`**. Do not stop.
 
-**Tình huống B:** Đã có baseline và incident; điều tra hoàn tất, cần lưu kết quả cuối của incident nhưng baseline tiếp tục chạy. → **`JFR.stop name=incident filename=...`**, rồi `JFR.check` xác nhận baseline còn hoạt động.
+**Scenario B:** Both `baseline` and `incident` exist; investigation is done, you need to save the final `incident` result while `baseline` keeps running. → **`JFR.stop name=incident filename=...`**, then `JFR.check` to confirm `baseline` is still active.
 
-**Tình huống C:** Người vận hành quên tên nhưng muốn xuất riêng incident. → **`JFR.check` trước** để xác nhận recording name. Không tùy tiện chạy `JFR.dump` không có name vì khi đó lệnh có thể xuất dữ liệu từ mọi recording.
+**Scenario C:** An operator forgot the name and wants to export only `incident`. → **`JFR.check` first** to confirm the recording name. Never carelessly run `JFR.dump` without `name`, as that can export data from every recording.
 
-**Tình huống D:** Bạn muốn xuất dữ liệu một giờ trước nhưng baseline chỉ cấu hình giữ 10 phút. → Không có lệnh dump nào khôi phục được phần đã bị retention loại bỏ; cần **thiết kế retention và thời điểm chụp trước khi sự cố tái diễn**.
+**Scenario D:** You want to export data from one hour ago, but `baseline` was configured to keep only 10 minutes. → No dump command can recover data already evicted by retention; you must **design retention and capture timing before the incident recurs**.
 
-**Checklist trước khi thao tác thật:**
-1. Có **đúng PID, đúng JVM, đúng quyền** và lệnh `help` xác nhận cú pháp.
-2. Biết rõ **recording name/ID**, trạng thái và cấu hình hiện tại qua `JFR.check`.
-3. Với dump, đã chọn đúng **scope**, **khoảng thời gian**, **đường dẫn file mới** và dung lượng còn trống.
-4. Với stop, đã xác định recording nào kết thúc và **file cuối cần lưu**; các recording khác có cần giữ không.
-5. Sau thao tác đã **check trạng thái**, kiểm tra file bằng `jfr summary`, bảo vệ và gắn metadata thời điểm/PID/settings cho bằng chứng.
+**Pre-operation checklist:**
+1. Have the **right PID, right JVM, right permissions**, and `help` confirming syntax.
+2. Know the exact **recording name/ID**, state, and current settings via `JFR.check`.
+3. For dumps, pick the exact **scope**, **time range**, **new file path**, and verify free disk space.
+4. For stops, confirm which recording ends, **which final file to save**, and whether other recordings should stay running.
+5. Afterward, **check status**, validate the file with `jfr summary`, protect it, and attach timestamp/PID/settings metadata to the evidence.
 
-**Ghi nhớ:** `JFR.check` = **xem**, `JFR.dump` = **xuất snapshot và tiếp tục ghi**, `JFR.stop` = **kết thúc phiên được chọn**. Trong môi trường nhiều recording, **`name` và kiểm tra trước/sau thao tác** là chìa khóa để giữ đúng dữ liệu và đúng vòng đời.
+**Remember:** `JFR.check` = **inspect**, `JFR.dump` = **export snapshot and keep recording**, `JFR.stop` = **end the selected session**. In multi-recording environments, **`name` and pre/post checks** are the key to preserving the right data and lifecycle.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle Java SE 21 — **The jcmd Command**, mô tả `JFR.start`, `JFR.check`, `JFR.dump`, `JFR.stop` và tùy chọn: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
+- Oracle Java SE 21 — **The jcmd Command**, describing `JFR.start`, `JFR.check`, `JFR.dump`, `JFR.stop` and options: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
 - Oracle Java SE 21 — **The jfr Command**, `jfr summary`, `jfr print`, `jfr view`: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html
-- Oracle Java SE 21 — **Recording API**, vòng đời của một recording: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html
+- Oracle Java SE 21 — **Recording API**, lifecycle of a recording: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html
 - Dev.java — **Getting Started with JDK Flight Recorder**: https://dev.java/learn/jvm/monitoring-troubleshooting/jfr/getting-started/

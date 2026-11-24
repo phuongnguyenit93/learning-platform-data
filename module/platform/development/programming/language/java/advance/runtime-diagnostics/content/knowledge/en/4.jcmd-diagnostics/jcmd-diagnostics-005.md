@@ -1,26 +1,26 @@
-# 4.5 Chọn đường dẫn đầu ra theo ngữ cảnh của JVM đích và kiểm tra dung lượng còn lại
+# 4.5 Choosing Output Paths in the Target JVM Context and Checking Remaining Disk Space
 
-Khi chẩn đoán Java bằng **jcmd**, một lệnh có thể được gõ trên Linux host, bên trong container, hoặc qua công cụ điều khiển Pod; nhưng **tệp heap dump hay JFR được tạo bởi JVM đích**. Vì vậy, đường dẫn đầu ra phải được hiểu theo **filesystem/mount namespace và thư mục làm việc của JVM đích**, không phải mặc nhiên theo thư mục nơi người vận hành gõ lệnh. Nếu chọn sai, lệnh có thể báo **No such file or directory**, **Permission denied**, **Read-only file system** hoặc **No space left on device**; tệ hơn, dump có thể được tạo thành công nhưng nằm ở vị trí khó truy xuất, bị xóa khi container khởi động lại hoặc làm đầy volume chứa dữ liệu ứng dụng.
+When diagnosing Java with **jcmd**, a command may be typed on a Linux host, inside a container, or via a Pod control tool; however, **the heap dump or JFR file is created by the target JVM**. Therefore, the output path must be interpreted in the **target JVM's filesystem/mount namespace and working directory**, not assumed to match the directory where the operator runs the command. If chosen wrongly, the command may report **No such file or directory**, **Permission denied**, **Read-only file system**, or **No space left on device**; worse, the dump may succeed yet land in a hard-to-retrieve location, be deleted when the container restarts, or fill up a volume holding application data.
 
-Trong nhóm **Công cụ jcmd**, bài này tập trung vào **cách quyết định vị trí lưu file**, **kiểm tra đủ không gian trước khi thu thập** và **xác minh file sau khi ghi**. Các ví dụ jcmd dựa trên **JDK 21/HotSpot**; cú pháp lệnh và khả năng attach phải được xác nhận lại trên JVM thật. Không dùng các lệnh tạo heap dump lên production chỉ để thử bài học.
+Within **The jcmd Tool** section, this lesson focuses on **how to decide where files are saved**, **checking sufficient space before collection**, and **verifying the file after writing**. The jcmd examples are based on **JDK 21/HotSpot**; command syntax and attachability must be re-confirmed on the real JVM. Never run heap-dump commands against production merely to practice this lesson.
 
-## 1. Mục tiêu học tập
+## 1. Learning objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **đường dẫn được JVM đích xử lý** với **đường dẫn chuyển hướng stdout do shell gọi jcmd xử lý**.
-- Dự đoán sự khác nhau giữa đường dẫn tuyệt đối, tương đối, thư mục làm việc của JVM và đường dẫn chỉ tồn tại trên host hoặc trong container.
-- Chọn volume hoặc thư mục ghi có **quyền**, **dung lượng**, **inode**, **quota**, **khả năng lưu giữ** và **cơ chế lấy file ra** phù hợp.
-- Thực hiện preflight với **pwd, id, ls/stat, df -h, df -i** trong đúng môi trường và hiểu giới hạn của từng phép kiểm tra.
-- Ước lượng dung lượng cần thiết cho **JFR** và **heap dump**, phân biệt dung lượng file đầu ra với bộ đệm/repository tạm và các công việc ghi đồng thời.
-- Hiểu vì sao **Docker overlay**, **bind mount**, **Docker volume**, **Kubernetes emptyDir/PVC** và **tmpfs** dẫn tới các lựa chọn khác nhau.
-- Kiểm tra kết quả sau khi jcmd thành công, sao chép tệp có kiểm soát và không nhầm file thiếu/truncated với dữ liệu chẩn đoán hợp lệ.
+- Distinguish **paths handled by the target JVM** from **stdout redirection paths handled by the shell invoking jcmd**.
+- Predict differences between absolute paths, relative paths, the JVM's working directory, and paths existing only on the host or inside a container.
+- Select a writable volume or directory with suitable **permissions**, **capacity**, **inodes**, **quotas**, **retention**, and **file retrieval mechanism**.
+- Run preflight checks with **pwd, id, ls/stat, df -h, df -i** in the right environment and understand the limits of each check.
+- Estimate required space for **JFR** and **heap dumps**, distinguishing final output file size from temporary buffers/repositories and concurrent writes.
+- Understand why **Docker overlay**, **bind mounts**, **Docker volumes**, **Kubernetes emptyDir/PVC**, and **tmpfs** lead to different choices.
+- Verify output after jcmd succeeds, copy files safely, and avoid mistaking incomplete/truncated files for valid diagnostic data.
 
-## 2. Câu hỏi nền tảng: ai thực sự mở file đầu ra?
+## 2. Foundational question: who actually opens the output file?
 
-**jcmd** là tiện ích yêu cầu **JVM đang chạy** thực thi một diagnostic command. Trong trường hợp JVM ghi file, quá trình ghi thường diễn ra **trong process của JVM** với quyền truy cập và filesystem mà JVM nhìn thấy. Người gọi jcmd có thể nằm ở vị trí khác.
+**jcmd** is a utility that asks a **running JVM** to execute a diagnostic command. When the JVM writes a file, writing typically happens **inside the JVM process** with the access permissions and filesystem visible to the JVM. The jcmd caller may be somewhere else.
 
-Xem ba thao tác sau trên JDK 21 HotSpot; **12345** là PID minh họa, không được dùng nguyên số này trên máy thực:
+Compare these three operations on JDK 21 HotSpot; **12345** is an illustrative PID and must not be used literally on a real machine:
 
 ~~~bash
 jcmd 12345 VM.version
@@ -28,105 +28,105 @@ jcmd 12345 Thread.print -l > ./thread-dump.txt
 jcmd 12345 GC.heap_dump /diagnostics/heap/incident-001.hprof
 ~~~
 
-Ba thao tác có **ba ý nghĩa đầu ra**:
+The three operations have **three output semantics**:
 
-| Thao tác | Dữ liệu đầu ra nằm ở đâu? | Ai quyết định đường dẫn? |
+| Operation | Where does output data go? | Who determines the path? |
 | --- | --- | --- |
-| **VM.version** | Nội dung text trong stdout của tiện ích jcmd | Không tạo file dữ liệu dump trong ví dụ. |
-| **Thread.print -l > ./thread-dump.txt** | **./thread-dump.txt** theo thư mục làm việc của **shell chạy jcmd** | Toán tử **>** do shell xử lý; nếu dùng shell ở host thì file ở host, nếu shell ở container thì file ở container. |
-| **GC.heap_dump /diagnostics/heap/incident-001.hprof** | File HPROF ở đường dẫn mà **JVM đích** truy cập được | Tên file là **đối số của diagnostic command**, được thực thi bởi JVM. |
+| **VM.version** | Text content in stdout of the jcmd utility | No dump data file is created in this example. |
+| **Thread.print -l > ./thread-dump.txt** | **./thread-dump.txt** relative to the working directory of **the shell running jcmd** | The **>** operator is handled by the shell; if the shell is on the host the file is on the host, if inside a container it is in the container. |
+| **GC.heap_dump /diagnostics/heap/incident-001.hprof** | HPROF file at a path accessible by **the target JVM** | The filename is a **diagnostic command argument**, executed by the JVM. |
 
-Tương tự, với lệnh:
+Similarly, with the command:
 
 ~~~bash
 jcmd 12345 JFR.dump name=incident filename=/diagnostics/jfr/incident-001.jfr
 ~~~
 
-**/diagnostics/jfr/incident-001.jfr** phải có ý nghĩa với **JVM đích**. File không tự xuất hiện tại cùng đường dẫn trên laptop/host chỉ vì bạn chạy jcmd từ đó.
+**/diagnostics/jfr/incident-001.jfr** must make sense to **the target JVM**. The file does not automatically appear at the same path on your laptop/host just because you invoked jcmd from there.
 
-**Phân biệt thêm:** **jcmd -f commands.txt** đọc **tệp đầu vào chứa lệnh** từ phía công cụ jcmd. Còn tùy chọn **filename=...** của **JFR.dump** hoặc tham số file của **GC.heap_dump** yêu cầu JVM tạo **tệp đầu ra**. Không coi mọi đường dẫn xuất hiện trên cùng dòng lệnh là cùng một phía filesystem.
+**Additional distinction:** **jcmd -f commands.txt** reads an **input file containing commands** on the jcmd tool side. By contrast, **JFR.dump**'s **filename=...** option or **GC.heap_dump**'s file argument tells the JVM to create an **output file**. Do not treat every path appearing on the same command line as belonging to the same filesystem side.
 
-### 2.1. Hai chiều vận hành với một JVM trong container
+### 2.1. Two operational perspectives for a containerized JVM
 
-Giả sử có container **orders-java**, nơi JVM nhìn thấy:
+Suppose there is a container **orders-java**, where the JVM sees:
 
 ~~~text
-/app                      ứng dụng và thư mục làm việc
-/diagnostics              điểm mount cho file chẩn đoán
-/diagnostics/jfr          thư mục ghi JFR
-/diagnostics/heap         thư mục ghi heap dump
+/app                      application and working directory
+/diagnostics              mount point for diagnostic files
+/diagnostics/jfr          JFR output directory
+/diagnostics/heap         heap dump output directory
 ~~~
 
-Trên Linux host, thư mục **/srv/diag/orders/** được bind mount vào **/diagnostics**. Khi đó:
+On the Linux host, directory **/srv/diag/orders/** is bind-mounted to **/diagnostics**. Then:
 
-- JVM nhận **/diagnostics/heap/a.hprof**, mở file qua đường dẫn container và ghi vào mount.
-- Người dùng trên host có thể thấy cùng dữ liệu ở **/srv/diag/orders/heap/a.hprof**, nếu đây thật sự là bind mount đã cấu hình.
-- Gửi **/srv/diag/orders/heap/a.hprof** cho jcmd làm đường dẫn dump **không đúng**, nếu JVM không có đường dẫn host đó trong mount namespace của nó.
-- Một container khác có thể mount **cùng volume** tại tên đường dẫn khác; cần xác minh cách mount của **đúng container JVM**.
+- The JVM receives **/diagnostics/heap/a.hprof**, opens the file via the container path, and writes into the mount.
+- Users on the host can see the same data at **/srv/diag/orders/heap/a.hprof**, provided this bind mount is actually configured.
+- Passing **/srv/diag/orders/heap/a.hprof** to jcmd as the dump path **is wrong** if the JVM does not have that host path in its mount namespace.
+- Another container may mount the **same volume** at a different path name; verify the mount layout of **the exact JVM container**.
 
-Đường dẫn trên host và trong container là **hai tên của vùng lưu trữ theo cấu hình mount**, không phải hai chuỗi có thể tự chuyển đổi từ tên container.
+The host path and container path are **two names for storage according to mount configuration**, not two strings you can arbitrarily translate from the container name.
 
-## 3. Đường dẫn tuyệt đối, tương đối và working directory
+## 3. Absolute paths, relative paths, and working directory
 
-### 3.1. Đường dẫn tuyệt đối là mặc định an toàn hơn
+### 3.1. Absolute paths are the safer default
 
-Với file do JVM tạo, ưu tiên **đường dẫn tuyệt đối trong filesystem của JVM**:
+For files created by the JVM, prefer **absolute paths in the JVM's filesystem**:
 
 ~~~bash
 jcmd 12345 GC.heap_dump /diagnostics/heap/orders-incident-001.hprof
 jcmd 12345 JFR.dump name=incident filename=/diagnostics/jfr/orders-incident-001.jfr
 ~~~
 
-Điều kiện bắt buộc là **/diagnostics/heap** và **/diagnostics/jfr** thực sự tồn tại, phù hợp quyền của JVM và đủ không gian. Những lệnh trên là **ví dụ cách đặt tên**, không xác nhận đường dẫn hay dung lượng của một môi trường thực nào.
+Mandatory prerequisites are that **/diagnostics/heap** and **/diagnostics/jfr** actually exist, allow JVM write access, and have sufficient space. The commands above are **naming examples**, not confirmation of paths or capacity in any real environment.
 
-Sử dụng tên file có khả năng phân biệt **service/instance/thời điểm/incident** thay vì lặp lại **heap.hprof**. Mặc định, **GC.heap_dump** trên JDK 21 có tùy chọn **-overwrite** với giá trị **false**; đừng dựa vào việc ghi đè file cũ và đừng bật ghi đè khi chưa có lý do rõ ràng.
+Use filenames that distinguish **service/instance/timestamp/incident** instead of repeating **heap.hprof**. By default, **GC.heap_dump** on JDK 21 has an **-overwrite** option defaulting to **false**; do not rely on overwriting old files and do not enable overwrite without a clear reason.
 
-### 3.2. Đường dẫn tương đối có thể khiến file nằm ngoài dự kiến
+### 3.2. Relative paths can place files in unexpected locations
 
-Ví dụ:
+Example:
 
 ~~~bash
 jcmd 12345 GC.heap_dump heap.hprof
 jcmd 12345 JFR.dump name=incident filename=incident.jfr
 ~~~
 
-Không nên suy luận hai file nằm trong thư mục hiện tại của terminal jcmd. Chúng được tạo từ góc nhìn của **JVM đích**. Với các đường dẫn tương đối của những lệnh này, hãy xem **working directory của JVM** hoặc nơi JVM khởi chạy theo cơ chế cụ thể; **đừng lấy cwd của tiện ích jcmd để kết luận**.
+Do not assume these two files end up in the jcmd terminal's current directory. They are created from the **target JVM's** perspective. For relative paths in these commands, check the **JVM's working directory** or where the JVM was launched per its specific mechanism; **never use the jcmd utility's cwd to draw conclusions**.
 
-Ví dụ, bạn có thể đứng ở **/home/operator/** trên host, nhưng Java process được khởi chạy từ **/app** trong container. File không nhất thiết nằm ở **/home/operator/**.
+For instance, you might stand in **/home/operator/** on the host, while the Java process was launched from **/app** inside a container. The file will not necessarily be in **/home/operator/**.
 
-Trong Linux, nếu có quyền xem procfs của **đúng JVM** từ góc nhìn tương ứng:
+On Linux, if you have permission to inspect procfs of **the right JVM** from the corresponding scope:
 
 ~~~bash
 readlink /proc/12345/cwd
 ~~~
 
-Lệnh trả **thư mục làm việc hiện tại của process** mà procfs đó nhìn thấy. Nếu JVM trong container có PID **1** nhưng host PID **48210**, **/proc/1/cwd** trong container và **/proc/48210/cwd** trên host có thể đại diện cùng process theo hai namespace. Đường dẫn hiển thị và khả năng truy cập còn phụ thuộc mount namespace và quyền đọc liên kết. Đây là **bước xác minh**, không phải phép biến đổi PID tự động.
+The command returns the **current working directory of the process** as seen by that procfs. If the JVM inside a container has PID **1** while its host PID is **48210**, **/proc/1/cwd** inside the container and **/proc/48210/cwd** on the host can represent the same process across two namespaces. What path is shown and whether it is readable also depend on mount namespaces and symlink read permissions. This is a **verification step**, not an automatic PID translation.
 
-**System.getProperty("user.dir")** trong Java thường phản ánh thư mục làm việc Java nhận tại thời điểm khởi chạy, nhưng giá trị property có thể bị thay đổi và không phải phép kiểm tra hệ điều hành cho mọi biến đổi cwd. Khi cần biết file được mở ở đâu, hãy ưu tiên **đường dẫn tuyệt đối được cấu hình rõ ràng** và xác minh từ góc nhìn JVM.
+**System.getProperty("user.dir")** in Java normally reflects the working directory Java received at startup, though that property can be modified and is not an OS-level check for all cwd changes. When you need certainty about where files are opened, prefer **explicitly configured absolute paths** and verify from the JVM's side.
 
-### 3.3. Không dựa vào một đường dẫn ngầm định /tmp
+### 3.3. Do not rely on an implicit /tmp path
 
-Một số chế độ JFR dùng **repository tạm**, thường mặc định trong vùng temporary directory của hệ điều hành. Còn file xuất của **JFR.dump**/**JFR.start** có thể được cấu hình ở đường dẫn khác. Vì vậy, có thể xảy ra tình trạng **volume chứa file cuối còn trống** nhưng **/tmp hoặc repository của JFR hết chỗ**. Cần xem cả hai vị trí nếu dùng JFR với **disk=true**.
+Some JFR modes use a **temporary repository**, often defaulting to the OS temporary directory. Meanwhile, the final output file of **JFR.dump**/**JFR.start** may be configured at another path. Thus, a situation can occur where **the destination volume still has free space** while **/tmp or the JFR repository runs out of space**. Check both locations when using JFR with **disk=true**.
 
-**/tmp** không phải lúc nào cũng cùng loại storage: có thể nằm trong container writable layer, trên volume khác hoặc trên **tmpfs**. Chỉ dùng **df/findmnt/mount** và cấu hình container thực tế mới biết. Việc chọn **/tmp** vì “ai cũng có” không thay thế kiểm tra dung lượng, quota, quyền ghi hay vòng đời dữ liệu.
+**/tmp** is not always the same storage type: it may sit on the container's writable layer, on another volume, or on **tmpfs**. Only **df/findmnt/mount** and actual container configuration tell you for sure. Picking **/tmp** because "everyone has it" does not replace checking space, quotas, write permissions, or data lifecycle.
 
-## 4. Chọn vị trí theo vòng đời dữ liệu và kiến trúc triển khai
+## 4. Choosing a location by data lifecycle and deployment architecture
 
-| Vị trí | Ưu điểm | Hạn chế cần kiểm tra |
+| Location | Advantages | Limitations to check |
 | --- | --- | --- |
-| **Thư mục ứng dụng trong writable layer container** | Đường dẫn có thể dễ gọi | Có thể bị xóa khi container bị thay thế, dùng chung nguồn lực với image/log layer và chịu hạn mức ephemeral storage. Có thể bị chặn khi root filesystem chỉ đọc. |
-| **Docker bind mount** | Có ánh xạ cụ thể sang đường dẫn của Linux host; dễ thu hồi file khi thiết lập đúng | Quyền chủ sở hữu, SELinux/ACL khi có, đường dẫn host và sự khác biệt host/container phải được xác nhận. Host ở đây là máy chạy Docker daemon, không mặc định là máy dùng Docker CLI. |
-| **Docker named volume** | Docker quản lý vòng đời lưu trữ, có thể chia sẻ với container khác theo cấu hình | Không suy ra đường dẫn host từ tên volume; dùng metadata Docker để xác định. Khả năng còn trống phụ thuộc filesystem/driver/quota thực tế. |
-| **Kubernetes emptyDir trên disk** | Thư mục tạm cho Pod; có thể mount vào container Java và sidecar | Thường mất khi Pod bị gỡ khỏi node; chịu giới hạn ephemeral-storage/sizeLimit và áp lực disk của node. |
-| **Kubernetes emptyDir với medium: Memory** | Truy cập I/O nhanh trong tmpfs | Chiếm **bộ nhớ**, chịu memory limit; heap dump lớn có thể gây memory pressure/OOM thay vì chỉ “đầy đĩa”. |
-| **Kubernetes PVC** | Có thể phù hợp nhu cầu lưu giữ file qua vòng đời Pod, tùy StorageClass và policy | Kiểm tra quota thực, quyền mount, hiệu năng, filesystem, quyền truy cập đồng thời và dữ liệu nhạy cảm. PVC không tự bảo đảm luôn còn dung lượng. |
-| **NFS/remote volume/object pipeline** | Có thể thuận tiện cho thu hồi và quản lý bằng policy | I/O và trạng thái network làm tăng thời gian dump; đường dẫn phải là mount/file API thật với JVM. Object store URI không đương nhiên dùng được như đường dẫn HPROF/JFR. |
+| **App directory in container writable layer** | Path may be easy to reference | Can be lost when container is replaced, shares space with image/log layers, and is subject to ephemeral storage limits. May be blocked if root filesystem is read-only. |
+| **Docker bind mount** | Maps explicitly to a Linux host path; easy file retrieval when set up properly | Ownership, SELinux/ACL where applicable, host path, and host/container differences must be verified. "Host" here means the machine running the Docker daemon, not necessarily the machine running Docker CLI. |
+| **Docker named volume** | Docker manages storage lifecycle; can be shared with another container if configured | Do not guess host path from volume name; use Docker metadata to inspect. Remaining space depends on underlying filesystem/driver/quota. |
+| **Kubernetes emptyDir on disk** | Temporary directory for a Pod; can be mounted into both Java container and sidecar | Usually lost when Pod is removed from the node; bounded by ephemeral-storage/sizeLimit and node disk pressure. |
+| **Kubernetes emptyDir with medium: Memory** | Fast I/O access in tmpfs | Consumes **RAM** and counts against memory limits; a large heap dump can cause memory pressure/OOM instead of merely "disk full". |
+| **Kubernetes PVC** | Can suit retaining files across Pod lifecycle, depending on StorageClass and policy | Check real quota, mount permissions, throughput, filesystem, concurrent access, and sensitive data. A PVC does not automatically guarantee free space. |
+| **NFS/remote volume/object pipeline** | Can simplify retrieval and policy management | Network I/O and state increase dump duration; path must be a real mount/file API to the JVM. Object store URIs cannot inherently be used like HPROF/JFR file paths. |
 
-Nên có **thư mục chẩn đoán riêng**, cách ly với dữ liệu vận hành quan trọng, và quy trình kiểm soát giữ/xóa file. Chọn mục tiêu theo **mục đích chẩn đoán**: JFR ngắn thường cần ít chỗ hơn heap dump lớn, nhưng không có quy tắc kích thước cố định. File dump có thể chứa dữ liệu nhạy cảm, vì vậy việc chọn nơi lưu là một phần của vận hành và bảo mật.
+It is good practice to have a **dedicated diagnostic directory**, isolated from critical operational data, with controlled retention/cleanup procedures. Choose the target according to **diagnostic goal**: short JFR captures usually require less space than large heap dumps, though there is no fixed size rule. Dump files can contain sensitive data, so choosing where to store them is both an operational and security decision.
 
-### 4.1. Ví dụ bind mount Docker
+### 4.1. Docker bind mount example
 
-Ví dụ minh họa thiết kế cấu hình:
+Illustrative configuration design example:
 
 ~~~bash
 docker run --name orders-java \
@@ -134,21 +134,21 @@ docker run --name orders-java \
   my-orders-image
 ~~~
 
-Trong JVM container, dùng **/diagnostics/...**; trên Linux host của Docker daemon, kiểm tra **/srv/diag/orders/...**. Đây là lệnh khởi chạy một container minh họa; không chạy lại nếu dịch vụ đang hoạt động.
+Inside the JVM container, use **/diagnostics/...**; on the Docker daemon's Linux host, inspect **/srv/diag/orders/...**. This is an illustrative container launch command; do not re-run it if the service is already live.
 
-Nếu muốn kiểm tra mount của container đang chạy, đây là thao tác đọc metadata:
+To inspect mounts of a running container, this is a read-only metadata query:
 
 ~~~bash
 docker inspect --format '{{json .Mounts}}' orders-java
 ~~~
 
-Các trường từ metadata giúp xác định **Source** và **Destination**. Không tự suy ra từ tên image hoặc tên container.
+Fields in the metadata identify **Source** and **Destination**. Never guess them from the image name or container name.
 
-**Docker Desktop:** Linux containers hoạt động trong Linux VM; vị trí host/bind mount có tầng ánh xạ với máy desktop. Cần dùng metadata/đường dẫn mà Docker hỗ trợ, thay vì suy ra Linux **/proc** hoặc thư mục của VM trùng với Windows/macOS.
+**Docker Desktop:** Linux containers run inside a Linux VM; host/bind-mount paths go through a mapping layer to the desktop machine. Rely on Docker-supported metadata/paths instead of assuming VM **/proc** or directories match Windows/macOS paths directly.
 
-### 4.2. Ví dụ cấu trúc Kubernetes
+### 4.2. Kubernetes structure example
 
-Đoạn YAML chỉ minh họa **cách mount**, không phải manifest hoàn chỉnh:
+The YAML snippet only illustrates **mount structure**, not a complete manifest:
 
 ~~~yaml
 spec:
@@ -164,73 +164,73 @@ spec:
         sizeLimit: 4Gi
 ~~~
 
-Dù ví dụ khai báo **sizeLimit: 4Gi**, không nên đọc **df -h** rồi kết luận có thể sử dụng đủ 4 GiB: **sizeLimit**, giới hạn **ephemeral-storage** của container/Pod và node pressure có thể hạn chế mức thực tế theo cơ chế đo/eviction của Kubernetes. Kubelet và cấu hình filesystem quyết định cách giám sát. Khi cần lưu dữ liệu qua việc gỡ Pod, một **PVC đã được cấp và mount đúng** thường phù hợp hơn emptyDir.
+Even if the example declares **sizeLimit: 4Gi**, do not run **df -h** and conclude a full 4 GiB is usable: **sizeLimit**, container/Pod **ephemeral-storage** limits, and node pressure can restrict actual usable capacity under Kubernetes accounting/eviction rules. Kubelet and filesystem configuration govern how this is enforced. When data must survive Pod deletion, a properly provisioned and mounted **PVC** is generally more suitable than emptyDir.
 
-## 5. Chọn loại đầu ra trước khi dự trù dung lượng
+## 5. Choose output type before budgeting space
 
-### 5.1. JFR: file kết quả và repository không nhất thiết cùng nơi
+### 5.1. JFR: final file and repository need not be in the same place
 
-**JFR.start** có thể bắt đầu recording và, khi recording dừng, ghi file theo **filename** đã cấu hình. Trong tài liệu **jcmd JDK 21**, **duration=60s** quy định thời lượng ghi; **filename** chỉ định file xuất khi recording kết thúc. Mặc định **disk=true** có thể dùng repository trên disk trong khi recording. **JFR.dump** tạo một file dump từ recording đang chạy và **recording tiếp tục chạy** sau thao tác dump.
+**JFR.start** can start a recording and, when the recording stops, write a file at the configured **filename**. In **JDK 21 jcmd** docs, **duration=60s** sets the recording duration; **filename** specifies the output file when the recording finishes. By default **disk=true** can use a disk repository while recording. **JFR.dump** creates a dump file from a running recording, and **the recording continues running** after the dump.
 
-Ví dụ minh họa, chỉ chạy khi đã preflight:
+Illustrative example, run only after preflight:
 
 ~~~bash
 jcmd 12345 JFR.start name=orders-triage settings=default duration=60s filename=/diagnostics/jfr/orders-triage-001.jfr
 jcmd 12345 JFR.check
 ~~~
 
-File **orders-triage-001.jfr** có thể chỉ xuất hiện khi recording dừng, không bắt buộc xuất hiện ngay sau khi JFR.start trả thành công. Hãy kiểm tra **JFR.check**, kết quả chẩn đoán và thời gian dự kiến trước khi kết luận file bị thiếu.
+The file **orders-triage-001.jfr** may only appear once the recording stops, rather than immediately after JFR.start returns success. Check **JFR.check**, diagnostic output, and expected duration before concluding the file is missing.
 
-Một lựa chọn khác, nếu recording **orders-triage** đang chạy:
+Another option, if recording **orders-triage** is already active:
 
 ~~~bash
 jcmd 12345 JFR.dump name=orders-triage filename=/diagnostics/jfr/orders-triage-snapshot-001.jfr
 ~~~
 
-**JFR.dump** không tự dừng recording đang chạy. Nếu không chỉ định **name**, cú pháp JDK 21 cho phép dump dữ liệu từ nhiều recording hoạt động; dùng tên rõ ràng để tránh nhầm nội dung. Với **JFR.dump**, đối số filename có thể là thư mục để JVM tự tạo tên file; khi cần dự đoán chính xác vị trí và kiểm tra kết quả, hãy chỉ định **tên file đầy đủ**.
+**JFR.dump** does not stop a running recording. If **name** is omitted, JDK 21 syntax allows dumping data from multiple active recordings; specify an explicit name to avoid mixing contents. With **JFR.dump**, the filename argument can be a directory so the JVM generates a filename; when you need predictable paths and verification, specify a **full filename**.
 
-Các tùy chọn **%p** và **%t** được JDK 21 hỗ trợ trong **filename** của JFR để chèn PID/thời điểm của JVM; điều này hữu ích tránh trùng tên. Không suy rộng rằng mọi diagnostic command đều hỗ trợ giống nhau.
+Placeholders **%p** and **%t** are supported by JDK 21 in JFR **filename** to insert JVM PID/timestamp, which helps prevent name collisions. Do not generalize that every diagnostic command supports the same placeholders.
 
-**Ngân sách lưu trữ JFR** nên tính cả: repository trung gian (nếu sử dụng), file xuất cuối, các lần dump lặp, log chẩn đoán liên quan và phần dự phòng. **JFR.start maxsize** có thể giới hạn lượng dữ liệu recording giữ trên disk theo cơ chế của JFR, nhưng không bảo đảm toàn bộ filesystem sẽ không đầy bởi các tệp khác hoặc một loạt file dump độc lập.
+A **JFR storage budget** should include: intermediate repository (if used), final exported file, repeated dumps, related diagnostic logs, and safety headroom. **JFR.start maxsize** can cap recording data retained on disk per JFR mechanics, yet it does not guarantee the entire filesystem will not fill up from other files or a series of separate dump files.
 
-### 5.2. Heap dump: kích thước lớn, rủi ro thời gian dừng
+### 5.2. Heap dump: large size, pause-time risk
 
-**GC.heap_dump** tạo HPROF heap dump và được JDK 21 ghi nhận **Impact: High**, phụ thuộc heap size và nội dung. Theo tài liệu, lệnh thường yêu cầu full GC trước khi dump, trừ khi dùng **-all** để dump cả object không còn reachable. Bởi vậy, một heap dump có thể tạo pause đáng kể và tác động cả CPU, I/O, disk.
+**GC.heap_dump** creates an HPROF heap dump and is documented in JDK 21 as **Impact: High**, depending on heap size and contents. Per documentation, the command normally requests a full GC before dumping unless **-all** is used to dump unreachable objects too. Consequently, a heap dump can induce noticeable pauses as well as CPU, I/O, and disk impact.
 
-Ví dụ tên file tuyệt đối:
+Absolute filename example:
 
 ~~~bash
 jcmd 12345 GC.heap_dump /diagnostics/heap/orders-incident-001.hprof
 ~~~
 
-JDK 21 còn hỗ trợ tùy chọn nén:
+JDK 21 also supports compression:
 
 ~~~bash
 jcmd 12345 GC.heap_dump -gz=1 /diagnostics/heap/orders-incident-001.hprof.gz
 ~~~
 
-**Không chạy cả hai lệnh trên cùng sự cố chỉ để “đảm bảo có file”**: đó là hai thao tác dump riêng và có thể tạo tải lớn. **-gz=1** yêu cầu mức nén GZIP tương ứng, có thể giảm kích thước trên disk nhưng thêm xử lý CPU; tỷ lệ nén **không cố định** và không bảo đảm file nhỏ hơn một ngưỡng nào. File nén cần công cụ hỗ trợ định dạng khi phân tích.
+**Do not run both commands on the same incident just to "be sure we get a file"**: those are two separate dump operations and can generate heavy load. **-gz=1** requests the corresponding GZIP compression level, which may reduce on-disk size while adding CPU work; compression ratios are **not fixed** and do not guarantee a file stays below a given threshold. Compressed files require an analysis tool supporting that format.
 
-**-Xmx** cho biết giới hạn heap tối đa của JVM khi cấu hình có hiệu lực, nhưng **không phải kích thước chính xác của file HPROF**. Live set, object graph, cấu trúc HPROF, khả năng nén và số liệu dump thực tế làm kích thước biến thiên. Một heap dump có thể rất lớn; với production hãy dùng **dự báo bảo thủ dựa trên heap, số liệu đã quan sát và dự phòng**, thay vì “file chắc chắn chỉ bằng 10% -Xmx”.
+**-Xmx** indicates the JVM's maximum heap limit when active, **not the exact size of an HPROF file**. Live set, object graph, HPROF structure, compressibility, and runtime dump overhead all cause sizes to vary. A heap dump can be very large; in production, use a **conservative estimate based on heap, observed metrics, and headroom**, rather than assuming "the file will surely be only 10% of -Xmx".
 
-**Cảnh báo:** heap dump có thể chứa token, phiên làm việc, thông tin cá nhân và chuỗi cấu hình còn nằm trong heap. Tránh mount public, tránh sao chép vào thư mục chia sẻ không kiểm soát và dùng chính sách thu hồi/xóa thích hợp sau khi phân tích.
+**Warning:** heap dumps can contain tokens, sessions, personal information, and configuration strings still sitting on the heap. Avoid public mounts, avoid copying into uncontrolled shared folders, and enforce proper retention/deletion policies after analysis.
 
-### 5.3. Crash/OOM dump và JFR dump là hai cơ chế khác nhau
+### 5.3. Crash/OOM dumps and JFR dumps are separate mechanisms
 
-Khi JVM được khởi chạy với:
+When a JVM is launched with:
 
 ~~~text
 -XX:+HeapDumpOnOutOfMemoryError
 -XX:HeapDumpPath=/diagnostics/heap
 ~~~
 
-một heap dump khi **OutOfMemoryError** sẽ dùng đường dẫn đã cấu hình theo tài liệu lệnh **java** và filesystem mà JVM nhìn thấy. Đây là cấu hình **startup**, khác với việc chủ động gửi **jcmd PID GC.heap_dump**. Nếu đường dẫn không được ghi hoặc hết dung lượng đúng lúc OOM, tệp có thể không xuất hiện; không nên coi flag là sự bảo đảm thu thập tuyệt đối.
+an automatic heap dump on **OutOfMemoryError** uses the configured path per **java** command docs and the filesystem visible to the JVM. This is a **startup** configuration, distinct from manually invoking **jcmd PID GC.heap_dump**. If the path is unwritable or out of space at OOM time, the file may not be created; do not treat the flags as an absolute guarantee of collection.
 
-Tương tự, file JFR được xuất khi **recording kết thúc**, khi chạy **JFR.dump**, hoặc khi cấu hình **dumponexit**, tùy hình thức. Không giả định chỉ cần thấy tùy chọn JFR là file đã nằm tại một vị trí cố định.
+Likewise, JFR files are written when a **recording finishes**, when running **JFR.dump**, or when **dumponexit** is configured, depending on the mode. Never assume merely seeing JFR options means a file already sits at a fixed location.
 
-## 6. Kiểm tra đúng thư mục sẽ ghi: tồn tại, quyền và filesystem
+## 6. Inspecting the exact destination directory: existence, permissions, and filesystem
 
-Giả sử đích mong muốn là **/diagnostics/heap** trong container. Trước khi yêu cầu JVM tạo file, cần kiểm tra **trên chính filesystem mà JVM nhìn thấy**:
+Suppose the intended destination is **/diagnostics/heap** inside a container. Before asking the JVM to create a file, verify **on the very filesystem the JVM sees**:
 
 ~~~bash
 id
@@ -240,43 +240,43 @@ df -h /diagnostics/heap
 df -i /diagnostics/heap
 ~~~
 
-Lệnh minh họa cho Linux shell có các công cụ tương ứng. Nếu image tối giản không có **sh, df, stat, ps**, đó là hạn chế của image; dùng công cụ debug/runtime thích hợp thay vì mặc định kết luận mount không tồn tại.
+Illustrative commands for a Linux shell having those tools. If a minimal image lacks **sh, df, stat, ps**, that is an image limitation; use ops-approved debug/runtime tools instead of assuming the mount does not exist.
 
-**Ý nghĩa từng kiểm tra:**
+**Meaning of each check:**
 
-1. **id**: xem UID/GID của **shell hiện tại**. Quan trọng vì shell qua **docker exec/kubectl exec** có thể được chạy với user khác JVM. **Quyền của người gọi không mặc nhiên là quyền của JVM**.
-2. **pwd**: xem cwd của **shell**, chỉ để định hướng; không tự chứng minh cwd của JVM nếu shell là process khác.
-3. **ls -ld**: xác nhận thư mục thực sự tồn tại và quan sát owner/group/mode; nếu có ACL, SELinux hoặc mount policy, mode bits chưa đủ kết luận.
-4. **df -h thư_mục**: xem filesystem chứa thư mục và lượng block còn trống theo góc nhìn lệnh chạy.
-5. **df -i thư_mục**: xem inode còn trống nếu filesystem hỗ trợ. Hết inode có thể không tạo được file dù block còn.
-6. Nếu có **findmnt -T /diagnostics/heap** hoặc **stat -f**: xem loại mount/filesystem và hỗ trợ phân biệt overlay, volume, tmpfs.
+1. **id**: displays UID/GID of **the current shell**. Crucial because a shell via **docker exec/kubectl exec** may run as a different user from the JVM. **The caller's permissions are not automatically the JVM's permissions**.
+2. **pwd**: displays cwd of **the shell**, just for orientation; does not prove the JVM's cwd if the shell is a separate process.
+3. **ls -ld**: confirms the directory actually exists and shows owner/group/mode; if ACLs, SELinux, or mount policies apply, mode bits alone are inconclusive.
+4. **df -h directory**: inspects the filesystem hosting the directory and free blocks from the running command's perspective.
+5. **df -i directory**: inspects free inodes if supported by the filesystem. Exhausting inodes can block file creation even when blocks remain.
+6. If **findmnt -T /diagnostics/heap** or **stat -f** is available: inspect mount/filesystem type to distinguish overlay, volume, and tmpfs.
 
-**Cần đưa vào df một đường dẫn đang tồn tại**. Nếu file đích chưa có, **df -h /diagnostics/heap/incident.hprof** có thể lỗi vì path chưa tồn tại; hãy kiểm tra **thư mục cha**:
+**Pass an existing path to df**. If the target file does not exist yet, **df -h /diagnostics/heap/incident.hprof** can fail because the path does not exist; check **the parent directory**:
 
 ~~~bash
 df -h /diagnostics/heap
 df -i /diagnostics/heap
 ~~~
 
-Nếu **/diagnostics/heap** chưa tồn tại, dùng thư mục cha hiện có để xác định mount, rồi **xác nhận cách tạo thư mục đúng quyền/quy trình** trước khi dump. Tự tạo thư mục dưới một mount điểm sai vị trí có thể khiến dữ liệu rơi vào container writable layer thay vì volume dự kiến.
+If **/diagnostics/heap** does not exist yet, inspect an existing ancestor directory to identify the mount, then **confirm how to create the directory with proper permissions/process** before dumping. Creating a directory under the wrong mount point can land data in the container's writable layer instead of the intended volume.
 
-### 6.1. Kiểm tra quyền bằng đúng danh tính JVM
+### 6.1. Verify permissions using the JVM's exact identity
 
-Giả sử shell trong container chạy root nhưng JVM chạy UID **10001**, lệnh:
+Suppose the container shell runs as root while the JVM runs as UID **10001**; the command:
 
 ~~~bash
 test -w /diagnostics/heap
 ~~~
 
-trả thành công cho root **không chứng minh UID 10001 có thể ghi**. Cần kiểm tra bằng đúng effective user/group của JVM hoặc các quyền ACL/mount được cấu hình. File được tạo bởi JVM phải thuộc vùng mà **JVM có quyền mở/ghi**, không chỉ tiện ích jcmd.
+returning success for root **does not prove UID 10001 can write**. Verify using the JVM's effective user/group or configured ACL/mount permissions. Files created by the JVM must reside where **the JVM has permission to open/write**, not just the jcmd utility.
 
-Với Docker, **docker exec --user 10001 ...** có thể giúp kiểm tra một user tương ứng nhưng còn phụ thuộc effective GID, supplementary groups và bảo mật mount. Tránh giả định chỉ từ một UID trùng tên. Trên Kubernetes, xem cấu hình **securityContext**, UID/GID/fsGroup và thực tế permission của volume; việc root nhìn thấy file không bảo đảm JVM user ghi được.
+With Docker, **docker exec --user 10001 ...** can help test a matching user, though effective GID, supplementary groups, and mount security still matter. Avoid assuming from a matching UID name alone. On Kubernetes, check **securityContext**, UID/GID/fsGroup, and actual volume permissions; root seeing a file does not guarantee the JVM user can write.
 
-Kiểm tra **read-only root filesystem** (ví dụ Kubernetes **readOnlyRootFilesystem**), mount **:ro**, bind mount chỉ đọc hoặc policy của volume. Khi thư mục đích read-only, **df** có thể vẫn hiển thị nhiều block trống, nhưng ghi sẽ thất bại.
+Check for a **read-only root filesystem** (e.g., Kubernetes **readOnlyRootFilesystem**), **:ro** mounts, read-only bind mounts, or volume policies. When a destination directory is read-only, **df** may still show plenty of free blocks, yet writing will fail.
 
-### 6.2. Kiểm tra path vật lý, symlink và inode
+### 6.2. Check physical path, symlinks, and inodes
 
-Nếu **/diagnostics/heap** là symlink đến vị trí khác, phép kiểm tra trên một parent gần đó có thể đo **nhầm filesystem**. Xác nhận bằng các công cụ có sẵn:
+If **/diagnostics/heap** is a symlink pointing elsewhere, checking a nearby parent directory may measure **the wrong filesystem**. Verify with available tools:
 
 ~~~bash
 ls -ld /diagnostics/heap
@@ -285,76 +285,76 @@ df -h /diagnostics/heap
 df -i /diagnostics/heap
 ~~~
 
-Tùy image, **readlink -f** có thể không có hoặc xử lý symlink khác nhau. Với bảo mật chặt hơn, tránh symlink trỏ ra ngoài volume chẩn đoán và sử dụng một thư mục cụ thể đã được provision.
+Depending on the image, **readlink -f** may be absent or handle symlinks differently. For stricter security, avoid symlinks pointing outside the diagnostic volume and use a specific pre-provisioned directory.
 
-**Inode** thường không phải giới hạn chính của **một heap dump lớn**, nhưng có thể là vấn đề khi tạo hàng nghìn JFR chunk/file nhỏ hoặc filesystem gần hết inode. Dùng **df -i** để phát hiện loại giới hạn này, song vẫn phải kiểm tra quota và mức tiêu thụ đồng thời.
+**Inodes** are rarely the primary bottleneck for **one large heap dump**, but can become an issue when creating thousands of small JFR chunks/files or on a nearly inode-exhausted filesystem. Use **df -i** to catch this limit, while still checking quotas and concurrent consumption.
 
-## 7. “df còn nhiều chỗ” vẫn chưa đủ
+## 7. "df shows plenty of space" is still not enough
 
-Dung lượng báo bởi **df -h** là **snapshot filesystem**, không phải lời hứa cấp phát thành công. Có ít nhất sáu rào cản cần xét:
+Free space reported by **df -h** is a **filesystem snapshot**, not a guarantee that allocation will succeed. There are at least six obstacles to consider:
 
-- **Quota theo user/group/project/volume** có thể nhỏ hơn free space của filesystem. Lệnh df không tự hiển thị mọi giới hạn quota áp dụng.
-- **Kubernetes ephemeral-storage limit / emptyDir sizeLimit** và áp lực node có thể khiến Pod bị **evicted**, dù df bên trong container trông còn chỗ.
-- **tmpfs** chiếm bộ nhớ; một heap dump vào **emptyDir medium: Memory** có thể gây áp lực RAM hoặc memory OOM.
-- **Writable layer** của container có thể dùng chung tài nguyên với image, logs và các container khác; file lớn làm ảnh hưởng node/service.
-- **Tệp khác đang ghi đồng thời** có thể chiếm hết dung lượng giữa preflight và lần ghi cuối; không nên coi số đo lúc đầu là bất biến.
-- **I/O errors, permission, disk full inode, filesystem read-only, network volume mất kết nối** đều có thể làm tệp tạo ra không đầy đủ.
+- **User/group/project/volume quotas** can be smaller than filesystem free space. `df` does not automatically display every applicable quota limit.
+- **Kubernetes ephemeral-storage limits / emptyDir sizeLimit** and node pressure can cause a Pod to be **evicted**, even while `df` inside the container looks spacious.
+- **tmpfs** consumes RAM; a heap dump into **emptyDir medium: Memory** can trigger RAM pressure or a memory OOM.
+- The container's **writable layer** can share storage with images, logs, and other containers; a large file affects the node/service.
+- **Concurrent writers** can consume remaining space between preflight and final write; never treat initial measurements as immutable.
+- **I/O errors, permissions, inode exhaustion, read-only remounts, or disconnected network volumes** can all leave an incomplete file.
 
-**Quota** và **filesystem capacity** là hai khái niệm khác nhau. Ví dụ **df** báo 20 GiB trống nhưng Pod chỉ còn 1 GiB ngân sách ephemeral-storage, một dump 4 GiB vẫn có thể khiến workload bị evicted. Vì vậy, muốn dự báo chính xác hơn phải kiểm tra **cả filesystem và giới hạn do container orchestrator/volume định nghĩa**.
+**Quota** and **filesystem capacity** are two distinct concepts. For example, `df` might report 20 GiB free while the Pod only has 1 GiB of ephemeral-storage budget left—a 4 GiB dump can still get the workload evicted. Therefore, accurate planning requires checking **both the filesystem and limits defined by the container orchestrator/volume**.
 
-### 7.1. Tính ngân sách với phần dự phòng
+### 7.1. Budgeting with safety reserve
 
-Đặt:
+Let:
 
-- **F**: không gian hữu dụng được đo trên đúng filesystem, ở thời điểm preflight.
-- **D**: kích thước file dump ước tính; nếu chưa biết thì dùng giả định bảo thủ và ghi rõ.
-- **R**: dung lượng dự phòng cho log, ứng dụng, hoạt động nền, thay đổi dữ liệu trong lúc dump.
-- **T**: dung lượng tạm bổ sung **trên cùng filesystem** (ví dụ repository JFR, các lần ghi đồng thời) nếu có.
-- **Q**: lượng không gian còn có thể sử dụng theo quota/ephemeral/PVC thực sự, nếu bị giới hạn.
+- **F**: usable free space measured on the exact filesystem at preflight time.
+- **D**: estimated dump file size; if unknown, use a conservative assumption and state it explicitly.
+- **R**: reserved space for logs, application writes, background activity, and data growth during the dump.
+- **T**: additional temporary space **on the same filesystem** (e.g., JFR repository, concurrent writes), if any.
+- **Q**: remaining space allowed under actual quota/ephemeral/PVC limits, if constrained.
 
-Điều kiện kiểm tra ban đầu:
+Initial check condition:
 
 \[
 F \ge D+R+T,\qquad Q \ge D+R+T
 \]
 
-Nếu **Q** không đo được, không thể kết luận đã bảo đảm đủ chỗ chỉ nhờ **df**. Nếu T nằm trên **filesystem khác**, kiểm tra riêng filesystem đó; không cộng file của một volume vào free space của volume khác.
+If **Q** cannot be measured, you cannot conclude space is guaranteed from **df** alone. If T sits on a **different filesystem**, check that filesystem separately; never add files from one volume into another volume's free space.
 
-Ví dụ minh họa với đơn vị **MiB**:
+Illustrative example in **MiB**:
 
-| Thông số | Giá trị giả định |
+| Parameter | Hypothetical value |
 | --- | ---: |
-| Free/usable tại nơi ghi file | 3.072 MiB |
-| Dự kiến file heap dump | 2.200 MiB |
-| Dự phòng cho hệ thống/log | 768 MiB |
-| Tệp tạm cùng filesystem | 0 MiB |
-| Tổng cần (ước tính + dự phòng) | 2.968 MiB |
-| Headroom ước tính | 104 MiB |
+| Free/usable at file destination | 3,072 MiB |
+| Estimated heap dump file | 2,200 MiB |
+| Reserve for system/logs | 768 MiB |
+| Temporary files on same filesystem | 0 MiB |
+| Total needed (estimate + reserve) | 2,968 MiB |
+| Estimated headroom | 104 MiB |
 
-Theo **chỉ báo filesystem**, phép tính vừa đủ, nhưng headroom chỉ **104 MiB** là mỏng; nếu dump lớn hơn dự kiến hoặc quota thấp hơn 2.968 MiB, thao tác sẽ có nguy cơ thất bại. **Không có ngưỡng dự phòng phổ quát** phù hợp mọi workload: cần dựa vào mức ghi nền, giới hạn đang áp dụng và khả năng chịu rủi ro của service.
+By **filesystem indicators alone**, the math barely passes, yet **104 MiB** of headroom is thin; if the dump grows larger than estimated or quota is below 2,968 MiB, the operation risks failing. **There is no universal reserve threshold** suitable for every workload: base it on baseline write rates, active limits, and the service's risk tolerance.
 
-Không dùng dung lượng **heap used sau GC** làm dự báo chắc chắn cho kích thước HPROF. Không lấy **file size từ lần trước** làm giới hạn tối đa của lần sau. Compression cũng không tạo bảo đảm dung lượng.
+Do not use **post-GC heap used** as a guaranteed predictor of HPROF size. Do not treat **last time's file size** as an upper bound for the next dump. Compression also provides no space guarantee.
 
-### 7.2. Vì sao “df -h /” dễ gây hiểu sai?
+### 7.2. Why "df -h /" easily misleads
 
-Trên Linux container, **/** có thể nằm trên writable overlay, còn **/diagnostics** là PVC hoặc bind mount khác. Khi đó:
+On Linux containers, **/** may live on a writable overlay while **/diagnostics** is a separate PVC or bind mount. Then:
 
 ~~~bash
 df -h /
 df -h /diagnostics
 ~~~
 
-có thể cho **hai filesystem và hai giá trị available khác nhau**. Nếu file thực sự được JVM ghi vào **/diagnostics**, thông số cần kiểm tra là filesystem **chứa /diagnostics**, không phải root filesystem. Tương tự nếu **/tmp** chứa JFR repository nhưng file cuối nằm ở **/diagnostics**, cần kiểm tra **cả hai**.
+can report **two different filesystems and two different available amounts**. If the JVM actually writes to **/diagnostics**, the figure that matters is the filesystem **hosting /diagnostics**, not the root filesystem. Likewise, if **/tmp** holds the JFR repository while the final file lands in **/diagnostics**, check **both**.
 
-### 7.3. Khi đã xóa file mà df không tăng
+### 7.3. When files are deleted yet df does not rise
 
-Trên Linux, một file đã bị unlink nhưng **process vẫn giữ file descriptor mở** có thể tiếp tục chiếm block cho đến khi descriptor đóng. Trong tình huống này, lệnh liệt kê directory hoặc **du** có thể không phản ánh toàn bộ block đã dùng, còn **df** vẫn thấy tiêu thụ. Khi điều tra cần kiểm tra các file đã bị xóa nhưng còn mở bằng công cụ phù hợp/quyền phù hợp; **không xóa hoặc kill process tùy tiện** để lấy chỗ.
+On Linux, an unlinked file **still held open by a process's file descriptor** continues consuming blocks until the descriptor closes. In this scenario, directory listings or **du** may miss those used blocks while **df** still counts them. When investigating, check deleted-yet-open files using appropriate tools and permissions; **never delete files or kill processes arbitrarily** just to reclaim space.
 
-## 8. Ví dụ Java 21: kiểm tra không gian từ filesystem mà JVM nhìn thấy
+## 8. Java 21 example: checking space from the filesystem seen by the JVM
 
-**java.nio.file.FileStore** cung cấp **getUsableSpace()**, là lượng byte khả dụng theo góc nhìn JVM đối với một filestore. API nói rõ giá trị **chỉ là gợi ý gần thời điểm đọc, không bảo đảm việc ghi sẽ thành công**. Đây là phép **preflight**, không thay quota/orchestrator hay việc kiểm tra dữ liệu sau ghi.
+**java.nio.file.FileStore** provides **getUsableSpace()**, the usable bytes from the JVM's perspective for a filestore. The API explicitly states that the value **is only a hint near read time and does not guarantee a write will succeed**. This is a **preflight check**, not a substitute for orchestrator/quota checks or post-write verification.
 
-**Tệp DiagnosticSpacePreflight.java:**
+**File DiagnosticSpacePreflight.java:**
 
 ~~~java
 import java.io.IOException;
@@ -407,31 +407,31 @@ public final class DiagnosticSpacePreflight {
 }
 ~~~
 
-Biên dịch bằng JDK 21:
+Compile with JDK 21:
 
 ~~~bash
 javac --release 21 DiagnosticSpacePreflight.java
 java DiagnosticSpacePreflight /diagnostics/heap 2200 768
 ~~~
 
-**Kết quả có phần cố định và phần phụ thuộc môi trường.** Nếu thư mục không có, chương trình in chính xác:
+**The output has a fixed part and an environment-dependent part.** If the directory does not exist, the program prints exactly:
 
 ~~~text
 Directory exists: false
 ~~~
 
-Nếu thư mục có, chương trình in bảy dòng với **Directory**, **Directory exists: true**, **Directory writable (hint)**, **File store read-only**, **Usable MiB (snapshot)**, **Required MiB: 2968**, **Filesystem budget check** theo đúng thứ tự. Giá trị path, writable, read-only, usable và kết luận boolean tùy môi trường; **không có stdout số free space cố định**.
+If the directory exists, the program prints seven lines with **Directory**, **Directory exists: true**, **Directory writable (hint)**, **File store read-only**, **Usable MiB (snapshot)**, **Required MiB: 2968**, and **Filesystem budget check** in that exact order. Path, writable, read-only, usable values, and the boolean result depend on the environment; **there is no fixed free-space stdout number**.
 
-**Đọc đúng giới hạn:**
-- Kiểm tra **Files.isWritable** có thể giúp phát hiện lỗi rõ ràng, nhưng vẫn chỉ là kiểm tra tại thời điểm đó; quyền hoặc mount có thể đổi trước khi ghi.
-- FileStore có thể không biết **ephemeral-storage limit** hoặc quota khác ở mức orchestrator.
-- Chạy chương trình trong JVM/process khác có thể thấy filesystem hoặc UID khác; để có bằng chứng mạnh, chạy trong **đúng container/namespace và user tương ứng với ứng dụng**, hoặc tích hợp một bước kiểm tra có kiểm soát trong ứng dụng thực.
-- Chương trình **không tạo file**, không chứng minh hệ thống cho phép tạo mọi file dự kiến, và không thử ghi heap dump.
-- Với khối lượng lớn, phải bổ sung quota, latency I/O, inode, log growth và dự phòng.
+**Understand the limitations:**
+- **Files.isWritable** can catch obvious permission errors, yet remains only a point-in-time check; permissions or mounts can change before writing.
+- FileStore may be unaware of **ephemeral-storage limits** or other orchestrator-level quotas.
+- Running the program in a different JVM/process may observe a different filesystem or UID; for strong evidence, run it inside **the same container/namespace and user as the application**, or integrate a controlled check inside the real app.
+- The program **creates no files**, does not prove every expected file can be created, and does not attempt a heap dump.
+- For large volumes, also factor in quotas, I/O latency, inodes, log growth, and safety reserve.
 
-### 8.1. Ví dụ Java 21 có stdout cố định để hiểu phép tính
+### 8.1. Java 21 example with deterministic stdout to understand the budget calculation
 
-**Tệp DumpBudgetExample.java:**
+**File DumpBudgetExample.java:**
 
 ~~~java
 public final class DumpBudgetExample {
@@ -456,7 +456,7 @@ javac --release 21 DumpBudgetExample.java
 java DumpBudgetExample
 ~~~
 
-**stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 Required: 2968 MiB
@@ -464,13 +464,13 @@ Headroom: 104 MiB
 Pass filesystem budget: true
 ~~~
 
-Kết luận **true** ở đây chỉ có nghĩa **đúng theo dữ kiện giả định**, chưa tính quota, dữ liệu sinh thêm hoặc thay đổi free space. Đừng cho ví dụ này tự quyết định việc tạo dump thực trên một hệ thống đang chạy.
+**true** here only means **true under the hypothetical inputs**, without accounting for quotas, extra writes, or changing free space. Never let this example autonomously approve taking a real dump on a live system.
 
-## 9. Quy trình preflight có kiểm soát cho một JVM trong Docker
+## 9. Controlled preflight workflow for a JVM in Docker
 
-Giả sử JVM của service **orders-java** chạy trong Docker Linux, được mount **/diagnostics** và có thể dùng **jcmd**. Ví dụ sau mô tả quy trình, không phải lệnh đã được thực thi trên một hệ thống thật.
+Suppose the JVM for service **orders-java** runs in Linux Docker, with **/diagnostics** mounted and **jcmd** available. The example below outlines the workflow, not commands executed on a real system.
 
-### Bước 1 — Xác nhận đúng container/JVM và danh tính
+### Step 1 — Confirm the right container/JVM and identity
 
 ~~~bash
 docker inspect --format '{{.State.Running}}' orders-java
@@ -479,9 +479,9 @@ docker exec orders-java id
 docker exec orders-java ps -eo pid,ppid,comm
 ~~~
 
-Các lệnh có thể không khả dụng nếu image tối giản. **Không mặc định Java là PID 1**; init wrapper, shell và PID namespace chia sẻ có thể làm PID JVM khác. Trong các lệnh sau giả sử đã xác minh **PID của JVM trong container là 1**. Với JVM PID khác, thay bằng số thực trong cùng namespace.
+These commands may be unavailable in minimal images. **Do not assume Java is PID 1**; init wrappers, shells, and shared PID namespaces can change the JVM's PID. The subsequent commands assume **the JVM's PID inside the container was verified to be 1**. For another JVM PID, substitute the real number in that namespace.
 
-Khi có công cụ phù hợp:
+When the right tools are present:
 
 ~~~bash
 docker exec orders-java jcmd 1 VM.version
@@ -489,9 +489,9 @@ docker exec orders-java jcmd 1 help GC.heap_dump
 docker exec orders-java jcmd 1 help JFR.dump
 ~~~
 
-**jcmd** cần khả năng attach và quyền thích hợp, thường cùng effective user/group theo tài liệu JDK. Lệnh thất bại có thể do image thiếu JDK tools, attach bị hạn chế hoặc dùng sai process; việc chọn đúng PID mới chỉ là điều kiện cần.
+**jcmd** requires attach capability and proper permissions, typically matching effective user/group per JDK docs. Failures can stem from missing JDK tools in the image, restricted attach, or targeting the wrong process; picking the right PID is only a necessary condition.
 
-### Bước 2 — Kiểm tra thư mục trong container
+### Step 2 — Inspect directories inside the container
 
 ~~~bash
 docker exec orders-java sh -c 'id; ls -ld /diagnostics /diagnostics/heap /diagnostics/jfr'
@@ -500,54 +500,54 @@ docker exec orders-java sh -c 'df -h /diagnostics/jfr; df -i /diagnostics/jfr'
 docker exec orders-java sh -c 'df -h /tmp'
 ~~~
 
-Các lệnh trên dùng **sh, ls, df** trong container và phù hợp khi image có sẵn chúng. Nếu image không có, có thể dùng tooling khác đã được vận hành phê duyệt để kiểm tra mount/quota từ node hoặc debug container. **Không tự giả định giá trị /tmp hoặc /diagnostics giống ở host**.
+These commands use **sh, ls, df** inside the container and apply when the image contains them. If the image lacks them, use other ops-approved tooling to inspect mounts/quotas from the node or a debug container. **Never assume /tmp or /diagnostics values match the host**.
 
-Đánh giá **quyền theo UID/GID của JVM**, tính dung lượng dự kiến cùng log/JFR repository và giới hạn có thể gây eviction. **df -i** kiểm tra inode, **df -h** kiểm tra block. Cả hai không đủ thay các giới hạn khác.
+Evaluate **permissions against the JVM's UID/GID**, budget expected size alongside logs/JFR repository and eviction limits. **df -i** checks inodes, **df -h** checks blocks. Neither replaces checking other limits.
 
-### Bước 3 — Chọn một đường dẫn duy nhất và ghi khi có cơ sở
+### Step 3 — Pick a unique path and write only when justified
 
-Ví dụ JFR theo thời hạn:
+Bounded JFR example:
 
 ~~~bash
 docker exec orders-java jcmd 1 JFR.start name=incident-001 settings=default duration=60s filename=/diagnostics/jfr/orders-incident-001.jfr
 ~~~
 
-Với heap dump, đây là lệnh riêng **có tác động cao**:
+For a heap dump, this is a separate **high-impact command**:
 
 ~~~bash
 docker exec orders-java jcmd 1 GC.heap_dump /diagnostics/heap/orders-incident-001.hprof
 ~~~
 
-**Chỉ thực thi heap dump khi đã có phê duyệt vận hành/chấp nhận tác động phù hợp**, có ngân sách dung lượng và có lý do điều tra heap; không chạy như cách “thử đường dẫn”. Nếu chỉ cần xác nhận VM, **VM.version** là phép quan sát ít xâm lấn hơn.
+**Execute a heap dump only with operational approval/accepted impact**, a verified space budget, and a heap-investigation rationale; never run it just to "test the path". If you only need to verify the VM, **VM.version** is far less intrusive.
 
-### Bước 4 — Xác minh file cuối từ phía JVM rồi lấy ra
+### Step 4 — Verify the final file from the JVM side, then retrieve it
 
-Khi lệnh dump đã hoàn tất, kiểm tra từ đúng container:
+Once the dump command completes, verify from the exact container:
 
 ~~~bash
 docker exec orders-java ls -lh /diagnostics/heap/orders-incident-001.hprof
 docker exec orders-java df -h /diagnostics/heap
 ~~~
 
-Với JFR có **duration=60s**, đợi thời điểm recording kết thúc theo trạng thái và lịch thu, rồi kiểm tra file JFR. **File có tên đúng chưa đủ để kết luận hợp lệ**: xem lệnh có báo lỗi không, dung lượng có hợp lý không, có thể mở bằng công cụ phân tích tương thích không.
+For a JFR capture with **duration=60s**, wait until the recording stops per status and collection schedule, then inspect the JFR file. **A matching filename alone does not prove validity**: check whether the command reported errors, whether the size makes sense, and whether a compatible analysis tool can open it.
 
-Nếu dùng Docker CLI có quyền lấy file và đã xác minh nơi lưu:
+If using Docker CLI with permission to retrieve the file and the storage path is verified:
 
 ~~~bash
 docker cp orders-java:/diagnostics/jfr/orders-incident-001.jfr ./orders-incident-001.jfr
 ~~~
 
-**docker cp** chuyển dữ liệu từ đường dẫn trong container sang đường dẫn local của phía gọi Docker CLI theo cơ chế Docker; file đích cần đủ dung lượng và quyền ở nơi nhận. Với named volume/bind mount, có thể dùng cơ chế thu hồi file riêng; vẫn phải kiểm tra mapping, quyền và toàn vẹn dữ liệu.
+**docker cp** copies data from the container path to the Docker CLI caller's local path via Docker mechanics; the destination must have enough space and permissions. With named volumes/bind mounts, a dedicated retrieval path may be used; still verify mapping, permissions, and data integrity.
 
-Đừng xóa bản gốc cho đến khi việc sao chép/kiểm tra dữ liệu thành công và đáp ứng chính sách lưu giữ. Nếu file là heap dump, bảo vệ quyền đọc và tránh đưa lên kênh công khai.
+Do not delete the original until copying and data verification succeed and retention policies are met. If the file is a heap dump, restrict read permissions and avoid posting it to public channels.
 
-## 10. Quy trình tương ứng trong Kubernetes
+## 10. Corresponding workflow in Kubernetes
 
-Trong Kubernetes, **/diagnostics** có thể là **emptyDir**, **PVC** hoặc volume do nền tảng quản lý. Giả sử Pod **orders-0**, container **app** trong namespace mặc định của kubeconfig hiện tại; thêm **-n <namespace>** khi cần để tránh chọn nhầm đối tượng.
+In Kubernetes, **/diagnostics** may be an **emptyDir**, **PVC**, or platform-managed volume. Assume Pod **orders-0**, container **app** in the current kubeconfig's default namespace; add **-n <namespace>** when needed to avoid targeting the wrong object.
 
-### Bước 1 — Xác nhận Pod, container, volume và giới hạn
+### Step 1 — Confirm Pod, container, volumes, and limits
 
-Đọc cấu hình Pod bằng công cụ phù hợp:
+Read the Pod configuration with appropriate tools:
 
 ~~~bash
 kubectl get pod orders-0 -o wide
@@ -557,68 +557,68 @@ kubectl exec orders-0 -c app -- df -h /diagnostics
 kubectl exec orders-0 -c app -- df -i /diagnostics
 ~~~
 
-**kubectl describe** giúp nhận diện volume mount, trạng thái và event liên quan tới Pod; kiểm tra thêm cấu hình **resources.limits.ephemeral-storage**, emptyDir **sizeLimit** và quota ở node/volume nếu dùng chúng. **kubectl exec** chạy process mới bên trong container, không mặc định cùng UID với Java khi có cấu hình riêng.
+**kubectl describe** helps identify volume mounts, states, and Pod events; also check **resources.limits.ephemeral-storage**, emptyDir **sizeLimit**, and node/volume quotas if applicable. **kubectl exec** starts a new process inside the container and does not automatically share Java's UID if custom settings apply.
 
-Đặc biệt, **emptyDir medium: Memory** dùng **tmpfs** và bị tính vào **bộ nhớ container**. Một heap dump kích thước lớn trên tmpfs có thể làm cạn memory budget; file được tạo trong **memory-backed volume** không trở thành file an toàn chỉ vì df còn block.
+In particular, **emptyDir medium: Memory** uses **tmpfs** and counts toward **container memory**. A large heap dump on tmpfs can exhaust the memory budget; a file written into a **memory-backed volume** is not safe just because `df` shows free blocks.
 
-### Bước 2 — Chọn vùng có vòng đời phù hợp
+### Step 2 — Choose a location with a matching lifecycle
 
-- Nếu cần recording ngắn và sẽ **thu hồi ngay**, một disk-backed emptyDir có ngân sách rõ có thể phù hợp.
-- Nếu cần giữ dữ liệu qua việc thay Pod, chọn **PVC hoặc hạ tầng thu thập hỗ trợ** đã được cấu hình.
-- Nếu cần heap dump lớn, phải xét cả **disk free**, **ephemeral-storage/PVC capacity**, **quota**, **I/O throughput** và **giới hạn tác động JVM**.
-- Nếu Pod có nhiều container, phải kiểm tra **volumeMount của đúng container Java**, dù sidecar có thể đọc cùng volume ở một đường dẫn khác.
+- If you need a short recording and will **retrieve it immediately**, a disk-backed emptyDir with a clear budget can work.
+- If data must survive Pod replacement, choose a configured **PVC or supported collection infrastructure**.
+- If you need a large heap dump, weigh **disk free**, **ephemeral-storage/PVC capacity**, **quotas**, **I/O throughput**, and **JVM impact limits**.
+- If the Pod has multiple containers, verify the **volumeMount of the exact Java container**, even if a sidecar mounts the same volume at another path.
 
-### Bước 3 — Xác minh file tại container đích
+### Step 3 — Verify the file in the target container
 
 ~~~bash
 kubectl exec orders-0 -c app -- ls -lh /diagnostics/jfr/orders-incident-001.jfr
 kubectl exec orders-0 -c app -- df -h /diagnostics
 ~~~
 
-Để sao chép file, **kubectl cp** có thể được dùng khi container có **tar** và môi trường đáp ứng điều kiện:
+To copy the file, **kubectl cp** can be used when the container has **tar** and conditions are met:
 
 ~~~bash
 kubectl cp -c app orders-0:/diagnostics/jfr/orders-incident-001.jfr ./orders-incident-001.jfr
 ~~~
 
-Nếu image không có tar hoặc **kubectl cp** lỗi, dùng cơ chế xuất dữ liệu khác mà nền tảng hỗ trợ; không coi lỗi copy là bằng chứng file JVM chưa tồn tại. Đặc biệt với heap dump lớn, kiểm tra giới hạn truyền tải, phiên sao chép, dung lượng nhận và tính toàn vẹn.
+If the image lacks `tar` or **kubectl cp** fails, use another platform-supported export mechanism; do not treat a copy failure as proof the JVM failed to write the file. Especially for large heap dumps, check transfer timeouts, copy sessions, destination disk space, and integrity.
 
-## 11. Các bẫy phổ biến về đường dẫn, quota và quyền
+## 11. Common traps with paths, quotas, and permissions
 
-| Dấu hiệu | Khả năng đáng kiểm tra | Hành động kiểm chứng phù hợp |
+| Symptom | Possibilities worth checking | Appropriate verification action |
 | --- | --- | --- |
-| **No such file or directory** | Thư mục cha không tồn tại ở **filesystem của JVM**, dùng nhầm path host, mount sai, symlink hỏng | Kiểm tra mount, **ls -ld** thư mục cha **trong container/JVM**; so Docker/K8s volumeMount. |
-| **Permission denied** | JVM UID/GID không có quyền, ACL/SELinux, mount policy | Kiểm tra effective user của JVM, owner/group/mode, ACL/securityContext; đừng thử chỉ bằng shell root. |
-| **Read-only file system** | Rootfs hoặc volume mount read-only | Xem readOnlyRootFilesystem, mount options; chọn vị trí ghi được đã provision. |
-| **No space left on device** | Hết block, inode, filesystem tạm, quota hoặc storage limit | **df -h**, **df -i** trên **đúng mount**; kiểm tra quota/ephemeral/PVC và JFR repository. |
-| **df còn nhiều chỗ nhưng ghi lỗi** | Quota chặt hơn, quyền, inode, storage pressure, concurrent writers | Đừng dừng ở df; kiểm tra nhiều tầng giới hạn và thời điểm lỗi. |
-| **jcmd thành công nhưng không thấy file ở host** | File ở mount namespace JVM, relative path, chưa tới lúc JFR dừng, không có bind/volume mapping | Xem đường dẫn từ **container**, JFR.check, Docker/K8s mount và thời gian recording. |
-| **JFR.start đã trả thành công nhưng chưa có .jfr** | File được ghi khi recording dừng/theo cấu hình, file name tự sinh | Kiểm tra **JFR.check**, **duration**, **filename**, event/error; không mặc định thất bại ngay. |
-| **File dump rất nhỏ hoặc không mở được** | Dump chưa hoàn tất, disk full, lỗi I/O, copy bị ngắt, định dạng/nén không phù hợp | Đọc trạng thái lệnh, kích thước, verify bằng công cụ phân tích, checksum sau copy. |
-| **Heap dump làm Pod bị evict** | File vượt ephemeral/emptyDir budget hoặc disk pressure; tmpfs gây memory pressure | Kiểm tra Pod events/limits, dùng vị trí có hạn mức phù hợp và thu hồi kịp thời. |
-| **Cùng tên file từ nhiều JVM** | Ghi đè/xung đột, thiếu namespace/instance identifier | Dùng tên duy nhất theo service, instance, thời điểm; xác minh file chưa có. |
-| **Không tạo được file sau khi rename/mount** | Path đến filesystem khác, mount/symlink thay đổi, quyền JVM không còn đúng | Kiểm tra mount và **df** lại tại thời điểm thao tác; không dựa vào preflight cũ. |
+| **No such file or directory** | Parent directory missing in **JVM's filesystem**, host path used by mistake, wrong mount, broken symlink | Check mounts, **ls -ld** parent directory **inside container/JVM**; compare Docker/K8s volumeMount. |
+| **Permission denied** | JVM UID/GID lacks permission, ACL/SELinux, mount policy | Check JVM effective user, owner/group/mode, ACL/securityContext; do not test only as root shell. |
+| **Read-only file system** | Read-only rootfs or volume mount | Check readOnlyRootFilesystem, mount options; choose a provisioned writable path. |
+| **No space left on device** | Out of blocks, inodes, temp filesystem, quota, or storage limit | **df -h**, **df -i** on **the right mount**; check quotas/ephemeral/PVC and JFR repository. |
+| **df has plenty of space yet write fails** | Stricter quota, permissions, inodes, storage pressure, concurrent writers | Do not stop at `df`; check multiple limit layers and failure timestamp. |
+| **jcmd succeeds yet no file appears on host** | File is in JVM mount namespace, relative path, JFR has not stopped yet, no bind/volume mapping | Check path from **container**, JFR.check, Docker/K8s mounts, and recording duration. |
+| **JFR.start returned success yet no .jfr file** | File is written when recording stops/per config, auto-generated filename | Check **JFR.check**, **duration**, **filename**, events/errors; do not assume failure immediately. |
+| **Dump file is tiny or cannot be opened** | Incomplete dump, disk full, I/O error, interrupted copy, incompatible format/compression | Check command status, size, verify with analysis tool, checksum after copy. |
+| **Heap dump causes Pod eviction** | File exceeded ephemeral/emptyDir budget or disk pressure; tmpfs caused memory pressure | Check Pod events/limits, use adequately budgeted location and retrieve promptly. |
+| **Same filename from multiple JVMs** | Overwrites/collisions, missing namespace/instance identifier | Use unique names by service, instance, timestamp; verify file does not already exist. |
+| **Cannot create file after rename/mount** | Path points to different filesystem, mount/symlink changed, JVM permissions no longer match | Re-check mount and **df** at execution time; do not rely on stale preflight. |
 
-### 11.1. Phân biệt lỗi ghi và lỗi attach
+### 11.1. Separating write errors from attach errors
 
-Nếu nhận **Could not attach to target VM**, cần kiểm tra PID, effective user/group, cùng máy, namespace, attach mechanism và JDK tools. Đây thường **khác** lỗi filesystem của **GC.heap_dump**/**JFR.dump** sau khi JVM đã nhận command.
+If you receive **Could not attach to target VM**, inspect PID, effective user/group, same-host condition, namespace, attach mechanism, and JDK tools. This is usually **separate** from **GC.heap_dump**/**JFR.dump** filesystem errors occurring after the JVM accepts the command.
 
-Nếu attach thành công nhưng báo **Permission denied** khi mở file, hãy nghĩ tới **filesystem/UID của JVM**, chứ không chỉ tài khoản shell chạy jcmd.
+If attach succeeds yet opening the file reports **Permission denied**, look at **the JVM's filesystem/UID**, not just the shell account running jcmd.
 
-Nếu jcmd trả về thông báo thành công nhưng thao tác lấy file ra thất bại, vấn đề có thể ở **bước export/copy**, không nhất thiết ở giai đoạn JVM ghi. Phân biệt các giai đoạn giúp không lặp lại một heap dump tốn kém chỉ vì bước sao chép bị lỗi.
+If jcmd reports success yet retrieving the file fails, the issue may lie in the **export/copy step**, not necessarily the JVM write step. Separating stages prevents repeating an expensive heap dump just because a copy failed.
 
-## 12. Xác minh file sau ghi và ngân sách ở nơi nhận
+## 12. Post-write file verification and destination space budget
 
-Một chuỗi kiểm chứng có thể gồm:
+A verification sequence can include:
 
-1. **Xác định command đã chạy xong thành công** và thu lại stdout/stderr, thời điểm bắt đầu/kết thúc, PID JVM, tên recording nếu là JFR.
-2. **Xem tệp trong chính filesystem JVM**: đường dẫn đầy đủ, file có tồn tại, kích thước, owner/group, modified time. Kiểm tra nếu hệ thống yêu cầu việc ghi file kết thúc mới được thu hồi.
-3. **Kiểm tra filesystem sau ghi**: dung lượng remaining thực tế, error của volume, Pod/node event liên quan đến storage pressure. Việc tạo dump lớn có thể tác động đến những process khác.
-4. **Sao chép về nơi nhận** bằng cơ chế phù hợp; nơi nhận cũng cần đủ dung lượng. Trên network copy, chú ý timeout và tránh tên file trùng.
-5. **Xác minh toàn vẹn**: so kích thước trước/sau hoặc checksum, sau đó mở được bằng công cụ đọc JFR/HPROF tương thích. Với file đang tăng trưởng, chưa nên chốt checksum.
-6. **Quản trị vòng đời**: gắn incident ID, JVM version, thời điểm, quyền truy cập; di chuyển sang storage được kiểm soát hoặc xóa theo quy trình sau khi hết nhu cầu.
+1. **Confirm the command completed successfully** and record stdout/stderr, start/end timestamps, JVM PID, and recording name if JFR.
+2. **Inspect the file on the JVM's own filesystem**: full path, existence, size, owner/group, modified time. Check whether the system requires file writing to finish before retrieval.
+3. **Check the filesystem after writing**: actual remaining space, volume errors, Pod/node storage-pressure events. Creating a large dump can affect other processes.
+4. **Copy to the destination** via an appropriate mechanism; the destination also needs enough space. For network copies, watch timeouts and avoid filename collisions.
+5. **Verify integrity**: compare before/after sizes or checksums, then open with a compatible JFR/HPROF reader. Do not finalize checksums while a file is still growing.
+6. **Manage lifecycle**: tag with incident ID, JVM version, timestamp, access permissions; move to controlled storage or delete per policy once no longer needed.
 
-Ví dụ (đường dẫn minh họa, lệnh chỉ đọc):
+Example (illustrative paths, read-only commands):
 
 ~~~bash
 ls -lh /diagnostics/jfr/orders-incident-001.jfr
@@ -627,91 +627,91 @@ sha256sum /diagnostics/jfr/orders-incident-001.jfr
 df -h /diagnostics/jfr
 ~~~
 
-Các lệnh chạy **ở nơi có file thật**. **sha256sum** có thể không có trong image; checksum hai phía chỉ so sánh được khi đã xác nhận file không còn ghi và cùng bytes. Với JFR:
+Run these commands **where the actual file resides**. **sha256sum** may be absent in minimal images; two-sided checksums are only comparable once writing is confirmed finished with identical bytes. For JFR:
 
 ~~~bash
 jfr summary /diagnostics/jfr/orders-incident-001.jfr
 ~~~
 
-**jfr summary** cần JDK tool và đọc file ở **nơi gọi lệnh**. Nếu đã sao chép file về máy phân tích, dùng đường dẫn ở **máy phân tích**, không dùng path container. Không nhất thiết phải cài công cụ phân tích vào production image.
+**jfr summary** requires the JDK tool and reads the file **where the command is invoked**. If you already copied the file to an analysis machine, use the path on **the analysis machine**, not the container path. You do not need analysis tools installed in production images.
 
-### 12.1. Tránh giữ lại file nhạy cảm không kiểm soát
+### 12.1. Avoid retaining sensitive files uncontrolled
 
-Heap dump và recording có thể lộ dữ liệu nghiệp vụ hoặc tên đường dẫn/hạ tầng. Dùng permissions hẹp, vùng lưu trữ được kiểm soát và quy trình xóa theo chính sách. Nếu chia sẻ file cho người phân tích, kiểm tra phạm vi truy cập, thời hạn, mã hóa khi truyền/lưu và dấu vết sự cố. Không gửi heap dump lên kênh công khai chỉ để kiểm tra nó có tạo được không.
+Heap dumps and recordings can expose business data or infrastructure paths/names. Enforce tight permissions, controlled storage, and policy-based deletion. Before sharing files with an analyst, verify access scope, retention period, encryption in transit/at rest, and incident tracking. Never send a heap dump to a public channel just to check whether it was created.
 
-## 13. Quy trình quyết định ngắn gọn trước khi bấm Enter
+## 13. Quick decision workflow before pressing Enter
 
-| Câu hỏi | Bằng chứng mong đợi |
+| Question | Expected evidence |
 | --- | --- |
-| Tôi định lấy **stdout text**, **JFR** hay **heap dump**? | Tên diagnostic command và loại file rõ ràng. |
-| File được mở bởi **shell jcmd** hay **JVM đích**? | Dấu **>** ở shell so với **filename=/...** hoặc tham số filename trong command. |
-| Tôi biết chính xác **JVM/PID** chưa? | PID theo namespace công cụ, VM.version, container/Pod identity và đúng target. |
-| Đường dẫn có phải tuyệt đối trong **filesystem JVM** không? | Cấu hình path cụ thể, mount điểm từ đúng container/Pod, parent directory tồn tại. |
-| **JVM UID/GID** có quyền ghi không? | Owner/mode/ACL/mount chính xác; kiểm tra theo danh tính JVM. |
-| **df -h** đang đo đúng filesystem không? | df của **directory đích**, không chỉ df /. |
-| Có đủ **inode và quota/ephemeral limit** không? | df -i, volume/Pod/namespace/node budget, read-only và tmpfs đã xét. |
-| Đã ước lượng **dump + reserve + tệp tạm** chưa? | Ngân sách F/D/R/T/Q và giới hạn của từng filesystem. |
-| File sau đó sẽ được **thu hồi bằng cách nào**? | Bind mount/PVC/copy/export có đủ chỗ ở phía nhận. |
-| Có làm gián đoạn hệ thống không? | Impact của command, đặc biệt GC.heap_dump, được đánh giá. |
-| Sau khi ghi, ai xác minh **file hợp lệ**? | Đường dẫn, kích thước, checksum/reader, thời điểm hoàn tất. |
+| Am I collecting **stdout text**, **JFR**, or a **heap dump**? | Clear diagnostic command name and output file type. |
+| Is the file opened by **the jcmd shell** or **the target JVM**? | Shell **>** vs. **filename=/...** or command filename parameter. |
+| Do I know the exact **JVM/PID**? | PID in tool's namespace, VM.version, container/Pod identity, and right target. |
+| Is the path absolute in **the JVM's filesystem**? | Explicit path configuration, mount point from the right container/Pod, existing parent directory. |
+| Does the **JVM UID/GID** have write permission? | Accurate owner/mode/ACL/mount; verified under the JVM's identity. |
+| Is **df -h** measuring the right filesystem? | `df` on **the target directory**, not just `df /`. |
+| Are there enough **inodes and quota/ephemeral limits**? | `df -i`, volume/Pod/namespace/node budgets, read-only and tmpfs accounted for. |
+| Have I budgeted **dump + reserve + temporary files**? | F/D/R/T/Q budget and limits of each involved filesystem. |
+| How will the file be **retrieved afterward**? | Bind mount/PVC/copy/export with sufficient destination space. |
+| Will it disrupt the system? | Command impact, especially GC.heap_dump, evaluated beforehand. |
+| After writing, who verifies **file validity**? | Path, size, checksum/reader, completion timestamp. |
 
-## 14. Bài tập tình huống có lời giải
+## 14. Case exercises with solutions
 
-**Tình huống A — Nhầm đường dẫn host với container.** Host có **/srv/diag/orders** và Docker bind mount nó vào **/diagnostics**. Người vận hành chạy **jcmd 12345 GC.heap_dump /srv/diag/orders/heap.hprof** từ host. Vì sao có thể lỗi?
+**Case A — Confusing host path with container path.** Host has **/srv/diag/orders** and Docker bind-mounts it to **/diagnostics**. The operator runs **jcmd 12345 GC.heap_dump /srv/diag/orders/heap.hprof** from the host. Why can this fail?
 
-**Giải:** Đối số **GC.heap_dump** được JVM mở; JVM trong container có thể **chỉ biết /diagnostics**, không có **/srv/diag/orders**. Nếu đã xác minh mount và quyền, đường dẫn đúng cho JVM là **/diagnostics/heap.hprof**. Sau đó trên host có thể thấy file ở **/srv/diag/orders/heap.hprof**. Không dùng tên đường dẫn host làm argument cho JVM khi nó không tồn tại trong mount namespace.
+**Solution:** **GC.heap_dump**'s argument is opened by the JVM; the JVM inside the container may **only know /diagnostics**, without **/srv/diag/orders**. Once mount and permissions are verified, the right path for the JVM is **/diagnostics/heap.hprof**. Afterward on the host, the file can be seen at **/srv/diag/orders/heap.hprof**. Never pass a host path as a JVM argument when it does not exist in the container's mount namespace.
 
-**Tình huống B — df root còn 50 GiB, nhưng dump bị đầy.** JVM ghi file vào **/diagnostics**, trong khi **df -h /** báo 50 GiB free. Dữ liệu thêm cần xem?
+**Case B — Root df shows 50 GiB free, yet dump runs out of space.** The JVM writes to **/diagnostics**, while **df -h /** reports 50 GiB free. What additional data should you inspect?
 
-**Giải:** Kiểm tra **df -h /diagnostics**, **df -i /diagnostics**, quota của volume, writable layer, Kubernetes **ephemeral-storage/sizeLimit** nếu liên quan, tệp ghi đồng thời và repository JFR nếu dùng. **/** và **/diagnostics** có thể là hai filesystems khác nhau.
+**Solution:** Check **df -h /diagnostics**, **df -i /diagnostics**, volume quotas, writable layer, Kubernetes **ephemeral-storage/sizeLimit** if applicable, concurrent writers, and JFR repository if used. **/** and **/diagnostics** may be two separate filesystems.
 
-**Tình huống C — Bật JFR.start rồi không thấy file ngay.** Người vận hành dùng **duration=60s filename=/diagnostics/a.jfr** và kiểm tra sau 2 giây.
+**Case C — JFR.start succeeds, yet no file appears immediately.** The operator used **duration=60s filename=/diagnostics/a.jfr** and checked 2 seconds later.
 
-**Giải:** JFR.start cấu hình recording; với duration, file thường xuất khi recording kết thúc. Xem **JFR.check** và kiểm tra sau thời gian dự kiến. Nếu cần snapshot từ recording đang chạy, dùng **JFR.dump** với tên recording và filename riêng, nhưng nhớ recording vẫn tiếp tục.
+**Solution:** JFR.start configures the recording; with a duration, the file is typically written when the recording ends. Inspect **JFR.check** and check after the expected duration. If you need a snapshot from an active recording, use **JFR.dump** with the recording name and a distinct filename, remembering that the recording keeps running.
 
-**Tình huống D — Java chạy UID 10001, shell debug là root.** Root **test -w /diagnostics/heap** trả true; JVM vẫn lỗi **Permission denied**.
+**Case D — Java runs as UID 10001, debug shell is root.** Root running **test -w /diagnostics/heap** returns true; the JVM still fails with **Permission denied**.
 
-**Giải:** Quyền của root shell không chứng minh JVM có thể ghi. Phải kiểm tra quyền directory/mount theo **effective UID/GID và nhóm của JVM**, ACL/SELinux/securityContext; chọn volume hoặc quyền đúng theo quy trình vận hành.
+**Solution:** A root shell's permissions do not prove the JVM can write. Inspect directory/mount permissions under the **JVM's effective UID/GID and groups**, ACL/SELinux/securityContext; select a volume or permissions compliant with operational procedures.
 
-**Tình huống E — emptyDir memory còn "chỗ" nhưng JVM bị OOM.** Heap dump được ghi vào **emptyDir medium: Memory**.
+**Case E — Memory-backed emptyDir shows "space", yet the JVM hits OOM.** The heap dump was written to **emptyDir medium: Memory**.
 
-**Giải:** emptyDir memory là **tmpfs**, dùng RAM và bị tính vào memory budget; df block free không chứng minh đủ RAM. Nên chọn disk-backed volume đủ dung lượng và policy khi cần file lớn.
+**Solution:** Memory-backed emptyDir is **tmpfs**, consuming RAM and counting toward memory budgets; `df` free blocks do not prove sufficient RAM. Choose a disk-backed volume with adequate capacity and policy for large files.
 
-**Tình huống F — jcmd Thread.print tạo file ở host nhưng JFR.dump không có file ở host.** Cùng người dùng chạy lệnh từ host Linux.
+**Case F — jcmd Thread.print creates a file on the host, while JFR.dump leaves no file on the host.** The same user ran both from the Linux host.
 
-**Giải:** **Thread.print > file** có dấu chuyển hướng do shell xử lý **phía host**. **JFR.dump filename=file** yêu cầu JVM ghi **phía target**, nên file có thể nằm trong container/volume theo working directory hoặc absolute target path.
+**Solution:** **Thread.print > file** uses shell redirection processed **on the host side**. **JFR.dump filename=file** instructs the JVM to write **on the target side**, so the file may reside in the container/volume relative to the target's working directory or absolute target path.
 
-**Tình huống G — Tệp đã sao chép nhưng không mở được.** Lệnh JVM tạo file và quá trình copy bắt đầu trước khi recording thực sự kết thúc.
+**Case G — Copied file cannot be opened.** The JVM command created a file, and copying started before the recording actually finished.
 
-**Giải:** Xác minh trạng thái kết thúc và kích thước ổn định, sao chép lại từ file hoàn chỉnh, đối chiếu checksum/size và dùng công cụ đọc đúng định dạng. Không vội khởi động heap dump mới khi chỉ có lỗi copy.
+**Solution:** Confirm completion state and stable file size, re-copy from the finished file, verify checksum/size, and open with a format-compatible reader. Do not immediately trigger a new heap dump when only the copy failed.
 
-## 15. Những sai lầm cần tránh
+## 15. Mistakes to avoid
 
-1. **“Chạy jcmd ở thư mục nào thì heap dump nằm ở đó.”** Sai với file do JVM đích tạo.
-2. **“Đường dẫn tuyệt đối trên host cũng là tuyệt đối trong container.”** Sai nếu không được mount tương ứng.
-3. **“JFR.start trả thành công nghĩa là file .jfr đã xuất ngay.”** Còn phụ thuộc thời gian và cơ chế dừng/ghi.
-4. **“df -h / báo 100 GiB nên /diagnostics cũng đủ 100 GiB.”** Có thể khác filesystem.
-5. **“Root trong debug container ghi được thì JVM user ghi được.”** UID/GID và quyền mount khác nhau.
-6. **“Chỉ cần kiểm tra df trước lệnh.”** Còn quota, inode, read-only, tmpfs, storage pressure, tăng trưởng đồng thời.
-7. **“Heap dump chắc chắn có kích thước nhỏ hơn -Xmx.”** Không có bảo đảm chung như vậy với mọi nội dung/định dạng; dự toán phải kiểm chứng.
-8. **“Bật -gz=1 là sẽ đủ chỗ.”** Tỷ lệ nén thay đổi và xử lý nén vẫn có chi phí.
-9. **“Có file là đã có dump hợp lệ.”** Có thể incomplete/truncated hoặc đã copy trước khi ghi xong.
-10. **“Kubernetes emptyDir là nơi lưu qua mọi lần Pod restart/replacement.”** EmptyDir gắn vòng đời Pod, không phải storage bền vững.
-11. **“/tmp luôn là disk.”** Có thể là tmpfs hoặc writable layer nhỏ; cần kiểm tra.
-12. **“Không đọc thấy file bằng kubectl cp nghĩa là JVM không ghi file.”** Có thể container thiếu tar, sai container, sai mount hoặc lỗi copy.
-13. **“File nhạy cảm để trong volume chẩn đoán thì ai cũng có thể đọc.”** Phải giới hạn quyền truy cập và quản lý vòng đời.
-14. **“Dump thất bại nên cứ chạy lại.”** Nếu nguyên nhân là hết chỗ/thiếu quyền, lặp heap dump chỉ tăng rủi ro và tải.
+1. **"Whichever directory I run jcmd from is where the heap dump goes."** False for files created by the target JVM.
+2. **"An absolute path on the host is also absolute inside the container."** False unless mounted identically.
+3. **"JFR.start returning success means the .jfr file is already written."** Depends on duration and stop/write behavior.
+4. **"df -h / reports 100 GiB, so /diagnostics has 100 GiB too."** They can be different filesystems.
+5. **"If root in a debug container can write, the JVM user can write."** UID/GID and mount permissions differ.
+6. **"Checking df before the command is all you need."** Also consider quotas, inodes, read-only mounts, tmpfs, storage pressure, and concurrent growth.
+7. **"A heap dump is guaranteed to be smaller than -Xmx."** No universal guarantee exists across contents/formats; verify estimates carefully.
+8. **"Enabling -gz=1 guarantees enough space."** Compression ratios vary and compression adds CPU cost.
+9. **"Seeing a file means you have a valid dump."** It could be incomplete/truncated or copied mid-write.
+10. **"Kubernetes emptyDir persists across all Pod restarts/replacements."** EmptyDir is tied to Pod lifecycle, not durable storage.
+11. **"/tmp is always on disk."** It may be tmpfs or a small writable layer; verify first.
+12. **"Not finding the file with kubectl cp means the JVM did not write it."** The container may lack `tar`, or you checked the wrong container/mount or hit a copy error.
+13. **"Anyone can read sensitive files stored in a diagnostic volume."** Restrict access permissions and manage lifecycle.
+14. **"Dump failed, so just re-run it."** If the cause was out-of-space or permission denied, repeating a heap dump only increases risk and load.
 
-## Nguồn tham khảo kỹ thuật
+## Technical references
 
-- [JDK 21 — jcmd: JFR.start, JFR.dump, GC.heap_dump, impact và filename](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
-- [JDK 21 — java launcher: HeapDumpOnOutOfMemoryError và HeapDumpPath](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)
-- [Java SE 21 — FileStore.getUsableSpace(): số liệu khả dụng chỉ mang tính gợi ý](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileStore.html#getUsableSpace())
-- [GNU Coreutils — df: filesystem chứa đường dẫn và inode](https://www.gnu.org/software/coreutils/manual/html_node/df-invocation.html)
-- [Docker — Bind mounts và mối quan hệ host/container path](https://docs.docker.com/engine/storage/bind-mounts/)
+- [JDK 21 — jcmd: JFR.start, JFR.dump, GC.heap_dump, impact and filename](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
+- [JDK 21 — java launcher: HeapDumpOnOutOfMemoryError and HeapDumpPath](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)
+- [Java SE 21 — FileStore.getUsableSpace(): available metrics are only hints](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileStore.html#getUsableSpace())
+- [GNU Coreutils — df: filesystem containing a path and inodes](https://www.gnu.org/software/coreutils/manual/html_node/df-invocation.html)
+- [Docker — Bind mounts and host/container path relationship](https://docs.docker.com/engine/storage/bind-mounts/)
 - [Docker — docker cp](https://docs.docker.com/reference/cli/docker/container/cp/)
-- [Kubernetes — Local ephemeral storage, emptyDir và giới hạn/eviction](https://kubernetes.io/docs/concepts/storage/ephemeral-storage/)
-- [Kubernetes — Share volume với emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)
-- [Kubernetes — kubectl cp và điều kiện tar](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_cp/)
+- [Kubernetes — Local ephemeral storage, emptyDir, and limits/eviction](https://kubernetes.io/docs/concepts/storage/ephemeral-storage/)
+- [Kubernetes — Sharing volumes with emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)
+- [Kubernetes — kubectl cp and tar requirement](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_cp/)
 
-**Điều kiện để bắt đầu thu thập:** đã xác định **đúng JVM**, **đúng loại command**, **đường dẫn mà JVM thực sự có thể ghi**, **quyền của JVM**, **filesystem + quota + inode + dung lượng dự phòng**, cùng **cách xác minh và thu hồi file**. Sau lệnh, file phải được kiểm tra từ phía JVM rồi mới được coi là bằng chứng chẩn đoán có thể sử dụng.
+**Prerequisites before starting collection:** confirmed **target JVM**, **command type**, **path actually writable by the JVM**, **JVM permissions**, **filesystem + quota + inode + reserve space**, plus **how the file will be verified and retrieved**. After the command, the file must be verified from the JVM side before treating it as usable diagnostic evidence.

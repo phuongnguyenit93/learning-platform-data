@@ -1,124 +1,124 @@
-# Phân biệt ClassNotFoundException, NoClassDefFoundError và lỗi khởi tạo lớp
+# Distinguishing ClassNotFoundException, NoClassDefFoundError, and Class Initialization Errors
 
-Khi ứng dụng Java tải plugin, khám phá provider qua `ServiceLoader`, gọi reflection hoặc tạo `ModuleLayer` mới, ba tình huống sau thường bị gộp chung thành “thiếu class”:
+When a Java application loads plugins, discovers providers via `ServiceLoader`, invokes reflection, or creates a new `ModuleLayer`, the following three situations are often lumped together as "missing class":
 
-- **`ClassNotFoundException`:** code chủ động yêu cầu tìm/nạp một lớp theo tên, nhưng loader không tìm được định nghĩa phù hợp. Đây là **checked exception** của thao tác lookup; một lỗi phổ biến ở `Class.forName(...)` và `ClassLoader.loadClass(...)`.
-- **`NoClassDefFoundError`:** JVM cần định nghĩa một class khi tải, liên kết hoặc thực thi, nhưng định nghĩa đó **không khả dụng** (ví dụ dependency có khi compile nhưng biến mất lúc chạy). Đây là **`LinkageError`**, không phải một `Exception`. Nó còn có thể xuất hiện **sau khi quá trình khởi tạo class đã thất bại**, dù file `.class` vẫn còn nguyên.
-- **Lỗi khởi tạo lớp:** initializer của class thất bại khi JVM chạy phần khởi tạo static (`<clinit>`). Nếu nguyên nhân không phải `Error`, lần đầu thường thấy **`ExceptionInInitializerError`** bọc nguyên nhân; các lần sử dụng tiếp theo trong cùng loader thường thấy **`NoClassDefFoundError: Could not initialize class ...`**.
+- **`ClassNotFoundException`:** code explicitly requests looking up/loading a class by name, but the loader cannot find a matching definition. This is a **checked exception** for a lookup operation; a common error in `Class.forName(...)` and `ClassLoader.loadClass(...)`.
+- **`NoClassDefFoundError`:** the JVM needs a class definition during loading, linking, or execution, but that definition **is unavailable** (for example, a dependency was present at compile time but missing at runtime). This is a **`LinkageError`**, not an `Exception`. It can also appear **after class initialization has already failed**, even though the `.class` file is still intact.
+- **Class initialization error:** the class initializer fails when the JVM runs static initialization (`<clinit>`). If the cause is not an `Error`, the first attempt typically throws **`ExceptionInInitializerError`** wrapping the cause; subsequent uses within the same loader typically throw **`NoClassDefFoundError: Could not initialize class ...`**.
 
-**Điểm quyết định:** phải tách **lookup, loading/linking và initialization**, xem *toàn bộ cause chain* và nhận diện **class loader/module layer thực tế**. Không phải cứ thấy `NoClassDefFoundError` là phải thêm JAR; nếu lớp đã khởi tạo lỗi, thêm JAR không sửa được trạng thái erroneous của lớp đó trong loader hiện tại.
+**Decisive point:** you must separate **lookup, loading/linking, and initialization**, inspect the *entire cause chain*, and identify the **actual class loader/module layer**. Seeing `NoClassDefFoundError` does not always mean you should add a JAR; if the class has already failed initialization, adding a JAR will not fix that class's erroneous state in the current loader.
 
-Bài viết này đi từ cơ chế theo Java SE 17 đến một ví dụ có thể chạy và tái hiện chính xác cả ba nhánh, rồi xây quy trình chẩn đoán cho hệ thống plugin và runtime extensibility.
+This article moves from the underlying mechanics per Java SE 17 to a runnable example that accurately reproduces all three branches, and then builds a diagnostic workflow for plugin and runtime extensibility systems.
 
-## 1. Bức tranh vòng đời một lớp trong JVM
+## 1. The Big Picture of a Class Lifecycle in the JVM
 
-Cần phân biệt các bước theo Java Language Specification (JLS):
+It is essential to distinguish the steps according to the Java Language Specification (JLS):
 
 ```text
-Code yêu cầu một kiểu Java
+Code requests a Java type
         |
         v
-Loading: tìm/đọc bytes và tạo đối tượng Class
+Loading: find/read bytes and create the Class object
         |
         v
 Linking
-   - Verification: kiểm tra bytecode
-   - Preparation: tạo static fields và giá trị mặc định
-   - Resolution: liên kết symbolic references khi cần
+   - Verification: verify bytecode
+   - Preparation: create static fields and default values
+   - Resolution: link symbolic references when needed
         |
         v
 Initialization
-   - thực thi static field initializers và static blocks
-   - thực thi khởi tạo superclass/superinterfaces liên quan theo JLS
+   - execute static field initializers and static blocks
+   - execute initialization of related superclasses/superinterfaces per JLS
         |
         v
-Sử dụng class / gọi method / tạo instance
+Use class / invoke method / create instance
 ```
 
-Các bước này **không phải lúc nào cũng diễn ra đồng loạt theo một timeline đơn giản**: JVM có thể *lazy resolve* một số symbolic reference khi lần đầu cần, còn initialization chỉ kích hoạt ở những “active uses” nhất định. Vì thế stack trace có thể trỏ tới **dòng đang gọi method của plugin**, trong khi nguyên nhân là một dependency được resolve muộn hoặc một static initializer chạy vào đúng thời điểm đó.
+These steps **do not always happen all at once along a simple timeline**: the JVM may *lazily resolve* some symbolic references when first needed, while initialization is only triggered on certain "active uses". Thus, a stack trace may point to **the line calling a plugin method**, while the root cause is a lazily resolved dependency or a static initializer executing at that exact moment.
 
-### Các cột mốc đáng nhớ
+### Key Milestones
 
-**Loading** là việc tìm representation của class và tạo runtime class tương ứng, thông qua bootstrap loader hoặc class loader do ứng dụng dùng. Các loader không có nghĩa vụ thấy cùng classpath. Tên lớp cộng với **defining class loader** quyết định class identity.
+**Loading** is finding the representation of a class and creating its runtime `Class` object, via the bootstrap loader or an application-used class loader. Loaders are not required to see the same classpath. The class name plus the **defining class loader** determine class identity.
 
-**Linking** gồm verification, preparation và resolution. Việc resolution tìm một kiểu/method/field được nhắc tới trong bytecode có thể bị hoãn. Các lỗi như `NoClassDefFoundError`, `NoSuchMethodError`, `NoSuchFieldError`, `VerifyError` hoặc `UnsupportedClassVersionError` thuộc nhóm sự cố liên kết/định nghĩa nhưng **khác nguyên nhân** và không nên sửa bằng một cách giống nhau.
+**Linking** consists of verification, preparation, and resolution. Resolution—finding a type, method, or field referenced in bytecode—may be deferred. Errors such as `NoClassDefFoundError`, `NoSuchMethodError`, `NoSuchFieldError`, `VerifyError`, or `UnsupportedClassVersionError` belong to linking/definition failures but have **different causes** and should not be fixed the same way.
 
-**Initialization** là thực thi các initializer static. Nó có thể tạo object, đọc cấu hình, tìm dịch vụ hoặc gọi hệ thống bên ngoài. Nếu logic trong đó ném lỗi, class có thể bị đánh dấu **erroneous** trong loader đã định nghĩa nó.
+**Initialization** executes static initializers. It may allocate objects, read configuration, look up services, or call external systems. If logic inside it throws an error, the class may be marked **erroneous** in the loader that defined it.
 
-Tách ba giai đoạn giúp trả lời đúng: “JVM chưa tìm ra class, đang cố resolve một dependency, hay đã thấy class nhưng code khởi tạo bị lỗi?”
+Separating these three phases helps answer accurately: "Did the JVM fail to find the class, fail while resolving a dependency, or find the class only for its initialization code to throw?"
 
-## 2. So sánh ba loại lỗi cốt lõi
+## 2. Comparing the Three Core Error Types
 
-| Tiêu chí | `ClassNotFoundException` | `NoClassDefFoundError` | `ExceptionInInitializerError` |
+| Criterion | `ClassNotFoundException` | `NoClassDefFoundError` | `ExceptionInInitializerError` |
 | --- | --- | --- | --- |
-| Nhóm kiểu | `ReflectiveOperationException` → `Exception` (checked) | `LinkageError` → `Error` (unchecked) | `LinkageError` → `Error` (unchecked) |
-| Tình huống tiêu biểu | Yêu cầu lớp bằng tên, loader không thấy | Bytecode cần dependency đã thiếu tại runtime; hoặc class đã init thất bại | Lần đầu chạy static initializer ném một throwable **không phải `Error`** |
-| Vị trí thường gặp | `Class.forName`, `ClassLoader.loadClass` | Resolve class trong code đã compile; active use class erroneous | `static { ... }` hoặc static field initialization |
-| `catch (Exception)` bắt được? | Có | Không | Không |
-| Chỉ thêm JAR là luôn đủ? | Không: còn loader scope/module/version | Không: có thể là erroneous class hoặc mismatch khác | Không: phải sửa nguyên nhân bên trong initializer |
-| Cách đọc nguyên nhân | Requested binary name, loader lookup path | Missing binary name hoặc message `Could not initialize class`, cause chain | `getCause()` hoặc `getException()`, lỗi gốc ở initializer |
-| Khả năng thử lại | Có thể đổi loader/cấu hình, tùy lookup | Phụ thuộc loại lỗi, trạng thái class/loader | Lớp đã erroneous không được khởi tạo lại trong cùng defining loader |
+| Type hierarchy | `ReflectiveOperationException` → `Exception` (checked) | `LinkageError` → `Error` (unchecked) | `LinkageError` → `Error` (unchecked) |
+| Typical scenario | Class requested by name, loader cannot find it | Bytecode needs a dependency missing at runtime; or class already failed init | First execution of static initializer throws a throwable **that is not an `Error`** |
+| Common location | `Class.forName`, `ClassLoader.loadClass` | Resolving a class in compiled code; active use of an erroneous class | `static { ... }` or static field initialization |
+| Caught by `catch (Exception)`? | Yes | No | No |
+| Is adding a JAR always enough? | No: also loader scope/module/version | No: may be an erroneous class or other mismatch | No: must fix the root cause inside the initializer |
+| How to read the cause | Requested binary name, loader lookup path | Missing binary name or `Could not initialize class` message, cause chain | `getCause()` or `getException()`, original error in initializer |
+| Retryability | Can switch loader/configuration depending on lookup | Depends on error kind, class/loader state | An erroneous class cannot be re-initialized in the same defining loader |
 
-**Đừng coi đây là ba exception ngang hàng.** Hai loại cuối là subclass của `Error`, không thuộc `Exception`; code chỉ `catch (Exception e)` có thể bỏ lọt chúng. Trong ứng dụng production, giải pháp là **sửa deploy/loader/initializer**, không phải bọc `try/catch(Throwable)` quanh mọi request rồi tiếp tục dùng một class đã lỗi.
+**Do not treat these as three peer exceptions.** The latter two are subclasses of `Error`, not `Exception`; code that only does `catch (Exception e)` can let them slip past. In production applications, the fix is to **repair deployment/loader/initializer**, not to wrap every request in `try/catch(Throwable)` and keep using a broken class.
 
-### Quan hệ với lỗi khác
+### Relationship with Other Errors
 
-- `ClassCastException`: hai object/type không cast được, thường do hai loader định nghĩa cùng tên API class khác nhau; không phải “không tìm thấy”.
-- `NoSuchMethodException`: reflection lookup không tìm được method theo signature; khác với `NoSuchMethodError` do binary incompatibility ở runtime.
-- `NoSuchFieldError` và `NoSuchMethodError`: bytecode đã compile nhưng linked binary/API khác version; thường do classpath/dependency conflict.
-- `UnsupportedClassVersionError`: class file do Java version mới hơn hoặc định dạng không được runtime hỗ trợ; không phải thiếu class.
-- `VerifyError`: bytecode không vượt qua verification.
-- `ServiceConfigurationError`: phát sinh khi SPI provider cấu hình sai hoặc load/instantiate lỗi; **có thể bọc hoặc xuất phát từ** các lỗi loading/linking/init bên dưới.
+- `ClassCastException`: two objects/types cannot be cast, often because two loaders defined different copies of the same API class name; not "not found".
+- `NoSuchMethodException`: a reflection lookup failed to find a method by signature; distinct from `NoSuchMethodError` caused by runtime binary incompatibility.
+- `NoSuchFieldError` and `NoSuchMethodError`: bytecode compiled cleanly, but the linked binary/API has a different version; usually caused by classpath/dependency conflicts.
+- `UnsupportedClassVersionError`: the class file was compiled for a newer Java version or an unsupported format for the runtime; not a missing class.
+- `VerifyError`: bytecode failed verification.
+- `ServiceConfigurationError`: thrown when an SPI provider is misconfigured or fails to load/instantiate; **may wrap or originate from** underlying loading/linking/init errors.
 
-Nếu stack trace có một exception bên ngoài từ framework, phải **đi tới root cause** thay vì dừng ở tên wrapper.
+If a stack trace shows an outer framework exception, **follow it down to the root cause** instead of stopping at the wrapper's name.
 
-## 3. ClassNotFoundException: lookup theo tên không thành công
+## 3. ClassNotFoundException: Name-Based Lookup Failed
 
-`ClassNotFoundException` thường xảy ra khi một API được yêu cầu **tìm class bằng chuỗi binary name**, nhưng class loader không tìm thấy định nghĩa:
+`ClassNotFoundException` typically occurs when an API is asked to **find a class by its binary name string**, and the class loader cannot locate a definition:
 
 ```java
 ClassLoader loader = Thread.currentThread().getContextClassLoader();
 Class<?> type = loader.loadClass("com.acme.plugin.Handler");
 ```
 
-Đây là **snippet**, cần context loader không null và class tương ứng có sẵn. `loadClass` có thể ném `ClassNotFoundException`. Nó thông thường **không khởi tạo class**; nếu cần khởi tạo bằng reflection, hãy xem `Class.forName` ở phần 6.
+This is a **snippet** requiring a non-null context loader and the corresponding class to be available. `loadClass` can throw `ClassNotFoundException`. It normally **does not initialize the class**; if initialization via reflection is needed, see `Class.forName` in section 6.
 
-Ví dụ:
+Example:
 
 ```java
 Class.forName("com.acme.plugin.MissingHandler");
 ```
 
-API `Class.forName(String)` ném `ClassNotFoundException` nếu không tìm thấy binary name được yêu cầu bằng loader của caller phù hợp. Khi truyền tham số rõ ràng:
+The `Class.forName(String)` API throws `ClassNotFoundException` if the requested binary name cannot be found using the appropriate caller's loader. When passing explicit arguments:
 
 ```java
 Class.forName("com.acme.plugin.Handler", true, pluginLoader);
 ```
 
-`pluginLoader` phải tồn tại; `initialize=true` còn yêu cầu initialization sau lookup. Vì vậy lời gọi này **có thể ném cả lỗi linking/initialization**, không chỉ `ClassNotFoundException`.
+`pluginLoader` must exist; `initialize=true` also requests initialization after lookup. Therefore this call **can throw linking/initialization errors as well**, not only `ClassNotFoundException`.
 
-### Nguyên nhân phổ biến
+### Common Causes
 
-1. **Sai tên:** dùng đường dẫn `com/acme/Handler.class` hoặc tên package cũ thay cho binary name `com.acme.Handler`.
-2. **Không đóng gói class:** file `.class` không vào JAR, artifact deployment thiếu hoặc khác build profile.
-3. **Đúng JAR nhưng sai loader:** system loader, thread context class loader (TCCL), loader plugin hoặc loader của một `ModuleLayer` không có cùng khả năng nhìn thấy.
-4. **Modularity:** named module chưa được resolve/define trong layer đang tra, loader/module path không đúng hoặc layer không chứa implementation.
-5. **Dynamic plugin:** candidate loader chưa được tạo hoặc đã đóng; registry cố tìm class từ generation khác.
-6. **Shading/relocation:** build đã đổi package name nhưng metadata reflection/SPI vẫn chứa tên cũ.
+1. **Wrong name:** using a path like `com/acme/Handler.class` or an old package name instead of the binary name `com.acme.Handler`.
+2. **Class not packaged:** the `.class` file was not included in the JAR, or the deployment artifact is missing/built with a different profile.
+3. **Right JAR, wrong loader:** the system loader, thread context class loader (TCCL), plugin loader, or a `ModuleLayer`'s loader do not share the same visibility.
+4. **Modularity:** a named module was not resolved/defined in the queried layer, the loader/module path is wrong, or the layer does not contain the implementation.
+5. **Dynamic plugins:** the candidate loader was not yet created or has already been closed; the registry attempts to look up a class from another generation.
+6. **Shading/relocation:** the build renamed packages, but reflection/SPI metadata still holds the old name.
 
-**Không chỉ nhìn classpath in ra ở shell.** Trong hệ thống plugin, classpath ứng dụng có thể đúng nhưng `pluginLoader`/TCCL vẫn không tìm thấy class. Hãy log **requested binary name + loại/identity của loader + artifact/module version dự kiến**.
+**Do not look only at the classpath printed in the shell.** In plugin systems, the application classpath may be correct while `pluginLoader`/TCCL still cannot see the class. Log **the requested binary name + loader type/identity + expected artifact/module version**.
 
-### Checked exception, không đồng nghĩa thiếu dependency tĩnh
+### Checked Exception Does Not Mean Static Dependencies Are Absent
 
-`ClassNotFoundException` hợp lý khi code **chủ động yêu cầu** một tên mà compiler có thể chưa biết. Một class được compile sẵn tham chiếu trực tiếp `Helper`, rồi lúc chạy JVM không resolve được `Helper`, thường dẫn tới `NoClassDefFoundError` ở điểm tham chiếu — dù lỗi nền tảng vẫn là “class bị thiếu”.
+`ClassNotFoundException` makes sense when code **explicitly requests** a name the compiler may not know statically. When precompiled code directly references `Helper`, and at runtime the JVM cannot resolve `Helper`, it normally results in `NoClassDefFoundError` at the reference point—even though the underlying issue is still a "missing class".
 
-Do đó, hai lỗi có thể cùng bắt nguồn từ việc JAR vắng mặt, nhưng **đường đi của lỗi** khác nhau.
+Thus, both errors can stem from an absent JAR, but **the error path** differs.
 
-## 4. NoClassDefFoundError: thiếu định nghĩa khi JVM đang cần
+## 4. NoClassDefFoundError: Definition Missing When the JVM Needs It
 
-`NoClassDefFoundError` không có nghĩa “có class nhưng compiler không thấy”. Trong tình huống điển hình, **compile thành công**, nhưng dependency dùng bởi bytecode không có ở runtime.
+`NoClassDefFoundError` does not mean "the class exists but the compiler could not see it". In the typical case, **compilation succeeded**, yet a dependency used by the bytecode is absent at runtime.
 
-Ví dụ:
+Example:
 
 ```java
 package demo.dependent;
@@ -128,36 +128,36 @@ public final class Broken {
 }
 ```
 
-`Broken.java` compile thành công khi `Helper.class` tồn tại. Nếu build hoặc deploy chỉ chứa `Broken.class` mà thiếu `Helper.class`, truy cập `Broken.VALUE` hoặc khởi tạo `Broken` sẽ khiến JVM cần `Helper` và thất bại với `NoClassDefFoundError`.
+`Broken.java` compiles cleanly when `Helper.class` is present. If the build or deployment contains `Broken.class` without `Helper.class`, accessing `Broken.VALUE` or initializing `Broken` causes the JVM to require `Helper` and fail with `NoClassDefFoundError`.
 
-### Đọc message
+### Reading the Message
 
-Ví dụ từ Java 17:
+Example from Java 17:
 
 ```text
 java.lang.NoClassDefFoundError: demo/dependent/Helper
 ```
 
-Tên trong message có thể dùng **dấu `/` nội bộ JVM** thay vì `.` trong binary name. Kiểm tra JAR/runtime environment xem `demo/dependent/Helper.class` thực sự có ở nguồn loader sử dụng không.
+The name in the message may use **JVM internal `/` separators** rather than `.` in a binary name. Check the JAR/runtime environment to verify whether `demo/dependent/Helper.class` actually exists in the source used by the loader.
 
-Với lỗi thiếu dependency, cause chain thường có thể cho biết loader đã thử và ném `ClassNotFoundException`. Điều này **không biến outer error thành checked exception**. Hãy báo cáo cả outer `NoClassDefFoundError` lẫn nguyên nhân sâu nhất.
+For missing-dependency failures, the cause chain often shows the loader that tried and threw `ClassNotFoundException`. This **does not turn the outer error into a checked exception**. Report both the outer `NoClassDefFoundError` and the deepest cause.
 
-### Vì sao thiếu file ở runtime dù compile thành công?
+### Why Is a File Missing at Runtime Despite Compiling Cleanly?
 
-- Dependency có scope `provided`/`compileOnly` nhưng không được cung cấp ở runtime.
-- Fat JAR/shading bỏ quên class, package bị relocate không đồng bộ, hoặc duplicate versions ghi đè.
-- Container/application server nạp dependency ở parent loader khác; plugin loader không thấy hoặc class identity không khớp.
-- Optional dependency thực ra đã được gọi vào một code path; chỉ khi chạy đường hiếm mới resolve class ấy.
-- Build có class trên compile classpath nhưng runtime classpath/module path khác.
-- Loader/layer của thế hệ plugin cũ đã bị thu hồi hoặc ứng dụng tiếp tục dùng một object/class không thuộc generation mới.
+- A dependency has `provided`/`compileOnly` scope but is not supplied at runtime.
+- Fat JAR/shading dropped a class, packages were relocated inconsistently, or duplicate versions overwrote one another.
+- A container/application server loads the dependency in a different parent loader; the plugin loader cannot see it or class identities mismatch.
+- An optional dependency is actually invoked along a code path; the class is only resolved when that rare path executes.
+- The build had the class on the compile classpath, while the runtime classpath/module path differs.
+- The loader/layer of an old plugin generation was reclaimed, or the application keeps using an object/class not belonging to the new generation.
 
-**Lưu ý:** không phải mọi `NoClassDefFoundError` là do file vật lý thiếu. Nó còn chỉ ra tình trạng “class không còn khởi tạo được” sau một initialization failure; phân biệt bằng message/stack trace và lần lỗi đầu tiên.
+**Note:** not every `NoClassDefFoundError` is caused by a physically missing file. It also signals "the class can no longer be initialized" after a prior initialization failure; distinguish them by message/stack trace and the first occurrence.
 
-## 5. Lỗi khởi tạo lớp: ExceptionInInitializerError và class erroneous
+## 5. Class Initialization Errors: ExceptionInInitializerError and Erroneous Classes
 
-Java chạy **class initialization** khi xảy ra các active uses theo JLS: tạo instance bằng `new`, gọi static method, truy cập/ghi static field không thuộc trường hợp compile-time constant, hoặc yêu cầu initialization bằng `Class.forName(..., true, loader)`. Việc đọc `static final int X = 1` như một constant variable có thể được inline và **không** gây initialization của class chứa nó.
+Java runs **class initialization** upon JLS active uses: creating an instance with `new`, calling a static method, reading/writing a static field that is not a compile-time constant, or requesting initialization via `Class.forName(..., true, loader)`. Reading `static final int X = 1` as a constant variable may be inlined and **does not** trigger initialization of the declaring class.
 
-Ví dụ:
+Example:
 
 ```java
 package demo.init;
@@ -173,62 +173,62 @@ public final class Failing {
 }
 ```
 
-Class này **có mặt**, bytecode hợp lệ, nhưng `setup()` ném `IllegalStateException` khi chạy `<clinit>`.
+This class **is present** and its bytecode is valid, yet `setup()` throws `IllegalStateException` when `<clinit>` runs.
 
-### Lần đầu: ExceptionInInitializerError
+### First Time: ExceptionInInitializerError
 
-Khi initializer kết thúc đột ngột vì một throwable **không phải `Error`**, JVM bọc nó vào `ExceptionInInitializerError`. Với ví dụ trên:
+When an initializer completes abruptly due to a throwable **other than an `Error`**, the JVM wraps it in `ExceptionInInitializerError`. For the example above:
 
 ```text
 java.lang.ExceptionInInitializerError
 Caused by: java.lang.IllegalStateException: bad config
 ```
 
-**Chẩn đoán đúng là dòng `IllegalStateException: bad config` và cách code/config được nạp trong `setup()`**, không phải tìm một JAR tên “ExceptionInInitializerError”.
+**The true diagnosis is the `IllegalStateException: bad config` line and how code/config is loaded in `setup()`**, not hunting for a JAR named "ExceptionInInitializerError".
 
-Nếu initializer **ném một `Error`**, JVM có thể ném chính `Error` ấy trực tiếp thay vì bọc `ExceptionInInitializerError`. Vì thế **không** khẳng định mọi lỗi static initializer đều bắt đầu bằng `ExceptionInInitializerError`. Dù theo nhánh nào, việc initialization của class thất bại vẫn có thể khiến class bị đánh dấu erroneous.
+If an initializer **throws an `Error`**, the JVM may throw that `Error` directly instead of wrapping it in `ExceptionInInitializerError`. Therefore **do not** claim that every static initializer failure begins with `ExceptionInInitializerError`. Either way, a failed class initialization can still cause the class to be marked erroneous.
 
-### Lần tiếp theo: NoClassDefFoundError dù class file vẫn tồn tại
+### Subsequent Times: NoClassDefFoundError Even Though the Class File Exists
 
-Trong cùng defining class loader, JVM không chỉ chạy lại initializer của class đã đánh dấu lỗi. Thay vào đó lần active use tiếp theo có thể ném:
+Within the same defining class loader, the JVM does not simply re-run the initializer of a class marked erroneous. Instead, the next active use can throw:
 
 ```text
 java.lang.NoClassDefFoundError: Could not initialize class demo.init.Failing
 ```
 
-Đây là lỗi **trạng thái initialization**, không phải bằng chứng `Failing.class` biến mất. Nếu chỉ xem log của request thứ hai mà bỏ qua request thứ nhất, đội vận hành rất dễ “thêm lại JAR” nhưng không sửa được gì.
+This is an **initialization state** error, not evidence that `Failing.class` vanished. If operations teams only inspect the second request's log and overlook the first request, they often "re-add the JAR" without fixing anything.
 
-Một quy trình xác minh tốt:
+A sound verification procedure:
 
-1. Tìm **stack trace đầu tiên** xuất hiện trước thông báo `Could not initialize class`.
-2. Xem cause của `ExceptionInInitializerError` hoặc direct `Error` để tìm lỗi gốc.
-3. Kiểm tra static field initializers, static blocks, initialization của superclass/superinterfaces theo JLS, configuration, environment và dependency phát sinh trong `<clinit>`.
-4. Sửa code/config; tạo **new class loader / layer** thích hợp hoặc khởi động process lại khi cần. Đừng kỳ vọng thay file config/JAR trên đĩa khiến class erroneous tự chuyển thành initialized.
+1. Find **the first stack trace** that appeared before the `Could not initialize class` messages.
+2. Inspect the cause of `ExceptionInInitializerError` or the direct `Error` to locate the root fault.
+3. Inspect static field initializers, static blocks, superclass/superinterface initialization per JLS, configuration, environment, and dependencies invoked inside `<clinit>`.
+4. Fix the code/config; create an appropriate **new class loader / layer** or restart the process when needed. Do not expect replacing a config file or JAR on disk to turn an erroneous class into an initialized one.
 
-### Class loading không luôn kích hoạt initialization
+### Class Loading Does Not Always Trigger Initialization
 
-Hai API có khác biệt quan trọng:
+There is an important difference between two APIs:
 
 ```java
 Class<?> loaded = Class.forName(
         "demo.init.Failing", false,
         Thread.currentThread().getContextClassLoader());
-// initialize=false: không chủ động chạy static initializer.
+// initialize=false: does not actively run static initializer.
 ```
 
-`ClassLoader.loadClass(name)` thông thường tải class **mà không initialize** nó. Ngược lại, `Class.forName(name)` (overload một tham số) yêu cầu initialization. Bởi vậy test “`loadClass` chạy được” **không đủ** để kết luận plugin đã sẵn sàng; readiness check cần kiểm tra hợp đồng chạy thật và quản lý side effects.
+`ClassLoader.loadClass(name)` normally loads a class **without initializing** it. Conversely, `Class.forName(name)` (the single-argument overload) requests initialization. Therefore, a test showing "`loadClass` succeeded" is **not enough** to conclude a plugin is ready; readiness checks must exercise the real runtime contract and manage side effects.
 
-## 6. Ví dụ Java 17 đầy đủ: tái hiện 3 lỗi và lần dùng sau của class hỏng
+## 6. Complete Java 17 Example: Reproducing All 3 Errors and Reuse of a Broken Class
 
-Ví dụ xây ba nhóm source trong một project nhỏ:
+The example builds three source groups in a small project:
 
-- `demo.missing.Ghost` **không được tạo**, để lookup bằng tên gây `ClassNotFoundException`.
-- `demo.dependent.Broken` compile với `Helper`, nhưng ta chủ động xóa **chỉ bytecode `Helper.class` trong thư mục build thử nghiệm** trước khi chạy, để tái hiện `NoClassDefFoundError` do runtime dependency thiếu.
-- `demo.init.Failing` có static initializer cố tình ném exception; `Class.forName(..., false, loader)` chỉ load, còn `true` làm initializer chạy và thất bại.
+- `demo.missing.Ghost` **is never created**, so looking it up by name causes `ClassNotFoundException`.
+- `demo.dependent.Broken` is compiled with `Helper`, but we deliberately delete **only the `Helper.class` bytecode in the test build directory** before running, to reproduce a missing-runtime-dependency `NoClassDefFoundError`.
+- `demo.init.Failing` has a static initializer that intentionally throws an exception; `Class.forName(..., false, loader)` only loads it, whereas `true` triggers the initializer and fails.
 
-**Cảnh báo:** chỉ xóa file build `out/demo/dependent/Helper.class` trong thư mục demo riêng; không xóa file nguồn hoặc file trong dự án thật.
+**Warning:** delete only the build file `out/demo/dependent/Helper.class` in the dedicated demo folder; do not delete source files or files in a real project.
 
-### 6.1. Cấu trúc source
+### 6.1. Source Structure
 
 ```text
 class-error-demo/
@@ -240,10 +240,10 @@ class-error-demo/
     └── init/
         └── Failing.java
 
-out/ (do javac sinh ra, riêng cho demo)
+out/ (generated by javac, dedicated to this demo)
 ```
 
-### 6.2. Code của từng file
+### 6.2. Code for Each File
 
 **`demo/dependent/Helper.java`**
 
@@ -267,7 +267,7 @@ public final class Broken {
 }
 ```
 
-`VALUE` không phải compile-time constant vì giá trị lấy từ lời gọi method. Khi initialize `Broken`, JVM phải resolve/call `Helper.message()`; nếu `Helper.class` không còn, lỗi xuất hiện lúc runtime.
+`VALUE` is not a compile-time constant because its value comes from a method call. When initializing `Broken`, the JVM must resolve/call `Helper.message()`; if `Helper.class` is gone, the error surfaces at runtime.
 
 **`demo/init/Failing.java`**
 
@@ -285,7 +285,7 @@ public final class Failing {
 }
 ```
 
-`setup()` luôn ném exception từ static initialization. Việc gọi một method riêng cũng tránh quy tắc của compiler rằng một static initializer không được **hoàn thành đột ngột ở mọi đường đi mà compiler nhận biết trực tiếp**.
+`setup()` always throws an exception from static initialization. Calling a separate method also avoids the compiler rule that a static initializer must not **complete abruptly on all paths directly visible to the compiler**.
 
 **`ErrorTaxonomyDemo.java`**
 
@@ -329,11 +329,11 @@ public final class ErrorTaxonomyDemo {
 }
 ```
 
-Các `catch` riêng ở đây nhằm **phân loại kết quả có chủ đích trong một chương trình minh họa**; đó không phải policy “bắt mọi `Error` và tiếp tục chạy” cho production. Ở production cần log theo boundary thích hợp và sửa lỗi gốc.
+The separate `catch` blocks here are meant to **intentionally classify outcomes in an illustrative program**; this is not a "catch every `Error` and keep running" policy for production. In production, log at an appropriate boundary and fix the root fault.
 
-### 6.3. Biên dịch và tạo lỗi deployment có kiểm soát
+### 6.3. Compiling and Creating a Controlled Deployment Failure
 
-Chạy bằng **JDK 17 trở lên** trong thư mục `class-error-demo`:
+Run with **JDK 17 or newer** inside the `class-error-demo` directory:
 
 ```bash
 mkdir -p out
@@ -343,13 +343,13 @@ javac --release 17 -d out \
   demo/dependent/Broken.java \
   demo/init/Failing.java
 
-# Chỉ xóa dependency trong build output của demo:
+# Delete only the dependency in the demo's build output:
 rm out/demo/dependent/Helper.class
 
 java -cp out ErrorTaxonomyDemo
 ```
 
-Nếu dùng Windows PowerShell, có thể chạy từng lệnh tương ứng:
+If using Windows PowerShell, you can run the corresponding commands:
 
 ```powershell
 New-Item -ItemType Directory -Force out | Out-Null
@@ -358,7 +358,7 @@ Remove-Item -LiteralPath "out/demo/dependent/Helper.class" -Force
 java -cp out ErrorTaxonomyDemo
 ```
 
-**Stdout đã kiểm chứng với `javac --release 17` và `java` trên Java 17:**
+**Stdout verified with `javac --release 17` and `java` on Java 17:**
 
 ```text
 lookup=ClassNotFoundException
@@ -370,21 +370,21 @@ rootCause=IllegalStateException:bad config
 retryInit=NoClassDefFoundError
 ```
 
-### 6.4. Diễn giải từng dòng
+### 6.4. Line-by-Line Interpretation
 
-1. **`lookup=ClassNotFoundException`:** `Class.forName` chủ động yêu cầu `demo.missing.Ghost` nhưng chưa hề có class definition tương ứng.
-2. **`missingDependency=NoClassDefFoundError`:** `Broken.class` vẫn tồn tại; khi initialize, JVM cần `Helper.class`, nhưng file đó đã bị xóa khỏi runtime output.
-3. **`missingName=demo/dependent/Helper`:** tên dependency bị thiếu, **không phải `Broken`**, được thấy trong message ở môi trường thử nghiệm.
-4. **`loadedOnly=Failing`:** `Class.forName(..., false, loader)` thu được `Class<?>` mà chưa chạy static initializer; tên class được hiển thị bình thường.
-5. **`firstInit=ExceptionInInitializerError`:** initializer mới chạy khi `initialize=true` và ném `IllegalStateException`.
-6. **`rootCause=IllegalStateException:bad config`:** cần sửa config/logic trong `setup()`, không phải thêm JAR cho `Failing`.
-7. **`retryInit=NoClassDefFoundError`:** class `Failing` vẫn có file, nhưng trạng thái initialization đã failed trong cùng defining loader.
+1. **`lookup=ClassNotFoundException`:** `Class.forName` explicitly requested `demo.missing.Ghost`, which has no class definition at all.
+2. **`missingDependency=NoClassDefFoundError`:** `Broken.class` still exists; during initialization, the JVM needed `Helper.class`, which was removed from the runtime output.
+3. **`missingName=demo/dependent/Helper`:** the missing dependency's name, **not `Broken`**, appears in the message in the test environment.
+4. **`loadedOnly=Failing`:** `Class.forName(..., false, loader)` returned `Class<?>` without running the static initializer; the class name prints normally.
+5. **`firstInit=ExceptionInInitializerError`:** the initializer ran only when `initialize=true` and threw `IllegalStateException`.
+6. **`rootCause=IllegalStateException:bad config`:** you need to fix the config/logic in `setup()`, not add a JAR for `Failing`.
+7. **`retryInit=NoClassDefFoundError`:** `Failing`'s class file still exists, but its initialization state is failed in the same defining loader.
 
-Nếu sau khi biên dịch bỏ qua lệnh xóa `Helper.class`, nhánh missing dependency **không** xảy ra và output của demo khác. Điều đó cho thấy đây là lỗi runtime packaging/visibility, không phải lỗi compile.
+If you skip deleting `Helper.class` after compiling, the missing-dependency branch **does not** occur and the demo's output changes. That demonstrates this is a runtime packaging/visibility issue, not a compile error.
 
-## 7. Cách tìm root cause trong stack trace
+## 7. How to Find the Root Cause in a Stack Trace
 
-Một stack trace có thể nhiều lớp lỗi:
+A stack trace can have multiple error layers:
 
 ```text
 java.lang.NoClassDefFoundError: demo/dependent/Helper
@@ -394,13 +394,13 @@ Caused by: java.lang.ClassNotFoundException: demo.dependent.Helper
     at ...ClassLoader...
 ```
 
-Đây là **hình minh họa** theo mẫu thường gặp, không phải stdout cố định của `ErrorTaxonomyDemo`. Đọc như sau:
+This is an **illustrative diagram** following a common pattern, not the exact stdout of `ErrorTaxonomyDemo`. Read it as follows:
 
-- **Outer error**: JVM không resolve được một class mà bytecode cần.
-- **`Broken.<clinit>`**: lỗi xuất hiện trong code khởi tạo static của `Broken` (dòng này không nói Helper đã khởi tạo lỗi; đây là đường call gây yêu cầu resolution).
-- **Cause `ClassNotFoundException`**: một lookup do loader thực hiện đã thất bại. Vẫn phải điều tra *loader nào* thực hiện lookup và phạm vi nó nhìn thấy.
+- **Outer error**: the JVM could not resolve a class required by bytecode.
+- **`Broken.<clinit>`**: the error surfaced inside `Broken`'s static initialization code (this line does not mean Helper failed to initialize; it is the call site that triggered resolution).
+- **Cause `ClassNotFoundException`**: a loader lookup failed. You still need to investigate *which loader* performed the lookup and what scope it can see.
 
-Đối với class initialization:
+For class initialization:
 
 ```text
 java.lang.ExceptionInInitializerError
@@ -410,23 +410,23 @@ Caused by: java.lang.IllegalStateException: bad config
     at demo.init.Failing.<clinit>(Failing.java:...)
 ```
 
-Nếu chỉ ghi outer `ExceptionInInitializerError` mà không giữ nguyên cause, bạn sẽ mất lỗi config thực sự. Sau vài request, log chỉ còn `NoClassDefFoundError: Could not initialize class demo.init.Failing`; cần tìm **lần thất bại đầu tiên**.
+If you log only the outer `ExceptionInInitializerError` without preserving its cause, you lose the real configuration error. After a few requests, logs will only show `NoClassDefFoundError: Could not initialize class demo.init.Failing`; you must locate **the first failure**.
 
-### Checklist đọc lỗi theo thứ tự
+### Step-by-Step Error Reading Checklist
 
-1. **Tên ngoại lệ ngoài cùng:** `ClassNotFoundException`, `NoClassDefFoundError`, `ExceptionInInitializerError` hay wrapper từ framework?
-2. **Message có gì?** `com/foo/Bar` gợi ý dependency không có; `Could not initialize class` gợi ý class erroneous.
-3. **Root cause là gì?** `ClassNotFoundException` ở loader, `IllegalStateException` từ config, `NullPointerException` trong initializer, hay lỗi incompatibility?
-4. **Điểm đầu tiên trong mã của mình:** `<clinit>`, `Class.forName`, `ServiceLoader`, API plugin registry hay code nghiệp vụ?
-5. **Class loader / module layer nào?** Đối chiếu identity, parent delegation, TCCL, tên module và phiên bản artifact.
-6. **Lần lỗi đầu tiên diễn ra khi nào?** Lỗi hiện tại có thể chỉ là hệ quả của initialization thất bại từ trước.
-7. **Có tái hiện trên đúng artifact sản xuất không?** IDE và unit-test classpath có thể khác bản deploy thật.
+1. **Outermost exception name:** `ClassNotFoundException`, `NoClassDefFoundError`, `ExceptionInInitializerError`, or a framework wrapper?
+2. **What is the message?** `com/foo/Bar` suggests a missing dependency; `Could not initialize class` suggests an erroneous class.
+3. **What is the root cause?** `ClassNotFoundException` in a loader, `IllegalStateException` from config, `NullPointerException` in an initializer, or an incompatibility error?
+4. **First frame in your own code:** `<clinit>`, `Class.forName`, `ServiceLoader`, plugin registry API, or business logic?
+5. **Which class loader / module layer?** Cross-check identity, parent delegation, TCCL, module name, and artifact version.
+6. **When did the first failure occur?** The current error may merely be a consequence of an earlier failed initialization.
+7. **Does it reproduce on the exact production artifact?** IDE and unit-test classpaths can differ from the deployed artifact.
 
-Đừng bắt `Throwable` để “che” những lỗi này trong toàn ứng dụng. Ở boundary khởi tạo plugin, có thể cô lập candidate lỗi, ghi đầy đủ stack trace và giữ active generation đang tốt. Nếu lỗi đã xảy ra trên một class của generation đang hoạt động, phải đánh giá tình trạng instance/module loader và áp dụng chính sách restart/replace hợp lệ.
+Do not catch `Throwable` to "mask" these errors application-wide. At the plugin initialization boundary, you can isolate a failing candidate, log the full stack trace, and keep a healthy active generation running. If an error occurs on a class in the active generation, assess the instance/module loader state and apply a proper restart/replace policy.
 
-## 8. Vấn đề class loader: đúng JAR vẫn có thể sai phạm vi nhìn thấy
+## 8. Class Loader Issues: The Right JAR Can Still Have the Wrong Visibility Scope
 
-Trong Java plugin architecture, có nhiều đường tra cứu:
+In a Java plugin architecture, there are multiple lookup paths:
 
 ```java
 ClassLoader defining = PluginEntry.class.getClassLoader();
@@ -434,136 +434,136 @@ ClassLoader context = Thread.currentThread().getContextClassLoader();
 ClassLoader system = ClassLoader.getSystemClassLoader();
 ```
 
-Đây là **snippet**, `PluginEntry` cần tồn tại và được load. Ba biến không bắt buộc cùng một loader. `context` thậm chí có thể `null`, và trong hệ thống nhiều thread TCCL có thể khác nhau theo request.
+This is a **snippet**; `PluginEntry` must exist and be loaded. These three variables are not guaranteed to be the same loader. `context` can even be `null`, and in multi-threaded systems TCCL can vary per request.
 
-### Class identity theo tên + defining loader
+### Class Identity by Name + Defining Loader
 
-`com.acme.api.Plugin` do loader P định nghĩa **không phải** cùng runtime type với `com.acme.api.Plugin` do loader C định nghĩa. Khi host kỳ vọng API type từ P nhưng plugin nạp bản riêng từ C, có thể xuất hiện `ClassCastException` hoặc `LinkageError` khác, dù class files đều tồn tại. Cách giải quyết thông thường:
+`com.acme.api.Plugin` defined by loader P is **not** the same runtime type as `com.acme.api.Plugin` defined by loader C. When the host expects the API type from P but the plugin loads its own copy from C, `ClassCastException` or another `LinkageError` can occur even though both class files exist. The standard solution:
 
-- Host/shared parent loader **sở hữu service interface và contract API**.
-- Child plugin loader chỉ sở hữu implementation và dependencies cần cách ly.
-- Candidate generation mới dùng loader/layer riêng khi cần class definition mới.
-- Registry theo dõi generation, tránh truyền Class/instance V1 sang V2 như thể chúng có cùng identity.
+- The host/shared parent loader **owns the service interfaces and API contracts**.
+- Child plugin loaders only own implementations and dependencies requiring isolation.
+- A new candidate generation uses its own loader/layer when new class definitions are needed.
+- The registry tracks generations, avoiding passing V1 classes/instances to V2 as if they shared identity.
 
-Đừng “giải” mọi lỗi bằng cách đưa toàn bộ JAR vào system classpath. Cách này có thể che vấn đề classloader và tăng nguy cơ xung đột version.
+Do not "solve" every error by dumping all JARs onto the system classpath. That hides classloader issues and increases the risk of version conflicts.
 
-### Parent delegation và TCCL
+### Parent Delegation and TCCL
 
-Class loader mặc định thường **parent-first** khi tìm class. Điều này có thể khiến plugin mong đợi API/dependency V2 nhưng thực tế nhận V1 từ parent. TCCL được framework sử dụng trong một số lookup, nhất là discovery/ServiceLoader; nếu context không đúng, provider có thể không được tìm ra.
+Default class loaders are normally **parent-first** when looking up classes. This can cause a plugin expecting API/dependency V2 to actually receive V1 from the parent. Frameworks use TCCL in certain lookups, especially discovery/`ServiceLoader`; if context is wrong, providers may not be found.
 
-Cần so sánh:
+Compare:
 
-- `getClass().getClassLoader()` đối với object/class liên quan;
-- `Thread.currentThread().getContextClassLoader()` tại điểm discovery;
-- loader được truyền tường minh cho `Class.forName(name, true, loader)`;
-- `ModuleLayer.findLoader(moduleName)` nếu dùng JPMS;
-- loader parent chain và danh sách JAR/module mà loader có thể tìm.
+- `getClass().getClassLoader()` for the relevant object/class;
+- `Thread.currentThread().getContextClassLoader()` at the discovery point;
+- the loader passed explicitly to `Class.forName(name, true, loader)`;
+- `ModuleLayer.findLoader(moduleName)` if using JPMS;
+- the loader parent chain and the list of JARs/modules visible to that loader.
 
-**Không mặc định system loader có tất cả dependencies** trong app server hoặc modular runtime. Nếu `ClassLoader.getSystemClassLoader()` không thấy một class thì chưa kết luận plugin loader cũng không thấy.
+**Do not assume the system loader sees all dependencies** in an app server or modular runtime. If `ClassLoader.getSystemClassLoader()` cannot see a class, that does not mean the plugin loader cannot see it either.
 
-## 9. Liên hệ JPMS, ModuleLayer và ServiceLoader
+## 9. Relationship to JPMS, ModuleLayer, and ServiceLoader
 
-**Named module phải được resolve/defined và đúng dependency graph.** JAR nằm trong một thư mục không đủ để nó trở thành module khả dụng cho layer. Với plugin dùng `ModuleFinder`, `Configuration.resolve/resolveAndBind` và `ModuleLayer`, hãy kiểm tra:
+**A named module must be resolved/defined with a valid dependency graph.** A JAR sitting in a directory is not enough to make it an available module for a layer. For plugins using `ModuleFinder`, `Configuration.resolve/resolveAndBind`, and `ModuleLayer`, check:
 
-- module chứa service API đã được resolve; consumer có `requires` phù hợp;
-- provider đã được đưa vào layer nếu kỳ vọng `ServiceLoader` khám phá nó; với `uses`/`provides`, `resolveAndBind` có thể bổ sung provider modules;
-- class loader được lấy từ đúng layer và module; module access/exports/opens đúng hợp đồng;
-- nhà cung cấp SPI đăng ký metadata đúng và constructor/provider method hợp lệ.
+- the module containing the service API is resolved; the consumer has the appropriate `requires`;
+- providers are included in the layer if `ServiceLoader` is expected to discover them; with `uses`/`provides`, `resolveAndBind` can add provider modules;
+- the class loader is retrieved from the right layer and module; module `exports`/`opens`/access match the contract;
+- the SPI provider registered metadata properly and has a valid constructor/provider method.
 
-`ClassNotFoundException` lúc tìm class theo string và `ServiceConfigurationError` khi load SPI provider là hai dấu hiệu khác nhau; cần xem nguyên nhân sâu nhất. `ServiceLoader` có thể báo lỗi khi provider class không tìm thấy, không assignable tới service, khởi tạo lỗi hoặc metadata không hợp lệ. Đừng biến `ServiceConfigurationError` thành “không có plugin” và tự bỏ qua.
+A `ClassNotFoundException` when looking up a class by string and a `ServiceConfigurationError` when loading an SPI provider are two distinct signals; inspect the deepest cause. `ServiceLoader` can fail if the provider class is missing, not assignable to the service, fails instantiation/initialization, or has invalid metadata. Do not turn `ServiceConfigurationError` into "no plugins found" and silently ignore it.
 
-### Tái nạp plugin không chữa được class erroneous của generation cũ
+### Reloading a Plugin Does Not Heal an Erroneous Class in an Old Generation
 
-Khi static initialization đã thất bại trong loader của V1:
+Once static initialization has failed in V1's loader:
 
-- `ServiceLoader.reload()` chỉ xóa cache discovery của instance ServiceLoader; nó **không reset trạng thái initialization** của `Class<?>` trong defining loader.
-- Thay file JAR V1 trên đĩa không đổi class definition đã nạp.
-- Nếu muốn sửa code/config bằng deployment V2, thông thường phải **dựng generation mới** với loader/layer mới rồi validate; request đang dùng V1 vẫn cần xử lý/drain theo policy.
-- Giữ strong references từ V1 (thread, static caches, callback, listener, TCCL) có thể ngăn giải phóng loader cũ.
+- `ServiceLoader.reload()` only clears the `ServiceLoader` instance's discovery cache; it **does not reset the initialization state** of `Class<?>` in the defining loader.
+- Replacing the V1 JAR file on disk does not alter already-loaded class definitions.
+- To fix code/config with a V2 deployment, you normally must **build a new generation** with a new loader/layer and validate it; in-flight requests using V1 still need to be handled/drained per policy.
+- Retaining strong references from V1 (threads, static caches, callbacks, listeners, TCCL) can prevent releasing the old loader.
 
-Do đó trong quy trình plugin hot replacement, readiness/health check phải **kích hoạt những code path đủ cần thiết** (với side effects có kiểm soát) để tránh publish một candidate chỉ “loadClass thành công” nhưng lỗi ở static initialization.
+Therefore, in plugin hot-replacement workflows, readiness/health checks must **exercise sufficient necessary code paths** (with controlled side effects) to avoid publishing a candidate that merely "passes `loadClass`" while failing static initialization.
 
-## 10. Các công cụ chẩn đoán khi lỗi không tái hiện trong IDE
+## 10. Diagnostic Tools When Errors Do Not Reproduce in the IDE
 
-### Kiểm tra artifact
+### Inspecting Artifacts
 
-Đối với JAR sản xuất:
+For production JARs:
 
 ```bash
 jar --list --file plugin.jar
 ```
 
-Tìm tên entry dạng `com/acme/plugin/Handler.class` và dependencies liên quan. Với JAR đóng gói classpath, tên entry phải tương ứng package; nếu class được shading/relocate, cần tra đúng binary name sau build. Với modular JAR, kiểm tra cả `module-info.class` và module dependencies.
+Look for entry names like `com/acme/plugin/Handler.class` and related dependencies. For classpath-packaged JARs, entry names must match packages; if classes are shaded/relocated, check the post-build binary name. For modular JARs, also check `module-info.class` and module dependencies.
 
-Có thể kiểm tra mô tả/bytecode của class khi đã biết artifact và classpath:
+You can inspect class descriptors/bytecode once you know the artifact and classpath:
 
 ```bash
 javap -classpath plugin.jar com.acme.plugin.Handler
 ```
 
-`javap` giúp xem public type/method signatures để nhận ra version lệch. Lệnh này là **mẫu sử dụng**, không có `plugin.jar` trong demo; thay bằng artifact thật. Với nhiều dependencies, cần cung cấp classpath/module path phù hợp để giải quyết thông tin bạn cần.
+`javap` reveals public type/method signatures to spot version skew. This command is a **usage template**—there is no `plugin.jar` in the demo; substitute your actual artifact. With multiple dependencies, provide the appropriate classpath/module path to resolve the information you need.
 
-### Xem class loading thật bằng JVM logs
+### Observing Actual Class Loading via JVM Logs
 
-Với Java 17:
+With Java 17:
 
 ```bash
 java -Xlog:class+load=info -cp out ErrorTaxonomyDemo
 ```
 
-Đây là lệnh chạy demo đã biên dịch; log class loading có thể rất dài, nên dùng khi chẩn đoán và lọc theo tên package/loader cần tìm. Tùy JVM và cấu hình logging, output chứa nguồn class/JAR; tránh đưa vào log công khai nếu đường dẫn môi trường nhạy cảm.
+This command runs the compiled demo; class loading logs can be very verbose, so use them during diagnosis and filter by the target package/loader name. Depending on the JVM and logging setup, output contains class/JAR sources; avoid sending it to public logs if environment paths are sensitive.
 
-`-verbose:class` cũng là tùy chọn thông dụng, nhưng unified logging `-Xlog:class+load=info` giúp tùy chỉnh ở Java 17. **Class-load log chỉ ghi sự kiện load; không tự cho bạn biết initializer nào thất bại nếu không đọc stack trace/cause.**
+`-verbose:class` is also a common option, though unified logging `-Xlog:class+load=info` offers finer control in Java 17. **Class-load logs only record load events; they do not tell you which initializer failed without reading the stack trace/cause.**
 
-### Kiểm tra dependency tree/build/deployment
+### Checking Dependency Trees, Builds, and Deployments
 
-Các hệ thống Maven/Gradle có dependency scopes và quy tắc packaging khác nhau. Kiểm tra **effective runtime dependencies**, không chỉ compile dependencies. Nếu có nhiều bản cùng class, xác minh **bản được class loader thực sự chọn** qua log/code source phù hợp. Đối với plugin deployment, ghi rõ plugin ID, generation ID, artifact hash, loader identity, module layer và runtime Java version.
+Maven/Gradle systems have distinct dependency scopes and packaging rules. Check **effective runtime dependencies**, not just compile dependencies. If multiple copies of the same class exist, verify **which copy the class loader actually chose** via appropriate logs or code sources. For plugin deployments, record the plugin ID, generation ID, artifact hash, loader identity, module layer, and runtime Java version.
 
-Những công cụ như `jdeps` hữu ích để tìm static bytecode dependencies, nhưng **không phát hiện đầy đủ dependency bằng reflection, resource name tạo động, ServiceLoader metadata hoặc đường code chưa thực thi**. Cần kết hợp static inspection với integration test.
+Tools like `jdeps` are useful for finding static bytecode dependencies, but **do not detect dependencies loaded via reflection, dynamically constructed resource names, ServiceLoader metadata, or unexecuted code paths**. Combine static inspection with integration tests.
 
-## 11. Lỗi xảy ra ở bước nào thì hướng sửa khác nhau
+## 11. Different Failure Stages Require Different Fixes
 
-| Triệu chứng | Câu hỏi cần hỏi | Hướng điều tra/khắc phục |
+| Symptom | Question to Ask | Investigation/Remediation Path |
 | --- | --- | --- |
-| `ClassNotFoundException: com.x.Plugin` tại `Class.forName` | Tên binary đúng chưa; loader nào lookup? | Kiểm tra package, artifact, TCCL, parent/child loader, ModuleLayer |
-| `NoClassDefFoundError: com/x/Helper` khi gọi `Plugin.start` | Helper có khi compile nhưng vắng mặt lúc chạy? | So sánh build output và runtime packaging, scopes, module graph |
-| `NoClassDefFoundError: Could not initialize class com.x.Plugin` | Có lỗi `<clinit>` trước đó không? | Tìm first failure, root cause, sửa initializer/config, tạo loader/generation mới |
-| `ExceptionInInitializerError` | Cause có `NullPointerException`/`IllegalStateException` gì? | Sửa static initialization, health checks, side effects |
-| `UnsupportedClassVersionError` | Runtime JDK đủ để đọc class file version không? | Dùng target `--release` phù hợp hoặc nâng runtime |
-| `NoSuchMethodError`/`NoSuchFieldError` | Runtime API/dependency có khác bản compile? | Kiểm tra binary compatibility, class shadowing, transitive conflicts |
-| `ClassCastException` giữa host/plugin API | Có hai loader định nghĩa cùng API FQCN không? | Đặt shared API ở parent, chỉ implementation trong child |
-| `ServiceConfigurationError` | Metadata/implementation/constructor/provider method lỗi gì? | Kiểm tra `META-INF/services` hoặc `provides`, cause và context loader |
-| Lỗi chỉ sau redeploy | Loader V1/threads/caches còn sống? | Kiểm tra classloader retention, registry, lifecycle và clean cutover |
-| Lỗi ngẫu nhiên khi chạy song song | Static initialization phụ thuộc state/lock hay request context? | Loại side effects khỏi `<clinit>`, đồng bộ đúng, validate từng generation |
+| `ClassNotFoundException: com.x.Plugin` at `Class.forName` | Is the binary name right; which loader is looking it up? | Check package, artifact, TCCL, parent/child loader, ModuleLayer |
+| `NoClassDefFoundError: com/x/Helper` when calling `Plugin.start` | Was Helper present at compile time but absent at runtime? | Compare build output and runtime packaging, scopes, module graph |
+| `NoClassDefFoundError: Could not initialize class com.x.Plugin` | Was there a prior `<clinit>` failure? | Find the first failure, root cause, fix initializer/config, create new loader/generation |
+| `ExceptionInInitializerError` | What `NullPointerException`/`IllegalStateException` is in the cause? | Fix static initialization, health checks, side effects |
+| `UnsupportedClassVersionError` | Is the runtime JDK new enough for the class file version? | Use an appropriate `--release` target or upgrade the runtime |
+| `NoSuchMethodError`/`NoSuchFieldError` | Do runtime API/dependencies differ from compile time? | Check binary compatibility, class shadowing, transitive conflicts |
+| `ClassCastException` between host/plugin API | Did two loaders define the same API FQCN? | Place shared API in parent, only implementations in child |
+| `ServiceConfigurationError` | What failed in metadata/implementation/constructor/provider method? | Check `META-INF/services` or `provides`, cause, and context loader |
+| Failure only after redeploy | Are V1 loader/threads/caches still alive? | Check classloader retention, registry, lifecycle, and clean cutover |
+| Intermittent failure under parallel execution | Does static initialization depend on mutable state/locks or request context? | Remove side effects from `<clinit>`, synchronize properly, validate per generation |
 
-### Những điều không nên làm
+### What Not to Do
 
-**Không xóa cache JAR một cách mù quáng.** Nếu lỗi do class initialization đã thất bại, xóa cache file không thay được runtime class state.
+**Do not blindly delete JAR caches.** If the error is caused by a failed class initialization, deleting cached files does not alter runtime class state.
 
-**Không `catch (Throwable)` rồi tiếp tục phục vụ bằng class hỏng.** Có thể ghi log hoặc cô lập candidate lỗi tại ranh giới rõ, nhưng nhiều `Error` chỉ ra sự cố không thể phục hồi an toàn trong ngữ cảnh đó.
+**Do not `catch (Throwable)` and keep serving with a broken class.** You can log or isolate a failing candidate at a clear boundary, but many `Error` types indicate a fault that cannot be safely recovered within that context.
 
-**Không đổi class loader chỉ để che thiếu dependency.** Loader mới vẫn thất bại nếu artifact thiếu `Helper.class`. Muốn sửa phải đảm bảo deployment graph đúng.
+**Do not swap class loaders just to mask a missing dependency.** A new loader will still fail if the artifact lacks `Helper.class`. Fixing it requires a valid deployment graph.
 
-**Không giữ mutable global state trong static initializer nếu có thể tránh.** Phần khởi tạo tĩnh phụ thuộc config/runtime I/O là nguồn lỗi khó hồi phục, nhất là với plugin được tải động.
+**Do not hold mutable global state in static initializers when avoidable.** Static initialization that depends on config or runtime I/O is hard to recover from, especially for dynamically loaded plugins.
 
-**Không đoán lỗi qua top line một mình.** Với `ExceptionInInitializerError` và `NoClassDefFoundError` dạng erroneous, phần quan trọng có thể nằm trong log trước đó hoặc nested cause.
+**Do not guess the error from the top line alone.** For `ExceptionInInitializerError` and erroneous `NoClassDefFoundError`, the crucial clue often lies in earlier logs or nested causes.
 
-## 12. Thiết kế plugin để lỗi có thể cô lập và phục hồi
+## 12. Designing Plugins So Errors Can Be Isolated and Recovered
 
-Một plugin manager nên tách ba lớp trách nhiệm:
+A plugin manager should separate three layers of responsibility:
 
 ```text
 Artifact/Dependency validation
     |
     | check manifest, Java target, dependencies, signature
     v
-Candidate loader/layer (chưa phục vụ request)
+Candidate loader/layer (not yet serving requests)
     |
     | load + link + initialize + construct + health/contract tests
     v
 Validated generation
     |
-    | atomic publish sau khi đạt readiness
+    | atomic publish after passing readiness
     v
 Active generation
     |
@@ -572,94 +572,94 @@ Active generation
 Retire -> drain -> cleanup old generation
 ```
 
-### Vì sao phải chạm tới initialization khi validate?
+### Why Must Validation Touch Initialization?
 
-Chỉ gọi `ClassLoader.loadClass` có thể trả về một `Class<?>` hợp lệ dù static initialization sẽ thất bại khi request đầu tiên chạy. Health check nên chủ động thực thi một **hợp đồng readiness đủ đại diện**, ví dụ gọi method không gây side effects ngoài ý muốn, kiểm tra cấu hình và khởi tạo provider theo contract.
+Simply calling `ClassLoader.loadClass` can return a valid `Class<?>` even if static initialization will fail on the first request. Health checks should actively execute a **representative readiness contract**, such as calling a method without unintended side effects, validating configuration, and initializing providers per contract.
 
-Không nên “gọi mọi method” để chắc chắn — một số method có thể gửi giao dịch, xóa dữ liệu hoặc phụ thuộc input. Readiness cần **được thiết kế riêng** và chạy ở môi trường/cấu hình phù hợp.
+You should not "call every method" just to be sure—some methods may submit transactions, delete data, or depend on inputs. Readiness must be **purpose-built** and run in an appropriate environment/configuration.
 
-### Cô lập candidate thất bại
+### Isolating a Failed Candidate
 
-Nếu V2 có `ExceptionInInitializerError`, `NoClassDefFoundError` hoặc `ServiceConfigurationError` trong prepare/validate, có thể:
+If V2 hits `ExceptionInInitializerError`, `NoClassDefFoundError`, or `ServiceConfigurationError` during prepare/validate, you can:
 
-1. Ghi error/cause chain/loader identity/artifact version và cleanup các resources của candidate.
-2. **Không** publish candidate V2.
-3. Giữ generation V1 đã hoạt động tiếp tục phục vụ nếu còn khỏe mạnh.
-4. Sửa dependency/configuration hoặc triển khai lại thành **candidate generation mới**; đừng cố chạy lại static initializer của class erroneous trong cùng loader.
-5. Không recycle class loader hoặc engine context đã ở trạng thái không rõ nếu nó vừa khởi tạo một phần.
+1. Log the error/cause chain/loader identity/artifact version and clean up the candidate's resources.
+2. **Do not** publish candidate V2.
+3. Keep the running V1 generation serving if it is still healthy.
+4. Fix dependencies/configuration or redeploy as a **new candidate generation**; do not attempt to re-run the static initializer of an erroneous class in the same loader.
+5. Do not recycle a class loader or engine context left in an unknown state after partial initialization.
 
-Khi bắt lỗi ở boundary plugin, phải phân biệt tình huống có thể cô lập với lỗi nghiêm trọng của JVM như `OutOfMemoryError`; không nên giả định mọi `Error` đều recover được chỉ vì có code catch.
+When catching errors at the plugin boundary, distinguish isolatable faults from severe JVM errors like `OutOfMemoryError`; never assume every `Error` is recoverable simply because a catch block exists.
 
-### Cân bằng hiệu năng và chẩn đoán
+### Balancing Performance and Diagnostics
 
-Quét classpath, tạo loader/layer, load plugin và chạy static initializer có chi phí. Không nên làm lại những bước này theo từng request. Hãy **prepare/validate trước rồi publish immutable generation**, request sau đó chỉ dùng snapshot phù hợp.
+Scanning classpaths, creating loaders/layers, loading plugins, and running static initializers all have costs. Do not repeat these steps per request. **Prepare/validate up front, then publish an immutable generation**, so subsequent requests use only the appropriate snapshot.
 
-Tuy nhiên cũng không nên cache lỗi “class chưa thấy” vĩnh viễn nếu loader/module graph thực sự được cập nhật theo cách có kiểm soát: chính sách cache phải gắn với **loader/generation version**. Một new generation với new loader/layer là ranh giới tự nhiên để reload những implementation đã đổi.
+At the same time, do not cache "class not found" failures forever if the loader/module graph is updated in a controlled way: cache policies should be tied to **loader/generation version**. A new generation with a new loader/layer is a natural boundary for reloading changed implementations.
 
-Class-load logging rất hữu ích khi debug nhưng có overhead và lượng log đáng kể; bật theo nhu cầu. Trong operation bình thường nên giữ metadata hạn chế: plugin ID/version, tên exception, missing binary name, loader identity và tracking ID, không ghi secrets/bytecode.
+Class-load logging is very useful for debugging, though it adds noticeable overhead and log volume; enable it on demand. In normal operation, keep metadata minimal: plugin ID/version, exception name, missing binary name, loader identity, and tracking ID—without logging secrets or bytecode.
 
-## 13. Bảng quyết định xử lý sự cố
+## 13. Incident Troubleshooting Decision Tree
 
 ```text
-Lỗi khi plugin load/execute?
+Error during plugin load/execute?
        |
        +-- ClassNotFoundException?
        |       |
-       |       +-- Explicit lookup theo tên thất bại
-       |             -> kiểm tra binary name + đúng loader/layer + artifact
+       |       +-- Explicit lookup by name failed
+       |             -> check binary name + right loader/layer + artifact
        |
        +-- NoClassDefFoundError?
        |       |
        |       +-- Message "Could not initialize class ..."?
-       |       |        -> tìm lần khởi tạo đầu tiên thất bại
-       |       |        -> root cause tại <clinit> + state erroneous
+       |       |        -> find the first failed initialization
+       |       |        -> root cause in <clinit> + erroneous state
        |       |
-       |       +-- Thiếu "pkg/Class" hoặc "wrong name"?
-       |                -> kiểm tra runtime dependency + bytecode/package/loader
+       |       +-- Missing "pkg/Class" or "wrong name"?
+       |                -> check runtime dependency + bytecode/package/loader
        |
        +-- ExceptionInInitializerError?
        |       |
-       |       +-- đọc getCause() và stack trace <clinit>
-       |       +-- sửa code/config và thay generation/loader khi cần
+       |       +-- read getCause() and <clinit> stack trace
+       |       +-- fix code/config and replace generation/loader when needed
        |
-       +-- LinkageError khác?
+       +-- Other LinkageError?
        |       |
        |       +-- NoSuchMethodError/NoSuchFieldError/VerifyError/...
-       |                -> kiểm tra binary compatibility, Java target, bytecode
+       |                -> check binary compatibility, Java target, bytecode
        |
-       +-- ServiceConfigurationError hoặc framework wrapper?
+       +-- ServiceConfigurationError or framework wrapper?
                |
-               +-- mở toàn bộ cause chain và điều tra class loader/provider
+               +-- unwrap full cause chain and inspect class loader/provider
 ```
 
-Flow này là **hướng dẫn chẩn đoán**, không phải quy tắc tuyệt đối cho mọi JVM implementation. `NoClassDefFoundError` còn nhiều tình huống phức tạp ngoài các nhánh nêu trên; cần xem message, cause, bytecode references và quá trình runtime thực tế.
+This flow is a **diagnostic guide**, not an absolute rule for every JVM implementation. `NoClassDefFoundError` has additional complex cases beyond the branches shown above; inspect the message, cause, bytecode references, and actual runtime behavior.
 
-## 14. Checklist trước khi phát hành và khi điều tra incident
+## 14. Pre-Release and Incident Investigation Checklist
 
-**Trước khi phát hành plugin:**
+**Before releasing a plugin:**
 
-- [ ] JAR/module chứa đầy đủ runtime dependencies, không chỉ compile classpath.
-- [ ] Dùng đúng `--release`/target Java tương thích với runtime vận hành.
-- [ ] Plugin API chung nằm ở loader/module thích hợp; implementation/dependencies phiên bản riêng không va class identity.
-- [ ] SPI metadata, `uses/provides` hoặc `META-INF/services` được đóng gói và kiểm thử trong runtime tương đương production.
-- [ ] Static initializer không phụ thuộc vào thao tác I/O nguy hiểm, global state khó kiểm soát hoặc config chưa validate.
-- [ ] Candidate được load, initialize, instantiate và health/contract test **trước** atomic cutover.
-- [ ] Có nguyên tắc cleanup candidate lỗi, không tái sử dụng loader/class đã ở trạng thái erroneous.
-- [ ] Có test thiếu dependency sau compile, sai loader, Java target version, static initialization fail và retry.
-- [ ] Logger giữ nguyên cause chain + generation ID, nhưng không rò bí mật.
+- [ ] JAR/module contains all required runtime dependencies, not only the compile classpath.
+- [ ] Correct `--release`/Java target compatible with the production runtime is used.
+- [ ] Shared plugin API resides in the appropriate loader/module; per-version implementations/dependencies do not collide on class identity.
+- [ ] SPI metadata, `uses/provides`, or `META-INF/services` is packaged and tested in a runtime matching production.
+- [ ] Static initializers do not depend on risky I/O operations, hard-to-control global state, or unvalidated config.
+- [ ] Candidates are loaded, initialized, instantiated, and health/contract tested **before** atomic cutover.
+- [ ] Policies exist to clean up failed candidates and never reuse loaders/classes in an erroneous state.
+- [ ] Tests cover missing post-compile dependencies, wrong loader, Java target version, static initialization failure, and retries.
+- [ ] Logger preserves the cause chain + generation ID without leaking secrets.
 
-**Khi gặp sự cố:**
+**When an incident occurs:**
 
-- [ ] Phân loại đúng checked `ClassNotFoundException`, `LinkageError` và `ExceptionInInitializerError`.
-- [ ] Kiểm tra toàn bộ stack trace/cause, không chỉ top line.
-- [ ] Nếu message `Could not initialize class`, tìm **lần lỗi đầu tiên** của initializer.
-- [ ] Xác định binary name, package/path, class version và artifact hash thực tế.
-- [ ] Ghi defining loader, TCCL, parent loader, ModuleLayer và request/generation context phù hợp.
-- [ ] So sánh runtime dependency graph với build-time graph.
-- [ ] Chỉ dùng `-Xlog:class+load=info`/`javap`/`jar --list` khi cần và bảo vệ thông tin môi trường.
-- [ ] Ưu tiên khôi phục bằng generation đã validate hoặc process restart có kiểm soát; không ép dùng class erroneous.
+- [ ] Correctly classify checked `ClassNotFoundException`, `LinkageError`, and `ExceptionInInitializerError`.
+- [ ] Inspect the entire stack trace/cause, not only the top line.
+- [ ] If the message says `Could not initialize class`, locate **the first failure** of the initializer.
+- [ ] Identify the actual binary name, package/path, class version, and artifact hash.
+- [ ] Record the defining loader, TCCL, parent loader, ModuleLayer, and relevant request/generation context.
+- [ ] Compare the runtime dependency graph against the build-time graph.
+- [ ] Use `-Xlog:class+load=info`/`javap`/`jar --list` only as needed and protect sensitive environment paths.
+- [ ] Prefer recovery via a validated generation or controlled process restart; do not force reuse of erroneous classes.
 
-### Tài liệu Java SE 17
+### Java SE 17 References
 
 - [`ClassNotFoundException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassNotFoundException.html)
 - [`NoClassDefFoundError`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/NoClassDefFoundError.html)
@@ -669,4 +669,4 @@ Flow này là **hướng dẫn chẩn đoán**, không phải quy tắc tuyệt 
 - [`ClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html)
 - [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html)
 
-**Kết luận:** `ClassNotFoundException` báo một **explicit lookup** không tìm được lớp; `NoClassDefFoundError` báo JVM không thể có một class definition cần thiết **hoặc một class đã khởi tạo lỗi không thể được sử dụng tiếp**; `ExceptionInInitializerError` đưa bạn tới **nguyên nhân trong static initialization** ở lần lỗi đầu tiên. Muốn sửa đúng và nhanh trong hệ thống plugin, luôn phân biệt *giai đoạn lỗi*, *class loader/module layer* và *root cause*, rồi xử lý deployment/initialization theo vòng đời generation — không đoán chỉ từ tên exception.
+**Conclusion:** `ClassNotFoundException` signals that an **explicit lookup** could not find a class; `NoClassDefFoundError` signals that the JVM could not obtain a required class definition **or that a previously failed-initialization class cannot be used again**; `ExceptionInInitializerError` leads you to **the cause inside static initialization** on the first failure. To diagnose and fix plugin systems accurately and quickly, always separate *failure phase*, *class loader/module layer*, and *root cause*, then manage deployment/initialization along generation lifecycles—never guess from the exception name alone.

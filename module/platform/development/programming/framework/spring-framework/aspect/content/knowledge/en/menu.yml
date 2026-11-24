@@ -1,0 +1,199 @@
+menu:
+- level1: Phạm vi Spring AOP
+  level2:
+  - Vai trò của Spring AOP đối với hành vi dùng chung trên các bean
+  - Ánh xạ aspect, advice và pointcut vào cơ chế của Spring
+  - Spring AOP can thiệp lời thực thi phương thức qua proxy
+  - Phạm vi áp dụng trên đối tượng được Spring quản lý
+  - Phân biệt @AspectJ trong Spring AOP và cơ chế dệt của AspectJ
+  - Điều kiện chọn Spring AOP cho một yêu cầu cụ thể
+  - Quan hệ với IoC, dependency injection và vòng đời bean
+  - 'Ví dụ xuyên suốt: can thiệp lời gọi service bean trong ApplicationContext'
+- level1: Thiết lập Spring AOP
+  level2:
+  - Các thư viện Spring AOP và AspectJ cần cho cấu hình được chọn
+  - Quản lý phiên bản phụ thuộc tương thích với Spring Framework
+  - Bật hỗ trợ @AspectJ bằng @EnableAspectJAutoProxy
+  - Vai trò @Configuration, component scan và đăng ký bean
+  - Cấu hình proxyTargetClass và exposeProxy
+  - Phạm vi hiệu lực cấu hình trong từng ApplicationContext
+  - Phân biệt mặc định proxy của Spring Framework và cấu hình từ Spring Boot
+  - Ứng dụng tối thiểu để xác nhận một advice được thực thi
+  - Kiểm tra cấu hình Java và XML không gây thiết lập chồng chéo
+- level1: Aspect và Bean
+  level2:
+  - Khai báo lớp @Aspect và đưa vào Spring container
+  - Đăng ký aspect bằng @Component hoặc phương thức @Bean
+  - Tiêm phụ thuộc vào aspect qua Spring
+  - Đăng ký bean đích và tránh đối tượng tạo bằng new ngoài container
+  - Phân biệt annotation @Aspect với annotation đăng ký component
+  - Aspect như bean hạ tầng và giới hạn áp dụng advice lên chính aspect
+  - Vòng đời của aspect và vòng đời của bean đích
+  - Scope của bean Spring khác mô hình khởi tạo aspect như thế nào
+  - Mô hình singleton, perthis và pertarget được Spring hỗ trợ
+  - Kiểm tra số lượng instance aspect và trạng thái được chia sẻ
+- level1: Cơ chế Auto-proxy
+  level2:
+  - Vai trò BeanPostProcessor trong việc bọc bean bằng proxy
+  - Nhận diện advisor phù hợp với lớp và phương thức đích
+  - Luồng tạo bean đích, tạo proxy và trả tham chiếu cho bên phụ thuộc
+  - Chuỗi interceptor khi một phương thức được gọi qua proxy
+  - Vai trò của auto-proxy creator trong ApplicationContext
+  - Thống nhất cấu hình khi nhiều cơ chế Spring cùng yêu cầu proxy
+  - Bean khởi tạo quá sớm và tình trạng không đủ điều kiện auto-proxy
+  - Lời gọi trong quá trình khởi tạo và giới hạn của @PostConstruct
+  - Phụ thuộc vòng và nguy cơ tham chiếu sớm chưa được tăng cường
+  - Phân biệt proxy AOP với proxy do cơ chế khác trong Spring tạo ra
+- level1: JDK và CGLIB
+  level2:
+  - Proxy JDK dựa trên interface và bề mặt phương thức được cung cấp
+  - Proxy CGLIB dựa trên lớp con của lớp đích
+  - Quy tắc chọn cơ chế proxy trong Spring Framework
+  - Ép proxy lớp bằng proxyTargetClass và tác động toàn cấu hình
+  - Giới hạn lớp final và phương thức final khi dùng CGLIB
+  - Phương thức private, static và lời gọi không thể ghi đè
+  - Phạm vi public, protected và package-visible theo cơ chế proxy
+  - Kiểu tham chiếu khi tiêm phụ thuộc qua interface hoặc lớp cụ thể
+  - Phân biệt lớp proxy, lớp đích và kiểu khai báo của bean
+  - Hạn chế liên quan đến Java Module System và quyền truy cập lớp
+  - equals, hashCode, toString và hành vi cần kiểm chứng trên proxy
+  - Tình huống lỗi ép kiểu khi chuyển cơ chế proxy
+- level1: Ranh giới lời gọi
+  level2:
+  - Lời gọi từ bean khác đi qua proxy và lời gọi trực tiếp vào đối tượng đích
+  - Tự gọi nội bộ qua this và nguyên nhân bỏ qua advice
+  - Tái cấu trúc để chuyển lời gọi sang một bean cộng tác
+  - Tự tiêm tham chiếu proxy và các phụ thuộc phát sinh
+  - AopContext.currentProxy(), exposeProxy và lý do hạn chế sử dụng
+  - Lời gọi từ constructor hoặc callback khởi tạo trước khi proxy sẵn sàng
+  - Đối tượng không được Spring quản lý và giới hạn của proxy tự động
+  - Phương thức kế thừa, interface mặc định và vị trí đặt annotation
+  - Proxy lồng nhau và việc lần theo chuỗi đối tượng
+  - Phân biệt cùng phương thức đích nhưng khác đường đi của lời gọi
+- level1: Pointcut trong Spring
+  level2:
+  - execution để chọn phương thức của bean theo chữ ký
+  - within để giới hạn lớp hoặc gói của bean đích
+  - this và target trong mô hình proxy của Spring
+  - args theo kiểu đối số thực tế
+  - '@annotation để chọn phương thức mang annotation'
+  - '@within và @target theo annotation của kiểu'
+  - '@args theo annotation của kiểu đối số'
+  - bean để chọn theo tên bean trong Spring
+  - Kết hợp điều kiện bằng &&, || và !
+  - Mẫu tên, kiểu con, overload và danh sách tham số
+  - Chọn đúng độ rộng pointcut để tránh can thiệp bean ngoài ý muốn
+  - Những pointcut designator của AspectJ không được Spring AOP hỗ trợ
+- level1: Tổ chức Pointcut
+  level2:
+  - Khai báo pointcut có tên bằng @Pointcut
+  - Kết hợp pointcut theo tầng kiến trúc hoặc nhóm chức năng
+  - Chia sẻ pointcut giữa các aspect
+  - Visibility của phương thức pointcut và phạm vi tái sử dụng
+  - Phân biệt visibility của khai báo pointcut với phương thức được khớp
+  - Đặt tên theo ý định thay vì chi tiết chuỗi biểu thức
+  - Loại trừ bean hạ tầng, aspect và mã ghi nhận dùng chung
+  - Kiểm thử ca được khớp và ca không được khớp
+  - Giữ pointcut ổn định khi đổi gói, tên lớp hoặc tên phương thức
+- level1: Advice theo sự kiện
+  level2:
+  - '@Before và hành vi trước khi gọi phương thức đích'
+  - '@AfterReturning và ràng buộc kết quả trả về'
+  - '@AfterThrowing và ràng buộc kiểu ngoại lệ'
+  - '@After với ngữ nghĩa finally trong Spring AOP'
+  - Phân biệt đường thành công, đường ngoại lệ và kết thúc phương thức
+  - Chọn loại advice ít quyền can thiệp nhất đáp ứng yêu cầu
+  - Giới hạn của @AfterReturning khi muốn thay đối tượng trả về
+  - Giới hạn của @AfterThrowing khi muốn phục hồi lỗi
+  - Chữ ký phương thức advice và cấu hình returning, throwing
+  - Ví dụ ghi nhận lời gọi trên bean Spring với từng loại advice
+- level1: Around Advice
+  level2:
+  - '@Around và vai trò ProceedingJoinPoint'
+  - proceed() để tiếp tục chuỗi interceptor và phương thức đích
+  - Hành vi khi không gọi proceed()
+  - Hành vi khi gọi proceed() nhiều lần
+  - proceed(Object[]) và thay đổi đối số theo quy ước Spring AOP
+  - Giữ đúng giá trị trả về và kiểu dữ liệu của phương thức đích
+  - Bao quanh đường thành công và ngoại lệ bằng try/catch/finally
+  - Đo thời gian thực thi mà không làm thay đổi kết quả nghiệp vụ
+  - Rủi ro lặp thao tác có tác dụng phụ khi triển khai retry bằng aspect
+  - Tránh nuốt ngoại lệ hoặc trả giá trị mặc định ngoài hợp đồng
+- level1: Ngữ cảnh và tham số
+  level2:
+  - JoinPoint để đọc đối số, chữ ký và nguồn lời gọi được hỗ trợ
+  - getThis() và getTarget() tương ứng proxy và đối tượng đích
+  - MethodSignature và việc lấy thông tin phương thức
+  - Ràng buộc đối số bằng args và tham số advice
+  - Ràng buộc annotation vào tham số advice
+  - Ràng buộc kết quả returning và ngoại lệ throwing
+  - argNames, tên tham số và tùy chọn biên dịch -parameters
+  - Đối số null, kiểu nguyên thủy, overload và varargs
+  - Giới hạn suy luận khi tham số có generic và xóa kiểu
+  - Bridge method, phương thức interface và phương thức triển khai
+  - Đọc annotation trên đúng phương thức khi đối tượng là proxy
+- level1: Thứ tự thực thi
+  level2:
+  - Nhiều aspect cùng khớp một phương thức
+  - Độ ưu tiên bằng @Order và Ordered
+  - Giá trị order nhỏ hơn và vị trí trong chuỗi advice
+  - Chiều đi vào và chiều đi ra của chuỗi interceptor
+  - Thứ tự giữa các loại advice trong cùng một @Aspect
+  - Giới hạn đảm bảo thứ tự giữa nhiều advice cùng loại
+  - '@After như finally so với @AfterReturning và @AfterThrowing'
+  - Không suy diễn thứ tự từ vị trí phương thức trong mã nguồn
+  - Thứ tự giữa aspect tự viết và advisor hạ tầng Spring
+  - Bảng vết thực thi để xác nhận thứ tự khi thành công và khi lỗi
+- level1: Kết quả và ngoại lệ
+  level2:
+  - Giữ hợp đồng trả về khi advice bọc phương thức đích
+  - Kết quả null và phương thức trả về kiểu nguyên thủy
+  - Checked exception, unchecked exception và chữ ký proxy interface
+  - Ảnh hưởng của ngoại lệ do chính advice phát sinh
+  - Phân biệt ngoại lệ từ phương thức đích và từ advice khác
+  - Đóng tài nguyên và dọn ngữ cảnh trong mọi nhánh kết thúc
+  - Không dùng @AfterThrowing như bằng chứng mọi lỗi đều đã được xử lý
+  - Kiểm thử việc thay đổi kết quả hoặc ánh xạ ngoại lệ bằng @Around
+  - Phân biệt phương thức đã trả Future/Publisher và công việc đã hoàn tất
+- level1: Trạng thái và đồng thời
+  level2:
+  - Aspect singleton được nhiều lời gọi sử dụng đồng thời
+  - Giữ dữ liệu riêng cho lời gọi trong biến cục bộ
+  - Nguy cơ lưu JoinPoint, người dùng hoặc thời gian bắt đầu vào field
+  - Phụ thuộc được tiêm vào aspect và yêu cầu an toàn luồng
+  - Scope của bean đích không tự thay đổi scope của aspect
+  - ThreadLocal trong aspect và trách nhiệm dọn dữ liệu
+  - Chuyển luồng, @Async và giới hạn ngữ cảnh gắn với luồng
+  - Luồng reactive và thời điểm phương thức trả đối tượng Publisher
+  - Đo đạc khi có lời gọi lồng nhau hoặc đệ quy qua proxy
+  - Kiểm thử trạng thái chéo giữa nhiều yêu cầu đồng thời
+- level1: Annotation tùy chỉnh
+  level2:
+  - Định nghĩa annotation đánh dấu dùng với Spring AOP
+  - Chọn @Target và @Retention phù hợp để đọc lúc chạy
+  - Ràng buộc giá trị annotation vào advice
+  - Annotation trên interface, phương thức triển khai và lớp
+  - Annotation tổng hợp trong Spring và giới hạn khớp pointcut cần kiểm chứng
+  - Phân biệt đọc metadata bằng API Spring với khớp biểu thức AspectJ
+  - Thiết kế thuộc tính annotation rõ nghĩa và dễ kiểm thử
+  - Không biến annotation thành nơi chứa quy tắc nghiệp vụ khó theo dõi
+  - Giữ API annotation ổn định khi tái sử dụng aspect giữa các module
+- level1: Cấu hình XML
+  level2:
+  - Namespace aop và đăng ký bean phụ thuộc
+  - aop:aspectj-autoproxy cho aspect dùng annotation
+  - aop:config và khai báo aop:aspect
+  - Pointcut có tên và pointcut-ref trong XML
+  - aop:before, after-returning, after-throwing, after và around
+  - Ràng buộc tham số, returning và throwing trong XML
+  - Cấu hình order và khác biệt thứ tự khai báo so với @Aspect
+  - proxy-target-class và expose-proxy trong cấu hình XML
+  - Thoát ký tự và dùng and, or, not trong biểu thức
+  - Kết hợp XML với Java configuration mà không tạo hành vi trùng lặp
+  - Chuyển đổi cấu hình XML sang annotation và kiểm tra tương đương
+- level1: Pointcut API
+  level2:
+  - Pointcut, ClassFilter và MethodMatcher trong Spring AOP
+  - Lọc ở cấp lớp và ở cấp phương thức
+  - MethodMatcher tĩnh và kiểm tra động theo đối số
+  - StaticMethodMatcherPointcut và trường hợp áp dụng

@@ -1,0 +1,3 @@
+menuLevel1: Event theo transaction
+menuLevel2: Listener sau commit không rollback được transaction đã xong
+status: WRITTEN

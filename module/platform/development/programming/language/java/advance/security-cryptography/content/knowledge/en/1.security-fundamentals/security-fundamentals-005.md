@@ -1,188 +1,188 @@
-# 1.5. Quan hệ giữa khóa, thuật toán, tham số, giao thức và danh tính
+# 1.5. Relationships Among Keys, Algorithms, Parameters, Protocols, and Identities
 
-Trong mật mã ứng dụng, nói “hệ thống dùng AES-256” hoặc “API có chứng chỉ TLS” chưa đủ để kết luận hệ thống an toàn. Một cơ chế bảo mật thực sự hình thành khi **khóa đúng** được dùng với **thuật toán phù hợp**, **tham số hợp lệ**, trong **giao thức có thứ tự và quy tắc kiểm tra rõ ràng**, đồng thời gắn kết kết quả mật mã với **danh tính đã được tin cậy**.
+In applied cryptography, saying "the system uses AES-256" or "the API has a TLS certificate" is not enough to conclude the system is secure. A genuine security mechanism is formed only when the **right key** is used with a **suitable algorithm**, **valid parameters**, inside a **protocol with clear ordering and verification rules**, while binding the cryptographic outcome to a **trusted identity**.
 
-Sau bài này, người học cần có khả năng:
-- Phân biệt vai trò và quan hệ của khóa, thuật toán, tham số, giao thức và danh tính.
-- Giải thích vì sao một chữ ký hợp lệ, bản mã giải mã được hoặc kết nối TLS thành công vẫn có thể chưa đủ để tin tưởng đối tác.
-- Nhận ra cách các tham số như nonce, salt, AAD, độ dài tag, phiên bản giao thức ảnh hưởng đến tính an toàn.
-- Thiết kế một luồng bảo vệ dữ liệu có kiểm tra danh tính, quản lý khóa, chống sửa đổi và chống phát lại phù hợp.
-- Liên hệ mô hình đó với API mật mã trong Java 17+.
+After this lesson, learners should be able to:
+- Distinguish the roles and relationships of keys, algorithms, parameters, protocols, and identities.
+- Explain why a valid signature, successfully decrypted ciphertext, or completed TLS connection may still be insufficient to trust a peer.
+- Recognize how parameters such as nonces, salts, AAD, tag length, and protocol versions affect security.
+- Design a data protection flow with appropriate identity verification, key management, tamper protection, and replay resistance.
+- Connect that model to cryptographic APIs in Java 17+.
 
-## 1. Năm thành phần và câu hỏi mà mỗi thành phần trả lời
+## 1. The Five Components and the Questions Each Answers
 
-| Thành phần | Câu hỏi chính | Ví dụ | Sai lầm thường gặp |
+| Component | Main Question | Example | Common Mistake |
 | --- | --- | --- | --- |
-| **Khóa (key)** | Ai nắm bí mật/quyền mật mã nào? | Khóa AES phiên, khóa riêng Ed25519, khóa công khai máy chủ, PSK | Cho rằng biết tên thuật toán là đủ để giải mã; để lộ khóa trong log |
-| **Thuật toán (algorithm)** | Phép toán bảo vệ thông tin là gì? | AES-GCM, Ed25519, SHA-256, HMAC-SHA256, HKDF, ECDHE | Dùng hash thường để xác thực dữ liệu trước đối thủ chủ động |
-| **Tham số (parameters)** | Thuật toán được vận hành ở cấu hình nào, cho thông điệp nào? | Khóa 128/256 bit, nonce 96 bit, tag 128 bit, AAD, salt, curve, hash, work factor | Tái sử dụng nonce của GCM với cùng khóa |
-| **Giao thức (protocol)** | Các bên gửi gì, theo thứ tự nào, kiểm tra gì và xử lý lỗi ra sao? | TLS 1.3 handshake, AEAD record format, quy tắc trao đổi và xoay khóa | Có thuật toán mạnh nhưng không xác thực handshake hoặc không chống replay |
-| **Danh tính (identity)** | Khóa hoặc kết quả mật mã gắn với thực thể nào, dựa trên niềm tin nào? | Tên DNS trong SAN của chứng chỉ, service account, người dùng, thiết bị | Chấp nhận chữ ký của bất kỳ khóa công khai nào do chính phía gửi cung cấp |
+| **Key** | Who holds which secret/cryptographic capability? | Session AES key, Ed25519 private key, server public key, PSK | Assuming knowing the algorithm name suffices to decrypt; exposing keys in logs |
+| **Algorithm** | What is the information-protection operation? | AES-GCM, Ed25519, SHA-256, HMAC-SHA256, HKDF, ECDHE | Using a plain hash to authenticate data against an active adversary |
+| **Parameters** | Under what configuration and for which message is the algorithm operated? | 128/256-bit key, 96-bit nonce, 128-bit tag, AAD, salt, curve, hash, work factor | Reusing a GCM nonce with the same key |
+| **Protocol** | What do parties send, in what order, what do they verify, and how are errors handled? | TLS 1.3 handshake, AEAD record format, key exchange and rotation rules | Strong algorithms without handshake authentication or replay protection |
+| **Identity** | Which entity is the key or cryptographic result bound to, and on what trust basis? | DNS name in certificate SAN, service account, user, device | Accepting a signature from any public key supplied by the sender itself |
 
-Đọc theo chuỗi:
+Read sequentially:
 
 ```text
-Mục tiêu an ninh + mô hình đe dọa
+Security goals + threat model
              ↓
-Xác định danh tính và mối quan hệ tin cậy cần chứng minh
+Identify identities and trust relationships to prove
              ↓
-Chọn giao thức có quy tắc thương lượng, xác thực và chống lỗi
+Choose a protocol with negotiation, verification, and failure rules
              ↓
-Giao thức chọn thuật toán, khóa và tham số thích hợp
+Protocol selects appropriate algorithms, keys, and parameters
              ↓
-Phép toán mật mã tạo kết quả; bên nhận kiểm tra rồi mới sử dụng
+Cryptographic operation produces output; receiver verifies before using
 ```
 
-Các lớp ràng buộc lẫn nhau. Một khóa không có ý nghĩa thực tế nếu chưa biết mục đích, thuật toán và quyền sử dụng. Một chữ ký chỉ xác thực **sự sở hữu khóa ký**; muốn xác thực danh tính phải biết vì sao khóa công khai đối ứng được tin là của chủ thể cần tìm. Một giao thức không thể an toàn nếu bỏ qua việc xử lý lỗi xác thực hoặc chấp nhận tham số yếu.
+The layers constrain one another. A key has no practical meaning without knowing its purpose, algorithm, and usage rights. A signature only proves **possession of the signing key**; authenticating identity requires knowing why the corresponding public key is trusted to belong to the target principal. A protocol cannot be secure if it skips verification error handling or accepts weak parameters.
 
-## 2. Khóa: tài sản mật mã và phạm vi quyền hạn
+## 2. Keys: Cryptographic Assets and Privilege Scope
 
-### 2.1. Khóa đối xứng, bất đối xứng và khóa phiên
+### 2.1. Symmetric, Asymmetric, and Session Keys
 
-- **Đối xứng:** hai phía cùng biết một khóa bí mật `K`. AES-GCM dùng `K` để mã hóa và tạo authentication tag; bên giải mã cũng cần `K`. HMAC dùng khóa đối xứng để xác thực thông điệp, nhưng không mã hóa nội dung. Vì nhiều bên có thể cùng giữ `K`, một tag hợp lệ **không chứng minh duy nhất người gửi là ai**.
-- **Bất đối xứng:** một cặp gồm khóa riêng `sk` và khóa công khai `pk`, có quan hệ theo thuật toán. Với chữ ký số, `sk` ký và `pk` xác minh; người xác minh không cần biết `sk`. Khóa công khai không phải “bí mật được mã hóa”.
-- **Khóa dài hạn:** chẳng hạn khóa riêng TLS máy chủ hoặc khóa gốc được quản lý trong KMS. Chúng có nhiệm vụ và vòng đời riêng.
-- **Khóa tạm/khóa phiên:** được thiết lập hoặc dẫn xuất cho một kết nối, phiên, mục đích hay chiều truyền. TLS 1.3 thông thường dùng bí mật trao đổi tạm thời và HKDF để dẫn xuất khóa lưu lượng; khóa dùng mã hóa bản ghi khác khóa riêng xác thực máy chủ.
+- **Symmetric:** two parties share one secret key `K`. AES-GCM uses `K` to encrypt and produce an authentication tag; the decrypting party also needs `K`. HMAC uses a symmetric key to authenticate messages, but does not encrypt content. Because multiple parties may hold `K`, a valid tag **does not uniquely prove who the sender is**.
+- **Asymmetric:** a pair consisting of a private key `sk` and a public key `pk`, mathematically related by the algorithm. For digital signatures, `sk` signs and `pk` verifies; the verifier never needs `sk`. A public key is not an "encrypted secret."
+- **Long-term keys:** such as a server's TLS private key or root keys managed in KMS. They carry dedicated roles and lifecycles.
+- **Ephemeral/session keys:** established or derived for a specific connection, session, purpose, or traffic direction. TLS 1.3 typically uses ephemeral key-exchange secrets and HKDF to derive traffic keys; keys encrypting records differ from the private key authenticating the server.
 
-**Không đồng nhất password với cryptographic key.** Mật khẩu thường có entropy thấp, cần hàm dẫn xuất/hashing chuyên cho mật khẩu với salt và chi phí tính toán phù hợp (ví dụ Argon2id qua thư viện được đánh giá; PBKDF2 trong môi trường cần tương thích). HKDF phù hợp để dẫn xuất từ vật liệu khóa đã có entropy đủ cao, không tự làm cho mật khẩu yếu trở thành mạnh.
+**Do not equate passwords with cryptographic keys.** Passwords typically have low entropy and require dedicated password derivation/hashing functions with salts and suitable computational cost (e.g., Argon2id via a vetted library; PBKDF2 where compatibility is required). HKDF is suited for deriving keys from already high-entropy key material, not for turning a weak password into a strong key.
 
-### 2.2. Khóa phải gắn với mục đích và vòng đời
+### 2.2. Keys Must Be Bound to Purpose and Lifecycle
 
-Thông tin quản trị tối thiểu cho một khóa gồm: `keyId`, loại/thuật toán được phép, mục đích (`encrypt`, `sign`, `derive`…), chủ sở hữu/miền tin cậy, phiên bản, trạng thái (active/retired/revoked), thời gian hiệu lực, vị trí lưu giữ và quy tắc xoay khóa.
+Minimum governance metadata for a key includes: `keyId`, allowed type/algorithm, purpose (`encrypt`, `sign`, `derive`…), owner/trust domain, version, status (active/retired/revoked), validity period, storage location, and rotation rules.
 
-`keyId` chỉ là **nhãn tra cứu**, không phải bằng chứng danh tính hay bí mật. Nếu gói dữ liệu nói `keyId=server-prod`, bên nhận vẫn phải lấy khóa từ kho tin cậy và kiểm tra khóa đó có quyền dùng cho nghiệp vụ đang xét. Không cho phép phía không tin cậy tự chọn bất cứ khóa nào để qua kiểm tra.
+`keyId` is merely a **lookup label**, not proof of identity or a secret. If a data packet claims `keyId=server-prod`, the receiver must still fetch the key from a trusted store and check that the key is authorized for the operation at hand. Never let an untrusted party pick arbitrary keys to bypass checks.
 
-Các nguyên tắc thực hành:
-1. Sinh khóa bí mật bằng nguồn ngẫu nhiên mật mã phù hợp; `java.util.Random` không dành cho sinh khóa.
-2. Giới hạn phân phối và quyền dùng khóa; ưu tiên keystore/KMS/HSM theo mức rủi ro, tránh đặt khóa trong source, URL hay log.
-3. Tách khóa theo môi trường, tenant, mục đích và chiều truyền khi giao thức yêu cầu; dẫn xuất bằng KDF có nhãn/ngữ cảnh thích hợp.
-4. Xoay và thu hồi khóa bằng quy trình đã định; dữ liệu cũ có thể cần khóa giải mã cũ trong thời gian giữ liệu. Thu hồi chứng chỉ/khóa ký ảnh hưởng đến việc tin cậy chữ ký và phiên phát sinh sau đó.
-5. Xác định rõ hậu quả khi khóa bị lộ: khóa đối xứng lộ có thể ảnh hưởng bí mật và tính toàn vẹn của dữ liệu dùng nó; khóa ký lộ cho phép giả mạo chữ ký trong phạm vi tin cậy liên quan.
+Practical principles:
+1. Generate secret keys with a suitable cryptographic random source; `java.util.Random` is not for key generation.
+2. Restrict key distribution and usage rights; prefer keystore/KMS/HSM according to risk, avoiding keys in source code, URLs, or logs.
+3. Isolate keys by environment, tenant, purpose, and traffic direction as required by the protocol; derive using a KDF with appropriate labels/context.
+4. Rotate and revoke keys via defined procedures; older data may need older decryption keys during retention periods. Revoking a certificate/signing key affects trust in subsequent signatures and sessions.
+5. Clarify the blast radius of key compromise: a leaked symmetric key can affect both confidentiality and integrity of data encrypted under it; a leaked signing key allows signature forgery within the associated trust scope.
 
-## 3. Thuật toán: mỗi loại giải quyết một bài toán khác nhau
+## 3. Algorithms: Each Category Solves a Different Problem
 
-| Nhóm | Tính chất chính | Điển hình | Điều không tự bảo đảm |
+| Category | Core Property | Typical Examples | Does Not Guarantee by Itself |
 | --- | --- | --- | --- |
-| Mã hóa xác thực (AEAD) | Bí mật dữ liệu + phát hiện sửa đổi ciphertext/AAD khi kiểm tra tag thành công | AES-GCM, ChaCha20-Poly1305 | Không tự nhận diện một con người nếu nhiều bên chia sẻ khóa; không tự chống phát lại |
-| Chữ ký số | Kiểm tra dữ liệu gắn với khóa công khai tương ứng và không bị sửa sau khi ký | Ed25519, ECDSA, RSA-PSS | Không giữ bí mật nội dung; không tự chứng minh `pk` thuộc người có thẩm quyền |
-| MAC | Toàn vẹn và xác thực giữa những bên chia sẻ bí mật | HMAC-SHA256 | Không công khai xác minh; khó quy trách nhiệm một bên khi nhiều người cùng biết khóa |
-| Hash mật mã | Tạo digest có tính kháng va chạm/kháng tiền ảnh theo thiết kế | SHA-256, SHA-384 | Không xác thực trước đối thủ có thể sửa cả nội dung lẫn digest |
-| KDF | Dẫn xuất khóa có ngữ cảnh và độ dài phù hợp | HKDF, PBKDF2 (trường hợp mật khẩu) | Không thay được entropy tốt của đầu vào |
-| Trao đổi/thỏa thuận khóa | Tạo bí mật chung mà không gửi khóa phiên trực tiếp | (EC)DHE, cơ chế KEM phù hợp | Chưa xác thực đối tác nếu thiếu ràng buộc danh tính với transcript |
+| Authenticated Encryption (AEAD) | Data confidentiality + detection of ciphertext/AAD tampering when tag check succeeds | AES-GCM, ChaCha20-Poly1305 | Does not identify a single individual if multiple parties share the key; does not prevent replay |
+| Digital Signatures | Verifies data is bound to the matching public key and unmodified after signing | Ed25519, ECDSA, RSA-PSS | Does not keep content secret; does not prove `pk` belongs to an authorized party |
+| MAC | Integrity and authentication among parties sharing a secret | HMAC-SHA256 | Not publicly verifiable; hard to attribute to one party when many hold the key |
+| Cryptographic Hash | Produces a digest with collision/preimage resistance by design | SHA-256, SHA-384 | Does not authenticate against an adversary able to alter both content and digest |
+| KDF | Derives keys with proper context and output length | HKDF, PBKDF2 (for passwords) | Cannot compensate for poor input entropy |
+| Key Exchange/Agreement | Establishes a shared secret without sending the session key directly | (EC)DHE, suitable KEM mechanisms | Does not authenticate the peer without binding identity to the transcript |
 
-Ví dụ: hàm `SHA-256(message)` có thể phát hiện sự thay đổi khi digest được lấy từ **kênh tin cậy**. Nếu đối thủ thay được cả `message` và digest, hash thuần không chống được giả mạo. Muốn bảo vệ dữ liệu trước đối thủ chủ động phải chọn MAC/chữ ký hoặc AEAD tương ứng với mô hình khóa.
+For example: `SHA-256(message)` can detect changes when the digest is retrieved from a **trusted channel**. If an adversary can modify both `message` and digest, a bare hash does not prevent forgery. To protect data against an active adversary, choose a MAC/signature or AEAD aligned with the key model.
 
-**Tên thuật toán phải đủ cụ thể.** “AES” chỉ xác định block cipher, chưa chỉ ra mode và quy tắc bảo vệ toàn vẹn. Trong Java, `Cipher.getInstance("AES/GCM/NoPadding")` thể hiện transformation cụ thể; `NoPadding` ở đây không có nghĩa là bỏ authentication tag. Cũng vậy, “RSA” chưa nói là ký RSA-PSS hay mã hóa RSA-OAEP; không sử dụng “mã hóa bằng private key” như một cách thay cho chữ ký số.
+**Algorithm names must be sufficiently specific.** "AES" only specifies the block cipher, not the mode or integrity rules. In Java, `Cipher.getInstance("AES/GCM/NoPadding")` specifies the concrete transformation; `NoPadding` here does not mean omitting the authentication tag. Likewise, "RSA" does not distinguish RSA-PSS signing from RSA-OAEP encryption; never use "encrypting with a private key" as a substitute for digital signatures.
 
-## 4. Tham số: những giá trị nhỏ có thể quyết định an toàn
+## 4. Parameters: Small Values That Can Decide Security
 
-Mỗi thuật toán có tập tham số được định nghĩa riêng. Không có một cấu hình “an toàn cho mọi thứ”.
+Each algorithm defines its own parameter set. There is no single "safe for everything" configuration.
 
-| Trường hợp | Tham số cần hiểu | Ý nghĩa |
+| Case | Parameters to Understand | Meaning |
 | --- | --- | --- |
-| AES-GCM | Độ dài khóa 128/256 bit; nonce/IV, thường 96 bit; tag thường 128 bit; AAD | Giữ bí mật và kiểm tra tag. **Không lặp cặp (khóa, nonce) cho hai lần mã hóa** |
-| HKDF | Hash, `salt`, `info`, độ dài đầu ra | Dẫn xuất khóa cho từng ngữ cảnh; `info` có thể tách ứng dụng, phiên, chiều truyền |
-| Dẫn xuất từ mật khẩu | `salt` riêng, work factor/chi phí tính toán, hàm KDF | Làm tăng chi phí thử đoán và tránh cùng mật khẩu tạo cùng kết quả khi salt khác |
-| Ed25519 | Thuật toán và định dạng khóa/chữ ký; chính sách xác thực khóa công khai | Họ thuật toán đã xác định đường cong/chế độ; không trộn nhầm với ECDSA |
-| ECDSA / ECDH | Đường cong/nhóm được chấp nhận, ví dụ P-256 | Hai phía phải thống nhất nhóm hợp lệ; xác thực vẫn là bước riêng |
-| RSA-PSS | Hàm hash, MGF, độ dài salt, tham số kiểm tra | Bên ký và xác minh phải thống nhất cấu hình |
-| TLS 1.3 | Phiên bản, AEAD/HKDF hash suite, nhóm key exchange, thuật toán chữ ký, chính sách certificate | Thương lượng có kiểm tra, không để đối thủ ép chọn cấu hình không được phép |
+| AES-GCM | 128/256-bit key length; nonce/IV, typically 96 bits; tag typically 128 bits; AAD | Protects confidentiality and verifies tag. **Never repeat a (key, nonce) pair across two encryptions** |
+| HKDF | Hash, `salt`, `info`, output length | Derives context-specific keys; `info` can separate applications, sessions, and directions |
+| Password derivation | Unique `salt`, work factor/computational cost, KDF | Increases guessing cost and prevents identical passwords from yielding identical outputs under different salts |
+| Ed25519 | Algorithm and key/signature format; public-key validation policy | Algorithm family fixes the curve/mode; do not confuse with ECDSA |
+| ECDSA / ECDH | Accepted curve/group, e.g., P-256 | Both sides must agree on a valid group; authentication remains a separate step |
+| RSA-PSS | Hash function, MGF, salt length, verification parameters | Signer and verifier must agree on configuration |
+| TLS 1.3 | Version, AEAD/HKDF hash suite, key exchange group, signature algorithm, certificate policy | Checked negotiation, preventing an adversary from forcing disallowed configurations |
 
-Ba khái niệm dễ nhầm:
+Three easily confused concepts:
 
-- **Nonce/IV:** giá trị dùng cho một lần mã hóa theo quy tắc của mode; thông thường không phải bí mật. Trong AES-GCM, bảo đảm tính duy nhất cho mỗi khóa là yêu cầu sống còn. Một nonce ngẫu nhiên 96 bit dùng được trong ví dụ nhỏ, nhưng hệ thống lưu lượng lớn/phân tán cần quản lý xác suất va chạm, giới hạn số lần dùng khóa và chiến lược cấp nonce thống nhất; có thể dùng bộ đếm được phân vùng đúng cách.
-- **Salt:** thường là giá trị công khai làm đầu vào dẫn xuất/hashing, ví dụ tránh việc hai mật khẩu giống nhau tạo cùng hash khi dùng salt khác. Salt **không** thay thế khóa hoặc entropy đầu vào.
-- **Tag:** kết quả xác thực (ví dụ GCM authentication tag); bên giải mã phải kiểm tra thành công trước khi tin và sử dụng plaintext. Không bỏ qua ngoại lệ xác thực.
+- **Nonce/IV:** a value used for one encryption per mode rules; usually not secret. In AES-GCM, ensuring uniqueness per key is vital. A 96-bit random nonce works in small demos, while high-throughput/distributed systems must manage collision probability, bound key usage counts, and design a unified nonce allocation strategy; properly partitioned counters may be used.
+- **Salt:** usually a public value fed into derivation/hashing, e.g., preventing identical passwords from producing identical hashes under different salts. Salt does **not** replace keys or input entropy.
+- **Tag:** authentication output (e.g., GCM authentication tag); the decryptor must verify it succeeds before trusting and using plaintext. Never ignore authentication exceptions.
 
-**AAD (Additional Authenticated Data)** là dữ liệu không cần mã hóa nhưng cần bảo vệ tính toàn vẹn, chẳng hạn phiên bản envelope, loại thông điệp, tenantId hoặc resourceId. Bên mã hóa và giải mã phải dùng đúng cùng AAD. AAD không bảo mật giá trị trước người quan sát và không tự quyết định ai được phép truy cập.
+**AAD (Additional Authenticated Data)** is data that does not need encryption yet requires integrity protection, such as envelope version, message type, tenantId, or resourceId. Encryptor and decryptor must supply the exact same AAD. AAD does not hide values from observers and does not decide who is authorized to access the data.
 
-Hãy suy nghĩ về một sự cố: hai request của hai tenant được mã hóa bằng cùng khóa; nếu định dạng chỉ chứa ciphertext và nonce, một ciphertext hợp lệ có thể bị chuyển sang ngữ cảnh tenant khác khi ứng dụng không gắn/kiểm tra tenant ở tầng giao thức. Đặt định danh ngữ cảnh vào AAD **và** kiểm tra quyền nghiệp vụ giúp ngăn sự nhầm lẫn này. Không coi một trường client tự khai là danh tính đáng tin.
+Consider an incident: two requests from two tenants are encrypted with the same key; if the format only holds ciphertext and nonce, a valid ciphertext could be transplanted into another tenant's context if the application fails to bind/check tenant at the protocol layer. Putting context identifiers in AAD **and** enforcing business authorization prevents this confusion. Never treat a client-claimed field as a trusted identity.
 
-## 5. Giao thức: kết hợp phép toán thành lời bảo đảm có thể kiểm chứng
+## 5. Protocols: Combining Primitives into Verifiable Guarantees
 
-Một giao thức định nghĩa **vai trò, trình tự, định dạng, trạng thái, kiểm tra và xử lý lỗi**. Cùng AES-GCM và Ed25519 nhưng hai giao thức khác nhau có thể cho bảo đảm an ninh khác nhau.
+A protocol defines **roles, sequence, format, state, checks, and error handling**. Using the exact same AES-GCM and Ed25519, two different protocols can provide different security guarantees.
 
-Giao thức tối thiểu phải trả lời:
-1. Ai khởi tạo? Ai là người gửi/người nhận? Danh tính mong đợi lấy từ cấu hình hoặc ngữ cảnh tin cậy nào?
-2. Hai bên chọn thuật toán/phiên bản/tham số bằng quy tắc nào? Có danh sách cho phép và quy tắc từ chối thuật toán yếu/không rõ không?
-3. Khóa đến từ đâu: khóa cấu hình, khóa tạm, KDF, trao đổi khóa hay KMS? Có gắn khóa với phiên, vai trò và đối tác không?
-4. Những byte nào được mã hóa, ký hoặc đưa vào AAD? Dữ liệu có được mã hóa tuần tự (canonical encoding), phân định loại thông điệp và phiên bản rõ ràng không?
-5. Đối tác kiểm tra tag/chữ ký/chứng chỉ/tên máy chủ và quyền sử dụng khi nào? Có từ chối mọi lỗi trước khi xử lý business logic không?
-6. Có chống **replay**, **downgrade**, nhầm khóa/nhầm đối tác, thông điệp sai thứ tự và xử lý retry/idempotency không?
+At minimum, a protocol must answer:
+1. Who initiates? Who is sender/receiver? From which trusted config or context is expected identity obtained?
+2. By what rules do both sides pick algorithm/version/parameters? Is there an allowlist and rejection rule for weak/unknown algorithms?
+3. Where do keys come from: configured keys, ephemeral keys, KDF, key exchange, or KMS? Are keys bound to session, role, and peer?
+4. Which bytes are encrypted, signed, or placed in AAD? Is data canonically encoded with clear message-type and version framing?
+5. When does the peer verify tags/signatures/certificates/hostnames and usage permissions? Does it reject all failures before running business logic?
+6. Are **replay**, **downgrade**, key/peer confusion, out-of-order messages, and retry/idempotency handled?
 
-### 5.1. Ví dụ TLS 1.3: ràng buộc khóa, thuật toán, tham số và danh tính
+### 5.1. TLS 1.3 Example: Binding Keys, Algorithms, Parameters, and Identities
 
-Một kết nối TLS 1.3 dùng xác thực máy chủ bằng chứng chỉ thông thường có thể hình dung như sau:
+A standard TLS 1.3 connection authenticating the server via certificate can be visualized as:
 
 ```text
 Client                                              Server
   |-- ClientHello: TLS version, suites, key_share --->|
-  |<-- ServerHello: lựa chọn hợp lệ, key_share -------|
-  |             thiết lập bí mật handshake           |
+  |<-- ServerHello: valid choice, key_share ----------|
+  |             establish handshake secrets           |
   |<-- Certificate, CertificateVerify, Finished ------|
-  |  kiểm tra chain, SAN/hostname, chữ ký transcript   |
-  |-- Finished --------------------------------------->|
-  |<========== dữ liệu ứng dụng AEAD hai chiều ======>|
+  |  verify chain, SAN/hostname, transcript signature |
+  |-- Finished -------------------------------------->|
+  |<========== bidirectional AEAD application data ====>|
 ```
 
-Đây là **sơ đồ đơn giản hóa** của đường xác thực bằng chứng chỉ, không phải toàn bộ các kiểu handshake TLS 1.3. TLS 1.3 còn hỗ trợ PSK và resumption; phía client có thể được xác thực bằng certificate khi cấu hình mTLS.
+This is a **simplified diagram** of certificate-based authentication, not every TLS 1.3 handshake mode. TLS 1.3 also supports PSK and resumption; clients can be authenticated via certificates when mTLS is configured.
 
-Vai trò của từng lớp:
-- **Thuật toán/tham số:** các bên thương lượng AEAD, HKDF hash, key-share group và thuật toán chữ ký theo quy tắc TLS 1.3. Cipher suite như `TLS_AES_128_GCM_SHA256` biểu thị AEAD và hash liên quan, **không tự quyết định** nhóm trao đổi khóa hay thuật toán chữ ký.
-- **Khóa:** bí mật thu được từ key establishment/PSK được đưa qua key schedule, dẫn xuất các khóa handshake và application traffic có mục đích khác nhau. Khóa riêng dài hạn của server được dùng để chứng minh danh tính qua chữ ký khi dùng certificate; nó không được gửi qua mạng.
-- **Giao thức:** transcript handshake và các thông điệp xác nhận liên kết việc chọn tham số, khóa và quá trình xác thực; một đối thủ không thể tùy ý thay đổi chúng mà vẫn qua các kiểm tra mật mã.
-- **Danh tính:** client xác minh đường tin cậy của chứng chỉ **và** tên server mong đợi với SAN DNS/IP, cùng các quy tắc hiệu lực/chính sách áp dụng. Chỉ nhìn thấy ổ khóa hay nhận được một certificate bất kỳ không đủ để kết luận đã kết nối đúng server.
+Role of each layer:
+- **Algorithms/parameters:** parties negotiate AEAD, HKDF hash, key-share group, and signature algorithms per TLS 1.3 rules. A cipher suite like `TLS_AES_128_GCM_SHA256` indicates the AEAD and associated hash, and **does not itself dictate** the key exchange group or signature algorithm.
+- **Keys:** secrets from key establishment/PSK pass through the key schedule, deriving separate handshake and application traffic keys for distinct purposes. The server's long-term private key proves identity via signature when using certificates; it is never sent over the network.
+- **Protocol:** the handshake transcript and confirmation messages cryptographically bind parameter selection, keys, and authentication; an adversary cannot arbitrarily alter them and still pass cryptographic checks.
+- **Identity:** the client validates the certificate trust path **and** expected server name against SAN DNS/IP entries, along with applicable validity/policy rules. Seeing a padlock or receiving any arbitrary certificate is insufficient to conclude you reached the right server.
 
-Kết nối HTTPS bảo vệ một **kênh vận chuyển** tới endpoint đã xác thực theo chính sách; không tự bảo đảm người dùng được quyền thao tác, bảo vệ dữ liệu sau khi TLS termination, hay ngăn ứng dụng phía server xử lý sai quyền.
+An HTTPS connection protects a **transport channel** to an endpoint authenticated under policy; it does not authorize the user's actions, protect data after TLS termination, or prevent server-side authorization bugs.
 
-### 5.2. AEAD không tự ngăn phát lại
+### 5.2. AEAD Does Not Prevent Replay on Its Own
 
-Một bản tin có `ciphertext + tag` hợp lệ vẫn có thể là bản tin **cũ** được gửi lại. Tag xác minh tính toàn vẹn và bên sở hữu khóa, không mặc định xác minh tính mới của sự kiện. Giao thức ứng dụng cần `messageId`/sequence number/counter/timestamp+window hoặc token dùng một lần, kết hợp trạng thái kiểm tra, phù hợp với retry và idempotency. Bản thân các byte được kiểm tra toàn vẹn phải bao gồm ngữ cảnh dùng để chống replay.
+A message with a valid `ciphertext + tag` can still be an **old** message re-sent. The tag verifies integrity and key possession, not inherently the freshness of the event. Application protocols need `messageId`/sequence numbers/counters/timestamps+windows or one-time tokens paired with state checks aligned with retries and idempotency. The integrity-protected bytes themselves must include the anti-replay context.
 
-## 6. Danh tính: từ “đúng khóa” đến “đúng thực thể được phép”
+## 6. Identity: From "Right Key" to "Right Authorized Entity"
 
-Xét hai câu hỏi khác nhau:
+Consider two distinct questions:
 
-- **Cryptographic authentication:** bản tin/handshake có do bên giữ khóa phù hợp tạo ra không?
-- **Identity binding:** khóa được tin là thuộc về dịch vụ/người dùng/thiết bị nào, và điều đó được xác minh dựa trên nguồn tin cậy nào?
+- **Cryptographic authentication:** was the message/handshake created by a party holding the matching key?
+- **Identity binding:** which service/user/device is the key trusted to belong to, and on what trusted source is that verified?
 
-Sau đó còn câu hỏi **authorization**: thực thể đã xác thực có quyền thực hiện thao tác cụ thể trên tài nguyên này không? Xác thực thành công không thay cho phân quyền.
+Then comes **authorization**: is the authenticated entity allowed to perform this specific operation on this resource? Successful authentication does not replace authorization.
 
-### 6.1. Chứng chỉ số và bản đồ danh tính–khóa
+### 6.1. Digital Certificates and Identity–Key Mapping
 
-Chứng chỉ X.509 chứa khóa công khai, các thuộc tính nhận dạng (ví dụ `subjectAltName`), thời hạn và ràng buộc sử dụng; chữ ký của CA hỗ trợ kiểm tra ràng buộc ấy theo chuỗi tin cậy. Khi xác thực HTTPS, thông thường phải kiểm tra chain đến trust anchor phù hợp, hostname/SAN, validity và các chính sách sử dụng khóa/chứng chỉ có liên quan; kiểm tra thu hồi tùy chính sách và cấu hình của hệ thống. Một chứng chỉ tự ký không mặc nhiên được tin; nó chỉ phù hợp nếu được tin cậy/ghim bằng quy trình riêng đã thiết lập.
+An X.509 certificate holds a public key, identifying attributes (e.g., `subjectAltName`), validity period, and usage constraints; a CA's signature supports verifying that binding along a trust chain. For HTTPS verification, typically validate the chain to a proper trust anchor, hostname/SAN, validity, and applicable key/certificate usage policies; revocation checks depend on system policy and configuration. A self-signed certificate is not trusted by default; it is suitable only if explicitly trusted/pinned via an established process.
 
-Một certificate hợp lệ cho `api.example.com` không đồng nghĩa mọi lời gọi từ server đó đều có quyền quản trị cơ sở dữ liệu. Certificate và danh tính kết nối là **đầu vào** cho chính sách phân quyền, không phải chính sách phân quyền.
+A valid certificate for `api.example.com` does not mean every call from that server holds database admin privileges. Certificates and connection identity are **inputs** to authorization policies, not authorization policies themselves.
 
-Ví dụ ràng buộc:
-- `service-account/orders-prod` → một hoặc nhiều khóa/certificate được registry đáng tin cấp/quản lý.
-- `api.example.com` → certificate có SAN phù hợp và chain đến CA được tin; client đã có **tên mong đợi** từ URL/cấu hình.
-- `user:alice` → được ứng dụng xác thực qua cơ chế danh tính (session/OIDC, v.v.) và ánh xạ vào quyền; không tự gán user chỉ từ keyId do client gửi.
+Binding examples:
+- `service-account/orders-prod` → one or more keys/certificates issued/managed by a trusted registry.
+- `api.example.com` → certificate with matching SAN and chain to a trusted CA; the client already has the **expected name** from URL/config.
+- `user:alice` → authenticated by the application via identity mechanisms (session/OIDC, etc.) and mapped to permissions; never assign a user based solely on a client-sent `keyId`.
 
-Trong thực tế, một danh tính có thể thay khóa khi rotation; một khóa có thể phục vụ một scope hạn chế; khóa đã thu hồi hoặc hết hạn phải được xử lý theo chính sách của thời điểm xác minh.
+In practice, an identity can change keys during rotation; a key can serve a restricted scope; revoked or expired keys must be handled according to policy at verification time.
 
-### 6.2. Vì sao “verify(signature) = true” vẫn có thể bị lừa?
+### 6.2. Why Can "verify(signature) = true" Still Be Fooled?
 
-Đối thủ tạo cặp khóa riêng của họ, ký lệnh `transfer 100` và gửi cả chữ ký lẫn khóa công khai do họ tạo. Hàm verify đương nhiên trả `true`. Nếu server dùng khóa công khai vừa nhận làm nguồn duy nhất để quyết định người ký là giám đốc tài chính, hệ thống đã mắc **identity/key substitution**.
+An adversary generates their own key pair, signs `transfer 100`, and sends both the signature and their self-generated public key. Verification naturally returns `true`. If the server uses that received public key as the sole source to conclude the CFO signed it, the system suffers from **identity/key substitution**.
 
-Cách đúng: lấy khóa/certificate từ registry, trust store hoặc quy trình xác thực đã được kiểm tra; xác định chủ thể được phép ký loại lệnh đó; bảo đảm chữ ký bao phủ chính xác nội dung và ngữ cảnh (phiên bản, loại lệnh, tài khoản, tenant, nonce/requestId) trước khi thực thi.
+The right approach: obtain keys/certificates from a vetted registry, trust store, or verification flow; confirm the principal is authorized to sign that command type; ensure the signature covers exact content and context (version, command type, account, tenant, nonce/requestId) before execution.
 
-**Chữ ký không mã hóa thông điệp.** Chữ ký hợp lệ còn không mặc nhiên tạo ra “chối bỏ không thể” trong mọi bối cảnh pháp lý/vận hành: điều đó phụ thuộc việc bảo vệ khóa, chính sách định danh và chứng cứ hệ thống.
+**Signatures do not encrypt messages.** A valid signature also does not automatically establish "non-repudiation" in every legal/operational context: that depends on key protection, identity policies, and system evidence.
 
-## 7. Bài toán xuyên suốt: gửi lệnh thanh toán giữa hai dịch vụ
+## 7. End-to-End Problem: Sending Payment Commands Between Two Services
 
-Giả sử `orders-service` gửi `payment-service` yêu cầu thanh toán. Mục tiêu là: không lộ số liệu trên đường truyền, không bị sửa người nhận/số tiền, không chấp nhận request lặp và chỉ cho đúng dịch vụ/tenant gọi API.
+Suppose `orders-service` sends a payment request to `payment-service`. Goals: do not expose figures in transit, prevent modifying recipient/amount, reject duplicate requests, and allow only the right service/tenant to call the API.
 
-Một thiết kế có thể gồm các lớp sau:
+A design may combine these layers:
 
-1. **Danh tính kết nối:** client đặt URL máy chủ mong đợi; dùng TLS 1.3/HTTPS với certificate verification. Nếu áp dụng mTLS, payment-service còn xác thực danh tính client dựa trên certificate và ánh xạ sang service principal.
-2. **Quyền ứng dụng:** xác thực access token hoặc cơ chế service authorization theo chính sách; kiểm tra issuer, audience, thời gian hiệu lực, quyền và tenant; không coi mTLS hoặc token hợp lệ là quyền tuyệt đối trên mọi khoản thanh toán.
-3. **Giao thức nghiệp vụ:** định nghĩa body và định dạng chính xác, `requestId` duy nhất, version và TTL. Server lưu/truy vấn idempotency key để xử lý retry an toàn và từ chối lệnh phát lại trái chính sách.
-4. **Mã hóa bổ sung nếu cần:** nếu dữ liệu phải được bảo vệ vượt qua TLS termination, mã hóa AEAD ở tầng thông điệp; khóa chỉ tới được endpoint ứng dụng mong muốn, bao gồm `version|tenantId|requestId|messageType` trong AAD được kiểm tra.
-5. **Xác nhận provenance nếu cần:** ký canonical representation của lệnh bằng khóa ký đã gắn với orders-service. Payment-service kiểm tra chữ ký bằng khóa đã đăng ký đáng tin, rồi kiểm tra quyền của principal trước khi xử lý.
-6. **Vòng đời:** rotate key và certificate, giám sát lỗi xác thực, quản lý thời gian và lưu log audit phù hợp; không log bí mật, plaintext nhạy cảm hoặc private key.
+1. **Connection identity:** client configures the expected server URL; uses TLS 1.3/HTTPS with certificate verification. If mTLS is applied, `payment-service` also verifies client identity via certificate and maps it to a service principal.
+2. **Application authorization:** validates access tokens or service authorization per policy; checks issuer, audience, validity window, permissions, and tenant; never treat mTLS or a valid token as blanket authority over all payments.
+3. **Business protocol:** defines exact body and framing, unique `requestId`, version, and TTL. Server stores/queries an idempotency key to handle retries safely and reject policy-violating replays.
+4. **Additional encryption if needed:** if data must stay protected beyond TLS termination, apply message-level AEAD; keys reach only the intended application endpoints, binding `version|tenantId|requestId|messageType` in verified AAD.
+5. **Provenance verification if needed:** sign the canonical representation of the command with a signing key bound to `orders-service`. `payment-service` verifies the signature with a trusted registered key, then checks principal authorization before processing.
+6. **Lifecycle:** rotate keys and certificates, monitor verification failures, manage clock skew, and keep proper audit logs; never log secrets, sensitive plaintext, or private keys.
 
-Ví dụ envelope cho dữ liệu mã hóa ứng dụng (chỉ minh họa format, không phải tiêu chuẩn giao thức):
+Example envelope for application-encrypted data (format illustration only, not a protocol standard):
 
 ```json
 {
@@ -199,13 +199,13 @@ Ví dụ envelope cho dữ liệu mã hóa ứng dụng (chỉ minh họa format
 }
 ```
 
-Trong thiết kế thực tế, cần quy định **serialization chuẩn** của AAD (thứ tự trường, encoding UTF-8, độ dài/phân cách, version), thuật toán cho phép cố định ở cấu hình đáng tin, nguồn dữ liệu mà server dùng xác định tenant/request, cách từ chối giá trị không hợp lệ và quản lý keyId. Không tin `algorithm` hoặc `keyId` chỉ vì client khai báo trong JSON. Việc chứa AAD rõ ràng trong envelope hỗ trợ kiểm tra tính toàn vẹn, nhưng không làm AAD trở thành bí mật.
+In a real design, specify **canonical serialization** of AAD (field order, UTF-8 encoding, length/delimiters, version), pin allowed algorithms in trusted config, determine tenant/request from authoritative server sources, reject invalid values, and govern `keyId`. Never trust `algorithm` or `keyId` merely because a client declared them in JSON. Including cleartext AAD in the envelope supports integrity checks, but does not make AAD confidential.
 
-## 8. Java 17+: chữ ký hợp lệ vẫn có thể đến từ khóa không đáng tin
+## 8. Java 17+: A Valid Signature Can Still Come From an Untrusted Key
 
-Ví dụ chạy độc lập này mô phỏng hai cặp khóa Ed25519: một public key đã được bên nhận **tin cậy cấu hình trước**, và một cặp khóa **do người gửi không đáng tin tự sinh**. Kẻ tấn công ký chính nội dung bằng khóa của họ; bên nhận phải xác minh bằng **khóa của danh tính mong đợi**, không bằng public key tùy ý gửi kèm request.
+This standalone example simulates two Ed25519 key pairs: one public key **pre-configured as trusted** by the receiver, and one key pair **self-generated by an untrusted sender**. The attacker signs the payload with their own key; the receiver must verify using the **expected identity's key**, not an arbitrary public key bundled with the request.
 
-Lưu thành `IdentityBindingDemo.java`:
+Save as `IdentityBindingDemo.java`:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -241,97 +241,97 @@ public class IdentityBindingDemo {
 }
 ```
 
-Chạy bằng JDK 17+:
+Run with JDK 17+:
 
 ```bash
 javac --release 17 IdentityBindingDemo.java
 java IdentityBindingDemo
 ```
 
-Kết quả khi chạy với provider Ed25519 chuẩn:
+Output when run with a standard Ed25519 provider:
 
 ```text
 Untrusted key verifies own signature: true
 Trusted key verifies attacker signature: false
 ```
 
-**Vì sao hai dòng khác nhau?** Phép toán chữ ký đúng với khóa của attacker, nhưng **khóa đó không thuộc danh tính mà ứng dụng dự định tin cậy**. Đây là lỗi nhầm khóa/danh tính (`key substitution`), không phải lỗi toán học Ed25519. Trong sản phẩm thực, bên nhận lấy public key từ registry/chứng chỉ được tin cậy, gắn với sender, tenant, purpose và trạng thái thu hồi. Còn phải kiểm tra rằng signer được **phân quyền** ký đúng loại lệnh và bytes của lệnh bao gồm thông tin ngữ cảnh cần xác thực.
+**Why do the two lines differ?** The signature math holds for the attacker's key, yet **that key does not belong to the identity the application intends to trust**. This is a key/identity confusion error (`key substitution`), not an Ed25519 mathematical flaw. In real production systems, the receiver fetches the public key from a trusted registry/certificate, bound to sender, tenant, purpose, and revocation status. It must also check that the signer is **authorized** to sign that command type and that the signed bytes include required context.
 
-Mô phỏng tạo cả hai key trong RAM, không có certificate/PKI và không chứng minh danh tính ngoài đời. Nó **chỉ chứng minh** vì sao `Signature.verify` không đủ để cấp quyền giao dịch.
+The simulation generates both keys in RAM, lacks certificates/PKI, and does not prove real-world identity. It **only proves** why `Signature.verify` alone is insufficient to authorize a transaction.
 
-## 9. Thêm tham số và giao thức để buộc quyền vào bản tin
+## 9. Adding Parameters and Protocol Rules to Bind Authority to Messages
 
-Với lệnh thanh toán `tenant=t-17, requestId=r-204, pay=100`, đừng chỉ ký chuỗi `pay=100` rồi xem kết quả là chấp nhận toàn bộ thao tác. Một hợp đồng thông điệp có thể yêu cầu:
+For payment command `tenant=t-17, requestId=r-204, pay=100`, do not just sign `pay=100` and accept the entire operation. A message contract may require:
 
-1. **Khóa và identity:** lookup `keyId` trong registry đáng tin, xác minh khóa thuộc `orders-service`, còn hiệu lực và được phép ký lệnh của tenant này.
-2. **Thuật toán và tham số:** khóa ký/verify dùng cùng thuật toán và cấu hình được allowlist; với dữ liệu mã hóa AEAD, thống nhất khóa, nonce duy nhất, tag và AAD version/tenant/requestId.
-3. **Giao thức:** quy định chính xác bytes được ký, dạng canonical encoding, message type, hạn hiệu lực, requestId và kiểm tra chống replay.
-4. **Thực thi:** chỉ sau verification và authorization mới chạy nghiệp vụ; sử dụng idempotency key để không cộng tiền hai lần khi có retry.
+1. **Key and identity:** look up `keyId` in a trusted registry, verify the key belongs to `orders-service`, is active, and is authorized to sign commands for this tenant.
+2. **Algorithms and parameters:** signing/verifying keys use an allowlisted algorithm and configuration; for AEAD-encrypted payloads, enforce matching key, unique nonce, tag, and version/tenant/requestId AAD.
+3. **Protocol:** specify exact signed bytes, canonical encoding, message type, expiration, `requestId`, and anti-replay checks.
+4. **Execution:** run business logic only after verification and authorization succeed; use an idempotency key so retries do not credit funds twice.
 
-Tách **xác minh phép toán** (`verify == true`, tag hợp lệ) khỏi **đánh giá ngữ cảnh** (đúng khóa, đúng người, đúng tenant, đúng thời điểm và quyền). Đó là đóng góp chính của quan hệ khóa–thuật toán–tham số–giao thức–danh tính.
+Separate **operation verification** (`verify == true`, valid tag) from **context evaluation** (right key, right principal, right tenant, right time, and right permission). That is the core contribution of the key–algorithm–parameter–protocol–identity relationship.
 
-## 10. Những lỗi thiết kế phổ biến nhìn qua năm thành phần
+## 10. Common Design Flaws Viewed Through the Five Components
 
-| Hiện tượng | Thành phần bị thiếu hoặc gắn sai | Hậu quả và hướng xử lý |
+| Symptom | Missing or Misbound Component | Consequence and Remediation |
 | --- | --- | --- |
-| Dùng AES-ECB vì “AES mạnh” | Thuật toán/mode | Lộ mẫu dữ liệu, thiếu xác thực; dùng AEAD theo nhu cầu bảo mật |
-| Dùng lại nonce GCM với cùng khóa | Tham số + quản lý khóa | Có thể phá bảo mật nghiêm trọng; quản lý nonce unique, giới hạn dùng khóa |
-| Dùng SHA-256 thuần để “ký” dữ liệu | Thuật toán | Đối thủ sửa cả dữ liệu và hash; dùng MAC/chữ ký theo mô hình tin cậy |
-| Verify chữ ký với public key do request tự gửi | Danh tính + trust | Xác minh chữ ký của kẻ tấn công; tra khóa từ nguồn tin cậy và kiểm tra quyền |
-| Tắt hostname verification/TrustManager luôn tin | Danh tính + giao thức | TLS mã hóa tới sai đối tác; bật xác minh chain và endpoint identity |
-| Chỉ kiểm tra tag AEAD, không kiểm tra messageId | Giao thức/trạng thái | Replay hợp lệ; thêm freshness, sequence và idempotency |
-| Tin `keyId` hoặc `alg` do client cung cấp không hạn chế | Giao thức + cấu hình | Chọn nhầm khóa/thuật toán hoặc algorithm confusion; áp allowlist và binding |
-| Dùng chung một khóa cho nhiều mục đích không cách ly | Khóa + KDF | Tăng phạm vi sự cố và nhầm ngữ cảnh; tách khóa/ngữ cảnh, kiểm soát usage |
-| Xác thực user thành công nhưng không kiểm tra quyền tài nguyên | Danh tính + phân quyền | Truy cập chéo tenant/IDOR; kiểm tra authorization từng yêu cầu |
-| Chấp nhận plaintext dù xác thực thất bại | Giao thức + xử lý lỗi | Đưa dữ liệu chưa đáng tin vào nghiệp vụ; fail closed trước khi xử lý |
-| Ký JSON nhưng mỗi bên serialize khác nhau | Giao thức + encoding | Verify thất bại hoặc tạo ambiguity; chuẩn hóa byte representation, version |
+| Using AES-ECB because "AES is strong" | Algorithm/mode | Leaks data patterns, lacks authentication; use AEAD per security needs |
+| Reusing GCM nonce with the same key | Parameters + key management | Can severely break security; ensure unique nonces, bound key usage |
+| Using plain SHA-256 to "sign" data | Algorithm | Adversaries modify both data and hash; use MAC/signature per trust model |
+| Verifying signature with a request-supplied public key | Identity + trust | Verifies attacker's signature; look up keys from trusted sources and check permissions |
+| Disabling hostname verification / trusting all TrustManager certs | Identity + protocol | TLS encrypts to the wrong peer; enable chain and endpoint identity checks |
+| Checking only AEAD tag without checking `messageId` | Protocol/state | Valid replays succeed; add freshness, sequence, and idempotency |
+| Blindly trusting client-provided `keyId` or `alg` | Protocol + configuration | Wrong key/algorithm selection or algorithm confusion; enforce allowlists and binding |
+| Sharing one key across multiple purposes without isolation | Key + KDF | Expands blast radius and context confusion; isolate keys/contexts, enforce usage |
+| User authenticates yet resource permissions go unchecked | Identity + authorization | Cross-tenant access/IDOR; check authorization per request |
+| Accepting plaintext despite verification failure | Protocol + error handling | Feeds untrusted data into business logic; fail closed before processing |
+| Signing JSON while each side serializes differently | Protocol + encoding | Verification fails or creates ambiguity; canonicalize byte representation, version |
 
-Các lỗi này lý giải vì sao **chỉ thay AES-128 bằng AES-256** không thể tự sửa thiết kế thiếu xác thực, sai nonce hay sai danh tính.
+These flaws explain why **simply upgrading AES-128 to AES-256** cannot fix a design with missing authentication, nonce reuse, or broken identity binding.
 
-## 11. Quy trình thiết kế và tự kiểm tra
+## 11. Design and Self-Review Process
 
-Khi đọc hoặc xây một tính năng bảo mật, lần lượt trả lời:
+When reading or building a security feature, answer in sequence:
 
-1. **Mục tiêu:** cần confidentiality, integrity, peer authentication, freshness, authorization và audit đến mức nào? Đối thủ có thể đọc/chặn/sửa/phát lại thông điệp hoặc kiểm soát client không?
-2. **Định danh:** ai được phép là sender/receiver? Expected identity lấy từ cấu hình đáng tin hay dữ liệu client tự khai? Cơ chế trust anchor/key registry là gì?
-3. **Khóa:** sinh/trao đổi/dẫn xuất tại đâu, ai có quyền dùng, scope nào, cách lưu và rotate/revoke? Có tách khóa theo mục đích và session không?
-4. **Thuật toán và tham số:** chọn primitive cho đúng mục tiêu; mode, hash, nonce, tag, salt, curve, KDF context và size được ràng buộc/kiểm tra ra sao?
-5. **Giao thức:** định nghĩa version, role, canonical encoding, trình tự handshake/bản tin, AAD, signature scope, timeout, failure handling, chống downgrade và replay.
-6. **Ủy quyền:** sau khi chứng minh danh tính, có kiểm tra tenant/resource/operation được phép tại đúng thời điểm không?
-7. **Vận hành:** có theo dõi lỗi xác thực, vòng đời khóa, số lần dùng nonce, thu hồi danh tính, tương thích phiên bản và migration mà không làm giảm kiểm tra an ninh không?
-8. **Kiểm thử:** thử sai khóa, sai nonce, sai tag, sai AAD, sai public key, certificate sai hostname/CA, message sửa đổi, replay, downgrade, chéo tenant và người dùng thiếu quyền. Các trường hợp phải bị từ chối theo chính sách.
+1. **Goals:** to what degree are confidentiality, integrity, peer authentication, freshness, authorization, and auditing required? Can adversaries read/intercept/modify/replay messages or control clients?
+2. **Identity:** who are the allowed sender/receiver? Is expected identity taken from trusted config or self-declared client input? What is the trust anchor/key registry?
+3. **Keys:** where are keys generated/exchanged/derived, who can use them, under what scope, and how are they stored and rotated/revoked? Are keys isolated by purpose and session?
+4. **Algorithms and parameters:** pick primitives for the exact goal; how are mode, hash, nonce, tag, salt, curve, KDF context, and sizes bound/checked?
+5. **Protocol:** define version, roles, canonical encoding, handshake/message sequence, AAD, signature scope, timeouts, failure handling, downgrade protection, and anti-replay.
+6. **Authorization:** after proving identity, are tenant/resource/operation permissions checked at the right moment?
+7. **Operations:** are verification failures, key lifecycles, nonce counts, identity revocation, version compatibility, and migrations monitored without weakening security checks?
+8. **Testing:** test wrong key, wrong nonce, wrong tag, wrong AAD, wrong public key, wrong hostname/CA certificate, tampered messages, replays, downgrades, cross-tenant calls, and unauthorized users. All must be rejected per policy.
 
-### Câu hỏi kiểm tra nhanh
+### Quick-Check Questions
 
-**Câu 1.** Alice và Bob chia sẻ cùng khóa AES-GCM. Bob giải mã thành công và kiểm tra tag đúng. Bob có bằng chứng mật mã rằng *chính Alice*, chứ không phải người khác cũng nắm khóa, đã gửi không?
+**Q1.** Alice and Bob share an AES-GCM key. Bob decrypts successfully and validates the tag. Does Bob have cryptographic proof that *specifically Alice*, and nobody else holding the key, sent it?
 
-**Trả lời:** Không. Tag cho biết bản tin phù hợp với khóa đối xứng và tham số đã kiểm tra. Nếu nhiều bên giữ khóa, không phân biệt duy nhất ai đã tạo bản tin; cần cơ chế nhận dạng và ràng buộc bổ sung.
+**Answer:** No. The tag shows the message matches the symmetric key and checked parameters. When multiple parties hold the key, it cannot uniquely distinguish who created the message; additional identification and binding mechanisms are needed.
 
-**Câu 2.** Chữ ký Ed25519 `verify=true` với public key do request cung cấp có đủ để xác nhận “request của quản trị viên” không?
+**Q2.** Is an Ed25519 signature returning `verify=true` with a request-supplied public key enough to confirm "an administrator's request"?
 
-**Trả lời:** Không. Phải biết public key đó được gắn với quản trị viên bởi nguồn tin cậy nào và còn hiệu lực/quyền ký hay không; nếu không, đối thủ có thể tự tạo khóa và chữ ký.
+**Answer:** No. You must know which trusted source bound that public key to the administrator and whether it remains valid and authorized to sign; otherwise, an adversary can generate their own key and signature.
 
-**Câu 3.** Nonce và AAD đều có thể gửi công khai. Vì sao cần chúng?
+**Q3.** Both nonce and AAD can be sent publicly. Why are they needed?
 
-**Trả lời:** Nonce cho phép tạo lần mã hóa khác nhau và, với GCM, không được lặp cặp khóa–nonce; AAD ràng buộc dữ liệu ngữ cảnh vào phép kiểm tra tag mà không mã hóa chúng. Cả hai là tham số an ninh, không cần giữ bí mật.
+**Answer:** The nonce ensures distinct encryptions and, in GCM, must never repeat a key–nonce pair; AAD binds contextual data to the tag check without encrypting it. Both are security parameters, not secrets.
 
-**Câu 4.** Kênh TLS đã bảo vệ request; có còn cần phân quyền và idempotency không?
+**Q4.** TLS already protects the request channel; are authorization and idempotency still needed?
 
-**Trả lời:** Có. TLS bảo vệ kênh và xác thực endpoint theo chính sách TLS; quyền trên đơn hàng và xử lý request lặp thuộc giao thức/nghiệp vụ ứng dụng.
+**Answer:** Yes. TLS protects the channel and authenticates endpoints per TLS policy; order permissions and duplicate request handling belong to the application protocol/business logic.
 
-**Câu 5.** Khi rotate certificate TLS, khóa AES mã hóa dữ liệu lịch sử có bắt buộc thay theo không?
+**Q5.** When rotating a TLS certificate, must AES keys encrypting historical data also be rotated?
 
-**Trả lời:** Không nhất thiết. Khóa xác thực TLS, traffic keys và khóa dữ liệu lưu trữ có mục đích/vòng đời khác nhau. Việc rotate được quyết định theo chính sách, mức độ sự cố và phạm vi sử dụng của từng khóa.
+**Answer:** Not necessarily. TLS authentication keys, traffic keys, and data-at-rest keys have distinct purposes and lifecycles. Rotation is decided by policy, incident scope, and each key's usage boundaries.
 
-## 12. Tóm tắt mối quan hệ
+## 12. Relationship Summary
 
-**Thuật toán** xác định phép toán mật mã; **khóa** cấp năng lực mật mã cho bên nắm giữ; **tham số** xác định cách phép toán được dùng cho từng thông điệp; **giao thức** định nghĩa các bước tạo, thương lượng, kiểm tra và xử lý kết quả; **danh tính** gắn kết khóa và phiên với thực thể được tin cậy, còn **authorization** quyết định thực thể ấy được làm gì.
+**Algorithms** define cryptographic operations; **keys** grant cryptographic capability to holders; **parameters** specify how an operation applies to each message; **protocols** define steps to construct, negotiate, verify, and process outputs; **identities** bind keys and sessions to trusted entities, while **authorization** decides what those entities may do.
 
-Một kết quả mật mã chỉ có ý nghĩa bảo mật trong **ngữ cảnh đã được kiểm tra**. Câu hỏi quan trọng nhất không phải “chúng ta đang dùng thuật toán nào?” mà là: **“Đúng khóa của ai, với tham số nào, trong giao thức nào, để chứng minh điều gì cho đúng đối tác và đúng hành động?”**
+A cryptographic result holds security meaning only within a **verified context**. The most important question is not "which algorithm are we using?" but rather: **"Whose exact key, with which parameters, inside which protocol, proving what to the right peer and for the right action?"**
 
-### Tham khảo chính thức
+### Official References
 
 - RFC 8446 — TLS 1.3: https://www.rfc-editor.org/rfc/rfc8446
 - RFC 5869 — HKDF: https://www.rfc-editor.org/rfc/rfc5869
-- NIST SP 800-38D — GCM/GMAC và yêu cầu IV: https://csrc.nist.gov/pubs/sp/800/38/d/final
+- NIST SP 800-38D — GCM/GMAC and IV requirements: https://csrc.nist.gov/pubs/sp/800/38/d/final
 - Java Cryptography Architecture (JCA), Java SE 17: https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html

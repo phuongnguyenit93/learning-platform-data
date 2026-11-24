@@ -1,205 +1,205 @@
-# 2.6 Đồng bộ timestamp, múi giờ và uptime khi ghép nhiều nguồn dữ liệu
+# 2.6 Aligning Timestamps, Timezones, and Uptimes Across Multiple Data Sources
 
-Khi điều tra một sự cố JVM, dữ liệu thường đến từ nhiều nơi: log ứng dụng, log GC, Java Flight Recorder (JFR), thread dump, metrics hệ điều hành, Kubernetes, Prometheus và distributed traces. Các nguồn này có thể cùng ghi về **một sự kiện thật** nhưng thể hiện thời gian theo **UTC, giờ địa phương, epoch, uptime từ lúc JVM chạy, uptime từ lúc máy khởi động hoặc thời điểm hệ thống giám sát nhận dữ liệu**. Nếu ghép trực tiếp các con số chưa quy đổi, timeline có thể bị lệch nhiều giờ, nhầm thứ tự nhân quả hoặc tạo ra “độ trễ âm”.
+When investigating a JVM incident, data usually arrives from many places: application logs, GC logs, Java Flight Recorder (JFR), thread dumps, OS metrics, Kubernetes, Prometheus, and distributed traces. These sources may all record **the same real event** yet express time in **UTC, local time, epoch, uptime since JVM start, uptime since OS boot, or the time the monitoring system ingested the data**. If un-normalized numbers are stitched together directly, timelines can shift by hours, invert causal order, or invent "negative latency".
 
-Mục tiêu của bài là xây dựng **một timeline chẩn đoán đáng tin cậy**: hiểu ngữ nghĩa từng đồng hồ, chuẩn hóa thời điểm về UTC khi có đủ căn cứ, chuyển uptime bằng mốc tham chiếu thuộc đúng tiến trình hoặc boot, ghi độ không chắc chắn, và giữ nguyên dữ liệu gốc để kiểm toán.
+This lesson aims to build **a trustworthy diagnostic timeline**: understand the semantics of each clock, normalize points in time to UTC when justified, convert uptimes using reference anchors belonging to the exact process or boot, record uncertainty, and preserve raw data for auditing.
 
-## 1. Hai câu hỏi khác nhau: “khi nào?” và “mất bao lâu?”
+## 1. Two Different Questions: "When?" and "How Long?"
 
-Một sự kiện có ít nhất hai khía cạnh thời gian:
+An event has at least two temporal aspects:
 
-- **Thời điểm tuyệt đối (absolute time, wall-clock time):** “GC bắt đầu lúc 08:14:05.400 UTC”. Dùng để đặt sự kiện từ nhiều máy lên cùng timeline.
-- **Khoảng thời gian đã trôi qua (elapsed duration):** “Một tác vụ chạy 150 ms”. Dùng để đo latency, thời lượng pause hoặc timeout; ưu tiên một đồng hồ đo thời gian trôi qua có tính đơn điệu trong cùng môi trường.
+- **Absolute time (wall-clock time):** "GC started at 08:14:05.400 UTC". Used to place events from multiple machines onto the same timeline.
+- **Elapsed duration:** "A task ran for 150 ms". Used to measure latency, pause length, or timeouts; prefer a monotonic elapsed clock within the same environment.
 
-Những đại lượng này không tự động chuyển đổi được cho nhau:
+These quantities do not convert automatically into one another:
 
-- `2026-10-29T08:14:05.400Z` là một thời điểm UTC có ý nghĩa toàn cục **theo độ chính xác của đồng hồ nguồn**.
-- `905400 ms` kể từ lúc JVM bắt đầu **không có nghĩa gì trên timeline toàn cục** nếu chưa biết nó thuộc JVM nào và mốc JVM start.
-- `8045400 ms` kể từ lúc hệ điều hành boot khác hoàn toàn với JVM uptime, dù đơn vị đều là mili giây.
-- `System.nanoTime()` trả giá trị từ gốc thời gian tùy ý; chỉ phép **trừ hai giá trị trong cùng JVM** mới là khoảng đo có ý nghĩa.
-- Thời điểm collector nhận được log thường **muộn hơn** lúc log được sinh ra; đó là một trường thời gian khác.
+- `2026-10-29T08:14:05.400Z` is a UTC instant with global meaning **up to the accuracy of the source clock**.
+- `905400 ms` since JVM start **means nothing on a global timeline** until you know which JVM it belongs to and its JVM start anchor.
+- `8045400 ms` since OS boot is completely different from JVM uptime, even though both are in milliseconds.
+- `System.nanoTime()` returns values from an arbitrary origin; only **subtracting two values within the same JVM** produces a meaningful interval.
+- Collector ingest time is usually **later** than when the log was emitted; that is a different timestamp field.
 
-Một câu hỏi chẩn đoán như “GC có xảy ra trong lúc p99 tăng không?” cần **thời điểm và khoảng kéo dài của GC**, một khoảng thời gian p99 được đo, nguồn đồng hồ, độ lệch đồng hồ giữa các node, cùng phạm vi workload. Chỉ thấy hai dòng log gần nhau chưa đủ kết luận quan hệ nhân quả.
+A diagnostic question such as "Did GC happen while p99 spiked?" requires **the start time and duration of GC**, the measured p99 window, clock sources, clock skew across nodes, and workload scope. Seeing two log lines close together is not enough to conclude causality.
 
-## 2. Nhận diện đúng loại đồng hồ
+## 2. Identify the Exact Clock Type
 
-| Kiểu thời gian | Ý nghĩa và cách xuất hiện | Có thể ghép trực tiếp với nguồn khác? | Giới hạn |
+| Time Type | Meaning and Appearance | Can Be Merged Directly Across Sources? | Limitations |
 | --- | --- | --- | --- |
-| **UTC instant** | `2026-10-29T08:14:05.250Z`; Java `Instant`, ISO 8601 có `Z` | Có, sau khi đánh giá sai số và thời điểm phát sinh | Đồng hồ host có thể sai hoặc bị điều chỉnh |
-| **Wall-clock có offset** | `2026-10-29T15:14:05.250+07:00` | Có: đổi về cùng `Instant` | Offset cho biết vị trí trên timeline; không cho biết độ chính xác đồng hồ |
-| **Giờ địa phương không kèm zone/offset** | `2026-10-29 15:14:05` | **Không**; cần metadata zone và quy tắc DST tại ngày đó | Có thể mơ hồ hoặc không tồn tại khi chuyển giờ mùa hè |
-| **Epoch timestamp** | Giây/ms/µs/ns từ `1970-01-01T00:00:00Z` | Có nếu biết **đơn vị** và semantics | Nhầm giây với mili giây gây lệch hàng chục nghìn năm; ns trong số thực có thể mất chính xác |
-| **JVM uptime** | `905400ms` hoặc `905.400s` từ lúc JVM bắt đầu | Chỉ sau khi xác định đúng JVM instance và mốc tham chiếu | Reset khi JVM restart; thời điểm start có thể chỉ xấp xỉ |
-| **OS boot uptime / monotonic** | `[8045.400000]` trong journal theo thời gian kể từ boot | Chỉ sau khi xác định đúng máy/boot ID và mốc | Reset sau reboot; phụ thuộc clock và chế độ suspend/virtualization |
-| **High-resolution elapsed clock** | `System.nanoTime()` | Chỉ so hiệu số trong **cùng JVM** | Không phải epoch nanoseconds; không dùng số nguyên thô để ghép nhiều JVM |
-| **Event duration** | JFR `duration=120 ms`, span duration, GC pause 18 ms | So sánh độ dài sau khi xác minh đơn vị | Không tự chỉ ra event bắt đầu vào lúc nào |
-| **Observed/ingest/scrape time** | Collector nhận log lúc 08:14:06; Prometheus sample lúc scrape | Được nếu cần phân tích ingestion/scrape | Không mặc định là lúc sự kiện nghiệp vụ xảy ra |
+| **UTC instant** | `2026-10-29T08:14:05.250Z`; Java `Instant`, ISO 8601 with `Z` | Yes, after assessing skew and emission time | Host clock can be wrong or adjusted |
+| **Wall-clock with offset** | `2026-10-29T15:14:05.250+07:00` | Yes: convert to the same `Instant` | Offset locates position on timeline; does not tell clock accuracy |
+| **Local time without zone/offset** | `2026-10-29 15:14:05` | **No**; requires zone metadata and DST rules on that date | Can be ambiguous or non-existent across DST transitions |
+| **Epoch timestamp** | Seconds/ms/µs/ns since `1970-01-01T00:00:00Z` | Yes if **unit** and semantics are known | Confusing seconds and milliseconds shifts dates by millennia; ns in floats loses precision |
+| **JVM uptime** | `905400ms` or `905.400s` since JVM started | Only after identifying exact JVM instance and anchor | Resets on JVM restart; start time may be approximate |
+| **OS boot uptime / monotonic** | `[8045.400000]` in journal as time since boot | Only after identifying exact host/boot ID and anchor | Resets on reboot; depends on clock and suspend/virtualization behavior |
+| **High-resolution elapsed clock** | `System.nanoTime()` | Only subtract differences within **the same JVM** | Not epoch nanoseconds; never use raw integers to align multiple JVMs |
+| **Event duration** | JFR `duration=120 ms`, span duration, GC pause 18 ms | Compare lengths after verifying units | Does not tell when the event started on its own |
+| **Observed/ingest/scrape time** | Collector received log at 08:14:06; Prometheus sample at scrape | Yes if analyzing ingestion/scraping | Does not automatically equal when the business event happened |
 
-**Phân biệt rõ:** “đúng múi giờ” và “đúng đồng hồ” là hai vấn đề độc lập. Chuyển từ `+07:00` sang `Z` sửa *cách biểu diễn* cùng một instant; nó không sửa được một node đang chạy nhanh hơn giờ chuẩn 200 ms.
+**Distinguish clearly:** "right timezone" and "accurate clock" are two independent issues. Converting `+07:00` to `Z` fixes *how* the same instant is written; it does not fix a node whose clock runs 200 ms fast relative to reference time.
 
-### 2.1. Wall clock và monotonic clock trong Java
+### 2.1. Wall Clock and Monotonic Clock in Java
 
-- `Instant.now()` và `System.currentTimeMillis()` dựa vào thời gian hệ thống, dùng cho timestamp có thể trao đổi giữa tiến trình. Chúng chịu ảnh hưởng của đồng bộ giờ, thay đổi thủ công và độ phân giải đồng hồ.
-- `System.nanoTime()` dành cho đo elapsed time; gốc tùy ý và không liên hệ trực tiếp với UTC. Lấy `endNs - startNs` trong cùng JVM để đo thời lượng; không lưu `nanoTime` như UNIX epoch.
-- `ManagementFactory.getRuntimeMXBean().getStartTime()` trả **thời điểm khởi chạy JVM xấp xỉ**, theo epoch milliseconds; `getUptime()` trả JVM uptime theo milliseconds.
-- `ZoneId.systemDefault()` chỉ quyết định cách hiển thị ngày giờ địa phương theo cấu hình tiến trình; nó **không sửa** giờ UTC của host.
+- `Instant.now()` and `System.currentTimeMillis()` rely on system wall time, used for timestamps exchanged across processes. They are affected by clock sync, manual adjustments, and clock resolution.
+- `System.nanoTime()` is for measuring elapsed time; its origin is arbitrary and unrelated to UTC. Compute `endNs - startNs` within the same JVM for durations; never store `nanoTime` as UNIX epoch.
+- `ManagementFactory.getRuntimeMXBean().getStartTime()` returns **approximate JVM startup time** in epoch milliseconds; `getUptime()` returns JVM uptime in milliseconds.
+- `ZoneId.systemDefault()` only controls local date/time formatting per process configuration; it **does not change** the host's UTC clock.
 
-Trong chẩn đoán, nên lưu cả `event_time_utc` và `elapsed_duration_ms` khi mỗi thông tin có ích. Một process có thể ghi đúng duration bằng monotonic clock ngay cả khi wall clock bị điều chỉnh, nhưng dùng wall clock đã lệch để so thứ tự sự kiện giữa hai máy vẫn có thể sai.
+In diagnostics, record both `event_time_utc` and `elapsed_duration_ms` when both are useful. A process can still record accurate durations using a monotonic clock even if wall clock is stepped, whereas using a skewed wall clock to order events across two machines can still mislead.
 
-## 3. Chuẩn hóa múi giờ: một instant, nhiều cách viết
+## 3. Timezone Normalization: One Instant, Many Formats
 
-Cùng một thời điểm có thể biểu diễn như sau:
+The same point in time can be written as:
 
-| Biểu diễn nguồn | Chuẩn hóa UTC | Ghi chú |
+| Source Representation | Normalized UTC | Notes |
 | --- | --- | --- |
-| `2026-10-29T15:14:05.250+07:00` | `2026-10-29T08:14:05.250Z` | Trừ offset +07:00 **một lần** |
-| `2026-10-29T08:14:05.250Z` | Giữ nguyên | `Z` tương ứng UTC+00:00 |
-| `1793261645.25` UNIX seconds | `2026-10-29T08:14:05.250Z` | Số giây có phần thập phân |
-| `1793261645250` UNIX milliseconds | `2026-10-29T08:14:05.250Z` | Số mili giây nguyên |
+| `2026-10-29T15:14:05.250+07:00` | `2026-10-29T08:14:05.250Z` | Subtract offset +07:00 **once** |
+| `2026-10-29T08:14:05.250Z` | Unchanged | `Z` corresponds to UTC+00:00 |
+| `1793261645.25` UNIX seconds | `2026-10-29T08:14:05.250Z` | Seconds with fractional part |
+| `1793261645250` UNIX milliseconds | `2026-10-29T08:14:05.250Z` | Integer milliseconds |
 
-**Không được** đọc `15:14+07:00` thành `15:14Z` rồi tiếp tục cộng/trừ 7 giờ. Offset đã được tính khi chuyển `OffsetDateTime` sang `Instant`.
+**Never** read `15:14+07:00` as `15:14Z` and then add/subtract 7 hours again. The offset is already applied when converting `OffsetDateTime` to `Instant`.
 
-### 3.1. Offset khác ZoneId
+### 3.1. Offset Differs from ZoneId
 
-- `+07:00` là **offset cố định** so với UTC tại một thời điểm.
-- `Asia/Ho_Chi_Minh` là **zone ID** có quy tắc thời gian theo lịch sử.
-- `America/New_York` là zone có quy tắc DST; cùng đồng hồ địa phương `01:30` tại ngày chuyển giờ mùa thu có thể ứng với **hai instant** khác nhau. Mùa xuân có các khoảng giờ địa phương **không tồn tại**.
+- `+07:00` is a **fixed offset** relative to UTC at a point in time.
+- `Asia/Ho_Chi_Minh` is a **zone ID** with historical timezone rules.
+- `America/New_York` is a zone with DST rules; the same local clock `01:30` on fall-back day can map to **two distinct instants**. In spring, certain local wall-clock intervals **do not exist**.
 
-Một chuỗi `2026-11-01 01:30:00` trên hệ thống New York không tự đủ để quyết định trước hay sau lần đổi giờ; cần offset, zone, dữ liệu hệ thống và ngữ cảnh. `LocalDateTime` không biểu diễn được một instant duy nhất khi thiếu zone/offset. Không tự gắn zone mặc định của **máy đang phân tích** vào log lấy từ máy khác.
+A string `2026-11-01 01:30:00` on a New York host cannot determine on its own whether it occurred before or after the DST fallback; you need offset, zone, system metadata, and context. `LocalDateTime` cannot represent a unique instant without a zone/offset. Never attach the **analyzing machine's** default zone to logs pulled from another host.
 
-Nếu log chỉ có dạng `dd/MM/yyyy HH:mm:ss` mà không có offset, đặt trạng thái **chưa xác định** cho đến khi xác minh cấu hình timezone của nguồn *ở thời điểm log được tạo*. Nếu buộc phải giả định một zone để điều tra, ghi nguyên giả định và giữ bản raw.
+If logs have only `dd/MM/yyyy HH:mm:ss` with no offset, mark status **unresolved** until verifying the source's timezone config *at the time the log was generated*. If forced to assume a zone to proceed with investigation, explicitly record the assumption and keep the raw log.
 
-### 3.2. Precision khác accuracy
+### 3.2. Precision Differs from Accuracy
 
-Timestamp có 9 chữ số sau dấu chấm chưa chắc đồng hồ chính xác tới nano giây. Cần phân biệt:
+A timestamp with 9 digits after the decimal point does not mean the clock is accurate to the nanosecond. Distinguish:
 
-- **Precision / resolution:** độ mịn của trường số hoặc nguồn lấy mẫu (giây, mili giây, micro giây, nano giây).
-- **Accuracy:** mức gần thời gian thực, chịu ảnh hưởng của NTP/PTP, lệch node, clock drift và timestamp ghi muộn.
-- **Uncertainty:** khoảng sai số được ước lượng, ví dụ `±20 ms`.
-- **Event time vs observed time:** ứng dụng tạo sự kiện trước; collector có thể nhận sau do hàng đợi, buffer hoặc mạng.
+- **Precision / resolution:** granularity of the numeric field or sampling source (seconds, milliseconds, microseconds, nanoseconds).
+- **Accuracy:** closeness to true reference time, affected by NTP/PTP, node skew, clock drift, and delayed timestamping.
+- **Uncertainty:** estimated error margin, e.g., `±20 ms`.
+- **Event time vs. observed time:** the application emits the event first; the collector may receive it later due to queues, buffers, or network.
 
-Đừng làm tròn về giây nếu cần so GC pause 20 ms với request timeout; cũng không in thêm chữ số `.000000` rồi ngụ ý đo được độ chính xác tốt hơn.
+Do not round down to whole seconds when correlating a 20 ms GC pause with request timeouts; likewise, do not pad `.000000` digits implying higher measurement accuracy than actually exists.
 
-### 3.3. Tránh nhầm đơn vị epoch
+### 3.3. Avoid Confusing Epoch Units
 
-Giá trị `1793261645250` trong ví dụ là **milliseconds**; chia 1.000 mới ra `1793261645.25` seconds. Không dự đoán đơn vị chỉ từ số chữ số, vì dữ liệu cũ, thời điểm âm, số thập phân và format riêng có thể phá quy tắc kinh nghiệm đó. Đặt trường hoặc metadata như `timestamp_unit=ms`, `epoch=unix`.
+The value `1793261645250` in the example is **milliseconds**; dividing by 1,000 gives `1793261645.25` seconds. Do not guess units solely from digit count, because historical dates, negative timestamps, decimals, and custom formats break that heuristic. Include explicit fields or metadata like `timestamp_unit=ms`, `epoch=unix`.
 
-Trong Java, dùng `Instant.ofEpochMilli(epochMs)` cho ms; với giây và nano, dùng `Instant.ofEpochSecond(seconds, nanos)`. Khi xuất sang JavaScript, JSON hoặc bảng phân tích, tránh chuyển epoch nanoseconds 19 chữ số qua số thực IEEE-754 double vì dễ mất đơn vị ns; ưu tiên chuỗi nguyên hoặc kiểu số nguyên 64-bit có hỗ trợ.
+In Java, use `Instant.ofEpochMilli(epochMs)` for ms; for seconds and nanos, use `Instant.ofEpochSecond(seconds, nanos)`. When exporting to JavaScript, JSON, or analysis tables, avoid passing 19-digit epoch nanoseconds through IEEE-754 double floats because nanosecond precision is lost; prefer strings or true 64-bit integer types where supported.
 
-## 4. Uptime phải gắn với **đúng gốc thời gian**
+## 4. Uptimes Must Be Bound to the **Exact Time Origin**
 
-Có ít nhất ba gốc khác nhau trong một hệ thống:
+There are at least three distinct origins in a system:
 
-1. **Boot của node/OS:** Linux monotonic/boottime theo một boot instance; systemd journal có thông tin boot và có thể hiển thị `short-monotonic`.
-2. **Khởi chạy JVM:** Java unified log `uptime`/`uptimemillis` và RuntimeMXBean uptime tính từ JVM startup.
-3. **Khởi chạy task/request/recording:** `System.nanoTime()` đo elapsed từ một mốc tùy chọn; JFR recording có start/end time riêng.
+1. **Node/OS boot:** Linux monotonic/boottime per boot instance; systemd journal tracks boot IDs and can display `short-monotonic`.
+2. **JVM launch:** Java unified logging `uptime`/`uptimemillis` and RuntimeMXBean uptime count from JVM startup.
+3. **Task/request/recording start:** `System.nanoTime()` measures elapsed from an arbitrary origin; JFR recordings have their own start/end times.
 
-**Mỗi gốc phải đi cùng danh tính của nó**. PID có thể tái sử dụng sau restart; pod name có thể tiếp tục tồn tại khi container restart; boot uptime có thể reset sau reboot. Nên mang theo node ID, boot ID, container ID, JVM start instant, PID, deployment version, recording ID khi cần.
+**Each origin must carry its identity**. PIDs can be reused after restarts; pod names can persist across container restarts; boot uptime resets on reboot. Carry node ID, boot ID, container ID, JVM start instant, PID, deployment version, and recording ID as needed.
 
-### 4.1. Phép chuyển uptime → UTC có điều kiện
+### 4.1. Conditional Conversion from Uptime → UTC
 
-Nếu ta có một **mốc ghép đồng thời** cho cùng loại đồng hồ:
+If you have a **simultaneous anchor pair** for the same clock:
 
-- Mốc `anchor_utc` là thời điểm tuyệt đối đã chuẩn hóa.
-- Mốc `anchor_uptime_ms` là uptime tương ứng của **chính tiến trình/JVM đó**.
-- Sự kiện có `event_uptime_ms`.
+- `anchor_utc` is the normalized absolute timestamp.
+- `anchor_uptime_ms` is the corresponding uptime of **that exact process/JVM**.
+- The event has `event_uptime_ms`.
 
-Khi clock chạy ổn định trong đoạn quan sát:
+When the clock runs steadily over the observed interval:
 
 ```text
 event_utc_estimate = anchor_utc
                    + (event_uptime_ms - anchor_uptime_ms)
 
-Ví dụ: anchor_utc=08:14:05.000Z, JVM uptime tại anchor=905000ms
-        event_uptime=905400ms
-        => event_utc ước tính = 08:14:05.400Z
+Example: anchor_utc=08:14:05.000Z, JVM uptime at anchor=905000ms
+         event_uptime=905400ms
+         => estimated event_utc = 08:14:05.400Z
 ```
 
-Đây là **ước lượng theo anchor**, không phải một định luật luôn chính xác: thu thập mốc có trễ, các clock có thể bị điều chỉnh hoặc drift. Nếu có vài anchor ở nhiều thời điểm, kiểm tra độ lệch để phát hiện clock step/slew. Với dữ liệu quan trọng, mang theo `uncertainty_ms` thay vì ghi thời điểm tính ra như chân lý chính xác tuyệt đối.
+This is an **anchor-based estimate**, not an infallible law: capturing the anchor has lag, and clocks can be stepped or drift. If multiple anchors exist across time, check residuals to detect clock steps/slews. For critical data, attach `uncertainty_ms` rather than treating calculated timestamps as absolute exact truth.
 
-Một cách đơn giản hơn khi log GC có **cả `utctime` và `uptimemillis` trên cùng dòng** là dùng timestamp UTC của dòng đó và thời gian uptime của nó để kiểm chứng chéo. Đây là lý do nên bật đồng thời hai decorator khi cấu hình log chẩn đoán ngay từ đầu.
+A simpler approach when GC logs include **both `utctime` and `uptimemillis` on the same line** is to use that line's UTC timestamp and uptime to cross-verify. This is why enabling both decorators together when configuring diagnostic logging upfront pays off.
 
-### 4.2. Đừng dùng uptime của OS thay cho JVM
+### 4.2. Never Substitute OS Uptime for JVM Uptime
 
-Giả sử trong **ví dụ tổng hợp**:
+Suppose in a **synthetic example**:
 
-- OS boot lúc `2026-10-29T06:00:00Z`.
-- JVM start lúc `2026-10-29T07:59:00Z`.
-- Có GC ở `2026-10-29T08:14:05.400Z`.
+- OS boot at `2026-10-29T06:00:00Z`.
+- JVM start at `2026-10-29T07:59:00Z`.
+- A GC occurs at `2026-10-29T08:14:05.400Z`.
 
-Tại thời điểm GC, JVM uptime là **905.400 s**, còn OS uptime là **8.045,400 s** (2 giờ, 14 phút, 5,400 giây). Nếu cộng `905.400 s` vào OS boot, ta đặt GC sai sớm gần **1 giờ 59 phút**. Mọi phép ghép phải dùng đúng clock origin và đúng instance.
+At the GC instant, JVM uptime is **905.400 s**, whereas OS uptime is **8,045.400 s** (2 hours, 14 minutes, 5.400 seconds). Adding `905.400 s` to OS boot places the GC nearly **1 hour 59 minutes** too early. Every conversion must use the matching clock origin and exact instance.
 
-Với container, không mặc định thời điểm pod được tạo trùng JVM start: container có thể restart; init container và app container khởi động khác lúc; PID namespace cũng có thể khiến PID nhìn thấy từ host khác PID bên trong container. Một số môi trường còn có clock/time namespace hoặc thay đổi thời gian do VM suspend; kiểm tra ngữ cảnh thực tế trước khi suy ra mốc.
+With containers, do not assume pod creation time equals JVM start time: containers can restart; init containers and app containers start at different times; PID namespaces can also make the PID seen from the host differ from the PID inside the container. Some environments also have time namespaces or clock shifts from VM suspend; check actual runtime context before inferring origins.
 
-## 5. Mỗi nguồn chẩn đoán có ngữ nghĩa thời gian riêng
+## 5. Each Diagnostic Source Has Its Own Time Semantics
 
-### 5.1. Application logs
+### 5.1. Application Logs
 
-Ưu tiên một trường timestamp có offset rõ ràng, chẳng hạn `2026-10-29T08:14:05.250Z`; dùng `Instant` hoặc formatter ISO 8601 chuẩn. Nếu ứng dụng ghi local time, phải biết zone/offset thực tế của process khi log tạo. Ghi kèm request/trace ID, service, instance/container, PID hoặc process start ID khi có ích.
+Prefer a timestamp field with an explicit offset, such as `2026-10-29T08:14:05.250Z`; use `Instant` or a standard ISO 8601 formatter. If the app logs local time, know the process's actual zone/offset when the log was emitted. Include request/trace ID, service, instance/container, PID, or process start ID when helpful.
 
-Phân biệt `event_time` (lúc code ghi sự kiện) và `observed_time`/`ingest_time` (lúc agent hoặc collector nhận). Trong pipeline bất đồng bộ, cùng một dòng có thể đến dashboard muộn; việc sort theo thời điểm ingest có thể đảo thứ tự hai sự kiện.
+Distinguish `event_time` (when code emitted the event) and `observed_time`/`ingest_time` (when the agent or collector received it). In async pipelines, lines can arrive late at dashboards; sorting by ingest time can invert the order of two events.
 
-### 5.2. GC logs của HotSpot JDK 17+
+### 5.2. HotSpot JDK 17+ GC Logs
 
-JVM unified logging hỗ trợ các decorator chính:
+JVM unified logging supports these main decorators:
 
-| Decorator `-Xlog` | Ý nghĩa | Cách ghép |
+| `-Xlog` Decorator | Meaning | How to Align |
 | --- | --- | --- |
-| `utctime` | Timestamp UTC trên dòng log | Dùng làm instant nếu host clock đủ tin cậy |
-| `time` | Timestamp theo timezone hiển thị của môi trường | Parse cả offset, tránh mặc định UTC |
-| `uptime` | Giây từ khi JVM start | Chỉ ghép trong cùng JVM |
-| `uptimemillis` | Mili giây từ khi JVM start | Thuận tiện map sang instant với anchor |
-| `timemillis` | Giá trị wall-clock epoch milliseconds | Xác minh đơn vị và timestamp semantics |
-| `timenanos` | Từ nguồn `System.nanoTime()`, **không phải epoch ns** | Không dùng như UNIX epoch |
-| `pid`, `tid`, `tags`, `level` | Metadata gắn dòng log với tiến trình/loại sự kiện | Hạn chế nhầm nguồn và cảnh báo |
+| `utctime` | UTC timestamp on log line | Use as instant if host clock is trustworthy |
+| `time` | Timestamp in environment's display timezone | Parse offset too; avoid assuming UTC |
+| `uptime` | Seconds since JVM start | Align only within the same JVM |
+| `uptimemillis` | Milliseconds since JVM start | Convenient to map to instant via anchor |
+| `timemillis` | Wall-clock epoch milliseconds | Verify unit and timestamp semantics |
+| `timenanos` | From `System.nanoTime()`, **not epoch ns** | Never treat as UNIX epoch |
+| `pid`, `tid`, `tags`, `level` | Metadata tying log line to process/event type | Prevents mixing sources and warnings |
 
-Ví dụ cấu hình lúc khởi động ứng dụng; đường dẫn và kích thước file là ví dụ, điều chỉnh theo môi trường:
+Example startup configuration; paths and file sizes are examples, adjust per environment:
 
 ```bash
 java '-Xlog:gc*,safepoint:file=gc.log:utctime,uptimemillis,pid,level,tags:filecount=5,filesize=20M' -jar app.jar
 ```
 
-Thao tác này gắn cả **UTC** và **JVM uptime** vào GC/safepoint log. Xem `java -Xlog:help` trên đúng phiên bản JDK để xác nhận decorators, tags và quyền ghi file. Đừng thay đổi logging trên production chỉ để phục vụ ví dụ học tập; cần cân nhắc overhead và quy trình cấu hình.
+This stamps both **UTC** and **JVM uptime** onto GC/safepoint logs. Check `java -Xlog:help` on your exact JDK version to confirm decorators, tags, and file write permissions. Do not alter production logging solely for an educational example; weigh overhead and change procedures.
 
-Một dòng minh họa có thể được đọc thành “vào khoảng UTC 08:14:05.400, JVM instance X đạt uptime 905.400 s và xảy ra một GC event”. Nhãn event, duration, pause phase phải đọc từ **thông điệp GC thật**; không suy ra thời lượng pause chỉ từ timestamp của một dòng.
+An illustrative line can be read as "around UTC 08:14:05.400, JVM instance X reached uptime 905.400 s and a GC event occurred". Event labels, durations, and pause phases must be read from **the actual GC message**; never infer pause length from a single line's timestamp alone.
 
 ### 5.3. Java Flight Recorder (JFR)
 
-JFR ghi các sự kiện có **start time, duration** và thuộc tính riêng (GC, allocation, lock, I/O...). File recording có mốc start/stop. Phần mềm xem JFR có thể hiển thị theo timezone người phân tích; ghi lại zone đang hiển thị và chuyển về `Instant` trước khi ghép với log khác.
+JFR records events with **start time, duration**, and event-specific fields (GC, allocation, locks, I/O, etc.). Recording files have start/stop bounds. JFR viewers may display times in the analyst's local timezone; record the active display zone and convert to `Instant` before merging with other logs.
 
-Sự kiện JFR kéo dài là **một khoảng [start, end]**; `end = start + duration`, không ép về một điểm duy nhất. Nếu event bắt đầu lúc `08:14:05.300Z` và duration `120 ms` thì nó kết thúc `08:14:05.420Z`. Một GC tại `08:14:05.400Z` nằm trong khoảng đó, nhưng sự trùng thời gian chưa chứng minh GC gây ra toàn bộ latency. Xem loại event, thread, correlation ID, phase và dữ liệu định lượng.
+A non-instant JFR event is **an interval [start, end]**; `end = start + duration`, not collapsed to a single point. If an event starts at `08:14:05.300Z` with `duration = 120 ms`, it ends at `08:14:05.420Z`. A GC at `08:14:05.400Z` falls inside that interval, yet temporal overlap alone does not prove GC caused all the latency. Inspect event type, thread, correlation IDs, phases, and quantitative metrics.
 
-Ví dụ xem metadata/tóm tắt và một loại event trong file đã thu thập:
+Example commands to inspect summary metadata and one event type in a collected file:
 
 ```bash
 jfr summary incident.jfr
 jfr print --events jdk.GarbageCollection incident.jfr
 ```
 
-Đọc output theo phiên bản JDK và công cụ hiển thị; khi cần so từng mili giây nên xuất thời gian tuyệt đối có zone rõ ràng, ghi thêm metadata của recording và kiểm tra giới hạn precision.
+Interpret output according to JDK version and viewer; when millisecond comparison is needed, export absolute times with explicit zones, record recording metadata, and check precision limits.
 
-### 5.4. Thread dump và snapshot từ lệnh chẩn đoán
+### 5.4. Thread Dumps and Diagnostic Command Snapshots
 
-Một thread dump là **ảnh chụp trong quá trình lệnh chạy**, có thể mất thời gian thu thập. Không giả định timestamp hiển thị ở đầu file chính là thời điểm của mọi thread state trong file. Nếu dump không có timestamp tin cậy, kẹp nó giữa hai lần lấy UTC từ cùng host:
+A thread dump is **a snapshot taken while the command executes**, which can take non-zero time to capture. Do not assume a header timestamp at the top of the file represents the exact instant of every thread state inside the file. If a dump lacks a trustworthy timestamp, bracket it between two UTC readings on the same host:
 
 ```bash
-# Minh họa trên Linux, với PID ví dụ của đúng JVM.
+# Linux example, with the exact JVM's hypothetical PID.
 date -u '+%Y-%m-%dT%H:%M:%S.%NZ'
 jcmd 12345 Thread.print -l > thread-dump.txt
 date -u '+%Y-%m-%dT%H:%M:%S.%NZ'
 ```
 
-Bây giờ biết **cửa sổ thu thập** của dump thay vì gán một thời điểm chính xác giả tạo. Ghi PID, JVM start, host, timezone và nguyên nhân thu thập. Nếu có nhiều dump, chú ý thời gian thực hiện khác nhau; đừng so thời điểm file được upload lên storage với thời điểm dump được tạo.
+Now you know the **capture window** of the dump instead of inventing a false exact instant. Record PID, JVM start, host, timezone, and capture reason. With multiple dumps, note varying capture durations; do not confuse storage upload time with dump creation time.
 
-### 5.5. Linux kernel, systemd journal và thời gian OS boot
+### 5.5. Linux Kernel, systemd Journal, and OS Boot Time
 
-- `journalctl -b -o short-iso-precise` hiển thị journal của một boot với timestamp dạng ISO có precision cao.
-- `journalctl -b -o short-monotonic` hiển thị timestamp theo monotonic clock của boot đó.
-- `journalctl --list-boots` giúp xác định boot instance khi có reboot.
-- `/proc/uptime` thể hiện uptime hệ thống, **không phải thời gian JVM đã chạy**.
-- `dmesg` có thể in timestamp tương đối từ boot; cách đổi sang giờ dân sự bằng tùy chọn của công cụ có thể sai khi đồng hồ hệ thống được chỉnh hoặc hệ thống suspend/resume.
+- `journalctl -b -o short-iso-precise` shows journal entries for one boot with high-precision ISO timestamps.
+- `journalctl -b -o short-monotonic` shows timestamps on that boot's monotonic clock.
+- `journalctl --list-boots` helps identify boot instances across reboots.
+- `/proc/uptime` shows OS uptime, **not how long the JVM has been running**.
+- `dmesg` can print relative timestamps since boot; converting them to wall time via tool flags can be wrong if system wall clock was adjusted or the system suspended/resumed.
 
-Minh họa lệnh đọc-only trên máy Linux có systemd:
+Illustrative read-only commands on a Linux machine running systemd:
 
 ```bash
 journalctl --list-boots
@@ -208,140 +208,140 @@ journalctl -b -o short-monotonic
 cat /proc/uptime
 ```
 
-Khi ghép mono time với wall clock, gắn **boot ID** và mốc UTC từ chính boot đó; hai dòng `[123.456]` ở hai boot khác nhau không có quan hệ so sánh trực tiếp. Nếu timezone hiển thị khác giữa máy và terminal, chỉ chuyển **biểu diễn** sang UTC chứ không sửa giá trị thời gian tại nguồn.
+When mapping monotonic time to wall time, attach **boot ID** and a UTC anchor from that exact boot; two `[123.456]` lines from two different boots have no direct ordering relationship. If display timezone differs between host and terminal, convert only the **representation** to UTC without altering source time values.
 
-### 5.6. Container/Kubernetes
+### 5.6. Containers / Kubernetes
 
-Lúc rà soát pod cần phân biệt thời điểm:
+When reviewing a pod, distinguish the timestamps of:
 
-- Pod được tạo, scheduled, container bắt đầu, JVM bắt đầu, container restart, liveness/readiness event và lúc hệ thống thu log.
-- Kubelet/CRI log có timestamp riêng; `kubectl logs --timestamps` có thể bổ sung timestamp từ container log stream. Timestamp do runtime gán không luôn trùng timestamp ứng dụng tự ghi trong payload.
-- `kubectl logs --previous` (khi có) giúp xem log instance trước của container restart; dùng container ID và restart count để tách hai đời JVM.
-- Giờ địa phương hiển thị bên trong container có thể khác timezone host dù chúng chia sẻ wall clock nền; sự khác biệt chuỗi hiển thị không nhất thiết là clock skew.
+- Pod created, scheduled, container started, JVM started, container restarted, liveness/readiness events, and log collection time.
+- Kubelet/CRI logs carry their own timestamps; `kubectl logs --timestamps` prepends container stream timestamps. Runtime-assigned timestamps do not always match timestamps the application wrote inside its payload.
+- `kubectl logs --previous` (when available) shows logs from the previous container instance after a restart; use container ID and restart count to separate two JVM lifetimes.
+- Local time displayed inside a container can differ from host timezone even though they share the underlying wall clock; differing formatted strings are not necessarily clock skew.
 
-Một sự kiện OOMKilled hoặc restart từ Kubernetes Events là bằng chứng theo thời gian cần đối chiếu với pod/worker instance cụ thể, đồng thời lưu ý event có thể được ghi hay truyền đến control plane sau thời điểm tác động thực tế.
+An `OOMKilled` or restart event in Kubernetes Events is temporal evidence to correlate with the exact pod/worker instance, while keeping in mind events may be recorded or delivered to the control plane after actual impact.
 
-### 5.7. Prometheus và dashboard metrics
+### 5.7. Prometheus and Dashboard Metrics
 
-Prometheus lưu **timestamp cho mẫu metric** thường ở epoch seconds; mặc định timestamp phản ánh thời gian thu nhận/scrape hoặc thời gian do exporter cung cấp nếu phù hợp. Một mẫu CPU lúc `08:14:06` có thể đại diện giá trị tại thời điểm scrape; nó **không** có nghĩa mọi lần sử dụng CPU trong cửa sổ xảy ra đúng `08:14:06`.
+Prometheus stores **sample timestamps** typically in epoch seconds; by default, timestamps reflect scrape/collection time or exporter-supplied timestamps when applicable. A CPU sample at `08:14:06` represents the value at scrape time; it does **not** mean all CPU usage in the window happened strictly at `08:14:06`.
 
-- `timestamp(metric)` trong PromQL trả epoch seconds của mẫu được chọn.
-- `rate(counter[5m])` biểu diễn tốc độ ước lượng trong một **cửa sổ**, không phải sự kiện xảy ra tại một điểm.
-- Histogram p95/p99 trong dashboard là kết quả tổng hợp trên interval; phải biết step, query window, label filter và cách histogram được xây dựng.
-- Grafana hoặc trình duyệt có thể hiển thị cùng timestamp thành giờ địa phương người xem; kiểm tra dashboard timezone trước khi báo cáo “lệch 7 giờ”.
+- `timestamp(metric)` in PromQL returns epoch seconds of the selected sample.
+- `rate(counter[5m])` represents an estimated rate over a **window**, not a point-in-time event.
+- Dashboard histogram p95/p99 values are interval aggregates; know step, query window, label filters, and how the histogram was built.
+- Grafana or the browser may render the same timestamp in the viewer's local timezone; verify dashboard timezone before reporting a "7-hour offset".
 
-Nếu dùng metric để đối chiếu JFR/GC, đặt **cửa sổ metric** cạnh **khoảng start–end của sự kiện**, không khẳng định những điểm dữ liệu khác ngữ nghĩa thời gian là đồng thời tuyệt đối.
+When aligning metrics with JFR/GC, place the **metric window** beside the **event's start–end interval**, rather than claiming points with different temporal semantics are strictly simultaneous.
 
-### 5.8. Distributed tracing và telemetry liên node
+### 5.8. Distributed Tracing and Cross-Node Telemetry
 
-OpenTelemetry span có start/end timestamp và trace/span ID. Log record có thể phân biệt **Timestamp** (khi sự kiện xảy ra) và **ObservedTimestamp** (khi được quan sát). Khi hai service chạy trên hai node có clock lệch, child span có thể nhìn như bắt đầu trước parent hoặc request “tới trước khi gửi” dù thứ tự nhân quả thực vẫn hợp lệ.
+OpenTelemetry spans have start/end timestamps and trace/span IDs. Log records can distinguish **Timestamp** (when the event occurred) and **ObservedTimestamp** (when it was observed). When two services run on nodes with clock skew, a child span can appear to start before its parent or a request can look like it "arrived before it was sent" even though actual causality is valid.
 
-Để đối chiếu, ưu tiên trace ID, parent-child, request/response ID, giao thức và duration đo trong cùng process, đồng thời kiểm tra clock sync của các node. Không tự “sửa” bằng cách kéo một span vài trăm mili giây để biểu đồ đẹp hơn khi chưa xác định độ lệch thật.
+To correlate, prioritize trace IDs, parent-child links, request/response IDs, protocol semantics, and durations measured within the same process, while checking clock sync across nodes. Do not manually "fix" charts by sliding a span by hundreds of milliseconds without measuring the real skew.
 
-## 6. Đồng bộ clock giữa các máy: NTP/PTP, drift, step và skew
+## 6. Clock Synchronization Across Hosts: NTP/PTP, Drift, Step, and Skew
 
-Các máy có thể cùng dùng UTC nhưng **không cùng chỉ đúng một thời điểm**:
+Machines can all use UTC while **not agreeing on the exact current instant**:
 
-- **Clock offset/skew:** chênh lệch giữa đồng hồ nguồn và đồng hồ tham chiếu. Ví dụ máy A nhanh hơn giờ chuẩn 120 ms.
-- **Clock drift:** độ lệch thay đổi dần theo thời gian do oscillator, VM, nhiệt độ hoặc phần cứng.
-- **Slew:** dịch tốc độ đồng hồ dần dần để điều chỉnh thời gian.
-- **Step:** nhảy đồng hồ tức thời, có thể khiến wall timestamp lùi hoặc nhảy tiến.
-- **Suspend, migration, reboot:** có thể tạo khoảng trống và thay đổi hành vi các loại elapsed clock hoặc reset uptime.
+- **Clock offset/skew:** difference between source clock and reference clock. E.g., host A runs 120 ms fast relative to reference time.
+- **Clock drift:** offset changing gradually over time due to oscillators, VMs, temperature, or hardware.
+- **Slew:** gradually adjusting clock speed to bring time back into alignment.
+- **Step:** instantaneous clock jump, which can move wall-clock timestamps backward or forward.
+- **Suspend, migration, reboot:** can create gaps, alter elapsed clock behavior, or reset uptimes.
 
-NTP/chrony hoặc PTP giúp điều chỉnh clock; **không mặc định sai số = 0**. Thu trạng thái dịch vụ đồng bộ thời gian của **từng node**, offset ước lượng, nguồn tham chiếu, thời điểm kiểm tra và độ bất định. Lệnh như `timedatectl`, `chronyc tracking` có thể giúp khảo sát tùy OS và cách triển khai; đừng coi một lệnh chạy trên máy phân tích chứng minh tất cả node trong cluster đang đồng bộ tốt.
+NTP/chrony or PTP synchronize clocks; **never assume error = 0**. Collect time-sync status from **each node**, estimated offset, reference source, check timestamp, and uncertainty. Commands like `timedatectl` or `chronyc tracking` help inspect depending on OS and setup; do not assume running a command on your workstation proves every node in the cluster is tightly synced.
 
-Nếu định nghĩa `offset = source_clock - reference_clock` thì:
+If defining `offset = source_clock - reference_clock`, then:
 
 ```text
 corrected_utc = source_reported_utc - estimated_offset
 ```
 
-Máy chạy nhanh `+120 ms`: timestamp nguồn `08:14:05.370Z` được ước lượng là `08:14:05.250Z`. Phải ghi **dấu của offset** và uncertainty; sai dấu khiến độ lệch tăng gấp đôi. Nếu offset được đo cách sự cố nhiều giờ hoặc clock đã step sau đó, không dùng nó như hằng số tin cậy cho toàn khoảng điều tra.
+A host running `+120 ms` fast: source timestamp `08:14:05.370Z` is estimated as `08:14:05.250Z`. Record the **sign of the offset** and uncertainty; flipping the sign doubles the error. If the offset was measured hours away from the incident or the clock stepped afterward, do not treat it as a reliable constant across the entire investigation.
 
-Khi không có chứng cứ đồng bộ clock đủ tốt, có thể kết luận “hai hiện tượng ở gần nhau trong một cửa sổ” nhưng **không** kết luận thứ tự ở độ phân giải mili giây.
+Without sufficient clock-sync evidence, you may conclude "two phenomena happened close together in a window", yet **cannot** assert ordering at millisecond resolution.
 
-## 7. Ghép một timeline bằng quy trình có thể kiểm toán
+## 7. Building a Timeline with an Auditable Process
 
-### Bước 1 — Chọn câu hỏi và khung thời gian
+### Step 1 — Choose the Question and Timeframe
 
-Ví dụ: “Có phải GC pause trùng với 200 ms tăng latency khi checkout bị timeout?” Xác định cửa sổ sự cố UTC, service và instance, chứ không chỉ một ngày theo giờ địa phương.
+Example: "Did a GC pause coincide with the 200 ms latency spike when checkout timed out?" Define the UTC incident window, service, and instance—not just a local calendar date.
 
-### Bước 2 — Thu thập dữ liệu gốc cùng danh tính
+### Step 2 — Collect Raw Data with Identity
 
-Với mỗi nguồn, giữ nguyên raw timestamp và file gốc; ghi:
+For each source, preserve raw timestamps and original files; record:
 
-- `source_type`, `source_file`, `host/node`, `pod/container`, `pid`, `jvm_start_utc`, `boot_id` nếu áp dụng.
+- `source_type`, `source_file`, `host/node`, `pod/container`, `pid`, `jvm_start_utc`, `boot_id` if applicable.
 - `raw_time`, `raw_unit`, `clock_domain` (wall UTC, wall local, JVM uptime, OS uptime, elapsed clock, ingest).
-- `time_zone` hoặc `offset`, thông tin DST nếu nguồn chỉ có local timestamp.
-- `event_time`, `observed_time`, `collection_window` và timestamp tạo artifact nếu chúng khác nhau.
-- `clock_offset_estimate`, `uncertainty`, phiên bản parser, giả định quy đổi và mọi chỗ thiếu dữ liệu.
-- `trace_id`, `request_id`, `thread_id` hoặc `gc_id` để kết nối các sự kiện cùng ngữ cảnh.
+- `time_zone` or `offset`, DST info if source only has local timestamps.
+- `event_time`, `observed_time`, `collection_window`, and artifact creation timestamp if they differ.
+- `clock_offset_estimate`, `uncertainty`, parser version, conversion assumptions, and any missing data.
+- `trace_id`, `request_id`, `thread_id`, or `gc_id` to link events sharing context.
 
-Đây là metadata **phục vụ điều tra**, không nhất thiết nhồi mọi trường vào từng dòng log ứng dụng; có thể gắn ở mức nguồn/file/session.
+This is **investigative metadata**—you do not need to cram every field into every application log line; it can live at the source/file/session level.
 
-### Bước 3 — Chuẩn hóa về một trục UTC
+### Step 3 — Normalize to a Single UTC Axis
 
-1. Timestamp có `Z` hoặc offset xác định: parse sang `Instant`.
-2. Epoch seconds/ms/µs/ns: đổi bằng đơn vị **đã khai báo** và kiểm tra khoảng ngày hợp lý.
-3. Timestamp local thiếu zone: truy xuất cấu hình zone tại thời điểm tạo, giải quyết DST nếu có; chưa đủ thì để “unresolved”.
-4. JVM uptime: tìm mốc cùng JVM (tốt nhất event có cả UTC và uptime), kiểm tra JVM start và reset.
-5. OS monotonic uptime: tìm mốc của cùng boot; kiểm tra boot ID.
-6. Elapsed-only `nanoTime`: chỉ giữ duration trong cùng JVM; không ép số raw thành instant.
-7. Log/snapshot lấy trong khoảng thời gian: giữ interval `[capture_start, capture_end]`.
+1. Timestamps with `Z` or explicit offset: parse to `Instant`.
+2. Epoch seconds/ms/µs/ns: convert using the **declared** unit and sanity-check the date range.
+3. Local timestamps missing zone: trace timezone config at emission time, resolve DST if applicable; if insufficient, mark "unresolved".
+4. JVM uptime: find an anchor from the same JVM (ideally an event having both UTC and uptime), verify JVM start and restarts.
+5. OS monotonic uptime: find an anchor from the same boot; verify boot ID.
+6. Elapsed-only `nanoTime`: retain strictly for durations within the same JVM; never coerce raw numbers into instants.
+7. Logs/snapshots captured over an interval: keep interval `[capture_start, capture_end]`.
 
-Luôn giữ `original_timestamp` và `normalized_utc` ở hai trường khác nhau; không ghi đè dữ liệu gốc.
+Always store `original_timestamp` and `normalized_utc` in two separate fields; never overwrite raw data.
 
-### Bước 4 — Gắn sai số trước khi sắp thứ tự
+### Step 4 — Attach Uncertainty Before Ordering
 
-Có thể biểu diễn một sự kiện được ước lượng tại `t` với uncertainty `±e` thành khoảng `[t-e, t+e]`. Nếu hai khoảng chồng lên nhau, thứ tự thời gian giữa hai sự kiện **không chắc chắn** chỉ dựa trên clock.
+Represent an event estimated at `t` with uncertainty `±e` as interval `[t-e, t+e]`. If two intervals overlap, chronological ordering between those two events is **uncertain** from clocks alone.
 
-Ví dụ:
+Example:
 
-- Node A ghi event tại `08:14:05.250Z ±40 ms` → khoảng `[.210, .290]`.
-- Node B ghi event tại `08:14:05.280Z ±40 ms` → khoảng `[.240, .320]`.
+- Node A logs event at `08:14:05.250Z ±40 ms` → interval `[.210, .290]`.
+- Node B logs event at `08:14:05.280Z ±40 ms` → interval `[.240, .320]`.
 
-Dù timestamp B lớn hơn A 30 ms, hai khoảng chồng lấp nên **không thể khẳng định A xảy ra trước B** ở mức tin cậy đã đặt. Nếu trace propagation chứng minh quan hệ gửi → nhận, đó là bằng chứng nhân quả bổ sung, độc lập với thứ tự hiển thị của wall clock.
+Even though B's timestamp is 30 ms greater than A's, the intervals overlap, so **you cannot claim A happened before B** at the stated confidence level. If trace propagation proves a send → receive relationship, that provides causal evidence independent of wall-clock ordering.
 
-### Bước 5 — Dựng timeline có duration, không chỉ điểm
+### Step 5 — Build a Timeline with Durations, Not Just Points
 
-Bảng timeline nên có ít nhất: `source`, `event`, `start_utc`, `end_utc` (nếu duration), `uncertainty`, `identity` và `evidence`. Lọc cùng request/instance, so khoảng GC/JFR/trace với khoảng tăng metric. Các metrics aggregate cần thể hiện **cửa sổ đo** (ví dụ 08:14:00–08:15:00), không giả vờ là điểm tại giữa cửa sổ.
+A timeline table should contain at least: `source`, `event`, `start_utc`, `end_utc` (if duration exists), `uncertainty`, `identity`, and `evidence`. Filter by the same request/instance, and align GC/JFR/trace intervals against metric increase windows. Aggregate metrics must show their **measurement window** (e.g., 08:14:00–08:15:00), rather than pretending to be a point at the midpoint.
 
-### Bước 6 — Kiểm tra chéo và phản chứng
+### Step 6 — Cross-Check and Falsify
 
-- Log GC có `utctime` và `uptimemillis` có phù hợp với JVM startup đã ghi không?
-- JFR recording, log ứng dụng và JVM metrics có cùng process/container restart không?
-- Offset giữa clocks có nhỏ hơn khoảng cách sự kiện mà bạn muốn kết luận không?
-- Có clock step, DST switch, reboot hoặc replay/ingestion delay trong đoạn đó không?
-- Sự kiện lấy từ sampling/aggregation có đủ resolution để khẳng định thứ tự không?
-- Trace ID, GC ID, thread ID có khớp hay chỉ “gần nhau trên biểu đồ”?
+- Do `utctime` and `uptimemillis` in GC logs match the recorded JVM startup?
+- Do JFR recordings, app logs, and JVM metrics span the same process/container restart?
+- Is the clock offset smaller than the event gap you want to conclude about?
+- Did any clock step, DST switch, reboot, or replay/ingestion delay happen in that interval?
+- Do events from sampling/aggregation have enough resolution to assert ordering?
+- Do trace IDs, GC IDs, and thread IDs actually match, or merely sit "near each other on a chart"?
 
-Nếu một giả định bị bác bỏ, cập nhật mapping và dựng lại timeline; ghi rõ thay đổi. Tuyệt đối không lặng lẽ cộng một số giờ “cho có vẻ khớp” hoặc bỏ qua event không vừa giả thuyết.
+If an assumption is refuted, update the mapping and rebuild the timeline; document the change clearly. Never silently add a few hours "to make it line up" or drop events that do not fit the hypothesis.
 
-## 8. Ví dụ ghép năm nguồn cho cùng khoảng sự cố
+## 8. Example Aligning Five Sources for the Same Incident Window
 
-Đây là **dữ liệu giả lập để học cách quy đổi**, không phải output thật từ một JVM:
+This is **synthetic data to practice conversion**, not real output from an actual JVM:
 
 - Host boot: `2026-10-29T06:00:00Z`.
 - JVM instance `checkout-1` start: `2026-10-29T07:59:00Z`.
-- Giả sử clock nguồn đã được kiểm tra và chưa có sai lệch đáng kể; trong thực tế cần ghi uncertainty.
+- Assume source clocks were verified with no significant offset; in practice always record uncertainty.
 
-| Nguồn | Timestamp gốc hoặc interval gốc | UTC chuẩn hóa | Điều được biết |
+| Source | Raw Timestamp or Interval | Normalized UTC | What Is Known |
 | --- | --- | --- | --- |
-| Application log | `2026-10-29T15:14:05.250+07:00` | `08:14:05.250Z` | Checkout ghi cảnh báo; request ID xác định |
-| JFR event | `start=08:14:05.300Z`, `duration=120 ms` | `[08:14:05.300Z, 08:14:05.420Z]` | Một event kéo dài, có thể chồng với GC |
-| OS journal | Boot uptime `8045.350 s` | `08:14:05.350Z` | Chỉ hợp lệ với đúng boot có mốc `06:00Z` |
-| GC unified log | JVM uptime `905400 ms`, `utctime=08:14:05.400Z` | `08:14:05.400Z` | GC thuộc đúng JVM start `07:59Z` |
-| Prometheus sample | Sample time `08:14:06.000Z` | `08:14:06.000Z` | Giá trị tại mốc sample/scrape, **không** xác nhận lúc sự kiện riêng lẻ |
+| Application log | `2026-10-29T15:14:05.250+07:00` | `08:14:05.250Z` | Checkout logged warning; request ID identified |
+| JFR event | `start=08:14:05.300Z`, `duration=120 ms` | `[08:14:05.300Z, 08:14:05.420Z]` | A spanning event, potentially overlapping GC |
+| OS journal | Boot uptime `8045.350 s` | `08:14:05.350Z` | Valid only for the exact boot anchored at `06:00Z` |
+| GC unified log | JVM uptime `905400 ms`, `utctime=08:14:05.400Z` | `08:14:05.400Z` | GC belongs to exact JVM start `07:59Z` |
+| Prometheus sample | Sample time `08:14:06.000Z` | `08:14:06.000Z` | Value at sample/scrape instant, **does not** pinpoint an individual event's time |
 
-Các số trong bảng nhất quán: `07:59:00 + 905.400 s = 08:14:05.400Z`; `06:00:00 + 8045.350 s = 08:14:05.350Z`. JFR interval bao phủ mốc GC; nhưng để nói **GC làm tăng latency** phải có event type/duration phù hợp, request trace cùng ID, GC pause, workload và số liệu phân biệt nguyên nhân khác.
+Numbers in the table are consistent: `07:59:00 + 905.400 s = 08:14:05.400Z`; `06:00:00 + 8045.350 s = 08:14:05.350Z`. The JFR interval spans across the GC instant; yet to say **GC caused the latency increase**, you need matching event type/duration, request traces with matching IDs, GC pause length, workload, and metrics ruling out other causes.
 
-**Không ghép theo hàng ngẫu nhiên hoặc thứ tự file xuất hiện.** Log aggregation có thể nhận chậm hơn; tệp có thể đảo thứ tự khi rotate; công cụ JFR có thể hiển thị giờ địa phương. Chỉ sort theo normalized time **sau** khi mapping và uncertainty đã được ghi nhận.
+**Do not merge by row order or file arrival order.** Log aggregation can arrive delayed; files can reorder on rotation; JFR viewers can show local time. Sort by normalized time only **after** mapping and uncertainty are recorded.
 
-## 9. Chương trình Java 17+ chuẩn hóa timestamp và đối chiếu uptime
+## 9. Java 17+ Program Normalizing Timestamps and Verifying Uptime
 
-Ví dụ độc lập sau dùng các giá trị giả lập cố định để có output chính xác. Chương trình chuyển timestamp `+07:00` sang UTC, tính gap giữa application event và GC, chuyển GC uptime từ một JVM start đã biết thành UTC, rồi kiểm tra hai cách đọc có khớp nhau không.
+The standalone example below uses fixed synthetic values for deterministic output. It converts a `+07:00` timestamp to UTC, computes the gap between the application event and GC, converts GC uptime from a known JVM start to UTC, and checks whether both readings agree.
 
-Lưu đúng tên **`TimelineAlign.java`**:
+Save with exact name **`TimelineAlign.java`**:
 
 ```java
 import java.time.Duration;
@@ -369,14 +369,14 @@ public class TimelineAlign {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac TimelineAlign.java
 java TimelineAlign
 ```
 
-Stdout **chính xác**:
+**Exact** stdout:
 
 ```text
 app_utc=2026-10-29T08:14:05.250Z
@@ -387,31 +387,31 @@ gc_from_jvm_uptime=2026-10-29T08:14:05.400Z
 verified=true
 ```
 
-Giải thích:
+Explanation:
 
-1. `OffsetDateTime.parse(...).toInstant()` áp dụng offset `+07:00` **chỉ một lần**, kết quả là `08:14:05.250Z`.
-2. `Duration.between(app, gc).toMillis()` cho khoảng 150 ms từ app event đến mốc GC. Đây là **khoảng giữa hai timestamp giả lập**, không phải độ dài của GC.
-3. `Instant.plusMillis(905_400)` thêm JVM uptime vào mốc JVM start **được giả định đã biết và thuộc đúng tiến trình**. Trên production, `getStartTime()` chỉ xấp xỉ, clock có thể lệch; việc ra `true` trong ví dụ không chứng minh phép quy đổi uptime luôn chính xác cho mọi nguồn.
+1. `OffsetDateTime.parse(...).toInstant()` applies the `+07:00` offset **once**, resulting in `08:14:05.250Z`.
+2. `Duration.between(app, gc).toMillis()` gives the 150 ms gap from the app event to the GC instant. This is **the gap between two synthetic timestamps**, not the duration of the GC.
+3. `Instant.plusMillis(905_400)` adds JVM uptime to a JVM start anchor **assumed known and belonging to the exact process**. In production, `getStartTime()` is approximate and clocks can drift; getting `true` in the example does not prove uptime conversion is always exact across every source.
 
-### 9.1. Đo latency trong code thật bằng đồng hồ elapsed
+### 9.1. Measuring Latency in Real Code Using an Elapsed Clock
 
-Cho latency của một thao tác nội bộ, cách đo đúng thường là:
+For the latency of an internal operation, the proper way is usually:
 
 ```java
 long startedNs = System.nanoTime();
 try {
-    // Thực hiện công việc cần đo.
+    // Perform the work to measure.
 } finally {
     long elapsedNs = System.nanoTime() - startedNs;
-    // Ghi elapsedNs cùng timestamp UTC và trace/request ID.
+    // Record elapsedNs alongside UTC timestamp and trace/request ID.
 }
 ```
 
-Đây là **đoạn mã minh họa đặt trong một method**, không phải chương trình độc lập. Đừng dùng `Instant.now()` hai lần rồi suy ra duration có độ ổn định tương đương monotonic clock khi hệ điều hành có thể step wall clock. Đồng thời, đừng log số `startedNs` thô như UNIX epoch nanoseconds. Để ghép với hệ thống khác, ghi `Instant.now()` ở thời điểm event và duration theo `nanoTime` dưới hai trường rõ ràng.
+This is an **illustrative snippet inside a method**, not a standalone program. Never call `Instant.now()` twice and treat the difference as having monotonic-clock stability when the OS can step wall clock. Also never log raw `startedNs` as UNIX epoch nanoseconds. To correlate across systems, record `Instant.now()` at event time and `nanoTime` duration in two distinct fields.
 
-### 9.2. Định dạng timestamp tốt cho logs
+### 9.2. Good Timestamp Format for Logs
 
-Một bản ghi JSON lý tưởng cho sự cố phân tán có thể có cấu trúc:
+An ideal JSON log record for distributed incidents might look like:
 
 ```json
 {
@@ -426,49 +426,49 @@ Một bản ghi JSON lý tưởng cho sự cố phân tán có thể có cấu t
 }
 ```
 
-Dữ liệu chỉ là ví dụ: `observed_time` có thể do collector đặt, không nhất thiết là ứng dụng. `duration_ms` chỉ có nghĩa khi tài liệu sự kiện nói rõ đo từ đâu đến đâu. Trường `trace_id` hỗ trợ ghép request mà không dựa duy nhất vào độ gần nhau của timestamp.
+This data is illustrative only: `observed_time` may be added by a collector rather than the application. `duration_ms` is meaningful only when event docs specify start/end boundaries. `trace_id` supports joining requests without relying solely on timestamp proximity.
 
-## 10. Những lỗi thường làm sai timeline
+## 10. Common Mistakes That Corrupt Timelines
 
-1. **Ghép chuỗi local trực tiếp với UTC:** `15:14+07:00` bị xem thành `15:14Z`, lệch đúng 7 giờ.
-2. **Chuyển timezone hai lần:** đã parse offset nhưng lại trừ thêm 7 giờ trong pipeline.
-3. **Nhầm UTC với clock đã đồng bộ:** tất cả nguồn in `Z` vẫn có thể lệch hàng trăm mili giây giữa node.
-4. **Ghép JVM uptime với OS uptime:** cùng đơn vị ms nhưng gốc thời gian khác; tạo lỗi có thể hàng giờ.
-5. **Dùng `nanoTime` như epoch nanoseconds:** số không có ý nghĩa UTC; nếu so hai JVM khác nhau càng sai.
-6. **Nhầm epoch seconds, milliseconds, microseconds và nanoseconds:** dữ liệu rơi ra ngoài khoảng ngày hợp lý hoặc mất precision.
-7. **Không tách những lần restart:** PID/pod name được tái dùng, làm uptime giảm về 0 mà pipeline lại cộng vào mốc cũ.
-8. **Tin thời gian collector thay cho thời gian event:** network/buffer/replay tạo thứ tự giả.
-9. **Chỉ so điểm, bỏ duration:** một GC pause, JFR event hay query window là khoảng thời gian; trùng khoảng chưa chứng minh nhân quả.
-10. **Bỏ qua DST:** giờ địa phương trong giờ chuyển mùa có thể mơ hồ hoặc không tồn tại.
-11. **Tin vào số thập phân quá mức:** hiển thị nano giây không có nghĩa clock/sync chính xác nano giây.
-12. **Không lưu raw source:** sau khi normalize sai, không còn căn cứ để khôi phục.
-13. **Bỏ qua clock step/reboot:** timeline đột ngột nhảy/lùi hoặc monotonic reset khiến phép nội suy trên toàn khoảng bị sai.
-14. **Giả định mọi span theo thứ tự startTime:** clock skew giữa service có thể đảo thứ tự hiển thị; kiểm tra trace ID và quan hệ nhân quả.
+1. **Concatenating local strings directly as UTC:** `15:14+07:00` treated as `15:14Z`, off by exactly 7 hours.
+2. **Converting timezones twice:** parsing the offset and then subtracting 7 hours again downstream.
+3. **Confusing UTC format with synchronized clocks:** sources all printing `Z` can still be hundreds of milliseconds apart across nodes.
+4. **Mixing JVM uptime with OS uptime:** same ms unit but different origins; creates errors of hours.
+5. **Treating `nanoTime` as epoch nanoseconds:** meaningless in UTC; comparing across two JVMs is even worse.
+6. **Confusing epoch seconds, milliseconds, microseconds, and nanoseconds:** dates land outside reasonable ranges or lose precision.
+7. **Failing to separate restarts:** reused PIDs/pod names reset uptime to 0 while the pipeline adds it to the old anchor.
+8. **Trusting collector time instead of event time:** network/buffering/replay creates false ordering.
+9. **Comparing points while ignoring durations:** a GC pause, JFR event, or query window is an interval; overlapping intervals do not prove causality.
+10. **Ignoring DST:** local times during seasonal transitions can be ambiguous or non-existent.
+11. **Over-trusting decimal places:** printing nanoseconds does not mean clock/sync accuracy is nanosecond-grade.
+12. **Discarding raw sources:** after normalizing incorrectly, there is no way to recover.
+13. **Ignoring clock steps/reboots:** sudden wall jumps or monotonic resets break linear interpolation across intervals.
+14. **Assuming spans always order by `startTime`:** cross-service clock skew can invert visual order; verify trace IDs and causal links.
 
-## 11. Checklist trước khi tuyên bố hai sự kiện có liên quan
+## 11. Checklist Before Claiming Two Events Are Related
 
-- [ ] Đã xác định mục tiêu cần so: **thời điểm**, **thời lượng**, **cửa sổ đo** hay **thứ tự nhân quả**?
-- [ ] Mỗi timestamp đã được phân loại UTC/offset/local/epoch/JVM uptime/boot uptime/elapsed/ingest?
-- [ ] Đã ghi timezone hoặc offset và đơn vị, xử lý khả năng DST nếu cần?
-- [ ] Uptime được ghép với đúng JVM start/boot ID, PID/container instance và không qua restart?
-- [ ] Giá trị `System.nanoTime` chỉ dùng cho duration trong một JVM?
-- [ ] Đã kiểm tra clock skew, sync status, step/drift và uncertainty của các node liên quan?
-- [ ] Đã bảo tồn raw timestamp, xác định timestamp của event và timestamp nhận dữ liệu?
-- [ ] Với JFR/GC/trace/metric, đã biểu diễn duration hoặc aggregation window đúng ngữ nghĩa?
-- [ ] Timeline có căn cứ để đối chiếu ít nhất hai loại bằng chứng (ID, stack/event type/metrics)?
-- [ ] Kết luận có nói rõ phần **chắc chắn**, phần **ước lượng** và các giả định còn mở?
+- [ ] Have you clarified the comparison goal: **point in time**, **duration**, **measurement window**, or **causal order**?
+- [ ] Is every timestamp classified as UTC/offset/local/epoch/JVM uptime/boot uptime/elapsed/ingest?
+- [ ] Are timezones/offsets and units recorded, with DST ambiguity handled if needed?
+- [ ] Are uptimes bound to the exact JVM start/boot ID, PID/container instance, without crossing a restart?
+- [ ] Are `System.nanoTime` values used strictly for durations within a single JVM?
+- [ ] Were clock skew, sync status, steps/drift, and uncertainty checked for involved nodes?
+- [ ] Were raw timestamps preserved, distinguishing event time from ingestion time?
+- [ ] For JFR/GC/traces/metrics, are durations or aggregation windows represented accurately?
+- [ ] Does the timeline cross-check at least two independent evidence types (IDs, stacks/event types/metrics)?
+- [ ] Does the conclusion clearly separate **certain facts**, **estimates**, and **open assumptions**?
 
-**Bài tập tự kiểm tra:** Node A nhanh `+120 ms` so với nguồn chuẩn, ghi request tại `08:14:05.370Z`; node B được đồng bộ tốt ghi GC tại `08:14:05.400Z`; GC uptime là `905400 ms`, JVM start `07:59:00Z`. Quy đổi request của A thành `08:14:05.250Z`, giữ GC tại `08:14:05.400Z`; khoảng cách timestamp ước tính là **150 ms**. Nếu offset của A chỉ biết trong khoảng `+120 ±40 ms`, thứ tự và độ chính xác kết luận phải xét thêm uncertainty, không tuyên bố chính xác đến mili giây. Đồng thời cần thêm evidence về GC pause và request để khẳng định nguyên nhân timeout.
+**Self-check exercise:** Node A runs `+120 ms` fast relative to reference time and logs a request at `08:14:05.370Z`; well-synced node B logs GC at `08:14:05.400Z`; GC uptime is `905400 ms`, JVM start `07:59:00Z`. Convert A's request to `08:14:05.250Z`, keep GC at `08:14:05.400Z`; the estimated timestamp gap is **150 ms**. If A's offset is known only within `+120 ±40 ms`, ordering and precision claims must factor in uncertainty rather than claiming millisecond certainty. You also need GC pause and request evidence to confirm timeout cause.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle, [Java SE 17 — `java` command và Unified JVM Logging](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html): decorators `utctime`, `uptime`, `uptimemillis`, `timemillis`, `timenanos`, `-Xlog`.
-- Oracle, [Java SE 17 — `System.currentTimeMillis()` và `System.nanoTime()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html): phân biệt wall clock và elapsed clock.
-- Oracle, [Java SE 17 — `RuntimeMXBean`](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/RuntimeMXBean.html): `getStartTime()` và `getUptime()`.
-- Oracle, [Java SE 17 — `java.time`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/package-summary.html): `Instant`, `OffsetDateTime`, `LocalDateTime` và `ZonedDateTime`.
-- Oracle, [Java SE 17 — JFR events](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/package-summary.html): event timestamp và duration.
-- systemd, [`journalctl` manual](https://www.freedesktop.org/software/systemd/man/latest/journalctl.html): định dạng `short-iso-precise` và `short-monotonic`.
-- Prometheus, [PromQL functions](https://prometheus.io/docs/prometheus/latest/querying/functions/): `time()`, `timestamp()` và cửa sổ metrics.
-- OpenTelemetry, [Logs Data Model](https://opentelemetry.io/docs/specs/otel/logs/data-model/): `Timestamp` và `ObservedTimestamp`; [Tracing API](https://opentelemetry.io/docs/specs/otel/trace/api/): start/end timestamps, span duration.
+- Oracle, [Java SE 17 — `java` command and Unified JVM Logging](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html): decorators `utctime`, `uptime`, `uptimemillis`, `timemillis`, `timenanos`, `-Xlog`.
+- Oracle, [Java SE 17 — `System.currentTimeMillis()` and `System.nanoTime()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html): distinguishing wall clock and elapsed clock.
+- Oracle, [Java SE 17 — `RuntimeMXBean`](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/RuntimeMXBean.html): `getStartTime()` and `getUptime()`.
+- Oracle, [Java SE 17 — `java.time`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/package-summary.html): `Instant`, `OffsetDateTime`, `LocalDateTime`, and `ZonedDateTime`.
+- Oracle, [Java SE 17 — JFR events](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/package-summary.html): event timestamps and durations.
+- systemd, [`journalctl` manual](https://www.freedesktop.org/software/systemd/man/latest/journalctl.html): `short-iso-precise` and `short-monotonic` formats.
+- Prometheus, [PromQL functions](https://prometheus.io/docs/prometheus/latest/querying/functions/): `time()`, `timestamp()`, and metric windows.
+- OpenTelemetry, [Logs Data Model](https://opentelemetry.io/docs/specs/otel/logs/data-model/): `Timestamp` and `ObservedTimestamp`; [Tracing API](https://opentelemetry.io/docs/specs/otel/trace/api/): start/end timestamps, span duration.
 
-Khi điều tra sự cố thực, hãy lưu **raw values + normalized UTC + clock origin + instance identity + uncertainty**. Một timeline chỉ có thứ tự timestamp đẹp mắt nhưng thiếu năm yếu tố này dễ tạo kết luận sai.
+When investigating real incidents, preserve **raw values + normalized UTC + clock origin + instance identity + uncertainty**. A timeline with tidy timestamp order yet missing those five elements easily produces wrong conclusions.

@@ -1,104 +1,104 @@
-# 17.2 Kết hợp số liệu CPU, nhiều stack snapshot và JFR execution sample
+# 17.2 Combining CPU Metrics, Multiple Stack Snapshots, and JFR Execution Samples
 
-> **Phạm vi:** Java 21 / HotSpot, phân tích một ứng dụng có **CPU cao hoặc throughput/latency bất thường**. Bài này hướng dẫn ghép **CPU metrics của OS/JVM**, **nhiều ảnh chụp thread stack (thread dump)** và **JFR `jdk.ExecutionSample`** thành một kết luận có bằng chứng. Những nhóm CPU dành cho **JIT compiler, class loading và GC** được đưa vào để tránh nhầm CPU của JVM với CPU thực thi mã nghiệp vụ. Các lệnh hệ điều hành minh họa Linux; cần điều chỉnh trên Windows/container.
+> **Scope:** Java 21 / HotSpot, diagnosing an application with **high CPU or abnormal throughput/latency**. This lesson shows how to combine **OS/JVM CPU metrics**, **multiple thread stack snapshots (thread dumps)**, and **JFR `jdk.ExecutionSample`** into an evidence-backed conclusion. CPU groups for **JIT compiler, class loading, and GC** are included so you do not mistake JVM CPU for business-code CPU. OS commands illustrate Linux; adjust them for Windows/containers.
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Sau bài, bạn có thể:
+After this lesson, you will be able to:
 
-1. Xác định **CPU đang cao ở cấp máy, container, tiến trình hay OS thread**, trên đúng JVM/PID và trong **cùng cửa sổ triệu chứng**.
-2. Thu **nhiều** stack snapshot có timestamp, phân biệt `RUNNABLE` với đang thực sự dùng CPU và liên hệ thread name, Java thread ID, OS TID (`nid`) khi có.
-3. Thu JFR `settings=profile`, đọc `jdk.CPULoad`, `jdk.ThreadCPULoad`, `jdk.ExecutionSample` và phân tích phân bố các **stack được lấy mẫu**.
-4. Kết hợp ba nguồn để khoanh vùng **hot code path**; giải thích tại sao một snapshot hay một sample **không đủ** khẳng định nguyên nhân.
-5. Nhận biết **JIT warmup, class loading, GC, native CPU, CPU quota/throttling và waiting** là những hướng chẩn đoán cạnh tranh; thiết kế phép đo lại để bác bỏ/ủng hộ giả thuyết.
+1. Determine **whether CPU is high at the machine, container, process, or OS-thread level**, on the right JVM/PID and within the **same symptom window**.
+2. Collect **multiple** timestamped stack snapshots, distinguish `RUNNABLE` from actually consuming CPU, and correlate thread name, Java thread ID, and OS TID (`nid`) when available.
+3. Collect JFR `settings=profile`, read `jdk.CPULoad`, `jdk.ThreadCPULoad`, and `jdk.ExecutionSample`, and analyze the distribution of **sampled stacks**.
+4. Combine all three sources to narrow down a **hot code path**; explain why a single snapshot or a single sample is **not enough** to confirm the root cause.
+5. Recognize **JIT warmup, class loading, GC, native CPU, CPU quota/throttling, and waiting** as competing diagnostic hypotheses; design a re-measurement to refute or support each hypothesis.
 
-**Câu hỏi xuyên suốt:** “Trong đúng khoảng có triệu chứng, tiến trình Java có thực sự tiêu thụ CPU không; thread nào tiêu thụ; stack nào lặp lại trong **nhiều mẫu độc lập**; và kết luận đó có phù hợp với JFR hay không?”
+**Guiding question:** "During the exact symptom window, is the Java process actually consuming CPU; which threads are consuming it; which stacks repeat across **multiple independent samples**; and does that conclusion align with JFR?"
 
-## 2. Ba nguồn bằng chứng giải ba câu hỏi khác nhau
+## 2. Three Evidence Sources Answer Three Different Questions
 
-| Nguồn | Trả lời tốt nhất | Không tự chứng minh được |
+| Source | Answers Best | Does Not Prove on Its Own |
 | --- | --- | --- |
-| **CPU của máy/container/JVM/OS thread** (monitoring, `top`, `ps`, cgroup) | CPU có bận thật không, bận ở đâu, trong bao lâu, mức hạn chế tài nguyên | Phương thức Java nào tốn CPU hoặc code path gọi từ request nào |
-| **Nhiều thread dump** (`jcmd <PID> Thread.print`) | Vào từng thời điểm, thread đang ở stack và trạng thái nào; cùng frame có xuất hiện lặp lại không | Thread `RUNNABLE` đã tiêu thụ bao nhiêu CPU giữa hai lần dump; toàn bộ lịch sử |
-| **JFR execution sampling** (`jdk.ExecutionSample`, kết hợp `jdk.CPULoad`, `jdk.ThreadCPULoad`) | Trong một khoảng, stack/method nào xuất hiện nhiều trong các mẫu thực thi, xu hướng theo thread/time | Số lần phương thức chạy, số CPU-ns chính xác trên một method hoặc nguyên nhân nhân quả chỉ từ tỷ lệ sample |
+| **Machine/container/JVM/OS thread CPU** (monitoring, `top`, `ps`, cgroup) | Is CPU actually busy, where is it busy, for how long, and what resource limits apply | Which Java method is expensive or which request code path called it |
+| **Multiple thread dumps** (`jcmd <PID> Thread.print`) | At each instant, what stack and state each thread is in; whether the same frames repeat | How much CPU a `RUNNABLE` thread consumed between dumps; the full history |
+| **JFR execution sampling** (`jdk.ExecutionSample`, combined with `jdk.CPULoad`, `jdk.ThreadCPULoad`) | Over an interval, which stacks/methods appear often in execution samples, and trends by thread/time | How many times a method ran, exact CPU-ns per method, or causality from sample percentage alone |
 
-Một sự cố CPU đáng tin thường có **tam giác chứng cứ**:
+A credible CPU investigation usually forms an **evidence triangle**:
 
 ```text
-CPU process cao trong cửa sổ T
+High process CPU in window T
         │
-        ├── OS: những platform thread / TID nào đang bận?
+        ├── OS: which platform threads / TIDs are busy?
         │
-        ├── Thread dump tại T1, T2, T3...: stack nào lặp lại?
+        ├── Thread dumps at T1, T2, T3...: which stacks repeat?
         │
-        └── JFR trong cùng T: ExecutionSample tập trung ở đâu?
+        └── JFR in the same T: where do ExecutionSamples cluster?
                               ↓
-                  Giả thuyết code path nóng
+                  Hot code path hypothesis
                               ↓
-                  Đo/điều chỉnh và so cùng tải
+                  Measure/adjust and compare under the same load
 ```
 
-Lưu ý: **tương quan theo thời gian** chưa phải bằng chứng chắc chắn về nhân quả. Nếu ba nguồn mâu thuẫn, hãy tìm lý do về thời gian, cấu hình sample, tên thread hoặc CPU không nằm trong Java user code trước khi sửa chương trình.
+Note: **time correlation** is not yet solid proof of causality. If the three sources contradict each other, look for explanations in timing, sample configuration, thread names, or CPU outside Java user code before modifying the program.
 
-## 3. Trước khi tìm hot method: định nghĩa “CPU cao”
+## 3. Before Hunting for Hot Methods: Define "High CPU"
 
-### 3.1. Phân biệt các cấp đo
+### 3.1. Distinguish Measurement Levels
 
-- **Machine CPU**: mức sử dụng của toàn máy/VM. Có thể cao vì tiến trình khác, kernel hoặc system services, trong khi JVM ứng dụng lại ít dùng.
-- **Process CPU**: CPU time tích lũy của các thread trong tiến trình Java, thường được trình bày dưới dạng tỷ lệ trong một khoảng. `100%` trong một số công cụ Linux tương đương **một logical CPU bận hoàn toàn**, vì vậy một JVM trên máy nhiều core có thể xuất hiện **hơn 100%**. Công cụ khác chuẩn hóa về tổng CPU của máy; phải ghi rõ quy ước.
-- **Thread CPU**: CPU time của một OS/platform thread. Nó có thể là thread nghiệp vụ, GC worker, JIT compiler thread hoặc VM thread.
-- **Container/cgroup CPU**: CPU sử dụng so với **CPU quota**, `cpu.max`, throttle time và throttled periods. Một pod bị giới hạn 1 CPU có thể bị throttling nghiêm trọng dù cả host còn nhiều lõi rảnh.
-- **JFR `jdk.CPULoad`**: sự kiện định kỳ chứa tỷ lệ JVM user/system và máy; sử dụng các field đó **như một phép đo theo thời gian**, không đếm số event để kết luận phần trăm CPU.
-- **JFR `jdk.ThreadCPULoad`**: thông tin sử dụng CPU theo thread trong giai đoạn đo; không coi một sự kiện hay tỷ lệ mẫu `ExecutionSample` là số CPU-ns chính xác cho từng phương thức.
+- **Machine CPU**: utilization of the whole machine/VM. It can be high due to other processes, kernel work, or system services while the application JVM uses little CPU.
+- **Process CPU**: cumulative CPU time of threads in the Java process, usually presented as a rate over an interval. `100%` in some Linux tools equals **one logical CPU completely busy**, so a JVM on a multi-core host can show **over 100%**. Other tools normalize to total machine CPU; always state the convention.
+- **Thread CPU**: CPU time of one OS/platform thread. It may be a business thread, GC worker, JIT compiler thread, or VM thread.
+- **Container/cgroup CPU**: CPU usage compared against **CPU quota**, `cpu.max`, throttle time, and throttled periods. A pod limited to 1 CPU can be severely throttled even while the host still has many idle cores.
+- **JFR `jdk.CPULoad`**: periodic event containing JVM user/system and machine ratios; use those fields **as a time-series measurement**, do not count events to conclude CPU percentage.
+- **JFR `jdk.ThreadCPULoad`**: per-thread CPU usage information over the measurement period; do not treat a single event or `ExecutionSample` percentage as exact CPU-ns per method.
 
-Công thức định hướng cho một khoảng đo:
+Reference formula for a measurement interval:
 
 ```text
 Process CPU cores used ≈ Δ(process CPU time in seconds) / Δ(wall time in seconds)
 
-Nếu trong 10 giây tiến trình tăng 18 CPU-seconds:
-    trung bình ≈ 1,8 logical CPUs bận trong khoảng đó
+If in 10 seconds the process gains 18 CPU-seconds:
+    average ≈ 1.8 logical CPUs busy during that interval
 ```
 
-Con số trên **chỉ là cách quy đổi CPU time thành mức sử dụng core trung bình**; không thể kết luận 1,8 core bị chiếm đều suốt 10 giây hoặc hệ thống đạt 180% theo cùng quy ước của mọi dashboard. Phải đọc số core/quota hợp lệ và khoảng lấy mẫu của nguồn đo.
+The figure above is **only a conversion from CPU time to average core usage**; you cannot conclude that 1.8 cores were occupied evenly across all 10 seconds or that the system reached 180% under every dashboard's convention. Always read the valid core/quota count and the measurement source's sampling interval.
 
-### 3.2. Một ví dụ dễ nhầm
+### 3.2. Easily Misread Signals
 
-| Tín hiệu | Diễn giải ưu tiên |
+| Signal | Priority Interpretation |
 | --- | --- |
-| Host CPU 95%, JVM process 8% | Kiểm tra tiến trình khác hoặc CPU của kernel; đừng vội tối ưu Java |
-| JVM dùng gần 2 core nhưng pod bị quota 2 core | Có thể saturation; xem throttling, backlog, p95/p99 |
-| JVM CPU cao lúc vừa startup, giảm sau vài phút | Có thể JIT warmup, class loading, GC và cache; chưa đủ gọi là hot loop bất thường |
-| JVM CPU thấp, request latency cao và thread thường `WAITING` | Xem connection pool, lock/park, socket I/O, downstream thay vì coi là CPU bottleneck |
-| Một thread `RUNNABLE` trong một dump | Không chứng minh nó dùng 100% CPU; trạng thái Java không phải phép đo CPU time |
+| Host CPU 95%, JVM process 8% | Inspect other processes or kernel CPU; do not rush to optimize Java |
+| JVM uses ~2 cores while pod has a 2-core quota | Possible saturation; check throttling, backlog, p95/p99 |
+| JVM CPU high right after startup, drops after a few minutes | Possible JIT warmup, class loading, GC, and caches; not yet enough to call an abnormal hot loop |
+| JVM CPU low, request latency high, threads mostly `WAITING` | Check connection pools, locks/parks, socket I/O, downstream instead of treating as a CPU bottleneck |
+| A `RUNNABLE` thread in one dump | Does not prove it uses 100% CPU; Java thread state is not a CPU-time measurement |
 
-Đối với ứng dụng chạy container, hãy đối chiếu CPU usage, quota và `nr_throttled`/`throttled_usec` hoặc metric tương ứng của phiên bản cgroup; định dạng khác nhau giữa cgroup v1/v2. Nếu thiếu số liệu quota, ghi rõ độ bất định, tránh kết luận hệ thống còn dư CPU chỉ vì nhìn CPU host.
+For containerized applications, compare CPU usage, quota, and `nr_throttled`/`throttled_usec` or the equivalent metric for your cgroup version; formats differ between cgroup v1 and v2. If quota metrics are missing, note the uncertainty explicitly and avoid concluding the system has spare CPU just by looking at host CPU.
 
-## 4. Chốt cùng một cửa sổ thời gian và JVM
+## 4. Lock Down the Same Time Window and JVM
 
-Trước khi thu chứng cứ, ghi ít nhất: tên service, host/pod, PID, **startup time**, JDK vendor/build, phương thức deploy, khung giờ p95/p99 hoặc throughput bất thường, CPU của process và container, resolution/sampling interval.
+Before collecting evidence, record at least: service name, host/pod, PID, **startup time**, JDK vendor/build, deployment method, time window of abnormal p95/p99 or throughput, process and container CPU, and resolution/sampling interval.
 
-Ví dụ giả định:
+Hypothetical example:
 
 ```text
 Service/pod:        orders-api / orders-7b8...
-JVM:                Java 21, PID 3187 (cần xác nhận thực tế)
+JVM:                Java 21, PID 3187 (verify on target)
 Symptom UTC:        2026-10-29T10:15:20Z .. 10:16:50Z
-CPU series:         process + machine + container, bucket 10 s
+CPU series:         process + machine + container, 10 s buckets
 Stack snapshots:    10:15:30, 10:15:34, 10:15:38, 10:15:42Z
-JFR recording:      bao trùm 10:14:30 .. 10:17:30Z
-Control window:     10:12:00 .. 10:13:30Z, tải tương đương
+JFR recording:      covers 10:14:30 .. 10:17:30Z
+Control window:     10:12:00 .. 10:13:30Z, comparable load
 ```
 
-**Đây là dữ liệu ví dụ**, không phải một sự cố đã quan sát. Các dấu thời gian phải được quy về cùng timezone/UTC và đối chiếu NTP/clock skew. Dashboard lưu bucket 10 giây không đủ để khẳng định một method bắt đầu chạy chính xác trước alert 5 ms.
+**This is illustrative data**, not an observed incident. Timestamps must be normalized to the same timezone/UTC and checked for NTP/clock skew. A dashboard storing 10-second buckets is not precise enough to claim a method started running exactly 5 ms before an alert.
 
-Khi JVM restart, PID có thể được dùng lại. Không nối các stack dump/JFR của hai JVM khác nhau thành cùng một phép đo nếu chưa đánh dấu rõ ranh giới restart và khởi động/warmup.
+When a JVM restarts, PIDs may be reused. Do not stitch stack dumps/JFR from two different JVMs into a single measurement without clearly marking restart and startup/warmup boundaries.
 
-## 5. Thu CPU cùng lúc với thread dump trên Linux
+## 5. Collect CPU Metrics Alongside Thread Dumps on Linux
 
-### 5.1. Xác minh đúng tiến trình và đo CPU
+### 5.1. Verify the Exact Process and Measure CPU
 
-`jcmd` phải attach vào JVM đúng user/machine/namespace (trên container, PID nhìn từ host có thể khác). Thay **`3187`** bằng PID thật; ví dụ sau chỉ dùng trong môi trường được phép quan sát:
+`jcmd` must attach to the JVM as the right user/machine/namespace (in containers, the PID seen from the host may differ). Replace **`3187`** with the actual PID; the examples below are only for authorized observation environments:
 
 ```bash
 jcmd -l
@@ -107,36 +107,36 @@ jcmd 3187 VM.uptime
 ps -p 3187 -o pid,ppid,etime,pcpu,comm
 ```
 
-Xem usage từng OS thread trên Linux khi triệu chứng còn xảy ra:
+View per-OS-thread usage on Linux while the symptom is still active:
 
 ```bash
 top -H -p 3187
 ```
 
-Hoặc in bảng TID (phần trăm CPU của `ps` là **thống kê theo quy ước/cửa sổ của ps**, không tự bảo đảm tức thời):
+Or print the TID table (`ps` CPU percentage is **a statistic per `ps`'s convention/window**, not guaranteed instantaneous):
 
 ```bash
 ps -L -p 3187 -o pid,tid,psr,pcpu,stat,comm
 ```
 
-Chọn thời điểm `top` có thread nóng để lấy **TID hệ điều hành** và timestamp. Một JVM có nhiều thread tương ứng các vai trò khác nhau; không phải mọi OS thread đều là Java thread của request.
+Pick moments when `top` shows hot threads to capture the **OS TID** and timestamp. A JVM has many threads serving different roles; not every OS thread is a request-handling Java thread.
 
-Trên máy hoặc container đang tải, tránh chạy công cụ quá thường xuyên hoặc lấy output quá lớn. Có thể thu 3–6 ảnh chụp theo nhịp vài giây trong một đợt spike dài, tùy mức nhạy của dịch vụ và số thread.
+On a host or container under load, avoid running tools too frequently or capturing excessively large outputs. You can capture 3–6 snapshots spaced a few seconds apart during a sustained spike, depending on service sensitivity and thread count.
 
-### 5.2. Lấy nhiều thread dump có timestamp
+### 5.2. Capture Multiple Timestamped Thread Dumps
 
-Dùng lệnh **được JDK 21 hỗ trợ**:
+Use commands **supported by JDK 21**:
 
 ```bash
 jcmd 3187 help Thread.print
 jcmd 3187 Thread.print -e -l
 ```
 
-- `-e`: thông tin thread mở rộng.
-- `-l`: thông tin `java.util.concurrent` locks/ownable synchronizers.
-- `Thread.print` có **Impact: Medium**, phụ thuộc số lượng thread; việc lấy nhiều dump cũng có chi phí. Hãy định khoảng cách vừa đủ để thấy thay đổi trạng thái mà không biến quá trình điều tra thành gánh nặng mới.
+- `-e`: extended thread information.
+- `-l`: `java.util.concurrent` locks/ownable synchronizers information.
+- `Thread.print` has **Impact: Medium**, depending on thread count; taking many dumps also incurs cost. Space them wide enough to observe state changes without turning the investigation into a new bottleneck.
 
-Ví dụ shell Linux **cố ý lấy bốn snapshot**, kèm thời gian bên ngoài mỗi lệnh:
+Linux shell example **intentionally capturing four snapshots**, with external timestamps around each command:
 
 ```bash
 umask 077
@@ -149,45 +149,45 @@ for index in 1 2 3 4; do
 done
 ```
 
-Chạy trong thư mục an toàn, có quyền ghi và đủ dung lượng; sửa PID trước khi chạy, kiểm tra mã thoát `jcmd` và file không rỗng. Mỗi snapshot chỉ phản ánh **một thời điểm**; việc `date` ghi trước khi gọi lệnh cũng có một sai số gồm thời gian attach/thu dump. Nếu cần chặt hơn, ghi cả giờ trước và sau để tạo khoảng sai số.
+Run in a safe directory with write permissions and sufficient disk space; update the PID before running, and check `jcmd` exit codes and non-empty files. Each snapshot reflects only **one instant**; recording `date` before invoking the command also includes attach/dump latency error. If tighter bounds are needed, record timestamps both before and after to bracket the error window.
 
-**Không lấy toàn bộ kết quả `Thread.print` đưa lên ticket công khai.** Stack có thể lộ package, class, đường dẫn, thông tin nội bộ. Giữ nguyên file gốc, đánh dấu version/instance/UTC, kiểm soát người đọc.
+**Do not paste full `Thread.print` output into public tickets.** Stacks can expose packages, classes, file paths, and internal details. Keep raw files secured, label version/instance/UTC, and restrict access.
 
-### 5.3. Từ OS TID sang `nid` trong thread dump
+### 5.3. From OS TID to `nid` in a Thread Dump
 
-Đối với nhiều **platform threads của HotSpot trên Linux**, dòng thread dump chứa `nid=0x...` là native thread ID biểu diễn hệ 16; `top -H`/`ps -L` thường hiển thị TID ở hệ 10. Ví dụ minh họa:
+For many **HotSpot platform threads on Linux**, the thread dump line includes `nid=0x...`, which is the native thread ID in hexadecimal; `top -H`/`ps -L` normally displays TIDs in decimal. Illustrative example:
 
 ```bash
 printf '0x%x\n' 12345
 ```
 
-Kết quả của lệnh trên:
+Output of the command above:
 
 ```text
 0x3039
 ```
 
-Nếu OS TID là `12345`, tìm `nid=0x3039` trong dump **của cùng JVM và thời điểm tương ứng**, từ đó đọc tên thread và stack. Đừng nhầm `nid` với giá trị `#...`, `tid=0x...` hoặc Java `Thread.getId()/threadId()`; đây là những định danh khác nhau. ID có thể bị tái sử dụng sau khi thread kết thúc.
+If the OS TID is `12345`, search for `nid=0x3039` in the dump **from the same JVM and matching timestamp**, then read the thread name and stack. Do not confuse `nid` with `#...`, `tid=0x...`, or Java's `Thread.getId()/threadId()`; those are different identifiers. IDs can be reused after a thread exits.
 
-Với **virtual threads** Java 21, nhiều virtual threads không sở hữu OS TID cố định vì chạy luân phiên trên carrier. `Thread.print` truyền thống **không trình bày đầy đủ mọi virtual thread**. Nếu nhiệm vụ cần quan sát virtual threads, có thể dùng `jcmd <PID> Thread.dump_to_file -format=json <path>` của JDK 21 nhưng nội dung/khóa/monitor không giống dump truyền thống. Không cố “map một virtual thread sang một OS TID vĩnh viễn”.
+With Java 21 **virtual threads**, many virtual threads do not own a fixed OS TID because they multiplex across carriers. Traditional `Thread.print` **does not fully display all virtual threads**. If your task requires inspecting virtual threads, you can use JDK 21's `jcmd <PID> Thread.dump_to_file -format=json <path>`, though its contents/locks/monitors differ from traditional dumps. Never try to "map a virtual thread to a permanent OS TID."
 
-### 5.4. Đọc trạng thái thread mà không suy diễn quá mức
+### 5.4. Read Thread States Without Over-Interpreting
 
-| Trạng thái trong dump | Ý nghĩa cần kiểm tra | Điều không nên khẳng định |
+| State in Dump | Meaning to Check | What Not to Claim |
 | --- | --- | --- |
-| `RUNNABLE` | Java thread có thể chạy hoặc đang thực thi; stack cho biết vị trí hiện tại, có thể ở native call | Không đồng nghĩa thread đang chiếm một CPU core |
-| `BLOCKED` | Đang chờ vào monitor `synchronized` | Không phải CPU-bound loop chỉ vì nhiều thread BLOCKED |
-| `WAITING` | Chờ vô thời hạn theo cơ chế Java, ví dụ `Object.wait`, `LockSupport.park` | Không đồng nghĩa leak hoặc deadlock |
-| `TIMED_WAITING` | Chờ có giới hạn như `Thread.sleep`, timed park | Không phải nguyên nhân CPU cao nếu thiếu nguồn khác |
-| `NEW` / `TERMINATED` | Chưa bắt đầu / đã kết thúc (nếu công cụ quan sát được) | Không phải thread được OS lập lịch bận hiện tại |
+| `RUNNABLE` | Java thread is runnable or executing; stack shows current location, possibly in a native call | Does not mean the thread is occupying a CPU core |
+| `BLOCKED` | Waiting to enter a `synchronized` monitor | Not a CPU-bound loop just because many threads are BLOCKED |
+| `WAITING` | Waiting indefinitely via a Java mechanism, e.g., `Object.wait`, `LockSupport.park` | Does not automatically mean a leak or deadlock |
+| `TIMED_WAITING` | Bounded wait such as `Thread.sleep`, timed park | Not the cause of high CPU without other evidence |
+| `NEW` / `TERMINATED` | Not yet started / already finished (if observable by the tool) | Not a thread currently scheduled busy by the OS |
 
-Đối với `RUNNABLE`, **đối chiếu OS thread CPU** và **sự lặp lại của call stack** qua ít nhất vài snapshot. Đừng đếm mọi dòng `RUNNABLE` để nhân ra “số core bận”.
+For `RUNNABLE`, **correlate OS thread CPU** and **call stack repetition** across at least several snapshots. Do not count every `RUNNABLE` line and multiply it out as "number of busy cores."
 
-## 6. Vì sao cần nhiều stack snapshot?
+## 6. Why Are Multiple Stack Snapshots Needed?
 
-Một thread dump là một lát cắt trong vài mili giây hoặc lâu hơn. Nó rất dễ bắt trúng một lệnh bình thường đang thoáng chạy; đồng thời có thể **bỏ lỡ** đoạn code nóng khi stack đổi nhanh hoặc thread vừa bị OS deschedule.
+A thread dump is a slice lasting a few milliseconds or longer. It can easily catch a normal instruction momentarily running; at the same time, it can **miss** hot code when stacks change rapidly or when a thread was momentarily descheduled by the OS.
 
-Chẳng hạn một chuỗi giả định có cùng thread:
+For example, a hypothetical sequence for the same thread:
 
 ```text
 T1  cpu-hot-A  RUNNABLE  PriceCalculator.aggregate()
@@ -196,9 +196,9 @@ T3  cpu-hot-A  RUNNABLE  PriceCalculator.aggregate()
 T4  cpu-hot-A  RUNNABLE  PriceCalculator.aggregate()
 ```
 
-Nếu OS cho biết TID tương ứng dùng CPU ổn định và JFR có nhiều `ExecutionSample` tại `PriceCalculator.aggregate`, giả thuyết phương thức này **tiêu thụ đáng kể thời gian thực thi trong khoảng đó** trở nên mạnh hơn. Nhưng nếu chỉ có một ảnh chụp và `top` cho thấy CPU thấp, đây chưa phải bằng chứng.
+If the OS shows the corresponding TID steadily using CPU and JFR has many `ExecutionSample`s in `PriceCalculator.aggregate`, the hypothesis that this method **consumes substantial execution time during that window** becomes much stronger. However, if you only have one snapshot and `top` shows low CPU, that is not yet proof.
 
-Một chuỗi khác:
+Another sequence:
 
 ```text
 T1  worker-1  RUNNABLE      processOneBatch()
@@ -207,24 +207,24 @@ T3  worker-1  WAITING       LinkedBlockingQueue.take()
 T4  worker-1  RUNNABLE      processOneBatch()
 ```
 
-Đây có thể là vòng xử lý bình thường có cả làm việc lẫn chờ; “thấy `processOneBatch` hai lần” chưa chứng minh vòng lặp bất tận. Hãy kiểm tra **tỷ lệ CPU**, tần suất hoạt động và JFR samples theo cùng window.
+This could be a normal processing loop combining work and waiting; "seeing `processOneBatch` twice" does not prove an infinite loop. Check **CPU usage**, execution frequency, and JFR samples over the same window.
 
-**Phương pháp ghép snapshots:**
+**How to correlate snapshots:**
 
-1. Nhóm theo **JVM identity + OS TID/nid + thread name** khi có; đừng chỉ dùng tên thread có thể trùng.
-2. Gắn thời điểm/UTC; xác nhận chúng giao cửa sổ CPU cao.
-3. So **mẫu stack từ trên xuống và call chain** (top frame có thể thay do inline/JIT, vì vậy quan sát thêm khung caller/hot package).
-4. Tính “xuất hiện ở `k` trong `n` snapshots” **như chỉ số gợi ý**, không quy ra “k/n % CPU”.
-5. Phân biệt nhiều threads cùng một vùng code với một thread lặp ở đó; cả hai có thể gây CPU cao nhưng giải pháp khác nhau.
-6. Tìm thông tin trái giả thuyết: khi CPU hết cao thì stack có còn ở đó không? Trên nhiều bản ghi/tải khác nhau có xuất hiện tương tự không?
+1. Group by **JVM identity + OS TID/nid + thread name** when available; do not rely solely on thread names, which can collide.
+2. Attach timestamps/UTC; confirm they overlap the high-CPU window.
+3. Compare **top-down stack patterns and call chains** (top frames can change due to inlining/JIT, so also watch caller frames and hot packages).
+4. Treat "appeared in `k` of `n` snapshots" **as an indicative signal**, not "k/n % CPU".
+5. Distinguish multiple threads in the same code region from one thread looping there; both can raise CPU, but the fixes differ.
+6. Look for disconfirming evidence: when CPU drops, is that stack still present? Across different recordings or loads, does the same pattern appear?
 
-Nếu một ứng dụng có 100.000 virtual threads, phương pháp chụp quá nhiều full dumps không phù hợp; dùng JFR sampling và scoped metrics trước, chỉ tạo dump virtual threads khi có lý do rõ.
+If an application has 100,000 virtual threads, taking many full dumps is unsuitable; use JFR sampling and scoped metrics first, and capture virtual-thread dumps only when clearly justified.
 
-## 7. Thu JFR `ExecutionSample` trong đúng khoảng CPU cao
+## 7. Collect JFR `ExecutionSample` in the Exact High-CPU Window
 
-### 7.1. Tạo recording trên JVM chạy thật (Java 21)
+### 7.1. Create a Recording on a Running JVM (Java 21)
 
-Xác minh trước rằng JVM đích có JFR và quyền attach; **bật recording khi symptom tái hiện**, không chờ sự cố kết thúc rồi đòi dữ liệu lịch sử. Ví dụ:
+Verify first that the target JVM has JFR and attach permissions; **start the recording while the symptom is reproducing**, rather than waiting until the incident ends and expecting historical data. Example:
 
 ```bash
 jcmd 3187 JFR.check
@@ -233,18 +233,18 @@ jcmd 3187 JFR.start name=cpu-investigation \
   filename=/srv/diagnostics/cpu-investigation.jfr
 ```
 
-`settings=profile` chọn profile thu nhiều mẫu thực thi hơn `default` trên JDK 21; chi phí thường cao hơn nên giới hạn cửa sổ. Đường dẫn **thuộc filesystem JVM** và phải ghi được; tên và PID là ví dụ cần thay. Nếu recording đã tồn tại, không đặt cùng tên một cách tùy tiện; xem `JFR.check` trước.
+`settings=profile` selects a profile that captures more execution samples than `default` on JDK 21; overhead is generally higher, so keep the window bounded. The path **belongs to the JVM's filesystem** and must be writable; the name and PID are examples to replace. If a recording already exists, do not blindly reuse the same name; check `JFR.check` first.
 
-Khi cần xuất dữ liệu sớm mà vẫn giữ recording hoạt động:
+When you need to export data early while keeping the recording running:
 
 ```bash
 jcmd 3187 JFR.dump name=cpu-investigation \
   filename=/srv/diagnostics/cpu-partial.jfr
 ```
 
-Lưu cả thông số `.jfc`, thời gian bắt đầu/kết thúc, JVM build, checksum và event types. `JFR.dump` xuất dữ liệu hiện có; không tạo ra event trước lúc recording bắt đầu.
+Save the `.jfc` settings, start/end times, JVM build, checksum, and event types. `JFR.dump` exports data collected so far; it does not produce events from before the recording started.
 
-Sau khi đã có file (trong môi trường truy cập được):
+Once you have the file (in an accessible environment):
 
 ```bash
 jfr summary cpu-investigation.jfr
@@ -253,81 +253,81 @@ jfr print --events jdk.CPULoad,jdk.ThreadCPULoad cpu-investigation.jfr
 jfr print --stack-depth 64 --events jdk.ExecutionSample cpu-investigation.jfr
 ```
 
-**Cảnh báo khi so sánh:** `jfr print` lọc theo **event type**, không tự giới hạn theo một khoảng thời gian do người dùng chỉ định. Nếu file chứa nhiều thời điểm, hãy chọn interval trong JDK Mission Control hoặc lập bộ lọc thời gian bằng `jdk.jfr.consumer`. `jfr summary` đếm event trong **toàn recording**; không lấy counts cả file để kết luận chỉ từ một phút có sự cố.
+**Comparison caveat:** `jfr print` filters by **event type**, and does not automatically restrict to a user-specified time interval. If the file spans multiple periods, select the interval in JDK Mission Control or build a time filter using `jdk.jfr.consumer`. `jfr summary` counts events across **the entire recording**; do not take whole-file counts to draw conclusions about a single 1-minute incident.
 
-### 7.2. Ý nghĩa của ba event
+### 7.2. Meaning of the Three Events
 
-| Event JFR | Đọc như thế nào | Lỗi diễn giải cần tránh |
+| JFR Event | How to Read | Interpretation Errors to Avoid |
 | --- | --- | --- |
-| `jdk.CPULoad` | Xem giá trị tỷ lệ `jvmUser`, `jvmSystem`, `machineTotal` **theo timestamp** để biết JVM và host bận đến đâu | Đếm 10 event CPU load rồi nói JVM dùng 10 CPU |
-| `jdk.ThreadCPULoad` | Xem CPU load/định danh của thread, theo event và khoảng đo; kiểm tra role của các worker nóng | Gán trực tiếp `% sample ExecutionSample` thành CPU load của thread |
-| `jdk.ExecutionSample` | Xem `eventThread`, `stackTrace`, `startTime`; nhóm theo stack/method/time trên **cùng cửa sổ** | Xem mỗi event là một lần gọi method hay số CPU milliseconds chính xác |
+| `jdk.CPULoad` | Inspect `jvmUser`, `jvmSystem`, `machineTotal` ratios **by timestamp** to see how busy JVM and host are | Counting 10 CPU load events and claiming the JVM used 10 CPUs |
+| `jdk.ThreadCPULoad` | Inspect thread CPU load/identity by event and measurement interval; check the role of hot workers | Directly treating `% ExecutionSample` as thread CPU load |
+| `jdk.ExecutionSample` | Inspect `eventThread`, `stackTrace`, `startTime`; group by stack/method/time over the **same window** | Treating each event as one method invocation or exact CPU milliseconds |
 
-Trong JDK 21, `jdk.ExecutionSample` là **lấy mẫu** vị trí thực thi chứ không phải trace từng lời gọi. Các thread đang chờ lock, sleep hoặc I/O có thể ít được lấy mẫu hơn; để tìm lý do chờ hãy xem thêm `jdk.JavaMonitorEnter`, `jdk.ThreadPark`, `jdk.SocketRead` và các event tương ứng **nếu recording có bật**. Một phương thức xuất hiện nhiều trong samples gợi ý đó là **hot path** theo điều kiện sampling, không tự chứng minh nó gây ra request timeout.
+In JDK 21, `jdk.ExecutionSample` is **sampling** execution locations rather than tracing every call. Threads waiting on locks, sleeping, or in I/O may be sampled less often; to find waiting reasons, inspect `jdk.JavaMonitorEnter`, `jdk.ThreadPark`, `jdk.SocketRead`, and corresponding events **if enabled in the recording**. A method appearing frequently in samples suggests a **hot path** under sampling conditions, not proof by itself that it caused request timeouts.
 
-Cấu hình `default`/`profile`, interval, stack depth và workload ảnh hưởng số mẫu. Hai recordings với số sample khác nhau không nên so số đếm tuyệt đối nếu thời gian và tần suất sampling khác nhau.
+`default`/`profile` configuration, intervals, stack depth, and workload affect sample counts. Two recordings with different sample counts should not have raw counts compared directly if duration and sampling frequency differ.
 
-### 7.3. Phân tích trong JDK Mission Control (JMC)
+### 7.3. Analyzing in JDK Mission Control (JMC)
 
-JMC có thể được cài riêng. Tên tab thay đổi theo version nhưng thao tác cốt lõi gồm:
+JMC may be installed separately. Tab names vary by version, but core steps include:
 
-1. Mở file `.jfr`, xác minh JVM/instance và khoảng recording.
-2. Chọn **đúng thời gian CPU cao** trên timeline; đối chiếu với timezone và độ phân giải của monitoring.
-3. Xem **CPU usage** theo JVM/machine; nếu CPU JVM thấp, dừng giả thuyết “Java code CPU-bound”.
-4. Mở **Method Profiling / Hot Methods / Call Tree** để xem tỷ lệ stack samples; phân biệt **self/top method** và **inclusive call tree**.
-5. Phân nhóm theo **thread**, phân biệt business worker với compiler/GC/VM threads, đánh dấu các method hoặc library tập trung mẫu.
-6. Chuyển sang cửa sổ đối chứng bình thường với cùng cài đặt; xem cùng một method có chiếm mẫu ngay cả khi CPU thấp không.
-7. Kiểm tra `Compiler`/`Class Loading`/`GC` event và heap/threads khi CPU tăng gần startup/deploy.
+1. Open the `.jfr` file and verify the JVM/instance and recording interval.
+2. Select the **exact high-CPU time range** on the timeline; align with timezone and monitoring resolution.
+3. Check **CPU usage** for JVM/machine; if JVM CPU is low, drop the "CPU-bound Java code" hypothesis.
+4. Open **Method Profiling / Hot Methods / Call Tree** to inspect stack sample proportions; distinguish **self/top method** from **inclusive call tree**.
+5. Group by **thread**, separate business workers from compiler/GC/VM threads, and flag methods or libraries where samples cluster.
+6. Switch to a normal baseline control window with the same settings; check whether the same method dominates samples even when CPU is low.
+7. Check `Compiler`/`Class Loading`/`GC` events and heap/threads when CPU rises near startup/deploy.
 
-Ví dụ JIT có thể **inline** phương thức vào caller, đổi stack profile, hoặc tối ưu loop qua thời gian. Đừng dựa tuyệt đối vào thứ tự một top frame khi các snapshots/JFR khác thời điểm hoặc JVM đã warmup khác nhau.
+For instance, JIT can **inline** methods into callers, changing stack profiles, or optimize loops over time. Do not rely rigidly on the order of a single top frame when snapshots/JFR come from different times or different JVM warmup states.
 
-## 8. Cách ghép ba nguồn thành một bảng bằng chứng
+## 8. Combining Three Sources into One Evidence Table
 
-Đừng phân tích ba nguồn thành ba câu chuyện độc lập. Dùng cùng **thời gian UTC, service instance, JVM và nhóm thread**:
+Do not analyze the three sources as three separate stories. Align them on the same **UTC time, service instance, JVM, and thread group**:
 
-| Khoảng / tín hiệu | CPU process/container | Nhiều thread dump | JFR ExecutionSample | Kết luận tạm |
+| Window / Signal | Process/Container CPU | Multiple Thread Dumps | JFR ExecutionSample | Working Conclusion |
 | --- | --- | --- | --- | --- |
-| Tăng CPU dưới tải | Gần quota, thread TID A dùng CPU cao | `nid=A` RUNNABLE, lặp frame `calculate()` | Nhiều samples cùng code path trong window | Giả thuyết `calculate()` CPU-bound mạnh; kiểm tra JIT/GC |
-| CPU host cao, JVM thấp | CPU machine cao, process JVM ổn | Business threads chủ yếu WAITING | Ít samples ứng dụng | Kiểm tra process khác/kernel hoặc quota metrics |
-| JVM CPU tăng khi startup | Process CPU cao 1–2 phút đầu | Nhiều class loader/compiler frames (không nhất thiết thấy trong Java dump) | Nhiều startup path và JIT samples | Có thể warmup; so sau khi ổn định |
-| p99 cao, CPU JVM thấp | CPU thấp | Threads chờ pool/network | Hot-method samples không tập trung | Ưu tiên I/O, contention, pool; xem JFR blocking events |
-| JVM CPU cao, business samples ít | Process bận | Dump business threads không nổi bật | Ít `ExecutionSample` Java business code | Xem JIT compiler, GC worker, native CPU, sample settings |
+| CPU rise under load | Near quota, TID A uses high CPU | `nid=A` RUNNABLE, repeating `calculate()` frame | Many samples on same code path in window | Strong `calculate()` CPU-bound hypothesis; check JIT/GC |
+| High host CPU, low JVM CPU | Machine CPU high, JVM process steady | Business threads mostly WAITING | Few application samples | Check other processes/kernel or quota metrics |
+| JVM CPU spike at startup | Process CPU high for first 1–2 minutes | Many class loader/compiler frames (not always visible in Java dumps) | Many startup paths and JIT samples | Possible warmup; re-compare after stabilization |
+| High p99, low JVM CPU | Low CPU | Threads waiting on pool/network | Hot-method samples unfocused | Prioritize I/O, contention, pools; inspect JFR blocking events |
+| High JVM CPU, few business samples | Process busy | Business threads unremarkable in dumps | Few Java business-code `ExecutionSample`s | Check JIT compiler, GC workers, native CPU, sample settings |
 
-**Tất cả hàng là tình huống minh họa**, không phải một bộ kết quả thật; cần thêm log, tải và điều kiện tái hiện trước khi quyết định sửa code.
+**All rows are illustrative scenarios**, not a real dataset; gather additional logs, load data, and reproduction conditions before changing code.
 
-### 8.1. Đừng cộng nhầm các đại lượng
+### 8.1. Do Not Mis-Add Quantities
 
-- `jdk.CPULoad` có **giá trị phần trăm/ratio** theo thời gian; không cộng các giá trị như CPU-seconds.
-- Một sample không chứa thời lượng thực thi của frame Java tương ứng. Mẫu của nhiều threads và nhiều khoảng thời gian phải **chuẩn hóa theo số samples hợp lệ**.
-- 60% samples trong `PriceCalculator` **không đồng nghĩa** phương thức chiếm đúng 60% CPU time hoặc 60% request latency.
-- Một method **inclusive** trong call tree có thể xuất hiện ở nhiều samples vì nó gọi các method con; **self** là thời điểm sampled trực tiếp tại method. Không cộng hai tỷ lệ của cùng stack như hai nguồn CPU độc lập.
-- OS thread CPU có thể chứa thời gian native/JNI hoặc runtime; JFR `ExecutionSample` không phải profiler native toàn diện.
-- Nếu biết máy có 8 logical cores và CPU JVM tương đương 1 core, không thể gọi đó là 100% tổng máy chỉ bằng giá trị 100% của `top`.
+- `jdk.CPULoad` holds **percentage/ratio values** over time; do not sum those values as CPU-seconds.
+- One sample does not carry the execution duration of the corresponding Java frame. Samples across multiple threads and intervals must be **normalized by valid sample count**.
+- 60% of samples in `PriceCalculator` **does not mean** the method accounts for exactly 60% of CPU time or 60% of request latency.
+- An **inclusive** method in a call tree can appear in many samples because it calls child methods; **self** is when execution was sampled directly in that method. Do not add both percentages from the same stack as two independent CPU sources.
+- OS thread CPU can include native/JNI or runtime time; JFR `ExecutionSample` is not a comprehensive native profiler.
+- If a host has 8 logical cores and JVM CPU equals 1 core, you cannot call it 100% of the total machine just because `top` displays 100%.
 
-### 8.2. Từ tương quan tới giả thuyết có thể kiểm chứng
+### 8.2. From Correlation to a Testable Hypothesis
 
-Ví dụ bảng điều tra giả định:
+Hypothetical investigation summary:
 
 ```text
-Triệu chứng: p99 tăng cùng process CPU từ 0,8 lên 2,0 cores
-OS:        TID 8142/8144 là hai threads bận, cùng JVM/PID
-Dump:      nid tương ứng có 4/5 snapshots tại computeQuote()
-JFR:       trong window, phần lớn sampled stacks của hai threads
-           có computeQuote() hoặc caller liên quan
-Ngoại lệ:  GC pause thấp; JIT compilation ít trong window
-Giả thuyết: computeQuote() đang làm nhiều phép tính dư dưới tải
-Kiểm chứng: đo thời gian một request và throughput trước/sau thay đổi
+Symptom:    p99 rises alongside process CPU from 0.8 to 2.0 cores
+OS:         TIDs 8142/8144 are two busy threads, same JVM/PID
+Dumps:      matching nids show computeQuote() in 4/5 snapshots
+JFR:        within the window, most sampled stacks for those two threads
+            contain computeQuote() or its callers
+Controls:   GC pauses low; minimal JIT compilation in window
+Hypothesis: computeQuote() performs redundant computation under load
+Test:       measure per-request time and throughput before/after change
 ```
 
-Đây là **ví dụ lý luận**, không phải kết luận thực tế. Kiểm tra xem phương thức đó vốn là hot path hợp lệ do có rất nhiều request; nếu giảm số lần xử lý nhưng làm sai logic, không được xem là tối ưu thành công.
+This is an **example of reasoning**, not an actual finding. Verify whether that method is simply a legitimate hot path due to high request volume; reducing work while breaking logic is not a valid optimization.
 
-Thử nghiệm đáng tin phải đối chiếu **đúng workload, số cores/quota, cấu hình JDK/GC, dữ liệu đầu vào và trạng thái warmup**; báo cáo throughput, p95/p99, CPU-seconds/request và error rate, không chỉ một flame graph trông đẹp hơn.
+A credible test must match **the same workload, core/quota count, JDK/GC flags, input data, and warmup state**; report throughput, p95/p99, CPU-seconds/request, and error rate, not merely a cleaner-looking flame graph.
 
-## 9. Lab Java 21: hai CPU workers và một sleeper
+## 9. Java 21 Lab: Two CPU Workers and One Sleeper
 
-Lab dưới đây cố tình có **hai platform threads tính toán liên tục** và một thread chỉ ngủ. Nhờ đó, bạn có thể nhìn thấy sự khác nhau giữa CPU time, trạng thái thread ở nhiều dump và phân bố `ExecutionSample`, mà không cần ứng dụng bên ngoài.
+The lab below intentionally creates **two continuously computing platform threads** and one thread that only sleeps. This lets you observe the difference between CPU time, thread state across multiple dumps, and `ExecutionSample` distribution without needing an external application.
 
-Tạo file **`CpuCorrelationLab.java`**:
+Create **`CpuCorrelationLab.java`**:
 
 ```java
 public class CpuCorrelationLab {
@@ -384,9 +384,9 @@ public class CpuCorrelationLab {
 }
 ```
 
-Đây là chương trình độc lập, dùng Java API ổn định có sẵn trong Java 17+ và **biên dịch/chạy bằng JDK 21** mà không cần preview flag. Nó chỉ tạo tải CPU cục bộ; **không chạy trên máy production** hoặc node đang có CPU quota quá chặt.
+This is a standalone program using stable Java APIs available in Java 17+ and **compiles/runs on JDK 21** without preview flags. It only generates local CPU load; **do not run it on production machines** or nodes with tight CPU quotas.
 
-**Terminal A:** biên dịch rồi khởi động với JFR profile trong 25 giây:
+**Terminal A:** compile and start with a 25-second JFR profile:
 
 ```bash
 javac CpuCorrelationLab.java
@@ -394,16 +394,16 @@ java -XX:StartFlightRecording=filename=cpu-lab.jfr,settings=profile,dumponexit=t
   CpuCorrelationLab 25
 ```
 
-Chương trình sẽ giữ hai worker bận khoảng 25 giây, rồi dừng chúng. Sau khi hoàn tất bình thường, stdout **do code tự in** là:
+The program keeps both workers busy for about 25 seconds, then stops them. On normal completion, stdout **printed by the code itself** is:
 
 ```text
 READY: two CPU workers and one sleeper
 DONE
 ```
 
-JVM/JFR có thể in **thông báo khởi động recording riêng**, nên toàn bộ terminal output có thể nhiều hơn hai dòng này. Tên file đầu ra có thể chứa JFR event rất khác nhau theo máy và tải. File `.jfr` được ghi tại working directory; đảm bảo đủ dung lượng và phân quyền.
+The JVM/JFR may print **its own recording startup messages**, so total terminal output may contain more than these two lines. Output files can vary widely in JFR event counts depending on machine and load. The `.jfr` file is written in the working directory; ensure sufficient disk space and permissions.
 
-**Terminal B:** trong lúc còn thấy `READY`, xác định PID thật của lab, đo CPU và lấy snapshot. Ví dụ dưới dùng `3187` làm **placeholder**, không phải PID cố định của lab:
+**Terminal B:** while `READY` is visible, identify the lab's actual PID, measure CPU, and take snapshots. The example below uses `3187` as a **placeholder**, not a fixed PID for the lab:
 
 ```bash
 jcmd -l
@@ -411,9 +411,9 @@ top -H -p 3187
 jcmd 3187 Thread.print -e -l
 ```
 
-Lấy 3–5 dumps ở những thời điểm khác nhau (cùng cách ở mục 5.2). Kiểm tra rằng `cpu-hot-A`, `cpu-hot-B` có khả năng xuất hiện nhiều lần tại `mixedWork`/`burnCpu`, còn `idle-sleeper` thường ở `Thread.sleep`/`TIMED_WAITING`. Số lần xuất hiện và frame cụ thể **không được bảo đảm** vì snapshot timing và JIT inlining.
+Take 3–5 dumps at different times (using the method in Section 5.2). Verify that `cpu-hot-A` and `cpu-hot-B` tend to appear repeatedly in `mixedWork`/`burnCpu`, while `idle-sleeper` is typically in `Thread.sleep`/`TIMED_WAITING`. Exact counts and specific frames are **not guaranteed** due to snapshot timing and JIT inlining.
 
-**Sau khi terminal A kết thúc**, xem recording:
+**After Terminal A finishes**, inspect the recording:
 
 ```bash
 jfr summary cpu-lab.jfr
@@ -421,94 +421,94 @@ jfr print --events jdk.CPULoad,jdk.ThreadCPULoad cpu-lab.jfr
 jfr print --stack-depth 64 --events jdk.ExecutionSample cpu-lab.jfr
 ```
 
-Trong JMC, mở `cpu-lab.jfr`, chọn 20–25 giây lab hoạt động và mở hot methods/call tree. Giải thích vì sao hai thread tính toán xuất hiện nhiều trong samples, nhưng `idle-sleeper` không nên được coi là CPU hotspot chỉ vì nó tồn tại lâu.
+In JMC, open `cpu-lab.jfr`, select the 20–25 seconds when the lab was active, and open Hot Methods/Call Tree. Explain why the two compute threads appear frequently in samples, whereas `idle-sleeper` should not be considered a CPU hotspot merely because it stayed alive just as long.
 
-**Bài thực hành tăng độ khó:** chạy lại lab với tham số 10 và 40 giây, cùng JDK/JFR settings. So **tỷ lệ samples theo call path** thay vì số samples tuyệt đối; so CPU theo cores, warmup và duration. Nếu máy chỉ có 1 core/quota, hai CPU workers sẽ **tranh nhau** thời gian CPU, và tổng process CPU có thể không đạt 2 cores. Không dùng lab này làm benchmark ứng dụng thực tế.
+**Challenge exercise:** re-run the lab with arguments 10 and 40 seconds using the same JDK/JFR settings. Compare **sample proportions by call path** instead of raw sample counts; compare CPU in cores, warmup, and duration. If the machine only has 1 core/quota, the two CPU workers will **contend** for CPU time, and total process CPU may not reach 2 cores. Do not use this lab as a real application benchmark.
 
-## 10. Trường hợp số liệu mâu thuẫn: chẩn đoán trước khi sửa
+## 10. When Data Contradicts Itself: Diagnose Before Fixing
 
-### 10.1. OS báo CPU cao, JFR `ExecutionSample` hiếm
+### 10.1. OS Reports High CPU, JFR `ExecutionSample` Is Sparse
 
-Các hướng kiểm tra:
+Things to check:
 
-- Đúng recording/JVM/PID và window chưa? JFR đang dùng `settings=default` ít mẫu hơn hay event bị tắt?
-- CPU đó đến từ **GC worker hoặc JIT compiler native threads** mà `ExecutionSample` của business Java code không đại diện đủ?
-- CPU đang dành cho JNI/native code, crypto native, codec, thư viện ngoài JVM hoặc kernel? Java stack tại thời điểm snapshot có thể chỉ thể hiện lời gọi native/Java wrapper.
-- Thời gian sampling quá ngắn, method chạy rất nhanh, JIT inlining, event/drop/truncation hoặc sampling bị ảnh hưởng bởi cấu hình?
-- Có `-Xint`/debug build/JIT flags khác bình thường hoặc trình profiler cùng chạy làm thay đổi profile?
+- Did you target the right recording/JVM/PID and window? Is JFR using `settings=default` (fewer samples) or is the event disabled?
+- Does that CPU come from **GC workers or JIT compiler native threads** that business-Java `ExecutionSample`s under-represent?
+- Is CPU spent in JNI/native code, native crypto, codecs, external libraries, or the kernel? A Java stack at snapshot time might only show the native/Java wrapper call.
+- Was the sampling duration too short, the method very fast, JIT-inlined, or affected by event drops/truncation or sampling configuration?
+- Are `-Xint`, a debug build, unusual JIT flags, or another concurrent profiler altering the profile?
 
-Dùng metrics CPU per-thread và JFR Compiler/GC events để chọn hướng. Nếu yêu cầu hotspot bên **native**, cân nhắc OS profiler như `perf` trên Linux (khi được phép và phù hợp kernel/JDK), vì JFR Java execution samples không thay thế mọi native stack.
+Use per-thread CPU metrics and JFR Compiler/GC events to pick a direction. If you need **native** hotspots, consider an OS profiler such as `perf` on Linux (when permitted and compatible with kernel/JDK), because JFR Java execution samples do not replace all native stacks.
 
-### 10.2. Stack snapshot thấy `RUNNABLE` thường xuyên nhưng CPU thấp
+### 10.2. Stack Snapshots Repeatedly Show `RUNNABLE`, Yet CPU Is Low
 
-`RUNNABLE` không phải số liệu tiêu thụ CPU. Các thread có thể runnable nhưng **chưa được OS cấp CPU**, chờ native syscall hoặc tranh CPU quota. Kiểm tra per-thread CPU time trong cùng khoảng, throttling, số CPU logical, thread scheduling và sampling. Có thể thread dump luôn bắt một vòng ngắn đang chạy, trong khi phần lớn thời gian nó chờ.
+`RUNNABLE` is not a CPU consumption metric. Threads can be runnable yet **not scheduled onto a CPU by the OS**, waiting in a native syscall, or throttled by a CPU quota. Check per-thread CPU time in the same interval, throttling, logical CPU count, thread scheduling, and sampling. Thread dumps may simply catch a brief running phase while the thread spends most of its time waiting.
 
-### 10.3. JFR thấy nhiều mẫu ở code khi startup
+### 10.3. JFR Shows Many Samples in Startup Code
 
-Class loading, bytecode verification, JIT compilation, method profiling/warmup, code cache và GC có thể tạo CPU cao tạm thời. Để phân biệt:
+Class loading, bytecode verification, JIT compilation, method profiling/warmup, code cache, and GC can cause temporary high CPU. To distinguish:
 
-1. Kiểm tra CPU trên **startup vs steady-state** và dấu thời gian deploy.
-2. Xem `jdk.Compilation`, `jdk.ClassLoad`/class loading stats và các event GC **nếu có** trong recording (không mặc định đã bật tất cả).
-3. So số mẫu nghiệp vụ trong khoảng sau warmup; nếu hotspot biến mất thì tối ưu code trên startup path có thể cần tiêu chí khác với throughput nóng.
-4. Không coi mọi stack trong compiler/JDK là “lỗi JIT”. Chỉ chứng minh khi có bằng chứng về compilation activity, CPU thread tương ứng và tác động đến SLO.
+1. Compare CPU across **startup vs. steady-state** and deployment timestamps.
+2. Inspect `jdk.Compilation`, `jdk.ClassLoad`/class loading stats, and GC events **if present** in the recording (do not assume all are enabled).
+3. Compare business-code sample counts in a post-warmup window; if the hotspot disappears, optimizing startup-path code may require different criteria than steady-state hot paths.
+4. Do not label every stack in compiler/JDK internals a "JIT bug." Only conclude that with evidence of compilation activity, matching thread CPU, and SLO impact.
 
-### 10.4. Latency cao, CPU vẫn bình thường
+### 10.4. High Latency, Normal CPU
 
-Sử dụng JFR duration events và tracing: `jdk.JavaMonitorEnter`, `jdk.ThreadPark`, `jdk.SocketRead`, `jdk.FileRead`, pool queues, database latency. Những event này có threshold và config riêng, nên vắng mặt không có nghĩa không có chờ. JFR execution samples thường **thiên về thread thực thi**; một request chờ I/O lâu có thể hầu như không có hot samples dù người dùng thấy rất chậm.
+Use JFR duration events and tracing: `jdk.JavaMonitorEnter`, `jdk.ThreadPark`, `jdk.SocketRead`, `jdk.FileRead`, pool queues, and database latency. These events have their own thresholds and settings, so absence does not prove absence of waiting. JFR execution samples are **biased toward executing threads**; a request waiting long on I/O may generate almost no hot samples even though users experience severe slowness.
 
-### 10.5. Nhiều hot methods thay đổi theo từng lần đo
+### 10.5. Top Hot Methods Shift Between Measurements
 
-Sampling có sai số; dưới số mẫu nhỏ, thứ hạng phương thức dễ dao động. Chọn cửa sổ đủ dài, ghi sample count, lặp nhiều lần, xem **call tree, caller và nhóm method** thay vì một top frame. Nếu có hai phases (ví dụ parse rồi calculate), gộp toàn recording sẽ che giấu từng pha. Chia theo symptom phases và cùng CPU metrics.
+Sampling has variance; with small sample counts, method rankings fluctuate easily. Choose a sufficiently long window, record sample counts, repeat measurements, and inspect **call trees, callers, and method groups** rather than a single top frame. If there are two phases (e.g., parse then calculate), aggregating across the whole recording blurs each phase. Split by symptom phases alongside CPU metrics.
 
-## 11. Bảng checklist đối chiếu dành cho điều tra production
+## 11. Production Investigation Cross-Check Checklist
 
-| Bằng chứng | Phải có | Dùng để xác thực |
+| Evidence | Must Capture | Used to Verify |
 | --- | --- | --- |
-| **CPU timeline** | CPU host, JVM process, cgroup quota/throttling, cùng UTC window và bucket | Có saturation thật ở JVM hay không |
-| **Per-thread CPU** | OS TID, %CPU hoặc CPU-time delta, timestamp, PID/host | Hot OS thread là ai |
-| **Snapshot series** | 3–6 thread dumps có timestamp, `nid`, stack và trạng thái | Frame nào lặp lại trong spike |
-| **JFR recording** | File `.jfr`, recording interval, JDK build, JFR settings/profile, checksum | Dữ liệu lấy mẫu và tỷ lệ các event |
-| **JFR ExecutionSample** | Event count trong interval, thread IDs, stack, hot methods/call tree | Mức tập trung sampled execution |
-| **JVM runtime phụ trợ** | GC pauses, compiler activity, class loading khi có event | Có yếu tố JIT/GC/warmup gây nhiễu hay không |
-| **Ứng dụng** | Request rate, endpoint, trace/span, p95/p99, error rate, deploy | Hot path gắn với tác động người dùng ra sao |
-| **So sánh đối chứng** | Window bình thường cùng workload/config và phép đo sau thay đổi | Giả thuyết có đứng vững ngoài một lần quan sát không |
+| **CPU timeline** | Host CPU, JVM process, cgroup quota/throttling, same UTC window and buckets | Whether real JVM saturation exists |
+| **Per-thread CPU** | OS TID, %CPU or CPU-time delta, timestamp, PID/host | Which OS thread is hot |
+| **Snapshot series** | 3–6 timestamped thread dumps, `nid`, stack, and state | Which frames repeat during the spike |
+| **JFR recording** | `.jfr` file, recording interval, JDK build, JFR settings/profile, checksum | Sampled data and event ratios |
+| **JFR ExecutionSample** | Event count in interval, thread IDs, stacks, hot methods/call tree | Concentration of sampled execution |
+| **Supporting JVM runtime** | GC pauses, compiler activity, class loading when events exist | Whether JIT/GC/warmup is confounding the picture |
+| **Application** | Request rate, endpoint, trace/span, p95/p99, error rate, deploy | How the hot path maps to user impact |
+| **Control comparison** | Normal window with same workload/config and post-change measurement | Whether the hypothesis holds beyond one observation |
 
-Không phải service nào cũng thu được đầy đủ mọi cột. Khi thiếu dữ liệu, **đánh dấu đúng phần thiếu** và mức chắc chắn của kết luận; tránh tự điền TID, CPU %, stack hay sample count mà chưa đo.
+Not every service can collect every column. When data is missing, **explicitly mark what is missing** and the confidence level of the conclusion; avoid filling in unmeasured TIDs, CPU %, stacks, or sample counts.
 
-## 12. Những lỗi suy luận phổ biến
+## 12. Common Reasoning Errors
 
-**“Thấy `RUNNABLE` là CPU bị chiếm.”** Sai: trạng thái Java không phải CPU profiler. Phải đọc OS/JFR CPU time.
+**"Seeing `RUNNABLE` means CPU is occupied."** False: Java thread state is not a CPU profiler. Read OS/JFR CPU time.
 
-**“Một thread dump cho biết method nào chiếm nhiều CPU nhất.”** Sai: nó chỉ là snapshot; cần chuỗi snapshots và sampling trong cửa sổ có triệu chứng.
+**"One thread dump tells you which method uses the most CPU."** False: it is only a snapshot; you need a series of snapshots and sampling in the symptom window.
 
-**“60% JFR samples nghĩa là method chiếm chính xác 60% CPU.”** Sai: đó là tỷ lệ mẫu của tập event đã ghi, phụ thuộc sampling và điều kiện lọc.
+**"60% of JFR samples means the method uses exactly 60% of CPU."** False: that is a sample proportion of recorded events, subject to sampling bias and filter conditions.
 
-**“CPU của host 99% nên Java process là thủ phạm.”** Không chắc: phải kiểm tra CPU theo process và container.
+**"Host CPU is 99%, so the Java process is the culprit."** Not certain: check CPU per process and container.
 
-**“Có 16 threads RUNNABLE nên chắc dùng 16 cores.”** Không suy ra được; số runnable threads có thể lớn hơn số cores và chúng còn tranh nhau lịch CPU.
+**"16 `RUNNABLE` threads means 16 cores are definitely in use."** Invalid inference; runnable threads can exceed core count and contend for CPU scheduling.
 
-**“Top frame của một sample là method gốc gây tải.”** Chưa chắc: cần call chain, inclusive/self samples, JIT inlining và context workload.
+**"The top frame of a sample is the root method causing load."** Not necessarily: check the call chain, inclusive/self samples, JIT inlining, and workload context.
 
-**“Không có ExecutionSample nghĩa là không dùng CPU.”** Không chắc: recording settings, sample interval, native/GC/compiler CPU và dữ liệu thiếu đều có thể giải thích.
+**"No `ExecutionSample`s means no CPU was used."** Not necessarily: recording settings, sample interval, native/GC/compiler CPU, and missing data can all explain it.
 
-**“Tối ưu hot method là giải quyết p99.”** Chỉ đúng sau khi chứng minh liên hệ critical path, đo lại CPU-seconds/request, latency, throughput và correctness cùng tải.
+**"Optimizing the hot method fixes p99."** Only true after proving critical-path linkage and re-measuring CPU-seconds/request, latency, throughput, and correctness under the same load.
 
-## 13. Bài tập tự đánh giá
+## 13. Self-Assessment Exercises
 
-1. Một JVM trên máy 8 logical cores dùng 1,5 CPU-seconds trong một giây. Giải thích ý nghĩa “~1,5 cores bận”, và tại sao số `%CPU` của `top` có thể khác dashboard đã chuẩn hóa về 8 cores.
-2. Lấy bốn snapshots quanh thời điểm CPU cao của lab. Tìm `cpu-hot-A/B`, chọn một TID từ `top -H`, chuyển sang hex và đối chiếu `nid`. Nêu vì sao OS TID và Java thread ID không cùng loại.
-3. Mở `cpu-lab.jfr`; xem `jdk.CPULoad` và samples của `mixedWork`/`burnCpu`. Lặp lab với `10` và `40` giây, so **sample proportions** và giải thích khác biệt do warmup/JIT/sampling.
-4. Trong một kịch bản giả định, host 90% CPU, JVM 12%, request p99 tăng, đa số thread `WAITING`. Viết giả thuyết ưu tiên và số liệu cần thu thay vì sửa hot Java method.
-5. Một JVM có 70% sampled stacks ở `jsonEncode`, nhưng CPU process thấp và QPS lớn. Giải thích vì sao `jsonEncode` có thể nhiều mẫu mà chưa đáng tối ưu.
-6. So sánh GC/JIT CPU trong phút sau deploy với mười phút sau. Thiết kế cách đo để không kết luận nhầm “CPU leak” khi warmup.
+1. A JVM on an 8-logical-core host uses 1.5 CPU-seconds in one second. Explain what "~1.5 busy cores" means, and why `top`'s `%CPU` can differ from a dashboard normalized across 8 cores.
+2. Take four snapshots around the high-CPU period of the lab. Locate `cpu-hot-A/B`, pick a TID from `top -H`, convert it to hex, and match `nid`. Explain why OS TID and Java thread ID are not the same kind of ID.
+3. Open `cpu-lab.jfr`; inspect `jdk.CPULoad` and samples of `mixedWork`/`burnCpu`. Repeat the lab with `10` and `40` seconds, compare **sample proportions**, and explain differences caused by warmup/JIT/sampling.
+4. In a hypothetical scenario, host CPU is 90%, JVM is 12%, request p99 rises, and most threads are `WAITING`. Write the primary hypothesis and metrics to collect instead of tuning a hot Java method.
+5. A JVM has 70% of sampled stacks in `jsonEncode`, yet process CPU is low and QPS is high. Explain why `jsonEncode` can dominate samples without yet warranting optimization.
+6. Compare GC/JIT CPU in the minute after deployment against ten minutes later. Design a measurement plan to avoid misdiagnosing warmup as a "CPU leak."
 
-**Checklist hoàn tất:** đã xác định đúng JVM và cửa sổ UTC; có process/container CPU + OS TID; có nhiều dumps lặp theo thời gian; có JFR profile ghi được `ExecutionSample` và CPULoad; ghép stack/thread theo cùng giai đoạn; đã kiểm tra JIT, GC, class loading và waiting; kết luận có điều kiện, phép kiểm chứng và chỉ số trước/sau.
+**Completion checklist:** identified the right JVM and UTC window; collected process/container CPU + OS TIDs; captured multiple repeated dumps over time; captured a JFR profile with `ExecutionSample` and CPULoad; aligned stacks/threads over the same phase; checked JIT, GC, class loading, and waiting; stated conditional conclusions, verification tests, and before/after metrics.
 
-## 14. Tài liệu gốc (Java 21)
+## 14. Primary References (Java 21)
 
 - [Oracle JDK 21 — `jcmd` command: `Thread.print`, `JFR.start`, `JFR.check`, `JFR.dump`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
 - [Oracle JDK 21 — `jfr` command: `summary`, `print`, `metadata`, `view`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
 - [Oracle JDK 21 — Troubleshoot Performance Issues Using Flight Recorder](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshoot-performance-issues-using-jfr.html)
-- [Oracle JDK 21 — Virtual Threads: virtual-thread dump và khác biệt với platform threads](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html)
-- [Oracle JDK 21 — JFR package và cấu hình sự kiện](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html)
-- [Oracle JDK 21 — Diagnostic Tools và giới hạn thu thread dump](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html)
+- [Oracle JDK 21 — Virtual Threads: virtual-thread dump and differences from platform threads](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html)
+- [Oracle JDK 21 — JFR package and event configuration](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html)
+- [Oracle JDK 21 — Diagnostic Tools and thread dump collection limits](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html)

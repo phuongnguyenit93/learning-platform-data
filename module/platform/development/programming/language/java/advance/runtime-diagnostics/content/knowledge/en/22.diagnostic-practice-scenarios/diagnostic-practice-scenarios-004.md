@@ -1,23 +1,23 @@
-# 22.4 Tái hiện pool bão hòa và tách thời gian chờ hàng đợi khỏi thời gian chạy
+# 22.4 Reproducing Pool Saturation and Separating Queue Wait Time from Run Time
 
-> **Module:** Java Advance – runtime-diagnostics, phần **22. Thực hành tổng hợp**. Bài lab Java 17+ dùng `ThreadPoolExecutor` với một worker và hàng đợi có giới hạn để tạo ra trạng thái bão hòa một cách có kiểm soát. Bằng các mốc `submit → start → finish`, ta tách **độ trễ chờ được thực thi** khỏi **độ trễ khi task đã chạy**, từ đó phân biệt lỗi overload, backlog, tác vụ chậm và cách xử lý phù hợp.
+> **Module:** Java Advance – runtime-diagnostics, section **22. Integrated Practice**. This Java 17+ lab uses a `ThreadPoolExecutor` with one worker and a bounded queue to create a controlled saturation state. Using `submit → start → finish` timestamps, we separate **wait-for-execution latency** from **in-flight execution latency**, distinguishing overload, backlog, slow tasks, and appropriate remedies.
 
-## 1. Kết quả học tập
+## 1. Learning Outcomes
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Diễn giải cách `corePoolSize`, `maximumPoolSize`, `BlockingQueue` và `RejectedExecutionHandler` quyết định một task được chạy, xếp hàng hay từ chối.
-2. Tái hiện trạng thái **một task đang chạy + một task chờ trong queue + task thứ ba bị reject**, không phụ thuộc may rủi của `Thread.sleep()` ở thời điểm submit.
-3. Đo riêng **submit-to-start latency** và **run duration** bằng `System.nanoTime()`, kiểm tra quan hệ với tổng task latency.
-4. Giải thích vì sao task chạy 40 ms nhưng caller có thể chờ 300 ms hoặc hơn.
-5. Dùng queue depth, active workers, rejection, wait/run histograms, thread dumps, JFR và application metrics để nhận diện nguyên nhân bão hòa.
-6. Thiết kế cách giới hạn tải và tuning có chứng cứ, không mặc định “tăng pool” hoặc “đổi sang queue vô hạn” là sửa được bottleneck.
+1. Explain how `corePoolSize`, `maximumPoolSize`, `BlockingQueue`, and `RejectedExecutionHandler` determine whether a task runs, queues, or is rejected.
+2. Reproduce the state of **one task running + one task waiting in the queue + a third task rejected**, without relying on lucky `Thread.sleep()` timing at submission.
+3. Measure **submit-to-start latency** and **run duration** separately with `System.nanoTime()`, verifying their relationship to total task latency.
+4. Explain why a task taking 40 ms to run can make the caller wait 300 ms or more.
+5. Use queue depth, active workers, rejections, wait/run histograms, thread dumps, JFR, and application metrics to diagnose causes of saturation.
+6. Design load shedding and evidence-based tuning, without assuming "enlarge the pool" or "switch to an unbounded queue" fixes the bottleneck.
 
-**Tình huống xuất phát:** Người dùng báo API mất 900 ms, nhưng profiler thấy đoạn xử lý business chỉ khoảng 40 ms. Nếu task nằm trong executor queue gần 850 ms trước lúc worker rảnh, tối ưu 40 ms còn 30 ms chỉ tiết kiệm được 10 ms. Phải đo **hai pha** trước khi chọn giải pháp.
+**Starting scenario:** Users report an API taking 900 ms, yet the profiler shows business processing takes only about 40 ms. If the task sat in the executor queue for nearly 850 ms waiting for a free worker, optimizing 40 ms down to 30 ms saves only 10 ms. You must measure **both phases** before choosing a fix.
 
-## 2. Phân biệt ba khoảng thời gian
+## 2. Separating Three Time Intervals
 
-Đối với một task đã được pool nhận:
+For a task accepted by the pool:
 
 ```text
 Caller                            ThreadPoolExecutor                    Worker
@@ -30,7 +30,7 @@ Caller                            ThreadPoolExecutor                    Worker
    | <------------------------- Future/result -----------------------------|
 ```
 
-Đo bằng **cùng một đồng hồ monotonic**:
+Measured using **the same monotonic clock**:
 
 ```text
 submitToStartNanos = tStart - tSubmit
@@ -40,26 +40,26 @@ totalNanos         = tEnd   - tSubmit
 totalNanos == submitToStartNanos + runNanos
 ```
 
-- `tSubmit`: thời điểm caller chuẩn bị gửi task, ngay trước `execute/submit`.
-- `tStart`: dòng đầu được thực thi trong task wrapper của worker.
-- `tEnd`: task kết thúc phần công việc được đo.
+- `tSubmit`: timestamp when the caller prepares to submit the task, right before `execute/submit`.
+- `tStart`: first line executed inside the worker's task wrapper.
+- `tEnd`: task finishes the measured portion of work.
 
-**Tên chính xác:** `submitToStart` là khoảng **từ khi chuẩn bị submit đến khi bắt đầu chạy**. Nó thường gần với thời gian chờ executor queue, nhưng còn có chi phí admission, tạo worker, dispatch và scheduling. Nếu cần chính xác thời gian *nằm bên trong queue*, phải instrument tại thời điểm enqueue/dequeue hoặc custom queue/executor. Bài này dùng `submitToStart` như chỉ báo thực tiễn, không tuyên bố nó chỉ gồm queue residence.
+**Exact naming:** `submitToStart` is the interval **from preparing submission to starting execution**. It usually approximates executor queue wait time, though it also includes admission, worker creation, dispatch, and scheduling overhead. If you need exact *time spent inside the queue*, instrument enqueue/dequeue directly or use a custom queue/executor. This lesson uses `submitToStart` as a practical indicator without claiming it is purely queue residence.
 
-**`runNanos` là thời gian elapsed, không phải thời gian CPU tiêu thụ.** Một worker đã nhận task nhưng đang `Thread.sleep`, chờ DB/socket, lock, semaphore hoặc filesystem vẫn bị chiếm cho đến khi task kết thúc. Phân loại phần **chờ bên trong task** khác với **chờ trước khi task có worker**.
+**`runNanos` is elapsed wall time, not CPU time consumed.** A worker that picked up a task and is calling `Thread.sleep`, waiting on DB/sockets, locks, semaphores, or the filesystem remains occupied until the task finishes. Separating **in-task waiting** differs from **waiting before a task gets a worker**.
 
-### 2.1. `Future.get()` không phải queue wait
+### 2.1. `Future.get()` Is Not Queue Wait
 
-Một lời gọi `future.get()` chờ 500 ms có thể bao gồm:
+A `future.get()` call waiting 500 ms can include:
 
-- Task còn trong queue.
-- Task đã bắt đầu và đang làm việc.
-- Worker bị chờ network/DB bên trong task.
-- Scheduling và thời điểm caller thực sự bắt đầu chờ.
+- Time the task spent queued.
+- Time after the task started working.
+- Time the worker waited on network/DB inside the task.
+- Scheduling and when the caller actually began waiting.
 
-Vì vậy không được lấy thời gian `Future.get()` rồi gán nhãn `queueWaitMs`. Ngoài ra `Future.get(timeout)` hết giờ chỉ khiến caller thôi chờ; task **không tự động bị hủy**. Nếu cần hủy phải xét `cancel`, interrupt và cách đóng resource theo contract của ứng dụng.
+Therefore, never take `Future.get()` duration and label it `queueWaitMs`. Moreover, `Future.get(timeout)` expiring only stops the caller from waiting; the task **is not automatically cancelled**. If cancellation is needed, handle `cancel`, interruption, and resource cleanup per the application's contract.
 
-### 2.2. End-to-end request còn nhiều pha
+### 2.2. End-to-End Requests Have Even More Phases
 
 ```text
 request arrival
@@ -72,35 +72,35 @@ request arrival
    -> response sent
 ```
 
-Tổng latency từ client có thể lớn hơn cả `submitToStart + run`, và một số phần có thể chạy chồng nhau khi async. Không cộng các số đo **có ranh giới trùng lặp** rồi gọi là tổng request latency. Luôn ghi điểm bắt đầu/kết thúc mà metric thực sự bao phủ.
+Client-perceived total latency can exceed `submitToStart + run`, and some stages may overlap when asynchronous. Never add measurements with **overlapping boundaries** and call the sum total request latency. Always document the exact start/end points each metric covers.
 
-### 2.3. Task chưa từng chạy
+### 2.3. Tasks That Never Ran
 
-| Trạng thái | Có `tStart`/`tEnd` không? | Cách ghi nhận |
+| Status | Has `tStart`/`tEnd`? | How to Record |
 | --- | --- | --- |
-| Accepted và completed | Có | `submitToStart`, `run`, `total`, outcome |
-| Accepted rồi failed trong `run` | Có | Đo bằng `finally` và ghi `FAILED` |
-| Rejected vì full hoặc shutdown | **Không** | Rejection count, reason và thời gian phản hồi submit riêng |
-| Cancelled khi vẫn queued | Chưa có `tStart` | Cancellation/expiration metrics riêng, không ép `run=0` vào latency histogram thành công |
-| CallerRunsPolicy chạy trên caller | Có start/end nhưng **không chạy ở pool worker** | Ghi execution location, caller latency và backpressure riêng |
+| Accepted and completed | Yes | `submitToStart`, `run`, `total`, outcome |
+| Accepted then failed in `run` | Yes | Measure in `finally` and record `FAILED` |
+| Rejected because full or shut down | **No** | Rejection count, reason, and submit-site response latency separately |
+| Cancelled while still queued | No `tStart` | Separate cancellation/expiration metrics; do not force `run=0` into success latency histograms |
+| `CallerRunsPolicy` runs on caller | Has start/end but **did not run on a pool worker** | Record execution location, caller latency, and backpressure separately |
 
-## 3. Cách `ThreadPoolExecutor` quyết định queue và số worker
+## 3. How `ThreadPoolExecutor` Decides Queuing and Worker Count
 
-`ThreadPoolExecutor` phối hợp ba giới hạn:
+`ThreadPoolExecutor` coordinates three bounds:
 
-- **`corePoolSize`:** số core workers mục tiêu.
-- **`maximumPoolSize`:** trần workers có thể dùng khi queue không nhận thêm task.
-- **`workQueue`:** giữ những task đã accept nhưng **chưa được worker lấy ra**.
+- **`corePoolSize`:** target number of core workers.
+- **`maximumPoolSize`:** ceiling of workers usable when the queue rejects more tasks.
+- **`workQueue`:** holds accepted tasks that have **not yet been dequeued by a worker**.
 
-Quy tắc quan trọng của HotSpot/JDK `ThreadPoolExecutor`:
+Key HotSpot/JDK `ThreadPoolExecutor` rules:
 
-1. Nếu số worker hiện chạy còn ít hơn core, executor thường ưu tiên **tạo worker**.
-2. Khi đã có đủ core workers, executor thường ưu tiên **đưa task vào queue** thay vì lập tức mở rộng tới max.
-3. Nếu queue không nhận task, executor mới thử tạo thêm worker tới `maximumPoolSize`.
-4. Nếu max workers đã chạm trần và queue không nhận thêm, task được xử lý bởi `RejectedExecutionHandler`.
-5. Executor đã shutdown cũng có thể từ chối task; **rejection không mặc định đồng nghĩa saturation**.
+1. If fewer than `corePoolSize` workers are running, the executor generally prefers **creating a new worker**.
+2. Once core workers are populated, the executor generally prefers **queuing the task** rather than immediately scaling up to max.
+3. Only if the queue cannot accept the task does the executor try adding workers up to `maximumPoolSize`.
+4. If max workers are reached and the queue refuses the task, `RejectedExecutionHandler` handles it.
+5. A shut-down executor also rejects tasks; **rejection does not automatically mean saturation**.
 
-**Lab chọn cấu hình:**
+**Lab configuration chosen:**
 
 ```text
 corePoolSize = 1
@@ -108,34 +108,34 @@ maximumPoolSize = 1
 queue capacity = 1
 handler = AbortPolicy
 
-Task A -> worker #1 (đang chạy/chờ latch)
-Task B -> workQueue[0] (đang chờ worker #1)
-Task C -> không còn slot hoặc worker -> REJECTED
+Task A -> worker #1 (running/waiting on latch)
+Task B -> workQueue[0] (waiting for worker #1)
+Task C -> no slot or worker left -> REJECTED
 ```
 
-Ở thời điểm giữ ổn định: `active workers≈1`, `queue.size()=1`, tổng số task **đã được chấp nhận và chưa hoàn tất** là 2. Queue depth **không** phải 2 vì task A đang chạy đã ra khỏi queue.
+During the steady hold window: `active workers≈1`, `queue.size()=1`, total **accepted and unfinished** tasks is 2. Queue depth is **not** 2 because running task A has already left the queue.
 
-### 3.1. Bounded queue và unbounded queue
+### 3.1. Bounded vs. Unbounded Queues
 
-- `new ArrayBlockingQueue<>(1)` tạo queue có **một vị trí rõ ràng**; khi đầy có thể tạo thêm worker nếu max>core, hoặc reject theo policy.
-- `Executors.newFixedThreadPool(n)` thường sử dụng **unbounded LinkedBlockingQueue**. Khi core threads bận, task mới có thể cứ được queue. Kết quả là tail latency và memory tăng mà không thấy reject ngay. Với queue unbounded, `maximumPoolSize` thường không phát huy vai trò vượt core vì queue không báo đầy.
-- `Executors.newCachedThreadPool()` có chiến lược mở rộng threads khác, không phải backpressure bounded mặc định.
-- `Executors.newVirtualThreadPerTaskExecutor()` trên JDK 21+ không đặt giới hạn business concurrency chỉ bằng việc virtual threads rẻ hơn platform threads. Database connections, remote API limits, buffers và memory vẫn hữu hạn; có thể dùng semaphore/bulkhead/timeout phù hợp.
+- `new ArrayBlockingQueue<>(1)` creates a queue with **an explicit single slot**; once full, additional workers may spawn if `max > core`, or tasks get rejected per policy.
+- `Executors.newFixedThreadPool(n)` normally uses an **unbounded `LinkedBlockingQueue`**. While core threads are busy, new tasks keep queuing. As a result, tail latency and memory grow without immediate rejections. With an unbounded queue, `maximumPoolSize` above `corePoolSize` generally never takes effect because the queue never reports full.
+- `Executors.newCachedThreadPool()` uses a different thread expansion strategy and is not bounded backpressure by default.
+- `Executors.newVirtualThreadPerTaskExecutor()` on JDK 21+ does not limit business concurrency merely because virtual threads are cheaper than platform threads. Database connections, remote API limits, buffers, and memory remain finite; pair with semaphores/bulkheads/timeouts as appropriate.
 
-Một pool lớn hơn chưa chắc nhanh hơn. Nếu 200 workers cùng chờ 10 connection DB thì áp lực nhớ, context-switch và downstream contention có thể **tệ hơn**. Cần đo nguyên nhân occupied time.
+A larger pool is not necessarily faster. If 200 workers wait on 10 DB connections, memory pressure, context switching, and downstream contention can get **worse**. Measure what occupies worker time.
 
-## 4. Lab độc lập Java 17+: một running, một queued, một rejected
+## 4. Standalone Java 17+ Lab: One Running, One Queued, One Rejected
 
-Chương trình sau hoàn toàn tự chạy bằng JDK, không cần server, DB, network hay thư viện ngoài:
+The following program runs purely on the JDK with no server, DB, network, or external libraries:
 
 - `ThreadPoolExecutor(1, 1, ..., ArrayBlockingQueue<>(1), AbortPolicy)`.
-- Task `first` chiếm worker và chờ `CountDownLatch`.
-- Main chờ `first` bắt đầu rồi submit task `queued`.
-- Main xác nhận queue đã đầy, thử task thứ ba để nhận `RejectedExecutionException`.
-- Main **giữ task đầu thêm 250 ms**, sau đó release worker; task thứ hai chỉ làm việc khoảng 40 ms.
-- Hai task đầu được đo bằng cùng đồng hồ monotonic `System.nanoTime()`.
+- Task `first` occupies the worker and waits on a `CountDownLatch`.
+- Main waits for `first` to start, then submits task `queued`.
+- Main confirms the queue is full and submits a third task to trigger `RejectedExecutionException`.
+- Main **holds the first task for another 250 ms**, then releases the worker; the second task works for roughly 40 ms.
+- The first two tasks are measured with the same monotonic clock `System.nanoTime()`.
 
-### 4.1. Tạo file `PoolQueueTimingLab.java`
+### 4.1. Create `PoolQueueTimingLab.java`
 
 ```java
 import java.util.Locale;
@@ -240,16 +240,16 @@ public class PoolQueueTimingLab {
 }
 ```
 
-**Giới hạn của lab:** `measured(...)` ở đây tạo `Sample` sau một task **thành công**. Vì cả hai task demo đều hoàn tất bình thường, nó cho số liệu đúng. Với code production, muốn giữ metrics khi task ném exception cần ghi trong `finally`; trình bày ở mục 6. Dòng `completed=2` nằm sau **hai `Future.get()` đã thành công**, mô tả số tác vụ của kịch bản, không phải `ThreadPoolExecutor.getCompletedTaskCount()` được đọc trực tiếp.
+**Lab limitation:** `measured(...)` here constructs `Sample` only after a **successful** task. Because both demo tasks complete normally, it reports accurate figures. In production code, to preserve metrics when a task throws an exception you must record them inside `finally`, as shown in section 6. The line `completed=2` appears after **both `Future.get()` calls succeed**, describing the scenario's task count rather than reading `ThreadPoolExecutor.getCompletedTaskCount()` directly.
 
-### 4.2. Biên dịch và chạy
+### 4.2. Compiling and Running
 
 ```bash
 javac PoolQueueTimingLab.java
 java PoolQueueTimingLab
 ```
 
-Đã kiểm tra bằng `javac --release 17` và chạy nhiều lần trên OpenJDK 24. Sáu dòng đầu là những kiểm tra logic đã được xác nhận trên môi trường thử nghiệm:
+Compiled with `javac --release 17` and verified across multiple runs on OpenJDK 24. The first six lines are logic checks verified in the test environment:
 
 ```text
 saturated=true
@@ -260,63 +260,63 @@ queuedWaitPositive=true
 latencyIdentity=true
 ```
 
-Hai dòng sau **thay đổi số đo** theo máy, thời điểm và tải. Ví dụ một lần chạy thực tế:
+The next two lines **vary in measured values** by machine, moment, and load. Example of an actual run:
 
 ```text
 first submitToStartMs=6.82 runMs=253.72 totalMs=260.54
 queued submitToStartMs=253.93 runMs=40.44 totalMs=294.37
 ```
 
-Đây là **output minh họa từ một lần chạy**, không phải giá trị cố định. Nhận định có giá trị: `queued` đã **chờ ~254 ms trước khi được chạy** nhưng **chỉ xử lý ~40 ms**. Nếu chỉ nhìn `runMs`, chúng ta sẽ bỏ sót phần lớn tail latency.
+This is **illustrative output from one run**, not fixed values. The key takeaway: `queued` **waited ~254 ms before starting** yet **ran for only ~40 ms**. Looking only at `runMs` misses most of the tail latency.
 
-### 4.3. Tại sao latch làm phép thử ổn định?
+### 4.3. Why Do Latches Make the Test Deterministic?
 
-`firstStarted.await(3, SECONDS)` bảo đảm task thứ nhất thực sự vào worker trước khi submit task thứ hai. Khi worker đang đợi `releaseFirst`, task thứ hai phải nằm trong queue, vì pool không thể có worker thứ hai. Hàng đợi capacity 1 đã đầy thì task thứ ba bị `AbortPolicy` reject.
+`firstStarted.await(3, SECONDS)` guarantees the first task actually entered the worker before the second task is submitted. While the worker waits on `releaseFirst`, the second task must sit in the queue because the pool cannot spawn a second worker. With the capacity-1 queue full, the third task is rejected by `AbortPolicy`.
 
-Không nên dùng `Thread.sleep(100)` đơn thuần để *hy vọng* worker thứ nhất bắt đầu trước task thứ hai; đó là race dễ làm kết quả khác nhau ở máy chậm/CI. `CountDownLatch` tạo một ranh giới đồng bộ có thể lặp lại. Lệnh `Thread.sleep(250)` sau bước xác nhận chỉ để **giữ thời gian chờ đủ dài cho việc đo**, không phải để quyết định logic đúng/sai của trình tự task.
+Do not use plain `Thread.sleep(100)` to *hope* the first worker starts before the second task; that race produces flaky results on slower machines/CI. `CountDownLatch` creates a repeatable synchronization boundary. The `Thread.sleep(250)` after checking saturation only **keeps the wait long enough to measure**, not to decide task ordering correctness.
 
-`getActiveCount()` là **ước lượng**, `getQueue().size()` là ảnh chụp tại thời điểm gọi. Chúng chỉ đủ ổn định trong lab vì latch giữ worker. Trong hệ thống đang chạy thật, worker có thể hoàn tất giữa lúc bạn đọc gauge và lúc submit task khác; không xây chính sách admission bằng `if (queue.size()<capacity) submit(...)` vì có race.
+`getActiveCount()` is an **estimate**, and `getQueue().size()` is a point-in-time snapshot. They remain steady in the lab only because the latch holds the worker. In live systems, a worker can finish between reading the gauge and submitting another task; never build admission logic via `if (queue.size() < capacity) submit(...)` due to the race condition.
 
-### 4.4. Diễn giải số liệu đúng đơn vị
+### 4.4. Interpreting Numbers with Correct Units
 
-Với task `queued` trong mẫu:
+For task `queued` in the sample:
 
 ```text
-tSubmit -> tStart = 253.93 ms  (chờ được thực thi)
-tStart  -> tEnd   =  40.44 ms  (task đang chạy)
-tSubmit -> tEnd   = 294.37 ms  (task latency tổng)
+tSubmit -> tStart = 253.93 ms  (waiting to execute)
+tStart  -> tEnd   =  40.44 ms  (task running)
+tSubmit -> tEnd   = 294.37 ms  (total task latency)
 ```
 
-Trên nanoseconds, `total = submitToStart + run` đúng theo đại số. Khi hiển thị hai chữ số thập phân, đôi khi tổng các số đã làm tròn có sai khác ~0,01 ms; **không** kết luận mất thời gian hoặc sai clock chỉ vì rounding.
+In nanoseconds, `total = submitToStart + run` holds algebraically. When formatted to two decimal places, rounded components can sometimes differ by ~0.01 ms; **do not** conclude lost time or clock drift from rounding.
 
-Lưu ý `first` có `runMs≈254 ms` nhưng phần lớn đang **đợi latch**, không chạy CPU. Từ góc nhìn pool, nó vẫn chiếm một worker và ngăn task `queued` tiến triển.
+Notice `first` has `runMs≈254 ms`, yet most of it is **waiting on the latch**, not executing on CPU. From the pool's perspective, it still occupies a worker and prevents `queued` from progressing.
 
-## 5. Đọc đúng runtime metrics của `ThreadPoolExecutor`
+## 5. Reading `ThreadPoolExecutor` Runtime Metrics Properly
 
-| API | Giá trị trả về | Không nên suy ra |
+| API | Returned Value | Do Not Infer |
 | --- | --- | --- |
-| `getCorePoolSize()` | Core worker configuration | Số thread thực đang bận |
-| `getMaximumPoolSize()` | Max worker configuration | Pool luôn tự mở rộng tới max khi core bận |
-| `getPoolSize()` | Số worker threads hiện có | Active workers hoặc task throughput |
-| `getActiveCount()` | **Ước lượng** threads đang thực thi task | CPU busy % hoặc số request hoàn tất |
-| `getQueue().size()` | Tasks đang đợi trong queue lúc quan sát | Tasks đang chạy hoặc queue đã từng chờ bao lâu |
-| `getQueue().remainingCapacity()` | Chỗ trống tức thời | Submit tiếp theo chắc chắn được accepted |
-| `getLargestPoolSize()` | Số worker đồng thời lớn nhất từng có | Latency hiện tại |
-| `getTaskCount()` | **Ước lượng** tasks đã được lên lịch | Rejected count hay task success rate |
-| `getCompletedTaskCount()` | **Ước lượng** tasks đã hoàn tất | Kết quả nghiệp vụ hoặc số tasks chính xác trên mọi snapshot |
+| `getCorePoolSize()` | Core worker configuration | Actual busy thread count |
+| `getMaximumPoolSize()` | Max worker configuration | That the pool always scales to max when core is busy |
+| `getPoolSize()` | Existing worker threads right now | Active workers or task throughput |
+| `getActiveCount()` | **Approximate** threads actively running tasks | CPU busy % or completed requests |
+| `getQueue().size()` | Tasks waiting in the queue at observation time | Running tasks or how long the queue has waited |
+| `getQueue().remainingCapacity()` | Instantaneous free slots | That the next submit is guaranteed to be accepted |
+| `getLargestPoolSize()` | Highest concurrent worker count ever reached | Current latency |
+| `getTaskCount()` | **Approximate** total scheduled tasks | Rejected count or task success rate |
+| `getCompletedTaskCount()` | **Approximate** completed tasks | Business success or exact task count across snapshots |
 
-**Queue depth có thể đang bằng 0 mà p99 wait vẫn cao.** Ví dụ task đã chờ 10 giây, sau đó vừa được worker lấy ra và queue trống. Snapshot 1 phút/lần sẽ không thấy backlog trong quá khứ; `submitToStart` được ghi **trên từng task** vẫn cho biết mức chờ dài. Do đó hãy dùng cả `queue.depth`, `oldestQueuedAge` (nếu có) và histogram delay, không chỉ gauge queue depth.
+**Queue depth can currently be 0 while p99 wait is still high.** For instance, a task waited 10 seconds, just got dequeued by a worker, and left the queue empty. A once-per-minute snapshot misses that past backlog; per-task `submitToStart` still reveals the long wait. Therefore use `queue.depth`, `oldestQueuedAge` (when available), and delay histograms together rather than queue depth gauges alone.
 
-Các pool có chức năng khác nhau phải được gắn tên ổn định; không trộn metric của request pool, DB connection pool, message consumer pool và scheduler. Nên gắn `poolName`, `taskType`, `outcome` từ tập giá trị **hữu hạn**, không gắn request ID làm time-series label.
+Pools serving different roles must use distinct stable names; do not mix metrics from request pools, DB connection pools, message consumer pools, and schedulers. Attach `poolName`, `taskType`, and `outcome` from **finite** sets, never request IDs as time-series labels.
 
-## 6. Instrument hai pha trong ứng dụng thật
+## 6. Two-Phase Instrumentation in Real Applications
 
-### 6.1. Điểm đo tối thiểu
+### 6.1. Minimum Measurement Points
 
 ```text
-tSubmitted = System.nanoTime()       // ngay trước execute/submit
-tStarted   = System.nanoTime()       // đầu wrapper trong worker
-... phần công việc được instrument ...
+tSubmitted = System.nanoTime()       // right before execute/submit
+tStarted   = System.nanoTime()       // start of wrapper inside worker
+... instrumented work ...
 tFinished  = System.nanoTime()       // finally
 
 submitToStart = tStarted - tSubmitted
@@ -324,13 +324,13 @@ execution     = tFinished - tStarted
 total         = tFinished - tSubmitted
 ```
 
-Sử dụng `System.nanoTime()` để đo **duration** vì nó phục vụ tính thời gian trôi qua trong cùng process; `System.currentTimeMillis()` là wall clock có thể bị điều chỉnh bởi NTP/clock changes. Nếu muốn đối chiếu timeline với JFR/logs, ghi thêm wall-clock timestamp **riêng**, không trộn nó vào phép trừ latency.
+Use `System.nanoTime()` for **durations** because it measures elapsed time inside the same process; `System.currentTimeMillis()` is wall-clock time subject to NTP/clock adjustments. If you need to correlate timelines with JFR/logs, record a **separate** wall-clock timestamp rather than mixing it into latency subtraction.
 
-Đặt `tSubmitted` gần nơi gọi `execute/submit`. Nếu caller đã chờ admission semaphore hoặc chờ HTTP request queue trước đó thì thời gian này **nằm ngoài** submit-to-start, cần metric riêng. Đặt `tStarted` tại đầu task wrapper, `tFinished` trong `finally` cho cả success/failure. Với async continuation, xác định rõ task nào được đo; không tự gọi submit-to-start là end-to-end user request latency.
+Place `tSubmitted` right near `execute/submit`. If the caller previously waited on an admission semaphore or an HTTP request queue, that time lies **outside** submit-to-start and needs its own metric. Place `tStarted` at the start of the task wrapper and `tFinished` in `finally` for both success and failure. With async continuations, define clearly which unit of work is measured; never blindly equate submit-to-start with end-to-end user request latency.
 
-### 6.2. Snippet minh họa có `finally`
+### 6.2. Illustrative Snippet with `finally`
 
-Đây là **mảnh code cần các biến/phụ thuộc** `executor`, `metrics`, `performBusinessOperation()` do ứng dụng định nghĩa; không phải chương trình độc lập:
+This is a **code snippet requiring application-defined** `executor`, `metrics`, and `performBusinessOperation()`; it is not a standalone program:
 
 ```java
 long submittedAt = System.nanoTime();
@@ -356,13 +356,13 @@ try {
 }
 ```
 
-Điểm cốt lõi: task đã nhận nhưng **failed khi chạy** vẫn phải có duration; task bị **rejected trước khi chạy** chỉ được quan sát ở submit site. `RejectedExecutionException` còn có thể xảy ra khi executor đã shutdown, không được tự đặt reason `"saturated"` nếu chưa kiểm tra runtime lifecycle. Một metric callback trong `finally` có thể ném exception và che lỗi gốc nếu tự triển khai không cẩn thận; dùng metrics library an toàn, không blocking và không làm side effect nghiệp vụ.
+Key point: an accepted task that **fails during execution** must still record its duration; a task **rejected before running** is only visible at the submit site. `RejectedExecutionException` can also occur when the executor has already shut down, so do not automatically tag reason `"saturated"` without checking runtime lifecycle. A metric callback inside `finally` could throw and mask the original exception if poorly implemented; use a safe, non-blocking metrics library with no business side effects.
 
-Nếu cần bao cả `Error`, checked exception, interrupt và cancellation, dùng wrapper/outcome mapping bao quát hơn, bảo vệ ngoại lệ gốc. Nếu dùng `ExecutorService.submit()`, task thường được bọc trong `FutureTask`; `afterExecute(Runnable, Throwable)` có thể nhận `Throwable=null` dù `Future.get()` sau đó thấy `ExecutionException`. Không đếm failure chỉ bằng đối số `Throwable` của `afterExecute` khi chưa hiểu cách submit/wrapping.
+If you need to cover `Error`, checked exceptions, interrupts, and cancellation, use a broader wrapper/outcome mapping while preserving original exceptions. With `ExecutorService.submit()`, tasks are typically wrapped in a `FutureTask`; `afterExecute(Runnable, Throwable)` may receive `Throwable=null` even when `Future.get()` later throws `ExecutionException`. Do not count failures solely from `afterExecute`'s `Throwable` parameter without understanding submission wrapping.
 
-### 6.3. Vẫn phải phân biệt worker time và CPU time
+### 6.3. Still Distinguish Worker Time from CPU Time
 
-Một task đã bắt đầu có thể có:
+A started task can have:
 
 ```text
 submit-to-start =   3 ms
@@ -372,43 +372,43 @@ run             = 900 ms
   serialization =  10 ms
 ```
 
-Ở đây `run` cao do worker bị chiếm bởi **I/O wait**, không phải queue. Tăng worker có thể làm số task chờ DB tăng lên; cần metric pool acquire, DB query latency, socket timeout, lock/park và CPU profiling.
+Here `run` is high because the worker is occupied by **I/O wait**, not queuing. Adding workers might just increase tasks waiting on the DB; check pool acquire metrics, DB query latency, socket timeouts, locks/parks, and CPU profiling.
 
-Ngược lại:
+Conversely:
 
 ```text
 submit-to-start = 850 ms
 run             =  40 ms
 ```
 
-báo hiệu phần chờ trước worker là thành phần chủ đạo. Tuy nhiên bão hòa có thể do **arrival spike** hoặc do **những task khác** chạy lâu; hãy đo đầy đủ các taskType, không chỉ task đang được báo lỗi.
+signals that pre-worker waiting dominates. However, saturation can stem from an **arrival spike** or **other tasks** running long; measure all task types, not just the task reported as slow.
 
-## 7. Quan sát bão hòa bằng metrics, thread dumps và JFR
+## 7. Observing Saturation with Metrics, Thread Dumps, and JFR
 
-### 7.1. Bộ metrics tối thiểu
+### 7.1. Minimum Metric Set
 
-| Metric | Loại | Dùng để |
+| Metric | Type | Used For |
 | --- | --- | --- |
-| `executor.active` | Gauge | Số worker đang chạy task, gần đúng |
-| `executor.pool.size` | Gauge | Số worker tồn tại |
-| `executor.queue.depth` | Gauge | Backlog hiện tại |
-| `executor.queue.capacity` | Gauge/config | Giới hạn thực tế |
-| `executor.submitted` | Counter | Số lần ứng dụng cố gắng nộp |
-| `executor.accepted` | Counter | Số task được chấp nhận theo policy |
-| `executor.rejected` | Counter | Số lần reject; phân loại shutdown/overload nếu xác minh được |
-| `executor.submit_to_start` | Histogram/Timer | p50/p95/p99 chờ trước khi bắt đầu |
-| `executor.run` | Histogram/Timer | p50/p95/p99 trong worker, cả success/failure theo semantics rõ |
-| `executor.total` | Histogram/Timer | Độ trễ submit-to-end của task |
-| `executor.oldest_queued_age` | Gauge khi đo được | Task chờ lâu nhất, hữu ích khi queue tăng |
-| `request.end_to_end` | Histogram/Timer | Latency người dùng thấy, gồm cả các pha ngoài pool |
+| `executor.active` | Gauge | Approximate count of workers running tasks |
+| `executor.pool.size` | Gauge | Existing worker count |
+| `executor.queue.depth` | Gauge | Current backlog |
+| `executor.queue.capacity` | Gauge/config | Effective capacity limit |
+| `executor.submitted` | Counter | Submission attempts by the application |
+| `executor.accepted` | Counter | Tasks accepted under policy |
+| `executor.rejected` | Counter | Rejections; split shutdown vs. overload when verifiable |
+| `executor.submit_to_start` | Histogram/Timer | p50/p95/p99 wait before starting |
+| `executor.run` | Histogram/Timer | p50/p95/p99 inside worker, both success/failure with explicit semantics |
+| `executor.total` | Histogram/Timer | Task submit-to-end latency |
+| `executor.oldest_queued_age` | Gauge when measurable | Oldest queued task age, useful when queues grow |
+| `request.end_to_end` | Histogram/Timer | User-perceived latency, including phases outside the pool |
 
-**Không** suy success rate nghiệp vụ từ `getCompletedTaskCount`: hoàn thành `FutureTask` có thể bao task đã thất bại. Rejection cần capture ở submit path; với `CallerRunsPolicy`, handler có thể chạy task ngay trong caller và không ném exception, nên thiết kế metrics theo execution location/outcome.
+**Do not** infer business success rate from `getCompletedTaskCount`: completing a `FutureTask` can include failed tasks. Capture rejections at the submit path; with `CallerRunsPolicy`, the handler may run the task on the caller without throwing an exception, so model metrics by execution location/outcome.
 
-Không đặt `taskId`, `correlationId`, email hoặc URL chứa query trong metric labels vì cardinality cao. Giữ correlation code opaque trong logs/tracing/JFR có retention và quyền phù hợp.
+Never put `taskId`, `correlationId`, email, or URLs with query strings into metric labels due to high cardinality. Keep opaque correlation IDs in logs/traces/JFR with appropriate retention and access control.
 
-### 7.2. Thread dump không hiển thị stack của task còn trong queue
+### 7.2. Thread Dumps Do Not Show Stacks for Queued Tasks
 
-Khi JVM còn chạy và có quyền attach:
+While the JVM is running and attach is permitted:
 
 ```bash
 jcmd <PID> Thread.print -l > thread-t0.txt
@@ -416,19 +416,19 @@ sleep 5
 jcmd <PID> Thread.print -l > thread-t1.txt
 ```
 
-Thay `<PID>` bằng PID thật, ghi timestamp capture và hiểu chi phí của dump. Thread dump phản ánh **worker đã được task chiếm**, gồm các frame I/O, lock, park hoặc business code. Một `Runnable`/`Callable` đang **ngồi trong `ArrayBlockingQueue` chưa có worker riêng**, vì vậy nó **không có stack trace thực thi riêng** trong thread dump.
+Replace `<PID>` with the real PID, record capture timestamps, and mind dump overhead. Thread dumps reflect **workers already occupied by tasks**, showing I/O, lock, park, or business code frames. A `Runnable`/`Callable` **sitting inside `ArrayBlockingQueue` does not yet have a worker**, so it **has no execution stack trace of its own** in the thread dump.
 
-Trong lab, worker đầu đang chờ `CountDownLatch.await()`; task thứ hai chưa chạy và không có stack riêng. Trạng thái `WAITING` của worker giải thích **tại sao worker không rảnh**, còn queue metric giải thích **task thứ hai đang đợi**. Không gộp hai điều thành “task thứ hai bị blocked trong code của nó”.
+In the lab, the first worker is waiting on `CountDownLatch.await()`; the second task has not started and has no separate stack. The worker's `WAITING` state explains **why the worker is not free**, while queue metrics explain **that the second task is waiting**. Do not conflate them into "the second task is blocked inside its own code."
 
-**`RUNNABLE` không đồng nghĩa CPU 100%**; worker có thể đang chờ OS I/O. Khi active=max nhưng CPU thấp, kiểm tra thread dumps, network/DB latencies, native calls và các lock events.
+**`RUNNABLE` does not mean 100% CPU**; a worker could be waiting on OS I/O. When `active=max` yet CPU is low, check thread dumps, network/DB latencies, native calls, and lock events.
 
-### 7.3. JFR hỗ trợ điều tra run time
+### 7.3. JFR Helps Investigate Run Time
 
-JFR có các event như `jdk.ThreadPark`, `jdk.JavaMonitorEnter`, socket/file I/O, CPU sampling, GC pauses, allocation — tùy phiên bản và settings. Chúng giúp tìm nguyên nhân **worker đã bắt đầu nhưng vẫn chiếm lâu**. JFR mặc định **không biết** trường business `task X đã chờ trong executor queue Y bao nhiêu ms`; muốn biết phải instrument submit/start hoặc custom event trong ứng dụng.
+JFR includes events such as `jdk.ThreadPark`, `jdk.JavaMonitorEnter`, socket/file I/O, CPU sampling, GC pauses, and allocations — depending on version and settings. These help explain why **a worker that already started stays occupied for long**. By default JFR **does not know** an application field like `task X waited Y ms in executor queue`; you must instrument submit/start or emit a custom event in the application.
 
-Có thể tạo custom JFR event chứa `poolName`, `taskType`, `submitToStartNanos`, `runNanos` và `outcome`, với String labels có giới hạn. Không ghi request body, token hoặc correlation ID không được phép; nên giảm event rate/thêm threshold khi production load lớn.
+You can define a custom JFR event with `poolName`, `taskType`, `submitToStartNanos`, `runNanos`, and `outcome` using bounded String labels. Never record request bodies, tokens, or unauthorized correlation IDs; lower event rates or raise thresholds under heavy production load.
 
-Ví dụ lệnh JFR khi JVM còn sống và có quyền attach:
+Example JFR commands while the JVM is alive and attachable:
 
 ```bash
 jcmd <PID> JFR.start name=pool-diagnostics settings=profile duration=2m filename=pool.jfr
@@ -437,150 +437,150 @@ jfr summary pool.jfr
 jfr print --events jdk.ThreadPark,jdk.JavaMonitorEnter pool.jfr
 ```
 
-File `pool.jfr` chỉ có sau khi recording đã hoàn tất/dump. Nếu cần snapshot trong khi recording vẫn chạy:
+`pool.jfr` exists only after the recording finishes/dumps. If you need a snapshot while the recording is still active:
 
 ```bash
 jcmd <PID> JFR.dump name=pool-diagnostics filename=pool-now.jfr
 ```
 
-JFR threshold/sampling có thể khiến một sự kiện không xuất hiện. **Vắng event** không chứng minh rằng task không hề chờ. Dùng JDK Mission Control (JMC) để đối chiếu timeline khi cần.
+JFR thresholds/sampling can omit events. **Absence of an event** does not prove a task never waited. Use JDK Mission Control (JMC) to align timelines when needed.
 
-## 8. Chính sách từ chối và backpressure
+## 8. Rejection Policies and Backpressure
 
-| Handler | Khi pool đầy | Tác dụng phụ |
+| Handler | When Pool Is Full | Side Effects |
 | --- | --- | --- |
-| `ThreadPoolExecutor.AbortPolicy` | Ném `RejectedExecutionException` | Caller phải xử lý lỗi có kiểm soát; dễ theo dõi overload |
-| `CallerRunsPolicy` | Chạy task trong **caller thread** khi executor chưa shutdown | Giảm tốc producer nhưng có thể làm ingress thread bận lâu |
-| `DiscardPolicy` | Bỏ task **im lặng** | Có thể mất công việc; đặc biệt nguy hiểm nếu caller giữ `Future` chờ mãi |
-| `DiscardOldestPolicy` | Bỏ một task cũ ở queue và thử submit lại | Làm mất task, thay đổi fairness/ordering; không phù hợp việc quan trọng nếu không có hợp đồng bù trừ |
+| `ThreadPoolExecutor.AbortPolicy` | Throws `RejectedExecutionException` | Caller must handle failure explicitly; easy to monitor overload |
+| `CallerRunsPolicy` | Runs task in **caller thread** unless shut down | Throttles producer, but can stall ingress threads for long periods |
+| `DiscardPolicy` | **Silently** drops task | Loses work; especially dangerous if caller holds a `Future` waiting forever |
+| `DiscardOldestPolicy` | Drops an old queued task and retries submit | Loses tasks and alters fairness/ordering; unsuitable for critical work without compensating contracts |
 
-Khi dùng `ExecutorService.submit()` với handler discard, task có thể bị loại dù caller đã nhận một `Future`, khiến chờ kết quả không có hồi kết phù hợp. Với công việc yêu cầu durability/acknowledgment, dùng durable queue hoặc messaging với delivery, idempotency, retry và deadline được thiết kế rõ, **không** xem in-memory `ThreadPoolExecutor` như sổ cái giao dịch.
+Using `ExecutorService.submit()` with a discard handler can drop a task even though the caller already received a `Future`, leaving it waiting indefinitely without proper resolution. For work requiring durability/acknowledgment, use a durable queue or messaging system with explicit delivery, idempotency, retries, and deadlines — **never** treat an in-memory `ThreadPoolExecutor` as a transaction ledger.
 
-Các lựa chọn giảm tải thực tế:
+Practical load-shedding options:
 
-- **Bounded admission:** giới hạn số task được nhận; trả overload rõ ràng (ví dụ HTTP 429/503 khi đúng hợp đồng).
-- **CallerRunsPolicy có chủ đích:** có thể giảm tốc nguồn submit, nhưng không áp dụng mù cho event-loop, request acceptor hoặc thread nhạy với latency.
-- **Bulkhead/semaphore:** hạn chế đồng thời đến downstream độc lập với thread pool.
-- **Deadline/timeout:** tránh tasks không còn hữu ích tiếp tục chờ hàng phút; nhưng cancellation phải phù hợp API, không chỉ `Future.get(timeout)`.
-- **Circuit breaker và rate limiting:** giảm tải downstream đang lỗi.
-- **Retry có giới hạn và backoff:** không vòng lặp retry tức thì khi `RejectedExecutionException` vì nó làm overload trầm trọng hơn.
-- **Scale có kiểm chứng:** CPU-bound jobs cần xem CPU budget/GC, I/O-bound jobs cần xem connection limits/buffers, không chỉ số threads.
+- **Bounded admission:** limit accepted tasks; return explicit overload responses (e.g., HTTP 429/503 where appropriate).
+- **Intentional `CallerRunsPolicy`:** can slow submitters down, but never apply blindly to event loops, request acceptors, or latency-sensitive threads.
+- **Bulkheads/semaphores:** cap concurrency to downstream dependencies independently of the thread pool.
+- **Deadlines/timeouts:** avoid keeping stale tasks queued for minutes; ensure cancellation matches APIs rather than just `Future.get(timeout)`.
+- **Circuit breakers and rate limiting:** shed load toward failing downstreams.
+- **Bounded retries with backoff:** never spin-retry immediately on `RejectedExecutionException`, which amplifies overload.
+- **Evidence-based scaling:** CPU-bound jobs depend on CPU budget/GC, while I/O-bound jobs depend on connection limits/buffers, not merely thread count.
 
-**Đừng chọn queue rất lớn chỉ để tránh rejection.** Queue lớn có thể làm backlog vô hình và hầu hết requests hết SLO trước khi tới worker; tăng queue chỉ giúp **đệm burst**, không làm tăng throughput nền của service.
+**Do not choose a huge queue just to avoid rejections.** Huge queues hide backlogs and cause most requests to miss SLOs before ever reaching a worker; enlarging queues only **buffers bursts**, it does not raise steady-state service throughput.
 
-## 9. Ma trận chẩn đoán wait time và run time
+## 9. Diagnostic Matrix for Wait Time vs. Run Time
 
-| Dấu hiệu | Giả thuyết cần kiểm tra | Bằng chứng bổ sung | Hướng xử lý |
+| Symptom | Hypothesis to Test | Additional Evidence | Remedy Direction |
 | --- | --- | --- | --- |
-| Submit-to-start p99 cao, run p99 vẫn thấp/ổn định, queue tăng | Arrival vượt service capacity hoặc burst dài | Tasks/s, active, rejected, queue age, core/max | Bounded load, tối ưu admission, scale/concurrency có căn cứ |
-| Run p99 cao, submit-to-start cũng tăng | Workers bị giữ lâu do I/O, lock, downstream hoặc CPU | Thread dumps, JFR parks/socket, DB wait, CPU profile | Giảm blocking, sửa downstream, timeout/bulkhead |
-| Run p99 cao nhưng queue thấp | Task nội tại chậm, chưa có backlog lớn | TaskType breakdown, GC, I/O, CPU | Tối ưu phần run, không tập trung queue |
-| Queue depth hiện bằng 0 nhưng wait p99 cao | Gauge sampling bỏ lỡ burst quá khứ | Histograms per-task, event timeline | Đo submit→start và oldest queued age |
-| Rejection tăng, queue full và active≈max | Bão hòa admission thật | Policy, traffic burst, max/queue config | Backpressure hoặc capacity tuning |
-| Rejection tăng nhưng queue=0 và active≈0 | Pool shutdown, lifecycle/race | `isShutdown`, restart logs | Sửa lifecycle chứ không tăng workers |
-| CPU thấp, active=max, queue cao | Workers chờ DB/network/lock | Thread dump, JFR, dependency metrics | Sửa phần chờ trong run |
-| CPU cao, active=max, queue cao | CPU-bound load, GC pressure | CPU profiler, GC, allocation, throughput | Tối ưu compute hoặc scale phù hợp |
-| CallerRunsPolicy và ingress latency tăng | Caller đang thực thi task bị overflow | Caller thread stacks, admission rate | Điều chỉnh overload response/policy |
-| Không reject nhưng queue latency tăng không ngừng | Unbounded queue đang tích backlog | Queue length, oldest age, heap pressure | Đưa giới hạn/backpressure, giảm arrival |
+| High submit-to-start p99, low/stable run p99, growing queue | Arrivals exceed service capacity or sustained burst | Tasks/s, active, rejected, queue age, core/max | Bounded load, optimize admission, evidence-based concurrency scaling |
+| High run p99, submit-to-start also rising | Workers held long by I/O, locks, downstream, or CPU | Thread dumps, JFR parks/sockets, DB wait, CPU profile | Reduce blocking, fix downstream, timeouts/bulkheads |
+| High run p99 while queue stays low | Tasks intrinsically slow, no large backlog yet | TaskType breakdown, GC, I/O, CPU | Optimize run phase rather than focusing on queue |
+| Current queue depth is 0 yet wait p99 is high | Gauge polling missed past bursts | Per-task histograms, event timeline | Measure submit→start and oldest queued age |
+| Rising rejections, full queue, `active≈max` | Genuine admission saturation | Policy, traffic burst, max/queue config | Backpressure or capacity tuning |
+| Rising rejections while `queue=0` and `active≈0` | Pool shut down, lifecycle/race issue | `isShutdown`, restart logs | Fix lifecycle instead of adding workers |
+| Low CPU, `active=max`, high queue | Workers waiting on DB/network/locks | Thread dumps, JFR, dependency metrics | Fix waiting inside run phase |
+| High CPU, `active=max`, high queue | CPU-bound load, GC pressure | CPU profiler, GC, allocation, throughput | Optimize compute or scale appropriately |
+| `CallerRunsPolicy` and rising ingress latency | Caller executing overflowed tasks | Caller thread stacks, admission rate | Adjust overload response/policy |
+| No rejections yet queue latency climbs steadily | Unbounded queue accumulating backlog | Queue length, oldest age, heap pressure | Add bounds/backpressure, reduce arrivals |
 
-Một pool bão hòa là **triệu chứng về capacity**, không phải kết luận nguyên nhân gốc. Nó có thể bắt nguồn từ peak arrival, threads chờ DB, lock contention, GC pause, task hang hoặc deployment giảm pool size. Cần kết hợp wait/run histograms với trạng thái workers và dependency metrics.
+A saturated pool is a **capacity symptom**, not a root cause. It can stem from peak arrivals, threads waiting on DB, lock contention, GC pauses, hung tasks, or a deploy shrinking pool size. Combine wait/run histograms with worker states and dependency metrics.
 
-## 10. Ước lượng tải, tránh lạm dụng công thức
+## 10. Load Estimation Without Misusing Formulas
 
-Ký hiệu:
+Notation:
 
-- `λ`: số task vào mỗi giây (arrival rate).
-- `E[S]`: thời gian trung bình task chiếm worker (execution/occupied time).
-- `c`: số workers có thể thực thi đồng thời.
+- `λ`: arriving tasks per second (arrival rate).
+- `E[S]`: average time a task occupies a worker (execution/occupied time).
+- `c`: workers able to execute concurrently.
 
-Năng lực xử lý lý tưởng có thể ước lượng thô khoảng **`c / E[S]` tasks/s** nếu các tasks đủ độc lập và không có bottleneck khác. Trong thực tế cần tính contention, I/O, biến thiên service time, GC và CPU budget. Nếu arrival rate **duy trì** cao hơn throughput thực tế, backlog tích tụ và queue bounded cuối cùng reject/backpressure.
+Ideal processing capacity can be roughly estimated around **`c / E[S]` tasks/s** if tasks are independent enough and no other bottlenecks exist. In practice, account for contention, I/O, service-time variance, GC, and CPU budget. If arrival rate **stays** above actual throughput, backlog accumulates and a bounded queue eventually rejects or applies backpressure.
 
-**Ví dụ:** 4 workers, task chiếm worker trung bình 100 ms thì capacity lý tưởng khoảng 40 tasks/s. Nếu arrival duy trì 60 tasks/s mà execution không giảm, queue có xu hướng tăng; nới queue làm **chậm xảy ra rejection**, không tăng năng lực xử lý.
+**Example:** 4 workers, tasks occupying a worker for 100 ms on average give an ideal capacity around 40 tasks/s. If arrivals stay at 60 tasks/s without execution speeding up, queues tend to grow; enlarging the queue only **delays rejection**, without raising processing capacity.
 
-Định luật Little **`L = λ × W`** dùng cho hệ thống ổn định với ranh giới đo đồng nhất và các giá trị trung bình dài hạn. Không áp thẳng vào một burst 250 ms trong lab rồi coi nó là bảo đảm p99. Với production, xem distributions (p50/p95/p99), task mix, periods of saturation, SLO và dependency headroom.
+Little's Law **`L = λ × W`** applies to steady-state systems with consistent measurement boundaries and long-term averages. Do not apply it directly to a 250 ms lab burst and treat it as a p99 guarantee. In production, evaluate distributions (p50/p95/p99), task mix, saturation periods, SLOs, and dependency headroom.
 
-## 11. Thực hành mở rộng
+## 11. Extended Practice Exercises
 
-### A. Thử `CallerRunsPolicy`
+### A. Try `CallerRunsPolicy`
 
-Thay handler cuối trong constructor bằng:
+Replace the last argument in the constructor with:
 
 ```java
 new ThreadPoolExecutor.CallerRunsPolicy()
 ```
 
-Giữ `core=1, max=1, queue=1`. Task thứ ba có thể chạy **ngay trên main/caller** thay vì bị reject; assertion `thirdRejected=true` của lab gốc **không còn đúng**. Đo thời gian caller bị chiếm và so với throughput submit. Trình bày lợi ích backpressure và rủi ro giữ HTTP/event-loop thread.
+Keep `core=1, max=1, queue=1`. The third task may run **directly on the main/caller thread** instead of being rejected; the original lab's `thirdRejected=true` assertion **no longer holds**. Measure how long the caller is occupied and compare submission throughput. Explain the backpressure benefit and the risk of stalling HTTP/event-loop threads.
 
-### B. Thêm worker
+### B. Add a Worker
 
-Thử `core=2, max=2, queue capacity=1`. Giữ **cả hai** workers bằng latches, thêm task queued rồi submit task kế để thấy rejection. Không chỉ đổi số workers mà giữ một latch rồi giả định trạng thái giống lab gốc; khi hai workers rảnh, trình tự admission sẽ khác.
+Try `core=2, max=2, queue capacity=1`. Hold **both** workers using latches, enqueue one task, then submit the next task to observe rejection. Do not simply change worker count while holding only one latch and assume the same state as the original lab; when two workers are free, admission order changes.
 
-### C. Queue unbounded nhưng số task hữu hạn
+### C. Unbounded Queue with a Finite Task Count
 
-Dùng:
+Use:
 
 ```java
 ExecutorService pool = Executors.newFixedThreadPool(1);
 ```
 
-Submit hữu hạn 20 tasks, mỗi task xử lý ~40 ms, instrument `submitToStart`. Quan sát task nộp sau có delay tăng dù không bị reject. Không dùng vòng lặp vô hạn làm đầy heap chỉ để minh họa.
+Submit a finite batch of 20 tasks, each taking ~40 ms, instrumenting `submitToStart`. Observe later-submitted tasks accumulating delay even without rejections. Do not use an infinite loop to exhaust heap just to demonstrate this.
 
-### D. Task thất bại và bị hủy
+### D. Failed and Cancelled Tasks
 
-Tạo một task ném `IllegalStateException`, một task được cancel khi còn queued. Cập nhật wrapper ghi run/outcome trong `finally`, không che exception gốc, đếm rejection/cancellation riêng. Không đưa tasks chưa bao giờ bắt đầu vào histogram runtime thành công.
+Create one task that throws `IllegalStateException` and another cancelled while queued. Update the wrapper to record run/outcome in `finally` without hiding the original exception, counting rejections/cancellations separately. Do not feed tasks that never started into successful runtime latency histograms.
 
-### E. Caller timeout
+### E. Caller Timeout
 
-Thử `future.get(50, TimeUnit.MILLISECONDS)` khi task đang queued. Sau `TimeoutException`, kiểm tra nó có thể vẫn ở queue/đang chạy. Nếu gọi `cancel(true)`, xác minh task có hỗ trợ interruption và cleanup hay không. Giải thích **caller wait budget** khác queue wait đo bằng tSubmit/tStart.
+Try `future.get(50, TimeUnit.MILLISECONDS)` while a task is queued. After `TimeoutException`, check that the task may still be queued or running. If calling `cancel(true)`, verify whether the task supports interruption and cleanup. Explain how **caller wait budget** differs from queue wait measured via tSubmit/tStart.
 
-### F. Thread dump và JFR
+### F. Thread Dumps and JFR
 
-Giữ worker lâu hơn trong một thử nghiệm riêng, chụp `jcmd Thread.print -l` khi pool đầy. Xác định stack của **task A trong worker**, và giải thích vì sao không thể tìm một Java stack riêng của **task B còn queued**. Nếu tự tạo JFR event, đo submit-to-start/run theo taskType với data giới hạn, so timeline với JFR ThreadPark/I/O events.
+Hold the worker longer in a separate experiment and run `jcmd Thread.print -l` while the pool is full. Locate **task A's stack inside the worker**, and explain why you cannot find a separate Java stack for **queued task B**. If creating a custom JFR event, record submit-to-start/run by taskType with bounded fields and align timelines with JFR `ThreadPark`/I/O events.
 
-## 12. Những nhầm lẫn thường gặp
+## 12. Frequent Misconceptions
 
-1. **“Task accepted là task đã chạy.”** Sai: nó có thể nằm trong queue.
-2. **“40 ms trong `run()` là 40 ms request latency.”** Sai: còn queue, ingress và response processing.
-3. **“Thời gian `Future.get()` chính là queue wait.”** Sai: nó có thể chứa run time và scheduling.
-4. **“Queue depth=0 nên không từng backlog.”** Sai: snapshot sau burst không phản ánh lịch sử.
-5. **“`getActiveCount()=max` nghĩa CPU 100%.”** Sai: workers có thể chờ I/O/lock.
-6. **“`maxPoolSize` lớn thì executor mở ngay khi core bận.”** Sai: thường **queue trước**, chỉ vượt core khi queue không nhận thêm.
-7. **“Unbounded queue chống overload.”** Sai: nó có thể che rejection nhưng tăng heap và tail latency.
-8. **“`CallerRunsPolicy` vẫn dùng worker.”** Sai: nó có thể chạy ở caller.
-9. **“`DiscardPolicy` giống trả lỗi rõ ràng.”** Sai: task có thể biến mất không báo.
-10. **“Không rejection nghĩa tất cả requests đạt SLO.”** Sai: chúng có thể timeout trước khi bắt đầu chạy.
-11. **“`Future.get(timeout)` đã hủy task.”** Sai: hết giờ của caller không mặc định cancel.
-12. **“`shutdownNow()` bảo đảm mọi worker dừng tức thì.”** Sai: nó cố interrupt và trả tasks chưa chạy; task bỏ qua interrupt có thể tiếp tục.
-13. **“`afterExecute(Throwable)` luôn thấy mọi lỗi của `submit()`.”** Sai: `FutureTask` có thể giữ exception.
-14. **“`currentTimeMillis` là đồng hồ duration ổn định.”** Sai: dùng `nanoTime`.
-15. **“Tăng pool sẽ sửa DB pool đang cạn.”** Sai: chỉ thêm workers chờ DB nếu không mở thêm capacity thật.
-16. **“Virtual threads làm concurrency vô hạn an toàn.”** Sai: downstream capacity vẫn hữu hạn.
-17. **“`submitToStart + run` luôn bằng HTTP latency.”** Sai: còn các pha ngoài executor.
-18. **“Một lần lab đã đủ chọn pool size production.”** Sai: cần tải đại diện, tail latency, memory, CPU và SLO.
+1. **"An accepted task is already running."** False: it may still sit in the queue.
+2. **"40 ms inside `run()` equals 40 ms request latency."** False: queuing, ingress, and response handling add to it.
+3. **"`Future.get()` duration equals queue wait."** False: it can include run time and scheduling.
+4. **"Queue depth=0 means there was never a backlog."** False: a snapshot after a burst misses prior history.
+5. **"`getActiveCount()=max` means 100% CPU."** False: workers may be waiting on I/O or locks.
+6. **"A large `maxPoolSize` scales up immediately when core threads are busy."** False: it usually **queues first**, only expanding above core when the queue refuses tasks.
+7. **"Unbounded queues prevent overload."** False: they hide rejections while inflating heap and tail latency.
+8. **"`CallerRunsPolicy` always runs on a worker."** False: it can execute on the caller thread.
+9. **"`DiscardPolicy` is equivalent to returning an explicit error."** False: tasks can vanish silently.
+10. **"Zero rejections means all requests meet SLO."** False: they can time out before ever starting.
+11. **"`Future.get(timeout)` cancels the task."** False: caller timeout does not cancel by default.
+12. **"`shutdownNow()` guarantees all workers stop instantly."** False: it attempts interrupts and returns unstarted tasks; tasks ignoring interrupts can continue.
+13. **"`afterExecute(Throwable)` sees every error from `submit()`."** False: `FutureTask` can swallow/store the exception.
+14. **"`currentTimeMillis` is a stable duration clock."** False: use `nanoTime`.
+15. **"Enlarging the pool fixes an exhausted DB pool."** False: it only adds workers waiting on the DB unless true capacity increases.
+16. **"Virtual threads make unlimited concurrency safe."** False: downstream capacities remain finite.
+17. **"`submitToStart + run` always equals HTTP latency."** False: phases outside the executor still apply.
+18. **"One lab run is enough to size a production pool."** False: representative load, tail latency, memory, CPU, and SLOs are required.
 
-## 13. Checklist chẩn đoán và tiêu chí bài thực hành
+## 13. Diagnostic Checklist and Practice Criteria
 
-- [ ] Lab tạo đúng **1 running + 1 queued + 1 rejected** ở `core=max=1`, queue capacity 1.
-- [ ] Có `tSubmit`, `tStart`, `tEnd` từ **cùng `System.nanoTime()`**, tính đúng các duration trên nanoseconds.
-- [ ] Chứng minh task `queued` có wait đáng kể trong khi run ngắn; hiểu `submitToStart` bao cả dispatch.
-- [ ] Không tính rejected, cancelled-before-start vào latency histogram của tasks đã chạy.
-- [ ] Biết `runNanos` là occupied wall time, không phải CPU time.
-- [ ] Có queue depth, active count, rejection rate, submit-to-start và run histograms với scopes rõ.
-- [ ] Xác minh shutdown vs overload khi có `RejectedExecutionException`.
-- [ ] Dùng thread dump/JFR để tìm **vì sao workers bị chiếm**, không tìm stack cho queued task chưa chạy.
-- [ ] Tách timeout của caller, queue delay, task runtime và request end-to-end.
-- [ ] Chọn bounded concurrency, backpressure/retry/deadline phù hợp; không tăng pool/queue mù quáng.
-- [ ] Kiểm chứng thay đổi ở tải tương đương bằng throughput, rejection, p95/p99 và resource budget.
+- [ ] The lab produces **1 running + 1 queued + 1 rejected** with `core=max=1`, queue capacity 1.
+- [ ] `tSubmit`, `tStart`, `tEnd` come from **the same `System.nanoTime()`**, computing nanosecond durations accurately.
+- [ ] Demonstrates that the `queued` task has substantial wait despite a short run; understands `submitToStart` includes dispatch.
+- [ ] Excludes rejected and cancelled-before-start tasks from latency histograms of executed tasks.
+- [ ] Knows `runNanos` is occupied wall time, not CPU time.
+- [ ] Tracks queue depth, active count, rejection rate, submit-to-start, and run histograms with clear scopes.
+- [ ] Distinguishes shutdown from overload when `RejectedExecutionException` occurs.
+- [ ] Uses thread dumps/JFR to discover **why workers are occupied**, not expecting stacks for unstarted queued tasks.
+- [ ] Separates caller timeouts, queue delay, task runtime, and end-to-end request latency.
+- [ ] Chooses bounded concurrency and suitable backpressure/retries/deadlines; does not blindly enlarge pools/queues.
+- [ ] Verifies changes under comparable load via throughput, rejections, p95/p99, and resource budgets.
 
-**Kết luận:** Một task có thể **chạy nhanh nhưng bắt đầu rất muộn** khi pool bão hòa. Tách `submit→start` khỏi `start→finish` biến hiện tượng “API chậm” thành dữ kiện rõ ràng: đang **đợi worker** hay **chậm sau khi worker bắt đầu**. Kết hợp số đo từng task với trạng thái hàng đợi, chính sách reject và nguyên nhân blocking bên trong workers để chọn giải pháp đúng.
+**Conclusion:** A task can **run quickly yet start very late** when a pool saturates. Separating `submit→start` from `start→finish` turns a vague "slow API" complaint into actionable evidence: **waiting for a worker** versus **slow after the worker started**. Combine per-task measurements with queue state, rejection policies, and in-worker blocking causes to pick the right solution.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle JDK 21 — ThreadPoolExecutor: core/max, work queues và RejectedExecutionHandler](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html)
-- [Oracle JDK 21 — ArrayBlockingQueue: capacity và remainingCapacity](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ArrayBlockingQueue.html)
+- [Oracle JDK 21 — ThreadPoolExecutor: core/max, work queues, and RejectedExecutionHandler](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html)
+- [Oracle JDK 21 — ArrayBlockingQueue: capacity and remainingCapacity](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ArrayBlockingQueue.html)
 - [Oracle JDK 21 — ExecutorService: submit/shutdown](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ExecutorService.html)
 - [Oracle JDK 21 — Future: get(timeout), cancellation](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/Future.html)
-- [Oracle JDK 21 — System.nanoTime đo thời gian elapsed](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/System.html#nanoTime())
+- [Oracle JDK 21 — System.nanoTime for elapsed time measurement](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/System.html#nanoTime())
 - [Oracle JDK 21 — CountDownLatch](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/CountDownLatch.html)
-- [Oracle JDK 21 — jcmd: Thread.print và JFR](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
+- [Oracle JDK 21 — jcmd: Thread.print and JFR](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
 - [OpenJDK JEP 444 — Virtual Threads](https://openjdk.org/jeps/444)

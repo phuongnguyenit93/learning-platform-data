@@ -1,65 +1,65 @@
-# 3.8 Phân biệt thông tin có sẵn với thông tin nhạy cảm cần loại bỏ trước khi chia sẻ
+# 3.8 Distinguishing Available Information from Sensitive Information That Must Be Removed Before Sharing
 
-Khi điều tra sự cố Java, người vận hành thường thu thập PID, lệnh khởi động, phiên bản JVM, system properties, biến môi trường, thread dump, GC log, JFR hoặc heap dump. Một phần những thông tin này đã có sẵn trong tiến trình, hệ điều hành hay nền tảng quan sát; tuy nhiên **có thể truy cập được không đồng nghĩa được phép chia sẻ nguyên văn**.
+When investigating a Java incident, operators often collect PIDs, launch commands, JVM versions, system properties, environment variables, thread dumps, GC logs, JFRs, or heap dumps. Part of this information is readily available in the process, operating system, or observability platform; however, **being accessible does not mean it is safe or permitted to share verbatim**.
 
-Ví dụ, `jcmd PID VM.command_line` có thể giúp đối chiếu JVM flags, nhưng các tham số khởi động có thể chứa mật khẩu hoặc API key nếu ứng dụng từng nhận bí mật qua `-D...`. `ProcessHandle.Info.commandLine()` có thể cung cấp command line theo khả năng OS; nó không phải cơ chế tự động lọc dữ liệu riêng tư. Một heap dump có thể chứa object, token và thông tin cá nhân đang nằm trong bộ nhớ. Đăng nguyên đầu ra lên issue công khai có thể biến hoạt động chẩn đoán thành sự cố lộ dữ liệu.
+For example, `jcmd PID VM.command_line` helps cross-check JVM flags, yet startup arguments can contain passwords or API keys if the application received secrets via `-D...`. `ProcessHandle.Info.commandLine()` may return the command line subject to OS permissions; it is not an automatic privacy filter. A heap dump can contain objects, tokens, and personal data residing in memory. Posting raw output onto a public issue can turn a diagnostic effort into a data breach.
 
-Bài này tập trung vào ranh giới giữa **thông tin sẵn có để quan sát** và **thông tin an toàn, cần thiết để chia sẻ** trong ngữ cảnh *tiến trình và môi trường* của Java. Mục tiêu là biết thu đúng bằng chứng, phân loại rủi ro, loại bỏ hoặc biến đổi thông tin nhạy cảm có kiểm chứng, rồi chia sẻ đúng phạm vi người nhận mà vẫn giữ giá trị điều tra.
+This lesson focuses on the boundary between **information available for observation** and **safe, necessary information to share** within the *process and environment* context of Java. The goal is to collect the right evidence, classify risks, remove or transform sensitive information verifiably, and share within the right recipient scope while preserving investigative value.
 
-## 1. Hai câu hỏi độc lập: “có lấy được không?” và “có nên đưa cho ai?”
+## 1. Two Independent Questions: “Can We Read It?” and “Who Should Receive It?”
 
-### 1.1 “Có sẵn” chỉ nói về khả năng quan sát
+### 1.1 “Available” Only Speaks to Observability
 
-Một trường dữ liệu có thể lấy từ nhiều nguồn:
+A data field can come from many sources:
 
-- JVM/Java API: `System.getProperty`, `ManagementFactory`, `ProcessHandle` hoặc MBeans.
-- JDK tools: `jps`, `jcmd`, JFR, GC logs và các diagnostic commands được JVM đích hỗ trợ.
-- Hệ điều hành: process list, command line, environment, file descriptors, user, memory mapping, file paths hoặc crash artifacts.
-- Nền tảng triển khai: container/pod metadata, runtime parameters, service labels, image names, logs và metrics.
-- Ứng dụng: request/trace ID, exception stack trace, URL, HTTP headers, SQL/DB connection details, payload và thông tin phiên người dùng.
+- JVM/Java APIs: `System.getProperty`, `ManagementFactory`, `ProcessHandle`, or MBeans.
+- JDK tools: `jps`, `jcmd`, JFR, GC logs, and diagnostic commands supported by the target JVM.
+- Operating system: process lists, command lines, environments, file descriptors, users, memory mappings, file paths, or crash artifacts.
+- Deployment platform: container/pod metadata, runtime parameters, service labels, image names, logs, and metrics.
+- Application: request/trace IDs, exception stack traces, URLs, HTTP headers, SQL/DB connection details, payloads, and user session info.
 
-Khả năng quan sát luôn có giới hạn về **quyền**, thời điểm, namespace, phiên bản công cụ và cấu hình runtime. Ví dụ, Java `ProcessHandle.Info.arguments()` trả `Optional` và có thể không cung cấp giá trị; `jcmd` có thể không attach được vào JVM đích. **Không đọc được** không có nghĩa dữ liệu không tồn tại; **đọc được** cũng không có nghĩa dữ liệu đã được làm sạch.
+Observability is always bounded by **permissions**, timing, namespaces, tool versions, and runtime configuration. For instance, Java `ProcessHandle.Info.arguments()` returns `Optional` and may provide no value; `jcmd` may fail to attach to the target JVM. **Unable to read** does not mean the data does not exist; **able to read** also does not mean the data is sanitized.
 
-### 1.2 “Có thể chia sẻ” phụ thuộc ngữ cảnh và người nhận
+### 1.2 “Shareable” Depends on Context and Recipients
 
-Cùng một thông tin có thể phù hợp trong một incident room nội bộ nhưng không phù hợp trong forum công khai, issue gửi vendor hoặc screenshot trên mạng xã hội. Cần biết:
+The same piece of data may be appropriate in an internal incident room yet inappropriate in a public forum, vendor support ticket, or social media screenshot. You must know:
 
-1. **Mục đích**: người nhận cần xác minh Java version, heap size, stack trace hay chính xác endpoint nào?
-2. **Đối tượng nhận**: nhóm vận hành có quyền, người hỗ trợ từ đối tác, cộng đồng công khai hay hệ thống ticket/AI bên thứ ba?
-3. **Mức nhạy cảm**: secret, dữ liệu cá nhân, định danh khách hàng, hạ tầng nội bộ, chi tiết cấu hình/phòng thủ hoặc thông tin kinh doanh?
-4. **Quy tắc áp dụng**: chính sách tổ chức, phạm vi được phép cung cấp dữ liệu, thời hạn lưu và quyền truy cập.
-5. **Giá trị chẩn đoán**: trường nào thực sự cần để kiểm chứng giả thuyết, trường nào chỉ “có vì tool in ra”?
+1. **Purpose**: does the recipient need to verify Java version, heap size, stack trace, or an exact endpoint?
+2. **Audience**: authorized ops team, partner support, public community, or a third-party ticketing/AI system?
+3. **Sensitivity level**: secrets, personal data, customer identifiers, internal infrastructure, security/defense config details, or business data?
+4. **Applicable rules**: organizational policy, permitted data disclosure scope, retention periods, and access controls.
+5. **Diagnostic value**: which fields are truly needed to test a hypothesis versus which ones are only “there because the tool printed them”?
 
-Một PID hoặc phiên bản Java thường có rủi ro thấp hơn access token, nhưng vẫn cần xét bối cảnh: phiên bản lộ ra cùng hostname nội bộ, IP, build ID, đường dẫn riêng tư hay kiến trúc deployment có thể tạo ra thông tin nhạy cảm khi ghép lại.
+A PID or Java version usually carries lower risk than an access token, yet context still matters: exposing versions alongside internal hostnames, IPs, build IDs, private paths, or deployment architecture can create sensitive intelligence when combined.
 
-**Nguyên tắc cốt lõi:** chọn *mức thông tin tối thiểu đủ giải thích hiện tượng* và chỉ chia sẻ với người được phép. Không có một danh sách trường “an toàn công khai trong mọi tình huống”.
+**Core principle:** select *the minimum information sufficient to explain the phenomenon* and share only with authorized recipients. There is no universal list of fields “publicly safe in every situation”.
 
-## 2. Nhóm thông tin theo rủi ro, không chỉ theo tên công cụ
+## 2. Classify Information by Risk, Not Just by Tool Name
 
-Một cách phân loại phục vụ thực hành:
+A practical classification for day-to-day work:
 
-| Nhóm | Ví dụ trong Java diagnostics | Cách xử lý mặc định trước khi chia sẻ rộng |
+| Category | Examples in Java diagnostics | Default handling before broader sharing |
 | --- | --- | --- |
-| **Thông tin kỹ thuật ít nhạy cảm** | Java major version, loại GC, heap max, số thread, tổng CPU time | Kiểm tra ngữ cảnh và người nhận; có thể chia sẻ số liệu tổng hợp nếu cần |
-| **Thông tin môi trường/nội bộ** | Hostname, container ID, namespace, path, private IP, image registry, tên service, cấu trúc package nội bộ | Dùng alias hoặc mô tả chức năng, bỏ phần định danh không cần |
-| **Thông tin tài khoản/cá nhân** | User name, email, customer ID, session ID, request payload, ID trong URL | Xóa, tổng hợp hoặc dùng mã thay thế có kiểm soát |
-| **Bí mật truy cập** | Password, bearer token, API key, private key, cookie phiên, credential URL, cloud secret | Không đưa vào bản chia sẻ; nếu đã lộ, xử lý như sự cố credential |
-| **Dữ liệu chẩn đoán thô có rủi ro cao** | Heap dump, core dump, request/body logs, `/proc/PID/environ`, full JFR hoặc `hs_err_pid` | Lưu trong kênh được bảo vệ; chỉ cung cấp trích xuất đã rà soát hoặc qua quy trình được duyệt |
+| **Low-sensitivity technical data** | Java major version, GC type, max heap, thread count, total CPU time | Check context and audience; aggregated metrics can be shared if needed |
+| **Internal/environment data** | Hostname, container ID, namespace, paths, private IPs, image registry, service name, internal package structure | Use aliases or functional descriptions; omit unnecessary identifiers |
+| **Account/personal data** | Username, email, customer ID, session ID, request payload, IDs in URLs | Remove, aggregate, or use controlled pseudonyms |
+| **Access secrets** | Passwords, bearer tokens, API keys, private keys, session cookies, credential URLs, cloud secrets | Never include in shared artifacts; if already exposed, handle as a credential incident |
+| **High-risk raw diagnostics** | Heap dumps, core dumps, request/body logs, `/proc/PID/environ`, full JFR, or `hs_err_pid` | Store in protected channels; share only reviewed excerpts or via approved workflows |
 
-Phân loại này nhằm ra quyết định, không phải cam kết rằng mọi số “ít nhạy cảm” đều tự động công khai được. **Độ nhạy có thể đến từ sự kết hợp**: riêng p95 của API ít tiết lộ, nhưng khi gắn với customer ID, payload, địa chỉ nội bộ và thời điểm chính xác thì có thể xác định được giao dịch riêng lẻ.
+This classification guides decisions, not a promise that every “low-sensitivity” number is automatically public-safe. **Sensitivity can arise from combination**: an API's p95 alone reveals little, but paired with customer IDs, payloads, internal addresses, and exact timestamps it can pinpoint individual transactions.
 
-Cũng phân biệt:
+Also distinguish:
 
-- **Dữ liệu bí mật (secret)**: ai biết giá trị có thể được cấp quyền hoặc giả mạo (token, khóa, mật khẩu). Với secret, che một vài ký tự cuối thường **không đủ**.
-- **Dữ liệu cá nhân**: liên quan tới người cụ thể, có thể xuất hiện trong tên thread, log, URL, SQL, stack trace hoặc snapshot heap.
-- **Thông tin nội bộ/nhạy cảm hệ thống**: không nhất thiết là password nhưng tiết lộ topology, tên máy, mạng riêng, repository, cơ chế phòng vệ hoặc cấu hình vận hành.
-- **Thông tin tương quan**: trace ID, span ID, correlation ID, timestamp; đôi khi cần giữ để truy vết, nhưng có thể nối với dữ liệu khác. Chỉ giữ khi mục đích và đối tượng cho phép.
+- **Secrets**: anyone holding the value may gain authorization or impersonate access (tokens, keys, passwords). For secrets, masking only the last few characters is usually **not enough**.
+- **Personal data**: tied to specific individuals; can appear in thread names, logs, URLs, SQL, stack traces, or heap snapshots.
+- **Internal/system-sensitive data**: not necessarily passwords, yet reveals topology, hostnames, private networks, repositories, defense mechanisms, or operational setup.
+- **Correlation data**: trace IDs, span IDs, correlation IDs, timestamps; sometimes needed for tracing, yet linkable to other records. Keep only when purpose and audience permit.
 
-## 3. Những nguồn tưởng chỉ là “thông tin hệ thống” nhưng có thể chứa dữ liệu nhạy cảm
+## 3. Sources That Look Like Mere “System Info” Yet Can Hold Sensitive Data
 
-### 3.1 Command line và JVM arguments
+### 3.1 Command Lines and JVM Arguments
 
-Các nguồn phổ biến:
+Common sources:
 
 ```bash
 jps -v
@@ -67,192 +67,192 @@ jcmd 4242 VM.command_line
 ps -p 4242 -o pid,args
 ```
 
-Các lệnh trên minh họa cách truy vấn PID `4242` trên một môi trường phù hợp; PID không phải kết quả thực tế và lệnh `ps` dùng cú pháp Linux/Unix. `jcmd` cần quyền/attach và hỗ trợ từ JVM đích; `jps` chỉ nhìn thấy các JVM mà công cụ nhận diện được.
+These commands illustrate querying PID `4242` in an appropriate environment; the PID is not real output and `ps` uses Linux/Unix syntax. `jcmd` requires permissions/attach and target JVM support; `jps` sees only JVMs detectable by the tool.
 
-Một command line có thể chứa:
+A command line can contain:
 
-- `-Xmx`, `-Xms`, `-XX:+...`: thường hữu ích để điều tra heap/GC, nhưng cũng cần xét thông tin cấu hình nội bộ.
-- `-Dservice.env=...` hoặc `-Dconfig.path=...`: tiết lộ tên môi trường và đường dẫn nội bộ.
-- `-Dapi.token=...`, `--password=...` hoặc URL chứa `user:password@host`: **bí mật cần loại bỏ**, cho dù chúng được truyền vào JVM dưới dạng tham số.
-- Main class, JAR path, account name, installation directory: có thể lộ cấu trúc hệ thống hoặc user account.
+- `-Xmx`, `-Xms`, `-XX:+...`: usually helpful for heap/GC investigation, though internal config details still warrant review.
+- `-Dservice.env=...` or `-Dconfig.path=...`: exposes environment names and internal paths.
+- `-Dapi.token=...`, `--password=...`, or URLs containing `user:password@host`: **secrets that must be removed**, even though passed to the JVM as arguments.
+- Main class, JAR paths, account names, installation directories: can reveal system structure or user accounts.
 
-Đầu ra của `jps -v` và `jcmd VM.command_line` có thể khác nhau về loại thông tin và độ đầy đủ; **không được dùng một đầu ra thiếu secret làm bằng chứng các nguồn khác cũng sạch**.
+`jps -v` and `jcmd VM.command_line` can differ in information types and completeness; **never treat one output lacking secrets as proof that other sources are clean**.
 
-**Ví dụ dữ liệu giả định, không chứa credential thật:**
+**Hypothetical data example, containing no real credentials:**
 
 ```text
 java -Xmx512m -Dservice.env=staging -Dapi.token=DEMO_ONLY_NOT_VALID -jar order-api.jar
 ```
 
-Trước khi gửi ra phạm vi rộng hơn, không nên đăng nguyên văn ví dụ kiểu này khi giá trị là thật. Một bản chia sẻ minh họa có thể là:
+Before sending to a broader audience, do not post this kind of snippet verbatim when values are real. An illustrative shared version could be:
 
 ```text
 Java launcher: java -jar <application.jar>
 Heap max setting: -Xmx512m
 Sensitive JVM properties: [REDACTED]
-Runtime profile: staging (chỉ giữ nếu được phép)
+Runtime profile: staging (keep only if permitted)
 ```
 
-Giữ `-Xmx512m` vì liên quan điều tra heap; loại **cả giá trị và chi tiết thừa** của property nhạy cảm. Nếu tên service hoặc tên môi trường cũng nhạy cảm, dùng tên trung tính hoặc loại trường.
+Keep `-Xmx512m` because it relates to heap investigation; remove **both the value and unnecessary details** of sensitive properties. If service or environment names are also sensitive, use neutral labels or omit those fields.
 
-### 3.2 System properties không đồng nhất với biến môi trường
+### 3.2 System Properties Are Not Identical to Environment Variables
 
-`System.getProperties()` và một số lệnh VM có thể trả Java **system properties**. `System.getenv()` trả **environment variables** mà tiến trình nhìn thấy, trong phạm vi OS/runtime cho phép. Hai nguồn khác nhau và không bảo đảm mọi giá trị thuộc nguồn này đều có mặt ở nguồn kia.
+`System.getProperties()` and certain VM commands return Java **system properties**. `System.getenv()` returns **environment variables** visible to the process within OS/runtime permissions. These two sources are distinct, and values in one are not guaranteed to appear in the other.
 
-Ví dụ, property `user.home`, `user.name`, `java.class.path` có thể chứa tên người dùng, path dự án, package/class names và thư mục triển khai. Property do ứng dụng tự tạo có thể chứa secret nếu cấu hình sai. Environment variables lại thường được dùng để đưa cấu hình/credential vào container; chúng không an toàn chỉ vì “không xuất hiện trong args”.
+For instance, `user.home`, `user.name`, and `java.class.path` can expose usernames, project paths, package/class names, and deployment directories. Custom application properties can hold secrets if misconfigured. Environment variables are also frequently used to pass config/credentials into containers; they are not safe merely because they “do not appear in args”.
 
-Trên Linux, khi có đủ quyền, `/proc/<PID>/environ` có thể chứa dữ liệu môi trường tại phạm vi kernel cung cấp; nội dung có thể không phản ánh mọi thay đổi về sau, tùy cơ chế thực thi. **Không đưa file đó nguyên văn vào ticket.** Các dòng `docker inspect`, pod configuration hay snapshot diagnostics cũng có thể chứa env values hoặc references tới secret; không suy ra rằng công cụ “chỉ đọc metadata” là đã loại thông tin nhạy cảm.
+On Linux, with sufficient permissions, `/proc/<PID>/environ` can hold environment data as exposed by the kernel; contents may not reflect later changes depending on execution mechanisms. **Never paste that file verbatim into a ticket.** `docker inspect` output, pod specs, or diagnostic snapshots can also contain env values or secret references; never assume a tool “only reads metadata” and therefore strips sensitive info.
 
-Khi cần đối chiếu runtime, nên hỏi đúng trường: **tên biến nào đang được khai báo**, giá trị có mặt hay không, profile/phiên bản cấu hình nào đang sử dụng. Với credential, mô tả “credential configured/present” thường đủ hơn việc in giá trị.
+When comparing runtimes, ask for the exact needed field: **which variable name is declared**, whether a value is present, and which config profile/version is active. For credentials, stating “credential configured/present” is usually better than printing the value.
 
-### 3.3 ProcessHandle và process listing
+### 3.3 ProcessHandle and Process Listings
 
-Java `ProcessHandle.Info` có thể cung cấp:
+Java `ProcessHandle.Info` can provide:
 
-- `command()`: đường dẫn/name executable (tùy hệ điều hành và quyền).
-- `commandLine()` và `arguments()`: command line/argv dạng best-effort, có thể thiếu và có thể mang secret.
-- `user()`: account chạy process, có thể là thông tin nội bộ/cá nhân.
-- `startInstant()` và `totalCpuDuration()`: thời điểm khởi động, CPU time tích lũy, nếu được hỗ trợ.
+- `command()`: executable path/name (OS and permission dependent).
+- `commandLine()` and `arguments()`: best-effort command line/argv, which may be incomplete and may carry secrets.
+- `user()`: account running the process, which may be internal/personal info.
+- `startInstant()` and `totalCpuDuration()`: start timestamp and cumulative CPU time, if supported.
 
-Những phương thức này trả `Optional`; không được tự điền chuỗi rỗng thành “an toàn” hoặc suy từ tên executable rằng argument không có bí mật. Nếu chỉ cần PID và JVM version, **không cần thu `commandLine()` hoặc `user()`**.
+These methods return `Optional`; never treat an empty string as “safe” or infer from the executable name that arguments contain no secrets. If you only need PID and JVM version, **do not collect `commandLine()` or `user()`**.
 
-`ProcessHandle.allProcesses()` liệt kê nhiều loại native process nhìn thấy được, không chỉ Java. Đem nguyên danh sách vào báo cáo có thể lộ phần mềm, tài khoản, dịch vụ nền và quy ước đặt tên trên máy không liên quan đến sự cố.
+`ProcessHandle.allProcesses()` lists many kinds of visible native processes, not just Java. Pasting the whole list into a report can expose software, accounts, background services, and naming conventions on the machine unrelated to the incident.
 
-### 3.4 Thread dumps, stack traces và exception messages
+### 3.4 Thread Dumps, Stack Traces, and Exception Messages
 
-Thread dump cung cấp stack, thread name và trạng thái, giúp chẩn đoán blocked/deadlock hoặc thread pool. Dù một stack trace thường chứa tên class/method hơn là request payload, dữ liệu nhạy cảm vẫn có thể nằm ở:
+Thread dumps supply stacks, thread names, and states to diagnose blocking/deadlocks or thread pools. Although a stack trace mostly contains class/method names rather than request payloads, sensitive data can still hide in:
 
-- Tên thread được ứng dụng đặt từ user/customer/request ID.
-- Exception message chứa URL, query parameter, SQL literal, tên file hoặc dữ liệu đầu vào.
-- Thông tin lock/monitor, package nội bộ, tên thư viện/phiên bản thể hiện kiến trúc.
-- Log hoặc báo cáo kết hợp thread dump với metadata request.
+- Thread names constructed by the application from user/customer/request IDs.
+- Exception messages containing URLs, query parameters, SQL literals, filenames, or input data.
+- Lock/monitor info, internal packages, and library names/versions revealing architecture.
+- Logs or reports pairing thread dumps with request metadata.
 
-Không kết luận “thread dump chắc chắn không chứa secret”; cũng không tự động xóa mọi class name nếu nhóm kỹ thuật cần stack để xác định mã gây treo. **Giữ những frame liên quan và thay tên định danh nhạy cảm bằng nhãn nhất quán** khi được phép.
+Never assume “a thread dump definitely contains no secrets”; nor should you blindly strip every class name if engineering needs stack frames to locate hanging code. **Keep relevant frames and replace sensitive identifiers with consistent labels** when permitted.
 
-### 3.5 GC logs, metrics và JFR
+### 3.5 GC Logs, Metrics, and JFR
 
-GC log thường có thời gian, heap regions, pause và flags, giúp phân biệt GC pressure. Tuy nhiên path, JVM arguments, PID, hostname, target filename hoặc dòng startup được cấu hình in kèm có thể tiết lộ thông tin nội bộ.
+GC logs typically show timestamps, heap regions, pauses, and flags to distinguish GC pressure. However, paths, JVM arguments, PIDs, hostnames, target filenames, or printed startup lines can expose internal details.
 
-Metrics có thể chứa label như `customer_id`, `user_id`, `tenant`, private endpoint hoặc path. Một số nhãn có **cardinality cao** và đồng thời là nguy cơ riêng tư. Khi chia sẻ, hãy giữ giá trị tổng hợp mà vẫn đủ so sánh và loại nhãn định danh không cần.
+Metrics can carry labels such as `customer_id`, `user_id`, `tenant`, private endpoints, or paths. Some labels have **high cardinality** and simultaneously pose privacy risks. When sharing, keep aggregated values sufficient for comparison and drop unnecessary identifying labels.
 
-JFR recording có thể gồm stack trace, thread names, exception events, class/method names, allocation events, file/socket context và các event khác tùy cấu hình/phiên bản. Nó **không phải file “đã ẩn danh” theo mặc định**; công cụ phân tích có thể cho thấy chi tiết không hiển thị trên một screenshot. Trước khi gửi JFR ra ngoài, cần xét event nào được ghi, dữ liệu nào nhạy cảm, liệu trích thống kê hoặc export đã lọc đủ thay cho toàn bộ recording.
+A JFR recording can contain stack traces, thread names, exception events, class/method names, allocation events, file/socket context, and other events depending on config/version. It is **not an “anonymized” file by default**; analysis tools can reveal details invisible in a screenshot. Before sending a JFR externally, inspect which events were recorded, which data is sensitive, and whether exporting statistics or a filtered subset suffices instead of the entire recording.
 
-### 3.6 Heap dump và core dump: rủi ro cao hơn bản text thông thường
+### 3.6 Heap Dumps and Core Dumps: Higher Risk Than Plain Text
 
-Heap dump là ảnh chụp dữ liệu object trong JVM, có thể chứa `String`, cache, thông tin request/session, token, cấu hình, dữ liệu nghiệp vụ và các reference graph. Core dump/native crash dump có thể chứa vùng nhớ tiến trình, không chỉ stack trace. File `hs_err_pid*.log` hoặc báo cáo crash có thể lộ thông số, đường dẫn, environment và mapping khác nhau theo phiên bản.
+A heap dump is a snapshot of object data inside the JVM and can hold `String`s, caches, request/session data, tokens, configurations, business records, and reference graphs. Core dumps/native crash dumps can capture process memory regions, not merely stack traces. `hs_err_pid*.log` files or crash reports can expose parameters, paths, environments, and memory mappings depending on version.
 
-**Không thử “tìm rồi thay chuỗi” bằng text editor trên file heap dump nhị phân** rồi coi đó là đã redacted. Cấu trúc dump và nội dung nhị phân đòi hỏi công cụ hiểu định dạng; loại bỏ một chuỗi nhìn thấy không bảo đảm dữ liệu biến mất khỏi bản dump. Với trường hợp cần chia sẻ:
+**Never try “find and replace strings” in a text editor on a binary heap dump** and consider it redacted. Dump structures and binary layouts require format-aware tools; overwriting one visible string does not guarantee the data is gone from the dump. When sharing is needed:
 
-1. Giữ file gốc ở kênh hạn chế quyền và bảo vệ theo chính sách.
-2. Ưu tiên xuất **báo cáo dẫn xuất**: histogram loại object, tổng retained bytes, stack/frame hoặc thống kê allocation đủ cho câu hỏi.
-3. Nếu bắt buộc gửi dump gốc cho bên có quyền, dùng quy trình chuyển giao, mã hóa, thời hạn lưu và phê duyệt dữ liệu tương ứng; kiểm tra phạm vi người nhận và khả năng thu hồi.
-4. Không gửi heap dump qua kênh chat, issue hoặc kho lưu công khai chỉ vì công cụ tạo file dễ dàng.
+1. Keep the raw file in a restricted-access channel protected by policy.
+2. Prefer exporting **derived reports**: object histograms, total retained bytes, stacks/frames, or allocation stats sufficient for the question.
+3. If sending the raw dump to an authorized party is mandatory, use formal transfer, encryption, retention limits, and data approval workflows; verify recipient scope and revocation capability.
+4. Never send heap dumps over chat, public issues, or shared buckets simply because generating the file was easy.
 
-## 4. Ma trận quyết định: giữ, thay thế, tổng hợp hay loại bỏ?
+## 4. Decision Matrix: Keep, Replace, Aggregate, or Remove?
 
-Khi xử lý một trường, chọn thao tác dựa trên cả độ nhạy và giá trị chẩn đoán:
+When processing a field, choose the action based on both sensitivity and diagnostic value:
 
-| Trường ví dụ | Có ích cho điều tra gì? | Xử lý trước khi chia sẻ ngoài nhóm sở hữu |
+| Example field | What investigation does it help? | Handling before sharing outside the owning team |
 | --- | --- | --- |
-| `java.version` hoặc JVM implementation | Khác biệt runtime/JIT/GC, tương thích | Giữ khi cần và được phép; đôi khi chỉ cần Java major version |
-| `-Xmx512m`, GC type, thread count | Heap sizing, GC/threads | Có thể giữ nếu không tiết lộ cấu hình bị hạn chế |
-| PID và start time | Xác nhận đúng instance | Giữ nội bộ; có thể đổi thành `process-A` ở bản công khai |
-| Full hostname, private IP, pod UID | Correlation với hạ tầng | Thay bằng `host-A`, `container-1` hoặc tổng hợp |
-| Executable path có tên user | Xác định runtime binary | Giữ loại executable, ẩn phần thư mục định danh |
-| System property `api.key` | Kiểm tra credential có cấu hình | Chỉ báo trạng thái “configured”; xóa tên/giá trị nếu không cần |
-| Cookie, Authorization header, URL có token | Điều tra xác thực/giao dịch | Không đưa giá trị; mô tả loại header, tình trạng xuất hiện hoặc status code |
-| Email, user/customer ID | Correlation sự kiện | Thay bằng ID ngẫu nhiên hoặc pseudonym có quản lý, bỏ nếu không cần |
-| Request body / SQL với giá trị thật | Tái hiện logic nghiệp vụ | Dùng synthetic payload, parameter placeholders hoặc kiểu dữ liệu |
-| Stack trace | Chẩn đoán exception, lock, deadlock | Giữ frame liên quan, bỏ message/IDs/paths nhạy cảm |
-| Heap/core dump, full JFR | Điều tra memory/native crash, event detail | Chia sẻ bản dẫn xuất đã duyệt; raw file phải ở kênh có kiểm soát |
+| `java.version` or JVM implementation | Runtime/JIT/GC differences, compatibility | Keep when needed and permitted; sometimes Java major version suffices |
+| `-Xmx512m`, GC type, thread count | Heap sizing, GC/threads | Can keep if it does not expose restricted configuration |
+| PID and start time | Confirming the exact instance | Keep internal; can replace with `process-A` in public versions |
+| Full hostname, private IP, pod UID | Infrastructure correlation | Replace with `host-A`, `container-1`, or aggregate |
+| Executable path with username | Identifying runtime binary | Keep executable type; mask identifying directory segments |
+| System property `api.key` | Checking whether a credential is configured | Report only “configured” status; remove name/value if unneeded |
+| Cookies, Authorization headers, URLs with tokens | Investigating auth/transactions | Omit values; describe header type, presence, or status code |
+| Email, user/customer ID | Event correlation | Replace with random ID or managed pseudonym; omit if unneeded |
+| Request body / SQL with real values | Reproducing business logic | Use synthetic payloads, parameter placeholders, or data types |
+| Stack trace | Diagnosing exceptions, locks, deadlocks | Keep relevant frames; remove sensitive messages/IDs/paths |
+| Heap/core dump, full JFR | Investigating memory/native crashes, event details | Share approved derived reports; raw files stay in controlled channels |
 
-**Bốn hình thức xử lý chính:**
+**Four main handling modes:**
 
-- **Giữ nguyên có điều kiện:** trường ít nhạy cảm, thật sự cần, người nhận phù hợp.
-- **Thay thế (redact/mask):** bỏ giá trị nhạy cảm, dùng `[REDACTED]` hoặc alias giữ quan hệ kỹ thuật.
-- **Tổng hợp:** chỉ chia sẻ count, rate, percentile, range, nhóm lỗi hoặc kết quả bucket thay cho từng người/yêu cầu.
-- **Loại bỏ:** trường không liên quan hoặc quá nhạy cảm để chia sẻ trong mục đích này.
+- **Conditional keep:** low-sensitivity field, genuinely needed, appropriate recipient.
+- **Replace (redact/mask):** strip sensitive value, use `[REDACTED]` or aliases preserving technical relationships.
+- **Aggregate:** share only counts, rates, percentiles, ranges, error groups, or bucketed results instead of individual users/requests.
+- **Remove:** field is irrelevant or too sensitive to share for this purpose.
 
-Đôi khi **chỉ giữ dấu “có hay không”** cũng tiết lộ điều không được phép công bố, chẳng hạn sự tồn tại của hệ thống nội bộ hoặc một cơ chế khóa cụ thể. Khi đó bỏ cả tên trường khỏi phiên bản chia sẻ.
+Sometimes **even revealing “present vs. absent”** leaks restricted facts, such as the existence of an internal system or specific security mechanism. In that case, remove the field name itself from the shared version.
 
-## 5. Quy trình làm sạch bằng chứng trước khi chia sẻ
+## 5. Evidence Sanitization Workflow Before Sharing
 
-### 5.1 Bước 1: xác định mục đích và phạm vi người nhận
+### 5.1 Step 1: Define Purpose and Recipient Scope
 
-Viết một câu hỏi đủ hẹp: “Nhờ xác minh pause GC tăng khi JVM dùng G1 với heap 512 MiB” hoặc “Cần phân tích stack của thread BLOCKED”. Đừng đặt mục tiêu rộng kiểu “gửi hết mọi diagnostics để người khác tự xem”.
+Write a narrow question: “Need to verify increased GC pauses when the JVM runs G1 with a 512 MiB heap” or “Need to analyze stacks of BLOCKED threads”. Avoid broad goals like “send all diagnostics so others can look around”.
 
-Gắn nhãn đối tượng nhận:
+Label the audience:
 
-- **Nội bộ nhóm chịu trách nhiệm:** có thể được xem nhiều bằng chứng hơn, vẫn cần least privilege.
-- **Các nhóm nội bộ khác / vendor support:** chỉ có dữ liệu được phép chia sẻ theo hợp đồng/quy trình; cắt những trường không cần.
-- **Issue công khai, forum, tài liệu học, dịch vụ bên ngoài:** mặc định dùng synthetic examples hoặc báo cáo tối thiểu đã rà soát.
+- **Within the owning team:** may see more evidence, still subject to least privilege.
+- **Other internal teams / vendor support:** only data permitted by contract/process; trim unneeded fields.
+- **Public issues, forums, learning materials, external services:** default to synthetic examples or minimal reviewed reports.
 
-Một dịch vụ AI ngoài hệ thống cũng là **người nhận dữ liệu qua một kênh chia sẻ**. Không paste credential, heap dump hay raw logs lên bất kỳ công cụ nào chỉ vì muốn nhanh chóng tìm nguyên nhân; trước hết phải xác định chính sách và mục đích truyền dữ liệu.
+An external AI service is also **a recipient over a sharing channel**. Never paste credentials, heap dumps, or raw logs into any tool just to find a quick answer; check data transfer policies and purpose first.
 
-### 5.2 Bước 2: thu dữ liệu tối thiểu ngay từ nguồn
+### 5.2 Step 2: Minimize Data Collection at the Source
 
-Nếu chỉ cần Java version và heap limit, hãy lấy những trường đó; không thu toàn bộ system properties hoặc environment rồi hy vọng regex lọc hết. Một số nguyên tắc:
+If you only need Java version and heap limit, collect just those fields; do not dump all system properties or environment variables hoping regex will catch everything. Guidelines:
 
-1. Ưu tiên metrics đã được tổng hợp, API trả field cụ thể hoặc lệnh read-only đúng mục tiêu.
-2. Tránh bật debug logging có thể ghi request body/header thật nếu chưa cần.
-3. Tránh bật thêm profiler/dump nặng chỉ để hỗ trợ một câu hỏi nhỏ.
-4. Không đưa output raw lên terminal được ghi tự động bởi log chia sẻ rộng quyền nếu nó có thể chứa secret.
-5. Nếu cần giữ raw evidence để forensic nội bộ, lưu riêng trong vùng hạn chế quyền, mã hóa và chính sách retention phù hợp; bản chia sẻ là bản sao đã làm sạch.
+1. Prefer aggregated metrics, APIs returning specific fields, or targeted read-only commands.
+2. Avoid enabling debug logging that records real request bodies/headers unless necessary.
+3. Avoid heavy profilers/dumps merely to answer a small question.
+4. Do not print raw output onto terminals captured by broadly shared session logs if secrets might appear.
+5. If raw evidence must be kept for internal forensics, store it separately with restricted permissions, encryption, and retention rules; the shared artifact is a sanitized copy.
 
-Cách tiếp cận tốt nhất là **không thu/không xuất dữ liệu nhạy cảm khi câu hỏi không cần nó**. Redaction sau khi thu vẫn là lớp phòng vệ cần thiết nhưng không thay được nguyên tắc tối thiểu hóa.
+The best approach is **not collecting or emitting sensitive data when the question does not need it**. Post-collection redaction remains an essential defense layer, not a substitute for minimization.
 
-### 5.3 Bước 3: phân loại trường và các vị trí dữ liệu có thể ẩn
+### 5.3 Step 3: Classify Fields and Hidden Data Locations
 
-Với mỗi artifact, rà soát:
+For every artifact, scan for:
 
-- **Key/value đơn giản:** `password`, `passwd`, `secret`, `token`, `apiKey`, `Authorization`, `Cookie`, `privateKey` và tên biến theo ứng dụng.
-- **Giá trị nằm trong chuỗi khác:** query parameter, URL userinfo, connection string, JDBC URL, header line, JSON lồng nhau, YAML, JVM `-D...`, command-line arguments.
-- **Dữ liệu được mã hóa/đóng gói:** URL encoding, Base64, escaped JSON, multiline PEM hoặc log chunk; việc không thấy từ “password” không chứng minh sạch.
-- **Danh tính gián tiếp:** email, phone, tên người dùng trong path, IP, customer ID, session ID, device ID, trace ID, tenant/domain.
-- **Metadata của artifact:** tên file, title, folder path, link chia sẻ, comment, revision history, attachment description, timestamp và thông tin người tạo.
+- **Simple key/value pairs:** `password`, `passwd`, `secret`, `token`, `apiKey`, `Authorization`, `Cookie`, `privateKey`, and app-specific variable names.
+- **Values embedded in strings:** query parameters, URL userinfo, connection strings, JDBC URLs, header lines, nested JSON, YAML, JVM `-D...`, command-line arguments.
+- **Encoded/wrapped data:** URL encoding, Base64, escaped JSON, multiline PEM, or log chunks; absence of the word “password” does not prove cleanliness.
+- **Indirect identifiers:** email, phone, usernames in paths, IPs, customer IDs, session IDs, device IDs, trace IDs, tenant/domain names.
+- **Artifact metadata:** filenames, titles, folder paths, share links, comments, revision history, attachment descriptions, timestamps, and creator info.
 
-Dùng công cụ phát hiện tự động như **một bước hỗ trợ**, không coi kết quả “0 match” là chứng nhận an toàn. Secret có thể mang tên tùy biến; dữ liệu dạng free text, binary, hoặc cấu trúc bất ngờ có thể thoát khỏi regex.
+Use automated scanners as **an assistant**, never treating “0 matches” as a safety certificate. Secrets can carry custom names; free text, binary data, or unexpected formats can evade regexes.
 
-### 5.4 Bước 4: làm sạch bằng cách phù hợp loại dữ liệu
+### 5.4 Step 4: Sanitize Using Methods Matched to Data Type
 
-**Dữ liệu có cấu trúc:** chọn allowlist field trước khi xuất. Ví dụ, xuất `java.version`, `heap.max.bytes` và GC type thay vì serialize `System.getProperties()`. Với JSON/YAML hãy parse theo cấu trúc, lọc field, sau đó serialize lại; tránh replace text tùy tiện dễ bỏ sót nested fields hoặc tạo output sai.
+**Structured data:** use a field allowlist before exporting. For example, export `java.version`, `heap.max.bytes`, and GC type instead of serializing `System.getProperties()`. For JSON/YAML, parse structurally, filter fields, and re-serialize; avoid ad hoc text replacement that misses nested fields or corrupts output.
 
-**Command line:** không bảo đảm parse được chỉ bằng `split(" ")` vì quoting/escaping khác giữa shell và OS. Nếu cần share JVM flags, lấy riêng flags không nhạy cảm có mục đích; đừng tạo “sanitizer command line” kiểu thay dấu bằng regex rồi tin tuyệt đối. Khi một `-D...` chứa secret, có thể mô tả “sensitive property configured” thay vì ghi tên và giá trị.
+**Command lines:** `split(" ")` cannot reliably parse them because quoting/escaping differs across shells and OSes. To share JVM flags, extract needed non-sensitive flags intentionally; never build a “command-line sanitizer” using simple regex replacements and trust it blindly. When a `-D...` holds a secret, describe it as “sensitive property configured” rather than printing name and value.
 
-**URL/connection string:** một URL có thể mang username/password trong authority, query, path hoặc fragment. JDBC connection strings có nhiều cú pháp theo driver. Tốt hơn dùng chuỗi đại diện hoặc phân tích cú pháp theo driver/protocol rồi chỉ giữ scheme, loại kết nối và đặc trưng cần điều tra; **không** tự động coi URI không có `@` là an toàn.
+**URLs/connection strings:** a URL can carry username/password in authority, query, path, or fragment. JDBC connection strings vary widely by driver. Prefer placeholder strings or driver/protocol-aware parsing that retains only scheme, connection type, and diagnostic traits; **never** automatically assume a URI without `@` is safe.
 
-**Text log/stack trace:** giữ những frame, mã lỗi và chuỗi thời gian cần thiết; cắt message chứa dữ liệu khách hàng; thay tên người/host bằng alias nhất quán nếu correlation có ích. Kiểm tra phần trước/sau đoạn thay thế để không còn bản sao ở field khác hoặc nested exception.
+**Text logs/stack traces:** keep needed frames, error codes, and timestamps; trim messages containing customer data; replace usernames/hostnames with consistent aliases if correlation helps. Check before and after the replaced section so copies do not remain in other fields or nested exceptions.
 
-**Dump/binary:** không redaction bằng phép replace bytes mù quáng. Trích báo cáo từ công cụ phân tích, rồi rà soát báo cáo dẫn xuất. Raw dump ở kho có quyền hạn chế.
+**Dumps/binaries:** never redact by blind byte replacement. Extract reports from analysis tools, then review derived outputs. Keep raw dumps in restricted-access storage.
 
-**Hình ảnh/screenshot:** cắt/che giá trị trong ảnh, nhưng cũng kiểm tra thông tin ở tab khác, tooltip, title, URL trình duyệt, metadata và tên file. Nếu có thể, tạo ảnh từ output đã làm sạch thay vì chụp raw rồi dùng một hình chữ nhật đè lên secret.
+**Images/screenshots:** crop/mask values in the image, yet also check other browser tabs, tooltips, window titles, URL bars, metadata, and filenames. Whenever possible, render screenshots from sanitized text rather than capturing raw output and drawing a rectangle over secrets.
 
-### 5.5 Bước 5: kiểm tra bản sẽ chia sẻ, không kiểm tra nhầm bản gốc
+### 5.5 Step 5: Inspect the Version You Will Share, Not the Original by Mistake
 
-Cần kiểm tra **artifact cuối cùng** theo đúng định dạng mà người nhận sẽ mở:
+Verify **the final artifact** in the exact format the recipient will open:
 
-1. Đọc toàn bộ bản xuất, kể cả file đính kèm, phần collapsed, metadata hoặc các dòng cuối bị cắt.
-2. Tìm pattern credential, URL, IP, email, username, token-like strings, secret-specific key names và giá trị nhạy cảm đã biết.
-3. Kiểm tra alias được thay **nhất quán** để vẫn lần theo được một process/request khi cần, nhưng không mang định danh thật.
-4. Thử xem người nhận có thể khôi phục dữ liệu từ base64, HTML source, comment/revision, file gốc được nhúng hoặc link tới raw evidence hay không.
-5. Xác nhận người nhận, quyền link, thời hạn tồn tại và kênh chuyển giao; chỉ chia sẻ sau khi nội dung phù hợp phạm vi đã định.
+1. Read the entire export, including attachments, collapsed sections, metadata, or truncated tail lines.
+2. Search for credential patterns, URLs, IPs, emails, usernames, token-like strings, secret-specific key names, and known sensitive values.
+3. Verify aliases were applied **consistently** so a process/request remains traceable when needed without carrying real identities.
+4. Test whether a recipient could recover data from base64, HTML source, comments/revisions, embedded original files, or links to raw evidence.
+5. Confirm recipients, link permissions, expiration, and transfer channel; share only after contents fit the defined scope.
 
-**Redaction trực quan chưa chắc là redaction thực tế.** Ví dụ một ô bảng tính hiển thị `[REDACTED]` nhưng vẫn có note/comment hoặc phiên bản cũ; một PDF có hình chữ nhật đen đè lên chữ chưa chắc loại được text layer; một file log nén còn chứa raw secret. Phải kiểm tra lớp dữ liệu thực và bản chia sẻ cuối.
+**Visual redaction is not always real redaction.** For example, a spreadsheet cell displaying `[REDACTED]` might still retain notes/comments or revision history; a PDF with a black box over text might still keep the underlying text layer; a compressed log archive might still hold raw secrets. Inspect the underlying data layer and final shared artifact.
 
-### 5.6 Bước 6: giữ dấu vết và xử lý sự cố lộ secret
+### 5.6 Step 6: Keep an Audit Trail and Handle Secret Exposure Incidents
 
-Nên lưu trong hồ sơ điều tra nội bộ:
+Record in the internal investigation log:
 
-- Nguồn dữ liệu, thời gian, PID/host/container scope và command/collector đã dùng.
-- Các loại field được giữ/loại/tổng hợp, phương pháp, phiên bản script/policy.
-- Người rà soát và đối tượng nhận; hash/checksum artifact dẫn xuất nếu cần tính toàn vẹn.
-- Vị trí raw evidence được bảo vệ và thời gian xóa theo quy trình; tránh ghi trực tiếp secret vào hồ sơ phê duyệt.
+- Data source, timestamp, PID/host/container scope, and command/collector used.
+- Categories of fields kept/removed/aggregated, method, and script/policy version.
+- Reviewer and intended recipients; hash/checksum of derived artifacts if integrity tracking is needed.
+- Protected location of raw evidence and scheduled deletion per policy; avoid writing secrets directly into approval records.
 
-Nếu một credential thật đã được đưa ra kênh ngoài phạm vi, **xóa message chưa chắc đủ** vì có log, bản sao, cache hoặc lịch sử. Cần xử lý theo quy trình incident của tổ chức: thông báo bên phụ trách, thu hồi/rotate secret khi thích hợp, đánh giá phạm vi lộ và kiểm soát bản sao. Không tự công bố giá trị để “chứng minh đã lộ”.
+If a real credential has already leaked to an out-of-scope channel, **deleting the message is not necessarily sufficient** due to logs, copies, caches, or history. Follow your organization's incident process: notify owners, revoke/rotate secrets as appropriate, assess exposure scope, and control copies. Never republish the value to “prove it leaked”.
 
-## 6. Ví dụ đối chiếu trước–sau: giữ giá trị chẩn đoán
+## 6. Before–After Comparison Example: Preserving Diagnostic Value
 
-Giả sử một JVM bị tăng heap occupancy trong môi trường thử nghiệm. Bản **giả lập** có dữ liệu sau (mọi tên, domain và token đều chỉ là ví dụ không có giá trị sử dụng):
+Suppose a JVM experiences rising heap occupancy in a test environment. The **simulated** record contains the following data (all names, domains, and tokens are unusable illustrative examples):
 
 ```text
 Captured at: 2026-10-29T08:00:00Z
@@ -267,7 +267,7 @@ Heap used: 420 MiB
 Heap max: 512 MiB
 ```
 
-Nếu chia sẻ nội bộ cho đồng nghiệp chỉ cần phân tích heap, một phiên bản phù hợp **sau khi được kiểm tra theo quyền người nhận** có thể là:
+If sharing internally with colleagues who only need to analyze the heap, an appropriate version **after checking recipient permissions** could be:
 
 ```text
 Capture time (UTC): 2026-10-29T08:00:00Z
@@ -280,15 +280,15 @@ Startup properties outside approved fields: omitted
 Account, paths, DB endpoint, credentials, authorization header: omitted
 ```
 
-Bản thứ hai vẫn giúp đánh giá heap occupancy và sizing. Nó **không** còn chứa thông tin đủ để kết nối database, giả mạo phiên, tìm tên tài khoản hay suy ra đường dẫn thực. Khi cần so hai lần chẩn đoán cùng instance, giữ alias `instance-A` trong một hồ sơ nội bộ có mapping bảo vệ; không cần đăng mapping ra ngoài.
+The second version still supports evaluating heap occupancy and sizing. It **no longer** holds enough data to connect to the database, forge sessions, discover account names, or infer real filesystem paths. When comparing two captures from the same instance, keep the alias `instance-A` in an internal record with a protected mapping; do not publish the mapping externally.
 
-Nếu mục tiêu là kiểm tra chính DB latency, có thể giữ “database dependency = PostgreSQL” hoặc thống kê p95 truy vấn sau khi loại host/account/credential. Không nên làm mất toàn bộ bằng chứng kỹ thuật nếu có thể giữ bản tổng hợp an toàn hơn.
+If the goal were investigating DB latency itself, you could keep “database dependency = PostgreSQL” or query p95 stats after stripping hosts/accounts/credentials. Do not destroy all technical evidence when a safer aggregated summary works.
 
-## 7. Thực hành Java 17+: báo cáo allowlist thay vì in nguyên dữ liệu
+## 7. Java 17+ Practice: Allowlist Reporting Instead of Printing Raw Data
 
-Ví dụ dưới đây tạo **dữ liệu giả định trong bộ nhớ** và chỉ xuất những trường được cho phép. Không truy cập process của người khác, không thu environment thật và không tạo secret có hiệu lực. Vì vậy stdout có thể kiểm tra chính xác trên Java 17+.
+The example below builds **hypothetical in-memory data** and emits only allowed fields. It does not access other processes, read real environment variables, or create valid secrets. Thus stdout can be verified deterministically on Java 17+.
 
-Lưu tệp `DiagnosticDisclosureDemo.java`:
+Save the file `DiagnosticDisclosureDemo.java`:
 
 ```java
 import java.util.LinkedHashMap;
@@ -297,7 +297,7 @@ import java.util.Map;
 
 public class DiagnosticDisclosureDemo {
     public static void main(String[] args) {
-        // Mọi giá trị đều là dữ liệu mô phỏng, không phải secret thật.
+        // All values are simulated data, not real secrets.
         Map<String, String> observed = new LinkedHashMap<>();
         observed.put("timestamp.utc", "2026-10-29T08:00:00Z");
         observed.put("jvm.version", "21.0.4");
@@ -328,14 +328,14 @@ public class DiagnosticDisclosureDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac DiagnosticDisclosureDemo.java
 java DiagnosticDisclosureDemo
 ```
 
-Stdout **chính xác**:
+**Exact** stdout:
 
 ```text
 timestamp.utc=2026-10-29T08:00:00Z
@@ -345,135 +345,135 @@ heap.max.bytes=536870912
 omitted_fields=4
 ```
 
-**Điểm cần hiểu từ ví dụ:**
+**Key points from the example:**
 
-- Chương trình dùng `LinkedHashMap` và `List` có thứ tự đã định, nên thứ tự in ra ổn định. Có tám field đầu vào nhưng chỉ bốn field allowlist được xuất; bốn field bị bỏ **không in cả tên lẫn giá trị**.
-- Nếu ngày mai nguồn xuất hiện thêm `session.cookie` hoặc `cloud.secret` thì theo cơ chế này trường mới vẫn bị loại mặc định; không cần biết trước mọi cách đặt tên secret.
-- Một field **được cho phép theo tên** vẫn có thể chứa giá trị nhạy cảm do lỗi mapping/nguồn dữ liệu. Ở môi trường thật, cần kiểm tra kiểu dữ liệu, nguồn và nội dung của từng field allowlist, không chỉ dựa trên key.
-- PID và phiên bản JVM trong ví dụ được coi là phù hợp với **báo cáo kỹ thuật nội bộ giả định**, **không** có nghĩa luôn được phép công bố công khai. Với người nhận khác, phải dùng allowlist khác và có thể thay PID bằng alias.
-- Đây là **bài minh họa về nguyên tắc tối thiểu hóa**, không phải thư viện redaction tổng quát. Nó không parse command line, JSON lồng nhau, URL, log hay heap dump. Không gửi những dữ liệu ấy vào `observed` trong code production nếu không cần thu.
+- The program uses `LinkedHashMap` and an ordered `List`, keeping output order deterministic. Eight fields exist in input, yet only four allowlisted fields are printed; the four omitted fields **print neither name nor value**.
+- If `session.cookie` or `cloud.secret` shows up in the source tomorrow, new fields are still excluded by default; you do not need to anticipate every secret naming convention.
+- A field **allowed by name** can still hold sensitive values due to mapping/source bugs. In production, validate data types, origins, and contents of each allowlisted field rather than trusting keys alone.
+- PID and JVM version in the example are assumed suitable for a **hypothetical internal technical report**, which **does not** mean they are always safe to publish publicly. For other audiences, use a stricter allowlist and consider aliasing the PID.
+- This is an **illustration of the minimization principle**, not a general-purpose redaction library. It does not parse command lines, nested JSON, URLs, logs, or heap dumps. Do not even load those values into `observed` in production code if they are not needed.
 
-### 7.1 Vì sao dùng allowlist thường an toàn hơn chỉ regex che từ khóa?
+### 7.1 Why Is an Allowlist Usually Safer Than Regex Keyword Masking Alone?
 
-Giả sử chương trình in toàn bộ map rồi thay chuỗi có chữ `password`. Nó có thể bỏ sót `Authorization`, `apiKey`, `sessionId`, tên credential tự đặt, token trong URL hoặc giá trị được escape. Nếu nhiều tầng serialize, bí mật còn có thể xuất hiện ở field phụ hoặc trong exception message.
+Suppose a program prints an entire map and masks strings containing `password`. It can miss `Authorization`, `apiKey`, `sessionId`, custom credential names, tokens in URLs, or escaped values. With multi-layer serialization, secrets can also surface in secondary fields or exception messages.
 
-Allowlist trả đúng những trường phục vụ mục tiêu, **mặc định bỏ trường không biết**. Sau allowlist vẫn phải rà soát giá trị, kiểm tra artifact cuối và quyền người nhận. Kết hợp hai lớp sẽ thực tế hơn kỳ vọng một biểu thức chính quy che hết mọi secret trong mọi định dạng.
+An allowlist outputs only fields serving the goal, **dropping unknown fields by default**. Even after allowlisting, review values, inspect the final artifact, and verify recipient permissions. Combining both layers is far more realistic than expecting one regex to catch every secret in every format.
 
-### 7.2 Khi cần đối chiếu cùng người/host qua nhiều log
+### 7.2 When You Need to Correlate the Same User/Host Across Logs
 
-Có thể dùng một alias như `user-A`, `host-B`, `session-C` **ổn định trong phạm vi incident** để giữ quan hệ. Mapping từ alias sang giá trị thật phải ở kho nội bộ có quyền hạn chế; không mang mapping vào bản chia sẻ. Không dùng một hash thường của email, số điện thoại hoặc customer ID thấp entropy rồi khẳng định “ẩn danh”: có thể dò ngược bằng từ điển. Nếu cần token hóa/pseudonymization, chọn cơ chế được duyệt, quản lý khóa riêng và xác định rõ thời hạn giữ tính tương quan.
+You can use aliases like `user-A`, `host-B`, `session-C` that stay **consistent within an incident** to preserve relationships. The mapping from alias to real value stays in a restricted-access internal store; never attach the mapping to shared outputs. Do not hash emails, phone numbers, or low-entropy customer IDs with a plain hash and call it “anonymous”: dictionary attacks can reverse them. When tokenization/pseudonymization is needed, use an approved mechanism, manage keys separately, and define correlation retention limits.
 
-**Ẩn định danh (pseudonymization) không đồng nghĩa ẩn danh tuyệt đối** khi dữ liệu còn có timestamp, vị trí, hành vi hoặc metadata có thể liên kết trở lại.
+**Pseudonymization is not absolute anonymization** when timestamps, locations, behaviors, or metadata can still re-identify records.
 
-## 8. Giữ tính hữu ích kỹ thuật sau khi làm sạch
+## 8. Preserving Technical Utility After Sanitization
 
-Một bản đã redact quá mạnh có thể khiến người khác không phân biệt được hai JVM hay nguyên nhân runtime. Cần cân bằng giá trị điều tra bằng phương pháp có cấu trúc:
+Over-aggressive redaction can make it impossible for others to distinguish two JVMs or runtime causes. Balance investigative utility with a structured approach:
 
-1. **Giữ đơn vị và cửa sổ đo:** “heap used 420 MiB tại 08:00 UTC, max 512 MiB” có ích hơn “memory high”.
-2. **Giữ cơ chế kỹ thuật:** loại GC, flags không nhạy cảm, phiên bản Java phù hợp, stack state, exception type, HTTP status; không nhất thiết giữ username/hostname.
-3. **Giữ tương quan tối thiểu:** alias `instance-A` và `instance-B`, mốc UTC đã làm tròn nếu có thể, cùng một loại trace trên các phép đo.
-4. **Ghi rõ thao tác redaction:** `[REDACTED: credential]`, `[REDACTED: hostname]` hoặc “field omitted by allowlist”. Không thay giá trị thật bằng chuỗi dễ bị hiểu nhầm là dữ liệu đo.
-5. **Không làm sai dữ liệu bằng chỉnh sửa tùy tiện:** nếu che một phần stack trace có thể làm mất frame quan trọng, ghi chú rõ frame đã bị ẩn; không đảo thứ tự sự kiện hay xóa sự cố chỉ để số liệu “đẹp”.
+1. **Keep units and measurement windows:** “heap used 420 MiB at 08:00 UTC, max 512 MiB” is far more useful than “memory high”.
+2. **Keep technical mechanisms:** GC type, non-sensitive flags, appropriate Java version, stack states, exception types, HTTP statuses; you do not necessarily need usernames/hostnames.
+3. **Keep minimal correlation:** aliases `instance-A` and `instance-B`, rounded UTC timestamps if appropriate, consistent trace IDs across measurements.
+4. **Label redactions clearly:** `[REDACTED: credential]`, `[REDACTED: hostname]`, or “field omitted by allowlist”. Never replace real values with strings that look like real measurements.
+5. **Do not distort facts with arbitrary edits:** if hiding part of a stack trace might drop a key frame, note clearly that frames were hidden; never reorder events or delete failures just to make metrics look “clean”.
 
-Ví dụ, trong điều tra deadlock, giữ thread state, lock ownership relationship và stack frames sau khi loại tên request/customer nếu có. Trong điều tra OOM, retained-size histogram hoặc allocation trends thường đủ cho bước đầu; raw heap dump chỉ dùng khi đã xác định sự cần thiết và kênh bảo vệ.
+For example, in deadlock investigations, keep thread states, lock ownership relationships, and stack frames after removing request/customer names if present. In OOM investigations, retained-size histograms or allocation trends usually suffice for initial steps; raw heap dumps are used only once necessity and protected channels are confirmed.
 
-### 8.1 Lưu raw evidence và bản chia sẻ riêng biệt
+### 8.1 Store Raw Evidence and Shared Versions Separately
 
-Mô hình lưu trữ hợp lý:
+A sound storage model:
 
 ```text
-Nguồn runtime/process có dữ liệu thực
+Runtime/process source with real data
              |
-       thu thập tối thiểu
+       minimal collection
              |
          raw evidence
- (kho hạn chế quyền + retention)
+ (restricted store + retention)
              |
-   phân loại và xuất báo cáo
+   classification and reporting
              |
        redaction + QA
              |
-    artifact đã làm sạch
+     sanitized artifact
              |
-     người nhận phù hợp
+    authorized recipients
 ```
 
-Giữ raw evidence không phải lúc nào cũng cần hoặc được phép. Nếu không cần để điều tra, đừng tạo bản lưu thừa. Nếu bắt buộc giữ theo quy trình incident, đừng để bản raw vô tình đi cùng bản đã làm sạch trong cùng ZIP, chat attachment hoặc shared folder.
+Keeping raw evidence is not always necessary or permitted. If unnecessary for the investigation, do not create extra copies. When incident policy requires keeping raw evidence, never let the raw file accidentally ride along with the sanitized version inside the same ZIP, chat attachment, or shared folder.
 
-## 9. Một số tình huống chẩn đoán thực tế
+## 9. Practical Diagnostic Scenarios
 
-### Tình huống A — Hỏi lỗi khởi động sau khi đổi JVM
+### Scenario A — Asking About Startup Failure After Changing JVMs
 
-Cần đưa cho nhóm kỹ thuật: Java major/vendor, loại GC, exception class, stack frames liên quan và cấu hình heap không nhạy cảm. Không cần: toàn bộ `java.class.path` nếu có đường dẫn nội bộ, `System.getProperties()`, biến môi trường, token hay full shell history.
+Share with the engineering team: Java major/vendor, GC type, exception class, relevant stack frames, and non-sensitive heap config. Omit: full `java.class.path` if it contains internal paths, `System.getProperties()`, environment variables, tokens, or full shell history.
 
-**Bản chia sẻ:** Java version và JVM name (được phép), JVM flags lọc, error type và stack snippet sau khi rà soát message. Nếu stack chứa đường dẫn home/user, dùng path alias có chủ đích.
+**Shared artifact:** Java version and JVM name (when permitted), filtered JVM flags, error type, and stack snippet after reviewing messages. If the stack contains home/user paths, apply intentional path aliases.
 
-### Tình huống B — JVM không attach được bằng jcmd
+### Scenario B — Cannot Attach to JVM with jcmd
 
-Thông tin hữu ích: phiên bản JDK tool, runtime/vendor, PID namespace, effective user/group mismatch, trạng thái attach support, dạng thông báo lỗi và command đã thử. Không cần paste `env` hoặc toàn bộ command line có credential. Nếu cần chứng minh quyền, có thể chỉ báo “tool chạy dưới account A; process dưới account B” bằng alias.
+Helpful info: JDK tool version, runtime/vendor, PID namespace, effective user/group mismatch, attach support status, error message shape, and commands attempted. No need to paste `env` or full command lines with credentials. To prove permission issues, stating “tool ran under account A; process under account B” with aliases suffices.
 
-**Lưu ý:** một lỗi attach có thể do quyền hoặc namespace chứ không phải secret; chia sẻ tối thiểu vẫn đủ chẩn đoán.
+**Note:** an attach failure can stem from permissions or namespaces rather than secrets; minimal sharing still supports diagnosis.
 
-### Tình huống C — Production heap tăng liên tục
+### Scenario C — Production Heap Growing Continuously
 
-Thông tin hữu ích: heap occupancy theo thời gian, GC pauses, allocation trend, top object types và retained bytes. Raw heap dump có rủi ro chứa token/request/customer data. Chỉ xuất top class histogram/biểu đồ tổng hợp cho lần trao đổi đầu, nếu dữ liệu class/package nội bộ nhạy cảm thì thay nhóm tên phù hợp.
+Helpful info: heap occupancy over time, GC pauses, allocation trends, top object types, and retained bytes. Raw heap dumps risk containing tokens/requests/customer data. Export only a top-class histogram or aggregated charts for initial discussions; if internal class/package names are sensitive, substitute appropriate group labels.
 
-**Không suy ra** heap dump an toàn chỉ vì file được nén hoặc vì công cụ phân tích chỉ hiển thị vài object trên màn hình.
+**Do not assume** a heap dump is safe merely because the file is compressed or because an analyzer UI only shows a few objects on screen.
 
-### Tình huống D — API chậm và log chứa Authorization header
+### Scenario D — Slow API and Logs Contain Authorization Headers
 
-Latency histogram, status code, request duration, dependency duration, trace hierarchy có thể là dữ liệu điều tra hữu ích. Header `Authorization`, cookie, request body hoặc query token không cần để chứng minh CPU/GC pressure. Cần ngăn log capture thừa từ nguồn, sửa cấu hình logging nếu phù hợp và rà soát bản log sẽ gửi.
+Latency histograms, status codes, request durations, dependency durations, and trace hierarchies are useful investigative data. `Authorization` headers, cookies, request bodies, or query tokens are unnecessary for proving CPU/GC pressure. Prevent excess log capture at the source, fix logging configuration if appropriate, and review log excerpts before sending.
 
-**Nếu đã lộ secret thật**, thực hiện incident response/rotation theo quy trình; không tiếp tục sao chép giá trị vào báo cáo.
+**If real secrets leaked**, execute incident response/rotation per policy; stop copying the exposed value into reports.
 
-### Tình huống E — Gửi dữ liệu cho cộng đồng hoặc bên thứ ba
+### Scenario E — Posting to the Community or a Third Party
 
-Một câu hỏi minh họa đủ tái hiện có thể cung cấp source code rút gọn, stack trace đã xử lý, JDK version và mô tả resource limits bằng số tổng hợp. Không gửi hostname, cloud account ID, image registry private, email hay dump nhị phân gốc chỉ để tăng “đầy đủ”. Hãy thử dựng **minimal reproducible example** với dữ liệu giả trước khi chia sẻ môi trường thật.
+A reproducible question can provide stripped-down source code, a sanitized stack trace, JDK version, and resource limits in aggregate numbers. Never include hostnames, cloud account IDs, private image registries, emails, or raw binary dumps just for “completeness”. Try building a **minimal reproducible example** with synthetic data before sharing real environment details.
 
-## 10. Những sai lầm cần tránh
+## 10. Mistakes to Avoid
 
-| Sai lầm | Hậu quả | Cách xử lý đúng |
+| Mistake | Consequence | Correct handling |
 | --- | --- | --- |
-| “Lệnh chỉ đọc nên output an toàn.” | Output vẫn chứa credential, tên tài khoản, path, dữ liệu nghiệp vụ | Phân loại **nội dung đầu ra**, không dựa vào tính read-only |
-| “Chỉ cần ẩn password.” | Bỏ sót token, API key, URL, session cookie, dữ liệu cá nhân | Allowlist + rà soát nhiều loại nhạy cảm |
-| “Chỉ hiện dấu *** là xong.” | Raw value còn trong metadata, revision, log khác hoặc file nhúng | Kiểm tra artifact thực, quyền và nguồn dữ liệu sau khi biến đổi |
-| “Hash email là đã ẩn danh.” | Giá trị dễ bị dò ngược hoặc liên kết | Loại dữ liệu hoặc dùng pseudonymization được kiểm soát |
-| “Heap dump chỉ dành cho debug, không có dữ liệu người dùng.” | Object heap có thể giữ session, token và payload | Bảo vệ như dữ liệu nhạy cảm, ưu tiên báo cáo dẫn xuất |
-| “PID/hostname luôn vô hại.” | Lộ topology hoặc giúp ghép lại danh tính | Quyết định theo người nhận và mục đích; dùng alias |
-| “Regex không match nghĩa là an toàn.” | Bỏ lọt encoding, nested fields, tên tùy biến, binary | Kiểm tra cấu trúc/định dạng, manual review và test |
-| “Cứ đăng toàn bộ stack/log rồi sửa sau.” | Bản sao, notification, cache, history có thể lưu | Làm sạch trước khi chia sẻ; xử lý lộ theo quy trình |
-| “Đã bỏ secret thì không cần quan tâm số liệu.” | Mất đơn vị, thứ tự, quan hệ lock/GC gây sai chẩn đoán | Bảo toàn phần kỹ thuật, ghi rõ chỗ bị lược |
-| “Ẩn dữ liệu trên màn hình là ẩn khỏi file.” | Text layer, note, revision hoặc metadata còn giá trị | Xuất lại file đã loại dữ liệu thực và verify |
+| “The command is read-only, so its output is safe.” | Output can still hold credentials, account names, paths, business data | Classify **output contents**, not read-only nature |
+| “Just mask `password`.” | Misses tokens, API keys, URLs, session cookies, personal data | Allowlist + multi-category sensitivity review |
+| “Showing `***` is enough.” | Raw values remain in metadata, revisions, other logs, or embedded files | Inspect the actual artifact, permissions, and data sources after transformation |
+| “Hashing emails anonymizes them.” | Values are easily reversed or linked | Remove data or use controlled pseudonymization |
+| “Heap dumps are just for debugging, no user data.” | Heap objects can hold sessions, tokens, and payloads | Protect as sensitive data; prefer derived reports |
+| “PIDs/hostnames are always harmless.” | Reveals topology or enables identity correlation | Decide by audience and purpose; use aliases |
+| “Regex had no matches, so it's safe.” | Misses encodings, nested fields, custom names, binaries | Check structure/format, manual review, and testing |
+| “Post the full stack/log now and edit later.” | Copies, notifications, caches, and history may persist | Sanitize before sharing; handle leaks via incident workflow |
+| “Once secrets are gone, numbers don't matter.” | Losing units, ordering, or lock/GC relationships breaks diagnosis | Preserve technical facts and clearly mark omissions |
+| “Hiding data on screen hides it from the file.” | Text layers, notes, revisions, or metadata still hold values | Re-export with actual data stripped and verify |
 
-## 11. Checklist trước khi gửi một diagnostic artifact
+## 11. Checklist Before Sending a Diagnostic Artifact
 
-- [ ] Biết rõ **đối tượng nhận**, kênh chia sẻ và mục đích kỹ thuật.
-- [ ] Chỉ thu phần thông tin cần để kiểm chứng giả thuyết; không dump toàn bộ environment/system properties nếu không cần.
-- [ ] Đã kiểm tra command line, JVM `-D...`, args, env, URLs, headers, logs và nested fields.
-- [ ] Đã đánh giá email/customer/session/request IDs, tên tài khoản, private IP, hostname và các định danh nội bộ.
-- [ ] Với JFR, heap dump, core dump, crash report hoặc binary khác, đã xét nguy cơ dữ liệu nằm ngoài những dòng đang hiển thị.
-- [ ] Đã chọn **giữ / thay / tổng hợp / loại bỏ** từng nhóm field theo mục đích.
-- [ ] Bản chia sẻ vẫn giữ đơn vị, timestamp/scope, Java/JVM context, các sự kiện kỹ thuật cần phân tích.
-- [ ] Alias được dùng nhất quán nếu cần correlation; mapping thật không đi kèm bản chia sẻ.
-- [ ] Đã rà soát output cuối cùng, file đính kèm, ZIP, metadata, link và permission.
-- [ ] Có cách ghi nhận thao tác redaction và nguồn dữ liệu nội bộ nếu cần kiểm chứng lại.
-- [ ] Nếu phát hiện secret đã lộ, chuyển sang quy trình phản ứng sự cố phù hợp.
+- [ ] Clearly know **the recipients**, sharing channel, and technical purpose.
+- [ ] Collected only data needed to test the hypothesis; avoided dumping full environments/system properties needlessly.
+- [ ] Checked command lines, JVM `-D...`, args, env, URLs, headers, logs, and nested fields.
+- [ ] Evaluated emails, customer/session/request IDs, account names, private IPs, hostnames, and internal identifiers.
+- [ ] For JFR, heap dumps, core dumps, crash reports, or other binaries, assessed data hidden outside visible lines.
+- [ ] Chose **keep / replace / aggregate / remove** per field group based on purpose.
+- [ ] Preserved units, timestamps/scope, Java/JVM context, and technical events needed for analysis.
+- [ ] Used consistent aliases when correlation is required; kept real mappings out of shared artifacts.
+- [ ] Reviewed final output, attachments, ZIPs, metadata, links, and permissions.
+- [ ] Kept a record of redactions and internal sources if re-verification is needed.
+- [ ] If an exposed secret is discovered, switched to the appropriate incident response workflow.
 
-## 12. Bài tập tự đánh giá
+## 12. Self-Assessment Exercises
 
-**Bài 1 — Chọn trường cần giữ.** Bạn cần xác minh vì sao hai JVM cùng code có pause GC khác nhau. Các trường có sẵn: Java vendor/version, `-Xmx`, GC type, GC event timestamps, full command line, DB password, user email, container CPU quota. Hãy chọn những trường phục vụ so sánh JVM (phiên bản, heap/GC, timestamp, quota) và giải thích vì sao có thể bỏ secret và email; các tham số khác trong command line phải được rà soát riêng.
+**Exercise 1 — Choosing fields to keep.** You need to verify why two JVMs running the same code have different GC pauses. Available fields: Java vendor/version, `-Xmx`, GC type, GC event timestamps, full command line, DB password, user email, container CPU quota. Select fields serving JVM comparison (version, heap/GC, timestamps, quota) and explain why secrets and emails can be dropped; other command-line arguments must be reviewed individually.
 
-**Bài 2 — Chọn hình thức chia sẻ.** Một vendor chỉ cần retained-size histogram để tư vấn OOM. Bạn có heap dump, class histogram, raw request payload và một báo cáo heap summary. Ưu tiên histogram/summary đã kiểm tra; raw dump có thể chứa dữ liệu nhạy cảm và chỉ chuyển khi thực sự cần, qua kênh được cấp quyền.
+**Exercise 2 — Choosing the sharing format.** A vendor only needs a retained-size histogram to advise on an OOM. You have a heap dump, class histogram, raw request payloads, and a heap summary report. Prefer the reviewed histogram/summary; raw dumps can contain sensitive data and should only be transferred when strictly necessary over authorized channels.
 
-**Bài 3 — Phát hiện giới hạn của sanitizer.** Một chương trình chỉ che chuỗi `password=`. Hãy liệt kê ít nhất bốn trường có thể lọt: `Authorization: Bearer ...`, `apiKey`, token trong URL query, cookie, credential được URL-encode/Base64 hoặc trường nested JSON. Sau đó thiết kế allowlist export phù hợp yêu cầu thay vì mở rộng regex vô hạn.
+**Exercise 3 — Spotting sanitizer limits.** A program masks only `password=`. List at least four fields that can slip through: `Authorization: Bearer ...`, `apiKey`, tokens in URL queries, cookies, URL-encoded/Base64 credentials, or nested JSON fields. Then design an allowlist export suited to the requirement instead of endlessly expanding regexes.
 
-**Bài 4 — Kiểm tra lại bản chia sẻ.** File báo cáo HTML hiển thị `[REDACTED]` nhưng source vẫn có giá trị thật trong thuộc tính data-*; screenshot còn hostname trên tab trình duyệt; ZIP đính kèm gồm raw heap dump. Kết luận: redaction **chưa đạt** vì người nhận vẫn truy cập được dữ liệu nhạy cảm qua artifact cuối.
+**Exercise 4 — Re-checking the shared copy.** An HTML report displays `[REDACTED]` while the source still holds real values in `data-*` attributes; a screenshot shows the hostname in a browser tab; an attached ZIP includes the raw heap dump. Conclusion: redaction **failed** because recipients can still access sensitive data through the final artifacts.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — ProcessHandle.Info](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ProcessHandle.Info.html): các trường `Optional` của thông tin tiến trình, tùy quyền và OS.
-- [JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): diagnostic commands và giới hạn quyền/khả năng hỗ trợ, bao gồm những lệnh có thể tiết lộ system properties/command line.
-- [JDK 21 — jps](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jps.html): liệt kê JVM và các tùy chọn hiện JVM arguments.
-- [JDK 21 — JFR Runtime Guide](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder.html): tham khảo cơ chế ghi sự kiện JFR; loại event và thông tin cần đánh giá theo recording thực tế.
+- [Java SE 21 — ProcessHandle.Info](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ProcessHandle.Info.html): `Optional` fields of process info, subject to permissions and OS.
+- [JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): diagnostic commands and permission/support limits, including commands that can reveal system properties/command lines.
+- [JDK 21 — jps](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jps.html): listing JVMs and options that show JVM arguments.
+- [JDK 21 — JFR Runtime Guide](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder.html): reference for JFR event recording; event types and data must be evaluated against the actual recording.
 
-**Ghi nhớ:** “Thông tin có sẵn” trả lời câu hỏi *tool có thể đọc gì trong phạm vi được phép*. “Thông tin có thể chia sẻ” trả lời câu hỏi *ai cần dữ liệu gì, với mức độ chi tiết nào*. Với Java runtime diagnostics, hãy **giới hạn thu thập từ nguồn, phân loại theo người nhận, xuất allowlist, kiểm tra artifact đã làm sạch** và giữ dữ liệu nhạy cảm trong kênh được bảo vệ. Một báo cáo chẩn đoán hữu ích phải đủ bằng chứng kỹ thuật mà không mang theo credential, dữ liệu cá nhân hay môi trường nội bộ không cần thiết.
+**Key takeaway:** “Available information” answers *what tools can read within permitted scope*. “Shareable information” answers *who needs which data, at what level of detail*. In Java runtime diagnostics, **minimize collection at the source, classify by audience, export allowlists, inspect sanitized artifacts**, and keep sensitive data inside protected channels. A useful diagnostic report must supply sufficient technical evidence without carrying unnecessary credentials, personal data, or internal environment details.

@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: security-overview
+  index: 0
+- title: Tư duy bảo mật
+  slug: security-mindset
+  index: 1
+- title: Nền tảng HTTP
+  slug: http-foundations
+  index: 2
+- title: Bản đồ thành phần
+  slug: component-map
+  index: 3
+- title: Khởi tạo
+  slug: initialization
+  index: 4
+- title: Cấu hình hiện đại
+  slug: modern-configuration
+  index: 5
+- title: Danh tính
+  slug: identity
+  index: 6
+- title: Luồng xác thực
+  slug: authentication-flow
+  index: 7
+- title: Nguồn người dùng
+  slug: user-sources
+  index: 8
+- title: Mật khẩu
+  slug: password-security
+  index: 9
+- title: Ngữ cảnh bảo mật
+  slug: security-context
+  index: 10
+- title: Kiến trúc Servlet
+  slug: servlet-architecture
+  index: 11
+- title: Kiến trúc reactive
+  slug: reactive-architecture
+  index: 12
+- title: Phân quyền
+  slug: authorization
+  index: 13
+- title: Bảo vệ endpoint
+  slug: endpoint-protection
+  index: 14
+- title: Bảo vệ phương thức
+  slug: method-protection
+  index: 15
+- title: Phiên và cookie
+  slug: session-and-cookies
+  index: 16
+- title: Đăng nhập và đăng xuất
+  slug: login-and-logout
+  index: 17
+- title: Token và giao thức
+  slug: tokens-and-protocols
+  index: 18
+- title: CSRF
+  slug: csrf
+  index: 19
+- title: CORS
+  slug: cors
+  index: 20
+- title: Bảo vệ trình duyệt
+  slug: browser-protection
+  index: 21
+- title: Lỗi bảo mật
+  slug: security-errors
+  index: 22
+- title: Điểm mở rộng
+  slug: extension-points
+  index: 23
+- title: Bảo vệ dữ liệu
+  slug: data-protection
+  index: 24
+- title: Kiểm thử
+  slug: testing
+  index: 25
+- title: Quan sát và gỡ lỗi
+  slug: observability-debugging
+  index: 26
+- title: Thiết kế ứng dụng
+  slug: application-design
+  index: 27
+- title: Triển khai
+  slug: deployment
+  index: 28
+- title: Phiên bản và học tiếp
+  slug: versions-next-steps
+  index: 29
+- title: Thực hành tổng hợp
+  slug: practical-exercises
+  index: 30

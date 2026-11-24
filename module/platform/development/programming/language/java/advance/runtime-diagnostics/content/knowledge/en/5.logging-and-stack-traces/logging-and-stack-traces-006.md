@@ -1,33 +1,33 @@
-# 5.6 — StackWalker và việc lấy ngăn xếp có mục đích trong mã chẩn đoán
+# 5.6 — StackWalker and Purposeful Stack Capture in Diagnostic Code
 
-## 1. Vấn đề: không phải lúc nào cũng cần toàn bộ stack trace
+## 1. The Problem: You Do Not Always Need the Full Stack Trace
 
-Trong ứng dụng Java, stack trace của exception thường chứa nhiều frame. Thread dump có thể chứa stack của hàng trăm thread. Nhưng trong mã chẩn đoán, nhiều khi chỉ cần biết: **method nào gọi tiện ích này**, **5 frame gần nhất là gì**, **frame đầu tiên thuộc code ứng dụng nằm ở đâu**, hoặc **class nào đã gọi một API của thư viện**.
+In Java applications, an exception stack trace often contains many frames. A thread dump can hold stacks for hundreds of threads. Yet in diagnostic code, you often only need to know: **which method called this utility**, **what the top 5 frames are**, **where the first frame belonging to application code lies**, or **which class called a library API**.
 
-`java.lang.StackWalker` (xuất hiện từ Java 9, có sẵn trong Java 17+) cho phép duyệt **call stack của thread đang thực thi tại đúng thời điểm gọi**, theo thứ tự từ frame gần nhất đến frame xa hơn, bằng `Stream<StackWalker.StackFrame>`. Chương trình có thể `limit`, `filter`, `map`, `findFirst` hay materialize đúng phần cần dùng.
+`java.lang.StackWalker` (introduced in Java 9, available in Java 17+) lets you walk the **call stack of the executing thread at the exact moment of the call**, ordered from the nearest frame outward, via a `Stream<StackWalker.StackFrame>`. Code can `limit`, `filter`, `map`, `findFirst`, or materialize only the exact slice needed.
 
-Bài này hướng tới năm kỹ năng:
+This lesson targets five skills:
 
-1. Giải thích call stack, stack frame và thứ tự `StackWalker` duyệt.
-2. Dùng `getInstance`, `walk`, `forEach` và các thuộc tính của `StackFrame`.
-3. Lấy có chọn lọc N frame, caller hoặc frame đầu tiên của package ứng dụng.
-4. Hiểu `RETAIN_CLASS_REFERENCE`, `SHOW_REFLECT_FRAMES`, `SHOW_HIDDEN_FRAMES` và giới hạn của `getCallerClass()`.
-5. Dùng stack có mục đích trong log/diagnostic hook mà không gây overhead lớn hoặc hiểu nhầm stack hiện tại là lịch sử request.
+1. Explain call stacks, stack frames, and `StackWalker`'s traversal order.
+2. Use `getInstance`, `walk`, `forEach`, and `StackFrame` properties.
+3. Selectively capture N frames, the caller, or the first frame in an application package.
+4. Understand `RETAIN_CLASS_REFERENCE`, `SHOW_REFLECT_FRAMES`, `SHOW_HIDDEN_FRAMES`, and the limits of `getCallerClass()`.
+5. Use stack capture purposefully in logs/diagnostic hooks without heavy overhead or mistaking the current stack for request history.
 
-> **Điểm cốt lõi:** StackWalker trả lời câu hỏi **“ở điểm code này, thread hiện tại đã đi qua các method nào?”**. Nó không phải trình profiler CPU, thread dump của toàn JVM hay distributed tracing.
+> **Core point:** StackWalker answers **"at this point in code, which methods has the current thread passed through?"**. It is not a CPU profiler, a JVM-wide thread dump, or distributed tracing.
 
-## 2. Stack và frame được quan sát như thế nào?
+## 2. How Are Stacks and Frames Observed?
 
-Giả sử đường gọi đồng bộ:
+Suppose a synchronous call path:
 
 ```text
 main()
   └── entry()
         └── service()
-              └── diagnose()  <- gọi StackWalker.walk(...)
+              └── diagnose()  <- calls StackWalker.walk(...)
 ```
 
-Trong `diagnose()`, thứ tự frame mà `walk` trả về thông thường là:
+Inside `diagnose()`, the typical frame order returned by `walk` is:
 
 ```text
 1. diagnose
@@ -36,26 +36,26 @@ Trong `diagnose()`, thứ tự frame mà `walk` trả về thông thường là:
 4. main
 ```
 
-**Frame đầu** là method gọi `walk`, không phải luôn là “caller của method đang chạy”. `StackWalker` mặc định ẩn một số frame reflection/implementation; các tuỳ chọn cấu hình có thể làm các frame hiện ra khác nhau. Stack là một **snapshot tại thời điểm đang walk**, không chứa những method đã kết thúc trước đó.
+The **first frame** is the method calling `walk`, not always "the caller of the running method". `StackWalker` hides certain reflection/implementation frames by default; configuration options alter which frames are visible. The stack is a **snapshot at the moment of walking**, containing no methods that already returned earlier.
 
-Một `StackFrame` đại diện cho một lần gọi method. Các API đáng biết:
+A `StackFrame` represents one method invocation. Key APIs:
 
-| API | Giá trị trả về | Ý nghĩa và giới hạn |
+| API | Return value | Meaning and limitations |
 | --- | --- | --- |
-| `getClassName()` | `String` | Binary class name của method ở frame, có thể chứa `$` của nested/lambda class |
-| `getMethodName()` | `String` | Tên method ở điểm quan sát |
-| `getFileName()` | `String` hoặc `null` | Source file nếu còn thông tin |
-| `getLineNumber()` | `int` | Source line, có thể âm khi thiếu debug information |
-| `getByteCodeIndex()` | `int` | Vị trí bytecode, có thể âm khi native method |
-| `isNativeMethod()` | `boolean` | Method tại frame có phải native không |
-| `toStackTraceElement()` | `StackTraceElement` | Cầu nối với kiểu stack trace quen thuộc |
-| `getDeclaringClass()` | `Class<?>` | **Yêu cầu** cấu hình `RETAIN_CLASS_REFERENCE` |
-| `getMethodType()` | `MethodType` | **Yêu cầu** `RETAIN_CLASS_REFERENCE` trên JDK 17 |
-| `getDescriptor()` | `String` | JVM descriptor của method (JDK 10+) |
+| `getClassName()` | `String` | Binary class name of the frame's method; may contain `$` for nested/lambda classes |
+| `getMethodName()` | `String` | Method name at the observation point |
+| `getFileName()` | `String` or `null` | Source file if metadata is available |
+| `getLineNumber()` | `int` | Source line, may be negative if debug information is missing |
+| `getByteCodeIndex()` | `int` | Bytecode offset, may be negative for native methods |
+| `isNativeMethod()` | `boolean` | Whether the method at this frame is native |
+| `toStackTraceElement()` | `StackTraceElement` | Bridge to the familiar stack trace element type |
+| `getDeclaringClass()` | `Class<?>` | **Requires** `RETAIN_CLASS_REFERENCE` configuration |
+| `getMethodType()` | `MethodType` | **Requires** `RETAIN_CLASS_REFERENCE` on JDK 17 |
+| `getDescriptor()` | `String` | JVM method descriptor (JDK 10+) |
 
-StackFrame **không cung cấp** giá trị biến local, arguments, nội dung object, thời gian CPU đã tiêu thụ hoặc chủ sở hữu monitor. Một stack có nhiều frame trong code ứng dụng không phải bằng chứng về memory leak hay CPU hotspot.
+`StackFrame` **does not provide** local variable values, arguments, object contents, consumed CPU time, or monitor ownership. A deep stack in application code is not proof of a memory leak or CPU hotspot.
 
-## 3. API cơ bản: tạo walker, duyệt, dừng sớm
+## 3. Basic API: Creating a Walker, Traversing, Stopping Early
 
 ```java
 StackWalker walker = StackWalker.getInstance();
@@ -66,29 +66,29 @@ String currentMethod = walker.walk(frames ->
           .orElse("<empty>"));
 ```
 
-Đây là **đoạn minh họa cần đặt trong method/class**, không phải một chương trình chạy độc lập. Khi dùng `getInstance()` mặc định, Java 17 bỏ qua các frame ẩn của reflection/JVM, trả thông tin class name/method name nhưng không giữ `Class<?>` reference.
+This is an **illustrative snippet to place inside a method/class**, not a standalone runnable program. With the default `getInstance()`, Java 17 skips hidden reflection/JVM frames and returns class/method names without retaining `Class<?>` references.
 
-- `walk(Function<Stream<StackFrame>, T>)` cung cấp một stream **sequential** trong lúc callback đang thực thi. Dùng các terminal operations như `findFirst`, `count`, `collect` hoặc `toList` để trả ra kết quả kiểu `T`.
-- `forEach(Consumer<StackFrame>)` duyệt các frame theo thứ tự top-down, tương đương một lần `walk` rồi `stream.forEach`.
-- `StackWalker` thread-safe: có thể dùng một `static final StackWalker` ở nhiều thread; **mỗi lần walk vẫn lấy stack của chính thread đã gọi**.
-- Có thể tạo `getInstance(Set<Option>, int estimateDepth)`. `estimateDepth` là **gợi ý kích thước buffer**, không giới hạn số frame, và phải lớn hơn 0. Muốn giới hạn, dùng `stream.limit(n)`.
-- `walk` có thể dừng sau số frame cần thiết; không phải luôn phải tạo cả mảng stack rồi mới lọc.
+- `walk(Function<Stream<StackFrame>, T>)` supplies a **sequential** stream while the callback executes. Use terminal operations like `findFirst`, `count`, `collect`, or `toList` to return a result of type `T`.
+- `forEach(Consumer<StackFrame>)` iterates frames top-down, equivalent to calling `walk` followed by `stream.forEach`.
+- `StackWalker` is thread-safe: a single `static final StackWalker` can be shared across threads; **each walk still reads the stack of the calling thread**.
+- You can create `getInstance(Set<Option>, int estimateDepth)`. `estimateDepth` is a **buffer sizing hint**, not a frame cap, and must be greater than 0. To cap frames, use `stream.limit(n)`.
+- `walk` can stop once the needed frames are read; it does not always have to materialize the entire stack array before filtering.
 
-### 3.1. Vòng đời đặc biệt của Stream
+### 3.1. Special Lifecycle of the Stream
 
-Một `Stream<StackFrame>` được truyền vào callback **chỉ hợp lệ khi `walk` còn thực thi**. Sau khi `walk` trả về, stream đóng; tái sử dụng nó ném `IllegalStateException`.
+The `Stream<StackFrame>` passed to the callback is **valid only while `walk` is executing**. Once `walk` returns, the stream closes; reusing it throws `IllegalStateException`.
 
-**Sai: thoát callback với Stream**
+**Wrong: escaping the callback with the Stream**
 
 ```java
 StackWalker walker = StackWalker.getInstance();
 java.util.stream.Stream<StackWalker.StackFrame> invalid =
     walker.walk(stream -> stream);
 
-// invalid.findFirst(); // IllegalStateException: stream đã đóng
+// invalid.findFirst(); // IllegalStateException: stream already closed
 ```
 
-**Đúng: lấy dữ liệu trong callback**
+**Right: extracting data inside the callback**
 
 ```java
 java.util.List<StackTraceElement> snapshot = walker.walk(stream ->
@@ -97,11 +97,11 @@ java.util.List<StackTraceElement> snapshot = walker.walk(stream ->
           .toList());
 ```
 
-`Stream.toList()` đã có từ Java 16, dùng được với Java 17. Có thể giữ danh sách/chuỗi trả về; **không** giữ stream để thao tác sau. API dùng callback vì JVM cần giữ góc nhìn stack ổn định trong quá trình duyệt; implementation có thể deoptimize/reorganize stack. `parallel()` không tạo một cơ chế đọc stack nhiều thread: `walk` thực hiện trên thread hiện tại và parallel execution không có hiệu lực như stream thông thường.
+`Stream.toList()` has been available since Java 16 and works in Java 17. You can return lists/strings; **do not** keep the stream for later operations. The callback design exists because the JVM needs a stable stack view during traversal; implementations may deoptimize/reorganize stack frames. Calling `parallel()` does not enable multi-threaded stack reading: `walk` runs on the current thread and parallel execution has no effect like a normal stream.
 
-## 4. Lấy một phần stack thay vì toàn bộ
+## 4. Capturing Part of the Stack Instead of All of It
 
-### 4.1. Lấy 5 frame gần nhất
+### 4.1. Capturing the Top 5 Frames
 
 ```java
 java.util.List<String> topFiveMethods = StackWalker.getInstance().walk(s ->
@@ -110,11 +110,11 @@ java.util.List<String> topFiveMethods = StackWalker.getInstance().walk(s ->
      .toList());
 ```
 
-Đây là đoạn code minh họa. `limit(5)` dừng việc thu thập khi đã đủ năm frame được stream đưa qua, **không** nói JVM chỉ có năm frame. Muốn lấy 1 frame, dùng `findFirst`; muốn lấy frame đầu theo điều kiện, dùng `filter(...).findFirst()`.
+This is an illustrative snippet. `limit(5)` stops collection once five frames have passed through the stream—it does **not** mean the JVM only had five frames. To get 1 frame, use `findFirst`; to get the first matching frame, use `filter(...).findFirst()`.
 
-### 4.2. Bỏ qua frame của logging helper/framework
+### 4.2. Skipping Logging Helper/Framework Frames
 
-Ví dụ muốn tìm frame đầu thuộc package nghiệp vụ `com.acme.orders.`:
+Example of finding the first frame belonging to business package `com.acme.orders.`:
 
 ```java
 String businessFrame = StackWalker.getInstance().walk(s ->
@@ -124,26 +124,26 @@ String businessFrame = StackWalker.getInstance().walk(s ->
      .orElse("<no-business-frame>"));
 ```
 
-Đây là đoạn minh họa, thay tên package theo chương trình thật. Dùng `orElse` hoặc `Optional` khi không có frame phù hợp thay vì tạo exception thứ cấp trong lúc logging.
+This is an illustrative snippet; substitute your real package name. Use `orElse` or `Optional` when no frame matches instead of throwing a secondary exception while logging.
 
-**Ngữ nghĩa của bộ lọc rất quan trọng:** class trong cùng package chưa chắc là tầng nghiệp vụ; một logger wrapper, adapter hoặc proxy cũng có thể thuộc package ứng dụng. Hãy xác định rõ class nào cần bỏ qua, package nào thực sự là boundary, và xử lý trường hợp caller không tồn tại.
+**Filter semantics matter:** a class in the same package is not guaranteed to be the business layer; a logger wrapper, adapter, or proxy might share the application package. Explicitly define which helper classes to skip, which package truly marks the boundary, and handle missing callers cleanly.
 
-### 4.3. Vì sao skip(n) dễ sai?
+### 4.3. Why Is skip(n) Fragile?
 
-Trong chuỗi biết trước `diagnose -> service -> entry -> main`, `skip(1).findFirst()` chọn `service`. Nhưng thêm một wrapper, interceptor, lambda, dynamic proxy, reflection hoặc thay đổi code thì offset có thể khác.
+In a known chain `diagnose -> service -> entry -> main`, `skip(1).findFirst()` picks `service`. Yet adding a wrapper, interceptor, lambda, dynamic proxy, reflection, or refactoring changes the offset.
 
-Chỉ dùng `skip(n)` khi call chain là một **contract đã kiểm chứng**, chẳng hạn một method tiện ích nội bộ cố định. Với code thư viện dùng trong nhiều môi trường, lọc theo class/package và explicit context thường bền vững hơn. Đặc biệt, caller class **không** phải bằng chứng phân quyền hay danh tính người dùng.
+Use `skip(n)` only when the call chain is a **verified contract**, such as a fixed internal utility method. For library code running across varied environments, filtering by class/package and explicit context is far more durable. In particular, a caller class is **not** proof of authorization or user identity.
 
-## 5. Ba Option của StackWalker trên Java 17
+## 5. StackWalker Options on Java 17
 
-| Option | Hành vi | Nên dùng khi |
+| Option | Behavior | When to use |
 | --- | --- | --- |
-| Mặc định (không Option) | Ẩn reflection/implementation frames, không giữ `Class<?>` | Log tên class/method ngắn |
-| `RETAIN_CLASS_REFERENCE` | Giữ `Class<?>` trong frame, cho `getDeclaringClass()`, `getMethodType()` và `getCallerClass()` | Thư viện cần class loader/resource theo caller |
-| `SHOW_REFLECT_FRAMES` | Hiển thị các frame reflection vốn được ẩn | Điều tra `Method.invoke` hoặc `Constructor.newInstance` |
-| `SHOW_HIDDEN_FRAMES` | Hiển thị tất cả hidden frames, gồm cả reflection và các frame implementation khác | Điều tra sâu chuỗi gọi qua VM/reflection/method handle |
+| Default (no Option) | Hides reflection/implementation frames, does not retain `Class<?>` | Logging short class/method names |
+| `RETAIN_CLASS_REFERENCE` | Retains `Class<?>` on frames, enabling `getDeclaringClass()`, `getMethodType()`, and `getCallerClass()` | Libraries needing caller's class loader/resources |
+| `SHOW_REFLECT_FRAMES` | Reveals normally hidden reflection frames | Investigating `Method.invoke` or `Constructor.newInstance` |
+| `SHOW_HIDDEN_FRAMES` | Reveals all hidden frames, including reflection and other implementation frames | Deep investigation of call chains through VM/reflection/method handles |
 
-Ví dụ khi thật sự cần `Class<?>`:
+Example when `Class<?>` is genuinely needed:
 
 ```java
 StackWalker walker = StackWalker.getInstance(
@@ -155,19 +155,19 @@ Class<?> topClass = walker.walk(s ->
      .orElseThrow());
 ```
 
-Nếu tạo walker mặc định rồi gọi `getDeclaringClass()`, kết quả là `UnsupportedOperationException`; phải bật option trước.
+Creating a default walker and calling `getDeclaringClass()` throws `UnsupportedOperationException`; the option must be enabled beforehand.
 
-`SHOW_REFLECT_FRAMES` hiển thị các frame reflection bị ẩn; `SHOW_HIDDEN_FRAMES` rộng hơn và cũng hiển thị reflection frames. Số lượng và chi tiết của hidden frames có thể phụ thuộc JVM implementation; không dựa vào một frame index cố định giữa các JDK/vendor.
+`SHOW_REFLECT_FRAMES` reveals hidden reflection frames; `SHOW_HIDDEN_FRAMES` is broader and also includes reflection frames. The count and details of hidden frames can vary across JVM implementations; never hardcode a fixed frame index across JDKs/vendors.
 
-**Chú ý với `getCallerClass()`:** phương thức này vẫn lọc reflection frames, method handle frames và hidden frames **bất kể** `SHOW_REFLECT_FRAMES`/`SHOW_HIDDEN_FRAMES` được đặt hay không. Khi muốn xem frame reflection chi tiết, hãy dùng `walk` với option phù hợp.
+**Note on `getCallerClass()`:** this method still filters out reflection frames, method handle frames, and hidden frames **regardless** of whether `SHOW_REFLECT_FRAMES`/`SHOW_HIDDEN_FRAMES` are set. When you need to inspect reflection frames in detail, use `walk` with the appropriate option.
 
-### 5.1. Quyền dùng Class reference
+### 5.1. Permission for Class References
 
-Javadoc Java 17 quy định khi môi trường có Security Manager, tạo walker với `RETAIN_CLASS_REFERENCE` có thể kiểm tra `RuntimePermission("getStackWalkerWithClassReference")` và ném `SecurityException` nếu bị từ chối. Security Manager đã bị deprecated để loại bỏ; với ứng dụng mới, không xây dựng cơ chế bảo mật dựa vào stack inspection. Chỉ bật giữ `Class<?>` khi nghiệp vụ cần, không bật theo thói quen.
+Java 17 Javadoc specifies that when a Security Manager is present, creating a walker with `RETAIN_CLASS_REFERENCE` may check `RuntimePermission("getStackWalkerWithClassReference")` and throw `SecurityException` if denied. Security Manager is deprecated for removal; in new applications, do not build security mechanisms around stack inspection. Enable retaining `Class<?>` only when functionally needed, not by habit.
 
-## 6. getCallerClass(): khác với lấy class của frame đầu
+## 6. getCallerClass(): Different from Taking the Top Frame's Class
 
-`StackWalker.getCallerClass()` trả về **class của caller đã gọi method đang gọi `getCallerClass()`**. Nếu có chuỗi:
+`StackWalker.getCallerClass()` returns the **class of the caller that invoked the method calling `getCallerClass()`**. Given the chain:
 
 ```text
 StackWalkerDemo.main()
@@ -176,9 +176,9 @@ StackWalkerDemo.main()
             => StackWalkerDemo.class
 ```
 
-Result là `StackWalkerDemo.class`, **không** phải `CallerProbe.class`. Đây là API thích hợp khi một thư viện cần biết class đã gọi hàm tiện ích để chọn class loader hoặc resource.
+The result is `StackWalkerDemo.class`, **not** `CallerProbe.class`. This API fits when a library needs to know which class called its utility to select a class loader or resource.
 
-Ví dụ:
+Example:
 
 ```java
 private static final StackWalker CLASS_WALKER =
@@ -189,15 +189,15 @@ static Class<?> whoCalled() {
 }
 ```
 
-Đây là đoạn của một class tiện ích, không phải file độc lập. Dùng trong tình huống có caller thực sự. Nếu walker thiếu `RETAIN_CLASS_REFERENCE`, `getCallerClass()` ném `UnsupportedOperationException`; nếu không có caller (ví dụ gọi trực tiếp ở bottom-most frame `main`), ném `IllegalCallerException`.
+This is part of a utility class, not a standalone file. Use it only when a caller truly exists. If the walker lacks `RETAIN_CLASS_REFERENCE`, `getCallerClass()` throws `UnsupportedOperationException`; if there is no caller (e.g., called directly in the bottom-most frame `main`), it throws `IllegalCallerException`.
 
-Đừng dùng caller class để chứng minh ai đang đăng nhập hay service nào phát sinh request: nó chỉ biểu thị một **đường gọi của thread**, có thể bị ảnh hưởng bởi wrapper, proxy và ranh giới async.
+Never use caller class to prove who is logged in or which service initiated a request: it only represents a **thread call path**, which wrappers, proxies, and async boundaries can alter.
 
-## 7. Demo Java 17+ có thể chạy và stdout chính xác
+## 7. Runnable Java 17+ Demo and Exact Stdout
 
-Mục tiêu demo: duyệt bốn method trong chuỗi đồng bộ, lấy caller method theo frame, và lấy caller class của một tiện ích.
+Demo goal: traverse four methods in a synchronous call chain, extract the caller method by frame, and obtain the caller class of a utility.
 
-Tạo file **`StackWalkerDemo.java`**:
+Create **`StackWalkerDemo.java`**:
 
 ```java
 import java.util.stream.Collectors;
@@ -240,14 +240,14 @@ class CallerProbe {
 }
 ```
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac --release 17 StackWalkerDemo.java
 java StackWalkerDemo
 ```
 
-**Stdout chính xác của chương trình (đã biên dịch và chạy kiểm chứng):**
+**Exact stdout of the program (compiled and verified):**
 
 ```text
 path=diagnose -> service -> entry -> main
@@ -255,34 +255,34 @@ callerMethod=service
 callerClass=StackWalkerDemo
 ```
 
-Giải thích:
+Explanation:
 
-1. Frame đầu tiên của `walk` trong `diagnose` là `diagnose`, rồi `service`, `entry`, `main`; `limit(4)` giữ bốn frame.
-2. Pipeline thứ hai lọc frame của `StackWalkerDemo`, bỏ frame `diagnose` và lấy frame tiếp theo `service`. Điều này đúng vì **call chain được biết trước**.
-3. `CallerProbe.whoCalled()` dùng walker có `RETAIN_CLASS_REFERENCE`, nên `getCallerClass()` trả class của method gọi `whoCalled`, tức `StackWalkerDemo`.
+1. The first frame of `walk` inside `diagnose` is `diagnose`, followed by `service`, `entry`, `main`; `limit(4)` keeps four frames.
+2. The second pipeline filters frames of `StackWalkerDemo`, skips `diagnose`, and grabs the next frame `service`. This works because the **call chain is known upfront**.
+3. `CallerProbe.whoCalled()` uses a walker with `RETAIN_CLASS_REFERENCE`, so `getCallerClass()` returns the class of the method calling `whoCalled`, namely `StackWalkerDemo`.
 
-Không có dữ liệu ngẫu nhiên hoặc đường dẫn riêng máy trong stdout; kết quả chỉ phụ thuộc đường gọi được xây rõ trong mã.
+There is no random data or machine-specific path in stdout; the output depends strictly on the call path explicitly constructed in code.
 
-## 8. So sánh với Throwable, Thread và thread dump
+## 8. Comparison with Throwable, Thread, and Thread Dumps
 
-| Công cụ/API | Câu hỏi trả lời | Điểm mạnh | Giới hạn |
+| Tool / API | Question answered | Strengths | Limitations |
 | --- | --- | --- | --- |
-| `StackWalker.walk(...)` | Thread hiện tại đang ở chuỗi method nào **tại đây**? | Chọn frame, lọc, dừng sớm, giữ `Class<?>` khi cần | Không có lịch sử, không đọc thread khác |
-| `Thread.currentThread().getStackTrace()` | Snapshot stack thread hiện tại? | Có sẵn `StackTraceElement[]`, dễ dùng | Thường tạo array rồi mới lọc; không có các Option của StackWalker |
-| `new Throwable().getStackTrace()` | Stack tại lúc tạo Throwable? | Có thể ghi một snapshot riêng | Tạo Throwable để chụp stack có chi phí |
-| `exception.getStackTrace()` | Stack đã ghi trong exception lúc exception được tạo/fill? | Truy điểm phát sinh exception | Không phải stack tại điểm bắt exception sau đó |
-| `ThreadMXBean` hoặc `jcmd <pid> Thread.print -l` | Nhiều thread đang ở đâu và đợi gì? | Điều tra contention, deadlock, thread pool | Không phải lấy caller tinh gọn trong code |
-| JFR, profiler | Trong một khoảng thời gian event/CPU sample/lock/GC như thế nào? | Giải thích xu hướng và hotspots | Không mang ngữ nghĩa caller tại method cụ thể |
+| `StackWalker.walk(...)` | What method chain is the current thread in **right here**? | Frame selection, filtering, early stop, retains `Class<?>` when needed | No history, cannot inspect other threads |
+| `Thread.currentThread().getStackTrace()` | Snapshot of current thread's stack? | Returns `StackTraceElement[]` directly, simple | Typically allocates full array before filtering; lacks StackWalker Options |
+| `new Throwable().getStackTrace()` | Stack when Throwable was created? | Can capture an ad-hoc snapshot | Creating a Throwable just to snapshot a stack has cost |
+| `exception.getStackTrace()` | Stack recorded in exception at creation/fill time? | Traces where exception originated | Not the stack at a later catch site |
+| `ThreadMXBean` or `jcmd <pid> Thread.print -l` | Where are multiple threads and what are they waiting on? | Investigates contention, deadlocks, thread pools | Not for lightweight caller lookup in code |
+| JFR, profiler | How did events/CPU samples/locks/GC behave over a window? | Explains trends and hotspots | Does not carry caller semantics at a single method call |
 
-**Ví dụ:** một exception được tạo trong `Repository.load()` nhưng được log ở `Controller.handle()`. `exception.getStackTrace()` phản ánh stack đã lưu trước đó; `StackWalker.walk` trong `Controller.handle` phản ánh stack hiện tại. Hai thông tin hỗ trợ nhau nhưng không luôn trùng nhau. Khi ghi lỗi, hãy giữ cause chain của exception; StackWalker chỉ bổ sung một breadcrumb nếu cần.
+**Example:** an exception is created in `Repository.load()` but logged in `Controller.handle()`. `exception.getStackTrace()` reflects the earlier recorded stack; `StackWalker.walk` inside `Controller.handle` reflects the current stack. Both complement each other but do not necessarily match. When logging errors, preserve the exception's cause chain; StackWalker only adds a breadcrumb if needed.
 
-**Thread khác:** `StackWalker` không có `walk(Thread other)`; để quan sát worker khác cần `ThreadMXBean`, API thread snapshots hoặc thread dump/JFR phù hợp. `StackWalker` không cho trạng thái `BLOCKED`/`WAITING` của toàn JVM hay xác định monitor owner.
+**Other threads:** `StackWalker` has no `walk(Thread other)`; inspecting other workers requires `ThreadMXBean`, thread snapshot APIs, or thread dumps/JFR. `StackWalker` does not report JVM-wide `BLOCKED`/`WAITING` states or identify monitor owners.
 
-## 9. Những tình huống dùng thực tế
+## 9. Practical Usage Scenarios
 
-### A. Cảnh báo API cũ và ghi caller
+### A. Deprecation Warnings Recording the Caller
 
-Một thư viện muốn cảnh báo chỉ khi một đường gọi deprecated được sử dụng. Thay vì ghi toàn bộ stack, có thể tìm class/method đầu tiên thuộc package ứng dụng:
+A library wants to warn only when a deprecated call path is used. Instead of logging the full stack, it can find the first class/method belonging to the application package:
 
 ```java
 static String callerLabel() {
@@ -294,9 +294,9 @@ static String callerLabel() {
 }
 ```
 
-Đoạn code minh họa cần cấu hình package thực. Nếu package chứa cả tiện ích logging, cần lọc bỏ tiện ích đó hoặc dùng một boundary được định nghĩa rõ. Chỉ log khi điều kiện bất thường hoặc logging level được bật để tránh overhead trên mọi request.
+Illustrative snippet requiring real package configuration. If that package also contains logging utilities, filter those utilities out or use a clearly defined boundary. Log only under abnormal conditions or when the logging level is enabled to avoid overhead on every request.
 
-### B. Breadcrumb 6 frame khi phát hiện dữ liệu bất thường
+### B. 6-Frame Breadcrumb When Detecting Anomalous Data
 
 ```java
 private static final StackWalker SHORT_WALKER = StackWalker.getInstance();
@@ -309,11 +309,11 @@ static String shortStack() {
 }
 ```
 
-Đoạn này không chạy độc lập. Dấu `<-` chỉ phân tách theo thứ tự top-down, không phải causal timeline. Một breadcrumb ngắn giúp định vị vị trí phát hiện vấn đề; nó **không giải thích** nguyên nhân hệ thống đã chậm bao lâu.
+Not standalone runnable. The `<-` separator merely indicates top-down order, not a causal timeline. A short breadcrumb helps pinpoint where an anomaly was detected; it **does not explain** how long the system was slow or why.
 
-### C. Chọn ClassLoader phục vụ resource
+### C. Selecting a ClassLoader for Resources
 
-Một thư viện plugin có thể cần class loader của caller:
+A plugin library may need the caller's class loader:
 
 ```java
 private static final StackWalker CLASS_WALKER =
@@ -324,11 +324,11 @@ static ClassLoader callingLoader() {
 }
 ```
 
-Đây là code minh họa, yêu cầu contract rằng caller của `callingLoader` chính là lớp sở hữu tài nguyên. `ClassLoader` có thể `null` với bootstrap class; `getCallerClass` cũng có những ngoại lệ đã nêu. Việc chọn class loader phải đi cùng chính sách module/security đúng đắn, không dùng caller class làm authentication principal.
+Illustrative code requiring a contract that the caller of `callingLoader` owns the resource. `ClassLoader` can be `null` for bootstrap classes; `getCallerClass` also has the exceptions noted above. Selecting a class loader must align with proper module/security policies—never treat caller class as an authentication principal.
 
-### D. Callback/async: vì sao không thấy HTTP caller?
+### D. Callbacks/Async: Why Is the HTTP Caller Missing?
 
-`CompletableFuture`, executor và event loop có thể chuyển công việc sang thread khác:
+`CompletableFuture`, executors, and event loops can shift execution to another thread:
 
 ```text
 request-thread: Controller -> enqueue(task)
@@ -337,80 +337,80 @@ request-thread: Controller -> enqueue(task)
 worker-thread:  Executor -> Runnable.run() -> process()
 ```
 
-StackWalker được gọi trong `process()` chỉ thấy call chain **trên worker-thread**, không tự nối với `Controller` đã enqueue trước đó trên request-thread. Hãy truyền correlation ID/trace context qua ranh giới async và dùng logging/tracing/JFR để tái dựng luồng nghiệp vụ. Không coi stack hiện tại là lịch sử request.
+A `StackWalker` called inside `process()` sees only the call chain **on the worker-thread**, not the `Controller` that enqueued the task earlier on the request-thread. Propagate correlation IDs/trace context across async boundaries and use logging/tracing/JFR to reconstruct business flows. Never treat the current stack as request history.
 
-## 10. Hiệu năng và thiết kế diagnostic hook
+## 10. Performance and Diagnostic Hook Design
 
-Stack walking có chi phí CPU và allocation; `StackWalker` giúp dừng sớm nhưng **không** cam kết zero overhead. Chi phí thực tế phụ thuộc số frame duyệt, pipeline, format string, JDK, JIT và tần suất gọi.
+Stack walking incurs CPU and allocation cost; `StackWalker` enables early termination yet **does not** promise zero overhead. Real cost depends on frames walked, pipeline steps, string formatting, JDK, JIT, and call frequency.
 
-Quy tắc áp dụng:
+Guidelines:
 
-- Ưu tiên `findFirst`/`limit` thay vì luôn `toList` toàn bộ stack.
-- Tái sử dụng `static final StackWalker` khi cấu hình không đổi.
-- Chỉ bật truy xuất stack trong nhánh bất thường, sampling hoặc log level phù hợp; tránh xử lý stack trên mọi hot-path request.
-- Khi chỉ cần String class/method, không bật `RETAIN_CLASS_REFERENCE` hay `SHOW_HIDDEN_FRAMES`.
-- Giới hạn số frame và độ dài chuỗi trước khi gửi tới hệ thống log.
-- Nếu dùng cho observability quan trọng, đo overhead trong workload thật; `StackWalker` không thay thế metrics hay JFR profiling.
-- Tránh tạo exception mới trong chính diagnostic hook: `Optional` và fallback giúp log lỗi mà không che lỗi nghiệp vụ.
+- Prefer `findFirst`/`limit` instead of always calling `toList` on the entire stack.
+- Reuse a `static final StackWalker` when configuration does not change.
+- Trigger stack capture only on abnormal branches, via sampling, or behind log-level checks; avoid walking stacks on every hot-path request.
+- When you only need class/method strings, do not enable `RETAIN_CLASS_REFERENCE` or `SHOW_HIDDEN_FRAMES`.
+- Cap frame count and string length before shipping to logging systems.
+- When used in critical observability paths, benchmark overhead under real workloads; `StackWalker` does not replace metrics or JFR profiling.
+- Avoid throwing new exceptions inside diagnostic hooks: `Optional` and fallbacks let you log cleanly without masking business errors.
 
-### 10.1. Bảo mật và tính đúng đắn
+### 10.1. Security and Correctness
 
-Tên class/method và stack frame có thể làm lộ cấu trúc nội bộ ứng dụng. Không tự động ghi tất cả stack vào log công khai, và không gắn payload hay secret vào breadcrumb. `StackWalker` không cho local values; nếu bổ sung request context, phải redaction theo quy định.
+Class/method names and stack frames can leak internal application architecture. Do not dump all stacks into public logs, and never attach payloads or secrets to breadcrumbs. `StackWalker` does not expose local variable values; if adding request context, apply redaction per policy.
 
-Stack inspection **không phải cơ chế phân quyền**: reflection, proxy, bytecode instrumentation, coroutine-like abstraction và thread boundaries có thể thay đổi frame mà code nhìn thấy. Muốn biết danh tính người dùng hoặc nguồn request phải dùng security context/tracing chuẩn.
+Stack inspection **is not an authorization mechanism**: reflection, proxies, bytecode instrumentation, coroutine-like abstractions, and thread boundaries can alter the frames code observes. To verify user identity or request origin, use standard security context/tracing.
 
-## 11. Những lỗi phổ biến
+## 11. Common Mistakes
 
-| Sai lầm | Lý do sai | Cách xử lý |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| “Frame đầu là caller trực tiếp.” | Frame đầu là method đang gọi `walk`. | Hiểu thứ tự top-down; xác định boundary. |
-| “Có thể trả Stream từ walk để đọc sau.” | Stream đóng khi `walk` trả về. | Materialize kết quả trong callback. |
-| “estimateDepth=5 giới hạn 5 frame.” | Chỉ là gợi ý về buffer. | Dùng `limit(5)`. |
-| “getDeclaringClass luôn dùng được.” | Cần `RETAIN_CLASS_REFERENCE`. | Bật option hoặc dùng tên String. |
-| “getCallerClass trả class của method chứa lời gọi.” | Nó trả **caller của method** gọi `getCallerClass`. | Kiểm chứng bằng call chain rõ ràng. |
-| “SHOW_HIDDEN_FRAMES làm getCallerClass trả hidden frames.” | `getCallerClass` lọc các frame này bất kể option. | Dùng `walk` khi cần inspect hidden frames. |
-| “getLineNumber luôn có dòng hợp lệ.” | Có thể âm khi thiếu debug info. | Fallback class/method; không đoán dòng. |
-| “StackWalker nhìn thấy tất cả thread.” | Chỉ current thread. | ThreadMXBean/thread dump cho thread khác. |
-| “Stack ở worker chứa controller đã enqueue task.” | Async chuyển thread làm đứt call stack. | Propagate trace ID, tracing/log. |
-| “Thread xuất hiện ở method X nên CPU hotspot là X.” | Snapshot không chứa CPU sampling/time. | JFR/CPU profiler. |
-| “skip(2) luôn bỏ hai tầng framework.” | Frame count thay đổi theo proxy/reflection/JDK. | Lọc theo contract, test tình huống thật. |
-| “Thu stack mọi request không đáng kể.” | Tần suất cao gây overhead. | Gate/sampling/benchmark. |
-| “Caller class là danh tính bảo mật.” | Call stack không phải identity đã xác thực. | Dùng auth/security context riêng. |
+| "The first frame is the direct caller." | The first frame is the method calling `walk`. | Understand top-down order; identify boundaries. |
+| "You can return the Stream from walk to read later." | The Stream closes as soon as `walk` returns. | Materialize results inside the callback. |
+| "`estimateDepth=5` caps output to 5 frames." | It is only a buffer sizing hint. | Use `limit(5)`. |
+| "`getDeclaringClass` is always available." | Requires `RETAIN_CLASS_REFERENCE`. | Enable the option or use String names. |
+| "`getCallerClass` returns the class containing the call." | It returns the **caller of the method** invoking `getCallerClass`. | Verify with an explicit call chain. |
+| "`SHOW_HIDDEN_FRAMES` makes `getCallerClass` return hidden frames." | `getCallerClass` filters those frames regardless of options. | Use `walk` when inspecting hidden frames. |
+| "`getLineNumber` always returns a valid line." | Can be negative when debug info is missing. | Fall back to class/method; do not guess lines. |
+| "`StackWalker` sees all threads." | Current thread only. | Use ThreadMXBean/thread dumps for other threads. |
+| "Worker stack includes the controller that enqueued the task." | Async thread hops break the call stack. | Propagate trace IDs, use tracing/logging. |
+| "Thread appears in method X so X is the CPU hotspot." | A snapshot lacks CPU sampling/duration data. | Use JFR/CPU profiler. |
+| "`skip(2)` always skips two framework layers." | Frame counts vary by proxy/reflection/JDK. | Filter by contract, test realistic scenarios. |
+| "Capturing stacks on every request is negligible." | High call frequency adds overhead. | Gate/sample/benchmark. |
+| "Caller class is a security identity." | Call stacks are not authenticated identities. | Use dedicated auth/security context. |
 
-## 12. Ngoại lệ và các giới hạn API cần nhớ
+## 12. Exceptions and API Limits to Remember
 
-| Điều kiện | Hành vi Java 17 | Cách tránh |
+| Condition | Java 17 behavior | How to avoid |
 | --- | --- | --- |
-| `getDeclaringClass()` hoặc `getMethodType()` khi thiếu `RETAIN_CLASS_REFERENCE` | `UnsupportedOperationException` | Cấu hình walker phù hợp trước |
-| `getCallerClass()` với walker thiếu `RETAIN_CLASS_REFERENCE` | `UnsupportedOperationException` | Dùng option Class reference |
-| `getCallerClass()` khi không có caller | `IllegalCallerException` | Dùng API có fallback hoặc định nghĩa contract |
-| Tiếp tục dùng `Stream<StackFrame>` sau callback | `IllegalStateException` | Chỉ trả giá trị/list/string từ `walk` |
-| `estimateDepth <= 0` | `IllegalArgumentException` | Dùng số dương |
-| `getLineNumber() < 0`, `getFileName() == null` | Thiếu source/debug metadata | Dùng class/method và fallback |
-| Security Manager từ chối quyền Class reference | Có thể `SecurityException` | Chỉ dùng option khi cần, tôn trọng policy |
-| Không tìm được frame sau `filter` | `Optional.empty()` | Xử lý bằng `orElse` hoặc báo thiếu ngữ cảnh |
-| Reflection/hidden frame thay đổi giữa runtime | Stack depth/chi tiết có thể khác | Không hard-code vị trí frame trên mọi JDK |
+| `getDeclaringClass()` or `getMethodType()` without `RETAIN_CLASS_REFERENCE` | `UnsupportedOperationException` | Configure walker properly beforehand |
+| `getCallerClass()` with walker lacking `RETAIN_CLASS_REFERENCE` | `UnsupportedOperationException` | Use the Class reference option |
+| `getCallerClass()` when no caller exists | `IllegalCallerException` | Use an API with fallbacks or define a contract |
+| Continuing to use `Stream<StackFrame>` after callback | `IllegalStateException` | Return only materialized values/lists/strings from `walk` |
+| `estimateDepth <= 0` | `IllegalArgumentException` | Pass a positive number |
+| `getLineNumber() < 0`, `getFileName() == null` | Missing source/debug metadata | Use class/method and fallbacks |
+| Security Manager denies Class reference permission | May throw `SecurityException` | Use the option only when needed, respect policies |
+| No frame found after `filter` | `Optional.empty()` | Handle with `orElse` or report missing context |
+| Reflection/hidden frames vary across runtimes | Stack depth/details may differ | Do not hardcode frame positions across all JDKs |
 
-## 13. Checklist đưa vào code chẩn đoán
+## 13. Checklist for Diagnostic Code
 
-- [ ] Xác định rõ mục đích lấy stack: caller, frame ứng dụng đầu tiên hay N frame gần nhất.
-- [ ] Đặt `walk` ở đúng điểm quan sát, hiểu **chỉ current thread**.
-- [ ] Dùng pipeline có điểm dừng, fallback cho kết quả rỗng.
-- [ ] Chọn `Option` tối thiểu và hiểu tác động của hidden/reflect frames.
-- [ ] Không để `Stream<StackFrame>` thoát khỏi callback; materialize ngay trong `walk`.
-- [ ] Khi dùng `getCallerClass()`, xác nhận caller thật sự tồn tại và được hiểu đúng.
-- [ ] Tránh lấy stack liên tục trên hot path; đo overhead với tải thực tế.
-- [ ] Không dùng stack để suy ra user identity, CPU hotspot hoặc full async causal chain.
-- [ ] Ghi log vừa đủ, redaction thông tin nhạy cảm.
-- [ ] Kiểm thử code với proxy/reflection/async mà ứng dụng dùng.
+- [ ] Clearly define why the stack is captured: caller, first app frame, or top N frames.
+- [ ] Place `walk` at the right observation point, understanding it covers **only the current thread**.
+- [ ] Use bounded pipelines with early termination and fallbacks for empty results.
+- [ ] Pick the minimal `Option` and understand hidden/reflection frame effects.
+- [ ] Never let `Stream<StackFrame>` escape the callback; materialize inside `walk`.
+- [ ] When using `getCallerClass()`, confirm a caller actually exists and is interpreted accurately.
+- [ ] Avoid continuous stack walking on hot paths; measure overhead under real load.
+- [ ] Never use stacks to infer user identity, CPU hotspots, or full async causal chains.
+- [ ] Log concisely and redact sensitive data.
+- [ ] Test code with proxies/reflection/async paths used by the application.
 
-## 14. Tài liệu tham khảo chính thức Java 17
+## 14. Official Java 17 References
 
 - [Oracle — StackWalker](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StackWalker.html): `getInstance`, `walk`, Stream lifetime, `forEach`, `getCallerClass`.
 - [Oracle — StackWalker.Option](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StackWalker.Option.html): `RETAIN_CLASS_REFERENCE`, `SHOW_REFLECT_FRAMES`, `SHOW_HIDDEN_FRAMES`.
-- [Oracle — StackWalker.StackFrame](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StackWalker.StackFrame.html): tên class/method, source/line, bytecode, Class reference.
-- [Oracle — Thread](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html): `getStackTrace` và các thao tác liên quan.
-- [Oracle — Throwable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Throwable.html): `getStackTrace` của exception.
-- [Oracle — jcmd](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `Thread.print` để chẩn đoán stack của tiến trình JVM đang chạy từ bên ngoài.
+- [Oracle — StackWalker.StackFrame](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StackWalker.StackFrame.html): class/method names, source/line, bytecode, Class reference.
+- [Oracle — Thread](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html): `getStackTrace` and related methods.
+- [Oracle — Throwable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Throwable.html): exception `getStackTrace`.
+- [Oracle — jcmd](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `Thread.print` for externally diagnosing stacks of a running JVM process.
 
-**Ghi nhớ:** `StackWalker` tối ưu việc lấy **thông tin đường gọi có mục đích** tại chính điểm mã đang chạy. Lấy ít frame, có quy tắc lọc và fallback rõ ràng thường hữu ích hơn dump toàn bộ stack; với thread khác, bất đồng bộ, CPU và các vấn đề JVM-wide, cần kết hợp thread dump, logs, metrics và JFR.
+**Key takeaway:** `StackWalker` optimizes **purposeful call-path extraction** at the exact point code is executing. Capturing few frames with clear filtering rules and fallbacks is usually far more useful than dumping full stacks; for other threads, async flows, CPU, and JVM-wide issues, combine thread dumps, logs, metrics, and JFR.

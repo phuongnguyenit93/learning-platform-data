@@ -1,176 +1,176 @@
-# 1.5 Từ triệu chứng đến giả thuyết, bằng chứng và nguyên nhân gốc
+# 1.5 From Symptom to Hypothesis, Evidence, and Root Cause
 
-> **Module:** Java Advance – runtime-diagnostics · **Nhóm:** 1. Mô hình chẩn đoán
+> **Module:** Java Advance – runtime-diagnostics · **Group:** 1. Diagnostics Model
 
-## 1. Mục tiêu và phạm vi
+## 1. Objectives and Scope
 
-Khi ứng dụng Java chậm, treo, tăng CPU, hết bộ nhớ hoặc lỗi thất thường, thứ nhìn thấy đầu tiên thường chỉ là **triệu chứng**. Chẩn đoán tốt là quá trình biến triệu chứng thành một giả thuyết **có thể kiểm chứng và bác bỏ**, tìm bằng chứng từ JVM và các thành phần liên quan, rồi xác định cơ chế thực sự sinh ra sự cố. Mục tiêu không phải tìm một biểu đồ bất thường để đặt tên cho lỗi, mà là giải thích được **tại sao**, **trong điều kiện nào**, **bằng cơ chế nào** và **vì sao biện pháp khắc phục có hiệu quả**.
+When a Java application is slow, hangs, spikes in CPU, runs out of memory, or fails intermittently, what you see first is usually only a **symptom**. Good diagnostics is the process of turning a symptom into a **testable and falsifiable hypothesis**, gathering evidence from the JVM and related components, and identifying the mechanism that actually produced the incident. The goal is not to find one abnormal chart to name the bug, but to explain **why**, **under what conditions**, **by what mechanism**, and **why the remediation works**.
 
-Sau bài này, người học có thể:
+After this lesson, you will be able to:
 
-- Mô tả sự cố bằng các chỉ số, mốc thời gian và phạm vi ảnh hưởng thay cho cảm nhận như “hệ thống có vẻ chậm”.
-- Phân biệt triệu chứng, tín hiệu quan sát, giả thuyết, bằng chứng, nguyên nhân trực tiếp, nguyên nhân gốc và yếu tố góp phần.
-- Lập các giả thuyết cạnh tranh và dự đoán dấu vết quan sát được nếu từng giả thuyết đúng.
-- Chọn phép đo JVM/ứng dụng/hệ điều hành phù hợp, diễn giải bằng chứng dương tính và âm tính, tránh nhầm tương quan với nhân quả.
-- Kiểm chứng cơ chế bằng chuỗi chứng cứ, tái hiện có kiểm soát hoặc thay đổi có khả năng đảo ngược, rồi xác nhận kết quả sau sửa lỗi.
+- Describe an incident using metrics, timestamps, and impact scope instead of impressions like "the system seems slow."
+- Distinguish symptom, observed signal, hypothesis, evidence, direct cause, root cause, and contributing factor.
+- Formulate competing hypotheses and predict the observable traces if each hypothesis were true.
+- Select appropriate JVM/application/OS measurements, interpret positive and negative evidence, and avoid confusing correlation with causation.
+- Verify the mechanism through a chain of evidence, controlled reproduction, or reversible changes, then confirm results after fixing.
 
-Phạm vi là **tư duy chẩn đoán Java runtime**. Các công cụ như thread dump, JFR, GC log, heap dump, metric và trace xuất hiện như nguồn chứng cứ; bài này không thay thế hướng dẫn chuyên sâu cho từng công cụ.
+The scope is **Java runtime diagnostic reasoning**. Tools such as thread dumps, JFR, GC logs, heap dumps, metrics, and traces appear as evidence sources; this lesson does not replace deep-dive guides for individual tools.
 
-## 2. Sáu khái niệm cần tách bạch
+## 2. Six Concepts to Keep Distinct
 
-| Khái niệm | Câu hỏi nó trả lời | Ví dụ trong Java |
+| Concept | Question It Answers | Java Example |
 | --- | --- | --- |
-| **Triệu chứng (symptom)** | Người dùng/hệ thống đang gặp điều gì? | p99 độ trễ API tăng từ 250 ms lên 3 s, 5xx tăng. |
-| **Tín hiệu (signal)** | Có số đo hoặc dấu vết gì? | 40 luồng BLOCKED; hàng đợi HTTP tăng; GC pause vẫn thấp. |
-| **Giả thuyết (hypothesis)** | Cơ chế nào *có thể* tạo ra triệu chứng? | Một monitor đang bị giữ quá lâu khiến nhiều request phải chờ. |
-| **Bằng chứng (evidence)** | Quan sát nào ủng hộ hoặc bác bỏ giả thuyết? | Nhiều thread dump ở các thời điểm khác nhau đều chỉ tới cùng monitor và luồng sở hữu. |
-| **Nguyên nhân gốc (root cause)** | Điều kiện/cơ chế nào khiến sự cố phát sinh và có thể sửa để ngăn tái diễn? | Mã giữ khóa dùng chung trong khi gọi thao tác chậm; khi tải tăng, thời gian đợi khóa khuếch đại. |
-| **Yếu tố góp phần (contributing factor)** | Điều gì làm sự cố dễ xảy ra hoặc nghiêm trọng hơn? | Retry đồng loạt, hàng đợi không giới hạn, thiếu cảnh báo về lock contention. |
+| **Symptom** | What are users or the system experiencing? | API latency p99 jumps from 250 ms to 3 s, 5xx errors rise. |
+| **Signal** | What measurements or traces exist? | 40 BLOCKED threads; HTTP queue grows; GC pauses remain low. |
+| **Hypothesis** | What mechanism *could* produce the symptom? | A monitor is being held too long, forcing many requests to wait. |
+| **Evidence** | What observations support or refute the hypothesis? | Multiple thread dumps at different timestamps all point to the same monitor and owner thread. |
+| **Root cause** | What condition/mechanism caused the incident and can be fixed to prevent recurrence? | Code holds a shared lock while calling a slow operation; as load increases, lock wait time amplifies. |
+| **Contributing factor** | What made the incident more likely or more severe? | Synchronized retries, unbounded queues, lack of alerting on lock contention. |
 
-**Nguyên nhân trực tiếp** khác nguyên nhân gốc. Ví dụ, timeout ở API là nguyên nhân trực tiếp của phản hồi lỗi; request bị chặn tại khóa có thể là cơ chế gần; thiết kế critical section bao cả lời gọi chậm mới là nguyên nhân gốc có thể sửa. Một sự cố có thể có **nhiều nguyên nhân gốc**, và “gốc” được xác định theo phạm vi hệ thống có thể kiểm soát, không phải một nhãn tuyệt đối.
+**Direct cause** differs from root cause. For example, an API timeout is the direct cause of the error response; requests blocked on a lock may be the proximate mechanism; designing the critical section around a slow call is the fixable root cause. An incident can have **multiple root causes**, and "root" is defined within the controllable system boundary, not as an absolute label.
 
-**Biện pháp giảm thiểu (mitigation)** khác **sửa nguyên nhân (fix)**. Tăng số replica, tắt chức năng có lỗi hoặc rollback có thể giúp khôi phục dịch vụ nhanh, nhưng nếu thiết kế đồng bộ hóa sai vẫn tồn tại, sự cố có thể trở lại.
+**Mitigation** differs from **fix**. Adding replicas, disabling a faulty feature, or rolling back can restore service quickly, yet if the flawed synchronization design remains, the incident can return.
 
-## 3. Khởi đầu bằng một phát biểu sự cố có thể đo được
+## 3. Start with a Measurable Problem Statement
 
-Trước khi dùng profiler hoặc nhìn mã nguồn, hãy viết một “problem statement” gồm:
+Before launching a profiler or reading source code, write a "problem statement" containing:
 
-1. **Ảnh hưởng:** luồng người dùng/API nào, tỷ lệ lỗi, SLO nào bị vi phạm, số lượng instance và khách hàng liên quan.
-2. **Chênh lệch so với baseline:** p50/p95/p99, throughput, CPU, heap, GC, queue hoặc error rate trước và sau; ghi rõ đơn vị, cửa sổ lấy mẫu và số mẫu.
-3. **Thời gian:** lần cuối bình thường, thời điểm bắt đầu bất thường, thời gian phục hồi; đồng bộ timezone và đồng hồ giữa các nguồn.
-4. **Điều kiện xuất hiện:** chỉ ở một phiên bản, node, tenant, route, tải, cỡ payload hay khoảng giờ nào.
-5. **Thay đổi gần thời điểm lỗi:** triển khai, flag, traffic, cấu hình JVM, schema/index, dependency, certificate, cron, cache hoặc giới hạn tài nguyên.
-6. **Những điều *chưa biết*:** dữ liệu thiếu hoặc có nguy cơ sai, để không biến giả định thành sự thật.
+1. **Impact:** which user flows/APIs, error rate, violated SLOs, affected instances, and affected customers.
+2. **Delta from baseline:** p50/p95/p99, throughput, CPU, heap, GC, queues, or error rate before and after; specify units, sampling window, and sample count.
+3. **Timing:** last known healthy time, anomaly onset, recovery time; synchronize timezones and clocks across sources.
+4. **Occurrence conditions:** only on a specific version, node, tenant, route, load level, payload size, or time of day.
+5. **Changes near onset:** deployments, flags, traffic, JVM settings, schema/indexes, dependencies, certificates, cron jobs, caches, or resource limits.
+6. **What is *unknown*:** missing or potentially inaccurate data, so assumptions do not turn into facts.
 
-Ví dụ giả định: “Từ 14:05–14:18 UTC, p99 của POST /orders tăng 240 ms → 2.8 s ở 3/4 instance của bản v2.7; throughput gần như không đổi, tỷ lệ timeout tăng 0.1% → 7%; CPU JVM khoảng 30%, GC pause p99 dưới 20 ms; vừa bật cờ gọi dịch vụ đối soát.” Phát biểu này gợi hướng điều tra rõ hơn nhiều so với “Java chậm sau deploy”, nhưng **chưa chứng minh** cờ mới là nguyên nhân.
+Hypothetical example: "From 14:05–14:18 UTC, POST /orders p99 rose 240 ms → 2.8 s on 3/4 instances of v2.7; throughput stayed nearly flat, timeout rate jumped 0.1% → 7%; JVM CPU ~30%, GC pause p99 under 20 ms; a feature flag calling the reconciliation service was recently enabled." This statement suggests a much clearer direction than "Java is slow after deploy," yet it **does not prove** the new flag is the cause.
 
-Tránh so sánh p99 giữa các cửa sổ có lưu lượng và số mẫu quá khác nhau mà không ghi chú. p99 của tập ít mẫu có thể dao động mạnh; trung bình có thể che đuôi phân phối. Thống nhất metric ở cấp request hay ở cấp từng dependency, tránh đánh đồng hai loại.
+Avoid comparing p99 across windows with vastly different traffic or sample counts without noting it. p99 on small samples fluctuates heavily; averages can hide distribution tails. Align metrics at the request level vs. per-dependency level to avoid conflating the two.
 
-## 4. Chuỗi chẩn đoán: từ quan sát tới cơ chế nhân quả
+## 4. Diagnostic Chain: From Observation to Causal Mechanism
 
-Dùng vòng lặp sau, quay lại bước trước bất cứ lúc nào bằng chứng bác bỏ giả định:
+Use the following loop, stepping back whenever evidence refutes an assumption:
 
-**Triệu chứng → định lượng/timeline → giả thuyết cạnh tranh → dự đoán dấu vết → thu bằng chứng → thử bác bỏ/kiểm chứng → nguyên nhân gốc → hành động → xác nhận.**
+**Symptom → quantification/timeline → competing hypotheses → predicted traces → evidence collection → falsification/verification → root cause → action → confirmation.**
 
-### Bước 1 — Khoanh vùng ảnh hưởng và lập timeline
+### Step 1 — Narrow the Impact Scope and Build a Timeline
 
-Lấy các mốc phát hiện, phát sinh, deploy/flag, thay đổi tải, bắt đầu retry, rollback và phục hồi. So sánh instance **bị ảnh hưởng** với instance **không bị ảnh hưởng** trong cùng thời gian; đây thường là đối chứng tốt hơn việc nhìn một biểu đồ đơn lẻ.
+Capture timestamps for detection, onset, deploys/flags, load shifts, retry onset, rollback, and recovery. Compare **affected** instances against **unaffected** instances during the same window; this is often a better control than staring at one isolated chart.
 
-Cần hỏi: lỗi có xảy ra trước lần triển khai đáng nghi không? Tải tăng trước hay sau độ trễ? Thread pool đầy là nguyên nhân ban đầu hay hậu quả của request chạy lâu? Một thứ xuất hiện **sau** triệu chứng khó là tác nhân khởi phát, nhưng vẫn có thể khuếch đại sự cố.
+Ask: did errors occur before the suspected deploy? Did load rise before or after latency? Is a full thread pool the initial cause or a consequence of slow requests? Something appearing **after** the symptom is unlikely to be the initial trigger, though it can still amplify the incident.
 
-### Bước 2 — Lập nhiều giả thuyết có thể bác bỏ
+### Step 2 — Form Multiple Falsifiable Hypotheses
 
-Mỗi giả thuyết phải nói rõ cơ chế và **dấu vết dự đoán**. Ví dụ cùng một triệu chứng “p99 tăng, CPU thấp” có thể do:
+Each hypothesis must state the mechanism and **predicted traces**. For example, the same symptom "p99 rises, CPU is low" could stem from:
 
-| Giả thuyết | Nếu đúng, kỳ vọng thấy | Bằng chứng có thể làm yếu/bác bỏ |
+| Hypothesis | If True, Expect to See | Evidence That Weakens/Refutes It |
 | --- | --- | --- |
-| H1: lock contention | Nhiều luồng BLOCKED hoặc park chờ cùng tài nguyên qua nhiều mẫu; thời gian chờ tăng theo tải | Luồng đang xử lý request không đợi lock; không thấy điểm tranh chấp trong khoảng lỗi |
-| H2: database pool cạn | Thời gian acquire connection và số request chờ pool tăng; active connection chạm giới hạn | Acquire time thấp, pool còn nhiều connection rảnh ở đúng thời điểm |
-| H3: dependency chậm | Client span/timeout đến cùng endpoint tăng, pool hoặc socket wait trùng khoảng lỗi | Dependency span ổn định, phần chậm nằm trước/sau lời gọi |
-| H4: GC pause kéo dài | Thời điểm pause trong GC log/JFR trùng khoảng request bị trì hoãn | Tổng thời gian pause rất nhỏ so với sự cố; nhiều request chậm khi JVM vẫn chạy |
-| H5: CPU quota/throttling | Container CPU bị throttle, run queue tăng, request chậm khi quota chạm mức | Không thấy throttling và không có tiến trình/luồng tiêu CPU liên quan |
+| H1: lock contention | Multiple threads BLOCKED or parked waiting on the same resource across samples; wait time grows with load | Request-handling threads are not waiting on locks; no contention hotspot during failure window |
+| H2: database pool exhaustion | Connection acquire time and pool waiter count rise; active connections hit the limit | Low acquire time, plenty of idle connections in the pool at the exact time |
+| H3: slow dependency | Client spans/timeouts to the same endpoint rise; pool or socket waits align with failure window | Dependency spans stay stable; slowness occurs before or after the call |
+| H4: long GC pauses | Pause timestamps in GC logs/JFR align with delayed requests | Total pause time is tiny compared to the incident; many requests are slow while JVM is running |
+| H5: CPU quota/throttling | Container CPU is throttled, run queue grows, requests slow down when quota is reached | No throttling observed and no related CPU-consuming processes/threads |
 
-“Có thể lỗi ở JVM” chưa đủ là giả thuyết. Viết theo mẫu: **Nếu [cơ chế X] gây [triệu chứng Y], tôi kỳ vọng [quan sát A/B] trong [khoảng thời gian/phạm vi]; nếu quan sát [C], giả thuyết suy yếu.** Chọn giả thuyết theo mức giải thích, độ kiểm chứng, mức ảnh hưởng và chi phí đo; tránh chỉ ưu tiên cái dễ sửa.
+"Maybe there is a JVM bug" is not yet a hypothesis. Write it as: **If [mechanism X] causes [symptom Y], I expect [observation A/B] within [time window/scope]; if [C] is observed, the hypothesis weakens.** Rank hypotheses by explanatory power, testability, impact, and measurement cost; avoid prioritizing only what is easiest to change.
 
-### Bước 3 — Thu bằng chứng từ ít xâm lấn đến chuyên sâu
+### Step 3 — Collect Evidence from Least Invasive to Deeper
 
-Bắt đầu bằng log có correlation ID, request metrics, trace hiện có, dashboard JVM/OS và thông tin thay đổi. Khi chưa đủ, mới lấy thread dump, JFR, GC log hoặc heap dump có chủ đích. Ghi rõ **thời điểm**, phiên bản, process ID, instance, kích thước mẫu và điều kiện thu.
+Start with correlation-ID logs, request metrics, existing traces, JVM/OS dashboards, and change history. Only when insufficient should you deliberately take thread dumps, JFR, GC logs, or heap dumps. Record **timestamps**, version, process ID, instance, sample size, and collection conditions.
 
-Một snapshot chỉ thể hiện trạng thái tại một khoảnh khắc. Thread dump lặp lại khi lỗi đang diễn ra giúp phân biệt điểm chờ thoáng qua với chờ kéo dài; JFR giúp khảo sát sự kiện theo thời gian. Thu ngay gần thời điểm có triệu chứng, vì dump sau khi đã phục hồi thường không còn dấu vết.
+A snapshot captures state at only one instant. Repeated thread dumps taken while the error is ongoing distinguish transient waits from persistent blocks; JFR examines events over time. Collect close to the symptom window, because dumps taken after recovery often lose the trace.
 
-### Bước 4 — Đối chiếu và chủ động tìm dữ liệu phủ định
+### Step 4 — Corroborate and Actively Seek Disconfirming Data
 
-Tìm ít nhất hai nguồn bằng chứng bổ sung, ví dụ **trace request chậm → thread dump chờ monitor → metric contention tăng**. Tuy vậy, hai biểu đồ lấy từ cùng một nguồn không hẳn độc lập. Xem các trường hợp không lỗi, khoảng thời gian trước lỗi, instance đối chứng và lần lỗi không khớp mẫu.
+Find at least two complementary sources of evidence, such as **slow request trace → thread dump waiting on monitor → contention metric rising**. Note that two charts derived from the same source are not truly independent. Inspect non-failing cases, pre-incident windows, control instances, and failures that do not fit the pattern.
 
-Phân biệt:
-- **Đồng xuất hiện:** CPU và p99 cùng tăng.
-- **Thứ tự thời gian:** CPU tăng trước p99.
-- **Cơ chế:** stack/profile chứng minh luồng tiêu CPU làm công việc nào, gây chậm đoạn nào.
-- **Kiểm chứng tác động:** loại bỏ hoặc cô lập tác nhân thì độ trễ cải thiện trong điều kiện tương đương.
+Distinguish:
+- **Co-occurrence:** CPU and p99 rise together.
+- **Temporal ordering:** CPU rises before p99.
+- **Mechanism:** stacks/profiles prove which work CPU-consuming threads are doing and which step is slowed.
+- **Intervention check:** removing or isolating the factor improves latency under equivalent conditions.
 
-Chỉ khi nối được các mắt xích này mới nên tăng mức tin cậy về quan hệ nhân quả. Correlation ID giúp nối sự kiện nhưng **không tự chứng minh nguyên nhân**.
+Only after linking these steps should you raise confidence in causation. Correlation IDs link events together, **but do not by themselves prove causation**.
 
-### Bước 5 — Kiểm chứng có kiểm soát
+### Step 5 — Controlled Verification
 
-Ưu tiên thử trên môi trường staging với cùng cấu hình, cỡ tải, tập dữ liệu và phiên bản tương đương. Thay **một biến có ý nghĩa** mỗi lượt: ví dụ thu nhỏ critical section hoặc bỏ lời gọi remote ra ngoài lock; giữ nguyên traffic và thread-pool limit. Nếu cần kiểm chứng trực tiếp trên production, dùng canary/flag có giới hạn và kế hoạch rollback.
+Prefer testing in staging with equivalent configuration, load scale, dataset, and version. Change **one meaningful variable** per run: e.g., shrink the critical section or move the remote call outside the lock; keep traffic and thread-pool limits constant. If verifying directly in production is necessary, use a bounded canary/flag with a rollback plan.
 
-Một kiểm chứng mạnh trả lời được ba câu: (1) hiện tượng có tái hiện khi điều kiện gây lỗi xuất hiện không, (2) thay đổi nhắm vào cơ chế có làm biến mất dấu vết dự đoán không, (3) metric người dùng và tác dụng phụ có cải thiện bền vững không. Không ép production tái hiện OOM/deadlock chỉ để “chứng minh”.
+Strong verification answers three questions: (1) does the phenomenon reproduce when triggering conditions appear, (2) does a change targeting the mechanism eliminate the predicted trace, (3) do user metrics and side effects improve sustainably? Do not force OOM or deadlocks in production merely to "prove" a point.
 
-### Bước 6 — Chốt nguyên nhân gốc và xác nhận sau sửa
+### Step 6 — Finalize Root Cause and Verify Post-Fix
 
-Mô tả **trigger + cơ chế + tác động + điều kiện khuếch đại**. Phân tách hành động chữa cháy, sửa mã/cấu hình, và guardrail như giới hạn queue, circuit breaker, dashboard, cảnh báo hoặc regression test. So sánh trước/sau ở traffic tương tự, xác minh không chuyển lỗi sang hệ khác hoặc làm tăng chi phí vô hình.
+Describe **trigger + mechanism + impact + amplifying conditions**. Separate emergency mitigation, code/config fix, and guardrails such as bounded queues, circuit breakers, dashboards, alerts, or regression tests. Compare before/after under similar traffic, verifying you did not shift the failure elsewhere or add hidden overhead.
 
-Cần ghi “chưa xác định” nếu bằng chứng chỉ đủ để khoanh vùng. Mức tin cậy là một kết luận có điều kiện, không phải yêu cầu phải chọn một thủ phạm.
+State "undetermined" if evidence only narrows down the area. Confidence is a conditional conclusion, not a requirement to pick a culprit.
 
-## 5. Đọc tín hiệu Java runtime đúng ngữ cảnh
+## 5. Reading Java Runtime Signals in Context
 
-| Nguồn tín hiệu | Dùng để kiểm tra | Bẫy diễn giải |
+| Signal Source | Used to Check | Interpretation Pitfalls |
 | --- | --- | --- |
-| Request metric + distributed trace | Thành phần chiếm latency, retry, error, queue, dependency | Span thiếu sampling hoặc thời gian chờ trước span khiến kết luận lệch |
-| Application log có request ID | Exception, quyết định nhánh xử lý, timeout, causal timeline | Log lúc lỗi lớn có thể bị drop, bất đồng bộ hoặc có clock skew |
-| Thread dump | Trạng thái luồng, stack, monitor sở hữu/chờ, deadlock, executor | RUNNABLE không luôn bằng đang sử dụng CPU; một dump không nói được tần suất |
-| JFR (Java Flight Recorder) | CPU samples, allocations, lock contention, I/O, GC, latency event theo thời gian | Recording cần đúng khoảng lỗi; sampling không phải đo tuyệt đối mọi lệnh |
-| GC log / GC metrics | Pause, heap usage trước-sau GC, allocation pressure, collector behavior | GC xuất hiện đồng thời có thể là hệ quả của traffic/allocation, không phải nguyên nhân gốc |
-| Heap dump / class histogram | Kiểu object, retained graph, nghi vấn retention | Dump lớn, nhạy cảm và có chi phí; object nhiều không tự chứng minh leak |
-| OS/container metrics | CPU throttling, RSS, page fault, I/O, network, file descriptors | RSS khác Java heap; CPU % phải xét số core và quota |
-| Downstream/pool metrics | Connection acquire, hàng chờ, timeout, giới hạn tài nguyên | Pool đầy có thể do downstream chậm, không phải pool size đặt sai |
+| Request metrics + distributed traces | Latency breakdown, retries, errors, queues, dependencies | Missing spans due to sampling or pre-span queue time skew conclusions |
+| Application logs with request ID | Exceptions, branching decisions, timeouts, causal timeline | Logs under heavy error load may be dropped, async, or suffer clock skew |
+| Thread dump | Thread states, stacks, owned/waited monitors, deadlocks, executors | RUNNABLE does not always equal consuming CPU; one dump does not show frequency |
+| JFR (Java Flight Recorder) | CPU samples, allocations, lock contention, I/O, GC, latency events over time | Recording must cover the failure window; sampling does not measure every instruction |
+| GC logs / GC metrics | Pauses, pre/post-GC heap usage, allocation pressure, collector behavior | Concurrent GC activity may be an effect of traffic/allocation, not the root cause |
+| Heap dump / class histogram | Object types, retained graph, suspected retention | Large, sensitive, and costly; high instance count alone does not prove a leak |
+| OS/container metrics | CPU throttling, RSS, page faults, I/O, network, file descriptors | RSS differs from Java heap; CPU % must be read against core count and quota |
+| Downstream/pool metrics | Connection acquisition, wait queues, timeouts, resource limits | Full pool may be caused by slow downstream, not wrong pool size |
 
-**Trạng thái thread cần đọc kỹ:** BLOCKED thường là đang chờ vào monitor Java; WAITING/TIMED_WAITING có thể là chờ điều kiện, park, sleep hoặc công việc nhàn rỗi. Một thread đang ngủ nhưng **giữ monitor** vẫn có thể làm thread khác BLOCKED. Thread pool có nhiều WAITING khi rảnh là bình thường. RUNNABLE theo JVM không bảo đảm thread đang chạy trên CPU ở mọi thời điểm.
+**Read thread states carefully:** BLOCKED typically means waiting to enter a Java monitor; WAITING/TIMED_WAITING can be waiting on a condition, parking, sleeping, or idle work. A sleeping thread that **holds a monitor** can still cause other threads to be BLOCKED. Thread pools having many WAITING threads when idle is normal. RUNNABLE from the JVM's view does not guarantee a thread is actively running on CPU at every instant.
 
-**Bộ nhớ:** heap used tăng chưa chắc leak; xem xu hướng object còn được giữ qua chu kỳ thu gom, tốc độ cấp phát, giới hạn heap và container RSS. Direct buffer, metaspace, stack native và mmap đóng góp vào RSS ngoài heap. Không chạy Full GC cưỡng bức trên production chỉ để có đường cơ sở nếu chưa đánh giá tác động.
+**Memory:** rising heap used is not necessarily a leak; check the trend of retained objects across GC cycles, allocation rate, heap limits, and container RSS. Direct buffers, metaspace, native stacks, and mmap contribute to RSS outside the heap. Do not trigger a forced Full GC in production just to establish a baseline without evaluating its impact.
 
-**CPU và GC:** CPU JVM cao có thể do mã ứng dụng, JIT compilation, allocation/GC, vòng lặp retry hoặc spin lock. Nếu GC pause ngắn, cần tìm CPU samples/OS throttling trước khi gán lỗi cho GC. Nếu CPU thấp nhưng p99 cao, ưu tiên thời gian chờ I/O, locks, queue, semaphore, pool và remote calls.
+**CPU and GC:** high JVM CPU can come from application code, JIT compilation, allocation/GC, retry loops, or spin locks. If GC pauses are short, check CPU samples/OS throttling before blaming GC. If CPU is low while p99 is high, prioritize wait times on I/O, locks, queues, semaphores, pools, and remote calls.
 
-## 6. Các lệnh lấy bằng chứng tối thiểu trên JDK 17+
+## 6. Minimum Evidence Collection Commands on JDK 17+
 
-Chạy trên đúng máy/container và trong namespace có thể thấy JVM đích; cần quyền phù hợp. Ghi **PID, timestamp, instance và phiên bản ứng dụng** cùng dữ liệu thu. Các lệnh dưới đây là ví dụ thao tác, không nên chạy dồn dập vô hạn trên production.
+Run on the exact host/container and in the namespace that can see the target JVM; appropriate permissions are required. Record **PID, timestamp, instance, and application version** alongside collected data. The commands below are operational examples—do not run them repeatedly without restraint in production.
 
 ~~~bash
-# Liệt kê JVM Java mà tài khoản hiện tại có thể thấy.
+# List Java JVMs visible to the current account.
 jcmd -l
 
-# Thay <PID> bằng PID Java đích đã xác minh.
+# Replace <PID> with the verified target Java PID.
 jcmd <PID> VM.command_line
 jcmd <PID> Thread.print -l
 jcmd <PID> GC.heap_info
 
-# Bắt đầu recording 60 giây; file được ghi khi recording hoàn tất.
+# Start a 60-second recording; the file is written when recording completes.
 jcmd <PID> JFR.start name=diagnosis settings=profile duration=60s filename=incident.jfr
 
-# Sau khi có file JFR, xem tóm tắt bằng JDK tool.
+# Once the JFR file exists, view a summary using the JDK tool.
 jfr summary incident.jfr
 ~~~
 
-Lưu ý khi diễn giải:
+Interpretation notes:
 
-- **VM.command_line** chứng minh JVM flags và entrypoint thực tế; cần đối chiếu cấu hình container và launch script, không suy đoán từ file cấu hình nguồn.
-- **Thread.print -l** hữu ích khi nghi chờ monitor/deadlock; lưu vài bản cách nhau vài giây đúng khoảng lỗi để so stack và lock owner. Không coi mỗi thread ở trạng thái WAITING là thread “kẹt”.
-- **GC.heap_info** cho ảnh chụp heap; không đủ riêng lẻ để kết luận leak.
-- **JFR.start** thu sự kiện theo thời gian. Profiling/recording vẫn có overhead, dữ liệu có thể chứa tên lớp, đường dẫn, stack hoặc thông tin nhạy cảm; chọn cấu hình, thời lượng, nơi lưu và quyền truy cập phù hợp. Với JDK/cấu hình không hỗ trợ thao tác, dựa vào log/metric sẵn có và ghi rõ hạn chế.
-- **VM.native_memory summary** chỉ hữu ích nếu Native Memory Tracking đã được kích hoạt khi khởi động JVM, chẳng hạn tùy chọn -XX:NativeMemoryTracking=summary; không mặc định có dữ liệu.
-- Heap dump có thể lớn và gây tác động lớn hơn nhiều so với các lệnh trên. Chỉ thu khi có mục đích rõ, đủ dung lượng, quyền truy cập và đánh giá ảnh hưởng.
+- **VM.command_line** proves the actual JVM flags and entrypoint; compare against container configuration and launch scripts instead of guessing from source config files.
+- **Thread.print -l** is helpful when suspecting monitor waits/deadlocks; capture a few snapshots a few seconds apart during the error window to compare stacks and lock owners. Do not treat every WAITING thread as "stuck."
+- **GC.heap_info** provides a heap snapshot; insufficient alone to conclude a leak.
+- **JFR.start** collects time-series events. Profiling/recording still carries overhead, and data may include class names, paths, stacks, or sensitive info; choose appropriate settings, duration, storage location, and access controls. Where the JDK/configuration does not support an action, rely on existing logs/metrics and note the limitation.
+- **VM.native_memory summary** is useful only if Native Memory Tracking was enabled at JVM startup, such as `-XX:NativeMemoryTracking=summary`; data is not available by default.
+- Heap dumps can be huge and carry far greater impact than the commands above. Collect only with a clear purpose, sufficient disk space, proper permissions, and an impact assessment.
 
-Thread dump được tạo bằng tín hiệu hoặc công cụ khác có thể có định dạng/cơ chế khác nhau tùy JDK. Trước khi so sánh, bảo đảm các mẫu đến từ cùng PID và khoảng thời gian sự cố. Đừng dán stack trace có token, URL chứa bí mật hoặc dữ liệu khách hàng vào công cụ chia sẻ công khai.
+Thread dumps generated by signals or other tools can differ in format/mechanism across JDKs. Before comparing, verify that samples come from the same PID and incident window. Do not paste stack traces containing tokens, secret URLs, or customer data into public sharing tools.
 
-## 7. Tình huống phân tích đầy đủ: p99 tăng vì giữ monitor quá lâu
+## 7. Complete Analysis Scenario: p99 Spikes Due to Holding a Monitor Too Long
 
-*Tình huống giả định dùng để luyện phương pháp; các số đo sau đây minh họa, không phải kết quả benchmark.*
+*Hypothetical scenario for practicing the method; the following measurements are illustrative, not benchmark results.*
 
-Một API Java có p99 tăng từ 180 ms lên 2.4 s khi traffic tăng 40%. CPU process ổn định 28–35%, GC pause p99 dưới 15 ms. Các request bị chậm tập trung ở endpoint ghi trạng thái đơn hàng. Ban đầu có ba giả thuyết:
+A Java API sees p99 rise from 180 ms to 2.4 s when traffic grows by 40%. Process CPU remains steady at 28–35%, and GC pause p99 stays under 15 ms. Slow requests concentrate on the order-status update endpoint. Initially, there are three hypotheses:
 
-- **H1:** luồng xử lý cập nhật giữ một monitor dùng chung trong khi làm thao tác chậm, khiến các request khác nối hàng.
-- **H2:** pool kết nối DB cạn gây chờ ở bước acquire.
-- **H3:** GC stop-the-world làm các request đồng thời bị trì hoãn.
+- **H1:** update-handling threads hold a shared monitor while executing a slow operation, forcing other requests to queue.
+- **H2:** the DB connection pool is exhausted, causing waits at acquisition.
+- **H3:** stop-the-world GC pauses delay concurrent requests.
 
-**Dự đoán cần kiểm:** H1 cho nhiều thread cùng chờ một monitor trong các thread dump và một luồng đang giữ monitor thực hiện công việc chậm. H2 cho acquire time của DB pool tăng, số connection active chạm max, nhiều stack chờ acquire. H3 cho các mốc pause dài trong log/JFR trùng request bị chậm.
+**Predictions to test:** H1 predicts multiple threads waiting on the same monitor in thread dumps while one thread holding the monitor performs slow work. H2 predicts rising DB pool acquire time, active connections hitting max, and many stacks waiting to acquire. H3 predicts long pause timestamps in logs/JFR aligning with slow requests.
 
-**Chuỗi bằng chứng:** Trace cho thấy phần chậm nằm ở đoạn cập nhật trạng thái nội bộ; connection acquire time thấp. Ba thread dump trong cửa sổ lỗi cho thấy nhiều request BLOCKED chờ cùng monitor, một luồng sở hữu monitor đang ngủ/chờ thao tác chậm. GC pause vẫn quá nhỏ để giải thích độ trễ 2.4 s. Điều đó **ủng hộ mạnh H1**, làm yếu H2/H3 trong cửa sổ quan sát. Để tránh đánh đồng “chờ monitor” với nguyên nhân gốc, cần tiếp tục xác minh **vì sao monitor bị giữ lâu**, đường gọi nào nằm trong critical section, và tải nào kích hoạt hiện tượng.
+**Chain of evidence:** Traces show slowness sits in the internal status-update step; connection acquire time is low. Three thread dumps in the error window show many requests BLOCKED waiting on the same monitor, while the owner thread sleeps/waits on a slow operation. GC pauses remain far too small to explain 2.4 s latency. This **strongly supports H1** and weakens H2/H3 in the observed window. To avoid equating "monitor wait" with root cause, continue verifying **why the monitor is held so long**, which call path sits inside the critical section, and what load triggers it.
 
-### 7.1 Ví dụ Java 17+ tái hiện riêng cơ chế chờ monitor
+### 7.1 Java 17+ Example Reproducing Only the Monitor Wait Mechanism
 
-Ví dụ tối giản này **cố ý** giữ một monitor trong lúc sleep để tạo dấu vết dễ quan sát. Đây là mô hình về lock contention, **không phải** mã xử lý HTTP hay bằng chứng ứng dụng thực sự ngủ trong critical section.
+This minimal example **intentionally** holds a monitor while sleeping to create an easily observable trace. It models lock contention—it is **not** HTTP handling code or proof that a real app sleeps inside a critical section.
 
-Lưu tệp thành **LockContentionDemo.java**:
+Save the file as **LockContentionDemo.java**:
 
 ~~~java
 import java.util.concurrent.CountDownLatch;
@@ -199,151 +199,151 @@ public class LockContentionDemo {
         }, "lock-waiter");
 
         holder.start();
-        acquired.await();  // Bảo đảm holder đã vào synchronized.
-        waiter.start();     // Waiter phải đợi holder nhả LOCK.
+        acquired.await();  // Ensure holder has entered synchronized.
+        waiter.start();     // Waiter must wait for holder to release LOCK.
         waiter.join();
         holder.join();
     }
 }
 ~~~
 
-Biên dịch và chạy ở terminal thứ nhất:
+Compile and run in the first terminal:
 
 ~~~bash
 javac LockContentionDemo.java
 java LockContentionDemo
 ~~~
 
-Trong khoảng 20 giây đầu, mở terminal khác:
+Within the first ~20 seconds, open another terminal:
 
 ~~~bash
 jcmd -l
 jcmd <PID_CUA_DEMO> Thread.print -l
 ~~~
 
-Chọn PID theo lớp **LockContentionDemo**, không lấy nhầm JVM khác. Khi bắt đúng thời điểm, thread **lock-holder** thường ở TIMED_WAITING vì Thread.sleep nhưng **vẫn sở hữu monitor**, còn **lock-waiter** ở BLOCKED chờ monitor đó. Sau khoảng 20 giây, chương trình kết thúc và stdout từ chương trình là:
+Pick the PID matching the **LockContentionDemo** class, not another JVM. When caught at the right moment, **lock-holder** is typically in TIMED_WAITING due to Thread.sleep while **still owning the monitor**, and **lock-waiter** is BLOCKED waiting for that monitor. After about 20 seconds, the program exits and stdout from the program is:
 
 ~~~text
 waiter acquired lock
 ~~~
 
-Không khẳng định chính xác vị trí stack, địa chỉ monitor hay PID vì chúng thay đổi theo JDK và lần chạy. CountDownLatch ở đây chỉ giúp bảo đảm luồng holder chiếm monitor **trước khi** luồng waiter bắt đầu; không phải đối tượng tranh chấp đang điều tra.
+Do not assert exact stack line locations, monitor addresses, or PIDs since they vary by JDK and run. Here CountDownLatch only ensures the holder thread acquires the monitor **before** the waiter thread starts; it is not the contended object under investigation.
 
-### 7.2 Chuyển bằng chứng thành giả thuyết nguyên nhân gốc
+### 7.2 Turning Evidence into a Root-Cause Hypothesis
 
-Giả sử mã ứng dụng có cấu trúc “đọc trạng thái → khóa toàn cục → gọi remote API → cập nhật trạng thái → nhả khóa”. Khi remote API đôi lúc chậm, thời gian giữ khóa tăng; mỗi request mới buộc phải xếp hàng. **Thời gian chờ trong hàng đợi** tăng nhanh theo mức tranh chấp và có thể khiến p99 cao dù CPU và GC vẫn bình thường.
+Suppose application code has the structure "read state → global lock → call remote API → update state → release lock." When the remote API occasionally slows down, lock hold duration increases; every new request must queue up. **Queue wait time** grows rapidly with contention and can push p99 high even while CPU and GC remain normal.
 
-Giả thuyết nguyên nhân gốc: “Critical section giữ monitor chia sẻ bao trùm một lời gọi I/O chậm; độ trễ của dependency kéo dài thời gian giữ khóa, làm nhiều request BLOCKED và đẩy p99 tăng khi concurrency tăng.”
+Root-cause hypothesis: "The critical section holding a shared monitor wraps a slow I/O call; dependency latency extends lock hold time, causing multiple requests to become BLOCKED and driving p99 up as concurrency grows."
 
-Cách kiểm chứng:
-1. Đối chiếu mã đang triển khai với thread dump để xác nhận monitor, lock owner và vị trí gọi I/O thực tế; xác nhận trace/metric của cùng thời điểm.
-2. Trên môi trường kiểm thử, phát tải tương tự và cố ý tăng latency dependency trong phạm vi kiểm soát; quan sát số luồng chờ và p99.
-3. Thiết kế lại để giảm thời gian giữ khóa, ví dụ thực hiện I/O ngoài critical section **nếu** bất biến dữ liệu và thứ tự cập nhật vẫn đúng; có thể thay monitor toàn cục bằng đồng bộ hóa chi tiết hơn, hàng đợi có giới hạn hoặc điều phối độc lập theo key.
-4. Lặp lại với cùng điều kiện, so p50/p95/p99, throughput, trạng thái thread, lỗi dữ liệu và retry. Sửa lock contention mà làm hỏng tính nhất quán không phải sửa thành công.
+How to verify:
+1. Cross-check the deployed code against thread dumps to confirm the monitor, lock owner, and actual I/O call site; verify traces/metrics for the same timestamp.
+2. In a test environment, generate similar load and deliberately increase dependency latency within controlled bounds; observe waiting thread count and p99.
+3. Redesign to shorten lock hold time, e.g., perform I/O outside the critical section **if** data invariants and update ordering remain correct; consider replacing the global monitor with finer-grained synchronization, bounded queues, or key-independent coordination.
+4. Repeat under the same conditions, comparing p50/p95/p99, throughput, thread states, data errors, and retries. Fixing lock contention while breaking consistency is not a successful fix.
 
-Nếu bỏ lời gọi chậm khỏi critical section làm số thread BLOCKED giảm và p99 trở về baseline trong tải tương tự, niềm tin về cơ chế tăng đáng kể. Nếu triệu chứng vẫn tồn tại, phải mở lại H2/H3 hoặc giả thuyết mới; không chỉnh sửa báo cáo để ép khớp chẩn đoán ban đầu.
+If removing the slow call from the critical section reduces BLOCKED threads and brings p99 back to baseline under similar load, confidence in the mechanism rises substantially. If symptoms persist, reopen H2/H3 or new hypotheses; do not edit the report to force-fit the initial diagnosis.
 
-## 8. Tình huống đối chứng: đừng nhầm GC hoặc bộ nhớ với nguyên nhân gốc
+## 8. Counter-Scenario: Do Not Mistake GC or Memory for the Root Cause
 
-Giả sử sau deploy, **heap used**, số lần GC và p99 cùng tăng. Cách kết luận vội là “GC gây chậm, hãy tăng -Xmx”. Một đường nhân quả khác có thể là: thay đổi mã tạo nhiều object tạm → allocation rate tăng → GC hoạt động nhiều → CPU cạnh tranh và tail latency tăng. Trong trường hợp này, **phần cấp phát bất thường trong mã** là điều cần sửa, còn GC là phản ứng của runtime.
+Suppose after a deploy, **heap used**, GC count, and p99 all rise together. A hasty conclusion is "GC is causing slowness, increase `-Xmx`." Another causal path may be: a code change creates many temporary objects → allocation rate rises → GC runs more frequently → CPU contention and tail latency rise. In this case, the **abnormal allocation in code** is what needs fixing, while GC is the runtime's reaction.
 
-Cũng có thể dependency chậm làm request sống lâu hơn, giữ nhiều object/request context trong heap, dẫn đến heap used tăng **sau khi** latency tăng. Dữ liệu cần phân biệt:
+It is also possible a slow dependency keeps requests alive longer, retaining more objects/request contexts in the heap, causing heap used to rise **after** latency rises. Data needed to distinguish them:
 
-| Câu hỏi | Dữ liệu cần |
+| Question | Data Needed |
 | --- | --- |
-| Pause GC có đủ dài và trùng các request chậm không? | GC log/JFR với timestamp so với request trace |
-| Allocation rate tăng trước hay sau lỗi? | JFR allocation samples, throughput, deploy timeline |
-| Object được giữ lâu hay chỉ tạo nhiều rồi thu gom? | Heap trend sau chu kỳ GC tự nhiên, class histogram/retained graph khi cần |
-| Bộ nhớ tăng nằm ở heap hay ngoài heap? | Heap committed/used so với container RSS, direct/native metrics |
-| Tăng heap có thật sự xử lý cơ chế không? | So sánh có kiểm soát và tác dụng phụ: pause, RSS limit, OOMKilled |
+| Are GC pauses long enough and aligned with slow requests? | GC logs/JFR with timestamps compared against request traces |
+| Did allocation rate rise before or after the errors? | JFR allocation samples, throughput, deploy timeline |
+| Are objects retained long-term or merely allocated heavily and collected? | Heap trend across natural GC cycles, class histogram/retained graph when needed |
+| Is memory growth inside the heap or off-heap? | Heap committed/used vs. container RSS, direct/native metrics |
+| Does increasing heap actually address the mechanism? | Controlled comparison and side effects: pauses, RSS limits, OOMKilled |
 
-Giải pháp có thể là loại bỏ allocation dư, sửa cache không giới hạn, giới hạn concurrency hoặc tối ưu payload. Tăng heap có lúc là điều chỉnh hợp lệ nhưng không tự là bằng chứng về nguyên nhân; còn OOMKilled do container RSS có thể xảy ra khi Java heap chưa chạm -Xmx. Với lỗi rò rỉ, cần chứng cứ **retention tăng qua thời gian trong điều kiện tương đương**, không chỉ một ảnh chụp heap lớn.
+The fix may be eliminating excess allocations, fixing an unbounded cache, bounding concurrency, or optimizing payloads. Increasing heap can sometimes be a valid tuning step, yet it is not by itself proof of cause; and container RSS OOMKilled can happen before Java heap even touches `-Xmx`. For leaks, you need evidence of **retention growing over time under comparable conditions**, not just one large heap snapshot.
 
-## 9. Đánh giá chất lượng bằng chứng
+## 9. Evaluating Evidence Quality
 
-Một “bằng chứng tốt” không phải bằng chứng ủng hộ câu chuyện hấp dẫn nhất. Đánh giá theo sáu trục:
+"Good evidence" is not the evidence supporting the most appealing story. Evaluate along six axes:
 
-1. **Đúng phạm vi:** Có đến từ instance/PID/version/endpoint chịu tác động hay không?
-2. **Đúng thời điểm:** Có thu trong lúc triệu chứng còn xảy ra, với timestamp đồng bộ hay không?
-3. **Có đối chứng:** Có so với thời kỳ bình thường, nhóm không lỗi, hoặc tải tương đương?
-4. **Có tính độc lập:** Trace, runtime event và pool metric có cung cấp các góc quan sát khác nhau?
-5. **Có khả năng bác bỏ:** Quan sát nào sẽ khiến ta bỏ giả thuyết, và đã chủ động tìm nó chưa?
-6. **Có liên hệ nhân quả:** Bằng chứng có giải thích được toàn bộ đường đi từ trigger tới tác động, và có kiểm chứng can thiệp khi an toàn?
+1. **Right scope:** Does it come from the affected instance/PID/version/endpoint?
+2. **Right timing:** Was it collected while symptoms were still occurring, with synchronized timestamps?
+3. **With controls:** Is it compared against healthy periods, non-failing groups, or equivalent load?
+4. **Independent:** Do traces, runtime events, and pool metrics provide distinct observational angles?
+5. **Falsifiable:** What observation would make us discard the hypothesis, and have we actively looked for it?
+6. **Causally linked:** Does the evidence explain the entire path from trigger to impact, and has an intervention been verified where safe?
 
-Xếp mức tin cậy theo cách nói có căn cứ:
+Assign confidence levels in a grounded way:
 
-- **Thấp:** mới có tương quan hoặc một snapshot; nhiều giả thuyết còn phù hợp.
-- **Trung bình:** nhiều mẫu trong đúng khoảng lỗi nhất quán với một cơ chế; đối chứng và bằng chứng phủ định đã xét nhưng chưa thử can thiệp.
-- **Cao:** quan sát đa nguồn, cơ chế được chứng minh, thử tái hiện/biện pháp sửa làm thay đổi dấu vết và kết quả theo đúng dự đoán.
+- **Low:** only correlation or a single snapshot; multiple hypotheses remain plausible.
+- **Medium:** multiple samples in the exact failure window align with one mechanism; controls and disconfirming evidence were checked, but no intervention has been tested yet.
+- **High:** multi-source observation, mechanism proven, and reproduction/remediation changes traces and outcomes as predicted.
 
-Không biến “không thấy log lỗi” thành “không có lỗi”. Logging có thể thiếu, bị lọc, không giữ đủ thời gian hoặc không bao phủ phần chờ. Nếu profiling chỉ lấy mẫu, mẫu không xuất hiện cũng không bảo đảm code path đó không chạy.
+Do not turn "no error logs found" into "no errors occurred." Logging can be missing, filtered, not retained long enough, or fail to cover waiting sections. If profiling relies on sampling, absence from samples also does not guarantee a code path did not execute.
 
-## 10. Những sai lầm thường gặp và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-| Sai lầm | Hậu quả | Cách làm tốt hơn |
+| Mistake | Consequence | Better Practice |
 | --- | --- | --- |
-| Chọn nguyên nhân ngay từ tên exception | Chỉ chữa symptom hoặc bỏ qua nguyên nhân phía upstream | Lập timeline và hỏi exception được phát sinh sau cơ chế nào |
-| Một biểu đồ tăng cùng lúc ⇒ quan hệ nhân quả | Nhầm hậu quả/thành phần khuếch đại với trigger | So thời gian, stack/trace, đối chứng, thử thay đổi từng biến |
-| Chỉ tìm bằng chứng xác nhận giả thuyết thích nhất | Confirmation bias | Ghi trước dự đoán bác bỏ, giữ giả thuyết cạnh tranh |
-| Một thread dump ⇒ ứng dụng deadlock | Nhầm chờ hợp lệ hoặc contention với vòng khóa chết | Lấy nhiều mẫu, kiểm tra owner/wait graph, khả năng tiến triển |
-| Thấy RUNNABLE ⇒ JVM tiêu CPU tại code đó | Nhầm trạng thái JVM với scheduler CPU | Kết hợp CPU samples, OS metrics, quota và thời lượng |
-| Thấy heap tăng ⇒ memory leak | Nhầm allocation/tải tăng với retention | Xem xu hướng, GC, heap/RSS, chuỗi object giữ lại |
-| Tăng thread pool/heap hoặc timeout vô điều kiện | Che triệu chứng, thêm hàng đợi và áp lực downstream | Tìm giới hạn thực tế, queueing, resource budget; đo trước/sau |
-| Chụp heap dump trên production không chuẩn bị | Pause, tốn disk, rò dữ liệu nhạy cảm | Đánh giá mục đích/chi phí/quyền, ưu tiên tín hiệu nhẹ trước |
-| Đo sau rollback rồi kết luận về lúc lỗi | Mất bằng chứng quan trọng | Lưu bằng chứng có timestamp trước thay đổi nếu an toàn |
-| “Hết lỗi sau deploy” ⇒ sửa đúng root cause | Có thể chỉ khác tải hoặc thời điểm | Đối chiếu điều kiện, kiểm tra cơ chế dự đoán và regression |
+| Picking the cause solely from an exception name | Fixes only the symptom or misses upstream causes | Build a timeline and ask what mechanism led to the exception |
+| Two charts rise together ⇒ causation | Confuses consequences/amplifiers with the trigger | Compare timing, stacks/traces, controls, and test one variable at a time |
+| Seeking only evidence confirming a favorite hypothesis | Confirmation bias | Write falsifying predictions upfront and keep competing hypotheses |
+| One thread dump ⇒ application deadlock | Mistakes valid waits or contention for a deadlock cycle | Take multiple samples, check owner/wait graph and progress |
+| Seeing RUNNABLE ⇒ JVM burning CPU in that code | Confuses JVM state with OS CPU scheduler | Combine CPU samples, OS metrics, quotas, and duration |
+| Seeing heap rise ⇒ memory leak | Confuses allocation/higher load with retention | Check trends, GC, heap/RSS, and retention chains |
+| Raising thread pools/heap or timeouts unconditionally | Masks symptoms, adds queues and downstream pressure | Find true limits, queueing, and resource budgets; measure before/after |
+| Taking unprepared heap dumps in production | Pauses, disk exhaustion, sensitive data exposure | Assess purpose/cost/permissions, prefer lightweight signals first |
+| Measuring after rollback and concluding about failure time | Loses critical evidence | Capture timestamped evidence before changing state if safe |
+| "Errors stopped after deploy" ⇒ fixed the right root cause | Could just be different load or time of day | Compare conditions, check predicted mechanisms and regressions |
 
-Một phép thử có thể **làm sai giả thuyết nhưng vẫn có ích**: loại trừ được H3 giúp tập trung vào H1/H2. Không sửa code chỉ để chứng minh điều đã tin; để dữ liệu dẫn tới quyết định.
+A test can **disprove a hypothesis and still be valuable**: ruling out H3 helps focus on H1/H2. Do not modify code just to prove what you already believe; let the data drive the decision.
 
-## 11. Mẫu báo cáo sự cố có thể tái sử dụng
+## 11. Reusable Incident Report Template
 
 ~~~text
-SỰ CỐ / ẢNH HƯỞNG
-- Dịch vụ, phiên bản, instance, người dùng/API bị tác động:
-- Mốc bắt đầu/kết thúc, timezone, SLO/error/latency/throughput:
-- Baseline và cách lấy mẫu:
+INCIDENT / IMPACT
+- Service, version, instance, affected users/APIs:
+- Start/end timestamps, timezone, SLO/error/latency/throughput:
+- Baseline and sampling method:
 
-QUAN SÁT ĐÃ XÁC MINH
-- Triệu chứng:
-- Metric/log/trace/JFR/thread dump/GC log (PID, timestamp, nguồn):
-- Điều kiện xuất hiện và đối chứng:
-- Dữ liệu thiếu/hạn chế đo:
+VERIFIED OBSERVATIONS
+- Symptoms:
+- Metrics/logs/traces/JFR/thread dumps/GC logs (PID, timestamp, source):
+- Occurrence conditions and controls:
+- Missing data / measurement limitations:
 
-GIẢ THUYẾT
-- H1: cơ chế → dấu vết dự đoán → quan sát ủng hộ/bác bỏ
-- H2: cơ chế → dấu vết dự đoán → quan sát ủng hộ/bác bỏ
-- Những giả thuyết chưa loại trừ:
+HYPOTHESES
+- H1: mechanism → predicted traces → supporting/refuting observations
+- H2: mechanism → predicted traces → supporting/refuting observations
+- Hypotheses not yet ruled out:
 
-KẾT LUẬN NHÂN QUẢ
+CAUSAL CONCLUSION
 - Trigger:
-- Cơ chế gần:
-- Nguyên nhân gốc (nếu đủ chứng cứ):
-- Yếu tố góp phần:
-- Mức tin cậy và căn cứ; điều vẫn chưa chắc chắn:
+- Proximate mechanism:
+- Root cause (if sufficient evidence):
+- Contributing factors:
+- Confidence level and basis; remaining uncertainties:
 
-HÀNH ĐỘNG / KIỂM CHỨNG
-- Mitigation và khả năng rollback:
-- Sửa nguyên nhân, guardrail, regression test:
-- Chỉ số trước/sau trong điều kiện tương đương:
-- Kết quả xác nhận; người phụ trách theo dõi:
+ACTIONS / VERIFICATION
+- Mitigation and rollback capability:
+- Root-cause fix, guardrails, regression tests:
+- Before/after metrics under comparable conditions:
+- Verification outcome; owner monitoring follow-up:
 ~~~
 
-Báo cáo trên phải chỉ ra **liên kết giữa từng kết luận và chứng cứ thực sự**, không chỉ liệt kê công cụ đã chạy. Với ảnh chụp, JFR hoặc heap dump có dữ liệu nhạy cảm, lưu ở nơi được kiểm soát, trích dẫn mã tham chiếu phù hợp và tuân thủ chính sách lưu giữ của hệ thống.
+This report must show the **link between each conclusion and actual evidence**, not merely list tools run. For snapshots, JFR files, or heap dumps containing sensitive data, store them in access-controlled locations, cite appropriate references, and follow system retention policies.
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-**Bài tập A.** Một API có p99 tăng, CPU thấp, nhiều thread ở TIMED_WAITING. Có đủ kết luận là deadlock không? **Không.** Cần xem stack, chờ cái gì, có giữ monitor không, request có tiếp tục tiến triển không, nhiều mẫu thời gian và dấu vết liên quan. TIMED_WAITING có thể chỉ là thread ngủ hợp lệ.
+**Exercise A.** An API shows rising p99, low CPU, and many threads in TIMED_WAITING. Is that enough to conclude a deadlock? **No.** Check stacks, what they are waiting on, whether any monitors are held, whether requests continue progressing, multiple time samples, and related traces. TIMED_WAITING may simply be valid sleeping threads.
 
-**Bài tập B.** Sau một thay đổi mã, allocation rate tăng 3 lần và GC frequency tăng, nhưng GC pause mỗi lần rất ngắn. Gọi “GC là nguyên nhân gốc” có hợp lý? **Chưa.** Hãy kiểm tra nguồn allocation, CPU mà GC tiêu thụ, latency correlation và code path mới. Cấp phát tăng có thể là cơ chế cần xử lý.
+**Exercise B.** After a code change, allocation rate triples and GC frequency increases, yet each GC pause is very short. Is calling "GC is the root cause" justified? **Not yet.** Check the allocation source, CPU consumed by GC, latency correlation, and the new code path. Elevated allocation may be the mechanism needing remediation.
 
-**Bài tập C.** Database pool active chạm max, acquire time tăng, downstream latency cũng tăng trước đó. Chỉ tăng pool size có giải quyết root cause? **Không thể kết luận.** Pool cạn có thể do connection bị giữ lâu vì downstream chậm; tăng pool còn có thể khuếch đại áp lực. Cần nối trace, pool wait, query latency, retry và giới hạn DB.
+**Exercise C.** Active DB pool connections hit max, acquire time rises, and downstream latency had already risen beforehand. Will merely increasing pool size solve the root cause? **Inconclusive.** Pool exhaustion may result from connections being held longer due to slow downstream; enlarging the pool could even amplify pressure. Link traces, pool waits, query latency, retries, and DB limits.
 
-**Bài tập D.** Một bản canary bỏ I/O khỏi critical section, số thread BLOCKED giảm đáng kể nhưng p99 toàn dịch vụ vẫn cao. Kết luận nào phù hợp? **Một cơ chế contention được cải thiện nhưng chưa giải thích hết triệu chứng.** Kiểm tra route, tỷ lệ traffic canary, yếu tố còn lại và các giả thuyết cạnh tranh.
+**Exercise D.** A canary build removes I/O from the critical section, BLOCKED threads drop sharply, yet overall service p99 stays high. What conclusion fits? **One contention mechanism improved, but it does not fully explain the symptom.** Check routes, canary traffic share, remaining bottlenecks, and competing hypotheses.
 
-**Tiêu chí hoàn thành bài:** Với một sự cố thực hoặc mô phỏng, hãy viết được phát biểu có baseline và thời gian, ít nhất hai giả thuyết bác bỏ được, dự đoán dấu vết và phép đo tương ứng, bảng bằng chứng dương/âm, chuỗi cơ chế nhân quả và một cách kiểm chứng sửa lỗi. Một kết luận “chưa đủ dữ liệu” có lập luận rõ còn tốt hơn một nguyên nhân gốc suy đoán.
+**Completion criteria:** For a real or simulated incident, write a statement with baseline and timestamps, at least two falsifiable hypotheses, predicted traces and corresponding measurements, a table of positive/negative evidence, a causal mechanism chain, and a verification plan for the fix. A well-argued "insufficient data" conclusion is better than a guessed root cause.
 
-## Ghi nhớ
+## Takeaways
 
-- **Triệu chứng** là điểm khởi đầu, **giả thuyết** là cơ chế có thể kiểm chứng, **bằng chứng** là dữ liệu đúng phạm vi và thời gian, còn **nguyên nhân gốc** phải giải thích được chuỗi nhân quả và gợi ra biện pháp ngăn tái diễn.
-- Luôn tìm bằng chứng **bác bỏ**, theo dõi những giả thuyết còn sống và đối chiếu ứng dụng–JVM–OS–dependency. Không có một metric đơn lẻ đủ để chẩn đoán mọi vấn đề runtime Java.
-- Kết luận chất lượng cao gồm **trigger → cơ chế → triệu chứng → kiểm chứng → hiệu quả sau sửa**; ghi nhận mức tin cậy và điều chưa biết.
+- **Symptoms** are the starting point, **hypotheses** are testable mechanisms, **evidence** is properly scoped and timestamped data, and **root cause** must explain the causal chain and point to preventive measures.
+- Always seek **falsifying** evidence, track surviving hypotheses, and cross-check application–JVM–OS–dependencies. No single metric suffices to diagnose every Java runtime issue.
+- High-quality conclusions follow **trigger → mechanism → symptom → verification → post-fix effect**; explicitly record confidence levels and unknowns.

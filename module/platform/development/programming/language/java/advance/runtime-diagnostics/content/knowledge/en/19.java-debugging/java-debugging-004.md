@@ -1,72 +1,72 @@
-# 19.4 Attach hoặc launch bằng jdb và quản lý vòng đời phiên
+# 19.4 Attaching or Launching with jdb and Managing Session Lifecycle
 
-## 1. Mục tiêu: kết nối đúng JVM, điều khiển đúng vòng đời
+## 1. Goal: Connect to the Right JVM, Control the Right Lifecycle
 
-**`jdb` (Java Debugger)** là trình gỡ lỗi dòng lệnh đi kèm JDK, sử dụng **Java Debug Interface (JDI)** để giao tiếp với JVM đích qua cơ chế của **Java Platform Debugger Architecture (JPDA)**. Nó cho phép đặt breakpoint, xem stack/local variables, kiểm tra thread, chạy từng bước và tiếp tục thực thi mà không cần IDE.
+**`jdb` (Java Debugger)** is the command-line debugger bundled with the JDK, using the **Java Debug Interface (JDI)** to communicate with a target JVM through the **Java Platform Debugger Architecture (JPDA)**. It lets you set breakpoints, view stacks/local variables, inspect threads, single-step, and resume execution without an IDE.
 
-Tuy nhiên, thao tác debug đúng không chỉ là “mở được prompt `jdb`”. Bạn phải xác định:
+However, proper debugging is not just "getting a `jdb` prompt open." You must determine:
 
-- **Ai tạo JVM đích?** `jdb` *launch* một tiến trình mới hay chỉ *attach* vào ứng dụng đã chạy?
-- **Ai lắng nghe kết nối?** JVM đích với `server=y` hay trình debugger với `server=n`?
-- **Ứng dụng chạy hay đang đợi?** `suspend=y/n` quyết định việc chờ trước khi đi qua giai đoạn khởi động; breakpoint cũng có thể làm thread/VM dừng sau đó.
-- **Làm gì khi hoàn tất?** `cont`/`resume`, `clear` và `quit` mang ý nghĩa khác nhau với dừng ứng dụng hoặc kết thúc phiên.
-- **Làm gì nếu mất kết nối?** Debugger và JVM là hai tiến trình/đối tượng khác nhau; không được suy ra trạng thái tiến trình chỉ từ việc cửa sổ `jdb` đóng.
+- **Who creates the target JVM?** Does `jdb` *launch* a new process or merely *attach* to an already running application?
+- **Who listens for the connection?** The target JVM with `server=y`, or the debugger with `server=n`?
+- **Is the application running or waiting?** `suspend=y/n` controls waiting before passing startup; breakpoints can also pause threads/VM afterward.
+- **What happens when done?** `cont`/`resume`, `clear`, and `quit` have different implications for stopping the application or ending the session.
+- **What if the connection drops?** The debugger and the JVM are separate processes/entities; never infer process status merely from a `jdb` window closing.
 
-Bài học tập trung vào **JDK 17+ và HotSpot/JDWP socket trên máy phát triển**; tham chiếu cú pháp Oracle JDK 21. Một số connector hoặc hành vi cụ thể phụ thuộc nền tảng, JDK và quy trình chạy service.
+This lesson focuses on **JDK 17+ and HotSpot/JDWP sockets on a development machine**; syntax references Oracle JDK 21. Certain connectors or specific behaviors depend on platform, JDK, and how the service is run.
 
-**Kết quả mong đợi:** tự chạy được hai quy trình *launch* và *attach*, giải thích mối quan hệ giữa debugger/JVM/port/PID, quan sát và điều khiển một breakpoint, rồi đóng phiên có kiểm soát mà không vô tình treo hoặc ngắt ứng dụng quan trọng.
+**Expected outcome:** independently run both *launch* and *attach* workflows, explain the relationship among debugger/JVM/port/PID, observe and control a breakpoint, and close the session cleanly without accidentally hanging or killing a critical application.
 
-## 2. Mô hình ba lớp: JDI, JDWP, transport
+## 2. Three-Layer Model: JDI, JDWP, Transport
 
 ```text
-Terminal người debug                  JVM ứng dụng (debuggee)
+Debugger terminal                     Application JVM (debuggee)
 +------------------+                 +---------------------------+
 | jdb              |                 | Java code + threads       |
-| lệnh breakpoint, |                 | JDWP agent               |
+| breakpoint cmds, |                 | JDWP agent                |
 | step, cont, quit |                 |                           |
 |     JDI          |                 | JVM TI / runtime          |
 +---------+--------+                 +-------------+-------------+
           |                                        |
           +----------- JDWP messages --------------+
-                   qua dt_socket TCP
-                      (hoặc transport khác)
+                   over dt_socket TCP
+                     (or other transport)
 ```
 
-- **JDI**: API để phía debugger điều khiển/quan sát target VM. `jdb` là một ứng dụng client dùng JDI; giao diện jdb không phải giao diện riêng của mọi JVM.
-- **JDWP**: giao thức trao đổi yêu cầu và event, ví dụ đặt breakpoint hoặc báo một thread đang dừng.
-- **`dt_socket`**: transport dựa trên TCP. Thông thường phía `jdb` và JVM dùng `host:port` để gặp nhau.
-- **JDWP agent**: được nạp vào target JVM bằng `-agentlib:jdwp=...` khi dùng attach vào chương trình đã được chuẩn bị cho debug.
+- **JDI**: the API on the debugger side to control/observe the target VM. `jdb` is a client application using JDI; the `jdb` interface is not inherent to every JVM.
+- **JDWP**: the protocol exchanging requests and events, such as setting a breakpoint or reporting a suspended thread.
+- **`dt_socket`**: the TCP-based transport. Usually `jdb` and the JVM meet via `host:port`.
+- **JDWP agent**: loaded into the target JVM via `-agentlib:jdwp=...` when attaching to a program prepared for debugging.
 
-Cần phân biệt rõ ba loại định danh:
+Clearly distinguish three types of identifiers:
 
-| Định danh | Ví dụ | Vai trò |
+| Identifier | Example | Role |
 | --- | --- | --- |
-| **PID** của JVM | `12345` | Hệ điều hành định danh tiến trình; dùng để kiểm tra đúng ứng dụng, log, `jcmd`... |
-| **JDWP address** | `127.0.0.1:5005` | Địa chỉ kết nối debugger; `jdb -attach` dùng **address**, không phải PID |
-| **Tên main class** | `JdbSessionDemo` | Cần trong lệnh **launch** để JVM mới biết chạy chương trình nào; attach không cần chạy lại `main` |
+| JVM **PID** | `12345` | OS process identifier; used to verify the right application, logs, `jcmd`, etc. |
+| **JDWP address** | `127.0.0.1:5005` | Debugger connection address; `jdb -attach` uses an **address**, not a PID |
+| **Main class name** | `JdbSessionDemo` | Needed in **launch** commands so the new JVM knows which program to run; attach does not re-run `main` |
 
-**Sai lầm dễ gặp:** `jdb -attach 12345` không có nghĩa “attach vào PID 12345” trên Linux/macOS. Với connector socket mặc định, `12345` trong cú pháp đó được hiểu là **địa chỉ/port JDWP**; nếu JVM đã có PID 12345 nhưng không bật JDWP thì lệnh này không tự tạo được phiên debug.
+**Common mistake:** `jdb -attach 12345` does not mean "attach to PID 12345" on Linux/macOS. With the default socket connector, `12345` in that syntax is interpreted as a **JDWP address/port**; if a JVM with PID 12345 does not have JDWP enabled, this command cannot create a debug session on its own.
 
-Với một số connector nâng cao, JDI có `com.sun.jdi.ProcessAttach` nhận `pid`, nhưng yêu cầu/cơ chế khác với cách attach socket thông thường. Khi học `jdb`, nên bắt đầu từ `-attach host:port` có cấu hình rõ ràng.
+For certain advanced connectors, JDI has `com.sun.jdi.ProcessAttach` accepting `pid`, but its requirements/mechanisms differ from standard socket attach. When learning `jdb`, start from explicit `-attach host:port`.
 
-## 3. Bốn chế độ kết nối cần phân biệt
+## 3. Four Connection Modes to Distinguish
 
-| Chế độ | JVM đích khởi động thế nào? | Phía nhận kết nối | Lệnh phổ biến | Khi nào dùng |
+| Mode | How does the target JVM start? | Listening side | Common command | When to use |
 | --- | --- | --- | --- | --- |
-| **Launch (default)** | `jdb` tạo JVM mới cho class được chỉ định | Connector launch quản lý kết nối | `jdb -classpath . JdbSessionDemo` | Kiểm soát từ trước khi `main` chạy |
-| **Launch ngay (`-launch`)** | `jdb` tạo JVM mới ngay, dừng trước tải class ứng dụng đầu tiên | Connector launch | `jdb -launch -classpath . JdbSessionDemo` | Muốn target sẵn sàng ở trạng thái dừng, dùng `cont` thay `run` |
-| **Attach** | JVM **đã được khởi động với JDWP agent** | Thường target JVM: `server=y` | `jdb -attach 127.0.0.1:5005` | Điều tra ứng dụng đang chạy, không khởi chạy bản sao |
-| **Listen / reverse connect** | Target JVM tự mở kết nối đến debugger | `jdb`: listener, target `server=n` | `jdb -listen 5006` và JVM `server=n` | Debugger phải là phía lắng nghe, ví dụ do ràng buộc kết nối mạng |
+| **Launch (default)** | `jdb` spawns a new JVM for the specified class | Launch connector manages connection | `jdb -classpath . JdbSessionDemo` | Control before `main` runs |
+| **Immediate launch (`-launch`)** | `jdb` spawns a new JVM immediately, pauses before loading first app class | Launch connector | `jdb -launch -classpath . JdbSessionDemo` | Want target ready in paused state, use `cont` instead of `run` |
+| **Attach** | JVM **already started with JDWP agent** | Usually target JVM: `server=y` | `jdb -attach 127.0.0.1:5005` | Investigate a running application without launching a copy |
+| **Listen / reverse connect** | Target JVM opens connection to debugger | `jdb`: listener, target `server=n` | `jdb -listen 5006` and JVM `server=n` | Debugger must be the listening side, e.g., due to network constraints |
 
-**`server=y/n` nằm trong cấu hình agent của JVM đích**, **không** có nghĩa `jdb` tự động được chạy trên server hoặc client ứng dụng. Cả hai phía có thể trên cùng máy, container hoặc hai máy có mạng được bảo vệ.
+**`server=y/n` belongs to the target JVM's agent config**, and does **not** mean `jdb` automatically runs on the server or application client. Both sides can be on the same machine, in containers, or on two machines over a secured network.
 
-**Các kết nối từ xa phải được coi là thao tác đặc quyền.** JDWP cung cấp khả năng xem dữ liệu/chạy lệnh thông qua debugger, không phải một endpoint HTTP có xác thực người dùng mặc định. Trong bài thực hành chỉ bind loopback; không đặt `address=*:5005` trên internet hoặc mạng dùng chung.
+**Remote connections must be treated as privileged operations.** JDWP provides access to view data and execute commands through the debugger, not an HTTP endpoint with default user authentication. Bind only to loopback in exercises; never set `address=*:5005` on the Internet or shared networks.
 
-## 4. Chương trình Java 17+ để thực hành
+## 4. Java 17+ Program for Practice
 
-Chương trình dưới đây tồn tại đủ lâu để bạn attach, có method nhỏ để đặt breakpoint, không dùng framework và chỉ in một vài dòng để terminal dễ đọc.
+The program below stays alive long enough for you to attach, has a small method for breakpoints, uses no frameworks, and prints only a few lines so the terminal stays readable.
 
-Lưu **toàn bộ** thành file **`JdbSessionDemo.java`**:
+Save the **entire** code as **`JdbSessionDemo.java`**:
 
 ```java
 public final class JdbSessionDemo {
@@ -102,24 +102,24 @@ public final class JdbSessionDemo {
 }
 ```
 
-Biên dịch với **thông tin debug đầy đủ**:
+Compile with **full debug info**:
 
 ```bash
 javac -g JdbSessionDemo.java
 ```
 
-`javac -g` yêu cầu ghi thông tin dòng/source/local variables vào bytecode. Không có thông tin local variable thích hợp, `locals` trong `jdb` có thể không hiển thị biến mong muốn, dù chương trình vẫn chạy bình thường. Hãy biên dịch **đúng file nguồn và đúng bản class** dùng khi debug.
+`javac -g` writes line/source/local-variable metadata into the bytecode. Without proper local variable info, `locals` in `jdb` may fail to display expected variables even though the program runs normally. Compile **the exact source file and exact class build** used when debugging.
 
-Chạy độc lập để kiểm tra:
+Run standalone to verify:
 
 ```bash
 java JdbSessionDemo 10
 ```
 
-Với `rounds=10`, các dòng **kết quả logic xác định** gồm:
+With `rounds=10`, the **deterministic logical output lines** include:
 
 ```text
-PID=<PID thực của tiến trình>
+PID=<actual process PID>
 rounds=10
 tick=1 score=11
 tick=2 score=14
@@ -128,27 +128,27 @@ tick=10 score=110
 completed
 ```
 
-Dòng PID thay đổi theo mỗi lần chạy; `<PID thực của tiến trình>` là **chú thích**, không phải stdout nguyên văn. Các dòng `score` được tính từ công thức `value * value + 10`. Giữa các vòng có `Thread.sleep(1_000)` nên `rounds=10` chạy khoảng 10 giây, có thể lâu hơn nếu máy chịu tải hoặc debugger dừng nó.
+The PID line changes on each run; `<actual process PID>` is an **annotation**, not verbatim stdout. The `score` lines follow `value * value + 10`. With `Thread.sleep(1_000)` between iterations, `rounds=10` takes around 10 seconds, or longer if the machine is busy or the debugger pauses it.
 
-Nếu cần cửa sổ attach dài hơn, dùng `120` hoặc `180` vòng. Không đặt vòng vô hạn trong demo vì khó xác minh kết thúc phiên và thu hồi tiến trình.
+If you need a longer attach window, use `120` or `180` rounds. Avoid infinite loops in demos because verifying session completion and cleaning up processes is harder.
 
-## 5. Quy trình A — jdb launch một JVM mới
+## 5. Workflow A — jdb Launches a New JVM
 
-Đây là cách rõ ràng nhất khi muốn debug từ đầu. Mở terminal trong thư mục chứa `JdbSessionDemo.class` rồi chạy:
+This is the clearest approach when you want to debug from the beginning. Open a terminal in the directory containing `JdbSessionDemo.class` and run:
 
 ```bash
 jdb -classpath . JdbSessionDemo 20
 ```
 
-Phân tích câu lệnh:
+Command breakdown:
 
-- `jdb` chạy **debugger process**.
-- `-classpath .` cho **target JVM** tìm class trong thư mục hiện tại; không phải đường dẫn riêng của file `.java`.
-- `JdbSessionDemo` là tên class chứa `main` (không thêm `.java`).
-- `20` được truyền vào `main(String[] args)` như tham số `rounds`; không phải thời gian breakpoint.
-- Với launch mặc định, có thể cấu hình breakpoint ở prompt rồi dùng lệnh **`run`** để khởi chạy/cho thực thi target theo mô hình launch của jdb.
+- `jdb` runs the **debugger process**.
+- `-classpath .` tells the **target JVM** to find classes in the current directory; it is not a separate path for `.java` files.
+- `JdbSessionDemo` is the class name containing `main` (do not append `.java`).
+- `20` is passed to `main(String[] args)` as `rounds`; it is not a breakpoint timeout.
+- In default launch mode, you can configure breakpoints at the prompt and then use **`run`** to launch/execute the target per `jdb`'s launch model.
 
-Tại prompt `jdb`, nhập lần lượt:
+At the `jdb` prompt, enter in order:
 
 ```text
 help
@@ -156,7 +156,7 @@ stop in JdbSessionDemo.calculate
 run
 ```
 
-`stop in ...` đặt method-entry breakpoint cho `calculate`. Khi target chạm breakpoint, jdb dừng theo chính sách của event; prompt có thể chứa tên thread và số frame, không cần khớp nguyên văn ví dụ nào. Sau đó kiểm tra:
+`stop in ...` sets a method-entry breakpoint for `calculate`. When the target hits the breakpoint, `jdb` pauses per the event's policy; the prompt may display the thread name and frame count and need not match any exact example verbatim. Next, inspect:
 
 ```text
 where
@@ -165,91 +165,91 @@ next
 locals
 ```
 
-- `where` hiển thị stack của thread hiện hành, giúp xác nhận đang ở `calculate`.
-- `locals` liệt kê local variables trong frame khi bytecode có debug info và thread đang dừng. Ở method entry, `value` đã có giá trị, nhưng `squared` có thể chưa được gán; sau khi `next` đi qua phép gán, nó mới có giá trị.
-- `next` thực hiện dòng tiếp theo **trong frame hiện hành**; `step` đi vào method được gọi khi phù hợp. Với compiler/JVM/line mapping, bước chính xác giữa các dòng có thể khác; quan sát line hiện thời trên prompt.
+- `where` prints the current thread's stack, confirming execution is inside `calculate`.
+- `locals` lists local variables in the frame when bytecode has debug info and the thread is suspended. At method entry, `value` already has a value, whereas `squared` may not be assigned yet; after `next` steps past the assignment, it receives its value.
+- `next` executes the next line **in the current frame**; `step` enters called methods when applicable. Exact line stepping may vary by compiler/JVM/line mapping; watch the current line in the prompt.
 
-Để tránh breakpoint này kích hoạt ở **mọi** vòng lặp tiếp theo, bỏ nó rồi tiếp tục:
+To avoid hitting this breakpoint on **every** subsequent loop iteration, clear it and continue:
 
 ```text
 clear JdbSessionDemo.calculate
 cont
 ```
 
-`clear` bỏ breakpoint đã đặt; `cont` tiếp tục thực thi đang dừng. Nếu chưa clear, lần gọi `calculate` tiếp theo sẽ lại dừng và bạn phải `cont` nhiều lần. Muốn xem các breakpoint còn hoạt động, nhập `stop` hoặc `clear` không tham số tùy hỗ trợ của bản `jdb`.
+`clear` removes the installed breakpoint; `cont` resumes suspended execution. If you forget to clear it, the next call to `calculate` will pause again and require repeated `cont` commands. To list active breakpoints, enter `stop` or `clear` without arguments depending on `jdb` version support.
 
-Khi target chạy đủ 20 vòng, ứng dụng in `completed` và kết thúc bình thường. Debugger có thể thông báo target VM đã thoát; **đây là một kết thúc của target**, không phải bằng chứng rằng `jdb` hoặc shell đã bị kill cưỡng bức. Kết thúc giao diện debugger bằng `quit` khi cần.
+Once the target completes all 20 rounds, the app prints `completed` and exits normally. The debugger may report that the target VM exited; **this is the target terminating**, not evidence that `jdb` or the shell was forcibly killed. Exit the debugger UI with `quit` when needed.
 
-### Biến thể `-launch`: không dùng `run` lần nữa
+### The `-launch` Variant: No Extra `run`
 
 ```bash
 jdb -launch -classpath . JdbSessionDemo 20
 ```
 
-Oracle JDK 21 mô tả `-launch` bắt đầu debugged application **ngay khi khởi động jdb**, target dừng trước khi ứng dụng bắt đầu chạy. Vì vậy, trong phiên này:
+Oracle JDK 21 documents that `-launch` starts the debugged application **immediately upon starting `jdb`**, with the target suspended before the application begins executing. Thus, in this session:
 
 ```text
 stop in JdbSessionDemo.calculate
 cont
 ```
 
-`-launch` **loại bỏ nhu cầu dùng `run`**. Trộn `run` của luồng launch mặc định vào phiên `-launch` có thể khiến người học hiểu sai trạng thái target hoặc thử khởi động lại không mong muốn.
+`-launch` **eliminates the need for `run`**. Mixing `run` from the default launch workflow into a `-launch` session can confuse learners about target state or trigger unintended restarts.
 
-**Điểm nhận biết launch:** Không cần JDWP port thủ công hay PID trước đó. Debugger là phía tạo JVM mới; khi cấu hình kết thúc phiên phải kiểm tra riêng trạng thái tiến trình do nó launch (xem mục 10).
+**Launch indicator:** No manual JDWP port or prior PID is needed. The debugger spawns the new JVM; when configuring session teardown, check the launched process's status separately (see section 10).
 
-## 6. Quy trình B — jdb attach vào JVM đang chạy
+## 6. Workflow B — jdb Attaches to a Running JVM
 
-**Attach** không tạo bản sao ứng dụng; nó kết nối tới JVM đang có. Bạn **phải chuẩn bị JDWP agent** khi bắt đầu tiến trình đích theo quy trình đơn giản của bài học.
+**Attach** does not spawn a duplicate application; it connects to an existing JVM. You **must prepare the JDWP agent** when starting the target process in this lesson's simple workflow.
 
-### Bước 1 — khởi động target JVM, bật JDWP nhưng không chờ
+### Step 1 — Start the target JVM with JDWP enabled, without suspending
 
-Mở terminal A, chạy:
+Open terminal A and run:
 
 ```bash
 java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:5005 JdbSessionDemo 120
 ```
 
-Thành phần quan trọng:
+Key parameters:
 
-| Tham số | Vai trò | Nếu hiểu sai |
+| Parameter | Role | If misunderstood |
 | --- | --- | --- |
-| `-agentlib:jdwp=...` | Nạp agent JDWP bên trong JVM đích | `jdb` không tự debug được một JVM bất kỳ không chuẩn bị |
-| `transport=dt_socket` | Dùng TCP socket | Không phải file Unix socket hay HTTP |
-| `server=y` | **Target JVM lắng nghe** debugger kết nối | Không phải đặt ứng dụng Java thành HTTP server |
-| `suspend=n` | Cho phép ứng dụng bắt đầu chạy dù chưa có debugger | Có thể bỏ lỡ code path trước khi attach |
-| `address=127.0.0.1:5005` | Chỉ bind loopback port 5005 | PID của target **không phải** 5005 |
-| `JdbSessionDemo 120` | Chạy 120 vòng, đủ thời gian attach | Tham số 120 không liên quan debugger timeout |
+| `-agentlib:jdwp=...` | Loads the JDWP agent inside the target JVM | `jdb` cannot automatically debug an arbitrary unprepared JVM |
+| `transport=dt_socket` | Uses a TCP socket | Not a Unix domain socket file or HTTP |
+| `server=y` | **Target JVM listens** for debugger connections | Does not turn the Java app into an HTTP server |
+| `suspend=n` | Allows the app to start running without a debugger | Can miss code paths executed before attaching |
+| `address=127.0.0.1:5005` | Binds only loopback port 5005 | Target's PID is **not** 5005 |
+| `JdbSessionDemo 120` | Runs 120 rounds, giving enough time to attach | Argument 120 is unrelated to debugger timeout |
 
-Terminal A có thể in thông báo agent đang lắng nghe và các dòng `PID=...`, `tick=...`. Giữ terminal A mở để nhìn **dấu hiệu JVM tiếp tục chạy** khi debugger detach.
+Terminal A may print the agent listening message alongside `PID=...` and `tick=...` lines. Keep terminal A open to observe **proof that the JVM continues running** after the debugger detaches.
 
-**Nếu chọn port khác:** đổi cả phía Java và `jdb`. Nếu port đang bị sử dụng, JDWP có thể thất bại khi bind; giải quyết xung đột ở môi trường lab thay vì cố kết nối một tiến trình lạ.
+**If using a different port:** update both the Java and `jdb` commands. If a port is in use, JDWP may fail to bind; resolve the conflict in the lab environment rather than connecting to an unknown process.
 
-### Bước 2 — kết nối bằng jdb
+### Step 2 — Connect with jdb
 
-Mở terminal B:
+Open terminal B:
 
 ```bash
 jdb -attach 127.0.0.1:5005
 ```
 
-Hoặc với địa chỉ loopback mặc định trong môi trường hỗ trợ:
+Or with the default loopback address in supported environments:
 
 ```bash
 jdb -attach 5005
 ```
 
-**Đây là thao tác attach theo socket address.** Không truyền `JdbSessionDemo` vào command line, vì target đã chạy `main` của nó. Nếu attach thành công, jdb cung cấp prompt và bạn có thể đặt breakpoint khi ứng dụng còn sống.
+**This attaches by socket address.** Do not pass `JdbSessionDemo` on the command line, because the target is already running its `main`. If attach succeeds, `jdb` presents a prompt and you can set breakpoints while the application is alive.
 
-### Bước 3 — điều khiển phiên attach
+### Step 3 — Control the attach session
 
-Tại prompt:
+At the prompt:
 
 ```text
 threads
 stop in JdbSessionDemo.calculate
 ```
 
-Đợi vòng tiếp theo gọi `calculate`. Khi breakpoint dừng:
+Wait for the next iteration to call `calculate`. When the breakpoint pauses:
 
 ```text
 where
@@ -260,215 +260,215 @@ clear JdbSessionDemo.calculate
 cont
 ```
 
-Do `suspend=n`, target đã chạy trước khi attach; nếu chương trình kết thúc trước khi jdb kịp kết nối, lỗi kết nối là bình thường. Chạy lại với `rounds` dài hơn **trong môi trường lab**; không thể dùng jdb khôi phục những dòng code đã chạy qua.
+Because of `suspend=n`, the target ran prior to attaching; if the program finishes before `jdb` connects, a connection error is normal. Re-run with higher `rounds` **in the lab environment**; `jdb` cannot replay lines that already executed.
 
-### Bước 4 — rời phiên mà không yêu cầu tắt service
+### Step 4 — Leave the session without shutting down the service
 
-Nếu mục tiêu là ngừng quan sát và **để target tiếp tục chạy**, phải:
+If the goal is to stop observing and **let the target keep running**, you must:
 
-1. Kiểm tra không còn breakpoint gây dừng hoặc watchpoint không mong muốn; `clear`/`unwatch` nếu đã tạo.
-2. Nếu target đang bị dừng tại breakpoint, dùng `cont`; nếu bạn chủ động `suspend` thread/VM, dùng lệnh `resume` phù hợp. Đừng nghĩ “đóng cửa sổ terminal” là một bước quản lý trạng thái an toàn.
-3. Dùng `quit` (hoặc `exit` theo lệnh nội bộ của jdb) để **thoát trình debugger**. Trong mô hình attach thông thường, disconnect giải phóng các suspension/event requests thuộc debugger và target tiếp tục chạy nếu còn công việc. Tuy nhiên kết thúc JDB **không tự bảo đảm** target không bị ảnh hưởng bởi timeout, lỗi ứng dụng hoặc một debugger/process khác.
-4. Quan sát terminal A: JVM còn in `tick` và sau đó `completed` theo vòng đời ứng dụng không? Kiểm tra PID/health check nếu đây là service thật.
+1. Verify no pausing breakpoints or unwanted watchpoints remain; `clear`/`unwatch` any you created.
+2. If the target is paused at a breakpoint, run `cont`; if you manually ran `suspend` on threads/VM, issue the matching `resume`. Do not treat "closing the terminal window" as safe state management.
+3. Run `quit` (or `exit` per `jdb` internal command) to **exit the debugger**. In typical attach mode, disconnecting releases debugger-owned suspensions/event requests and the target continues running if work remains. However, exiting JDB **does not guarantee** the target was unaffected by timeouts, app errors, or another debugger/process.
+4. Watch terminal A: does the JVM continue printing `tick` and eventually `completed` per its lifecycle? Check PID/health checks for a real service.
 
-Đừng nhầm lệnh `quit` bên trong **jdb** với `System.exit()` của ứng dụng hoặc `VirtualMachine.exit(int)` của API JDI. Cái trước là đóng giao diện debugger; cái sau yêu cầu target VM terminate và không phải cách “detach nhẹ nhàng”.
+Never confuse `quit` inside **jdb** with an application's `System.exit()` or the JDI API's `VirtualMachine.exit(int)`. The former closes the debugger UI; the latter tells the target VM to terminate and is not a "graceful detach."
 
-## 7. `suspend=y` — chờ debugger ngay từ startup
+## 7. `suspend=y` — Waiting for the Debugger from Startup
 
-Đôi khi cần đặt breakpoint **trước** khi `main` đi qua đoạn cần quan sát. Khi launch một target riêng rồi attach sau, dùng:
+Sometimes you need a breakpoint **before** `main` passes the code under investigation. When launching a separate target and attaching afterward, use:
 
 ```bash
 java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=127.0.0.1:5005 JdbSessionDemo 20
 ```
 
-Mặc định của tùy chọn `suspend` trong cấu hình JDWP có thể là `y` nếu không chỉ định; nên **viết tường minh** để không gây nhầm. Với `suspend=y`:
+The default for `suspend` in JDWP config can be `y` if omitted; **write it explicitly** to avoid confusion. With `suspend=y`:
 
-- JVM đã khởi tạo agent và đang đợi debugger; chương trình **chưa thực thi `main` bình thường**.
-- Ở terminal B, chạy `jdb -attach 127.0.0.1:5005`, kiểm tra kết nối và đặt breakpoint `stop in JdbSessionDemo.calculate`.
-- Dùng `cont` để cho target tiếp tục. Lệnh `run` **không dùng** trong phiên attach vì `main` được khởi chạy bởi lệnh `java` ở terminal A, không phải bởi `jdb`.
+- The JVM initialized the agent and is waiting for a debugger; the program **has not executed `main` normally yet**.
+- In terminal B, run `jdb -attach 127.0.0.1:5005`, verify connection, and set `stop in JdbSessionDemo.calculate`.
+- Use `cont` to let the target continue. Do **not** use `run` in an attach session because `main` was launched by `java` in terminal A, not by `jdb`.
 
-Nếu terminal A chỉ báo “Listening for transport...” và không in `PID=...`, đó có thể là **trạng thái chờ có chủ đích**, không phải ứng dụng deadlock. Tuy nhiên trên một service thực, `suspend=y` có thể làm health check/ready probe thất bại trong lúc đợi debugger, gây restart loop; chỉ áp dụng trong thời điểm bảo trì có kiểm soát.
+If terminal A only says "Listening for transport..." and never prints `PID=...`, that can be the **intended waiting state**, not an application deadlock. However, on a real service, `suspend=y` can cause health/readiness probes to fail while waiting for a debugger, triggering a restart loop; use only during controlled maintenance windows.
 
-**Lưu ý:** Một số môi trường/debugger có thể tự resume VMStart event theo cách khác; hãy đọc prompt và trạng thái thực tế, dùng `cont` khi target đang dừng chờ.
+**Note:** Some environments/debuggers may handle resuming the `VMStart` event differently; read the prompt and actual state, and run `cont` when the target is waiting.
 
-## 8. Chế độ listen: đảo phía chủ động kết nối
+## 8. Listen Mode: Reversing Who Initiates the Connection
 
-Trong chế độ attach thông thường, target là **server JDWP** (`server=y`) và jdb chủ động kết nối. **Listen** đảo chiều: jdb đợi, target mở kết nối tới debugger bằng `server=n`. Cấu hình trong phòng lab trên cùng máy:
+In standard attach mode, the target is the **JDWP server** (`server=y`) and `jdb` actively connects. **Listen** reverses the direction: `jdb` waits, and the target opens a connection to the debugger via `server=n`. Lab setup on the same machine:
 
-**Terminal B — chạy debugger ở chế độ listen trước:**
+**Terminal B — start the debugger in listen mode first:**
 
 ```bash
 jdb -listen 5006
 ```
 
-**Terminal A — khởi động target sau:**
+**Terminal A — start the target second:**
 
 ```bash
 java -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=127.0.0.1:5006 JdbSessionDemo 20
 ```
 
-- `server=n` cho biết JVM đích là **bên kết nối ra ngoài**, còn `jdb` phải lắng nghe trước.
-- `address` chỉ tới endpoint mà `jdb` đang listen. Nếu chưa có listener hoặc network không thông, target có thể thất bại kết nối/khởi động theo cấu hình timeout.
-- Với `suspend=y`, target dừng ở startup theo cơ chế JDWP; đặt breakpoint khi jdb kết nối rồi `cont`.
-- `-listenany` có thể chọn một địa chỉ listener tự động trong cấu hình JDI, nhưng khi học nên dùng port rõ ràng; không nhầm chữ “any” với cấp phép kết nối qua mọi giao diện mạng.
+- `server=n` indicates the target JVM is the **outbound-connecting side**, so `jdb` must listen first.
+- `address` points to the endpoint where `jdb` is listening. If no listener is up or the network is unreachable, the target may fail to connect/start per timeout config.
+- With `suspend=y`, the target pauses at startup via JDWP; set breakpoints once `jdb` connects and run `cont`.
+- `-listenany` can pick an automatic listener address in JDI config, yet while learning use an explicit port; do not mistake "any" for allowing connections across all network interfaces.
 
-Đây là **quy trình kết nối khác**, không phải attach qua port `5005` ở mục 6. Không khởi động một JVM với `server=y` rồi đồng thời chờ `jdb -listen` mà kỳ vọng hai bên tự tìm nhau: cả hai đều listen thì không có bên chủ động mở kết nối.
+This is a **different connection workflow**, not attaching over port `5005` from section 6. Do not start a JVM with `server=y` while waiting with `jdb -listen` expecting them to find each other: when both listen, neither side initiates the connection.
 
-Trong môi trường có firewall/NAT, bất cứ chiều nào cũng cần đường mạng được ủy quyền, xác thực ở lớp mạng và giới hạn endpoint. Không biến JDWP thành cổng công khai.
+In environments with firewalls/NAT, either direction still requires an authorized network path, network-layer authentication, and endpoint restrictions. Never turn JDWP into a public port.
 
-## 9. Connector nâng cao và tham số CLI cần dùng đúng
+## 9. Advanced Connectors and CLI Flags to Use Properly
 
-`jdb` cung cấp connector shortcuts và cách chỉ định connector tường minh. Để xem connector tồn tại ở **JDK của bạn**:
+`jdb` provides connector shortcuts as well as explicit connector specifications. To list connectors available in **your JDK**:
 
 ```bash
 jdb -listconnectors
 ```
 
-Cách attach qua connector socket tương đương:
+Equivalent attach via explicit socket connector:
 
 ```bash
 jdb -connect com.sun.jdi.SocketAttach:hostname=127.0.0.1,port=5005
 ```
 
-Để debug một ứng dụng mà **jdb tạo JVM mới**, dùng shortcut `jdb JdbSessionDemo` hoặc connector `com.sun.jdi.CommandLineLaunch` với `main` thích hợp (tên argument và quoting tùy shell). Không cần dùng connector tường minh chỉ để thực hiện một demo cơ bản.
+To debug an application where **`jdb` spawns a new JVM**, use the shortcut `jdb JdbSessionDemo` or the `com.sun.jdi.CommandLineLaunch` connector with appropriate `main` (argument names and quoting vary by shell). You do not need explicit connectors just to run a basic demo.
 
-**Lựa chọn đáng phân biệt:**
+**Flags worth distinguishing:**
 
-- `-classpath .`: classpath để **debuggee** load bytecode trong chế độ launch; khi attach, classpath thuộc về target đã chạy và không bị thay bởi tùy chọn jdb.
-- `-sourcepath <path>`: đường dẫn tìm **source .java** cho `list`/đọc dòng source. Nó không thay classpath dùng để tìm compiled class.
-- `-J-Xmx256m`: truyền `-Xmx256m` cho JVM **chạy jdb** (trình debugger).
-- `-R-Xmx256m`: truyền option cho **target JVM do jdb launch**, theo tài liệu man page JDK 21.
-- `-listconnectors`: liệt kê connector hiện có; không dùng lệnh này thay cho `JFR.check` hoặc `jcmd`.
-- `-attach host:port`: attach qua address, không tạo JVM mới.
-- `-launch`: launch target ngay, không cần gọi `run` như với luồng launch mặc định.
+- `-classpath .`: classpath for the **debuggee** to load bytecode in launch mode; when attaching, the classpath belongs to the already running target and is not altered by `jdb` flags.
+- `-sourcepath <path>`: search path for **`.java` sources** for `list`/viewing source lines. It does not replace the classpath used to locate compiled classes.
+- `-J-Xmx256m`: passes `-Xmx256m` to the JVM **running `jdb`** (the debugger).
+- `-R-Xmx256m`: passes an option to the **target JVM launched by `jdb`**, per the JDK 21 man page.
+- `-listconnectors`: lists available connectors; do not use this in place of `JFR.check` or `jcmd`.
+- `-attach host:port`: attaches via address without creating a new JVM.
+- `-launch`: launches target immediately, skipping `run` required by the default launch workflow.
 
-**Với package:** nếu class nằm trong `com.example.debug`, cần chạy `jdb -classpath ... com.example.debug.JdbSessionDemo` theo tên đầy đủ. Đặt breakpoint bằng tên class đầy đủ nếu trùng tên simple class. Mẫu demo dùng default package nhằm giảm thao tác thiết lập, không phải khuyến nghị tổ chức package cho production.
+**With packages:** if a class resides in `com.example.debug`, run `jdb -classpath ... com.example.debug.JdbSessionDemo` using its fully qualified name. Set breakpoints with the fully qualified class name if simple names collide. The demo uses the default package to minimize setup steps, not as a package recommendation for production.
 
-## 10. Vòng đời phiên: bảy trạng thái cần theo dõi
+## 10. Session Lifecycle: Seven States to Track
 
 ```text
-[Chưa có target]
+[No target yet]
         |
         +-- jdb launch ---------+
         |                       |
-        +-- java -agentlib JDWP +---> [Target tồn tại]
+        +-- java -agentlib JDWP +---> [Target exists]
                                        |
-                            [Chưa kết nối/đang listen]
+                            [Not connected / listening]
                                        |
-                             JDWP connection thành công
+                             JDWP connection succeeds
                                        |
-                               [JDB kết nối]
+                               [JDB connected]
                                  /        \
                        breakpoint         cont/resume
                           |                   |
-                     [Target dừng] ------> [Target chạy]
+                     [Target paused] -----> [Target running]
                           |
                      step/next/where
                                        |
                          +-------------+--------------+
                          |                            |
-                    quit/đứt kết nối            Target kết thúc
+                    quit/disconnect              Target exits
                          |                            |
-                    [Debugger đóng]          [VMDeath/disconnect]
+                    [Debugger closed]        [VMDeath/disconnect]
                          |                            |
-                [Target có thể còn sống]    [Target đã kết thúc]
+                [Target may stay alive]      [Target terminated]
 ```
 
-**Cần giám sát hai thực thể riêng:** (1) **tiến trình `jdb`**, (2) **tiến trình JVM đích**. Với attach, mục tiêu thông thường là **đóng kết nối debug mà không dừng service**; với launch, tiến trình được tạo ra bởi debugger và có thể có vòng đời gắn với phiên đó, vì vậy phải **xác minh target PID** thay vì đoán.
+**Monitor two separate entities:** (1) **the `jdb` process**, and (2) **the target JVM process**. With attach, the normal goal is **closing the debug connection without stopping the service**; with launch, the process was created by the debugger and its lifecycle may be tied to that session, so **verify the target PID** instead of guessing.
 
-| Hành động | Ảnh hưởng tức thời | Việc kiểm tra sau đó |
+| Action | Immediate effect | Follow-up check |
 | --- | --- | --- |
-| `stop in ...` | Đăng ký method breakpoint; chưa nhất thiết làm target dừng ngay | Chờ đường code thực thi; xem dòng báo breakpoint |
-| `stop at Class:line` | Đăng ký breakpoint theo source line | Kiểm tra class có line info đúng và line tồn tại |
-| `step` / `next` | Chạy một bước từ trạng thái đang dừng | Xem stack/locals sau mỗi bước |
-| `cont` | Cho chương trình tiếp tục sau breakpoint/step | Xem có breakpoint khác chặn nó không |
-| `suspend` | Đặt trạng thái suspend cho VM/thread theo lệnh | Dùng `resume` tương ứng; đừng bỏ service treo |
-| `clear ...` | Gỡ breakpoint được chỉ định | Lặp `clear`/`stop` để xác nhận |
-| `quit` / `exit` trong jdb | Đóng phiên/giao diện debugger | Quan sát PID target, output và health riêng |
-| Chương trình tự `return` từ `main` hoặc `System.exit` | JVM đi vào quá trình kết thúc theo logic ứng dụng | Lệnh debug tiếp theo có thể báo VMDisconnected |
-| `kill -9` hoặc chấm dứt cưỡng bức target | Target bị giết bởi OS; không phải detach | Kiểm tra hậu quả nghiệp vụ; không dùng để thoát phiên bình thường |
+| `stop in ...` | Registers method breakpoint; does not necessarily pause target immediately | Wait for code path execution; watch for breakpoint notice |
+| `stop at Class:line` | Registers breakpoint by source line | Verify class has proper line info and line exists |
+| `step` / `next` | Executes one step from paused state | Inspect stack/locals after each step |
+| `cont` | Resumes program after breakpoint/step | Watch whether another breakpoint intercepts it |
+| `suspend` | Puts VM/thread in suspended state per command | Use matching `resume`; never leave service hung |
+| `clear ...` | Removes specified breakpoint | Run `clear`/`stop` to confirm |
+| `quit` / `exit` in jdb | Closes debugger session/UI | Inspect target PID, output, and health independently |
+| Program `return`s from `main` or `System.exit` | JVM enters termination per application logic | Subsequent debug commands may report `VMDisconnected` |
+| `kill -9` or forcibly terminating target | Target killed by OS; not a detach | Check business impact; never use as normal session exit |
 
-**Một breakpoint theo chính sách suspend-all có thể tạm dừng nhiều thread**, không chỉ method/thread bạn quan tâm. Trên service sống, việc giữ prompt quá lâu có thể làm timeout request/health checks và khiến người quan sát hiểu nhầm “sự cố trở nên nặng hơn”. Giảm thời gian dừng và dùng phương pháp ít xâm lấn khi cần.
+**A breakpoint with suspend-all policy can pause many threads**, not just the method/thread you care about. On a live service, lingering at the prompt too long can time out requests/health checks and mislead observers into thinking "the incident got worse." Minimize pause duration and use less intrusive tools when needed.
 
-### Không đồng nhất quit với JDI `VirtualMachine.exit(int)`
+### Do Not Equate quit with JDI `VirtualMachine.exit(int)`
 
-Theo JDI API, `VirtualMachine.dispose()` đóng kênh debugger, hủy event requests, khôi phục những thread bị suspend bởi debugger và cho phép tiếp tục ứng dụng trong phạm vi cơ chế đó. `VirtualMachine.exit(int)` lại yêu cầu **kết thúc target VM đột ngột**. Đây là hai khái niệm khác nhau dù tên lệnh nội bộ jdb có thể là `exit`.
+Per the JDI API, `VirtualMachine.dispose()` closes the debugger channel, cancels event requests, restores threads suspended by the debugger, and allows the application to continue within that mechanism. `VirtualMachine.exit(int)`, by contrast, requests **abrupt termination of the target VM**. These are two distinct concepts even though `jdb`'s internal command can also be named `exit`.
 
-**Cách quản lý an toàn:** sử dụng `quit` để đóng giao diện debug, nhưng vẫn phải xác minh JVM đích có còn chạy hay không. Đừng dựa vào việc đóng terminal hoặc mất mạng để bảo đảm điều kiện khôi phục.
+**Safe management practice:** use `quit` to close the debug UI, and still verify whether the target JVM remains running. Never rely on closing a terminal or dropping the network to guarantee recovery.
 
-### Kịch bản A — attach vào service đang phục vụ traffic
+### Scenario A — Attaching to a Traffic-Serving Service
 
-- Ghi rõ thời điểm và PID/instance/service trước khi attach.
-- Hạn chế breakpoint suspend-all và không thay giá trị biến trong production nếu không có kiểm soát.
-- Xem xong thì clear breakpoint, cont/resume, quit, kiểm tra health/latency và khả năng tiếp tục xử lý.
-- Nếu JDWP agent vẫn bật, **cổng debug vẫn là một bề mặt truy cập đặc quyền**; việc quit jdb không có nghĩa đã vô hiệu hóa agent. Quản lý thông qua restart/configuration theo quy trình triển khai nếu muốn đóng cổng.
+- Record the exact timestamp and PID/instance/service before attaching.
+- Limit suspend-all breakpoints and avoid changing variable values in production without strict controls.
+- Once done inspecting, clear breakpoints, `cont`/resume, `quit`, and check health/latency and continued request processing.
+- If the JDWP agent remains enabled, **the debug port is still a privileged attack surface**; quitting `jdb` does not disable the agent. Manage via restart/configuration per deployment procedures to close the port.
 
-### Kịch bản B — jdb launch một tiến trình thử nghiệm
+### Scenario B — jdb Launching a Test Process
 
-- `run` cho phép chương trình thực thi, `cont` khi bị dừng.
-- Để chương trình hoàn tất bình thường khi có thể; ghi code/exit status từ target.
-- Nếu thoát debugger khi target còn sống, kiểm tra process còn chạy hay đã dừng theo connector/implementation; không giả định target chắc chắn được kill hoặc chắc chắn vẫn chạy.
-- Không để lại các process thử nghiệm còn bind cổng debug hoặc giữ tài nguyên ngoài ý muốn.
+- `run` starts execution; `cont` resumes when paused.
+- Let the program finish normally whenever possible; record exit code/status from the target.
+- If exiting the debugger while the target is still alive, verify whether the process is still running or stopped per connector/implementation; do not assume the target is definitely killed or definitely still running.
+- Do not leave stray test processes bound to debug ports or holding unintended resources.
 
-## 11. Checklist đóng phiên không để lại “tiến trình treo”
+## 11. Session Teardown Checklist Without Leaving "Hung Processes"
 
-Trước khi kết thúc debug, tự hỏi:
+Before ending debugging, ask yourself:
 
-1. **Mục tiêu ban đầu là gì?** Attach production để quan sát hay launch một demo được phép kết thúc?
-2. **Có thread nào đang dừng do breakpoint/`suspend` không?** Dùng `where`, `threads` và trạng thái prompt để nhận biết.
-3. **Đã gỡ breakpoints/watchpoints không cần thiết?** Dùng `clear`/`unwatch` nếu đã thiết lập.
-4. **Đã `cont` hoặc `resume` đúng ngữ cảnh chưa?** Đừng trả lại service đang bị tạm dừng rồi đi mất.
-5. **Lệnh sẽ đóng cái gì?** `quit` đóng jdb; không phải lệnh tương đương `System.exit`. Xác nhận với tiến trình thật.
-6. **Kết nối JDWP có còn mở sau khi jdb thoát không?** JVM `server=y` có thể vẫn lắng nghe. Đối chiếu chính sách bảo mật của môi trường.
-7. **Có thay đổi runtime nào cần khôi phục không?** Biến gán bằng `set`, method invocation qua `print/eval`, trigger side effect và thread state đều có thể làm ứng dụng thay đổi.
-8. **Có ghi chú sự cố đầy đủ không?** Thời điểm, PID, build, port, breakpoints, stack, bước điều khiển và trạng thái dịch vụ sau khi rời.
-9. **Nếu mất kết nối bất ngờ:** cần kiểm tra JVM/agent/port và thread state độc lập; không dùng giả định để gửi tiếp lệnh vào một process khác có thể đã sử dụng lại port đó.
-10. **Nếu vẫn muốn process chạy:** xác minh log/health/metrics tiến triển và target PID phù hợp; với service cluster cũng xác minh instance đúng.
+1. **What was the original goal?** Production attach to observe, or launching a demo allowed to exit?
+2. **Are any threads still paused by breakpoints/`suspend`?** Use `where`, `threads`, and prompt status to check.
+3. **Are unnecessary breakpoints/watchpoints cleared?** Use `clear`/`unwatch` if configured.
+4. **Did you `cont` or `resume` in the right context?** Do not leave a service suspended and walk away.
+5. **What will the command close?** `quit` closes `jdb`; it is not equivalent to `System.exit`. Verify against the real process.
+6. **Is JDWP still open after `jdb` exits?** A `server=y` JVM may keep listening. Check your environment's security policy.
+7. **Were any runtime changes made that need reverting?** Variables edited with `set`, method calls via `print/eval`, triggered side effects, and thread states can all alter app behavior.
+8. **Are incident notes complete?** Timestamp, PID, build, port, breakpoints, stack, control actions, and post-exit service status.
+9. **If disconnected unexpectedly:** inspect JVM/agent/port and thread state independently; do not blindly send commands to a different process that may have reused the port.
+10. **If the process should remain running:** verify logs/health/metrics continue progressing and the target PID matches; in a cluster, verify the right instance too.
 
-## 12. An toàn khi debug qua mạng, container hoặc production
+## 12. Safety When Debugging Over Networks, Containers, or Production
 
-**JDWP không được xem là cổng API công khai.** Người kết nối có quyền kiểm tra dữ liệu bên trong JVM và có thể điều khiển hành vi/chạy biểu thức. Do đó:
+**JDWP must never be treated as a public API port.** Anyone connecting gains privileges to inspect internal JVM data and potentially control behavior/evaluate expressions. Therefore:
 
-- Trong phòng lab, ưu tiên `address=127.0.0.1:5005`; không tự ý đổi thành `address=*:5005` hay bind `0.0.0.0` trên mạng có người lạ.
-- Nếu buộc phải debug từ xa, sử dụng **kênh quản trị được bảo vệ** (ví dụ SSH tunnel/vùng mạng tin cậy) và điều kiện phân quyền thích hợp; không công bố cổng JDWP trực tiếp.
-- Kiểm tra network namespace: JVM trong container có thể listen trên loopback của **container**, không phải loopback host. `jdb` trên host sẽ không thấy cổng nếu không có đường kết nối được cấu hình.
-- Port-forward/tunnel phải dựa trên cơ chế truy cập được duyệt, giới hạn người dùng/thời gian và được thu hồi sau điều tra.
-- `suspend=y` có thể khiến container không qua readiness probe; orchestrator có thể restart tiến trình ngay khi debugger chưa kịp attach.
-- Debugger breakpoint với `suspend-all` có thể tác động toàn bộ request xử lý trên instance; đánh giá mức độ ảnh hưởng trước khi dùng.
-- `-agentlib:jdwp=...` là cấu hình **trên JVM**, không phải `jdb` tự có quyền bật JDWP cho bất kỳ PID. Khởi động lại ứng dụng để bật agent cần tuân thủ quy trình triển khai.
-- Tập tin `.class` và `.java` dùng trong debug phải đúng build; không gửi source hoặc dữ liệu nhạy cảm lên máy không được phép.
-- Với JDK mới có virtual threads, danh sách thread có thể không đầy đủ trong chế độ mặc định của jdb. JDK 21 có `-trackallthreads` khi cần quan sát thêm, nhưng có thể tăng chi phí/tải; không bật vô điều kiện trên hệ thống có rất nhiều virtual threads.
+- In labs, prefer `address=127.0.0.1:5005`; do not arbitrarily change to `address=*:5005` or bind `0.0.0.0` on untrusted networks.
+- If remote debugging is unavoidable, use a **protected administrative channel** (such as an SSH tunnel or trusted network zone) with proper authorization; never publish JDWP ports directly.
+- Check network namespaces: a JVM in a container may listen on the **container's** loopback, not the host's loopback. `jdb` on the host will not see the port without configured forwarding.
+- Port-forwards/tunnels must use approved access mechanisms, restrict users/time, and be revoked after investigation.
+- `suspend=y` can cause containers to fail readiness probes; the orchestrator may restart the process before a debugger even attaches.
+- Breakpoints with `suspend-all` can impact every request being served on that instance; assess blast radius beforehand.
+- `-agentlib:jdwp=...` is configured **on the JVM**, not something `jdb` can inject into any arbitrary PID on its own. Restarting an app to enable the agent must follow deployment procedures.
+- `.class` and `.java` files used in debugging must match the build; never send source code or sensitive data to unauthorized machines.
+- On newer JDKs with virtual threads, thread lists may be incomplete in `jdb`'s default mode. JDK 21 provides `-trackallthreads` when broader visibility is needed, though it can add overhead/load; never enable unconditionally on systems with huge numbers of virtual threads.
 
-Trong production, nên cân nhắc **JFR, metrics, tracing và thread dumps** trước khi dùng breakpoints tạm dừng toàn VM. `jdb` là công cụ có khả năng thay đổi trạng thái tiến trình; một phiên debug không phải quan sát hoàn toàn thụ động.
+In production, consider **JFR, metrics, tracing, and thread dumps** before using breakpoints that pause the entire VM. `jdb` is capable of mutating process state; a debug session is not a purely passive observation.
 
-## 13. Khắc phục lỗi kết nối và trạng thái
+## 13. Troubleshooting Connection and State Errors
 
-| Dấu hiệu | Nguyên nhân thường gặp | Kiểm tra và hướng xử lý |
+| Symptom | Common cause | Check and resolution |
 | --- | --- | --- |
-| `jdb -attach 5005` báo không kết nối được | Target chưa bật JDWP, port sai, tiến trình đã thoát hoặc firewall/namespace | Xác nhận target command line, PID, listening address, port và trạng thái process |
-| Target không in dòng `PID=...` sau lệnh Java | `suspend=y` khiến JVM chờ debugger ở startup | Attach đúng port rồi `cont`; hoặc dùng `suspend=n` cho phiên muốn chạy ngay |
-| JDWP báo không bind được địa chỉ | Port đã có process khác sử dụng hoặc address không khả dụng | Chọn port hợp lệ trên host lab, đổi **cả** target và jdb |
-| Prompt jdb có nhưng breakpoint không hit | Code path đã chạy, class chưa load, method khác overload, breakpoint sai tên | Kiểm tra `stop`, `methods`, class name đầy đủ, làm lại với `suspend=y` khi cần |
-| `locals` trống hoặc “no local variables” | Thiếu debug info hoặc không đứng ở stack frame thích hợp | `javac -g`, đúng class build, `where`/`up`/`down` |
-| Breakpoint trúng nhiều lần khiến service tưởng treo | Method trong loop, chưa `clear` hay chưa `cont` | Clear, cont, dùng tình huống ngắn hoặc điều kiện dừng phù hợp |
-| `run` không làm gì khi attach | Chế độ attach không tạo target JVM | Dùng `cont` khi đang dừng; muốn start mới phải launch JVM riêng |
-| `jdb` đóng nhưng service không chạy | Target đã crash/exit, còn suspend khác, network/process issue | Kiểm tra PID/health và trạng thái thread độc lập |
-| `JDB` vừa nối vừa ngắt ngay | Target kết thúc, port đổi, network mất, lỗi chính sách attach | Xem log target, exit status, JDK tương thích và cổng thực |
-| Debug source hiển thị sai dòng | `.java` không khớp `.class` đang chạy | Đồng bộ artifact/source, debug symbols, `-sourcepath` |
+| `jdb -attach 5005` fails to connect | Target lacks JDWP, wrong port, process exited, or firewall/namespace | Verify target command line, PID, listening address, port, and process state |
+| Target does not print `PID=...` after `java` | `suspend=y` makes JVM wait for debugger at startup | Attach to the right port and `cont`; or use `suspend=n` for immediate execution |
+| JDWP reports inability to bind address | Port already in use by another process or address unavailable | Pick a valid port on the lab host and change **both** target and `jdb` |
+| `jdb` prompt appears, yet breakpoint never hits | Code path already ran, class not loaded yet, different overload, wrong breakpoint name | Check `stop`, `methods`, full class name, retry with `suspend=y` if needed |
+| `locals` empty or "no local variables" | Missing debug info or not in the right stack frame | `javac -g`, right class build, `where`/`up`/`down` |
+| Breakpoint triggers repeatedly making service seem hung | Method inside a loop, forgot `clear` or `cont` | Clear, cont, use shorter scenarios or conditional stops |
+| `run` does nothing in attach mode | Attach mode does not spawn a target JVM | Use `cont` when paused; to start fresh, launch a separate JVM |
+| `jdb` closes, yet service is not running | Target crashed/exited, other suspension remains, network/process issue | Check PID/health and thread state independently |
+| `jdb` connects and immediately disconnects | Target exited, port changed, network lost, attach policy error | Check target logs, exit status, JDK compatibility, and actual port |
+| Debugger source displays wrong line numbers | `.java` mismatches running `.class` | Sync artifact/source, debug symbols, `-sourcepath` |
 
-**Tránh “sửa” nhầm:** Nếu thấy target chờ `suspend=y`, không dùng `kill -9` như bước đầu. Đây có thể là trạng thái mong muốn. Nếu target đã thực sự mất, một kết nối JDWP không thể hồi sinh JVM hoặc phục hồi stack đã biến mất.
+**Avoid "fixing" the wrong thing:** If the target is waiting on `suspend=y`, do not reach for `kill -9` first. That may be the expected state. If the target has actually died, a JDWP connection cannot resurrect the JVM or recover lost stacks.
 
-### Tối thiểu hóa tác động của điều tra
+### Minimizing Investigation Impact
 
-- Ưu tiên breakpoint ở code path ít traffic hoặc trên instance thử nghiệm.
-- Khi dừng, xem đúng thông tin cần thiết rồi `cont` nhanh.
-- Với method lặp liên tục, clear breakpoint trước khi cont để tránh dừng liên tiếp.
-- Không thực hiện `eval`/`set` lên các object nghiệp vụ nếu chỉ cần quan sát.
-- Nếu có nhiều phiên/IDE debugger, kiểm tra agent chỉ cho phép những kết nối hợp lệ theo implementation; tránh để các công cụ tranh nhau điều khiển target.
+- Prefer breakpoints in low-traffic code paths or on test instances.
+- When paused, inspect only what is needed and `cont` promptly.
+- For tight loops, clear the breakpoint before `cont` to avoid repeated pauses.
+- Do not run `eval`/`set` on business objects when passive observation suffices.
+- If multiple debuggers/IDEs exist, ensure the agent permits only valid connections per implementation; avoid tools competing to control the target.
 
-## 14. So sánh ba cuộc đối thoại mẫu
+## 14. Comparing Three Sample Dialogues
 
-### A. Launch cho unit-like demo
+### A. Launch for a unit-like demo
 
 Terminal:
 
@@ -477,7 +477,7 @@ javac -g JdbSessionDemo.java
 jdb -classpath . JdbSessionDemo 20
 ```
 
-Bên trong jdb:
+Inside `jdb`:
 
 ```text
 stop in JdbSessionDemo.calculate
@@ -489,9 +489,9 @@ clear JdbSessionDemo.calculate
 cont
 ```
 
-**Giải thích:** JVM đích được tạo bởi jdb; `run` là hành động của launch workflow; breakpoint bắt từ lần gọi đầu. Chờ chương trình kết thúc theo logic của nó và xác minh trạng thái.
+**Explanation:** The target JVM is spawned by `jdb`; `run` is part of the launch workflow; the breakpoint catches the first call. Wait for the program to finish per its logic and verify status.
 
-### B. Attach vào JVM đang chạy
+### B. Attach to a running JVM
 
 Terminal A:
 
@@ -505,7 +505,7 @@ Terminal B:
 jdb -attach 127.0.0.1:5005
 ```
 
-Bên trong jdb:
+Inside `jdb`:
 
 ```text
 stop in JdbSessionDemo.calculate
@@ -516,9 +516,9 @@ cont
 quit
 ```
 
-**Giải thích:** JVM được tạo bên ngoài debugger. `quit` rời jdb sau khi đã cho chạy tiếp; tiếp tục quan sát terminal A để xác nhận target chạy tiếp. Không dùng `run` để khởi động lại `main` khi attach.
+**Explanation:** The JVM is started outside the debugger. `quit` exits `jdb` after resuming execution; keep watching terminal A to confirm the target keeps running. Do not use `run` to restart `main` when attaching.
 
-### C. Reverse connect với listener
+### C. Reverse connect with listener
 
 Terminal B:
 
@@ -532,72 +532,72 @@ Terminal A:
 java -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=127.0.0.1:5006 JdbSessionDemo 20
 ```
 
-Bên trong jdb:
+Inside `jdb`:
 
 ```text
 stop in JdbSessionDemo.calculate
 cont
 ```
 
-**Giải thích:** debugger lắng nghe trước; target kết nối ra ngoài tới địa chỉ đó. `server=n` không có nghĩa JDWP bị tắt. Khi hoàn thành, phải biết JVM nào còn chạy và có tiếp tục lắng nghe kết nối ngoài ý muốn hay không.
+**Explanation:** The debugger listens first; the target connects outbound to that address. `server=n` does not mean JDWP is disabled. When done, know which JVM remains running and whether it is still listening for unintended connections.
 
-## 15. Lỗi tư duy phổ biến
+## 15. Common Mental Mistakes
 
-1. **Nhầm port với PID:** `jdb -attach 5005` nhắm JDWP address, không tự attach hệ điều hành PID 5005.
-2. **Không bật JDWP nhưng vẫn thử attach:** lệnh `java` thường không tự mở cổng remote-debugger.
-3. **Nhầm `server=y` thành “ứng dụng HTTP server”:** đó là chế độ lắng nghe kết nối của agent JDWP.
-4. **Đặt cả hai bên đều ở chế độ listen:** không ai khởi tạo kết nối; hiểu đúng chiều `server=y/n`.
-5. **Quên `suspend=y`:** ứng dụng chưa in log vì chờ debugger, không tự động là deadlock.
-6. **Cố `run` trong phiên attach:** target đã chạy; `run` thuộc workflow launch của jdb.
-7. **Quên `cont` sau breakpoint:** target vẫn dừng và service health có thể suy giảm.
-8. **Không clear breakpoint trong loop:** cứ tiếp tục thì lại dừng, tạo cảm giác ứng dụng kẹt.
-9. **Dùng `quit` như lệnh kill target:** debugger và debuggee có vòng đời khác nhau.
-10. **Đóng terminal là xong:** phải xác minh thread và target PID/health được khôi phục.
-11. **Bật port JDWP ra public:** lộ quyền kiểm soát JVM, rủi ro nghiêm trọng.
-12. **Thiếu `javac -g` nhưng muốn xem local variables:** bytecode có thể thiếu thông tin phục vụ debug.
-13. **Đặt `-sourcepath` thay `-classpath`:** một cái tìm source, một cái tìm compiled classes khi launch.
-14. **Không phân biệt `-J` và `-R`:** tác động tới hai JVM khác nhau.
-15. **Không kiểm tra đúng build/class name:** breakpoint có thể đặt ở method không tồn tại trong target.
-16. **Kết luận debug session mất là ứng dụng cũng mất:** lỗi kết nối không chứng minh target đã chết.
-17. **Ngầm sửa biến/trạng thái chỉ để “xem thử”:** việc evaluate method hoặc set field có thể có side effect thực.
-18. **Bỏ qua container namespace:** loopback trong container không nhất thiết là loopback của host.
-19. **Coi một phiên debug là quan sát không tốn chi phí:** suspend-all, breakpoint/step làm chậm thời gian thực.
-20. **Không ghi nhật ký session:** về sau không rõ ai đã đặt breakpoint, khi nào và đã giải phóng chưa.
+1. **Confusing port with PID:** `jdb -attach 5005` targets a JDWP address, not OS PID 5005 automatically.
+2. **Trying to attach without JDWP enabled:** plain `java` does not open a remote-debugger port by itself.
+3. **Mistaking `server=y` for "HTTP application server":** it is the JDWP agent's connection-listening mode.
+4. **Setting both sides to listen mode:** nobody initiates the connection; understand the `server=y/n` direction.
+5. **Forgetting `suspend=y`:** the app has not logged yet because it awaits a debugger, not automatically a deadlock.
+6. **Trying `run` in an attach session:** the target is already running; `run` belongs to `jdb`'s launch workflow.
+7. **Forgetting `cont` after a breakpoint:** the target stays paused and service health can degrade.
+8. **Not clearing breakpoints inside loops:** continuing immediately pauses again, making the app appear stuck.
+9. **Using `quit` as a target-kill command:** debugger and debuggee have separate lifecycles.
+10. **Assuming closing the terminal is enough:** you must verify threads and target PID/health have recovered.
+11. **Exposing JDWP ports publicly:** exposes JVM control privileges, a severe risk.
+12. **Expecting local variables without `javac -g`:** bytecode may lack debugging metadata.
+13. **Using `-sourcepath` instead of `-classpath`:** one locates sources, the other locates compiled classes when launching.
+14. **Not distinguishing `-J` from `-R`:** they affect two different JVMs.
+15. **Not verifying build/class names:** a breakpoint might be placed on a method that does not exist in the target.
+16. **Concluding a dropped debug session means the app died:** a connection error does not prove the target terminated.
+17. **Silently mutating variables/state just to "test an idea":** evaluating methods or setting fields can cause real side effects.
+18. **Ignoring container namespaces:** loopback inside a container is not necessarily the host's loopback.
+19. **Treating a debug session as zero-cost observation:** suspend-all and breakpoints/stepping slow real-time execution.
+20. **Not keeping session notes:** later nobody knows who set which breakpoint, when, and whether it was cleared.
 
-## 16. Bài tập tự kiểm tra
+## 16. Self-Check Exercises
 
-**Câu 1 — phân biệt định danh.** Một JVM có PID `4112`, JDWP lắng nghe `127.0.0.1:5005`. Lệnh attach đúng là gì?
+**Question 1 — distinguishing identifiers.** A JVM has PID `4112`, and JDWP listens on `127.0.0.1:5005`. What is the right attach command?
 
-**Đáp án:** `jdb -attach 127.0.0.1:5005` hoặc `jdb -attach 5005` nếu công cụ mặc định dùng loopback. `4112` không phải socket address.
+**Answer:** `jdb -attach 127.0.0.1:5005`, or `jdb -attach 5005` if the tool defaults to loopback. `4112` is not a socket address.
 
-**Câu 2 — trạng thái startup.** JVM chạy với `server=y,suspend=y`, đã in “Listening for transport...” nhưng chưa in `PID=...` từ `main`. Có thể là bug?
+**Question 2 — startup state.** A JVM starts with `server=y,suspend=y`, prints "Listening for transport...", yet has not printed `PID=...` from `main`. Could this be a bug?
 
-**Đáp án:** Có thể là trạng thái chờ debugger hoàn toàn đúng. Kết nối, đặt breakpoint và `cont` để tiếp tục trước khi gọi đó là lỗi.
+**Answer:** It could be the completely valid debugger-waiting state. Connect, set breakpoints, and run `cont` to proceed before calling it an error.
 
-**Câu 3 — vòng đời launch.** Chạy `jdb JdbSessionDemo 20`, muốn đặt breakpoint trước khi chạy main, dùng `run` hay `cont`?
+**Question 3 — launch lifecycle.** Running `jdb JdbSessionDemo 20`, wanting to set a breakpoint before `main` runs, do you use `run` or `cont`?
 
-**Đáp án:** Với launch mặc định, đặt `stop in ...` rồi `run` theo workflow. Nếu dùng `-launch`, target đã được launch và dừng trước khi bắt đầu class ứng dụng, nên đặt breakpoint rồi `cont`.
+**Answer:** With default launch, set `stop in ...` and then `run` per the workflow. If using `-launch`, the target has already launched and paused before the application class starts, so set the breakpoint and then `cont`.
 
-**Câu 4 — vòng đời attach.** Bạn đã dừng JVM đang phục vụ request tại breakpoint. Có nên dùng `quit` ngay để “không ảnh hưởng” không?
+**Question 4 — attach lifecycle.** You paused a request-serving JVM at a breakpoint. Should you run `quit` immediately "to avoid affecting it"?
 
-**Đáp án:** Nên giải phóng breakpoint, cho thread/VM tiếp tục theo trạng thái hợp lệ, sau đó quit và **kiểm tra health**. Disconnect thường giải phóng suspension do debugger, nhưng không thay thế bước xác minh service.
+**Answer:** Clear breakpoints, let threads/VM resume to a valid state, then quit and **check health**. Disconnecting usually releases debugger-held suspensions, yet does not replace verifying the service.
 
-**Câu 5 — chiều kết nối.** `jdb -listen 5006` phải đi cùng target `server=y` hay `server=n`?
+**Question 5 — connection direction.** Must `jdb -listen 5006` pair with target `server=y` or `server=n`?
 
-**Đáp án:** `server=n`: target chủ động kết nối tới listener của jdb. Với `server=y`, target cũng chờ debugger kết nối và hai bên đều listen.
+**Answer:** `server=n`: the target actively connects to `jdb`'s listener. With `server=y`, the target also waits for a debugger to connect, so both sides would be listening.
 
-**Câu 6 — an toàn.** Vì sao không nên dùng `address=*:5005` trên production nếu không có bảo vệ?
+**Question 6 — safety.** Why should `address=*:5005` not be used in production without protection?
 
-**Đáp án:** Cổng JDWP cấp quyền thao tác sâu với JVM; nó không phải endpoint có phân quyền người dùng mặc định. Chỉ mở trong vùng mạng được ủy quyền và thời gian cần thiết.
+**Answer:** A JDWP port grants deep control over the JVM; it is not an endpoint with default user authorization. Only open it within authorized network zones for the needed duration.
 
-**Thực hành:** hoàn thành hai phiên với demo, một `launch` và một `attach`. Với mỗi phiên, ghi **ai khởi động target**, PID, JDWP address (nếu có), trạng thái trước/sau breakpoint, lệnh chạy tiếp, cách rời debugger và bằng chứng target còn/chấm dứt đúng ý. Với attach, quan sát terminal A tiếp tục in `tick` sau `quit`. Tự giải thích vì sao cùng lệnh `quit` không phải là bằng chứng ứng dụng đã bị kill.
+**Hands-on:** complete two sessions with the demo, one `launch` and one `attach`. For each session, record **who started the target**, PID, JDWP address (if any), state before/after the breakpoint, the resume command, how you exited the debugger, and evidence that the target remained alive or exited as intended. For attach, watch terminal A keep printing `tick` after `quit`. Explain in your own words why the same `quit` command is not proof that the app was killed.
 
-## 17. Tài liệu chính thức
+## 17. Official References
 
-- [Oracle JDK 21 — The `jdb` Command: launch, attach, `-launch`, `-listen` và breakpoint](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jdb.html).
-- [Oracle JDK 21 — JPDA Connection and Invocation Details: `-agentlib:jdwp`, `server`, `suspend`, `address`, `dt_socket` và connectors](https://docs.oracle.com/en/java/javase/21/docs/specs/jpda/conninv.html).
-- [Oracle JDK 21 — JDI `VirtualMachine`: `dispose()` so với `exit(int)`, `resume()`/`suspend()`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jdi/com/sun/jdi/VirtualMachine.html).
-- [Oracle JDK 21 — JDI `ThreadReference`: trạng thái suspend/resume và các hạn chế](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jdi/com/sun/jdi/ThreadReference.html).
+- [Oracle JDK 21 — The `jdb` Command: launch, attach, `-launch`, `-listen`, and breakpoints](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jdb.html).
+- [Oracle JDK 21 — JPDA Connection and Invocation Details: `-agentlib:jdwp`, `server`, `suspend`, `address`, `dt_socket`, and connectors](https://docs.oracle.com/en/java/javase/21/docs/specs/jpda/conninv.html).
+- [Oracle JDK 21 — JDI `VirtualMachine`: `dispose()` vs `exit(int)`, `resume()`/`suspend()`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jdi/com/sun/jdi/VirtualMachine.html).
+- [Oracle JDK 21 — JDI `ThreadReference`: suspend/resume state and limitations](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jdi/com/sun/jdi/ThreadReference.html).
 - [Oracle Java Debug Interface API (JDI), module `jdk.jdi`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jdi/module-summary.html).
 
-**Nguyên tắc chốt:** *Launch* = debugger khởi tạo JVM; *attach* = JVM đã có được chuẩn bị cho JDWP; *listen* = debugger chờ JVM chủ động kết nối. `run`, `cont`, `clear`, `resume` và `quit` có **đích tác động khác nhau**. Một phiên debug chỉ thực sự được đóng an toàn khi bạn đã xác minh cả **kết nối debugger, trạng thái các thread, tiến trình target và cổng JDWP** theo mục tiêu ban đầu.
+**Closing principle:** *Launch* = debugger creates the JVM; *attach* = an existing JVM prepared for JDWP; *listen* = debugger waits for the JVM to connect outbound. `run`, `cont`, `clear`, `resume`, and `quit` have **different target effects**. A debug session is only safely closed once you have verified **the debugger connection, thread states, target process, and JDWP port** against your original goal.

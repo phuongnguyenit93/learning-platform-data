@@ -1,60 +1,60 @@
-# 9.7 Định dạng chữ ký ECDSA DER và P1363 khi trao đổi với hệ thống khác
+# 9.7 ECDSA DER and P1363 Signature Formats When Interoperating with Other Systems
 
-## Mục tiêu học tập
+## Learning objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-1. Giải thích vì sao cùng thuật toán **ECDSA** và cùng khóa công khai vẫn có thể gặp lỗi xác minh khi hai hệ thống dùng **hai cách mã hóa chữ ký** khác nhau.
-2. Phân biệt chữ ký **ASN.1 DER** dạng `SEQUENCE { INTEGER r, INTEGER s }` và **IEEE P1363** dạng byte thô `r || s`, có độ dài cố định.
-3. Tính chính xác độ dài P1363 theo **số bit bậc nhóm (curve order)**, kể cả P-521 có độ dài thành phần 66 byte.
-4. Dùng **Java 17 `Signature`** để ký/xác minh ở cả hai định dạng; chuyển đổi DER ↔ P1363 có kiểm tra chuẩn tắc.
-5. Kết nối đúng với giao thức **JWS/JWT ES256, ES384, ES512**, phân biệt Base64URL và encoding chữ ký.
-6. Chẩn đoán các lỗi sai curve, sai hash, khác byte dữ liệu ký, nhầm chữ ký DER với key/certificate DER, sai padding số nguyên và vấn đề low-S.
+1. Explain why the same **ECDSA** algorithm and same public key can still fail verification when two systems use **two different signature encodings**.
+2. Distinguish an **ASN.1 DER** signature of form `SEQUENCE { INTEGER r, INTEGER s }` from an **IEEE P1363** fixed-length raw byte signature `r || s`.
+3. Calculate exact P1363 length from the **curve group order bit length**, including P-521 with 66-byte components.
+4. Use **Java 17 `Signature`** to sign and verify in both formats; convert DER ↔ P1363 with canonical validation.
+5. Integrate cleanly with **JWS/JWT ES256, ES384, ES512**, distinguishing Base64URL from signature encoding.
+6. Diagnose wrong curves, wrong hashes, differing signed message bytes, confusing DER signatures with DER keys/certificates, wrong integer padding, and low-S issues.
 
-## 1. ECDSA tạo cặp số (r, s), định dạng là bước tiếp theo
+## 1. ECDSA produces an (r, s) integer pair; encoding comes next
 
-**ECDSA (Elliptic Curve Digital Signature Algorithm)** là sơ đồ chữ ký số trên đường cong elliptic. Người ký dùng **private key**, người kiểm tra dùng **public key**. Sau khi xử lý hash của dữ liệu cần ký và phép toán ECDSA, kết quả logic là **hai số nguyên**:
+**ECDSA (Elliptic Curve Digital Signature Algorithm)** is a digital signature scheme over elliptic curves. The signer uses a **private key**, and the verifier uses a **public key**. After hashing the signed data and performing the ECDSA math, the logical output is **two integers**:
 
 ```text
                  private key d
                       |
 Message bytes -> Hash -> ECDSA sign -> (r, s)
                                         |
-                                 MÃ HÓA / SERIALIZE
+                                 ENCODE / SERIALIZE
                                   /               \
                                  v                 v
                        ASN.1 DER bytes       P1363 raw bytes
                         SEQUENCE(r,s)           r || s
 ```
 
-**`(r, s)` mới là ý nghĩa toán học của chữ ký; DER và P1363 là hai cách biến chính cặp số đó thành byte.** Việc đổi định dạng **không thay khóa**, **không đổi curve**, **không đổi hash**, **không tạo một chữ ký mới**. Nếu giải mã và mã hóa lại chính xác, hệ thống bên kia vẫn đang xác minh cùng chữ ký ECDSA.
+**`(r, s)` is the mathematical meaning of the signature; DER and P1363 are two ways to serialize that exact pair of numbers into bytes.** Changing the encoding **does not change the key**, **does not change the curve**, **does not change the hash**, and **does not create a new signature**. If decoded and re-encoded accurately, the peer system still verifies the exact same ECDSA signature.
 
-Một quy trình xác minh thành công còn yêu cầu hai bên thống nhất:
+Successful verification also requires both parties to agree on:
 
-- **Bytes được ký**: đúng từng byte, kể cả UTF-8, xuống dòng, khoảng trắng, JSON canonicalization hay Base64URL signing input.
-- **Thuật toán digest**: ví dụ SHA-256 trong `SHA256withECDSA`.
-- **Curve và public key**: ví dụ P-256, P-384 hay P-521; không được tráo khóa.
-- **Signature encoding**: ASN.1 DER hay IEEE P1363 raw; một số giao thức có thêm wrapper hoặc yêu cầu canonicalization.
-- **Chính sách giao thức**: danh sách thuật toán được phép, key ID, chữ ký của đúng đối tượng và các trường ngữ cảnh cần xác thực.
+- **Signed bytes**: byte-for-byte identical, including UTF-8, newlines, whitespace, JSON canonicalization, or Base64URL signing input.
+- **Digest algorithm**: e.g., SHA-256 in `SHA256withECDSA`.
+- **Curve and public key**: e.g., P-256, P-384, or P-521; keys must not be substituted.
+- **Signature encoding**: ASN.1 DER or IEEE P1363 raw; some protocols add wrappers or canonicalization rules.
+- **Protocol policy**: allowlisted algorithms, key ID, signature for the intended entity, and authenticated context fields.
 
-Việc gửi đúng chữ ký với nhãn sai encoding sẽ khiến verifier lỗi hoặc từ chối ngay cả khi dữ liệu, khóa và thuật toán toán học đều đúng.
+Sending a valid signature under the wrong encoding label causes the verifier to error or reject even when data, key, and cryptographic math are all correct.
 
-## 2. Hai định dạng: DER và P1363
+## 2. The two formats: DER and P1363
 
-| Tiêu chí | ECDSA ASN.1 DER | IEEE P1363 raw |
+| Criterion | ECDSA ASN.1 DER | IEEE P1363 raw |
 | --- | --- | --- |
-| Cấu trúc | ASN.1 `SEQUENCE` chứa hai `INTEGER` là `r` và `s` | Hai số `r` và `s` nối trực tiếp: `r \|\| s` |
-| Biểu diễn số | Số nguyên **có dấu** theo DER (giá trị ECDSA phải dương), big-endian, độ dài tối thiểu | Số nguyên **không dấu**, big-endian, **đệm zero bên trái đủ độ rộng** |
-| Byte mở đầu | Thường `0x30` (ASN.1 SEQUENCE) | Byte đầu là dữ liệu của `r`, **không có tag chuẩn** |
-| Kích thước | Thay đổi theo giá trị `r`, `s` và byte độ dài ASN.1 | **Cố định theo curve order** |
-| Java 17 | `SHA256withECDSA` (định dạng DER tiêu chuẩn của JCA) | `SHA256withECDSAinP1363Format` (nếu provider hỗ trợ) |
-| Thực tế trao đổi | Nhiều API crypto, X.509/TLS và công cụ theo truyền thống ASN.1 | JWS/JOSE ES256, ES384, ES512; một số SDK/API theo IEEE P1363 |
+| Structure | ASN.1 `SEQUENCE` containing two `INTEGER`s `r` and `s` | Direct concatenation of `r` and `s`: `r \|\| s` |
+| Number representation | **Signed** DER integers (ECDSA values must be positive), big-endian, minimal length | **Unsigned** integers, big-endian, **left-padded with zeros to full width** |
+| Leading byte | Usually `0x30` (ASN.1 SEQUENCE) | First byte is `r` data, **no standard tag** |
+| Size | Varies with `r`, `s` values and ASN.1 length bytes | **Fixed by curve order** |
+| Java 17 | `SHA256withECDSA` (JCA's standard DER format) | `SHA256withECDSAinP1363Format` (when supported by provider) |
+| Real-world interoperability | Many crypto APIs, X.509/TLS, and traditional ASN.1 tools | JWS/JOSE ES256, ES384, ES512; certain IEEE P1363 SDKs/APIs |
 
-Không nên gọi P1363 là “DER không có header”. P1363 yêu cầu **chiều rộng cố định cho cả r và s**, trong khi DER cho phép mỗi INTEGER có số byte thay đổi và đôi khi thêm byte `00` để tránh bị hiểu là số âm. Chỉ cắt các byte `30, 02` không tạo ra P1363 hợp lệ.
+Do not call P1363 “DER without a header.” P1363 requires **fixed width for both r and s**, whereas DER allows each `INTEGER` to vary in byte count and occasionally prepends a `00` byte to prevent negative interpretation. Simply stripping `30, 02` bytes does not produce valid P1363.
 
-### 2.1 DER: hai ASN.1 INTEGER bên trong một SEQUENCE
+### 2.1 DER: two ASN.1 INTEGERs inside one SEQUENCE
 
-Trong một chữ ký ECDSA DER thông thường, cấu trúc logic là:
+In a standard DER ECDSA signature, the logical structure is:
 
 ```asn1
 Ecdsa-Sig-Value ::= SEQUENCE {
@@ -63,7 +63,7 @@ Ecdsa-Sig-Value ::= SEQUENCE {
 }
 ```
 
-Byte biểu diễn theo **DER (Distinguished Encoding Rules)**:
+Bytes under **DER (Distinguished Encoding Rules)**:
 
 ```text
 30 <SEQUENCE length>
@@ -71,13 +71,13 @@ Byte biểu diễn theo **DER (Distinguished Encoding Rules)**:
    02 <s length> <s bytes, signed-positive, minimal>
 ```
 
-- `0x30`: tag của ASN.1 SEQUENCE.
-- `0x02`: tag của INTEGER.
-- Các trường length dùng DER length encoding (short form nếu dưới 128, long form nếu từ 128 trở lên).
-- INTEGER dùng big-endian, được mã hóa theo biểu diễn có dấu hai phần bù, **không có các zero thừa**.
-- Vì `r, s > 0` trong chữ ký hợp lệ, nếu bit cao nhất của byte có nghĩa đầu tiên bằng `1`, DER **phải thêm một byte `0x00` phía trước** để không biến số dương thành số âm.
+- `0x30`: ASN.1 `SEQUENCE` tag.
+- `0x02`: `INTEGER` tag.
+- Length fields use DER length encoding (short form if below 128, long form if 128 or greater).
+- `INTEGER` uses big-endian two's-complement signed representation, **with no redundant zeros**.
+- Because `r, s > 0` in valid signatures, if the most significant bit of the first significant byte is `1`, DER **must prepend a `0x00` byte** so the positive integer is not read as negative.
 
-Ví dụ chỉ nhằm giải thích **mã hóa**, không phải chữ ký ECDSA thật của một thông điệp/khóa:
+Example purely to explain **encoding**, not a real ECDSA signature for any message/key:
 
 ```text
 r = 1, s = 2
@@ -85,26 +85,26 @@ r = 1, s = 2
 DER:
 30 06  02 01 01  02 01 02
 
-30 06       : SEQUENCE, nội dung dài 6 byte
+30 06       : SEQUENCE, 6 bytes of content
 02 01 01    : INTEGER r = 1
 02 01 02    : INTEGER s = 2
 ```
 
-Với một giá trị có byte đầu `0x80` (bit dấu bật), DER INTEGER cần:
+For a value starting with `0x80` (sign bit set), a DER `INTEGER` requires:
 
 ```text
-Giá trị r = 128 = 0x80
+Value r = 128 = 0x80
 INTEGER DER = 02 02 00 80
-                   ^^ byte 00 bắt buộc để giữ số dương
+                   ^^ mandatory 00 byte to keep number positive
 ```
 
-Ngược lại, `02 02 00 01` là DER **không chuẩn tắc** vì giá trị 1 chỉ cần `02 01 01`. Khi xử lý dữ liệu không tin cậy, cần từ chối INTEGER âm, độ dài không đúng, zero thừa, dữ liệu dư hay SEQUENCE không chuẩn.
+Conversely, `02 02 00 01` is **non-canonical** DER because value 1 only needs `02 01 01`. When handling untrusted input, reject negative `INTEGER`s, invalid lengths, redundant zeros, trailing data, or non-canonical `SEQUENCE`s.
 
-**Không dùng độ dài DER cố định.** Với ECDSA P-256, thường thấy chữ ký quanh 70–72 byte, nhưng còn có thể ngắn hơn do r/s bỏ zero đầu; cần parse theo cấu trúc chứ không suy luận bằng độ dài. Với P-521, phần nội dung SEQUENCE thường vượt 127 byte nên DER dùng **long-form length**, ví dụ dạng `30 81 ...`. Parser chỉ hỗ trợ “một byte length” sẽ hỏng khi gặp curve lớn.
+**Never assume a fixed DER length.** For ECDSA P-256, signatures are commonly around 70–72 bytes, yet can be shorter when `r`/`s` omit leading zeros; parse structurally rather than inferring by length. For P-521, the `SEQUENCE` content often exceeds 127 bytes, so DER uses **long-form length**, such as `30 81 ...`. Parsers assuming “a one-byte length” will break on large curves.
 
-### 2.2 P1363: hai số unsigned với độ dài cố định
+### 2.2 P1363: two fixed-width unsigned integers
 
-Với IEEE P1363:
+For IEEE P1363:
 
 ```text
 P1363 = I2OSP(r, width) || I2OSP(s, width)
@@ -113,76 +113,76 @@ width = ceil(bitLength(curve_order) / 8)
 length(P1363) = 2 * width
 ```
 
-`I2OSP` ở đây nghĩa là chuyển số nguyên **không dấu** thành đúng `width` byte, big-endian; nếu số có ít byte có nghĩa hơn thì **đệm `00` ở bên trái**. Không thêm ASN.1 tag, length hoặc byte báo dấu. Nửa đầu là `r`, nửa cuối là `s`; **không đảo thứ tự**.
+Here `I2OSP` means converting an **unsigned** integer into exactly `width` big-endian bytes; if it has fewer significant bytes, **left-pad with `00`**. No ASN.1 tags, length bytes, or sign bytes are added. The first half is `r`, the second half is `s`; **never swap their order**.
 
-| Curve thường dùng | Số bit của order | Width mỗi phần | Tổng P1363 |
+| Common curve | Order bit length | Component width | Total P1363 |
 | --- | ---: | ---: | ---: |
-| NIST P-256 (`secp256r1`) | 256 | 32 byte | **64 byte** |
-| NIST P-384 (`secp384r1`) | 384 | 48 byte | **96 byte** |
-| NIST P-521 (`secp521r1`) | 521 | 66 byte | **132 byte** |
+| NIST P-256 (`secp256r1`) | 256 | 32 bytes | **64 bytes** |
+| NIST P-384 (`secp384r1`) | 384 | 48 bytes | **96 bytes** |
+| NIST P-521 (`secp521r1`) | 521 | 66 bytes | **132 bytes** |
 
-Chú ý **P-521 là 521 bit**, nên mỗi số phải dùng `ceil(521/8) = 66` byte, không phải 65. Tổng độ dài chữ ký raw là `132` byte; 7 bit cao chưa dùng của byte đầu vẫn phải được biểu diễn đúng.
+Note that **P-521 is 521 bits**, so each component takes `ceil(521/8) = 66` bytes, not 65. Total raw signature length is `132` bytes; the 7 unused high bits of the leading byte must still be represented cleanly.
 
-Một cặp số minh họa `r=1, s=2` với P-256:
+An illustrative pair `r=1, s=2` for P-256:
 
 ```text
-r: 00 00 ... 00 01   (tổng 32 byte)
-s: 00 00 ... 00 02   (tổng 32 byte)
-=> r || s dài đúng 64 byte
+r: 00 00 ... 00 01   (32 bytes total)
+s: 00 00 ... 00 02   (32 bytes total)
+=> r || s is exactly 64 bytes
 ```
 
-Khi chuyển từ DER sang P1363, bỏ byte `00` **dấu dương** của DER nếu có, nhưng sau đó **phải thêm đủ leading zero** để mỗi phần đúng `width`. Khi chuyển ngược lại, bỏ các zero dư của raw, rồi thêm `00` nếu byte cao nhất có bit dấu, mã hóa INTEGER/SEQUENCE DER.
+When converting DER to P1363, strip DER's positive-sign `00` byte if present, then **left-pad with enough zeros** so each part is exactly `width` bytes. When converting back, strip redundant raw zeros, then prepend `00` if the top byte has the sign bit set, and encode the DER `INTEGER`s/`SEQUENCE`.
 
-## 3. Vì sao hai hệ thống có thể trả “invalid signature”?
+## 3. Why can two systems return “invalid signature”?
 
-Giả sử Java ký:
+Suppose Java signs with:
 
 ```java
 Signature signer = Signature.getInstance("SHA256withECDSA");
 ```
 
-Đây là **mã nhúng** (cần import, khóa và các lệnh `initSign/update/sign`). Trong JDK thông dụng, nó trả **DER-encoded** ECDSA `SEQUENCE(INTEGER r, INTEGER s)`.
+This is an **embedded snippet** (requiring imports, key, and `initSign/update/sign`). In standard JDKs, it returns **DER-encoded** ECDSA `SEQUENCE(INTEGER r, INTEGER s)`.
 
-Một API khác ghi trong hợp đồng “ECDSA SHA-256, signature is IEEE P1363 r||s”, hoặc yêu cầu **JWS ES256**. Nếu bạn gửi thẳng byte DER cho bên đó, họ nhận khoảng 70 byte thay vì **64 byte**. Hai bên vẫn dùng SHA-256/P-256 nhưng **khác hợp đồng serialization** nên sẽ lỗi.
+Another API's contract states “ECDSA SHA-256, signature is IEEE P1363 r||s,” or requires **JWS ES256**. If you send raw DER bytes to it, it receives roughly 70 bytes instead of **64 bytes**. Both sides still use SHA-256/P-256, yet **differ in serialization contract**, causing failure.
 
-Chiều ngược lại cũng vậy: đưa raw `r||s` 64 byte cho verifier chờ ASN.1 DER thì parser không tìm thấy `SEQUENCE` và hai `INTEGER`. Tùy provider, Java có thể trả `false` hoặc ném `SignatureException` với lỗi encoding. Không nên bắt exception rồi coi “signature valid” hay mặc định thử cả hai định dạng trên input không được gắn nhãn.
+The reverse is identical: passing 64-byte raw `r||s` into a verifier expecting ASN.1 DER causes the parser to miss `SEQUENCE` and two `INTEGER`s. Depending on the provider, Java may return `false` or throw `SignatureException` with an encoding error. Never catch an exception and treat it as “signature valid,” nor blindly try both formats on unlabeled input.
 
-Luồng tích hợp đúng:
+Correct integration flow:
 
 ```text
-Bên A tạo (r, s)
+Party A computes (r, s)
        |
-       +--> serialize DER ----> giao thức mong DER
+       +--> serialize DER ----> protocol expecting DER
        |
-       +--> serialize P1363 --> giao thức mong raw r||s
+       +--> serialize P1363 --> protocol expecting raw r||s
 
-Bên B đọc theo định dạng đã quy định
+Party B reads per specified format
        |
        v
-Tách r, s và kiểm tra 0 < r,s < order
+Split r, s and validate 0 < r,s < order
        |
        v
 ECDSA.verify(hash(bytes), publicKey, r, s)
 ```
 
-Nếu phải chuyển encoding, hãy làm **một lần tại ranh giới hệ thống**, ghi rõ kỳ vọng; lưu test vector và fail closed với input sai thay vì sử dụng heuristic “byte đầu 0x30 thì chắc DER” vì raw P1363 cũng có thể tình cờ bắt đầu `0x30`.
+If format conversion is required, perform it **once at the system boundary** with explicit expectations; keep test vectors and fail closed on invalid input rather than using heuristics like “first byte `0x30` means DER,” because raw P1363 can also happen to start with `0x30`.
 
-## 4. Java 17 có thể làm trực tiếp cả hai định dạng
+## 4. Java 17 can handle both formats directly
 
-Java 17 định nghĩa các tên algorithm gồm:
+Java 17 defines standard algorithm names including:
 
-- `SHA256withECDSA` → chữ ký ECDSA dùng SHA-256, encoding ASN.1 DER thông dụng.
-- `SHA256withECDSAinP1363Format` → cùng hashing/ECDSA, encoding IEEE P1363.
-- Tương ứng `SHA384withECDSA` / `SHA384withECDSAinP1363Format` cho P-384.
-- Tương ứng `SHA512withECDSA` / `SHA512withECDSAinP1363Format` cho P-521.
+- `SHA256withECDSA` → ECDSA signature using SHA-256, standard ASN.1 DER encoding.
+- `SHA256withECDSAinP1363Format` → same hashing/ECDSA, IEEE P1363 encoding.
+- Correspondingly `SHA384withECDSA` / `SHA384withECDSAinP1363Format` for P-384.
+- Correspondingly `SHA512withECDSA` / `SHA512withECDSAinP1363Format` for P-521.
 
-**Tên trong Java không tự buộc dùng đúng curve**. Ví dụ `SHA256withECDSA` mô tả digest/ECDSA, còn curve đến từ **EC key**. Giao thức ES256 lại yêu cầu **P-256 + SHA-256**, nên phải kiểm tra cả curve lẫn algorithm; không chỉ nhìn tên.
+**The Java algorithm name does not automatically enforce the curve.** For example, `SHA256withECDSA` specifies digest/ECDSA, while the curve comes from the **EC key**. The `ES256` protocol requires **P-256 + SHA-256**, so you must check both curve and algorithm rather than trusting only the name.
 
-Các thuật toán có trong danh sách **standard algorithm names** và được SunEC cung cấp trên nhiều JDK; khả năng sẵn có phụ thuộc provider/cấu hình runtime. Ưu tiên `Signature.getInstance(name)` và kiểm tra khả năng hỗ trợ khi khởi động, tránh gắn chặt provider name nếu không cần.
+These algorithms are listed in **standard algorithm names** and supplied by SunEC on many JDKs; availability depends on runtime providers and configuration. Prefer `Signature.getInstance(name)` and verify support at startup, avoiding hardcoding a provider name unless necessary.
 
-### 4.1 Thực hành 1: tạo chữ ký DER và P1363, xác minh bằng API tương ứng
+### 4.1 Practice 1: generating DER and P1363 signatures and verifying with matching APIs
 
-Tạo file **`EcdsaSignatureFormatsDemo.java`** (Java 17 trở lên):
+Create **`EcdsaSignatureFormatsDemo.java`** (Java 17+):
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -237,14 +237,14 @@ public class EcdsaSignatureFormatsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 EcdsaSignatureFormatsDemo.java
 java EcdsaSignatureFormatsDemo
 ```
 
-Đầu ra đã kiểm tra:
+Verified output:
 
 ```text
 component bytes: 32
@@ -255,54 +255,54 @@ P1363 verifies: true
 changed message verifies: false
 ```
 
-Giải thích:
+Explanation:
 
-1. `KeyPairGenerator("EC")` tạo khóa với curve `secp256r1` (NIST P-256); mỗi ECDSA signature dùng cùng cặp khóa nhưng được ký **riêng hai lần**.
-2. `SHA256withECDSA` trả DER; `SHA256withECDSAinP1363Format` trả raw fixed-width. `der[0]==0x30` là **quan sát cấu trúc trong ví dụ**, không phải quy tắc nhận diện định dạng từ dữ liệu bất kỳ.
-3. `ECPublicKey.getParams().getOrder().bitLength()` cho biết chiều rộng thành phần từ **group order**. P-256 có 32 byte mỗi phần, nên raw dài 64.
-4. Mỗi verifier nhận đúng encoding mà `Signature.getInstance(...)` của nó yêu cầu, nên xác minh thành công.
-5. Khi bytes thông điệp thay đổi từ `document:v1` sang `document:v2`, chữ ký không còn hợp lệ.
+1. `KeyPairGenerator("EC")` generates a key on curve `secp256r1` (NIST P-256); each ECDSA signature uses the same key pair but is signed **separately twice**.
+2. `SHA256withECDSA` returns DER; `SHA256withECDSAinP1363Format` returns fixed-width raw bytes. `der[0]==0x30` is a **structural observation in the demo**, not a rule for classifying arbitrary input formats.
+3. `ECPublicKey.getParams().getOrder().bitLength()` yields the component width from the **group order**. P-256 has 32 bytes per part, so raw length is 64.
+4. Each verifier receives the encoding expected by its `Signature.getInstance(...)`, so verification succeeds.
+5. When message bytes change from `document:v1` to `document:v2`, the signature is no longer valid.
 
-**Hai chữ ký ký riêng có thể khác nhau về `r, s` do giá trị nonce nội bộ ECDSA.** Bài này không so sánh trực tiếp mảng DER với mảng P1363 của hai lần ký độc lập; muốn chứng minh conversion bảo toàn *cùng một* chữ ký, dùng thực hành tiếp theo.
+**Two separately generated signatures can differ in `r, s` due to ECDSA's internal nonce.** This demo does not directly compare the DER bytes and P1363 bytes from two independent signings; to prove conversion preserves *the same* signature, run the next practice exercise.
 
-## 5. Chuyển DER ↔ P1363 một cách đúng đắn
+## 5. Converting DER ↔ P1363 properly
 
-Trong ứng dụng, ưu tiên chọn **đúng format ngay khi gọi `Signature`**. Nếu provider hoặc SDK chỉ trả định dạng còn lại, conversion tại ranh giới API là hợp lý, nhưng **DER là một định dạng có quy tắc canonical nghiêm ngặt**.
+In applications, prefer selecting the **right format directly when calling `Signature`**. If a provider or SDK only supplies the other format, converting at the API boundary makes sense, yet **DER is a format with strict canonical rules**.
 
-### 5.1 Quy trình DER → P1363
+### 5.1 DER → P1363 procedure
 
-1. Đọc một ASN.1 SEQUENCE tag `0x30` và length **đúng**, không có trailing bytes.
-2. Trong SEQUENCE phải có **đúng hai** INTEGER theo thứ tự `r, s`, không thêm trường.
-3. DER INTEGER phải dương, biểu diễn tối thiểu, không có dấu âm hay prefix `00` dư.
-4. Kiểm tra các scalar `1 <= r,s < n`, trong đó `n` là bậc nhóm EC lấy từ curve của public key.
-5. Chuyển mỗi số sang unsigned big-endian với đúng `ceil(bitLength(n)/8)` byte. Thêm zero ở **bên trái** nếu số ít byte có nghĩa.
-6. Ghép hai mảng không có separator và giữ đúng thứ tự `r||s`.
+1. Read an ASN.1 `SEQUENCE` tag `0x30` and **exact** length, with no trailing bytes.
+2. Inside the `SEQUENCE` there must be **exactly two** `INTEGER`s in order `r, s`, with no extra fields.
+3. DER `INTEGER`s must be positive, minimally encoded, with no negative sign or redundant `00` prefix.
+4. Verify scalars `1 <= r,s < n`, where `n` is the EC group order from the public key's curve.
+5. Convert each number to unsigned big-endian with exact width `ceil(bitLength(n)/8)` bytes. Left-pad with zeros if it has fewer significant bytes.
+6. Concatenate both arrays without any separator, preserving `r||s` order.
 
-### 5.2 Quy trình P1363 → DER
+### 5.2 P1363 → DER procedure
 
-1. Yêu cầu **chính xác** `2 * width` byte; từ chối raw bị cắt hoặc thừa byte.
-2. Chia thành `rBytes` và `sBytes`, mỗi phần dài `width`.
-3. Tạo `BigInteger(1, bytes)` để đọc **unsigned**; nếu dùng `new BigInteger(bytes)` không có `signum=1` thì các giá trị bắt đầu bằng bit `1` có thể bị hiểu thành số âm.
-4. Kiểm tra `1 <= r,s < n` theo curve thực.
-5. Chuyển từng số thành DER INTEGER tối thiểu: loại zero dư, **thêm một byte `00`** nếu cần giữ dấu dương.
-6. Đóng gói hai INTEGER vào một SEQUENCE; dùng DER short/long length đúng quy tắc.
+1. Require **exactly** `2 * width` bytes; reject truncated or oversized raw input.
+2. Split into `rBytes` and `sBytes`, each of length `width`.
+3. Construct `BigInteger(1, bytes)` to interpret as **unsigned**; using `new BigInteger(bytes)` without `signum=1` can misread values starting with a `1` bit as negative.
+4. Check `1 <= r,s < n` per the actual curve.
+5. Encode each number as a minimal DER `INTEGER`: strip redundant zeros, **prepend one `00` byte** if needed to preserve positive sign.
+6. Wrap both `INTEGER`s in a `SEQUENCE`; apply DER short/long length encoding properly.
 
-**Không ghép/xóa byte theo offset cố định kiểu “`DER.substring(4)`”**. DER P-256 có thể chứa số byte khác nhau; P-521 còn có trường length long-form. Parser cần chống DER không chuẩn tắc, length overflow, trailing data, INTEGER âm/zero, thừa zero và scalar vượt bậc nhóm. Việc tuân thủ canonical encoding còn giúp các hệ thống khác nhau không diễn giải cùng một giá trị theo nhiều dạng byte tùy tiện.
+**Never slice or drop bytes at fixed offsets like “`DER.substring(4)`”.** P-256 DER signatures can vary in byte length, and P-521 additionally uses long-form lengths. Parsers must reject non-canonical DER, length overflows, trailing data, negative/zero `INTEGER`s, redundant zeros, and out-of-range scalars. Enforcing canonical encoding also prevents different systems from interpreting the same value across multiple arbitrary byte representations.
 
-### 5.3 Thực hành 2: bộ chuyển định dạng tối giản có kiểm tra chuẩn tắc
+### 5.3 Practice 2: minimal format bridge with canonical checks
 
-Ví dụ sau là **một chương trình Java 17 độc lập**. Nó:
+The following example is a **standalone Java 17 program**. It:
 
-- Parse DER theo quy tắc tối thiểu cần thiết cho ECDSA `SEQUENCE(INTEGER r, INTEGER s)`.
-- Mã hóa DER length ở cả short và long form, hoạt động với P-521.
-- Kiểm tra r/s trong miền hợp lệ của group order thay vì chỉ dựa vào số bit.
-- Dùng `BigInteger(1, bytes)` cho raw và xử lý đúng zero dành cho dấu DER.
-- Ký một lần bằng DER, chuyển sang P1363, chuyển về DER, rồi kiểm chữ ký bằng **cả hai API Java**.
-- Từ chối một DER INTEGER có leading `00` không cần thiết.
+- Parses DER according to the minimal rules needed for ECDSA `SEQUENCE(INTEGER r, INTEGER s)`.
+- Encodes DER lengths in both short and long forms, working cleanly with P-521.
+- Checks `r`/`s` within the valid group order range rather than relying solely on bit counts.
+- Uses `BigInteger(1, bytes)` for raw inputs and handles DER sign-zero padding properly.
+- Signs once in DER, converts to P1363, converts back to DER, and verifies the signature using **both Java APIs**.
+- Rejects a DER `INTEGER` containing a redundant leading `00`.
 
-**Giới hạn:** đây là codec học tập cho chữ ký ECDSA, không thay một ASN.1/cryptography library đã được audit khi xử lý các giao thức nhiều cấu trúc phức tạp. Không dùng `sun.security.util.*` hoặc reflection vào JDK internals.
+**Limitation:** this is a learning codec for ECDSA signatures, not a replacement for an audited ASN.1/cryptography library when handling complex multi-structure protocols. Never rely on `sun.security.util.*` or reflection into JDK internals.
 
-Tạo file **`EcdsaDerP1363Bridge.java`**:
+Create **`EcdsaDerP1363Bridge.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -476,7 +476,7 @@ public class EcdsaDerP1363Bridge {
                     ", DER exact=" + Arrays.equals(der, derAgain));
         }
 
-        // Chỉ dùng để test DER parser; đây không phải curve order sản xuất.
+        // Used only for testing the DER parser; this is not a production curve order.
         BigInteger exampleOrder = BigInteger.ONE.shiftLeft(256)
                 .subtract(BigInteger.valueOf(189));
         byte[] malformed = {0x30, 0x07, 0x02, 0x02, 0x00, 0x01,
@@ -493,14 +493,14 @@ public class EcdsaDerP1363Bridge {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 EcdsaDerP1363Bridge.java
 java EcdsaDerP1363Bridge
 ```
 
-Đầu ra đã kiểm tra với provider hỗ trợ P-256/P-384/P-521 và các tên JCA tương ứng:
+Verified output with a provider supporting P-256/P-384/P-521 and the corresponding JCA names:
 
 ```text
 secp256r1: P1363=64, both verify=true, DER exact=true
@@ -509,57 +509,57 @@ secp521r1: P1363=132, both verify=true, DER exact=true
 non-minimal DER rejected: true
 ```
 
-**Giải thích các kết quả:**
+**Explanation of results:**
 
-- Mỗi curve tạo **một chữ ký DER**, sau đó chuyển byte của **chính cặp `r,s` đó** sang P1363; verifier P1363 chấp nhận chữ ký, chứng minh không cần ký lại.
-- Chuyển ngược P1363 → DER và so sánh `Arrays.equals(der, derAgain)` trả `true`, vì DER chuẩn tắc có biểu diễn duy nhất cho cặp số này.
-- P-521 có `width=66` nên P1363 132 byte; codec xử lý DER long-form length thay vì giả định một byte length.
-- Kiểm tra `malformed` sử dụng một `INTEGER 00 01` với leading zero **không cần thiết**. Parser từ chối; biến `exampleOrder` chỉ tạo miền đủ lớn cho **test cú pháp**, hoàn toàn không dùng làm khóa/curve order cho ký thật.
-- Các kết quả boolean là đầu ra xác định khi môi trường có thuật toán; byte DER thực tế và chiều dài DER có thể thay đổi từ lần ký này sang lần khác.
+- Each curve generates **one DER signature**, then converts the bytes of **that exact `(r,s)` pair** to P1363; the P1363 verifier accepts the signature, proving no re-signing is needed.
+- Converting back P1363 → DER and comparing `Arrays.equals(der, derAgain)` returns `true`, because canonical DER has a unique representation for that pair.
+- P-521 has `width=66`, yielding 132-byte P1363; the codec handles DER long-form lengths rather than assuming a single length byte.
+- The `malformed` check uses an `INTEGER 00 01` with an **unnecessary** leading zero. The parser rejects it; `exampleOrder` simply supplies a sufficiently large bound for **syntax testing**, never used as a real signing key/curve order.
+- The boolean results are deterministic whenever the environment provides the algorithms; actual DER bytes and DER lengths may vary from run to run.
 
-**Không thay converter bằng một phép chia chuỗi theo số byte DER cố định.** Ngoài việc parse đúng, sản phẩm cần test parser với dữ liệu sai cố ý và ràng buộc kích thước đầu vào để ngăn xử lý ASN.1 không an toàn. Khi dùng thư viện ASN.1 chuyên dụng, vẫn cần kiểm soát **canonical DER** và **range của r/s**, chứ không chỉ gọi parse để được hai BigInteger.
+**Never replace the converter with string splitting at fixed DER byte offsets.** Beyond parsing accurately, production systems must test parsers with intentionally malformed inputs and cap input sizes to avoid unsafe ASN.1 processing. Even when using a dedicated ASN.1 library, enforce **canonical DER** and **`r`/`s` range checks**, rather than merely parsing into two `BigInteger`s.
 
-## 6. JWS/JWT ES256, ES384, ES512 dùng P1363 raw
+## 6. JWS/JWT ES256, ES384, and ES512 use raw P1363
 
-Đây là nguồn sai lệch định dạng phổ biến khi ứng dụng Java giao tiếp với SDK/identity provider. Trong **JSON Web Signature (JWS)**, các giá trị:
+This is a widespread format mismatch when Java applications integrate with external SDKs or identity providers. In **JSON Web Signature (JWS)**:
 
-| JOSE `alg` | Curve bắt buộc | Hash | Chữ ký JWS (trước Base64URL) | Signature segment Base64URL không padding |
+| JOSE `alg` | Required curve | Hash | JWS signature (before Base64URL) | Unpadded Base64URL signature segment |
 | --- | --- | --- | ---: | ---: |
-| **ES256** | P-256 | SHA-256 | **64 byte** | 86 ký tự |
-| **ES384** | P-384 | SHA-384 | **96 byte** | 128 ký tự |
-| **ES512** | P-521 | SHA-512 | **132 byte** | 176 ký tự |
+| **ES256** | P-256 | SHA-256 | **64 bytes** | 86 chars |
+| **ES384** | P-384 | SHA-384 | **96 bytes** | 128 chars |
+| **ES512** | P-521 | SHA-512 | **132 bytes** | 176 chars |
 
-**ES512** không có nghĩa “curve P-512”; nó dùng **P-521** và **SHA-512** theo RFC 7518. Chữ ký JWS được định nghĩa là `r||s` cố định, không phải DER. Vì thế cách làm:
+**ES512** does not mean “curve P-512”; it uses **P-521** and **SHA-512** per RFC 7518. A JWS signature is defined as fixed `r||s`, not DER. Hence doing:
 
 ```text
 Base64URL(ASN1_DER_ECDSA_SIGNATURE)
 ```
 
-**không** tạo JWS ES256 hợp lệ, dù nhìn bên ngoài giống một đoạn Base64URL. Phải lấy raw 64 byte `r||s` (hoặc chuyển DER → raw đúng cách) rồi mới Base64URL không padding.
+does **not** produce a valid JWS ES256 token, even though externally it looks like a Base64URL segment. You must obtain the 64-byte raw `r||s` (or properly convert DER → raw) before unpadded Base64URL encoding.
 
-### 6.1 Dữ liệu được ký trong JWS là “signing input”
+### 6.1 The signed data in JWS is the “signing input”
 
-Một JWS Compact có ba segment:
+A JWS Compact token has three segments:
 
 ```text
 base64url(header).base64url(payload).base64url(raw_ECDSA_signature)
 ```
 
-Signature được tạo trên **ASCII bytes của chuỗi**:
+The signature is computed over the **ASCII bytes of the string**:
 
 ```text
 base64url(header) + "." + base64url(payload)
 ```
 
-chứ không phải ký nguyên văn JSON payload riêng lẻ. Hai đối tượng JSON tương đương ngữ nghĩa nhưng khác thứ tự trường, dấu cách, cách escape hoặc cách Base64URL có thể tạo **signing input khác**.
+not directly over the standalone raw JSON payload. Two semantically equivalent JSON objects differing in field order, spaces, escaping, or Base64URL encoding produce **different signing inputs**.
 
-Việc cấu hình `"alg": "ES256"` trong header không tự chứng minh có thể tin header đó. Khi xác minh JWS, server phải xác định **các thuật toán được phép, khóa tin cậy, issuer/audience/expiry và ngữ cảnh ứng dụng** theo chính sách, không để attacker chọn thuật toán hoặc khóa chỉ bằng các trường header không tin cậy.
+Having `"alg": "ES256"` in the header does not by itself justify trusting that header. When verifying a JWS, the server must determine **permitted algorithms, trusted keys, issuer/audience/expiry, and application context** from policy, never letting an attacker select the algorithm or key via untrusted header fields.
 
-### 6.2 Thực hành 3: Java 17 ký đúng JWS ES256 raw P1363
+### 6.2 Practice 3: Java 17 properly signing JWS ES256 raw P1363
 
-Ví dụ tạo **một signing input JWS** tối giản, ký bằng `SHA256withECDSAinP1363Format` và xác minh đúng bytes. Đây là demo về **encoding và Signature API**, chưa phải một thư viện JWT và không xử lý claims, trust, issuer hoặc expiry cho đăng nhập thực tế.
+The example builds a minimal **JWS signing input**, signs it with `SHA256withECDSAinP1363Format`, and verifies the exact bytes. This is a demo of **encoding and the Signature API**, not a JWT library, and it does not implement claims, trust, issuer, or expiry checks for real authentication.
 
-Tạo **`EcdsaJwsEs256Demo.java`**:
+Create **`EcdsaJwsEs256Demo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -613,14 +613,14 @@ public class EcdsaJwsEs256Demo {
 }
 ```
 
-Lệnh chạy:
+Run commands:
 
 ```bash
 javac --release 17 EcdsaJwsEs256Demo.java
 java EcdsaJwsEs256Demo
 ```
 
-Đầu ra đã kiểm tra:
+Verified output:
 
 ```text
 signature bytes: 64
@@ -629,38 +629,38 @@ correct input verifies: true
 changed input verifies: false
 ```
 
-Chuỗi `signatureSegment` thực tế thay đổi vì `r,s` thay đổi, nhưng **raw luôn dài 64 byte**, và Base64URL không padding từ 64 byte luôn dài **86 ký tự**. Cấu trúc ký đúng signing input với dấu chấm phân tách hai đoạn mã hóa; sửa payload làm xác minh thất bại.
+The actual `signatureSegment` string changes because `r,s` vary, yet **raw length is always 64 bytes**, and unpadded Base64URL of 64 bytes is always **86 characters**. The structure signs the exact signing input with a dot separating the two encoded parts; altering the payload causes verification to fail.
 
-Trong hệ thống thật, sử dụng **thư viện JOSE/JWT có kiểm thử và chính sách thuật toán/khóa rõ ràng**. Đừng tự viết JWT authorization bằng cách nối chuỗi từ ví dụ này. Ở đây, trọng tâm là: **JOSE ECDSA signature segment = Base64URL(P1363 raw)**.
+In real systems, use a **tested JOSE/JWT library with explicit algorithm and key policies**. Never hand-roll JWT authorization by string concatenation from this example. The key takeaway here is: **JOSE ECDSA signature segment = Base64URL(P1363 raw)**.
 
-## 7. ASN.1 DER của chữ ký không phải mọi loại “DER”
+## 7. A signature's ASN.1 DER is not every kind of “DER”
 
-Trong Java và PKI, từ “DER” xuất hiện ở nhiều nơi:
+In Java and PKI, the term “DER” appears in several places:
 
-| Đối tượng | Ví dụ Java / cấu trúc | Nội dung |
+| Object | Java example / structure | Contents |
 | --- | --- | --- |
-| **ECDSA signature value** | `SEQUENCE { INTEGER r, INTEGER s }` | Chỉ hai số của chữ ký |
-| **X.509 certificate** | Cấu trúc `Certificate` DER | Chứa TBS certificate, thuật toán ký, `signatureValue` và nhiều trường |
-| **X.509 public key (SPKI)** | `publicKey.getEncoded()`, thường `X.509` | Chứa thuật toán/curve và bitstring public key, **không phải chữ ký** |
-| **PKCS#8 private key** | `privateKey.getEncoded()` (nếu exportable) | Cấu trúc khóa riêng được mã hóa ASN.1, **không phải chữ ký** |
-| **PEM** | Base64 bao quanh DER/khóa/chứng chỉ kèm marker | Cách bọc nội dung, không xác định DER vs P1363 của một chữ ký API |
+| **ECDSA signature value** | `SEQUENCE { INTEGER r, INTEGER s }` | Only the two numbers of the signature |
+| **X.509 certificate** | DER `Certificate` structure | Contains TBS certificate, signing algorithm, `signatureValue`, and many fields |
+| **X.509 public key (SPKI)** | `publicKey.getEncoded()`, usually `X.509` | Contains algorithm/curve and public-key bitstring, **not a signature** |
+| **PKCS#8 private key** | `privateKey.getEncoded()` (if exportable) | ASN.1-encoded private key structure, **not a signature** |
+| **PEM** | Base64 wrapping DER/key/cert with markers | Textual armor around content, does not define DER vs. P1363 of an API signature |
 
-Ví dụ, khi X.509 certificate mang ECDSA signature, `signatureValue` là **BIT STRING chứa encoding DER của ECDSA-Sig-Value**. Đừng lấy toàn bộ certificate DER hoặc toàn bộ BIT STRING wrapper rồi đưa nguyên cho `Signature.verify(...)` vốn đang chờ chỉ **signature bytes**.
+For instance, when an X.509 certificate carries an ECDSA signature, `signatureValue` is a **BIT STRING containing the DER encoding of `ECDSA-Sig-Value`**. Never pass the entire certificate DER or the outer BIT STRING wrapper straight to `Signature.verify(...)`, which expects only the **signature bytes**.
 
-Tương tự, gọi `publicKey.getEncoded()` cho X.509/SPKI chỉ cho byte mã hóa **key**, không có ý nghĩa “signature được mã hóa X.509”. Việc parse signature và việc parse public key phải dùng đúng API khác nhau.
+Likewise, calling `publicKey.getEncoded()` for X.509/SPKI yields the encoded **key** bytes, not an “X.509-encoded signature.” Parsing signatures and parsing public keys require distinct APIs.
 
-## 8. Curve order, r/s hợp lệ và vấn đề high-S/low-S
+## 8. Curve order, valid r/s, and the high-S/low-S issue
 
-### 8.1 Vì sao dùng `order` thay vì độ dài key file?
+### 8.1 Why use `order` instead of key file length?
 
-ECDSA hoạt động trên nhóm điểm có bậc `n`. Hai số chữ ký phải nằm trong miền:
+ECDSA operates over a point group of order `n`. Both signature integers must lie in:
 
 ```text
 1 <= r < n
 1 <= s < n
 ```
 
-Trong Java, với `ECPublicKey`, đọc:
+In Java, given an `ECPublicKey`, read:
 
 ```java
 BigInteger order = ((ECPublicKey) publicKey)
@@ -668,91 +668,91 @@ BigInteger order = ((ECPublicKey) publicKey)
 int width = (order.bitLength() + 7) / 8;
 ```
 
-Đây là **đoạn mã nhúng** trong hàm đã có biến `publicKey` và import `ECPublicKey`/`BigInteger`. Độ dài P1363 được tính bằng **order bit length**, không phải độ dài DER của key hay hash. Với các curve P thường dùng, width trùng với độ dài thường gặp của tọa độ đường cong, nhưng quy tắc đúng là theo miền số `r/s`.
+This is an **embedded snippet** inside a method that already has `publicKey` and imports `ECPublicKey`/`BigInteger`. P1363 length is computed from **order bit length**, not key DER length or hash size. For common P-curves, width matches the curve coordinate width, yet the authoritative rule comes from the `r/s` domain.
 
-Nếu API đối tác gửi một P1363 raw dài 64 byte nhưng yêu cầu P-384, đừng “bổ sung một ít zero” để ép dùng: phải từ chối sai độ dài và xác nhận rõ curve mà giao thức quy định.
+If a partner API sends a 64-byte raw P1363 signature when P-384 is required, never “pad a few zeros” to force it through: reject the wrong length and confirm the protocol's mandated curve.
 
-### 8.2 DER canonical encoding khác low-S canonicalization
+### 8.2 Canonical DER encoding vs. low-S canonicalization
 
-ECDSA có một dạng **signature malleability**: với chữ ký hợp lệ `(r,s)` theo công thức chuẩn, `(r, n-s)` cũng có thể xác minh thành công, khi `s` nằm trong miền hợp lệ. Một số hệ sinh thái yêu cầu **low-S**, thường `s <= n/2`, nhằm chọn một đại diện duy nhất cho một lớp tương đương toán học.
+ECDSA exhibits a form of **signature malleability**: for a valid signature `(r,s)` under the standard equations, `(r, n-s)` also verifies validly since `s` stays in the valid range. Some ecosystems enforce **low-S**, typically `s <= n/2`, to pick a unique representative from the mathematical equivalence class.
 
-Cần phân biệt:
+Distinguish clearly:
 
-- **Canonical DER**: mỗi cặp số `(r,s)` có **một encoding DER chuẩn tắc** (không zero thừa, không length bất chuẩn).
-- **Low-S policy**: một ràng buộc **trên giá trị `s`**, không phải cách đặt tag/length của DER.
-- **DER ↔ P1363 conversion**: chỉ đổi biểu diễn của **cùng `r,s`**; không tự đổi `s` thành `n-s`.
+- **Canonical DER**: every `(r,s)` pair has **one canonical DER encoding** (no redundant zeros, no non-minimal lengths).
+- **Low-S policy**: a constraint **on the value of `s`**, not on DER tag/length encoding.
+- **DER ↔ P1363 conversion**: only changes the representation of **the same `r,s`**; it does not silently replace `s` with `n-s`.
 
-Đừng tự “normalize low-S” trong bộ chuyển nếu giao thức không quy định. Việc đổi `s` tạo **giá trị chữ ký khác**, dù có thể xác minh cùng message/key; nó có thể ảnh hưởng đối chiếu byte, key attestation, transaction ID hoặc quy tắc canonical hóa của hệ thống khác. Nếu giao thức yêu cầu low-S, xử lý có chủ đích và kiểm thử bằng test vector chính thức.
+Never silently “normalize to low-S” inside a format converter unless the protocol specifies it. Changing `s` produces a **different signature value**, even though it verifies for the same message/key; that can break byte comparisons, key attestation, transaction IDs, or another system's canonicalization rules. If a protocol requires low-S, handle it explicitly and test against official vectors.
 
-**Không tái sử dụng nonce bí mật `k` khi ký ECDSA.** Đó là lỗi an toàn khóa riêng nghiêm trọng, độc lập với DER hay P1363. Để crypto provider đáng tin cậy quản lý randomness/deterministic signing; không tự đặt `k` qua ứng dụng. RFC 6979 mô tả deterministic ECDSA; một chữ ký sử dụng deterministic `k` vẫn có thể mã hóa dưới DER hoặc P1363.
+**Never reuse the secret nonce `k` when signing with ECDSA.** That is a critical private-key compromise bug regardless of DER or P1363. Let a trusted crypto provider manage randomness or deterministic signing; never supply `k` from application code. RFC 6979 specifies deterministic ECDSA; a signature produced with deterministic `k` can still be encoded in either DER or P1363.
 
-## 9. Checklist tích hợp hai hệ thống
+## 9. Two-system integration checklist
 
-Khi một đội Java nhận lỗi “signature invalid” từ hệ thống khác, hỏi theo thứ tự:
+When a Java team receives “signature invalid” from another system, ask in order:
 
-1. **Định dạng bytes?** Hợp đồng nhận DER `SEQUENCE(INTEGER r,s)` hay raw `r||s`? Nếu là JOSE ES256, phải raw 64 byte **trước** Base64URL.
-2. **Curve?** P-256/P-384/P-521 có đúng không? Kiểm tra key thực tế, không chỉ tên algorithm Java.
-3. **Hash?** `SHA256withECDSA` hay SHA384/SHA512 theo giao thức? Không tự hash trước rồi lại đưa vào API có tích hợp hashing.
-4. **Dữ liệu ký có trùng byte-for-byte?** JSON whitespace, UTF-8, newline `LF/CRLF`, thứ tự trường, compression, encoding của JWS signing input.
-5. **Độ dài raw?** 64/96/132 byte tùy curve; kiểm thử trước khi gọi verify.
-6. **DER parser chấp nhận canonical encoding không?** Không có INTEGER âm, leading zero thừa, trailing data, length sai, r/s ngoài miền hợp lệ.
-7. **Base64 hay Base64URL?** JWS dùng URL-safe alphabet `-` và `_`, thường không padding; không nhập nhằng với hex/PEM.
-8. **Đúng public key?** Kiểm tra key ID, nguồn tin cậy, chuỗi chứng chỉ/metadata/permission; không tin khóa do payload không đáng tin đề xuất.
-9. **Chính sách low-S?** Nếu một bên từ chối high-S, phải biết đó là **quy tắc giao thức**, không phải DER parser sai.
-10. **Provider/version?** Java 17 support tên P1363 trong chuẩn, nhưng provider đích có cài thuật toán/curve đó không? Log tên thuật toán và provider trong môi trường kiểm thử, không log private key.
-11. **Lỗi được xử lý fail closed?** `Signature.verify(...)` có thể trả `false` hoặc ném exception khi encoding sai. Bắt lỗi để **từ chối**, không tự thử nhiều cách không được giao thức cho phép.
-12. **Có test vector chia sẻ?** Cả hai bên cần cùng public key, message/signing input, format và signature bytes. Test cả hai chiều, byte đầu có bit dấu, r/s có leading zero, P-521 length long-form và dữ liệu malformed.
+1. **Byte format?** Does the contract expect DER `SEQUENCE(INTEGER r,s)` or raw `r||s`? For JOSE ES256, it must be 64 raw bytes **before** Base64URL.
+2. **Curve?** Do P-256/P-384/P-521 match? Inspect the actual key, not just the Java algorithm name.
+3. **Hash?** `SHA256withECDSA` or SHA-384/SHA-512 per protocol? Do not pre-hash and then feed into an API with built-in hashing.
+4. **Are signed bytes byte-for-byte identical?** JSON whitespace, UTF-8, `LF/CRLF` newlines, field ordering, compression, JWS signing input encoding.
+5. **Raw length?** 64/96/132 bytes depending on curve; validate before calling verify.
+6. **Does the DER parser enforce canonical encoding?** No negative `INTEGER`s, redundant leading zeros, trailing data, bad lengths, or out-of-range `r`/`s`.
+7. **Base64 or Base64URL?** JWS uses the URL-safe alphabet `-` and `_`, typically unpadded; do not confuse with hex/PEM.
+8. **Right public key?** Check key ID, trusted origin, certificate chain/metadata/permissions; never trust keys proposed by an untrusted payload.
+9. **Low-S policy?** If a peer rejects high-S, recognize it as a **protocol policy rule**, not a broken DER parser.
+10. **Provider/version?** Java 17 specifies P1363 names in standard names, yet does the target provider implement that algorithm/curve? Log algorithm and provider names in test environments without logging private keys.
+11. **Fail-closed error handling?** `Signature.verify(...)` may return `false` or throw an exception on bad encoding. Catch errors to **reject**, never trying multiple unapproved variants.
+12. **Shared test vectors?** Both sides need the same public key, message/signing input, format, and signature bytes. Test both directions, leading sign bits, `r`/`s` with leading zeros, P-521 long-form lengths, and malformed data.
 
-### 9.1 Những anti-pattern cần tránh
+### 9.1 Anti-patterns to avoid
 
-- **“DER và P1363 đều ECDSA nên byte giống nhau.”** Sai: chúng biểu diễn cùng `r,s` bằng hai cấu trúc khác nhau.
-- **“DER P-256 luôn 70/71/72 byte.”** Sai: DER có độ dài biến thiên; không nên hard-code.
-- **“Bỏ hai byte đầu DER rồi chia đôi.”** Sai: còn tag INTEGER, length, signed-zero và long-form length.
-- **“Cắt leading zero ở raw để chữ ký ngắn hơn.”** Sai: P1363 cần **fixed width**.
-- **“Dùng `BigInteger(rawBytes)` là đủ.”** Sai: constructor có dấu có thể đọc số dương thành âm; dùng `BigInteger(1, rawBytes)` và kiểm tra miền.
-- **“Chỉ cần `SHA256withECDSA` là ES256.”** Chưa đủ: ES256 buộc **P-256 + SHA-256 + JWS P1363 encoding** và ký đúng signing input.
-- **“Base64URL(DER) là P1363.”** Sai: Base64URL chỉ mã hóa văn bản từ byte, không chuyển ASN.1.
-- **“Public key trả DER nên chữ ký cũng phải DER.”** Sai: key encoding và signature encoding độc lập.
-- **“Đổi format cũng phải ký lại.”** Sai: conversion chính xác không cần private key; chỉ cần `r,s` và curve order để quyết định width/miền.
-- **“Low-S là một kiểu DER.”** Sai: low-S giới hạn scalar, DER quy định serialization.
-- **“Chữ ký khác byte có nghĩa không hợp lệ.”** ECDSA có thể dùng nonce khác khi ký cùng message/key; hãy **verify**, không chỉ so sánh hai chữ ký sinh ở hai lần ký độc lập.
-- **“Verifier lỗi parser nên thử tất cả encodings và chấp nhận kết quả đầu tiên.”** Không nên: phạm vi thuật toán/encoding phải đến từ hợp đồng đáng tin, tránh làm tăng bề mặt diễn giải không mong muốn.
+- **“DER and P1363 are both ECDSA so the bytes are identical.”** False: they serialize the same `r,s` using two distinct structures.
+- **“P-256 DER is always 70/71/72 bytes.”** False: DER has variable length; never hard-code it.
+- **“Drop the first two DER bytes and split in half.”** False: there are `INTEGER` tags, lengths, sign-padding zeros, and long-form lengths.
+- **“Trim leading zeros from raw to shorten the signature.”** False: P1363 requires **fixed width**.
+- **“Using `BigInteger(rawBytes)` is enough.”** False: the signed constructor can read positive values as negative; use `BigInteger(1, rawBytes)` and validate range.
+- **“`SHA256withECDSA` alone gives ES256.”** Insufficient: ES256 mandates **P-256 + SHA-256 + JWS P1363 encoding** over the exact signing input.
+- **“`Base64URL(DER)` is P1363.”** False: Base64URL only encodes bytes as text; it does not convert ASN.1.
+- **“The public key returns DER, so the signature must also be DER.”** False: key encoding and signature encoding are independent.
+- **“Changing formats requires re-signing.”** False: proper conversion needs no private key; only `r,s` and curve order to determine width and range.
+- **“Low-S is a kind of DER.”** False: low-S constrains scalar values, while DER specifies serialization.
+- **“Different signature bytes mean invalid.”** ECDSA can use a different nonce when re-signing the same message/key; always **verify** rather than comparing two independent signatures.
+- **“A parser error in the verifier should try all encodings and accept the first match.”** Never: allowed algorithms/encodings must come from a trusted contract to avoid expanding interpretation surfaces unexpectedly.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-check exercises
 
-**1.** ECDSA tạo ra hai giá trị nào trước khi serialize?  
-**Đáp:** Hai scalar dương `r` và `s` trong miền `1..n-1`.
+**1.** Which two values does ECDSA produce prior to serialization?  
+**Answer:** Two positive scalars `r` and `s` in the range `1..n-1`.
 
-**2.** Với P-256, một chữ ký P1363 raw dài bao nhiêu?  
-**Đáp:** `32 + 32 = 64` byte, dù r/s có bao nhiêu leading zero.
+**2.** For P-256, how long is a raw P1363 signature?  
+**Answer:** `32 + 32 = 64` bytes, regardless of how many leading zeros `r`/`s` have.
 
-**3.** Vì sao DER có thể thêm byte `00` vào đầu một INTEGER?  
-**Đáp:** Để số có bit cao bằng `1` vẫn được đọc là **số dương** theo ASN.1 INTEGER có dấu.
+**3.** Why might DER prepend a `00` byte to an `INTEGER`?  
+**Answer:** So a number whose high bit is `1` is still read as a **positive** signed ASN.1 `INTEGER`.
 
-**4.** P-521 dùng mỗi phần `r`/`s` 65 hay 66 byte?  
-**Đáp:** `ceil(521/8) = 66` byte; toàn chữ ký raw 132 byte.
+**4.** Does P-521 use 65 or 66 bytes for each `r`/`s` component?  
+**Answer:** `ceil(521/8) = 66` bytes; the entire raw signature is 132 bytes.
 
-**5.** `SHA256withECDSAinP1363Format` khác `SHA256withECDSA` về mặt nào?  
-**Đáp:** Chủ yếu **mã hóa output/input chữ ký** P1363 vs DER; cùng primitive hash + ECDSA khi dùng cùng EC key.
+**5.** How does `SHA256withECDSAinP1363Format` differ from `SHA256withECDSA`?  
+**Answer:** Primarily **signature output/input encoding** (P1363 vs. DER); the underlying hash + ECDSA primitives are the same for the same EC key.
 
-**6.** Muốn gửi chữ ký từ Java DER sang JWS ES256, làm thế nào?  
-**Đáp:** Parse DER lấy `r,s`, encode hai số unsigned big-endian mỗi số 32 byte, ghép thành raw 64 byte, rồi **Base64URL không padding**.
+**6.** How do you send a signature from Java DER to JWS ES256?  
+**Answer:** Parse DER to extract `r,s`, encode both as 32-byte unsigned big-endian, concatenate into 64 raw bytes, then **unpadded Base64URL** encode.
 
-**7.** Có thể dùng hash SHA-256 với khóa P-384 rồi tự nhận đó là ES384 không?  
-**Đáp:** Không. ES384 yêu cầu **P-384 và SHA-384** theo chuẩn JOSE.
+**7.** Can you use SHA-256 with a P-384 key and call it ES384?  
+**Answer:** No. ES384 requires **P-384 and SHA-384** per the JOSE specification.
 
-**8.** Một verifier có thể phân biệt DER và P1363 chỉ bằng byte đầu `0x30` không?  
-**Đáp:** Không đáng tin. P1363 raw cũng có thể bắt đầu `0x30`; phải dựa vào hợp đồng và parse đúng cấu trúc.
+**8.** Can a verifier distinguish DER from P1363 purely by checking if the first byte is `0x30`?  
+**Answer:** Not reliably. Raw P1363 can also start with `0x30`; rely on the protocol contract and strict structural parsing.
 
-**9.** “Canonical DER” có bảo đảm low-S không?  
-**Đáp:** Không. DER chuẩn tắc chỉ đảm bảo cách mã hóa duy nhất cho cặp `r,s`; low-S là chính sách giới hạn giá trị `s`.
+**9.** Does “canonical DER” guarantee low-S?  
+**Answer:** No. Canonical DER only guarantees a unique encoding for a given `(r,s)` pair; low-S is a policy constraining the value of `s`.
 
-**10.** Tại sao verify JWS trên raw JSON payload có thể sai?  
-**Đáp:** JWS ký trên **ASCII của `base64url(header).base64url(payload)`**, không phải raw JSON.
+**10.** Why can verifying a JWS against the raw JSON payload fail?  
+**Answer:** JWS signs the **ASCII bytes of `base64url(header).base64url(payload)`**, not the raw JSON.
 
-## Ghi nhớ
+## Key takeaway
 
-Mô hình quan trọng nhất khi tích hợp ECDSA là:
+The most important mental model when integrating ECDSA is:
 
 ```text
 ECDSA math -> (r, s) -> signature encoding -> bytes on wire
@@ -764,14 +764,14 @@ Java: SHA256withECDSA  <->  SHA256withECDSAinP1363Format
 JWS ES256: P-256 + SHA-256 + raw 64-byte P1363 + Base64URL segment
 ```
 
-Bằng cách **thống nhất curve, hash, chính xác bytes được ký và encoding chữ ký**, rồi kiểm tra `r,s` và DER canonical tại ranh giới, bạn có thể trao đổi chữ ký giữa Java, thư viện ASN.1 và hệ thống JOSE mà không cần ký lại hoặc thay khóa.
+By **aligning curve, hash, exact signed bytes, and signature encoding**, and validating `r,s` plus canonical DER at system boundaries, you can exchange signatures across Java, ASN.1 libraries, and JOSE systems without re-signing or changing keys.
 
-## Nguồn tham khảo chính thức
+## Official references
 
-- [Java 17 — Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): các tên `SHA256withECDSA` và `...inP1363Format`, cấu trúc chữ ký Java.
-- [Java 17 — Signature API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html): vòng đời `initSign/update/sign` và `initVerify/update/verify`.
-- [Java 17 — Oracle JDK Providers](https://docs.oracle.com/en/java/javase/17/security/oracle-providers.html): phạm vi hỗ trợ SunEC và hành vi provider.
-- [RFC 3279 2.2.3 — ECDSA Signature Algorithm](https://www.rfc-editor.org/rfc/rfc3279#section-2.2.3): ECDSA-Sig-Value là DER `SEQUENCE(r INTEGER, s INTEGER)`.
-- [RFC 5759 4.2 — ECDSA signatureValue in X.509](https://www.rfc-editor.org/rfc/rfc5759#section-4.2): INTEGER dương/byte `00` và BIT STRING chứa DER chữ ký.
-- [RFC 7518 3.4 — ECDSA for JWS](https://www.rfc-editor.org/rfc/rfc7518#section-3.4): ES256/384/512, byte-width P1363 và JWS signature length.
-- [RFC 6979 — Deterministic ECDSA](https://www.rfc-editor.org/rfc/rfc6979): cách sinh nonce ký xác định, độc lập với encoding DER/P1363.
+- [Java 17 — Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): `SHA256withECDSA` and `...inP1363Format` names, Java signature structures.
+- [Java 17 — Signature API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html): `initSign/update/sign` and `initVerify/update/verify` lifecycles.
+- [Java 17 — Oracle JDK Providers](https://docs.oracle.com/en/java/javase/17/security/oracle-providers.html): SunEC support scope and provider behavior.
+- [RFC 3279 2.2.3 — ECDSA Signature Algorithm](https://www.rfc-editor.org/rfc/rfc3279#section-2.2.3): `ECDSA-Sig-Value` as DER `SEQUENCE(r INTEGER, s INTEGER)`.
+- [RFC 5759 4.2 — ECDSA signatureValue in X.509](https://www.rfc-editor.org/rfc/rfc5759#section-4.2): positive `INTEGER`/`00` byte and BIT STRING wrapping DER signature.
+- [RFC 7518 3.4 — ECDSA for JWS](https://www.rfc-editor.org/rfc/rfc7518#section-3.4): ES256/384/512, P1363 byte-width, and JWS signature lengths.
+- [RFC 6979 — Deterministic ECDSA](https://www.rfc-editor.org/rfc/rfc6979): deterministic signing nonce generation, independent of DER/P1363 encoding.

@@ -1,20 +1,20 @@
-# Đọc manifest, phiên bản và mô tả plugin trước khi kích hoạt
+# Reading Manifests, Versions, and Plugin Descriptors Before Activation
 
-## 1. Vì sao phải đọc metadata trước khi chạy plugin?
+## 1. Why Must Metadata Be Read Before Running a Plugin?
 
-Trong kiến trúc mở rộng lúc chạy, **plugin** thường được đóng gói dưới dạng JAR hoặc một thư mục phân phối chứa JAR và các tài nguyên. Trước khi gọi bất kỳ mã nào của plugin, host cần biết gói đó là gì, dùng phiên bản API nào, có tương thích với host không, thành phần khởi tạo nằm ở đâu và nhà phát hành có đáng tin cậy không. Bước **kiểm tra trước kích hoạt (pre-activation validation)** giúp host từ chối gói không hợp lệ trước khi tạo class loader riêng, instantiate plugin, đăng ký service hoặc phân phát request cho plugin.
+In a runtime-extensible architecture, a **plugin** is typically packaged as a JAR or a distribution directory containing JARs and resources. Before invoking any plugin code, the host needs to know what the package is, which API version it uses, whether it is compatible with the host, where the initialization component resides, and whether the publisher is trusted. A **pre-activation validation** step enables the host to reject invalid packages before creating a dedicated class loader, instantiating the plugin, registering services, or dispatching requests to it.
 
-Có ba khái niệm dễ nhầm:
+There are three easily confused concepts:
 
-- **JAR manifest**: tệp chuẩn \`META-INF/MANIFEST.MF\` trong archive JAR, gồm các thuộc tính như \`Manifest-Version\`, \`Main-Class\` hoặc thuộc tính tự định nghĩa \`Plugin-Id\`, \`Plugin-Version\`. Java có API \`java.util.jar.Manifest\` và \`JarFile.getManifest()\` để đọc.
-- **Plugin descriptor**: dữ liệu mô tả theo quy ước của hệ thống plugin, chẳng hạn \`plugin.properties\`, JSON hoặc YAML trong JAR. Một host có thể dùng manifest, descriptor riêng hoặc kết hợp cả hai.
-- **Metadata đáng tin**: thông tin đã được kiểm tra cú pháp, chính sách, tương thích và nguồn gốc. Chỉ đọc được một giá trị từ manifest **không chứng minh giá trị ấy đúng hoặc an toàn**.
+- **JAR manifest**: the standard \`META-INF/MANIFEST.MF\` file inside a JAR archive, containing attributes such as \`Manifest-Version\`, \`Main-Class\`, or custom attributes like \`Plugin-Id\` and \`Plugin-Version\`. Java provides \`java.util.jar.Manifest\` and \`JarFile.getManifest()\` to read it.
+- **Plugin descriptor**: descriptive metadata following a plugin system's convention, such as \`plugin.properties\`, JSON, or YAML inside the JAR. A host may use the manifest, a separate descriptor, or a combination of both.
+- **Trusted metadata**: information whose syntax, policy, compatibility, and provenance have been verified. Merely reading a value from a manifest **does not prove that value is accurate or safe**.
 
-Ví dụ, một JAR có thể khai báo \`Plugin-Id: report-csv\`, \`Plugin-Version: 1.4.0\`, \`Plugin-Api-Version: 2\`, \`Plugin-Class: com.example.CsvPlugin\`. Đây là cam kết từ bên cung cấp; host phải tự đối chiếu chính sách trước khi kích hoạt.
+For example, a JAR may declare \`Plugin-Id: report-csv\`, \`Plugin-Version: 1.4.0\`, \`Plugin-Api-Version: 2\`, \`Plugin-Class: com.example.CsvPlugin\`. These are claims from the supplier; the host must verify them against its policies before activation.
 
-## 2. Ví dụ cấu trúc gói plugin
+## 2. Example Plugin Package Structure
 
-Một file JAR hợp lệ có thể có cấu trúc:
+A valid JAR file may have this structure:
 
 \`\`\`text
 report-csv-plugin.jar
@@ -24,7 +24,7 @@ report-csv-plugin.jar
     └── CsvPlugin.class
 \`\`\`
 
-Nội dung manifest minh họa:
+Illustrative manifest content:
 
 \`\`\`text
 Manifest-Version: 1.0
@@ -35,83 +35,83 @@ Plugin-Class: com.example.plugins.CsvPlugin
 Plugin-Description: Exports reports as CSV
 \`\`\`
 
-Các trường \`Plugin-*\` **không phải thuộc tính bắt buộc của chuẩn JAR**. Chúng là hợp đồng riêng giữa host và nhà phát triển plugin. Chuẩn JAR không tự xác nhận rằng class trong \`Plugin-Class\` tồn tại, triển khai interface phù hợp, hoặc có thể chạy an toàn.
+The \`Plugin-*\` fields **are not mandatory attributes of the JAR specification**. They are a custom contract between the host and plugin developers. The JAR specification does not automatically verify that the class in \`Plugin-Class\` exists, implements the proper interface, or can run safely.
 
-Các lựa chọn thiết kế metadata cần trả lời rõ:
+Metadata design choices must clearly answer:
 
-| Trường | Mục đích | Quy tắc kiểm tra ví dụ |
+| Field | Purpose | Example Validation Rule |
 |---|---|---|
-| \`Plugin-Id\` | Định danh ổn định để đăng ký | Bắt buộc, duy nhất, dùng chữ thường/số/dấu nối |
-| \`Plugin-Version\` | Phiên bản của chính plugin | Bắt buộc, theo quy ước phiên bản được công bố |
-| \`Plugin-Api-Version\` | Phiên bản hợp đồng host mà plugin cần | Phải thuộc tập phiên bản host hỗ trợ |
-| \`Plugin-Class\` | Entry point dự kiến | Không trống; chỉ nạp sau khi đạt các kiểm tra ban đầu |
-| \`Plugin-Description\` | Hiển thị và hỗ trợ vận hành | Có thể tùy chọn; giới hạn độ dài/kiểm soát hiển thị |
-| \`Plugin-Requires\` | Phụ thuộc plugin khác (nếu có) | Parse, kiểm tra phiên bản phụ thuộc và chu kỳ phụ thuộc |
+| \`Plugin-Id\` | Stable identifier for registration | Required, unique, lowercase letters/digits/hyphens |
+| \`Plugin-Version\` | Version of the plugin itself | Required, follows the published versioning convention |
+| \`Plugin-Api-Version\` | Host contract version required by the plugin | Must belong to the set of versions supported by the host |
+| \`Plugin-Class\` | Expected entry point | Non-blank; loaded only after passing initial checks |
+| \`Plugin-Description\` | Display and operational support | Optional; length-limited and output-sanitized |
+| \`Plugin-Requires\` | Dependencies on other plugins (if any) | Parse, check dependency versions, and detect dependency cycles |
 
-Với Java manifest, tên attribute phải theo quy tắc định dạng manifest và độ dài dòng được giới hạn theo số byte. Công cụ build/JAR thường xử lý việc xuống dòng và continuation. Không nên tự ghép chuỗi manifest thô tùy tiện cho các giá trị dài. Mô tả giàu cấu trúc, phụ thuộc phức tạp hay nhiều ngôn ngữ thường phù hợp hơn với descriptor JSON/YAML có schema và giới hạn kích thước rõ ràng.
+With a Java manifest, attribute names must follow manifest formatting rules and line lengths are limited by byte count. Build/JAR tools normally handle line wrapping and continuations. You should not arbitrarily concatenate raw manifest strings for long values. Richly structured descriptions, complex dependencies, or multilingual text are usually better suited to a JSON/YAML descriptor with a well-defined schema and size limits.
 
-## 3. Phân biệt phiên bản plugin, API và Java
+## 3. Distinguishing Plugin Version, API Version, and Java Version
 
-Ba loại phiên bản có mục đích khác nhau:
+Three kinds of versions serve different purposes:
 
-1. **Phiên bản plugin**, ví dụ \`1.4.0\`, dùng để quản lý phát hành, cập nhật và rollback. Không thể tự suy ra tính tương thích với host chỉ từ số này.
-2. **Phiên bản API plugin**, ví dụ \`2\`, diễn tả hợp đồng mà host và plugin dùng để giao tiếp. Host cần một chính sách tương thích tường minh, ví dụ chỉ hỗ trợ API \`2\`.
-3. **Phiên bản Java/runtime**, ví dụ class được biên dịch cho Java 21 trong khi host chạy Java 17, có thể dẫn đến \`UnsupportedClassVersionError\` khi JVM định nghĩa class. Khả năng hỗ trợ JVM phải được kiểm tra bằng metadata đáng tin hoặc bằng cách phân tích bytecode trước bước nạp.
+1. **Plugin version**, e.g., \`1.4.0\`, is used to manage releases, updates, and rollbacks. Compatibility with the host cannot be inferred from this number alone.
+2. **Plugin API version**, e.g., \`2\`, expresses the contract that the host and plugin use to communicate. The host needs an explicit compatibility policy, such as supporting only API \`2\`.
+3. **Java/runtime version**, e.g., classes compiled for Java 21 while the host runs on Java 17, which can cause \`UnsupportedClassVersionError\` when the JVM defines the class. JVM support must be checked via trusted metadata or by inspecting bytecode before the loading step.
 
-**Semantic Versioning** (\`MAJOR.MINOR.PATCH\`) là một quy ước hữu ích nhưng Java không có bộ so sánh SemVer chuẩn trong \`java.util.jar\`. Nếu host dùng SemVer, hãy định nghĩa rõ chính sách prerelease, build metadata và range; dùng thư viện đã kiểm chứng hoặc một parser đầy đủ. Không so sánh các phiên bản bằng chuỗi từ điển: \`"2.10.0"\` không thể được so sánh đúng với \`"2.9.0"\` bằng \`String.compareTo\`.
+**Semantic Versioning** (\`MAJOR.MINOR.PATCH\`) is a helpful convention, but Java has no built-in SemVer comparator in \`java.util.jar\`. If the host uses SemVer, clearly define policies for prereleases, build metadata, and ranges; use a battle-tested library or a complete parser. Do not compare versions lexicographically as strings: \`"2.10.0"\` cannot be compared properly against \`"2.9.0"\` using \`String.compareTo\`.
 
-Để tránh lẫn lộn, ví dụ runnable dưới đây dùng \`Plugin-Api-Version\` dạng số nguyên và kiểm tra chính xác một phiên bản API. Đây là chính sách minh họa; trong sản phẩm thật có thể hỗ trợ nhiều phiên bản hoặc một dải tương thích.
+To avoid confusion, the runnable example below uses an integer \`Plugin-Api-Version\` and checks for an exact single API version. This is an illustrative policy; production systems may support multiple versions or a compatibility range.
 
-## 4. Quy trình kiểm tra trước kích hoạt
+## 4. Pre-Activation Validation Workflow
 
-Một pipeline có kiểm soát nên tiến hành theo thứ tự:
+A controlled pipeline should proceed in order:
 
 \`\`\`text
-JAR chưa tin cậy
+Untrusted JAR
     |
     v
-Kiểm tra nguồn, quyền truy cập và kích thước tệp
+Check source, permissions, and file size
     |
     v
-Mở JAR, đọc manifest/descriptor (chưa nạp entry-point class)
+Open JAR, read manifest/descriptor (without loading entry-point class)
     |
     v
-Parse + kiểm tra trường bắt buộc, định dạng, giới hạn
+Parse + validate required fields, formats, limits
     |
     v
-Kiểm tra ID trùng, phiên bản, API, JVM, phụ thuộc, chính sách tin cậy
+Check duplicate ID, version, API, JVM, dependencies, trust policy
     |
-    +-- Không đạt --> TỪ CHỐI + ghi log nguyên nhân
-    |
-    v
-Chuẩn bị class loader và môi trường plugin
+    +-- Failed --> REJECT + log cause
     |
     v
-Kiểm tra entry point, khởi tạo, health check, đăng ký
+Prepare class loader and plugin environment
     |
     v
-KÍCH HOẠT để nhận công việc
+Validate entry point, instantiate, health check, register
+    |
+    v
+ACTIVATE to accept work
 \`\`\`
 
-Không coi \`new JarFile(...)\` hoặc \`getManifest()\` là hành động chạy entry point. Chúng phục vụ đọc archive/metadata. Tuy vậy dữ liệu bên trong vẫn là đầu vào không tin cậy và có thể chứa archive gây tốn tài nguyên; cần giới hạn kích thước, số entry, chi phí xử lý và tài nguyên đọc. Tránh giải nén nội dung tùy ý ra filesystem nếu không cần thiết.
+Do not treat \`new JarFile(...)\` or \`getManifest()\` as executing the entry point. They serve to read archive/metadata. Nevertheless, the data inside remains untrusted input and may contain resource-exhausting archives; enforce limits on file size, entry count, processing cost, and read resources. Avoid extracting arbitrary contents onto the filesystem unnecessarily.
 
-Nên kiểm tra các điều kiện sau trước bước load class:
+The following conditions should be checked prior to class loading:
 
-- Tệp có nguồn gốc từ vị trí được cho phép; đường dẫn đã chuẩn hóa, tránh thay thế tệp giữa kiểm tra và kích hoạt.
-- Manifest tồn tại, đọc được, mỗi trường bắt buộc có đúng kiểu dữ liệu và giới hạn kích thước.
-- ID plugin chưa được một plugin khác chiếm; chính sách nâng cấp/đổi phiên bản rõ ràng.
-- API version và phiên bản Java cần thiết tương thích với host.
-- Phụ thuộc bắt buộc đã sẵn sàng, không có vòng phụ thuộc và không xung đột.
-- Artifact qua bước xác minh integrity, publisher/signature theo chính sách hệ thống.
-- Quyền hoặc capability được khai báo không vượt quá giới hạn host cho phép.
+- The file originates from an allowed location; the path is normalized, preventing file replacement between validation and activation.
+- The manifest exists, is readable, and every required field matches its data type and size limits.
+- The plugin ID is not already claimed by another plugin; upgrade/version-change rules are explicit.
+- The required API version and Java version are compatible with the host.
+- Required dependencies are available, free of dependency cycles, and conflict-free.
+- The artifact passes integrity and publisher/signature verification according to system policy.
+- Declared permissions or capabilities do not exceed what the host allows.
 
-**Lưu ý:** kiểm tra metadata chỉ là lớp đầu tiên. Class loading có thể gặp \`ClassNotFoundException\`, \`NoClassDefFoundError\`, \`LinkageError\`; constructor hoặc static initializer có thể chạy mã và gây tác dụng phụ. Việc quyết định có cho phép thực thi plugin cần dựa trên chính sách bảo mật và mô hình cô lập phù hợp.
+**Note:** metadata validation is only the first layer. Class loading can encounter \`ClassNotFoundException\`, \`NoClassDefFoundError\`, or \`LinkageError\`; constructors or static initializers can execute code and cause side effects. Deciding whether to permit plugin execution must rely on an appropriate security policy and isolation model.
 
-## 5. Ví dụ Java 17+: đọc và xác thực manifest mà không kích hoạt plugin
+## 5. Java 17+ Example: Reading and Validating a Manifest Without Activating the Plugin
 
-Chương trình sau đọc JAR được chỉ định trên dòng lệnh, kiểm tra bốn trường bắt buộc và in thông tin đã chuẩn hóa. Nó không gọi \`Class.forName\`, không khởi tạo plugin, không thêm JAR vào classpath.
+The following program reads a JAR specified on the command line, validates four required fields, and prints normalized metadata. It does not call \`Class.forName\`, does not instantiate the plugin, and does not add the JAR to the classpath.
 
-Tạo file **\`PluginManifestInspector.java\`**:
+Create **\`PluginManifestInspector.java\`**:
 
 \`\`\`java
 import java.io.IOException;
@@ -213,7 +213,7 @@ public final class PluginManifestInspector {
 }
 \`\`\`
 
-Để tạo JAR mẫu không cần code plugin thực sự, trước tiên tạo file **\`plugin.mf\`** với nội dung sau; kết thúc bằng một dòng trống:
+To create a sample JAR without actual plugin code, first create **\`plugin.mf\`** with the following content, ending with a blank line:
 
 \`\`\`text
 Manifest-Version: 1.0
@@ -225,7 +225,7 @@ Plugin-Description: Exports reports as CSV
 
 \`\`\`
 
-Chạy trên môi trường có JDK 17+:
+Run in an environment with JDK 17+:
 
 \`\`\`bash
 javac PluginManifestInspector.java
@@ -233,7 +233,7 @@ jar --create --file sample-plugin.jar --manifest plugin.mf
 java PluginManifestInspector sample-plugin.jar
 \`\`\`
 
-Kết quả kỳ vọng:
+Expected output:
 
 \`\`\`text
 VALID: report-csv@1.4.0
@@ -242,68 +242,68 @@ Entry: com.example.plugins.CsvPlugin
 Description: Exports reports as CSV
 \`\`\`
 
-JAR mẫu chỉ phục vụ kiểm tra metadata: **nó không chứa \`CsvPlugin.class\`**, nên sẽ thất bại nếu host tiếp tục thực sự nạp lớp đó. Đây là chủ ý để minh họa việc **validation metadata** và **validation entry point** là hai cổng khác nhau.
+The sample JAR is only for testing metadata: **it does not contain \`CsvPlugin.class\`**, so it will fail if the host proceeds to actually load that class. This is intentional to illustrate that **metadata validation** and **entry-point validation** are two distinct gates.
 
-Đổi \`Plugin-Api-Version: 2\` thành \`Plugin-Api-Version: 3\`, tạo lại JAR và chạy lại sẽ trả lỗi:
+Changing \`Plugin-Api-Version: 2\` to \`Plugin-Api-Version: 3\`, recreating the JAR, and running again returns an error:
 
 \`\`\`text
 REJECTED: Unsupported plugin API: 3
 \`\`\`
 
-Thông báo này được ghi ra stderr và quá trình thoát với mã lỗi 1. Chương trình chỉ bắt lỗi validation loại \`IllegalArgumentException\`; lỗi I/O hoặc archive không đọc được đi theo đường lỗi riêng. Trong hệ thống thật nên chuyển tất cả lỗi thành kết quả kiểm tra có mã phân loại mà không để request xử lý plugin sập ứng dụng.
+This message is written to stderr and the process exits with code 1. The program catches only \`IllegalArgumentException\` validation errors; I/O errors or unreadable archives follow a separate error path. In a real system, convert all errors into classified validation results rather than letting a plugin-handling request crash the application.
 
-### Giới hạn cố ý của ví dụ
+### Intentional Limitations of the Example
 
-Biểu thức regex cho version chỉ chấp nhận \`MAJOR.MINOR.PATCH\` không có prerelease/build metadata; đó là subset của SemVer, không phải parser SemVer đầy đủ. Regex tên class mang tính kiểm tra sơ bộ kiểu tên nhị phân phổ biến, không bảo đảm class tồn tại hoặc triển khai đúng interface. Ví dụ cũng chưa kiểm tra chữ ký, dependency, module, min-Java-version, trạng thái registry, số entry JAR, race do tệp bị thay đổi hoặc cấu hình runtime. Vì vậy chương trình là **bộ lọc metadata ban đầu**, không phải plugin manager sản xuất.
+The version regex only accepts \`MAJOR.MINOR.PATCH\` without prerelease/build metadata; it is a subset of SemVer, not a full SemVer parser. The class name regex performs a preliminary check on common binary-name syntax, without guaranteeing the class exists or implements the right interface. The example also does not check signatures, dependencies, modules, min-Java-version, registry state, JAR entry count, file-modification races, or runtime configuration. Therefore, the program is an **initial metadata filter**, not a production plugin manager.
 
-## 6. Manifest chuẩn và descriptor riêng: nên chọn gì?
+## 6. Standard Manifest vs. Custom Descriptor: Which Should You Choose?
 
-**Dùng JAR manifest** khi metadata ít, dạng key-value và liên quan trực tiếp tới gói JAR. Ưu điểm: có sẵn \`JarFile.getManifest()\`, không cần parser ngoài; phù hợp plugin id, phiên bản, tên entry point và vài cờ đơn giản.
+**Use the JAR manifest** when metadata is small, key-value based, and directly tied to the JAR bundle. Advantage: \`JarFile.getManifest()\` is built in, requiring no external parser; well suited for plugin ID, version, entry-point class name, and a few simple flags.
 
-**Dùng descriptor riêng** khi metadata gồm danh sách dependency, ranges, capabilities, cấu hình, ràng buộc quyền, nhiều entry point hoặc mô tả có cấu trúc. Với JSON/YAML cần định nghĩa schema, version schema, giới hạn kích thước, chính sách trùng key, trường bắt buộc/tùy chọn, encoding, xử lý giá trị không nhận biết. Không nên tải parser cấu hình từ chính plugin chưa được kiểm tra để đọc descriptor.
+**Use a custom descriptor** when metadata includes dependency lists, version ranges, capabilities, configuration, permission constraints, multiple entry points, or structured descriptions. For JSON/YAML, define a schema, schema version, size limits, duplicate-key policy, required/optional fields, encoding, and handling of unrecognized values. Never load a config parser from an untrusted plugin itself to read its descriptor.
 
-**Dùng cả hai** khi manifest chứa khóa bootstrap tối thiểu và chỉ tới descriptor có cấu trúc. Khi đó phải định nghĩa nguồn nào là chuẩn nếu hai bên khai báo mâu thuẫn. Ví dụ: \`Plugin-Id\` và \`Plugin-Version\` chỉ lấy từ manifest; descriptor chỉ cung cấp dependencies/configuration. Không cho phép hai nguồn tự ý ghi đè lẫn nhau.
+**Use both** when the manifest holds minimal bootstrap keys and points to a structured descriptor. In that case, define which source is authoritative if the two declare conflicting values. For example: take \`Plugin-Id\` and \`Plugin-Version\` solely from the manifest; let the descriptor supply only dependencies/configuration. Do not allow the two sources to arbitrarily override each other.
 
-## 7. Kiểm tra publisher, tính toàn vẹn và rủi ro TOCTOU
+## 7. Verifying Publisher, Integrity, and TOCTOU Risks
 
-Một manifest tự khai báo ID, phiên bản hay tên publisher **không tạo ra danh tính đáng tin**. Các mức bảo đảm khác nhau:
+A manifest that self-declares an ID, version, or publisher name **does not establish a trusted identity**. Different assurance levels exist:
 
-- **Checksum/SHA-256** giúp biết byte của artifact có trùng checksum được chấp nhận hay không; checksum lấy từ cùng nguồn không tin cậy thì không xác thực nhà phát hành.
-- **Chữ ký số** giúp kiểm tra artifact có được ký bởi khóa được tin cậy và nội dung được bảo vệ bởi chữ ký còn nguyên vẹn hay không, với điều kiện quy trình xác minh bao phủ toàn bộ payload liên quan và chính sách trust/key rotation đúng.
-- **JAR signing** có các quy tắc về signed entry và cơ chế xác minh khi nội dung entry được đọc. Chỉ mở manifest bằng \`JarFile\` không có nghĩa đã kiểm tra chữ ký toàn bộ JAR; phải có bước xác minh chữ ký phù hợp và chính sách kiểm tra mọi entry quan trọng.
-- **Allowlist** theo publisher, nguồn artifact và capability kiểm soát plugin nào được phép chạy ngay cả khi thông tin mô tả hợp lệ.
+- **Checksum/SHA-256** verifies whether the artifact's bytes match an accepted checksum; a checksum obtained from the same untrusted source does not authenticate the publisher.
+- **Digital signature** verifies whether the artifact was signed by a trusted key and whether the signed content remains intact, provided the verification process covers the entire relevant payload and trust/key rotation policies are sound.
+- **JAR signing** has rules for signed entries and verification when entry contents are read. Merely opening the manifest with \`JarFile\` does not mean the entire JAR signature has been verified; an appropriate signature-verification step and a policy checking all critical entries are required.
+- **Allowlists** by publisher, artifact source, and capabilities control which plugins are permitted to run even when their descriptive metadata is valid.
 
-Rủi ro **time-of-check to time-of-use (TOCTOU)** xuất hiện khi host kiểm tra tệp tại đường dẫn A, nhưng trước lúc nạp thì tệp A đã bị thay thế. Một phương án là sao chép artifact vào vùng staging chỉ đọc/không cho bên ngoài sửa, tính hash và xác minh trên đúng bản sao; sau đó class loader chỉ nạp từ bản sao đã được phê duyệt. Cần áp dụng đồng bộ cho các dependency đi kèm.
+**Time-of-check to time-of-use (TOCTOU)** risk arises when the host checks a file at path A, but before loading, file A is replaced. One mitigation is to copy the artifact into a read-only/tamper-protected staging area, compute hashes and verify against that exact copy, and then have the class loader load solely from the approved copy. Apply this consistently to accompanying dependencies as well.
 
-## 8. Kích hoạt sau khi qua kiểm tra
+## 8. Activating After Passing Validation
 
-Sau khi metadata đạt yêu cầu, host mới chuẩn bị bước có khả năng chạy code:
+Only after metadata passes all checks should the host prepare steps capable of executing code:
 
-1. Chốt chính sách tương thích và trạng thái registry theo ID/version.
-2. Cấu hình class loader hoặc \`ModuleLayer\` theo mô hình cô lập và dependency.
-3. Nạp/kiểm tra entry point theo hợp đồng, ví dụ interface \`Plugin\`; bắt và phân loại lỗi nạp hoặc liên kết class.
-4. Khởi tạo trong môi trường được phép, cung cấp cấu hình/capability, gọi lifecycle \`initialize\`/health check.
-5. Chỉ sau khi khởi tạo thành công mới công bố plugin trong registry cho request mới.
-6. Khi lỗi, rollback đăng ký tạm và đóng tài nguyên đã mở; lưu kết quả kiểm tra để vận hành truy vết.
+1. Finalize compatibility policy and registry state by ID/version.
+2. Configure the class loader or \`ModuleLayer\` according to the isolation and dependency model.
+3. Load/validate the entry point against the contract, e.g., a \`Plugin\` interface; catch and classify class-loading or linkage errors.
+4. Instantiate in an allowed environment, supply configuration/capabilities, and invoke \`initialize\` lifecycle/health checks.
+5. Only after initialization succeeds, publish the plugin in the registry for new requests.
+6. On failure, roll back temporary registration and close opened resources; persist the validation result for operational tracing.
 
-Đối với plugin không tin cậy, chạy cùng JVM là rủi ro lớn: class loader riêng **không phải sandbox an toàn**. Có thể cần tách plugin ra tiến trình/container với hạn chế quyền và giao thức giao tiếp rõ ràng.
+For untrusted plugins, running in the same JVM poses major risks: a separate class loader **is not a secure sandbox**. You may need to isolate the plugin in a separate process/container with restricted permissions and an explicit communication protocol.
 
-Nếu host hỗ trợ cập nhật nóng, cần thêm quy tắc chuyển tiếp giữa plugin cũ/mới: in-flight requests, version pinning, drain, shutdown và rollback. Kiểm tra manifest không thay thế phần quản lý vòng đời này.
+If the host supports hot updates, add transition rules between old and new plugins: in-flight requests, version pinning, draining, shutdown, and rollback. Manifest validation does not replace this lifecycle management.
 
-## 9. Lỗi thường gặp và checklist kiểm tra
+## 9. Common Mistakes and Validation Checklist
 
-Các lỗi phổ biến:
+Common mistakes:
 
-- Chỉ kiểm tra manifest tồn tại rồi lập tức gọi \`Class.forName\` trên giá trị \`Plugin-Class\`.
-- Tin vào \`Plugin-Version\` mà không đối chiếu API version và khả năng tương thích runtime.
-- Dùng \`String.compareTo\` cho SemVer.
-- Giả định trường \`Plugin-Class\` là chuẩn của Java/JAR, hoặc có class thật vì manifest khai báo như vậy.
-- Đồng nhất checksum với chữ ký nhà phát hành, hoặc coi \`JarFile.getManifest()\` là đã xác thực chữ ký toàn bộ archive.
-- Để tệp JAR bị thay thế trong khoảng giữa validation và loading.
-- Không giới hạn đầu vào hoặc không chặn duplicate ID/version.
-- Ghi nguyên \`Plugin-Description\` từ nguồn ngoài vào HTML/log mà không xử lý ngữ cảnh hiển thị và ký tự điều khiển.
-- Khởi tạo plugin để “đọc metadata” khiến mã chưa được duyệt có cơ hội thực thi.
+- Checking only that the manifest exists and immediately calling \`Class.forName\` on the \`Plugin-Class\` value.
+- Trusting \`Plugin-Version\` without checking the API version and runtime compatibility.
+- Using \`String.compareTo\` for SemVer.
+- Assuming \`Plugin-Class\` is a standard Java/JAR field, or that the class truly exists because the manifest declares it.
+- Equating a checksum with a publisher signature, or assuming \`JarFile.getManifest()\` validates signatures across the whole archive.
+- Allowing the JAR file to be replaced in the gap between validation and loading.
+- Failing to bound input sizes or block duplicate IDs/versions.
+- Writing raw \`Plugin-Description\` from external sources into HTML or logs without handling output context or control characters.
+- Instantiating the plugin to "read metadata," giving unapproved code a chance to execute.
 
-Checklist trước lúc **activate**: đã đọc đúng artifact; metadata parse được; các trường bắt buộc và schema hợp lệ; API/JVM/dependency phù hợp; ID/version không xung đột; nguồn và integrity đạt chính sách; entry point/lifecycle có thể kiểm tra trong môi trường phù hợp; registry chỉ công bố sau khởi tạo thành công; có log từ chối và khả năng rollback.
+Checklist before **activation**: read the exact artifact; metadata parses cleanly; required fields and schema are valid; API/JVM/dependencies are compatible; ID/version do not conflict; source and integrity satisfy policy; entry point/lifecycle can be checked in the appropriate environment; registry publishes only after successful initialization; rejection logging and rollback capability are in place.
 
-**Kết luận:** manifest và descriptor cho phép host ra quyết định **trước khi chạy plugin**. Phần cốt lõi là tách ba thời điểm rõ ràng: **đọc metadata → kiểm tra/cho phép → nạp và kích hoạt**, đồng thời xác thực nguồn gốc và kiểm soát vòng đời theo yêu cầu thực tế.
+**Conclusion:** manifests and descriptors allow the host to make decisions **before running a plugin**. The core principle is cleanly separating three stages: **read metadata → validate/authorize → load and activate**, while verifying provenance and enforcing lifecycle controls according to real operational requirements.

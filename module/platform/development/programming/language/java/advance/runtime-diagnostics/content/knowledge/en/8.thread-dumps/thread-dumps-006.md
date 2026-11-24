@@ -1,123 +1,123 @@
-# 8.6 Thu nhiều thread dump cách nhau một khoảng để xác định tiến triển
+# 8.6 Capturing multiple spaced thread dumps to establish progress
 
-> **Java Advance – runtime-diagnostics** · **8. Thread dump**
+> **Java Advance – runtime-diagnostics** · **8. Thread dumps**
 
-## 1. Vì sao cần nhiều ảnh chụp thay vì chỉ một?
+## 1. Why take multiple snapshots instead of just one?
 
-Một **thread dump** cho biết các Java threads đang ở đâu trên call stack, ở trạng thái nào, và — tùy công cụ/JVM — đang giữ hoặc đợi những khóa nào **tại thời điểm thu thập**. Nó rất có ích để đặt giả thuyết về request bị chặn, contention, deadlock hoặc thread pool không còn tiến triển. Nhưng một ảnh không cho biết thread đã chờ bao lâu, nó có vừa hoàn tất một task không, hay trạng thái đang thấy chỉ là trạng thái nghỉ bình thường.
+A single **thread dump** shows where Java threads are on their call stacks, what states they are in, and — depending on the tool/JVM — which locks they hold or wait on **at the moment of collection**. It is very useful for forming hypotheses about blocked requests, contention, deadlocks, or non-progressing thread pools. However, a single snapshot cannot tell you how long a thread has been waiting, whether it just completed a task, or whether the observed state is merely normal idle rest.
 
-**Thu nhiều thread dump cách nhau một khoảng** giúp so sánh các thời điểm để thấy **dấu hiệu tiến triển** (*progress*): thread đổi stack/state; lock owner thay đổi; request/task hoàn tất; queue giảm; counter tăng; hoặc ngược lại, nhiều workers vẫn cùng chờ một tài nguyên khi hệ thống không xử lý thêm công việc.
+**Capturing multiple spaced thread dumps** lets you compare points in time to observe **signs of progress** (*progress*): threads changing stacks/states; lock owners changing; requests/tasks completing; queues shrinking; counters rising; or conversely, many workers continuing to wait on the same resource while the system completes no additional work.
 
-Điều quan trọng: **nhiều ảnh là bằng chứng theo thời điểm, không phải một bộ phim liên tục**. Kể cả cùng stack ở ba lần chụp, thread có thể rời stack ấy, hoàn thành công việc, rồi quay lại giữa các lần chụp. Ngược lại, thread liên tục đổi frame nhưng vẫn không hoàn thành một yêu cầu nào — đó có thể là *livelock*, retry loop hoặc thao tác vô ích.
+Crucially: **multiple snapshots are point-in-time evidence, not a continuous movie**. Even with the exact same stack across three captures, a thread could have left that stack, completed work, and returned between captures. Conversely, a thread constantly changing frames yet completing zero requests could be in a *livelock*, retry loop, or futile work.
 
-### Mục tiêu học tập
+### Learning objectives
 
-Sau bài này bạn có thể:
+After this lesson, you should be able to:
 
-1. Thiết kế một đợt lấy mẫu thread dump có **số ảnh, khoảng cách, thời gian ghi và giới hạn tác động** phù hợp triệu chứng.
-2. Chụp các ảnh của **đúng JVM instance**, lưu danh tính process, UTC timestamp, lệnh, lỗi và đường file.
-3. So sánh thread identity, state, stack signature, monitor/lock owner và sự xuất hiện/biến mất **đúng phạm vi**.
-4. Phân biệt **tiến triển thực sự của nghiệp vụ** với “thấy một thread di chuyển”, “thấy cùng một stack” hoặc “state đổi”.
-5. Kết hợp thread dumps với **completed-task/request counters, queue depth, traces, logs, OS CPU, JFR và GC logs** để tăng độ tin cậy.
-6. Biết những điều **không thể** suy ra, kể cả từ nhiều dump rời rạc.
-7. Thực hành một ví dụ Java 17+ chứng minh **hai snapshot cùng WAITING nhưng đã có task hoàn thành ở giữa**.
-8. Viết kết luận incident theo cấu trúc **quan sát → giả thuyết → kiểm chứng → giới hạn**, không nhầm tương quan với nhân quả.
+1. Design a thread dump sampling run with **sample count, interval, capture timing, and impact limits** appropriate to the symptom.
+2. Capture snapshots of **the exact JVM instance**, recording process identity, UTC timestamps, commands, errors, and file paths.
+3. Compare thread identities, states, stack signatures, monitor/lock owners, and appearances/disappearances **within proper scope**.
+4. Distinguish **real business progress** from “seeing a thread move”, “seeing the same stack”, or “state changed”.
+5. Combine thread dumps with **completed-task/request counters, queue depth, traces, logs, OS CPU, JFR, and GC logs** to increase confidence.
+6. Know what **cannot** be inferred, even from multiple discrete dumps.
+7. Practice a Java 17+ example proving **two snapshots both showing WAITING while a task completed in between**.
+8. Write incident conclusions following **observation → hypothesis → verification → limitations**, without confusing correlation with causation.
 
-## 2. Ba lớp “tiến triển” cần phân biệt
+## 2. Three layers of “progress” to distinguish
 
-Từ *progress* nghe đơn giản nhưng trong hệ Java có ít nhất ba lớp khác nhau.
+The word *progress* sounds simple, yet in Java systems there are at least three distinct layers.
 
-| Lớp | Dấu hiệu | Vì sao thread dump riêng lẻ chưa đủ? |
+| Layer | Sign | Why thread dumps alone are insufficient |
 | --- | --- | --- |
-| **Thread-level** | Frame/state/owner thay đổi; thread thoát một đoạn chờ | Có thể chỉ là thread thức dậy rồi lại ngủ, hoặc quay lại cùng loop |
-| **Task/request-level** | Một task hoàn tất, request có response, span kết thúc, queue giảm | Dump không tự có task ID, request ID hay completion counter |
-| **Service-level** | Thông lượng tăng, backlog giảm, lỗi/latency phục hồi | Cần metrics theo thời gian và đúng instance/tải |
+| **Thread-level** | Frame/state/owner changes; thread exits a wait site | Thread may simply have woken up and slept again, or looped back |
+| **Task/request-level** | A task completes, request gets a response, span finishes, queue shrinks | Dumps do not inherently contain task IDs, request IDs, or completion counters |
+| **Service-level** | Throughput rises, backlog shrinks, errors/latency recover | Requires time-series metrics from the right instance/load |
 
-**Ví dụ:** một worker nằm ở *LinkedBlockingQueue.take()* trong hai ảnh cách nhau 5 giây. Đó có thể là:
+**Example:** a worker is at *LinkedBlockingQueue.take()* in two snapshots 5 seconds apart. That could mean:
 
-- Worker **rảnh** trong cả khoảng vì không có task.
-- Worker **đã xử lý một task** ở giữa hai ảnh rồi quay lại *take()*.
-- Worker không nhận việc do producer/dispatcher trục trặc.
-- Worker đang bị chặn ở queue sai vì cấu hình luồng dữ liệu sai.
+- The worker was **idle** the whole interval because there were no tasks.
+- The worker **processed a task** between the two snapshots and returned to *take()*.
+- The worker received no work due to a producer/dispatcher malfunction.
+- The worker is blocked on the wrong queue due to misconfigured data routing.
 
-Nếu chỉ đọc hai ảnh có cùng *WAITING* và cùng stack, **bốn khả năng vẫn còn mở**. Cần *submitted count, completed count, queue depth, application logs* hoặc trace để phân biệt.
+If you only read two snapshots showing the same *WAITING* and the same stack, **all four possibilities remain open**. You need *submitted counts, completed counts, queue depth, application logs*, or traces to distinguish them.
 
-Một cách diễn đạt kỹ thuật chính xác là:
+An accurate technical phrasing is:
 
-> “Ở hai thời điểm lấy mẫu, thread X đều được quan sát đang chờ ở queue.take(). Chưa đủ dữ liệu để biết nó có xử lý task trong khoảng giữa hay không.”
+> “At both sampling timestamps, thread X was observed waiting at queue.take(). There is not yet enough data to tell whether it processed tasks in between.”
 
-Không nên viết:
+Avoid writing:
 
-> “Thread X đã stuck 5 giây vì hai dump cùng WAITING.”
+> “Thread X was stuck for 5 seconds because both dumps showed WAITING.”
 
-## 3. Khi nào nên lấy nhiều mẫu?
+## 3. When should you take multiple samples?
 
-Lấy nhiều dump hữu ích khi triệu chứng **kéo dài đủ lâu để quan sát**:
+Taking multiple dumps is useful when a symptom **persists long enough to observe**:
 
-- HTTP requests đang đợi rất lâu nhưng process còn sống.
-- Thread pool có backlog, throughput giảm, worker có vẻ không nhả.
-- Nhiều threads tranh một monitor hoặc chờ một lock owner.
-- CPU tăng dai dẳng, cần so stack và đối chiếu per-thread CPU.
-- Service vẫn nhận request nhưng không hoàn thành công việc.
-- Nghi *deadlock*, *livelock*, starvation hoặc repeated retry/park.
-- Hệ thống chậm từng đợt, và có thể chủ động thu trong đúng cửa sổ.
+- HTTP requests are waiting for a very long time while the process remains alive.
+- A thread pool has a backlog, throughput drops, and workers appear not to drain it.
+- Many threads contend for a monitor or wait on one lock owner.
+- CPU rises persistently, requiring stack comparison and per-thread CPU correlation.
+- The service still accepts requests without completing work.
+- *Deadlock*, *livelock*, starvation, or repeated retry/parking is suspected.
+- The system slows down intermittently, and captures can be triggered actively in the right window.
 
-**Khi không phù hợp:** sự cố chỉ dài 50 ms nhưng bạn bắt đầu chụp sau 30 giây; ảnh có thể hoàn toàn bình thường. Với sự kiện ngắn, JFR, trace, logging hoặc metrics/histogram đã bật trước khi sự cố thường hữu ích hơn.
+**When it is not suitable:** an incident lasted only 50 ms and you started capturing 30 seconds later; the snapshots may look completely normal. For brief events, JFR, traces, logging, or metrics/histograms already enabled before the incident are usually more useful.
 
-### 3.1 Số mẫu và khoảng cách là quyết định vận hành
+### 3.1 Sample count and interval are operational decisions
 
-Một đợt thử phổ biến là **3–5 ảnh cách nhau vài giây**, chẳng hạn 3 ảnh cách khoảng **5 giây sau khi lệnh trước hoàn tất**, khi điều này phù hợp độ dài triệu chứng và chi phí thực tế. Đây chỉ là **ví dụ** — không có quy tắc JVM bắt buộc “lấy đúng ba dump cách nhau đúng năm giây”.
+A common initial run is **3–5 snapshots spaced a few seconds apart**, such as 3 snapshots spaced roughly **5 seconds after the previous command completes**, when this fits the symptom duration and actual cost. This is only an **example** — there is no mandatory JVM rule saying “take exactly three dumps exactly five seconds apart”.
 
-Chọn khoảng cách theo **giả thuyết**:
+Choose the interval based on the **hypothesis**:
 
-| Triệu chứng | Cửa sổ gợi ý | Lưu ý |
+| Symptom | Suggested window | Notes |
 | --- | --- | --- |
-| Thread pool treo hàng phút | Một số ảnh cách nhau vài giây | Đủ thấy dấu lặp, nhưng chưa đo được duration state chính xác |
-| Lock contention chỉ vài trăm ms | Thread dump thủ công có thể bỏ lỡ | Ưu tiên JFR monitor contention/events và metrics |
-| CPU cao duy trì vài chục giây | Nhiều ảnh có ghi thời điểm, cùng per-thread CPU delta | Dump chỉ gợi ý frames, không là CPU profiler |
-| Sporadic timeout vài lần/giờ | Trigger có kiểm soát hoặc continuous event telemetry | Lấy mẫu ngẫu nhiên sau sự kiện thường không khớp |
-| Rất nhiều threads/virtual threads | Giảm tần suất; chọn tool phù hợp | File lớn, overhead cao, coverage thay đổi |
+| Thread pool hung for minutes | Several snapshots a few seconds apart | Enough to see repetition, though it still does not measure exact state duration |
+| Lock contention lasting a few hundred ms | Manual thread dumps may miss it | Prefer JFR monitor contention events and metrics |
+| Sustained high CPU for tens of seconds | Multiple timestamped snapshots plus per-thread CPU deltas | Dumps only suggest frames; they are not a CPU profiler |
+| Sporadic timeouts a few times per hour | Controlled triggers or continuous event telemetry | Random post-event sampling rarely aligns |
+| Very many threads/virtual threads | Lower frequency; choose appropriate tools | Large files, high overhead, changing coverage |
 
-**Khoảng chờ 5 giây sau khi dump trước xong không có nghĩa timestamps của hai ảnh cách nhau đúng 5 giây.** Nếu thu mỗi dump mất 1,2 giây, thời gian giữa *start* của ảnh 1 và ảnh 2 khoảng 6,2 giây. Phải ghi **capture start/end**; nếu cần tần suất đều, thiết kế scheduler có giám sát overhead, không khởi nhiều lần chụp song song vào một JVM.
+**Waiting 5 seconds after the previous dump finishes does not mean the two snapshots' timestamps are exactly 5 seconds apart.** If each dump takes 1.2 seconds to collect, the time between the *start* of snapshot 1 and snapshot 2 is roughly 6.2 seconds. Record **capture start/end**; if steady cadence is needed, design a scheduler with overhead monitoring and never run concurrent dumps against the same JVM.
 
-### 3.2 Chọn trước điều kiện dừng
+### 3.2 Pre-define stop conditions
 
-Để việc thu có kiểm soát, xác định:
+To keep collection controlled, define:
 
-- **Số mẫu tối đa** (ví dụ ba ảnh trong lượt đầu).
-- **Tổng cửa sổ** điều tra và khoảng nghỉ.
-- Ngưỡng tài nguyên/disk/log impact khiến cần ngừng.
-- **Người chịu trách nhiệm** và nơi lưu file.
-- **Dữ liệu bổ sung** phải lấy đồng thời (latency/queue/CPU/errors).
-- Cách xử lý khi PID mất, attach failed, process restart.
+- **Maximum sample count** (e.g., three snapshots in the first pass).
+- **Total investigation window** and cooldown interval.
+- Resource/disk/log impact thresholds that require stopping.
+- **Responsible owner** and storage location.
+- **Companion data** to collect concurrently (latency/queue/CPU/errors).
+- Handling when the PID disappears, attach fails, or the process restarts.
 
-Không tạo vòng *while true; jcmd Thread.print* trong production. Công cụ chẩn đoán cũng tiêu CPU/I/O, có thể thay đổi scheduling và ảnh hưởng chính triệu chứng cần đo.
+Do not run a `while true; jcmd Thread.print` loop in production. Diagnostic tools also consume CPU/I/O, can alter scheduling, and affect the very symptom you want to measure.
 
-## 4. Preflight: đảm bảo mọi ảnh thuộc **cùng JVM**
+## 4. Preflight: ensure all snapshots belong to the **same JVM**
 
-Một chuỗi nhiều file chỉ có thể so sánh có ý nghĩa nếu biết **mỗi file đo process nào**.
+A series of multiple files can only be compared meaningfully if you know **which process each file measured**.
 
-### 4.1 Những định danh nên lưu
+### 4.1 Identifiers to record
 
 - Service, application version, deployment/commit version.
-- Host/container/pod và **pod UID** nếu ở Kubernetes.
-- JVM process ID trong **namespace nơi công cụ chạy**.
-- VM vendor/build/version, JVM start time hoặc uptime (để nhận diện restart).
-- **Thời điểm UTC bắt đầu và kết thúc** mỗi lần chụp.
-- Lệnh thu, tool/JDK version, options.
-- Tên file, file size, **trạng thái thu thành công/thất bại**.
-- Thông tin incident/tải tại thời điểm thu, nếu có.
-- Coverage: platform threads hay virtual threads, có locks/ownable synchronizers không.
+- Host/container/pod and **pod UID** if on Kubernetes.
+- JVM process ID in **the namespace where the tool runs**.
+- VM vendor/build/version, JVM start time or uptime (to detect restarts).
+- **UTC start and end timestamps** of each capture.
+- Capture command, tool/JDK version, options.
+- Filename, file size, **capture success/failure status**.
+- Incident/load context at capture time, if available.
+- Coverage: platform threads vs. virtual threads, whether locks/ownable synchronizers are included.
 
-**PID không đủ.** Một process có thể restart và OS tái sử dụng PID. Hai JVM thuộc hai pod khác nhau có thể đều hiển thị PID 1 **bên trong container**. Một ObjectName hoặc thread name cũng không thay thế process identity.
+**PID is not enough.** A process can restart and the OS can reuse the PID. Two JVMs in two different pods can both show PID 1 **inside their containers**. Nor does an ObjectName or thread name substitute for process identity.
 
-Nếu giữa hai lần thu *JVM start time* thay đổi, đó là **hai JVM instances**. Không suy ra thread mới “đã tiến triển” chỉ vì tên thread giống tên trong JVM trước. Restart cũng reset các counter như GC count, process CPU time và nhiều thread IDs.
+If *JVM start time* changes between two captures, those are **two distinct JVM instances**. Do not infer a new thread “progressed” simply because its thread name matches one from the previous JVM. A restart also resets counters like GC count, process CPU time, and many thread IDs.
 
-### 4.2 Điều kiện attach của jcmd
+### 4.2 jcmd attach prerequisites
 
-Với HotSpot, *jcmd* thường cần chạy **cùng máy** với JVM, có quyền OS phù hợp (trên Unix cùng effective user/group theo tài liệu), đúng PID namespace/attach mechanism và JDK tool hỗ trợ. Trong container, *jcmd -l* không luôn liệt kê JVM bên trong namespace Docker khác; kiểm tra PID bằng cơ chế process discovery có thẩm quyền trong môi trường đó.
+On HotSpot, *jcmd* typically needs to run on the **same machine** as the JVM, with appropriate OS permissions (same effective user/group on Unix per documentation), matching PID namespace/attach mechanism, and compatible JDK tools. In containers, *jcmd -l* does not always list JVMs in other Docker namespaces; verify PIDs using authoritative process discovery in that environment.
 
-Bắt đầu ở JVM đích:
+Start against the target JVM:
 
 ~~~bash
 java -version
@@ -125,29 +125,29 @@ jcmd -l
 jcmd 12345 help Thread.print
 ~~~
 
-*12345* là **PID ví dụ**, phải thay bằng PID JVM đã xác minh; không chạy vào PID bất kỳ. *jcmd -l* chỉ là gợi ý liệt kê, không chứng minh “không có JVM” nếu thiếu kết quả.
+*12345* is an **example PID** and must be replaced with a verified JVM PID; never run against an arbitrary PID. *jcmd -l* is only a listing aid, not proof that “no JVM exists” if results are missing.
 
-Nếu công cụ không attach được, **không** tùy tiện nâng quyền container, thay permission của thư mục hệ thống, mở JMX không bảo vệ hoặc vô hiệu cơ chế bảo mật chỉ để chụp. Tìm đường thu hợp lệ qua operator/platform team.
+If the tool fails to attach, **do not** arbitrarily escalate container privileges, change system directory permissions, open unsecured JMX, or disable security controls just to take a dump. Use an approved collection path via the operator/platform team.
 
-## 5. Thu ba dump bằng jcmd: quy trình có dấu thời gian
+## 5. Capturing three dumps with jcmd: a timestamped workflow
 
-Trên HotSpot hỗ trợ, một lần thu platform-thread stack với ownable synchronizer information có thể dùng:
+On a supporting HotSpot JVM, a single platform-thread stack capture with ownable synchronizer information can use:
 
 ~~~bash
 jcmd 12345 Thread.print -l
 ~~~
 
-Tùy phiên bản còn có *-e* cho extended thread information. Xem **help từ JVM đích**, vì flags, output và virtual-thread coverage có thể khác giữa release:
+Depending on version, *-e* is also available for extended thread information. Check **help from the target JVM**, because flags, output, and virtual-thread coverage can vary between releases:
 
 ~~~bash
 jcmd 12345 help Thread.print
 ~~~
 
-Tài liệu Oracle đánh giá *Thread.print* có **impact medium**, phụ thuộc số thread. Vì vậy ví dụ dưới **chỉ chụp tối đa ba lần**, không tự phát hiện rồi sửa lỗi hay tạo loop vô hạn.
+Oracle documentation rates *Thread.print* as **impact medium**, depending on thread count. Therefore the example below **takes at most three captures**, and does not self-detect-and-remediate or loop indefinitely.
 
-### 5.1 Ví dụ Bash (Linux/macOS khi môi trường có jcmd)
+### 5.1 Bash example (Linux/macOS when jcmd is available)
 
-Đây là script độc lập **minh họa**, chỉ thực thi ở môi trường được phép; thay PID và chọn thư mục lưu an toàn trước khi chạy:
+This is an **illustrative** standalone script; run only in authorized environments, substituting the PID and choosing a safe output directory first:
 
 ~~~bash
 #!/usr/bin/env bash
@@ -178,19 +178,19 @@ for i in 1 2 3; do
 done
 ~~~
 
-**Cách hiểu kết quả:**
+**How to interpret the result:**
 
-- Có ba file, tên tăng theo sample index. *manifest.txt* ghi UTC **start/end** và kết quả mỗi lần. Có thể thêm instance ID, JVM start time và service version từ hệ quản trị ngoài script.
-- *sleep 5* chạy **sau** khi lệnh lấy dump trả kết quả, không phải chính xác năm giây giữa mọi timestamp của ảnh.
-- Redirect *>* ghi stdout của **jcmd client** vào file. Nó **không** yêu cầu JVM đích ghi file tới filesystem của process JVM.
-- Nếu *jcmd* trả lỗi, script dừng. Một file rỗng/partial khi lỗi **không phải bằng chứng không có thread**.
-- Nếu JVM restart, script có thể vẫn chạy vào PID mới/khác; **manifest phải được đối chiếu với process identity** trước khi diff.
-- Thời gian ghi chỉ có độ phân giải **giây** trong ví dụ; khi cần độ chính xác hơn và OS hỗ trợ, dùng timestamp có fractional seconds. Không tuyên bố microsecond timing từ script này.
-- Dòng lệnh có thể thất bại nếu chạy từ host/pod khác, JDK không có, hoặc quyền attach không đủ. Không dùng nó để phỏng đoán nguyên nhân deadlock.
+- Three files are created, numbered by sample index. *manifest.txt* records UTC **start/end** and the outcome of each run. You can append instance ID, JVM start time, and service version from external orchestration outside the script.
+- *sleep 5* runs **after** the dump command returns, so it is not exactly five seconds between every snapshot timestamp.
+- Redirection *>* writes stdout of the **jcmd client** to the file. It does **not** instruct the target JVM to write files to the JVM process's filesystem.
+- If *jcmd* returns an error, the script stops. An empty/partial file upon error **is not proof of zero threads**.
+- If the JVM restarts, the script might still hit a new/different PID; **the manifest must be checked against process identity** before diffing.
+- Recorded timestamps only have **second** resolution in the example; when finer resolution is needed and supported by the OS, use timestamps with fractional seconds. Do not claim microsecond timing from this script.
+- The command can fail if run from another host/pod, without a JDK, or with insufficient attach permissions. Do not use its failure to guess a deadlock cause.
 
-### 5.2 Ví dụ PowerShell (Windows)
+### 5.2 PowerShell example (Windows)
 
-Trong PowerShell, **$PID** là biến tự động chỉ PID của PowerShell hiện tại. Đừng gán *$PID = 12345*; hãy dùng tên khác như *$targetPid*.
+In PowerShell, **$PID** is an automatic variable holding the current PowerShell PID. Never assign *$PID = 12345*; use another variable name such as *$targetPid*.
 
 ~~~powershell
 $ErrorActionPreference = "Stop"
@@ -221,70 +221,70 @@ for ($i = 1; $i -le 3; $i++) {
 }
 ~~~
 
-PowerShell *Out-File* có thể thêm BOM/re-encode text; bản thân file là **text diagnostic capture**, không được tuyên bố là byte-for-byte stream từ JVM nếu chưa kiểm tra encoding. Dùng encoding/collector thích hợp khi cần parser tự động. Redirect và lỗi stderr cũng cần kiểm tra riêng; một exit code 0 không thay thế việc xác minh file có đúng dump của JVM mong muốn.
+PowerShell *Out-File* can add a BOM or re-encode text; the file itself is a **text diagnostic capture** and must not be claimed as a byte-for-byte stream from the JVM without checking encoding. Use an appropriate encoding/collector when automated parsing is required. Redirection and stderr errors must also be checked separately; exit code 0 does not replace verifying the file actually holds a dump from the intended JVM.
 
-### 5.3 Khi ảnh rất lớn
+### 5.3 When snapshots are very large
 
-Mỗi dump có thể chiếm hàng megabyte hoặc hơn ở JVM nhiều threads. Đọc/ghi toàn bộ trong terminal, shipping qua collector hoặc copy file có thể gây overhead. Cần giới hạn số mẫu, dung lượng, quyền lưu, thời hạn giữ và tránh dán nguyên dữ liệu production vào công cụ công khai. Không lấy dump trong vòng lặp dày chỉ để cố bắt một lỗi ngắn; JFR/metrics có thể phù hợp hơn.
+Each dump can be megabytes or more on JVMs with many threads. Reading/writing it all in a terminal, shipping via a collector, or copying files can incur overhead. Limit sample count, file size, storage permissions, and retention TTL, and avoid pasting raw production data into public tools. Do not take dumps in a tight loop trying to catch a brief glitch; JFR/metrics may be more appropriate.
 
-## 6. So sánh nhiều dump: ghép đúng thread trước khi diff
+## 6. Comparing multiple dumps: match the right thread before diffing
 
-Một lỗi thường gặp là dùng *thread name* làm khóa duy nhất. Nhưng pool worker names có thể lặp sau restart, rename, hoặc nhiều threads có tên giống nhau. Một số dump ghi *tid*, *nid*, Java ID và stack frame; các ID này **không có cùng ý nghĩa**.
+A common mistake is using *thread name* as a unique key. However, pool worker names can repeat after restarts, threads can be renamed, or multiple threads can share identical names. Some dumps print *tid*, *nid*, Java ID, and stack frames; these IDs **do not share the same meaning**.
 
-### 6.1 Thứ tự đối chiếu identity
+### 6.1 Order of identity matching
 
-1. **Cùng JVM instance:** process start time + host/pod UID + PID trong namespace của capture.
-2. **Cùng thread trong instance đó:** Java thread ID nếu output cung cấp đúng, hoặc native ID *nid* khi biết chắc encoding/OS namespace; cần tính đến thread lifecycle/ID reuse.
-3. **Thread name:** gợi ý vai trò, nhưng **không** dùng duy nhất để nối mẫu.
-4. **Stack + pool metadata:** giúp phát hiện worker được tái tạo hoặc tên giống nhau nhưng code path khác.
-5. **Application correlation:** requestId/taskId/traceId nếu có từ logs/tracing (không tự có trong thread dump).
+1. **Same JVM instance:** process start time + host/pod UID + PID within the capture namespace.
+2. **Same thread within that instance:** Java thread ID if accurately provided by the output, or native ID *nid* when encoding/OS namespace are certain; account for thread lifecycle/ID reuse.
+3. **Thread name:** hints at role, but **must not** be used alone to join samples.
+4. **Stack + pool metadata:** helps detect recreated workers or identical names on different code paths.
+5. **Application correlation:** requestId/taskId/traceId if available from logs/tracing (not inherently inside thread dumps).
 
-Trong một số HotSpot *Thread.print*:
-- *nid=0x...* là native thread ID theo biểu diễn của tool; cần chuyển hex/decimal và đối chiếu đúng OS thread khi dùng OS metrics.
-- *tid=0x...* là định danh/địa chỉ nội bộ, không nên coi tự động bằng *Thread.getId()*.
-- *#n* ở header không phải request number.
-- JVM main PID khác từng native thread ID.
+In some HotSpot *Thread.print* outputs:
+- *nid=0x...* is the native thread ID as represented by the tool; convert hex/decimal and match the right OS thread when using OS metrics.
+- *tid=0x...* is an internal identifier/address and should not automatically be treated as *Thread.getId()*.
+- *#n* in the header is not a request number.
+- The JVM main PID differs from individual native thread IDs.
 
-Không biến việc *Thread A không xuất hiện ở dump 2* thành “A đã hoàn tất thành công”. Nó có thể kết thúc do lỗi, bị thay mới, snapshot có coverage khác hoặc JVM đã restart.
+Do not turn *Thread A no longer appears in dump 2* into “A completed successfully”. It may have terminated with an error, been replaced, fallen outside snapshot coverage, or the JVM may have restarted.
 
-### 6.2 Chỉ diff sau khi chuẩn hóa metadata và loại nhiễu
+### 6.2 Only diff after normalizing metadata and filtering noise
 
-Giữa hai file thô, có nhiều thứ thay đổi mà **không phản ánh progress nghiệp vụ**:
+Between two raw files, many things change that **do not reflect business progress**:
 
-- Timestamp và VM uptime trong header.
-- Process/thread CPU time tích lũy.
+- Timestamps and VM uptime in headers.
+- Cumulative process/thread CPU time.
 - Counters, allocator addresses, JIT frame details.
-- Thread name order trong file, lock object addresses nếu không cùng process.
-- Các helper threads của GC/JIT, scheduler, logging collectors.
-- Lúc capture, chính thread công cụ/diagnostics có thể xuất hiện.
+- Thread ordering in the file, and lock object addresses if not from the same process.
+- GC/JIT helper threads, schedulers, and logging collectors.
+- During capture, the diagnostic/tool thread itself may appear.
 
-**Không xóa tất cả các trường động.** Thông tin CPU delta, owner, native ID và timestamp có thể là bằng chứng quan trọng. Hãy giữ **bản gốc** và tạo bản trích xuất/normalized riêng có chú giải; xác định rõ trường nào bị lược bỏ. Không chỉ chạy *diff -u* hai file rồi lấy số dòng khác biệt làm chỉ số tiến triển.
+**Do not delete all dynamic fields.** CPU deltas, owners, native IDs, and timestamps can be critical evidence. Keep **the original raw file** and create a separate annotated normalized extract; explicitly document which fields were stripped. Never simply run *diff -u* on two files and treat differing line counts as a progress metric.
 
-## 7. Mô hình bảng so sánh mỗi lần chụp
+## 7. Comparison table model per capture
 
-Một bảng phân tích tốt không chỉ có state; nó còn có nơi chờ, owner, stack signature, counters và nhận định mức chắc chắn.
+A good analysis table includes not only state; it also captures wait site, owner, stack signature, counters, and confidence statements.
 
-| UTC/sample | JVM/thread identity | State | Stack/điểm chờ | Lock/owner | Progress counter/metric | Kết luận mức ảnh |
+| UTC/sample | JVM/thread identity | State | Stack/wait site | Lock/owner | Progress counter/metric | Snapshot-level conclusion |
 | --- | --- | --- | --- | --- | --- | --- |
-| 10:00:00 / A | JVM-1 / worker-7 | WAITING | queue.take | — | completed=100 | Đang chờ task lúc A |
-| 10:00:06 / B | JVM-1 / worker-7 | WAITING | queue.take | — | completed=121 | Service có completion giữa A–B, **chưa chứng minh chính worker-7 làm** |
-| 10:00:12 / C | JVM-1 / worker-7 | WAITING | queue.take | — | completed=140 | Đang chờ task lúc C; tổng service vẫn tiến triển |
+| 10:00:00 / A | JVM-1 / worker-7 | WAITING | queue.take | — | completed=100 | Waiting for task at A |
+| 10:00:06 / B | JVM-1 / worker-7 | WAITING | queue.take | — | completed=121 | Service had completions between A–B, **does not prove worker-7 did them** |
+| 10:00:12 / C | JVM-1 / worker-7 | WAITING | queue.take | — | completed=140 | Waiting for task at C; overall service still progressing |
 
-**Lưu ý quan trọng:** nếu *completed* ở bảng là **service-wide counter**, nó không chứng minh **worker-7** xử lý 21 task. Nó chỉ chứng minh **service hoặc nhóm được counter bao phủ** có progress. Muốn nói worker-7 tiến triển, cần per-thread/per-task evidence, ví dụ counter riêng của worker trong lab, trace mapping hoặc log task completion đáng tin.
+**Important note:** if *completed* in the table is a **service-wide counter**, it does not prove **worker-7** handled 21 tasks. It only proves **the service or group covered by that counter** made progress. To claim worker-7 progressed, you need per-thread/per-task evidence, such as a worker-specific counter in a lab, trace mapping, or reliable task completion logs.
 
-Với lock contention:
+For lock contention:
 
-| Sample | Thread | State | Chờ | Owner | Diễn giải |
+| Sample | Thread | State | Waiting on | Owner | Interpretation |
 | --- | --- | --- | --- | --- | --- |
-| A | request-12 | BLOCKED | monitor X | worker-3 | Đang tranh X ở A |
-| B | request-12 | BLOCKED | monitor X | worker-3 | Lại thấy chờ X ở B |
-| C | request-12 | RUNNABLE | method sau critical section | — | Có bằng chứng thread đã đổi vị trí/trạng thái ở C |
+| A | request-12 | BLOCKED | monitor X | worker-3 | Contending for X at A |
+| B | request-12 | BLOCKED | monitor X | worker-3 | Seen waiting on X again at B |
+| C | request-12 | RUNNABLE | method after critical section | — | Evidence thread changed position/state at C |
 
-**Không nói “request-12 chờ X liên tục 10 giây” chỉ vì xuất hiện BLOCKED ở A và B.** Giữa hai ảnh thread có thể vào được lock rồi lại tranh nó. Muốn đo duration thực tế, ưu tiên JFR monitor enter events hoặc thống kê contention được bật có kiểm soát.
+**Do not say “request-12 waited on X continuously for 10 seconds” merely because BLOCKED appeared at A and B.** Between the two snapshots the thread could have entered the lock and returned to contend for it again. To measure true duration, prefer JFR monitor enter events or controlled contention timing.
 
-### 7.1 Stack signature là gì?
+### 7.1 What is a stack signature?
 
-**Stack signature** là cách chuẩn hóa một số frame quan trọng — thường gồm top N frames, phương thức ứng dụng, vị trí chờ, loại lock/condition — để so nhiều mẫu. Ví dụ:
+A **stack signature** is a normalized summary of key frames — typically the top N frames, application methods, wait site, and lock/condition type — for comparing multiple samples. Example:
 
 ~~~text
 request-12
@@ -293,75 +293,75 @@ request-12
   waiting monitor X; owner=worker-3
 ~~~
 
-Mục tiêu là nhóm các thread **đang có cùng kiểu triệu chứng**, không phải chứng minh chúng đang làm cùng request. Tránh gộp mọi stack có *Unsafe.park* thành một nhóm duy nhất: *park* là primitive; phải xem những frame phía dưới như *LinkedBlockingQueue.take*, *CompletableFuture.get* hay *ReentrantLock.lock*.
+The goal is to group threads **exhibiting the same symptom pattern**, not to prove they are handling the same request. Avoid lumping every stack containing *Unsafe.park* into one bucket: *park* is a low-level primitive; look at the frames below it such as *LinkedBlockingQueue.take*, *CompletableFuture.get*, or *ReentrantLock.lock*.
 
-### 7.2 Bảng progress bổ sung
+### 7.2 Supplemental progress table
 
-Nên có một bảng thứ hai thể hiện dấu tiến triển **ngoài dump**:
+Maintain a second table showing progress signals **outside the dumps**:
 
-| Thời điểm | Submitted tasks | Completed tasks | In-flight | Queue depth | Error rate | p99 latency |
+| Timestamp | Submitted tasks | Completed tasks | In-flight | Queue depth | Error rate | p99 latency |
 | --- | --- | --- | --- | --- | --- | --- |
-| A | 1.000 | 980 | 20 | 5 | 1% | 400 ms |
-| B | 1.100 | 985 | 115 | 90 | 8% | 2.000 ms |
-| C | 1.200 | 987 | 213 | 170 | 12% | 4.000 ms |
+| A | 1,000 | 980 | 20 | 5 | 1% | 400 ms |
+| B | 1,100 | 985 | 115 | 90 | 8% | 2,000 ms |
+| C | 1,200 | 987 | 213 | 170 | 12% | 4,000 ms |
 
-Số trên **chỉ là minh họa**, không phải dữ liệu production. Khi *submitted* tăng nhanh còn *completed* gần như đứng, *queue depth* tăng và request workers bị quan sát chờ cùng tài nguyên qua nhiều ảnh, giả thuyết thiếu tiến triển có **nhiều bằng chứng hơn**. Tuy nhiên counter phải cùng instance/group, không reset và có semantics đúng; khi autoscale/restart, không lấy hiệu raw của tổng toàn fleet một cách máy móc.
+The numbers above are **illustrative only**, not production data. When *submitted* rises rapidly while *completed* barely moves, *queue depth* climbs, and request workers are observed waiting on the same resource across multiple snapshots, the lack-of-progress hypothesis has **much stronger evidence**. However, counters must belong to the same instance/group, not reset, and have matching semantics; during autoscale/restarts, never mechanically subtract raw fleet-wide totals.
 
-## 8. Các mẫu lặp cần hiểu khác nhau
+## 8. Repeating patterns that must be interpreted differently
 
-### 8.1 Cùng WAITING + cùng queue, nhưng counter completion tăng
+### 8.1 Same WAITING + same queue, yet completion counter rises
 
-Đó có thể là một **worker khỏe**, liên tục lấy việc rồi trở lại chờ task. Nhiều ảnh ở *queue.take()* có thể chỉ vì phần lớn thời gian worker nằm chờ giữa các task ngắn.
+This can be a **healthy worker** repeatedly picking up work and returning to wait for tasks. Multiple snapshots showing *queue.take()* may simply occur because the worker spends most of its time idle between short tasks.
 
-**Kết luận:** không đủ bằng chứng thread bị kẹt. Cần per-worker progress nếu thực sự muốn đánh giá thread đó.
+**Conclusion:** insufficient evidence that the thread is stuck. Per-worker progress is needed if you truly want to evaluate that specific thread.
 
-### 8.2 Cùng BLOCKED + cùng monitor + cùng owner trong nhiều ảnh
+### 8.2 Same BLOCKED + same monitor + same owner across multiple snapshots
 
-Đây là **dấu hiệu contention đáng ưu tiên**. Nhưng phải hỏi owner làm gì: giữ monitor rồi I/O lâu, đang ở một lock khác, hay bị OS scheduling trì hoãn? Cần lock owner stack và telemetry trong khoảng đó.
+This is a **high-priority contention sign**. Still, ask what the owner is doing: holding the monitor during long I/O, stuck on another lock, or delayed by OS scheduling? Inspect the lock owner's stack and telemetry during that window.
 
-**Kết luận đúng:** “Ở các thời điểm được chụp, nhiều request threads cùng chờ monitor X do worker Y giữ.” Chưa biết **tổng thời lượng chờ liên tục** hoặc root cause nếu thiếu JFR/lock timing và request correlation.
+**Accurate conclusion:** “At the captured timestamps, multiple request threads were waiting on monitor X held by worker Y.” You still do not know **continuous wait duration** or root cause without JFR/lock timings and request correlation.
 
-### 8.3 Cùng WAITING ở Future.get hoặc CountDownLatch.await
+### 8.3 Same WAITING at Future.get or CountDownLatch.await
 
-Có thể là hợp lý khi chờ kết quả asynchronous task. Có thể là **starvation** nếu task cần thực thi được submit vào cùng thread pool đang bận chờ. Cần hiểu đồ thị phụ thuộc task, queue depth và executor completion; dump không tự biết future đó do tác vụ nào hoàn thành.
+This can be legitimate when awaiting an asynchronous task result. It can also be **starvation** if the task needed to complete was submitted to the very same busy thread pool that is waiting. Understand the task dependency graph, queue depth, and executor completion; a dump alone does not know which task completes that future.
 
-### 8.4 Cùng RUNNABLE với top frame tính toán qua nhiều mẫu
+### 8.4 Same RUNNABLE with compute top frames across multiple samples
 
-Có thể gợi ý CPU hotspot hoặc tight loop, nhưng **RUNNABLE không bằng CPU%**. Thread ở native I/O cũng có thể hiện RUNNABLE. Dùng **per-thread CPU delta** đúng native ID và JFR/profiler trong cùng cửa sổ; tránh kết luận “method đang ngốn CPU” từ hai stack frames.
+This may suggest a CPU hotspot or tight loop, but **RUNNABLE does not equal CPU%**. A thread in native I/O can also appear RUNNABLE. Use **per-thread CPU deltas** with the right native ID and JFR/profiler in the same window; avoid concluding “method is burning CPU” from two stack frames.
 
-### 8.5 Stack/lock thay đổi liên tục nhưng không có completion
+### 8.5 Stacks/locks changing constantly yet zero completions
 
-Đó có thể là **livelock** hay retry loop. Thread đang “hoạt động” ở cấp CPU nhưng hệ thống không tiến triển nghiệp vụ. Cần business progress counter, retry count, errors, state transitions. **Thay đổi state là dấu hiệu thực thi**, không chắc là progress hữu ích.
+This may be a **livelock** or retry loop. Threads are “active” at the CPU level while the system makes no business progress. Inspect business progress counters, retry counts, errors, and state transitions. **State changes show execution**, not necessarily useful progress.
 
-### 8.6 Thread biến mất khỏi dump sau
+### 8.6 Thread disappears from a later dump
 
-Có thể do hoàn tất, exception, thread pool shrink, thread renamed, JVM restart, hoặc phạm vi công cụ khác. Cần application completion/event logs, lifecycle metadata và instance identity; đừng tự ghi “thread fixed”.
+This can happen due to completion, uncaught exception, thread pool shrinking, thread renaming, JVM restart, or different tool coverage. Check application completion/event logs, lifecycle metadata, and instance identity; never write “thread fixed” automatically.
 
-### 8.7 Pool rảnh nhưng backlog tăng
+### 8.7 Idle pool while backlog grows
 
-Một số workers ở WAITING tại *BlockingQueue.take()* trong khi queue depth ngoài dashboard tăng. Trước khi kết luận queue bị hỏng, xác nhận **đúng queue instance/endpoint**, cùng pod, cùng thời điểm và metrics semantics. Có thể producer ghi sang queue khác hoặc dashboard đo toàn fleet chứ dump đo một pod.
+Some workers are WAITING at *BlockingQueue.take()* while the dashboard queue depth climbs. Before concluding the queue is broken, verify **exact queue instance/endpoint**, same pod, same timestamp, and metrics semantics. The producer might be writing to a different queue or the dashboard might measure the whole fleet while the dump covers one pod.
 
-### 8.8 Deadlock detector không báo deadlock
+### 8.8 Deadlock detector reports no deadlock
 
-Không thấy một **Java-level deadlock** trong dump không loại trừ starvation, database/distributed deadlock, livelock, socket wait hoặc deadlock ngoài phạm vi detector. Nhiều dumps càng không tự chứng minh phủ hết các cơ chế đồng bộ.
+Seeing no **Java-level deadlock** in a dump does not rule out starvation, database/distributed deadlocks, livelocks, socket waits, or deadlocks outside the detector's scope. Multiple dumps likewise do not prove full coverage of every synchronization mechanism.
 
-## 9. Lab Java 17+: cùng WAITING hai lần nhưng đã làm việc ở giữa
+## 9. Java 17+ Lab: WAITING twice while work completed in between
 
-Bài thực hành dưới đây là **chương trình Java 17+ độc lập**, mô phỏng một thread nhận một task rồi quay lại chờ task tiếp theo. Main lấy **hai snapshot ThreadInfo** qua *ThreadMXBean*. Một thread thứ hai chỉ chờ một latch để đối chiếu.
+The hands-on exercise below is a **standalone Java 17+ program** simulating a thread receiving a task and returning to wait for the next task. Main captures **two ThreadInfo snapshots** via *ThreadMXBean*. A second thread simply waits on a latch for comparison.
 
-Đây không phải là lệnh *jcmd* sinh ra file thread dump đầy đủ; nó dùng **cùng nền tảng quan sát Java management** để biểu diễn đúng lập luận “snapshot A/B có cùng state không chứng minh không có progress”.
+This is not *jcmd* generating a full thread dump file; it uses **the same Java management observation foundation** to demonstrate the argument “snapshots A/B showing the same state do not prove lack of progress”.
 
-Cách kiểm soát thử nghiệm:
+Controlled experiment setup:
 
-1. *progress-worker* chờ *BlockingQueue.take()* ở một call-site.
-2. *idle-worker* chờ *CountDownLatch.await()*.
-3. Ở snapshot A, cả hai có state **WAITING**, completed=0.
-4. Main đưa một task vào queue; worker lấy task, tăng counter và phát tín hiệu hoàn tất.
-5. Worker quay lại **cùng câu lệnh take()** để chờ task thứ hai.
-6. Ở snapshot B, cả hai lại **WAITING**, nhưng completed=1.
-7. *finally* đánh thức/interrupt và join để tránh để thread lơ lửng.
+1. *progress-worker* waits at *BlockingQueue.take()* at a single call-site.
+2. *idle-worker* waits at *CountDownLatch.await()*.
+3. At snapshot A, both have state **WAITING**, completed=0.
+4. Main puts a task into the queue; the worker takes it, increments the counter, and signals completion.
+5. The worker returns to **the exact same take() statement** to wait for a second task.
+6. At snapshot B, both are **WAITING** again, yet completed=1.
+7. *finally* wakes/interrupts and joins to avoid leaving dangling threads.
 
-Tạo file **RepeatedThreadDumpDemo.java**:
+Create file **RepeatedThreadDumpDemo.java**:
 
 ~~~java
 import java.lang.management.ManagementFactory;
@@ -383,7 +383,7 @@ public final class RepeatedThreadDumpDemo {
         Thread worker = new Thread(() -> {
             try {
                 for (int cycle = 0; cycle < 2; cycle++) {
-                    TASKS.take(); // Cùng call-site trong cả hai lần chụp.
+                    TASKS.take(); // Same call-site in both snapshots.
                     if (cycle == 0) {
                         COMPLETED.incrementAndGet();
                         DONE_SIGNAL.countDown();
@@ -451,14 +451,14 @@ public final class RepeatedThreadDumpDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 RepeatedThreadDumpDemo.java
 java RepeatedThreadDumpDemo
 ~~~
 
-**Sáu dòng stdout của chương trình đã được kiểm thử trên JDK:**
+**Six lines of program stdout tested on JDK:**
 
 ~~~text
 A.workerState=WAITING
@@ -469,381 +469,381 @@ B.idleState=WAITING
 B.completed=1
 ~~~
 
-*javac* trên một số JDK mới có thể in **cảnh báo riêng** rằng *Thread.getId()* đã deprecated; đó không phải stdout của chương trình, và mã vẫn dùng API có sẵn trên Java 17. Bài lab sử dụng **platform threads**, không phải virtual threads. Việc đồng bộ bằng latch + kiểm tra trạng thái trong vòng lặp hữu hạn giảm rủi ro test phụ thuộc scheduler, nhưng hệ quá tải cực đoan vẫn có thể khiến *awaitState* hết thời gian và ném lỗi thay vì in sáu dòng.
+*javac* on some newer JDKs may print **a separate warning** that *Thread.getId()* is deprecated; that is not program stdout, and the code uses APIs available on Java 17. This lab uses **platform threads**, not virtual threads. Latch synchronization + bounded-loop state checking reduce scheduler sensitivity, though under extreme overload *awaitState* could still time out and throw rather than printing the six lines.
 
-### 9.1 Kết luận nào chắc chắn từ lab?
+### 9.1 What conclusions are certain from the lab?
 
-Tại A: progress-worker đang chờ task và completed=0. Sau A, main có bằng chứng bằng *DONE_SIGNAL* rằng worker đã xử lý một task và tăng chính counter của mình. Tại B, worker đã trở lại **WAITING ở cùng call-site take()**, nhưng counter=1.
+At A: progress-worker is waiting for a task and completed=0. After A, main has proof via *DONE_SIGNAL* that the worker processed a task and incremented its own counter. At B, the worker has returned to **WAITING at the same take() call-site**, yet counter=1.
 
-Vì counter gắn với **chính worker**, đây là bằng chứng nó **đã tiến triển giữa hai lần chụp**. Không cần stack frame ở B khác A. Đây là phản ví dụ có chủ đích cho suy luận “hai stack/state giống nhau = thread không tiến triển”.
+Because the counter is tied to **that exact worker**, this proves it **made progress between the two captures**. The stack frame at B did not need to differ from A. This is an intentional counterexample to the inference “two identical stacks/states = the thread made no progress”.
 
-Ngược lại, *idle-worker* WAITING ở cả A và B vì đang chờ latch; nhưng **không thể kết luận lỗi** — main sẽ thả latch trong finally. Chờ đợi ổn định có thể là thiết kế đúng.
+Conversely, *idle-worker* is WAITING at both A and B because it awaits the latch; yet **you cannot conclude an error** — main releases the latch in finally. Steady waiting can be the intended design.
 
-### 9.2 Cần kết hợp với app metrics thế nào?
+### 9.2 How should this be combined with app metrics?
 
-Trong hệ thống thật, bạn ít khi có per-worker counter chuẩn như lab. Thay vào đó:
+In real systems, you rarely have a clean per-worker counter like the lab. Instead:
 
-- **Service-wide completed counter tăng:** chứng minh một số tasks của service đã hoàn tất, không chứng minh worker X.
-- **Queue depth giảm:** có thể do consumer xử lý, nhưng cũng có thể producer/policy xóa task; cần kết hợp completed/failed metrics.
-- **Request spans kết thúc:** bằng chứng request-level progress nếu trace đầy đủ và sampling không bỏ sót.
-- **Worker-specific log/context:** có thể chỉ ra task do worker X xử lý, nhưng kiểm tra thread reuse và correlation.
-- **OS per-thread CPU delta:** có CPU activity, chưa tự chứng minh business progress.
+- **Service-wide completed counter rises:** proves some tasks in the service completed, not specifically worker X.
+- **Queue depth drops:** may be due to consumer processing, or a producer/policy purging tasks; combine with completed/failed metrics.
+- **Request spans finish:** evidence of request-level progress if tracing is complete and sampling did not drop them.
+- **Worker-specific logs/context:** can indicate tasks handled by worker X, though check thread reuse and correlation.
+- **OS per-thread CPU delta:** shows CPU activity, which does not by itself prove business progress.
 
-Tách tầng identity và tầng progress trước khi đưa ra kết luận.
+Separate the identity layer from the progress layer before drawing conclusions.
 
-## 10. So ảnh trên một timeline thay vì chỉ đọc từng file
+## 10. Comparing snapshots on a timeline instead of reading file by file
 
-Một quy trình thuyết phục xây **timeline**:
+A persuasive workflow builds a **timeline**:
 
 ~~~text
-10:00:00  Incident: p99 latency tăng, completed/s giảm
-10:00:02  Dump A: 20 request workers BLOCKED chờ monitor X
-10:00:04  Metrics: queue length tăng; throughput gần 0
-10:00:08  Dump B: nhiều worker vẫn chờ X, owner stack tại DB call
-10:00:11  Traces: dependency DB wait tăng, cùng khoảng
-10:00:14  Dump C: owner đi qua đoạn code khác; số worker BLOCKED giảm
-10:00:16  Metrics: completed/s phục hồi
+10:00:00  Incident: p99 latency increased, completed/s dropped
+10:00:02  Dump A: 20 request workers BLOCKED waiting on monitor X
+10:00:04  Metrics: queue length increased; throughput near 0
+10:00:08  Dump B: many workers still waiting on X, owner stack at DB call
+10:00:11  Traces: downstream DB wait increased, same window
+10:00:14  Dump C: owner moved past that code section; BLOCKED worker count dropped
+10:00:16  Metrics: completed/s recovered
 ~~~
 
-Mốc và dữ liệu trên là **tình huống giả định**. Kết luận phù hợp: lock X và owner có liên hệ thời gian đáng điều tra với sự cố; request workers quan sát chờ X ở A/B; metrics và trace cung cấp evidence tiến triển ở mức service. Chưa thể tuyên bố lock X **chắc chắn** là root cause nếu chưa có thông tin critical section, khả năng thay đổi tải, các nguyên nhân cạnh tranh và phép kiểm liên quan.
+The timestamps and data above are a **hypothetical scenario**. Appropriate conclusion: lock X and its owner have a time correlation worth investigating with the incident; request workers were observed waiting on X at A/B; metrics and traces provide service-level progress evidence. You cannot yet claim lock X is **definitely** the root cause without critical-section code details, load variation checks, competing causes, and verification checks.
 
-### 10.1 Một quy trình phân tích tám bước
+### 10.1 An eight-step analysis workflow
 
-1. **Định nghĩa triệu chứng và cửa sổ thời gian.** Chọn service, route, pod, error rate, latency, throughput, queue depth và thời điểm incident.
-2. **Đóng khung mục tiêu chụp.** Process instance, VM version, PID namespace, quyền, công cụ và expected virtual-thread coverage.
-3. **Chụp tối thiểu cần thiết.** Ví dụ ba ảnh với khoảng cách có chủ đích, timestamp đầu/cuối, hạn chế impact.
-4. **Kiểm tra file hợp lệ.** Jcmd exit code, dữ liệu có header/stack/threads, cùng JVM; không phân tích file trống do attach failed.
-5. **Ghép threads qua ảnh.** Đúng JVM/thread identity; phân loại pool, request workers, scheduler, GC/JIT/helper.
-6. **Phân nhóm stack/lock signatures.** Chỗ chờ, lock owner/owner stack, liệu có cùng pool/queue/call path không; ghi state từng ảnh.
-7. **Đối chiếu progress ngoài dump.** Completed counters, queue, request spans, JFR, CPU deltas, GC pauses; xem dữ liệu cùng instance và timestamp.
-8. **Viết kết luận có mức chắc chắn, giới hạn và bước xác nhận tiếp.** Không biến một tương quan thành causal claim vô căn cứ.
+1. **Define the symptom and time window.** Select service, route, pod, error rate, latency, throughput, queue depth, and incident timestamps.
+2. **Frame the capture target.** Process instance, VM version, PID namespace, permissions, tool, and expected virtual-thread coverage.
+3. **Capture the minimum needed.** For example, three intentionally spaced snapshots with start/end timestamps, limiting impact.
+4. **Validate the files.** jcmd exit codes, presence of headers/stacks/threads, same JVM; never analyze empty files from failed attaches.
+5. **Match threads across snapshots.** Same JVM/thread identity; classify pools, request workers, schedulers, GC/JIT/helpers.
+6. **Group stack/lock signatures.** Wait sites, lock owners/owner stacks, whether they share a pool/queue/call path; record per-snapshot states.
+7. **Correlate external progress.** Completed counters, queues, request spans, JFR, CPU deltas, GC pauses; ensure same instance and timestamps.
+8. **Write conclusions with confidence levels, limitations, and next validation steps.** Never turn correlation into an unsubstantiated causal claim.
 
-Nếu sau bước 4 phát hiện JVM đã restart, **tách thành hai đợt**, không diff thread IDs như thể cùng process. Nếu sau bước 7 tiến triển service rõ ràng, điều chỉnh giả thuyết stuck dù stack/state của một nhóm threads trông lặp.
+If after step 4 you discover the JVM restarted, **split into two separate series** and do not diff thread IDs as if they were one process. If after step 7 service progress is clearly occurring, revise the stuck hypothesis even if one thread group's stacks/states look repetitive.
 
-## 11. Những giới hạn ngay cả khi đã có 3, 5 hoặc 10 dump
+## 11. Limits even when you have 3, 5, or 10 dumps
 
-### 11.1 Không đo chính xác thời gian chờ
+### 11.1 Cannot measure exact wait duration
 
-Thấy thread X *BLOCKED* ở t0 và t10 **không** chứng minh X chờ liên tục 10 giây. Nó có thể nhả/giành lock nhiều lần giữa hai ảnh. Khoảng t0–t10 chỉ là **khoảng quan sát**, không phải phép đo dwell time. Cần JFR monitor events hoặc contention timing được hỗ trợ, bật có kiểm soát.
+Seeing thread X *BLOCKED* at t0 and t10 **does not** prove X waited continuously for 10 seconds. It could have released and reacquired the lock multiple times between snapshots. The t0–t10 span is only an **observation interval**, not a dwell-time measurement. You need JFR monitor events or supported contention timing enabled under control.
 
-### 11.2 Không chứng minh thiếu tiến triển chỉ từ stack giống nhau
+### 11.2 Cannot prove lack of progress from identical stacks alone
 
-Một thread có thể quay lại cùng call-site mỗi lần nhận task. Lab đã chứng minh điều này. Kết luận “không progress” cần một **thước đo completion hoặc state transition nghiệp vụ** có thể quan sát theo thời gian, cùng đúng scope.
+A thread can return to the same call-site each time it picks up a task. The lab proved this. Concluding “no progress” requires an observable **completion metric or business state transition** over time within the same scope.
 
-### 11.3 Không chứng minh CPU hotspot từ vài RUNNABLE stacks
+### 11.3 Cannot prove a CPU hotspot from a few RUNNABLE stacks
 
-Một thread RUNNABLE có thể chưa được OS schedule hoặc đang trong native call. CPU time là số đo tích lũy; muốn CPU load phải tính **delta theo cùng thread và cùng khoảng**. Đếm top-frame occurrences thủ công ở ba ảnh không tương đương statistically sampled CPU profiler.
+A RUNNABLE thread may not yet be scheduled by the OS or may be in a native call. CPU time is a cumulative measurement; to find CPU load, compute **deltas for the same thread over the same interval**. Manually counting top-frame occurrences across three snapshots is not equivalent to a statistically sampled CPU profiler.
 
-### 11.4 Không tự có request latency distribution
+### 11.4 Does not provide request latency distribution
 
-Thread dump không cung cấp tất cả request durations để tính p95/p99. Cần metrics/tracing với sample/cửa sổ phù hợp, cùng business semantics. Một nhóm thread chờ 5 giây **không** có nghĩa p99 = 5 giây.
+Thread dumps do not provide all request durations to compute p95/p99. You need metrics/tracing with appropriate samples/windows and business semantics. A group of threads waiting across 5 seconds **does not** mean p99 = 5 seconds.
 
-### 11.5 Không tự nhận diện mọi deadlock/livelock
+### 11.5 Does not automatically detect all deadlocks/livelocks
 
-Các detector trong JVM có phạm vi khóa nhất định. Chờ qua network, DB transactions, distributed locks, queues, futures, thread pool starvation hoặc vòng retry không tiến triển có thể không tạo Java-level monitor deadlock. Không thấy “Found deadlock” chưa đủ loại trừ các dạng này.
+In-JVM detectors cover a specific set of locks. Waiting across networks, DB transactions, distributed locks, queues, futures, thread pool starvation, or non-progressing retry loops may not create a Java-level monitor deadlock. Not seeing “Found deadlock” is insufficient to rule these out.
 
-### 11.6 Không có bảo đảm snapshot nguyên tử trên mọi công cụ
+### 11.6 No guarantee of an atomic snapshot across all tools
 
-Một lần dump có thể mất thời gian, output có thể không đại diện cho cùng một nano-giây. Các định dạng virtual-thread-specific của JDK mới có coverage và consistency khác. Nhiều dump không tự chữa vấn đề này; cần ghi tool/version/capture window.
+A dump takes time to execute, so output may not represent a single nanosecond. Virtual-thread-specific formats on newer JDKs have different coverage and consistency guarantees. Taking multiple dumps does not cure this; record tool/version/capture window.
 
-### 11.7 Không nhất thiết thấy mọi virtual thread
+### 11.7 Does not necessarily show every virtual thread
 
-Trên Java 21+, virtual threads được JVM quản lý, không ánh xạ 1:1 với OS native threads. Các công cụ/dạng dump truyền thống có thể chỉ bao phủ platform threads và một phần virtual threads đang mounted. *ThreadMXBean* trong Java Management API cũng có phạm vi khác với công cụ virtual-thread dump chuyên dụng.
+On Java 21+, virtual threads are managed by the JVM and do not map 1:1 to OS native threads. Traditional tools/dump formats may only cover platform threads and currently mounted virtual threads. *ThreadMXBean* in the Java Management API also has a different scope from dedicated virtual-thread dump tools.
 
-Đối với JDK 21, tài liệu Oracle mô tả *Thread.dump_to_file* tạo file text/JSON chứa platform và virtual threads, nhưng không có toàn bộ object addresses/lock/JNI/heap metadata như dump truyền thống. Phải kiểm tra *jcmd PID help Thread.dump_to_file* trên **chính build JDK**; cú pháp/khả năng thay đổi theo version. Đừng so trực tiếp số lượng virtual threads giữa hai file **khác công cụ/coverage** rồi gọi đó là progress.
+For JDK 21, Oracle documentation describes *Thread.dump_to_file* producing text/JSON files containing platform and virtual threads, without all the object addresses/lock/JNI/heap metadata of traditional dumps. Check *jcmd PID help Thread.dump_to_file* on **the exact JDK build**; syntax and capabilities vary by version. Never directly compare virtual thread counts between two files from **different tools/coverage** and call it progress.
 
-### 11.8 Không chứng minh một thread biến mất là thành công
+### 11.8 Does not prove a vanished thread succeeded
 
-Thread có thể kết thúc bởi uncaught exception, bị thread pool thay thế hoặc JVM restart; file mới không thấy thread không đủ xác định outcome. Hãy xem error/completion logs, task IDs, active/in-flight counters và lifecycle.
+A thread could terminate from an uncaught exception, be replaced by a thread pool, or end due to a JVM restart; its absence in a new file cannot determine outcome. Check error/completion logs, task IDs, active/in-flight counters, and lifecycle events.
 
-## 12. Virtual threads và phương pháp lấy nhiều mẫu trên JDK 21+
+## 12. Virtual threads and multi-sample strategies on JDK 21+
 
-Ứng dụng dùng virtual threads cần thiết kế thu mẫu khác so với platform-thread pool truyền thống.
+Applications using virtual threads require a different sampling design than traditional platform-thread pools.
 
-Trên Oracle JDK 21, ví dụ cú pháp tham khảo:
+On Oracle JDK 21, reference syntax example:
 
 ~~~bash
 jcmd 12345 help Thread.dump_to_file
 jcmd 12345 Thread.dump_to_file -format=json threads-01.json
 ~~~
 
-*threads-01.json* là đường file do command tạo trong **filesystem của JVM đích**, có thể khác nơi terminal jcmd đang chạy. Tránh ghi đè file cũ; tên theo sample index/timestamp và quyền bảo vệ phải được thiết kế trước. Dạng JSON phù hợp cho parser và hỗ trợ quan sát virtual threads trong phiên bản này, nhưng không được giả định có deadlock detector hoặc tất cả lock internals.
+*threads-01.json* is a path created by the command in **the target JVM's filesystem**, which may differ from where the `jcmd` terminal runs. Avoid overwriting older files; sample-indexed/timestamped naming and protective permissions should be planned ahead. JSON format suits parsers and supports observing virtual threads in this version, but must not be assumed to include deadlock detection or all lock internals.
 
-**Khi so các virtual threads:**
+**When comparing virtual threads:**
 
-- Ghi rõ dùng *Thread.dump_to_file* hay *Thread.print*, JDK version, content scope.
-- Kiểm tra giá trị identity thực sự có trong format đó và tính ổn định qua mẫu.
-- Không coi carrier OS thread là identity bền vững của virtual thread; virtual thread có thể mount/unmount.
-- Dùng trace/task IDs, scheduler/queue metrics và JFR events để phân biệt “nhiều virtual threads WAITING” với thật sự không hoàn thành task.
-- Tránh lấy dump toàn bộ hàng triệu virtual threads quá thường xuyên: file/processing overhead và bảo mật có thể đáng kể.
-- Trên JDK khác 21, **đọc help của VM**, không chép mù *-format=json* hoặc tên command.
+- Record whether *Thread.dump_to_file* or *Thread.print* was used, JDK version, and content scope.
+- Check which identities actually exist in that format and their stability across samples.
+- Do not treat carrier OS threads as persistent identities of virtual threads; virtual threads mount/unmount.
+- Use trace/task IDs, scheduler/queue metrics, and JFR events to distinguish “many WAITING virtual threads” from genuine lack of task completion.
+- Avoid dumping millions of virtual threads too frequently: file/processing overhead and security exposure can be significant.
+- On JDKs other than 21, **read the VM's help** rather than blindly copying *-format=json* or command names.
 
-Nếu một chương trình dùng virtual threads và ba platform-thread dumps không cho thấy request workers, điều đó **không chứng minh requests không tồn tại**. Có thể bạn đã dùng công cụ có coverage không phù hợp.
+If a program uses virtual threads and three platform-thread dumps show no request workers, that **does not prove requests do not exist**. You may have used a tool with the wrong coverage.
 
-## 13. Đối chiếu với CPU, GC, queue và ứng dụng để biết progress thật
+## 13. Correlating with CPU, GC, queues, and application data for true progress
 
-### 13.1 OS thread CPU delta
+### 13.1 OS thread CPU deltas
 
-Nếu dump ghi *nid* của native thread, có thể đối chiếu một metric per-thread CPU theo OS — sau khi xác minh **nid/PID namespace và quá trình không restart**. CPU delta dương cho biết thread đã tiêu CPU trong khoảng đo; không nhất thiết nó hoàn thành business task.
+If a dump records native thread *nid*, you can correlate OS per-thread CPU metrics — after verifying **nid/PID namespace and no restart**. A positive CPU delta shows the thread consumed CPU during the interval; it does not necessarily mean it completed a business task.
 
-Để tránh sai đơn vị:
+To avoid unit errors:
 
 \[
-\text{CPU cores trung bình} \approx \frac{\Delta \text{thread CPU seconds}}
+\text{Average CPU cores} \approx \frac{\Delta \text{thread CPU seconds}}
 {\Delta \text{wall seconds}}
 \]
 
-Một thread không thể chạy trên nhiều cores cùng thời điểm theo mô hình native thread thông thường; giá trị tính từ đúng một native thread thường quanh 0–1 core nếu dữ liệu hợp lệ. Process CPU delta có thể trên 1 core do nhiều threads. Không nhầm cumulative CPU seconds với CPU% tức thời.
+A thread cannot run on multiple cores simultaneously under the standard native thread model; a value computed from a single native thread is typically in 0–1 core when data is valid. Process CPU deltas can exceed 1 core across multiple threads. Do not confuse cumulative CPU seconds with instantaneous CPU%.
 
-**Bẫy:** *nid* hex từ HotSpot không thể so trực tiếp chuỗi với decimal TID trên công cụ OS; quy đổi đúng và gắn đúng host/namespace.
+**Trap:** hex *nid* from HotSpot cannot be string-matched directly against decimal TIDs in OS tools; convert properly and verify host/namespace.
 
-### 13.2 Queue metrics và thread pool metrics
+### 13.2 Queue metrics and thread pool metrics
 
-Với ExecutorService/ThreadPoolExecutor, cần quan tâm:
+For ExecutorService/ThreadPoolExecutor, track:
 - Active worker count.
 - Queue depth.
-- Submitted/completed task counts (đúng semantics của executor).
+- Submitted/completed task counts (matching the executor's semantics).
 - Rejection count.
-- Time in queue, execution duration nếu có instrumentation.
+- Time in queue and execution duration if instrumented.
 - Task error/timeout rate.
-- Nested tasks phụ thuộc cùng pool.
+- Nested tasks depending on the same pool.
 
-Một pool có 100 workers WAITING và queue depth=0 có thể hoàn toàn khỏe. Ngược lại, pool active=100, queue depth tăng và completed/s≈0 trong nhiều mốc là dấu hiệu đáng điều tra; cần xem workers chờ gì và vì sao producer tiếp tục đẩy việc.
+A pool with 100 WAITING workers and queue depth=0 may be completely healthy. Conversely, active=100, rising queue depth, and completed/s≈0 across multiple timestamps is a sign worth investigating; inspect what workers are waiting on and why producers keep pushing work.
 
 ### 13.3 App logs/tracing
 
-Trong một Java service, request có thể qua nhiều thread (async continuation, executor handoff, virtual threads). **Thread name không phải request identity**. Để liên kết dump với triệu chứng:
-- Dùng traceId/requestId có bảo mật trong logs/spans.
-- Ghi start/end task và dependency calls.
-- Kiểm tra retry loops, timeouts, circuit breaker, queue waits.
-- Tách thời gian thực của event khỏi timestamp do collector gắn.
-- Kiểm tra sampling/truncation khiến một phần events mất đi.
+In a Java service, a request can cross multiple threads (async continuations, executor handoffs, virtual threads). **Thread name is not request identity**. To link dumps to symptoms:
+- Include secure traceId/requestId in logs/spans.
+- Record task start/end and dependency calls.
+- Inspect retry loops, timeouts, circuit breakers, and queue waits.
+- Separate actual event time from collector-assigned timestamps.
+- Check whether sampling/truncation dropped some events.
 
-### 13.4 GC logs và JFR
+### 13.4 GC logs and JFR
 
-Trong giai đoạn GC pause/safepoint, việc thu dump có thể bị ảnh hưởng về thời điểm và cách JVM tạo snapshot. Nếu throughput đứng lại đồng thời GC pause kéo dài, GC Unified Logging và JFR có thể cung cấp sự kiện/duration tốt hơn thread dumps rời rạc.
+During GC pauses/safepoints, dump capture can be affected in timing and how the JVM produces the snapshot. If throughput stalls alongside prolonged GC pauses, GC Unified Logging and JFR provide better event/duration detail than discrete thread dumps.
 
-JFR recording có các events liên quan monitor enter, thread park, execution sampling, CPU allocation/GC tùy JDK và cấu hình. Không đồng nhất “JFR có recording” với “mọi event hữu ích đã bật và thu được”; cấu hình và sampling window quyết định chất lượng bằng chứng.
+JFR recordings include events for monitor enter, thread park, execution sampling, and CPU allocation/GC depending on JDK and configuration. Do not equate “JFR is recording” with “every useful event is enabled and captured”; configuration and sampling windows determine evidence quality.
 
-## 14. Các tình huống chẩn đoán thực tế
+## 14. Real-world diagnostic scenarios
 
-### 14.1 HTTP thread pool có vẻ “đóng băng”
+### 14.1 HTTP thread pool appears “frozen”
 
-**Quan sát:**
-- Dump A/B/C: phần lớn request workers đều WAITING tại *CompletableFuture.get()*.
-- Metrics cùng pod: submitted tăng, completed hầu như không tăng, queue đang mở rộng.
-- Logs: nhiều request đang chờ result của task được submit vào **chính pool có số workers đã chờ**.
+**Observation:**
+- Dumps A/B/C: most request workers are WAITING at *CompletableFuture.get()*.
+- Metrics on the same pod: submitted increases, completed barely moves, queue is growing.
+- Logs: many requests await results of tasks submitted to **the very same pool whose workers are already waiting**.
 
-**Giả thuyết mạnh:** thread pool starvation do nested blocking dependency. Chưa được kết luận chỉ từ dumps; các metrics và task dependency graph cung cấp phần bằng chứng quyết định. Cần xem executor topology, synchronous waits và có thực sự task nào có thể hoàn tất không.
+**Strong hypothesis:** thread pool starvation due to nested blocking dependencies. Not concluded from dumps alone; metrics and the task dependency graph supply the decisive evidence. Inspect executor topology, synchronous waits, and whether any task can actually complete.
 
-**Không làm:** restart liên tục mà không lưu bằng chứng, hoặc nâng pool size mù quáng không hiểu nested dependency.
+**Do not:** restart repeatedly without saving evidence, or blindly increase pool size without understanding nested dependencies.
 
-### 14.2 Nhiều threads cùng tranh monitor
+### 14.2 Many threads contending for a monitor
 
-**Quan sát:** 12 request workers BLOCKED tại *Inventory.reserve*, đều chờ monitor X trong hai ảnh. Owner Y có stack tại network call; throughput giảm.
+**Observation:** 12 request workers BLOCKED at *Inventory.reserve*, all waiting on monitor X across two snapshots. Owner Y has its stack in a network call; throughput drops.
 
-**Giả thuyết:** một đoạn synchronized giữ monitor trong khi chờ downstream, gây lock convoy. Xác minh bằng code critical section, JFR monitor enter durations, trace downstream và một vài mẫu bổ sung nếu cần.
+**Hypothesis:** a synchronized block holds the monitor while waiting on downstream I/O, causing a lock convoy. Verify using critical section code, JFR monitor enter durations, downstream traces, and additional samples if needed.
 
-**Giới hạn:** không thể khẳng định từng worker bị BLOCKED liên tục giữa hai ảnh; owner có thể thay đổi ở thời điểm không chụp.
+**Limitation:** you cannot claim each worker was continuously BLOCKED between the two snapshots; the owner could have changed at uncaptured moments.
 
-### 14.3 CPU 250%, stack RUNNABLE lặp tại JSON parser
+### 14.3 CPU 250%, RUNNABLE stack repeats at JSON parser
 
-**Quan sát:** một thread RUNNABLE tại JSON parser trong nhiều file; process CPU cao.
+**Observation:** one thread is RUNNABLE in a JSON parser across multiple files; process CPU is high.
 
-**Không được kết luận:** JSON parser chắc chắn chiếm 250% CPU. Một thread native thường không tự dùng 2,5 cores cùng lúc. Cần map native thread IDs, lấy CPU delta theo thread và execution samples qua JFR/profiler. Có thể các threads khác (GC/JIT/native) mới chiếm phần lớn CPU.
+**Must not conclude:** the JSON parser is definitely burning 250% CPU. A single native thread normally cannot consume 2.5 cores at once. Map native thread IDs, capture per-thread CPU deltas, and gather execution samples via JFR/profiler. Other threads (GC/JIT/native) may account for most of the CPU.
 
-### 14.4 WAITING giống nhau nhưng request throughput vẫn tăng
+### 14.4 Identical WAITING yet request throughput keeps rising
 
-**Quan sát:** ba dump cùng thấy worker-7 ở *LinkedBlockingQueue.take()*; completed request count cùng service tăng đều.
+**Observation:** three dumps all show worker-7 at *LinkedBlockingQueue.take()*; completed request count on the same service climbs steadily.
 
-**Kết luận phù hợp:** service có tiến triển; chưa có bằng chứng worker-7 stuck. Nếu quan trọng phải biết worker-7 có hoàn thành task không, cần per-worker context hoặc traces; service-wide counter chỉ nói tiến triển cấp service.
+**Appropriate conclusion:** the service is progressing; there is no evidence worker-7 is stuck. If knowing whether worker-7 itself completed tasks matters, use per-worker context or traces; service-wide counters only indicate service-level progress.
 
-### 14.5 Task retries liên tục, hoàn thành bằng 0
+### 14.5 Tasks retry continuously, completions equal 0
 
-**Quan sát:** stacks đổi liên tục giữa retry/future/HTTP call, CPU có hoạt động, completed counter không tăng, error count cao.
+**Observation:** stacks flip continuously between retry/future/HTTP calls, CPU shows activity, completed counter does not increase, error count is high.
 
-**Giả thuyết:** livelock/retry amplification hoặc dependency failure. Cần request/task outcome, retry policy và dependency traces. Chỉ thấy thread chuyển state không là tiến triển nghiệp vụ.
+**Hypothesis:** livelock/retry amplification or dependency failure. Check request/task outcomes, retry policies, and dependency traces. Simply seeing threads change states is not business progress.
 
-### 14.6 Thread “biến mất” sau deploy restart
+### 14.6 Thread “vanishes” after deploy restart
 
-**Quan sát:** dump A trong pod X, dump B trong pod mới cùng tên logical workload; thread name *worker-1* xuất hiện ở cả hai nhưng PID/start time khác.
+**Observation:** dump A in pod X, dump B in a new pod of the same logical workload; thread name *worker-1* appears in both, yet PID/start time differ.
 
-**Kết luận:** hai process instances; không thể diff identity/CPU/stack như một thread duy nhất. Tách incident thành trước/sau restart, xem shutdown/recovery logs và counters reset.
+**Conclusion:** two process instances; you cannot diff identity/CPU/stacks as one thread. Split the incident into before/after restart, and inspect shutdown/recovery logs and counter resets.
 
-### 14.7 Virtual thread app có hàng nghìn requests WAITING
+### 14.7 Virtual-thread app has thousands of WAITING requests
 
-**Quan sát:** platform Thread.print có vài chục carrier/OS threads, nhưng app metrics nói hàng nghìn requests đang in-flight.
+**Observation:** platform Thread.print shows a few dozen carrier/OS threads, yet app metrics report thousands of in-flight requests.
 
-**Không kết luận:** JVM không có nhiều threads/request. Tool có thể không liệt kê virtual threads unmounted; cần virtual-thread-aware dump/JFR và task/request progress data. “Nhiều virtual threads WAITING” cũng có thể bình thường nếu chờ I/O; đo timeout/latency để đánh giá.
+**Do not conclude:** the JVM lacks threads/requests. The tool may not list unmounted virtual threads; use virtual-thread-aware dumps/JFR and task/request progress data. “Many WAITING virtual threads” can also be normal if waiting on I/O; measure timeouts/latency to evaluate.
 
-## 15. Sai lầm phổ biến khi thu và so nhiều dump
+## 15. Common mistakes when collecting and comparing multiple dumps
 
-| Sai lầm | Vì sao sai | Cách sửa |
+| Mistake | Why it is wrong | Fix |
 | --- | --- | --- |
-| Hai ảnh cùng WAITING ⇒ thread stuck | Worker có thể xử lý việc giữa hai ảnh | Kèm completion/task counters |
-| Cùng stack ⇒ thời gian ở frame bằng khoảng cách ảnh | Thread có thể rời rồi quay lại | Dùng timing/JFR, chỉ nói “quan sát tại hai mốc” |
-| Frame thay đổi ⇒ request đã xử lý xong | Có thể retry loop/livelock | Kiểm tra business completion |
-| Chỉ dùng thread name để ghép | Tên có thể lặp/tái sử dụng | Cùng JVM instance + thread identity |
-| Giả định PID không bao giờ tái sử dụng | Restart/OS PID reuse có thể xảy ra | Ghi JVM start time/pod UID |
-| Đếm dòng diff để đo progress | Timestamps/addresses/order thay đổi | Diff có ngữ nghĩa: state/stack/lock/counter |
-| File dump thiếu thread ⇒ thread không tồn tại | Thread có thể kết thúc hoặc tool coverage khác | Kiểm tra lifecycle/format/virtual threads |
-| Chụp cách “đúng 5s” chỉ vì sleep 5 | Dump có thời gian chạy riêng | Log start/end timestamps |
-| Một dump fail nhưng file vẫn tồn tại ⇒ ảnh hợp lệ | Redirect có thể tạo file rỗng/partial | Kiểm tra exit code và nội dung |
-| RUNNABLE lặp ⇒ CPU hotspot chắc chắn | Có thể native I/O hoặc OS wait | Per-thread CPU delta/JFR |
-| GC pause không thấy ⇒ không liên quan GC | Thread dump không là GC event log | GC logging/JFR và timestamps |
-| Không phát hiện deadlock ⇒ không starvation | Detector giới hạn loại lock/cycle | Queue/progress/dependency analysis |
-| Toàn bộ WAITING ⇒ service chết | Workers có thể idle bình thường | Throughput, incoming load và queue metrics |
-| completed counter tăng ⇒ thread X đã làm việc | Counter có thể toàn service | Per-thread/task correlation |
-| Dùng file từ hai JVM chung một bảng | Khác process thì không cùng thread identity | Tách instance trước khi so |
-| Mỗi ảnh là atomic snapshot | Tool/VM có thể lấy theo thời gian | Ghi capture window/coverage |
-| Lấy 100 dump mỗi 100 ms | Overhead/I/O có thể làm sự cố nặng hơn | Giới hạn mẫu, dùng telemetry chuyên dụng |
-| Public upload raw thread dumps | Dễ lộ class paths, internals, identifiers | Quyền truy cập, redaction và retention |
+| Two snapshots both WAITING ⇒ thread stuck | Worker may have processed work between snapshots | Pair with completion/task counters |
+| Same stack ⇒ time in frame equals interval between dumps | Thread may have exited and returned | Use timing/JFR; state only “observed at both timestamps” |
+| Frame changed ⇒ request finished | Could be a retry loop/livelock | Check business completion |
+| Joining only by thread name | Names can duplicate/be reused | Match JVM instance + thread identity |
+| Assuming PIDs are never reused | Restarts/OS PID reuse can happen | Record JVM start time/pod UID |
+| Counting diff lines to measure progress | Timestamps/addresses/order change | Semantic diff: state/stack/lock/counter |
+| Dump missing thread ⇒ thread never existed | Thread may have ended or tool coverage differs | Check lifecycle/format/virtual threads |
+| Captures “exactly 5s apart” just because of sleep 5 | Dump execution takes time itself | Log start/end timestamps |
+| One dump failed yet file exists ⇒ valid snapshot | Redirection can create an empty/partial file | Verify exit code and file contents |
+| Repeated RUNNABLE ⇒ guaranteed CPU hotspot | May be native I/O or OS wait | Per-thread CPU delta/JFR |
+| No GC pause visible ⇒ unrelated to GC | Thread dump is not a GC event log | GC logging/JFR and timestamps |
+| No deadlock found ⇒ no starvation | Detector is limited to certain lock/cycle types | Queue/progress/dependency analysis |
+| All WAITING ⇒ service dead | Workers may be normally idle | Throughput, incoming load, and queue metrics |
+| Completed counter rose ⇒ thread X worked | Counter may be service-wide | Per-thread/task correlation |
+| Putting files from two JVMs into one table | Different processes do not share thread identities | Separate instances before comparing |
+| Every snapshot is an atomic snapshot | Tool/VM may capture over a duration | Record capture window/coverage |
+| Taking 100 dumps every 100 ms | Overhead/I/O can worsen the incident | Cap samples, use dedicated telemetry |
+| Publicly uploading raw thread dumps | Easily leaks class paths, internals, identifiers | Access controls, redaction, and retention |
 
-## 16. Bài tập có đáp án
+## 16. Exercises with answers
 
-### Bài 1 — Hai lần WAITING
+### Exercise 1 — WAITING twice
 
-A lúc 10:00:00 và B lúc 10:00:05: worker-1 đều WAITING ở *queue.take()*. Completed tasks của chính worker tăng 10 → 11.
+A at 10:00:00 and B at 10:00:05: worker-1 is WAITING at *queue.take()* in both. That specific worker's completed tasks increased 10 → 11.
 
-**Hỏi:** Có tiến triển không?
+**Question:** Is there progress?
 
-**Đáp án:** Có bằng chứng **worker-1 đã hoàn thành ít nhất một task giữa hai mẫu**, dù trạng thái/stack tại hai mốc giống nhau. Không được gọi nó stuck chỉ từ hai ảnh.
+**Answer:** There is evidence **worker-1 completed at least one task between the two samples**, even though its state/stack at both timestamps are identical. It must not be called stuck from the two snapshots alone.
 
-### Bài 2 — Không có per-worker counter
+### Exercise 2 — No per-worker counter
 
-Hai ảnh đều thấy worker-1 WAITING; total service completed tăng 300 → 350.
+Both snapshots show worker-1 WAITING; total service completed rose 300 → 350.
 
-**Hỏi:** Có thể khẳng định worker-1 đã xử lý 50 requests không?
+**Question:** Can you assert worker-1 handled 50 requests?
 
-**Đáp án:** Không. Counter toàn service chỉ chứng minh service hoặc nhóm instance được đo có hoàn thành công việc. Muốn kết luận cho worker-1 cần task correlation cụ thể.
+**Answer:** No. A service-wide counter only proves the measured service or instance group completed work. Concluding about worker-1 specifically requires task-level correlation.
 
-### Bài 3 — Hai lần BLOCKED
+### Exercise 3 — BLOCKED twice
 
-Thread A BLOCKED trên monitor X ở t0 và t10, cùng lock owner B.
+Thread A is BLOCKED on monitor X at t0 and t10, with the same lock owner B.
 
-**Hỏi:** A đã chờ liên tục 10 giây?
+**Question:** Did A wait continuously for 10 seconds?
 
-**Đáp án:** Chưa đủ. A có thể vào lock rồi quay lại chờ giữa hai ảnh. Chỉ biết A được quan sát BLOCKED ở cả hai mốc. Cần timing/monitor events để đo duration.
+**Answer:** Insufficient evidence. A may have entered the lock and returned to wait between snapshots. We only know A was observed BLOCKED at both timestamps. Timing/monitor events are needed to measure duration.
 
-### Bài 4 — Thay đổi stack liên tục
+### Exercise 4 — Constantly changing stack
 
-Một thread chuyển qua *send → timeout → retry → send* trong nhiều mẫu, nhưng successful requests bằng 0.
+A thread transitions through *send → timeout → retry → send* across multiple samples, while successful requests equal 0.
 
-**Hỏi:** Có progress không?
+**Question:** Is there progress?
 
-**Đáp án:** Có hoạt động ở cấp thread, **chưa có business progress**. Đây có thể là retry amplification/livelock; cần dependency traces/error metrics và retry budgets.
+**Answer:** There is thread-level activity, **no business progress**. This may be retry amplification/livelock; check dependency traces/error metrics and retry budgets.
 
-### Bài 5 — Tên thread giống nhau sau restart
+### Exercise 5 — Same thread name after restart
 
-Hai file đều có *pool-1-thread-1*, nhưng JVM start time của B sau A 2 phút.
+Both files contain *pool-1-thread-1*, yet B's JVM start time is 2 minutes after A's.
 
-**Hỏi:** Có được so hai thread như một thread duy nhất?
+**Question:** Can the two threads be compared as one thread?
 
-**Đáp án:** Không. Process instance khác; tên thread có thể được đặt lại. Cần tách timeline và nhìn shutdown/startup evidence.
+**Answer:** No. Different process instances; thread names can be reassigned. Split the timeline and inspect shutdown/startup evidence.
 
-### Bài 6 — Script sleep 5
+### Exercise 6 — Script sleep 5
 
-Script chạy *jcmd Thread.print* mất 1,8 giây, rồi *sleep 5*.
+A script runs *jcmd Thread.print* taking 1.8 seconds, then *sleep 5*.
 
-**Hỏi:** Khoảng cách giữa bắt đầu hai lần thu có phải chính xác 5 giây?
+**Question:** Is the interval between the start of two captures exactly 5 seconds?
 
-**Đáp án:** Không. Khoảng cách khoảng 6,8 giây nếu không có overhead khác; cần timestamps thực tế để biết chính xác.
+**Answer:** No. The interval is roughly 6.8 seconds excluding other overhead; actual timestamps are required to know precisely.
 
-### Bài 7 — CPU quá cao
+### Exercise 7 — Very high CPU
 
-Process dùng trung bình 300% CPU; một thread RUNNABLE trên parser xuất hiện ở ba ảnh.
+The process uses an average of 300% CPU; one RUNNABLE thread on a parser appears across three snapshots.
 
-**Hỏi:** Có thể quy toàn bộ 300% cho thread đó không?
+**Question:** Can all 300% be attributed to that thread?
 
-**Đáp án:** Không. Cần per-native-thread CPU deltas, mapping nid và profiler. Một thread có thể chỉ là một phần vấn đề.
+**Answer:** No. You need per-native-thread CPU deltas, `nid` mapping, and a profiler. One thread may be only part of the issue.
 
-### Bài 8 — Kết luận deadlock
+### Exercise 8 — Deadlock conclusion
 
-Ba ảnh đều có nhiều threads WAITING ở Future.get, nhưng detector Java-level không thấy deadlock.
+Three snapshots show many threads WAITING at Future.get, yet the Java-level detector finds no deadlock.
 
-**Hỏi:** Có thể loại trừ starvation do task chờ nhau không?
+**Question:** Can starvation due to tasks waiting on each other be ruled out?
 
-**Đáp án:** Không. Future/task dependency không nhất thiết tạo monitor deadlock được detector tìm thấy. Cần executor graph và task progress metrics.
+**Answer:** No. Future/task dependencies do not necessarily form a monitor deadlock detectable by the detector. You need executor graphs and task progress metrics.
 
-### Bài 9 — Dump có file rỗng
+### Exercise 9 — Empty dump file
 
-Lần chụp B có *thread-02.txt* dung lượng 0 byte, *jcmd* exit code 1.
+Capture B produces *thread-02.txt* of 0 bytes, with *jcmd* exit code 1.
 
-**Hỏi:** Có thể nói “tại B không còn thread sống”?
+**Question:** Can you say “at B there were no live threads left”?
 
-**Đáp án:** Không. Đây là lỗi thu thập. Phải ghi status failed, xác minh attach/PID/quyền và không dùng B như một snapshot hợp lệ.
+**Answer:** No. This is a collection failure. Record status failed, check attach/PID/permissions, and do not use B as a valid snapshot.
 
-### Bài 10 — Virtual threads
+### Exercise 10 — Virtual threads
 
-JDK 21 service có 50.000 virtual threads đang chờ network; tool platform-thread dump chỉ thấy 80 platform threads.
+A JDK 21 service has 50,000 virtual threads waiting on network; a platform-thread dump tool sees only 80 platform threads.
 
-**Hỏi:** Đã thấy toàn bộ requests chưa?
+**Question:** Have all requests been observed?
 
-**Đáp án:** Chưa. Cần xác minh coverage và dùng virtual-thread-aware dump/JFR/traces. Đếm carrier threads không đại diện số virtual threads/task.
+**Answer:** Not yet. Verify coverage and use virtual-thread-aware dumps/JFR/traces. Counting carrier threads does not represent the number of virtual threads/tasks.
 
-### Bài 11 — Queue tăng, workers chờ task
+### Exercise 11 — Queue grows, workers wait for tasks
 
-Metrics báo queue backlog tăng nhưng dump của một pod thấy workers WAITING ở queue.take().
+Metrics report rising queue backlog while a pod's dump shows workers WAITING at queue.take().
 
-**Hỏi:** Queue bị hỏng chắc chắn?
+**Question:** Is the queue definitely broken?
 
-**Đáp án:** Chưa. Cần xác minh metric và dump thuộc **cùng pod/queue instance**, cùng thời điểm, executor topology; queue toàn fleet có thể khác local queue.
+**Answer:** Not yet. Verify the metric and dump belong to **the same pod/queue instance**, same timestamp, and executor topology; a fleet-wide queue can differ from a local queue.
 
-### Bài 12 — Owner thay đổi
+### Exercise 12 — Owner changes
 
-A: thread W1 BLOCKED chờ monitor X do W2 giữ. B: W1 RUNNABLE, W2 không còn trong dump.
+A: thread W1 is BLOCKED waiting on monitor X held by W2. B: W1 is RUNNABLE, and W2 is no longer in the dump.
 
-**Hỏi:** Chắc chắn W2 đã giải quyết xong mọi vấn đề?
+**Question:** Is it certain W2 finished resolving all issues?
 
-**Đáp án:** Không. Có bằng chứng W1 không còn được quan sát BLOCKED tại B, nhưng chưa có W2 completion outcome hay business progress. W2 có thể kết thúc bình thường, thất bại hoặc biến mất do process/coverage khác.
+**Answer:** No. There is evidence W1 was no longer observed BLOCKED at B, but no W2 completion outcome or business progress. W2 may have finished normally, failed, or vanished due to process/coverage differences.
 
-### Bài 13 — Mức tin cậy
+### Exercise 13 — Confidence level
 
-Bốn ảnh trong 20 giây liên tục quan sát 15 request workers BLOCKED tại cùng monitor X; queue tăng, completed/s gần bằng 0, JFR cho monitor wait durations tăng trong cùng khoảng.
+Four snapshots over 20 seconds consistently observe 15 request workers BLOCKED on the same monitor X; queue grows, completed/s is near 0, and JFR shows monitor wait durations rising in the same window.
 
-**Hỏi:** Nêu kết luận phù hợp.
+**Question:** State an appropriate conclusion.
 
-**Đáp án:** Có **bằng chứng mạnh** cho lock contention liên quan việc giảm tiến triển, nhất là khi JFR đo duration và metrics đồng bộ. Vẫn cần kiểm tra owner code path và quan hệ với requests để xác định root cause chính xác.
+**Answer:** There is **strong evidence** for lock contention associated with reduced progress, especially as JFR measures durations and metrics align. You still need to inspect the owner's code path and relationship to requests to establish exact root cause.
 
-### Bài 14 — Thread biến mất
+### Exercise 14 — Thread vanishes
 
-Một worker RUNNABLE ở A, không có ở B; metrics completed không tăng, error log có uncaught exception của worker.
+A worker is RUNNABLE at A, absent at B; completed metrics do not increase, and error logs show an uncaught exception from that worker.
 
-**Hỏi:** Có thể gọi đây là “tiến triển thành công”?
+**Question:** Can this be called “successful progress”?
 
-**Đáp án:** Không. Lifecycle evidence gợi ý worker kết thúc do lỗi. “Không còn trong dump” không đồng nghĩa thành công.
+**Answer:** No. Lifecycle evidence suggests the worker terminated with an error. “No longer in the dump” does not equate to success.
 
-## 17. Checklist vận hành và mẫu báo cáo
+## 17. Operational checklist and report template
 
-### 17.1 Trước khi chụp
+### 17.1 Before capturing
 
-- [ ] Xác định **triệu chứng cụ thể** và cửa sổ xảy ra.
-- [ ] Xác minh đúng service, JVM instance, PID namespace, start time/pod UID.
-- [ ] Kiểm tra tool/version và quyền attach; chạy *help* với command thực tế.
-- [ ] Chọn số ảnh, khoảng cách và giới hạn tài nguyên/disk.
-- [ ] Xác định nơi lưu file, quyền truy cập, TTL/retention.
-- [ ] Chuẩn bị các metrics/logs/traces cần đối chiếu.
+- [ ] Identify the **specific symptom** and occurrence window.
+- [ ] Verify the exact service, JVM instance, PID namespace, and start time/pod UID.
+- [ ] Check tool/version and attach permissions; run *help* on the actual command.
+- [ ] Choose sample count, interval, and resource/disk limits.
+- [ ] Define file storage location, access permissions, and TTL/retention.
+- [ ] Prepare companion metrics/logs/traces to correlate.
 
-### 17.2 Trong khi chụp
+### 17.2 During capture
 
-- [ ] Ghi **UTC start/end**, tool, options, exit code và filename từng mẫu.
-- [ ] Chụp theo thứ tự, không dồn dump đồng thời khi JVM đang yếu.
-- [ ] Dừng khi attach lỗi, thay PID hoặc nguy cơ ảnh hưởng production.
-- [ ] Không tự động bật diagnostic operations nặng nếu chưa được phê duyệt.
-- [ ] Giữ raw files nguyên vẹn, hạn chế sharing và redaction khi cần.
+- [ ] Record **UTC start/end**, tool, options, exit code, and filename for each sample.
+- [ ] Capture sequentially; do not pile concurrent dumps onto a struggling JVM.
+- [ ] Stop on attach errors, PID changes, or risk of production impact.
+- [ ] Do not automatically enable heavy diagnostic operations without approval.
+- [ ] Keep raw files intact, restrict sharing, and redact when needed.
 
-### 17.3 Khi phân tích
+### 17.3 During analysis
 
-- [ ] Xác minh các file cùng JVM instance và cùng tool coverage.
-- [ ] Ghép thread identity; không dùng tên thread làm khóa duy nhất.
-- [ ] So state + stack signature + locks/owners ở **từng thời điểm**.
-- [ ] Đọc **completed/failed/in-flight/queue** metrics cùng instance/time.
-- [ ] Nếu nghi CPU, đối chiếu per-thread CPU delta/JFR.
-- [ ] Nếu nghi lock wait duration, đối chiếu JFR/contended monitor events.
-- [ ] Nếu dùng virtual threads, kiểm tra coverage/format trước khi đếm.
-- [ ] Đặt giả thuyết cạnh tranh và đánh dấu những điều **chưa chứng minh**.
+- [ ] Verify files share the same JVM instance and tool coverage.
+- [ ] Match thread identities; never use thread name as the sole key.
+- [ ] Compare state + stack signature + locks/owners at **each timestamp**.
+- [ ] Read **completed/failed/in-flight/queue** metrics for the same instance/time.
+- [ ] If CPU is suspected, correlate per-thread CPU deltas/JFR.
+- [ ] If lock wait duration is suspected, correlate JFR/contended monitor events.
+- [ ] If virtual threads are used, check coverage/format before counting.
+- [ ] Formulate competing hypotheses and flag what remains **unproven**.
 
-### 17.4 Mẫu báo cáo incident
+### 17.4 Incident report template
 
 ~~~text
 Service/Version:
@@ -861,29 +861,29 @@ Next safe validation:
 Operational impact and data retention:
 ~~~
 
-**Ví dụ kết luận đúng:**
+**Example of a sound conclusion:**
 
-> Trên JVM checkout-pod-7 (cùng PID/start time), ba lần thu lúc 10:00:02, 10:00:08 và 10:00:14 UTC ghi nhận 14–18 HTTP workers BLOCKED tại cùng monitor X, owner có stack trong đoạn gọi dependency. Trong khoảng tương ứng, completed requests tăng rất ít còn queue depth tiếp tục tăng. Đây là bằng chứng ủng hộ giả thuyết lock contention cản trở tiến triển. Chưa đo được thời gian chờ liên tục của từng thread; cần kiểm tra JFR monitor-enter durations và trace calls của owner trước khi kết luận nguyên nhân gốc.
+> On JVM checkout-pod-7 (same PID/start time), three captures at 10:00:02, 10:00:08, and 10:00:14 UTC recorded 14–18 HTTP workers BLOCKED on the same monitor X, with the owner's stack inside a dependency call. Over the corresponding interval, completed requests barely rose while queue depth continued climbing. This supports the hypothesis that lock contention is impeding progress. Continuous per-thread wait duration has not yet been measured; JFR monitor-enter durations and the owner's trace calls must be checked before concluding root cause.
 
-**Ví dụ kết luận sai:**
+**Example of a flawed conclusion:**
 
-> Vì ba dump có thread WAITING nên tất cả requests bị deadlock 12 giây; restart là giải pháp duy nhất.
+> Because three dumps had WAITING threads, all requests were deadlocked for 12 seconds; restarting is the only solution.
 
-Không có bằng chứng tự thân cho *deadlock*, *12 giây liên tục*, *tất cả requests* hay *giải pháp duy nhất* chỉ từ ba snapshot.
+There is no inherent evidence for *deadlock*, *12 continuous seconds*, *all requests*, or *only solution* from three snapshots alone.
 
-## 18. Tài liệu chính thức để tra đúng JVM đang dùng
+## 18. Official references to check for your exact JVM
 
-- **Oracle JDK 21 – jcmd**, *Thread.print* impact/options và các diagnostic commands: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
-- **Oracle JDK 21 – Diagnostic Tools**, cách lấy thread dumps và hiểu tác động công cụ: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
+- **Oracle JDK 21 – jcmd**, *Thread.print* impact/options and diagnostic commands: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
+- **Oracle JDK 21 – Diagnostic Tools**, how to obtain thread dumps and understand tool impact: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
 - **Java SE 17 – ThreadMXBean**, *getThreadInfo*, *dumpAllThreads*, deadlock/monitor support: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html
-- **Java SE 17 – ThreadInfo**, stack/state/lock owner và semantics snapshot: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadInfo.html
-- **Java SE 17 – Thread.State**, sáu trạng thái Java thread: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.State.html
-- **Oracle JDK 21 – Virtual Threads**, thread dumps cho virtual-thread applications: https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html
+- **Java SE 17 – ThreadInfo**, stack/state/lock owner and snapshot semantics: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadInfo.html
+- **Java SE 17 – Thread.State**, the six Java thread states: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.State.html
+- **Oracle JDK 21 – Virtual Threads**, thread dumps for virtual-thread applications: https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html
 
-Cú pháp, hỗ trợ virtual threads, output fields, cách attach và độ nhất quán của thread dump **thay đổi giữa JDK/VM/tool**. Luôn kiểm tra command *help* và tài liệu **đúng version** của process đang chẩn đoán.
+Syntax, virtual-thread support, output fields, attach behavior, and consistency of thread dumps **vary across JDKs/VMs/tools**. Always check *help* and documentation for the **exact version** of the process being diagnosed.
 
-## Kết luận
+## Conclusion
 
-**Nhiều thread dumps giúp so ảnh theo thời gian, nhưng không tự biến snapshot thành lịch sử liên tục.** Hai lần cùng *WAITING* hoặc cùng stack không chứng minh thread stuck; một worker có thể hoàn thành task rồi quay lại cùng chỗ chờ. Ngược lại, stack đổi liên tục không chứng minh nghiệp vụ đã tiến triển.
+**Multiple thread dumps enable comparing snapshots over time, without turning discrete snapshots into a continuous history.** Two identical *WAITING* states or identical stacks do not prove a thread is stuck; a worker can complete a task and return to the same wait site. Conversely, constantly changing stacks do not prove business progress.
 
-Cách làm đúng là **chọn số mẫu/khoảng cách hợp lý → ghi đầy đủ identity/timestamps/status → ghép đúng threads → so state, stack, locks và owners → đối chiếu counters, traces, CPU/JFR/GC → kết luận đúng mức bằng chứng**. Không suy duration hay root cause từ khoảng cách giữa những ảnh rời rạc.
+The right approach is **choose sensible sample count/interval → record complete identity/timestamps/status → match the right threads → compare states, stacks, locks, and owners → correlate counters, traces, CPU/JFR/GC → conclude proportionally to the evidence**. Never infer duration or root cause from the gap between discrete snapshots.

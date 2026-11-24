@@ -1,59 +1,59 @@
-# 16.9. Phân biệt xử lý event trực tiếp với đọc file; độ trễ và chi phí của consumer
+# 16.9. Distinguishing Live Event Processing from File Reading; Consumer Latency and Overhead
 
-Java Flight Recorder (JFR) cho phép ghi lại các sự kiện JVM và ứng dụng mà không cần chèn log thủ công vào mọi chỗ. Khi cần viết chương trình phân tích JFR, một quyết định quan trọng là **nhận sự kiện liên tục khi JVM đang chạy** hay **đọc một tệp recording đã được lưu**. Hai cách đều dùng dữ liệu JFR, nhưng khác nhau về thời điểm có dữ liệu, chi phí vận hành, tính đầy đủ của bằng chứng và vòng đời consumer.
+Java Flight Recorder (JFR) records JVM and application events without requiring manual log statements everywhere. When building a JFR analysis program, a key architectural decision is whether to **consume events continuously while the JVM is running** or **read a saved recording file**. Both use JFR data, yet they differ in when data arrives, operational overhead, completeness of evidence, and consumer lifecycle.
 
-Trong bài này, “xử lý event trực tiếp” nghĩa là **JFR event streaming** với `RecordingStream` hoặc `EventStream` đọc repository đang được ghi. Nó **không** có nghĩa rằng `Event.commit()` sẽ gọi đồng bộ callback trong cùng thread như một listener Java thông thường. Event streaming vẫn đi qua bộ đệm và các lần flush; **gần thời gian thực không đồng nghĩa tức thì**.
+In this lesson, "live event processing" means **JFR event streaming** using `RecordingStream` or `EventStream` reading an active repository. It does **not** mean `Event.commit()` invokes a callback synchronously on the same thread like a conventional Java listener. Event streaming still goes through buffers and flushes; **near real-time does not mean instantaneous**.
 
-Bài tập trung vào Java 17+ và các API trong `jdk.jfr` / `jdk.jfr.consumer`: cách chọn active/passive stream, phân biệt đọc file, đo độ trễ, quản lý callback và so sánh chi phí thực tế.
+This lesson focuses on Java 17+ and the `jdk.jfr` / `jdk.jfr.consumer` APIs: choosing active vs. passive streams, distinguishing file reading, measuring latency, managing callbacks, and comparing practical costs.
 
-## 1. Tách ba phần: nguồn event, nơi ghi, và consumer
+## 1. Separating Three Parts: Event Source, Storage, and Consumer
 
-Một JFR event được tạo khi JVM hoặc mã ứng dụng đánh dấu một hoạt động: GC pause, CPU load, file read, allocation sample, hay một custom event. JFR chỉ thu những event đang được **enable** và thỏa cấu hình như threshold, period hoặc stack-trace setting.
+A JFR event is emitted when the JVM or application code marks an activity: GC pause, CPU load, file read, allocation sample, or a custom event. JFR captures only events that are currently **enabled** and satisfy settings such as threshold, period, or stack-trace configuration.
 
-Mô hình khái niệm:
+Conceptual model:
 
 ```text
-JVM / ứng dụng tạo event
+JVM / application emits event
          │
          ▼
-JFR ghi nhận sự kiện được bật
-         │ (thread-local buffers, các tầng bộ đệm/chunk)
+JFR records enabled events
+         │ (thread-local buffers, buffer/chunk layers)
          ▼
 JFR recording/repository ───────────┬────────────────────┐
          │                           │                    │
          ▼                           ▼                    ▼
- EventStream đọc                Dump/stop recording   RecordingStream
- repository đang ghi                 │                tạo recording
+ EventStream reads               Dump/stop recording  RecordingStream
+ active repository                   │                creates recording
          │                           ▼                    │
-         ▼                      Tệp .jfr                stream event
- onEvent / onFlush                  │                    │
+         ▼                      .jfr file             streams events
+ onEvent / onFlush                   │                    │
          │                           ├── RecordingFile    ▼
-    tổng hợp/alert                   └── EventStream.openFile
+  aggregate/alert                    └── EventStream.openFile
                                          │
                                          ▼
-                                    phân tích offline
+                                   offline analysis
 ```
 
-Sơ đồ mô tả **vai trò API** chứ không khẳng định có ba luồng dữ liệu hoàn toàn độc lập: `RecordingStream` vừa tạo recording riêng cho JVM hiện tại, vừa đăng ký consumer; `EventStream.openRepository()` là consumer thụ động đọc repository, không tự cấu hình recording mới. Các event có thể được giao cho consumer theo **batch** sau khi flush.
+The diagram illustrates **API roles**, not three completely independent data pipelines: `RecordingStream` creates its own recording for the current JVM and registers a consumer, whereas `EventStream.openRepository()` is a passive consumer reading a repository without configuring a new recording. Events are delivered to consumers in **batches** after flushes.
 
-Đọc file và streaming không phân biệt bằng việc “có callback hay không”. `EventStream.openFile(path)` **cũng** gọi `onEvent(...)`, nhưng nguồn là **tệp đã có**; nó không theo dõi những event mới trong JVM như một live repository stream.
+File reading and streaming are not distinguished by "whether callbacks are used". `EventStream.openFile(path)` **also** invokes `onEvent(...)`, yet its source is an **existing file**; it does not follow new JVM events like a live repository stream.
 
-## 2. Bốn API chủ đạo và điều kiện sử dụng
+## 2. Four Core APIs and When to Use Each
 
-| API Java 17+ | Nguồn | Ai kiểm soát việc ghi JFR? | Dùng khi |
+| Java 17+ API | Source | Who controls JFR recording? | When to use |
 | --- | --- | --- | --- |
-| `new RecordingStream()` | JVM **hiện tại**, đang chạy. | Chính stream có thể `enable/disable` event, đặt period/threshold và giữ recording. | Viết một ứng dụng/agent trong process cần phát hiện tín hiệu khi chạy. |
-| `EventStream.openRepository()` | Repository JFR của JVM **hiện tại**; có overload nhận thư mục repository. | Consumer này **không tự bật recording**; dữ liệu do recording đang được JVM/ứng dụng khác cấu hình. | Nghe thụ động những event đã được bật bởi recording khác. |
-| `EventStream.openFile(Path)` | Một tệp `.jfr`. | Tệp đã được tạo; không thay đổi nguồn ghi. | Muốn callback/filter/aggregate từ dữ liệu lưu trữ. |
-| `new RecordingFile(Path)` | Một tệp `.jfr`. | Tệp đã được tạo; consumer tự duyệt tuần tự. | Muốn một vòng lặp phân tích, chủ động kiểm soát bộ nhớ và trạng thái đọc. |
+| `new RecordingStream()` | The **current**, running JVM. | The stream itself can `enable/disable` events, set periods/thresholds, and manage the recording. | Building an in-process app/agent that needs live signal detection while running. |
+| `EventStream.openRepository()` | The JFR repository of the **current** JVM; also has an overload taking a repository directory. | This consumer **does not start a recording itself**; data comes from a recording configured elsewhere by the JVM/app. | Passively listening to events already enabled by another recording. |
+| `EventStream.openFile(Path)` | A `.jfr` file. | File is already created; does not modify the recording source. | Using callbacks/filters/aggregations over archived data. |
+| `new RecordingFile(Path)` | A `.jfr` file. | File is already created; consumer iterates sequentially. | Running an analysis loop with explicit control over memory and read state. |
 
-`RecordingFile.readAllEvents(path)` tiện cho tệp nhỏ vì trả về `List<RecordedEvent>`, nhưng **không nên dùng với recording lớn**: danh sách và object events có thể tiêu tốn nhiều heap. Thay bằng `RecordingFile` + `hasMoreEvents()/readEvent()` hoặc `EventStream.openFile()`.
+`RecordingFile.readAllEvents(path)` is convenient for small files because it returns `List<RecordedEvent>`, yet **must not be used on large recordings**: the list and event objects can consume huge heap memory. Replace it with `RecordingFile` + `hasMoreEvents()/readEvent()` or `EventStream.openFile()`.
 
-Có một trường hợp mở rộng: `RemoteRecordingStream` (qua JMX/remote connector được hỗ trợ) cho phép consumer chạy ngoài JVM đích. Khi đó serialization, mạng, quyền truy cập và xử lý phía remote sẽ bổ sung chi phí. **Không đánh đồng** việc đọc một file `.jfr` được copy ra máy phân tích với kết nối streaming từ xa; file đã lưu có thể xử lý offline mà JVM nguồn không còn chạy.
+An extended case exists: `RemoteRecordingStream` (via JMX/supported remote connectors) lets a consumer run outside the target JVM. That adds serialization, network, access-control, and remote-side processing costs. **Do not equate** reading a `.jfr` file copied to an analysis machine with remote live streaming; a saved file can be processed offline even after the source JVM has exited.
 
-### Sự khác biệt giữa “active” và “passive” stream
+### Difference between "active" and "passive" streams
 
-`RecordingStream` là **active**: khởi tạo một recording cho JVM hiện tại và có thể điều khiển event settings:
+`RecordingStream` is **active**: it creates a recording for the current JVM and can control event settings:
 
 ```java
 try (var stream = new jdk.jfr.consumer.RecordingStream()) {
@@ -67,34 +67,34 @@ try (var stream = new jdk.jfr.consumer.RecordingStream()) {
 }
 ```
 
-Đây là đoạn minh họa có đủ import qua tên fully qualified và có thể đặt trong phương thức `main`; riêng đoạn `try` **không phải cả tệp Java độc lập**, và `start()` sẽ chạy chặn đến khi stream được đóng. Ví dụ chương trình hoàn chỉnh, có giới hạn thời gian, xuất hiện ở phần thực hành bên dưới.
+This illustrative snippet uses fully qualified names and can sit inside `main`; the `try` block alone **is not a standalone Java file**, and `start()` blocks until the stream is closed. A complete, time-bounded program appears in the hands-on section below.
 
-`EventStream.openRepository()` là **passive**: nó đọc các event đã được các recording khác tạo. Theo mặc định, stream bắt đầu từ **sự kiện tiếp theo được flush**, không tự tua về toàn bộ lịch sử; muốn điều chỉnh thời điểm đọc cần `setStartTime(...)` trước `start()`, trong giới hạn dữ liệu còn được repository giữ. Nếu không có recording nào đang bật event tương ứng, callback sẽ không có gì để xử lý.
+`EventStream.openRepository()` is **passive**: it reads events produced by other recordings. By default, the stream starts from the **next flushed event**, rather than replaying all history automatically; to adjust the start point, call `setStartTime(...)` before `start()`, within what the repository still retains. If no recording enables the target event, callbacks will receive nothing.
 
-## 3. Streaming không phải callback đồng bộ tại `commit()`
+## 3. Streaming Is Not a Synchronous Callback on `commit()`
 
-Giả sử ứng dụng gọi `event.commit()` vào 10:00:00.000. JFR có thể chưa chuyển ngay event ra cho người đọc: event đi qua bộ đệm, chunk/flush, rồi thread consumer mới phân tích và gọi action. Điều này tạo ra một khoảng trễ.
+Suppose the application calls `event.commit()` at `10:00:00.000`. JFR does not immediately hand that event to readers: it passes through buffers, chunks/flushes, and then the consumer thread parses and runs actions. That introduces latency.
 
-Javadoc `EventStream` của JDK 17 nêu rõ:
+The JDK 17 `EventStream` Javadoc specifies:
 
-- Event được **giao theo batch**; `onFlush(Runnable)` chạy sau khi batch được flush, phù hợp để đẩy thống kê đã tích lũy.
-- Các event **trong một batch** được sắp theo thời điểm kết thúc nếu giữ mặc định ordered; **giữa các batch** không có cam kết thứ tự thời gian toàn cục tuyệt đối.
-- `start()` xử lý trong thread gọi; `startAsync()` xử lý callback ở thread riêng, không biến callbacks thành nhiều worker song song.
-- `close()` dừng stream và giải phóng tài nguyên; thao tác này **không bảo đảm** mọi callback đã chạy hết khi trả về.
-- Khi xử lý cần sự kiện sau callback, hãy hiểu rõ `setReuse(boolean)`: ở chế độ reuse, cùng object `RecordedEvent` có thể được dùng lại cho event khác.
+- Events are **delivered in batches**; `onFlush(Runnable)` runs after a batch is flushed, making it suitable for publishing accumulated stats.
+- Events **within a single batch** are ordered by end time under default ordered mode; **across batches**, there is no absolute global chronological guarantee.
+- `start()` processes on the calling thread; `startAsync()` runs callbacks on a dedicated thread—it does not turn callbacks into parallel worker pools.
+- `close()` stops the stream and releases resources; it **does not guarantee** all callbacks have finished when returning.
+- When retaining event data beyond the callback, understand `setReuse(boolean)`: in reuse mode, the same `RecordedEvent` object may be reused for subsequent events.
 
-**Độ trễ streaming không có một SLA cố định chỉ từ việc chọn API.** Nó phụ thuộc thời điểm flush, event rate, khối lượng dữ liệu, năng lực CPU/I/O, lịch scheduler, số lượng consumer, thao tác trong callback, và cách repository ghi/giữ dữ liệu.
+**Streaming latency has no fixed SLA purely from picking an API.** It depends on flush intervals, event rates, data volume, CPU/I/O capacity, OS scheduling, consumer count, callback work, and repository write/retention behavior.
 
-## 4. Độ trễ của consumer phải đo từ mốc đúng
+## 4. Consumer Latency Must Be Measured from the Right Anchor
 
-Đặt:
+Define:
 
-- `t_event_end`: timestamp kết thúc event được ghi trong `RecordedEvent.getEndTime()`.
-- `t_visible`: lúc event/batch đã đủ dữ liệu để stream có thể đọc.
-- `t_callback`: lúc callback thực sự chạy và hoàn tất phần trích xuất tối thiểu.
-- `t_action`: lúc dashboard/alert/đầu ra cuối đã nhận kết quả, nếu có.
+- `t_event_end`: event end timestamp recorded in `RecordedEvent.getEndTime()`.
+- `t_visible`: when the event/batch is available for the stream to read.
+- `t_callback`: when the callback actually executes and completes minimal extraction.
+- `t_action`: when the dashboard/alert/final sink receives the result, if applicable.
 
-Các độ trễ mang ý nghĩa khác nhau:
+These latencies mean different things:
 
 ```text
 delivery lag   = t_callback - t_event_end
@@ -102,91 +102,91 @@ processing lag = t_action - t_callback
 end-to-end lag = t_action - t_event_end
 ```
 
-Đây là **thước đo thời gian quan sát được**, không phải thời gian GC/CPU của event. Với một duration event dài, `getEndTime()` phù hợp hơn `getStartTime()` khi bạn đang đo “sau khi hoạt động kết thúc bao lâu mới thấy event”.
+These are **observability timing metrics**, not the event's own GC/CPU duration. For a long-running duration event, `getEndTime()` is more appropriate than `getStartTime()` when measuring "how long after an operation finished did we observe the event".
 
-Ví dụ giả định:
+Hypothetical example:
 
-| Mốc | Thời điểm |
+| Milestone | Timestamp |
 | --- | --- |
-| Event kết thúc | 12:00:00.000 |
-| JFR có batch để đọc | 12:00:00.350 |
-| Callback xử lý event | 12:00:00.420 |
-| Metric/alert được gửi xong | 12:00:00.700 |
+| Event finishes | 12:00:00.000 |
+| JFR batch becomes readable | 12:00:00.350 |
+| Callback processes event | 12:00:00.420 |
+| Metric/alert finishes sending | 12:00:00.700 |
 
-Khi đó: delivery lag = **420 ms**, processing lag = **280 ms**, end-to-end lag = **700 ms**. Bốn thời điểm chỉ minh họa phép tính, **không phải mức trễ tiêu chuẩn của JFR**. Nếu callback bị chặn bởi I/O hay lock, `t_callback` tiếp tục lùi và việc xử lý những event sau cũng trễ.
+Here: delivery lag = **420 ms**, processing lag = **280 ms**, end-to-end lag = **700 ms**. These four timestamps illustrate the math, **not standard JFR latency figures**. If a callback blocks on I/O or locks, `t_callback` slips further and subsequent events are delayed too.
 
-Trên một process, có thể ước lượng `Duration.between(event.getEndTime(), Instant.now())` trong callback. Đây là **wall-clock estimate**, có thể nhiễu bởi việc điều chỉnh đồng hồ hệ thống và chi phí callback. Với consumer từ xa, timestamp máy nguồn và thời gian máy consumer cần đồng bộ; clock skew có thể tạo số đo âm hoặc rất sai. Đo độ trễ xử lý nội bộ bằng đồng hồ monotonic (`System.nanoTime()`) quanh callback/queue; **không trừ hai giá trị nanoTime ở hai JVM khác nhau**.
+Within a single process, you can estimate `Duration.between(event.getEndTime(), Instant.now())` inside the callback. This is a **wall-clock estimate**, sensitive to system clock adjustments and callback overhead. For remote consumers, source and consumer clocks must be synchronized; clock skew can produce negative or badly skewed measurements. Measure internal processing lag with a monotonic clock (`System.nanoTime()`) around callbacks/queues; **never subtract `nanoTime` values across two different JVMs**.
 
-### File reader có độ trễ kiểu khác
+### File readers have a different kind of latency
 
-Với chế độ dump/stop → đọc `.jfr`:
+In dump/stop → read `.jfr` mode:
 
 ```text
-sự kiện xảy ra
-    → ghi/flush recording
-    → dump hoặc stop tạo tệp hoàn chỉnh
-    → copy/tải file (nếu khác máy)
-    → consumer mở file, parse và phân tích
+event occurs
+    → recording write/flush
+    → dump or stop produces complete file
+    → copy/download file (if different host)
+    → consumer opens file, parses, and analyzes
 ```
 
-**Thời gian đến khi có kết quả** phụ thuộc cả lịch xuất file và chuyển file, nhưng **throughput đọc file** có thể rất cao khi bạn xử lý liên tục offline. Vì thế không so sánh “consumer đọc file được 100.000 event/s” với “live stream báo chậm 2 giây” như hai con số cùng loại. Một con số là tốc độ phân tích dữ liệu có sẵn, con số kia là thời gian từ lúc event phát sinh đến lúc quan sát.
+**Time-to-insight** depends on dump schedules and file transfers, yet **file-reading throughput** can be very high during continuous offline processing. Never compare "the file consumer reads 100,000 events/s" against "the live stream has 2-second lag" as equivalent metrics. One measures parsing throughput over existing data; the other measures time from event occurrence to observation.
 
-## 5. Chi phí nằm ở đâu?
+## 5. Where Does the Cost Live?
 
-Chọn streaming hay đọc file không quyết định toàn bộ overhead. Cần tách **chi phí nguồn ghi JFR** và **chi phí consumer**.
+Choosing streaming vs. file reading does not determine total overhead alone. Separate **JFR capture cost** from **consumer cost**.
 
-| Nguồn chi phí | Streaming | Đọc file |
+| Cost source | Streaming | File reading |
 | --- | --- | --- |
-| Tạo event, lấy stack trace, sampling, threshold | Có; phụ thuộc loại event/settings được bật. | Đã trả khi recording được ghi; phần đọc offline không tự thay đổi settings ở JVM nguồn. |
-| JFR buffer và repository/chunk | Có theo cách JFR vận hành. | Đọc các chunk đã hoàn thành trong tệp. |
-| Parse/khởi tạo `RecordedEvent` | Có, lặp liên tục trong thời gian chạy. | Có, tập trung khi phân tích file. |
-| Sắp xếp event | Có thể tốn chi phí khi ordered. | Tùy API/cách phân tích và thứ tự event. |
-| Aggregate/filter | Có trong callback, thường liên tục. | Có trong vòng lặp hoặc file event callback. |
-| In log, gọi HTTP, ghi DB mỗi event | Có thể làm consumer tụt lại sau nguồn. | Cũng tốn chi phí, nhưng có thể chạy ngoài production và kiểm soát batch/retry. |
-| Memory/GC của consumer | Ảnh hưởng trực tiếp JVM nếu consumer nằm cùng process. | Có thể chuyển sang JVM/máy phân tích riêng. |
-| File storage/transfer | Repository và retention; remote stream có chi phí mạng/serialization. | Dung lượng `.jfr`, I/O đọc/copy/lưu và an toàn dữ liệu. |
+| Event creation, stack traces, sampling, thresholds | Present; depends on enabled event types/settings. | Paid when the recording was captured; offline reading does not alter source JVM settings. |
+| JFR buffers and repository/chunks | Present per normal JFR operation. | Reads completed chunks in the file. |
+| Parsing/instantiating `RecordedEvent` | Continuous during runtime. | Concentrated when analyzing the file. |
+| Event sorting | Can add cost when ordered. | Depends on API/analysis pattern and event order. |
+| Aggregation/filtering | Runs in callbacks, typically continuously. | Runs in read loops or file event callbacks. |
+| Logging, HTTP calls, DB writes per event | Can cause the consumer to fall behind the source. | Still costly, though runnable off-production with controlled batching/retries. |
+| Consumer memory/GC | Directly impacts the JVM if consumer is in-process. | Can be offloaded to a separate analysis JVM/host. |
+| File storage/transfer | Repository and retention; remote streams add network/serialization cost. | `.jfr` disk size, read/copy/storage I/O, and data security. |
 
-**Chi phí phát sinh từ cấu hình event rất quan trọng.** Bật hàng loạt sự kiện stack trace ở threshold bằng 0, hoặc custom event với payload lớn trên mỗi request, có thể khiến producer nặng dù callback chỉ tăng bộ đếm. Không nên dùng một con số overhead phần trăm cố định cho mọi cấu hình.
+**Event configuration cost matters enormously.** Enabling lots of stack-trace events at threshold 0, or large-payload custom events per request, burdens the producer even if the callback only increments a counter. Never assume a single fixed percentage overhead across all configurations.
 
-**Chi phí callback rất dễ vượt quá chi phí ghi nhận event.** Một `System.out.println(event)` trên mọi event, serialize JSON lớn, gọi REST API hoặc truy DB đồng bộ có thể tốn nhiều CPU/I/O, giữ lock và làm cả luồng consumer chậm. Hãy trích field cần dùng, cộng dồn counters trong bộ nhớ, và xuất định kỳ theo batch.
+**Callback cost easily dwarfs event recording cost.** Calling `System.out.println(event)` on every event, serializing big JSON strings, calling REST APIs, or running synchronous DB queries burns CPU/I/O, holds locks, and stalls the whole consumer pipeline. Extract needed fields, aggregate counters in memory, and flush periodically in batches.
 
-### Retention không phải cơ chế backpressure đầy đủ
+### Retention is not full backpressure
 
-`RecordingStream.setMaxAge(Duration)` và `setMaxSize(long)` giới hạn lượng recording data được giữ (theo thời gian hoặc byte) trong quá trình stream. Chúng giúp khống chế tăng trưởng dung lượng, **không bảo đảm xử lý chính xác một lần mọi event** hay buộc producer phải chờ consumer chậm. Khi quá tải và dữ liệu cũ bị loại theo retention, consumer có thể bỏ lỡ các event không kịp đọc; bên cạnh đó, threshold/sampling và bộ đệm JFR có thể ảnh hưởng lượng event thực sự ghi nhận.
+`RecordingStream.setMaxAge(Duration)` and `setMaxSize(long)` cap how much recording data is retained (by age or bytes) while streaming. They bound disk/repository growth, **not** guarantee exactly-once delivery or force producers to throttle for slow consumers. Under overload when old data expires via retention, consumers can miss unread events; additionally, thresholds/sampling and JFR buffers affect which events are captured.
 
-Nếu hệ thống yêu cầu **audit delivery exactly-once hoặc không mất bản ghi**, JFR stream thường không phải hàng đợi bền vững có ACK/replay chuẩn nghiệp vụ. Sử dụng một pipeline sự kiện nghiệp vụ có cơ chế lưu, retry, dedup và checkpoint phù hợp; dùng JFR để chẩn đoán/quan sát.
+If a system requires **exactly-once auditing or zero record loss**, JFR streams are generally not durable business queues with ACKs/replays. Use a proper business event pipeline with persistence, retries, deduplication, and checkpoints; use JFR for diagnostics and observability.
 
-## 6. Thiết kế callback nhẹ và quản lý batch
+## 6. Designing Lightweight Callbacks and Managing Batches
 
-Một consumer có độ trễ thấp thường làm ít việc trong `onEvent`:
+A low-latency consumer does minimal work inside `onEvent`:
 
-1. Chỉ subscribe những event cần thiết bằng `onEvent("event.name", ...)`.
-2. Trong callback, trích ngay các scalar fields cần dùng và tăng counter/sum hoặc ghi vào một **bounded queue**. Không giữ toàn bộ `RecordedEvent` khi không cần.
-3. Dùng `onFlush` để gom và xuất thống kê batch (với mức I/O có kiểm soát).
-4. Đặt giới hạn cho queue, nêu rõ khi đầy sẽ drop, coalesce, sample hay giảm tốc độ thu. Không để queue tăng vô hạn.
-5. Ghi nhận consumer lag, queue size, error count và thời điểm batch xử lý xong.
-6. Khi dừng, xác định liệu còn cần drain queue/flush kết quả cuối; `close()` của JFR stream tự nó không phải cam kết drain mọi callback.
+1. Subscribe only to required events via `onEvent("event.name", ...)`.
+2. Inside the callback, extract needed scalar fields immediately and increment counters/sums or push to a **bounded queue**. Avoid retaining full `RecordedEvent` objects unnecessarily.
+3. Use `onFlush` to collect and publish batch statistics (with controlled I/O).
+4. Bound queue capacity and specify overload policies: drop, coalesce, sample, or throttle collection. Never allow unbounded queues.
+5. Track consumer lag, queue depth, error counts, and batch completion timestamps.
+6. On shutdown, decide whether remaining queue items/final metrics must drain; JFR stream `close()` alone does not guarantee draining every callback.
 
-### `setReuse` và `setOrdered` cần hiểu đúng
+### Understanding `setReuse` and `setOrdered`
 
 ```java
-stream.setReuse(true);   // giảm cấp phát RecordedEvent; không giữ object sau callback
-stream.setOrdered(false); // giảm công sắp xếp nếu không cần thứ tự thời gian
+stream.setReuse(true);   // reduces RecordedEvent allocations; do not retain object after callback
+stream.setOrdered(false); // reduces sorting work when chronological order is not needed
 ```
 
-Đây là **các dòng minh họa** đặt trước `start()` của một `EventStream` hoặc `RecordingStream`, không phải chương trình hoàn chỉnh. Tài liệu JDK 17 nói `RecordedEvent` có thể được **tái sử dụng mặc định**; nếu callback muốn lưu object và dùng sau callback, phải gọi `setReuse(false)` trước khi bắt đầu hoặc **tốt hơn, copy ngay giá trị thiết yếu** sang DTO immutable. Đừng đẩy reference đến object có thể bị tái sử dụng vào queue rồi đọc sau, vì field có thể không còn thuộc event ban đầu.
+These are **illustrative lines** placed before `start()` on an `EventStream` or `RecordingStream`, not a complete program. JDK 17 docs note that `RecordedEvent` instances may be **reused by default**; if a callback stores the object for use after returning, you must call `setReuse(false)` before starting or—**even better—immediately copy essential values** into an immutable DTO. Never push references to potentially reused objects onto a queue and read them later, as their fields may change to another event's data.
 
-`setOrdered(false)` giúp bỏ bước sắp xếp trong một số trường hợp nhưng consumer **không còn dựa vào thứ tự event** để dựng timeline. Nếu phải ghép các event theo thời gian, giữ ordered và vẫn kiểm tra timestamp — thứ tự đảm bảo **trong batch**, không phải mọi batch đều liên tục toàn cục.
+`setOrdered(false)` skips sorting in some cases, meaning consumers **can no longer rely on event arrival order** to construct timelines. If you must correlate events chronologically, keep ordering enabled and still check timestamps—ordering is guaranteed **within a batch**, not strictly across all batches globally.
 
-### Xử lý lỗi và vòng đời
+### Error handling and lifecycle
 
-Đăng ký `onError(Consumer<Throwable>)` để ghi nhận sự cố callback/parser; nếu không có handler, mặc định lỗi có thể được in lên stderr. Nhưng **bắt lỗi không có nghĩa stream sẽ tự restart hoặc không mất dữ liệu**. Với consumer dài hạn, có chính sách retry có giới hạn, health check và cảnh báo.
+Register `onError(Consumer<Throwable>)` to capture callback/parser failures; without a handler, errors may default to printing on `stderr`. Remember that **catching an error does not automatically restart the stream or prevent data loss**. For long-lived consumers, add bounded retry policies, health checks, and alerts.
 
-`start()` chạy chặn trong thread hiện tại. `startAsync()` chạy callback ở thread riêng; code khởi động có thể tiếp tục, nhưng khi ra khỏi `try-with-resources`, stream đóng. Một lỗi phổ biến là `startAsync()` rồi kết thúc `main` ngay: chưa có thời gian flush event nên tưởng recording hỏng.
+`start()` blocks the calling thread. `startAsync()` runs callbacks on a dedicated thread; startup code can continue, yet exiting `try-with-resources` closes the stream. A classic mistake is calling `startAsync()` and immediately letting `main` exit: there was no time for event flushes, leading people to think recording is broken.
 
-## 7. Ví dụ chạy được 1 — streaming từ chính JVM (Java 17+)
+## 7. Runnable Example 1 — In-JVM Streaming (Java 17+)
 
-Chương trình `LiveCpuStream.java` sau tạo `RecordingStream`, bật sự kiện CPU định kỳ, tính số event/độ trễ quan sát được cho từng batch và **dừng sau 10 giây**. Nó không gọi HTTP hay log từng event; chỉ in một dòng khi `onFlush` có mẫu.
+The following `LiveCpuStream.java` program creates a `RecordingStream`, enables periodic CPU events, computes event counts and observed delivery lag per batch, and **stops after 10 seconds**. It avoids HTTP calls or per-event logging, printing just one line when `onFlush` sees samples.
 
 ```java
 import java.time.Duration;
@@ -233,31 +233,31 @@ public final class LiveCpuStream {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac LiveCpuStream.java
 java LiveCpuStream
 ```
 
-**Output có điều kiện:** có thể thấy các dòng dạng:
+**Conditional output:** you may see lines like:
 
 ```text
 batchSamples=2 lastDeliveryLagMs=428
 batchSamples=1 lastDeliveryLagMs=365
 ```
 
-Đây là **số liệu minh họa**, không phải stdout cố định: số batch, số event, mốc flush và lag biến động theo JVM, scheduling và tải. Có thể nhận ít mẫu hơn mong đợi nếu không flush kịp trước khi chương trình đóng stream. Thời gian 10 giây tính từ sau `startAsync()`, không bảo đảm đúng 10 event: `jdk.CPULoad` là periodic event và phải đi qua pipeline JFR. Nếu thử nhiều lần, hãy so **độ trễ phân bố** qua khoảng thời gian dài hơn thay vì một dòng.
+These are **illustrative numbers**, not fixed stdout: batch counts, event counts, flush times, and lag fluctuate with the JVM, scheduling, and load. You may see fewer samples than expected if a flush does not occur before the stream closes. The 10-second window starts after `startAsync()` and does not guarantee exactly 10 events: `jdk.CPULoad` is periodic and passes through the JFR pipeline. For repeated trials, compare the **latency distribution** over longer windows rather than a single line.
 
-`onFlush` ở đây chỉ lấy số mẫu của batch vừa quan sát, không phải tổng event JFR đang được JVM tạo. Nếu cần một khoảng thời gian chính xác hơn, dùng timestamp/định nghĩa window rõ ràng và ghi nhận khi batch đến muộn. Trong production, ngay cả xuất một dòng mỗi batch cũng phải cân nhắc tần suất và stdout overhead.
+`onFlush` here reads only the sample count of the just-observed batch, not total JFR events produced by the JVM. For stricter time windows, use timestamps/explicit windowing and handle late batches. In production, even printing one line per batch warrants checking frequency and stdout overhead.
 
-## 8. Ví dụ chạy được 2 — tạo file và đọc offline (Java 17+)
+## 8. Runnable Example 2 — Creating a File and Reading Offline (Java 17+)
 
-Để so sánh một cách có kiểm soát, phần này **tạo một file `batch.jfr` chứa 5 custom events**, sau đó đọc bằng `RecordingFile`. Khác ví dụ live, sau khi tạo file xong bạn có thể phân tích lại bao nhiêu lần tùy ý mà không cần JVM nguồn vẫn chạy.
+For a controlled comparison, this section **creates a `batch.jfr` file containing 5 custom events**, then reads it via `RecordingFile`. Unlike the live example, once the file is written you can re-analyze it as many times as needed without keeping the source JVM running.
 
-### 8.1. Tạo recording
+### 8.1. Creating the recording
 
-Tạo file `WriteBatchJfr.java`:
+Create `WriteBatchJfr.java`:
 
 ```java
 import java.nio.file.Path;
@@ -293,7 +293,7 @@ public final class WriteBatchJfr {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac WriteBatchJfr.java
@@ -301,17 +301,17 @@ java WriteBatchJfr
 jfr summary batch.jfr
 ```
 
-Nếu tạo file thành công, **stdout của chương trình Java** là:
+If file creation succeeds, **the Java program's stdout** is:
 
 ```text
 Created batch.jfr
 ```
 
-`jfr summary` sẽ in metadata, thời lượng và các loại event của recording, phụ thuộc bản JDK và môi trường; đừng coi đó là phần cố định của stdout chương trình. Custom event có tên `demo.Batch` và mỗi event mang `units=10,20,30,40,50`. Việc bật rõ loại event với threshold bằng 0 giúp ví dụ không phụ thuộc sampling/threshold mặc định.
+`jfr summary` prints metadata, duration, and event types of the recording depending on JDK version and environment; do not treat it as fixed program stdout. The custom event is named `demo.Batch` with `units=10,20,30,40,50`. Explicitly enabling the type with threshold 0 prevents the example from depending on default sampling or thresholds.
 
-### 8.2. Đọc tuần tự, không giữ toàn bộ sự kiện trên heap
+### 8.2. Reading sequentially without holding all events on the heap
 
-Tạo file `ReadBatchJfr.java`:
+Create `ReadBatchJfr.java`:
 
 ```java
 import java.nio.file.Path;
@@ -341,26 +341,26 @@ public final class ReadBatchJfr {
 }
 ```
 
-Biên dịch và chạy **sau khi đã có file `batch.jfr`**:
+Compile and run **after `batch.jfr` exists**:
 
 ```bash
 javac ReadBatchJfr.java
 java ReadBatchJfr
 ```
 
-**Stdout nếu cả hai bước chạy thành công:**
+**Stdout when both steps succeed:**
 
 ```text
 count=5 totalUnits=150
 ```
 
-Đây là kết quả xác định vì đã tự tạo đúng 5 `demo.Batch` events. Trong thực tế, nhiều loại event hệ thống khác có thể có trong file, nhưng bộ lọc `getEventType().getName()` chỉ cộng sự kiện do bài tập tạo.
+This result is deterministic because exactly 5 `demo.Batch` events were emitted. In practice, many other system event types may exist in the file, and the `getEventType().getName()` filter sums only the exercise's events.
 
-Vòng lặp này duyệt file tuần tự: mỗi lượt chỉ giữ một `RecordedEvent` cùng hai biến tổng hợp, không tải sẵn cả danh sách. **Không đồng nghĩa bộ nhớ tiêu thụ chỉ đúng một event**, vì parser JFR còn có state/cache/chunk; tuy vậy nhìn chung phù hợp hơn `RecordingFile.readAllEvents(...)` khi file lớn.
+This loop scans the file sequentially: each iteration holds one `RecordedEvent` plus two accumulators, without preloading a full list. **That does not mean memory usage is literally one event**, because the JFR parser maintains state, caches, and chunk structures; still, it is far better suited than `RecordingFile.readAllEvents(...)` for large files.
 
-### 8.3. Callback từ **file** vẫn là offline
+### 8.3. Callbacks from a **file** are still offline
 
-Cùng một tệp có thể đọc qua `EventStream.openFile`. Tạo file độc lập `ReadBatchWithCallbacks.java`:
+The same file can be read via `EventStream.openFile`. Create standalone `ReadBatchWithCallbacks.java`:
 
 ```java
 import java.nio.file.Path;
@@ -389,7 +389,7 @@ public final class ReadBatchWithCallbacks {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ReadBatchWithCallbacks.java
@@ -402,13 +402,13 @@ java ReadBatchWithCallbacks
 count=5 totalUnits=150
 ```
 
-Ở đây `start()` xử lý file đến hết trước khi chương trình in tổng. API callback trông giống live consumer, nhưng đây vẫn là **offline file consumer**. Nếu file không tồn tại hoặc định dạng không hỗ trợ, chương trình có thể báo `IOException`. Chỉ mở recording từ nguồn đáng tin và kiểm tra quyền đọc.
+Here `start()` processes the file to completion before printing totals. The callback API resembles a live consumer, yet this remains an **offline file consumer**. If the file does not exist or the format is unsupported, the program may throw `IOException`. Open recordings only from trusted sources and verify read permissions.
 
-## 9. Nếu muốn nghe event của một recording có sẵn mà không bật recording mới
+## 9. Listening to an Existing Recording Without Starting a New One
 
-Một ví dụ **passive** đọc repository của JVM hiện tại; đoạn sau là chương trình đầy đủ nhưng cần **có recording JFR khác đang bật `jdk.CPULoad`** thì mới nhận event.
+A **passive** example reading the current JVM's repository: the code below is a complete program, but it requires **another JFR recording with `jdk.CPULoad` enabled** in order to receive events.
 
-Tạo `PassiveCpuListener.java`:
+Create `PassiveCpuListener.java`:
 
 ```java
 import java.time.Duration;
@@ -429,98 +429,98 @@ public final class PassiveCpuListener {
 }
 ```
 
-Biên dịch và chạy với recording đã được bật từ command line:
+Compile and run with a recording enabled from the command line:
 
 ```bash
 javac PassiveCpuListener.java
 java -XX:StartFlightRecording=filename=passive.jfr,settings=default,dumponexit=true PassiveCpuListener
 ```
 
-**Output:** có thể có những dòng `machineCpu=...%`, nhưng số lượng và giá trị không cố định, vì JFR event settings và flush timing phụ thuộc môi trường. `-XX:StartFlightRecording` ở lệnh chạy tạo **recording bởi launcher/JVM**, còn `EventStream.openRepository()` chỉ nghe thụ động. Nếu bỏ tùy chọn ghi recording mà không có nguồn ghi nào khác, không nên mong `onEvent` được gọi.
+**Output:** lines like `machineCpu=...%` may appear, though counts and values are non-deterministic because JFR event settings and flush timing depend on the environment. `-XX:StartFlightRecording` creates **the recording at the launcher/JVM level**, while `EventStream.openRepository()` merely listens passively. If you omit the recording flag with no other recording active, do not expect `onEvent` to fire.
 
-`EventStream.openRepository(Path)` nhận đường dẫn **repository JFR**, **không phải đường dẫn của một tệp `.jfr` bất kỳ**. Để đọc file đã lưu, phải dùng `openFile(Path)` hoặc `RecordingFile(Path)`. Không nên tự ý mở repository của JVM khác nếu không xác minh quyền, định dạng và tính tin cậy.
+`EventStream.openRepository(Path)` takes the path to a **JFR repository directory**, **not an arbitrary `.jfr` file**. To read a saved file, use `openFile(Path)` or `RecordingFile(Path)`. Do not blindly open another JVM's repository without verifying permissions, format, and trust.
 
-## 10. Chọn phương án theo mục đích
+## 10. Choosing an Approach by Goal
 
-| Nhu cầu | Hướng ưu tiên | Lý do |
+| Need | Preferred option | Rationale |
 | --- | --- | --- |
-| Theo dõi GC pause hoặc CPU event để điều chỉnh hành vi khi JVM đang chạy | `RecordingStream` hoặc consumer stream phù hợp. | Có thể phát hiện khi batch mới tới; cần kiểm soát lag và tác động callback. |
-| Có sẵn recording do `jcmd JFR.start`/ứng dụng tạo; chỉ muốn nghe mà không bật cấu hình thu khác | `EventStream.openRepository()` khi cùng JVM và repository hợp lệ. | Consumer thụ động, nguồn quyết định event nào được ghi. |
-| Phân tích incident sau khi process đã chết | `RecordingFile`, `EventStream.openFile` hoặc JMC. | Dữ liệu lưu trữ vẫn có thể phân tích nhiều lần; dễ giữ bằng chứng và so sánh. |
-| Tổng hợp một file rất lớn mà heap máy phân tích có hạn | `RecordingFile` đọc từng event hoặc file event stream. | Giảm nhu cầu giữ toàn bộ event trong một List. |
-| Dashboard cần gửi số liệu ra service khác | Stream + aggregate/batch + bounded queue. | Giảm I/O trên mỗi event, nhưng cần backpressure policy và giám sát lag. |
-| Cần báo cáo tái lập, audit, kiểm tra sau sự cố | Tệp `.jfr` đã lưu kèm version, settings, thời gian, checksum. | Có snapshot cố định cho nhiều người phân tích; không phụ thuộc stream từng chạy được bao lâu. |
-| Cần event bus giao hàng bền vững, ACK, retry từng sự kiện nghiệp vụ | Hệ thống message/log được thiết kế cho nghiệp vụ. | JFR streaming không thay hàng đợi đảm bảo giao hàng chính xác. |
+| Monitor GC pauses or CPU events to adapt behavior while JVM runs | `RecordingStream` or suitable consumer stream. | Detects new batches as they arrive; must control lag and callback impact. |
+| Recording already started via `jcmd JFR.start`/app; only want to listen without altering capture config | `EventStream.openRepository()` in same JVM with valid repository. | Passive consumer; the source decides which events are recorded. |
+| Post-incident investigation after the process has died | `RecordingFile`, `EventStream.openFile`, or JMC. | Archived data can be re-analyzed repeatedly; preserves evidence and comparisons. |
+| Aggregating a huge file with limited analyzer heap | `RecordingFile` event-by-event or file event stream. | Avoids holding all events in a single `List`. |
+| Dashboard needing metrics pushed to another service | Stream + batch aggregation + bounded queue. | Cuts per-event I/O, though requires backpressure policies and lag monitoring. |
+| Reproducible reports, audits, post-incident verification | Saved `.jfr` file with version, settings, timestamps, checksum. | Fixed snapshot for multiple analysts regardless of how long a stream stayed up. |
+| Durable event bus with ACKs and per-event retries for business events | Messaging/logging system built for business workflows. | JFR streaming does not replace guaranteed-delivery queues. |
 
-Một thiết kế thực tế thường **kết hợp cả hai**: streaming trích vài tín hiệu nhẹ để cảnh báo sớm; khi phát hiện bất thường, tạo hoặc lưu file `.jfr` có retention đủ dài, sau đó phân tích offline chi tiết bằng JMC/`jfr`/API. Nếu không có recording hoặc sự kiện mục tiêu bị tắt từ đầu, không thể “tạo lại” toàn bộ lịch sử event chỉ bằng cách mở stream.
+A practical production design often **combines both**: streaming extracts lightweight signals for early alerts; when an anomaly fires, a `.jfr` file with sufficient retention is dumped/saved for deep offline analysis via JMC/`jfr`/APIs. If no recording existed or the target event was disabled upfront, you cannot "reconstruct" missing event history merely by opening a stream afterward.
 
-## 11. Đánh giá chi phí bằng phép thử có đối chứng
+## 11. Evaluating Cost with Controlled Experiments
 
-Không quyết định “stream nhanh hơn file” chỉ qua cảm giác. Với cùng ứng dụng, cùng workload, cùng JDK và cùng loại event, nên so những cấu hình:
+Never decide "streaming is faster than files" on intuition. Using the same application, workload, JDK, and event types, compare these configurations:
 
-1. **Baseline:** không bật event mục tiêu, đo throughput, p95/p99 latency, CPU, heap/GC, RSS và disk I/O.
-2. **Recording-only:** bật JFR tương đương nhưng không chạy ứng dụng consumer tự viết. Phần chênh so baseline chủ yếu phản ánh chi phí capture/chunk/storage.
-3. **Streaming lightweight:** thêm consumer chỉ đọc vài field, cộng counters rồi flush theo batch; đo delivery lag p50/p95/p99 và tốc độ xử lý.
-4. **Streaming with real sink:** thêm queue và đường xuất metrics thật; đo queue depth, rejected/dropped/coalesced count, downstream latency.
-5. **Offline read:** lưu cùng recording và xử lý bằng `RecordingFile` trong một JVM riêng; đo thời gian đọc, events/s, peak heap và I/O của **consumer**.
+1. **Baseline:** target events off; measure throughput, p95/p99 latency, CPU, heap/GC, RSS, and disk I/O.
+2. **Recording-only:** enable equivalent JFR without running your custom consumer. The delta over baseline primarily reflects capture/chunk/storage overhead.
+3. **Lightweight streaming:** add a consumer reading a few fields, incrementing counters, and flushing in batches; measure delivery lag p50/p95/p99 and processing rate.
+4. **Streaming with real sink:** add queues and real metric export; measure queue depth, rejected/dropped/coalesced counts, and downstream latency.
+5. **Offline read:** save the same recording and process it with `RecordingFile` in a separate JVM; measure read duration, events/s, peak heap, and **consumer** I/O.
 
-Giữ workload đủ lâu để hết warm-up/JIT và có event rate đại diện; chạy nhiều lần để kiểm tra biến động. Không so tệp 1 GB với stream có event filter khác hoặc timestamp window khác. Ghi chính xác event settings, threshold, period, stacktrace, sampling và retention.
+Run workloads long enough to clear warm-up/JIT and establish representative event rates; repeat trials to measure variance. Never compare a 1 GB file against a stream with different event filters or time windows. Record exact event settings, thresholds, periods, stack traces, sampling, and retention.
 
-Các thước đo nên báo cáo:
+Metrics to report:
 
-| Thước đo | Công dụng | Lưu ý |
+| Metric | Purpose | Notes |
 | --- | --- | --- |
-| Event rate quan sát được (events/s) | Tải consumer thực nhận. | Không nhất thiết bằng tổng event xảy ra trong ứng dụng; JFR có sampling/threshold. |
-| Delivery lag p50/p95/p99 | Độ trễ từ event end tới callback. | Không suy ra từ duration field; cần đồng hồ phù hợp. |
-| Consumer processing time | CPU/wall time cho callback/aggregate/sink. | Có thể đo bằng `nanoTime()` trong cùng thread. |
-| Queue depth, queue drop count | Cho biết hệ thống có xử lý kịp hay không. | Phải có bounded queue và metric khi đầy. |
-| Heap allocation/GC của consumer | Phát hiện callback tạo quá nhiều object. | `setReuse(false)` và parse/log payload có thể tăng allocation. |
-| Disk IO, repository size, file size | Hiểu chi phí capture và retention. | `setMaxAge/Size` không phải SLA không mất event. |
-| Total file read time, events/s offline | Đánh giá throughput xử lý file sau sự cố. | Không phải end-to-end alert latency. |
+| Observed event rate (events/s) | Actual load hitting the consumer. | Not necessarily equal to total app occurrences; JFR applies sampling/thresholds. |
+| Delivery lag p50/p95/p99 | Delay from event end to callback. | Do not infer from the duration field; use appropriate clocks. |
+| Consumer processing time | CPU/wall time for callbacks/aggregation/sink. | Measurable via `nanoTime()` on the same thread. |
+| Queue depth, queue drop count | Shows whether downstream keeps up. | Requires bounded queues and overflow metrics. |
+| Consumer heap allocation/GC | Detects callbacks creating too many objects. | `setReuse(false)` and payload parsing/logging can spike allocations. |
+| Disk I/O, repository size, file size | Quantifies capture and retention cost. | `setMaxAge/Size` is not a zero-loss SLA. |
+| Total file read time, offline events/s | Evaluates post-incident file throughput. | Not end-to-end alerting latency. |
 
-### Khi callback trở thành nút cổ chai
+### When callbacks become the bottleneck
 
-Nếu JVM tạo trung bình **5.000 event/s** và callback mất trung bình **1 ms/event** trên một thread xử lý tuần tự, năng lực lý tưởng của thread chỉ khoảng **1.000 event/s** (chưa tính overhead). Hệ thống có thể tụt lại ~**4.000 event/s** nếu tốc độ duy trì — phép tính chỉ là mô hình đơn giản, không dự đoán chính xác hành vi JFR hay số event mất. Muốn cải thiện, thường cần **ít event hơn và thao tác mỗi event rẻ hơn**; không phải cứ tăng heap là xong.
+If the JVM emits an average of **5,000 events/s** and a callback takes **1 ms/event** on average on a single sequential processing thread, the thread's theoretical ceiling is roughly **1,000 events/s** (excluding overhead). The system can fall behind by ~**4,000 events/s** if that rate persists—this arithmetic is a simplified model, not an exact predictor of JFR behavior or drop counts. Fixing it usually requires **fewer events and cheaper per-event work**, not simply throwing more heap at it.
 
-Không đẩy công việc nặng sang một executor không giới hạn queue. Khi callback rất nhanh nhưng hàng đợi tăng mãi, độ trễ end-to-end vẫn tăng và JVM có thể bị OOM do chính consumer. Dùng bounded queue và tổng hợp trong RAM có giới hạn.
+Never offload heavy tasks onto an executor with an unbounded queue. Even if callbacks return fast, an ever-growing queue still inflates end-to-end latency and can OOM the JVM from the consumer itself. Use bounded queues and bounded in-RAM aggregation.
 
-## 12. Những lỗi phổ biến
+## 12. Common Misconceptions
 
-- **“`RecordingStream` gọi callback ngay khi `Event.commit()` chạy.”** Sai: JFR giao theo batch/flush và thread consumer riêng trong chế độ asynchronous.
-- **“Có `onEvent` nghĩa là đang đọc live.”** Sai: `EventStream.openFile` cũng có callback nhưng đọc file đã có.
-- **“`EventStream.openRepository()` tự bật những event tôi muốn.”** Sai: cần recording/source được cấu hình bên ngoài.
-- **“`startAsync()` xong là main có thể exit ngay.”** Sai: phải giữ stream còn sống để các batch được giao.
-- **“`close()` đảm bảo mọi event đã được xử lý.”** Sai: close không phải drain/ack guarantee.
-- **“Gọi `setMaxSize` giúp consumer bắt kịp producer.”** Sai: đó là giới hạn retention, không phải cơ chế tăng thông lượng callback.
-- **“`RecordedEvent` luôn an toàn để lưu reference vào queue.”** Sai: object có thể bị reuse; copy field hoặc đặt `setReuse(false)` khi cần.
-- **“`setOrdered(true)` bảo đảm mọi event từ đầu đến cuối luôn đúng timeline.”** Sai: thứ tự được giữ trong batch, không bảo đảm giữa mọi batch.
-- **“`RecordingFile.readAllEvents` tốt nhất cho mọi file.”** Sai: với file lớn nó có thể dùng quá nhiều heap.
-- **“File reading có callback nên latency bằng live streaming.”** Sai: file dump/transfer có thể trì hoãn việc phân tích.
-- **“Không nhận event nghĩa là hệ thống không tạo event.”** Sai: xem settings, threshold, sampling, flush, window, filter và nguồn recording.
-- **“JFR là message bus exactly-once cho nghiệp vụ.”** Sai: thiết kế quan sát/chẩn đoán, không có cùng hợp đồng giao hàng, retry và checkpoint như hệ thống event nghiệp vụ.
-- **“In từng event gần như miễn phí.”** Sai: format string/stack trace, console/file I/O và lock contention có thể nặng hơn phần thu JFR.
-- **“Consumer chạy trên máy khác luôn không ảnh hưởng JVM nguồn.”** Không hẳn: đọc một file đã xuất ít ảnh hưởng sau khi ghi, nhưng remote live streaming có thể bổ sung serialization/network/CPU, và việc bật thêm recording/event vẫn có chi phí.
+- **"`RecordingStream` runs the callback immediately when `Event.commit()` executes."** False: JFR delivers in batches/flushes and on a separate consumer thread in async mode.
+- **"Having `onEvent` means live reading."** False: `EventStream.openFile` also uses callbacks yet reads an existing file.
+- **"`EventStream.openRepository()` automatically enables the events I want."** False: it requires an externally configured recording/source.
+- **"Once `startAsync()` returns, `main` can exit right away."** False: you must keep the stream alive long enough for batches to be delivered.
+- **"`close()` guarantees all events were processed."** False: `close` is not a drain/ACK guarantee.
+- **"Calling `setMaxSize` helps the consumer keep up with producers."** False: that is a retention cap, not a callback throughput mechanism.
+- **"`RecordedEvent` is always safe to enqueue by reference."** False: instances may be reused; copy fields or use `setReuse(false)` when warranted.
+- **"`setOrdered(true)` guarantees global timeline order from start to finish."** False: ordering holds within a batch, not strictly across every batch.
+- **"`RecordingFile.readAllEvents` is best for every file."** False: on large files it can exhaust heap memory.
+- **"File reading uses callbacks so its latency equals live streaming."** False: file dumps/transfers delay when analysis starts.
+- **"Receiving zero events means the system generated none."** False: inspect settings, thresholds, sampling, flushes, windows, filters, and recording sources.
+- **"JFR is an exactly-once business message bus."** False: it is designed for observability/diagnostics, lacking business event-bus delivery, retry, and checkpoint contracts.
+- **"Printing every event is practically free."** False: formatting strings/stacks, console/file I/O, and lock contention can outweigh JFR capture itself.
+- **"A consumer on another host never affects the source JVM."** Not quite: reading an already-exported file adds minimal post-capture impact, whereas remote live streaming adds serialization/network/CPU cost, and enabling extra recordings/events always has overhead.
 
-## 13. Checklist thiết kế consumer JFR
+## 13. JFR Consumer Design Checklist
 
-- [ ] Xác định đúng nguồn: `RecordingStream`, repository live, `EventStream.openFile` hay `RecordingFile`.
-- [ ] Event type đã được enable với threshold/period/stack trace phù hợp; không coi view rỗng là không có hoạt động.
-- [ ] Cửa sổ thời gian và yêu cầu latency rõ ràng; đo `event end → callback → hành động cuối` thay vì chỉ đếm events.
-- [ ] Callback đủ nhẹ; hạn chế console, đồng bộ I/O, JSON serialize và query DB cho từng event.
-- [ ] Có giới hạn bộ nhớ/queue/retention; đo lag, throughput, loss/drop và có quy tắc khi quá tải.
-- [ ] Không giữ `RecordedEvent` sau callback khi reuse có thể xảy ra; copy dữ liệu cần dùng.
-- [ ] Hiểu batch/flush, thứ tự event, xử lý lỗi, lifecycle start/close và trường hợp dừng không drain.
-- [ ] Với phân tích offline, không dùng `readAllEvents` trên file lớn; lưu recording và metadata để tái hiện.
-- [ ] So sánh overhead bằng cùng workload, settings và JDK; tách producer cost khỏi consumer cost.
-- [ ] Kiểm soát quyền truy cập file/repository/remote stream; JFR có thể chứa tên class, đường dẫn file, tham số, lỗi, stacktrace và dữ liệu nhạy cảm trong custom events.
+- [ ] Identify the exact source: `RecordingStream`, live repository, `EventStream.openFile`, or `RecordingFile`.
+- [ ] Event types are enabled with appropriate thresholds/periods/stack traces; never treat an empty view as zero activity.
+- [ ] Time windows and latency requirements are explicit; measure `event end → callback → final action` rather than only counting events.
+- [ ] Callbacks stay lightweight; minimize console output, sync I/O, JSON serialization, and per-event DB queries.
+- [ ] Memory/queue/retention bounds are set; lag, throughput, and drops are measured with clear overload policies.
+- [ ] `RecordedEvent` instances are not retained after callbacks when reuse may occur; copy required fields.
+- [ ] Batch/flush semantics, ordering, error handling, `start`/`close` lifecycles, and non-draining stops are well understood.
+- [ ] For offline analysis, avoid `readAllEvents` on large files; store recordings and metadata for reproducibility.
+- [ ] Compare overhead under identical workloads, settings, and JDKs; separate producer cost from consumer cost.
+- [ ] Control access to files, repositories, and remote streams; JFR can expose class names, file paths, arguments, errors, stack traces, and sensitive custom event fields.
 
-**Điểm cần nhớ:** JFR streaming giúp **quan sát liên tục với độ trễ do flush/buffering/scheduling quyết định**, phù hợp cảnh báo và số liệu nhẹ. Đọc file giúp **phân tích lại một recording cố định**, phù hợp điều tra sâu và kiểm chứng hậu sự cố. Trong cả hai hướng, mức chi phí thực tế chủ yếu do **event settings, số lượng event, cách consumer parse/aggregate và thao tác I/O**. Một consumer tốt đo lag rõ ràng, xử lý callback nhẹ, có giới hạn tài nguyên và không nhầm JFR với hàng đợi giao hàng sự kiện nghiệp vụ.
+**Key takeaway:** JFR streaming enables **continuous observation with latency governed by flushing, buffering, and scheduling**, making it suited for alerts and lightweight metrics. File reading enables **repeatable analysis of a fixed recording**, ideal for deep investigation and post-incident verification. In both modes, actual overhead comes mostly from **event settings, event volume, consumer parsing/aggregation, and I/O**. A well-engineered consumer measures lag explicitly, keeps callbacks light, bounds resources, and never mistakes JFR for a guaranteed business event delivery queue.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
 - [Oracle JDK 17 — RecordingStream](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingStream.html)
 - [Oracle JDK 17 — EventStream](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/consumer/EventStream.html)
 - [Oracle JDK 17 — RecordingFile](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html)
 - [Oracle JDK 17 — Recording](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/Recording.html)
 - [OpenJDK JEP 349 — JFR Event Streaming](https://openjdk.org/jeps/349)
-- [Inside Java — JFR Event Stream (API và chi phí consumer)](https://inside.java/2022/05/12/sip49/)
+- [Inside Java — JFR Event Stream (API and Consumer Costs)](https://inside.java/2022/05/12/sip49/)

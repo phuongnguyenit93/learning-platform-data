@@ -1,22 +1,22 @@
-# 8.4 Chuyển đổi khóa bằng KeyFactory và KeySpec
+# 8.4 Converting Keys with KeyFactory and KeySpec
 
-Trong Java Cryptography Architecture (JCA), thuật toán bất đối xứng làm việc với `PublicKey` và `PrivateKey`, nhưng khóa có thể xuất hiện dưới nhiều hình thức: đối tượng do provider tạo ra, thành phần toán học (như modulus/exponent của RSA), mảng byte DER, hoặc chuỗi PEM trong tệp cấu hình. **`KeyFactory`** là API dùng để dựng đối tượng khóa từ **`KeySpec`**, lấy một đặc tả phù hợp từ khóa và chuyển khóa giữa các dạng mà provider hỗ trợ. Nắm chắc ranh giới giữa ba thứ — **key object**, **key specification** và **encoding** — giúp tránh nhập sai định dạng, nhầm public/private key, làm lộ khóa riêng hoặc cho rằng việc giải mã DER đã xác thực được nguồn khóa.
+In the Java Cryptography Architecture (JCA), asymmetric algorithms operate on `PublicKey` and `PrivateKey`, yet keys can appear in many forms: provider-created objects, mathematical components (such as RSA's modulus/exponent), DER byte arrays, or PEM strings in configuration files. **`KeyFactory`** is the API used to construct key objects from a **`KeySpec`**, extract a matching specification from a key, and translate keys between representations supported by a provider. Mastering the boundary between these three concepts — **key object**, **key specification**, and **encoding** — helps prevent importing the wrong format, mixing up public/private keys, leaking private keys, or assuming DER decoding authenticates the key's origin.
 
-Bài học tập trung vào API Java 17+ cho **khóa công khai và khóa riêng bất đối xứng**. Các ví dụ tạo khóa tạm thời trong bộ nhớ để kiểm chứng round-trip bằng RSA, EC, Ed25519 và PEM; phần vận hành giải thích các trường hợp khóa không được phép xuất, chứng chỉ, provider và lỗi đầu vào.
+This lesson focuses on the Java 17+ API for **asymmetric public and private keys**. The examples generate temporary in-memory keys to verify round-trips with RSA, EC, Ed25519, and PEM; the operational sections explain non-exportable keys, certificates, providers, and input errors.
 
-## 1. Bốn loại đối tượng cần phân biệt
+## 1. Four Types of Objects to Distinguish
 
-| Thành phần | Java API | Vai trò | Điều không nên suy diễn |
+| Component | Java API | Role | What not to infer |
 | --- | --- | --- | --- |
-| **Đối tượng khóa** | `Key`, `PublicKey`, `PrivateKey` | Đối tượng mà `Signature`, `Cipher`, `KeyAgreement` hoặc API khác có thể sử dụng theo thuật toán | Một `Key` không nhất thiết cho phép xuất vật liệu khóa bằng `getEncoded()`. |
-| **Đặc tả khóa** | `KeySpec` và các lớp triển khai | Mô tả dữ liệu dùng để dựng khóa hoặc một biểu diễn được trích ra từ khóa | `KeySpec` không đồng nghĩa key đã được provider chấp nhận hay được bảo vệ khỏi đọc. |
-| **Bộ chuyển đổi** | `KeyFactory` | `KeySpec → Key`, `Key → KeySpec`, `Key → Key` qua `translateKey` | Không tạo cặp khóa ngẫu nhiên, không thực hiện chữ ký, không kiểm tra danh tính chủ sở hữu. |
-| **Bộ sinh cặp khóa** | `KeyPairGenerator` | Sinh cặp `PublicKey`/`PrivateKey` mới từ tham số thuật toán | Không phải công cụ nhập một khóa đã tồn tại từ DER/PEM. |
+| **Key object** | `Key`, `PublicKey`, `PrivateKey` | Object used by `Signature`, `Cipher`, `KeyAgreement`, or other APIs per algorithm | A `Key` does not necessarily allow exporting key material via `getEncoded()`. |
+| **Key specification** | `KeySpec` and its implementing classes | Describes data used to construct a key or a representation extracted from a key | A `KeySpec` does not mean the key is accepted by a provider or protected from reading. |
+| **Converter** | `KeyFactory` | `KeySpec → Key`, `Key → KeySpec`, `Key → Key` via `translateKey` | Does not generate random key pairs, does not sign, and does not verify the owner's identity. |
+| **Key pair generator** | `KeyPairGenerator` | Generates new `PublicKey`/`PrivateKey` pairs from algorithm parameters | Not a tool for importing an existing key from DER/PEM. |
 
-Luồng dữ liệu hay gặp:
+Common data flow:
 
 ```text
-      KeyPairGenerator("RSA")                 tệp/public API
+      KeyPairGenerator("RSA")                file/public API
                 |                                  |
                 v                                  v
         KeyPair(PublicKey, PrivateKey)         DER/PEM bytes
@@ -37,17 +37,17 @@ Luồng dữ liệu hay gặp:
                        Signature / Cipher
 ```
 
-**Tên thuật toán phải khớp**: `KeyFactory.getInstance("RSA")` xử lý khóa RSA; `KeyFactory.getInstance("EC")` xử lý khóa elliptic curve theo provider hỗ trợ; `KeyFactory.getInstance("Ed25519")` dành cho Ed25519 trên JDK phù hợp. `KeyFactory` không nhận tên phép ký như `SHA256withRSA` hay `SHA256withECDSA`: đó là tên dùng cho `Signature`, không phải tên factory của khóa.
+**The algorithm name must match**: `KeyFactory.getInstance("RSA")` handles RSA keys; `KeyFactory.getInstance("EC")` handles elliptic curve keys supported by the provider; `KeyFactory.getInstance("Ed25519")` is for Ed25519 on a suitable JDK. `KeyFactory` does not accept signing operation names like `SHA256withRSA` or `SHA256withECDSA`: those are names for `Signature`, not key factory names.
 
-### 1.1 Key khác SecretKey
+### 1.1 Key vs. SecretKey
 
-`Key` là interface chung, nhưng `KeyFactory` thuộc luồng **khóa bất đối xứng** (`PublicKey`/`PrivateKey`). Đối với khóa bí mật có thể dẫn xuất từ các `KeySpec` như `PBEKeySpec`, Java có **`SecretKeyFactory`** và các cơ chế khóa đối xứng riêng. Đừng lấy `KeyFactory.getInstance("AES")` để nhập một mảng byte AES; nếu chính sách cho phép một khóa AES raw, luồng JCE thường dùng `SecretKeySpec` hoặc KeyGenerator/KMS thích hợp.
+`Key` is the common interface, but `KeyFactory` belongs to the **asymmetric key** workflow (`PublicKey`/`PrivateKey`). For secret keys derivable from `KeySpec` types such as `PBEKeySpec`, Java provides **`SecretKeyFactory`** and dedicated symmetric key mechanisms. Do not call `KeyFactory.getInstance("AES")` to import a raw AES byte array; when policy allows a raw AES key, JCE workflows typically use `SecretKeySpec` or an appropriate `KeyGenerator`/KMS.
 
-## 2. API chính của KeyFactory
+## 2. Core API of KeyFactory
 
 ```java
-// Những dòng dưới đây chỉ minh họa chữ ký API và luồng sử dụng;
-// key, spec, providerName phải được tạo/nhận trong chương trình thật.
+// The lines below only illustrate the API signatures and usage flow;
+// key, spec, and providerName must be created/obtained in a real program.
 KeyFactory factory = KeyFactory.getInstance("RSA");
 PublicKey publicKey = factory.generatePublic(publicKeySpec);
 PrivateKey privateKey = factory.generatePrivate(privateKeySpec);
@@ -56,117 +56,117 @@ RSAPublicKeySpec rsaSpec =
 Key translated = factory.translateKey(publicKey);
 ```
 
-Các phương thức cốt lõi:
+Core methods:
 
-| Lời gọi | Đầu vào | Đầu ra / ngoại lệ chính |
+| Call | Input | Primary output / exception |
 | --- | --- | --- |
-| `KeyFactory.getInstance("RSA")` | Tên thuật toán của **key factory** | `KeyFactory`; có thể ném `NoSuchAlgorithmException` nếu không có implementation. |
-| `KeyFactory.getInstance("RSA", "providerName")` | Thuật toán và tên provider đã đăng ký | Có thể ném `NoSuchProviderException` nếu tên provider không tồn tại, hoặc `NoSuchAlgorithmException` nếu provider không hỗ trợ. |
-| `generatePublic(KeySpec)` | Đặc tả public key thích hợp | `PublicKey`, hoặc `InvalidKeySpecException`. |
-| `generatePrivate(KeySpec)` | Đặc tả private key thích hợp | `PrivateKey`, hoặc `InvalidKeySpecException`. |
-| `getKeySpec(Key, Class<T>)` | Đối tượng khóa và **lớp** KeySpec mong muốn | Một `T extends KeySpec`, hoặc `InvalidKeySpecException` nếu không thể biểu diễn/chuyển đổi. |
-| `translateKey(Key)` | Đối tượng khóa có thể đến từ provider khác | Đối tượng `Key` do factory/provider xử lý, hoặc `InvalidKeyException`. |
-| `getProvider()` | Không có | Provider đang đứng sau factory; hữu ích khi chẩn đoán môi trường. |
+| `KeyFactory.getInstance("RSA")` | Algorithm name of the **key factory** | `KeyFactory`; may throw `NoSuchAlgorithmException` if no implementation is available. |
+| `KeyFactory.getInstance("RSA", "providerName")` | Algorithm and registered provider name | May throw `NoSuchProviderException` if the provider name does not exist, or `NoSuchAlgorithmException` if the provider lacks support. |
+| `generatePublic(KeySpec)` | Appropriate public key spec | `PublicKey`, or `InvalidKeySpecException`. |
+| `generatePrivate(KeySpec)` | Appropriate private key spec | `PrivateKey`, or `InvalidKeySpecException`. |
+| `getKeySpec(Key, Class<T>)` | Key object and desired KeySpec **class** | A `T extends KeySpec`, or `InvalidKeySpecException` if it cannot be represented/converted. |
+| `translateKey(Key)` | Key object possibly from another provider | `Key` object handled by the target factory/provider, or `InvalidKeyException`. |
+| `getProvider()` | None | Backing provider of the factory; useful for diagnosing the environment. |
 
-Hướng đi chính:
+Primary directions:
 
 ```text
 spec  --generatePublic/generatePrivate-->  key
 key   --getKeySpec(Class<T>)----------->  spec
-key   --translateKey------------------->  key của provider/factory đích
+key   --translateKey------------------->  key of target provider/factory
 ```
 
-`translateKey` **không** biến thuật toán RSA thành EC, không suy ra private key từ public key và không bảo đảm xuất được khóa HSM sang bộ nhớ Java. Nó chỉ chuyển một đối tượng khóa **tương thích** về biểu diễn/provider mà factory hỗ trợ, nếu được phép.
+`translateKey` does **not** turn an RSA algorithm into EC, does not derive a private key from a public key, and does not guarantee exporting an HSM key into Java memory. It only converts a **compatible** key object to a representation/provider supported by the factory, if permitted.
 
-Tùy implementation/provider, có thể tồn tại nhiều `KeySpec` hợp lệ cho cùng một khóa. Việc chọn `X509EncodedKeySpec.class` hoặc `RSAPublicKeySpec.class` nói với factory **hình thức kết quả muốn nhận**, không yêu cầu factory tạo một cặp khóa mới.
+Depending on the implementation/provider, multiple valid `KeySpec` types may exist for the same key. Passing `X509EncodedKeySpec.class` or `RSAPublicKeySpec.class` tells the factory **which output form you want**, not to generate a new key pair.
 
-## 3. KeySpec có hai nhóm hữu ích
+## 3. Two Useful Groups of KeySpec
 
-### 3.1 EncodedKeySpec: khóa dưới dạng byte có cấu trúc
+### 3.1 EncodedKeySpec: Structured Byte Representations of Keys
 
-Hai lớp thông dụng:
+Two common classes:
 
-| Lớp | Đầu vào mong đợi | `getFormat()` | Dùng để |
+| Class | Expected input | `getFormat()` | Used to |
 | --- | --- | --- | --- |
-| `X509EncodedKeySpec` | DER của **SubjectPublicKeyInfo** (SPKI) trong X.509 | `"X.509"` | Dựng **public key** bằng `generatePublic`. |
-| `PKCS8EncodedKeySpec` | DER của **PrivateKeyInfo/PKCS #8** không được mã hóa ở lớp bao ngoài | `"PKCS#8"` | Dựng **private key** bằng `generatePrivate`. |
+| `X509EncodedKeySpec` | DER of **SubjectPublicKeyInfo** (SPKI) in X.509 | `"X.509"` | Construct a **public key** via `generatePublic`. |
+| `PKCS8EncodedKeySpec` | DER of **PrivateKeyInfo/PKCS #8** unencrypted at the outer wrapper | `"PKCS#8"` | Construct a **private key** via `generatePrivate`. |
 
-Cả hai đều triển khai `KeySpec` qua `EncodedKeySpec`. Constructor chấp nhận `byte[]`; **việc tạo spec chưa chứng minh DER đúng**. Provider thường giải mã và kiểm tra tính phù hợp của cấu trúc khi gọi `generatePublic`/`generatePrivate`. Nếu DER không hợp lệ, sai thuật toán hoặc không hỗ trợ, thường nhận `InvalidKeySpecException`.
+Both implement `KeySpec` via `EncodedKeySpec`. Constructors accept `byte[]`; **constructing a spec does not prove the DER is valid**. The provider typically decodes and validates the structure when `generatePublic`/`generatePrivate` is called. If the DER is invalid, has the wrong algorithm, or is unsupported, `InvalidKeySpecException` is typically thrown.
 
-Một khóa RSA được biểu diễn dưới dạng SPKI (public) có **lớp bao AlgorithmIdentifier** để định danh thuật toán và BIT STRING chứa phần dữ liệu khóa. PKCS #8 cho private key có cấu trúc và metadata thuật toán tương ứng. Vì vậy, dù cả hai đều là byte arrays, **không thể hoán đổi** `X509EncodedKeySpec` và `PKCS8EncodedKeySpec`.
+An RSA key represented as SPKI (public) has an **AlgorithmIdentifier wrapper** identifying the algorithm and a BIT STRING containing the key data. PKCS #8 for private keys has its corresponding structure and algorithm metadata. Therefore, even though both are byte arrays, `X509EncodedKeySpec` and `PKCS8EncodedKeySpec` **cannot be swapped**.
 
-### 3.2 TransparentKeySpec: thành phần toán học
+### 3.2 TransparentKeySpec: Mathematical Components
 
-Ví dụ RSA:
+RSA examples:
 
-- `RSAPublicKeySpec`: số nguyên lớn `modulus` (`n`) và `publicExponent` (`e`), cùng optional algorithm parameters theo API.
-- `RSAPrivateKeySpec`: `modulus` (`n`) và `privateExponent` (`d`), có thể không chứa đầy đủ thành phần tối ưu CRT.
-- `RSAPrivateCrtKeySpec`: chứa các thông số RSA CRT (`p`, `q`, `dP`, `dQ`, `qInv`...) phục vụ biểu diễn khóa riêng đầy đủ.
-- Các thuật toán khác có spec tương ứng, ví dụ `ECPublicKeySpec`, `ECPrivateKeySpec`; những tham số đường cong/điểm phải hợp lệ với thuật toán và provider.
+- `RSAPublicKeySpec`: big integers `modulus` (`n`) and `publicExponent` (`e`), plus optional algorithm parameters per the API.
+- `RSAPrivateKeySpec`: `modulus` (`n`) and `privateExponent` (`d`), which may omit full CRT optimization parameters.
+- `RSAPrivateCrtKeySpec`: includes RSA CRT parameters (`p`, `q`, `dP`, `dQ`, `qInv`, etc.) for a complete private key representation.
+- Other algorithms have corresponding specs, such as `ECPublicKeySpec` and `ECPrivateKeySpec`; curve/point parameters must be valid for the algorithm and provider.
 
-Mô tả toán học hữu ích khi tích hợp định dạng chuyên biệt hoặc đối chiếu thành phần khóa. Tuy nhiên, **các `BigInteger` của khóa riêng là dữ liệu bí mật**. Không in ra log, JSON, exception message hay telemetry; không copy thủ công private key components giữa hệ thống nếu không có lý do và kiểm soát rõ ràng.
+Mathematical descriptions are useful when integrating specialized formats or inspecting key components. However, **private key `BigInteger` values are secret data**. Never print them to logs, JSON, exception messages, or telemetry; do not manually copy private key components across systems without clear justification and controls.
 
-### 3.3 Opaque Key và KeySpec
+### 3.3 Opaque Keys and KeySpec
 
-Theo JCA, `Key` có `getAlgorithm()`, `getFormat()`, `getEncoded()`. Nhưng **không phải mọi khóa trả encoding**:
+Under JCA, `Key` exposes `getAlgorithm()`, `getFormat()`, and `getEncoded()`. However, **not every key returns an encoding**:
 
-- `getFormat()` có thể trả `null` khi khóa không có định dạng xuất được.
-- `getEncoded()` có thể trả `null` (ví dụ khóa nằm trong HSM, smart card hoặc hardware-backed keystore).
-- `getKeySpec` cũng có thể **bị từ chối** nếu provider không cho xuất vật liệu khóa tương ứng.
-- `translateKey` có thể ném `InvalidKeyException` khi khóa không thể chuyển sang provider đích.
+- `getFormat()` may return `null` when the key has no exportable format.
+- `getEncoded()` may return `null` (for example, keys residing in an HSM, smart card, or hardware-backed keystore).
+- `getKeySpec` may also be **rejected** if the provider prohibits exporting the corresponding key material.
+- `translateKey` may throw `InvalidKeyException` when a key cannot be moved to the target provider.
 
-Không dùng `Objects.requireNonNull(privateKey.getEncoded())` rồi tự ghi private key ra tệp như một cách xử lý mặc định. Khi thao tác với HSM/KMS, thường **giữ khóa tại provider** và thực hiện ký/giải mã theo capability được phép. Việc không thể xuất khóa riêng là tính chất bảo mật cần tôn trọng.
+Do not write `Objects.requireNonNull(privateKey.getEncoded())` and write the private key out to disk as a default pattern. When working with an HSM/KMS, typically **keep the key inside the provider** and perform signing/decryption according to allowed capabilities. Being unable to export a private key is a security property to respect.
 
-## 4. DER, PEM, X.509, PKCS #8 và các dạng dễ nhầm
+## 4. DER, PEM, X.509, PKCS #8, and Easily Confused Forms
 
-### 4.1 DER là bytes, PEM là vỏ văn bản
+### 4.1 DER Is Bytes, PEM Is Text Armor
 
-**DER** là cách mã hóa nhị phân xác định của ASN.1. **PEM** thường trình bày DER ở dạng Base64 nằm giữa các nhãn `-----BEGIN ...-----` / `-----END ...-----`. Chuyển PEM sang DER là **bóc header/footer và decode Base64**, không phải giải mã mật mã.
+**DER** is ASN.1's deterministic binary encoding. **PEM** typically presents DER in Base64 between `-----BEGIN ...-----` / `-----END ...-----` labels. Converting PEM to DER is **stripping header/footer and Base64-decoding**, not cryptographic decryption.
 
-Ví dụ nhãn PEM:
+Example PEM labels:
 
 ```text
 -----BEGIN PUBLIC KEY-----
-(Base64 cua SubjectPublicKeyInfo DER)
+(Base64 of SubjectPublicKeyInfo DER)
 -----END PUBLIC KEY-----
 ```
 
 ```text
 -----BEGIN PRIVATE KEY-----
-(Base64 cua PKCS #8 khong ma hoa)
+(Base64 of unencrypted PKCS #8)
 -----END PRIVATE KEY-----
 ```
 
-Các ví dụ trên minh họa **cấu trúc nhãn**, không phải khóa thật và không thể mang đi chạy. Nội dung `PRIVATE KEY` vẫn là bí mật **dù được Base64 hóa**, cần bảo vệ như khóa gốc.
+The examples above illustrate **label structure**, not real keys, and cannot be executed. The `PRIVATE KEY` content remains a secret **even when Base64-encoded** and must be protected like the underlying key.
 
-| Nhãn/nguồn dữ liệu | Thường đại diện | Có thể đưa trực tiếp vào `X509EncodedKeySpec` hoặc `PKCS8EncodedKeySpec`? |
+| Label / data source | Usually represents | Can be passed directly into `X509EncodedKeySpec` or `PKCS8EncodedKeySpec`? |
 | --- | --- | --- |
-| `BEGIN PUBLIC KEY` | SPKI DER sau Base64 decode | **Có**, `X509EncodedKeySpec` nếu thuật toán phù hợp. |
-| `BEGIN PRIVATE KEY` | PKCS #8 private-key DER chưa mã hóa ở lớp bao ngoài | **Có**, `PKCS8EncodedKeySpec` nếu thuật toán phù hợp. |
-| `BEGIN RSA PUBLIC KEY` | RSA public key theo cấu trúc PKCS #1 (chỉ `n`, `e`) | **Không trực tiếp** vào X.509 SPKI; cần parser/chuyển đổi cấu trúc. |
-| `BEGIN RSA PRIVATE KEY` | RSA private key theo PKCS #1 | **Không trực tiếp** vào `PKCS8EncodedKeySpec`; cần parser/chuyển đổi hợp lệ hoặc công cụ xuất lại thành PKCS #8. |
-| `BEGIN EC PRIVATE KEY` | SEC1 `ECPrivateKey` | **Không trực tiếp** vào PKCS #8; cần chuyển định dạng và tham số đường cong đúng. |
-| `BEGIN ENCRYPTED PRIVATE KEY` | PKCS #8 **được mã hóa** ở lớp bao ngoài | **Không trực tiếp**. Phải giải mã lớp bảo vệ bằng password/key và API/thư viện phù hợp trước khi dựng private key. |
-| `BEGIN CERTIFICATE` | Chứng chỉ X.509 chứa nhiều trường và chữ ký CA, bên trong có SPKI public key | **Không trực tiếp** vào `X509EncodedKeySpec`. Dùng `CertificateFactory` parse certificate rồi lấy `getPublicKey()`; việc **xác thực chain/trust** là bước riêng. |
+| `BEGIN PUBLIC KEY` | SPKI DER after Base64 decode | **Yes**, `X509EncodedKeySpec` if the algorithm matches. |
+| `BEGIN PRIVATE KEY` | PKCS #8 private-key DER unencrypted at the outer wrapper | **Yes**, `PKCS8EncodedKeySpec` if the algorithm matches. |
+| `BEGIN RSA PUBLIC KEY` | RSA public key in PKCS #1 structure (only `n`, `e`) | **Not directly** into X.509 SPKI; requires a parser/structural conversion. |
+| `BEGIN RSA PRIVATE KEY` | RSA private key per PKCS #1 | **Not directly** into `PKCS8EncodedKeySpec`; requires a valid parser/converter or tool to re-export as PKCS #8. |
+| `BEGIN EC PRIVATE KEY` | SEC1 `ECPrivateKey` | **Not directly** into PKCS #8; requires format conversion and accurate curve parameters. |
+| `BEGIN ENCRYPTED PRIVATE KEY` | PKCS #8 **encrypted** at the outer wrapper | **Not directly**. Must decrypt the protection wrapper with password/key and an appropriate API/library before constructing the private key. |
+| `BEGIN CERTIFICATE` | X.509 certificate containing many fields and a CA signature, with an SPKI public key inside | **Not directly** into `X509EncodedKeySpec`. Use `CertificateFactory` to parse the certificate then call `getPublicKey()`; **verifying chain/trust** is a separate step. |
 
-Cần phân biệt **`X509EncodedKeySpec` và `X509Certificate`**: spec chỉ chứa public-key encoding SPKI; certificate chứa thêm subject, issuer, validity, extensions và chữ ký. Parse public key từ SPKI **không** chứng minh người gửi hay chủ sở hữu khóa là ai.
+Be sure to distinguish **`X509EncodedKeySpec` and `X509Certificate`**: the spec only contains the SPKI public-key encoding; a certificate also contains subject, issuer, validity, extensions, and signature. Parsing a public key from SPKI does **not** prove who the sender or key owner is.
 
-### 4.2 PKCS #8 không đồng nghĩa khóa đã được mã hóa bảo vệ
+### 4.2 PKCS #8 Does Not Mean the Key Is Encrypted for Protection
 
-Tên `PKCS8EncodedKeySpec` mô tả **cấu trúc private key**, không có nghĩa nó tự mã hóa bằng mật khẩu. Private key trong `BEGIN PRIVATE KEY` thường chỉ được **đóng gói**, không được bảo vệ bằng encryption ở lớp file. `BEGIN ENCRYPTED PRIVATE KEY` là một cấu trúc khác, liên quan `EncryptedPrivateKeyInfo` và quy trình giải mã an toàn.
+The name `PKCS8EncodedKeySpec` describes a **private key structure**, not password encryption. A private key in `BEGIN PRIVATE KEY` is usually only **packaged**, not protected by file-level encryption. `BEGIN ENCRYPTED PRIVATE KEY` is a different structure involving `EncryptedPrivateKeyInfo` and a secure decryption flow.
 
-Vì vậy:
+Therefore:
 
-- Không gửi tệp `PRIVATE KEY` qua email/chat/log chỉ vì nó có dạng PEM hoặc Base64.
-- Không ghi string PEM private key trong source, cấu hình công khai hoặc artifact build.
-- Khi cần lưu khóa lâu dài, cân nhắc Java `KeyStore`, keystore phần cứng, KMS/HSM và quyền truy cập thay vì tự viết parser và lưu private key thô.
-- Mật khẩu bảo vệ keyfile không tự bảo đảm chống truy cập trái phép nếu ứng dụng còn lộ khóa sau khi giải mã vào RAM.
+- Do not send `PRIVATE KEY` files over email/chat/logs simply because they are in PEM or Base64 form.
+- Do not put PEM private key strings in source code, public configurations, or build artifacts.
+- For long-term key storage, consider Java `KeyStore`, hardware keystores, KMS/HSM, and access controls instead of writing a custom parser and storing raw private keys.
+- Password protection on a keyfile does not by itself guard against unauthorized access if the application exposes the key after decrypting it into RAM.
 
-## 5. Ví dụ Java 17+: RSA KeyFactory round-trip và KeySpec toán học
+## 5. Java 17+ Example: RSA KeyFactory Round-Trip and Mathematical KeySpec
 
-Ví dụ sinh cặp RSA 2048 bit bằng `KeyPairGenerator`, xuất **SPKI DER** cho public key và **PKCS #8 DER** cho private key, dựng lại bằng `KeyFactory`, lấy `RSAPublicKeySpec`, rồi ký/xác minh để chứng minh các đối tượng khóa thực sự tương ứng.
+This example generates a 2048-bit RSA pair with `KeyPairGenerator`, exports **SPKI DER** for the public key and **PKCS #8 DER** for the private key, reconstructs them with `KeyFactory`, extracts `RSAPublicKeySpec`, and signs/verifies to prove the reconstructed key objects match.
 
-Lưu tệp **`RsaKeyConversionDemo.java`**:
+Save as **`RsaKeyConversionDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -228,7 +228,7 @@ javac -encoding UTF-8 RsaKeyConversionDemo.java
 java RsaKeyConversionDemo
 ```
 
-Với JDK thông dụng có RSA KeyFactory và `SHA256withRSA`:
+On common JDKs with RSA KeyFactory and `SHA256withRSA`:
 
 ```text
 Public format: X.509
@@ -239,46 +239,46 @@ RSA verify: true
 Translated algorithm: RSA
 ```
 
-**Phân tích cụ thể:**
+**Detailed breakdown:**
 
-1. `KeyPairGenerator` **sinh** khóa mới. `KeyFactory` **phục hồi/chuyển** khóa đã có; hai API khác mục đích.
-2. `getEncoded()` trả về DER của khóa mà provider cho phép xuất; ví dụ dùng khóa phần mềm có thể export. Đừng giả định mã private key luôn tồn tại dưới dạng byte.
-3. `new X509EncodedKeySpec(publicDer)` và `new PKCS8EncodedKeySpec(privateDer)` chọn **đúng spec cho đúng loại khóa**.
-4. `generatePublic`/`generatePrivate` dựng lại key object từ spec. Kết quả kiểm tra ký/xác minh thành công chứng tỏ cặp tương ứng; nó **không** chứng minh khóa đó thuộc về một danh tính bên ngoài.
-5. `getKeySpec(restoredPublic, RSAPublicKeySpec.class)` lấy hai thành phần toán học RSA `n` và `e`; `generatePublic(math)` dựng public key từ các thành phần này.
-6. `translateKey(restoredPublic)` chuyển key thành đối tượng tương thích với factory đang dùng, ở đây vẫn là RSA. Provider được chọn mặc định nên ví dụ **không** chứng minh chuyển khóa giữa hai provider cụ thể.
-7. `Arrays.equals(publicDer,...)` cho kết quả `true` với implementation thử nghiệm, nhưng **không nên dùng việc byte encoding giống hệt** làm contract liên provider cho mọi thuật toán. Chức năng xác minh chữ ký và thông số toán học phù hợp mới phản ánh hành vi khóa cần dùng.
-8. `Arrays.fill(privateDer, 0)` xóa **mảng DER do chương trình sở hữu**, không xóa mọi bản sao bên trong `PKCS8EncodedKeySpec`, đối tượng `PrivateKey`, chữ ký hoặc provider. Ví dụ xuất private key chỉ để học; không ghi `privateDer`, modulus bí mật/CRT hay private PEM vào stdout.
+1. `KeyPairGenerator` **generates** new keys. `KeyFactory` **reconstructs/converts** existing keys; the two APIs have different purposes.
+2. `getEncoded()` returns the DER encoding when the provider allows export; the example uses exportable software keys. Do not assume private key material always exists as bytes.
+3. `new X509EncodedKeySpec(publicDer)` and `new PKCS8EncodedKeySpec(privateDer)` pick the **right spec for the right key type**.
+4. `generatePublic`/`generatePrivate` reconstructs key objects from specs. Successful sign/verify proves the pair corresponds; it does **not** prove the key belongs to an external identity.
+5. `getKeySpec(restoredPublic, RSAPublicKeySpec.class)` extracts the two RSA mathematical components `n` and `e`; `generatePublic(math)` builds a public key from them.
+6. `translateKey(restoredPublic)` converts a key into an object compatible with the active factory, which here is still RSA. The default provider is chosen, so the example does **not** demonstrate translating keys between two specific providers.
+7. `Arrays.equals(publicDer,...)` returns `true` on the tested implementation, yet **identical byte encodings should not be treated as a cross-provider contract** for all algorithms. Functional signature verification and proper mathematical parameters reflect actual key behavior.
+8. `Arrays.fill(privateDer, 0)` clears the **DER array owned by the program**, not internal copies inside `PKCS8EncodedKeySpec`, the `PrivateKey` object, signatures, or the provider. Exporting the private key here is strictly educational; never write `privateDer`, private modulus/CRT factors, or private PEM to stdout.
 
-**RSA 2048** là cỡ khóa ví dụ để chạy nhanh; cỡ khóa, padding/chế độ chữ ký (ví dụ RSA-PSS với `Signature`), quy tắc chứng chỉ và lifetime phải theo chính sách cụ thể. `KeyFactory` không quyết định liệu thuật toán ký hay cỡ khóa có đáp ứng yêu cầu bảo mật nghiệp vụ.
+**RSA 2048** is an example key size for fast execution; key sizes, padding/signature modes (such as RSA-PSS with `Signature`), certificate rules, and lifetimes must follow your specific policy. `KeyFactory` does not decide whether a signing algorithm or key size satisfies business security requirements.
 
-## 6. `RSAPublicKeySpec` có ích khi nào?
+## 6. When Is `RSAPublicKeySpec` Useful?
 
-Giả sử một protocol đáng tin cung cấp hai số RSA `n` và `e` dưới dạng chuẩn đã kiểm tra. Có thể dựng một `RSAPublicKeySpec` từ chúng:
+Suppose a trusted protocol supplies the two RSA numbers `n` and `e` in a validated canonical form. You can build an `RSAPublicKeySpec` from them:
 
 ```java
-// Minh họa trong phương thức đã khai báo throws GeneralSecurityException.
-// n và e là BigInteger hợp lệ lấy từ input đã parse/validate.
+// Illustrated inside a method declaring throws GeneralSecurityException.
+// n and e are valid BigIntegers obtained from parsed/validated input.
 RSAPublicKeySpec spec = new RSAPublicKeySpec(n, e);
 PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(spec);
 ```
 
-Đây là **đoạn minh họa, không phải chương trình độc lập**: `n`, `e` chưa được khai báo. Nó trình bày quan hệ `RSAPublicKeySpec → PublicKey`. Khi tích hợp thực tế:
+This is an **illustrative snippet, not a standalone program**: `n` and `e` are not declared. It shows the `RSAPublicKeySpec → PublicKey` relationship. In real integration:
 
-- Kiểm tra định dạng và giới hạn độ dài serialized input trước khi tạo `BigInteger`; không để input cực lớn làm tăng tiêu thụ bộ nhớ/CPU.
-- Kiểm tra modulus, exponent, cỡ khóa và tính hợp lệ theo chính sách. `KeyFactory.generatePublic` có thể từ chối key spec, nhưng provider không thay thế toàn bộ validation/trust policy của giao thức.
-- Không nhầm `RSAPublicKeySpec` với chứng chỉ CA, khóa công khai gắn danh tính hoặc chữ ký hợp lệ. Chỉ dựng được key object không đồng nghĩa nguồn key là đáng tin.
-- Không copy mẫu với `RSAPrivateKeySpec` rồi lưu `d`, `p`, `q` ra JSON/console. Thành phần RSA private phải được xử lý như vật liệu khóa bí mật.
+- Validate format and length limits on serialized input before constructing `BigInteger`; do not let huge inputs spike memory/CPU consumption.
+- Validate modulus, exponent, key size, and policy compliance. `KeyFactory.generatePublic` may reject invalid key specs, but the provider does not replace full protocol validation/trust policy.
+- Do not confuse `RSAPublicKeySpec` with a CA certificate, an identity-bound public key, or a valid signature. Successfully constructing a key object does not mean the key's source is trustworthy.
+- Do not mirror this pattern with `RSAPrivateKeySpec` and print `d`, `p`, `q` to JSON/console. RSA private components must be treated as secret key material.
 
-Nếu input đã là DER SPKI tiêu chuẩn, **ưu tiên `X509EncodedKeySpec`** thay vì tự parse ASN.1 để lấy `n`/`e`. Điều này tránh sai sót về length, thuật toán/parameters và định dạng.
+If the input is already standard SPKI DER, **prefer `X509EncodedKeySpec`** instead of parsing ASN.1 manually to extract `n`/`e`. That avoids bugs in lengths, algorithm/parameters, and formatting.
 
-## 7. Ví dụ Java 17+: EC và Ed25519 cũng dùng KeyFactory
+## 7. Java 17+ Example: EC and Ed25519 Also Use KeyFactory
 
-`X509EncodedKeySpec` và `PKCS8EncodedKeySpec` là **các lớp bao định dạng**, không chỉ dành cho RSA. Nhiều thuật toán public-key khác có thể dùng chúng nếu implementation JDK/provider hỗ trợ và các byte chứa đúng algorithm identifier.
+`X509EncodedKeySpec` and `PKCS8EncodedKeySpec` are **format wrapper classes**, not exclusive to RSA. Many other public-key algorithms can use them if the JDK/provider implementation supports them and the bytes contain the right algorithm identifier.
 
-Ví dụ sau tạo khóa EC với `secp256r1` và Ed25519; dựng lại rồi kiểm tra chữ ký. Nó cũng cố đưa EC public key vào RSA KeyFactory để minh họa **sai thuật toán**.
+The following example generates an EC key on `secp256r1` and an Ed25519 key, reconstructs them, and verifies signatures. It also intentionally feeds the EC public key into an RSA KeyFactory to illustrate **algorithm mismatch**.
 
-Lưu thành **`EcEdKeyConversionDemo.java`**:
+Save as **`EcEdKeyConversionDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -344,7 +344,7 @@ javac -encoding UTF-8 EcEdKeyConversionDemo.java
 java EcEdKeyConversionDemo
 ```
 
-Stdout trên JDK 17+ thông dụng hỗ trợ EC/secp256r1 và Ed25519:
+Stdout on common JDK 17+ supporting EC/secp256r1 and Ed25519:
 
 ```text
 EC round-trip verify: true
@@ -352,21 +352,21 @@ Ed25519 round-trip verify: true
 Wrong key algorithm rejected: true
 ```
 
-**Nhận xét:**
+**Observations:**
 
-- EC dùng `KeyPairGenerator("EC")`, `ECGenParameterSpec("secp256r1")`, `KeyFactory("EC")` và chữ ký `SHA256withECDSA`. Tên curve là **tham số của thuật toán EC**, không phải tên của KeyFactory.
-- Ed25519 có `KeyPairGenerator("Ed25519")`, `KeyFactory("Ed25519")` và `Signature("Ed25519")`. Không tự đổi Ed25519 thành ECDSA hoặc RSA bằng cách đổi string factory.
-- Raw Ed25519 public key 32 byte **không phải** DER SPKI; raw seed/secret bytes cũng **không phải** PKCS #8 DER. Muốn nhập raw key cần KeySpec/API hoặc parser tương ứng, không ép byte[] vào `X509EncodedKeySpec`.
-- `InvalidKeySpecException` ở case cuối cho thấy việc parse **đúng dạng SPKI** vẫn phải dùng **đúng thuật toán**. Nó khác `NoSuchAlgorithmException` khi Java không tìm được implementation của chính `KeyFactory`.
-- Nếu ứng dụng dùng provider/HSM không hỗ trợ xuất khóa hoặc curve cụ thể, `getEncoded()` có thể không dùng được; không fallback sang một thuật toán khác khi chính sách yêu cầu Ed25519/EC cụ thể.
+- EC uses `KeyPairGenerator("EC")`, `ECGenParameterSpec("secp256r1")`, `KeyFactory("EC")`, and signature `SHA256withECDSA`. The curve name is a **parameter of the EC algorithm**, not the name of the KeyFactory.
+- Ed25519 has `KeyPairGenerator("Ed25519")`, `KeyFactory("Ed25519")`, and `Signature("Ed25519")`. Do not convert Ed25519 into ECDSA or RSA by swapping factory strings.
+- A raw 32-byte Ed25519 public key is **not** DER SPKI; raw seed/secret bytes are also **not** PKCS #8 DER. Importing raw keys requires the appropriate KeySpec/API or parser; do not stuff raw `byte[]` into `X509EncodedKeySpec`.
+- `InvalidKeySpecException` in the final case shows that parsing a **valid SPKI structure** still requires the **matching algorithm**. This differs from `NoSuchAlgorithmException`, which occurs when Java cannot find an implementation of the `KeyFactory` itself.
+- If an application uses a provider/HSM that disallows exporting keys or lacks a specific curve, `getEncoded()` may be unusable; do not fall back to another algorithm when policy requires Ed25519 or a specific EC curve.
 
-## 8. Ví dụ Java 17+: nhập public key PEM
+## 8. Java 17+ Example: Importing a PEM Public Key
 
-API `KeyFactory` nhận **DER bytes**, không nhận trực tiếp chuỗi có `-----BEGIN PUBLIC KEY-----`. Ta cần kiểm tra envelope PEM, decode Base64, rồi dựng `X509EncodedKeySpec`.
+The `KeyFactory` API accepts **DER bytes**, not directly a string containing `-----BEGIN PUBLIC KEY-----`. We need to verify the PEM envelope, Base64-decode it, and construct an `X509EncodedKeySpec`.
 
-Ví dụ dưới đây chỉ hỗ trợ **một public key SPKI PEM do chương trình tạo**. Nó không nhận chứng chỉ, private PEM, PKCS #1 RSA key, nhiều PEM block hoặc mọi cách ghi PEM trên thế giới. Parser production nên có giới hạn kích thước trước decode, chính sách input nghiêm ngặt và dùng thư viện tin cậy nếu phải hỗ trợ nhiều loại format.
+The example below only supports **a single SPKI PEM public key generated by the program**. It does not accept certificates, private PEMs, PKCS #1 RSA keys, multiple PEM blocks, or every PEM formatting variant in the wild. A production parser should enforce size limits before decoding, strict input policies, and a trusted library if multiple formats must be supported.
 
-Lưu thành **`PublicPemImportDemo.java`**:
+Save as **`PublicPemImportDemo.java`**:
 
 ```java
 import java.security.*;
@@ -431,26 +431,26 @@ PEM import matches: true
 Certificate header rejected: true
 ```
 
-**Vì sao không dùng `Base64.getMimeDecoder()` rồi bỏ qua toàn bộ ký tự ngoài alphabet?** Một decoder quá dễ dãi có thể nuốt những ký tự không mong đợi trong input; ở đây parser chủ động kiểm tra header/footer và bỏ **whitespace** trong phần thân trước khi dùng `Base64.getDecoder()`. Dù vậy, ví dụ chỉ minh họa một envelope SPKI hợp lệ và không thay thế parser PEM đã harden với toàn bộ quy tắc RFC 7468, giới hạn kích thước và kiểm tra nhiều block.
+**Why not use `Base64.getMimeDecoder()` and ignore all characters outside the alphabet?** An overly permissive decoder can silently swallow unexpected characters in the input; here the parser explicitly checks the header/footer and strips **whitespace** inside the body before calling `Base64.getDecoder()`. Even so, the example only illustrates a valid SPKI envelope and does not replace a hardened PEM parser implementing all RFC 7468 rules, size caps, and multi-block checks.
 
-Nếu đầu vào là `-----BEGIN CERTIFICATE-----`, cách đúng là dùng `CertificateFactory.getInstance("X.509")` đọc certificate và lấy `certificate.getPublicKey()` sau đó thực hiện **xác thực certificate chain/trust** theo chính sách ứng dụng. Đừng chỉ đổi header từ `CERTIFICATE` thành `PUBLIC KEY`: byte DER vẫn là certificate, không phải SPKI.
+If the input is `-----BEGIN CERTIFICATE-----`, the right approach is to use `CertificateFactory.getInstance("X.509")` to read the certificate, call `certificate.getPublicKey()`, and then perform **certificate chain/trust validation** per application policy. Never simply rename the header from `CERTIFICATE` to `PUBLIC KEY`: the DER bytes are still a certificate, not SPKI.
 
-## 9. Đặc tả khóa và định dạng phải khớp cả thuật toán, loại khóa và provider
+## 9. KeySpec and Format Must Match Algorithm, Key Type, and Provider
 
-Một quy trình nhập khóa đúng không chỉ có `Base64.decode` và `getInstance`. Nên xác định các điều kiện sau:
+A proper key import workflow is more than `Base64.decode` and `getInstance`. You should check the following conditions:
 
-1. **Nguồn khóa là gì?** Có thể là file public SPKI, private PKCS #8, certificate, JWK, keystore alias hoặc HSM handle. Mỗi loại cần parser API phù hợp.
-2. **Thuật toán khóa là gì?** RSA, EC, Ed25519, X25519... `KeyFactory` cần được chọn theo thuật toán; không dùng tên cipher/signature để thay thế.
-3. **Loại khóa là gì?** Public key chỉ được đưa qua `generatePublic`, private key qua `generatePrivate`. Spec toán học cũng phải đúng loại.
-4. **Encoding có đúng không?** DER SPKI, DER PKCS #8, PEM bao Base64, PKCS #1, SEC1 hoặc encrypted PKCS #8 không thể thay nhau chỉ bằng tên tệp.
-5. **Provider có khả năng và cho phép không?** Khóa non-exportable không thể buộc `getEncoded()` trả bytes; `translateKey` có thể bị từ chối.
-6. **Key có phù hợp chính sách bảo mật không?** Kiểm tra cỡ khóa, curve, algorithm parameters và usage; không chấp nhận key yếu vì parser nhận được.
-7. **Nguồn key có đáng tin không?** Parse được một public key **không** xác thực chủ sở hữu. Cần certificate chain, pinned fingerprint đáng tin, trust store hoặc quá trình trao đổi khóa xác thực.
-8. **Quyền xuất và lưu private key ra sao?** Không expose riêng tư do tiện debugging; sử dụng keystore/KMS/HSM và key lifecycle được duyệt.
+1. **What is the key source?** It could be a public SPKI file, private PKCS #8, certificate, JWK, keystore alias, or HSM handle. Each type needs the matching parser API.
+2. **What is the key algorithm?** RSA, EC, Ed25519, X25519... `KeyFactory` must be chosen by algorithm; never substitute cipher/signature names.
+3. **What is the key type?** Public keys go strictly through `generatePublic`, private keys through `generatePrivate`. Mathematical specs must also match the type.
+4. **Is the encoding right?** DER SPKI, DER PKCS #8, Base64-wrapped PEM, PKCS #1, SEC1, or encrypted PKCS #8 are not interchangeable merely by renaming files.
+5. **Is the provider capable and permitted?** Non-exportable keys cannot be forced to return bytes from `getEncoded()`; `translateKey` may be refused.
+6. **Does the key satisfy security policy?** Check key size, curve, algorithm parameters, and usage; do not accept weak keys simply because the parser accepted them.
+7. **Is the key source trusted?** Parsing a public key does **not** authenticate its owner. You need a certificate chain, trusted pinned fingerprint, trust store, or authenticated key exchange.
+8. **How are private key export and storage restricted?** Do not expose private keys for debugging convenience; use keystores/KMS/HSM and approved key lifecycles.
 
-### 9.1 KeyStore và CertificateFactory không thay thế cho KeyFactory
+### 9.1 KeyStore and CertificateFactory Do Not Replace KeyFactory
 
-`KeyStore` giữ/tra cứu khóa và chứng chỉ theo alias với khả năng bảo vệ tương ứng; `CertificateFactory` đọc dạng chứng chỉ; `KeyFactory` chuyển đổi biểu diễn khóa. Có thể dùng chúng cùng nhau:
+`KeyStore` stores/looks up keys and certificates by alias with appropriate protection; `CertificateFactory` reads certificate formats; `KeyFactory` converts key representations. They can be used together:
 
 ```text
 Trusted KeyStore  --> Certificate --> getPublicKey() --> PublicKey
@@ -459,38 +459,38 @@ DER SPKI          --> X509EncodedKeySpec --> KeyFactory --> PublicKey
 DER PKCS #8       --> PKCS8EncodedKeySpec --> KeyFactory --> PrivateKey
 ```
 
-Việc `KeyStore.getKey` trả đối tượng `PrivateKey` **không đòi hỏi** tiếp tục export rồi gọi `KeyFactory.generatePrivate`. Nếu provider cho phép thao tác ký ngay bằng key handle, hãy dùng key trực tiếp với `Signature`. Export/import vô ích có thể phá vỡ boundary bảo mật của phần cứng.
+Receiving a `PrivateKey` object from `KeyStore.getKey` **does not require** exporting it and calling `KeyFactory.generatePrivate`. If the provider allows signing directly with that key handle, pass the key straight to `Signature`. Pointless export/import can break hardware security boundaries.
 
-### 9.2 Chứng chỉ và trust
+### 9.2 Certificates and Trust
 
-Giả sử một đối tác gửi public key SPKI; bạn import bằng `KeyFactory.generatePublic` thành công. Điều đó chứng minh DER hợp lệ và provider hiểu thuật toán, **chưa chứng minh đối tác thật sự sở hữu khóa**. Một attacker cũng có thể tạo key RSA hợp lệ để lừa ứng dụng xác minh chữ ký do chính attacker tạo. Cần gắn key với danh tính qua kênh xác thực, certificate verification, pinning hoặc trust framework được xác định rõ.
+Suppose a peer sends an SPKI public key and you import it successfully with `KeyFactory.generatePublic`. That proves the DER is valid and the provider understands the algorithm, **not that the peer actually owns the key**. An attacker can also generate a valid RSA key to trick an application into verifying signatures forged by that attacker. You must bind keys to identities via an authenticated channel, certificate verification, pinning, or a well-defined trust framework.
 
-Tránh coi `PublicKey.getEncoded()` như một chuỗi định danh tự thân cho mọi ngữ cảnh. Nếu dùng fingerprint, chuẩn hóa rõ loại encoding, thuật toán hash và nguồn/điểm tin cậy. Sự tương đương về toán học không nhất thiết kéo theo mọi provider xuất **mảng byte DER giống hệt nhau**.
+Avoid treating `PublicKey.getEncoded()` as a self-sufficient identifier across all contexts. If using fingerprints, standardize the exact encoding type, hash algorithm, and trust anchor/source. Mathematical equivalence does not automatically mean every provider exports **identical DER byte arrays**.
 
-## 10. Xử lý ngoại lệ đúng loại
+## 10. Handling Exceptions by Type
 
-| Lỗi | Điểm xuất hiện | Diễn giải và xử lý |
+| Error | Where it occurs | Interpretation and handling |
 | --- | --- | --- |
-| `NoSuchAlgorithmException` | `KeyFactory.getInstance("RSA" / "EC" / "Ed25519")` | Thuật toán không có implementation ở các provider khả dụng. Kiểm tra JDK/provider và chính sách deployment; không giả định cứ cài thư viện là tương thích. |
-| `NoSuchProviderException` | Overload `getInstance(algorithm, "providerName")` | Tên provider chưa được đăng ký. Kiểm tra provider registration và cấu hình. |
-| `InvalidKeySpecException` | `generatePublic`, `generatePrivate`, `getKeySpec` | Spec không phù hợp loại khóa, DER sai/không được hỗ trợ, thuật toán sai hoặc không thể xuất spec. |
-| `InvalidKeyException` | `translateKey` | Provider/factory không thể chuyển key object được cung cấp. |
-| `IllegalArgumentException` | Parser PEM / `Base64.getDecoder().decode` và một số validation API | Input không đúng envelope/base64 hoặc tham số ứng dụng sai. Không khẳng định tất cả API KeyFactory dùng cùng ngoại lệ. |
-| `NullPointerException` | Đầu vào null tại các constructor/phương thức có yêu cầu non-null | Lỗi hợp đồng đầu vào; kiểm tra input trước khi vào crypto API. |
-| Lỗi khi dùng khóa sau import | `Signature.initSign/initVerify` hoặc `Cipher.init` | Một key object parse được vẫn có thể không phù hợp cho operation, provider, scheme, key usage hoặc chính sách. |
+| `NoSuchAlgorithmException` | `KeyFactory.getInstance("RSA" / "EC" / "Ed25519")` | The algorithm has no implementation in available providers. Check JDK/providers and deployment policy; do not assume installing a library makes it compatible. |
+| `NoSuchProviderException` | `getInstance(algorithm, "providerName")` overload | Provider name is not registered. Check provider registration and configuration. |
+| `InvalidKeySpecException` | `generatePublic`, `generatePrivate`, `getKeySpec` | Spec does not match key type, invalid/unsupported DER, wrong algorithm, or spec cannot be exported. |
+| `InvalidKeyException` | `translateKey` | Provider/factory cannot translate the provided key object. |
+| `IllegalArgumentException` | PEM parser / `Base64.getDecoder().decode` and some validation APIs | Input violates envelope/base64 or invalid application argument. Do not assert all KeyFactory APIs throw the same exception. |
+| `NullPointerException` | Null input to constructors/methods requiring non-null | Input contract bug; validate inputs before calling crypto APIs. |
+| Error when using key after import | `Signature.initSign/initVerify` or `Cipher.init` | A parseable key object may still be unsuitable for the operation, provider, scheme, key usage, or policy. |
 
-Gợi ý phân lớp:
+Layering recommendations:
 
-- **Khi startup:** nạp thuật toán/provider/khóa cấu hình; phát hiện thiếu capability hoặc key sai; fail fast và giữ `cause` trong log an toàn.
-- **Khi nhận key từ bên ngoài:** giới hạn kích thước trước decode; phân biệt PEM syntax/Base64 với DER/spec và policy/chain validation. Trả thông báo lỗi input phù hợp, không trả stack trace nhạy cảm.
-- **Khi khóa riêng bị khóa trong HSM:** không yêu cầu `getKeySpec(privateKey, RSAPrivateCrtKeySpec.class)` để “debug”. Dùng các operation được provider cho phép.
-- **Khi định dạng bản ghi thay đổi:** lưu version + algorithm identifier, có migration rõ ràng; tránh thử ngẫu nhiên nhiều parser/thuật toán khiến lỗi khó truy vết.
-- **Khi provider thay đổi:** đánh giá khả năng `getKeySpec`/`translateKey` từ môi trường thật; không suy diễn rằng mọi provider có thể chuyển khóa qua lại.
+- **At startup:** load configured algorithms/providers/keys; detect missing capabilities or bad keys; fail fast and preserve `cause` in secure logs.
+- **When receiving external keys:** cap size before decoding; separate PEM syntax/Base64 errors from DER/spec errors and policy/chain validation errors. Return appropriate input errors without leaking sensitive stack traces.
+- **When a private key is locked in an HSM:** do not request `getKeySpec(privateKey, RSAPrivateCrtKeySpec.class)` to "debug". Use only operations allowed by the provider.
+- **When record formats change:** store version + algorithm identifier with a clear migration path; avoid randomly trying multiple parsers/algorithms, which makes errors hard to trace.
+- **When changing providers:** test `getKeySpec`/`translateKey` capabilities in the real environment; do not assume all providers can translate keys back and forth.
 
-### 10.1 Một mẫu xử lý lỗi không nên dùng
+### 10.1 An Error-Handling Pattern to Avoid
 
 ```java
-// Anti-pattern: làm mất nguyên nhân và có thể tạo null ở tầng sau.
+// Anti-pattern: loses the root cause and can produce null in downstream layers.
 try {
     return KeyFactory.getInstance("RSA")
             .generatePrivate(new PKCS8EncodedKeySpec(bytes));
@@ -499,69 +499,69 @@ try {
 }
 ```
 
-Đây là **mã minh họa bên trong một phương thức** (chưa khai báo biến `bytes` và kiểu trả về), **không phải chương trình Java độc lập**. Cách đúng là kiểm tra input, phân loại lỗi parse với lỗi cấu hình, giữ `cause` để điều tra và không trả `null` mơ hồ. Cũng không nên âm thầm chuyển sang key algorithm khác để “chạy được”.
+This is **illustrative code inside a method** (`bytes` and the return type are undeclared), **not a standalone Java program**. The proper approach is to validate inputs, separate parsing errors from configuration errors, preserve `cause` for investigation, and never return ambiguous `null`. Nor should you silently switch to another key algorithm just to "make it work".
 
-## 11. Các giới hạn an toàn cần nhớ khi xuất, nhập khóa riêng
+## 11. Security Boundaries to Remember When Exporting and Importing Private Keys
 
-**Bản chất của khóa riêng:** Nếu `privateKey.getEncoded()` trả bytes PKCS #8, bất cứ ai đọc được bytes tương ứng có thể có khả năng sử dụng private key. Base64, PEM, `PKCS8EncodedKeySpec` hay một `byte[]` trong JVM không làm nó tự được mã hóa.
+**Nature of private keys:** If `privateKey.getEncoded()` returns PKCS #8 bytes, anyone who can read those bytes may be able to use the private key. Base64, PEM, `PKCS8EncodedKeySpec`, or a `byte[]` in the JVM does not encrypt it.
 
-**Bộ nhớ:** `PKCS8EncodedKeySpec` sao chép bytes khi dựng và có thể sao chép khi gọi `getEncoded()`. Xóa một `byte[]` ban đầu không có nghĩa các bản sao trong heap, key object hay provider đã biến mất. Với yêu cầu cao, ưu tiên key non-extractable trong HSM/KMS, giới hạn lifetime và các cơ chế bảo vệ nền tảng.
+**Memory:** `PKCS8EncodedKeySpec` copies bytes on construction and may copy them on `getEncoded()`. Zeroing an original `byte[]` does not guarantee that copies on the heap, in key objects, or inside providers are gone. For high-assurance needs, prefer non-extractable keys in HSM/KMS, short lifetimes, and platform protection mechanisms.
 
-**Khóa có thể được đóng gói:** `Key.getEncoded()` có thể trả `null`. Đây thường là dấu hiệu dạng khóa không được phép/không thể export, không nên chữa bằng reflection hoặc serialized object provider-specific.
+**Encapsulated keys:** `Key.getEncoded()` can return `null`. This usually signals a key that is not allowed or unable to be exported, and should not be worked around with reflection or provider-specific serialized objects.
 
-**Khác biệt provider:** Một số provider nhận cùng DER nhưng đưa ra key object khác; một số chỉ hỗ trợ subset `KeySpec`; một số yêu cầu algorithm parameters cụ thể. Luôn thử đúng target runtime và xử lý `InvalidKeySpecException`/`InvalidKeyException` rõ ràng.
+**Provider differences:** Some providers accept the same DER yet produce different key objects; some support only a subset of `KeySpec` classes; some require specific algorithm parameters. Always test on the exact target runtime and handle `InvalidKeySpecException`/`InvalidKeyException` explicitly.
 
-**Khả năng trust:** Chuyển đổi là biến đổi **biểu diễn**. Nó không kiểm tra chủ sở hữu key, không thu hồi chứng chỉ, không tự giải mã encrypted PKCS #8 và không xác nhận một key được cấp đúng mục đích.
+**Trustworthiness:** Conversion only changes **representation**. It does not verify the key owner, check certificate revocation, automatically decrypt encrypted PKCS #8, or confirm a key was issued for the intended purpose.
 
-## 12. Tự kiểm tra kiến thức qua tình huống
+## 12. Scenario-Based Self-Check
 
-**Tình huống A.** Nhận chuỗi `-----BEGIN PUBLIC KEY-----` nhưng truyền nguyên cả chuỗi vào `new X509EncodedKeySpec(pem.getBytes())`. Vì sao sai?  
-**Giải:** Spec cần **DER bytes**, không phải chữ Base64 kèm header/footer. Phải xác nhận loại PEM, decode Base64 lấy SPKI DER trước rồi mới gọi `generatePublic`.
+**Scenario A.** You receive a `-----BEGIN PUBLIC KEY-----` string and pass the entire string into `new X509EncodedKeySpec(pem.getBytes())`. Why is this wrong?  
+**Solution:** The spec expects **DER bytes**, not Base64 text with header/footer. You must validate the PEM type, Base64-decode to obtain SPKI DER first, and then call `generatePublic`.
 
-**Tình huống B.** File có nhãn `-----BEGIN CERTIFICATE-----`. Có thể dùng `X509EncodedKeySpec` không?  
-**Giải:** Không trực tiếp; đó là **certificate DER** chứ không phải SPKI DER. Dùng `CertificateFactory` đọc chứng chỉ, lấy `getPublicKey()`, và kiểm tra trust/chain theo chính sách.
+**Scenario B.** A file has the label `-----BEGIN CERTIFICATE-----`. Can you use `X509EncodedKeySpec`?  
+**Solution:** Not directly; that is **certificate DER**, not SPKI DER. Use `CertificateFactory` to read the certificate, call `getPublicKey()`, and validate trust/chain per policy.
 
-**Tình huống C.** Một file `BEGIN RSA PRIVATE KEY` được đưa vào `PKCS8EncodedKeySpec`; xuất hiện `InvalidKeySpecException`. Có phải RSA bị thiếu?  
-**Giải:** Chưa chắc. Đó thường là **PKCS #1**, khác PKCS #8. Cần chuyển đổi định dạng với parser/công cụ tin cậy trước khi dựng khóa. Chỉ khi `KeyFactory.getInstance("RSA")` thất bại mới nghi ngờ không có factory.
+**Scenario C.** A `BEGIN RSA PRIVATE KEY` file is passed into `PKCS8EncodedKeySpec`, throwing `InvalidKeySpecException`. Is RSA missing?  
+**Solution:** Not necessarily. That is usually **PKCS #1**, which differs from PKCS #8. You need to convert the format with a trusted parser/tool before building the key. Only suspect a missing factory if `KeyFactory.getInstance("RSA")` itself fails.
 
-**Tình huống D.** Code dùng `KeyFactory.getInstance("SHA256withRSA")`.  
-**Giải:** Sai loại tên thuật toán: `SHA256withRSA` dành cho `Signature`. Để dựng khóa RSA dùng `KeyFactory.getInstance("RSA")`.
+**Scenario D.** Code calls `KeyFactory.getInstance("SHA256withRSA")`.  
+**Solution:** Wrong algorithm name category: `SHA256withRSA` is for `Signature`. To construct an RSA key, use `KeyFactory.getInstance("RSA")`.
 
-**Tình huống E.** `PrivateKey` lấy từ HSM có `getEncoded() == null`. Làm sao “khắc phục”?  
-**Giải:** Không cố export. Xác minh key handle và quyền sử dụng, thực hiện `Signature.initSign(privateKey)` hoặc thao tác cho phép qua provider. Không phải mọi private key đều có PKCS #8 để lấy ra.
+**Scenario E.** A `PrivateKey` retrieved from an HSM has `getEncoded() == null`. How do you "fix" it?  
+**Solution:** Do not try to export it. Verify the key handle and usage permissions, and perform `Signature.initSign(privateKey)` or allowed operations via the provider. Not every private key has exportable PKCS #8 bytes.
 
-**Tình huống F.** `KeyFactory.getKeySpec(publicKey, RSAPublicKeySpec.class)` lấy được `n`, `e`. Từ đó tạo private key được không?  
-**Giải:** Không. Public components không chứa đủ thông tin của private key. `KeyFactory` không giải bài toán khôi phục private key từ public key.
+**Scenario F.** `KeyFactory.getKeySpec(publicKey, RSAPublicKeySpec.class)` extracts `n` and `e`. Can you reconstruct the private key from them?  
+**Solution:** No. Public components do not contain enough information for the private key. `KeyFactory` does not solve recovering a private key from a public key.
 
-**Tình huống G.** RSA private key import thành công, nhưng verify chữ ký từ đối tác vẫn không hợp lệ.  
-**Giải:** Import đúng key **không** bảo đảm đó là key đúng đối tác, cũng không bảo đảm `Signature` đang dùng cùng scheme/dữ liệu/canonicalization. Kiểm tra danh tính public key, thuật toán ký, parameters và bytes được ký, không quy mọi lỗi vào `KeyFactory`.
+**Scenario G.** An RSA private key imports successfully, yet verifying a partner's signature still fails.  
+**Solution:** Importing a valid key does **not** guarantee it is the partner's key, nor that `Signature` is using the same scheme, data, or canonicalization. Check public key identity, signing algorithm, parameters, and signed bytes rather than blaming `KeyFactory` for every failure.
 
-**Tình huống H.** Muốn dựng khóa EC bằng `X509EncodedKeySpec` chứa Ed25519 public key. `KeyFactory.getInstance("EC")` có tự hiểu không?  
-**Giải:** Không. Ed25519 là thuật toán có tên factory riêng; cần chọn đúng KeyFactory/provider, không coi mọi khóa elliptic curve là ECDSA/EC.
+**Scenario H.** You want to construct an EC key using an `X509EncodedKeySpec` containing an Ed25519 public key. Will `KeyFactory.getInstance("EC")` figure it out automatically?  
+**Solution:** No. Ed25519 is an algorithm with its own factory name; choose the right KeyFactory/provider and do not treat all elliptic curve keys as ECDSA/EC.
 
-**Tình huống I.** Công cụ tạo `ENCRYPTED PRIVATE KEY`, nhưng Java gọi thẳng `generatePrivate(new PKCS8EncodedKeySpec(bytes))`.  
-**Giải:** `PKCS8EncodedKeySpec` cần PKCS #8 private-key structure chưa được mã hóa ở lớp bao ngoài. Phải dùng quy trình giải mã encrypted PKCS #8 phù hợp trước, đồng thời bảo vệ password và memory.
+**Scenario I.** A tool produces an `ENCRYPTED PRIVATE KEY`, yet Java directly calls `generatePrivate(new PKCS8EncodedKeySpec(bytes))`.  
+**Solution:** `PKCS8EncodedKeySpec` expects an unencrypted outer PKCS #8 private-key structure. You must run the proper encrypted PKCS #8 decryption flow first while protecting the password and memory.
 
-## 13. Checklist áp dụng trong ứng dụng thật
+## 13. Production Application Checklist
 
-1. **Biết format**: public SPKI/X.509, private PKCS #8, certificate, PKCS #1, SEC1 hay provider handle; có mã hóa lớp bao hay không.
-2. **Chọn đúng thuật toán KeyFactory**: `RSA`, `EC`, `Ed25519`... dựa trên contract đã xác thực, không dựa vào chuỗi tự do từ người dùng.
-3. **Dùng đúng spec**: `X509EncodedKeySpec` cho SPKI public; `PKCS8EncodedKeySpec` cho unencrypted PKCS #8 private; spec toán học khi thực sự cần.
-4. **Kiểm tra trust**: nguồn public key, certificate chain/pinning, key usage và hạn sử dụng; parse thành công không chứng minh danh tính.
-5. **Giới hạn input**: độ dài file, số block PEM, Base64/DER structure, cỡ khóa, thuật toán và parameters theo policy.
-6. **Bảo vệ private key**: không log/commit/export tùy tiện; ưu tiên `KeyStore`, KMS/HSM và quyền hạn thích hợp.
-7. **Kiểm thử với provider thật**: cả `getEncoded()` trả `null`, `getKeySpec`/ `translateKey` bị từ chối, thuật toán không có và key spec sai.
-8. **Kiểm chứng chức năng**: ví dụ sign/verify cho keypair dự kiến; test mẫu hợp lệ/sai format/nhầm key, nhưng không sao chép key bí mật test vào production.
-9. **Duy trì khả năng tương tác**: định nghĩa rõ DER/PEM, algorithm identifier, curve, key format và phiên bản khi trao đổi giữa Java/OpenSSL/đối tác.
+1. **Know the format:** SPKI/X.509 public, PKCS #8 private, certificate, PKCS #1, SEC1, or provider handle; whether an encryption wrapper is present.
+2. **Choose the right KeyFactory algorithm:** `RSA`, `EC`, `Ed25519`, etc., based on a verified contract, not an arbitrary user-supplied string.
+3. **Use the right spec:** `X509EncodedKeySpec` for SPKI public; `PKCS8EncodedKeySpec` for unencrypted PKCS #8 private; mathematical specs only when truly needed.
+4. **Verify trust:** public key origin, certificate chain/pinning, key usage, and expiration; successful parsing does not prove identity.
+5. **Bound inputs:** file length, PEM block count, Base64/DER structure, key size, algorithm, and parameters per policy.
+6. **Protect private keys:** never log/commit/export casually; prefer `KeyStore`, KMS/HSM, and appropriate permissions.
+7. **Test with real providers:** including `getEncoded()` returning `null`, `getKeySpec`/`translateKey` rejections, missing algorithms, and malformed key specs.
+8. **Verify functionality:** e.g., sign/verify on expected key pairs; test valid, malformed, and mismatched-key inputs, without copying test secret keys into production.
+9. **Maintain interoperability:** clearly define DER/PEM, algorithm identifiers, curves, key formats, and versions when exchanging keys across Java/OpenSSL/partners.
 
-## Tài liệu Java chính thức
+## Official Java Documentation
 
-- [Java SE 21 — `KeyFactory`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyFactory.html): hướng chuyển Key/KeySpec, provider, `generatePublic`, `generatePrivate`, `getKeySpec`, `translateKey`.
-- [Java SE 21 — `Key`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Key.html): `getAlgorithm`, `getFormat` và `getEncoded`, bao gồm khả năng không xuất được encoding.
+- [Java SE 21 — `KeyFactory`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyFactory.html): Key/KeySpec conversion directions, providers, `generatePublic`, `generatePrivate`, `getKeySpec`, `translateKey`.
+- [Java SE 21 — `Key`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Key.html): `getAlgorithm`, `getFormat`, and `getEncoded`, including non-exportable encodings.
 - [Java SE 21 — `X509EncodedKeySpec`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/spec/X509EncodedKeySpec.html): ASN.1 SubjectPublicKeyInfo public-key encoding.
-- [Java SE 21 — `PKCS8EncodedKeySpec`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/spec/PKCS8EncodedKeySpec.html): private-key encoding theo PKCS #8.
-- [Java SE 21 — `RSAPublicKeySpec`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/spec/RSAPublicKeySpec.html) và [`RSAPrivateCrtKeySpec`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/spec/RSAPrivateCrtKeySpec.html): thành phần toán học RSA.
-- [Java SE 21 — `CertificateFactory`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/CertificateFactory.html) và [`KeyStore`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.html): phân biệt certificate parsing và key storage.
-- [RFC 7468 — Textual Encodings of PKIX Structures](https://www.rfc-editor.org/rfc/rfc7468.html): envelope PEM cho public/private key/certificate.
+- [Java SE 21 — `PKCS8EncodedKeySpec`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/spec/PKCS8EncodedKeySpec.html): PKCS #8 private-key encoding.
+- [Java SE 21 — `RSAPublicKeySpec`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/spec/RSAPublicKeySpec.html) and [`RSAPrivateCrtKeySpec`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/spec/RSAPrivateCrtKeySpec.html): RSA mathematical components.
+- [Java SE 21 — `CertificateFactory`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/CertificateFactory.html) and [`KeyStore`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.html): distinguishing certificate parsing and key storage.
+- [RFC 7468 — Textual Encodings of PKIX Structures](https://www.rfc-editor.org/rfc/rfc7468.html): PEM envelopes for public/private keys/certificates.
 
-**Ghi nhớ:** `KeyFactory` giúp **chuyển biểu diễn** của khóa bất đối xứng, với `KeySpec` là đầu vào hoặc đầu ra của chuyển đổi. Đúng định dạng **SPKI/PKCS #8**, đúng thuật toán và đúng provider là điều kiện để dựng khóa; **trust, bảo vệ private key và quyền sử dụng** vẫn phải được kiểm soát riêng.
+**Remember:** `KeyFactory` helps **convert representations** of asymmetric keys, with `KeySpec` as either the input or output of conversion. Valid **SPKI/PKCS #8** format, the right algorithm, and the right provider are prerequisites for building a key; **trust, private-key protection, and usage permissions** must still be enforced separately.

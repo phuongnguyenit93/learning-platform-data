@@ -1,123 +1,123 @@
-# 16.10. Thiết kế consumer không làm nghẽn hệ thống và quản lý thay đổi schema event
+# 16.10. Designing Non-Blocking Consumers and Managing Event Schema Evolution
 
-Java Flight Recorder (JFR) vừa là nguồn dữ liệu chẩn đoán JVM, vừa có API để mã Java đọc sự kiện trực tiếp hoặc từ file `.jfr`. Một consumer tưởng như đơn giản — đăng ký `onEvent` rồi gửi mỗi event sang database/HTTP — có thể trở thành điểm nghẽn: exporter chậm, callback bị giữ, dữ liệu tồn đọng và JVM phải tốn thêm CPU, bộ nhớ, I/O. Một rủi ro khác là event producer đổi tên field, kiểu dữ liệu hoặc đơn vị đo khiến consumer cũ ném ngoại lệ, đọc nhầm giá trị hay ngừng hoạt động.
+Java Flight Recorder (JFR) serves both as a JVM diagnostic data source and as a Java API for reading events live or from `.jfr` files. A seemingly simple consumer—registering `onEvent` and sending every event to a database or HTTP endpoint—can quickly become a bottleneck: slow exporters block callbacks, data backs up, and the JVM burns extra CPU, memory, and I/O. Another risk arises when event producers rename fields, change types, or alter units, causing older consumers to throw exceptions, misread values, or break silently.
 
-Bài học tập trung vào **hai trách nhiệm thiết kế**:
+This lesson focuses on **two design responsibilities**:
 
-1. **Không làm nghẽn hệ thống:** callback JFR chỉ thực hiện công việc ngắn, có giới hạn; luồng xử lý nặng được tách ra bằng hàng đợi hữu hạn với chính sách quá tải rõ ràng.
-2. **Chịu được schema thay đổi:** nhận diện event type theo tên ổn định, đọc field có kiểm tra, xử lý phiên bản cũ/mới và giám sát schema không tương thích.
+1. **Keeping the system unblocked:** JFR callbacks perform only short, bounded work; heavy processing is decoupled through bounded queues with explicit overload policies.
+2. **Surviving schema changes:** identify event types by stable names, validate fields defensively when reading, handle older/newer versions, and monitor incompatible schema drift.
 
-Các API chính thuộc module `jdk.jfr`, package `jdk.jfr.consumer`, khả dụng trên JDK 17+ (các API riêng cần xem `Since`). Đây là kiến thức thiết kế consumer; cấu hình JFR, kích thước queue và nhu cầu mất dữ liệu phải được xác định theo SLA thực tế, không dùng một con số mặc định cho mọi dịch vụ.
+The primary APIs belong to the `jdk.jfr` module, package `jdk.jfr.consumer`, available in JDK 17+ (check `Since` for individual methods). This is consumer design guidance; JFR settings, queue capacities, and acceptable loss tolerances must match real SLAs rather than relying on one universal default across all services.
 
-## 1. Consumer JFR thực sự chạy ở đâu?
+## 1. Where Does the JFR Consumer Actually Run?
 
-Có ba kiểu đọc thường gặp:
+Three common reading modes exist:
 
-| API | Phạm vi | Cách chạy |
+| API | Scope | Execution model |
 | --- | --- | --- |
-| `RecordingStream` | Tạo recording và tiêu thụ event của **JVM hiện tại** | Đăng ký callback rồi `start()` hoặc `startAsync()` |
-| `EventStream.openRepository(...)` | Đọc event từ repository của JVM hoặc đường dẫn repository được chỉ định | Theo dõi stream/chunk dữ liệu từ nguồn đã tồn tại |
-| `EventStream.openFile(Path)` / `RecordingFile` | Đọc recording file `.jfr` có sẵn | Dùng cho kiểm thử, phân tích offline, xử lý lại file có thời hạn |
+| `RecordingStream` | Creates a recording and consumes events from the **current JVM** | Register callbacks, then call `start()` or `startAsync()` |
+| `EventStream.openRepository(...)` | Reads events from the current JVM's repository or a specified repository path | Streams/tails chunk data from an existing recording source |
+| `EventStream.openFile(Path)` / `RecordingFile` | Reads an existing `.jfr` recording file | Used for testing, offline analysis, and bounded file reprocessing |
 
-**`startAsync()` không tạo một worker cho mỗi callback.** Theo API JDK 21, callback của `RecordingStream` được thực thi trong **một luồng xử lý riêng của stream**. Nếu callback chờ mạng, làm truy vấn DB, ghi log đồng bộ hoặc chạy phép tổng hợp nặng, nó vẫn kéo dài thời gian stream xử lý batch tiếp theo. Với `start()`, chính luồng gọi sẽ xử lý đến khi stream kết thúc. Mô hình bất đồng bộ chỉ chuyển nơi chạy callback; nó không tự cung cấp hàng đợi downstream, retry hay backpressure.
+**`startAsync()` does not spawn one worker per callback.** Per the JDK 21 API, `RecordingStream` callbacks execute on **a single dedicated stream-processing thread**. If a callback waits on the network, queries a DB, logs synchronously, or runs heavy aggregations, it still delays the stream from processing the next batch. With `start()`, the calling thread itself runs callbacks until the stream ends. Async mode merely moves where the callback thread runs; it does not magically supply downstream queues, retries, or backpressure.
 
-`onEvent("fully.qualified.EventName", action)` nhận đúng một loại event, thường hiệu quả hơn `onEvent(action)` rồi lọc thủ công mọi event. `onFlush(Runnable)` được gọi sau khi một batch đã được xử lý, phù hợp cho snapshot counter/batch aggregate nhỏ; cũng **không nên** thực hiện network I/O kéo dài ngay trong callback flush. `onError` và `onClose` giúp quan sát lỗi và vòng đời stream, nhưng không thay thế cơ chế quản trị tài nguyên của ứng dụng.
+`onEvent("fully.qualified.EventName", action)` receives a single matching event type and is generally more efficient than `onEvent(action)` filtering everything manually. `onFlush(Runnable)` fires after a batch is processed, fitting small counter snapshots or batch summaries; still, **avoid long network I/O inside flush callbacks**. `onError` and `onClose` provide visibility into stream errors and lifecycle, not application resource management.
 
-## 2. Kiến trúc consumer có hàng đợi hữu hạn
+## 2. Bounded-Queue Consumer Architecture
 
-Luồng khuyến nghị:
+Recommended flow:
 
 ~~~text
 JFR repository / RecordingStream
           |
           v
-onEvent callback (đọc field -> validate -> copy dữ liệu nhỏ)
+onEvent callback (read fields -> validate -> copy compact data)
           |
-          +-- invalid schema? -> tăng counter, cảnh báo gộp
+          +-- invalid schema? -> increment counter, aggregated alert
           |
           v
 non-blocking queue.offer(snapshot)   [bounded N]
           |                |
           | success        +-- full -> policy: drop/coalesce/sample/durable fallback
           v
-worker/exporter riêng
+separate worker/exporter
           |
-          +-- aggregate / batch / timeout / retry có giới hạn
+          +-- aggregate / batch / bounded timeout / bounded retry
           v
 metrics / storage / external sink
 
-Các metrics riêng: received, accepted, dropped, invalid,
+Separate metrics: received, accepted, dropped, invalid,
 queue depth, processing lag, export errors, end-to-end latency.
 ~~~
 
-Cần phân biệt **ba vùng đệm**:
+Distinguish **three buffering layers**:
 
-- **Bộ nhớ/buffer và disk repository do JFR quản lý**: `RecordingStream.setMaxAge(Duration)` và `setMaxSize(long)` giới hạn lịch sử recording được lưu; chúng **không giới hạn** số phần tử của queue do ứng dụng tự tạo.
-- **Hàng đợi trong JVM của consumer**: ví dụ `ArrayBlockingQueue<Snapshot>` kích thước 128 hoặc 1.024. Chính ứng dụng quản lý dung lượng, chính sách đầy queue và luồng worker.
-- **Buffer/batch ở exporter hoặc hệ thống đích**: HTTP client, message broker, database, telemetry agent… có timeout, retry và độ trễ riêng. Có queue hữu hạn ở tầng thứ hai **không bảo đảm** tầng thứ ba đã hữu hạn.
+- **In-memory buffers and disk repository managed by JFR:** `RecordingStream.setMaxAge(Duration)` and `setMaxSize(long)` cap retained recording history; they **do not bound** the size of application-created queues.
+- **In-JVM consumer queue:** e.g., an `ArrayBlockingQueue<Snapshot>` of size 128 or 1,024. The application itself owns capacity, overflow policy, and worker threads.
+- **Exporter or destination buffers/batches:** HTTP clients, message brokers, databases, telemetry agents, etc., each have their own timeouts, retries, and latencies. Having a bounded queue in layer two **does not guarantee** layer three is bounded.
 
-Không bao giờ dùng một `ArrayList<RecordedEvent>` tăng vô hạn để “xử lý sau”. Đối với ứng dụng chẩn đoán chạy dài, đó chính là cách tạo memory leak thứ cấp ngay trong hệ thống quan sát.
+Never use an unbounded `ArrayList<RecordedEvent>` to "process later". In a long-running diagnostic agent, that is a textbook way to build a secondary memory leak right inside your observability layer.
 
-## 3. Quy tắc vàng cho `onEvent`: copy nhanh, trả về nhanh
+## 3. Golden Rule for `onEvent`: Copy Fast, Return Fast
 
-Một callback tốt làm tối thiểu:
+A well-behaved callback does the bare minimum:
 
-1. Xác định event type mong đợi.
-2. Kiểm tra field có tồn tại và giá trị có đúng kiểu.
-3. Sao chép các field **cần thiết** thành snapshot nhỏ, bất biến hoặc immutable; giới hạn độ dài `String`/stack/JSON, tránh giữ payload nhạy cảm.
-4. Gọi `queue.offer(snapshot)` (không chờ). Thành công thì tăng counter; đầy queue thì thực hiện chính sách quá tải đã quyết định.
-5. Thoát callback.
+1. Verify the expected event type.
+2. Check that required fields exist and have valid types.
+3. Copy only the **essential** fields into a small, immutable snapshot; cap `String`/stack/JSON lengths and avoid retaining sensitive payloads.
+4. Call `queue.offer(snapshot)` (non-blocking). Increment `accepted` on success, or apply your chosen overload policy when full.
+5. Exit the callback.
 
-Không đặt trong callback: `Thread.sleep`, HTTP synchronous call, truy vấn database, ghi file lớn, lock tranh chấp dài, JSON serialize hàng MB, tính thống kê O(n²), retry có vòng chờ hoặc `queue.put` khi queue có thể đầy.
+Keep out of callbacks: `Thread.sleep`, synchronous HTTP calls, database queries, large file writes, long-held contended locks, multi-MB JSON serialization, O(n²) statistics, retry loops with backoff, or `queue.put` when the queue can fill up.
 
-### 3.1. Rủi ro `RecordedEvent` được tái sử dụng
+### 3.1. Risk of `RecordedEvent` reuse
 
-`EventStream` ghi rõ **cùng một instance `RecordedEvent` có thể được tái sử dụng** cho nhiều event; không an toàn khi giữ tham chiếu đó sau khi callback trả về nếu reuse đang bật. Ví dụ **sai**:
+`EventStream` explicitly states that **the same `RecordedEvent` instance may be reused** across events; keeping a reference after the callback returns is unsafe when reuse is active. **Wrong** example:
 
 ~~~java
-// Minh họa anti-pattern, không phải chương trình độc lập:
+// Illustrative anti-pattern, not a standalone program:
 stream.onEvent("lab.OrderEvent", event -> queue.offer(event));
 ~~~
 
-Worker có thể đọc object đã được stream dùng lại, làm giá trị thay đổi hoặc gắn nhầm dữ liệu giữa các event. Hai giải pháp:
+The worker may read an object already overwritten by the stream, causing values to mutate or mix across events. Two solutions:
 
-- **Ưu tiên:** trong callback tạo snapshot chỉ gồm scalar/`String` đã giới hạn/`Instant` (immutable) rồi enqueue snapshot. Khi đó có thể dùng `stream.setReuse(true)` để tiết kiệm allocation phía stream.
-- **Khi thật sự cần giữ nguyên toàn event:** `stream.setReuse(false)` yêu cầu cấp phát object event mới. Cách này tăng allocation và **vẫn không giải quyết queue vô hạn**. Cũng cần xét retained graph của các nested objects nếu muốn lưu lâu.
+- **Preferred:** inside the callback, build an immutable snapshot holding only bounded scalars/`String`s/`Instant`s and enqueue the snapshot. You can then keep `stream.setReuse(true)` to minimize stream allocations.
+- **When retaining the full event is truly necessary:** `stream.setReuse(false)` allocates a fresh event object each time. This raises allocation overhead and **still does not solve unbounded queues**. Also account for the retained object graph of nested fields if kept long-term.
 
-Đừng giả định ghi sự kiện JFR đến callback ngay lập tức theo thời gian thực tuyệt đối. Event được giao theo **batch**, có độ trễ từ flush/chunk và giới hạn ordering. Khi `setOrdered(false)` để giảm công đoạn sắp xếp, mọi thuật toán phía sau phải xử lý out-of-order bằng timestamp hoặc ID phù hợp.
+Do not assume JFR events hit callbacks instantaneously in strict real time. Events arrive in **batches** with flush/chunk latency and ordering limits. When `setOrdered(false)` is used to skip sorting, downstream logic must handle out-of-order arrivals via timestamps or IDs.
 
-## 4. Chính sách khi producer nhanh hơn consumer
+## 4. Policies When Producers Outpace Consumers
 
-Một hệ thống hữu hạn phải chấp nhận **một trong ba lựa chọn**: giảm tải, mất bớt event, hoặc ghi tạm sang nơi bền vững có giới hạn. Không thể hứa “không mất event, không chặn, không cần lưu trữ bổ sung” khi tốc độ event lớn hơn khả năng xuất dữ liệu trong thời gian dài.
+Any bounded system must accept **one of three trade-offs**: shed load, drop some events, or spool temporarily to bounded durable storage. You cannot promise "zero loss, zero blocking, and zero extra storage" when sustained event rates exceed export capacity.
 
-| Chính sách | Cách làm | Phù hợp | Đổi lại |
+| Policy | Mechanism | Best suited for | Trade-off |
 | --- | --- | --- | --- |
-| **Drop newest** | `offer` trả `false` thì bỏ snapshot mới | Telemetry sampling, CPU/memory metrics có thể mất mẫu | Mất tín hiệu của những đỉnh tải; phải đếm dropped |
-| **Drop oldest** | Bỏ phần tử cũ rồi thử nhận mẫu mới | Dashboard ưu tiên trạng thái gần đây | Phá lịch sử, có race nếu nhiều worker; cần đồng bộ chính sách |
-| **Coalesce/aggregate** | Gộp theo (event type, class, time window) | Counter/histogram/throughput | Không giữ từng event và stack trace cá thể |
-| **Sample có điều chỉnh** | Giảm tần suất hoặc chọn subset | Event volume rất cao | Có sai số, không thể phục hồi event bị bỏ |
-| **Durable spool/replay** | Ghi file/chunk/queue bền vững có quota, worker đọc lại | Sự kiện cần bảo toàn cao | Tốn I/O, có áp lực disk, cần replay/dedupe và xử lý hỏng dữ liệu |
-| **Block producer** | `put` hoặc retry vô hạn tại callback | Thường **không phù hợp** với consumer JFR live | Stream bị chậm, tăng lag/áp lực repository, có thể ảnh hưởng workload |
+| **Drop newest** | Discard new snapshot if `offer` returns `false` | Telemetry sampling, CPU/memory metrics tolerant of sample loss | Loses visibility during load spikes; must count drops |
+| **Drop oldest** | Evict oldest entry and retry inserting newest | Dashboards prioritizing freshest state | Breaks historical continuity; races across multiple workers require synchronization |
+| **Coalesce/aggregate** | Merge by (event type, class, time window) | Counters, histograms, throughput | Loses individual events and per-event stack traces |
+| **Adaptive sampling** | Lower frequency or pick a subset | Very high event volumes | Introduces sampling error; dropped events cannot be recovered |
+| **Durable spool/replay** | Write to quota-bounded disk files/chunks/queues for worker replay | High-preservation diagnostics | Costs I/O and disk pressure; requires replay/dedup and corruption handling |
+| **Block producer** | `put` or infinite retry in callback | Generally **unsuitable** for live JFR consumers | Stalls stream, spikes lag/repository pressure, may impact workload |
 
-**Chọn theo độ quan trọng của event.** Với metrics sampled, cho phép drop có quan sát là lựa chọn thường gặp. Với audit/transaction bắt buộc không mất, **JFR streaming không nên là kênh lưu trữ duy nhất**; event nghiệp vụ quan trọng cần đi qua hệ thống có durability/acknowledgement phù hợp. JFR là kênh chẩn đoán, không mang hợp đồng exactly-once delivery.
+**Choose based on event criticality.** For sampled metrics, observable dropping is standard. For mandatory zero-loss auditing or transactions, **JFR streaming should not be the sole storage channel**; critical business events belong on durable systems with acknowledgements. JFR is a diagnostic channel without an exactly-once delivery contract.
 
-### 4.1. Ước lượng queue và ngân sách bộ nhớ
+### 4.1. Estimating queue and memory budgets
 
-Giả sử đỉnh đến là 10.000 event/s, worker xử lý được 8.000 event/s trong 5 giây. Backlog tăng xấp xỉ (10.000 − 8.000) × 5 = **10.000 snapshot**. Queue có 1.000 slot sẽ nhanh chóng đầy. Nếu mỗi snapshot thực tế chiếm trung bình 200 byte (gồm object overhead, reference và nội dung), 10.000 snapshot khoảng 2 MiB; nhưng 200 byte chỉ là **giả định** và có thể tăng nhiều nếu sao chép stack trace hoặc chuỗi dài.
+Suppose peak arrival is 10,000 events/s while the worker drains 8,000 events/s for 5 seconds. The backlog grows by roughly (10,000 − 8,000) × 5 = **10,000 snapshots**. A 1,000-slot queue fills up quickly. If each snapshot occupies ~200 bytes on average (including object headers, references, and data), 10,000 snapshots take ~2 MiB; however, 200 bytes is merely an **assumption** and balloons if copying stack traces or long strings.
 
-Do đó, hãy:
+Therefore:
 
-- Đo **kích thước thực tế snapshot** và hạn chế string/payload/stack.
-- Dùng queue capacity, số worker, batch size, timeout và retry budget cố định.
-- Giám sát `queue.size()/capacity`, `dropped / received` và thời gian chờ từ capture tới xử lý.
-- Thử tải cao hơn mức downstream chịu được, giả lập exporter timeout, disk đầy và shutdown giữa chừng.
-- Ưu tiên **giảm dữ liệu ngay tại nguồn** (chỉ enable event có ích, tăng threshold, tắt stack trace khi không cần, dùng event filters) trước khi tăng vô hạn queue.
+- Measure **actual snapshot memory footprint** and cap strings/payloads/stacks.
+- Fix queue capacities, worker counts, batch sizes, timeouts, and retry budgets.
+- Monitor `queue.size()/capacity`, `dropped / received`, and capture-to-processing lag.
+- Load-test above downstream capacity, simulating exporter timeouts, full disks, and mid-flight shutdowns.
+- Prioritize **reducing data at the source** (enable only useful events, raise thresholds, disable unneeded stack traces, use event filters) before blindly inflating queues.
 
-## 5. Ví dụ Java 17+: RecordingStream + queue hữu hạn + worker riêng
+## 5. Java 17+ Example: RecordingStream + Bounded Queue + Dedicated Worker
 
-Đây là **chương trình đầy đủ** chạy trong một JVM, tạo custom JFR event `lab.OrderEvent`, đăng ký callback, chuyển **bản sao scalar** vào `ArrayBlockingQueue` hữu hạn, rồi cho worker xử lý chậm có chủ đích. Callback **không chờ** worker; nếu queue đầy, chương trình đếm `dropped`. Một file `.jfr` được tạo để dùng cho ví dụ schema ở phần sau.
+This is a **complete program** running in one JVM: it emits custom `lab.OrderEvent` instances, registers a callback, copies **scalar values** into a bounded `ArrayBlockingQueue`, and lets a deliberately slow worker drain them. The callback **never waits** for the worker; when the queue is full, it increments `dropped`. A `.jfr` file is also dumped for the schema exercise later.
 
-Lưu vào **`BoundedJfrConsumerDemo.java`**:
+Save as **`BoundedJfrConsumerDemo.java`**:
 
 ~~~java
 import java.nio.file.Files;
@@ -158,7 +158,7 @@ public final class BoundedJfrConsumerDemo {
                 while (workerRunning.get() || !queue.isEmpty()) {
                     Snapshot value = queue.poll(100, TimeUnit.MILLISECONDS);
                     if (value != null) {
-                        // Chỗ giả lập downstream chậm: nằm NGOÀI onEvent.
+                        // Simulated slow downstream: placed OUTSIDE onEvent.
                         Thread.sleep(2);
                         processed.increment();
                     }
@@ -176,8 +176,8 @@ public final class BoundedJfrConsumerDemo {
                   .withoutStackTrace();
             stream.setMaxAge(Duration.ofMinutes(2));
             stream.setMaxSize(32L * 1024 * 1024);
-            stream.setOrdered(false); // Consumer không cần thứ tự tuyệt đối.
-            stream.setReuse(true);    // KHÔNG giữ RecordedEvent sau callback.
+            stream.setOrdered(false); // Consumer does not require strict ordering.
+            stream.setReuse(true);    // DO NOT retain RecordedEvent after callback.
             stream.onFlush(flushes::increment);
             stream.onError(error -> streamErrors.increment());
 
@@ -222,7 +222,7 @@ public final class BoundedJfrConsumerDemo {
                 event.commit();
             }
 
-            // Cho stream cơ hội flush; đây KHÔNG là cam kết đủ 4000 callback.
+            // Give the stream a chance to flush; this is NOT a guarantee of all 4000 callbacks.
             Thread.sleep(2500L);
             stream.dump(recording);
             stream.close();
@@ -244,137 +244,137 @@ public final class BoundedJfrConsumerDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17+ có hỗ trợ JFR:
+Compile and run with JDK 17+ supporting JFR:
 
 ~~~bash
 javac BoundedJfrConsumerDemo.java
 java BoundedJfrConsumerDemo
 ~~~
 
-Đầu ra **chắc chắn về cấu trúc** gồm các nhãn `Produced=4000`, `Accepted=...`, `Dropped=...`, `Invalid=...`, `Processed=...`, `Stream errors=...`, `Flushes=...`, `JFR file=...`. File đầu ra có đường dẫn tạm khác nhau mỗi lần chạy; số event được consumer nhận **không cố định** vì delivery/flush/CPU/OS scheduling. `Accepted + Dropped` đếm các **event mà callback thực sự nhận**, **không nhất thiết bằng 4.000 event được producer gọi `commit()`** trong ví dụ ngắn này. `Processed` không thể lớn hơn `Accepted` trong chạy bình thường.
+The output has a **guaranteed structure** containing `Produced=4000`, `Accepted=...`, `Dropped=...`, `Invalid=...`, `Processed=...`, `Stream errors=...`, `Flushes=...`, and `JFR file=...`. The temporary output file path varies per run; the exact number of events received by the consumer is **non-deterministic** due to delivery, flushing, CPU, and OS scheduling. `Accepted + Dropped` counts **events actually delivered to the callback**, which **does not necessarily equal all 4,000 events `commit()`ted by the producer** in this short demo. `Processed` cannot exceed `Accepted` in normal execution.
 
-Để kiểm tra file sinh ra, dùng đường dẫn thực tế sau `JFR file=`:
+To inspect the generated file, use the actual path printed after `JFR file=`:
 
 ~~~bash
 jfr summary /path/to/bounded-jfr-example.jfr
 jfr print --events lab.OrderEvent /path/to/bounded-jfr-example.jfr
 ~~~
 
-`/path/to/bounded-jfr-example.jfr` chỉ là **ký hiệu thay thế**, không phải đường dẫn file được chương trình tự tạo. Không chạy nguyên lệnh đó khi chưa thay bằng đường dẫn đã in ra.
+`/path/to/bounded-jfr-example.jfr` is only a **placeholder**, not a filename created by the program. Do not run that command literally without substituting the printed path.
 
-Đặc điểm của ví dụ:
+Highlights of this example:
 
-- `queue.offer` trả ngay và bị giới hạn ở 128 phần tử; tuyệt đối không gọi `put` trong callback.
-- `setReuse(true)` an toàn vì mọi giá trị cần dùng đã chuyển sang record `Snapshot`; không đưa `RecordedEvent` vào queue.
-- `setMaxAge` và `setMaxSize` quản lý dữ liệu **JFR recording**, không giới hạn queue. Queue 128 nằm riêng ở `ArrayBlockingQueue`.
-- Worker đang mô phỏng exporter, nên **không có I/O từ callback**. Với exporter thật cần batch/timeout/retry có giới hạn.
-- Ví dụ đóng stream sau một khoảng chờ và cho worker drain queue. Việc `close()` không đồng nghĩa với cam kết mọi event ở JVM đã đi qua callback; ở môi trường yêu cầu bảo toàn phải có luồng durable/replay riêng.
+- `queue.offer` returns immediately and is bounded at 128 items; never call `put` inside a callback.
+- `setReuse(true)` is safe because every needed value is copied into a `Snapshot` record; `RecordedEvent` is never placed in the queue.
+- `setMaxAge` and `setMaxSize` govern **JFR recording** storage, not the queue. The 128-item cap is enforced separately by `ArrayBlockingQueue`.
+- The worker simulates an exporter, keeping **I/O out of the callback**. Real exporters also need bounded batching, timeouts, and retries.
+- The demo closes the stream after waiting briefly and lets the worker drain the queue. Calling `close()` does not guarantee every event in the JVM passed through the callback; environments requiring guaranteed retention need a dedicated durable/replay pipeline.
 
-**Không dùng demo này làm cơ sở suy ra tốc độ xử lý tối đa thực tế:** kích thước event, JIT warm-up, cơ chế chunk flush và tốc độ máy ảnh hưởng lớn. Nó dùng để thấy rõ ranh giới callback → queue → worker.
+**Do not use this demo to extrapolate maximum real-world throughput:** event sizes, JIT warm-up, chunk flushing, and host speed heavily affect numbers. Its purpose is clarifying the callback → queue → worker boundary.
 
-## 6. Backpressure là bài toán cả chuỗi, không chỉ một ArrayBlockingQueue
+## 6. Backpressure Is a Whole-Pipeline Problem, Not Just One ArrayBlockingQueue
 
-### 6.1. Định nghĩa rõ SLO và khi quá tải
+### 6.1. Defining explicit SLOs and overload behavior
 
-Ví dụ consumer chỉ cung cấp telemetry có thể đặt các mục tiêu vận hành **minh họa**:
+For example, a telemetry-only consumer might set **illustrative** operational targets:
 
-- `drop_ratio` trong tải bình thường gần 0, nhưng khi downstream outage chấp nhận cảnh báo và mất mẫu.
-- Queue occupancy thường thấp hơn mức báo động, exporter lag đo bằng timestamp khi snapshot được nhận/được xử lý.
-- Exporter call có timeout hữu hạn và circuit breaker; retry có backoff nhưng **không kéo dài vô hạn**.
-- Sau khi quay về tải bình thường, backlog giảm mà memory không tăng không kiểm soát.
+- `drop_ratio` near 0 under normal load, while alerting and shedding samples during downstream outages.
+- Queue occupancy normally below alert thresholds, with exporter lag tracked via snapshot receipt vs. processing timestamps.
+- Exporter calls with bounded timeouts and circuit breakers; retries use backoff and **never loop indefinitely**.
+- Once normal load returns, backlog drains without unbounded memory growth.
 
-Đây không phải SLO bắt buộc của JFR. Người sở hữu dịch vụ phải định nghĩa ngưỡng từ yêu cầu điều tra và tài nguyên máy. Nếu một metric không được đo, đừng tuyên bố consumer “non-blocking” chỉ vì code có `startAsync`.
+These are not mandatory JFR SLOs. Service owners must define thresholds from investigative needs and host budgets. If a metric is not measured, never claim a consumer is "non-blocking" solely because the code calls `startAsync`.
 
-### 6.2. Metrics cần quan sát
+### 6.2. Metrics to observe
 
-| Metric | Ý nghĩa | Hành động khi bất thường |
+| Metric | Meaning | Action when abnormal |
 | --- | --- | --- |
-| `events_received_total` | Event đi vào callback theo từng loại | So với lưu lượng/recording config |
-| `events_accepted_total` | Event được enqueue thành công | Phát hiện converter/validation bỏ sót |
-| `events_dropped_total` | Event mất do queue đầy theo policy | Giảm event volume, sửa exporter, tăng capacity có kiểm chứng |
-| `events_invalid_total` | Event sai/mất field/khác kiểu | Kiểm tra schema drift và phiên bản nguồn |
-| `queue_depth` / `queue_capacity` | Backlog và giới hạn | Cảnh báo sớm, tránh full queue kéo dài |
-| `export_errors_total` | Timeout/failed batch trong worker | Điều tra sink, retry/circuit breaker |
-| `processing_lag_seconds` | Thời gian từ event timestamp/callback đến xử lý | Phân biệt producer chậm hay exporter nghẽn |
-| `stream_error_total` / `stream_restarts` | Lỗi trong callback/JFR stream | Bảo vệ consumer và chạy lại có kiểm soát |
-| `recording_disk_bytes` | Dữ liệu JFR retained trong repository | Kiểm tra `setMaxAge`, `setMaxSize` và disk |
+| `events_received_total` | Events entering callbacks by type | Compare against traffic and recording config |
+| `events_accepted_total` | Events successfully enqueued | Catch silent converter/validation drops |
+| `events_dropped_total` | Events shed when queue is full per policy | Reduce event volume, fix exporter, tune capacity empirically |
+| `events_invalid_total` | Events with missing/wrong-type fields | Investigate schema drift and producer versions |
+| `queue_depth` / `queue_capacity` | Backlog and limit | Alert early; avoid sustained full queues |
+| `export_errors_total` | Timeouts/failed batches in worker | Investigate sink, retries/circuit breakers |
+| `processing_lag_seconds` | Time from event timestamp/callback to processing | Separate slow producer delivery from stalled exporter |
+| `stream_error_total` / `stream_restarts` | Errors in callbacks/JFR stream | Protect consumer and restart with backoff |
+| `recording_disk_bytes` | Retained JFR data in repository | Review `setMaxAge`, `setMaxSize`, and disk headroom |
 
-Lưu ý **thời gian event** và **thời gian nhận callback** khác nhau. Để đo lag xử lý callback→worker, có thể thêm `System.nanoTime()` ngay khi tạo snapshot và trừ khi worker xử lý (chỉ so thời gian trong cùng tiến trình); để đo end-to-end event→sink, dùng timestamp event nhưng chú ý clock sync nếu qua nhiều máy.
+Note that **event timestamp** and **callback receipt time** differ. To measure callback → worker processing lag, capture `System.nanoTime()` when constructing the snapshot and subtract when the worker handles it (within the same process only); to measure end-to-end event → sink lag, use event timestamps while watching for cross-host clock skew.
 
-### 6.3. Ordering và trùng dữ liệu
+### 6.3. Ordering and duplicate data
 
-Theo API `EventStream`, event đến theo batch; thứ tự trong một batch có thể được sắp xếp theo end time, nhưng **không có bảo đảm thứ tự toàn cục tuyệt đối giữa các batch**. `setOrdered(false)` có thể giảm overhead nhưng downstream phải tự xử lý timestamp và out-of-order nếu có yêu cầu logic theo thời gian.
+Per the `EventStream` API, events arrive in batches; order within a batch may be sorted by end time, yet **there is no absolute global order guarantee across batches**. `setOrdered(false)` can cut overhead, requiring downstream logic to handle timestamps and out-of-order arrivals when time ordering matters.
 
-Không xây dựng quyết định nghiệp vụ không thể đảo ngược dựa trên giả định JFR event được giao **exactly once**, theo ID tuần tự hoặc luôn không có lặp khi đọc lại file. Nếu cần idempotency cho exporter, thiết kế khóa dedupe với phạm vi/TTL rõ ràng và kiểm tra khả năng trùng khi replay. Đừng dùng `EventType.getId()` như định danh event type vĩnh viễn qua các JVM và file.
+Never base irreversible business decisions on assuming JFR events are delivered **exactly once**, with sequential IDs, or free of duplicates across file replays. If an exporter needs idempotency, design deduplication keys with explicit scopes/TTLs and test replay behavior. Never treat `EventType.getId()` as a permanent cross-JVM or cross-file identifier.
 
-## 7. Schema event JFR thay đổi theo những cách nào?
+## 7. How Do JFR Event Schemas Evolve?
 
-Trong JFR, **event type** có tên định danh (ví dụ `lab.OrderEvent`), metadata các field (tên, kiểu, annotation/đơn vị) và ID nội bộ của JVM. `@Name` trên custom `Event` đặt tên máy đọc; `@Label` phục vụ hiển thị. **Consumer nên ghép theo event type name đã được thỏa thuận**, đồng thời kiểm tra shape/semantics của field, thay vì phụ thuộc label hiển thị hoặc một numeric ID giữa nhiều runtime.
+In JFR, an **event type** has an identifier name (e.g., `lab.OrderEvent`), field metadata (names, types, annotations/units), and a JVM-internal numeric ID. `@Name` on a custom `Event` sets the machine-readable name; `@Label` is for display. **Consumers should match on the agreed event type name** while checking field shapes/semantics, rather than relying on display labels or numeric IDs across runtimes.
 
-| Thay đổi producer | Consumer cũ có thể gặp gì? | Hướng tương thích |
+| Producer change | What an old consumer might hit | Compatibility strategy |
 | --- | --- | --- |
-| Thêm field tùy chọn `region` | Consumer cũ vẫn đọc các field cũ | Bỏ qua field lạ; consumer mới dùng fallback |
-| Bỏ field `elapsedMillis` | `getLong("elapsedMillis")` có thể ném lỗi vì field thiếu | `hasField` trước; đánh dấu thiếu và báo metric |
-| Đổi kiểu `long` sang `String` | Getter typed ném `IllegalArgumentException` | Kiểm tra metadata/`getValue` + `instanceof`; không parse bừa |
-| Đổi đơn vị từ milli sang nano | Trường vẫn là số nhưng mang nghĩa khác; nguy cơ sai số 10⁶ lần | Đặt tên mới (ví dụ `durationNanos`), convert có kiểm tra |
-| Đổi ý nghĩa field mà giữ tên | Lỗi logic **không được phát hiện tự động** | Tạo event version mới hoặc hợp đồng schema version rõ ràng |
-| Đổi hẳn event type name | Callback đăng ký tên cũ không còn nhận event | Có giai đoạn dual-publish hoặc đăng ký cả old/new names |
-| Class unload/load lại, thay metadata giữa các chunks | Cùng tên/ID trong ngữ cảnh khác có shape khác | Xử lý metadata theo phiên/chunk; không cache schema vô hạn theo name |
+| Adding optional field `region` | Old consumer still reads old fields | Ignore unknown fields; new consumer applies fallback |
+| Removing field `elapsedMillis` | `getLong("elapsedMillis")` throws due to missing field | Check `hasField` first; mark invalid and emit metric |
+| Changing type `long` to `String` | Typed getter throws `IllegalArgumentException` | Inspect metadata/`getValue` + `instanceof`; do not parse blindly |
+| Changing unit from millis to nanos | Field stays numeric yet means something else; 10⁶× error risk | Introduce a new field name (e.g., `durationNanos`) and convert carefully |
+| Changing field semantics while keeping name | Logic bug **cannot be detected automatically** | Create a new event version or explicit schema version contract |
+| Renaming the event type itself | Callbacks subscribed to old name stop receiving events | Dual-publish transition or subscribe to both old and new names |
+| Class unload/reload changing metadata across chunks | Same name/ID in a different context has a different shape | Process metadata per session/chunk; never cache schemas forever by name alone |
 
-Hai chiến lược versioning:
+Two versioning strategies:
 
-**Tương thích tiến hóa nhẹ:** giữ `@Name("lab.OrderEvent")`, giữ nghĩa/kiểu các field hiện có; thêm field mới có thể vắng mặt ở file cũ. Consumer mới `hasField("region") ? ... : "unknown"`. Với chuỗi event một phiên, metadata vẫn là nguồn sự thật của từng event, không phải tài liệu mô tả cố định.
+**Backward-compatible evolution:** keep `@Name("lab.OrderEvent")` and preserve meanings/types of existing fields; add new fields that may be absent in older files. Newer consumers check `hasField("region") ? ... : "unknown"`. Within a single-session stream, live metadata remains the source of truth per event rather than static docs.
 
-**Thay đổi phá vỡ hợp đồng:** tạo `@Name("lab.OrderEventV2")` và field có tên, kiểu, đơn vị rõ (`durationNanos`) thay vì âm thầm thay nghĩa `elapsedMillis`. Trong giai đoạn chuyển tiếp, consumer có thể nghe hai tên rồi chuẩn hóa về cùng record nội bộ; ngừng hỗ trợ v1 khi đã xác minh không còn file/producer cũ cần đọc.
+**Breaking contract change:** introduce `@Name("lab.OrderEventV2")` with clear field names, types, and units (`durationNanos`) instead of silently altering what `elapsedMillis` means. During migration, consumers can listen to both names and normalize into one internal record, retiring v1 once no legacy files or producers remain.
 
-### 7.1. Kiểm tra field đúng cách
+### 7.1. Validating fields properly
 
-`RecordedEvent` có `hasField(String)` và `getValue(String)`; `EventType` có `getField(String)`, `getFields()` để kiểm tra metadata. `getValue` trả về object có thể là primitive wrapper hoặc một đối tượng JFR chuyên biệt; getter như `getLong`, `getString`, `getDuration` chỉ thích hợp **khi field tồn tại và có kiểu/annotation đúng**. `hasField` bảo vệ được trường hợp field thiếu, nhưng không thay phép kiểm tra kiểu.
+`RecordedEvent` provides `hasField(String)` and `getValue(String)`; `EventType` provides `getField(String)` and `getFields()` for inspecting metadata. `getValue` returns an object (boxed primitive or specialized JFR object); typed getters like `getLong`, `getString`, and `getDuration` are safe **only when the field exists with the expected type/annotations**. `hasField` guards against missing fields, not type mismatches.
 
 ~~~java
-// Minh họa riêng, không phải chương trình độc lập:
+// Standalone illustration, not a runnable program:
 Object raw = event.hasField("durationNanos")
         ? event.getValue("durationNanos")
         : null;
 if (raw instanceof Number number) {
     long nanos = number.longValue();
-    // Chỉ chuyển sang milliseconds khi nanos >= 0 và đúng semantics.
+    // Convert to milliseconds only when nanos >= 0 and semantics match.
 }
 ~~~
 
-Đọc dữ liệu schema như một **hợp đồng dữ liệu có phiên bản**:
+Treat event schemas as **versioned data contracts**:
 
-- Tên event, field, kiểu, đơn vị và ý nghĩa nghiệp vụ phải được định nghĩa rõ.
-- Field mới **có thể vắng mặt** trong file cũ; giá trị null cũng khác “field không tồn tại”.
-- Khi cần bắt buộc dữ liệu, không âm thầm dùng 0 nếu mất field: điều đó có thể tạo báo cáo sai. Hãy đếm `invalid_schema`, ghi tên type/version và xử lý theo policy.
-- Đọc các file `.jfr` của nhiều JDK/vendor có thể có các event hệ thống và field khác nhau; không hard-code danh sách JFR built-in fields như hợp đồng vĩnh viễn.
-- Không coi việc có thêm annotation/label là thay đổi bắt buộc về semantics; giữ bộ kiểm thử contract tương ứng.
+- Event names, field names, types, units, and business semantics must be explicitly specified.
+- New fields **may be absent** in older files; a `null` value also differs from a nonexistent field.
+- When data is required, never silently substitute `0` on a missing field—that fabricates misleading reports. Increment `invalid_schema`, log the type/version, and follow policy.
+- Reading `.jfr` files across different JDK versions or vendors may reveal varying system events and fields; never hardcode built-in JFR field lists as an immutable forever contract.
+- Do not treat adding an annotation/label as a breaking semantic change; keep matching contract tests.
 
-## 8. `onMetadata`: phát hiện thay đổi event types khi đang tiêu thụ
+## 8. `onMetadata`: Detecting Event Type Changes During Consumption
 
-`EventStream.onMetadata(Consumer<MetadataEvent>)` có từ JDK 16. Đăng ký **trước khi `start()`/`startAsync()`**. Event metadata cho biết:
+`EventStream.onMetadata(Consumer<MetadataEvent>)` has existed since JDK 16. Register it **before `start()`/`startAsync()`**. A metadata event exposes:
 
-- `getEventTypes()`: danh sách event types đang được sử dụng.
-- `getAddedEventTypes()`: types xuất hiện từ metadata event trước; ở metadata đầu tiên thường là toàn bộ types hiện biết.
-- `getRemovedEventTypes()`: types bị loại từ lần metadata trước.
-- `getConfigurations()`: các cấu hình metadata liên quan.
+- `getEventTypes()`: list of event types currently in use.
+- `getAddedEventTypes()`: types introduced since the previous metadata event (often all known types on the first event).
+- `getRemovedEventTypes()`: types removed since the previous metadata event.
+- `getConfigurations()`: associated metadata configurations.
 
-Mỗi `EventType` cung cấp `getName()`, `getId()`, `getFields()`; mỗi `ValueDescriptor` có `getName()` và `getTypeName()`. Có thể tạo **schema signature** bằng cách chuẩn hóa danh sách (tên field, kiểu, đơn vị/annotation có liên quan), lưu theo event name và source version. Nếu metadata thay đổi, log một sự kiện tổng hợp và cảnh báo thay vì in metadata cho mọi event.
+Each `EventType` provides `getName()`, `getId()`, and `getFields()`; each `ValueDescriptor` provides `getName()` and `getTypeName()`. You can build a **schema signature** by normalizing `(field name, type, relevant unit/annotation)` per event name and source version. When metadata changes, emit one aggregated event/alert rather than logging metadata for every event.
 
-**Không thay `onMetadata` cho kiểm tra mỗi event:** metadata có thể thay đổi theo file/chunk, và một field có mặt nhưng giá trị null/khác kiểu. Consumer vẫn phải kiểm tra ở nơi đọc. Với event type không quan tâm, đăng ký callback theo tên cụ thể thay vì parse mọi event trong stream.
+**Do not substitute `onMetadata` for per-event checks:** metadata can shift across files/chunks, and a present field can still be `null` or typed unexpectedly. Consumers must still validate at read time. For uninterested event types, subscribe by explicit event name rather than parsing every event in the stream.
 
-Đừng thực hiện I/O nặng trong `onMetadata`. Ví dụ bên dưới in ra schema nhỏ để người học quan sát; trong production có thể đưa schema signature qua queue/batch logging riêng.
+Avoid heavy I/O inside `onMetadata`. The example below prints compact schema summaries for learning; in production, push schema signatures through a dedicated queue or batched logger.
 
-## 9. Ví dụ Java 17+ đọc file cũ/mới và chuẩn hóa schema
+## 9. Java 17+ Example Reading Old/New Files and Normalizing Schemas
 
-Ví dụ thứ hai là chương trình **độc lập**. Nó mở file `.jfr` được tạo ở phần 5 hoặc file có custom event cùng contract. Consumer hỗ trợ:
+This second example is a **standalone** program. It opens the `.jfr` file generated in section 5 or any file sharing the contract. The consumer supports:
 
-- **v1:** `lab.OrderEvent` có `orderId` và `elapsedMillis`.
-- **v2:** `lab.OrderEventV2` có `orderId` và `durationNanos`; có thể có `source`/`outcome` tùy chọn.
+- **v1:** `lab.OrderEvent` with `orderId` and `elapsedMillis`.
+- **v2:** `lab.OrderEventV2` with `orderId` and `durationNanos`; optional `source`/`outcome`.
 
-Nếu field duration vắng mặt/sai kiểu hoặc giá trị âm, chương trình đếm `invalid`, **không gán bừa duration=0**. Dữ liệu hợp lệ được chuyển về mili giây. Đây là ví dụ chuyển đổi cho contract đã biết, không phải bộ giải mã mọi loại event JFR.
+If a duration field is missing, mistyped, or negative, the program increments `invalid` rather than **blindly substituting `duration=0`**. Valid values are normalized to milliseconds. This demonstrates conversion for a known contract, not a universal decoder for arbitrary JFR events.
 
-Tạo file **`JfrSchemaCompatibleReader.java`**:
+Create **`JfrSchemaCompatibleReader.java`**:
 
 ~~~java
 import java.nio.file.Path;
@@ -449,7 +449,7 @@ public final class JfrSchemaCompatibleReader {
                     JfrSchemaCompatibleReader::consume);
             stream.onError(error -> streamErrors.increment());
 
-            // File hữu hạn: start() đọc đồng bộ đến cuối file.
+            // Bounded file: start() reads synchronously to end of file.
             stream.start();
         }
 
@@ -461,116 +461,116 @@ public final class JfrSchemaCompatibleReader {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile and run:
 
 ~~~bash
 javac JfrSchemaCompatibleReader.java
 java JfrSchemaCompatibleReader /path/to/actual-recording.jfr
 ~~~
 
-Thay `/path/to/actual-recording.jfr` bằng **đường dẫn mà `BoundedJfrConsumerDemo` in ra** hoặc đường dẫn file tương thích. Đầu ra gồm thông báo schema phát hiện và bốn counter; **số lượng và tổng duration phụ thuộc nội dung file**. Với file v1 tạo ở phần 5, chỉ type `lab.OrderEvent` có thể xuất hiện; `lab.OrderEventV2` không bắt buộc tồn tại. Nếu file không có hai loại event trên, `Valid=0` là một kết quả hợp lệ về phạm vi filter, **không phải bằng chứng chương trình chưa đọc file**.
+Replace `/path/to/actual-recording.jfr` with **the path printed by `BoundedJfrConsumerDemo`** or a compatible file. Output prints discovered schemas and four counters; **counts and total duration depend on file contents**. For the v1 file created in section 5, only `lab.OrderEvent` will appear; `lab.OrderEventV2` need not exist. If a file lacks both event types, `Valid=0` is a valid filtered result, **not proof the program failed to read the file**.
 
-### 9.1. Ví dụ producer v2 (mảnh code, không chạy độc lập)
+### 9.1. Example v2 producer (code snippet, not standalone)
 
 ~~~java
 @jdk.jfr.Name("lab.OrderEventV2")
 public static final class OrderEventV2 extends jdk.jfr.Event {
     public long orderId;
-    public long durationNanos;   // đơn vị mới được ghi rõ trong tên
-    public String source;         // có thể thiếu ở bản ghi cũ
-    public String outcome;        // field tùy chọn mới
+    public long durationNanos;   // new unit stated clearly in the name
+    public String source;         // may be absent in older recordings
+    public String outcome;        // new optional field
 }
 ~~~
 
-Đây là **mảnh khai báo** dùng khi nâng cấp producer, không phải một file Java riêng hoàn chỉnh. Trong production nên bổ sung annotation `@Label`, `@Description` và `@Timespan` khi phù hợp với semantics, cùng tài liệu hợp đồng schema rõ ràng. Nếu thay đổi tên type giữa v1/v2, giai đoạn chuyển tiếp cần chấp nhận cả hai để không mất dữ liệu khi đọc file cũ.
+This is a **declaration snippet** for upgrading a producer, not a complete standalone Java file. In production, add `@Label`, `@Description`, and `@Timespan` annotations matching semantics, along with clear schema contract docs. When renaming types between v1 and v2, support both during transition so older files remain readable.
 
-### 9.2. Chính sách compatibility nên được ghi thành kiểm thử
+### 9.2. Compatibility policies should be codified as tests
 
-| Kiểm thử | Mục đích |
+| Test | Purpose |
 | --- | --- |
-| Đọc file fixture v1 với consumer mới | Field mới vắng mặt không làm crash |
-| Đọc file fixture v2 với consumer mới | Convert duration từ ns → ms, optional field |
-| Field duration bị thiếu/null/sai kiểu | Invalid counter tăng; không tạo số liệu 0 giả |
-| Event unknown type | Bỏ qua có chủ ý, không phá toàn stream |
-| Schema nhiều phiên JDK/vendor/chunk | Không khóa vào numeric ID hoặc một metadata snapshot |
-| File hỏng hoặc thiếu quyền đọc | Lỗi được báo; không tạo báo cáo “0 event” giả |
-| Đọc file lớn | Memory của consumer ổn định; không nạp mọi event vào list |
+| Read v1 fixture file with new consumer | Absent new fields do not crash reader |
+| Read v2 fixture file with new consumer | Converts duration ns → ms; handles optional fields |
+| Duration field missing/null/wrong type | `invalid` counter increments; no fake `0` metrics created |
+| Unknown event type | Intentionally ignored without breaking the stream |
+| Multi-JDK/vendor/chunk schemas | Does not lock onto numeric IDs or a single metadata snapshot |
+| Corrupt file or missing read permission | Error reported; no fake "0 events" report |
+| Reading large files | Consumer memory remains stable; no loading all events into a list |
 
-Nếu cần chặn breaking changes từ đầu pipeline, tạo CI contract tests bằng file `.jfr` fixture thật, so metadata signatures và kiểm tra các field bắt buộc. **Golden file** phải được tạo/kiểm tra bằng các JDK mà bạn hỗ trợ.
+To block breaking changes early in the pipeline, build CI contract tests against real `.jfr` fixture files, comparing metadata signatures and verifying required fields. **Golden files** must be generated/verified on the JDK versions you support.
 
-## 10. Vận hành: lỗi, shutdown và phục hồi
+## 10. Operations: Errors, Shutdown, and Recovery
 
-### Lỗi callback không được biến thành tắc nghẽn
+### Callback errors must not become stalls
 
-`onError` nhận ngoại lệ khi xử lý stream/action. Nếu không đăng ký handler, implementation có thể in stack trace mặc định. Trong handler, **chỉ ghi counter hoặc tín hiệu nhẹ**, tránh tiếp tục ném ngoại lệ và tránh gọi remote logging đồng bộ. Lỗi parse field có thể bắt cục bộ, phân loại thành `invalid_schema` thay vì làm hỏng luồng; nhưng không được nuốt tất cả lỗi nghiêm trọng rồi báo thành công.
+`onError` receives exceptions from stream/action processing. If no handler is registered, implementations may print a default stack trace. Inside the handler, **only increment a counter or emit a lightweight signal**—avoid throwing further exceptions or making synchronous remote logging calls. Field-parsing errors can be caught locally and classified as `invalid_schema` instead of crashing the stream, yet never swallow critical errors and report success.
 
-`onClose` được gọi khi stream đóng. Đừng coi `close()` đồng nghĩa “mọi callback và exporter đã hoàn tất”: tài liệu `EventStream.close()` nói rõ nó không bảo đảm mọi registered action đã kết thúc trước khi trả về. Với `RecordingStream` trên JDK 20+, có `stop()` chờ các event còn được tiêu thụ; nhưng **không gọi `stop()` từ chính callback**, vì có thể đợi vô hạn. Với ví dụ Java 17+ ở đây, dùng `close()` rồi `awaitTermination(timeout)` theo contract; sau đó worker riêng cần drain queue có thời hạn.
+`onClose` runs when the stream closes. Do not assume `close()` means "all callbacks and exporters have finished": `EventStream.close()` docs explicitly note it does not guarantee all registered actions completed before returning. With `RecordingStream` on JDK 20+, `stop()` waits for remaining recorded events to be consumed; however, **never call `stop()` from inside a callback**, as that can wait forever. In the Java 17+ example here, call `close()` followed by `awaitTermination(timeout)` per contract, then let the dedicated worker drain the queue within a time budget.
 
-### Kết thúc an toàn
+### Safe shutdown
 
-Quy trình trên một dịch vụ thực:
+Workflow in a real service:
 
-1. Ngăn không nhận thêm request hoặc chuyển instance sang trạng thái draining nếu cần.
-2. Ngừng stream JFR từ **luồng quản trị** ngoài callback; giới hạn thời gian kết thúc phù hợp.
-3. Xử lý hết queue còn lại trong ngân sách shutdown. Nếu hết hạn, ghi số phần tử bị bỏ và chính sách xử lý.
-4. Flush batch chưa gửi nếu exporter hỗ trợ, đóng connection và thread pool, giải phóng tài nguyên của stream.
-5. Nếu cần forensic data, dump/giữ file `.jfr` độc lập với pipeline telemetry; đừng nhầm retention của file với queue đã xuất.
-6. Khi restart, không mặc định stream tiếp tục từ offset cũ hoặc tái phát đủ event chưa nhận. Cơ chế replay/dedupe phải được thiết kế riêng nếu là yêu cầu.
+1. Stop accepting new requests or transition the instance to draining state if needed.
+2. Stop the JFR stream from an **administrative thread** outside callbacks with an appropriate timeout.
+3. Drain remaining queue items within the shutdown budget. If the budget expires, record dropped item counts and apply policy.
+4. Flush unsent batches if the exporter supports it, close connections and thread pools, and release stream resources.
+5. If forensic data is needed, dump/retain `.jfr` files independently of the telemetry pipeline; do not confuse file retention with exported queues.
+6. On restart, do not assume the stream resumes from a previous offset or replays missed events. Replay/deduplication mechanisms must be built separately if required.
 
-Với `EventStream.openFile`, xử lý file có điểm kết thúc và có thể mở lại để replay (cần kiểm tra trùng dữ liệu). Với live `RecordingStream`, dữ liệu là các batch của recording hiện tại và lịch sử retention; đó **không phải** một durable queue với consumer offset/acknowledgement tiêu chuẩn.
+With `EventStream.openFile`, file processing has a defined end and can be reopened for replay (watch for duplicates). With a live `RecordingStream`, data comes from batches of the active recording and its retention history; it is **not** a durable queue with consumer offsets or acknowledgements.
 
-### Cách xử lý outage downstream
+### Handling downstream outages
 
-- Khi sink chậm, worker dùng timeout/circuit breaker; callback vẫn `offer` nhanh hoặc drop theo policy.
-- Khi queue đầy kéo dài, tăng cảnh báo, có thể giảm khối lượng event bằng thay đổi settings/threshold hoặc giảm sampling; không “chữa” bằng retry vô hạn trong callback.
-- Khi disk repository JFR chạm giới hạn, `setMaxAge`/`setMaxSize` có thể khiến chunk cũ bị loại. Đây là chính sách lưu trữ; sự kiện đã bị loại khỏi repository **không tự phục hồi**.
-- Nếu nhiều consumer cùng đọc một JVM, tổng overhead và duplicate processing cần được đo. Không tạo một recording chi tiết mới cho mỗi request chỉ vì API cho phép.
+- When the sink slows down, the worker enforces timeouts/circuit breakers; callbacks keep doing fast `offer` or policy-based drops.
+- When queues stay full, raise alerts and reduce event volume at the source via settings/thresholds or lower sampling; never "fix" it with infinite retries inside callbacks.
+- When the JFR disk repository hits limits, `setMaxAge`/`setMaxSize` can evict old chunks. This is expected retention behavior; events evicted from the repository **do not come back automatically**.
+- If multiple consumers read the same JVM, measure combined overhead and duplicate processing. Never spin up a detailed recording per request just because the API allows it.
 
-## 11. Lỗi phổ biến và dấu hiệu nhận biết
+## 11. Common Pitfalls and Diagnostic Signs
 
-| Hiện tượng | Nguyên nhân khả dĩ | Cách khắc phục |
+| Symptom | Possible cause | Remediation |
 | --- | --- | --- |
-| `startAsync()` nhưng JVM vẫn tăng CPU/lag | Callback làm quá nhiều việc hoặc bật quá nhiều event | Chuyển xử lý nặng sang worker, giới hạn event types/settings, đo callback duration |
-| Queue tăng liên tục | Exporter throughput thấp hơn event arrival | Batch/scale có giới hạn, giảm upstream event volume, chính sách drop/coalesce |
-| OOM ở telemetry agent | Queue/list/pending retry vô hạn hoặc giữ stack/payload lớn | Bounded queue, max payload, max attempts và đo retained heap |
-| Số event xử lý khác số `commit()` | JFR delivery/flush, threshold, event disabled, drop queue hoặc shutdown sớm | Đo từng tầng producer→stream→queue→worker; không kết luận từ một counter |
-| Worker thấy field của event khác lần trước | Đưa `RecordedEvent` qua thread khi reuse bật | Copy scalar trong callback; hoặc tắt reuse có đánh giá overhead |
-| `getLong("elapsedMillis")` ném lỗi | Schema thiếu field hoặc kiểu thay đổi | Dùng `hasField` + typed check; chia version và đếm invalid |
-| Duration tăng một triệu lần sau deploy | Field đổi đơn vị milli ↔ nano không đổi contract | Version/rename field, convert đơn vị tường minh |
-| `onMetadata` không chạy như mong đợi | Đăng ký sau khi start, file không có metadata mới hoặc khác JDK | Đăng ký trước start, kiểm tra `getEventTypes` và file metadata |
-| Event name không còn nhận callback | Producer đổi `@Name` hoặc event disabled | Dual support v1/v2, xác minh tên trong `jfr metadata` |
-| Số event có thứ tự “lùi” | Stream theo batch hoặc đã `setOrdered(false)` | Dựa vào timestamp/ID và xử lý late events |
-| Consumer restart mất khoảng dữ liệu | Live stream không có offset/ack bền vững | Dùng file/archive và replay design khi thật sự cần |
-| Log chứa payload nhạy cảm | Snapshot giữ toàn chuỗi/stack/error context | Allowlist field, giới hạn kích thước, redaction và phân quyền |
-| Đọc file `.jfr` không tin cậy | File không hợp lệ hoặc parser xử lý dữ liệu không được kiểm soát | Chỉ nhận file nguồn đáng tin, sandbox tài nguyên, cập nhật JDK |
+| `startAsync()` used, yet JVM CPU/lag still rises | Callback does too much work or too many events enabled | Move heavy work to worker, trim event types/settings, measure callback duration |
+| Queue grows continuously | Exporter throughput lower than event arrival rate | Bounded batching/scaling, lower upstream event volume, drop/coalesce policy |
+| OOM in telemetry agent | Unbounded queue/list/pending retries, or retaining large stacks/payloads | Bounded queue, max payload, max attempts, measure retained heap |
+| Processed count differs from `commit()` count | JFR batching/flush, thresholds, disabled events, queue drops, early shutdown | Measure each stage producer→stream→queue→worker; do not judge from one counter |
+| Worker sees fields from a later event | Passed `RecordedEvent` across threads with reuse enabled | Copy scalars in callback, or evaluate disabling reuse with overhead testing |
+| `getLong("elapsedMillis")` throws | Schema missing field or type changed | Use `hasField` + typed check; version schemas and count invalids |
+| Duration jumps a million-fold after deploy | Field unit switched millis ↔ nanos without changing contract | Version/rename field, convert units explicitly |
+| `onMetadata` behaves unexpectedly | Registered after start, file lacks new metadata, or JDK differs | Register before start; inspect `getEventTypes` and file metadata |
+| Event name stops triggering callbacks | Producer changed `@Name` or disabled event | Dual-support v1/v2; verify names in `jfr metadata` |
+| Event timestamps appear to go "backward" | Batch delivery or `setOrdered(false)` | Rely on timestamps/IDs and handle late events |
+| Consumer restart misses a gap of events | Live stream lacks durable offsets/ACKs | Use files/archives and replay design when genuinely needed |
+| Logs contain sensitive payloads | Snapshot kept full strings/stacks/error context | Allowlist fields, cap sizes, redact, enforce access control |
+| Reading untrusted `.jfr` files | Corrupt file or parser fed unvalidated input | Accept only trusted files, sandbox resources, keep JDK updated |
 
-## 12. Checklist thiết kế và ba bài tập tình huống
+## 12. Design Checklist and Three Scenario Exercises
 
-**Checklist trước khi đưa consumer lên production:**
+**Pre-production consumer checklist:**
 
-- Event type được **allowlist**; sampling, threshold, stack trace và retention được cấu hình theo ngân sách.
-- Mọi callback có **thời gian xử lý hữu hạn**, không chờ network/DB/lock lâu.
-- Snapshot nhỏ, bất biến, không giữ `RecordedEvent` hoặc đồ thị đối tượng nặng.
-- Queue hữu hạn và có **policy khi đầy**, counter dropped/invalid được xuất ra metrics.
-- Worker/exporter có timeout, giới hạn retry/backoff, bounded batch và xử lý shutdown.
-- Trạng thái event schema được theo dõi qua metadata và contract tests; đọc field cũ/mới có kiểm tra kiểu/đơn vị.
-- Có thử nghiệm file v1/v2, event field thiếu, sink outage, queue overflow, file lớn và JVM shutdown.
-- Không tuyên bố exactly-once/lossless nếu chưa có cơ chế durable ack/replay.
+- Event types are **allowlisted**; sampling, thresholds, stack traces, and retention are budgeted.
+- Every callback has **bounded execution time**, with no long network/DB/lock waits.
+- Snapshots are small and immutable, holding neither `RecordedEvent` nor heavy object graphs.
+- Queues are bounded with an **explicit overflow policy**, and dropped/invalid counters are exported as metrics.
+- Workers/exporters enforce timeouts, bounded retries/backoff, bounded batches, and clean shutdown.
+- Event schema status is tracked via metadata and contract tests; old/new field readers verify types and units.
+- Tested against v1/v2 files, missing fields, sink outages, queue overflows, large files, and JVM shutdowns.
+- Never claim exactly-once or lossless guarantees without a durable ACK/replay mechanism.
 
-**Tình huống A:** Callback gửi HTTP và thỉnh thoảng chờ 8 giây, dù `RecordingStream.startAsync()` đã được gọi. Vì sao lag tăng? → Callback vẫn chạy trên luồng xử lý sự kiện của stream; chuyển sang `offer(snapshot)` và worker với timeout/circuit breaker. Đồng thời chấp nhận chính sách mất mẫu hoặc spool có giới hạn khi downstream không phục vụ.
+**Scenario A:** A callback makes HTTP calls and occasionally stalls for 8 seconds even though `RecordingStream.startAsync()` was called. Why does lag spike? → Callbacks still run on the stream's single event-processing thread; switch to `offer(snapshot)` plus a worker with timeouts/circuit breakers, and accept sample loss or bounded spooling when downstream is unavailable.
 
-**Tình huống B:** File cũ có `elapsedMillis=15`; bản mới đổi nội dung thành nanosecond nhưng giữ tên `elapsedMillis`. Consumer mới đọc `15` thành 15ms và không ném lỗi. → Đây là **lỗi thay đổi semantics**, `hasField` không thể phát hiện. Phải đổi tên thành `durationNanos` hoặc nâng version event và kiểm tra schema/đơn vị.
+**Scenario B:** Older files have `elapsedMillis=15`; a new build stores nanoseconds under the same `elapsedMillis` name. The new consumer reads `15` as 15 ms without throwing. → This is a **silent semantic break** that `hasField` cannot catch. Rename to `durationNanos` or bump the event version, and validate schemas/units.
 
-**Tình huống C:** Queue 128 slot luôn 100%; code tăng lên 2 triệu slot và hệ thống hết heap sau 20 phút. → Việc tăng queue chỉ trì hoãn backlog. Phải kiểm tra arrival rate, tốc độ exporter, giảm event ở nguồn, batch/scale theo ngân sách hoặc áp dụng drop/coalesce/durable spool có quota.
+**Scenario C:** A 128-slot queue stays at 100%; someone bumps it to 2 million slots and the JVM runs out of heap 20 minutes later. → Enlarging the queue only postpones backlog buildup. Inspect arrival rates vs. exporter speed, cut events at the source, batch/scale within budget, or apply drop/coalesce/quota-bounded spooling.
 
-**Kết luận học tập:** consumer JFR an toàn là một pipeline có **giới hạn tài nguyên và hợp đồng dữ liệu rõ**. `startAsync` tạo luồng nhận sự kiện; `queue.offer` và worker hữu hạn xử lý tốc độ; `setReuse` buộc bạn quyết định vòng đời object; `onMetadata`, `hasField` và versioned event types giúp dữ liệu JFR có thể sống qua nhiều bản ứng dụng/JDK mà không làm sai báo cáo.
+**Learning takeaway:** A safe JFR consumer is a pipeline with **bounded resources and explicit data contracts**. `startAsync` provides the event-receiving thread; `queue.offer` and bounded workers absorb rate mismatches; `setReuse` forces clear object lifecycle ownership; and `onMetadata`, `hasField`, and versioned event types let JFR data evolve across app and JDK releases without corrupting reports.
 
-## Tài liệu tham khảo chính thức
+## Official References
 
 - Java SE 21 — `EventStream`: batch delivery, `onEvent`, `onMetadata`, `onFlush`, `setReuse`, `setOrdered`, `close`: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/EventStream.html
 - Java SE 21 — `RecordingStream`: `startAsync`, `enable`, `setMaxAge`, `setMaxSize`, `dump`: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingStream.html
 - Java SE 21 — `MetadataEvent`: `getAddedEventTypes`, `getRemovedEventTypes`: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/MetadataEvent.html
-- Java SE 21 — `RecordedEvent` và `RecordedObject`: `hasField`, `getValue`, typed getters: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedEvent.html
+- Java SE 21 — `RecordedEvent` and `RecordedObject`: `hasField`, `getValue`, typed getters: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedEvent.html
 - Java SE 21 — `EventType`, `ValueDescriptor`: schema metadata: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventType.html
-- Java SE 17 — `RecordingStream`: các API thích hợp với ví dụ Java 17+: https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingStream.html
-- Java SE 21 — `EventSettings`: filter event, threshold và stackTrace: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html
+- Java SE 17 — `RecordingStream`: APIs applicable to Java 17+ examples: https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingStream.html
+- Java SE 21 — `EventSettings`: event filters, thresholds, and stackTrace: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html

@@ -1,74 +1,74 @@
-# Tách mã không tin cậy sang tiến trình riêng với giao thức trao đổi rõ ràng
+# Isolating Untrusted Code in a Separate Process with an Explicit Communication Protocol
 
-## 1. Vì sao phải tách tiến trình?
+## 1. Why Separate Processes?
 
-Trong hệ thống Java mở rộng động, plugin có thể được nạp bằng `URLClassLoader`, `ServiceLoader`, `ModuleLayer`, biên dịch trong bộ nhớ hoặc JShell. Những kỹ thuật này giúp cô lập *tên class, dependency và vòng đời logic*, nhưng không tự giới hạn quyền hệ điều hành của code được chạy trong cùng JVM. Một plugin độc hại hoặc lỗi có thể đọc file mà tiến trình được phép đọc, tạo kết nối mạng, thay `System` properties, làm cạn heap/CPU, tạo thread vô hạn hoặc gây crash qua native code.
+In a dynamically extensible Java system, plugins may be loaded via `URLClassLoader`, `ServiceLoader`, `ModuleLayer`, in-memory compilation, or JShell. Those techniques isolate *class names, dependencies, and logical lifecycles*, but do not automatically restrict the OS privileges of code running inside the same JVM. A malicious or buggy plugin can read any file the process is permitted to read, open network connections, mutate `System` properties, exhaust heap/CPU, spawn unbounded threads, or crash the process via native code.
 
-Ranh giới thích hợp hơn với **mã không tin cậy** là chạy mã đó ở **process riêng** dưới quyền OS giới hạn, giao tiếp qua một giao thức có định dạng và hạn mức rõ ràng. Process riêng cho phép tách heap, threads, static state, system properties và lỗi JVM, nhưng chỉ trở thành ranh giới an toàn khi kết hợp OS permissions, filesystem/network isolation và resource limits.
+A more appropriate boundary for **untrusted code** is running it in a **separate process** under restricted OS privileges, communicating over a protocol with an explicit format and clear quotas. A separate process isolates heap, threads, static state, system properties, and JVM crashes, yet it only becomes a real security boundary when paired with OS permissions, filesystem/network isolation, and resource limits.
 
 ```text
                  Trust boundary
 Host JVM               |         Worker JVM / sandbox
-business logic         |         code plugin không tin cậy
+business logic         |         untrusted plugin code
     |                   |                   |
     +-- request ------->| IPC codec ------->|
     |                   |                   |
     +<-- response ------| IPC codec <-------+
     |                   |
-timeout / circuit      |     quyền OS tối thiểu, giới hạn CPU/RAM
-breaker / audit        |     namespace/container/VM tùy mức rủi ro
+timeout / circuit      |     minimal OS privileges, CPU/RAM limits
+breaker / audit        |     namespace/container/VM per risk level
 ```
 
-**Điểm chính:** IPC không làm plugin đáng tin; IPC chỉ thu hẹp bề mặt tương tác. Host vẫn phải coi response từ plugin là dữ liệu không tin cậy, validate mọi trường và xử lý trường hợp process chết, treo hoặc trả sai định dạng.
+**Key point:** IPC does not make a plugin trustworthy; IPC merely narrows the interaction surface. The host must still treat responses from the plugin as untrusted data, validate every field, and handle cases where the process dies, hangs, or returns malformed data.
 
-## 2. Định nghĩa ranh giới quyền trước khi chọn công nghệ IPC
+## 2. Define Privilege Boundaries Before Choosing an IPC Technology
 
-Một process mới thường kế thừa quyền của user chạy process tạo ra nếu không có cấu hình OS/container khác. Vì vậy **`new ProcessBuilder(...)` không tự sandbox**. Cần lựa chọn cơ chế triển khai phù hợp:
+A new process typically inherits the privileges of the user running the spawning process unless configured otherwise at the OS/container level. Therefore, **`new ProcessBuilder(...)` does not create a sandbox by itself**. Choose an appropriate enforcement mechanism:
 
-| Mục tiêu | Biện pháp cần xem xét |
+| Goal | Measures to consider |
 | --- | --- |
-| Không đọc bí mật của host | Chạy với OS user riêng, filesystem permissions, mount hạn chế |
-| Không truy cập mạng tùy ý | Network policy, namespace, firewall/egress allowlist |
-| Không chiếm hết CPU/RAM | cgroups/container limits, job objects, process quotas |
-| Không tạo process con không kiểm soát | Policy sandbox, process limits, cleanup process tree |
-| Không làm hỏng JVM host | Process boundary và kiểm soát input/output |
-| Không khai thác API đặc quyền của host | Chỉ công bố IPC operations tối thiểu; kiểm tra authorization từng request |
-| Không kéo host vào deadlock | Timeout, bounded queue, cancellation, process kill policy |
+| Prevent reading host secrets | Dedicated OS user, filesystem permissions, restricted mounts |
+| Prevent arbitrary network access | Network policies, namespaces, firewall/egress allowlists |
+| Prevent exhausting CPU/RAM | cgroups/container limits, job objects, process quotas |
+| Prevent spawning uncontrolled child processes | Sandbox policies, process limits, process-tree cleanup |
+| Prevent crashing the host JVM | Process boundary and input/output validation |
+| Prevent exploiting privileged host APIs | Expose only minimal IPC operations; authorize every request |
+| Prevent dragging the host into deadlock | Timeouts, bounded queues, cancellation, process kill policies |
 
-Chạy process con dưới cùng tài khoản OS, cùng mount và toàn quyền mạng có thể chỉ đạt **cô lập lỗi**, chưa đủ **cô lập quyền**. Trên Linux có thể dùng user/container/namespace, seccomp và cơ chế MAC; trên Windows cân nhắc restricted token, job objects, AppContainer hoặc VM; lựa chọn thực tế phụ thuộc môi trường. Không tự tuyên bố sandbox an toàn chỉ vì có một JAR khác.
+Running a child process under the same OS account, same mounts, and full network access may achieve only **fault isolation**, not sufficient **privilege isolation**. On Linux, you can use user/container/namespaces, seccomp, and MAC mechanisms; on Windows, consider restricted tokens, job objects, AppContainer, or VMs; the practical choice depends on the environment. Never claim a secure sandbox merely because code lives in another JAR.
 
-## 3. Thiết kế giao thức: càng nhỏ, càng rõ
+## 3. Protocol Design: Smaller and More Explicit Is Better
 
-Một giao thức IPC nên có những trường và quy tắc tường minh:
+An IPC protocol should have explicit fields and rules:
 
-- **Version:** `protocolVersion` hoặc loại message có thể nâng cấp có kiểm soát.
-- **Request ID:** ghép request với response, nhất là khi concurrency hoặc retry.
-- **Operation:** allowlist các lệnh như `ECHO`, `CALCULATE`, `TRANSFORM`; không cho worker nhận lệnh shell tùy ý.
-- **Payload:** schema rõ, kiểu và kích thước tối đa; validation trước khi gửi và sau khi nhận.
-- **Status/error:** phân biệt thành công, lỗi nghiệp vụ, lỗi schema và lỗi worker.
-- **Framing:** cách tách các message, ví dụ newline-delimited JSON hoặc length-prefixed frames.
-- **Deadline/cancellation:** timeout từng request; chiến lược kill/restart worker khi không phản hồi.
-- **Encoding:** UTF-8 và quy tắc escape, newline, null bytes.
-- **Backpressure:** bounded queue/giới hạn concurrent requests.
+- **Version:** `protocolVersion` or message types that can be upgraded safely.
+- **Request ID:** matches requests to responses, especially under concurrency or retries.
+- **Operation:** an allowlist of commands such as `ECHO`, `CALCULATE`, `TRANSFORM`; never let a worker accept arbitrary shell commands.
+- **Payload:** clear schema, types, and maximum sizes; validate both before sending and after receiving.
+- **Status/error:** distinguish success, business errors, schema errors, and worker failures.
+- **Framing:** how messages are delimited, e.g., newline-delimited JSON or length-prefixed frames.
+- **Deadline/cancellation:** per-request timeouts; strategy to kill/restart unresponsive workers.
+- **Encoding:** UTF-8 and rules for escaping, newlines, and null bytes.
+- **Backpressure:** bounded queues / limits on concurrent requests.
 
-Ví dụ JSON Lines có thể là:
+A JSON Lines example might look like:
 
 ```json
 {"version":1,"requestId":"r-123","op":"ECHO","payload":{"text":"hello"}}
 {"version":1,"requestId":"r-123","ok":true,"result":{"text":"hello"}}
 ```
 
-Đây là **hai message riêng**, không phải một JSON object: request từ host và response từ worker. Nếu dùng JSON Lines, payload chứa ký tự xuống dòng phải được escape bên trong JSON, không được tự ghép raw newline. Với production, nên dùng JSON parser/schema validator đáng tin thay vì phân tích JSON bằng `split` hoặc regex.
+These are **two separate messages**, not one JSON object: a request from the host and a response from the worker. When using JSON Lines, payloads containing newline characters must be escaped inside JSON, never concatenated with raw newlines. For production, use a reliable JSON parser/schema validator rather than parsing JSON with `split` or regex.
 
-### Vì sao cần version?
+### Why Is Versioning Needed?
 
-Worker cũ có thể hiểu trường `payload.text` nhưng không hiểu `payload.encoding`. Nếu host gửi schema mới mà không negotiation, worker có thể xử lý sai dữ liệu thay vì từ chối. Quy tắc tốt là fail closed khi `version` không được hỗ trợ, hoặc xác định rõ trường nào optional và backward-compatible.
+An older worker might understand `payload.text` but not `payload.encoding`. If the host sends a new schema without negotiation, the worker could misprocess data instead of rejecting it. A good rule is failing closed when `version` is unsupported, or explicitly specifying which fields are optional and backward-compatible.
 
-## 4. Demo Java 17+ runnable: hai JVM, giao thức dòng tối giản
+## 4. Runnable Java 17+ Demo: Two JVMs, Minimal Line Protocol
 
-Ví dụ này chủ ý dùng **giao thức text một dòng** (`PING`/`ECHO`/`QUIT`) để chạy chỉ với Java SE, không cần JSON library. Nó minh họa process boundary và tương tác qua stdin/stdout, **không phải sandbox bảo mật hoàn chỉnh**. Phiên bản production nên thay bằng schema có version/request ID, framing và codec thực thụ.
+This example intentionally uses a **single-line text protocol** (`PING`/`ECHO`/`QUIT`) so it runs with Java SE alone and requires no JSON library. It illustrates a process boundary and stdin/stdout communication, **not a complete security sandbox**. A production version should replace this with a schema featuring versions/request IDs, framing, and a real codec.
 
-File `WorkerMain.java` chạy trong tiến trình con:
+File `WorkerMain.java` runs in the child process:
 
 ```java
 import java.io.BufferedReader;
@@ -104,7 +104,7 @@ public final class WorkerMain {
 }
 ```
 
-File `HostMain.java` khởi tạo một JVM khác, gửi request và chờ response:
+File `HostMain.java` spawns another JVM, sends requests, and waits for responses:
 
 ```java
 import java.io.BufferedReader;
@@ -160,7 +160,7 @@ public final class HostMain {
 }
 ```
 
-Chạy cả hai file trong cùng thư mục trên JDK 17+:
+Run both files in the same directory on JDK 17+:
 
 ```bash
 javac --release 17 WorkerMain.java HostMain.java
@@ -175,127 +175,127 @@ ECHO:hello -> OK:hello
 QUIT -> OK:BYE
 ```
 
-Giải thích: `ProcessBuilder` khởi chạy một JVM khác; host ghi UTF-8 vào stdin và nhận một dòng từ stdout. Mỗi response có timeout 3 giây. `QUIT` kết thúc worker; host kiểm tra exit code. Để tối giản, request được gửi tuần tự, chỉ một request outstanding, không có request ID; vì thế **không thể** dùng demo này nguyên trạng cho concurrency nhiều request.
+Explanation: `ProcessBuilder` launches a second JVM; the host writes UTF-8 to stdin and reads one line from stdout. Each response has a 3-second timeout. `QUIT` terminates the worker; the host checks the exit code. For simplicity, requests are sent sequentially, only one request is in flight, and there are no request IDs; therefore, you **cannot** use this demo as-is for multi-request concurrency.
 
-**Giới hạn demo:** reader task nếu đã kẹt ở `readLine()` và timed out sẽ được giải quyết bằng việc hủy/đóng process streams khi process bị kill; trong môi trường production nên thiết kế một reader loop độc lập và bounded queue để quản lý cancellation chắc chắn. Demo cũng chạy worker cùng tài khoản OS và không tạo sandbox: muốn dùng với mã chưa tin cậy, phải launch nó trong môi trường bị hạn chế quyền.
+**Demo limitations:** if the reader task is blocked in `readLine()` and times out, it is unblocked by cancelling/closing the process streams when the process is killed; in production, design an independent reader loop and bounded queues to manage cancellation reliably. The demo also runs the worker under the same OS account without sandboxing: to use it with untrusted code, you must launch it inside a privilege-restricted environment.
 
-## 5. Vì sao không trộn stderr vào stdout?
+## 5. Why Not Mix stderr into stdout?
 
-Nếu stdout là kênh protocol, mọi dòng log từ worker ghi vào stdout có thể bị hiểu nhầm thành response, phá framing. Cần quy ước:
+If stdout is the protocol channel, any log line written by the worker to stdout can be misinterpreted as a response, breaking framing. Enforce the convention:
 
-- **stdout**: chỉ protocol messages.
-- **stderr**: diagnostics/log, có giới hạn dung lượng và chính sách redaction.
-- Nếu stdout dùng binary frames, không ghi bất kỳ text tùy tiện nào vào stream này.
+- **stdout**: protocol messages only.
+- **stderr**: diagnostics/logs, with volume limits and a redaction policy.
+- If stdout carries binary frames, never write arbitrary text to this stream.
 
-`redirectErrorStream(true)` thuận tiện cho chạy shell đơn giản nhưng **không nên** dùng với protocol chỉ dựa trên stdout, vì stderr sẽ trộn vào response. Demo dùng `.redirectError(INHERIT)` để tránh đụng protocol; production có thể capture stderr riêng trong buffer giới hạn và gửi sang logging pipeline.
+`redirectErrorStream(true)` is convenient for simple shell invocations, but should **not** be used with a protocol relying on stdout, as stderr will mingle into responses. The demo uses `.redirectError(INHERIT)` to avoid touching the protocol; production systems can capture stderr separately into a bounded buffer and forward it to a logging pipeline.
 
-## 6. Timeout, cancellation, retries và process lifecycle
+## 6. Timeouts, Cancellation, Retries, and Process Lifecycle
 
-Process có thể treo do deadlock, vòng lặp vô tận, chờ I/O, garbage collection hoặc mã độc cố tình không phản hồi. Một protocol an toàn cần hai timeout riêng:
+A process can hang due to deadlocks, infinite loops, I/O waits, garbage collection, or malicious code intentionally withholding responses. A safe protocol needs two separate timeouts:
 
-1. **Request deadline:** tối đa bao lâu chờ một response.
-2. **Shutdown deadline:** tối đa bao lâu đợi worker thoát sau lệnh dừng.
+1. **Request deadline:** maximum time to wait for a response.
+2. **Shutdown deadline:** maximum time to wait for the worker to exit after a stop command.
 
-Khi timeout:
+On timeout:
 
-- Đánh dấu request thất bại; đừng nhận response muộn như response của request mới.
-- Gửi cancellation nếu protocol hỗ trợ; nếu không đáng tin hoặc hết deadline, kill process.
-- Reap/cleanup process, đóng input/output streams, hủy reader/writer tasks.
-- Nếu worker giữ state, xác định có thể retry an toàn hay không; request có side effect cần idempotency key hoặc transaction ID.
-- Circuit breaker có thể tạm dừng gửi tới plugin đang lỗi liên tục, nhưng phải có recovery policy.
+- Mark the request as failed; never accept a late response as the response to a new request.
+- Send a cancellation if supported by the protocol; if untrusted or past the deadline, kill the process.
+- Reap/clean up the process, close input/output streams, and cancel reader/writer tasks.
+- If the worker holds state, determine whether retrying is safe; requests with side effects need idempotency keys or transaction IDs.
+- A circuit breaker can pause dispatching to a repeatedly failing plugin, paired with a recovery policy.
 
-Quyết định retry phải dựa trên semantics. `ECHO` là tác vụ không side effect, dễ retry; `TRANSFER_FUNDS` có thể cần deduplication và exactly-once *business semantics* thông qua durable storage, không thể chỉ retry sau timeout.
+Retry decisions must rest on semantics. `ECHO` has no side effects and is easy to retry; `TRANSFER_FUNDS` may require deduplication and exactly-once *business semantics* backed by durable storage rather than blindly retrying after a timeout.
 
-### Khi worker crash giữa request
+### When a Worker Crashes Mid-Request
 
-Host cần phân biệt EOF, broken pipe, nonzero exit code, protocol violation và timeout. Một EOF không chứng minh tác vụ đã hoàn tất hay rollback: nếu worker đã ghi dữ liệu bên ngoài trước khi crash, trạng thái có thể không xác định. Contract phải định nghĩa kết quả `UNKNOWN`/reconciliation cho operation có side effects.
+The host must distinguish EOF, broken pipes, nonzero exit codes, protocol violations, and timeouts. An EOF does not prove whether a task completed or rolled back: if the worker already wrote external data before crashing, state may be indeterminate. The contract must define an `UNKNOWN` outcome / reconciliation path for operations with side effects.
 
-## 7. Kiểm tra input/output, message size và framing
+## 7. Validating Inputs/Outputs, Message Sizes, and Framing
 
-Với JSON Lines, mỗi dòng là một JSON document. Cần giới hạn kích thước trước khi parse: `BufferedReader.readLine()` không áp giới hạn bytes mặc định, nên nếu worker cố ý gửi dòng cực lớn, host có thể tiêu tốn bộ nhớ. Với length-prefixed binary protocol, giới hạn frame length trước khi cấp phát buffer.
+With JSON Lines, each line is one JSON document. Enforce size limits before parsing: `BufferedReader.readLine()` imposes no default byte cap, so if a worker intentionally sends a massive line, the host can exhaust memory. With length-prefixed binary protocols, validate frame length before allocating buffers.
 
-Thiết lập ít nhất:
+Establish at least:
 
-| Hạng mục | Quy tắc ví dụ |
+| Item | Example rule |
 | --- | --- |
-| Protocol version | Từ chối version lạ |
-| Request ID | Unique trong session, không tái sử dụng khi còn pending |
-| Operation | Allowlist enum, không thực thi raw shell expression |
-| Payload | Schema validation và byte limit |
-| Response | Parse nghiêm ngặt, kiểm tra ID, status và size |
-| Deadlines | Per-request timeout và shutdown timeout |
-| Concurrency | Bounded inflight requests và queue length |
-| Encoding | UTF-8, escaping phù hợp cho JSON |
-| Logging | stderr riêng, không chứa secret không cần thiết |
+| Protocol version | Reject unknown versions |
+| Request ID | Unique within session; never reused while still pending |
+| Operation | Allowlisted enum; never execute raw shell expressions |
+| Payload | Schema validation and byte limit |
+| Response | Strict parsing; verify ID, status, and size |
+| Deadlines | Per-request timeout and shutdown timeout |
+| Concurrency | Bounded in-flight requests and queue length |
+| Encoding | UTF-8, proper escaping for JSON |
+| Logging | Dedicated stderr, free of unnecessary secrets |
 
-Đừng dùng `ObjectInputStream` Java serialization như một lựa chọn IPC mặc định với dữ liệu không tin cậy: deserialization có rủi ro gadget/object graph và coupling chặt class versions. JSON/Protobuf/CBOR với schema và validator rõ ràng thường dễ kiểm soát hơn; vẫn phải cấu hình parser an toàn, giới hạn nesting/size và kiểm tra trường bắt buộc.
+Do not use Java serialization (`ObjectInputStream`) as a default IPC choice for untrusted data: deserialization carries gadget/object-graph risks and tight coupling to class versions. JSON/Protobuf/CBOR with explicit schemas and validators are usually easier to control; you must still configure parsers safely, cap nesting/sizes, and validate required fields.
 
-## 8. Thỏa thuận phiên bản và capability
+## 8. Version and Capability Negotiation
 
-Host cần biết worker nói protocol nào trước khi gửi yêu cầu nghiệp vụ. Có thể mở đầu với handshake:
+The host needs to know which protocol the worker speaks before sending business requests. You can open with a handshake:
 
 ```json
 {"version":1,"requestId":"init-1","op":"HELLO","payload":{"supportedVersions":[1]}}
 {"version":1,"requestId":"init-1","ok":true,"result":{"selectedVersion":1,"capabilities":["ECHO"]}}
 ```
 
-Nếu không có version giao nhau hoặc thiếu capability bắt buộc, **không kích hoạt worker**. Cần phân biệt protocol version (định dạng và semantics IPC) với phiên bản plugin implementation hoặc contract nghiệp vụ.
+If there is no overlapping version or a required capability is missing, **do not activate the worker**. Distinguish protocol version (IPC format and semantics) from plugin implementation version or business contract version.
 
-Không để worker tự ý yêu cầu host mở file/URL bất kỳ: nếu protocol có operation `READ_FILE`, host phải kiểm tra allowlist/path canonicalization/quyền trên từng request và không cấp quyền rộng hơn cần thiết. Khi worker là bên nhận request từ host, host cũng cần xác thực responses và không tin metadata worker tự khai.
+Never let a worker arbitrarily ask the host to open any file/URL: if the protocol includes an operation like `READ_FILE`, the host must check allowlists, path canonicalization, and permissions on every request and grant no broader rights than needed. When the worker receives requests from the host, the host must likewise validate responses and never trust self-reported worker metadata.
 
-## 9. Một số kiến trúc IPC và lựa chọn
+## 9. IPC Architectures and Choices
 
-| Phương án | Phù hợp | Rủi ro cần quản lý |
+| Option | Best suited for | Risks to manage |
 | --- | --- | --- |
-| stdin/stdout | Worker cục bộ, startup đơn giản | Framing, backpressure, stderr isolation, reader threads |
-| Unix domain socket / named pipe | IPC máy cục bộ, nhiều request | Filesystem/pipe permissions, authentication |
-| HTTP/gRPC loopback | API rõ và hỗ trợ tooling tốt | Bind address, mTLS/token auth, port leakage, timeouts |
-| Message queue | Worker phân tán, retry/durability | Duplicate delivery, idempotency, ordering, poison messages |
+| stdin/stdout | Local workers, simple startup | Framing, backpressure, stderr isolation, reader threads |
+| Unix domain socket / named pipe | Local-machine IPC, multiple requests | Filesystem/pipe permissions, authentication |
+| Loopback HTTP/gRPC | Clear APIs and strong tooling support | Bind address, mTLS/token auth, port leakage, timeouts |
+| Message queue | Distributed workers, retries/durability | Duplicate delivery, idempotency, ordering, poison messages |
 
-Không có transport nào tự giải quyết trust boundary. Lựa chọn dựa trên latency, nhu cầu concurrency, portability, auth và operational complexity.
+No transport solves the trust boundary on its own. Choose based on latency, concurrency needs, portability, authentication, and operational complexity.
 
-## 10. Kiểm thử hợp đồng và kiểm thử phá hoại
+## 10. Contract Testing and Destructive Testing
 
-Những test nên có trước khi chạy mã chưa tin cậy:
+Tests to have before running untrusted code:
 
-- **Happy path:** request/response đúng schema, version, ID và kết quả.
-- **Malformed frame:** worker gửi JSON lỗi, trường thiếu, version sai, ID không khớp.
-- **Large payload/output:** vượt byte limits, nesting sâu, output spam.
-- **Timeout/hang:** worker không trả lời; host kill và cleanup đúng deadline.
-- **Crash:** worker exit nonzero hoặc chết giữa message.
-- **Concurrency:** nhiều request cùng lúc không bị ghép nhầm response.
-- **Retry/idempotency:** timeout sau side effect không tạo thao tác kép.
-- **Permission test:** worker không đọc được secret path, không mở egress bị cấm.
-- **Resource quota:** worker tiêu CPU/memory vượt mức bị hạn chế.
-- **Restart/reload:** worker version khác được handshake lại; process cũ được drain.
+- **Happy path:** requests/responses match schema, version, ID, and expected results.
+- **Malformed frames:** worker sends invalid JSON, missing fields, wrong version, mismatched ID.
+- **Large payloads/outputs:** exceeding byte limits, deep nesting, output spam.
+- **Timeouts/hangs:** worker stops responding; host kills and cleans up on deadline.
+- **Crashes:** worker exits nonzero or dies mid-message.
+- **Concurrency:** multiple simultaneous requests never cross-match responses.
+- **Retries/idempotency:** timeout after a side effect does not duplicate actions.
+- **Permission tests:** worker cannot read secret paths or open forbidden egress.
+- **Resource quotas:** worker exceeding CPU/memory limits is throttled or killed.
+- **Restarts/reloads:** a different worker version re-handshakes cleanly; old processes drain.
 
-Kiểm thử quyền trong **môi trường triển khai thực tế**, không chỉ unit test Java. Một policy container bị cấu hình sai có thể khiến worker vẫn đọc được filesystem của host dù protocol được viết đúng.
+Test permissions in the **actual deployment environment**, not only in Java unit tests. A misconfigured container policy can let a worker read the host filesystem even when the protocol is coded flawlessly.
 
-## 11. Những lỗi thiết kế thường gặp
+## 11. Common Design Mistakes
 
-| Sai lầm | Hệ quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Coi `ClassLoader` là sandbox | Code vẫn dùng quyền tiến trình | Tách process và áp OS isolation |
-| Coi `ProcessBuilder` tự giới hạn quyền | Worker chạy cùng user và quyền | Restricted OS identity/container policy |
-| Dùng stdout cho cả log và protocol | Parsing nhầm response | Tách stderr, framing chặt |
-| Không giới hạn message length | OOM từ payload/output lớn | Bounded decoding |
-| Không có request ID/version | Nhầm response, khó nâng giao thức | Handshake và correlation |
-| Retry mọi request sau timeout | Lặp side effects | Idempotency keys và reconciliation |
-| Dùng Java object deserialization mặc định | Rủi ro bảo mật và coupling | Codec/schema validation |
-| Không kill process bị treo | Rò rỉ tài nguyên và queue | Deadlines và process-tree cleanup |
-| Tin kết quả worker không kiểm chứng | Injection/data corruption | Validate output và authorization |
+| Treating `ClassLoader` as a sandbox | Code still uses process privileges | Separate processes and apply OS isolation |
+| Assuming `ProcessBuilder` restricts privileges automatically | Worker runs under the same user and rights | Restricted OS identity / container policy |
+| Using stdout for both logs and protocol | Mis-parsed responses | Separate stderr, strict framing |
+| Unbounded message lengths | OOM from oversized payloads/outputs | Bounded decoding |
+| Missing request ID/version | Mismatched responses, hard protocol upgrades | Handshake and correlation |
+| Retrying every request after timeout | Repeated side effects | Idempotency keys and reconciliation |
+| Using default Java object deserialization | Security risks and tight coupling | Explicit codec/schema validation |
+| Failing to kill hung processes | Resource leaks and backed-up queues | Deadlines and process-tree cleanup |
+| Trusting worker results unverified | Injection / data corruption | Output validation and authorization |
 
-## 12. Checklist triển khai
+## 12. Implementation Checklist
 
-- [ ] Đặt mã không tin cậy trong process/container/VM với quyền tối thiểu.
-- [ ] Giới hạn CPU, RAM, file/network/process resources của worker.
-- [ ] Định nghĩa protocol version, request ID, operations, schema và framing.
-- [ ] Giới hạn input/output bytes, depth, concurrency và queue.
-- [ ] Dùng stdout riêng cho protocol và stderr cho logs.
-- [ ] Áp timeout, cancellation, kill/restart và process cleanup.
-- [ ] Xác thực mọi response, không nhận raw data làm command đặc quyền.
-- [ ] Thỏa thuận capability trước khi route request.
-- [ ] Thiết kế retry dựa trên idempotency, phân biệt UNKNOWN outcome.
-- [ ] Test crash, malformed output, hang, quota, permission denial.
+- [ ] Place untrusted code in a process/container/VM with minimal privileges.
+- [ ] Cap worker CPU, RAM, file/network/process resources.
+- [ ] Define protocol version, request ID, operations, schema, and framing.
+- [ ] Enforce limits on input/output bytes, depth, concurrency, and queues.
+- [ ] Dedicate stdout to protocol messages and stderr to logs.
+- [ ] Enforce timeouts, cancellation, kill/restart, and process cleanup.
+- [ ] Validate all responses; never treat raw data as privileged commands.
+- [ ] Negotiate capabilities before routing requests.
+- [ ] Design retries around idempotency and distinguish `UNKNOWN` outcomes.
+- [ ] Test crashes, malformed outputs, hangs, quotas, and permission denials.
 
-**Kết luận:** tách plugin không tin cậy sang JVM/process riêng là bước cần thiết để tạo ranh giới lỗi và cơ hội áp quyền OS. Muốn trở thành giải pháp an toàn, cần **sandbox ở cấp OS/container** và **giao thức IPC nhỏ, có version, schema, framing, deadline, validation và error handling rõ ràng**. Không một classloader hoặc giao thức text đơn giản nào tự bảo đảm an toàn cho mã không tin cậy.
+**Conclusion:** Moving an untrusted plugin into a separate JVM/process is a necessary step to establish a fault boundary and enable OS privilege enforcement. To become a true security solution, it requires **OS/container-level sandboxing** alongside a **small, versioned IPC protocol with clear schemas, framing, deadlines, validation, and error handling**. Neither a class loader nor a simple text protocol guarantees safety for untrusted code on its own.

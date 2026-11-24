@@ -1,17 +1,17 @@
-# 12.5 Phân biệt mật khẩu kho với thông tin bảo vệ từng khóa
+# 12.5 Distinguishing Store Password from Per-Key Entry Protection
 
-Trong Java, `KeyStore` có thể chứa **private key**, **secret key** và **trusted certificate**. Khi dùng một file `.p12`, `.pfx` hoặc `.jks`, lập trình viên thường gặp hai giá trị trông như nhau nhưng có **vai trò khác nhau**:
+In Java, a `KeyStore` can contain **private keys**, **secret keys**, and **trusted certificates**. When working with a `.p12`, `.pfx`, or `.jks` file, developers frequently encounter two values that look identical yet serve **distinct roles**:
 
-1. **Mật khẩu kho (keystore password, store password, thường gọi `storepass`):** được cung cấp khi **nạp/lưu kho**, thường dùng để kiểm tra tính toàn vẹn của dữ liệu kho và, tùy định dạng/provider, bảo vệ các phần nội dung của kho.
-2. **Thông tin bảo vệ từng khóa (entry/key protection, thường là `keypass`):** được cung cấp khi **đọc/ghi một key entry cụ thể**; nó có thể là một mật khẩu riêng, hoặc một loại `ProtectionParameter` khác như callback/PIN/provider-specific mechanism.
+1. **Keystore password (store password, commonly called `storepass`):** supplied when **loading/storing the store**, typically used to verify integrity of the store data and, depending on format/provider, protect portions of the store's contents.
+2. **Per-key protection (entry/key protection, commonly `keypass`):** supplied when **reading/writing a specific key entry**; it can be a separate password, or another `ProtectionParameter` type such as a callback/PIN/provider-specific mechanism.
 
-Hai giá trị này **có thể bằng nhau trong một cấu hình**, nhưng **không nên mặc định là một khái niệm**. Có thể mở được keystore, nhìn thấy alias và certificate, nhưng vẫn **không lấy được private/secret key** do thông tin bảo vệ key entry không đúng. Ngược lại, biết key password mà không có đường truy cập hợp lệ vào kho không đồng nghĩa đã mở được file keystore.
+These two values **can be identical in a given configuration**, yet **should not be conflated as a single concept**. It is possible to open a keystore, inspect aliases and certificates, and still **fail to retrieve a private/secret key** because the key entry's protection credential is wrong. Conversely, knowing a key password without valid access to the store does not mean the keystore file can be opened.
 
-Mục tiêu bài: hiểu hai lớp bảo vệ; chọn đúng tham số trong `KeyStore.load/store`, `getKey/setKeyEntry`, `getEntry/setEntry`; phân biệt **JKS, PKCS12, truststore và HSM/PKCS11**; xử lý lỗi đăng nhập TLS/Java; và thiết kế quản lý mật khẩu, xoay vòng, backup một cách an toàn. Các ví dụ dùng Java 17+.
+Lesson goals: understand the two protection layers; select the right parameters in `KeyStore.load/store`, `getKey/setKeyEntry`, and `getEntry/setEntry`; distinguish **JKS, PKCS12, truststores, and HSM/PKCS11**; troubleshoot Java/TLS login errors; and design secure password management, rotation, and backups. Examples target Java 17+.
 
-## 1. Mô hình tư duy: chiếc kho và các vật được cất
+## 1. Mental Model: The Store and the Items Inside
 
-Hãy tưởng tượng một keystore là một **chiếc hộp có danh mục**. Mật khẩu kho giống một cơ chế kiểm tra/mở hộp; một số vật quan trọng bên trong có thể có **mật khẩu bảo vệ riêng**. Đây chỉ là phép so sánh để nhớ **phạm vi thao tác**; mức bảo vệ mật mã thực tế phụ thuộc vào **keystore type, provider, cách cài đặt và file permissions**.
+Imagine a keystore as a **cataloged safe**. The store password acts like a mechanism to verify/open the safe; certain sensitive items inside can carry **their own protection passwords**. This is solely an analogy to remember **operational scope**; actual cryptographic protection depends on **keystore type, provider, implementation, and file permissions**.
 
 ```text
                     Java KeyStore
@@ -32,51 +32,51 @@ Hãy tưởng tượng một keystore là một **chiếc hộp có danh mục**
    keypass-A      keypass-B
 ```
 
-Bên trong cùng một `KeyStore` có thể có nhiều **alias** (tên định danh entry). Nhưng **alias không phải mật khẩu**, không phải cơ chế phân quyền và không tự mang theo tính bí mật. Việc biết tên `app-private` không cấp quyền lấy private key. Mỗi alias trỏ đến một entry thuộc kiểu cụ thể; ứng dụng phải kiểm tra kiểu và dùng đúng protection khi thao tác.
+Inside a single `KeyStore`, there can be many **aliases** (entry identifiers). However, **an alias is not a password**, not an access-control mechanism, and carries no inherent secrecy. Knowing the name `app-private` grants no right to extract the private key. Each alias points to an entry of a specific type; the application must check the type and supply the right protection when accessing it.
 
-### 1.1. Hai câu hỏi riêng
+### 1.1. Two Separate Questions
 
-- **Tôi có thể nạp kho và kiểm tra dữ liệu kho có nguyên vẹn không?** → thường liên quan **store password** trong `KeyStore.load(input, storePassword)`.
-- **Tôi có thể khôi phục hoặc sử dụng khóa dưới alias này không?** → liên quan **entry protection** trong `getKey(alias, keyPassword)` hoặc `getEntry(alias, protection)`.
+- **Can I load the store and verify that the store data is intact?** → typically involves the **store password** in `KeyStore.load(input, storePassword)`.
+- **Can I recover or use the key under this alias?** → involves **entry protection** in `getKey(alias, keyPassword)` or `getEntry(alias, protection)`.
 
-Trả lời “có” cho câu thứ nhất **không tự động** trả lời “có” cho câu thứ hai.
+Answering "yes" to the first question **does not automatically** mean "yes" to the second.
 
-### 1.2. Lưu ý về cơ chế bảo vệ thực tế
+### 1.2. Notes on Actual Protection Mechanisms
 
-Không được giải thích đơn giản rằng mọi keystore “dùng store password để mã hóa toàn bộ file và key password để mã hóa từng entry”. Điều đó **không đúng cho mọi định dạng/provider**.
+Never oversimplify by claiming every keystore "uses the store password to encrypt the entire file and the key password to encrypt each entry". That is **false across formats/providers**.
 
-- **JKS truyền thống:** store password chủ yếu dùng để kiểm tra tính toàn vẹn; các private key entry có cơ chế bảo vệ riêng của format. JKS là định dạng legacy, không nên dùng làm lựa chọn bảo mật mới chỉ vì nó cho phép đặt hai mật khẩu khác nhau.
-- **PKCS12:** có cơ chế PBE/MAC bảo vệ nội dung kho/các bag theo cấu hình; chi tiết thuật toán và cách dùng mật khẩu tùy implementation. Nhiều công cụ/ứng dụng yêu cầu hoặc giả định **storepass = keypass** cho tương thích.
-- **PKCS11/HSM:** “keystore password” có thể đóng vai trò PIN/đăng nhập token; khóa có thể **không xuất được**, entry protection không nhất thiết là một chuỗi mật khẩu dùng cho `getEncoded()`.
-- **Keystore không có password hoặc load với `null`:** hành vi xác minh toàn vẹn/bảo vệ khác nhau theo provider. Không coi khả năng đọc alias hoặc certificate là bằng chứng đã kiểm tra integrity.
+- **Traditional JKS:** the store password primarily verifies integrity; private key entries use the format's own protection mechanism. JKS is a legacy format and should not be chosen as a modern security option just because it allows two distinct passwords.
+- **PKCS12:** uses PBE/MAC mechanisms to protect store contents/bags per configuration; exact algorithms and password usage depend on the implementation. Many tools/apps require or assume **storepass = keypass** for compatibility.
+- **PKCS11/HSM:** the "keystore password" can act as a token PIN/login; keys may be **non-exportable**, and entry protection is not necessarily a password string usable for `getEncoded()`.
+- **Keystores without a password or loaded with `null`:** integrity verification and protection behavior vary by provider. Never treat the ability to read aliases or certificates as proof that integrity was verified.
 
-## 2. Những entry nào được KeyStore quản lý?
+## 2. Which Entries Does KeyStore Manage?
 
-Java `java.security.KeyStore` có các entry quan trọng:
+Java's `java.security.KeyStore` has these primary entries:
 
-| Entry | Chứa gì? | Có secret/private không? | Thông tin bảo vệ ở mức entry |
+| Entry | What does it contain? | Contains secret/private material? | Entry-level protection |
 | --- | --- | --- | --- |
-| `KeyStore.PrivateKeyEntry` | Private key và chuỗi certificate tương ứng | **Có** — private key | Thường được bảo vệ bằng password/PIN/key handle tùy provider |
-| `KeyStore.SecretKeyEntry` | Khóa đối xứng, ví dụ AES hoặc HMAC key | **Có** — secret key | Thường có entry protection; hỗ trợ tùy keystore type |
-| `KeyStore.TrustedCertificateEntry` | Certificate mà ứng dụng đánh dấu tin cậy | **Không có private/secret key** | Không có “mật khẩu riêng của khóa bí mật” vì không chứa private key |
-| Certificate chain gắn với `PrivateKeyEntry` | Certificate public mô tả khóa/danh tính | Certificate là thông tin công khai, **không phải private key** | Có thể đọc certificate qua API mà không khôi phục private key |
+| `KeyStore.PrivateKeyEntry` | Private key and matching certificate chain | **Yes** — private key | Usually protected by password/PIN/key handle per provider |
+| `KeyStore.SecretKeyEntry` | Symmetric key, e.g., AES or HMAC key | **Yes** — secret key | Usually has entry protection; support varies by keystore type |
+| `KeyStore.TrustedCertificateEntry` | Certificate marked as trusted by the application | **No private/secret key** | Has no "secret key password" because no private key is present |
+| Certificate chain attached to `PrivateKeyEntry` | Public certificates describing key/identity | Certificates are public data, **not private keys** | Certificates can be read via API without recovering the private key |
 
-Trong Java có các phương thức:
+Java provides these methods:
 
-- `keyStore.isKeyEntry(alias)`: entry có chứa **khóa** (private/secret), không kết luận ứng dụng đã mở được khóa.
-- `keyStore.isCertificateEntry(alias)`: entry certificate tin cậy độc lập; **khác** certificate chain của `PrivateKeyEntry`.
-- `keyStore.getCertificate(alias)`, `getCertificateChain(alias)`: phục vụ phần **certificate/public data**; không phải API lấy private key.
-- `keyStore.getKey(alias, keyPassword)`: yêu cầu khôi phục một key theo alias và password đúng của entry/provider.
-- `keyStore.getEntry(alias, protection)`: lấy entry dưới một `ProtectionParameter` phù hợp.
-- `keyStore.aliases()`: liệt kê alias, không giải mã toàn bộ private key bên trong.
+- `keyStore.isKeyEntry(alias)`: whether the entry holds a **key** (private/secret), without confirming the app can unlock it.
+- `keyStore.isCertificateEntry(alias)`: standalone trusted certificate entry; **distinct** from a `PrivateKeyEntry`'s certificate chain.
+- `keyStore.getCertificate(alias)`, `getCertificateChain(alias)`: for **certificate/public data**; not an API to retrieve private keys.
+- `keyStore.getKey(alias, keyPassword)`: requests recovering a key by alias and the entry/provider's password.
+- `keyStore.getEntry(alias, protection)`: retrieves an entry under an appropriate `ProtectionParameter`.
+- `keyStore.aliases()`: enumerates aliases without decrypting every private key inside.
 
-**Truststore** thường là một `KeyStore` được dùng để giữ **trusted certificates** cho quá trình kiểm tra chuỗi chứng chỉ của peer. Nó khác **identity keystore** chứa private key + certificate chain của chính ứng dụng. Sự khác biệt do **vai trò và nội dung**, không phải do class Java riêng; cả hai có thể dùng PKCS12.
+A **truststore** is typically a `KeyStore` used to hold **trusted certificates** for verifying a peer's certificate chain. It differs from an **identity keystore** containing the application's own private key + certificate chain. The distinction lies in **role and contents**, not a separate Java class; both can use PKCS12.
 
-## 3. Mật khẩu kho (store password)
+## 3. Store Password
 
-### 3.1. API nạp kho: `load`
+### 3.1. Store Loading API: `load`
 
-Ví dụ với file PKCS12:
+Example with a PKCS12 file:
 
 ```java
 KeyStore store = KeyStore.getInstance("PKCS12");
@@ -86,17 +86,17 @@ try (InputStream in = Files.newInputStream(Path.of("service.p12"))) {
 }
 ```
 
-Đây là **mã minh họa**, chưa phải chương trình hoàn chỉnh: `obtainStorePasswordSecurely()` phải được triển khai bằng secret manager hoặc cơ chế nhập bảo mật; các import nằm trong namespace `java.security`, `java.io` và `java.nio.file`.
+This is **illustrative code**, not a complete program: `obtainStorePasswordSecurely()` must be backed by a secret manager or secure input mechanism; imports belong to `java.security`, `java.io`, and `java.nio.file`.
 
-Ý nghĩa quan trọng:
+Key points:
 
-- `getInstance("PKCS12")` chọn **keystore type/provider**, chưa nạp file.
-- `load(in, storePassword)` đọc cấu trúc keystore, kiểm tra điều kiện load/integrity theo provider và mật khẩu được cung cấp. Nếu sai, thường thất bại với `IOException` hoặc exception phù hợp.
-- `storePassword` trong lời gọi `load` **không phải** password mà `getKey` mặc định sẽ dùng cho mọi private/secret key.
-- `load(null, password)` thường dùng để **tạo một kho rỗng mới**, không phải nạp file từ disk; trong ví dụ Java ở dưới chúng ta dùng cách này.
-- Java API cho phép password `null` ở một số tình huống; theo contract JCA, khi không cung cấp password, **không thực hiện kiểm tra toàn vẹn dựa trên password theo cách thông thường**. Provider cũng có thể có hành vi cụ thể về truy cập nội dung. **Không dùng `null` để né lỗi “sai storepass” trong production.**
+- `getInstance("PKCS12")` selects the **keystore type/provider**, without loading any file yet.
+- `load(in, storePassword)` parses the keystore structure and checks load/integrity conditions per provider and the supplied password. If wrong, it typically fails with `IOException` or an appropriate exception.
+- `storePassword` in `load` **is not** the password `getKey` will automatically assume for every private/secret key.
+- `load(null, password)` is typically used to **create a new empty store**, not to read a file from disk; we use this in the Java example below.
+- The Java API permits a `null` password in certain cases; per the JCA contract, when no password is supplied, **standard password-based integrity checks are skipped**. Providers may also have specific behaviors for reading contents. **Never pass `null` to bypass "wrong storepass" errors in production.**
 
-### 3.2. API ghi kho: `store`
+### 3.2. Store Writing API: `store`
 
 ```java
 try (OutputStream out = Files.newOutputStream(Path.of("service-new.p12"))) {
@@ -104,42 +104,42 @@ try (OutputStream out = Files.newOutputStream(Path.of("service-new.p12"))) {
 }
 ```
 
-Mã trên cũng chỉ minh họa; trong sản phẩm cần ghi file an toàn (tệp tạm, quyền file, atomic move nếu khả dụng), bảo vệ đường dẫn và backup. Tham số `storePassword` được dùng **khi lưu cấu trúc kho** theo format/provider; nó **không phải lệnh đổi mọi keypass**.
+This snippet is also illustrative; in production you need safe file writing (temp file, file permissions, atomic move if available), path protection, and backups. The `storePassword` parameter is used **when writing the store structure** per format/provider; it is **not a command to change every keypass**.
 
-**Quan trọng:** việc dùng mật khẩu mới khi lưu có thể thay đổi hình thức bảo vệ phần kho, nhưng bạn không thể giả định mọi entry trong mọi định dạng đều đã được **đổi password bảo vệ** theo đúng mong muốn. Quản lý migration/rotation phải được kiểm tra qua **lưu → nạp → recover từng entry** bằng thông tin mới/cũ tương ứng.
+**Important:** supplying a new password when saving may change store-level protection, yet you cannot assume every entry in every format has had its **entry protection password changed** as desired. Migration/rotation workflows must be tested via **store → load → recover each entry** using the corresponding new/old credentials.
 
-### 3.3. Mật khẩu kho là bảo vệ gì?
+### 3.3. What Does the Store Password Protect?
 
-Trong API JCA, tham số password của `load` được mô tả chủ yếu là để **kiểm tra tính toàn vẹn** của dữ liệu kho. Một số implementation, đặc biệt PKCS12, còn dùng password trong bảo vệ/encryption những phần dữ liệu theo thiết kế. Vì vậy, mô tả chính xác là:
+In the JCA API, the `load` password parameter is described primarily as verifying the **integrity** of the keystore data. Some implementations, notably PKCS12, also use the password in protecting/encrypting portions of the data by design. Thus, the accurate description is:
 
-> **Store password là thông tin bảo vệ/cấp quyền ở phạm vi kho theo định dạng và provider; không được suy ra rằng nó đồng nhất với mọi key entry password hoặc là cơ chế mã hóa toàn bộ nội dung file.**
+> **The store password is a store-scoped protection/access credential per format and provider; never infer that it is identical to every key entry password or that it encrypts the entire file contents.**
 
-Nếu bạn mở được danh sách alias bằng một công cụ nhưng không trích được key, đây có thể là hành vi hoàn toàn hợp lý. Ngược lại, không nên dựa vào “alias list hiện ra” làm bằng chứng rằng storepass đã được xác minh hoặc private key đã sẵn sàng.
+If you can list aliases with a tool yet cannot extract a key, that can be completely expected behavior. Conversely, never treat "the alias list showed up" as proof that the storepass was verified or that the private key is usable.
 
-## 4. Thông tin bảo vệ từng key entry
+## 4. Per-Key Entry Protection
 
-### 4.1. API cũ `setKeyEntry/getKey`
+### 4.1. Legacy `setKeyEntry/getKey` API
 
-Khi đặt một khóa vào kho, API có dạng:
+When placing a key into a store, the API looks like:
 
 ```java
-// Minh họa: secretKey/keystore đã được tạo đúng kiểu.
+// Illustrative: secretKey/keystore already created with appropriate types.
 keyStore.setKeyEntry("aes-key", secretKey, entryPassword, null);
 Key recovered = keyStore.getKey("aes-key", entryPassword);
 ```
 
-Đoạn mã này là minh họa; `setKeyEntry` hỗ trợ loại key/chain tùy provider. Với **`PrivateKey`**, cần certificate chain phù hợp trong những trường hợp lưu entry chứa private key, còn `SecretKey` không có chuỗi certificate như một TLS private key. Provider/format có thể không nhận `SecretKeyEntry` (ví dụ không áp dụng mẫu này cho JKS legacy chỉ vì class Java có `setKeyEntry`).
+This snippet is illustrative; `setKeyEntry` supports key/chain types depending on the provider. For a **`PrivateKey`**, an appropriate certificate chain is required when storing private-key entries, whereas a `SecretKey` has no certificate chain like a TLS private key. A provider/format may reject `SecretKeyEntry` (e.g., never apply this pattern to legacy JKS just because the Java class defines `setKeyEntry`).
 
-Tham số thứ ba `entryPassword` trong `setKeyEntry` có ý nghĩa bảo vệ **key entry cụ thể**. Khi đọc, `getKey(alias, entryPassword)` cần giá trị tương ứng (hoặc cơ chế mà provider yêu cầu).
+The third parameter `entryPassword` in `setKeyEntry` protects **that specific key entry**. When reading, `getKey(alias, entryPassword)` requires the matching value (or whatever mechanism the provider demands).
 
-Nếu alias không tồn tại hoặc không chứa key, kết quả có thể là `null` theo contract của phương thức; nếu mật khẩu để giải mã key không đúng, implementation thường báo `UnrecoverableKeyException`. **Không dùng một vòng lặp thử nhiều mật khẩu tùy ý để “cứu” entry**, dễ làm rộng quyền và tạo dấu hiệu lộ bí mật.
+If the alias does not exist or holds no key, the result can be `null` per the method's contract; if the password to decrypt the key is wrong, implementations typically throw `UnrecoverableKeyException`. **Never write a loop trying arbitrary passwords to "rescue" an entry**; that widens privilege exposure and creates secret-leak signals.
 
-### 4.2. API entry hiện đại `setEntry/getEntry`
+### 4.2. Modern Entry API: `setEntry/getEntry`
 
-Java dùng một abstraction rõ ràng hơn:
+Java provides a cleaner abstraction:
 
 ```java
-// Cần import java.security.KeyStore.
+// Requires importing java.security.KeyStore.
 KeyStore.ProtectionParameter protection =
         new KeyStore.PasswordProtection(entryPassword);
 
@@ -152,20 +152,20 @@ KeyStore.SecretKeyEntry entry = (KeyStore.SecretKeyEntry)
 SecretKey restored = entry.getSecretKey();
 ```
 
-Đây là trích đoạn minh họa, không phải chương trình độc lập. Trong code thật nên kiểm tra alias/type, xử lý exception và gọi `PasswordProtection.destroy()` khi dùng xong.
+This is an illustrative excerpt, not a standalone program. Real code should check aliases/types, handle exceptions, and call `PasswordProtection.destroy()` when finished.
 
-Các kiểu chính:
+Main parameter types:
 
-- **`KeyStore.PasswordProtection`:** giữ password bảo vệ entry; có `destroy()` để hủy thông tin trong object (theo khả năng implementation).
-- **`KeyStore.CallbackHandlerProtection`:** cho provider gọi callback để lấy credential/đăng nhập phù hợp; thường liên quan UI/token hoặc login flow đặc thù.
-- **`KeyStore.ProtectionParameter`:** interface chung để provider hỗ trợ hình thức bảo vệ khác nhau.
-- **`KeyStore.LoadStoreParameter`:** một loại tham số khác phục vụ nạp/lưu kho, không đồng nhất với `ProtectionParameter` của từng entry.
+- **`KeyStore.PasswordProtection`:** holds an entry-protection password; provides `destroy()` to clear credentials in the object (subject to implementation capabilities).
+- **`KeyStore.CallbackHandlerProtection`:** lets the provider invoke a callback to obtain credentials/logins; commonly associated with UIs/tokens or specialized login flows.
+- **`KeyStore.ProtectionParameter`:** common interface allowing providers to support varied protection mechanisms.
+- **`KeyStore.LoadStoreParameter`:** a distinct parameter type for loading/storing the store itself, not interchangeable with per-entry `ProtectionParameter`.
 
-Không phải mọi provider hỗ trợ mọi loại protection hoặc mọi entry type. API Java là **hợp đồng chung**, implementation quyết định các cơ chế có thể dùng.
+Not every provider supports every protection type or every entry type. The Java API is a **general contract**; the implementation decides which mechanisms are supported.
 
-### 4.3. Các mật khẩu có thể độc lập
+### 4.3. Passwords Can Be Independent
 
-Ví dụ keystore có ba bí mật logic:
+Consider a keystore with three logical secrets:
 
 ```text
 Keystore file: app-keys.p12
@@ -184,33 +184,33 @@ Alias "audit":
     entry protection = ENTRY_AUDIT
 ```
 
-Một hệ thống/provider hỗ trợ các password độc lập sẽ yêu cầu:
+A system/provider supporting independent passwords requires:
 
-- `load(file, STORE_P)` để nạp kho;
-- `getKey("finance", ENTRY_FINANCE)` để recover finance key;
-- `getKey("audit", ENTRY_AUDIT)` để recover audit key.
+- `load(file, STORE_P)` to load the store;
+- `getKey("finance", ENTRY_FINANCE)` to recover the finance key;
+- `getKey("audit", ENTRY_AUDIT)` to recover the audit key.
 
-`STORE_P` không tự mở khóa finance hoặc audit nếu hai entry được bảo vệ khác. `ENTRY_FINANCE` không được quyền mở audit chỉ vì cùng file. **Tuy nhiên**, nếu application đã nắm tất cả password, thì ranh giới phân quyền thực tế phụ thuộc cách application giữ credential, file access và provider — không phải bản thân tên alias.
+`STORE_P` does not automatically unlock finance or audit if those entries have distinct protections. `ENTRY_FINANCE` grants no right to unlock audit merely because they share a file. **However**, if an application already holds all passwords, the real privilege boundary depends on how the application holds credentials, file access, and the provider—not on alias names themselves.
 
-### 4.4. Cùng password cho store và key có sai không?
+### 4.4. Is Using the Same Password for Store and Key Wrong?
 
-**Không phải lỗi cú pháp**, nhưng làm giảm mức phân tách credential nếu thiết kế dựa vào hai lớp quyền độc lập. Trong thực tế **một số provider hoặc công cụ** chỉ hỗ trợ/đảm bảo tương thích khi **storepass = keypass** (đặc biệt một số quy trình PKCS12). Khi đó:
+**It is not a syntax error**, though it reduces credential separation if a design relies on two independent privilege layers. In practice, **some providers or tools** only support/guarantee compatibility when **storepass = keypass** (especially certain PKCS12 workflows). In that situation:
 
-- Hãy ghi rõ rằng ứng dụng đang dùng **cùng một credential cho hai vai trò**, không được mô tả chúng là hai bí mật độc lập.
-- Giới hạn truy cập file và secret, dùng workload identity/IAM, nguyên tắc quyền tối thiểu và rotation phù hợp.
-- Nếu cần tách quyền mạnh giữa nhiều khóa hoặc nhiều tenant, **đừng mặc định một file PKCS12 cộng nhiều mật khẩu là cơ chế isolation đủ mạnh**. Cân nhắc HSM/KMS/secret manager, phân tách keystore hoặc key handles/provider permission.
+- Explicitly document that the application uses **the same credential for two roles**, rather than describing them as two independent secrets.
+- Restrict access to files and secrets, and apply workload identity/IAM, least privilege, and proper rotation.
+- If strong isolation is required across keys or tenants, **do not assume one PKCS12 file with multiple passwords is a sufficient isolation boundary**. Consider HSM/KMS/secret managers, separate keystores, or key handles/provider permissions.
 
-## 5. Java 17+: chứng minh hai lớp bảo vệ bằng hai secret key độc lập
+## 5. Java 17+: Demonstrating Two Protection Layers with Two Independent Secret Keys
 
-Chương trình **KeyStoreProtectionDemo.java** sau tạo **PKCS12 in-memory**, thêm **hai AES key** bảo vệ bằng **hai entry password khác nhau**, rồi lưu cấu trúc kho bằng **store password thứ ba**. Khi load lại:
+The following program **`KeyStoreProtectionDemo.java`** creates an **in-memory PKCS12**, adds **two AES keys** protected by **two different entry passwords**, and stores the keystore using a **third store password**. On reload:
 
-- Store password đúng cho phép nạp kho.
-- Đúng entry password phục hồi đúng key.
-- Dùng store password để đọc entry có password khác sẽ thất bại.
-- Dùng password của finance để đọc audit sẽ thất bại.
-- Dùng store password sai để nạp file sẽ thất bại ở provider JDK của ví dụ.
+- The right store password allows loading the store.
+- Each right entry password recovers its corresponding key.
+- Using the store password to read an entry with a different password fails.
+- Using finance's password to read audit fails.
+- Using a wrong store password to load the bytes fails on the example JDK provider.
 
-**Chú ý:** Các password dạng literal trong bài là **giá trị demo cố ý**, không sử dụng trong production; trong phần mềm thật phải đọc từ secret manager/kênh bảo mật, tránh để trong source/historical commits. Mã không in raw password hoặc key material. JDK/provider có thể khác nhau; ví dụ đã được chạy trên JDK hỗ trợ `PKCS12` và Java API nêu dưới đây.
+**Note:** Literal passwords in this lesson are **intentional demo values**, never for production use; real software must load them from a secret manager/secure channel and avoid keeping them in source/commit history. The code prints no raw passwords or key material. JDKs/providers may vary; the example was tested on a JDK supporting `PKCS12` and the Java APIs below.
 
 ### 5.1. File `KeyStoreProtectionDemo.java`
 
@@ -232,14 +232,14 @@ public class KeyStoreProtectionDemo {
     }
 
     public static void main(String[] args) throws Exception {
-        // Demo only: không hardcode các password này trong sản phẩm.
+        // Demo only: never hardcode these passwords in production.
         char[] storePassword = "sample-store-phrase-01".toCharArray();
         char[] financePassword = "sample-finance-phrase-02".toCharArray();
         char[] auditPassword = "sample-audit-phrase-03".toCharArray();
 
         try {
             KeyStore created = KeyStore.getInstance("PKCS12");
-            created.load(null, storePassword); // Khởi tạo keystore rỗng.
+            created.load(null, storePassword); // Initialize an empty keystore.
 
             SecretKey financeKey = aesKey();
             SecretKey auditKey = aesKey();
@@ -301,7 +301,7 @@ public class KeyStoreProtectionDemo {
 
             Arrays.fill(blob, (byte) 0);
         } finally {
-            // Chỉ là dọn mảng tạm theo khả năng, không bảo đảm xóa mọi bản sao.
+            // Best-effort clearing of temporary arrays; does not guarantee erasing every copy.
             Arrays.fill(storePassword, '\0');
             Arrays.fill(financePassword, '\0');
             Arrays.fill(auditPassword, '\0');
@@ -310,14 +310,14 @@ public class KeyStoreProtectionDemo {
 }
 ```
 
-Biên dịch và chạy với **Java 17+**:
+Compile and run with **Java 17+**:
 
 ```bash
 javac -encoding UTF-8 KeyStoreProtectionDemo.java
 java KeyStoreProtectionDemo
 ```
 
-Stdout kỳ vọng ở provider PKCS12 phổ biến trên JDK (đã thực nghiệm, không phụ thuộc các byte khóa AES ngẫu nhiên):
+Expected stdout on common JDK PKCS12 providers (verified experimentally, independent of random AES key bytes):
 
 ```text
 store type: PKCS12
@@ -329,76 +329,76 @@ finance password cannot recover audit key: true
 wrong store password rejected: true
 ```
 
-### 5.2. Phân tích kết quả và giới hạn
+### 5.2. Analyzing Results and Limitations
 
-1. **`KeyStore.getInstance("PKCS12")`:** chọn kho chuẩn PKCS12. Không cần file thật vì dữ liệu được lưu vào `ByteArrayOutputStream` và nạp lại qua `ByteArrayInputStream`.
-2. **`created.load(null, storePassword)`:** khởi tạo kho mới. Mật khẩu kho được dùng khi `store` và `load` lại.
-3. **`setEntry`:** hai entry dùng `KeyStore.SecretKeyEntry` và các `PasswordProtection` **khác nhau**, không phải hai alias chỉ đổi tên.
-4. **`store(bytes, storePassword)`:** xuất kho dưới định dạng PKCS12. Không thấy finance/audit raw keys trong stdout.
-5. **`load(blob, storePassword)`:** nạp thành công chứng minh store password đúng cho file và provider trong demo, nhưng **chưa chứng minh recover được hai key**.
-6. **`getKey(alias, entryPassword)`:** mỗi entry được đọc bằng password riêng. `Arrays.equals` chỉ chứng minh byte khóa vừa đọc tương ứng với byte khóa được tạo; nó không đo độ mạnh cryptographic của password.
-7. **`getKey("finance", storePassword)`:** ném `UnrecoverableKeyException` vì finance entry được bảo vệ bằng password riêng.
-8. **`getKey("audit", financePassword)`:** thất bại vì finance password không phải audit password.
-9. **`load(blob, wrongStorePassword)`:** kho có kiểm tra password/integrity nên bị provider từ chối với `IOException`.
-10. **`Arrays.fill`:** chỉ dọn những mảng còn truy cập được, không bảo đảm JVM/provider không còn bản sao. `String` literal chứa password demo vẫn có thể tồn tại trong memory; vì vậy production không dùng cách tạo literal trong source.
+1. **`KeyStore.getInstance("PKCS12")`:** selects the standard PKCS12 store. No real file is needed since data is written into `ByteArrayOutputStream` and reloaded via `ByteArrayInputStream`.
+2. **`created.load(null, storePassword)`:** initializes a new store. The store password is used during `store` and reloading.
+3. **`setEntry`:** the two entries use `KeyStore.SecretKeyEntry` and **different** `PasswordProtection` instances, not merely renamed aliases.
+4. **`store(bytes, storePassword)`:** exports the store in PKCS12 format. Neither finance nor audit raw keys appear in stdout.
+5. **`load(blob, storePassword)`:** successful load proves the store password works for the demo file and provider, yet **does not yet prove the two keys can be recovered**.
+6. **`getKey(alias, entryPassword)`:** each entry is read with its own password. `Arrays.equals` only proves the read key bytes match the generated key bytes; it does not measure cryptographic strength of the password.
+7. **`getKey("finance", storePassword)`:** throws `UnrecoverableKeyException` because the finance entry is protected by its own password.
+8. **`getKey("audit", financePassword)`:** fails because the finance password is not the audit password.
+9. **`load(blob, wrongStorePassword)`:** the store enforces password/integrity verification, so the provider rejects it with `IOException`.
+10. **`Arrays.fill`:** clears only the still-reachable arrays, without guaranteeing the JVM/provider retains no copies. String literals holding demo passwords can still persist in memory; hence production must never embed literals in source code.
 
-**Độ chính xác của kết luận:** minh họa này phản ánh **cấu hình PKCS12/JDK đã kiểm tra**, chứ không chứng minh mọi tool PKCS12 và provider đều hỗ trợ password khác nhau cho các entry. Cần kiểm chứng định dạng và provider đích khi triển khai.
+**Precision of conclusion:** this demonstration reflects the **tested PKCS12/JDK configuration**, rather than proving every PKCS12 tool and provider supports differing per-entry passwords. Verify the target format and provider during deployment.
 
-### 5.3. Nếu muốn dùng `getEntry` thay `getKey`
+### 5.3. Using `getEntry` Instead of `getKey`
 
-Khi đã có `KeyStore loaded` và password của finance:
+Given `KeyStore loaded` and the finance password:
 
 ```java
-// Mã minh họa, tiếp nối loaded/financePassword từ chương trình trên.
+// Illustrative snippet continuing from loaded/financePassword above.
 KeyStore.PasswordProtection p =
         new KeyStore.PasswordProtection(financePassword);
 try {
     KeyStore.Entry entry = loaded.getEntry("finance", p);
     if (entry instanceof KeyStore.SecretKeyEntry secretEntry) {
         SecretKey key = secretEntry.getSecretKey();
-        // Chỉ đưa key vào hoạt động mật mã được ủy quyền; không log key.
+        // Pass key only to authorized crypto operations; never log the key.
     }
 } finally {
     p.destroy();
 }
 ```
 
-`KeyStore.getEntry` trả một `Entry`, còn kiểu của entry phải được nhận diện. Cũng không có cơ chế “lấy được key vì đã biết alias”. Nếu dùng sai protection, provider có thể ném `UnrecoverableEntryException` hoặc exception tương ứng.
+`KeyStore.getEntry` returns an `Entry`, whose exact type must be verified. There is also no mechanism to "retrieve a key merely because you know the alias". Passing the wrong protection causes the provider to throw `UnrecoverableEntryException` or a corresponding exception.
 
-## 6. JKS và PKCS12: đừng đánh đồng tính năng hoặc kỳ vọng mật khẩu
+## 6. JKS and PKCS12: Do Not Equate Features or Password Expectations
 
-Java hỗ trợ một số keystore type, mỗi loại khác nhau về cách lưu dữ liệu và thuật toán bảo vệ. **`KeyStore.getDefaultType()` thường là `"pkcs12"` trên các JDK hiện đại**, nhưng vẫn có thể được cấu hình lại. Hãy chọn type rõ ràng khi cần tính tương thích và xác định file.
+Java supports several keystore types, each differing in data layout and protection algorithms. **`KeyStore.getDefaultType()` is typically `"pkcs12"` on modern JDKs**, though it can still be reconfigured. Choose the type explicitly when compatibility and file identification matter.
 
-### 6.1. Bảng so sánh thực hành
+### 6.1. Practical Comparison Table
 
-| Tiêu chí | JKS | PKCS12 |
+| Criterion | JKS | PKCS12 |
 | --- | --- | --- |
-| Mục tiêu lịch sử | Định dạng keystore truyền thống của Java | Định dạng trao đổi khóa/certificate phổ biến giữa hệ sinh thái |
-| Dùng cho ứng dụng mới | Nên cân nhắc tránh nếu không có ràng buộc legacy; tính năng/bảo vệ cũ | Thường là lựa chọn file keystore phổ biến hơn; thuật toán/provider vẫn cần kiểm tra |
-| Mật khẩu kho | Kiểm tra integrity của file JKS theo cơ chế legacy | Dùng cho cơ chế integrity/PBE theo implementation |
-| Bảo vệ private key entry | Có key password riêng trong nhiều luồng JKS/keytool | API Java có thể hỗ trợ per-entry password; CLI/third-party có thể yêu cầu trùng storepass |
-| SecretKeyEntry | JKS thông thường **không hỗ trợ lưu secret keys** | PKCS12 Sun provider có thể hỗ trợ secret key entry (đã minh họa ở trên) |
-| TrustedCertificateEntry | Có | Có |
-| Tính tương thích | Chủ yếu Java và công cụ tương thích JKS | Phổ biến hơn nhưng không phải mọi công cụ xử lý PBE/MAC/per-entry password giống nhau |
+| Historical purpose | Traditional Java-specific keystore format | Cross-ecosystem standard key/certificate interchange format |
+| Use for new applications | Consider avoiding unless constrained by legacy; older features/protection | Typically the preferred file keystore choice; algorithms/providers still need verification |
+| Store password | Verifies integrity of JKS file via legacy mechanism | Used for integrity/PBE mechanisms per implementation |
+| Private key entry protection | Supports separate key passwords in many JKS/keytool flows | Java API can support per-entry passwords; CLI/third-party tools may require matching storepass |
+| `SecretKeyEntry` | Standard JKS **does not support storing secret keys** | Sun PKCS12 provider can support secret key entries (demonstrated above) |
+| `TrustedCertificateEntry` | Yes | Yes |
+| Compatibility | Mostly Java and JKS-compatible tools | Broader, though not every tool handles PBE/MAC/per-entry passwords identically |
 
-Đừng xem file extension `.jks` hoặc `.p12` là bằng chứng tuyệt đối về type: **type do dữ liệu và provider quyết định**. Một file đặt tên `.p12` nhưng không có nội dung đúng format không thể nạp hợp lệ.
+Never treat `.jks` or `.p12` file extensions as absolute proof of type: **the data and provider determine the type**. A file named `.p12` without valid format contents cannot be loaded cleanly.
 
-### 6.2. `keytool` và hai password
+### 6.2. `keytool` and the Two Passwords
 
-Công cụ `keytool` có các tùy chọn:
+The `keytool` utility offers these options:
 
-- `-storetype`: định dạng keystore (ví dụ `JKS` hoặc `PKCS12`).
-- `-keystore`: đường dẫn file.
-- `-storepass`: password của keystore; khi không chỉ định, công cụ thường hỏi tương tác.
-- `-keypass`: password bảo vệ private key entry cho lệnh/keystore có hỗ trợ.
-- `-alias`: định danh entry.
-- `-keypasswd`: lệnh đổi password của **key entry** với type/command hỗ trợ, không phải đổi store password.
+- `-storetype`: keystore format (e.g., `JKS` or `PKCS12`).
+- `-keystore`: file path.
+- `-storepass`: keystore password; when omitted, the tool typically prompts interactively.
+- `-keypass`: password protecting a private key entry for supporting commands/keystores.
+- `-alias`: entry identifier.
+- `-keypasswd`: command to change the password of a **key entry** on supporting types/commands, not the store password.
 
-**Điểm đặc biệt quan trọng:** trên nhiều bản `keytool` của JDK, khi tạo **PKCS12** và cung cấp `-keypass` khác `-storepass`, công cụ có thể **cảnh báo và bỏ qua** password riêng. Một số công cụ PKCS12 khác cũng yêu cầu hai password **bằng nhau**. Tuy nhiên **API Java `KeyStore` không buộc mọi provider/luồng tạo PKCS12 đều phải dùng cùng mật khẩu**, như ví dụ `setEntry` cho thấy. Hai điều này không mâu thuẫn: **giới hạn của công cụ và khả năng của API/provider là hai lớp khác nhau**.
+**Crucial point:** on many JDK `keytool` versions, when creating a **PKCS12** store and specifying a `-keypass` different from `-storepass`, the tool may **warn and ignore** the separate key password. Several other PKCS12 tools also require both passwords to **match**. However, the **Java `KeyStore` API does not force every provider/PKCS12 creation path to use identical passwords**, as shown by the `setEntry` example. These two facts do not contradict each other: **tool limitations and API/provider capabilities are two separate layers**.
 
-### 6.3. Thử nhập mật khẩu khi tạo JKS bằng `keytool`
+### 6.3. Trying Password Prompts When Creating JKS with `keytool`
 
-Ví dụ thực hành trong **môi trường test riêng**, không đưa private key production vào lệnh học tập. Để công cụ **hỏi mật khẩu tương tác** (thay vì viết mật khẩu trong lịch sử shell), chạy:
+Practice example in a **dedicated test environment**, never passing production private keys into study commands. To make the tool **prompt interactively** (instead of recording passwords in shell history), run:
 
 ```bash
 keytool -genkeypair \
@@ -410,39 +410,39 @@ keytool -genkeypair \
   -keystore local-demo.jks
 ```
 
-Trong nhiều shell Windows, dấu `\` dùng để xuống dòng của Bash không áp dụng; có thể gõ **một dòng** tương đương. Khi được hỏi, nhập store password rồi nhập **password của private key entry** khác với store password nếu công cụ/format cho phép. Nếu nhấn Enter ở prompt key password, `keytool` thường có thể dùng cùng store password.
+In many Windows shells, Bash's line-continuation backslash `\` does not apply; type the equivalent **single line**. When prompted, enter the store password and then enter a **private key entry password** different from the store password if the tool/format allows it. Pressing Enter at the key password prompt usually makes `keytool` reuse the store password.
 
-Liệt kê metadata và certificate bằng store password:
+List metadata and certificates using the store password:
 
 ```bash
 keytool -list -v -storetype JKS -keystore local-demo.jks
 ```
 
-Sau khi liệt kê được alias/certificate, **chưa chắc** service đã khôi phục private key: bước dùng private key vẫn cần key password đúng hoặc cơ chế bảo vệ của provider.
+Being able to list aliases/certificates **does not guarantee** the service can recover the private key: using the private key still requires the right key password or provider protection mechanism.
 
-Nếu muốn thử thay key password cho JKS, xem các tùy chọn tương ứng của `keytool -keypasswd` trên JDK đang chạy; **không giả định `-keypasswd` hỗ trợ PKCS12 tương tự JKS**. Thao tác đổi password thật nên backup, thử nghiệm và có rollback/recovery trước.
+If you wish to test changing a key password for JKS, check the matching `keytool -keypasswd` options on your running JDK; **do not assume `-keypasswd` supports PKCS12 identically to JKS**. Real password changes require backups, testing, and rollback/recovery plans beforehand.
 
-### 6.4. Di chuyển từ JKS sang PKCS12
+### 6.4. Migrating from JKS to PKCS12
 
-Một quy trình import/export có thể có **storepass nguồn**, **keypass nguồn**, **storepass đích** và **keypass đích**. Chúng khác vai trò; nếu bỏ sót keypass nguồn, công cụ có thể thử storepass nguồn rồi yêu cầu nhập đúng password. Nếu đích là PKCS12, cần xét giới hạn của công cụ nhận và các hệ thống thứ ba về việc dùng cùng password.
+An import/export flow can involve **source storepass**, **source keypass**, **destination storepass**, and **destination keypass**. They serve distinct roles; omitting the source keypass may cause the tool to try the source storepass and then prompt for the right password. When targeting PKCS12, account for destination tool and third-party constraints requiring identical passwords.
 
-**Không coi import thành công là đã bảo đảm ứng dụng khởi động được.** Sau khi di chuyển, kiểm tra:
+**Never treat a successful import as proof the application will start.** After migrating, verify:
 
-- Alias và entry type có đúng không?
-- Certificate chain gắn với private key có đủ và đúng thứ tự không?
-- Ứng dụng load keystore bằng storepass mới được không?
-- TLS/crypto runtime recover private key bằng credential mà provider yêu cầu được không?
-- Provider/JDK đích có đọc được thuật toán bảo vệ/PBE/MAC trong file PKCS12 không?
-- Backup cũ, quyền truy cập và rotation policy có được cập nhật không?
+- Are aliases and entry types correct?
+- Is the certificate chain attached to the private key complete and in the right order?
+- Can the application load the keystore with the new storepass?
+- Can the TLS/crypto runtime recover the private key with the provider-required credentials?
+- Does the target provider/JDK support the PBE/MAC protection algorithms inside the PKCS12 file?
+- Have old backups, access permissions, and rotation policies been updated?
 
-## 7. Trong TLS/SSL Java: chỗ nào dùng store password, chỗ nào dùng key password?
+## 7. In Java TLS/SSL: Where Store Password Is Used vs. Key Password
 
-Một ứng dụng HTTPS server thường có **identity keystore** chứa private key và certificate chain; `KeyManagerFactory` cần truy cập private key đó để thực hiện chứng minh quyền sở hữu khóa trong handshake.
+An HTTPS server application typically uses an **identity keystore** holding its private key and certificate chain; `KeyManagerFactory` must access that private key to prove key possession during the handshake.
 
-Mô hình API phổ biến:
+Common API pattern:
 
 ```java
-// Minh họa ranh giới; cần thêm imports và cấu hình provider thật.
+// Illustrates the boundary; add imports and real provider configuration.
 KeyStore identity = KeyStore.getInstance("PKCS12");
 try (InputStream in = Files.newInputStream(Path.of("server.p12"))) {
     identity.load(in, storePassword);
@@ -453,15 +453,15 @@ KeyManagerFactory kmf = KeyManagerFactory.getInstance(
 kmf.init(identity, privateKeyPassword);
 ```
 
-- `identity.load(..., storePassword)`: mở/kiểm tra **keystore**.
-- `kmf.init(identity, privateKeyPassword)`: cung cấp thông tin để **khôi phục private key** mà key manager cần trong các provider thông thường.
-- Nếu `privateKeyPassword` khác `storePassword` mà bạn truyền nhầm storePassword vào `kmf.init`, có thể nạp file thành công nhưng khởi tạo KeyManagerFactory thất bại với `UnrecoverableKeyException` hoặc wrapped exception.
-- `KeyManagerFactory.init(KeyStore, char[])` nhận một password phục vụ khôi phục các khóa; nếu keystore có **nhiều private key entry với các password độc lập**, không mặc định rằng overload đơn giản này xử lý được mọi entry. Cân nhắc cấu hình chọn alias/provider, `KeyStore.Builder`/`KeyStoreBuilderParameters` hoặc thiết kế kho/key manager phù hợp với thư viện/runtime.
-- Không suy ra **mọi** framework TLS và mọi provider đều nhận cùng hai biến cấu hình; phải đọc contract cụ thể của ứng dụng.
+- `identity.load(..., storePassword)`: opens/verifies the **keystore**.
+- `kmf.init(identity, privateKeyPassword)`: supplies the credential to **recover the private key** needed by the key manager on typical providers.
+- If `privateKeyPassword` differs from `storePassword` and you accidentally pass `storePassword` into `kmf.init`, loading the file succeeds while `KeyManagerFactory` initialization fails with `UnrecoverableKeyException` or a wrapped exception.
+- `KeyManagerFactory.init(KeyStore, char[])` accepts a single password for recovering keys; if a keystore contains **multiple private key entries with independent passwords**, do not assume this simple overload handles every entry. Consider alias/provider selection, `KeyStore.Builder`/`KeyStoreBuilderParameters`, or splitting keystores to match library/runtime support.
+- Never assume **every** TLS framework and provider reads the exact same two configuration fields; read your application's specific contract.
 
-### 7.1. Truststore dùng thế nào?
+### 7.1. How Is a Truststore Used?
 
-Một TLS client/server thường có truststore gồm **trusted CA certificates** để kiểm tra peer. Cơ chế:
+A TLS client/server typically has a truststore containing **trusted CA certificates** to verify peers. Mechanism:
 
 ```java
 KeyStore trust = KeyStore.getInstance("PKCS12");
@@ -473,197 +473,197 @@ TrustManagerFactory tmf = TrustManagerFactory.getInstance(
 tmf.init(trust);
 ```
 
-Truststore chứa trusted certificates **không cần private-key password để giải mã một private key**, vì thường **không chứa private key**. Việc đọc certificate truststore không đồng nghĩa hoàn tất xác thực peer; trust manager còn phải kiểm tra chain, thời hạn, mục đích, hostname (ở lớp TLS endpoint identification), trạng thái trust/policy tùy môi trường.
+A truststore holding trusted certificates **needs no private-key password to decrypt a private key**, because it normally **contains no private keys**. Reading truststore certificates does not complete peer authentication; the trust manager must also validate chains, expiration, key usage, hostnames (at the TLS endpoint identification layer), and trust/policy status per environment.
 
-**Đừng nhầm:** đặt một keystore password cho truststore không biến certificate trong đó thành bí mật. Certificate thường là dữ liệu public. Store password có thể dùng kiểm tra integrity theo provider; thay đổi tập trusted anchors là thay đổi **trust policy**, không phải đổi private key.
+**Do not confuse things:** setting a keystore password on a truststore does not turn the certificates inside into secrets. Certificates are typically public data. The store password can serve provider integrity checks; changing the set of trusted anchors alters **trust policy**, not a private key.
 
-### 7.2. Hệ thống config thường có hai trường
+### 7.2. Configurations Typically Have Two Fields
 
-Nhiều framework cung cấp một giá trị tương đương **`key-store-password`** và một giá trị **`key-password`**. Trường đầu để nạp kho; trường thứ hai để khôi phục key entry. Một số framework mặc định key password theo store password khi key password bỏ trống, nhưng **đó là hành vi framework/tool, không phải quy luật universal của `KeyStore` API**.
+Many frameworks expose one field equivalent to **`key-store-password`** and another for **`key-password`**. The first loads the store; the second recovers the key entry. Some frameworks default the key password to the store password when omitted, yet **that is framework/tool behavior, not a universal rule of the `KeyStore` API**.
 
-Nếu nhận lỗi “đã đọc được `.p12` nhưng TLS không khởi động”, hãy kiểm tra **alias, key type, key password và certificate chain**, thay vì chỉ thay store password rồi thử lại.
+If you see an error like "`.p12` loaded yet TLS fails to start", inspect **alias, key type, key password, and certificate chain**, rather than blindly tweaking the store password and retrying.
 
-## 8. Nếu không có password: HSM, PKCS11 và non-exportable key
+## 8. When There Is No Password: HSM, PKCS11, and Non-Exportable Keys
 
-Trong hệ thống có HSM hoặc token, private key có thể nằm **trong thiết bị** và không bao giờ được xuất ra file dạng byte. `KeyStore` là một interface để tham chiếu/điều khiển key entry, nhưng semantics khác file JKS/PKCS12.
+In systems with an HSM or token, private keys can remain **inside the hardware device** and never be exported to a file as bytes. `KeyStore` serves as an interface to reference/drive key entries, though semantics differ from JKS/PKCS12 files.
 
-- **Token PIN/credential** có thể được dùng khi đăng nhập provider. Nó không tự có một file password để mở file `.p12`.
-- Việc gọi `KeyStore.load(null, pin)` ở một số PKCS11 provider có thể là cách đăng nhập/khởi tạo keystore của token, nhưng phải theo provider docs; không dùng quy tắc này cho mọi format.
-- `getKey` có thể trả key handle mà `getEncoded()` trả **`null`**. Không coi `null` đồng nghĩa key không hợp lệ hoặc phải “tải private key ra”.
-- Quyền sử dụng khóa có thể do **token ACL, partition, IAM, mechanism flags, PIN policy** hoặc cơ chế khác quyết định. Per-entry password không nhất thiết tồn tại.
-- Nếu ứng dụng cần ký số bằng private key trong HSM, hãy dùng `Signature` với key handle/provider tương ứng; tránh ép secret ra ứng dụng bằng một “đường vòng” gây mất lợi ích bảo vệ.
+- A **Token PIN/credential** may be used to log into the provider. It has no `.p12` file password to open a file on disk.
+- Calling `KeyStore.load(null, pin)` on certain PKCS11 providers can log into/initialize the token's keystore, yet you must follow provider documentation rather than applying this rule to every format.
+- `getKey` can return a key handle whose `getEncoded()` returns **`null`**. Never treat `null` as an invalid key or a signal to "extract the private key".
+- Key usage permissions may be governed by **token ACLs, partitions, IAM, mechanism flags, PIN policies**, or other controls. Per-entry passwords do not necessarily exist.
+- If the application needs to sign using an HSM private key, invoke `Signature` with the corresponding key handle/provider; avoid "working around" protection by pulling secrets into application memory.
 
-**Bài học:** “Thông tin bảo vệ từng khóa” là khái niệm **rộng hơn keypass**. Trong ví dụ file đơn giản nó là một `char[]`; ở HSM có thể là một chính sách sử dụng khóa mà ứng dụng chỉ có quyền gọi operation, không có quyền xuất raw key.
+**Lesson learned:** "per-key entry protection" is a **broader concept than `keypass`**. In simple file examples it is a `char[]`; in an HSM it can be a key usage policy where the application may invoke operations without permission to export raw keys.
 
-## 9. Tình huống lỗi và cách phân biệt phạm vi thất bại
+## 9. Failure Scenarios and Separating Failure Scopes
 
-### 9.1. Matrix chẩn đoán
+### 9.1. Diagnostic Matrix
 
-| Hiện tượng | Khả năng thường gặp | Nên kiểm tra |
+| Symptom | Likely cause | What to check |
 | --- | --- | --- |
-| `KeyStore.load(...)` thất bại vì password/integrity | Storepass không đúng, file lỗi/corrupt, provider hoặc format không tương thích | File/type/provider, store password được cấp phát, integrity và backup |
-| `load(...)` thành công nhưng `getKey(alias, pass)` ném `UnrecoverableKeyException` | Keypass sai hoặc không khớp bảo vệ entry | Alias, kiểu entry, key protection, provider |
-| `getKey(...)` trả `null` | Alias không có hoặc alias không phải key entry theo contract | `containsAlias`, `isKeyEntry`, danh sách alias |
-| `getEntry(...)` không recover được | ProtectionParameter sai/không được hỗ trợ, entry corrupt | Entry type, `PasswordProtection`/provider, error cause |
-| `keytool -list` hiển thị chứng chỉ nhưng service TLS lỗi | Có thể chưa recover được private key, key alias sai, chain thiếu, key manager config sai | `KeyManagerFactory.init`, alias, type, keypass, chain |
-| `getCertificate(alias)` hoạt động nhưng private key thất bại | Certificate public có thể đọc, key entry còn bị bảo vệ riêng | Keypass và quyền sử dụng key |
-| Chuyển PKCS12 sang công cụ khác thất bại | Khác biệt provider/PBE/MAC/cách áp dụng mật khẩu | Format compatibility và export profile được hỗ trợ |
-| Provider trả `getEncoded() == null` | Key non-exportable hoặc policy provider | Dùng crypto operation qua provider, không ép dump secret |
-| KeyManagerFactory dùng một password cho nhiều key entries | Các entry có thể có keypass khác nhau | Builder/provider hoặc phân chia keystore theo cấu hình |
+| `KeyStore.load(...)` fails due to password/integrity | Wrong storepass, corrupted file, incompatible provider or format | File/type/provider, provisioned store password, integrity, and backups |
+| `load(...)` succeeds yet `getKey(alias, pass)` throws `UnrecoverableKeyException` | Wrong keypass or mismatched entry protection | Alias, entry type, key protection, provider |
+| `getKey(...)` returns `null` | Missing alias or alias is not a key entry per contract | `containsAlias`, `isKeyEntry`, alias list |
+| `getEntry(...)` cannot recover | Wrong/unsupported `ProtectionParameter`, corrupted entry | Entry type, `PasswordProtection`/provider, error cause |
+| `keytool -list` shows certificate yet TLS service fails | Private key unrecovered, wrong key alias, incomplete chain, bad key manager config | `KeyManagerFactory.init`, alias, type, keypass, chain |
+| `getCertificate(alias)` works yet private key fails | Public certificate is readable while key entry remains separately protected | Keypass and key usage permissions |
+| Moving PKCS12 to another tool fails | Differences in provider/PBE/MAC/password application | Format compatibility and supported export profiles |
+| Provider returns `getEncoded() == null` | Non-exportable key or provider policy | Perform crypto operations via provider; never force dumping secrets |
+| `KeyManagerFactory` applies one password across multiple key entries | Entries may carry different keypasses | Builder/provider or splitting keystores by configuration |
 
-Lưu ý **exception không phải bằng chứng tuyệt đối** về nguyên nhân. Một `IOException` khi `load` cũng có thể do file lỗi, stream hỏng hoặc thuật toán không được hỗ trợ. Không ghi thông điệp chi tiết chứa secret trong log hoặc trả về client. Khi chẩn đoán cần xem root cause từ provider, JDK, type, permissions và điều kiện file.
+Note that **an exception is not absolute proof** of a single root cause. An `IOException` during `load` can also stem from a missing/corrupted file, broken stream, or unsupported algorithm. Never log secret-bearing error details or return them to clients. Diagnose using root causes across provider, JDK, type, permissions, and file state.
 
-### 9.2. Chiến lược chẩn đoán có kiểm soát
+### 9.2. Controlled Diagnostic Strategy
 
-1. Xác nhận file path, permissions, format/type và provider đang dùng. **Không thử sửa password liên tục** trên file production.
-2. Xác minh storepass bằng công cụ/API trong môi trường có thẩm quyền, không in password.
-3. Kiểm tra alias tồn tại và kiểu entry trước khi gọi `getKey`. Danh sách alias là metadata, cần bảo vệ nếu chứa thông tin hệ thống nhạy cảm.
-4. Chỉ dùng **entry password đúng phạm vi** đã được provision. Đừng thử mọi mật khẩu khác nhau theo danh sách; quy trình cứu hộ phải có phê duyệt.
-5. Kiểm tra private key certificate chain (TLS) hoặc thuật toán secret key tương ứng (ứng dụng crypto).
-6. Nếu provider/format khác nhau, kiểm chứng trên bản **backup cô lập**, không chỉnh file đang hoạt động trực tiếp.
-7. Sau thay đổi config, chạy test thật: load keystore, recover key theo nhu cầu, ký/giải mã hoặc khởi tạo TLS; **không dừng ở `keytool -list`**.
+1. Confirm file path, permissions, format/type, and active provider. **Never repeatedly test-modify passwords** on live production files.
+2. Verify storepass with authorized tools/APIs without printing passwords.
+3. Verify alias existence and entry type before calling `getKey`. Alias lists are metadata and should be protected if they reveal sensitive system details.
+4. Use only the **properly scoped entry password** provisioned for that entry. Never iterate over password lists; recovery workflows require authorization.
+5. Verify the private key's certificate chain (TLS) or matching secret key algorithm (crypto apps).
+6. If providers/formats differ, test against an **isolated backup**, never directly mutating live files.
+7. After config changes, run real end-to-end checks: load keystore, recover key as needed, sign/decrypt or initialize TLS; **do not stop at `keytool -list`**.
 
-## 10. Quản lý bí mật: password kho và password từng key
+## 10. Secret Management: Store Passwords and Per-Key Passwords
 
-### 10.1. Nên bảo vệ hai loại password như thế nào?
+### 10.1. How Should Both Password Types Be Protected?
 
-Cả store password và entry password đều là **secret** khi chúng được dùng trong hệ thống thật:
+Both store passwords and entry passwords are **secrets** in live systems:
 
-- Lưu trong **secret manager/KMS/HSM** hoặc kênh cấu hình bí mật có kiểm soát; không commit vào repo, cấu hình public, ví dụ Markdown, issue tracker, chat hoặc CI log.
-- Dùng **workload identity/least privilege**: service chỉ nên đọc secret nó thực sự cần.
-- Tránh `-storepass actualSecret` hoặc `-keypass actualSecret` trong command line của production vì process list, shell history và log có thể ghi lại đối số. Với `keytool`, prefer prompt hoặc cơ chế secret loading phù hợp và hạn chế truy cập.
-- Bảo vệ **file keystore** bằng file permission, storage encryption, backup protection và access control. Một mật khẩu mạnh không thay thế việc giữ private key material khỏi người trái phép.
-- Định kỳ đánh giá password strength, KDF/PBE format support, JDK/provider version và chính sách rotation. Đừng đặt mật khẩu demo ngắn hay mặc định `"changeit"` cho tài sản nhạy cảm.
-- Không log `String.valueOf(passwordCharArray)`, raw byte key, certificate private components hay stack trace chứa thông tin cấu hình bí mật.
+- Store them in a **secret manager/KMS/HSM** or controlled secret configuration channel; never commit them to repositories, public configs, Markdown examples, issue trackers, chat, or CI logs.
+- Enforce **workload identity/least privilege**: a service should read only the secrets it genuinely needs.
+- Avoid `-storepass actualSecret` or `-keypass actualSecret` on production command lines because process lists, shell history, and logs can capture arguments. With `keytool`, prefer interactive prompts or secure secret loading with restricted access.
+- Protect **keystore files** with filesystem permissions, storage encryption, backup protection, and access controls. A strong password does not replace keeping private key material away from unauthorized parties.
+- Periodically review password strength, KDF/PBE format support, JDK/provider versions, and rotation policies. Never use short demo passwords or `"changeit"` for sensitive assets.
+- Never log `String.valueOf(passwordCharArray)`, raw key bytes, private certificate components, or stack traces carrying secret config details.
 
-### 10.2. Thay store password khác thay key password
+### 10.2. Changing Store Password vs. Changing Key Password
 
-Có hai thao tác độc lập về **ý định quản trị**:
+These are independent **administrative operations**:
 
-| Thay đổi | Thao tác được nhắm tới | Phải kiểm chứng sau đó |
+| Change | Targeted operation | What to verify afterward |
 | --- | --- | --- |
-| **Đổi store password** | Bảo vệ cấu trúc kho ở mức file/keystore | Có load/store bằng password mới được không? File cũ/backup có còn chứa password cũ không? |
-| **Đổi entry password của một key** | Thay protection cho alias/key cụ thể | `getKey` bằng password mới có thành công? Bằng password cũ có còn được provider chấp nhận không? |
-| **Rotate private/secret key material** | Tạo **khóa mật mã mới** chứ không chỉ đổi password bảo vệ | Ứng dụng có dùng khóa mới? Chứng chỉ, wrapped data, token, handshake và dữ liệu cũ có được migrate không? |
-| **Chuyển keystore type/provider** | Đổi cơ chế lưu trữ, mật mã và interoperability | Toàn bộ alias, key, certificate chain, PBE/MAC, API/TLS đều hoạt động đúng? |
+| **Change store password** | Store protection at the file/keystore level | Do `load`/`store` succeed with the new password? Do old files/backups still use the old password? |
+| **Change an entry password** | Updates protection for a specific alias/key | Does `getKey` succeed with the new password? Is the old password still accepted by the provider? |
+| **Rotate private/secret key material** | Generates **new cryptographic keys**, not just changing a wrapper password | Does the app use the new key? Have certificates, wrapped data, tokens, handshakes, and old data been migrated? |
+| **Migrate keystore type/provider** | Changes storage mechanism, crypto algorithms, and interoperability | Do all aliases, keys, certificate chains, PBE/MACs, and APIs/TLS work properly? |
 
-**Đổi password bảo vệ không tự biến khóa AES/RSA cũ thành khóa mới.** Mức độ ảnh hưởng khi lộ **mật khẩu** và khi lộ **private key raw bytes** khác nhau. Nếu key bytes bị lộ, chỉ thay password kho/keypass là **không đủ**: cần rotate vật liệu khóa và xử lý dữ liệu/chữ ký/certificate bị ảnh hưởng theo chính sách.
+**Changing a wrapper password does not turn an old AES/RSA key into a new key.** The blast radius of leaking a **password** differs from leaking **raw private key bytes**. If key bytes are compromised, merely changing the storepass/keypass is **insufficient**: you must rotate the key material and handle affected data/signatures/certificates per policy.
 
-### 10.3. Sao lưu và khả năng khôi phục
+### 10.3. Backups and Recoverability
 
-Khi mất password bảo vệ khóa, có thể **không thể recover key**, kể cả còn file keystore. Nếu mất private key, ciphertext cũ hoặc danh tính TLS có thể không còn dùng được. Cần:
+Losing a key-protection password can make it **impossible to recover the key**, even if the keystore file remains intact. Losing a private key can render historical ciphertexts unreadable or TLS identities unusable. You must:
 
-- Sao lưu file keystore an toàn và **backup credential/key metadata** theo chính sách tách quyền.
-- Ghi phiên bản file, keystore type, provider, alias, purpose, thuật toán, cert chain và chính sách rotation.
-- Kiểm tra khôi phục định kỳ trong **môi trường cô lập** bằng load + operation thật, không chỉ kiểm tra file tồn tại.
-- Với PKCS12 tạo bởi tool/provider đặc thù, lưu thông tin **tương thích phiên bản/phương thức bảo vệ** để tránh không mở được sau nâng cấp hoặc chuyển vendor.
-- Khi rotate, giữ bản cũ cho thời gian cần thiết (ví dụ decrypt dữ liệu lịch sử), giới hạn phạm vi sử dụng và có kế hoạch hủy an toàn.
+- Back up keystore files securely and **back up credential/key metadata** under separation-of-duties policies.
+- Record file versions, keystore types, providers, aliases, purposes, algorithms, cert chains, and rotation policies.
+- Test recovery periodically in an **isolated environment** with real load + crypto operations, not just checking file existence.
+- For PKCS12 files generated by specialized tools/providers, record **version/protection-method compatibility** to avoid unreadable stores after upgrades or vendor changes.
+- During rotation, retain old keys as needed (e.g., decrypting historical data), restrict their usage scope, and plan secure destruction.
 
-### 10.4. Mật khẩu khác nhau chưa chắc có phân quyền mạnh
+### 10.4. Different Passwords Do Not Guarantee Strong Isolation
 
-Nếu cả storepass và mọi entrypass đều được inject vào **cùng một process** có quyền đọc file keystore, process bị compromise có thể lấy được mọi key mà nó được quyền recover. Alias và password riêng **không** tạo ranh giới giữa các service/tenant nếu runtime đều giữ cùng quyền và tất cả credential.
+If both storepass and every entrypass are injected into **the same process** with read access to the keystore file, a compromised process can retrieve every key it is permitted to recover. Separate aliases and passwords **do not** create boundaries between services/tenants when a single runtime holds the same permissions and all credentials.
 
-Muốn tách biệt mạnh hơn, hãy xem xét:
+For stronger isolation, consider:
 
-- Keystore/secret riêng theo service, workload hoặc tenant.
-- HSM/KMS có IAM và audit ở mức thao tác/khoá.
-- Khóa **non-exportable** và API chỉ cho phép ký/giải mã theo policy.
-- Không để service có quyền một thao tác tự tải toàn bộ file, tất cả keypass và raw private keys.
+- Separate keystores/secrets per service, workload, or tenant.
+- HSM/KMS with per-operation/per-key IAM and auditing.
+- **Non-exportable** keys with APIs permitting only policy-approved sign/decrypt operations.
+- Never giving one service permission to pull the entire file, all keypasses, and all raw private keys at once.
 
-## 11. Ba kịch bản áp dụng trong dự án Java
+## 11. Three Applied Scenarios in Java Projects
 
-### 11.1. HTTPS server: kho nạp được nhưng handshake không chạy
+### 11.1. HTTPS Server: Store Loads Yet Handshake Fails
 
-Giả sử `server.p12` chứa alias `https-key` là `PrivateKeyEntry`. App có biến `STORE_PASS` và `KEY_PASS`. Nếu `STORE_PASS` đúng nhưng `KEY_PASS` sai:
+Suppose `server.p12` contains alias `https-key` as a `PrivateKeyEntry`. The app defines `STORE_PASS` and `KEY_PASS`. If `STORE_PASS` is right yet `KEY_PASS` is wrong:
 
-- `KeyStore.load` có thể thành công;
-- `KeyManagerFactory.init` hoặc phép dùng private key có thể thất bại;
-- Certificate public có thể vẫn liệt kê được.
+- `KeyStore.load` can succeed;
+- `KeyManagerFactory.init` or using the private key can fail;
+- Public certificates may still list fine.
 
-Hướng sửa: xác định type/provider, alias và entry protection; cập nhật đúng credential của key entry hoặc cấu hình provider, không đổi certificate ngẫu nhiên và không bỏ password.
+Remediation: confirm type/provider, alias, and entry protection; fix the key entry's credential or provider configuration without randomly swapping certificates or dropping passwords.
 
-### 11.2. Hai khóa AES trong cùng PKCS12
+### 11.2. Two AES Keys in the Same PKCS12
 
-Cấu hình có `finance` và `audit`; finance service không nên có `auditPassword`. Demo ở trên cho thấy hai entry có thể được bảo vệ bằng các password riêng dưới provider hỗ trợ. Tuy vậy, nếu cả file và hai secret đều nằm trong cùng tiến trình, phạm vi bí mật không thực sự được tách. Với yêu cầu tuân thủ/tenant separation, cân nhắc thiết kế khác thay vì chỉ đổi alias/keypass.
+Configuration includes `finance` and `audit`; the finance service should not hold `auditPassword`. The demo above shows two entries can be protected by distinct passwords on supporting providers. Even so, if both the file and both secrets reside inside the same process, the secret boundary is not genuinely isolated. For compliance/tenant separation requirements, redesign boundaries instead of relying solely on aliases/keypasses.
 
-### 11.3. Truststore chứa CA, không chứa TLS private key
+### 11.3. Truststore Holding CAs Without TLS Private Keys
 
-`trust.p12` có trusted certificates, được nạp bằng truststore password để kiểm tra cấu trúc/trust anchors. Khi khởi tạo `TrustManagerFactory` từ truststore, **không có private-key password cần cung cấp** cho các `TrustedCertificateEntry`. Nếu mTLS client còn phải gửi certificate của chính nó, đó là **identity keystore** và cần private key tương ứng, không thể chỉ dùng truststore.
+`trust.p12` holds trusted certificates and is loaded with a truststore password to verify structure/trust anchors. When initializing `TrustManagerFactory` from a truststore, **no private-key password is needed** for `TrustedCertificateEntry` items. If an mTLS client must also present its own certificate, that belongs in an **identity keystore** with its matching private key—not just a truststore.
 
-## 12. Lỗi thường gặp và cách sửa
+## 12. Common Mistakes and How to Fix Them
 
-| Nhầm lẫn | Vì sao sai | Cách hiểu đúng |
+| Misconception | Why it is wrong | Correct understanding |
 | --- | --- | --- |
-| “`load(storepass)` thành công nghĩa là đã giải mã hết private keys.” | Nạp kho và recover key là hai thao tác khác | Dùng `getKey/getEntry` hoặc khởi tạo crypto/TLS để kiểm tra entry |
-| “`storepass` luôn bằng `keypass`.” | API có thể cho password riêng, tùy provider/tool | Ghi rõ policy thực tế, không đồng nhất về khái niệm |
-| “`keypass` có thể mở cả file keystore.” | Keypass bảo vệ một entry; không phải credential của kho | Cung cấp storepass cho `load` và đúng entry protection cho key |
-| “Đổi tên alias là đổi key password.” | Alias chỉ là tên định danh | Dùng API/tool thay protection thực tế |
-| “Certificate có private-key password.” | Public certificate không chứa private key | Phân biệt certificate/truststore với `PrivateKeyEntry` |
-| “`keytool -list` chứng minh TLS private key hoạt động.” | Chỉ cho biết một phần cấu trúc/certificate | Kiểm tra key recovery và TLS handshake phù hợp |
-| “PKCS12 từ mọi tool đều hỗ trợ keypass riêng.” | Interoperability/tool limitations | Test provider và công cụ đích, xét yêu cầu storepass = keypass |
-| “JKS có hai password nên bảo mật hiện đại hơn PKCS12.” | JKS legacy có cơ chế bảo vệ khác | Chọn format theo bảo mật và tương thích thực tế |
-| “`getEncoded() == null` nghĩa key hỏng.” | Non-exportable key có thể trả null | Dùng provider/key handle thao tác trực tiếp |
-| “Đổi storepass là rotate RSA key.” | Vẫn là cùng private/public key material | Rotate key pair, cert và dữ liệu liên quan khi cần |
-| “`String` password trong source là an toàn vì không in ra.” | Source/heap/history/decompiler có thể lộ secret | Secret manager, char[] khi phù hợp, hạn chế lifetime |
-| “Dùng storepass null để bỏ lỗi integrity.” | Có thể bỏ xác thực toàn vẹn hoặc có hành vi khác | Giải quyết password/provider/corruption đúng cách |
-| “Có nhiều entrypass là đã cô lập mọi service.” | Còn phụ thuộc quyền đọc file và secret injection | Least privilege, tách workload/KMS/HSM khi cần |
-| “Chỉ backup `.p12` là đủ.” | Mất password/provider info có thể không recover | Backup an toàn credential, version, type, alias và test restore |
+| "`load(storepass)` succeeded, so all private keys are decrypted." | Loading a store and recovering a key are separate steps | Use `getKey/getEntry` or initialize crypto/TLS to verify entries |
+| "`storepass` always equals `keypass`." | API allows separate passwords depending on provider/tool | Document actual policy; never equate them conceptually |
+| "`keypass` can open the entire keystore file." | Keypass protects an entry, not the store credential | Supply storepass to `load` and proper entry protection to keys |
+| "Renaming an alias changes the key password." | An alias is only an identifier | Use API/tools that actually change protection |
+| "Certificates have private-key passwords." | Public certificates hold no private key | Distinguish certificates/truststores from `PrivateKeyEntry` |
+| "`keytool -list` proves the TLS private key works." | Only shows partial structure/certificates | Verify key recovery and proper TLS handshakes |
+| "PKCS12 from every tool supports separate keypasses." | Interoperability/tool limitations | Test target providers/tools and check storepass = keypass constraints |
+| "JKS has two passwords so it is more modern/secure than PKCS12." | Legacy JKS uses older protection mechanisms | Pick format based on real security and compatibility |
+| "`getEncoded() == null` means the key is corrupted." | Non-exportable keys can return null | Use provider/key handles directly |
+| "Changing storepass rotates the RSA key." | Still the exact same private/public key material | Rotate key pairs, certs, and dependent data when needed |
+| "`String` passwords in source are safe because they aren't printed." | Source/heap/history/decompilers can expose secrets | Secret manager, `char[]` where appropriate, minimize lifetime |
+| "Pass `null` storepass to bypass integrity errors." | Can skip integrity checks or alter behavior | Resolve password/provider/corruption issues properly |
+| "Multiple entrypasses isolate all services." | Still depends on file permissions and secret injection | Least privilege, isolate workloads/KMS/HSM when needed |
+| "Backing up only `.p12` is enough." | Losing passwords/provider details can prevent recovery | Securely back up credentials, versions, types, aliases, and test restores |
 
-## 13. Checklist kiểm tra trước khi triển khai
+## 13. Pre-Deployment Verification Checklist
 
-1. **Đúng file/type/provider:** biết rõ JKS hay PKCS12 hay PKCS11? Đừng suy ra từ extension.
-2. **Store password:** được cấp từ secret manager, đúng cho `load/store`, không log hoặc hardcode?
-3. **Entry type:** alias cần dùng là `PrivateKeyEntry`, `SecretKeyEntry` hay `TrustedCertificateEntry`? Có chuỗi certificate khi cần TLS không?
-4. **Key protection:** entry keypass/`ProtectionParameter` đã được xác định, provider hỗ trợ và đúng trong thao tác recover?
-5. **Không đồng nhất khái niệm:** nếu storepass = keypass, có ghi rõ đây là quyết định cấu hình/tương thích, không gọi là hai bí mật độc lập?
-6. **PKCS12 interoperability:** Java API, `keytool`, ứng dụng khác và version JDK có đồng ý cách bảo vệ entry không?
-7. **TLS integration:** `KeyStore.load` và `KeyManagerFactory.init` nhận đúng password theo vai trò; `TrustManagerFactory` dùng đúng trust anchors?
-8. **File/secret access:** IAM, file permissions, backup encryption và secret log/heap dump policy có hợp lý?
-9. **Rotation:** tách đổi storepass, đổi entrypass và **rotate key material**; mỗi thao tác có test/rollback/backup?
-10. **HSM/non-exportable:** đã dùng API provider phù hợp thay vì ép export key chưa?
-11. **Negative tests:** thử sai storepass, sai keypass, alias sai, type sai, file corrupt, provider khác trong môi trường test?
-12. **Recovery:** có thể khôi phục backup và thực hiện crypto/TLS operation thật với credentials được bảo quản hợp lệ?
+1. **Right file/type/provider:** do you know for sure whether it is JKS, PKCS12, or PKCS11? Never guess from file extensions.
+2. **Store password:** fetched from a secret manager, accurate for `load/store`, never logged or hardcoded?
+3. **Entry type:** is the target alias `PrivateKeyEntry`, `SecretKeyEntry`, or `TrustedCertificateEntry`? Is a certificate chain present for TLS?
+4. **Key protection:** is the entry keypass/`ProtectionParameter` defined, supported by the provider, and verified during recovery?
+5. **No conceptual conflation:** if storepass = keypass, is it documented as a compatibility/config decision rather than claimed as two independent secrets?
+6. **PKCS12 interoperability:** do Java APIs, `keytool`, external apps, and JDK versions agree on entry protection?
+7. **TLS integration:** do `KeyStore.load` and `KeyManagerFactory.init` receive the right role-specific passwords; does `TrustManagerFactory` use the right trust anchors?
+8. **File/secret access:** are IAM, file permissions, backup encryption, and secret logging/heap-dump policies sound?
+9. **Rotation:** separate changing storepass, changing entrypass, and **rotating key material**; does each have tests/rollback/backups?
+10. **HSM/non-exportable:** are provider APIs used properly instead of attempting forced key exports?
+11. **Negative tests:** tested wrong storepass, wrong keypass, wrong alias, wrong type, corrupted files, and alternative providers in test environments?
+12. **Recovery:** can backups be restored and real crypto/TLS operations executed with properly safeguarded credentials?
 
-## 14. Bài tập tự kiểm tra
+## 14. Self-Check Exercises
 
-**Câu 1.** `KeyStore.load(input, storePassword)` đã thành công. Có chắc `getKey("server", storePassword)` cũng thành công không?  
-**Đáp án:** **Không**. Entry `server` có thể có keypass khác, không phải key entry, hoặc provider yêu cầu protection khác.
+**Question 1.** `KeyStore.load(input, storePassword)` succeeded. Is `getKey("server", storePassword)` guaranteed to succeed as well?  
+**Answer:** **No**. Entry `server` may have a different keypass, may not be a key entry, or the provider may require different protection.
 
-**Câu 2.** Hai AES keys `finance` và `audit` trong một PKCS12 có cùng storepass nhưng khác entrypass. Người chỉ biết finance password có thể luôn lấy audit key không?  
-**Đáp án:** Không theo mô hình/provider bảo vệ entry riêng đã nêu. Nhưng khả năng cô lập thực tế còn phụ thuộc file access, quyền/provider và việc ai đang nắm các credentials.
+**Question 2.** Two AES keys `finance` and `audit` in one PKCS12 share a storepass yet have different entrypasses. Can someone knowing only the finance password always extract the audit key?  
+**Answer:** Not under the per-entry protection model/provider shown above. However, real isolation also depends on file access, provider/privileges, and who holds the credentials.
 
-**Câu 3.** `keytool -list` cho thấy certificate của server. Đó có phải bằng chứng private key đã recover được không?  
-**Đáp án:** **Không.** Cần thử recover private key hoặc khởi tạo TLS key manager/handshake với đúng entry protection.
+**Question 3.** `keytool -list` displays the server certificate. Is that proof the private key is recoverable?  
+**Answer:** **No.** You must test recovering the private key or initializing the TLS key manager/handshake with the proper entry protection.
 
-**Câu 4.** Một `TrustedCertificateEntry` có cần password riêng để đọc private key không?  
-**Đáp án:** **Không**, bởi entry này không chứa private key. Truststore password phục vụ bảo vệ kho theo provider.
+**Question 4.** Does a `TrustedCertificateEntry` need a separate password to read a private key?  
+**Answer:** **No**, because this entry holds no private key. The truststore password protects the store itself per provider.
 
-**Câu 5.** Tại sao có thể chạy code Java `setEntry(..., PasswordProtection(entryPass))` cho PKCS12 nhưng `keytool` lại cảnh báo khác storepass?  
-**Đáp án:** Java `KeyStore` là API trừu tượng; implementation và từng luồng tool có giới hạn riêng. Không suy ra mọi tool hỗ trợ cùng cách per-entry protection.
+**Question 5.** Why can Java code run `setEntry(..., PasswordProtection(entryPass))` on PKCS12 while `keytool` warns when it differs from storepass?  
+**Answer:** Java `KeyStore` is an abstract API; individual implementations and tool workflows impose their own limits. Never assume every tool supports per-entry protection identically.
 
-**Câu 6.** Đổi store password nhưng không thay private key material. Certificate công khai phải đổi vì keypair đã khác chưa?  
-**Đáp án:** **Không tự động.** Khóa mật mã chưa đổi; chỉ cơ chế bảo vệ kho được thay theo định dạng/provider. Nếu bị lộ private key thật, cần rotate keypair và certificate theo quy trình.
+**Question 6.** You change the store password without changing private key material. Must the public certificate be reissued because the keypair changed?  
+**Answer:** **Not automatically.** The cryptographic key itself has not changed; only the store-level protection changed per format/provider. If a real private key leaks, rotate both keypair and certificate per policy.
 
-**Câu 7.** `KeyStore.getKey(alias, password)` trả `null`. Có nên thử thêm 1.000 password khác không?  
-**Đáp án:** **Không.** Trước hết kiểm tra alias có tồn tại, `isKeyEntry` hay không; xử lý theo workflow được ủy quyền.
+**Question 7.** `KeyStore.getKey(alias, password)` returns `null`. Should you try 1,000 other passwords?  
+**Answer:** **No.** First check whether the alias exists and `isKeyEntry`; follow authorized troubleshooting workflows.
 
-**Câu 8.** Trong HSM, `PrivateKey.getEncoded()` trả `null`. Điều đó có chứng minh khóa không hợp lệ không?  
-**Đáp án:** **Không.** Khóa non-exportable có thể vẫn thực hiện `Signature`/`Cipher` qua provider/key handle được phép.
+**Question 8.** In an HSM, `PrivateKey.getEncoded()` returns `null`. Does that prove the key is invalid?  
+**Answer:** **No.** Non-exportable keys can still perform `Signature`/`Cipher` operations via authorized providers/key handles.
 
-**Câu 9.** Một TLS server khai báo đúng storepass, nhưng `KeyManagerFactory.init` dùng nhầm storepass thay cho keypass. Triệu chứng?  
-**Đáp án:** Có thể nạp kho được nhưng không khôi phục private key, khiến key manager/TLS không hoạt động. Phải sửa credential entry hoặc provider configuration.
+**Question 9.** A TLS server specifies the right storepass, yet `KeyManagerFactory.init` mistakenly passes storepass instead of keypass. What is the symptom?  
+**Answer:** The store may load, yet private key recovery fails, preventing the key manager/TLS from working. Fix the entry credential or provider configuration.
 
-**Câu 10.** Nếu storepass và keypass cùng một giá trị vì hệ thống yêu cầu tương thích, cần làm gì để giảm rủi ro?  
-**Đáp án:** Quản lý credential đó như bí mật có quyền truy cập cao, giới hạn IAM/file access, rotate và backup an toàn; không giả vờ có hai ranh giới độc lập.
+**Question 10.** If storepass and keypass must share the same value for compatibility, what should you do to mitigate risk?  
+**Answer:** Treat that credential as a high-privilege secret, restrict IAM/file access, rotate and back up securely, and never pretend two independent boundaries exist.
 
-### Tài liệu tham khảo
+### References
 
-- [Java SE 21 — KeyStore](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.html): `load`, `store`, `getKey`, `setKeyEntry`, `getEntry`, `setEntry` và phạm vi password.
-- [Java SE 21 — KeyStore.PasswordProtection](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.PasswordProtection.html): bảo vệ entry bằng password và `destroy()`.
-- [Java SE 21 — KeyStore.Builder](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.Builder.html): chọn provider/keystore, lấy protection parameter.
-- [Java SE 21 — Java Cryptography Architecture Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-cryptography-architecture-jca-reference-guide.html): KeyStore, entry type, integrity và các API bảo mật.
-- [Java SE 21 — keytool](https://docs.oracle.com/en/java/javase/21/docs/specs/man/keytool.html): `-storepass`, `-keypass`, key migration và giới hạn công cụ.
+- [Java SE 21 — KeyStore](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.html): `load`, `store`, `getKey`, `setKeyEntry`, `getEntry`, `setEntry`, and password scopes.
+- [Java SE 21 — KeyStore.PasswordProtection](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.PasswordProtection.html): protecting entries with passwords and `destroy()`.
+- [Java SE 21 — KeyStore.Builder](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.Builder.html): selecting provider/keystore and obtaining protection parameters.
+- [Java SE 21 — Java Cryptography Architecture Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-cryptography-architecture-jca-reference-guide.html): KeyStore, entry types, integrity, and security APIs.
+- [Java SE 21 — keytool](https://docs.oracle.com/en/java/javase/21/docs/specs/man/keytool.html): `-storepass`, `-keypass`, key migration, and tool limitations.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Store password phục vụ cấp độ kho; entry/key protection phục vụ một khóa cụ thể.** Cùng chuỗi password có thể được tái sử dụng trong một cấu hình, nhưng không biến hai vai trò thành một. Muốn chẩn đoán chính xác, hãy tách **`KeyStore.load/store`** khỏi **`getKey/getEntry/KeyManagerFactory`**, xác định **JKS/PKCS12/PKCS11 và provider**, rồi quản lý đúng secret, alias, key material và vòng đời của chúng.
+**The store password operates at the store level; entry/key protection secures a specific key.** The same password string may be reused in a configuration, yet doing so does not merge the two roles into one concept. To diagnose issues accurately, separate **`KeyStore.load/store`** from **`getKey/getEntry/KeyManagerFactory`**, verify **JKS/PKCS12/PKCS11 and provider**, and properly manage secrets, aliases, key material, and their lifecycles.

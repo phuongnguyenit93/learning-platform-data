@@ -1,72 +1,72 @@
-# 7.2 Vì sao băm nhanh một lần không đủ cho mật khẩu có entropy thấp
+# 7.2 Why a Single Fast Hash Is Not Enough for Low-Entropy Passwords
 
-## Mục tiêu
+## Objectives
 
-Hiểu vì sao `SHA-256(password)` dù dùng thuật toán hash mạnh vẫn **không phù hợp để lưu mật khẩu do con người chọn**; phân tích tấn công đoán mật khẩu offline, entropy thấp, salt, chi phí xử lý và lựa chọn password hashing scheme. Sau bài, bạn có thể dùng Java 17 để chứng minh giới hạn của hash nhanh và tạo/verifier bản ghi PBKDF2 có salt, iterations và so sánh an toàn.
+Understand why `SHA-256(password)`, despite using a strong hash algorithm, is **not suitable for storing human-chosen passwords**; analyze offline password-guessing attacks, low entropy, salts, computational cost, and password hashing scheme choices. After this lesson, you will be able to use Java 17 to demonstrate the limits of fast hashing and create/verify PBKDF2 records with salt, iterations, and safe comparison.
 
-## 1. Vì sao “SHA-256 rất mạnh” chưa phải câu trả lời?
+## 1. Why isn’t “SHA-256 is very strong” the answer?
 
-SHA-256 là **cryptographic hash function** có đầu ra cố định 256 bit (32 byte, 64 ký tự hex). Đây là primitive tốt cho toàn vẹn dữ liệu và nhiều giao thức mật mã. Tuy nhiên, hash function được thiết kế để tính **hiệu quả**, còn lưu mật khẩu cần làm cho **mỗi lần thử password** tốn tài nguyên.
+SHA-256 is a **cryptographic hash function** with a fixed 256-bit output (32 bytes, 64 hex characters). It is a strong primitive for data integrity and many cryptographic protocols. However, hash functions are designed to compute **efficiently**, whereas password storage requires making **each password guess** resource-intensive.
 
-Xét:
+Consider:
 
 ```text
-password = một bí mật do người dùng chọn
+password = a user-chosen secret
 
 stored_hash = SHA-256(password)
 
-Để xác minh:
-SHA-256(password_đăng_nhập) == stored_hash ?
+To verify:
+SHA-256(login_password) == stored_hash ?
 ```
 
-Nếu database bị rò rỉ, attacker có thể lấy `stored_hash` và tự thử password trên máy của họ. Không cần “đảo ngược” SHA-256. Họ chỉ cần chọn ứng viên `p`, tính `SHA-256(p)`, so sánh với hash bị lộ. Phép tính càng nhanh, họ thử được càng nhiều ứng viên trong cùng thời gian.
+If the database leaks, an attacker can take `stored_hash` and test passwords on their own hardware. They do not need to “invert” SHA-256. They simply pick a candidate `p`, compute `SHA-256(p)`, and compare it against the leaked hash. The faster the computation, the more candidates they can test in the same amount of time.
 
-Không có lỗi mật mã mới trong SHA-256 ở đây: **bài toán yếu nằm ở phân phối password đầu vào và cách sử dụng**. SHA-512 hay SHA3-256 chạy một lần không giải quyết được bản chất đó.
+There is no new cryptographic flaw in SHA-256 here: **the weakness lies in the input password distribution and how it is used**. Running SHA-512 or SHA3-256 once does not fix that fundamental issue.
 
-| SHA-256 phù hợp cho | Kho lưu password cần |
+| SHA-256 is suitable for | Password storage requires |
 | --- | --- |
-| Digest nhanh, xác định, hỗ trợ nhiều giao thức | Chi phí **có chủ đích** cho từng lần đoán |
-| Kháng tìm tiền ảnh trên dữ liệu đủ khó đoán | Chống tấn công danh sách password phổ biến |
-| Đầu ra luôn 256 bit | Không đánh đồng độ dài hash với entropy đầu vào |
-| Không có khái niệm salt/work factor bắt buộc | Salt riêng, cost điều chỉnh, version để nâng cấp |
+| Fast, deterministic digests supporting many protocols | **Intentional cost** for every guess |
+| Preimage resistance on sufficiently unpredictable inputs | Defense against common-password list attacks |
+| Always producing a 256-bit output | Not equating hash output length with input entropy |
+| No built-in mandatory salt or work factor | Unique salt, tunable cost, and versioning for upgrades |
 
-**Thông điệp chính:** mật khẩu dễ đoán không tự trở thành bí mật 256 bit khi được băm thành 256 bit.
+**Key takeaway:** a guessable password does not magically become a 256-bit secret just by being hashed to 256 bits.
 
-## 2. Entropy thấp là điều gì?
+## 2. What is low entropy?
 
-**Entropy** mô tả mức độ khó dự đoán một bí mật, dựa trên **cách nó được sinh/chọn** và phân phối xác suất. Nếu mật khẩu được lấy đồng đều ngẫu nhiên từ `N` lựa chọn độc lập, số bit thông tin xấp xỉ:
+**Entropy** describes how unpredictable a secret is, based on **how it is generated/chosen** and its probability distribution. If a password is drawn uniformly at random from `N` independent choices, the amount of information in bits is approximately:
 
 ```text
-H ≈ log2(N) bit
+H ≈ log2(N) bits
 ```
 
-Ví dụ: một mã PIN gồm **6 chữ số, sinh đều ngẫu nhiên** có `10^6` khả năng, tương ứng khoảng **19,93 bit**, dù `SHA-256(PIN)` có 256-bit output.
+For example: a **6-digit PIN generated uniformly at random** has `10^6` possibilities, corresponding to about **19.93 bits**, even though `SHA-256(PIN)` has a 256-bit output.
 
-Người dùng thường không chọn ngẫu nhiên đồng đều. Họ có thể dùng từ phổ biến, năm sinh, tên thú cưng, bàn phím, chuỗi số, mẫu thêm dấu `!` hoặc password đã bị lộ trên dịch vụ khác. Các ứng viên không đồng xác suất, nên attacker có thể ưu tiên **mẫu có xác suất cao** trước.
+Users rarely choose uniformly at random. They often use common words, birth years, pet names, keyboard patterns, numeric sequences, patterns like appending `!`, or passwords previously leaked on another service. Candidates are not equiprobable, so attackers can prioritize **high-probability patterns** first.
 
-- Một password dài vẫn có thể yếu nếu là câu rất phổ biến hoặc mẫu dễ đoán.
-- Nhiều ký tự đặc biệt không chứng minh entropy cao nếu mọi người đều thêm chúng theo mẫu.
-- Passphrase nhiều từ **được lấy ngẫu nhiên độc lập** thường khó đoán hơn câu người dùng tự nghĩ dựa vào ngữ cảnh quen thuộc.
-- Password manager tạo secret ngẫu nhiên độc lập có thể cung cấp entropy cao; password reuse trên nhiều dịch vụ làm mất lợi thế khi có vụ rò rỉ.
+- A long password can still be weak if it is a very common phrase or predictable pattern.
+- Many special characters do not prove high entropy if everyone adds them in predictable spots.
+- A multi-word passphrase **drawn independently at random** is usually much harder to guess than a sentence a user invents from familiar context.
+- A password manager generating independent random secrets can provide high entropy; password reuse across services destroys that advantage when a breach occurs.
 
-Đừng tính “entropy chính xác” của mật khẩu người dùng chỉ bằng số chữ cái, chữ số và dấu. Entropy phụ thuộc **phân phối lựa chọn**, không phải số ký tự hash hay vẻ phức tạp bên ngoài.
+Do not calculate the “exact entropy” of a user password merely by counting letters, digits, and symbols. Entropy depends on the **selection distribution**, not on the hash length or superficial appearance of complexity.
 
-### 2.1 Kháng tiền ảnh (preimage resistance) có bị phá không?
+### 2.1 Is preimage resistance broken?
 
-**Không.** Kháng tiền ảnh mô tả việc tìm đầu vào cho digest nói chung khó đến mức nào khi đầu vào có không gian đủ lớn. Với mật khẩu do con người chọn, attacker lại làm một việc hẹp hơn:
+**No.** Preimage resistance describes how hard it is to find an input for a digest in general when the input space is sufficiently large. With human-chosen passwords, an attacker does something much narrower:
 
 ```text
-candidate_1 -> SHA-256 -> so sánh với hash bị lộ
-candidate_2 -> SHA-256 -> so sánh với hash bị lộ
-candidate_3 -> SHA-256 -> so sánh với hash bị lộ
+candidate_1 -> SHA-256 -> compare with leaked hash
+candidate_2 -> SHA-256 -> compare with leaked hash
+candidate_3 -> SHA-256 -> compare with leaked hash
 ...
 ```
 
-Nếu ứng viên thứ hai chính là password, attacker đã tìm được password mà không cần giải phương trình ngược của SHA-256. Password entropy thấp làm **không gian phỏng đoán hữu ích** nhỏ và dễ ưu tiên.
+If the second candidate happens to be the password, the attacker has found the password without solving the inverse of SHA-256. Low password entropy makes the **practical guessing space** small and easy to prioritize.
 
-## 3. Mô hình tấn công offline sau khi database bị lộ
+## 3. Offline attack model after a database leak
 
-Giả sử một bản sao database gồm các bản ghi:
+Suppose a leaked database dump contains these records:
 
 ```text
 account_id | password_hash
@@ -75,52 +75,52 @@ user_a     | SHA-256(password_A)
 user_b     | SHA-256(password_B)
 ```
 
-Attacker lấy được bảng này. Từ đó họ không cần gửi request đăng nhập. Họ tự chạy thuật toán trên phần cứng mình kiểm soát:
+An attacker obtains this table. From that point on, they do not need to send login requests. They run the algorithm on hardware they control:
 
 ```text
-Bản sao password hashes đã bị lộ
+Leaked copy of password hashes
                 |
                 v
-Tập ứng viên mật khẩu phổ biến,
-password từng rò rỉ, biến thể có quy luật...
+Candidate set of common passwords,
+previously breached passwords, rule-based variants...
                 |
                 v
-Tính SHA-256(candidate) offline
+Compute SHA-256(candidate) offline
                 |
                 v
-So với hash trong database
+Compare against hash in database
         /                   \
-     trùng                 không trùng
+     match                no match
        |                       |
- tìm password          thử candidate khác
+ found password        try next candidate
 ```
 
-Những yếu tố khiến attacker thuận lợi:
+Factors that favor the attacker:
 
-1. **Không có giới hạn request từ hệ thống thật**: CAPTCHA, khóa tài khoản, rate limit ở login endpoint không chặn các phép thử offline.
-2. **Tính song song rất lớn**: các hash nhanh được tính hiệu quả trên CPU/GPU và phần cứng chuyên dụng.
-3. **Dữ liệu từ các lần rò rỉ trước**: dictionary chứa các password có xác suất cao, không cần duyệt đều tất cả chuỗi có thể.
-4. **Cùng một password tạo cùng hash khi không có salt**: attacker có thể phát hiện trùng lặp và dùng kết quả tính toán cho nhiều tài khoản.
+1. **No request limits from the live system**: CAPTCHAs, account lockouts, and rate limits on the login endpoint cannot block offline trials.
+2. **Massive parallelism**: fast hashes compute efficiently on CPUs, GPUs, and specialized hardware.
+3. **Data from prior breaches**: dictionaries contain high-probability passwords, avoiding uniform traversal of all possible strings.
+4. **Identical passwords produce identical hashes without a salt**: attackers can spot duplicates and reuse work across multiple accounts.
 
-Mô hình thời gian đơn giản:
+Simplified timing model:
 
 ```text
-thời_gian_đoán ≈ số_ứng_viên_cần_thử / tốc_độ_thử
+guessing_time ≈ candidates_to_try / attempt_rate
 ```
 
-Đây là quan hệ khái niệm; tốc độ thực tế phụ thuộc phần cứng và thuật toán. Không nên công bố “attacker chắc chắn crack trong X giây” khi không có dữ liệu đo. **Chi phí của mỗi phép thử** là đòn bẩy mà hệ thống có thể tác động bằng password KDF có work factor.
+This is a conceptual relationship; real-world speed depends on hardware and algorithms. Avoid claiming “an attacker will certainly crack it in X seconds” without measured data. **The cost per guess** is the lever a system can influence using a password KDF with a work factor.
 
-## 4. Hash nhanh không có salt, có salt và password KDF
+## 4. Unsalted fast hash, salted fast hash, and password KDF
 
-### 4.1 Không có salt
+### 4.1 Unsalted
 
 ```text
 stored = SHA-256(password)
 ```
 
-Các tài khoản cùng password có cùng digest. Một bảng tra cứu/dictionary tính trước có thể dùng lại. Việc lấy SHA-512 một lần hoặc đổi hex sang Base64 không thay đổi bản chất này.
+Accounts with the same password have the same digest. A precomputed lookup table or dictionary can be reused across accounts. Switching to a single pass of SHA-512 or changing hex to Base64 does not alter this fundamental flaw.
 
-### 4.2 Có salt nhưng vẫn hash nhanh
+### 4.2 Salted, yet still a fast hash
 
 ```text
 salt = random_16_bytes()
@@ -128,41 +128,41 @@ stored = SHA-256(salt || password)
 database = (salt, stored)
 ```
 
-**Salt** là byte ngẫu nhiên **riêng cho mỗi bản ghi** (chẳng hạn 16 byte bằng `SecureRandom`), được lưu cùng verifier; **không cần bí mật**.
+A **salt** is random bytes **unique to each record** (for instance, 16 bytes via `SecureRandom`), stored alongside the verifier; it **does not need to be secret**.
 
-Salt mang lại lợi ích quan trọng: những tài khoản cùng password thường có hash khác nhau; giảm hiệu quả các bảng tra cứu hash dựng sẵn và việc tái sử dụng chung công sức tính cho nhiều account.
+Salt delivers a crucial benefit: accounts sharing the same password generally get different hashes, reducing the effectiveness of precomputed hash lookup tables and shared computation across accounts.
 
-Nhưng attacker biết `salt` khi database bị lộ. Họ vẫn tính:
+However, the attacker knows `salt` once the database leaks. They still compute:
 
 ```text
-SHA-256(salt_của_tài_khoản || candidate)
+SHA-256(account_salt || candidate)
 ```
 
-cho từng ứng viên. Đây vẫn là một SHA-256 **rất nhanh**. Vì vậy **salt là cần thiết nhưng chưa đủ**.
+for each candidate. That is still a **very fast** SHA-256. Therefore, **a salt is necessary, but not sufficient**.
 
-### 4.3 Salt kết hợp password hashing scheme chuyên dụng
+### 4.3 Salt combined with a dedicated password hashing scheme
 
 ```text
 stored = PasswordKDF(password, unique_salt, work_factor)
 record = (algorithm, version, parameters, salt, stored)
 ```
 
-Giờ mỗi phép thử phải chạy công việc lặp lại hoặc tốn bộ nhớ theo tham số, thay vì một SHA-256. Attacker vẫn có thể đoán, nhưng **mỗi lần đoán trở nên đắt hơn**. Salt giúp chống precomputation và phân biệt bản ghi; KDF làm tăng chi phí cho từng candidate. Hai vai trò bổ sung nhau.
+Now every trial must execute repeated work or consume memory according to the parameters, rather than a single SHA-256. An attacker can still guess, but **each guess becomes much more expensive**. Salt defeats precomputation and distinguishes records; the KDF raises the cost per candidate. The two roles complement each other.
 
-| Cách làm | Chống bảng tra cứu dựng sẵn chung? | Làm chi phí mỗi lần thử cao? | Phù hợp password storage? |
+| Approach | Defeats shared precomputed lookup tables? | Makes each guess expensive? | Suitable for password storage? |
 | --- | --- | --- | --- |
-| `SHA-256(password)` | Không | Không | **Không** |
-| `SHA-256(salt || password)` | Có, nếu salt riêng | Không đáng kể | **Không** |
-| `PBKDF2(password, salt, iterations)` | Có | Có, theo số vòng | Có, với cấu hình phù hợp |
-| `Argon2id(password, salt, m, t, p)` | Có | Có, CPU + memory-hard | Có, thường ưu tiên cho hệ thống mới |
+| `SHA-256(password)` | No | No | **No** |
+| `SHA-256(salt || password)` | Yes, if salt is unique | Negligible | **No** |
+| `PBKDF2(password, salt, iterations)` | Yes | Yes, by iteration count | Yes, when properly configured |
+| `Argon2id(password, salt, m, t, p)` | Yes | Yes, CPU + memory-hard | Yes, typically preferred for new systems |
 
-**Không dùng chung một salt tĩnh toàn hệ thống**, không lấy username/time/PID làm salt thay CSPRNG và không cố giấu salt trong source code. Salt khác với **pepper** là bí mật bổ sung được bảo vệ ngoài database.
+**Do not share a single static system-wide salt**, do not use username/time/PID as a salt in place of a CSPRNG, and do not try to hide the salt in source code. Salt differs from a **pepper**, which is an extra secret protected outside the database.
 
-## 5. Thực hành 1: chứng minh salt không dừng offline guessing
+## 5. Practice 1: prove that a salt does not stop offline guessing
 
-Ví dụ này sử dụng **dữ liệu tự tạo để học tập**. Nó dùng SHA-256 một lần, hai salt **cố định để stdout có thể lặp lại**. Không sao chép cách sinh salt hay cách lưu verifier này sang production.
+This example uses **self-constructed data for educational purposes**. It uses single-pass SHA-256 and two **fixed salts so stdout is reproducible**. Do not copy this salt-generation or verifier-storage pattern into production.
 
-Tạo file **`FastHashGuessDemo.java`**:
+Create **`FastHashGuessDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -206,14 +206,14 @@ public class FastHashGuessDemo {
 }
 ```
 
-Biên dịch/chạy trên Java 17 trở lên:
+Compile/run on Java 17 or newer:
 
 ```bash
 javac --release 17 FastHashGuessDemo.java
 java FastHashGuessDemo
 ```
 
-Đầu ra đã kiểm chứng:
+Verified output:
 
 ```text
 unsalted repeat equals: true
@@ -222,78 +222,78 @@ offline guess matched: true
 candidate attempts: 3
 ```
 
-Giải thích kết quả:
+Result explanation:
 
-- `SHA-256` là hàm xác định, cùng input cho cùng output.
-- Hai salt khác nhau tạo input khác nhau nên hai digest khác nhau; salt chống việc nhìn hash giống nhau và tra bảng tính trước.
-- Attacker giả lập biết **salt công khai** và hash, rồi tính lại từng ứng viên. Ứng viên thứ ba khớp, dù hash có salt.
-- `MessageDigest.isEqual` có ích khi so sánh byte, nhưng **không** làm SHA-256 một lần thành thuật toán password storage.
+- `SHA-256` is deterministic; identical inputs yield identical outputs.
+- Two different salts produce different inputs and thus different digests; salt prevents spotting matching hashes and using precomputed tables.
+- The simulated attacker knows the **public salt** and the hash, then recomputes each candidate. The third candidate matches, even though the hash is salted.
+- `MessageDigest.isEqual` helps compare bytes safely, but it does **not** turn single-pass SHA-256 into a password storage algorithm.
 
-Điều này giải thích tại sao phải có **cả salt lẫn cơ chế làm chậm phép thử**, không chỉ thêm một chuỗi vào input SHA-256.
+This explains why you need **both a salt and a mechanism that slows down each guess**, rather than merely prepending a string to the SHA-256 input.
 
-## 6. Vì sao phải dùng password KDF có cost?
+## 6. Why must you use a cost-tunable password KDF?
 
-**Password-based key derivation / password hashing scheme** nhận password, salt và tham số độ khó. Nó cố ý tiêu tốn công việc khi sinh verifier. Người dùng hợp pháp thường cần một lần verify; attacker muốn thử rất nhiều password, nên chi phí sẽ nhân lên.
+A **password-based key derivation / password hashing scheme** takes a password, salt, and difficulty parameters. It intentionally consumes resources when generating a verifier. A legitimate user normally requires one verification; an attacker trying huge numbers of passwords has that cost multiplied across every attempt.
 
 ```text
-Đăng ký:
-password + salt_mới + algorithm/params
+Registration:
+password + fresh_salt + algorithm/params
                |
                v
      PasswordKDF(...)
                |
                v
-lưu {scheme, version, params, salt, verifier}
+store {scheme, version, params, salt, verifier}
 
-Xác minh:
-password nhập + salt/params lưu trữ
+Verification:
+entered password + stored salt/params
                |
                v
-     cùng PasswordKDF(...)
+     same PasswordKDF(...)
                |
                v
-so sánh verifier -> accept / reject
+compare verifier -> accept / reject
 ```
 
-Không nên tự tạo “SHA-256 lặp 1.000 lần” làm sơ đồ riêng: các thuật toán password KDF có thiết kế/kiểm chứng, tham số, định dạng và các chi tiết an toàn cần tuân theo.
+Do not invent a custom “SHA-256 repeated 1,000 times” scheme: standardized password KDFs have vetted designs, parameters, formats, and security details that must be followed.
 
-### 6.1 Các thuật toán quan trọng
+### 6.1 Key algorithms
 
-| Phương án | Work factor | Đặc tính | Lưu ý |
+| Option | Work factor | Properties | Notes |
 | --- | --- | --- | --- |
-| **Argon2id** | Bộ nhớ `m`, số passes `t`, mức song song `p` | **Memory-hard**; làm phép thử song song quy mô lớn đắt RAM | Thường ưu tiên cho hệ thống mới, cần thư viện được bảo trì |
-| **scrypt** | `N`, `r`, `p` | Memory-hard | Tốt nếu không thể dùng Argon2id |
-| **bcrypt** | Cost tăng theo cấp số mũ | Chủ yếu CPU | Hệ thống cũ; chú ý giới hạn đầu vào thường **72 byte** |
-| **PBKDF2-HMAC-SHA256** | `iterations` | Chuỗi HMAC lặp; **không memory-hard** | Chuẩn hóa, Java 17 có sẵn, phù hợp chính sách/tương thích |
-| **SHA-256 một lần** | Không có cost | Rất nhanh | Không lưu password trực tiếp |
+| **Argon2id** | Memory `m`, passes `t`, parallelism `p` | **Memory-hard**; makes large-scale parallel guessing RAM-expensive | Generally preferred for new systems; requires a maintained library |
+| **scrypt** | `N`, `r`, `p` | Memory-hard | Good option if Argon2id is unavailable |
+| **bcrypt** | Exponentially scaling cost | Primarily CPU-bound | Legacy systems; watch out for common **72-byte** input limit |
+| **PBKDF2-HMAC-SHA256** | `iterations` | Iterated HMAC chain; **not memory-hard** | Standardized, built into Java 17, fits compliance/compatibility needs |
+| **Single-pass SHA-256** | No cost | Very fast | Do not use directly to store passwords |
 
-Theo OWASP Password Storage Cheat Sheet, những **mốc tham khảo cần cập nhật theo thời gian** gồm:
+According to the OWASP Password Storage Cheat Sheet, **reference baselines that must be updated over time** include:
 
-- Argon2id: một cấu hình cơ sở **`m=19 MiB, t=2, p=1`**; tài liệu nêu các kết hợp RAM/iterations tương đương về mục tiêu.
-- scrypt: chẳng hạn `N=2^17, r=8, p=1`.
-- bcrypt: cost từ **10** cho trường hợp tương thích với hệ thống cũ; xử lý giới hạn 72 byte cẩn thận.
-- PBKDF2-HMAC-SHA256: **600.000 iterations** hoặc hơn theo hướng dẫn OWASP hiện có.
+- Argon2id: a baseline configuration of **`m=19 MiB, t=2, p=1`**; the guidance also lists equivalent RAM/iteration combinations.
+- scrypt: for example `N=2^17, r=8, p=1`.
+- bcrypt: cost starting at **10** for legacy compatibility; handle the 72-byte limit carefully.
+- PBKDF2-HMAC-SHA256: **600,000 iterations** or more per current OWASP guidance.
 
-Đây **không phải các con số có thể so trực tiếp** giữa thuật toán (2 vòng Argon2id không tương đương 2 vòng PBKDF2). Benchmark latency, throughput, RAM và khả năng chống DoS trên môi trường production; tăng cost/rehash khi phần cứng và hướng dẫn thay đổi.
+These **are not directly comparable numbers** across algorithms (2 passes of Argon2id is not equivalent to 2 iterations of PBKDF2). Benchmark latency, throughput, RAM, and DoS resilience in your production environment; raise costs/rehash as hardware and guidance evolve.
 
-**Memory-hard không có nghĩa không thể crack.** Argon2id buộc attacker bỏ thêm tài nguyên bộ nhớ cho từng ứng viên; nếu password quá phổ biến, nó vẫn có thể bị đoán. Work factor tăng chi phí, không tạo entropy mới cho mật khẩu yếu.
+**Memory-hard does not mean uncrackable.** Argon2id forces an attacker to spend more memory resources per candidate; if a password is too common, it can still be guessed. Work factors raise cost; they do not create new entropy for weak passwords.
 
-### 6.2 Vì sao ví dụ Java dưới đây dùng PBKDF2?
+### 6.2 Why does the Java example below use PBKDF2?
 
-`SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` là API chuẩn Java 17. Nó cho phép minh họa toàn bộ vòng đời salt/iterations/verifier **không cần thêm thư viện**. PBKDF2 có thể cần dùng trong môi trường yêu cầu triển khai được kiểm định/tuân thủ FIPS; nhưng nếu có thư viện Argon2id an toàn và chính sách cho phép, OWASP thường ưu tiên Argon2id cho hệ thống mới.
+`SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` is a standard Java 17 API. It lets us demonstrate the entire salt/iterations/verifier lifecycle **without external libraries**. PBKDF2 may be required in environments demanding validated/FIPS-compliant implementations; however, if a safe Argon2id library is available and policy allows, OWASP generally prefers Argon2id for new systems.
 
-## 7. Thực hành 2: PBKDF2-HMAC-SHA256 đầy đủ trong Java 17
+## 7. Practice 2: complete PBKDF2-HMAC-SHA256 in Java 17
 
-Ví dụ này dùng:
+This example uses:
 
-- Salt **16 byte mới**, sinh bằng `SecureRandom` cho từng bản ghi.
-- `PBKDF2WithHmacSHA256` với **600.000 iterations** và derived hash dài **32 byte**.
-- Chuỗi lưu `scheme$iterations$Base64(salt)$Base64(derived)` để thuật toán và cost không bị mất.
-- Verify bằng **cùng salt/iterations** lưu trong record, sau đó so sánh byte với `MessageDigest.isEqual`.
-- `PBEKeySpec.clearPassword()` và xóa mảng nhạy cảm mà ví dụ sở hữu.
-- Giới hạn iterations khi đọc bản ghi để tránh xử lý input cấu hình cực lớn; con số **2 triệu** là chính sách demo, không phải tiêu chuẩn bắt buộc.
+- A **fresh 16-byte salt** generated with `SecureRandom` for every record.
+- `PBKDF2WithHmacSHA256` with **600,000 iterations** and a **32-byte** derived hash.
+- A storage string `scheme$iterations$Base64(salt)$Base64(derived)` so algorithm and cost are never lost.
+- Verification using the **same salt/iterations** stored in the record, followed by byte comparison with `MessageDigest.isEqual`.
+- `PBEKeySpec.clearPassword()` and zeroing sensitive arrays owned by the example.
+- An iteration cap when parsing records to avoid processing absurdly large configured inputs; **2 million** is a demo policy limit, not a mandatory standard.
 
-Tạo file **`Pbkdf2PasswordDemo.java`**:
+Create **`Pbkdf2PasswordDemo.java`**:
 
 ```java
 import java.security.GeneralSecurityException;
@@ -395,14 +395,14 @@ public class Pbkdf2PasswordDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 Pbkdf2PasswordDemo.java
 java Pbkdf2PasswordDemo
 ```
 
-Ví dụ đầu ra đã kiểm tra:
+Verified sample output:
 
 ```text
 scheme: pbkdf2-sha256
@@ -414,180 +414,180 @@ correct password: true
 wrong password: false
 ```
 
-Hai salt 128 bit sinh độc lập gần như chắc chắn khác nhau (xác suất trùng cực nhỏ nhưng không tuyệt đối bằng 0). Các dòng còn lại phản ánh format và verify. Chương trình không in raw password, salt hoặc derived hash ra console.
+Two independently generated 128-bit salts are almost certainly different (the collision probability is minuscule, though not strictly zero). The remaining lines reflect the format and verification results. The program does not print the raw password, salt, or derived hash to the console.
 
-### 7.1 Giải thích luồng đăng ký
+### 7.1 Registration flow explained
 
-1. `register` sinh 16 byte salt bằng `SecureRandom.nextBytes` **mỗi lần tạo verifier**.
-2. `PBEKeySpec(password, salt, ITERATIONS, HASH_BYTES * 8)` dùng tham số độ dài key theo **bit**, không theo byte: 256 bit chỉ là kích thước verifier, không tăng entropy của password.
-3. `SecretKeyFactory` thực hiện PBKDF2 với HMAC-SHA256. Muốn dùng Argon2id cần thư viện phù hợp; không thể đổi tên thuật toán rồi hy vọng API Java có sẵn mọi KDF.
-4. Bản ghi chứa scheme, cost, salt và kết quả. Nó là **password verifier**, không phải encrypted password có thể giải mã.
+1. `register` generates 16 salt bytes via `SecureRandom.nextBytes` **every time a verifier is created**.
+2. `PBEKeySpec(password, salt, ITERATIONS, HASH_BYTES * 8)` takes the key length parameter in **bits**, not bytes: 256 bits is solely the verifier length and does not increase the password's entropy.
+3. `SecretKeyFactory` performs PBKDF2 with HMAC-SHA256. To use Argon2id, use an appropriate library; do not simply change the algorithm name and expect the built-in Java API to support every KDF.
+4. The record contains the scheme, cost, salt, and result. It is a **password verifier**, not an encrypted password that can be decrypted.
 
-### 7.2 Giải thích luồng xác minh
+### 7.2 Verification flow explained
 
-1. `verify` tách format và kiểm scheme/iterations/byte lengths.
-2. Nó dùng **salt và iterations của bản ghi cũ**, không sinh salt mới. Nếu sinh salt mới khi verify, password đúng cũng thường không khớp.
-3. Dẫn xuất lại bằng `PBEKeySpec` rồi so sánh byte bằng `MessageDigest.isEqual`.
-4. Trả `false` khi password sai; cần xử lý lỗi và các trường hợp tài khoản không tồn tại theo một chính sách chung ở tầng ứng dụng.
+1. `verify` splits the format and validates scheme/iterations/byte lengths.
+2. It uses **the stored record's salt and iterations**, never generating a new salt. Generating a new salt during verification would prevent even the right password from matching.
+3. Re-derive using `PBEKeySpec` and compare bytes with `MessageDigest.isEqual`.
+4. Return `false` on a wrong password; handle errors and nonexistent-account cases under a unified policy at the application layer.
 
-Giới hạn iterations trong demo là cách tránh bản ghi lỗi buộc xử lý một lượng công việc không kiểm soát. Production cần thêm giới hạn độ dài record/input, xác thực encoding, giới hạn request/concurrency và chính sách nâng version. **Đây là code hướng dẫn**, ứng dụng thật nên dùng password encoder được bảo trì và định dạng bản ghi chuẩn.
+Capping iterations in the demo prevents malformed records from forcing unbounded work. Production needs additional record/input length limits, encoding validation, request/concurrency limits, and version upgrade policies. **This is instructional code**; real applications should use a maintained password encoder and standard record format.
 
-### 7.3 Password trong bộ nhớ
+### 7.3 Passwords in memory
 
-`PBEKeySpec` giữ bản sao password ở dạng `char[]` và `clearPassword()` xóa bản sao **bên trong nó**; caller vẫn phải xóa `char[]` khi dùng xong. `Arrays.fill` có thể giảm thời gian secret tồn tại trong mảng do ứng dụng quản lý nhưng không chứng minh mọi bản sao trong heap đã bị loại bỏ.
+`PBEKeySpec` keeps a copy of the password as a `char[]`, and `clearPassword()` clears **its internal copy**; the caller must still zero its own `char[]` when finished. `Arrays.fill` can shorten how long a secret stays in application-managed arrays, though it does not prove every copy on the heap has been wiped.
 
-Các literal `"classroom-demo-only"` chỉ phục vụ demo tự chạy; sản phẩm thật **không hard-code password**, không tạo chuỗi `String` thừa và không ghi thông tin nhạy cảm vào log, APM, crash report hay URL. `String` bất biến khó xóa chủ động.
+Literals like `"classroom-demo-only"` are only for making the demo self-contained; production code must **never hardcode passwords**, never create unnecessary `String` objects, and never write sensitive data to logs, APM, crash reports, or URLs. Immutable `String` instances are hard to erase proactively.
 
-## 8. Lưu bản ghi verifier như thế nào để có thể nâng cấp?
+## 8. How to store verifier records so they can be upgraded
 
-Nếu chỉ lưu một chuỗi 32 byte, sau nhiều năm bạn không biết đó là SHA-256 hay PBKDF2 bao nhiêu vòng. Cần **version/algorithm/parameters** riêng trong bản ghi, chẳng hạn:
+If you store only a raw 32-byte string, years later you will not know whether it was SHA-256 or PBKDF2 with how many rounds. Store **version/algorithm/parameters** explicitly in the record, for instance:
 
 ```text
 { scheme, version, work_factor, salt, derived_hash }
 ```
 
-Đối với Argon2id phải lưu đủ `m, t, p`; với bcrypt lưu cost/format của thuật toán; với PBKDF2 cần thuật toán HMAC, số vòng, salt và độ dài kết quả. Có thể dùng **PHC string hoặc format của thư viện** thay vì tự định nghĩa.
+For Argon2id, store `m, t, p`; for bcrypt, store the algorithm's cost/format; for PBKDF2, you need the HMAC algorithm, iteration count, salt, and output length. You can use a **PHC string or library format** instead of inventing your own.
 
-Khi tăng cost, verifier cũ vẫn phải được xác minh đúng: đọc params từ record. Nếu user đăng nhập thành công và record có cost cũ, dùng password vừa nhập để **rehash với salt mới và cost mới**, cập nhật lưu trữ atomically; không cần giữ plaintext password lâu dài.
+When increasing cost, old verifiers must still verify properly: read the parameters from the record. When a user logs in successfully and the record uses an older cost, use the password just entered to **rehash with a fresh salt and new cost**, and update storage atomically; there is no need to retain plaintext passwords long-term.
 
-**Không đánh đồng “PBKDF2 của SHA-256 hash cũ” với PBKDF2 của password gốc.** Nếu hash nhanh cũ đã bị lộ, attacker có thể đoán nó offline; việc bọc thêm một lớp mà không đổi password không xóa được thiệt hại. Với hệ thống đang có SHA-256/password cũ, cần kế hoạch di trú:
+**Do not equate “PBKDF2 of an old SHA-256 hash” with PBKDF2 of the original password.** If old fast hashes leaked, attackers can guess them offline; wrapping them in another layer without changing passwords does not undo the exposure. For systems holding legacy SHA-256/passwords, plan a migration:
 
-1. Ngừng tạo verifier SHA-256 đơn mới.
-2. Hỗ trợ kiểm tra bản ghi legacy trong thời gian di trú có kiểm soát.
-3. Sau login đúng với password gốc, tạo verifier mới bằng KDF chuyên dụng và salt mới.
-4. Với tài khoản không đăng nhập, yêu cầu đặt lại password theo chính sách.
-5. Nếu nghi ngờ database đã rò rỉ, đánh giá vụ việc, thu hồi phiên và reset password khi cần. Rehash sau sự cố **không làm cho password cũ từng bị crack trở lại an toàn**.
+1. Stop creating new plain SHA-256 verifiers.
+2. Support verifying legacy records during a controlled migration window.
+3. After a successful login with the original password, generate a new verifier with a dedicated KDF and fresh salt.
+4. For accounts that do not log in, require a password reset per policy.
+5. If a database leak is suspected, assess the incident, revoke sessions, and reset passwords as needed. Rehashing after an incident **does not make previously cracked passwords safe again**.
 
-## 9. Salt, pepper, mã hóa và HMAC: đừng nhầm vai trò
+## 9. Salt, pepper, encryption, and HMAC: do not confuse their roles
 
-| Cơ chế | Bí mật? | Công dụng | Có thay được password KDF? |
+| Mechanism | Secret? | Purpose | Can it replace a password KDF? |
 | --- | --- | --- | --- |
-| **Salt** | Không, lưu cùng record | Chống precomputation, phân biệt mỗi bản ghi | Không |
-| **Pepper** | **Có**, giữ ngoài DB | Thêm rào cản nếu chỉ database bị lộ | Không |
-| **Password KDF** | Password là bí mật | Làm mỗi phép đoán tốn CPU/RAM, tạo verifier | Đây là thành phần cần dùng |
-| **AES encryption** | Phải giữ encryption key | Bảo mật dữ liệu **có thể giải mã** khi có key | Không phù hợp thay verifier thông thường |
-| **HMAC** | Có key | Xác thực dữ liệu; có thể tham gia sơ đồ pepper đúng thiết kế | Không dùng đơn lẻ |
+| **Salt** | No, stored with record | Defeat precomputation, distinguish each record | No |
+| **Pepper** | **Yes**, kept outside DB | Add a barrier if only the database leaks | No |
+| **Password KDF** | Password is secret | Make each guess costly in CPU/RAM, produce verifier | This is the component you need |
+| **AES encryption** | Must keep encryption key | Protect data that **can be decrypted** with the key | Unsuitable as a normal verifier replacement |
+| **HMAC** | Has a key | Authenticate data; can participate in a properly designed pepper scheme | Not for standalone use |
 
-Pepper có thể nằm trong vault/HSM/secret manager độc lập với database. Nó **không thay thế salt hay cost**. Nếu attacker cũng lấy pepper, lớp phòng vệ này không còn; việc rotate pepper cần thiết kế vì không có plaintext password để tính lại tùy ý.
+A pepper can live in a vault/HSM/secret manager independent of the database. It **does not replace salt or cost**. If an attacker also obtains the pepper, that defense layer vanishes; pepper rotation requires planning because plaintext passwords are not available for arbitrary recomputation.
 
-Không lưu plaintext password hay mã hóa để phục hồi password người dùng nếu mục tiêu chỉ là **xác minh khi login**. Mã hóa có khóa giải mã tạo nguy cơ lộ toàn bộ plaintext khi key bị đánh cắp; password hashing được thiết kế cho nhu cầu khác.
+Do not store plaintext passwords or encrypt them for recovery if your goal is only **login verification**. Reversible encryption creates the risk of exposing every plaintext password if the key is stolen; password hashing is built for a different requirement.
 
-**Lưu ý trường hợp ngoại lệ:** một token sinh ngẫu nhiên có entropy cao, đủ dài có thể được xử lý theo threat model khác. Điều đó không hợp thức hóa SHA-256 một lần với mật khẩu con người có entropy thấp.
+**Exception note:** a high-entropy, sufficiently long randomly generated token may follow a different threat model. That does not validate using single-pass SHA-256 for low-entropy human passwords.
 
-## 10. Tấn công online và offline cần phòng vệ khác nhau
+## 10. Online and offline attacks require different defenses
 
-| Đặc điểm | Online guessing | Offline guessing |
+| Characteristic | Online guessing | Offline guessing |
 | --- | --- | --- |
-| Nguồn dữ liệu attacker có | Endpoint login | Bản sao verifier/salt/params |
-| Có gửi request tới hệ thống thật? | Có | Không |
-| Rate limit/CAPTCHA/khóa tạm giúp được? | Có thể | Không ngăn các phép tính offline |
-| MFA giúp giảm đăng nhập trái phép? | Có, theo thiết kế | Không làm hash offline chậm hơn |
-| Hàng rào chính | Rate limiting, MFA, giám sát và chống enumeration | Salt + password KDF/cost + bảo vệ DB/pepper |
+| Data source attacker has | Login endpoint | Copy of verifier/salt/params |
+| Sends requests to live system? | Yes | No |
+| Do rate limits/CAPTCHA/lockouts help? | Potentially yes | Cannot stop offline computations |
+| Does MFA reduce unauthorized logins? | Yes, by design | Does not slow down offline hashing |
+| Primary defense | Rate limiting, MFA, monitoring, and anti-enumeration | Salt + password KDF/cost + DB/pepper protection |
 
-Một hệ thống nghiêm túc cần cả hai: mật khẩu mạnh/duy nhất, **blocklist password phổ biến/rò rỉ**, hỗ trợ password manager, bảo mật đường truyền TLS, giới hạn request, MFA/passkeys phù hợp và password KDF chuẩn.
+A serious system needs both: strong/unique passwords, **common/breached password blocklists**, password manager support, TLS transport security, request limits, appropriate MFA/passkeys, and a standard password KDF.
 
-Cần tránh **tiết lộ account tồn tại** qua thông báo lỗi và chênh lệch thời gian quá lớn; dùng chính sách lỗi login thống nhất. `MessageDigest.isEqual` hỗ trợ so sánh an toàn hơn, nhưng không bảo đảm **toàn bộ hàm login** có thời gian bất biến: vẫn còn truy vấn DB, parse record, tính KDF và các nhánh khác.
+Avoid **account enumeration** via error messages and large timing disparities; use a unified login error policy. `MessageDigest.isEqual` helps with safer comparisons, but it does not guarantee the **entire login handler** runs in constant time: DB queries, record parsing, KDF computation, and other branches still exist.
 
-## 11. Chọn work factor như thế nào?
+## 11. How to choose a work factor
 
-Cost quá thấp giúp attacker thử nhiều ứng viên; cost quá cao gây CPU/RAM saturation khi login đồng thời, thậm chí DoS. Một cách làm có căn cứ:
+Too low a cost lets attackers test many candidates; too high a cost causes CPU/RAM saturation during concurrent logins, or even DoS. A principled approach:
 
-1. Chọn KDF chuyên dụng, ưu tiên Argon2id khi môi trường hỗ trợ; dùng cấu hình xuất phát từ tài liệu bảo mật cập nhật.
-2. Benchmark **trên hạ tầng production tương đương**, đo p50/p95/p99 latency, CPU/RAM và lượng login song song. Với Argon2id, tính tổng RAM khi có nhiều request đang chạy.
-3. Đặt ngân sách CPU/memory, hàng đợi/concurrency limit, rate limit và giới hạn độ dài input.
-4. Lưu scheme/version/work factor trên từng bản ghi để tăng dần. Đừng để metadata không tin cậy yêu cầu hàng tỷ iterations.
-5. Định kỳ tăng cost khi phần cứng thay đổi; nâng cấp verifier qua lần login hoặc quy trình reset password.
+1. Choose a dedicated KDF, preferring Argon2id when supported; start from configurations in up-to-date security guidance.
+2. Benchmark **on production-equivalent infrastructure**, measuring p50/p95/p99 latency, CPU/RAM, and concurrent login volume. With Argon2id, calculate total RAM across concurrent requests.
+3. Set CPU/memory budgets, queue/concurrency limits, rate limits, and input length limits.
+4. Store scheme/version/work factor per record to scale up over time. Never let untrusted metadata demand billions of iterations.
+5. Periodically raise costs as hardware improves; upgrade verifiers during login or password reset flows.
 
-Không “giải quyết” latency bằng cách bỏ KDF rồi dùng SHA-256 một lần. Cần tối ưu kiến trúc xác minh, thông lượng và bảo vệ request.
+Never “solve” latency by dropping the KDF for single-pass SHA-256. Optimize verification architecture, throughput, and request protections instead.
 
-### 11.1 Unicode và password normalization
+### 11.1 Unicode and password normalization
 
-Java nhận password qua `char[]`. Cách chuyển ký tự thành byte của thuật toán/provider và quy tắc Unicode phải tương thích giữa các lần đăng ký/xác minh, giữa các runtime/ngôn ngữ nếu dữ liệu được chuyển hệ thống.
+Java receives passwords as `char[]`. How the algorithm/provider encodes characters into bytes and applies Unicode rules must remain consistent across registration and verification, and across runtimes/languages if data moves between systems.
 
-- Không tự động lowercase, `trim()` hoặc cắt password trong im lặng.
-- Nếu chọn Unicode normalization, quy định rõ form/version và dùng nhất quán.
-- Lưu ý giới hạn **72 byte** của nhiều triển khai bcrypt, không nhầm “ký tự” với “byte” khi input có dấu tiếng Việt/emoji.
-- Không dùng Base64/hex như một hình thức tăng độ an toàn: đó chỉ là encoding.
+- Do not silently lowercase, `trim()`, or truncate passwords.
+- If choosing Unicode normalization, specify the exact form/version and apply it consistently.
+- Mind the **72-byte** limit in many bcrypt implementations; do not confuse “characters” with “bytes” when inputs include Vietnamese diacritics or emojis.
+- Do not treat Base64/hex as a security enhancement: those are just encodings.
 
-Trong sản phẩm nên chọn password encoder thư viện đã kiểm thử thay vì tự viết nhiều biến thể password hashing/migration không cần thiết.
+In production, pick a vetted library password encoder rather than writing unnecessary custom password hashing/migration variants.
 
-## 12. Những nhận định sai thường gặp
+## 12. Common misconceptions
 
-- **“SHA-256 có 256 bit nên mật khẩu đã có 256-bit security.”** Sai. Đầu ra dài không tạo entropy cho password yếu.
-- **“Thêm một salt là đủ.”** Sai. Salt chống bảng dựng sẵn, vẫn cần password KDF.
-- **“Cứ SHA-256 lặp vài vòng là ngang Argon2id.”** Sai. Không tự chế sơ đồ; Argon2id có memory-hardness và cơ chế được nghiên cứu riêng.
-- **“Hash là một chiều nên không ai lấy được password.”** Sai. Tấn công từ điển chỉ cần hash và candidate, không cần đảo hàm.
-- **“Rate limit chặn brute force offline.”** Sai. Offline thử ngoài server.
-- **“Nhiều dấu đặc biệt đảm bảo entropy cao.”** Sai. Mẫu người dùng có thể dễ đoán.
-- **“Salt cần bí mật; pepper có thể lưu ngay trong DB.”** Ngược lại: salt được công khai, pepper phải được bảo vệ ngoài DB.
-- **“Băm password hai lần theo hai thuật toán nhanh là an toàn.”** Không tạo ra cost hoặc memory-hardness đủ mạnh để bảo vệ password yếu.
-- **“MFA khiến stored password hashes không cần bảo vệ.”** Sai. MFA là lớp bổ sung cho login; database leak vẫn nguy hiểm, đặc biệt do password reuse.
-- **“Chuyển hash cũ sang format mới là xong sự cố.”** Sai. Password cũ có thể đã bị đoán; cần điều tra và reset/thu hồi phiên tùy mức độ.
+- **“SHA-256 is 256 bits, so the password has 256-bit security.”** False. A long output creates no entropy for a weak password.
+- **“Adding a salt is enough.”** False. Salt defeats precomputed tables, but you still need a password KDF.
+- **“Looping SHA-256 a few times is equivalent to Argon2id.”** False. Do not roll your own scheme; Argon2id provides memory-hardness and peer-reviewed design.
+- **“Hashes are one-way so nobody can get the password.”** False. Dictionary attacks only need the hash and candidates, not function inversion.
+- **“Rate limits block offline brute force.”** False. Offline guessing runs outside your server.
+- **“Lots of special characters guarantee high entropy.”** False. User patterns can still be predictable.
+- **“Salt must be secret; pepper can live right in the DB.”** The opposite: salt is public, while pepper must be protected outside the DB.
+- **“Hashing a password twice with two fast algorithms is secure.”** Neither provides enough computational cost or memory-hardness to protect weak passwords.
+- **“MFA means stored password hashes don’t need protection.”** False. MFA is an added login layer; database leaks remain dangerous, especially due to password reuse.
+- **“Converting old hashes to a new format resolves the breach.”** False. Old passwords may already have been cracked; investigate and reset/revoke sessions as warranted.
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-check exercises
 
-**Câu 1.** Một PIN ngẫu nhiên đều 6 chữ số có bao nhiêu bit entropy trước khi băm SHA-256?  
-**Đáp:** Khoảng **19,93 bit**, không phải 256 bit.
+**Question 1.** How many bits of entropy does a uniformly random 6-digit PIN have before SHA-256 hashing?  
+**Answer:** Roughly **19.93 bits**, not 256 bits.
 
-**Câu 2.** Vì sao attacker offline không bị hạn chế bởi CAPTCHA?  
-**Đáp:** Họ tự tính verifier từ dữ liệu đã lộ, không gọi login endpoint.
+**Question 2.** Why isn’t an offline attacker stopped by CAPTCHA?  
+**Answer:** They compute verifiers themselves from leaked data without calling the login endpoint.
 
-**Câu 3.** Salt cho hai tài khoản cùng password khác nhau sẽ giải quyết điều gì?  
-**Đáp:** Phân biệt bản ghi, giảm hiệu quả bảng dựng sẵn và việc tái sử dụng cùng hash; **không** ngăn attacker thử từng candidate với salt đã biết.
+**Question 3.** What does giving two accounts with the same password different salts solve?  
+**Answer:** It distinguishes records, reduces precomputed table effectiveness, and prevents hash reuse across accounts; it **does not** stop an attacker from testing candidates against a known salt.
 
-**Câu 4.** PBKDF2 khác SHA-256 một lần ở đâu?  
-**Đáp:** PBKDF2 có salt và work factor `iterations` khiến mỗi lần thử tốn nhiều vòng HMAC. Nó không memory-hard như Argon2id.
+**Question 4.** How does PBKDF2 differ from single-pass SHA-256?  
+**Answer:** PBKDF2 uses a salt and an `iterations` work factor so every guess runs many HMAC rounds. It is not memory-hard like Argon2id.
 
-**Câu 5.** Vì sao không sinh salt mới mỗi khi user đăng nhập để so sánh?  
-**Đáp:** Xác minh phải dùng salt lưu từ lúc đăng ký, sau đó chạy lại KDF trên password được nhập. Salt mới dùng khi tạo **verifier mới/rehash**.
+**Question 5.** Why not generate a new salt every time a user logs in to compare?  
+**Answer:** Verification must use the salt saved at registration and rerun the KDF on the entered password. A new salt is generated only when creating a **new verifier/rehash**.
 
-**Câu 6.** Pepper là gì?  
-**Đáp:** Secret bổ sung phía server, giữ ngoài DB; không thay thế salt và password KDF.
+**Question 6.** What is a pepper?  
+**Answer:** An additional server-side secret stored outside the DB; it does not replace salt or password KDF.
 
-**Câu 7.** Nếu verifier cũ dùng 20.000 vòng PBKDF2 và chính sách mới đòi 600.000 vòng, nên xử lý thế nào?  
-**Đáp:** Xác minh đúng theo tham số cũ; khi user login thành công, rehash từ password vừa nhập với salt mới/cost mới và lưu record có metadata.
+**Question 7.** If an old verifier used 20,000 PBKDF2 iterations and the new policy requires 600,000 iterations, how should you handle it?  
+**Answer:** Verify using the old parameters; once the user logs in successfully, rehash from the entered password with a new salt/new cost and store the record with updated metadata.
 
-**Câu 8.** Trong một vụ lộ password hashes SHA-256, chỉ thay hash hiện có bằng `SHA-256(SHA-256(password))` có giải quyết vấn đề không?  
-**Đáp:** Không. Vẫn thiếu scheme chuyên dụng và không khôi phục an toàn cho password có thể đã bị attacker tìm ra.
+**Question 8.** In a breach of SHA-256 password hashes, does merely replacing existing hashes with `SHA-256(SHA-256(password))` solve the problem?  
+**Answer:** No. It still lacks a dedicated scheme and fails to safely remediate passwords attackers may already have recovered.
 
-## Tóm tắt mô hình
+## Model summary
 
 ```text
-Mật khẩu do con người chọn: thường ít entropy
+Human-chosen passwords: typically low entropy
                  |
                  v
-SHA-256 một lần: thử ứng viên rất rẻ
+Single-pass SHA-256: testing candidates is cheap
                  |
                  v
-Nếu verifier lộ, attacker thử offline
+If verifier leaks, attacker guesses offline
 
-Phòng vệ đúng hướng:
-CSPRNG salt riêng + password KDF có cost
+The right defense:
+Unique CSPRNG salt + cost-tunable password KDF
                  |
        +---------+-----------+
        |                     |
    Argon2id/scrypt       PBKDF2/bcrypt
-   CPU + memory          cost theo vòng
+   CPU + memory          round-based cost
        |                     |
        +---------+-----------+
                  |
                  v
-Lưu {scheme/version/params/salt/hash}
+Store {scheme/version/params/salt/hash}
                  |
                  v
-Login: KDF với salt lưu sẵn + so sánh an toàn
+Login: KDF with stored salt + safe comparison
                  |
                  v
-Kết hợp rate limit, MFA và quản lý nâng cấp
+Combine with rate limiting, MFA, and upgrade management
 ```
 
-**Độ dài của hash không làm cho password yếu trở nên khó đoán.** Muốn bảo vệ password verifier khi database bị đánh cắp, phải khiến **mỗi ứng viên** trở nên tốn tài nguyên để kiểm tra, thêm salt độc lập và điều chỉnh cost theo thời gian.
+**Hash length does not make a weak password harder to guess.** To protect password verifiers when a database is stolen, make **every candidate** expensive to test, add an independent salt, and scale cost over time.
 
-## Tài liệu tham khảo chính thức
+## Official references
 
-- [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html): Argon2id, scrypt, bcrypt, PBKDF2, salt/pepper và nâng cấp verifier.
-- [NIST SP 800-63B-4 — Authentication and Authenticator Management](https://pages.nist.gov/800-63-4/sp800-63b.html): verifier chống offline attacks, salt và cost phù hợp.
-- [Java 17 PBEKeySpec API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html): `char[]`, salt, iterations, key length và `clearPassword()`.
-- [Java 17 SecretKeyFactory API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/SecretKeyFactory.html): factory cho cơ chế dẫn xuất khóa.
-- [Java 17 SecureRandom API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): sinh salt bằng bộ sinh ngẫu nhiên mật mã.
-- [Java 17 MessageDigest API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/MessageDigest.html): SHA-256 và `isEqual`.
+- [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html): Argon2id, scrypt, bcrypt, PBKDF2, salt/pepper, and verifier upgrades.
+- [NIST SP 800-63B-4 — Authentication and Authenticator Management](https://pages.nist.gov/800-63-4/sp800-63b.html): offline-resistant verifiers, salts, and appropriate cost.
+- [Java 17 PBEKeySpec API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html): `char[]`, salt, iterations, key length, and `clearPassword()`.
+- [Java 17 SecretKeyFactory API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/SecretKeyFactory.html): factory for key derivation mechanisms.
+- [Java 17 SecureRandom API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): generating salts with a cryptographic random generator.
+- [Java 17 MessageDigest API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/MessageDigest.html): SHA-256 and `isEqual`.

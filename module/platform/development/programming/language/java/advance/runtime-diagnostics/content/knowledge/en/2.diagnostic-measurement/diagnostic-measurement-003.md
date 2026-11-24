@@ -1,134 +1,134 @@
-# 2.3. Phân biệt thời gian thực trôi qua, CPU time và thời gian chờ
+# 2.3. Distinguishing Elapsed Time, CPU Time, and Waiting Time
 
-Một lời gọi Java mất 2 giây không có nghĩa CPU xử lý nó suốt 2 giây. Ngược lại, một process dùng 3 giây CPU trong 1 giây thực là điều có thể xảy ra khi nhiều thread chạy song song. Muốn chẩn đoán hiệu năng, cần xác định **đo thời gian gì, cho đối tượng nào, từ mốc nào đến mốc nào**, trước khi quy kết lỗi cho CPU, lock, I/O hoặc hệ thống bên ngoài.
+A Java call taking 2 seconds does not mean the CPU spent 2 seconds processing it. Conversely, a process consuming 3 seconds of CPU in 1 real second is completely possible when multiple threads run in parallel. To diagnose performance, you must specify **what time is being measured, for which subject, and from which point to which point**, before blaming CPU, locks, I/O, or external systems.
 
-Bài này nằm trong **2. Phương pháp đo**. Ba khái niệm cần phân biệt:
+This lesson belongs to **2. Measurement Methodology**. Three concepts to distinguish:
 
-- **Elapsed time / wall-clock duration (thời gian thực trôi qua):** độ dài khoảng thời gian thực giữa hai sự kiện, bao gồm cả hoạt động và chờ đợi.
-- **CPU time:** tổng thời lượng CPU thực thi một thread hoặc các thread của một process, tùy phạm vi được đo.
-- **Waiting time (thời gian chờ):** thời lượng công việc hoặc thread chờ một điều kiện cụ thể như hàng đợi, lock, I/O, phản hồi từ dịch vụ khác hoặc được scheduler cấp CPU. **Không có một chỉ số Java duy nhất bao trùm mọi loại chờ.**
+- **Elapsed time / wall-clock duration:** the real-time length between two events, including both active execution and waiting.
+- **CPU time:** total CPU duration executing one thread or the threads of a process, depending on the measured scope.
+- **Waiting time:** duration a unit of work or thread waits for a specific condition such as a queue, lock, I/O, response from another service, or CPU scheduling. **No single Java metric covers all kinds of waiting.**
 
-Mục tiêu là đọc số liệu đúng bản chất, chọn API Java 17+ phù hợp, tính toán đúng với nhiều core, hiểu giới hạn của thread state và biết khi nào cần đo riêng từng đoạn chờ.
+The goal is to read numbers for what they actually are, pick the right Java 17+ APIs, calculate properly on multi-core hosts, understand thread state limitations, and know when each waiting segment must be measured separately.
 
-## 1. Chỉ số trả lời những câu hỏi khác nhau
+## 1. Metrics Answer Different Questions
 
-| Đại lượng | Câu hỏi | Phạm vi điển hình | Không thể suy ra trực tiếp |
+| Quantity | Question | Typical Scope | Cannot Be Inferred Directly |
 | --- | --- | --- | --- |
-| **Elapsed** | Người dùng/task đã phải chờ bao lâu từ start đến end? | Request, operation, method, thời gian quan sát | CPU đã dùng bao lâu |
-| **Thread CPU** | Thread này thực sự dùng CPU bao nhiêu thời lượng? | Một platform thread trong một khoảng xác định | Toàn bộ thời gian xử lý request async hoặc tổng CPU process |
-| **Process CPU** | Tất cả các thread của JVM dùng tổng bao nhiêu CPU? | Một JVM/process qua một cửa sổ | Latency của từng request hay CPU của riêng một thread |
-| **Queue wait** | Công việc nằm chờ được xử lý bao lâu? | Từ enqueue đến dequeue/start | Thời gian làm việc của worker sau dequeue |
-| **Lock/I/O/dependency wait** | Công việc bị giữ lại ở thao tác cụ thể bao lâu? | Monitor, lock, DB/HTTP, socket, filesystem | Toàn bộ phần chênh giữa elapsed và CPU |
+| **Elapsed** | How long did the user/task wait from start to end? | Request, operation, method, observation window | How much CPU was consumed |
+| **Thread CPU** | How much CPU time did this thread actually use? | One platform thread over a defined interval | Full async request time or total process CPU |
+| **Process CPU** | How much total CPU did all JVM threads consume? | One JVM/process over a window | Per-request latency or CPU of one specific thread |
+| **Queue wait** | How long did work sit waiting to be processed? | From enqueue to dequeue/start | Worker processing time after dequeue |
+| **Lock/I/O/dependency wait** | How long was work held at a specific operation? | Monitor, lock, DB/HTTP, socket, filesystem | The entire difference between elapsed and CPU |
 
-**Ví dụ với một thread tuần tự:** một thao tác có elapsed 1.000 ms và thread CPU 120 ms. Có khoảng 880 ms mà thread **không tiêu thụ CPU** trong cửa sổ đó. Khoảng này có thể gồm chờ I/O, lock, sleep, preemption, safepoint/GC và chậm trễ scheduler. **Không được gọi 880 ms là “chờ database”** nếu chưa đo riêng database.
+**Example with one sequential thread:** an operation has 1,000 ms elapsed and 120 ms thread CPU. There are roughly 880 ms during which the thread **did not consume CPU** in that window. That interval can include I/O wait, lock wait, sleep, preemption, safepoint/GC, and scheduler delays. **Do not call 880 ms "waiting on database"** without measuring the database separately.
 
-**Ví dụ với nhiều core:** bốn thread chạy trong cùng 1 giây, mỗi thread dùng 700 ms CPU. Tổng CPU của bốn thread là **2.800 ms**, còn elapsed cửa sổ vẫn là **1.000 ms**. Phép trừ 1.000 − 2.800 để tính waiting time hoàn toàn vô nghĩa vì CPU được cộng từ nhiều thread.
+**Example with multiple cores:** four threads run during the same 1 second, each using 700 ms CPU. Total CPU across the four threads is **2,800 ms**, while the window elapsed time remains **1,000 ms**. Subtracting 1,000 − 2,800 to compute waiting time is completely meaningless because CPU is summed across multiple threads.
 
-**Ví dụ với queue:** request vào queue 450 ms rồi worker tiêu tốn 50 ms CPU. End-to-end elapsed ít nhất khoảng 500 ms; việc đo CPU trên worker sau khi nhận request không thể nhìn thấy 450 ms đã chờ trước đó.
+**Example with a queue:** a request sits in a queue for 450 ms, then a worker spends 50 ms of CPU. End-to-end elapsed is at least ~500 ms; measuring CPU on the worker after it picks up the request cannot see the 450 ms waited beforehand.
 
-## 2. Elapsed: đồng hồ đo duration và đồng hồ ghi thời điểm
+## 2. Elapsed: Duration Clocks vs. Wall-Clock Timestamps
 
-Trong cùng một JVM, **System.nanoTime()** thích hợp để đo khoảng thời gian:
+Within the same JVM, **System.nanoTime()** is suitable for measuring elapsed intervals:
 
 ~~~java
 long startNanos = System.nanoTime();
-// Công việc thực tế được đặt ở đây khi áp dụng phép đo.
+// Actual work is placed here when applying the measurement.
 long elapsedNanos = System.nanoTime() - startNanos;
 double elapsedMillis = elapsedNanos / 1_000_000.0;
 ~~~
 
-Đoạn trên là **mẫu mã minh họa cách bao phép đo**, không phải một chương trình hoàn chỉnh. `System.nanoTime()` trả số nanosecond từ gốc tùy ý của JVM/môi trường, hữu ích khi lấy **hiệu**, không phải timestamp lịch. Đơn vị nanosecond không bảo đảm độ chính xác hay độ phân giải tới một nanosecond. Elapsed đo được bao gồm thời gian thread ngủ, chờ I/O, bị tạm dừng, tranh CPU và GC/safepoint nếu chúng nằm giữa hai mốc.
+The snippet above is an **illustrative pattern showing how to bracket a measurement**, not a complete program. `System.nanoTime()` returns nanoseconds from an arbitrary JVM/environment origin, useful for taking **differences**, not calendar timestamps. The nanosecond unit does not guarantee nanosecond accuracy or resolution. Measured elapsed time includes time the thread slept, waited for I/O, was paused, contended for CPU, or hit GC/safepoints if they occurred between the two readings.
 
-Ngược lại, **System.currentTimeMillis()** và **Instant.now()** phù hợp để đánh dấu **lúc nào** trong log/trace. Đồng hồ hệ thống có thể bị điều chỉnh bởi NTP hoặc quản trị viên, nên phép trừ hai timestamp lịch có thể không ổn định khi đo duration ngắn. Khi cần đối chiếu timeline giữa JVM, container và service, lưu timestamp có timezone; khi cần đo duration trong một JVM, dùng nguồn monotonic.
+Conversely, **System.currentTimeMillis()** and **Instant.now()** are suited for marking **when** an event occurred in logs/traces. The system clock can be adjusted by NTP or an administrator, so subtracting two calendar timestamps can be unreliable for short durations. When aligning timelines across JVMs, containers, and services, store timestamps with timezones; when measuring duration inside one JVM, use a monotonic source.
 
-Phải xác định điểm đo:
-- **Client elapsed** có thể gồm mạng, DNS/TLS, gateway, retry, queue, server và downstream.
-- **Controller/endpoint elapsed** chỉ gồm đoạn bên trong lớp đo đó, có thể không thấy request đã chờ trước khi dispatch.
-- **Method elapsed** chỉ là start/end của method được instrument.
-- **Trace span elapsed** là độ dài span; những span chạy song song chồng lấn nên không được cộng thành tổng elapsed tuần tự.
+You must specify the measurement boundary:
+- **Client elapsed** can include network, DNS/TLS, gateway, retries, queues, server, and downstream calls.
+- **Controller/endpoint elapsed** only covers the segment inside that instrumented layer, and may miss time the request waited before dispatch.
+- **Method elapsed** is strictly the start/end of the instrumented method.
+- **Trace span elapsed** is the span's duration; spans executing in parallel overlap and must not be summed into sequential total elapsed time.
 
-Ngay cả khi đo chính xác, duration của đoạn xử lý và duration nhìn từ client có thể khác đáng kể mà không có lỗi công cụ nào.
+Even when measured accurately, handler duration and client-observed duration can differ substantially with no tooling bug at all.
 
-## 3. CPU time: xác định thread hay process
+## 3. CPU Time: Specify Thread or Process
 
-### 3.1. CPU time của một platform thread
+### 3.1. CPU Time of a Single Platform Thread
 
-Java cung cấp **java.lang.management.ThreadMXBean**:
+Java provides **java.lang.management.ThreadMXBean**:
 
-- `isCurrentThreadCpuTimeSupported()`: JVM có hỗ trợ đo CPU của thread hiện tại không.
-- `isThreadCpuTimeEnabled()` và `setThreadCpuTimeEnabled(true)`: kiểm tra và yêu cầu bật theo dõi nếu có hỗ trợ và quyền.
-- `getCurrentThreadCpuTime()`: tổng CPU nanoseconds của current thread; có thể trả `-1` nếu không khả dụng.
-- `getCurrentThreadUserTime()`: phần CPU time ở user mode, khác với CPU time toàn phần gồm cả thời gian system mode.
+- `isCurrentThreadCpuTimeSupported()`: whether the JVM supports measuring CPU time of the current thread.
+- `isThreadCpuTimeEnabled()` and `setThreadCpuTimeEnabled(true)`: check and request enabling tracking if supported and permitted.
+- `getCurrentThreadCpuTime()`: total CPU nanoseconds for the current thread; may return `-1` if unavailable.
+- `getCurrentThreadUserTime()`: the user-mode portion of CPU time, distinct from total CPU time which also includes system-mode time.
 
-Lấy hiệu hai mẫu **của cùng một thread** tại hai mốc gần với điểm bắt đầu và kết thúc công việc sẽ có `threadCpuDelta`. Khoảng thread không được CPU thực thi, như lúc `Thread.sleep`, chờ monitor hoặc chờ I/O, thông thường không làm bộ đếm này tăng tương ứng.
+Taking the difference of two samples **on the same thread** near the start and end of work gives `threadCpuDelta`. Intervals where the thread is not executing on CPU—such as `Thread.sleep`, waiting on a monitor, or waiting on I/O—normally do not advance this counter correspondingly.
 
-**Quan hệ xấp xỉ cho cùng một thread và cùng khoảng đo:**
+**Approximate relationship for the same thread and same measurement interval:**
 
 ~~~text
 elapsed ~= on-CPU time of the thread + off-CPU time of the thread
 off-CPU ~= elapsed - threadCPU
 ~~~
 
-Dấu `~=` nhấn mạnh khác biệt về độ phân giải, cách OS/JVM hạch toán và chi phí đọc bộ đếm. **Off-CPU không đồng nghĩa I/O wait**: còn gồm chờ monitor, sleep, park, scheduler không cấp CPU, CPU quota throttle, GC/safepoint, v.v.
+The `~=` emphasizes differences in resolution, OS/JVM accounting, and counter read cost. **Off-CPU does not mean I/O wait**: it also includes monitor waits, sleep, parking, scheduler wait, CPU quota throttling, GC/safepoints, etc.
 
-CPU time đo mức tiêu thụ CPU, **không phải số lượng instruction hoặc tiến độ có ích**. Một vòng lặp lỗi có thể dùng CPU liên tục nhưng không hoàn thành request; ngược lại một thread chờ kết quả remote có CPU thấp nhưng elapsed lớn.
+CPU time measures CPU consumption, **not instruction count or useful progress**. A buggy loop can burn CPU continuously without completing requests; conversely, a thread waiting on a remote result has low CPU but large elapsed time.
 
-### 3.2. CPU time của toàn process
+### 3.2. CPU Time of the Entire Process
 
-JVM có application workers, GC threads, JIT compiler, thread hệ thống và có thể nhiều tác vụ cùng lúc. **Process CPU** cộng lượng CPU các thread tiêu thụ nên **có thể lớn hơn elapsed** trên máy nhiều core.
+A JVM has application workers, GC threads, JIT compilers, system threads, and potentially many concurrent tasks. **Process CPU** sums CPU consumed across threads, so it **can exceed elapsed time** on multi-core machines.
 
-Một phép diễn giải:
+One interpretation formula:
 
 ~~~text
 average logical CPU cores used ≈ delta(process CPU seconds) / delta(elapsed seconds)
 ~~~
 
-Nếu process tiêu thụ 2,4 giây CPU trong khoảng thực 1 giây, nó đã dùng trung bình khoảng **2,4 logical cores**. Chỉ số có thể được biểu diễn 240% khi lấy một core làm chuẩn; để diễn giải “% của năng lực được cấp” phải xét số CPU/quota thực sự sẵn có cho process/container.
+If a process consumes 2.4 CPU seconds in 1 real second, it used an average of roughly **2.4 logical cores**. This metric may be displayed as 240% when normalized to one core; to interpret "% of allocated capacity", you must consider the actual CPUs/quota available to the process/container.
 
-Java 17 có `ProcessHandle.current().info().totalCpuDuration()` trả về `Optional<Duration>`: nếu OS hỗ trợ, lấy **hai snapshot của cùng process** rồi tính hiệu. Công cụ hệ điều hành/container cũng cung cấp process CPU, CPU quota và throttling; nên đối chiếu các lớp này khi nghi bị giới hạn CPU. Một process CPU tổng tích lũy từ khi khởi chạy không thể so trực tiếp với elapsed của một request riêng lẻ.
+Java 17 has `ProcessHandle.current().info().totalCpuDuration()` returning `Optional<Duration>`: if the OS supports it, take **two snapshots of the same process** and compute the difference. OS/container tools also provide process CPU, CPU quota, and throttling; cross-check these layers when CPU limits are suspected. Cumulative process CPU since startup cannot be directly compared against the elapsed time of a single request.
 
-### 3.3. Không mặc định “CPU của request = CPU của worker”
+### 3.3. Do Not Assume "Request CPU = Worker CPU"
 
-Trong xử lý đồng bộ, nếu một request đi xuyên suốt cùng một thread và thread không thực thi việc khác xen kẽ, CPU delta của thread trong đoạn bao đo có thể đại diện tương đối tốt cho CPU của đoạn đó.
+In synchronous processing, if one request runs end-to-end on the same thread and the thread does not interleave other work, the thread's CPU delta over the bracketed interval can represent that segment's CPU reasonably well.
 
-Nhưng một request async/reactive có thể chạy qua nhiều executor, callback hoặc thread khác. CPU time đọc từ thread nhận request chỉ là một phần, trong khi cùng thread cũng có thể tiếp tục xử lý các request khác. Muốn phân bổ CPU theo request cần tracing/profiling có context phù hợp, không lấy CPU toàn process trừ elapsed của request. Với virtual threads trên JDK mới hơn Java 17, cần kiểm tra công cụ đo vì bộ đếm CPU per-thread có thể không đại diện cho từng virtual thread theo cách mặc định của người dùng.
+However, an async/reactive request may hop across multiple executors, callbacks, or threads. CPU time read from the request-receiving thread is only a fragment, while that same thread may go on to process other requests. Attributing CPU per request requires context-aware tracing/profiling, not subtracting request elapsed from total process CPU. For virtual threads on JDKs newer than Java 17, check your measurement tooling because per-thread CPU counters may not represent individual virtual threads the way users assume by default.
 
-## 4. “Thời gian chờ” có nhiều loại và nhiều ranh giới
+## 4. "Waiting Time" Has Many Types and Many Boundaries
 
-| Loại chờ | Ranh giới đo hữu ích | Nguồn bằng chứng |
+| Wait Type | Useful Measurement Boundary | Evidence Source |
 | --- | --- | --- |
-| **Queue wait** | enqueue → worker start | Queue timestamp, age, wait histogram |
-| **Chờ monitor** | yêu cầu vào `synchronized` → có quyền vào monitor | Thread dump, Java monitor contention, JFR |
-| **Chờ lock/condition/park** | bắt đầu acquire/park → acquire/unpark | Instrument lock, JFR park events, nhiều thread dump |
-| **Chờ I/O/DB/HTTP** | bắt đầu gọi → nhận response/kết thúc | Trace span, JDBC/HTTP metrics, JFR I/O, timeout |
-| **Chờ CPU scheduler** | thread đã sẵn sàng → được chạy | OS scheduler/run queue, CPU throttling, off-CPU profiling |
-| **Tạm dừng JVM** | pause/safepoint start → end | GC/safepoint logs, JFR GC pause |
+| **Queue wait** | enqueue → worker start | Queue timestamps, age, wait histograms |
+| **Monitor wait** | request to enter `synchronized` → monitor ownership acquired | Thread dumps, Java monitor contention, JFR |
+| **Lock/condition/park wait** | acquire/park start → acquired/unparked | Lock instrumentation, JFR park events, multiple thread dumps |
+| **I/O/DB/HTTP wait** | call start → response received/finished | Trace spans, JDBC/HTTP metrics, JFR I/O, timeouts |
+| **CPU scheduler wait** | thread runnable → scheduled on CPU | OS scheduler/run queue, CPU throttling, off-CPU profiling |
+| **JVM pause** | pause/safepoint start → end | GC/safepoint logs, JFR GC pauses |
 
-**Thread.State là ảnh chụp trạng thái, không phải thống kê thời gian chờ:**
+**Thread.State is a state snapshot, not a waiting-time statistic:**
 
-- **RUNNABLE:** thread đang chạy hoặc có thể chạy; một số đường I/O native vẫn được biểu diễn là RUNNABLE. Không chứng minh CPU đang thực thi thread đó.
-- **BLOCKED:** đợi vào hoặc reenter một **Java object monitor** để thực thi `synchronized`. Không bao trùm mọi loại lock hoặc socket I/O.
-- **WAITING:** chờ vô thời hạn hành động của bên khác, ví dụ `Object.wait()`, `Thread.join()`, `LockSupport.park()`.
-- **TIMED_WAITING:** chờ có thời hạn như `Thread.sleep()`, timed wait/join/park.
-- **NEW/TERMINATED:** chưa chạy/đã kết thúc, không dùng để kết luận request có bottleneck.
+- **RUNNABLE:** thread is running or eligible to run; some native I/O paths still appear as RUNNABLE. Does not prove CPU is currently executing that thread.
+- **BLOCKED:** waiting to enter or reenter a **Java object monitor** to execute `synchronized`. Does not cover all lock types or socket I/O.
+- **WAITING:** waiting indefinitely for another party's action, e.g., `Object.wait()`, `Thread.join()`, `LockSupport.park()`.
+- **TIMED_WAITING:** bounded wait such as `Thread.sleep()`, timed wait/join/park.
+- **NEW/TERMINATED:** not yet started / finished; not used to conclude request bottlenecks.
 
-Một thread pool rảnh có thể có phần lớn worker ở WAITING mà hệ thống hoàn toàn khỏe. Ngược lại một thread ở RUNNABLE có thể quay CPU hoặc bị kẹt ở native I/O. Chụp nhiều thread dump với timestamp và nhìn **progress counter, stack, lock owner và queue** trước khi gọi “treo” hay “deadlock”.
+An idle thread pool can have most workers in WAITING while the system is completely healthy. Conversely, a thread in RUNNABLE can be spinning CPU or stuck in native I/O. Capture multiple timestamped thread dumps and examine **progress counters, stacks, lock owners, and queues** before calling it "hung" or "deadlocked".
 
-### ThreadMXBean có đo thời gian chờ không?
+### Does ThreadMXBean Measure Waiting Time?
 
-Khi JVM hỗ trợ thread contention monitoring và bật `setThreadContentionMonitoringEnabled(true)`, đối tượng **ThreadInfo** có thể cung cấp:
-- `getBlockedTime()`: xấp xỉ thời gian thread chờ vào/reenter **monitor**.
-- `getWaitedTime()`: xấp xỉ thời gian ở **WAITING/TIMED_WAITING** theo cơ chế theo dõi.
+When the JVM supports thread contention monitoring and `setThreadContentionMonitoringEnabled(true)` is enabled, **ThreadInfo** can provide:
+- `getBlockedTime()`: approximate time spent waiting to enter/reenter a **monitor**.
+- `getWaitedTime()`: approximate time spent in **WAITING/TIMED_WAITING** under the monitoring mechanism.
 
-Các bộ đếm có thể báo `-1` nếu không hỗ trợ hoặc chưa bật, được tính tích lũy và phụ thuộc độ phân giải/overhead của JVM. Chúng **không phải** tổng thời gian chờ business request, không bao trùm mọi I/O, queue phía ngoài hoặc toàn bộ các loại lock. Bật theo dõi contention trong môi trường sản xuất cần cân nhắc overhead.
+These counters may report `-1` if unsupported or disabled, are cumulative, and depend on JVM resolution/overhead. They are **not** total business-request wait time and do not cover all I/O, external queues, or all lock primitives. Enabling contention monitoring in production requires weighing its overhead.
 
-Nếu muốn khẳng định “chờ lấy DB connection 500 ms”, hãy instrument **enqueue/acquire start → acquired**, rồi đo riêng **query start → query end**. Đừng dùng `elapsed - threadCPU` để quy hết vào DB.
+If you want to assert "waited 500 ms to get a DB connection", instrument **enqueue/acquire start → acquired**, and separately measure **query start → query end**. Do not use `elapsed - threadCPU` to blame the DB for everything.
 
-## 5. Chương trình Java 17+ chạy được: CPU work và sleep
+## 5. Runnable Java 17+ Program: CPU Work and Sleep
 
-Chương trình dưới đây đo hai công việc trên cùng **main thread**. Pha đầu tính tổng để tiêu CPU; pha sau ngủ 250 ms. Nó lấy duration từ `System.nanoTime()` và CPU từ `ThreadMXBean` khi công cụ cho phép.
+The program below measures two tasks on the same **main thread**. The first phase sums numbers to burn CPU; the second phase sleeps for 250 ms. It gets duration from `System.nanoTime()` and CPU from `ThreadMXBean` when supported.
 
-Lưu toàn bộ mã trong tệp **TimeTypesDemo.java**:
+Save the full code in **TimeTypesDemo.java**:
 
 ~~~java
 import java.lang.management.ManagementFactory;
@@ -197,89 +197,89 @@ public class TimeTypesDemo {
 }
 ~~~
 
-Lệnh biên dịch và chạy:
+Compile and run commands:
 
 ~~~bash
 javac TimeTypesDemo.java
 java TimeTypesDemo
 ~~~
 
-**Output cần diễn giải đúng:** hai dòng đầu bắt đầu bằng `CPU work:` và `Sleep:`, theo sau là elapsed thực đo và thread CPU thực đo. Các số đo phụ thuộc máy, scheduler, JIT và OS nên **không thể cung cấp stdout thời gian cố định**. Nếu CPU time không được hỗ trợ, chương trình in `threadCPU=unavailable`. Dòng cuối **luôn luôn** là:
+**Interpreting the output properly:** the first two lines start with `CPU work:` and `Sleep:`, followed by measured elapsed time and measured thread CPU. Timings depend on hardware, scheduler, JIT, and OS, so **fixed timing stdout cannot be provided**. If CPU time is unsupported, the program prints `threadCPU=unavailable`. The final line is **always**:
 
 ~~~text
 checksum=29999994
 ~~~
 
-Với `Sleep`, elapsed thường khoảng 250 ms hoặc lớn hơn vì scheduler có thể đánh thức muộn; thread CPU tăng ít, cho thấy khoảng elapsed đó **không được dành cho tính toán trên main thread**. Với `CPU work`, CPU thường chiếm tỷ lệ lớn hơn trong elapsed, nhưng có thể thấp do bị tranh core hoặc throttling. Không lấy khác biệt giữa hai pha làm benchmark tốc độ phần cứng: JIT warm-up, xung CPU, thời điểm đo và runtime overhead đều ảnh hưởng.
+For `Sleep`, elapsed is typically around 250 ms or more because the scheduler may wake the thread slightly late; thread CPU barely increases, showing that elapsed interval was **not spent computing on the main thread**. For `CPU work`, CPU usually forms a larger fraction of elapsed time, though it can be lower under core contention or throttling. Do not treat the difference between the two phases as a hardware speed benchmark: JIT warm-up, CPU clock scaling, measurement timing, and runtime overhead all affect it.
 
-**Giới hạn:** code này chỉ đo CPU của current thread, không cộng GC/JIT/worker khác; không đo trực tiếp lock wait, I/O wait hoặc queue. Việc đọc CPU trước/sau elapsed có sai lệch thời điểm nhỏ; những đoạn quá ngắn nên đo nhiều mẫu và chọn công cụ benchmark/profiler phù hợp. Đây là ví dụ **đo bản chất đại lượng**, không phải microbenchmark tin cậy để so hai hệ thống.
+**Limitations:** this code only measures the current thread's CPU, without adding GC/JIT/other workers; it does not directly measure lock wait, I/O wait, or queues. Reading CPU before/after elapsed introduces slight timing skew; very short blocks should be sampled many times with appropriate benchmark/profiler tools. This is an example of **measuring the nature of quantities**, not a reliable microbenchmark for comparing two systems.
 
-## 6. Phương pháp điều tra khi latency tăng
+## 6. Investigation Strategy When Latency Increases
 
-Một chiến lược hợp lý là đo **cùng cửa sổ thời gian** ở nhiều lớp rồi đối chiếu:
+A sound strategy is to measure **the same time window** across layers and cross-reference:
 
-1. **End-to-end:** lấy elapsed p50/p95/p99, số lượng mẫu, loại request, success/error, deadline và trace ID. p99 cao có thể do một nhóm nhỏ request; chỉ nhìn trung bình sẽ bỏ sót.
-2. **Các span xử lý:** tách queue wait, acquire connection, DB/HTTP call, lock, business logic và serialization. Nếu span chạy song song thì chúng chồng lấn, không cộng đơn giản thành tổng.
-3. **Thread/JVM:** tìm thread CPU delta, stack/thread state ở nhiều thời điểm, sự kiện park/monitor/I/O và GC/safepoint. Một thread dump duy nhất không đo tổng thời gian chờ.
-4. **Process/OS/container:** process CPU, CPU quota, throttling, run queue, disk/network latency, thread pool saturation. Host còn CPU rảnh không bảo đảm container có quota đủ.
-5. **Dependencies:** DB latency, connection pool wait, HTTP downstream, retry và timeout. Một method có elapsed cao vì gọi mạng vẫn có thể dùng rất ít CPU.
+1. **End-to-end:** get elapsed p50/p95/p99, sample count, request type, success/error, deadline, and trace IDs. High p99 may come from a small subset of requests; looking only at the mean misses it.
+2. **Processing spans:** split queue wait, connection acquire, DB/HTTP calls, locks, business logic, and serialization. If spans run in parallel, they overlap—do not simply sum them.
+3. **Thread/JVM:** check thread CPU delta, stacks/thread states across multiple timestamps, park/monitor/I/O events, and GC/safepoints. A single thread dump does not measure total wait time.
+4. **Process/OS/container:** process CPU, CPU quota, throttling, run queue, disk/network latency, thread pool saturation. Spare host CPU does not guarantee the container has sufficient quota.
+5. **Dependencies:** DB latency, connection pool wait, downstream HTTP, retries, and timeouts. A method with high elapsed time due to network calls can still use very little CPU.
 
-Với JDK HotSpot và quyền attach phù hợp, có thể thu một thread dump và recording JFR bằng PID tương ứng:
+With HotSpot JDK and appropriate attach permissions, you can capture a thread dump and a JFR recording using the corresponding PID:
 
 ~~~bash
 jcmd 12345 Thread.print -l
 jcmd 12345 JFR.start name=timing settings=profile duration=60s filename=timing.jfr
 ~~~
 
-`12345` là PID ví dụ. `Thread.print -l` cho stack và lock snapshot, không báo một tỷ lệ thời gian chờ chính xác. JFR có thể cung cấp execution samples, park/monitor, I/O, GC theo event được bật và ngưỡng ghi; cần xem recording settings. Việc thu có overhead và file có thể chứa thông tin nhạy cảm, nên cân nhắc quyền/dung lượng và thu đúng thời điểm. Nếu process đã thoát, không thể attach vào PID cũ.
+`12345` is an example PID. `Thread.print -l` gives a snapshot of stacks and locks, not an exact wait-time percentage. JFR can provide execution samples, park/monitor, I/O, and GC events depending on enabled events and recording thresholds; inspect the recording settings. Collection has overhead and files may contain sensitive data, so weigh permissions/size and capture at the right time. If the process has already exited, you cannot attach to the old PID.
 
-### Đọc dấu hiệu mà không kết luận quá mức
+### Reading Signals Without Over-Concluding
 
-| Quan sát | Gợi ý ban đầu | Chứng cứ phải kiểm tra tiếp |
+| Observation | Initial Hint | Evidence to Check Next |
 | --- | --- | --- |
-| Elapsed request cao, CPU thread thấp | Có nhiều off-CPU hoặc chờ ngoài đoạn CPU đo | Queue, DB, lock, sleep, GC, scheduler, request có đổi thread không |
-| Elapsed cao, CPU thread gần bằng elapsed | Đoạn trên thread có thể CPU-heavy | CPU profile/hot methods, số mẫu, contention, cơ hội tối ưu thuật toán |
-| Process CPU cao, elapsed một request cao | JVM dùng nhiều CPU ở đâu đó | Thread nào đang tiêu CPU? GC/JIT hay request này? CPU quota? |
-| Process CPU thấp, nhiều request timeout | Có thể đợi tài nguyên khác ngoài CPU | Pool, downstream, I/O, lock, saturation, quota throttling |
-| Nhiều thread WAITING nhưng throughput ổn | Có thể worker idle bình thường | Queue/completion rate, stack và pool utilization |
-| Process CPU 250% trong 1 giây | Có thể trung bình dùng 2,5 core | Logical cores/quota và OS accounting, không suy “wait âm” |
-| p99 elapsed tăng nhưng CPU mỗi task ổn | Tail latency có thể đến từ chờ | Trace p99, queue age, dependency p99, I/O và lock evidence |
+| High request elapsed, low thread CPU | Significant off-CPU or wait outside measured CPU segment | Queue, DB, lock, sleep, GC, scheduler, whether request hops threads |
+| High elapsed, thread CPU close to elapsed | Thread segment may be CPU-heavy | CPU profile/hot methods, sample count, contention, algorithmic optimization |
+| High process CPU, high single-request elapsed | JVM is burning CPU somewhere | Which threads consume CPU? GC/JIT or this request? CPU quota? |
+| Low process CPU, many request timeouts | Likely waiting on non-CPU resource | Pools, downstream, I/O, locks, saturation, quota throttling |
+| Many threads WAITING, healthy throughput | Likely normal idle workers | Queue/completion rate, stacks, and pool utilization |
+| Process CPU 250% in 1 second | Likely using ~2.5 cores on average | Logical cores/quota and OS accounting, never infer "negative wait" |
+| p99 elapsed rises while per-task CPU is flat | Tail latency likely comes from waiting | p99 traces, queue age, dependency p99, I/O and lock evidence |
 
-## 7. Tình huống phân biệt trước–sau
+## 7. Before–After Discrimination Scenarios
 
-**A — Sleep và CPU:** code sleep 500 ms thường làm elapsed tăng thêm ít nhất xấp xỉ 500 ms trong khi CPU time rất thấp. Đây là **chờ có chủ đích**, không chứng tỏ CPU yếu. Đặc biệt, `Thread.sleep()` không tự giải phóng monitor đang giữ, nên sleep bên trong `synchronized` còn có thể gây lock contention cho thread khác.
+**A — Sleep and CPU:** code sleeping 500 ms typically increases elapsed by at least ~500 ms while CPU time stays tiny. This is **intentional waiting**, not proof of a weak CPU. Notably, `Thread.sleep()` does not release held monitors, so sleeping inside `synchronized` can also cause lock contention for other threads.
 
-**B — Chờ scheduler khác chờ database:** request chạy 80 ms CPU nhưng mất 300 ms elapsed vì process bị giới hạn CPU quota hoặc cạnh tranh core. Hiệu 220 ms off-CPU chưa đủ để gọi là DB wait. Kiểm tra cgroup CPU throttling, run queue, OS scheduler và CPU profile trước khi sửa SQL.
+**B — Scheduler wait vs. database wait:** a request uses 80 ms CPU yet takes 300 ms elapsed because the process is CPU-quota throttled or contending for cores. The 220 ms off-CPU difference is not enough to call it DB wait. Check cgroup CPU throttling, run queue, OS scheduler, and CPU profile before tuning SQL.
 
-**C — Connection pool wait khác query time:** tổng request 900 ms, trong đó 500 ms chờ acquire connection và 250 ms thực thi SQL. Nếu chỉ đo SQL rồi gán toàn bộ 900 ms cho database engine là sai. Đặt một span riêng ở thao tác acquire, một span riêng ở query và đo request end-to-end.
+**C — Connection pool wait vs. query time:** total request is 900 ms, of which 500 ms is waiting to acquire a connection and 250 ms is executing SQL. Measuring only SQL and blaming all 900 ms on the database engine is wrong. Place a separate span on acquire, a separate span on the query, and measure end-to-end request time.
 
-**D — CPU process vượt elapsed:** bốn worker xử lý song song, tiêu tổng cộng 6 giây CPU trong một cửa sổ thực 2 giây; mức dùng trung bình khoảng 3 logical cores. Đây là số hợp lệ. Không trừ 6 giây khỏi elapsed 2 giây; muốn biết request chờ gì thì đo CPU/timeline của **đúng request và các thread liên quan**.
+**D — Process CPU exceeds elapsed:** four workers execute in parallel, consuming a total of 6 CPU seconds within a 2-second wall-clock window; average consumption is ~3 logical cores. This is valid. Never subtract 6 seconds from 2 seconds elapsed; to know what a request waited on, measure CPU/timeline of **the exact request and its involved threads**.
 
-**E — Thread WAITING không hẳn treo:** worker đang đợi việc trong pool và không có backlog là tình trạng bình thường. Nếu completion counter dừng dù queue đầy, đồng thời nhiều snapshot cho thấy worker chờ cùng lock/dependency, lúc đó mới có chứng cứ về stall. Phân biệt “chờ bình thường” với “không có tiến độ”.
+**E — WAITING threads do not imply a hang:** workers waiting for jobs in a pool with no backlog is normal. Only when completion counters stall despite a full queue, and multiple snapshots show workers waiting on the same lock/dependency, do you have evidence of a stall. Distinguish "normal idle wait" from "no forward progress".
 
-**F — GC làm elapsed cao mà app thread CPU thấp:** stop-the-world pause khiến ứng dụng không tiến triển, trong khi CPU của một application thread có thể hầu như không tăng; process CPU vẫn có thể cao do GC threads tiêu thụ CPU. Dùng GC logs/JFR để xác nhận pause, không quy ngay cho database.
+**F — GC causes high elapsed with low app-thread CPU:** stop-the-world pauses prevent application progress, while an application thread's CPU barely increases; process CPU may still be high due to GC threads consuming CPU. Use GC logs/JFR to confirm pauses instead of immediately blaming the database.
 
-## 8. Những lỗi đo và suy luận phổ biến
+## 8. Common Measurement and Reasoning Pitfalls
 
-- **Lẫn thời điểm với thời lượng:** dùng `currentTimeMillis()` để microbenchmark; thời gian hệ thống có thể chỉnh, dùng `nanoTime()` cho duration.
-- **Đặt start/end sai lớp:** đo method 100 ms rồi kết luận latency client 100 ms, bỏ qua queue, network và retry.
-- **Coi elapsed = CPU:** bỏ qua I/O, sleep, lock, scheduling, GC/safepoint.
-- **Coi elapsed − CPU = I/O wait:** thực chất hiệu cùng-thread chỉ xấp xỉ off-CPU; cần đo I/O span riêng.
-- **Trừ process CPU nhiều thread khỏi wall một request:** hai phạm vi không tương thích.
-- **Coi RUNNABLE là đang tiêu CPU:** state không chứng minh phần CPU nào được cấp.
-- **Coi WAITING/BLOCKED là deadlock:** thread state đơn lẻ chỉ là snapshot; cần lock graph và kiểm tra tiến độ theo thời gian.
-- **Coi ThreadInfo blocked/waited time là total wait của request:** bị giới hạn bởi cơ chế monitor/WAITING và việc bật monitoring.
-- **Bỏ qua thread switching trong async:** CPU của một worker không đại diện toàn bộ request nhiều stage.
-- **Cộng các span chạy song song:** hai nhánh 400 ms chồng lấn không nhất thiết tạo elapsed 800 ms; xác định critical path.
-- **Đo một lần rồi kết luận:** JIT compilation, class loading, GC, CPU frequency và background load tạo dao động; dùng nhiều mẫu, cửa sổ rõ và baseline tương đương.
-- **Không đo overhead đo lường:** log đồng bộ quá nhiều, profiler nặng và instrumentation có thể ảnh hưởng chính công việc đang đo.
+- **Confusing timestamps with durations:** using `currentTimeMillis()` for microbenchmarks; system time can be adjusted, use `nanoTime()` for durations.
+- **Bracketing start/end at the wrong layer:** measuring a method at 100 ms and concluding client latency is 100 ms, ignoring queues, network, and retries.
+- **Equating elapsed = CPU:** ignoring I/O, sleep, locks, scheduling, and GC/safepoints.
+- **Equating elapsed − CPU = I/O wait:** the same-thread difference only approximates off-CPU time; measure I/O spans separately.
+- **Subtracting multi-thread process CPU from one request's wall time:** incompatible scopes.
+- **Assuming RUNNABLE means actively consuming CPU:** state does not prove CPU allocation.
+- **Assuming WAITING/BLOCKED means deadlock:** a single thread state is just a snapshot; need lock graphs and progress checks over time.
+- **Treating ThreadInfo blocked/waited time as total request wait:** limited to monitors/WAITING tracking and enabled monitoring.
+- **Ignoring thread switches in async code:** one worker's CPU does not represent an entire multi-stage request.
+- **Summing parallel spans:** two overlapping 400 ms branches do not necessarily yield 800 ms elapsed; identify the critical path.
+- **Measuring once and concluding:** JIT compilation, class loading, GC, CPU frequency, and background load create variance; use multiple samples, clear windows, and equivalent baselines.
+- **Ignoring measurement overhead:** excessive synchronous logging, heavy profilers, and instrumentation can affect the very work being measured.
 
-## 9. Checklist cho một kết luận có bằng chứng
+## 9. Checklist for an Evidence-Backed Conclusion
 
-Một báo cáo đo thời gian nên trả lời được: **(1)** đâu là đối tượng và khoảng đo; **(2)** elapsed được ghi từ client/server/method/span nào; **(3)** dùng monotonic duration hay timestamp lịch; **(4)** CPU là per-thread hay process, có chuyển thread/chạy song song không; **(5)** loại waiting đã được instrument trực tiếp hay mới chỉ suy đoán; **(6)** có số liệu queue, lock, I/O, dependency, scheduler, CPU quota và GC không; **(7)** tải, cửa sổ đo và baseline có tương đương?
+A timing measurement report should answer: **(1)** what is the subject and measurement interval; **(2)** from which layer—client/server/method/span—was elapsed recorded; **(3)** was monotonic duration or calendar timestamp used; **(4)** is CPU per-thread or process-wide, and did work hop threads or run in parallel; **(5)** was the wait type instrumented directly or only inferred; **(6)** are queue, lock, I/O, dependency, scheduler, CPU quota, and GC metrics present; **(7)** are load, measurement window, and baseline equivalent?
 
-**Kết luận tốt:** “Từ 10:00–10:05, p95 elapsed của GET /orders là 920 ms; span chờ acquire DB connection p95 640 ms. CPU của worker thấp; nguồn trì hoãn đã xác nhận ở bước acquire, đang kiểm tra saturation của pool.”
+**Good conclusion:** "From 10:00–10:05, GET /orders p95 elapsed is 920 ms; the DB connection-acquire wait span p95 is 640 ms. Worker CPU is low; the delay source is confirmed at the acquire step, and pool saturation is under inspection."
 
-**Kết luận chưa đủ căn cứ:** “Request 920 ms, CPU 80 ms, vậy DB wait 840 ms.” Phép trừ này không chỉ ra DB; nó có thể chứa nhiều loại chờ, scheduler và runtime pauses, thậm chí hai số liệu có thể khác phạm vi.
+**Insufficiently grounded conclusion:** "Request took 920 ms, CPU 80 ms, so DB wait is 840 ms." That subtraction does not pinpoint the DB; it can contain many wait types, scheduler delays, and runtime pauses, and the two numbers might not even share the same scope.
 
-**Ghi nhớ:** **elapsed** trả lời “bao lâu đã trôi qua”; **thread/process CPU time** trả lời “CPU đã làm việc bao lâu”; **waiting time** chỉ có ý nghĩa khi chỉ rõ “chờ cái gì, đo từ đâu tới đâu”. Dùng các phép so sánh và phép trừ chỉ khi **đối tượng, cửa sổ và cách hạch toán** tương thích.
+**Remember:** **elapsed** answers "how much real time passed"; **thread/process CPU time** answers "how long the CPU worked"; **waiting time** is meaningful only when specifying "waiting on what, measured from where to where". Use comparisons and subtractions only when **subject, window, and accounting semantics** are compatible.

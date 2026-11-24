@@ -1,20 +1,20 @@
-# Chuyển khỏi lib/ext, java.ext.dirs và giả định application loader là URLClassLoader
+# Migrating Away from lib/ext, java.ext.dirs, and Assuming the Application Loader Is a URLClassLoader
 
-Khi nâng một hệ thống Java 8 có cơ chế tải thư viện hoặc plugin động lên Java 17+, ba giả định cũ có thể làm ứng dụng thất bại **ngay khi khởi động** hoặc chỉ lỗi ở đường sử dụng plugin:
+When upgrading a Java 8 system with dynamic library or plugin loading to Java 17+, three legacy assumptions can break the application **immediately at startup** or only on the plugin execution path:
 
-1. “Chép JAR vào `$JAVA_HOME/lib/ext` là JVM tự thấy.” **Không còn đúng từ JDK 9**: extension mechanism đã bị loại bỏ.
-2. “Có thể trỏ `-Djava.ext.dirs=...` tới thư mục extension riêng.” **Không còn là cách cấu hình hợp lệ**: launcher/compiler của JDK hiện đại từ chối cơ chế cũ.
-3. “`ClassLoader.getSystemClassLoader()` trả `URLClassLoader`; cast rồi gọi `getURLs()` hoặc tìm cách `addURL`.” **Không phải hợp đồng Java SE**; application class loader mặc định trong JDK 9+ không còn là `URLClassLoader`.
+1. "Copying a JAR into `$JAVA_HOME/lib/ext` makes the JVM see it automatically." **No longer true since JDK 9**: the extension mechanism was removed.
+2. "We can point `-Djava.ext.dirs=...` to a custom extension directory." **No longer a valid configuration**: modern JDK launchers and compilers reject the legacy flag.
+3. "`ClassLoader.getSystemClassLoader()` returns a `URLClassLoader`; cast it and call `getURLs()` or try calling `addURL`." **Not a Java SE contract**; the default application class loader in JDK 9+ is no longer a `URLClassLoader`.
 
-Ba lỗi này liên quan trực tiếp tới **kiểm thử và triển khai kiến trúc mở rộng runtime**: một JAR có thể được đóng gói đúng nhưng không nằm trên bất kỳ đường tìm kiếm hợp lệ nào; hoặc code cố ép kiểu loader bị `ClassCastException` trước cả khi mở plugin.
+These three errors directly affect **testing and deploying runtime extensibility architectures**: a JAR may be packaged properly yet sit on no valid search path, or loader-casting code throws `ClassCastException` before even opening a plugin.
 
-Hướng chuyển đổi an toàn là **chọn rõ cơ chế triển khai**: classpath cho thư viện legacy; module path và `ModuleLayer` cho named modules; hoặc một `URLClassLoader` do ứng dụng **tự tạo, tự sở hữu và tự đóng** cho plugin classpath. Phần nghiệp vụ nên thao tác qua contract `ClassLoader`/SPI thay vì phụ thuộc implementation nội bộ của loader hệ thống.
+The safe migration path is to **choose the deployment mechanism explicitly**: classpath for legacy libraries; module path and `ModuleLayer` for named modules; or a `URLClassLoader` **created, owned, and closed by the application** for classpath plugins. Business logic should program against the `ClassLoader`/SPI contract rather than internal system loader implementations.
 
-Bài Knowledge này giải thích thay đổi của JDK, lập bảng thay thế cấu hình, cung cấp demo Java 17 chạy độc lập, rồi xây checklist kiểm thử cho migration và plugin deployment.
+This Knowledge article explains the JDK changes, builds a configuration replacement table, provides a standalone Java 17 demo, and establishes a testing checklist for migration and plugin deployment.
 
-## 1. Trước JDK 9: extension mechanism thực sự làm gì?
+## 1. Before JDK 9: What Did the Extension Mechanism Actually Do?
 
-Ở Java 8 và trước đó, JVM có **installed extensions mechanism**: JAR được đặt trong các extension directories được class loader extension tìm thấy mà ứng dụng không cần liệt kê từng JAR trên application classpath. Ví dụ thói quen triển khai cũ:
+In Java 8 and earlier, the JVM had an **installed extensions mechanism**: JARs placed in extension directories were discovered by the extension class loader without listing every JAR on the application classpath. Legacy deployment habits looked like:
 
 ```text
 <JAVA_HOME>/
@@ -22,46 +22,46 @@ Bài Knowledge này giải thích thay đổi của JDK, lập bảng thay thế
         vendor-codec.jar
         shared-plugin.jar
 
-hoặc:
+or:
     java -Djava.ext.dirs=/opt/company/extensions -cp app.jar com.example.Main
 ```
 
-Đây là **sơ đồ lịch sử**, không phải lệnh dành cho Java 17. Vị trí thư mục tùy bản phân phối/layout JDK/JRE cũ. `java.ext.dirs` dùng để chỉ danh sách thư mục extensions thay vì cấu hình dependency cụ thể cho từng ứng dụng.
+This is a **historical diagram**, not commands for Java 17. Directory locations depended on legacy JDK/JRE distribution layouts. `java.ext.dirs` specified a list of extension directories instead of per-application dependency configurations.
 
-Cơ chế này tạo cảm giác tiện lợi nhưng có các chi phí:
+This mechanism felt convenient yet carried real costs:
 
-- Dependencies bị đặt vào **môi trường Java chung**, khó tái hiện khi chạy test, container hoặc server khác.
-- Artifact lạ trong extension directory có thể ảnh hưởng **nhiều ứng dụng** dùng cùng runtime.
-- Version conflict khó nhìn thấy nếu hệ thống không quản lý từng JAR và nguồn gốc.
-- Plugin được “cài” bằng thay thư mục JDK, làm phức tạp cập nhật, kiểm thử và rollback.
-- Loader resolution phụ thuộc cấu hình máy, không nằm rõ trong manifest/deployment descriptor của ứng dụng.
+- Dependencies lived in the **shared Java environment**, hard to reproduce across tests, containers, or other servers.
+- An unexpected artifact in an extension directory could affect **multiple applications** sharing that runtime.
+- Version conflicts were hard to trace without tracking individual JARs and origins.
+- Plugins were "installed" by mutating the JDK directory, complicating updates, testing, and rollbacks.
+- Loader resolution depended on host machine setup rather than explicit application manifests/deployment descriptors.
 
-Khi chuyển sang JDK modular runtime, đây không còn là một điểm mở rộng hợp lệ. **Đừng di chuyển máy móc JAR từ `lib/ext` sang một thư mục `lib` khác và giả định JVM sẽ tự quét.** Java không mặc định tự duyệt mọi JAR trong thư mục bất kỳ.
+When moving to a modular JDK runtime, this is no longer a valid extension point. **Do not mechanically move JARs from `lib/ext` to another `lib` folder assuming the JVM will scan it automatically.** Java does not scan arbitrary directories by default.
 
-## 2. Thay đổi kể từ JDK 9: cơ chế bị loại bỏ, hierarchy có tên mới
+## 2. Changes Since JDK 9: Mechanism Removed, Hierarchy Renamed
 
-Oracle JDK Migration Guide phân biệt hai thay đổi liên quan nhưng **không đồng nghĩa**:
+The Oracle JDK Migration Guide distinguishes two related—yet **not identical**—changes:
 
-### 2.1. Extension directory scanning bị loại bỏ
+### 2.1. Extension Directory Scanning Was Removed
 
-Từ JDK 9, extension mechanism không còn được hỗ trợ. Nếu muốn dùng một JAR từng nằm ở `lib/ext`, phải **đưa nó vào classpath/module path hoặc cơ chế loader do ứng dụng định nghĩa**.
+Since JDK 9, the extension mechanism is no longer supported. To use a JAR that previously lived in `lib/ext`, you must **place it on the classpath/module path or load it via an application-defined loader**.
 
-Hướng dẫn migration của Oracle mô tả rằng launcher `java` và compiler `javac` sẽ thoát khi phát hiện cấu hình extension cũ như thuộc tính `java.ext.dirs` hoặc `lib/ext` trong các layout chịu kiểm tra; thông báo chính xác phụ thuộc phiên bản và bản phân phối. Với Java 17 đã kiểm thử, lệnh kiểu:
+Oracle's migration guide notes that the `java` launcher and `javac` compiler exit on startup if legacy extension configurations such as `java.ext.dirs` or `lib/ext` appear in checked layouts; exact messages vary by JDK version and distribution. On tested Java 17, a command like:
 
 ```bash
 java -Djava.ext.dirs=legacy -version
 ```
 
-**Không phải phương án cấu hình mới**: JVM từ chối thiết lập đó. Việc thử lệnh trên runtime kiểm thử là để **phát hiện cấu hình cũ**, không phải bước bắt buộc khi chạy chương trình demo sau này.
+**Is not a new configuration option**: the JVM rejects that setting. Running it in a test runtime serves only to **detect leftover legacy flags**, not as a step for running the demo program later.
 
-Không nên xử lý lỗi khởi động bằng cách tạo thư mục `lib/ext` mới trong JDK. Hành động đúng là gỡ cấu hình extension cũ, rồi **khai báo các JAR cần thiết trong deployment của ứng dụng**.
+Never work around startup errors by creating a new `lib/ext` folder inside the JDK. The right fix is removing the legacy extension configuration and **declaring needed JARs in the application's deployment**.
 
-### 2.2. Extension class loader đổi vai trò thành platform class loader
+### 2.2. The Extension Class Loader Became the Platform Class Loader
 
-Phân cấp khái niệm trong JDK 9+ thường được diễn đạt:
+The conceptual hierarchy in JDK 9+ is commonly drawn as:
 
 ```text
-Bootstrap class loader  (thường biểu diễn bằng parent null)
+Bootstrap class loader  (typically represented as null parent)
         ^
         |
 Platform class loader   ClassLoader.getPlatformClassLoader()
@@ -70,14 +70,14 @@ Platform class loader   ClassLoader.getPlatformClassLoader()
 Application/system class loader   ClassLoader.getSystemClassLoader()
         ^
         |
-Loader plugin do ứng dụng tạo (nếu có)
+Application-created plugin loader (if any)
 ```
 
-Đây là mô hình minh họa của runtime mặc định, **không phải lời hứa mọi custom class loader đều có đúng cây này**. JDK 9+ có `ClassLoader.getPlatformClassLoader()`; nó thay vị trí/khái niệm class loader extensions cũ trong hierarchy nhưng **không tiếp tục tự quét `lib/ext`**.
+This illustrates the default runtime model, **not a guarantee that every custom class loader follows this exact tree**. JDK 9+ provides `ClassLoader.getPlatformClassLoader()`; it takes the conceptual place of the old extension loader in the hierarchy without **continuing to auto-scan `lib/ext`**.
 
-Platform loader cung cấp khả năng truy cập các classes cần thiết trong platform theo hợp đồng JDK. **Không đồng nhất “visible through platform loader” với “defined by platform loader”**: một số Java SE classes thực tế được bootstrap loader định nghĩa. Code không nên dựa vào loader cụ thể đã định nghĩa từng class platform.
+The platform loader provides access to required platform classes per the JDK contract. **Do not equate "visible through the platform loader" with "defined by the platform loader"**: some Java SE classes are actually defined by the bootstrap loader. Code should never rely on which exact loader defined a particular platform class.
 
-Nếu cần parent cho custom loader tải plugin nhưng plugin có sử dụng **API do application sở hữu**, thường truyền chính **loader của host API**, không tự động truyền platform loader hay `null`:
+When choosing a parent for a custom plugin loader where the plugin uses an **application-owned API**, normally pass the **host API's loader**, not automatically the platform loader or `null`:
 
 ```java
 ClassLoader parent = PluginApi.class.getClassLoader();
@@ -85,14 +85,14 @@ URLClassLoader pluginLoader =
         new URLClassLoader(pluginUrls, parent);
 ```
 
-Đây là **snippet**: `PluginApi`/`pluginUrls` phải được xác định và imports `URLClassLoader`, `URL` phù hợp. Nếu plugin và host phải chia sẻ `PluginApi`, parent này giúp tránh việc plugin nạp một bản API khác. Dùng `null` không phải cách cô lập plugin an toàn; nó có thể làm mất khả năng nhìn thấy host API và các module platform nhất định.
+This is a **snippet**: `PluginApi`/`pluginUrls` must be defined along with `URLClassLoader` and `URL` imports. When plugin and host must share `PluginApi`, this parent prevents the plugin from loading a duplicate copy of the API. Passing `null` is not a safe plugin isolation trick; it can hide the host API and certain platform modules.
 
-## 3. Application/system loader không còn là URLClassLoader mặc định
+## 3. Application/System Loader Is No Longer a URLClassLoader by Default
 
-Một anti-pattern phổ biến của ứng dụng Java 8:
+A common Java 8 anti-pattern:
 
 ```java
-// Mẫu cũ không portable: có thể ClassCastException trên Java 17.
+// Legacy non-portable pattern: can throw ClassCastException on Java 17.
 URLClassLoader app =
         (URLClassLoader) ClassLoader.getSystemClassLoader();
 
@@ -101,11 +101,11 @@ for (URL url : app.getURLs()) {
 }
 ```
 
-Đoạn trên là **minh họa anti-pattern**, không phải code nên chạy trong production. `ClassLoader.getSystemClassLoader()` có kiểu trả về khai báo **`ClassLoader`**, không phải `URLClassLoader`. Ở JDK 9+, loader application mặc định được implement bằng class nội bộ của JDK, không kế thừa `URLClassLoader`.
+The snippet above is an **anti-pattern illustration**, not code to run in production. `ClassLoader.getSystemClassLoader()` has declared return type **`ClassLoader`**, not `URLClassLoader`. In JDK 9+, the default application loader is implemented by an internal JDK class that does not extend `URLClassLoader`.
 
-Không suy từ một cast thành công trên một JVM cũ rằng JVM khác bắt buộc dùng cùng implementation. Trong runtime cho phép chỉ định custom system loader, hình dạng loader có thể khác; cách lập trình portable là **không ép kiểu khi chỉ cần các method của `ClassLoader`**.
+Never infer from a cast succeeding on an older JVM that newer JVMs must use the same implementation. Even in runtimes allowing a custom system loader, its concrete class can differ; portable code **avoids casting when `ClassLoader` methods suffice**.
 
-### Những API nên dùng trực tiếp trên ClassLoader
+### APIs to Call Directly on ClassLoader
 
 ```java
 ClassLoader loader = ClassLoader.getSystemClassLoader();
@@ -116,52 +116,52 @@ java.util.Enumeration<URL> all =
         loader.getResources("META-INF/services/com.example.api.Service");
 ```
 
-Đây là **snippet** cần imports `URL`, `IOException` và các classes/resources thật. `loadClass` có thể ném `ClassNotFoundException`; `getResource` có thể trả `null`; `getResources` cho enumeration, và API này có thể ném `IOException`.
+This is a **snippet** requiring `URL`, `IOException`, and real classes/resources. `loadClass` can throw `ClassNotFoundException`; `getResource` can return `null`; `getResources` returns an enumeration and can throw `IOException`.
 
-**Các method trên là hợp đồng chung của `ClassLoader`**; không cần biết loader có danh sách URL hay không. Nếu bạn muốn biết **nguồn artifact nào chứa class/resource**, dùng API tra resource, `Class.getProtectionDomain().getCodeSource()` khi khả dụng, thông tin module/layer và log JVM tùy ngữ cảnh. Không mặc định mọi class có code source URL kiểu `jar:file:...`.
+**These methods are the standard `ClassLoader` contract**, requiring no knowledge of whether the loader holds a URL list. To inspect **which artifact supplied a class/resource**, use resource APIs, `Class.getProtectionDomain().getCodeSource()` when available, module/layer metadata, and JVM logs as appropriate. Never assume every class has a `jar:file:...` code source URL.
 
-### Không dùng reflection để cưỡng ép sửa loader nội bộ
+### Do Not Use Reflection to Mutate Internal Loaders
 
-Một số code legacy phản chiếu vào implementation nội bộ của loader hoặc tìm method `addURL` để bổ sung JAR vào system classpath khi JVM đã khởi động. Đây không phải API chuẩn để chỉnh system loader và có thể bị **strong encapsulation** của JPMS chặn. Đừng coi `--add-opens` là giải pháp lâu dài cho lỗi thiết kế loader: nó chỉ mở quyền reflection tới package được chỉ rõ, không biến JDK internal classes thành public API được bảo đảm ổn định.
+Some legacy code reflects into internal loader fields or looks up `addURL` to append JARs to the system classpath at runtime. This is not a standard API for mutating the system loader and can be blocked by JPMS **strong encapsulation**. Never treat `--add-opens` as a permanent fix for loader design flaws: it only opens reflection to a named package and does not turn JDK internals into stable public APIs.
 
-**Cần bổ sung JAR động?** Tạo/đổi **loader do ứng dụng sở hữu**, hoặc dùng `ModuleLayer` nếu plugin được triển khai dưới dạng named modules. **Cần classpath chỉ cố định lúc khởi động?** Khai báo bằng launcher/build tool thay vì đột biến system loader khi ứng dụng đang chạy.
+**Need to add JARs dynamically?** Create/swap an **application-owned loader**, or use `ModuleLayer` if plugins are deployed as named modules. **Need a classpath fixed only at startup?** Declare it via the launcher/build tool instead of mutating the system loader at runtime.
 
-## 4. Bảng chuyển đổi: triển khai cũ → mô hình hiện đại
+## 4. Migration Mapping: Legacy Deployment → Modern Model
 
-| Giả định/triển khai legacy | Thay bằng | Khi nào phù hợp |
+| Legacy Assumption / Deployment | Replacement | When Appropriate |
 | --- | --- | --- |
-| Chép `foo.jar` vào `$JAVA_HOME/lib/ext` | Đưa `foo.jar` vào classpath của ứng dụng hoặc module path | Thư viện cần thiết ngay từ startup |
-| `-Djava.ext.dirs=/opt/ext` | `-cp "/opt/ext/*:app.jar"` trên Unix hoặc classpath được build/launcher sinh | Nhiều JAR độc lập nằm trong một thư mục |
-| Chèn file vào `lib/ext` lúc ứng dụng đang chạy | Registry + custom loader cho từng plugin generation | Plugin được cài/gỡ/thay thế động |
-| `(URLClassLoader) getSystemClassLoader()` | Sử dụng `ClassLoader` API; nếu cần URLs, tự tạo `URLClassLoader` và giữ reference tới nó | Lookup portable, hoặc loader tùy ứng dụng |
-| Reflective call tới `addURL` ở system loader | Khai báo startup classpath, hoặc tạo loader mới | Không phụ thuộc JDK internals |
-| `sun.misc.Launcher$ExtClassLoader` / `AppClassLoader` | `getPlatformClassLoader()` và `getSystemClassLoader()` qua public API | Truy cập loader cấp platform/application |
-| `rt.jar` hoặc `tools.jar` trong classpath | API Java SE modules, `--module-path`/`--add-modules` nếu có nhu cầu | JDK 9+ modular runtime |
-| Quét JAR theo thứ tự classpath rồi lấy bản đầu | Ràng buộc artifact/version bằng manifest và registry | Tránh trùng class/resource, deploy lặp |
+| Copy `foo.jar` into `$JAVA_HOME/lib/ext` | Put `foo.jar` on application classpath or module path | Library needed from startup |
+| `-Djava.ext.dirs=/opt/ext` | `-cp "/opt/ext/*:app.jar"` on Unix or build/launcher-generated classpath | Multiple independent JARs in one directory |
+| Drop files into `lib/ext` while app runs | Registry + custom loader per plugin generation | Plugins installed/removed/replaced dynamically |
+| `(URLClassLoader) getSystemClassLoader()` | Use `ClassLoader` API; if URLs are needed, instantiate your own `URLClassLoader` and keep its reference | Portable lookup, or application-owned loader |
+| Reflective `addURL` on system loader | Declare startup classpath, or create a new loader | Avoid depending on JDK internals |
+| `sun.misc.Launcher$ExtClassLoader` / `AppClassLoader` | `getPlatformClassLoader()` and `getSystemClassLoader()` via public API | Accessing platform/application loaders |
+| `rt.jar` or `tools.jar` on classpath | Java SE module APIs, `--module-path`/`--add-modules` as needed | JDK 9+ modular runtime |
+| Scanning JARs by classpath order to pick first | Pin artifacts/versions via manifest and registry | Prevent class/resource collisions, repeatable deploys |
 
-**Lưu ý syntax đường dẫn:** trên macOS/Linux classpath delimiter là `:`; trên Windows là `;`. Không truyền literal string bao gồm dấu nháy sai theo cú pháp shell. Ví dụ:
+**Path syntax note:** on macOS/Linux the classpath delimiter is `:`; on Windows it is `;`. Never pass literal quotes mismatched with shell syntax. For example:
 
 ```bash
-# macOS/Linux: classpath ở thời điểm startup.
+# macOS/Linux: classpath at startup time.
 java -cp "app.jar:lib/*" com.example.Main
 ```
 
 ```powershell
-# Windows PowerShell: classpath ở thời điểm startup.
+# Windows PowerShell: classpath at startup time.
 java -cp "app.jar;lib/*" com.example.Main
 ```
 
-Đây là **lệnh minh họa**; `app.jar`, `lib/*` và `com.example.Main` phải tồn tại. Wildcard `lib/*` trong classpath được Java launcher mở rộng tới các JAR phù hợp **trong đúng thư mục**, không tự quét đệ quy mọi thư mục con. Thứ tự các JAR được mở rộng không phải hợp đồng quản lý version nên đừng dựa vào wildcard để “chọn đúng plugin” khi có nhiều bản cạnh tranh.
+These are **illustrative commands**; `app.jar`, `lib/*`, and `com.example.Main` must exist. The `lib/*` wildcard in a classpath is expanded by the Java launcher to matching JARs **in that exact directory**, without recursing into subdirectories. The expansion order of JARs is not a version management contract, so never rely on wildcards to "pick the right plugin" when competing versions exist.
 
-Đưa plugin vào application classpath cũng khiến nó có mặt trong môi trường **chung của ứng dụng**. Nếu cần cài/gỡ/rollback một phiên bản plugin độc lập trong cùng process, dùng loader riêng và lifecycle rõ ràng thay vì đổi classpath toàn JVM.
+Putting a plugin onto the application classpath also exposes it to the **shared application environment**. If you need to install, remove, or roll back a plugin version independently within the same process, use a dedicated loader and explicit lifecycle rather than changing the JVM-wide classpath.
 
-## 5. Chọn classpath, URLClassLoader riêng hay ModuleLayer?
+## 5. Choosing Classpath, Dedicated URLClassLoader, or ModuleLayer?
 
-Đây là quyết định về **phạm vi và vòng đời**, không chỉ về một dòng option.
+This is a decision about **scope and lifecycle**, not just a single command-line option.
 
-### A. Classpath tường minh
+### A. Explicit Classpath
 
-Phù hợp khi ứng dụng vẫn dùng **unnamed module** và danh sách dependency cố định theo deployment:
+Suitable when the application stays in the **unnamed module** and dependencies are fixed per deployment:
 
 ```text
 build produces:
@@ -174,44 +174,44 @@ startup:
   java -cp "app.jar;lib/*" com.example.Main   (Windows)
 ```
 
-Ưu điểm: dễ cấu hình, tương thích với nhiều JAR Java 8, ít cần sửa code. Hạn chế: JAR vào **cùng application loader** nên không có isolation per plugin; hot-replacement không tự xảy ra khi copy JAR mới.
+Pros: simple setup, compatible with many Java 8 JARs, minimal code changes. Cons: JARs enter the **same application loader** with no per-plugin isolation; copying a new JAR does not trigger hot replacement.
 
-### B. URLClassLoader do ứng dụng tự tạo
+### B. Application-Owned URLClassLoader
 
-Phù hợp với các **classpath-based plugins** do registry quản lý. Bạn giữ reference của chính `URLClassLoader` mình khởi tạo:
+Suitable for **classpath-based plugins** managed by a registry. You retain the reference to the `URLClassLoader` you constructed:
 
 ```java
 try (URLClassLoader pluginLoader = new URLClassLoader(
         new URL[] { pluginJar.toUri().toURL() },
         PluginApi.class.getClassLoader())) {
     Class<?> type = pluginLoader.loadClass("com.acme.extension.Handler");
-    // Khám phá, khởi tạo và sử dụng plugin trong scope này.
+    // Discover, instantiate, and use plugin within this scope.
 }
 ```
 
-Đây là **snippet**, cần `pluginJar`, `PluginApi` và imports. Điểm quan trọng:
+This is a **snippet** requiring `pluginJar`, `PluginApi`, and imports. Key points:
 
-- Bạn **biết** loader này là `URLClassLoader` vì **chính bạn khởi tạo nó**, không phải do ép kiểu system loader.
-- Parent nên chứa đúng host/API classes mà plugin cần cùng identity; không chọn `null` một cách tùy tiện.
-- `URLClassLoader` thông thường **parent-first**: class trùng ở parent có thể được parent chọn; namespace/compatibility cần được kiểm tra.
-- Đóng loader khi generation được retire và không còn request hoặc resource stream sử dụng. `close()` không buộc JVM unload class/objects ngay.
-- Trong production, tránh giữ loader trong một try-with-resources bao quanh riêng bước discovery nếu plugin instance còn chạy sau scope ấy; owner của **plugin generation** phải quyết định thời điểm close.
+- You **know** this loader is a `URLClassLoader` because **you created it**, not by casting the system loader.
+- The parent should provide the exact host/API classes needing shared identity; never pass `null` carelessly.
+- Standard `URLClassLoader` is **parent-first**: matching classes in the parent win; verify namespaces and compatibility.
+- Close the loader when its generation retires and no requests or resource streams remain open. `close()` does not force immediate class/object unloading.
+- In production, avoid wrapping the loader in a try-with-resources around discovery alone if the plugin instance outlives that scope; the **plugin generation** owner must decide when to close.
 
-Nếu cần đổi plugin đang chạy, xây loader **mới** cho generation mới, validate, atomic publish snapshot rồi drain/close generation cũ; đừng sửa loader hiện có một cách tùy ý.
+To upgrade a running plugin, build a **new** loader for the new generation, validate it, atomically publish the snapshot, and drain/close the old generation—never mutate an active loader in place.
 
-### C. Module path + ModuleLayer
+### C. Module Path + ModuleLayer
 
-Phù hợp khi muốn named modules, hợp đồng `module-info.java`, `requires`/`exports`/`uses`/`provides` và service discovery theo module layer.
+Suitable when you want named modules, `module-info.java` contracts, `requires`/`exports`/`uses`/`provides`, and layer-scoped service discovery.
 
-Ở startup, launcher có thể dùng:
+At startup, the launcher can use:
 
 ```bash
 java --module-path mods --module com.example.app/com.example.app.Main
 ```
 
-Đây là **mẫu minh họa**, không có module `com.example.app` trong demo phần 6. `--module-path` làm các module *observable*, nhưng **không có nghĩa tất cả modules được tự động resolve**. Cần root modules/`--add-modules` hoặc service binding khi phù hợp.
+This is an **illustrative template**; there is no `com.example.app` module in section 6's demo. `--module-path` makes modules *observable*, which **does not mean all modules are automatically resolved**. Add root modules/`--add-modules` or service binding as needed.
 
-Với plugin động ở runtime, pipeline khái niệm:
+For dynamic runtime plugins, the conceptual pipeline is:
 
 ```text
 Plugin artifact / modules directory
@@ -223,7 +223,7 @@ ModuleFinder.of(path)                     (observable modules)
 Configuration.resolve(...) / resolveAndBind(...)
        |
        v
-ModuleLayer.defineModulesWithOneLoader(...) hoặc WithManyLoaders
+ModuleLayer.defineModulesWithOneLoader(...) or WithManyLoaders
        |
        v
 ModuleLayer.findLoader(moduleName)
@@ -235,37 +235,37 @@ ServiceLoader.load(layer, Service.class)
 Registry generation + lifecycle
 ```
 
-`ModuleLayer` không biến system loader thành `URLClassLoader`; nó cung cấp **module resolution và class loader mapping** phù hợp. Với `ServiceLoader` trong layer, service class phải có identity phù hợp và service-use/provider declarations đúng. `resolveAndBind` có thể thêm providers thông qua `uses`/`provides` mà `resolve` không tự thêm nếu provider không là root/dependency.
+`ModuleLayer` does not turn the system loader into a `URLClassLoader`; it provides **module resolution and class-loader mapping**. With `ServiceLoader` in a layer, the service class needs matching identity along with valid service-use/provider declarations. `resolveAndBind` can add providers via `uses`/`provides` that `resolve` omits if the provider is not a root or dependency.
 
-**Đừng phối trộn lộn xộn hai mô hình:** tự đưa JAR legacy lên classpath nhưng kỳ vọng `ModuleLayer` động thấy nó, hoặc đặt một module ở module path nhưng gọi `Class.forName` bằng sai class loader và cho rằng lỗi là do thiếu JAR. Phải xác định chính xác plugin thuộc **unnamed/classpath scope** hay **named/module scope** tại từng bước.
+**Never mix the two models haphazardly:** placing a legacy JAR on the classpath while expecting a dynamic `ModuleLayer` to see it, or putting a module on the module path while calling `Class.forName` with the wrong class loader and blaming a missing JAR. Be explicit at every step whether a plugin belongs to **unnamed/classpath scope** or **named/module scope**.
 
-## 6. Ví dụ Java 17 hoàn chỉnh: không cast application loader, vẫn tải được plugin
+## 6. Complete Java 17 Example: Loading Plugins Without Casting the Application Loader
 
-Để tái hiện thực tế, demo tạo **host và plugin ở hai output directories khác nhau**:
+To mirror reality, this demo builds **host and plugin into two separate output directories**:
 
-- Host `LoaderMigrationDemo` chạy từ `host-out` và **không** để plugin trên `-cp` của host.
-- Plugin class `demo.plugin.Greeter` được biên dịch riêng vào `plugins`.
-- File resource `META-INF/plugin/version.txt` cũng nằm trong `plugins`.
-- Host tạo một **`URLClassLoader` tường minh** trỏ đến `plugins`, với application loader làm parent, rồi tải class/resource qua loader này.
+- Host `LoaderMigrationDemo` runs from `host-out` and **does not** put the plugin on the host's `-cp`.
+- Plugin class `demo.plugin.Greeter` is compiled separately into `plugins`.
+- Resource file `META-INF/plugin/version.txt` also lives in `plugins`.
+- The host creates an **explicit `URLClassLoader`** pointing at `plugins`, with the application loader as parent, and loads classes/resources through it.
 
-Demo dùng JDK 17 và standard API, không cần Maven, Gradle hoặc thư viện ngoài.
+The demo uses JDK 17 and standard APIs only—no Maven, Gradle, or external libraries.
 
-### 6.1. Cấu trúc project
+### 6.1. Project Structure
 
 ```text
 loader-migration-demo/
 ├── LoaderMigrationDemo.java
 ├── plugin-src/
 │   └── demo/plugin/Greeter.java
-├── host-out/                   (javac output cho host)
+├── host-out/                   (javac output for host)
 └── plugins/
-    ├── demo/plugin/Greeter.class   (javac output cho plugin)
+    ├── demo/plugin/Greeter.class   (javac output for plugin)
     └── META-INF/plugin/version.txt (resource)
 ```
 
-Thư mục `host-out` và `plugins` được tạo ở bước biên dịch; file resource được tạo trong phần lệnh chạy. Bài không dùng `$JAVA_HOME/lib/ext` hay `java.ext.dirs`.
+`host-out` and `plugins` are created during compilation; the resource file is created in the run commands. No `$JAVA_HOME/lib/ext` or `java.ext.dirs` is used.
 
-### 6.2. Plugin class
+### 6.2. Plugin Class
 
 **`plugin-src/demo/plugin/Greeter.java`**
 
@@ -279,9 +279,9 @@ public final class Greeter {
 }
 ```
 
-Code plugin này không phụ thuộc host API, để ví dụ tập trung vào khả năng loader tìm class không có trên host classpath. Trong hệ thống SPI thật, plugin thường triển khai một interface do host sở hữu; lúc đó parent loader phải bảo đảm thấy cùng interface.
+This plugin class has no dependency on a host API so the example focuses on a loader finding classes absent from the host classpath. In real SPI systems, plugins typically implement a host-owned interface; the parent loader must then expose that exact interface.
 
-### 6.3. Host loader
+### 6.3. Host Loader
 
 **`LoaderMigrationDemo.java`**
 
@@ -320,19 +320,19 @@ public final class LoaderMigrationDemo {
 }
 ```
 
-**Giải thích điểm chính:**
+**Key takeaways:**
 
-1. `app` là `ClassLoader` chung; dòng `instanceof URLClassLoader` **chỉ quan sát**, không ép kiểu.
-2. `ClassLoader.getPlatformClassLoader()` là public API Java 9+, thay vì code truy cập `sun.misc.Launcher$ExtClassLoader` nội bộ.
-3. `new URLClassLoader(urls, app)` là loader được **host sở hữu**; `getURLs()` hợp lệ trên **đối tượng này**.
-4. `Class.forName("demo.plugin.Greeter", true, plugin)` nạp và initialize class thông qua loader explicit. Plugin không nằm trong `host-out`, vì vậy loader này thực sự chịu trách nhiệm tải class.
-5. `type.getClassLoader() == plugin` chứng minh class `Greeter` do plugin loader định nghĩa trong demo, chứ không phải một class trùng tên ở parent.
-6. `getResourceAsStream("META-INF/plugin/version.txt")` đọc resource bằng đường dẫn logic từ root plugin; không dùng `File.separator` hoặc dẫn vào thư mục nguồn build.
-7. Stream và `URLClassLoader` đều được đóng trong `try-with-resources`. Ở production, khi plugin còn đang phục vụ request, **không đóng loader ở cuối method tải plugin**; giữ nó trong generation owner cho đến lúc retire/drain.
+1. `app` is typed as generic `ClassLoader`; `instanceof URLClassLoader` **only observes**, never casts.
+2. `ClassLoader.getPlatformClassLoader()` is the Java 9+ public API replacing internal access to `sun.misc.Launcher$ExtClassLoader`.
+3. `new URLClassLoader(urls, app)` is **host-owned**; calling `getURLs()` is valid on **this object**.
+4. `Class.forName("demo.plugin.Greeter", true, plugin)` loads and initializes the class through the explicit loader. Because the plugin is absent from `host-out`, this loader genuinely defines it.
+5. `type.getClassLoader() == plugin` proves `Greeter` was defined by the plugin loader in this demo rather than an identically named class in the parent.
+6. `getResourceAsStream("META-INF/plugin/version.txt")` reads the resource using a logical path from the plugin root without `File.separator` or reaching into build source folders.
+7. Both the stream and `URLClassLoader` are closed in `try-with-resources`. In production, while a plugin still serves requests, **do not close the loader at the end of a loading method**; hold it in the generation owner until retirement/draining.
 
-### 6.4. Biên dịch/chạy trên Windows PowerShell
+### 6.4. Compile and Run on Windows PowerShell
 
-Trong thư mục `loader-migration-demo` đã chứa hai file `.java` ở đúng vị trí phần 6.1:
+Inside `loader-migration-demo` with both `.java` files placed as in section 6.1:
 
 ```powershell
 New-Item -ItemType Directory -Force host-out, plugins, plugins/META-INF/plugin | Out-Null
@@ -344,9 +344,9 @@ javac --release 17 -d plugins plugin-src/demo/plugin/Greeter.java
 java -cp host-out LoaderMigrationDemo plugins
 ```
 
-**Vì sao dùng `-Encoding Ascii` cho file resource demo?** Nội dung `v2` chỉ chứa ASCII, nên cách ghi này đơn giản, tránh một byte-order mark do phiên bản PowerShell nhất định tự thêm khi dùng tùy chọn UTF-8 cũ. Nếu resource thật có Unicode, dùng UTF-8 không BOM theo contract/file API phù hợp.
+**Why use `-Encoding Ascii` for the demo resource file?** Because `v2` is pure ASCII, this keeps it simple and avoids a byte-order mark added by certain PowerShell versions under older UTF-8 flags. For real Unicode resources, write UTF-8 without BOM per your file API/contract.
 
-### 6.5. Biên dịch/chạy trên macOS/Linux
+### 6.5. Compile and Run on macOS/Linux
 
 ```bash
 mkdir -p host-out plugins/META-INF/plugin
@@ -358,7 +358,7 @@ javac --release 17 -d plugins plugin-src/demo/plugin/Greeter.java
 java -cp host-out LoaderMigrationDemo plugins
 ```
 
-### 6.6. Kết quả được kiểm chứng trên JDK 17
+### 6.6. Verified Output on JDK 17
 
 ```text
 appIsURLClassLoader=false
@@ -369,26 +369,26 @@ message=from-plugin
 resource=v2
 ```
 
-Đây là stdout **đã biên dịch với `javac --release 17` và chạy trên JDK 17**. Hai dòng đầu mô tả **runtime mặc định đã kiểm thử**, không phải lời hứa cho mọi JVM có `java.system.class.loader` tùy chỉnh. Bốn dòng còn lại xác minh rằng loader mới có đúng một URL gốc, định nghĩa class plugin, gọi được method và đọc được resource trong thư mục plugin.
+This is stdout **compiled with `javac --release 17` and executed on JDK 17**. The first two lines describe the **tested default runtime**, not a guarantee for JVMs configured with custom `java.system.class.loader`. The remaining four lines prove the new loader holds one root URL, defines the plugin class, invokes its method, and reads the resource from the plugin directory.
 
-**Ý nghĩa migration:** không cần và không nên cast application loader thành `URLClassLoader` để đọc/tải plugin. App có thể tiếp tục dùng class loader chuẩn, còn plugin có một loader explicit với ownership và source directory rõ ràng.
+**Migration takeaway:** you neither need nor should cast the application loader to `URLClassLoader` to inspect or load plugins. The app keeps using the standard class loader, while plugins get an explicit loader with clear ownership and source directory.
 
-### 6.7. Kiểm tra riêng java.ext.dirs
+### 6.7. Testing `java.ext.dirs` Separately
 
-Nếu muốn chứng minh cấu hình cũ không còn hợp lệ, chạy độc lập trên môi trường kiểm thử:
+To prove the legacy flag is rejected, run standalone in a test environment:
 
 ```bash
 java -Djava.ext.dirs=legacy -version
 ```
 
-Trên JDK 17 đã thử, JVM **kết thúc với mã lỗi** thay vì chạy `java -version` bình thường. Không nên đưa lệnh này vào startup script production. Nội dung stderr có thể khác tùy build/JDK version; tài liệu Oracle mô tả lỗi extension mechanism no longer supported.
+On tested JDK 17, the JVM **exits with an error code** instead of running `java -version` normally. Never put this flag in production startup scripts. Exact stderr wording varies by build/JDK version; Oracle docs describe the "extension mechanism no longer supported" error.
 
-## 7. Nếu plugin thực sự sử dụng ServiceLoader
+## 7. When Plugins Actually Use ServiceLoader
 
-Demo phần 6 dùng reflection để tránh phụ thuộc host SPI. Với hệ thống thực có API/plugin provider:
+Section 6's demo used reflection to avoid requiring a host SPI. In a real system with an API/plugin provider:
 
 ```java
-// Snippet; PluginApi là interface do host/shared parent loader định nghĩa.
+// Snippet; PluginApi is the interface defined by the host/shared parent loader.
 try (URLClassLoader loader =
          new URLClassLoader(pluginUrls, PluginApi.class.getClassLoader())) {
     ServiceLoader<PluginApi> services =
@@ -396,44 +396,44 @@ try (URLClassLoader loader =
 
     for (PluginApi plugin : services) {
         plugin.validate();
-        // Chưa publish cho traffic cho đến khi đạt readiness.
+        // Do not publish to traffic until readiness passes.
     }
 }
 ```
 
-Đây là **snippet kiến trúc, không chạy độc lập**; `pluginUrls`, `PluginApi` và imports `URLClassLoader`, `ServiceLoader` phải được cung cấp bởi project. Trong code production, vòng đời loader phải **kéo dài qua thời gian phục vụ của provider** (ví dụ nằm trong một generation), không kết thúc ngay ở scope local của snippet nếu còn gọi provider.
+This is an **architectural snippet, not standalone runnable code**; `pluginUrls`, `PluginApi`, and imports for `URLClassLoader` and `ServiceLoader` must be supplied by your project. In production code, the loader's lifetime must **span the provider's serving lifetime** (e.g., owned by a generation), rather than ending inside a local discovery block if providers are called later.
 
-Đối với classpath SPI, file metadata cần đặt đúng:
+For classpath SPI, place the metadata file properly:
 
 ```text
 META-INF/services/com.example.api.PluginApi
 
-Nội dung UTF-8 (mỗi dòng tên implementation):
+UTF-8 content (one implementation name per line):
 com.example.plugins.CodecPlugin
 ```
 
-**Điểm phân biệt:** tên `com.example.api.PluginApi` và `com.example.plugins.CodecPlugin` chỉ là **placeholder minh họa cấu trúc**, phải thay bằng các fully qualified names có thật. Plugin class phải implement service API **cùng class identity** được host sử dụng; một bản `PluginApi.class` trùng tên trong child loader có thể gây `ServiceConfigurationError` hoặc `ClassCastException`.
+**Distinction:** `com.example.api.PluginApi` and `com.example.plugins.CodecPlugin` are **structural placeholders**; replace them with real fully qualified names. The plugin class must implement the service API with **the exact same class identity** used by the host; a duplicate `PluginApi.class` in a child loader causes `ServiceConfigurationError` or `ClassCastException`.
 
-Khi loader plugin parent-first, nếu parent đã chứa class hoặc resource trùng tên, nó có thể chọn **bản ở parent**. Không khắc phục bằng cast system loader. Phải thiết kế namespace plugin riêng, tránh trùng dependencies, xác định loader hierarchy và kiểm thử đúng version được chọn.
+When a plugin loader is parent-first, if the parent already contains a same-named class or resource, it will pick **the parent's copy**. Never "fix" this by casting the system loader. Design distinct plugin namespaces, avoid dependency collisions, define the loader hierarchy, and test which exact version gets picked.
 
-### TCCL và ServiceLoader
+### TCCL and ServiceLoader
 
-`ServiceLoader.load(PluginApi.class)` (overload một tham số) sử dụng **thread context class loader (TCCL)**, có thể không phải loader plugin đang mong muốn. Trong host hoặc plugin registry, nếu đã biết loader thuộc generation, nên dùng overload:
+`ServiceLoader.load(PluginApi.class)` (the one-argument overload) uses the **thread context class loader (TCCL)**, which may not be the intended plugin loader. Inside a host or plugin registry, once you know the generation's loader, prefer:
 
 ```java
 ServiceLoader<PluginApi> providers =
         ServiceLoader.load(PluginApi.class, pluginLoader);
 ```
 
-Snippet yêu cầu `pluginLoader` tường minh và service type hợp lệ. Không tự ý đổi TCCL ở thread pool chỉ để giải lỗi trong mọi trường hợp. Khi framework bắt buộc dùng TCCL, phải thiết lập, khôi phục trong `finally` và test concurrency.
+This snippet requires an explicit `pluginLoader` and valid service type. Do not blindly overwrite TCCL across thread pools as a catch-all fix. When a framework mandates TCCL, set and restore it in `finally`, and test under concurrency.
 
-**Đối với named modules**, dùng cơ chế `provides ... with ...`/`uses` và `ServiceLoader.load(layer, serviceClass)` theo JPMS. Cùng một plugin có thể được phân phối dưới dạng classpath JAR hoặc module JAR; cách khám phá/layer/visibility cần tuân theo mô hình triển khai đã chọn.
+**For named modules**, use `provides ... with ...`/`uses` and `ServiceLoader.load(layer, serviceClass)` per JPMS. The same plugin can be distributed as a classpath JAR or a modular JAR; discovery, layers, and visibility must follow the chosen deployment model.
 
-## 8. Một kế hoạch migration từ Java 8 sang Java 17 có thể thực hiện
+## 8. A Practical Migration Plan from Java 8 to Java 17
 
-### Bước 1 — Lập inventory ở build và runtime
+### Step 1 — Inventory Build and Runtime Configurations
 
-Tìm **chỉ trong project/deployment configuration mà bạn sở hữu** những dấu hiệu sau:
+Search **solely within projects and deployment configs you own** for:
 
 ```text
 java.ext.dirs
@@ -449,41 +449,41 @@ tools.jar
 java.endorsed.dirs
 ```
 
-Không chỉ xem source code. Cần xem:
+Look beyond Java source code. Inspect:
 
-- startup scripts, `JAVA_TOOL_OPTIONS`/`_JAVA_OPTIONS`, wrapper/service unit;
-- Dockerfile/container image, JDK image customization, system properties của app server;
-- Maven/Gradle dependencies, test runtime classpath, shaded/fat JAR config;
-- module path arguments, `--add-modules`, `--add-opens` không còn cần thiết;
-- plugin catalog/manifest và cách ứng dụng tải JAR theo version.
+- startup scripts, `JAVA_TOOL_OPTIONS`/`_JAVA_OPTIONS`, wrapper/service units;
+- Dockerfiles/container images, JDK image customizations, app server system properties;
+- Maven/Gradle dependencies, test runtime classpaths, shaded/fat JAR configs;
+- module path flags, `--add-modules`, and obsolete `--add-opens`;
+- plugin catalogs/manifests and how the app loads versioned JARs.
 
-**Giữ phạm vi đọc và sửa đúng quyền:** đây là checklist cho đội triển khai; không có chỉ dẫn chỉnh toàn bộ máy hoặc xóa bất kỳ file Java nào ngoài deployment đã được quản lý.
+**Keep read/edit scope properly bounded:** this is a checklist for your deployment team, not an instruction to modify machine-wide installations or delete Java files outside managed deployments.
 
-### Bước 2 — Phân loại từng JAR từng ở extension directory
+### Step 2 — Classify Every JAR That Used to Live in Extension Directories
 
-Mỗi JAR cần một owner rõ:
+Each JAR needs an explicit owner:
 
-| Loại | Hướng chuyển | Kiểm tra |
+| Category | Migration Target | Verification |
 | --- | --- | --- |
-| Library cần ngay khi khởi động | Đưa vào application runtime dependency/classpath | Classpath/JAR tồn tại, version đúng |
-| API SPI do host định nghĩa | Host/shared loader sở hữu API | Không nạp bản sao API từ plugin |
-| Plugin cài/thay phiên bản động | Plugin registry tạo loader hoặc layer per generation | Isolation, validation, drain, cleanup |
-| Named module có `module-info.class` | Module path và resolve roots/service binding | `requires`/`exports`/`uses`/`provides` |
-| Automatic module | Module path nếu thực sự cần; xem automatic module name/dependency | Mọi yêu cầu JPMS và conflict thực tế |
-| Đoạn code can thiệp JDK internals | Dùng public API hoặc kiến trúc loader mới | Không dựa vào `sun.misc.*`/internal cast |
+| Library needed from startup | Move to app runtime dependency/classpath | Classpath/JAR exists, exact version |
+| Host-defined SPI API | Host/shared loader owns API | No duplicate API loaded from plugins |
+| Dynamically installed/upgraded plugin | Plugin registry creates loader or layer per generation | Isolation, validation, drain, cleanup |
+| Named module with `module-info.class` | Module path with resolved roots/service binding | `requires`/`exports`/`uses`/`provides` |
+| Automatic module | Module path only if genuinely needed; check automatic name/deps | All JPMS rules and actual conflicts |
+| Code touching JDK internals | Migrate to public APIs or new loader design | Zero reliance on `sun.misc.*`/internal casts |
 
-Không có quy tắc “mọi JAR cũ đều phải thành named module”. **Classpath vẫn là lối migration hợp lệ** cho nhiều ứng dụng. JPMS hữu ích khi cần boundaries/graph rõ, nhưng chuyển JAR lên module path có thêm ràng buộc về packages, reflection, service discovery và tên module.
+There is no rule that "every legacy JAR must become a named module". **Classpath remains a valid migration target** for many applications. JPMS helps when explicit boundaries/graphs are desired, yet moving JARs onto the module path adds constraints around packages, reflection, service discovery, and module naming.
 
-### Bước 3 — Loại bỏ property/directory cũ khỏi bản triển khai
+### Step 3 — Remove Legacy Properties and Directories from Deployments
 
-- Xóa **tham số cấu hình** `-Djava.ext.dirs` ở script/service wrapper, không cần “chuyển giá trị” sang một property bí mật khác.
-- Đừng chép lại thư mục `lib/ext` vào Java 17 image. Đóng gói dependencies cạnh ứng dụng hoặc vào plugin directory **do host quản lý**.
-- Tránh sửa/JDK install của hệ thống đang phục vụ ứng dụng khác. Tạo image/container build mới có phiên bản cấu hình rõ, verify bằng clean-room run.
-- Nếu có `java.endorsed.dirs` hoặc `lib/endorsed`, đó là **cơ chế legacy khác** cũng bị loại bỏ, không phải phương án thay thế `lib/ext`.
+- Remove the `-Djava.ext.dirs` **configuration flag** from scripts/service wrappers instead of "moving its value" into another hidden property.
+- Never copy `lib/ext` into a Java 17 image. Package dependencies alongside the app or into a **host-managed** plugin directory.
+- Avoid mutating system-wide JDK installations serving other apps. Build a new versioned image/container and verify with a clean-room run.
+- If `java.endorsed.dirs` or `lib/endorsed` appears, that is **another removed legacy mechanism**, not a replacement for `lib/ext`.
 
-### Bước 4 — Sửa code phụ thuộc implementation của loader
+### Step 4 — Refactor Code Depending on Loader Implementations
 
-**Trước:**
+**Before:**
 
 ```java
 URLClassLoader system =
@@ -491,7 +491,7 @@ URLClassLoader system =
 URL[] urls = system.getURLs();
 ```
 
-**Sau, khi chỉ cần load resource/class:**
+**After, when only loading resources/classes:**
 
 ```java
 ClassLoader system = ClassLoader.getSystemClassLoader();
@@ -499,7 +499,7 @@ URL config = system.getResource("config/defaults.properties");
 Class<?> api = system.loadClass("com.example.api.Service");
 ```
 
-**Sau, khi thật sự muốn danh sách URL của plugin:**
+**After, when you genuinely want a plugin's URL list:**
 
 ```java
 URLClassLoader plugin =
@@ -507,152 +507,152 @@ URLClassLoader plugin =
 URL[] urls = plugin.getURLs();
 ```
 
-Các đoạn trên là **snippets**; cần imports và class/resource/`pluginUrls` thật. Không nhất thiết phải “giữ loại `URLClassLoader`” nếu mục tiêu chỉ là quan sát URL của application runtime. Đối với diagnostics classpath, xem launcher arguments và runtime module metadata thay vì tái dựng classpath từ loader internals.
+These are **snippets** requiring imports and real classes/resources/`pluginUrls`. You do not have to "preserve the `URLClassLoader` type" if your goal is only inspecting the application runtime's classpath. For classpath diagnostics, inspect launcher arguments and runtime module metadata instead of reconstructing classpaths from loader internals.
 
-### Bước 5 — Kiểm tra contract khi plugin chạy
+### Step 5 — Verify Contracts When Plugins Run
 
-Một bộ smoke test cần xác minh:
+A smoke test suite should confirm:
 
-1. Host khởi động **không có `java.ext.dirs`** và không cần thư mục extension cũ.
-2. Provider/library bắt buộc tải được từ **classpath/module path/explicit loader** đúng phạm vi.
-3. Application loader không cần cast thành `URLClassLoader`.
-4. Plugin class có defining loader và origin đúng version.
-5. SPI `ServiceLoader` tìm được số provider mong muốn (0, 1 hoặc nhiều theo policy).
-6. Named module có graph hợp lệ; reflective access/exports/opens được kiểm tra nếu có.
-7. Resource như `META-INF/services`, JSON/template/config được đóng gói và tìm được bằng loader thích hợp.
-8. Chuyển V1→V2 không phá request cũ; loader V1 được cleanup đúng lúc.
-9. Test cũng chạy được khi đổi working directory, container base image và startup classpath.
-10. Application không phụ thuộc đường dẫn `rt.jar` hoặc assumptions về JDK internal URL.
+1. Host boots **without `java.ext.dirs`** and without legacy extension folders.
+2. Required providers/libraries load from the right **classpath/module path/explicit loader** scope.
+3. Application loader is never cast to `URLClassLoader`.
+4. Plugin classes have the expected defining loader and version origin.
+5. SPI `ServiceLoader` finds the expected provider count (zero, one, or many per policy).
+6. Named modules have valid graphs; reflective access/`exports`/`opens` are tested if used.
+7. Resources like `META-INF/services`, JSON/templates/configs are packaged and resolved by the right loader.
+8. Upgrading V1→V2 does not break old in-flight requests; V1's loader is cleaned up at the right time.
+9. Tests pass across changed working directories, container base images, and startup classpaths.
+10. Application has zero dependency on `rt.jar` paths or JDK internal URL assumptions.
 
-## 9. Chẩn đoán khi migration vẫn thất bại
+## 9. Diagnosing Failures After Migration
 
-### JVM từ chối ngay khi startup
+### JVM Rejects Startup Immediately
 
-**Triệu chứng:** thông báo “extensions mechanism no longer supported”, hoặc nhắc `java.ext.dirs` / `lib/ext`.
+**Symptom:** message "extensions mechanism no longer supported", or mentioning `java.ext.dirs` / `lib/ext`.
 
-**Nhận định:** lỗi được phát hiện **trước khi application main chạy**, nên sửa code `ClassLoader` bên trong `main` không giải quyết được.
+**Diagnosis:** caught **before application `main` runs**, so editing `ClassLoader` code inside `main` cannot fix it.
 
-**Hành động:** kiểm tra startup flags/environment, bỏ property/extension directory legacy, đưa dependency lên classpath/module path tường minh, thử lại trong image sạch. Nếu launcher lấy property từ `JAVA_TOOL_OPTIONS` hoặc `_JAVA_OPTIONS`, sửa nơi cấu hình môi trường đó thay vì chỉ sửa script gọi `java`.
+**Action:** inspect startup flags/environment, strip legacy properties/extension directories, place dependencies explicitly on classpath/module path, and retest in a clean image. If the launcher picks up flags from `JAVA_TOOL_OPTIONS` or `_JAVA_OPTIONS`, fix that environment source rather than only the `java` invocation script.
 
-### ClassCastException khi khởi tạo plugin manager
+### ClassCastException Initializing Plugin Manager
 
-**Triệu chứng mẫu:**
+**Sample symptom:**
 
 ```text
 java.lang.ClassCastException:
   ...AppClassLoader cannot be cast to java.net.URLClassLoader
 ```
 
-Đây là **mẫu lỗi minh họa**, class name thực tế phụ thuộc JDK. Tìm đoạn ép kiểu `(URLClassLoader) ClassLoader.getSystemClassLoader()`, sửa thành `ClassLoader` API hoặc tự khởi tạo `URLClassLoader`. Không cần can thiệp reflection/JDK internals.
+This is an **illustrative error pattern**; exact class names depend on the JDK. Locate `(URLClassLoader) ClassLoader.getSystemClassLoader()`, switch to the `ClassLoader` API or instantiate your own `URLClassLoader`. Do not resort to reflection or JDK internals.
 
-### ClassNotFoundException hoặc NoClassDefFoundError
+### ClassNotFoundException or NoClassDefFoundError
 
-**ClassNotFoundException** thường gắn với lookup tường minh theo tên bằng loader không nhìn thấy class. **NoClassDefFoundError** có thể xảy ra khi runtime thiếu dependency mà bytecode cần, hoặc class khởi tạo thất bại trước đó. Đây là lỗi **được phát hiện sau khi ứng dụng chạy**, khác lỗi launcher extension mechanism.
+**`ClassNotFoundException`** typically stems from explicit name-based lookups on a loader that cannot see the class. **`NoClassDefFoundError`** happens when runtime lacks a bytecode-referenced dependency or a prior static initialization failed. These surface **after the app starts**, unlike launcher extension-mechanism rejections.
 
-Quy trình:
+Procedure:
 
-1. Đọc **tên class cần tìm**, cả root cause và loader identity.
-2. Kiểm tra file `.class` nằm trong đúng JAR/directory ở deploy thực tế không.
-3. Kiểm tra JAR ấy có thuộc **classpath/module path/custom loader** của đoạn code yêu cầu không.
-4. Nếu có nhiều version, xác định class **thực sự được load từ artifact nào**.
-5. Nếu error nói `Could not initialize class`, tìm initializer failure đầu tiên, không mặc định thiếu file.
+1. Read the **target class name**, full root `cause`, and loader identity.
+2. Verify the `.class` file exists in the right deployed JAR/directory.
+3. Confirm that JAR belongs to the **classpath/module path/custom loader** used by the caller.
+4. When multiple versions exist, identify **which artifact actually supplied the loaded class**.
+5. If the error says `Could not initialize class`, inspect the initial initializer failure instead of assuming a missing file.
 
-### ServiceLoader không thấy provider
+### ServiceLoader Finds No Providers
 
-- Với classpath: kiểm tra `META-INF/services/<service-interface>` có tồn tại, nội dung đúng, provider class được load bởi đúng loader và implement đúng shared API.
-- Với named modules: kiểm tra `uses`, `provides`, module resolved/defined trong layer, class identity của service và cách gọi `ServiceLoader.load(layer, serviceClass)`.
-- Đừng vội gán lỗi cho `URLClassLoader`. Có thể SPI metadata đúng nhưng loader parent-first chọn tài nguyên/class khác version.
+- On classpath: verify `META-INF/services/<service-interface>` exists, has valid contents, the provider class loads under the right loader, and implements the exact shared API.
+- On named modules: check `uses`, `provides`, module resolution/definition in the layer, service class identity, and `ServiceLoader.load(layer, serviceClass)`.
+- Do not rush to blame `URLClassLoader`. SPI metadata may be intact while a parent-first loader picks another version of a resource or class.
 
-### Resource JDK không còn nằm trong rt.jar
+### JDK Resources No Longer Live in rt.jar
 
-`ClassLoader.getSystemResource("java/lang/Class.class")` từ JDK 9 có thể trả URL dạng:
+`ClassLoader.getSystemResource("java/lang/Class.class")` since JDK 9 can return a URL like:
 
 ```text
 jrt:/java.base/java/lang/Class.class
 ```
 
-Đây là **ví dụ từ hướng dẫn migration của Oracle**, không phải stdout demo. URL này mô tả resource trong modular runtime image; đừng ép tất cả resource URL thành `jar:file:...` hoặc `Path` của file JAR vật lý. Nếu chỉ cần bytes/resource, dùng `getResourceAsStream` hoặc API module/runtime image phù hợp.
+This is an **example from Oracle's migration guide**, not demo stdout. It represents a resource inside a modular runtime image; never assume every resource URL converts to `jar:file:...` or a filesystem `Path` to a JAR file. When you only need resource bytes, use `getResourceAsStream` or appropriate module/runtime image APIs.
 
-## 10. Bảo mật, isolation và vòng đời plugin loader mới
+## 10. Security, Isolation, and New Plugin Loader Lifecycle
 
-Một migration thành công về mặt compile/chạy chưa chắc thành công về vận hành. Khi chuyển từ extension directory sang custom loader, cần định nghĩa chính xác owner và policy:
+Compiling and running after migration does not guarantee operational safety. Moving from extension directories to custom loaders requires clear ownership and policy:
 
-**Không xem class loader là security boundary.** Một plugin Java chạy trong cùng JVM về cơ bản có khả năng gọi các API với quyền của tiến trình, trừ khi có kiến trúc/OS isolation phù hợp. Plugin không tin cậy nên nằm ở process/container riêng với filesystem/network/resource permissions được hạn chế.
+**Never treat a class loader as a security boundary.** A Java plugin running inside the same JVM can essentially invoke APIs with the host process's privileges unless proper OS/architecture isolation is enforced. Untrusted plugins belong in separate processes/containers with restricted filesystem, network, and resource permissions.
 
-**Quản lý JAR và bản phát hành.** Không chấp nhận tùy ý đường dẫn plugin từ input chưa kiểm tra; chỉ load artifact được phê duyệt, kiểm tra hash/chữ ký/version, áp dụng allowlist. Cẩn thận với duplicate classes/resources hoặc dependency bị plugin mang theo nhưng đã tồn tại trong parent.
+**Manage JARs and releases.** Never accept arbitrary plugin paths from unvalidated input; load only approved artifacts, verify hashes/signatures/versions, and enforce allowlists. Watch out for duplicate classes/resources or plugin-bundled dependencies already present in the parent.
 
-**Quản lý lifecycle.** `URLClassLoader.close()` đóng các tài nguyên được loader sở hữu như JAR file handles và ngăn việc load mới qua loader theo hợp đồng, nhưng **không thu hồi lập tức những class đã định nghĩa**. Một thread nền, callback, static cache, `ThreadLocal`, TCCL hoặc reference `Class<?>` còn tồn tại có thể giữ loader cũ không được garbage collect.
+**Manage lifecycle.** `URLClassLoader.close()` releases loader-owned resources such as JAR file handles and blocks new class loading per contract, yet **does not immediately reclaim already-defined classes**. Any live background thread, callback, static cache, `ThreadLocal`, TCCL, or `Class<?>` reference keeps the old loader from being garbage-collected.
 
-**Đảm bảo API chung.** Host và plugin cần chia sẻ đúng service interface/class identity; đặt API ở parent/shared layer. Nếu plugin cố tự mang một bản API riêng với cùng fully qualified name, có thể gây `ClassCastException` hoặc `ServiceConfigurationError`.
+**Guarantee shared APIs.** Host and plugins must share the exact same service interface/class identity; place the API in the parent/shared layer. If a plugin ships its own copy of the API with the same fully qualified name, expect `ClassCastException` or `ServiceConfigurationError`.
 
-**Dùng generation snapshot khi thay plugin.** Dựng loader/layer V2, khởi tạo/provider/health check, publish một active reference atomically, giữ V1 đến khi request đã nhận V1 hoàn tất; sau đó retire, close và dọn references V1. Đừng chép đè JAR mà loader hiện tại đang mở và kỳ vọng class definition thay đổi.
+**Use generation snapshots when upgrading plugins.** Build the V2 loader/layer, run initialization/provider/health checks, atomically publish the active reference, keep V1 alive until in-flight V1 requests finish; then retire, close, and clear V1 references. Never overwrite a JAR currently open in a live loader expecting class definitions to swap.
 
-**Giới hạn nguồn lực.** Nhiều class loader sống đồng thời có thể giữ JAR handles, threads, heap/metaspace, connection pools. Cần metrics số generation, in-flight requests và cleanup failures; timeout cho drain hoặc process isolation với plugin không hợp tác.
+**Bound resources.** Multiple concurrent class loaders retain JAR handles, threads, heap/metaspace, and connection pools. Track metrics for generation counts, in-flight requests, and cleanup failures; enforce drain timeouts or process isolation for uncooperative plugins.
 
-## 11. Test matrix cho CI và deployment
+## 11. Test Matrix for CI and Deployment
 
-| Trường hợp test | Điều cần chứng minh |
+| Test Case | What Must Be Proven |
 | --- | --- |
-| Java 17 clean startup | Không phụ thuộc `lib/ext` hoặc `java.ext.dirs` |
-| Startup có `-Djava.ext.dirs` trong môi trường kiểm thử | Nhận diện cấu hình legacy bị runtime từ chối và không deploy |
-| Default system loader | Code không cast `URLClassLoader` |
-| Explicit plugin loader | Plugin class và resource lấy từ đúng thư mục/JAR |
-| Plugin không có trên host classpath | Host vẫn load được bằng loader riêng, không vô tình dùng class ở parent |
-| Dùng chung host API | Provider implement đúng class identity, không duplicate API |
-| Duplicate class/resource giữa parent và child | Policy parent-first/namespace/version được kiểm thử |
-| Sai plugin directory | Báo lỗi dễ hiểu, không âm thầm chạy provider khác |
-| Classpath wildcard | JAR được đóng gói đúng; không phụ thuộc thứ tự wildcard để quyết định version |
-| Named module | ModuleFinder, roots, requires, uses/provides và layer đúng |
-| Plugin update | New generation được validate trước cutover; old generation drain rồi close |
-| Missing dependency / incompatible Java version | Fail fast với root cause, không gán nhầm cho extension mechanism |
-| TCCL và thread pool | Discovery nhất quán giữa threads, TCCL phục hồi nếu bị thay đổi |
-| Resource loading | Không coi `jrt:` URL là `jar:file:` hoặc file hệ điều hành |
-| Repeated unload/reload | Không giữ lại listener/thread/context/cache khiến class loader leak |
+| Java 17 clean startup | Zero reliance on `lib/ext` or `java.ext.dirs` |
+| Startup with `-Djava.ext.dirs` in test env | Legacy config is detected as rejected by runtime and blocked from deploy |
+| Default system loader | Code never casts to `URLClassLoader` |
+| Explicit plugin loader | Plugin classes and resources load from the right folder/JAR |
+| Plugin absent from host classpath | Host still loads via its dedicated loader without accidentally hitting parent |
+| Shared host API | Provider implements the exact shared class identity without API duplication |
+| Duplicate class/resource across parent and child | Parent-first/namespace/version policy is verified |
+| Wrong plugin directory | Clear diagnostic error without silently falling back to another provider |
+| Classpath wildcard | JARs packaged properly; never relying on wildcard order for version selection |
+| Named module | `ModuleFinder`, roots, `requires`, `uses`/`provides`, and layer work properly |
+| Plugin update | New generation validated before cutover; old generation drains then closes |
+| Missing dependency / incompatible Java version | Fails fast with root cause instead of blaming extension mechanism |
+| TCCL and thread pools | Discovery consistent across threads; TCCL restored if mutated |
+| Resource loading | Never assumes `jrt:` URLs are `jar:file:` or OS files |
+| Repeated unload/reload | No retained listeners/threads/contexts/caches leaking class loaders |
 
-**Đừng chỉ test trên IDE.** IDE thường tự dựng classpath làm những JAR từng ở extension directory tình cờ xuất hiện. Test bằng **artifact thực tế** với đúng launcher arguments, Java runtime image và cấu trúc thư mục dùng trong production. Tối thiểu nên có một integration test tạo plugin tách khỏi host classpath như demo phần 6.
+**Do not test only inside an IDE.** IDEs often assemble classpaths where JARs that used to live in extension directories happen to appear. Test using **real packaged artifacts** with production launcher flags, Java runtime images, and directory layouts. At minimum, include an integration test separating plugin from host classpath like section 6's demo.
 
-### Những anti-pattern cần dừng
+### Anti-Patterns to Stop Immediately
 
-- **Ghi JAR vào `$JAVA_HOME/lib/ext`** trong Dockerfile hoặc install script.
-- **Dùng `java.ext.dirs`** như một knob cấu hình plugin mới.
-- **Ép kiểu system loader** rồi dùng `getURLs` để đọc/chỉnh classpath.
-- **Reflection vào class nội bộ JDK** để gọi `addURL`.
-- **Chuyển `URLClassLoader` mới thành singleton sống mãi** mà không theo dõi plugin generations.
-- **Đặt plugin API trùng bản ở parent và child** hoặc giả định `ServiceLoader` tự sửa class identity.
-- **Coi module path là classpath có tên mới**, bỏ qua module resolution/encapsulation.
-- **Nạp plugin từ thư mục không được tin cậy** và coi loader riêng là sandbox.
-- **Đóng loader ngay sau khi scan SPI** nhưng vẫn tiếp tục dùng provider trong những request sau.
+- **Writing JARs into `$JAVA_HOME/lib/ext`** in Dockerfiles or install scripts.
+- **Using `java.ext.dirs`** as a plugin configuration knob.
+- **Casting the system loader** to call `getURLs` for reading/editing the classpath.
+- **Reflecting into JDK internal classes** to call `addURL`.
+- **Turning a new `URLClassLoader` into an immortal singleton** without tracking plugin generations.
+- **Duplicating plugin APIs in both parent and child** or assuming `ServiceLoader` reconciles class identity.
+- **Treating the module path as a renamed classpath**, ignoring module resolution and encapsulation.
+- **Loading plugins from untrusted folders** while treating a separate loader as a sandbox.
+- **Closing the loader immediately after scanning SPI** while still calling providers on subsequent requests.
 
-## 12. Checklist migration trước khi chốt phát hành
+## 12. Pre-Release Migration Checklist
 
-**Build và cấu hình:**
+**Build and configuration:**
 
-- [ ] Đã liệt kê mọi `lib/ext`, `jre/lib/ext` và `java.ext.dirs` trong build, startup và image.
-- [ ] Mọi JAR cũ có dependency owner: classpath, module path hoặc registry plugin explicit.
-- [ ] Không thay JDK runtime installation bằng cách chép JAR tùy ý; artifact ứng dụng tự chứa manifest cần thiết.
-- [ ] Startup dùng đúng delimiter classpath theo OS và không dựa vào thứ tự wildcard để chọn version.
-- [ ] Không còn code cần `rt.jar`/`tools.jar` URL của runtime.
+- [ ] Cataloged every `lib/ext`, `jre/lib/ext`, and `java.ext.dirs` across builds, startup scripts, and images.
+- [ ] Every legacy JAR has an explicit owner: classpath, module path, or explicit plugin registry.
+- [ ] No mutating JDK runtime installations by copying arbitrary JARs; app artifacts carry required manifests.
+- [ ] Startup uses OS-appropriate classpath delimiters and never relies on wildcard order for version selection.
+- [ ] Zero code expects runtime `rt.jar`/`tools.jar` URLs.
 
-**Source và class loader:**
+**Source and class loaders:**
 
-- [ ] Không cast `ClassLoader.getSystemClassLoader()` sang `URLClassLoader`.
-- [ ] Dùng `ClassLoader` public API khi chỉ load class/resource.
-- [ ] Chỉ gọi `getURLs()` trên `URLClassLoader` do mình tạo hoặc một đối tượng đã kiểm tra kiểu thực tế theo contract.
-- [ ] Parent loader giữ host/service API class identity; không parent-null theo thói quen.
-- [ ] Cơ chế `ServiceLoader` đúng loại plugin: classpath SPI hay named modules.
-- [ ] Dynamic plugin có loader/layer mới, versioned generation và lifecycle close sau drain.
+- [ ] No casting `ClassLoader.getSystemClassLoader()` to `URLClassLoader`.
+- [ ] Uses public `ClassLoader` APIs when simply loading classes/resources.
+- [ ] Calls `getURLs()` only on a `URLClassLoader` you constructed or an object verified by contract.
+- [ ] Parent loader preserves host/service API class identity; no habitual `null` parent.
+- [ ] `ServiceLoader` mechanism matches plugin kind: classpath SPI or named modules.
+- [ ] Dynamic plugins use fresh loaders/layers, versioned generations, and post-drain lifecycle close.
 
-**Test và vận hành:**
+**Testing and operations:**
 
-- [ ] Chạy test trên Java 17 runtime thực tế, không chỉ compile bằng JDK 17.
-- [ ] Có integration test tách `host-out` và `plugins` như demo phần 6.
-- [ ] Kiểm tra không có extension property bị launcher từ chối ở môi trường deploy.
-- [ ] Kiểm tra đúng loaded class origin/resource và module/loader identity.
-- [ ] Có cảnh báo khi thiếu provider, duplicate classes hoặc version collision.
-- [ ] Có canary/rollback plan, artifact hash và metrics về class-loader lifetime.
-- [ ] Không sử dụng Java class loader để chạy code untrusted mà thiếu process-level isolation.
+- [ ] Tests execute on a real Java 17 runtime, not merely compiling with JDK 17.
+- [ ] Integration test isolates `host-out` and `plugins` like section 6's demo.
+- [ ] Verified no extension properties rejected by the launcher exist in deployment environments.
+- [ ] Verified exact loaded class origins, resources, and module/loader identities.
+- [ ] Alerts configured for missing providers, duplicate classes, or version collisions.
+- [ ] Canary/rollback plan, artifact hashes, and class-loader lifetime metrics in place.
+- [ ] Never uses a Java class loader to run untrusted code without process-level isolation.
 
-### Tài liệu chính thức
+### Official Documentation
 
 - [Oracle JDK 17 Migration Guide: Migrating From JDK 8 to Later JDK Releases](https://docs.oracle.com/en/java/javase/17/migrate/migrating-jdk-8-later-jdk-releases.html)
 - [JEP 220 — Modular Run-Time Images](https://openjdk.org/jeps/220)
@@ -662,4 +662,4 @@ Một migration thành công về mặt compile/chạy chưa chắc thành công
 - [Java 17 `ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html)
 - [Java 17 `ModuleLayer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html)
 
-**Kết luận:** chuyển khỏi `lib/ext` và `java.ext.dirs` không chỉ là thay một thư mục. Đó là việc **đưa toàn bộ dependency/plugin discovery vào cấu hình ứng dụng có thể tái hiện và kiểm thử**, ngừng dựa vào implementation của application loader, và chọn classpath, explicit `URLClassLoader` hoặc JPMS `ModuleLayer` theo vòng đời thực của plugin. Có thể vẫn dùng `URLClassLoader` trên Java 17 — **nhưng phải là loader do bạn chủ động tạo và quản lý**, chứ không phải kết quả cast từ system loader mặc định.
+**Conclusion:** migrating away from `lib/ext` and `java.ext.dirs` is more than renaming a directory. It means **bringing all dependency and plugin discovery into reproducible, testable application configuration**, dropping reliance on system loader implementation types, and choosing classpath, explicit `URLClassLoader`, or JPMS `ModuleLayer` according to the plugin's actual lifecycle. You can still use `URLClassLoader` on Java 17—**provided it is a loader you explicitly create and manage**, not a cast of the default system loader.

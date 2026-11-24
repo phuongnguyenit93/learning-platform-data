@@ -1,21 +1,21 @@
-# Khai báo provides ... with ... và giữ package triển khai được đóng gói trong JPMS
+# Declaring `provides ... with ...` and Keeping Implementation Packages Encapsulated in JPMS
 
-## 1. Bài toán: công bố khả năng mở rộng mà không công khai implementation
+## 1. Problem: Exposing Extensibility Without Exposing Implementations
 
-Trong ứng dụng Java dùng **Java Platform Module System (JPMS)**, host cần gọi một **Service Provider Interface (SPI)**, còn các module độc lập cung cấp implementation. Host phải khám phá và sử dụng provider mà không cần import class triển khai. Đồng thời, nhà phát triển provider muốn giữ các package nội bộ khỏi việc bị module khác phụ thuộc trực tiếp.
+In a Java application using the **Java Platform Module System (JPMS)**, a host needs to invoke a **Service Provider Interface (SPI)** while independent modules supply implementations. The host must discover and use providers without importing implementation classes. At the same time, provider developers want to prevent external modules from directly depending on internal packages.
 
-JPMS hỗ trợ mô hình này qua hai nhóm khai báo trong **module-info.java**:
+JPMS supports this model through two groups of declarations in **module-info.java**:
 
-- **provides <Service> with <Provider>**: module cung cấp khai báo nó triển khai service nào bằng những provider nào.
-- **uses <Service>**: module tiêu thụ cho biết mã bên trong có thể khám phá service đó bằng **java.util.ServiceLoader**.
+- **provides <Service> with <Provider>**: the provider module declares which service it implements and with which providers.
+- **uses <Service>**: the consumer module indicates that code inside it may discover that service via **java.util.ServiceLoader**.
 
-Chỉ **package chứa giao diện SPI hoặc các kiểu public trong hợp đồng** mới cần được export cho bên sử dụng. **Package chứa class triển khai có thể giữ nguyên không export, không open**, dù bản thân provider class cần đáp ứng điều kiện public của cơ chế ServiceLoader.
+Only the **package containing the SPI interface or public contract types** needs to be exported to consumers. **The package containing implementation classes can remain unexported and unopened**, even though the provider class itself must satisfy the public requirements of the ServiceLoader mechanism.
 
-Điểm mấu chốt: **đăng ký provider không đồng nghĩa với export implementation package**. JPMS có đường truy cập riêng được kiểm soát cho việc tìm và khởi tạo service provider. Nhờ đó, module khác có thể nhận một đối tượng qua interface dùng chung mà không có quyền import hoặc tùy tiện reflection vào implementation.
+Key insight: **registering a provider does not mean exporting the implementation package**. JPMS has a dedicated, controlled access path for locating and instantiating service providers. As a result, another module can receive an object through a shared interface without having permission to import or arbitrarily reflect into the implementation.
 
-## 2. Phân vai ba module và ranh giới phụ thuộc
+## 2. Three-Module Roles and Dependency Boundaries
 
-Một cấu trúc cơ bản:
+A basic structure:
 
 ~~~text
 ext.api
@@ -27,24 +27,24 @@ ext.app                 ext.provider
   ├── requires ext.api     ├── requires ext.api
   ├── uses ext.api.Greeting├── provides ext.api.Greeting
   └── ServiceLoader       │     with ext.provider.internal.GreetingImpl
-                          └── KHÔNG exports/opens ext.provider.internal
+                          └── NO exports/opens for ext.provider.internal
 ~~~
 
-Ba module có vai trò riêng:
+The three modules have distinct roles:
 
-| Module | Chứa gì? | Khai báo cốt lõi |
+| Module | What It Contains | Core Declarations |
 | --- | --- | --- |
-| **ext.api** | Interface Greeting và các kiểu dữ liệu hợp đồng | **exports ext.api** |
-| **ext.provider** | Lớp GreetingImpl và chi tiết xử lý | **requires ext.api**; **provides ... with ...**; không exports package implementation |
-| **ext.app** | Host tiêu thụ SPI, chọn và gọi provider | **requires ext.api**; **uses ext.api.Greeting** |
+| **ext.api** | `Greeting` interface and contract data types | **exports ext.api** |
+| **ext.provider** | `GreetingImpl` class and processing details | **requires ext.api**; **provides ... with ...**; does not export the implementation package |
+| **ext.app** | Host consuming the SPI, selecting and invoking providers | **requires ext.api**; **uses ext.api.Greeting** |
 
-Host **không cần requires ext.provider** và không cần biết tên class GreetingImpl tại compile time. Thay implementation hoặc thêm provider module khác không buộc host sửa import hay module descriptor, miễn cùng đáp ứng SPI đã công bố.
+The host **does not need `requires ext.provider`** and does not need to know the `GreetingImpl` class name at compile time. Swapping implementations or adding another provider module does not force the host to modify imports or module descriptors, as long as the published SPI is satisfied.
 
-**requires** điều khiển khả năng đọc module (readability); **exports** điều khiển khả năng truy cập public type của một package; **uses/provides** điều khiển đăng ký và khám phá service. Các cơ chế này bổ sung nhau, không thay thế nhau.
+**requires** controls module readability; **exports** controls access to a package's public types; **uses/provides** controls service registration and discovery. These mechanisms complement one another rather than replacing one another.
 
-## 3. Chính xác provides ... with ... khai báo điều gì?
+## 3. What Exactly Does `provides ... with ...` Declare?
 
-Trong **module-info.java** của module provider:
+In the provider module's **module-info.java**:
 
 ~~~java
 module ext.provider {
@@ -55,35 +55,35 @@ module ext.provider {
 }
 ~~~
 
-Đọc theo từng thành phần:
+Reading each part:
 
-1. **module ext.provider**: đây là named module chứa provider.
-2. **requires ext.api**: provider biên dịch được khi tham chiếu interface Greeting, nằm trong package **ext.api** đã export.
-3. **provides ext.api.Greeting**: module thông báo mình cung cấp implementation cho đúng kiểu service này.
-4. **with ext.provider.internal.GreetingImpl**: chỉ định lớp provider; tên này phải có thể được compiler nhận diện trong **chính module ext.provider**.
-5. Không có **exports ext.provider.internal** và cũng không có **opens ext.provider.internal**: package triển khai giữ được tính đóng gói mạnh đối với module khác.
+1. **module ext.provider**: this is the named module containing the provider.
+2. **requires ext.api**: the provider compiles when referencing the `Greeting` interface located in the exported **ext.api** package.
+3. **provides ext.api.Greeting**: the module announces that it supplies an implementation for this exact service type.
+4. **with ext.provider.internal.GreetingImpl**: specifies the provider class; this name must be recognizable by the compiler within **the ext.provider module itself**.
+5. Neither **exports ext.provider.internal** nor **opens ext.provider.internal** is present: the implementation package maintains strong encapsulation against other modules.
 
-Không viết **provides** trong module giao diện để công bố một provider nằm trong một module khác. Provider type nêu sau **with** phải được khai báo trong chính module chứa chỉ thị provides. Một module có thể dùng nhiều provider cho cùng một service:
+Do not write **provides** in the interface module to announce a provider located in a different module. The provider type listed after **with** must be declared within the same module containing the `provides` directive. A module can supply multiple providers for the same service:
 
 ~~~java
-// Mảnh module-info.java minh họa khi có đủ hai implementation trong cùng module.
+// Illustrative module-info.java snippet when both implementations exist in the same module.
 provides ext.api.Greeting
     with ext.provider.internal.GreetingImpl,
          ext.provider.internal.AlternativeGreeting;
 ~~~
 
-Ví dụ nhiều provider không phải chương trình độc lập; AlternativeGreeting cần được định nghĩa và hợp lệ trước khi biên dịch. Không được lặp lại cùng một service trong hai chỉ thị provides riêng của cùng module, hoặc lặp cùng một provider trong cùng danh sách.
+The multi-provider snippet is not a standalone program; `AlternativeGreeting` must be defined and valid before compiling. You cannot repeat the same service in two separate `provides` directives within the same module, or repeat the same provider in the same list.
 
-**Chỉ thị provides không có nghĩa một object đã được khởi tạo ngay khi JVM khởi động.** Module descriptor mang thông tin để cơ chế service binding/discovery tìm provider; ServiceLoader thường tìm và tạo instance khi được duyệt đến.
+**A `provides` directive does not mean an object is already instantiated when the JVM starts.** The module descriptor carries information for the service binding/discovery mechanism to locate providers; ServiceLoader typically finds and instantiates them when iterated.
 
-## 4. Vì sao implementation class có thể public nhưng package vẫn ẩn?
+## 4. Why Can an Implementation Class Be Public While Its Package Remains Hidden?
 
-Java có hai tầng truy cập cần phân biệt:
+Java has two levels of access that must be distinguished:
 
-- **public class**: class có mức truy cập public trong ngôn ngữ Java. Đây là một điều kiện để một kiểu được ghi sau **with** làm provider của named module.
-- **exports package**: module cho phép mã thuộc những module phù hợp truy cập các public type trong package đó, tùy quy tắc readability.
+- **public class**: a class with `public` access in the Java language. This is a requirement for a type listed after **with** to act as a provider in a named module.
+- **exports package**: the module permits code in eligible modules to access public types in that package, subject to readability rules.
 
-Vì vậy có thể khai báo:
+Therefore, you can declare:
 
 ~~~java
 package ext.provider.internal;
@@ -101,35 +101,35 @@ public final class GreetingImpl implements Greeting {
 }
 ~~~
 
-Dù GreetingImpl là **public**, mã trong ext.app **không được import trực tiếp ext.provider.internal.GreetingImpl** khi ext.provider không export package tương ứng. Nếu cố sửa host để dùng implementation, compiler sẽ từ chối theo ranh giới module, ngay cả khi thêm **requires ext.provider** nhưng vẫn không có exports phù hợp.
+Even though `GreetingImpl` is **public**, code in `ext.app` **cannot directly import `ext.provider.internal.GreetingImpl`** when `ext.provider` does not export that package. If you try to modify the host to use the implementation directly, the compiler will reject it across the module boundary—even if you add **requires ext.provider** without a corresponding `exports`.
 
-Ngược lại, ServiceLoader có cơ chế chuyên biệt để tạo provider được ghi trong module descriptor, ngay cả khi package của provider **không export** cho module gọi. Đây là tính năng có chủ đích của JPMS chứ không phải việc ServiceLoader tự ý vượt qua kiểm soát truy cập bằng reflection thông thường.
+Conversely, ServiceLoader has a specialized mechanism to instantiate providers listed in the module descriptor, even when the provider's package is **not exported** to the calling module. This is an intentional feature of JPMS, not ServiceLoader arbitrarily bypassing access checks via ordinary reflection.
 
-Có thể giữ các class trợ giúp trong package không export ở quyền truy cập package-private. Tuy nhiên lớp provider được khai báo trực tiếp trong **provides ... with ...** phải là public top-level hoặc public static nested type hợp lệ. Đừng biến provider class thành package-private rồi mong việc không export package sẽ thay thế điều kiện public.
+Helper classes inside an unexported package can remain package-private. However, the provider class declared directly in **provides ... with ...** must be a valid public top-level or public static nested type. Do not make the provider class package-private and expect leaving the package unexported to substitute for the `public` requirement.
 
-## 5. Exports, opens, requires, uses và provides khác nhau ở đâu?
+## 5. How Do `exports`, `opens`, `requires`, `uses`, and `provides` Differ?
 
-| Chỉ thị | Đặt trong module nào? | Công dụng | Có cần cho ví dụ này? |
+| Directive | Placed in Which Module? | Purpose | Needed for This Example? |
 | --- | --- | --- | --- |
-| **exports ext.api** | ext.api | Cho module khác dùng public interface/DTO của API | Có |
-| **requires ext.api** | ext.app và ext.provider | Cho phép mã trong module đọc module API | Có |
-| **uses ext.api.Greeting** | ext.app | Công bố module chứa code gọi ServiceLoader cho Greeting | Có |
-| **provides ext.api.Greeting with ...** | ext.provider | Đăng ký provider nằm trong module này | Có |
-| **exports ext.provider.internal** | ext.provider | Công khai public type implementation cho module khác | Không; nên tránh |
-| **opens ext.provider.internal** | ext.provider | Cho phép deep reflection vào package theo phạm vi khai báo | Không cần |
-| **open module ext.provider** | ext.provider | Mở các package của toàn module cho deep reflection | Không cần; làm yếu encapsulation |
+| **exports ext.api** | ext.api | Lets other modules use public API interfaces/DTOs | Yes |
+| **requires ext.api** | ext.app and ext.provider | Allows code in the module to read the API module | Yes |
+| **uses ext.api.Greeting** | ext.app | Declares the module containing ServiceLoader calls for `Greeting` | Yes |
+| **provides ext.api.Greeting with ...** | ext.provider | Registers the provider residing in this module | Yes |
+| **exports ext.provider.internal** | ext.provider | Exposes public implementation types to other modules | No; should be avoided |
+| **opens ext.provider.internal** | ext.provider | Allows deep reflection into the package within the declared scope | Not needed |
+| **open module ext.provider** | ext.provider | Opens all packages of the module for deep reflection | Not needed; weakens encapsulation |
 
-**Exports** chủ yếu phục vụ truy cập public type và member theo quy tắc module. **Opens** cho phép reflective access theo mức được cấp; không tương đương với export dùng cho import thông thường. Một package không exports vẫn có thể bị mở cho reflection nếu được khai báo opens, vì vậy giữ encapsulation thật sự thường có nghĩa là **không exports và không opens package implementation**.
+**Exports** primarily serves access to public types and members under module rules. **Opens** grants reflective access according to the declared scope; it is not equivalent to exporting for normal imports. An unexported package can still be exposed to reflection if `opens` is declared, so maintaining true encapsulation usually means **neither exporting nor opening the implementation package**.
 
-Nếu một framework bên ngoài thực sự cần reflection, có thể cân nhắc **opens package to framework.module** chỉ cho module cụ thể, nhưng đó là quyết định riêng về quyền truy cập. **ServiceLoader không đòi hỏi opens package provider**. Tránh thêm opens theo phản xạ chỉ để xử lý lỗi khởi tạo provider: cần kiểm tra điều kiện provider, khai báo provides, việc resolve module và mã constructor/provider method trước.
+If an external framework genuinely needs reflection, you can consider **opens package to framework.module** for that specific module only, though that is a separate access-control decision. **ServiceLoader does not require opening the provider package**. Avoid reflexively adding `opens` just to fix a provider instantiation error: check provider requirements, the `provides` declaration, module resolution, and constructor/provider method code first.
 
-**Qualified exports** như **exports ext.api to ext.app, ext.provider** giới hạn người dùng interface, nhưng phải bảo đảm tất cả module tiêu thụ thực sự được phép. Với SPI public dành cho nhiều nhà phát triển plugin, exports ext.api thường dễ phát triển hơn.
+**Qualified exports** such as **exports ext.api to ext.app, ext.provider** restrict interface consumers, requiring you to ensure every legitimate consuming module is authorized. For a public SPI aimed at multiple plugin developers, `exports ext.api` is usually easier to evolve.
 
-## 6. Ví dụ Java 17 hoàn chỉnh: ServiceLoader dùng provider từ package không export
+## 6. Complete Java 17 Example: ServiceLoader Using a Provider from an Unexported Package
 
-Ví dụ gồm ba **explicit named modules**. Một module sở hữu interface, một module khai báo provider, một module host duyệt ServiceLoader. Mã có thể biên dịch với **javac --release 17** và chạy từ JDK 17 trở lên.
+The example consists of three **explicit named modules**. One module owns the interface, one declares the provider, and the host module iterates over ServiceLoader. The code compiles with **javac --release 17** and runs on JDK 17 and later.
 
-### 6.1. Cấu trúc tệp
+### 6.1. File Structure
 
 ~~~text
 demo/
@@ -143,15 +143,15 @@ demo/
 │   └── ext.app/
 │       ├── module-info.java
 │       └── ext/app/Main.java
-└── mods/                           # Sinh ra khi biên dịch
+└── mods/                           # Generated during compilation
     ├── ext.api/
     ├── ext.provider/
     └── ext.app/
 ~~~
 
-Các tên sau **src/** là tên module theo chuẩn **--module-source-path**. Package implementation cố ý đặt tên **ext.provider.internal** để nhắc rằng code của host không nên phụ thuộc trực tiếp vào nó; chữ "internal" chỉ mang ý nghĩa quy ước, còn tính đóng gói thực sự do **module-info.java** quyết định.
+The directory names under **src/** are module names following the **--module-source-path** convention. The implementation package is intentionally named **ext.provider.internal** as a reminder that host code should not depend on it directly; the word "internal" is merely a naming convention, while actual encapsulation is enforced by **module-info.java**.
 
-### 6.2. Module chứa SPI công khai
+### 6.2. Module Containing the Public SPI
 
 **src/ext.api/module-info.java**
 
@@ -171,9 +171,9 @@ public interface Greeting {
 }
 ~~~
 
-ext.api chỉ export interface cần thiết. Các kiểu khác không thuộc hợp đồng có thể đặt vào package khác và không export.
+`ext.api` exports only the required interface. Other types not belonging to the contract can be placed in another package and left unexported.
 
-### 6.3. Module provider đăng ký service nhưng giấu package triển khai
+### 6.3. Provider Module Registering the Service While Hiding the Implementation Package
 
 **src/ext.provider/module-info.java**
 
@@ -204,9 +204,9 @@ public final class GreetingImpl implements Greeting {
 }
 ~~~
 
-Hãy để ý **không có** dòng exports hoặc opens cho ext.provider.internal. Lớp GreetingImpl vẫn public và có public constructor không tham số; điều này phục vụ cơ chế provider constructor của ServiceLoader, không biến package thành API cho host.
+Notice there is **no** `exports` or `opens` line for `ext.provider.internal`. `GreetingImpl` remains public and has a public no-arg constructor; this serves ServiceLoader's provider constructor mechanism and does not turn the package into an API for the host.
 
-### 6.4. Module ứng dụng chỉ phụ thuộc SPI
+### 6.4. Application Module Depending Only on the SPI
 
 **src/ext.app/module-info.java**
 
@@ -247,25 +247,25 @@ public final class Main {
 }
 ~~~
 
-Main không import GreetingImpl. Nó chỉ biết **Greeting** và ServiceLoader. Sau khi nhận object, Main có thể gọi các phương thức của giao diện Greeting. Việc **getClass()** và **getModule()** cho phép quan sát thông tin mô tả runtime; không trao quyền import hoặc truy cập trực tiếp thành viên riêng của implementation.
+`Main` does not import `GreetingImpl`. It only knows **Greeting** and `ServiceLoader`. After receiving the object, `Main` can invoke methods on the `Greeting` interface. Calling **getClass()** and **getModule()** lets you observe runtime descriptor metadata; it does not grant permission to import or directly access private members of the implementation.
 
-### 6.5. Biên dịch và chạy
+### 6.5. Compiling and Running
 
-Đứng tại thư mục **demo/** đã tạo theo cấu trúc trên. Lệnh sau biên dịch cả ba module trong một lần gọi; javac sẽ tạo thư mục **mods**:
+Run from the **demo/** directory created with the structure above. The following command compiles all three modules in a single invocation; `javac` will create the **mods** directory:
 
 ~~~bash
 javac --release 17 --module-source-path src -d mods -m ext.api,ext.provider,ext.app
 ~~~
 
-Khởi chạy ứng dụng với **module path**. Trong ví dụ này, **--add-modules ext.provider** bảo đảm module provider được resolve ở runtime, còn **-m ext.app/ext.app.Main** chỉ rõ module và class main:
+Launch the application with the **module path**. In this example, **--add-modules ext.provider** ensures the provider module is resolved at runtime, while **-m ext.app/ext.app.Main** specifies the module and main class:
 
 ~~~bash
 java --module-path mods --add-modules ext.provider -m ext.app/ext.app.Main
 ~~~
 
-Hai lệnh trên dùng được với terminal Windows, Linux và macOS khi JDK nằm trên PATH; không có dấu phân cách classpath phụ thuộc hệ điều hành vì **mods** chỉ là một module-path entry.
+Both commands above work on Windows, Linux, and macOS terminals when the JDK is on `PATH`; there is no OS-dependent classpath separator because **mods** is a single module-path entry.
 
-**Standard output chính xác:**
+**Exact standard output:**
 
 ~~~text
 Service: Hello, Java!
@@ -275,44 +275,44 @@ Provider package open: false
 Providers: 1
 ~~~
 
-Giải thích kết quả:
+Interpreting the output:
 
-1. **Service: Hello, Java!** cho thấy host đã nhận và sử dụng object thực thi Greeting, dù không import lớp triển khai.
-2. **Provider module: ext.provider** xác nhận instance thực tế đến từ named module provider.
-3. **Provider package exported: false** chứng minh ext.provider.internal không được export cho module ext.app.
-4. **Provider package open: false** chứng minh package cũng không được mở cho deep reflection của ext.app.
-5. **Providers: 1** vì ví dụ chỉ khai báo một provider cho Greeting.
+1. **Service: Hello, Java!** shows that the host received and used an object implementing `Greeting`, even without importing the implementation class.
+2. **Provider module: ext.provider** confirms the actual instance comes from the named provider module.
+3. **Provider package exported: false** proves `ext.provider.internal` is not exported to module `ext.app`.
+4. **Provider package open: false** proves the package is also not opened for deep reflection by `ext.app`.
+5. **Providers: 1** because the example declares only one provider for `Greeting`.
 
-Đây là sự kiểm chứng quan trọng: **ServiceLoader vẫn khởi tạo provider thành công trong khi package implementation không export và không open**.
+This is the key verification: **ServiceLoader still instantiates the provider successfully while the implementation package is neither exported nor open**.
 
-Lệnh --add-modules trong ví dụ giúp việc resolve provider có kết quả rõ ràng. Trên cấu hình JPMS hỗ trợ service binding, provider có thể được đưa vào module graph qua việc resolve service mà không cần flag này; không nên phụ thuộc vào một giả định ngầm khi chuyển sang custom ModuleLayer, image đóng gói riêng hoặc môi trường launch khác.
+The `--add-modules` flag in the example makes provider resolution explicit. In JPMS configurations that support service binding, a provider can be brought into the module graph via service resolution without this flag; however, do not rely on an implicit assumption when moving to a custom `ModuleLayer`, a custom-packaged runtime image, or a different launch environment.
 
-## 7. Vì sao app cần uses nhưng không cần requires provider?
+## 7. Why Does `app` Need `uses` Without Needing `requires provider`?
 
-**uses ext.api.Greeting** thuộc **module chứa code gọi ServiceLoader**. Trong ví dụ, Main gọi trực tiếp ServiceLoader.load(Greeting.class), nên **ext.app** khai báo uses.
+**uses ext.api.Greeting** belongs to the **module containing the code that calls ServiceLoader**. In the example, `Main` calls `ServiceLoader.load(Greeting.class)` directly, so **ext.app** declares `uses`.
 
-Nếu chuyển toàn bộ logic ServiceLoader sang một thư viện/module độc lập, chính module thực hiện lời gọi này cần có uses theo hợp đồng Java; không tự động suy ra uses của một module khác chỉ vì nó gọi thư viện.
+If all ServiceLoader logic is moved into a standalone library/module, that module making the call must have `uses` per the Java contract; `uses` is not automatically inferred for another module merely because it calls the library.
 
-**requires ext.api** vẫn cần thiết vì ext.app trực tiếp tham chiếu Greeting trong source. Nhưng **requires ext.provider** không cần để duyệt provider. Nếu thêm requires ext.provider, app tạo ra quan hệ phụ thuộc module không mong muốn; thậm chí khi đọc được module provider, app vẫn không thể import ext.provider.internal vì package đó không export.
+**requires ext.api** is still required because `ext.app` directly references `Greeting` in source code. However, **requires ext.provider** is not needed to iterate over providers. Adding `requires ext.provider` creates an unwanted module dependency; even if the app could read the provider module, it still could not import `ext.provider.internal` because that package is not exported.
 
-Đây là ưu điểm của service binding: consumer phụ thuộc **hợp đồng**, không phụ thuộc tên implementation. Module provider có thể đổi hoặc có thêm nhiều provider. Số lượng và thứ tự provider không nên dùng làm hợp đồng nghiệp vụ nếu hệ thống không kiểm soát đầy đủ cấu hình/nguồn khám phá.
+This is the advantage of service binding: the consumer depends on the **contract**, not on implementation names. The provider module can be swapped or additional providers can be added. Provider count and order should not be treated as a business contract if the system does not fully control discovery configuration/sources.
 
-**Khi không tìm được provider**, ServiceLoader có thể duyệt ra không phần tử mà không ném lỗi. Cần phân biệt với provider được khai báo nhưng bị lỗi cấu hình hoặc lỗi khởi tạo, thường được báo bằng **ServiceConfigurationError** trong lúc duyệt. Tùy ứng dụng, host cần quyết định không có provider là lỗi bắt buộc hay tình huống có thể dùng fallback.
+**When no provider is found**, ServiceLoader may iterate over zero elements without throwing an error. Distinguish this from a provider that is declared but has a configuration or instantiation error, which is typically reported via **ServiceConfigurationError** during iteration. Depending on the application, the host must decide whether having no provider is a fatal error or a situation where a fallback can be used.
 
-## 8. Provider constructor và provider method: hai đường tạo instance của named module
+## 8. Provider Constructor and Provider Method: Two Instantiation Paths for Named Modules
 
-Với **explicit named module** ghi **provides ... with ...**, Java 17 hỗ trợ hai đường tạo provider:
+For an **explicit named module** declaring **provides ... with ...**, Java 17 supports two ways to create a provider:
 
-| Cách tạo | Điều kiện | Kiểu được ghi sau with |
+| Creation Mechanism | Requirements | Type Listed After `with` |
 | --- | --- | --- |
-| **Provider constructor** | Provider type public, cụ thể, gán được cho SPI và có constructor **public không tham số** | Chính lớp implementation hoặc subclass của SPI |
-| **Provider method** | Provider type public và có **public static provider()** không tham số, kiểu trả về gán được cho SPI | Có thể là factory class không implements SPI |
+| **Provider constructor** | Public, concrete provider type assignable to the SPI, with a **public no-arg** constructor | The implementation class itself or a subclass of the SPI |
+| **Provider method** | Public provider type with a no-arg **public static provider()** method whose return type is assignable to the SPI | Can be a factory class that does not implement the SPI |
 
-Ví dụ phần 6 dùng đường **provider constructor**. Một thiết kế khác có thể dùng factory để kiểm soát quá trình tạo object và giữ concrete implementation ở quyền package-private.
+The example in Section 6 uses the **provider constructor** path. An alternative design can use a factory to control object creation and keep the concrete implementation package-private.
 
-**Ví dụ thay thế trong module ext.provider** (mã minh họa, không sử dụng đồng thời với cấu hình provider của phần 6):
+**Alternative example in module `ext.provider`** (illustrative code; do not use simultaneously with Section 6's provider configuration):
 
-**module-info.java** của module provider sẽ đổi thành:
+The provider module's **module-info.java** changes to:
 
 ~~~java
 module ext.provider {
@@ -323,7 +323,7 @@ module ext.provider {
 }
 ~~~
 
-**ext/provider/internal/GreetingFactory.java** trong module provider:
+**ext/provider/internal/GreetingFactory.java** inside the provider module:
 
 ~~~java
 package ext.provider.internal;
@@ -347,123 +347,123 @@ final class InternalGreeting implements Greeting {
 }
 ~~~
 
-Factory type **GreetingFactory** là public và ở đúng module provider, nhưng không phải subtype của Greeting và không cần public no-arg constructor. ServiceLoader của explicit named module gọi **public static provider()**, nhận object implement Greeting. **InternalGreeting** thậm chí là package-private, không cần xuất hiện trong provides clause. Package của cả hai vẫn có thể không export và không open.
+The factory type **GreetingFactory** is public and resides in the provider module, yet it is not a subtype of `Greeting` and needs no public no-arg constructor. ServiceLoader for an explicit named module invokes **public static provider()** and receives an object implementing `Greeting`. **InternalGreeting** can even be package-private and does not need to appear in the `provides` clause. The package containing both can still remain unexported and unopened.
 
-Đây là **một lựa chọn thay thế**, không phải điều kiện bắt buộc cho mọi provider. Khi cùng một provider type có provider method hợp lệ, ServiceLoader ưu tiên đường method đó theo quy tắc named module. Nếu provider() trả null hoặc ném lỗi, việc duyệt provider có thể dẫn đến ServiceConfigurationError.
+This is **an alternative**, not a mandatory requirement for every provider. When the same provider type has a valid provider method, ServiceLoader prioritizes the method path under named-module rules. If `provider()` returns `null` or throws an exception, iterating providers can result in `ServiceConfigurationError`.
 
-**Giới hạn quan trọng:** provider method không được dùng như cơ chế thay thế constructor cho provider được cấu hình qua **META-INF/services trên classpath** hoặc provider trong **automatic module**. Những trường hợp đó vẫn cần provider class gán được cho service và có provider constructor phù hợp. Không trộn lẫn quy tắc của hai mô hình triển khai.
+**Important limitation:** the provider method cannot be used as a constructor substitute for providers configured via **META-INF/services on the classpath** or providers in an **automatic module**. Those cases still require a provider class assignable to the service with a matching provider constructor. Do not mix rules across the two deployment models.
 
-## 9. Giữ package nội bộ đóng gói mang lại lợi ích gì?
+## 9. What Benefits Does Keeping Internal Packages Encapsulated Provide?
 
-Một module provider thường có các chi tiết thay đổi thường xuyên: thuật toán, cache, cấu hình, connection, adapter, factory và class hỗ trợ. Nếu export package implementation, module ngoài có thể import public types của nó và bắt đầu phụ thuộc vào cấu trúc không có ý định ổn định.
+A provider module often contains details that change frequently: algorithms, caches, configuration, connections, adapters, factories, and helper classes. If the implementation package is exported, external modules can import its public types and begin depending on structures never meant to be stable.
 
-Giữ package chưa export có các tác dụng thực tế:
+Keeping packages unexported yields practical benefits:
 
-- **Giảm coupling:** host chỉ compile theo ext.api.Greeting, thay GreetingImpl không buộc sửa source của host.
-- **Giữ freedom để refactor:** có thể đổi package/class implementation (đồng thời cập nhật provides), miễn hợp đồng và hành vi đã công bố còn tương thích.
-- **Giảm bề mặt API:** người dùng module không vô tình chọn constructor hay helper class nội bộ làm API.
-- **Tách hợp đồng khỏi chiến lược tạo instance:** factory có thể thay cách chọn implementation mà caller vẫn nhận một Greeting hợp lệ.
-- **Giúp phát hiện phụ thuộc sai sớm:** compiler báo lỗi import package chưa export, thay vì đợi refactor implementation làm vỡ host.
+- **Reduced coupling:** the host compiles only against `ext.api.Greeting`, so replacing `GreetingImpl` does not force changes to host source code.
+- **Freedom to refactor:** implementation packages/classes can be renamed (while updating `provides`), provided the published contract and behavior remain compatible.
+- **Smaller API surface:** module users do not accidentally treat internal constructors or helper classes as public API.
+- **Separation of contract from instantiation strategy:** a factory can change how implementations are chosen while callers still receive a valid `Greeting`.
+- **Early detection of invalid dependencies:** the compiler flags imports from unexported packages instead of letting implementation refactors break the host later.
 
-Encapsulation không phải ẩn tuyệt đối **tên lớp**, **bytecode** hoặc **logic** khỏi người có quyền đọc artifact. Module descriptor có thông tin provides; runtime có thể cho biết tên class và module. Đây là cơ chế kiểm soát truy cập và duy trì ranh giới API, **không phải sandbox cho plugin không đáng tin**.
+Encapsulation does not mean completely hiding **class names**, **bytecode**, or **logic** from someone who can read the artifact. The module descriptor contains `provides` metadata; the runtime can reveal the class and module names. This is a mechanism for access control and maintaining API boundaries, **not a sandbox for untrusted plugins**.
 
-## 10. Phân biệt classpath SPI và JPMS named module
+## 10. Distinguishing Classpath SPI from JPMS Named Modules
 
-| Chủ đề | Provider JAR trên classpath | Explicit named module trên module path |
+| Topic | Provider JAR on Classpath | Explicit Named Module on Module Path |
 | --- | --- | --- |
-| Nơi đăng ký service | Tệp **META-INF/services/<binary-service-name>** | **provides <Service> with <Provider>** trong module-info.java |
-| Module tiêu thụ khai báo uses | Không có module-info.java trong unnamed module | Module chứa lời gọi ServiceLoader phải khai báo **uses** |
-| Đường khởi tạo | Provider constructor public không tham số | Provider constructor hoặc public static provider() hợp lệ |
-| Bảo vệ implementation package | Không có cơ chế exports/opens của named module | Có thể không export và không open package implementation |
-| Phụ thuộc khi compile | Classpath và Java access rules | requires + readability + exports ở module API |
-| Khám phá provider | ServiceLoader đọc service configuration resource | ServiceLoader dùng thông tin module descriptor/module graph |
+| Where service is registered | **META-INF/services/<binary-service-name>** file | **provides <Service> with <Provider>** in `module-info.java` |
+| Consumer declares `uses` | No `module-info.java` in unnamed module | Module containing `ServiceLoader` call must declare **uses** |
+| Instantiation path | Public no-arg provider constructor | Provider constructor or valid `public static provider()` |
+| Implementation package protection | No `exports`/`opens` mechanism of named modules | Can leave implementation package unexported and unopened |
+| Compile-time dependencies | Classpath and Java access rules | `requires` + readability + `exports` on API module |
+| Provider discovery | ServiceLoader reads service configuration resources | ServiceLoader uses module descriptor/module graph metadata |
 
-Đối với **automatic module** (JAR thường được đặt trên module path để JPMS suy ra module), quy tắc khác explicit named module ở một số điểm. Không được lấy cơ chế static provider() của explicit named module rồi mặc định rằng nó hoạt động với automatic module. Nếu muốn encapsulation và khai báo provides rõ ràng, hãy sử dụng module-info.java thật và xác minh module descriptor của artifact đầu ra.
+For **automatic modules** (ordinary JARs placed on the module path so JPMS derives a module), the rules differ from explicit named modules in several ways. Do not take the `static provider()` mechanism of explicit named modules and assume it works with automatic modules. If you want encapsulation and explicit `provides` declarations, use a real `module-info.java` and verify the output artifact's module descriptor.
 
-Với named module, bạn **không cần tạo META-INF/services** chỉ để đăng ký provider đã khai báo trong provides; tránh duy trì hai nguồn đăng ký không nhất quán. Nếu một provider class thuộc named module cũng xuất hiện trong service configuration file, cơ chế ServiceLoader có quy tắc riêng để không xử lý lặp theo cách classpath thông thường.
+With named modules, you **do not need to create `META-INF/services`** merely to register a provider already declared in `provides`; avoid maintaining two inconsistent registration sources. If a provider class in a named module also appears in a service configuration file, ServiceLoader has specific rules to avoid duplicate classpath-style processing.
 
-## 11. Quy tắc biên dịch và xử lý lỗi thường gặp
+## 11. Compilation Rules and Common Error Handling
 
-### 11.1. Điều kiện để provides hợp lệ
+### 11.1. Conditions for a Valid `provides`
 
-Trong explicit named module:
+In an explicit named module:
 
-1. Service được chỉ định phải là kiểu phù hợp và có thể truy cập bởi module provider.
-2. Mỗi provider type phải là **public top-level hoặc public static nested type** được khai báo trong **chính module chứa provides**.
-3. Nếu không có provider method, provider phải là subtype của service và có public constructor không tham số.
-4. Nếu có provider method, đó phải là public static method **provider()** không tham số với kiểu trả về gán được cho service.
-5. Module chứa lời gọi ServiceLoader phải có uses cho service; module khác chỉ cần requires để dùng các kiểu public theo mức truy cập tương ứng.
-6. Nếu provider cần class/library ngoài, những dependency đó vẫn phải có mặt và hợp lệ trên module path/runtime theo quan hệ module thực tế.
+1. The specified service must be a suitable type accessible to the provider module.
+2. Each provider type must be a **public top-level or public static nested type** declared within **the same module containing `provides`**.
+3. If there is no provider method, the provider must be a subtype of the service and have a public no-arg constructor.
+4. If there is a provider method, it must be a no-arg public static **provider()** method with a return type assignable to the service.
+5. The module containing the `ServiceLoader` call must declare `uses` for the service; other modules only need `requires` to use public types according to their accessibility.
+6. If the provider requires external classes/libraries, those dependencies must still be present and valid on the module path/runtime according to actual module relationships.
 
-Sai phạm ở các ràng buộc về provides có thể được compiler phát hiện; các lỗi khác như constructor/provider() ném exception, dependency thiếu hoặc module chưa được resolve chỉ lộ ra lúc runtime.
+Violations of `provides` constraints may be caught by the compiler; other errors such as constructors/provider() throwing exceptions, missing dependencies, or unresolved modules only surface at runtime.
 
-### 11.2. Bảng chẩn đoán
+### 11.2. Diagnostic Table
 
-| Triệu chứng | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common Cause | How to Address |
 | --- | --- | --- |
-| Không có provider được tìm thấy | ext.provider chưa được resolve, không có provides, sai service/module layer | Kiểm tra module path, module graph và provides; với demo dùng --add-modules ext.provider |
-| Compiler báo package implementation không visible | Host import provider từ package không exports | Đúng thiết kế: bỏ import implementation, dùng interface và ServiceLoader |
-| Compiler báo service/provider không truy cập được | Thiếu requires/exports cho service, provider type sai hoặc không public | Kiểm tra API module và quy tắc provides |
-| ServiceConfigurationError khi duyệt | Provider thiếu constructor/method hợp lệ, return sai, constructor/method ném lỗi, thiếu dependency | Xem cause, kiểm tra type/constructor/factory và runtime module graph |
-| Host gọi ServiceLoader từ named module không có uses | Thiếu **uses <Service>** trong module gọi | Thêm uses vào đúng module của caller |
-| Reflection tới implementation thất bại | Package không exports/opens cho caller | Dùng SPI; chỉ mở package khi có yêu cầu reflection được thiết kế rõ |
-| Có class provider nhưng service không được phát hiện | Đường nạp hoặc module layer không đúng, khai báo provides ở sai module | Quan sát resolved modules và layer dùng trong ServiceLoader |
-| Provider đã đổi artifact nhưng kết quả cũ | Loader/layer cũ hoặc ServiceLoader cache còn được dùng | Quản lý lifecycle, tạo layer/loader mới và reload phù hợp |
+| No providers found | `ext.provider` not resolved, missing `provides`, wrong service/module layer | Check module path, module graph, and `provides`; for the demo use `--add-modules ext.provider` |
+| Compiler reports implementation package not visible | Host imports provider from an unexported package | Follow the design: remove the implementation import, use the interface and ServiceLoader |
+| Compiler reports service/provider not accessible | Missing `requires`/`exports` for service, wrong or non-public provider type | Check API module and `provides` rules |
+| `ServiceConfigurationError` during iteration | Provider missing valid constructor/method, wrong return type, constructor/method throws error, missing dependency | Check the cause, verify type/constructor/factory and runtime module graph |
+| Host calls ServiceLoader from named module without `uses` | Missing **uses <Service>** in calling module | Add `uses` to the exact caller module |
+| Reflection into implementation fails | Package is not exported/opened to caller | Use SPI; only open packages when there is a clearly designed reflection requirement |
+| Provider class exists but service is not discovered | Wrong loading path or module layer, `provides` declared in wrong module | Inspect resolved modules and the layer used in ServiceLoader |
+| Provider artifact updated but old result persists | Old loader/layer or ServiceLoader cache still in use | Manage lifecycle, create new layer/loader, and reload appropriately |
 
-**ServiceLoader nạp provider lazily.** ServiceConfigurationError có thể phát sinh trong Iterator.hasNext(), Iterator.next(), Stream hoặc Provider.get() tùy thời điểm thực hiện việc tìm/tạo. Catch lỗi ở nơi quản lý discovery để gắn thêm provider/service context, không nhét catch(Throwable) khắp code nghiệp vụ.
+**ServiceLoader loads providers lazily.** `ServiceConfigurationError` can arise in `Iterator.hasNext()`, `Iterator.next()`, `Stream`, or `Provider.get()` depending on when discovery/instantiation occurs. Catch errors at the discovery management layer to attach provider/service context rather than scattering `catch(Throwable)` throughout business code.
 
-Nếu muốn quan sát việc đăng ký từ artifact đã biên dịch, có thể sử dụng:
+To inspect registration from compiled artifacts, you can use:
 
 ~~~bash
 java --describe-module ext.provider --module-path mods
 ~~~
 
-Lệnh trên minh họa khả năng xem module descriptor; tùy cách gọi JVM có thể dùng cách viết **java --module-path mods --describe-module ext.provider** để bảo đảm option được phân tích đúng. Kết quả module descriptor giúp kiểm tra provides có đúng service và provider type hay không. Không dùng sự tồn tại của .class đơn lẻ làm bằng chứng đã đăng ký SPI.
+The command above illustrates inspecting the module descriptor; depending on how the JVM is invoked, you can write **java --module-path mods --describe-module ext.provider** to ensure options are parsed properly. The module descriptor output helps verify whether `provides` names the right service and provider type. Do not use the mere presence of a `.class` file as proof of SPI registration.
 
-### 11.3. Runtime module graph và module layer
+### 11.3. Runtime Module Graph and Module Layers
 
-Việc đặt JAR/exploded module trên module path **chưa bảo đảm module đó đã được resolve và tham gia layer đang dùng**. Với ví dụ đơn giản, **--add-modules ext.provider** giải quyết rõ điều này. Trong cấu hình service binding, JPMS cũng có thể thêm provider module khi giải quyết dependency service; cách launch, module graph, custom ModuleLayer hay runtime image có thể ảnh hưởng kết quả.
+Placing a JAR/exploded module on the module path **does not guarantee that the module has been resolved and participates in the active layer**. For the simple example, **--add-modules ext.provider** solves this explicitly. In service-binding configurations, JPMS may also add provider modules when resolving service dependencies; launch mode, module graph, custom `ModuleLayer`, or runtime images can affect the result.
 
-Khi host nạp plugin ở một **ModuleLayer** riêng, cân nhắc **ServiceLoader.load(layer, Greeting.class)** để khám phá provider trong layer đó và các parent layer theo hợp đồng API, thay vì mặc định ServiceLoader.load(Greeting.class) đang tìm đúng nơi. Cách khởi tạo custom ModuleLayer là một thiết kế rộng hơn; bài này chỉ yêu cầu hiểu rằng **provides** phải đi cùng cấu hình layer/visibility thích hợp.
+When a host loads plugins in a separate **ModuleLayer**, consider **ServiceLoader.load(layer, Greeting.class)** to discover providers in that layer and its parent layers per the API contract, rather than assuming `ServiceLoader.load(Greeting.class)` searches the right place. Designing custom `ModuleLayer` initialization is a broader topic; this lesson only requires understanding that **provides** must be paired with proper layer/visibility configuration.
 
-Không nên thêm **requires ext.provider** vào module ứng dụng chỉ vì provider có trên module path. Quan hệ trực tiếp đó đánh mất lợi ích thay thế provider mà service abstraction mang lại.
+Do not add **requires ext.provider** to the application module just because the provider is on the module path. That direct relationship forfeits the provider-swapping benefit that service abstraction provides.
 
-## 12. Kiểm thử tính đóng gói
+## 12. Testing Encapsulation
 
-Một bộ kiểm thử tối thiểu nên có cả kiểm tra **tích cực** (SPI vẫn chạy) và **tiêu cực** (không thể truy cập implementation như API):
+A minimal test suite should include both **positive** checks (SPI still works) and **negative** checks (cannot access implementations as APIs):
 
-| Thử nghiệm | Kết quả mong đợi |
+| Test Case | Expected Result |
 | --- | --- |
-| Compile ba module bằng --release 17 | Thành công; không cần export implementation |
-| Chạy ext.app với ext.provider được resolve | ServiceLoader tạo provider và chạy Greeting.greet |
-| Kiểm tra isExported cho ext.provider.internal từ ext.app | false |
-| Kiểm tra isOpen cho ext.provider.internal từ ext.app | false |
-| Thêm import ext.provider.internal.GreetingImpl vào host | Không hợp lệ qua ranh giới module nếu package không export |
-| Bỏ uses trong ext.app nhưng vẫn gọi ServiceLoader | Caller module không có permission uses; lỗi service loading |
-| Đổi provides sang tên provider sai hoặc kiểu không phù hợp | Compile-time error hoặc lỗi đăng ký phù hợp |
-| Provider constructor/provider() ném exception | Quan sát ServiceConfigurationError khi khởi tạo |
-| Thay provider module khác thực hiện cùng Greeting | Host giữ nguyên source code; discovery được cấu hình lại |
-| Chạy qua custom ModuleLayer | Provider tìm thấy trong đúng layer theo cấu hình |
+| Compile the three modules with `--release 17` | Succeeds; no need to export implementation |
+| Run `ext.app` with `ext.provider` resolved | ServiceLoader instantiates provider and runs `Greeting.greet` |
+| Check `isExported` for `ext.provider.internal` from `ext.app` | `false` |
+| Check `isOpen` for `ext.provider.internal` from `ext.app` | `false` |
+| Add `import ext.provider.internal.GreetingImpl` in host | Invalid across module boundary when package is unexported |
+| Remove `uses` in `ext.app` while still calling ServiceLoader | Caller module lacks `uses` permission; service loading error |
+| Change `provides` to wrong provider name or incompatible type | Compile-time error or appropriate registration failure |
+| Provider constructor/`provider()` throws an exception | Observe `ServiceConfigurationError` during instantiation |
+| Swap in another provider module implementing the same `Greeting` | Host keeps its source code unchanged; discovery is reconfigured |
+| Run via a custom `ModuleLayer` | Provider found in the right layer as configured |
 
-Trong CI, chạy ví dụ trên các **named modules thật** thay vì dồn mọi .class vào classpath. Nếu unit test chỉ chạy trên unnamed module, có thể không phát hiện được việc quên uses, export nhầm implementation package hay module resolution sai.
+In CI, run the example on **real named modules** instead of dumping all `.class` files onto the classpath. If unit tests only run in the unnamed module, they may miss a forgotten `uses`, an accidentally exported implementation package, or incorrect module resolution.
 
-Nên kiểm tra danh sách exports/opens trong module descriptor sau khi build artifact: một thay đổi build hoặc module-info.java có thể vô tình làm lộ package nội bộ dù kiểm thử chức năng vẫn pass.
+Check the `exports`/`opens` list in module descriptors after building artifacts: a build or `module-info.java` change can inadvertently expose internal packages even while functional tests still pass.
 
-## 13. Checklist thiết kế trước khi công bố provider module
+## 13. Design Checklist Before Publishing a Provider Module
 
-- API module export **đúng những package hợp đồng** cho consumer/provider.
-- Provider module khai báo **requires API** và **provides Service with Provider** với đúng binary type.
-- Provider class nằm **trong chính module provider**, public và có provider constructor hoặc provider method hợp lệ.
-- Implementation package **không exports và không opens** nếu không có nhu cầu truy cập bên ngoài cụ thể.
-- Consumer module **requires API**, **uses Service** tại nơi gọi ServiceLoader và không phụ thuộc compile-time vào implementation module.
-- Runtime cấu hình module path, module resolution và module layer phù hợp; không coi "JAR có mặt" là "module đã được dùng".
-- Kiểm thử **ServiceLoader hoạt động** đồng thời xác minh **isExported/isOpen false** đối với package triển khai.
-- Xử lý trường hợp không có provider, nhiều provider hoặc provider lỗi với chính sách rõ ràng; không phụ thuộc thứ tự ngẫu nhiên.
-- Đã phân biệt explicit named modules, automatic modules và classpath providers trước khi áp dụng quy tắc constructor/factory.
+- The API module exports **only the contract packages** for consumers/providers.
+- The provider module declares **requires API** and **provides Service with Provider** with the exact binary types.
+- The provider class resides **within the provider module itself**, is public, and has a valid provider constructor or provider method.
+- The implementation package **is neither exported nor opened** unless there is a specific external access requirement.
+- The consumer module **requires API**, **uses Service** where ServiceLoader is called, and has no compile-time dependency on the implementation module.
+- Runtime configures the module path, module resolution, and module layer appropriately; never treat "JAR is present" as "module is used."
+- Test that **ServiceLoader works** while verifying **isExported/isOpen is false** for the implementation package.
+- Handle missing providers, multiple providers, or faulty providers with a clear policy; do not rely on arbitrary order.
+- Distinguish explicit named modules, automatic modules, and classpath providers before applying constructor/factory rules.
 
-**Ghi nhớ:** **provides ... with ...** là cách module công bố provider cho **ServiceLoader**, không phải lệnh export class implementation. Giữ interface/DTO ở package API được export, còn class triển khai trong package **không export và không open**; host gọi qua SPI, và JPMS duy trì ranh giới đóng gói trong khi vẫn hỗ trợ mở rộng lúc chạy.
+**Key takeaway:** **provides ... with ...** is how a module publishes a provider to **ServiceLoader**, not a command to export implementation classes. Keep interfaces/DTOs in exported API packages, and implementation classes in packages that are **neither exported nor open**; the host calls through SPI, and JPMS enforces encapsulation boundaries while still supporting runtime extensibility.
 
-Tài liệu tham khảo chính thức cho Java 17:
+Official documentation references for Java 17:
 
 - https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 - https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html

@@ -1,59 +1,59 @@
-# 7.3 Vai trò của salt, số vòng lặp, độ dài đầu ra và phiên bản cấu hình
+# 7.3 Roles of Salt, Iteration Count, Output Length, and Configuration Version
 
-Khi lưu mật khẩu hoặc dẫn xuất khóa từ mật khẩu trong Java, ta thường gặp các tham số **salt**, **iteration count (số vòng lặp)**, **derived key length (độ dài đầu ra)** và **configuration version (phiên bản cấu hình)**. Chúng trả lời bốn câu hỏi riêng biệt:
+When storing passwords or deriving keys from passwords in Java, you commonly encounter the parameters **salt**, **iteration count**, **derived key length**, and **configuration version**. They answer four distinct questions:
 
-1. **Salt:** hai lần xử lý cùng một mật khẩu có tạo cùng kết quả hay không, và có thể dùng bảng tính sẵn hoặc chia sẻ kết quả tấn công cho nhiều tài khoản hay không?
-2. **Số vòng lặp / chi phí:** một lần thử đoán mật khẩu đòi hỏi bao nhiêu công việc tính toán?
-3. **Độ dài đầu ra:** kết quả nhị phân có bao nhiêu bit/byte để so sánh hoặc dùng làm vật liệu khóa?
-4. **Phiên bản cấu hình:** làm sao biết kết quả cũ được tạo bằng thuật toán và tham số nào, xác minh được nó rồi nâng cấp an toàn khi chính sách thay đổi?
+1. **Salt:** do two operations on the same password produce the same output, and can precomputed tables or attack work be shared across multiple accounts?
+2. **Iteration count / cost:** how much computational work does a single password-guessing attempt require?
+3. **Output length:** how many bits/bytes are in the binary result for comparison or use as key material?
+4. **Configuration version:** how do you know which algorithm and parameters produced an old result, verify it, and safely upgrade it when policy changes?
 
-Bốn tham số **không thay thế nhau**. Salt không làm một mật khẩu yếu trở nên khó đoán; tăng output từ 256 lên 512 bit không làm entropy mật khẩu tăng; số vòng lặp cần được hiệu chỉnh theo phần cứng và nhu cầu vận hành; còn phiên bản cấu hình giúp hệ thống di chuyển từ chính sách cũ sang chính sách mới.
+The four parameters **do not substitute for one another**. A salt does not make a weak password hard to guess; increasing output from 256 to 512 bits does not increase password entropy; the iteration count must be calibrated to hardware and operational needs; and configuration versioning lets the system migrate from old policies to new ones.
 
-Bài này thuộc chủ đề **mật khẩu và dẫn xuất khóa**. Cần phân biệt hai mục tiêu: **password hashing để xác minh đăng nhập** và **password-based key derivation để tạo khóa mã hóa**. Cả hai có thể dùng KDF, nhưng vòng đời và cách lưu kết quả khác nhau.
+This lesson belongs to **passwords and key derivation**. Distinguish two goals: **password hashing for login verification** and **password-based key derivation for creating encryption keys**. Both may use a KDF, yet their lifecycles and result storage differ.
 
-## 1. Khung khái niệm: mật khẩu, KDF và verifier
+## 1. Conceptual framework: password, KDF, and verifier
 
-Một hàm dẫn xuất khóa từ mật khẩu thường có dạng trừu tượng:
+A password-based key derivation function generally has the abstract form:
 
 ```text
 derived = KDF(password, salt, cost_parameters, output_length, algorithm)
 ```
 
-Với **PBKDF2-HMAC-SHA256**, mô hình có thể viết:
+For **PBKDF2-HMAC-SHA256**, the model can be written:
 
 ```text
 DK = PBKDF2-HMAC-SHA256(P, S, c, dkLen)
-P      = mật khẩu
+P      = password
 S      = salt
-c      = số vòng lặp (iteration count)
-dkLen  = độ dài đầu ra mong muốn (byte theo đặc tả PBKDF2)
-DK     = derived key (các byte kết quả)
+c      = iteration count
+dkLen  = desired output length (bytes per PBKDF2 specification)
+DK     = derived key (resulting bytes)
 ```
 
-Trong Java `PBEKeySpec(char[] password, byte[] salt, int iterationCount, int keyLength)` dùng `keyLength` **theo bit**, khác ký hiệu `dkLen` **theo byte** trong đặc tả PBKDF2. Vì vậy **256** trong `PBEKeySpec(..., 256)` tạo mục tiêu đầu ra **256 bit = 32 byte**, không phải 256 byte.
+In Java, `PBEKeySpec(char[] password, byte[] salt, int iterationCount, int keyLength)` takes `keyLength` **in bits**, unlike the `dkLen` notation **in bytes** in the PBKDF2 specification. Thus **256** in `PBEKeySpec(..., 256)` targets an output of **256 bits = 32 bytes**, not 256 bytes.
 
-**KDF** là khái niệm rộng; từng họ có tham số chi phí riêng:
+**KDF** is a broad family; each variant has its own cost parameters:
 
-| Thuật toán | Tham số chi phí chính | Đặc tính | Nơi thường gặp |
+| Algorithm | Primary cost parameter(s) | Properties | Where commonly seen |
 | --- | --- | --- | --- |
-| **PBKDF2-HMAC-SHA256** | `iterations` | Gia tăng chi phí CPU theo số vòng lặp | Java JCA/JCE, hệ thống cần PBKDF2 |
-| **Argon2id** | `memory`, `time cost`, `parallelism` | Memory-hard, nhằm tăng chi phí tấn công song song/GPU | Hệ thống có thư viện Argon2id đáng tin |
-| **scrypt** | `N`, `r`, `p` | Memory-hard với tham số tài nguyên | Một số hệ thống password hashing/KDF |
-| **bcrypt** | Cost factor (logarithmic) | Cơ chế chi phí riêng, có giới hạn đầu vào cần chú ý | Password verifier của ứng dụng legacy/hiện hữu |
+| **PBKDF2-HMAC-SHA256** | `iterations` | Increases CPU cost by iteration count | Java JCA/JCE, systems requiring PBKDF2 |
+| **Argon2id** | `memory`, `time cost`, `parallelism` | Memory-hard, raises cost of parallel/GPU attacks | Systems with a trusted Argon2id library |
+| **scrypt** | `N`, `r`, `p` | Memory-hard with resource parameters | Certain password hashing/KDF systems |
+| **bcrypt** | Cost factor (logarithmic) | Dedicated cost mechanism with input limits to watch | Password verifiers in legacy/existing applications |
 
-Không thể so sánh trực tiếp “PBKDF2 200.000 vòng” với “Argon2id 3 vòng” hoặc “bcrypt cost 12”: chúng đo **các công việc khác nhau**. Chọn thuật toán và cấu hình theo mô hình đe dọa, tài nguyên máy chủ và hướng dẫn bảo mật hiện hành, rồi **đo trên phần cứng thực tế**.
+You cannot directly compare “PBKDF2 200,000 iterations” with “Argon2id 3 passes” or “bcrypt cost 12”: they measure **different kinds of work**. Choose the algorithm and configuration based on your threat model, server resources, and current security guidance, then **measure on real hardware**.
 
-### 1.1. Password hashing khác mã hóa có thể giải mã
+### 1.1. Password hashing differs from decryptable encryption
 
-Để **xác minh đăng nhập**, backend lưu một **verifier** được dẫn xuất từ mật khẩu, không lưu mật khẩu gốc hoặc bản mã có thể giải mã bằng khóa ứng dụng. Khi người dùng đăng nhập, backend lấy *salt và tham số đã lưu*, tính lại KDF cho mật khẩu vừa nhập và so sánh kết quả. Không cần biết mật khẩu gốc.
+To **verify login**, the backend stores a **verifier** derived from the password, not the original password or ciphertext decryptable by an application key. When the user logs in, the backend retrieves the *stored salt and parameters*, recomputes the KDF for the entered password, and compares the result. It never needs the original password.
 
-Để **dẫn xuất khóa mã hóa từ mật khẩu**, output có thể dùng làm vật liệu khóa cho AES hoặc cơ chế khác. Khi mật khẩu và các tham số được nhập lại đúng, KDF trả cùng byte khóa để mở dữ liệu. Trường hợp này phải quản lý thêm IV/nonce, authenticated encryption, thay mật khẩu, khôi phục dữ liệu và tính ổn định của tham số. Đừng tự suy diễn rằng cùng một output KDF được phép tái sử dụng đồng thời làm verifier, AES key và HMAC key: các mục đích cần **tách khóa hoặc tách miền dẫn xuất**.
+To **derive an encryption key from a password**, the output can serve as key material for AES or another mechanism. When the password and parameters are re-entered correctly, the KDF returns the same key bytes to unlock the data. This case also requires managing IV/nonce, authenticated encryption, password changes, data recovery, and parameter stability. Do not assume the same KDF output may be reused simultaneously as a verifier, AES key, and HMAC key: separate purposes need **separate keys or domain-separated derivation**.
 
-### 1.2. Các thành phần cần lưu cùng kết quả
+### 1.2. Components that must be stored with the result
 
-Trong hệ thống xác minh mật khẩu, một bản ghi tối thiểu thường gồm **định danh thuật toán**, **tham số chi phí**, **salt**, **độ dài đầu ra/khuôn dạng**, **digest đã dẫn xuất** và **phiên bản cấu hình**. Các trường không chứa plaintext password.
+In a password verification system, a minimal record usually includes **algorithm identifier**, **cost parameters**, **salt**, **output length/format**, **derived digest**, and **configuration version**. None of these fields contain the plaintext password.
 
-Ví dụ sơ đồ bản ghi (tên trường là mô tả cấu trúc, không phải chuỗi verifier đã được tính sẵn):
+Example record layout (field names describe structure, not a precomputed verifier string):
 
 ```text
 CredentialRecord
@@ -65,221 +65,221 @@ CredentialRecord
   verifier           : binary, 32 bytes (stored as Base64URL)
 ```
 
-**180.000 vòng ở ví dụ này chỉ là tham số minh họa cho luồng nâng cấp, không phải khuyến nghị cấu hình production.** Trong hệ thống thật cần kiểm tra yêu cầu chính sách và benchmark ở thời điểm triển khai.
+**180,000 iterations in this example is solely an illustrative value for the upgrade flow, not a production configuration recommendation.** In real systems, check policy requirements and benchmark at deployment time.
 
-## 2. Salt: giá trị ngẫu nhiên riêng cho mỗi lần tạo verifier
+## 2. Salt: a unique random value for every verifier creation
 
-**Salt** là dữ liệu đầu vào bổ sung cho KDF. Với một mật khẩu cụ thể, thay salt sẽ làm kết quả dẫn xuất khác nhau trong thực hành mật mã:
+A **salt** is extra input data passed to the KDF. For a given password, changing the salt changes the derived output in cryptographic practice:
 
 ```text
 KDF("example-password", salt_A, params) != KDF("example-password", salt_B, params)
 ```
 
-Hai tài khoản dùng chung mật khẩu **không nên có cùng verifier**. Nếu chúng có salt độc lập đủ dài được sinh ngẫu nhiên, các kết quả KDF hầu như chắc chắn khác nhau. Điều này cản trở việc phát hiện mật khẩu trùng chỉ bằng cách so sánh hash và buộc kẻ tấn công thực hiện công việc đoán mật khẩu riêng cho từng salt, thay vì dùng kết quả tính sẵn cho một salt chung.
+Two accounts using the same password **must not share the same verifier**. If they have sufficiently long, independently generated random salts, the KDF outputs are almost certainly different. This prevents spotting duplicate passwords merely by comparing hashes and forces an attacker to perform password guessing separately for each salt rather than reusing work precomputed for a shared salt.
 
-### 2.1. Tại sao phải có salt?
+### 2.1. Why is a salt required?
 
-- **Chống bảng tra cứu tính trước:** rainbow table/lookup table cho hash không salt không áp dụng nguyên vẹn cho mọi salt độc lập.
-- **Ngăn verifier trùng hàng loạt:** hai người cùng dùng mật khẩu sẽ có giá trị verifier khác nhau khi salt khác nhau.
-- **Hạn chế chia sẻ chi phí tấn công giữa nhiều mục tiêu:** kẻ tấn công phải xét salt tương ứng của từng bản ghi.
-- **Giữ tính kiểm chứng:** bản ghi chứa salt cho phép backend tính lại cùng KDF với mật khẩu nhập sau này.
+- **Defeats precomputed lookup tables:** rainbow tables/lookup tables for unsalted hashes do not apply directly across independent salts.
+- **Prevents mass identical verifiers:** two users picking the same password get different verifiers when their salts differ.
+- **Limits attack-cost sharing across targets:** an attacker must evaluate each record's specific salt.
+- **Preserves verifiability:** storing the salt in the record allows the backend to recompute the exact same KDF on future logins.
 
-Salt **không ngăn** kẻ tấn công đoán một mật khẩu cụ thể theo kiểu offline nếu đã lấy được verifier và salt. Salt cũng không tạo thêm entropy cho mật khẩu. Một mật khẩu yếu vẫn dễ bị đoán tương đối khi dùng KDF rẻ hoặc số lượt thử không bị giới hạn.
+A salt **does not stop** an attacker from guessing a specific password offline once they obtain both the verifier and the salt. Nor does a salt add entropy to the password. A weak password remains relatively easy to guess when using a cheap KDF or unlimited trials.
 
-### 2.2. Salt phải ngẫu nhiên, độc lập, đủ dài
+### 2.2. Salt must be random, independent, and sufficiently long
 
-Với hệ thống mới, ví dụ thực hành dễ hiểu là **16 byte (128 bit) salt sinh bằng `SecureRandom`** cho mỗi verifier. Một số thuật toán/định dạng có yêu cầu riêng; phải làm theo đặc tả của thuật toán, thư viện hoặc định dạng lưu trữ đang sử dụng.
+For new systems, a straightforward practical example is **16 bytes (128 bits) of salt generated by `SecureRandom`** per verifier. Some algorithms/formats have specific requirements; follow the specification of the algorithm, library, or storage format in use.
 
 ```java
 byte[] salt = new byte[16];
 new java.security.SecureRandom().nextBytes(salt);
 ```
 
-Đây là đoạn minh họa, chưa phải chương trình độc lập. **Tạo salt mới khi tạo verifier mới**, kể cả khi hai người dùng chọn cùng một mật khẩu. Khi nâng cấp cấu hình bằng rehash sau đăng nhập, nên tạo **salt mới** cùng bản ghi mới.
+This snippet is illustrative, not a standalone program. **Generate a fresh salt whenever creating a new verifier**, even when two users choose the same password. When upgrading configuration via rehash on login, generate a **fresh salt** for the new record.
 
-Tránh dùng một salt toàn cục cho mọi tài khoản, dùng username/email làm salt, chỉ lấy timestamp hoặc bộ đếm dự đoán được để sinh salt, hoặc tạo salt từ một bộ sinh ngẫu nhiên không phù hợp như `Random`. Dữ liệu định danh có thể là một phần cấu trúc giao thức, nhưng **không thay thế salt ngẫu nhiên** khi hệ thống yêu cầu salt ngẫu nhiên.
+Avoid using one global salt for all accounts, using username/email as a salt, deriving salt solely from timestamps or predictable counters, or generating salts with a non-cryptographic RNG like `Random`. Identity data can be part of a protocol structure, but **cannot replace a random salt** where randomness is required.
 
-Với salt ngẫu nhiên 128 bit, khả năng va chạm giữa hai salt độc lập rất nhỏ ở quy mô thông thường. Tuy nhiên yếu tố quyết định là **bộ sinh ngẫu nhiên mật mã và việc tạo riêng cho từng lần**, không chỉ độ dài mảng byte.
+With a 128-bit random salt, collision probability between two independent salts is negligible at normal scale. Still, the decisive factors are **using a cryptographic RNG and generating a fresh salt per operation**, not just array length.
 
-### 2.3. Salt có bí mật không?
+### 2.3. Is a salt secret?
 
-**Không. Salt thường được lưu công khai bên cạnh verifier** trong cơ sở dữ liệu. Người xác minh cần đọc đúng salt để tái tạo output. Bảo mật dựa vào mật khẩu khó đoán và KDF có chi phí phù hợp, **không dựa vào việc giấu salt**.
+**No. A salt is typically stored publicly alongside the verifier** in the database. The verifier check must read the exact salt to reproduce the output. Security relies on a hard-to-guess password and an adequately costly KDF, **not on hiding the salt**.
 
-- **Salt:** không bí mật, riêng từng bản ghi, dùng để tạo đầu ra khác nhau.
-- **Pepper (nếu có):** bí mật dùng chung hoặc theo scope, được bảo quản ngoài DB, ví dụ KMS/HSM/secret manager. Pepper không thể thay salt; việc thêm và thay pepper cần thiết kế thuật toán/rotation riêng.
-- **Nonce/IV:** có vai trò khác trong giao thức mã hóa, không tự đồng nghĩa với salt.
-- **Secret key:** khóa cần giữ bí mật; không biến salt thành secret hoặc dùng salt như khóa AES/HMAC.
+- **Salt:** non-secret, per-record, used to diversify outputs.
+- **Pepper (if used):** a shared or scoped secret kept outside the DB, e.g., in a KMS/HSM/secret manager. Pepper cannot replace a salt; adding and rotating a pepper requires dedicated algorithm/rotation design.
+- **Nonce/IV:** plays a different role in encryption protocols; not synonymous with salt.
+- **Secret key:** a key that must stay confidential; never turn a salt into a secret or use a salt as an AES/HMAC key.
 
-Nếu bản ghi bị sao chép sang môi trường khác mà thiếu salt, việc xác minh lại có thể **không thực hiện được**, vì output KDF phụ thuộc chính xác vào salt.
+If a record is copied to another environment without its salt, re-verification may become **impossible**, because KDF output depends strictly on the salt.
 
-### 2.4. Salt khác nhau và salt bị thay đổi
+### 2.4. Different salts vs. altered salts
 
-Với cùng mật khẩu, cùng thuật toán và cùng số vòng:
+With the same password, same algorithm, and same iteration count:
 
 ```text
 KDF(P, S1, 100000, 32 bytes) -> output_1
 KDF(P, S2, 100000, 32 bytes) -> output_2
 ```
 
-Kết quả `output_1` và `output_2` khác nhau vì `S1 != S2`. Nếu backend vô tình dùng salt mới mỗi lần người dùng *đăng nhập* thay vì dùng salt đã lưu, việc xác minh **sẽ thất bại**. Salt mới chỉ được tạo lúc tạo verifier mới hoặc rehash được kiểm soát.
+`output_1` and `output_2` differ because `S1 != S2`. If the backend accidentally generates a new salt every time a user *logs in* instead of using the stored salt, verification **will fail**. A new salt is generated only when creating a new verifier or during a controlled rehash.
 
-Không coi một salt “dài 16 byte” là bằng chứng đủ an toàn: phải biết nó **được tạo bằng gì**, có bị reuse quy mô lớn không và có được lưu/đọc đúng byte hay không.
+Do not treat “a 16-byte salt” as sufficient proof of security: you must know **how it was generated**, whether it is reused at scale, and whether its exact bytes are stored and read intact.
 
-## 3. Số vòng lặp: điều chỉnh chi phí thử mật khẩu
+## 3. Iteration count: tuning the cost of password guessing
 
-Với PBKDF2, `iterationCount` là số vòng thực hiện chuỗi PRF bên trong thuật toán. Khi các yếu tố khác giữ nguyên, tăng số vòng lặp làm mỗi lần dẫn xuất tốn thêm CPU và thời gian. Điều này có ích vì kẻ tấn công offline thường cần thử rất nhiều giả thuyết mật khẩu.
+In PBKDF2, `iterationCount` is the number of rounds the internal PRF chain executes. Holding other factors constant, raising the iteration count increases CPU and time per derivation. This helps because an offline attacker typically needs to test vast numbers of password guesses.
 
-Tuy nhiên, **chi phí cao tác động cả phía hợp lệ**: đăng nhập, reset mật khẩu, batch migration và mở khóa dữ liệu đều có thể tốn thêm CPU, gây nghẽn hoặc tạo điều kiện cho DoS nếu không giới hạn tốc độ.
+However, **high cost affects legitimate operations too**: logins, password resets, batch migrations, and data unlocks all consume more CPU, potentially causing bottlenecks or enabling DoS if unthrottled.
 
-### 3.1. Vì sao không dùng hash nhanh để lưu mật khẩu?
+### 3.1. Why not use a fast hash for password storage?
 
-SHA-256 là hash nhanh, được thiết kế để xử lý dữ liệu hiệu quả. Nếu hệ thống lưu `SHA256(password)` hoặc chỉ `SHA256(salt || password)`, kẻ tấn công có thể thử nhiều mật khẩu rất nhanh khi có cơ sở dữ liệu verifier.
+SHA-256 is a fast hash designed to process data efficiently. If a system stores `SHA256(password)` or only `SHA256(salt || password)`, an attacker who obtains the verifier database can test huge numbers of passwords very rapidly.
 
-Password KDF thêm **chi phí tính toán có chủ đích**. Với PBKDF2, mỗi phép thử phải chạy số vòng đã cấu hình. Với Argon2id/scrypt, mục tiêu còn có thể bao gồm chi phí bộ nhớ, khiến tấn công song song trên GPU/ASIC khó tối ưu hơn.
+A password KDF adds **intentional computational cost**. With PBKDF2, every trial runs the configured number of rounds. With Argon2id/scrypt, the goal can also include memory cost, making parallel attacks on GPUs/ASICs harder to optimize.
 
-**Thêm salt vào SHA-256 không thay thế PBKDF2/Argon2id/scrypt** trong vai trò password KDF có cấu hình chi phí phù hợp.
+**Adding a salt to SHA-256 does not replace PBKDF2/Argon2id/scrypt** as a properly costed password KDF.
 
-### 3.2. Chọn số vòng bằng chính sách và benchmark
+### 3.2. Choosing iteration counts via policy and benchmarking
 
-Một cấu hình sản xuất cần quyết định theo các bước:
+A production configuration should be decided step by step:
 
-1. Chọn thuật toán KDF được hỗ trợ, được đánh giá phù hợp với threat model và các yêu cầu tương thích/compliance.
-2. Đọc hướng dẫn bảo mật **còn hiệu lực tại thời điểm triển khai**. Số vòng “tốt” có thể thay đổi theo tốc độ phần cứng và thuật toán.
-3. Đo **p50/p95/p99** thời gian của một phép xác minh trên phần cứng/instance thực tế, trong điều kiện có tải đồng thời.
-4. Đặt ngân sách latency/CPU và bảo vệ trước brute force/DoS; cân nhắc quota, rate limit, MFA và giới hạn số request xác minh song song.
-5. Ghi cấu hình đã phê duyệt vào version/policy, giám sát hiệu năng và có kế hoạch tăng chi phí trong các lần nâng cấp.
+1. Select a supported KDF algorithm evaluated as suitable for your threat model and compatibility/compliance requirements.
+2. Consult security guidance **current at deployment time**. What counts as “good” iterations shifts with hardware and algorithmic improvements.
+3. Measure **p50/p95/p99** verification latency on realistic target hardware/instances under concurrent load.
+4. Set a latency/CPU budget and defend against brute force/DoS; consider quotas, rate limits, MFA, and capping concurrent verification requests.
+5. Record the approved configuration in a version/policy, monitor performance, and plan cost increases across upgrades.
 
-**Không dùng các giá trị demo 100.000 hoặc 180.000 vòng trong ví dụ Java dưới đây làm con số khuyến nghị production.** Chúng chỉ giúp thấy cơ chế giữ cấu hình cũ, xác minh và chuyển sang cấu hình mới.
+**Do not use the demo values of 100,000 or 180,000 iterations in the Java example below as production recommendations.** They only illustrate keeping an old configuration, verifying it, and migrating to a new one.
 
-### 3.3. Tăng số vòng tác động thế nào?
+### 3.3. How does increasing iterations affect performance?
 
-Nếu thời gian PBKDF2 với 100.000 vòng trên một máy là khoảng 50 ms, 200.000 vòng **thường** sẽ gần gấp đôi về phần công việc CPU của KDF trên cùng điều kiện. Đây là **quan hệ xu hướng**, không phải cam kết thời gian thực; provider, JVM, CPU, tải, cache và môi trường đều ảnh hưởng benchmark.
+If PBKDF2 at 100,000 iterations takes roughly 50 ms on a machine, 200,000 iterations will **typically** nearly double the KDF CPU work under the same conditions. This is a **directional trend**, not a real-time guarantee; provider, JVM, CPU, load, caches, and environment all affect benchmarks.
 
-Kẻ tấn công vẫn có thể tối ưu phần cứng, chạy song song và đoán mật khẩu yếu. Số vòng **không tạo ra** một mật khẩu có entropy cao hơn. Vì vậy cần mật khẩu/passphrase đủ mạnh, xác thực đa yếu tố khi phù hợp và bảo vệ các điểm thử trực tuyến.
+Attackers can still optimize hardware, parallelize, and guess weak passwords. Iteration counts **do not create** higher password entropy. Therefore you still need strong passwords/passphrases, MFA where appropriate, and protection on online guessing endpoints.
 
-### 3.4. Argon2id và bcrypt không dùng cùng ý nghĩa “số vòng”
+### 3.4. Argon2id and bcrypt do not use “rounds” in the same way
 
-- **Argon2id:** tham số chi phí thường gồm bộ nhớ (ví dụ KiB), số pass/time cost và độ song song. Đánh giá theo **bộ ba này**, không nhìn riêng một chữ “iterations”. Argon2id có tham số phiên bản thuật toán riêng; cấu hình must include cả bộ tham số.
-- **scrypt:** dùng các tham số `N`, `r` và `p` liên quan công việc và bộ nhớ; `N` không thể so sánh trực tiếp với vòng PBKDF2.
-- **bcrypt:** cost factor quy định mức công việc tăng theo hàm mũ; nhích thêm 1 cost khác với tăng thêm 1 vòng PBKDF2. Bcrypt cũng có giới hạn/đặc thù xử lý độ dài password theo implementation, nên cần xét quy tắc encoding và cách xử lý chuỗi dài.
+- **Argon2id:** cost parameters typically include memory (e.g., KiB), pass count/time cost, and parallelism. Evaluate **all three together**, not just a single word “iterations”. Argon2id also has an algorithm version parameter; configuration must include the full parameter set.
+- **scrypt:** uses `N`, `r`, and `p` parameters tied to work and memory; `N` cannot be compared directly to PBKDF2 rounds.
+- **bcrypt:** its cost factor scales work exponentially; incrementing cost by 1 is completely different from adding 1 PBKDF2 iteration. Bcrypt also has implementation-specific password length limits/behaviors, requiring care with encoding and long inputs.
 
-Không thiết kế một cấu hình tên `rounds=3` chung cho mọi KDF rồi kỳ vọng nó có ý nghĩa giống nhau. Khi migrate thuật toán, **đổi schema/tham số và algorithm ID tương ứng**.
+Never design a generic `rounds=3` setting shared across all KDFs expecting it to mean the same thing. When migrating algorithms, **update the schema/parameters and algorithm ID accordingly**.
 
-## 4. Độ dài đầu ra: số byte kết quả, không phải độ mạnh mật khẩu
+## 4. Output length: byte size of the result, not password strength
 
-**Derived key length** nói về kích thước vật lý của kết quả KDF. Với `PBKDF2WithHmacSHA256`, có thể yêu cầu đầu ra với số bit cấu hình, ví dụ 128, 256 hoặc 512 bit nếu phù hợp sử dụng và provider hỗ trợ.
+**Derived key length** specifies the physical size of the KDF output. With `PBKDF2WithHmacSHA256`, you can request a configurable bit length such as 128, 256, or 512 bits when appropriate for usage and supported by the provider.
 
-| Đầu ra | Nhị phân | Biểu diễn hex | Base64 chuẩn có padding |
+| Output | Binary | Hex representation | Standard Base64 with padding |
 | --- | ---: | ---: | ---: |
-| 128 bit | 16 byte | 32 ký tự ASCII | 24 ký tự |
-| 256 bit | 32 byte | 64 ký tự ASCII | 44 ký tự |
-| 512 bit | 64 byte | 128 ký tự ASCII | 88 ký tự |
+| 128 bits | 16 bytes | 32 ASCII chars | 24 chars |
+| 256 bits | 32 bytes | 64 ASCII chars | 44 chars |
+| 512 bits | 64 bytes | 128 ASCII chars | 88 chars |
 
-**Cảnh báo:** 256-bit output **không đồng nghĩa 256-bit password security**. Nếu password chỉ được đoán từ một tập nhỏ, attacker có thể chạy KDF cho các password đoán được. Tăng độ dài kết quả không làm tăng số khả năng của mật khẩu.
+**Warning:** a 256-bit output **does not mean 256-bit password security**. If the password is drawn from a small guessable set, an attacker can run the KDF on candidate passwords. Increasing output length does not increase the password's search space.
 
-### 4.1. Kích thước kết quả theo mục đích
+### 4.1. Output sizes by purpose
 
-- **Password verifier:** chọn độ dài output theo thiết kế thuật toán/policy. Cần lưu đủ byte để so sánh, tránh tự truncate mà không có đặc tả.
-- **Khóa AES-128:** cần 16 byte key; **AES-256** cần 32 byte key. Nhưng chỉ nên dùng output KDF trực tiếp làm khóa khi thiết kế KDF, salt, context và key lifecycle phù hợp.
-- **Khóa HMAC:** key material và MAC output length là các đại lượng riêng; output 32 byte của KDF không mặc nhiên yêu cầu MAC cũng 32 byte trong mọi thuật toán.
-- **HKDF sau password KDF:** một thiết kế có thể tạo một secret trung gian phù hợp rồi dẫn xuất các key theo mục đích bằng HKDF; cần xác định rõ domain, context và bảo vệ root/intermediate key. Không tái sử dụng thẳng một output cho nhiều chức năng.
+- **Password verifier:** pick output length per algorithm/policy design. Store enough bytes for comparison; avoid arbitrary truncation without specification.
+- **AES-128 key:** requires a 16-byte key; **AES-256** requires a 32-byte key. Only use KDF output directly as a key when KDF, salt, context, and key lifecycle are properly designed.
+- **HMAC key:** key material length and MAC output length are distinct quantities; a 32-byte KDF output does not automatically dictate a 32-byte MAC in every algorithm.
+- **HKDF after password KDF:** a design may derive a suitable intermediate secret and then derive purpose-specific keys via HKDF; clearly define domain, context, and root/intermediate key protection. Never reuse one raw output directly across multiple functions.
 
-Với PBKDF2 theo RFC, `dkLen` trong thuật toán là **byte**, giới hạn bởi số block của PRF. Với Java `PBEKeySpec`, `keyLength` là **bit**. Kiểm tra cả tên tham số **lẫn đơn vị** trước khi truyền giá trị cho API.
+In RFC PBKDF2, `dkLen` is in **bytes**, bounded by PRF blocks. In Java `PBEKeySpec`, `keyLength` is in **bits**. Check both parameter name **and unit** before passing values to an API.
 
-### 4.2. Byte, bit, hex, Base64 không phải một con số
+### 4.2. Bytes, bits, hex, and Base64 are not the same number
 
-Một verifier 32 byte có thể được lưu vào DB dưới dạng **64 ký tự hex** hoặc **44 ký tự Base64 chuẩn có padding**. Nếu dùng Base64URL không padding, 32 byte thường thành **43 ký tự ASCII**. Đây là overhead do encoding, **không thay đổi thuật toán KDF**.
+A 32-byte verifier may be stored in a DB as **64 hex characters** or **44 padded standard Base64 characters**. With unpadded Base64URL, 32 bytes become **43 ASCII characters**. This is encoding overhead; **it does not change the KDF algorithm**.
 
-Ví dụ:
+Example:
 
 ```java
-byte[] derived = /* output KDF, ví dụ 32 byte */;
+byte[] derived = /* KDF output, e.g., 32 bytes */;
 String encoded = java.util.Base64.getUrlEncoder()
         .withoutPadding().encodeToString(derived);
 ```
 
-Đoạn minh họa chưa là chương trình độc lập. **Không được biến byte digest tùy ý trực tiếp thành `new String(derived, UTF_8)`**, vì digest có thể chứa byte không biểu diễn được bằng UTF-8 hợp lệ.
+This snippet is not a standalone program. **Never convert arbitrary digest bytes directly with `new String(derived, UTF_8)`**, because a digest can contain byte sequences that are invalid in UTF-8.
 
-### 4.3. Độ dài salt và độ dài output độc lập
+### 4.3. Salt length and output length are independent
 
-Một cấu hình có **salt 16 byte + output 32 byte** là hoàn toàn bình thường. Không có quy tắc salt phải dài bằng hash, hoặc output phải bằng password string length. Với record minh họa:
+A configuration with a **16-byte salt + 32-byte output** is completely normal. There is no rule that salt length must equal hash length, or that output length must match password string length. For the sample record:
 
-- Salt: 16 byte random = 128 bit, thường Base64URL không padding dài 22 ký tự.
-- Derived verifier: 32 byte = 256 bit, Base64URL không padding dài 43 ký tự.
-- Iterations: một số nguyên chi phí, **không phải bit/byte**.
-- Version: mã định danh chính sách, **không phải mức bảo mật**.
+- Salt: 16 random bytes = 128 bits, typically 22 characters in unpadded Base64URL.
+- Derived verifier: 32 bytes = 256 bits, 43 characters in unpadded Base64URL.
+- Iterations: a cost integer, **not bits/bytes**.
+- Version: a policy identifier, **not a security level**.
 
-## 5. Phiên bản cấu hình: xác minh được dữ liệu cũ và nâng cấp được dữ liệu mới
+## 5. Configuration version: verifying legacy data and upgrading new data
 
-Thông số KDF phải thay đổi theo thời gian khi phần cứng nhanh hơn, thuật toán mới được hỗ trợ, chính sách thay đổi hoặc có yêu cầu bảo mật mới. Nếu chỉ lưu mỗi hash mà **không lưu salt/thuật toán/chi phí/kích thước**, hệ thống có thể không biết phải tính lại như thế nào cho những tài khoản cũ.
+KDF parameters must evolve over time as hardware speeds up, new algorithms gain support, policies change, or new security requirements emerge. If you store only the hash **without storing salt/algorithm/cost/size**, the system may not know how to recompute verification for older accounts.
 
-**Configuration version** là một nhãn chính sách giúp quản lý lịch sử. Nó **không thay thế** việc lưu các thông số quan trọng của từng record.
+A **configuration version** is a policy label that helps manage history. It **does not replace** storing the critical parameters of each record.
 
-Ví dụ phân biệt:
+Distinction example:
 
-| Trường | Vai trò |
+| Field | Role |
 | --- | --- |
-| `formatVersion` | Phiên bản schema/record hoặc chính sách ứng dụng, ví dụ v1/v2 |
-| `algorithm` | Chính xác thuật toán/KDF dùng khi tạo record |
-| `iterations` hoặc `timeCost/memoryCost/parallelism` | Chi phí thực tế của record |
-| `derivedKeyBits` | Độ dài đầu ra đã dùng |
-| `salt` | Byte salt thực tế của record |
-| `hash/verifier` | Byte kết quả đã lưu để so sánh |
-| `encoding` | Cách biểu diễn byte sang text, ví dụ Base64URL |
-| `pepperKeyId` (nếu dùng) | Định danh key ngoài DB, không phải giá trị pepper bí mật |
+| `formatVersion` | Schema/record or application policy version, e.g., v1/v2 |
+| `algorithm` | Exact algorithm/KDF used when creating the record |
+| `iterations` or `timeCost/memoryCost/parallelism` | Actual cost parameters of the record |
+| `derivedKeyBits` | Output length used |
+| `salt` | Actual salt bytes of the record |
+| `hash/verifier` | Stored result bytes for comparison |
+| `encoding` | How bytes are represented as text, e.g., Base64URL |
+| `pepperKeyId` (if used) | External key identifier outside DB, not the secret pepper value |
 
-### 5.1. Phân biệt ba kiểu “version”
+### 5.1. Distinguishing three types of “version”
 
-1. **Application policy version:** do đội vận hành xác định, ví dụ `policy=2` khi tăng cost hoặc chuyển KDF. Các tên policy là dữ liệu nội bộ và phải được hiểu theo schema cụ thể.
-2. **Record format version:** version của cách serialize/deserialize record; có thể đổi mà KDF không đổi (ví dụ chuyển từ hai cột DB sang chuỗi mã hóa chuẩn).
-3. **Algorithm version:** phiên bản *bản thân thuật toán* trong một số họ (ví dụ Argon2 có tham số version). Nó khác với version do ứng dụng tự đặt.
+1. **Application policy version:** defined by operations, e.g., `policy=2` when raising cost or switching KDFs. Policy names are internal metadata and must be interpreted against a concrete schema.
+2. **Record format version:** version of how records are serialized/deserialized; can change without changing the KDF (e.g., migrating from two DB columns to a standard encoded string).
+3. **Algorithm version:** the version of *the algorithm itself* in certain families (e.g., Argon2 has a version parameter). This differs from an application-assigned version.
 
-Không dùng một trường `v=2` với ý nghĩa nhập nhằng “chắc chắn đã mạnh”. Một record mang v2 nhưng bị sửa iterations xuống 1 vẫn nguy hiểm nếu code không kiểm tra policy và giới hạn tham số.
+Do not use a `v=2` field to vaguely mean “guaranteed strong.” A record labeled v2 whose iterations were altered down to 1 is still dangerous if code fails to validate policy and parameter bounds.
 
-### 5.2. Mẫu record giàu thông tin
+### 5.2. Self-describing record template
 
-Một representation có thể dùng cấu trúc:
+A representation can use a structure such as:
 
 ```text
 formatVersion | algorithm | iterations | outputBits | saltBase64Url | verifierBase64Url
 ```
 
-Hoặc các cấu trúc chuẩn do thư viện password hashing cung cấp, ví dụ **PHC string format** khi thích hợp. Điều quan trọng là server hiểu rõ và validate từng trường. Không tự đặt một chuỗi dùng delimiter có thể lẫn dữ liệu chưa escape; trong môi trường thật cần parser chặt chẽ, giới hạn độ dài và trường hợp có version không hỗ trợ.
+Or standard structures provided by password-hashing libraries, such as the **PHC string format** where appropriate. What matters is that the server understands and validates every field. Never invent a delimiter-separated string that could collide with unescaped data; production requires strict parsing, length limits, and handling of unsupported versions.
 
-**Không lưu pepper trong record**, nếu có dùng nó. Pepper phải thuộc ranh giới secret manager/KMS và được chọn bằng key ID/phiên bản phù hợp.
+**Never store the pepper inside the record**, if one is used. The pepper belongs inside the secret manager/KMS boundary and is selected by an appropriate key ID/version.
 
-### 5.3. Luồng đăng nhập với record cũ và nâng cấp
+### 5.3. Login flow with legacy records and upgrades
 
-Giả sử server đang nhận record v1 và policy mới là v2:
+Suppose the server reads a v1 record while the current policy is v2:
 
-1. **Đọc record cũ** và kiểm tra format/algorithm/parameter bounds từ allowlist. Không chấp nhận số vòng quá lớn hoặc cấu hình không được hỗ trợ dẫn đến tiêu tốn tài nguyên khi verify.
-2. **Xác minh password** nhập bằng **salt và tham số của chính record v1**, không thay tất cả bằng policy v2 trước khi tính lại; làm vậy sẽ khiến mọi password cũ thất bại.
-3. Nếu không khớp, **từ chối đăng nhập** và không nâng cấp record.
-4. Nếu khớp, tạo **salt mới**, chạy **KDF theo chính sách hiện hành v2** với **password nhập đang có**, tạo verifier mới.
-5. **Ghi lại record mới** bằng transaction hoặc cơ chế compare-and-swap dựa vào version/etag của record cũ để tránh ghi đè nâng cấp đồng thời hoặc thay đổi mật khẩu vừa xảy ra.
-6. Xóa dữ liệu password tạm theo khả năng, kiểm tra policy kết quả và giữ audit metadata phù hợp.
+1. **Read the old record** and validate format/algorithm/parameter bounds against an allowlist. Never accept excessive iteration counts or unsupported configurations that trigger resource exhaustion during verification.
+2. **Verify the entered password** using **the v1 record's own salt and parameters**, rather than substituting v2 policy before recomputing; doing so would break all existing passwords.
+3. If it does not match, **reject login** and do not upgrade the record.
+4. If it matches, generate a **fresh salt**, run the **current v2 policy KDF** with the **entered password still in hand**, and create a new verifier.
+5. **Persist the new record** atomically via a transaction or compare-and-swap on the old record's version/etag to avoid overwriting concurrent upgrades or password changes.
+6. Clear temporary password data as far as feasible, verify policy compliance, and retain appropriate audit metadata.
 
-Đây là **rehash on successful login**. Không thể “nâng vòng lặp” bằng cách chỉ hash lại verifier cũ rồi coi tương đương KDF của password gốc; nếu không có password gốc thì không thể tính lại cùng biểu thức KDF mới. Với tài khoản không đăng nhập lâu, có thể phải giữ hỗ trợ verify legacy trong thời gian xác định hoặc yêu cầu reset password theo chính sách.
+This is **rehash on successful login**. You cannot “raise iterations” by simply re-hashing the old verifier and pretending it equals running the KDF on the original password; without the original password, you cannot evaluate the new KDF expression. For accounts that rarely log in, you may need to retain legacy verification for a defined window or require a password reset per policy.
 
-### 5.4. Thay thuật toán hoặc tăng chi phí không được làm mất khả năng đăng nhập
+### 5.4. Changing algorithms or raising costs must not break login
 
-Phương án kiểm soát migration:
+Migration control practices:
 
-- **Mọi đăng ký/đổi mật khẩu mới:** tạo record bằng current policy.
-- **Đăng nhập thành công của account cũ:** verify bằng old parameters, rehash bằng current policy, cập nhật atomically.
-- **Đăng nhập sai:** giữ record cũ, báo lỗi chung và áp rate limiting.
-- **Record dùng thuật toán không còn chấp nhận hoặc vi phạm policy tối thiểu:** xử lý theo nhánh migration/reset được duyệt, không tự động cho phép thuật toán yếu mãi mãi.
-- **Record không parse được:** fail closed; không thử mọi thuật toán/cấu hình một cách không giới hạn.
-- **Thay password:** hash password mới với salt mới, current parameters, đánh dấu phiên bản mới.
-- **Rollback ứng dụng:** chỉ thực hiện nếu phiên bản rollback có thể hiểu các record mới hoặc đã có kế hoạch tương thích; không âm thầm downgrade record về cấu hình yếu hơn.
+- **All new registrations/password changes:** create records under the current policy.
+- **Successful login on an old account:** verify with old parameters, rehash under current policy, update atomically.
+- **Failed login:** keep the old record, return a generic error, and enforce rate limiting.
+- **Record using a retired algorithm or violating minimum policy:** route through an approved migration/reset branch rather than silently permitting weak algorithms forever.
+- **Unparseable record:** fail closed; do not exhaustively try arbitrary algorithms/configurations.
+- **Password change:** hash the new password with a fresh salt and current parameters, marking the new version.
+- **Application rollback:** only perform if the rollback version understands newer records or a compatibility plan exists; never silently downgrade records to weaker configurations.
 
-## 6. Java 17+: tạo verifier, xác minh và rehash theo phiên bản
+## 6. Java 17+: creating, verifying, and rehashing verifiers by version
 
-Ví dụ độc lập dưới đây dùng **PBKDF2WithHmacSHA256** có sẵn trong JCA/JCE để minh họa **đủ bốn tham số**. Chương trình tạo salt 16 byte bằng `SecureRandom`, dẫn xuất output 256 bit, lưu cấu hình với record, xác minh bằng thông số được lưu và nâng một record v1 lên v2 **sau khi password chính xác được xác nhận**.
+The standalone example below uses **PBKDF2WithHmacSHA256** built into JCA/JCE to illustrate **all four parameters**. It generates a 16-byte salt with `SecureRandom`, derives a 256-bit output, stores configuration with the record, verifies using stored parameters, and upgrades a v1 record to v2 **after the correct password is confirmed**.
 
-Các giá trị **100.000 và 180.000 vòng chỉ dùng cho demo chạy nhanh và thấy được sự khác biệt phiên bản; không phải mức cấu hình triển khai**. Ở sản phẩm cần chọn password KDF và cost theo hướng dẫn hiện hành cùng benchmark riêng.
+The values **100,000 and 180,000 iterations are solely for running the demo quickly and illustrating version differences; they are not deployment configuration targets**. In production, select the password KDF and cost from current guidance and your own benchmarks.
 
-Lưu thành **PasswordPolicyDemo.java**:
+Save as **PasswordPolicyDemo.java**:
 
 ```java
 import java.security.GeneralSecurityException;
@@ -330,7 +330,7 @@ public class PasswordPolicyDemo {
 
     static boolean verify(char[] password, Credential stored)
             throws GeneralSecurityException {
-        // Chính sách đọc record: từ chối thuật toán/tham số không hỗ trợ.
+        // Record-reading policy: reject unsupported algorithms/parameters.
         if (!ALG.equals(stored.algorithm()) || stored.version() < 1
                 || stored.version() > 2 || stored.iterations() < 10_000
                 || stored.iterations() > 1_000_000
@@ -397,14 +397,14 @@ public class PasswordPolicyDemo {
 }
 ```
 
-Biên dịch/chạy với Java 17+:
+Compile/run with Java 17+:
 
 ```bash
 javac -encoding UTF-8 PasswordPolicyDemo.java
 java PasswordPolicyDemo
 ```
 
-Stdout kỳ vọng (đã kiểm tra hành vi KDF bằng Java; byte salt ngẫu nhiên không được in ra):
+Expected stdout (KDF behavior verified with Java; random salt bytes are not printed):
 
 ```text
 salt bytes: 16
@@ -419,47 +419,47 @@ new verifies: true
 new needs upgrade: false
 ```
 
-**Cách đọc code theo từng tham số:**
+**Reading the code parameter by parameter:**
 
-- **Salt:** `new SecureRandom().nextBytes(salt)` tạo salt 16 byte riêng khi `enroll()` chạy. Hai lần enroll cùng password có salt khác nhau và verifier khác nhau. Cả salt và verifier được encode Base64URL (không padding) để minh họa cách lưu text.
-- **Số vòng:** `PBEKeySpec(..., iterations, bits)` truyền số vòng của từng record. `verify()` dùng lại `stored.iterations()`; rehash v2 dùng `CURRENT_ROUNDS`. Các ngưỡng kiểm tra trong `verify()` là giới hạn demo để không thực thi cấu hình không kiểm soát.
-- **Độ dài output:** `HASH_BITS = 256` tương ứng output 32 byte; `HASH_BITS / 8` dùng để kiểm tra độ dài mảng hash sau khi decode.
-- **Version:** `Credential` lưu `version` và `algorithm` cùng các tham số. `needsUpgrade()` so sánh với chính sách mới; bản ghi mới chỉ được tạo trong nhánh password đã được xác minh.
-- **Giữ password:** `char[]` và `PBEKeySpec.clearPassword()` giảm một số tồn lưu không cần thiết, nhưng không bảo đảm toàn bộ password biến mất ngay khỏi JVM memory; input demo là chuỗi literal, tuyệt đối không áp dụng cách hardcode đó cho password thật.
-- **So sánh:** `MessageDigest.isEqual(byte[], byte[])` dùng cho verifier byte array. Tránh chuyển output nhị phân thành chuỗi không rõ encoding; không log verifier hay password.
-- **Quy tắc chống tấn công tài nguyên:** `verify()` giới hạn version, iteration, output size và salt length. Nếu xử lý record từ DB bị thao túng, phải áp **allowlist + giới hạn thực tế theo policy** trước khi gọi KDF để tránh DoS qua iterations cực lớn.
-- **Lưu trữ:** ví dụ chỉ tạo các `record` trong memory; phần cập nhật **transaction/cas** của database không được giả làm đã triển khai. Trong ứng dụng thực, cần atomic update và bảo vệ trước thay đổi mật khẩu/rehash đồng thời.
+- **Salt:** `new SecureRandom().nextBytes(salt)` generates a distinct 16-byte salt when `enroll()` runs. Two enrollments of the same password yield different salts and different verifiers. Both salt and verifier are Base64URL-encoded (unpadded) to illustrate text storage.
+- **Iterations:** `PBEKeySpec(..., iterations, bits)` passes each record's round count. `verify()` reuses `stored.iterations()`; the v2 rehash uses `CURRENT_ROUNDS`. The check bounds in `verify()` are demo guards against executing unchecked configurations.
+- **Output length:** `HASH_BITS = 256` corresponds to a 32-byte output; `HASH_BITS / 8` validates the decoded hash array length.
+- **Version:** `Credential` stores `version` and `algorithm` along with parameters. `needsUpgrade()` compares against the new policy; the new record is created only inside the branch where the password has been verified.
+- **Holding the password:** `char[]` and `PBEKeySpec.clearPassword()` cut down some unnecessary retention, though they do not guarantee the entire password vanishes immediately from JVM memory; the demo input is a string literal—never hardcode real passwords like that.
+- **Comparison:** `MessageDigest.isEqual(byte[], byte[])` is used on the verifier byte arrays. Avoid converting binary outputs to strings without explicit encoding; never log verifiers or passwords.
+- **Anti-resource-exhaustion rules:** `verify()` bounds version, iterations, output size, and salt length. When handling records from a potentially tampered DB, apply an **allowlist + practical policy bounds** before invoking the KDF to prevent DoS via huge iteration counts.
+- **Persistence:** the example only creates `record` instances in memory; database **transaction/CAS** updates are not simulated as implemented. Real applications require atomic updates and protection against concurrent password changes/rehashes.
 
-Các mệnh đề “distinct salts/hashes” có tính xác suất rất cao khi nguồn ngẫu nhiên hoạt động đúng; việc hai salt 128 bit ngẫu nhiên tình cờ trùng nhau là cực kỳ hiếm, không phải bất khả thi về mặt toán học.
+The “distinct salts/hashes” statements hold with overwhelming probability when the RNG works properly; two independent 128-bit random salts colliding is extraordinarily rare, though not mathematically impossible.
 
-### 6.1. Cấu hình minh họa khác gì cấu hình production?
+### 6.1. How does the demo configuration differ from production?
 
-Chương trình nhằm làm rõ luồng dữ liệu nên cố ý giản lược:
+The program intentionally simplifies things to clarify data flow:
 
-- Demo chỉ có **hai version**, cùng một thuật toán PBKDF2; sản phẩm có thể cần **registry** cho nhiều thuật toán, key ID pepper và nhiều phiên bản cùng tồn tại.
-- Demo mã hóa record thành các trường Java, chưa cung cấp parser DB hoặc giao thức serialized chống sửa đổi metadata; trong triển khai thật, ràng buộc schema và quyền sửa DB rất quan trọng.
-- Demo so sánh password đúng/sai trong bộ nhớ, không có bảo vệ login endpoint (rate limiting, MFA, logging an toàn, abuse detection).
-- Demo hiển thị số vòng để giải thích, không benchmarking và không cam kết một thời gian chạy cụ thể trên JVM khác.
-- Demo không bàn giao output KDF làm khóa mã hóa; khi dùng KDF cho encryption cần thiết kế key lifecycle và bảo vệ data tương ứng.
+- The demo has only **two versions** of the same PBKDF2 algorithm; production may need a **registry** for multiple algorithms, pepper key IDs, and multiple coexisting versions.
+- The demo encodes records as Java fields and omits a DB parser or serialized format with tamper resistance on metadata; in real deployments, schema validation and DB write controls matter greatly.
+- The demo checks passwords in memory without login endpoint defenses (rate limiting, MFA, safe logging, abuse detection).
+- The demo displays iteration counts for explanation, not benchmarking, and makes no guarantee about runtime on another JVM.
+- The demo does not hand off KDF output as an encryption key; using a KDF for encryption requires designing key lifecycle and data protection accordingly.
 
-## 7. Cách triển khai phiên bản và nâng cấp không làm mất dữ liệu
+## 7. Implementing versioning and upgrades without losing data
 
-### 7.1. Mỗi record tự mô tả cấu hình đã tạo ra nó
+### 7.1. Each record self-describes the configuration that created it
 
-Một credential lưu bằng PBKDF2 với 100.000 vòng và salt 16 byte phải **được xác minh bằng đúng thông số đó**; dù ứng dụng đã nâng policy lên 180.000 vòng, bạn không thể tự ý bỏ qua metadata cũ.
+A credential stored with PBKDF2 at 100,000 rounds and a 16-byte salt must **be verified using those exact parameters**; even if the application raised policy to 180,000 rounds, you cannot arbitrarily ignore old metadata.
 
-Tránh thiết kế chỉ có các biến global hiện hành:
+Avoid designs that rely only on current global variables:
 
 ```text
 CURRENT_ROUNDS = 180000
 verify(oldCredential, password) = PBKDF2(password, oldSalt, CURRENT_ROUNDS)
 ```
 
-Dạng này sẽ **làm sai kết quả** với record v1. Thay vào đó, chọn thuật toán và chi phí lưu trong record sau khi parser đã validate, verify trước, rồi rehash với current policy.
+That pattern will **produce the wrong result** for v1 records. Instead, select the stored algorithm and cost from the record after the parser validates them, verify first, and then rehash under the current policy.
 
-### 7.2. Nâng cấp tại thời điểm xác thực thành công
+### 7.2. Upgrading at successful authentication
 
-Một quy trình triển khai rõ ràng:
+A clear deployment workflow:
 
 ```text
 READ credential record
@@ -474,106 +474,106 @@ READ credential record
                    sign in
 ```
 
-Khi current policy mới dùng **Argon2id** nhưng record cũ là **PBKDF2**, verifier cũ vẫn dùng PBKDF2 để verify; sau khi thành công có thể chuyển sang Argon2id qua thư viện được phê duyệt. Không tự chọn thuật toán mới dựa trên `hash.length` hoặc chuỗi tự đặt.
+When the new current policy uses **Argon2id** while the legacy record uses **PBKDF2**, the old verifier is still verified via PBKDF2; after success, you can migrate to Argon2id via an approved library. Never pick a new algorithm implicitly from `hash.length` or ad-hoc strings.
 
-### 7.3. Điều chỉnh tham số phải xét hiệu năng và abuse
+### 7.3. Parameter tuning must consider performance and abuse
 
-Các rủi ro vận hành:
+Operational risks:
 
-- Một lượng lớn account nâng cấp đồng thời có thể tăng CPU/memory usage; cần capacity planning.
-- Nếu attacker có thể làm server xử lý một record với `iterations` cực lớn hoặc `memoryCost` quá mức, endpoint login dễ bị DoS. Validate bounds trước khi gọi KDF.
-- Nếu tăng cost nhưng không giới hạn retry, attacker vẫn gây tải lớn cho dịch vụ xác minh.
-- Nếu cho phép “downgrade” dễ dàng qua client header hoặc record do user sửa, một số luồng có thể tiếp tục dùng policy yếu vô hạn.
-- Nếu thay đổi chuẩn hóa/encoding Unicode của password mà không version hóa, cùng chuỗi hiển thị có thể tạo byte đầu vào khác; người dùng hợp lệ bị từ chối.
+- A large wave of concurrent account upgrades can spike CPU/memory usage; plan capacity accordingly.
+- If an attacker can make the server process a record with huge `iterations` or excessive `memoryCost`, the login endpoint becomes vulnerable to DoS. Validate bounds before calling the KDF.
+- Raising cost without limiting retries still lets attackers impose heavy load on the verification service.
+- Allowing easy “downgrades” via client headers or user-modifiable records can leave flows stuck on weak policies indefinitely.
+- Changing Unicode normalization/encoding rules for passwords without versioning can make the same displayed string yield different input bytes, locking out legitimate users.
 
-## 8. Encoding password, Unicode và interoperability
+## 8. Password encoding, Unicode, and interoperability
 
-Salt và verifier là byte array. Nhưng người dùng nhập **ký tự**; khi đưa password sang KDF, phải có cách chuyển ký tự thành byte rõ ràng theo thuật toán/provider.
+Salts and verifiers are byte arrays. Yet users enter **characters**; when passing a password to a KDF, character-to-byte conversion must be explicit per algorithm/provider.
 
-- Với `PBEKeySpec`, input là `char[]` của Java (các đơn vị mã UTF-16); provider KDF xử lý theo định nghĩa thuật toán/provider. Khi cần **tương thích giữa Java và ngôn ngữ khác**, phải kiểm tra quy tắc encoding cụ thể bằng test vector và ghi cùng version; không tự giả định tất cả thư viện có cùng biến đổi Unicode.
-- Một số hệ thống chuẩn hóa Unicode (ví dụ NFC) trước KDF; một số không chuẩn hóa. Đây là quyết định tương thích và bảo mật phải giữ ổn định cho record cũ. **Không tự thêm bước normalize ở phiên bản mới mà không có migration**.
-- Không dùng `String.length()` để đo số byte UTF-8 của password; khi cần byte length, chuyển encoding đúng rồi đếm. Với bcrypt, chú ý giới hạn byte đầu vào theo implementation, đặc biệt với Unicode.
-- Tốt hơn nên có test vector cho password chứa dấu tiếng Việt, ký tự ngoài BMP, salt và tham số biết trước để kiểm chứng toàn bộ hệ thống client/server/server mới.
+- With `PBEKeySpec`, the input is a Java `char[]` (UTF-16 code units); the KDF provider handles encoding per algorithm/provider definition. When **interoperability between Java and another language** is needed, verify exact encoding rules with test vectors and record them in the version; never assume all libraries apply the same Unicode transformation.
+- Some systems apply Unicode normalization (e.g., NFC) before the KDF; others do not. This is a compatibility and security decision that must remain stable for existing records. **Do not add a normalization step in a new version without a migration plan.**
+- Never use `String.length()` to measure a password's UTF-8 byte length; encode properly before counting bytes. For bcrypt, mind implementation-specific input byte limits, especially with Unicode.
+- Keep test vectors containing Vietnamese diacritics, non-BMP characters, known salts, and known parameters to verify compatibility across clients, servers, and new server versions.
 
-Bảo vệ input password trên đường truyền bằng TLS, không đưa password vào URL, log, analytics, exception hoặc crash report. Ở mức ứng dụng, đừng trim hay đổi chữ hoa/thường của password theo ý thích: thay đổi này có thể ảnh hưởng tính đúng đắn và làm giảm không gian mật khẩu.
+Protect password inputs in transit with TLS, and keep passwords out of URLs, logs, analytics, exceptions, and crash reports. At the application level, do not arbitrarily trim or change password casing: doing so can break correctness and shrink the password space.
 
-## 9. Salt, số vòng và version trong dẫn xuất khóa mã hóa
+## 9. Salt, iteration count, and version in encryption key derivation
 
-Nếu một password KDF tạo **khóa AES để mở dữ liệu**, các tham số có tác dụng tương tự nhưng hậu quả nâng cấp khác password verifier:
+When a password KDF produces an **AES key to unlock data**, the parameters play similar roles, but upgrade consequences differ from password verifiers:
 
-- Đổi salt, iterations, KDF hoặc output length sẽ **tạo khóa byte khác**, nên dữ liệu mã hóa cũ có thể không giải mã được.
-- Phải lưu metadata KDF cùng envelope dữ liệu mã hóa, hoặc có hệ thống quản lý key version và salt đúng với từng payload.
-- Khi muốn nâng cấu hình, thường cần lấy lại mật khẩu, dẫn xuất khóa cũ, **giải mã an toàn**, rồi mã hóa lại bằng khóa mới; hoặc dùng mô hình **key-encryption key / data-encryption key** để hỗ trợ rewrap theo thiết kế.
-- Nếu vừa dùng cùng password cho verifier và mã hóa, không được sử dụng **cùng derived bytes** trực tiếp cho hai mục đích. Có thể thiết kế tách KDF purpose/context rõ ràng hoặc một bước HKDF dẫn xuất subkey có scope khác nhau sau khi tạo vật liệu thích hợp.
-- Lựa chọn output 32 byte cho AES-256 **không chứng minh khóa có entropy 256 bit** nếu password yếu. Sự an toàn còn phụ thuộc việc attacker có offline oracle để kiểm tra password không.
-- Quản lý **nonce/IV** của thuật toán mã hóa riêng biệt với salt của KDF. Với AES-GCM chẳng hạn, nonce cần duy nhất với cùng AES key; nó không được thay thế bằng “một salt bất kỳ” rồi bỏ qua quy tắc nonce.
+- Changing salt, iterations, KDF, or output length **produces different key bytes**, so previously encrypted data may no longer decrypt.
+- Store KDF metadata alongside the encrypted data envelope, or maintain a key-version and salt system mapped to each payload.
+- To upgrade configuration, you typically need the password, re-derive the old key, **decrypt safely**, and re-encrypt under the new key; or use a **key-encryption key / data-encryption key** design that supports rewrapping.
+- If using the same password for both verifier and encryption, never use **the exact same derived bytes** directly for both purposes. Separate KDF purposes/contexts clearly or add an HKDF step to derive scoped subkeys from appropriate intermediate material.
+- Choosing a 32-byte output for AES-256 **does not prove 256-bit key entropy** if the password is weak. Security also depends on whether an attacker has an offline oracle to test passwords.
+- Manage the cipher's **nonce/IV** separately from the KDF salt. For AES-GCM, for example, the nonce must be unique per AES key; it cannot be replaced with “some random salt” while ignoring nonce uniqueness rules.
 
-Đối với password verifier, rehash sau đăng nhập thành công đơn giản hơn vì server chỉ cần lưu verifier mới. Đối với encryption, phải bảo đảm **khôi phục được dữ liệu cũ** trước khi thay khóa hoặc khóa bọc.
+For password verifiers, rehash on successful login is simpler because the server only stores a new verifier. For encryption, you must ensure **old data remains recoverable** before replacing keys or wrapping keys.
 
-## 10. Các lỗi thường gặp và hậu quả
+## 10. Common mistakes and consequences
 
-| Nhầm lẫn | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Một salt cho tất cả tài khoản | Cùng password tạo cùng verifier, tấn công đa mục tiêu dễ hơn | Sinh salt ngẫu nhiên riêng khi tạo mỗi record |
-| Coi salt là secret key | Thiết kế sai ranh giới và không bảo vệ password phù hợp | Salt công khai; nếu có pepper, quản lý bí mật riêng |
-| Salt tạo từ email, username hoặc timestamp | Dễ đoán, dễ lặp hoặc quá ít entropy | Dùng CSPRNG với độ dài theo KDF/policy |
-| Tăng output 256 → 512 bit để “tăng entropy password” | Không cải thiện độ khó đoán password yếu | Dùng password/passphrase tốt và chi phí KDF hợp lý |
-| Dùng SHA-256 nhanh trực tiếp | Dễ thử nhiều candidate offline | Chọn password KDF có cost phù hợp |
-| Truyền `32` vào `PBEKeySpec` khi muốn 32 byte | Chọn nhầm 32 bit output | Truyền **256 bit**, kiểm tra byte length |
-| Tăng PBKDF2 iteration chỉ dựa trên phỏng đoán | Có thể quá yếu hoặc gây chậm/DoS | Benchmark, policy, giới hạn concurrency và rate limiting |
-| Đem cùng số iterations dùng cho Argon2id/bcrypt | Chi phí thuật toán hoàn toàn khác | Dùng bộ tham số đúng của từng KDF |
-| Chỉ lưu digest, không lưu salt/chi phí/alg | Không xác minh/migrate được record cũ | Lưu self-describing format và policy version |
-| Verify record cũ bằng parameters hiện hành | Người dùng đúng password vẫn bị từ chối | Verify bằng stored config, rehash sau khi pass |
-| Chỉ sửa số vòng trong DB, giữ nguyên verifier | Verifier không khớp với password | Rehash lại với **password đúng** và salt mới |
-| Cho record tự khai cost không giới hạn | DoS thông qua yêu cầu KDF quá nặng | Allowlist và giới hạn tham số trước khi thực thi |
-| Truncate/encode digest tùy tiện | Verifier không khớp hoặc bị rút ngắn ngoài policy | Lưu chính xác output bytes và encoding |
-| Bỏ qua Unicode normalization/version | Password hợp lệ có thể ngừng hoạt động | Giữ cùng quy tắc encoding theo version và test vector |
-| Dùng cùng output KDF làm verifier/AES/HMAC key | Cross-purpose key reuse | Tách vật liệu khóa/context/purpose rõ ràng |
-| Ghi plaintext password hoặc pepper trong DB/log | Rò rỉ thông tin xác thực/secret | Chỉ lưu verifier, salt và metadata; pepper bảo quản riêng |
-| In toàn bộ verifier để debug | Tăng nguy cơ lộ dữ liệu hỗ trợ tấn công offline | Log metadata không nhạy cảm và correlation ID, hạn chế truy cập DB |
+| One salt for all accounts | Same password produces same verifier, easing multi-target attacks | Generate an independent random salt per record |
+| Treating salt as a secret key | Misaligned security boundary and inadequate password protection | Salts are public; if using a pepper, manage that secret separately |
+| Deriving salt from email, username, or timestamp | Predictable, repeatable, or insufficient entropy | Use a CSPRNG with length per KDF/policy |
+| Increasing output 256 → 512 bits to “boost password entropy” | Does not make weak passwords harder to guess | Require strong passwords/passphrases and proper KDF cost |
+| Using fast SHA-256 directly | Cheap offline guessing of many candidates | Choose a properly costed password KDF |
+| Passing `32` to `PBEKeySpec` when wanting 32 bytes | Requests 32-bit output by mistake | Pass **256 bits**, validate byte length |
+| Raising PBKDF2 iterations by guesswork alone | May be too weak or cause slowness/DoS | Benchmark, enforce policy, limit concurrency and rate limit |
+| Applying the same iteration count to Argon2id/bcrypt | Completely different algorithmic cost models | Use each KDF's proper parameter set |
+| Storing only the digest without salt/cost/alg | Cannot verify or migrate old records | Store a self-describing format and policy version |
+| Verifying old records with current policy parameters | Users with valid passwords get rejected | Verify with stored config, rehash after passing |
+| Editing iteration count in DB while keeping old verifier | Verifier no longer matches the password | Rehash using the **correct password** and a fresh salt |
+| Letting records declare unbounded cost | DoS via excessively heavy KDF work | Allowlist and bound parameters before execution |
+| Arbitrarily truncating/encoding digests | Verifier mismatch or weakened comparison below policy | Store exact output bytes and explicit encoding |
+| Ignoring Unicode normalization/versioning | Valid passwords can stop working | Keep encoding rules consistent per version with test vectors |
+| Using one KDF output as verifier/AES/HMAC key | Cross-purpose key reuse | Separate key material/contexts/purposes cleanly |
+| Writing plaintext passwords or pepper to DB/logs | Credential/secret exposure | Store only verifier, salt, and metadata; isolate pepper |
+| Printing full verifiers for debugging | Increases exposure of material enabling offline attacks | Log non-sensitive metadata and correlation IDs; restrict DB access |
 
-## 11. Checklist kiểm tra một cấu hình password KDF
+## 11. Checklist for auditing a password KDF configuration
 
-1. **Thuật toán:** đã chọn KDF phù hợp với mục đích password hashing/password-based key derivation và điều kiện sử dụng chưa?
-2. **Salt:** có **salt ngẫu nhiên độc lập** cho mỗi record, đủ dài và lưu đúng byte, không lẫn với pepper/nonce không?
-3. **Chi phí:** PBKDF2 iterations hoặc Argon2id memory/time/parallelism được đo trên phần cứng triển khai và cập nhật theo policy chưa?
-4. **Output:** hiểu rõ bit hay byte theo API; verifier có độ dài và encoding đúng không?
-5. **Version:** record lưu alg, params, salt, output, format/policy version; parser có allowlist, bounds và xử lý version không hỗ trợ không?
-6. **Verification:** dùng đúng thông số record cũ, so sánh byte an toàn, có rate limiting và tránh leak dữ liệu qua error/log không?
-7. **Migration:** sau đăng nhập đúng có rehash theo current policy với salt mới và cập nhật atomically không? Account ít đăng nhập có kế hoạch migration/reset không?
-8. **Encoding:** password Unicode được xử lý nhất quán giữa JVM/provider, phiên bản sản phẩm và các client không?
-9. **Secret/pepper:** nếu có pepper, nó được quản lý ngoài DB và có quy trình rotation/recovery không?
-10. **Ứng dụng crypto:** nếu output thành khóa mã hóa, đã thiết kế restore/rewrap/re-encrypt, key separation và IV/nonce độc lập chưa?
+1. **Algorithm:** is the selected KDF appropriate for password hashing vs. password-based key derivation and your operating constraints?
+2. **Salt:** is there an **independent random salt** per record, long enough and stored with exact bytes, without confusion with pepper/nonce?
+3. **Cost:** are PBKDF2 iterations or Argon2id memory/time/parallelism benchmarked on deployment hardware and aligned with current policy?
+4. **Output:** are API bit vs. byte units clear; do verifiers have the expected byte length and encoding?
+5. **Version:** does the record store alg, params, salt, output, and format/policy version; does the parser enforce allowlists, bounds, and unsupported-version handling?
+6. **Verification:** does it use the old record's exact parameters, constant-time byte comparison, rate limiting, and leak-free errors/logs?
+7. **Migration:** upon valid login, does it rehash under current policy with a fresh salt and atomic update? Is there a migration/reset plan for inactive accounts?
+8. **Encoding:** is Unicode password handling consistent across JVM/providers, product versions, and clients?
+9. **Secret/pepper:** if a pepper is used, is it managed outside the DB with a rotation/recovery process?
+10. **Crypto usage:** if the output becomes an encryption key, are restore/rewrap/re-encrypt flows, key separation, and independent IV/nonce handling designed?
 
-## 12. Câu hỏi tình huống để tự kiểm tra
+## 12. Scenario questions for self-testing
 
-**Câu 1.** Alice và Bob đều chọn cùng password; hệ thống dùng PBKDF2 với salt 16 byte sinh độc lập. Hai verifier có nhất thiết giống nhau không?  
-**Trả lời:** **Không**. Salt khác nhau nên output KDF hầu như chắc chắn khác, dù password và parameters giống nhau.
+**Question 1.** Alice and Bob choose the same password; the system uses PBKDF2 with independently generated 16-byte salts. Must their two verifiers be identical?  
+**Answer:** **No**. Different salts almost certainly produce different KDF outputs, even with identical passwords and parameters.
 
-**Câu 2.** Salt bị lộ nhưng password chưa lộ. Hệ thống có lập tức mất toàn bộ tính bảo mật không?  
-**Trả lời:** Không chỉ vì salt lộ, vì salt vốn không cần giữ bí mật. Nhưng nếu attacker có cả verifier và salt, họ có thể thử password offline; độ mạnh password và KDF vẫn rất quan trọng.
+**Question 2.** A salt leaks, while the password has not leaked. Does the system immediately lose all security?  
+**Answer:** Not solely from the salt leaking, because salts are not meant to be secret. However, if an attacker has both the verifier and salt, they can guess passwords offline; password strength and KDF cost remain critical.
 
-**Câu 3.** Một policy mới tăng PBKDF2 iterations từ cũ lên mức mới. Khi kiểm tra login cho record cũ, dùng số nào?  
-**Trả lời:** Dùng **iterations lưu trong record cũ** để verify, rồi sau khi password khớp, rehash bằng số vòng **policy mới** và salt mới.
+**Question 3.** A new policy raises PBKDF2 iterations from an old count to a higher count. When checking login for an old record, which count do you use?  
+**Answer:** Use the **iterations stored in the old record** to verify; once the password matches, rehash using the **new policy's** iteration count and a fresh salt.
 
-**Câu 4.** `PBEKeySpec` cần đầu ra 32 byte. `keyLength` là bao nhiêu?  
-**Trả lời:** **256**, vì Java nhận độ dài theo bit. `byte[].length` của output dự kiến là **32**.
+**Question 4.** `PBEKeySpec` needs a 32-byte output. What should `keyLength` be?  
+**Answer:** **256**, because Java expects the length in bits. The resulting `byte[].length` will be **32**.
 
-**Câu 5.** Đổi output từ 32 byte sang 64 byte làm mật khẩu “password123” mạnh gấp đôi không?  
-**Trả lời:** **Không**. Output dài hơn không làm mật khẩu dễ đoán tăng entropy. Chi phí thử và chất lượng password cần đánh giá riêng.
+**Question 5.** Does changing output from 32 bytes to 64 bytes make the password “password123” twice as strong?  
+**Answer:** **No**. A longer output does not add entropy to a guessable password. Guessing cost and password quality must be evaluated separately.
 
-**Câu 6.** Người dùng có verifier v1 nhưng database bị đổi `iterations=999999999`. Backend có nên chạy KDF theo đó?  
-**Trả lời:** **Không**. Phải validate version/algorithm và giới hạn cost trước khi thực thi; dữ liệu bất hợp lệ nên bị từ chối và xử lý theo chính sách.
+**Question 6.** A user has a v1 verifier, but the database row was altered to `iterations=999999999`. Should the backend execute the KDF with that value?  
+**Answer:** **No**. Validate version/algorithm and bound cost before executing; invalid data must be rejected and handled per policy.
 
-**Câu 7.** Cùng password, salt và KDF parameters, nhưng hai implementation dùng quy tắc Unicode encoding khác nhau. Verifier có bảo đảm khớp không?  
-**Trả lời:** **Không**. Cần ghi rõ cách chuyển password thành input, test vector liên nền tảng và version hóa thay đổi này.
+**Question 7.** Given the same password, salt, and KDF parameters, two implementations use different Unicode encoding rules. Are the verifiers guaranteed to match?  
+**Answer:** **No**. Document how passwords map to input bytes, maintain cross-platform test vectors, and version any changes.
 
-**Câu 8.** Bản ghi chứa output 32 byte, salt 16 byte và tên thuật toán nhưng không lưu iteration count. Có đủ để xác minh nhiều version theo cách xác định không?  
-**Trả lời:** **Không đủ** nếu các version dùng số vòng khác nhau. Phải có iteration count hoặc ánh xạ version → tham số tuyệt đối rõ ràng, không nhập nhằng, lâu dài.
+**Question 8.** A record stores a 32-byte output, 16-byte salt, and algorithm name, without storing the iteration count. Is that enough to verify multiple versions deterministically?  
+**Answer:** **Not enough** if different versions use different round counts. You must store the iteration count or maintain an unambiguous, long-lived version → parameters mapping.
 
-**Câu 9.** Đổi password người dùng và salt nhưng giữ nguyên dữ liệu được mã hóa bằng khóa dẫn xuất từ password cũ. Dữ liệu có tự mở bằng khóa mới không?  
-**Trả lời:** **Không**. Phải thiết kế giải mã/mã hóa lại hoặc key wrapping/rewrap theo kiến trúc quản lý khóa và phiên bản.
+**Question 9.** You change the user's password and salt, while keeping data encrypted with the key derived from the old password. Will the data automatically open with the new key?  
+**Answer:** **No**. You must design decryption/re-encryption or key wrapping/rewrapping according to your key management and versioning architecture.
 
-### Điều cần nhớ
+### Key takeaway
 
-**Salt** bảo đảm tính riêng biệt giữa các bản ghi; **iteration/cost** làm mỗi phép thử password tốn tài nguyên hơn; **output length** xác định kích thước byte kết quả; **configuration version** giữ được khả năng xác minh, nâng cấp và tương thích. Một password KDF được vận hành an toàn cần đủ cả bốn, cộng với mật khẩu đủ mạnh, giới hạn thử đăng nhập, xử lý Unicode nhất quán và quản lý vòng đời cấu hình rõ ràng.
+**Salt** guarantees distinctness across records; **iteration/cost** makes every password guess more resource-intensive; **output length** defines the byte size of the result; **configuration version** preserves verifiability, upgradability, and compatibility. Operating a password KDF safely requires all four, plus strong passwords, login attempt limits, consistent Unicode handling, and clear configuration lifecycle management.

@@ -1,15 +1,15 @@
-# 17.2 Subject, Principal và public hoặc private credentials
+# 17.2 Subject, Principal, and Public or Private Credentials
 
-Trong **JAAS (Java Authentication and Authorization Service)**, kết quả xác thực không nhất thiết được mô tả bằng một chuỗi username hoặc boolean isLoggedIn. JAAS gom các **danh tính**, thuộc tính định danh và **thông tin xác thực** liên quan vào một đối tượng **javax.security.auth.Subject**. Một Subject có thể chứa **nhiều Principal**, nhiều **public credentials** và nhiều **private credentials**. Hiểu đúng ba tập hợp này là nền tảng cho LoginContext, LoginModule, Kerberos/GSS-API và code Java dùng khóa hoặc chứng thực theo chủ thể.
+In **JAAS (Java Authentication and Authorization Service)**, an authentication result is not necessarily represented by a single username string or an `isLoggedIn` boolean. JAAS groups **identities**, identifying attributes, and related **authentication credentials** into a **`javax.security.auth.Subject`** object. One `Subject` can hold **multiple Principals**, multiple **public credentials**, and multiple **private credentials**. Understanding these three sets is foundational for `LoginContext`, `LoginModule`, Kerberos/GSS-API, and Java code that uses subject-scoped keys or credentials.
 
-Bài học tập trung vào **cấu trúc Subject và ý nghĩa Principal/public/private credentials**, đồng thời giải thích lifecycle an toàn. Hai chương trình Java 17+ bên dưới kiểm tra các API, từ getPrincipals(Class) đến setReadOnly và Destroyable.destroy, cùng một luồng JAAS login → commit → logout tối giản.
+This lesson focuses on **`Subject` structure and the meaning of Principal/public/private credentials**, while explaining a safe lifecycle. Two Java 17+ programs below exercise the APIs, from `getPrincipals(Class)` to `setReadOnly` and `Destroyable.destroy`, along with a minimal JAAS `login → commit → logout` flow.
 
-## 1. Subject là ai, Principal biểu diễn điều gì?
+## 1. Who Is `Subject`, and What Does `Principal` Represent?
 
-Theo JAAS, **Subject** đại diện cho **một thực thể** như người dùng, service hoặc process; Subject có thể có nhiều danh tính trong các hệ thống hoặc theo các vai trò khác nhau. Một **Principal** là một đối tượng triển khai java.security.Principal, đại diện cho **một danh tính hoặc khía cạnh danh tính**.
+In JAAS, a **Subject** represents **an entity** such as a user, service, or process; a Subject may carry multiple identities across different systems or roles. A **Principal** is an object implementing `java.security.Principal`, representing **an identity or an aspect of identity**.
 
 ~~~text
-Subject (thực thể sau xác thực)
+Subject (post-authentication entity)
   |
   +-- Set<Principal>
   |      UserId("alice")
@@ -17,24 +17,24 @@ Subject (thực thể sau xác thực)
   |      RealmIdentity("alice@EXAMPLE.REALM")
   |
   +-- Set<Object> publicCredentials
-  |      Chứng chỉ public X.509, thông tin có thể chia sẻ
+  |      Public X.509 certificate, shareable data
   |
   +-- Set<Object> privateCredentials
-         Kerberos credential nhạy cảm, secret key,
-         proof of possession hoặc credential bí mật
+         Sensitive Kerberos credentials, secret keys,
+         proof of possession, or secret credentials
 ~~~
 
-Các lớp UserId, Role, RealmIdentity trong sơ đồ là **tên minh họa**, không phải lớp Java chuẩn. Concrete types có sẵn thường tùy JAAS LoginModule/provider, ví dụ KerberosPrincipal hoặc các principal của môi trường đăng nhập. Ví dụ runnable tự định nghĩa Java records UserId và Role.
+The classes `UserId`, `Role`, and `RealmIdentity` in the diagram are **illustrative names**, not standard Java classes. Built-in concrete types depend on the JAAS `LoginModule`/provider, such as `KerberosPrincipal` or OS-login principals. The runnable examples define their own Java records `UserId` and `Role`.
 
-**Các nguyên tắc chính:**
+**Core principles:**
 
-- Subject đại diện cho **chủ thể**, không phải chỉ một username.
-- Principal mô tả **danh tính** thuộc Subject, không phải password, session token hoặc bản thân private key.
-- Một Subject **có thể có nhiều Principal**: người dùng, role, group, realm, dịch vụ hoặc các định danh tương ứng.
-- Subject **không tự xác thực** một chuỗi Principal được thêm thủ công. Code có quyền sửa Subject có thể tạo Principal; độ tin cậy đến từ **quá trình authentication**.
-- Subject không phải permission engine độc lập, không thay thế RBAC/ABAC và không tự phát hành JWT hay HTTP session.
+- `Subject` represents a **subject/entity**, not merely a username.
+- `Principal` describes an **identity** belonging to the Subject, not a password, session token, or the private key itself.
+- One `Subject` **can have multiple Principals**: user, role, group, realm, service, or corresponding identifiers.
+- `Subject` **does not self-verify** a manually added Principal string. Any code with permission to mutate the Subject can create a Principal; trustworthiness comes from the **authentication process**.
+- `Subject` is not a standalone permission engine, does not replace RBAC/ABAC, and does not issue JWTs or HTTP sessions by itself.
 
-### 1.1. Principal interface nhỏ nhưng rất quan trọng
+### 1.1. The Small Yet Crucial `Principal` Interface
 
 ~~~java
 package java.security;
@@ -44,7 +44,7 @@ public interface Principal {
 }
 ~~~
 
-Đây là hình dạng API rút gọn để giải thích, không phải toàn bộ source interface của JDK. getName() trả **tên đại diện danh tính**. Concrete implementations cần có **equals và hashCode** phù hợp, vì Principal được lưu trong **Set**. Hai object cùng định danh cần được so sánh ổn định theo chính sách của type đó; Java 17 record có equality dựa trên các thành phần record, phù hợp cho Principal minh họa.
+This is a condensed API shape for explanation, not the full JDK interface source. `getName()` returns **the name representing the identity**. Concrete implementations must define proper **`equals` and `hashCode`**, because Principals are stored in a **`Set`**. Two objects with the same identifier must compare consistently according to that type's policy; a Java 17 `record` provides value-based equality on its components, making it convenient for illustrative Principals.
 
 ~~~java
 public record UserId(String name)
@@ -56,69 +56,69 @@ public record UserId(String name)
 }
 ~~~
 
-Mảnh record trên giúp hiểu interface; chương trình thực hành có class bao quanh và kiểm thử. Với production, cần xác định **issuer/realm/tenant** trong identity nếu cùng username xuất hiện ở nhiều hệ thống; không so sánh chỉ dựa trên tên hiển thị không duy nhất.
+The record snippet above clarifies the interface; the hands-on program provides the enclosing class and tests. In production, include **issuer/realm/tenant** in the identity if the same username can appear across multiple systems; never compare solely on a non-unique display name.
 
-### 1.2. Principal về người dùng và role có giống nhau?
+### 1.2. Are User Principals and Role Principals the Same?
 
-Không. UserId("alice") chỉ **người dùng cụ thể**, còn Role("admin") mô tả một **khía cạnh vai trò/nhóm** đã được gắn bởi hệ thống tin cậy. Nếu Java service thêm role từ HTTP header không tin cậy, nó không được biến thành quyền quản trị chỉ nhờ nằm trong Subject.
+No. `UserId("alice")` identifies **a specific user**, whereas `Role("admin")` describes a **role/group facet** attached by a trusted system. If a Java service inserts a role from an untrusted HTTP header, it must not turn into administrative authority merely by sitting inside a `Subject`.
 
-Phân biệt:
+Distinguish:
 
-- **Identity Principal:** username, account ID, service account ID hoặc Kerberos principal.
-- **Group/Role Principal:** nhóm/vai trò thuộc danh tính đã xác minh.
-- **Realm/Tenant Principal:** ranh giới định danh, giúp tránh nhầm user trùng tên ở nhiều tenant.
+- **Identity Principal:** username, account ID, service account ID, or Kerberos principal.
+- **Group/Role Principal:** group/role belonging to the verified identity.
+- **Realm/Tenant Principal:** identity boundary that prevents confusing same-named users across tenants.
 
-**Role Principal không tự đưa ra quyết định authorization.** Code phải kiểm tra **chính sách quyền riêng**, resource, action, tenant và trạng thái yêu cầu.
+**A Role Principal does not make authorization decisions on its own.** Code must evaluate **dedicated authorization policies**, resources, actions, tenants, and request state.
 
-## 2. Ba bộ dữ liệu trong Subject
+## 2. The Three Sets Inside a `Subject`
 
-Java SE 17 Subject duy trì ba Set:
+Java SE 17 `Subject` maintains three `Set`s:
 
-| Tập hợp | Method Java | Kiểu trả về | Ý nghĩa |
+| Collection | Java Method | Return Type | Meaning |
 | --- | --- | --- | --- |
-| **Principals** | getPrincipals() | Set<Principal> | Danh tính/khía cạnh danh tính của Subject. |
-| **Public credentials** | getPublicCredentials() | Set<Object> | Dữ liệu xác thực được thiết kế để chia sẻ theo mô hình ứng dụng, ví dụ certificate công khai. |
-| **Private credentials** | getPrivateCredentials() | Set<Object> | Dữ liệu xác thực nhạy cảm cần bảo vệ riêng, như secret key hoặc token. |
+| **Principals** | `getPrincipals()` | `Set<Principal>` | Identities / identity facets of the Subject. |
+| **Public credentials** | `getPublicCredentials()` | `Set<Object>` | Authentication data designed to be shared per the application model, such as public certificates. |
+| **Private credentials** | `getPrivateCredentials()` | `Set<Object>` | Sensitive authentication data requiring separate protection, such as secret keys or tokens. |
 
-Mỗi tập là **Set**, không phải List:
+Each collection is a **`Set`**, not a `List`:
 
-- Không có thứ tự có ý nghĩa ổn định để lấy “principal đầu tiên” hoặc “credential số 0”.
-- Không giữ duplicate theo equals/hashCode của phần tử.
-- Một tên Principal có thể trùng ở hai concrete classes mà vẫn là hai object khác nhau.
-- Credential chứa Object tùy loại; ứng dụng cần biết **class được chấp nhận** và ràng buộc trust.
+- There is no meaningful guaranteed order for picking "the first principal" or "credential #0."
+- Duplicates are rejected according to the elements' `equals`/`hashCode`.
+- The same Principal name may exist in two different concrete classes and still be two distinct objects.
+- Credentials hold `Object`s of arbitrary types; applications must know the **accepted classes** and trust constraints.
 
-### 2.1. Public credential là gì?
+### 2.1. What Is a Public Credential?
 
-Tài liệu JAAS nêu ví dụ **public-key certificates** hoặc một số vé dịch vụ được thiết kế để chia sẻ. Tuy nhiên chữ **public trong tên collection không có nghĩa bất kỳ ai cũng được đọc/log/chuyển ra ngoài**. An toàn công bố tùy loại credential và policy.
+JAAS documentation cites **public-key certificates** or certain service tickets designed to be shared. However, the word **public in the collection name does not mean anyone may read, log, or export it externally**. Safe disclosure depends on the credential type and policy.
 
-Ví dụ về mặt ý tưởng:
+Conceptual examples:
 
-- X509Certificate là certificate công khai; private key **không** nằm trong certificate.
-- Metadata của certificate/realm đã xác minh có thể hỗ trợ lựa chọn public key.
-- Một public credential trong demo là PublicProfile("training-cert-label"): **chỉ là nhãn**, không phải certificate thật.
+- `X509Certificate` is a public certificate; the private key is **not** inside the certificate.
+- Verified certificate/realm metadata can assist in selecting a public key.
+- A public credential in the demo is `PublicProfile("training-cert-label")`: **merely a label**, not a real certificate.
 
-**Bearer token vẫn là bí mật** dù endpoint khác có thể “nhìn thấy” token trong giao thức. Không đặt API key/session secret vào publicCredentials chỉ vì bạn dự định truyền nó giữa services. Phân loại dựa trên khả năng **dùng lại để giả mạo** và rủi ro lộ.
+**A bearer token is still a secret** even though another endpoint can "see" the token on the wire. Do not place API keys or session secrets into `publicCredentials` just because you intend to transmit them between services. Classify based on **impersonation risk** and exposure impact.
 
-### 2.2. Private credential là gì?
+### 2.2. What Is a Private Credential?
 
-Private credential là thông tin cần bảo vệ bổ sung, ví dụ:
+Private credentials are sensitive material needing extra protection, for example:
 
-- Secret key/HMAC key có thể dùng để chứng minh danh tính hoặc thực hiện nghiệp vụ được cấp phép.
-- Kerberos credential/ticket nhạy cảm theo profile, có thể thực hiện operation dưới danh tính tương ứng.
-- Token/proof of possession hoặc private-key handle cần giới hạn quyền.
-- Các loại credential hỗ trợ **javax.security.auth.Destroyable** hoặc **Refreshable** để quản lý vòng đời.
+- Secret keys / HMAC keys used to prove identity or perform authorized operations.
+- Sensitive Kerberos credentials/tickets per profile capable of executing operations under that identity.
+- Tokens / proof-of-possession material or private-key handles needing restricted access.
+- Credential types implementing **`javax.security.auth.Destroyable`** or **`Refreshable`** for lifecycle management.
 
-Private credential **không phải password hash trong database** và không nhất thiết là một PrivateKey. Nó có thể là bất kỳ object login provider dùng để chứng minh quyền. Chọn **concrete credential class** và quản lý quyền truy cập phù hợp.
+A private credential **is not a database password hash** and does not have to be a `PrivateKey`. It can be any object a login provider uses to prove authority. Choose **concrete credential classes** and enforce appropriate access controls.
 
-### 2.3. Public/private là phân loại trong JAAS, không phải mã hóa
+### 2.3. Public/Private Is a JAAS Classification, Not Encryption
 
-**Thêm object vào getPrivateCredentials không tự mã hóa object đó**, không đặt khóa vào HSM, không tự xóa memory khi session hết hạn, cũng không tự phân quyền cho mọi code trong cùng process. Trong môi trường dùng **Security Manager** (mô hình lịch sử), Java kiểm tra PrivateCredentialPermission khi truy cập private credential. Nhưng Security Manager đã **deprecated for removal trong Java 17**; kiến trúc bảo mật mới không nên dựa duy nhất vào các kiểm tra này.
+**Adding an object to `getPrivateCredentials` does not automatically encrypt it**, does not put keys into an HSM, does not wipe memory when a session expires, and does not isolate access across all code in the same process. In environments using a **Security Manager** (historical model), Java checked `PrivateCredentialPermission` on private credential access. However, the Security Manager was **deprecated for removal in Java 17**; modern security architectures must not rely solely on those checks.
 
-Để bảo vệ thực tế cần **ranh giới trust của ứng dụng, không chia sẻ object bừa bãi, IAM/KMS/HSM, tránh logging, lifecycle logout/expiry và authorization độc lập**.
+Real protection requires **application trust boundaries, avoiding indiscriminate object sharing, IAM/KMS/HSM, avoiding logging, logout/expiry lifecycles, and independent authorization**.
 
-## 3. Tạo Subject và thêm Principal/credentials
+## 3. Creating a `Subject` and Adding Principals/Credentials
 
-Trong Java 17:
+In Java 17:
 
 ~~~java
 Subject subject = new Subject();
@@ -128,9 +128,9 @@ subject.getPublicCredentials().add(new PublicProfile("training"));
 subject.getPrivateCredentials().add(secretCredential);
 ~~~
 
-Đây là **mảnh minh họa** cần các class UserId, Role, PublicProfile và biến secretCredential; chương trình hoàn chỉnh nằm phía dưới. Constructor new Subject() tạo ba tập rỗng.
+This is an **illustrative snippet** requiring the `UserId`, `Role`, `PublicProfile` classes and a `secretCredential` variable; the complete program appears below. The `new Subject()` constructor creates three empty sets.
 
-Constructor khác có dạng:
+Another constructor has the form:
 
 ~~~java
 new Subject(
@@ -141,132 +141,132 @@ new Subject(
 );
 ~~~
 
-Tham số boolean đầu là **readOnly**. Constructor sao chép các phần tử vào **Set nội bộ mới**, không giữ trực tiếp Set gốc; **nhưng không deep-copy object** bên trong. Constructor và các method từ chối null collections/null elements.
+The first boolean parameter is **`readOnly`**. The constructor copies elements into **new internal `Set`s** rather than retaining the passed-in `Set`s directly; **however, it does not deep-copy the objects** inside. Both constructors and set methods reject null collections and null elements.
 
-**Cần phân biệt:**
+**Distinguish clearly:**
 
-- new Subject() → writable, chưa chứng thực danh tính.
-- new Subject(true, ...) → có dữ liệu ban đầu nhưng các Set không cho add/remove sau đó.
-- new Subject(false, ...) → có dữ liệu ban đầu và cho phép sửa theo quyền/policy.
-- LoginContext.login() + LoginModule.commit() → con đường JAAS thông dụng để **gắn dữ liệu đã xác thực**, thay vì tin Subject tự lắp.
+- `new Subject()` → writable, no verified identity yet.
+- `new Subject(true, ...)` → populated with initial data, but the `Set`s prohibit subsequent add/remove.
+- `new Subject(false, ...)` → populated with initial data and mutable subject to permissions/policy.
+- `LoginContext.login()` + `LoginModule.commit()` → the standard JAAS path to **attach verified data**, rather than trusting a self-assembled `Subject`.
 
-### 3.1. Add/remove và duplicate Principal
+### 3.1. Add/Remove and Duplicate Principals
 
 ~~~java
-subject.getPrincipals().add(new UserId("alice")); // phần tử mới
-subject.getPrincipals().add(new UserId("alice")); // không thêm duplicate
+subject.getPrincipals().add(new UserId("alice")); // new element
+subject.getPrincipals().add(new UserId("alice")); // duplicate not added
 ~~~
 
-Với Java record một trường name, hai UserId cùng "alice" có equals/hashCode tương đương. Do Set, size chỉ tăng một lần. Điều đó **không ngăn một Subject có hai UserId khác nhau**; nếu nghiệp vụ yêu cầu chỉ một account ID, ứng dụng cần validate bất biến.
+With a single-field `name` record in Java, two `UserId`s for `"alice"` have identical `equals`/`hashCode`. Because it is a `Set`, size increases only once. That **does not prevent a `Subject` from holding two different `UserId`s**; if business logic requires a single account ID, the application must validate that invariant.
 
-Không dùng Principal.getName() đơn thuần để kết luận Principal khác type hoặc realm đều là cùng danh tính. Cần namespace/issuer/tenant rõ ràng.
+Never rely on `Principal.getName()` alone to conclude that Principals of different types or realms represent the same identity. Maintain explicit namespaces/issuers/tenants.
 
-## 4. Live Set và bản sao lọc theo class
+## 4. Live Sets vs. Class-Filtered Copies
 
-Một điểm dễ hiểu sai của Java 17 Subject API:
+An easily misunderstood detail of the Java 17 `Subject` API:
 
-| Method | Tập trả về được backed bởi Subject? | Hệ quả |
+| Method | Is the returned set backed by Subject? | Consequence |
 | --- | --- | --- |
-| getPrincipals() | **Có** | add/remove trên tập trả về sửa Principal set của Subject. |
-| getPublicCredentials() | **Có** | add/remove trên tập trả về sửa public credential set. |
-| getPrivateCredentials() | **Có** | add/remove trên tập trả về sửa private credential set. |
-| getPrincipals(UserId.class) | **Không**, tập mới đã lọc | clear/add/remove trên tập lọc không sửa Subject. |
-| getPublicCredentials(MyClass.class) | **Không**, tập mới đã lọc | Tập kết quả lọc không phải cách cập nhật Subject. |
-| getPrivateCredentials(MyClass.class) | **Không**, tập mới đã lọc | Không deep-copy secret object, và vẫn chịu kiểm tra quyền liên quan. |
+| `getPrincipals()` | **Yes** | add/remove on the returned set mutates the Subject's Principal set. |
+| `getPublicCredentials()` | **Yes** | add/remove on the returned set mutates the public credential set. |
+| `getPrivateCredentials()` | **Yes** | add/remove on the returned set mutates the private credential set. |
+| `getPrincipals(UserId.class)` | **No**, new filtered set | clear/add/remove on the filtered set does not modify the Subject. |
+| `getPublicCredentials(MyClass.class)` | **No**, new filtered set | The filtered result set is not a way to update the Subject. |
+| `getPrivateCredentials(MyClass.class)` | **No**, new filtered set | Does not deep-copy secret objects, and still enforces relevant permission checks. |
 
-**Tập typed mới** không tạo **bản deep copy của credential objects**: nó giữ **tham chiếu đến cùng objects**. Sửa/hủy private credential mutable có thể ảnh hưởng mọi nơi đang giữ tham chiếu, dù tập kết quả lọc không được backed bởi Subject.
+**The new typed set** does not create **deep copies of credential objects**: it holds **references to the same objects**. Mutating or destroying a mutable private credential affects every holder of that reference, even though the filtered set is not backed by the Subject.
 
-### 4.1. Rủi ro nếu làm lộ live Set
+### 4.1. Risks of Exposing Live Sets
 
-Giả sử service trả thẳng subject.getPrincipals() cho plugin hoặc logic không đáng tin. Plugin có thể tự add Role("admin") khi Subject writable hoặc xóa role. Điều này làm hỏng identity data mà code phía sau có thể tin.
+Suppose a service returns `subject.getPrincipals()` directly to an untrusted plugin or component. When the Subject is writable, the plugin could add `Role("admin")` or remove roles, corrupting identity data trusted by downstream code.
 
-**Thiết kế tốt:** dùng facade chỉ đọc/DTO chỉ chứa thông tin an toàn; chỉ cho module xác thực/trust layer thêm/xóa Principal. Collections.unmodifiableSet(subject.getPrincipals()) **không phải snapshot immutable**: wrapper chặn sửa qua chính nó nhưng phản ánh thay đổi bên trong Subject. Muốn snapshot identity ổn định, tạo tập mới gồm những Principal bất biến hoặc DTO.
+**Better design:** expose a read-only facade or DTO containing only safe data; allow only the authentication module/trust layer to add/remove Principals. `Collections.unmodifiableSet(subject.getPrincipals())` **is not an immutable snapshot**: the wrapper blocks writes through itself yet reflects underlying Subject changes. For a stable identity snapshot, copy into a new set of immutable Principals or a DTO.
 
-### 4.2. Truy xuất private credential và PrivateCredentialPermission
+### 4.2. Accessing Private Credentials and `PrivateCredentialPermission`
 
-Trong Java 17 **nếu có Security Manager**:
+In Java 17, **when a Security Manager is present**:
 
-- Sửa Principal/public/private sets có thể yêu cầu **AuthPermission** tương ứng.
-- Lặp qua untyped getPrivateCredentials() có thể ném **SecurityException** nếu thiếu **PrivateCredentialPermission** cho một credential.
-- getPrivateCredentials(SomeClass.class) yêu cầu quyền đối với các credentials phù hợp theo contract; nếu thiếu có thể ném SecurityException.
+- Modifying Principal/public/private sets may require the corresponding **`AuthPermission`**.
+- Iterating over untyped `getPrivateCredentials()` can throw **`SecurityException`** if **`PrivateCredentialPermission`** is missing for a credential.
+- `getPrivateCredentials(SomeClass.class)` requires permission for matching credentials per its contract; if missing, it can throw `SecurityException`.
 
-Các kiểm tra này phụ thuộc môi trường **có Security Manager** và policy. Chúng là chi tiết tương thích JAAS, **không thay thế least privilege, phân vùng process và authorization ở ứng dụng**.
+These checks depend on an active **Security Manager** and policy. They are JAAS compatibility details and **do not replace least privilege, process isolation, and application-level authorization**.
 
-## 5. Read-only Subject: khóa tập hợp, không khóa mọi object
+## 5. Read-Only `Subject`: Locks the Sets, Not Every Object
 
-Khi JAAS đã hoàn thành authentication và role/credentials không nên tiếp tục thay đổi, ứng dụng có thể gọi **subject.setReadOnly()**.
+Once JAAS finishes authentication and roles/credentials should no longer change, an application may call **`subject.setReadOnly()`**.
 
 ~~~java
 subject.setReadOnly();
 boolean locked = subject.isReadOnly();
 ~~~
 
-Sau khi setReadOnly:
+After `setReadOnly`:
 
-1. Không thể thêm/xóa Principal hoặc public/private credentials **qua các Set của Subject**; một thao tác sửa sẽ ném **IllegalStateException**.
-2. Không có API chuyển một Subject read-only trở lại writable.
-3. Những **credential objects đã có** không tự trở thành bất biến sâu. Một private credential có thể thay đổi nội dung hoặc được **Destroyable.destroy()** dù Subject read-only.
-4. Object đã bị destroy vẫn **có thể còn nằm trong Set** vì destroy nội dung không tương đương remove khỏi Subject; trong Subject read-only, việc remove credential object có thể bị từ chối.
-5. **Read-only không phải security boundary bảo vệ secrets**: code còn giữ tham chiếu secret object hoặc có khả năng sử dụng khóa vẫn cần kiểm soát riêng.
+1. Principals or public/private credentials cannot be added/removed **through the `Subject`'s `Set`s**; any mutation attempt throws **`IllegalStateException`**.
+2. There is no API to turn a read-only `Subject` back into writable.
+3. **Existing credential objects** do not automatically become deeply immutable. A private credential can still have internal state mutated or have **`Destroyable.destroy()`** called even when the Subject is read-only.
+4. A destroyed object may **still remain in the `Set`** because destroying contents is not equivalent to removing from the Subject; in a read-only Subject, removing the credential object may be rejected.
+5. **Read-only is not a security boundary protecting secrets**: code holding a reference to a secret object or able to use a key still needs separate access controls.
 
 ~~~text
 Subject writable:
   + add/remove Principal
   + add/remove credentials
-  + mutate/destroy credential object (theo contract của object)
+  + mutate/destroy credential object (per object contract)
 
 subject.setReadOnly()
 
 Subject read-only:
-  - add/remove trong ba Subject sets -> IllegalStateException
-  + destroy credential object (nếu class hỗ trợ)
-  ? object có thể vẫn mutable nếu không bất biến
+  - add/remove in the three Subject sets -> IllegalStateException
+  + destroy credential object (if supported by class)
+  ? object may still be mutable if not immutable
 ~~~
 
-**Lưu ý khi dùng LoginContext.logout:** LoginModule thường cần remove chính những Principal/credentials mà nó đã thêm ở commit. Nếu bạn tự setReadOnly quá sớm, logout có thể **không gỡ được entry khỏi Set**; một implementation phù hợp có thể destroy được credentials nhưng không loại được object. Phải thiết kế rõ lifecycle: ai có quyền đóng phiên, khi nào làm read-only, và làm sao không biến dữ liệu phiên hết hạn thành đối tượng vẫn được ứng dụng tin tưởng.
+**Note when using `LoginContext.logout`:** a `LoginModule` typically needs to remove the exact Principals/credentials it added in `commit`. If you call `setReadOnly` too early, `logout` may **fail to remove entries from the `Set`**; a compliant implementation can destroy credentials yet cannot remove the objects. Design the lifecycle explicitly: who is allowed to close the session, when to mark read-only, and how to ensure expired session data is never still trusted by the application.
 
-### 5.1. Read-only khác immutable DTO
+### 5.1. Read-Only Differs from an Immutable DTO
 
-Một **DTO immutable** thường chỉ mang những field cần thiết cho nghiệp vụ, ví dụ userId, tenantId, roles, issuedAt. Nó không giữ private secret. **Subject.setReadOnly** chỉ cấm thay đổi tập hợp và vẫn chứa credential objects. Đừng đưa trực tiếp Subject vào HTTP response, Redis, JSON logger hoặc cache phân tán.
+An **immutable DTO** typically carries only business-needed fields, such as `userId`, `tenantId`, `roles`, and `issuedAt`. It holds no private secrets. **`Subject.setReadOnly`** only forbids mutating the collections and still retains credential objects. Never pass a `Subject` directly into an HTTP response, Redis, JSON logger, or distributed cache.
 
-Nếu muốn xuất thông tin danh tính đã được phép, hãy **map từ Subject sang DTO an toàn theo allowlist**. Không serialize hoặc stringify toàn bộ Subject để tiết kiệm code.
+To export allowed identity information, **map from `Subject` to a safe DTO using an allowlist**. Never serialize or stringify an entire `Subject` as a shortcut.
 
-## 6. Private credentials và Destroyable
+## 6. Private Credentials and `Destroyable`
 
-**javax.security.auth.Destroyable** cung cấp hai method:
+**`javax.security.auth.Destroyable`** provides two methods:
 
 ~~~java
 void destroy() throws DestroyFailedException;
 boolean isDestroyed();
 ~~~
 
-Đây là cấu trúc giao diện minh họa, bỏ qua chi tiết về default methods. Destroyable **không bảo đảm tất cả implementations sẽ xóa bộ nhớ**, vì default destroy có thể ném **DestroyFailedException**; cần kiểm tra **implementation cụ thể**. Những object nhạy cảm có thể triển khai destroy để xóa char[]/byte[] hoặc giải phóng key handle.
+This is an illustrative interface outline, omitting default-method details. `Destroyable` **does not guarantee every implementation wipes memory**, because the default `destroy` may throw **`DestroyFailedException`**; inspect the **concrete implementation**. Sensitive objects can implement `destroy` to zero `char[]`/`byte[]` arrays or release key handles.
 
-**Một chiến lược quản lý credential cần:**
-- Có **owner rõ ràng**: ai tạo, ai cấp, ai đóng/hủy.
-- Hạn chế số bản sao, thời gian sống, nơi log hoặc truyền.
-- Gọi destroy/logout/revoke khi session kết thúc theo contract của credential.
-- Xử lý ngoại lệ destroy và không sử dụng credential sau khi bị hủy.
-- Phân biệt **xóa reference khỏi Subject** với **xóa secret material**. Hai thao tác không tương đương.
-- Không tự trông chờ JVM GC xóa ngay secret bytes; không cam kết rằng Arrays.fill đã xóa mọi bản sao trong framework/native heap.
+**A credential management strategy needs:**
+- Clear **ownership**: who creates, who issues, who closes/destroys.
+- Minimized copies, lifetimes, logging, and transmission.
+- Calling destroy/logout/revoke when a session ends per the credential's contract.
+- Handling destroy exceptions and refusing to use credentials after destruction.
+- Separating **removing a reference from `Subject`** from **wiping secret material**. The two operations are not equivalent.
+- Not relying on the JVM GC to promptly zero secret bytes; not claiming `Arrays.fill` erases every copy in frameworks or native heaps.
 
-### 6.1. Public credential vẫn cần quản lý vòng đời
+### 6.1. Public Credentials Still Need Lifecycle Management
 
-Public-key certificate có thể được phép công bố nhưng vẫn có **hạn hiệu lực, key usage, issuer, revoked status** và policy. Một certificate public trong Subject không đồng nghĩa chain được xác minh tin cậy cho mọi nghiệp vụ. Ngược lại, nếu một loại "ticket" là bearer capability có thể dùng lại để đóng giả chủ thể, phải coi đó là **nhạy cảm** bất kể ví dụ JAAS tài liệu liệt kê loại vé có thể chia sẻ.
+A public-key certificate may be shareable yet still has **validity periods, key usage, issuer, revocation status**, and policies. Having a public certificate inside a `Subject` does not mean its chain was verified for every business action. Conversely, if a "ticket" is a replayable bearer capability that impersonates the subject, treat it as **sensitive** regardless of JAAS documentation examples listing shareable ticket types.
 
-### 6.2. Không in Subject hoặc credentials bừa bãi
+### 6.2. Do Not Print `Subject` or Credentials Arbitrarily
 
-**Subject.toString(), Object.toString(), collection logging** có thể gọi toString của Principal hoặc credential và làm lộ thông tin. Cần:
-- Tránh log toàn bộ Subject, nhất là private credentials.
-- Với credential do bạn định nghĩa, override toString thành một **giá trị che giấu**.
-- Audit bằng **account/tenant ID đã được phép, event type, trace ID, kết quả**; không in password, session secret, private key, token, Kerberos ticket.
-- Không đưa credentials vào equals/hashCode dùng để cache hay log. Subject equality dựa trên các tập Principal/credentials; nó không phải stable account identity.
+**`Subject.toString()`, `Object.toString()`, and collection logging** can invoke `toString` on Principals or credentials and leak information. You should:
+- Avoid logging an entire `Subject`, especially private credentials.
+- For custom credentials, override `toString` to return a **redacted value**.
+- Audit using **permitted account/tenant IDs, event types, trace IDs, and outcomes**; never print passwords, session secrets, private keys, tokens, or Kerberos tickets.
+- Never put credentials into `equals`/`hashCode` used for caching or logging. `Subject` equality depends on its Principal/credential sets; it is not a stable account identity.
 
-## 7. Java 17+ — chương trình 1: Subject, Principal và ba Set
+## 7. Java 17+ — Program 1: `Subject`, `Principal`, and the Three Sets
 
-Ví dụ độc lập dùng record UserId/Role, record PublicProfile và class SessionSecret triển khai Destroyable. SessionSecret **không phải credential thật**, chỉ minh họa cách hủy một char[] nội bộ. Chương trình cố ý thêm cùng một UserId hai lần để thấy Set khử duplicate, kiểm tra typed snapshot, live set và read-only.
+A standalone example using `UserId`/`Role` records, a `PublicProfile` record, and a `SessionSecret` class implementing `Destroyable`. `SessionSecret` is **not a real credential**; it only illustrates destroying an internal `char[]`. The program intentionally adds the same `UserId` twice to demonstrate `Set` deduplication, and exercises typed snapshots, live sets, and read-only mode.
 
-Tạo file **SubjectCredentialDemo.java**:
+Create the file **`SubjectCredentialDemo.java`**:
 
 ~~~java
 import java.io.Serializable;
@@ -314,7 +314,7 @@ public class SubjectCredentialDemo {
         Arrays.fill(original, '\0');
         subject.getPrivateCredentials().add(secret);
 
-        System.out.println("Số Principal phân biệt: " + subject.getPrincipals().size());
+        System.out.println("Distinct Principals: " + subject.getPrincipals().size());
         System.out.println("UserId: " + subject.getPrincipals(UserId.class).size());
         System.out.println("Public profile: " +
                 subject.getPublicCredentials(PublicProfile.class).size());
@@ -323,12 +323,12 @@ public class SubjectCredentialDemo {
 
         Set<UserId> snapshot = subject.getPrincipals(UserId.class);
         snapshot.clear();
-        System.out.println("Xóa snapshot không đổi Subject: " +
+        System.out.println("Clearing snapshot does not change Subject: " +
                 (subject.getPrincipals(UserId.class).size() == 1));
 
         Set<Principal> live = subject.getPrincipals();
         live.add(new Role("auditor"));
-        System.out.println("Live set thay đổi Subject: " +
+        System.out.println("Live set modifies Subject: " +
                 (subject.getPrincipals().size() == 3));
 
         subject.setReadOnly();
@@ -338,66 +338,66 @@ public class SubjectCredentialDemo {
         } catch (IllegalStateException expected) {
             blocked = true;
         }
-        System.out.println("Read-only từ chối sửa set: " + blocked);
+        System.out.println("Read-only rejects set mutation: " + blocked);
         secret.destroy();
-        System.out.println("Vẫn hủy được private credential: " +
+        System.out.println("Private credential still destroyable: " +
                 secret.isDestroyed());
-        System.out.println("Credential object còn trong set: " +
+        System.out.println("Credential object remains in set: " +
                 (subject.getPrivateCredentials().size() == 1));
     }
 }
 ~~~
 
-Chạy với JDK 17 trở lên:
+Run with JDK 17 or newer:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 SubjectCredentialDemo.java
 java SubjectCredentialDemo
 ~~~
 
-Stdout kiểm thử:
+Verified stdout:
 
 ~~~text
-Số Principal phân biệt: 2
+Distinct Principals: 2
 UserId: 1
 Public profile: 1
 Private credential: 1
-Xóa snapshot không đổi Subject: true
-Live set thay đổi Subject: true
-Read-only từ chối sửa set: true
-Vẫn hủy được private credential: true
-Credential object còn trong set: true
+Clearing snapshot does not change Subject: true
+Live set modifies Subject: true
+Read-only rejects set mutation: true
+Private credential still destroyable: true
+Credential object remains in set: true
 ~~~
 
-### 7.1. Phân tích kết quả
+### 7.1. Analyzing the Results
 
-- **Số Principal phân biệt: 2**: UserId("alice") bị thêm trùng, nhưng Set chỉ giữ một UserId và một Role("reader").
-- **Public profile: 1**: nhãn training-cert-label là metadata minh họa, không chứa certificate/secret thực.
-- **Private credential: 1**: một object SessionSecret nằm trong privateCredentials; không in char[] hoặc toString có thể lộ.
-- **Xóa snapshot không đổi Subject: true**: getPrincipals(UserId.class) tạo Set mới, nên clear chỉ thay đổi tập lọc.
-- **Live set thay đổi Subject: true**: Set<Principal> từ getPrincipals() được backed bởi Subject; thêm Role("auditor") làm tổng 3.
-- **Read-only từ chối sửa set: true**: sau setReadOnly, không thêm được Role("admin").
-- **Vẫn hủy được private credential: true**: SessionSecret.destroy xóa char[] nội bộ và cập nhật trạng thái.
-- **Credential object còn trong set: true**: destroy khác remove; object đã hủy còn nằm trong Subject read-only.
+- **Distinct Principals: 2**: `UserId("alice")` was added twice, yet the `Set` keeps only one `UserId` and one `Role("reader")`.
+- **Public profile: 1**: the `training-cert-label` label is illustrative metadata, containing no real certificate or secret.
+- **Private credential: 1**: one `SessionSecret` object resides in `privateCredentials`; neither `char[]` nor a revealing `toString` is printed.
+- **Clearing snapshot does not change Subject: true**: `getPrincipals(UserId.class)` creates a new `Set`, so `clear` only mutates the filtered collection.
+- **Live set modifies Subject: true**: `Set<Principal>` from `getPrincipals()` is backed by the `Subject`; adding `Role("auditor")` brings the total to 3.
+- **Read-only rejects set mutation: true**: after `setReadOnly`, `Role("admin")` cannot be added.
+- **Private credential still destroyable: true**: `SessionSecret.destroy` wipes the internal `char[]` and updates its status.
+- **Credential object remains in set: true**: `destroy` differs from `remove`; the destroyed object stays inside the read-only `Subject`.
 
-**Giới hạn của bài test:** các Principal được thêm thủ công để kiểm tra collection semantics, **không chứng minh người dùng alice đã đăng nhập thật**. Chương trình không triển khai Kerberos, hệ thống IAM hay policy phân quyền. Chuỗi "fake-session-material" là dữ liệu thử, không phải credential production.
+**Test limitations:** Principals were added manually to demonstrate collection semantics, **which does not prove user `alice` actually logged in**. The program does not implement Kerberos, an IAM system, or authorization policies. The `"fake-session-material"` string is test data, not a production credential.
 
-### 7.2. Vì sao cần Serializable trên Principal?
+### 7.2. Why Is `Serializable` Needed on `Principal`?
 
-Java 17 Subject có hỗ trợ Serializable; theo Javadoc, **Principal trong Subject có thể được serialize**, còn **các credential sets không được serialize**. Vì interface java.security.Principal **không tự extends Serializable**, concrete Principal phải triển khai Serializable nếu bạn muốn serialize Subject. **Không sử dụng Subject serialization làm cách sao lưu phiên đăng nhập đầy đủ hoặc vận chuyển private credential**.
+Java 17 `Subject` supports `Serializable`; per its Javadoc, **Principals inside a `Subject` can be serialized**, whereas **the credential sets are not serialized**. Because `java.security.Principal` **does not itself extend `Serializable`**, concrete Principal classes must implement `Serializable` if you want to serialize a `Subject`. **Never use `Subject` serialization as full login-session persistence or to transport private credentials**.
 
-Chủ động hạn chế serialization của Subject vì nó có thể chứa **danh tính nhạy cảm và những Principal classes không đáng tin**. Ưu tiên DTO đã xác minh và schema có phiên bản.
+Actively restrict `Subject` serialization because it may contain **sensitive identities and untrusted Principal classes**. Prefer verified DTOs with versioned schemas.
 
-### 7.3. Thông điệp read-only thực tế
+### 7.3. Practical Read-Only Takeaway
 
-**Subject.setReadOnly không xóa bí mật** và không tự động logout. Nếu yêu cầu chấm dứt phiên, cần gọi đúng **LoginContext.logout** hoặc cơ chế revoke/credential.destroy riêng, ở một thời điểm còn có thể sửa các Set nếu LoginModule cần remove. Một credential đã destroy không nên được tiếp tục sử dụng dù một tham chiếu object còn tồn tại.
+**`Subject.setReadOnly` does not erase secrets** and does not perform logout. When terminating a session, invoke **`LoginContext.logout`** or a dedicated revocation/`credential.destroy` flow while the sets are still mutable if the `LoginModule` needs to remove items. A destroyed credential must never be reused even if an object reference still exists.
 
-## 8. LoginContext và LoginModule: Subject nhận Principal khi nào?
+## 8. `LoginContext` and `LoginModule`: When Does `Subject` Receive Its Principals?
 
-Một Subject được tạo bằng new Subject rồi tự thêm Role chỉ là object data. Trong JAAS **authentication có cấu trúc**, **LoginContext** điều phối một hoặc nhiều **LoginModule** theo **Configuration**. Thông thường, module xác minh bằng cơ chế của mình trong pha login, rồi **chỉ khi toàn bộ authentication thành công** mới gắn Principal và credentials vào Subject trong pha commit.
+A `Subject` created via `new Subject()` with manually added `Role`s is just a data object. In JAAS **structured authentication**, **`LoginContext`** coordinates one or more **`LoginModule`**s according to a **`Configuration`**. Normally, a module verifies credentials during the `login` phase, and **only when overall authentication succeeds** does it attach Principals and credentials to the `Subject` during the `commit` phase.
 
 ~~~text
-Application tạo LoginContext(name, Subject/handler/config)
+Application creates LoginContext(name, Subject/handler/config)
                     |
                     v
                LoginContext.login()
@@ -406,65 +406,65 @@ Application tạo LoginContext(name, Subject/handler/config)
       LoginModule.initialize(Subject, CallbackHandler, ...)
                     |
                     v
-      LoginModule.login() -- kiểm tra bí mật/identity
+      LoginModule.login() -- verify secret/identity
                     |
-             đủ module thành công?
+             sufficient modules succeed?
                /              \
-             Có                Không
+             Yes               No
               |                  |
               v                  v
       LoginModule.commit()   LoginModule.abort()
-      gắn Principal/cred     xóa state tạm, không gắn identity sai
+      attach Principal/cred  clear temp state, do not attach invalid identity
               |
               v
     LoginContext.getSubject()
-    identity/credential được xác thực
+    authenticated identity/credential
               |
               v
     LoginContext.logout()
-    LoginModule.logout() gỡ và hủy chính những
-    Principal/credentials mà module đã thêm
+    LoginModule.logout() removes and destroys only the
+    Principals/credentials that the module added
 ~~~
 
-### 8.1. Các method của LoginModule
+### 8.1. `LoginModule` Methods
 
-| Method | Thời điểm | Trách nhiệm |
+| Method | Timing | Responsibility |
 | --- | --- | --- |
-| **initialize** | LoginContext chuẩn bị module | Nhận Subject, CallbackHandler, sharedState, options. Chưa khẳng định login thành công. |
-| **login** | Pha xác thực | Nhận/kiểm tra credentials, giữ trạng thái tạm; trả true/false hoặc ném LoginException theo contract. |
-| **commit** | Toàn bộ login thành công theo module flags | Gắn **đúng Principal và credentials của module** vào Subject, hủy state xác thực không cần nữa. |
-| **abort** | Authentication/commit không thành công | Gỡ/destroy state tạm hoặc dữ liệu đã commit dở; không để lại identity sai. |
-| **logout** | Khi ứng dụng chủ động kết thúc JAAS session | Gỡ Principal và credentials **chính module đã tạo**, hủy secret thích hợp. |
+| **`initialize`** | `LoginContext` prepares the module | Receives `Subject`, `CallbackHandler`, `sharedState`, and `options`. Does not assert login success yet. |
+| **`login`** | Authentication phase | Obtains/verifies credentials and keeps temporary state; returns `true`/`false` or throws `LoginException` per contract. |
+| **`commit`** | Overall login succeeds per module flags | Attaches **only the module's Principals and credentials** to `Subject`; clears authentication state no longer needed. |
+| **`abort`** | Authentication/commit fails | Removes/destroys temporary state or partially committed data; leaves no invalid identity behind. |
+| **`logout`** | When application explicitly ends the JAAS session | Removes Principals and credentials **created by this module** and destroys secrets appropriately. |
 
-Nếu có nhiều LoginModules trong cùng một LoginContext, **mỗi module chỉ nên quản lý phần tử mình đã thêm**. Xóa sạch toàn bộ Subject trong logout của một module có thể phá dữ liệu mà module khác hoặc ứng dụng đã xác thực độc lập.
+When multiple `LoginModule`s share one `LoginContext`, **each module should manage only the elements it added**. Clearing the entire `Subject` in one module's logout can destroy data added by another module or independently verified by the application.
 
-### 8.2. Các module control flags
+### 8.2. Module Control Flags
 
-Trong **JAAS Configuration**, mỗi LoginModule có một flag:
+In **JAAS Configuration**, each `LoginModule` has a flag:
 
-- **REQUIRED**: phải thành công nhưng tiếp tục chạy các modules còn lại; nếu thất bại thì tổng thể login thất bại.
-- **REQUISITE**: phải thành công; nếu thất bại thì kết thúc pha login sớm.
-- **SUFFICIENT**: thành công có thể khiến hệ thống bỏ qua phần modules còn lại nếu không có REQUIRED/REQUISITE trước đó đã thất bại.
-- **OPTIONAL**: có thể thành công hoặc thất bại; tổng thể vẫn tuân quy tắc về các modules còn lại.
+- **`REQUIRED`**: must succeed, yet execution continues to remaining modules; if it fails, overall login fails.
+- **`REQUISITE`**: must succeed; if it fails, the login phase terminates early.
+- **`SUFFICIENT`**: success may allow skipping remaining modules if no prior `REQUIRED`/`REQUISITE` module failed.
+- **`OPTIONAL`**: may succeed or fail; overall outcome still follows the rules for remaining modules.
 
-Chi tiết điều phối nhiều modules và các corner cases nên tra Javadoc Configuration và JAAS LoginModule Developer's Guide. **Không tự giải nghĩa OPTIONAL thành “mọi user đều được đăng nhập”.** Trong mọi trường hợp, code nghiệp vụ chỉ được tin Subject sau khi **LoginContext.login() trả thành công**.
+For multi-module coordination details and corner cases, consult the `Configuration` Javadoc and the JAAS LoginModule Developer's Guide. **Never interpret `OPTIONAL` as "every user is allowed to log in."** In all cases, business code may trust a `Subject` only after **`LoginContext.login()` returns normally**.
 
-### 8.3. CallbackHandler và bí mật
+### 8.3. `CallbackHandler` and Secrets
 
-**NameCallback** và **PasswordCallback** là các callback hay dùng cho demo password login; ngoài đời có thể dùng Kerberos, token, PKCS#11 hay provider-specific login. **PasswordCallback** nhận char[] và hỗ trợ clearPassword; caller và LoginModule nên dọn các char[] tạm. Không log password; không lưu nó trong Subject làm Principal. Module có thể thêm một private credential **sau xác thực** nếu cần, nhưng không nhất thiết phải lưu password gốc.
+**`NameCallback`** and **`PasswordCallback`** are commonly used for password-login demos; real systems may use Kerberos, tokens, PKCS#11, or provider-specific login. **`PasswordCallback`** accepts `char[]` and supports `clearPassword`; both the caller and `LoginModule` should wipe temporary `char[]` arrays. Never log passwords and never store them in `Subject` as Principals. A module may attach a private credential **after authentication** if required, without storing the raw password.
 
-**Đừng coi LoginModule là password hasher**: việc xác thực password production cần KDF/verifier phù hợp, source identity đáng tin và rate limiting chống đoán online. Ví dụ bên dưới cố ý chỉ là **in-memory training module**, so sánh một password thử để minh họa lifecycle JAAS, tuyệt đối không dùng làm hệ thống đăng nhập thực.
+**Do not treat `LoginModule` as a password hasher**: production password authentication requires a proper KDF/verifier, a trusted identity source, and rate limiting against online guessing. The example below is intentionally an **in-memory training module** comparing a test password solely to illustrate the JAAS lifecycle, and must never be used as a real login system.
 
-## 9. Java 17+ — chương trình 2: LoginContext, commit và logout
+## 9. Java 17+ — Program 2: `LoginContext`, `commit`, and `logout`
 
-Ví dụ tự cung cấp Configuration theo code (không cần sửa global JAAS login config), một DemoLoginModule và CallbackHandler. Khi username/password test đúng, module:
-- Thêm **UserId Principal** đại diện danh tính đã xác thực.
-- Thêm **PublicProfile** chỉ chứa nhãn công khai minh họa.
-- Thêm **PrivateProof** bọc char[] giả, hỗ trợ **Destroyable**.
+The example supplies a programmatic `Configuration` (no need to edit the JVM's global JAAS login config), a `DemoLoginModule`, and a `CallbackHandler`. When the test username/password match, the module:
+- Adds a **`UserId` Principal** representing the authenticated identity.
+- Adds a **`PublicProfile`** containing only an illustrative public label.
+- Adds a **`PrivateProof`** wrapping a mock `char[]` and implementing **`Destroyable`**.
 
-Khi logout, module xóa **chính ba phần tử nó sở hữu** và hủy proof. Khi sai password, login thất bại và không có authenticated Subject từ LoginContext mới. Chương trình không giữ password người dùng trong Subject.
+On `logout`, the module removes **only the three elements it owns** and destroys the proof. With a wrong password, login fails and there is no authenticated `Subject` from the fresh `LoginContext`. The program never stores the user's password in the `Subject`.
 
-Tạo file **JaasLoginSubjectDemo.java**:
+Create the file **`JaasLoginSubjectDemo.java`**:
 
 ~~~java
 import java.io.IOException;
@@ -640,7 +640,7 @@ public class JaasLoginSubjectDemo {
             Subject subject = login.getSubject();
             PrivateProof proof = subject.getPrivateCredentials(
                     PrivateProof.class).iterator().next();
-            System.out.println("Login thành công: " + (subject != null));
+            System.out.println("Login succeeded: " + (subject != null));
             System.out.println("Principal alice: " +
                     subject.getPrincipals(UserId.class).iterator().next().getName());
             System.out.println("Public credentials: " +
@@ -648,12 +648,12 @@ public class JaasLoginSubjectDemo {
             System.out.println("Private credentials: " +
                     subject.getPrivateCredentials(PrivateProof.class).size());
             login.logout();
-            System.out.println("Logout xóa Principal: " +
+            System.out.println("Logout removes Principal: " +
                     subject.getPrincipals().isEmpty());
-            System.out.println("Logout xóa credentials: " +
+            System.out.println("Logout removes credentials: " +
                     (subject.getPublicCredentials().isEmpty()
                             && subject.getPrivateCredentials().isEmpty()));
-            System.out.println("Logout hủy private proof: " + proof.isDestroyed());
+            System.out.println("Logout destroys private proof: " + proof.isDestroyed());
         } finally {
             Arrays.fill(accepted, '\0');
         }
@@ -669,8 +669,8 @@ public class JaasLoginSubjectDemo {
             } catch (LoginException expected) {
                 denied = true;
             }
-            System.out.println("Sai mật khẩu bị từ chối: " + denied);
-            System.out.println("Thất bại không có authenticated Subject: " +
+            System.out.println("Wrong password rejected: " + denied);
+            System.out.println("Failure has no authenticated Subject: " +
                     (bad.getSubject() == null));
         } finally {
             Arrays.fill(rejected, '\0');
@@ -679,105 +679,105 @@ public class JaasLoginSubjectDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 JaasLoginSubjectDemo.java
 java JaasLoginSubjectDemo
 ~~~
 
-Kết quả kiểm thử:
+Test output:
 
 ~~~text
-Login thành công: true
+Login succeeded: true
 Principal alice: alice
 Public credentials: 1
 Private credentials: 1
-Logout xóa Principal: true
-Logout xóa credentials: true
-Logout hủy private proof: true
-Sai mật khẩu bị từ chối: true
-Thất bại không có authenticated Subject: true
+Logout removes Principal: true
+Logout removes credentials: true
+Logout destroys private proof: true
+Wrong password rejected: true
+Failure has no authenticated Subject: true
 ~~~
 
-### 9.1. Điều gì được chứng minh?
+### 9.1. What Is Demonstrated?
 
-1. **Configuration** được cung cấp trực tiếp bằng overload LoginContext(name, subject, handler, config); không cần thay file cấu hình toàn cục của JVM.
-2. **LoginContext.login** điều phối module với flag REQUIRED; vì chỉ có một module trong demo, login thành công khi module xác thực thành công.
-3. **DemoLoginModule.login** dùng callback lấy username/password; đây là **so sánh chuỗi cố định phục vụ test**, không phải password verification an toàn cho production.
-4. **commit** gắn UserId, PublicProfile và PrivateProof. Chúng nằm ở **ba Set khác nhau**, chứ không được nhập thành một Map.
-5. **getSubject** trả Subject sau login thành công; không nên lấy đối tượng này trước khi login rồi tin nó đã xác thực.
-6. **logout** chỉ gỡ ba phần tử DemoLoginModule đã thêm và gọi destroy() trên PrivateProof.
-7. **Failed login** làm LoginContext không có authenticated Subject trong trường hợp constructor không nhận Subject và quá trình xác thực không thành công.
-8. **char[] password** được clear ở PasswordCallback và caller theo phần bộ nhớ chúng sở hữu; không giả định đã xóa mọi bản sao trong JVM.
+1. **`Configuration`** is supplied directly via the `LoginContext(name, subject, handler, config)` overload; no need to edit the JVM's global configuration file.
+2. **`LoginContext.login`** coordinates the module with the `REQUIRED` flag; because there is only one module in the demo, login succeeds when that module authenticates successfully.
+3. **`DemoLoginModule.login`** uses callbacks to read username/password; this is a **fixed string comparison for testing**, not secure production password verification.
+4. **`commit`** attaches `UserId`, `PublicProfile`, and `PrivateProof`. They live in **three separate `Set`s**, not combined into one `Map`.
+5. **`getSubject`** returns the `Subject` after successful login; never fetch it before login and assume it is authenticated.
+6. **`logout`** removes only the three elements `DemoLoginModule` added and calls `destroy()` on `PrivateProof`.
+7. **Failed login** leaves `LoginContext` with no authenticated `Subject` when the constructor received no `Subject` and authentication failed.
+8. **`char[]` passwords** are wiped in `PasswordCallback` and the caller for the memory arrays they own; never assume every JVM copy was erased.
 
-### 9.2. Mẫu tối giản cố ý thiếu gì?
+### 9.2. What Does This Minimal Sample Intentionally Omit?
 
-- **Identity store thật, salt/password hashing KDF, rate limit, MFA, audit, anti-enumeration và account lockout**: ứng dụng production phải bổ sung qua provider/thành phần phù hợp.
-- **Quản lý proof thật**: PrivateProof chỉ chứa chuỗi placeholder; không phải token/secret có thể dùng truy cập hệ thống.
-- **Xử lý nhiều LoginModules**: demo một REQUIRED module; hệ thống thực có nhiều module và phải cleanup đúng cả commit/abort.
-- **Transactional commit**: code demo không có rollback phức tạp nếu thêm phần tử thất bại giữa chừng. Implementation production phải đảm bảo cleanup khi commit lỗi và khi module bị gọi lại.
-- **Subject read-only**: demo không đóng băng Subject trước logout vì cần remove các phần tử đã thêm.
-- **Quản lý session HTTP**: JAAS Subject không tự lưu phiên trình duyệt, không cấp cookie hoặc access token.
+- **Real identity store, salt/password hashing KDF, rate limiting, MFA, auditing, anti-enumeration, and account lockout**: production applications must supply these via appropriate providers/components.
+- **Real proof management**: `PrivateProof` only holds a placeholder string; it is not a token/secret usable for system access.
+- **Multiple `LoginModule`s**: the demo uses one `REQUIRED` module; real systems have multiple modules and must handle both `commit` and `abort` cleanup properly.
+- **Transactional commit**: the demo lacks complex rollback if adding elements fails partway. Production implementations must clean up on commit errors and on re-invocation.
+- **Read-only `Subject`**: the demo does not freeze the `Subject` before `logout` because it needs to remove the added elements.
+- **HTTP session management**: JAAS `Subject` does not store browser sessions or issue cookies or access tokens.
 
-**Quan trọng:** không copy so sánh Arrays.equals với chuỗi password hardcoded sang production. Đó chỉ là fixture chạy độc lập, không có khả năng chống dò mật khẩu. Thiết kế production phải dùng cơ chế xác thực tin cậy và kiểm soát lạm dụng.
+**Important:** never copy `Arrays.equals` against a hardcoded password string into production. That is purely a self-contained test fixture with no resistance to password guessing. Production designs must use trusted authentication mechanisms and abuse controls.
 
-## 10. Subject.doAs: thực thi gắn Subject và giới hạn mô hình bảo mật cũ
+## 10. `Subject.doAs`: Scoped Execution and Limitations of the Legacy Security Model
 
-Trong Java SE 17, **Subject.doAs(subject, PrivilegedAction)** và **Subject.doAs(subject, PrivilegedExceptionAction)** cho phép thực thi một action trong **AccessControlContext** có gắn Subject. Mô hình lịch sử của JAAS dùng thông tin Principal này kết hợp Java Security Manager/policy để đánh giá một số quyền.
+In Java SE 17, **`Subject.doAs(subject, PrivilegedAction)`** and **`Subject.doAs(subject, PrivilegedExceptionAction)`** run an action within an **`AccessControlContext`** bound to a `Subject`. The historical JAAS model combined this Principal information with the Java Security Manager/policy to evaluate certain permissions.
 
-Ví dụ **mảnh code**, không phải một chương trình độc lập:
+Example **code fragment**, not a standalone program:
 
 ~~~java
 String answer = Subject.doAs(authenticatedSubject,
         (java.security.PrivilegedAction<String>) () -> {
-            // Code thực hiện operation trong ngữ cảnh JAAS của Subject.
+            // Code executing an operation within the Subject's JAAS context.
             return "operation-finished";
         });
 ~~~
 
-**Điều không được hiểu sai:**
+**Do not misunderstand:**
 
-- doAs **không tự xác thực** người dùng, không biến một Principal tự tạo thành danh tính đáng tin, và không cấp phép mọi thao tác.
-- doAs **không tự động truyền bearer token/private credentials** sang dịch vụ khác. Giao thức Kerberos/GSS-API hoặc library riêng có thể sử dụng Subject credentials, nhưng cách dùng tuân API của provider.
-- doAs trong Java 17 dựa trên **AccessControlContext/Security Manager**, là mô hình đã có các API deprecated-for-removal. Đặc biệt **Subject.getSubject(AccessControlContext)** bị đánh dấu deprecated-for-removal trong Java 17.
-- Đừng giả định **context doAs tự truyền qua ExecutorService, CompletableFuture hoặc thread pool**. Cần xem xét behavior của API/JDK/provider cụ thể, truyền identity/authorization context qua ranh giới async một cách rõ và an toàn.
-- Với service Java hiện đại, **authorization nên được kiểm tra rõ ràng theo identity, role, tenant và resource** ở tầng ứng dụng hoặc security framework đang duy trì; không coi doAs là lớp authorization phổ quát.
+- `doAs` **does not authenticate** a user, does not turn a self-created Principal into a trusted identity, and does not authorize arbitrary operations.
+- `doAs` **does not automatically forward bearer tokens/private credentials** to other services. Kerberos/GSS-API protocols or specific libraries may read Subject credentials, following provider APIs.
+- `doAs` in Java 17 relies on **`AccessControlContext`/Security Manager**, a model with APIs already deprecated for removal. In particular, **`Subject.getSubject(AccessControlContext)`** is marked deprecated for removal in Java 17.
+- Do not assume **`doAs` context propagates automatically across `ExecutorService`, `CompletableFuture`, or thread pools**. Check specific API/JDK/provider behavior and pass identity/authorization context across async boundaries explicitly and safely.
+- For modern Java services, **authorization should be checked explicitly by identity, role, tenant, and resource** at the application layer or an actively maintained security framework; never treat `doAs` as a general authorization layer.
 
-**Bài này chỉ dùng doAs để chỉ ra mối liên hệ của Subject với mô hình JAAS**, không yêu cầu cài Security Manager và không biến Security Manager thành tiền đề của hai ví dụ runnable.
+**This lesson mentions `doAs` only to show how `Subject` connects to the JAAS model**, without requiring a Security Manager or making it a prerequisite for the two runnable examples.
 
-## 11. Subject không thay thế ranh giới bảo mật của hệ thống
+## 11. `Subject` Does Not Replace System Security Boundaries
 
-Một Subject có thể được sử dụng bởi code application để biết ai đang thực hiện yêu cầu. Nhưng:
+A `Subject` can be consulted by application code to learn who is making a request. However:
 
-1. **Đầu vào Subject phải đáng tin:** LoginModule/provider hoặc tầng xác thực đã xác minh identity; không tin dữ liệu trực tiếp từ cookie/header chưa kiểm tra.
-2. **Chọn đúng Principal class:** nếu hệ thống cho nhiều realm, đừng chọn Principal đầu tiên hoặc lọc bằng tên không có namespace.
-3. **Credential scope rõ ràng:** không giữ secret credential trong Subject dùng chung toàn bộ process; tránh đưa access token giữa tenant/service khác nhau.
-4. **Dữ liệu trong Subject có vòng đời:** logout, session expiry, key rotation, credential refresh/revoke; một object vẫn được tham chiếu sau logout có thể tiếp tục tồn tại nếu caller giữ riêng.
-5. **Kiểm tra quyền nghiệp vụ:** Subject có Role("admin") không tự bảo đảm caller có quyền xem record của tenant khác.
-6. **Quản lý khóa riêng:** private-key handle từ HSM có thể không export được; chỉ thực hiện operation theo policy của provider, không cố đọc key bytes để debug.
-7. **Audit tối thiểu:** ghi subject ID đã được phép, event type, issuer, action, outcome và trace ID; không log toàn bộ Subject hoặc private credentials.
+1. **The `Subject` input must be trusted:** a `LoginModule`/provider or authentication layer verified the identity; never trust raw unverified cookies/headers.
+2. **Select the right Principal class:** if the system supports multiple realms, never pick the first Principal or filter by name without a namespace.
+3. **Clear credential scoping:** never keep secret credentials in a process-wide shared `Subject`; avoid leaking access tokens across tenants or services.
+4. **Data in `Subject` has a lifecycle:** logout, session expiry, key rotation, credential refresh/revocation; an object still referenced after logout may linger if a caller holds its own reference.
+5. **Check business permissions:** a `Subject` with `Role("admin")` does not guarantee the caller may view another tenant's records.
+6. **Private key management:** a private-key handle from an HSM may be non-exportable; perform operations via the provider's policy without attempting to extract key bytes for debugging.
+7. **Minimal auditing:** record authorized subject IDs, event types, issuers, actions, outcomes, and trace IDs; never log the full `Subject` or private credentials.
 
-### 11.1. Thiết kế ranh giới cho web service
+### 11.1. Designing Boundaries for a Web Service
 
 ~~~text
-HTTP request (header/token/cookie chưa được tin)
+HTTP request (untrusted header/token/cookie)
              |
              v
 Authentication layer (JAAS module, IdP, framework...)
-       kiểm chứng chứng chỉ/ticket/token/password
+       verify certificate/ticket/token/password
              |
-      xác thực thành công?
+      authentication succeeded?
         /            \
        no             yes
        |               |
      reject            v
                   Subject + Principal(s)
-                  public/private credentials đúng scope
+                  properly scoped public/private credentials
                        |
                        v
                  Build safe identity DTO
-                 userId, tenantId, roles đã kiểm chứng
+                 verified userId, tenantId, roles
                        |
                        v
                  Authorize action + resource
@@ -790,140 +790,140 @@ Authentication layer (JAAS module, IdP, framework...)
                   destroy secret / revoke
 ~~~
 
-Nhiều hệ thống web hiện đại dùng các framework authentication/security riêng, không trực tiếp dùng JAAS LoginContext. Dù vậy, **phân biệt danh tính (Principal), chứng thực đã diễn ra (authentication) và quyền thực thi (authorization)** là kiến thức cốt lõi có thể áp dụng rộng.
+Many modern web systems use dedicated authentication/security frameworks rather than calling JAAS `LoginContext` directly. Even so, **separating identity (`Principal`), completed verification (authentication), and execution rights (authorization)** is core knowledge applicable everywhere.
 
-### 11.2. Identity DTO khác credential store
+### 11.2. Identity DTOs Differ from Credential Stores
 
-Một DTO dành cho business logic chỉ nên mang dữ liệu cần thiết như **stable user ID, tenant ID, roles đã được phê duyệt, issuer và thời điểm xác thực khi cần**. Không chứa raw password, private key, Kerberos ticket hay bearer token. Việc tạo DTO có thể lọc theo Principal class cụ thể và kiểm tra tính duy nhất, nhưng phải nhớ typed Set **không phải deep-copy** các Principal mutable; nên chuyển sang immutable application values.
+A DTO intended for business logic should carry only necessary fields such as **stable user ID, tenant ID, approved roles, issuer, and authentication timestamp when needed**. It must not contain raw passwords, private keys, Kerberos tickets, or bearer tokens. Creating the DTO may filter by a specific Principal class and check uniqueness, remembering that typed `Set`s **do not deep-copy** mutable Principals; convert them into immutable application values.
 
-## 12. Threading, serialization và các chi tiết tinh tế
+## 12. Threading, Serialization, and Subtle Details
 
-### 12.1. Không chia sẻ Subject mutable giữa request
+### 12.1. Do Not Share a Mutable `Subject` Across Requests
 
-Vì untyped sets được backed bởi Subject, hai threads có thể quan sát và sửa dữ liệu danh tính khi không có ownership rõ ràng. Với nhiều JAAS modules hoặc session lifecycle, một request đang đọc credentials có thể chạm credential vừa bị destroy/logout ở request khác.
+Because untyped sets are backed by the `Subject`, two threads can observe and mutate identity data without clear ownership. With multiple JAAS modules or session lifecycles, one request reading credentials could touch a credential just destroyed/logged out by another request.
 
-Khuyến nghị:
-- Mỗi phiên xác thực có **lifecycle riêng**; không dùng một Subject toàn cục rồi thay Principal theo request.
-- Giai đoạn tạo/commit/logout phải được phối hợp phù hợp với provider/lifecycle.
-- **Không dùng Subject equals/hashCode làm cache key ổn định**: các tập Principal/credentials là một phần equality và có thể thay đổi.
-- Với async work, truyền **immutable security context/DTO** hoặc một handle có quyền rõ, không chia sẻ raw private credentials cho bất kỳ job nào.
-- **Không trông chờ read-only ngăn credential bị destroy**: mọi consumer phải xử lý credential đã hết hạn hoặc bị hủy.
+Recommendations:
+- Each authenticated session has its **own lifecycle**; never reuse one global `Subject` and swap Principals per request.
+- Creation/commit/logout phases must align properly with the provider/lifecycle.
+- **Never use `Subject` `equals`/`hashCode` as a stable cache key**: Principal/credential sets participate in equality and can change.
+- For async work, pass an **immutable security context/DTO** or an explicitly scoped handle; never share raw private credentials with arbitrary jobs.
+- **Do not expect read-only mode to prevent credential destruction**: every consumer must handle expired or destroyed credentials.
 
-### 12.2. Serialization của Subject không có private credentials
+### 12.2. `Subject` Serialization Excludes Private Credentials
 
-Theo Javadoc Subject của Java 17, Subject có Serializable, **Principals được serialize** còn **credentials không được serialize**. Interface java.security.Principal không tự triển khai Serializable, nên Principal implementation cần Serializable nếu muốn serialize theo contract.
+According to the Java 17 `Subject` Javadoc, `Subject` implements `Serializable`: **Principals are serialized**, while **credentials are not serialized**. Because `java.security.Principal` does not itself implement `Serializable`, Principal implementations must implement `Serializable` if you intend to serialize the `Subject`.
 
-Bởi vậy:
-- Serialize/deserialize Subject **không round-trip các credentials**. Không dùng như session persistence hoặc backup khóa.
-- Không cho deserialization tùy tiện dữ liệu Java không đáng tin; việc deserialize object Java có những rủi ro độc lập.
-- Hãy xây dựng schema DTO chuyên dụng, có version và kiểm soát field, nếu cần truyền danh tính qua service.
+Therefore:
+- Serializing/deserializing a `Subject` **does not round-trip credentials**. Never use it for session persistence or key backup.
+- Never allow arbitrary deserialization of untrusted Java data; Java object deserialization carries independent risks.
+- Build dedicated, versioned, field-controlled DTO schemas if you need to transmit identities across services.
 
-### 12.3. Secret bị hủy nhưng Set còn chứa object
+### 12.3. Secret Destroyed While Object Remains in the `Set`
 
-Một credential triển khai Destroyable có thể bị hủy trong lúc Subject đang **read-only**, theo Subject contract. Object vẫn có thể nằm trong getPrivateCredentials() do không remove được. Điều đó không có nghĩa credential còn dùng được; cần tham khảo isDestroyed/lifecycle của type cụ thể. Với các lớp credentials không hỗ trợ destroy hoặc destroy thất bại, một login/logout framework cần chiến lược xử lý lỗi thích hợp, không nên im lặng và khẳng định secret đã bị xóa.
+A credential implementing `Destroyable` can be destroyed while the `Subject` is **`read-only`**, per the `Subject` contract. The object can remain in `getPrivateCredentials()` because it cannot be removed. That does not mean the credential is still usable; consult `isDestroyed`/type-specific lifecycle. For credential classes that do not support destruction or fail to destroy, a login/logout framework needs an explicit error-handling strategy rather than silently claiming the secret was wiped.
 
-## 13. Bộ kiểm thử nên có cho Subject và LoginModule
+## 13. Recommended Test Suite for `Subject` and `LoginModule`
 
-| Nhóm | Test | Kỳ vọng |
+| Group | Test | Expected Outcome |
 | --- | --- | --- |
-| **Subject mới** | new Subject() | Ba tập rỗng, writable ban đầu. |
-| **Principal equality** | Thêm cùng UserId("alice") hai lần | Không có duplicate với record value equality. |
-| **Nhiều Principal** | Thêm UserId và Role | Tập giữ cả hai concrete types. |
-| **Public credential** | Thêm PublicProfile label | Đọc được từ public set; không bị nhầm với private set. |
-| **Private credential** | Thêm SessionSecret | Đọc được theo type phù hợp; không log char[]/token. |
-| **Live set** | Lấy getPrincipals() rồi add(Role) | Subject được cập nhật. |
-| **Typed snapshot** | Lấy getPrincipals(UserId.class) rồi clear | Subject gốc không thay đổi. |
-| **Reference aliasing** | Typed filtered private set trỏ đến cùng object | Hủy object được phản ánh mọi nơi giữ tham chiếu. |
-| **Read-only** | setReadOnly rồi add/remove | IllegalStateException; không thể mở lại writable. |
-| **Destroy** | Destroy private credential sau setReadOnly | Có thể hủy nếu type cho phép; không đồng nghĩa remove khỏi Set. |
-| **Subject constructor** | Set null/null element, readOnly true | Reject null, giữ initial elements, readOnly enforcement. |
-| **Login success** | Callback cung cấp thông tin đúng, login | Commit tạo Principal/public/private đúng scope. |
-| **Login failure** | Callback sai password | LoginException; không có authenticated Subject khi không truyền Subject ban đầu. |
-| **Abort** | Một module required thất bại hoặc commit lỗi | Xóa trạng thái tạm, không để leaked/partially committed credentials. |
-| **Logout** | Login xong rồi logout | Gỡ đúng phần tử module đã thêm; destroy secret. |
-| **Multi-module** | Hai LoginModules cùng dùng một Subject | Module A không xóa Principal/credential của B. |
-| **Private permission** | Java 17 Security Manager + policy hạn chế | Access to private credentials được kiểm theo PrivateCredentialPermission, xử lý SecurityException. |
-| **Serialization** | Subject chứa Principal Serializable và credentials | Credential không được serialize theo contract; không dùng làm session token. |
-| **Concurrent logout/use** | Một thread logout/hủy, một thread đang xử lý | Không tiếp tục thao tác bằng secret bị hủy; ownership rõ. |
-| **Log inspection** | Thử gọi logger với Subject | Audit không in password/private credential material. |
+| **Fresh Subject** | `new Subject()` | Three empty sets, initially writable. |
+| **Principal equality** | Add `UserId("alice")` twice | No duplicate with record value equality. |
+| **Multiple Principals** | Add `UserId` and `Role` | Set retains both concrete types. |
+| **Public credential** | Add `PublicProfile` label | Readable from public set; not confused with private set. |
+| **Private credential** | Add `SessionSecret` | Readable by matching type; `char[]`/token never logged. |
+| **Live set** | Call `getPrincipals()` then `add(Role)` | Subject is updated. |
+| **Typed snapshot** | Call `getPrincipals(UserId.class)` then `clear` | Original Subject unchanged. |
+| **Reference aliasing** | Typed filtered private set points to same object | Destroying object is visible everywhere holding a reference. |
+| **Read-only** | `setReadOnly` then add/remove | `IllegalStateException`; cannot revert to writable. |
+| **Destroy** | Destroy private credential after `setReadOnly` | Allowed if type supports it; distinct from removal from `Set`. |
+| **Subject constructor** | Null set / null element, `readOnly` true | Rejects null, keeps initial elements, enforces read-only. |
+| **Login success** | Callback supplies valid credentials, `login` | `commit` creates Principal/public/private in proper scope. |
+| **Login failure** | Callback supplies wrong password | `LoginException`; no authenticated `Subject` when no initial `Subject` passed. |
+| **Abort** | A required module fails or `commit` fails | Clears temporary state; leaves no leaked or partially committed credentials. |
+| **Logout** | `login` followed by `logout` | Removes only elements the module added; destroys secrets. |
+| **Multi-module** | Two `LoginModule`s share one `Subject` | Module A does not delete B's Principals/credentials. |
+| **Private permission** | Java 17 Security Manager + restrictive policy | Private credential access checked via `PrivateCredentialPermission`; `SecurityException` handled. |
+| **Serialization** | `Subject` with `Serializable` Principal and credentials | Credentials are not serialized per contract; not used as session token. |
+| **Concurrent logout/use** | One thread logs out/destroys while another processes | Does not continue using destroyed secret; clear ownership. |
+| **Log inspection** | Invoke logger with `Subject` | Audit logs do not print passwords or private credential material. |
 
-Với LoginModule thật, còn cần test **authentication source** (directory/Kerberos/IdP), account lockout/rate-limit, ticket expiry/refresh, permissions, revocation và audit. Hai demo chỉ kiểm tra **contracts cốt lõi của Subject/Principal/credentials**, không thay thế integration tests cho provider production.
+With a real `LoginModule`, also test the **authentication source** (directory/Kerberos/IdP), account lockout/rate limiting, ticket expiry/refresh, permissions, revocation, and auditing. The two demos only verify **core `Subject`/`Principal`/credential contracts** and do not replace integration tests for production providers.
 
-## 14. Các lỗi phổ biến
+## 14. Common Mistakes
 
-1. **Coi Subject là một String username.** Nó có thể chứa nhiều danh tính và credentials khác nhau.
-2. **Tự thêm Role("admin") rồi nghĩ người dùng đã được xác thực.** Principal chỉ đáng tin sau authentication và trust boundary phù hợp.
-3. **Đặt password hoặc bearer token vào Principal.** Principal mô tả danh tính; bí mật cần quản lý ở lớp credential/secret phù hợp.
-4. **Tưởng publicCredentials luôn an toàn để log.** Tùy type, một vé/token vẫn có thể là bearer capability nhạy cảm.
-5. **Tưởng privateCredentials tự mã hóa hoặc khóa bí mật bằng quyền JVM hiện đại.** Subject chỉ là một tập object; bảo vệ thực sự phải được thiết kế riêng.
-6. **Nhầm getPrincipals() và getPrincipals(Class).** Untyped là live; typed là tập mới không backed.
-7. **Nhầm typed filtered credential set là deep copy secret.** Các phần tử là tham chiếu tới object gốc.
-8. **Cho mọi layer giữ Subject mutable.** Chúng có thể sửa role/credentials nếu không có ranh giới.
-9. **Dùng Subject.setReadOnly như logout.** Read-only không xóa Principal/secret.
-10. **Giả định read-only khiến credential không thể destroy.** Contract cho phép destroy credential kể cả khi Subject read-only.
-11. **Remove credential khỏi Set rồi nghĩ đã xóa secret bytes.** Reference removal và memory clearing là hai hành động khác nhau.
-12. **Gọi destroy rồi nghĩ mọi bản sao secret trong JVM biến mất.** Vẫn có thể còn bản sao và implementation-dependent state.
-13. **Ghi log Subject.toString() hoặc all credentials.** Có nguy cơ lộ identity/secret và thông tin phiên.
-14. **Dùng principal.getName() không xét issuer/realm/tenant.** Dễ nhầm identity cùng tên.
-15. **Dùng Subject.equals/hashCode làm user ID ổn định.** Equality phụ thuộc cả credential/Principal sets, không phải account identity.
-16. **Gắn Principal vào Subject ngay trong login() trước khi overall authentication thành công.** Nên commit sau khi toàn bộ modules đáp ứng chính sách; abort dọn state.
-17. **LoginModule.logout() xóa sạch Subject.** Có thể xóa thành phần thuộc module khác; chỉ dọn phần mình sở hữu.
-18. **Set read-only trước khi LoginModule logout.** Có thể khiến module không remove được Principal/credential.
-19. **Dùng LoginContext của một người để authenticate người khác.** Tạo LoginContext riêng cho Subject/session khác.
-20. **Dùng Subject.doAs như authorization hoàn chỉnh cho web app mới.** Đây là mô hình JAAS/AccessControlContext lịch sử, không thay RBAC/ABAC của ứng dụng.
-21. **Tưởng JAAS tự xử lý token refresh và network session.** Lộ trình refresh/logout/revoke phụ thuộc credential type, provider và ứng dụng.
-22. **Serialize Subject để lưu trọn phiên cùng credentials.** Credentials không được serialize theo contract.
+1. **Treating `Subject` as a username `String`.** It can hold multiple identities and credentials.
+2. **Adding `Role("admin")` manually and thinking the user is authenticated.** Principals are trustworthy only after authentication and a proper trust boundary.
+3. **Putting passwords or bearer tokens into `Principal`.** Principals describe identity; secrets belong in appropriate credential/secret layers.
+4. **Assuming `publicCredentials` is always safe to log.** Depending on type, a ticket/token can still be a sensitive bearer capability.
+5. **Assuming `privateCredentials` automatically encrypts or locks secrets with modern JVM permissions.** `Subject` is just a collection container; real protection must be designed explicitly.
+6. **Confusing `getPrincipals()` and `getPrincipals(Class)`.** Untyped is live; typed is a new unbacked set.
+7. **Mistaking a typed filtered credential set for a deep copy of secrets.** Elements are references to the original objects.
+8. **Letting every layer hold a mutable `Subject`.** They could alter roles/credentials without a trust boundary.
+9. **Using `Subject.setReadOnly` as a substitute for `logout`.** Read-only neither removes Principals nor erases secrets.
+10. **Assuming read-only prevents credential destruction.** The contract permits destroying credentials even when `Subject` is read-only.
+11. **Removing a credential from the `Set` and assuming secret bytes were wiped.** Reference removal and memory clearing are two different actions.
+12. **Calling `destroy` and assuming every secret copy in the JVM vanished.** Copies and implementation-dependent state may still exist.
+13. **Logging `Subject.toString()` or all credentials.** Risks leaking identities, secrets, and session details.
+14. **Using `principal.getName()` without issuer/realm/tenant.** Easy to confuse same-named identities.
+15. **Using `Subject.equals`/`hashCode` as a stable user ID.** Equality depends on credential/Principal sets, not account identity.
+16. **Attaching a Principal to `Subject` inside `login()` before overall authentication succeeds.** Commit only after all modules satisfy policy; `abort` cleans up state.
+17. **Wiping the entire `Subject` in `LoginModule.logout()`.** May erase items from other modules; remove only what you own.
+18. **Calling `setReadOnly` before `LoginModule.logout`.** May prevent modules from removing their Principals/credentials.
+19. **Reusing one person's `LoginContext` to authenticate another.** Create a separate `LoginContext` per Subject/session.
+20. **Using `Subject.doAs` as complete authorization for a new web app.** That is a historical JAAS/`AccessControlContext` model, not a replacement for application RBAC/ABAC.
+21. **Expecting JAAS to manage token refresh and network sessions automatically.** Refresh/logout/revocation paths depend on credential type, provider, and application.
+22. **Serializing `Subject` to persist an entire session with credentials.** Credentials are not serialized per contract.
 
-## 15. Câu hỏi tự kiểm tra
+## 15. Self-Check Questions
 
-**1. Một Subject có thể có nhiều Principal không?**  
-Có. Subject có Set<Principal> và mỗi Principal có thể biểu diễn identity/role/realm khác nhau.
+**1. Can one `Subject` hold multiple Principals?**  
+Yes. `Subject` has a `Set<Principal>`, and each Principal can represent a different identity, role, or realm.
 
-**2. UserId("alice") và Role("alice") có nhất thiết là cùng một Principal không?**  
-Không. Khác concrete type và ý nghĩa; cùng text chưa đủ để khẳng định cùng danh tính.
+**2. Are `UserId("alice")` and `Role("alice")` necessarily the same Principal?**  
+No. They differ in concrete type and meaning; matching text alone is not enough to equate identities.
 
-**3. getPrincipals(UserId.class).clear() có xóa UserId trong Subject không?**  
-Không. Tập typed được trả về là tập mới, không backed bởi Subject.
+**3. Does `getPrincipals(UserId.class).clear()` remove `UserId` from the `Subject`?**  
+No. The typed set returned is a new set, not backed by the `Subject`.
 
-**4. getPrincipals().add(new Role("admin")) có sửa Subject không?**  
-Có, nếu Subject writable và caller được phép; vì đó là live set. Nhưng điều này **không làm role trở thành đã xác thực**.
+**4. Does `getPrincipals().add(new Role("admin"))` modify the `Subject`?**  
+Yes, if the `Subject` is writable and the caller is permitted, because it is a live set. However, this **does not make the role authenticated**.
 
-**5. Private credential có tự được mã hóa vì nằm trong privateCredentials không?**  
-Không. Subject tổ chức object; cách bảo vệ material tùy implementation, provider và chính sách.
+**5. Is a private credential automatically encrypted just by being in `privateCredentials`?**  
+No. `Subject` organizes objects; how material is protected depends on the implementation, provider, and policy.
 
-**6. setReadOnly() có ngăn destroy() của credential không?**  
-Không. Subject contract vẫn cho phép destroy credential; nhưng cấm add/remove trong sets.
+**6. Does `setReadOnly()` block `destroy()` on credentials?**  
+No. The `Subject` contract still allows destroying credentials; it only forbids add/remove in the sets.
 
-**7. Hủy credential rồi private Set vẫn có một object, có nghĩa secret chưa bị hủy không?**  
-Không nhất thiết. Object có thể vẫn tồn tại trong Set sau khi material bị destroy. Cần kiểm tra isDestroyed theo concrete type.
+**7. If a credential is destroyed yet an object remains in the private `Set`, does that mean the secret was not destroyed?**  
+Not necessarily. The object can remain in the `Set` after its material is destroyed. Check `isDestroyed` according to the concrete type.
 
-**8. Java 17 Security Manager bị deprecated, có nên coi PrivateCredentialPermission là hàng rào duy nhất không?**  
-Không. Cần application trust boundary, least privilege, secret management và authorization rõ.
+**8. With the Java 17 Security Manager deprecated, should `PrivateCredentialPermission` be treated as the sole barrier?**  
+No. You need application trust boundaries, least privilege, secret management, and explicit authorization.
 
-**9. LoginModule nên thêm Principal ở login() hay commit()?**  
-Thông thường ở **commit() sau khi overall authentication thành công**. Abort dọn state khi login/commit thất bại.
+**9. Should a `LoginModule` add Principals in `login()` or `commit()`?**  
+Normally in **`commit()` after overall authentication succeeds**. `abort` cleans up state when login/commit fails.
 
-**10. Logout có nên xóa hết mọi Principal/credential của Subject không?**  
-Không. Mỗi LoginModule phải gỡ/destroy những gì **nó sở hữu**, không đụng dữ liệu của module khác.
+**10. Should `logout` wipe every Principal/credential in the `Subject`?**  
+No. Each `LoginModule` must remove/destroy only what **it owns**, without touching other modules' data.
 
-**11. Một Principal record được tạo thủ công có chứng minh password hợp lệ không?**  
-Không. Principal chỉ là object; bằng chứng đến từ kết quả authentication đáng tin.
+**11. Does a manually constructed Principal record prove a valid password?**  
+No. A Principal is just an object; proof comes from a trusted authentication outcome.
 
-**12. Có dùng Subject serialization để mang credentials qua network được không?**  
-Không. Java 17 Subject serialize Principals nhưng không serialize credentials; cần giao thức bảo mật riêng.
+**12. Can `Subject` serialization be used to send credentials across the network?**  
+No. Java 17 `Subject` serializes Principals but does not serialize credentials; use a dedicated secure protocol.
 
-## 16. Tổng kết và tài liệu tham khảo
+## 16. Summary and References
 
-**Subject** là container cho **Principal identities** và **public/private credentials**. Principal trả lời câu hỏi “**thực thể này được nhận diện như thế nào**”, trong khi credentials là dữ liệu phục vụ chứng thực và thao tác được phép. Phân loại public/private có ý nghĩa về quyền truy cập và độ nhạy, nhưng không tự tạo bảo mật nếu application làm lộ object hoặc quản lý secrets sai.
+**`Subject`** is the container for **`Principal` identities** and **public/private credentials**. Principals answer "**how is this entity identified**," while credentials provide data for verification and authorized operations. The public/private split reflects access rules and sensitivity, yet does not create security automatically if the application leaks objects or mismanages secrets.
 
-Những điều bắt buộc ghi nhớ trong Java 17:
+Essential Java 17 takeaways:
 
-- **getPrincipals/getPublicCredentials/getPrivateCredentials không typed** trả live sets; typed getters trả tập lọc mới.
-- **setReadOnly** chặn sửa ba Set, nhưng **không deep-freeze** credential objects và vẫn có thể destroy credential.
-- **LoginContext.login → LoginModule.commit** gắn Principal/credentials khi xác thực thành công; **abort/logout** cần cleanup.
-- **Identity không đồng nghĩa authorization**; bí mật vẫn cần least privilege, lifecycle và logging an toàn.
+- **Untyped `getPrincipals`/`getPublicCredentials`/`getPrivateCredentials`** return live sets; typed getters return new filtered sets.
+- **`setReadOnly`** blocks modifying the three `Set`s, yet **does not deep-freeze** credential objects and still permits destroying credentials.
+- **`LoginContext.login` → `LoginModule.commit`** attaches Principals/credentials on successful authentication; **`abort`/`logout`** perform cleanup.
+- **Identity is not authorization**; secrets still require least privilege, proper lifecycles, and safe logging.
 
-Nguồn chính thức để đọc sâu:
+Official references for deeper reading:
 
 - [Java SE 17 — javax.security.auth.Subject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/Subject.html)
 - [Java SE 17 — java.security.Principal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Principal.html)

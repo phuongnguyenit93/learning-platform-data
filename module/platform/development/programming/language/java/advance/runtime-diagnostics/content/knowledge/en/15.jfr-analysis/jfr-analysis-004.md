@@ -1,29 +1,29 @@
-# 15.4. Dùng `jfr view` khi phiên bản công cụ hỗ trợ để xem dữ liệu tổng hợp
+# 15.4. Using `jfr view` when the tool version supports it to inspect aggregated data
 
-Một tệp Java Flight Recorder (JFR) có thể chứa hàng nghìn hoặc hàng triệu sự kiện từ JVM và ứng dụng. In toàn bộ sự kiện bằng `jfr print` thường quá dài để trả lời nhanh những câu hỏi như “GC pause đang tốn bao nhiêu thời gian?”, “những kiểu đối tượng nào có nhiều mẫu cấp phát?” hoặc “những method nào xuất hiện nhiều trong CPU samples?”. **`jfr view`** giúp tạo **bảng tổng hợp có sẵn** từ các sự kiện trong tệp `.jfr` và hiển thị trực tiếp ở terminal.
+A Java Flight Recorder (JFR) file can contain thousands or millions of events from the JVM and application. Printing every event with `jfr print` is often far too verbose to quickly answer questions like "How much time are GC pauses taking?", "Which object types have the most allocation samples?", or "Which methods appear most often in CPU samples?". **`jfr view`** builds **predefined summary tables** from the events in a `.jfr` file and displays them directly in the terminal.
 
-Điều kiện quan trọng của đề bài là **phiên bản công cụ**: subcommand `jfr view` được bổ sung vào **JDK 21**; `jfr` của JDK 17 có `summary`/`print` nhưng **không có `view`**. Một số nhà cung cấp hoặc bản phân phối có thể backport hay thay đổi tính năng, vì vậy **kiểm tra bản `jfr` thực sự đang chạy và help của nó**, không chỉ nhìn phiên bản ứng dụng tạo recording.
+An important prerequisite in this topic is the **tool version**: the `jfr view` subcommand was added in **JDK 21**; JDK 17's `jfr` has `summary`/`print` but **does not have `view`**. Some vendors or distributions may backport or adjust features, so **check the actual `jfr` binary you are running and its help output**, rather than only looking at the version of the application that created the recording.
 
-Mục tiêu của bài: kiểm tra khả năng hỗ trợ, tạo/kiểm tra recording, tìm view phù hợp, đọc đúng ý nghĩa bảng tổng hợp, phân biệt dữ liệu vắng mặt với “không có vấn đề”, xử lý lỗi tương thích và biết phương án thay thế trên JDK cũ.
+The goal of this lesson: verify support, create/inspect recordings, pick the right view, read summary tables accurately, distinguish absent data from "no problem," handle compatibility errors, and know fallback options on older JDKs.
 
-## 1. Phân biệt các công cụ đọc JFR
+## 1. Distinguishing JFR reading tools
 
-| Lệnh/công cụ | Kết quả chính | Khi nào nên dùng |
+| Command/tool | Primary output | When to use |
 | --- | --- | --- |
-| `jfr summary app.jfr` | Thống kê recording và loại sự kiện, số lượng, dung lượng. | **Bước đầu**: file có đọc được, thời gian ghi và event nào xuất hiện? |
-| `jfr metadata app.jfr` | Mô tả các event type, field và category. | Muốn kiểm tra schema/field trước khi lọc hoặc phân tích. |
-| `jfr print --events ... app.jfr` | In **từng sự kiện** được chọn, có thể ở định dạng văn bản/JSON/XML. | Cần timestamp, stack trace, thông tin chi tiết của một event cụ thể. |
-| `jfr view <view> app.jfr` | Bảng thống kê/nhóm/tổng hợp theo **view** có sẵn hoặc cách trình bày cho event type được hỗ trợ. | Cần bức tranh tổng quan nhanh bằng CLI. |
-| `jcmd <pid> JFR.view ...` | Hiển thị view từ dữ liệu JFR của JVM đang chạy **nếu diagnostic command được hỗ trợ**. | Muốn xem gần thời gian thực mà không phải mở file dump trước. |
-| JDK Mission Control (JMC) | Giao diện đồ họa: timeline, biểu đồ, tương quan nhiều loại sự kiện. | Phân tích sâu, chọn khoảng thời gian, drill-down và đọc stack traces trực quan. |
+| `jfr summary app.jfr` | Recording stats and event types, counts, and sizes. | **First step**: is the file readable, what is the recording span, and which events appear? |
+| `jfr metadata app.jfr` | Describes event types, fields, and categories. | When you need to check schemas/fields before filtering or analyzing. |
+| `jfr print --events ... app.jfr` | Prints **individual** selected events, in text/JSON/XML. | When you need timestamps, stack traces, and detailed fields of specific events. |
+| `jfr view <view> app.jfr` | Aggregated/grouped summary tables using built-in **views** or supported event-type presentations. | When you need a quick overview from the CLI. |
+| `jcmd <pid> JFR.view ...` | Displays a view from a running JVM's JFR data **if the diagnostic command is supported**. | When you want a near-real-time view without dumping a file first. |
+| JDK Mission Control (JMC) | Graphical UI: timelines, charts, cross-event correlation. | Deep analysis, selecting time windows, drill-down, and visual stack inspection. |
 
-**`summary` không thay thế `view`.** `summary` chủ yếu cho biết **có bao nhiêu event** và chúng chiếm bao nhiêu dung lượng; một view như `gc-pauses` nhóm dữ liệu theo góc nhìn về pause, trong khi `allocation-by-class` liên quan đến các mẫu cấp phát theo class. Đồng thời, **`view` không thay thế `print`** nếu cần xem một event xảy ra chính xác lúc nào và có những field nào.
+**`summary` does not replace `view`.** `summary` mainly tells you **how many events** exist and how much space they take; a view like `gc-pauses` groups data around a pause perspective, while `allocation-by-class` focuses on allocation samples by class. At the same time, **`view` does not replace `print`** when you need to know the exact timestamp and fields of a single event.
 
-`jfr view` **đọc tệp recording đã có**; chạy lệnh này không tự ghi JFR vào ứng dụng. Hãy đảm bảo file `.jfr` thực sự tồn tại và chứa các event phù hợp với câu hỏi đang phân tích.
+`jfr view` **reads an existing recording file**; running this command does not itself record JFR data in the application. Make sure the `.jfr` file actually exists and contains events relevant to the question being investigated.
 
-## 2. Kiểm tra phiên bản và khả năng hỗ trợ trước tiên
+## 2. Check version and support first
 
-Các lệnh sau chạy trên terminal có cài **JDK** (không chỉ runtime tối giản thiếu công cụ):
+Run the following commands in a terminal with a **JDK** installed (not a minimal runtime lacking tools):
 
 ```bash
 java -version
@@ -32,14 +32,14 @@ jfr help
 jfr help view
 ```
 
-- `java -version` cho biết `java` mà shell sẽ chạy.
-- `jfr --version` cho biết phiên bản của **công cụ `jfr`**; hai chương trình có thể trỏ vào **hai JDK khác nhau** do `PATH` và `JAVA_HOME`.
-- `jfr help view` (hoặc `jfr --help view` nếu được help của chính phiên bản đó xác nhận) hiển thị cú pháp và **danh sách view** khả dụng.
-- Nếu công cụ báo không nhận ra `view`, không cố chạy lại với một tên view khác. Hãy dùng JDK có hỗ trợ `jfr view` (JDK 21+ theo tài liệu chính thức) hoặc chuyển sang `jfr summary`/`jfr print`/JMC.
+- `java -version` shows which `java` the shell will invoke.
+- `jfr --version` shows the version of the **`jfr` tool**; the two programs can point to **two different JDKs** due to `PATH` and `JAVA_HOME`.
+- `jfr help view` (or `jfr --help view` if confirmed by that version's help) shows the syntax and **list of available views**.
+- If the tool reports `view` is unrecognized, do not retry with a different view name. Use a JDK that supports `jfr view` (JDK 21+ per official docs) or switch to `jfr summary`/`jfr print`/JMC.
 
-Ví dụ một môi trường có **JDK 17 chạy service** và **JDK 21 cài riêng để phân tích** là hoàn toàn hợp lý: cần chạy executable `jfr` từ JDK 21 để dùng `view`. Tuy nhiên, phải xác minh khả năng **đọc file `.jfr` cụ thể** qua `jfr summary` trước khi diễn giải kết quả; đừng mặc định mọi recording của mọi JDK/vendor đều tương thích tuyệt đối.
+For example, an environment running a **service on JDK 17** and having **JDK 21 installed separately for analysis** is completely valid: you just need to invoke the `jfr` executable from JDK 21 to use `view`. However, verify that the **specific `.jfr` file is readable** via `jfr summary` before interpreting results; do not assume every recording from every JDK/vendor is 100% compatible.
 
-Trên Linux/macOS, khi có nhiều JDK, có thể chỉ rõ đường dẫn (đường dẫn bên dưới là **ví dụ**, không phải đường dẫn có sẵn ở mọi máy):
+On Linux/macOS, when multiple JDKs are installed, you can specify the full path (the path below is an **example**, not a path guaranteed to exist on every machine):
 
 ```bash
 /opt/jdk-21/bin/jfr --version
@@ -47,116 +47,116 @@ Trên Linux/macOS, khi có nhiều JDK, có thể chỉ rõ đường dẫn (đ�
 /opt/jdk-21/bin/jfr summary recording.jfr
 ```
 
-Trên Windows, dùng `<JDK21_HOME>\bin\jfr.exe` trong PowerShell/CMD sau khi thay placeholder bằng đường dẫn thực. Không dùng `java -version` làm bằng chứng duy nhất rằng `jfr` trên `PATH` có cùng phiên bản.
+On Windows, use `<JDK21_HOME>\bin\jfr.exe` in PowerShell/CMD after replacing the placeholder with the actual path. Do not rely on `java -version` alone as proof that `jfr` on `PATH` has the same version.
 
-## 3. Cú pháp chính của `jfr view`
+## 3. Core syntax of `jfr view`
 
-Theo tài liệu JDK 21:
+According to JDK 21 documentation:
 
 ```text
 jfr view [--verbose] [--width <integer>] [--truncate <mode>]
          [--cell-height <integer>] <view> <file>
 ```
 
-Trong đó:
+Where:
 
-- `<view>` là tên một **bảng view** (ví dụ `gc-pauses`, `thread-count`, `allocation-by-class`) hoặc một **event type** mà công cụ hỗ trợ hiển thị. Danh sách khả dụng do `jfr help view` cung cấp.
-- `<file>` là đường dẫn tệp JFR, ví dụ `recording.jfr`; có thể dùng đường dẫn tuyệt đối.
-- `--width N` đặt độ rộng tối đa của bảng (đơn vị ký tự); hữu ích khi tên class, method hoặc path dài.
-- `--cell-height N` giới hạn số dòng trình bày bên trong một ô bảng, không phải khoảng thời gian đo.
-- `--truncate beginning|end` quyết định giữ phần đầu hay cuối của text vượt quá độ rộng ô; mặc định cắt phần cuối theo tài liệu JDK 21.
-- `--verbose` in ra **truy vấn/định nghĩa tạo nên view** để hiểu dữ liệu được lọc/nhóm/tính thế nào. Nó không bật thêm event bị thiếu trong file.
+- `<view>` is the name of a **view table** (e.g., `gc-pauses`, `thread-count`, `allocation-by-class`) or an **event type** supported for display. The available list is provided by `jfr help view`.
+- `<file>` is the path to the JFR file, e.g., `recording.jfr`; an absolute path can be used.
+- `--width N` sets the maximum table width (in characters); useful when class, method, or path names are long.
+- `--cell-height N` limits the number of lines displayed inside a table cell, not the measurement time span.
+- `--truncate beginning|end` controls whether to keep the beginning or end of text exceeding cell width; defaults to truncating the end per JDK 21 documentation.
+- `--verbose` prints the **query/definition behind the view** so you understand how data is filtered, grouped, and computed. It does not enable missing events in the file.
 
-Thứ tự: **options đứng trước tên view**, tên file đứng sau view.
+Order: **options come before the view name**, and the filename comes after the view.
 
 ```bash
-# Danh sách view và help của đúng JDK đang dùng
+# List views and help for the exact JDK in use
 jfr help view
 
-# Ví dụ bảng tổng hợp
+# Example summary tables
 jfr view gc-pauses recording.jfr
 jfr view thread-count recording.jfr
 jfr view allocation-by-class recording.jfr
 
-# Tăng độ rộng bảng, xem định nghĩa của view
+# Increase table width, inspect the view's definition
 jfr view --width 120 --verbose gc-pauses recording.jfr
 
-# Chọn cách cắt chuỗi dài và số dòng trong ô
+# Control long-string truncation and lines per cell
 jfr view --width 140 --truncate beginning --cell-height 3 allocation-by-site recording.jfr
 ```
 
-Tên view có thể thay đổi giữa các phiên bản. Những tên trên được cung cấp trong nhóm view ban đầu của JDK 21; **chỉ dùng khi `jfr help view` của chính executable đang chạy liệt kê tên đó**. Không tự tạo tên như `cpu-hotspots` hoặc `gc-summary` theo trí nhớ rồi coi là cú pháp chuẩn.
+View names can change across versions. The names above belong to the initial JDK 21 view set; **only use a name when `jfr help view` from the actual executable lists it**. Do not invent names like `cpu-hotspots` or `gc-summary` from memory and treat them as standard syntax.
 
-Các lệnh đặc biệt trên JDK 21+:
+Special commands in JDK 21+:
 
 ```bash
-# Liệt kê những event type có thể đưa trực tiếp vào view theo file
+# List event types that can be passed directly to view for the file
 jfr view types recording.jfr
 
-# In lần lượt nhiều view định nghĩa sẵn (có thể rất dài)
+# Print many predefined views sequentially (can be very long)
 jfr view all-views recording.jfr
 
-# Hiển thị tất cả event theo cơ chế view (có thể cực lớn)
+# Display all events using the view mechanism (can be huge)
 jfr view all-events recording.jfr
 ```
 
-`all-views` và `all-events` thường sinh nhiều dữ liệu và mất thời gian; hãy ưu tiên một view đúng mục đích. `jfr view types` giúp kiểm tra **event type có trong recording**; nó không chứng minh event đã được cấu hình hoặc ghi đủ số mẫu để kết luận mọi hoạt động của chương trình.
+`all-views` and `all-events` often produce massive output and take time; prefer a targeted view matching your question. `jfr view types` helps check **which event types exist in the recording**; it does not prove an event was configured or captured enough samples to represent all program activity.
 
-## 4. Chuẩn bị một recording phù hợp
+## 4. Preparing a suitable recording
 
-### 4.1. Chụp từ JVM đang chạy bằng `jcmd`
+### 4.1. Capturing from a running JVM with `jcmd`
 
-Trên một JVM có quyền attach (cùng host/user phù hợp), tạo recording trong cửa sổ hai phút:
+On a JVM with attach permissions (same host/matching user), create a recording over a two-minute window:
 
 ```bash
-# <pid> phải được thay bằng PID thật
+# <pid> must be replaced with the actual PID
 jcmd <pid> JFR.start name=diag_2m settings=profile duration=120s filename=/tmp/diag-2m.jfr
 
-# Chỉ sau khi recording hoàn tất và tệp đã được ghi:
+# Only after the recording finishes and the file has been written:
 jfr summary /tmp/diag-2m.jfr
 jfr view gc-pauses /tmp/diag-2m.jfr
 ```
 
-`JFR.start` hoạt động trên JVM, còn `jfr summary/view` đọc **tệp**. `duration=120s` yêu cầu recording dừng sau hai phút; khi có `filename`, dữ liệu được ghi vào tệp khi recording dừng. Đường dẫn phải được **JVM đích** truy cập/ghi được. Nếu JVM chạy trong container, `/tmp/diag-2m.jfr` thuộc filesystem của **container/JVM**, không nhất thiết là `/tmp` của máy đang chạy lệnh phân tích.
+`JFR.start` operates on the JVM, while `jfr summary/view` reads the **file**. `duration=120s` tells the recording to stop after two minutes; when `filename` is specified, data is written to the file when the recording stops. The path must be accessible/writable by the **target JVM**. If the JVM runs inside a container, `/tmp/diag-2m.jfr` is on the **container/JVM** filesystem, not necessarily `/tmp` on the host running analysis commands.
 
-`settings=profile` có thể bật nhiều sự kiện hơn và tạo overhead/size lớn hơn cấu hình `default`. Chọn khoảng thời gian đủ đại diện, nhưng không ghi profile liên tục một cách vô hạn chỉ để thử các view.
+`settings=profile` enables more events and incurs higher overhead/size than `default`. Pick a representative window, rather than recording `profile` indefinitely just to test views.
 
-Khi recording đã chạy và cần snapshot trước khi nó dừng:
+When a recording is already running and you need a snapshot before it stops:
 
 ```bash
 jcmd <pid> JFR.dump name=diag_2m filename=/tmp/diag-snapshot.jfr
 ```
 
-`JFR.dump` ghi snapshot và **recording có thể tiếp tục chạy**. Phân biệt với `JFR.stop` là dừng recording. Kiểm tra `jcmd <pid> help JFR.dump` và quyền ghi tệp nếu câu lệnh báo lỗi; không kỳ vọng file nằm trên máy trạm nếu JVM ở máy khác.
+`JFR.dump` writes a snapshot and **the recording can continue running**. Contrast this with `JFR.stop`, which stops the recording. Check `jcmd <pid> help JFR.dump` and file write permissions if the command fails; do not expect the file to appear on your workstation if the JVM runs on another host.
 
-### 4.2. Chụp lúc khởi động
+### 4.2. Capturing at startup
 
-Một ví dụ khác: ghi từ lúc service bắt đầu, tự xuất file khi JVM thoát bình thường:
+Another example: record from service startup and automatically write the file on normal JVM exit:
 
 ```bash
 java -XX:StartFlightRecording=filename=startup.jfr,settings=profile,dumponexit=true \
   -jar app.jar
 ```
 
-Không dùng ví dụ này như bảo đảm rằng **mọi kiểu crash/SIGKILL/OOMKilled** đều có file hoàn chỉnh. Nếu cần bảo toàn chứng cứ sự cố, hãy chuẩn bị disk, quyền ghi và quy trình thu thập trước. Sau khi có file, có thể dùng `jfr summary` và `jfr view` trên máy phân tích phù hợp.
+Do not treat this example as a guarantee that **every crash/SIGKILL/OOMKilled** will leave a complete file. If you need to preserve incident evidence, prepare disk space, write permissions, and collection procedures in advance. Once you have the file, you can run `jfr summary` and `jfr view` on a suitable analysis machine.
 
-### 4.3. Chọn sự kiện trước, rồi mới chọn view
+### 4.3. Pick the events first, then pick the view
 
-Một view chỉ tổng hợp **những sự kiện đã được ghi**. Nếu recording dùng `default` hoặc `profile` nhưng event mục tiêu bị tắt, chu kỳ ghi quá ngắn, event bị lọc bởi threshold, hoặc sampling bỏ qua hoạt động ngắn, view có thể rỗng.
+A view only aggregates **events that were recorded**. If a recording uses `default` or `profile` but the target event was disabled, the capture window was too short, events were filtered out by a threshold, or sampling missed short-lived work, the view may be empty.
 
-Ví dụ:
-- `allocation-by-class` dựa trên các event cấp phát/sampling được cấu hình, **không phải bảng toàn bộ từng object** của Java heap.
-- `hot-methods` thường dựa vào samples, **không phải phép đo thời gian CPU chính xác ở từng dòng code**.
-- `file-reads-by-path` không nhất thiết ghi mọi lần đọc file ngắn nếu cấu hình threshold/sampling không bao phủ.
-- `gc-pauses` chỉ có ý nghĩa khi khoảng recording có những GC event phù hợp; một recording ngắn có thể chưa có GC.
+For example:
+- `allocation-by-class` is based on configured allocation/sampling events, **not an inventory of every single object** on the Java heap.
+- `hot-methods` typically relies on samples, **not exact CPU time measurements per line of code**.
+- `file-reads-by-path` does not necessarily record every brief file read if threshold/sampling settings omit them.
+- `gc-pauses` is only meaningful if the recording window contains relevant GC events; a short recording may have zero GCs.
 
-Do đó khi view trống, kiểm tra **event name**, `jfr summary`, `jfr metadata` và cấu hình recording trước khi nhận xét hoạt động thực tế bằng 0.
+Therefore, when a view is empty, check **event names**, `jfr summary`, `jfr metadata`, and the recording configuration before claiming actual activity was zero.
 
-## 5. Bài thực hành Java 17+ — tạo recording có sự kiện biết trước
+## 5. Java 17+ hands-on lab — create a recording with known events
 
-Để thực hành `jfr view` mà không phụ thuộc một ứng dụng lớn, ví dụ sau dùng **JFR API có từ Java 17** để tạo năm event `demo.BatchStep`, rồi lưu tệp `view-demo.jfr`. Phần **tạo recording** có thể chạy bằng JDK 17; phần **`jfr view`** cần executable có hỗ trợ, ví dụ JDK 21+.
+To practice `jfr view` without depending on a large application, the following example uses the **JFR API available since Java 17** to emit five `demo.BatchStep` events and save `view-demo.jfr`. The **recording creation** part can run on JDK 17; the **`jfr view`** part requires a binary that supports it, such as JDK 21+.
 
-Lưu tệp `JfrViewDemo.java`:
+Save `JfrViewDemo.java`:
 
 ```java
 import java.nio.file.Path;
@@ -199,226 +199,226 @@ public final class JfrViewDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên trong thư mục có quyền ghi:
+Compile and run with JDK 17 or later in a writable directory:
 
 ```bash
 javac JfrViewDemo.java
 java JfrViewDemo
 ```
 
-**Stdout của chương trình nếu chạy thành công:**
+**Stdout printed by the program if it runs successfully:**
 
 ```text
 Created view-demo.jfr
 ```
 
-Chương trình bật rõ loại event `demo.BatchStep` với ngưỡng bằng 0, gọi `begin()/commit()` năm lần rồi `stop()/dump()` recording. Dung lượng file, timestamp, số loại event bổ sung và cách công cụ định dạng bảng có thể thay đổi theo JDK. Chương trình không có mục đích mô phỏng tải CPU/GC thực tế; nó nhằm giúp kiểm tra **đường đi ghi – đọc – xem tổng hợp**.
+The program explicitly enables `demo.BatchStep` with threshold zero, calls `begin()/commit()` five times, and calls `stop()/dump()` on the recording. File size, timestamps, additional event types, and how the tool formats tables can vary across JDKs. The program is not meant to simulate real CPU/GC load; it is meant to verify the **record – read – aggregated view** path.
 
-Trên JDK 21+, đọc file như sau:
+On JDK 21+, read the file as follows:
 
 ```bash
 jfr --version
 jfr summary view-demo.jfr
 jfr view types view-demo.jfr
 
-# Tên event tự định nghĩa, với bản jfr view hỗ trợ event-type view
+# Custom event name, on jfr view versions supporting event-type views
 jfr view demo.BatchStep view-demo.jfr
 
-# Xem các event riêng lẻ để đối chiếu
+# Inspect individual events to cross-check
 jfr print --events demo.BatchStep view-demo.jfr
 ```
 
-Đối với loại event tùy chỉnh này, các trường `items` được phát ra lần lượt **10, 20, 30, 40, 50** và có các timestamp/duration thực tế do JVM ghi. **Không giả định `jfr view` sẽ tự tính “tổng items = 150”** khi dùng tên event: việc nhóm, công thức và cột xuất ra phụ thuộc định nghĩa view/event type. Nếu muốn xác định tổng nghiệp vụ từ năm event trong ví dụ, cộng các field `items` ở từng event hoặc xử lý có chủ đích; không suy diễn từ một nhãn bảng mà không kiểm tra.
+For this custom event type, the `items` field is emitted as **10, 20, 30, 40, 50** in order with real timestamps/durations recorded by the JVM. **Do not assume `jfr view` will automatically compute "total items = 150"** when passing the event name: grouping, formulas, and output columns depend on the view/event-type definition. If you want the business total across the five events in the example, sum the `items` fields from individual events or process them intentionally; do not infer from a table header without checking.
 
-Nếu dùng `jfr` của JDK 17 cho cùng tệp, có thể chạy `jfr summary` và `jfr print`, nhưng `jfr view` **không được hỗ trợ** theo tài liệu JDK 17. Bước phân tích với JDK 21+ dùng chính tệp `view-demo.jfr` vừa tạo, không phải một recording mới.
+If you use JDK 17's `jfr` on the same file, you can run `jfr summary` and `jfr print`, but `jfr view` **is not supported** per JDK 17 documentation. The JDK 21+ analysis step uses the exact `view-demo.jfr` file just created, not a new recording.
 
-## 6. Chọn đúng view theo câu hỏi chẩn đoán
+## 6. Choosing the right view for the diagnostic question
 
-Những view bên dưới là **ví dụ có trong danh sách view của JDK 21**. Danh sách cụ thể nên xác nhận bằng `jfr help view` trên máy đang dùng.
+The views below are **examples from the JDK 21 view list**. Confirm the exact list with `jfr help view` on the machine in use.
 
-| Câu hỏi thực tế | View gợi ý | Cách đọc, giới hạn cần nhớ |
+| Practical question | Suggested views | How to read, caveats to remember |
 | --- | --- | --- |
-| GC pause có ảnh hưởng latency? | `gc-pauses`, `gc-pause-phases`, `gc` | Xem count/tổng thời gian/phân bố event và pha; kiểm tra p95/p99 bằng timeline và event cụ thể nếu cần. |
-| Bộ nhớ được cấp phát ở đâu? | `allocation-by-class`, `allocation-by-site`, `allocation-by-thread` | Các mẫu theo kiểu, site, thread; dữ liệu sampling và cấu hình event ảnh hưởng kết quả. |
-| Code thường xuất hiện trong CPU samples? | `hot-methods` | Gợi ý hotspot; đọc stack samples, không quy trực tiếp số mẫu thành số millisecond chính xác. |
-| Có vấn đề thread? | `thread-count`, `thread-cpu-load`, `thread-allocation` | Xem xu hướng/sự phân bố theo event được ghi, liên hệ thread states và workload. |
-| IO nào đáng chú ý? | `file-reads-by-path`, `file-writes-by-path`, `socket-reads-by-host` | Các event vượt threshold hoặc được bật; không phải inventory mọi syscall. |
-| Lỗi/exception nào lặp lại? | `exception-by-class` **chỉ nếu help liệt kê**; thông dụng hơn là `exception-by-site`, `exception-by-message` | Exception events có thể tốn overhead; xem exception class, nơi xảy ra và cấu hình thu. |
-| Class loader hoạt động thế nào? | `class-loaders`, `longest-class-loading` | Đối chiếu số lần nạp/lifecycle; bản thân view không chứng minh loader leak. |
-| Khác biệt môi trường? | `jvm-flags`, `container-memory-usage`, `cpu-load` | Cấu hình và mức sử dụng quan sát được; gắn với thời gian recording. |
+| Do GC pauses affect latency? | `gc-pauses`, `gc-pause-phases`, `gc` | Inspect count/total time/distribution of events and phases; check p95/p99 via timeline and specific events if needed. |
+| Where is memory allocated? | `allocation-by-class`, `allocation-by-site`, `allocation-by-thread` | Samples by type, site, thread; sampling data and event settings affect results. |
+| Which code appears often in CPU samples? | `hot-methods` | Hotspot hint; read stack samples, do not directly convert sample counts to exact milliseconds. |
+| Is there a thread issue? | `thread-count`, `thread-cpu-load`, `thread-allocation` | Inspect trends/distributions from recorded events, relate to thread states and workload. |
+| What I/O stands out? | `file-reads-by-path`, `file-writes-by-path`, `socket-reads-by-host` | Events exceeding threshold or enabled; not an inventory of every syscall. |
+| Which errors/exceptions recur? | `exception-by-class` **only if listed by help**; more commonly `exception-by-site`, `exception-by-message` | Exception events can incur overhead; inspect exception class, site, and collection config. |
+| How are class loaders behaving? | `class-loaders`, `longest-class-loading` | Cross-check load counts/lifecycle; the view itself does not prove a loader leak. |
+| Environment differences? | `jvm-flags`, `container-memory-usage`, `cpu-load` | Observed configuration and usage; tied to recording window. |
 
-**Không dùng riêng một bảng để kết luận nguyên nhân gốc.** Ví dụ `hot-methods` có tỷ lệ samples cao ở phương thức A có thể là hậu quả của workload đi qua A nhiều nhất, chứ không đồng nghĩa A đang lỗi hoặc cần tối ưu. `allocation-by-class` thấy nhiều `byte[]` cũng cần kiểm tra ai cấp phát, tuổi đời đối tượng và tác động GC.
+**Do not use a single table alone to conclude root cause.** For example, `hot-methods` showing a high sample share in method A may simply reflect that the workload passes through A most often, not that A is buggy or needs optimization. `allocation-by-class` showing lots of `byte[]` still requires checking who allocates them, object lifetimes, and GC impact.
 
-### Ví dụ đọc `gc-pauses` theo số liệu giả định
+### Example of reading `gc-pauses` with hypothetical numbers
 
-Giả sử một recording kéo dài **120 giây**, event liên quan cho thấy **120 lần pause**, tổng pause time **480 ms**. Các phép tính độc lập:
+Suppose a recording lasts **120 seconds**, and the relevant events show **120 pauses** with a total pause time of **480 ms**. Independent calculations:
 
-- **Pause trung bình** = `480 ms / 120 = 4 ms` cho mỗi lần.
-- **Tỷ lệ wall-clock dành cho pause** (trong mô hình tổng pause phù hợp không tính trùng) = `0,48 s / 120 s = 0,4%`.
+- **Average pause** = `480 ms / 120 = 4 ms` per pause.
+- **Wall-clock share spent in pauses** (under a model where summed pauses do not overlap) = `0.48 s / 120 s = 0.4%`.
 
-Đây chỉ là dữ liệu **giả định để luyện đọc**, không phải output mặc định của `jfr view` và không phải ngưỡng “tốt/xấu” áp dụng mọi hệ thống. Không thể suy ra **pause dài nhất**, `p95` hay `p99` từ riêng tổng và số lần. Một vài pause kéo dài hàng trăm ms có thể gây tail latency cao dù trung bình 4 ms.
+These are purely **hypothetical numbers for reading practice**, not default `jfr view` output and not "good/bad" thresholds for every system. You cannot deduce the **longest pause**, `p95`, or `p99` from just the sum and count. A few pauses lasting hundreds of milliseconds can cause high tail latency even with a 4 ms average.
 
-Để biết những pause dài đó xảy ra lúc nào, chuyển sang `jfr print --events jdk.GarbageCollection ...` hoặc JMC và dùng event/pha GC phù hợp. Đối chiếu request latency/traffic cùng khoảng thời gian; tránh đọc percent hoặc duration mà không kiểm tra đơn vị.
+To find out when those long pauses occurred, switch to `jfr print --events jdk.GarbageCollection ...` or JMC and inspect the relevant GC events/phases. Correlate with request latency/traffic in the same time window; avoid reading percentages or durations without checking units.
 
-### Vì sao “Top 10” cần thận trọng?
+### Why "Top 10" requires caution
 
-Các view hiển thị những mục đứng đầu theo thống kê của **view đó**; có thể là số event, số mẫu, tổng duration hoặc một phép xếp hạng khác. Trước khi đưa ra kết luận:
+Views display top entries according to **that view's** statistic; it may be event count, sample count, total duration, or another ranking metric. Before concluding:
 
-1. Xem tên cột, đơn vị và mô tả view.
-2. Dùng `--verbose` để đọc định nghĩa/truy vấn của view, nhất là cột có nhãn rút gọn.
-3. Kiểm tra recording settings, threshold và mẫu.
-4. Nếu cần bằng chứng về một lần xảy ra cụ thể, dùng `jfr print` hoặc timeline của JMC.
+1. Check column names, units, and the view description.
+2. Use `--verbose` to read the view's query/definition, especially for columns with abbreviated labels.
+3. Check recording settings, thresholds, and sample counts.
+4. When you need evidence of a specific occurrence, use `jfr print` or JMC's timeline.
 
-“Không nằm trong Top 10” **không đồng nghĩa không có vấn đề**: bảng có thể đã giới hạn số dòng, event type không được bật, hay dữ liệu bị sampling bỏ sót.
+"Not in the Top 10" **does not mean there is no problem**: the table may truncate row count, the event type may not be enabled, or sampling may have missed it.
 
-## 7. Điều chỉnh khả năng đọc của bảng ở terminal
+## 7. Adjusting table readability in the terminal
 
-### 7.1. Tên class/method/path bị cắt
+### 7.1. Truncated class/method/path names
 
 ```bash
 jfr view --width 160 --cell-height 4 allocation-by-site recording.jfr
 ```
 
-`--width` tăng độ rộng bảng, giúp thấy những stack trace/path dài. `--cell-height` tăng dòng hiển thị trong một ô nhưng không làm tăng số sự kiện được ghi. Nếu terminal vẫn nhỏ, chuyển đầu ra sang file text theo công cụ shell hoặc dùng JMC để mở tương tác; không coi dấu `...` là một phần tên Java.
+`--width` increases table width, helping reveal long stack traces or paths. `--cell-height` increases lines shown per cell without increasing recorded events. If the terminal is still narrow, redirect output to a text file using shell tools or open it interactively in JMC; do not treat `...` as part of a Java identifier.
 
-### 7.2. Chọn giữ phần đầu/cuối chuỗi
+### 7.2. Choosing whether to keep the beginning or end of strings
 
 ```bash
 jfr view --width 120 --truncate beginning file-reads-by-path recording.jfr
 jfr view --width 120 --truncate end file-reads-by-path recording.jfr
 ```
 
-Cắt phần đầu có thể giữ **tên file ở cuối path** dễ nhận biết; cắt phần cuối có thể giữ **prefix/thư mục gốc**. Đây là chỉ thay đổi cách hiển thị, không thay đổi recording. Khi làm báo cáo điều tra, đừng sao chép path đã bị cắt rồi coi đó là toàn bộ path.
+Truncating the beginning can keep the recognizable **filename at the end of a path**; truncating the end can keep the **prefix/root directory**. This only changes display, not the recording. When writing an investigation report, do not copy a truncated path and treat it as the full path.
 
-### 7.3. Xem truy vấn view được dùng
+### 7.3. Inspecting the view query used
 
 ```bash
 jfr view --verbose hot-methods recording.jfr
 ```
 
-`--verbose` giúp quan sát cơ chế lọc/nhóm/thống kê mà view sử dụng ở phiên bản đó. Không nhầm đây là một cách **bật stack traces hoặc thay đổi cấu hình JFR**; file đã ghi xong, cờ hiển thị không thể bổ sung các event thiếu.
+`--verbose` lets you see the filtering/grouping/aggregation mechanism the view uses in that version. Do not mistake this for a way to **enable stack traces or change JFR configuration**; the file is already recorded, and display flags cannot add missing events.
 
-## 8. Đọc dữ liệu đang chạy bằng `jcmd JFR.view` khi có hỗ trợ
+## 8. Reading live data with `jcmd JFR.view` when supported
 
-Bên cạnh lệnh đọc file, trên JDK hỗ trợ diagnostic command tương ứng, có thể xem view trực tiếp từ một JVM đang chạy:
+Alongside reading files, on a JDK supporting the corresponding diagnostic command, you can inspect a view directly from a running JVM:
 
 ```bash
-# Lấy PID từ môi trường thực tế
+# Get the PID from the actual environment
 jcmd -l
 
-# Kiểm tra JVM mục tiêu có hỗ trợ hay không
+# Check whether the target JVM supports it
 jcmd <pid> help JFR.view
 
-# Ví dụ xem view từ dữ liệu của JVM, không cần chỉ định file .jfr
+# Example viewing from the JVM's data without specifying a .jfr file
 jcmd <pid> JFR.view gc-pauses
 ```
 
-`jcmd` cần quyền attach phù hợp và phải nhắm đúng JVM/PID. **`jfr view` và `jcmd JFR.view` không có cùng giao diện tham số:**
+`jcmd` requires appropriate attach permissions and must target the right JVM/PID. **`jfr view` and `jcmd JFR.view` do not share the exact same parameter interface:**
 
 | | `jfr view` | `jcmd JFR.view` |
 | --- | --- | --- |
-| Nguồn | Một tệp `.jfr` có sẵn. | Dữ liệu JFR của JVM đang chạy. |
-| Đầu vào chính | `<view> <file>`. | `<pid> JFR.view <view>`. |
-| Quyền | Đọc được tệp từ máy phân tích. | Có quyền attach vào JVM. |
-| Cửa sổ thời gian | Nội dung recording file. | Phụ thuộc dữ liệu còn giữ và những tùy chọn như `maxage`/`maxsize` mà JVM hỗ trợ. |
-| Kiểm tra hỗ trợ | `jfr help view`. | `jcmd <pid> help JFR.view`. |
+| Source | An existing `.jfr` file. | JFR data of a running JVM. |
+| Main input | `<view> <file>`. | `<pid> JFR.view <view>`. |
+| Permissions | Read access to the file from the analysis machine. | Permission to attach to the JVM. |
+| Time window | Contents of the recording file. | Depends on retained data and options like `maxage`/`maxsize` supported by the JVM. |
+| Checking support | `jfr help view`. | `jcmd <pid> help JFR.view`. |
 
-Trên những phiên bản hỗ trợ, `JFR.view` thường có tùy chọn như `maxage`, `maxsize`, `width`, `verbose`. Xem help của **JVM đích** trước khi dùng; không tự truyền nguyên cú pháp `--width` của `jfr` sang `jcmd` vì `jcmd` dùng tham số kiểu `key=value`/positionals riêng.
+On supporting versions, `JFR.view` typically provides options such as `maxage`, `maxsize`, `width`, and `verbose`. Check the **target JVM's** help before using; do not blindly pass `jfr`'s `--width` syntax to `jcmd`, since `jcmd` uses its own `key=value`/positional arguments.
 
-Nếu JVM không hỗ trợ `JFR.view` hoặc không thể attach, vẫn có thể tạo/dump JFR bằng cách được phép rồi phân tích **offline** bằng JDK mới có `jfr view`.
+If the JVM does not support `JFR.view` or attach is unavailable, you can still create/dump JFR through permitted paths and analyze it **offline** with a newer JDK that has `jfr view`.
 
-## 9. Phương án an toàn trên JDK 17 hoặc khi `view` không có
+## 9. Safe alternatives on JDK 17 or when `view` is unavailable
 
-Đối với JDK 17, `jfr summary`, `jfr print`, `jfr metadata` vẫn hữu ích:
+For JDK 17, `jfr summary`, `jfr print`, and `jfr metadata` remain useful:
 
 ```bash
-# Xác định event nào hiện diện, số lượng và phạm vi recording
+# Identify which events are present, counts, and recording span
 jfr summary recording.jfr
 
-# Xem schema event đã ghi
+# Inspect recorded event schemas
 jfr metadata recording.jfr
 
-# Chỉ in các event GC đã ghi (tên event nên kiểm tra với summary)
+# Print only recorded GC events (verify event names against summary)
 jfr print --events jdk.GarbageCollection recording.jfr
 
-# Nếu cần xử lý bằng chương trình ngoài, có thể lấy JSON
+# If external programmatic processing is needed, export JSON
 jfr print --json --events jdk.GarbageCollection recording.jfr
 ```
 
-`jfr print --json` cho dữ liệu event dạng machine-readable để viết chương trình tổng hợp theo nghiệp vụ; cần xử lý cấu trúc JSON đúng cách, không regex trên output dạng bảng. Với file lớn, `print` tất cả event có thể rất tốn bộ nhớ, thời gian và dung lượng stdout. Hãy lọc theo event type và chỉ thu những field cần thiết.
+`jfr print --json` outputs machine-readable event data for custom aggregation scripts; parse the JSON structure properly rather than running regexes over table output. For large files, printing all events can consume significant memory, time, and stdout volume. Filter by event type and extract only the fields you need.
 
-Một lựa chọn khác là **mở bằng JDK Mission Control**: lọc khoảng thời gian, xem GC timeline, CPU, allocation, thread, I/O, stack traces và drill-down. Nếu cần view cho mục đích nhanh mà service vẫn dùng JDK 17, hãy thử executable `jfr` từ **JDK 21+ trên máy phân tích**, sau khi `summary` xác nhận file tương thích. Không cần nâng Java runtime production chỉ để xem một bảng tổng hợp từ tệp đã có.
+Another option is **opening in JDK Mission Control**: filter time ranges, inspect GC timelines, CPU, allocations, threads, I/O, stack traces, and drill down. If you want quick views while the service still runs JDK 17, try the `jfr` executable from **JDK 21+ on your analysis machine**, after `summary` confirms file compatibility. There is no need to upgrade the production Java runtime just to view a summary table from an existing file.
 
-## 10. Xử lý sự cố thường gặp
+## 10. Troubleshooting common issues
 
-| Triệu chứng | Nguyên nhân có thể | Cách kiểm tra/khắc phục |
+| Symptom | Possible cause | How to check/fix |
 | --- | --- | --- |
-| `Unrecognized command: view` hoặc help không có `view` | `jfr` quá cũ hoặc bản phân phối khác. | `jfr --version`, đường dẫn executable; dùng JDK 21+ có tính năng hoặc fallback. |
-| `jfr: command not found` / không tìm thấy `jfr.exe` | Dùng JRE tối giản, JDK chưa cài hoặc `PATH` sai. | Tìm `<JDK_HOME>/bin/jfr` và chạy bằng đường dẫn đầy đủ. |
-| `Unknown view` | Sai tên view hoặc tên không tồn tại ở phiên bản này. | `jfr help view`; phân biệt `gc-pauses` với tên bạn tự nghĩ ra. |
-| Không mở được `recording.jfr` | Sai path, file không được tạo/ghi xong, quyền đọc hoặc file hỏng. | `ls -lh`/`dir`, `jfr summary`, kiểm tra log JFR/dung lượng file. |
-| View hiển thị ít hoặc không có dòng | Event chưa bật, threshold lọc bỏ, sample hiếm, recording ngắn, view không liên quan. | `jfr summary`, `jfr metadata`, cấu hình `.jfc` và workload thực tế. |
-| Nhiều tên dài bị `...` | Bảng hẹp/truncate display. | `--width`/`--cell-height`, thay `--truncate`, xem raw event nếu cần. |
-| `all-views` quá nhiều output | Gọi quá rộng trên file lớn. | Chọn từng view theo giả thuyết, chỉ chạy `all-views` khi thật cần. |
-| Số thống kê khác dashboard | Khác cửa sổ thời gian, event type, sampling, aggregation hoặc instance. | Đồng bộ timestamp/timezone, scope JVM, threshold, tên event và công thức. |
-| `jcmd ... JFR.view` không tồn tại | JVM đích quá cũ, lệnh không được cung cấp hoặc thiếu attach permission. | `jcmd <pid> help`; chuyển sang phân tích file bằng `jfr view`. |
-| View có vẻ “không chính xác” về allocation | Sampling khiến con số không phải tổng số allocation thực. | Xem cấu hình event sampling và đối chiếu profiler/metric allocation khác. |
+| `Unrecognized command: view` or help lacks `view` | `jfr` is too old or a different distribution. | Check `jfr --version` and executable path; use JDK 21+ with the feature or fallback. |
+| `jfr: command not found` / `jfr.exe` not found | Minimal JRE in use, JDK not installed, or wrong `PATH`. | Locate `<JDK_HOME>/bin/jfr` and run by full path. |
+| `Unknown view` | Misspelled view name or absent in this version. | Run `jfr help view`; distinguish `gc-pauses` from invented names. |
+| Cannot open `recording.jfr` | Wrong path, file not finished/written, read permissions, or corrupt file. | `ls -lh`/`dir`, `jfr summary`, check JFR logs and file size. |
+| View shows few or no rows | Event disabled, filtered by threshold, rare samples, short recording, unrelated view. | `jfr summary`, `jfr metadata`, `.jfc` config, and actual workload. |
+| Many long names end in `...` | Narrow table/truncated display. | `--width`/`--cell-height`, change `--truncate`, inspect raw events if needed. |
+| `all-views` produces too much output | Too broad on a large file. | Pick individual views per hypothesis; run `all-views` only when truly needed. |
+| Numbers differ from dashboards | Different time window, event type, sampling, aggregation, or instance. | Align timestamps/timezone, JVM scope, thresholds, event names, and formulas. |
+| `jcmd ... JFR.view` does not exist | Target JVM too old, command not provided, or missing attach permission. | `jcmd <pid> help`; switch to offline file analysis with `jfr view`. |
+| View looks "inaccurate" on allocations | Sampling means numbers are not total actual allocations. | Check sampling event config and cross-check with profilers/other allocation metrics. |
 
-### Bẫy về phiên bản file và tên event
+### Pitfalls with file versions and event names
 
-Phiên bản **tạo** recording, phiên bản **đọc** recording và **loại event được ghi** là ba thông tin khác nhau. Một recording từ JDK 17 có thể được mở bằng công cụ JDK 21 để dùng `view`, nhưng bạn vẫn cần kiểm tra file, event type và schema bằng `summary`/`metadata`. Ngược lại, file mới có event type mà tool cũ không biết không nên bị suy diễn là “không có sự kiện”. Tương tự, một view có sẵn trong help không chứng minh recording đã bật event tương ứng.
+The version that **created** the recording, the version **reading** the recording, and the **recorded event types** are three separate facts. A JDK 17 recording can be opened with a JDK 21 tool to use `view`, though you still must check the file, event types, and schema with `summary`/`metadata`. Conversely, a newer file containing an event type unknown to an older tool must not be interpreted as "no events." Likewise, a view listed in help does not prove the recording enabled the corresponding events.
 
-Nên ghi cả:
-- JDK/vendor/version của ứng dụng được record.
-- JDK/vendor/version của `jfr` đang phân tích.
-- Recording settings (`default`/`profile`/custom), start-end time, duration, kích thước file và instance/PID.
-- Tên view được chạy, các tham số display, tên/cột/đơn vị event được diễn giải.
+Be sure to record:
+- Producer JDK/vendor/version of the recorded application.
+- Reader JDK/vendor/version of `jfr` used for analysis.
+- Recording settings (`default`/`profile`/custom), start–end times, duration, file size, and instance/PID.
+- View name executed, display flags, and exact column names/units interpreted.
 
-## 11. Mẫu quy trình thực tế khi được giao một file `.jfr`
+## 11. Practical workflow template when handed a `.jfr` file
 
-**Tình huống:** đội vận hành chuyển `incident.jfr` và nghi service có pause GC ảnh hưởng độ trễ.
+**Scenario:** operations hands over `incident.jfr` and suspects GC pauses are impacting latency.
 
-1. **Xác nhận tool:** `jfr --version` và `jfr help view`; nếu không có `view`, chọn công cụ mới hơn hoặc fallback.
-2. **Kiểm tra nguồn:** `jfr summary incident.jfr` để biết recording hợp lệ, thời gian và event GC có xuất hiện.
-3. **Chọn view:** `jfr view gc-pauses incident.jfr`; nếu cần pha GC, dùng `gc-pause-phases` khi có trong help.
-4. **Đọc đúng phép tính:** phân biệt count, tổng thời gian, trung bình, percent, các phần trăm phân bố, và thời gian của từng event. Nếu bảng chỉ có aggregate, không tự suy ra thời điểm một spike.
-5. **Đối chiếu chi tiết:** `jfr print --events jdk.GarbageCollection incident.jfr`, JMC timeline và các GC event liên quan; đồng bộ log request latency/traffic.
-6. **Viết kết luận có phạm vi:** “Trong recording 14:00–14:02 trên instance A, nhóm GC pause được ghi có ...” thay vì “GC luôn gây mọi lần chậm của hệ thống”.
-7. **Lưu lệnh tái hiện:** ghi rõ version `jfr`, tên view và đường dẫn/tên file để người khác kiểm tra lại cùng dữ liệu.
+1. **Verify the tool:** run `jfr --version` and `jfr help view`; if `view` is absent, pick a newer tool or fallback.
+2. **Check the source:** run `jfr summary incident.jfr` to verify the recording is valid, check its time span, and confirm GC events are present.
+3. **Choose a view:** run `jfr view gc-pauses incident.jfr`; if GC phases are needed, use `gc-pause-phases` if listed in help.
+4. **Read calculations properly:** distinguish counts, total time, averages, percentages, percentiles, and individual event timestamps. If a table only shows aggregates, do not infer the timing of a spike from it.
+5. **Cross-check details:** run `jfr print --events jdk.GarbageCollection incident.jfr`, JMC timeline, and related GC events; align with request latency/traffic logs.
+6. **Write a scoped conclusion:** "In the 14:00–14:02 recording on instance A, recorded GC pauses had ..." rather than "GC always causes all slowness in the system."
+7. **Save reproducible commands:** record the `jfr` version, view name, and file path/name so others can verify the exact same data.
 
-Với giả thuyết **allocation pressure**, thay các view GC bằng `allocation-by-class`/`allocation-by-site` và xác minh sampling; với giả thuyết **CPU hot path**, dùng `hot-methods` và kiểm tra stack/sample; với vấn đề **thread/IO**, chọn view chuyên biệt rồi mở event chi tiết khi cần.
+For a **allocation pressure** hypothesis, swap GC views for `allocation-by-class`/`allocation-by-site` and verify sampling; for a **CPU hot path** hypothesis, use `hot-methods` and check stacks/samples; for **thread/I/O** issues, choose specialized views and open detailed events when needed.
 
-## 12. Những nhầm lẫn cần tránh
+## 12. Misconceptions to avoid
 
-- **“JDK 17 có JFR nên chắc chắn có `jfr view`.”** Sai: `view` được bổ sung ở JDK 21, còn `summary`/`print` đã có ở JDK 17.
-- **“`jfr view` tự thu thập dữ liệu đang chạy.”** Sai: lệnh `jfr view` đọc **file**; `jcmd JFR.view` là giao diện khác cho JVM đang chạy khi hỗ trợ.
-- **“Một view trống nghĩa là hoạt động bằng 0.”** Sai: có thể recording không bật event/đủ thời gian hoặc threshold lọc bỏ.
-- **“Tên view giống tên event type.”** Không nhất thiết: `gc-pauses` là view tổng hợp; `jdk.GarbageCollection` là tên một loại event.
-- **“`jfr summary` là báo cáo hiệu năng hoàn chỉnh.”** Sai: summary có count/size theo event, không có đủ chuỗi thời gian và đường gọi để kết luận nguyên nhân.
-- **“`allocation-by-class` phản ánh đầy đủ mọi allocation trên heap.”** Sai: thường phụ thuộc samples/sự kiện được bật.
-- **“`hot-methods` chính là % CPU tuyệt đối của từng method.”** Sai: thường là quan sát thống kê từ stack samples; cần chú ý độ đại diện.
-- **“Thêm `--verbose` sẽ bổ sung stack traces bị thiếu.”** Sai: đó là tùy chọn **hiển thị định nghĩa view**.
-- **“Độ rộng bảng lớn hơn đồng nghĩa recording có thêm dữ liệu.”** Sai: `--width`/`--truncate` chỉ thay layout text.
-- **“Tên view trong một bài hướng dẫn luôn áp dụng mọi JDK tương lai.”** Sai: đối chiếu help của công cụ thực tế.
-- **“Có thể copy thẳng output bảng rồi parse ổn định như JSON.”** Không đảm bảo: view hướng tới người đọc; để tự động hóa ổn định hơn hãy cân nhắc `jfr print --json` hoặc JFR consumer API và xử lý schema.
+- **“JDK 17 has JFR, so it definitely has `jfr view`.”** False: `view` was added in JDK 21, while `summary`/`print` were already in JDK 17.
+- **“`jfr view` collects live data from a running process.”** False: `jfr view` reads a **file**; `jcmd JFR.view` is a separate interface for a running JVM when supported.
+- **“An empty view means zero activity.”** False: the recording may not have enabled the event, lacked duration, or filtered it by threshold.
+- **“View names are the same as event type names.”** Not necessarily: `gc-pauses` is an aggregated view; `jdk.GarbageCollection` is an event type name.
+- **“`jfr summary` is a complete performance report.”** False: `summary` gives counts/sizes per event, lacking timelines and call paths needed for root-cause conclusions.
+- **“`allocation-by-class` reflects every single heap allocation.”** False: it typically depends on sampling/enabled events.
+- **“`hot-methods` is the exact % CPU of each method.”** False: it is typically a statistical observation from stack samples; check representativeness.
+- **“Adding `--verbose` fills in missing stack traces.”** False: it is an option to **display the view definition**.
+- **“Larger table width means the recording has more data.”** False: `--width`/`--truncate` only change text layout.
+- **“View names in a tutorial apply to every future JDK.”** False: check the actual tool's help output.
+- **“You can copy table output directly and parse it as stably as JSON.”** Not guaranteed: views are formatted for human readers; for stable automation, consider `jfr print --json` or the JFR consumer API and handle schemas explicitly.
 
-## 13. Checklist trước khi gửi kết luận từ `jfr view`
+## 13. Checklist before sending conclusions from `jfr view`
 
-- [ ] Đã xác minh executable `jfr` có `view` bằng `jfr help view`.
-- [ ] Tệp `.jfr` đọc được qua `jfr summary`, đúng instance và khoảng thời gian.
-- [ ] View chọn theo **câu hỏi**, nằm trong help của phiên bản công cụ.
-- [ ] Event cần thiết thực sự có trong file; hiểu recording settings/threshold/sampling.
-- [ ] Hiểu cột, đơn vị, công thức tổng hợp; dùng `--verbose` nếu nghi ngờ ý nghĩa.
-- [ ] Không suy diễn p95/p99 hoặc nguyên nhân gốc từ bảng aggregate không có dữ liệu tương ứng.
-- [ ] Nếu cần timestamp, stack trace, thread, path thật: xem `jfr print` hoặc JMC.
-- [ ] Khi chia sẻ báo cáo đã ghi rõ JDK tool version, file, view, thời gian và các giới hạn dữ liệu.
+- [ ] Verified the `jfr` binary has `view` using `jfr help view`.
+- [ ] `.jfr` file is readable via `jfr summary` and matches the right instance and time range.
+- [ ] View chosen matches the **question** and appears in the tool version's help.
+- [ ] Necessary events actually exist in the file; recording settings/thresholds/sampling are understood.
+- [ ] Columns, units, and aggregation formulas are understood; used `--verbose` if unsure.
+- [ ] Did not extrapolate p95/p99 or root cause from an aggregate table lacking that data.
+- [ ] Checked `jfr print` or JMC whenever exact timestamps, stack traces, threads, or full paths are needed.
+- [ ] Clearly recorded JDK tool version, file, view, time window, and data limitations when sharing the report.
 
-**Ghi nhớ:** `jfr view` là lớp **tổng hợp và trình bày** trên những JFR events **đã được thu**; nó giúp từ file lớn rút ra góc nhìn nhanh trong terminal. Điều kiện tiên quyết là **bản công cụ có hỗ trợ (JDK 21+ theo tài liệu chính thức)**, ghi đủ event đúng loại và hiểu phép thống kê của từng view. Trên JDK cũ hoặc khi bảng không đủ chiều sâu, phối hợp `jfr summary`, `jfr print`, `jfr metadata` và JMC để kiểm chứng.
+**Takeaway:** `jfr view` is an **aggregation and presentation** layer over JFR events **that were already collected**; it lets you get quick insights from large files in the terminal. Prerequisites are **a tool version with support (JDK 21+ per official docs)**, capturing the right events, and understanding each view's statistics. On older JDKs or when tables lack depth, combine `jfr summary`, `jfr print`, `jfr metadata`, and JMC to verify.
 
-### Tài liệu tham khảo
+### References
 
-- [Oracle JDK 21 — The jfr Command, cú pháp và các tùy chọn `jfr view`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
-- [Oracle JDK 17 — The jfr Command (chưa có `view`)](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html)
-- [Inside Java — JFR View Command, giới thiệu tính năng ở Java 21 và ví dụ view](https://inside.java/2023/09/26/sip082/)
-- [Oracle JDK 21 — The jcmd Command, `JFR.start`/`JFR.dump` và `JFR.view`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
-- [Oracle JDK 17 — API `jdk.jfr.Recording` cho ví dụ Java](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/Recording.html)
+- [Oracle JDK 21 — The jfr Command, syntax and `jfr view` options](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
+- [Oracle JDK 17 — The jfr Command (without `view`)](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html)
+- [Inside Java — JFR View Command, Java 21 feature introduction and view examples](https://inside.java/2023/09/26/sip082/)
+- [Oracle JDK 21 — The jcmd Command, `JFR.start`/`JFR.dump` and `JFR.view`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
+- [Oracle JDK 17 — `jdk.jfr.Recording` API for the Java example](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/Recording.html)

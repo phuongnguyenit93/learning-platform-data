@@ -1,119 +1,119 @@
-# 8.2 Tạo cặp khóa bằng KeyPairGenerator với kích thước hoặc bộ tham số rõ ràng
+# 8.2 Generating Key Pairs Using KeyPairGenerator with Explicit Sizes or Parameter Sets
 
-Khi tạo khóa bất đối xứng trong Java, điều quan trọng không chỉ là gọi `KeyPairGenerator.generateKeyPair()` mà còn **chủ động xác định thuật toán, kích thước hoặc bộ tham số và nguồn ngẫu nhiên thích hợp**. Những lựa chọn đó chi phối sức mạnh mật mã, khả năng tương thích, tốc độ, định dạng khóa và mục đích sử dụng.
+When generating asymmetric keys in Java, it is important not only to call `KeyPairGenerator.generateKeyPair()`, but also to **explicitly specify the algorithm, size or parameter set, and an appropriate source of randomness**. Those choices govern cryptographic strength, interoperability, speed, key format, and intended use.
 
-Bài này tập trung vào engine `java.security.KeyPairGenerator` trong Java Cryptography Architecture (JCA): cách khởi tạo **RSA**, **EC/secp256r1**, **Ed25519** và **X25519** với tham số rõ ràng, kiểm tra khóa sau khi sinh, phân biệt khóa ký và khóa trao đổi bí mật, và xử lý những sai sót phổ biến.
+This lesson focuses on the `java.security.KeyPairGenerator` engine in the Java Cryptography Architecture (JCA): how to initialize **RSA**, **EC/secp256r1**, **Ed25519**, and **X25519** with explicit parameters, inspect keys after generation, distinguish signing keys from secret-agreement keys, and handle common mistakes.
 
-## 1. `KeyPairGenerator` là gì?
+## 1. What Is `KeyPairGenerator`?
 
-**Cặp khóa** gồm:
+A **key pair** consists of:
 
-- **Public key (`PublicKey`):** có thể phát cho bên cần xác minh chữ ký, mã hóa theo giao thức phù hợp hoặc tham gia trao đổi khóa.
-- **Private key (`PrivateKey`):** phải kiểm soát truy cập nghiêm ngặt; dùng ký, giải mã hoặc thực hiện thỏa thuận khóa tùy thuật toán.
-- **`KeyPair`:** đối tượng chứa hai thành phần qua `getPublic()` và `getPrivate()`.
+- **Public key (`PublicKey`):** can be distributed to parties that need to verify signatures, encrypt according to an appropriate protocol, or participate in key exchange.
+- **Private key (`PrivateKey`):** must have strictly controlled access; used to sign, decrypt, or perform key agreement depending on the algorithm.
+- **`KeyPair`:** an object holding both components via `getPublic()` and `getPrivate()`.
 
-Đối với mật mã khóa công khai, Java phân biệt các engine:
+For public-key cryptography, Java distinguishes the following engines:
 
-| Engine/API | Trách nhiệm | Ví dụ |
+| Engine / API | Responsibility | Example |
 | --- | --- | --- |
-| `KeyPairGenerator` | Sinh **cặp khóa mới** theo thuật toán/tham số. | `KeyPairGenerator.getInstance("RSA")`. |
-| `KeyFactory` | Chuyển đổi một biểu diễn khóa đã có thành đối tượng khóa hoặc ngược lại. | Đọc `X509EncodedKeySpec` và `PKCS8EncodedKeySpec`. |
-| `Signature` | Tạo/xác minh chữ ký với khóa thích hợp. | `SHA256withECDSA`, `Ed25519`, `RSASSA-PSS`. |
-| `KeyAgreement` | Thỏa thuận bí mật chung bằng private/public key và giao thức tương ứng. | `X25519`. |
-| `Cipher` | Mã hóa/giải mã khi thuật toán/phương thức cho phép. | RSA-OAEP trong các trường hợp phù hợp. |
-| `KeyGenerator` | Sinh **khóa bí mật đối xứng**, không tạo cặp public/private. | `KeyGenerator.getInstance("AES")`. |
+| `KeyPairGenerator` | Generates **new key pairs** according to an algorithm/parameters. | `KeyPairGenerator.getInstance("RSA")`. |
+| `KeyFactory` | Converts an existing key representation into a key object or vice versa. | Reading `X509EncodedKeySpec` and `PKCS8EncodedKeySpec`. |
+| `Signature` | Creates/verifies signatures with an appropriate key. | `SHA256withECDSA`, `Ed25519`, `RSASSA-PSS`. |
+| `KeyAgreement` | Establishes a shared secret using private/public keys and the corresponding protocol. | `X25519`. |
+| `Cipher` | Encrypts/decrypts when the algorithm/mode allows. | RSA-OAEP in appropriate cases. |
+| `KeyGenerator` | Generates **symmetric secret keys**, not public/private pairs. | `KeyGenerator.getInstance("AES")`. |
 
-`KeyPairGenerator` **không tự tạo chứng chỉ X.509, không tự đưa khóa vào HSM/KeyStore, không xác minh chủ sở hữu public key và không quyết định cách phân phối khóa**. Đây là những phần riêng của thiết kế bảo mật.
+`KeyPairGenerator` **does not automatically create X.509 certificates, does not put keys into an HSM/KeyStore, does not verify the owner of a public key, and does not decide how keys are distributed**. Those are separate parts of a security design.
 
-Vòng đời tổng quát:
+General lifecycle:
 
 ~~~text
-Chọn mục tiêu (ký / trao đổi khóa / mã hóa đúng giao thức)
+Choose goal (signing / key exchange / protocol-appropriate encryption)
           |
           v
-Chọn thuật toán + security strength + tham số rõ ràng
+Choose algorithm + security strength + explicit parameters
           |
           v
 KeyPairGenerator.getInstance(algorithm)
           |
           v
 initialize(keysize, SecureRandom)
-     hoặc
+     or
 initialize(AlgorithmParameterSpec, SecureRandom)
           |
           v
 generateKeyPair() -> KeyPair
           |
-          +--> PublicKey  -> công bố bằng kênh có kiểm chứng danh tính
+          +--> PublicKey  -> publish over an identity-verified channel
           |
-          +--> PrivateKey -> quản lý, lưu và kiểm soát truy cập an toàn
+          +--> PrivateKey -> manage, store, and control access securely
 ~~~
 
-## 2. API thiết yếu: ba cách khởi tạo
+## 2. Essential API: Three Ways to Initialize
 
 ~~~java
 KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 
-// Cách A — chỉ rõ kích thước:
+// Option A — specify size explicitly:
 generator.initialize(3072, new SecureRandom());
 
-// Cách B — chỉ rõ bộ tham số chuyên biệt cho thuật toán:
+// Option B — specify algorithm-specific parameter set:
 generator.initialize(
     new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4),
     new SecureRandom());
 
-// Sau khi đã chọn một cách khởi tạo:
+// After choosing one initialization approach:
 KeyPair pair = generator.generateKeyPair();
 ~~~
 
-Đây là **đoạn minh họa API**; mã chạy đầy đủ được trình bày ở các phần sau. Trong chương trình thật, chọn **một chính sách khởi tạo phù hợp**, không cần gọi cả cách A và B trên cùng một generator.
+This is an **API illustration snippet**; complete runnable code is presented in later sections. In a real program, choose **one appropriate initialization policy**; there is no need to call both Option A and Option B on the same generator.
 
-Các overload quan trọng:
+Important overloads:
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 | --- | --- |
-| `KeyPairGenerator.getInstance("RSA")` | Tìm dịch vụ `KeyPairGenerator` cho RSA từ các provider JCA phù hợp. |
-| `getInstance("RSA", "ProviderName")` | Chỉ định provider theo tên, yêu cầu provider đã đăng ký. |
-| `getInstance("RSA", providerObject)` | Chỉ định một đối tượng provider; có thể hoạt động cả khi đối tượng chưa đăng ký. |
-| `initialize(int keysize)` | Đặt kích thước **theo ý nghĩa riêng của thuật toán**; nguồn ngẫu nhiên được JCA chọn theo chính sách. |
-| `initialize(int keysize, SecureRandom rng)` | Đặt kích thước và nguồn ngẫu nhiên cung cấp. Các tham số khác, nếu cần, có thể do provider quyết định. |
-| `initialize(AlgorithmParameterSpec params)` | Khởi tạo bằng **bộ tham số** xác định; JCA cung cấp nguồn ngẫu nhiên mặc định. |
-| `initialize(AlgorithmParameterSpec params, SecureRandom rng)` | Chỉ rõ cả tham số và nguồn ngẫu nhiên. |
-| `generateKeyPair()` | Tạo cặp mới; gọi lại có thể tạo một cặp mới theo trạng thái/cấu hình hiện có. |
-| `getProvider()` | Cho biết provider của generator, hữu ích khi kiểm tra môi trường triển khai. |
+| `KeyPairGenerator.getInstance("RSA")` | Locates a `KeyPairGenerator` service for RSA from suitable JCA providers. |
+| `getInstance("RSA", "ProviderName")` | Specifies a provider by name, requiring a registered provider. |
+| `getInstance("RSA", providerObject)` | Specifies a provider object directly; can work even when the object is not registered. |
+| `initialize(int keysize)` | Sets the size **according to the algorithm's own semantics**; randomness source is chosen by JCA per policy. |
+| `initialize(int keysize, SecureRandom rng)` | Sets the size and the provided randomness source. Other parameters, if needed, may be decided by the provider. |
+| `initialize(AlgorithmParameterSpec params)` | Initializes with a specific **parameter set**; JCA supplies a default randomness source. |
+| `initialize(AlgorithmParameterSpec params, SecureRandom rng)` | Explicitly specifies both parameters and randomness source. |
+| `generateKeyPair()` | Generates a new pair; calling it again can generate another new pair using the current state/configuration. |
+| `getProvider()` | Returns the generator's provider, useful for verifying the deployment environment. |
 
-Hai lưu ý cốt lõi:
+Two core notes:
 
-1. **Không gọi `initialize`:** `generateKeyPair()` vẫn có thể hoạt động vì provider phải cung cấp cấu hình mặc định. Tuy nhiên default **có thể khác giữa provider và bản JDK**, nên không nên dựa vào nó khi muốn chứng minh kích thước/bộ tham số của khóa.
-2. **Chỉ gọi `initialize(256)`:** số `256` là một metric phụ thuộc thuật toán, **không có nghĩa mọi engine đều chọn cùng đường cong, độ mạnh, công dụng**. Với EC, muốn dùng chính xác `secp256r1` thì truyền tên curve.
+1. **Omitting `initialize`:** `generateKeyPair()` may still work because providers must supply a default configuration. However, defaults **can differ across providers and JDK versions**, so you should not rely on them when you want to guarantee key sizes or parameter sets.
+2. **Calling only `initialize(256)`:** the number `256` is an algorithm-dependent metric and **does not mean every engine chooses the same curve, strength, or usage**. With EC, to use `secp256r1` specifically, pass the curve name.
 
-`SecureRandom` là API sinh byte khó dự đoán phục vụ mật mã. `new SecureRandom()` là lựa chọn thông dụng trong các ví dụ; không đặt seed từ thời gian/`Random`/PID để “tái hiện” khóa. Khóa production cần nguồn ngẫu nhiên và chính sách vận hành được đánh giá trên nền tảng đang chạy.
+`SecureRandom` is the API for generating unpredictable bytes for cryptography. `new SecureRandom()` is a common choice in examples; do not seed from time/`Random`/PID to make key generation "reproducible". Production keys require a randomness source and operational policy evaluated on the running platform.
 
-## 3. Chọn thuật toán và bộ tham số dựa trên mục đích
+## 3. Choosing Algorithms and Parameter Sets Based on Purpose
 
-| Mục đích | `getInstance(...)` cho KPG | Bộ tham số nên khai báo | Ví dụ engine dùng khóa |
+| Purpose | `getInstance(...)` for KPG | Parameter set to declare | Example engine using the key |
 | --- | --- | --- | --- |
-| Khóa RSA phục vụ chữ ký/ứng dụng phù hợp | `"RSA"` | `RSAKeyGenParameterSpec(3072, F4)`, hoặc kích thước rõ ràng nếu không cần tùy chỉnh exponent | `Signature`: `RSASSA-PSS` hoặc phương thức được giao thức quy định |
-| Chữ ký ECDSA trên đường cong NIST cụ thể | `"EC"` | `ECGenParameterSpec("secp256r1")` | `Signature.getInstance("SHA256withECDSA")` |
-| Chữ ký EdDSA (Ed25519) | `"Ed25519"` | `NamedParameterSpec.ED25519` khi muốn nêu rõ tham số | `Signature.getInstance("Ed25519")` |
-| Thỏa thuận khóa hiện đại X25519 | `"X25519"` | `NamedParameterSpec.X25519` | `KeyAgreement.getInstance("X25519")` |
+| RSA key for signing/appropriate applications | `"RSA"` | `RSAKeyGenParameterSpec(3072, F4)`, or an explicit size if exponent customization is not needed | `Signature`: `RSASSA-PSS` or protocol-specified method |
+| ECDSA signature on a specific NIST curve | `"EC"` | `ECGenParameterSpec("secp256r1")` | `Signature.getInstance("SHA256withECDSA")` |
+| EdDSA (Ed25519) signature | `"Ed25519"` | `NamedParameterSpec.ED25519` when stating parameters explicitly | `Signature.getInstance("Ed25519")` |
+| Modern X25519 key agreement | `"X25519"` | `NamedParameterSpec.X25519` | `KeyAgreement.getInstance("X25519")` |
 
-**Không so sánh số bit giữa các thuật toán một cách trực tiếp**: RSA 3072 bit, ECDSA P-256 và Ed25519 không có cùng định dạng hay ý nghĩa “độ dài khóa”. Sức mạnh bảo mật ước lượng của chúng phải dựa trên tiêu chuẩn an ninh và tính phù hợp với giao thức, không đơn thuần so 3072 với 256.
+**Do not compare bit counts directly across algorithms**: 3072-bit RSA, ECDSA P-256, and Ed25519 do not share the same format or meaning of "key length". Their estimated security strength must be based on security standards and protocol suitability, not simply comparing 3072 to 256.
 
-Trong Java, việc một thuật toán/curve được hỗ trợ còn phụ thuộc **JDK, provider, chính sách và môi trường phần cứng**. Nếu ứng dụng yêu cầu tính di động, hãy kiểm thử trên môi trường triển khai mục tiêu và ghi nhận provider thực sự được dùng. Tên thuật toán trong ví dụ là các tên API chuẩn/được JDK 17 thông dụng hỗ trợ; không kết luận mọi provider hỗ trợ hết.
+In Java, whether an algorithm or curve is supported also depends on **the JDK, provider, policy, and hardware environment**. If an application requires portability, test on the target deployment environment and log the provider actually selected. Algorithm names in the examples are standard/commonly supported API names in JDK 17; do not assume every provider supports all of them.
 
-### Phân biệt loại khóa qua tính năng
+### Distinguishing Key Types by Capability
 
-- **RSA key** có thể phù hợp với các giao thức ký, mã hóa hoặc một số giao thức cũ, nhưng phải dùng **transformation/scheme chuẩn** và chính sách hợp lý; không “mã hóa bằng private key” để thay cho chữ ký.
-- **EC key** tạo bởi `KeyPairGenerator.getInstance("EC")` với `secp256r1` dùng được cho ECDSA; không mặc định rằng mọi khóa EC của mọi curve đều dùng chung với X25519.
-- **Ed25519** dùng **chữ ký số**, không phải ECDH/X25519.
-- **X25519** phục vụ **thỏa thuận khóa**, không phải chữ ký. Bí mật chung thô từ `KeyAgreement` thường còn phải qua **KDF và giao thức xác thực** trước khi thành khóa ứng dụng; X25519 một mình không xác thực danh tính đối tác.
+- An **RSA key** can suit signing, encryption, or certain legacy protocols, but must use a **standard transformation/scheme** and sensible policy; do not "encrypt with a private key" in place of signing.
+- An **EC key** generated by `KeyPairGenerator.getInstance("EC")` with `secp256r1` works with ECDSA; do not assume every EC key of any curve is interchangeable with X25519.
+- **Ed25519** is for **digital signatures**, not ECDH/X25519.
+- **X25519** is for **key agreement**, not signatures. The raw shared secret from `KeyAgreement` normally must still pass through a **KDF and an authenticated protocol** before becoming application keys; X25519 alone does not authenticate the peer's identity.
 
-## 4. Sinh RSA với kích thước và public exponent rõ ràng
+## 4. Generating RSA Keys with Explicit Size and Public Exponent
 
-### 4.1. Hai mức chỉ định
+### 4.1. Two Levels of Specification
 
-Cách đơn giản:
+Simple approach:
 
 ~~~java
 KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
@@ -121,7 +121,7 @@ generator.initialize(3072, new SecureRandom());
 KeyPair pair = generator.generateKeyPair();
 ~~~
 
-Cách chặt chẽ hơn khi muốn nêu **public exponent**:
+Stricter approach when specifying the **public exponent**:
 
 ~~~java
 KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
@@ -131,17 +131,17 @@ generator.initialize(
 KeyPair pair = generator.generateKeyPair();
 ~~~
 
-Các đoạn trên là minh họa, không phải tệp Java độc lập.
+The snippets above are illustrative, not standalone Java files.
 
-- `3072` là **modulus size** RSA đo bằng **bit**. RSA-2048 vẫn gặp trong các hệ thống hiện hành, nhưng RSA-3072 cho dư địa bảo mật cao hơn, đổi lại chi phí CPU và kích thước khóa/chữ ký lớn hơn. Số bit được chọn phải theo tuổi thọ bảo mật, yêu cầu tiêu chuẩn và tính tương thích.
-- `RSAKeyGenParameterSpec.F4` tương ứng **65537**, public exponent thông dụng. Không tự chọn public exponent kỳ lạ hoặc rất nhỏ vì nghĩ “chạy nhanh hơn”.
-- `RSAKeyGenParameterSpec` không phải đối tượng private key; nó chỉ khai báo tham số **đầu vào sinh khóa**.
-- **Kích thước modulus không phải kích thước private key mã hóa PKCS#8** và không phải độ dài chữ ký của mọi sơ đồ (RSA signature thường có độ dài bằng modulus khi định dạng chuẩn).
-- `generateKeyPair()` dùng ngẫu nhiên để tạo các thành phần bí mật; **không được tái sử dụng private key một cách vô thức cho những nhiệm vụ/giao thức không tương thích**.
+- `3072` is the RSA **modulus size** measured in **bits**. RSA-2048 still appears in current systems, while RSA-3072 provides greater security margin at the cost of higher CPU usage and larger keys/signatures. The chosen bit count must align with security lifetime, standards requirements, and compatibility.
+- `RSAKeyGenParameterSpec.F4` corresponds to **65537**, the standard public exponent. Do not pick an unusual or very small public exponent thinking it "runs faster".
+- `RSAKeyGenParameterSpec` is not a private key object; it only declares **key-generation input parameters**.
+- **Modulus size is not the size of a PKCS#8-encoded private key** and not the signature length of every scheme (RSA signatures typically equal the modulus length in standard formats).
+- `generateKeyPair()` uses randomness to produce the secret components; **never blindly reuse a private key across incompatible tasks or protocols**.
 
-### 4.2. Chương trình Java 17+: RSA-3072 và kiểm chứng cặp khóa
+### 4.2. Java 17+ Program: RSA-3072 and Key Pair Verification
 
-Tệp **`RsaParamsDemo.java`**:
+File **`RsaParamsDemo.java`**:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -179,14 +179,14 @@ public class RsaParamsDemo {
 }
 ~~~
 
-Chạy ở thư mục chứa tệp:
+Run in the directory containing the file:
 
 ~~~bash
 javac RsaParamsDemo.java
 java RsaParamsDemo
 ~~~
 
-Đầu ra được kiểm tra:
+Verified output:
 
 ~~~text
 Algorithm: RSA
@@ -195,17 +195,17 @@ Public exponent: 65537
 Signature verifies: true
 ~~~
 
-Kết quả chứng minh cặp khóa đã được sinh với modulus 3072 bit, public exponent F4, và hai thành phần private/public tương thích để ký/xác minh trong ví dụ. Nó **không chứng minh private key đã được lưu an toàn**, không tạo chứng chỉ và không phải bài kiểm thử toàn diện của một hệ thống PKI.
+The result proves the key pair was generated with a 3072-bit modulus, public exponent F4, and compatible private/public components for signing/verifying in the example. It **does not prove the private key has been stored securely**, does not create a certificate, and is not a comprehensive test of a PKI system.
 
-`SHA256withRSA` ở đây phục vụ kiểm chứng ví dụ nhanh và tương thích. Với thiết kế chữ ký RSA mới, cân nhắc **RSASSA-PSS với `PSSParameterSpec` rõ ràng** theo giao thức được chọn; không tự ý đổi scheme khi trao đổi với hệ thống đã quy định thuật toán khác.
+`SHA256withRSA` here serves quick example verification and compatibility. For new RSA signature designs, consider **RSASSA-PSS with an explicit `PSSParameterSpec`** as defined by the chosen protocol; do not unilaterally change schemes when interoperating with systems that mandate another algorithm.
 
-Nếu giao thức cần **RSA-OAEP** để bọc khóa nhỏ, đây là trách nhiệm của `Cipher` với transformation/`OAEPParameterSpec` được chỉ rõ, **không phải nhiệm vụ của `KeyPairGenerator`**. Với dữ liệu lớn, thiết kế hybrid encryption dùng khóa đối xứng/AEAD phù hợp thay vì dùng RSA mã hóa toàn bộ plaintext.
+If the protocol requires **RSA-OAEP** to wrap a small key, that is the responsibility of `Cipher` with an explicit transformation/`OAEPParameterSpec`, **not the job of `KeyPairGenerator`**. For large data, design hybrid encryption using an appropriate symmetric key/AEAD rather than using RSA to encrypt the entire plaintext.
 
-## 5. Sinh khóa EC: chọn đường cong bằng tên, không chỉ bằng số 256
+## 5. Generating EC Keys: Choose the Curve by Name, Not Just by the Number 256
 
-### 5.1. Vì sao `initialize(256)` chưa nói hết cấu hình?
+### 5.1. Why Doesn't `initialize(256)` Say Everything About the Configuration?
 
-Với `KeyPairGenerator.getInstance("EC")`, lời gọi `initialize(256)` cho biết metric kích thước, nhưng provider quyết định cách ánh xạ sang bộ tham số. Đối với giao thức bắt buộc sử dụng **đường cong NIST P-256**, hãy chỉ định trực tiếp:
+With `KeyPairGenerator.getInstance("EC")`, calling `initialize(256)` gives a size metric, but the provider decides how to map it to a parameter set. For protocols that mandate **the NIST P-256 curve**, specify it directly:
 
 ~~~java
 KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
@@ -214,13 +214,13 @@ generator.initialize(
 KeyPair pair = generator.generateKeyPair();
 ~~~
 
-`"secp256r1"` là tên thông dụng cho đường cong **NIST P-256**; đừng giả định alias như `prime256v1` được mọi provider chấp nhận. Với yêu cầu curve khác (ví dụ `secp384r1`), phải kiểm tra hỗ trợ và khớp giao thức. Không lấy một đối tượng EC ở đường cong A rồi dùng với phía yêu cầu đường cong B.
+`"secp256r1"` is the standard name for the **NIST P-256** curve; do not assume aliases such as `prime256v1` are accepted by every provider. If another curve is required (such as `secp384r1`), verify support and match the protocol. Never take an EC object on curve A and use it with a peer expecting curve B.
 
-`ECGenParameterSpec` là bộ tham số dựa vào tên curve, không phải nơi chứa điểm public key hay scalar private key. Khi sinh xong, `ECPublicKey` cho phép đọc các tham số đường cong để kiểm tra. **Field size 256 bit** chỉ là một dấu hiệu, không đủ để chứng minh tên curve đúng nếu không kiểm tra chi tiết tham số/giao thức; chương trình đặt tên curve rõ ngay từ đầu.
+`ECGenParameterSpec` is a curve-name-based parameter spec, not a container for a public key point or private key scalar. Once generated, `ECPublicKey` lets you inspect the curve parameters. A **256-bit field size** is only an indicator and is not enough to prove the right curve name without checking detailed parameters/protocol; the program sets the curve name explicitly from the start.
 
-### 5.2. Chương trình Java 17+: EC/secp256r1 và ECDSA
+### 5.2. Java 17+ Program: EC/secp256r1 and ECDSA
 
-Tệp **`EcCurveDemo.java`**:
+File **`EcCurveDemo.java`**:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -270,19 +270,19 @@ Field bits: 256
 Signature verifies: true
 ~~~
 
-`Signature` sử dụng private key để ký và public key để verify; `KeyPairGenerator` chỉ sinh hai khóa. Chữ ký ECDSA chứa ngẫu nhiên hoặc nonce nội bộ tùy triển khai, nên **không in hoặc giả định byte chữ ký cố định**. Dùng API chữ ký chuẩn, không tự lập trình nonce chữ ký.
+`Signature` uses the private key to sign and the public key to verify; `KeyPairGenerator` only generates the two keys. ECDSA signatures contain randomness or an internal nonce depending on the implementation, so **do not print or assume fixed signature bytes**. Use the standard signature API; do not implement signature nonces by hand.
 
-Lưu ý cấu hình curve của provider có thể thay đổi khả năng tương thích với HSM/FIPS. Nếu môi trường không hỗ trợ `secp256r1`, đừng tự động chọn curve bất kỳ để “chạy được”; cần quyết định dựa trên yêu cầu bảo mật và đối tác.
+Note that a provider's curve support can affect compatibility with HSM/FIPS environments. If an environment does not support `secp256r1`, do not automatically pick an arbitrary curve just to "make it run"; decide based on security requirements and peer compatibility.
 
-## 6. Ed25519 và X25519: `NamedParameterSpec` thay cho một số bit mơ hồ
+## 6. Ed25519 and X25519: `NamedParameterSpec` Instead of Ambiguous Bit Counts
 
-Với những thuật toán đặt tên cụ thể, Java 17 cung cấp `java.security.spec.NamedParameterSpec`, gồm các hằng:
+For specifically named algorithms, Java 17 provides `java.security.spec.NamedParameterSpec`, including the constants:
 
-- `NamedParameterSpec.ED25519` — bộ tham số **Ed25519**, dùng cho chữ ký.
-- `NamedParameterSpec.X25519` — bộ tham số **X25519**, dùng cho trao đổi khóa.
-- Các hằng khác như `ED448` và `X448` được định nghĩa nhưng chỉ dùng khi provider/giao thức hỗ trợ.
+- `NamedParameterSpec.ED25519` — **Ed25519** parameter set, used for signatures.
+- `NamedParameterSpec.X25519` — **X25519** parameter set, used for key exchange.
+- Other constants such as `ED448` and `X448` are defined, but should only be used when supported by the provider/protocol.
 
-Ví dụ:
+Example:
 
 ~~~java
 KeyPairGenerator ed = KeyPairGenerator.getInstance("Ed25519");
@@ -294,13 +294,13 @@ x.initialize(NamedParameterSpec.X25519, new SecureRandom());
 KeyPair agreementKeys = x.generateKeyPair();
 ~~~
 
-Đoạn trên là minh họa API, không phải toàn bộ chương trình. Khi thuật toán đã có tên cụ thể như `"Ed25519"` hay `"X25519"`, provider có thể có default phù hợp nếu không gọi `initialize`; ở đây ta **nêu tham số tường minh** để thể hiện điều kiện mong muốn và kiểm thử provider có hỗ trợ chúng.
+The snippet above is an API illustration, not a full program. When the algorithm already has a specific name such as `"Ed25519"` or `"X25519"`, the provider may have an appropriate default if `initialize` is not called; here we **specify the parameter explicitly** to express the intended requirement and test whether the provider supports it.
 
-**Tránh `initialize(255)`** với ý nghĩ 255 là kích thước tùy ý tương đương RSA `initialize(3072)`. Ed25519 và X25519 xác định cấu trúc theo bộ tham số tên; cách yêu cầu bằng số bit không phải hợp đồng di động giữa các provider.
+**Avoid `initialize(255)`** under the assumption that 255 is an arbitrary size analogous to RSA `initialize(3072)`. Ed25519 and X25519 define their structure via named parameter sets; requesting by bit count is not a portable contract across providers.
 
-### Chương trình Java 17+: ký Ed25519 và thỏa thuận X25519
+### Java 17+ Program: Ed25519 Signing and X25519 Key Agreement
 
-Tệp **`NamedKeysDemo.java`**:
+File **`NamedKeysDemo.java`**:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -367,159 +367,159 @@ X25519 secrets equal: true
 X25519 raw secret bytes: 32
 ~~~
 
-Cả hai phía X25519 có cùng **shared secret thô** nhờ sử dụng private key của mình và public key của bên kia. **Không dùng `secretA` trực tiếp thành khóa AES hoặc session key của một giao thức tự chế**; hệ thống thực cần KDF, liên kết transcript/context, xác thực peer và kiểm tra khả năng chống MITM theo giao thức đã được thẩm định. Demo này không xác thực danh tính bên A hay B và không chứa toàn bộ handshake như TLS.
+Both X25519 sides arrive at the same **raw shared secret** by using their own private key and the other side's public key. **Do not use `secretA` directly as an AES key or session key in a custom protocol**; real systems require a KDF, transcript/context binding, peer authentication, and MITM protection according to a vetted protocol. This demo does not authenticate party A or B's identity and does not include a full handshake such as TLS.
 
-## 7. Xác minh rằng tham số đã được áp dụng
+## 7. Verifying That Parameters Were Applied
 
-Một số chỉ số nên kiểm tra sau `generateKeyPair()`:
+Several properties should be checked after `generateKeyPair()`:
 
-| Loại khóa | Kiểm tra API | Điều muốn chứng minh |
+| Key type | API check | What it proves |
 | --- | --- | --- |
-| RSA | `RSAPublicKey.getModulus().bitLength()` | Độ dài modulus thực tế khớp chính sách (ví dụ 3072 bit). |
-| RSA | `RSAPublicKey.getPublicExponent()` | Exponent thực tế phù hợp `RSAKeyGenParameterSpec.F4` (65537). |
-| EC | `ECPublicKey.getParams()` | Bộ tham số đường cong thực tế phù hợp curve/giao thức mong muốn; field size chỉ là một kiểm tra sơ bộ. |
-| Ed25519 | Thuật toán key + phép ký/xác minh `Signature("Ed25519")` | Khóa phục vụ chữ ký đúng cơ chế. |
-| X25519 | Phép thỏa thuận hai phía qua `KeyAgreement("X25519")` | Hai key pair có thể tạo cùng secret theo đúng giao thức. |
-| Mọi loại | `generator.getProvider().getName()` | Provider được JCA chọn, phục vụ kiểm tra môi trường và policy. |
+| RSA | `RSAPublicKey.getModulus().bitLength()` | Actual modulus length matches policy (e.g., 3072 bits). |
+| RSA | `RSAPublicKey.getPublicExponent()` | Actual exponent matches `RSAKeyGenParameterSpec.F4` (65537). |
+| EC | `ECPublicKey.getParams()` | Actual curve parameter set matches the desired curve/protocol; field size is only a preliminary check. |
+| Ed25519 | Key algorithm + sign/verify operation `Signature("Ed25519")` | Key serves signing via the right mechanism. |
+| X25519 | Two-party agreement via `KeyAgreement("X25519")` | Two key pairs can derive the same secret per the protocol. |
+| All types | `generator.getProvider().getName()` | Provider chosen by JCA, useful for environment and policy checks. |
 
-**Không coi phép thử ký/xác minh một thông điệp là toàn bộ kiểm toán bảo mật khóa.** Nó chỉ kiểm tra tương thích chức năng. Hệ thống còn cần tính đúng đắn của nguồn entropy, xử lý private key, quản lý danh tính public key và vòng đời rotation.
+**Do not treat a sign/verify test on one message as a complete key security audit.** It only verifies functional compatibility. A system also needs sound entropy sources, proper private key handling, public key identity management, and a rotation lifecycle.
 
-### Phân biệt kích thước bit và mức an toàn
+### Distinguishing Bit Size and Security Level
 
-- RSA `3072` là **bit length của modulus**, không tương đương “3072 bit security”.
-- EC `secp256r1` có field gần 256 bit; sức mạnh bảo mật ước tính thấp hơn 256 bit vì tính chất bài toán logarit rời rạc.
-- Ed25519 có bộ tham số riêng, không biến thành “RSA-255” hay “ECDSA với curve mặc định”.
-- X25519 thuộc họ trao đổi khóa; so trực tiếp độ dài shared secret với số bit modulus RSA không giúp chọn thuật toán đúng.
+- RSA `3072` is the **bit length of the modulus**, not equivalent to "3072-bit security".
+- EC `secp256r1` has a ~256-bit field; its estimated security strength is lower than 256 bits due to the nature of the discrete logarithm problem.
+- Ed25519 has its own parameter set and does not turn into "RSA-255" or "ECDSA with default curve".
+- X25519 belongs to the key-exchange family; directly comparing its shared secret length with RSA modulus bit counts does not help select the right algorithm.
 
-Để bảo vệ một hệ thống có thời hạn dài, cần tham chiếu chính sách tổ chức, tiêu chuẩn được chấp nhận và mức tương thích của các bên. **Không mặc định RSA mạnh hơn EC chỉ vì 3072 lớn hơn 256.**
+To protect a long-lived system, refer to organizational policy, accepted standards, and peer compatibility. **Do not assume RSA is stronger than EC simply because 3072 is greater than 256.**
 
-## 8. Khi nào nên truyền `SecureRandom`?
+## 8. When Should You Pass `SecureRandom`?
 
-Hai dạng phổ biến:
+Two common forms:
 
 ~~~java
-// Dùng nguồn ngẫu nhiên do JCA lựa chọn:
+// Use the randomness source chosen by JCA:
 generator.initialize(3072);
 
-// Truyền nguồn CSPRNG rõ ràng:
+// Pass an explicit CSPRNG source:
 generator.initialize(3072, new SecureRandom());
 ~~~
 
-Nếu cần kiểm toán lựa chọn nguồn entropy, truyền đối tượng `SecureRandom` có thể thể hiện policy rõ hơn. Tuy nhiên **truyền `new SecureRandom()` không tự bảo đảm toàn bộ nền tảng đạt FIPS/hardware-backed**; nếu có yêu cầu cụ thể, phải cấu hình và xác minh provider/cơ chế được phép.
+If entropy source selection needs to be audited, passing a `SecureRandom` object can make the policy more explicit. However, **passing `new SecureRandom()` does not by itself guarantee the entire platform is FIPS-compliant or hardware-backed**; if specific compliance is required, you must configure and verify the allowed provider/mechanism.
 
-Không làm các việc sau:
+Do not do any of the following:
 
-- Dùng `java.util.Random` hoặc `Math.random()` để tự tạo private exponent/seed và lắp khóa bằng tay.
-- Gọi `random.setSeed(System.currentTimeMillis())` với suy nghĩ tăng độ an toàn; giá trị dự đoán được không cải thiện chất lượng CSPRNG và việc cố làm key generation tái hiện là nguy hiểm.
-- Tự nhúng private key vào mã nguồn, config Git hoặc bản ghi log để tiết kiệm bước triển khai.
-- Tái sử dụng cùng cặp khóa mà không có chính sách: phân biệt signing key, agreement key, key wrapping, tuổi thọ và key rotation.
+- Use `java.util.Random` or `Math.random()` to generate a private exponent/seed and assemble keys manually.
+- Call `random.setSeed(System.currentTimeMillis())` thinking it increases security; predictable values do not improve CSPRNG quality, and trying to make key generation reproducible is dangerous.
+- Embed private keys in source code, Git config, or log files to save deployment steps.
+- Reuse the same key pair without a policy: distinguish signing keys, agreement keys, key wrapping, lifetimes, and key rotation.
 
-`SecureRandom.getInstanceStrong()` có thể phù hợp khi chính sách yêu cầu, nhưng có thể khác theo provider và hệ điều hành, thậm chí có đặc tính chờ entropy không phù hợp đường xử lý request. Không coi nó là lựa chọn bắt buộc cho mọi ứng dụng nếu chưa đánh giá.
+`SecureRandom.getInstanceStrong()` may be appropriate when policy requires it, but it can vary by provider and OS and may exhibit entropy-blocking behavior unsuitable for request-handling paths. Do not treat it as mandatory for every application without evaluation.
 
-## 9. Private key, public key, encoding và KeyStore
+## 9. Private Keys, Public Keys, Encoding, and KeyStore
 
-### 9.1. Public key không đồng nghĩa danh tính đã được xác minh
+### 9.1. Public Keys Do Not Imply Verified Identity
 
-Public key thường có thể phân phối công khai. Nhưng nếu ứng dụng lấy public key từ một endpoint không xác thực, đối phương có thể **thay key** và giả mạo danh tính. Vì vậy cần cơ chế chứng chỉ, key pinning, signed metadata, trust store hoặc giao thức xác thực phù hợp. `KeyPairGenerator` chỉ tạo **cặp giá trị mật mã**, không chứng minh ai sở hữu chúng.
+Public keys can usually be distributed publicly. But if an application fetches a public key from an unauthenticated endpoint, an adversary can **substitute the key** and spoof identity. Therefore, you need certificates, key pinning, signed metadata, a trust store, or an appropriate authentication protocol. `KeyPairGenerator` only generates **cryptographic key values**, not proof of who owns them.
 
-### 9.2. Các định dạng thường gặp
+### 9.2. Common Formats
 
-- Public key dạng `SubjectPublicKeyInfo` / `X.509`: thường `publicKey.getFormat()` trả `"X.509"` và `getEncoded()` trả bytes theo encoding phù hợp.
-- Private key dạng `PKCS#8`: với software key exportable, `privateKey.getFormat()` thường là `"PKCS#8"` và `getEncoded()` có thể cung cấp encoding dạng PKCS#8.
-- **Không phải mọi private key đều exportable**. Nếu key nằm trong HSM/token bảo mật, `getEncoded()` có thể trả `null`; cần dùng API/provider/keystore thích hợp.
-- Base64/PEM **chỉ mã hóa thành văn bản**, không tự bảo vệ private key; xuất private key dạng base64 hoặc raw PKCS#8 vào log/disk vẫn gây lộ.
-- `KeyFactory` dùng để đọc/khôi phục biểu diễn khóa khi chính sách cho phép, với `X509EncodedKeySpec` cho public và `PKCS8EncodedKeySpec` cho private. Đây là thao tác **import/export**, không phải sinh cặp khóa mới.
-- `KeyStore` hoặc HSM/KMS giúp quản lý/lưu khóa tùy provider và hệ thống, nhưng khả năng export, certificate chain, password và chính sách sử dụng có yêu cầu riêng.
+- Public keys in `SubjectPublicKeyInfo` / `X.509` format: typically `publicKey.getFormat()` returns `"X.509"` and `getEncoded()` returns bytes in the corresponding encoding.
+- Private keys in `PKCS#8` format: for exportable software keys, `privateKey.getFormat()` is typically `"PKCS#8"` and `getEncoded()` can provide the PKCS#8-encoded bytes.
+- **Not every private key is exportable**. If a key resides in an HSM/security token, `getEncoded()` may return `null`; use the appropriate API/provider/keystore.
+- Base64/PEM **only encodes to text** and does not protect the private key itself; dumping a Base64 or raw PKCS#8 private key into logs or disk still leaks it.
+- `KeyFactory` is used to read/reconstruct key representations when policy permits, with `X509EncodedKeySpec` for public keys and `PKCS8EncodedKeySpec` for private keys. This is an **import/export** operation, not generating a new key pair.
+- `KeyStore` or an HSM/KMS helps manage/store keys depending on the provider and system, though exportability, certificate chains, passwords, and usage policies have their own requirements.
 
-Trong môi trường cần chứng chỉ TLS/chữ ký doanh nghiệp, quy trình có thể là **sinh private key trong HSM**, tạo certificate signing request (CSR) hoặc định danh khóa rồi nhận chứng chỉ từ CA. Chứng chỉ được cấp là một **đối tượng khác**, không tự xuất hiện sau `generateKeyPair()`.
+In environments requiring TLS or enterprise signing certificates, the workflow may be to **generate the private key inside an HSM**, create a certificate signing request (CSR) or key attestation, and obtain a certificate from a CA. The issued certificate is a **separate object** and does not automatically appear after `generateKeyPair()`.
 
-### 9.3. Vòng đời khóa cần chính sách
+### 9.3. Key Lifecycles Require Policy
 
-1. **Tạo** theo thuật toán và tham số được duyệt; ghi nhận metadata `keyId`, mục đích, thời điểm/phiên bản.
-2. **Lưu** private key trong vùng kiểm soát truy cập, hạn chế export, mã hóa at rest và backup theo chính sách.
-3. **Phân phối** public key kèm xác minh danh tính/nguồn tin cậy.
-4. **Sử dụng** đúng mục đích và algorithm suite, kiểm tra provider/khả năng thao tác.
-5. **Xoay vòng** (rotation) và xử lý khóa cũ có bản mã/chữ ký còn cần xác minh; không xóa khóa cũ trước khi kiểm kê phụ thuộc.
-6. **Thu hồi/hủy** đúng quy trình, cập nhật chứng chỉ/khóa tin cậy và trạng thái truy cập; không chỉ loại bỏ reference trong code.
+1. **Generate** using approved algorithms and parameters; record metadata such as `keyId`, purpose, timestamp/version.
+2. **Store** the private key in an access-controlled boundary, restricting export, encrypting at rest, and backing up per policy.
+3. **Distribute** the public key with identity/trust-source verification.
+4. **Use** strictly for the intended purpose and algorithm suite, verifying provider/operational capabilities.
+5. **Rotate** keys and handle older keys that still have ciphertexts or signatures needing verification; do not delete old keys before inventorying dependencies.
+6. **Revoke/destroy** via proper procedures, updating certificates/trusted keys and access states; do not merely drop references in code.
 
-**Không log nội dung private key**, kể cả trong tình huống “debug tạm” hoặc gửi vào hệ thống theo dõi lỗi. Với demo Java, tốt nhất chỉ in thuật toán và các thuộc tính **public** có thể kiểm chứng.
+**Never log private key material**, even during "temporary debugging" or when reporting to error-tracking systems. In Java demos, it is best to print only the algorithm and verifiable **public** attributes.
 
-## 10. Provider, khả năng tương thích và lỗi thường gặp
+## 10. Providers, Compatibility, and Common Errors
 
-### 10.1. Provider quyết định những gì?
+### 10.1. What Does the Provider Determine?
 
-`getInstance("EC")` yêu cầu JCA lấy một engine theo tên. `initialize(new ECGenParameterSpec("secp256r1"))` yêu cầu engine dùng curve cụ thể. Một provider có thể hỗ trợ thuật toán `"EC"` nhưng không hỗ trợ curve cần thiết.
+`getInstance("EC")` asks JCA to obtain an engine by name. `initialize(new ECGenParameterSpec("secp256r1"))` asks the engine to use a specific curve. A provider might support the `"EC"` algorithm without supporting the required curve.
 
-Trong ứng dụng phổ thông, để JCA tự chọn provider thường tăng tính di động. Nếu hệ thống phải sinh khóa **trong HSM/PKCS#11 hoặc provider tuân thủ chính sách cụ thể**, hãy chỉ định/configure provider theo thiết kế và kiểm tra private key được tạo tại đúng nơi. Chỉ định provider theo tên chưa tự đảm bảo private key không thể export; điều đó phụ thuộc triển khai và cấu hình thực tế.
+In general-purpose applications, letting JCA choose the provider often improves portability. If a system must generate keys **inside an HSM/PKCS#11 or a provider enforcing a specific compliance policy**, specify/configure the provider by design and verify the private key is created in the right place. Specifying a provider by name does not by itself guarantee the private key is non-exportable; that depends on the actual implementation and configuration.
 
-`KeyPairGenerator.getInstance("RSA", "SomeProvider")` dùng **đúng provider đã đăng ký** theo tên; nếu tên không tồn tại sẽ có `NoSuchProviderException`. Không âm thầm fallback sang software provider nếu policy yêu cầu HSM.
+`KeyPairGenerator.getInstance("RSA", "SomeProvider")` uses the **exact registered provider** by name; if the name does not exist, a `NoSuchProviderException` is thrown. Do not silently fall back to a software provider when policy requires an HSM.
 
-### 10.2. Bảng lỗi và cách xử lý
+### 10.2. Error and Troubleshooting Table
 
-| Vấn đề | Biểu hiện thường gặp | Cách kiểm tra/khắc phục |
+| Issue | Common symptom | How to check / resolve |
 | --- | --- | --- |
-| Thuật toán keygen không có | `NoSuchAlgorithmException` từ `getInstance` | Kiểm tra tên thuật toán, bản JDK và provider được cài. |
-| Chỉ định provider theo tên không có | `NoSuchProviderException` | Kiểm tra đăng ký provider, chính sách Java security và tên chính xác. |
-| `initialize(int)` có keysize sai/không hỗ trợ | `InvalidParameterException` | Kiểm tra kích thước được provider/thuật toán hỗ trợ. |
-| `initialize(AlgorithmParameterSpec)` không phù hợp | `InvalidAlgorithmParameterException` | Dùng đúng loại spec, curve name và cấu hình nhà cung cấp. |
-| Đã tạo `GCMParameterSpec` để khởi tạo `KeyPairGenerator` | Không phải loại tham số phù hợp; có thể bị từ chối | GCM là tham số cho mã hóa đối xứng, không phải sinh cặp RSA/EC. |
-| `initialize(256)` nhưng đối tác đòi `secp256r1` | Provider có thể chọn curve khác hoặc không hỗ trợ | Dùng `ECGenParameterSpec("secp256r1")`. |
-| `initialize(3072)` cho `"Ed25519"` | Metric không tương thích/không hỗ trợ | Dùng `NamedParameterSpec.ED25519` hoặc default được quy định. |
-| RSA 1024 bit cho dữ liệu mới | Không đáp ứng chuẩn an ninh hiện đại phổ biến | Chọn RSA 2048/3072+ theo policy; cân nhắc chi phí và thời hạn. |
-| Tạo khóa X25519 rồi đưa vào `Signature` | Sai mục đích thuật toán | Dùng Ed25519 cho chữ ký, X25519 cho key agreement. |
-| Log private key hay lưu base64 không mã hóa | Có thể lộ private key | Dùng keystore/HSM và bảo vệ theo policy, không log secret. |
-| Dùng public key tải từ nguồn chưa tin cậy | Có thể bị MITM hoặc thay thế khóa | Xác minh danh tính và nguồn tin cậy public key/chứng chỉ. |
-| `getEncoded()` trả `null` | Key có thể không export được | Không ép cast/đọc raw key; dùng provider/HSM API theo mục đích. |
-| `KeyPairGenerator` được dùng đồng thời ở nhiều thread | Engine có state, không nên dựa vào thread safety | Tạo generator riêng theo operation/worker hoặc đồng bộ đúng cách. |
-| Tự chọn provider fallback sau lỗi | Có thể rời khỏi HSM/FIPS hoặc sai policy | Quản lý lỗi rõ ràng, không lặng lẽ thay provider. |
+| Keygen algorithm unavailable | `NoSuchAlgorithmException` from `getInstance` | Check algorithm name, JDK version, and installed providers. |
+| Named provider unavailable | `NoSuchProviderException` | Check provider registration, Java security policy, and exact name. |
+| `initialize(int)` with invalid/unsupported keysize | `InvalidParameterException` | Check sizes supported by the provider/algorithm. |
+| Unsuitable `initialize(AlgorithmParameterSpec)` | `InvalidAlgorithmParameterException` | Use the right spec type, curve name, and provider configuration. |
+| Passed `GCMParameterSpec` to initialize `KeyPairGenerator` | Incompatible parameter type; may be rejected | GCM parameters are for symmetric encryption, not RSA/EC key generation. |
+| `initialize(256)` when peer requires `secp256r1` | Provider may pick another curve or fail | Use `ECGenParameterSpec("secp256r1")`. |
+| `initialize(3072)` for `"Ed25519"` | Incompatible/unsupported metric | Use `NamedParameterSpec.ED25519` or the specified default. |
+| 1024-bit RSA for new data | Does not meet common modern security standards | Choose RSA 2048/3072+ per policy; weigh cost and lifetime. |
+| Generated X25519 key then passed to `Signature` | Wrong algorithm purpose | Use Ed25519 for signatures, X25519 for key agreement. |
+| Logging private key or storing unencrypted Base64 | Risks leaking private key | Use keystore/HSM and protect per policy; never log secrets. |
+| Using public key downloaded from untrusted source | Vulnerable to MITM or key substitution | Verify identity and trust source of the public key/certificate. |
+| `getEncoded()` returns `null` | Key may be non-exportable | Do not force cast/read raw key; use provider/HSM API as intended. |
+| `KeyPairGenerator` used concurrently across threads | Engine is stateful; should not rely on thread safety | Create a separate generator per operation/worker or synchronize properly. |
+| Falling back to another provider after failure | May leave HSM/FIPS boundary or violate policy | Handle errors explicitly; do not silently switch providers. |
 
-Không bắt toàn bộ `Exception` rồi chuyển sang thuật toán/kích thước yếu hơn chỉ để thành công. Các hạn chế provider và security policy là điều kiện vận hành cần được xử lý bằng cấu hình/quy trình, không phải được vượt qua bằng fallback ngầm.
+Do not catch broad `Exception` and downgrade to a weaker algorithm or key size just to succeed. Provider restrictions and security policies are operational constraints to be resolved through configuration and procedures, not bypassed by silent fallbacks.
 
-## 11. Tự kiểm tra kiến thức
+## 11. Self-Check Knowledge
 
-**Câu 1.** Tạo `KeyPairGenerator.getInstance("EC")` rồi `initialize(256)` đã chứng minh chắc chắn khóa dùng `secp256r1` chưa?
+**Question 1.** Does calling `KeyPairGenerator.getInstance("EC")` followed by `initialize(256)` guarantee the key uses `secp256r1`?
 
-**Đáp án:** **Chưa.** Số 256 là kích thước thuật toán định nghĩa; bộ tham số có thể là mặc định provider. Muốn yêu cầu curve cụ thể, dùng `ECGenParameterSpec("secp256r1")` và kiểm tra khóa sinh ra.
+**Answer:** **No.** The number 256 is an algorithm-defined size; the parameter set may be a provider default. To require a specific curve, use `ECGenParameterSpec("secp256r1")` and inspect the generated key.
 
-**Câu 2.** Với RSA, `new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4)` xác định những gì?
+**Question 2.** For RSA, what does `new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4)` specify?
 
-**Đáp án:** Modulus 3072 bit và public exponent 65537. Bộ tham số không chứa private key, không tự sinh cặp.
+**Answer:** A 3072-bit modulus and public exponent 65537. The parameter spec does not contain a private key and does not generate the pair on its own.
 
-**Câu 3.** Khóa có `getAlgorithm()` trả `"EC"` và field size 256 có đủ để chứng minh đúng curve và mục đích không?
+**Question 3.** Is a key whose `getAlgorithm()` returns `"EC"` and field size is 256 sufficient to prove the exact curve and purpose?
 
-**Đáp án:** Chưa đủ. Cần kiểm tra bộ tham số curve thực và giao thức dùng khóa; field size một mình không xác minh danh tính curve hoặc yêu cầu sử dụng.
+**Answer:** Not sufficient. You must check the actual curve parameter set and the protocol using the key; field size alone does not verify curve identity or usage restrictions.
 
-**Câu 4.** Có thể lấy `KeyPair` Ed25519 và dùng ngay với `KeyAgreement.getInstance("X25519")` không?
+**Question 4.** Can you take an Ed25519 `KeyPair` and immediately use it with `KeyAgreement.getInstance("X25519")`?
 
-**Đáp án:** Không. Ed25519 là chữ ký, X25519 là key agreement; tham số, key format và cách dùng khác nhau.
+**Answer:** No. Ed25519 is for signatures and X25519 is for key agreement; their parameters, key formats, and usage differ.
 
-**Câu 5.** Hai phía X25519 tính ra cùng 32 byte secret. Giao thức đã chống man-in-the-middle chưa?
+**Question 5.** Two X25519 parties compute the same 32-byte secret. Is the protocol immune to man-in-the-middle attacks?
 
-**Đáp án:** **Chưa.** Chỉ chứng minh phép toán agreement hoạt động; cần xác thực peer, transcript/KDF và giao thức đầy đủ.
+**Answer:** **No.** That only proves the agreement math works; you still need peer authentication, transcript/KDF binding, and a complete protocol.
 
-**Câu 6.** Nếu không gọi `initialize`, `KeyPairGenerator.generateKeyPair()` sẽ luôn tạo RSA-3072?
+**Question 6.** If `initialize` is not called, will `KeyPairGenerator.generateKeyPair()` always produce RSA-3072?
 
-**Đáp án:** Không. Mặc định do provider xác định; muốn chính sách kích thước rõ ràng phải gọi `initialize` thích hợp.
+**Answer:** No. The default is determined by the provider; to enforce an explicit size policy, call `initialize` appropriately.
 
-**Câu 7.** Vì sao `PublicKey` được công bố nhưng vẫn phải xác minh nguồn?
+**Question 7.** Why must a `PublicKey` still have its source verified even though it can be published?
 
-**Đáp án:** Public key không bí mật, nhưng **danh tính gắn với public key** là điều phải xác minh. Khóa bị tráo có thể dẫn đến giả mạo hoặc MITM.
+**Answer:** The public key is not secret, but **the identity bound to the public key** must be verified. A swapped key can lead to spoofing or MITM.
 
-**Câu 8.** `privateKey.getEncoded()` trả mảng byte thì có thể in Base64 để debug không?
+**Question 8.** If `privateKey.getEncoded()` returns a byte array, can you print it in Base64 for debugging?
 
-**Đáp án:** Không. Base64 không mã hóa bí mật; đó có thể là PKCS#8 chứa private key. Không log hoặc công bố giá trị này.
+**Answer:** No. Base64 does not encrypt secrets; that byte array can be PKCS#8 containing the private key. Do not log or expose this value.
 
-**Câu 9.** Nguồn `SecureRandom` đã đủ để kết luận keygen đáp ứng FIPS/HSM chưa?
+**Question 9.** Is passing a `SecureRandom` instance enough to conclude key generation meets FIPS/HSM requirements?
 
-**Đáp án:** Chưa. Cần kiểm tra provider, cơ chế phần cứng, thông số, chính sách triển khai và bằng chứng vận hành liên quan.
+**Answer:** No. You must verify the provider, hardware mechanism, parameters, deployment policy, and associated operational evidence.
 
-## 12. Tài liệu tham khảo
+## 12. References
 
-- [Java SE 17 — KeyPairGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyPairGenerator.html): overload `getInstance`, khởi tạo theo kích thước/bộ tham số, mặc định provider.
-- [Java SE 17 — KeyPair](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyPair.html): biểu diễn cặp `PrivateKey` và `PublicKey`.
-- [Java SE 17 — RSAKeyGenParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/RSAKeyGenParameterSpec.html): modulus size, public exponent và `F4`.
-- [Java SE 17 — ECGenParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/ECGenParameterSpec.html): tham số đường cong EC đặt tên.
-- [Java SE 17 — NamedParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/NamedParameterSpec.html): `ED25519`, `X25519` và các tham số đặt tên.
-- [Java SE 17 — SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): nguồn ngẫu nhiên mật mã.
-- [Java SE 17 — KeyAgreement](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyAgreement.html): trao đổi bí mật bằng khóa công khai.
-- [JDK 17 Providers Documentation](https://docs.oracle.com/en/java/javase/17/security/oracle-providers.html): hỗ trợ, hạn chế và default theo provider.
+- [Java SE 17 — KeyPairGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyPairGenerator.html): `getInstance` overloads, size/parameter initialization, provider defaults.
+- [Java SE 17 — KeyPair](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyPair.html): representation of `PrivateKey` and `PublicKey` pair.
+- [Java SE 17 — RSAKeyGenParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/RSAKeyGenParameterSpec.html): modulus size, public exponent, and `F4`.
+- [Java SE 17 — ECGenParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/ECGenParameterSpec.html): named EC curve parameters.
+- [Java SE 17 — NamedParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/NamedParameterSpec.html): `ED25519`, `X25519`, and named parameter specs.
+- [Java SE 17 — SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): cryptographic randomness source.
+- [Java SE 17 — KeyAgreement](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyAgreement.html): public-key secret agreement.
+- [JDK 17 Providers Documentation](https://docs.oracle.com/en/java/javase/17/security/oracle-providers.html): provider-specific support, limitations, and defaults.

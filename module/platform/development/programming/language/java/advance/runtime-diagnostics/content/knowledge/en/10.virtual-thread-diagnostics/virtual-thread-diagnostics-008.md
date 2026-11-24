@@ -1,12 +1,12 @@
-# 10.8 Đối chiếu hành vi và công cụ theo phiên bản JDK khi phân tích virtual thread
+# 10.8 Comparing Behavior and Tooling Across JDK Versions When Analyzing Virtual Threads
 
-Virtual thread (luồng ảo) là `java.lang.Thread` do Java runtime lập lịch lên một số luồng nền tảng (*carrier/platform thread*). Khi virtual thread chờ một thao tác có thể unmount, carrier được trả lại để chạy việc khác. Vì vậy, virtual thread chủ yếu giúp tăng **khả năng phục vụ nhiều tác vụ chờ I/O**, không làm một phép tính CPU chạy nhanh hơn. Khi chẩn đoán sự cố, **phiên bản JDK đang chạy ứng dụng** quyết định ý nghĩa của hiện tượng pinning, tập lệnh `jcmd` khả dụng, khả năng quan sát scheduler và thậm chí kiểu dữ liệu trong thread dump JSON.
+A virtual thread is a `java.lang.Thread` scheduled by the Java runtime onto a smaller set of underlying threads (*carrier/platform threads*). When a virtual thread waits on an unmount-capable operation, its carrier is returned to run other work. Consequently, virtual threads primarily increase **capacity to serve many I/O-waiting tasks**, rather than making individual CPU computations run faster. When diagnosing incidents, the **JDK version running the application** determines the meaning of pinning, available `jcmd` commands, scheduler visibility, and even JSON data types inside thread dumps.
 
-## 1. Mục tiêu và cách xác định phiên bản thực tế
+## 1. Objectives and How to Identify the Actual Version
 
-Sau bài này, bạn có thể: xác định mốc thay đổi của virtual thread; phân biệt blocking, pinning và tranh chấp lock; chọn thread dump, JFR, `jcmd` hoặc JMX theo JDK; so sánh kết quả JDK 21–23 với 24+; và sửa công cụ phân tích dump khi chuyển lên JDK 27.
+After this lesson, you will be able to: identify key virtual-thread milestones; distinguish blocking, pinning, and lock contention; choose thread dumps, JFR, `jcmd`, or JMX according to the JDK; compare JDK 21–23 results against JDK 24+; and update dump parsers when upgrading to JDK 27.
 
-Trước khi diễn giải log, ghi lại **JDK của tiến trình đích**, không chỉ JDK cài trên máy phân tích:
+Before interpreting logs, record the **JDK of the target process**, not only the JDK installed on your analysis workstation:
 
 ```bash
 java -version
@@ -15,67 +15,67 @@ jcmd <PID> VM.version
 jcmd <PID> VM.command_line
 ```
 
-`<PID>` là PID JVM ứng dụng; thay bằng số thực. `jcmd` thường cần chạy cùng máy, đủ quyền attach và tương thích với JVM đích. Ghi thêm bản cập nhật (ví dụ 21.0.x), nhà cung cấp JDK, hệ điều hành, cấu hình JVM, tải thử và thời điểm thu thập. Không suy luận hành vi chỉ từ `javac -version` vì ứng dụng có thể được biên dịch và vận hành bằng hai JDK khác nhau.
+`<PID>` is the application JVM's PID; replace it with the actual number. `jcmd` typically must run on the same host with sufficient attach permissions and compatibility with the target JVM. Also record the update release (e.g., 21.0.x), JDK vendor, OS, JVM flags, test load, and collection timestamp. Never infer runtime behavior solely from `javac -version`, as an application may be compiled and operated on two different JDKs.
 
-## 2. Bảng đối chiếu nhanh các mốc JDK
+## 2. Quick Comparison Table of JDK Milestones
 
-| Phiên bản | Trạng thái và hành vi cần nhớ | Công cụ / điểm cần lưu ý khi chẩn đoán |
+| Version | Status and Key Behavior to Remember | Diagnostic Tools / Notes to Watch |
 | --- | --- | --- |
-| **JDK 19** | Virtual thread xuất hiện dạng **preview** (JEP 425). API, cách triển khai và khả năng quan sát chưa là hợp đồng ổn định. | Cần `--enable-preview` khi biên dịch/chạy ví dụ dùng API preview; đối chiếu tài liệu riêng của JDK 19. |
-| **JDK 20** | Preview lần hai (JEP 436); vẫn chưa phải API ổn định. Pinning do `synchronized` và native/foreign call vẫn là vấn đề. | Dùng công cụ của đúng JDK 20; đừng mặc định output giống JDK 21 trở về sau. |
-| **JDK 21** | **Chính thức** theo JEP 444, là bản LTS. Có `Thread.ofVirtual()`, `Thread.startVirtualThread(...)`, `Executors.newVirtualThreadPerTaskExecutor()`. Blocking khi đang giữ monitor `synchronized` có thể pin carrier; native/foreign call cũng có thể pin. | `jcmd Thread.dump_to_file` (text/JSON), JFR các sự kiện virtual thread, và `-Djdk.tracePinnedThreads=full/short` để lần vết pinning trên các bản cũ. |
-| **JDK 22–23** | Virtual thread tiếp tục là tính năng chính thức; giới hạn pinning liên quan `synchronized` về cơ bản vẫn tồn tại trong triển khai HotSpot trước JDK 24. | Đối chiếu JFR, thread dump và mã nguồn theo build; các lệnh scheduler riêng của JDK 24 chưa khả dụng. |
-| **JDK 24** | **JEP 491**: virtual thread chặn trong/đợi monitor `synchronized` có thể nhả carrier; hiện tượng pinning do monitor được loại bỏ. Native method/foreign function vẫn có thể pin. | Bổ sung `jcmd Thread.vthread_scheduler`, `Thread.vthread_pollers` và `jdk.management.VirtualThreadSchedulerMXBean`. Chuyển sang JFR để chẩn đoán pinning; đừng dùng quy trình phụ thuộc `jdk.tracePinnedThreads` cũ. |
-| **JDK 25–26** | Giữ hành vi mới từ JDK 24; virtual thread không yêu cầu bật preview. JFR vẫn hữu ích để tìm các nguyên nhân pinning còn lại, đặc biệt native/foreign frames. | Tiếp tục dùng dump đầy đủ, JFR, hai lệnh `jcmd` mới và scheduler MXBean; kiểm tra tên/trường event với đúng runtime. |
-| **JDK 27** | Tiếp tục hỗ trợ virtual thread ổn định; **thay đổi tương thích công cụ** trong thread dump JSON: PID, thread ID, số lượng thread chuyển từ chuỗi sang số; bổ sung `threadDump.formatVersion = 2`. | Parser/ETL cũ giả định các trường này là string có thể lỗi. JFR cũng có thay đổi mặc định về che thông tin nhạy cảm trong command-line, properties và environment (JEP 536). |
+| **JDK 19** | Virtual threads introduced as a **preview** feature (JEP 425). APIs, implementation, and observability were not yet stable contracts. | Requires `--enable-preview` to compile/run preview API examples; consult JDK 19-specific docs. |
+| **JDK 20** | Second preview (JEP 436); still not a permanent API. Pinning from `synchronized` and native/foreign calls remained an issue. | Use tools from the matching JDK 20; do not assume output matches JDK 21 onward. |
+| **JDK 21** | **Finalized** under JEP 444; an LTS release. Includes `Thread.ofVirtual()`, `Thread.startVirtualThread(...)`, `Executors.newVirtualThreadPerTaskExecutor()`. Blocking while holding a `synchronized` monitor can pin the carrier; native/foreign calls can also pin. | `jcmd Thread.dump_to_file` (text/JSON), virtual-thread JFR events, and `-Djdk.tracePinnedThreads=full/short` to trace pinning on older releases. |
+| **JDK 22–23** | Virtual threads remain a permanent feature; `synchronized`-related pinning limits still essentially apply in HotSpot before JDK 24. | Correlate JFR, thread dumps, and source code per build; JDK 24 scheduler-specific commands are not yet available. |
+| **JDK 24** | **JEP 491**: virtual threads blocking inside or waiting on a `synchronized` monitor can release the carrier; monitor-induced pinning is eliminated. Native methods/foreign functions can still pin. | Adds `jcmd Thread.vthread_scheduler`, `Thread.vthread_pollers`, and `jdk.management.VirtualThreadSchedulerMXBean`. Switch to JFR for pinning diagnostics; drop workflows relying on the old `jdk.tracePinnedThreads` flag. |
+| **JDK 25–26** | Retains the new behavior from JDK 24; virtual threads do not require preview flags. JFR remains useful for finding remaining pinning causes, especially native/foreign frames. | Continue using full dumps, JFR, the two newer `jcmd` commands, and the scheduler MXBean; verify event names/fields against the exact runtime. |
+| **JDK 27** | Continues stable virtual thread support; **tooling compatibility change** in JSON thread dumps: PID, thread ID, and thread counts switch from strings to numbers, and `threadDump.formatVersion = 2` is added. | Legacy parsers/ETL assuming those fields are strings may fail. JFR also changes defaults to redact sensitive info in command-line arguments, properties, and environment variables (JEP 536). |
 
-**Ranh giới quan trọng:** virtual thread ổn định từ JDK 21; *Structured Concurrency* là API liên quan nhưng có vòng đời preview riêng (JDK 27 vẫn là preview). Không buộc `--enable-preview` chỉ để chạy `Thread.ofVirtual()` ở JDK 21+.
+**Important boundary:** virtual threads became stable in JDK 21; *Structured Concurrency* is a related API with its own separate preview lifecycle (still in preview in JDK 27). Never require `--enable-preview` just to run `Thread.ofVirtual()` on JDK 21+.
 
-## 3. Hiểu đúng carrier, unmount và pinning theo phiên bản
+## 3. Understanding Carriers, Unmounting, and Pinning by Version
 
-Một virtual thread có thể trải qua ba tình huống khác nhau:
+A virtual thread can experience three distinct situations:
 
-1. **Chờ mà unmount được:** khi chờ `Thread.sleep`, một số I/O hoặc primitive blocking hỗ trợ virtual thread, runtime cất trạng thái virtual thread và nhường carrier. Nhiều virtual thread chờ không đồng nghĩa nhiều OS thread bị chặn.
-2. **Pinning:** virtual thread không thể nhả carrier trong lúc chờ. Trên HotSpot JDK 21–23, việc blocking bên trong `synchronized` là nguyên nhân nổi bật; từ JDK 24, trường hợp monitor này được giải quyết. Native/foreign frames vẫn cần quan sát.
-3. **Lock contention:** các tác vụ tranh nhau cùng một monitor/lock và phải lần lượt vào vùng tới hạn. JDK 24 giảm *carrier pinning*, **không loại bỏ tính loại trừ lẫn nhau của `synchronized`**. Nếu 100 yêu cầu cùng chờ một lock, thời gian đáp ứng vẫn có thể xấu dù JFR không còn báo pinning do monitor.
+1. **Waiting while unmounting:** when waiting on `Thread.sleep`, certain I/O, or virtual-thread-friendly blocking primitives, the runtime saves the virtual thread's state and yields the carrier. Many waiting virtual threads do not imply many blocked OS threads.
+2. **Pinning:** the virtual thread cannot release its carrier while waiting. On HotSpot JDK 21–23, blocking inside `synchronized` is a prominent cause; from JDK 24 onward, that monitor case is resolved. Native/foreign frames still require observation.
+3. **Lock contention:** tasks compete for the same monitor/lock and must enter the critical section one at a time. JDK 24 reduces *carrier pinning*, **not the mutual exclusion semantics of `synchronized`**. If 100 requests wait on one lock, response times can still degrade even when JFR stops reporting monitor pinning.
 
-Ví dụ một đoạn mã:
+Consider this snippet:
 
 ```java
 synchronized (lock) {
-    blockingCall(); // Ví dụ: thao tác chờ mạng hoặc sleep dài
+    blockingCall(); // Example: network wait or long sleep
 }
 ```
 
-- **JDK 21–23:** nếu virtual thread thực sự blocking trong đoạn trên, carrier có thể bị giữ lại. Pinning kéo dài và lặp lại làm giảm khả năng mở rộng; JFR `jdk.VirtualThreadPinned` có thể ghi nhận.
-- **JDK 24+:** monitor không còn là nguyên nhân pinning cho loại blocking này. Tuy nhiên, nếu nhiều tác vụ dùng cùng `lock`, chúng vẫn nối hàng vì quy tắc đồng bộ; nếu `blockingCall` đi qua native/foreign code thì vẫn có thể phát sinh pinning từ nguyên nhân đó.
-- **Cách sửa theo bằng chứng:** trên JDK 21–23, nếu JFR xác nhận pinning dài, lặp lại trong vùng `synchronized` có I/O, cân nhắc thu hẹp vùng lock, chuyển I/O ra ngoài lock hoặc dùng `ReentrantLock` đúng cách. Trên JDK 24+, ưu tiên phân tích tranh chấp lock và thời gian thao tác trước khi thay cơ chế đồng bộ. Không thay toàn bộ `synchronized` theo phản xạ.
+- **JDK 21–23:** if the virtual thread actually blocks inside that block, the carrier can be held. Prolonged and repeated pinning reduces scalability; JFR `jdk.VirtualThreadPinned` may record it.
+- **JDK 24+:** the monitor no longer causes pinning for this kind of blocking. However, if many tasks share the same `lock`, they still queue due to synchronization rules; if `blockingCall` enters native/foreign code, pinning can still occur from that source.
+- **Evidence-based fix:** on JDK 21–23, if JFR confirms long, repeated pinning inside `synchronized` blocks doing I/O, consider narrowing the lock scope, moving I/O outside the lock, or using `ReentrantLock` properly. On JDK 24+, analyze lock contention and operation duration first before altering synchronization primitives. Never replace every `synchronized` reflexively.
 
-`jdk.VirtualThreadPinned` không có nghĩa virtual thread bị deadlock; nó báo khoảng chờ không nhả được carrier vượt ngưỡng event. Ngược lại, **không thấy event không chứng minh không có vấn đề**: có thể thời lượng dưới ngưỡng, event bị tắt, bản JDK đã sửa pinning theo monitor hoặc tải thử chưa tái hiện.
+`jdk.VirtualThreadPinned` does not mean the virtual thread is deadlocked; it reports a wait unable to release the carrier that exceeded the event threshold. Conversely, **zero events does not prove zero problems**: durations may be below threshold, the event may be disabled, the JDK may already have fixed monitor pinning, or test load may not have reproduced it.
 
-## 4. Chọn đúng công cụ theo câu hỏi
+## 4. Choosing the Right Tool for the Question
 
-| Cần biết | Công cụ | Phiên bản / giới hạn diễn giải |
+| What You Need to Know | Tool | Version / Interpretation Limits |
 | --- | --- | --- |
-| Virtual thread nào đang làm/chờ việc gì? | `jcmd <PID> Thread.dump_to_file -format=text` hoặc `-format=json` | Dùng trên JDK 21+. Dump này hữu ích cho cả platform và virtual thread; là tập quan sát tại nhiều thời điểm, **không phải snapshot nguyên tử** và không tự làm deadlock detection. Có thể thiếu một phần virtual thread trong một số tình huống. |
-| Carrier và platform thread đang chạy gì? | `jcmd <PID> Thread.print`, `jstack` | HotSpot dump kiểu truyền thống nhấn mạnh platform thread và các virtual thread **đang mounted**; không thay thế dump chuyên dụng khi phần lớn virtual thread đã unmount. |
-| Pinning xảy ra ở đâu, bao lâu? | JFR `jdk.VirtualThreadPinned`; JDK 21–23 có thêm `-Djdk.tracePinnedThreads` | Ngưỡng JFR mặc định là **20 ms** khi event được bật theo cấu hình mặc định; bản ghi ngắn hơn ngưỡng có thể không xuất hiện. Trên JDK 24+, ưu tiên JFR. |
-| Virtual thread tạo/kết thúc quá nhiều? | JFR `jdk.VirtualThreadStart` / `jdk.VirtualThreadEnd` | Hai event thường **tắt mặc định**. Bật có chọn lọc; tải rất lớn có thể tạo lượng sự kiện khổng lồ. |
-| Scheduler không nhận/không đưa tác vụ vào chạy? | JFR `jdk.VirtualThreadSubmitFailed` | Thường hướng tới vấn đề tài nguyên hoặc nộp/đánh thức tác vụ thất bại; không đồng nghĩa ngoại lệ nghiệp vụ của từng task. |
-| Scheduler có hàng chờ lớn, bao nhiêu carrier đang dùng? | `jcmd <PID> Thread.vthread_scheduler` hoặc `VirtualThreadSchedulerMXBean` | **Từ JDK 24**. Đây là số liệu scheduler, không phải tổng số request nghiệp vụ hay toàn bộ virtual thread trong JVM. |
-| Nhiều virtual thread chờ socket/network I/O? | `jcmd <PID> Thread.vthread_pollers` | **Từ JDK 24**. Số liệu poller giúp phân tích I/O mạng; không đo mọi kiểu chờ (lock, sleep, DB pool, file I/O). |
-| Có bao nhiêu thread theo `ThreadMXBean`? | `java.lang.management.ThreadMXBean` | Chủ yếu theo dõi **platform thread**, không thống kê/điều khiển virtual thread như một tập đầy đủ. `ThreadGroup.activeCount()/enumerate()` cũng không liệt kê virtual thread như platform thread. |
-| Phân tích dump JSON bằng công cụ nội bộ? | Parser của `Thread.dump_to_file` | **JDK 27 đổi schema sang v2**, phải kiểm tra kiểu dữ liệu và `formatVersion`; không khóa parser vào kiểu string của JDK 21–26. |
+| Which virtual threads are doing/waiting on what? | `jcmd <PID> Thread.dump_to_file -format=text` or `-format=json` | Available on JDK 21+. Useful for both platform and virtual threads; reflects observations across multiple instants, **not an atomic snapshot**, and does not perform automatic deadlock detection. May omit some virtual threads in certain cases. |
+| What are carriers and platform threads running? | `jcmd <PID> Thread.print`, `jstack` | Traditional HotSpot dumps emphasize platform threads and **mounted** virtual threads; do not substitute for dedicated dumps when most virtual threads are unmounted. |
+| Where and how long is pinning occurring? | JFR `jdk.VirtualThreadPinned`; JDK 21–23 also has `-Djdk.tracePinnedThreads` | Default JFR threshold is **20 ms** when enabled by default config; pins shorter than the threshold may not appear. On JDK 24+, prefer JFR. |
+| Are too many virtual threads starting/terminating? | JFR `jdk.VirtualThreadStart` / `jdk.VirtualThreadEnd` | Both events are usually **disabled by default**. Enable selectively; very high traffic can generate massive event volume. |
+| Is the scheduler rejecting or failing to schedule tasks? | JFR `jdk.VirtualThreadSubmitFailed` | Generally points to resource pressure or submit/unpark failures; does not mean business exceptions inside individual tasks. |
+| Does the scheduler have a large queue, and how many carriers are in use? | `jcmd <PID> Thread.vthread_scheduler` or `VirtualThreadSchedulerMXBean` | **JDK 24+**. These are scheduler metrics, not total business requests or all virtual threads in the JVM. |
+| Are many virtual threads waiting on socket/network I/O? | `jcmd <PID> Thread.vthread_pollers` | **JDK 24+**. Poller metrics aid network I/O analysis; they do not measure every wait type (locks, sleep, DB pools, file I/O). |
+| How many threads does `ThreadMXBean` see? | `java.lang.management.ThreadMXBean` | Primarily tracks **platform threads**, not a complete tally or control surface for virtual threads. `ThreadGroup.activeCount()/enumerate()` also do not enumerate virtual threads like platform threads. |
+| Parsing JSON dumps with internal tooling? | `Thread.dump_to_file` parser | **JDK 27 changes schema to v2**; check field data types and `formatVersion` rather than hardcoding JDK 21–26 string types. |
 
-Các IDE và debugger hỗ trợ virtual thread qua giao thức debug (JDWP/JDI); khả năng nhóm, lọc, hiển thị hàng nghìn virtual thread phụ thuộc **phiên bản IDE/debugger** và JVM, không chỉ API Java. Khi thấy số lượng bất thường, so sánh với JFR và dump thay vì coi một màn hình debugger là nguồn duy nhất.
+IDEs and debuggers support virtual threads through the debugging protocol (JDWP/JDI); grouping, filtering, and displaying thousands of virtual threads depends on the **IDE/debugger version** and JVM, not just the Java API. When counts look unusual, cross-check with JFR and dumps instead of treating a single debugger view as authoritative.
 
-## 5. Quy trình điều tra sự cố có thể lặp lại
+## 5. Repeatable Incident Investigation Workflow
 
-### Bước 1 — Chốt môi trường và triệu chứng
+### Step 1 — Lock Down Environment and Symptoms
 
-Ghi phiên bản Java runtime, OS, PID, cờ JVM, số CPU nhìn thấy trong container, loại tải (I/O hay CPU), tỷ lệ lỗi, p95/p99 latency, pool kết nối và giới hạn tài nguyên downstream. Phân biệt: throughput giảm, latency tăng, CPU cao, kẹt lock, kết nối cạn hay quá nhiều nhiệm vụ chờ. Virtual thread không thay thế connection pool, semaphore hay giới hạn số request ra dịch vụ khác.
+Record the Java runtime version, OS, PID, JVM flags, CPUs visible inside the container, workload type (I/O vs. CPU), error rate, p95/p99 latency, connection pools, and downstream resource limits. Distinguish: dropping throughput, rising latency, high CPU, lock stalls, exhausted connections, or excessive waiting tasks. Virtual threads do not replace connection pools, semaphores, or outbound rate limits.
 
-### Bước 2 — Lấy thread dump phù hợp
+### Step 2 — Take the Appropriate Thread Dump
 
 ```bash
 jcmd <PID> Thread.dump_to_file -format=text threads.txt
@@ -83,45 +83,45 @@ jcmd <PID> Thread.dump_to_file -format=json threads.json
 jcmd <PID> Thread.print
 ```
 
-Thực tế có thể cần dùng đường dẫn tuyệt đối tới file output và đảm bảo thư mục ghi tồn tại, tiến trình có quyền ghi. Dùng dump text để đọc stack nhanh, JSON để nhóm/filter theo tên, state, thread container và frame. Lấy vài mẫu cách nhau trong khoảng tái hiện để thấy stack có tiến triển hay đứng yên; đừng gộp các lần lấy mẫu thành một snapshot giả.
+In practice you may need absolute output paths and must ensure the destination directory exists and the process has write permission. Use text dumps for quick stack reading and JSON for grouping/filtering by name, state, thread container, and frames. Take several samples spaced apart while reproducing to see whether stacks advance or remain frozen; never merge separate samples into a fake single snapshot.
 
-**Cách đọc kết quả:**
-- Nhiều stack `WAITING`/`TIMED_WAITING` ở socket, queue hoặc `park` có thể là chờ hợp lệ. Ghép với thời gian downstream và request trace trước khi kết luận kẹt.
-- Một số ít carrier trong `Thread.print` không có nghĩa ứng dụng chỉ có từng ấy virtual thread; phần lớn có thể đang unmounted.
-- Dump chuyên dụng không tự thực hiện deadlock detection. Điều tra lock cần thêm quan hệ sở hữu lock, thứ tự lấy lock, log ứng dụng và công cụ phát hiện phù hợp.
-- `threadCount` trong JSON có thể lớn hơn độ dài mảng `threads` nếu dump không chứa mọi virtual thread; không dùng `threads.length` làm tổng tuyệt đối.
+**How to read the results:**
+- Numerous `WAITING`/`TIMED_WAITING` stacks on sockets, queues, or `park` can represent normal waiting. Correlate with downstream timings and request traces before declaring a stall.
+- Seeing only a handful of carriers in `Thread.print` does not mean the application has only that many virtual threads; most may be unmounted.
+- The dedicated dump does not perform deadlock detection automatically. Lock investigations also require lock ownership edges, acquisition ordering, application logs, and proper detection tools.
+- `threadCount` in JSON may exceed the length of the `threads` array if the dump omits some virtual threads; do not use `threads.length` as an absolute total.
 
-### Bước 3 — Bật và đọc JFR đúng sự kiện
+### Step 3 — Enable and Read the Right JFR Events
 
 ```bash
 jcmd <PID> JFR.start name=vt settings=profile
-# Tái hiện tình trạng, sau đó:
+# Reproduce the condition, then:
 jcmd <PID> JFR.dump name=vt filename=vt.jfr
 jfr print --events jdk.VirtualThreadPinned,jdk.VirtualThreadSubmitFailed vt.jfr
 ```
 
-Các lệnh trên là cú pháp mẫu cho JVM HotSpot có JFR; kiểm tra `jcmd <PID> help JFR.start` nếu công cụ/bản phân phối khác. Khi cần vòng đời virtual thread, tạo cấu hình JFR riêng bật `jdk.VirtualThreadStart` và `jdk.VirtualThreadEnd`; mặc định hai event đó thường bị tắt. Trong JDK 26+, event pinning có thể chứa thông tin như `blockingOperation` và `pinnedReason`: hãy xem schema của recording thực tế, không viết parser giả định mọi đời JDK đều có cùng trường.
+These commands are template syntax for a HotSpot JVM with JFR; check `jcmd <PID> help JFR.start` on other tools or distributions. When virtual thread lifecycles are needed, create a custom JFR configuration enabling `jdk.VirtualThreadStart` and `jdk.VirtualThreadEnd`; both are typically disabled by default. In JDK 26+, pinning events can include fields such as `blockingOperation` and `pinnedReason`: inspect the actual recording schema instead of writing parsers that assume identical fields across all JDK generations.
 
-Trên JDK 21–23 có thể chạy riêng với `-Djdk.tracePinnedThreads=full` hoặc `short` để in stack khi pinning; lựa chọn này phù hợp với công cụ thời đó. Với JDK 24+, dùng JFR thay cho cờ cũ đã bị loại bỏ.
+On JDK 21–23, you can run separately with `-Djdk.tracePinnedThreads=full` or `short` to print stacks on pinning; this fits tooling of that era. On JDK 24+, use JFR instead of the removed legacy flag.
 
-### Bước 4 — Kiểm tra scheduler trên JDK 24+
+### Step 4 — Inspect the Scheduler on JDK 24+
 
 ```bash
 jcmd <PID> Thread.vthread_scheduler
 jcmd <PID> Thread.vthread_pollers
 ```
 
-`VirtualThreadSchedulerMXBean` (module `jdk.management`, từ JDK 24) cung cấp chỉ số như `getParallelism()`, `getPoolSize()`, `getMountedVirtualThreadCount()` và `getQueuedVirtualThreadCount()`; có thể thay đổi target parallelism qua JMX nếu được phép. `parallelism` là số carrier mục tiêu cho scheduler, không phải giới hạn số virtual thread đang tồn tại. Mặc định scheduler thường dựa vào số processor khả dụng; `jdk.virtualThreadScheduler.parallelism` là một cấu hình cần ghi nhận khi so sánh.
+`VirtualThreadSchedulerMXBean` (`jdk.management` module, since JDK 24) exposes metrics such as `getParallelism()`, `getPoolSize()`, `getMountedVirtualThreadCount()`, and `getQueuedVirtualThreadCount()`; target parallelism can be adjusted via JMX if permitted. `parallelism` is the target carrier count for the scheduler, not a limit on existing virtual threads. By default, the scheduler typically bases this on available processors; `jdk.virtualThreadScheduler.parallelism` is an important setting to record when comparing runs.
 
-**Diễn giải kết hợp:** hàng chờ scheduler tăng cùng CPU bão hòa có thể là nhiều tác vụ CPU/không nhường chạy; hàng chờ tăng trong JDK 21–23 kèm pinning dài có thể do thiếu carrier rảnh. Từ JDK 24+, nếu pinning do monitor biến mất nhưng latency còn cao, hãy kiểm tra lock contention, database pool, giới hạn socket, file descriptor, native frames và downstream. Không tăng parallelism như giải pháp đầu tiên khi chưa biết nút thắt.
+**Combined interpretation:** a growing scheduler queue alongside saturated CPU can indicate many CPU-heavy/non-yielding tasks; a growing queue in JDK 21–23 paired with long pinning can indicate a shortage of free carriers. From JDK 24+, if monitor pinning disappears yet latency remains high, inspect lock contention, database pools, socket limits, file descriptors, native frames, and downstreams. Never raise parallelism as your first move before identifying the bottleneck.
 
-### Bước 5 — So sánh cùng một workload trên các JDK
+### Step 5 — Compare the Same Workload Across JDKs
 
-Giữ nguyên mã nguồn, dữ liệu, cấu hình tài nguyên, số worker/connection, thời gian warmup và phương pháp đo; đổi duy nhất runtime khi có thể. So sánh: thời gian chờ lock, p95/p99, throughput, CPU, số carrier đang dùng, scheduler queue, JFR pinning và số connection. Bảo toàn file `.jfr`, dump, PID/bản JDK và cấu hình để lần sau tái lập. Nếu đổi đồng thời JDK, framework và kết nối DB, không thể quy ngay thay đổi số liệu cho virtual thread.
+Keep source code, data, resource configuration, worker/connection counts, warmup duration, and measurement methodology constant; vary only the runtime whenever possible. Compare: lock wait time, p95/p99, throughput, CPU, active carrier count, scheduler queue, JFR pinning, and connection counts. Archive `.jfr` files, dumps, PID/JDK build, and configs for reproducibility. Changing JDK, framework, and DB connectivity simultaneously makes it impossible to attribute metric shifts solely to virtual threads.
 
-## 6. Ví dụ chạy được: xác thực virtual thread trên JDK 21+
+## 6. Runnable Example: Verifying Virtual Threads on JDK 21+
 
-Lưu file **`VirtualThreadProbe.java`**:
+Save the file **`VirtualThreadProbe.java`**:
 
 ```java
 import java.util.concurrent.Executors;
@@ -138,24 +138,24 @@ public class VirtualThreadProbe {
 }
 ```
 
-Biên dịch/chạy với **JDK 21 trở lên**, không cần `--enable-preview`:
+Compile and run with **JDK 21 or later**, without `--enable-preview`:
 
 ```bash
 javac VirtualThreadProbe.java
 java VirtualThreadProbe
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 virtual=true
 ```
 
-Giải thích: executor tạo một virtual thread cho mỗi task; trong task, `Thread.currentThread()` trả về virtual thread đang chạy, nên `isVirtual()` là `true`. `Future.get()` chờ kết quả; `try-with-resources` đóng executor sạch sẽ. `newVirtualThreadPerTaskExecutor()` **không phải pool tái sử dụng virtual thread**. Với JDK 19/20, ví dụ dùng API preview cần compiler/runtime của đúng phiên bản đó và cờ `--enable-preview`; không coi lệnh JDK 21 là hướng dẫn chạy nguyên xi cho preview.
+Explanation: the executor creates one virtual thread per task; inside the task, `Thread.currentThread()` returns the executing virtual thread, so `isVirtual()` is `true`. `Future.get()` waits for the result; `try-with-resources` closes the executor cleanly. `newVirtualThreadPerTaskExecutor()` **is not a pool that reuses virtual threads**. On JDK 19/20, examples using preview APIs need the compiler/runtime of that exact version plus `--enable-preview`; do not treat JDK 21 commands as verbatim instructions for preview releases.
 
-## 7. Ví dụ đối chiếu pinning JDK 21–23 và JDK 24+
+## 7. Example Comparing Pinning on JDK 21–23 vs. JDK 24+
 
-Lưu file **`PinningDemo.java`**:
+Save the file **`PinningDemo.java`**:
 
 ```java
 public class PinningDemo {
@@ -178,13 +178,13 @@ public class PinningDemo {
 }
 ```
 
-Biên dịch bằng JDK 21+, rồi chạy trên từng runtime muốn so sánh (biên dịch với target tương thích, ví dụ `javac --release 21 PinningDemo.java` khi dùng compiler mới). Stdout của chương trình không phụ thuộc phiên bản:
+Compile with JDK 21+, then run on each runtime you want to compare (compile with a compatible target, e.g., `javac --release 21 PinningDemo.java` when using a newer compiler). Program stdout does not depend on version:
 
 ```text
 done
 ```
 
-Để thu JFR cho lần chạy thử:
+To capture JFR for a test run:
 
 ```bash
 javac PinningDemo.java
@@ -192,17 +192,17 @@ java -XX:StartFlightRecording:filename=pinning.jfr,dumponexit=true PinningDemo
 jfr print --events jdk.VirtualThreadPinned pinning.jfr
 ```
 
-- Trên **JDK 21–23**, `Thread.sleep(300)` nằm bên trong monitor có thể làm virtual thread pin carrier; nếu recording bật event, thời gian đủ ngưỡng và triển khai đúng kỳ vọng, bạn có thể thấy `jdk.VirtualThreadPinned`.
-- Trên **JDK 24+**, cùng `synchronized` không còn tạo pinning do monitor; không nên mong chờ event đó chỉ vì có monitor. Native/foreign code phát sinh trong workload khác vẫn có thể pin.
-- Đây là **bài thử cơ chế**, không phải benchmark throughput: chỉ có một virtual thread nên không chứng minh mức cải thiện hiệu năng ứng dụng. Để benchmark, dùng nhiều tác vụ độc lập, điều kiện đo cố định và kiểm tra JFR lẫn metric.
+- On **JDK 21–23**, `Thread.sleep(300)` inside a monitor can pin the virtual thread's carrier; if the recording enables the event, duration meets the threshold, and runtime behavior matches expectations, you can observe `jdk.VirtualThreadPinned`.
+- On **JDK 24+**, the same `synchronized` block no longer creates monitor-induced pinning; do not expect that event simply because a monitor is present. Native/foreign code in other workloads can still pin.
+- This is a **mechanism test**, not a throughput benchmark: a single virtual thread proves nothing about application-level performance gains. To benchmark, use many independent tasks, fixed measurement conditions, and inspect both JFR and metrics.
 
-Nếu tải thật liên tục chờ cùng một monitor, nâng cấp JDK 24+ có thể loại bỏ carrier pinning nhưng không làm biến mất hàng chờ lock. Phải đo đồng thời lock wait và scheduler.
+If real traffic continuously contends on the same monitor, upgrading to JDK 24+ can eliminate carrier pinning without eliminating the lock wait queue. You must measure lock wait and scheduler behavior together.
 
-## 8. Thay đổi quan trọng ở JDK 27: thread dump JSON v2
+## 8. Major Change in JDK 27: JSON Thread Dump v2
 
-Từ **JDK 21 đến JDK 26**, thread dump JSON thường biểu diễn các định danh PID/thread và số lượng thread bằng **chuỗi**. **JDK 27** chuyển các trường này thành **number**, đồng thời thêm `threadDump.formatVersion` bằng `2`. Ví dụ tối giản minh họa phần cấu trúc (không phải file dump đầy đủ):
+From **JDK 21 through JDK 26**, JSON thread dumps commonly represented PID/thread identifiers and thread counts as **strings**. **JDK 27** switches these fields to **numbers**, while adding `threadDump.formatVersion` set to `2`. Minimal structural snippets for illustration (not full dump files):
 
-**Trước JDK 27 (kiểu cũ, trích đoạn):**
+**Before JDK 27 (legacy style, excerpt):**
 
 ```json
 {
@@ -218,7 +218,7 @@ Từ **JDK 21 đến JDK 26**, thread dump JSON thường biểu diễn các đ�
 }
 ```
 
-**Từ JDK 27 (kiểu v2, trích đoạn):**
+**From JDK 27 (v2 style, excerpt):**
 
 ```json
 {
@@ -235,68 +235,68 @@ Từ **JDK 21 đến JDK 26**, thread dump JSON thường biểu diễn các đ�
 }
 ```
 
-Khi xây parser/dashboards:
+When building parsers and dashboards:
 
-1. Đọc `formatVersion` nếu có; nếu không có thì xem đó là khả năng định dạng legacy, nhưng vẫn validate cấu trúc thực tế.
-2. Hỗ trợ cả string và number cho PID, `tid`, `threadCount`, `owner`, `carrier` và các trường định danh liên quan. Dùng kiểu số đủ rộng nếu công cụ cần tính toán; dùng biểu diễn thống nhất khi ghép key/index.
-3. Không giả định số phần tử `threads` bằng `threadCount`; cấu trúc nhóm thread và phần thread chưa được lấy mẫu có thể làm chúng khác nhau.
-4. Có bài kiểm thử parser với fixture từ JDK 21/24/26 **và** JDK 27. Đừng sửa file JSON thực bằng tìm–thay chuỗi: dễ làm hỏng kiểu dữ liệu hoặc các giá trị text khác.
-5. JDK 27 còn có **JFR in-process data redaction** mặc định đối với thông tin nhạy cảm như command-line arguments và giá trị ban đầu của environment/system properties. Khi so sánh recordings cũ–mới, dữ liệu thiếu do redaction không được hiểu thành thay đổi hành vi virtual thread.
+1. Read `formatVersion` if present; if absent, treat it as likely legacy format while still validating the actual structure.
+2. Support both strings and numbers for PID, `tid`, `threadCount`, `owner`, `carrier`, and related identifier fields. Use sufficiently wide numeric types for arithmetic and a canonical representation when joining keys/indexes.
+3. Do not assume the length of `threads` equals `threadCount`; thread container structures and unsampled subsets can cause them to differ.
+4. Test parsers against fixtures from JDK 21/24/26 **and** JDK 27. Never patch real JSON files via text find-and-replace: that easily corrupts data types or other text values.
+5. JDK 27 also enables **JFR in-process data redaction** by default for sensitive data such as command-line arguments and initial environment/system property values. When comparing old and new recordings, missing fields due to redaction must not be misinterpreted as a change in virtual-thread behavior.
 
-Mốc này tác động **định dạng dữ liệu quan sát**, không thay định nghĩa `Thread.isVirtual()` hoặc nguyên tắc lập lịch virtual thread.
+This milestone affects **observability data formats**, not the definition of `Thread.isVirtual()` or virtual-thread scheduling semantics.
 
-## 9. Bốn tình huống chẩn đoán thường gặp
+## 9. Four Common Diagnostic Scenarios
 
-### Tình huống A — Cùng ứng dụng, JDK 21 có pinning event nhưng JDK 24 không còn
+### Scenario A — Same Application Has Pinning Events on JDK 21, None on JDK 24
 
-**Giả thuyết:** đoạn blocking bên trong `synchronized` từng pin carrier; JEP 491 đã khử nguyên nhân đó. **Xác minh:** cùng tải, cùng cấu hình JFR, đối chiếu stack/số sự kiện pinning và scheduler/latency. **Không kết luận vội:** nếu latency còn cao, đo lock contention và thời gian downstream; event biến mất không đồng nghĩa mọi chờ đợi biến mất.
+**Hypothesis:** blocking inside `synchronized` used to pin carriers; JEP 491 eliminated that cause. **Verification:** same load, same JFR config, compare pinning stacks/counts and scheduler/latency metrics. **Do not jump to conclusions:** if latency remains high, measure lock contention and downstream durations; disappearing events do not mean all waits disappeared.
 
-### Tình huống B — JDK 26 có scheduler queue cao nhưng `Thread.print` trông rất ít thread
+### Scenario B — JDK 26 Shows High Scheduler Queue While `Thread.print` Shows Few Threads
 
-**Giả thuyết:** nhiều virtual thread đang unmounted hoặc đang đợi lịch; `Thread.print` chỉ thấy platform và virtual thread mounted ở thời điểm chụp. **Xác minh:** `Thread.dump_to_file`, `Thread.vthread_scheduler`, `Thread.vthread_pollers`, JFR và request trace. **Hành động:** xác định đang bị nghẽn CPU, I/O, downstream, đồng bộ hay native trước khi tăng target parallelism.
+**Hypothesis:** many virtual threads are unmounted or waiting to be scheduled; `Thread.print` captures only platform threads and mounted virtual threads at snapshot time. **Verification:** `Thread.dump_to_file`, `Thread.vthread_scheduler`, `Thread.vthread_pollers`, JFR, and request traces. **Action:** determine whether the bottleneck is CPU, I/O, downstream, synchronization, or native code before raising target parallelism.
 
-### Tình huống C — `ThreadMXBean.getThreadCount()` nhỏ nhưng ứng dụng đang có hàng chục nghìn request
+### Scenario C — `ThreadMXBean.getThreadCount()` Is Small While Tens of Thousands of Requests Are Open
 
-**Giả thuyết:** chỉ số chỉ phản ánh platform thread; virtual thread không được thống kê đầy đủ ở MXBean này. **Xác minh:** thread dump dành cho virtual thread, metric nghiệp vụ và request đang mở. **Hành động:** không dùng duy nhất `ThreadMXBean` để cảnh báo số virtual thread; chọn dữ liệu phù hợp với mục đích.
+**Hypothesis:** the metric reflects only platform threads; virtual threads are not fully accounted for in this MXBean. **Verification:** virtual-thread dumps, business metrics, and open request counts. **Action:** never rely solely on `ThreadMXBean` to alert on virtual thread counts; pick telemetry suited to the goal.
 
-### Tình huống D — Công cụ đọc dump hoạt động trên JDK 26 nhưng lỗi sau nâng cấp JDK 27
+### Scenario D — Dump Reader Works on JDK 26 but Breaks After Upgrading to JDK 27
 
-**Giả thuyết:** parser yêu cầu `tid`/`processId` là string trong khi dump v2 trả number. **Xác minh:** kiểm tra `formatVersion` và kiểu JSON thực. **Hành động:** bổ sung parser hỗ trợ schema v1/v2, fixture và regression test; giữ thông tin runtime version trong mỗi artifact chẩn đoán.
+**Hypothesis:** the parser expects `tid`/`processId` as strings while v2 dumps return numbers. **Verification:** inspect `formatVersion` and actual JSON types. **Action:** update the parser to support both v1 and v2 schemas with fixtures and regression tests; retain runtime version metadata in every diagnostic artifact.
 
-## 10. Những ngộ nhận cần tránh
+## 10. Misconceptions to Avoid
 
-- **“Blocking là pinning.”** Sai. Virtual thread thường *được thiết kế để chờ* và nhả carrier. Chỉ khi carrier không thể được nhả trong lúc chờ mới là pinning theo nghĩa chẩn đoán này.
-- **“JDK 24 bỏ `synchronized` hoặc tự hết lock contention.”** Sai. Thay đổi xử lý monitor giúp tránh pin carrier, không thay quy tắc mutual exclusion.
-- **“Không có `jdk.VirtualThreadPinned` nghĩa không có nút thắt.”** Sai. Cần xét ngưỡng/cấu hình JFR, tải thực, version và các loại bottleneck khác.
-- **“`jstack`, `Thread.print`, `ThreadMXBean` thấy hết virtual threads.”** Sai. Chúng không thay thế thread dump chuyên dụng cho cả các virtual thread unmounted.
-- **“Mỗi virtual thread tương ứng một OS thread.”** Sai. Carrier được tái sử dụng; khi virtual thread unmount, nó không chiếm carrier.
-- **“Số thread cao thì phải giới hạn bằng virtual-thread pool.”** Sai. Dùng mỗi virtual thread cho một tác vụ; dùng `Semaphore`, connection pool và giới hạn downstream để kiểm soát tài nguyên thực.
-- **“Tăng scheduler parallelism chắc chắn tăng throughput.”** Sai. Nếu nghẽn ở CPU, connection, lock hoặc dịch vụ ngoài, thay đổi đó có thể không giúp ích và cần đo.
-- **“Dùng cờ preview cho mọi phiên bản.”** Sai. Chỉ preview JDK 19/20 cho virtual thread; từ JDK 21, tính năng đã chính thức. Preview của Structured Concurrency là vấn đề riêng.
-- **“JSON thread dump có schema cố định.”** Sai. JDK 27 đổi các trường số và bổ sung `formatVersion`; parser cần tương thích nhiều phiên bản.
+- **"Blocking equals pinning."** False. Virtual threads are *designed to block* and release their carriers. Only when the carrier cannot be released while waiting is it pinning in this diagnostic sense.
+- **"JDK 24 removes `synchronized` or automatically eliminates lock contention."** False. Monitor handling changed to avoid pinning the carrier, not mutual exclusion rules.
+- **"No `jdk.VirtualThreadPinned` means no bottleneck."** False. Account for JFR thresholds/configs, real load, JDK version, and other bottleneck types.
+- **"`jstack`, `Thread.print`, and `ThreadMXBean` see all virtual threads."** False. They do not replace dedicated dumps covering unmounted virtual threads.
+- **"Every virtual thread maps to one OS thread."** False. Carriers are reused; when a virtual thread unmounts, it occupies no carrier.
+- **"High thread counts must be capped with a virtual-thread pool."** False. Use one virtual thread per task; use `Semaphore`, connection pools, and downstream limits to bound real resources.
+- **"Increasing scheduler parallelism guarantees higher throughput."** False. If the bottleneck is CPU, connections, locks, or external services, it may not help and must be measured.
+- **"Use preview flags on every version."** False. Preview flags applied only to JDK 19/20 for virtual threads; from JDK 21 onward, the feature is permanent. Structured Concurrency's preview status is separate.
+- **"JSON thread dumps have a fixed schema."** False. JDK 27 changes numeric fields and adds `formatVersion`; parsers must handle multiple versions.
 
-## 11. Checklist trước khi kết luận nguyên nhân
+## 11. Pre-Conclusion Checklist
 
-- [ ] Đã ghi **runtime JDK + build/vendor**, PID, OS, CPU quota và JVM options của ứng dụng.
-- [ ] Đã xác định JDK **21–23** hay **24+** trước khi quy lỗi cho pinning do `synchronized`.
-- [ ] Đã phân biệt **blocked, unmounted, pinned, lock contention**, CPU saturation và downstream wait.
-- [ ] Đã dùng `Thread.dump_to_file` để nhìn virtual thread, không chỉ `Thread.print`/`ThreadMXBean`.
-- [ ] Đã thu JFR đúng event và biết ngưỡng `jdk.VirtualThreadPinned`; không diễn giải sự vắng mặt của event như bằng chứng tuyệt đối.
-- [ ] Nếu là JDK **24+**, đã dùng scheduler/pollers command hoặc MXBean khi cần nhìn hàng đợi/carrier.
-- [ ] Nếu là **JDK 27**, công cụ parse JSON đã xử lý `formatVersion=2` và các trường số; đã lưu ý redaction trong JFR.
-- [ ] Đã đối chiếu stack, JFR, metric/trace và tải đo trước khi đề xuất đổi lock, scheduler hay nâng JDK.
+- [ ] Recorded the application's **runtime JDK + build/vendor**, PID, OS, CPU quota, and JVM options.
+- [ ] Confirmed whether the runtime is JDK **21–23** or **24+** before blaming `synchronized` pinning.
+- [ ] Distinguished **blocked, unmounted, pinned, lock contention**, CPU saturation, and downstream waits.
+- [ ] Used `Thread.dump_to_file` to inspect virtual threads rather than `Thread.print`/`ThreadMXBean` alone.
+- [ ] Captured JFR with the right events and checked `jdk.VirtualThreadPinned` thresholds; did not treat absent events as absolute proof.
+- [ ] On JDK **24+**, used scheduler/pollers commands or the MXBean when queue/carrier visibility was needed.
+- [ ] On **JDK 27**, verified JSON parsers handle `formatVersion=2` and numeric fields; accounted for JFR redaction.
+- [ ] Correlated stacks, JFR, metrics/traces, and measured load before recommending lock changes, scheduler tuning, or a JDK upgrade.
 
-## 12. Tài liệu đối chiếu theo đúng phiên bản
+## 12. Version-Specific Reference Documentation
 
 - JEP 425 — Virtual Threads (JDK 19 preview): https://openjdk.org/jeps/425
 - JEP 436 — Virtual Threads (JDK 20 second preview): https://openjdk.org/jeps/436
 - JEP 444 — Virtual Threads (JDK 21 final): https://openjdk.org/jeps/444
 - JEP 491 — Synchronize Virtual Threads without Pinning (JDK 24): https://openjdk.org/jeps/491
 - Oracle JDK 21, Virtual Threads: https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html
-- Oracle JDK 26, Virtual Threads và diagnostic tools: https://docs.oracle.com/en/java/javase/26/core/virtual-threads.html
-- Oracle JDK 26, lệnh `jcmd`: https://docs.oracle.com/en/java/javase/26/docs/specs/man/jcmd.html
+- Oracle JDK 26, Virtual Threads and diagnostic tools: https://docs.oracle.com/en/java/javase/26/core/virtual-threads.html
+- Oracle JDK 26, `jcmd` command: https://docs.oracle.com/en/java/javase/26/docs/specs/man/jcmd.html
 - Oracle JDK 24 Release Notes (scheduler MXBean, `jcmd` pollers/scheduler): https://www.oracle.com/java/technologies/javase/24-relnote-issues.html
-- Oracle JDK 27 Release Notes (JDK-8381002 và JFR redaction): https://www.oracle.com/java/technologies/javase/27-relnote-issues.html
+- Oracle JDK 27 Release Notes (JDK-8381002 and JFR redaction): https://www.oracle.com/java/technologies/javase/27-relnote-issues.html
 - JDK 27 JSON Thread Dump Format: https://docs.oracle.com/en/java/javase/27/docs/api/jdk.management/com/sun/management/doc-files/threadDump.html
 
-**Quy tắc thực hành:** luôn gắn câu kết luận với **JDK + phiên bản công cụ + bằng chứng quan sát**. Một dump/JFR “khác đi” sau nâng JDK có thể phản ánh thay đổi scheduler, thay đổi cách capture hoặc thay đổi schema, nên phải phân tích ba khả năng đó riêng trước khi quy là lỗi chương trình.
+**Rule of practice:** always anchor every conclusion to **JDK + tool version + observed evidence**. A dump or JFR file that "looks different" after a JDK upgrade may reflect scheduler changes, capture changes, or schema changes—analyze those three possibilities separately before blaming application code.

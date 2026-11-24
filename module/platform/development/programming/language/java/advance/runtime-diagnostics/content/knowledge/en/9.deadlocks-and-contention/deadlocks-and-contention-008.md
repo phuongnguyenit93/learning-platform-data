@@ -1,57 +1,57 @@
-# 9.8 — Kết hợp thread dump với JFR JavaMonitorEnter, JavaMonitorWait và ThreadPark
+# 9.8 — Combining Thread Dumps with JFR JavaMonitorEnter, JavaMonitorWait, and ThreadPark
 
-## 1. Tại sao cần cả thread dump lẫn JFR?
+## 1. Why Are Both Thread Dumps and JFR Needed?
 
-Khi Java application bị treo, độ trễ tăng hoặc thông lượng giảm, **thread dump** cho thấy trạng thái các Java thread **tại thời điểm chụp**: thread nào `BLOCKED`, `WAITING`, `TIMED_WAITING`; stack của nó nằm ở đâu; đang `waiting to lock` monitor nào; và thread nào `locked` monitor đó. Dữ liệu này rất tốt để tìm quan hệ chờ khóa, nhưng một dump đơn lẻ không tự đo được thời gian chờ trong nhiều phút trước đó.
+When a Java application hangs, latency spikes, or throughput drops, a **thread dump** reveals the state of Java threads **at the moment of capture**: which threads are `BLOCKED`, `WAITING`, or `TIMED_WAITING`; where their stacks sit; which monitor they are `waiting to lock`; and which thread `locked` that monitor. This data is great for finding lock-wait relationships, yet a single dump cannot measure wait durations over the preceding minutes.
 
-**Java Flight Recorder (JFR)** bổ sung **dòng thời gian** gồm các events có `startTime`, `duration`, `eventThread`, `stackTrace` và các trường riêng cho từng kiểu chờ. Trên Java 17, ba event cốt lõi cho chủ đề treo và tranh chấp là:
+**Java Flight Recorder (JFR)** adds a **timeline** of events containing `startTime`, `duration`, `eventThread`, `stackTrace`, and fields specific to each wait type. On Java 17, the three core events for hangs and contention are:
 
-- `jdk.JavaMonitorEnter`: thread **bị chặn khi cố vào một Java object monitor** qua `synchronized`.
-- `jdk.JavaMonitorWait`: thread đã gọi `Object.wait(...)` và **đang chờ notification, timeout hoặc sự kiện đánh thức khác**; `wait` nhả monitor của object mà thread đang wait.
-- `jdk.ThreadPark`: thread bị park qua `LockSupport.park`/`parkNanos`/`parkUntil`; có thể liên quan AQS/`ReentrantLock`, condition, `Future` hoặc thread pool đang rỗi.
+- `jdk.JavaMonitorEnter`: thread **blocked trying to enter a Java object monitor** via `synchronized`.
+- `jdk.JavaMonitorWait`: thread called `Object.wait(...)` and **is waiting for notification, timeout, or another wakeup event**; `wait` releases the monitor of the waited object.
+- `jdk.ThreadPark`: thread parked via `LockSupport.park`/`parkNanos`/`parkUntil`; may involve AQS/`ReentrantLock`, conditions, `Future`, or an idle thread pool.
 
-**Một cách nhớ:** thread dump trả lời **“ngay bây giờ ai đợi ai?”**, còn JFR trả lời **“đoạn chờ nào đã xảy ra, kéo dài bao lâu, từ call path nào?”**. Hai nguồn hỗ trợ nhau nhưng không thay thế nhau.
+**A helpful mnemonic:** thread dumps answer **“who is waiting on whom right now?”**, while JFR answers **“which waits occurred, how long did they last, and from which call paths?”**. Both sources complement each other without replacing one another.
 
-Sau bài học, người học có thể:
+After this lesson, learners will be able to:
 
-1. Phân biệt chính xác ba loại chờ Java và ba event JFR tương ứng.
-2. Thu thread dump bằng `jcmd Thread.print -l` cùng JFR recording trên đúng JVM.
-3. Dùng thread identity, timestamp, stack, monitor information và duration để đối chiếu.
-4. Hiểu khi nào event chưa được ghi do **chưa hoàn tất**, threshold hoặc thiếu recording.
-5. Không nhầm contention, notification wait hoặc idle park với deadlock.
-6. Chạy ví dụ Java 17 có thể biên dịch/chạy, tạo cả ba events và đọc file `.jfr` thật.
+1. Accurately distinguish the three Java wait types and their three corresponding JFR events.
+2. Capture a thread dump via `jcmd Thread.print -l` alongside a JFR recording on the exact same JVM.
+3. Correlate using thread identity, timestamps, stacks, monitor information, and durations.
+4. Understand when an event has not yet been recorded due to **being unfinished**, thresholds, or missing recording coverage.
+5. Avoid confusing contention, notification waits, or idle parking with deadlock.
+6. Run a compilable/runnable Java 17 example producing all three events and reading a real `.jfr` file.
 
-## 2. Hai loại bằng chứng có phạm vi khác nhau
+## 2. Two Evidence Types with Different Scopes
 
-| Thuộc tính | Thread dump | JFR |
+| Property | Thread Dump | JFR |
 | --- | --- | --- |
-| Thời điểm | Snapshot tại lúc gọi command | Events trong khoảng recording |
-| Trạng thái | `BLOCKED`, `WAITING`, `TIMED_WAITING`, `RUNNABLE` | Event của một loại chờ/contended acquisition cụ thể |
-| Stack | Frames tại thời điểm chụp | `stackTrace` của event khi được bật |
-| Chủ sở hữu khóa | `locked`, `waiting to lock`, ownable synchronizers, owner metadata | `previousOwner` chỉ có ở `JavaMonitorEnter`; không phải live owner graph đầy đủ |
-| Thời lượng | Không chứng minh tổng thời gian chờ quá khứ từ một snapshot | `duration` cho event đã ghi |
-| Khả năng tìm deadlock | Có thể dựng waiter → owner graph và thấy deadlock summary | Event dài **không** tự chứng minh có chu trình |
-| Điều kiện thiếu dữ liệu | Thread biến mất/đổi state giữa các lần chụp | Event disabled, dưới threshold, nằm ngoài window hoặc chưa được commit |
+| Timing | Snapshot at command invocation | Events within the recording window |
+| State | `BLOCKED`, `WAITING`, `TIMED_WAITING`, `RUNNABLE` | Event for a specific wait/contended acquisition |
+| Stack | Frames at capture time | Event `stackTrace` when enabled |
+| Lock ownership | `locked`, `waiting to lock`, ownable synchronizers, owner metadata | `previousOwner` exists only on `JavaMonitorEnter`; not a full live owner graph |
+| Duration | One snapshot cannot prove total past wait duration | `duration` for recorded events |
+| Deadlock detection | Can build waiter → owner graph and see deadlock summary | A long event **does not** prove a cycle by itself |
+| Missing data cases | Threads exit or change state between captures | Event disabled, below threshold, outside window, or not yet committed |
 
-Một thread ở `BLOCKED` khi dump được chụp có thể **chưa** có completed `JavaMonitorEnter` event trong file JFR: phần chờ vào monitor chưa kết thúc nên event chưa hoàn tất để được ghi. Đây là giới hạn quan trọng nhất khi kết hợp **snapshot trạng thái hiện tại** với **events theo duration**.
+A thread in `BLOCKED` when a dump is taken may **not yet** have a completed `JavaMonitorEnter` event in the JFR file: the monitor entry wait has not ended, so the event has not finished to be recorded. This is the single most important limitation when combining **current-state snapshots** with **duration-based events**.
 
-## 3. JavaMonitorEnter — tranh chấp khi vào monitor
+## 3. JavaMonitorEnter — Contention Entering a Monitor
 
-Khi một thread gọi `synchronized(lock)` hoặc synchronized method mà monitor đã bị thread khác giữ, thread có thể chuyển sang `BLOCKED`. `jdk.JavaMonitorEnter` phản ánh **monitor contention**, **không phải mọi lần vào `synchronized` không tranh chấp**.
+When a thread calls `synchronized(lock)` or a synchronized method whose monitor is held by another thread, it can enter `BLOCKED`. `jdk.JavaMonitorEnter` reflects **monitor contention**, **not every uncontended `synchronized` entry**.
 
-Các trường phổ biến của event trên OpenJDK/HotSpot Java 17:
+Common event fields on OpenJDK/HotSpot Java 17:
 
-| Field | Ý nghĩa | Cách đọc |
+| Field | Meaning | How to Read |
 | --- | --- | --- |
-| `startTime` | Bắt đầu giai đoạn contended monitor-enter | Đối chiếu thời điểm snapshot |
-| `duration` | Thời lượng blocked để vào monitor | Không phải CPU time hay tổng thời gian trong synchronized block |
-| `eventThread` | Thread **đang chờ vào monitor** | Là waiter, không phải owner |
-| `monitorClass` | Class của monitor object | Nhiều object cùng class, không đủ để định danh một lock |
-| `address` | Thông tin địa chỉ monitor theo runtime | Không mặc định bằng token trong mọi thread dump |
-| `previousOwner` | Previous monitor owner theo thông tin event | Không khẳng định là owner tại một timestamp dump bất kỳ |
-| `stackTrace` | Đường gọi gây contention | Có thể bị tắt, cắt ngắn hoặc phụ thuộc implementation |
+| `startTime` | Start of the contended monitor-enter phase | Align with snapshot timestamps |
+| `duration` | Duration blocked trying to enter the monitor | Not CPU time or total time inside the synchronized block |
+| `eventThread` | Thread **waiting to enter the monitor** | Waiter, not owner |
+| `monitorClass` | Class of the monitor object | Many objects share a class; insufficient alone to identify one lock |
+| `address` | Runtime monitor address info | Does not automatically equal tokens in every thread dump |
+| `previousOwner` | Previous monitor owner per event metadata | Does not guarantee who owns it at an arbitrary dump timestamp |
+| `stackTrace` | Call path causing contention | May be disabled, truncated, or implementation-dependent |
 
-Một event minh họa:
+An illustrative event:
 
 ```text
 jdk.JavaMonitorEnter {
@@ -67,31 +67,31 @@ jdk.JavaMonitorEnter {
 }
 ```
 
-Đây là dạng rút gọn từ một lần thử thật; timestamp, thread IDs, addresses, source line và duration thay đổi giữa các JVM. `lab-contender` đã phải chờ trong khi `lab-owner` giữ monitor; event hoàn tất sau khi contender giành được lock.
+This is abbreviated from a real test run; timestamps, thread IDs, addresses, source lines, and durations vary across JVMs. `lab-contender` had to wait while `lab-owner` held the monitor; the event completed once the contender acquired the lock.
 
-### 3.1. Không coi previousOwner là live lock owner
+### 3.1. Do Not Treat previousOwner as the Live Lock Owner
 
-`previousOwner` có nghĩa **chủ sở hữu trước đó** theo metadata JFR. Monitor có thể được nhả, chuyển owner hoặc thay đổi tình trạng giữa lúc event bắt đầu/kết thúc. Nếu mục tiêu là xác định **thread nào đang giữ monitor tại đúng thời điểm dump**, phải dùng dòng `- locked <L>` và `- waiting to lock <L>` trong **cùng một dump**, hoặc API `ThreadMXBean.getLockOwnerId()`.
+`previousOwner` means **the prior owner** per JFR metadata. The monitor could have been released, changed owners, or altered state between event start and end. If your goal is to identify **which thread holds the monitor at the exact moment of a dump**, use `- locked <L>` and `- waiting to lock <L>` inside **the same dump**, or `ThreadMXBean.getLockOwnerId()`.
 
-Một `JavaMonitorEnter` event có duration lớn có nghĩa thread **đã bị tranh chấp** và event được ghi, không tự chứng minh có deadlock. Deadlock monitor thực không được giải quyết còn có thể khiến event contended enter **chưa kết thúc**, do đó JFR chưa ghi nó.
+A `JavaMonitorEnter` event with a large duration means the thread **experienced contention** and the event finished recording—it does not prove a deadlock by itself. An unresolved real monitor deadlock can even leave the contended enter event **unfinished**, meaning JFR has not recorded it yet.
 
-## 4. JavaMonitorWait — Object.wait và notification
+## 4. JavaMonitorWait — Object.wait and Notification
 
-`Object.wait` chỉ gọi được khi thread đang giữ monitor của object. Trong lúc chờ notification/timeout, thread **nhả monitor của chính object được wait**, rồi phải giành lại monitor trước khi tiếp tục. Vì vậy một thread `WAITING/TIMED_WAITING (on object monitor)` với `waiting on <L>` không tương đương với thread `BLOCKED` đang `waiting to lock <L>`.
+`Object.wait` can only be called while the thread owns the object’s monitor. While awaiting notification/timeout, the thread **releases the monitor of the waited object**, then must reacquire it before proceeding. Hence a `WAITING/TIMED_WAITING (on object monitor)` thread with `waiting on <L>` is not equivalent to a `BLOCKED` thread with `waiting to lock <L>`.
 
-Các trường chính:
+Key fields:
 
-| Field | Ý nghĩa | Không được hiểu sai |
+| Field | Meaning | What Not to Misread |
 | --- | --- | --- |
-| `eventThread` | Thread gọi `Object.wait` | Không phải notifier |
-| `monitorClass`, `address` | Monitor object được wait | Không tự chỉ ra ai đang giữ một lock khác |
-| `duration` | Thời gian wait event được ghi | Không phải khoảng monitor bị giữ độc quyền |
-| `timeout` | Thời gian chờ tối đa **được yêu cầu** | Không phải duration thực tế |
-| `timedOut` | JVM báo wait có hết hạn không | `false` không luôn chứng minh một notifier cụ thể |
-| `notifier` | Thread thực hiện notification nếu được ghi nhận | Có thể null/không có ở các tình huống khác |
-| `stackTrace` | Call path đi tới `Object.wait` | Có thể có `Object.wait` và ứng dụng ở các frame sâu |
+| `eventThread` | Thread calling `Object.wait` | Not the notifier |
+| `monitorClass`, `address` | Waited monitor object | Does not identify who holds another lock |
+| `duration` | Recorded wait event duration | Not how long a monitor was exclusively held |
+| `timeout` | Maximum **requested** wait time | Not actual elapsed duration |
+| `timedOut` | Whether the JVM reports the wait timed out | `false` does not always prove a specific notifier |
+| `notifier` | Thread performing notification, if recorded | May be null/absent in other cases |
+| `stackTrace` | Call path leading to `Object.wait` | May include `Object.wait` and deep application frames |
 
-Ví dụ:
+Example:
 
 ```text
 jdk.JavaMonitorWait {
@@ -104,25 +104,25 @@ jdk.JavaMonitorWait {
 }
 ```
 
-Ở đây `lab-waiter` được báo thức trước timeout. Thời lượng ~900 ms không có nghĩa một thread khác **giữ monitor này suốt 900 ms**. Phần lớn thời gian `Object.wait` đã nhả monitor. Việc được đánh thức còn có thể chịu ảnh hưởng interruption, spurious wakeup, scheduler và việc lấy lại monitor.
+Here `lab-waiter` was awakened before the timeout. A ~900 ms duration does not mean another thread **held this monitor for 900 ms**. For most of that time, `Object.wait` had released the monitor. Wakeup can also be affected by interruptions, spurious wakeups, scheduling, and monitor reacquisition.
 
-**Quy tắc dựng wait-for graph:** Không tự thêm cạnh waiter → owner từ dòng `- waiting on <L>`. Đó là *chờ notification*, không mặc nhiên là *chờ vào monitor do owner giữ*. Muốn tìm nguyên nhân wait kéo dài, kiểm tra code phát `notify`/`notifyAll`, logic condition, producer và đường thực thi sau signal.
+**Wait-for graph rule:** Never add a waiter → owner edge directly from `- waiting on <L>`. That is *awaiting notification*, not automatically *waiting to enter a monitor held by an owner*. To find why waits drag on, inspect code calling `notify`/`notifyAll`, condition logic, producers, and execution paths after signaling.
 
-## 5. ThreadPark — chờ qua LockSupport/AQS
+## 5. ThreadPark — Waiting via LockSupport/AQS
 
-`LockSupport` cung cấp `park`, `parkNanos` và `parkUntil`. Nhiều lớp `java.util.concurrent` dùng primitive này: `ReentrantLock`, `Condition`, `Future`, `BlockingQueue`, `ThreadPoolExecutor`. Vì thế `jdk.ThreadPark` có thể biểu thị **tranh chấp khóa** hoặc **pool đang rỗi**, tùy stack và ngữ cảnh.
+`LockSupport` provides `park`, `parkNanos`, and `parkUntil`. Many `java.util.concurrent` classes rely on this primitive: `ReentrantLock`, `Condition`, `Future`, `BlockingQueue`, and `ThreadPoolExecutor`. Therefore `jdk.ThreadPark` can represent **lock contention** or an **idle pool**, depending on stack and context.
 
-| Field | Ý nghĩa | Lưu ý |
+| Field | Meaning | Notes |
 | --- | --- | --- |
-| `eventThread` | Thread bị park | Chưa chắc là thread blocked vì ReentrantLock |
-| `duration` | Thời gian park được ghi | Có thể kết thúc do unpark/timeout/interruption |
-| `parkedClass` | Class của blocker object | Blocker không tự cung cấp owner |
-| `address` | Địa chỉ liên quan blocker object | Không phải monitor-owner mapping phổ quát |
-| `timeout` | Timeout của park nếu có | Có thể là `N/A` |
-| `until` | Deadline với park-until nếu có | Có thể là `N/A` |
-| `stackTrace` | Nơi xảy ra park | Cần đọc đủ frames AQS/pool để xác định mục đích |
+| `eventThread` | Parked thread | Not necessarily blocked on a `ReentrantLock` |
+| `duration` | Recorded park duration | Can end due to unpark/timeout/interruption |
+| `parkedClass` | Class of blocker object | Blocker does not automatically supply an owner |
+| `address` | Address associated with blocker object | Not a universal monitor-owner mapping |
+| `timeout` | Park timeout if any | May be `N/A` |
+| `until` | Deadline for park-until if any | May be `N/A` |
+| `stackTrace` | Where park occurred | Read full AQS/pool frames to identify purpose |
 
-Ví dụ:
+Example:
 
 ```text
 jdk.ThreadPark {
@@ -139,28 +139,28 @@ jdk.ThreadPark {
 }
 ```
 
-Trong demo, `parkedClass=java.lang.String` vì chương trình dùng `"lab-park-blocker"` làm **blocker object** cho `LockSupport.parkNanos`. **String này không phải một lock đang bị thread khác sở hữu.** Do đó không suy ra `parkedClass` hoặc `address` là owner of monitor.
+In the demo, `parkedClass=java.lang.String` appears because the program passed `"lab-park-blocker"` as the **blocker object** to `LockSupport.parkNanos`. **This String is not a lock owned by another thread.** Never infer `parkedClass` or `address` as a monitor owner.
 
-### 5.1. Park dài chưa chắc là treo
+### 5.1. A Long Park Is Not Necessarily a Hang
 
-Thread ở `ThreadPoolExecutor.getTask` hoặc `BlockingQueue.take` có thể park rất lâu khi không có task. Nếu queue rỗng và throughput đúng kỳ vọng, đó là trạng thái idle hợp lệ. Ngược lại, nếu backlog tăng mà worker vẫn park, cần kiểm tra producer, signaling, task lifecycle hoặc pool shutdown. `ThreadPark` chỉ là điểm bắt đầu điều tra.
+A thread in `ThreadPoolExecutor.getTask` or `BlockingQueue.take` can park for a long time when there are no tasks. If the queue is empty and throughput meets expectations, that is a valid idle state. Conversely, if backlog climbs while workers keep parking, inspect producers, signaling, task lifecycles, or pool shutdown. `ThreadPark` is only a starting point for investigation.
 
-## 6. Bảng quy chiếu thread dump → JFR
+## 6. Thread Dump → JFR Cross-Reference Table
 
-| Dấu hiệu trong dump | Event tương ứng thường gặp | Bằng chứng hiện có | Cần kiểm tra thêm |
+| Sign in Dump | Common Corresponding Event | Evidence Available | What Else to Check |
 | --- | --- | --- | --- |
-| `BLOCKED (on object monitor)` và `waiting to lock <L>` | `JavaMonitorEnter` | Đang cố enter Java monitor | Owner tại snapshot, lock identity, duration sau khi hoàn tất |
-| `WAITING/TIMED_WAITING (on object monitor)` và `waiting on <L>` | `JavaMonitorWait` | Chờ `Object.wait` | Notifier, timeout, signal path |
-| `WAITING/TIMED_WAITING (parking)` và `Unsafe.park` | `ThreadPark` | Park | AQS/condition/queue/idle, owner nếu có |
-| `RUNNABLE` đang `locked <L>` | Có thể không có event cho owner | Đang giữ monitor | Code trong critical section, CPU/I/O |
-| Không thấy thread `BLOCKED` ở ảnh chụp | Có thể có `JavaMonitorEnter` trước/sau dump | Contention có thể đã kết thúc | JFR timeline, frequency/threshold |
-| Thread `BLOCKED` mãi nhưng không thấy completed event | Event chưa hoàn tất hoặc event disabled | Snapshot vẫn là bằng chứng block | Deadlock graph, JFR settings, next dumps |
+| `BLOCKED (on object monitor)` and `waiting to lock <L>` | `JavaMonitorEnter` | Trying to enter a Java monitor | Owner at snapshot, lock identity, duration after completion |
+| `WAITING/TIMED_WAITING (on object monitor)` and `waiting on <L>` | `JavaMonitorWait` | Waiting in `Object.wait` | Notifier, timeout, signal path |
+| `WAITING/TIMED_WAITING (parking)` and `Unsafe.park` | `ThreadPark` | Parked | AQS/condition/queue/idle, owner if any |
+| `RUNNABLE` with `locked <L>` | May have no event for owner | Holding monitor | Code inside critical section, CPU/I/O |
+| No `BLOCKED` thread in snapshot | May have `JavaMonitorEnter` before/after dump | Contention may have already ended | JFR timeline, frequency/threshold |
+| Thread `BLOCKED` forever yet no completed event | Event unfinished or event disabled | Snapshot remains blocking proof | Deadlock graph, JFR settings, next dumps |
 
-**Không có tương quan bắt buộc một–một**. Trạng thái thread có thể thay đổi nhanh hơn tốc độ người vận hành chụp dump; JFR chỉ lưu events **đã ghi** trong recording window và vượt threshold đang áp dụng.
+**There is no strict one-to-one correlation.** Thread states can change faster than operators capture dumps; JFR only stores **recorded** events inside the recording window exceeding active thresholds.
 
-## 7. Kết hợp theo đúng JVM, thread ID và thời gian
+## 7. Correlating by Exact JVM, Thread ID, and Time
 
-Một bộ chứng cứ nên ghi đủ:
+An evidence bundle should record:
 
 ```text
 host/pod: app-node-02 / orders-3
@@ -174,29 +174,29 @@ jfr_end_utc: 2026-10-29T08:22:00Z
 incident: increased request latency
 ```
 
-Đây là metadata **minh họa**, không phải output thực. PID có thể được tái sử dụng; phải dùng host, PID namespace và process start time để tránh ghép dump của phiên cũ với file JFR của JVM mới.
+This is **illustrative** metadata, not real output. PIDs can be reused; use host, PID namespace, and process start time to avoid pairing a dump from an old session with a JFR file from a new JVM.
 
-### 7.1. Phân biệt Java thread ID, native ID và tên thread
+### 7.1. Distinguishing Java Thread ID, Native ID, and Thread Name
 
-JFR `eventThread` có thể in `javaThreadId` và thread name. Thread dump HotSpot có tên thread, `#...`, `tid=...`, `nid=...`. `nid` thường là **native OS thread ID**, còn `tid` là định danh implementation, **không tự bằng `javaThreadId`**.
+JFR `eventThread` can print `javaThreadId` and thread name. HotSpot thread dumps include thread name, `#...`, `tid=...`, and `nid=...`. `nid` is typically the **native OS thread ID**, while `tid` is an implementation identifier—**neither automatically equals `javaThreadId`**.
 
-Ưu tiên ghép theo **Java thread ID trong cùng JVM instance**, dùng thread name và stack trace để đối chiếu. Tên như `worker-1` có thể trùng hoặc được tái sử dụng khi thread chết/tạo lại. Nếu không chắc loại ID nào được in, không ép phép join chỉ theo chuỗi tên.
+Prefer joining by **Java thread ID within the same JVM instance**, using thread name and stack trace to cross-check. Names like `worker-1` can collide or be reused when threads die and respawn. If unsure which ID type is printed, never force a join on name string alone.
 
-### 7.2. Khoảng thời gian sự kiện có phủ mốc dump không?
+### 7.2. Does the Event Interval Cover the Dump Timestamp?
 
-Về mặt phân tích, một duration event thường có khoảng `[startTime, startTime + duration]`. Nếu `dump_capture_utc` rơi vào khoảng này **và** đúng eventThread/call path, nhiều khả năng đó là cùng đoạn chờ được thấy ở dump. Nhưng phải quy đổi timezone chính xác; `jfr print` có thể in giờ theo timezone tool đang chạy, trong khi hệ thống log dùng UTC.
+Analytically, a duration event covers `[startTime, startTime + duration]`. If `dump_capture_utc` falls within that interval **and** `eventThread`/call path match, it is likely the same wait seen in the dump. Be sure to convert timezones accurately; `jfr print` may format times in the local timezone of the tool’s host, whereas system logs use UTC.
 
-Một `JavaMonitorEnter` chưa kết thúc tại thời điểm dump có thể xuất hiện **sau đó** khi recording được trích xuất sau lúc contention được giải phóng. Tránh suy luận thứ tự chỉ từ thời điểm file được lưu.
+An unfinished `JavaMonitorEnter` at dump time may appear **later** when the recording is dumped after contention clears. Avoid inferring event ordering solely from when files were saved.
 
-### 7.3. Vì sao không join bằng địa chỉ object một cách máy móc?
+### 7.3. Why Not Join Mechanically by Object Address?
 
-Thread dump có token `<0x...>`, còn JFR event có `address`. Cách biểu diễn địa chỉ monitor, đời sống object, GC, monitor inflation và khả năng tái sử dụng identity có thể khác giữa runtime. **Không có hợp đồng phổ quát rằng hai chuỗi hex luôn bằng nhau** hoặc ổn định giữa các snapshots.
+Thread dumps print `<0x...>` tokens while JFR events have `address`. Monitor address representations, object lifecycles, GC compaction, monitor inflation, and identity reuse can differ across runtime contexts. **There is no universal contract that the two hex strings always match** or remain stable across snapshots.
 
-Để ghép đáng tin hơn, dùng **JVM instance + thread ID + timestamp + stack + monitorClass** và dùng owner/lock identity chỉ khi được chứng minh trong cùng dump hoặc theo semantics runtime đã xác minh.
+For more reliable correlation, use **JVM instance + thread ID + timestamp + stack + monitorClass**, relying on owner/lock identity only when verified within the same dump or under confirmed runtime semantics.
 
-## 8. Quy trình chụp thread dump và recording JFR trên Java 17
+## 8. Procedure to Capture Thread Dumps and JFR Recordings on Java 17
 
-### 8.1. Xác định đúng JVM
+### 8.1. Identify the Exact JVM
 
 ```bash
 jcmd -l
@@ -206,31 +206,31 @@ jcmd <PID> help JFR.start
 jcmd <PID> help JFR.dump
 ```
 
-Thay `<PID>` bằng PID thật, không gõ dấu góc. `jcmd` cần quyền và môi trường attach thích hợp trên host/PID namespace của JVM đích; trong container, PID host và PID trong pod có thể khác nhau. Không dùng `jcmd 0` cho một JVM vì nó có thể gửi command tới nhiều JVM.
+Replace `<PID>` with the real PID without angle brackets. `jcmd` requires matching attach permissions and host/PID namespace for the target JVM; in containers, host PID and pod PID can differ. Never use `jcmd 0` for a single JVM, as it can dispatch commands to multiple JVMs.
 
-### 8.2. Bật JFR trước cửa sổ nghi vấn
+### 8.2. Enable JFR Before the Suspect Window
 
 ```bash
 jcmd <PID> JFR.start name=LockDiag settings=profile
 jcmd <PID> JFR.check name=LockDiag verbose=true
 ```
 
-`settings=profile` sử dụng một recording template của JDK. **Phải kiểm tra cấu hình thực tế**: ba events có được bật không, `threshold` bao nhiêu và có ghi `stackTrace` không. Các file `default.jfc` và `profile.jfc` của Java 17 thường lọc chờ rất ngắn bằng threshold ở mức hàng chục mili giây. Custom .jfc hoặc runtime/vendor khác có thể thay đổi.
+`settings=profile` uses a JDK recording template. **Verify actual configuration**: whether all three events are enabled, what `threshold` is set, and whether `stackTrace` is recorded. Java 17 `default.jfc` and `profile.jfc` typically filter out very short waits with thresholds in the tens of milliseconds. Custom `.jfc` files or other vendors/runtimes may differ.
 
-Nếu JVM đã có recording phù hợp, không nhất thiết tạo thêm một recording mới. `JFR.check` giúp kiểm tra recording hiện có và, với `verbose=true`, settings của events.
+If the JVM already has a suitable recording running, you do not necessarily need to start another. `JFR.check` inspects active recordings and, with `verbose=true`, their event settings.
 
-### 8.3. Khi sự cố đang diễn ra: chụp dump
+### 8.3. During the Incident: Capture Dumps
 
 ```bash
 date -u +%Y-%m-%dT%H:%M:%SZ
 jcmd <PID> Thread.print -l > dump-1.txt
 ```
 
-Ví dụ cho **bash Linux**. `date -u` ghi timestamp UTC; redirect `>` tạo file trên máy shell thực thi `jcmd`. Nếu ứng dụng tiếp tục treo, lấy thêm 1–2 dumps có timestamp, cách nhau một khoảng hợp lý. Không dump quá dày khi JVM có nhiều thread hoặc đang kiệt tài nguyên.
+Example for **Linux bash**. `date -u` prints the UTC timestamp; `>` writes the file on the shell machine executing `jcmd`. If the app keeps hanging, take 1–2 additional timestamped dumps spaced reasonably apart. Do not dump tightly when the JVM has many threads or is resource-starved.
 
-`-l` giúp nhìn monitor và ownable synchronizers khi runtime hỗ trợ. Chụp dump mang chi phí phụ thuộc số thread và trạng thái JVM; đọc `help Thread.print`/impact trước khi thực hiện trên production.
+`-l` reveals monitors and ownable synchronizers when supported by the runtime. Dumping carries cost depending on thread count and JVM state; check `help Thread.print` / impact before running in production.
 
-### 8.4. Xuất recording và đọc events
+### 8.4. Export the Recording and Read Events
 
 ```bash
 jcmd <PID> JFR.dump name=LockDiag filename=/var/tmp/lockdiag.jfr
@@ -239,26 +239,26 @@ jfr summary /var/tmp/lockdiag.jfr
 jfr print --events jdk.JavaMonitorEnter,jdk.JavaMonitorWait,jdk.ThreadPark --stack-depth 12 /var/tmp/lockdiag.jfr
 ```
 
-`JFR.dump` ghi file theo filesystem của **JVM đích**, không nhất thiết cùng thư mục với shell client; trong container, đường dẫn thuộc container filesystem. `JFR.dump` không tự dừng recording; chỉ dùng `JFR.stop` nếu đã hoàn tất thu và quy trình cho phép. `jfr summary` giúp xem event counts/types, `jfr print` lọc events và in stack frames. Có thể mở file bằng **JDK Mission Control** để xem timeline.
+`JFR.dump` writes the file on the **target JVM’s** filesystem, not necessarily the client shell’s directory; inside a container, the path belongs to the container filesystem. `JFR.dump` does not stop the recording; only run `JFR.stop` when collection is done and procedures allow. `jfr summary` shows event counts/types, while `jfr print` filters events and prints stack frames. You can also open the file in **JDK Mission Control** to view the timeline.
 
-Nếu file JFR được lấy quá sớm khi một thread vẫn `BLOCKED`, event liên quan có thể **chưa được commit**. Không xem một bản dump JFR tại thời điểm đang block như bản ghi bắt buộc chứa event chưa hoàn tất.
+If the JFR file is dumped too early while a thread is still `BLOCKED`, the ongoing event may **not yet be committed**. Do not expect a JFR dump taken mid-block to already contain the unfinished event.
 
-## 9. Phương pháp đối chiếu một tình huống thực tế
+## 9. Method for Correlating a Real Scenario
 
-Giả sử một incident có:
+Suppose an incident shows:
 
-- `request-17` ở `BLOCKED` chờ monitor `L` trong `Cache.get`.
-- `cache-refresher` đang `locked <L>` ở code cập nhật cache.
-- `pool-worker-4` ở `LockSupport.park` trong `ThreadPoolExecutor.getTask`.
+- `request-17` is `BLOCKED` waiting on monitor `L` in `Cache.get`.
+- `cache-refresher` has `locked <L>` in cache update code.
+- `pool-worker-4` is in `LockSupport.park` inside `ThreadPoolExecutor.getTask`.
 
-Thread dump có đồ thị:
+The thread dump gives the graph:
 
 ```text
 request-17 --waiting for monitor L--> cache-refresher
 pool-worker-4 --parking for task--> owner not proven
 ```
 
-Sau khi sự cố kết thúc, JFR chứa các sự kiện minh họa:
+After the incident finishes, JFR contains illustrative events:
 
 ```text
 16:21:11.800 → 16:21:13.100
@@ -270,27 +270,27 @@ Sau khi sự cố kết thúc, JFR chứa các sự kiện minh họa:
   stack=BlockingQueue.take()/ThreadPoolExecutor.getTask()
 ```
 
-Đây là **dữ liệu tình huống giả định**, không phải output chuẩn. Cách kết luận:
+This is **hypothetical scenario data**, not canonical output. How to conclude:
 
-1. Dump chứng minh `request-17` đang đợi monitor `L` và owner tại thời điểm đó là `cache-refresher`.
-2. `JavaMonitorEnter` bổ sung duration và call path, chứng minh request đã trải qua khoảng chờ dài.
-3. `previousOwner` trong ví dụ khớp owner, nhưng **owner tại snapshot phải được kiểm chứng từ dump**, không suy từ event.
-4. `pool-worker-4` có park dài ở code idle queue; chưa có bằng chứng nó là nguyên nhân latency.
-5. Cần xét cùng window của request metrics, CPU/GC/I/O, queue depth và application logs trước khi chọn root cause.
+1. The dump proves `request-17` was waiting on monitor `L` and the owner at that instant was `cache-refresher`.
+2. `JavaMonitorEnter` adds duration and call path, proving the request experienced a long wait.
+3. `previousOwner` matches the owner in the example, yet **owner at snapshot time must be verified from the dump**, not inferred from the event.
+4. `pool-worker-4` had a long park in idle queue code; there is no evidence it caused latency.
+5. Inspect the same window’s request metrics, CPU/GC/I/O, queue depth, and application logs before selecting root cause.
 
-**Kết quả cần bàn giao:** thread/call path bị ảnh hưởng, monitor hoặc điều kiện chờ, owner có bằng chứng, duration/frequency trong JFR, mức độ chắc chắn khi ghép hai nguồn và thay đổi code cụ thể.
+**Deliverables to hand off:** affected threads/call paths, awaited monitor or condition, evidence-backed owner, duration/frequency in JFR, confidence level of correlating both sources, and specific code changes.
 
-## 10. Java 17+ demo: tạo đủ ba sự kiện trong cùng recording
+## 10. Java 17+ Demo: Generating All Three Events in One Recording
 
-Chương trình `JfrLockTriadDemo.java` chạy ba đường chờ **đồng thời**:
+`JfrLockTriadDemo.java` runs three wait paths **concurrently**:
 
-1. `lab-owner` giữ `ENTER_LOCK` khoảng 1,9 giây; `lab-contender` chờ vào `synchronized(ENTER_LOCK)`.
-2. `lab-waiter` gọi `WAIT_LOCK.wait(1700)`; `lab-notifier` gọi `notifyAll()` sau khoảng 900 ms.
-3. `lab-parker` gọi `LockSupport.parkNanos` với blocker là một `String` khoảng 1,3 giây.
+1. `lab-owner` holds `ENTER_LOCK` for ~1.9 seconds; `lab-contender` waits to enter `synchronized(ENTER_LOCK)`.
+2. `lab-waiter` calls `WAIT_LOCK.wait(1700)`; `lab-notifier` calls `notifyAll()` after ~900 ms.
+3. `lab-parker` calls `LockSupport.parkNanos` with a `String` blocker for ~1.3 seconds.
 
-Programmatic `Recording` bật ba events và `stackTrace`, đặt `threshold=0` cho **demo cục bộ**, sau đó ghi `triad-demo.jfr`. `RecordingFile` đọc file và chỉ xác minh events thuộc **đúng tên thread**; JFR runtime có thể còn ghi events nội bộ hoặc từ `Thread.join` của main thread.
+A programmatic `Recording` enables all three events with `stackTrace` and sets `threshold=0` for **local demo purposes**, then writes `triad-demo.jfr`. `RecordingFile` reads the file and verifies events matching **exact thread names**; the JFR runtime may also record internal events or `Thread.join` events from the main thread.
 
-### 10.1. File `JfrLockTriadDemo.java` hoàn chỉnh
+### 10.1. Complete `JfrLockTriadDemo.java` File
 
 ```java
 import java.nio.file.Path;
@@ -447,16 +447,16 @@ public class JfrLockTriadDemo {
 }
 ```
 
-Đây là **chương trình Java hoàn chỉnh**, biên dịch được bằng `javac --release 17` và không dùng thư viện ngoài JDK. `Duration.ZERO` cho event threshold là 0 nhằm bắt các events ngắn trong **thử nghiệm**; không bật mặc định trên production vì có thể sinh số lượng events lớn.
+This is a **complete Java program**, compilable with `javac --release 17` with no libraries outside the JDK. `Duration.ZERO` sets the event threshold to 0 to catch short events during **testing**; never enable this by default in production as it can generate huge event volumes.
 
-### 10.2. Chạy và đọc stdout
+### 10.2. Run and Read Stdout
 
 ```bash
 javac --release 17 JfrLockTriadDemo.java
 java JfrLockTriadDemo triad-demo.jfr
 ```
 
-**Stdout chính xác của lần kiểm thử đã thực hiện:**
+**Exact stdout from the verified test run:**
 
 ```text
 SNAPSHOT_WINDOW
@@ -465,160 +465,160 @@ JavaMonitorWait=true
 ThreadPark=true
 ```
 
-`SNAPSHOT_WINDOW` được in sau khi code xác nhận ba thread đang ở đúng trạng thái: một `BLOCKED`, hai `TIMED_WAITING`. Ba giá trị `true` được tính bằng việc đọc **file recording thật**, lọc theo event type và thread name; không phải dòng in cứng.
+`SNAPSHOT_WINDOW` prints after the code confirms all three threads are in the right states: one `BLOCKED`, two `TIMED_WAITING`. The three `true` values are computed by reading the **actual recording file**, filtering by event type and thread name—not hardcoded prints.
 
-Trên JVM/vendor hoặc tải khác, thời lượng và ID có thể biến đổi; điều kiện trạng thái trong chương trình cũng có thể bị timeout ở môi trường cực kỳ chậm và ném `IllegalStateException`. Khi ấy cần tăng độ dài các khoảng chờ trong môi trường thử nghiệm, không sửa kết quả in giả.
+On other JVMs/vendors or under load, durations and IDs vary; the state check in the program could also time out on extremely slow machines and throw `IllegalStateException`. In that case increase wait intervals in the test environment rather than faking printed output.
 
-### 10.3. In events và đối chiếu
+### 10.3. Print Events and Cross-Check
 
 ```bash
 jfr summary triad-demo.jfr
 jfr print --events jdk.JavaMonitorEnter,jdk.JavaMonitorWait,jdk.ThreadPark --stack-depth 5 triad-demo.jfr
 ```
 
-Trong một lần QA thực tế, file có:
+In an actual QA run, the file contained:
 
-- `lab-contender`: `JavaMonitorEnter` duration khoảng **1,9 giây**, `previousOwner=lab-owner`.
-- `lab-waiter`: `JavaMonitorWait` duration khoảng **0,9 giây**, `notifier=lab-notifier` và `timedOut=false`.
-- `lab-parker`: `ThreadPark` duration khoảng **1,3 giây**, `parkedClass=java.lang.String`.
-- Một số events khác do JVM/JFR runtime và `Thread.join` của main thread tạo ra.
+- `lab-contender`: `JavaMonitorEnter` duration ~**1.9 seconds**, `previousOwner=lab-owner`.
+- `lab-waiter`: `JavaMonitorWait` duration ~**0.9 seconds**, `notifier=lab-notifier`, and `timedOut=false`.
+- `lab-parker`: `ThreadPark` duration ~**1.3 seconds**, `parkedClass=java.lang.String`.
+- Several other events generated by the JVM/JFR runtime and the main thread’s `Thread.join`.
 
-Những duration/addresses/thread IDs **không cố định giữa các lần chạy**. Quan trọng là sự liên hệ đúng **eventThread + event type + call path**.
+Durations/addresses/thread IDs **are not fixed across runs**. What matters is accurately correlating **eventThread + event type + call path**.
 
-### 10.4. Chụp thread dump khi demo đang chờ
+### 10.4. Capture a Thread Dump While the Demo Is Waiting
 
-Tại terminal khác, khi xuất hiện `SNAPSHOT_WINDOW` và JVM chưa kết thúc:
+In another terminal, right when `SNAPSHOT_WINDOW` appears before the JVM exits:
 
 ```bash
 jcmd -l
 jcmd <PID> Thread.print -l > snapshot.txt
 ```
 
-Cửa sổ mẫu mặc định chỉ kéo dài **vài giây**, nên khi thao tác thủ công có thể cần **tăng các khoảng `nap(1900)`, `WAIT_LOCK.wait(1700)` và `parkNanos(1300 ms)` rồi biên dịch lại**; hoặc tự động hóa việc chụp ngay khi cửa sổ bắt đầu. Trong một phép thử live đã kiểm tra, `jcmd Thread.print -l` có thể nhìn thấy cùng ba tên thread trong JVM target.
+The default sample window lasts only **a couple of seconds**, so for manual operation you may need to **increase `nap(1900)`, `WAIT_LOCK.wait(1700)`, and `parkNanos(1300 ms)` and recompile**, or automate capture right as the window opens. In a verified live run, `jcmd Thread.print -l` observes all three thread names in the target JVM.
 
-Dạng trạng thái dự kiến **trong cửa sổ**:
+Expected state patterns **inside the window**:
 
-| Thread | State trong dump | Dấu hiệu | Event tương ứng sau khi hoàn tất |
+| Thread | State in Dump | Marker | Corresponding Event After Completion |
 | --- | --- | --- | --- |
-| `lab-contender` | `BLOCKED` | `waiting to lock` monitor do `lab-owner` giữ | `JavaMonitorEnter` |
+| `lab-contender` | `BLOCKED` | `waiting to lock` monitor held by `lab-owner` | `JavaMonitorEnter` |
 | `lab-waiter` | `TIMED_WAITING (on object monitor)` | `Object.wait`, `waiting on` | `JavaMonitorWait` |
 | `lab-parker` | `TIMED_WAITING (parking)` | `LockSupport.parkNanos` | `ThreadPark` |
-| `lab-owner` | Thường `TIMED_WAITING (sleeping)` | `locked` monitor ở `synchronized` | Có thể không có monitor-enter contention event |
-| `lab-notifier` | Có thể sleep hoặc đã notify xong | `notifyAll` sau một khoảng delay | Trường `notifier` trong `JavaMonitorWait` |
+| `lab-owner` | Usually `TIMED_WAITING (sleeping)` | `locked` monitor in `synchronized` | May have no monitor-enter contention event |
+| `lab-notifier` | Sleeping or already notified | `notifyAll` after a delay | `notifier` field in `JavaMonitorWait` |
 
-Không kết luận demo thất bại nếu một dump chụp **sau khi event đã kết thúc** không còn thấy thread chờ; JFR vẫn có thể giữ event trong file.
+Do not conclude the demo failed if a dump captured **after the event ended** no longer shows waiting threads; JFR will still hold the completed events in the file.
 
-## 11. Thread dump và JFR khi nghi deadlock
+## 11. Thread Dumps and JFR When Deadlock Is Suspected
 
-Ví dụ wait-for graph của **object monitor deadlock**:
+Wait-for graph example of an **object monitor deadlock**:
 
 ```text
 Thread A --waits for monitor L2--> Thread B
 Thread B --waits for monitor L1--> Thread A
 ```
 
-Thread dump có thể cho hai dòng `- waiting to lock <...>` và `- locked <...>` phù hợp, hoặc phần `Found one Java-level deadlock`. Đây là bằng chứng dựng một vòng **waiter → owner trong cùng snapshot**.
+The thread dump can show matching `- waiting to lock <...>` and `- locked <...>` lines, or a `Found one Java-level deadlock` section. That is evidence constructing a **waiter → owner cycle in the same snapshot**.
 
-JFR **không phải detector deadlock đầy đủ**: `JavaMonitorEnter` nói về contention event đã ghi, `JavaMonitorWait` nói về chờ notification, `ThreadPark` nói về park. Một deadlock chưa được giải phóng có thể khiến monitor-enter event **không bao giờ hoàn tất**, nên không có completed event để khẳng định cycle.
+JFR **is not a complete deadlock detector**: `JavaMonitorEnter` reports recorded contention events, `JavaMonitorWait` reports notification waits, and `ThreadPark` reports parks. An unresolved deadlock can prevent monitor-enter events from **ever finishing**, leaving no completed event to confirm a cycle.
 
-Khi có nghi vấn:
+When suspected:
 
-1. Từ dump, xác định mỗi thread **đang chờ lock nào** và **owner tại thời điểm chụp**.
-2. Chỉ vẽ cạnh waiter → owner khi có cùng lock identity hoặc explicit owner metadata.
-3. Truy vết tới khi dừng hoặc lặp: `A → B → C → A` là cycle.
-4. Kiểm tra `ThreadMXBean.findMonitorDeadlockedThreads()`/`findDeadlockedThreads()` nếu JVM hỗ trợ; lưu ý phạm vi monitor và ownable synchronizers.
-5. Dùng JFR phân tích **trước vòng treo**: code path nào tranh chấp thường xuyên, duration tăng từ lúc nào, bao nhiêu requests bị ảnh hưởng.
-6. Với DB locks, network waits hoặc distributed locks, thread dump/JFR chỉ là một phần; cần dữ liệu từ hệ thống sở hữu tài nguyên.
+1. From the dump, determine which lock each thread **is waiting on** and **the owner at snapshot time**.
+2. Draw waiter → owner edges only with matching lock identity or explicit owner metadata.
+3. Trace until stopping or repeating: `A → B → C → A` is a cycle.
+4. Check `ThreadMXBean.findMonitorDeadlockedThreads()`/`findDeadlockedThreads()` if supported by the JVM; note monitor vs. ownable synchronizer scope.
+5. Use JFR to analyze **leading up to the hang**: which code paths contended frequently, when durations climbed, and how many requests were impacted.
+6. For DB locks, network waits, or distributed locks, thread dumps/JFR are only part of the picture; pull data from the resource-owning system.
 
-## 12. Các tình huống chẩn đoán thường gặp
+## 12. Common Diagnostic Scenarios
 
-### A. Latency tăng nhưng dump không thấy `BLOCKED`
+### A. Latency Rises Yet Dumps Show No `BLOCKED`
 
-Snapshot có thể bỏ lỡ rất nhiều contention ngắn. JFR `JavaMonitorEnter` theo timeline cho biết code path và duration của những sự kiện **vượt threshold**. Nếu `threshold=20ms`, các tranh chấp 5–10ms có thể không có event. Đừng coi event count bằng 0 là không có tranh chấp.
+Snapshots can easily miss brief bursts of contention. Timeline `JavaMonitorEnter` events in JFR show code paths and durations of events **exceeding threshold**. With `threshold=20ms`, repeated 5–10ms contentions will emit no events. Never treat event count 0 as zero contention.
 
-### B. Nhiều thread pool đang `WAITING (parking)`
+### B. Many Thread Pool Workers Are `WAITING (parking)`
 
-`ThreadPark` kéo dài trong `ThreadPoolExecutor.getTask`/`BlockingQueue.take` có thể chỉ là worker nhàn rỗi. Xem queue depth, active workers, task submissions và throughput. Nếu ứng dụng không có việc, park là hợp lệ; nếu backlog tăng, điều tra producer/scheduler/pool state.
+Long `ThreadPark` events in `ThreadPoolExecutor.getTask`/`BlockingQueue.take` may simply be idle workers. Check queue depth, active workers, task submissions, and throughput. If the application has no work, parking is normal; if backlog grows, inspect producers, schedulers, and pool state.
 
-### C. Thread `BLOCKED` nhưng không có `JavaMonitorEnter`
+### C. Thread Is `BLOCKED` Yet Has No `JavaMonitorEnter`
 
-Kiểm tra `enabled`, threshold, recording window, file dump time và thread identity. Nếu contention đang diễn ra, event có thể **chưa commit**; cần snapshot owner hiện tại và có thể chờ sau khi giải tỏa để xem completed event. Nếu phát hiện cycle deadlock, không cần ép JFR có event để tin vào dump.
+Check `enabled`, threshold, recording window, dump timestamp, and thread identity. If contention is still ongoing, the event may **not be committed yet**; inspect the current owner from the snapshot and optionally wait until contention clears to view the completed event. If a deadlock cycle is found, you do not need a JFR event to trust the dump.
 
-### D. `JavaMonitorWait` duration dài
+### D. Long `JavaMonitorWait` Duration
 
-`Object.wait` nhả monitor; event dài chưa chứng minh một thread giữ lock lâu. Xem `notifier`, `timedOut`, producer/signal path và điều kiện nghiệp vụ. Nếu `timedOut=false`, đừng mặc định chỉ có một nguyên nhân thức dậy.
+`Object.wait` releases the monitor; a long event does not prove a thread held a lock for a long time. Check `notifier`, `timedOut`, producer/signal paths, and business conditions. Even if `timedOut=false`, do not assume only one wakeup path exists.
 
-### E. `ThreadPark` từ `ReentrantLock`/`Condition`
+### E. `ThreadPark` from `ReentrantLock`/`Condition`
 
-Stack có thể chứa `AbstractQueuedSynchronizer` hoặc `ConditionObject.await`. Cần phân biệt **chờ giành ReentrantLock** với **condition await đã nhả lock**. Với runtime hỗ trợ, dùng `ThreadInfo.getLockOwnerId()` và locked ownable synchronizers trong dump; `parkedClass` riêng lẻ không đủ tạo owner edge.
+Stacks may show `AbstractQueuedSynchronizer` or `ConditionObject.await`. Distinguish **waiting to acquire a `ReentrantLock`** from **condition await that released the lock**. On supporting runtimes, use `ThreadInfo.getLockOwnerId()` and locked ownable synchronizers in dumps; `parkedClass` alone is not enough to draw an owner edge.
 
-### F. Nhiều thread bị treo do database/network
+### F. Many Threads Hung on Database/Network
 
-JFR có thể cho `SocketRead`/`SocketWrite` hoặc ThreadPark, dump có stack I/O/Future; nhưng JVM không thấy owner Java thread của DB row lock hoặc remote service. Kết hợp DB lock graph, network traces, downstream logs và thời điểm client timeout. Không dựng Java monitor deadlock giả.
+JFR may show `SocketRead`/`SocketWrite` or `ThreadPark`, and dumps show I/O/Future stacks; however, the JVM cannot see the Java thread owner of a DB row lock or remote service. Combine DB lock graphs, network traces, downstream logs, and client timeout timestamps. Never fabricate a Java monitor deadlock.
 
-## 13. Threshold, recording window và overhead
+## 13. Thresholds, Recording Windows, and Overhead
 
-JFR event settings gồm `enabled`, `threshold` và `stackTrace`. Các template `default.jfc`, `profile.jfc` của JDK có thể bật nhiều thread-stalling events và đặt threshold ở **mức hàng chục mili giây**, ví dụ 20ms trong một số default settings. Cấu hình JDK/vendor hoặc custom profile có thể khác; kiểm tra `JFR.check name=LockDiag verbose=true` thay vì giả định.
+JFR event settings include `enabled`, `threshold`, and `stackTrace`. JDK `default.jfc` and `profile.jfc` templates enable various thread-stalling events with thresholds in the **tens of milliseconds**, e.g., 20ms in some default configs. JDK/vendor defaults or custom profiles may differ; run `JFR.check name=LockDiag verbose=true` rather than guessing.
 
-| Setting | Kết quả | Rủi ro |
+| Setting | Result | Risk |
 | --- | --- | --- |
-| `enabled=false` | Không ghi loại event | Không thể suy luận “không có wait” |
-| `threshold=20ms` | Bỏ các events ngắn hơn 20ms | Bỏ sót contention ngắn lặp lại |
-| `threshold=10ms` | Bắt thêm các events ngắn | Tăng event volume |
-| `threshold=0ms` | Ghi cả events cực ngắn | Có thể tạo overhead và data volume rất lớn |
-| `stackTrace=false` | Có duration nhưng không có call path | Khó truy nguyên code |
-| `stackTrace=true` | Phân tích nhóm theo stack tốt hơn | Có thêm chi phí stack/data |
+| `enabled=false` | Event type not recorded | Cannot infer “no waits occurred” |
+| `threshold=20ms` | Skips events shorter than 20ms | Misses frequent short contention |
+| `threshold=10ms` | Captures more short events | Increases event volume |
+| `threshold=0ms` | Captures even ultra-short events | Can create heavy overhead and huge data volume |
+| `stackTrace=false` | Has duration without call path | Hard to trace back to code |
+| `stackTrace=true` | Better grouping by stack | Adds stack/data overhead |
 
-**Không mặc định đặt threshold 0 trên production.** Dùng recording có thời lượng, kích thước và phạm vi được phép; chỉ giảm threshold khi có câu hỏi điều tra rõ. File JFR và thread dumps có thể lộ class names, stack, command line, thông tin hệ thống hoặc dữ liệu nhạy cảm; lưu ở nơi giới hạn quyền, theo retention policy, redaction khi chia sẻ.
+**Never set threshold 0 by default in production.** Use recordings with authorized duration, size, and scope; only lower thresholds for a specific diagnostic question. JFR files and thread dumps can expose class names, stacks, command lines, host details, or sensitive data; store them with restricted access, enforce retention policies, and redact before sharing.
 
-`jcmd Thread.print -l` có chi phí phụ thuộc số thread; chụp dump quá dày trên JVM nhiều thread cũng có thể ảnh hưởng latency. Cần tách điều tra một incident với monitoring thường xuyên.
+`jcmd Thread.print -l` has cost proportional to thread count; taking rapid dumps on a many-thread JVM can also impact latency. Separate targeted incident investigation from routine monitoring.
 
-## 14. Các lỗi suy luận phổ biến
+## 14. Common Reasoning Mistakes
 
-| Sai lầm | Vì sao sai | Cách làm đúng |
+| Mistake | Why It Is Wrong | Right Approach |
 | --- | --- | --- |
-| “`JavaMonitorEnter` là mọi lần enter synchronized.” | Event chuyên về monitor contention. | Diễn giải đúng contended acquisition. |
-| “Thread `BLOCKED` nhưng không có JFR event thì dump sai.” | Event chưa hoàn tất hoặc bị threshold/window lọc. | Tin snapshot cho state tại lúc chụp; kiểm tra settings. |
-| “`JavaMonitorWait` là đang giữ monitor trong suốt wait.” | `Object.wait` nhả monitor đó. | Điều tra notifier/condition. |
-| “`ThreadPark` luôn là ReentrantLock deadlock.” | Park có thể là idle queue/future/condition. | Xem stack/owner và tiến triển công việc. |
-| “`previousOwner` là current owner trong dump.” | Semantics là **previous owner**. | Chủ sở hữu tại dump phải từ snapshot. |
-| “`notifier` luôn có và `timedOut=false` chỉ có nghĩa notify.” | Có nhiều đường thức dậy và dữ liệu null. | Đối chiếu Javadoc và signal path. |
-| “`address` trong JFR phải bằng token `<0x...>` của dump.” | Không có mapping bền vững phổ quát. | Ghép theo thread/time/stack và xác minh. |
-| “`nid` bằng `javaThreadId`.” | `nid` thường là OS native ID. | Phân biệt Java vs native ID. |
-| “Một park dài chứng minh deadlock.” | Có thể là pool idle bình thường. | Tìm cycle waiter → owner trong cùng snapshot. |
-| “Không có event nghĩa không có contention.” | Threshold, disabled, window và event lifetime. | Kiểm tra cấu hình và thời gian. |
-| “Ghép dump JVM A với JFR JVM B bằng cùng PID là đủ.” | PID có thể bị tái sử dụng. | Xác minh host/namespace/start time. |
-| “`JFR.dump` tạo file trong thư mục shell client.” | File được ghi bởi JVM đích. | Kiểm tra filesystem/container path. |
-| “Threshold 0 không ảnh hưởng hiệu năng.” | Event count/stack collection có thể rất lớn. | Chỉ dùng trong thử nghiệm hoặc điều tra giới hạn. |
-| “Một JavaMonitorEnter dài chứng minh chu trình.” | Event completed không tự chứng minh cycle. | Dựng đồ thị từ dump/ThreadMXBean. |
+| “`JavaMonitorEnter` logs every `synchronized` entry.” | Event specifically tracks monitor contention. | Interpret it strictly as contended acquisition. |
+| “Thread is `BLOCKED` with no JFR event, so the dump is wrong.” | Event may be unfinished or filtered by threshold/window. | Trust the snapshot for state at capture time; check settings. |
+| “`JavaMonitorWait` means holding the monitor throughout the wait.” | `Object.wait` releases that monitor. | Investigate notifier/condition. |
+| “`ThreadPark` always means a `ReentrantLock` deadlock.” | Park can be an idle queue/future/condition. | Inspect stack/owner and work progress. |
+| “`previousOwner` equals current owner in the dump.” | Semantics are **previous owner**. | Live owner at dump time must come from the snapshot. |
+| “`notifier` is always present and `timedOut=false` means only notify.” | Multiple wakeup paths and null values exist. | Check Javadoc and signal paths. |
+| “`address` in JFR must match `<0x...>` in the dump.” | No universal stable mapping exists. | Correlate by thread/time/stack and verify. |
+| “`nid` equals `javaThreadId`.” | `nid` is typically the OS native ID. | Distinguish Java vs. native IDs. |
+| “One long park proves deadlock.” | Could be normal idle pool waiting. | Look for a waiter → owner cycle in the same snapshot. |
+| “No events means zero contention.” | Thresholds, disabled settings, window, and event lifetime apply. | Check configuration and timing. |
+| “Matching JVM A dump with JVM B JFR by PID is enough.” | PIDs can be reused. | Verify host/namespace/start time. |
+| “`JFR.dump` writes the file in the client shell directory.” | The target JVM writes the file. | Check target filesystem/container paths. |
+| “Threshold 0 has no performance impact.” | Event counts and stack captures can be massive. | Use only in testing or bounded investigations. |
+| “One long `JavaMonitorEnter` proves a cycle.” | Completed events do not prove a cycle. | Build the graph from dumps/`ThreadMXBean`. |
 
-## 15. Checklist điều tra end-to-end
+## 15. End-to-End Investigation Checklist
 
-- [ ] Đã xác nhận đúng **host, PID namespace, JVM PID, process start time, JDK/vendor**?
-- [ ] Đã chụp thread dump `Thread.print -l` đúng cửa sổ triệu chứng và ghi UTC timestamp?
-- [ ] Đã có JFR recording bao phủ cửa sổ và kiểm tra `enabled`/`threshold`/`stackTrace`?
-- [ ] Đã dùng `jfr summary` và `jfr print --events ...` để xem có events thật?
-- [ ] Khi ghép, dùng Java thread ID, tên và stack trên **cùng phiên JVM**, không nhầm `nid`/`tid`?
-- [ ] Đã phân biệt `waiting to lock`, `waiting on` và `parking to wait for`?
-- [ ] Với `JavaMonitorEnter`, xem eventThread/previousOwner nhưng kiểm chứng **live owner** từ dump?
-- [ ] Với `JavaMonitorWait`, xem duration, timeout, timedOut, notifier và producer signal?
-- [ ] Với `ThreadPark`, xem blocker/stack, pool idle hay AQS wait; không tự suy ra owner?
-- [ ] Có xét khả năng event **chưa commit vì wait chưa kết thúc** không?
-- [ ] Khi nghi deadlock, đã tìm **cycle waiter → owner trong một snapshot** chưa?
-- [ ] Đã đối chiếu request latency, throughput, queue, CPU/GC/I/O và logs?
-- [ ] Đã giới hạn recording duration, event threshold, dump frequency, dung lượng và quyền truy cập?
-- [ ] Kết luận có đủ **bằng chứng → giả thuyết → kiểm chứng → hành động sửa**?
+- [ ] Verified exact **host, PID namespace, JVM PID, process start time, and JDK/vendor**?
+- [ ] Captured `Thread.print -l` dump during the symptom window and recorded UTC timestamps?
+- [ ] Captured JFR recording covering the window and verified `enabled`/`threshold`/`stackTrace`?
+- [ ] Used `jfr summary` and `jfr print --events ...` to confirm real events exist?
+- [ ] Correlated using Java thread ID, name, and stack within the **same JVM session**, without mixing `nid`/`tid`?
+- [ ] Distinguished `waiting to lock`, `waiting on`, and `parking to wait for`?
+- [ ] For `JavaMonitorEnter`, checked `eventThread`/`previousOwner` while verifying **live owner** from the dump?
+- [ ] For `JavaMonitorWait`, checked duration, timeout, `timedOut`, `notifier`, and producer signals?
+- [ ] For `ThreadPark`, checked blocker/stack (idle pool vs. AQS wait) without inventing owners?
+- [ ] Considered whether an ongoing wait event **has not committed yet because it has not ended**?
+- [ ] When suspecting deadlock, looked for a **waiter → owner cycle within one snapshot**?
+- [ ] Cross-checked request latency, throughput, queues, CPU/GC/I/O, and logs?
+- [ ] Bounded recording duration, event thresholds, dump frequency, disk size, and access permissions?
+- [ ] Conclusion clearly covers **evidence → hypothesis → verification → remediation**?
 
-## 16. Tài liệu chính thức Java SE 17
+## 16. Official Java SE 17 Documentation
 
-- [Oracle — Troubleshoot Performance Issues Using Flight Recorder](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html): Java monitor blocked/wait, park, timeline và threshold.
-- [Oracle — The jcmd Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `Thread.print`, `JFR.start`, `JFR.check`, `JFR.dump` và `JFR.stop`.
+- [Oracle — Troubleshoot Performance Issues Using Flight Recorder](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html): Java monitor blocked/wait, park, timelines, and thresholds.
+- [Oracle — The jcmd Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `Thread.print`, `JFR.start`, `JFR.check`, `JFR.dump`, and `JFR.stop`.
 - [Oracle — The jfr Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html): `jfr summary`, `jfr print --events --stack-depth`.
-- [Oracle — jdk.jfr package](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/package-summary.html): settings `enabled`, `threshold`, `stackTrace`.
+- [Oracle — jdk.jfr package](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/package-summary.html): `enabled`, `threshold`, and `stackTrace` settings.
 - [Oracle — Recording](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/Recording.html): programmatic recording, enable/stop/dump.
-- [Oracle — RecordingFile](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html): đọc `.jfr` events.
+- [Oracle — RecordingFile](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html): reading `.jfr` events.
 - [Oracle — ThreadMXBean](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html): thread owner/monitor deadlock detection.
-- [Oracle — Object.wait](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait()): semantics nhả monitor/reacquire.
-- [Oracle — LockSupport](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/locks/LockSupport.html): parking, blocker và unpark.
+- [Oracle — Object.wait](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait()): monitor release/reacquire semantics.
+- [Oracle — LockSupport](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/locks/LockSupport.html): parking, blockers, and unpark.
 
-**Kết luận:** Hãy dùng **thread dump để biết trạng thái và owner ngay lúc chụp** và **JFR để biết event duration/timeline/call path**. `JavaMonitorEnter` là chờ **vào monitor**, `JavaMonitorWait` là **`Object.wait`**, `ThreadPark` là **parking qua LockSupport/AQS**. Không gộp chúng thành một khái niệm “thread treo”; và chỉ gọi deadlock khi có đủ bằng chứng về **vòng waiter → owner**, không phải chỉ từ một event dài.
+**Conclusion:** Use **thread dumps to see state and owners right at capture time** and **JFR to see event durations, timelines, and call paths**. `JavaMonitorEnter` is waiting **to enter a monitor**, `JavaMonitorWait` is **`Object.wait`**, and `ThreadPark` is **parking via `LockSupport`/AQS**. Never collapse them into a generic “hung thread” label; declare deadlock only with evidence of a **waiter → owner cycle**, never from a single long event alone.

@@ -1,90 +1,90 @@
-# 6.8. Truyền AAD trước dữ liệu; phân biệt dữ liệu được xác thực với dữ liệu được mã hóa
+# 6.8. Passing AAD Before Data; Distinguishing Authenticated Data from Encrypted Data
 
-## 1. Mục tiêu: hiểu đúng hai lớp bảo vệ trong AEAD
+## 1. Goal: Understanding the Two Protection Layers in AEAD
 
-Khi mã hóa đối xứng, “người ngoài không đọc được nội dung” và “người ngoài không sửa được nội dung mà không bị phát hiện” là **hai yêu cầu khác nhau**:
+In symmetric encryption, "outsiders cannot read the contents" and "outsiders cannot alter the contents undetected" are **two separate requirements**:
 
-- **Confidentiality (bí mật):** kẻ không có khóa khó khôi phục plaintext từ ciphertext.
-- **Integrity/authenticity (toàn vẹn và xác thực):** bên nhận có thể phát hiện dữ liệu hoặc ngữ cảnh đã bị sửa mà không có quyền tạo authentication tag hợp lệ.
+- **Confidentiality:** someone without the key cannot feasibly recover plaintext from ciphertext.
+- **Integrity/authenticity:** the receiver can detect if data or context was modified without authorization to forge a valid authentication tag.
 
-AEAD (*Authenticated Encryption with Associated Data*) phối hợp hai yêu cầu: nó **mã hóa và xác thực plaintext**, đồng thời cho phép xác thực thêm một vùng dữ liệu **không mã hóa** gọi là *Additional Authenticated Data* (AAD, đôi khi viết AD). Trong Java, một cách phổ biến là dùng `Cipher` với transformation `AES/GCM/NoPadding`.
+AEAD (*Authenticated Encryption with Associated Data*) combines both requirements: it **encrypts and authenticates plaintext**, while also authenticating a region of **unencrypted** data called *Additional Authenticated Data* (AAD, sometimes written AD). In Java, a common approach is using `Cipher` with the `AES/GCM/NoPadding` transformation.
 
-Ví dụ thực tế: hệ thống gửi một hóa đơn với:
+Practical example: a system sends an invoice with:
 
-- Header: `version=1;tenant=shop-7` cần đọc được để định tuyến/hiểu định dạng, nhưng **không được lén đổi**.
-- Payload: `hoa-don:120000 VND` cần được giữ **bí mật** và không được thay đổi.
-- Nonce/IV: giá trị không bí mật, bên giải mã cần dùng đúng giá trị mã hóa đã sử dụng.
-- Authentication tag: bằng chứng mật mã ràng buộc ciphertext và AAD với khóa/nonce/thuật toán.
+- Header: `version=1;tenant=shop-7`, which must remain readable for routing/format parsing, yet **must not be covertly altered**.
+- Payload: `hoa-don:120000 VND`, which must stay **confidential** and unaltered.
+- Nonce/IV: a non-secret value; the decryptor must use the exact value used during encryption.
+- Authentication tag: cryptographic proof binding ciphertext and AAD to the key/nonce/algorithm.
 
-Đưa **header** vào AAD và **payload** vào `Cipher.doFinal` cho AEAD sẽ tạo hai mức xử lý khác nhau: header còn nguyên dạng để truyền, nhưng sửa header khiến xác thực thất bại; payload được mã hóa, đồng thời được xác thực.
+Passing the **header** into AAD and the **payload** into `Cipher.doFinal` gives AEAD two distinct behaviors: the header stays readable in transit, yet tampering with it fails verification; the payload is both encrypted and authenticated.
 
-**Mục tiêu của bài:** biết byte nào được mã hóa, byte nào chỉ được xác thực; gọi `Cipher.updateAAD` đúng thứ tự; kiểm tra lỗi tag; thiết kế định dạng truyền dữ liệu đủ thông tin và an toàn.
+**Lesson goal:** know which bytes are encrypted versus merely authenticated; call `Cipher.updateAAD` in the right order; check tag failures; and design complete, safe wire formats.
 
-## 2. AAD khác plaintext, ciphertext, IV và tag thế nào?
+## 2. How Does AAD Differ from Plaintext, Ciphertext, IV, and Tag?
 
-| Thành phần | Có bị mã hóa bởi AES-GCM? | Có được ràng buộc bởi xác thực AEAD? | Vai trò |
+| Component | Encrypted by AES-GCM? | Bound by AEAD Authentication? | Role |
 | --- | --- | --- | --- |
-| **Plaintext** đi qua `update`/`doFinal` ở chế độ mã hóa | **Có**: trở thành ciphertext | **Có**: bên nhận chỉ chấp nhận plaintext sau kiểm tra tag | Dữ liệu cần bí mật và toàn vẹn |
-| **AAD** đi qua `updateAAD` | **Không**: vẫn giữ nguyên byte công khai | **Có**: thay AAD sẽ làm tag không khớp | Header, loại bản ghi, tenant, version, định danh ngữ cảnh |
-| **Ciphertext** | Đã là dữ liệu mã hóa | **Có** | Kết quả mã hóa payload; sửa byte sẽ làm xác thực thất bại |
-| **IV/nonce** của GCM | **Không**; thường được lưu/truyền công khai | Phải khớp với phép mã hóa và ảnh hưởng đến quá trình tính tag | Bảo đảm uniqueness mỗi lần mã hóa dưới cùng khóa; cần đúng nonce để giải mã |
-| **Authentication tag** | Không phải plaintext bí mật; thường gắn sau ciphertext trong kết quả `doFinal` | Là giá trị được kiểm tra để quyết định xác thực | Phát hiện sửa đổi dữ liệu/tag/ngữ cảnh |
-| Dữ liệu **không** đưa vào AAD, cũng **không** mã hóa | Không | **Không**, trừ khi có cơ chế xác thực riêng | Không được tin là đã được AEAD bảo vệ |
+| **Plaintext** passed via `update`/`doFinal` in encrypt mode | **Yes**: becomes ciphertext | **Yes**: receiver accepts plaintext only after tag verification | Data needing both confidentiality and integrity |
+| **AAD** passed via `updateAAD` | **No**: remains public plaintext bytes | **Yes**: changing AAD causes tag mismatch | Header, record type, tenant, version, context identifiers |
+| **Ciphertext** | Already encrypted data | **Yes** | Encrypted payload output; modifying bytes fails verification |
+| **GCM IV/nonce** | **No**; usually stored/transmitted publicly | Must match encryption and participates in tag calculation | Guarantees uniqueness per encryption under the same key; exact nonce needed to decrypt |
+| **Authentication tag** | Not secret plaintext; usually appended after ciphertext in `doFinal` output | Checked value deciding authenticity | Detects tampering with data/tag/context |
+| Data **neither** passed to AAD **nor** encrypted | No | **No**, unless protected by a separate mechanism | Must not be trusted as AEAD-protected |
 
-Một điểm thường bị hiểu nhầm: **AAD là authenticated, nhưng không confidential**. Nếu header chứa tên khách hàng, email hay thông tin nhạy cảm, đưa header đó vào AAD **không che giấu** các thông tin này. Muốn bí mật, đặt dữ liệu trong plaintext để mã hóa (và xác thực), hoặc bảo vệ riêng bằng cơ chế thích hợp.
+A common misconception: **AAD is authenticated, not confidential**. If a header contains customer names, emails, or sensitive fields, passing that header into AAD **does not hide** them. To keep data secret, place it inside plaintext to be encrypted (and authenticated), or protect it separately.
 
-Tương tự, “dữ liệu đã mã hóa” chưa tự chứng minh an toàn nếu chỉ dùng một mode không xác thực như AES-CBC đơn lẻ. Ở đây AES-GCM vừa mã hóa vừa tạo tag; bên giải mã phải **kiểm tra tag thành công** trước khi sử dụng kết quả.
+Likewise, "encrypted data" does not automatically imply integrity if using an unauthenticated mode like standalone AES-CBC. Here AES-GCM both encrypts and computes a tag; the decryptor must **verify the tag successfully** before trusting the result.
 
-### Minh họa về phạm vi byte
+### Byte Scope Illustration
 
 ```text
-Bản ghi truyền/lưu trữ (ví dụ)
+Transmitted/stored record (example)
 +---------------------------+----------------------+---------------------+
-| header (AAD, rõ)          | nonce/IV (rõ)        | ciphertext || tag   |
-| version=1;tenant=shop-7   | 12 byte              | byte đã mã hóa + tag |
+| header (AAD, cleartext)   | nonce/IV (cleartext) | ciphertext || tag   |
+| version=1;tenant=shop-7   | 12 bytes             | encrypted bytes+tag |
 +---------------------------+----------------------+---------------------+
            |                          |                       |
-           +----------- đưa vào ------|------> Cipher GCM <----+
+           +----------- feed into ----|------> GCM Cipher <---+
                             updateAAD(header)
                                       init(key, nonce)
                                       doFinal(payload)
 
-Khi giải mã, cùng key + nonce + AAD + ciphertext/tag:
-    tag hợp lệ --> nhận plaintext
-    tag sai    --> từ chối toàn bộ bản ghi
+On decryption, same key + nonce + AAD + ciphertext/tag:
+    valid tag   --> accept plaintext
+    invalid tag --> reject entire record
 ```
 
-Sơ đồ chỉ mô tả **ý nghĩa** các trường; trong ứng dụng thật phải có cấu trúc nhị phân hoặc JSON có schema/version/độ dài byte rõ ràng. Không trông chờ `Cipher` tự biết header nào là AAD: ứng dụng phải **chủ động** gọi `updateAAD` với đúng byte header.
+The diagram only illustrates field **semantics**; real applications need a binary or JSON structure with explicit schema/version/byte-lengths. Never expect `Cipher` to automatically recognize which header is AAD: the application must **actively** call `updateAAD` with the exact header bytes.
 
-## 3. Thứ tự gọi API bắt buộc trong Java
+## 3. Mandatory API Call Order in Java
 
-Với GCM/CCM, tài liệu `javax.crypto.Cipher` quy định **toàn bộ AAD phải được cung cấp trước khi bắt đầu xử lý dữ liệu** bằng `update` hoặc `doFinal`. Điều này áp dụng cho **cả mã hóa lẫn giải mã**.
+For GCM/CCM, the `javax.crypto.Cipher` documentation mandates that **all AAD must be supplied before processing data** via `update` or `doFinal`. This applies to **both encryption and decryption**.
 
-Thứ tự đúng:
+Correct sequence:
 
-1. `Cipher.getInstance("AES/GCM/NoPadding")` để lấy engine.
-2. `cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv))` để chọn khóa và tham số.
-3. `cipher.updateAAD(headerBytes)` để nạp dữ liệu chỉ cần xác thực. Có thể gọi `updateAAD` nhiều lần, nhưng mọi lần đều phải diễn ra **trước** thao tác trên plaintext/ciphertext.
-4. `cipher.update(payloadChunk)` không bắt buộc nếu xử lý theo từng khối; hoặc đi thẳng tới `cipher.doFinal(plaintext)` nếu dữ liệu đủ nhỏ.
-5. `cipher.doFinal(...)` kết thúc phép mã hóa và trả ciphertext kèm tag xác thực.
+1. `Cipher.getInstance("AES/GCM/NoPadding")` to obtain the engine.
+2. `cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv))` to set key and parameters.
+3. `cipher.updateAAD(headerBytes)` to feed authenticate-only data. `updateAAD` may be called multiple times, yet every call must happen **before** operating on plaintext/ciphertext.
+4. `cipher.update(payloadChunk)` optionally when streaming in chunks; or directly `cipher.doFinal(plaintext)` if data fits in one call.
+5. `cipher.doFinal(...)` finishes encryption and returns ciphertext plus authentication tag.
 
-Đối với giải mã, thay `ENCRYPT_MODE` bằng `DECRYPT_MODE` và cung cấp **chính xác cùng AAD** trước khi xử lý ciphertext. `doFinal(ciphertextAndTag)` sẽ kiểm tra tag; nếu tag không khớp, API có thể ném `AEADBadTagException`. Không sử dụng hoặc công bố plaintext khi chưa xác minh thành công.
+For decryption, replace `ENCRYPT_MODE` with `DECRYPT_MODE` and supply the **exact same AAD** before feeding ciphertext. `doFinal(ciphertextAndTag)` verifies the tag; on mismatch, the API may throw `AEADBadTagException`. Never use or expose plaintext before verification succeeds.
 
 ```java
-// Trích đoạn minh họa, giả sử key, iv, aad, plaintext đã tồn tại.
+// Illustrative snippet assuming key, iv, aad, plaintext already exist.
 Cipher encryptor = Cipher.getInstance("AES/GCM/NoPadding");
 encryptor.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv));
-encryptor.updateAAD(aad);                   // 1. Xác thực header
-byte[] encrypted = encryptor.doFinal(plaintext); // 2. Mã hóa payload + tag
+encryptor.updateAAD(aad);                        // 1. Authenticate header
+byte[] encrypted = encryptor.doFinal(plaintext); // 2. Encrypt payload + tag
 ```
 
-**Sai thứ tự** là gọi `update(plaintextChunk)` trước rồi mới gọi `updateAAD(aad)`. Với GCM/CCM, `Cipher.updateAAD` sau khi dữ liệu đã được xử lý là sai trạng thái và có thể ném `IllegalStateException`; không coi lỗi này là “provider tùy ý”, vì contract Java đã yêu cầu AAD đi trước. Cũng không được xử lý dữ liệu bằng `doFinal` rồi mới gửi AAD: lúc đó phép toán đã kết thúc.
+**Wrong order** is calling `update(plaintextChunk)` first and then `updateAAD(aad)`. With GCM/CCM, calling `Cipher.updateAAD` after data has been processed is an invalid state and can throw `IllegalStateException`; do not treat this error as "provider-specific whim", since the Java contract requires AAD upfront. Nor can you feed AAD after `doFinal`: the operation is already over.
 
-Lý do của thứ tự này: các mode AEAD xử lý tính xác thực AAD trước khi bắt đầu phần tính xác thực ciphertext. Provider cần nhận đủ AAD để triển khai đúng và tránh phải giữ lại toàn bộ ciphertext trong bộ đệm chỉ vì AAD đến muộn.
+Reason for this ordering: AEAD modes compute AAD authentication before beginning ciphertext authentication. Providers require all AAD upfront to implement this cleanly without buffering the entire ciphertext just because AAD arrives late.
 
-### Có thể gọi updateAAD nhiều lần không?
+### Can `updateAAD` Be Called Multiple Times?
 
-Có, khi các byte thuộc cùng một thông điệp GCM được truyền theo từng mảnh **trước payload**. Ví dụ:
+Yes, when bytes for the same GCM message are fed in pieces **before the payload**. For example:
 
 ```java
 cipher.updateAAD(versionBytes);
@@ -93,15 +93,15 @@ cipher.updateAAD(headerBytes);
 byte[] output = cipher.doFinal(plaintext);
 ```
 
-Đây là **đoạn mã minh họa** trong ngữ cảnh đã khởi tạo `cipher` và xác định rõ các mảng. Hãy nhớ GCM xác thực **chuỗi byte AAD theo đúng thứ tự**. Nếu bên gửi ghép `versionBytes||tenantBytes||headerBytes` mà bên nhận dùng một thứ tự khác, quá trình xác thực sẽ thất bại.
+This is an **illustrative snippet** assuming `cipher` is initialized and the arrays are defined. Remember that GCM authenticates the **AAD byte sequence in exact order**. If the sender feeds `versionBytes||tenantBytes||headerBytes` while the receiver feeds a different order, verification will fail.
 
-Đặc biệt, với các trường có độ dài biến đổi cần **định nghĩa serialization không mơ hồ**: chẳng hạn mỗi trường có tag loại và độ dài cố định/tiền tố độ dài. Chuỗi `"ab" + "c"` và `"a" + "bc"` tạo cùng byte nếu chỉ nối trần; nếu ý nghĩa các trường khác nhau, ứng dụng phải mã hóa ranh giới trường vào AAD.
+In particular, variable-length fields need **unambiguous serialization**: for instance, tagging each field with type and fixed length or length prefixes. Strings `"ab" + "c"` and `"a" + "bc"` yield identical bytes under naive concatenation; if field boundaries matter semantically, encode field delimiters/lengths into AAD.
 
-## 4. Ví dụ Java 17+ chạy độc lập: header rõ nhưng phải xác thực
+## 4. Standalone Java 17+ Example: Cleartext Yet Authenticated Header
 
-Chương trình tạo một khóa AES dùng riêng cho demo, sinh nonce ngẫu nhiên mới dài 12 byte, đưa header vào AAD, mã hóa payload bằng AES-GCM và giải mã đúng. Sau đó chương trình lần lượt sửa **AAD**, **ciphertext** và **IV** để xác nhận bản ghi bị từ chối.
+The program creates a demo-only AES key, generates a fresh 12-byte random nonce, passes a header into AAD, encrypts the payload with AES-GCM, and decrypts cleanly. It then tampers with **AAD**, **ciphertext**, and **IV** in turn to confirm rejection.
 
-Tạo file `AadGcmDemo.java`:
+Create **`AadGcmDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -183,14 +183,14 @@ public class AadGcmDemo {
 }
 ```
 
-Biên dịch và chạy (JDK 17 trở lên có hỗ trợ AES/GCM):
+Compile and run (JDK 17 or newer supporting AES/GCM):
 
 ```bash
 javac AadGcmDemo.java
 java AadGcmDemo
 ```
 
-Stdout chính xác cho mọi lần chạy thành công, dù khóa/IV/ciphertext được sinh ngẫu nhiên:
+Exact stdout on every successful run, even though key/IV/ciphertext are randomly generated:
 
 ```text
 AAD visible: version=1;tenant=shop-7
@@ -201,151 +201,151 @@ Changed ciphertext accepted: false
 Changed IV accepted: false
 ```
 
-### Giải thích vì sao ba lần sửa đều thất bại
+### Explaining Why All Three Modifications Failed
 
-- **Đổi AAD:** ciphertext/tag/khóa/IV vẫn y như cũ, nhưng header thay một byte. Vì AAD được dùng để tính tag GCM, `doFinal` bên giải mã ném `AEADBadTagException`. Điều này minh họa **AAD được xác thực dù không bị mã hóa**.
-- **Đổi ciphertext:** header AAD giữ nguyên, nhưng một byte ciphertext đã đổi. Tag không còn hợp lệ, nên không chấp nhận payload đã bị sửa.
-- **Đổi IV:** IV là tham số quan trọng của một lần mã hóa. Giải mã với IV khác sẽ không khôi phục đúng dữ liệu/tag đã tạo; ví dụ cho thấy xác thực bị từ chối.
-- **Tag overhead:** với tag dài 128 **bit** thì ciphertext trả về từ `doFinal` ở ví dụ có thêm 16 **byte** tag so với plaintext. Đây là tag xác thực, không phải `PKCS5Padding`; transformation dùng `NoPadding`.
-- **Giá trị AAD công khai:** chương trình cố ý in nguyên header để cho thấy AAD không hề được mã hóa. Không suy ra AAD phải đưa lên màn hình/log trong ứng dụng thật; điều đó phụ thuộc yêu cầu riêng tư của header.
+- **Altered AAD:** ciphertext/tag/key/IV stayed identical, yet the header changed by one byte. Because AAD participates in GCM tag computation, decryption's `doFinal` throws `AEADBadTagException`. This demonstrates **AAD is authenticated despite being unencrypted**.
+- **Altered ciphertext:** the AAD header stayed intact, yet one ciphertext byte flipped. The tag is invalidated, rejecting the modified payload.
+- **Altered IV:** the IV is a core parameter of an encryption invocation. Decrypting with a different IV fails to recover the valid state/tag; the example shows authentication is rejected.
+- **Tag overhead:** with a 128-**bit** tag, the ciphertext returned by `doFinal` includes 16 **bytes** of tag beyond plaintext length. This is the authentication tag, not `PKCS5Padding`; the transformation uses `NoPadding`.
+- **Visible AAD value:** the program intentionally prints the raw header to prove AAD is never encrypted. Do not infer that AAD should be printed to screens/logs in real applications; that depends on header privacy requirements.
 
-**Phạm vi ví dụ:** khóa chỉ tồn tại trong process; đây không phải quy trình lưu key/ciphertext lâu dài. Khi giải mã trên máy khác hoặc sau khi restart, cần truy xuất đúng khóa qua keystore/KMS và truyền/lưu đúng IV, header AAD cùng ciphertext/tag.
+**Example scope:** the key exists only in-process; this is not a long-term key/ciphertext persistence flow. When decrypting on another machine or after a restart, retrieve the exact key via keystore/KMS and pass/persist the exact IV, AAD header, and ciphertext/tag.
 
-## 5. Phân biệt “đã được xác thực” và “đã được mã hóa”
+## 5. Distinguishing "Authenticated" from "Encrypted"
 
-### 5.1. Dữ liệu được mã hóa và xác thực
+### 5.1. Data Both Encrypted and Authenticated
 
-Trong AES-GCM, **payload** đi qua `Cipher.update`/`doFinal` được biến đổi thành ciphertext; người không có khóa phù hợp không đọc được plaintext theo giả định an toàn của thuật toán. Đồng thời, tag GCM ràng buộc payload, AAD, khóa và nonce trong quá trình xác thực. Bên giải mã chỉ **chấp nhận kết quả sau khi tag hợp lệ**.
+In AES-GCM, **payload** passed through `Cipher.update`/`doFinal` becomes ciphertext; anyone without the proper key cannot read the plaintext under the algorithm's security assumptions. Simultaneously, the GCM tag binds payload, AAD, key, and nonce during verification. The decryptor **accepts results only after tag validation**.
 
-Từ “được mã hóa” không đồng nghĩa “bất cứ ciphertext nào cũng an toàn”: cần đúng mode AEAD, nonce/IV, độ dài tag, quản lý khóa và quy trình kiểm tra kết quả.
+"Encrypted" alone does not mean "any ciphertext is safe": you need the right AEAD mode, nonce/IV discipline, tag length, key management, and verification flow.
 
-### 5.2. Dữ liệu được xác thực nhưng không mã hóa
+### 5.2. Data Authenticated Yet Unencrypted
 
-**AAD** không đi qua phép mã hóa plaintext, nên người quan sát vẫn đọc được nội dung AAD nếu bản ghi chứa nó ở dạng rõ. Tuy nhiên, bên nhận gọi `updateAAD` trước `doFinal` để kiểm tra tính toàn vẹn của chính những byte đó cùng payload.
+**AAD** does not pass through plaintext encryption, so observers can read AAD contents if the record carries them in cleartext. However, the receiver passes those exact bytes to `updateAAD` before `doFinal` to verify their integrity alongside the payload.
 
-Trường hợp sử dụng: version của định dạng, loại bản ghi, tên tenant không nhạy cảm, định danh tài liệu, sequence number hoặc content type mà bên nhận cần xem *sớm* để định tuyến. Chỉ dùng các trường này để ra quyết định bảo mật **sau khi xác thực thành công**; nếu cần dùng sơ bộ để định tuyến/lấy khóa, phải coi chúng là dữ liệu chưa tin cậy và kiểm tra lại sau xác thực.
+Use cases: format version, record type, non-sensitive tenant name, document ID, sequence number, or content type that the receiver needs to inspect *early* for routing. Make security decisions from these fields **only after authentication succeeds**; if used preliminarily for routing/key lookup, treat them as untrusted until verified.
 
-### 5.3. Dữ liệu hoàn toàn nằm ngoài phạm vi AEAD
+### 5.3. Data Completely Outside AEAD Scope
 
-Nếu một trường đi cùng bản ghi mà bạn **không** nạp vào AAD, cũng **không** đưa vào plaintext được mã hóa, thì GCM không tự bảo vệ trường đó. Ví dụ `tenantId` trong JSON nằm ngoài ciphertext mà bị bỏ qua ở `updateAAD` có thể bị sửa mà phép kiểm tra tag vẫn hợp lệ cho ciphertext cũ. Đây là lỗi thiết kế ngữ cảnh rất dễ bị bỏ sót.
+If an accompanying field is **neither** fed into AAD **nor** placed into encrypted plaintext, GCM does not protect it. For example, a `tenantId` in JSON outside the ciphertext omitted from `updateAAD` can be modified while tag verification still passes for the old ciphertext. This is a very easy-to-miss context-binding flaw.
 
-Cách sửa: xác định từ đầu danh sách metadata ảnh hưởng đến diễn giải, quyền và bản sắc bản ghi; biểu diễn thành chuỗi byte AAD có version và truyền đúng những byte đó vào AEAD.
+Fix: identify upfront every metadata field affecting interpretation, permissions, or record identity; serialize them into a versioned AAD byte sequence and feed those exact bytes into AEAD.
 
-### 5.4. AAD không thay thế mã hóa hay chữ ký số
+### 5.4. AAD Does Not Replace Encryption or Digital Signatures
 
-- AAD không bảo vệ **tính bí mật** của chính header.
-- AEAD không tự chứng minh danh tính pháp lý của người gửi: nếu nhiều bên biết cùng khóa đối xứng, bên nào có khóa cũng có thể tạo tag hợp lệ.
-- Không giải quyết **replay**: bản ghi ciphertext/tag/AAD/IV hợp lệ có thể bị phát lại nguyên vẹn. Chống replay cần sequence number/nonce nghiệp vụ/timestamp được xác thực **và** kiểm soát dùng lại/hết hạn ở ứng dụng.
-- Không thay thế kiểm tra **authorization**: tag hợp lệ chưa có nghĩa người yêu cầu được quyền xem hoặc sửa bản ghi của tenant đó.
+- AAD does not protect the **confidentiality** of the header itself.
+- AEAD does not prove legal sender identity on its own: if multiple parties share a symmetric key, any holder can produce a valid tag.
+- Does not solve **replay**: a valid ciphertext/tag/AAD/IV record can be replayed verbatim. Replay protection needs an authenticated sequence number/business nonce/timestamp **plus** reuse/expiry tracking in the application.
+- Does not replace **authorization**: a valid tag does not mean the caller is permitted to read or modify that tenant's record.
 
-## 6. Thiết kế record với AAD: những byte nào phải khớp?
+## 6. Designing Records with AAD: Which Bytes Must Match?
 
-Ví dụ một record có thể gồm:
+For example, a record might include:
 
-| Trường | Cách bảo vệ | Lưu ý |
+| Field | Protection Mechanism | Notes |
 | --- | --- | --- |
-| `formatVersion` | AAD | Không cho phép kẻ gửi lặng lẽ đổi định dạng; kiểm tra version được hỗ trợ trước khi parse sâu. |
-| `tenantId` | AAD nếu công khai; plaintext nếu cần bí mật | Định danh tenant cần ràng buộc với ciphertext và quyền truy cập thực tế. |
-| `contentType` | AAD | Ngăn thay đổi cách phân tích payload sau giải mã. |
-| `keyId` | AAD hoặc ràng buộc qua giao thức an toàn | Có thể cần dùng để tra khóa **trước xác thực**, lúc này keyId vẫn chưa đáng tin; chỉ dùng whitelist/lookup có giới hạn và xác minh lại. |
-| `iv` | Trường công khai riêng | Phải bảo đảm duy nhất theo khóa khi mã hóa; dùng đúng IV ở phía giải mã. |
-| `ciphertextAndTag` | Ciphertext bí mật và tag xác thực | Lưu cả tag; không tách/nhầm số byte. |
-| `payload` | Plaintext đưa vào `doFinal` | Mã hóa + xác thực; ví dụ số tiền, mô tả nội dung, dữ liệu riêng tư. |
+| `formatVersion` | AAD | Prevents senders from silently switching formats; verify version is supported before deep parsing. |
+| `tenantId` | AAD if public; plaintext if confidential | Tenant identifier must be bound to ciphertext and actual access control. |
+| `contentType` | AAD | Prevents altering how decrypted payload is parsed. |
+| `keyId` | AAD or bound via secure protocol | May be needed to look up the key **before verification**, when `keyId` is still untrusted; restrict to allowlists/bounded lookup and re-verify. |
+| `iv` | Separate public field | Must ensure per-key uniqueness on encryption; pass exact IV on decryption. |
+| `ciphertextAndTag` | Confidential ciphertext and auth tag | Store full tag; never drop or miscount bytes. |
+| `payload` | Plaintext passed to `doFinal` | Encrypted + authenticated; e.g., monetary amounts, descriptions, private data. |
 
-Định nghĩa **byte serialization nhất quán**: một record JSON dùng để hiển thị vẫn có thể khác thứ tự field, whitespace, Unicode normalization hoặc kiểu số giữa hai runtime. Nếu bên gửi tính AAD bằng UTF-8 của `"version=1;tenant=shop-7"` còn bên nhận dùng UTF-8 của `"tenant=shop-7;version=1"`, hai byte array khác nhau và xác thực thất bại.
+Define **consistent byte serialization**: a display-oriented JSON record can vary in field ordering, whitespace, Unicode normalization, or numeric formatting between runtimes. If the sender computes AAD from UTF-8 of `"version=1;tenant=shop-7"` while the receiver uses UTF-8 of `"tenant=shop-7;version=1"`, the byte arrays differ and authentication fails.
 
-Hai cách xử lý hợp lý:
+Two sound approaches:
 
-1. **Lưu/truyền nguyên byte header đã được xác thực.** Bên nhận lấy chính byte này, chuyển vào `updateAAD`, chỉ sau khi tag hợp lệ mới tin các trường đã parse.
-2. **Dùng serialization có chuẩn canonical rõ ràng.** Định nghĩa encoding UTF-8, thứ tự trường, độ dài và loại trường, canonicalization; cả hai phía tái tạo **giống chính xác từng byte**.
+1. **Store/transmit the exact authenticated header bytes verbatim.** The receiver feeds those exact bytes into `updateAAD`, trusting parsed fields only after the tag passes.
+2. **Use strict canonical serialization.** Define UTF-8 encoding, field order, lengths, field types, and canonicalization; both sides reconstruct **the exact same bytes**.
 
-Không chỉ nối các giá trị biến độ dài mà không có ranh giới: `"ab" + "c"` và `"a" + "bc"` có cùng chuỗi byte dù hai cặp field khác nhau. Dùng length prefix hoặc cấu trúc field có tag/length và version để tránh nhập nhằng.
+Never concatenate variable-length values without boundaries: `"ab" + "c"` and `"a" + "bc"` yield identical byte strings despite representing different field pairs. Use length prefixes or tagged/length-prefixed fields with versioning to prevent ambiguity.
 
-## 7. Xử lý dữ liệu theo stream mà không vi phạm thứ tự
+## 7. Streaming Data Without Violating Order
 
-Java có các overload:
+Java provides overloads:
 
 - `cipher.updateAAD(byte[])`;
 - `cipher.updateAAD(byte[], offset, len)`;
 - `cipher.updateAAD(ByteBuffer)`.
 
-Và các phương thức xử lý dữ liệu như `update(...)`, `doFinal(...)`. Thứ tự hợp lệ nếu mã hóa/decrypt dữ liệu theo mảnh:
+And payload methods such as `update(...)` and `doFinal(...)`. Valid ordering when encrypting/decrypting in chunks:
 
 ```text
 Cipher.init(...)
   |
   +-- updateAAD(headerPart1)
   +-- updateAAD(headerPart2)
-  +-- updateAAD(headerPart3)   <-- KẾT THÚC AAD
+  +-- updateAAD(headerPart3)   <-- END OF AAD
   |
   +-- update(payloadPart1)
   +-- update(payloadPart2)
   +-- doFinal(lastPayloadPart)
        |
-       +-- encrypt: ciphertext cuối + authentication tag
-       +-- decrypt: kiểm tra tag; thành công mới chấp nhận plaintext
+       +-- encrypt: final ciphertext + authentication tag
+       +-- decrypt: verifies tag; accept plaintext only on success
 ```
 
-Với `ByteBuffer`, `updateAAD(ByteBuffer)` xử lý các byte trong phần `remaining()` của buffer và cập nhật `position` đến `limit`; nó không đồng nghĩa toàn bộ dung lượng vật lý của buffer nếu position/limit đã thay đổi.
+With `ByteBuffer`, `updateAAD(ByteBuffer)` consumes bytes in the buffer's `remaining()` slice and advances `position` to `limit`; it does not mean the buffer's full physical capacity if position/limit changed.
 
-### Không sử dụng plaintext giải mã trước khi kiểm tra tag
+### Never Use Decrypted Plaintext Before Tag Verification
 
-Trong GCM, việc kiểm tra tag cuối cùng xảy ra ở `doFinal`. Một số implementation có thể buffer đầu ra giải mã, số khác có thể cung cấp plaintext từ `update` trước khi tag cuối được xác nhận. Vì vậy **không gửi dữ liệu tạm giải mã ra network, ghi vào DB như dữ liệu đáng tin hoặc thực thi nó** trước khi toàn bộ phép xác thực thành công. Với dữ liệu lớn, dùng vùng đệm/quy trình staging và chỉ commit/publish khi `doFinal` thành công; nếu xác thực thất bại, loại bỏ dữ liệu tạm.
+In GCM, final tag verification occurs in `doFinal`. Some implementations buffer decrypted output, whereas others may emit plaintext bytes from `update` before the trailing tag is verified. Therefore, **never send partially decrypted data over the network, write it to a DB as trusted data, or execute it** before full verification succeeds. For large data, use a staging buffer/area and commit/publish only once `doFinal` succeeds; if verification fails, discard temporary data.
 
-Nếu `doFinal` ném `AEADBadTagException`, không thử “giải mã tiếp” hoặc bỏ qua tag để cứu plaintext. Từ chối bản ghi, dọn buffer nhạy cảm thích hợp và xử lý lỗi ở ranh giới ứng dụng.
+If `doFinal` throws `AEADBadTagException`, never try to "keep decrypting" or bypass the tag to salvage plaintext. Reject the record, scrub sensitive buffers appropriately, and handle errors at the application boundary.
 
-### Có phải luôn phải gọi updateAAD?
+### Must You Always Call `updateAAD`?
 
-Không. AAD là **tùy chọn** trong AES-GCM: nếu không có metadata cần xác thực bổ sung, ứng dụng có thể không gọi `updateAAD` và vẫn mã hóa/xác thực payload bằng GCM. Nhưng một khi **đã thiết kế** header phải được bảo vệ như AAD, thì cả bên mã hóa và giải mã đều phải gửi đúng byte header qua `updateAAD` trước xử lý payload. Quên bước này ở **cả hai phía** có thể khiến mã hóa/giải mã vẫn chạy nhưng header không được xác thực như mong muốn.
+No. AAD is **optional** in AES-GCM: if no extra metadata needs authentication, an application can omit `updateAAD` and still encrypt/authenticate the payload with GCM. However, once a header is **designed** to be protected as AAD, both encryptor and decryptor must pass exact header bytes via `updateAAD` before processing payload. Forgetting this on **both sides** lets encryption/decryption run while leaving the header unauthenticated!
 
-## 8. Rủi ro và nguyên tắc an toàn đi kèm
+## 8. Associated Risks and Security Principles
 
-1. **Không dùng lại (key, IV) khi mã hóa AES-GCM.** IV ngẫu nhiên 96 bit từ `SecureRandom` là một cách sinh nonce phổ biến; hệ thống tải lớn cần kiểm soát xác suất đụng độ, số lần mã hóa mỗi khóa và rotation. Không dùng IV hằng số, không tái sử dụng bản ghi cũ để mã hóa thông điệp mới.
-2. **Tách IV và AAD.** IV điều khiển quá trình GCM; AAD là byte metadata tùy chọn nhưng được xác thực. Chúng không thay thế nhau. IV công khai không có nghĩa có thể dùng sai IV mà vẫn mong giải mã đúng.
-3. **Dùng tag đủ mạnh theo giao thức.** Ví dụ tag 128 bit và IV 12 byte; `GCMParameterSpec(128, iv)` nhận **bit**, không phải byte. Không để client tự yêu cầu tag ngắn không theo chính sách.
-4. **Bảo vệ khóa.** AAD, IV và ciphertext/tag có thể lưu/truyền công khai theo thiết kế, nhưng khóa AES phải được quản lý an toàn bằng keystore/KMS, kiểm soát truy cập và vòng đời riêng. Không hardcode khóa thật.
-5. **Không dùng header chưa xác thực để cấp quyền.** Có thể parse sơ bộ version/keyId cho định tuyến nhưng phải giới hạn thuật toán/khóa được phép và **kiểm tra lại** tất cả ngữ cảnh khi tag hợp lệ.
-6. **Không dùng AAD chứa dữ liệu mà bạn kỳ vọng được giấu.** Tên người dùng, địa chỉ, tài khoản hoặc nội dung riêng tư trong AAD có thể lộ cho người quan sát. Đưa phần cần bí mật vào plaintext.
-7. **Không coi mã hóa AES-CBC đơn lẻ tương đương AEAD.** CBC không có tính năng xác thực AAD/tag của GCM. Nếu cần xác thực toàn bộ message, dùng AEAD hoặc giao thức encrypt-then-MAC được thiết kế đúng.
-8. **Giới hạn kích thước và đầu vào.** Kiểm tra IV length, version, tag length, ciphertext size, header length, charset và trường bắt buộc trước khi cấp phát bộ nhớ hoặc giải mã. Từ chối các transformation không nằm trong allowlist.
-9. **Không tiết lộ lý do xác thực thất bại quá chi tiết.** Dữ liệu sai AAD, sai key, sai IV, bị sửa ciphertext/tag có thể đều dẫn tới lỗi tag. Ứng dụng cần phản hồi từ chối phù hợp, tránh log plaintext hoặc key.
-10. **Không tái dùng Cipher để mã hóa thông điệp mới với cùng key/IV.** Mỗi lần mã hóa phải khởi tạo với IV mới độc nhất. `Cipher` không phải đối tượng chia sẻ tùy tiện giữa các thread.
+1. **Never reuse `(key, IV)` when encrypting with AES-GCM.** Random 96-bit IVs from `SecureRandom` are a common nonce strategy; high-load systems must manage collision probabilities, encryptions per key, and rotation. Never use constant IVs or reuse old records' IVs for new messages.
+2. **Keep IV and AAD distinct.** The IV drives GCM state; AAD is optional authenticated metadata bytes. They are not interchangeable. A public IV does not mean decryption succeeds with a wrong IV.
+3. **Use a sufficiently strong tag per protocol.** E.g., 128-bit tag and 12-byte IV; `GCMParameterSpec(128, iv)` takes **bits**, not bytes. Never let clients request short tags outside policy.
+4. **Protect keys.** AAD, IV, and ciphertext/tag can be stored/transmitted publicly per design, whereas AES keys must be managed securely via keystore/KMS, access controls, and lifecycle policies. Never hardcode real keys.
+5. **Never grant permissions from an unauthenticated header.** You may preliminarily parse `version`/`keyId` for routing, yet restrict permitted algorithms/keys and **re-verify** all context once the tag passes.
+6. **Never store data you expect hidden inside AAD.** User names, addresses, accounts, or private content in AAD are visible to observers. Put secrets inside plaintext.
+7. **Never treat standalone AES-CBC encryption as equivalent to AEAD.** CBC lacks GCM's AAD/tag authentication. To authenticate full messages, use AEAD or a properly designed Encrypt-then-MAC protocol.
+8. **Enforce size and input bounds.** Validate IV length, version, tag length, ciphertext size, header length, charset, and required fields before allocating memory or decrypting. Reject transformations outside an allowlist.
+9. **Avoid leaking detailed authentication failure causes.** Wrong AAD, wrong key, wrong IV, or altered ciphertext/tag may all trigger tag failures. Return uniform rejection responses and avoid logging plaintext or keys.
+10. **Never reuse a `Cipher` to encrypt a new message with the same key/IV.** Each encryption must initialize with a unique fresh IV. `Cipher` is not safe to share arbitrarily across threads.
 
-## 9. Triệu chứng lỗi và cách gỡ
+## 9. Error Symptoms and Troubleshooting
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common Cause | Resolution |
 | --- | --- | --- |
-| `IllegalStateException` khi `updateAAD` | Gọi sau `update`, sau thao tác hoàn tất, trước `init`, hoặc mode/provider không ở trạng thái chấp nhận AAD | Khởi tạo cipher và truyền toàn bộ AAD trước khi gửi bất kỳ payload/ciphertext nào |
-| `IllegalArgumentException` | Truyền byte[] AAD là `null` hoặc tham số offset/length sai | Xác minh dữ liệu và giới hạn mảng trước khi gọi |
-| `AEADBadTagException` từ `doFinal` | AAD/key/IV/ciphertext/tag khác với lúc mã hóa, hoặc dữ liệu bị cắt/sửa | Từ chối toàn bộ bản ghi; kiểm tra contract byte và metadata; không bỏ qua xác thực |
-| Dữ liệu payload giải mã đúng nhưng header đổi mà không báo lỗi | Header không được đưa vào AAD ở cả hai phía, hoặc ứng dụng đọc trường khác với trường đã authenticated | Rà soát chính xác byte đã nạp qua `updateAAD` và vùng metadata thực sự được bảo vệ |
-| Đổi thứ tự header fields thì decrypt thất bại | Serialization/canonicalization AAD giữa hai bên khác nhau | Định nghĩa byte representation tường minh và kiểm thử round-trip |
-| Tag dài hơn dự kiến 16 byte | Nhầm `GCMParameterSpec` tag length **bit** với byte hoặc tách tag sai | Xác định tag 128 bit = 16 byte và cách `doFinal` trả ciphertext+tag |
-| Bản ghi bị phát lại vẫn decrypt thành công | AEAD bảo vệ tính toàn vẹn, **không tự chống replay** | Dùng sequence/messageId/timestamp được xác thực và kiểm soát trùng ở application |
+| `IllegalStateException` on `updateAAD` | Called after `update`, after finalization, before `init`, or mode/provider does not accept AAD in current state | Initialize cipher and supply all AAD before feeding any payload/ciphertext |
+| `IllegalArgumentException` | Passing `null` AAD `byte[]` or invalid offset/length | Validate data and array bounds before calling |
+| `AEADBadTagException` from `doFinal` | AAD/key/IV/ciphertext/tag differs from encryption, or data truncated/altered | Reject entire record; verify byte contract and metadata; never bypass authentication |
+| Payload decrypts accurately yet header changes undetected | Header omitted from AAD on both sides, or application reads a field different from what was authenticated | Audit exact bytes fed to `updateAAD` and which metadata is actually protected |
+| Reordering header fields breaks decryption | AAD serialization/canonicalization differs between sides | Define explicit byte representation and add round-trip tests |
+| Tag appears longer than expected 16 bytes | Confusing `GCMParameterSpec` tag length **bits** with bytes, or slicing tag wrongly | Verify 128-bit = 16-byte tag and how `doFinal` returns `ciphertext+tag` |
+| Replayed record still decrypts cleanly | AEAD protects integrity, **does not prevent replay itself** | Use authenticated sequence/messageId/timestamp with application duplicate checks |
 
-Đừng “chữa lỗi” `AEADBadTagException` bằng cách bỏ `updateAAD` trên cả hai phía để dữ liệu giải mã được; cách này vô hiệu hóa mục tiêu bảo vệ header. Cũng không được thay GCM bằng mode không xác thực chỉ để tránh lỗi tag.
+Never "fix" `AEADBadTagException` by deleting `updateAAD` from both sides just to make decryption succeed; that defeats header protection. Nor switch GCM to an unauthenticated mode merely to avoid tag errors.
 
-## 10. Checklist tự kiểm tra và bài tập
+## 10. Self-Check Checklist and Exercises
 
-Trước khi triển khai AEAD có AAD, hãy tự trả lời:
+Before deploying AEAD with AAD, answer:
 
-- Thành phần nào **chỉ xác thực** (AAD), thành phần nào **vừa mã hóa vừa xác thực** (payload), trường nào nằm ngoài phạm vi AEAD?
-- AAD được chuyển thành byte theo encoding/schema nào? Cả bên gửi và nhận có dùng **đúng cùng chuỗi byte** và thứ tự không?
-- Có gọi `updateAAD` **trước** `update`/`doFinal` trên **cả hai phía**?
-- IV có được tạo mới, unique theo khóa mỗi lần mã hóa? Key được lưu và truy xuất theo cơ chế nào?
-- Chỉ công bố/sử dụng plaintext **sau** khi `doFinal` giải mã thành công?
-- Header dùng để phân quyền, định tuyến hay chọn khóa có được kiểm tra lại sau khi tag hợp lệ?
-- Có kiểm tra sai AAD, sai IV, đổi byte ciphertext/tag, cắt ngắn payload, sai version, replay không?
+- Which components are **authenticated only** (AAD), which are **encrypted and authenticated** (payload), and which fields sit outside AEAD scope?
+- Under which encoding/schema is AAD serialized to bytes? Do both sender and receiver produce the **exact same byte sequence** and order?
+- Is `updateAAD` called **before** `update`/`doFinal` on **both sides**?
+- Is a fresh, per-key unique IV generated for every encryption? How is the key stored and resolved?
+- Is plaintext exposed/used **only after** decryption `doFinal` succeeds?
+- Are headers used for authorization, routing, or key lookup re-checked after tag validation?
+- Are wrong AAD, wrong IV, flipped ciphertext/tag bytes, truncated payload, wrong version, and replay all tested?
 
-**Bài tập 1:** thêm một trường `contentType=application/json` vào AAD có độ dài được mã hóa rõ ràng; cho bên giải mã dùng cùng byte, rồi thử đổi `contentType` nhưng giữ nguyên ciphertext/tag để kiểm tra thất bại.
+**Exercise 1:** add a `contentType=application/json` field to AAD with explicit length encoding; make the decryptor use the same bytes, then alter `contentType` while keeping ciphertext/tag unchanged to verify failure.
 
-**Bài tập 2:** chuyển payload từ `doFinal(plaintext)` sang nhiều lần `update`, kết thúc bằng `doFinal`. Giữ `updateAAD` trước tất cả các lần `update` và so sánh kết quả round-trip; thử gọi `updateAAD` sau `update` để quan sát lỗi trạng thái trên provider.
+**Exercise 2:** switch payload processing from `doFinal(plaintext)` to multiple `update` calls ending with `doFinal`. Keep `updateAAD` before all `update` calls and compare round-trip results; try calling `updateAAD` after `update` to observe the provider's state exception.
 
-**Bài tập 3:** tạo bản ghi có version, keyId, IV, AAD và ciphertext/tag. Xây dựng quy tắc serialization/canonicalization ổn định; test sau khi lưu/đọc qua file hoặc database. Không đưa khóa AES thật vào bài tập hay kho mã nguồn.
+**Exercise 3:** build a record with version, keyId, IV, AAD, and ciphertext/tag. Establish stable serialization/canonicalization rules; test after persisting/reading via file or database. Never put real AES keys into exercises or source repositories.
 
-## 11. Tài liệu chính thức
+## 11. Official Documentation
 
-- [Cipher — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): `updateAAD`, `update`, `doFinal`, lưu ý GCM/CCM phải nạp toàn bộ AAD trước dữ liệu và kiểm tra tag.
-- [GCMParameterSpec — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): IV và độ dài tag theo bit.
-- [AEADBadTagException — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/AEADBadTagException.html): lỗi tag xác thực không khớp khi giải mã AEAD.
-- [Java Security Developer's Guide — Oracle](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): kiến trúc provider và cách dùng các engine mật mã, bao gồm chế độ AEAD.
+- [Cipher — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): `updateAAD`, `update`, `doFinal`, requirement for GCM/CCM to feed all AAD before data and tag checking.
+- [GCMParameterSpec — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): IV and tag length in bits.
+- [AEADBadTagException — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/AEADBadTagException.html): authentication tag mismatch error during AEAD decryption.
+- [Java Security Developer's Guide — Oracle](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): provider architecture and cryptographic engines, including AEAD modes.

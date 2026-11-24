@@ -1,114 +1,114 @@
-# 13.6 Giới hạn NMT: phạm vi HotSpot và các cấp phát native không được theo dõi
+# 13.6 NMT Limitations: HotSpot Scope and Untracked Native Allocations
 
-## 1. Khi RSS tăng mà NMT gần như đứng yên
+## 1. When RSS Climbs While NMT Stays Nearly Flat
 
-Giả sử một dịch vụ Java tăng RSS từ 700 MiB lên 1.100 MiB sau nhiều giờ. Kết quả `jcmd <PID> VM.native_memory summary.diff` lại cho thấy `Total committed` của NMT chỉ tăng 15 MiB. Có chắc 385 MiB còn lại là “rò rỉ native”?
+Suppose a Java service's RSS grows from 700 MiB to 1,100 MiB over several hours. Yet `jcmd <PID> VM.native_memory summary.diff` shows NMT `Total committed` rose by only 15 MiB. Is the remaining 385 MiB guaranteed to be a "native leak"?
 
-**Chưa thể kết luận như vậy.** Native Memory Tracking (**NMT**) là công cụ của **HotSpot VM** theo dõi những đường cấp phát bộ nhớ mà HotSpot quản lý. Nó không phải trình theo dõi tất cả lời gọi `malloc`, `mmap` hoặc những cấp phát do thư viện C/C++ được nạp vào cùng tiến trình thực hiện. Hơn nữa, NMT `committed` và RSS là hai đại lượng có định nghĩa khác nhau; không được lấy hiệu của chúng làm số byte rò rỉ chính xác.
+**Not yet.** Native Memory Tracking (**NMT**) is a **HotSpot VM** tool that tracks memory allocation paths managed by HotSpot. It is not a tracker for every `malloc` or `mmap` call or allocations made by C/C++ libraries loaded into the same process. Moreover, NMT `committed` and RSS are two differently defined quantities; you must not subtract them to get an exact leaked byte count.
 
-Người học cần trả lời được: NMT thấy phần bộ nhớ nào; phần nào nằm ngoài phạm vi; cách diễn giải `reserved/committed`; cách đối chiếu với RSS/PSS và các vùng mapping; khi nào phải dùng công cụ native ngoài `jcmd`; và làm sao chứng minh leak thay vì chỉ suy đoán.
+You should be able to answer: what memory NMT sees; what falls outside its scope; how to interpret `reserved/committed`; how to reconcile with RSS/PSS and memory mappings; when native tools beyond `jcmd` are required; and how to prove a leak rather than guessing.
 
-## 2. NMT theo dõi được và không theo dõi được những gì?
+## 2. What Can and Cannot NMT Track?
 
-NMT là khả năng chẩn đoán đặc thù của HotSpot, mặc định tắt và phải bật lúc **khởi động JVM**. Hai cấp độ:
+NMT is a HotSpot-specific diagnostic feature, disabled by default and enabled at **JVM startup**. Two levels:
 
-- `-XX:NativeMemoryTracking=summary`: báo cáo số liệu theo nhóm subsystem của VM, với `reserved` và `committed`.
-- `-XX:NativeMemoryTracking=detail`: thêm call sites và virtual memory regions của **những cấp phát đã được NMT instrument**. Nó không thu thập mọi native allocation của toàn process.
+- `-XX:NativeMemoryTracking=summary`: reports figures by VM subsystem category, with `reserved` and `committed`.
+- `-XX:NativeMemoryTracking=detail`: adds call sites and virtual memory regions for **allocations instrumented by NMT**. It does not capture every native allocation across the entire process.
 
-Các nhóm điển hình là `Java Heap`, `Class`/metaspace, `Thread`, `Code`, `GC`, `Compiler`, `Internal`, `Symbol`, `Other` và `Native Memory Tracking`. Tên, số nhóm và mức độ chi tiết phụ thuộc bản JDK. Sự hiện diện của một nhóm không có nghĩa mọi cấp phát liên quan đến Java hay thư viện chuẩn đều vào nhóm đó.
+Typical categories are `Java Heap`, `Class`/metaspace, `Thread`, `Code`, `GC`, `Compiler`, `Internal`, `Symbol`, `Other`, and `Native Memory Tracking`. Category names, counts, and granularity depend on the JDK version. The presence of a category does not mean every Java- or standard-library-related allocation lands in it.
 
-| Nguồn bộ nhớ | Mức độ NMT quan sát | Không được suy diễn |
+| Memory Source | NMT Observation Level | What Not to Infer |
 | --- | --- | --- |
-| Java heap do HotSpot reserve/commit | NMT hiển thị vùng `reserved` và `committed` của VM heap | Không phải `heap used`, live objects hay heap dump |
-| HotSpot class metadata/metaspace, code cache, GC structures, một phần thread/stacks và VM runtime | Có các nhóm NMT tương ứng khi cấp phát qua đường VM được instrument | Không bao gồm mặc nhiên mọi byte do Java library/OS cấp phát |
-| `malloc`/`mmap` qua bộ cấp phát nội bộ HotSpot có NMT instrumentation | `summary` ghi tổng; `detail` có thông tin call site/region | Không tương đương với profiler của libc `malloc` toàn tiến trình |
-| JNI/JNA/native plugin gọi trực tiếp libc `malloc`, `calloc`, `realloc`, `mmap` hoặc allocator riêng | **Nằm ngoài phạm vi bảo đảm theo dõi của NMT HotSpot** | Không thể mặc định sẽ xuất hiện ở mục `Other` |
-| Native allocation trong JDK class libraries, CDS archive và giai đoạn khởi động rất sớm | Tài liệu Oracle ghi nhận các **khoảng không được bao phủ đầy đủ** | Không khẳng định toàn bộ API JDK luôn được đếm hoặc luôn bị bỏ sót |
-| RSS/PSS/Working Set/cgroup memory | Cần lấy từ OS/container | Không thể đọc trực tiếp từ NMT `Total committed` |
+| Java heap reserved/committed by HotSpot | NMT shows the VM heap's `reserved` and `committed` regions | Not `heap used`, live objects, or a heap dump |
+| HotSpot class metadata/metaspace, code cache, GC structures, part of threads/stacks, and VM runtime | Corresponding NMT categories appear when allocated through instrumented VM paths | Does not automatically include every byte allocated by Java libraries/OS |
+| `malloc`/`mmap` via HotSpot internal allocators with NMT instrumentation | `summary` records totals; `detail` includes call-site/region info | Not equivalent to a process-wide libc `malloc` profiler |
+| JNI/JNA/native plugins calling libc `malloc`, `calloc`, `realloc`, `mmap`, or custom allocators directly | **Outside HotSpot NMT's guaranteed tracking scope** | Cannot assume it will show up under `Other` |
+| Native allocations in JDK class libraries, CDS archives, and very early startup | Oracle documentation notes **areas not fully covered** | Do not claim all JDK APIs are always counted or always missed |
+| RSS/PSS/Working Set/cgroup memory | Must be obtained from OS/container | Cannot be read directly from NMT `Total committed` |
 
-**Quan trọng:** `Other` là nhóm dành cho *những cấp phát HotSpot đã nhận diện được nhưng không khớp nhóm VM chuyên biệt*, không phải nơi gom toàn bộ memory của JNI/third-party libraries. `detail` cũng không truy ngược stack của một allocation mà NMT chưa từng thấy.
+**Important:** `Other` is for *HotSpot-recognized allocations that do not fit a specialized VM category*, not a catch-all for JNI/third-party library memory. Nor can `detail` trace the stack of an allocation NMT never observed.
 
-Với `ByteBuffer.allocateDirect`, `Unsafe`, JDK native library hoặc Foreign Function & Memory API, **đừng quyết định “tracked/untracked” chỉ theo tên API**: đường cấp phát có thể thay đổi theo implementation/JDK build. Có allocation đi qua VM và được NMT ghi nhận, có allocation đi thẳng vào thư viện native. Cách đúng là kiểm chứng trên **chính JVM và đường code đang dùng**.
+For `ByteBuffer.allocateDirect`, `Unsafe`, JDK native libraries, or the Foreign Function & Memory API, **do not decide "tracked/untracked" from the API name alone**: allocation paths can change across implementations/JDK builds. Some allocations go through the VM and are recorded by NMT, while others go straight into native libraries. The right approach is to verify on **the exact JVM and code path you run**.
 
-### Giới hạn vận hành
+### Operational Limitations
 
-1. NMT **off mặc định**. Khi JVM chạy với NMT off, `jcmd` không bật mới/restart được NMT; phải restart JVM với cấu hình phù hợp.
-2. `summary` không thể nâng mức lấy call site lên `detail` chỉ bằng lệnh `jcmd` trong lúc chạy; cần chọn detail từ startup.
-3. NMT có chi phí: tài liệu Oracle nêu overhead hiệu năng khoảng **5–10%** trong một số tình huống và metadata bộ nhớ bổ sung; đo trên hệ thống thật phải có kế hoạch.
-4. Không có bao phủ hoàn toàn cho CDS archive, một số cấp phát khởi động sớm và native code ngoài HotSpot; cách phân nhóm có thể đổi qua JDK.
-5. **NMT tăng không đồng nghĩa leak.** JVM có thể tăng heap committed, code cache, metaspace, GC structures hoặc thread stacks theo tải, rồi giữ lại để tái sử dụng.
-6. **NMT không tăng không chứng minh process không leak.** Nó chỉ nói phần HotSpot mà NMT theo dõi chưa cho thấy mức tăng tương ứng.
+1. NMT is **off by default**. When a JVM starts with NMT off, `jcmd` cannot enable/restart NMT; you must restart the JVM with the appropriate flag.
+2. `summary` cannot be upgraded to capture `detail` call sites via `jcmd` at runtime; `detail` must be chosen at startup.
+3. NMT has a cost: Oracle documentation cites roughly **5–10%** performance overhead in some scenarios plus extra memory metadata; plan ahead when measuring production systems.
+4. Coverage is incomplete for CDS archives, certain early-startup allocations, and native code outside HotSpot; category groupings can change across JDKs.
+5. **NMT growth does not equal a leak.** The JVM can grow heap committed, code cache, metaspace, GC structures, or thread stacks with load and keep them for reuse.
+6. **Flat NMT does not prove the process has no leak.** It only says the HotSpot-tracked portion NMT observes has not shown a corresponding increase.
 
-## 3. Phân biệt reserved, committed, RSS, PSS và heap used
+## 3. Distinguishing Reserved, Committed, RSS, PSS, and Heap Used
 
-| Đại lượng | Nó đo điều gì? | Bẫy suy luận |
+| Quantity | What Does It Measure? | Inference Trap |
 | --- | --- | --- |
-| NMT `reserved` | Phạm vi **không gian địa chỉ ảo** dành trước cho vùng JVM quản lý | Đặt trước 2 GiB không có nghĩa đang dùng 2 GiB RAM |
-| NMT `committed` | Phần vùng được HotSpot/OS ghi nhận đã commit/backing; gồm cả VM `malloc` mà NMT theo dõi | Không bằng số trang thực sự resident, càng không đại diện tất cả native code |
-| Linux RSS (`VmRSS`) | Các trang bộ nhớ thực cư trú được gán cho process, gồm cả shared mappings | Shared pages có thể xuất hiện trong RSS của nhiều process |
-| PSS trong `/proc/<PID>/smaps_rollup` | Resident memory chia tỷ lệ với số process cùng map trang shared | Khác RSS và không thay được ownership/allocation-stack |
-| `heap used` hoặc live set | Dung lượng Java objects đang sử dụng/được giữ sau GC | Không bằng NMT `Java Heap committed` |
-| cgroup v2 `memory.current` | Bộ nhớ được charge cho cgroup, có thể gồm page cache, kernel memory, nhiều process | Không phải RSS của riêng PID Java |
+| NMT `reserved` | **Virtual address space** range set aside for JVM-managed regions | Reserving 2 GiB does not mean using 2 GiB of RAM |
+| NMT `committed` | Regions recorded by HotSpot/OS as committed/backed; includes NMT-tracked VM `malloc` | Does not equal actually resident pages, and certainly does not represent all native code |
+| Linux RSS (`VmRSS`) | Actual resident memory pages attributed to the process, including shared mappings | Shared pages can appear in the RSS of multiple processes |
+| PSS in `/proc/<PID>/smaps_rollup` | Resident memory divided proportionally among processes sharing the same pages | Differs from RSS and cannot replace ownership/allocation-stack tracing |
+| `heap used` or live set | Volume of Java objects in use/retained after GC | Does not equal NMT `Java Heap committed` |
+| cgroup v2 `memory.current` | Memory charged to the cgroup, which may include page cache, kernel memory, and multiple processes | Not the RSS of the Java PID alone |
 
-Ví dụ JVM dùng `-Xms256m -Xmx2g` có thể **reserve** gần 2 GiB heap nhưng ban đầu chỉ **commit** một phần. NMT `Java Heap` thể hiện vùng JVM quản lý, không liệt kê từng Java object. Sau GC, `heap used` có thể giảm trong khi `committed` còn cao; điều đó chưa phải leak.
+For example, a JVM with `-Xms256m -Xmx2g` may **reserve** nearly 2 GiB of heap while initially **committing** only a fraction. NMT `Java Heap` represents the JVM-managed region, not individual Java objects. After GC, `heap used` can drop while `committed` stays high; that alone is not a leak.
 
-Một bảng giả định:
+A hypothetical table:
 
-| Mốc đo | NMT `Total committed` | RSS |
+| Checkpoint | NMT `Total committed` | RSS |
 | --- | ---: | ---: |
-| `t0`, sau warm-up | 520 MiB | 690 MiB |
-| `t1`, sau 20 phút tải tương đương | 530 MiB | 940 MiB |
+| `t0`, after warm-up | 520 MiB | 690 MiB |
+| `t1`, after 20 minutes of comparable load | 530 MiB | 940 MiB |
 | Delta | +10 MiB | +250 MiB |
 
-Nhận định có căn cứ: “Phần tăng RSS **không được giải thích bởi xu hướng NMT committed**; cần xem các trang resident và bộ nhớ do thư viện native/OS hạch toán.” Nhận định thiếu căn cứ: “Đã xác định leak 240 MiB trong JNI”. `250 - 10` không phải số byte untracked chính xác, vì reservation/commit, page residency, shared/file mappings, allocator caches và thay đổi tải ảnh hưởng phép so sánh.
+Supported conclusion: "The RSS growth **is not explained by the NMT committed trend**; we need to inspect resident pages and memory accounted by native libraries/OS." Unsupported conclusion: "Confirmed a 240 MiB leak in JNI." `250 - 10` is not an exact untracked byte count, because reservation/commit, page residency, shared/file mappings, allocator caches, and load shifts affect the comparison.
 
-## 4. Thu thập dữ liệu NMT đúng phương pháp
+## 4. Collecting NMT Data Methodically
 
-### 4.1 Bật lúc startup
+### 4.1 Enabling at Startup
 
 ~~~bash
-# Chọn MỘT mức khi khởi động:
+# Choose ONE level at startup:
 java -XX:NativeMemoryTracking=summary -jar app.jar
-# Hoặc:
+# Or:
 java -XX:NativeMemoryTracking=detail -jar app.jar
 ~~~
 
-Hai dòng là **hai lựa chọn độc lập**, không chạy đồng thời cho cùng tiến trình. Mức `detail` chi tiết hơn nhưng có thể gây overhead cao hơn. Ghi lại JDK vendor/build, PID, container quota, workload và mốc thời gian. Dùng `jcmd` tương thích với JVM và tài khoản đủ quyền attach.
+These two lines are **two mutually exclusive choices**, not run together on the same process. `detail` is finer-grained but can incur higher overhead. Record JDK vendor/build, PID, container quota, workload, and timestamps. Use a `jcmd` compatible with the JVM and an account with attach permissions.
 
-### 4.2 Baseline sau warm-up, rồi so delta
+### 4.2 Baseline After Warm-Up, Then Compare Deltas
 
 ~~~bash
 jcmd <PID> VM.native_memory summary scale=MB
 jcmd <PID> VM.native_memory baseline
-# Sau khi tái hiện giai đoạn tăng RSS:
+# After reproducing the RSS growth phase:
 jcmd <PID> VM.native_memory summary.diff scale=MB
 ~~~
 
-Nếu **đã khởi động bằng detail**, có thể dùng thêm:
+If **started with detail**, you can also run:
 
 ~~~bash
 jcmd <PID> VM.native_memory detail scale=MB
 jcmd <PID> VM.native_memory detail.diff scale=MB
 ~~~
 
-Thay `<PID>` bằng PID thật. Baseline nên được chốt **sau khi JVM/app warm-up**, trước khoảng đo cần điều tra. So sánh trên cùng PID, workload và JDK, chụp nhiều mốc thay vì một snapshot. `summary.diff`/`detail.diff` thể hiện thay đổi **trong phạm vi HotSpot được theo dõi**, không đo mọi `malloc` ở thư viện ngoài.
+Replace `<PID>` with the actual PID. The baseline should be set **after JVM/app warm-up**, right before the interval under investigation. Compare across the same PID, workload, and JDK, capturing multiple checkpoints rather than one snapshot. `summary.diff`/`detail.diff` show changes **within the tracked HotSpot scope**, not every `malloc` in external libraries.
 
-Đọc các nhóm cho đúng:
+Read categories accurately:
 
-- `Java Heap` tăng committed: JVM mở rộng heap. Muốn biết Java objects giữ gì cần GC/live set, heap histogram hoặc heap dump.
-- `Class`/`Code` tăng: kiểm tra class loading, metaspace hoặc JIT code cache trước khi gọi là leak.
-- `Thread` tăng: có thể do **platform thread** và native stacks liên quan; không quy một virtual thread thành một native stack.
-- `GC`/`Internal`/`Native Memory Tracking` tăng: xem cơ chế VM hoặc overhead của công cụ.
-- `malloc`/`mmap`/`arena` ở detail: chỉ những đường mà HotSpot đã instrument; các arena có thể được quản lý theo khối.
+- `Java Heap` committed grows: the JVM expanded the heap. To know what Java objects retain memory, check GC/live set, heap histograms, or heap dumps.
+- `Class`/`Code` grows: check class loading, metaspace, or JIT code cache before calling it a leak.
+- `Thread` grows: may come from **platform threads** and related native stacks; do not equate one virtual thread with one native stack.
+- `GC`/`Internal`/`Native Memory Tracking` grows: inspect VM mechanisms or tool overhead.
+- `malloc`/`mmap`/`arena` in detail: only paths HotSpot instrumented; arenas may be managed in blocks.
 
-`jcmd <PID> VM.native_memory shutdown` dừng theo dõi nhưng **không thể bật lại NMT bằng jcmd**. Không dùng shutdown khi còn cần các snapshot trong cùng phiên.
+`jcmd <PID> VM.native_memory shutdown` stops tracking, and **NMT cannot be re-enabled via `jcmd`**. Do not run shutdown while you still need snapshots in the same session.
 
-## 5. Đối chiếu OS khi NMT có khoảng trống
+## 5. Cross-Checking the OS Where NMT Has Gaps
 
-Trên Linux, dùng **cùng PID, cùng timestamp** với báo cáo NMT:
+On Linux, use the **same PID and same timestamp** as the NMT report:
 
 ~~~bash
-# Thay 12345 bằng PID Java thực tế; chạy trên host/namespace nhìn thấy PID.
+# Replace 12345 with the real Java PID; run on the host/namespace where the PID is visible.
 PID=12345
 ps -o pid,rss,vsz,comm -p "$PID"
 grep -E '^VmRSS:|^VmSize:|^RssAnon:|^RssFile:' "/proc/$PID/status"
@@ -116,9 +116,9 @@ cat "/proc/$PID/smaps_rollup"
 pmap -x "$PID"
 ~~~
 
-`ps rss` và `VmRSS` thường là KiB. `smaps_rollup` hiển thị tổng RSS/PSS; `/proc/<PID>/smaps` giúp truy theo mapping cụ thể: anonymous/private, file-backed, shared libraries, thread stacks, allocator mappings. `VmSize/VSZ` là vùng địa chỉ ảo, không phải RAM resident. Có thể cần quyền đọc `/proc` hoặc namespace phù hợp.
+`ps rss` and `VmRSS` are typically in KiB. `smaps_rollup` shows total RSS/PSS; `/proc/<PID>/smaps` traces specific mappings: anonymous/private, file-backed, shared libraries, thread stacks, and allocator mappings. `VmSize/VSZ` is virtual address space, not resident RAM. Reading `/proc` may require appropriate permissions or namespaces.
 
-Với cgroup **v2**:
+For cgroup **v2**:
 
 ~~~bash
 cat /sys/fs/cgroup/memory.current
@@ -126,33 +126,33 @@ cat /sys/fs/cgroup/memory.stat
 cat /sys/fs/cgroup/memory.events
 ~~~
 
-Cgroup có thể gồm nhiều process, page cache và memory charges khác; không đồng nhất cgroup memory với RSS của một PID. Trong Kubernetes, cần kiểm tra pod/container namespace, OOMKilled, sidecar và quota. Trên Windows so Private Bytes/Working Set và memory mappings bằng Process Explorer/VMMap; trên macOS dùng `vmmap` và Instruments. Không giả định lệnh Linux chạy được ở mọi OS.
+A cgroup can include multiple processes, page cache, and other memory charges; do not equate cgroup memory with one PID's RSS. In Kubernetes, check pod/container namespaces, OOMKilled status, sidecars, and quotas. On Windows, compare Private Bytes/Working Set and memory mappings using Process Explorer/VMMap; on macOS, use `vmmap` and Instruments. Do not assume Linux commands work on every OS.
 
-### Ma trận suy luận từ chuỗi thời gian
+### Time-Series Inference Matrix
 
-| Quan sát | Giả thuyết hợp lý | Dữ liệu cần bổ sung |
+| Observation | Reasonable Hypothesis | Additional Data Needed |
 | --- | --- | --- |
-| NMT `Class`/`Code`/`GC` committed tăng cùng RSS | VM mở rộng vùng nội bộ; có thể bình thường theo tải | Detail call sites, class count, compiler/GC behavior, thời điểm growth |
-| NMT `Java Heap committed` tăng; RSS cũng tăng | Heap đang commit thêm | Heap used/live set, GC logs, histogram; chưa khẳng định Java leak |
-| RSS tăng liên tục, NMT committed gần phẳng | Native allocations không được NMT bao phủ **hoặc** thay đổi residency/mapping/allocator | `smaps`, per-library allocation stats, malloc/free call stacks |
-| NMT `reserved` tăng mạnh, RSS ổn định | Virtual address reservation tăng | `committed` và OS mapping; không gọi là RAM leak |
-| Sau `free`/GC, RSS không giảm ngay | Allocator cache/arena fragmentation hoặc VM vẫn giữ committed memory | Live allocations, allocator stats, nhiều vòng lặp dùng/nhả |
+| NMT `Class`/`Code`/`GC` committed grows alongside RSS | VM expanding internal regions; may be normal under load | Detail call sites, class counts, compiler/GC behavior, growth timing |
+| NMT `Java Heap committed` grows; RSS also grows | Heap committing additional space | Heap used/live set, GC logs, histogram; do not assert a Java leak yet |
+| RSS climbs steadily while NMT committed stays near flat | Native allocations outside NMT coverage **or** residency/mapping/allocator shifts | `smaps`, per-library allocation stats, malloc/free call stacks |
+| NMT `reserved` jumps sharply, RSS stable | Virtual address reservation grew | `committed` and OS mappings; do not call it a RAM leak |
+| After `free`/GC, RSS does not drop immediately | Allocator cache/arena fragmentation or VM keeping committed memory | Live allocations, allocator stats, multiple allocate/release cycles |
 
-Một **memory leak** được chứng minh khi những cấp phát **đáng lẽ đã hết vòng đời** vẫn còn live và tích lũy qua chu kỳ hoạt động. High-water mark, cache hợp lệ, arena giữ để tái sử dụng hoặc file-mapped pages vẫn có thể làm RSS cao mà không phải leak.
+A **memory leak** is proven when allocations that **should have ended their lifecycle** stay live and accumulate across operational cycles. High-water marks, legitimate caches, arenas kept for reuse, or file-mapped pages can keep RSS high without being a leak.
 
-### Chọn công cụ theo phạm vi
+### Choosing Tools by Scope
 
 - **HotSpot growth:** NMT `detail.diff`, class loading/GC/code-cache metrics.
-- **Java object retention:** heap histogram, heap dump, JFR Java allocations khi thích hợp.
-- **JNI/JNA/C/C++ `malloc/free` ngoài HotSpot:** instrument allocation/free, native allocator statistics, heaptrack, Valgrind Massif, LeakSanitizer/AddressSanitizer trên môi trường thử nghiệm, hoặc eBPF/uprobes/perf theo điều kiện hệ thống.
-- **`mmap`/file mappings:** `smaps`/`pmap`, thông tin mapping và owner/lifecycle.
-- **Thư viện dùng cache/arena riêng:** debug counters và profiling của chính thư viện (ví dụ jemalloc/tcmalloc nếu thực sự dùng).
+- **Java object retention:** heap histogram, heap dump, JFR Java allocations when appropriate.
+- **JNI/JNA/C/C++ `malloc/free` outside HotSpot:** allocation/free instrumentation, native allocator statistics, heaptrack, Valgrind Massif, LeakSanitizer/AddressSanitizer in test environments, or eBPF/uprobes/perf depending on system constraints.
+- **`mmap`/file mappings:** `smaps`/`pmap`, mapping info and owner/lifecycle.
+- **Libraries with custom caches/arenas:** library-specific debug counters and profiling (e.g., jemalloc/tcmalloc if actually used).
 
-Không thay thế câu hỏi “thư viện nào còn giữ allocation?” bằng một con số `Total committed`. OS cho biết *trang nằm đâu*; profiler cho biết *ai cấp phát và ai chưa giải phóng*; NMT cho biết *HotSpot đã quản lý gì*.
+Do not replace the question "which library is holding allocations?" with a single `Total committed` figure. The OS tells you *where pages live*; profilers tell you *who allocated and who failed to free*; NMT tells you *what HotSpot managed*.
 
-## 6. Lab Java 17+ và JNI: cấp phát native mà HotSpot NMT không theo dõi
+## 6. Java 17+ and JNI Lab: Native Allocations Untracked by HotSpot NMT
 
-Lab độc lập này dành cho **Linux 64-bit, JDK 17+ và GCC**, minh họa một thư viện C gọi libc `malloc`, ghi vào các trang để RSS tăng, giữ vùng 64 MiB trong khi đo, rồi `free`. Bản thân NMT vẫn hoạt động để giám sát HotSpot; nó không được thiết kế để ghi lại từng `malloc` của C library này.
+This standalone lab targets **64-bit Linux, JDK 17+, and GCC**, demonstrating a C library calling libc `malloc`, touching pages to raise RSS, holding a 64 MiB region during measurement, and then calling `free`. NMT itself still runs to monitor HotSpot; it is not designed to record every `malloc` from this C library.
 
 ### File `NmtBlindSpotLab.java`
 
@@ -245,9 +245,9 @@ Java_NmtBlindSpotLab_nativeFree(
 }
 ~~~
 
-**Giải thích:** Java giữ một địa chỉ native dạng `long`; dữ liệu 64 MiB nằm ngoài Java `byte[]` heap. C gọi libc `malloc` trực tiếp; ghi ít nhất một byte trên mỗi trang 4 KiB để kích hoạt OS cấp resident pages thay vì chỉ reserve địa chỉ. Dùng `finally` để gọi `free` đúng một lần khi kết thúc giai đoạn đo. Trong hệ thống thực, cần thiết kế owner/handle an toàn thay vì phát tán con trỏ thô. Thí nghiệm giả định Linux x86_64/kiến trúc trang phổ biến; các con số OS vẫn có sai số.
+**Explanation:** Java holds a native address as a `long`; the 64 MiB data lives outside the Java `byte[]` heap. C calls libc `malloc` directly and writes at least one byte per 4 KiB page to trigger OS allocation of resident pages rather than mere address reservation. Using `finally` ensures `free` is called exactly once at the end of the measurement phase. In production systems, design safe owners/handles instead of passing raw pointers around. The experiment assumes Linux x86_64/common page sizes; OS numbers still carry rounding/accounting variance.
 
-Compile ở cùng thư mục hai file; `JAVA_HOME` phải trỏ đến JDK có `include/jni.h`:
+Compile in the directory containing both files; `JAVA_HOME` must point to a JDK with `include/jni.h`:
 
 ~~~bash
 javac -h . NmtBlindSpotLab.java
@@ -258,7 +258,7 @@ java -XX:NativeMemoryTracking=detail \
   -Djava.library.path=. NmtBlindSpotLab
 ~~~
 
-Chương trình in `PID=...` và chờ ở thông báo `BEFORE`. Mở **terminal thứ hai** và thay PID ví dụ bằng số chương trình đã in:
+The program prints `PID=...` and waits at `BEFORE`. Open a **second terminal** and replace the example PID with the printed number:
 
 ~~~bash
 PID=12345
@@ -267,7 +267,7 @@ jcmd "$PID" VM.native_memory baseline
 grep -E '^VmRSS:|^VmSize:' "/proc/$PID/status"
 ~~~
 
-Tại terminal Java, nhấn Enter **một lần** để C cấp phát/chạm 64 MiB. Khi thấy `ALLOCATED`, lấy snapshot mới:
+In the Java terminal, press Enter **once** so C allocates/touches 64 MiB. When `ALLOCATED` appears, take a fresh snapshot:
 
 ~~~bash
 jcmd "$PID" VM.native_memory summary.diff scale=MB
@@ -275,53 +275,53 @@ grep -E '^VmRSS:|^VmSize:' "/proc/$PID/status"
 cat "/proc/$PID/smaps_rollup"
 ~~~
 
-**Dự đoán cần kiểm chứng:** RSS thường tăng gần cỡ allocation 64 MiB, tùy allocator, trang OS và môi trường; NMT `summary.diff` không hiện thêm đúng 64 MiB trong một nhóm HotSpot tương ứng với libc `malloc` đó. Một vài nhóm NMT vẫn có thể biến động nhẹ do hoạt động JVM không liên quan. Nhấn Enter lần nữa để `free`, chụp thêm snapshot; allocator có thể giữ bộ nhớ để tái sử dụng nên RSS không nhất thiết giảm ngay. Đây là **lab minh họa ranh giới theo dõi**, không dùng giá trị giả định làm bằng chứng của một incident thực tế.
+**Prediction to verify:** RSS typically rises by roughly the 64 MiB allocation, depending on allocator, OS pages, and environment; NMT `summary.diff` will not show an extra 64 MiB in a HotSpot category corresponding to that libc `malloc`. A few NMT categories may still fluctuate slightly due to unrelated JVM activity. Press Enter again to `free` and capture another snapshot; the allocator may retain memory for reuse, so RSS does not necessarily drop immediately. This is a **lab illustrating tracking boundaries**; do not treat hypothetical numbers as evidence from a real incident.
 
-Nếu máy không có GCC/Linux, người học vẫn có thể thực hiện phần **NMT + OS metrics** với công cụ tương ứng; bản Java cần JNI shared library mới chạy đủ phần malloc. Lệnh `java NmtBlindSpotLab --help` chỉ kiểm tra interface Java mà không nạp thư viện C.
+If your machine lacks GCC/Linux, you can still practice the **NMT + OS metrics** portion using equivalent OS tools; the Java program requires the JNI shared library to run the `malloc` portion fully. Running `java NmtBlindSpotLab --help` checks the Java interface without loading the C library.
 
-## 7. Tình huống điều tra: thư viện native xử lý ảnh
+## 7. Investigation Scenario: Native Image-Processing Library
 
-Một dịch vụ Java nạp thư viện C/C++ để xử lý ảnh. Sau mỗi đợt 500 request, RSS tăng thêm 100 MiB dù throughput trở về mức nền; NMT `Class`, `GC`, `Java Heap committed` ít thay đổi.
+A Java service loads a C/C++ library for image processing. After every batch of 500 requests, RSS grows by another 100 MiB even after throughput returns to baseline; NMT `Class`, `GC`, and `Java Heap committed` barely change.
 
-Cách điều tra có kiểm chứng:
+Evidence-based investigation steps:
 
-1. **Đồng bộ số đo** cùng PID/time window/JDK, cùng cấu hình container, tải và ảnh đầu vào; lấy RSS/PSS, NMT delta, heap used/live set, lỗi và số native handles.
-2. **Kiểm tra chênh semantics:** NMT không tương đương RSS; xem `smaps` có tăng private anonymous mappings hay mapped files không, và có quá nhiều process trong cùng cgroup không.
-3. **Khoanh vùng thư viện:** xác định call path JNI/JNA, context/pool, thời điểm `malloc`/`mmap`, phương thức `free/close`, allocation tăng sau request nào và exception path nào.
-4. **Profile native memory:** ở staging, thu call stack allocation/free hoặc dùng allocator stats; kiểm tra live allocations qua nhiều chu kỳ sau khi các request hoàn thành.
-5. **Thay đổi một biến:** giới hạn đồng thời hoặc bắt buộc đóng native handle của một nhánh đường chạy; đo lại trong điều kiện tải tương đương. Nếu live native bytes ngừng tăng và RSS ổn định, có bằng chứng nhân quả mạnh hơn.
-6. **Sửa tại resource owner:** đảm bảo cleanup trong `finally`/`close`, dọn đường lỗi/cancel, sửa thư viện nếu có bug, hạn chế cache có chủ đích; xác nhận trên nhiều vòng workload.
+1. **Synchronize metrics** for the same PID/time window/JDK, container configuration, load, and input images; collect RSS/PSS, NMT deltas, heap used/live set, errors, and native handle counts.
+2. **Check semantic gaps:** NMT is not equivalent to RSS; check whether `smaps` shows growing private anonymous mappings or mapped files, and whether multiple processes share the cgroup.
+3. **Isolate the library:** identify JNI/JNA call paths, contexts/pools, `malloc`/`mmap` timing, `free/close` methods, which requests increase allocations, and any exception paths.
+4. **Profile native memory:** in staging, collect allocation/free call stacks or allocator stats; inspect live allocations across multiple cycles after requests complete.
+5. **Change one variable:** cap concurrency or force-close native handles on one execution path; re-measure under comparable load. If live native bytes stop rising and RSS stabilizes, you have stronger causal evidence.
+6. **Fix at the resource owner:** ensure cleanup in `finally`/`close`, clean up error/cancellation paths, fix library bugs if present, and bound intentional caches; verify across multiple workload cycles.
 
-Không được gọi “leak 100 MiB mỗi 500 request” chỉ vì RSS tăng: bộ nhớ có thể là cache/arena hợp lệ. Phải kiểm tra live allocations có đang mất owner hay không. Nếu cgroup memory tăng mà RSS riêng PID không tăng, cần điều tra sidecar/page cache/kernel charges trước khi kết luận JNI gây ra.
+Do not call it a "100 MiB leak per 500 requests" solely because RSS grew: the memory may be a valid cache/arena. Verify whether live allocations are losing their owners. If cgroup memory grows while the Java PID's RSS stays flat, investigate sidecars/page cache/kernel charges before blaming JNI.
 
-## 8. Những ngộ nhận phổ biến
+## 8. Common Misconceptions
 
-1. **“NMT `Total committed` là tổng RAM JVM.”** Sai; nó chỉ là HotSpot-tracked committed và không cùng nghĩa với RSS.
-2. **“`detail` sẽ thấy mọi `malloc` của JNI.”** Sai; detail chỉ sâu hơn trong phạm vi được NMT theo dõi.
-3. **“`Other` là mọi cấp phát native ngoài JVM.”** Sai; đó là nhóm HotSpot được NMT ghi nhận.
-4. **“Heap `reserved` 2 GiB nghĩa là dùng 2 GiB RAM.”** Sai; reserved là địa chỉ ảo, không phải resident.
-5. **“RSS cao sau GC chứng minh leak.”** Sai; heap committed, allocator high-water mark, cache/arena và mappings có thể giữ RSS.
-6. **“NMT phẳng chứng minh không có leak.”** Sai; JNI/native library có thể tăng ngoài phạm vi NMT.
-7. **“Tăng RSS trừ tăng NMT là dung lượng leak.”** Sai vì các con số khác semantics và có phần shared/page residency.
-8. **“Chỉ cần một `summary.diff` là tìm ra thư viện gây leak.”** Sai; cần OS mapping và native allocation stacks/ownership theo chuỗi thời gian.
-9. **“Có thể bật NMT bằng `jcmd` giữa chừng.”** Sai nếu JVM đã start với off.
-10. **“`free` xong RSS không giảm tức thì là free thất bại.”** Sai; allocator/OS có thể giữ vùng cho lần sau, cần quan sát live blocks và reuse.
+1. **"NMT `Total committed` is total JVM RAM."** False; it is only HotSpot-tracked committed memory and does not share RSS's meaning.
+2. **"`detail` sees every JNI `malloc`."** False; detail only goes deeper within the scope tracked by NMT.
+3. **"`Other` is all native allocations outside the JVM."** False; it is a HotSpot category recorded by NMT.
+4. **"Heap `reserved` 2 GiB means 2 GiB of RAM used."** False; reserved is virtual address space, not resident RAM.
+5. **"High RSS after GC proves a leak."** False; heap committed, allocator high-water marks, caches/arenas, and mappings can keep RSS high.
+6. **"Flat NMT proves there is no leak."** False; JNI/native libraries can grow outside NMT's scope.
+7. **"RSS growth minus NMT growth equals leaked memory."** False because the metrics have different semantics and involve shared pages/page residency.
+8. **"One `summary.diff` is enough to find the leaking library."** False; you need OS mappings and native allocation stacks/ownership over a time series.
+9. **"NMT can be enabled mid-flight with `jcmd`."** False if the JVM started with it off.
+10. **"If RSS doesn't drop right after `free`, `free` failed."** False; the allocator/OS may retain space for reuse, so observe live blocks and reuse.
 
-## 9. Checklist kết luận đúng phạm vi
+## 9. Scope-Accurate Conclusion Checklist
 
-- [ ] Ghi chính xác HotSpot/JDK build, PID, CPU/memory quota, NMT level và thời điểm đo.
-- [ ] NMT đã bật khi startup, baseline lập sau warm-up và có nhiều snapshot cùng workload.
-- [ ] Diễn giải `reserved`/`committed` riêng với `heap used`, RSS/PSS và cgroup charges.
-- [ ] Phân tích HotSpot category nếu NMT tăng; không mặc định mọi tăng trưởng là leak.
-- [ ] Nếu RSS tăng nhưng NMT phẳng, kiểm tra OS mappings, JNI/JNA/C library, `malloc/mmap`, allocator caches và native handles.
-- [ ] Nếu nghi leak, có bằng chứng native live allocations theo call site và resource lifecycle, không chỉ có chênh byte giữa hai công cụ.
-- [ ] Đo lại sau chỉnh sửa, có cùng tải, p95/p99, error, RSS/PSS, NMT diff và native allocation stats khi khả dụng.
-- [ ] Báo cáo phân biệt rõ **quan sát**, **giả thuyết** và **thử nghiệm xác nhận**.
+- [ ] Accurately record HotSpot/JDK build, PID, CPU/memory quota, NMT level, and measurement timestamps.
+- [ ] NMT enabled at startup, baseline set after warm-up, and multiple snapshots captured under the same workload.
+- [ ] Interpret `reserved`/`committed` separately from `heap used`, RSS/PSS, and cgroup charges.
+- [ ] Analyze HotSpot categories if NMT grows; do not assume all growth is a leak.
+- [ ] If RSS grows while NMT stays flat, check OS mappings, JNI/JNA/C libraries, `malloc/mmap`, allocator caches, and native handles.
+- [ ] If a leak is suspected, gather evidence of live native allocations by call site and resource lifecycle, not just a byte gap between two tools.
+- [ ] Re-measure after fixes under identical load, tracking p95/p99, errors, RSS/PSS, NMT diff, and native allocation stats where available.
+- [ ] Clearly distinguish **observations**, **hypotheses**, and **confirmatory experiments** in the report.
 
-### Tài liệu chính thức
+### Official Documentation
 
 - Oracle Java 21 — Native Memory Tracking: https://docs.oracle.com/en/java/javase/21/vm/native-memory-tracking.html
 - Oracle Java 21 — Diagnostic Tools/NMT categories: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
-- Oracle Java troubleshooting — native memory leaks và JNI: https://ops.java/troubleshooting/articles/memory-leaks/
+- Oracle Java troubleshooting — native memory leaks and JNI: https://ops.java/troubleshooting/articles/memory-leaks/
 
-**Nguyên tắc:** NMT trả lời “HotSpot đang reserve/commit những vùng nào mà nó biết?”. Muốn biết “toàn process đang resident bao nhiêu RAM và allocation native nào còn sống?”, phải đối chiếu với OS/container metrics và công cụ profiling đúng allocator.
+**Guiding principle:** NMT answers "Which regions known to HotSpot is it reserving/committing?". To answer "How much RAM is the entire process currently keeping resident, and which native allocations are still live?", cross-check OS/container metrics and an allocator-appropriate profiler.

@@ -1,105 +1,105 @@
-# 11.1. Phân biệt heap, non-heap, bộ nhớ tiến trình và giới hạn `-Xmx`
+# 11.1. Distinguishing heap, non-heap, process memory, and the `-Xmx` limit
 
-Một ứng dụng Java có thể chạy với `-Xmx512m` nhưng hệ điều hành vẫn ghi nhận tiến trình dùng 800 MiB, 1 GiB hoặc nhiều hơn. Điều đó **không tự động là rò rỉ bộ nhớ**: `-Xmx` chỉ giới hạn một vùng bộ nhớ cụ thể trong JVM, còn tiến trình Java có nhiều vùng khác. Khi điều tra sự cố, trước hết phải xác định **đang đo vùng nào, bằng công cụ nào và theo đại lượng nào**.
+A Java application can run with `-Xmx512m` and yet the operating system still reports the process using 800 MiB, 1 GiB, or more. That is **not automatically a memory leak**: `-Xmx` only limits one specific memory region within the JVM, while a Java process has many other regions. When investigating an incident, you must first determine **which region is being measured, with which tool, and by which metric**.
 
-Sau bài này, bạn cần phân biệt được Java heap, non-heap theo API quản trị JVM, bộ nhớ native/off-heap, bộ nhớ của toàn tiến trình; hiểu `used`, `committed`, `reserved`, `max`, RSS; và chọn phép đo đúng khi JVM báo `OutOfMemoryError` hoặc tiến trình bị hệ điều hành/container kết thúc.
+After this lesson, you should be able to distinguish the Java heap, non-heap according to JVM management APIs, native/off-heap memory, and total process memory; understand `used`, `committed`, `reserved`, `max`, and RSS; and choose the right measurement when the JVM throws `OutOfMemoryError` or the process is terminated by the OS/container.
 
-## 1. Bốn khái niệm thường bị đánh đồng
+## 1. Four commonly conflated concepts
 
-| Khái niệm | Chứa gì / thể hiện điều gì? | `-Xmx` giới hạn trực tiếp? |
+| Concept | What it contains / represents | Directly limited by `-Xmx`? |
 | --- | --- | --- |
-| **Java heap** | Vùng cấp phát chủ yếu cho instance và array Java; GC quản lý vòng đời đối tượng | **Có**: đặt mức heap tối đa theo cấu hình JVM |
-| **Non-heap theo `MemoryMXBean`** | Các memory pool do JVM báo cáo ngoài heap, chẳng hạn Metaspace và Code Cache trên HotSpot | **Không** |
-| **Native/off-heap** | Stack của thread, cấu trúc nội bộ JVM, bộ nhớ cấp phát qua native/JNI, vùng backing của direct buffer, một số vùng mapping… | **Không**; mỗi phần có cơ chế/giới hạn riêng |
-| **Bộ nhớ của tiến trình tại OS/container** | Hình ảnh mà hệ điều hành quan sát: các trang resident (RSS), không gian địa chỉ ảo, bộ nhớ tính vào cgroup… | **Không** |
+| **Java heap** | Allocation region primarily for Java instances and arrays; GC manages object lifecycles | **Yes**: sets the maximum heap size per JVM configuration |
+| **Non-heap per `MemoryMXBean`** | Memory pools reported by the JVM outside the heap, such as Metaspace and Code Cache on HotSpot | **No** |
+| **Native/off-heap** | Thread stacks, internal JVM structures, memory allocated via native/JNI, backing storage of direct buffers, certain mappings… | **No**; each part has its own mechanism/limit |
+| **Process memory at the OS/container level** | The view observed by the operating system: resident pages (RSS), virtual address space, memory charged to cgroups… | **No** |
 
-Hai điểm về thuật ngữ:
+Two points on terminology:
 
-1. Trong ngôn ngữ thông thường, “non-heap” đôi khi được dùng để chỉ *tất cả bộ nhớ không nằm trên heap*. Nhưng giá trị `MemoryMXBean.getNonHeapMemoryUsage()` **không phải phép cộng của mọi cấp phát native trong tiến trình**. Trong HotSpot, thread stack, direct buffer và nhiều cấu trúc native không nằm trong tổng non-heap của MXBean này.
-2. Native/off-heap và “non-heap theo MXBean” có phần giao về ý nghĩa ngoài heap, nhưng **không phải hai nhóm độc lập có thể cộng thẳng**. Hãy luôn ghi rõ metric và nguồn đo.
+1. In informal usage, "non-heap" is sometimes used to mean *all memory not on the heap*. However, `MemoryMXBean.getNonHeapMemoryUsage()` is **not the sum of every native allocation in the process**. In HotSpot, thread stacks, direct buffers, and many native structures are not included in this MXBean's non-heap total.
+2. Native/off-heap and "MXBean non-heap" overlap in meaning outside the heap, but **they are not two independent groups that can simply be added together**. Always state the exact metric and measurement source.
 
-Sơ đồ khái niệm (không biểu diễn tỷ lệ thật):
+Conceptual diagram (not drawn to actual scale):
 
 ```text
-Tiến trình java (PID)
-├── Java heap                            ← có giới hạn -Xmx
-│   └── Đối tượng và mảng do JVM/GC quản lý
+java process (PID)
+├── Java heap                             ← limited by -Xmx
+│   └── Objects and arrays managed by JVM/GC
 ├── JVM non-heap memory pools             ← MemoryMXBean / MemoryPoolMXBean
-│   ├── Metaspace, Compressed Class Space (tùy JVM)
-│   └── Code Cache (mã máy JIT, tùy JVM)
-├── Những vùng native khác
-│   ├── Thread stacks, cấu trúc GC/JIT/JVM
+│   ├── Metaspace, Compressed Class Space (JVM-dependent)
+│   └── Code Cache (JIT machine code, JVM-dependent)
+├── Other native regions
+│   ├── Thread stacks, GC/JIT/JVM structures
 │   ├── Direct buffers, native libraries, JNI
-│   └── Memory mappings và các cấp phát khác
-└── Các trang/code/library được OS ánh xạ, chia sẻ hoặc tính vào tiến trình
-    ↑ OS báo RSS/VSZ; container còn có cách tính memory riêng
+│   └── Memory mappings and other allocations
+└── Pages/code/libraries mapped, shared, or charged to the process by the OS
+    ↑ OS reports RSS/VSZ; containers also have their own memory accounting
 ```
 
-## 2. Heap: vùng cấp phát đối tượng, chịu quản lý của GC
+## 2. Heap: object allocation region managed by GC
 
-Trong mô hình JVM, heap là vùng lưu trữ runtime cho các đối tượng và mảng. Ví dụ, khi chạy `new byte[1024]`, phần dữ liệu mảng thông thường được cấp phát trên heap; một biến tham chiếu cục bộ có thể nằm trong stack frame hoặc được JIT tối ưu, nhưng **không vì thế mà đối tượng được coi là nằm trên stack**. Trình biên dịch JIT có thể loại bỏ một số cấp phát nhờ escape analysis; vì vậy không nên suy luận một-một từ mỗi câu lệnh `new` thành số byte vật lý đã dùng.
+In the JVM model, the heap is the runtime storage region for objects and arrays. For example, when executing `new byte[1024]`, the array data is normally allocated on the heap; a local reference variable may reside in a stack frame or be optimized away by the JIT, but **that does not mean the object itself is considered to live on the stack**. The JIT compiler can eliminate certain allocations via escape analysis; therefore, you should not infer a one-to-one mapping from each `new` statement to physical bytes used.
 
-Heap có thể gồm nhiều thế hệ/vùng tùy bộ thu gom rác. GC thu hồi các đối tượng không còn cần thiết theo quy tắc reachability. Con số **heap used** có thể bao gồm cả đối tượng đã trở thành garbage nhưng chưa được GC thu gom. Vì vậy một snapshot `used` cao không đủ để kết luận memory leak: cần xem biến động qua thời gian, sau các đợt GC và mối liên hệ với tải.
+The heap may consist of multiple generations/regions depending on the garbage collector. GC reclaims objects that are no longer needed according to reachability rules. The **heap used** figure may include objects that have already become garbage but have not yet been collected by GC. Therefore, a single high `used` snapshot is not enough to conclude a memory leak: you need to look at changes over time, after GC cycles, and in relation to load.
 
-Các tham số thường gặp:
+Common flags:
 
-- `-Xms256m`: cấu hình kích thước heap ban đầu (trên HotSpot cũng là mức heap tối thiểu được cấu hình).
-- `-Xmx1g`: cấu hình kích thước heap tối đa khoảng 1 GiB. Đây **không phải** trần bộ nhớ của tiến trình.
-- `-XX:MaxRAMPercentage=...`: trên các phiên bản HotSpot hỗ trợ, cho JVM tính kích thước heap tối đa theo phần trăm bộ nhớ mà nó nhận diện; `-Xmx` chỉ định tường minh sẽ quyết định mức heap tối đa thay cho cách tính mặc định này.
+- `-Xms256m`: configures the initial heap size (on HotSpot, also the configured minimum heap size).
+- `-Xmx1g`: configures the maximum heap size to about 1 GiB. This is **not** the memory ceiling of the process.
+- `-XX:MaxRAMPercentage=...`: on supported HotSpot versions, lets the JVM calculate the maximum heap size as a percentage of the memory it detects; an explicitly specified `-Xmx` determines the maximum heap size instead of this default calculation.
 
-Ví dụ cấu hình `-Xms256m -Xmx1g`: JVM có thể dự trữ không gian địa chỉ cho heap gần 1 GiB, chỉ cam kết một phần lúc đầu và dùng ít hơn phần đã cam kết. Hành vi cụ thể tùy GC, phiên bản JDK và nền tảng. **Heap max ≠ heap committed ≠ heap used ≠ RSS.**
+For example, with `-Xms256m -Xmx1g`: the JVM may reserve virtual address space for the heap close to 1 GiB, commit only part of it initially, and use less than the committed amount. Specific behavior depends on the GC, JDK version, and platform. **Heap max ≠ heap committed ≠ heap used ≠ RSS.**
 
-Một số lỗi thường liên quan heap là `java.lang.OutOfMemoryError: Java heap space` hoặc GC phải làm việc quá mức vì live set sát cận trên. Tăng `-Xmx` có thể giảm áp lực dung lượng nếu máy còn đủ bộ nhớ, nhưng không sửa được việc ứng dụng giữ tham chiếu ngoài ý muốn.
+Errors commonly related to the heap include `java.lang.OutOfMemoryError: Java heap space` or GC working excessively because the live set is near the upper bound. Increasing `-Xmx` can relieve capacity pressure if the host has enough memory, but it will not fix an application holding unintended references.
 
-## 3. Non-heap theo API quản trị JVM là gì?
+## 3. What is non-heap according to JVM management APIs?
 
-`ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage()` báo cáo tổng hợp những non-heap memory pool mà JVM phơi bày qua API management. Trên HotSpot, bạn thường gặp:
+`ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage()` reports the aggregate of the non-heap memory pools exposed by the JVM via its management API. On HotSpot, you typically encounter:
 
-| Vùng | Vai trò | Điều cần nhớ |
+| Region | Role | Things to keep in mind |
 | --- | --- | --- |
-| **Metaspace** | Metadata của class, method và cấu trúc liên quan được nạp | Sử dụng native memory; `-XX:MaxMetaspaceSize` có thể giới hạn một phần này |
-| **Compressed Class Space** | Vùng phục vụ class pointer nén khi tính năng tương ứng bật | Dung lượng **reserved** có thể lớn hơn rất nhiều dung lượng **committed** |
-| **Code Cache** | Mã máy được JIT biên dịch và một số đoạn mã JVM tạo | Có cấu hình riêng như `-XX:ReservedCodeCacheSize` |
+| **Metaspace** | Metadata for loaded classes, methods, and related structures | Uses native memory; `-XX:MaxMetaspaceSize` can limit this portion |
+| **Compressed Class Space** | Region for compressed class pointers when the corresponding feature is enabled | **Reserved** capacity can be much larger than **committed** capacity |
+| **Code Cache** | Machine code compiled by JIT and some JVM-generated code | Has dedicated flags such as `-XX:ReservedCodeCacheSize` |
 
-Tên pool, số pool và cách chia pool là chi tiết của JVM/GC/JDK đang chạy; không nên hard-code một danh sách rồi coi là chuẩn cho mọi runtime.
+Pool names, pool counts, and how pools are partitioned are implementation details of the running JVM/GC/JDK; you should not hard-code a list and treat it as universal across all runtimes.
 
-Phân biệt thêm các thành phần **không được bao quát đầy đủ bởi tổng non-heap của MXBean**:
+Further distinguish components that are **not fully covered by the MXBean non-heap total**:
 
-- **Thread stack**: mỗi thread nền tảng cần vùng stack riêng; `-Xss` liên quan đến kích thước stack từng thread, **không** giới hạn tổng bộ nhớ mọi thread. Virtual thread có mô hình stack khác; đừng lấy số lượng virtual thread nhân thẳng với `-Xss`.
-- **Direct `ByteBuffer`**: dữ liệu backing thường được cấp phát ngoài heap, dù bản thân object `ByteBuffer` là object Java. HotSpot có tùy chọn `-XX:MaxDirectMemorySize`; chi phí native khác vẫn có thể phát sinh.
-- **Cấu trúc GC/JIT/JVM và thư viện native/JNI**: có các vùng riêng, một số được Native Memory Tracking nhận diện, một số không.
+- **Thread stack**: each platform thread needs its own stack region; `-Xss` relates to the stack size per thread, **not** a limit on total memory across all threads. Virtual threads have a different stack model; do not multiply the number of virtual threads directly by `-Xss`.
+- **Direct `ByteBuffer`**: its backing data is typically allocated off-heap, even though the `ByteBuffer` object itself is a Java object. HotSpot provides the `-XX:MaxDirectMemorySize` option; other native overhead can still occur.
+- **GC/JIT/JVM structures and native/JNI libraries**: have their own regions; some are tracked by Native Memory Tracking, while others are not.
 
-Do đó, **heap used + non-heap used từ MXBean không phải total process memory**, và cũng không suy ra chính xác native memory chỉ bằng phép trừ `RSS - heap used`.
+Therefore, **heap used + non-heap used from MXBean is not total process memory**, nor can you accurately derive native memory simply by subtracting `RSS - heap used`.
 
-## 4. Những con số đo bộ nhớ có nghĩa khác nhau
+## 4. Memory measurement numbers have different meanings
 
-| Metric | Ý nghĩa | Dễ hiểu sai ở đâu? |
+| Metric | Meaning | Where it is easily misunderstood |
 | --- | --- | --- |
-| `used` | Phần JVM báo đang sử dụng trong vùng/pool được đo | Không đồng nghĩa lượng đối tượng còn sống sau GC; không là RSS |
-| `committed` | Dung lượng đã cam kết cho vùng bộ nhớ; với `MemoryUsage`, JVM bảo đảm có thể sử dụng phần này | Không đồng nghĩa từng byte đều đang nằm trong RAM vật lý |
-| `max` | Mức tối đa theo pool/heap khi có thể xác định; `-1` nghĩa là không xác định | Không phải mọi pool có max; max của non-heap không bằng `-Xmx` |
-| `reserved` | Không gian địa chỉ ảo được dành sẵn, thường thấy trong Native Memory Tracking (NMT) | Reserved lớn không có nghĩa đã chiếm từng ấy RAM |
-| **RSS** (Resident Set Size) | Các trang của tiến trình đang resident trong RAM theo phép đo của OS | Có thể bao gồm trang được chia sẻ và khác số `committed` của JVM |
-| **VSZ/VIRT** | Không gian địa chỉ ảo của tiến trình | Lớn không tự chứng minh thiếu RAM |
-| **Container/cgroup memory** | Bộ nhớ được kernel hạch toán cho nhóm tiến trình/container | Có thể bao gồm file cache và nhiều tiến trình; không phải RSS của riêng JVM |
+| `used` | Portion the JVM reports as currently in use in the measured region/pool | Not synonymous with live objects remaining after GC; not RSS |
+| `committed` | Amount of memory committed for the region; for `MemoryUsage`, the JVM guarantees this portion can be used | Does not mean every byte is currently resident in physical RAM |
+| `max` | Maximum limit for the pool/heap when determinable; `-1` means undefined | Not every pool has a max; non-heap max does not equal `-Xmx` |
+| `reserved` | Virtual address space set aside, commonly seen in Native Memory Tracking (NMT) | A large reserved value does not mean that much RAM has been consumed |
+| **RSS** (Resident Set Size) | Process pages currently resident in RAM as measured by the OS | Can include shared pages and differ from the JVM's `committed` figure |
+| **VSZ/VIRT** | Virtual address space of the process | A large value alone does not prove a RAM shortage |
+| **Container/cgroup memory** | Memory accounted by the kernel to the process group/container | Can include file cache and multiple processes; not the JVM's RSS alone |
 
-Trong `java.lang.management.MemoryUsage`, khi các số được xác định, ta thường có `used <= committed <= max`. Trường `init` biểu diễn dung lượng khởi tạo được yêu cầu. Với NMT, cặp `reserved/committed` ở từng category là **các đại lượng về quản lý bộ nhớ JVM**, không phải ảnh chụp RSS của OS. Cũng không nên cộng tùy tiện các category lồng nhau hoặc các metric đến từ nguồn khác nhau.
+In `java.lang.management.MemoryUsage`, when values are defined, we generally have `used <= committed <= max`. The `init` field represents the requested initial capacity. With NMT, the `reserved/committed` pair in each category are **JVM memory management metrics**, not a snapshot of OS RSS. You should also not arbitrarily sum nested categories or metrics coming from different sources.
 
-Ví dụ minh họa **giả định**, không phải số đo từ một chương trình thực tế:
+A **hypothetical** illustrative example, not measurements from a real program:
 
-| Vùng | Giá trị minh họa |
+| Region | Illustrative value |
 | --- | ---: |
-| Heap max theo `-Xmx` | 1.024 MiB |
+| Heap max per `-Xmx` | 1,024 MiB |
 | Heap committed | 512 MiB |
 | Heap used | 350 MiB |
 | Non-heap MXBean used | 90 MiB |
-| RSS do OS báo | 760 MiB |
+| RSS reported by OS | 760 MiB |
 
-Những giá trị này không mâu thuẫn nhau. Không thể lấy `760 - 350 - 90 = 320 MiB` rồi khẳng định đúng 320 MiB là “direct buffer” hay “leak”: còn committed nhưng chưa used, stack, GC, native, mapping, trang chia sẻ và khác biệt giữa các công cụ đo.
+These values do not contradict each other. You cannot compute `760 - 350 - 90 = 320 MiB` and claim that exactly 320 MiB is "direct buffers" or a "leak": there are also committed-but-unused heap, stacks, GC, native allocations, mappings, shared pages, and differences between measurement tools.
 
-## 5. Chương trình Java 17+ tự đo heap và non-heap
+## 5. A Java 17+ program that measures heap and non-heap itself
 
-Lưu đoạn mã sau vào tệp **`MemoryLayersDemo.java`**:
+Save the following snippet to a file named **`MemoryLayersDemo.java`**:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -119,7 +119,7 @@ public class MemoryLayersDemo {
         System.out.println("Runtime max heap: "
                 + asMiB(Runtime.getRuntime().maxMemory()));
 
-        System.out.println("Các non-heap memory pool:");
+        System.out.println("Non-heap memory pools:");
         for (MemoryPoolMXBean pool : ManagementFactory.getMemoryPoolMXBeans()) {
             if (pool.getType() != MemoryType.NON_HEAP) {
                 continue;
@@ -143,7 +143,7 @@ public class MemoryLayersDemo {
 
     private static String asMiB(long bytes) {
         if (bytes < 0) {
-            return "không xác định";
+            return "unknown";
         }
         return String.format(Locale.ROOT, "%.1f MiB",
                 bytes / 1048576.0);
@@ -151,20 +151,20 @@ public class MemoryLayersDemo {
 }
 ```
 
-Biên dịch và chạy (JDK 17 trở lên):
+Compile and run (JDK 17 or later):
 
 ```bash
 javac MemoryLayersDemo.java
 java -Xms128m -Xmx256m MemoryLayersDemo
 ```
 
-Chương trình in các dòng `Heap: used=..., committed=..., max=...`, `Non-heap (MXBean): ...`, `Runtime max heap: ...` và danh sách pool không thuộc heap. **Các số MiB và tên pool phụ thuộc JDK, GC, hệ điều hành và thời điểm đo**, nên không có stdout số cố định đáng tin để chép cho mọi máy. Với cấu hình minh họa, `Runtime.maxMemory()` thể hiện giới hạn heap hữu hiệu gần mức `-Xmx256m` (có thể lệch do cách JVM bố trí và làm tròn heap).
+The program prints lines `Heap: used=..., committed=..., max=...`, `Non-heap (MXBean): ...`, `Runtime max heap: ...`, and the list of non-heap pools. **The MiB values and pool names depend on the JDK, GC, OS, and measurement time**, so there is no fixed numeric stdout reliable to copy for every machine. In the illustrative configuration, `Runtime.maxMemory()` reflects the effective heap limit close to `-Xmx256m` (it may differ due to how the JVM lays out and rounds the heap).
 
-Điểm quan trọng của ví dụ: `Runtime.getRuntime().maxMemory()` và `MemoryMXBean.getHeapMemoryUsage()` nói về **heap**; `getNonHeapMemoryUsage()` chỉ nói về các pool non-heap được JVM công bố. Không dòng nào trực tiếp là RSS hoặc tổng memory của container.
+The key takeaway from the example: `Runtime.getRuntime().maxMemory()` and `MemoryMXBean.getHeapMemoryUsage()` describe the **heap**; `getNonHeapMemoryUsage()` describes only the non-heap pools published by the JVM. No single line directly represents RSS or total container memory.
 
-## 6. Quan sát JVM đang chạy và đối chiếu với OS
+## 6. Observing a running JVM and cross-checking with the OS
 
-Khi chương trình/service Java vẫn đang chạy, có thể dùng các lệnh JDK sau (thay `<PID>` bằng mã tiến trình thực tế):
+While a Java program/service is still running, you can use the following JDK commands (replace `<PID>` with the actual process ID):
 
 ```bash
 jcmd -l
@@ -172,17 +172,17 @@ jcmd <PID> VM.flags
 jcmd <PID> GC.heap_info
 ```
 
-- `jcmd -l`: liệt kê tiến trình Java mà công cụ có thể nhìn thấy (không bảo đảm thấy mọi tiến trình trong mọi container/namespace).
-- `VM.flags`: xem cờ JVM đang có hiệu lực; kết hợp tham số khởi động để kiểm tra `-Xmx`, `-Xms`, tùy chọn GC và giá trị suy diễn. Đừng đoán cấu hình chỉ từ manifest triển khai.
-- `GC.heap_info`: ảnh chụp thông tin heap, hình thức kết quả phụ thuộc collector và JDK. Kết hợp với JMX/metrics/GC logs để xem xu hướng.
+- `jcmd -l`: lists Java processes visible to the tool (not guaranteed to see every process across all containers/namespaces).
+- `VM.flags`: views effective JVM flags; combine with startup arguments to verify `-Xmx`, `-Xms`, GC options, and inferred values. Do not guess configuration solely from deployment manifests.
+- `GC.heap_info`: a snapshot of heap information whose output format depends on the collector and JDK. Combine with JMX/metrics/GC logs to observe trends.
 
-Với **HotSpot Native Memory Tracking (NMT)**, cần bật ngay khi khởi động JVM, chẳng hạn:
+For **HotSpot Native Memory Tracking (NMT)**, it must be enabled at JVM startup, for example:
 
 ```bash
 java -Xms256m -Xmx512m -XX:NativeMemoryTracking=summary -jar my-service.jar
 ```
 
-Khi service đã chạy, lấy bản tóm tắt hoặc theo dõi thay đổi:
+Once the service is running, take a summary or track changes:
 
 ```bash
 jcmd <PID> VM.native_memory summary scale=MB
@@ -190,68 +190,68 @@ jcmd <PID> VM.native_memory baseline
 jcmd <PID> VM.native_memory summary.diff scale=MB
 ```
 
-Thực hiện lệnh `summary.diff` sau một khoảng thời gian/tải cần quan sát. NMT hiển thị các category như `Java Heap`, `Class`, `Thread`, `Code`, `GC` cùng tổng `reserved` và `committed` do HotSpot theo dõi. Nó **không bao phủ toàn bộ** cấp phát của thư viện bên ngoài/JNI và không thay thế công cụ OS; NMT cũng có overhead nên cân nhắc khi bật trên production. Không thể khởi động lại NMT từ trạng thái off bằng `jcmd` trong một JVM đã chạy.
+Run `summary.diff` after an observation period or workload interval. NMT displays categories such as `Java Heap`, `Class`, `Thread`, `Code`, and `GC` along with total `reserved` and `committed` tracked by HotSpot. It **does not cover all** allocations by external/JNI libraries and does not replace OS tools; NMT also carries overhead, so weigh the trade-off before enabling it in production. You cannot turn NMT on from an off state using `jcmd` in an already-running JVM.
 
-Trên Linux, tham khảo bộ nhớ resident và virtual của **đúng PID**:
+On Linux, inspect the resident and virtual memory of the **exact PID**:
 
 ```bash
 ps -o pid,rss,vsz,comm -p <PID>
 cat /proc/<PID>/status
 ```
 
-`rss` và `vsz` trong `ps` thường tính theo KiB; kiểm tra tài liệu công cụ của môi trường cụ thể. Với container, đối chiếu thêm số liệu memory ở cgroup/orchestrator, `memory.current` và `memory.max` trên hệ thống cgroup v2 khi áp dụng. Trên Windows có thể xem Working Set/Commit trong công cụ giám sát tiến trình; đừng so sánh trực tiếp các số khác định nghĩa mà không thống nhất cách đo.
+`rss` and `vsz` in `ps` are typically reported in KiB; check the tool documentation for your specific environment. For containers, cross-check memory metrics from the cgroup/orchestrator, and `memory.current` and `memory.max` on cgroup v2 systems where applicable. On Windows you can inspect Working Set/Commit in process monitoring tools; do not compare numbers with different definitions directly without standardizing how they are measured.
 
-Khi nghi ngờ heap, GC log có thể cung cấp chuỗi thời gian về occupancy trước/sau GC, pause và nhịp thu gom (ví dụ trên HotSpot: `-Xlog:gc*`). Một số công cụ attach yêu cầu quyền cùng user, namespace và hỗ trợ từ runtime; nếu không attach được, dùng metrics/logging có sẵn.
+When suspecting the heap, GC logs can provide a time series of occupancy before/after GC, pauses, and collection cadence (for example, on HotSpot: `-Xlog:gc*`). Some attach tools require matching user permissions, namespace, and runtime support; if attaching is not possible, use available metrics/logging.
 
-## 7. `-Xmx` và giới hạn bộ nhớ container: hai tầng giới hạn khác nhau
+## 7. `-Xmx` and container memory limits: two different limit layers
 
-Giả sử container có memory limit **1 GiB**, còn JVM cấu hình `-Xmx900m`. Dù heap chỉ đạt 850 MiB, tiến trình vẫn có thể cần thêm Metaspace, code cache, stack, direct buffers, cấu trúc GC và native libraries. Khi tổng bộ nhớ bị hạch toán vượt giới hạn container, kernel có thể giết tiến trình vì OOM. Khi đó đôi khi chỉ thấy exit code **137** hoặc sự kiện `OOMKilled`, **không nhất thiết có Java `OutOfMemoryError` hay heap dump**.
+Suppose a container has a memory limit of **1 GiB**, while the JVM is configured with `-Xmx900m`. Even if the heap only reaches 850 MiB, the process may still need additional Metaspace, code cache, stacks, direct buffers, GC structures, and native libraries. When total accounted memory exceeds the container limit, the kernel may kill the process due to OOM. In that case, you may sometimes only see exit code **137** or an `OOMKilled` event, **without necessarily seeing a Java `OutOfMemoryError` or a heap dump**.
 
-Vì vậy khi lập memory budget:
+Therefore, when planning a memory budget:
 
-1. Lấy **giới hạn thực tế** của host/cgroup và kiểm tra JVM đang nhận diện giới hạn nào.
-2. Ước lượng live heap và đặt `-Xmx` dựa trên tải thực tế, không lấy toàn bộ limit dành cho heap.
-3. Dành dung lượng cho Metaspace, Code Cache, GC, số thread nền tảng/`-Xss`, direct buffers, JNI và thư viện native.
-4. Chừa khoảng dự phòng cho đỉnh tải và sai số quan sát; kiểm tra lại bằng RSS/cgroup và NMT khi có thể.
-5. Trong HotSpot hiện đại, các cơ chế container awareness và heap sizing theo tỷ lệ có thể ảnh hưởng default; nếu đặt `-Xmx` tường minh, hãy kiểm tra giá trị cuối cùng bằng cờ/metrics thay vì suy đoán.
+1. Obtain the **actual limit** of the host/cgroup and check which limit the JVM detects.
+2. Estimate live heap and set `-Xmx` based on realistic workload, rather than allocating the entire limit to the heap.
+3. Reserve capacity for Metaspace, Code Cache, GC, platform thread count/`-Xss`, direct buffers, JNI, and native libraries.
+4. Leave headroom for traffic spikes and observation error; verify against RSS/cgroup and NMT when possible.
+5. In modern HotSpot, container awareness and ratio-based heap sizing can affect defaults; if you set `-Xmx` explicitly, verify the final value via flags/metrics rather than guessing.
 
-Không có công thức “RSS = `-Xmx` + non-heap” áp dụng cho mọi ứng dụng. Kích thước stack, số thread, GC, mmap, page cache, direct allocation và môi trường vận hành làm mức chênh thay đổi đáng kể.
+There is no single formula "RSS = `-Xmx` + non-heap" that applies to every application. Stack size, thread count, GC, mmap, page cache, direct allocations, and the operating environment make the gap vary significantly.
 
-## 8. Chẩn đoán theo triệu chứng
+## 8. Symptom-based diagnosis
 
-| Triệu chứng | Giả thuyết nên kiểm tra trước | Bằng chứng cần lấy |
+| Symptom | Hypotheses to check first | Evidence to collect |
 | --- | --- | --- |
-| Heap used tăng qua nhiều chu kỳ tải, đáy sau GC ngày càng cao | Đối tượng bị giữ tham chiếu / cache tăng không giới hạn; cũng có thể do tải hoặc warmed-up state | Heap trend, GC logs, heap dump/retained references |
-| `OutOfMemoryError: Java heap space` | Heap không đủ cho lượng object còn giữ hoặc có leak | `-Xmx` hữu hiệu, heap occupancy, heap dump đúng thời điểm |
-| Heap used thấp nhưng RSS/cgroup memory cao | Thread stacks, direct memory, Metaspace, GC/native/JNI, mapping hoặc cách OS hạch toán | RSS/cgroup trend, NMT, thread count, direct-buffer metrics |
-| `OutOfMemoryError: Metaspace` | Áp lực metadata hoặc class loader không được giải phóng | Metaspace pool/NMT `Class`, số class/class loader, cấu hình Metaspace |
-| Lỗi cấp phát direct buffer | Direct memory đạt giới hạn hoặc native memory căng | BufferPoolMXBean `direct`, direct allocations, cấu hình/direct limit và OS |
-| `unable to create native thread` | Thiếu tài nguyên cho thread, stack hoặc chạm giới hạn OS/cgroup | Thread count, `-Xss`, ulimit/PID limits, memory OS |
-| Container `OOMKilled` nhưng JVM không báo Java OOME | Cgroup chạm memory limit trước khi JVM tự ném lỗi | Event orchestrator, cgroup memory, RSS và cấu hình heap/native |
+| Heap used rises across multiple load cycles, post-GC baseline gets higher and higher | Objects retained by references / unbounded cache growth; could also be load or warmed-up state | Heap trend, GC logs, heap dump/retained references |
+| `OutOfMemoryError: Java heap space` | Heap is insufficient for retained objects or there is a leak | Effective `-Xmx`, heap occupancy, timely heap dump |
+| Heap used is low while RSS/cgroup memory is high | Thread stacks, direct memory, Metaspace, GC/native/JNI, mappings, or OS accounting | RSS/cgroup trend, NMT, thread count, direct-buffer metrics |
+| `OutOfMemoryError: Metaspace` | Metadata pressure or unreleased class loaders | Metaspace pool/NMT `Class`, class/class loader count, Metaspace configuration |
+| Direct buffer allocation failure | Direct memory reached its limit or native memory is tight | BufferPoolMXBean `direct`, direct allocations, direct limit config, and OS |
+| `unable to create native thread` | Insufficient resources for threads, stacks, or hitting OS/cgroup limits | Thread count, `-Xss`, ulimit/PID limits, OS memory |
+| Container `OOMKilled` without the JVM reporting Java OOME | Cgroup hit its memory limit before the JVM threw an error | Orchestrator events, cgroup memory, RSS, and heap/native config |
 
-**Quy trình thực hành:** xác minh PID/runtime/flags → ghi nhận heap used/committed/max theo thời gian → đối chiếu non-heap pool và thread/direct-buffer metrics → đọc NMT (nếu đã bật) → đối chiếu RSS/cgroup cùng timestamp → mới kết luận nguyên nhân. Snapshot đơn lẻ thường không đủ để phân biệt tăng trưởng bình thường với leak.
+**Practical workflow:** verify PID/runtime/flags → record heap used/committed/max over time → cross-check non-heap pools and thread/direct-buffer metrics → read NMT (if enabled) → compare with RSS/cgroup at matching timestamps → only then conclude the root cause. A single snapshot is usually insufficient to distinguish normal growth from a leak.
 
-### Ba tình huống để tự kiểm tra hiểu biết
+### Three scenarios to test your understanding
 
-**Tình huống A.** `-Xmx512m`, heap used 220 MiB, RSS 700 MiB. Có vi phạm `-Xmx` không? **Không.** RSS đo cả những vùng ngoài heap. Việc cần làm là tìm thành phần chiếm bộ nhớ; không suy ra leak từ chênh lệch này.
+**Scenario A.** `-Xmx512m`, heap used 220 MiB, RSS 700 MiB. Is `-Xmx` being violated? **No.** RSS measures regions outside the heap as well. What you need to do is find which component is consuming memory; do not infer a leak from this difference.
 
-**Tình huống B.** `-Xmx1g`, NMT `Java Heap reserved` gần 1 GiB nhưng `committed` mới 300 MiB. Đã tiêu thụ 1 GiB RAM vật lý chưa? **Chưa thể kết luận như vậy.** Reserved là vùng địa chỉ dành trước; cần so committed và bộ nhớ resident thực tế.
+**Scenario B.** `-Xmx1g`, NMT `Java Heap reserved` is nearly 1 GiB while `committed` is only 300 MiB. Has 1 GiB of physical RAM been consumed? **You cannot conclude that.** Reserved is pre-allocated virtual address space; compare committed and actual resident memory.
 
-**Tình huống C.** Service trong container 1 GiB, `-Xmx900m`, log GC không báo `Java heap space` nhưng Pod bị `OOMKilled`. Có nên tăng `-Xmx`? **Không theo phản xạ.** Phải xem cgroup usage và tổng chi phí ngoài heap; tăng heap tối đa có thể làm rủi ro OOM của container nặng hơn.
+**Scenario C.** A service in a 1 GiB container has `-Xmx900m`; GC logs do not report `Java heap space`, yet the Pod is `OOMKilled`. Should you increase `-Xmx`? **Not as a knee-jerk reaction.** Check cgroup usage and total off-heap overhead; increasing max heap may worsen the container's OOM risk.
 
-## 9. Những nhầm lẫn cần tránh
+## 9. Common misconceptions to avoid
 
-- “`-Xmx` là tổng RAM tối đa Java được dùng” → sai; chỉ giới hạn **heap**.
-- “Heap used bằng heap committed” → sai; JVM có thể cam kết dung lượng chưa dùng cho object.
-- “Heap used giảm ngay khi object không còn tham chiếu” → sai; thu gom do GC quyết định.
-- “Non-heap của MXBean gồm mọi native memory” → sai; còn stack, direct buffers, JNI và nhiều vùng khác.
-- “NMT committed phải bằng RSS” → sai; cách theo dõi và tập hợp trang khác nhau, NMT còn có vùng không theo dõi được.
-- “VSZ lớn = memory leak” → sai; địa chỉ ảo reserved/mapped có thể lớn hơn resident.
-- “`OutOfMemoryError` và `OOMKilled` là một sự kiện” → sai; một lỗi do JVM báo, một sự kiện do OS/cgroup quản lý bộ nhớ.
+- "`-Xmx` is the maximum total RAM Java is allowed to use" → false; it only limits the **heap**.
+- "Heap used equals heap committed" → false; the JVM may commit capacity not yet used by objects.
+- "Heap used drops immediately when an object has no more references" → false; reclamation is decided by GC.
+- "MXBean non-heap includes all native memory" → false; there are also stacks, direct buffers, JNI, and many other regions.
+- "NMT committed must equal RSS" → false; tracking methods and page sets differ, and NMT also has untracked regions.
+- "Large VSZ = memory leak" → false; reserved/mapped virtual address space can be larger than resident memory.
+- "`OutOfMemoryError` and `OOMKilled` are the same event" → false; one is an error thrown by the JVM, and the other is an event from OS/cgroup memory management.
 
-**Ghi nhớ:** `-Xmx` là *trần Java heap*; `MemoryMXBean` đo *heap và một tập non-heap pool*; NMT quan sát *một phần quản lý native memory của HotSpot*; RSS/cgroup cho *góc nhìn hệ điều hành*. Luôn đặt số liệu cạnh **tên metric, phạm vi, thời điểm và nguồn đo**.
+**Remember:** `-Xmx` is the *Java heap ceiling*; `MemoryMXBean` measures *the heap and a set of non-heap pools*; NMT observes *a subset of HotSpot's native memory management*; RSS/cgroup gives *the operating system's perspective*. Always place numbers alongside **metric name, scope, timestamp, and measurement source**.
 
-## Tài liệu tham khảo
+## References
 
 - Java SE 21 API — `MemoryMXBean`: https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryMXBean.html
 - Java SE 21 — Native Memory Tracking: https://docs.oracle.com/en/java/javase/21/vm/native-memory-tracking.html

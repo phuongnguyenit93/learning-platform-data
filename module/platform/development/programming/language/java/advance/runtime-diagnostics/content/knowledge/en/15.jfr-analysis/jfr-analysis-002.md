@@ -1,58 +1,58 @@
-# 15.2 Đọc jfr summary và metadata trước khi chọn nhóm sự kiện cần xem
+# 15.2 Reading jfr summary and metadata before choosing event groups to inspect
 
-## Mục tiêu
+## Objectives
 
-Khi nhận một file **Java Flight Recorder (JFR)**, bước đầu tiên là hiểu **file đã ghi những gì, trong khoảng thời gian nào và mỗi loại sự kiện có cấu trúc ra sao**. Không nên lập tức in toàn bộ file hoặc kết luận từ một event có tên nghe giống vấn đề đang điều tra.
+When you receive a **Java Flight Recorder (JFR)** file, the first step is to understand **what the file recorded, over what time interval, and what structure each event type has**. You should not immediately print the entire file or draw conclusions from an event whose name happens to sound like the issue you are investigating.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Dùng **jfr summary** để kiểm tra file, khoảng thời gian, số chunk, **Count** và **Size** theo event type.
-2. Dùng **jfr metadata** để tìm tên event chính xác, category, mô tả và schema của từng event, trước khi viết truy vấn.
-3. Phân biệt **event type được định nghĩa** với **event thực sự xuất hiện** trong bản ghi.
-4. Chọn nhóm event phù hợp với câu hỏi về CPU, GC, allocation, lock contention, thread park, I/O, class loading và runtime.
-5. Lọc event bằng **jfr print --events** hoặc **--categories**, hiểu giới hạn của sampling, threshold, event settings và stack traces.
-6. Tự tạo một bản ghi JFR nhỏ bằng Java 17+ và kiểm tra từng bước với công cụ đi kèm JDK.
+1. Use **jfr summary** to inspect the file, time span, chunk count, **Count**, and **Size** by event type.
+2. Use **jfr metadata** to find exact event names, categories, descriptions, and schemas for each event before writing queries.
+3. Distinguish **defined event types** from **events that actually appear** in the recording.
+4. Select event groups matching questions about CPU, GC, allocation, lock contention, thread parking, I/O, class loading, and runtime.
+5. Filter events with **jfr print --events** or **--categories**, understanding the limitations of sampling, thresholds, event settings, and stack traces.
+6. Create a small JFR recording yourself with Java 17+ and inspect it step by step using the tools bundled with the JDK.
 
-**Phạm vi:** các lệnh và ví dụ ưu tiên **HotSpot/OpenJDK 21**; Java 17 cũng có các lệnh cơ bản summary, metadata và print. Tập event, category, trường dữ liệu và một số lệnh phụ có thể thay đổi theo phiên bản/vendor JDK.
+**Scope:** commands and examples prioritize **HotSpot/OpenJDK 21**; Java 17 also includes the core `summary`, `metadata`, and `print` commands. Event sets, categories, data fields, and some subcommands may vary across JDK versions and vendors.
 
-## 1. JFR file là gì và vì sao phải kiểm kê trước?
+## 1. What is a JFR file and why take inventory first?
 
-JFR thu thập các **event** do JVM hoặc ứng dụng phát ra: ví dụ bắt đầu/kết thúc GC, mẫu thực thi, cấp phát bộ nhớ, thread park, truy cập file/socket, hoạt động class loading. Dữ liệu thường được lưu ở file nhị phân có đuôi **.jfr**, kèm thông tin kiểu dữ liệu cho các event và timestamps.
+JFR collects **events** emitted by the JVM or the application: for example, GC start/end, execution samples, memory allocations, thread parks, file/socket access, and class loading activity. Data is typically stored in a binary file with the **.jfr** extension, along with type information for events and timestamps.
 
-Hãy phân biệt ba cấp:
+Distinguish three levels:
 
-- **Recording:** một khoảng quan sát có thời gian bắt đầu/kết thúc, các chunks và cấu hình event được thu thập.
-- **Event type:** kiểu sự kiện, ví dụ **jdk.GarbageCollection** hoặc **jdk.ExecutionSample**, có tên, category, nhãn, mô tả và danh sách trường.
-- **Event instance:** một lần xảy ra được ghi vào file, với startTime, các trường dữ liệu và có thể có duration, thread hoặc stack trace tùy type/cấu hình.
+- **Recording:** an observation window with start/end times, chunks, and the collected event configuration.
+- **Event type:** a kind of event, such as **jdk.GarbageCollection** or **jdk.ExecutionSample**, with a name, category, label, description, and field list.
+- **Event instance:** a single occurrence written to the file, with `startTime`, data fields, and potentially `duration`, `thread`, or `stackTrace` depending on the type and settings.
 
-Một file có hàng trăm nghìn **jdk.ExecutionSample** không có nghĩa CPU đã chạy “hàng trăm nghìn lần”, và một event type được mô tả trong metadata không có nghĩa file có instance tương ứng.
+A file containing hundreds of thousands of **jdk.ExecutionSample** events does not mean the CPU executed "hundreds of thousands of times," and an event type described in metadata does not mean the file contains instances of it.
 
-**Thứ tự đọc đúng:**
+**The right reading order:**
 
 ~~~text
-Có file .jfr
+Have a .jfr file
     |
     v
-jfr summary: file có đúng thời gian, event types và mật độ dữ liệu?
+jfr summary: does the file have the right time span, event types, and data density?
     |
     v
-jfr metadata: tên, category và field của event đáng xem là gì?
+jfr metadata: what are the names, categories, and fields of the events worth viewing?
     |
     v
-Chọn event types có liên quan và thực sự có dữ liệu
+Select event types that are relevant and actually have data
     |
     v
-jfr print --events / --categories: chỉ in tập mục tiêu
+jfr print --events / --categories: print only the target set
     |
     v
-Phân tích duration, stackTrace, thread, object/GC IDs, correlation
+Analyze duration, stackTrace, thread, object/GC IDs, correlation
 ~~~
 
-Nếu summary cho thấy file không bao phủ thời điểm sự cố hoặc thiếu nhóm event cần thiết, cần điều chỉnh recording và thu lại, thay vì ép kết luận từ file thiếu dữ liệu.
+If `summary` shows the file does not cover the incident window or lacks the required event groups, adjust the recording settings and re-capture rather than forcing conclusions from incomplete data.
 
-## 2. Điều kiện trước khi chạy
+## 2. Prerequisites before running
 
-Cần **JDK đầy đủ** có công cụ **jfr**, không chỉ JRE rút gọn. Kiểm tra JDK đang chạy và khả năng dùng CLI:
+You need a **full JDK** with the **jfr** tool, not just a stripped-down JRE. Verify the active JDK and CLI availability:
 
 ~~~bash
 java -version
@@ -63,38 +63,38 @@ jfr help metadata
 jfr help print
 ~~~
 
-Tùy OS, phải mở terminal có **JDK/bin** trong PATH. Một JDK mới có thể đọc nhiều file tạo bởi JDK cũ; ngược lại tính tương thích không phải lúc nào hai chiều, vì metadata, định dạng và event types thay đổi. Đối với phân tích khó, ghi lại **vendor/phiên bản JVM đã ghi file** và phiên bản **jfr CLI** dùng để đọc.
+Depending on the OS, open a terminal with **JDK/bin** on your PATH. A newer JDK can often read files created by older JDKs; the reverse is not always bidirectional because metadata, format, and event types evolve. For difficult investigations, record the **JVM vendor/version that wrote the file** and the **jfr CLI version** used to read it.
 
-Khi file đã có sẵn, đặt tên **recording.jfr** làm ví dụ (thay bằng đường dẫn thực tế). Không cần kết nối đến JVM gốc để chạy **jfr summary/metadata/print** trên một file đã lưu.
+Once you have a file, let's use **recording.jfr** as an example (replace with the actual path). You do not need to connect to the original JVM to run **jfr summary/metadata/print** on a saved file.
 
 ~~~bash
 jfr summary recording.jfr
 jfr metadata recording.jfr
 ~~~
 
-Nếu **recording.jfr không tồn tại, bị cắt hoặc hỏng**, các lệnh có thể báo lỗi đọc. Giải quyết nguồn file trước. Không tự coi “lệnh không in event” là tín hiệu của ứng dụng khi bản ghi không hợp lệ.
+If **recording.jfr does not exist, is truncated, or is corrupt**, the commands may report a read error. Resolve the source file first. Do not treat "the command printed no events" as an application signal when the recording itself is invalid.
 
-### Ghi file ở mức tối thiểu khi chưa có .jfr
+### Minimal file recording when you don't have a .jfr yet
 
-Có thể tạo recording cho một ứng dụng Java ở lần khởi động mới:
+You can start a recording for a Java application at launch:
 
 ~~~bash
 java -XX:StartFlightRecording=filename=recording.jfr,duration=60s,settings=profile -jar app.jar
 ~~~
 
-Lệnh dùng **HotSpot** có JFR và cần đường dẫn ghi file hợp lệ. Sau khoảng thời gian cấu hình, JVM xuất recording; ứng dụng có thể tiếp tục chạy. Với process đã chạy, có thể dùng **jcmd PID JFR.start** và **JFR.dump** theo khả năng attach/quyền truy cập, nhưng bài này tập trung vào *đọc bản ghi đã xuất*, không đi sâu quản lý recording live.
+This command uses **HotSpot** with JFR and requires a valid output file path. After the configured duration, the JVM writes the recording; the application can continue running. For an already-running process, you can use **jcmd PID JFR.start** and **JFR.dump** depending on attach capability and permissions, though this lesson focuses on *reading an exported recording*, not managing live recordings in depth.
 
-**Không mặc định profile chứa mọi event:** settings=default/profile, thay đổi threshold, sampling rate, stackTrace và JDK quyết định những gì được ghi. Một file có thể rất “đầy” event loại A nhưng hoàn toàn không đo loại B.
+**Do not assume `profile` contains every event:** `settings=default/profile`, modified thresholds, sampling rates, `stackTrace`, and the JDK version determine what gets recorded. A file can be packed with type A events while recording zero instances of type B.
 
-## 3. jfr summary: đọc bản đồ tổng thể trước khi xem chi tiết
+## 3. jfr summary: reading the overall map before inspecting details
 
-Lệnh:
+Command:
 
 ~~~bash
 jfr summary recording.jfr
 ~~~
 
-Tùy phiên bản JDK, đầu ra thường có **version/file**, **chunks**, **start/duration**, rồi bảng event type với **Count** và **Size**. Ví dụ rút gọn, **số liệu minh họa hoàn toàn giả định**:
+Depending on the JDK version, the output usually shows **version/file**, **chunks**, **start/duration**, and a table of event types with **Count** and **Size**. Here is a shortened illustration with **completely hypothetical numbers**:
 
 ~~~text
 Version: 2.x
@@ -112,57 +112,57 @@ jdk.SocketRead                         0                 0
 ...
 ~~~
 
-Cách trình bày, sort order, timestamp và số event có thể khác. **Không xem khối minh họa này là stdout đảm bảo của một file thực tế.**
+Presentation, sort order, timestamps, and event counts can vary. **Do not treat this illustrative block as guaranteed stdout from a real file.**
 
-### 3.1. Start, Duration, Chunks: kiểm tra tính phù hợp của khoảng đo
+### 3.1. Start, Duration, Chunks: checking whether the capture window fits
 
-- **Start**: mốc bắt đầu của recording/chunks; kiểm tra múi giờ và thời điểm xảy ra hiện tượng.
-- **Duration**: khoảng thời gian file ghi lại, không phải duration của từng event.
-- **Chunks**: JFR lưu dữ liệu theo các chunk, có metadata và event records; một file có thể gồm nhiều chunk.
-- **Version/format**: giúp xác nhận khả năng đọc với công cụ đang dùng.
+- **Start**: start timestamp of the recording/chunks; check timezone and when the symptom occurred.
+- **Duration**: length of time covered by the file, not the duration of individual events.
+- **Chunks**: JFR stores data in chunks containing metadata and event records; a file can span multiple chunks.
+- **Version/format**: helps confirm readability with the tool you are using.
 
-Giả sử lỗi latency xảy ra lúc **15:35**, nhưng file ghi **15:10–15:15**: dù nội dung file hợp lệ, nó **không đại diện** khoảng lỗi. Hoặc file ghi 10 phút nhưng vấn đề chỉ xuất hiện ở 5 giây cuối: tổng Count/Size của cả file không tự cho biết phân bố theo thời gian; cần xem startTime các event sau khi lọc.
+Suppose a latency error occurred at **15:35**, but the file recorded **15:10–15:15**: even if the file is valid, it **does not represent** the error window. Or the file spans 10 minutes while the issue only appeared in the final 5 seconds: total Count/Size across the file does not tell you the time distribution; you must inspect `startTime` on filtered events.
 
-### 3.2. Count là gì?
+### 3.2. What is Count?
 
-**Count** là số **event instances được ghi nhận** theo type trong file. Nó **không nhất thiết bằng** số lần hoạt động thực tế trong ứng dụng:
+**Count** is the number of **recorded event instances** per type in the file. It **does not necessarily equal** the actual number of operations in the application:
 
-- **Periodic event**, ví dụ CPU load: Count phụ thuộc chu kỳ phát event và thời gian ghi.
-- **Sampling event**, ví dụ execution/allocation sample: Count phản ánh **mẫu đã thu**, không phải tổng số lệnh CPU, tổng số object cấp phát hay số lần phương thức được gọi.
-- **Threshold event**, ví dụ một số I/O/lock event: operation dưới ngưỡng có thể **không được ghi**.
-- **Disabled event**: type có thể không được thu ở cấu hình hiện hành.
-- **Event dropped/truncated** hoặc recording đã được lọc/scrub: dữ liệu quan sát có thể không đầy đủ.
+- **Periodic events**, e.g., CPU load: Count depends on the emission period and recording duration.
+- **Sampling events**, e.g., execution/allocation samples: Count reflects **collected samples**, not total CPU instructions, total allocated objects, or method call counts.
+- **Threshold events**, e.g., some I/O/lock events: operations below the threshold may **not be recorded**.
+- **Disabled events**: the type may not be collected under the current configuration.
+- **Events dropped/truncated** or a filtered/scrubbed recording: observed data may be incomplete.
 
-Do đó **Count=0 không chứng minh hiện tượng không xảy ra**. Nó chỉ nói file không chứa instance thuộc type đó theo cách summary đang đọc. Trước khi kết luận, kiểm tra **event settings, coverage, duration, thresholds và file integrity**.
+Therefore, **Count=0 does not prove the phenomenon did not happen**. It only says the file contains no instances of that type as read by `summary`. Before concluding, check **event settings, coverage, duration, thresholds, and file integrity**.
 
-### 3.3. Size là gì?
+### 3.3. What is Size?
 
-**Size** trong bảng summary là lượng **dung lượng serialized của event records** theo từng event type (cách tính chính xác phụ thuộc phiên bản công cụ). Đây không phải:
+**Size** in the summary table is the amount of **serialized space used by event records** per event type (exact calculation depends on the tool version). It is not:
 
-- Dung lượng RAM dùng bởi các Java objects của loại đó.
-- Thời gian CPU chạy event.
-- Dung lượng heap bị leak.
-- Số byte file hoặc socket mà event I/O đã xử lý.
+- RAM used by Java objects of that type.
+- CPU time spent executing the event.
+- Heap bytes leaked.
+- File or socket bytes processed by I/O events.
 
-Một loại event ít instance nhưng chứa stack hoặc payload metadata lớn có thể có **Size** lớn. Một event type có Count lớn nhưng mỗi instance nhỏ cũng có thể đóng góp nhiều dung lượng recording. **Size hữu ích để biết loại dữ liệu nào chiếm file và độ nặng của recording**, không phải một chỉ số sức khỏe ứng dụng.
+An event type with few instances but large stack traces or metadata payloads can have a large **Size**. An event type with a high Count and small instances can also contribute substantially to recording size. **Size is useful for seeing which data types dominate the file and the recording footprint**, not as an application health metric.
 
-### 3.4. Summary đủ cho những câu hỏi nào?
+### 3.4. Which questions can summary answer?
 
-Summary trả lời nhanh: “File có event loại nào, bao nhiêu instances, recording bao lâu, type nào chiếm phần lớn record bytes?”. Summary **không chỉ ra** stack trace, thread cụ thể, nguyên nhân GC, nơi phát sinh allocation, duration từng lần block, hoặc phép tương quan nhiều event. Những câu hỏi này thuộc bước sau.
+Summary quickly answers: "Which event types are in the file, how many instances, how long is the recording, and which types take up most of the record bytes?" Summary **does not reveal** stack traces, specific threads, GC causes, allocation origins, individual blocking durations, or multi-event correlations. Those belong to later steps.
 
-Ví dụ: thấy **jdk.GarbageCollection: 8** chỉ nói có 8 event GC đã ghi. Nó không chứng minh GC là lý do latency cao. Cần xem **startTime, duration, loại GC, heap before/after và thời điểm latency**.
+For example, seeing **jdk.GarbageCollection: 8** only tells you 8 GC events were recorded. It does not prove GC caused high latency. You need **startTime, duration, GC type, heap before/after, and latency timestamps**.
 
-## 4. jfr metadata: đọc schema trước khi viết bộ lọc
+## 4. jfr metadata: reading the schema before writing filters
 
-Lệnh cơ bản:
+Basic command:
 
 ~~~bash
 jfr metadata recording.jfr
 ~~~
 
-Khác summary, **metadata** mô tả *định nghĩa kiểu dữ liệu*: event names, categories, labels, descriptions, fields và một số annotation liên quan đến semantic/đơn vị. Nó không liệt kê tất cả event instances và không cho bạn tổng số instance của một type.
+Unlike `summary`, **metadata** describes *type definitions*: event names, categories, labels, descriptions, fields, and annotations related to semantics/units. It does not list all event instances and does not give instance counts for a type.
 
-Với JDK 21 có thể lọc phần metadata cần xem:
+With JDK 21, you can filter which metadata to view:
 
 ~~~bash
 jfr metadata --events jdk.GarbageCollection recording.jfr
@@ -170,75 +170,75 @@ jfr metadata --events jdk.ExecutionSample recording.jfr
 jfr metadata --events jdk.JavaMonitorEnter,jdk.ThreadPark recording.jfr
 ~~~
 
-Có thể lọc theo category nếu category của file phù hợp:
+You can filter by category if the file's categories match:
 
 ~~~bash
 jfr metadata --categories "Garbage Collection" recording.jfr
 ~~~
 
-**Tên category chính xác khác tên event** và có thể là nhãn dạng đường dẫn/hierarchy tùy event. Nếu không tìm thấy gì, xem metadata không lọc hoặc dùng **jfr help metadata** để xác nhận cú pháp và tên category thực tế.
+**Exact category names differ from event names** and may be path-like/hierarchical labels depending on the event. If nothing is returned, inspect unfiltered metadata or run **jfr help metadata** to confirm the syntax and actual category names.
 
-### 4.1. Đọc một event definition như thế nào?
+### 4.1. How to read an event definition
 
-Một event type có thể gồm:
+An event type may include:
 
-| Thành phần metadata | Ý nghĩa | Cách dùng |
+| Metadata component | Meaning | How to use |
 | --- | --- | --- |
-| **Name** | Tên máy đọc được, thường dạng **jdk.SomeEvent** hoặc tên custom như **demo.WorkPhase** | Dùng với **--events** |
-| **Label/Description** | Nhãn và lời mô tả mang tính người đọc | Chọn event đúng hiện tượng cần điều tra |
-| **Category** | Phân nhóm một hoặc nhiều cấp, ví dụ nhóm GC, Profiling, I/O | Chọn cả nhóm khi cần khám phá |
-| **startTime / duration** | Timestamp và/hoặc độ dài hoạt động khi event type có trường phù hợp | Lọc khoảng thời gian, tìm operation chậm |
-| **thread / eventThread** | Thông tin thread nếu event type/cấu hình ghi nhận | Phân biệt thread xảy ra event với thread được lấy mẫu |
-| **stackTrace** | Các frames được lưu khi có hỗ trợ và được bật | Truy nguồn code path; không tự giả định luôn có |
-| **Field riêng** | GC id, class, monitor, allocation size, address, bytesRead... tùy event | Quyết định có đủ dữ liệu trả lời câu hỏi không |
-| **Unit/content annotations** | Time span, bytes, percentage, data amount... | Tránh nhầm đơn vị, conversion |
+| **Name** | Machine-readable name, usually **jdk.SomeEvent** or custom like **demo.WorkPhase** | Use with **--events** |
+| **Label/Description** | Human-readable label and description | Pick events matching the phenomenon under investigation |
+| **Category** | One or more grouping levels, e.g., GC, Profiling, I/O | Select an entire group during exploration |
+| **startTime / duration** | Timestamp and/or length of activity when the event type has those fields | Filter by time range, find slow operations |
+| **thread / eventThread** | Thread info if recorded by the event type/configuration | Distinguish the thread where the event occurred from a sampled thread |
+| **stackTrace** | Saved frames when supported and enabled | Trace code paths; do not assume it is always present |
+| **Specific fields** | GC id, class, monitor, allocation size, address, bytesRead... depending on the event | Decide whether the data is sufficient to answer the question |
+| **Unit/content annotations** | Time span, bytes, percentage, data amount... | Avoid unit or conversion mistakes |
 
-**Tên trường trong bảng là khái niệm chung**, không phải schema cố định cho tất cả event. Ví dụ event sample CPU và event GC không nhất thiết có cùng fields; một event có thể không có duration có ý nghĩa. Đọc schema thật của **type trong đúng recording** trước khi lấy giá trị hoặc viết tool parser.
+**Field names in this table are general concepts**, not a fixed schema for all events. For example, a CPU sample event and a GC event do not necessarily share the same fields; an event might have no meaningful duration. Read the actual schema of the **type in the specific recording** before extracting values or writing a parser.
 
-### 4.2. metadata có file và metadata không có file khác nhau
+### 4.2. metadata with a file vs. metadata without a file
 
 ~~~bash
-# Định nghĩa type được lấy từ recording:
+# Type definitions read from the recording:
 jfr metadata recording.jfr
 
-# Khi bỏ tham số file, dùng metadata của JDK đang chạy công cụ jfr:
+# When omitting the file argument, uses metadata from the JDK running the jfr tool:
 jfr metadata
 ~~~
 
-Cách thứ hai tiện để tìm tên event **JDK hiện tại hỗ trợ**, nhưng không chứng minh file cũ có type đó, và type/field có thể đã thay đổi giữa JDK ghi file với JDK dùng đọc. Đối với một incident cụ thể, ưu tiên **jfr metadata recording.jfr**.
+The second form is handy for looking up event names **supported by the current JDK**, but it does not prove an older file contains that type, and types/fields may have changed between the recording JDK and the reading JDK. For a specific incident, prefer **jfr metadata recording.jfr**.
 
-**Metadata có định nghĩa không đồng nghĩa Count > 0.** Một type có thể xuất hiện trong metadata mà không có event instance. Vì vậy luôn đọc **summary** để xác nhận dữ liệu thực sự có trong file, rồi dùng **metadata** để hiểu cách diễn giải.
+**Being defined in metadata does not mean Count > 0.** A type can appear in metadata with zero event instances. Always read **summary** to verify data actually exists in the file, then use **metadata** to understand how to interpret it.
 
-### 4.3. Metadata không phải bản sao toàn bộ recording settings
+### 4.3. Metadata is not a copy of all recording settings
 
-Metadata cho biết *kiểu event và các field có thể có*, đôi khi kèm setting definitions/annotations. Nó **không thay thế việc xác minh effective event settings** của recording: event có được bật không, threshold bao nhiêu, period thế nào, stackTrace có lưu không, và toàn bộ cấu hình giai đoạn thu thập ra sao. Muốn xác minh settings thực tế, phải xem cấu hình recording (.jfc / JFR APIs / JFR configuration metadata nếu đã được ghi và có thể phân tích), cùng ghi chú lúc thu thập.
+Metadata shows *event types and their potential fields*, sometimes with setting definitions/annotations. It **does not replace verifying the effective event settings** of the recording: whether an event was enabled, what threshold or period was used, whether `stackTrace` was saved, and the full configuration during capture. To verify actual settings, inspect the recording configuration (`.jfc` / JFR APIs / JFR configuration metadata if recorded and parseable) along with capture notes.
 
-**Đặc biệt:** thấy field **stackTrace** trong schema **không đảm bảo** mọi instance có stack trace đầy đủ. Có thể stack bị tắt, frame bị rút gọn, sampling bỏ qua frame hoặc chỉ có các stack frames không phù hợp với điều bạn định truy tìm.
+**Specifically:** seeing a **stackTrace** field in the schema **does not guarantee** every instance has a full stack trace. Stacks may be disabled, truncated, missing frames due to sampling, or contain frames unrelated to what you expected to trace.
 
-## 5. Chọn event theo câu hỏi: từ summary đến shortlist
+## 5. Choosing events by question: from summary to shortlist
 
-Cách chọn hiệu quả là bắt đầu bằng **triệu chứng**, sau đó đối chiếu với những type thực sự có Count trong file, rồi kiểm tra metadata.
+An effective approach is to start from the **symptom**, cross-check against types that actually have non-zero Counts in the file, and then inspect metadata.
 
-| Triệu chứng/câu hỏi | Event cần tìm trước | Vì sao nên xem | Lưu ý |
+| Symptom/question | Events to look for first | Why inspect them | Caveats |
 | --- | --- | --- | --- |
-| CPU cao, hotspot xử lý | **jdk.ExecutionSample**, **jdk.CPULoad**, có thể thêm native/CPU samples theo JDK | Mẫu stack và xu hướng CPU | Sample count không phải CPU time hoặc số method calls |
-| Pause/latency quanh GC | **jdk.GarbageCollection**, **jdk.GCPhasePause**, **jdk.GCHeapSummary**, event GC cụ thể | Timeline, duration, heap và pha GC | Có event theo GC collector và cấu hình khác nhau |
-| Tạo nhiều object tạm | **jdk.ObjectAllocationSample**, và event allocation khác nếu đã bật | Class/stack allocation có thể gây pressure | Sampling/weight; không suy ra live heap hay leak trực tiếp |
-| Contention khi vào synchronized | **jdk.JavaMonitorEnter** | Monitor contention vượt ngưỡng được ghi | Count thấp có thể do threshold |
-| Thread bị park hoặc chờ | **jdk.ThreadPark** | Duration, thread và stack nếu có | Park không phải cứ xuất hiện là lỗi |
-| Đọc socket chậm | **jdk.SocketRead**, **jdk.SocketWrite** | Duration và liên quan I/O | Event dưới threshold có thể không được ghi |
-| File I/O | **jdk.FileRead**, **jdk.FileWrite** | Operation, bytes, duration | Count không phải số syscall; I/O nhỏ có thể vắng mặt |
-| Class loading bất thường | **jdk.ClassLoad**, **jdk.ClassLoadingStatistics** hoặc type thực tế có trong file | Biến động class loading/metaspace | Type/field phụ thuộc JDK và profile |
-| Thread churn | **jdk.ThreadStart**, **jdk.ThreadEnd**, **jdk.ThreadCPULoad** nếu có | Thread tạo/kết thúc và hoạt động | Không tương đương toàn bộ virtual threads trên mọi JDK |
-| Custom business timing | Event name do ứng dụng đặt, ví dụ **demo.WorkPhase** | Đo đúng nghiệp vụ, transaction spans | Tên/fields do tác giả event định nghĩa |
+| High CPU, processing hotspot | **jdk.ExecutionSample**, **jdk.CPULoad**, possibly native/CPU samples depending on JDK | Stack samples and CPU trends | Sample count is not CPU time or method call count |
+| Pauses/latency around GC | **jdk.GarbageCollection**, **jdk.GCPhasePause**, **jdk.GCHeapSummary**, collector-specific events | Timeline, duration, heap, and GC phases | Events vary by GC collector and configuration |
+| Creating many temporary objects | **jdk.ObjectAllocationSample**, and other allocation events if enabled | Allocating classes/stacks that may cause pressure | Sampling/weight; do not infer live heap or leaks directly |
+| Contention entering synchronized | **jdk.JavaMonitorEnter** | Monitor contention exceeding threshold | Low Count may be due to threshold |
+| Threads parked or waiting | **jdk.ThreadPark** | Duration, thread, and stack if present | Parking is not automatically a bug |
+| Slow socket reads | **jdk.SocketRead**, **jdk.SocketWrite** | Duration and I/O context | Events below threshold may not be recorded |
+| File I/O | **jdk.FileRead**, **jdk.FileWrite** | Operation, bytes, duration | Count is not syscall count; small I/O may be absent |
+| Abnormal class loading | **jdk.ClassLoad**, **jdk.ClassLoadingStatistics**, or actual types in file | Class loading/metaspace fluctuations | Types/fields depend on JDK and profile |
+| Thread churn | **jdk.ThreadStart**, **jdk.ThreadEnd**, **jdk.ThreadCPULoad** if present | Thread creation/termination and activity | Not equivalent across all virtual threads on every JDK |
+| Custom business timing | Application-defined event names, e.g., **demo.WorkPhase** | Measure business operations, transaction spans | Names/fields defined by the event author |
 
-Các ví dụ event **chỉ là điểm bắt đầu**. Hãy xem metadata thật trong file; khi event không hiện diện hoặc Count=0, đánh giá lại cách thu dữ liệu. Các nhóm GC, CPU, I/O thường phải **tương quan theo timestamp** thay vì chọn một event rồi suy luận nguyên nhân.
+These event examples **are only starting points**. Inspect the actual metadata in the file; when an event is absent or Count=0, re-evaluate how data was collected. GC, CPU, and I/O groups usually must be **correlated by timestamp** rather than picking one event and inferring causation.
 
-**Ví dụ:** production p99 latency tăng nhưng summary chỉ có CPULoad và ExecutionSample, không có event FileRead/SocketRead. Bạn **có thể phân tích CPU**, nhưng chưa thể kết luận “I/O không gây ra latency”; cần một recording có dữ liệu I/O phù hợp.
+**Example:** production p99 latency spikes, but `summary` only shows `CPULoad` and `ExecutionSample` with no `FileRead`/`SocketRead` events. You **can analyze CPU**, but you cannot yet conclude "I/O did not cause the latency"; you need a recording with appropriate I/O data.
 
-## 6. Khi nào lọc theo event, khi nào theo category?
+## 6. When to filter by event vs. by category
 
-### 6.1. Chọn event name khi đã xác định mục tiêu
+### 6.1. Choose event name when the target is known
 
 ~~~bash
 jfr print --events jdk.GarbageCollection recording.jfr
@@ -246,52 +246,52 @@ jfr print --events jdk.ExecutionSample recording.jfr
 jfr print --events jdk.JavaMonitorEnter,jdk.ThreadPark recording.jfr
 ~~~
 
-**--events** nhận tên type (tên đơn giản hoặc đầy đủ theo cú pháp công cụ, có hỗ trợ bộ lọc). Đối với quy trình có thể lặp lại, ưu tiên **tên đầy đủ từ metadata**, nhất là khi có custom event trùng simple name.
+**--events** accepts type names (simple or fully qualified per tool syntax, with filter support). For repeatable workflows, prefer **fully qualified names from metadata**, especially when custom events share simple names.
 
-### 6.2. Chọn category để khám phá nhiều event cùng chủ đề
+### 6.2. Choose category to explore related events on one topic
 
 ~~~bash
 jfr print --categories GC recording.jfr
 ~~~
 
-Lệnh dùng category filter. Đối chiếu category thực từ **jfr metadata**, tránh giả định tất cả event liên quan GC đều chỉ ở một category tên “GC” hoặc được gộp giống nhau ở mọi JDK.
+This command uses a category filter. Cross-check actual categories in **jfr metadata** instead of assuming every GC-related event is under a single category named "GC" or grouped identically across JDKs.
 
-Nếu kết hợp **--categories** và **--events** trong **jfr print**, theo hướng dẫn JDK 21, kết quả là **hợp/union** của các event thỏa từng filter, không phải giao/intersection:
+If you combine **--categories** and **--events** in **jfr print**, according to JDK 21 documentation, the result is the **union** of events matching each filter, not the intersection:
 
 ~~~bash
 jfr print --categories GC --events jdk.CPULoad recording.jfr
 ~~~
 
-Lệnh trên có thể in cả event thuộc category GC **và** CPULoad; nó **không có nghĩa** chỉ chọn CPULoad thuộc GC. Điều này quan trọng khi muốn bộ lọc hẹp.
+The command above prints both events in category GC **and** `CPULoad`; it **does not mean** "only `CPULoad` belonging to GC." This matters when you want a narrow filter.
 
-### 6.3. Chọn độ sâu stack và định dạng output
+### 6.3. Choosing stack depth and output format
 
 ~~~bash
-# Xem thêm frames nếu recording có lưu stack:
+# View more frames if the recording saved stacks:
 jfr print --events jdk.ExecutionSample --stack-depth 20 recording.jfr
 
-# Chọn định dạng cấu trúc phục vụ xử lý bằng script:
+# Choose structured format for script processing:
 jfr print --json --events jdk.GarbageCollection recording.jfr
 ~~~
 
-**--stack-depth** chỉ thay đổi số frame mà CLI **hiển thị**, không bổ sung stack chưa được ghi trong file. **--json** giúp parsing tự động, nhưng cấu trúc JSON phụ thuộc schema và phiên bản; kiểm tra dữ liệu thật trước khi viết parser. Không nên in toàn file nếu recording lớn: event output có thể hàng triệu dòng và chứa dữ liệu nhạy cảm.
+**--stack-depth** only changes how many frames the CLI **displays**; it does not add stacks that were never recorded in the file. **--json** aids automated parsing, though JSON structure depends on schema and version; inspect real output before writing a parser. Avoid printing an entire large recording: output can reach millions of lines and expose sensitive data.
 
-### 6.4. Khi có jfr view
+### 6.4. When jfr view is available
 
-JDK 21 có **jfr view** để xem dữ liệu dạng tổng hợp. Bạn có thể kiểm tra các view hỗ trợ:
+JDK 21 includes **jfr view** for aggregated views. You can check supported views:
 
 ~~~bash
 jfr help view
 jfr view types recording.jfr
 ~~~
 
-Đây là bước **sau** summary/metadata khi cần bảng tổng hợp thuận tiện; **không cần jfr view để hiểu cấu trúc file**. Một số phiên bản JDK cũ có tập subcommands ít hơn, vì vậy nếu view không có, tiếp tục dùng summary, metadata và print.
+This step comes **after** `summary`/`metadata` when you want convenient summary tables; **you do not need `jfr view` to understand file structure**. Older JDK versions have fewer subcommands, so if `view` is unavailable, continue using `summary`, `metadata`, and `print`.
 
-## 7. Thực hành Java 17+: tự tạo file JFR với event có schema dễ kiểm tra
+## 7. Java 17+ hands-on: create a JFR file with an easily inspectable event schema
 
-Mục tiêu ví dụ là **đảm bảo có event custom do chính bạn phát ra**, rồi so khớp summary, metadata và print. Ví dụ không cần web server hoặc dữ liệu production.
+The goal of this example is to **guarantee custom events emitted by your own code**, then match `summary`, `metadata`, and `print`. The example needs no web server or production data.
 
-Tạo file **JfrInventoryDemo.java**:
+Create **JfrInventoryDemo.java**:
 
 ~~~java
 import java.nio.file.Path;
@@ -341,158 +341,158 @@ public final class JfrInventoryDemo {
 }
 ~~~
 
-Biên dịch và chạy với **JDK 17+**:
+Compile and run with **JDK 17+**:
 
 ~~~bash
 javac --add-modules jdk.jfr JfrInventoryDemo.java
 java --add-modules jdk.jfr JfrInventoryDemo
 ~~~
 
-Khi chạy thành công và thư mục cho phép ghi file, **stdout do chương trình tự in** chính xác là:
+When it runs successfully in a writable directory, the **exact stdout printed by the program itself** is:
 
 ~~~text
 Created jfr-inventory-demo.jfr
 ~~~
 
-File **jfr-inventory-demo.jfr** được tạo trong working directory. Event **demo.WorkPhase** có ba lần commit trong chương trình; khi không có lỗi thu thập dữ liệu, summary sẽ cho thấy type này với **Count=3**. Các event JVM phụ trợ, timestamp, chunk count và kích thước file không cố định, nên không đưa ra stdout đầy đủ giả định.
+The file **jfr-inventory-demo.jfr** is created in the working directory. The **demo.WorkPhase** event is committed three times in the program; assuming no data-collection error, `summary` will show this type with **Count=3**. Auxiliary JVM events, timestamps, chunk count, and file size are not fixed, so full hypothetical stdout is not shown.
 
-### 7.1. Đọc summary của file vừa tạo
+### 7.1. Reading summary of the newly created file
 
 ~~~bash
 jfr summary jfr-inventory-demo.jfr
 ~~~
 
-Tìm dòng **demo.WorkPhase** trong bảng **Event Type / Count / Size**. Có thể xuất hiện nhiều event types khác do runtime/JFR tạo ra; không phải lỗi. Đối chiếu **Count** với số event code đã commit. **Size** là byte records, không phải tổng **items=600**; items là dữ liệu nghiệp vụ của event, có đơn vị riêng.
+Look for the **demo.WorkPhase** row in the **Event Type / Count / Size** table. Many other event types emitted by the runtime/JFR may appear; that is not an error. Match **Count** against the number of events committed in code. **Size** is record bytes, not the sum **items=600**; `items` is business data inside the event with its own unit.
 
-### 7.2. Đọc metadata của event custom
+### 7.2. Reading metadata of the custom event
 
 ~~~bash
 jfr metadata --events demo.WorkPhase jfr-inventory-demo.jfr
 ~~~
 
-Tìm tên **demo.WorkPhase**, label **Work Phase**, category **Demo, JFR**, và các trường **phase** (String), **items** (long). Runtime có thể thêm fields chuẩn liên quan startTime/duration/eventThread/stackTrace vào biểu diễn event. Mô tả metadata và cách in có thể khác chút giữa JDK.
+Look for the name **demo.WorkPhase**, label **Work Phase**, category **Demo, JFR**, and fields **phase** (String) and **items** (long). The runtime may add standard fields related to `startTime`/`duration`/`eventThread`/`stackTrace` to the event representation. Metadata descriptions and formatting may vary slightly across JDKs.
 
-Đây là minh chứng rõ: metadata cho biết **items là long**, nhưng **không tự cho biết items=100, 200, 300**; muốn xem values của từng lần xảy ra phải **jfr print**.
+This clearly illustrates: metadata tells you **`items` is `long`**, but **does not tell you `items=100, 200, 300`**; to inspect values of individual occurrences, you must run **jfr print**.
 
-### 7.3. In đúng instance cần xem
+### 7.3. Printing only the instances you want to see
 
 ~~~bash
 jfr print --events demo.WorkPhase jfr-inventory-demo.jfr
 ~~~
 
-Bạn sẽ tìm thấy ba lần xảy ra với phase **phase-1**, **phase-2**, **phase-3** và items **100**, **200**, **300** theo thứ tự phát trong chương trình. Timestamps, duration và stack frames phụ thuộc execution/JDK.
+You will find three occurrences with `phase` **phase-1**, **phase-2**, **phase-3** and `items` **100**, **200**, **300** in emission order. Timestamps, durations, and stack frames depend on the execution and JDK.
 
-Lúc này bạn đã kiểm tra được ba lớp:
+At this point you have verified three layers:
 
-| Bước | Thông tin mới thu được |
+| Step | New information obtained |
 | --- | --- |
-| summary | Recording tồn tại; demo.WorkPhase có số instances/serialized size |
-| metadata | demo.WorkPhase có tên, nhãn, category và fields đúng schema |
-| print | Các instance cụ thể với values và thời điểm |
+| summary | Recording exists; `demo.WorkPhase` has instance count and serialized size |
+| metadata | `demo.WorkPhase` has name, label, category, and fields matching the schema |
+| print | Concrete instances with values and timestamps |
 
-### 7.4. Thử một bộ lọc không có event
+### 7.4. Trying a filter with no events
 
 ~~~bash
 jfr print --events jdk.SocketRead jfr-inventory-demo.jfr
 ~~~
 
-Không có SocketRead trong output **không chứng minh** chương trình JVM chưa hề thực hiện I/O mạng trong toàn bộ vòng đời, và không khẳng định event đã được bật/đủ threshold; lệnh chỉ phản ánh **những instances của type đó đã nằm trong file được lọc**.
+Having no `SocketRead` in the output **does not prove** the JVM process never performed network I/O during its entire lifecycle, nor does it confirm the event was enabled or met its threshold; the command only reflects **instances of that type present in the filtered file**.
 
-Có thể dùng **jfr metadata --events jdk.SocketRead** không kèm file để xem kiểu sự kiện do JDK hiện tại biết, nhưng phải tránh suy ngược rằng recording custom đã thu event đó.
+You can run **jfr metadata --events jdk.SocketRead** without a file to see the event type known to the current JDK, but avoid inferring backward that the custom recording captured that event.
 
-## 8. Một checklist ngắn khi nhận file JFR từ production
+## 8. A short checklist when receiving a JFR file from production
 
-Trước khi quyết định phân tích nhóm nào, kiểm tra:
+Before deciding which group to analyze, check:
 
-| Kiểm tra | Câu hỏi cần trả lời | Hành động |
+| Check | Question to answer | Action |
 | --- | --- | --- |
-| **File/Provenance** | File do JVM/JDK nào, ứng dụng nào, khi nào tạo? | Ghi JDK/version, tên file, host/PID nếu đã được cung cấp |
-| **Thời gian** | Start/Duration có phủ incident? | Nếu không, tìm recording khác hoặc thu lại |
-| **Chunks / tình trạng** | File đọc được, có đủ phần cần thiết? | Chạy summary; xử lý file hỏng hoặc cắt |
-| **Event presence** | Type mong muốn Count > 0 hay hoàn toàn vắng? | Không phỏng đoán có dữ liệu khi Count=0 |
-| **Volume** | Event types nào chiếm nhiều Count/Size? | Chọn lọc trước khi print; chú ý overhead |
-| **Schema** | Tên/catégory/field chính xác là gì? | Chạy metadata theo đúng recording |
-| **Collection settings** | Có sampling/threshold/period/stackTrace không? | Kiểm tra cấu hình ghi JFR và điều kiện lúc thu |
-| **Correlation keys** | Có startTime, duration, thread, gcId, stackTrace hoặc IDs phù hợp? | Thiết kế truy vấn theo các trường thực tế |
-| **Quyền riêng tư** | File có class names, thread names, command line, stack/payload nhạy cảm? | Giới hạn lưu trữ, chia sẻ và redaction theo chính sách |
+| **File/Provenance** | Which JVM/JDK, which app, and when was the file created? | Record JDK/version, filename, host/PID if provided |
+| **Time window** | Do Start/Duration cover the incident? | If not, find another recording or re-capture |
+| **Chunks / integrity** | Is the file readable and intact? | Run `summary`; handle corrupt or truncated files |
+| **Event presence** | Is the desired type Count > 0 or completely absent? | Do not assume data exists when Count=0 |
+| **Volume** | Which event types dominate Count/Size? | Filter selectively before printing; watch overhead |
+| **Schema** | What are the exact names/categories/fields? | Run `metadata` against the recording itself |
+| **Collection settings** | What sampling/threshold/period/stackTrace settings applied? | Check JFR capture config and recording conditions |
+| **Correlation keys** | Are `startTime`, `duration`, `thread`, `gcId`, `stackTrace`, or IDs suitable? | Design queries around actual fields |
+| **Privacy** | Does the file contain sensitive class names, thread names, command lines, stacks/payloads? | Restrict storage, sharing, and apply redaction per policy |
 
-**Không được nhầm “JFR có dữ liệu” với “JFR có bằng chứng về nguyên nhân lỗi”**. Đôi khi summary báo hàng nghìn GC events nhưng sự cố là nghẽn network; nếu không có I/O events hoặc correlation, cần thu đúng nhóm và đúng khoảng thời gian.
+**Do not confuse "JFR has data" with "JFR has proof of the root cause."** Sometimes `summary` reports thousands of GC events while the incident is network congestion; without I/O events or correlation, you need to capture the right event group and time window.
 
-## 9. Phân tích ba tình huống chọn sai event
+## 9. Analyzing three scenarios of choosing the wrong events
 
-### Tình huống A: CPU cao nhưng summary chủ yếu có jdk.CPULoad
+### Scenario A: High CPU, but summary mostly shows jdk.CPULoad
 
-**Câu hỏi:** có thể tìm hot method từ CPULoad đơn lẻ không?
+**Question:** can you find hot methods from `CPULoad` alone?
 
-**Trả lời:** CPULoad chủ yếu phản ánh mức tải, không nhất thiết kèm application call stacks. Nếu summary có **jdk.ExecutionSample** và metadata xác nhận có stackTrace, hãy in mẫu thực thi rồi phân tích; nếu không, cần recording có sampling/profiling phù hợp. Một giá trị CPU cao không tự gán cho một method.
+**Answer:** `CPULoad` mainly reflects load levels and does not necessarily include application call stacks. If `summary` has **jdk.ExecutionSample** and `metadata` confirms `stackTrace` is present, print execution samples and analyze them; otherwise, you need a recording with proper sampling/profiling. A high CPU reading does not by itself point to a method.
 
-### Tình huống B: Nghi contention nhưng JavaMonitorEnter Count=0
+### Scenario B: Suspected contention, but JavaMonitorEnter Count=0
 
-Có ít nhất bốn khả năng: event không được bật, threshold bỏ qua lần chờ ngắn, lỗi xảy ra ngoài khoảng ghi, hoặc ứng dụng không có contention loại được event này đo. Từ Count=0 **không thể chọn duy nhất một giải thích**. Hãy đối chiếu file, settings, timeline, ThreadPark/monitor-related events và thực tế lock sử dụng.
+There are at least four possibilities: the event was disabled, the threshold filtered out short waits, the error occurred outside the capture window, or the application had no contention of the kind measured by this event. From Count=0 **you cannot pick a single explanation**. Cross-check the file, settings, timeline, `ThreadPark`/monitor-related events, and actual lock usage.
 
-### Tình huống C: Nghi allocation pressure, thấy ObjectAllocationSample Count rất lớn
+### Scenario C: Suspected allocation pressure, seeing very large ObjectAllocationSample Count
 
-Đọc metadata để biết event có các trường về **objectClass**, thread/stack, **weight** hoặc thông tin kiểu sampling phù hợp với JDK. Count lớn chỉ là **số mẫu**, không phải số object đã cấp phát. Không dùng nó để tính số object còn sống hoặc leak. Nếu cần biết retained heap và GC roots, dùng heap dump/đồ thị object như một phép đo bổ sung riêng; không làm biến dạng ý nghĩa JFR.
+Read `metadata` to see whether the event has fields for **objectClass**, thread/stack, **weight**, or sampling information appropriate for the JDK. A large Count is only **the number of samples**, not the number of allocated objects. Do not use it to compute live object counts or leaks. If you need retained heap and GC roots, use a heap dump/object graph as a separate complementary measurement; do not distort what JFR means.
 
-## 10. Cấu trúc phân tích tốt từ một file JFR
+## 10. Structure of a good analysis from a JFR file
 
-Một bản ghi chẩn đoán ngắn nên tách rõ ba cấp bằng chứng:
+A concise diagnostic note should separate three levels of evidence:
 
-**1. Khả năng quan sát đã xác minh:** “Recording bắt đầu vào thời điểm X, kéo dài Y; summary có GC và execution samples, không có JavaMonitorEnter instances; metadata cho biết schema của GC/CPU event”.
+**1. Verified observability:** "Recording started at time X, lasted Y; `summary` shows GC and execution samples, zero `JavaMonitorEnter` instances; `metadata` defines the schema of GC/CPU events."
 
-**2. Quan sát từ dữ liệu có thật:** “Trong khoảng sự cố có những event GC duration dài” hoặc “Các ExecutionSample stacks tập trung vào phương thức A”. Những kết luận này phải dựa trên **jfr print/view hoặc phân tích event instances**, không lấy từ bảng Count đơn thuần.
+**2. Observations from real data:** "During the incident window there are long-duration GC events" or "ExecutionSample stacks cluster in method A." These statements must rest on **jfr print/view or event-instance analysis**, not merely on the Count table.
 
-**3. Giả thuyết cần kiểm chứng:** “GC hoặc lock contention có thể gây latency; cần đối chiếu request timestamps, GC logs, metrics, hoặc thu thêm event classes”. Ghi rõ trường hợp thiếu mẫu/đo không đúng khoảng thời gian.
+**3. Hypotheses to verify:** "GC or lock contention may be causing latency; need to cross-check request timestamps, GC logs, metrics, or capture additional event classes." Explicitly note any missing samples or off-window capture.
 
-Tách ba cấp giúp tránh biến **khả năng đo** thành **bằng chứng nguyên nhân**, và giúp người nhận file biết lúc nào cần thu lại recording.
+Separating these three levels prevents turning **measurability** into **causal proof**, and tells recipients when a recording needs to be re-captured.
 
-## 11. Lỗi phổ biến và cách sửa
+## 11. Common mistakes and how to fix them
 
-1. **In toàn file trước khi xem summary.** File lớn sẽ sinh output khổng lồ; chạy summary, lọc theo type, rồi print.
-2. **Dùng metadata để đếm event.** Metadata mô tả type; phải dùng summary/đọc instances để đếm.
-3. **Dùng summary để tìm field/stack.** Summary không thay thế metadata hoặc print.
-4. **Tưởng Size là heap bytes hoặc I/O bytes.** Đó là độ lớn dữ liệu event đã ghi trong file.
-5. **Tưởng Count của sample bằng số operation thật.** Sampling, thresholds và period làm Count khác tổng hoạt động.
-6. **Thấy event trong metadata rồi khẳng định file có event đó.** Phải kiểm tra instance count.
-7. **Count=0 rồi kết luận “không có vấn đề”.** Có thể event chưa bật, threshold loại bỏ hoặc recording trượt thời điểm.
-8. **Giả định jfr metadata không có file mô tả recording của ứng dụng.** Nó mô tả JDK đang chạy lệnh, có thể khác producer JDK.
-9. **Viết bộ lọc category theo tên tự nghĩ.** Xem category thật trong metadata; khi cần chính xác dùng event name đầy đủ.
-10. **Kết hợp --events và --categories rồi tưởng là phép giao.** Trong jfr print của JDK 21, chúng chọn **union**.
-11. **Tăng --stack-depth rồi tưởng tạo ra stack chưa ghi.** Chỉ tăng phần in ra khi dữ liệu stack có sẵn.
-12. **Bỏ qua startTime và múi giờ.** Incident không trùng recording làm mọi phân tích lạc hướng.
-13. **Coi mọi GC event là pause của ứng dụng.** Cần loại GC/phase/duration và mối tương quan với độ trễ.
-14. **Trộn event fields giữa nhiều JDK.** Kiểm tra schema từ chính .jfr và phiên bản công cụ.
-15. **Gắn root cause từ tên event.** Cần xem values/timeline và kiểm chứng bằng evidence khác.
-16. **Gửi file JFR ra ngoài tùy tiện.** File có thể chứa command-line flags, arguments, class/method names, paths, network info và custom event data nhạy cảm; chỉ chia sẻ theo quy định.
+1. **Printing the whole file before viewing summary.** Large files produce huge output; run `summary`, filter by type, then print.
+2. **Using metadata to count events.** Metadata describes types; use `summary` or read instances to count.
+3. **Using summary to look for fields or stacks.** Summary does not replace `metadata` or `print`.
+4. **Thinking Size is heap bytes or I/O bytes.** It is the size of event data recorded in the file.
+5. **Thinking sample Count equals real operation count.** Sampling, thresholds, and periods make Count differ from total operations.
+6. **Seeing an event in metadata and claiming the file has that event.** Always check instance count.
+7. **Seeing Count=0 and concluding "no problem."** The event may be disabled, filtered by threshold, or missed by the recording window.
+8. **Assuming `jfr metadata` without a file describes the application's recording.** It describes the JDK running the command, which may differ from the producer JDK.
+9. **Writing category filters with guessed names.** Check actual categories in `metadata`; when precision is needed, use full event names.
+10. **Combining `--events` and `--categories` thinking it is an intersection.** In JDK 21 `jfr print`, they select a **union**.
+11. **Increasing `--stack-depth` thinking it creates unrecorded stacks.** It only increases what is printed when stack data already exists.
+12. **Ignoring `startTime` and timezone.** An incident outside the recording window misleads the entire analysis.
+13. **Treating every GC event as an application pause.** Check GC type/phase/duration and correlation with latency.
+14. **Mixing event fields across JDKs.** Inspect the schema from the `.jfr` file itself and check tool versions.
+15. **Assigning root cause from an event name.** Inspect values/timeline and verify with other evidence.
+16. **Sharing JFR files carelessly.** Files may contain command-line flags, arguments, class/method names, paths, network info, and sensitive custom event data; share only per policy.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**Câu 1:** summary báo **jdk.ExecutionSample Count=10.000**. Có thể nói JVM đã thực thi đúng 10.000 method calls không?  
-**Đáp án:** Không. Đây là số mẫu execution được ghi, không phải call count.
+**Question 1:** `summary` reports **jdk.ExecutionSample Count=10.000**. Can we say the JVM executed exactly 10,000 method calls?  
+**Answer:** No. That is the number of recorded execution samples, not a call count.
 
-**Câu 2:** metadata hiển thị **jdk.JavaMonitorEnter**, nhưng summary báo Count=0. Điều gì đã được xác nhận?  
-**Đáp án:** Có định nghĩa type trong phạm vi metadata; không có instance type đó trong file. Chưa chứng minh không hề có contention hoặc event đã được bật.
+**Question 2:** `metadata` lists **jdk.JavaMonitorEnter**, yet `summary` reports Count=0. What has been confirmed?  
+**Answer:** The type definition exists in metadata; there are zero instances of that type in the file. It does not prove there was no contention or that the event was enabled.
 
-**Câu 3:** summary báo **jdk.SocketRead Size=80 KB**. Có phải ứng dụng đã đọc 80 KB từ socket?  
-**Đáp án:** Không. Đây là serialized event data size. Muốn đọc số byte I/O phải xem field tương ứng trong event instances và semantics của event.
+**Question 3:** `summary` reports **jdk.SocketRead Size=80 KB**. Did the application read 80 KB from sockets?  
+**Answer:** No. That is serialized event data size. To read I/O byte counts, inspect the corresponding fields in event instances and the event's semantics.
 
-**Câu 4:** cần tìm trường **duration** hoặc **stackTrace** của type jdk.JavaMonitorEnter trước khi viết parser. Dùng lệnh nào?  
-**Đáp án:** **jfr metadata --events jdk.JavaMonitorEnter recording.jfr**, rồi xác nhận dữ liệu instance qua **jfr print** và cấu hình đã thu stack.
+**Question 4:** You need to check the **duration** or **stackTrace** fields of `jdk.JavaMonitorEnter` before writing a parser. Which command do you run?  
+**Answer:** **jfr metadata --events jdk.JavaMonitorEnter recording.jfr**, then verify instance data via **jfr print** and confirm stacks were collected.
 
-**Câu 5:** muốn xem GC lẫn CPULoad mà không in mọi event. Lệnh?  
-**Đáp án:** **jfr print --categories GC --events jdk.CPULoad recording.jfr** (kết hợp là **union**, không phải intersection).
+**Question 5:** You want to view both GC and `CPULoad` without printing every event. Command?  
+**Answer:** **jfr print --categories GC --events jdk.CPULoad recording.jfr** (the combination is a **union**, not an intersection).
 
-**Câu 6:** metadata không có file trên máy A khác với metadata trong recording từ máy B. Cách đọc nào phù hợp để hiểu chính recording?  
-**Đáp án:** **jfr metadata recording.jfr**; đồng thời ghi producer JDK và reader JDK.
+**Question 6:** `metadata` without a file on machine A differs from metadata inside a recording from machine B. What is the right way to read and understand the recording itself?  
+**Answer:** **jfr metadata recording.jfr**; also note the producer JDK and reader JDK.
 
-**Câu 7:** recording dài 30 giây, sự cố kéo dài 2 phút xảy ra 10 phút sau. Có thể suy nguyên nhân từ file này không?  
-**Đáp án:** Không đủ cơ sở trực tiếp; cần recording phủ đúng khoảng sự cố hoặc nguồn dữ liệu khác tương quan.
+**Question 7:** A recording is 30 seconds long, and a 2-minute incident occurred 10 minutes later. Can you infer the cause from this file?  
+**Answer:** There is insufficient direct basis; you need a recording covering the incident window or other correlated data sources.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle JDK 21 — The jfr Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): cú pháp **summary, metadata, print, view**, bộ lọc và stack-depth.
-- [Oracle JDK 17 — The jfr Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html): bộ lệnh nền tảng khi dùng JDK 17.
-- [Oracle JDK 21 — jdk.jfr package](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html): event model, annotations, settings và schema.
-- [Oracle JDK 21 — Recording API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html): tạo/enable/start/stop/dump recording.
-- [Oracle JDK 21 — EventSettings API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html): threshold, period và stackTrace.
-- [Oracle dev.java — JFR command line tool](https://dev.java/learn/jvm/jfr/tools/): hướng dẫn chính thức thực hành từ file JFR.
+- [Oracle JDK 21 — The jfr Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): syntax for **summary, metadata, print, view**, filters, and stack-depth.
+- [Oracle JDK 17 — The jfr Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html): core command set when using JDK 17.
+- [Oracle JDK 21 — jdk.jfr package](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html): event model, annotations, settings, and schema.
+- [Oracle JDK 21 — Recording API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html): creating/enabling/starting/stopping/dumping recordings.
+- [Oracle JDK 21 — EventSettings API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html): threshold, period, and stackTrace.
+- [Oracle dev.java — JFR command line tool](https://dev.java/learn/jvm/jfr/tools/): official hands-on guide for JFR files.

@@ -1,10 +1,10 @@
-# Chuẩn bị đơn vị nguồn bằng StandardJavaFileManager
+# Preparing Source Units with StandardJavaFileManager
 
-## 1. Vị trí trong quy trình biên dịch Java lúc chạy
+## 1. Role in the Runtime Java Compilation Pipeline
 
-Java Compiler API (`javax.tools`, có trong module `java.compiler`) cho phép host biên dịch source Java mà không gọi tiến trình `javac` bên ngoài. Một bước quan trọng là chuyển đường dẫn các file `.java` thành `JavaFileObject` để đưa vào `JavaCompiler.CompilationTask`. `StandardJavaFileManager` cung cấp các thao tác này theo quy ước của hệ thống tệp và cấu hình compiler.
+The Java Compiler API (`javax.tools`, located in module `java.compiler`) lets a host compile Java source without spawning an external `javac` process. A key step is converting `.java` file paths into `JavaFileObject` instances to pass into `JavaCompiler.CompilationTask`. `StandardJavaFileManager` provides these operations according to filesystem conventions and compiler configuration.
 
-Quy trình tiêu biểu:
+Typical workflow:
 
 ```text
 ToolProvider.getSystemJavaCompiler()
@@ -12,7 +12,7 @@ ToolProvider.getSystemJavaCompiler()
       v
 JavaCompiler.getStandardFileManager(...)
       |
-      +--> đặt CLASS_PATH / CLASS_OUTPUT (khi cần)
+      +--> set CLASS_PATH / CLASS_OUTPUT (when needed)
       |
       +--> getJavaFileObjectsFromPaths(...)
       |             |
@@ -23,47 +23,47 @@ JavaCompiler.getStandardFileManager(...)
 compiler.getTask(..., fileManager, ..., compilationUnits)
       |
       v
-task.call() --> kiểm tra diagnostics và .class output
+task.call() --> inspect diagnostics and .class output
 ```
 
-Trong hệ thống plugin, host có thể nhận các tệp source từ thư mục được phép, chuyển chúng thành compilation units rồi tạo class cho một plugin mới. **Chuẩn bị compilation units** khác với việc compile, load class, instantiate provider hoặc thực thi mã plugin; đó là các bước riêng cần kiểm soát.
+In a plugin system, the host can accept source files from an allowed directory, convert them into compilation units, and then produce classes for a new plugin. **Preparing compilation units** is distinct from compiling, loading classes, instantiating providers, or executing plugin code; those are separate steps requiring control.
 
-## 2. Những đối tượng cần hiểu
+## 2. Objects You Need to Understand
 
-| Đối tượng | Vai trò |
+| Object | Role |
 |---|---|
-| `JavaCompiler` | Compiler được lấy qua `ToolProvider.getSystemJavaCompiler()`; tạo tác vụ biên dịch |
-| `StandardJavaFileManager` | Adapter chuẩn giữa compiler và file system; tạo `JavaFileObject` và quản lý file location |
-| `JavaFileObject` | Trừu tượng của tệp source/class; `Kind.SOURCE` đại diện đơn vị nguồn |
-| `Iterable<? extends JavaFileObject>` | Tập compilation units được truyền vào `getTask` |
-| `StandardLocation.CLASS_PATH` | Nơi compiler tìm dependency từ class path |
-| `StandardLocation.CLASS_OUTPUT` | Nơi ghi file `.class` khi compiler thành công |
-| `DiagnosticCollector<JavaFileObject>` | Thu thập thông tin lỗi/cảnh báo có source, line và column khi có |
+| `JavaCompiler` | Compiler obtained via `ToolProvider.getSystemJavaCompiler()`; creates compilation tasks |
+| `StandardJavaFileManager` | Standard adapter between the compiler and filesystem; creates `JavaFileObject` and manages file locations |
+| `JavaFileObject` | Abstraction of a source/class file; `Kind.SOURCE` represents a source unit |
+| `Iterable<? extends JavaFileObject>` | Collection of compilation units passed into `getTask` |
+| `StandardLocation.CLASS_PATH` | Where the compiler searches for dependencies on the class path |
+| `StandardLocation.CLASS_OUTPUT` | Where `.class` files are written when the compiler succeeds |
+| `DiagnosticCollector<JavaFileObject>` | Collects error/warning details with source, line, and column when available |
 
-`StandardJavaFileManager` mở rộng `JavaFileManager` và `Closeable`: cần đóng khi không sử dụng. Đừng nhầm file manager với class loader: file manager hỗ trợ compiler tìm/đọc/ghi file; việc load và chạy `.class` sau khi biên dịch cần được thiết kế riêng.
+`StandardJavaFileManager` extends `JavaFileManager` and `Closeable`: it must be closed when no longer in use. Do not confuse a file manager with a class loader: the file manager helps the compiler locate/read/write files; loading and running `.class` files after compilation must be designed separately.
 
-## 3. Lấy StandardJavaFileManager
+## 3. Obtaining StandardJavaFileManager
 
 ```java
 JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 if (compiler == null) {
-    throw new IllegalStateException("Không có system Java compiler");
+    throw new IllegalStateException("No system Java compiler available");
 }
 
 DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
 try (StandardJavaFileManager files = compiler.getStandardFileManager(
         diagnostics, Locale.ROOT, StandardCharsets.UTF_8)) {
-    // Cấu hình location, chuẩn bị JavaFileObject, gọi getTask.
+    // Configure locations, prepare JavaFileObjects, call getTask.
 }
 ```
 
-Đoạn này là **mảnh mã minh họa**; cần import `javax.tools.*`, `java.util.Locale`, `java.nio.charset.StandardCharsets` và đặt vào phương thức có xử lý exception. `getSystemJavaCompiler()` thường sẵn có khi chạy trên JDK có module `jdk.compiler`; trong runtime image tối giản không có compiler, nó có thể trả `null`. `java.compiler` chỉ định nghĩa các API, không bảo đảm provider compiler luôn hiện diện.
+This is an **illustrative code snippet**; it needs imports for `javax.tools.*`, `java.util.Locale`, and `java.nio.charset.StandardCharsets`, placed inside a method with exception handling. `getSystemJavaCompiler()` is normally available when running on a JDK with module `jdk.compiler`; in a minimal runtime image without a compiler, it can return `null`. `java.compiler` only defines the APIs; it does not guarantee a compiler provider is always present.
 
-Ba tham số của `getStandardFileManager` lần lượt là diagnostic listener, locale và charset. Khi biên dịch nguồn tiếng Việt hoặc có literal Unicode, chọn charset rõ ràng để việc đọc source ổn định giữa các máy. `Locale.ROOT` chủ yếu ảnh hưởng cách hiển thị thông báo chẩn đoán, không thay đổi ngữ nghĩa chương trình.
+The three parameters of `getStandardFileManager` are the diagnostic listener, locale, and charset, respectively. When compiling Vietnamese source or files containing Unicode literals, specify an explicit charset so source reading is consistent across machines. `Locale.ROOT` mainly affects how diagnostic messages are formatted, without changing program semantics.
 
-## 4. Chuyển file nguồn thành JavaFileObject
+## 4. Converting Source Files into JavaFileObject
 
-Các phương thức quan trọng của `StandardJavaFileManager`:
+Key methods on `StandardJavaFileManager`:
 
 ```java
 Iterable<? extends JavaFileObject> units =
@@ -73,17 +73,17 @@ Iterable<? extends JavaFileObject> units =
     ));
 ```
 
-Những file `.java` ở đây phải thật sự tồn tại và thuộc phạm vi được host cho phép. `getJavaFileObjectsFromPaths` giúp chuyển từng `Path` thành Java file object; nó không tự tìm mọi source trong cả thư mục theo một quy tắc plugin. Nếu muốn compile cả cây source, host tự duyệt file trong thư mục, lọc `.java`, sắp xếp đầu vào có chủ đích rồi truyền danh sách path.
+These `.java` files must actually exist and belong to a scope permitted by the host. `getJavaFileObjectsFromPaths` converts each `Path` into a Java file object; it does not automatically discover every source across an entire directory according to a plugin convention. If you want to compile an entire source tree, the host must walk the directory itself, filter `.java` files, intentionally sort inputs, and pass the list of paths.
 
-Các biến thể khác: `getJavaFileObjects(File...)`, `getJavaFileObjectsFromFiles(Iterable<? extends File>)` và `getJavaFileObjectsFromStrings(Iterable<String>)`. Khi code đã dùng `java.nio.file.Path`, ưu tiên `getJavaFileObjectsFromPaths` để tránh chuyển qua lại giữa `Path` và `File`.
+Other variants include: `getJavaFileObjects(File...)`, `getJavaFileObjectsFromFiles(Iterable<? extends File>)`, and `getJavaFileObjectsFromStrings(Iterable<String>)`. When code already uses `java.nio.file.Path`, prefer `getJavaFileObjectsFromPaths` to avoid converting back and forth between `Path` and `File`.
 
-**Bảo đảm hợp đồng:** Trình biên dịch không chấp nhận tùy tiện bytecode hoặc file `class` làm compilation unit nguồn. Nên chỉ truyền `JavaFileObject.Kind.SOURCE`; nếu source không tồn tại, không đọc được hoặc có tên khác cấu trúc package/public class, compiler sẽ báo lỗi thích hợp.
+**Contract guarantee:** The compiler does not accept arbitrary bytecode or `class` files as source compilation units. Only `JavaFileObject.Kind.SOURCE` should be passed; if a source file does not exist, cannot be read, or has a name mismatched with its package/public class structure, the compiler will report an appropriate error.
 
-## 5. Ví dụ hoàn chỉnh, biên dịch được trên Java 17+
+## 5. Complete Example, Compilable on Java 17+
 
-Ví dụ tạo một source Java từ trước trên ổ đĩa, dùng `StandardJavaFileManager` để tạo compilation unit và biên dịch `.class` vào thư mục output. Mục đích là kiểm chứng riêng quá trình chuẩn bị units và compile.
+The example creates a Java source file on disk beforehand, uses `StandardJavaFileManager` to construct compilation units, and compiles `.class` files into an output directory. The goal is to verify unit preparation and compilation in isolation.
 
-Cây thư mục ban đầu:
+Initial directory tree:
 
 ```text
 compile-demo/
@@ -166,7 +166,7 @@ public final class CompileSources {
 }
 ```
 
-Từ thư mục `compile-demo/`, chạy trên JDK 17+:
+From the `compile-demo/` directory, run on JDK 17+:
 
 ```bash
 javac -encoding UTF-8 CompileSources.java
@@ -174,24 +174,24 @@ java CompileSources
 java -cp build/classes demo.Greeter
 ```
 
-Output chính xác khi source hợp lệ và compiler khả dụng:
+Exact output when the source is valid and a compiler is available:
 
 ```text
 compiled: true
 Hello from compiled source
 ```
 
-Dòng đầu từ `CompileSources`; dòng thứ hai từ chương trình `demo.Greeter` vừa được biên dịch. Tệp kết quả là `build/classes/demo/Greeter.class`. Chương trình biên dịch **không tự thực thi** class này trong `task.call()`; lệnh `java -cp` là bước riêng.
+The first line comes from `CompileSources`; the second comes from the newly compiled `demo.Greeter` program. The resulting file is `build/classes/demo/Greeter.class`. The compiler program **does not automatically execute** this class during `task.call()`; the `java -cp` command is a separate step.
 
-### Vì sao ví dụ dùng setLocationFromPaths?
+### Why Does the Example Use setLocationFromPaths?
 
-`manager.setLocationFromPaths(StandardLocation.CLASS_OUTPUT, List.of(output))` cấu hình nơi sinh file `.class` ở mức file manager. Nó tương tự chỉ định `-d build/classes` cho compiler, và không cần tự đặt `-d` một lần nữa trong `options`. Một số location khác như `CLASS_PATH` và `SOURCE_PATH` có thể cấu hình tùy dependency và cấu trúc project; tránh vừa cấu hình file manager vừa truyền cờ mâu thuẫn khiến việc kiểm chứng khó khăn.
+`manager.setLocationFromPaths(StandardLocation.CLASS_OUTPUT, List.of(output))` configures where `.class` files are generated at the file manager level. It is similar to passing `-d build/classes` to the compiler, and you do not need to set `-d` a second time in `options`. Other locations such as `CLASS_PATH` and `SOURCE_PATH` can be configured depending on dependencies and project layout; avoid both configuring the file manager and passing conflicting flags that make verification difficult.
 
-## 6. Chuẩn bị nhiều compilation units
+## 6. Preparing Multiple Compilation Units
 
-Trong dự án thực, một plugin có thể gồm nhiều file cùng package hoặc import lẫn nhau. Cần đưa tập `JavaFileObject` vào cùng một compilation task để compiler kiểm tra các phụ thuộc nguồn.
+In a real project, a plugin may consist of multiple files in the same package or importing one another. You must pass the collection of `JavaFileObject` instances into the same compilation task so the compiler can check source dependencies.
 
-Ví dụ Java 17+ (đặt trong một phương thức đã có `manager`):
+Java 17+ example (placed in a method that already has `manager`):
 
 ```java
 List<Path> sourceFiles = List.of(
@@ -202,9 +202,9 @@ Iterable<? extends JavaFileObject> units =
         manager.getJavaFileObjectsFromPaths(sourceFiles);
 ```
 
-Đây là ví dụ **chưa độc lập**, cần file `src/demo/Util.java` thật sự tồn tại. Một lỗi phổ biến là chỉ truyền file entry point và kỳ vọng mọi source ngoài source path tự được phát hiện. Khi cần compile toàn bộ module plugin, hãy xác định rõ file đầu vào, source path và dependency path theo build graph.
+This example is **not standalone**; it requires `src/demo/Util.java` to actually exist. A common mistake is passing only an entry-point file and expecting all sources outside the source path to be discovered automatically. When compiling an entire plugin module, explicitly define input files, source path, and dependency path according to the build graph.
 
-### Thu thập source từ thư mục an toàn
+### Collecting Sources Safely from a Directory
 
 ```java
 Path root = Path.of("src").toAbsolutePath().normalize();
@@ -218,24 +218,24 @@ try (var paths = Files.walk(root)) {
 }
 ```
 
-Đoạn trên là một phần của chương trình đã import `Files`, `Path`, `List` và phải xử lý `IOException`; nó không phải chương trình độc lập. `Files.walk` trả stream cần đóng. Trong host plugin nhận source từ người dùng, còn phải kiểm tra symlink, giới hạn thư mục được phép, số lượng/tổng dung lượng file và đường dẫn canonical. `normalize()` chỉ xử lý cú pháp path, **không** tự giải quyết symlink hay bảo đảm file nằm trong root đáng tin cậy.
+The snippet above is part of a program that already imports `Files`, `Path`, and `List` and must handle `IOException`; it is not a standalone program. `Files.walk` returns a stream that must be closed. In a plugin host accepting sources from users, you must also check symlinks, allowed directory bounds, file count/total size, and canonical paths. `normalize()` only normalizes path syntax; it **does not** resolve symlinks or guarantee a file stays inside a trusted root.
 
-## 7. Class path, module path và dependency
+## 7. Class Path, Module Path, and Dependencies
 
-File manager chuẩn có thể cấu hình các location khác nhau. Khi mã plugin import contract API:
+The standard file manager can configure different locations. When plugin code imports the contract API:
 
 ```java
 manager.setLocationFromPaths(
         StandardLocation.CLASS_PATH, List.of(Path.of("lib/plugin-api.jar")));
 ```
 
-Đây là đoạn minh họa trong ngữ cảnh đã có `manager`. Compiler tìm `plugin-api.jar` trên class path khi resolve symbol. Nếu API thuộc named module và plugin biên dịch dạng JPMS module, cần cấu hình `MODULE_PATH` và source/module options phù hợp; đừng nhầm compile class path với module path.
+This is an illustrative snippet in a context that already has `manager`. The compiler looks up `plugin-api.jar` on the class path when resolving symbols. If the API belongs to a named module and the plugin compiles as a JPMS module, configure `MODULE_PATH` and appropriate source/module options; do not confuse the compile class path with the module path.
 
-Đối với code chạy runtime, dependency visibility lại phụ thuộc class loader/module layer của host. Việc `javac` tìm thấy thư viện tại compile time không đảm bảo loader của plugin khi thực thi cũng nhìn thấy đúng artifact ấy. Trong kiến trúc plugin, contract API nên được chia sẻ nhất quán và tránh đóng gói trùng dẫn đến class identity conflict.
+For code running at runtime, dependency visibility depends on the host's class loader/module layer. That `javac` finds a library at compile time does not guarantee the plugin's loader at execution time sees that exact same artifact. In a plugin architecture, the contract API should be shared consistently and avoid duplicate packaging that causes class identity conflicts.
 
-## 8. Diagnostics và luồng lỗi
+## 8. Diagnostics and Error Flow
 
-`DiagnosticCollector` tích lũy lỗi, cảnh báo và thông báo từ compiler. `Diagnostic` có thể cung cấp kind, message, source, line và column, nhưng một số diagnostics mang vị trí `NOPOS` và không liên kết file cụ thể. Khi hiển thị lỗi trong UI, không giả định mọi lỗi đều có line hợp lệ.
+`DiagnosticCollector` accumulates errors, warnings, and notes from the compiler. `Diagnostic` can provide kind, message, source, line, and column, though some diagnostics carry `NOPOS` and are not tied to a specific file. When displaying errors in a UI, do not assume every error has a valid line number.
 
 ```java
 for (Diagnostic<? extends JavaFileObject> diagnostic :
@@ -248,59 +248,59 @@ for (Diagnostic<? extends JavaFileObject> diagnostic :
 }
 ```
 
-Đây là đoạn đặt trong ngữ cảnh ví dụ, không độc lập. Trước khi đưa nội dung diagnostic ra giao diện hay log, cân nhắc loại bỏ đường dẫn tuyệt đối và thông tin riêng tư. Không nên dùng nguyên văn message compiler làm khóa ổn định để quyết định nghiệp vụ vì chúng có thể khác giữa JDK/locale.
+This snippet is placed in the example's context and is not standalone. Before exposing diagnostic contents to a UI or logs, consider stripping absolute paths and private information. Avoid using verbatim compiler messages as stable keys for business logic decisions since they can differ across JDKs/locales.
 
-Phân biệt các trường hợp:
+Distinguish the cases:
 
-- `compiler == null`: runtime thiếu system Java compiler.
-- `task.call()` trả `false`: có lỗi biên dịch thông thường, xem diagnostics.
-- `getTask(...)`, file manager hoặc I/O ném exception: cấu hình/đọc file hoặc lỗi công cụ cần xử lý riêng.
-- `task.call()` có thể ném runtime exception với lỗi bất thường; không đồng nhất mọi exception với lỗi cú pháp source.
+- `compiler == null`: runtime lacks a system Java compiler.
+- `task.call()` returns `false`: normal compilation error occurred; inspect diagnostics.
+- `getTask(...)`, the file manager, or I/O throws an exception: configuration/file-read or tool error to handle separately.
+- `task.call()` may throw a runtime exception for abnormal failures; do not conflate every exception with a source syntax error.
 
-## 9. Quản lý vòng đời StandardJavaFileManager
+## 9. Managing the StandardJavaFileManager Lifecycle
 
-File manager có thể giữ cache thông tin file hoặc tài nguyên phục vụ compiler. Nên dùng `try-with-resources` để đóng ngay sau đợt compile. Không nên tái sử dụng cùng một file manager cho các tác vụ đồng thời mà không kiểm chứng thread-safety của implementation.
+The file manager may cache file metadata or resources for the compiler. Use `try-with-resources` to close it right after the compilation batch. Do not reuse the same file manager across concurrent tasks without verifying the implementation's thread safety.
 
-Một file manager chuẩn có thể được dùng qua nhiều compilation tasks tuần tự để tận dụng cache. Tuy nhiên, mỗi task chỉ được gọi một lần; tạo task mới khi compile lại. Nếu đang triển khai dịch vụ compile lâu dài, cần quy định rõ khi nào tạo, tái sử dụng và đóng file manager để tránh leak và trạng thái cấu hình từ plugin này ảnh hưởng plugin khác.
+A standard file manager can be used across multiple sequential compilation tasks to leverage caching. However, each task may only be called once; create a new task for the next compilation. When implementing a long-lived compile service, clearly specify when to create, reuse, and close file managers to prevent leaks and keep configuration state from one plugin from affecting another.
 
-Đặc biệt, `getJavaFileObjectsFromPaths(...)` trả các file objects gắn với manager; không nên giữ chúng sau khi manager bị đóng rồi kỳ vọng tiếp tục đọc source. Thông thường các compilation units được chuẩn bị và tiêu thụ trong cùng scope của manager.
+In particular, `getJavaFileObjectsFromPaths(...)` returns file objects tied to the manager; do not keep them after the manager is closed and expect to continue reading sources. Compilation units are normally prepared and consumed within the same manager scope.
 
-## 10. Biên dịch plugin không đồng nghĩa an toàn khi chạy
+## 10. Compiling a Plugin Does Not Mean Safe Execution
 
-Trong hệ thống plugin do người dùng cung cấp, Java Compiler API **không phải sandbox**. Source có thể chứa mã nguy hiểm và việc compile còn có thể kích hoạt annotation processors nếu không giới hạn. Khi dùng compiler với nguồn không tin cậy:
+In a user-supplied plugin system, the Java Compiler API **is not a sandbox**. Source code can contain dangerous code, and compilation itself can trigger annotation processors if unrestricted. When using the compiler with untrusted sources:
 
-- Chỉ nhận source từ vị trí được cho phép, giới hạn file count, size và compile timeout.
-- Kiểm soát class path, module path và annotation processors; nếu không cần xử lý annotation, cấu hình `-proc:none`.
-- Tránh chạy compile trong cùng process với quyền quá rộng nếu xử lý nguồn không tin cậy; cân nhắc tiến trình riêng với giới hạn tài nguyên và OS isolation.
-- Không tự động load hoặc khởi tạo class vừa compile nếu chưa có bước thẩm định.
-- Kiểm tra dependency runtime và contract version trước khi kích hoạt plugin.
+- Accept sources only from permitted locations; enforce limits on file count, size, and compile timeout.
+- Control the class path, module path, and annotation processors; if annotation processing is not needed, set `-proc:none`.
+- Avoid running compilation in the same process with overly broad privileges when handling untrusted sources; consider a separate process with resource limits and OS isolation.
+- Do not automatically load or initialize freshly compiled classes without an evaluation step.
+- Verify runtime dependencies and contract version before activating the plugin.
 
-Quyền truy cập file hệ thống, mạng và các thư viện ở runtime vẫn phụ thuộc quyền của process/OS và thiết kế isolation, không được hạn chế tự động chỉ bởi `StandardJavaFileManager`.
+Filesystem, network, and library access at runtime still depend on process/OS permissions and isolation design, and are not automatically restricted by `StandardJavaFileManager` alone.
 
-## 11. Lỗi thường gặp và cách sửa
+## 11. Common Errors and How to Fix Them
 
-| Triệu chứng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Resolution |
 |---|---|---|
-| `getSystemJavaCompiler()` trả null | Không có provider system compiler trong runtime image | Chạy JDK đầy đủ hoặc runtime image có `jdk.compiler` |
-| Không tìm thấy `src/demo/Greeter.java` | Working directory/path sai | Kiểm tra working directory và dùng `Path` đã xác minh |
-| `package demo does not exist` | Thiếu dependency hoặc source path | Cấu hình `CLASS_PATH`/`MODULE_PATH` đúng và đưa đủ sources |
-| Không sinh `.class` ở thư mục mong muốn | Chưa đặt `CLASS_OUTPUT` hoặc cấu hình output sai | `setLocationFromPaths(CLASS_OUTPUT, List.of(output))` |
-| File `.java` có tiếng Việt bị đọc sai | Charset đầu vào không thống nhất | Chỉ định UTF-8 cho file manager và compiler options |
-| Source có public class sai tên file | Tên `.java` không khớp public top-level class | Đặt đúng file/package theo Java |
-| Gọi `task.call()` nhiều lần | Compilation task chỉ thực thi một lần | Tạo task mới từ compiler cho lần biên dịch kế tiếp |
-| Leak file descriptor | Không đóng file manager hoặc stream duyệt thư mục | Dùng try-with-resources |
-| Compile OK nhưng chạy lỗi ClassNotFound | Runtime class path/loader không thấy output | Cấu hình loader/runtime module path sau compile |
+| `getSystemJavaCompiler()` returns null | No system compiler provider in the runtime image | Run on a full JDK or a runtime image containing `jdk.compiler` |
+| Cannot find `src/demo/Greeter.java` | Wrong working directory/path | Verify the working directory and use validated `Path` objects |
+| `package demo does not exist` | Missing dependency or source path | Configure `CLASS_PATH`/`MODULE_PATH` properly and include all sources |
+| No `.class` generated in expected directory | `CLASS_OUTPUT` not set or wrong output configuration | `setLocationFromPaths(CLASS_OUTPUT, List.of(output))` |
+| `.java` file with Vietnamese text is misread | Inconsistent input charset | Specify UTF-8 on both the file manager and compiler options |
+| Source has a public class with mismatched filename | `.java` filename does not match the public top-level class | Name file/package properly per Java rules |
+| Calling `task.call()` multiple times | A compilation task executes only once | Create a new task from the compiler for the next compilation |
+| File descriptor leak | File manager or directory-walk stream not closed | Use try-with-resources |
+| Compiles OK but fails at runtime with ClassNotFound | Runtime class path/loader cannot see output | Configure the loader/runtime module path after compilation |
 
-## 12. Checklist thực hành
+## 12. Practical Checklist
 
-1. Kiểm tra system compiler có tồn tại.
-2. Xác thực source roots và từng path đầu vào; xác định `.java` cần compile.
-3. Tạo `DiagnosticCollector` và `StandardJavaFileManager` với charset cụ thể.
-4. Tạo thư mục output và cấu hình `StandardLocation.CLASS_OUTPUT`.
-5. Cấu hình dependency `CLASS_PATH`/`MODULE_PATH` phù hợp.
-6. Chuyển `Path` sang `Iterable<? extends JavaFileObject>` bằng `getJavaFileObjectsFromPaths`.
-7. Truyền compilation units vào `getTask` cùng compiler options rõ ràng.
-8. Gọi `task.call()` đúng một lần, xử lý Boolean và diagnostics.
-9. Đóng file manager; kiểm tra `.class` đầu ra và chỉ nạp plugin ở giai đoạn activation riêng.
+1. Verify that the system compiler exists.
+2. Validate source roots and each input path; identify the `.java` files to compile.
+3. Create `DiagnosticCollector` and `StandardJavaFileManager` with an explicit charset.
+4. Create the output directory and configure `StandardLocation.CLASS_OUTPUT`.
+5. Configure the appropriate `CLASS_PATH`/`MODULE_PATH` dependencies.
+6. Convert `Path`s to `Iterable<? extends JavaFileObject>` via `getJavaFileObjectsFromPaths`.
+7. Pass compilation units into `getTask` along with explicit compiler options.
+8. Call `task.call()` exactly once; handle the Boolean result and diagnostics.
+9. Close the file manager; inspect `.class` outputs and load the plugin only in a separate activation stage.
 
-**Kết luận:** `StandardJavaFileManager` là cầu nối chuẩn giữa file system và `JavaCompiler`. Chuẩn bị compilation units đúng giúp compiler nhận được file nguồn cần thiết, resolve dependency và ghi class output vào vị trí có kiểm soát. Đây là bước nền tảng cho hệ thống biên dịch plugin lúc chạy, nhưng không thay thế quản lý class loader, module layer hay kiểm soát an toàn khi kích hoạt mã đã biên dịch.
+**Conclusion:** `StandardJavaFileManager` is the standard bridge between the filesystem and `JavaCompiler`. Properly preparing compilation units ensures the compiler receives the required source files, resolves dependencies, and writes class output to a controlled location. It is the foundational step for a runtime plugin compilation system, but it does not replace class loader management, module layers, or security controls when activating compiled code.

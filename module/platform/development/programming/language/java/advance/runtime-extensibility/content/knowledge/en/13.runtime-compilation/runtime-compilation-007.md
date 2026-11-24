@@ -1,21 +1,21 @@
-# Thu thập lỗi, cảnh báo, vị trí nguồn và thông điệp bằng DiagnosticCollector
+# Collecting Errors, Warnings, Source Locations, and Messages with DiagnosticCollector
 
-Khi một chương trình Java **biên dịch mã nguồn lúc chạy** bằng `javax.tools.JavaCompiler`, người dùng cần biết nhiều hơn một giá trị `true` hoặc `false`: **mã bị lỗi ở tệp nào, dòng/cột nào, thông điệp lỗi là gì, có cảnh báo nào dù biên dịch thành công hay không**. API `javax.tools.DiagnosticCollector` giúp thu thập những chẩn đoán đó dưới dạng dữ liệu có cấu trúc để hiển thị trong IDE, trình chỉnh sửa luật, trình tạo mã, công cụ học Java hoặc hệ thống plugin.
+When a Java program **compiles source code at runtime** using `javax.tools.JavaCompiler`, users need more than just `true` or `false`: **which file failed, at which line/column, what the error message is, and whether any warnings occurred even when compilation succeeded**. The `javax.tools.DiagnosticCollector` API collects those diagnostics as structured data for display in IDEs, rule editors, code generators, Java learning tools, or plugin systems.
 
-Điều cốt lõi là phân biệt:
+The core distinction is:
 
-- **Kết quả của tác vụ biên dịch**: `CompilationTask.call()` trả `Boolean.TRUE` khi compiler báo thành công, `Boolean.FALSE` khi báo thất bại; lỗi hạ tầng/khởi tạo tác vụ còn có thể xuất hiện qua exception.
-- **Diagnostic**: mỗi lỗi, cảnh báo hoặc thông báo có loại (`kind`), nguồn (`source`), vị trí và thông điệp (`message`). Nhiều diagnostic có thể cùng xuất hiện trong một lượt biên dịch.
-- **DiagnosticCollector**: implementation sẵn có của `DiagnosticListener`, giữ các diagnostic trong danh sách để ứng dụng đọc sau hoặc trong lúc compiler báo sự cố.
+- **Compilation task outcome**: `CompilationTask.call()` returns `Boolean.TRUE` when the compiler reports success and `Boolean.FALSE` when it reports failure; infrastructure or task-initialization errors can also surface as exceptions.
+- **Diagnostic**: each error, warning, or note has a `kind`, `source`, location, and `message`. Multiple diagnostics can occur in a single compilation run.
+- **DiagnosticCollector**: a built-in implementation of `DiagnosticListener` that stores diagnostics in a list for the application to read afterward or while the compiler reports issues.
 
-Một mã nguồn **biên dịch thành công vẫn có thể có WARNING**; ngược lại, không nên suy ra toàn bộ tác vụ thành công chỉ vì danh sách lỗi bạn đếm được bằng 0. Trạng thái `call()` mới là kết quả của tác vụ, còn diagnostics giải thích điều gì đã xảy ra.
+Source code that **compiles successfully can still have WARNINGs**; conversely, do not infer the entire task succeeded merely because your counted error list is 0. The return status of `call()` is the task outcome, while diagnostics explain what happened.
 
-## 1. Pipeline thu thập diagnostic
+## 1. Diagnostic Collection Pipeline
 
-Luồng thông dụng với JDK 17+:
+Typical flow on JDK 17+:
 
 ```text
-Java source (.java hoặc JavaFileObject trong bộ nhớ)
+Java source (.java or in-memory JavaFileObject)
                        |
                        v
             JavaCompiler.getTask(...)
@@ -35,27 +35,27 @@ StandardJavaFileManager  options    DiagnosticCollector
                 kind / source / line / column /
                  position / code / message
                                    |
-                  log / API / IDE / báo lỗi
+                  log / API / IDE / error report
 ```
 
-Các loại API nằm trong module chuẩn `java.compiler`, package `javax.tools`:
+The API types belong to the standard `java.compiler` module, package `javax.tools`:
 
-| API | Vai trò |
+| API | Role |
 |---|---|
-| `ToolProvider.getSystemJavaCompiler()` | Lấy compiler Java đang có trong runtime; có thể trả `null` nếu image không có compiler |
-| `JavaCompiler` | Tạo compilation task, làm việc với file manager và listener |
-| `JavaCompiler.CompilationTask` | Tác vụ biên dịch cụ thể; `call()` thực hiện một lượt biên dịch |
-| `StandardJavaFileManager` | Quản lý các `JavaFileObject` từ file, classpath/module path và output location |
-| `JavaFileObject` | Đại diện nguồn/đầu ra Java mà compiler làm việc; có thể trỏ đến file hoặc được tạo trong bộ nhớ |
-| `DiagnosticListener<S>` | Interface nhận diagnostic theo cơ chế callback `report(...)` |
-| `DiagnosticCollector<S>` | Listener lưu diagnostic để lấy lại bằng `getDiagnostics()` |
-| `Diagnostic<S>` | Một chẩn đoán và các thuộc tính phục vụ hiển thị/phân tích |
+| `ToolProvider.getSystemJavaCompiler()` | Obtains the Java compiler present in the runtime; may return `null` if the image lacks a compiler |
+| `JavaCompiler` | Creates compilation tasks; works with file managers and listeners |
+| `JavaCompiler.CompilationTask` | Specific compilation task; `call()` executes one compilation pass |
+| `StandardJavaFileManager` | Manages `JavaFileObject`s from files, classpath/module path, and output locations |
+| `JavaFileObject` | Represents a Java source/output used by the compiler; can point to a file or be created in memory |
+| `DiagnosticListener<S>` | Interface receiving diagnostics via the `report(...)` callback |
+| `DiagnosticCollector<S>` | Listener that records diagnostics for retrieval via `getDiagnostics()` |
+| `Diagnostic<S>` | A single diagnostic and its properties for display/analysis |
 
-**Phân biệt với `compiler.run(...)`:** phương thức `run` thuận tiện như một lệnh biên dịch có các stream đầu vào/đầu ra và trả exit status. Khi cần **danh sách lỗi có cấu trúc**, hãy dùng `getTask(...)` với `DiagnosticCollector`; không nên parse thông báo console của `javac` bằng regex.
+**Contrast with `compiler.run(...)`:** `run` is convenient as a command-line-style compile invocation taking input/output streams and returning an exit status. When you need a **structured list of errors**, use `getTask(...)` with `DiagnosticCollector`; do not parse `javac` console output with regex.
 
-## 2. Khởi tạo collector và truyền đúng vào compiler
+## 2. Initializing the Collector and Passing It Properly to the Compiler
 
-Mẫu thiết lập tối thiểu:
+Minimal setup pattern:
 
 ```java
 JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -75,11 +75,11 @@ try (StandardJavaFileManager manager =
             manager.getJavaFileObjectsFromPaths(List.of(sourcePath));
 
     JavaCompiler.CompilationTask task = compiler.getTask(
-            null,                         // writer cho thông điệp khác
+            null,                         // writer for miscellaneous output
             manager,                      // file manager
-            collector,                    // listener nhận diagnostic
+            collector,                    // listener receiving diagnostics
             List.of("--release", "17"),   // compiler options
-            null,                         // classes cho annotation processing
+            null,                         // classes for annotation processing
             units);                       // source units
 
     boolean success = Boolean.TRUE.equals(task.call());
@@ -88,36 +88,36 @@ try (StandardJavaFileManager manager =
 }
 ```
 
-Đây là **đoạn minh họa bên trong một phương thức**, giả định `sourcePath` là `Path` đã tồn tại và đã import các class ở `javax.tools`, `java.nio`, `java.util`. Phần ví dụ đầy đủ, biên dịch được, nằm ở mục 4.
+This is an **illustrative snippet inside a method**, assuming `sourcePath` is an existing `Path` and classes from `javax.tools`, `java.nio`, and `java.util` are imported. A complete, compilable example is in Section 4.
 
-Những chi tiết cần hiểu:
+Details to understand:
 
-1. **Đúng kiểu generic.** Với compiler Java, `DiagnosticCollector<JavaFileObject>` khớp kiểu `JavaFileObject` của compilation units. `getDiagnostics()` trả danh sách `Diagnostic<? extends JavaFileObject>`.
-2. **Truyền collector vào `getTask`.** Nếu không truyền listener, compiler có thể gửi chẩn đoán ra writer/luồng console; ứng dụng không có danh sách cấu trúc để phân tích.
-3. **Truyền vào `getStandardFileManager` nếu muốn thu cả chẩn đoán từ file manager** khi đọc file hoặc xử lý location. Dùng cùng collector cho hai nơi giúp tập trung thông báo.
-4. **Một task là một lượt biên dịch.** Không gọi `call()` nhiều lần trên cùng `CompilationTask`. Với hai lượt biên dịch độc lập, tạo task mới và tốt nhất là collector mới.
-5. **Đóng file manager** bằng `try-with-resources`. Việc có DiagnosticCollector không thay thế quản lý tài nguyên file manager.
-6. **Chụp snapshot** nếu cần giữ kết quả sau lượt chạy: `List.copyOf(collector.getDiagnostics())` tạo danh sách độc lập với list view của collector.
+1. **Match the generic type.** For the Java compiler, `DiagnosticCollector<JavaFileObject>` matches the `JavaFileObject` type of compilation units. `getDiagnostics()` returns a list of `Diagnostic<? extends JavaFileObject>`.
+2. **Pass the collector into `getTask`.** Without a listener, the compiler may send diagnostics to the writer/console stream, leaving the application without a structured list to inspect.
+3. **Pass it into `getStandardFileManager` as well if you want to capture diagnostics from the file manager** when reading files or resolving locations. Using the same collector in both places centralizes notifications.
+4. **One task is one compilation run.** Never invoke `call()` multiple times on the same `CompilationTask`. For two independent compilations, create a new task and preferably a new collector.
+5. **Close the file manager** using `try-with-resources`. Having a `DiagnosticCollector` does not replace file manager resource management.
+6. **Take a snapshot** if you need to keep results after the run: `List.copyOf(collector.getDiagnostics())` creates a list independent of the collector's view.
 
-`getDiagnostics()` trả **list view** chứ không phải một định dạng file hay JSON. Có thể lặp qua và chuyển sang DTO riêng để gửi lên giao diện/API. Danh sách đó có thể chứa nhiều diagnostic cho một source và nhiều source trong một lượt biên dịch.
+`getDiagnostics()` returns a **list view**, not a file format or JSON. You can iterate over it and map entries into your own DTOs for UI/API responses. The list may contain multiple diagnostics for one source and across multiple sources in a single compilation run.
 
-## 3. Những trường dữ liệu trong Diagnostic
+## 3. Data Fields in Diagnostic
 
-Mỗi `Diagnostic<? extends JavaFileObject>` cung cấp thông tin để phân loại và chỉ vị trí.
+Each `Diagnostic<? extends JavaFileObject>` provides classification and location information.
 
-| Phương thức | Ý nghĩa | Lưu ý |
+| Method | Meaning | Notes |
 |---|---|---|
-| `getKind()` | `ERROR`, `WARNING`, `MANDATORY_WARNING`, `NOTE` hoặc `OTHER` | Không chỉ có ERROR/WARNING |
-| `getSource()` | `JavaFileObject` liên quan đến diagnostic | **Có thể `null`** khi chẩn đoán mang tính toàn cục |
-| `getLineNumber()` | Số dòng của vị trí vấn đề | Thường **1-based**; có thể `Diagnostic.NOPOS` |
-| `getColumnNumber()` | Số cột của vị trí vấn đề | Thường **1-based**; có thể `Diagnostic.NOPOS` |
-| `getPosition()` | Offset ký tự tính từ đầu source | **0-based**, không phải dòng/cột hay byte offset |
-| `getStartPosition()` | Offset bắt đầu đoạn nguồn được compiler xác định là có vấn đề | Có thể không có vị trí |
-| `getEndPosition()` | Offset kết thúc đoạn nguồn được compiler xác định | Không tự giả định mọi implementation đánh dấu cùng một token |
-| `getCode()` | Mã chẩn đoán do implementation cung cấp | **Implementation-dependent**, có thể `null` |
-| `getMessage(Locale)` | Thông điệp giải thích lỗi/cảnh báo theo locale | Câu chữ có thể đổi theo compiler/JDK/locale |
+| `getKind()` | `ERROR`, `WARNING`, `MANDATORY_WARNING`, `NOTE`, or `OTHER` | Not limited to `ERROR`/`WARNING` |
+| `getSource()` | `JavaFileObject` associated with the diagnostic | **Can be `null`** when the diagnostic is global |
+| `getLineNumber()` | Line number of the issue | Typically **1-based**; may be `Diagnostic.NOPOS` |
+| `getColumnNumber()` | Column number of the issue | Typically **1-based**; may be `Diagnostic.NOPOS` |
+| `getPosition()` | Character offset from the start of the source | **0-based**, not line/column or byte offset |
+| `getStartPosition()` | Start offset of the source span identified by the compiler | Position may be unavailable |
+| `getEndPosition()` | End offset of the identified source span | Do not assume every implementation highlights the exact same token |
+| `getCode()` | Implementation-supplied diagnostic code | **Implementation-dependent**, may be `null` |
+| `getMessage(Locale)` | Message explaining the error/warning per locale | Wording may vary by compiler/JDK/locale |
 
-### 3.1. Phân loại: ERROR, WARNING và MANDATORY_WARNING
+### 3.1. Classification: ERROR, WARNING, and MANDATORY_WARNING
 
 ```java
 Diagnostic.Kind kind = diagnostic.getKind();
@@ -128,13 +128,13 @@ boolean isWarning =
         || kind == Diagnostic.Kind.MANDATORY_WARNING;
 ```
 
-Đoạn trên minh họa logic phân loại trong phạm vi có biến `diagnostic`. Nếu dashboard chỉ đếm `WARNING`, nó sẽ **bỏ sót `MANDATORY_WARNING`**, một loại rất dễ gặp khi javac báo unchecked operation. `NOTE` có thể chứa lời khuyên bổ sung; `OTHER` dành cho chẩn đoán ngoài những loại thông dụng.
+The snippet above illustrates classification logic where a `diagnostic` variable is in scope. If a dashboard only counts `WARNING`, it will **miss `MANDATORY_WARNING`**, a kind frequently emitted when `javac` warns about unchecked operations. `NOTE` can provide supplemental hints; `OTHER` covers diagnostics outside the common kinds.
 
-**Warning không đồng nghĩa thất bại.** Compiler có thể hoàn thành nhưng vẫn có cảnh báo. Ngược lại, với tùy chọn như `-Werror`, chính sách compiler có thể biến một compilation có warning thành không thành công. Ứng dụng cần đọc **cả `success` lẫn danh sách diagnostic**, không thay đổi ý nghĩa của `call()`.
+**Warnings do not mean failure.** The compiler can complete with warnings. Conversely, with flags such as `-Werror`, compiler policy can turn a compilation with warnings into a failure. Applications should inspect **both `success` and the diagnostic list**, without altering the meaning of `call()`.
 
-### 3.2. Khi không có nguồn hoặc vị trí
+### 3.2. When Source or Position Is Absent
 
-Một số diagnostic là lỗi mức dự án, module, option hoặc môi trường, không gắn được với một token cụ thể:
+Some diagnostics are project-wide, module, option, or environment errors not tied to a specific token:
 
 ```java
 String sourceName = diagnostic.getSource() == null
@@ -150,26 +150,26 @@ String location = (line == Diagnostic.NOPOS
         : line + ":" + column;
 ```
 
-Không được gọi `diagnostic.getSource().getName()` mà không kiểm tra `null`. Giá trị `Diagnostic.NOPOS` (thường là `-1`) báo **không có vị trí hợp lệ**; không hiển thị thành “dòng -1, cột -1” như một lỗi định vị thật.
+Never call `diagnostic.getSource().getName()` without a `null` check. The value `Diagnostic.NOPOS` (typically `-1`) indicates **no valid position exists**; do not display it as "line -1, column -1" as if it were a real source location.
 
-### 3.3. Độ lệch ký tự và hiển thị trong editor
+### 3.3. Character Offsets and Editor Display
 
-- `getLineNumber()` và `getColumnNumber()` là vị trí trình bày theo dòng/cột, thông thường bắt đầu từ 1.
-- `getPosition()`/`getStartPosition()`/`getEndPosition()` là **offset ký tự** từ đầu `JavaFileObject`, không phải offset byte UTF-8. Với Java `String`/`CharSequence`, code UI thường cần chú ý đơn vị UTF-16, surrogate pairs, line endings và tab khi chuyển sang vị trí con trỏ.
-- Vị trí và độ dài đoạn gạch chân do compiler chọn có thể khác nhau giữa các phiên bản. Không tự thêm/bớt 1 vào mọi trường.
-- Khi đưa tới editor, hãy dùng một phiên bản source **khớp với phiên bản đã gửi để biên dịch**. Nếu người dùng sửa source trong lúc compile, vị trí diagnostic cũ có thể chỉ nhầm dòng.
-- Khi source được tạo trong bộ nhớ, URI/name của `JavaFileObject` giúp gắn diagnostic với một “file ảo”; điều đó không ngụ ý file thật tồn tại trên đĩa.
+- `getLineNumber()` and `getColumnNumber()` are display positions by line/column, normally 1-based.
+- `getPosition()`/`getStartPosition()`/`getEndPosition()` are **character offsets** from the start of the `JavaFileObject`, not UTF-8 byte offsets. With Java `String`/`CharSequence`, UI code must account for UTF-16 code units, surrogate pairs, line endings, and tabs when mapping to cursor positions.
+- The exact position and underline span chosen by the compiler can vary across versions. Do not blindly add or subtract 1 on every field.
+- When displaying in an editor, use a source revision **matching the revision sent to compilation**. If a user edits the source while compilation is in flight, old diagnostic positions can point to the wrong lines.
+- When source is created in memory, the `JavaFileObject`'s URI/name associates the diagnostic with a "virtual file"; that does not imply a real file exists on disk.
 
-## 4. Ví dụ Java 17 chạy được: thu thập lỗi và cảnh báo từ nguồn trong bộ nhớ
+## 4. Runnable Java 17 Example: Collecting Errors and Warnings from In-Memory Source
 
-Ví dụ dùng `SimpleJavaFileObject` để đưa source code dạng chuỗi trực tiếp cho compiler. Không cần tạo trước `Broken.java` hay `Unchecked.java` trên ổ đĩa. Hai lượt biên dịch độc lập thể hiện:
+This example uses `SimpleJavaFileObject` to pass string source code directly to the compiler without creating `Broken.java` or `Unchecked.java` on disk beforehand. Two independent compilation runs demonstrate:
 
-- **ERROR** do gán `String` vào biến `int`.
-- **Cảnh báo unchecked** do gọi `add` qua `List` raw type khi bật `-Xlint:unchecked`.
+- **ERROR** caused by assigning a `String` to an `int` variable.
+- **Unchecked warning** caused by calling `add` on a raw `List` when `-Xlint:unchecked` is enabled.
 
-Trong ví dụ, compiler phát sinh class file tại một thư mục tạm. Class được biên dịch **không tự động được nạp hay thực thi**.
+In the example, the compiler emits class files into a temporary directory. Compiled classes **are not automatically loaded or executed**.
 
-Lưu tệp **`DiagnosticCollectorDemo.java`**:
+Save file **`DiagnosticCollectorDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -189,7 +189,7 @@ import javax.tools.ToolProvider;
 
 public final class DiagnosticCollectorDemo {
 
-    // Một JavaFileObject có mã nguồn trong bộ nhớ.
+    // A JavaFileObject holding source code in memory.
     private static final class Source extends SimpleJavaFileObject {
         private final String code;
 
@@ -213,7 +213,7 @@ public final class DiagnosticCollectorDemo {
             JavaCompiler compiler, JavaFileObject unit, Path outputDir)
             throws IOException {
 
-        // Dùng collector mới cho từng compilation task.
+        // Use a fresh collector for each compilation task.
         DiagnosticCollector<JavaFileObject> collector =
                 new DiagnosticCollector<>();
 
@@ -269,7 +269,7 @@ public final class DiagnosticCollectorDemo {
                     + " line=" + position(d.getLineNumber())
                     + " column=" + position(d.getColumnNumber()));
 
-            // Locale.ROOT để yêu cầu thông điệp không theo locale của OS.
+            // Use Locale.ROOT to request messages independent of the OS locale.
             System.out.println("  message=" + d.getMessage(Locale.ROOT));
         }
     }
@@ -309,49 +309,49 @@ public final class DiagnosticCollectorDemo {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 17 trở lên**:
+Compile and run with **JDK 17 or later**:
 
 ```bash
 javac -encoding UTF-8 DiagnosticCollectorDemo.java
 java DiagnosticCollectorDemo
 ```
 
-**Kết quả đáng chú ý:** trên javac thông dụng hỗ trợ `--release 17` và `-Xlint:unchecked`, hai dòng tóm tắt có dạng:
+**Notable output:** on standard `javac` supporting `--release 17` and `-Xlint:unchecked`, the two summary lines look like:
 
 ```text
 broken success=false errors=1 warnings=0
 unchecked success=true errors=0 warnings=1
 ```
 
-Chương trình còn in các dòng diagnostic **ngay sau mỗi dòng tóm tắt**. Ví dụ chẩn đoán trong các lượt biên dịch với javac:
+The program also prints diagnostic lines **immediately after each summary line**. Example diagnostics from those `javac` runs:
 
 ```text
   kind=ERROR source=/Broken.java line=2 column=18
   message=incompatible types: java.lang.String cannot be converted to int
 ```
 
-và:
+and:
 
 ```text
   kind=MANDATORY_WARNING source=/Unchecked.java line=6 column=16
   message=unchecked call to add(E) as a member of the raw type java.util.List
 ```
 
-**Các khối đầu ra ở trên là những phần được tách ra để giải thích, không phải một bản stdout liên tục.** Trong stdout thực tế, thông điệp lỗi của `broken` nằm trước dòng tóm tắt `unchecked`. Văn bản của `getMessage(Locale.ROOT)`, phân loại warning hoặc chi tiết vị trí có thể thay đổi theo implementation và phiên bản JDK; không dùng chuỗi thông điệp làm hợp đồng API bất biến.
+**The output blocks above are separated for explanation, not a continuous stdout stream.** In actual stdout, `broken`'s error message appears before the `unchecked` summary line. The wording of `getMessage(Locale.ROOT)`, warning classification, or position details can change across implementations and JDK versions; do not treat message text as an immutable API contract.
 
-### 4.1. Vì sao dữ liệu xuất hiện?
+### 4.1. Why Does This Data Appear?
 
-1. `Source` mở rộng `SimpleJavaFileObject`, dùng URI `string:///Broken.java` và `string:///Unchecked.java`. Compiler có thể đọc nội dung source qua `getCharContent(...)`, nên `Diagnostic.getSource()` vẫn có đối tượng nguồn dù không có file `.java` trên đĩa.
-2. `--release 17` yêu cầu javac biên dịch theo ngôn ngữ và API Java 17. Ví dụ dùng Java text block và record, đều được hỗ trợ từ Java 17.
-3. `-Xlint:unchecked` yêu cầu compiler báo thao tác generic không được kiểm tra; `List raw` gọi `add` tạo cảnh báo. Với javac, loại cảnh báo đó có thể là `MANDATORY_WARNING`, vì vậy ví dụ đếm cả hai loại warning.
-4. `-proc:none` tắt annotation processing trong lượt demo để không phát sinh xử lý phụ từ annotation processors.
-5. Từng lượt biên dịch dùng **collector riêng**. Lỗi trong `Broken` không bị tính chung vào diagnostics của `Unchecked`.
-6. `Result` chứa snapshot danh sách diagnostic trước khi file manager đóng. `printResult` chuyển từng diagnostic thành loại, nguồn, dòng, cột và thông điệp.
-7. `outputDir` là nơi compiler có thể ghi class file. Ví dụ chỉ biên dịch và kiểm tra, không thực thi class vừa tạo. Trong ứng dụng thật cần quản lý vòng đời thư mục tạm và xóa output khi không dùng nữa.
+1. `Source` extends `SimpleJavaFileObject`, using URIs `string:///Broken.java` and `string:///Unchecked.java`. The compiler reads the source via `getCharContent(...)`, so `Diagnostic.getSource()` still has a source object even without `.java` files on disk.
+2. `--release 17` instructs `javac` to compile against Java 17 language features and APIs. The example uses Java text blocks and records, both supported in Java 17.
+3. `-Xlint:unchecked` tells the compiler to report unchecked generic operations; calling `add` on raw `List` triggers a warning. In `javac`, that warning kind can be `MANDATORY_WARNING`, which is why the example counts both warning kinds.
+4. `-proc:none` disables annotation processing during the demo so annotation processors do not introduce extra side effects.
+5. Each compilation uses **its own collector**. Errors in `Broken` are not mixed into `Unchecked`'s diagnostics.
+6. `Result` holds a snapshot of the diagnostic list before the file manager closes. `printResult` formats each diagnostic's kind, source, line, column, and message.
+7. `outputDir` is where the compiler can write class files. The example only compiles and inspects without executing the generated class. Real applications must manage temporary directory lifecycles and delete outputs when no longer needed.
 
-### 4.2. Nếu muốn có vị trí chính xác hơn
+### 4.2. If You Need More Precise Positions
 
-Trong vòng lặp `for` ở `printResult` có thể lấy thêm:
+Inside the `for` loop in `printResult`, you can also read:
 
 ```java
 long position = d.getPosition();
@@ -364,11 +364,11 @@ System.out.printf(
         position, start, end, code);
 ```
 
-Đây là **đoạn bổ sung cho vòng lặp** ở chương trình trên, không phải chương trình độc lập. Dùng những offset này để đánh dấu token/range trong editor khi hợp lệ, nhưng vẫn cần xử lý `Diagnostic.NOPOS`. `getCode()` có ích cho máy phân tích hoặc telemetry trong một compiler cụ thể, song **không có bảo đảm tương thích mã lỗi giữa các compiler hoặc phiên bản**.
+This is an **addition for the loop** in the program above, not a standalone program. Use these offsets to highlight tokens/ranges in an editor when valid, while still handling `Diagnostic.NOPOS`. `getCode()` is useful for analyzers or telemetry within a specific compiler, yet **carries no compatibility guarantee across compilers or versions**.
 
-## 5. Trình bày vị trí nguồn và thông điệp cho người học
+## 5. Presenting Source Locations and Messages to Learners
 
-Một diagnostic nên được chuyển thành dữ liệu riêng thay vì chuyển toàn bộ đối tượng `Diagnostic` trực tiếp sang JSON. Ví dụ cấu trúc ý tưởng:
+A diagnostic should be mapped into its own data structure rather than serializing the entire `Diagnostic` object directly to JSON. Conceptual example:
 
 ```json
 {
@@ -383,9 +383,9 @@ Một diagnostic nên được chuyển thành dữ liệu riêng thay vì chuy�
 }
 ```
 
-Đây là **ví dụ hình dạng DTO**, không phải JSON đầu ra của chương trình ở mục 4. `startOffset` trong sản phẩm thật phải lấy từ `getStartPosition()` ở compiler tương ứng, không tự suy từ `line`/`column`; giá trị số trong JSON chỉ minh họa. `sourceRevision` là định danh do **ứng dụng** bổ sung để UI khớp diagnostic với bản source đã gửi.
+This is a **DTO shape example**, not JSON output from the program in Section 4. In a real product, `startOffset` must come from the compiler's `getStartPosition()`, not be guessed from `line`/`column`; numeric values in the JSON are purely illustrative. `sourceRevision` is an **application-added** identifier so the UI matches diagnostics to the exact submitted source revision.
 
-Với editor, một lỗi có thể hiển thị như:
+In an editor, an error can be rendered as:
 
 ```text
 Broken.java:2:18 [ERROR]
@@ -394,13 +394,13 @@ Broken.java:2:18 [ERROR]
 incompatible types: java.lang.String cannot be converted to int
 ```
 
-Dòng và cột cần tính từ chính source đã biên dịch; tab, CRLF và các ký tự Unicode có thể làm vị trí hiển thị khác với offset trong chuỗi, nên phải dùng quy tắc mapping của editor. Với source không có vị trí, hãy để thông điệp ở khu vực “lỗi dự án” thay vì gắn sai vào dòng 1.
+Line and column should map to the exact compiled source; tabs, CRLF, and Unicode characters can make visual columns differ from string offsets, so follow the editor's mapping rules. For diagnostics without a location, place the message in a "project errors" area instead of falsely attaching it to line 1.
 
-**Locale và thông điệp:** `diagnostic.getMessage(Locale.ROOT)` yêu cầu một thông điệp theo locale gốc; API cũng cho phép truyền `Locale.forLanguageTag("vi")` hoặc `Locale.getDefault()`. Tuy nhiên, compiler **không bắt buộc phải có bản dịch tiếng Việt**. UI có thể tự dịch thông báo để hỗ trợ học tập, nhưng nên lưu phiên bản thông điệp gốc để đối chiếu. Không tách nghĩa từ một chuỗi thông điệp tiếng Anh nếu cần business logic.
+**Locale and messages:** `diagnostic.getMessage(Locale.ROOT)` requests a message in the root locale; the API also accepts `Locale.forLanguageTag("vi")` or `Locale.getDefault()`. However, compilers **are not required to ship Vietnamese translations**. A UI may translate messages itself to aid learners, while retaining the original message for reference. Never parse meaning out of an English message string for business logic.
 
-## 6. Nhiều nguồn, nhiều lượt biên dịch và chiến lược tổng hợp
+## 6. Multiple Sources, Multiple Compilations, and Aggregation Strategy
 
-Trong công cụ biên dịch động thực tế, một tác vụ có thể nhận nhiều `JavaFileObject`:
+In a real dynamic compilation tool, a single task can take multiple `JavaFileObject`s:
 
 ```java
 Iterable<? extends JavaFileObject> units =
@@ -412,114 +412,114 @@ JavaCompiler.CompilationTask task = compiler.getTask(
 Boolean success = task.call();
 ```
 
-Đây là **đoạn minh họa** với `manager`, `collector`, `options`, `pathA`, `pathB`, `pathC` đã khai báo. Một diagnostic sẽ gắn với `JavaFileObject` tương ứng khi compiler xác định được nguồn. Không cho rằng nguồn của mọi lỗi đều là “file đầu tiên” hoặc “class chính”.
+This is an **illustrative snippet** with `manager`, `collector`, `options`, `pathA`, `pathB`, and `pathC` already declared. A diagnostic attaches to its corresponding `JavaFileObject` when the compiler identifies a source. Do not assume every error's source is "the first file" or "the main class."
 
-Một hệ thống nhận nguồn Java có thể cần các bước:
+A system accepting Java sources typically needs these steps:
 
-1. **Xác định snapshot source**: source ID, file name, nội dung/encoding và hash hoặc revision ở thời điểm nhận.
-2. **Tạo task/collector cho một job**: không trộn hai lần `call()` vào cùng bộ kết quả nếu không có job ID.
-3. **Biên dịch trong môi trường xác định**: `--release`, classpath/module path, compiler options và output location phải phù hợp.
-4. **Đọc kết quả**: `success` và các diagnostic, cả `ERROR` lẫn `WARNING`, `MANDATORY_WARNING`, `NOTE` và `OTHER`.
-5. **Chuẩn hóa dữ liệu hiển thị**: map tên nguồn, chuyển `NOPOS` sang vị trí “unknown”, giới hạn độ dài thông điệp, đính kèm compiler/version.
-6. **Lưu trữ/đưa ra UI**: nếu cần sắp xếp, hãy định nghĩa rõ thứ tự (tệp, dòng, cột, severity) thay vì dựa vào thứ tự gửi thông báo như một tiêu chuẩn bất biến.
-7. **Phân biệt lỗi compile với lỗi infrastructure**: sai compiler option, không mở được file manager, không ghi được class output hoặc compiler vắng mặt đều cần mã lỗi riêng.
+1. **Identify source snapshot**: source ID, filename, content/encoding, and hash or revision at submission time.
+2. **Create a task/collector per job**: never mix two `call()` runs into the same result set without a job ID.
+3. **Compile in a deterministic environment**: `--release`, classpath/module path, compiler options, and output location must match.
+4. **Read results**: `success` and diagnostics—including `ERROR`, `WARNING`, `MANDATORY_WARNING`, `NOTE`, and `OTHER`.
+5. **Normalize display data**: map source names, convert `NOPOS` to `"unknown"`, cap message lengths, and attach compiler/version info.
+6. **Persist/send to UI**: if sorting is needed, explicitly define sort order (file, line, column, severity) rather than relying on emission order as an invariant standard.
+7. **Separate compile errors from infrastructure errors**: invalid compiler options, failure to open file manager, unwritable class output, or missing compiler each require distinct error codes.
 
-### 6.1. Khi nào cần xử lý diagnostic theo thời gian thực?
+### 6.1. When Do You Need Real-Time Diagnostic Streaming?
 
-`DiagnosticCollector` là listener đơn giản giúp lấy danh sách chẩn đoán. Nếu muốn **đẩy từng diagnostic ngay khi compiler báo**, bạn có thể tự cài `DiagnosticListener<JavaFileObject>` bằng `report(...)` rồi chuyển sang hàng đợi UI/log, hoặc vừa ghi nhận vừa báo tiến độ. Phải tránh cập nhật UI từ thread không phù hợp và tránh coi mỗi callback là kết luận cuối cùng về success.
+`DiagnosticCollector` is a simple listener for retrieving a list of diagnostics. If you want to **push each diagnostic as soon as the compiler reports it**, implement `DiagnosticListener<JavaFileObject>`'s `report(...)` method to forward entries to a UI/log queue, or record them while reporting progress. Avoid updating UI state from an inappropriate thread and avoid treating each individual callback as the final verdict on overall success.
 
-Đoạn minh họa listener:
+Illustrative listener snippet:
 
 ```java
 DiagnosticListener<JavaFileObject> listener = diagnostic -> {
-    // Thu thập/chuyển diagnostic theo hợp đồng ứng dụng.
-    // Không coi một NOTE/WARNING là compilation failure.
+    // Collect/forward diagnostic per application contract.
+    // Do not treat a NOTE/WARNING as compilation failure.
     System.out.println(diagnostic.getKind() + ": "
             + diagnostic.getMessage(Locale.ROOT));
 };
 ```
 
-Đây là đoạn trong phương thức, cần import `javax.tools.DiagnosticListener`, `javax.tools.JavaFileObject` và `java.util.Locale`. Nếu dùng listener riêng thay collector, phải tự quyết định cơ chế lưu, thread-safety và định dạng lỗi. Với nhiệm vụ “thu thập để phân tích sau”, `DiagnosticCollector` thường đủ.
+This snippet goes inside a method and requires importing `javax.tools.DiagnosticListener`, `javax.tools.JavaFileObject`, and `java.util.Locale`. When writing a custom listener instead of a collector, you are responsible for storage, thread safety, and error formatting. For "collect for post-compile analysis," `DiagnosticCollector` is usually sufficient.
 
-### 6.2. Không bắt lỗi API rồi biến nó thành diagnostic nguồn
+### 6.2. Do Not Catch API Exceptions and Turn Them into Source Diagnostics
 
-Có khác biệt lớn giữa:
+There is a major difference between:
 
-- **Lỗi mã nguồn**: ví dụ kiểu dữ liệu không hợp lệ, compiler thường đưa vào `Diagnostic.Kind.ERROR` và `call()` báo không thành công.
-- **Cảnh báo chất lượng/kiểu**: ví dụ unchecked, nằm trong `WARNING` hoặc `MANDATORY_WARNING` nhưng compilation vẫn có thể thành công.
-- **Lỗi cấu hình task**: option không hợp lệ có thể gây `IllegalArgumentException` khi tạo task; không mặc nhiên xuất hiện như một diagnostic ở dòng nguồn.
-- **Thiếu compiler**: `ToolProvider.getSystemJavaCompiler() == null`, không có `CompilationTask` để chạy.
-- **Lỗi I/O**: không tìm được source, không ghi được output, file manager hỏng; cần báo lỗi môi trường và ngữ cảnh, có thể xảy ra trước/khi compilation task chạy.
-- **Lỗi thực thi class sau khi biên dịch**: `ClassNotFoundException`, `LinkageError` hay exception từ phương thức runtime thuộc **giai đoạn nạp/chạy**, không thuộc tập diagnostic của lần biên dịch.
+- **Source code errors**: e.g., invalid types; the compiler emits `Diagnostic.Kind.ERROR` and `call()` reports failure.
+- **Quality/type warnings**: e.g., unchecked operations; emitted as `WARNING` or `MANDATORY_WARNING` while compilation can still succeed.
+- **Task configuration errors**: invalid options can throw `IllegalArgumentException` when creating the task; they do not automatically appear as source-line diagnostics.
+- **Missing compiler**: `ToolProvider.getSystemJavaCompiler() == null`; there is no `CompilationTask` to run.
+- **I/O errors**: missing sources, unwritable outputs, broken file manager; report environment errors and context, which can happen before or during task execution.
+- **Post-compile execution errors**: `ClassNotFoundException`, `LinkageError`, or runtime exceptions from invoked methods belong to the **load/run stage**, not to compilation diagnostics.
 
-Vì vậy, API biên dịch động nên có một kết quả chứa ít nhất: trạng thái job, `success` của compiler khi có, danh sách diagnostic, loại lỗi hạ tầng (nếu có), mã version source và compiler options đã được chấp thuận.
+Therefore, a dynamic compilation API should return a result containing at least: job status, compiler `success` when applicable, diagnostic list, infrastructure error type (if any), source version ID, and approved compiler options.
 
-## 7. Tùy chọn compiler ảnh hưởng số lượng và loại thông điệp
+## 7. Compiler Options Affect Message Count and Kinds
 
-Lượng diagnostics **không cố định với cùng source** nếu thay đổi tùy chọn hoặc phiên bản compiler.
+The diagnostic set **is not fixed for the same source** if options or compiler versions change.
 
-| Tùy chọn | Ảnh hưởng |
+| Option | Effect |
 |---|---|
-| `--release 17` | Kiểm tra mức ngôn ngữ/API tương ứng bản Java 17 |
-| `-Xlint:unchecked` | Yêu cầu diagnostic về generic unchecked operations |
-| `-Xlint:deprecation` | Bật thêm cảnh báo dùng API deprecated theo chính sách lint |
-| `-Werror` | Xem warning là lỗi biên dịch theo chính sách compiler, có thể khiến `success=false` |
-| `-proc:none` | Không chạy annotation processors trong lượt biên dịch |
-| `-d <dir>` | Chọn thư mục ghi class output |
-| `-classpath` / `--module-path` | Ảnh hưởng cách tìm type/module và lỗi thiếu dependency |
+| `--release 17` | Enforces language/API level corresponding to Java 17 |
+| `-Xlint:unchecked` | Requests diagnostics for unchecked generic operations |
+| `-Xlint:deprecation` | Enables additional warnings for deprecated API usage per lint policy |
+| `-Werror` | Treats warnings as compilation errors per compiler policy, potentially causing `success=false` |
+| `-proc:none` | Skips running annotation processors during the compilation |
+| `-d <dir>` | Chooses output directory for class files |
+| `-classpath` / `--module-path` | Affects type/module resolution and missing-dependency errors |
 
-Đừng mặc định một JDK nhận mọi option tương lai hoặc option đặc thù của compiler khác. Trong dịch vụ nhận code từ người dùng, **không cho phép người dùng tự do truyền mọi compiler flag**, đặc biệt những flag thay đổi đường dẫn classpath, module, output hay annotation processing. Tạo danh sách option được phép, xác thực và log bản cấu hình an toàn.
+Do not assume a JDK accepts every future flag or flags specific to another compiler. In a service accepting user code, **do not let users pass arbitrary compiler flags**, especially flags altering classpath, modules, output paths, or annotation processing. Maintain an allowlist of options, validate inputs, and log the safe configuration.
 
-## 8. Kiểm thử DiagnosticCollector theo mục đích sử dụng
+## 8. Testing DiagnosticCollector for Its Intended Purpose
 
-Bộ trường hợp thực tế nên bao phủ cả compiler status và thông tin chi tiết:
+A practical test suite should cover both compiler status and diagnostic details:
 
-| Trường hợp | Điều cần xác minh |
+| Case | What to Verify |
 |---|---|
-| Mã Java đúng, không warning | `success=true`, không có `ERROR` |
-| Gán sai kiểu hoặc thiếu ký tự cú pháp | `success=false` và có `ERROR` đúng source |
-| Raw generic + `-Xlint:unchecked` | Có `WARNING` hoặc `MANDATORY_WARNING`, dù có thể `success=true` |
-| Cùng source, tắt lint | Tập warning có thể ít hơn; không phụ thuộc chuỗi message |
-| Biên dịch nhiều source | `getSource()` gắn đúng đơn vị nguồn khi có |
-| Diagnostic toàn cục | `source=null` hoặc `position=NOPOS` được xử lý an toàn |
-| Warning + `-Werror` | Không tự kết luận success từ việc đếm `ERROR` đơn giản |
-| Text nhiều dòng có Unicode, tab, CRLF | Vị trí hiển thị được map đúng vào snapshot source |
-| Compiler không hiện diện | Trả lỗi môi trường có nghĩa; không `NullPointerException` |
-| Classpath/module path sai | Phân biệt lỗi nguồn, lỗi phụ thuộc và lỗi cấu hình task |
-| Hai job liên tiếp | Collector riêng hoặc job ID riêng, không trộn dữ liệu |
-| Source thay đổi trong lúc job chạy | Diagnostic hiển thị gắn đúng phiên bản source đã biên dịch |
+| Valid Java code, no warnings | `success=true`, zero `ERROR` diagnostics |
+| Type mismatch or missing syntax token | `success=false` and `ERROR` pointing to the right source |
+| Raw generic + `-Xlint:unchecked` | `WARNING` or `MANDATORY_WARNING` present, even when `success=true` |
+| Same source, lint disabled | Warning set may be smaller; do not assert on message wording |
+| Compiling multiple sources | `getSource()` maps to the corresponding source unit when available |
+| Global diagnostic | `source=null` or `position=NOPOS` handled safely |
+| Warning + `-Werror` | Do not infer success simply by counting `ERROR`s |
+| Multi-line text with Unicode, tabs, CRLF | Display positions map accurately onto the source snapshot |
+| Compiler absent | Returns meaningful environment error; no `NullPointerException` |
+| Wrong classpath/module path | Distinguishes source errors, dependency errors, and task config errors |
+| Two consecutive jobs | Separate collectors or job IDs; no cross-contamination |
+| Source edited while job runs | Displayed diagnostics stay tied to the compiled source revision |
 
-**Đừng cố kiểm thử một thông điệp lỗi bằng so sánh nguyên văn với một chuỗi tiếng Anh dài.** Compiler/JDK có thể sửa câu chữ mà giữ nguyên ý nghĩa. Kiểm tra `kind`, trạng thái compile, tên nguồn, vị trí hợp lệ và những thuộc tính quan trọng đối với hợp đồng ứng dụng. Khi cần kiểm thử chính xác dòng/cột, cố định source và compiler version.
+**Do not try to test an error message by matching a long English string verbatim.** Compilers/JDKs can rephrase wording while keeping meaning intact. Assert on `kind`, compile status, source name, valid locations, and properties important to your application contract. When testing exact line/column numbers, pin both the source and compiler version.
 
-## 9. Bảo mật và giới hạn vận hành
+## 9. Security and Operational Limits
 
-`DiagnosticCollector` giúp **quan sát kết quả biên dịch**; nó **không làm mã nguồn an toàn**. Mã chưa được tin cậy sau khi biên dịch thành công vẫn có thể đọc filesystem, kết nối mạng hoặc tạo tiến trình nếu được chạy với quyền của ứng dụng. Một số lưu ý:
+`DiagnosticCollector` helps **observe compilation results**; it **does not make source code safe**. Untrusted code that compiles successfully can still read the filesystem, open network connections, or spawn processes if executed with the application's privileges. Keep in mind:
 
-- Chỉ chấp nhận mã nguồn theo policy, giới hạn kích thước source, số file, thời gian/CPU/bộ nhớ và số diagnostic được giữ hoặc trả về UI.
-- Giới hạn compiler options và đường dẫn đọc/ghi; không biến classpath, annotation processors hay output directory thành đường dẫn do người dùng tùy ý chỉ định.
-- Nếu source không đáng tin cậy, cân nhắc **biên dịch/chạy trong tiến trình hoặc container cô lập** với quyền hệ điều hành hạn chế. Class loader **không phải sandbox**.
-- Không gửi đường dẫn tuyệt đối nhạy cảm, tên tài khoản hệ điều hành hoặc nội dung cấu hình bí mật qua `getSource().getName()` hoặc nguyên văn message nếu chúng chứa thông tin nội bộ; cần chuẩn hóa đường dẫn công bố.
-- Sửa lỗi UI không nên tự động biên dịch lại trên từng phím gõ khi workload lớn; dùng debounce, hủy job theo vòng đời và lưu source revision.
-- Sau khi lấy diagnostics, vẫn phải quyết định có cho phép nạp class vào runtime hay không bằng **chính sách nghiệp vụ, kiểm tra mã và ranh giới tin cậy** riêng.
+- Accept source code only per policy; enforce limits on source size, file count, time/CPU/memory, and number of retained or UI-returned diagnostics.
+- Restrict compiler options and read/write paths; never let classpath, annotation processors, or output directories be arbitrarily user-specified.
+- If source is untrusted, consider **compiling/running inside an isolated process or container** with restricted OS privileges. A class loader **is not a sandbox**.
+- Do not expose sensitive absolute paths, OS usernames, or secret configuration values via `getSource().getName()` or verbatim messages if they contain internal details; normalize exposed paths.
+- Editor error checks should not recompile synchronously on every keystroke under heavy load; use debouncing, lifecycle job cancellation, and source revisions.
+- After collecting diagnostics, still decide whether to allow loading the class into runtime using separate **business policies, code checks, and trust boundaries**.
 
-## 10. Những hiểu nhầm thường gặp
+## 10. Common Misconceptions
 
-1. **“`DiagnosticCollector` tự biên dịch source.”** Sai: nó nhận diagnostic; compiler và task mới thực hiện biên dịch.
-2. **“`compiler.run` cho danh sách Java objects của lỗi.”** Không: `getTask` với listener mới là đường thu thập có cấu trúc.
-3. **“Không có ERROR nghĩa là compile đã thành công.”** Chưa đủ: cần `CompilationTask.call()` và phải tính đến lỗi hạ tầng/`-Werror`.
-4. **“WARNING luôn chỉ có `Diagnostic.Kind.WARNING`.”** Sai: còn `MANDATORY_WARNING`.
-5. **“Mọi diagnostic có source và dòng/cột.”** Sai: có thể `source == null` hoặc `position == Diagnostic.NOPOS`.
-6. **“Line/column là byte offset.”** Sai: line/column biểu diễn vị trí theo dòng/cột; offset ký tự được trả ở các phương thức khác.
-7. **“`getMessage(Locale)` là mã lỗi ổn định.”** Sai: văn bản phụ thuộc compiler và locale; `getCode()` cũng mang tính implementation-dependent.
-8. **“Chỉ cần một collector chung cho mọi request.”** Dễ trộn kết quả từ các lượt compile; nên gắn collector với từng job.
-9. **“Biên dịch source thành công nghĩa là class đã được load/chạy.”** Sai: output class còn cần cơ chế class loading/runtime riêng.
-10. **“Thu thập diagnostic đủ để sandbox mã động.”** Sai: bảo mật runtime và cô lập tài nguyên là vấn đề khác.
+1. **“`DiagnosticCollector` compiles source itself.”** False: it receives diagnostics; the compiler and task perform compilation.
+2. **“`compiler.run` returns a Java object list of errors.”** No: `getTask` with a listener is the structured collection path.
+3. **“No ERROR means compilation succeeded.”** Insufficient: check `CompilationTask.call()` and account for infrastructure failures/`-Werror`.
+4. **“Warnings are always only `Diagnostic.Kind.WARNING`.”** False: there is also `MANDATORY_WARNING`.
+5. **“Every diagnostic has a source and line/column.”** False: `source == null` or `position == Diagnostic.NOPOS` can occur.
+6. **“Line/column are byte offsets.”** False: line/column express line-and-column positions; character offsets come from other methods.
+7. **“`getMessage(Locale)` is a stable error code.”** False: text depends on compiler and locale; `getCode()` is also implementation-dependent.
+8. **“One shared collector works for all requests.”** That easily mixes results across compilations; bind a collector per job.
+9. **“Successful source compilation means the class is loaded/running.”** False: output classes still require separate class loading/runtime mechanisms.
+10. **“Collecting diagnostics is enough to sandbox dynamic code.”** False: runtime security and resource isolation are separate concerns.
 
-### Tài liệu Java SE 17
+### Java SE 17 Documentation
 
 - [DiagnosticCollector — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/DiagnosticCollector.html)
 - [Diagnostic — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/Diagnostic.html)
 - [DiagnosticListener — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/DiagnosticListener.html)
 - [JavaCompiler — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html)
 
-**Ghi nhớ:** với mỗi lượt biên dịch động, tạo `DiagnosticCollector<JavaFileObject>`, truyền vào `JavaCompiler.getTask(...)`, gọi `call()`, sau đó đọc `getDiagnostics()` để lấy **loại, nguồn, dòng/cột, offset và thông điệp**. Luôn kiểm tra `null`/`Diagnostic.NOPOS`, phân biệt warning với error, giữ nguồn phiên bản đúng, và dùng `success` để phản ánh kết quả biên dịch thực sự.
+**Remember:** for each dynamic compilation run, create a `DiagnosticCollector<JavaFileObject>`, pass it to `JavaCompiler.getTask(...)`, call `call()`, and read `getDiagnostics()` to obtain **kind, source, line/column, offsets, and messages**. Always check for `null`/`Diagnostic.NOPOS`, distinguish warnings from errors, track the matching source revision, and use `success` to reflect the true compilation outcome.

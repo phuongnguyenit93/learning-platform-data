@@ -1,33 +1,33 @@
-# 14.3 Khởi chạy bằng `-XX:StartFlightRecording` hoặc `JFR.start` trên JVM đang chạy
+# 14.3 Launching JFR via `-XX:StartFlightRecording` or `JFR.start` on a Running JVM
 
-## 1. JFR ghi gì và hai cách bắt đầu khác nhau ở đâu?
+## 1. What Does JFR Record and How Do the Two Launch Methods Differ?
 
-**Java Flight Recorder (JFR)** là hệ thống ghi sự kiện chẩn đoán của JVM. Một recording có thể chứa các mẫu CPU, garbage collection (GC), phân bổ bộ nhớ, class loading, thread, lock contention, file/socket I/O và nhiều sự kiện khác tùy **cấu hình event**. Sau khi thu, xuất dữ liệu thành file **`.jfr`** để xem bằng công cụ `jfr` hoặc **JDK Mission Control (JMC)**.
+**Java Flight Recorder (JFR)** is the JVM's diagnostic event-recording system. A recording can contain CPU samples, garbage collection (GC), memory allocations, class loading, threads, lock contention, file/socket I/O, and many other events depending on **event settings**. After collection, data is exported to a **`.jfr`** file for inspection with the `jfr` tool or **JDK Mission Control (JMC)**.
 
-Có hai lối khởi chạy chính:
+There are two main launch paths:
 
-- **Startup:** `-XX:StartFlightRecording` là JVM option được truyền **trước tên main class hoặc `-jar`**. Dùng để bắt các hiện tượng khi process khởi động, warm-up, class loading, lỗi chỉ xảy ra đầu đời tiến trình hoặc ghi dữ liệu liên tục ngay từ đầu.
-- **Runtime:** `jcmd <PID> JFR.start` gửi diagnostic command đến **JVM đang chạy**, bắt đầu một recording mới **không cần restart** nếu runtime hỗ trợ JFR, attach được phép và người gọi có quyền. Dùng khi service đã hoạt động mà mới phát hiện tải cao, chậm, GC hoặc contention.
+- **Startup:** `-XX:StartFlightRecording` is a JVM option passed **before the main class name or `-jar`**. Use it to capture phenomena during process startup, warm-up, class loading, errors that occur only early in a process's life, or to record continuously from the very beginning.
+- **Runtime:** `jcmd <PID> JFR.start` sends a diagnostic command to a **running JVM**, starting a new recording **without restarting** if the runtime supports JFR, attach is permitted, and the caller has permissions. Use it when a service is already running and high load, latency, GC, or contention has just appeared.
 
-Cả hai đều cấu hình một recording JFR trong JVM. Sự khác biệt chính là **thời điểm kích hoạt, vị trí truyền option và khả năng quan sát sự kiện trước đó**. Nếu không có recording liên tục được bật từ trước, khởi động `JFR.start` hôm nay không thể lấy lại các sự kiện xảy ra hôm qua.
+Both configure a JFR recording inside the JVM. The main differences are **activation timing, where the option is passed, and whether prior events can be observed**. Without a pre-enabled continuous recording, starting `JFR.start` today cannot recover events that happened yesterday.
 
-Các ví dụ dùng **HotSpot/OpenJDK JDK 17+**. Có thể sử dụng JFR trên các JDK khác, nhưng tính năng, câu lệnh và thông tin chẩn đoán nên được xác minh với đúng JDK/vendor đang chạy ứng dụng.
+Examples use **HotSpot/OpenJDK JDK 17+**. JFR can be used on other JDKs, but features, commands, and diagnostic details should be verified against the exact JDK/vendor running the application.
 
-## 2. Bảng chọn đúng cách thu
+## 2. Decision Table for Choosing the Right Capture Method
 
-| Tình huống | Khởi chạy lúc startup | Khởi chạy trên JVM đang chạy |
+| Scenario | Launch at Startup | Launch on a Running JVM |
 | --- | --- | --- |
-| Lỗi chỉ xảy ra 10–30 giây đầu startup | **Nên dùng** vì có thể thu ngay từ lúc JVM bắt đầu | Bật sau startup có thể bỏ lỡ |
-| Service production đã chạy vài ngày, latency vừa tăng | Phải thay startup configuration rồi restart nếu chưa bật | **Nên dùng** `JFR.start`, không phải restart |
-| Muốn luôn giữ 2 giờ dữ liệu gần nhất | `settings=default,disk=true,maxage=2h,...` từ startup | Có thể bật continuous recording khi process đang chạy, nhưng không giữ được dữ liệu trước lúc bật |
-| Muốn chụp 2 phút profiling | `duration=2m,settings=profile` | `JFR.start ... duration=2m settings=profile` |
-| Muốn lưu file ngay trong khi recording vẫn chạy | Gọi `JFR.dump` đến PID của process | Cũng dùng `JFR.dump` |
-| Muốn dừng một recording đang chạy | `JFR.stop name=...` | Tương tự |
-| Không thể attach vào JVM đang chạy | Flag startup là phương án khi có quyền đổi cấu hình deploy | `JFR.start` sẽ không khả dụng cho tới khi giải quyết quyền/hạn chế attach |
+| Error occurs only during the first 10–30 seconds of startup | **Recommended** because it can capture from the moment the JVM starts | Enabling after startup may miss it |
+| Production service has been running for days and latency just spiked | Would require changing startup config and restarting if not already enabled | **Recommended**: `JFR.start`, no restart needed |
+| Want to always keep the most recent 2 hours of data | `settings=default,disk=true,maxage=2h,...` from startup | Can start a continuous recording while running, but cannot retain data from before it was enabled |
+| Want to capture 2 minutes of profiling | `duration=2m,settings=profile` | `JFR.start ... duration=2m settings=profile` |
+| Want to save a file immediately while the recording keeps running | Call `JFR.dump` targeting the process PID | Also use `JFR.dump` |
+| Want to stop a running recording | `JFR.stop name=...` | Same |
+| Cannot attach to the running JVM | Startup flag is an option when deployment config can be updated | `JFR.start` is unavailable until attach permissions/restrictions are resolved |
 
-**Cần nhớ:** `-XX:StartFlightRecording` là cấu hình lúc launch Java; `JFR.start` là diagnostic command qua `jcmd`. **Không** đặt `JFR.start` trong các JVM startup flags, và **không** đưa `-XX:StartFlightRecording` vào phần sau tên ứng dụng.
+**Remember:** `-XX:StartFlightRecording` is a Java launch configuration; `JFR.start` is a diagnostic command via `jcmd`. Do **not** place `JFR.start` in JVM startup flags, and do **not** place `-XX:StartFlightRecording` after the application name.
 
-## 3. Cú pháp chuẩn: dấu phẩy và dấu cách
+## 3. Standard Syntax: Commas vs. Spaces
 
 ### Startup: `-XX:StartFlightRecording`
 
@@ -35,19 +35,19 @@ Các ví dụ dùng **HotSpot/OpenJDK JDK 17+**. Có thể sử dụng JFR trên
 java -XX:StartFlightRecording=name=boot,settings=profile,duration=2m,filename=boot.jfr -jar application.jar
 ```
 
-Đây là **một JVM option**, các cặp `key=value` phân tách bằng **dấu phẩy**, cờ phải đặt **trước** `-jar`. Nếu Java chạy bằng classpath thì đặt trước tên main class:
+This is **a single JVM option** whose `key=value` pairs are separated by **commas**, and the flag must appear **before** `-jar`. If Java is launched via classpath, place it before the main class name:
 
 ```bash
 java -XX:StartFlightRecording=name=boot,settings=default,dumponexit=true,filename=boot.jfr -cp classes com.example.Main
 ```
 
-Sai vị trí:
+Wrong placement:
 
 ```bash
 java -jar application.jar -XX:StartFlightRecording=filename=boot.jfr
 ```
 
-Trong dòng sai, `-XX:StartFlightRecording=...` đi vào đối số `main(String[] args)` của ứng dụng chứ không còn là option JVM.
+In the incorrect line, `-XX:StartFlightRecording=...` is passed as an argument to the application's `main(String[] args)` rather than acting as a JVM option.
 
 ### Runtime: `jcmd <PID> JFR.start`
 
@@ -56,9 +56,9 @@ jcmd -l
 jcmd <PID> JFR.start name=incident settings=profile duration=2m filename=incident.jfr
 ```
 
-Các cặp `key=value` của `jcmd` ngăn bằng **dấu cách**. `<PID>` là chỗ giữ chỗ; thay bằng PID thật của process đích, không nhập dấu `<` hay `>`. Chọn PID chính xác, đừng dùng `jcmd 0` vì có thể gửi lệnh tới **nhiều JVM**.
+`key=value` pairs for `jcmd` are separated by **spaces**. `<PID>` is a placeholder; replace it with the real PID of the target process without typing `<` or `>`. Pick the exact PID—do not use `jcmd 0`, which may send the command to **multiple JVMs**.
 
-Dùng `java -version` để kiểm tra JDK của terminal, và `jcmd <PID> VM.version` để kiểm tra **JDK chạy ứng dụng đích**. Nếu khác nhau, lấy tài liệu và `help` theo runtime đích.
+Use `java -version` to check the terminal's JDK, and `jcmd <PID> VM.version` to check the **JDK running the target application**. If they differ, consult the documentation and `help` output matching the target runtime.
 
 ```bash
 jcmd <PID> help JFR.start
@@ -67,63 +67,63 @@ jcmd <PID> help JFR.dump
 jcmd <PID> help JFR.stop
 ```
 
-Các tham số, giới hạn và công cụ có thể khác nhau giữa các JDK/vendor. Hãy đối chiếu output `help` thay vì sao chép lệnh không tương thích.
+Parameters, limits, and tools can differ across JDKs/vendors. Cross-check the `help` output instead of copying incompatible commands.
 
-## 4. Những option quyết định dữ liệu thu được
+## 4. Options That Determine What Data Is Collected
 
-| Option | Tác dụng | Lưu ý |
+| Option | Effect | Notes |
 | --- | --- | --- |
-| `name=...` | Tên định danh của recording, dùng cho `JFR.check`/`dump`/`stop` | Đặt tên không dấu cách để dễ dùng trong shell. |
-| `settings=default` | Template event ít overhead, phù hợp quan sát nền | Không có nghĩa bật mọi event. |
-| `settings=profile` | Template thu nhiều thông tin profiling hơn | Thường overhead cao hơn `default`, nên dùng trong khoảng đo có mục tiêu. |
-| `delay=20s` | Chờ 20 giây rồi mới bắt đầu ghi | Các event trong 20 giây đầu **không nằm trong recording**. |
-| `duration=2m` | Tự dừng sau 2 phút ghi | Không ghi `duration` thường là ghi không thời hạn tới khi stop hoặc JVM kết thúc. |
-| `filename=...` | Vị trí file `.jfr` được tạo khi recording kết thúc | File có thể **chưa tồn tại** ngay khi gọi start. |
-| `disk=true` | Sử dụng disk repository tạm để giữ dữ liệu JFR | **Không có nghĩa** ghi vào `filename` liên tục từng sự kiện. |
-| `maxage=2h` | Chỉ giữ dữ liệu trong giới hạn tuổi 2 giờ | Áp dụng khi `disk=true`; chunks cũ có thể bị xóa. |
-| `maxsize=256m` | Giới hạn dung lượng dữ liệu giữ trong repository | Dùng với `disk=true`; giá trị phải phù hợp giới hạn chunk của JVM. |
-| `dumponexit=true` | Dump recording khi JVM thoát bình thường | Không bảo đảm khi OOM kill, SIGKILL hoặc host crash. |
-| `path-to-gc-roots=true` | Thu đường dẫn tới GC roots phục vụ điều tra memory leak | Có thể tốn chi phí đáng kể, không bật mặc định cho mọi cuộc thu. |
+| `name=...` | Identifier for the recording, used by `JFR.check`/`dump`/`stop` | Use a name without spaces for easier shell usage. |
+| `settings=default` | Low-overhead event template suited for background observation | Does not mean all events are enabled. |
+| `settings=profile` | Template capturing richer profiling details | Typically higher overhead than `default`; use for targeted windows. |
+| `delay=20s` | Waits 20 seconds before starting to record | Events in the first 20 seconds are **not in the recording**. |
+| `duration=2m` | Auto-stops after 2 minutes of recording | Omitting `duration` usually records indefinitely until stopped or JVM exit. |
+| `filename=...` | Location of the `.jfr` file created when the recording ends | The file may **not exist yet** right after start is called. |
+| `disk=true` | Uses a temporary disk repository to store JFR data | Does **not mean** every event is continuously appended to `filename`. |
+| `maxage=2h` | Keeps only data within a 2-hour age limit | Applies when `disk=true`; older chunks may be deleted. |
+| `maxsize=256m` | Limits the size of data retained in the repository | Used with `disk=true`; value must fit JVM chunk limits. |
+| `dumponexit=true` | Dumps the recording when the JVM exits normally | Not guaranteed on OOM kill, `SIGKILL`, or host crash. |
+| `path-to-gc-roots=true` | Collects paths to GC roots for memory leak investigation | Can incur substantial cost; not enabled by default for every capture. |
 
-**Default và profile:** hai cấu hình `default.jfc` và `profile.jfc` thường ở `JAVA_HOME/lib/jfr`. `default` cân bằng event và tần suất sampling cho việc ghi dài; `profile` cung cấp thêm dữ liệu để điều tra trong khoảng ngắn. Chọn theo câu hỏi, vì thu nhiều event và stack trace có thể tăng CPU, memory, disk I/O, volume dữ liệu. Muốn bật event đặc thù hoặc chỉnh threshold, dùng file `.jfc` và `jfr configure`; kiểm tra settings thực sự bằng `JFR.check verbose=true`.
+**Default vs. profile:** the two configurations `default.jfc` and `profile.jfc` typically live in `JAVA_HOME/lib/jfr`. `default` balances events and sampling frequency for long-running recording; `profile` provides extra data for short-window investigation. Choose based on the question, because collecting more events and stack traces can increase CPU, memory, disk I/O, and data volume. To enable specific events or adjust thresholds, use `.jfc` files and `jfr configure`; inspect actual active settings with `JFR.check verbose=true`.
 
-**`disk` so với `filename`:** `disk=true` cho phép JVM ghi chunks vào **repository tạm** trong suốt thời gian recording. `filename` là **file kết quả** khi dừng/hết duration; `JFR.dump` có thể xuất snapshot riêng sớm hơn. Không coi thư mục repository là nơi lưu artifact cuối. Nếu `disk=false`, dữ liệu chỉ giữ trong buffer bộ nhớ giới hạn, nên không phù hợp giữ lịch sử nhiều giờ.
+**`disk` vs. `filename`:** `disk=true` lets the JVM write chunks to a **temporary repository** for the duration of the recording. `filename` is the **output file** upon stop/duration expiry; `JFR.dump` can export a separate snapshot earlier. Do not treat the repository directory as the final artifact location. If `disk=false`, data stays only in bounded memory buffers, making it unsuitable for retaining multi-hour history.
 
-## 5. Recipe A: ghi 2 phút từ startup
+## 5. Recipe A: Recording 2 Minutes from Startup
 
-Cần tìm chỗ startup chậm hoặc mã Java/JVM tải lớp bất thường:
+When investigating slow startup or abnormal Java/JVM class loading:
 
 ```bash
 java -XX:StartFlightRecording=name=startup,settings=profile,duration=2m,filename=/var/log/app/startup.jfr -jar application.jar
 ```
 
-Bắt đầu ghi ngay khi JVM khởi động, kết thúc sau khoảng 2 phút và ghi file theo `filename`. Directory `/var/log/app` phải tồn tại và user JVM có quyền ghi. Trên Windows, đổi thành đường dẫn hợp lệ của Windows, ví dụ `C:\recordings\startup.jfr`. Dùng đường dẫn tuyệt đối để không nhầm working directory.
+Recording begins as soon as the JVM starts, stops after about 2 minutes, and writes the file to `filename`. The directory `/var/log/app` must already exist and be writable by the JVM user. On Windows, change this to a valid Windows path such as `C:\recordings\startup.jfr`. Use absolute paths to avoid working-directory confusion.
 
-Nếu muốn bỏ giai đoạn đầu warm-up và chỉ xem trạng thái gần ổn định:
+If you want to skip initial warm-up and inspect near-steady state:
 
 ```bash
 java -XX:StartFlightRecording=name=steady,settings=profile,delay=30s,duration=2m,filename=/var/log/app/steady.jfr -jar application.jar
 ```
 
-`delay` tính từ lúc JVM bắt đầu, **không** tự đồng bộ với readiness probe của service. Các sự kiện trong khoảng delay bị bỏ qua. Nếu vấn đề nằm trong startup thì đừng thêm delay.
+`delay` is measured from JVM startup and does **not** automatically synchronize with the service's readiness probe. Events during the delay period are skipped. If the problem occurs during startup, do not add a delay.
 
-Nếu ứng dụng thoát **trước khi hết duration**, tùy cấu hình có thể chưa có file kết quả. Có thể bật `dumponexit=true` để yêu cầu dump lúc JVM thoát bình thường:
+If the application exits **before the duration expires**, depending on configuration no output file may exist yet. You can enable `dumponexit=true` to request a dump on normal JVM exit:
 
 ```bash
 java -XX:StartFlightRecording=name=quick,settings=default,dumponexit=true,filename=quick.jfr -jar application.jar
 ```
 
-Những trường hợp `SIGKILL`, kernel/container OOM kill hoặc host crash có thể ngăn dump-on-exit; cần cơ chế dump chủ động/continuous nếu muốn giảm nguy cơ mất dữ liệu.
+Cases such as `SIGKILL`, kernel/container OOM kill, or host crashes can prevent dump-on-exit; use proactive dumping or continuous recording to reduce the risk of data loss.
 
-## 6. Recipe B: continuous recording luôn giữ lịch sử gần nhất
+## 6. Recipe B: Continuous Recording Always Keeping the Most Recent History
 
-Với incident xảy ra ngẫu nhiên, muốn có dữ liệu **trước khi hệ thống phát cảnh báo**, nên bật ghi nền từ lúc deploy:
+For sporadic incidents where you want data **from before the system triggers an alert**, enable background recording at deployment time:
 
 ```bash
 java -XX:StartFlightRecording=name=ring,settings=default,disk=true,maxage=2h,maxsize=256m -jar application.jar
 ```
 
-Đây là **recording liên tục**, không có `duration`, giữ dữ liệu gần nhất trong giới hạn tuổi/dung lượng. Khi có sự cố, mở một terminal khác:
+This is a **continuous recording** with no `duration`, retaining the most recent data within age and size limits. When an incident occurs, open another terminal:
 
 ```bash
 jcmd -l
@@ -131,23 +131,23 @@ jcmd <PID> JFR.check
 jcmd <PID> JFR.dump name=ring filename=/var/log/app/ring-incident-%p-%t.jfr
 ```
 
-`JFR.dump` tạo file từ các event còn được giữ, **không dừng recording**. `%p` và `%t` trong filename được JDK hỗ trợ thay bằng PID và thời điểm, hữu ích để không ghi đè các lần dump. Nếu muốn lấy tiếp sau 10 phút, gọi `JFR.dump` lần nữa với filename khác.
+`JFR.dump` creates a file from retained events **without stopping the recording**. `%p` and `%t` in `filename` are supported by the JDK to substitute the PID and timestamp, preventing consecutive dumps from overwriting each other. If you want another capture 10 minutes later, call `JFR.dump` again with a different filename.
 
-`maxage` và `maxsize` là chính sách **retention**. Nếu incident xảy ra từ 3 giờ trước trong khi `maxage=2h`, phần dữ liệu quá cũ đã bị loại; dump bây giờ không hồi phục được. Chọn retention dựa trên độ trễ phát hiện incident, thời gian phản ứng và dung lượng đĩa. Đừng chỉ nhìn `maxsize` mà bỏ qua file dump cuối có thể chiếm thêm dung lượng.
+`maxage` and `maxsize` are **retention** policies. If an incident occurred 3 hours ago while `maxage=2h`, the older data has already been evicted; dumping now cannot recover it. Choose retention based on incident detection delay, response time, and disk capacity. Do not look only at `maxsize` and ignore that final dump files consume additional disk space.
 
-Nếu cần thay nơi chứa repository, HotSpot hỗ trợ tùy chọn JFR riêng, ví dụ:
+If you need to change where the repository is stored, HotSpot supports dedicated JFR options, for example:
 
 ```bash
 java -XX:StartFlightRecording=name=ring,settings=default,disk=true,maxage=2h,maxsize=256m -XX:FlightRecorderOptions=repository=/var/tmp/jfr-repository -jar application.jar
 ```
 
-`repository` là nơi giữ chunks **tạm**, không phải đầu ra `.jfr` của `JFR.dump`. Tạo thư mục và cấp quyền đúng cho process; kiểm tra các option với runtime cụ thể.
+`repository` is where **temporary** chunks are held, not the `.jfr` output of `JFR.dump`. Create the directory and grant proper permissions to the process; verify options against your specific runtime.
 
-## 7. Recipe C: bật recording trên production JVM đã chạy
+## 7. Recipe C: Enabling a Recording on an Already-Running Production JVM
 
-Khi service đang hoạt động, chưa có JFR hoặc cần thêm cấu hình `profile` có thời hạn:
+When a service is running without JFR or needs an additional time-boxed `profile` configuration:
 
-### Bước 1 — xác định tiến trình và recording hiện tại
+### Step 1 — Identify the process and current recordings
 
 ```bash
 jcmd -l
@@ -155,53 +155,53 @@ jcmd <PID> VM.version
 jcmd <PID> JFR.check
 ```
 
-Nếu JVM đã có recording nền `ring` với dữ liệu phù hợp, có thể **dump ngay recording đó**. Không phải lúc nào cũng cần tạo recording mới. Nếu cần event nhiều hơn cho một cuộc điều tra cụ thể, tạo recording `profile` ngắn, có tên riêng.
+If the JVM already has a background `ring` recording with suitable data, you can **dump that recording immediately**. You do not always need to create a new recording. If more events are needed for a specific investigation, create a short, distinctly named `profile` recording.
 
-### Bước 2 — bắt hiện tượng trong một khoảng hữu hạn
+### Step 2 — Capture the phenomenon within a bounded interval
 
 ```bash
 jcmd <PID> JFR.start name=incident settings=profile duration=120s filename=/var/log/app/incident.jfr
 jcmd <PID> JFR.check name=incident
 ```
 
-Một recording mới bắt đầu sau lệnh `JFR.start`. Khi đủ 120 giây ghi, JVM dừng và xuất file. Không cần restart. Muốn biết event settings đã áp dụng:
+A new recording starts after `JFR.start`. Once 120 seconds of recording complete, the JVM stops it and writes the file. No restart is required. To check which event settings were applied:
 
 ```bash
 jcmd <PID> JFR.check name=incident verbose=true
 ```
 
-Nếu `JFR.check` không còn thấy `incident` sau khi duration đã trôi qua, hãy **kiểm tra file kết quả**, bởi recording hết thời hạn sẽ không còn đang chạy.
+If `JFR.check` no longer shows `incident` after the duration has elapsed, **check the output file**, because an expired recording is no longer running.
 
-### Bước 3 — lựa chọn không có duration
+### Step 3 — Option without `duration`
 
 ```bash
 jcmd <PID> JFR.start name=onDemand settings=default disk=true maxage=1h maxsize=256m
 jcmd <PID> JFR.check name=onDemand
 ```
 
-Recording sẽ tiếp tục tới khi có lệnh stop, JVM thoát hoặc chính sách khác kết thúc nó. Có thể chụp snapshot:
+The recording continues until a stop command is issued, the JVM exits, or another policy terminates it. You can capture a snapshot:
 
 ```bash
 jcmd <PID> JFR.dump name=onDemand filename=/var/log/app/snapshot.jfr
 ```
 
-Và khi xong mới dừng:
+And stop only when finished:
 
 ```bash
 jcmd <PID> JFR.stop name=onDemand filename=/var/log/app/final.jfr
 ```
 
-Luôn truyền `name` để không ảnh hưởng recording khác. Với mục tiêu giữ kết quả, truyền `filename` khi `JFR.stop` và xác minh file được tạo. Nếu không chỉ định đường dẫn, tùy lệnh/thiết lập, dữ liệu có thể bị bỏ đi. Có thể dump trước khi stop để chắc chắn đã có một artifact.
+Always pass `name` so you do not affect other recordings. When aiming to keep the results, pass `filename` on `JFR.stop` and verify that the file is created. If no path is specified, depending on command/settings, data may be discarded. You can dump before stopping to guarantee an artifact already exists.
 
-## 8. `JFR.check`, `JFR.dump`, `JFR.stop` khác nhau ra sao?
+## 8. How Do `JFR.check`, `JFR.dump`, and `JFR.stop` Differ?
 
-| Lệnh | Công dụng | Recording còn chạy sau lệnh? |
+| Command | Purpose | Is the Recording Still Running Afterward? |
 | --- | --- | --- |
-| `jcmd <PID> JFR.check` | Hiển thị recording đang chạy; có thể thêm `name`, `verbose=true` | Có, không thay đổi |
-| `jcmd <PID> JFR.dump name=... filename=...` | Xuất snapshot sự kiện hiện có ra file | **Có**, recording tiếp tục |
-| `jcmd <PID> JFR.stop name=... filename=...` | Kết thúc recording và xuất file nếu yêu cầu | **Không**, recording đó đã dừng |
+| `jcmd <PID> JFR.check` | Displays running recordings; accepts optional `name`, `verbose=true` | Yes, unchanged |
+| `jcmd <PID> JFR.dump name=... filename=...` | Exports a snapshot of currently available events to a file | **Yes**, the recording continues |
+| `jcmd <PID> JFR.stop name=... filename=...` | Ends the recording and writes a file if requested | **No**, that recording is stopped |
 
-Một quy trình an toàn và dễ lặp lại:
+A safe and repeatable sequence:
 
 ```bash
 jcmd <PID> JFR.check
@@ -209,13 +209,13 @@ jcmd <PID> JFR.dump name=incident filename=/var/log/app/incident-before-stop.jfr
 jcmd <PID> JFR.stop name=incident filename=/var/log/app/incident-final.jfr
 ```
 
-Dùng `JFR.check` để xác minh đúng tên. Các lệnh JFR cũng có thể làm việc với recording ID; khi có nhiều recording, không dựa vào tên được tự sinh mà chưa kiểm tra.
+Use `JFR.check` to verify the exact name. JFR commands can also operate with recording IDs; when multiple recordings exist, do not rely on auto-generated names without checking first.
 
-Trên JVM hỗ trợ, `JFR.dump` còn có tham số `maxage=10m` hoặc `begin`/`end` để lọc khoảng dữ liệu **được xuất**. Đây là lựa chọn cho **lệnh dump**, khác với `maxage` ở lúc `JFR.start` (giới hạn dữ liệu được **giữ trong repository**). Nếu dữ liệu cũ đã bị retention xóa, dùng `JFR.dump maxage=...` cũng không lấy lại được.
+On supported JVMs, `JFR.dump` also accepts `maxage=10m` or `begin`/`end` to filter the **exported** time window. These are options for the **dump command**, distinct from `maxage` at `JFR.start` (which limits data **retained in the repository**). If old data has already been evicted by retention, passing `JFR.dump maxage=...` will not bring it back.
 
-## 9. Ví dụ Java 17+ tự chạy cho cả hai phương thức
+## 9. Self-Contained Java 17+ Example for Both Methods
 
-Tạo file **`JfrCaptureDemo.java`**:
+Create the file **`JfrCaptureDemo.java`**:
 
 ```java
 import java.io.BufferedReader;
@@ -226,26 +226,26 @@ public class JfrCaptureDemo {
         System.out.println("READY");
         BufferedReader input =
                 new BufferedReader(new InputStreamReader(System.in));
-        input.readLine(); // Giữ JVM sống tới khi nhấn Enter.
+        input.readLine(); // Keep the JVM alive until Enter is pressed.
         System.out.println("DONE");
     }
 }
 ```
 
-Biên dịch:
+Compile:
 
 ```bash
 javac --release 17 JfrCaptureDemo.java
 ```
 
-Đây là chương trình **độc lập**, chạy được trên JDK 17+ và chờ đầu vào để có thời gian gọi `jcmd`. Khi nhấn Enter **một lần**, chính chương trình sẽ in đúng hai dòng theo thứ tự:
+This is a **standalone** program that runs on JDK 17+ and waits for input so you have time to run `jcmd`. When you press Enter **once**, the program itself prints these exact two lines in order:
 
 ```text
 READY
 DONE
 ```
 
-### Thử phương thức startup
+### Trying the startup method
 
 Terminal 1:
 
@@ -253,15 +253,15 @@ Terminal 1:
 java -XX:StartFlightRecording=name=demoBoot,settings=default,dumponexit=true,filename=demo-boot.jfr JfrCaptureDemo
 ```
 
-Đợi dòng `READY`; nhấn Enter để chương trình thoát. Kiểm tra file ở terminal 2:
+Wait for the `READY` line; press Enter so the program exits. Check the file in terminal 2:
 
 ```bash
 jfr summary demo-boot.jfr
 ```
 
-Thông báo trạng thái JFR của JVM hoặc output từ `jfr summary` có thể xuất hiện thêm, phụ thuộc phiên bản và lệnh; **không** phải hai dòng do `System.out.println` của chương trình in.
+Additional JVM JFR status messages or `jfr summary` output may appear depending on version and command; they are **not** the two lines printed by the program's `System.out.println`.
 
-### Thử phương thức runtime
+### Trying the runtime method
 
 Terminal 1:
 
@@ -269,7 +269,7 @@ Terminal 1:
 java JfrCaptureDemo
 ```
 
-Đợi dòng `READY` và **chưa nhấn Enter**. Terminal 2:
+Wait for `READY` and **do not press Enter yet**. Terminal 2:
 
 ```bash
 jcmd -l
@@ -279,20 +279,20 @@ jcmd <PID> JFR.dump name=demoLive filename=demo-live.jfr
 jcmd <PID> JFR.stop name=demoLive filename=demo-final.jfr
 ```
 
-Quay về terminal 1 nhấn Enter. Kiểm tra:
+Return to terminal 1 and press Enter. Inspect:
 
 ```bash
 jfr summary demo-live.jfr
 jfr summary demo-final.jfr
 ```
 
-Vì ví dụ chỉ chờ nhập liệu, file có thể có **ít CPU samples hoặc allocation events**. Mục tiêu của ví dụ là kiểm tra cú pháp và vòng đời recording; muốn học profiling thì chạy workload có tải, kiểm tra event settings và ghi đủ thời gian.
+Because the example simply blocks waiting for input, the file may have **few CPU samples or allocation events**. The goal of the example is to test syntax and recording lifecycle; to practice profiling, run a workload with load, check event settings, and record for an adequate duration.
 
-**Đường dẫn rất quan trọng:** các file `filename` tạo qua `jcmd` được ghi trong filesystem của **JVM đích**, tương đối theo working directory của **process JVM**, không phải nhất thiết là thư mục của terminal chạy `jcmd`. Container host và container app có thể nhìn thấy filesystem khác nhau.
+**Paths are critical:** `filename` files created via `jcmd` are written in the **target JVM's** filesystem, relative to the **JVM process's** working directory, not necessarily the directory of the terminal running `jcmd`. A container host and an app container may see different filesystems.
 
-## 10. Đọc và xác nhận file JFR đã thu
+## 10. Reading and Validating the Captured JFR File
 
-Với file kết quả `incident.jfr`:
+Given the resulting file `incident.jfr`:
 
 ```bash
 jfr summary incident.jfr
@@ -300,85 +300,85 @@ jfr print --events jdk.ExecutionSample incident.jfr
 jfr print --events jdk.GarbageCollection incident.jfr
 ```
 
-- `jfr summary` hiển thị khoảng thời gian, loại event và số lượng event. Dùng để xác minh **file tồn tại, đọc được và có dữ liệu** trước khi kết luận.
-- `jfr print --events ...` lọc event. Kết quả rỗng không nhất thiết là lỗi: event có thể bị tắt, workload không tạo event hoặc ngưỡng event chưa đạt.
-- Dùng **JDK Mission Control (JMC)** để phân tích timeline, thread, CPU, GC, allocation và tương quan các nguồn sự kiện. Chọn phiên bản JMC hỗ trợ JDK/file format đang dùng.
+- `jfr summary` displays the time span, event types, and event counts. Use it to verify **the file exists, is readable, and contains data** before drawing conclusions.
+- `jfr print --events ...` filters events. Empty output is not necessarily an error: the event may be disabled, the workload may not have triggered it, or its threshold may not have been met.
+- Use **JDK Mission Control (JMC)** to analyze timelines, threads, CPU, GC, allocations, and event correlations. Pick a JMC version compatible with the JDK/file format in use.
 
-Để tránh nhầm file, đặt tên có service, mốc thời gian và PID, đồng thời lưu thông tin phiên bản Java, GC, workload và khung thời gian xảy ra incident. Khi cần so sánh các bản ghi, dùng cùng cấu hình `.jfc`, tương đương về thời lượng và tải; `settings=default` với `settings=profile` có thể tạo event coverage khác nhau.
+To avoid mixing up files, include the service name, timestamp, and PID in filenames, and record Java version, GC, workload, and the incident time window. When comparing recordings, use the same `.jfc` configuration and comparable duration and load; `settings=default` versus `settings=profile` can produce different event coverage.
 
-## 11. Các tình huống xử lý theo bằng chứng
+## 11. Evidence-Driven Handling Scenarios
 
-### A. Thời gian startup tăng đột biến
+### A. Sudden spike in startup time
 
-Bật `-XX:StartFlightRecording=...` **ngay khi khởi động**, không đặt `delay` nếu vấn đề nằm trong startup. Thu đủ các giai đoạn class loading, JIT warm-up, GC và framework initialization. Nếu chỉ `JFR.start` sau health check, bạn đã bỏ lỡ phần cần quan sát.
+Enable `-XX:StartFlightRecording=...` **right at launch**, without setting `delay` if the problem lies in startup. Capture class loading, JIT warm-up, GC, and framework initialization phases. If you only run `JFR.start` after the health check passes, you have already missed what you needed to observe.
 
-### B. P99 tăng ở service không thể restart
+### B. P99 latency rises on a service that cannot be restarted
 
-Dùng `jcmd <PID> JFR.start name=latency settings=profile duration=3m filename=/var/log/app/latency.jfr`. Đảm bảo incident còn đang diễn ra trong ba phút ghi; lưu trace/request IDs và ứng dụng metric để tương quan. Nếu attach lỗi, ghi nhận và khắc phục quyền/hạn chế cho phép, không mặc định JFR không được hỗ trợ.
+Run `jcmd <PID> JFR.start name=latency settings=profile duration=3m filename=/var/log/app/latency.jfr`. Make sure the incident is still occurring during the three-minute capture; save trace/request IDs and application metrics for correlation. If attach fails, document and fix the attach permissions/restrictions rather than assuming JFR is unsupported.
 
-### C. Lỗi ngẫu nhiên, khi thấy cảnh báo thì đã hết
+### C. Sporadic failure that is already over when the alert arrives
 
-Dùng **continuous recording** với `settings=default,disk=true,maxage=...` đủ dài. Sau khi phát hiện cảnh báo, `JFR.dump` lấy lịch sử đang còn. Nếu không hề có recording trước incident, không thể “quay ngược thời gian” bằng `JFR.start`.
+Use a **continuous recording** with `settings=default,disk=true,maxage=...` long enough to cover detection lag. Once an alert fires, run `JFR.dump` to retrieve the retained history. If no recording was active prior to the incident, `JFR.start` cannot "go back in time."
 
-### D. Nhiều recording đang chạy, không biết nên dump cái nào
+### D. Multiple recordings running, unsure which one to dump
 
-Chạy `JFR.check`, xem tên và settings. Nếu `ring` đã có sự kiện cần thiết, dump `ring`. Nếu chỉ `profile` có event mong muốn, tạo recording khác đặt tên riêng và thu ngắn; tránh dừng nhầm recording còn phục vụ giám sát nền.
+Run `JFR.check` and inspect names and settings. If `ring` already has the needed events, dump `ring`. If only `profile` captures the desired events, start another distinctly named short recording; avoid accidentally stopping a background monitoring recording.
 
-### E. Tạo file nhưng dung lượng nhỏ hoặc không có CPU samples
+### E. File is created but small or lacks CPU samples
 
-Kiểm tra bằng `jfr summary`, `JFR.check verbose=true`, thời lượng thực, tải thực và event settings. Recording có thể mới chạy vài giây hoặc sampling chưa đủ. File nhỏ không tự chứng minh JVM không bị bottleneck, và một CPU profile từ ứng dụng nhàn rỗi không có giá trị để giải thích peak traffic.
+Check with `jfr summary`, `JFR.check verbose=true`, actual recording duration, actual load, and event settings. The recording might have run for only a few seconds or sampling might be insufficient. A small file does not by itself prove the JVM has no bottlenecks, and a CPU profile from an idle application cannot explain peak traffic.
 
-## 12. Troubleshooting theo triệu chứng
+## 12. Symptom-Based Troubleshooting
 
-| Triệu chứng | Nguyên nhân thường gặp | Kiểm tra / xử lý |
+| Symptom | Common Cause | Check / Action |
 | --- | --- | --- |
-| Startup flag không hoạt động | Flag đặt sau `-jar`, sai cú pháp dấu phẩy, launcher không truyền flag | Đặt `-XX:StartFlightRecording=...` trước `-jar`; kiểm tra Java command và JVM logs. |
-| `jcmd -l` không thấy process | Khác PID namespace, user không có quyền, tool không có trong image | Chạy với công cụ tương thích và quyền cho phép trên môi trường nhìn thấy PID JVM. |
-| `JFR.start` bị từ chối | Hạn chế attach, `-XX:+DisableAttachMechanism`, quyền bảo mật, JVM không hỗ trợ | Kiểm tra runtime/attach policy; chọn startup flag ở lần deploy phù hợp nếu không attach được. |
-| File `.jfr` chưa xuất hiện ngay sau start | `filename` là output lúc recording kết thúc | `JFR.check`; dùng `JFR.dump` nếu cần snapshot khi đang chạy. |
-| File nằm sai thư mục | Working directory của JVM khác shell `jcmd` | Dùng đường dẫn tuyệt đối **trong filesystem JVM đích**. |
-| `JFR.dump` báo lỗi ghi file | Thư mục chưa có, permission hoặc disk đầy | Kiểm tra path và user JVM, dung lượng disk repository và output. |
-| Dump không có incident cũ | Recording bật quá muộn hoặc retention đã xóa chunks | Bật continuous từ trước, tăng `maxage/maxsize` hợp lý. |
-| File ít event | `settings` thiếu event, threshold cao, workload quá nhẹ | Kiểm tra `JFR.check verbose=true` và `jfr summary`, điều chỉnh `.jfc`. |
-| Lỡ stop recording và không có file | Không chỉ định destination, hoặc đọc nhầm path | Dùng `JFR.dump` trước stop; `JFR.stop name=... filename=...`. |
-| JVM bị kill không có dump | `dumponexit` chỉ hoạt động khi shutdown có cơ hội thực hiện | Chủ động dump, dùng recording nền và quy trình giám sát/disk retention. |
-| `profile` ảnh hưởng latency | Event/sampling quá nhiều, thu quá lâu hoặc nhiều recording | Giảm duration, chuyển `default` cho nền, đo overhead bằng workload tương đương. |
-| Tool phân tích không mở được file | File đang ghi dở/không hoàn chỉnh hoặc tool không tương thích | Hoàn tất dump, kiểm tra `jfr summary`, dùng phiên bản JFR/JMC phù hợp. |
+| Startup flag does not work | Flag placed after `-jar`, wrong comma syntax, launcher drops flag | Place `-XX:StartFlightRecording=...` before `-jar`; check Java command and JVM logs. |
+| `jcmd -l` does not list the process | Different PID namespace, insufficient user permissions, tool missing in image | Run with compatible tools and permissions in the environment that sees the JVM PID. |
+| `JFR.start` is rejected | Attach restrictions, `-XX:+DisableAttachMechanism`, security permissions, unsupported JVM | Check runtime/attach policy; use the startup flag on the next suitable deploy if attach is blocked. |
+| `.jfr` file does not appear immediately after start | `filename` is the output when the recording finishes | Run `JFR.check`; use `JFR.dump` for a snapshot while running. |
+| File ends up in the wrong directory | JVM working directory differs from `jcmd` shell | Use an absolute path **in the target JVM's filesystem**. |
+| `JFR.dump` fails to write the file | Directory missing, permissions, or disk full | Check path and JVM user, repository disk space, and output space. |
+| Dump lacks the older incident | Recording started too late or retention evicted chunks | Enable continuous earlier, increase `maxage`/`maxsize` sensibly. |
+| File has very few events | `settings` lacks the events, high threshold, load too light | Check `JFR.check verbose=true` and `jfr summary`; tune `.jfc`. |
+| Accidentally stopped recording with no file | Destination omitted, or checking wrong path | Run `JFR.dump` before stop; use `JFR.stop name=... filename=...`. |
+| JVM killed without a dump | `dumponexit` only works when shutdown gets a chance to run | Dump proactively, use background recording, and establish disk retention monitoring. |
+| `profile` impacts latency | Too many events/samples, running too long, or multiple recordings | Shorten duration, switch background to `default`, measure overhead under equivalent load. |
+| Analysis tool cannot open the file | File still being written/incomplete or incompatible tool | Wait for dump completion, check `jfr summary`, use matching JFR/JMC versions. |
 
-JFR thường có overhead thấp với cấu hình phổ thông, nhưng đó **không phải mức overhead cố định**. Những event có stack traces nặng, allocation sampling dày hoặc GC-root path có thể tăng chi phí đáng kể. Với production, chỉ bật những dữ liệu phục vụ câu hỏi và giới hạn thời lượng/retention.
+JFR typically has low overhead with standard configurations, but it is **not a fixed overhead**. Events with heavy stack traces, dense allocation sampling, or GC-root paths can add significant cost. In production, enable only the data needed to answer your question and bound both duration and retention.
 
-## 13. Cẩn trọng khi chạy trong container và môi trường production
+## 13. Precautions in Containers and Production Environments
 
-- **Quyền và PID namespace:** `jcmd` thường cần user đủ quyền trên cùng máy/namespace có thể nhìn thấy process JVM; có thể phải chạy bên trong container/app runtime. Dùng PID đích, không dựa vào PID của shell host.
-- **Đường dẫn output:** `filename=/some/path/file.jfr` nằm trong filesystem của JVM, không mặc định ở nơi chạy `jcmd`. Thư mục phải tồn tại và user JVM có quyền ghi.
-- **Dung lượng:** tính cả chunks tạm của repository, các file dump định kỳ, nhiều recording đồng thời và chính sách dọn artifact. Không nên đặt `maxage=0s/maxsize=0` cho ghi liên tục nếu chưa kiểm soát tăng trưởng dữ liệu.
-- **Thông tin nhạy cảm:** một số event có command-line/system properties, đường dẫn, tên thread và stack traces; khả năng che dữ liệu khác theo JDK và cấu hình. Kiểm soát quyền truy cập file `.jfr`, không đăng recording production lên nơi công khai.
-- **Đối chiếu thời gian:** giữ múi giờ, clock và timestamp của application metrics, tracing và recording thống nhất; phân tích nhầm cửa sổ sự cố sẽ dẫn tới kết luận sai.
-- **Runtime khác nhau:** cú pháp và event/schema có thể thay đổi theo JDK/vendor; đừng suy từ JDK local nếu PID đang chạy bằng bản khác.
+- **Permissions and PID namespace:** `jcmd` generally needs a sufficiently privileged user on the same host/namespace that can see the JVM process; you may need to run inside the container/app runtime. Use the target PID, not the host shell's PID.
+- **Output path:** `filename=/some/path/file.jfr` resides in the JVM's filesystem, not necessarily where `jcmd` runs. The directory must exist and be writable by the JVM user.
+- **Disk capacity:** account for temporary repository chunks, periodic dump files, concurrent recordings, and artifact cleanup policies. Avoid setting `maxage=0s/maxsize=0` for continuous recording without controlling data growth.
+- **Sensitive data:** some events contain command lines/system properties, paths, thread names, and stack traces; redaction capabilities vary by JDK and settings. Control access to `.jfr` files and never post production recordings publicly.
+- **Time alignment:** keep time zones, clocks, and timestamps consistent across application metrics, tracing, and recordings; analyzing the wrong incident window leads to wrong conclusions.
+- **Different runtimes:** syntax and event schemas can change across JDKs/vendors; do not extrapolate from a local JDK if the target PID runs a different build.
 
-## 14. Checklist trước khi coi một cuộc thu JFR hoàn tất
+## 14. Checklist Before Considering a JFR Capture Complete
 
-- [ ] Xác định chính xác JVM PID, runtime/vendor/JDK version và vấn đề cần đo.
-- [ ] Chọn `-XX:StartFlightRecording` nếu cần startup, hoặc `JFR.start` nếu JVM đã chạy và có quyền attach.
-- [ ] Viết option đúng: **dấu phẩy** trong startup flag, **dấu cách** sau `jcmd ... JFR.start`.
-- [ ] Chọn `settings=default` cho nền hoặc `profile` cho thu ngắn có mục tiêu; xác nhận event thực sự được bật.
-- [ ] Chọn `duration`, `delay`, `filename`, `dumponexit` theo mục đích; biết file có thể chưa xuất hiện khi recording còn chạy.
-- [ ] Với continuous recording, dùng `disk=true` cùng `maxage/maxsize` và đủ dung lượng.
-- [ ] Kiểm tra `JFR.check` và `JFR.check verbose=true` khi cần; dùng tên recording duy nhất.
-- [ ] Lấy `JFR.dump` để có snapshot mà không dừng recording; dùng `JFR.stop name=... filename=...` khi cần kết thúc.
-- [ ] Xác nhận đường dẫn, quyền ghi và nơi thực tế chứa file `.jfr` ở process đích.
-- [ ] Mở `jfr summary`, kiểm tra thời gian ghi và số lượng sự kiện; lưu workload/incident timestamp.
-- [ ] Đối chiếu JFR với GC logs, OS/container metrics, request traces, CPU/latency và biết giới hạn coverage.
-- [ ] Ghi lại artifacts, cấu hình JFR, JDK, retention, overhead để người khác có thể tái lập điều tra.
+- [ ] Identified the exact JVM PID, runtime/vendor/JDK version, and question to investigate.
+- [ ] Chose `-XX:StartFlightRecording` if startup is needed, or `JFR.start` if the JVM is running and attach is allowed.
+- [ ] Formatted options correctly: **commas** in the startup flag, **spaces** after `jcmd ... JFR.start`.
+- [ ] Selected `settings=default` for background or `profile` for targeted short capture; confirmed the needed events are enabled.
+- [ ] Configured `duration`, `delay`, `filename`, and `dumponexit` for the goal; understand the file may not exist while running.
+- [ ] For continuous recording, used `disk=true` with `maxage`/`maxsize` and sufficient disk space.
+- [ ] Verified with `JFR.check` and `JFR.check verbose=true` when needed; used unique recording names.
+- [ ] Used `JFR.dump` for snapshots without stopping; used `JFR.stop name=... filename=...` when ending a session.
+- [ ] Confirmed path, write permissions, and actual `.jfr` file location on the target process.
+- [ ] Ran `jfr summary`, checked recorded time span and event counts; recorded workload/incident timestamps.
+- [ ] Correlated JFR with GC logs, OS/container metrics, request traces, CPU/latency, and noted coverage limits.
+- [ ] Documented artifacts, JFR settings, JDK, retention, and overhead so others can reproduce the investigation.
 
-## 15. Nguồn chính thức để tra cứu tiếp
+## 15. Official References for Further Lookup
 
-1. Oracle Java 26 `jcmd` manual — `JFR.start`, `JFR.check`, `JFR.dump` và `JFR.stop`: https://docs.oracle.com/en/java/javase/26/docs/specs/man/jcmd.html
-2. Oracle JDK 24 Troubleshooting Guide — sử dụng `-XX:StartFlightRecording` từ startup và `jcmd` trên process đang chạy: https://docs.oracle.com/en/java/javase/24/troubleshoot/troubleshooting-guide.pdf
-3. Oracle JDK 26 Troubleshooting Guide — ví dụ flight recordings trên runtime production: https://docs.oracle.com/en/java/javase/26/troubleshoot/troubleshooting-guide.pdf
-4. OpenJDK `java` manual — options `-XX:StartFlightRecording`: https://github.com/openjdk/jdk/blob/master/src/java.base/share/man/java.md
-5. Dev.java, Configuring the JDK Flight Recorder — khác biệt delimiter, settings, recording options và event settings: https://dev.java/learn/jvm/jfr/configure/
+1. Oracle Java 26 `jcmd` manual — `JFR.start`, `JFR.check`, `JFR.dump`, and `JFR.stop`: https://docs.oracle.com/en/java/javase/26/docs/specs/man/jcmd.html
+2. Oracle JDK 24 Troubleshooting Guide — using `-XX:StartFlightRecording` at startup and `jcmd` on a running process: https://docs.oracle.com/en/java/javase/24/troubleshoot/troubleshooting-guide.pdf
+3. Oracle JDK 26 Troubleshooting Guide — examples of flight recordings on production runtimes: https://docs.oracle.com/en/java/javase/26/troubleshoot/troubleshooting-guide.pdf
+4. OpenJDK `java` manual — `-XX:StartFlightRecording` options: https://github.com/openjdk/jdk/blob/master/src/java.base/share/man/java.md
+5. Dev.java, Configuring the JDK Flight Recorder — delimiter differences, settings, recording options, and event settings: https://dev.java/learn/jvm/jfr/configure/
 6. Oracle Java 26, Troubleshoot Performance Issues Using Flight Recorder: https://docs.oracle.com/en/java/javase/26/troubleshoot/troubleshoot-performance-issues-using-jfr.html
-7. Java SE 26 API `jdk.jfr.Recording` — retention, lifecycle và destination: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Recording.html
+7. Java SE 26 API `jdk.jfr.Recording` — retention, lifecycle, and destination: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Recording.html
 
-**Kết luận thực hành:** cần thấy startup thì bật JFR từ JVM launch; cần điều tra service đang chạy thì dùng `jcmd <PID> JFR.start`. Chọn đúng `settings`, lưu đủ dữ liệu bằng `duration` hoặc `maxage/maxsize`, dùng `JFR.dump` để lấy file khi recording đang chạy và kiểm tra `jfr summary` trước khi phân tích.
+**Practical takeaway:** if you need startup, enable JFR at JVM launch; if investigating a running service, use `jcmd <PID> JFR.start`. Pick the right `settings`, retain enough data with `duration` or `maxage`/`maxsize`, use `JFR.dump` to grab a file while the recording keeps running, and verify with `jfr summary` before analyzing.

@@ -1,99 +1,99 @@
-# 4.1 — Mô hình gửi diagnostic command tới một JVM đang chạy
+# 4.1 — Model for Sending a Diagnostic Command to a Running JVM
 
-## 1. Bài toán: hỏi một JVM đang hoạt động mà không khởi động lại nó
+## 1. The problem: querying an active JVM without restarting it
 
-Giả sử một ứng dụng Java đã chạy nhiều giờ và bắt đầu phản hồi chậm. Người vận hành cần biết JVM đang dùng phiên bản nào, những thread nào đang chờ lock, heap đang ra sao hoặc có Java Flight Recorder (JFR) nào đang hoạt động. Khởi động một chương trình Java khác rồi in thông tin của **chính chương trình mới** không trả lời được câu hỏi về JVM đang gặp sự cố.
+Suppose a Java application has been running for several hours and starts responding slowly. An operator needs to know which version the JVM is running, which threads are waiting on locks, what the heap looks like, or whether any Java Flight Recorder (JFR) recording is active. Starting another Java program and printing information about **that new program itself** does not answer questions about the JVM experiencing the incident.
 
-**`jcmd`** là công cụ đi kèm JDK, dùng để **gửi yêu cầu diagnostic command đến một tiến trình JVM đang chạy**. Trong các bản HotSpot JDK, tiến trình `jcmd` kết nối qua cơ chế attach cục bộ, yêu cầu JVM đích thực thi một lệnh mà nó hỗ trợ, rồi nhận kết quả hoặc thông báo lỗi. Mỗi lệnh có tác dụng và mức ảnh hưởng riêng.
+**`jcmd`** is a tool bundled with the JDK used to **send a diagnostic command request to a running JVM process**. In HotSpot JDK distributions, the `jcmd` process connects through the local attach mechanism, asks the target JVM to execute a command it supports, and receives the result or an error message. Each command has its own effect and impact level.
 
-Sau bài này, người học cần nắm được:
+After this lesson, you should understand:
 
-1. Vai trò của **client `jcmd`**, **PID của JVM đích**, **kênh attach**, **bộ xử lý diagnostic command** và **kết quả**.
-2. Chu trình từ chọn đúng JVM, mở kết nối, gửi tên lệnh/tham số đến xử lý và nhận phản hồi.
-3. Cú pháp chọn đích, xem danh sách lệnh và trợ giúp của chính JVM đích; phân biệt lệnh đọc thông tin với lệnh thay đổi trạng thái hoặc tạo dữ liệu lớn.
-4. Cách thực hành an toàn trên JDK 17+, xử lý khi attach thất bại, và những giới hạn trong host/container.
+1. The roles of the **`jcmd` client**, the **target JVM's PID**, the **attach channel**, the **diagnostic command dispatcher/handler**, and the **result**.
+2. The lifecycle from selecting the right JVM, opening a connection, and sending the command name/arguments to processing and receiving the response.
+3. The syntax for targeting a JVM, viewing the list of commands and help from the target JVM itself; distinguishing read-only information commands from commands that mutate state or produce large data.
+4. Safe practices on JDK 17+, handling attach failures, and host/container limitations.
 
-> **Luận điểm trung tâm:** `jcmd` là một **client gửi yêu cầu đến JVM đã tồn tại**. Nó không chạy method của ứng dụng theo ý muốn, không yêu cầu mở cổng JMX và không đảm bảo mọi lệnh đều nhẹ hoặc hoàn toàn chỉ đọc.
+> **Core thesis:** `jcmd` is a **client that sends requests to an already existing JVM**. It does not run arbitrary application methods on demand, does not require opening a JMX port, and does not guarantee that every command is lightweight or strictly read-only.
 
-## 2. Các thành phần trong mô hình
+## 2. Components in the model
 
-| Thành phần | Vai trò | Cần tránh nhầm với |
+| Component | Role | Avoid confusing with |
 | --- | --- | --- |
-| Người vận hành / terminal | Chọn đúng máy, PID, lệnh và thời điểm thu thập | Người dùng đăng nhập không nhất thiết là owner của JVM |
-| `jcmd` client | Tiến trình công cụ JDK riêng biệt, phân tích tham số, gửi yêu cầu và xuất kết quả | JVM ứng dụng đích |
-| PID, host, PID namespace | Định vị **phiên tiến trình** mà lệnh sẽ hướng đến | Tên main class/JAR hay PID của một container khác |
-| Attach mechanism | Kênh liên lạc **cục bộ** do runtime và OS cung cấp, chịu kiểm soát quyền truy cập | HTTP endpoint, JMX remote port hoặc một API nghiệp vụ |
-| Diagnostic-command dispatcher trong JVM | Nhận tên lệnh, đối chiếu các command có sẵn, tham số/quyền và gọi cơ chế phục vụ chẩn đoán tương ứng | Bộ thực thi mọi đoạn Java code tùy ý |
-| Bộ phận JVM thực hiện lệnh | Có thể truy vấn VM state, in thread, điều khiển JFR, ghi heap dump, chỉnh một số thiết lập | Một nhóm lệnh có impact như nhau |
-| Phản hồi và side effect | Văn bản/error trả về client; đôi khi JVM thay đổi trạng thái hoặc ghi file | Mọi lệnh đều chỉ trả stdout, không tạo tác dụng phụ |
+| Operator / terminal | Selects the right machine, PID, command, and collection timestamp | The logged-in user is not necessarily the JVM owner |
+| `jcmd` client | Separate JDK tool process that parses arguments, sends requests, and prints results | Target application JVM |
+| PID, host, PID namespace | Identifies the **process instance** the command targets | Main class/JAR name or the PID of another container |
+| Attach mechanism | **Local** communication channel provided by the runtime and OS, subject to access control | HTTP endpoint, JMX remote port, or a business API |
+| Diagnostic-command dispatcher inside the JVM | Receives the command name, matches available commands, arguments/permissions, and invokes the corresponding diagnostic handler | An executor for arbitrary Java code snippets |
+| JVM subsystem executing the command | Can query VM state, print threads, control JFR, write a heap dump, or adjust certain settings | A group of commands with identical impact |
+| Response and side effects | Text/errors returned to the client; sometimes the JVM changes state or writes files | Every command only writing to stdout with no side effects |
 
-Sơ đồ luồng đơn giản:
+Simple flow diagram:
 
 ```text
-Terminal trên đúng host / namespace
+Terminal on the right host / namespace
     |
     | jcmd <PID> <DiagnosticCommand> [arguments/options]
     v
-Tiến trình jcmd (client JDK)
+jcmd process (JDK client)
     |
-    | Kiểm tra đích, sử dụng local attach mechanism
+    | Verify target, use local attach mechanism
     v
-JVM đang chạy (PID mục tiêu)
+Running JVM (target PID)
     |
-    | Tra cứu command đã đăng ký; kiểm tra cú pháp, quyền,
-    | thực thi thao tác chẩn đoán trong bối cảnh JVM đích
+    | Look up registered command; validate syntax, permissions,
+    | execute diagnostic operation in the target JVM context
     v
-Kết quả / lỗi / thay đổi trạng thái / file do JVM tạo
+Result / error / state change / file created by the JVM
     |
-    | Phản hồi qua kết nối attach (đối với output tương ứng)
+    | Respond over attach connection (for corresponding output)
     v
-jcmd in kết quả về stdout/stderr của terminal
+jcmd prints result to terminal stdout/stderr
 ```
 
-Trong sơ đồ, **không có JVM thứ ba để “chạy hộ” ứng dụng**: `jcmd` là process công cụ; còn thông tin thread, heap và JFR được JVM đích cung cấp qua các cơ chế phục vụ chẩn đoán của nó.
+In this diagram, **there is no third JVM to "run on behalf of" the application**: `jcmd` is a tool process, while thread, heap, and JFR information is provided by the target JVM through its diagnostic servicing mechanisms.
 
-### 2.1. Những gì cần phân biệt
+### 2.1. What to distinguish
 
-- **`jcmd -l`** là thao tác *liệt kê tiến trình JVM nhìn thấy được*, để khám phá ứng viên. Đây chưa phải lệnh như `VM.version` gửi đến một PID cụ thể.
-- **`jcmd <PID> help`** hỏi JVM đích xem **runtime hiện tại có những diagnostic command nào**; đừng suy ra danh sách cố định cho mọi vendor/JDK.
-- **`jcmd <PID> VM.version`** là yêu cầu có đích và tên lệnh rõ ràng; dữ liệu phiên bản do JVM đích trả lời.
-- **`java -version`** chạy Java launcher được tìm thấy trong terminal hiện tại; nó có thể khác JDK của ứng dụng đích.
-- **JMX/JMC/JFR** liên quan đến chẩn đoán nhưng khác vai trò: JMX cung cấp cơ chế quản trị/monitoring, JFR là hệ thống ghi sự kiện; `jcmd` có các diagnostic command để quản lý JFR từ bên ngoài. `jcmd` không cần phải mở JMX remote port để gửi yêu cầu cục bộ.
+- **`jcmd -l`** is an operation that *lists visible JVM processes* to discover candidates. This is not yet a command like `VM.version` sent to a specific PID.
+- **`jcmd <PID> help`** asks the target JVM **which diagnostic commands the current runtime has**; do not infer a fixed list across all vendors/JDKs.
+- **`jcmd <PID> VM.version`** is a request with an explicit target and command name; the version data is answered by the target JVM.
+- **`java -version`** runs the Java launcher found in the current terminal; it may differ from the target application's JDK.
+- **JMX/JMC/JFR** are related to diagnostics but serve different roles: JMX provides management/monitoring mechanisms, JFR is an event recording system; `jcmd` has diagnostic commands to manage JFR externally. `jcmd` does not need a JMX remote port open to send local requests.
 
-## 3. Chu trình gửi một diagnostic command
+## 3. Lifecycle of sending a diagnostic command
 
-### Bước 1 — Xác nhận JVM đích
+### Step 1 — Confirm the target JVM
 
-Chọn đúng **host**, **namespace/container**, **PID**, **thời điểm khởi động**, **owner** và **lệnh chạy ứng dụng**. PID có thể tái sử dụng sau khi process kết thúc. Với nhiều bản replica, tên main class hoặc JAR cũng có thể trùng nhau.
+Select the right **host**, **namespace/container**, **PID**, **start time**, **owner**, and **application launch command**. A PID can be reused after a process exits. With multiple replicas, main class names or JAR names can also be identical.
 
 ```bash
 jcmd -l
 ```
 
-Output thường có PID và tên main class/JAR hoặc command line của JVM nhìn thấy được. **Không mặc định `jcmd -l` thấy mọi JVM**, đặc biệt khi process ở container khác, thiếu quyền hoặc runtime không hỗ trợ cơ chế khám phá tương ứng.
+The output usually includes the PID and main class/JAR name or command line of visible JVMs. **Do not assume `jcmd -l` sees every JVM**, especially when the process is in another container, lacks permissions, or the runtime does not support the corresponding discovery mechanism.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```text
 18432 com.example.OrderService
 18597 com.example.BatchJob
 ```
 
-Đây là **ví dụ định dạng**, không phải stdout cố định trên mọi JDK. Cần đối chiếu ứng viên với công cụ hệ điều hành hoặc service manager. Tránh trộn PID **trong container** với PID **trên host**.
+This is a **format example**, not fixed stdout across all JDKs. Cross-check candidates with OS tools or the service manager. Avoid mixing up a PID **inside a container** with a PID **on the host**.
 
-### Bước 2 — Client tìm và kết nối đến JVM có thể attach
+### Step 2 — Client locates and connects to an attachable JVM
 
-`jcmd` hoạt động trên **máy chứa JVM đích** theo tài liệu JDK 17, với cùng **effective user và group** được dùng để chạy JVM. Đây là điều kiện của cơ chế attach trên HotSpot được tài liệu hóa; chính sách OS, container isolation hoặc cấu hình runtime có thể áp đặt thêm giới hạn.
+According to the JDK 17 documentation, `jcmd` operates on the **machine hosting the target JVM**, with the same **effective user and group** used to run the JVM. This is a documented condition of the HotSpot attach mechanism; OS policies, container isolation, or runtime configuration may impose additional restrictions.
 
-Ở một số nền tảng HotSpot, attach listener có thể được khởi tạo khi có yêu cầu và sử dụng cơ chế IPC của OS (chẳng hạn socket cục bộ trên Unix). Chi tiết file/socket, tín hiệu và handshake là **chi tiết triển khai phụ thuộc OS và phiên bản JVM**, không phải giao thức công cộng để tự lập trình thay thế `jcmd`.
+On some HotSpot platforms, the attach listener can be initialized on demand and use an OS IPC mechanism (such as a local socket on Unix). File/socket details, signals, and handshakes are **OS- and JVM-version-dependent implementation details**, not a public protocol for writing your own replacement for `jcmd`.
 
-Không cần biết địa chỉ port HTTP/JMX. Ngược lại, chạy `jcmd` trên laptop **không tự gửi lệnh qua mạng** đến PID trên server: phải dùng công cụ tại host hoặc môi trường chẩn đoán đã được cho phép.
+You do not need an HTTP/JMX port address. Conversely, running `jcmd` on your laptop **does not send commands over the network** to a PID on a server: you must run the tool on the host or an authorized diagnostic environment.
 
-### Bước 3 — JVM đích tra cứu command và tham số
+### Step 3 — Target JVM looks up the command and arguments
 
-JVM xác định tên diagnostic command, ví dụ `VM.uptime` hoặc `Thread.print`, rồi xử lý các tùy chọn được hỗ trợ. **Mỗi JVM quyết định command nào đang sẵn có** và cách diễn giải tham số. Dùng đúng phiên bản công cụ/JDK tương thích với runtime; nhà cung cấp JDK không hỗ trợ việc trộn tùy tiện phiên bản công cụ và JVM đích.
+The JVM identifies the diagnostic command name, such as `VM.uptime` or `Thread.print`, and then processes the supported options. **Each JVM decides which commands are available** and how arguments are interpreted. Use a tool/JDK version compatible with the runtime; JDK vendors do not support arbitrarily mixing tool and target JVM versions.
 
-Hỏi danh sách và trợ giúp:
+Querying the command list and help:
 
 ```bash
 jcmd 18432 help
@@ -101,26 +101,26 @@ jcmd 18432 help VM.uptime
 jcmd 18432 help Thread.print
 ```
 
-Một mục `help <command>` thường trình bày **description**, **impact**, **syntax**, **options/arguments** và, nếu có, yêu cầu permission. `Impact: Low/Medium/High` phản ánh đánh giá của runtime về thao tác; **Low không đồng nghĩa “hoàn toàn miễn phí”**, còn tác động thực tế phụ thuộc heap size, thread count, tải và cấu hình.
+A `help <command>` entry typically presents **description**, **impact**, **syntax**, **options/arguments**, and, if applicable, permission requirements. `Impact: Low/Medium/High` reflects the runtime's assessment of the operation; **Low does not mean "completely free"**, and actual impact depends on heap size, thread count, load, and configuration.
 
-### Bước 4 — JVM thực thi thao tác và tạo phản hồi
+### Step 4 — JVM executes the operation and produces a response
 
-Có các kiểu kết quả khác nhau:
+There are different types of outcomes:
 
-- **Trả dữ liệu trực tiếp**: `VM.version`, `VM.uptime`, `VM.command_line`, `VM.flags` in thông tin JVM hiện tại.
-- **Tạo snapshot có chi phí**: `Thread.print` lấy thread stacks; `GC.class_histogram` kiểm tra heap; `GC.heap_dump` tạo file HPROF.
-- **Thay đổi trạng thái chẩn đoán**: `JFR.start`, `JFR.stop`, `VM.log` hoặc một số `VM.set_flag` thay đổi hoạt động/chế độ theo dõi runtime.
-- **Ghi file tại JVM đích**: `GC.heap_dump /path/file.hprof` và `JFR.dump filename=/path/file.jfr` yêu cầu JVM tạo file theo đường dẫn nó nhìn thấy.
+- **Direct data return**: `VM.version`, `VM.uptime`, `VM.command_line`, `VM.flags` print current JVM information.
+- **Snapshots with cost**: `Thread.print` captures thread stacks; `GC.class_histogram` inspects the heap; `GC.heap_dump` creates an HPROF file.
+- **Diagnostic state changes**: `JFR.start`, `JFR.stop`, `VM.log`, or some `VM.set_flag` commands alter runtime monitoring behavior/modes.
+- **File writes on the target JVM**: `GC.heap_dump /path/file.hprof` and `JFR.dump filename=/path/file.jfr` ask the JVM to create files at paths visible to it.
 
-Một số lệnh có thể làm tăng latency, GC pressure, I/O hoặc chiếm đĩa. **Chỉ định tên lệnh hợp lệ không có nghĩa đã được phép dùng trên production**; hãy xem impact và phạm vi thao tác trước.
+Some commands can increase latency, GC pressure, I/O, or disk usage. **Specifying a valid command name does not mean it is safe or approved for production**; check the impact and scope of the operation first.
 
-### Bước 5 — Client in kết quả, kết thúc; JVM tiếp tục sống
+### Step 5 — Client prints the result and exits; JVM keeps running
 
-`jcmd` thường in header có PID rồi nội dung do JVM trả về hoặc lỗi của công cụ. Khi câu lệnh kết thúc, **tiến trình client `jcmd` kết thúc**; JVM ứng dụng vẫn chạy, trừ khi một thao tác/chính trạng thái ứng dụng làm nó dừng. File do JVM tạo, recording đã bật hoặc cấu hình logging đã thay đổi có thể còn tồn tại sau khi client thoát.
+`jcmd` usually prints a header with the PID followed by the content returned by the JVM or a tool error. Once the command finishes, **the `jcmd` client process exits**; the application JVM keeps running unless an operation or the application's own state stops it. Files created by the JVM, enabled recordings, or modified logging configurations may persist after the client exits.
 
-Không phải output nào cũng có schema cố định để parser tùy tiện đọc: trường, phiên bản và cách trình bày có thể thay đổi. Với automation, kiểm tra exit status, tính đầy đủ của dữ liệu và phiên bản runtime trước khi dùng output để quyết định.
+Not every output has a fixed schema safe for arbitrary parsing: fields, versions, and formatting can change. For automation, check the exit status, data completeness, and runtime version before acting on the output.
 
-## 4. Cú pháp cần thành thạo
+## 4. Syntax to master
 
 ```text
 jcmd -l
@@ -131,7 +131,7 @@ jcmd <pid> <DiagnosticCommand> [options/arguments]
 jcmd <pid> -f <command-file>
 ```
 
-Một quy trình đọc thông tin từ JVM tại PID `18432`:
+A sequence for reading information from a JVM at PID `18432`:
 
 ```bash
 jcmd 18432 help
@@ -141,44 +141,44 @@ jcmd 18432 VM.command_line
 jcmd 18432 help Thread.print
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `VM.version` cho biết runtime/version của **JVM đích**, không phải JDK tại `PATH` của shell.
-- `VM.uptime` cho biết thời gian JVM đã chạy tại thời điểm hỏi. Nó giúp đối chiếu start time, nhưng **không** tự xác định service identity.
-- `VM.command_line` cho biết cách JVM được khởi động (Java command/JVM arguments); thông tin có thể chứa cấu hình nhạy cảm, vì vậy không đổ thẳng vào hệ thống log công khai.
-- `help Thread.print` trả hướng dẫn của JVM đích trước khi thu thập thread stacks.
-- `<pid>` là **giá trị ví dụ cần thay bằng PID thực**. Trong command chạy thật, không gõ dấu ngoặc nhọn hay góc.
+- `VM.version` shows the runtime/version of the **target JVM**, not the JDK on the shell's `PATH`.
+- `VM.uptime` shows how long the JVM has been running at query time. It helps verify start time, but **does not** by itself establish service identity.
+- `VM.command_line` shows how the JVM was launched (Java command/JVM arguments); this output may contain sensitive configuration, so do not dump it directly into public logging systems.
+- `help Thread.print` returns guidance from the target JVM before collecting thread stacks.
+- `<pid>` is a **placeholder value to replace with the real PID**. In actual commands, do not type the angle brackets.
 
-### 4.1. Vì sao nên dùng PID thay cho main class?
+### 4.1. Why use PID instead of main class?
 
-Theo cú pháp `jcmd`, đối số đầu có thể là PID **hoặc main-class**. Dùng main-class có thể match **nhiều** tiến trình có cùng tên; chọn PID cụ thể giúp thu hẹp đích một cách rõ ràng.
+Per `jcmd` syntax, the first argument can be a PID **or main-class**. Using a main-class can match **multiple** processes with the same name; selecting a specific PID narrows the target unambiguously.
 
-`jcmd 0 <command>` được tài liệu định nghĩa là có thể gửi command tới **tất cả Java processes khả dụng**. Vì thế:
+`jcmd 0 <command>` is defined in the documentation as sending the command to **all available Java processes**. Therefore:
 
-- Không dùng `0` khi chỉ cần chẩn đoán một ứng dụng.
-- Không dùng tên main class ngắn khi nhiều JVM trùng tên.
-- Không coi PID là định danh vĩnh viễn: đọc lại process start time ngay trước lệnh có impact.
-- Không tự thay PID container bằng PID host nếu chưa xác định ánh xạ namespace.
+- Do not use `0` when diagnosing only a single application.
+- Do not use a short main class name when multiple JVMs share the same name.
+- Do not treat a PID as a permanent identifier: re-read the process start time right before running an impactful command.
+- Do not replace a container PID with a host PID without verifying the namespace mapping.
 
-### 4.2. Tham số: phải theo help của chính command
+### 4.2. Arguments: follow the command's own help
 
-Diagnostic command **không dùng chung một bộ options toàn cục**. Ví dụ, trên HotSpot JDK 17, `Thread.print` hỗ trợ `-l` để hiển thị thêm các khóa `java.util.concurrent`:
+Diagnostic commands **do not share a single global set of options**. For example, on HotSpot JDK 17, `Thread.print` supports `-l` to additionally display `java.util.concurrent` locks:
 
 ```bash
 jcmd 18432 Thread.print -l
 ```
 
-Trong khi `JFR.start` sử dụng tham số tên/giá trị như `name=...`, `settings=...`, `duration=...`. Những chuỗi có khoảng trắng hoặc dấu đặc biệt cần được quote đúng theo **shell đang sử dụng** và cú pháp của `jcmd`. Tránh đoán options dựa trên lệnh của phiên bản khác; dùng:
+Meanwhile, `JFR.start` uses name/value parameters such as `name=...`, `settings=...`, `duration=...`. Strings containing spaces or special characters must be quoted properly according to **the shell in use** and `jcmd` syntax. Avoid guessing options based on commands from another version; use:
 
 ```bash
 jcmd 18432 help JFR.start
 ```
 
-Đối với command hỗ trợ các tùy chọn Boolean, cú pháp có thể dùng dạng `-option` hoặc `-option=true` theo help của lệnh cụ thể. Một tên trông giống JVM startup flag **không nhất thiết là diagnostic command**.
+For commands that support Boolean options, syntax may use `-option` or `-option=true` per that specific command's help. A name that looks like a JVM startup flag is **not necessarily a diagnostic command**.
 
-### 4.3. Gửi nhiều diagnostic command từ file
+### 4.3. Sending multiple diagnostic commands from a file
 
-`jcmd` hỗ trợ đọc lệnh từ file **ở phía client**:
+`jcmd` supports reading commands from a file **on the client side**:
 
 ```text
 VM.version
@@ -186,58 +186,58 @@ VM.uptime
 VM.command_line
 ```
 
-Lưu ba dòng trên thành file `commands.txt`, sau đó chạy:
+Save those three lines into a file `commands.txt`, then run:
 
 ```bash
 jcmd 18432 -f commands.txt
 ```
 
-`-f` không biến những lệnh này thành một transaction nguyên tử: process có thể restart hoặc trạng thái JVM thay đổi giữa các command. Không đưa dump nặng hay lệnh thay đổi cấu hình vào danh sách tự động mà chưa đánh giá impact. File `commands.txt` được `jcmd` đọc theo filesystem của **client**, khác với đường dẫn output của `GC.heap_dump` do **JVM đích** tạo.
+`-f` does not turn these commands into an atomic transaction: the process may restart or JVM state may change between commands. Do not put heavy dumps or configuration-changing commands into an automated list without evaluating impact. The file `commands.txt` is read by `jcmd` on the **client's** filesystem, unlike the output path of `GC.heap_dump` created by the **target JVM**.
 
-## 5. Nhóm diagnostic command theo mức tác động
+## 5. Grouping diagnostic commands by impact level
 
-| Lệnh trên HotSpot JDK 17 | Việc thực hiện | Gợi ý sử dụng | Lưu ý |
+| Command on HotSpot JDK 17 | What it does | Usage guidance | Notes |
 | --- | --- | --- | --- |
-| `help` / `help <command>` | Hiển thị command, syntax, impact | **Bắt đầu ở đây** | Danh sách thay đổi theo JVM/version |
-| `VM.version` | In thông tin JVM/JDK | Xác nhận runtime đích | Thông tin, impact thấp |
-| `VM.uptime` | In thời gian chạy JVM | Kiểm tra phiên tiến trình | Không tự khẳng định service identity |
-| `VM.command_line` | In launch settings | Xác minh đích/cấu hình | Có thể chứa secret trong arguments/properties |
-| `VM.flags` | In runtime flags | Đối chiếu cấu hình | Không phải lệnh thay đổi flags |
-| `Thread.print -l` | In stacks, lock details | Nghi thread bị block/deadlock | Impact trung bình, tăng theo số thread |
-| `GC.heap_info` | In thông tin heap tổng quát | Tìm dấu hiệu dung lượng heap | Impact trung bình theo tài liệu |
-| `GC.class_histogram` | Thống kê class/instance | Nghi giữ object hoặc phân bố heap | Impact cao, tùy kích thước/nội dung heap |
-| `GC.heap_dump <file>` | Tạo HPROF snapshot | Phân tích object còn sống | **Impact cao**, có thể yêu cầu full GC, file lớn/chứa dữ liệu nhạy cảm |
-| `JFR.check` | Xem các recording | Kiểm tra trạng thái JFR | Thường impact thấp |
-| `JFR.start` / `JFR.dump` | Bật recording / ghi recording ra file | Quan sát timeline CPU/GC/lock | Command impact thấp theo help nhưng recording có overhead và dùng đĩa |
-| `VM.log` / `VM.set_flag` | Có thể chỉnh log hoặc flag runtime | Điều chỉnh có chủ đích | **Thay đổi trạng thái**, không xếp vào lệnh đọc |
+| `help` / `help <command>` | Displays commands, syntax, impact | **Start here** | List varies by JVM/version |
+| `VM.version` | Prints JVM/JDK info | Confirm target runtime | Informational, low impact |
+| `VM.uptime` | Prints JVM uptime | Verify process instance | Does not by itself prove service identity |
+| `VM.command_line` | Prints launch settings | Verify target/configuration | May contain secrets in arguments/properties |
+| `VM.flags` | Prints runtime flags | Cross-check configuration | Not a flag-modifying command |
+| `Thread.print -l` | Prints stacks, lock details | Suspected blocked threads/deadlock | Medium impact, scales with thread count |
+| `GC.heap_info` | Prints general heap info | Look for heap capacity signals | Medium impact per documentation |
+| `GC.class_histogram` | Class/instance statistics | Suspected object retention or heap distribution | High impact, depends on heap size/contents |
+| `GC.heap_dump <file>` | Creates HPROF snapshot | Analyze live objects | **High impact**, may request a full GC, large file/may contain sensitive data |
+| `JFR.check` | Views active recordings | Check JFR state | Usually low impact |
+| `JFR.start` / `JFR.dump` | Starts recording / writes recording to file | Observe CPU/GC/lock timeline | Command impact is low per help, but recording has overhead and uses disk |
+| `VM.log` / `VM.set_flag` | Can adjust logging or runtime flags | Intentional adjustments | **State-changing**, do not classify as read-only |
 
-**Đừng xếp loại an toàn chỉ dựa trên tên:** `GC.heap_info` chỉ báo thông tin heap, còn `GC.heap_dump` ghi dump rất lớn; `VM.flags` đọc flag, nhưng `VM.set_flag` có thể thay đổi giá trị flag cho phép chỉnh động. Trước khi chạy, đọc `jcmd <pid> help <command>` để biết impact, tham số và khả năng hỗ trợ của JVM thực tế.
+**Do not classify safety by name alone:** `GC.heap_info` only reports heap info, whereas `GC.heap_dump` writes a very large dump; `VM.flags` reads flags, while `VM.set_flag` can alter dynamically writable flag values. Before running, read `jcmd <pid> help <command>` to check impact, parameters, and actual JVM support.
 
-### File output được tạo ở đâu?
+### Where are output files created?
 
-Hai lệnh sau **khác bản chất**:
+The following two commands are **fundamentally different**:
 
 ```bash
-# Chuyển stdout của client jcmd sang file ở shell hiện tại
+# Redirect jcmd client stdout to a file in the current shell
 jcmd 18432 Thread.print -l > threads.txt
 
-# Yêu cầu chính JVM đích ghi HPROF vào filesystem mà JVM đích nhìn thấy
+# Ask the target JVM itself to write HPROF to a filesystem visible to the target JVM
 jcmd 18432 GC.heap_dump /var/tmp/app-heap.hprof
 ```
 
-Ở lệnh đầu, `> threads.txt` là **shell redirection**. File thường nằm tại thư mục làm việc của shell đang chạy `jcmd` và do quyền của client/shell quyết định.
+In the first command, `> threads.txt` is **shell redirection**. The file usually resides in the working directory of the shell running `jcmd` and is governed by client/shell permissions.
 
-Ở lệnh thứ hai, `/var/tmp/app-heap.hprof` là **tham số của diagnostic command**. JVM đích cần nhìn thấy đường dẫn, có quyền ghi và đủ đĩa; trong container, đường dẫn này có thể nằm trong filesystem/mount của container, không phải vị trí người vận hành đang nhìn từ host. Không thực thi lệnh thứ hai như một bước quan sát mặc định: việc tạo heap dump có tác động lớn lên ứng dụng.
+In the second command, `/var/tmp/app-heap.hprof` is a **diagnostic command argument**. The target JVM must see the path, have write permission, and have enough disk space; in a container, this path may be inside the container's filesystem/mount rather than the location the operator sees from the host. Do not run the second command as a default observation step: creating a heap dump has major impact on the application.
 
-Tương tự, `JFR.dump filename=/var/tmp/incident.jfr` ghi file qua JVM đích. Dùng đường dẫn tuyệt đối, xác minh nơi lưu và chính sách bảo vệ dữ liệu trước khi chạy ở môi trường thật.
+Similarly, `JFR.dump filename=/var/tmp/incident.jfr` writes a file via the target JVM. Use absolute paths, and verify storage location and data protection policies before running in a real environment.
 
-## 6. Thực hành JDK 17+: gửi lệnh đến JVM demo còn sống
+## 6. JDK 17+ hands-on: sending commands to a live demo JVM
 
-Để thấy rõ mô hình **hai tiến trình độc lập**, tạo một JVM ứng dụng đơn giản chạy trong 60 giây và dùng terminal thứ hai gửi yêu cầu chẩn đoán tới đúng PID.
+To see the **two independent processes** model clearly, create a simple application JVM that runs for 60 seconds and use a second terminal to send diagnostic requests to the exact PID.
 
-### 6.1. Chương trình Java hoàn chỉnh
+### 6.1. Complete Java program
 
-Tạo file **`JcmdTarget.java`**:
+Create the file **`JcmdTarget.java`**:
 
 ```java
 public class JcmdTarget {
@@ -249,31 +249,31 @@ public class JcmdTarget {
 }
 ```
 
-Biên dịch và chạy trong **terminal 1** (JDK 17 hoặc mới hơn):
+Compile and run in **terminal 1** (JDK 17 or newer):
 
 ```bash
 javac --release 17 JcmdTarget.java
 java JcmdTarget
 ```
 
-**Stdout chính xác của chương trình nếu được chạy tới khi hoàn tất bình thường:**
+**Exact stdout of the program when run to normal completion:**
 
 ```text
 READY
 DONE
 ```
 
-`READY` xuất hiện ngay; `DONE` xuất hiện sau khoảng 60 giây. Không có PID cố định trong stdout của chương trình vì PID phụ thuộc hệ điều hành và mỗi lần chạy.
+`READY` appears immediately; `DONE` appears after about 60 seconds. There is no fixed PID in the program's stdout because the PID depends on the operating system and each run.
 
-### 6.2. Quan sát từ terminal khác
+### 6.2. Observing from another terminal
 
-Khi terminal 1 đã in `READY`, trong **terminal 2 trên cùng host** chạy:
+Once terminal 1 has printed `READY`, in **terminal 2 on the same host** run:
 
 ```bash
 jcmd -l
 ```
 
-Tìm process có main class `JcmdTarget` và ghi PID thực, ví dụ `18432`. Thay toàn bộ `18432` trong các lệnh sau bằng PID vừa tìm:
+Find the process with main class `JcmdTarget` and note the actual PID, for example `18432`. Replace every `18432` in the following commands with the PID you just found:
 
 ```bash
 jcmd 18432 help
@@ -284,64 +284,64 @@ jcmd 18432 help Thread.print
 jcmd 18432 Thread.print -l
 ```
 
-Các lệnh kiểm tra `VM.version`, `VM.command_line`, `VM.uptime` và `help Thread.print` truy vấn đúng JVM demo; `Thread.print -l` in thread snapshot của JVM đó tại thời điểm thực hiện. Nếu đợi quá 60 giây, JVM demo đã kết thúc: yêu cầu attach sẽ thất bại hoặc PID có thể thuộc process khác trong tương lai.
+The inspection commands `VM.version`, `VM.command_line`, `VM.uptime`, and `help Thread.print` query that exact demo JVM; `Thread.print -l` prints a thread snapshot of that JVM at execution time. If you wait more than 60 seconds, the demo JVM has exited: the attach request will fail or the PID may belong to another process in the future.
 
-**Không có một output `jcmd` cố định để sao chép**: PID, JDK version, JVM uptime, số thread và stack thay đổi theo môi trường. Dấu hiệu cần kiểm tra là command được thực thi **đúng PID**, in kết quả hoặc lỗi xác định, và thread dump chứa `main` ở một call stack chờ `Thread.sleep` nếu chụp trong khoảng demo đang sleep.
+**There is no single fixed `jcmd` output to copy**: PID, JDK version, JVM uptime, thread count, and stacks vary by environment. What to verify is that the command executed against the **right PID**, printed a definite result or error, and the thread dump includes `main` in a call stack waiting on `Thread.sleep` if captured while the demo is sleeping.
 
-### 6.3. Sau khi client thoát, JVM đích ra sao?
+### 6.3. After the client exits, what happens to the target JVM?
 
-Chạy `jcmd 18432 VM.version` không tự dừng `JcmdTarget`. Sau khi lệnh `jcmd` kết thúc, terminal 1 vẫn chờ, rồi in `DONE` khi đủ thời gian sleep. Đây là bằng chứng trực quan rằng **vòng đời `jcmd` client và JVM đích tách biệt**.
+Running `jcmd 18432 VM.version` does not stop `JcmdTarget`. After the `jcmd` command finishes, terminal 1 keeps waiting and prints `DONE` once the sleep duration elapses. This is direct visual proof that **the lifecycles of the `jcmd` client and the target JVM are separate**.
 
-Nếu người học chủ động dừng demo trước 60 giây bằng công cụ OS hoặc Ctrl+C, `DONE` có thể không xuất hiện; đó là **một lần chạy bị ngắt**, không làm thay đổi logic của mã nguồn.
+If the learner intentionally stops the demo before 60 seconds via an OS tool or Ctrl+C, `DONE` may not appear; that is an **interrupted run**, not a change in the source code's logic.
 
-### 6.4. Điều gì được kiểm tra thực tế?
+### 6.4. What was actually verified?
 
-Demo này có thể dùng trên JDK 17+. Mã đã được kiểm chứng biên dịch với `javac --release 17`; trong thử nghiệm với HotSpot/OpenJDK, các lệnh `VM.version`, `VM.command_line`, `VM.uptime` và `help Thread.print` đã được kiểm chứng trả về thành công khi JVM demo còn sống. **Số liệu output phụ thuộc runtime**, không nên hard-code trong tài liệu hoặc unit test.
+This demo can be run on JDK 17+. The code has been verified to compile with `javac --release 17`; in testing with HotSpot/OpenJDK, `VM.version`, `VM.command_line`, `VM.uptime`, and `help Thread.print` were verified to return successfully while the demo JVM was alive. **Output metrics depend on the runtime** and should not be hard-coded in documentation or unit tests.
 
-## 7. Quyền attach và bề mặt bảo mật
+## 7. Attach permissions and security surface
 
-**Attach là thao tác có đặc quyền vận hành đối với process**, không phải API ai cũng được truy cập. Với `jcmd` trong tài liệu Java SE 17, client cần chạy trên cùng máy với JVM và có cùng effective user/group đã dùng để khởi chạy nó. Có thể còn các cơ chế sandbox, file permission, security policy và namespace.
+**Attach is a privileged operational action on a process**, not an API open to everyone. For `jcmd` in the Java SE 17 documentation, the client must run on the same machine as the JVM and have the same effective user/group used to launch it. Sandboxes, file permissions, security policies, and namespaces may also apply.
 
-Những điều cần lưu ý:
+Points to keep in mind:
 
-- **Không cố chạy với account khác** chỉ vì PID có thể nhìn thấy trong `ps` hoặc Task Manager. Nhìn thấy tên process không đồng nghĩa được phép attach.
-- Với HotSpot, startup option `-XX:+DisableAttachMechanism` vô hiệu hóa cơ chế attach; nếu ứng dụng cấu hình như vậy, `jcmd` có thể không kết nối được. Đây là lựa chọn runtime cần được hiểu từ phía vận hành, không phải lỗi ngẫu nhiên của lệnh.
-- Java service trong container có thể không có JDK tools ở image; `jcmd -l` trên host cũng có thể không liệt kê JVM trong Docker process riêng. Cần chọn đúng nơi có quyền và PID mapping thích hợp.
-- Diagnostic command có thể đọc thông tin nhạy cảm: `VM.command_line`, `VM.system_properties`, thread stack, heap dump và JFR có thể chứa tokens, chuỗi kết nối, request data hoặc định danh người dùng. Chỉ ghi, xem và chia sẻ trong phạm vi cho phép.
-- Một số command thay đổi trạng thái runtime, như điều chỉnh logging/JFR/flags; không gộp chúng thành “read-only” chỉ vì cú pháp bắt đầu bằng `jcmd`.
-- Không dùng tài khoản có đặc quyền rộng hoặc đặt quyền truy cập file dump quá thoáng chỉ để tiện điều tra. Giữ thời hạn lưu và cách xóa hiện vật theo chính sách vận hành.
+- **Do not try running under a different account** just because the PID is visible in `ps` or Task Manager. Seeing a process name does not mean attach is permitted.
+- On HotSpot, the startup option `-XX:+DisableAttachMechanism` disables the attach mechanism; if the application is configured this way, `jcmd` may fail to connect. This is a runtime choice that must be understood operationally, not a random command glitch.
+- A Java service in a container may not have JDK tools in the image; `jcmd -l` on the host may also not list JVMs inside isolated Docker processes. Choose the right location with proper permissions and PID mapping.
+- Diagnostic commands can read sensitive information: `VM.command_line`, `VM.system_properties`, thread stacks, heap dumps, and JFR recordings can contain tokens, connection strings, request data, or user identifiers. Only write, view, and share them within authorized boundaries.
+- Some commands change runtime state, such as adjusting logging/JFR/flags; do not lump them into "read-only" just because the syntax starts with `jcmd`.
+- Do not use an overly privileged account or set overly permissive access on dump files merely for investigation convenience. Maintain retention periods and artifact cleanup according to operational policy.
 
-**Attach không phải remote debugging:** không phải cứ có PID hoặc IP là gửi lệnh tới JVM trên máy khác. Remote management và debugger dùng các cơ chế riêng, có cấu hình và rủi ro riêng.
+**Attach is not remote debugging:** having a PID or IP does not mean you can send commands to a JVM on another machine. Remote management and debuggers use separate mechanisms with their own configuration and risks.
 
-## 8. Các lỗi phổ biến khi gửi diagnostic command
+## 8. Common errors when sending diagnostic commands
 
-| Triệu chứng | Nguyên nhân có thể | Cách kiểm tra phù hợp |
+| Symptom | Possible cause | Appropriate check |
 | --- | --- | --- |
-| `jcmd -l` không hiển thị ứng dụng | PID namespace/container, quyền, runtime không công bố thông tin khám phá, process đã thoát | Dùng process list trên đúng host/namespace, đối chiếu service manager và PID hiện tại |
-| Có PID nhưng attach thất bại | Sai user/group, attach bị disable, sandbox, cơ chế IPC, process không phản hồi | Xác minh owner/start time, JDK tương thích, runtime flags và quyền; không coi là “không có JVM” |
-| “Unrecognized diagnostic command” hoặc help không có lệnh | Command không được JVM/vendor/version hỗ trợ | Hỏi `jcmd <pid> help` và help của đúng command |
-| Lệnh chạy nhưng không tạo file | Đường dẫn được hiểu từ JVM đích, thiếu quyền ghi, hết dung lượng, tên file trùng | Kiểm tra filesystem/mount/quyền/đĩa từ góc nhìn target |
-| Output phiên bản không như kỳ vọng | Terminal dùng Java khác runtime đích, hoặc đã chọn nhầm process | Dùng `VM.version`, OS executable và launch command |
-| Command chỉ chạy sau một lúc lâu | JVM đang quá tải, command có impact lớn hoặc kết nối/điều phối bị trì hoãn | Kiểm tra mô tả impact, tải thực tế, logs và khả năng đáp ứng; tránh lặp hàng loạt |
-| PID đúng lúc đầu nhưng kết quả thuộc ứng dụng khác | Process restart, PID tái sử dụng hoặc host/namespace khác | So PID **cùng start time**, owner, command ngay trước thao tác |
-| Heap dump gây pause hoặc đầy đĩa | `GC.heap_dump` là thao tác nặng, không phải truy vấn nhỏ | Đánh giá kích thước heap, impact, quota/retention trước |
-| `jcmd` từ JDK A gặp JVM JDK B không tương thích | Trộn tool/runtime khác version hoặc vendor | Dùng tool JDK phù hợp, xác nhận `VM.version` |
-| Gõ tên command vào shell như executable | Command chỉ có ý nghĩa khi được truyền vào `jcmd` | Dùng `jcmd <pid> VM.version`, không chạy trần `VM.version` |
+| `jcmd -l` does not show the application | PID namespace/container, permissions, runtime does not publish discovery info, process exited | Use process list on the right host/namespace, cross-check service manager and current PID |
+| PID exists but attach fails | Wrong user/group, attach disabled, sandbox, IPC mechanism, unresponsive process | Verify owner/start time, compatible JDK, runtime flags, and permissions; do not treat as "no JVM" |
+| "Unrecognized diagnostic command" or command missing in help | Command not supported by the JVM/vendor/version | Query `jcmd <pid> help` and the specific command's help |
+| Command runs but creates no file | Path interpreted from target JVM, missing write permission, out of disk space, filename collision | Check filesystem/mount/permissions/disk from the target's perspective |
+| Version output is unexpected | Terminal uses a different Java than target runtime, or wrong process selected | Use `VM.version`, OS executable, and launch command |
+| Command only completes after a long delay | JVM is overloaded, high-impact command, or connection/dispatch delayed | Check impact description, actual load, logs, and responsiveness; avoid rapid retries |
+| PID was right initially, but result belongs to another application | Process restarted, PID reused, or different host/namespace | Compare PID **together with start time**, owner, and command right before the action |
+| Heap dump causes pause or fills disk | `GC.heap_dump` is a heavy operation, not a small query | Evaluate heap size, impact, and quota/retention beforehand |
+| `jcmd` from JDK A hits incompatible JDK B JVM | Mixing tools/runtimes of different versions or vendors | Use matching JDK tool, confirm `VM.version` |
+| Typing command name into shell as an executable | The command only has meaning when passed to `jcmd` | Use `jcmd <pid> VM.version`, do not run bare `VM.version` |
 
-**Phân loại lỗi để xử lý:** (1) chưa xác định đúng **target**, (2) không thiết lập được **attach**, (3) attach được nhưng **command/arguments không hợp lệ**, (4) command chạy nhưng **không tạo output dự kiến**, (5) kết quả có nhưng **đã hiểu sai ý nghĩa hoặc thời điểm**. Mỗi lớp có cách kiểm tra khác nhau; không chữa bằng cách đoán PID mới hoặc retry lệnh nặng liên tục.
+**Categorizing errors for troubleshooting:** (1) failed to identify the right **target**, (2) failed to establish **attach**, (3) attached successfully but **command/arguments invalid**, (4) command ran but **did not produce expected output**, (5) output obtained but **meaning or timing was misinterpreted**. Each class has different checks; do not fix it by guessing a new PID or repeatedly retrying heavy commands.
 
-## 9. Quy trình kiểm tra production theo mức ảnh hưởng tăng dần
+## 9. Production inspection workflow in increasing order of impact
 
-### 9.1. Luồng read-only đầu tiên
+### 9.1. Read-only flow first
 
-1. Từ cảnh báo, định vị đúng node/pod/instance. Ghi host, PID namespace, PID, start time và owner; đối chiếu executable/launch command với service cần điều tra.
-2. Trên đúng máy, dùng `jcmd -l` (nếu khả dụng) rồi `jcmd <pid> help` để khám phá danh sách command.
-3. Kiểm tra `jcmd <pid> VM.version`, `VM.uptime`, `VM.command_line` theo nhu cầu; **che thông tin bí mật** trong output.
-4. Chọn command theo câu hỏi, đọc `jcmd <pid> help <command>` để kiểm tra impact/syntax trước khi sử dụng.
-5. Ghi thời gian thu thập, PID + start time, JDK version, command đã chạy và outcome. So với metrics/log có timestamp cùng cửa sổ.
-6. Nếu chuẩn bị thread dump, JFR, histogram hoặc heap dump, kiểm tra lại target và đánh giá impact, quota/file output phù hợp với sự cố.
+1. From the alert, locate the exact node/pod/instance. Record host, PID namespace, PID, start time, and owner; cross-check the executable/launch command with the service under investigation.
+2. On the right machine, use `jcmd -l` (if available) then `jcmd <pid> help` to discover the command list.
+3. Check `jcmd <pid> VM.version`, `VM.uptime`, `VM.command_line` as needed; **mask secrets** in the output.
+4. Pick a command matching your question, read `jcmd <pid> help <command>` to verify impact/syntax before running it.
+5. Record collection timestamp, PID + start time, JDK version, command executed, and outcome. Correlate with metrics/logs sharing the same time window.
+6. If preparing a thread dump, JFR, histogram, or heap dump, re-verify the target and evaluate impact, quota/output file suitability for the incident.
 
-Có thể dùng cấu trúc ghi biên bản như sau:
+You can use an incident record structure like this:
 
 ```text
 event_time_utc: 2026-10-29T08:32:15Z
@@ -351,68 +351,68 @@ pid: 18432
 start_time_utc: 2026-10-29T08:02:00Z
 owner: svc-orders
 diagnostic_command: VM.uptime
-command_impact: Low (theo help trên JVM đích)
+command_impact: Low (per help on the target JVM)
 result: success
-notes: phiên JVM và owner đã đối chiếu với process table
+notes: JVM instance and owner cross-checked against process table
 ```
 
-Đây là **hồ sơ minh họa**, không phải output bắt buộc của `jcmd`; mốc thời gian, user và PID phải lấy từ hệ thống thật.
+This is an **illustrative record**, not mandatory `jcmd` output; timestamps, user, and PID must come from the real system.
 
-### 9.2. Các ví dụ chọn lệnh theo câu hỏi, không chạy bừa
+### 9.2. Examples of choosing commands by question, without guessing
 
-| Câu hỏi | Lệnh có thể dùng sau khi xác minh | Cần biết trước |
+| Question | Command usable after verification | Prerequisites to know |
 | --- | --- | --- |
-| “Đây có đúng JVM/build cần điều tra?” | `VM.version`, `VM.command_line`, `VM.uptime` | Đối chiếu với PID/start/owner ở OS |
-| “Thread đang ở trạng thái nào?” | `Thread.print -l` | Snapshot, impact trung bình; không chứng minh lịch sử chỉ với một dump |
-| “Heap đang được JVM tổ chức thế nào?” | `GC.heap_info` | Chỉ là thông tin tổng quan, không chứng minh memory leak |
-| “Có JFR đang chạy?” | `JFR.check` | Kết quả phản ánh thời điểm hỏi |
-| “Cần bắt đầu ghi timeline một phút?” | `JFR.start name=triage settings=default duration=60s filename=/var/tmp/triage.jfr` | Kiểm tra overhead, volume/path và chủ sở hữu file |
-| “Cần dump heap để phân tích retained objects?” | `GC.heap_dump /var/tmp/heap.hprof` | Impact cao, có thể full GC, file nhạy cảm; cần kế hoạch dung lượng |
-| “Cần xem native memory?” | `VM.native_memory summary` | Native Memory Tracking phải được bật ở startup; không mặc định khả dụng |
+| "Is this the right JVM/build to investigate?" | `VM.version`, `VM.command_line`, `VM.uptime` | Cross-check with PID/start/owner in OS |
+| "What state are threads in?" | `Thread.print -l` | Snapshot, medium impact; does not prove history from a single dump |
+| "How is the JVM organizing the heap?" | `GC.heap_info` | Overview info only, does not prove a memory leak |
+| "Is a JFR recording running?" | `JFR.check` | Result reflects the moment queried |
+| "Need to start a one-minute timeline recording?" | `JFR.start name=triage settings=default duration=60s filename=/var/tmp/triage.jfr` | Check overhead, volume/path, and file ownership |
+| "Need a heap dump to analyze retained objects?" | `GC.heap_dump /var/tmp/heap.hprof` | High impact, possible full GC, sensitive file; requires capacity planning |
+| "Need to inspect native memory?" | `VM.native_memory summary` | Native Memory Tracking must be enabled at startup; not available by default |
 
-`JFR.start` bắt đầu recording trong JVM đích; `JFR.check` cho biết trạng thái; `JFR.dump` có thể ghi dữ liệu ra file **mà không tự dừng recording**. Các command điều khiển JFR và lựa chọn cấu hình sẽ phù hợp hơn ở bài chuyên sâu về JFR; ở đây chúng minh họa rằng diagnostic command có thể tạo **side effect dài hơn vòng đời của `jcmd` client**.
+`JFR.start` starts a recording inside the target JVM; `JFR.check` reports status; `JFR.dump` can write data to a file **without automatically stopping the recording**. JFR control commands and configuration choices fit better in a dedicated JFR lesson; here they illustrate that a diagnostic command can create **side effects outliving the `jcmd` client lifecycle**.
 
-### 9.3. Nếu JVM không phản hồi
+### 9.3. If the JVM is unresponsive
 
-Một JVM treo hoặc tài nguyên bị cạn có thể phản hồi attach rất chậm hoặc không phản hồi. Đừng kết luận “không có thread nào bị kẹt” từ việc `jcmd Thread.print` không thành công. Khi lệnh timeout/hỏng, ghi lại PID, start time, phiên bản JDK, triệu chứng và lỗi; so sánh nguồn khác (metrics, log, OS process/thread state), đồng thời tuân theo quy trình incident phù hợp.
+A hung or resource-exhausted JVM may respond to attach very slowly or not at all. Do not conclude "no threads are stuck" from `jcmd Thread.print` failing. When a command times out or fails, record the PID, start time, JDK version, symptoms, and error; compare other sources (metrics, logs, OS process/thread state), and follow the appropriate incident procedure.
 
-Không thay `jcmd` bằng thao tác tùy tiện làm thay đổi process chỉ để lấy output; điều đó có thể làm mất bằng chứng.
+Do not replace `jcmd` with arbitrary actions that alter the process just to get output; doing so may destroy evidence.
 
-## 10. Tư duy đúng về command, kết quả và side effect
+## 10. Right mindset about commands, results, and side effects
 
-### Phân biệt ba câu hỏi
+### Distinguish three questions
 
-1. **Yêu cầu có đến đúng JVM không?** Xác minh PID, start time, owner, runtime identity.
-2. **Command có được JVM hỗ trợ và thực hiện không?** Dựa vào `help`, trạng thái trả về, lỗi và điều kiện attach.
-3. **Dữ liệu trả về có chứng minh giả thuyết không?** Thread dump một lần chỉ là snapshot; heap info không tự chứng minh leak; JFR có sampling và cấu hình sự kiện.
+1. **Did the request reach the right JVM?** Verify PID, start time, owner, runtime identity.
+2. **Is the command supported and executed by the JVM?** Rely on `help`, return status, errors, and attach conditions.
+3. **Does the returned data prove the hypothesis?** A single thread dump is only a snapshot; heap info does not by itself prove a leak; JFR has sampling and event configurations.
 
-### Các ngộ nhận quan trọng
+### Key misconceptions
 
-- “`jcmd` là lệnh Java chạy từ xa.” → Nó dùng cơ chế attach vào JVM đang sống; cùng-host, đúng quyền, không mặc định là truy vấn qua mạng.
-- “`jcmd -l` là danh sách đầy đủ mọi JVM.” → Quyền và container namespace có thể che khuất nhiều process.
-- “Tên JAR hoặc main class đủ để chọn đích.” → Nhiều JVM có thể dùng cùng tên; PID cũng có thể tái sử dụng.
-- “`jcmd` chỉ đọc thông tin.” → Có command đổi cấu hình, kích hoạt recording, dump heap hoặc gọi GC.
-- “Có output tức là phân tích đã chính xác.” → Một snapshot có thể lấy ngoài cửa sổ sự cố; cần ngữ cảnh, thời điểm và đối chiếu chéo.
-- “File path luôn thuộc terminal của tôi.” → Redirect shell là file client; tham số `filename` của command có thể là file **do target JVM** tạo.
-- “Lệnh `help` trên JDK mới đúng với mọi JVM cũ.” → Khả năng phụ thuộc phiên bản và vendor; hỏi chính JVM đích.
-- “Tool chạy xong là thay đổi được tự khôi phục.” → JFR recording hoặc thay đổi cấu hình có thể tiếp tục tồn tại; phải biết cách kiểm tra/dừng/hoàn nguyên nếu đã chủ động thay đổi.
+- "`jcmd` is a remote Java command." → It uses the attach mechanism into a live JVM; same-host, proper permissions, not a network query by default.
+- "`jcmd -l` is a complete list of all JVMs." → Permissions and container namespaces can hide many processes.
+- "A JAR name or main class is enough to select the target." → Multiple JVMs may share the same name; PIDs can also be reused.
+- "`jcmd` only reads information." → Some commands change configuration, start recordings, dump heap, or trigger GC.
+- "Getting output means the analysis is accurate." → A snapshot might be taken outside the incident window; context, timing, and cross-checking are required.
+- "File paths always belong to my terminal." → Shell redirection creates a client file; a command's `filename` parameter may be a file **created by the target JVM**.
+- "The `help` command on a new JDK applies to every older JVM." → Capabilities depend on version and vendor; query the target JVM itself.
+- "Once the tool exits, changes revert automatically." → A JFR recording or configuration change may persist; you must know how to inspect/stop/revert if you intentionally changed state.
 
-## 11. Checklist trước khi gửi command cho JVM thực
+## 11. Checklist before sending a command to a real JVM
 
-- [ ] Xác định đúng **host/node**, **container/PID namespace**, **PID**, **owner**, **start time** và launch command.
-- [ ] Dùng `jcmd` của JDK tương thích; xác định runtime hỗ trợ attach và user có quyền phù hợp.
-- [ ] Xem `jcmd <pid> help` và `jcmd <pid> help <command>`; kiểm tra command name, options, impact và quyền.
-- [ ] Phân biệt **lệnh truy vấn**, **lệnh tạo snapshot/file lớn** và **lệnh thay đổi trạng thái**.
-- [ ] Kiểm tra đích ghi file, quyền truy cập, dung lượng và khả năng chứa secrets khi dump/JFR.
-- [ ] Kiểm tra lại PID/start time sát lúc thao tác; không dùng `0` hoặc main class match nhiều process.
-- [ ] Lưu kết quả kèm timestamp, runtime version, command và trạng thái thực thi; đối chiếu metrics/log.
-- [ ] Nếu command không thành công, phân tích **target → attach → syntax → execution → result** trước khi thử lại.
+- [ ] Identify the exact **host/node**, **container/PID namespace**, **PID**, **owner**, **start time**, and launch command.
+- [ ] Use `jcmd` from a compatible JDK; verify the runtime supports attach and the user has proper permissions.
+- [ ] Inspect `jcmd <pid> help` and `jcmd <pid> help <command>`; verify command name, options, impact, and permissions.
+- [ ] Distinguish **query commands**, **snapshot/large-file commands**, and **state-changing commands**.
+- [ ] Check file output destination, access permissions, disk capacity, and potential secret exposure for dumps/JFR.
+- [ ] Re-verify PID/start time right before the action; do not use `0` or a main class matching multiple processes.
+- [ ] Save results with timestamp, runtime version, command, and execution status; correlate with metrics/logs.
+- [ ] If a command fails, analyze **target → attach → syntax → execution → result** before retrying.
 
-**Tài liệu chính thức tham khảo:**
+**Official reference documentation:**
 
-- [Oracle Java SE 17 — The jcmd Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): cú pháp, help, danh sách command, impact và tham số.
-- [Oracle Java SE 17 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/17/troubleshoot/diagnostic-tools.html): cơ chế sử dụng `jcmd` để chẩn đoán JVM đang chạy.
-- [Oracle Java SE 17 — The java Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html): `-XX:+DisableAttachMechanism` và các tùy chọn serviceability.
-- [Java SE 17 — DiagnosticCommandMBean](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.management/com/sun/management/DiagnosticCommandMBean.html): cách diagnostic command được trình bày qua cơ chế quản trị Java.
+- [Oracle Java SE 17 — The jcmd Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): syntax, help, command list, impact, and arguments.
+- [Oracle Java SE 17 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/17/troubleshoot/diagnostic-tools.html): how `jcmd` is used to diagnose a running JVM.
+- [Oracle Java SE 17 — The java Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html): `-XX:+DisableAttachMechanism` and serviceability options.
+- [Java SE 17 — DiagnosticCommandMBean](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.management/com/sun/management/DiagnosticCommandMBean.html): how diagnostic commands are exposed through the Java management mechanism.
 
-**Ghi nhớ:** mô hình `jcmd` gồm **client → nhận diện JVM đích → attach cục bộ được phép → diagnostic-command dispatcher → kết quả hoặc side effect**. Làm đúng bước chọn JVM và đọc `help` quan trọng không kém việc thuộc lệnh: cùng một `jcmd` có thể chỉ in phiên bản trong vài mili giây hoặc khiến JVM xử lý một heap dump rất lớn.
+**Key takeaway:** the `jcmd` model consists of **client → target JVM identification → authorized local attach → diagnostic-command dispatcher → result or side effect**. Getting target JVM selection and reading `help` right is just as important as memorizing commands: the same `jcmd` tool can print a version in a few milliseconds or make the JVM process a massive heap dump.

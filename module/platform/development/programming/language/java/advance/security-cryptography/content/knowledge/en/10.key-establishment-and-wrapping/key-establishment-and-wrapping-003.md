@@ -1,37 +1,37 @@
-# 10.3. Chu trình init, doPhase, generateSecret và kiểm tra khóa của đối tác
+# 10.3. The init, doPhase, generateSecret Lifecycle and Peer Key Validation
 
-## 1. Vì sao cần KeyAgreement?
+## 1. Why Is KeyAgreement Needed?
 
-Khi hai bên A và B liên lạc qua một mạng có thể bị quan sát, họ cần thiết lập **cùng một bí mật chung** để từ đó dẫn xuất khóa phiên dùng cho mã hóa đối xứng hoặc bọc khóa. Nếu A và B có thể làm việc đó mà không gửi trực tiếp private key hoặc bí mật chung trên đường truyền, ta có **thỏa thuận khóa** (*key agreement*).
+When two parties A and B communicate over an observable network, they need to establish **the same shared secret** from which to derive session keys for symmetric encryption or key wrapping. If A and B can do this without sending their private keys or the shared secret directly over the wire, we have **key agreement**.
 
-Trong Java/JCA/JCE, `javax.crypto.KeyAgreement` cung cấp engine cho các thuật toán như **Diffie–Hellman (DH)**, **Elliptic Curve Diffie–Hellman (ECDH)** và **X25519/X448** (thuộc họ XDH). Mô hình hai phía thường là:
+In Java/JCA/JCE, `javax.crypto.KeyAgreement` provides the engine for algorithms such as **Diffie–Hellman (DH)**, **Elliptic Curve Diffie–Hellman (ECDH)**, and **X25519/X448** (in the XDH family). The typical two-party model is:
 
-- A sinh cặp `privateA/publicA`, B sinh cặp `privateB/publicB` với cùng thuật toán và tham số tương thích.
-- A nhận `publicB`, dùng **privateA** để tính bí mật chung.
-- B nhận `publicA`, dùng **privateB** để tính bí mật chung.
-- Theo tính chất thuật toán, với khóa hợp lệ và cùng tham số, **hai phía thu được cùng giá trị** mà không cần truyền nó qua mạng.
+- A generates keypair `privateA/publicA`, B generates keypair `privateB/publicB` with the same algorithm and compatible parameters.
+- A receives `publicB` and uses **privateA** to compute the shared secret.
+- B receives `publicA` and uses **privateB** to compute the shared secret.
+- By mathematical property, with valid keys and matching parameters, **both sides obtain the same value** without transmitting it over the network.
 
-Nhưng có ba điều không được đánh đồng:
+However, three things must never be equated:
 
-1. **Đúng chu trình API**: `init` → `doPhase` → `generateSecret`.
-2. **Khóa công khai đối tác hợp lệ về kỹ thuật**: đúng kiểu, tham số/curve, biểu diễn và các kiểm tra mật mã cần thiết.
-3. **Khóa thật sự thuộc về đối tác mong muốn**: phải được **xác thực qua cơ chế tin cậy** như khóa đã pin, chứng thư được kiểm tra hoặc trao đổi khóa có xác thực.
+1. **Following the API lifecycle**: `init` → `doPhase` → `generateSecret`.
+2. **A technically valid peer public key**: right type, parameters/curve, encoding, and required cryptographic checks.
+3. **The key actually belongs to the intended peer**: must be **authenticated via a trusted mechanism** such as a pinned key, verified certificate, or authenticated key exchange.
 
-Bước (1) và (2) **không tự bảo đảm bước (3)**. Một kẻ đứng giữa (*man-in-the-middle*, MITM) có thể thay public key trên đường truyền và tạo **hai phiên thỏa thuận khóa khác nhau** nếu hệ thống không xác thực khóa của bên kia.
+Steps (1) and (2) **do not guarantee step (3)**. A *man-in-the-middle* (MITM) attacker can swap public keys in transit and create **two separate key agreement sessions** if the system does not authenticate the peer's key.
 
-**Mục tiêu bài học:** hiểu trạng thái của `KeyAgreement`, đặt đúng `lastPhase`, quản lý kết quả `generateSecret`, kiểm tra khóa của đối tác ở nhiều tầng, rồi dẫn xuất khóa đối xứng một cách an toàn thay vì coi raw shared secret là khóa AES sẵn sàng sử dụng.
+**Lesson objectives:** understand `KeyAgreement` state, set `lastPhase` properly, manage `generateSecret` output, validate the peer's key across multiple layers, and then derive symmetric keys safely instead of treating the raw shared secret as a ready-to-use AES key.
 
-## 2. Cơ chế ở cấp giao thức: bí mật chung không được gửi đi
+## 2. Protocol-Level Mechanism: The Shared Secret Is Not Sent
 
-Minh họa mô hình **hai bên**:
+Illustrating the **two-party** model:
 
 ```text
 Alice                                              Bob
 -----                                              ---
 (privateA, publicA)                                (privateB, publicB)
          |                                            |
-         |  ----- publicA (được xác thực) ----------> |
-         | <----- publicB (được xác thực) ----------- |
+         |  ----- publicA (authenticated) ----------> |
+         | <----- publicB (authenticated) ----------- |
          |                                            |
 KeyAgreement.init(privateA)               KeyAgreement.init(privateB)
 doPhase(publicB, true)                     doPhase(publicA, true)
@@ -39,145 +39,145 @@ generateSecret() -> sharedA                generateSecret() -> sharedB
          |                                            |
          +------------ sharedA == sharedB -------------+
                               |
-                  KDF (HKDF + ngữ cảnh)
+                  KDF (HKDF + context)
                               |
-              Khóa phiên cho AEAD / bọc khóa
+              Session key for AEAD / key wrapping
 ```
 
-**Public key không phải bí mật.** Tuy nhiên, public key nhận từ mạng **chưa tự đáng tin** chỉ vì parse thành công, có chuỗi Base64 đúng hoặc được `KeyAgreement.doPhase` chấp nhận.
+**Public keys are not secrets.** Nevertheless, a public key received from the network is **not automatically trustworthy** just because it parses cleanly, is valid Base64, or is accepted by `KeyAgreement.doPhase`.
 
-Ở phía A, giá trị đưa vào `init` là **khóa riêng của chính A**; khóa đưa vào `doPhase` là **khóa công khai của B**. Không đưa private key của B vào `doPhase`; không gửi private key của A cho B. Hệ thống thực tế cần xác thực thông điệp chứa public keys hoặc đối chiếu chúng với một kênh đăng ký/trust đã được bảo vệ.
+On A's side, the key passed to `init` is **A's own private key**; the key passed to `doPhase` is **B's public key**. Never pass B's private key to `doPhase`; never send A's private key to B. A real system must authenticate messages carrying public keys or match them against a protected trust/registration channel.
 
-**Lưu ý thuật ngữ:** `KeyAgreement` thường *tính* raw shared secret; nó **không mã hóa** payload, **không tạo chữ ký số** và **không tự bọc khóa**. Sau khi xác thực trao đổi và dẫn xuất khóa phiên, ứng dụng mới có thể dùng `Cipher`/AEAD hoặc thuật toán bọc khóa phù hợp.
+**Terminology note:** `KeyAgreement` typically *computes* a raw shared secret; it **does not encrypt** payloads, **does not create digital signatures**, and **does not wrap keys by itself**. Only after authenticating the exchange and deriving session keys can the application use `Cipher`/AEAD or an appropriate key-wrapping algorithm.
 
-## 3. Vòng đời KeyAgreement trong JCA
+## 3. The KeyAgreement Lifecycle in JCA
 
-### 3.1. Tạo engine bằng getInstance
+### 3.1. Creating an Engine with getInstance
 
 ```java
 KeyAgreement ka = KeyAgreement.getInstance("X25519");
 ```
 
-Cần import `javax.crypto.KeyAgreement`. Chuỗi `"X25519"` là **tên thuật toán**, không phải provider. Từ Java 17, JDK thông dụng hỗ trợ X25519, nhưng hệ thống thay provider/chính sách mật mã có thể khác; ứng dụng cần cấu hình thuật toán được phép và kiểm tra hỗ trợ.
+You need to import `javax.crypto.KeyAgreement`. The string `"X25519"` is the **algorithm name**, not the provider. Since Java 17, standard JDKs support X25519, though systems with custom providers/crypto policies may differ; the application must configure allowed algorithms and verify support.
 
-Không dùng `"AES"` để tạo `KeyAgreement`: AES là thuật toán **mã hóa đối xứng**, không phải phép thỏa thuận khóa. Tương tự, `Ed25519` dùng để ký/xác minh, **không** được coi như khóa X25519 có thể đổi tên tùy ý.
+Do not pass `"AES"` to create a `KeyAgreement`: AES is a **symmetric encryption** algorithm, not a key agreement primitive. Likewise, `Ed25519` is used for signing/verification and **must not** be treated as an X25519 key that can be arbitrarily relabeled.
 
-### 3.2. init(privateKey): đặt trạng thái ban đầu
+### 3.2. init(privateKey): Setting the Initial State
 
 ```java
 ka.init(ownPrivateKey);
 ```
 
-`init` chuẩn bị engine với **thông tin bí mật của bên cục bộ** và các tham số cần thiết. Với X25519, private key tương ứng với keypair X25519 đã sinh; với classic DH/ECDH cần các tham số nhóm/curve tương thích. Các overload cho phép truyền `AlgorithmParameterSpec` và/hoặc `SecureRandom` khi thuật toán/provider cần.
+`init` prepares the engine with the **local party's secret key** and required parameters. For X25519, the private key corresponds to a generated X25519 keypair; for classic DH/ECDH, compatible group/curve parameters are required. Overloads allow passing an `AlgorithmParameterSpec` and/or `SecureRandom` when the algorithm/provider needs them.
 
-Lỗi cần biết:
+Errors to know:
 
-- `InvalidKeyException` nếu đưa khóa không thích hợp: sai loại, sai thuật toán hoặc không tương thích.
-- `InvalidAlgorithmParameterException` nếu sử dụng overload có tham số không phù hợp.
-- Có thể phát sinh lỗi tạo engine như `NoSuchAlgorithmException` nếu thuật toán không tồn tại ở provider khả dụng.
+- `InvalidKeyException` if an unsuitable key is supplied: wrong type, wrong algorithm, or incompatible.
+- `InvalidAlgorithmParameterException` if an overload is called with incompatible parameters.
+- Engine creation errors such as `NoSuchAlgorithmException` may occur if the algorithm does not exist in available providers.
 
-**`init` không tự lấy public key đối tác qua mạng** và cũng không tự kiểm tra đối tác là ai. Nó đặt trạng thái của engine để xử lý giai đoạn thỏa thuận.
+**`init` does not fetch the peer's public key over the network** and does not verify who the peer is. It initializes the engine state to process agreement phases.
 
-### 3.3. doPhase(peerPublicKey, lastPhase): xử lý từng bên tham gia
+### 3.3. doPhase(peerPublicKey, lastPhase): Processing Each Participant
 
-Trong thỏa thuận khóa **hai bên**, thường gọi:
+In **two-party** key agreement, you typically call:
 
 ```java
 ka.doPhase(peerPublicKey, true);
 ```
 
-- `peerPublicKey` là khóa cho giai đoạn hiện tại, thường là **public key của bên kia**.
-- `lastPhase=true` cho biết **đây là giai đoạn cuối**.
-- Với hai bên, gọi **một lần** và đặt `true`.
-- `doPhase` trả một `Key` trung gian hoặc `null` nếu giai đoạn đó không tạo ra khóa trung gian cần dùng. Trong demo X25519 hai bên, không cần lấy giá trị trả về.
+- `peerPublicKey` is the key for the current phase, usually the **other party's public key**.
+- `lastPhase=true` indicates **this is the final phase**.
+- For two parties, call it **once** with `true`.
+- `doPhase` returns an intermediate `Key` or `null` if that phase produces no intermediate key needed by the caller. In a two-party X25519 demo, the return value is not needed.
 
-Các thuật toán đa bên có thể dùng nhiều giai đoạn, trong đó `false` được dùng trước giai đoạn cuối; nhưng **không** được tự suy đoán mọi provider/thuật toán đều hỗ trợ cấu hình nhiều bên. Với X25519/ECDH hai bên thông thường, đừng đặt `false` rồi gọi `generateSecret` như thể đã hoàn tất.
+Multi-party algorithms can use multiple phases where `false` is passed before the final phase; however, **never** assume all providers/algorithms support multi-party configurations. With standard two-party X25519/ECDH, do not pass `false` and then call `generateSecret` as if it were complete.
 
-Nếu engine chưa `init`, `doPhase` có thể ném `IllegalStateException`. Khóa đối tác không phù hợp có thể gây `InvalidKeyException`. **Việc doPhase chấp nhận một public key không đồng nghĩa public key đó đã được xác thực về danh tính.**
+If the engine has not been `init`ed, `doPhase` can throw `IllegalStateException`. An unsuitable peer key can cause `InvalidKeyException`. **That `doPhase` accepts a public key does not mean that public key's identity has been authenticated.**
 
-### 3.4. generateSecret(): lấy raw shared secret
+### 3.4. generateSecret(): Retrieving the Raw Shared Secret
 
-Sau khi xử lý đủ giai đoạn:
+After completing all required phases:
 
 ```java
 byte[] rawSharedSecret = ka.generateSecret();
 ```
 
-`generateSecret()` tạo **một byte[] mới** chứa bí mật chung. Đừng in ra console, gửi qua mạng, thêm vào log hoặc hardcode nó trong cấu hình. Ngay cả khi public keys công khai, bí mật chung phải được xử lý như **secret key material**.
+`generateSecret()` allocates **a new byte[]** containing the shared secret. Never print it to the console, send it over the network, write it to logs, or hardcode it in configuration. Even though public keys are public, the shared secret must be handled as **secret key material**.
 
-Java 17 có các overload:
+Java 17 provides these overloads:
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 | --- | --- |
-| `generateSecret()` | Tạo `byte[]` mới chứa bí mật chung. |
-| `generateSecret(byte[] target, int offset)` | Ghi secret vào buffer caller cung cấp; trả số byte đã ghi; có thể ném `ShortBufferException` nếu không đủ chỗ. |
-| `generateSecret(String algorithm)` | Yêu cầu provider tạo `SecretKey` thuộc thuật toán được chỉ định; phụ thuộc việc thuật toán/provider hỗ trợ và tính tương thích của key material, có thể ném lỗi. |
+| `generateSecret()` | Creates a new `byte[]` containing the shared secret. |
+| `generateSecret(byte[] target, int offset)` | Writes the secret into a caller-provided buffer; returns the number of bytes written; may throw `ShortBufferException` if space is insufficient. |
+| `generateSecret(String algorithm)` | Asks the provider to create a `SecretKey` for the specified algorithm; depends on provider/algorithm support and key material compatibility, and may throw an error. |
 
-**Không coi `generateSecret("AES")` là HKDF chuẩn hóa có ràng buộc phiên trên mọi provider.** Đây là overload tạo khóa theo cơ chế của engine/provider, không tự cung cấp toàn bộ salt, transcript hash, context và key separation mà một giao thức hiện đại có thể đòi hỏi. Khi thiết kế protocol mới, nên quy định **KDF rõ ràng**, ví dụ HKDF-HMAC-SHA256, theo đặc tả và thư viện được kiểm chứng.
+**Do not treat `generateSecret("AES")` as a standardized, session-bound HKDF across all providers.** This overload creates a key according to the engine/provider's mechanism and does not automatically supply the full salt, transcript hash, context, and key separation a modern protocol may require. When designing a new protocol, specify an **explicit KDF**, such as HKDF-HMAC-SHA256, following a verified spec and library.
 
-**State sau `generateSecret`:** tài liệu `KeyAgreement` quy định engine được reset về trạng thái sau lần `init` gần nhất. Có thể gọi `doPhase`/`generateSecret` lần nữa với cùng private key, hoặc gọi `init` để thay thông tin riêng; **việc reset state không sinh một private key mới**. Nếu protocol dùng *ephemeral ECDH* để có forward secrecy, application phải thực sự sinh keypair mới theo chính sách phiên, không trông chờ reset engine tự làm vậy.
+**State after `generateSecret`:** the `KeyAgreement` documentation specifies that the engine resets to its state right after the most recent `init`. You can call `doPhase`/`generateSecret` again with the same private key, or call `init` to replace the private key; **resetting state does not generate a new private key**. If the protocol uses *ephemeral ECDH* for forward secrecy, the application must actually generate a fresh keypair per session policy rather than expecting engine reset to do so.
 
-Gọi `generateSecret` khi chưa `init` hoặc khi chưa hoàn thành các `doPhase` cần thiết sẽ gây `IllegalStateException`.
+Calling `generateSecret` before `init` or before completing the required `doPhase` calls throws `IllegalStateException`.
 
-### 3.5. Bảng thứ tự gọi
+### 3.5. Call-Order Table
 
-| Thứ tự | Hợp lệ? | Kết quả/chú ý |
+| Sequence | Valid? | Result / note |
 | --- | --- | --- |
-| `getInstance` → `init(ownPrivate)` → `doPhase(peerPublic,true)` → `generateSecret()` | **Có**, hai bên | Trả raw shared secret nếu khóa, thuật toán và các kiểm tra hợp lệ. |
-| `getInstance` → `generateSecret()` | **Không** | Chưa init/chưa xử lý giai đoạn, lỗi trạng thái. |
-| `init(ownPrivate)` → `generateSecret()` | **Không** | Chưa có public key đối tác; lỗi trạng thái. |
-| `init(ownPrivate)` → `doPhase(peerPublic,true)` → `generateSecret()` → `generateSecret()` | **Không**, nếu thiếu giai đoạn mới | Sau lần đầu engine reset, phải nạp lại key của bên kia. |
-| `init(ownPublic)` → `doPhase(peerPrivate,true)` | **Sai loại khóa** | Private key phải ở phía `init`; public key đối tác ở `doPhase`. |
-| `init(ownPrivate)` → `doPhase(peerPublic,false)` → `generateSecret()` | **Không phải chu trình hai bên hoàn chỉnh** | `false` chỉ có ý nghĩa khi còn giai đoạn và thuật toán hỗ trợ. |
+| `getInstance` → `init(ownPrivate)` → `doPhase(peerPublic,true)` → `generateSecret()` | **Yes**, two-party | Returns raw shared secret if keys, algorithm, and checks are valid. |
+| `getInstance` → `generateSecret()` | **No** | Not initialized / no phase processed; illegal state error. |
+| `init(ownPrivate)` → `generateSecret()` | **No** | Missing peer public key; illegal state error. |
+| `init(ownPrivate)` → `doPhase(peerPublic,true)` → `generateSecret()` → `generateSecret()` | **No**, if no new phase | After the first call the engine resets; must supply the peer's key again. |
+| `init(ownPublic)` → `doPhase(peerPrivate,true)` | **Wrong key types** | Private key belongs in `init`; peer public key belongs in `doPhase`. |
+| `init(ownPrivate)` → `doPhase(peerPublic,false)` → `generateSecret()` | **Incomplete two-party cycle** | `false` is only meaningful when more phases remain and the algorithm supports them. |
 
-## 4. Kiểm tra public key đối tác: ba tầng khác nhau
+## 4. Validating the Peer Public Key: Three Distinct Layers
 
-**Kiểm tra public key không phải một phép kiểm đơn lẻ.** Để trả lời “đây có phải khóa đáng tin của B không?”, tách ít nhất ba tầng.
+**Public key validation is not a single check.** To answer “is this B's trustworthy key?”, separate at least three layers.
 
-### Tầng 1 — Kiểm tra biểu diễn và input
+### Layer 1 — Representation and Input Validation
 
-- Dữ liệu public key có nằm trong giới hạn kích thước, format, version và encoding giao thức cho phép không?
-- Nếu giao thức truyền `SubjectPublicKeyInfo` DER, dùng `X509EncodedKeySpec` với `KeyFactory` tương ứng thay vì tùy tiện parse bytes.
-- Xác định **algorithm allowlist**, không để client tùy ý chọn kiểu khóa/curve từ header mà không có policy.
-- Nếu đầu vào malformed, không được chấp nhận hoặc fallback sang thuật toán yếu hơn.
+- Is the public key data within the size limits, format, version, and encoding allowed by the protocol?
+- If the protocol transmits `SubjectPublicKeyInfo` DER, use `X509EncodedKeySpec` with the corresponding `KeyFactory` rather than parsing raw bytes ad hoc.
+- Enforce an **algorithm allowlist**; never let the client arbitrarily pick key types/curves from a header without policy.
+- If the input is malformed, reject it rather than accepting or falling back to a weaker algorithm.
 
-Java `PublicKey.getEncoded()` trong nhiều provider trả **X.509 SubjectPublicKeyInfo (SPKI)**, *không phải* một certificate X.509 đã được CA xác nhận, và *không nhất thiết là raw 32 byte X25519* của một wire protocol. `X509EncodedKeySpec` cần byte encoding dạng SPKI; nếu giao thức truyền raw X25519 public key, phải dùng cách decode đúng cấu trúc và byte order của **chính giao thức**, không bọc tùy tiện.
+In many providers, Java's `PublicKey.getEncoded()` returns **X.509 SubjectPublicKeyInfo (SPKI)**, *not* a CA-signed X.509 certificate, and *not necessarily the raw 32-byte X25519* encoding of a wire protocol. `X509EncodedKeySpec` expects SPKI-encoded bytes; if the protocol transmits raw X25519 public keys, you must decode them according to the **protocol's** exact structure and byte order instead of wrapping them arbitrarily.
 
-Tầng này chỉ trả lời “đây là một key object parse được đúng định dạng?”, **chưa** trả lời “key hợp lệ cho nhóm?” và “nó thuộc đối tác B?”.
+This layer only answers “is this a well-formed parseable key object?”; it does **not** yet answer “is the key valid for the group?” or “does it belong to peer B?”.
 
-### Tầng 2 — Kiểm tra thuật toán, tham số và giá trị khóa
+### Layer 2 — Algorithm, Parameter, and Key Value Validation
 
-**DH cổ điển:** phải tuân theo tham số nhóm `p, g` (và cấu trúc nhóm/subgroup) được duyệt, kiểm tra public value của đối tác trong miền hợp lệ và các kiểm tra subgroup khi thuật toán/nhóm yêu cầu. Đừng tự tạo nhóm số nguyên tố không rõ nguồn gốc.
+**Classic DH:** must follow approved `p, g` group parameters (and group/subgroup structure), check that the peer's public value lies in the valid range, and perform subgroup checks where required by the algorithm/group. Never invent prime groups of unknown origin.
 
-**ECDH truyền thống trên curve Weierstrass** (ví dụ `secp256r1`): kiểm tra khóa đối tác đúng kiểu, **đúng curve và các tham số**, điểm không phải point at infinity, tọa độ hợp lệ, điểm nằm trên curve; với nhóm/curve có yêu cầu còn cần kiểm tra order/subgroup. Không chấp nhận arbitrary curve do bên ngoài tự chỉ định. Dùng implementation/provider có validation đúng, nhưng vẫn phải áp dụng **policy curve** ở ứng dụng; không nên chỉ so tên string `"EC"`.
+**Traditional ECDH on Weierstrass curves** (e.g., `secp256r1`): verify the peer key has the right type, **right curve and parameters**, is not the point at infinity, has valid coordinates, and lies on the curve; where required by the group/curve, also check order/subgroup. Never accept arbitrary externally supplied curves. Use an implementation/provider with proper validation, while still enforcing a **curve policy** in the application; do not rely solely on comparing the string `"EC"`.
 
-**X25519:** dùng đúng tên `X25519`, loại `XECPublicKey` và tham số `NamedParameterSpec.X25519` nếu giao thức yêu cầu. Không lẫn với `X448` hay `Ed25519`. X25519 được thiết kế để xử lý biểu diễn điểm theo quy tắc riêng của RFC 7748, vì vậy **không áp dụng máy móc công thức kiểm tra điểm ECDH Weierstrass** lên public key X25519. RFC 7748 cho phép kiểm tra raw shared secret **toàn byte zero** và từ chối nếu xảy ra; ví dụ Java bên dưới có bước từ chối này. Provider có thể từ chối public key/đầu ra không hợp lệ ở `doPhase` hoặc `generateSecret`; đây là **kiểm tra hợp lệ mật mã**, không thay thế kiểm tra danh tính.
+**X25519:** use the exact name `X25519`, type `XECPublicKey`, and parameter `NamedParameterSpec.X25519` if required by the protocol. Do not confuse with `X448` or `Ed25519`. X25519 is designed to handle point representations per RFC 7748 rules, so **do not mechanically apply Weierstrass ECDH point-validation formulas** to X25519 public keys. RFC 7748 allows checking for an **all-zero** raw shared secret and rejecting if it occurs; the Java example below includes this rejection step. A provider may reject invalid public keys/outputs during `doPhase` or `generateSecret`; this is **cryptographic validity checking**, not a substitute for identity verification.
 
-**Quan trọng:** cùng tên thuật toán hoặc cùng độ dài public key **không đủ** để chứng minh hợp lệ hoặc đáng tin. Các kiểm tra giá trị nhóm/curve cần được giao cho thư viện/provider mật mã đáng tin, theo đúng RFC/chuẩn của thuật toán; không tự bỏ qua ngoại lệ nếu provider báo lỗi.
+**Important:** having the same algorithm name or same public key length is **not enough** to prove validity or trustworthiness. Group/curve value validation should be delegated to a trusted cryptographic library/provider following the algorithm's RFC/standard; never ignore exceptions if the provider reports an error.
 
-### Tầng 3 — Xác thực khóa thuộc đúng đối tác
+### Layer 3 — Authenticating That the Key Belongs to the Right Peer
 
-Ngay cả một X25519 public key hoàn toàn hợp lệ về toán học cũng có thể thuộc về **kẻ tấn công**. Cần một ràng buộc tin cậy, ví dụ:
+Even a mathematically valid X25519 public key can belong to an **attacker**. A trust binding is required, for example:
 
-1. **Key pinning:** ứng dụng lưu byte SPKI/fingerprint public key của đối tác từ một **quy trình đăng ký tin cậy**; lúc kết nối, so sánh đúng với khóa nhận được. Cần chiến lược rotation/thu hồi và cập nhật pin có kiểm soát.
-2. **Chứng thư X.509/PKI:** kiểm tra chain đến trust anchor, danh tính/hostname/service identity, key usage, effective validity, revocation/chính sách khi cần. `certificate.getPublicKey()` đơn thuần **không thực hiện các bước tin cậy đó**.
-3. **Signature trên key exchange transcript:** một identity signing key đã được xác thực ký public key tạm, nonce, danh tính vai trò và ngữ cảnh giao thức. Bên còn lại verify chữ ký **bằng key tin cậy** trước khi dùng kết quả.
-4. **PSK/authenticated protocol:** tích hợp trao đổi khóa vào một giao thức đã được phân tích như TLS 1.3 (đúng cấu hình và kiểm tra chứng thư/PSK), thay vì tự chế giao thức trên raw ECDH.
+1. **Key pinning:** the application stores the peer's SPKI bytes/public key fingerprint from a **trusted provisioning workflow**; at connection time, it compares directly against the received key. Requires a controlled rotation/revocation and pin-update strategy.
+2. **X.509 certificates/PKI:** verify the chain up to a trust anchor, identity/hostname/service identity, key usage, effective validity, and revocation/policy as needed. `certificate.getPublicKey()` alone **does not perform those trust checks**.
+3. **Signature over the key exchange transcript:** an authenticated identity signing key signs the ephemeral public keys, nonces, role identities, and protocol context. The other side verifies the signature **using a trusted key** before using the result.
+4. **PSK/authenticated protocol:** embed key agreement inside a vetted protocol such as TLS 1.3 (properly configured with certificate/PSK verification), instead of inventing a custom protocol on raw ECDH.
 
-**Không có kiểm tra tầng 3 thì không có peer authentication.** `KeyAgreement` một mình cung cấp khả năng tính toán bí mật chung, **không** biết đối tác tên gì, thuộc tenant nào hoặc có quyền ký hợp đồng hay không.
+**Without Layer 3 checks, there is no peer authentication.** `KeyAgreement` alone provides the ability to compute a shared secret; it **does not** know the peer's name, tenant, or authorization to sign contracts.
 
-## 5. Demo Java 17+ chạy được: X25519 và kiểm tra khóa công khai
+## 5. Runnable Java 17+ Demo: X25519 and Public Key Checks
 
-Bài demo tạo ba keypair: Alice, Bob và một bên thay thế khóa. Nó kiểm tra được những điểm sau:
+This demo creates three keypairs: Alice, Bob, and a key-substituting party. It verifies the following points:
 
-- A và B mỗi người dùng **private key của mình**, **public key của người kia** theo chu trình `init` → `doPhase(..., true)` → `generateSecret()`.
-- A và B có cùng **32 byte** raw shared secret X25519.
-- Public key truyền ở dạng **SPKI encoded** được parse bằng `KeyFactory`, kiểm tra kiểu và tham số thuật toán.
-- “Alice public key đáng tin” trong demo là một **pin giả lập được thiết lập ngoài đường truyền**. Public key của bên thay thế không khớp pin.
-- Bob dùng public key bên thay thế sẽ tính **bí mật khác** với bí mật A–B. Điều này mô phỏng nguy cơ MITM, không phải một giao thức xác thực hoàn chỉnh.
-- Nếu `generateSecret` được gọi khi chưa `doPhase`, engine từ chối do sai trạng thái.
+- A and B each use **their own private key** and **the other's public key** through the `init` → `doPhase(..., true)` → `generateSecret()` lifecycle.
+- A and B obtain the same **32-byte** X25519 raw shared secret.
+- Transmitted **SPKI-encoded** public keys are parsed via `KeyFactory` and checked for key type and algorithm parameters.
+- “Trusted Alice public key” in the demo is a **simulated pin provisioned out-of-band**. The substitute party's public key does not match the pin.
+- Bob using the substitute public key computes a **different secret** from the A–B secret. This simulates the MITM risk, not a complete authentication protocol.
+- If `generateSecret` is called before `doPhase`, the engine rejects it due to invalid state.
 
-Tạo file `KeyAgreementLifecycleDemo.java`:
+Create file `KeyAgreementLifecycleDemo.java`:
 
 ```java
 import java.security.GeneralSecurityException;
@@ -273,14 +273,14 @@ public final class KeyAgreementLifecycleDemo {
 }
 ```
 
-Biên dịch và chạy (JDK 17+ có provider X25519):
+Compile and run (JDK 17+ with an X25519 provider):
 
 ```bash
 javac KeyAgreementLifecycleDemo.java
 java KeyAgreementLifecycleDemo
 ```
 
-Stdout được kiểm chứng:
+Verified stdout:
 
 ```text
 Trusted peer pin matches: true
@@ -291,34 +291,34 @@ Wrong peer yields same secret: false
 No doPhase rejected: true
 ```
 
-### 5.1. Tại sao stdout luôn theo cấu trúc này?
+### 5.1. Why Does Stdout Always Follow This Structure?
 
-Các keypair được tạo ngẫu nhiên mỗi lần chạy, do đó raw public/private/shared secret **thay đổi** và không được in. Nhưng:
+The keypairs are generated randomly on each run, so the raw public/private/shared secret bytes **change** and are not printed. However:
 
-- Bản sao `aliceFromWire` parse từ chính SPKI của Alice sẽ khớp với pin demo `trustedAliceSpki`.
-- Public key của cặp khóa bên thay thế khác pin Alice, nên xác minh pin cho `false` (với xác suất trùng key cực nhỏ về mặt toán học, không phải công cụ kiểm thử bảo mật tuyệt đối).
-- Do tính chất X25519, Alice và Bob tính cùng shared secret dài 32 byte. Khi Bob tính với public key của keypair khác, kết quả thông thường không khớp secret A–B.
-- Chưa gọi `doPhase` nhưng đã gọi `generateSecret` là lỗi trạng thái theo hợp đồng API.
+- The `aliceFromWire` copy parsed from Alice's own SPKI will match the demo pin `trustedAliceSpki`.
+- The substitute keypair's public key differs from Alice's pin, so pin verification yields `false` (with negligible mathematical key-collision probability, not as an absolute security test).
+- By X25519's properties, Alice and Bob compute the same 32-byte shared secret. When Bob computes with a different keypair's public key, the result does not match the A–B secret.
+- Calling `generateSecret` without calling `doPhase` violates the API contract and throws a state error.
 
-Dòng `MessageDigest.isEqual` chỉ dùng để **chứng minh hai byte array ở demo giống/khác nhau**. Trong ứng dụng production, không cần đem raw secrets của hai bên lên mạng để so sánh; việc đó **làm lộ bí mật phiên**. Hãy dùng phương thức xác nhận phiên có xác thực (ví dụ finished message/MAC trên transcript) theo giao thức được thiết kế và kiểm chứng.
+The `MessageDigest.isEqual` line is only used to **demonstrate in the demo that two byte arrays match or differ**. In production applications, never send both parties' raw secrets over the network to compare them; doing so **exposes the session secret**. Use an authenticated session confirmation method (such as a finished message/MAC over the transcript) per a well-designed, verified protocol.
 
-### 5.2. Điều demo kiểm tra và không kiểm tra
+### 5.2. What the Demo Checks and Does Not Check
 
-Hàm `parsePeerX25519` áp dụng một **giới hạn kích thước demo 1.024 byte** (đây là policy minh họa, **không** phải ngưỡng chuẩn của RFC 7748); parse DER-SPKI bằng `KeyFactory` rồi kiểm tra `XECPublicKey` có `NamedParameterSpec` là X25519. Nó **không** xác nhận key thuộc Alice/Bob; bước pin mới minh họa trust.
+`parsePeerX25519` enforces a **1,024-byte demo size limit** (this is an illustrative policy, **not** a standard RFC 7748 threshold); it parses DER-SPKI with `KeyFactory` and verifies `XECPublicKey` has `NamedParameterSpec` X25519. It does **not** verify that the key belongs to Alice/Bob; the pin step illustrates trust.
 
-Đặc biệt, `trustedAliceSpki` đang lấy trực tiếp từ keypair Alice trong cùng chương trình; điều này **không tái hiện việc provision key giữa hai máy thật**. Ngoài đời, bên nhận phải có public key đáng tin từ trước/qua trust anchor, không được tạo “pin” bằng cách lưu chính public key vừa nhận từ kết nối chưa xác thực rồi tuyên bố đã chống MITM.
+In particular, `trustedAliceSpki` is taken directly from Alice's keypair in the same program; this **does not replicate key provisioning between two real machines**. In production, the receiver must obtain the trusted public key beforehand/via a trust anchor—never create a “pin” by saving whatever public key was just received over an untrusted connection and claiming MITM protection.
 
-Việc dùng `Arrays.equals` cho **SPKI public key** là hợp lý ở minh họa vì các byte public này không phải bí mật. Đối với raw shared secrets, demo dùng `MessageDigest.isEqual` thay vì log/display. Hai mảng raw secret do application nhận được được `Arrays.fill` khi không còn cần; việc xóa này chỉ là best-effort đối với **những byte[] cụ thể**, không chứng minh mọi bản sao trong JVM/provider đã được xóa.
+Using `Arrays.equals` for the **SPKI public key** is appropriate in this demo because those public bytes are not secret. For raw shared secrets, the demo uses `MessageDigest.isEqual` instead of logging/displaying them. The two raw secret arrays received by the application are wiped with `Arrays.fill` when no longer needed; this erasure is only best-effort for **those specific byte[]s** and does not prove every copy in the JVM/provider was erased.
 
-### 5.3. Kiểm tra all-zero shared secret
+### 5.3. Checking for an All-Zero Shared Secret
 
-RFC 7748 cho X25519 nói rằng có thể kiểm tra kết quả toàn zero và abort để giảm rủi ro từ một số input nhỏ bậc (*small-order*). Hàm `agree` dùng phép OR qua **toàn bộ byte** thay vì dừng ở byte đầu không zero, rồi từ chối nếu tất cả bằng zero. Nếu provider từ chối key không hợp lệ ngay trong `doPhase`/`generateSecret` thì luồng cũng phải được coi là lỗi và **không** fallback sang shared secret khác.
+RFC 7748 for X25519 notes that implementations may check for an all-zero output and abort to mitigate risks from certain *small-order* inputs. The `agree` method ORs across **all bytes** rather than stopping at the first non-zero byte, and rejects if all are zero. If the provider rejects an invalid key directly inside `doPhase`/`generateSecret`, that flow must also be treated as an error and **never** fall back to another shared secret.
 
-Kiểm tra all-zero **không phải peer authentication**: một public key X25519 hợp lệ do kẻ tấn công kiểm soát vẫn có thể tạo shared secret khác zero. Phải kết hợp với tầng trust/identity trước khi coi phiên là đáng tin.
+An all-zero check **is not peer authentication**: a valid X25519 public key controlled by an attacker still yields a non-zero shared secret. It must be combined with a trust/identity layer before considering the session trustworthy.
 
-## 6. Tấn công man-in-the-middle nếu chỉ chạy KeyAgreement
+## 6. Man-in-the-Middle Attack When Running KeyAgreement Alone
 
-Giả sử Eve đứng giữa Alice và Bob, chặn public key và gửi key của Eve thay thế:
+Suppose Eve sits between Alice and Bob, intercepting public keys and substituting Eve's own keys:
 
 ```text
 Alice                 Eve (MITM)                      Bob
@@ -328,34 +328,34 @@ Alice                 Eve (MITM)                      Bob
   | <---- publicEve2 ----- |                           |
   |                        | <-------- publicBob ----- |
   |                        |                           |
-secret(Alice, Eve2)    2 secret với hai bên       secret(Bob, Eve1)
+secret(Alice, Eve2)   2 secrets with both sides   secret(Bob, Eve1)
   |                        |                           |
-  +----- mỗi cặp tính được shared secret hợp lệ -------+
-      NHƯNG Alice và Bob KHÔNG cùng một secret với nhau
+  +---- each pair computes a valid shared secret ------+
+     BUT Alice and Bob do NOT share the same secret
 ```
 
-Eve có thể dùng khóa phiên với Alice để đọc/ghi lại thông điệp, rồi tạo thông điệp mới bảo vệ bằng khóa phiên khác với Bob, nếu protocol không xác thực trao đổi khóa và không có bảo vệ bổ sung.
+Eve can use the session key shared with Alice to read/rewrite messages, then create new messages protected under the other session key shared with Bob, if the protocol does not authenticate the key exchange and lacks additional protections.
 
-**Phân biệt hai kết quả:**
+**Distinguish two outcomes:**
 
-- `doPhase` chạy thành công: chỉ chứng minh public key tương thích thuật toán, **không chứng minh identity**.
-- `generateSecret` trả nonzero bytes: chứng minh phép thỏa thuận với một public key có thể hoàn thành, **không chứng minh đối tác muốn kết nối đã tham gia**.
+- `doPhase` succeeds: only proves the public key is algorithm-compatible, **does not prove identity**.
+- `generateSecret` returns nonzero bytes: proves agreement with *some* public key completed, **does not prove the intended peer participated**.
 
-**Biện pháp:** xác thực public keys và các thông điệp bắt tay bằng chứng thư/chữ ký/PSK tin cậy, kiểm tra danh tính người tham gia và **ràng buộc toàn bộ transcript** (vai trò A/B, public keys, algorithm, session ID/nonce, version và ngữ cảnh) vào việc dẫn xuất/kiểm tra khóa. Trong ứng dụng thông thường, ưu tiên **TLS 1.3 hoặc protocol đã được đánh giá** thay vì phát minh giao thức trao đổi khóa riêng.
+**Countermeasures:** authenticate public keys and handshake messages using trusted certificates/signatures/PSKs, verify participant identities, and **bind the entire transcript** (A/B roles, public keys, algorithm, session ID/nonces, version, and context) into key derivation and confirmation. For typical applications, prefer **TLS 1.3 or an audited protocol** rather than inventing a custom key-exchange protocol.
 
-## 7. Từ raw secret sang khóa AES, MAC hoặc khóa bọc
+## 7. From Raw Secret to AES, MAC, or Wrapping Keys
 
-### 7.1. Vì sao không dùng trực tiếp raw shared secret?
+### 7.1. Why Not Use the Raw Shared Secret Directly?
 
-Bí mật thỏa thuận là **keying material**, không phải mặc nhiên một `SecretKey` đúng quy chuẩn cho mọi mục đích. Giao thức phải:
+The agreed secret is **keying material**, not automatically a compliant `SecretKey` for every purpose. The protocol must:
 
-1. Xác nhận thuật toán, tham số và input hợp lệ.
-2. Xác thực các public keys/ngữ cảnh theo threat model.
-3. Dùng **KDF** được đặc tả để trích xuất và dẫn xuất một hoặc nhiều khóa từ raw secret.
-4. Đưa **thông tin transcript/ngữ cảnh** vào quá trình dẫn xuất: tên thuật toán, phiên bản, public keys, vai trò A/B, nonces/session ID, mục đích sử dụng.
-5. Dẫn xuất **khóa riêng theo chức năng**: chẳng hạn khóa AES-GCM gửi A→B, khóa AES-GCM B→A, key confirmation MAC, hoặc khóa phục vụ bọc khóa.
+1. Validate the algorithm, parameters, and inputs.
+2. Authenticate the public keys/context according to the threat model.
+3. Use a specified **KDF** to extract and derive one or more keys from the raw secret.
+4. Feed **transcript/context information** into derivation: algorithm name, version, public keys, A/B roles, nonces/session ID, and usage purpose.
+5. Derive **purpose-separated keys**: such as an A→B AES-GCM key, B→A AES-GCM key, key-confirmation MAC key, or key-wrapping key.
 
-Cách phổ biến là **HKDF** (`Extract` và `Expand` theo RFC 5869) trên shared secret, với salt và `info` được thỏa thuận rõ. Ví dụ ở mức khái niệm (không phải mã Java chạy trực tiếp):
+A common approach is **HKDF** (`Extract` and `Expand` per RFC 5869) over the shared secret, with an explicitly agreed salt and `info`. Conceptual example (not runnable Java code):
 
 ```text
 sharedSecret = X25519(privateLocal, publicPeer)
@@ -367,124 +367,124 @@ PRK = HKDF-Extract(salt, sharedSecret)
 clientWriteKey = HKDF-Expand(PRK, "client_write" || transcriptHash, keyLen)
 serverWriteKey = HKDF-Expand(PRK, "server_write" || transcriptHash, keyLen)
 
-Xóa raw sharedSecret / PRK tạm do ứng dụng sở hữu sau khi dùng.
+Zero out application-owned raw sharedSecret / temporary PRK after use.
 ```
 
-Các chuỗi trong dấu ngoặc kép ở đây là **nhãn mục đích minh họa**, không phải format chuẩn của TLS hay bất kỳ giao thức hiện hữu nào. Trong thực tế, phải dùng encoding không mơ hồ và định nghĩa rõ `salt`/`info`, hướng khóa, version, độ dài khóa, lựa chọn AEAD và các trạng thái chống replay. Nếu chưa có giao thức được kiểm chứng, đừng tự triển khai HKDF/handshake chỉ dựa trên sơ đồ này.
+The quoted strings here are **illustrative purpose labels**, not the standard format of TLS or any existing protocol. In practice, you must use an unambiguous encoding and clearly define `salt`/`info`, key direction, version, key lengths, AEAD selection, and replay-protection state. Without an audited protocol design, do not implement your own HKDF/handshake solely from this diagram.
 
-Java 17 **không có API HKDF chung bắt buộc mọi provider phải cung cấp**. Có thể sử dụng thư viện mật mã được duyệt để thực hiện HKDF đúng chuẩn hoặc một giao thức chuẩn đã tích hợp sẵn. Đừng dùng `new SecretKeySpec(rawSharedSecret, "AES")` như một giải pháp mặc định cho key schedule của một giao thức mới.
+Java 17 **does not mandate a universal HKDF API across all providers**. You can use an approved cryptographic library to perform standard HKDF or use an integrated standard protocol. Never use `new SecretKeySpec(rawSharedSecret, "AES")` as a default key-schedule shortcut for a new protocol.
 
-### 7.2. Liên hệ với bọc khóa
+### 7.2. Connection to Key Wrapping
 
-Sau khi đã có **key-encryption key (KEK)** được dẫn xuất đúng ngữ cảnh từ thỏa thuận khóa, ứng dụng có thể dùng một thuật toán **key wrap** hoặc AEAD được chỉ định để bảo vệ **data-encryption key (DEK)**, rồi gửi dữ liệu đã bọc cho phía kia.
+Once you have a **key-encryption key (KEK)** properly context-derived from key agreement, the application can use a designated **key wrap** algorithm or AEAD to protect a **data-encryption key (DEK)**, then send the wrapped data to the other side.
 
-`KeyAgreement.generateSecret()` **không tự thực hiện wrap/unwrap**, không tạo ciphertext và không thay thế `Cipher`. Việc unwrap thành công phải được kết hợp với xác thực peer/key transcript và chính sách sử dụng khóa; một khóa được dẫn xuất đúng mật mã nhưng thuộc nhầm peer vẫn có thể gây lỗi an ninh nghiêm trọng.
+`KeyAgreement.generateSecret()` **does not perform wrap/unwrap itself**, does not produce ciphertext, and does not replace `Cipher`. Successful unwrapping must be combined with peer/key-transcript authentication and key-usage policy; a cryptographically well-derived key belonging to the wrong peer can still cause severe security failures.
 
-## 8. Giữ đúng trạng thái, thời hạn khóa và phân biệt các loại key
+## 8. Maintaining State, Key Lifetimes, and Distinguishing Key Types
 
-### 8.1. Ephemeral và static private key
+### 8.1. Ephemeral vs. Static Private Keys
 
-- **Ephemeral keypair:** sinh cho phiên/lượt handshake; sau khi xong, hạn chế tái sử dụng và dọn references/buffers theo khả năng provider. Đây là thành phần quan trọng của nhiều giao thức có forward secrecy.
-- **Static keypair:** có thể phục vụ nhận dạng/thỏa thuận nhiều phiên tùy thiết kế; cần quản lý vòng đời, bảo vệ private key và đánh giá lại forward secrecy.
-- **Signing key ≠ key-agreement key:** Ed25519 dùng `Signature`; X25519 dùng `KeyAgreement`. Không nên “đổi nhãn” hoặc tái dùng cùng vật liệu khóa giữa các thuật toán cho các mục đích khác nhau mà thiếu đặc tả được phân tích.
+- **Ephemeral keypair:** generated per session/handshake; once finished, avoid reuse and clean up references/buffers as supported by the provider. This is a core component of many protocols offering forward secrecy.
+- **Static keypair:** may serve identification/multi-session agreement depending on design; requires lifecycle management, private key protection, and re-evaluation of forward secrecy.
+- **Signing key ≠ key-agreement key:** Ed25519 uses `Signature`; X25519 uses `KeyAgreement`. Never “relabel” or reuse the same key material across algorithms for different purposes without an analyzed specification.
 
-**Forward secrecy** không xuất hiện chỉ nhờ gọi `generateSecret`. Nó phụ thuộc giao thức, cách kết hợp khóa ephemeral và xác thực, việc tiêu hủy private ephemeral và những giả định về an ninh của thuật toán.
+**Forward secrecy** does not appear merely by calling `generateSecret`. It depends on the protocol, how ephemeral keys and authentication are combined, destruction of ephemeral private keys, and the algorithm's security assumptions.
 
-### 8.2. Không chia sẻ mutable engine qua thread
+### 8.2. Do Not Share Mutable Engines Across Threads
 
-`KeyAgreement` là đối tượng trạng thái: `init` và `doPhase` thay đổi tiến trình xử lý. Đừng dùng **một instance** chung cho nhiều session đồng thời hoặc các peer khác nhau rồi coi rằng engine tự cô lập. Mỗi handshake nên có engine và key material riêng. Sau `generateSecret`, muốn chạy lượt mới phải gọi `doPhase` (và nhiều khi `init` với key mới) theo thiết kế.
+`KeyAgreement` is a stateful object: `init` and `doPhase` mutate its processing state. Never share **one instance** across concurrent sessions or different peers assuming the engine isolates them. Each handshake should have its own engine and key material. After `generateSecret`, running a new exchange requires calling `doPhase` (and often `init` with a fresh key) according to the design.
 
-### 8.3. Không log private key hoặc shared secret
+### 8.3. Never Log Private Keys or Shared Secrets
 
-Có thể log metadata không nhạy cảm (algorithm, key identifier, kết quả chấp nhận/từ chối, lỗi đã làm sạch) nhưng không log `privateKey.getEncoded()`, raw secret, session key, KDF intermediate key hoặc request payload nhạy cảm. Nếu key được export thành `byte[]`, wipe bản sao do caller sở hữu sau khi dùng; việc này vẫn **không chứng minh** provider/GC/JVM đã xóa mọi vết trong memory.
+You may log non-sensitive metadata (algorithm, key identifier, accept/reject outcome, sanitized errors), but never log `privateKey.getEncoded()`, raw secrets, session keys, KDF intermediate keys, or sensitive request payloads. If a key is exported as a `byte[]`, wipe the caller-owned copy after use; note this still **does not prove** the provider/GC/JVM wiped every trace in memory.
 
-### 8.4. Kiểm tra keyId không phải xác thực
+### 8.4. Checking keyId Is Not Authentication
 
-Trường `keyId` được gửi qua mạng có thể dùng để **tìm** public key trong registry tin cậy. Nhưng bản thân chuỗi `keyId` có thể do attacker đặt; chỉ chấp nhận key khi registry, trust policy, authentication và authorization cùng khớp. Cần chống nhầm tenant, nhầm mục đích ký/thỏa thuận, nhầm algorithm và tấn công downgrade.
+A `keyId` field sent over the network can be used to **look up** a public key in a trusted registry. However, the `keyId` string itself can be chosen by an attacker; only accept a key when the registry, trust policy, authentication, and authorization all align. Prevent tenant confusion, signing/agreement purpose confusion, algorithm confusion, and downgrade attacks.
 
-## 9. Các lỗi Java thường gặp và cách xử lý
+## 9. Common Java Errors and How to Handle Them
 
-| Triệu chứng | Nguyên nhân có thể | Hướng xử lý |
+| Symptom | Possible cause | How to handle |
 | --- | --- | --- |
-| `NoSuchAlgorithmException` tại `getInstance("X25519")` | Provider/JDK không hỗ trợ hoặc policy không cho phép | Chọn JDK/provider đã được kiểm tra; cấu hình danh sách thuật toán được duyệt. |
-| `InvalidKeyException` tại `init` | Đưa public key thay private key, sai loại hoặc sai tham số | Chỉ đưa private key cục bộ thuộc đúng thuật toán. |
-| `InvalidKeyException` tại `doPhase` | Peer key sai thuật toán/curve, input không hợp lệ hoặc provider từ chối | Kiểm tra DER/curve/type/policy và từ chối; không tắt validation. |
-| `IllegalStateException` tại `doPhase` | Engine chưa init | Bắt đầu bằng `init`. |
-| `IllegalStateException` tại `generateSecret` | Chưa init hoặc chưa hoàn tất giai đoạn | Hai bên dùng `doPhase(peer,true)` trước. |
-| `ShortBufferException` từ `generateSecret(buffer,offset)` | Buffer caller quá nhỏ | Dùng buffer đủ cỡ hoặc `generateSecret()` tạo byte[] mới; không dùng secret nửa chừng. |
-| `InvalidKeySpecException` từ `KeyFactory.generatePublic` | SPKI DER sai định dạng hoặc key không parse được | Từ chối dữ liệu malformed; không cố đoán hay bỏ qua lỗi. |
-| Secret khác nhau giữa hai phía | Dùng sai public/private, peer bị thay thế, sai group hoặc keypair không khớp | Kiểm tra identity/trust của peer public key và transcript; không truyền secrets để so sánh trực tiếp. |
-| Shared secret toàn zero trong X25519 | Peer public key có thể liên quan tới input bậc nhỏ hoặc bị thay thế | Từ chối shared secret và phiên; để provider thực hiện validation theo RFC. |
-| Tạo AES key trực tiếp từ raw secret | Thiếu KDF, key separation và ràng buộc phiên | Dùng KDF được thiết kế theo protocol, ví dụ HKDF. |
-| Handshake chạy được nhưng MITM vẫn thành công | Chỉ validate format/curve, không xác thực identity | Pin/trust certificate, signature hoặc dùng TLS có xác thực. |
-| Reuse engine/private key dù mong forward secrecy | Hiểu sai việc `generateSecret` reset state | Sinh ephemeral keypair mới theo session/policy. |
+| `NoSuchAlgorithmException` at `getInstance("X25519")` | Provider/JDK lacks support or policy disallows it | Choose a verified JDK/provider; configure an approved algorithm list. |
+| `InvalidKeyException` at `init` | Passed public key instead of private key, wrong type, or wrong parameters | Pass only the local private key of the matching algorithm. |
+| `InvalidKeyException` at `doPhase` | Peer key has wrong algorithm/curve, invalid input, or provider rejected it | Check DER/curve/type/policy and reject; never disable validation. |
+| `IllegalStateException` at `doPhase` | Engine not initialized | Start with `init`. |
+| `IllegalStateException` at `generateSecret` | Not initialized or phases incomplete | For two parties, call `doPhase(peer,true)` first. |
+| `ShortBufferException` from `generateSecret(buffer,offset)` | Caller buffer too small | Allocate a sufficiently large buffer or use `generateSecret()` for a new `byte[]`; never use a partial secret. |
+| `InvalidKeySpecException` from `KeyFactory.generatePublic` | Malformed SPKI DER or unparseable key | Reject malformed data; do not guess or swallow errors. |
+| Secrets differ between the two sides | Wrong public/private key, peer substituted, wrong group, or mismatched keypair | Verify peer public key identity/trust and transcript; never send secrets to compare directly. |
+| All-zero shared secret in X25519 | Peer public key may relate to small-order input or substitution | Reject the shared secret and session; let the provider validate per RFC. |
+| Creating an AES key directly from raw secret | Missing KDF, key separation, and session binding | Use a protocol-designed KDF such as HKDF. |
+| Handshake runs but MITM still succeeds | Only validated format/curve, did not authenticate identity | Pin/trust certificates, signatures, or use authenticated TLS. |
+| Reusing engine/private key while expecting forward secrecy | Misunderstanding `generateSecret` state reset | Generate fresh ephemeral keypairs per session/policy. |
 
-**Phân biệt lỗi kỹ thuật với kết luận bảo mật:** từ chối input không hợp lệ là đúng. Nhưng nếu một public key giả hoàn toàn hợp lệ và `doPhase` không báo lỗi, kết quả đó **không** cho phép bỏ qua bước xác thực nguồn khóa.
+**Distinguish technical errors from security conclusions:** rejecting invalid inputs is right. But if a forged public key is completely well-formed and `doPhase` throws no error, that result **does not** let you skip authenticating the key's source.
 
-## 10. Tình huống before–after: kiểm tra đối tác đúng cách
+## 10. Before–After Scenario: Validating the Peer Properly
 
-### Before: chỉ parse key và hoàn thành thỏa thuận
+### Before: only parse the key and finish agreement
 
 ```text
-Nhận bytes publicKey từ socket
+Receive publicKey bytes from socket
 -> KeyFactory.generatePublic(bytes)
 -> KeyAgreement.init(myPrivate)
 -> KeyAgreement.doPhase(peerPublic,true)
 -> byte[] secret = generateSecret()
--> Dùng secret như khóa mã hóa
+-> Use secret as encryption key
 ```
 
-Vấn đề: public key có thể do attacker thay thế; thiếu xác thực danh tính, thiếu KDF, thiếu ngữ cảnh protocol và thiếu key separation. Phép thỏa thuận có thể hoàn tất với kẻ tấn công.
+Problems: the public key could be substituted by an attacker; missing identity authentication, missing KDF, missing protocol context, and missing key separation. Agreement can complete with an attacker.
 
-### After: xác minh cả cấu trúc và nguồn khóa
+### After: verify both structure and key provenance
 
 ```text
-Nhận envelope handshake có kích thước/format giới hạn
--> Kiểm tra version + algorithm allowlist
--> Parse peerPublic theo encoding được quy định
--> Kiểm tra key type, tham số, curve/group và giá trị theo chuẩn/provider
--> Xác thực peer key qua pin/truststore/chữ ký transcript/PSK
--> Xác minh role/identity/scope/tenant và chống downgrade
--> Sinh private ephemeral, KeyAgreement.init(privateLocal)
+Receive size/format-bounded handshake envelope
+-> Check version + algorithm allowlist
+-> Parse peerPublic according to specified encoding
+-> Validate key type, parameters, curve/group, and value per standard/provider
+-> Authenticate peer key via pin/truststore/transcript signature/PSK
+-> Verify role/identity/scope/tenant and anti-downgrade
+-> Generate ephemeral private, KeyAgreement.init(privateLocal)
 -> doPhase(authenticatedPeerPublic,true) -> generateSecret()
--> Từ chối output bất thường như all-zero X25519 (nếu provider chưa từ chối)
--> KDF ràng buộc transcript + derive session keys tách biệt
--> Key confirmation/finished message theo protocol
--> Chỉ khi handshake và policy hợp lệ mới xử lý payload
+-> Reject anomalous outputs like all-zero X25519 (if provider did not already)
+-> Context/transcript-bound KDF + derive separate session keys
+-> Key confirmation/finished message per protocol
+-> Process payload only after handshake and policy succeed
 ```
 
-**Đây là lưu đồ khái niệm, không phải protocol hoàn chỉnh.** Việc xác thực các khóa và nội dung transcript có thể có thứ tự/choreography khác nhau trong TLS và các giao thức chuẩn. Ứng dụng nên dựa trên một giao thức đã có thiết kế an ninh đầy đủ, không tự ráp các bước thành giao thức tùy ý.
+**This is a conceptual flowchart, not a complete protocol.** Key verification and transcript contents may follow different ordering/choreography in TLS and standard protocols. Applications should build on a protocol with a complete security design rather than assembling steps into an ad-hoc protocol.
 
-## 11. Câu hỏi kiểm tra và bài tập thực hành
+## 11. Review Questions and Hands-On Exercises
 
-1. Hai bên DH/ECDH cần truyền những gì để cùng tính shared secret? Vì sao không gửi private key?
-2. Trong `KeyAgreement`, `init` nhận khóa nào và `doPhase` nhận khóa nào? Nếu đảo ngược, lỗi có thể xuất hiện ở đâu?
-3. Với thỏa thuận khóa hai bên, tại sao `doPhase(peer,true)` thay vì `false`? Khi nào `false` có thể được dùng?
-4. `generateSecret` trả dữ liệu gì? Có tự mã hóa message, xác thực peer hoặc tạo AES key với KDF hoàn chỉnh không?
-5. Sau `generateSecret`, engine ở trạng thái nào? Nó có tự tạo ephemeral private key mới không?
-6. Vì sao `KeyFactory.generatePublic` thành công **không chứng minh** key thuộc server mong đợi?
-7. So sánh những kiểm tra cần thiết với classic DH, ECDH trên `secp256r1` và X25519; điều gì khác nhau về group/point validation?
-8. Nếu Alice và Bob bị MITM đổi public keys, liệu `doPhase` có nhất thiết ném exception không? Vì sao?
-9. Pin một public key bằng cách lưu ngay khóa vừa nhận trên kênh chưa tin cậy có bảo vệ được lần kết nối đầu tiên không? Cần một nguồn trust nào?
-10. Tại sao nên kết hợp raw shared secret với HKDF và transcript để dẫn xuất các khóa có mục đích riêng?
-11. Vì sao kiểm tra all-zero của X25519 không chứng minh khóa đến từ đúng đối tác?
-12. Muốn dùng kết quả thỏa thuận cho **key wrapping**, bước nào thuộc `KeyAgreement`, bước nào thuộc KDF và `Cipher`/key-wrap algorithm?
+1. What must two DH/ECDH parties transmit to compute the same shared secret? Why not send the private key?
+2. In `KeyAgreement`, which key does `init` take and which key does `doPhase` take? If swapped, where might errors appear?
+3. For two-party key agreement, why `doPhase(peer,true)` instead of `false`? When might `false` be used?
+4. What does `generateSecret` return? Does it encrypt messages, authenticate the peer, or create an AES key with a complete KDF on its own?
+5. After `generateSecret`, what state is the engine in? Does it automatically generate a new ephemeral private key?
+6. Why does `KeyFactory.generatePublic` succeeding **not prove** the key belongs to the expected server?
+7. Compare the checks needed for classic DH, ECDH on `secp256r1`, and X25519; what differs in group/point validation?
+8. If Alice and Bob suffer a MITM swapping public keys, will `doPhase` necessarily throw an exception? Why?
+9. Does pinning a public key by saving whatever key was just received on an untrusted channel protect the first connection? What kind of trust source is needed?
+10. Why should the raw shared secret be combined with HKDF and the transcript to derive purpose-specific keys?
+11. Why does an X25519 all-zero check not prove the key came from the right peer?
+12. To use agreement output for **key wrapping**, which steps belong to `KeyAgreement` and which belong to the KDF and `Cipher`/key-wrap algorithm?
 
-**Bài tập A:** chạy `KeyAgreementLifecycleDemo`. Đổi public key của Bob bằng một keypair X25519 mới, kiểm tra secret Alice/Bob không còn khớp, nhưng engine có thể vẫn hoàn thành phép thỏa thuận với key mới. Giải thích vì sao chỉ kiểm tra thuật toán không đủ.
+**Exercise A:** run `KeyAgreementLifecycleDemo`. Replace Bob's public key with a newly generated X25519 keypair, verify that Alice and Bob's secrets no longer match, yet the engine can still complete agreement with the new key. Explain why checking only the algorithm is insufficient.
 
-**Bài tập B:** thử gọi `generateSecret` trước `doPhase` và sau khi đã gọi `generateSecret` lần đầu mà chưa thực hiện phase mới. Quan sát `IllegalStateException` theo vòng đời của engine.
+**Exercise B:** try calling `generateSecret` before `doPhase`, and after calling `generateSecret` the first time without running a new phase. Observe `IllegalStateException` per the engine lifecycle.
 
-**Bài tập C:** mô phỏng registry chứa SPKI của đối tác được provision bằng kênh đáng tin; kiểm tra public key hợp lệ về format nhưng **không trùng pin** bị từ chối trước khi dùng secret. Thử dùng certificate chain có trust anchor phù hợp trong một bài lab riêng để thấy kiểm tra trust khác với `KeyFactory` parse.
+**Exercise C:** simulate a registry containing the peer's SPKI provisioned over a trusted channel; verify that a format-valid public key that **does not match the pin** is rejected before using the secret. Try using a certificate chain with a proper trust anchor in a separate lab to see how trust verification differs from `KeyFactory` parsing.
 
-**Bài tập D:** thiết kế transcript có protocol version, tên thuật toán, role A/B, public key của cả hai và session nonce. Đặc tả serialization không mơ hồ cùng quy tắc HKDF `info`; phân biệt key A→B và B→A; kiểm thử rằng đổi bất kỳ trường ngữ cảnh nào được xác thực sẽ khiến kết quả xác nhận phiên không khớp.
+**Exercise D:** design a transcript containing protocol version, algorithm name, A/B roles, both public keys, and a session nonce. Specify unambiguous serialization along with HKDF `info` rules; distinguish A→B and B→A keys; test that altering any authenticated context field causes session confirmation to mismatch.
 
-## 12. Tài liệu chính thức
+## 12. Official References
 
-- [KeyAgreement (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyAgreement.html): `getInstance`, `init`, `doPhase`, `generateSecret`, `lastPhase` và hành vi reset state.
-- [KeyFactory (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyFactory.html): dựng public key từ `KeySpec`, kiểm tra format.
-- [X509EncodedKeySpec (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/X509EncodedKeySpec.html): public key encoded theo dạng X.509 SubjectPublicKeyInfo.
-- [XECPublicKey (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/interfaces/XECPublicKey.html): public key cho họ XEC/XDH, tham số curve và tọa độ.
-- [NamedParameterSpec (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/NamedParameterSpec.html): tên tham số `X25519`, `X448` và các nhóm thuật toán liên quan.
-- [RFC 7748 — Elliptic Curves for Security](https://www.rfc-editor.org/rfc/rfc7748): X25519/X448, Diffie–Hellman, byte representation, các trường hợp small-order và all-zero shared secret.
-- [RFC 5869 — HMAC-based Extract-and-Expand Key Derivation Function](https://www.rfc-editor.org/rfc/rfc5869): HKDF-Extract, HKDF-Expand và mục đích tách khóa.
-- [Java Security Standard Algorithm Names (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): tên thuật toán `X25519`, `ECDH` và các chuẩn khóa.
+- [KeyAgreement (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyAgreement.html): `getInstance`, `init`, `doPhase`, `generateSecret`, `lastPhase`, and state-reset behavior.
+- [KeyFactory (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyFactory.html): constructing public keys from `KeySpec` and format checking.
+- [X509EncodedKeySpec (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/X509EncodedKeySpec.html): public keys encoded as X.509 SubjectPublicKeyInfo.
+- [XECPublicKey (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/interfaces/XECPublicKey.html): public keys for the XEC/XDH family, curve parameters, and coordinates.
+- [NamedParameterSpec (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/NamedParameterSpec.html): parameter names `X25519`, `X448`, and related algorithm families.
+- [RFC 7748 — Elliptic Curves for Security](https://www.rfc-editor.org/rfc/rfc7748): X25519/X448, Diffie–Hellman, byte representation, small-order cases, and all-zero shared secrets.
+- [RFC 5869 — HMAC-based Extract-and-Expand Key Derivation Function](https://www.rfc-editor.org/rfc/rfc5869): HKDF-Extract, HKDF-Expand, and key-separation purposes.
+- [Java Security Standard Algorithm Names (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): algorithm names `X25519`, `ECDH`, and key standards.

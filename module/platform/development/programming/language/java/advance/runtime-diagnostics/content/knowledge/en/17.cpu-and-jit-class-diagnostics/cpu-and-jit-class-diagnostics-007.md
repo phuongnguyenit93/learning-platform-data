@@ -1,77 +1,77 @@
-# 17.7 Nhận diện code cache đầy hoặc hoạt động biên dịch bất thường trước khi đổi tham số
+# 17.7 Identifying a Full Code Cache or Abnormal Compilation Activity Before Changing Flags
 
-## 1. Vấn đề cần chẩn đoán
+## 1. Problem to Diagnose
 
-Một ứng dụng Java chạy ổn sau khi khởi động, nhưng vài giờ sau CPU tăng, throughput giảm hoặc p95/p99 xấu đi. Trong log đôi khi xuất hiện thông báo liên quan đến **CodeCache** hoặc compiler; người vận hành định tăng ngay `-XX:ReservedCodeCacheSize`, số compiler threads hoặc ngưỡng JIT. Việc đó có thể che mất nguyên nhân và tạo áp lực native memory/CPU mới.
+A Java application runs fine after startup, yet hours later CPU rises, throughput drops, or p95/p99 degrades. Logs occasionally mention **CodeCache** or the compiler; operators want to immediately bump `-XX:ReservedCodeCacheSize`, compiler thread count, or JIT thresholds. Doing so can mask the root cause and introduce new native-memory or CPU pressure.
 
-Cần phân biệt ít nhất ba tình huống:
+You must distinguish at least three situations:
 
-1. **Code cache/đúng code heap đang bị áp lực:** không đủ chỗ thích hợp để lưu compiled code mới; có thể xảy ra thông báo code cache full, tạm dừng/không tiếp tục biên dịch ở một giai đoạn và hiệu năng giảm.
-2. **Hoạt động biên dịch bất thường dù vẫn còn chỗ:** hàng đợi compiler kéo dài, số compilation/failed compilation/deoptimization tăng, compiler threads dùng CPU nhiều, class hoặc method churn khiến JIT phải làm lại công việc.
-3. **Warm-up hoặc biến động bình thường:** JIT biên dịch nhiều ở đầu vòng đời hoặc sau thay đổi tải; queue ngắn, code heaps có vùng trống và hiệu năng ổn định sau warm-up. CPU cao có thể do business code, GC hoặc native work chứ không phải compiler.
+1. **Code cache / specific code heap under pressure:** insufficient suitable space to store new compiled code; code cache full warnings, temporary pauses/halting of compilation at some stage, and performance degradation can occur.
+2. **Abnormal compilation activity despite free space:** compiler queue stays backed up, compilations/failed compilations/deoptimizations rise, compiler threads burn significant CPU, and class or method churn forces the JIT to redo work.
+3. **Normal warm-up or fluctuation:** JIT compiles heavily early in the lifecycle or after a load shift; queues stay short, code heaps retain free space, and performance stabilizes after warm-up. High CPU may stem from business code, GC, or native work rather than the compiler.
 
-**Đầu ra mong muốn:** có dữ liệu theo thời gian về tình trạng từng code heap, compiler queue/compilation events, CPU và workload; xác định giả thuyết bằng chứng rồi mới cân nhắc thay đổi tham số HotSpot. Bài dùng thuật ngữ và công cụ **HotSpot JVM**, chủ yếu JDK 17–24; bản build/JDK khác cần kiểm tra lệnh thực tế.
+**Desired output:** time-series data on each code heap's state, compiler queue/compilation events, CPU, and workload; establish an evidence-based hypothesis before considering HotSpot parameter changes. This lesson uses **HotSpot JVM** terminology and tools, primarily JDK 17–24; verify actual commands on other builds/JDKs.
 
-## 2. JIT, compiled code và Code Cache
+## 2. JIT, Compiled Code, and the Code Cache
 
-Khi JVM thực thi bytecode, một phần code ban đầu được diễn giải (interpreter). Trong HotSpot với **tiered compilation**, mã được thực thi thường xuyên có thể được biên dịch ở các mức tối ưu khác nhau, thường liên quan đến compiler C1 và C2. JVM thu thập profiling, tối ưu và có thể **deoptimize** compiled method khi các giả định về kiểu/class/path không còn phù hợp. Quá trình này hữu ích nhưng cũng cần CPU và nơi lưu compiled code.
+When the JVM executes bytecode, parts of the code are initially interpreted. In HotSpot with **tiered compilation**, frequently executed code can be compiled at different optimization levels, typically involving the C1 and C2 compilers. The JVM gathers profiling, optimizes, and can **deoptimize** compiled methods when assumptions about types/classes/paths no longer hold. This process is beneficial yet requires CPU and storage for compiled code.
 
-**Code cache** là bộ nhớ *native executable* chứa các `nmethod` đã biên dịch và những đoạn code runtime khác do JVM sử dụng. Nó khác:
+The **code cache** is *native executable* memory holding compiled `nmethod`s and other runtime code snippets used by the JVM. It differs from:
 
-- **Java heap:** lưu đối tượng Java, có GC quản lý; tăng `-Xmx` không tự tăng code cache.
-- **Metaspace:** chủ yếu chứa metadata của class; tải nhiều class có thể tác động gián tiếp đến JIT, nhưng metaspace ≠ code cache.
-- **Compilation queue:** danh sách công việc chờ compiler xử lý; queue dài không tự đồng nghĩa code cache hết chỗ.
-- **JIT compiler CPU:** công sức để tạo/tối ưu machine code; compiler CPU cao không tự chứng minh code cache đã đầy.
+- **Java heap:** stores Java objects managed by GC; raising `-Xmx` does not enlarge the code cache.
+- **Metaspace:** primarily holds class metadata; loading many classes can indirectly impact JIT, yet metaspace ≠ code cache.
+- **Compilation queue:** list of tasks waiting for the compiler; a long queue does not automatically mean the code cache is out of space.
+- **JIT compiler CPU:** effort spent generating/optimizing machine code; high compiler CPU does not prove the code cache is full.
 
-Khi **segmented code cache** được bật, HotSpot có thể chia vùng thành những code heaps:
+When **segmented code cache** is enabled, HotSpot can split the area into separate code heaps:
 
-| Code heap | Vai trò điển hình | Cần quan sát |
+| Code Heap | Typical Role | What to Watch |
 | --- | --- | --- |
-| `non-nmethods` | Interpreter/runtime stubs, adapters và đoạn code không phải `nmethod` | Không nên gộp bừa với compiled Java methods; sức chứa và khả năng thu hồi khác |
-| `profiled nmethods` | Compiled methods ở giai đoạn có thông tin profiling, thường gắn tiered compilation | Áp lực tăng khi nhiều code được biên dịch ở các tier phù hợp |
-| `non-profiled nmethods` | Compiled methods không cần profiling bổ sung, thường bao gồm code tối ưu cao | Có thể là vùng chịu áp lực trong ứng dụng lâu chạy |
+| `non-nmethods` | Interpreter/runtime stubs, adapters, and non-`nmethod` code snippets | Do not lump blindly with compiled Java methods; capacity and reclamation differ |
+| `profiled nmethods` | Compiled methods in stages carrying profiling info, usually tied to tiered compilation | Pressure rises when lots of code is compiled at profiling tiers |
+| `non-profiled nmethods` | Compiled methods needing no further profiling, usually including highly optimized code | Often the heap experiencing pressure in long-running applications |
 
-**Cấu hình heap phân đoạn không phải lúc nào cũng giống nhau.** `-XX:+SegmentedCodeCache`, `-XX:ReservedCodeCacheSize`, tiered compilation và build của JDK quyết định tổ chức vùng. Khi segmented, ba code heaps có ngân sách riêng; việc *toàn bộ code cache còn dư* không bảo đảm heap cụ thể cần cấp chỗ còn đủ block liên tục. Trong chế độ không segmented, một vùng code cache duy nhất có cách báo cáo khác. Không tự giả định mọi ứng dụng có đúng ba heap.
+**Segmented heap layouts are not always identical.** `-XX:+SegmentedCodeCache`, `-XX:ReservedCodeCacheSize`, tiered compilation, and JDK build determine how regions are organized. When segmented, the three code heaps have separate budgets; *total code cache remaining* does not guarantee the specific heap needing space still has contiguous blocks available. In non-segmented mode, a single code cache region reports differently. Never assume every app has exactly three heaps.
 
-HotSpot có **code sweeper** để dọn compiled methods không còn sử dụng/thích hợp. Nhiều `nmethod` có thể bị invalidated, không còn entrant, rồi thu hồi theo cơ chế JVM; quá trình không nhất thiết diễn ra ngay tức thì. Phân mảnh và trạng thái block trống cũng đáng xem khi có lỗi phân bổ, ngoài phép tính đơn giản `used/max`.
+HotSpot runs a **code sweeper** to clean up compiled methods that are no longer used/valid. Many `nmethod`s can be invalidated, made not entrant, and later reclaimed per JVM mechanisms; reclamation is not necessarily instantaneous. Fragmentation and free-block state also matter on allocation failures, beyond a simple `used/max` ratio.
 
-## 3. Nhận diện triệu chứng và bẫy suy luận
+## 3. Recognizing Symptoms and Reasoning Traps
 
-| Triệu chứng | Giả thuyết nên kiểm tra | Chưa đủ để kết luận |
+| Symptom | Hypothesis to Test | Insufficient to Conclude |
 | --- | --- | --- |
-| Log `CodeCache is full` / `Compiler has been disabled`, JFR `jdk.CodeCacheFull`, đúng code heap gần hoặc hết chỗ, compilation status thay đổi | **Code cache pressure/đã xảy ra full**; có thể ảnh hưởng JIT và throughput | Một cảnh báo ở startup cũ không chứng minh hiện vẫn bị disable; có thể đã thu hồi/vận hành lại |
-| `Compiler.queue` tồn đọng qua nhiều snapshot, compiler threads dùng CPU cao, nhiều `jdk.Compilation` hoặc compilation failure | **Compiler backlog / compilation churn**; phân biệt tác vụ hợp lệ do warm-up với bất thường kéo dài | Queue dài một lần không chứng minh cache thiếu chỗ |
-| JFR `jdk.Deoptimization` tăng, cùng methods được biên dịch lại nhiều lần | Speculation invalidation, thay đổi kiểu/class hoặc logic workload; có thể dẫn đến recompilation | Một vài deoptimization là hành vi JVM bình thường |
-| Code heap gần mức capacity nhưng queue rỗng, không có full events, throughput/latency ổn | Code được lưu và tái sử dụng; **chưa thấy tác hại** | Phần trăm `used/max` cao đơn lẻ không phải sự cố |
-| CPU cao, code heaps dư, compilation events hiếm, execution samples ở application methods | **Business CPU-bound**, thuật toán hoặc GC khác | Không giải quyết bằng `ReservedCodeCacheSize` |
-| Code cache `used` tăng sau deploy, rồi chững lại | JIT warm-up hoặc tải mới khiến code được compile | Không phải leak chỉ vì chưa giảm sau khi tải xuống |
+| Log `CodeCache is full` / `Compiler has been disabled`, JFR `jdk.CodeCacheFull`, specific code heap near or out of space, compilation status changes | **Code cache pressure / full occurred**; can impact JIT and throughput | One old startup warning does not prove compilation is still disabled now; space may have been reclaimed/resumed |
+| `Compiler.queue` backed up across multiple snapshots, compiler threads burn high CPU, many `jdk.Compilation` or compilation failures | **Compiler backlog / compilation churn**; separate legitimate warm-up tasks from sustained anomaly | One long queue snapshot does not prove cache exhaustion |
+| JFR `jdk.Deoptimization` rises, same methods recompiled repeatedly | Speculation invalidation, shifting types/classes, or workload logic; can drive recompilation | A few deoptimizations are normal JVM behavior |
+| Code heap near capacity yet queue empty, no full events, stable throughput/latency | Code is stored and reused; **no harm observed** | High `used/max` percentage alone is not an incident |
+| High CPU, ample code heaps, sparse compilation events, execution samples in app methods | **CPU-bound business logic**, algorithms, or GC | Cannot be solved by `ReservedCodeCacheSize` |
+| Code cache `used` rises after deploy, then plateaus | JIT warm-up or new traffic triggering compilation | Not a leak just because it does not drop after traffic subsides |
 
-**Bằng chứng mạnh** cần ghép: cùng khoảng thời gian có lỗi/performance regression **và** code heap không còn sức chứa phù hợp hoặc có `CodeCacheFull`, trạng thái compiler/queue thay đổi, người dùng thấy hiệu năng xấu đi. Một bộ đếm không thay thế toàn bộ chuỗi nguyên nhân.
+**Strong evidence** requires linking: errors/performance regression in the same window **and** the code heap running out of suitable capacity or `CodeCacheFull` firing, compiler/queue status shifting, and user-visible performance degrading. One counter never replaces the full causal chain.
 
-### Nhận biết compiler dừng và hoạt động trở lại
+### Recognizing When the Compiler Stops and Resumes
 
-Một số cấu hình HotSpot có thể **ngừng/tạm ngừng compiler khi code cache đầy**, sau đó quét/thu hồi code và tiếp tục biên dịch nếu điều kiện cho phép. Vì thế cả hai câu “JIT đã bị tắt vĩnh viễn” và “JIT chắc chắn sẽ tự phục hồi” đều quá mạnh nếu chưa thấy log và status ở các thời điểm khác nhau.
+Some HotSpot configurations may **stop/pause the compiler when the code cache fills**, then sweep/reclaim code and resume compilation when conditions permit. Thus both "JIT was permanently disabled" and "JIT will definitely self-recover" are too strong without logs and status across different timestamps.
 
-Nếu compiler không còn tạo được code tối ưu mới, những đường chưa warm-up có thể tiếp tục chạy bằng interpreted hoặc compiled code ở tier thấp hơn; hiệu quả tùy workload. **Không suy ra mọi compiled method cũ bị xóa** chỉ vì có thông báo compiler disabled.
+If the compiler can no longer emit new optimized code, un-warmed paths may keep running interpreted or in lower-tier compiled code; impact depends on workload. **Do not assume all old compiled methods were deleted** just because a compiler-disabled message appeared.
 
-## 4. Quy trình thu thập bằng chứng trước khi tuning
+## 4. Evidence-Collection Workflow Before Tuning
 
-### Bước 1 — Chốt phiên bản, workload và mốc thời gian
+### Step 1 — Lock Down Version, Workload, and Timeline
 
-Ghi **Java vendor/build**, `java -version`, tiến trình/PID và CPU quota, giới hạn bộ nhớ container, uptime, thời điểm deploy, số classes loaded/unloaded, request/s, in-flight, p50/p95/p99, error rate, GC pauses và process CPU. Xác định **tốc độ biến đổi** trong khoảng bất thường: code heap đầy dần trong giờ hay bùng một lần ngay khi warm-up? Đo cùng traffic/workload nếu so hai bản chạy.
+Record **Java vendor/build**, `java -version`, process/PID and CPU quota, container memory limit, uptime, deploy time, classes loaded/unloaded, requests/s, in-flight requests, p50/p95/p99, error rate, GC pauses, and process CPU. Determine the **rate of change** during the anomaly: did the code heap fill gradually over hours or spike once during warm-up? Measure matching traffic/workloads when comparing two runs.
 
-Đầu tiên xác minh các cờ JVM đang có:
+First verify active JVM flags:
 
 ~~~bash
-# Thay <PID> bằng PID của JVM đích.
+# Replace <PID> with the target JVM PID.
 jcmd <PID> VM.version
 jcmd <PID> VM.command_line
 jcmd <PID> VM.flags -all
 ~~~
 
-`VM.flags -all` có nhiều dòng; tìm các cờ thực liên quan như `ReservedCodeCacheSize`, `InitialCodeCacheSize`, `SegmentedCodeCache`, `TieredCompilation`, `CICompilerCount` và `UseCodeCacheFlushing` trên đúng JDK. Không dùng giá trị mặc định trên blog của phiên bản khác thay giá trị runtime.
+`VM.flags -all` is long; inspect relevant effective flags such as `ReservedCodeCacheSize`, `InitialCodeCacheSize`, `SegmentedCodeCache`, `TieredCompilation`, `CICompilerCount`, and `UseCodeCacheFlushing` on the exact JDK. Do not substitute blog defaults from a different version for runtime values.
 
-### Bước 2 — Chụp đúng CodeCache và Compiler queue
+### Step 2 — Snapshot CodeCache and Compiler Queue Properly
 
 ~~~bash
 jcmd <PID> Compiler.codecache
@@ -79,121 +79,121 @@ jcmd <PID> Compiler.queue
 jcmd <PID> Compiler.CodeHeap_Analytics aggregate
 ~~~
 
-- `Compiler.codecache`: in **layout, size, used, max_used, free** hoặc các thống kê tương ứng của code heaps và thông tin compilation tùy bản HotSpot. Quan sát từng heap, không chỉ một tổng.
-- `Compiler.queue`: chụp **các methods đang xếp hàng** chờ biên dịch. Queue là snapshot; chạy thêm vài lần cách nhau đủ để thấy tiến triển trước khi kết luận bị backlog.
-- `Compiler.CodeHeap_Analytics aggregate`: bổ sung góc nhìn trạng thái code heap, phân bố khoảng trống và hoạt động sweeper khi cần. Trên JDK hỗ trợ, có các function như `UsedSpace`, `FreeSpace`, `MethodCount`. Lệnh có thể giữ `CodeCache_lock` trong lúc phân tích, nên chọn thời điểm và mức chi tiết phù hợp.
-- `Compiler.codelist` (tùy chọn) in compiled methods hiện còn sống, hữu ích khi cần so những method bị tích lũy trong code cache; output có thể lớn, tác động cao hơn lệnh codecache thông thường.
+- `Compiler.codecache`: prints **layout, size, used, max_used, free** or equivalent code-heap statistics and compilation info depending on HotSpot build. Inspect each heap, not just one total.
+- `Compiler.queue`: snapshots **methods queued** for compilation. Queue is a point-in-time snapshot; run several times spaced properly to observe progress before claiming a backlog.
+- `Compiler.CodeHeap_Analytics aggregate`: adds visibility into code heap state, free-space distribution, and sweeper activity when needed. On supporting JDKs, functions include `UsedSpace`, `FreeSpace`, `MethodCount`. The command may hold `CodeCache_lock` while analyzing, so choose timing and detail level carefully.
+- `Compiler.codelist` (optional) prints currently live compiled methods, useful when comparing methods accumulating in the code cache; output can be huge with higher impact than normal `codecache`.
 
-Dùng `jcmd <PID> help` và `jcmd <PID> help Compiler.CodeHeap_Analytics` để xác nhận các lệnh/mức tác động trên JVM thực tế. Lưu **nhiều snapshot** (ví dụ lúc bình thường, ngay trước giảm throughput, trong khoảng sự cố, sau hồi phục); ghi timestamp và load cùng mỗi snapshot. Không chỉ gọi một lần khi sự cố đã qua.
+Use `jcmd <PID> help` and `jcmd <PID> help Compiler.CodeHeap_Analytics` to confirm supported commands and impact levels on the actual JVM. Save **multiple snapshots** (e.g., normal baseline, right before throughput drops, during the incident, after recovery); record timestamp and load with each snapshot. Never run it just once after the incident is over.
 
-### Bước 3 — Kết hợp JFR để thấy diễn tiến theo thời gian
+### Step 3 — Combine with JFR to See Progression Over Time
 
-Có thể mở recording hữu hạn từ JVM đang chạy:
+You can start a bounded recording on a running JVM:
 
 ~~~bash
 jcmd <PID> JFR.start name=jit-triage settings=profile duration=60s filename=jit-triage.jfr
-# Sau khi recording đã hoàn tất:
+# After the recording finishes:
 jfr summary jit-triage.jfr
 jfr print --events jdk.CodeCacheFull,jdk.CodeCacheStatistics,jdk.Compilation,jdk.CompilationFailure,jdk.CompilerStatistics,jdk.Deoptimization jit-triage.jfr
 ~~~
 
-**Diễn giải event, không chỉ tên event:**
+**Interpret events, not just event names:**
 
-| Event | Hỏi điều gì | Lưu ý |
+| Event | What to Ask | Notes |
 | --- | --- | --- |
-| `jdk.CodeCacheFull` | Có thời điểm code heap báo full không, ở heap nào? | Event có thể hiếm và phụ thuộc cách bật; không có event không phủ nhận sự cố trước recording |
-| `jdk.CodeCacheStatistics` | Dung lượng/nhóm code heap thay đổi ra sao theo recording? | Tần suất sự kiện và trường dữ liệu khác nhau theo JDK/settings |
-| `jdk.Compilation` | Những compilation attempts nào đã diễn ra, thời lượng, compiler/tier và phương thức? | Compilation nhiều ngay warm-up chưa phải bất thường |
-| `jdk.CompilationFailure` | Có compilation thất bại và reason cụ thể không? | Failure có thể do hạn chế optimizer/phương thức phức tạp, không tự đồng nghĩa cache full |
-| `jdk.CompilerStatistics` | Thống kê hoạt động compiler nào xuất hiện? | Dùng xu hướng và ngữ cảnh; có thể không được bật trong mọi template |
-| `jdk.Deoptimization` | Có compiled code bị deopt, với lý do nào? | Deopt có thể bình thường khi speculation bị phủ nhận |
+| `jdk.CodeCacheFull` | Did a code heap report full, and which heap? | Event may be rare and setting-dependent; absence does not rule out an incident prior to the recording |
+| `jdk.CodeCacheStatistics` | How did code heap capacities/usage change over the recording? | Event frequency and fields vary by JDK/settings |
+| `jdk.Compilation` | Which compilation attempts occurred, their durations, compilers/tiers, and methods? | Heavy compilation right at warm-up is not yet abnormal |
+| `jdk.CompilationFailure` | Were there failed compilations and specific reasons? | Failures can stem from optimizer limits or complex methods, not automatically a full cache |
+| `jdk.CompilerStatistics` | What compiler activity stats appear? | Use trends and context; may not be enabled in every template |
+| `jdk.Deoptimization` | Was compiled code deoptimized, and for what reason? | Deopts can be normal when speculation is invalidated |
 
-Lệnh `jfr summary` cho **event count thực được ghi**. Nếu một loại event không có trong file, kiểm tra **event enabled/period/threshold của recording**; nhiều event chỉ xuất hiện khi điều kiện đặc biệt xảy ra. Không kết luận “không bao giờ full” từ 60 giây không có `CodeCacheFull`. Có thể mở `.jfr` bằng **JDK Mission Control** để đối chiếu timeline CPU, compiler events, code cache metrics, GC, class loading, JIT/deoptimization và thời điểm request latency tăng. Tên trang JMC phụ thuộc phiên bản.
+`jfr summary` reports **actual recorded event counts**. If an event type is absent from the file, check the recording's **enabled/period/threshold settings**; many events fire only under special conditions. Never conclude "never fills" from 60 seconds without `CodeCacheFull`. Open the `.jfr` in **JDK Mission Control** to align CPU timelines, compiler events, code cache metrics, GC, class loading, JIT/deoptimization, and latency spikes. JMC page names depend on version.
 
-### Bước 4 — Đo CPU của compiler và những nhánh khác
+### Step 4 — Measure Compiler CPU and Other Branches
 
-Compiler C1/C2 chạy trên các compiler threads và có thể dùng CPU đáng kể trong giai đoạn warm-up hoặc compilation churn. Dùng OS process/thread CPU, JFR ThreadCPULoad/Compiler events hoặc CPU profiler **có hỗ trợ JVM native/compiler threads**. `jdk.ExecutionSample` chủ yếu quan sát mã Java đang thực thi, nên không mặc định thấy đầy đủ phần CPU của native compiler threads.
+The C1/C2 compilers run on compiler threads and can consume substantial CPU during warm-up or compilation churn. Use OS process/thread CPU, JFR `ThreadCPULoad`/Compiler events, or a CPU profiler **that covers JVM native/compiler threads**. `jdk.ExecutionSample` primarily observes executing Java code and does not reliably show full CPU of native compiler threads.
 
-Đặt cạnh số compilation, queue và `codecache used/free`:
+Compare alongside compilation counts, queue, and `codecache used/free`:
 
-- CPU tiến trình tăng **cùng compiler queue tồn đọng và compilation events kéo dài** → có cơ sở điều tra compiler backlog.
-- CPU tăng nhưng queue rỗng, class loading ổn định và code cache còn dư → profile business methods, GC và native work.
-- Không gian code heap giảm tới điểm đầy, có full event/log, rồi các compilation mới giảm hoặc compiler status thay đổi → có cơ sở điều tra code cache.
+- Process CPU rises **alongside a persistent compiler queue and long compilation events** → grounds to investigate compiler backlog.
+- CPU rises while queue is empty, class loading is steady, and code cache has plenty of room → profile business methods, GC, and native work.
+- Code heap space drops to exhaustion, full events/logs fire, and then new compilations drop or compiler status shifts → grounds to investigate code cache.
 
-### Bước 5 — So sánh trước/sau thay đổi một biến
+### Step 5 — Compare Before/After Changing One Variable
 
-Không đổi hàng loạt `ReservedCodeCacheSize`, `CICompilerCount`, `TieredCompilation`, `CompileThreshold` cùng một lần. Nếu muốn xác minh giả thuyết, chọn một cấu hình thử trên staging, giữ workload/container/JDK nhất quán, đo lại:
+Do not change `ReservedCodeCacheSize`, `CICompilerCount`, `TieredCompilation`, and `CompileThreshold` all at once. To test a hypothesis, pick one trial setting on staging, keep workload/container/JDK consistent, and re-measure:
 
-- Code heap utilization, free blocks, `CodeCacheFull` count và compilation status;
+- Code heap utilization, free blocks, `CodeCacheFull` count, and compilation status;
 - Compiler queue, compilation/deoptimization/failure rates;
-- Process/compiler CPU, throughput, p95/p99, lỗi;
-- Native memory/container headroom và thời gian warm-up.
+- Process/compiler CPU, throughput, p95/p99, errors;
+- Native memory/container headroom and warm-up duration.
 
-Mục tiêu là chứng minh **đúng bottleneck đã đổi** và hiệu năng người dùng cải thiện; không chỉ khiến cảnh báo biến mất.
+The goal is to prove **the exact bottleneck shifted** and user-facing performance improved, not merely to make warnings disappear.
 
-## 5. Cây quyết định: điểm nghẽn đang nằm ở đâu?
+## 5. Decision Tree: Where Is the Bottleneck?
 
 ~~~text
-CPU/p99 xấu hoặc có cảnh báo JIT
+Poor CPU/p99 or JIT warnings present
              |
              v
-  Kiểm tra JVM flags + CodeCache từng heap + logs/JFR
+  Check JVM flags + per-heap CodeCache + logs/JFR
              |
-     Có CodeCacheFull/log full gắn thời điểm lỗi?
+     CodeCacheFull/full log aligned with failure time?
         /                              \
-      Có                              Không/chưa rõ
+      Yes                              No / unclear
       |                                  |
       v                                  v
-  Kiểm tra heap nào,             Compiler.queue có tăng
-  free blocks, sweeper,          kéo dài qua nhiều snapshot?
+  Check which heap,              Compiler.queue growing
+  free blocks, sweeper,          across multiple snapshots?
   compile status                         /       \
-      |                                Có        Không
+      |                                Yes        No
       v                                 |          |
-  Xác nhận impact                       v          v
+  Confirm impact                        v          v
   + code cache pressure           JFR Compilation/   CPU samples,
       |                            Failure/Deopt,     GC, I/O, class
-      v                            compiler CPU        load/workload
-  Tìm nguyên nhân code                  |                |
-  tích lũy, phân mảnh,                  v                v
-  class/method churn;              Compilation churn  Khả năng không
-  cân nhắc tuning có QA             hoặc warm-up?       phải code cache
+      v                            compiler CPU       load/workload
+  Find cause of code                  |                |
+  accumulation, fragmentation,        v                v
+  class/method churn;              Compilation churn  Likely not
+  consider QA'd tuning             or warm-up?        code cache
 ~~~
 
-Cây này **không phải phép kiểm tra nhị phân tuyệt đối**. Có thể vừa code cache pressure vừa compiler churn; queue rỗng ở snapshot hiện tại không chứng minh trước đó không có backlog. Ưu tiên tương quan theo timestamp và phép thử can thiệp.
+This tree is **not a rigid binary test**. You can have both code cache pressure and compiler churn simultaneously; an empty queue in the current snapshot does not prove there was no earlier backlog. Prioritize timestamp correlation and controlled experiments.
 
-## 6. Các tình huống chẩn đoán minh họa
+## 6. Illustrative Diagnostic Scenarios
 
-### Tình huống A — Đúng code heap hết chỗ
+### Scenario A — A Specific Code Heap Runs Out of Space
 
-Sau deploy, hệ thống sinh nhiều phương thức được JIT biên dịch. Log tại `t1` xuất hiện `CodeCache is full`, JFR `jdk.CodeCacheFull` tại cùng khoảng, `Compiler.codecache` cho thấy **một code heap cụ thể** gần hết `free`, compiler tạm disabled rồi resumed (hoặc vẫn disabled) và p99 tăng theo pha hoạt động. Đây là bộ bằng chứng mạnh cho **code cache pressure**.
+After deploy, the system generates many JIT-compiled methods. At `t1`, logs emit `CodeCache is full`, JFR records `jdk.CodeCacheFull` in the same window, `Compiler.codecache` shows **one specific code heap** nearly out of `free`, the compiler temporarily disables and then resumes (or stays disabled), and p99 rises alongside that phase. This is a strong evidence set for **code cache pressure**.
 
-Điều tra tiếp: code heap nào; tăng sau class loading hoặc code generation nào; code có được sweeper tái thu hồi; có fragmentation/free blocks phù hợp không; workload có nhảy từ warm-up sang loại path mới không. Nếu code tồn tại nhiều do thực sự có nhiều methods hot, tăng capacity có thể hữu ích **sau đo**. Nếu code churn do class loader leak, dynamic proxy hoặc công cụ tạo class lặp vô hạn, chỉ tăng capacity có thể trì hoãn lần full tiếp theo.
+Investigate next: which code heap; after which class loading or code generation it grew; whether the sweeper reclaims code; whether fragmentation/free blocks are an issue; and whether workload transitioned from warm-up to new code paths. If code genuinely stays live because many hot methods exist, raising capacity can help **after measuring**. If code churn comes from a classloader leak, dynamic proxies, or unbounded class generation, raising capacity only delays the next full event.
 
-### Tình huống B — Queue dài nhưng cache còn nhiều chỗ
+### Scenario B — Long Queue Yet Plenty of Cache Space
 
-Một đợt burst mới chạm rất nhiều methods chưa được biên dịch. `Compiler.queue` tăng trong vài snapshot; OS cho thấy compiler CPU cao, JFR `jdk.Compilation` tăng, nhưng các heaps vẫn có dư đáng kể, không có `CodeCacheFull` tương ứng. Đó có thể là **warm-up hợp lệ** hoặc compiler capacity/workload churn, chưa phải cache exhaustion.
+A new burst hits many uncompiled methods. `Compiler.queue` grows across several snapshots; OS metrics show high compiler CPU and JFR `jdk.Compilation` rises, while heaps retain substantial headroom with no matching `CodeCacheFull`. This may be **legitimate warm-up** or compiler capacity/workload churn, not cache exhaustion.
 
-Nếu queue tự tiêu hết, latency trở về nền và compilation rate giảm, đây nhiều khả năng là warm-up. Nếu cùng một đường code lặp đi lặp lại mất nhiều compilation CPU, xem class churn, deoptimization reasons, generated code, class loaders và Compiler failures. Tăng `ReservedCodeCacheSize` không giải quyết việc code **chưa được biên dịch kịp**.
+If the queue drains on its own, latency returns to baseline, and compilation rate drops, warm-up is likely. If the same paths repeatedly burn compilation CPU, check class churn, deoptimization reasons, generated code, classloaders, and Compiler failures. Raising `ReservedCodeCacheSize` will not help code that **cannot compile fast enough**.
 
-### Tình huống C — Deoptimization và recompile lặp
+### Scenario C — Repeated Deoptimization and Recompilation
 
-Một service thường xuyên thay class shape, chạy dynamic invocation hoặc liên tục đi qua các kiểu object khác nhau. JFR cho thấy deoptimization và compilation lặp ở những phương thức/nhánh tương ứng, compiler CPU cao và throughput giảm, nhưng code cache chưa đầy. Đặt giả thuyết **unstable profiling/speculation hoặc class/method churn**; xác nhận bằng traces và các thay đổi đầu vào/tải.
+A service frequently alters class shapes, executes dynamic invocations, or passes varying object types through the same sites. JFR shows repeated deoptimizations and compilations on the corresponding methods/branches, compiler CPU is high, and throughput drops, while the code cache is not full. Hypothesize **unstable profiling/speculation or class/method churn**; confirm with traces and input/load changes.
 
-Deoptimization không phải lúc nào là lỗi: HotSpot có thể bảo thủ điều chỉnh code tối ưu khi giả định không đúng. Chỉ coi là bất thường khi tần suất/số lần recompile đáng kể, tương quan performance regression và có code path xác định.
+Deoptimization is not always a bug: HotSpot conservatively adjusts optimized code when assumptions break. Treat it as abnormal only when frequency/recompilation counts are substantial, correlate with a performance regression, and map to identifiable code paths.
 
-### Tình huống D — CPU cao không liên quan JIT
+### Scenario D — High CPU Unrelated to JIT
 
-Process dùng gần hết CPU quota, `Compiler.queue` thường rỗng, compiled code ổn định, JFR `jdk.ExecutionSample` tập trung ở vòng lặp serialize/crypto và không có codecache-full evidence. Nguyên nhân khả dĩ là **workload CPU-bound**. Điều tra thuật toán/dữ liệu/parallelism trước khi chỉnh JIT flags.
+The process nearly hits its CPU quota, `Compiler.queue` is mostly empty, compiled code is stable, JFR `jdk.ExecutionSample` clusters in serialization/crypto loops, and no codecache-full evidence exists. The likely cause is a **CPU-bound workload**. Investigate algorithms, data, and parallelism before touching JIT flags.
 
-### Tình huống E — Code cache dùng nhiều nhưng hệ thống khỏe
+### Scenario E — High Code Cache Usage Yet Healthy System
 
-Sau warm-up, code cache occupancy cao và giữ ổn định hàng giờ; không có full events/log, compiler status enabled, p99 và throughput ổn. Chỉ số occupancy cao **không phải một incident độc lập**. Thiết lập giám sát xu hướng và headroom, không đổi `ReservedCodeCacheSize` chỉ vì một ngưỡng phần trăm tùy ý.
+After warm-up, code cache occupancy is high and remains steady for hours; there are no full events/logs, compiler status is enabled, and p99 and throughput are healthy. High occupancy **is not a standalone incident**. Monitor trends and headroom; do not change `ReservedCodeCacheSize` merely because of an arbitrary percentage threshold.
 
-## 7. Lab Java 17+: quan sát CodeHeap và thời gian compiler
+## 7. Java 17+ Lab: Observing CodeHeap and Compiler Time
 
-Lab này dùng **Java Management API** để đọc memory pools có tên `CodeHeap` hoặc `Code Cache` và `CompilationMXBean`. Nó cố ý thực thi code để JIT có cơ hội warm-up, rồi in nhiều snapshot. Mục đích là **nhận diện và đo**, không ép Code Cache full. Kết quả thay đổi theo vendor/JDK, CPU, tiered compilation và môi trường.
+This lab uses the **Java Management API** to read memory pools named `CodeHeap` or `Code Cache` plus `CompilationMXBean`. It intentionally executes code to give the JIT a chance to warm up, then prints several snapshots. The goal is **identification and measurement**, not forcing Code Cache exhaustion. Results vary by vendor/JDK, CPU, tiered compilation, and environment.
 
-Tạo file **`JitCodeCacheProbe.java`**:
+Create **`JitCodeCacheProbe.java`**:
 
 ~~~java
 import java.lang.management.CompilationMXBean;
@@ -278,18 +278,18 @@ public final class JitCodeCacheProbe {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac JitCodeCacheProbe.java
 java JitCodeCacheProbe
 ~~~
 
-**Dạng output** (giá trị và tên pool thay đổi; không có stdout cố định):
+**Output format** (values and pool names vary; no fixed literal stdout):
 
 ~~~text
 pid=<PID>
-phase=start totalCompilationTimeMs=<số hoặc -1>
+phase=start totalCompilationTimeMs=<number or -1>
 pool=CodeHeap 'non-nmethods' usedKiB=<...> committedKiB=<...> maxKiB=<...>
 pool=CodeHeap 'profiled nmethods' usedKiB=<...> committedKiB=<...> maxKiB=<...>
 pool=CodeHeap 'non-profiled nmethods' usedKiB=<...> committedKiB=<...> maxKiB=<...>
@@ -297,23 +297,23 @@ phase=batch1 totalCompilationTimeMs=<...>
 ...
 phase=batch4 totalCompilationTimeMs=<...>
 ...
-checksum=<giá trị số nguyên>
+checksum=<integer value>
 ~~~
 
-**Đọc số liệu:**
+**Reading the metrics:**
 
-- Tên `pool` là tên runtime thực; môi trường không segmented có thể hiển thị `Code Cache` thay vì ba `CodeHeap`.
-- `usedKiB` là dung lượng đang dùng được MXBean báo trong code memory pool; `committedKiB` và `maxKiB` có nghĩa khác nhau. `maxKiB=-1` là giá trị API có thể dùng khi max chưa xác định, không diễn giải thành code cache âm.
-- `totalCompilationTimeMs` là bộ đếm **tích lũy** thời gian compiler theo `CompilationMXBean` khi có hỗ trợ; `-1` có nghĩa không được hỗ trợ. Nó **không phải duration của batch**, không phải thời gian biên dịch riêng phương thức `mix`, và không thể dùng riêng để tính CPU saturation.
-- Một hoặc vài pool tăng `used` sau warm-up là bình thường. Lab không đủ methods để bảo đảm code cache đầy hoặc tạo `jdk.CodeCacheFull`; nếu không xuất hiện warning là kết quả hợp lý.
+- `pool` names are real runtime names; non-segmented environments may show `Code Cache` instead of three `CodeHeap`s.
+- `usedKiB` is the space currently used as reported by the MXBean for that code memory pool; `committedKiB` and `maxKiB` have different meanings. `maxKiB=-1` is a valid API value when max is undefined; do not interpret it as a negative code cache.
+- `totalCompilationTimeMs` is a **cumulative** compiler time counter from `CompilationMXBean` when supported; `-1` means unsupported. It is **not batch duration**, not compile time specifically for `mix`, and cannot by itself measure CPU saturation.
+- One or more pools rising in `used` after warm-up is normal. The lab does not have enough methods to guarantee filling the code cache or triggering `jdk.CodeCacheFull`; seeing no warnings is expected.
 
-Để kiểm tra bằng `jcmd`, chạy lệnh này ở terminal thứ nhất:
+To inspect with `jcmd`, run this in the first terminal:
 
 ~~~bash
 java JitCodeCacheProbe --inspect
 ~~~
 
-Lúc chương trình in `inspectionWindowSeconds=20`, mở terminal thứ hai, thay `<PID>` bằng số vừa in:
+When the program prints `inspectionWindowSeconds=20`, open a second terminal and replace `<PID>` with the printed PID:
 
 ~~~bash
 jcmd <PID> Compiler.codecache
@@ -321,9 +321,9 @@ jcmd <PID> Compiler.queue
 jcmd <PID> Compiler.CodeHeap_Analytics aggregate
 ~~~
 
-**Lưu ý thực nghiệm:** chương trình chỉ giữ cửa sổ 20 giây để attach, không cố tình ép đầy cache. Nếu bạn muốn khảo sát một sự cố thực, thực hiện các lệnh trên **PID của ứng dụng đích** và đo thêm JFR/CPU/throughput trong cùng thời gian.
+**Lab note:** the program only holds a 20-second window for attaching, and does not intentionally force cache exhaustion. To investigate a real incident, run these commands against **the target application's PID** while also collecting JFR/CPU/throughput over the same period.
 
-Có thể tạo recording JFR khi chạy ví dụ:
+You can capture a JFR recording while running the example:
 
 ~~~bash
 java -XX:StartFlightRecording=filename=jit-probe.jfr,settings=profile,dumponexit=true JitCodeCacheProbe
@@ -331,65 +331,65 @@ jfr summary jit-probe.jfr
 jfr print --events jdk.CodeCacheFull,jdk.CodeCacheStatistics,jdk.Compilation,jdk.CompilationFailure jit-probe.jfr
 ~~~
 
-`jit-probe.jfr` là file mới sinh ra khi chương trình hoàn tất. Một recording bình thường có thể **không có** CodeCacheFull hoặc CompilationFailure; đó là điều mong đợi trong lab. Các event CodeCacheStatistics/Compilation có thể tùy cấu hình ghi. Nếu muốn thí nghiệm JFR có thể kiểm soát, chỉnh recording profile ở staging; không thử ép CodeCache full trên production.
+`jit-probe.jfr` is written when the program exits. A normal recording may have **no** `CodeCacheFull` or `CompilationFailure` events; that is expected in this lab. `CodeCacheStatistics`/`Compilation` events depend on recording settings. For controlled JFR experiments, tune recording profiles on staging; never try to force CodeCache exhaustion in production.
 
-## 8. Khi nào mới cân nhắc thay tham số?
+## 8. When Should You Consider Changing Flags?
 
-Sau khi chẩn đoán, phân biệt **chỉnh dung lượng** và **chỉnh hoạt động compiler**:
+After diagnosing, separate **capacity tuning** from **compiler-behavior tuning**:
 
-| Điều đã xác nhận | Việc nên ưu tiên | Cấu hình chỉ cân nhắc sau khi đo |
+| Confirmed Condition | Priority Action | Flags Considered Only After Measuring |
 | --- | --- | --- |
-| Đúng code heap thực sự hết chỗ, có warning/event và performance impact | Xem code churn, sweeper, fragmentation, số compiled methods và cấu trúc segmented | `-XX:ReservedCodeCacheSize=<size>`; nếu segmented, nghiên cứu các ngân sách `NonNMethodCodeHeapSize`, `ProfiledCodeHeapSize`, `NonProfiledCodeHeapSize` tương thích |
-| Compiler backlog do lượng compilation tăng đột biến | Kiểm tra warm-up, code generation, dynamic proxies, class churn, compilation failures | `CICompilerCount`/tier strategy chỉ sau khi profiler chứng minh compiler CPU/queue là bottleneck |
-| Recompile/deopt bất thường | Tìm lý do thay đổi types/classes, code path hoặc build/dependency đổi | Không vội ép `CompileThreshold` hay tắt tiered JIT; các cờ có thể ảnh hưởng startup/steady-state và che lỗi |
-| Code cache cao nhưng không có full/stall | Theo dõi capacity và diễn tiến, không có tác động user | Chưa cần đổi flag |
-| CPU-bound business code, GC, I/O | Tối ưu đúng tầng và tăng CPU/downstream capacity nếu cần | Tuning CodeCache thường không đúng nguyên nhân |
+| Specific code heap genuinely exhausted, with warnings/events and performance impact | Inspect code churn, sweeper, fragmentation, compiled method count, and segmented layout | `-XX:ReservedCodeCacheSize=<size>`; if segmented, evaluate compatible `NonNMethodCodeHeapSize`, `ProfiledCodeHeapSize`, `NonProfiledCodeHeapSize` budgets |
+| Compiler backlog from sudden compilation surge | Inspect warm-up, code generation, dynamic proxies, class churn, compilation failures | `CICompilerCount`/tier strategy only after profiler proves compiler CPU/queue is the bottleneck |
+| Abnormal recompile/deopt | Find why types/classes, code paths, or builds/dependencies changed | Do not rush to force `CompileThreshold` or disable tiered JIT; flags alter startup/steady-state and mask bugs |
+| High code cache without full/stalls | Monitor capacity and trend; no user impact | No flag change needed |
+| CPU-bound business code, GC, I/O | Optimize the right layer and add CPU/downstream capacity if needed | CodeCache tuning misses the root cause |
 
-**Không coi các con số default trong tài liệu là giá trị runtime.** `ReservedCodeCacheSize` phụ thuộc JDK, lựa chọn tiered compilation và cấu hình hiện tại; `SegmentedCodeCache` có thể bật hoặc tắt. Những tham số thay cấu trúc code cache thường phải đặt lúc startup và restart. Dung lượng lớn hơn có chi phí virtual/native memory và có thể đẩy process gần giới hạn container; cần xem memory headroom.
+**Do not treat documentation defaults as runtime values.** `ReservedCodeCacheSize` depends on JDK, tiered compilation choice, and current configuration; `SegmentedCodeCache` may be on or off. Parameters changing code cache structure typically require startup flags and a restart. Larger capacities cost virtual/native memory and can push the process toward container limits; inspect memory headroom.
 
-**Không thử “chữa” bằng cách vô hiệu code-cache flushing** (`UseCodeCacheFlushing`), tắt JIT/tiered compilation hoặc tăng compiler threads tùy tiện. Tắt flushing có thể làm áp lực codecache khó hồi phục hơn; tắt tiered làm đổi chế độ compilation/throughput. Những thay đổi này cần bài đo riêng và rollback plan, không phải bước đầu chẩn đoán.
+**Do not try to "fix" issues by disabling code-cache flushing** (`UseCodeCacheFlushing`), disabling JIT/tiered compilation, or arbitrarily raising compiler threads. Turning off flushing can make code cache pressure harder to recover from; disabling tiered changes compilation/throughput characteristics. Such changes require dedicated tests and a rollback plan, never as a first diagnostic step.
 
-### Kế hoạch thử nghiệm thay đổi tham số có bằng chứng
+### Evidence-Backed Flag Experiment Plan
 
-1. Giữ **JDK/build, CPU quota, traffic, data, class-loading pattern, GC settings** giống nhau ở baseline và candidate.
-2. Chỉ đổi **một** cờ liên quan tới nguyên nhân đã xác định, ghi flags thực qua `VM.flags -all`.
-3. Chạy từ cold start qua warm-up đến steady state; đo cả thời gian warm-up lẫn throughput/p95/p99 lâu dài.
-4. So JFR `CodeCacheFull`, các code heaps, compiler queue/CPU, compilation failures/deoptimization, GC và memory footprint.
-5. Chỉ nhận thay đổi khi nó giải quyết nguyên nhân mà không làm xấu latency, CPU hoặc giới hạn bộ nhớ; có hướng rollback nếu tải khác tái hiện vấn đề.
+1. Keep **JDK/build, CPU quota, traffic, data, class-loading pattern, and GC settings** identical between baseline and candidate.
+2. Change only **one** flag tied to the identified cause, recording effective flags via `VM.flags -all`.
+3. Run from cold start through warm-up to steady state; measure both warm-up time and long-term throughput/p95/p99.
+4. Compare JFR `CodeCacheFull`, code heaps, compiler queue/CPU, compilation failures/deoptimizations, GC, and memory footprint.
+5. Accept the change only when it resolves the cause without degrading latency, CPU, or memory limits; prepare a rollback path if different traffic reproduces the issue.
 
-## 9. Những lỗi diễn giải thường gặp
+## 9. Common Interpretation Errors
 
-1. **“Code cache used 90% nghĩa là đã full.”** Sai: có thể vẫn cấp phát bình thường; phải xem heap cụ thể, free blocks, logs/events và ảnh hưởng thực tế.
-2. **“Code cache đầy thì Java heap hết chỗ.”** Sai: code cache là vùng native executable, khác `-Xmx`; metaspace cũng khác.
-3. **“Tăng `ReservedCodeCacheSize` sẽ hết mọi lỗi JIT.”** Sai: compiler queue CPU-bound, deoptimization lặp và generated-code churn không tự biến mất.
-4. **“`Compiler.queue` rỗng chứng minh không có sự cố.”** Sai: đó là snapshot; compiler có thể đã tạm disabled hoặc backlog vừa qua.
-5. **“Một lần compilation failure là compiler hỏng.”** Sai: JIT có thể bỏ một tối ưu hoặc fallback, phụ thuộc lý do và kết quả thực thi.
-6. **“Nhiều compilation là bất thường.”** Sai: warm-up, load classes và profile mới khiến JIT hoạt động là điều thiết kế.
-7. **“Mọi deoptimization là regression.”** Sai: speculative optimization cần deopt khi giả định không còn đúng; cần đánh giá tần suất và cost.
-8. **“Khi có full event thì JIT tắt mãi mãi.”** Sai: tình trạng có thể thay đổi sau sweeping/flushing; xem compiler status theo thời gian.
-9. **“NMT Code committed cho biết code heap còn trống đủ block.”** Sai: NMT mô tả các vùng VM cấp phát, không thay thế `Compiler.codecache`/heap analytics.
-10. **“CPU cao chắc do C2 compiler.”** Sai: profile code ứng dụng, GC, native và compiler threads theo đúng loại sự kiện.
-11. **“Một bản ghi JFR không có CodeCacheFull là chưa từng full.”** Sai: recording có time window và event configuration, không thấy trong khoảng đo không loại trừ trước đó.
-12. **“Càng nhiều compiler threads càng nhanh.”** Sai: compiler workers tranh CPU với threads phục vụ request và có thể làm tail latency xấu hơn.
+1. **"Code cache 90% used means it's full."** False: allocations may still succeed normally; inspect specific heaps, free blocks, logs/events, and real impact.
+2. **"Full code cache means Java heap is out of memory."** False: code cache is native executable memory, distinct from `-Xmx`; metaspace is also distinct.
+3. **"Increasing `ReservedCodeCacheSize` fixes all JIT errors."** False: CPU-bound compiler queues, repeated deoptimization, and generated-code churn do not vanish on their own.
+4. **"An empty `Compiler.queue` proves there is no issue."** False: it is a snapshot; the compiler may have temporarily disabled or a backlog may have just passed.
+5. **"One compilation failure means the compiler is broken."** False: JIT may bail out of an optimization or fall back, depending on reason and execution outcome.
+6. **"Many compilations are abnormal."** False: warm-up, loading classes, and fresh profiles triggering JIT work are by design.
+7. **"Every deoptimization is a regression."** False: speculative optimization requires deopt when assumptions break; evaluate frequency and cost.
+8. **"Once a full event occurs, JIT stays off forever."** False: status can recover after sweeping/flushing; track compiler status over time.
+9. **"NMT Code committed tells you the code heap has enough contiguous free blocks."** False: NMT tracks VM memory categories, not replacing `Compiler.codecache`/heap analytics.
+10. **"High CPU must be the C2 compiler."** False: profile application code, GC, native code, and compiler threads using the right event types.
+11. **"A JFR recording without `CodeCacheFull` means it never filled."** False: recordings have time windows and event settings; absence in one window does not rule out earlier events.
+12. **"More compiler threads always run faster."** False: compiler workers compete with request threads for CPU and can worsen tail latency.
 
-## 10. Checklist sự cố trước khi thay cờ JVM
+## 10. Incident Checklist Before Changing JVM Flags
 
-- [ ] Đã ghi JDK vendor/build, `VM.command_line`, `VM.flags -all`, CPU/memory quota và thời gian deploy.
-- [ ] Có throughput, p50/p95/p99, errors, process CPU, compiler-thread CPU, GC và class-load trend **cùng khoảng thời gian**.
-- [ ] Có nhiều snapshot `Compiler.codecache` theo từng heap; biết chính xác heap nào còn/thiếu chỗ.
-- [ ] Có nhiều snapshot `Compiler.queue` và biết queue có tiến triển hay không.
-- [ ] Đã kiểm tra log/JFR `jdk.CodeCacheFull`, `jdk.CodeCacheStatistics`, `jdk.Compilation`, `jdk.CompilationFailure`, `jdk.Deoptimization` theo cấu hình recording thực.
-- [ ] Đã phân biệt warm-up hợp lệ, codecache pressure, compiler backlog, compilation churn và CPU/GC/I/O không liên quan.
-- [ ] Đã xét `Compiler.CodeHeap_Analytics` khi nghi fragmentation/sweeper/code pressure.
-- [ ] Nếu nghi code cache full, có bằng chứng tác động tới compilation status hoặc latency/throughput, không chỉ % used.
-- [ ] Nếu muốn chỉnh flag, có **một giả thuyết → một biến → phép đo xác nhận → rollback**.
-- [ ] Báo cáo kết luận ghi rõ quan sát, mức độ tin cậy và điểm chưa được xác minh.
+- [ ] Recorded JDK vendor/build, `VM.command_line`, `VM.flags -all`, CPU/memory quota, and deploy time.
+- [ ] Collected throughput, p50/p95/p99, errors, process CPU, compiler-thread CPU, GC, and class-load trends **over the same time window**.
+- [ ] Captured multiple `Compiler.codecache` snapshots per heap; know exactly which heap has/lacks space.
+- [ ] Captured multiple `Compiler.queue` snapshots and know whether the queue is draining.
+- [ ] Checked logs/JFR `jdk.CodeCacheFull`, `jdk.CodeCacheStatistics`, `jdk.Compilation`, `jdk.CompilationFailure`, `jdk.Deoptimization` per actual recording settings.
+- [ ] Distinguished legitimate warm-up, code cache pressure, compiler backlog, compilation churn, and unrelated CPU/GC/I/O.
+- [ ] Considered `Compiler.CodeHeap_Analytics` when suspecting fragmentation/sweeper/code pressure.
+- [ ] If suspecting full code cache, confirmed impact on compilation status or latency/throughput, not just `% used`.
+- [ ] When tuning a flag, planned **one hypothesis → one variable → verification measurement → rollback**.
+- [ ] Conclusion report documents observations, confidence level, and unverified points.
 
-### Tài liệu chuẩn theo phiên bản
+### Version-Specific Official Documentation
 
-- Oracle JDK 21 — Java launcher / Advanced JIT Compiler Options và Code Heap State Analytics: https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
+- Oracle JDK 21 — Java launcher / Advanced JIT Compiler Options and Code Heap State Analytics: https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
 - Oracle JDK 21 — `jcmd`, `Compiler.codecache`, `Compiler.queue`: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
-- Oracle JDK 21 — JFR và công cụ chẩn đoán: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
+- Oracle JDK 21 — JFR and diagnostic tools: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
 - Oracle JFR Event Reference/JMC events (`CodeCacheFull`, `Compilation`, `CompilationFailure`): https://docs.oracle.com/en/java/java-components/jdk-mission-control/8/jmc-flightrecorder/constant-values.html
 
-**Tiêu chí kết luận:** trước khi tăng code cache hoặc thay tham số JIT, phải trả lời được **đúng heap nào bị thiếu sức chứa, compiler đang làm gì, sự kiện đó có trùng thời điểm hiệu năng xấu đi hay không, và thay đổi dự kiến giải quyết bottleneck nào**.
+**Conclusion criterion:** before increasing code cache size or altering JIT flags, you must be able to answer **which exact heap ran short of capacity, what the compiler was doing, whether those events coincided with performance degradation, and which bottleneck the planned change addresses**.

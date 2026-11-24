@@ -1,242 +1,242 @@
-# 22.10. Viết báo cáo triệu chứng, giả thuyết, bằng chứng, thay đổi và kết quả kiểm chứng
+# 22.10 Writing a Report of Symptoms, Hypotheses, Evidence, Changes, and Validation Results
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Một ca phân tích JVM chỉ thực sự có giá trị vận hành khi người khác đọc được **điều gì đã xảy ra**, **vì sao nhóm nghi một cơ chế cụ thể**, **bằng chứng nào ủng hộ hoặc bác bỏ**, **đã thay đổi gì** và **đã kiểm chứng kết quả ra sao**. Lệnh `jcmd`, biểu đồ JFR hay file heap dump tự chúng chưa phải là một báo cáo điều tra hoàn chỉnh.
+A JVM investigation is operationally valuable only when someone else can read **what happened**, **why the team suspected a specific mechanism**, **which evidence supported or refuted it**, **what was changed**, and **how the outcome was validated**. A `jcmd` output, JFR chart, or heap dump file is not by itself a complete investigation report.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Viết báo cáo kỹ thuật theo chuỗi **triệu chứng → giả thuyết → bằng chứng → thay đổi → kiểm chứng**, tách rõ quan sát và diễn giải.
-2. Định lượng phạm vi/tác động bằng thời gian, số request, tỷ lệ lỗi, throughput, latency p50/p95/p99, CPU/GC/heap, nhưng không lạm dụng thống kê hoặc so các cửa sổ tải không tương đương.
-3. Tạo **evidence index** có ID, mốc thời gian/múi giờ, nguồn, phạm vi, giới hạn và vị trí lưu an toàn để người khác có thể kiểm tra lại.
-4. Nêu **giả thuyết có thể bị bác bỏ** và chủ động ghi các kết quả ngược chiều, thay vì chọn vài ảnh chụp phù hợp với kết luận có sẵn.
-5. Ghi thay đổi đủ cụ thể: phiên bản, phạm vi, lý do, nguy cơ, phương án rollback và guardrail; không nhầm “đã deploy” với “đã sửa xong”.
-6. Thiết kế phép kiểm chứng **trước/sau có đối chứng hợp lý**, có điều kiện chấp nhận, biết khi nào chỉ được kết luận “tạm cải thiện” hoặc “chưa đủ bằng chứng”.
-7. Dùng một chương trình Java 17+ độc lập để thực hành đọc bảng số liệu mẫu và viết **báo cáo mô phỏng** có số liệu nhất quán.
+1. Write a technical report following the chain **symptom → hypothesis → evidence → change → validation**, clearly separating observations from interpretations.
+2. Quantify scope/impact using timestamps, request counts, error rates, throughput, p50/p95/p99 latency, and CPU/GC/heap, without misusing statistics or comparing mismatched load windows.
+3. Build an **evidence index** with IDs, timestamps/timezones, sources, scopes, limitations, and secure storage locations so others can audit it.
+4. State **falsifiable hypotheses** and proactively record contradicting results rather than cherry-picking snapshots that fit a preconceived conclusion.
+5. Document changes specifically: version, scope, rationale, risks, rollback plan, and guardrails; never confuse "deployed" with "fixed".
+6. Design a **properly controlled before/after validation** with explicit acceptance criteria, knowing when you can only conclude "partially improved" or "insufficient evidence".
+7. Use a standalone Java 17+ program to practice reading a sample metrics table and writing a **simulated report** with consistent numbers.
 
-> **Nguyên tắc xuyên suốt:** Báo cáo tốt không phải là báo cáo có nhiều ảnh chụp, mà là báo cáo khiến người khác **truy được mỗi kết luận về đúng bằng chứng**, hiểu **độ không chắc chắn** và biết **bước kiểm chứng tiếp theo**. Một giả thuyết sai nhưng được bác bỏ rõ ràng vẫn là tiến bộ điều tra.
+> **Guiding principle:** A strong report is not the one with the most screenshots, but the one that lets readers **trace every conclusion back to exact evidence**, understand **uncertainty**, and see **the next verification step**. A wrong hypothesis that is cleanly falsified is still investigative progress.
 
-## 1. Năm phần bắt buộc và các phần bổ trợ
+## 1. Five Required Sections and Supporting Sections
 
-Bài báo cáo nên tổ chức theo thứ tự người đọc ra quyết định, không theo thứ tự bạn đã mở các công cụ:
+Organize the report in the order a reader makes decisions, not the order you happened to open tools:
 
-| Thành phần | Câu hỏi phải trả lời | Nội dung tối thiểu | Sai lầm dễ gặp |
+| Component | Question to Answer | Minimum Content | Common Mistake |
 | --- | --- | --- | --- |
-| **1. Triệu chứng (Symptom)** | Người dùng/hệ thống thấy điều gì bất thường? | Metric đo được, mức tác động, bắt đầu/kết thúc, baseline, workload, phiên bản. | “Ứng dụng chậm” không có khoảng thời gian hoặc thước đo. |
-| **2. Giả thuyết (Hypothesis)** | Cơ chế nào *có thể* gây triệu chứng? | Dự đoán kiểm tra được, nguồn nghi vấn, bằng chứng sẽ bác bỏ. | Viết nguyên nhân như đã được chứng minh. |
-| **3. Bằng chứng (Evidence)** | Quan sát thực tế nào ủng hộ/bác bỏ? | ID, timestamp, công cụ, snapshot/event/metric, sampling/threshold, giới hạn. | Dán screenshot không có trục thời gian, đơn vị hoặc nguồn. |
-| **4. Thay đổi (Change)** | Đã can thiệp vào hệ thống như thế nào? | Code/config/runtime action, phiên bản, rollout, người quyết định, rollback. | Chỉ viết “đã tối ưu” hoặc che mất thay đổi song song. |
-| **5. Kết quả kiểm chứng (Validation)** | Thay đổi có cải thiện, an toàn và lặp lại được không? | Cùng điều kiện đo, before/after, acceptance criteria, guardrail, phần chưa chắc chắn. | Xem một lần p95 giảm là đã xác nhận root cause. |
+| **1. Symptom** | What abnormal behavior did users/systems observe? | Measured metrics, impact scope, start/end, baseline, workload, version. | "App is slow" with no time window or unit. |
+| **2. Hypothesis** | Which mechanism *could* explain the symptom? | Testable predictions, suspect source, evidence that would falsify it. | Writing the cause as if already proven. |
+| **3. Evidence** | Which real observations support/refute it? | ID, timestamp, tool, snapshot/event/metric, sampling/thresholds, limits. | Pasting screenshots without time axes, units, or sources. |
+| **4. Change** | How was the system modified? | Code/config/runtime action, version, rollout, decision maker, rollback. | Writing only "optimized" or hiding concurrent changes. |
+| **5. Validation** | Did the change improve things safely and reproducibly? | Matched measurement conditions, before/after, acceptance criteria, guardrails, remaining uncertainty. | Treating one p95 dip as root-cause confirmation. |
 
-Năm phần trên thường cần thêm **metadata**, **tóm tắt điều hành**, **timeline**, **rủi ro/dữ liệu nhạy cảm**, **trạng thái kết luận** và **action items**. Các phần bổ trợ giúp người đọc tìm chứng cứ và hành động, nhưng không được thay thế năm câu hỏi chính.
+Those five sections usually benefit from **metadata**, **executive summary**, **timeline**, **risks/sensitive data**, **conclusion status**, and **action items**. Supporting sections help readers find evidence and act, without replacing the five core questions.
 
-### Đọc nhanh bằng ba mức độ
+### Three-Level Skimmability
 
-**Mức 1 — 30 giây:** Vấn đề gì, ảnh hưởng ai, đã giảm tác động chưa, còn rủi ro gì và trạng thái hiện tại?
+**Level 1 — 30 seconds:** What is the problem, who is affected, has impact been mitigated, what risks remain, and what is the current status?
 
-**Mức 2 — 5 phút:** Bảng triệu chứng và so sánh, giả thuyết chính, bằng chứng phản biện, thay đổi, kết quả kiểm chứng, quyết định tiếp theo.
+**Level 2 — 5 minutes:** Symptom and comparison tables, primary hypotheses, counter-evidence, changes, validation results, and next decisions.
 
-**Mức 3 — điều tra lại:** Timeline chi tiết, định danh môi trường, command/settings, artifacts và dữ liệu gốc được lưu an toàn, phương pháp phân tích, limitations, code/config diff và biên bản phê duyệt.
+**Level 3 — audit/re-investigation:** Detailed timeline, environment identifiers, exact commands/settings, securely stored artifacts and raw data, analysis methodology, limitations, code/config diffs, and approval records.
 
-Một báo cáo phục vụ cả ba mức nhưng không bắt buộc nhét mọi dòng log hoặc dump thô vào nội dung.
+One report serves all three levels without dumping thousands of raw log lines inline.
 
-## 2. Trước khi viết: định nghĩa “ca sự cố” và giới hạn phạm vi
+## 2. Before Writing: Defining the "Incident" and Scope Boundaries
 
-**Phạm vi** cần được nói rõ để người đọc không diễn giải một đo đạc từ một JVM thành kết luận cho toàn bộ hệ thống.
+**Scope** must be stated explicitly so readers do not extrapolate measurements from a single JVM to the entire fleet.
 
-Ví dụ mô phỏng một báo cáo:
+Simulated report example:
 
-| Trường | Giá trị đã điền trong ví dụ |
+| Field | Value Filled in Example |
 | --- | --- |
-| Mã ca | `INC-DEMO-017` (chỉ là mã minh họa). |
-| Dịch vụ | `catalog-api` trong môi trường **staging giả lập**. |
-| JVM | Java 17, một tiến trình chạy ứng dụng trong container; không giả định mọi replica đều giống nhau. |
-| Khung thời gian | 09:00–10:00 ngày 29/10/2026, múi giờ `UTC+07:00`. |
-| Workload | Bộ 20 latency sample **được tạo sẵn**, không lấy từ production. |
-| Phiên bản | `build-A` (baseline), `build-B` (giả lập sự cố), `build-C` (candidate). |
-| Metric chính | Latency request theo mili giây, error count/rate trong cùng bộ mẫu. |
-| Người đọc dự kiến | Developer, người vận hành và reviewer kiểm chứng. |
-| Trạng thái | **Ví dụ đào tạo, không phải ca production đã điều tra thực tế.** |
+| Incident ID | `INC-DEMO-017` (illustrative ID only). |
+| Service | `catalog-api` in a **simulated staging** environment. |
+| JVM | Java 17, one application container process; does not assume all replicas behave identically. |
+| Time window | 09:00–10:00 on 2026-10-29, timezone `UTC+07:00`. |
+| Workload | A fixed set of **pre-built** 20 latency samples, not taken from production. |
+| Versions | `build-A` (baseline), `build-B` (simulated incident), `build-C` (candidate). |
+| Primary metrics | Request latency in milliseconds, error count/rate within the same sample set. |
+| Intended audience | Developers, operators, and verification reviewers. |
+| Status | **Training example, not a real investigated production incident.** |
 
-Ở môi trường thật phải ghi **ứng dụng, cluster/namespace, instance/pod, vùng triển khai, JDK/GC, phiên bản cấu hình**, thời gian deploy và nguồn metric được phép chia sẻ. Nếu một thay đổi chỉ triển khai cho 10% replica, không viết như thể toàn bộ service đã sử dụng phiên bản đó.
+In real environments, record **application, cluster/namespace, instance/pod, deployment region, JDK/GC, config version**, deploy timestamps, and approved metric sources. If a change rolled out to only 10% of replicas, never write as if the entire service ran that version.
 
-### Thời gian: ghi sao cho ghép được log, JFR, metrics
+### Timestamps: Recording So Logs, JFR, and Metrics Align
 
-Nên ghi timestamp có timezone/offset, ví dụ:
+Always record timestamps with timezone/offset, for example:
 
 ```text
 2026-10-29T09:15:00+07:00
 ```
 
-Với log/JFR ở `UTC`, chuyển về cùng múi giờ trước khi kết luận hai sự kiện trùng nhau. Ghi cả **thời điểm sự kiện**, **thời điểm thu**, **thời điểm file được tạo** khi chúng khác nhau. Ví dụ JFR chứa event xảy ra lúc 09:15, nhưng `JFR.dump` thực hiện lúc 09:20; **09:20 không phải thời điểm mọi event trong file xảy ra**.
+When logs/JFR use `UTC`, convert to a single timezone before claiming two events coincided. Record **event time**, **collection time**, and **file creation time** separately when they differ. For example, a JFR file holds events from 09:15 while `JFR.dump` ran at 09:20; **09:20 is not when every event inside the file happened**.
 
-Nếu đồng hồ host/container khác nhau hoặc có clock skew, ghi độ lệch và phương pháp đối chiếu. Các mốc thời gian có thể cho thấy **tương quan**; một timeline chính xác không tự chứng minh quan hệ nhân quả.
+If host/container clocks differ or have clock skew, document the offset and alignment method. Aligned timestamps show **correlation**; an exact timeline does not by itself prove causation.
 
-## 3. Viết phần “Triệu chứng” theo số đo có thể kiểm tra
+## 3. Writing the "Symptom" Section with Verifiable Measurements
 
-### 3.1. Tách ba tầng: phản ánh, quan sát, tác động
+### 3.1. Separating Three Layers: User Report, System Observation, and Impact
 
-1. **Phản ánh người dùng:** “Tải trang tìm kiếm có lúc quay lâu hoặc báo lỗi.” Đó là tín hiệu đầu vào, chưa phải chẩn đoán.
-2. **Quan sát hệ thống:** “Trong cửa sổ 09:12–09:17, p95 latency tăng từ khoảng 120 ms ở baseline lên 980 ms trong bộ mẫu; 4/20 request lỗi.” Đây là kết quả đo của ví dụ **giả lập**.
-3. **Tác động:** “Người dùng có nguy cơ chờ lâu/timeout, công suất xử lý giảm.” Trên production cần có số người dùng/request bị ảnh hưởng thực tế; không suy số người dùng từ một tập 20 mẫu của lab.
+1. **User report:** "Loading the search page sometimes spins or throws errors." That is an input signal, not a diagnosis.
+2. **System observation:** "During 09:12–09:17, p95 latency rose from ~120 ms at baseline to 980 ms in the sample set; 4/20 requests failed." This is a measurement from the **simulated** example.
+3. **Impact:** "Users face long waits/timeouts and reduced throughput." In production, cite actual affected users/requests; never extrapolate user counts from a 20-sample lab set.
 
-Cấu trúc một câu triệu chứng tốt:
+Structure of a solid symptom statement:
 
-> Trong **cửa sổ thời gian xác định**, **thành phần và nhóm request xác định** có **metric bất thường** so với **baseline cùng điều kiện**, với **phạm vi ảnh hưởng đo được**; đây là **triệu chứng**, chưa phải kết luận nguyên nhân.
+> Within a **specific time window**, a **specific component and request group** exhibited **abnormal metrics** relative to a **matched baseline**, with a **measured impact scope**; this is the **symptom**, not yet a root-cause conclusion.
 
-### 3.2. Chọn chỉ số đúng
+### 3.2. Choosing the Right Indicators
 
-| Chỉ số | Trả lời tốt điều gì? | Điều kiện kèm theo |
+| Indicator | What It Answers Well | Required Conditions |
 | --- | --- | --- |
-| **Request count** | Có bao nhiêu mẫu thực sự được đo? | Đơn vị đo, cửa sổ và nguồn số liệu. |
-| **Error rate** | Tỷ lệ request lỗi trong tập định nghĩa. | Phải nói lỗi gì: HTTP 5xx, timeout, exception unhandled… |
-| **p50** | Độ trễ điển hình của tập mẫu. | Cần mô tả phương pháp/histogram nếu so giữa hệ thống. |
-| **p95/p99** | Phần đuôi phân bố latency; phát hiện nhóm request chậm. | Sample đủ lớn, cùng loại request, cùng cách tính. |
-| **Throughput** | Request/s, jobs/s, bytes/s. | Không trộn tải đầu vào với số request hoàn tất. |
-| **CPU** | Tải CPU của process/host/container. | Phân biệt CPU quota/throttling, per-core và host CPU. |
-| **GC pause** | Thời lượng/cường độ dừng do GC. | Dựa GC log/JFR với khoảng thời gian bao phủ rõ. |
-| **Heap/Metaspace** | Bộ nhớ đã dùng/committed và xu hướng theo thời gian. | Không nhầm heap với native memory hoặc leak chỉ từ một điểm. |
-| **Thread/lock wait** | Chờ monitor, park, I/O hoặc queue. | Có threshold và sampling; cần call stack/timeline. |
+| **Request count** | How many samples were actually measured? | Measurement unit, window, and data source. |
+| **Error rate** | Fraction of failed requests in a defined set. | Specify failure type: HTTP 5xx, timeout, unhandled exception... |
+| **p50** | Typical latency of the sample set. | Document calculation/histogram method if comparing systems. |
+| **p95/p99** | Tail of latency distribution; surfaces slow request cohorts. | Sufficient sample size, matching request type, identical formula. |
+| **Throughput** | Requests/s, jobs/s, bytes/s. | Never confuse incoming arrival rate with completed request rate. |
+| **CPU** | Process/host/container CPU load. | Distinguish CPU quota/throttling, per-core %, and host CPU %. |
+| **GC pause** | Duration/intensity of GC stops. | Based on GC logs/JFR with explicit coverage window. |
+| **Heap/Metaspace** | Used/committed memory and trend over time. | Never confuse heap with native memory or claim a leak from one point. |
+| **Thread/lock wait** | Waiting on monitors, parks, I/O, or queues. | Note thresholds and sampling; pair with call stacks/timelines. |
 
-Báo cáo lỗi hiệu năng phải có **đơn vị**. “Latency 300” thiếu `ms`; “CPU 2.0” thiếu cách diễn giải; “heap 80%” thiếu giới hạn và loại vùng nhớ.
+Performance incident reports must include **units**. "Latency 300" lacks `ms`; "CPU 2.0" lacks denominator; "heap 80%" lacks limit and memory region.
 
-### 3.3. Công thức nhỏ nhưng hay bị viết sai
+### 3.3. Small Formulas Frequently Misstated
 
-Nếu có 4 lỗi trong 20 request:
+With 4 errors in 20 requests:
 
 \[
 \text{Error rate}=\frac{4}{20}\times100\%=20\%.
 \]
 
-Nếu giảm từ 20% xuống 5% thì:
+Dropping from 20% to 5% means:
 
-- **Giảm tuyệt đối:** 15 **điểm phần trăm** (percentage points).
-- **Giảm tương đối:** `(20 - 5) / 20 = 75%`.
+- **Absolute drop:** 15 **percentage points**.
+- **Relative drop:** `(20 - 5) / 20 = 75%`.
 
-Không viết “giảm 15%” khi muốn nói giảm **15 điểm phần trăm**. Với 20 mẫu, tỷ lệ rất nhạy với một request: chỉ **một lỗi** làm thay đổi tỷ lệ **5 điểm phần trăm**. Không dùng tập nhỏ để xác nhận một SLO dài hạn.
+Never write "dropped 15%" when you mean **15 percentage points**. With 20 samples, rates are highly sensitive to single requests: **one error** shifts the rate by **5 percentage points**. Never use small sets to certify a long-term SLO.
 
-Nếu latency p95 từ 980 ms xuống 195 ms trong dữ liệu mẫu:
+If p95 latency drops from 980 ms to 195 ms in the sample dataset:
 
 \[
-\text{Giảm tương đối}=\frac{980-195}{980}\times100\%\approx80{,}1\%.
+\text{Relative drop}=\frac{980-195}{980}\times100\%\approx80.1\%.
 \]
 
-Nhưng **195 ms vẫn cao hơn baseline 120 ms**, nên câu “đã trở về bình thường” chưa được chứng minh.
+Yet **195 ms is still above the 120 ms baseline**, so "returned to normal" is not proven.
 
-### 3.4. Baseline không phải một con số tự nhiên có sẵn
+### 3.4. A Baseline Is Not a Free Pre-Existing Constant
 
-Phải ghi rõ baseline thu từ đâu và trong điều kiện nào: cùng loại endpoint, request size, số client, khoảng thời gian, phiên bản dữ liệu, traffic mix, warm-up, cache state, phần cứng/CPU quota, GC và mức instrument.
+Document where and under what conditions the baseline was measured: same endpoint, request size, client count, window duration, data version, traffic mix, warm-up, cache state, hardware/CPU quota, GC, and instrumentation level.
 
-So sánh có thể sai khi:
+Comparisons break when:
 
-- Baseline đo một JVM vừa warm-up xong, incident đo khi cold-start.
-- Trước sửa dùng 10 req/s, sau sửa dùng 1 req/s.
-- Trước sửa p95 trên request thành công, sau sửa p95 trên **tất cả request**, kể cả timeout.
-- P95 của một pod so với p95 toàn fleet, hoặc tập trung bình của p95 nhiều pod.
-- Số mẫu trước/sau chênh lệch lớn nhưng không nêu.
-- Recording JFR hoặc profiler thay đổi cấu hình ngay giữa hai khoảng đo.
+- Baseline measured a warmed-up JVM while the incident measured cold start.
+- Pre-fix ran 10 req/s while post-fix ran 1 req/s.
+- Pre-fix computed p95 on successful requests while post-fix included **all requests**, including timeouts.
+- One pod's p95 is compared against fleet p95, or against an average of per-pod p95s.
+- Before/after sample sizes differ wildly without disclosure.
+- JFR recording or profiler settings changed between the two windows.
 
-Nếu điều kiện chưa tương đương, ghi **“so sánh tham khảo, chưa đủ cơ sở nhân quả”** và lập kế hoạch đo lại.
+When conditions are not equivalent, label it **"reference comparison only, insufficient for causal inference"** and plan a clean re-measurement.
 
-## 4. Viết giả thuyết có thể kiểm chứng và có thể bị bác bỏ
+## 4. Writing Testable and Falsifiable Hypotheses
 
-Một giả thuyết có cấu trúc tốt:
+A well-structured hypothesis:
 
 ```text
-Nếu [cơ chế nghi vấn] gây [triệu chứng],
-thì khi [cửa sổ / workload / điều kiện tương ứng],
-ta dự đoán sẽ quan sát [dấu hiệu cụ thể].
-Nếu không thấy dấu hiệu hoặc thấy [dữ liệu ngược chiều],
-giả thuyết phải bị hạ mức tin cậy hoặc bác bỏ.
+If [suspect mechanism] causes [symptom],
+then during [matching window / workload / condition],
+we predict we will observe [specific signal].
+If that signal is absent or [contradicting data] is observed,
+the hypothesis must be downgraded or rejected.
 ```
 
-Ví dụ:
+Examples:
 
-| ID | Giả thuyết | Dự đoán có thể kiểm tra | Bằng chứng có thể bác bỏ |
+| ID | Hypothesis | Testable Prediction | Falsifying Evidence |
 | --- | --- | --- | --- |
-| **H1** | Một `synchronized` giữ monitor lâu làm worker chờ, tăng p95. | Nhiều thread `BLOCKED` tại cùng monitor; JFR có `jdk.JavaMonitorEnter` duration cao; owner đang chạy đoạn critical section dài. | Không có contention cùng time window với settings đủ; số liệu cho thấy latency đến từ nơi khác. |
-| **H2** | GC pause là nguyên nhân chính của đỉnh latency. | GC log/JFR cho thấy pause đủ dài, trùng phần lớn request chậm; latency giảm khi GC pattern được cải thiện. | Các request chậm không trùng pause đáng kể hoặc pause nhỏ hơn nhiều độ trễ. |
-| **H3** | Backend/downstream phản hồi chậm. | Tracing và `jdk.SocketRead` hoặc log upstream cho thấy thời gian đợi ở call liên quan tăng. | Upstream thời gian ổn định trong cùng workload; không có request chậm ở giao tiếp này. |
-| **H4** | CPU throttling/compute saturation. | CPU utilization/quota throttling và stack samples phù hợp giai đoạn latency tăng. | CPU/quota ổn, thread chủ yếu chờ I/O/monitor, giả thuyết ít được ủng hộ. |
+| **H1** | A `synchronized` block holding a monitor long stalls workers, raising p95. | Multiple threads `BLOCKED` on the same monitor; JFR shows long `jdk.JavaMonitorEnter` durations; owner runs a long critical section. | No contention in the same window under sufficient settings; data shows latency lies elsewhere. |
+| **H2** | GC pauses are the primary cause of latency spikes. | GC logs/JFR show pauses long enough and overlapping most slow requests; latency drops when GC behavior improves. | Slow requests do not overlap significant pauses, or pauses are far smaller than request delays. |
+| **H3** | Slow backend/downstream responses. | Tracing and `jdk.SocketRead` or upstream logs show rising wait times on that downstream call. | Downstream latency stays flat under matching workload; slow requests do not hit that call. |
+| **H4** | CPU throttling / compute saturation. | CPU utilization/quota throttling and stack samples align with the latency spike window. | CPU/quota look healthy while threads wait mainly on I/O/monitors; hypothesis weakens. |
 
-**Phân biệt “không thấy” với “đã bác bỏ”:** Không có `jdk.JavaMonitorEnter` trong JFR không chắc loại trừ lock contention nếu event bị tắt, threshold quá cao hoặc recording không bao trùm thời điểm. Bác bỏ phải dựa trên **chất lượng phép đo đủ thích hợp**.
+**Distinguish "not observed" from "falsified":** Absence of `jdk.JavaMonitorEnter` in JFR does not rule out lock contention if the event was disabled, threshold was too high, or the recording missed the window. Falsification requires **measurement quality sufficient to detect the effect**.
 
-### Xếp hạng giả thuyết mà không tạo chắc chắn giả
+### Ranking Hypotheses Without Inventing False Precision
 
-Có thể gắn mức **cao / trung bình / thấp / chưa đánh giá**, kèm điều kiện và nguồn bằng chứng. Tránh đặt xác suất kiểu “87,4% chắc chắn GC” nếu không có mô hình định lượng được hiệu chuẩn.
+Assign **high / medium / low / unassessed** along with conditions and evidence sources. Avoid pseudo-probabilities like "87.4% sure it is GC" without a calibrated quantitative model.
 
-Bảng ngắn:
+Short table:
 
-| ID | Mức tin cậy hiện tại | Vì sao | Thử nghiệm tiếp theo |
+| ID | Current Confidence | Rationale | Next Verification |
 | --- | --- | --- | --- |
-| H1 | Trung bình | Thread dump mô phỏng cho thấy waiter chờ monitor; chưa chứng minh owner giữ do thay đổi code. | Đối chiếu JFR và mã vùng critical section trước/sau. |
-| H2 | Thấp | GC pause không đủ dài trong cùng cửa sổ minh họa. | Kiểm tra GC log chính xác ở các request chậm. |
-| H3 | Chưa đánh giá | Chưa có log/tracing của downstream. | Thu thời gian call theo request ID. |
-| H4 | Chưa đánh giá | Chưa có CPU quota/throttle metrics. | Bổ sung CPU throttling và JFR samples. |
+| H1 | Medium | Simulated thread dump shows waiters on a monitor; not yet proven owner held it due to the code change. | Compare JFR and critical section code before/after. |
+| H2 | Low | GC pauses are not long enough in the same illustrative window. | Check exact GC logs aligned to slow requests. |
+| H3 | Unassessed | Missing downstream logs/tracing. | Collect call durations keyed by request ID. |
+| H4 | Unassessed | Missing CPU quota/throttle metrics. | Add CPU throttling metrics and JFR samples. |
 
-Khi bằng chứng mới đến, cập nhật mức tin cậy thay vì chỉnh sửa ngược lại timeline cho giống kết luận cuối.
+As new evidence arrives, update confidence levels rather than rewriting history to fit the final conclusion.
 
-## 5. Lập chỉ mục bằng chứng trước khi viết kết luận
+## 5. Indexing Evidence Before Writing Conclusions
 
-**Evidence** không chỉ là link tới file. Nó là một bản ghi đủ metadata để một reviewer biết **từ đâu**, **khi nào**, **có thể nói gì** và **không thể nói gì**.
+**Evidence** is more than a file link. It is a metadata record letting reviewers know **where from**, **when**, **what it can say**, and **what it cannot say**.
 
-### 5.1. Cấu trúc mỗi bằng chứng
+### 5.1. Structure of Each Evidence Entry
 
-Một mục có thể bao gồm:
+An entry can include:
 
-- **ID cố định:** `E01`, `E02`… dùng xuyên suốt báo cáo.
-- **Nguồn và tên phép đo:** metric exporter, APM, request log, GC log, `jfr`, `jcmd`, heap dump, code diff, thử nghiệm.
-- **Khoảng thời gian tuyệt đối:** timezone, khung đo, JVM/instance và tình trạng đồng bộ đồng hồ.
-- **Cách thu:** command, JDK/agent version, event settings, sampling/threshold, scrape interval, filters và mọi công thức biến đổi.
-- **Quan sát:** số liệu/trích đoạn đã kiểm tra, không suy diễn ngoài dữ liệu.
-- **Giới hạn:** snapshot hay chuỗi thời gian; event có thể thiếu; JFR sampling/threshold; loại đối tượng heap được đo; tính đại diện.
-- **Nơi lưu/nhãn bảo mật:** artifact ID trong kho nội bộ đã phân quyền; không chèn raw heap dump/secret vào báo cáo chia sẻ rộng.
-- **Liên kết với giả thuyết:** ủng hộ, phản bác hay chưa phân định được.
+- **Fixed ID:** `E01`, `E02`... used consistently throughout the report.
+- **Source and metric name:** metric exporter, APM, request log, GC log, `jfr`, `jcmd`, heap dump, code diff, experiment.
+- **Absolute time range:** timezone, capture window, JVM/instance, and clock sync status.
+- **Collection method:** command, JDK/agent version, event settings, sampling/thresholds, scrape interval, filters, and any transformations.
+- **Observation:** verified numbers/excerpts without extrapolating beyond the data.
+- **Limitations:** snapshot vs. time series; possible dropped events; JFR sampling/thresholds; measured heap subset; representativeness.
+- **Storage location/security label:** artifact ID in an access-controlled internal store; never embed raw heap dumps/secrets in widely shared reports.
+- **Link to hypotheses:** supports, refutes, or inconclusive.
 
-### 5.2. Các loại chứng cứ Java và giới hạn
+### 5.2. Common Java Evidence Types and Limitations
 
-| Nguồn | Dùng tốt khi | Giới hạn cần ghi |
+| Source | Strong When | Limitations to Record |
 | --- | --- | --- |
-| **Application logs / tracing** | Nối request ID, endpoint, lỗi, caller và downstream theo thời gian. | Log có thể thiếu hoặc bị lấy mẫu, clock skew, dữ liệu PII. |
-| **Metrics** | Xu hướng request rate, error rate, p95, CPU, heap, GC trên nhiều phút/instance. | Aggregation window, sampling interval, histogram buckets có thể ảnh hưởng kết quả. |
-| **GC log** | Kiểm tra pause timestamp, loại GC, heap before/after, chu kỳ thu hồi. | Không tự suy ra request cụ thể bị ảnh hưởng nếu chưa ghép timeline. |
-| **JFR `.jfr`** | Event CPU sample, GC, lock wait, allocation sample, I/O, thread theo thời gian. | Event settings/threshold/sampling; `duration` thường là elapsed time, không tự bằng CPU time. |
-| **Thread dump** | Stack và trạng thái thread tại một thời điểm, lock owner/contender nếu thấy. | Ảnh chụp tức thời, không chứng minh một thread chờ liên tục từ lúc nào. |
-| **`GC.class_histogram`** | Đếm instance và tổng **shallow bytes** theo class. | Không đo retained size/root cause leak; có thể ảnh hưởng GC; không đồng nghĩa RSS. |
-| **Heap dump + MAT** | Tìm object graph, dominator tree, paths to GC roots. | Nặng và nhạy cảm; tập heap tại snapshot, không tự cho biết xu hướng nhiều ngày. |
-| **`VM.native_memory`** | NMT category native memory với baseline/diff nếu đã bật từ startup. | Không bao phủ mọi native allocation; cần phân biệt reserved/committed. |
-| **Code/config diff** | Cho biết thay đổi thực tế có tác động tới cơ chế nghi vấn. | “Có diff” không có nghĩa diff là nguyên nhân. |
-| **Thử nghiệm kiểm chứng** | Quan sát hiệu quả và regression theo tiêu chí rõ. | Có confounders, noise; trước/sau thiếu control không tự chứng minh causality. |
+| **Application logs / tracing** | Linking request IDs, endpoints, errors, callers, and downstreams over time. | Logs may drop or sample; clock skew; PII exposure. |
+| **Metrics** | Multi-minute/multi-instance trends for request rate, error rate, p95, CPU, heap, GC. | Aggregation windows, scrape intervals, histogram buckets affect numbers. |
+| **GC log** | Checking pause timestamps, GC types, pre/post heap, collection cycles. | Cannot link to specific requests without timeline alignment. |
+| **JFR `.jfr`** | Timestamped CPU samples, GC, lock waits, allocation samples, I/O, threads. | Event settings/thresholds/sampling; `duration` is usually elapsed time, not automatically CPU time. |
+| **Thread dump** | Thread stacks and states at one instant, plus lock owners/contenders if visible. | Point-in-time snapshot; does not prove how long a thread has already waited. |
+| **`GC.class_histogram`** | Instance counts and total **shallow bytes** per class. | Does not show retained size/leak root cause; can trigger GC; not equal to RSS. |
+| **Heap dump + MAT** | Inspecting object graphs, dominator trees, and paths to GC roots. | Heavy and sensitive; single snapshot, not multi-day trend. |
+| **`VM.native_memory`** | NMT native memory categories with baseline/diff if enabled from startup. | Misses some native allocations; distinguish reserved vs. committed. |
+| **Code/config diff** | Shows actual changes touching suspect mechanisms. | "Has a diff" does not prove the diff caused the issue. |
+| **Validation experiment** | Observing effect and regressions against explicit criteria. | Confounders, noise; before/after without controls does not prove causality. |
 
-### 5.3. Ví dụ evidence index mô phỏng
+### 5.3. Simulated Evidence Index Example
 
-| ID | Khoảng/nguồn | Quan sát được ghi | Hạn chế |
+| ID | Window/Source | Recorded Observation | Limitations |
 | --- | --- | --- | --- |
-| **E01** | 09:00–09:05, sample baseline | 20 request, p95 = 120 ms, lỗi 0/20. | Số liệu giả lập, mẫu rất nhỏ. |
-| **E02** | 09:12–09:17, sample incident | 20 request, p95 = 980 ms, lỗi 4/20. | Số liệu giả lập; không có traffic mix thực. |
-| **E03** | 09:14, thread dump minh họa | Nhiều worker `BLOCKED` ở một monitor; một thread giữ monitor. | Chỉ snapshot; cần lấy nhiều mẫu/timeline để xác định thời lượng. |
-| **E04** | 09:15–09:17, JFR minh họa | Một số `jdk.JavaMonitorEnter` duration cao tại stack cùng đường code. | Đã giả định event enabled và time window phù hợp; cần kiểm tra thực tế. |
-| **E05** | 09:18, code review minh họa | Một thao tác I/O được gọi từ bên trong vùng `synchronized`. | Chỉ gợi cơ chế; cần kiểm chứng tác động thay đổi. |
-| **E06** | 09:30–09:35, sample after-change | 20 request, p95 = 195 ms, lỗi 1/20. | Candidate giả lập, chưa là kết luận production. |
+| **E01** | 09:00–09:05, baseline sample | 20 requests, p95 = 120 ms, errors 0/20. | Synthetic figures, tiny sample. |
+| **E02** | 09:12–09:17, incident sample | 20 requests, p95 = 980 ms, errors 4/20. | Synthetic figures; lacks real traffic mix. |
+| **E03** | 09:14, illustrative thread dump | Multiple workers `BLOCKED` on a monitor; one thread holds monitor. | Snapshot only; needs repeated samples/timeline for duration. |
+| **E04** | 09:15–09:17, illustrative JFR | Several long `jdk.JavaMonitorEnter` events on that same code path. | Assumes event enabled and matching window; verify in real runs. |
+| **E05** | 09:18, illustrative code review | An I/O call executes inside a `synchronized` region. | Suggests mechanism only; change impact needs validation. |
+| **E06** | 09:30–09:35, after-change sample | 20 requests, p95 = 195 ms, errors 1/20. | Simulated candidate, not a production conclusion. |
 
-**Toàn bộ E01–E06 là dữ liệu bài tập giả lập**, không phải recording hoặc dump thực đã được thu. Chương trình ở mục 10 tạo ra số liệu E01, E02, E06; E03–E05 là tình huống giả định để học cách nối bằng chứng nhiều nguồn.
+**All of E01–E06 are simulated exercise data**, not real captured recordings or dumps. The program in section 10 produces E01, E02, and E06; E03–E05 are hypothetical scenarios for practicing multi-source evidence correlation.
 
-### 5.4. Bảo quản và chia sẻ bằng chứng
+### 5.4. Protecting and Sharing Evidence
 
-HPROF có thể chứa object chứa token, dữ liệu người dùng; JFR có thể chứa class/method, thread, đường dẫn, endpoint và thậm chí JVM arguments/properties tùy event. Command line có thể chứa secret được truyền qua `-D`. Vì vậy:
+HPROF files can contain tokens and user data; JFR can contain class/method names, threads, paths, endpoints, and even JVM arguments/properties depending on events. Command lines can expose secrets passed via `-D`. Therefore:
 
-- Hạn chế người có thể thu/đọc artifact bằng quyền tối thiểu và phê duyệt phù hợp.
-- Lưu raw files ở kho/volume có ACL, mã hóa, audit và retention; báo cáo dùng **artifact ID** cùng trích dẫn đã làm sạch.
-- Không gửi raw dump, danh sách property, URL chứa token, stack có PII vào ticket/chat công khai.
-- Có thể mô tả “đã lưu HPROF trong kho điều tra hạn chế” mà không xuất bản link download rộng rãi.
-- Đối chiếu checksum khi quy trình yêu cầu; tránh chỉnh sửa file gốc chỉ để có số liệu đẹp.
-- Ghi rõ ai đã thu, thời điểm thu, công cụ và quyền sở hữu; bảo đảm có người dọn dữ liệu theo chính sách.
+- Restrict who can collect/read artifacts via least privilege and approvals.
+- Store raw files in stores/volumes with ACLs, encryption, auditing, and retention; cite **artifact IDs** and sanitized excerpts in reports.
+- Never paste raw dumps, property lists, token-bearing URLs, or PII-containing stacks into public tickets/chats.
+- State "HPROF archived in restricted investigation store" rather than publishing open download links.
+- Verify checksums when required by process; never alter original files to make numbers look cleaner.
+- Record who collected each artifact, when, with which tool, and ownership; ensure retention cleanup occurs per policy.
 
-## 6. Thu bằng chứng JVM phù hợp với câu hỏi, không thu theo thói quen
+## 6. Collecting JVM Evidence Tailored to the Question, Not by Habit
 
-Các lệnh bên dưới là **hướng dẫn minh họa** cho JVM được quản trị hợp pháp. PID `12345` chỉ là số minh họa; phải xác minh PID thực, quyền attach, namespace/container và tác động trước khi dùng. Một số lệnh có impact vừa/cao hoặc tạo dữ liệu nhạy cảm.
+The commands below are **illustrative guidance** for authorized JVM administration. PID `12345` is purely a placeholder; verify the real PID, attach permissions, namespace/container, and impact before running. Some commands carry medium/high impact or capture sensitive data.
 
-### 6.1. Thread và lock
+### 6.1. Threads and Locks
 
 ```bash
 jcmd -l
@@ -244,14 +244,14 @@ jcmd 12345 help Thread.print
 jcmd 12345 Thread.print -l
 ```
 
-`Thread.print -l` cung cấp stack thread và thông tin lock của `java.util.concurrent` khi có. Trong báo cáo:
+`Thread.print -l` outputs thread stacks and `java.util.concurrent` lock details when available. In your report:
 
-- Ghi thời điểm chính xác của thread dump và bao nhiêu thread cùng loại.
-- Tách `BLOCKED` (chờ intrinsic monitor) với `WAITING/TIMED_WAITING` (có thể do park/condition/sleep).
-- Kiểm tra lock owner, call site và snapshot thứ hai nếu có để tránh kết luận một lần.
-- Không gọi việc có vài thread `WAITING` là deadlock; idle executor cũng có thể chờ bình thường.
+- Record the exact thread dump timestamp and how many threads share each pattern.
+- Separate `BLOCKED` (waiting on intrinsic monitor) from `WAITING`/`TIMED_WAITING` (e.g., park/condition/sleep).
+- Inspect lock owners, call sites, and a second snapshot if available to avoid single-snapshot bias.
+- Never call a few `WAITING` threads a deadlock; idle executors wait normally.
 
-### 6.2. JFR theo khung điều tra
+### 6.2. Scoped JFR Capture
 
 ```bash
 jcmd 12345 help JFR.start
@@ -261,13 +261,13 @@ jcmd 12345 JFR.dump name=incident-investigation filename=/tmp/incident-investiga
 jcmd 12345 JFR.stop name=incident-investigation
 ```
 
-- `settings=profile` có thể tốn tài nguyên hơn `default`; cần giới hạn thời lượng/khối lượng và kiểm tra khuyến nghị của đội vận hành.
-- `JFR.dump` tạo file trong filesystem **JVM đích** và **không tự dừng recording**.
-- Khi phân tích: `jfr summary incident-investigation.jfr` để biết file chứa type nào; dùng `jfr print --events jdk.JavaMonitorEnter ...` nếu type thực sự có trong file.
-- Event dưới threshold hoặc bị tắt không có trong file; thiếu event không tự bác bỏ giả thuyết.
-- Đồng bộ timezone/clock với metric và log trước khi ghép timestamp.
+- `settings=profile` can consume more resources than `default`; bound duration/size and follow ops guidelines.
+- `JFR.dump` writes inside the **target JVM's** filesystem and **does not stop the recording**.
+- During analysis: run `jfr summary incident-investigation.jfr` to see which event types exist; run `jfr print --events jdk.JavaMonitorEnter ...` if that type is actually present.
+- Events below threshold or disabled are absent; absence does not automatically refute a hypothesis.
+- Align timezones/clocks with metrics and logs before joining timestamps.
 
-### 6.3. GC và memory
+### 6.3. GC and Memory
 
 ```bash
 jcmd 12345 GC.heap_info
@@ -276,153 +276,153 @@ jcmd 12345 GC.class_histogram
 jcmd 12345 VM.native_memory summary
 ```
 
-**Không phải lúc nào cũng chạy tất cả các lệnh này.** `GC.class_histogram` có impact cao trong một số tình huống và có thể kích hoạt thu gom (phụ thuộc option); nó đo shallow bytes theo class, không đo trực tiếp root cause leak. `VM.native_memory summary` chỉ hữu ích khi NMT đã được bật lúc khởi động JVM; đừng hiểu output “not enabled” là “0 byte native memory”. Heap dump `GC.heap_dump` có impact và dữ liệu nhạy cảm lớn hơn nữa; chỉ thu khi câu hỏi cần object graph và đã được chấp thuận.
+**Do not run all of these blindly.** `GC.class_histogram` has high impact in some situations and can trigger a collection (depending on options); it reports shallow bytes per class, not leak root causes. `VM.native_memory summary` helps only when NMT was enabled at JVM startup; never read `"not enabled"` as `"0 bytes native memory"`. A heap dump (`GC.heap_dump`) carries even higher impact and sensitivity; collect it only when the question requires the object graph and approval is granted.
 
-Báo cáo tốt ghi **vì sao** chọn một phép đo, dữ liệu nào được thu, và dữ liệu nào **không** được thu vì không cần thiết hoặc có rủi ro.
+A strong report explains **why** a measurement was chosen, what was collected, and what was intentionally **skipped** due to cost or irrelevance.
 
-### 6.4. Bảng chọn bằng chứng theo giả thuyết
+### 6.4. Hypothesis-Driven Evidence Selection Table
 
-| Câu hỏi | Ưu tiên thu | Khi nào thêm dữ liệu sâu |
+| Question | Collect First | When to Collect Deeper Data |
 | --- | --- | --- |
-| Request chậm do lock? | Thread dumps, JFR monitor/park event, request/queue metrics. | Khi cần thấy owner/contender qua nhiều cửa sổ, xem code và thread dumps bổ sung. |
-| Do CPU/JIT? | Process/thread CPU metrics, JFR execution samples và compilation events. | Profile sâu/async-profiler được phê duyệt khi samples không đủ. |
-| Do GC? | GC logs, JFR GC pause, heap usage và allocation rate. | Heap dump khi nghi retained objects/leak, không chỉ vì GC chậm. |
-| Do socket/file I/O? | Tracing, socket/file JFR events, downstream metrics. | Hạ tầng network/storage nếu bằng chứng ứng dụng chưa đủ. |
-| Do memory/native? | Heap/Metaspace metrics, NMT (nếu bật), RSS/container memory. | Heap dump, MAT/Native Memory Tracking detail có kiểm soát. |
+| Slow requests due to locks? | Thread dumps, JFR monitor/park events, request/queue metrics. | When needing owner/contender visibility across windows, inspect code and extra thread dumps. |
+| Due to CPU/JIT? | Process/thread CPU metrics, JFR execution samples, and compilation events. | Approved deep profiler/async-profiler when samples are insufficient. |
+| Due to GC? | GC logs, JFR GC pauses, heap usage, and allocation rate. | Heap dump when suspecting retained objects/leaks, not merely because GC ran slow. |
+| Due to socket/file I/O? | Tracing, socket/file JFR events, downstream metrics. | Network/storage infrastructure if app-level evidence is inconclusive. |
+| Due to memory/native? | Heap/Metaspace metrics, NMT (if enabled), RSS/container memory. | Controlled heap dump, MAT, or detailed NMT. |
 
-## 7. Phân biệt bằng chứng, tương quan và nguyên nhân
+## 7. Separating Evidence, Correlation, and Causation
 
-Ba câu này **không giống nhau**:
+These three statements **are not equivalent**:
 
-1. **Quan sát:** “Trong cùng phút, p95 tăng và `JavaMonitorEnter` có một số duration cao.”
-2. **Giả thuyết:** “Lock contention có thể góp phần làm p95 tăng.”
-3. **Kết luận nhân quả:** “Sau khi kiểm soát workload và thay đổi đúng critical section, lock wait giảm và latency cải thiện lặp lại; nhiều nguồn bằng chứng phù hợp, các giả thuyết thay thế đã được xem xét.”
+1. **Observation:** "Within the same minute, p95 rose and `JavaMonitorEnter` recorded several high durations."
+2. **Hypothesis:** "Lock contention may be contributing to the p95 increase."
+3. **Causal conclusion:** "After controlling workload and modifying the critical section, lock waits dropped and latency improved reproducibly; multiple evidence sources agree and alternative hypotheses were evaluated."
 
-Chỉ câu thứ nhất là quan sát trực tiếp từ các con số. Câu thứ hai là **diễn giải để kiểm tra**. Câu thứ ba yêu cầu **thiết kế kiểm chứng**; khi chưa đủ bằng chứng phải nói “được ủng hộ mạnh”, “chưa chứng minh”, hoặc “đã bác bỏ trong phạm vi đo”.
+Only the first statement is a direct observation from numbers. The second is an **interpretation to test**. The third demands **controlled validation**; when evidence is incomplete, state "strongly supported", "unproven", or "refuted within measurement scope".
 
-### 7.1. Bẫy thường gặp
+### 7.1. Common Traps
 
-- **Correlation ≠ causation:** hai metric cùng tăng không có nghĩa cái trước gây cái sau; có thể cùng do traffic spike.
-- **Survivorship bias:** chỉ nhìn request thành công khiến latency ở những request timeout bị bỏ qua.
-- **Selection bias:** chọn vài snapshot có lock contention rồi bỏ qua hàng nghìn snapshot bình thường.
-- **Observer effect:** bật JFR event rất chi tiết hoặc debugger breakpoint làm workload thay đổi.
-- **Regression to the mean:** triệu chứng có thể tự hạ sau spike dù chưa có sửa code; so before/after sát spike dễ nhận công lao nhầm.
-- **Confounding:** scale out, cache warm-up, network hồi phục, GC hay thay đổi traffic xảy ra cùng lúc deploy bản sửa.
-- **Aggregate masking:** fleet p95 cải thiện trong khi một nhóm tenant/endpoint lại tệ hơn; phân tách theo nhóm có ý nghĩa.
+- **Correlation ≠ causation:** two metrics rising together does not mean the first caused the second; a shared traffic spike could drive both.
+- **Survivorship bias:** measuring only successful requests hides latency on timed-out requests.
+- **Selection bias:** cherry-picking a few snapshots showing lock contention while ignoring thousands of clean ones.
+- **Observer effect:** enabling heavy JFR events or debugger breakpoints perturbs the workload itself.
+- **Regression to the mean:** symptoms may subside naturally after a spike without code changes; comparing closely around a spike invites false credit.
+- **Confounding:** scaling out, cache warm-ups, network recovery, GC, or traffic shifts happening alongside a fix deploy.
+- **Aggregate masking:** fleet p95 improves while one tenant/endpoint degrades; slice by meaningful dimensions.
 
-### 7.2. Ghi mức tin cậy theo câu chữ
+### 7.2. Phrasing Confidence Precisely
 
-Dùng các câu có mức độ đúng với chứng cứ:
+Match wording strictly to evidence strength:
 
-| Mức độ | Cách viết |
+| Level | Phrasing |
 | --- | --- |
-| Quan sát được | “E02 ghi nhận p95 980 ms trên 20 mẫu synthetic.” |
-| Ủng hộ giả thuyết | “E03–E05 phù hợp với giả thuyết contention trên monitor, nhưng còn thiếu thử nghiệm kiểm soát.” |
-| Bằng chứng ngược | “Không quan sát GC pause cùng mức thời gian trong cửa sổ đã ghi; giả thuyết GC chính bị giảm ưu tiên.” |
-| Đã thay đổi | “Candidate đưa I/O ra khỏi critical section trong nhánh code được kiểm soát.” |
-| Kết quả có giới hạn | “Trong mẫu synthetic, p95 giảm còn 195 ms; vẫn cao hơn baseline 120 ms và chưa chứng minh ổn định production.” |
-| Chưa biết | “Chưa thu đủ throughput/CPU/traffic mix và dữ liệu cho nhiều vòng để kết luận.” |
+| Observed | "E02 recorded p95 = 980 ms across 20 synthetic samples." |
+| Supports hypothesis | "E03–E05 align with monitor contention, though controlled experiments are still needed." |
+| Counter-evidence | "No matching-duration GC pauses appeared in the recorded window; primary GC hypothesis is deprioritized." |
+| Change applied | "The candidate moved I/O out of the critical section on the evaluated code path." |
+| Bounded result | "In synthetic samples, p95 dropped to 195 ms; still above the 120 ms baseline and not proven in production." |
+| Unknown | "Insufficient throughput/CPU/traffic-mix data and repeated runs to conclude." |
 
-Báo cáo trung thực về điều chưa biết giúp đội vận hành ra quyết định tốt hơn báo cáo tuyên bố “đã root cause” chỉ vì trùng timestamp.
+Honest reporting about unknowns drives better operational decisions than declaring "root cause found" based on matching timestamps alone.
 
-## 8. Ghi thay đổi sao cho người khác tái hiện và rollback được
+## 8. Documenting Changes So Others Can Reproduce and Roll Back
 
-Phần **thay đổi** phải mô tả **cụ thể can thiệp** và tác động có thể có.
+The **Change** section must describe **the exact intervention** and potential side effects.
 
-Cấu trúc hữu ích:
+Useful structure:
 
-1. **Mục đích:** xử lý giả thuyết nào, metric nào được dự đoán cải thiện?
-2. **Phạm vi:** module/class/method/config, JVM/instance, version/build và tỷ lệ rollout.
-3. **Cơ chế:** thay đổi loại lock, giảm critical section, chỉnh caching, deadline hoặc pool nào?
-4. **Rủi ro:** race condition, thứ tự cập nhật dữ liệu, stale cache, memory pressure, throughput, timeouts.
-5. **Kiểm thử trước rollout:** unit/integration/concurrency tests liên quan, điều kiện pass/fail.
-6. **Tác động quan sát:** thời điểm triển khai, dashboard/recording dùng so sánh, guardrail.
-7. **Rollback:** quay về build/config nào, điều kiện kích hoạt và người chịu trách nhiệm theo quy trình.
-8. **Thay đổi song song:** scale pod, traffic shift, DB migration, feature flag… nếu có, vì chúng có thể là confounder.
+1. **Goal:** which hypothesis is addressed and which metric is expected to improve?
+2. **Scope:** module/class/method/config, JVM/instance, version/build, and rollout percentage.
+3. **Mechanism:** lock type changed, critical section narrowed, caching, deadline, or pool adjustment?
+4. **Risks:** race conditions, update ordering, stale caches, memory pressure, throughput, timeouts.
+5. **Pre-rollout testing:** relevant unit/integration/concurrency tests and pass/fail criteria.
+6. **Observed impact:** deploy timestamp, dashboards/recordings used for comparison, guardrails.
+7. **Rollback:** exact prior build/config, trigger conditions, and responsible owner per runbook.
+8. **Concurrent changes:** pod scaling, traffic shifts, DB migrations, feature flags... if any, since they act as confounders.
 
-### 8.1. Ví dụ giải thích việc rút I/O khỏi critical section
+### 8.1. Example Explaining Moving I/O Out of a Critical Section
 
-Đoạn **trước** minh họa (không phải file Java đầy đủ):
+Illustrative **before** snippet (not a full Java file):
 
 ```java
 synchronized (cacheLock) {
-    byte[] fresh = storage.readCurrent(); // Có thể chờ I/O lâu
+    byte[] fresh = storage.readCurrent(); // Can block on I/O for a long time
     cache.put(key, fresh);
 }
 ```
 
-Đoạn **sau** minh họa một cách làm có điều kiện:
+Illustrative **after** snippet showing a conditional approach:
 
 ```java
-byte[] fresh = storage.readCurrent();     // Tính ngoài monitor
+byte[] fresh = storage.readCurrent();     // Executed outside monitor
 synchronized (cacheLock) {
     cache.put(key, fresh);
 }
 ```
 
-`cacheLock`, `storage`, `cache`, `key` là các thành phần có sẵn trong ứng dụng giả định. Đây chỉ là **mã minh họa**, không phải chương trình biên dịch độc lập.
+`cacheLock`, `storage`, `cache`, and `key` are assumed application components. This is purely an **illustrative snippet**, not a standalone compilable program.
 
-**Đây không phải phép biến đổi luôn đúng.** Nếu nhiều thread đọc/ghi đồng thời, cấu trúc dữ liệu và yêu cầu tính nhất quán có thể cần version check, compare-and-set, đồng bộ theo key, immutable snapshot hoặc một chiến lược khác. Đưa I/O ra ngoài lock **có thể gây race/stale write** nếu không chứng minh invariant. Trước khi ghi “đã sửa”, phải có concurrency tests và kiểm chứng tính đúng đắn nghiệp vụ.
+**This transformation is not universally safe.** If multiple threads read/write concurrently, data structures and consistency rules may require version checks, compare-and-set, per-key locking, immutable snapshots, or another strategy. Moving I/O outside a lock **can introduce races/stale writes** unless invariants are proven. Before marking "fixed", run concurrency tests and verify business correctness.
 
-### 8.2. “Thay đổi” khác “giải pháp đã thành công”
+### 8.2. "Change" Differs from "Successful Solution"
 
-- “Đã deploy build C” là **hành động**.
-- “CPU giảm sau deploy” là **quan sát**.
-- “Build C làm giảm CPU” là **giả thuyết nhân quả**.
-- “Đã xác minh code change là nguyên nhân chính” chỉ được viết khi bằng chứng và thiết kế thử nghiệm đủ mạnh.
+- "Deployed build C" is an **action**.
+- "CPU dropped after deploy" is an **observation**.
+- "Build C reduced CPU" is a **causal hypothesis**.
+- "Verified the code change is the primary cause" can be written only when evidence and experimental design are strong enough.
 
-Ngay cả khi rollback đưa triệu chứng trở lại và redeploy lại cải thiện, đó là bằng chứng mạnh hơn, nhưng vẫn phải xem tác động của cache, traffic và biến động môi trường.
+Even when a rollback brings symptoms back and a redeploy improves them again, that is stronger evidence — yet still check cache warm-up, traffic shifts, and environmental variance.
 
-## 9. Thiết kế phần “Kết quả kiểm chứng” trước khi thực hiện thay đổi
+## 9. Designing the "Validation" Section Before Applying Changes
 
-Nếu không định nghĩa **tiêu chí pass/fail** trước, người điều tra dễ chọn chỉ số sau triển khai theo hướng có lợi cho bản sửa. Ghi trước:
+Without defining **pass/fail criteria** upfront, investigators easily cherry-pick post-deploy metrics favoring the fix. Pre-commit criteria:
 
-| Hạng mục | Ví dụ tiêu chí trong staging giả lập | Ý nghĩa |
+| Item | Example Criterion in Simulated Staging | Meaning |
 | --- | --- | --- |
-| **Metric chính** | p95 latency giảm xuống **≤ 150 ms** ở workload giống baseline. | Đây là mục tiêu phục hồi của bài tập. |
-| **Error rate** | Không lớn hơn baseline; nếu có lỗi cần điều tra. | Tránh “nhanh hơn” nhờ loại bỏ request lỗi khỏi mẫu. |
-| **Throughput** | Không giảm dưới mức baseline ở cùng tải. | Một thay đổi có thể giảm latency của request thành công nhưng hạ thông lượng. |
-| **CPU/GC** | Không tăng bất thường sau thay đổi. | Guardrail để phát hiện trade-off. |
-| **Concurrency correctness** | Không có race/stale write/data corruption trong test liên quan. | Một sửa lock sai có thể làm hệ thống nhanh nhưng không đúng. |
-| **Thời gian quan sát** | Nhiều cửa sổ tương đương, sau warm-up, có giờ cao điểm nếu cần. | Phát hiện regression trễ, tránh một điểm đo thuận lợi. |
-| **Rollback trigger** | Tỷ lệ lỗi tăng hoặc violation guardrail theo policy được duyệt. | Giúp quyết định không phụ thuộc cảm tính. |
+| **Primary metric** | p95 latency drops to **≤ 150 ms** under baseline-like workload. | Recovery goal for the exercise. |
+| **Error rate** | No higher than baseline; investigate any errors. | Avoid "faster" achieved by dropping failed requests from samples. |
+| **Throughput** | Does not fall below baseline at equal load. | A change can speed up successful requests while lowering throughput. |
+| **CPU/GC** | No abnormal spike after the change. | Guardrail to catch hidden trade-offs. |
+| **Concurrency correctness** | No races/stale writes/data corruption in targeted tests. | A broken lock fix can make the system fast and wrong. |
+| **Observation duration** | Multiple comparable windows post-warm-up, including peak hours if relevant. | Catches delayed regressions; avoids one lucky sample. |
+| **Rollback trigger** | Error spike or guardrail breach per approved policy. | Keeps decisions objective rather than emotional. |
 
-Những ngưỡng trong bảng là **giả định dành cho bài tập**, không phải SLO áp dụng cho mọi service.
+Thresholds in this table are **hypothetical for the exercise**, not universal SLOs for every service.
 
-### 9.1. Tối thiểu nên có bảng before / incident / after
+### 9.1. At Minimum, Include a Before / Incident / After Table
 
-| Metric | Baseline | Incident | After-change | Diễn giải đúng |
+| Metric | Baseline | Incident | After-change | Accurate Interpretation |
 | --- | ---: | ---: | ---: | --- |
-| Số request | 20 | 20 | 20 | Tập cực nhỏ; chưa đủ kết luận production. |
-| Error count | 0 | 4 | 1 | Sau sửa vẫn còn một lỗi. |
-| Error rate | 0,0% | 20,0% | 5,0% | Giảm 15 điểm phần trăm từ incident; chưa về baseline. |
-| p50 latency | 100 ms | 150 ms | 130 ms | Trung vị cải thiện nhưng vẫn cao hơn baseline. |
-| p95 latency | 120 ms | 980 ms | 195 ms | Giảm ~80,1% từ incident; **chưa đạt mục tiêu ≤150 ms**. |
-| p99 latency | 120 ms | 1250 ms | 220 ms | Với chỉ 20 mẫu, cách nearest-rank cho p99 chọn giá trị lớn nhất. |
-| Điều kiện đo | Mẫu dựng sẵn | Mẫu dựng sẵn | Mẫu dựng sẵn | Không có inference thống kê về service thật. |
+| Request count | 20 | 20 | 20 | Tiny sample; insufficient for production conclusions. |
+| Error count | 0 | 4 | 1 | One error still occurred after the change. |
+| Error rate | 0.0% | 20.0% | 5.0% | Dropped 15 percentage points from incident; not back to baseline. |
+| p50 latency | 100 ms | 150 ms | 130 ms | Median improved yet remains above baseline. |
+| p95 latency | 120 ms | 980 ms | 195 ms | Dropped ~80.1% from incident; **missed ≤150 ms target**. |
+| p99 latency | 120 ms | 1250 ms | 220 ms | With n=20, nearest-rank p99 picks the maximum value. |
+| Measurement conditions | Pre-built sample | Pre-built sample | Pre-built sample | No statistical inference about a real service. |
 
-Các giá trị trên được sinh từ dữ liệu cố định của chương trình Java ở mục 10. **Chúng không phải kết quả benchmark hoặc quan sát JVM production.**
+The values above are generated from the fixed dataset in the Java program in section 10. **They are not benchmark results or observations of a production JVM.**
 
-### 9.2. Các câu hỏi bắt buộc khi so before/after
+### 9.2. Mandatory Questions When Comparing Before/After
 
-1. Khung thời gian, endpoint, request mix, data size, số client, CPU quota, heap/GC/JDK có giống nhau không?
-2. Số request, số lỗi, timeout và sampling có được tính theo **cùng mẫu số** không?
-3. Load generator, client và server có cùng instrumentation/clock/cấu hình không?
-4. Có thay đổi deploy, cache warm-up, autoscaling, feature flag hay downstream trong lúc đo không?
-5. Sai lệch lớn hơn mức noise bình thường không? Có các lần lặp/đối chứng để tin cậy không?
-6. Các chỉ số phụ (error rate, throughput, memory, CPU, correctness) có tệ đi không?
-7. Có tiêu chí đạt được **và** tiêu chí chưa đạt được không?
-8. Cần theo dõi lâu hơn hay rollback/giảm phạm vi trước khi tuyên bố giải quyết?
+1. Are time window, endpoint, request mix, data size, client count, CPU quota, and heap/GC/JDK identical?
+2. Are request count, error count, timeouts, and sampling computed with **the same denominator**?
+3. Do load generator, client, and server share the same instrumentation/clocks/config?
+4. Did deploys, cache warm-ups, autoscaling, feature flags, or downstream behavior change mid-test?
+5. Is the delta larger than normal noise? Are there repeated trials/controls for confidence?
+6. Did secondary metrics (error rate, throughput, memory, CPU, correctness) regress?
+7. Are both passed **and** failed criteria explicitly listed?
+8. Is longer observation, rollback, or scope reduction needed before declaring resolved?
 
-Nếu điều kiện không thể tương đương hoàn toàn, ghi **giới hạn** và dùng phương pháp phù hợp hơn: traffic replay, canary theo cohort, so cùng request mix, test A/B hoặc rollback/redeploy được phê duyệt. Tránh gắn nhãn **“A/B test”** cho phép so hai thời điểm khác tải mà không có phân nhóm/kiểm soát đúng nghĩa.
+If conditions cannot match completely, document **limitations** and use stronger methods: traffic replay, cohort canaries, request-mix matching, true A/B tests, or approved rollback/redeploy checks. Never slap **"A/B test"** on two different-load time windows lacking proper grouping and controls.
 
-## 10. Thực hành Java 17+: đo phân vị trên dữ liệu giả lập rồi viết kết luận trung thực
+## 10. Java 17+ Practice: Computing Percentiles on Simulated Data and Writing an Honest Conclusion
 
-Để kiểm tra cách trình bày các chỉ số, ta tạo **ba bộ số liệu cố định**, không dùng `Thread.sleep`, mạng hoặc GC, vì mục tiêu bài này là **cách báo cáo và suy luận**, không phải benchmark JVM.
+To practice presenting metrics cleanly, we construct **three fixed datasets**, without `Thread.sleep`, networking, or GC, because the goal here is **reporting and reasoning**, not JVM benchmarking.
 
-Chương trình dùng cách tính **nearest-rank percentile**: sắp tăng dần các latency, chọn phần tử ở vị trí `ceil(p × n)` (đếm từ 1). Có nhiều quy ước tính percentile khác; cần ghi quy ước khi so với hệ thống metrics thật.
+The program uses **nearest-rank percentiles**: sort latencies ascending and pick element `ceil(p × n)` (1-indexed). Other percentile definitions exist; always state the formula when comparing against real metrics systems.
 
-Tạo file **`EvidenceMetricsDemo.java`**:
+Create **`EvidenceMetricsDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -472,14 +472,14 @@ public final class EvidenceMetricsDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run on JDK 17 or newer:
 
 ```bash
 javac --release 17 EvidenceMetricsDemo.java
 java EvidenceMetricsDemo
 ```
 
-**Stdout chính xác** của chương trình (các sample là cố định):
+**Exact** program stdout (samples are fixed):
 
 ```text
 baseline n=20 errors=0 errorRate=0.0% p50=100ms p95=120ms p99=120ms
@@ -488,225 +488,225 @@ after-change n=20 errors=1 errorRate=5.0% p50=130ms p95=195ms p99=220ms
 Synthetic illustration; not a benchmark.
 ```
 
-Đoạn code đã được biên dịch bằng `javac --release 17` và chạy thử trên một JDK mới hơn; output trên đã được kiểm tra.
+The code was compiled with `javac --release 17` and executed on a newer JDK; the stdout above was verified.
 
-### 10.1. Cách đọc từ dữ liệu tới câu báo cáo
+### 10.1. Moving from Data to Report Prose
 
-**Câu nên viết:**
+**What you should write:**
 
-> Trong tập dữ liệu giả lập 20 mẫu mỗi giai đoạn, p95 tăng từ 120 lên 980 ms; ở tập after-change p95 là 195 ms, giảm khoảng 80,1% so với incident nhưng vẫn cao hơn baseline. Error rate giảm từ 20% còn 5% nhưng chưa về 0%. Kết quả phù hợp với cải thiện trong bài tập; **chưa đủ để chứng minh bản sửa hiệu quả trên production**.
+> Across the simulated 20-sample datasets per stage, p95 rose from 120 to 980 ms; in the after-change set p95 was 195 ms, roughly an 80.1% drop from the incident yet still above baseline. Error rate dropped from 20% to 5% without returning to 0%. Results align with partial improvement in the exercise; **insufficient to prove the fix works in production**.
 
-**Câu không nên viết:**
+**What you should not write:**
 
-> Build C đã sửa dứt điểm lỗi latency, hiệu năng tăng 80% và mọi user đã bình thường.
+> Build C completely fixed the latency bug, performance jumped 80%, and all users are back to normal.
 
-Câu sau không đúng vì: p95 còn 195 ms, còn 1 lỗi/20 request, chưa có dữ liệu về throughput, số user hay workload thật; và phần trăm **latency giảm** không phải mặc nhiên tương đương “hiệu năng tăng” cùng tỷ lệ.
+The second statement is wrong because p95 is still 195 ms, 1/20 requests still failed, there is no throughput, user count, or real workload data, and a percentage **latency drop** does not automatically equal an identical percentage "performance gain".
 
-### 10.2. Vì sao n=20 là cảnh báo quan trọng?
+### 10.2. Why Is `n=20` a Major Warning?
 
-Khi n = 20 và nearest-rank:
+When `n = 20` with nearest-rank:
 
-- p95 lấy phần tử thứ `ceil(0,95 × 20) = 19` sau sắp xếp.
-- p99 lấy phần tử thứ `ceil(0,99 × 20) = 20`, tức **giá trị lớn nhất**.
-- Thêm/bớt một request có thể thay đổi percentile mạnh.
-- Error rate mỗi lỗi tương đương **5 điểm phần trăm**.
-- Không có khoảng tin cậy, traffic mix, đối chứng hoặc nhiều lần lặp trong chương trình.
+- p95 selects element `ceil(0.95 × 20) = 19` after sorting.
+- p99 selects element `ceil(0.99 × 20) = 20`, i.e., **the maximum value**.
+- Adding or removing one request swings percentiles dramatically.
+- Each single error shifts the error rate by **5 percentage points**.
+- The program contains no confidence intervals, traffic mix, controls, or repeated runs.
 
-**Bài học:** code giúp tính toán nhất quán, nhưng chất lượng **kết luận** phụ thuộc thiết kế thu mẫu, tính đại diện và bằng chứng độc lập. Một chương trình tạo số đẹp không thay thế kiểm chứng.
+**Takeaway:** code computes consistently, yet **conclusion quality** depends on sampling design, representativeness, and independent evidence. A program producing neat numbers never replaces real validation.
 
-## 11. Ví dụ báo cáo hoàn chỉnh đã điền: ca staging giả lập
+## 11. Complete Filled Example Report: Simulated Staging Case
 
-> **Ghi chú:** Tất cả nhân vật, số liệu, timeline, snapshot và thay đổi trong mục này đều là **mô phỏng phục vụ học tập**, không mô tả một hệ thống thật. Các metric E01/E02/E06 tương ứng với chương trình mục 10; E03/E04/E05 là bằng chứng giả định được dùng để minh họa cách lập luận.
+> **Note:** All actors, figures, timelines, snapshots, and changes in this section are **simulated for learning**, not describing a real system. Metrics E01/E02/E06 come from section 10's program; E03/E04/E05 are hypothetical evidence illustrating how to connect reasoning.
 
-### Tóm tắt
+### Summary
 
-**Mã sự cố:** `INC-DEMO-017`  
-**Đối tượng:** `catalog-api`, staging giả lập, Java 17  
-**Thời gian:** 09:00–09:40, 29/10/2026 (`UTC+07:00`)  
-**Trạng thái:** Candidate cải thiện các chỉ số trên dữ liệu mẫu, **chưa đạt tiêu chí p95 ≤150 ms**, cần thêm kiểm chứng.
+**Incident ID:** `INC-DEMO-017`  
+**Target:** `catalog-api`, simulated staging, Java 17  
+**Window:** 09:00–09:40, 2026-10-29 (`UTC+07:00`)  
+**Status:** Candidate improved metrics on sample data, **missed the p95 ≤150 ms criterion**, needs further validation.
 
-**Tác động quan sát trong bài tập:** bộ 20 request có p95 tăng từ 120 ms (baseline) lên 980 ms (incident), lỗi tăng từ 0/20 lên 4/20. Không suy ra số người dùng production bị ảnh hưởng vì dữ liệu là synthetic.
+**Impact observed in exercise:** in the 20-request dataset, p95 rose from 120 ms (baseline) to 980 ms (incident) and errors rose from 0/20 to 4/20. Do not infer production user counts because data is synthetic.
 
-**Giả thuyết chính:** contention ở một monitor có thể là thành phần lớn của latency, trong khi một thao tác I/O nằm bên trong critical section. Một số bằng chứng minh họa E03–E05 tương thích với giả thuyết, nhưng cần đo bằng JFR và thử nghiệm tải có kiểm soát trên hệ thống thật.
+**Primary hypothesis:** contention on a monitor could be a major latency driver while an I/O call sits inside the critical section. Illustrative evidence E03–E05 fits this hypothesis, yet real JFR measurements and controlled load tests on the actual system are still needed.
 
-**Thay đổi minh họa:** candidate chuyển phần đọc I/O ra ngoài monitor trong nhánh được đánh giá, kèm yêu cầu kiểm thử tính nhất quán dữ liệu. Không triển khai production trong bài tập này.
+**Illustrative change:** the candidate moved the I/O read outside the monitor on the evaluated branch, subject to data-consistency testing. No production deployment happens in this exercise.
 
-**Kết quả mẫu:** p95 giảm từ 980 ms xuống 195 ms; error rate giảm từ 20% xuống 5%, nhưng baseline là 120 ms và 0%. **Chưa thể đóng ca với trạng thái “đã khôi phục hoàn toàn”.**
+**Sample results:** p95 dropped from 980 ms to 195 ms and error rate dropped from 20% to 5%, yet baseline was 120 ms and 0%. **Cannot close the incident as "fully recovered".**
 
-### Triệu chứng và timeline
+### Symptoms and Timeline
 
-| Thời điểm UTC+07 | Sự kiện/tác vụ mô phỏng | Dấu vết |
+| Time UTC+07 | Simulated Event/Action | Trace |
 | --- | --- | --- |
-| 09:00–09:05 | Chạy bộ mẫu baseline `build-A`. | E01: p95=120 ms, 0/20 lỗi. |
-| 09:12–09:17 | Phát hiện p95 tăng ở bộ mẫu `build-B`. | E02: p95=980 ms, 4/20 lỗi. |
-| 09:14 | Lấy thread dump giả định trong cửa sổ incident. | E03: waiter chờ monitor, một thread owner. |
-| 09:15–09:17 | Xem JFR event giả định cùng khoảng thời gian. | E04: các wait event trên cùng call path. |
-| 09:18 | Đối chiếu mã giả định của critical section. | E05: thao tác I/O nằm trong monitor. |
-| 09:20 | Xác định candidate và điều kiện cần kiểm thử. | Đề xuất thay đổi, chưa coi là fix. |
-| 09:25 | Chạy kiểm tra tính đúng đắn/đánh giá risk của candidate. | Kết quả test cần bổ sung khi thực hiện thật. |
-| 09:30–09:35 | Đọc bộ mẫu after-change `build-C`. | E06: p95=195 ms, 1/20 lỗi. |
-| 09:40 | Viết kết luận và kế hoạch kiểm chứng tiếp. | Trạng thái **cải thiện chưa đủ**. |
+| 09:00–09:05 | Ran baseline sample set `build-A`. | E01: p95=120 ms, 0/20 errors. |
+| 09:12–09:17 | Detected p95 spike in sample set `build-B`. | E02: p95=980 ms, 4/20 errors. |
+| 09:14 | Captured hypothetical thread dump in incident window. | E03: waiters blocked on monitor, one owner thread. |
+| 09:15–09:17 | Inspected hypothetical JFR events in same window. | E04: wait events on the same call path. |
+| 09:18 | Reviewed hypothetical critical-section code. | E05: I/O operation inside monitor. |
+| 09:20 | Defined candidate and required tests. | Proposed change, not yet treated as a fix. |
+| 09:25 | Ran correctness checks/risk assessment for candidate. | Real test results needed when executed for real. |
+| 09:30–09:35 | Read after-change sample set `build-C`. | E06: p95=195 ms, 1/20 errors. |
+| 09:40 | Wrote conclusion and follow-up validation plan. | Status: **insufficient improvement**. |
 
-### Giả thuyết
+### Hypotheses
 
-- **H1 — Monitor contention:** được E03/E04/E05 *minh họa* là phù hợp. Cần thử nghiệm có đối chứng để xác nhận vai trò nhân quả.
-- **H2 — GC pause:** chưa đủ dữ liệu giả lập để khẳng định hay loại trừ. Cần GC log/JFR cùng time window nếu là incident thật.
-- **H3 — Downstream chậm:** chưa có đo đạc downstream. Dự kiến xem tracing và socket event.
-- **H4 — CPU saturation:** chưa có CPU/quota metrics. Chưa xếp thành nguyên nhân.
+- **H1 — Monitor contention:** *illustrated* as consistent by E03/E04/E05. Controlled testing required to confirm causal role.
+- **H2 — GC pauses:** insufficient simulated data to confirm or rule out. Requires GC logs/JFR in the same window for a real incident.
+- **H3 — Slow downstream:** no downstream measurements collected yet. Plan to inspect tracing and socket events.
+- **H4 — CPU saturation:** no CPU/quota metrics yet. Not yet ranked as a cause.
 
-### Bằng chứng
+### Evidence
 
-E01, E02, E06 là các sample và chỉ số được chương trình Java ở mục 10 tính. E03, E04, E05 là tình huống giả định, không có raw artifact thật để tải; vì thế đây **không phải hồ sơ nghiệm thu production**.
+E01, E02, and E06 are samples and statistics computed by the Java program in section 10. E03, E04, and E05 are hypothetical scenarios with no real raw artifacts to download; hence this **is not a production sign-off record**.
 
-Mức tin cậy về nguyên nhân chính: **chưa xác nhận**. Sự đồng thời của monitor wait và latency (nếu quan sát thật) chỉ tạo giả thuyết có cơ sở, chưa loại trừ toàn bộ biến khác.
+Confidence in primary root cause: **unconfirmed**. Co-occurrence of monitor waits and latency (if observed in reality) only forms a grounded hypothesis without ruling out all other variables.
 
-### Thay đổi và rủi ro
+### Change and Risks
 
-**Candidate:** chuyển thao tác I/O ra ngoài critical section, giữ phần cập nhật shared state dưới monitor. 
+**Candidate:** move the I/O operation outside the critical section, keeping shared-state updates under the monitor.
 
-**Nguy cơ:** stale data/race khi hai thread cùng đọc và update; cần chứng minh invariant, kiểm tra tính thứ tự và retry policy.
+**Risks:** stale data/races when two threads read and update concurrently; must prove invariants and check ordering and retry policies.
 
-**Triển khai:** chỉ trong mô phỏng; production rollout sẽ cần review, canary và rollback.
+**Deployment:** simulation only; production rollout would require review, canary, and rollback.
 
-**Rollback trong quy trình thực:** trở về bản đã được kiểm chứng, điều kiện kích hoạt dựa error rate/latency/correctness guardrail. Đừng coi rollback là phép xóa mọi side effect đã xảy ra.
+**Rollback in real workflow:** revert to a verified build, triggered by error-rate/latency/correctness guardrails. Never assume rollback erases prior side effects.
 
-### Kiểm chứng
+### Validation
 
-| Tiêu chí | Mục tiêu mô phỏng | After-change | Đánh giá |
+| Criterion | Simulated Target | After-change | Assessment |
 | --- | --- | --- | --- |
-| p95 latency | ≤150 ms | **195 ms** | **Chưa đạt**. |
-| Error rate | Không cao hơn baseline 0% | **5%** | **Chưa đạt**. |
-| Throughput | Không giảm | Chưa đo | **Chưa kết luận**. |
-| CPU/GC/memory | Không thoái lui | Chưa đo | **Chưa kết luận**. |
-| Data consistency | Không race/stale write | Chưa test thực | **Chưa kết luận**. |
-| Tái lập kết quả | Nhiều vòng cùng workload | Mới một bộ synthetic | **Chưa đủ**. |
+| p95 latency | ≤150 ms | **195 ms** | **Not met**. |
+| Error rate | No higher than 0% baseline | **5%** | **Not met**. |
+| Throughput | No drop | Not measured | **Inconclusive**. |
+| CPU/GC/memory | No regression | Not measured | **Inconclusive**. |
+| Data consistency | No races/stale writes | Not tested live | **Inconclusive**. |
+| Reproducibility | Multiple runs under equal load | One synthetic set only | **Insufficient**. |
 
-**Quyết định:** Không tuyên bố “incident resolved”; ưu tiên thu thêm dữ liệu đủ mẫu, kiểm thử concurrency và kiểm chứng trên workload tương đương trong staging. Nếu gặp regression ở dữ liệu thật, dừng rollout theo policy đã duyệt.
+**Decision:** Do not declare "incident resolved"; prioritize gathering sufficient samples, running concurrency tests, and validating under matched workload in staging. If real data shows regression, halt rollout per approved policy.
 
-### Kế hoạch hành động sau báo cáo
+### Post-Report Action Plan
 
-| Hành động | Mục đích | Tiêu chí hoàn thành |
+| Action | Purpose | Completion Criteria |
 | --- | --- | --- |
-| Bổ sung quan sát monitor wait và thread owner vào cửa sổ test. | Kiểm tra H1 trực tiếp. | Có JFR/thread dump với timestamp, settings, call path và quyền lưu đúng. |
-| Chạy stress/concurrency tests cho candidate. | Phát hiện stale write và race do rút I/O khỏi monitor. | Invariant và test assertions đều đạt; không chỉ dựa latency. |
-| Chạy cùng traffic mix và đủ sample trong nhiều vòng. | Giảm sampling noise/confounders. | Có before/after lặp lại, số mẫu và cách tính p95 công bố. |
-| Đo CPU/GC/throughput/error rate. | Kiểm tra guardrails. | Không có regression vượt tiêu chí đã phê duyệt. |
-| Cập nhật kết luận và quyết định rollout/rollback. | Khép vòng phản hồi. | Có người duyệt, bằng chứng và hành động tiếp theo rõ ràng. |
+| Add monitor wait and thread owner capture to the test window. | Test H1 directly. | JFR/thread dumps with timestamps, settings, call paths, and proper access storage. |
+| Run stress/concurrency tests on candidate. | Catch stale writes and races from moving I/O out of the monitor. | Invariants and test assertions pass; not judged by latency alone. |
+| Run matching traffic mix with enough samples across multiple cycles. | Reduce sampling noise and confounders. | Repeated before/after runs with disclosed sample sizes and p95 formula. |
+| Measure CPU/GC/throughput/error rate. | Verify guardrails. | No regressions beyond approved thresholds. |
+| Update conclusion and rollout/rollback decision. | Close the feedback loop. | Named approver, evidence, and clear next actions. |
 
-Bản báo cáo ví dụ vẫn **hữu ích** dù trạng thái là “chưa xác nhận”: người đọc biết phép đo nào đã có, giả thuyết nào chưa được kiểm tra, rủi ro của candidate và kết quả cần đạt trước khi đóng ca.
+This example report remains **useful** even with status "unconfirmed": readers see which measurements exist, which hypotheses remain untested, candidate risks, and criteria required before closing.
 
-## 12. Cách diễn đạt khiến báo cáo dễ được tin cậy
+## 12. Phrasing That Makes Reports Credible
 
-### 12.1. Tránh câu kết luận mạnh hơn bằng chứng
+### 12.1. Avoid Claims Stronger Than the Evidence
 
-| Không nên viết | Nên viết |
+| Avoid Writing | Write Instead |
 | --- | --- |
-| “JVM chết do GC.” | “GC log ghi pause 1.2 s đúng thời điểm nhiều request timeout; cần đối chiếu với request tracing để xác định mức đóng góp.” |
-| “Thread dump chứng minh deadlock.” | “Một dump có hai thread chờ lock. Chưa xác định vòng chờ; cần owner graph hoặc deadlock detection.” |
-| “Bị memory leak vì heap cao.” | “Heap used tăng qua nhiều chu kỳ và không trở về baseline; cần kiểm tra retained objects/GC roots sau ổn định.” |
-| “Đã fix vì JFR hết event chậm.” | “Không thấy event trong recording mới; cần xác nhận event enabled, threshold và workload giống nhau trước khi so.” |
-| “P95 giảm 80%, hiệu năng tăng 80%.” | “P95 latency trong tập mẫu giảm ~80,1%; chưa suy ra throughput, tài nguyên hoặc tác động toàn dịch vụ.” |
-| “Ai đó cấu hình sai.” | “Một thay đổi cấu hình không có guardrail/validation đã làm tăng rủi ro; cần tăng kiểm thử và khả năng phát hiện.” |
-| “Không tái hiện được nên không có lỗi.” | “Chưa tái hiện dưới điều kiện hiện tại; cần so dữ liệu, tải và môi trường với thời điểm sự cố.” |
-| “Root cause đã chứng minh 100%.” | “Dữ liệu và thử nghiệm trong phạm vi đo ủng hộ mạnh H1; vẫn còn giới hạn về thời lượng/mẫu/điều kiện.” |
+| "JVM died because of GC." | "GC log recorded a 1.2 s pause coinciding with multiple request timeouts; correlate with request tracing to quantify contribution." |
+| "Thread dump proves deadlock." | "One dump shows two threads waiting on locks. No cycle verified yet; need owner graph or deadlock detection." |
+| "Memory leak because heap is high." | "Heap used climbed across multiple cycles without returning to baseline; inspect retained objects/GC roots after stabilization." |
+| "Fixed because JFR shows no more slow events." | "No slow events appeared in the new recording; verify event enabled, threshold, and matching workload before comparing." |
+| "p95 dropped 80%, performance rose 80%." | "Sample p95 latency dropped ~80.1%; cannot infer throughput, resource usage, or whole-service impact yet." |
+| "Someone misconfigured it." | "A config change lacking guardrails/validation increased risk; strengthen automated checks and detection." |
+| "Cannot reproduce, so no bug exists." | "Did not reproduce under current conditions; compare data, load, and environment against the incident window." |
+| "Root cause 100% proven." | "Data and tests within measurement scope strongly support H1; limitations remain around duration/samples/conditions." |
 
-### 12.2. Báo cáo không đổ lỗi cá nhân
+### 12.2. Blameless Reporting
 
-Mô tả **hệ thống, quyết định, dữ liệu, kiểm soát thiếu và cách ngăn tái diễn** thay vì định danh người để quy trách nhiệm cảm tính. Tinh thần postmortem là cải thiện cơ chế vận hành: guardrail, review, test, monitoring, deploy/rollback.
+Describe **systems, decisions, data, missing controls, and recurrence prevention** rather than naming individuals to assign emotional blame. Postmortem culture improves operational mechanisms: guardrails, reviews, tests, monitoring, and deploy/rollback safety.
 
-Phân biệt:
+Distinguish:
 
-- **Tác nhân trực tiếp (trigger):** ví dụ một bản triển khai làm tăng thời gian critical section.
-- **Cơ chế kỹ thuật (mechanism):** nhiều thread chờ monitor tạo queue và latency.
-- **Điều kiện đóng góp (contributing factors):** thiếu load test trên traffic mix, cảnh báo lock wait hoặc code review check.
-- **Kết quả (impact):** p95 tăng, error rate/timeout tăng.
-- **Hành động phòng ngừa:** giảm phạm vi lock, test invariant, thêm alert, rollout canary và rollback trigger.
+- **Trigger:** e.g., a deployment that lengthened a critical section.
+- **Technical mechanism:** multiple threads waiting on a monitor building queues and latency.
+- **Contributing factors:** missing load tests on traffic mix, missing lock-wait alerts, or missed code-review checks.
+- **Impact:** rising p95 and rising error/timeout rates.
+- **Preventive actions:** shrink lock scope, test invariants, add alerts, canary rollouts, and rollback triggers.
 
-Không cần kết luận “một cá nhân là nguyên nhân” để viết được report chất lượng cao.
+You never need to conclude "one person was the root cause" to write a high-quality report.
 
-## 13. Kiểm tra chất lượng cuối trước khi gửi
+## 13. Final Quality Check Before Sending
 
-### 13.1. Kiểm tra dữ liệu
+### 13.1. Data Check
 
-- [ ] Có thời gian bắt đầu/kết thúc, timezone và môi trường/instance/JDK xác định.
-- [ ] Triệu chứng được ghi thành chỉ số, đơn vị, baseline và phạm vi ảnh hưởng.
-- [ ] Tên metric, mẫu số, thời lượng cửa sổ và phương pháp percentile nhất quán.
-- [ ] Số count/error rate/p95 trong bảng, biểu đồ và văn bản **không mâu thuẫn**.
-- [ ] Có evidence index; mỗi kết luận quan trọng dẫn đến một/một nhóm ID kiểm tra lại được.
-- [ ] Phân biệt **snapshot**, event có threshold/sampling, số đo tổng hợp và dữ liệu thô.
-- [ ] Không đánh đồng timestamp của file dump với timestamp của event hoặc request.
-- [ ] Không đăng trực tiếp secret/PII, heap dump/JFR raw hoặc command line chứa credentials.
+- [ ] Start/end times, timezone, and environment/instance/JDK are specified.
+- [ ] Symptoms state metrics, units, baseline, and impact scope.
+- [ ] Metric names, denominators, window durations, and percentile methods are consistent.
+- [ ] Counts/error rates/p95 in tables, charts, and prose **do not contradict each other**.
+- [ ] Evidence index exists; every major claim links to verifiable ID(s).
+- [ ] Distinguishes **snapshots**, thresholded/sampled events, aggregated metrics, and raw data.
+- [ ] Does not equate a dump file's creation timestamp with event or request timestamps.
+- [ ] No raw secrets/PII, raw heap dumps/JFRs, or credential-bearing command lines posted inline.
 
-### 13.2. Kiểm tra lập luận
+### 13.2. Reasoning Check
 
-- [ ] Mỗi giả thuyết có dấu hiệu kỳ vọng và điều kiện có thể bác bỏ.
-- [ ] Các kết quả **không phù hợp giả thuyết chính** cũng được ghi.
-- [ ] Không nhầm tương quan với nguyên nhân, hay một lần thử với kết luận sản xuất.
-- [ ] Thay đổi kỹ thuật có lý do, phạm vi, phiên bản, rủi ro và rollback.
-- [ ] Kiểm chứng có điều kiện tải tương đương, đủ cửa sổ/mẫu và các chỉ số guardrail.
-- [ ] Mỗi tiêu chí rõ **đạt / chưa đạt / chưa đo**; không điền “PASS” cho phép đo còn thiếu.
-- [ ] Có trạng thái hiện tại và người nhận quyết định tiếp theo.
-- [ ] Báo cáo không đổ lỗi và có action items phòng ngừa cụ thể.
+- [ ] Each hypothesis states expected signals and falsification criteria.
+- [ ] Data **contradicting the main hypothesis** is also recorded.
+- [ ] Correlation is not confused with causation, nor one trial with production proof.
+- [ ] Technical changes state rationale, scope, version, risks, and rollback.
+- [ ] Validation uses comparable load, sufficient windows/samples, and guardrail metrics.
+- [ ] Each criterion clearly states **passed / failed / not measured**; never mark "PASS" for unmeasured checks.
+- [ ] Current status and owner of the next decision are named.
+- [ ] Report is blameless and contains concrete preventive action items.
 
-### 13.3. Kiểm tra văn bản
+### 13.3. Writing Check
 
-- [ ] Bắt đầu bằng tóm tắt dễ đọc, không mở đầu bằng hàng nghìn dòng log.
-- [ ] Tránh thuật ngữ viết tắt chưa giải thích; bảng/ảnh có trục, thời gian và đơn vị.
-- [ ] Phân biệt **số liệu thực**, **số liệu mô phỏng** và **giả thuyết** bằng nhãn rõ.
-- [ ] Code snippet được ghi là minh họa hay chương trình chạy được, stdout có căn cứ.
-- [ ] Có đường dẫn/hình thức truy xuất artifact an toàn theo quyền, không giả định link public.
-- [ ] Báo cáo đủ để một người ngoài nhóm điều tra hiểu và đặt lại câu hỏi cần kiểm chứng.
+- [ ] Opens with a readable summary, not thousands of log lines.
+- [ ] Avoids undefined abbreviations; tables/charts include axes, time, and units.
+- [ ] Clearly tags **real data**, **simulated data**, and **hypotheses**.
+- [ ] Code snippets are labeled illustrative vs. runnable, with grounded stdout.
+- [ ] Safe, permissioned paths/methods to access artifacts are noted without assuming public links.
+- [ ] Clear enough for someone outside the investigation team to understand and challenge what still needs verification.
 
-## 14. Bài tập áp dụng
+## 14. Practice Exercises
 
-### Bài tập 1: sửa câu triệu chứng
+### Exercise 1: Fixing a Symptom Statement
 
-Câu chưa đủ: “Server lag, chắc do GC.”
+Weak statement: "Server lagged, probably GC."
 
-**Cách sửa:** “Trong 10 phút gần sự cố, endpoint X có p95 latency tăng từ khoảng 140 ms lên 850 ms, error rate tăng từ 0,5% lên 4,2% theo metric cùng cửa sổ. GC là một giả thuyết cần đối chiếu GC log/JFR theo timestamp.” Các số ở đây là **ví dụ giả định**, không phải kết quả thật.
+**Fix:** "During the 10-minute incident window, endpoint X's p95 latency rose from ~140 ms to 850 ms and error rate rose from 0.5% to 4.2% in matched-window metrics. GC is one hypothesis to check against timestamped GC logs/JFR." Numbers here are **hypothetical examples**, not real measurements.
 
-### Bài tập 2: tìm điểm yếu của bằng chứng
+### Exercise 2: Finding Weaknesses in Evidence
 
-Dữ liệu: một thread dump có 12 thread `WAITING`.
+Data: one thread dump shows 12 `WAITING` threads.
 
-**Hỏi:** Có thể kết luận deadlock không?
+**Question:** Can you conclude a deadlock?
 
-**Đáp:** Không. Thread idle trong executor hoặc đang đợi `BlockingQueue.take()` cũng có thể `WAITING`. Cần stack, owner/lock graph, chuỗi snapshot và kiểm tra khả năng tiến triển của công việc.
+**Answer:** No. Idle executor threads or threads waiting on `BlockingQueue.take()` also show `WAITING`. You need stacks, an owner/lock graph, repeated snapshots, and verification of whether work is progressing.
 
-### Bài tập 3: đánh giá kết quả sau sửa
+### Exercise 3: Evaluating Post-Fix Results
 
-Từ mã mục 10: p95 từ 980 xuống 195 ms, baseline là 120 ms và tiêu chí là 150 ms.
+From section 10's code: p95 dropped from 980 to 195 ms, baseline is 120 ms, and criterion is 150 ms.
 
-**Đáp:** Đã cải thiện **trong dữ liệu giả lập** nhưng **chưa đạt** mục tiêu phục hồi. Vì chỉ có 20 mẫu/giai đoạn và không có hệ thống thật, chưa đủ chứng minh một bug đã được sửa.
+**Answer:** Improved **in the simulated dataset**, yet **missed** the recovery target. With only 20 samples per stage and no real system, this is not enough to prove a bug is fixed.
 
-### Bài tập 4: một thay đổi và hai metric ngược chiều
+### Exercise 4: One Change and Two Diverging Metrics
 
-Đã giảm p95 nhưng throughput giảm một nửa, error rate tăng, hoặc test concurrency fail.
+p95 dropped, yet throughput halved, error rate climbed, or concurrency tests failed.
 
-**Đáp:** Không công bố “PASS” chỉ vì latency tốt lên. Phải xem guardrail, ưu tiên tính đúng đắn và quyết định rollback/điều chỉnh theo tiêu chí đã đề ra.
+**Answer:** Do not declare "PASS" just because latency improved. Evaluate guardrails, prioritize correctness, and trigger rollback/adjustment per defined criteria.
 
-### Bài tập 5: câu kết luận thiếu kiểm chứng
+### Exercise 5: Unverified Conclusion Statement
 
-Câu: “Sau deploy, CPU thấp hơn nên bản code mới giải quyết root cause.”
+Statement: "After deploy, CPU is lower, so the new code solved the root cause."
 
-**Đáp:** Chưa đủ. Có thể do traffic giảm, autoscaling, cache warm-up, thay đổi số request lỗi hoặc CPU throttling. Cần so tải tương đương, xem profiling và các metric phụ, thử lặp hoặc đối chứng.
+**Answer:** Insufficient. Traffic could have dropped, autoscaling shifted load, caches warmed up, error counts changed, or CPU throttling occurred. Compare matched load, check profiling and secondary metrics, and run repeated or controlled tests.
 
-## 15. Ghi nhớ
+## 15. Key Takeaways
 
-- **Triệu chứng:** mô tả cái gì bị sai bằng metric có ngữ cảnh.
-- **Giả thuyết:** mô tả cơ chế có thể gây sai, kèm cách kiểm tra và điều kiện bác bỏ.
-- **Bằng chứng:** ghi quan sát kiểm tra được với ID, thời gian, nguồn và giới hạn.
-- **Thay đổi:** ghi cụ thể can thiệp nào, vì sao, rủi ro và rollback.
-- **Kiểm chứng:** so trước/sau dưới điều kiện hợp lý, có tiêu chí đạt/chưa đạt và biết điều chưa đo.
-- **Kết luận tốt:** không xóa dữ liệu ngược chiều, không giấu uncertainty, không vượt quá phạm vi bằng chứng.
+- **Symptom:** describe what went wrong using contextualized metrics.
+- **Hypothesis:** describe a plausible mechanism with tests and falsifiers.
+- **Evidence:** record verifiable observations with IDs, timestamps, sources, and limits.
+- **Change:** document exact intervention, rationale, risks, and rollback.
+- **Validation:** compare before/after under fair conditions, with explicit pass/fail criteria and unmeasured gaps noted.
+- **Strong conclusion:** never hide contradicting data, never conceal uncertainty, and never outrun your evidence.
 
-Một báo cáo có thể kết thúc với **“đã giảm tác động nhưng chưa khẳng định nguyên nhân”**. Đó là kết quả điều tra có giá trị nếu nó đi kèm bằng chứng, rủi ro, người chịu trách nhiệm và hành động tiếp theo.
+A report can rightly conclude **"impact mitigated, root cause not yet confirmed"**. That is a valuable investigative outcome when backed by evidence, risks, an owner, and clear next actions.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle JDK 21 — `jcmd` và các diagnostic commands](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `Thread.print`, `GC.heap_info`, `GC.class_histogram`, `JFR.start/dump/stop`, `VM.native_memory`.
-- [Oracle JDK 21 — `jfr` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): `summary`, `metadata`, `print`, lọc JFR events.
-- [Oracle Java 21 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): chọn công cụ phù hợp cho CPU, thread, GC, memory và sự cố runtime.
-- [Google SRE — Postmortem Culture: Learning from Failure](https://sre.google/resources/book-update/postmortem-culture/): văn hóa học từ sự cố, bằng chứng, tránh đổ lỗi và cải tiến hệ thống.
-- [Google SRE — Lessons Learned: Postmortem Culture](https://sre.google/sre-book/lessons-learned/): cách đánh giá điều đã xảy ra, hiệu quả phản ứng và hành động phòng ngừa.
+- [Oracle JDK 21 — `jcmd` and diagnostic commands](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `Thread.print`, `GC.heap_info`, `GC.class_histogram`, `JFR.start/dump/stop`, `VM.native_memory`.
+- [Oracle JDK 21 — `jfr` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): `summary`, `metadata`, `print`, filtering JFR events.
+- [Oracle Java 21 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): picking the right tool for CPU, threads, GC, memory, and runtime incidents.
+- [Google SRE — Postmortem Culture: Learning from Failure](https://sre.google/resources/book-update/postmortem-culture/): learning from incidents, evidence, blamelessness, and systemic improvement.
+- [Google SRE — Lessons Learned: Postmortem Culture](https://sre.google/sre-book/lessons-learned/): evaluating what happened, response effectiveness, and preventive actions.
 

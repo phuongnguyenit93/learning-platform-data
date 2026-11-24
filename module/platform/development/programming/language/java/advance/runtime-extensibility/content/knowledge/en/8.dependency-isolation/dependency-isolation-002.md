@@ -1,61 +1,61 @@
-# So sánh một loader chung, loader theo plugin và nhóm plugin dùng chung phụ thuộc
+# Comparing a Shared Loader, Per-Plugin Loaders, and Dependency-Sharing Plugin Groups
 
-## 1. Vấn đề cần giải quyết: nhiều plugin, nhiều phiên bản dependency
+## 1. The Problem to Solve: Multiple Plugins, Multiple Dependency Versions
 
-Giả sử ứng dụng Java (host) có ba plugin: **A** xuất báo cáo, **B** xử lý tài liệu và **C** phân tích dữ liệu. A được build với `lib-json:1.x`, B cần `lib-json:2.x`, C cũng dùng `lib-json:2.x`. Host cần nạp chúng trong cùng JVM mà không sửa plugin của nhà cung cấp.
+Suppose a Java application (the host) has three plugins: **A** exports reports, **B** processes documents, and **C** analyzes data. A is built with `lib-json:1.x`, B requires `lib-json:2.x`, and C also uses `lib-json:2.x`. The host needs to load all of them in the same JVM without modifying vendor plugins.
 
-Có ba lựa chọn chính về **phạm vi chia sẻ lớp (class loading boundary)**:
+There are three main choices for the **class sharing scope (class loading boundary)**:
 
-1. **Một loader chung:** đặt JAR plugin và dependency trong cùng một vùng định nghĩa class.
-2. **Một loader riêng cho từng plugin:** mỗi plugin nhìn thấy dependency của mình, dùng chung API của host qua parent loader.
-3. **Nhóm plugin dùng chung phụ thuộc:** mỗi nhóm có loader chứa dependency chung theo một phiên bản được chọn; các plugin thành viên có loader con hoặc cùng một vùng loader, tùy mức độ cách ly mong muốn.
+1. **A single shared loader:** place plugin JARs and dependencies in the same class-defining scope.
+2. **A dedicated loader per plugin:** each plugin sees its own dependencies while sharing the host API through a parent loader.
+3. **Dependency-sharing plugin groups:** each group has a loader containing shared dependencies at a chosen version; member plugins have child loaders or share a loader scope, depending on the desired level of isolation.
 
-Cả ba vẫn chạy trong **cùng JVM và process**. Sự khác nhau chủ yếu là class identity, phiên bản thư viện nào được định nghĩa, scope của static state, khả năng giải phóng plugin, bộ nhớ và độ phức tạp vận hành. Class loader **không** tạo sandbox bảo mật để chạy mã không tin cậy.
+All three still run within the **same JVM and process**. The main differences are class identity, which library version is defined, the scope of static state, the ability to unload plugins, memory footprint, and operational complexity. Class loaders do **not** create a security sandbox for running untrusted code.
 
-Bài này sử dụng Java 17+ và JAR trên **class path** để xây mô hình trước, sau đó so sánh cách áp dụng với JPMS (Java Platform Module System). “Một loader chung” là một chiến lược triển khai, không nhất thiết là duy nhất một instance class loader trong toàn JVM: JDK vẫn có bootstrap/platform/application loaders và các loader khác.
+This article uses Java 17+ and JARs on the **class path** to build the model first, then compares how it applies with JPMS (Java Platform Module System). "A shared loader" is a deployment strategy, not necessarily a single class loader instance in the entire JVM: the JDK still has bootstrap/platform/application loaders and other loaders.
 
-## 2. Nền tảng quyết định đúng: tên class không đủ định danh kiểu
+## 2. Foundation for the Right Decision: Class Name Alone Does Not Identify a Type
 
-### 2.1. Class identity = tên nhị phân + defining loader
+### 2.1. Class Identity = Binary Name + Defining Loader
 
-JVM coi một class/interface được xác định bởi **binary name và defining `ClassLoader`**. Hai class đều tên `com.acme.lib.Model` nhưng được định nghĩa bởi hai loader độc lập là **hai runtime type khác nhau**.
+The JVM considers a class/interface to be identified by its **binary name and defining `ClassLoader`**. Two classes both named `com.acme.lib.Model` but defined by two independent loaders are **two distinct runtime types**.
 
 ~~~text
 HostClassLoader
 ├── PluginALoader  → com.acme.lib.Model (v1)
 └── PluginBLoader  → com.acme.lib.Model (v2)
 
-Tên class giống nhau, nhưng:
+Same class name, but:
 (Model, PluginALoader) != (Model, PluginBLoader)
 ~~~
 
-Hệ quả: object `Model` v1 của A không thể ép sang `Model` v2 của B chỉ vì `getClass().getName()` giống nhau. Ép kiểu có thể ném `ClassCastException`; ở một số quan hệ chữ ký/biên dịch khác, JVM có thể phát sinh `LinkageError`. Tương tự, `static` field, cache, singleton và class initialization thuộc phạm vi **class được định nghĩa**: hai phiên bản ở hai loader có static state riêng (dù vẫn có thể chia sẻ tài nguyên process khác).
+Consequence: a `Model` v1 object from A cannot be cast to B's `Model` v2 merely because `getClass().getName()` is identical. Casting may throw `ClassCastException`; under certain other signature/compilation relationships, the JVM may raise `LinkageError`. Similarly, `static` fields, caches, singletons, and class initialization are scoped to the **defined class**: two versions in two loaders have separate static state (though they can still share other process resources).
 
-**Initiating loader** là loader được yêu cầu tìm class; nó có thể ủy quyền cho **defining loader** khác. Vì vậy, hai plugin loader khác nhau vẫn có thể nhìn thấy **chính cùng một `Class<?>`** khi cả hai cùng delegate tới parent đã định nghĩa API hoặc thư viện dùng chung.
+The **initiating loader** is the loader asked to find a class; it may delegate to a different **defining loader**. Therefore, two different plugin loaders can still see the **exact same `Class<?>`** when both delegate to a parent that defined the API or a shared library.
 
-### 2.2. Parent-first là hành vi mặc định đáng dựa vào
+### 2.2. Parent-First Is the Reliable Default Behavior
 
-Với triển khai `ClassLoader.loadClass(name, resolve)` mặc định, JVM/loader:
+With the default `ClassLoader.loadClass(name, resolve)` implementation, the JVM/loader:
 
-1. Kiểm tra class đã load qua `findLoadedClass`.
-2. Thử `loadClass` của **parent** (hoặc bootstrap khi không có parent).
-3. Nếu parent không tìm thấy, dùng `findClass` của loader hiện tại.
-4. Resolve class theo tham số nếu cần.
+1. Checks if the class is already loaded via `findLoadedClass`.
+2. Tries `loadClass` of the **parent** (or bootstrap when there is no parent).
+3. If the parent does not find it, uses `findClass` of the current loader.
+4. Resolves the class according to the parameter if needed.
 
-`URLClassLoader` kế thừa mô hình delegation này đối với class thông thường. **Vị trí parent rất quan trọng:** nếu parent đã định nghĩa `com.acme.lib.Model` v1, loader con mặc định sẽ nhận v1 dù trong JAR của nó có bản v2 cùng tên. Sự hiện diện của hai JAR **không tự tạo hai runtime class**.
+`URLClassLoader` inherits this delegation model for regular classes. **Parent placement matters:** if the parent has already defined `com.acme.lib.Model` v1, a child loader will by default receive v1 even if its own JAR contains a v2 copy of the same name. The presence of two JARs **does not automatically create two runtime classes**.
 
-Có thể xây loader `child-first` cho **gói private được kiểm soát** khi framework có yêu cầu đặc biệt, nhưng không nên dùng child-first toàn cục: nếu plugin định nghĩa lại service API hoặc DTO của host, cast và giao tiếp qua interface có thể gãy. Ngoài ra còn package sealing, resources, loader constraints, JNI và deadlock khi delegation không còn là cây đơn giản. Hãy dùng parent-first làm mặc định và ghi rõ ngoại lệ nếu cần.
+You can build a `child-first` loader for **controlled private packages** when a framework has special requirements, but you should not use child-first globally: if a plugin redefines a service API or host DTO, casting and interface communication can break. In addition, there are package sealing, resources, loader constraints, JNI, and deadlocks when delegation ceases to be a simple tree. Use parent-first as the default and explicitly document exceptions when needed.
 
-### 2.3. Phân biệt bốn thứ thường bị gọi chung là “cô lập”
+### 2.3. Distinguishing Four Things Often Lumped Together as "Isolation"
 
-- **Cô lập version:** cho phép cùng một binary class name có các bản bytecode khác nhau, được định nghĩa bởi loader riêng.
-- **Cô lập type/static state:** tránh dùng chung `Class` object và static singleton giữa các plugin.
-- **Cô lập dependency/resource:** giới hạn JAR, class/resource và provider metadata được tìm thấy từ một loader. Resource lookup còn phụ thuộc `getResource(s)`, parent và TCCL, nên phải kiểm tra riêng.
-- **Cô lập lỗi, bảo mật, CPU/bộ nhớ:** **không** được bảo đảm chỉ bởi loader. Exception, thread, native library, JVM crash, process-level state và tài nguyên OS vẫn chung. Muốn chạy mã không tin cậy hoặc cần giới hạn tài nguyên cứng, dùng process/container riêng.
+- **Version isolation:** allows the same binary class name to have different bytecode versions, defined by separate loaders.
+- **Type/static state isolation:** avoids sharing `Class` objects and static singletons across plugins.
+- **Dependency/resource isolation:** restricts the JARs, classes/resources, and provider metadata visible from a loader. Resource lookup also depends on `getResource(s)`, parent, and TCCL, so it must be verified separately.
+- **Fault, security, and CPU/memory isolation:** is **not** guaranteed by loaders alone. Exceptions, threads, native libraries, JVM crashes, process-level state, and OS resources remain shared. To run untrusted code or enforce hard resource limits, use separate processes/containers.
 
-## 3. Sơ đồ ba mô hình
+## 3. Diagrams of the Three Models
 
-### 3.1. Mô hình A — Một plugin/dependency loader chung
+### 3.1. Model A — A Single Shared Plugin/Dependency Loader
 
 ~~~text
 ApplicationClassLoader
@@ -66,16 +66,16 @@ ApplicationClassLoader
         ├── lib-json-1.jar
         └── lib-utils.jar
 
-A, B, C cùng nhìn thấy class do PluginUniverseLoader định nghĩa.
+A, B, and C all see classes defined by PluginUniverseLoader.
 ~~~
 
-Một vùng loader chỉ có thể định nghĩa **một class cho một binary name**. Nếu đặt `lib-json-1.jar` và `lib-json-2.jar` cùng có `com.acme.json.Json` vào cùng search path, loader không chọn version khác nhau theo plugin. Trong mô hình `URLClassLoader` thông thường với parent không chứa class này, URL/JAR chứa class được tìm thấy trước sẽ thắng cho tên đó; phiên bản còn lại không có “cơ hội thứ hai” để được định nghĩa cùng tên trong loader ấy.
+One loader scope can define **only one class for a given binary name**. If `lib-json-1.jar` and `lib-json-2.jar` both containing `com.acme.json.Json` are placed on the same search path, the loader does not pick different versions per plugin. In the standard `URLClassLoader` model where the parent does not contain this class, the URL/JAR where the class is found first wins for that name; the remaining version gets no "second chance" to be defined with the same name in that loader.
 
-**Phù hợp:** ít plugin, cùng được build/test chung; chúng dùng một dependency graph đã được resolve duy nhất; nâng cấp/khởi động lại đồng thời chấp nhận được. Chi phí loader, memory duplication và khâu quản lý thấp.
+**Suitable for:** a small number of plugins built and tested together; they use a single resolved dependency graph; coordinated upgrades/restarts are acceptable. Loader overhead, memory duplication, and management effort are low.
 
-**Đổi lại:** các plugin chịu chung tập version và static state của thư viện chung. B thay đổi yêu cầu lên API chỉ có trong v2 có thể gặp `NoSuchMethodError` nếu loader đã chọn v1; thêm JAR khác không đảm bảo sửa được. Nếu đặt toàn bộ plugin vào cùng loader, việc thay class của một plugin bằng **loader mới** thường kéo theo thay cả vùng loader, trừ khi có một cơ chế reload phức tạp khác.
+**Trade-offs:** plugins share a single set of versions and the static state of shared libraries. If B changes to require an API present only in v2, it may encounter `NoSuchMethodError` if the loader selected v1; adding another JAR does not guarantee a fix. If all plugins are placed in the same loader, replacing one plugin's classes with a **new loader** usually entails replacing the entire loader scope, unless a more complex reload mechanism is used.
 
-### 3.2. Mô hình B — Loader riêng cho từng plugin
+### 3.2. Model B — Dedicated Loader per Plugin
 
 ~~~text
 ApplicationClassLoader
@@ -94,13 +94,13 @@ ApplicationClassLoader
         └── lib-json-2.jar
 ~~~
 
-Mỗi plugin loader có search path riêng. Vì `lib-json` không nằm trong parent và các plugin loaders không delegate cho nhau, A có `Json` v1, B và C có **hai bản `Json` v2 được định nghĩa độc lập**. B và C dùng cùng bytecode/version cũng **không** có cùng class identity nếu mỗi loader tự định nghĩa thư viện.
+Each plugin loader has its own search path. Because `lib-json` is not in the parent and plugin loaders do not delegate to one another, A gets `Json` v1, while B and C get **two independently defined copies of `Json` v2**. Even though B and C use identical bytecode/versions, they do **not** share class identity if each loader defines the library itself.
 
-**Phù hợp:** các plugin cập nhật/kiểm thử độc lập, có xung đột version, cần tháo một plugin khi các plugin khác tiếp tục chạy. Đây là lựa chọn phổ biến cho nền tảng plugin có nhiều bên phát triển.
+**Suitable for:** plugins updated/tested independently, having version conflicts, or needing to unload one plugin while others keep running. This is the common choice for multi-vendor plugin platforms.
 
-**Đổi lại:** thư viện được load lặp lại, thêm class metadata/Metaspace, JIT compilation, static caches và tài nguyên; việc chuyển object dependency-private trực tiếp qua plugin khác không an toàn. Mỗi plugin phải giữ contract và DTO của host ở parent chung. Plugin chỉ có thể giải phóng loader khi không còn object, thread, listener, cache hay reference nào giữ lớp/loader của nó.
+**Trade-offs:** libraries are loaded repeatedly, increasing class metadata/Metaspace, JIT compilation, static caches, and resources; passing dependency-private objects directly to another plugin is unsafe. Every plugin must keep host contracts and DTOs in the shared parent. A plugin can release its loader only when no objects, threads, listeners, caches, or references hold onto its classes/loader.
 
-### 3.3. Mô hình C — Nhóm plugin dùng chung phụ thuộc
+### 3.3. Model C — Dependency-Sharing Plugin Groups
 
 ~~~text
 ApplicationClassLoader
@@ -114,37 +114,37 @@ ApplicationClassLoader
         └── PluginCLoader (plugin-c.jar)
 ~~~
 
-Nhóm Một và Nhóm Hai có loader dependency riêng: chúng có thể dùng **hai phiên bản `Json` khác nhau**. Trong Nhóm Hai, B và C đều delegate tới `GroupTwoDepsLoader`, nên **chia sẻ cùng `Class<?>` `Json` v2 và static state của nó**. Phần implementation riêng của B/C vẫn có thể nằm trong hai child loaders khác nhau.
+Group One and Group Two have separate dependency loaders: they can use **two different versions of `Json`**. Within Group Two, B and C both delegate to `GroupTwoDepsLoader`, so they **share the same `Class<?>` for `Json` v2 and its static state**. The private implementations of B/C can still reside in two separate child loaders.
 
-**Phù hợp:** nhiều plugin cần cùng bộ thư viện nặng và được kiểm soát tương thích theo “cohort”/nhóm; cần giảm nhân bản bộ nhớ nhưng vẫn tách được các nhóm dùng version khác nhau.
+**Suitable for:** many plugins requiring the same heavy library stack and governed for compatibility by "cohort"/group; reducing memory duplication while still isolating groups using different versions.
 
-**Đổi lại:** nhóm có phiên bản và vòng đời dependency **gắn nhau**. Nếu B cần v3 còn C cần v2, phải thử compatibility hoặc tách B sang nhóm khác. Nếu muốn unload group dependency loader, cần bảo đảm **tất cả** plugin con và mọi object/class/thread liên quan đã được giải phóng. Một group loader còn tồn tại thì các class thư viện group vẫn có thể được giữ lại.
+**Trade-offs:** group members have **coupled** dependency versions and lifecycles. If B needs v3 while C needs v2, you must test compatibility or move B to another group. To unload a group dependency loader, you must ensure **all** child plugins and all related objects/classes/threads have been released. As long as a group loader remains alive, the group's library classes can still be retained.
 
-**Lưu ý kỹ thuật:** loader theo nhóm như sơ đồ thường chứa **dependency của nhóm**, còn mã plugin ở loader con. Một biến thể đặt cả plugin code và dependency vào **một loader cho mỗi nhóm** đơn giản hơn, nhưng mất mức tách code/lifecycle giữa các plugin cùng nhóm. Tên “nhóm plugin chia sẻ phụ thuộc” cần nói rõ hai biến thể này trước khi áp dụng.
+**Technical note:** a group loader as diagrammed usually holds the **group's dependencies**, while plugin code lives in child loaders. A variant that puts both plugin code and dependencies into **one loader per group** is simpler, but loses code/lifecycle separation among plugins in the same group. The label "dependency-sharing plugin groups" should clarify these two variants before adoption.
 
-## 4. Bảng so sánh tổng hợp
+## 4. Summary Comparison Table
 
-| Tiêu chí | Một loader chung | Một loader/plugin | Loader dependency theo nhóm + child/plugin |
+| Criterion | Single shared loader | One loader/plugin | Group dependency loader + child/plugin |
 | --- | --- | --- | --- |
-| Phạm vi lớp plugin | Tất cả chung một vùng | Mỗi plugin riêng | Mỗi plugin riêng, dependency trong nhóm chung |
-| Hai version cùng binary class name | Không trong cùng defining loader | Có, ở hai loaders | Có, giữa các nhóm; **không** thể cùng tên/khác version trong một group deps loader |
-| Static field của dependency | Chung cho tất cả plugin dùng class ấy | Riêng cho từng plugin | Chung trong một nhóm, tách giữa nhóm |
-| Class identity của dependency | Chung nếu cùng class đã define | Khác giữa plugin | Chung trong nhóm, khác giữa nhóm |
-| Chi phí nhân bản class/JIT/cache | Thường thấp | Có thể cao | Trung gian |
-| Tách release plugin | Kém nhất nếu plugin code chung loader | Tốt hơn về class loading, còn phụ thuộc lifecycle thực | Plugin code có thể tách; thay group deps tác động mọi thành viên |
-| Khả năng nâng dependency độc lập | Tập trung toàn bộ | Từng plugin | Từng nhóm |
-| Kiểm soát dependency graph | Một graph duy nhất | Mỗi plugin một graph | Một graph chung mỗi nhóm + private deps |
-| Giao tiếp plugin ↔ host | Tương đối đơn giản nếu API thống nhất | Cần API/DTO parent chung | Cần API/DTO parent chung; tránh lộ class riêng của group qua biên khác group |
-| Độ phức tạp deploy/debug | Thấp | Trung bình–cao | Cao nhất về quy tắc nhóm/version/lifecycle |
-| Trường hợp nên ưu tiên | Plugin cùng đội, build/test chung | Plugin độc lập/xung đột versions | Plugin theo cụm, nhiều dependency nặng dùng chung |
+| Plugin class scope | All share one scope | Separate per plugin | Separate per plugin; dependencies shared within group |
+| Two versions of the same binary class name | No within the same defining loader | Yes, across two loaders | Yes, across groups; **cannot** coexist with same name/different versions in one group deps loader |
+| Static fields of dependencies | Shared across all plugins using that class | Separate per plugin | Shared within a group, isolated across groups |
+| Class identity of dependencies | Shared if the same class is defined | Distinct across plugins | Shared within group, distinct across groups |
+| Class/JIT/cache duplication cost | Usually low | Potentially high | Intermediate |
+| Plugin release decoupling | Weakest if plugin code shares loader | Better for class loading, still depends on actual lifecycle | Plugin code can be decoupled; changing group deps affects all members |
+| Independent dependency upgrades | Centralized for all | Per plugin | Per group |
+| Dependency graph control | One single graph | One graph per plugin | One shared graph per group + private deps |
+| Plugin ↔ host communication | Relatively simple if API is unified | Requires shared parent API/DTO | Requires shared parent API/DTO; avoid leaking group-private classes across group boundaries |
+| Deploy/debug complexity | Low | Medium–high | Highest for group/version/lifecycle rules |
+| Preferred use case | Plugins by the same team, built/tested together | Independent plugins / conflicting versions | Clustered plugins with many heavy shared dependencies |
 
-Không có mô hình nào mặc nhiên “nhanh nhất”. Loader nhiều không đồng nghĩa runtime luôn chậm hơn: tác động thực tế phụ thuộc số class được load, JIT, kích thước dependency, resource giữ lại, concurrency và việc ứng dụng có tạo instance hay không. Đo **Metaspace, heap retained size, startup time, class count, CPU/JIT, số thread/file handle** trên workload thật trước khi tối ưu.
+No model is inherently "the fastest." More loaders do not automatically mean slower runtime: actual impact depends on the number of classes loaded, JIT, dependency size, retained resources, concurrency, and whether the application creates instances. Measure **Metaspace, heap retained size, startup time, class count, CPU/JIT, and thread/file handle counts** on real workloads before optimizing.
 
-## 5. Ví dụ Java 17+ chạy được: quan sát cả ba mô hình bằng hai version của một class
+## 5. Runnable Java 17+ Example: Observing All Three Models Using Two Versions of a Class
 
-Lab dưới đây không cần thư viện bên thứ ba. Nó tạo hai JAR đều chứa `demo.lib.Version` nhưng trả về `v1`/`v2`; PluginA được compile với v1, PluginB với v2. Host **không** chứa `demo.lib.Version` trong class path; host dùng reflection chỉ để gọi hai plugin demo, từ đó minh họa lookup/identity mà chưa cần thiết kế SPI hoàn chỉnh.
+The lab below needs no third-party libraries. It builds two JARs both containing `demo.lib.Version` returning `v1`/`v2`; PluginA is compiled against v1, PluginB against v2. The host does **not** include `demo.lib.Version` on its class path; the host uses reflection solely to invoke the two demo plugins, thereby illustrating lookup/identity without yet needing to design a full SPI.
 
-### 5.1. Cấu trúc source
+### 5.1. Source Structure
 
 ~~~text
 loader-compare/
@@ -154,11 +154,11 @@ loader-compare/
 │   ├── a/demo/plugin/PluginA.java
 │   ├── b/demo/plugin/PluginB.java
 │   └── host/LoaderComparison.java
-├── build/                 # Sinh sau khi compile
-└── jars/                  # Sinh sau khi tạo JAR
+├── build/                 # Generated after compilation
+└── jars/                  # Generated after creating JARs
 ~~~
 
-Tệp `src/v1/demo/lib/Version.java`:
+File `src/v1/demo/lib/Version.java`:
 
 ~~~java
 package demo.lib;
@@ -170,7 +170,7 @@ public final class Version {
 }
 ~~~
 
-Tệp `src/v2/demo/lib/Version.java` có cùng binary name và chữ ký, nhưng thân phương thức trả `v2`:
+File `src/v2/demo/lib/Version.java` has the same binary name and signature, but its method body returns `v2`:
 
 ~~~java
 package demo.lib;
@@ -182,7 +182,7 @@ public final class Version {
 }
 ~~~
 
-Tệp `src/a/demo/plugin/PluginA.java`:
+File `src/a/demo/plugin/PluginA.java`:
 
 ~~~java
 package demo.plugin;
@@ -196,7 +196,7 @@ public final class PluginA {
 }
 ~~~
 
-Tệp `src/b/demo/plugin/PluginB.java`:
+File `src/b/demo/plugin/PluginB.java`:
 
 ~~~java
 package demo.plugin;
@@ -210,7 +210,7 @@ public final class PluginB {
 }
 ~~~
 
-Tệp `src/host/LoaderComparison.java`:
+File `src/host/LoaderComparison.java`:
 
 ~~~java
 import java.net.URL;
@@ -242,7 +242,7 @@ public final class LoaderComparison {
         URL pluginB = Path.of(args[3]).toUri().toURL();
         ClassLoader host = LoaderComparison.class.getClassLoader();
 
-        // A: một loader chung; v1 đứng trước v2 trong URL search path.
+        // A: one shared loader; v1 precedes v2 in the URL search path.
         try (URLClassLoader one = new URLClassLoader(
                 new URL[] { v1, v2, pluginA, pluginB }, host)) {
             System.out.println("ONE " +
@@ -250,7 +250,7 @@ public final class LoaderComparison {
                     run(one, "demo.plugin.PluginB"));
         }
 
-        // B: mỗi plugin một loader, mỗi loader có version riêng.
+        // B: one loader per plugin, each loader has its own version.
         try (URLClassLoader a = new URLClassLoader(
                      new URL[] { pluginA, v1 }, host);
              URLClassLoader b = new URLClassLoader(
@@ -261,7 +261,7 @@ public final class LoaderComparison {
                     " sameLib=" + (versionClass(a) == versionClass(b)));
         }
 
-        // C: dependency v1 ở loader nhóm; plugin code ở hai loader con.
+        // C: v1 dependency in the group loader; plugin code in two child loaders.
         try (URLClassLoader group = new URLClassLoader(
                      new URL[] { v1 }, host);
              URLClassLoader a = new URLClassLoader(
@@ -277,17 +277,17 @@ public final class LoaderComparison {
 }
 ~~~
 
-**Đọc code theo thứ tự:**
+**Reading the code in order:**
 
-- `run(loader, className)` yêu cầu đúng loader nạp mã plugin. Nó chỉ dùng reflection để gọi demo; trong sản phẩm thực tế, hãy dùng interface API chia sẻ ở parent.
-- `versionClass` trả về `Class<?>` cho `demo.lib.Version` mà mỗi loader nhìn thấy; `==` so sánh **runtime class identity**, không so sánh tên.
-- Trường hợp ONE đặt v1 trước v2 trong URL search path. `Version` được định nghĩa theo v1; cả A và B nhìn thấy v1.
-- Trường hợp PER dùng hai loader độc lập, mỗi loader chứa đúng một version và plugin tương ứng.
-- Trường hợp GROUP để cả hai plugin delegate lên cùng group loader có v1: cả hai thấy v1, cùng `Class<?>`. B được compile với v2 nhưng `value()` vẫn tương thích chữ ký nên chạy được, dù **không còn dùng version đã compile**.
+- `run(loader, className)` asks the exact loader to load the plugin code. It uses reflection only for demo invocation; in a real product, use a shared API interface in the parent.
+- `versionClass` returns the `Class<?>` for `demo.lib.Version` visible to each loader; `==` compares **runtime class identity**, not names.
+- Case ONE puts v1 before v2 in the URL search path. `Version` is defined from v1; both A and B see v1.
+- Case PER uses two independent loaders, each containing exactly one version and its corresponding plugin.
+- Case GROUP has both plugins delegate up to the same group loader with v1: both see v1 and the same `Class<?>`. B was compiled against v2, but `value()` remains signature-compatible so it runs, even though it **no longer uses the version it was compiled against**.
 
-### 5.2. Biên dịch và đóng gói
+### 5.2. Compiling and Packaging
 
-Chạy từ thư mục `loader-compare` bằng **PowerShell** (Windows, JDK 17+ có `javac` và `jar`). Các lệnh dưới đây tạo đúng bốn JAR; không dùng build tool để người học thấy rõ dependency nào thuộc JAR nào:
+Run from the `loader-compare` directory using **PowerShell** (Windows, JDK 17+ with `javac` and `jar`). The commands below create four exact JARs; no build tool is used so learners clearly see which dependency belongs to which JAR:
 
 ~~~powershell
 New-Item -ItemType Directory -Force build\v1,build\v2,build\a,build\b,build\host,jars | Out-Null
@@ -308,7 +308,7 @@ jar --create --file jars\plugin-b.jar -C build\b .
 java -cp build\host LoaderComparison jars\lib-v1.jar jars\lib-v2.jar jars\plugin-a.jar jars\plugin-b.jar
 ~~~
 
-**Stdout kỳ vọng chính xác** (trên JDK 17+ với đúng bốn JAR vừa tạo và host chỉ có `build\host` trong class path):
+**Exact expected stdout** (on JDK 17+ with the exact four JARs just created and the host having only `build\host` on the class path):
 
 ~~~text
 ONE A:v1 B:v1
@@ -316,40 +316,40 @@ PER A:v1 B:v2 sameLib=false
 GROUP A:v1 B:v1 sameLib=true
 ~~~
 
-Đây là kết quả quan trọng nhất:
+This is the most important result:
 
-- **ONE:** chung classloader nên cả hai bị chi phối bởi **một lựa chọn version**; hiện tượng “first found wins” ở đây gắn với URL order và việc parent không chứa `Version`.
-- **PER:** cùng tên `demo.lib.Version` nhưng hai class khác nhau; A/B độc lập về version.
-- **GROUP:** mỗi plugin có loader riêng **nhưng** cả hai thấy dependency từ group parent, nên chia sẻ type và version.
+- **ONE:** shared classloader so both are governed by **a single version choice**; the "first found wins" behavior here is tied to URL order and the parent not containing `Version`.
+- **PER:** same name `demo.lib.Version` yet two distinct classes; A and B are independent in version.
+- **GROUP:** each plugin has its own loader **but** both see the dependency from the group parent, so they share the type and version.
 
-Với một mô hình GROUP nhiều nhóm thực tế, tạo `Group1Loader` từ v1 cho plugin A và `Group2Loader` từ v2 cho B/C. Khi so sánh `versionClass(group1Child) == versionClass(group2Child)`, kết quả `false` vì hai group loaders định nghĩa độc lập. Mô hình lab một nhóm được chọn để làm nổi bật cơ chế **chia sẻ bên trong nhóm**.
+For a real multi-group GROUP model, create `Group1Loader` from v1 for plugin A and `Group2Loader` from v2 for B/C. When comparing `versionClass(group1Child) == versionClass(group2Child)`, the result is `false` because the two group loaders define independently. A single-group lab model was chosen to highlight the **intra-group sharing** mechanism.
 
-### 5.3. Thử phá tương thích để hiểu NoSuchMethodError
+### 5.3. Breaking Compatibility to Understand NoSuchMethodError
 
-Hãy thêm method `public static String newFeature()` **chỉ** ở `Version` v2, sửa `PluginB.run()` gọi method đó, rồi compile lại B với v2.
+Add a `public static String newFeature()` method **only** in `Version` v2, edit `PluginB.run()` to call that method, and recompile B against v2.
 
-- Với **PER**, B thấy `Version` v2 nên có thể gọi `newFeature()`.
-- Với **ONE** nếu v1 được tìm trước, B sẽ tìm method trên `Version` v1 và có thể ném `NoSuchMethodError` khi lời gọi được liên kết/thực thi.
-- Với **GROUP** đang ghim v1, B cũng gặp vấn đề; phải nâng version của cả group nếu tương thích ngược với A, hoặc chuyển B sang group khác.
+- With **PER**, B sees `Version` v2 and can call `newFeature()`.
+- With **ONE** if v1 is found first, B will look up the method on `Version` v1 and may throw `NoSuchMethodError` when the call is linked/executed.
+- With **GROUP** pinned to v1, B also runs into trouble; you must upgrade the whole group's version if backward compatible with A, or move B to another group.
 
-Không nên sửa thứ tự JAR một cách tùy tiện như chiến lược tương thích. Build/test nên xác định dependency graph và version ngay từ đầu; runtime loader chỉ hiện thực hóa quyết định đó.
+Do not arbitrarily rearrange JAR order as a compatibility strategy. Build/test should determine the dependency graph and versions up front; runtime loaders merely enforce that decision.
 
-## 6. Ranh giới API chia sẻ: điều kiện để plugin tương tác an toàn
+## 6. Shared API Boundary: Conditions for Safe Plugin Interaction
 
-Sơ đồ có parent loader chung cho **host API, DTO, event contract và interface dịch vụ**. Trong plugin platform thực tế, đây là quy tắc nền tảng:
+The layout with a shared parent loader for **host APIs, DTOs, event contracts, and service interfaces**. In a real plugin platform, this is the foundational rule:
 
 ~~~text
 Host / ApiLoader  →  com.example.api.Plugin, Request, Result
        │
-       ├── PluginALoader → plugin A + thư viện private v1
+       ├── PluginALoader → plugin A + private library v1
        │
-       └── PluginBLoader → plugin B + thư viện private v2
+       └── PluginBLoader → plugin B + private library v2
 
-Host gọi qua com.example.api.Plugin,
-không ép kiểu trực tiếp class private của A/B.
+Host calls through com.example.api.Plugin,
+without directly casting A/B's private classes.
 ~~~
 
-Ví dụ **chữ ký minh họa, không phải chương trình độc lập**:
+Example **illustrative signature, not a standalone program**:
 
 ~~~java
 package com.example.api;
@@ -360,39 +360,39 @@ public interface Plugin {
 }
 ~~~
 
-`Request` và `Result` cũng phải là các type được host và các plugin nhìn thấy **từ cùng defining loader**, hoặc dùng dạng dữ liệu chuyển đổi rõ ràng (ví dụ byte array, JSON với schema/version), tránh truyền các object library-private khác class identity qua biên.
+`Request` and `Result` must also be types seen by the host and plugins **from the same defining loader**, or use an explicit exchange format (such as byte arrays or versioned/schema-backed JSON), avoiding passing library-private objects with differing class identities across the boundary.
 
-Nếu `plugin-a.jar` đóng gói một bản sao `com.example.api.Plugin` và loader A định nghĩa bản sao đó (chẳng hạn do child-first sai), object A có thể không cast được sang `Plugin` phía host. Với parent-first và API đã ở parent, bản sao ở child thường bị parent “che”, nhưng cách đóng gói trùng API vẫn làm hệ thống khó kiểm soát, đặc biệt khi phiên bản API khác nhau.
+If `plugin-a.jar` packages a duplicate copy of `com.example.api.Plugin` and loader A defines that duplicate (for instance due to misconfigured child-first loading), A's object may fail to cast to the host's `Plugin`. With parent-first and the API already in the parent, the child's copy is normally "shadowed" by the parent, yet packaging duplicate APIs still makes the system hard to control, especially when API versions differ.
 
-**Quy tắc đóng gói:**
+**Packaging rules:**
 
-- Tách `plugin-api.jar` ra khỏi implementation và đặt API trong parent/shared layer.
-- Plugin compile với API theo `provided`/`compileOnly` nếu build tool hỗ trợ, tránh nhét lại vào plugin runtime JAR.
-- Chỉ công khai DTO đủ ổn định; không để API chứa type cụ thể từ `lib-json-v1` nếu các plugin cần hai version khác nhau.
-- Nếu plugin A phải gọi B, ưu tiên đi qua **host-owned interface/event bus** hoặc serializable payload với schema. Đừng truyền nguyên object `com.thirdparty.JsonNode` nếu type đó đang được định nghĩa riêng ở mỗi loader.
-- Test compatibility giữa API host và plugin đã build từ các version cũ. **Cùng class identity không đảm bảo binary/source compatibility** nếu chữ ký đã thay đổi.
+- Separate `plugin-api.jar` from implementations and place the API in the parent/shared layer.
+- Plugins compile against the API as `provided`/`compileOnly` if the build tool supports it, avoiding re-bundling it into the plugin runtime JAR.
+- Publish only sufficiently stable DTOs; do not let the API expose concrete types from `lib-json-v1` if plugins need two different versions.
+- If plugin A must call B, prefer going through a **host-owned interface/event bus** or a serializable payload with a schema. Do not pass raw `com.thirdparty.JsonNode` objects if that type is defined separately in each loader.
+- Test compatibility between the host API and plugins built against older versions. **Identical class identity does not guarantee binary/source compatibility** if signatures have changed.
 
-## 7. Cách xác định dependency nào phải chung, nào phải riêng
+## 7. How to Determine Which Dependencies Must Be Shared and Which Must Be Private
 
-Không thể quyết định chỉ dựa vào tên JAR. Hãy phân loại **mỗi dependency** theo vai trò:
+You cannot decide based solely on JAR filenames. Classify **each dependency** by its role:
 
-| Loại dependency | Nơi nên đặt | Lý do và cảnh báo |
+| Dependency category | Where to place it | Rationale and caveats |
 | --- | --- | --- |
-| JDK/Java SE APIs | Built-in/platform loaders theo JVM | Không sao chép vào plugin |
-| Service API, DTO/event contract host | Parent chung | Đảm bảo class identity và cast qua ranh giới |
-| Thư viện dữ liệu xuất hiện trong public API | Hoặc nâng lên API chung với version thống nhất, hoặc đổi boundary sang DTO riêng | Nếu để mỗi plugin giữ một version riêng mà public API dùng type đó thì integration dễ gãy |
-| Thư viện thuần private, mỗi plugin cần version khác | Plugin loader | Tránh version collision |
-| Thư viện lớn, nhiều plugin dùng **cùng version tương thích** | Group dependency loader | Giảm duplicate class/static cache; đổi lại coupling |
-| Runtime framework dùng TCCL/`ServiceLoader` | Quyết định riêng phạm vi discovery và resource visibility | Đặt library ở đâu chưa đủ; phải kiểm tra TCCL/resource/config |
-| Native library/JNI, global agent, process singleton | Cần chính sách riêng ở cấp JVM/process | Classloader không đảm bảo cô lập native code hay OS resources |
+| JDK/Java SE APIs | JVM built-in/platform loaders | Do not copy into plugins |
+| Service API, host DTO/event contracts | Shared parent | Guarantees class identity and casting across the boundary |
+| Data libraries appearing in public APIs | Either promote to shared API with unified version, or change boundary to custom DTOs | If each plugin keeps its own version while public API uses that type, integration breaks easily |
+| Purely private libraries where each plugin needs a different version | Plugin loader | Prevents version collisions |
+| Large libraries used by many plugins at the **same compatible version** | Group dependency loader | Reduces duplicate classes/static caches; trade-off is coupling |
+| Runtime frameworks using TCCL/`ServiceLoader` | Decide discovery scope and resource visibility separately | Where the library sits is not enough; must verify TCCL/resources/config |
+| Native libraries/JNI, global agents, process singletons | Requires separate policy at JVM/process level | Classloaders do not guarantee isolation of native code or OS resources |
 
-**Một trường hợp quan trọng:** hai plugin đều dùng `lib-x:2.0` chưa chắc nên chia sẻ group loader. Nếu thư viện có static mutable singleton, global registration, thread pool, logging context hoặc cache dùng riêng theo tenant, chia sẻ class có thể làm **chia sẻ state ngoài ý muốn**. Cần đánh giá behavior và ownership, không chỉ version.
+**An important case:** two plugins both using `lib-x:2.0` does not automatically mean they should share a group loader. If the library has mutable static singletons, global registrations, thread pools, logging contexts, or per-tenant caches, sharing the class can cause **unintended state sharing**. You must evaluate behavior and ownership, not just version.
 
-Ngược lại, nếu `lib-x` là thư viện thuật toán bất biến, version đã ghim và có kích thước class metadata lớn, group loader thường tiết kiệm hơn việc mỗi plugin nạp riêng.
+Conversely, if `lib-x` is a stateless algorithmic library with a pinned version and large class metadata footprint, a group loader is typically more economical than loading it separately per plugin.
 
-## 8. Class loader tree khác dependency graph
+## 8. Class Loader Tree vs. Dependency Graph
 
-Đồ thị phụ thuộc build thường là DAG:
+A build dependency graph is typically a DAG:
 
 ~~~text
 Plugin A → API, Lib X, Lib Y
@@ -400,9 +400,9 @@ Plugin B → API, Lib X, Lib Z
 Plugin C → API, Lib X, Lib Z
 ~~~
 
-Nhưng một `ClassLoader` thông thường có **một parent**. Bạn không thể trực tiếp gán cho loader B hai parent “API loader” và “X loader” độc lập như hai cạnh dependency tùy ý. Cần tổ chức cây loader phù hợp (API → group deps → plugin), hoặc dùng cách routing/delegation tùy biến đã thiết kế cẩn thận.
+However, a standard `ClassLoader` has **a single parent**. You cannot directly assign loader B two independent parents ("API loader" and "X loader") like arbitrary dependency edges. You must structure an appropriate loader tree (API → group deps → plugin), or use carefully designed custom routing/delegation.
 
-Trong group model:
+In the group model:
 
 ~~~text
 ApiLoader
@@ -411,17 +411,17 @@ ApiLoader
          └── PluginCLoader
 ~~~
 
-Plugin B nhìn thấy cả API (qua ancestor) và dependency nhóm. Dependency private B nằm ở child B, nên C **không tự nhìn thấy** các private class của B. Nếu B phải truy cập trực tiếp implementation của C, cần cầu nối do host kiểm soát; đừng âm thầm thêm delegation vòng B ↔ C. Delegation vòng hoặc loader tùy biến không parallel-capable có thể gây deadlock/classloading race, nhất là khi nhiều thread nạp class song song.
+Plugin B sees both the API (via ancestors) and the group dependencies. B's private dependencies sit in child B, so C **cannot automatically see** B's private classes. If B must directly access C's implementation, a host-controlled bridge is needed; never quietly add cyclic B ↔ C delegation. Cyclic delegation or custom loaders that are not parallel-capable can cause deadlocks/classloading races, especially when multiple threads load classes concurrently.
 
-Đối với **các package trùng tên**, loader boundary có thể tránh trùng giữa hai **nhóm**. Trong **cùng group loader**, cùng binary name vẫn chỉ được định nghĩa một lần; không biến group thành “multi-version magic”.
+For **overlapping package names**, loader boundaries can avoid collisions between two **groups**. Within the **same group loader**, the same binary name can still be defined only once; do not treat groups as "multi-version magic."
 
-## 9. TCCL, ServiceLoader và resource: cách ly class chưa đủ
+## 9. TCCL, ServiceLoader, and Resources: Class Isolation Alone Is Not Enough
 
 ### 9.1. Thread Context ClassLoader (TCCL)
 
-Một số framework/library khám phá implementation qua `Thread.currentThread().getContextClassLoader()`. Overload `ServiceLoader.load(MyService.class)` sử dụng TCCL của thread gọi; vì vậy host gọi từ thread pool có TCCL là loader host có thể **không tìm thấy** provider chỉ hiện diện trong loader plugin.
+Some frameworks/libraries discover implementations via `Thread.currentThread().getContextClassLoader()`. The `ServiceLoader.load(MyService.class)` overload uses the calling thread's TCCL; thus a host calling from a thread pool whose TCCL is the host loader may **fail to find** providers present only in a plugin loader.
 
-Có thể thiết lập TCCL quanh lời gọi plugin khi framework yêu cầu. Đoạn dưới đây là **minh họa, không độc lập** (biến `pluginLoader` và `action` phải được khai báo):
+You can set the TCCL around a plugin call when a framework requires it. The snippet below is **illustrative, not standalone** (variables `pluginLoader` and `action` must be declared):
 
 ~~~java
 Thread thread = Thread.currentThread();
@@ -434,102 +434,102 @@ try {
 }
 ~~~
 
-Dùng `finally` để tránh rò TCCL trên thread của pool sau khi trả về. Nếu plugin tự khởi tạo thread, thread ấy có thể kế thừa TCCL và **giữ loader cũ**, nên lifecycle phải quản lý cả executor/thread do plugin tạo.
+Use `finally` to avoid leaking the TCCL on pool threads after returning. If a plugin spawns threads itself, those threads may inherit the TCCL and **retain the old loader**, so lifecycle management must cover plugin-created executors/threads too.
 
-Khi muốn chỉ rõ phạm vi tìm provider, có thể dùng `ServiceLoader.load(Service.class, pluginLoader)`. Tuy nhiên với parent-first/resource delegation, phạm vi đó có thể bao gồm cả provider metadata ở parent; **không nên xem đây là danh sách “chỉ plugin hiện tại” tuyệt đối** khi không kiểm soát resource discovery. Nếu cần whitelist, registry theo plugin ID, quyền và version, nên có catalog/metadata rõ ràng.
+When you want to specify the provider lookup scope explicitly, you can use `ServiceLoader.load(Service.class, pluginLoader)`. However, with parent-first/resource delegation, that scope can also include provider metadata in the parent; **do not treat this as an absolute "current plugin only" list** without controlling resource discovery. If you need whitelisting or a registry by plugin ID, permissions, and version, maintain explicit catalogs/metadata.
 
-### 9.2. Service provider metadata cũng là resource
+### 9.2. Service Provider Metadata Is Also a Resource
 
-Class path SPI dùng `META-INF/services/<FQCN>`. `ServiceLoader` tìm resource theo loader, sau đó load implementation. Khi dependency hoặc provider JAR bị đặt sai ở parent/group, host có thể thấy một provider ngoài phạm vi mong đợi, hoặc nhìn thấy metadata nhưng không load được implementation và phát sinh `ServiceConfigurationError`.
+Class path SPI uses `META-INF/services/<FQCN>`. `ServiceLoader` locates the resource via the loader, then loads the implementation. When a dependency or provider JAR is misplaced in the parent/group, the host might see a provider outside the intended scope, or see the metadata but fail to load the implementation and throw `ServiceConfigurationError`.
 
-Khi đóng gói fat JAR/shaded JAR, cần xử lý **merge service files** đúng cách. Chỉ gộp class files mà ghi đè một metadata file có thể làm provider biến mất dù bytecode còn trong JAR.
+When packaging a fat JAR/shaded JAR, you must handle **merging service files** properly. Merely combining class files while overwriting one metadata file can make a provider vanish even though its bytecode remains in the JAR.
 
-### 9.3. JPMS và ModuleLayer
+### 9.3. JPMS and ModuleLayer
 
-Với **named modules**, JPMS dùng `module-info.java` để khai báo `requires`, `exports`, `opens`, `uses`, `provides` và đặt module vào `ModuleLayer`. Java 17 cung cấp:
+With **named modules**, JPMS uses `module-info.java` to declare `requires`, `exports`, `opens`, `uses`, `provides`, and places modules into a `ModuleLayer`. Java 17 provides:
 
-- `ModuleLayer.defineModulesWithOneLoader(...)`: một loader cho các module trong layer đó.
-- `ModuleLayer.defineModulesWithManyLoaders(...)`: một loader **cho mỗi module** trong configuration đó.
-- `ModuleLayer.defineModules(...)`: ánh xạ module name sang loader qua function tùy chỉnh (phải tuân thủ module readability, package/class-loading constraints và thiết kế cụ thể).
+- `ModuleLayer.defineModulesWithOneLoader(...)`: one loader for the modules in that layer.
+- `ModuleLayer.defineModulesWithManyLoaders(...)`: one loader **for each module** in that configuration.
+- `ModuleLayer.defineModules(...)`: maps module names to loaders via a custom function (must obey module readability, package/class-loading constraints, and the specific design).
 
-**Không đồng nhất “one loader per module” với “one loader per plugin”**. Một plugin có thể gồm nhiều module; một module có thể chứa nhiều package/feature. Module graph có các quy tắc resolution/readability/export riêng, còn class loader graph quyết định các type được định nghĩa ở đâu. Một module layer dùng chung loader còn có thể không tạo được khi có overlapping packages hoặc split delegation, theo quy tắc API.
+**Do not equate "one loader per module" with "one loader per plugin"**. One plugin may consist of multiple modules; one module may contain multiple packages/features. The module graph has its own resolution/readability/export rules, whereas the class loader graph determines where types are defined. A module layer using a single shared loader can even fail to be created when there are overlapping packages or split delegation, per API rules.
 
-Vì thế: class-path `URLClassLoader` và JPMS layer là **hai mô hình quản lý khác nhau**. Chỉ chuyển JAR sang module path không tự cô lập được version conflict; cần thiết kế module names, configuration, layer và loader mapping nhất quán.
+Therefore: class-path `URLClassLoader` and JPMS layers are **two different management models**. Merely moving JARs to the module path does not automatically isolate version conflicts; you must design module names, configurations, layers, and loader mappings consistently.
 
-## 10. Chi phí bộ nhớ và vòng đời: cái giá của cô lập
+## 10. Memory Cost and Lifecycle: The Price of Isolation
 
-### 10.1. Cái gì được nhân bản?
+### 10.1. What Gets Duplicated?
 
-Với N plugin dùng bản sao cùng thư viện nhưng mỗi plugin loader định nghĩa riêng các class của thư viện:
+With N plugins using copies of the same library while each plugin loader defines the library's classes separately:
 
-- **Metaspace / class metadata** cho các class được load trong mỗi loader có thể tăng.
-- **JIT compilation / code cache** và class initialization có thể được thực hiện riêng cho những runtime class độc lập.
-- **Static state/cache**, registry, thread, pool và các tài nguyên do thư viện tạo có thể lặp lại.
-- **Heap** còn tùy object thực sự được tạo và giữ lại. Không phải cứ có JAR trong URL list là toàn bộ class và object đều bị load ngay.
+- **Metaspace / class metadata** for classes loaded in each loader can grow.
+- **JIT compilation / code cache** and class initialization may be performed separately for independent runtime classes.
+- **Static state/caches**, registries, threads, pools, and resources created by the library can be duplicated.
+- **Heap** still depends on the objects actually created and retained. Merely having a JAR in the URL list does not cause all classes and objects to be loaded immediately.
 
-Group loader giảm một phần duplication nếu các plugin thực sự delegate cùng thư viện group. Nhưng nó cũng tạo **shared fate**: class/static cache của thư viện được giữ sống miễn group loader vẫn được dùng bởi một plugin nào đó. Vì vậy không nên hứa mức tiết kiệm MB cố định mà chưa đo.
+A group loader reduces part of the duplication if plugins actually delegate to the same group library. However, it also creates **shared fate**: library classes/static caches remain alive as long as the group loader is still used by any plugin. Therefore, do not promise fixed MB savings without measuring.
 
-### 10.2. Đóng URLClassLoader không đồng nghĩa unload ngay
+### 10.2. Closing URLClassLoader Does Not Mean Immediate Unloading
 
-`URLClassLoader` implement `Closeable`. `close()` đóng resource/JAR file handle mà loader đã mở (với những giới hạn của API), giúp giải phóng file handle và tránh tình trạng file không thể thay thế trên một số hệ điều hành. Nó **không** “xóa bytecode đang chạy”, không ngắt thread, không gọi `Plugin.stop()` và không buộc class unloading ngay lập tức.
+`URLClassLoader` implements `Closeable`. `close()` closes resources/JAR file handles opened by the loader (within the limits of the API), helping release file handles and avoid situations where files cannot be replaced on some operating systems. It does **not** "erase running bytecode," interrupt threads, call `Plugin.stop()`, or force immediate class unloading.
 
-Để một thế hệ plugin loader có thể được GC/unload khi JVM cho phép:
+For a generation of a plugin loader to become eligible for GC/unloading when the JVM permits:
 
-1. Ngăn nhận request mới vào thế hệ cũ.
-2. Đợi request hiện tại hoàn tất hoặc có chính sách timeout/cancel rõ ràng.
-3. Gọi hook `stop/close` của các plugin và những resource thuộc quyền sở hữu của chúng.
-4. Dừng thread, executor, timer, listener, callback, watcher; xóa registry/static cache tham chiếu plugin.
-5. Khôi phục TCCL cho thread pool và bỏ mọi reference tới instance, `Class<?>`, `Method`, `ClassLoader` hoặc object từ dependency group.
-6. Đóng loader **theo thứ tự con → cha** và bỏ tham chiếu tới loader cũ.
-7. Chỉ kết luận leak/unload dựa trên heap/classloading evidence thực tế; GC và class unloading không có cam kết xảy ra tức thì.
+1. Stop accepting new requests into the old generation.
+2. Wait for current requests to finish or enforce a clear timeout/cancel policy.
+3. Call `stop/close` hooks on the plugins and the resources they own.
+4. Stop threads, executors, timers, listeners, callbacks, and watchers; clear registries/static caches referencing the plugin.
+5. Restore the TCCL on thread pools and drop all references to instances, `Class<?>`, `Method`, `ClassLoader`, or objects from the dependency group.
+6. Close loaders **in child → parent order** and drop references to the old loaders.
+7. Conclude leaks/unloading only based on actual heap/classloading evidence; GC and class unloading have no guarantee of happening instantaneously.
 
-**Đối với group:** không đóng/loại bỏ `GroupDepsLoader` khi một child plugin khác vẫn đang sử dụng class của nó. Muốn nâng `lib-json-2` lên `lib-json-3` cho cả nhóm, thường tạo **group loader mới**, tạo các plugin loaders mới, khởi động/validate chúng, chuyển traffic và sau đó giải phóng **toàn bộ** thế hệ group cũ.
+**For groups:** do not close/discard `GroupDepsLoader` while another child plugin is still using its classes. To upgrade `lib-json-2` to `lib-json-3` for the entire group, typically create a **new group loader**, create new plugin loaders, start/validate them, shift traffic, and then release the **entire** old group generation.
 
-### 10.3. Không hot-swap thư viện chỉ nhờ sửa JAR trên đĩa
+### 10.3. No Hot-Swapping Libraries Just by Editing JARs on Disk
 
-Khi class đã được định nghĩa, sửa JAR file không khiến class đó đổi bytecode. `ServiceLoader.reload()` chỉ reset provider cache của **đối tượng ServiceLoader**, không tự thay JAR URLs/class loader hoặc lifecycle. Để nạp một phiên bản thực sự khác với cùng binary names, thường cần một **defining loader mới** (hoặc cơ chế instrumentation có giới hạn riêng, ngoài phạm vi kiến trúc plugin thông thường).
+Once a class is defined, modifying the JAR file does not change that class's bytecode. `ServiceLoader.reload()` only resets the provider cache of the **ServiceLoader object**; it does not replace JAR URLs/class loaders or lifecycle. To load a genuinely different version with the same binary names, a **new defining loader** is generally required (or instrumentation mechanisms with their own constraints, outside normal plugin architecture).
 
-Đừng đóng loader cũ khi có thread khác đang load class từ loader ấy; API `URLClassLoader.close()` không bảo đảm kết quả khi nó chạy đồng thời với việc load class.
+Do not close an old loader while another thread is actively loading classes from it; the `URLClassLoader.close()` API does not guarantee results when run concurrently with class loading.
 
-## 11. Cấu hình build và kiểm thử trước khi triển khai
+## 11. Build Configuration and Pre-Deployment Testing
 
-### 11.1. Khóa phiên bản và kiểm tra dependency graph
+### 11.1. Pinning Versions and Checking the Dependency Graph
 
-Trước khi xây loader, cần biết **đúng JAR nào** được đưa vào từng loader:
+Before building loaders, you need to know **exactly which JARs** go into each loader:
 
-- Liệt kê transitive dependencies của plugin, kiểm tra duplicate class và conflict theo **binary names**, không chỉ tên Maven artifact.
-- Ghim version của shared dependencies mỗi group và xây compatibility matrix giữa plugin A/B/C với version group.
-- Không để dependency private bị “leak” sang parent/application class path vì parent-first sẽ khiến plugin không chọn được version riêng.
-- Đặt common API ở parent, compile/test nhiều phiên bản plugin với API tối thiểu được hỗ trợ.
-- Kiểm tra resource/service files, native libraries, log binding, XML parser, bytecode tooling, plugin shading/relocation.
+- List transitive dependencies of plugins, checking for duplicate classes and conflicts by **binary names**, not only Maven artifact names.
+- Pin versions of shared dependencies per group and build a compatibility matrix between plugins A/B/C and group versions.
+- Do not let private dependencies "leak" onto the parent/application class path, because parent-first will prevent plugins from selecting their own versions.
+- Place the common API in the parent, and compile/test multiple plugin versions against the minimum supported API.
+- Check resource/service files, native libraries, log bindings, XML parsers, bytecode tooling, and plugin shading/relocation.
 
-**Shading/relocation** là một chiến lược khác: đổi package/binary names của thư viện bundled để hai bản có thể tồn tại ngay cả trong cùng defining loader. Nhưng nó ảnh hưởng tới reflection, serialization, resource paths, SPI metadata, native binding và public signatures; phải test kỹ và không coi là giải pháp mặc định.
+**Shading/relocation** is an alternative strategy: renaming packages/binary names of a bundled library so two copies can coexist even in the same defining loader. However, it affects reflection, serialization, resource paths, SPI metadata, native bindings, and public signatures; it must be tested thoroughly and not treated as a default solution.
 
-### 11.2. Test matrix nên bao phủ gì?
+### 11.2. What Should the Test Matrix Cover?
 
-| Test | Một loader chung | Per-plugin loader | Group loader |
+| Test | Single shared loader | Per-plugin loader | Group loader |
 | --- | --- | --- | --- |
-| Hai plugin dùng hai version xung đột | Phải phát hiện và báo incompatibility trước deploy | Chạy đồng thời nếu không lộ type qua API | Phải tách hai group nếu không có version tương thích |
-| Type identity | Các class chung có cùng defining loader | Library-private classes khác identity | Cùng nhóm chung identity, khác nhóm thì khác |
-| Constructor/static singleton | Chia sẻ cùng runtime class | Khởi tạo riêng mỗi loader | Chia sẻ trong nhóm |
-| Lỗi `NoSuchMethodError` khi lệch binary | Đặc biệt cần test xung đột version | Test riêng từng dependency set | Test compatibility toàn nhóm |
-| Resource/SPI lookup | Kiểm tra duplicate/merged provider files | Kiểm tra đúng loader/TCCL | Kiểm tra không lộ provider sang plugin thành viên khác |
-| Thay version một plugin | Thường thay thế vùng chung | Tạo loader thế hệ mới cho plugin đó | Có thể cần tái lập group nếu đổi shared dependency |
-| Dừng/unload | Thực hiện ở scope loader chung | Thử đóng từng plugin riêng | Thử drain cả group trước khi đóng shared deps |
-| Memory/cpu | Đo baseline | Đo class count/metaspace per loader | Đo tiết kiệm và shared static resource |
+| Two plugins using conflicting versions | Must detect and report incompatibility before deploy | Run concurrently if types are not exposed through the API | Must split into two groups if no compatible version exists |
+| Type identity | Shared classes have the same defining loader | Library-private classes have distinct identities | Shared within group, distinct across groups |
+| Constructors/static singletons | Shared runtime class | Initialized separately per loader | Shared within group |
+| `NoSuchMethodError` on binary mismatch | Especially requires testing version conflicts | Test each dependency set separately | Test group-wide compatibility |
+| Resource/SPI lookup | Check duplicate/merged provider files | Check correct loader/TCCL | Check no provider leaks to other member plugins |
+| Upgrading one plugin version | Usually replaces the shared scope | Create a new-generation loader for that plugin | May need to rebuild the group if shared dependencies change |
+| Stop/unload | Performed at shared loader scope | Test closing each plugin individually | Test draining the entire group before closing shared deps |
+| Memory/CPU | Measure baseline | Measure class count/metaspace per loader | Measure savings and shared static resources |
 
-Mỗi test quan trọng nên kiểm tra cả **mã cũ và mới cùng tồn tại tạm thời** trong giai đoạn chuyển traffic: hệ plugin không lỗi chỉ lúc khởi động mà còn khi lifecycle overlap. Đặc biệt, một plugin cũ có thread giữ TCCL là loader của nó có thể khiến redeploy lâu dần tăng Metaspace.
+Every critical test should also check **old and new code temporarily coexisting** during traffic transition: plugin systems fail not only at startup but also during lifecycle overlap. In particular, an old plugin whose threads retain its loader as TCCL can steadily increase Metaspace over repeated redeploys.
 
-### 11.3. Công cụ chẩn đoán
+### 11.3. Diagnostic Tools
 
-- `jar tf plugin.jar`: xem class và `META-INF/services` có trong JAR.
-- `javap -classpath ... -p com.acme.Type`: đối chiếu method/field signatures lúc build.
-- `jdeps ...`: hỗ trợ kiểm tra phụ thuộc JAR/module.
-- `java -Xlog:class+load=info ...`: quan sát nguồn class loading trên JVM hỗ trợ unified logging.
-- `jcmd <pid> VM.classloaders` hoặc các diagnostic commands phù hợp JDK: quan sát cây loader và số class trong môi trường đang chạy; một số option/tool thay đổi theo JVM.
-- Heap dump/profiler: tìm reference giữ loader cũ, `Thread.contextClassLoader`, listener, static map, singleton và plugin instance.
+- `jar tf plugin.jar`: inspect classes and `META-INF/services` inside a JAR.
+- `javap -classpath ... -p com.acme.Type`: compare method/field signatures at build time.
+- `jdeps ...`: assists in inspecting JAR/module dependencies.
+- `java -Xlog:class+load=info ...`: observe class loading sources on JVMs supporting unified logging.
+- `jcmd <pid> VM.classloaders` or JDK-appropriate diagnostic commands: observe the loader tree and class counts in a running environment; some options/tools vary by JVM.
+- Heap dump/profiler: locate references holding old loaders, `Thread.contextClassLoader`, listeners, static maps, singletons, and plugin instances.
 
-Đo class identity trực tiếp trong code chẩn đoán (đoạn **minh họa**, cần biến `obj` đã có):
+Inspect class identity directly in diagnostic code (**illustrative** snippet, requires an existing `obj` variable):
 
 ~~~java
 Class<?> type = obj.getClass();
@@ -538,95 +538,95 @@ System.out.println("definingLoader=" + type.getClassLoader());
 System.out.println("module=" + type.getModule());
 ~~~
 
-`toString()` của loader và thông tin `CodeSource` có thể tùy implementation; đừng dùng tên hiển thị của loader làm khóa định danh vĩnh viễn. Nếu có thể, cấu hình **plugin ID + plugin version + generation ID + loader identity** trong log/metrics để phân tích lỗi release.
+A loader's `toString()` and `CodeSource` info can vary by implementation; do not use a loader's display string as a permanent identifier key. If possible, include **plugin ID + plugin version + generation ID + loader identity** in logs/metrics to trace release errors.
 
-## 12. Chọn kiến trúc từ yêu cầu thật
+## 12. Choosing an Architecture from Real Requirements
 
-### Trường hợp 1: một ứng dụng nội bộ với vài plugin do một đội phát triển
+### Case 1: An Internal Application with a Few Plugins Built by One Team
 
-Plugin được build trong cùng pipeline, dependencies được quản lý bằng một BOM hoặc dependency constraints và phát hành cùng host. **Một loader chung** là phương án dễ quản trị. Khi phát hiện yêu cầu hai version cùng tên class, cân nhắc thống nhất version hoặc cô lập plugin trước khi đi xa hơn.
+Plugins are built in the same pipeline, dependencies are managed via a single BOM or dependency constraints, and releases go out with the host. **A single shared loader** is the easiest approach to govern. When a requirement for two versions of the same class name arises, consider unifying versions or isolating plugins before going further.
 
-### Trường hợp 2: marketplace nạp JAR của nhiều nhà cung cấp
+### Case 2: A Marketplace Loading JARs from Multiple Vendors
 
-Các nhà cung cấp phát hành độc lập, có thể dùng logging/JSON/HTTP libraries ở versions khác nhau. **Loader riêng cho từng plugin** thường hợp lý; contract của marketplace ở parent, các thư viện private không lộ qua API. Cần catalog plugin, signature/trust policy, host API compatibility, health-check, quota thực thi nếu dùng process isolation và lifecycle rõ.
+Vendors release independently and may use logging/JSON/HTTP libraries at different versions. **A dedicated loader per plugin** is usually appropriate; marketplace contracts stay in the parent, and private libraries are not exposed through the API. You need a plugin catalog, signature/trust policy, host API compatibility checks, health checks, execution quotas if using process isolation, and a clear lifecycle.
 
-### Trường hợp 3: hàng chục plugin thuộc vài “bộ sản phẩm”
+### Case 3: Dozens of Plugins Belonging to Several "Product Suites"
 
-Bốn plugin báo cáo dùng cùng bộ thư viện lớn v2, bảy plugin phân tích dùng thư viện v3, một plugin đặc biệt cần v1. **Group deps loaders** có thể giảm nhân bản class trong mỗi cohort; quản lý version như **group release unit**. Nếu một plugin trong nhóm muốn upgrade làm thay đổi public ABI không tương thích, tách nhóm hoặc upgrade toàn bộ cohort.
+Four reporting plugins use the same large v2 library suite, seven analytics plugins use library v3, and one special plugin needs v1. **Group deps loaders** can reduce class duplication within each cohort; manage versions as a **group release unit**. If one plugin in a group wants an upgrade that introduces an incompatible public ABI change, split the group or upgrade the entire cohort.
 
-### Trường hợp 4: plugin có chứa mã không tin cậy hoặc yêu cầu giới hạn lỗi cứng
+### Case 4: Plugins Containing Untrusted Code or Requiring Hard Fault Boundaries
 
-**Không chọn dựa riêng vào class loader**. Chạy plugin trong process/container riêng với kiểm soát OS, tài nguyên, giao thức giao tiếp, timeout và chính sách dữ liệu; các mô hình loader chỉ giải quyết class organization bên trong từng JVM.
+**Do not rely solely on class loaders**. Run plugins in separate processes/containers with OS controls, resource limits, communication protocols, timeouts, and data policies; loader models only solve class organization within each JVM.
 
-### Cây quyết định thực dụng
+### Pragmatic Decision Tree
 
 ~~~text
-Các plugin có cần cùng binary name nhưng khác version không?
-├─ Không
-│  └─ Plugin có release/lifecycle riêng đáng kể không?
-│     ├─ Không → Một loader chung thường đủ
-│     └─ Có   → Per-plugin loader hoặc nhóm nếu dependency chung có lợi
-└─ Có
-   └─ Có phân thành các nhóm version tương thích ổn định không?
-      ├─ Không → Per-plugin loader
-      └─ Có   → Group dependency loader + child loaders
-                 (ghi rõ version, ownership, upgrade strategy)
+Do plugins need the same binary name at different versions?
+├─ No
+│  └─ Do plugins have significantly independent releases/lifecycles?
+│     ├─ No → A single shared loader is usually sufficient
+│     └─ Yes → Per-plugin loader, or group if shared dependencies help
+└─ Yes
+   └─ Do they partition into stable, version-compatible groups?
+      ├─ No → Per-plugin loader
+      └─ Yes → Group dependency loader + child loaders
+                 (explicitly document versions, ownership, upgrade strategy)
 ~~~
 
-Quyết định sau cùng phải được thử bằng **dependency compatibility, class identity, lifecycle và đo tài nguyên**, không chỉ sơ đồ đẹp.
+The final decision must be validated by **dependency compatibility, class identity, lifecycle, and resource measurements**, not just a clean diagram.
 
-## 13. Các lỗi thiết kế phổ biến
+## 13. Common Design Mistakes
 
-### 13.1. Đặt cùng API vào nhiều loader rồi cast qua ranh giới
+### 13.1. Placing the Same API in Multiple Loaders and Casting Across the Boundary
 
-Biểu hiện thường là `ClassCastException` trong khi log in tên class giống hệt. **Kiểm tra defining loader** của interface host và implementation plugin; chuyển shared API lên parent và giữ đúng version contract. Không giải bằng ép kiểu thô hoặc reflection nếu ranh giới type vẫn sai.
+The typical symptom is `ClassCastException` while logs print the exact same class name. **Check the defining loader** of the host interface and the plugin implementation; move the shared API up to the parent and maintain compatible contract versions. Do not work around this with raw casts or reflection if the type boundary remains wrong.
 
-### 13.2. Nạp dependency private ở application class path
+### 13.2. Loading Private Dependencies on the Application Class Path
 
-Với parent-first, private dependency trong plugin không thể thắng class cùng tên đã nằm trong parent. Bản vá đúng thường là sửa **deployment class path/loader placement**, không phải đổi thứ tự URL ở child nếu parent đã định nghĩa class.
+With parent-first delegation, a private dependency inside a plugin cannot beat a same-named class already residing in the parent. The right fix is usually correcting the **deployment class path/loader placement**, not changing URL ordering in the child when the parent has already defined the class.
 
-### 13.3. “Dùng nhóm để chia sẻ tất cả”
+### 13.3. "Using Groups to Share Everything"
 
-Nếu group chứa một thư viện stateful, các plugin có thể dùng chung cache, singleton và thread pool theo cách ngoài dự tính. Group chỉ nên chia sẻ dependency đã kiểm chứng tương thích cả **API lẫn hành vi runtime**, có chủ sở hữu cấu hình/tài nguyên rõ ràng.
+If a group contains a stateful library, plugins can unintentionally share caches, singletons, and thread pools. Groups should share only dependencies proven compatible in both **API and runtime behavior**, with a clear owner for configuration and resources.
 
-### 13.4. Mỗi plugin có loader riêng nên nghĩ rằng có thể truyền object bất kỳ
+### 13.4. Assuming Per-Plugin Loaders Mean Any Object Can Be Passed Around
 
-Một object của `com.vendor.dto.Record` do A định nghĩa không trở thành type B đang dùng. Khi cần trao đổi dữ liệu, hãy dùng DTO host-owned, Java primitive/collection với element types thuộc API chung, hoặc payload serialized có schema. Với `List<SomePrivateType>`, generics bị type erasure nhưng các element vẫn có class identity riêng; không thể coi đó là cầu nối an toàn.
+An object of `com.vendor.dto.Record` defined by A does not become the type B uses. When exchanging data, use host-owned DTOs, Java primitives/collections whose element types belong to the shared API, or schema-backed serialized payloads. With `List<SomePrivateType>`, generics undergo type erasure, yet the elements still carry separate class identities; that cannot be treated as a safe bridge.
 
-### 13.5. Lẫn lộn ServiceLoader discovery với dependency isolation
+### 13.5. Confusing ServiceLoader Discovery with Dependency Isolation
 
-`ServiceLoader.load(service, loader)` chỉ tìm provider theo phạm vi class/module/resource của loader. Nó không tự dựng một loader per-plugin, không tự nhóm version và không tự dừng provider cũ khi `reload()`. Cần plugin registry và lifecycle manager độc lập.
+`ServiceLoader.load(service, loader)` only discovers providers within the loader's class/module/resource scope. It does not automatically build a per-plugin loader, group versions, or stop old providers on `reload()`. You need an independent plugin registry and lifecycle manager.
 
-### 13.6. Quên dọn thread và callback, dẫn đến “unload không được”
+### 13.6. Forgetting to Clean Up Threads and Callbacks, Leading to "Cannot Unload"
 
-Đã gọi `URLClassLoader.close()` mà heap vẫn tăng không chứng minh JVM lỗi. Tìm references còn giữ loader: thread TCCL, registered callback, scheduled task, static registry của host, outstanding `Method`/`Class<?>`, object trong cache. Đặc biệt với group deps, chỉ cần một plugin child còn sống là group có thể vẫn cần tồn tại.
+Having called `URLClassLoader.close()` while the heap keeps growing does not prove a JVM bug. Look for references still retaining the loader: thread TCCLs, registered callbacks, scheduled tasks, host static registries, outstanding `Method`/`Class<?>`, and cached objects. Especially with group deps, even a single surviving child plugin can keep the group alive.
 
-### 13.7. Đánh đồng JPMS với sandbox
+### 13.7. Equating JPMS with a Sandbox
 
-JPMS giúp thiết lập module readability/encapsulation và service binding; class loader giúp tổ chức phạm vi class. Chúng **không** cô lập CPU, heap, network/file access hay JVM crash đối với mã độc. Chọn security boundary ở cấp process/OS khi bài toán yêu cầu.
+JPMS establishes module readability/encapsulation and service binding; class loaders organize class scopes. They do **not** isolate CPU, heap, network/file access, or JVM crashes against malicious code. Choose a process/OS-level security boundary when the problem requires it.
 
-## 14. Checklist hoàn thành khi xây plugin platform
+## 14. Completion Checklist When Building a Plugin Platform
 
-Trước khi đưa một kiến trúc vào production, cần trả lời được:
+Before taking an architecture into production, you should be able to answer:
 
-1. **Ranh giới:** class nào thuộc host API, class nào thuộc plugin, class nào thuộc group?
-2. **Phiên bản:** mỗi group/plugin cho phép một hay nhiều version của cùng binary name? Maven/Gradle dependency tree có được khóa nhất quán không?
-3. **Identity:** API, DTO, annotation/exception class được chia sẻ từ cùng defining loader chưa?
-4. **Discovery:** SPI metadata, resource paths và TCCL có lộ provider sai phạm vi không?
-5. **Lifecycle:** plugin start/stop, refresh, drain request, executor shutdown, close loader và release reference được thực hiện bởi ai?
-6. **Concurrency:** có race giữa load/discovery/release, request đang chạy và update generation không?
-7. **Memory:** đã đo metaspace, class unloading, heap, JIT và static caches của từng lựa chọn chưa?
-8. **Compatibility:** thử thiếu dependency, lệch API version, `NoSuchMethodError`, `ClassCastException`, nhóm bị phân tách version chưa?
-9. **Observability:** log có plugin ID, generation, dependency group và loader identity để truy tìm lỗi không?
-10. **Trust:** mã plugin có tin cậy không, và nếu không tin cậy đã dùng ranh giới process/container chưa?
+1. **Boundaries:** which classes belong to the host API, which to plugins, and which to groups?
+2. **Versions:** does each group/plugin allow one or multiple versions of the same binary name? Is the Maven/Gradle dependency tree consistently locked?
+3. **Identity:** are APIs, DTOs, annotations, and exception classes shared from the same defining loader?
+4. **Discovery:** do SPI metadata, resource paths, and TCCL expose providers outside the intended scope?
+5. **Lifecycle:** who performs plugin start/stop, refresh, request draining, executor shutdown, loader closing, and reference release?
+6. **Concurrency:** are there races among load/discovery/release, in-flight requests, and generation updates?
+7. **Memory:** have Metaspace, class unloading, heap, JIT, and static caches been measured for each option?
+8. **Compatibility:** have missing dependencies, API version mismatches, `NoSuchMethodError`, `ClassCastException`, and split-version groups been tested?
+9. **Observability:** do logs include plugin ID, generation, dependency group, and loader identity to trace failures?
+10. **Trust:** is plugin code trusted, and if untrusted, are process/container boundaries in place?
 
-Nếu chỉ có một điểm phải nhớ, đó là: **đặt class vào loader nào chính là quyết định class nào được chia sẻ, version nào có thể cùng tồn tại và đơn vị nào phải được nâng cấp/giải phóng cùng nhau**. Một loader chung dễ vận hành nhưng dùng một vùng version; loader/plugin cô lập version tốt nhưng nhân bản class; group loaders chia sẻ có kiểm soát nhưng gắn các thành viên vào cùng vòng đời dependency.
+If there is only one takeaway to remember, it is this: **which loader you place a class into determines which classes are shared, which versions can coexist, and which units must be upgraded and released together**. A single shared loader is easy to operate but shares one version space; per-plugin loaders isolate versions well but duplicate classes; group loaders provide controlled sharing yet bind members to a shared dependency lifecycle.
 
-## 15. Tài liệu tham khảo chuẩn (Java SE 17)
+## 15. Standard References (Java SE 17)
 
 - `ClassLoader`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html
-- `URLClassLoader` (constructor, parent delegation, `close()`): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html
+- `URLClassLoader` (constructors, parent delegation, `close()`): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html
 - `Class` (`getClassLoader()`, identity): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html
-- `ServiceLoader` và lựa chọn loader/layer: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+- `ServiceLoader` and choosing loader/layer: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 - `ModuleLayer` (`defineModulesWithOneLoader`/`ManyLoaders`/`defineModules`): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html
-- The Java Virtual Machine Specification SE 17, chương 5 “Loading, Linking, and Initializing”: https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html
+- The Java Virtual Machine Specification SE 17, Chapter 5 "Loading, Linking, and Initializing": https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html

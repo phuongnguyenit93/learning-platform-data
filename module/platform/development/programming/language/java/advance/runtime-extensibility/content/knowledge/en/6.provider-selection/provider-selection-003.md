@@ -1,24 +1,24 @@
-# Quyết định dùng một provider, tất cả provider hoặc chuỗi xử lý
+# Deciding Between a Single Provider, All Providers, or a Processing Chain
 
-## 1. Vấn đề cốt lõi: phát hiện được nhiều provider thì gọi thế nào?
+## 1. Core Question: When Multiple Providers Are Discovered, How Should They Be Called?
 
-Trong hệ thống mở rộng lúc chạy của Java, một **service contract** (interface hoặc abstract type) có thể có nhiều **provider** (implementation). \`ServiceLoader\`, dependency injection container hoặc plugin registry giúp **phát hiện** các implementation, nhưng việc **lựa chọn và phối hợp thực thi** vẫn là trách nhiệm thiết kế của ứng dụng.
+In a Java runtime extensibility system, a **service contract** (interface or abstract type) may have multiple **providers** (implementations). \`ServiceLoader\`, a dependency injection container, or a plugin registry helps **discover** implementations, but **selecting and coordinating execution** remains the application's design responsibility.
 
-Ví dụ, interface \`DocumentProcessor\` có ba provider: kiểm tra định dạng, quét thông tin nhạy cảm và chuyển đổi nội dung. Có trường hợp ứng dụng chỉ cần một trong ba, có trường hợp phải gọi cả ba độc lập, và cũng có trường hợp đầu ra của bước trước là đầu vào của bước sau. Ba tình huống này dẫn đến ba mô hình khác nhau:
+For example, a \`DocumentProcessor\` interface has three providers: format validation, sensitive-information scanning, and content transformation. Sometimes the application needs only one of the three, sometimes it must call all three independently, and sometimes the output of one step is the input to the next. These three situations lead to three different models:
 
-| Mô hình | Ý nghĩa | Câu hỏi chính |
+| Model | Meaning | Key question |
 |---|---|---|
-| **Single provider** | Chọn đúng một triển khai để xử lý yêu cầu | Ai chịu trách nhiệm xử lý yêu cầu này? |
-| **All providers / fan-out** | Gọi một tập provider, thường trên cùng một đầu vào | Mỗi provider cần đóng góp kết quả hay tác dụng riêng gì? |
-| **Processing chain / pipeline** | Gọi các provider theo thứ tự và chuyển kết quả giữa các bước | Dữ liệu đi qua các bước biến đổi như thế nào? |
+| **Single provider** | Select a single implementation to handle the request | Who is responsible for handling this request? |
+| **All providers / fan-out** | Invoke a set of providers, usually on the same input | What distinct result or side effect must each provider contribute? |
+| **Processing chain / pipeline** | Invoke providers in order and pass results between steps | How does data flow through the transformation steps? |
 
-Không có mô hình nào luôn tốt nhất. Nếu hiểu sai ngữ nghĩa, ứng dụng có thể gửi giao dịch nhiều lần, làm hỏng thứ tự biến đổi, hoặc chọn provider không phù hợp.
+No single model is always best. Misunderstanding the semantics can cause the application to submit a transaction multiple times, corrupt the transformation order, or pick the wrong provider.
 
-## 2. Single provider: một yêu cầu, một nơi xử lý
+## 2. Single Provider: One Request, One Handler
 
-**Single provider** phù hợp khi một yêu cầu có đúng một chiến lược hoặc một nơi chịu trách nhiệm: chọn bộ mã hóa theo định dạng, bộ thanh toán theo phương thức, trình điều khiển theo protocol, hoặc một handler theo loại sự kiện.
+**Single provider** fits when a request has exactly one strategy or one responsible party: choosing an encoder by format, a payment processor by method, a driver by protocol, or one handler per event type.
 
-Một registry thường ánh xạ khóa sang implementation:
+A registry typically maps a key to an implementation:
 
 \`\`\`text
 Request(format="csv")
@@ -33,46 +33,46 @@ CsvExporter.export(...)
 Response
 \`\`\`
 
-Các bước thiết kế:
+Design steps:
 
-1. Định nghĩa khóa lựa chọn, ví dụ \`format\`, \`protocol\`, \`tenant\` hoặc \`paymentMethod\`.
-2. Kiểm tra mỗi provider khai báo khóa hoặc khả năng đáp ứng. Nếu có trùng khóa, đưa ra quy tắc rõ ràng; **fail-fast** thường tốt hơn chọn ngẫu nhiên.
-3. Lựa chọn provider một lần tại ranh giới request, tránh thay đổi giữa chừng nếu registry có thể hot-reload.
-4. Xác định hành vi khi không có provider: trả lỗi rõ ràng, fallback có kiểm soát, hoặc từ chối yêu cầu.
-5. Ghi nhận provider thực sự được chọn để hỗ trợ debug, theo dõi phiên bản và audit.
+1. Define the selection key, such as \`format\`, \`protocol\`, \`tenant\`, or \`paymentMethod\`.
+2. Check how each provider declares its key or capability. If keys collide, enforce a clear rule; **fail-fast** is usually better than picking arbitrarily.
+3. Select the provider once at the request boundary, avoiding mid-request changes if the registry can hot-reload.
+4. Define behavior when no provider exists: return a clear error, use a controlled fallback, or reject the request.
+5. Record the provider actually selected to aid debugging, version tracking, and auditing.
 
-Nếu hệ thống dùng \`ServiceLoader\`, không nên giả định thứ tự discovery là quy tắc ưu tiên nghiệp vụ. Thứ tự nạp có thể bị ảnh hưởng bởi classpath/module path, nguồn cấu hình hoặc class loader và không phù hợp để thay thế một chính sách lựa chọn tường minh.
+If the system uses \`ServiceLoader\`, do not assume discovery order is a business priority rule. Load order can be affected by classpath/module path, configuration sources, or class loaders and is unsuitable as a substitute for an explicit selection policy.
 
-**Trường hợp cần ưu tiên:** có thể định nghĩa điểm số, mức ưu tiên, hoặc độ chuyên biệt. Phải xác định cách phá hòa khi hai provider có cùng priority, ví dụ từ chối cấu hình mơ hồ hoặc chọn theo một khóa ổn định đã được công bố. Nếu nhiều provider nhận \`supports(request)\`, cần cân nhắc chi phí và tác dụng phụ của phép kiểm tra: \`supports\` nên nhanh và không thay đổi trạng thái nghiệp vụ.
+**When priority is needed:** you can define scores, priority levels, or specificity. You must define how to break ties when two providers share the same priority—for example, rejecting ambiguous configuration or selecting by a published stable key. If multiple providers expose \`supports(request)\`, consider the cost and side effects of the check: \`supports\` should be fast and must not mutate business state.
 
-## 3. All providers: gọi nhiều bên độc lập
+## 3. All Providers: Invoking Multiple Independent Parties
 
-Mô hình **all providers**, đôi khi gọi là broadcast hoặc fan-out, gửi cùng một sự kiện/đầu vào tới nhiều provider độc lập. Ví dụ: gửi sự kiện đã hoàn thành đơn hàng cho logger, metrics collector và audit sink; hoặc lấy kết quả từ nhiều bộ kiểm tra độc lập rồi tổng hợp.
+The **all providers** model, sometimes called broadcast or fan-out, sends the same event/input to multiple independent providers. For example: delivering an order-completed event to a logger, a metrics collector, and an audit sink; or collecting findings from multiple independent analyzers and aggregating them.
 
 \`\`\`text
          +--> AuditProvider -------+
-Event ---+--> MetricsProvider -----+--> Tổng hợp kết quả
+Event ---+--> MetricsProvider -----+--> Aggregate results
          +--> NotificationProvider-+
 \`\`\`
 
-Điểm phân biệt: các provider **không cần kết quả của provider trước** làm đầu vào. Chúng có thể chạy tuần tự hoặc song song, tùy độ an toàn và yêu cầu nghiệp vụ.
+Distinguishing point: providers **do not need the previous provider's output** as input. They can run sequentially or in parallel depending on safety and business requirements.
 
-Cần quyết định từ đầu:
+Decisions to make upfront:
 
-- **Phạm vi**: gọi mọi provider đã đăng ký, hay chỉ những provider hỗ trợ loại request này?
-- **Đồng bộ hay bất đồng bộ**: nếu cần phản hồi ngay, gọi tuần tự dễ hiểu; nếu tác vụ độc lập và có giới hạn tài nguyên, có thể dùng executor.
-- **Kết quả**: tập hợp mọi output, lấy tổng hợp/điểm số, hoặc chỉ quan tâm side effect?
-- **Lỗi một provider**: dừng toàn bộ (fail-fast), thu thập lỗi để trả báo cáo, hay cho các provider còn lại chạy (best-effort)?
-- **Idempotency và retry**: gửi lại sự kiện có thể khiến notification hoặc giao dịch bị thực hiện nhiều lần.
-- **Thứ tự**: nếu có yêu cầu phải chạy sau một provider khác, đó có thể là pipeline/dependency graph chứ không còn fan-out độc lập.
+- **Scope**: invoke every registered provider, or only those supporting this request type?
+- **Synchronous vs. asynchronous**: if an immediate response is needed, sequential invocation is easy to reason about; if tasks are independent and resource-bounded, an executor can be used.
+- **Result**: collect all outputs, compute an aggregate/score, or care only about side effects?
+- **Single provider failure**: stop everything (fail-fast), collect errors into a report, or let the remaining providers run (best-effort)?
+- **Idempotency and retry**: resending an event can cause notifications or transactions to execute multiple times.
+- **Ordering**: if one provider must run after another, that may be a pipeline/dependency graph rather than independent fan-out.
 
-Không nên dùng all-providers để xử lý một **thanh toán duy nhất**, vì gọi hai bộ xử lý thanh toán có thể dẫn đến hai giao dịch. Với các bộ tích hợp có side effect, phải phân biệt “đồng thời chạy mọi handler” với “chỉ chọn một handler chịu trách nhiệm”.
+Do not use all-providers to process a **single payment**, because calling two payment processors could create two transactions. For integrations with side effects, distinguish “run every handler concurrently” from “select a single responsible handler”.
 
-Chạy song song không tự động bảo đảm nhanh hơn: cần kiểm soát pool, timeout, backpressure, giới hạn cạnh tranh và cách kết thúc tác vụ còn chạy khi request bị hủy. Đồng thời, mỗi provider phải thread-safe theo cách sử dụng thực tế.
+Parallel execution does not automatically guarantee faster performance: you must control pools, timeouts, backpressure, concurrency limits, and how in-flight tasks terminate when a request is canceled. Likewise, each provider must be thread-safe for how it is actually used.
 
-## 4. Processing chain: mỗi bước nhận kết quả của bước trước
+## 4. Processing Chain: Each Step Receives the Previous Step's Output
 
-**Chain / pipeline** phù hợp khi có các bước biến đổi hoặc kiểm tra theo thứ tự. Ví dụ, một tài liệu đi qua quá trình chuẩn hóa, che dữ liệu nhạy cảm, rồi xuất nội dung.
+**Chain / pipeline** fits when there are ordered transformation or validation steps. For instance, a document goes through normalization, sensitive-data redaction, and then formatting for output.
 
 \`\`\`text
 Input
@@ -90,22 +90,22 @@ FormatProvider
 Output
 \`\`\`
 
-Đặc điểm quan trọng:
+Key characteristics:
 
-- **Thứ tự là ngữ nghĩa**: thay đổi thứ tự có thể làm khác kết quả.
-- **Hợp đồng đầu vào/đầu ra**: các bước phải thống nhất kiểu dữ liệu, hoặc cần adapter để chuyển kiểu giữa các stage.
-- **Chính sách lỗi**: một bước không hoàn thành thường làm pipeline không tạo ra output hợp lệ; có thể dùng cơ chế bỏ qua bước tùy chọn nhưng phải được thiết kế rõ.
-- **Biến đổi trạng thái**: ưu tiên dữ liệu bất biến hoặc xác định rõ ownership nếu có mutation.
-- **Khả năng bỏ qua/dừng sớm**: cần biểu diễn trong kết quả có kiểu (ví dụ accepted/rejected) thay vì dùng \`null\` mơ hồ.
-- **Quan sát được**: ghi thời lượng, đầu vào/đầu ra an toàn và lỗi theo từng bước; không log dữ liệu nhạy cảm.
+- **Order is semantic**: changing the order can change the outcome.
+- **Input/output contract**: steps must agree on data types, or adapters are needed to convert types between stages.
+- **Error policy**: failure in one step usually prevents the pipeline from producing a valid output; optional step-skipping can be used, but it must be explicitly designed.
+- **State mutation**: prefer immutable data or define clear ownership if mutation occurs.
+- **Skip / early-stop capability**: represent this in a typed result (for example accepted/rejected) rather than using an ambiguous \`null\`.
+- **Observability**: record duration, safe inputs/outputs, and errors per step; never log sensitive data.
 
-Một pipeline xử lý tuần tự khác với **Chain of Responsibility** trong GoF: ở Chain of Responsibility, mỗi handler có thể quyết định xử lý hoặc chuyển tiếp cho handler sau; pipeline biến đổi thường yêu cầu mọi stage áp dụng (trừ khi có chính sách skip). Hai cách có thể kết hợp nhưng không đồng nhất.
+A sequential processing pipeline differs from the GoF **Chain of Responsibility**: in Chain of Responsibility, each handler decides whether to handle the request or forward it to the next handler; a transformation pipeline usually requires every stage to apply (unless a skip policy exists). The two patterns can be combined, but they are not identical.
 
-Khi pipeline có nhánh, hội tụ, điều kiện hoặc phụ thuộc chéo, mô hình **DAG/workflow engine** có thể phù hợp hơn một danh sách tuyến tính.
+When a pipeline has branches, joins, conditionals, or cross-dependencies, a **DAG/workflow engine** model may be more suitable than a linear list.
 
-## 5. Ví dụ Java 17+: minh họa cả ba chiến lược
+## 5. Java 17+ Example: Demonstrating All Three Strategies
 
-Tạo file **\`ProviderSelectionDemo.java\`**. Chương trình dùng registry và dữ liệu trong bộ nhớ, không yêu cầu thư viện ngoài. Các ví dụ chủ động không sử dụng \`ServiceLoader\` để làm rõ **chính sách thực thi** sau khi đã có danh sách provider.
+Create the file **\`ProviderSelectionDemo.java\`**. The program uses an in-memory registry and data and requires no external libraries. The examples intentionally omit \`ServiceLoader\` to highlight the **execution policy** once a provider list has been obtained.
 
 \`\`\`java
 import java.util.ArrayList;
@@ -114,7 +114,7 @@ import java.util.Map;
 import java.util.function.UnaryOperator;
 
 public class ProviderSelectionDemo {
-    // 1. Single provider: chọn một formatter bằng khóa.
+    // 1. Single provider: choose one formatter by key.
     interface Formatter {
         String format(String input);
     }
@@ -140,7 +140,7 @@ public class ProviderSelectionDemo {
         return formatter.format(input);
     }
 
-    // 2. All providers: mỗi observer nhận cùng một event.
+    // 2. All providers: each observer receives the same event.
     interface Observer {
         String name();
         String onEvent(String event);
@@ -154,7 +154,7 @@ public class ProviderSelectionDemo {
         return reports;
     }
 
-    // 3. Pipeline: đầu ra bước trước thành đầu vào bước sau.
+    // 3. Pipeline: previous step's output becomes next step's input.
     static String pipeline(List<UnaryOperator<String>> stages, String input) {
         String current = input;
         for (UnaryOperator<String> stage : stages) {
@@ -197,14 +197,14 @@ public class ProviderSelectionDemo {
 }
 \`\`\`
 
-Biên dịch và chạy:
+Compile and run:
 
 \`\`\`bash
 javac ProviderSelectionDemo.java
 java ProviderSelectionDemo
 \`\`\`
 
-Kết quả chính xác:
+Exact output:
 
 \`\`\`text
 Single: JAVA
@@ -212,99 +212,99 @@ All: [audit: recorded order-created, metric: counted order-created]
 Pipeline: [hello-world]
 \`\`\`
 
-Giải thích:
+Explanation:
 
-- \`single\` chỉ gọi formatter được xác định bởi key \`upper\`. \`Map.of\` phù hợp registry cố định và không cho phép thay đổi sau khi tạo.
-- \`all\` gọi cả \`audit\` và \`metric\` với cùng event \`order-created\`. Ở đây các kết quả được trả về theo thứ tự \`List.of(audit, metric)\`, nhưng không có cam kết thứ tự tương tự cho mọi nguồn discovery.
-- \`pipeline\` bắt đầu với chuỗi có khoảng trắng, \`strip\` loại khoảng trắng đầu/cuối, bước thứ hai đổi khoảng trắng giữa hai từ thành dấu nối, bước thứ ba bọc trong ngoặc vuông. Nếu đổi thứ tự các stage, đầu ra có thể khác.
+- \`single\` invokes only the formatter identified by the key \`upper\`. \`Map.of\` is suitable for a fixed registry and disallows modification after creation.
+- \`all\` invokes both \`audit\` and \`metric\` with the same event \`order-created\`. Here the results are returned in the order of \`List.of(audit, metric)\`, but no equivalent ordering guarantee exists across all discovery sources.
+- \`pipeline\` starts with a string containing whitespace; \`strip\` removes leading/trailing whitespace, the second step turns the space between words into a hyphen, and the third step wraps it in square brackets. If the stage order changes, the output can differ.
 
-Ví dụ là **đăng ký tĩnh**, chưa phải hot plugin loading. Khi dùng class loader riêng hoặc \`ServiceLoader\`, danh sách provider sau discovery vẫn cần đi qua các quy tắc chọn, kiểm tra phiên bản, ordering và vòng đời tương tự.
+The example uses **static registration**, not hot plugin loading. When using dedicated class loaders or \`ServiceLoader\`, the discovered provider list still needs to go through the same selection rules, version checks, ordering, and lifecycle management.
 
-## 6. Chọn mô hình theo yêu cầu
+## 6. Choosing a Model by Requirement
 
-| Tình huống | Gợi ý | Vì sao |
+| Scenario | Recommendation | Why |
 |---|---|---|
-| Chọn một bộ xuất \`pdf\` hoặc \`csv\` | Single | Một đầu ra thuộc một định dạng cụ thể |
-| Chọn payment gateway theo nhà phát hành thẻ | Single | Một nơi chịu trách nhiệm thanh toán |
-| Gửi sự kiện cho logging, metrics và audit | All providers | Các subscriber độc lập |
-| Chạy nhiều bộ phân tích để thu thập nhận định | All providers + aggregate | Cần kết quả của nhiều nguồn |
-| Chuẩn hóa → che dữ liệu → serialize | Pipeline | Mỗi bước phụ thuộc kết quả bước trước |
-| Lần lượt thử các provider đến khi một bên chấp nhận | Chain of Responsibility/fallback | Có quy tắc dừng, không chạy tất cả |
-| Nhiều bước song song rồi gom và kiểm tra chung | DAG/workflow | Phụ thuộc không tuyến tính |
+| Choose a \`pdf\` or \`csv\` exporter | Single | One output belongs to one specific format |
+| Choose a payment gateway by card issuer | Single | One party is responsible for the payment |
+| Emit an event to logging, metrics, and audit | All providers | Independent subscribers |
+| Run multiple analyzers to gather findings | All providers + aggregate | Results from multiple sources are needed |
+| Normalize → redact data → serialize | Pipeline | Each step depends on the previous step's output |
+| Try providers in turn until one accepts | Chain of Responsibility/fallback | Has a stopping rule; does not run all |
+| Multiple parallel steps then merge and validate | DAG/workflow | Non-linear dependencies |
 
-Một cách chọn nhanh là đặt ba câu hỏi:
+A quick way to choose is to ask three questions:
 
-1. **Nếu chỉ một provider hoàn thành là đủ và các provider còn lại là lựa chọn thay thế?** Sử dụng single hoặc fallback có quy tắc.
-2. **Nếu tất cả provider đều phải thấy cùng một sự kiện/đầu vào, và không phụ thuộc output của nhau?** Sử dụng fan-out.
-3. **Nếu output của bước A là input của bước B hoặc thứ tự tạo ra khác biệt?** Sử dụng pipeline/chain.
+1. **Is completing via a single provider enough, with the rest acting as alternatives?** Use single or rule-based fallback.
+2. **Must all providers see the same event/input while remaining independent of each other's output?** Use fan-out.
+3. **Is step A's output step B's input, or does order make a difference?** Use pipeline/chain.
 
-Đừng chọn all-providers chỉ vì \`ServiceLoader\` trả về \`Iterable\`. Cơ chế phát hiện trả về **tập ứng viên**, không quyết định cách thực thi nghiệp vụ.
+Do not pick all-providers merely because \`ServiceLoader\` returns an \`Iterable\`. The discovery mechanism returns a **set of candidates**; it does not decide the business execution model.
 
-## 7. Quy tắc thứ tự và ưu tiên trong hệ plugin
+## 7. Ordering and Priority Rules in Plugin Systems
 
-Thứ tự provider là nguồn lỗi phổ biến khi ứng dụng phát triển. Nếu cần thứ tự xác định, hãy khai báo metadata như \`order\`, \`phase\` hoặc danh sách dependency. Khi hai provider cùng order, chọn quy tắc phá hòa minh bạch hoặc từ chối cấu hình. Đừng để thứ tự \`HashMap\`, classpath, đường dẫn JAR hoặc tình cờ từ quá trình scanning làm quyết định nghiệp vụ.
+Provider ordering is a common source of bugs as an application grows. If deterministic order is needed, declare metadata such as \`order\`, \`phase\`, or a dependency list. When two providers share the same order, pick a transparent tie-breaking rule or reject the configuration. Never let \`HashMap\` iteration order, classpath, JAR paths, or incidental scanning order make business decisions.
 
-Ví dụ một pipeline có giai đoạn \`VALIDATE\`, \`TRANSFORM\`, \`PERSIST\` có thể yêu cầu provider triển khai một \`Stage\` cụ thể. Trước kích hoạt, host sắp xếp provider dựa trên metadata được kiểm tra; phát hiện vòng phụ thuộc; và xác minh mỗi stage phù hợp vị trí. Nếu registry hot-reload, hãy chụp một **snapshot bất biến** cho toàn bộ request để tránh việc provider biến mất hoặc thứ tự thay đổi trong quá trình xử lý.
+For example, a pipeline with \`VALIDATE\`, \`TRANSFORM\`, and \`PERSIST\` phases may require providers to implement a specific \`Stage\`. Before activation, the host sorts providers based on validated metadata, detects dependency cycles, and verifies each stage fits its position. If the registry hot-reloads, capture an **immutable snapshot** for the entire request to avoid providers disappearing or reordering mid-processing.
 
-Đối với single-provider selection có nhiều candidate cùng thỏa \`supports\`, có thể dùng độ ưu tiên, độ đặc hiệu hay phiên bản đã pin, nhưng ưu tiên tuyệt đối không được che giấu xung đột cấu hình hoặc rủi ro lựa chọn sai nhà cung cấp.
+For single-provider selection where multiple candidates satisfy \`supports\`, you can use priority, specificity, or a pinned version, but priority must never hide configuration conflicts or the risk of choosing the wrong provider.
 
-## 8. Xử lý lỗi: fail-fast, best-effort, fallback và rollback
+## 8. Error Handling: Fail-Fast, Best-Effort, Fallback, and Rollback
 
-Ba mô hình có ngữ nghĩa lỗi khác nhau:
+The three models have different error semantics:
 
-**Single:** lỗi của provider được chọn là lỗi của request, trừ khi có fallback được xác định trước. Fallback chỉ an toàn khi biết provider đầu tiên chưa thực hiện side effect không thể đảo ngược. Ví dụ timeout khi gọi payment gateway không có nghĩa giao dịch chưa được xử lý; tự động thử gateway khác có thể tạo thanh toán trùng.
+**Single:** a failure of the selected provider is a failure of the request, unless a predefined fallback exists. Fallback is only safe when you know the first provider has not caused an irreversible side effect. For example, a timeout calling a payment gateway does not prove the transaction was not processed; automatically trying another gateway can create a duplicate charge.
 
-**All providers:** có thể chọn **fail-fast** nếu toàn bộ đóng góp là bắt buộc; hoặc **best-effort** khi một observer lỗi không cản trở các observer còn lại. Cần trả báo cáo kết quả theo provider và phân biệt thành công, thất bại, timeout, đã bỏ qua. Với phát sự kiện bất đồng bộ, cân nhắc outbox, retry có giới hạn, idempotency key và dead-letter queue cho thông điệp không xử lý được.
+**All providers:** you can choose **fail-fast** if every contribution is mandatory, or **best-effort** when one observer's failure does not block the remaining observers. Return per-provider result reports distinguishing success, failure, timeout, and skipped. For asynchronous event emission, consider an outbox, bounded retries, idempotency keys, and a dead-letter queue for unprocessable messages.
 
-**Pipeline:** lỗi của stage thường ngăn các bước sau chạy. Nếu các bước đã ghi dữ liệu bên ngoài, rollback có thể cần transaction (nếu cùng phạm vi hỗ trợ) hoặc **compensation** (saga) vì không thể đảo ngược toàn bộ chỉ bằng exception. Dữ liệu trung gian nên có ownership rõ ràng để tránh còn trạng thái nửa chừng.
+**Pipeline:** a stage failure usually stops subsequent steps from running. If earlier steps already wrote external data, rollback may require a transaction (if within a shared scope) or **compensation** (saga), because exceptions alone cannot undo external writes. Intermediate data should have clear ownership to avoid leaving half-finished state.
 
-Có thể mô hình hóa kết quả với kiểu rõ ràng như \`Success<T>\`, \`Failure(code, detail)\`, \`Skipped(reason)\` hoặc record/enum để tránh trả \`null\` gây mơ hồ. Log phải ghi \`pluginId\`, \`pluginVersion\`, \`requestId\`, giai đoạn và thời lượng theo cách không làm lộ dữ liệu nhạy cảm.
+You can model outcomes with explicit types such as \`Success<T>\`, \`Failure(code, detail)\`, \`Skipped(reason)\`, or records/enums to avoid returning an ambiguous \`null\`. Logs must record \`pluginId\`, \`pluginVersion\`, \`requestId\`, stage, and duration without leaking sensitive data.
 
-## 9. Luồng xử lý đồng thời và quản lý vòng đời
+## 9. Concurrency and Lifecycle Management
 
-Trong host chạy nhiều request, lựa chọn provider gắn với quy tắc thread-safety và hot reload.
+In a host handling concurrent requests, provider selection is tied to thread-safety and hot-reload rules.
 
-- **Registry:** immutable snapshot hoặc cấu trúc thread-safe giúp tránh race khi đăng ký/tháo provider. Chỉ thread-safe ở registry không đủ nếu implementation giữ trạng thái mutable thiếu đồng bộ.
-- **All providers chạy song song:** tránh chia sẻ mutable input; đặt giới hạn concurrency, timeout và chính sách hủy. Kết quả có thể đến không theo thứ tự gọi, vì vậy tổng hợp theo ID hoặc thứ tự xác định khi cần.
-- **Pipeline:** nếu các stage có side effect, cần quy tắc truy vết và dữ liệu trung gian. Không thể song song hóa tùy tiện các bước có quan hệ phụ thuộc.
-- **Hot replacement:** một request nên giữ provider snapshot đã chọn; phiên bản cũ ngừng nhận request mới nhưng hoàn thành tác vụ đang chạy trước khi đóng tài nguyên.
-- **Tài nguyên và class loader:** host phải quản lý \`close\`, thread, subscription và reference còn sống. Việc \`URLClassLoader.close()\` không tức thì giải phóng class hay mọi instance plugin.
+- **Registry:** immutable snapshots or thread-safe structures prevent races when registering/unregistering providers. Registry thread-safety alone is not enough if an implementation holds unsynchronized mutable state.
+- **Parallel all-providers:** avoid sharing mutable input; set concurrency limits, timeouts, and cancellation policies. Results may arrive out of call order, so aggregate by ID or deterministic order when needed.
+- **Pipeline:** if stages have side effects, define tracing rules and intermediate data ownership. Dependent steps cannot be arbitrarily parallelized.
+- **Hot replacement:** a request should retain its selected provider snapshot; the old version stops accepting new requests while finishing in-flight tasks before closing resources.
+- **Resources and class loaders:** the host must manage \`close\`, threads, subscriptions, and live references. Calling \`URLClassLoader.close()\` does not immediately release classes or all plugin instances.
 
-Một plugin chạy trong cùng JVM thường có quyền đáng kể của tiến trình. Thứ tự nạp và cách chọn provider không thay thế kiểm tra metadata, compatibility, authenticity và quy tắc tin cậy trước khi thực thi mã bên thứ ba. Khi plugin không tin cậy, cân nhắc cô lập ngoài tiến trình.
+A plugin running in the same JVM usually holds significant process privileges. Load order and selection rules do not replace metadata, compatibility, authenticity, and trust checks before executing third-party code. For untrusted plugins, consider out-of-process isolation.
 
-## 10. Áp dụng với ServiceLoader
+## 10. Applying This with ServiceLoader
 
-\`ServiceLoader\` là cơ chế **discovery** tích hợp Java. Giả sử interface \`TaskProvider\` đã có và các JAR khai báo provider đúng quy tắc, host có thể xây danh sách ứng viên:
+\`ServiceLoader\` is Java's built-in **discovery** mechanism. Assuming the \`TaskProvider\` interface exists and JARs declare providers according to the rules, the host can build a candidate list:
 
 \`\`\`java
-// Đoạn tích hợp vào hệ thống có TaskProvider, không phải tệp chạy độc lập.
+// Snippet integrated into a system that has TaskProvider, not a standalone file.
 List<TaskProvider> discovered = new ArrayList<>();
 for (TaskProvider provider : ServiceLoader.load(TaskProvider.class)) {
     discovered.add(provider);
 }
 \`\`\`
 
-Sau bước discovery, host nên:
+After discovery, the host should:
 
-1. Kiểm tra hợp đồng và metadata của từng provider theo chính sách tin cậy.
-2. Áp dụng cấu hình để quyết định single, all hoặc pipeline. Không mặc định \`forEach(provider::execute)\` trong mọi trường hợp.
-3. Xây một registry/snapshot có thứ tự hoặc khóa lựa chọn rõ ràng.
-4. Thực thi với chính sách lỗi, timeout và lifecycle phù hợp.
+1. Validate each provider's contract and metadata against the trust policy.
+2. Apply configuration to decide between single, all, or pipeline. Do not default to \`forEach(provider::execute)\` in every case.
+3. Build a registry/snapshot with an explicit order or selection key.
+4. Execute with appropriate error, timeout, and lifecycle policies.
 
-Trong thực tế, iteration của \`ServiceLoader\` có thể khiến provider được khởi tạo trong quá trình duyệt; vì vậy nếu cần kiểm tra JAR trước khi **bất kỳ mã plugin nào chạy**, phải thực hiện validation artifact/manifest ở bước trước, không coi việc iterate qua \`ServiceLoader\` là một thao tác discovery vô hại với plugin chưa được tin cậy. \`ServiceLoader.reload()\` chỉ xóa cache provider của loader; nó không tự thêm JAR ngoài phạm vi class loader.
+In practice, iterating \`ServiceLoader\` can instantiate providers during traversal; therefore, if JARs must be checked before **any plugin code runs**, perform artifact/manifest validation in an earlier step rather than treating \`ServiceLoader\` iteration as a harmless discovery operation for untrusted plugins. \`ServiceLoader.reload()\` only clears that loader's provider cache; it does not automatically add JARs outside the class loader's scope.
 
-## 11. Những lỗi thường gặp và checklist thiết kế
+## 11. Common Mistakes and Design Checklist
 
-- Coi \`ServiceLoader\` trả về nhiều provider là yêu cầu gọi tất cả.
-- Dùng \`findFirst()\` để chọn provider mà không có quy tắc priority/identity.
-- Để các plugin có side effect cùng nhận một request chỉ nên xử lý một lần.
-- Tưởng fan-out song song luôn nhanh và không cần backpressure hay kiểm soát lỗi.
-- Thứ tự pipeline không được khai báo; kết quả thay đổi khi thứ tự discovery đổi.
-- Dùng fallback ngay sau timeout của thao tác có thể đã commit bên ngoài.
-- Không kiểm soát duplicate key/provider hoặc thay đổi registry trong lúc request chạy.
-- Dùng exception chung cho mọi lỗi rồi mất thông tin provider và stage gây lỗi.
-- Không có kiểm thử contract cho các provider và không mô phỏng trường hợp thiếu, trùng, lỗi hoặc chậm.
+- Treating \`ServiceLoader\` returning multiple providers as a requirement to call all of them.
+- Using \`findFirst()\` to select a provider without a priority/identity rule.
+- Letting multiple plugins with side effects receive a request that should only be handled once.
+- Assuming parallel fan-out is always faster and needs no backpressure or error control.
+- Leaving pipeline order undeclared so results change when discovery order changes.
+- Falling back immediately after a timeout on an operation that may have already committed externally.
+- Failing to guard against duplicate keys/providers or registry mutations while requests are running.
+- Catching a generic exception for all errors and losing the failing provider and stage details.
+- Lacking contract tests for providers and failing to simulate missing, duplicate, failing, or slow cases.
 
-Trước khi triển khai, kiểm tra: **mục tiêu nghiệp vụ** là một / tất cả / chuỗi; **nguồn quyết định** là khóa/cấu hình/metadata; **thứ tự** có được xác định không; **kiểu kết quả và chính sách lỗi** có rõ không; **side effect và retry** có an toàn không; **thread-safety, timeout, lifecycle, bảo mật** có phù hợp với môi trường chạy hay không.
+Before implementing, verify: whether the **business goal** is single / all / chain; whether the **decision source** is key/config/metadata; whether **ordering** is deterministic; whether **result types and error policies** are clear; whether **side effects and retries** are safe; and whether **thread-safety, timeouts, lifecycle, and security** fit the runtime environment.
 
-**Ghi nhớ:** provider là đơn vị cung cấp hành vi, còn **selection policy** là luật của host để dùng hành vi đó. Chọn **một provider** cho quyết định có một chủ thể chịu trách nhiệm, chọn **tất cả** khi các đóng góp độc lập đều cần thiết, và chọn **chuỗi xử lý** khi thứ tự và dữ liệu trung gian là một phần của hợp đồng nghiệp vụ.
+**Remember:** a provider is the unit that supplies behavior, while the **selection policy** is the host's rule for using that behavior. Choose **a single provider** for decisions with one accountable handler, **all providers** when independent contributions are all required, and a **processing chain** when order and intermediate data are part of the business contract.

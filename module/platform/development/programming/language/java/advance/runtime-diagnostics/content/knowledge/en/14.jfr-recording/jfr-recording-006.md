@@ -1,117 +1,117 @@
-# 14.6 Điều chỉnh enabled, threshold, period và stackTrace của event trong JFR
+# 14.6 Tuning Event `enabled`, `threshold`, `period`, and `stackTrace` in JFR
 
-## 1. Học cách kiểm soát bằng chứng JFR
+## 1. Learning to Control JFR Evidence
 
-Java Flight Recorder (JFR) ghi các **event** về JVM và ứng dụng: GC, CPU, thread, lock, I/O, allocation, class loading và event do ứng dụng định nghĩa. Không nên bật tất cả loại event ở mức chi tiết tối đa một cách mặc định: dữ liệu có thể rất lớn, gây khó phân tích và tăng chi phí giám sát. Ngược lại, cấu hình quá chặt có thể bỏ sót đúng hiện tượng đang điều tra.
+Java Flight Recorder (JFR) records **events** about the JVM and application: GC, CPU, threads, locks, I/O, allocations, class loading, and application-defined events. You should not enable every event type at maximum detail by default: the data can grow huge, make analysis harder, and increase monitoring overhead. Conversely, overly tight settings can miss the exact phenomenon under investigation.
 
-Bốn setting cốt lõi của một **event type** là:
+The four core settings of an **event type** are:
 
-- `enabled`: event type đó có được ghi hay không.
-- `threshold`: thời lượng tối thiểu để giữ một **duration event**.
-- `period`: chu kỳ phát/lấy mẫu của **periodic event** có hỗ trợ.
-- `stackTrace`: ghi kèm call stack hay không.
+- `enabled`: whether that event type is recorded.
+- `threshold`: minimum duration required to retain a **duration event**.
+- `period`: emission/sampling cadence for a supporting **periodic event**.
+- `stackTrace`: whether to record the call stack alongside the event.
 
-Đây là **event settings**. Chúng khác với **recording options** như `name`, `duration`, `filename`, `disk`, `maxsize`, `maxage`; các tùy chọn này điều khiển vòng đời và nơi lưu của cả recording. Một JVM có thể có nhiều recording; muốn diễn giải dữ liệu phải biết event type, recording, JDK và cấu hình hiệu lực.
+These are **event settings**. They differ from **recording options** such as `name`, `duration`, `filename`, `disk`, `maxsize`, and `maxage`, which control the lifecycle and storage of the entire recording. One JVM can host multiple recordings; interpreting data requires knowing the event type, recording, JDK, and effective configuration.
 
-Ví dụ bài toán: p99 request tăng mạnh, nghi có thread phải chờ lock lâu. Thay vì bật mọi thứ, bạn có thể bật `jdk.JavaMonitorEnter`, dùng `threshold=20 ms` để tập trung vào các lần chờ đáng kể, bật `stackTrace=true` để biết điểm gọi code, đồng thời ghi thêm CPU định kỳ bằng `jdk.CPULoad#period=1 s`. Sau đó kiểm tra log thực tế để biết thu đúng hay chưa.
+Example problem: request p99 spikes sharply and you suspect threads are waiting long on locks. Instead of enabling everything, you can enable `jdk.JavaMonitorEnter`, set `threshold=20 ms` to focus on significant waits, enable `stackTrace=true` to locate code call sites, and also capture periodic CPU with `jdk.CPULoad#period=1 s`. Then inspect the actual logs/output to confirm whether you captured what you expected.
 
-Phạm vi: JDK 17+ với cú pháp và API được minh họa theo JDK 21. Tên event, default và setting descriptor tùy từng JDK/build. Một setting không được event type hỗ trợ không tự trở nên có hiệu lực chỉ vì ta viết nó vào cấu hình.
+Scope: JDK 17+ with syntax and API illustrated per JDK 21. Event names, defaults, and setting descriptors vary across JDKs/builds. A setting not supported by an event type does not magically take effect just because you write it into a configuration.
 
-## 2. Bảng ý nghĩa chính xác
+## 2. Exact Meaning Table
 
-| Setting | Ý nghĩa | Giá trị ví dụ | Không nên nhầm |
+| Setting | Meaning | Example Values | Do Not Confuse With |
 | --- | --- | --- | --- |
-| `enabled` | Cho phép hoặc không cho phép ghi event loại đó | `true`, `false` | Không bật/tắt toàn bộ JVM hay JFR |
-| `threshold` | Bỏ event có duration **nhỏ hơn** ngưỡng | `0`, `10 ms`, `1 s` | Không phải số event mỗi giây hay timeout ứng dụng |
-| `period` | Nhịp thu event định kỳ/lấy mẫu | `20 ms`, `1 s`, `everyChunk` | Không phải bộ lọc độ dài của sự kiện lock/I/O |
-| `stackTrace` | Có thêm stack trace tại điểm phát/commit phù hợp event | `true`, `false` | Không phải distributed trace hoặc automatic root-cause analysis |
+| `enabled` | Enables or disables recording that event type | `true`, `false` | Does not turn the entire JVM or JFR on/off |
+| `threshold` | Drops events whose duration is **less than** the threshold | `0`, `10 ms`, `1 s` | Not events per second or application timeout |
+| `period` | Cadence for periodic/sampling events | `20 ms`, `1 s`, `everyChunk` | Not a duration filter for lock/I/O events |
+| `stackTrace` | Captures stack trace at emission/commit point if applicable | `true`, `false` | Not distributed tracing or automatic root-cause analysis |
 
 ### 2.1. `enabled`
 
-Khi `enabled=false`, JFR không ghi event type đó vào recording áp dụng cấu hình ấy. Các hoạt động Java thật vẫn diễn ra: thread vẫn chờ lock, CPU vẫn chạy, I/O vẫn thực hiện. Giá trị `true` chỉ là điều kiện cần: nếu không có hoạt động phát event, threshold lọc hết, hoặc recording không trùng cửa sổ lỗi, bạn vẫn có thể nhận 0 sự kiện.
+When `enabled=false`, JFR does not record that event type into recordings using that configuration. Real Java activity still happens: threads still wait on locks, CPU still runs, I/O still executes. `true` is only a necessary condition: if no activity emits the event, the threshold filters everything out, or the recording misses the failure window, you can still get 0 events.
 
-Ví dụ:
+Example:
 
 ```text
 jdk.JavaMonitorEnter#enabled = true
 jdk.CPULoad#enabled = true
 ```
 
-Đừng coi “default enabled=true” trong phần mô tả `jdk.jfr` là bằng chứng mọi event JDK đang có trong file. Annotation mặc định có thể bị `default.jfc`, `profile.jfc` hoặc override khi tạo recording thay đổi. Hãy kiểm tra **effective settings** của recording cụ thể.
+Do not treat "default enabled=true" in `jdk.jfr` docs as proof that every JDK event is present in a file. Default annotations may be overridden by `default.jfc`, `profile.jfc`, or recording creation flags. Always inspect the **effective settings** of the specific recording.
 
 ### 2.2. `threshold`
 
-Đây là **bộ lọc theo duration** của event type có hỗ trợ ngưỡng. `threshold=20 ms` có nghĩa event kéo dài 8 ms bị loại; event kéo dài 45 ms được phép ghi nếu `enabled=true` và không có điều kiện nào khác loại nó. `threshold=0` nghĩa là không đặt giới hạn tối thiểu theo duration.
+This is a **duration filter** for event types that support thresholds. `threshold=20 ms` means an 8 ms event is dropped, while a 45 ms event is eligible to be recorded if `enabled=true` and no other condition excludes it. `threshold=0` means no minimum duration limit is enforced.
 
-Tình huống hợp lý:
+Sensible scenarios:
 
-- `jdk.JavaMonitorEnter#threshold=20 ms`: tập trung vào các lần chờ monitor tương đối lâu.
-- `jdk.FileRead#threshold=50 ms`: tìm thao tác đọc file chậm, sau đó dùng stack trace để xác định caller.
-- Custom duration event `demo.Operation#threshold=25 ms`: ghi các tác vụ ứng dụng mất ít nhất khoảng 25 ms.
+- `jdk.JavaMonitorEnter#threshold=20 ms`: focus on relatively long monitor waits.
+- `jdk.FileRead#threshold=50 ms`: find slow file reads, then use stack traces to identify callers.
+- Custom duration event `demo.Operation#threshold=25 ms`: record application operations taking at least around 25 ms.
 
-Ngưỡng không đổi thời lượng hoạt động; nó chỉ quyết định lưu thông tin. Nếu 10.000 thao tác mỗi thao tác chậm 5 ms cùng gây tổng độ trễ lớn, `threshold=100 ms` có thể làm file gần như không có event dù ứng dụng thực sự chậm. Đặt quá thấp lại có thể ghi quá nhiều event và stack.
+A threshold does not change how long operations take; it only governs what gets recorded. If 10,000 operations each taking 5 ms add up to large total latency, `threshold=100 ms` can leave the file nearly empty of those events even though the app is genuinely slow. Setting it too low, conversely, can record too many events and stacks.
 
-Cú pháp chuẩn trong Java API: `"20 ms"`, `"1 s"`; các đơn vị hỗ trợ gồm `ns`, `us`, `ms`, `s`, `m`, `h` và `d`. Với CLI, giá trị `20ms` bỏ khoảng trắng thường được chấp nhận. Không viết số trần khi chưa biết parser quy định đơn vị ra sao.
+Standard syntax in the Java API: `"20 ms"`, `"1 s"`; supported units include `ns`, `us`, `ms`, `s`, `m`, `h`, and `d`. On the CLI, space-less values like `20ms` are typically accepted. Do not write bare numbers without knowing how the parser interprets units.
 
 ### 2.3. `period`
 
-`period` áp dụng cho **periodic events** hoặc sampling events có công bố setting này. `jdk.CPULoad#period=1 s` yêu cầu mẫu CPU theo nhịp khoảng một giây. Một event execution sampling có thể có period riêng để đổi mật độ mẫu.
+`period` applies to **periodic events** or sampling events that declare this setting. `jdk.CPULoad#period=1 s` requests CPU samples roughly every one second. An execution sampling event can have its own period to adjust sample density.
 
-Giá trị `everyChunk` nghĩa phát theo chu kỳ chunk dữ liệu JFR, **không có nghĩa đúng mỗi N mili giây**. Với `1 s` hay `20 ms`, cũng phải chấp nhận sai lệch do scheduling/implementation; đây là nhịp mục tiêu, không phải bộ đồng hồ độ chính xác tuyệt đối.
+The value `everyChunk` means emitting per JFR data chunk cycle, **not every exact N milliseconds**. Even with `1 s` or `20 ms`, expect jitter from scheduling/implementation; this is a target cadence, not a hard real-time clock.
 
-Không thể dùng `period` để biến `jdk.JavaMonitorEnter` thành ticker phát mỗi giây: event này là hoạt động chờ monitor, không phải loại định kỳ. Muốn tìm lần chờ dài, dùng `threshold`. Muốn lấy trend CPU, dùng `period` trên event đúng loại.
+You cannot use `period` to turn `jdk.JavaMonitorEnter` into a ticker emitted every second: that event represents monitor waits, not a periodic metric. To catch long waits, use `threshold`. To track CPU trends, use `period` on the appropriate event.
 
 ### 2.4. `stackTrace`
 
-`stackTrace=true` yêu cầu JFR lưu Java call stack cho event type hỗ trợ. Với custom event phát bằng `Event.commit()`, stack trace được thu tại điểm commit; với event JVM cung cấp, vị trí thu stack còn phụ thuộc event type. Stack giúp quy về call site, nhưng không tự giải thích toàn bộ chuỗi request hay tác nhân bên ngoài JVM.
+`stackTrace=true` instructs JFR to save the Java call stack for supporting event types. For custom events emitted via `Event.commit()`, the stack trace is captured at the commit point; for JVM-provided events, stack capture position depends on the event type. Stacks help attribute call sites, though they do not explain an entire request chain or causes outside the JVM.
 
-`stackTrace=false` vẫn cho phép ghi các trường khác: thời điểm, duration, thread, payload và một số thông tin riêng của event. Tắt stack có thể giảm overhead/dung lượng, nhưng khiến việc truy đến code giữ lock hoặc làm I/O chậm khó hơn.
+`stackTrace=false` still allows recording other fields: timestamps, duration, thread, payload, and event-specific metadata. Disabling stacks can lower overhead and size, at the expense of making it harder to trace which code held a lock or performed slow I/O.
 
-Chi phí stack trace lớn hay nhỏ phụ thuộc **số event**, độ sâu stack, cách JVM thu mẫu và cấu hình runtime. Một vài stack của những lần contention dài thường hữu ích; hàng triệu event rất ngắn kèm stack có thể gây nhiễu đáng kể.
+Whether stack trace overhead is large or small depends on **event count**, stack depth, how the JVM samples, and runtime configuration. A handful of stacks on long contention episodes is usually helpful; millions of tiny events with stacks can create heavy noise.
 
-## 3. Phân biệt duration event và periodic event
+## 3. Distinguishing Duration Events and Periodic Events
 
-Hai loại cơ chế có thể hình dung như sau:
+The two mechanisms can be pictured as follows:
 
 ```text
 Duration event (lock, file read, custom operation)
-    hoạt động diễn ra -> có event với duration
+    activity occurs -> produces event with duration
           |
-          +-- enabled=false ------------------> không ghi
+          +-- enabled=false ------------------> not recorded
           |
-          +-- duration < threshold -----------> không ghi
+          +-- duration < threshold -----------> not recorded
           |
-          +-- đạt điều kiện ------------------> ghi field/duration
+          +-- meets criteria -----------------> record fields/duration
                                                    |
-                                                   +-- stackTrace=true -> thêm stack nếu hỗ trợ
+                                                   +-- stackTrace=true -> attach stack if supported
 ```
 
 ```text
-Periodic/sampling event (ví dụ jdk.CPULoad)
+Periodic/sampling event (e.g., jdk.CPULoad)
     enabled=true
           |
-          +-- period=1 s -> yêu cầu nhịp phát khoảng mỗi giây
+          +-- period=1 s -> request emission roughly every second
           |
-          +-- thu mẫu/thống kê -> ghi event nếu có mẫu và các điều kiện thỏa
+          +-- collect sample/stats -> record event if sampled and criteria met
 ```
 
-Đây là hình khái niệm, không phải sơ đồ triển khai nội bộ JFR. Quy tắc phân tích vẫn là: **threshold lọc duration của từng event; period chi phối nhịp periodic/sampling**.
+These are conceptual diagrams, not internal JFR implementation blueprints. The analysis rule remains: **`threshold` filters each event's duration; `period` governs periodic/sampling cadence**.
 
-| Câu hỏi vận hành | Event phù hợp | Setting trọng tâm |
+| Operational Question | Suitable Event | Key Settings |
 | --- | --- | --- |
-| Những lần thread chờ `synchronized` trên 20 ms nằm ở đâu? | `jdk.JavaMonitorEnter` | `enabled=true`, `threshold=20 ms`, `stackTrace=true` |
-| CPU có spike trong 10 phút không? | `jdk.CPULoad` | `enabled=true`, `period=1 s` |
-| File read nào kéo dài trên 50 ms? | `jdk.FileRead` | `enabled=true`, `threshold=50 ms`, tùy nhu cầu `stackTrace` |
-| Đang nghi CPU hotspot ngắn | `jdk.ExecutionSample` | `enabled` và `period` nếu event descriptor cho phép |
-| Muốn ghi tác vụ nghiệp vụ do mình định nghĩa trên 25 ms | `demo.Operation` | `enabled=true`, `threshold=25 ms`, `stackTrace=true` |
+| Where are threads waiting over 20 ms on `synchronized`? | `jdk.JavaMonitorEnter` | `enabled=true`, `threshold=20 ms`, `stackTrace=true` |
+| Did CPU spike during a 10-minute window? | `jdk.CPULoad` | `enabled=true`, `period=1 s` |
+| Which file reads lasted over 50 ms? | `jdk.FileRead` | `enabled=true`, `threshold=50 ms`, `stackTrace` as needed |
+| Suspecting brief CPU hotspots | `jdk.ExecutionSample` | `enabled` and `period` if allowed by event descriptor |
+| Want to record custom business tasks over 25 ms | `demo.Operation` | `enabled=true`, `threshold=25 ms`, `stackTrace=true` |
 
-Các giá trị trên chỉ là điểm khởi đầu, không phải “mức tốt nhất” cho mọi service. Nên đo event count, kích thước file, CPU và tác động lên latency khi điều chỉnh.
+The values above are starting points, not "optimal settings" for every service. Measure event counts, file size, CPU, and latency impact when tuning.
 
-## 4. Cú pháp event setting và cấu hình có hiệu lực
+## 4. Event Setting Syntax and Effective Configuration
 
-### 4.1. Dạng khóa `event#setting`
+### 4.1. `event#setting` Key Format
 
-Theo API của JFR, key gồm tên đầy đủ của event và tên setting, phân cách bằng `#`:
+Per the JFR API, keys combine the full event name and setting name separated by `#`:
 
 ```text
 jdk.JavaMonitorEnter#enabled=true
@@ -121,38 +121,38 @@ jdk.CPULoad#enabled=true
 jdk.CPULoad#period=1 s
 ```
 
-Trong `.jfc`, mỗi setting được đặt bên trong một phần tử `<event name="...">`. Trong lệnh `jfr configure` hay `JFR.start`, dùng `event#setting=value`, thường viết `20ms` không có khoảng trắng. Trong Java API, một map có key `"jdk.CPULoad#period"`, value `"1 s"`.
+In `.jfc`, each setting sits inside an `<event name="...">` element. In `jfr configure` or `JFR.start` commands, use `event#setting=value`, usually writing `20ms` without spaces. In the Java API, a map uses key `"jdk.CPULoad#period"` and value `"1 s"`.
 
-Nếu event class trùng tên giữa nhiều classloader, API còn có dạng `<event-id>#<setting>`. Event ID chỉ có ý nghĩa ở JVM instance hiện tại, vì vậy không lưu số ID cứng để dùng cho tất cả môi trường.
+If an event class shares a name across multiple classloaders, the API also supports `<event-id>#<setting>`. Event IDs are meaningful only within the current JVM instance, so never hardcode numeric IDs across environments.
 
-### 4.2. Không phải event nào cũng hỗ trợ cả bốn setting
+### 4.2. Not Every Event Supports All Four Settings
 
-Kiểm tra `EventType.getSettingDescriptors()` trong JVM thật. Với event duration, có thể thấy `threshold`; với event định kỳ như `jdk.CPULoad`, thường có `period`. Đừng đoán rằng mọi sự kiện có `stackTrace` hay `period`. Custom event không tự động trở thành periodic chỉ vì bạn truyền một chu kỳ.
+Query `EventType.getSettingDescriptors()` on a real JVM. Duration events typically expose `threshold`; periodic events like `jdk.CPULoad` typically expose `period`. Never assume every event has `stackTrace` or `period`. A custom event does not automatically become periodic simply because you pass a period setting.
 
-Tương tự, một số event có setting riêng hoặc sử dụng cơ chế lấy mẫu riêng. Đọc tên và default setting từ chính JDK. Metadata này là **khả năng của event type**, còn cấu hình recording thực tế có thể override default.
+Similarly, some events have specialized settings or use distinct sampling mechanisms. Read exact names and default settings from the JDK itself. This metadata reflects **event type capabilities**, while the actual recording config can override defaults.
 
-### 4.3. Các tầng cấu hình
+### 4.3. Configuration Layers
 
-- **Annotation trên class** như `@Enabled`, `@Threshold`, `@Period` và `@StackTrace` cung cấp default của event type nếu được khai báo.
-- **JFC file** (`default.jfc` hoặc `profile.jfc`, hoặc bản tùy chỉnh) mô tả settings đưa vào một recording.
-- **Override trong lệnh start** `-XX:StartFlightRecording` hay `jcmd ... JFR.start` có thể đặt giá trị ưu tiên hơn JFC cho recording mới.
-- **Java API** `Recording.enable(...).with...` và `Recording.setSettings(...)` cấu hình riêng recording do chương trình quản lý.
+- **Class annotations** such as `@Enabled`, `@Threshold`, `@Period`, and `@StackTrace` provide the event type's defaults when declared.
+- **JFC files** (`default.jfc`, `profile.jfc`, or custom variants) define the settings loaded into a recording.
+- **Start command overrides** via `-XX:StartFlightRecording` or `jcmd ... JFR.start` can set values taking precedence over the JFC for the new recording.
+- **Java API** calls like `Recording.enable(...).with...` and `Recording.setSettings(...)` configure a programmatically managed recording.
 
-`default.jfc` được thiết kế cho ghi liên tục với chi phí thấp; `profile.jfc` chứa nhiều dữ liệu hơn và thường phù hợp phiên profiling ngắn. Không sửa bản JFC chuẩn bên trong `JAVA_HOME/lib/jfr`: tạo bản mới để dễ đối chiếu/reproduce. Mỗi recording có cấu hình riêng; khi nhiều recording đồng thời, tổng chi phí JVM có thể tăng.
+`default.jfc` is built for low-cost continuous recording; `profile.jfc` gathers richer data and typically suits short profiling sessions. Do not edit standard JFC files inside `JAVA_HOME/lib/jfr`: create a new file for easy comparison and reproducibility. Each recording has its own configuration; with multiple concurrent recordings, total JVM overhead can add up.
 
-## 5. Tạo cấu hình JFC bằng `jfr configure`
+## 5. Creating a JFC Configuration with `jfr configure`
 
-### 5.1. Tạo file từ default profile
+### 5.1. Generating a File from the Default Profile
 
-JDK 19+ khuyến khích sử dụng `jfr configure` để sinh file cấu hình. Ví dụ (thực hiện trong thư mục có quyền ghi):
+JDK 19+ recommends `jfr configure` to generate configuration files. Example (run in a writable directory):
 
 ```bash
 jfr configure --output diagnostics.jfc jdk.JavaMonitorEnter#enabled=true jdk.JavaMonitorEnter#threshold=20ms jdk.JavaMonitorEnter#stackTrace=true jdk.CPULoad#enabled=true jdk.CPULoad#period=1s
 ```
 
-Khi không có `--input`, công cụ dùng cấu hình mặc định làm nền. File kết quả `diagnostics.jfc` giữ những setting khác từ template và thay các setting được chỉ định. Nếu event chưa hiện diện trong template, `jfr configure` có cú pháp thêm mới với dấu `+` trước tên event; kiểm tra `jfr help configure` trong JDK đang dùng.
+When `--input` is omitted, the tool uses the default configuration as its base. The resulting `diagnostics.jfc` retains other template settings while replacing the specified ones. If an event is not yet present in the template, `jfr configure` supports adding it with a `+` prefix before the event name; check `jfr help configure` in your JDK.
 
-Về ý nghĩa, những phần tương ứng trong XML có hình dạng:
+Conceptually, the corresponding XML sections look like:
 
 ```xml
 <event name="jdk.JavaMonitorEnter">
@@ -166,42 +166,42 @@ Về ý nghĩa, những phần tương ứng trong XML có hình dạng:
 </event>
 ```
 
-Đây chỉ là **trích đoạn**, chưa phải file JFC hoàn chỉnh; tệp thật phải có phần tử `<configuration ...>` bao quanh và các event khác nếu muốn giữ cấu hình từ template.
+This is only a **snippet**, not a complete JFC file; a real file requires a wrapping `<configuration ...>` element and the other events if preserving template settings.
 
-### 5.2. Ghi JFR trên JVM đang chạy
+### 5.2. Recording JFR on a Running JVM
 
-Xác định PID JVM:
+Identify the JVM PID:
 
 ```bash
 jcmd -l
 ```
 
-Chạy ví dụ sau, **thay PID 12345 và các đường dẫn bằng giá trị thực**; sử dụng đường dẫn tuyệt đối cho service/container để tránh nhầm thư mục:
+Run the example below, **replacing PID 12345 and paths with real values**; use absolute paths for services/containers to avoid directory confusion:
 
 ```bash
 jcmd 12345 JFR.start name=lock_diagnostics settings=diagnostics.jfc duration=2m filename=lock_diagnostics.jfr
 jcmd 12345 JFR.check name=lock_diagnostics verbose=true
 ```
 
-`JFR.start` tạo recording với settings đã chọn. `JFR.check verbose=true` giúp xem event settings của recording **khi vẫn còn hoạt động**. Đừng chỉ dựa vào thông báo “Started recording”; xác minh đúng JVM/PID và cấu hình thực.
+`JFR.start` creates the recording with the chosen settings. `JFR.check verbose=true` lets you inspect the recording's event settings **while it is still active**. Never rely solely on "Started recording"; verify the right JVM/PID and effective settings.
 
-Có thể override nhanh các setting khi start:
+You can quickly override settings at start time:
 
 ```bash
 jcmd 12345 JFR.start name=lock_short settings=default duration=60s filename=lock_short.jfr jdk.JavaMonitorEnter#enabled=true jdk.JavaMonitorEnter#threshold=10ms jdk.JavaMonitorEnter#stackTrace=true
 ```
 
-Ở CLI, từng cặp `event#setting=value` là một token; thời lượng `10ms` viết liền để tránh bị shell tách thành hai phần. Override áp dụng cho recording mới, không ngầm thay mọi recording đang hoạt động.
+On the CLI, each `event#setting=value` pair is one token; durations like `10ms` are written without spaces so the shell does not split them into two arguments. Overrides apply to the new recording and do not implicitly alter other active recordings.
 
-Nếu muốn dừng trước thời hạn và xuất file:
+To stop early and export the file:
 
 ```bash
 jcmd 12345 JFR.stop name=lock_diagnostics filename=lock_diagnostics.jfr
 ```
 
-Không chạy lệnh stop lại khi recording đã kết thúc theo `duration`. Các lệnh attach bằng `jcmd` cần quyền phù hợp; kết quả có thể khác giữa JVM trong container và tiến trình trên máy host.
+Do not run `stop` again after the recording has already finished via `duration`. `jcmd` attach commands require appropriate permissions; behavior can differ between a JVM inside a container and a process on the host.
 
-### 5.3. Đọc file, kiểm tra kết quả thay vì tin cấu hình
+### 5.3. Inspecting the File to Verify Results Instead of Trusting Config
 
 ```bash
 jfr summary lock_diagnostics.jfr
@@ -210,17 +210,17 @@ jfr print --events jdk.CPULoad lock_diagnostics.jfr
 jfr print --stack-depth 20 --events jdk.JavaMonitorEnter lock_diagnostics.jfr
 ```
 
-`jfr summary` hiển thị số lượng từng loại event được ghi trong file; `jfr print` cho phép lọc event cụ thể. `--stack-depth 20` chỉ điều chỉnh số frame **hiển thị** từ stack đã ghi, không khôi phục stack chưa được thu.
+`jfr summary` displays counts of each event type recorded in the file; `jfr print` filters specific events. `--stack-depth 20` only controls how many frames are **displayed** from already-recorded stacks; it cannot recover uncaptured frames.
 
-Ví dụ không thấy `jdk.JavaMonitorEnter` thì có nhiều khả năng: không xảy ra contention, những lần chờ đều dưới ngưỡng, recording không trùng cửa sổ sự cố, event chưa bật, hoặc nhầm JVM/file. **0 event chưa chứng minh “không có vấn đề lock”.**
+For example, finding zero `jdk.JavaMonitorEnter` events has several possible causes: no contention occurred, all waits were below threshold, the recording missed the incident window, the event was disabled, or you inspected the wrong JVM/file. **Zero events does not prove "there is no lock issue."**
 
-Khi có file, JDK Mission Control (JMC) giúp đối chiếu thống kê theo thời gian, nhóm stack trace và xem biểu đồ cùng GC/CPU/thread. Cần giữ nguyên metadata thời gian, cấu hình và workload khi so sánh trước–sau.
+Once you have the file, JDK Mission Control (JMC) helps correlate time-series stats, group stack traces, and view charts alongside GC/CPU/threads. Keep timing metadata, configuration, and workload consistent when comparing before and after.
 
-## 6. Java 17+ runnable: event tùy chỉnh + periodic event
+## 6. Runnable Java 17+: Custom Event + Periodic Event
 
-Một custom event không tự phát theo `period`; ứng dụng phải tạo và `commit` event. Chương trình dưới đây ghi một duration event tên `demo.Operation` cho hai thao tác, đặt threshold 25 ms và bật stack. Đồng thời bật periodic event `jdk.CPULoad` để minh họa `period` độc lập.
+A custom event does not automatically emit on a `period`; the application must instantiate and `commit` it. The program below records a duration event named `demo.Operation` for two operations with a 25 ms threshold and stacks enabled, while also enabling the periodic `jdk.CPULoad` event to illustrate an independent `period`.
 
-Tạo file **`JfrSettingsDemo.java`**:
+Create **`JfrSettingsDemo.java`**:
 
 ```java
 import java.nio.file.Path;
@@ -280,7 +280,7 @@ public final class JfrSettingsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac JfrSettingsDemo.java
@@ -290,29 +290,29 @@ jfr print --events demo.Operation jfr-settings-demo.jfr
 jfr print --events jdk.CPULoad jfr-settings-demo.jfr
 ```
 
-**Stdout của riêng chương trình Java khi ghi file thành công:**
+**Stdout of the Java program itself when file writing succeeds:**
 
 ```text
 Recording completed
 ```
 
-Các lệnh `jfr summary`/`jfr print` sinh output thay đổi theo máy, phiên bản JDK, scheduling và dữ liệu thu được; không có transcript cố định để chép. Trong điều kiện thông thường, `slow` sẽ dài hơn 25 ms và được giữ, còn `fast` khoảng 1 ms sẽ bị lọc. `Thread.sleep` không bảo đảm độ trễ tuyệt đối khi máy rất bận, vì vậy không tuyên bố số event luôn bằng 1.
+`jfr summary`/`jfr print` produce output that varies by machine, JDK version, scheduling, and recorded data; there is no fixed transcript to copy. Under normal conditions, `slow` exceeds 25 ms and is retained, whereas `fast` (~1 ms) is filtered out. `Thread.sleep` does not guarantee exact latency on a heavily loaded machine, so do not assert the event count is always 1.
 
-Các điểm cần giải thích:
+Key points explained:
 
-1. `@Enabled(false)`, `@Threshold("0 ms")` và `@StackTrace(false)` mô tả default của custom event class.
-2. `recording.enable(OperationEvent.class)` bật event trong recording đang tạo; `withThreshold(Duration.ofMillis(25))` và `withStackTrace()` ghi đè cấu hình mặc định cho recording này.
-3. `event.begin()` và `event.end()` tạo duration; `event.commit()` gửi event để JFR xét điều kiện thu. `Event.shouldCommit()` có thể giúp tránh tạo payload đắt khi event sẽ không được ghi.
-4. `recording.enable("jdk.CPULoad").withPeriod(...)` cấu hình **một event định kỳ khác**, không biến `OperationEvent` thành periodic.
-5. Stack của custom event được thu theo điểm `commit`. Muốn gắn context nghiệp vụ chuẩn, nên đặt payload và nơi commit phù hợp; stack đơn lẻ không thay thế trace từ đầu đến cuối request.
-6. `stop()` ngừng recording; `dump(output)` lưu file để quan sát; `try-with-resources` đóng recording. File có thể chứa thông tin runtime nhạy cảm, cần quản lý quyền truy cập.
+1. `@Enabled(false)`, `@Threshold("0 ms")`, and `@StackTrace(false)` define the custom event class's defaults.
+2. `recording.enable(OperationEvent.class)` enables the event in the recording being created; `withThreshold(Duration.ofMillis(25))` and `withStackTrace()` override the defaults for this recording.
+3. `event.begin()` and `event.end()` measure duration; `event.commit()` submits the event for JFR evaluation. `Event.shouldCommit()` can help avoid constructing expensive payloads when an event will not be recorded.
+4. `recording.enable("jdk.CPULoad").withPeriod(...)` configures **a separate periodic event**; it does not turn `OperationEvent` into a periodic event.
+5. Custom event stacks are captured at the `commit` point. To attach accurate business context, populate payloads and choose commit sites carefully; a single stack does not replace end-to-end request tracing.
+6. `stop()` ends the recording; `dump(output)` saves the file for inspection; `try-with-resources` closes the recording. The file may contain sensitive runtime information and requires proper access control.
 
-### 6.1. Thay toàn bộ setting map bằng `Recording.setSettings`
+### 6.1. Replacing the Entire Settings Map with `Recording.setSettings`
 
-Java API còn hỗ trợ:
+The Java API also supports:
 
 ```java
-// Fragment dùng trong nơi đã có biến recording kiểu jdk.jfr.Recording.
+// Fragment used where a recording variable of type jdk.jfr.Recording is already available.
 recording.setSettings(java.util.Map.of(
     "demo.Operation#enabled", "true",
     "demo.Operation#threshold", "25 ms",
@@ -322,11 +322,11 @@ recording.setSettings(java.util.Map.of(
 ));
 ```
 
-Đây là **fragment minh họa, không phải chương trình độc lập**. `setSettings` **thay toàn bộ map settings** của recording: nếu chỉ truyền một entry, bạn có thể vô tình xóa cấu hình khác đang có. Khi chỉ sửa vài lựa chọn, chuỗi `enable(...).with...` thường rõ và an toàn hơn. Có thể xem map settings của recording bằng `recording.getSettings()`.
+This is an **illustrative fragment, not a standalone program**. `setSettings` **replaces the entire settings map** of the recording: passing only a single entry can accidentally erase other existing settings. When modifying just a few options, chaining `enable(...).with...` is usually clearer and safer. You can inspect a recording's settings map with `recording.getSettings()`.
 
-## 7. Truy vấn setting được event type thật sự hỗ trợ
+## 7. Querying Settings Actually Supported by an Event Type
 
-Không cần đoán tên setting: API `FlightRecorder.getEventTypes()` và `EventType.getSettingDescriptors()` cho phép hỏi JVM. Tạo file **`ListJfrSettings.java`**:
+No need to guess setting names: `FlightRecorder.getEventTypes()` and `EventType.getSettingDescriptors()` let you ask the JVM directly. Create **`ListJfrSettings.java`**:
 
 ```java
 import java.util.Set;
@@ -360,90 +360,90 @@ javac ListJfrSettings.java
 java ListJfrSettings
 ```
 
-Thứ tự và các dòng output phụ thuộc JDK và danh sách event types, không cố định. Hãy xác nhận `jdk.JavaMonitorEnter` có `threshold`/`stackTrace` và `jdk.CPULoad` có `period`. `SettingDescriptor.getDefaultValue()` là default **của event type**; nó không phải cam kết rằng recording hiện tại giữ nguyên giá trị ấy. Cấu hình recording có thể kiểm tra bằng `Recording.getSettings()` hoặc `jcmd ... JFR.check verbose=true`.
+Output order and lines depend on the JDK and event type list and are not fixed. Confirm that `jdk.JavaMonitorEnter` exposes `threshold`/`stackTrace` and `jdk.CPULoad` exposes `period`. `SettingDescriptor.getDefaultValue()` is the **event type's** default; it is not a promise that an active recording retains that exact value. Inspect recording settings via `Recording.getSettings()` or `jcmd ... JFR.check verbose=true`.
 
-Nếu custom event class được tải qua nhiều classloader, cần thận trọng phân biệt event name với event ID. Không hardcode ID cho các lần chạy khác nhau.
+If a custom event class is loaded across multiple classloaders, carefully distinguish event name from event ID. Never hardcode numeric IDs across runs.
 
-## 8. Chiến lược chỉnh setting để tìm nguyên nhân
+## 8. Setting-Tuning Strategy for Root-Cause Investigation
 
-Giả sử latency p99 tăng và nghi monitor contention:
+Suppose p99 latency increases and you suspect monitor contention:
 
-1. **Nêu giả thuyết cụ thể:** có những lần chờ lock dài làm request chậm, hay có rất nhiều lần chờ ngắn cộng dồn?
-2. **Chọn event đúng:** `jdk.JavaMonitorEnter` cho monitor contention; nếu nghi CPU, xem thêm `jdk.ExecutionSample` và `jdk.CPULoad`; nếu nghi I/O, chọn `jdk.FileRead`/`jdk.SocketRead` phù hợp.
-3. **Đặt mức đầu tiên:** với giả thuyết lock dài, thử `enabled=true`, `threshold=20 ms` và `stackTrace=true`, ghi ngắn khoảng 1–2 phút ở đúng thời gian sự cố.
-4. **Kiểm tra hiệu lực:** `JFR.check verbose=true` trước khi kết thúc, `jfr summary` và `jfr print` sau khi dump. Đừng gộp dữ liệu của nhiều PID/recording.
-5. **Điều chỉnh nếu bỏ sót:** nếu 0 event nhưng request vẫn chậm, kiểm tra đúng event trước; sau đó cân nhắc hạ threshold trong một phép đo mới, hoặc điều tra nguyên nhân khác.
-6. **Đối chiếu bối cảnh:** timeline từ JFR, request trace, CPU, thread dump, GC pauses, thread pool và thông tin OS/container.
-7. **Đo overhead:** số event/giây, kích thước recording, CPU, disk I/O và tác động latency; giữ mức thấp nhất đủ giải thích hiện tượng.
-8. **Ghi lại cấu hình và kết quả:** JDK version, collector, workload, thời gian, settings, event counts và các thay đổi đã thử.
+1. **Formulate a concrete hypothesis:** are long individual lock waits slowing requests, or are huge numbers of short waits adding up?
+2. **Pick the right events:** `jdk.JavaMonitorEnter` for monitor contention; if suspecting CPU, also check `jdk.ExecutionSample` and `jdk.CPULoad`; if suspecting I/O, pick `jdk.FileRead`/`jdk.SocketRead` as appropriate.
+3. **Set an initial level:** for a long-lock hypothesis, try `enabled=true`, `threshold=20 ms`, and `stackTrace=true` for a short 1–2 minute capture during the incident.
+4. **Verify effectiveness:** `JFR.check verbose=true` before stopping, then `jfr summary` and `jfr print` after dumping. Do not mix data across multiple PIDs/recordings.
+5. **Adjust if missed:** if 0 events appear while requests remain slow, verify you picked the right event first; then consider lowering the threshold in a new capture, or investigating another cause.
+6. **Correlate with context:** JFR timelines, request traces, CPU, thread dumps, GC pauses, thread pools, and OS/container metrics.
+7. **Measure overhead:** events/sec, recording size, CPU, disk I/O, and latency impact; keep the lowest level sufficient to explain the phenomenon.
+8. **Document configuration and results:** JDK version, collector, workload, timestamps, settings, event counts, and attempted changes.
 
-| Thao tác | Lợi ích | Đánh đổi |
+| Change | Benefit | Trade-off |
 | --- | --- | --- |
-| `enabled=false → true` | Bắt đầu có thể thu event type liên quan | Tăng chi phí/volume; có thể vẫn 0 event nếu không phát sinh |
-| `threshold=100 ms → 5 ms` | Nhìn thấy nhiều duration events ngắn | File lớn hơn; nhiều stack hơn nếu bật |
-| `threshold=0 → 50 ms` | Tập trung vào các thao tác dài | Không thấy tích lũy của nhiều thao tác ngắn |
-| `period=1 s → 20 ms` | Lấy mẫu dày hơn cho event hỗ trợ | Sampling overhead; không bảo đảm mọi spike |
-| `stackTrace=false → true` | Có thêm bối cảnh code | Có thể tăng overhead đáng kể trên event dày |
-| `stackTrace=true → false` | Ít dữ liệu/chi phí hơn | Thiếu caller context khi phân tích |
+| `enabled=false → true` | Allows capturing the relevant event type | Increases cost/volume; may still yield 0 events if untriggered |
+| `threshold=100 ms → 5 ms` | Reveals more short duration events | Larger files; more stacks if enabled |
+| `threshold=0 → 50 ms` | Focuses on long operations | Hides cumulative impact of many short operations |
+| `period=1 s → 20 ms` | Finer sampling on supporting events | Sampling overhead; still does not guarantee catching every spike |
+| `stackTrace=false → true` | Adds code context | Can significantly raise overhead on high-frequency events |
+| `stackTrace=true → false` | Less data/cost | Lacks caller context during analysis |
 
-Để so sánh hai recording, dùng cùng workload/giới hạn tài nguyên/JDK và thời lượng tương đương. So sánh số lượng **theo thời gian**, phân phối duration và vị trí stack thay vì chỉ so raw count giữa các file khác thời lượng.
+To compare two recordings, keep workload, resource limits, and JDK identical with comparable durations. Compare rates **per unit time**, duration distributions, and stack locations rather than comparing raw counts across files of different lengths.
 
-## 9. Các lỗi tư duy và cấu hình phổ biến
+## 9. Common Conceptual and Configuration Errors
 
-**Lỗi 1: Dùng `period` như `threshold`.** `jdk.CPULoad#period=1 s` điều chỉnh nhịp ghi thông tin CPU; `jdk.JavaMonitorEnter#threshold=1 s` chỉ giữ các lần chờ lock kéo dài ít nhất khoảng 1 giây. Hai cấu hình không có chung nghĩa “mỗi giây một event”.
+**Error 1: Using `period` as `threshold`.** `jdk.CPULoad#period=1 s` controls how often CPU info is recorded; `jdk.JavaMonitorEnter#threshold=1 s` keeps only lock waits lasting at least roughly 1 second. They do not share a meaning of "one event per second."
 
-**Lỗi 2: Dùng `threshold` trên periodic event không hỗ trợ.** Nếu event type không công bố setting đó, phải dùng setting đúng (thường là `period`). `jfr configure` không biến một setting không hỗ trợ thành cơ chế mới.
+**Error 2: Using `threshold` on an unsupported periodic event.** If an event type does not declare that setting, use the proper setting (typically `period`). `jfr configure` does not turn an unsupported setting into a new mechanism.
 
-**Lỗi 3: Kết luận không có sự cố vì event count bằng 0.** Có thể threshold quá cao, recording sai thời điểm/PID, event disable, hoặc không có hoạt động tương ứng trong khoảng đo. Kiểm tra điều kiện phát sinh trước khi suy luận.
+**Error 3: Concluding there is no problem because event count is 0.** The threshold might be too high, the recording at the wrong time/PID, the event disabled, or no matching activity occurred in the window. Verify trigger conditions before concluding.
 
-**Lỗi 4: Bật mọi event và stack trace mà không kiểm tra overhead.** Hãy ưu tiên các event giải quyết giả thuyết; thay đổi từng nhóm nhỏ và xem `jfr summary`, CPU, disk, latency.
+**Error 4: Enabling all events and stack traces without checking overhead.** Prioritize events that test your hypothesis; change small groups at a time and watch `jfr summary`, CPU, disk, and latency.
 
-**Lỗi 5: Chỉ đọc default annotation.** Cấu hình JFC và override của recording mới quyết định event thực tế ghi những gì. `@Enabled(true)` không chứng minh file JFR đang có event.
+**Error 5: Reading only default annotations.** JFC configurations and recording overrides decide what is actually recorded. `@Enabled(true)` does not prove a JFR file contains the event.
 
-**Lỗi 6: Dùng `Recording.setSettings(Map.of(...))` như phép cập nhật một khóa.** API này **replace** toàn bộ map, không merge; dùng `EventSettings` hoặc tạo map mới đã hợp nhất những lựa chọn cần giữ.
+**Error 6: Treating `Recording.setSettings(Map.of(...))` as a single-key update.** This API **replaces** the entire map rather than merging; use `EventSettings` or build a new map preserving the options you want to keep.
 
-**Lỗi 7: Thấy thiếu stack rồi tăng `jfr print --stack-depth`.** Lệnh in không tạo ra frame chưa được ghi. Cần thu recording mới với `stackTrace=true` nếu event hỗ trợ và yêu cầu nghiệp vụ cần.
+**Error 7: Seeing missing stacks and increasing `jfr print --stack-depth`.** Printing cannot invent frames that were never recorded. Capture a new recording with `stackTrace=true` if the event supports it and your investigation requires it.
 
-**Lỗi 8: Gọi `jcmd JFR.configure` để kỳ vọng đổi mọi event trong recording đang chạy.** `jfr configure` là công cụ tạo JFC; `JFR.start` chọn settings cho recording mới; `JFR.configure` của `jcmd` phục vụ các lựa chọn cấu hình JFR ở mức JVM, không tương đương việc gọi `Recording.setSettings` trên một recording đã tồn tại.
+**Error 8: Calling `jcmd JFR.configure` expecting to change every event in a running recording.** `jfr configure` creates JFC files; `JFR.start` selects settings for a new recording; `jcmd`'s `JFR.configure` manages JVM-level JFR options and is not equivalent to calling `Recording.setSettings` on an existing recording.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**Câu 1.** Cần tìm lần chờ monitor trên 30 ms kèm code call site. Nên dùng gì?
+**Question 1.** You need to find monitor waits over 30 ms along with Java call sites. What should you use?
 
-*Đáp án:* Chọn event `jdk.JavaMonitorEnter` và thử `enabled=true`, `threshold=30 ms`, `stackTrace=true`. Kiểm tra event descriptor trước, thu đúng thời điểm lỗi, đối chiếu với thread/request traces.
+*Answer:* Choose `jdk.JavaMonitorEnter` and try `enabled=true`, `threshold=30 ms`, `stackTrace=true`. Check event descriptors first, capture during the failure window, and correlate with threads/request traces.
 
-**Câu 2.** Cần CPU trend mỗi 2 giây trong 10 phút, có nên dùng `threshold=2 s` trên `jdk.CPULoad`?
+**Question 2.** You need a CPU trend every 2 seconds for 10 minutes; should you set `threshold=2 s` on `jdk.CPULoad`?
 
-*Đáp án:* Không. Sử dụng `jdk.CPULoad#period=2 s` nếu event hỗ trợ; `threshold` không mô tả chu kỳ của sự kiện này.
+*Answer:* No. Use `jdk.CPULoad#period=2 s` if supported by the event; `threshold` does not describe the cadence of this event.
 
-**Câu 3.** Khi `enabled=true` và `threshold=100 ms`, `jfr summary` có 0 `jdk.FileRead` events, có thể kết luận toàn bộ file I/O đều nhanh không?
+**Question 3.** With `enabled=true` and `threshold=100 ms`, `jfr summary` shows 0 `jdk.FileRead` events; can you conclude all file I/O is fast?
 
-*Đáp án:* Không. Có thể có nhiều file reads dưới 100 ms, hoặc recording không trúng tải, hoặc sai JVM/file. Muốn biết chính xác phải kiểm tra cửa sổ đo, cấu hình và có thể hạ threshold trong phép thu mới.
+*Answer:* No. There could be many file reads under 100 ms, the recording may have missed load, or it may be the wrong JVM/file. To be sure, check the capture window, settings, and possibly lower the threshold in a new capture.
 
-**Câu 4.** Tăng `stackTrace=true` khi ghi CPU load định kỳ có chắc tạo ra execution flame graph không?
+**Question 4.** Does setting `stackTrace=true` when recording periodic CPU load guarantee an execution flame graph?
 
-*Đáp án:* Không. CPU load là thống kê định kỳ; muốn phân tích nơi CPU được tiêu tốn, dùng execution sampling/profiling events phù hợp và kiểm tra khả năng stack của event đó.
+*Answer:* No. CPU load is a periodic statistic; to analyze where CPU time is spent, use appropriate execution sampling/profiling events and check their stack support.
 
-**Câu 5.** Khi custom event khai `@Enabled(false)`, có thể bật bằng Java API không?
+**Question 5.** When a custom event declares `@Enabled(false)`, can it be enabled via the Java API?
 
-*Đáp án:* Có. `recording.enable(CustomEvent.class)` có thể bật trong recording đó; config lớp là baseline và có thể bị override.
+*Answer:* Yes. `recording.enable(CustomEvent.class)` can enable it in that recording; class-level annotations act as a baseline that can be overridden.
 
-## 11. Checklist khi bàn giao một bản ghi JFR
+## 11. Checklist When Handing Over a JFR Recording
 
-- [ ] Ghi rõ **JDK/build**, JVM/PID, thời gian bắt đầu/kết thúc, tên recording và tên file.
-- [ ] Phân biệt event settings với recording options.
-- [ ] Kiểm tra event type có thật và hỗ trợ `enabled`, `threshold`, `period`, `stackTrace` nào.
-- [ ] Chọn `threshold` cho duration events; `period` cho periodic/sampling events.
-- [ ] Ghi rõ stack trace bật hay tắt, và không kỳ vọng công cụ đọc phục hồi dữ liệu thiếu.
-- [ ] Nắm nguồn cấu hình: annotation → JFC → CLI hoặc Java API override.
-- [ ] Dùng `JFR.check verbose=true` hoặc `Recording.getSettings()` để kiểm tra thực tế.
-- [ ] Dùng `jfr summary`/`jfr print` để xác nhận dữ liệu đã được thu.
-- [ ] Đối chiếu event với request timeline, CPU/GC/thread/I/O và workload.
-- [ ] Kiểm tra overhead, số lượng event, dung lượng recording và chính sách lưu trữ.
+- [ ] Document **JDK/build**, JVM/PID, start/end timestamps, recording name, and filename.
+- [ ] Distinguish event settings from recording options.
+- [ ] Verify the event type exists and which of `enabled`, `threshold`, `period`, `stackTrace` it supports.
+- [ ] Use `threshold` for duration events and `period` for periodic/sampling events.
+- [ ] Record whether stack traces are enabled or disabled, and do not expect reader tools to recover uncaptured data.
+- [ ] Know configuration precedence: annotations → JFC → CLI or Java API overrides.
+- [ ] Use `JFR.check verbose=true` or `Recording.getSettings()` to inspect effective settings.
+- [ ] Use `jfr summary`/`jfr print` to verify data was actually collected.
+- [ ] Correlate events with request timelines, CPU/GC/threads/I/O, and workload.
+- [ ] Check overhead, event counts, recording size, and retention/storage policies.
 
-**Nguyên tắc cốt lõi:** `enabled` trả lời *có ghi loại event này không?*; `threshold` trả lời *event duration bao lâu mới được giữ?*; `period` trả lời *periodic event được phát/lấy mẫu theo nhịp nào?*; `stackTrace` trả lời *có kèm call stack để tìm vị trí code không?*. Cấu hình đúng chỉ có ý nghĩa khi được xác minh trên **recording thực tế** và đặt trong câu hỏi chẩn đoán cụ thể.
+**Core principle:** `enabled` answers *should this event type be recorded?*; `threshold` answers *how long must a duration event last to be kept?*; `period` answers *at what cadence is a periodic event emitted/sampled?*; `stackTrace` answers *should call stacks be attached to locate code?*. Proper settings matter only when verified on the **actual recording** and framed around a concrete diagnostic question.
 
-## Tài liệu tham khảo
+## References
 
 - Oracle JDK 21 — [`jdk.jfr` package: Settings and configuration](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html).
 - Oracle JDK 21 — [`EventSettings` API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html).

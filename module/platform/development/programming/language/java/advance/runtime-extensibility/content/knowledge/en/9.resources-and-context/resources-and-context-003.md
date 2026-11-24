@@ -1,11 +1,11 @@
-# Đọc cấu hình riêng của plugin mà không phụ thuộc thư mục làm việc
+# Reading Plugin-Specific Configuration Without Depending on the Working Directory
 
-## 1. Vấn đề: cùng một plugin nhưng chạy từ thư mục khác lại đọc sai cấu hình
+## 1. The Problem: The Same Plugin Reads the Wrong Configuration When Run from a Different Directory
 
-Trong một hệ thống Java có thể mở rộng bằng plugin, mỗi plugin thường cần cấu hình riêng: chế độ xử lý, endpoint, mức giới hạn, tên profile, bộ ánh xạ, tên file dữ liệu hoặc những tùy chọn tính năng. Một lỗi phổ biến là đọc cấu hình bằng đường dẫn tương đối như:
+In a Java system extensible via plugins, each plugin often needs its own configuration: processing mode, endpoints, limits, profile names, mappers, data filenames, or feature flags. A common mistake is reading configuration via a relative path such as:
 
 ```java
-// Phản ví dụ: phụ thuộc vào current working directory (CWD).
+// Anti-pattern: depends on the current working directory (CWD).
 Path file = Path.of("config", "greeting.properties");
 Properties properties = new Properties();
 try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
@@ -13,39 +13,39 @@ try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
 }
 ```
 
-Đây là **đoạn minh họa không độc lập** (cần import, xử lý ngoại lệ và nơi chứa cấu hình). `Path.of("config", ...)` tạo đường dẫn **tương đối**; `Files.newBufferedReader` giải quyết nó theo thư mục làm việc của tiến trình, thường được biểu diễn bởi `System.getProperty("user.dir")`. Khi khởi động ứng dụng bằng terminal ở thư mục khác, qua IDE, Windows Service, systemd, Docker, scheduler hoặc script triển khai, đường dẫn ấy có thể trỏ tới vị trí khác và gây thiếu cấu hình hoặc, nguy hiểm hơn, đọc nhầm file cùng tên.
+This is a **non-standalone illustrative snippet** (requiring imports, exception handling, and a configuration location). `Path.of("config", ...)` creates a **relative** path; `Files.newBufferedReader` resolves it against the process's working directory, typically represented by `System.getProperty("user.dir")`. When starting the application from a terminal in another directory, through an IDE, Windows Service, systemd, Docker, a scheduler, or a deployment script, that path may point elsewhere and cause missing configuration or, more dangerously, read the wrong file with the same name.
 
-Để đọc cấu hình **không phụ thuộc thư mục làm việc**, hãy xác định rõ **nguồn và gốc đường dẫn**. Hai mô hình phổ biến:
+To read configuration **independently of the working directory**, clearly define the **source and path root**. Two common models are:
 
-1. **Cấu hình mặc định được đóng gói trong JAR của plugin**: đọc qua API resource của class/module bằng `getResourceAsStream`, không qua file path tương đối.
-2. **Cấu hình bên ngoài có thể thay đổi sau triển khai**: host cung cấp **đường dẫn tuyệt đối tới thư mục cấu hình của từng plugin**, plugin dùng `Path.resolve` để lấy file con.
+1. **Default configuration packaged inside the plugin's JAR**: read through the class/module resource API using `getResourceAsStream`, not via a relative file path.
+2. **External configuration modifiable after deployment**: the host supplies an **absolute path to each plugin's configuration directory**, and the plugin uses `Path.resolve` to obtain child files.
 
-Hai cách có thể kết hợp thành một chính sách: **đọc defaults trong JAR → áp dụng overrides bên ngoài → validate → kích hoạt**. Mô hình này giúp plugin chạy giống nhau dù điểm khởi động của tiến trình thay đổi.
+Both approaches can be combined into one policy: **read defaults in the JAR → apply external overrides → validate → activate**. This model keeps the plugin behaving identically even when the process launch location changes.
 
-> Phân biệt: “không phụ thuộc CWD” không đồng nghĩa “không phụ thuộc bất kỳ đường dẫn nào”. Cấu hình bên ngoài vẫn phải có gốc xác định (CLI, biến môi trường được quản trị, config root, volume mount…), và host nên truyền gốc đã kiểm tra bằng đường dẫn tuyệt đối.
+> Distinction: "not depending on the CWD" does not mean "not depending on any path at all." External configuration still needs a defined root (CLI, managed environment variable, config root, volume mount, etc.), and the host should pass a validated root as an absolute path.
 
-## 2. Ba loại vị trí dễ bị nhầm lẫn
+## 2. Three Easily Confused Location Types
 
-| Khái niệm | Ví dụ | Ý nghĩa và rủi ro |
+| Concept | Example | Meaning and Risk |
 | --- | --- | --- |
-| **Current working directory** | `user.dir`, `Path.of(".")`, `new File("settings.yml")` | Vị trí mà tiến trình được khởi động; thay đổi theo cách chạy, không nhất thiết là nơi chứa JAR |
-| **Classpath/module resource** | `/plugins/greeting/default.properties` | Tài nguyên được đóng gói hoặc cung cấp qua cơ chế class/module loading; có thể nằm **bên trong JAR** |
-| **External configuration directory** | `/etc/myapp/plugins/greeting` hoặc `C:\apps\myapp\config\greeting` | Vị trí cấu hình do người triển khai/host quyết định; đọc bằng NIO `Path` sau khi đã có gốc tuyệt đối |
+| **Current working directory** | `user.dir`, `Path.of(".")`, `new File("settings.yml")` | Location where the process was launched; varies with how it is run, not necessarily where the JAR lives |
+| **Classpath/module resource** | `/plugins/greeting/default.properties` | Resource packaged or provided via class/module loading; may reside **inside a JAR** |
+| **External configuration directory** | `/etc/myapp/plugins/greeting` or `C:\apps\myapp\config\greeting` | Configuration location decided by the deployer/host; read via NIO `Path` once an absolute root is given |
 
-Một số vị trí khác cũng cần phân biệt:
+Several other locations should also be distinguished:
 
-- **Thư mục chứa JAR**: vị trí vật lý của artifact triển khai, không tự động là CWD, và không mặc nhiên là nơi nên chứa cấu hình ghi được.
-- **`user.home`**: thư mục người dùng chạy tiến trình; không thích hợp làm quy ước ngầm cho nhiều dịch vụ hoặc nhiều tài khoản.
-- **`java.class.path`**: tập mục classpath, không phải thư mục cấu hình; có thể chứa nhiều JAR/thư mục hoặc bị thay đổi bởi launcher.
-- **Temporary directory**: `java.io.tmpdir` dành cho file tạm, không phải nguồn cấu hình bền vững.
+- **Directory containing the JAR**: the physical location of the deployed artifact, not automatically the CWD, and not by default a place where writable configuration should live.
+- **`user.home`**: the home directory of the user running the process; unsuitable as an implicit convention across multiple services or multiple accounts.
+- **`java.class.path`**: the set of classpath entries, not a configuration directory; it can contain multiple JARs/directories or be altered by a launcher.
+- **Temporary directory**: `java.io.tmpdir` is meant for temporary files, not durable configuration sources.
 
-Ví dụ, nếu host chạy từ `C:\work` nhưng JAR đặt tại `C:\apps\host\lib\plugin.jar`, thì `Path.of("config/plugin.properties")` **không** tự tìm tới `C:\apps\host\lib\config`. Nó phụ thuộc vào điểm chạy, trừ khi đã được giải quyết thành absolute path từ một gốc khác.
+For example, if the host runs from `C:\work` while the JAR is located at `C:\apps\host\lib\plugin.jar`, then `Path.of("config/plugin.properties")` does **not** automatically resolve to `C:\apps\host\lib\config`. It depends on the launch point unless resolved into an absolute path from another root.
 
-## 3. Cấu hình đóng gói trong plugin JAR: dùng resource API
+## 3. Configuration Packaged Inside a Plugin JAR: Using the Resource API
 
-### 3.1. Định vị resource theo class sở hữu plugin
+### 3.1. Locating a Resource via the Plugin-Owning Class
 
-Giả sử provider ở `com.example.plugins.greeting.GreetingPlugin` và JAR có cấu trúc:
+Suppose the provider is at `com.example.plugins.greeting.GreetingPlugin` and the JAR has the layout:
 
 ```text
 greeting-plugin.jar
@@ -54,7 +54,7 @@ greeting-plugin.jar
 └── plugins/greeting/default.properties
 ```
 
-Plugin đọc cấu hình mặc định bằng:
+The plugin reads its default configuration via:
 
 ```java
 String resourceName = "/plugins/greeting/default.properties";
@@ -62,53 +62,53 @@ try (InputStream input =
          GreetingPlugin.class.getResourceAsStream(resourceName)) {
     if (input == null) {
         throw new IllegalStateException(
-            "Thiếu resource trong JAR: " + resourceName);
+            "Missing resource in JAR: " + resourceName);
     }
-    // Đọc input ở đây.
+    // Read input here.
 }
 ```
 
-Đây là đoạn minh họa. `Class.getResourceAsStream("/...")` tìm resource từ **gốc của resource namespace**, theo cơ chế class/module loader gắn với class. Nó hoạt động khi plugin được đóng trong JAR mà không cần biết file JAR đang ở thư mục nào hoặc tiến trình được khởi động từ đâu.
+This is an illustrative snippet. `Class.getResourceAsStream("/...")` looks up a resource from the **root of the resource namespace**, according to the class/module loader attached to the class. It works when the plugin is packaged inside a JAR without needing to know which directory the JAR sits in or where the process was started from.
 
-**Lưu ý các dạng tên resource:**
+**Note the resource name forms:**
 
-| API | Tên truyền vào | Cách diễn giải |
+| API | Input Name | Interpretation |
 | --- | --- | --- |
-| `GreetingPlugin.class.getResourceAsStream("/plugins/greeting/default.properties")` | Có `/` đầu | Bắt đầu ở gốc resource namespace |
-| `GreetingPlugin.class.getResourceAsStream("default.properties")` | Không `/` đầu | Tương đối với package của `GreetingPlugin` |
-| `GreetingPlugin.class.getClassLoader().getResourceAsStream("plugins/greeting/default.properties")` | Không `/` đầu | Bắt đầu ở gốc class-loader resource namespace |
+| `GreetingPlugin.class.getResourceAsStream("/plugins/greeting/default.properties")` | Leading `/` | Starts at the root of the resource namespace |
+| `GreetingPlugin.class.getResourceAsStream("default.properties")` | No leading `/` | Relative to `GreetingPlugin`'s package |
+| `GreetingPlugin.class.getClassLoader().getResourceAsStream("plugins/greeting/default.properties")` | No leading `/` | Starts at the root of the class-loader resource namespace |
 
-Với `ClassLoader.getResourceAsStream`, **không đặt `/` đầu**; giá trị `"/plugins/..."` thường không khớp tên resource chuẩn. Với `Class.getResourceAsStream`, sử dụng dấu `/` đầu nếu muốn ổn định khi sau này đổi package của implementation.
+With `ClassLoader.getResourceAsStream`, **do not put a leading `/`**; a value like `"/plugins/..."` usually will not match the standard resource name. With `Class.getResourceAsStream`, use a leading `/` if you want stability if the implementation's package changes later.
 
-Nên đặt resource trong **namespace riêng theo plugin ID**, chẳng hạn `plugins/greeting/default.properties`, để tránh đụng tên `config.properties` giữa các JAR. Việc class loader có thể nhìn thấy resource từ nhiều JAR, và parent delegation có thể ảnh hưởng kết quả, nên resource name phải đủ đặc thù; với host/plugin loader phức tạp, cần xác định chính sách phân giải resource.
+Resources should be placed in a **dedicated namespace per plugin ID**, such as `plugins/greeting/default.properties`, to avoid collisions on names like `config.properties` across JARs. Since a class loader can see resources from multiple JARs and parent delegation can affect the result, the resource name must be sufficiently specific; for complex host/plugin loaders, define an explicit resource resolution policy.
 
-### 3.2. Không chuyển tài nguyên trong JAR thành `Path` một cách máy móc
+### 3.2. Do Not Mechanically Convert Resources Inside a JAR into a `Path`
 
-Một lỗi phổ biến:
+A common mistake:
 
 ```java
-// Phản ví dụ: chỉ có thể chạy trong một số cách đóng gói.
+// Anti-pattern: only works in certain packaging modes.
 URL url = GreetingPlugin.class.getResource(
     "/plugins/greeting/default.properties");
 Path file = Path.of(url.toURI());
 ```
 
-Nếu resource ở một thư mục trên filesystem, URL có thể mang scheme `file:` và chuyển sang `Path` được. Khi resource nằm **trong JAR**, URL có thể là `jar:file:...!/plugins/greeting/default.properties`. Chuyển trực tiếp qua `Path.of(URI)` có thể ném `FileSystemNotFoundException` hoặc không hoạt động nếu chưa có filesystem provider phù hợp.
+If the resource sits in a directory on the filesystem, the URL may have a `file:` scheme and convert to a `Path`. When the resource resides **inside a JAR**, the URL may be `jar:file:...!/plugins/greeting/default.properties`. Converting directly via `Path.of(URI)` can throw `FileSystemNotFoundException` or fail if no suitable filesystem provider is mounted.
 
-Đối với việc **đọc nội dung**, `getResourceAsStream` phù hợp và gọn hơn nhiều. Nếu thật sự cần một file vật lý vì thư viện downstream chỉ nhận `Path`, hãy cân nhắc API nhận `InputStream` trước; nếu bắt buộc, copy resource vào vị trí tạm do host quản lý và dọn sau khi sử dụng. Không giả định JAR đã giải nén hoặc resource có thể ghi.
+For **reading content**, `getResourceAsStream` is far cleaner and more appropriate. If you truly need a physical file because a downstream library only accepts a `Path`, consider an API accepting `InputStream` first; if unavoidable, copy the resource to a host-managed temporary location and clean it up after use. Never assume the JAR is unpacked or that the resource is writable.
 
-### 3.3. Class loader nào đang tìm resource?
+### 3.3. Which Class Loader Is Looking Up the Resource?
 
-Trong ứng dụng SPI, host có thể dùng:
+In an SPI application, the host might use:
 
 ```java
 ServiceLoader<Plugin> services =
     ServiceLoader.load(Plugin.class, pluginClassLoader);
 ```
 
-`pluginClassLoader` là loader được host chọn cho plugin (đoạn này là minh họa). Nếu plugin đọc `GreetingPlugin.class.getResourceAsStream(...)`, nó dùng **ngữ cảnh định nghĩa của class triển khai**; điều này rõ ràng hơn việc lấy bừa context class loader của thread.
+`pluginClassLoader` is the loader chosen by the host for the plugin (this snippet is illustrative). If the plugin calls `GreetingPlugin.class.getResourceAsStream(...)`, it uses the **defining context of the implementation class**; this is clearer than arbitrarily grabbing the thread's context class loader.
 
-Tránh phụ thuộc vô điều kiện vào:
+Avoid unconditionally relying on:
 
 ```java
 Thread.currentThread()
@@ -116,34 +116,34 @@ Thread.currentThread()
     .getResourceAsStream("plugins/greeting/default.properties");
 ```
 
-TCCL có thể thay đổi theo host, framework, thread pool hoặc executor, và có thể không nhìn thấy JAR của plugin. Nếu cần đổi TCCL theo yêu cầu framework, host phải khôi phục loader cũ trong `finally` sau khi thực hiện thao tác.
+The TCCL can vary by host, framework, thread pool, or executor, and may not even see the plugin's JAR. If changing the TCCL is required by a framework, the host must restore the old loader in a `finally` block after the operation finishes.
 
-Với **named modules (JPMS)**, resource visibility có thể chịu quy tắc module encapsulation; nếu đang ở bên trong chính module sở hữu tài nguyên, có thể dùng `Class.getResourceAsStream` hoặc `Module.getResourceAsStream` phù hợp. Không dựa vào giả định rằng class loader bất kỳ có quyền đọc tất cả resource của module.
+With **named modules (JPMS)**, resource visibility can be subject to module encapsulation rules; when inside the module that owns the resource, you can use `Class.getResourceAsStream` or `Module.getResourceAsStream` as appropriate. Do not rely on the assumption that an arbitrary class loader has permission to read every module resource.
 
-### 3.4. Cấu hình trong JAR nên đóng vai trò gì?
+### 3.4. What Role Should Configuration Inside the JAR Play?
 
-Nó phù hợp với **defaults ổn định**, schema, template nhỏ, file ánh xạ mặc định hoặc dữ liệu phiên bản đi cùng code. Nó không phù hợp với mật khẩu thực, khóa bí mật, cấu hình riêng từng môi trường hoặc file cần chỉnh sửa ngay trên máy triển khai.
+It is well suited for **stable defaults**, schemas, small templates, default mapping files, or versioned data shipped alongside code. It is not suitable for real passwords, secret keys, environment-specific settings, or files that must be edited directly on the deployment machine.
 
-File trong JAR được xem như tài nguyên *read-only* của phiên bản plugin. Nếu muốn cập nhật cấu hình thường xuyên mà không build lại artifact, hãy bổ sung lớp cấu hình bên ngoài.
+Files inside a JAR should be treated as *read-only* resources tied to the plugin version. If you want to update configuration frequently without rebuilding the artifact, add an external configuration layer.
 
-## 4. Cấu hình bên ngoài: host cấp đường dẫn tuyệt đối theo plugin ID
+## 4. External Configuration: Host Supplies an Absolute Path by Plugin ID
 
-### 4.1. Tạo gốc cấu hình có chủ sở hữu rõ ràng
+### 4.1. Creating a Configuration Root with Clear Ownership
 
-Thay vì để plugin tự suy đoán CWD, host quyết định một `configRoot` từ CLI/launcher hoặc hệ thống cấu hình đã được quản trị:
+Instead of letting plugins guess the CWD, the host determines a `configRoot` from the CLI/launcher or a managed configuration system:
 
 ```java
 Path root = Path.of(configRootFromLauncher);
 if (!root.isAbsolute()) {
     throw new IllegalArgumentException(
-        "Config root phải là đường dẫn tuyệt đối");
+        "Config root must be an absolute path");
 }
 root = root.normalize();
 ```
 
-Đây là đoạn minh họa; `configRootFromLauncher` phải đến từ cấu hình host đã xác thực. **Chỉ gọi `toAbsolutePath()` trên chuỗi tương đối vẫn khiến kết quả phụ thuộc CWD**. Cách chắc chắn khi yêu cầu độc lập CWD là **đòi hỏi path đầu vào đã tuyệt đối**, hoặc thiết lập một quy ước gốc ổn định khác từ lúc triển khai.
+This is an illustrative snippet; `configRootFromLauncher` must come from validated host configuration. **Merely calling `toAbsolutePath()` on a relative string still leaves the result dependent on the CWD.** The reliable way when requiring CWD independence is to **require the input path to already be absolute**, or establish another stable root convention at deployment time.
 
-Ví dụ cấu trúc:
+Example layout:
 
 ```text
 config-root/
@@ -155,9 +155,9 @@ config-root/
     └── reporting.properties
 ```
 
-Host chọn `greeting` dựa trên một plugin ID đã được kiểm tra, sau đó truyền `configRoot.resolve("greeting")` vào plugin. Plugin chỉ biết **thư mục cấu hình riêng của nó**, không cần quan tâm host đang chạy từ thư mục nào hoặc cấu hình của plugin khác đặt ở đâu.
+The host selects `greeting` based on a validated plugin ID, then passes `configRoot.resolve("greeting")` to the plugin. The plugin knows only **its own configuration directory** and does not need to care which directory the host is running from or where other plugins' configurations live.
 
-Một contract có thể định nghĩa:
+A contract may define:
 
 ```java
 public interface Plugin {
@@ -167,30 +167,30 @@ public interface Plugin {
 }
 ```
 
-Đây là ví dụ API rút gọn; các phương thức nghiệp vụ có thể bổ sung tùy chức năng. Trong ứng dụng lớn, thay `Path` bằng `PluginContext` hoặc `ConfigSource` chỉ cấp những khả năng truy cập cần thiết và dễ kiểm thử hơn.
+This is a condensed API example; business methods can be added depending on functionality. In larger applications, replacing `Path` with `PluginContext` or `ConfigSource` grants only the necessary access capabilities and makes testing easier.
 
-### 4.2. Xác thực định danh và đường dẫn
+### 4.2. Validating Identifiers and Paths
 
-Nếu `id()` do plugin cung cấp, không nên dùng trực tiếp để ghép đường dẫn khi chưa kiểm tra:
+If `id()` is supplied by the plugin, do not use it directly to join paths without validation:
 
 ```java
 String id = plugin.id();
 if (!id.matches("[a-z][a-z0-9-]*")) {
-    throw new IllegalArgumentException("Plugin ID không hợp lệ: " + id);
+    throw new IllegalArgumentException("Invalid plugin ID: " + id);
 }
 Path pluginDir = root.resolve(id).normalize();
 if (!pluginDir.startsWith(root)) {
-    throw new SecurityException("Plugin config path vượt ngoài config root");
+    throw new SecurityException("Plugin config path escapes config root");
 }
 ```
 
-Nhờ giới hạn ID về ký tự đơn giản, plugin không thể cung cấp giá trị như `../../other-plugin` làm tên thư mục. `normalize()` và `startsWith(root)` kiểm tra **đường dẫn từ vựng**; **không đủ để chống symbolic link/junction** trỏ ra ngoài. Nếu plugin hoặc nguồn cấu hình là không tin cậy, host cần thêm chính sách kiểm soát quyền filesystem, symlink, sở hữu thư mục và kiểm tra đường dẫn thực khi phù hợp. Không dùng class loader làm ranh giới bảo mật.
+By restricting the ID to simple characters, a plugin cannot supply values like `../../other-plugin` as a directory name. `normalize()` and `startsWith(root)` check the **lexical path**; they are **not sufficient to defend against symbolic links/junctions** pointing outside. If plugins or configuration sources are untrusted, the host needs additional policies controlling filesystem permissions, symlinks, directory ownership, and real-path checks where appropriate. Do not use a class loader as a security boundary.
 
-Nếu cấu hình chỉ để đọc, nên cấp quyền filesystem **read-only** cho tiến trình/plugin theo mức có thể triển khai. Không log nguyên văn secret hoặc đường dẫn nhạy cảm trong lỗi.
+If the configuration is read-only, grant **read-only** filesystem permissions to the process/plugin where deployable. Do not log raw secrets or sensitive paths in error messages.
 
-### 4.3. Tải file cấu hình bằng NIO và UTF-8
+### 4.3. Loading Configuration Files with NIO and UTF-8
 
-Khi đã có `pluginConfigDir` là absolute path, plugin đọc:
+Once `pluginConfigDir` is an absolute path, the plugin reads:
 
 ```java
 Path file = pluginConfigDir.resolve("greeting.properties");
@@ -201,32 +201,32 @@ try (Reader reader =
 }
 ```
 
-Đoạn minh họa cần import `java.nio.file.*`, `java.io.*`, `java.nio.charset.StandardCharsets` và `java.util.Properties`; nơi gọi phải xử lý `IOException`.
+This illustrative snippet requires importing `java.nio.file.*`, `java.io.*`, `java.nio.charset.StandardCharsets`, and `java.util.Properties`; the caller must handle `IOException`.
 
-Vì `pluginConfigDir` đã là absolute path nên `resolve("greeting.properties")` cũng cho một path không phụ thuộc CWD. `Files.newBufferedReader` mở file ngoài theo đường dẫn thật, khác với `getResourceAsStream` tìm tài nguyên trong classpath/JAR.
+Because `pluginConfigDir` is already an absolute path, `resolve("greeting.properties")` also produces a CWD-independent path. `Files.newBufferedReader` opens the external file via its real path, unlike `getResourceAsStream` which searches resources in the classpath/JAR.
 
-**Encoding rất quan trọng:** `Properties.load(InputStream)` quy định byte theo ISO-8859-1 với escape cho Unicode; nếu file chứa tiếng Việt UTF-8, hãy dùng `Properties.load(Reader)` với `InputStreamReader(..., StandardCharsets.UTF_8)` hoặc `Files.newBufferedReader(..., UTF_8)`. Trên Windows PowerShell 5.1, một số cách lưu UTF-8 có thể thêm BOM; nên ghi file UTF-8 **không BOM** vì BOM đầu file có thể trở thành một phần của tên key khi `Properties.load(Reader)` xử lý.
+**Encoding matters greatly:** `Properties.load(InputStream)` specifies bytes in ISO-8859-1 with Unicode escapes; if the file contains UTF-8 Vietnamese text, use `Properties.load(Reader)` with `InputStreamReader(..., StandardCharsets.UTF_8)` or `Files.newBufferedReader(..., UTF_8)`. On Windows PowerShell 5.1, some UTF-8 saving methods can add a BOM; write UTF-8 files **without BOM** because a leading BOM can become part of the first key's name when processed by `Properties.load(Reader)`.
 
-### 4.4. File không tồn tại: mặc định hay báo lỗi?
+### 4.4. Missing File: Default or Error?
 
-Khi external config là **tùy chọn** (chỉ override defaults trong JAR), chỉ nên bỏ qua lỗi **file không tồn tại**, còn lỗi không đọc được thì phải nổi lên:
+When external config is **optional** (only overriding defaults in the JAR), ignore only the **file-does-not-exist** error, while letting unreadable errors surface:
 
 ```java
 try (Reader reader = Files.newBufferedReader(
         overrideFile, StandardCharsets.UTF_8)) {
     properties.load(reader);
 } catch (NoSuchFileException missing) {
-    // Cho phép thiếu file override; dùng defaults đã đọc từ JAR.
+    // Allow missing override file; use defaults read from JAR.
 }
 ```
 
-Đây là đoạn minh họa trong một phương thức có `throws IOException`. `AccessDeniedException`, lỗi I/O, lỗi nội dung hoặc đường dẫn là directory không nên bị chuyển thành “không có override”. Đừng dùng `catch (Exception)` rồi mặc định bỏ qua; cách đó che lỗi cấu hình và gây khác biệt khó truy vết giữa môi trường.
+This is an illustrative snippet inside a method declaring `throws IOException`. `AccessDeniedException`, I/O errors, malformed content, or a path pointing to a directory should not be turned into "no override." Do not use `catch (Exception)` and silently ignore it; that hides configuration errors and causes hard-to-trace differences across environments.
 
-Nếu external config là **bắt buộc**, hãy để `IOException` có nguyên nhân rõ ràng và không kích hoạt plugin. Với cấu hình tùy chọn, điều kiện fallback phải được ghi trong contract và log ở mức phù hợp.
+If external config is **required**, let `IOException` propagate with a clear cause and do not activate the plugin. For optional config, the fallback conditions must be documented in the contract and logged at an appropriate level.
 
-## 5. Thứ tự ưu tiên cấu hình và vòng đời
+## 5. Configuration Precedence and Lifecycle
 
-Một mô hình dễ dự đoán:
+A predictable model:
 
 ```text
 [plugin JAR]
@@ -236,38 +236,38 @@ Một mô hình dễ dự đoán:
            Properties defaults
                     │
                     ▼
-[external pluginConfigDir]/greeting.properties  (nếu có)
+[external pluginConfigDir]/greeting.properties  (if present)
                     │
                     ▼
-             Áp dụng override
+             Apply overrides
                     │
                     ▼
-           Validate key & value
+           Validate keys & values
                     │
                     ▼
-            STARTED / ACTIVE
+             STARTED / ACTIVE
 ```
 
-Nếu cả hai nguồn cùng có key `prefix`, file ngoài thắng theo quy ước của host/plugin. Nếu file ngoài không tồn tại và là tùy chọn, giữ default. Nếu key quan trọng còn thiếu hoặc không hợp lệ, **thất bại ở lúc khởi động** với thông báo rõ thay vì đợi đến request đầu tiên mới lỗi.
+If both sources contain the key `prefix`, the external file wins per the host/plugin convention. If the external file does not exist and is optional, keep the default. If a critical key is missing or invalid, **fail at startup** with a clear message instead of waiting until the first request fails.
 
-Những quy tắc nên định nghĩa cụ thể:
+Rules that should be explicitly defined:
 
-- **Precedence:** defaults JAR → external file → (nếu có) overrides từ môi trường/CLI/secret store; quy tắc này phải được công bố nhất quán.
-- **Validation:** kiểu dữ liệu, dải giá trị, schema/version, key bắt buộc, key không biết, đường dẫn con và endpoint hợp lệ. Không suy đoán default cho tùy chọn bắt buộc.
-- **Lifecycle:** đọc cấu hình tại `start()`; tạo cấu hình bất biến sau validate; chỉ nhận request khi readiness thành công.
-- **Reload:** nếu cần đọc lại file, manager phải thiết kế reload/swap có đồng bộ, tránh thay `Properties` đang được request khác sử dụng. Với đa số plugin nhỏ, khởi động lại plugin là đơn giản và an toàn hơn.
-- **Ownership:** plugin chịu trách nhiệm đóng stream/watcher do mình mở; host sở hữu config root, chính sách quyền và mapping plugin ID → thư mục.
-- **Isolation:** mỗi plugin chỉ biết namespace và đường dẫn riêng; không vô tình đọc hoặc ghi config của plugin khác.
+- **Precedence:** JAR defaults → external file → (if any) environment/CLI/secret store overrides; this rule must be published consistently.
+- **Validation:** data types, value ranges, schema/version, required keys, unknown keys, valid subpaths, and valid endpoints. Do not guess defaults for required options.
+- **Lifecycle:** read configuration during `start()`; create an immutable config snapshot after validation; accept requests only after readiness succeeds.
+- **Reload:** if re-reading files is needed, the manager must design reload/swap with proper synchronization, avoiding mutating `Properties` while other requests are reading them. For most small plugins, restarting the plugin is simpler and safer.
+- **Ownership:** the plugin is responsible for closing streams/watchers it opens; the host owns the config root, permission policy, and plugin ID → directory mapping.
+- **Isolation:** each plugin knows only its own namespace and path; it must not accidentally read or write another plugin's config.
 
-Lưu ý **tài nguyên trong JAR và file ngoài có mục đích khác nhau**: resource đi theo *phiên bản code*, còn external config đi theo *môi trường và instance*. Không cố tìm một thư mục ghi được thông qua `getResource(...)` rồi chỉnh file nằm trong JAR.
+Note that **resources inside a JAR and external files serve different purposes**: resources travel with the *code version*, while external configs travel with the *environment and instance*. Do not try to locate a writable directory via `getResource(...)` and edit files inside a JAR.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: defaults trong JAR và file override riêng
+## 6. Complete Java 17+ Example: JAR Defaults and Dedicated Override File
 
-Ví dụ này sử dụng Java SPI để phát hiện một plugin `greeting`. **Host nhận đường dẫn tuyệt đối** tới config root và truyền thư mục con của plugin vào `start`. Plugin đọc `default.properties` đóng gói trong chính JAR của nó, rồi dùng `greeting.properties` bên ngoài làm override nếu file tồn tại. Chạy Java từ thư mục bất kỳ vẫn cho cùng kết quả khi giữ nguyên classpath và config root tuyệt đối.
+This example uses Java SPI to discover a `greeting` plugin. **The host takes an absolute path** to the config root and passes the plugin's subdirectory into `start`. The plugin reads `default.properties` packaged in its own JAR, then uses an external `greeting.properties` as an override if that file exists. Running Java from any directory produces the same result as long as the classpath and absolute config root remain the same.
 
-Không cần Maven/Gradle; các lệnh dưới đây dành cho Windows PowerShell và JDK 17+.
+No Maven/Gradle is needed; the commands below are for Windows PowerShell and JDK 17+.
 
-### 6.1. Cấu trúc thư mục ví dụ
+### 6.1. Example Directory Structure
 
 ```text
 demo/
@@ -286,10 +286,10 @@ demo/
 │   └── plugins/
 │       └── greeting/
 │           └── default.properties
-└── build/                       # Tạo khi biên dịch
+└── build/                       # Created during compilation
 ```
 
-### 6.2. Hợp đồng do host cung cấp
+### 6.2. Host-Provided Contract
 
 **`src/app/api/Plugin.java`**
 
@@ -307,9 +307,9 @@ public interface Plugin {
 }
 ```
 
-API truyền `Path` được host quyết định; provider không dùng `Path.of("config/...")` hay `user.dir` để tìm external config. Interface `start` được phép ném `IOException` để báo lỗi đọc cấu hình trước khi plugin nhận request.
+The API passes a `Path` decided by the host; providers do not use `Path.of("config/...")` or `user.dir` to find external config. The `start` interface is permitted to throw `IOException` to report configuration read errors before the plugin accepts requests.
 
-### 6.3. Cài đặt plugin: hai tầng cấu hình
+### 6.3. Plugin Implementation: Two-Layer Configuration
 
 **`src/app/plugin/GreetingPlugin.java`**
 
@@ -391,21 +391,21 @@ public final class GreetingPlugin implements Plugin {
 
     @Override
     public void stop() {
-        prefix = null; // Cleanup đơn giản cho demo.
+        prefix = null; // Simple cleanup for demo.
     }
 }
 ```
 
-Giải thích:
+Explanation:
 
-- `GreetingPlugin.class.getResourceAsStream(...)` đọc mặc định từ resource JAR; **không phụ thuộc CWD**.
-- `pluginConfigDir.resolve("greeting.properties")` đọc external config tại thư mục đã được host cấp; **không phụ thuộc CWD** vì dir được yêu cầu tuyệt đối.
-- `Properties.load(Reader)` dùng UTF-8, nên `prefix` có thể chứa tiếng Việt trực tiếp.
-- Chỉ bắt `NoSuchFileException`: thiếu override là hợp lệ; lỗi quyền truy cập hoặc I/O vẫn làm `start` thất bại.
-- `prefix` chỉ được gán sau khi đọc/validate xong. `greet` từ chối chạy trước `start`. `stop` an toàn khi gọi lại.
-- Mã này dùng một instance tuần tự; nếu phục vụ nhiều thread hoặc hot reload, cần đồng bộ và snapshot immutable cho config, không dùng trường `prefix` không bảo vệ như một giải pháp concurrency production.
+- `GreetingPlugin.class.getResourceAsStream(...)` reads defaults from the JAR resource; **does not depend on CWD**.
+- `pluginConfigDir.resolve("greeting.properties")` reads external config from the directory supplied by the host; **does not depend on CWD** because the directory is required to be absolute.
+- `Properties.load(Reader)` uses UTF-8, so `prefix` can contain Vietnamese characters directly.
+- Catches only `NoSuchFileException`: a missing override is valid; permission errors or I/O failures still fail `start`.
+- `prefix` is assigned only after reading and validation succeed. `greet` refuses to run before `start`. `stop` is safe to call repeatedly.
+- This code uses a single sequential instance; if serving multiple threads or hot reloading, you need synchronization and an immutable config snapshot rather than an unguarded `prefix` field as a production concurrency solution.
 
-### 6.4. Host chọn plugin và truyền config directory
+### 6.4. Host Selects Plugin and Passes Config Directory
 
 **`src/app/host/Main.java`**
 
@@ -458,13 +458,13 @@ public final class Main {
 }
 ```
 
-Ở đây có đúng **một** provider trong demo, nên `findFirst()` cho lựa chọn dễ hiểu. Trong hệ thống có nhiều provider, host cần chọn theo ID/capability/version một cách tường minh, không phụ thuộc vào thứ tự `ServiceLoader`.
+There is exactly **one** provider in this demo, so `findFirst()` gives an easy-to-follow selection. In a system with multiple providers, the host must select explicitly by ID/capability/version rather than relying on `ServiceLoader` order.
 
-Host yêu cầu **đường dẫn config root tuyệt đối**. Nó không tự dùng `Path.of(".")`, `user.dir` hoặc `toAbsolutePath()` trên một đường dẫn tương đối để đoán thư mục gốc. Khi cần triển khai dưới service manager, launcher/container cung cấp tham số absolute path phù hợp với môi trường.
+The host requires an **absolute config root path**. It does not use `Path.of(".")`, `user.dir`, or `toAbsolutePath()` on a relative path to guess the root directory. When deploying under a service manager, the launcher/container supplies the environment-appropriate absolute path argument.
 
-Lưu ý `startsWith(root)` là kiểm tra từ vựng; đường dẫn qua symlink/junction và quyền filesystem cần chính sách bảo vệ bổ sung khi plugin hoặc config root không đáng tin cậy.
+Note that `startsWith(root)` is a lexical check; paths through symlinks/junctions and filesystem permissions need additional safeguards when plugins or config roots are untrusted.
 
-### 6.5. Resource đi cùng JAR
+### 6.5. Resources Bundled with the JAR
 
 **`resources/META-INF/services/app.api.Plugin`**
 
@@ -472,7 +472,7 @@ Lưu ý `startsWith(root)` là kiểm tra từ vựng; đường dẫn qua symli
 app.plugin.GreetingPlugin
 ```
 
-Đây là service descriptor giúp `ServiceLoader` khám phá provider. Nội dung có đúng tên đầy đủ của class triển khai.
+This is the service descriptor enabling `ServiceLoader` to discover the provider. Its content is the exact fully qualified name of the implementation class.
 
 **`resources/plugins/greeting/default.properties`**
 
@@ -480,49 +480,49 @@ app.plugin.GreetingPlugin
 prefix=Xin chào
 ```
 
-Lưu file dưới dạng UTF-8 **không BOM**. Vì code dùng `Properties.load(Reader)`, giá trị tiếng Việt được đọc đúng. Hai tệp này sẽ được đóng cùng class implementation vào **JAR của plugin**, không nằm trong build output của host.
+Save the file as UTF-8 **without BOM**. Because the code uses `Properties.load(Reader)`, the Vietnamese value is read properly. Both files will be packaged alongside the implementation class into the **plugin's JAR**, not inside the host's build output.
 
-### 6.6. Biên dịch và đóng gói trên PowerShell
+### 6.6. Compiling and Packaging in PowerShell
 
-Tại thư mục `demo`, có JDK 17+ trong `PATH`:
+In the `demo` directory, with JDK 17+ on `PATH`:
 
 ```powershell
 New-Item -ItemType Directory -Force build/host, build/provider | Out-Null
 
-# Host chỉ chứa API và Main.
+# Host contains only API and Main.
 javac -encoding UTF-8 -d build/host src/app/api/Plugin.java src/app/host/Main.java
 
-# Plugin được compile riêng nhưng tham chiếu API của host.
+# Plugin is compiled separately while referencing the host's API.
 javac -encoding UTF-8 -cp build/host -d build/provider src/app/plugin/GreetingPlugin.java
 
-# Đóng implementation, META-INF/services và resource defaults vào một JAR.
+# Package implementation, META-INF/services, and default resources into a single JAR.
 jar --create --file build/greeting-plugin.jar -C build/provider . -C resources .
 
-# Tạo các đường dẫn tuyệt đối trước khi chạy.
+# Construct absolute paths before running.
 $projectRoot = (Get-Location).Path
 $hostClasses = Join-Path $projectRoot "build/host"
 $providerJar = Join-Path $projectRoot "build/greeting-plugin.jar"
 $configRoot = Join-Path $projectRoot "config"
 
-# Chưa tạo external override. Plugin dùng defaults trong JAR.
+# External override not created yet. Plugin uses defaults inside the JAR.
 java -cp "$hostClasses;$providerJar" app.host.Main "$configRoot"
 ```
 
-**Stdout chính xác của lệnh chạy cuối:**
+**Exact stdout of the final run command:**
 
 ```text
 Xin chào, Java!
 ```
 
-Không có thư mục `config/greeting` vẫn hợp lệ: override là tùy chọn. Cấu hình mặc định đã được tìm thấy qua resource trong JAR.
+Not having the `config/greeting` directory is still valid: the override is optional. Default configuration was found via the resource inside the JAR.
 
-Có thể kiểm tra resource đã được đóng vào JAR bằng:
+You can verify that the resource was packaged into the JAR using:
 
 ```powershell
 jar --list --file build/greeting-plugin.jar
 ```
 
-Trong danh sách phải có ít nhất:
+The listing must contain at least:
 
 ```text
 app/plugin/GreetingPlugin.class
@@ -530,11 +530,11 @@ META-INF/services/app.api.Plugin
 plugins/greeting/default.properties
 ```
 
-Đây là **những đường dẫn cần có trong danh sách**, không phải toàn bộ stdout của `jar --list`, vì JAR có thể có thêm manifest/thư mục và thứ tự liệt kê.
+These are the **paths that must appear in the listing**, not the entire stdout of `jar --list`, as the JAR may include additional manifest/directory entries and vary in listing order.
 
-### 6.7. Thêm cấu hình bên ngoài cho đúng plugin
+### 6.7. Adding External Configuration for That Plugin
 
-Tạo file `config/greeting/greeting.properties`. Dùng .NET API để ghi UTF-8 **không BOM** một cách nhất quán cả trên Windows PowerShell 5.1:
+Create `config/greeting/greeting.properties`. Use .NET APIs to write UTF-8 **without BOM** consistently even on Windows PowerShell 5.1:
 
 ```powershell
 $pluginConfigDir = Join-Path $configRoot "greeting"
@@ -548,17 +548,17 @@ $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 java -cp "$hostClasses;$providerJar" app.host.Main "$configRoot"
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 Chào từ cấu hình ngoài, Java!
 ```
 
-Vì `settings.load(reader)` lần thứ hai ghi đè key `prefix`, external config thay thế giá trị mặc định trong JAR.
+Because the second `settings.load(reader)` overwrites the `prefix` key, the external config replaces the default value inside the JAR.
 
-### 6.8. Đổi CWD rồi chạy lại
+### 6.8. Changing CWD and Running Again
 
-Giữ nguyên **absolute paths** của host classes, provider JAR và config root đã tạo ở trên, sau đó chuyển sang `build` trước khi gọi Java:
+Keep the **absolute paths** for host classes, provider JAR, and config root created above, then switch into `build` before invoking Java:
 
 ```powershell
 Push-Location (Join-Path $projectRoot "build")
@@ -569,27 +569,27 @@ try {
 }
 ```
 
-**Stdout vẫn là:**
+**Stdout is still:**
 
 ```text
 Chào từ cấu hình ngoài, Java!
 ```
 
-Tại lần chạy này CWD đã thay đổi, nhưng host vẫn dùng `$configRoot` là **đường dẫn tuyệt đối**, còn plugin tìm default resource theo JAR và external override theo thư mục do host truyền. Nếu dùng `Path.of("config/greeting/greeting.properties")` trong plugin, đường dẫn sẽ tương đối với `build` và có thể không còn tìm thấy file.
+In this run, the CWD changed, yet the host still used `$configRoot` as an **absolute path**, while the plugin looked up its default resource from the JAR and external override from the directory passed by the host. Had `Path.of("config/greeting/greeting.properties")` been used inside the plugin, the path would have resolved relative to `build` and could no longer find the file.
 
-Để kiểm tra tình huống không có override sau đó, xóa riêng file `config/greeting/greeting.properties` hoặc đổi sang một config root absolute khác không có override: chương trình lại in `Xin chào, Java!`. Không cần thay JAR.
+To verify the no-override case afterward, delete just `config/greeting/greeting.properties` or switch to another absolute config root without an override: the program prints `Xin chào, Java!` again. No JAR rebuild is needed.
 
-### 6.9. Những gì ví dụ có và chưa có
+### 6.9. What the Example Demonstrates and What It Omits
 
-Ví dụ chứng minh **ba nguyên tắc chính**: resource API cho cấu hình đóng gói, external path tuyệt đối do host cấp, và precedence defaults → override. Đây là ví dụ SPI ở classpath, có một instance và không có sự cạnh tranh đồng thời.
+The example demonstrates **three core principles**: the resource API for packaged configuration, a host-supplied absolute external path, and defaults → override precedence. It is a classpath SPI example with a single instance and no concurrent contention.
 
-Khi đưa vào hệ thống plugin động hoàn chỉnh, cần thêm class loader riêng/module layer khi phù hợp, policy lựa chọn provider, giới hạn quyền đọc config, version/schema, dependency resolution, lifecycle state machine, giám sát lỗi và cơ chế reload an toàn. Nếu cần config riêng theo tenant hoặc theo instance plugin, host có thể cấp một namespace cho từng instance thay vì chỉ plugin ID.
+When deploying into a full dynamic plugin system, you will need dedicated class loaders/module layers where appropriate, provider selection policies, config read permissions, versioning/schemas, dependency resolution, a lifecycle state machine, failure monitoring, and safe reload mechanisms. If per-tenant or per-plugin-instance configuration is needed, the host can provide a namespace per instance rather than only per plugin ID.
 
-## 7. Cấu hình, secrets và namespace trong ứng dụng thật
+## 7. Configuration, Secrets, and Namespaces in Real Applications
 
-### 7.1. Cấu hình theo môi trường
+### 7.1. Environment-Based Configuration
 
-Một chính sách nguồn có thể là:
+A source policy might look like:
 
 ```text
 default config in plugin.jar
@@ -607,76 +607,76 @@ secret provider / injected credentials (if needed)
 validated immutable Config snapshot
 ```
 
-Cần phân biệt **giá trị mặc định**, **cấu hình triển khai**, **secret** và **trạng thái đang chạy**:
+Distinguish **default values**, **deployment configuration**, **secrets**, and **runtime state**:
 
-- Defaults trong JAR dễ kiểm soát cùng version code, phù hợp với thay đổi ít.
-- External config được quản trị riêng theo môi trường, có thể trên volume mount hoặc vị trí tập trung đã được cấp quyền.
-- Secret nên lấy qua secret manager hoặc cơ chế cấp credential an toàn; không nhúng password/token vào JAR hoặc log.
-- Sau khi validate, plugin nên giữ **snapshot cấu hình có kiểu dữ liệu rõ ràng** thay vì liên tục đọc file theo mỗi request.
+- Defaults in the JAR are easy to track alongside code versions and fit infrequently changing values.
+- External config is managed separately per environment, possibly on a volume mount or a centralized permissioned location.
+- Secrets should be obtained via a secret manager or secure credential injection mechanism; never embed passwords/tokens in JARs or logs.
+- After validation, the plugin should retain a **strongly typed configuration snapshot** instead of repeatedly reading files on every request.
 
-### 7.2. Xử lý path được nêu trong file cấu hình
+### 7.2. Handling Paths Specified Inside Configuration Files
 
-Cấu hình có thể chứa một đường dẫn thứ cấp, ví dụ `cachePath=data/cache`. Phải công bố **nó tương đối với gốc nào**. Nếu muốn tương đối với thư mục plugin, làm rõ:
+Configuration might contain a secondary path, such as `cachePath=data/cache`. You must document **which root it is relative to**. If you intend it to be relative to the plugin directory, make that explicit:
 
 ```java
 Path cache = pluginConfigDir.resolve(
     properties.getProperty("cachePath", "data/cache")).normalize();
 ```
 
-Đây là đoạn minh họa. Nếu cho phép key tùy ý từ người dùng, cần kiểm tra `cache.startsWith(pluginConfigDir)`, quyền truy cập, symlink/junction và ranh giới thực của filesystem khi có yêu cầu bảo mật. Một path **tuyệt đối** trong file config có thể làm `resolve` trả path ngoài gốc; đừng bỏ qua kiểm tra.
+This is an illustrative snippet. If allowing arbitrary user-supplied keys, you must verify `cache.startsWith(pluginConfigDir)`, access permissions, symlinks/junctions, and real filesystem boundaries when security is required. An **absolute** path inside the config file can cause `resolve` to return a path outside the root; do not skip validation.
 
-**Không** giải quyết path thứ cấp một cách ngầm định so với CWD. Nếu muốn path nằm ngoài thư mục cấu hình, phải có quy tắc, allowlist hoặc quyền riêng do host cấp.
+Do **not** resolve secondary paths implicitly relative to the CWD. If a path is meant to reside outside the configuration directory, there must be an explicit rule, allowlist, or dedicated permission granted by the host.
 
-### 7.3. Test được mà không cần thay CWD
+### 7.3. Testable Without Changing the CWD
 
-Thiết kế tốt cho phép test provider qua thư mục cấu hình độc lập:
+Good design allows testing the provider through an isolated configuration directory:
 
 ```java
 Path isolatedConfig = tempDirectory.resolve("greeting");
 plugin.start(isolatedConfig);
 ```
 
-Đây là đoạn minh họa trong test có `tempDirectory` được tạo bởi `@TempDir` hoặc `Files.createTempDirectory`; code test phải tạo file override trước nếu muốn kiểm tra precedence. Cũng cần kiểm tra:
+This is an illustrative snippet in a test where `tempDirectory` is created by `@TempDir` or `Files.createTempDirectory`; test code must create the override file beforehand if testing precedence. You should also verify:
 
-- Có defaults, không có override → dùng giá trị trong JAR.
-- Có override hợp lệ → ghi đè đúng key.
-- Override có UTF-8 → ký tự tiếng Việt đúng.
-- File override sai cú pháp/key hoặc không đọc được → báo lỗi có ý nghĩa.
-- Chạy từ CWD khác nhau với cùng absolute config root → kết quả giống nhau.
-- Hai plugin với config dir khác nhau → không đọc nhầm namespace.
-- Đường dẫn chứa `..`, absolute override hoặc symlink → tuân thủ chính sách truy cập.
-- Đọc tài nguyên khi plugin được đóng **trong JAR**, không chỉ khi IDE chạy class từ thư mục.
+- Defaults present, no override → uses values from the JAR.
+- Valid override present → overrides the right keys.
+- Override contains UTF-8 → Vietnamese characters are intact.
+- Override file has invalid syntax/keys or is unreadable → reports a meaningful error.
+- Running from different CWDs with the same absolute config root → identical results.
+- Two plugins with different config dirs → do not accidentally read each other's namespace.
+- Paths containing `..`, absolute overrides, or symlinks → adhere to access policy.
+- Reading resources when the plugin is packaged **inside a JAR**, not only when the IDE runs classes from a directory.
 
-## 8. Lỗi phổ biến và cách chẩn đoán
+## 8. Common Errors and How to Diagnose Them
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common Cause | How to Fix |
 | --- | --- | --- |
-| IDE chạy được, service không thấy file | Code dùng `Path.of("config/...")` dựa CWD | Truyền absolute config root từ launcher/host |
-| Resource có trong source tree nhưng `getResourceAsStream` trả `null` | Chưa copy resource vào JAR/classpath, sai đường dẫn hoặc chữ hoa/thường | Kiểm tra nội dung JAR và tên resource |
-| `Class.getResourceAsStream("...")` không thấy nhưng có `/` thì thấy | Không có `/` là đường dẫn tương đối package | Dùng đường dẫn gốc `"/plugins/id/..."` |
-| `ClassLoader.getResourceAsStream("/...")` trả `null` | API ClassLoader dùng tên resource không có slash đầu | Bỏ `/` với `ClassLoader` |
-| Chạy trong JAR gây lỗi khi ép URL thành `Path` | Resource có URI `jar:`, không phải file thông thường | Đọc bằng `InputStream` |
-| Đã đổi CWD nhưng kết quả đổi theo | Một tầng của config/path phụ vẫn dùng đường dẫn tương đối | Audit toàn bộ path, bao gồm file include, cache, log, template |
-| File tiếng Việt bị lỗi dấu hoặc không tìm thấy key | Dùng `Properties.load(InputStream)` cho UTF-8, hoặc file có BOM | Dùng UTF-8 Reader và lưu không BOM |
-| Plugin A đọc cấu hình plugin B | Dùng tên resource chung/đường dẫn chung, hoặc TCCL sai | Namespace theo plugin ID, host cấp dir riêng |
-| File override thiếu và plugin không khởi động | Contract xem file ngoài là bắt buộc | Quyết định rõ required/optional; nếu optional chỉ bắt `NoSuchFileException` |
-| File sai quyền nhưng plugin vẫn im lặng dùng defaults | Bắt quá rộng mọi exception rồi fallback | Không nuốt `AccessDeniedException`/`IOException` |
-| Thay file xong plugin vẫn dùng cấu hình cũ | Config chỉ nạp lúc `start`, không có reload | Restart hoặc thiết kế reload và snapshot có đồng bộ |
-| Sau hot reload vẫn thấy resource cũ | Class loader hoặc provider instance cũ còn được giữ | Tạo loader mới, chuyển instance, dừng cũ, dọn reference |
+| Runs in IDE, service cannot find file | Code uses `Path.of("config/...")` relying on CWD | Pass an absolute config root from launcher/host |
+| Resource exists in source tree, but `getResourceAsStream` returns `null` | Resource not copied into JAR/classpath, wrong path, or wrong case | Check JAR contents and resource name |
+| `Class.getResourceAsStream("...")` fails, but with `/` it works | Without `/` the path is package-relative | Use root path `"/plugins/id/..."` |
+| `ClassLoader.getResourceAsStream("/...")` returns `null` | ClassLoader API takes resource names without a leading slash | Omit `/` with `ClassLoader` |
+| Running from JAR fails when casting URL to `Path` | Resource has a `jar:` URI, not an ordinary file | Read using `InputStream` |
+| Changing CWD changes the output | One config layer or secondary path still uses a relative path | Audit all paths, including includes, caches, logs, templates |
+| Vietnamese file has garbled accents or key not found | Using `Properties.load(InputStream)` for UTF-8, or file has a BOM | Use a UTF-8 Reader and save without BOM |
+| Plugin A reads Plugin B's configuration | Shared generic resource name/path, or wrong TCCL | Namespace by plugin ID; host supplies dedicated directories |
+| Override file missing and plugin fails to start | Contract treats external file as required | Clarify required vs optional; if optional, catch only `NoSuchFileException` |
+| File has permission error yet plugin silently uses defaults | Catching overly broad exceptions and falling back | Never swallow `AccessDeniedException`/`IOException` |
+| After editing file, plugin still uses old configuration | Config loaded only at `start`, no reload | Restart or design synchronized reload and snapshots |
+| Old resource still seen after hot reload | Old class loader or provider instance still retained | Create new loader, swap instance, stop old one, clear references |
 
-Khi gặp `null` từ `getResourceAsStream`, kiểm tra **nội dung artifact thực tế** trước; chạy từ IDE với `src/main/resources` có thể khiến mọi thứ “tình cờ đúng” nhưng JAR phát hành lại thiếu resource. Khi external config không hoạt động, hãy kiểm tra **absolute path đã được host truyền**, quyền đọc và trạng thái filesystem thay vì chỉ in `System.getProperty("user.dir")`.
+When encountering `null` from `getResourceAsStream`, check the **actual packaged artifact contents** first; running from an IDE with `src/main/resources` can make things "accidentally work" while the released JAR is missing resources. When external config fails to work, verify the **absolute path passed by the host**, read permissions, and filesystem state rather than merely printing `System.getProperty("user.dir")`.
 
-## 9. Checklist trước khi phát hành plugin
+## 9. Pre-Release Checklist for Plugins
 
-- [ ] Default resource nằm trong artifact plugin đúng vị trí, có namespace riêng và đọc bằng `Class.getResourceAsStream`/module API phù hợp.
-- [ ] Không dùng `new File("config/...")` hoặc `Path.of("config/...")` làm cơ chế chính để tìm cấu hình plugin.
-- [ ] Host cấp absolute config root theo môi trường; plugin nhận thư mục riêng theo ID đã được xác thực.
-- [ ] Đã xác định precedence giữa defaults, external overrides, environment và secrets.
-- [ ] Dùng UTF-8 Reader cho file properties có Unicode; quản lý BOM và escape đúng chuẩn.
-- [ ] Thiếu resource bắt buộc thì báo lỗi; external optional chỉ được fallback khi **thật sự không có file**.
-- [ ] Validate key/type/range trước khi plugin ACTIVE; tránh in giá trị secret vào log.
-- [ ] Kiểm tra đường dẫn con, quyền filesystem, symlink và ranh giới namespace khi nguồn đầu vào không hoàn toàn tin cậy.
-- [ ] Đóng mọi reader/stream bằng `try-with-resources`; có chính sách rõ cho reload và thread safety.
-- [ ] Test JAR đóng gói thật, chạy từ ít nhất hai CWD khác nhau với cùng absolute config root, kết quả nhất quán.
+- [ ] Default resources reside in the right location within the plugin artifact, have their own namespace, and are read via `Class.getResourceAsStream`/appropriate module API.
+- [ ] Do not use `new File("config/...")` or `Path.of("config/...")` as the primary mechanism to locate plugin configuration.
+- [ ] Host supplies an environment-specific absolute config root; each plugin receives its own directory for its validated ID.
+- [ ] Precedence among defaults, external overrides, environment, and secrets is clearly defined.
+- [ ] Use a UTF-8 Reader for properties files containing Unicode; manage BOM and escapes properly.
+- [ ] Missing required resources raise an error; optional external configs fall back only when the **file truly does not exist**.
+- [ ] Validate keys/types/ranges before the plugin becomes ACTIVE; avoid printing secret values in logs.
+- [ ] Validate subpaths, filesystem permissions, symlinks, and namespace boundaries when input sources are not fully trusted.
+- [ ] Close all readers/streams with `try-with-resources`; define clear policies for reload and thread safety.
+- [ ] Test the real packaged JAR, running from at least two different CWDs with the same absolute config root, with consistent results.
 
-**Tài liệu Java để tra cứu:** [`Class.getResourceAsStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getResourceAsStream(java.lang.String)), [`ClassLoader.getResourceAsStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html#getResourceAsStream(java.lang.String)), [`Files.newBufferedReader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html#newBufferedReader(java.nio.file.Path,java.nio.charset.Charset)), [`Properties.load(Reader)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html#load(java.io.Reader)), [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html).
+**Java Documentation References:** [`Class.getResourceAsStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getResourceAsStream(java.lang.String)), [`ClassLoader.getResourceAsStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html#getResourceAsStream(java.lang.String)), [`Files.newBufferedReader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html#newBufferedReader(java.nio.file.Path,java.nio.charset.Charset)), [`Properties.load(Reader)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html#load(java.io.Reader)), [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html).

@@ -1,42 +1,42 @@
-# 1.7. Bản đồ JCA, JCE, JSSE, JAAS, PKI và các công cụ của JDK
+# 1.7. Map of JCA, JCE, JSSE, JAAS, PKI, and JDK Tools
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể (1) phân biệt các lớp công nghệ bảo mật của Java, (2) tìm đúng API khi cần băm, mã hóa, ký số, kết nối TLS hoặc xác thực người dùng, (3) hiểu vì sao `KeyStore`, certificate và truststore xuất hiện ở nhiều lớp, và (4) dùng `keytool`, `jarsigner` cùng cơ chế debug của JDK để kiểm tra vấn đề thực tế. Đây là **bản đồ kiến trúc và cách chọn công cụ**, không phải hướng dẫn tự thiết kế một giao thức mật mã.
+After this lesson, you can (1) distinguish Java's security technology layers, (2) locate the right API when hashing, encrypting, signing, establishing TLS connections, or authenticating users, (3) understand why `KeyStore`, certificates, and truststores appear across multiple layers, and (4) use `keytool`, `jarsigner`, and JDK debugging mechanisms to diagnose real-world issues. This is an **architectural map and tool selection guide**, not a guide to designing your own cryptographic protocol.
 
-## 1. Nhìn toàn cảnh: mỗi tên trả lời câu hỏi nào?
+## 1. Big Picture: What Question Does Each Name Answer?
 
-| Thành phần | Vai trò chính | API/khái niệm đại diện | Ví dụ tình huống |
+| Component | Main Role | Representative APIs/Concepts | Example Scenarios |
 | --- | --- | --- | --- |
-| **JCA** – Java Cryptography Architecture | Kiến trúc API và **provider** cho các dịch vụ mật mã, khóa, chứng thư và kiểm tra chứng thư | `MessageDigest`, `Signature`, `SecureRandom`, `KeyPairGenerator`, `KeyStore`, `CertificateFactory` | Băm SHA-256, ký và kiểm chữ ký Ed25519, đọc chứng thư |
-| **JCE** – Java Cryptography Extension | Tên lịch sử cho phần API mật mã như mã hóa, MAC, khóa bí mật; **ngày nay đã tích hợp trong JCA/JDK**, không phải hệ thống provider cạnh tranh với JCA | `javax.crypto.Cipher`, `Mac`, `KeyGenerator`, `SecretKey`, `GCMParameterSpec` | Mã hóa AES-GCM, tạo HMAC |
-| **JSSE** – Java Secure Socket Extension | Cung cấp giao tiếp mạng bảo mật bằng TLS/DTLS, dùng primitive/provider và thông tin tin cậy bên dưới | `SSLContext`, `SSLSocket`, `SSLEngine`, `KeyManager`, `TrustManager` | Client HTTPS, server TLS, mTLS |
-| **JAAS** – Java Authentication and Authorization Service | Mô hình **xác thực danh tính có thể cắm module** và `Subject`/`Principal` đại diện người dùng hoặc dịch vụ | `LoginContext`, `LoginModule`, `CallbackHandler`, `Subject` | Đăng nhập Kerberos hoặc một cơ chế xác thực tích hợp JAAS |
-| **PKI** – Public Key Infrastructure | Hạ tầng tin cậy quanh khóa công khai, X.509, CA và chuỗi chứng thư; **không phải một thư viện độc lập duy nhất** | `X509Certificate`, `CertPath`, `CertPathBuilder`, `CertPathValidator`, `TrustAnchor` | Quyết định có tin chứng thư server hay không |
-| **Công cụ JDK** | Tạo/kiểm tra khóa, certificate, CSR, chữ ký JAR và chẩn đoán bảo mật | `keytool`, `jarsigner`, `jar`, `java -D...debug=...` | Chuẩn bị keystore cho TLS, kiểm JAR ký số, tìm lỗi handshake |
+| **JCA** – Java Cryptography Architecture | API and **provider** architecture for cryptographic services, keys, certificates, and certificate validation | `MessageDigest`, `Signature`, `SecureRandom`, `KeyPairGenerator`, `KeyStore`, `CertificateFactory` | SHA-256 hashing, Ed25519 signing/verifying, reading certificates |
+| **JCE** – Java Cryptography Extension | Historical name for cryptographic APIs like encryption, MACs, and secret keys; **now integrated into JCA/JDK**, not a competing provider system | `javax.crypto.Cipher`, `Mac`, `KeyGenerator`, `SecretKey`, `GCMParameterSpec` | AES-GCM encryption, HMAC generation |
+| **JSSE** – Java Secure Socket Extension | Provides secure network communication via TLS/DTLS, using underlying primitives/providers and trust info | `SSLContext`, `SSLSocket`, `SSLEngine`, `KeyManager`, `TrustManager` | HTTPS client, TLS server, mTLS |
+| **JAAS** – Java Authentication and Authorization Service | **Pluggable identity authentication** model and `Subject`/`Principal` representing a user or service | `LoginContext`, `LoginModule`, `CallbackHandler`, `Subject` | Kerberos login or a JAAS-integrated authentication mechanism |
+| **PKI** – Public Key Infrastructure | Trust infrastructure around public keys, X.509, CAs, and certificate chains; **not a single standalone library** | `X509Certificate`, `CertPath`, `CertPathBuilder`, `CertPathValidator`, `TrustAnchor` | Deciding whether to trust a server certificate |
+| **JDK Tools** | Generating/inspecting keys, certificates, CSRs, JAR signatures, and security diagnostics | `keytool`, `jarsigner`, `jar`, `java -D...debug=...` | Preparing TLS keystores, verifying signed JARs, debugging handshake failures |
 
-**Điểm nối quan trọng:** JCE nằm trong hệ sinh thái JCA; JSSE sử dụng các dịch vụ/provider mật mã và thường kiểm chứng X.509 theo PKI; JAAS xử lý xác thực danh tính ở một tầng khác. Một kết nối HTTPS thành công **không tự động** nghĩa là người dùng đã đăng nhập JAAS.
+**Key connection:** JCE lives within the JCA ecosystem; JSSE uses cryptographic services/providers and typically validates X.509 via PKI; JAAS handles identity authentication at a different layer. A successful HTTPS connection **does not automatically** mean a user is logged in via JAAS.
 
 ```text
-Ứng dụng Java
-├─ Bảo vệ dữ liệu/nghiệp vụ
-│  └─ JCA + JCE → provider → hash, MAC, mã hóa, khóa, chữ ký
-├─ Giao tiếp mạng
+Java Application
+├─ Data / business logic protection
+│  └─ JCA + JCE → provider → hash, MAC, encryption, keys, signatures
+├─ Network communication
 │  └─ JSSE (TLS/DTLS) → KeyManager / TrustManager
-│                       └─ PKI/X.509 + các dịch vụ JCA
-├─ Đăng nhập/xác thực danh tính theo JAAS
+│                       └─ PKI/X.509 + JCA services
+├─ Identity login/authentication via JAAS
 │  └─ LoginContext → LoginModule → Subject/Principal
-└─ Vận hành
+└─ Operations
    └─ keytool / jarsigner / security properties / TLS debug
 ```
 
-Cùng một `KeyStore` có thể được ứng dụng JCA dùng để đọc khóa ký dữ liệu, hoặc JSSE dùng làm nguồn khóa riêng/chứng thư TLS. **Vai trò sử dụng** mới quyết định nó là kho danh tính hay kho tin cậy, không chỉ phần mở rộng tệp.
+The same `KeyStore` can be used by a JCA application to read a data-signing key, or by JSSE as a source of TLS private keys/certificates. **Usage role** determines whether it acts as an identity store or a truststore, not merely the file extension.
 
-## 2. JCA: API engine tách khỏi triển khai provider
+## 2. JCA: Engine APIs Separated from Provider Implementations
 
-JCA định nghĩa các lớp *engine* với mô hình `getInstance(algorithm)`. Ứng dụng yêu cầu dịch vụ bằng tên thuật toán; JDK tra các **security provider** được đăng ký để tìm triển khai phù hợp. Điều này cho phép bổ sung provider phần mềm, HSM/PKCS#11 hoặc provider chuyên biệt mà không viết lại toàn bộ code sử dụng engine.
+JCA defines *engine* classes following the `getInstance(algorithm)` pattern. Applications request a service by algorithm name; the JDK consults registered **security providers** to locate a matching implementation. This enables adding software providers, HSM/PKCS#11 providers, or specialized providers without rewriting all engine-calling code.
 
-Ví dụ:
+Example:
 
 ```java
 MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -46,31 +46,31 @@ Signature verifier = Signature.getInstance("Ed25519");
 // verifier.initVerify(publicKey); verifier.update(data); verifier.verify(signature);
 ```
 
-Đây là **đoạn minh họa**, `data`/`publicKey`/`signature` phải được cung cấp; chương trình hoàn chỉnh nằm ở mục 8. `MessageDigest` chỉ băm dữ liệu, còn `Signature` dùng khóa bất đối xứng để chứng thực chữ ký.
+This is an **illustrative snippet**; `data`/`publicKey`/`signature` must be supplied; a complete runnable program is in Section 8. `MessageDigest` only hashes data, while `Signature` uses asymmetric keys to verify signatures.
 
-Quy trình chọn provider:
+Provider resolution flow:
 
-1. Ứng dụng gọi `Cipher.getInstance("AES/GCM/NoPadding")` hoặc `Signature.getInstance("Ed25519")`.
-2. JCA xét provider theo cấu hình/thứ tự ưu tiên và khả năng hỗ trợ dịch vụ; có thể chỉ định provider khi thật sự cần.
-3. Engine trả về đối tượng triển khai; ứng dụng khởi tạo bằng khóa và tham số rồi mới xử lý dữ liệu.
-4. Có thể truy vấn provider phục vụ đối tượng qua `getProvider()` để chẩn đoán.
+1. Application calls `Cipher.getInstance("AES/GCM/NoPadding")` or `Signature.getInstance("Ed25519")`.
+2. JCA checks providers by configured/priority order and service support; a specific provider can be requested when truly needed.
+3. Engine returns an implementation object; the application initializes it with keys and parameters before processing data.
+4. You can inspect the serving provider via `getProvider()` for diagnostics.
 
-Các nhóm engine nên nhận diện:
+Engine groups to recognize:
 
-| Nhiệm vụ | Chọn API | Không nên nhầm với |
+| Task | Choose API | Do Not Confuse With |
 | --- | --- | --- |
-| Băm không khóa | `MessageDigest` | HMAC/chữ ký: riêng hash **không xác thực người gửi** |
-| Mã xác thực dùng bí mật chung | `Mac` | Chữ ký số: HMAC không cho bên thứ ba xác minh bằng public key |
-| Ký/kiểm chữ ký bất đối xứng | `Signature` | Mã hóa: chữ ký không che giấu plaintext |
-| Mã hóa/giải mã | `Cipher` | Hash: mã hóa có thể giải mã bằng khóa thích hợp |
-| Sinh ngẫu nhiên an toàn | `SecureRandom` | `Random` cho mô phỏng/game |
-| Sinh khóa đối xứng/bất đối xứng | `KeyGenerator` / `KeyPairGenerator` | `KeyFactory` biến đổi biểu diễn khóa đã có |
-| Lưu/truy cập khóa/chứng thư | `KeyStore` | Certificate không chứa private key của chủ thể |
-| Xây/kiểm chuỗi chứng thư | `CertPathBuilder` / `CertPathValidator` | Chỉ đọc certificate bằng `CertificateFactory` |
+| Keyless hashing | `MessageDigest` | HMAC/signature: a hash alone **does not authenticate the sender** |
+| Shared-secret authentication code | `Mac` | Digital signature: HMAC cannot be verified by third parties with a public key |
+| Asymmetric signing/verifying | `Signature` | Encryption: signatures do not hide plaintext |
+| Encryption/decryption | `Cipher` | Hash: encryption can be decrypted with the proper key |
+| Secure random generation | `SecureRandom` | `Random` for simulations/games |
+| Symmetric/asymmetric key generation | `KeyGenerator` / `KeyPairGenerator` | `KeyFactory` converts existing key representations |
+| Storing/accessing keys/certificates | `KeyStore` | Certificates do not contain the subject's private key |
+| Building/validating certificate chains | `CertPathBuilder` / `CertPathValidator` | Merely parsing a certificate with `CertificateFactory` |
 
-Đừng xem tên thuật toán là bảo đảm toàn bộ thiết kế an toàn: chế độ mã hóa, IV/nonce, độ dài khóa, vòng đời khóa, thuật toán bị vô hiệu, kích thước dữ liệu và cấu hình provider vẫn quan trọng. Đặc biệt không dựa vào mặc định mơ hồ như `Cipher.getInstance("AES")`; hãy yêu cầu transformation đầy đủ.
+Do not treat an algorithm name as guaranteeing an entire secure design: encryption mode, IV/nonce, key length, key lifecycle, disabled algorithms, data sizes, and provider configuration all matter. Specifically, do not rely on ambiguous defaults like `Cipher.getInstance("AES")`; request the full transformation.
 
-Có thể tự quan sát provider của JVM:
+You can inspect your JVM's providers directly:
 
 ```java
 import java.security.Provider;
@@ -85,47 +85,47 @@ public class ProvidersDemo {
 }
 ```
 
-Chạy bằng `javac ProvidersDemo.java` rồi `java ProvidersDemo`. **Danh sách và phiên bản provider phụ thuộc bản JDK/nhà cung cấp/hệ điều hành**, nên không có stdout cố định. Đừng hard-code tên `SunJCE` hay `SunJSSE` nếu ứng dụng cần chạy trên nhiều JVM/provider, trừ khi có yêu cầu triển khai rõ ràng.
+Run via `javac ProvidersDemo.java` then `java ProvidersDemo`. **Provider lists and versions depend on JDK build/vendor/OS**, so there is no fixed stdout. Do not hardcode names like `SunJCE` or `SunJSSE` if your application must run across multiple JVMs/providers, unless explicitly required by deployment constraints.
 
-## 3. JCE: mật mã ứng dụng trong cùng kiến trúc JCA
+## 3. JCE: Application Cryptography Within the Same JCA Architecture
 
-Tên **JCE** xuất phát từ thời các tính năng mã hóa được phát hành như phần mở rộng. Trong Java hiện đại, `javax.crypto` là một phần bình thường của JDK và vận hành qua cơ chế provider của JCA. Không cần “cài JCE riêng” cho Java 17+ chuẩn để dùng AES/HMAC thông thường.
+The name **JCE** dates back to when encryption features were shipped as an extension. In modern Java, `javax.crypto` is a standard part of the JDK and operates via JCA's provider mechanism. There is no need to "install a separate JCE" on standard Java 17+ for common AES/HMAC usage.
 
-Các lựa chọn thực dụng:
+Practical choices:
 
-- **Bảo mật bí mật dữ liệu lưu trữ**: thường dùng mã hóa có xác thực (*AEAD*) như `AES/GCM/NoPadding`. Dữ liệu giải mã phải được xác minh tag; bản mã chỉ được chấp nhận khi xác thực thành công.
-- **Bảo đảm toàn vẹn và xác thực giữa các bên giữ cùng khóa bí mật**: dùng `HmacSHA256` (API `Mac`); người không biết khóa không tạo được MAC hợp lệ.
-- **Chứng minh sở hữu private key cho dữ liệu**: dùng `Signature` với cặp khóa; người xác minh cần public key **và ngữ cảnh tin cậy** nếu muốn gắn chữ ký với một danh tính.
-- **Lưu mật khẩu người dùng**: không dùng SHA-256/HMAC đơn thuần như password hash. Dùng cơ chế dẫn xuất mật khẩu chậm, có salt riêng và tham số chi phí phù hợp (ví dụ PBKDF2 qua `SecretKeyFactory` khi phù hợp chính sách; hệ thống có thể dùng giải pháp Argon2/bcrypt được kiểm chứng).
+- **Protecting stored data confidentiality:** typically use authenticated encryption (*AEAD*) like `AES/GCM/NoPadding`. Decrypted data must pass tag verification; ciphertext is accepted only when authentication succeeds.
+- **Ensuring integrity and authenticity between parties sharing a secret key:** use `HmacSHA256` (`Mac` API); anyone lacking the key cannot forge a valid MAC.
+- **Proving private-key possession over data:** use `Signature` with a key pair; verifiers need the public key **and trust context** to bind a signature to an identity.
+- **Storing user passwords:** never use plain SHA-256/HMAC as a password hash. Use a slow password derivation mechanism with a unique salt and appropriate cost parameters (e.g., PBKDF2 via `SecretKeyFactory` when policy fits; systems may use vetted Argon2/bcrypt solutions).
 
-Với AES-GCM, hãy ghi nhớ bốn thành phần: **khóa bí mật**, **nonce/IV duy nhất cho mỗi lần mã hóa với cùng khóa** (thường 12 byte), **ciphertext** và **authentication tag** (thường 128 bit). Có thể thêm **AAD** (authenticated associated data): AAD được xác thực nhưng không được mã hóa. Bên giải mã cần cùng khóa, IV, AAD tương ứng và ciphertext kèm tag. Tuyệt đối không tái sử dụng cặp khóa–nonce trong GCM; không tự tạo nonce bằng `Random` hay hằng số.
+For AES-GCM, remember four components: **secret key**, **unique nonce/IV per encryption under the same key** (typically 12 bytes), **ciphertext**, and **authentication tag** (typically 128 bits). **AAD** (authenticated associated data) may be added: AAD is authenticated but not encrypted. Decryption requires the same key, IV, matching AAD, and ciphertext plus tag. Never reuse a key–nonce pair in GCM; never build nonces with `Random` or constants.
 
-Dùng `SecureRandom` cho vật liệu ngẫu nhiên an toàn và `KeyGenerator` cho khóa. Phân phối, lưu, thay mới và thu hồi khóa phải được thiết kế riêng; API mã hóa không tự giải quyết vấn đề quản lý khóa. Không ghi private key, secret key, token, plaintext nhạy cảm hoặc mật khẩu keystore vào log.
+Use `SecureRandom` for secure randomness and `KeyGenerator` for keys. Key distribution, storage, rotation, and revocation must be designed separately; crypto APIs do not solve key management by themselves. Never log private keys, secret keys, tokens, sensitive plaintext, or keystore passwords.
 
-## 4. JSSE: dùng TLS cho dữ liệu trên đường truyền
+## 4. JSSE: Using TLS for Data in Transit
 
-JSSE nằm trong `javax.net.ssl`. Nó cung cấp TLS/DTLS qua `SSLContext`, `SSLSocket`/`SSLServerSocket`, `SSLEngine` và các factory. Các API cao hơn như `java.net.http.HttpClient` dùng TLS để gọi HTTPS mà phần lớn ứng dụng không phải tự quản lý từng bước handshake.
+JSSE resides in `javax.net.ssl`. It provides TLS/DTLS via `SSLContext`, `SSLSocket`/`SSLServerSocket`, `SSLEngine`, and factories. Higher-level APIs like `java.net.http.HttpClient` use TLS for HTTPS calls without most applications managing handshake steps manually.
 
-Các vai trò thường gặp:
+Common roles:
 
-| Thành phần | Trách nhiệm |
+| Component | Responsibility |
 | --- | --- |
-| `SSLContext` | Cấu hình/ngữ cảnh TLS dùng để tạo socket/engine, mang thông tin key/trust manager và trạng thái phiên |
-| `KeyManager` | Chọn **private key + chuỗi certificate của chính mình** khi cần chứng minh danh tính với phía đối diện |
-| `TrustManager` | Đánh giá **certificate của phía đối diện** theo tập chứng thư/anchor tin cậy và chính sách |
-| `SSLEngine` | Xử lý TLS độc lập với cách ứng dụng thực hiện I/O; phù hợp mô hình nonblocking |
-| `SSLSocket` | Socket có TLS để truyền dữ liệu qua kênh đã bắt tay bảo mật |
+| `SSLContext` | TLS configuration/context used to create sockets/engines, holding key/trust managers and session state |
+| `KeyManager` | Selects **our own private key + certificate chain** when proving identity to the peer |
+| `TrustManager` | Evaluates **the peer's certificate** against trusted certificates/anchors and policy |
+| `SSLEngine` | Handles TLS independently of how the application performs I/O; suited for nonblocking models |
+| `SSLSocket` | TLS-enabled socket for transferring data over an authenticated handshake channel |
 
-Luồng HTTPS thông thường (mô hình đơn giản hóa):
+Typical HTTPS flow (simplified model):
 
-1. Client kết nối server và trao đổi tham số TLS; server xuất trình chứng thư X.509 cùng chuỗi cần thiết.
-2. Client kiểm tra chuỗi theo các trust anchor được chấp nhận, thời hạn, ràng buộc và chính sách thuật toán; client HTTPS cũng phải kiểm tra **tên host** khớp danh tính chứng thư (thường ở SAN).
-3. Handshake thiết lập khóa phiên; dữ liệu ứng dụng sau đó được mã hóa và xác thực trong kênh TLS.
-4. Với **mTLS**, server còn yêu cầu certificate của client, và client chọn khóa/chứng thư tương ứng để xác thực hai chiều. Điều này không tự thay thế mọi yêu cầu phân quyền nghiệp vụ.
+1. Client connects to server and exchanges TLS parameters; server presents its X.509 certificate and required chain.
+2. Client validates the chain against accepted trust anchors, validity dates, constraints, and algorithm policies; HTTPS clients must also verify that the **hostname** matches the certificate identity (typically in SAN).
+3. Handshake establishes session keys; application data is then encrypted and authenticated inside the TLS channel.
+4. With **mTLS**, the server also requests a client certificate, and the client picks a matching key/certificate for mutual authentication. This does not replace business authorization requirements.
 
-Trong ứng dụng HTTPS bình thường, ưu tiên để `HttpClient` hoặc thư viện HTTP có TLS chuẩn thực hiện xác minh certificate và hostname. Không tắt kiểm tra tên host, không dùng `TrustManager` “tin tất cả” để chữa lỗi. Với `SSLSocket` tự tạo, **không nên mặc định rằng mọi xác minh tên endpoint đều tự được bật**: cần cấu hình endpoint identification phù hợp, ví dụ `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` khi giao thức mục tiêu đúng là HTTPS.
+In standard HTTPS applications, prefer letting `HttpClient` or a standard TLS-capable HTTP library perform certificate and hostname verification. Never disable hostname checks or use a "trust all" `TrustManager` to silence errors. With raw `SSLSocket`, **do not assume endpoint name verification is enabled automatically**: configure proper endpoint identification, e.g., `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` when targeting HTTPS.
 
-Đoạn sử dụng thư viện HTTPS cấp cao (cần mạng; là đoạn minh họa, không có stdout cố định):
+High-level HTTPS client snippet (requires network; illustrative only, no fixed stdout):
 
 ```java
 import java.net.URI;
@@ -141,102 +141,102 @@ HttpResponse<Void> response =
 System.out.println(response.statusCode());
 ```
 
-Các dòng trên cần đặt trong method có xử lý exception hoặc `throws Exception`. **JSSE không “là PKI”**: TLS là giao thức truyền thông, còn PKI là cơ sở để xác lập tin cậy cho khóa công khai/chứng thư dùng trong nhiều giao thức.
+These lines belong inside a method handling exceptions or declaring `throws Exception`. **JSSE is not "PKI"**: TLS is a transport protocol, whereas PKI is the foundation for establishing trust in public keys/certificates across many protocols.
 
-## 5. JAAS: xác thực Subject, không thay thế TLS hay mã hóa
+## 5. JAAS: Authenticating a Subject, Not Replacing TLS or Encryption
 
-JAAS dùng kiến trúc xác thực có thể cấu hình. Một ứng dụng gọi `LoginContext` theo tên cấu hình; cấu hình xác định các `LoginModule`; module có thể lấy thông tin qua `CallbackHandler`, xác thực bằng cơ chế thực tế (ví dụ Kerberos), rồi gắn các `Principal`/credential vào một `Subject` khi thành công.
+JAAS uses a configurable authentication architecture. An application invokes `LoginContext` by configuration name; the config specifies `LoginModule`s; modules can gather inputs via `CallbackHandler`, verify via a real mechanism (such as Kerberos), and attach `Principal`/credentials to a `Subject` upon success.
 
 ```text
-Ứng dụng → LoginContext("MyApp")
-         → Configuration → các LoginModule
-         → CallbackHandler (nếu cần nhập/chứng thực thông tin)
-         → login thành công → Subject { Principal, credentials }
-         → logic nghiệp vụ quyết định quyền truy cập
+Application → LoginContext("MyApp")
+            → Configuration → LoginModules
+            → CallbackHandler (if input/verification needed)
+            → login succeeds → Subject { Principal, credentials }
+            → business logic decides access permissions
 ```
 
-Đoạn API ở mức khái niệm:
+Conceptual API snippet:
 
 ```java
 LoginContext context = new LoginContext("MyApp", handler);
 context.login();
 Subject authenticated = context.getSubject();
-// Dùng principal/credential theo chính sách ứng dụng.
+// Use principal/credential according to application policy.
 context.logout();
 ```
 
-Đây **không phải chương trình chạy độc lập**: cần cấu hình login và `handler` phù hợp, cùng nhập `javax.security.auth.Subject` và `javax.security.auth.login.LoginContext`. Khi tự triển khai `LoginModule`, cần hiểu vòng đời `initialize`, `login`, `commit`, `abort` và `logout`; đừng tự tạo thành công giả chỉ vì có `Principal`.
+This is **not a standalone runnable program**: it requires login configuration and an appropriate `handler`, plus imports for `javax.security.auth.Subject` and `javax.security.auth.login.LoginContext`. When implementing a custom `LoginModule`, understand the `initialize`, `login`, `commit`, `abort`, and `logout` lifecycle; never fake success merely because a `Principal` exists.
 
-Điều cần phân biệt:
+Distinctions to keep clear:
 
-- **TLS server authentication**: phía client biết kênh đang kết nối đến server nào theo certificate/hostname; đây là việc của JSSE/PKI.
-- **JAAS authentication**: hệ thống xác thực người dùng hoặc một thực thể theo module đăng nhập; `Subject` biểu diễn thực thể đã xác thực.
-- **Authorization**: ứng dụng quyết định principal đó được phép làm gì. JAAS cung cấp mô hình danh tính/credential để hỗ trợ quyết định này, nhưng không tự sinh toàn bộ chính sách phân quyền API, role nghiệp vụ, OAuth2/OIDC hay JWT.
-- **Kerberos/JGSS**: có thể liên quan JAAS trong ứng dụng tích hợp Kerberos; không phải cứ dùng JSSE thì cần JAAS.
+- **TLS server authentication:** the client knows which server the channel connects to via certificate/hostname; this belongs to JSSE/PKI.
+- **JAAS authentication:** the system authenticates a user or entity via login modules; `Subject` represents the authenticated entity.
+- **Authorization:** the application decides what that principal may do. JAAS supplies an identity/credential model to support this decision, yet does not generate full API authorization policies, business roles, OAuth2/OIDC, or JWT handling.
+- **Kerberos/JGSS:** may involve JAAS in Kerberos-integrated applications; using JSSE does not automatically mean JAAS is required.
 
-Trên JDK hiện đại, tránh hiểu “authorization của JAAS” là phải dựa vào SecurityManager cũ. Các ứng dụng nên xác định cơ chế phân quyền thực tế của framework và hệ thống đang dùng.
+On modern JDKs, avoid equating "JAAS authorization" with legacy `SecurityManager`. Applications should define actual authorization mechanisms suited to their framework and architecture.
 
-## 6. PKI/X.509: từ public key đến danh tính được tin cậy
+## 6. PKI/X.509: From Public Key to Trusted Identity
 
-**Cặp khóa bất đối xứng** gồm public key có thể chia sẻ và private key phải giữ bí mật. Một **chứng thư X.509** gắn public key với subject, issuer, serial, thời hạn hiệu lực, chữ ký của bên cấp và các extension. Chứng thư **không chứa private key** của subject.
+An **asymmetric key pair** consists of a shareable public key and a secret private key. An **X.509 certificate** binds a public key with subject, issuer, serial, validity period, issuer signature, and extensions. A certificate **does not contain the subject's private key**.
 
-Mô hình chuỗi thường gặp:
+Common chain model:
 
 ```text
-Root CA (trust anchor đã được cấu hình tin cậy)
-    ↓ ký/ủy quyền
+Root CA (configured trust anchor)
+    ↓ signs/delegates
 Intermediate CA
-    ↓ ký
+    ↓ signs
 Server leaf certificate (SAN: api.example.com)
-    + private key tương ứng (chỉ server giữ)
+    + matching private key (held only by server)
 ```
 
-Client không chỉ kiểm “certificate có chữ ký hợp lệ”; nó cần một đường chứng thực có thể kiểm tra đến **trust anchor được chấp nhận**. Trong PKIX, còn cần xét ràng buộc cơ bản của CA, key usage/extended key usage, hiệu lực thời gian, chính sách thuật toán, và kiểm tra thu hồi (CRL/OCSP) theo cấu hình. **Kiểm tra hostname là yêu cầu nhận diện endpoint của TLS/HTTPS, không được suy ra chỉ từ việc path validation thành công.**
+Clients do not merely check "does the certificate have a valid signature"; they require a verifiable certification path up to an **accepted trust anchor**. In PKIX, also consider CA basic constraints, key usage/extended key usage, validity times, algorithm policies, and revocation checks (CRL/OCSP) as configured. **Hostname verification is a TLS/HTTPS endpoint identification requirement and must not be inferred from path validation success alone.**
 
-Các API liên quan:
+Related APIs:
 
-- `CertificateFactory.getInstance("X.509")`: đọc/biến đổi chứng thư và chuỗi từ dữ liệu mã hóa.
-- `X509Certificate`: xem subject, issuer, SAN, validity, extension và public key.
-- `CertPathBuilder.getInstance("PKIX")`: tìm đường chứng thực từ leaf theo dữ liệu/chính sách đầu vào.
-- `CertPathValidator.getInstance("PKIX")`: kiểm đường chứng thực dựa trên `PKIXParameters` và `TrustAnchor`.
-- `CertStore`: nguồn ứng viên certificate/CRL, không tự động là danh sách root được tin cậy.
-- `PKIXRevocationChecker`: cấu hình kiểm tra thu hồi khi cần cơ chế phù hợp.
+- `CertificateFactory.getInstance("X.509")`: parses/converts certificates and chains from encoded data.
+- `X509Certificate`: inspects subject, issuer, SAN, validity, extensions, and public key.
+- `CertPathBuilder.getInstance("PKIX")`: discovers a certification path from the leaf given input data/policies.
+- `CertPathValidator.getInstance("PKIX")`: validates a certification path against `PKIXParameters` and `TrustAnchor`.
+- `CertStore`: source of candidate certificates/CRLs, not automatically a trusted root list.
+- `PKIXRevocationChecker`: configures revocation checking when an appropriate mechanism is required.
 
-Những phân biệt hay sai:
+Commonly confused concepts:
 
-| Khái niệm | Ý nghĩa thực tế |
+| Concept | Practical Meaning |
 | --- | --- |
-| **CSR** – Certificate Signing Request | Yêu cầu cấp certificate; thường chứa public key và thông tin nhận diện, được ký bằng private key tương ứng; **CSR chưa phải chứng thư được CA tin cậy cấp** |
-| **Self-signed certificate** | Tự ký bằng private key tương ứng; phù hợp thử nghiệm/CA riêng có kiểm soát, không tự nhiên được client bên ngoài tin |
-| **Root CA/trust anchor** | Điểm tin cậy do người quản trị, hệ điều hành hoặc runtime chọn; có ý nghĩa vì được **cấu hình tin**, không vì xuất hiện trong chuỗi |
-| **SAN** – Subject Alternative Name | Chứa danh tính DNS/IP dùng để đối chiếu endpoint hiện đại; đặt `CN=localhost` riêng thường không đủ |
-| **Certificate chain** | Các chứng thư hỗ trợ chứng minh đường cấp phát; thiếu intermediate hoặc sai mục đích sử dụng có thể gây lỗi |
-| **PEM, DER, PKCS#12** | Định dạng/bao gói dữ liệu; PEM thường là base64 có header, DER là nhị phân ASN.1, PKCS#12 là container có thể chứa key/certificate |
+| **CSR** – Certificate Signing Request | Request for a certificate; typically contains public key and identifying info, signed by the matching private key; **a CSR is not yet a certificate issued by a trusted CA** |
+| **Self-signed certificate** | Signed by its own matching private key; suitable for testing/controlled private CAs, not inherently trusted by external clients |
+| **Root CA/trust anchor** | Trust point chosen by administrator, OS, or runtime; meaningful because it is **configured as trusted**, not because it appears in a chain |
+| **SAN** – Subject Alternative Name | Holds DNS/IP identities used for modern endpoint matching; setting `CN=localhost` alone is usually insufficient |
+| **Certificate chain** | Certificates supporting proof of the issuance path; missing intermediates or wrong key usage causes errors |
+| **PEM, DER, PKCS#12** | Data formats/containers; PEM is typically Base64 with headers, DER is ASN.1 binary, PKCS#12 is a container able to hold keys/certificates |
 
-Đừng nhập certificate nhận được từ một server lạ vào truststore chỉ để hết lỗi. Làm vậy thay đổi trust anchor và có thể bỏ qua vấn đề thật: sai hostname, thiếu intermediate, chứng thư hết hạn hoặc CA không được tổ chức chấp thuận.
+Never import a certificate received from an unknown server into your truststore just to silence an error. Doing so alters your trust anchors and can mask real issues: wrong hostname, missing intermediate, expired certificate, or an unapproved CA.
 
-## 7. KeyStore, truststore và bộ công cụ JDK
+## 7. KeyStore, Truststore, and the JDK Toolset
 
-`KeyStore` là API lưu/truy cập entry theo **alias**. Trong ứng dụng Java thường gặp:
+`KeyStore` is an API for storing/accessing entries by **alias**. Common uses in Java applications:
 
-- **Keystore danh tính (identity store)**: entry có **private key + certificate chain** của ứng dụng. JSSE `KeyManager` có thể đọc để chọn danh tính trình bày cho server/client.
-- **Truststore**: chứa certificate được chọn làm điểm tin cậy; `TrustManager` dùng khi xác minh peer. Hai loại có thể cùng cấu trúc `KeyStore`, nhưng mục đích bảo mật khác nhau.
-- **PKCS12 (`.p12`/`.pfx`)**: định dạng keystore mặc định điển hình từ JDK 9, dùng phổ biến để trao đổi key/certificate. `JKS` là định dạng Java cũ; `PKCS11` có thể trỏ tới token/HSM. Phần mở rộng tệp không tự bảo đảm dữ liệu bên trong đã được bảo vệ đúng.
-- **`cacerts`**: kho CA được JDK cung cấp để xây dựng trust mặc định (các hệ thống/nhà cung cấp JVM có thể cấu hình khác). Thay đổi `cacerts` trên máy chung có ảnh hưởng rộng; ưu tiên truststore ứng dụng khi cần thiết.
+- **Identity keystore:** entries holding the application's **private key + certificate chain**. JSSE `KeyManager` reads it to pick an identity to present to servers/clients.
+- **Truststore:** holds certificates chosen as trust anchors; `TrustManager` uses it when verifying peers. Both may share the `KeyStore` structure, yet serve different security purposes.
+- **PKCS12 (`.p12`/`.pfx`):** typical default keystore format since JDK 9, widely used to exchange keys/certificates. `JKS` is an older Java format; `PKCS11` can point to tokens/HSMs. A file extension alone does not guarantee its contents are properly protected.
+- **`cacerts`:** CA store shipped with the JDK for default trust (different JVMs/vendors may configure it differently). Modifying `cacerts` on a shared machine has broad impact; prefer application-specific truststores when appropriate.
 
-### Bài thực hành local: tạo danh tính TLS tự ký và kho tin cậy riêng
+### Local Lab: Creating a Self-Signed TLS Identity and Separate Truststore
 
-Các lệnh dưới đây là **lệnh đơn dòng**, chạy trong thư mục thử nghiệm trên JDK có `keytool`. Chúng sẽ hỏi mật khẩu qua terminal; không đưa mật khẩu thật vào tham số dòng lệnh hay repository.
+The commands below are **single-line commands**, run in a test directory on a JDK with `keytool`. They prompt for passwords in the terminal; never put real passwords into CLI arguments or repositories.
 
-**Bước 1 – tạo cặp khóa RSA và certificate tự ký cho localhost:**
+**Step 1 – generate an RSA key pair and self-signed certificate for localhost:**
 
 ```shell
 keytool -genkeypair -alias local-server -keyalg RSA -keysize 3072 -dname "CN=localhost" -ext "SAN=dns:localhost,ip:127.0.0.1" -validity 30 -storetype PKCS12 -keystore server.p12
 ```
 
-`server.p12` có private key và certificate gắn alias `local-server`. `-ext SAN=...` giúp mô hình hóa danh tính localhost đúng cho thử nghiệm TLS.
+`server.p12` holds the private key and certificate under alias `local-server`. `-ext SAN=...` models localhost identity properly for TLS testing.
 
-**Bước 2 – kiểm entry và xuất chỉ phần certificate công khai:**
+**Step 2 – inspect the entry and export only the public certificate:**
 
 ```shell
 keytool -list -v -keystore server.p12
@@ -244,44 +244,44 @@ keytool -exportcert -rfc -alias local-server -keystore server.p12 -file server.c
 keytool -printcert -v -file server.crt
 ```
 
-`-exportcert` không xuất private key. Kiểm SAN, issuer = subject trong trường hợp tự ký, hiệu lực và fingerprint. Fingerprint chỉ có ý nghĩa khi được đối chiếu qua kênh tin cậy.
+`-exportcert` does not export the private key. Verify SAN, issuer = subject in the self-signed case, validity, and fingerprint. A fingerprint is only meaningful when verified through a trusted channel.
 
-**Bước 3 – tạo truststore chỉ tin certificate local đó:**
+**Step 3 – create a truststore trusting only that local certificate:**
 
 ```shell
 keytool -importcert -alias local-server -file server.crt -keystore client-trust.p12 -storetype PKCS12
 keytool -list -v -keystore client-trust.p12
 ```
 
-Khi công cụ hỏi có tin certificate không, **chỉ xác nhận trong thí nghiệm bạn vừa tự tạo/đối chiếu fingerprint**. `client-trust.p12` chứa chứng thư được tin, không có private key của server. Bài này minh họa một trust anchor local; production nên dùng CA được tổ chức chấp thuận và quản trị quy trình cấp phát, gia hạn, thu hồi.
+When the tool asks whether to trust the certificate, **only confirm in a lab where you generated/verified the fingerprint yourself**. `client-trust.p12` holds the trusted certificate, not the server's private key. This illustrates a local trust anchor; production should use an organization-approved CA and govern issuance, renewal, and revocation.
 
-**Bước 4 – hình dung quy trình CA thật:** `keytool -certreq -alias local-server -keystore server.p12 -file server.csr` tạo CSR cho cặp khóa đang có. CA kiểm soát danh tính và cấp chứng thư; sau đó cần nhập chuỗi CA/certificate reply vào đúng entry có private key. Không nhầm việc tạo CSR với việc hệ thống đã được tin cậy.
+**Step 4 – picturing a real CA workflow:** `keytool -certreq -alias local-server -keystore server.p12 -file server.csr` generates a CSR for an existing key pair. The CA verifies identity and issues a certificate; you then import the CA chain/certificate reply into the exact entry holding the private key. Do not confuse generating a CSR with being trusted already.
 
-**Các công cụ đáng nhớ khác:**
+**Other noteworthy tools:**
 
-| Công cụ/lệnh | Khi dùng | Giới hạn cần nhớ |
+| Tool/Command | When to Use | Limitations to Remember |
 | --- | --- | --- |
-| `keytool -list -cacerts` | Xem kho CA mặc định của JDK đang chạy | Danh sách phụ thuộc distribution/cấu hình; không nói trước chính xác mọi JVM |
-| `keytool -importkeystore ...` | Chuyển/copy entry giữa keystore | Cần kiểm alias, entry type, mật khẩu, certificate chain |
-| `jarsigner -keystore signing.p12 -signedjar app-signed.jar app.jar signing-alias` | Ký **JAR** bằng private key thuộc alias ký | Cần có `app.jar` và keystore có private key; không phải thao tác cấp certificate TLS |
-| `jarsigner -verify -verbose -certs app-signed.jar` | Xem chữ ký và nội dung đã được bảo vệ của JAR | JAR có chữ ký hợp lệ **không mặc nhiên** đồng nghĩa signer đã được hệ thống tin; đọc warning/chain |
-| `jar tf app.jar` | Liệt kê nội dung JAR khi kiểm artifact | Không thay thế xác minh chữ ký |
-| `java -Djavax.net.debug=ssl,handshake ...` | Quan sát bắt tay TLS khi chạy ứng dụng | Có thể in thông tin nhạy cảm; chỉ dùng lúc debug có kiểm soát |
-| `java -Djava.security.debug=certpath ...` | Khảo sát quá trình kiểm chứng chứng thư PKIX | Log lớn; cần quản lý dữ liệu và quyền truy cập |
+| `keytool -list -cacerts` | View the running JDK's default CA store | List depends on distribution/configuration; not identical across all JVMs |
+| `keytool -importkeystore ...` | Convert/copy entries between keystores | Verify alias, entry type, passwords, and certificate chain |
+| `jarsigner -keystore signing.p12 -signedjar app-signed.jar app.jar signing-alias` | Sign a **JAR** using the private key of the signing alias | Requires `app.jar` and a keystore with private key; not a TLS certificate issuance step |
+| `jarsigner -verify -verbose -certs app-signed.jar` | Inspect JAR signatures and protected entries | A valid JAR signature **does not automatically** mean the signer is system-trusted; read warnings/chain |
+| `jar tf app.jar` | List JAR contents when inspecting artifacts | Does not replace signature verification |
+| `java -Djavax.net.debug=ssl,handshake ...` | Observe TLS handshakes while running an app | Can print sensitive details; use only during controlled debugging |
+| `java -Djava.security.debug=certpath ...` | Inspect PKIX certificate validation steps | Verbose logs; manage output and access controls |
 
-`jarsigner` là **ký mã phân phối (code signing)**; `keytool` chủ yếu quản lý material khóa/certificate; cả hai dùng các thành phần JCA/PKI. Chúng không thay thế TLS cho dữ liệu trao đổi qua mạng.
+`jarsigner` handles **code signing**; `keytool` primarily manages key/certificate material; both rely on JCA/PKI components. Neither replaces TLS for network data exchange.
 
-### Cấu hình bảo mật runtime cần nhận diện
+### Runtime Security Configuration to Recognize
 
-JDK có file cấu hình bảo mật thường tại `<java-home>/conf/security/java.security`. Các property như `security.provider.N` xác định thứ tự provider; `jdk.tls.disabledAlgorithms` giới hạn thuật toán/protocol cho TLS; `jdk.certpath.disabledAlgorithms` ràng buộc kiểm đường chứng thư; `jdk.jar.disabledAlgorithms` liên quan chữ ký JAR. Cách nạp, override và giá trị mặc định phụ thuộc phiên bản/distribution. **Ưu tiên nâng JDK, sửa certificate/cấu hình đúng nguyên nhân; không nới lỏng các danh sách thuật toán yếu để xử lý nhanh lỗi.**
+The JDK ships a security config file typically at `<java-home>/conf/security/java.security`. Properties such as `security.provider.N` set provider order; `jdk.tls.disabledAlgorithms` restricts TLS algorithms/protocols; `jdk.certpath.disabledAlgorithms` constrains certificate path validation; `jdk.jar.disabledAlgorithms` governs JAR signatures. Loading, overrides, and defaults vary by version/distribution. **Prefer upgrading the JDK and fixing root certificate/configuration issues; never relax weak-algorithm blocklists as a quick fix.**
 
-Một số thuộc tính hệ thống trong triển khai JSSE có thể chỉ định keystore/truststore ứng dụng, ví dụ `javax.net.ssl.keyStore`, `javax.net.ssl.trustStore` và các tùy chọn type/password tương ứng. Cần phân biệt **system property** này với **security property** trong `java.security`; không phải mọi API/framework đều dùng default `SSLContext` hoặc các property mặc định.
+Certain JSSE system properties can specify application keystore/truststore, such as `javax.net.ssl.keyStore`, `javax.net.ssl.trustStore`, and their type/password counterparts. Distinguish these **system properties** from **security properties** in `java.security`; not every API/framework uses the default `SSLContext` or default properties.
 
-## 8. Java 17+: chọn engine theo provider và nhận diện ranh giới API
+## 8. Java 17+: Resolving Engines via Providers and Identifying API Boundaries
 
-Ví dụ này **không mã hóa hay ký dữ liệu lần nữa**. Thay vào đó, nó kiểm chứng cách các engine phân giải nhà cung cấp thực tế và nhận diện những package tách biệt của JSSE/JAAS. Đây là câu hỏi riêng của **bản đồ JDK**, khác với ví dụ primitive ở bài so sánh mã hóa, hash, MAC và chữ ký.
+This example **does not encrypt or sign data again**. Instead, it verifies how engines resolve actual providers and identifies the separate JSSE/JAAS packages. This addresses the **JDK map** question specifically, distinct from the primitive comparison demo in the encryption/hash/MAC/signature lesson.
 
-Tạo file `SecurityApiMapDemo.java`:
+Create `SecurityApiMapDemo.java`:
 
 ```java
 import java.security.MessageDigest;
@@ -311,7 +311,7 @@ public class SecurityApiMapDemo {
 }
 ```
 
-Biên dịch/chạy trên JDK 17+ có provider SHA-256 và AES-GCM thông dụng:
+Compile/run on JDK 17+ with standard SHA-256 and AES-GCM providers:
 
 ```bash
 javac --release 17 SecurityApiMapDemo.java
@@ -327,52 +327,52 @@ JSSE package: javax.net.ssl
 JAAS package: javax.security.auth.login
 ```
 
-Dòng đầu/cuối chỉ cho biết engine đã có provider và lớp thuộc package tương ứng, **không** nói TLS đã xác minh certificate, JAAS đã login, hay phép mã hóa đã được thực hiện đúng. Muốn biết provider cụ thể, có thể in `digestProvider.getName()` và `cipherProvider.getName()`, nhưng tên phụ thuộc JDK/distribution/cấu hình. `Cipher.getInstance(...)` cũng mới xác nhận có transformation; dùng đúng khóa, nonce/AAD và xử lý tag vẫn là trách nhiệm của ứng dụng.
+The first/last lines only indicate that engines found providers and classes belong to their respective packages, **not** that TLS verified a certificate, JAAS logged in, or encryption ran correctly. To see exact provider names, print `digestProvider.getName()` and `cipherProvider.getName()`, though names vary by JDK/distribution/configuration. `Cipher.getInstance(...)` only confirms the transformation exists; using the right key, nonce/AAD, and handling tags remain the application's responsibility.
 
-Qua các ví dụ và công cụ của chương, luôn tách: **engine Java**, **provider triển khai**, **cấu hình tin cậy PKI** và **quyền nghiệp vụ**.
+Across the chapter's examples and tools, always separate: **Java engine**, **implementing provider**, **PKI trust config**, and **business authorization**.
 
-## 9. Chọn đúng lớp trong tình huống thực tế
+## 9. Picking the Right Layer in Real-World Scenarios
 
-**Tình huống A – file cấu hình nội bộ cần giữ bí mật và phát hiện sửa đổi:** mã hóa bằng `Cipher` với AEAD (JCE/JCA); khóa cần có nguồn lưu an toàn, rotation, kiểm quyền và định dạng dữ liệu bao gồm nonce/tag. TLS không bảo vệ nội dung sau khi ghi xuống đĩa.
+**Scenario A – internal config file needing confidentiality and tamper detection:** encrypt using `Cipher` with AEAD (JCE/JCA); keys need secure storage, rotation, access control, and a data format carrying nonce/tag. TLS does not protect content once written to disk.
 
-**Tình huống B – gọi API HTTPS:** dùng `HttpClient` hoặc HTTP client có TLS chuẩn (JSSE); xác minh certificate chain theo PKI và hostname; khi cần mTLS, cấu hình client private key/certificate cùng trust của server. Không dùng JAAS để “thay” việc xác minh certificate HTTPS.
+**Scenario B – calling an HTTPS API:** use `HttpClient` or a standard TLS-capable HTTP client (JSSE); verify certificate chain via PKI and hostname; when mTLS is needed, configure client private key/certificate alongside server trust. Do not use JAAS to "replace" HTTPS certificate validation.
 
-**Tình huống C – tài liệu phải kiểm được tác giả ký:** `Signature` dùng private key ký và public key kiểm; nếu cần tin “ai là người ký”, phải phân phối public key đáng tin hoặc dùng PKI/chính sách certificate. `MessageDigest` đơn lẻ chưa đủ.
+**Scenario C – document whose signing author must be verifiable:** `Signature` signs with a private key and verifies with a public key; to trust "who signed it," distribute trusted public keys or use PKI/certificate policies. `MessageDigest` alone is insufficient.
 
-**Tình huống D – tích hợp đăng nhập Kerberos:** xem xét JAAS `LoginContext`/`LoginModule`, `Subject`, và tích hợp Kerberos/GSS liên quan; quyền vào endpoint vẫn phụ thuộc policy ứng dụng.
+**Scenario D – integrating Kerberos login:** consider JAAS `LoginContext`/`LoginModule`, `Subject`, and related Kerberos/GSS integration; endpoint permissions still depend on application policy.
 
-**Tình huống E – ký JAR nội bộ:** quản lý khóa ký bằng `keytool`/hệ thống quản lý khóa, dùng `jarsigner`, kiểm signature và chuỗi tin cậy. Ký JAR không tự mã hóa bytecode và không mặc nhiên bảo đảm tải/chạy JAR là an toàn.
+**Scenario E – signing internal JARs:** manage signing keys via `keytool`/key management systems, use `jarsigner`, verify signatures and trust chains. Signing a JAR does not encrypt bytecode and does not automatically guarantee loading/running the JAR is safe.
 
-## 10. Chẩn đoán lỗi và sai lầm phổ biến
+## 10. Troubleshooting Errors and Common Mistakes
 
-| Triệu chứng | Nơi kiểm tra trước | Điều cần tránh |
+| Symptom | Where to Check First | What to Avoid |
 | --- | --- | --- |
-| `NoSuchAlgorithmException` / `NoSuchPaddingException` | Tên engine/thuật toán/transformation, provider được đăng ký, bản JDK | Đổi thuật toán bảo mật tùy tiện để “chạy được” |
-| `AEADBadTagException` | Key, nonce, AAD, ciphertext/tag; có bị sửa, lỗi encoding/truyền tải hay không | Bỏ qua tag hoặc giải mã trả plaintext khi auth thất bại |
-| `SSLHandshakeException` với `PKIX path building failed` | Truststore client, CA root/intermediate, chuỗi server gửi, thời hạn và chính sách PKIX | Tắt trust validation hoặc nhập bừa leaf certificate |
-| Lỗi hostname/SAN | DNS/IP thực sự truy cập so với SAN certificate | Tắt hostname verification |
-| `UnrecoverableKeyException` / không chọn được alias | Password, key entry, entry type, alias và chain | Log private key hoặc mật khẩu để debug |
-| TLS không thương lượng được version/cipher suite | Chính sách TLS của hai phía, `jdk.tls.disabledAlgorithms`, provider/JDK | Bật lại SSL/TLS yếu trong production |
-| JAAS `LoginException` | Tên app trong configuration, LoginModule, CallbackHandler, thông tin định danh và dependency xác thực | Xem thành công TLS như bằng chứng `login()` đã chạy |
-| `jarsigner -verify` có warning | Certificate người ký, trust, thời gian hiệu lực, timestamp, thuật toán bị vô hiệu | Đồng nhất “có chữ ký” với “nhà phát hành đáng tin” |
+| `NoSuchAlgorithmException` / `NoSuchPaddingException` | Engine/algorithm/transformation name, registered providers, JDK version | Swapping security algorithms arbitrarily just to "make it run" |
+| `AEADBadTagException` | Key, nonce, AAD, ciphertext/tag; tampering, encoding/transport corruption | Ignoring the tag or returning plaintext when auth fails |
+| `SSLHandshakeException` with `PKIX path building failed` | Client truststore, root/intermediate CAs, server-sent chain, validity, PKIX policy | Disabling trust validation or blindly importing leaf certificates |
+| Hostname/SAN error | Actual accessed DNS/IP vs. certificate SAN | Disabling hostname verification |
+| `UnrecoverableKeyException` / unable to pick alias | Password, key entry, entry type, alias, and chain | Logging private keys or passwords to debug |
+| TLS fails to negotiate version/cipher suite | Both sides' TLS policies, `jdk.tls.disabledAlgorithms`, provider/JDK | Re-enabling weak SSL/TLS in production |
+| JAAS `LoginException` | App name in configuration, LoginModule, CallbackHandler, identity data, auth dependencies | Treating TLS success as proof `login()` ran |
+| `jarsigner -verify` shows warnings | Signer certificate, trust, validity period, timestamp, disabled algorithms | Equating "has signature" with "trusted publisher" |
 
-Luồng debug hợp lý: **xác định tầng lỗi → kiểm đúng API/cấu hình → quan sát log có giới hạn → sửa nguyên nhân → chạy lại kiểm chứng**. Hạn chế bật debug TLS/CertPath ở production trong thời gian dài vì log có thể lộ metadata, tăng kích thước và làm khó tìm tín hiệu quan trọng.
+Sensible debugging flow: **identify the failing layer → check exact API/configuration → inspect bounded logs → fix root cause → re-verify**. Avoid leaving TLS/CertPath debugging enabled long-term in production since logs can expose metadata, grow huge, and obscure critical signals.
 
-## 11. Checklist ghi nhớ và câu hỏi tự kiểm tra
+## 11. Summary Checklist and Self-Check Questions
 
-- **Cần hash?** `MessageDigest`. **Cần MAC?** `Mac`. **Cần mã hóa?** `Cipher`/AEAD. **Cần ký?** `Signature`. Tất cả sống trong hệ JCA (bao gồm phần lịch sử gọi là JCE).
-- **Cần kênh mạng TLS?** JSSE/HTTP client chuẩn. **Cần đánh giá certificate/chuỗi?** PKI/X.509 và TrustManager/CertPath. **Cần đăng nhập có module cắm thêm?** JAAS.
-- **Cần tạo/xem khóa, certificate, CSR?** `keytool`. **Cần ký/kiểm JAR?** `jarsigner`. **Cần debug handshake?** `javax.net.debug`; cần debug đường chứng thư thì xét `java.security.debug=certpath`.
-- **Cần triển khai thật?** Dùng cấu hình trust/identity rõ ràng, thuật toán hiện đại, khóa lưu an toàn, xác thực hostname, rotation và quyền nghiệp vụ; không tin mọi certificate và không dùng các ví dụ local tự ký làm chính sách production.
+- **Need a hash?** `MessageDigest`. **Need a MAC?** `Mac`. **Need encryption?** `Cipher`/AEAD. **Need signing?** `Signature`. All live inside JCA (including what was historically called JCE).
+- **Need a TLS network channel?** JSSE/standard HTTP client. **Need certificate/chain validation?** PKI/X.509 and `TrustManager`/`CertPath`. **Need pluggable login modules?** JAAS.
+- **Need to create/inspect keys, certificates, CSRs?** `keytool`. **Need to sign/verify JARs?** `jarsigner`. **Need handshake debugging?** `javax.net.debug`; for certificate path debugging, consider `java.security.debug=certpath`.
+- **Need production deployment?** Use clear trust/identity configs, modern algorithms, secure key storage, hostname verification, rotation, and business authorization; never trust all certificates and never use local self-signed demos as production policy.
 
-Tự trả lời: (1) Vì sao `AES/GCM` và TLS đều có mã hóa nhưng không thay thế nhau? (2) Tại sao một certificate hợp lệ về chữ ký vẫn có thể bị HTTPS từ chối? (3) Điểm khác nhau giữa HMAC, chữ ký số và chỉ SHA-256 là gì? (4) Nếu server yêu cầu mTLS thì client cần thêm vật liệu gì? (5) Vì sao JAAS `Subject` không tự cấp quyền truy cập mọi API?
+Answer for yourself: (1) Why do `AES/GCM` and TLS both encrypt yet not replace each other? (2) Why can a certificate with a valid signature still be rejected by HTTPS? (3) What distinguishes HMAC, digital signatures, and plain SHA-256? (4) If a server requires mTLS, what extra material does the client need? (5) Why does a JAAS `Subject` not automatically grant access to every API?
 
-**Đáp án định hướng:** (1) AEAD bảo vệ payload theo khóa/nonce của ứng dụng; TLS bảo vệ phiên truyền mạng cùng xác thực peer. (2) Có thể sai trust anchor, thời hạn, SAN/hostname, key usage hoặc chính sách. (3) Hash không khóa; HMAC dùng secret chung; chữ ký dùng private/public key. (4) Client cần private key và certificate chain phù hợp để trình bày; vẫn phải tin server. (5) Ứng dụng phải thực thi authorization theo policy nghiệp vụ riêng.
+**Guided answers:** (1) AEAD protects payloads under application keys/nonces; TLS protects network transport sessions with peer authentication. (2) Wrong trust anchor, expiration, SAN/hostname mismatch, key usage, or policy violation. (3) Hash is keyless; HMAC uses a shared secret; signatures use private/public keys. (4) The client needs a matching private key and certificate chain to present; it must still trust the server. (5) The application must enforce authorization according to its own business policies.
 
-## Tài liệu chính thống để đọc sâu
+## Authoritative Documentation for Deeper Reading
 
-- [Java Cryptography Architecture (JCA) Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-cryptography-architecture-jca-reference-guide.html): provider/engine, khóa và các phép mật mã; giải thích vì sao JCE thuộc JCA hiện đại.
-- [Java Secure Socket Extension (JSSE) Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-secure-socket-extension-jsse-reference-guide.html): TLS, `SSLContext`, key/trust manager, endpoint identification.
-- [JAAS Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-authentication-authorization-service-jaas-reference-guide.html): `LoginContext`, `LoginModule`, `Subject`, cấu hình xác thực.
-- [Java PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/21/security/java-pki-programmers-guide.html): `CertPathBuilder`, `CertPathValidator`, `TrustAnchor`, kiểm chứng PKIX.
-- [keytool](https://docs.oracle.com/en/java/javase/21/docs/specs/man/keytool.html) và [jarsigner](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jarsigner.html): cú pháp công cụ, chữ ký và cảnh báo.
+- [Java Cryptography Architecture (JCA) Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-cryptography-architecture-jca-reference-guide.html): providers/engines, keys, and cryptographic operations; explains why JCE belongs to modern JCA.
+- [Java Secure Socket Extension (JSSE) Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-secure-socket-extension-jsse-reference-guide.html): TLS, `SSLContext`, key/trust managers, endpoint identification.
+- [JAAS Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-authentication-authorization-service-jaas-reference-guide.html): `LoginContext`, `LoginModule`, `Subject`, authentication configs.
+- [Java PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/21/security/java-pki-programmers-guide.html): `CertPathBuilder`, `CertPathValidator`, `TrustAnchor`, PKIX validation.
+- [keytool](https://docs.oracle.com/en/java/javase/21/docs/specs/man/keytool.html) and [jarsigner](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jarsigner.html): tool syntax, signing, and warnings.

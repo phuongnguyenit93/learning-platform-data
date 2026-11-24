@@ -1,119 +1,119 @@
-# 2.1 Mô hình engine class, SPI và security provider
+# 2.1 Engine Class, SPI, and Security Provider Model
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích vì sao ứng dụng Java gọi một API mật mã thống nhất nhưng vẫn sử dụng được nhiều cách triển khai khác nhau.
-- Phân biệt chính xác **engine class** (API ứng dụng gọi), **Service Provider Interface – SPI** (hợp đồng triển khai) và **security provider** (đơn vị đăng ký/cung cấp dịch vụ).
-- Theo dõi đường đi của lời gọi `getInstance()`, hiểu vai trò của `Provider.Service` và thứ tự ưu tiên provider.
-- Đọc thông tin provider thực tế, xử lý lỗi tra cứu thuật toán và nhận ra các rủi ro khi cố định provider hoặc viết SPI.
+- Explain why Java applications call a unified cryptography API while still being able to use multiple different implementations.
+- Accurately distinguish between **engine class** (the API called by the application), **Service Provider Interface – SPI** (the implementation contract), and **security provider** (the unit that registers/provides services).
+- Trace the execution path of a `getInstance()` call, understand the role of `Provider.Service`, and understand provider priority order.
+- Inspect real provider information, handle algorithm lookup errors, and recognize the risks when pinning a provider or writing an SPI.
 
-## 1. Bức tranh tổng thể của JCA
+## 1. The Big Picture of JCA
 
-**Java Cryptography Architecture (JCA)** là kiến trúc API và cơ chế chọn triển khai các dịch vụ bảo mật trong Java: hàm băm, chữ ký số, mã hóa, sinh khóa, quản lý khóa/chứng chỉ, số ngẫu nhiên bảo mật, v.v. Các API trải trên `java.security` và `javax.crypto`; tên **JCE** thường dùng cho nhóm API mật mã mở rộng nhưng cùng sử dụng kiến trúc provider của JCA.
+**Java Cryptography Architecture (JCA)** is the API architecture and implementation selection mechanism for security services in Java: hash functions, digital signatures, encryption, key generation, key/certificate management, secure random numbers, etc. The APIs span `java.security` and `javax.crypto`; the name **JCE** is commonly used for the extended cryptography API group, which still uses JCA's provider architecture.
 
-JCA tách câu hỏi **“ứng dụng muốn làm gì?”** khỏi **“mã nào thực hiện thuật toán?”**. Ứng dụng chọn loại dịch vụ và thuật toán; framework tìm một provider có triển khai tương ứng, sau đó tạo engine để ứng dụng sử dụng.
+JCA separates the question **“what does the application want to do?”** from **“what code executes the algorithm?”**. The application selects the service type and algorithm; the framework finds a provider that has a matching implementation, then creates an engine for the application to use.
 
 ```text
-Ứng dụng Java
+Java application
     |
     | MessageDigest.getInstance("SHA-256")
     v
 Engine class / API: java.security.MessageDigest
     |
-    | tra cứu (service type, algorithm)
+    | lookup (service type, algorithm)
     v
-Danh sách security provider / Provider.Service
+Security provider list / Provider.Service
     |
-    | chọn triển khai phù hợp
+    | select matching implementation
     v
-Lớp provider triển khai MessageDigestSpi
+Provider class implementing MessageDigestSpi
     |
     | engineUpdate(), engineDigest(), engineReset(), ...
     v
-Kết quả digest trả về qua API MessageDigest
+Digest result returned through the MessageDigest API
 ```
 
-Sơ đồ diễn tả luồng logic. Ở một số engine (đặc biệt loại cần khóa, như `Signature`/`Cipher`), việc quyết định triển khai cụ thể có thể được trì hoãn đến khi khởi tạo với khóa hoặc tham số; không nên giả định mọi `getInstance()` đều khóa cứng provider ngay tại thời điểm gọi.
+The diagram illustrates the logical flow. In some engines (especially key-dependent ones, such as `Signature`/`Cipher`), deciding the concrete implementation may be deferred until initialization with a key or parameters; you should not assume every `getInstance()` call hard-locks a provider at call time.
 
-Ba lợi ích chính:
+Three main benefits:
 
-1. **Độc lập triển khai:** mã ứng dụng không cần khởi tạo lớp triển khai mật mã của từng hãng.
-2. **Khả năng mở rộng:** provider mới có thể đăng ký thêm thuật toán/triển khai mà không cần thay đổi API engine.
-3. **Khả năng thay thế và tích hợp:** có thể chọn provider phần mềm, provider bên thứ ba, hoặc provider kết nối thiết bị/HSM khi môi trường hỗ trợ.
+1. **Implementation independence:** application code does not need to instantiate vendor-specific cryptographic implementation classes.
+2. **Extensibility:** a new provider can register additional algorithms/implementations without changing engine APIs.
+3. **Replaceability and integration:** you can choose a software provider, a third-party provider, or a provider connected to a hardware device/HSM when supported by the environment.
 
-## 2. Ba vai trò không được nhầm lẫn
+## 2. Three Roles Not to Confuse
 
-| Thành phần | Ai sử dụng/định nghĩa? | Trách nhiệm chính | Ví dụ |
+| Component | Who uses/defines it? | Main responsibility | Examples |
 | --- | --- | --- | --- |
-| **Engine class** | Lập trình viên ứng dụng sử dụng | API công khai, giữ trạng thái sử dụng và điều phối lời gọi | `MessageDigest`, `Signature`, `Cipher` |
-| **SPI class** | Tác giả provider triển khai | Hợp đồng các thao tác `engine...()` mà provider phải hiện thực | `MessageDigestSpi`, `SignatureSpi`, `CipherSpi` |
-| **Security provider** | Đơn vị triển khai/cấu hình và runtime JCA | Đăng ký tên dịch vụ, thuật toán, alias, lớp triển khai và thông tin provider | Một đối tượng kế thừa `java.security.Provider` |
-| **Provider.Service** | Framework JCA dùng để tra cứu | Mô tả một dịch vụ cụ thể: loại engine, thuật toán, implementation class, alias, thuộc tính | `("MessageDigest", "SHA-256")` |
+| **Engine class** | Used by application developers | Public API, holds operational state, and dispatches calls | `MessageDigest`, `Signature`, `Cipher` |
+| **SPI class** | Implemented by provider authors | Contract of `engine...()` operations that a provider must implement | `MessageDigestSpi`, `SignatureSpi`, `CipherSpi` |
+| **Security provider** | Deployment/configuration unit and JCA runtime | Registers service names, algorithms, aliases, implementation classes, and provider metadata | An object extending `java.security.Provider` |
+| **Provider.Service** | Used by the JCA framework for lookup | Describes a specific service: engine type, algorithm, implementation class, aliases, attributes | `("MessageDigest", "SHA-256")` |
 
-**Engine class** là điểm vào ổn định. Ví dụ `MessageDigest.getInstance("SHA-256")` trả về đối tượng kiểu `MessageDigest`; code chỉ gọi `update()`, `digest()`, `reset()`, không cần biết provider cài thuật toán ở lớp nào.
+An **engine class** is the stable entry point. For example, `MessageDigest.getInstance("SHA-256")` returns an object of type `MessageDigest`; the code only calls `update()`, `digest()`, `reset()`, without needing to know which class the provider implements the algorithm in.
 
-**SPI** thường là lớp trừu tượng có hậu tố `Spi`. Provider viết lớp kế thừa rồi triển khai các phương thức `protected engine...`. Engine chuyển yêu cầu từ API ứng dụng đến các thao tác SPI tương ứng. Chẳng hạn:
+An **SPI** is typically an abstract class with the `Spi` suffix. A provider writes a subclass and implements its `protected engine...` methods. The engine forwards requests from the application API to the corresponding SPI operations. For example:
 
-- `MessageDigest.update(byte[])` → thao tác cập nhật trên `MessageDigestSpi`.
-- `MessageDigest.digest()` → `engineDigest()` của triển khai.
-- `Signature.initSign(privateKey)` → logic `engineInitSign(...)` của triển khai.
-- `Cipher.init(...)` và `Cipher.doFinal(...)` → các thao tác khởi tạo/xử lý của `CipherSpi`.
+- `MessageDigest.update(byte[])` → update operation on `MessageDigestSpi`.
+- `MessageDigest.digest()` → `engineDigest()` of the implementation.
+- `Signature.initSign(privateKey)` → `engineInitSign(...)` logic of the implementation.
+- `Cipher.init(...)` and `Cipher.doFinal(...)` → initialization/processing operations of `CipherSpi`.
 
-Một số implementation có cấu trúc lớp kế thừa đặc thù; điều cần nắm là **hợp đồng engine/SPI và cơ chế provider**, không phải giả định mọi engine đều được hiện thực bằng đúng một kiểu wrapper nội bộ.
+Some implementations have specialized class inheritance structures; what matters is understanding the **engine/SPI contract and the provider mechanism**, rather than assuming every engine is implemented with one exact internal wrapper pattern.
 
-**Provider** là đối tượng `Provider` mô tả một tập dịch vụ. Nó không đồng nghĩa với một thuật toán, một engine instance, hay nhất thiết một thư viện đơn lẻ. Một provider có thể công bố nhiều dịch vụ và chỉ hỗ trợ một phần những thuật toán JCA định nghĩa.
+A **Provider** is a `Provider` object describing a set of services. It is not synonymous with a single algorithm, a single engine instance, or necessarily a single standalone library. A provider can advertise multiple services and may support only a subset of the algorithms defined by JCA.
 
-## 3. Nhận diện engine và SPI tương ứng
+## 3. Identifying Engines and Their Corresponding SPIs
 
-| Loại dịch vụ | Engine API | Hợp đồng SPI | Ví dụ tên thuật toán/transformation |
+| Service type | Engine API | SPI contract | Example algorithm/transformation name |
 | --- | --- | --- | --- |
-| Hàm băm | `java.security.MessageDigest` | `MessageDigestSpi` | `SHA-256` |
-| Chữ ký số | `java.security.Signature` | `SignatureSpi` | `SHA256withRSA` |
-| Mã hóa/giải mã | `javax.crypto.Cipher` | `CipherSpi` | `AES/GCM/NoPadding` |
-| Xác thực thông điệp | `javax.crypto.Mac` | `MacSpi` | `HmacSHA256` |
-| Số ngẫu nhiên bảo mật | `java.security.SecureRandom` | `SecureRandomSpi` | Tùy thuật toán/provider |
-| Kho khóa | `java.security.KeyStore` | `KeyStoreSpi` | `PKCS12`, `PKCS11` (tùy provider) |
+| Hash function | `java.security.MessageDigest` | `MessageDigestSpi` | `SHA-256` |
+| Digital signature | `java.security.Signature` | `SignatureSpi` | `SHA256withRSA` |
+| Encryption/decryption | `javax.crypto.Cipher` | `CipherSpi` | `AES/GCM/NoPadding` |
+| Message authentication | `javax.crypto.Mac` | `MacSpi` | `HmacSHA256` |
+| Secure random number | `java.security.SecureRandom` | `SecureRandomSpi` | Depends on algorithm/provider |
+| Key store | `java.security.KeyStore` | `KeyStoreSpi` | `PKCS12`, `PKCS11` (depends on provider) |
 
-Phân biệt hai chiều thông tin:
+Distinguish two dimensions of information:
 
-- **Service type** là loại engine, ví dụ `MessageDigest` hoặc `Cipher`.
-- **Algorithm** là tên thuật toán trong service đó, ví dụ `SHA-256` hoặc `HmacSHA256`. Riêng `Cipher` thường yêu cầu **transformation** đầy đủ `algorithm/mode/padding`, ví dụ `AES/GCM/NoPadding`.
+- **Service type** is the engine category, such as `MessageDigest` or `Cipher`.
+- **Algorithm** is the algorithm name within that service, such as `SHA-256` or `HmacSHA256`. Specifically, `Cipher` usually requires a full **transformation** `algorithm/mode/padding`, such as `AES/GCM/NoPadding`.
 
-Do đó `SHA-256` không phải provider; `MessageDigest` không phải thuật toán; `SUN`/`SunJCE` trong một số JDK là tên provider, không phải tên loại engine. Danh sách và tên provider được cài đặt phụ thuộc JDK và môi trường.
+Therefore, `SHA-256` is not a provider; `MessageDigest` is not an algorithm; `SUN`/`SunJCE` in some JDKs are provider names, not engine type names. The list and names of installed providers depend on the JDK and environment.
 
-## 4. `getInstance()` chọn provider ra sao?
+## 4. How Does `getInstance()` Select a Provider?
 
-Ba dạng factory thông dụng (minh họa với `MessageDigest`):
+Three common factory forms (illustrated with `MessageDigest`):
 
 ```java
 MessageDigest automatic = MessageDigest.getInstance("SHA-256");
 
-// Chỉ thành công khi provider có tên này đã được đăng ký trong JVM:
+// Succeeds only when a provider with this name is registered in the JVM:
 MessageDigest named = MessageDigest.getInstance("SHA-256", "SUN");
 
-// Có thể truyền trực tiếp đối tượng Provider mà không đăng ký toàn cục:
+// A Provider object can be passed directly without global registration:
 MessageDigest explicit = MessageDigest.getInstance("SHA-256", providerObject);
 ```
 
-Đoạn trên là **minh họa các overload**, không phải chương trình chạy độc lập: `providerObject` phải là biến `Provider` hợp lệ; tên `SUN` chỉ có ý nghĩa trên runtime thật sự cài provider đó.
+The snippet above **illustrates the overloads**, not a standalone runnable program: `providerObject` must be a valid `Provider` variable; the name `SUN` is only meaningful on a runtime that actually installs that provider.
 
-Khi không chỉ định provider, framework tra cứu các provider đã đăng ký theo **thứ tự ưu tiên** và tìm dịch vụ phù hợp với loại engine + tên thuật toán. Đối với engine cần khóa/tham số, khả năng hỗ trợ khóa cũng có thể ảnh hưởng đến provider được chọn trong bước khởi tạo. Khi bạn truyền provider theo tên hay đối tượng, lựa chọn bị giới hạn vào provider được chỉ định; nếu không có dịch vụ phù hợp, lời gọi thất bại thay vì tự động chuyển sang provider khác.
+When no provider is specified, the framework searches registered providers in **priority order** and looks for a service matching the engine type + algorithm name. For engines requiring keys/parameters, key support can also influence which provider is chosen during initialization. When you pass a provider by name or object, selection is restricted to the specified provider; if no matching service exists, the call fails instead of automatically falling back to another provider.
 
-`Provider.Service` ghi nhận thông tin giúp framework tạo triển khai:
+`Provider.Service` records metadata that helps the framework instantiate the implementation:
 
-- `getType()`: loại dịch vụ, chẳng hạn `MessageDigest`.
-- `getAlgorithm()`: tên thuật toán chính.
-- `getProvider()`: provider sở hữu service.
-- `getClassName()`: tên lớp triển khai do provider công bố.
-- `getAttribute(name)`: thuộc tính tùy chọn; alias có thể ánh xạ nhiều tên về cùng một dịch vụ.
+- `getType()`: the service type, such as `MessageDigest`.
+- `getAlgorithm()`: the primary algorithm name.
+- `getProvider()`: the provider that owns the service.
+- `getClassName()`: the implementation class name advertised by the provider.
+- `getAttribute(name)`: optional attributes; aliases can map multiple names to the same service.
 
-Tài liệu/API không đảm bảo mọi máy đều có cùng tập provider, thứ tự provider hoặc mọi alias. Nên ưu tiên **tên thuật toán chuẩn**, chỉ cố định provider khi có yêu cầu cụ thể đã được kiểm chứng (ví dụ thiết bị, chứng nhận hoặc khả năng tương thích).
+The documentation/APIs do not guarantee that every machine has the same set of providers, provider order, or aliases. You should prefer **standard algorithm names** and only pin a provider when there is a specific verified requirement (such as hardware device, certification, or compatibility).
 
-## 5. Thực hành 1: tra cứu engine và xác định provider thực tế
+## 5. Practice 1: Looking Up an Engine and Identifying the Actual Provider
 
-Lưu chương trình sau thành **`JcaEngineLookup.java`** (Java 17 trở lên):
+Save the following program as **`JcaEngineLookup.java`** (Java 17 or higher):
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -136,14 +136,14 @@ public class JcaEngineLookup {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 JcaEngineLookup.java
 java JcaEngineLookup
 ```
 
-Ba dòng đầu cho kết quả sau trên runtime có hỗ trợ SHA-256:
+The first three lines produce the following output on a runtime that supports SHA-256:
 
 ```text
 SHA-256: ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
@@ -151,16 +151,16 @@ Provider selected: true
 Service registered: true
 ```
 
-Dòng cuối `Provider name: ...` hiển thị **tên provider do JVM thực tế lựa chọn** (ví dụ `SUN` trên một số JDK), nên không được xem một tên cụ thể là đầu ra bất biến.
+The last line `Provider name: ...` displays **the provider name actually selected by the JVM** (for example `SUN` on some JDKs), so you must not treat a specific name as an invariant output.
 
-Điều cần quan sát:
+Things to observe:
 
-1. Mã ứng dụng chỉ yêu cầu loại dịch vụ `MessageDigest` và thuật toán `SHA-256`.
-2. `digest.getProvider()` cho biết provider đang cung cấp engine đó.
-3. `getService("MessageDigest", "SHA-256")` kiểm tra bản ghi dịch vụ của provider; `Provider.Service` mô tả triển khai, còn `MessageDigest` là API để gọi thao tác.
-4. SHA-256 của chuỗi `"abc"` là kết quả thuật toán chuẩn; provider khác tuân thủ cùng thuật toán phải cho cùng digest.
+1. The application code only requests service type `MessageDigest` and algorithm `SHA-256`.
+2. `digest.getProvider()` tells you which provider is supplying that engine.
+3. `getService("MessageDigest", "SHA-256")` checks the provider's service entry; `Provider.Service` describes the implementation, whereas `MessageDigest` is the API for invoking operations.
+4. The SHA-256 of the string `"abc"` is a standard algorithm output; any other compliant provider for the same algorithm must produce the same digest.
 
-Muốn khám phá danh sách provider, có thể chạy đoạn sau trong một chương trình Java bất kỳ:
+To explore the list of providers, you can run the following snippet inside any Java program:
 
 ```java
 for (Provider p : java.security.Security.getProviders()) {
@@ -173,13 +173,13 @@ for (Provider p : java.security.Security.getProviders()) {
 }
 ```
 
-Đây là **đoạn mã nhúng**, không có `main`/import riêng. Tên, số lượng provider và thuật toán in ra thay đổi theo JVM, cấu hình bảo mật và provider được cài thêm.
+This is an **embedded code snippet**, without its own `main`/imports. The names, number of providers, and algorithms printed vary by JVM, security configuration, and additionally installed providers.
 
-## 6. Thực hành 2: tự tạo SPI và provider tối giản để thấy đường đi của API
+## 6. Practice 2: Creating a Minimal SPI and Provider to See the API Path
 
-Ví dụ dưới đây **chỉ mô phỏng cơ chế đăng ký và ủy nhiệm**, hoàn toàn **không phải thuật toán băm mật mã**. Nó cộng các byte theo modulo 2³² rồi trả về bốn byte. Kẻ tấn công có thể dễ dàng tạo va chạm; tuyệt đối không dùng cho lưu mật khẩu, chữ ký số, kiểm tra tính toàn vẹn có đối thủ, hoặc hệ thống thực tế.
+The example below **only simulates the registration and delegation mechanism** and is **not a cryptographic hash algorithm at all**. It sums bytes modulo 2³² and returns four bytes. An attacker can trivially forge collisions; never use it for storing passwords, digital signatures, integrity checks against adversaries, or production systems.
 
-Lưu thành **`JcaSpiProviderDemo.java`** (Java 17 trở lên):
+Save as **`JcaSpiProviderDemo.java`** (Java 17 or higher):
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -192,9 +192,9 @@ import java.util.Objects;
 public class JcaSpiProviderDemo {
     public static final class EducationalProvider extends Provider {
         public EducationalProvider() {
-            super("EduProvider", "1.0", "Provider minh hoa, KHONG dung trong bao mat");
+            super("EduProvider", "1.0", "Illustrative provider, DO NOT use for security");
 
-            // Đăng ký service type + algorithm -> lớp triển khai SPI.
+            // Register service type + algorithm -> SPI implementation class.
             put("MessageDigest.EDU-CHECKSUM32", ToyDigestSpi.class.getName());
         }
     }
@@ -241,7 +241,7 @@ public class JcaSpiProviderDemo {
     public static void main(String[] args) throws Exception {
         Provider provider = new EducationalProvider();
 
-        // Provider object được dùng trực tiếp, không cần Security.addProvider().
+        // Provider object is used directly, without needing Security.addProvider().
         MessageDigest digest = MessageDigest.getInstance(
                 "EDU-CHECKSUM32", provider);
 
@@ -254,14 +254,14 @@ public class JcaSpiProviderDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 JcaSpiProviderDemo.java
 java JcaSpiProviderDemo
 ```
 
-Đầu ra đã được kiểm tra:
+Verified output:
 
 ```text
 EduProvider
@@ -269,64 +269,64 @@ EduProvider
 true
 ```
 
-Giải thích theo đúng các lớp trách nhiệm:
+Explanation mapped accurately to each layer of responsibility:
 
-1. `EducationalProvider` là **provider**: khai báo tên `EduProvider` và đăng ký `MessageDigest.EDU-CHECKSUM32` trỏ tới lớp SPI.
-2. `ToyDigestSpi` là **implementation**: override các phương thức `engineUpdate`, `engineDigest`, `engineReset` và `engineGetDigestLength`. Các phép cộng là cơ chế checksum giả lập, không có tính an toàn mật mã.
-3. `MessageDigest.getInstance(..., provider)` là **factory của engine**: thông qua thông tin provider để tạo engine dựa trên SPI đã đăng ký.
-4. `digest.digest("ABC"... )` đi qua API của `MessageDigest` rồi kích hoạt SPI. Các byte ASCII `A=65`, `B=66`, `C=67` có tổng `198 = 0xC6` nên bốn byte kết quả là `00 00 00 C6`.
-5. Đưa thẳng đối tượng `Provider` cho factory **không thay đổi danh sách provider toàn cục**. Cách này phù hợp để quan sát/thử nghiệm một provider riêng.
+1. `EducationalProvider` is the **provider**: it declares the name `EduProvider` and registers `MessageDigest.EDU-CHECKSUM32` pointing to the SPI class.
+2. `ToyDigestSpi` is the **implementation**: it overrides `engineUpdate`, `engineDigest`, `engineReset`, and `engineGetDigestLength`. The additions are a simulated checksum mechanism with no cryptographic security.
+3. `MessageDigest.getInstance(..., provider)` is the **engine factory**: it uses the provider metadata to instantiate an engine backed by the registered SPI.
+4. `digest.digest("ABC"... )` goes through the `MessageDigest` API and invokes the SPI. The ASCII bytes `A=65`, `B=66`, `C=67` sum to `198 = 0xC6`, so the four result bytes are `00 00 00 C6`.
+5. Passing a `Provider` object directly to the factory **does not modify the global provider list**. This approach is suitable for observing/testing an isolated provider.
 
-Ở provider sản xuất, việc cài SPI còn đòi hỏi xử lý trạng thái, tham số, lỗi, đối tượng khóa, hiệu năng, luồng đồng thời, kiểm thử theo chuẩn và bảo vệ trước tấn công. Cú pháp `Provider.put(...)` ở đây là cách đăng ký đơn giản cho mục đích học tập; JCA còn cung cấp `Provider.Service` và `putService(...)` để khai báo dịch vụ một cách có cấu trúc.
+In a production provider, implementing an SPI also requires handling state, parameters, errors, key objects, performance, concurrency, standards conformance testing, and side-channel/attack protections. The `Provider.put(...)` syntax here is a simplified registration style for learning purposes; JCA also provides `Provider.Service` and `putService(...)` to declare services in a structured way.
 
-## 7. Đăng ký provider và thứ tự ưu tiên
+## 7. Provider Registration and Priority Order
 
-Có ba tình huống thường gặp:
+There are three common scenarios:
 
-| Tình huống | Cách dùng | Phạm vi ảnh hưởng |
+| Scenario | Usage | Scope of impact |
 | --- | --- | --- |
-| Dùng mặc định | `getInstance("SHA-256")` | JCA chọn từ provider đã đăng ký |
-| Chỉ định provider | `getInstance("SHA-256", provider)` | Chỉ engine được tạo; đối tượng provider không bắt buộc đăng ký toàn cục |
-| Thay đổi danh sách | `Security.addProvider(p)` / `Security.insertProviderAt(p, position)` | Ảnh hưởng thứ tự tìm kiếm provider trong cùng JVM |
+| Default selection | `getInstance("SHA-256")` | JCA selects from registered providers |
+| Explicit provider | `getInstance("SHA-256", provider)` | Only the created engine; the provider object does not have to be globally registered |
+| Modifying the list | `Security.addProvider(p)` / `Security.insertProviderAt(p, position)` | Affects provider search order across the same JVM |
 
-`Security.getProviders()` trả danh sách provider đã đăng ký theo thứ tự ưu tiên. `addProvider` thường thêm provider vào cuối danh sách nếu chưa có; `insertProviderAt` yêu cầu vị trí bắt đầu từ 1 và dùng khi thực sự cần thay đổi mức ưu tiên. Provider cũng có thể được cấu hình lúc khởi động qua cấu hình bảo mật Java tùy bản phân phối/cách chạy.
+`Security.getProviders()` returns the list of registered providers in priority order. `addProvider` typically appends a provider to the end of the list if not already present; `insertProviderAt` takes a 1-based position and is used when you genuinely need to change priority. Providers can also be configured at startup via Java security configuration depending on the distribution/runtime setup.
 
-**Không chèn/xóa hoặc đổi ưu tiên provider tùy tiện trong xử lý mỗi request:** thay đổi danh sách toàn cục có thể làm các thành phần khác trong JVM chọn triển khai khác, kéo theo thay đổi tương thích, hiệu năng hoặc chính sách mật mã. Với thư viện, ưu tiên không tự động thay đổi toàn cục; chỉ định `Provider` trực tiếp khi hợp đồng thực sự đòi hỏi.
+**Do not arbitrarily insert/remove or reorder providers on a per-request basis:** mutating the global list can cause other components in the JVM to pick different implementations, leading to changes in compatibility, performance, or cryptographic policy. For libraries, prefer not altering global state automatically; pass a `Provider` directly only when the contract truly requires it.
 
-## 8. Khi nào chọn sai hoặc không tìm thấy provider?
+## 8. When Is the Wrong Provider Selected or Not Found?
 
-| Hiện tượng | Nguyên nhân có thể | Cách kiểm tra |
+| Symptom | Possible cause | How to check |
 | --- | --- | --- |
-| `NoSuchAlgorithmException` | Không có service/algorithm phù hợp, hoặc không thể tạo engine | Kiểm tra chính xác service type, tên thuật toán, provider có cài và `getServices()` |
-| `NoSuchProviderException` | Tên provider chỉ định chưa đăng ký | Kiểm tra `Security.getProviders()`; cân nhắc overload nhận `Provider` |
-| `NoSuchPaddingException` với `Cipher` | Transformation yêu cầu padding mà provider không hỗ trợ | Kiểm tra tên `algorithm/mode/padding` và khả năng triển khai |
-| `InvalidKeyException` khi `init(...)` | Khóa không phù hợp thuật toán/provider hoặc bị provider từ chối | Kiểm tra kiểu khóa, kích thước, khả năng provider/HSM |
-| `ProviderException` hoặc lỗi khởi tạo | Triển khai provider/hạ tầng phía dưới có vấn đề | Giữ stack trace, xem cấu hình provider và nguyên nhân gốc |
+| `NoSuchAlgorithmException` | No matching service/algorithm, or engine instantiation failed | Check exact service type, algorithm name, installed providers, and `getServices()` |
+| `NoSuchProviderException` | The specified provider name is not registered | Check `Security.getProviders()`; consider the overload accepting a `Provider` |
+| `NoSuchPaddingException` with `Cipher` | The transformation requests a padding the provider does not support | Check the `algorithm/mode/padding` name and implementation capabilities |
+| `InvalidKeyException` at `init(...)` | The key is incompatible with the algorithm/provider or rejected by the provider | Check key type, size, and provider/HSM capabilities |
+| `ProviderException` or initialization error | The underlying provider/infrastructure implementation encountered an issue | Keep the stack trace, inspect provider configuration and root cause |
 
-Ví dụ `Cipher.getInstance("AES/GCM/NoPadding")` yêu cầu **transformation**, không chỉ “AES”. Việc tạo engine thành công cũng **không đồng nghĩa** đã có khóa/nonce hợp lệ hoặc đã thao tác đúng; với GCM phải bảo đảm nonce không tái sử dụng với cùng khóa và xử lý authentication tag đúng cách. Các vấn đề đó thuộc mức sử dụng thuật toán, ngoài trách nhiệm thuần túy của cơ chế chọn provider.
+For example, `Cipher.getInstance("AES/GCM/NoPadding")` requires a **transformation**, not just “AES”. Successfully creating an engine also **does not mean** you already have a valid key/nonce or are using it correctly; with GCM, you must ensure the nonce is never reused with the same key and handle the authentication tag properly. Those concerns belong to algorithm usage, outside the pure responsibility of provider selection.
 
-Một số engine có thể trì hoãn chọn provider đến `init(...)` vì cần xét hỗ trợ khóa. Lấy `getProvider()` có thể buộc lựa chọn sớm ở một số implementation. Vì vậy khi gỡ lỗi, hãy ghi **engine, algorithm/transformation, khóa/tham số, tên provider thực tế và thời điểm phát sinh lỗi** thay vì chỉ dựa vào thứ tự provider.
+Some engines can defer provider selection until `init(...)` because key support must be evaluated. Calling `getProvider()` can force early selection in some implementations. Therefore, when debugging, log the **engine, algorithm/transformation, key/parameters, actual provider name, and failure point** instead of relying solely on provider order.
 
-## 9. Những hiểu lầm và lỗi thiết kế thường gặp
+## 9. Common Misconceptions and Design Mistakes
 
-- **Nhầm API với implementation:** ứng dụng gọi `MessageDigest`, không nên khởi tạo trực tiếp lớp SPI của một provider bằng reflection. SPI là hợp đồng dành cho tác giả provider.
-- **Nhầm provider với thuật toán:** provider chỉ là bên cung cấp dịch vụ; việc `getInstance()` trả về đối tượng không chứng minh thuật toán đã được dùng an toàn trong quy trình nghiệp vụ.
-- **Cố định tên vendor trên mọi môi trường:** provider `SUN` hay `SunJCE` không phải cam kết chung cho mọi JVM. Nếu thật sự cần nhà cung cấp cụ thể, kiểm tra điều kiện triển khai ngay lúc khởi động.
-- **Cho rằng thứ tự ưu tiên luôn quyết định mọi trường hợp:** engine có trạng thái khởi tạo/khóa có thể chọn provider muộn hoặc từ chối khóa không tương thích.
-- **Dùng chung engine mutable giữa nhiều thread:** `MessageDigest`, `Signature`, `Cipher` thường giữ trạng thái đang xử lý; không mặc định coi instance là thread-safe. Tạo instance riêng theo tác vụ hoặc quản lý đồng bộ đúng hợp đồng.
-- **Xem checksum/`MessageDigest` như mã hóa hay lưu mật khẩu an toàn:** digest không đảo ngược thành plaintext và không thay thế được hàm băm mật khẩu có salt, cost phù hợp. `EDU-CHECKSUM32` ở ví dụ chỉ dạy SPI.
-- **Bỏ qua lỗi khi provider thay đổi:** cùng API nhưng khác provider có thể khác khả năng hỗ trợ, cách xử lý tham số, hiệu năng hoặc yêu cầu triển khai. Kiểm thử trên runtime đích và sử dụng test vector chuẩn.
+- **Confusing the API with the implementation:** applications call `MessageDigest` and should not directly instantiate a provider's SPI class via reflection. The SPI is the contract for provider authors.
+- **Confusing a provider with an algorithm:** a provider is only a service supplier; `getInstance()` returning an object does not prove the algorithm is being used safely in business workflows.
+- **Hardcoding vendor names across all environments:** providers like `SUN` or `SunJCE` are not universal guarantees across every JVM. If a specific vendor is truly required, verify deployment preconditions at startup.
+- **Assuming priority order determines every case:** engines with initialization/key state can perform delayed provider selection or reject incompatible keys.
+- **Sharing mutable engines across multiple threads:** `MessageDigest`, `Signature`, and `Cipher` typically hold in-progress state; do not assume instances are thread-safe by default. Create separate instances per operation or synchronize according to the contract.
+- **Treating checksums/`MessageDigest` as encryption or secure password storage:** a digest cannot be reversed back to plaintext and cannot replace salted password-hashing functions with appropriate cost factors. `EDU-CHECKSUM32` in the example is strictly for teaching SPI.
+- **Ignoring failures when changing providers:** different providers behind the same API can differ in supported features, parameter handling, performance, or deployment requirements. Test on the target runtime and verify with standard test vectors.
 
-## 10. Tự kiểm tra kiến thức
+## 10. Knowledge Check
 
-1. Tại sao `MessageDigest.getInstance("SHA-256")` không cần biết lớp Java cài SHA-256 của provider nào? **Vì engine là API ổn định, còn JCA dùng bảng service của provider để tìm implementation SPI.**
-2. Nếu muốn thử một provider nhưng không muốn đổi cấu hình cho toàn JVM, dùng overload nào? **`getInstance(algorithm, Provider)`.**
-3. `Provider.Service` khác `MessageDigest` thế nào? **Service là bản mô tả loại dịch vụ/thuật toán/lớp triển khai; MessageDigest là đối tượng engine mà ứng dụng thao tác.**
-4. Vì sao `getInstance()` thành công chưa chứng minh thao tác chữ ký/mã hóa chắc chắn thành công? **Vì bước `init` với khóa/tham số, hỗ trợ provider và các điều kiện mật mã vẫn có thể thất bại.**
+1. Why doesn't `MessageDigest.getInstance("SHA-256")` need to know which provider's Java class implements SHA-256? **Because the engine is a stable API, and JCA uses the provider's service table to locate the SPI implementation.**
+2. If you want to test a provider without modifying configuration for the whole JVM, which overload should you use? **`getInstance(algorithm, Provider)`.**
+3. How does `Provider.Service` differ from `MessageDigest`? **Service is the descriptor of service type/algorithm/implementation class; MessageDigest is the engine object that the application operates on.**
+4. Why doesn't a successful `getInstance()` prove that signing/encryption operations will definitely succeed? **Because the `init` step with keys/parameters, provider support, and cryptographic preconditions can still fail.**
 
-Khi hiểu mối quan hệ **engine API → tra cứu provider/service → SPI implementation**, bạn có thể đọc chính xác một lệnh JCA, chẩn đoán vì sao runtime chọn một provider cụ thể, và biết phần code nào thuộc ứng dụng hay thuộc nhà triển khai thuật toán.
+Once you understand the **engine API → provider/service lookup → SPI implementation** relationship, you can accurately read any JCA call, diagnose why the runtime picked a particular provider, and tell which code belongs to the application versus the algorithm implementer.
 
-## Tài liệu chính thức để đối chiếu
+## Official References
 
 - [Java 17 — JCA Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html)
 - [Java 17 — How to Implement a Provider](https://docs.oracle.com/en/java/javase/17/security/howtoimplaprovider.html)

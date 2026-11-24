@@ -1,0 +1,201 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Giao dịch giải quyết vấn đề cập nhật dữ liệu dở dang
+  - Ranh giới giao dịch và một đơn vị công việc nghiệp vụ
+  - Vai trò của Spring, driver và hệ quản trị cơ sở dữ liệu
+  - Phân biệt giao dịch cục bộ với giao dịch phân tán
+  - Quản lý khai báo và quản lý bằng mã
+  - Mô hình mệnh lệnh và mô hình reactive
+  - Quan hệ giữa AOP, truy cập dữ liệu và quản lý tài nguyên
+  - Những bảo đảm giao dịch không tự cung cấp cho lời gọi từ xa
+  - Lộ trình từ cơ chế commit, rollback đến kiểm chứng hành vi
+- level1: Nền tảng giao dịch
+  level2:
+  - Tính nguyên tử, nhất quán, cô lập và bền vững trong ACID
+  - Begin, commit, rollback và trạng thái kết thúc
+  - Auto-commit và nhiều câu lệnh trên cùng kết nối
+  - Phân biệt kết thúc phương thức với hoàn tất commit
+  - Ràng buộc dữ liệu và bất biến nghiệp vụ
+  - Khác biệt giữa ghi bộ nhớ, flush và commit
+  - Savepoint và rollback một phần
+  - Vai trò nhật ký, khóa và MVCC ở mức khái niệm
+  - Lỗi tại thời điểm commit và kết quả có thể chưa xác định
+- level1: Mô hình Spring
+  level2:
+  - TransactionManager và chiến lược quản lý giao dịch
+  - PlatformTransactionManager cho mã mệnh lệnh
+  - ReactiveTransactionManager cho chuỗi reactive
+  - TransactionDefinition và thuộc tính giao dịch
+  - TransactionStatus, rollback-only và thông tin trạng thái
+  - TransactionException và lỗi hạ tầng giao dịch
+  - Đồ thị liên kết manager, DataSource hoặc ConnectionFactory và mã truy cập dữ liệu
+  - Chọn manager theo loại tài nguyên thay vì theo tên annotation
+- level1: Giao dịch đầu tiên
+  level2:
+  - Chuẩn bị thư viện Spring và cơ sở dữ liệu tương thích
+  - Khai báo DataSource cùng JdbcTransactionManager
+  - Bật quản lý bằng @EnableTransactionManagement
+  - Đặt @Transactional tại phương thức dịch vụ
+  - Thực hiện hai thao tác ghi trong một luồng nghiệp vụ
+  - Tạo lỗi giữa luồng và quan sát rollback
+  - Đối chiếu dữ liệu bằng kết nối độc lập sau khi hoàn tất
+  - Quan sát log begin, commit, rollback và giải phóng kết nối
+- level1: '@Transactional'
+  level2:
+  - Annotation chỉ là metadata cần hạ tầng xử lý
+  - Khai báo ở phương thức, lớp và các quy tắc kế thừa
+  - Thứ tự ưu tiên cấu hình cụ thể so với cấu hình mặc định
+  - Giá trị mặc định của propagation, isolation và readOnly
+  - Chọn manager bằng transactionManager hoặc value
+  - timeout, timeoutString và cấu hình qua placeholder
+  - label và ý nghĩa phụ thuộc từng manager
+  - Tạo annotation ghép cho chính sách dùng chung
+  - Phân biệt org.springframework.transaction.annotation.Transactional với jakarta.transaction.Transactional
+  - Phạm vi phát hiện annotation trong ApplicationContext
+- level1: Cấu hình XML
+  level2:
+  - Bật annotation bằng tx:annotation-driven
+  - Định nghĩa tx:advice và các thuộc tính tx:method
+  - Gắn transaction advice vào pointcut bằng AOP
+  - Chính sách theo tên phương thức và mức ưu tiên mẫu
+  - Cấu hình manager, rollback-for và no-rollback-for
+  - Tách chính sách cho các nhóm dịch vụ
+  - Đối chiếu cấu hình XML với annotation cho cùng hành vi
+- level1: Cơ chế proxy
+  level2:
+  - TransactionInterceptor bao quanh lời gọi nghiệp vụ
+  - TransactionAttributeSource và quá trình đọc chính sách
+  - Luồng lấy giao dịch, gọi phương thức và hoàn tất
+  - Proxy dựa trên giao diện và proxy dựa trên lớp
+  - Self-invocation bỏ qua điểm chặn trong chế độ proxy
+  - Khả năng áp dụng cho public, protected và package-visible theo phiên bản
+  - Giới hạn phương thức private, final và static
+  - Đối tượng tạo bằng new và lời gọi ngoài Spring container
+  - Thời điểm khởi tạo bean và giới hạn trong @PostConstruct
+  - Chế độ AspectJ và yêu cầu dệt mã thay cho proxy
+  - Thứ tự transaction advice với các advice khác
+- level1: Quy tắc rollback
+  level2:
+  - Mặc định rollback với RuntimeException và Error
+  - Checked exception và nhu cầu khai báo rollback rõ ràng
+  - rollbackFor và noRollbackFor theo kiểu ngoại lệ
+  - Rủi ro khớp quá rộng của rollbackForClassName và noRollbackForClassName
+  - Quy tắc phù hợp nhất khi nhiều khai báo cùng khớp
+  - Ngoại lệ phải đi qua ranh giới giao dịch để interceptor quan sát
+  - Bắt lỗi, nuốt lỗi hoặc đổi loại ngoại lệ làm thay đổi kết quả
+  - Đánh dấu rollback-only khi không ném lại ngoại lệ
+  - Lỗi nghiệp vụ trả về như dữ liệu không tự kích hoạt rollback
+  - ALL_EXCEPTIONS và thay đổi mặc định toàn cục từ Spring Framework 6.2
+  - Try hoặc Future thất bại và giới hạn hỗ trợ theo phiên bản, thời điểm trả về
+- level1: Phạm vi giao dịch
+  level2:
+  - Phân biệt phạm vi logic với giao dịch vật lý
+  - Lời gọi dịch vụ lồng nhau không luôn tạo giao dịch mới
+  - Tham gia, tạm ngưng và khôi phục giao dịch hiện có
+  - Thuộc tính nào được áp dụng khi tạo giao dịch mới
+  - Thuộc tính phương thức trong có thể không thay thế cấu hình bên ngoài
+  - setValidateExistingTransaction và phát hiện cấu hình không tương thích
+  - Trạng thái rollback-only cục bộ và toàn cục
+  - Phân biệt giao dịch đang hoạt động với đồng bộ hóa tài nguyên
+- level1: REQUIRED
+  level2:
+  - Tạo giao dịch khi chưa có giao dịch hiện hành
+  - Tham gia giao dịch vật lý đang có
+  - Mỗi lời gọi vẫn có một phạm vi logic riêng
+  - Ảnh hưởng của rollback-only trong phạm vi con
+  - UnexpectedRollbackException tại ranh giới hoàn tất bên ngoài
+  - Vì sao bắt ngoại lệ ở phương thức ngoài chưa bảo đảm commit
+  - Đặt ranh giới ở dịch vụ điều phối thay vì từng thao tác nhỏ
+  - Kiểm chứng luồng thành công, lỗi lan ra và lỗi bị bắt
+- level1: REQUIRES_NEW
+  level2:
+  - Tạm ngưng giao dịch ngoài và tạo giao dịch vật lý độc lập
+  - Commit, rollback và thuộc tính riêng của giao dịch mới
+  - Khôi phục tài nguyên giao dịch ngoài sau khi hoàn tất
+  - Dữ liệu bên trong đã commit có thể tồn tại khi bên ngoài rollback
+  - Nhu cầu thêm kết nối trong connection pool
+  - Nguy cơ cạn pool hoặc chờ khóa do giao dịch ngoài đang giữ
+  - Trường hợp nhật ký độc lập và đánh đổi tính nguyên tử nghiệp vụ
+  - Kiểm chứng lựa chọn này so với REQUIRED bằng dữ liệu thực
+- level1: NESTED và savepoint
+  level2:
+  - Một giao dịch vật lý với nhiều điểm khôi phục
+  - Rollback phạm vi con về savepoint
+  - Commit phạm vi con không phải commit độc lập
+  - Hành vi khi chưa tồn tại giao dịch bên ngoài
+  - Điều kiện hỗ trợ của manager, driver và cơ sở dữ liệu
+  - Phân biệt NESTED với REQUIRES_NEW
+  - Giới hạn savepoint đối với trạng thái persistence context JPA
+  - Tạo, khôi phục và giải phóng savepoint bằng TransactionStatus
+- level1: Propagation khác
+  level2:
+  - SUPPORTS và hành vi có hoặc không có giao dịch hiện hành
+  - MANDATORY và yêu cầu bên gọi đã mở giao dịch
+  - NOT_SUPPORTED và thực thi khi giao dịch ngoài bị tạm ngưng
+  - NEVER và lỗi khi gặp giao dịch hiện hành
+  - So sánh bảy propagation trên hai trạng thái đầu vào
+  - SUPPORTS và đồng bộ hóa tài nguyên khi không có giao dịch vật lý
+  - Giới hạn tạm ngưng theo chiến lược manager
+  - Chọn propagation từ yêu cầu nghiệp vụ thay vì tránh lỗi cấu hình
+- level1: Mức cô lập
+  level2:
+  - Dirty read, non-repeatable read và phantom read
+  - Lost update, write skew và bất biến giữa nhiều bản ghi
+  - ISOLATION_DEFAULT sử dụng mặc định của tài nguyên
+  - READ_UNCOMMITTED và giới hạn hỗ trợ thực tế
+  - READ_COMMITTED và ảnh chụp dữ liệu theo từng hệ quản trị
+  - REPEATABLE_READ và những khác biệt triển khai MVCC
+  - SERIALIZABLE và khả năng phải thử lại giao dịch
+  - Isolation chỉ có hiệu lực trong điều kiện manager hỗ trợ
+  - Isolation của lời gọi tham gia so với giao dịch mới
+  - Thiết kế thí nghiệm hai kết nối để quan sát từng hiện tượng
+- level1: Khóa và đồng thời
+  level2:
+  - Phân biệt propagation với isolation và chiến lược khóa
+  - Khóa bi quan và thời gian giữ khóa trong giao dịch
+  - Khóa lạc quan, cột version và phát hiện xung đột
+  - Ràng buộc unique hoặc check để bảo vệ bất biến
+  - Thao tác cập nhật nguyên tử thay cho đọc rồi ghi thiếu bảo vệ
+  - Deadlock và thứ tự truy cập tài nguyên nhất quán
+  - Lock timeout, transaction timeout và câu lệnh bị hủy
+  - Phạm vi khóa, chỉ mục và ảnh hưởng tới tải đồng thời
+  - Đánh giá tính đúng đắn trước khi giảm mức cô lập
+- level1: Read-only và timeout
+  level2:
+  - readOnly là chỉ dẫn có hiệu lực tùy manager, driver và cơ sở dữ liệu
+  - Phân biệt chỉ dẫn read-only với cơ chế chặn thao tác ghi
+  - setEnforceReadOnly trong DataSourceTransactionManager
+  - Ảnh hưởng tới flush và tối ưu hóa ORM
+  - Read-only của phương thức trong khi tham gia giao dịch đọc-ghi
+  - Đơn vị timeout và thời điểm thuộc tính được áp dụng
+  - JDBC statement timeout và hỗ trợ của công cụ truy cập dữ liệu
+  - Timeout không tương đương hủy mọi công việc Java hoặc lời gọi mạng
+  - Lựa chọn timeout giao dịch, truy vấn và kết nối một cách nhất quán
+- level1: TransactionTemplate
+  level2:
+  - Khi nào cần ranh giới giao dịch hiển thị trong mã
+  - Tạo TransactionTemplate từ PlatformTransactionManager
+  - execute và executeWithoutResult
+  - Trả kết quả từ callback và xử lý ngoại lệ
+  - setRollbackOnly trong callback
+  - Khai báo propagation, isolation, readOnly và timeout
+  - Chia một luồng dài thành các đoạn giao dịch rõ ràng
+  - Dùng lại template và tránh sửa cấu hình dùng chung đồng thời
+  - So sánh độ ghép nối với quản lý khai báo
+- level1: API giao dịch trực tiếp
+  level2:
+  - Tạo DefaultTransactionDefinition và đặt tên giao dịch
+  - getTransaction có thể tạo mới hoặc tham gia giao dịch
+  - Quản lý commit, rollback và ngoại lệ ở từng giai đoạn
+  - Kiểm tra isNewTransaction, isRollbackOnly và isCompleted
+  - Không hoàn tất hai lần cùng một TransactionStatus
+  - Phân biệt lỗi nghiệp vụ với lỗi commit hoặc rollback
+  - Vì sao thường chọn TransactionTemplate thay cho mã quản lý thủ công
+- level1: Tài nguyên gắn giao dịch
+  level2:
+  - TransactionSynchronizationManager và tài nguyên gắn với luồng
+  - DataSourceUtils, EntityManagerUtils và các hàm truy cập có nhận biết giao dịch
+  - Phân biệt isSynchronizationActive với isActualTransactionActive
+  - Dùng cùng tài nguyên giữa nhiều lớp truy cập dữ liệu
+  - Tạm ngưng, khôi phục và dọn dẹp tài nguyên

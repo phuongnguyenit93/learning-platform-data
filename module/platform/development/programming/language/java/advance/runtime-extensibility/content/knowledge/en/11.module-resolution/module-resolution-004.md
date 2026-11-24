@@ -1,40 +1,40 @@
-# Phạm vi tìm kiếm của ModuleFinder trước và sau cấu hình cha trong Java JPMS
+# Search Scope of ModuleFinder Before and After Parent Configurations in Java JPMS
 
-## 1. Bài toán và các thuật ngữ cần phân biệt
+## 1. The Problem and Terms to Distinguish
 
-Khi một runtime Java tạo module layer mới để nạp phần mở rộng, nó cần xác định **module nào sẽ được chọn cho mỗi tên module** và module đó nằm ở cấu hình mới hay đã được phân giải trong cấu hình cha. Trong Java Platform Module System (JPMS), công việc đó thuộc về `java.lang.module.Configuration.resolve(...)`. Hai tham số kiểu `ModuleFinder` có tên `before` và `after` quyết định thứ tự tìm kiếm so với **các cấu hình cha**.
+When a Java runtime creates a new module layer to load extensions, it must determine **which module will be selected for each module name** and whether that module resides in the new configuration or was already resolved in a parent configuration. In the Java Platform Module System (JPMS), that job belongs to `java.lang.module.Configuration.resolve(...)`. Two `ModuleFinder` parameters named `before` and `after` determine the lookup order relative to **the parent configurations**.
 
-Ba khái niệm quan trọng:
+Three key concepts:
 
-- **`ModuleFinder`:** một nguồn tra cứu `ModuleReference` theo *tên module*, ví dụ module trong JAR, exploded module hoặc runtime image. Nó mô tả module nào có thể tìm thấy, chưa tạo module layer và chưa nạp class.
-- **`Configuration`:** kết quả phân giải các root module cùng những phụ thuộc cần thiết, chứa đồ thị khả năng đọc (*readability graph*) và quan hệ với các cấu hình cha. Một `ResolvedModule` trỏ tới `ModuleReference` đã chọn.
-- **`ModuleLayer`:** bước hiện thực hóa cấu hình trong JVM bằng các runtime `Module` và class loader. Phân giải thành công chưa đồng nghĩa lớp của plugin đã được nạp hay plugin đã chạy.
+- **`ModuleFinder`:** a lookup source for `ModuleReference` by *module name*, such as modules in JARs, exploded modules, or the runtime image. It describes which modules can be found; it does not yet create a module layer or load classes.
+- **`Configuration`:** the resolution result for root modules and their required dependencies, containing the readability graph and relationships to parent configurations. Each `ResolvedModule` points to the selected `ModuleReference`.
+- **`ModuleLayer`:** the step that materializes a configuration in the JVM with runtime `Module` objects and class loaders. Successful resolution does not mean plugin classes have been loaded or the plugin has executed.
 
-Ví dụ: host có `demo.lib@1.0` trong cấu hình cha, plugin muốn dùng `demo.lib@2.0`, còn một kho dự phòng cung cấp `demo.lib@3.0`. Finder nào đưa ra module cùng tên và nó nằm ở đâu sẽ quyết định kết quả; JPMS **không tự chọn phiên bản cao nhất**.
+Example: the host has `demo.lib@1.0` in a parent configuration, the plugin wants `demo.lib@2.0`, and a fallback repository provides `demo.lib@3.0`. Which finder exposes the module with the same name and where it sits will determine the result; JPMS **does not automatically pick the highest version**.
 
-Đề bài ở đây là hiểu chính xác **phạm vi và thứ tự tra cứu của `before` / `after` so với cấu hình cha**, cả với root và dependency, rồi biết cách quan sát kết quả và tránh nhầm với thứ tự nạp class.
+The goal here is to understand the exact **scope and lookup order of `before` / `after` relative to parent configurations**, for both roots and dependencies, and then know how to inspect the result and avoid confusing it with class-loading order.
 
-## 2. Hợp đồng API: các overload cần đọc đúng
+## 2. API Contract: Overloads to Read Carefully
 
-Java 17 cung cấp hai cách giải quyết cùng một bài toán (instance và static):
+Java 17 provides two ways to solve the same problem (instance and static):
 
 ```java
-// Instance: cấu hình nhận lời gọi là parent duy nhất.
+// Instance: the configuration receiving the call is the sole parent.
 Configuration child = parent.resolve(before, after, roots);
 
-// Static: danh sách parent configurations được chỉ định rõ thứ tự.
+// Static: the list of parent configurations is specified with explicit order.
 Configuration child = Configuration.resolve(
         before, List.of(parentA, parentB), after, roots);
 ```
 
-Đây là các đoạn **minh họa chữ ký/lời gọi**, giả sử các biến đã được khởi tạo; chương trình Java 17 chạy độc lập ở mục 6.
+These are **illustrative signature/call snippets**, assuming variables are already initialized; a standalone runnable Java 17 program is in section 6.
 
-- `before`: finder có quyền được hỏi **trước** các cấu hình cha.
-- `parents`: một hoặc nhiều `Configuration` cha được duyệt **theo thứ tự trong danh sách**. Với instance method, danh sách tương đương `List.of(parent)`.
-- `after`: finder dự phòng, chỉ được dùng khi tên module không có ở `before` **và** không tìm thấy trong các cấu hình cha.
-- `roots`: tập/tập hợp tên module bắt đầu quá trình phân giải. Root module cũng dùng chính thứ tự trên; tên trong `roots` không nhất thiết thuộc `before`.
+- `before`: finder authorized to be queried **before** parent configurations.
+- `parents`: one or more parent `Configuration`s searched **in list order**. For the instance method, the list is equivalent to `List.of(parent)`.
+- `after`: fallback finder, used only when a module name is absent from `before` **and** not found in the parent configurations.
+- `roots`: set/collection of module names starting the resolution process. Root modules also follow the exact same order above; names in `roots` do not have to belong to `before`.
 
-Hai hàm tương ứng có service binding:
+Two corresponding methods with service binding:
 
 ```java
 Configuration child = parent.resolveAndBind(before, after, roots);
@@ -43,120 +43,120 @@ Configuration child = Configuration.resolveAndBind(
         before, List.of(parentA, parentB), after, roots);
 ```
 
-`resolveAndBind` vẫn áp dụng tìm kiếm và các kiểm tra nhất quán của resolution, nhưng còn có bước khám phá provider cho service dependency; không nên giả định tập module được chọn sẽ giống `resolve` thường.
+`resolveAndBind` still applies the lookup and consistency checks of resolution, but also includes provider discovery for service dependencies; do not assume the selected module set will match plain `resolve`.
 
-## 3. Thứ tự tìm kiếm chính xác cho mỗi tên module
+## 3. Exact Lookup Order for Each Module Name
 
-Theo hợp đồng `Configuration.resolve(before, parents, after, roots)` của Java 17, khi cần định vị tên module `M`:
+Per the Java 17 `Configuration.resolve(before, parents, after, roots)` contract, when locating module name `M`:
 
 ```text
-Tìm M
+Find M
   |
   v
 before.find("M") ?
-  | có --> chọn ModuleReference từ before
+  | yes --> select ModuleReference from before
   |
-  không
+  no
   v
-parents[0].findModule("M") ?    // gồm tổ tiên của parent này
-  | có --> dùng ResolvedModule đã có ở parent
+parents[0].findModule("M") ?    // including ancestors of this parent
+  | yes --> reuse ResolvedModule already in parent
   |
-  không
+  no
   v
-parents[1].findModule("M") ?    // nếu có nhiều parent
-  | có --> dùng ResolvedModule đã có ở parent
+parents[1].findModule("M") ?    // if multiple parents exist
+  | yes --> reuse ResolvedModule already in parent
   |
-  không
+  no
   v
-... các parent còn lại ...
+... remaining parents ...
   |
   v
 after.find("M") ?
-  | có --> chọn ModuleReference từ after
+  | yes --> select ModuleReference from after
   |
-  không --> không quan sát được module, resolution thất bại
+  no --> module not observable, resolution fails
 ```
 
-**Thứ tự ưu tiên: `before → parents theo thứ tự tìm kiếm → after`.** Đối với một parent, lời gọi `parent.findModule("M")` tự tìm ở cấu hình đó trước, rồi tìm tiếp các tổ tiên theo thứ tự mà `parents()` công bố. Với nhiều parent, Javadoc mô tả việc gọi `findModule` lần lượt trên từng parent trong danh sách; đường đi trong mỗi cây cấu hình tương đương duyệt sâu trước.
+**Priority order: `before → parents in search order → after`.** For a given parent, calling `parent.findModule("M")` searches that configuration first, then searches ancestors in the order exposed by `parents()`. With multiple parents, the Javadoc describes calling `findModule` on each parent in the list in turn; traversal within each configuration tree corresponds to depth-first search.
 
-Quy tắc này áp dụng cho:
+This rule applies to:
 
-1. **Root module**, ví dụ `demo.app` trong `roots`.
-2. **Phụ thuộc trực tiếp**, ví dụ `demo.app requires demo.lib;`.
-3. **Các phụ thuộc bắc cầu cần phân giải**, kể cả các cạnh đọc bổ sung được tính trong đồ thị sau đó.
+1. **Root modules**, e.g. `demo.app` in `roots`.
+2. **Direct dependencies**, e.g. `demo.app requires demo.lib;`.
+3. **Transitive dependencies needing resolution**, including additional read edges computed in the graph later.
 
-Nếu một tên được tìm ở **parent configuration**, module ấy **không bị phân giải lại** và **không xuất hiện trong `child.modules()`**. Đây là khác biệt quan trọng giữa “được tìm thấy trong cây cấu hình” và “mới được thêm vào cấu hình con”.
+If a name is found in a **parent configuration**, that module **is not re-resolved** and **does not appear in `child.modules()`**. This is the crucial distinction between “found in the configuration tree” and “newly added to the child configuration”.
 
-Mốc “trước/sau” ở tên tham số nói về **ưu tiên tra cứu cho từng tên**, không phải thời điểm thực thi toàn bộ pipeline: không có quy tắc “load tất cả from before, chạy tất cả parent, sau đó mới load after”. Việc resolution duyệt các dependency có thể diễn ra theo thứ tự khác, nhưng quyết định lựa chọn nguồn cho mỗi tên tuân theo hợp đồng trên.
+The “before/after” markers in the parameter names refer to **per-name lookup precedence**, not execution phases of the whole pipeline: there is no rule like “load everything from before, run all parents, then load after”. Dependency traversal during resolution may happen in a different order, but source selection for each name follows the contract above.
 
-## 4. Phạm vi thực tế của từng nguồn
+## 4. Practical Scope of Each Source
 
-| Nguồn | Dữ liệu được tra cứu | Khi nào chọn | Hệ quả |
+| Source | Data Looked Up | When Selected | Consequence |
 |---|---|---|---|
-| `before` | Tên module mà finder này quan sát được | Có module tên yêu cầu | Ưu tiên hơn module cùng tên đã có trong parent và module trong after |
-| Cấu hình cha thứ nhất | Các `ResolvedModule` trong chính cha và tổ tiên của nó | Before không có tên đó | Dùng lại module đã phân giải; không thêm lại vào child |
-| Các cấu hình cha tiếp theo | Tương tự, theo danh sách `parents` | Tên không có trong before và các parent trước | Ưu tiên cha xuất hiện trước, không gộp ngẫu nhiên |
-| `after` | Các module finder dự phòng biết đến | Before và mọi parent không có tên | Module được phân giải mới trong child nếu cần |
-| Không nguồn nào thấy | Không tìm được tên | Resolution phải dùng tên đó | `FindException`, không tự suy ra module từ class path |
+| `before` | Module names observable by this finder | Has module with requested name | Takes precedence over a same-named module in parents and modules in after |
+| First parent configuration | `ResolvedModule`s in that parent and its ancestors | Absent from before | Reuses already-resolved module; not re-added to child |
+| Subsequent parent configurations | Same, in `parents` list order | Absent from before and earlier parents | Earlier parent in list wins; not merged arbitrarily |
+| `after` | Modules known to fallback finder | Absent from before and all parents | Newly resolved into child if needed |
+| Found in no source | Name cannot be found | Resolution requires that name | `FindException`; no fallback module inferred from classpath |
 
-### Trường hợp cùng một tên xuất hiện nhiều nơi
+### When the Same Name Appears in Multiple Places
 
-Giả sử cả ba nơi có tên `demo.lib`:
+Suppose all three places contain `demo.lib`:
 
 ```text
 before : demo.lib@2.0
 parent : demo.lib@1.0
 after  : demo.lib@3.0
 
-Khi cần demo.lib --> chọn before: demo.lib@2.0
+When demo.lib is needed --> select before: demo.lib@2.0
 ```
 
-Khi bỏ `demo.lib` khỏi before, parent thắng after. Khi không có `demo.lib` ở cả before lẫn parent, after mới được chọn. Dấu `@1.0` chỉ giúp quan sát trong ví dụ; ***không có thuật toán tự động chọn phiên bản cao nhất*** trong `Configuration.resolve`.
+When `demo.lib` is removed from before, parent beats after. Only when `demo.lib` is absent from both before and parent is after selected. The `@1.0` notation is just for observation in this example; ***there is no automatic highest-version selection algorithm*** in `Configuration.resolve`.
 
-Cấu hình con có thể chọn module tên `demo.lib` mới từ before ngay cả khi cấu hình cha đã chứa một module cùng tên; bản module trong cha không bị “thay thế” hay sửa. Đừng hiểu kết quả là nâng cấp xuyên toàn bộ runtime. Những module trong cha vẫn thuộc cha và đồ thị module của các thành phần khác vẫn tồn tại. Các kiểm tra nhất quán có thể khiến một cách tổ hợp phụ thuộc trở thành `ResolutionException`; chiến lược shadow theo tên không phải lời bảo đảm mọi đồ thị đều hợp lệ.
+A child configuration can pick a new module named `demo.lib` from before even when a parent configuration already contains a module with the same name; the version in the parent is not “replaced” or modified. Do not interpret the result as a runtime-wide upgrade. Modules in the parent still belong to the parent, and the module graphs of other components remain intact. Consistency checks can cause some dependency combinations to fail with `ResolutionException`; name shadowing is not a guarantee that every graph will be valid.
 
-### “After” không có nghĩa chỉ tìm module không tồn tại trên đĩa
+### “After” Does Not Mean Searching Arbitrary Modules on Disk
 
-`after` là một **finder độc lập**, không phải lệnh tự quét mọi thư mục còn lại. Nếu runtime truyền `ModuleFinder.of()` thì after rỗng; nếu truyền `ModuleFinder.of(path)` nó chỉ tìm trong các path đó; nếu truyền `ModuleFinder.ofSystem()` nó tìm system modules từ runtime image. Một module tồn tại trong một JAR khác ngoài các finder không tự nhiên trở nên “observable”.
+`after` is an **independent finder**, not a command to scan every remaining directory automatically. If the runtime passes `ModuleFinder.of()`, then after is empty; if it passes `ModuleFinder.of(path)`, it searches only those paths; if it passes `ModuleFinder.ofSystem()`, it searches system modules from the runtime image. A module sitting in another JAR outside the finders does not magically become “observable”.
 
-## 5. Các cách tạo ModuleFinder và quy tắc bên trong một finder
+## 5. Ways to Create ModuleFinder and Internal Finder Rules
 
-Các cách thường gặp:
+Common patterns:
 
 ```java
-ModuleFinder none = ModuleFinder.of();                 // không có entries
-ModuleFinder plugins = ModuleFinder.of(pluginDir);    // thư mục chứa JAR/modules
-ModuleFinder oneJar = ModuleFinder.of(pluginJar);     // một modular/automatic JAR
-ModuleFinder system = ModuleFinder.ofSystem();        // module từ runtime image
+ModuleFinder none = ModuleFinder.of();                 // no entries
+ModuleFinder plugins = ModuleFinder.of(pluginDir);    // directory containing JARs/modules
+ModuleFinder oneJar = ModuleFinder.of(pluginJar);     // a single modular/automatic JAR
+ModuleFinder system = ModuleFinder.ofSystem();        // modules from runtime image
 ModuleFinder combined = ModuleFinder.compose(plugins, system);
 ```
 
-Đây là đoạn minh họa: `pluginDir` và `pluginJar` là các biến `Path` đã có.
+This is an illustrative snippet: `pluginDir` and `pluginJar` are existing `Path` variables.
 
-- `ModuleFinder.of(Path...)` tìm theo **thứ tự các path được đưa vào**. Khi nhiều path khác nhau có cùng tên module, finder chọn lần xuất hiện đầu tiên, không so sánh phiên bản để tìm bản mới nhất. Nếu **trong cùng một directory of modules** có nhiều module cùng tên thì đó là lỗi `FindException`.
-- `ModuleFinder.compose(first, second, ...)` giữ ưu tiên theo thứ tự finder thành phần: tên thấy ở finder trước sẽ che tên ở finder sau. Đây là một thứ tự **bên trong một finder ghép**, khác với ba mức ưu tiên `before/parents/after` của `Configuration.resolve`.
-- `find(String name)` trả `Optional<ModuleReference>`; `findAll()` trả tập tất cả module references finder thấy. Finder phải đưa ra góc nhìn nhất quán của các module mà nó công bố.
-- Một `ModuleFinder` không bắt buộc thread-safe. Đối tượng tạo từ file path có thể quét/lỗi khi `find` hoặc `findAll` được gọi; không giả định phương thức `of(...)` đã kiểm tra toàn bộ JAR.
-- Tệp JAR có `module-info.class` mô tả explicit named module. JAR không có descriptor có thể được nhận dạng là automatic module theo manifest/tên file; automatic modules có quy tắc resolution và readability rộng hơn, nên đặt chúng trên finder có thể làm phạm vi đồ thị lớn lên.
+- `ModuleFinder.of(Path...)` searches in **the order the paths are passed**. When multiple distinct paths contain the same module name, the finder picks the first occurrence rather than comparing versions to find the newest. If **within a single directory of modules** there are multiple modules with the same name, that is a `FindException`.
+- `ModuleFinder.compose(first, second, ...)` preserves precedence in component finder order: a name seen in an earlier finder shadows that name in a later finder. This is an ordering **inside a composed finder**, distinct from the three-tier `before/parents/after` precedence of `Configuration.resolve`.
+- `find(String name)` returns `Optional<ModuleReference>`; `findAll()` returns the set of all module references the finder sees. A finder must present a consistent view of the modules it exposes.
+- A `ModuleFinder` is not required to be thread-safe. An instance backed by file paths may scan/fail when `find` or `findAll` is called; do not assume `of(...)` has already validated every JAR.
+- A JAR with `module-info.class` describes an explicit named module. A JAR without a descriptor may be recognized as an automatic module based on manifest/filename; automatic modules have broader resolution and readability rules, so placing them on a finder can enlarge the resulting graph.
 
-**Thứ tự hai tầng không được nhầm:**
+**Do not confuse the two-level ordering:**
 
 ```text
-ModuleFinder.compose(A, B) trong BEFORE:
-    A được hỏi trước B cho tên trùng nhau
-Sau đó Configuration.resolve:
-    BEFORE đã ghép -> PARENTS -> AFTER
+ModuleFinder.compose(A, B) in BEFORE:
+    A is queried before B for duplicate names
+Then Configuration.resolve:
+    Composed BEFORE -> PARENTS -> AFTER
 ```
 
-Các module đang có trong `ModuleLayer.boot().configuration()` là **module đã được phân giải trong parent**, không phải tự động là tập mọi module mà `ModuleFinder.ofSystem()` có thể tìm. System finder có thể tìm cả module của runtime image không nằm trong graph boot ở một invocation cụ thể. Phân biệt “available in system image” và “already resolved in parent configuration”.
+Modules currently in `ModuleLayer.boot().configuration()` are **modules already resolved in the parent**, not automatically the set of all modules `ModuleFinder.ofSystem()` can find. The system finder can find modules in the runtime image that were not part of the boot graph on a given invocation. Distinguish “available in system image” from “already resolved in parent configuration”.
 
-## 6. Chương trình Java 17 chạy được: quan sát before, parent và after
+## 6. Runnable Java 17 Program: Observing before, parent, and after
 
-Ví dụ này tạo hai named modules chỉ có `module-info.class`: `demo.app` cần `demo.lib`. Ta đóng gói cùng descriptor của `demo.lib` thành ba modular JAR với phiên bản `1.0`, `2.0`, `3.0` để dễ nhìn nguồn được chọn. Không có plugin class hay service binding ở ví dụ này, vì mục tiêu là **resolution/ModuleFinder**, không phải class loading.
+This example creates two named modules containing only `module-info.class`: `demo.app` requires `demo.lib`. We package the same `demo.lib` descriptor into three modular JARs with versions `1.0`, `2.0`, and `3.0` so it is easy to see which source was chosen. There are no plugin classes or service bindings in this example because the goal is **resolution/ModuleFinder**, not class loading.
 
-### 6.1. Cấu trúc nguồn
+### 6.1. Source Structure
 
-Tạo thư mục làm việc `module-order-demo/`:
+Create a working directory `module-order-demo/`:
 
 ```text
 module-order-demo/
@@ -164,7 +164,7 @@ module-order-demo/
     lib/module-info.java
     app/module-info.java
     host/ModuleOrderDemo.java
-  build/                         (được tạo bằng lệnh bên dưới)
+  build/                         (created by the commands below)
     classes/lib/
     classes/app/
     parent/
@@ -174,14 +174,14 @@ module-order-demo/
     host/
 ```
 
-**Tệp `src/lib/module-info.java`:**
+**File `src/lib/module-info.java`:**
 
 ```java
 module demo.lib {
 }
 ```
 
-**Tệp `src/app/module-info.java`:**
+**File `src/app/module-info.java`:**
 
 ```java
 module demo.app {
@@ -189,7 +189,7 @@ module demo.app {
 }
 ```
 
-**Tệp `src/host/ModuleOrderDemo.java`:**
+**File `src/host/ModuleOrderDemo.java`:**
 
 ```java
 import java.lang.module.Configuration;
@@ -215,22 +215,22 @@ public final class ModuleOrderDemo {
         Path afterJar = Path.of("build/after/demo.lib.jar");
         Path appJar = Path.of("build/app/demo.app.jar");
 
-        // Tạo cấu hình cha riêng: demo.lib@1.0 đã được resolve.
+        // Create a separate parent configuration: demo.lib@1.0 is already resolved.
         Configuration parent = boot.resolve(
                 ModuleFinder.of(parentJar), empty, Set.of("demo.lib"));
 
-        // Before cung cấp demo.lib@2.0 dù parent có 1.0.
+        // Before provides demo.lib@2.0 even though parent has 1.0.
         Configuration beforeWins = parent.resolve(
                 ModuleFinder.of(appJar, beforeJar),
                 ModuleFinder.of(afterJar), Set.of("demo.app"));
 
-        // Before chỉ có demo.app; parent cung cấp demo.lib@1.0.
+        // Before only has demo.app; parent provides demo.lib@1.0.
         Configuration parentWins = parent.resolve(
                 ModuleFinder.of(appJar),
                 ModuleFinder.of(afterJar), Set.of("demo.app"));
 
-        // Boot không có demo.lib; before không có demo.lib:
-        // after được dùng để tìm demo.lib@3.0.
+        // Boot does not have demo.lib; before does not have demo.lib:
+        // after is used to find demo.lib@3.0.
         Configuration afterFallback = boot.resolve(
                 ModuleFinder.of(appJar),
                 ModuleFinder.of(afterJar), Set.of("demo.app"));
@@ -242,18 +242,18 @@ public final class ModuleOrderDemo {
 }
 ```
 
-**Giải thích thiết kế ví dụ:**
+**Explanation of the example design:**
 
-- `ModuleLayer.boot().configuration()` là cấu hình của boot layer, đã có `java.base`. Nhờ vậy `requires java.base` mặc định của những module mới có thể được đáp ứng từ parent.
-- Gọi `boot.resolve(ModuleFinder.of(parentJar), empty, Set.of("demo.lib"))` tạo cấu hình `parent` chứa `demo.lib@1.0`. Đây là **cấu hình**, chưa tạo runtime `ModuleLayer` mới.
-- Ở `beforeWins`, before finder biết cả root `demo.app` và `demo.lib@2.0`; phiên bản đó thắng parent 1.0 và after 3.0.
-- Ở `parentWins`, trước chỉ biết `demo.app`; khi cần `demo.lib` thì dùng từ `parent`, nên `demo.lib` không phải module local của child.
-- Ở `afterFallback`, parent là `boot` không có tên `demo.lib`, nên after bổ sung phiên bản 3.0.
-- `child.findModule("demo.lib")` có thể tìm ở child hoặc parent; `child.modules().contains(found)` kiểm tra nó có thực sự thuộc chính child không.
+- `ModuleLayer.boot().configuration()` is the boot layer's configuration, which already has `java.base`. As a result, the default `requires java.base` of new modules can be satisfied from the parent.
+- Calling `boot.resolve(ModuleFinder.of(parentJar), empty, Set.of("demo.lib"))` creates a `parent` configuration containing `demo.lib@1.0`. This is a **configuration**; no new runtime `ModuleLayer` has been created yet.
+- In `beforeWins`, the before finder knows both root `demo.app` and `demo.lib@2.0`; that version beats parent 1.0 and after 3.0.
+- In `parentWins`, before knows only `demo.app`; when `demo.lib` is needed, it is reused from `parent`, so `demo.lib` is not a local module of the child.
+- In `afterFallback`, the parent is `boot`, which does not contain `demo.lib`, so after supplies version 3.0.
+- `child.findModule("demo.lib")` can find it in the child or parent; `child.modules().contains(found)` checks whether it actually belongs to the child itself.
 
-### 6.2. Lệnh cho Windows PowerShell
+### 6.2. Windows PowerShell Commands
 
-Đứng ở thư mục `module-order-demo/` với JDK 17 hoặc mới hơn trên `PATH`:
+From the `module-order-demo/` directory with JDK 17 or newer on `PATH`:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path build/classes/lib,build/classes/app,build/parent,build/before,build/after,build/app,build/host | Out-Null
@@ -270,9 +270,9 @@ javac --release 17 -d build/host src/host/ModuleOrderDemo.java
 java -cp build/host ModuleOrderDemo
 ```
 
-`jar --module-version` ghi version vào module descriptor của từng JAR; **không làm JPMS thực hiện semantic-version resolution**. Ta chỉ dùng version này để in ra nguồn đã thắng. `demo.app` được biên dịch với đường dẫn tới `demo.lib@1.0`, nhưng `requires demo.lib` trong descriptor ràng buộc **theo tên module**; nó không khóa phiên bản 1.0 trong lần resolution ở runtime.
+`jar --module-version` records a version in each JAR's module descriptor; **it does not make JPMS perform semantic-version resolution**. We use this version solely to print which source won. `demo.app` was compiled with a path to `demo.lib@1.0`, yet `requires demo.lib` in the descriptor binds **by module name**; it does not lock version 1.0 during runtime resolution.
 
-### 6.3. Lệnh tương đương cho Linux/macOS
+### 6.3. Equivalent Commands for Linux/macOS
 
 ```bash
 mkdir -p build/classes/lib build/classes/app build/parent build/before build/after build/app build/host
@@ -289,9 +289,9 @@ javac --release 17 -d build/host src/host/ModuleOrderDemo.java
 java -cp build/host ModuleOrderDemo
 ```
 
-Chương trình host chạy ở class path và dùng API `java.lang.module` để **khảo sát cấu hình**, nên không cần tự đưa `demo.app` lên runtime module path. `Path.of("build/...")` dùng đường dẫn tương đối; phải đứng tại `module-order-demo/` khi chạy.
+The host program runs on the classpath and uses the `java.lang.module` API to **inspect configurations**, so `demo.app` does not need to be placed on the runtime module path. `Path.of("build/...")` uses relative paths; you must run from `module-order-demo/`.
 
-### 6.4. Stdout chính xác
+### 6.4. Exact Stdout
 
 ```text
 beforeWins: version=2.0,local=true
@@ -299,50 +299,50 @@ parentWins: version=1.0,local=false
 afterFallback: version=3.0,local=true
 ```
 
-Đầu ra này đã được kiểm tra bằng cách biên dịch mã với `javac --release 17` và chạy các modular JAR được tạo bởi `jar`.
+This output was verified by compiling the code with `javac --release 17` and running the modular JARs created by `jar`.
 
-- Dòng 1: `before` chọn 2.0 bất chấp 1.0 ở parent và 3.0 ở after; `local=true` vì mô-đun được phân giải trong child.
-- Dòng 2: Parent đã chứa 1.0, nên after 3.0 **không thay thế**; `local=false` vì `demo.lib` thuộc parent config.
-- Dòng 3: Không tìm được `demo.lib` từ before/boot, nên fallback 3.0 đi vào child.
-- Ba cấu hình là **ba kết quả phân giải riêng biệt** trong chương trình; chúng không tự ghi đè lẫn nhau, và ví dụ không tạo layer runtime nào.
+- Line 1: `before` selects 2.0 despite 1.0 in parent and 3.0 in after; `local=true` because the module was resolved in the child.
+- Line 2: Parent already contains 1.0, so after 3.0 **does not replace it**; `local=false` because `demo.lib` belongs to the parent config.
+- Line 3: `demo.lib` is not found in before/boot, so fallback 3.0 enters the child.
+- The three configurations are **three separate resolution results** in the program; they do not overwrite one another, and the example creates no runtime layers.
 
-## 7. Root và dependency cùng đi qua một chuỗi tra cứu
+## 7. Roots and Dependencies Go Through the Same Lookup Chain
 
-Nhiều người cho rằng root luôn phải nằm trong before, còn after chỉ dành cho dependency. Quy tắc JDK nói rõ **root và transitive dependencies dùng cùng thứ tự tra cứu**.
+Many people assume roots must always sit in before while after is only for dependencies. The JDK rules clearly state **roots and transitive dependencies use the same lookup order**.
 
-| Tình huống cần tìm tên `M` | `before` | Parent | `after` | Kết quả |
+| Scenario Looking Up Name `M` | `before` | Parent | `after` | Result |
 |---|---|---|---|---|
-| Root M ở before | M | M | M | M từ before |
-| Root M vắng trong before, ở parent | không | M | M | M từ parent; không thêm vào child |
-| Root M chỉ có ở after | không | không | M | M từ after |
-| Dependency M của một root có ở cả before và parent | M | M | bất kỳ | Dependency từ before |
-| Dependency M chỉ có ở parent/after | không | M | M | Dependency từ parent |
-| Dependency M không ở đâu | không | không | không | `FindException` |
+| Root M in before | M | M | M | M from before |
+| Root M absent in before, in parent | no | M | M | M from parent; not added to child |
+| Root M only in after | no | no | M | M from after |
+| Dependency M of a root in both before and parent | M | M | any | Dependency from before |
+| Dependency M only in parent/after | no | M | M | Dependency from parent |
+| Dependency M nowhere | no | no | no | `FindException` |
 
-Khi tính dependency, resolver đọc descriptor (như `requires demo.lib;`), rồi chọn `demo.lib` theo bảng. Nếu bản trước và bản sau có descriptor khác nhau (dependency hoặc exported package khác), **đồ thị kết quả cũng khác**. Vì vậy khi thiết kế host plugin, thứ tự chọn finder ảnh hưởng cả khả năng tương thích và việc resolution có thành công hay không.
+When computing dependencies, the resolver reads descriptors (such as `requires demo.lib;`), then selects `demo.lib` according to the table. If the earlier and later versions have different descriptors (different dependencies or exported packages), **the resulting graph also differs**. Thus, when designing a plugin host, finder ordering affects both compatibility and whether resolution succeeds.
 
-**Điểm quan trọng:** Nếu một root được tìm thấy trong parent, nó đã được phân giải ở đó và không được duyệt lại các dependency như một root mới trong child. Muốn có một module cùng tên được phân giải mới, phải cung cấp nó ở finder trước và bảo đảm đồ thị hợp lệ. Dùng after không thể ép một module đã tồn tại trong parent bị chọn lại.
+**Key point:** If a root is found in a parent, it was already resolved there and its dependencies are not re-traversed as a new root in the child. To get a module with the same name freshly resolved, you must provide it in the before finder and ensure a valid graph. Using after cannot force a module already present in a parent to be re-selected.
 
-## 8. Phân biệt Configuration.modules, findModule, parents và ModuleFinder.find
+## 8. Distinguishing Configuration.modules, findModule, parents, and ModuleFinder.find
 
-Những lời gọi sau trả lời bốn câu hỏi khác nhau:
+The following calls answer four different questions:
 
 ```java
-child.modules();                  // chỉ module được resolve trong child
-child.findModule("demo.lib");      // child, rồi tới các cấu hình cha
-child.parents();                  // danh sách direct parent configs
-before.find("demo.lib");          // module *observable* qua finder before
+child.modules();                  // only modules resolved in child
+child.findModule("demo.lib");      // child, then parent configurations
+child.parents();                  // list of direct parent configs
+before.find("demo.lib");          // module *observable* via before finder
 ```
 
-Đây là đoạn minh họa trên biến của ví dụ; `before` ở đây biểu thị một `ModuleFinder`, không phải biến khai báo trong toàn bộ chương trình mục 6.
+This is an illustrative snippet using the example variables; `before` here denotes a `ModuleFinder`, not a variable declared across the whole section 6 program.
 
-- `ModuleFinder.find(name)` trả `ModuleReference`, có thể đọc descriptor và location, nhưng module chưa chắc đã được chọn vào một `Configuration`.
-- `Configuration.modules()` trả tập `ResolvedModule` **của cấu hình đó**; không bao gồm các module nằm ở parents.
-- `Configuration.findModule(name)` tìm trong cấu hình hiện tại, sau đó ở các parent theo thứ tự tìm kiếm. Vì vậy phương thức này có thể tìm được module mà `modules()` của child không chứa.
-- `ResolvedModule.reference().descriptor().version()` là metadata để quan sát, không chứng minh module nào đang chạy.
-- `Configuration.parents()` ghi lại thứ tự parent. Với static method có nhiều parents, thứ tự này ảnh hưởng lookup; một cây cha có thể tự có cha của nó. Java mô tả tìm kiếm theo thứ tự gần với **depth-first search** trên các parent configurations.
+- `ModuleFinder.find(name)` returns a `ModuleReference`, allowing you to read its descriptor and location, but the module is not necessarily selected into a `Configuration`.
+- `Configuration.modules()` returns the set of `ResolvedModule`s **of that configuration itself**; it excludes modules residing in parents.
+- `Configuration.findModule(name)` searches the current configuration, then parents in lookup order. Hence this method can find modules that the child's `modules()` does not contain.
+- `ResolvedModule.reference().descriptor().version()` is metadata for observation; it does not prove which module is executing.
+- `Configuration.parents()` records the parent ordering. With the static method taking multiple parents, this order affects lookup; a parent tree can itself have parents. Java describes the search order as akin to **depth-first search** over parent configurations.
 
-Ví dụ muốn log chính xác lúc debugging:
+Example if you want accurate logging during debugging:
 
 ```java
 var resolved = child.findModule("demo.lib").orElseThrow();
@@ -352,11 +352,11 @@ System.out.println(resolved.reference().descriptor().version().orElse(null));
 System.out.println(child.modules().contains(resolved));
 ```
 
-Đây là đoạn minh họa trong context đã có `child`. `location()` có thể rỗng và không nhất thiết là file path vật lý; đừng viết code sản phẩm phụ thuộc vào `toString()` của location như một module identity bảo đảm.
+This is an illustrative snippet in a context where `child` already exists. `location()` can be empty and is not necessarily a physical file path; do not write production code that relies on `location`'s `toString()` as a guaranteed module identity.
 
-## 9. Có nhiều parent configurations thì tìm như thế nào?
+## 9. How Does Lookup Work With Multiple Parent Configurations?
 
-Overload static cho phép:
+The static overload allows:
 
 ```java
 Configuration combined = Configuration.resolve(
@@ -366,82 +366,82 @@ Configuration combined = Configuration.resolve(
         Set.of("demo.app"));
 ```
 
-Trình tự tra cứu cho một tên `M`:
+Lookup sequence for a name `M`:
 
-1. Hỏi `before`.
-2. Nếu chưa có, hỏi `parentA.findModule(M)`: tự nó xét parentA rồi tổ tiên của A.
-3. Nếu vẫn chưa có, hỏi `parentB.findModule(M)`: gồm parentB và tổ tiên của B.
-4. Cuối cùng mới hỏi `after`.
+1. Query `before`.
+2. If not found, query `parentA.findModule(M)`: this itself checks `parentA` and then A's ancestors.
+3. If still not found, query `parentB.findModule(M)`: including `parentB` and B's ancestors.
+4. Finally, query `after`.
 
-**Parent được duyệt theo thứ tự danh sách**, không phải hợp nhất tập module rồi tìm “version tốt nhất”. Nếu hai parent có module tên giống nhau, việc chọn theo thứ tự là một quy tắc tìm kiếm; tính hợp lệ của đồ thị vẫn chịu những kiểm tra khác. Không nên dựa vào thiết kế nhiều parent chồng chéo để né quy định consistency.
+**Parents are searched in list order**, rather than merging module sets and picking the “best version”. If two parents contain a module with the same name, ordering is a lookup rule; graph validity still undergoes further checks. Do not rely on overlapping multi-parent designs to bypass consistency rules.
 
-Overload static yêu cầu danh sách `parents` không rỗng; Javadoc cũng nêu ràng buộc khi nhiều parent có target operating system, architecture hoặc version không nhất quán. Một đồ thị đã giải được bằng `Configuration.resolve` không bảo đảm runtime có thể tạo layer tùy tiện nếu các parent layers không khớp với parent configurations hoặc có xung đột package/loader.
+The static overload requires a non-empty `parents` list; the Javadoc also states constraints when multiple parents have inconsistent target operating systems, architectures, or versions. A graph resolved by `Configuration.resolve` does not guarantee that the runtime can arbitrarily create a layer if parent layers do not match parent configurations or if package/loader conflicts exist.
 
-Khi chỉ có một parent, dùng `parent.resolve(before, after, roots)` thường dễ đọc và ít sai hơn, vì API nêu rõ cha được kế thừa.
+When there is only one parent, using `parent.resolve(before, after, roots)` is usually easier to read and less error-prone because the API explicitly indicates the inherited parent.
 
-## 10. resolve và resolveAndBind khác nhau ở phạm vi quan sát
+## 10. How resolve and resolveAndBind Differ in Observation Scope
 
-`resolve` theo các root và phụ thuộc `requires` tạo readability graph. `resolveAndBind` còn xét **service-use dependencies**:
+`resolve` follows roots and `requires` dependencies to build the readability graph. `resolveAndBind` also considers **service-use dependencies**:
 
-- Sau khi giải root/dependency như `resolve`, các module có `uses` trong cấu hình mới **và các cấu hình cha** được xem xét.
-- Resolver quét các module provider tìm được qua các `ModuleFinder` truyền vào (liên quan tới `findAll()`). Provider có `provides ... with ...` phù hợp có thể được bổ sung vào cấu hình mới, kéo theo các dependency của provider.
-- Việc bổ sung service-provider có thể tạo thêm `uses`, nên quá trình này có thể lặp đến khi không còn module mới.
-- `resolveAndBind` vẫn chịu các quy tắc tra cứu tên/kiểm tra đồ thị của resolution. Nó có thể đưa thêm module vào `child.modules()` mà chỉ nhìn `roots` và `requires` không dự đoán đủ.
+- After resolving roots/dependencies like `resolve`, modules with `uses` in the new configuration **and parent configurations** are examined.
+- The resolver scans provider modules found via the supplied `ModuleFinder`s (involving `findAll()`). Providers with a matching `provides ... with ...` can be added to the new configuration, pulling in that provider module's dependencies.
+- Adding service-provider modules can introduce further `uses`, so this process can iterate until no new modules need to be added.
+- `resolveAndBind` remains subject to name-lookup rules and graph consistency checks. It can add modules to `child.modules()` that inspecting only `roots` and `requires` would not predict.
 
-Ví dụ descriptor định hướng, **không phải chương trình độc lập**:
+Illustrative descriptor example, **not a standalone program**:
 
 ```java
-// module-info.java của module consumer
+// module-info.java of the consumer module
 module demo.consumer {
     uses demo.api.Codec;
 }
 
-// module-info.java của provider
+// module-info.java of the provider
 module demo.provider {
     requires demo.api;
     provides demo.api.Codec with demo.provider.JsonCodec;
 }
 ```
 
-Provider chỉ có thể được resolve/bind nếu descriptor, exports/readability, dependency và các finder được cấu hình hợp lệ. Thứ tự ưu tiên của finder không nên được diễn giải thành thứ tự thực thi provider hoặc chất lượng của provider.
+A provider can only be resolved/bound if its descriptor, exports/readability, dependencies, and finders are validly configured. Finder precedence order should not be interpreted as provider execution order or provider quality.
 
-**Tránh nhầm:** `ServiceLoader.load(...)` hoạt động ở bước khám phá service runtime; `Configuration.resolveAndBind(...)` mở rộng đồ thị module khi phân giải. Hai API có liên hệ về service provider nhưng giải quyết các giai đoạn khác nhau.
+**Avoid confusion:** `ServiceLoader.load(...)` operates at the runtime service discovery step; `Configuration.resolveAndBind(...)` expands the module graph during resolution. The two APIs relate to service providers but address different stages.
 
-## 11. Khi resolution thất bại: tìm sai nguồn hay đồ thị không hợp lệ?
+## 11. When Resolution Fails: Wrong Source or Invalid Graph?
 
-### FindException: vấn đề observability
+### FindException: Observability Issues
 
-`java.lang.module.FindException` thường xảy ra khi:
+`java.lang.module.FindException` commonly occurs when:
 
-- Root hoặc dependency cần thiết không được tìm thấy trong `before`, các parent và `after`.
-- Finder không đọc được JAR, sai descriptor `module-info.class`, hai module cùng tên nằm trong cùng một directory of modules, hoặc có lỗi khi tìm.
-- Một module được tìm thấy nhưng descriptor không thể được parse hoặc metadata của module không hợp lệ.
+- A required root or dependency is not found across `before`, parents, and `after`.
+- A finder cannot read a JAR, encounters a malformed `module-info.class` descriptor, finds two modules with the same name in a single directory of modules, or hits an error during lookup.
+- A module is found, but its descriptor cannot be parsed or module metadata is invalid.
 
-Nếu before có một module lỗi, không nên mong resolver sẽ âm thầm “bỏ qua before để thử after” như một hệ thống tải lại dự phòng. Hành vi chính xác phụ thuộc lỗi finder; phải sửa hoặc lọc input, thay vì dùng after như cơ chế cứu mọi cấu hình hỏng.
+If before has a broken module, do not expect the resolver to silently “skip before and try after” like a fallback reload system. Exact behavior depends on the finder failure; fix or filter the input rather than treating after as a rescue mechanism for broken configurations.
 
-### ResolutionException: vấn đề nhất quán đồ thị
+### ResolutionException: Graph Consistency Issues
 
-`java.lang.module.ResolutionException` có thể xuất hiện khi:
+`java.lang.module.ResolutionException` can occur when:
 
-- Module A `requires` B rồi tạo một chu trình requires không hợp lệ.
-- Một module đọc hai module khác nhau có **cùng tên**; kể cả trường hợp module đọc một bản khác trùng tên với chính nó.
-- Một module đọc đồng thời hai module export cùng package đến nó (split-package conflicts), hoặc package của chính module xung đột với package được đọc.
-- Module khai báo `uses` / `provides` đối với kiểu service ở package không hiện diện hoặc không được export đúng theo readability.
+- Module A `requires` B and forms an invalid `requires` cycle.
+- A module reads two different modules with the **same name**; including the case where a module reads another copy with the same name as itself.
+- A module simultaneously reads two modules exporting the same package to it (split-package conflicts), or the module's own package conflicts with a package it reads.
+- A module declares `uses` / `provides` for a service type in a package that is not present or not properly exported per readability.
 
-Thứ tự before/parents/after chỉ chọn **ứng viên cho tên module**; nó không bỏ qua kiểm tra consistency. Việc tìm được đủ mọi module là điều kiện cần, chưa đủ để tạo đồ thị hợp lệ.
+The before/parents/after order only selects **candidates for module names**; it does not skip consistency checks. Finding all modules is a necessary condition, not sufficient to produce a valid graph.
 
-### Các lỗi khác
+### Other Errors
 
-- `IllegalArgumentException` khi gọi static overload với danh sách parent rỗng hoặc cấu hình nhiều parent có target OS/architecture/version mâu thuẫn theo Javadoc.
-- `SecurityException` trong môi trường có security policy/manager ngăn phép tìm module.
-- Module image/descriptor có version mang tính metadata: không tự giải quyết khả năng tương thích binary/source hoặc xác thực nguồn JAR. Runtime phải kiểm tra phiên bản và quy tắc plugin của riêng mình trước khi xây module graph nếu đó là yêu cầu sản phẩm.
+- `IllegalArgumentException` when calling the static overload with an empty parent list or a multi-parent configuration with conflicting target OS/architecture/version per Javadoc.
+- `SecurityException` in environments where a security policy/manager blocks module lookup.
+- Versions in module images/descriptors are metadata: they do not automatically solve binary/source compatibility or verify JAR provenance. The runtime must enforce its own version checks and plugin rules before building the module graph if required by the product.
 
-## 12. Từ Configuration tới ModuleLayer: ranh giới phải giữ rõ
+## 12. From Configuration to ModuleLayer: Boundaries to Keep Clear
 
-Chương trình mục 6 **chỉ** tạo các `Configuration`. Để thực sự chạy code trong module, JVM cần một `ModuleLayer` phù hợp:
+The section 6 program **only** creates `Configuration`s. To actually run code inside modules, the JVM needs an appropriate `ModuleLayer`:
 
 ```java
-// Minh họa khi parent là boot layer:
+// Illustrative when parent is the boot layer:
 ModuleLayer bootLayer = ModuleLayer.boot();
 Configuration child = bootLayer.configuration().resolve(
         before, ModuleFinder.of(), Set.of("demo.app"));
@@ -449,53 +449,53 @@ ModuleLayer layer = bootLayer.defineModulesWithOneLoader(
         child, ClassLoader.getSystemClassLoader());
 ```
 
-Đây là đoạn **minh họa**: phải chuẩn bị finder và JAR có code hợp lệ, và parent configuration của child phải khớp với layer cha được dùng. Đừng áp dụng nguyên đoạn này vào `beforeWins` của ví dụ mục 6 vì parent configuration của nó **không trực tiếp là boot configuration**; muốn materialize nó cần tạo layer tương ứng cho parent trước, rồi mới tạo child layer với đúng quan hệ cha.
+This is an **illustrative** snippet: valid finders and JARs with code must be prepared, and the child's parent configuration must match the parent layer used. Do not blindly apply this snippet to `beforeWins` from section 6 because its parent configuration is **not directly the boot configuration**; materializing it requires creating the corresponding layer for `parent` first, then creating the child layer with the matching parent relationship.
 
-- `Configuration` quyết định mô-đun nào và cạnh readability nào tồn tại về mặt logic.
-- `ModuleLayer` tạo runtime `Module` và ánh xạ module tới class loader. Nó còn kiểm tra những ràng buộc liên quan đến package và loader.
-- `before` và `after` **không phải class loader**, cũng không định nghĩa “parent-first/child-first class loading” như ở `ClassLoader.loadClass`. Hai loại thứ tự này thuộc hai cơ chế riêng.
-- Định nghĩa một layer mới không sửa parent layer; module trong parent tiếp tục hiện hữu ở layer đó.
-- Nếu cần đưa plugin ra khỏi JVM hoặc hot reload, phải quản lý vòng đời các lớp, object, service registration, thread, cache và class loader; một `Configuration` không cung cấp thao tác “thay thế module đang chạy” tự động.
+- `Configuration` determines which modules and readability edges exist logically.
+- `ModuleLayer` creates runtime `Module` objects and maps modules to class loaders. It also enforces package- and loader-related constraints.
+- `before` and `after` **are not class loaders**, nor do they define “parent-first/child-first class loading” as in `ClassLoader.loadClass`. Those two orderings belong to separate mechanisms.
+- Defining a new layer does not modify the parent layer; modules in the parent continue to exist in that layer.
+- If plugins must be removed from the JVM or hot-reloaded, you must manage the lifecycle of classes, objects, service registrations, threads, caches, and class loaders; a `Configuration` does not provide an automatic “replace running module” operation.
 
-## 13. Automatic modules và các nguồn finder quá rộng
+## 13. Automatic Modules and Overly Broad Finder Sources
 
-Một hệ thống dùng module path có thể gặp **automatic modules** tạo từ JAR chưa có `module-info.class`. Theo quy tắc module resolution, nếu có automatic module được enumerate, các automatic modules quan sát được khác cũng có thể phải được enumerate, nên kết quả có thể rộng hơn tập dependency nhìn thấy trong descriptor `requires`.
+A system using the module path may encounter **automatic modules** created from JARs without `module-info.class`. According to module resolution rules, if an automatic module is enumerated, other observable automatic modules may also need to be enumerated, so the result can be broader than the dependencies visible in `requires` descriptors.
 
-Tác động tới thiết kế `before` và `after`:
+Impact on `before` and `after` design:
 
-- Đặt cả thư mục plugin lớn vào `before` có thể làm nhiều automatic modules trở nên observable. Không nên giả định chỉ đúng một JAR được xem xét vì root ban đầu chỉ là một module.
-- Khi dùng `resolveAndBind`, các service providers trong phạm vi finder có thể kéo thêm module vào graph. Có thể thay đổi phạm vi module được resolve khi thêm một JAR provider.
-- `ModuleFinder.ofSystem()` có phạm vi hệ thống rộng. Nếu parent configuration đã có đủ system modules cần dùng, sử dụng `ModuleFinder.of()` làm `after` thường dễ kiểm soát hơn một finder bổ sung không chủ ý.
-- Nếu cần chính sách chặt theo module name/version, hãy xác minh `find(name)` và `findAll()`, hạn chế đầu vào finder, kiểm tra metadata nguồn và consistency trước khi cho phép plugin được materialize.
+- Placing a large plugin directory into `before` can make many automatic modules observable. Do not assume only a single JAR is considered just because the initial root is one module.
+- When using `resolveAndBind`, service providers within finder scope can pull additional modules into the graph. Adding a single provider JAR can change the scope of resolved modules.
+- `ModuleFinder.ofSystem()` has broad system scope. If the parent configuration already contains the required system modules, using `ModuleFinder.of()` as `after` is usually easier to control than an unintended extra finder.
+- If strict module name/version policies are needed, verify `find(name)` and `findAll()`, restrict finder inputs, and check source metadata and consistency before allowing plugins to materialize.
 
-JPMS không phải một dependency manager với khả năng tự xử lý Maven/Gradle-style version conflicts, cũng không thay thế isolation ở cấp process cho plugin không tin cậy.
+JPMS is not a dependency manager capable of resolving Maven/Gradle-style version conflicts automatically, nor does it replace process-level isolation for untrusted plugins.
 
-## 14. Checklist điều tra và các lỗi hiểu sai phổ biến
+## 14. Diagnostic Checklist and Common Misconceptions
 
-| Biểu hiện | Cách kiểm tra |
+| Symptom | How to Check |
 |---|---|
-| Module ở after không được chọn | Có module cùng tên trong before hoặc parent config không? |
-| Parent chứa bản 1.0 nhưng child dùng 2.0 | Before có bản cùng tên; kiểm tra `child.modules()`, `ResolvedModule.reference().location()` |
-| `findModule()` tìm được tên nhưng `modules()` không chứa | Module nằm trong parent configuration; kết quả này hợp lệ |
-| Root “không nằm ở before” mà vẫn resolve | Root có thể được tìm trong parent hoặc after |
-| Finder thấy JAR nhưng resolve báo thiếu dependency | Finder của root chưa chắc nhìn thấy mọi dependency; xác minh từng tên ở cả ba mức |
-| Tên module đúng nhưng chọn sai JAR | Kiểm tra thứ tự `ModuleFinder.of(paths...)` và `ModuleFinder.compose(...)` trước khi xem thứ tự before/parent/after |
-| Chọn bản version cao nhất? | Không có cơ chế đó: `before/parents/after` là chính sách precedence, không phải version solver |
-| Split package/duplicate readability | Kiểm tra `requires`, `requires transitive`, `exports`, parent graph và lỗi `ResolutionException` |
-| `resolveAndBind` đưa thêm module | Các module dùng `uses` và provider trong finder làm mở rộng graph |
-| Cấu hình đã resolve nhưng class không tải được | Chưa chắc đã định nghĩa ModuleLayer; còn giới hạn loader, package, access và code |
-| Plugin hot reload thấy bản cũ | Không thể sửa class/Module object của parent bằng cách đổi after finder; cần lifecycle/layer/loader mới |
-| Chỉ thấy lỗi khi tìm nhiều module | `findAll()` có thể gặp JAR/descriptor lỗi, còn single-name `find()` chưa đi qua nguồn đó |
+| Module in after is not selected | Is there a same-named module in before or a parent config? |
+| Parent has 1.0 but child uses 2.0 | Before has a same-named copy; inspect `child.modules()`, `ResolvedModule.reference().location()` |
+| `findModule()` finds the name but `modules()` does not contain it | The module is in a parent configuration; this result is valid |
+| Root “not in before” still resolves | The root may have been found in a parent or after |
+| Finder sees JAR but resolve reports missing dependency | The root's finder does not necessarily see every dependency; verify each name across all three levels |
+| Right module name but wrong JAR selected | Check the order of `ModuleFinder.of(paths...)` and `ModuleFinder.compose(...)` before checking before/parent/after |
+| Pick highest version? | No such mechanism exists: `before/parents/after` is a precedence policy, not a version solver |
+| Split package/duplicate readability | Inspect `requires`, `requires transitive`, `exports`, parent graph, and `ResolutionException` |
+| `resolveAndBind` pulls in extra modules | Modules with `uses` and providers in finders expand the graph |
+| Configuration resolves but classes fail to load | A `ModuleLayer` might not be defined yet; also loader, package, access, and code limits apply |
+| Plugin hot reload sees old version | Cannot mutate parent `Module`/classes by changing the after finder; need a new lifecycle/layer/loader |
+| Error appears only when finding multiple modules | `findAll()` may hit a broken JAR/descriptor while single-name `find()` did not touch that source |
 
-Khi thiết kế hợp đồng phân giải module cho runtime extensibility:
+When designing a module resolution contract for runtime extensibility:
 
-1. **Xác định parent configuration đã có những module nào**, không chỉ quan sát folder module path. Khi dùng nhiều parents, ghi rõ thứ tự và cây tổ tiên.
-2. **Chọn nội dung `before` có chủ đích.** Đây là chỗ dùng khi thật sự muốn module mới có quyền được xét trước module cùng tên trong parent. Xác minh compatibility chứ không mặc định được override runtime.
-3. **Chọn `after` làm nguồn fallback có giới hạn.** Nó không được quyền lấn át parent nếu before không tìm thấy.
-4. **Phân biệt module observable và resolved.** In ra `finder.find(name)`, `Configuration.modules()` và `Configuration.findModule(name)` để lý giải nguồn được chọn.
-5. **Kiểm thử các case trùng tên/thiếu tên và cả service binding.** Dùng module descriptor/version rõ ràng, assert đúng `ResolvedModule.configuration()` hoặc `modules().contains(...)`; kiểm tra cả `FindException` và `ResolutionException`.
-6. **Materialize layer có chủ đích.** Cấu hình cha, parent layers, class loader và lifecycle phải khớp nhau; resolution chỉ là bước đầu.
+1. **Identify which modules the parent configuration already has**, not just by inspecting a module-path folder. When using multiple parents, document the exact ordering and ancestor tree.
+2. **Choose `before` contents deliberately.** This is where you put modules when you genuinely want a new module to take precedence over a same-named module in a parent. Verify compatibility rather than assuming runtime override works automatically.
+3. **Choose `after` as a bounded fallback source.** It cannot override a parent when before does not find a match.
+4. **Distinguish observable and resolved modules.** Print `finder.find(name)`, `Configuration.modules()`, and `Configuration.findModule(name)` to explain which source was chosen.
+5. **Test duplicate-name, missing-name, and service-binding cases.** Use explicit module descriptors/versions, assert `ResolvedModule.configuration()` or `modules().contains(...)`, and test both `FindException` and `ResolutionException`.
+6. **Materialize layers deliberately.** Parent configuration, parent layers, class loaders, and lifecycle must align; resolution is only the first step.
 
-**Ghi nhớ:** Trong `Configuration.resolve`, mỗi tên module được tìm theo **before → parent(s) → after**. Module đã có ở parent được dùng lại, không thêm vào cấu hình con; before có thể cung cấp một module cùng tên mới; after chỉ là nơi tìm sau cùng. Đây là quy tắc về **module resolution**, không phải thứ tự nạp class hay thuật toán chọn phiên bản.
+**Remember:** In `Configuration.resolve`, each module name is looked up in **before → parent(s) → after** order. A module already in a parent is reused and not added to the child configuration; before can supply a new same-named module; after is only the last resort. This is a rule about **module resolution**, not class-loading order or a version-selection algorithm.
 
-**Nguồn chuẩn:** [Java SE 17 — Configuration](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/Configuration.html), [ModuleFinder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleFinder.html), [ModuleLayer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html) và [Module resolution](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/package-summary.html).
+**Authoritative sources:** [Java SE 17 — Configuration](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/Configuration.html), [ModuleFinder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleFinder.html), [ModuleLayer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html), and [Module resolution](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/package-summary.html).

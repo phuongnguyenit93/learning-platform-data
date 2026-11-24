@@ -1,28 +1,28 @@
-# 17.8 Quản lý credential, `Subject` chỉ đọc và xử lý `LoginException`
+# 17.8 Credential Management, Read-Only `Subject`, and Handling `LoginException`
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Trong **JAAS (Java Authentication and Authorization Service)**, đăng nhập thành công không chỉ là trả về `true`. Hệ thống còn phải quản lý **danh tính (`Principal`)**, **credential**, đối tượng **`Subject`**, vòng đời đăng nhập–đăng xuất và các trường hợp xác thực thất bại. Những thao tác tưởng đơn giản như đưa password vào `String`, đánh dấu `Subject` chỉ đọc quá sớm hoặc nuốt `LoginException` đều có thể khiến bí mật tồn tại lâu hơn cần thiết hoặc khiến ứng dụng chấp nhận trạng thái xác thực sai.
+In **JAAS (Java Authentication and Authorization Service)**, a successful login is more than returning `true`. The system must also manage **identities (`Principal`)**, **credentials**, the **`Subject`** object, the login–logout lifecycle, and authentication failure cases. Seemingly simple mistakes—such as putting a password into a `String`, marking a `Subject` read-only too early, or swallowing a `LoginException`—can cause secrets to linger longer than necessary or cause the application to accept an invalid authentication state.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt `Principal`, **public credential**, **private credential** và secret chỉ dùng tạm trong lúc đăng nhập.
-2. Hiểu vai trò của `LoginContext`, `LoginModule`, `CallbackHandler`, `PasswordCallback` và `Configuration`.
-3. Quản lý credential từ lúc thu nhận, xác thực, đưa vào `Subject`, sử dụng, đăng xuất đến **hủy bí mật** bằng `Destroyable`.
-4. Giải thích chính xác điều `Subject.setReadOnly()` làm và **không làm**, đặc biệt là khác biệt giữa **khóa cấu trúc các tập** và **xóa/hủy dữ liệu bên trong đối tượng credential**.
-5. Xử lý `LoginException`/`FailedLoginException` theo nguyên tắc **fail closed**, rollback/cleanup đúng pha, logging tối thiểu và không làm rò rỉ password.
-6. Chạy một ví dụ **Java 17+** minh họa đăng nhập, snapshot chỉ đọc, cleanup bình thường, logout với `Subject` đã khóa và đăng nhập thất bại.
+1. Distinguish `Principal`, **public credentials**, **private credentials**, and temporary secrets used only during login.
+2. Understand the roles of `LoginContext`, `LoginModule`, `CallbackHandler`, `PasswordCallback`, and `Configuration`.
+3. Manage credentials from acquisition, authentication, insertion into `Subject`, usage, and logout through **destroying secrets** via `Destroyable`.
+4. Explain accurately what `Subject.setReadOnly()` does and **does not** do, especially the difference between **locking set structure** and **erasing/destroying data inside a credential object**.
+5. Handle `LoginException`/`FailedLoginException` following the **fail-closed** principle, with proper per-phase rollback/cleanup, minimal logging, and zero password leakage.
+6. Run a **Java 17+** example demonstrating login, a read-only snapshot, normal cleanup, logout with a locked `Subject`, and a failed login.
 
-**Phạm vi:** JAAS cấp ứng dụng / Java SE, không phải hướng dẫn viết một nhà cung cấp xác thực production. Chương trình mẫu dùng mật khẩu giả lập cứng chỉ để kiểm thử lifecycle và **không** thay thế Kerberos, LDAP, IAM, KMS, password hashing hay credential store thực.
+**Scope:** application-level JAAS / Java SE, not a guide to writing a production authentication provider. The sample program uses a hardcoded mock password purely to test the lifecycle and does **not** replace Kerberos, LDAP, IAM, KMS, password hashing, or a real credential store.
 
-## 2. JAAS có những thành phần nào?
+## 2. What Components Does JAAS Have?
 
 ```text
-      Giao diện/ứng dụng                  Cơ chế xác thực (có thể cắm thêm)
+      UI / Application                    Authentication mechanism (pluggable)
       ------------------                 ---------------------------------
-      Tạo LoginContext
+      Create LoginContext
            |
-           | name + CallbackHandler + Configuration (+ Subject tùy chọn)
+           | name + CallbackHandler + Configuration (+ optional Subject)
            v
       LoginContext.login()
            |
@@ -30,336 +30,336 @@ Sau bài học, bạn có thể:
            |                 |                        NameCallback
            +-------> LoginModule B.login()            PasswordCallback
            |                 |
-           |          Kết quả và control flags
+           |          Results and control flags
            v
-      Nếu overall success:
+      If overall success:
            LoginModule.commit()   --> Subject:
                                      - Principals
                                      - Public credentials
                                      - Private credentials
 
-      Nếu overall failure:
-           LoginModule.abort()    --> dọn trạng thái tạm/đã thêm
+      If overall failure:
+           LoginModule.abort()    --> clean up temporary/added state
 
-      Khi kết thúc phiên:
+      When ending the session:
            LoginContext.logout()  --> LoginModule.logout()
-                                       xóa credential/principal do module thêm
-                                       và hủy secrets theo khả năng
+                                       remove credentials/principals added by module
+                                       and destroy secrets as supported
 ```
 
-| Kiểu/API | Vai trò | Ghi nhớ |
+| Type/API | Role | Remember |
 | --- | --- | --- |
-| `javax.security.auth.Subject` | Vật chứa danh tính và các credential liên quan tới một thực thể | Không tự xác thực ai cả; **phải được cập nhật từ quy trình đáng tin** |
-| `java.security.Principal` | Một danh tính/tên/role được biểu diễn bằng object | Không phải password hoặc token |
-| `Subject.getPublicCredentials()` | Tập credentials có thể chia sẻ theo chính sách, tùy từng loại | “Public” không nghĩa bất kỳ ai cũng có quyền ghi |
-| `Subject.getPrivateCredentials()` | Tập credential riêng tư, có thể chứa ticket/key/token | **Không bảo đảm tự mã hóa, tự xóa hay ngăn log** |
-| `javax.security.auth.login.LoginContext` | Điểm vào của client tới chu trình đăng nhập/đăng xuất | Dựa vào cấu hình các `LoginModule` |
-| `javax.security.auth.spi.LoginModule` | Plugin thực hiện `initialize/login/commit/abort/logout` | Trách nhiệm auth thực tế, thêm/xóa state do mình sở hữu |
-| `CallbackHandler` | Kết nối module với nguồn username/password/OTP v.v. | Không để module phụ thuộc cách nhập dữ liệu |
-| `NameCallback` | Xin/nhận username | Username chưa chứng minh danh tính |
-| `PasswordCallback` | Nhận password bằng **`char[]`** | `clearPassword()` xóa bản lưu bên trong callback |
-| `Configuration` / `AppConfigurationEntry` | Chọn module và JAAS control flag | Các flags quyết định overall success/failure |
-| `LoginException` | Checked exception của JAAS login/logout | Không được chuyển lỗi thành đăng nhập thành công |
-| `Destroyable` | Contract `destroy()` / `isDestroyed()` | Xóa tài nguyên bí mật ở mức credential implementation |
+| `javax.security.auth.Subject` | Container for identities and credentials associated with an entity | Does not authenticate anyone on its own; **must be populated by a trusted process** |
+| `java.security.Principal` | An identity/name/role represented as an object | Not a password or token |
+| `Subject.getPublicCredentials()` | Set of credentials shareable per policy, depending on type | "Public" does not mean anyone has write permission |
+| `Subject.getPrivateCredentials()` | Set of private credentials, which may hold tickets/keys/tokens | **Does not guarantee automatic encryption, wiping, or log prevention** |
+| `javax.security.auth.login.LoginContext` | Client entry point into the login/logout lifecycle | Relies on configured `LoginModule`s |
+| `javax.security.auth.spi.LoginModule` | Plugin implementing `initialize/login/commit/abort/logout` | Holds actual auth responsibility; adds/removes only state it owns |
+| `CallbackHandler` | Connects the module to the source of username/password/OTP, etc. | Keeps the module decoupled from how input is collected |
+| `NameCallback` | Requests/receives a username | A username alone does not prove identity |
+| `PasswordCallback` | Receives a password as a **`char[]`** | `clearPassword()` clears the copy stored inside the callback |
+| `Configuration` / `AppConfigurationEntry` | Selects modules and JAAS control flags | Flags determine overall success/failure |
+| `LoginException` | Checked exception for JAAS login/logout | Must never be turned into a successful login |
+| `Destroyable` | `destroy()` / `isDestroyed()` contract | Clears secret material at the credential implementation level |
 
-**Phân biệt authentication với authorization:** `LoginContext.login()` chỉ xác lập danh tính và credential theo module. Việc một `Subject` chứa `Principal("alice")` không tự cấp phép Alice được truy cập tài khoản, tài nguyên hoặc nghiệp vụ cụ thể. Authorization phải kiểm tra thêm quyền/role, resource, tenant, scope, policy và trạng thái phiên. Cũng không nên cho phép người dùng tự gọi `subject.getPrincipals().add(new Principal(...))` trên một `Subject` đang được coi là nguồn danh tính đáng tin.
+**Distinguishing authentication from authorization:** `LoginContext.login()` only establishes identity and credentials according to the modules. Having a `Subject` contain `Principal("alice")` does not by itself authorize Alice to access specific accounts, resources, or business operations. Authorization must additionally check permissions/roles, resources, tenants, scopes, policies, and session state. Likewise, users must never be allowed to call `subject.getPrincipals().add(new Principal(...))` on a `Subject` treated as a trusted identity source.
 
-## 3. `Principal`, public credential và private credential khác nhau thế nào?
+## 3. How Do `Principal`, Public Credentials, and Private Credentials Differ?
 
-Ví dụ một người dùng đăng nhập bằng Kerberos, một `Subject` có thể mang identity principal và các ticket/keys thích hợp. Với một module tùy chỉnh khác, thông tin có thể là:
+For example, when a user logs in via Kerberos, a `Subject` may carry an identity principal and the appropriate tickets/keys. With a custom module, the contents might look like:
 
 ```text
-Subject (đối tượng gắn với login)
+Subject (object tied to the login)
 |
 +-- Set<Principal>
-|     +-- UserPrincipal("alice")              // danh tính
+|     +-- UserPrincipal("alice")              // identity
 |
 +-- Set<Object> publicCredentials
-|     +-- chứng thư public / dữ liệu được phép công bố, nếu cần
+|     +-- public certificate / shareable public data, if needed
 |
 +-- Set<Object> privateCredentials
-      +-- phiên/ticket/token/secret object, nếu module cần
+      +-- session/ticket/token/secret object, if needed by module
 ```
 
-**Các tập `Subject` là những tập `Set`, không phải kho bí mật chuyên dụng.** Private credentials vẫn là các Java objects bình thường, chịu quy tắc `Subject`/SecurityManager theo runtime, nhưng **không phải encrypted vault**, không được xóa tự động bởi garbage collector đúng một thời điểm định trước, và không bảo đảm có cơ chế thu hồi trên server. Nếu một credential là token truy cập trong production, nó cần **scope, expiry, rotation, revoke** và chính sách riêng.
+**The `Subject` sets are `Set`s, not dedicated secret vaults.** Private credentials are still ordinary Java objects, governed by `Subject`/SecurityManager rules depending on the runtime, but they are **not an encrypted vault**, are not deterministically wiped by the garbage collector at a fixed time, and provide no server-side revocation guarantee. If a credential is a production access token, it needs **scope, expiry, rotation, revocation**, and dedicated policies.
 
-### 3.1 Phân loại theo độ nhạy cảm
+### 3.1 Classification by Sensitivity
 
-| Dữ liệu | Thường đặt ở đâu? | Nguyên tắc |
+| Data | Where is it typically placed? | Rule |
 | --- | --- | --- |
-| Tên người dùng hoặc service identity | `Principal` sau khi xác thực | Không coi tên tự khai là authenticated identity |
-| Certificate công khai đã được kiểm tra | `publicCredentials` nếu use case cần | Kiểm tra issuer/trust/usage trước khi tin |
-| Kerberos ticket, private key handle, access token | `privateCredentials` **khi cần** và có policy | Giữ ngắn nhất, giới hạn quyền truy cập, tránh in/log |
-| Password nhập vào login | `PasswordCallback` tạm thời / bộ nhớ xử lý auth | **Không** giữ như “credential phiên” sau login |
-| Password raw dạng `String` | **Tránh** | `String` bất biến, không thể chủ động xóa nội dung trong heap |
-| Mật khẩu/hệ số chứng minh được lưu bởi auth server | Dịch vụ identity chuyên biệt | Không lấy từ JAAS `Subject` để làm kho password |
+| Username or service identity | `Principal` after authentication | Do not treat a self-declared name as an authenticated identity |
+| Verified public certificate | `publicCredentials` if required by the use case | Verify issuer/trust/usage before trusting |
+| Kerberos ticket, private key handle, access token | `privateCredentials` **when needed** and governed by policy | Keep lifetime short, restrict access, avoid printing/logging |
+| Password entered during login | Temporary `PasswordCallback` / auth processing memory | **Do not** retain as a "session credential" after login |
+| Raw password as a `String` | **Avoid** | `String` is immutable and cannot be actively wiped from the heap |
+| Passwords/verifiers stored by an auth server | Dedicated identity service | Do not use a JAAS `Subject` as a password store |
 
-Không nhất thiết module phải có cả ba loại tập: `Subject` chỉ chứa `Principal` là bình thường nếu không cần credential sau login. Ngược lại, giữ tất cả raw passwords dưới `privateCredentials` vì “đã là private” là cách thiết kế nguy hiểm.
+A module does not need all three sets: a `Subject` containing only a `Principal` is normal if no post-login credential is needed. Conversely, keeping all raw passwords under `privateCredentials` simply because they are "private" is a dangerous design.
 
-### 3.2 Hai phương thức lấy private credentials không giống nhau
+### 3.2 Two Methods for Retrieving Private Credentials Are Not the Same
 
 ```java
-// Mảnh code minh họa khi đã có một Subject đáng tin:
+// Illustrative snippet once a trusted Subject is available:
 java.util.Set<Object> liveSet = subject.getPrivateCredentials();
 java.util.Set<MyCredential> filtered =
         subject.getPrivateCredentials(MyCredential.class);
 ```
 
-- `getPrivateCredentials()` trả **tập backed bởi `Subject`**. Nếu `Subject` còn sửa được và có quyền, thao tác add/remove vào tập này làm thay đổi subject.
-- `getPrivateCredentials(Class<T>)` trả **một tập mới đã lọc theo kiểu**, không phải tập backed bởi subject; sửa tập lọc **không** thêm/xóa credential trong subject.
-- Khi có SecurityManager, việc duyệt private credentials có thể chịu `PrivateCredentialPermission`/security checks; đừng dựa vào code mẫu chạy không có SecurityManager rồi suy ra mọi runtime đều có quyền.
-- **Đừng** log `getPrivateCredentials().toString()`, iterate rồi in secret, hoặc serialize `Subject` tự do. Dù một credential hiện có `toString()` redacted, implementation khác có thể không như vậy.
+- `getPrivateCredentials()` returns a **set backed by the `Subject`**. If the `Subject` is still mutable and permitted, add/remove calls on this set modify the subject.
+- `getPrivateCredentials(Class<T>)` returns a **new type-filtered set**, not backed by the subject; modifying the filtered set does **not** add or remove credentials in the subject.
+- When a SecurityManager is active, iterating over private credentials may be subject to `PrivateCredentialPermission`/security checks; do not assume sample code running without a SecurityManager implies every runtime grants access.
+- **Do not** log `getPrivateCredentials().toString()`, iterate and print secrets, or freely serialize a `Subject`. Even if one credential has a redacted `toString()`, another implementation might not.
 
-**Quyền quản lý không tự đồng nghĩa quyền truy cập:** đối tượng private credential có thể tự thực hiện hạn chế hoặc là handle tới HSM/KMS. Một số key không xuất ra byte được; cố ép `getEncoded()` rồi log/fallback thường phá mô hình bảo vệ khóa.
+**Management permission does not imply extraction permission:** a private credential object may enforce its own restrictions or act as a handle to an HSM/KMS. Some keys cannot be exported as bytes; forcing `getEncoded()` and logging or falling back usually breaks the key-protection model.
 
-## 4. Vòng đời credential: thu nhận, dùng tạm, commit, destroy
+## 4. Credential Lifecycle: Acquire, Use Temporarily, Commit, Destroy
 
-Một chu trình đúng cần phân biệt **password do người dùng nhập** và **credential được cấp sau khi xác thực**.
+A proper lifecycle separates the **password entered by the user** from the **credential issued after authentication**.
 
 ```text
-[Thu nhận]           [Xác thực]                 [Đã đăng nhập]        [Logout]
+[Acquire]            [Authenticate]             [Logged in]           [Logout]
 char[] password ---> LoginModule.login() ---> LoginModule.commit() ---> logout()
                          |                           |                     |
-                       kiểm tra                add Principal,       remove owned items
+                       verify                  add Principal,       remove owned items
                        password                session credential   destroy secret
                          |                           |
-                  clear callback & copies      KHÔNG lưu raw password
+                  clear callback & copies      DO NOT store raw password
                          |
                   fail -> LoginException -> abort/cleanup
 ```
 
-### 4.1 Vì sao dùng `char[]` thay vì `String`?
+### 4.1 Why Use `char[]` Instead of `String`?
 
-`PasswordCallback` dùng `char[]` để ứng dụng có thể chủ động xóa dữ liệu nhạy cảm sau khi dùng:
+`PasswordCallback` uses `char[]` so the application can actively wipe sensitive data after use:
 
 ```java
-// Mảnh minh họa trong LoginModule.login(), với callback đã cung cấp password.
+// Illustrative snippet inside LoginModule.login(), with a callback supplying the password.
 javax.security.auth.callback.PasswordCallback pwd =
         new javax.security.auth.callback.PasswordCallback("Password", false);
 callbackHandler.handle(new javax.security.auth.callback.Callback[]{pwd});
-char[] supplied = pwd.getPassword(); // lấy một bản sao để xử lý
-pwd.clearPassword();                 // xóa bản trong PasswordCallback
+char[] supplied = pwd.getPassword(); // obtain a copy to process
+pwd.clearPassword();                 // clear the copy inside PasswordCallback
 try {
-    // Xác minh với dịch vụ identity đáng tin; tuyệt đối không log supplied.
+    // Verify against a trusted identity service; never log supplied.
 } finally {
     if (supplied != null) java.util.Arrays.fill(supplied, '\0');
 }
 ```
 
-Với `PasswordCallback`, `setPassword()` sao chép mảng được truyền vào; `getPassword()` trả một mảng sao; `clearPassword()` zero hóa credential của callback. Vì thế phải xử lý **mọi bản sao** do ứng dụng tạo, không chỉ gọi `clearPassword()` rồi tin đã xóa toàn bộ dữ liệu trong process.
+With `PasswordCallback`, `setPassword()` copies the passed-in array; `getPassword()` returns a copied array; `clearPassword()` zeroes out the callback's internal credential. Therefore you must wipe **every copy** created by the application, not merely call `clearPassword()` and assume all data in the process is gone.
 
-Chúng ta không kiểm soát chắc chắn mọi bản sao tạm do JVM/JIT/OS tạo trong bộ nhớ, nhưng cách dùng `char[]` với giới hạn thời gian tồn tại và xóa trong `finally` vẫn giảm rủi ro. **Không thể cam kết xóa tuyệt đối mọi byte trên hệ thống chỉ vì `Arrays.fill`.** Với credential production, cần provider/keystore/HSM/password verification service tùy threat model.
+We cannot reliably control every temporary copy created by the JVM/JIT/OS in memory, yet using `char[]` with a short lifetime and clearing in `finally` still reduces exposure. **You cannot guarantee wiping every byte on the system solely via `Arrays.fill`.** For production credentials, use a provider/keystore/HSM/password verification service appropriate to your threat model.
 
-### 4.2 `CallbackHandler` có trách nhiệm riêng
+### 4.2 `CallbackHandler` Has Its Own Responsibility
 
-Một `LoginModule` không nên tự đọc `System.console()` hoặc lấy password từ global variable. Nó yêu cầu các `Callback` cần thiết và để ứng dụng cấp một `CallbackHandler`:
+A `LoginModule` should not read `System.console()` directly or pull passwords from global variables. It requests the required `Callback`s and lets the application provide a `CallbackHandler`:
 
 - `NameCallback`: username.
-- `PasswordCallback`: password char[].
-- `UnsupportedCallbackException`: khi handler không đáp ứng callback cần thiết, cần biến thành failure có kiểm soát.
-- `IOException`: lỗi đọc input/nguồn credential, cũng phải xử lý như authentication infrastructure failure.
+- `PasswordCallback`: `char[]` password.
+- `UnsupportedCallbackException`: when the handler does not support a required callback, convert it into a controlled failure.
+- `IOException`: error reading input/credential source, also handled as an authentication infrastructure failure.
 
-**Không** in password ra console trong callback handler, không giữ `char[]` làm field dùng lâu dài. Trường hợp password lấy từ một request body, phải bảo đảm request framework và logging đã bảo vệ bí mật trước khi đến JAAS.
+**Do not** print passwords to the console inside a callback handler, and do not keep `char[]` in a long-lived field. When passwords arrive in a request body, ensure the request framework and logging already protect secrets before they reach JAAS.
 
-### 4.3 `Destroyable`: hủy **nội dung** credential
+### 4.3 `Destroyable`: Destroying Credential **Contents**
 
-API `javax.security.auth.Destroyable` định nghĩa:
+The `javax.security.auth.Destroyable` API defines:
 
 ```java
-// Định nghĩa contract, không phải lớp triển khai:
+// Contract definition, not an implementation class:
 void destroy() throws javax.security.auth.DestroyFailedException;
 boolean isDestroyed();
 ```
 
-Một credential tự quản lý material có thể triển khai `destroy()` bằng việc zero hóa byte[]/char[] hoặc đóng handle native. `destroy()` cần được thiết kế không tiết lộ bí mật qua error message. Đối tượng đã destroyed không được dùng lại; cần kiểm tra `isDestroyed()` nếu logic ứng dụng phải quyết định trạng thái.
+A credential managing its own material can implement `destroy()` by zeroing out `byte[]`/`char[]` buffers or closing native handles. `destroy()` must be designed not to leak secrets through error messages. A destroyed object must not be reused; check `isDestroyed()` if application logic must decide its state.
 
-**Ranh giới trách nhiệm:** `Subject.getPrivateCredentials().remove(token)` chỉ **gỡ tham chiếu khỏi tập**, không tự bảo đảm memory chứa secret bị xóa. Ngược lại, `token.destroy()` có thể xóa material bên trong nhưng **không** tự gỡ object khỏi `Subject`. Muốn kết thúc phiên tốt phải xử lý **cả việc remove và destroy** theo khả năng và lifecycle thực tế.
+**Boundary of responsibility:** `Subject.getPrivateCredentials().remove(token)` only **removes the reference from the set** and does not guarantee memory holding the secret is wiped. Conversely, `token.destroy()` may clear the internal material, yet does **not** automatically remove the object from `Subject`. Clean session termination requires handling **both removal and destruction** according to capability and actual lifecycle.
 
-### 4.4 Credential thật phải có lifecycle ngoài Java heap
+### 4.4 Real Credentials Have a Lifecycle Outside the Java Heap
 
-Việc hủy `byte[]` không tự revoke một OAuth token phía server, không xóa ticket cache của nhà cung cấp, không thu hồi key trong HSM và không hoàn thành network logout. Những bước đó phụ thuộc credential provider. Khi xử lý sự cố phải xem xét:
+Zeroing a `byte[]` does not revoke an OAuth token on the server, clear a provider's ticket cache, revoke an HSM key, or complete a network logout. Those steps depend on the credential provider. When investigating incidents, consider:
 
-- Secret có thể bị sao chép hoặc ghi vào heap dump/trace trước khi hủy.
-- Token có thể còn hợp lệ phía server sau local destroy.
-- Phiên đăng nhập ở một thread có thể đang bị thread khác sử dụng.
-- Role/authorization đã cached có thể tồn tại sau khi `logout`.
-- Expiry/revocation/rotation quyết định tính hợp lệ thực, không chỉ trường `isDestroyed()` của một Java object.
+- Secrets may have been copied or captured in heap dumps/traces before destruction.
+- A token may remain valid on the server after local destruction.
+- A login session on one thread may currently be in use by another thread.
+- Cached roles/authorizations may persist after `logout`.
+- Expiry/revocation/rotation determine actual validity, not merely the `isDestroyed()` flag of a Java object.
 
-## 5. `Subject.setReadOnly()`: chính xác nó khóa điều gì?
+## 5. `Subject.setReadOnly()`: What Exactly Does It Lock?
 
-Một `Subject` có ba `Set` principal/public/private credentials. Gọi:
+A `Subject` has three `Set`s: principals, public credentials, and private credentials. Calling:
 
 ```java
 Subject subject = new Subject();
-// Khi đã hoàn tất những thay đổi cấu trúc mà ứng dụng cho phép:
+// Once structural modifications allowed by the application are complete:
 subject.setReadOnly();
 boolean locked = subject.isReadOnly();
 ```
 
-Khi `subject.isReadOnly() == true`:
+When `subject.isReadOnly() == true`:
 
-1. **Không thể add/remove** phần tử trong `getPrincipals()`, `getPublicCredentials()` hoặc `getPrivateCredentials()`; thao tác sửa tập ném `IllegalStateException` (các kiểm tra permission khác có thể có trên runtime dùng SecurityManager).
-2. `setReadOnly()` là thay đổi **một chiều**; Java không có `setWritable()` để đảo trạng thái đó.
-3. Trạng thái read-only **không tự biến các object bên trong thành immutable**: một `Principal` có trường mutable hoặc một credential tùy chỉnh có thể vẫn bị thay đổi nội bộ nếu API cho phép.
-4. Theo contract Java SE, thao tác **`destroy()` trên các credential vẫn được phép**. Đây là khác biệt quan trọng với add/remove trong các tập.
-5. `setReadOnly()` **không xác thực** danh tính; nó chỉ ngăn việc sửa cấu trúc chủ thể sau khi được khóa.
+1. Elements **cannot be added to or removed from** `getPrincipals()`, `getPublicCredentials()`, or `getPrivateCredentials()`; mutating operations throw `IllegalStateException` (additional permission checks may apply on runtimes with a SecurityManager).
+2. `setReadOnly()` is a **one-way** change; Java has no `setWritable()` to reverse that state.
+3. Read-only status **does not automatically make the contained objects immutable**: a `Principal` with mutable fields or a custom credential can still have its internal state modified if its API allows it.
+4. Under the Java SE contract, **`destroy()` on credentials is still permitted**. This is a critical distinction from adding/removing elements in the sets.
+5. `setReadOnly()` **does not authenticate** an identity; it only prevents modifying the subject's set structure after locking.
 
 ```text
 Before setReadOnly:
     Subject Principals: [Alice]
     Subject PrivateCredentials: [SessionCredential]
            |
-        add/remove allowed (theo quyền và runtime)
+        add/remove allowed (per permissions and runtime)
            |
        setReadOnly()
            v
 After setReadOnly:
-    Subject Principals: [Alice]           -- không thể remove khỏi Subject
-    Subject PrivateCredentials: [token]   -- không thể remove khỏi Subject
+    Subject Principals: [Alice]           -- cannot be removed from Subject
+    Subject PrivateCredentials: [token]   -- cannot be removed from Subject
                                                   |
-                                                  +-- token.destroy() vẫn có thể
-                                                      xóa secret trong token
+                                                  +-- token.destroy() can still
+                                                      wipe the secret inside token
 ```
 
-**Sai lầm phổ biến:** “Đã `setReadOnly` thì private credential an toàn tuyệt đối.” Sai: read-only không mã hóa secret, không giữ danh tính đáng tin tự động, không chặn việc gọi method thay đổi **bên trong object**, và không thay thế destroy/rotation/revocation.
+**Common misconception:** "Once `setReadOnly` is called, private credentials are completely safe." False: read-only does not encrypt secrets, does not automatically guarantee trusted identity, does not block method calls that mutate **internal object state**, and does not replace destruction/rotation/revocation.
 
-### 5.1 Tại sao khóa `Subject` quá sớm dễ làm `LoginModule.logout()` khó xử lý?
+### 5.1 Why Locking `Subject` Too Early Complicates `LoginModule.logout()`
 
-Thông thường `LoginModule.commit()` thêm principal/credential do nó sở hữu; `logout()` **gỡ** các phần tử ấy và **hủy** secrets. Nếu application gọi `subject.setReadOnly()` ngay sau đăng nhập, các tập không thể bị sửa nữa. Hướng dẫn JAAS `LoginModule` của Oracle nêu mô hình: với subject read-only, module nên **hủy những credential do nó thêm nếu destroyable**, không thể remove chúng khỏi subject; nếu credentials không thể destroy, logout có thể phải báo `LoginException`.
+Normally `LoginModule.commit()` adds the principals/credentials it owns; `logout()` **removes** those items and **destroys** secrets. If the application calls `subject.setReadOnly()` immediately after login, the sets can no longer be modified. Oracle's JAAS `LoginModule` guide describes the pattern: for a read-only subject, the module should **destroy the credentials it added if they are destroyable**, since it cannot remove them from the subject; if credentials cannot be destroyed, logout may have to throw `LoginException`.
 
-Có nghĩa:
+This means:
 
-- Logout của **Subject mutable**: remove những principal/credential do module đã thêm, rồi destroy tài nguyên bí mật tương ứng.
-- Logout của **Subject read-only**: không thể remove các entry đã gắn vào subject; module có thể destroy **nội dung credential**; principal/credential object vẫn tồn tại trong set dù credential đã bị hủy.
-- `logout()` thành công trên một subject chỉ đọc **không bảo đảm** `subject.getPrincipals().isEmpty()` hoặc `getPrivateCredentials().isEmpty()`.
-- Nếu một module tự viết cứ gọi `.remove()` trên subject read-only mà không kiểm tra trạng thái thì có thể bị `IllegalStateException`, cần xử lý failure thay vì âm thầm coi logout thành công.
+- Logout on a **mutable Subject**: remove principals/credentials added by the module, then destroy the corresponding secret resources.
+- Logout on a **read-only Subject**: entries attached to the subject cannot be removed; the module can destroy **credential contents**; principal/credential objects remain in the sets even though the credential has been destroyed.
+- A successful `logout()` on a read-only subject **does not guarantee** `subject.getPrincipals().isEmpty()` or `getPrivateCredentials().isEmpty()`.
+- If a custom module blindly calls `.remove()` on a read-only subject without checking state, it can hit `IllegalStateException`, which must be handled as a failure rather than silently treating logout as successful.
 
-### 5.2 Thiết kế an toàn hơn: subject sống và bản identity snapshot tách riêng
+### 5.2 A Safer Design: Separate Live Subject and Identity Snapshot
 
-Nếu cần một representation danh tính **không cho caller tự sửa**, nhưng vẫn muốn JAAS logout có thể remove credentials, có thể:
+If you need an identity representation that **callers cannot modify**, while still letting JAAS logout remove credentials, you can:
 
-1. **Giữ `Subject` thuộc `LoginContext` ở trạng thái mutable** trong vòng đời đăng nhập/log out theo ownership module.
-2. Sau login thành công, tạo **một `Subject` khác chỉ sao chép principal bất biến đã kiểm chứng**, không sao chép private credentials.
-3. Gọi `setReadOnly()` trên **snapshot chỉ chứa identity**, rồi đưa snapshot tới tầng đọc danh tính khi thực sự cần; không cho tầng đó quyền trực tiếp quản trị live Subject.
-4. Khi hết phiên, gọi `LoginContext.logout()` trên **live Subject**, để module cleanup và destroy.
+1. **Keep the `LoginContext`'s `Subject` mutable** for the login/logout lifecycle according to module ownership.
+2. After successful login, create **a separate `Subject` copying only the verified immutable principals**, without copying private credentials.
+3. Call `setReadOnly()` on the **identity-only snapshot**, and pass that snapshot to identity-reading layers as needed; do not give those layers direct control over the live Subject.
+4. When the session ends, call `LoginContext.logout()` on the **live Subject** so modules can clean up and destroy secrets.
 
-Điều này chỉ là một **pattern tùy ứng dụng**: một bản sao `Subject` không tự mang tất cả trạng thái/authorization JAAS, không tự cập nhật khi original thay đổi và không phải bằng chứng danh tính đã được cryptographically sealed. **Không** cho phép sử dụng snapshot để tiếp tục các phiên sau khi authorization thực đã hết hạn. Nên dùng principal objects **immutable**; read-only Subject không deep-freeze các objects bên trong.
+This is purely an **application-specific pattern**: a copied `Subject` does not carry all JAAS state/authorization, does not update when the original changes, and is not cryptographically sealed proof of identity. **Never** allow a snapshot to keep sessions alive after real authorization has expired. Use **immutable** principal objects; a read-only Subject does not deep-freeze contained objects.
 
-Một chiến lược khác là đóng subject gốc khi đã chắc chắn module/provider có lifecycle hỗ trợ read-only logout và credentials đều destroyable; phải kiểm thử module cụ thể. Không lấy code mẫu `setReadOnly()` làm blanket best practice cho mọi JAAS provider.
+Another strategy is freezing the original subject once you have verified that the module/provider lifecycle supports read-only logout and all credentials are destroyable; test the specific module carefully. Do not treat `setReadOnly()` in sample code as a blanket best practice for every JAAS provider.
 
-## 6. Chu trình `LoginModule`: `login`, `commit`, `abort`, `logout`
+## 6. The `LoginModule` Cycle: `login`, `commit`, `abort`, `logout`
 
-JAAS có **hai pha** trong `LoginContext.login()`:
+JAAS has **two phases** inside `LoginContext.login()`:
 
 ```text
 Phase 1: LoginModule.login()
-    - Đọc callback; xác minh credential
-    - Trả true, false (ignore) hoặc ném LoginException
-    - Không tự ý add Principal trước overall success
+    - Read callbacks; verify credentials
+    - Return true, false (ignore), or throw LoginException
+    - Do not add Principals before overall success
 
-Overall success theo JAAS control flags?
+Overall success per JAAS control flags?
     YES -> Phase 2: LoginModule.commit()
-             - Đưa state đã xác thực vào Subject
+             - Put authenticated state into Subject
     NO  -> Phase 2: LoginModule.abort()
-             - Hủy trạng thái tạm, rollback nếu cần
+             - Discard temporary state, roll back if needed
 
-Sau khi ứng dụng sử dụng phiên:
+After the application finishes the session:
     LoginContext.logout() -> LoginModule.logout()
-             - Dọn đúng Principal/credential module sở hữu
+             - Clean up only Principals/credentials owned by the module
 ```
 
-Các `LoginModule` trong cùng login context có thể chia sẻ **cùng object Subject** và `sharedState`; vì thế module A **không được** gọi `subject.getPrincipals().clear()` hay `getPrivateCredentials().clear()` để dọn phần của mình, vì có thể xóa cả dữ liệu module B hoặc dữ liệu đã có từ trước.
+`LoginModule`s in the same login context can share the **same `Subject` object** and `sharedState`; therefore module A **must not** call `subject.getPrincipals().clear()` or `getPrivateCredentials().clear()` to clean up its own part, because that could wipe out module B's data or pre-existing entries.
 
-| Method | Khi dùng | Điều nên làm | Điều cần tránh |
+| Method | When used | What to do | What to avoid |
 | --- | --- | --- | --- |
-| `initialize(...)` | JAAS dựng module | Nhận `Subject`, handler, shared state, options | Lưu bí mật lâu không cần thiết |
-| `login()` | Pha xác thực | Lấy password qua callback, kiểm tra, ghi trạng thái **private của module**; `return true` khi thành công | Đưa raw password vào Subject/log; tự retry hàng loạt |
-| `commit()` | Overall login thành công | Thêm **đúng principal/credential module sở hữu** vào Subject | Thêm khi module chưa thành công; nuốt lỗi commit |
-| `abort()` | Overall login thất bại | Hủy state tạm, rollback các thay đổi sở hữu theo khả năng | Để lại session token hoặc principal từ login đã bị hủy |
-| `logout()` | Application kết thúc phiên | Remove owned state (nếu mutable), destroy secret và gọi revoke của provider nếu cần | Xóa dữ liệu của module khác; giả định read-only subject có thể remove |
+| `initialize(...)` | JAAS instantiates module | Receive `Subject`, handler, shared state, options | Storing secrets longer than necessary |
+| `login()` | Authentication phase | Retrieve password via callback, verify, record **module-private** state; `return true` on success | Putting raw passwords into Subject/logs; internal retry loops |
+| `commit()` | Overall login succeeds | Add **only module-owned principals/credentials** to Subject | Adding before module succeeded; swallowing commit errors |
+| `abort()` | Overall login fails | Discard temporary state, roll back owned changes as possible | Leaving session tokens or principals from a failed login |
+| `logout()` | Application ends session | Remove owned state (if mutable), destroy secrets, and call provider revoke if needed | Deleting another module's data; assuming a read-only subject supports removal |
 
-### 6.1 JAAS control flags ảnh hưởng overall success
+### 6.1 How JAAS Control Flags Affect Overall Success
 
-Các `AppConfigurationEntry.LoginModuleControlFlag` thông dụng:
+Common `AppConfigurationEntry.LoginModuleControlFlag` values:
 
-| Flag | Ý nghĩa chung |
+| Flag | General meaning |
 | --- | --- |
-| `REQUIRED` | Module **phải thành công** để overall success, nhưng các module tiếp theo vẫn thường được gọi |
-| `REQUISITE` | Module **phải thành công**; thất bại có thể chấm dứt sớm quá trình auth |
-| `SUFFICIENT` | Thành công có thể cho phép kết thúc sớm nếu không có `REQUIRED`/`REQUISITE` thất bại trước đó |
-| `OPTIONAL` | Kết quả phụ thuộc tổ hợp các module và overall rules |
+| `REQUIRED` | Module **must succeed** for overall success, though subsequent modules are usually still called |
+| `REQUISITE` | Module **must succeed**; failure can terminate authentication early |
+| `SUFFICIENT` | Success may allow early completion if no prior `REQUIRED`/`REQUISITE` failure occurred |
+| `OPTIONAL` | Result depends on the combination of modules and overall rules |
 
-Không tự viết một `LoginContext` vòng lặp gọi `login()` rồi `commit()` bất kể các module khác thất bại. Dùng contract do JAAS quản lý, vì module có thể sinh tạm token trước khi được phép ghi vào subject.
+Do not write your own `LoginContext`-like loop calling `login()` then `commit()` regardless of other modules failing. Use the JAAS-managed contract, because a module may generate temporary tokens before being allowed to write them to the subject.
 
-## 7. `LoginException` và cách phân loại failure
+## 7. `LoginException` and Failure Classification
 
-`javax.security.auth.login.LoginException` là **checked exception** cho lỗi đăng nhập/đăng xuất trong JAAS. Các subclass như `FailedLoginException`, `AccountExpiredException`, `CredentialExpiredException` giúp phân loại lỗi khi provider thật hỗ trợ. Không phải lúc nào exception nhận ở application cũng là đúng subclass gốc: nhiều module và provider có thể bọc lỗi hoặc dùng `LoginException` chung.
+`javax.security.auth.login.LoginException` is a **checked exception** for JAAS login/logout errors. Subclasses such as `FailedLoginException`, `AccountExpiredException`, and `CredentialExpiredException` help categorize failures when supported by a real provider. The exception caught by the application is not always the exact original subclass: many modules and providers wrap errors or throw a general `LoginException`.
 
-### 7.1 Login failure không có nghĩa tiếp tục như guest đã xác thực
+### 7.1 Login Failure Never Means Proceeding as an Authenticated Guest
 
 ```java
-// Mảnh code trong ứng dụng có LoginContext loginContext:
+// Snippet in an application holding LoginContext loginContext:
 try {
     loginContext.login();
     javax.security.auth.Subject authenticated =
             loginContext.getSubject();
-    // Chỉ sau thành công mới cấp quyền theo policy phù hợp.
+    // Grant permissions per policy only after success.
 } catch (javax.security.auth.login.LoginException ex) {
-    // Ghi audit event không có password/token/secret.
-    // Từ chối truy cập, hủy context tạm/cleanup theo API provider.
+    // Record audit event without passwords/tokens/secrets.
+    // Deny access, discard temporary context/clean up per provider API.
     throw new SecurityException("Authentication unsuccessful");
 }
 ```
 
-`login()` ném `LoginException` thì ứng dụng **không được** suy ra authentication thành công từ một `Subject` đang có tên hoặc từ việc callback trả password. `LoginContext.getSubject()` có thể trả `null` nếu overall login chưa thành công; khi truyền một `Subject` từ ngoài vào, vẫn cần kiểm tra success trước khi coi principal trong đó là authenticated.
+When `login()` throws `LoginException`, the application **must not** infer successful authentication from a `Subject` that already had a name or from a callback having supplied a password. `LoginContext.getSubject()` may return `null` if overall login failed; even when passing an external `Subject`, check success before treating principals in it as authenticated.
 
-### 7.2 Không để mất nguyên nhân kỹ thuật, nhưng cũng không tiết lộ bí mật
+### 7.2 Preserve Technical Causes Without Leaking Secrets
 
-Trong module, khi `CallbackHandler.handle(...)` ném `IOException` hoặc `UnsupportedCallbackException`, có thể bọc vào `LoginException` và giữ cause:
+Inside a module, when `CallbackHandler.handle(...)` throws `IOException` or `UnsupportedCallbackException`, wrap it in `LoginException` and preserve the cause:
 
 ```java
-// Mảnh code trong catch (IOException | UnsupportedCallbackException cause):
+// Snippet inside catch (IOException | UnsupportedCallbackException cause):
 javax.security.auth.login.LoginException ex =
         new javax.security.auth.login.LoginException("Callback failed");
 ex.initCause(cause);
 throw ex;
 ```
 
-**Ứng dụng phía ngoài** có thể log mã lỗi và correlation ID, nhưng không nên in cause chứa raw password, token, callback content, full authentication headers hay các input secrets. Trả về client một thông điệp chung “Authentication unsuccessful”, không phân biệt quá chi tiết “user tồn tại nhưng sai password” nếu điều đó giúp dò tài khoản.
+**Outer application code** may log error codes and correlation IDs, but should not print causes containing raw passwords, tokens, callback contents, full authentication headers, or input secrets. Return a generic message such as "Authentication unsuccessful" to clients rather than overly specific distinctions like "user exists but wrong password" if that aids account enumeration.
 
-Phân loại đúng:
+Proper classification:
 
-- `FailedLoginException`: thông tin chứng thực không khớp.
-- `CredentialExpiredException` / `AccountExpiredException`: credential/tài khoản hết hạn theo chính sách provider.
-- Lỗi callback, cấu hình, không kết nối identity backend: **infrastructure/authentication failure**.
-- `LoginException` trong `commit`/`abort`/`logout`: lỗi lifecycle; cần cleanup hoặc phản hồi security event, không được nói rằng secret đã bị hủy khi chưa xác minh.
+- `FailedLoginException`: credentials did not match.
+- `CredentialExpiredException` / `AccountExpiredException`: credential/account expired per provider policy.
+- Callback errors, misconfiguration, unreachable identity backend: **infrastructure/authentication failure**.
+- `LoginException` in `commit`/`abort`/`logout`: lifecycle error; clean up or raise a security event, and never claim secrets were destroyed without verifying.
 
-### 7.3 Ai chịu trách nhiệm retry?
+### 7.3 Who Is Responsible for Retries?
 
-Tài liệu JAAS `LoginModule` của Oracle hướng dẫn **module không tự retry hoặc sleep/delay trong `login()` khi xác thực thất bại**; chính application/gateway chịu trách nhiệm policy retry, rate limits, backoff, lockout và telemetry. Việc tự loop gọi callback nhiều lần trong module có thể làm sai state của một lần login, kéo dài password trong memory và tạo lỗ hổng brute force.
+Oracle's JAAS `LoginModule` documentation states that **modules should not retry internally or sleep/delay inside `login()` on authentication failure**; the application/gateway owns retry policies, rate limits, backoff, lockouts, and telemetry. Looping callback invocations inside a module can corrupt single-login state, keep passwords in memory longer, and create brute-force vulnerabilities.
 
-### 7.4 Khi `commit()` thất bại một phần
+### 7.4 When `commit()` Partially Fails
 
-Nếu module đã thêm principal nhưng chưa thêm credential thì bị exception, phải rollback **phần do chính module vừa thêm**, hủy secret đã tạo và ném `LoginException`. Không tự `return true` rồi để subject mang identity mà credential chưa sẵn sàng.
+If a module has added a principal and then throws an exception before adding a credential, it must roll back **what that module just added**, destroy created secrets, and throw `LoginException`. Never return `true` and leave the subject carrying an identity without its required credentials.
 
-Ngược lại, nếu `abort()`/`logout()` cần cleanup nhưng credential provider đã mất kết nối, module phải xử lý theo documented contract và báo lỗi phù hợp. Đối với một token còn hợp lệ ở server, local `Destroyable.destroy()` không thay thế remote revocation; cần đánh dấu phiên không còn được chấp nhận ở tầng application và theo dõi reconciliation.
+Conversely, if `abort()`/`logout()` needs to clean up while the credential provider has lost connectivity, the module must follow its documented contract and report errors appropriately. For a token still valid on the server, local `Destroyable.destroy()` does not replace remote revocation; mark the session invalid at the application layer and track reconciliation.
 
-## 8. Chương trình Java 17+ hoàn chỉnh: `Subject`, credential và `LoginException`
+## 8. Complete Java 17+ Program: `Subject`, Credentials, and `LoginException`
 
-Chương trình sau độc lập, không cần cấu hình JAAS ngoài. Nó cung cấp một `Configuration` **in-memory** chọn `ExampleModule` với control flag `REQUIRED`, dùng `OneUseHandler` để đưa password vào `PasswordCallback`, và sinh một `SessionCredential` ngẫu nhiên sau khi xác thực mẫu.
+The following program is self-contained and needs no external JAAS configuration. It provides an **in-memory** `Configuration` selecting `ExampleModule` with the `REQUIRED` control flag, uses `OneUseHandler` to supply the password to `PasswordCallback`, and generates a random `SessionCredential` after sample authentication.
 
-Chương trình kiểm chứng các tình huống:
+The program verifies these scenarios:
 
-1. Đăng nhập với demo user `alice`/password tạm `demo`, ghi một principal và một **demo session secret** vào `Subject`.
-2. Tạo **snapshot chỉ gồm principal** rồi `setReadOnly()`, thử sửa snapshot và quan sát `IllegalStateException`; snapshot **không** chứa private credentials.
-3. `logout()` trên **live Subject mutable** gỡ principal/credential và zero hóa token.
-4. Trường hợp khác: đánh dấu **live Subject read-only** trước `logout`; module chỉ có thể destroy credential, không gỡ được principal/credential khỏi các tập.
-5. Đăng nhập sai `bad` bị từ chối bằng `LoginException`; không commit principal/credential.
-6. Không in password, token bytes hoặc nội dung private credential.
+1. Login with demo user `alice`/temporary password `demo`, writing one principal and one **demo session secret** into `Subject`.
+2. Create a **principal-only snapshot**, call `setReadOnly()`, attempt to mutate the snapshot, and observe `IllegalStateException`; the snapshot contains **no** private credentials.
+3. `logout()` on the **mutable live Subject** removes the principal/credential and zeroes out the token.
+4. Another case: mark the **live Subject read-only** before `logout`; the module can only destroy the credential and cannot remove the principal/credential from the sets.
+5. Wrong login `bad` is rejected with `LoginException`; neither principal nor credential is committed.
+6. Never print passwords, token bytes, or private credential contents.
 
-> **Lưu ý an ninh:** Module dùng password `demo` cứng trong mã và `Arrays.equals` **chỉ để minh họa API/chu trình**. **Không dùng** cách này trong production: không hardcode password, không so sánh password plaintext như cơ chế auth thật, không dùng random bytes demo như session token có quyền truy cập. Ứng dụng thật cần provider xác thực đã kiểm chứng, salted password hashing/identity service, MFA nếu cần, secret rotation, KMS/HSM/keystore, rate limit và chính sách phiên.
+> **Security note:** The module uses a hardcoded `demo` password and `Arrays.equals` **solely to illustrate the API/lifecycle**. **Never use** this in production: never hardcode passwords, never compare plaintext passwords as a real auth mechanism, and never use demo random bytes as a privileged session token. Real applications need a vetted authentication provider, salted password hashing/identity service, MFA where required, secret rotation, KMS/HSM/keystore, rate limiting, and session policies.
 
-Tạo file **`JaasCredentialLifecycleDemo.java`**:
+Create the file **`JaasCredentialLifecycleDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -611,14 +611,14 @@ public final class JaasCredentialLifecycleDemo {
 }
 ```
 
-Biên dịch với **Java 17+** (không dùng preview features; ví dụ có `record` và pattern matching `instanceof` đã là tính năng chuẩn):
+Compile with **Java 17+** (no preview features; `record` and pattern matching `instanceof` are standard features):
 
 ```bash
 javac --release 17 JaasCredentialLifecycleDemo.java
 java JaasCredentialLifecycleDemo
 ```
 
-**Stdout được kiểm chứng trên JDK hỗ trợ Java 17 syntax/API:**
+**Verified stdout on a JDK supporting Java 17 syntax/API:**
 
 ```text
 Login principal count: 1
@@ -634,156 +634,156 @@ Wrong password rejected: true
 Failed login Subject empty: true
 ```
 
-### 8.1 Giải thích từng phần và kết quả
+### 8.1 Explaining Each Part and the Results
 
-**`UserId implements Principal`:** `record` giữ identity string ở dạng immutable. `getName()` trả tên để các JAAS API làm việc được. Chỉ module thêm `UserId` **sau khi xác thực thành công**; không được coi một object `UserId` tự tạo từ request là bằng chứng của authentication.
+**`UserId implements Principal`:** the `record` holds the identity string immutably. `getName()` returns the name so JAAS APIs can work with it. Only the module adds `UserId` **after authentication succeeds**; a `UserId` constructed directly from a request must never be treated as proof of authentication.
 
-**`SessionCredential implements Destroyable`:** chứa 16 byte giả lập, tạo mới với `SecureRandom`. Trong demo nó **không phải access token production**, không được bên nào sử dụng để cấp quyền. `destroy()` zero hóa buffer và đánh dấu destroyed, `isDestroyed()` cho phép kiểm chứng; `toString()` cố ý chỉ trả `[redacted]`. Bảo vệ bộ nhớ không tuyệt đối, và zero hóa không hủy các bản sao ngoài object nếu đã tồn tại.
+**`SessionCredential implements Destroyable`:** holds 16 mock bytes generated via `SecureRandom`. In the demo it is **not a production access token** and is not used by anyone to grant permissions. `destroy()` zeroes the buffer and sets the destroyed flag, `isDestroyed()` enables verification, and `toString()` intentionally returns only `[redacted]`. Memory protection is not absolute, and zeroing does not erase external copies if they already exist.
 
-**`OneUseHandler`:** nhận ownership của mảng password do caller truyền, đưa password vào `PasswordCallback` rồi xóa mảng gốc ở `finally`. `PasswordCallback` tự có bản sao, được module xóa bằng `clearPassword()`. Module cũng xóa mảng `actual` mà `getPassword()` trả về. Handler được thiết kế **dùng một lần**; đừng dùng nó để retry nhiều login với password đã được xóa.
+**`OneUseHandler`:** takes ownership of the caller-supplied password array, passes it into `PasswordCallback`, and wipes the original array in `finally`. `PasswordCallback` makes its own copy, which the module clears via `clearPassword()`. The module also wipes the `actual` array returned by `getPassword()`. The handler is designed for **single use**; do not reuse it across retries once its password has been cleared.
 
-**`ExampleModule.login()`:** kiểm tra `name` và `password` giả lập, throw `FailedLoginException` khi sai; không add Principal lúc này. Password expected từ char array trong bài là ví dụ **không an toàn cho production**, chỉ minh họa việc phải hủy các mảng tạm. Với provider thật, việc kiểm tra có thể được thực hiện bởi identity service, Kerberos/KDC, PAM, LDAP qua TLS, salted password verifier hoặc thiết bị bảo mật.
+**`ExampleModule.login()`:** checks the mock `name` and `password`, throwing `FailedLoginException` on mismatch; does not add a Principal at this stage. The expected password from a char array in the lesson is an **unsafe-for-production** example solely illustrating wiping temporary arrays. With a real provider, verification may be performed by an identity service, Kerberos/KDC, PAM, LDAP over TLS, a salted password verifier, or a hardware security device.
 
-**`commit()`:** chỉ khi `authenticated == true` mới add `UserId` và `SessionCredential` vào Subject. Nếu một bước add ném runtime exception thì rollback phần do module vừa thử thêm, destroy token và bọc failure dưới `LoginException`. Demo không có multi-thread, nên việc kiểm tra `subject.isReadOnly()` rồi thao tác tập được minh họa trong một luồng; hệ thống thực cần quản lý ownership/concurrency và provider-specific cleanup.
+**`commit()`:** only when `authenticated == true` does it add `UserId` and `SessionCredential` to the Subject. If an add step throws a runtime exception, it rolls back what the module tried to add, destroys the token, and wraps the failure in `LoginException`. The demo is single-threaded, so checking `subject.isReadOnly()` and mutating the sets is shown in one thread; real systems must manage ownership/concurrency and provider-specific cleanup.
 
-**`snapshot.setReadOnly()`:** snapshot chỉ có principal đã xác thực (được sao chép qua constructor `Subject(false, ...)`). Thêm principal mới vào snapshot ném `IllegalStateException`. Snapshot không chứa private credentials, nên không làm rò rỉ demo token. Nó không phải tài khoản đăng nhập mới và không tự sống mãi sau phiên gốc.
+**`snapshot.setReadOnly()`:** the snapshot contains only the authenticated principal (copied via constructor `Subject(false, ...)`). Adding a new principal to the snapshot throws `IllegalStateException`. The snapshot holds no private credentials, so it cannot leak the demo token. It is not a new login account and does not outlive the original session.
 
-**`ok.logout()` trên live Subject mutable:** module remove đúng principal/token đã add rồi `token.destroy()`. Kết quả `Mutable Subject cleared at logout: true` và `Session credential destroyed: true` xác nhận **gỡ tham chiếu khỏi subject** cùng **hủy material**.
+**`ok.logout()` on the mutable live Subject:** the module removes the exact principal/token it added and then calls `token.destroy()`. The outputs `Mutable Subject cleared at logout: true` and `Session credential destroyed: true` confirm both **removing references from the subject** and **destroying the material**.
 
-**`frozen.setReadOnly()` trước logout:** Subject đã khóa cấu trúc, module **không thể remove** phần tử. Module demo dùng `isReadOnly()` để chỉ destroy nội dung token; vì vậy `Frozen Subject still holds identity: true` và `Frozen credential destroyed: true` **không mâu thuẫn**. Tình huống này cho thấy vì sao đóng live Subject quá sớm có thể khiến identity cũ tồn tại sau logout và cần quản lý trust/lifetime ở tầng khác.
+**`frozen.setReadOnly()` before logout:** the Subject's structure is locked, so the module **cannot remove** elements. The demo module checks `isReadOnly()` so it only destroys the token contents; thus `Frozen Subject still holds identity: true` and `Frozen credential destroyed: true` are **not contradictory**. This scenario illustrates why freezing the live Subject too early can leave old identities present after logout and why trust/lifetime must be managed at another layer.
 
-**Sai password:** module throw `FailedLoginException`; `LoginContext.login()` báo failure, không có `commit` thành công. `Subject rejected` vẫn trống. Ứng dụng chỉ biết **đăng nhập bị từ chối**, không nên trao quyền hay hiển thị chi tiết có thể giúp dò username.
+**Wrong password:** the module throws `FailedLoginException`; `LoginContext.login()` reports failure with no successful `commit`. `Subject rejected` stays empty. The application knows only that **login was rejected** and must neither grant access nor expose details that help enumerate usernames.
 
-### 8.2 Không suy rộng demo thành production JAAS module
+### 8.2 Do Not Generalize the Demo into a Production JAAS Module
 
-Mã trên cố ý đơn giản: một module, một user giả, một luồng, `Configuration` in-memory và secret không được sử dụng cho giao dịch. Nó **không** gồm distributed revocation, bảo vệ cache/ticket, multi-module shared state, logout race giữa threads, account locking, rate limiting, secure password store, remote backend, audit logging, authorization hoặc credentials do provider quản lý. Một triển khai `LoginModule` production còn cần thiết kế exception cleanup ngay cả khi revoke thất bại hoặc subject bị thay đổi bởi các module khác.
+The code above is intentionally minimal: one module, one mock user, one thread, an in-memory `Configuration`, and an unused secret. It does **not** include distributed revocation, cache/ticket protection, multi-module shared state, logout races across threads, account locking, rate limiting, secure password storage, remote backends, audit logging, authorization, or provider-managed credentials. A production `LoginModule` must also handle exception cleanup even when revocation fails or the subject was modified by other modules.
 
-Đặc biệt, không được copy `Arrays.equals(actual, expected)` để thay cho cơ chế kiểm tra password production; **không hardcode password** hoặc chọn scheme hash yếu.
+In particular, never copy `Arrays.equals(actual, expected)` to replace production password verification; **never hardcode passwords** or pick weak hash schemes.
 
-## 9. So sánh hai chiến lược “Subject chỉ đọc” lúc logout
+## 9. Comparing Two "Read-Only Subject" Strategies at Logout
 
-| Vấn đề | Khóa live `Subject` sau login | Giữ live mutable, tạo snapshot read-only |
+| Concern | Freeze live `Subject` after login | Keep live mutable, create read-only snapshot |
 | --- | --- | --- |
-| Người dùng code bên ngoài có sửa principals trên live object? | Không thể sửa các tập sau `setReadOnly()` | Chỉ snapshot bị khóa; cần tránh lộ tham chiếu live Subject |
-| Logout có remove được principal/credential? | **Không**: Subject đã khóa | Có, nếu module đúng và không có ràng buộc khác |
-| Credential `Destroyable` có bị hủy được? | Có thể, theo contract và implementation module | Có thể, module remove và destroy |
-| Trạng thái principals còn trong Subject sau logout? | Có thể còn | Có thể trống nếu dọn đủ |
-| Snapshot có credential riêng? | Không áp dụng | Tùy thiết kế: nên **chỉ sao chép identity cần thiết**, tránh secrets |
-| Dễ dùng nhầm identity cũ sau logout? | Rủi ro cao nếu vẫn giữ tham chiếu live read-only Subject | Vẫn cần invalidate snapshot/token ở application |
-| Phù hợp khi nào? | Chỉ khi module/provider được thiết kế cho read-only cleanup | Khi muốn tách trách nhiệm auth lifecycle và identity view |
+| Can external code mutate principals on the live object? | Cannot mutate sets after `setReadOnly()` | Only the snapshot is locked; avoid exposing the live Subject reference |
+| Can logout remove principals/credentials? | **No**: Subject is locked | Yes, if the module is well-behaved and no other constraints apply |
+| Can `Destroyable` credentials be destroyed? | Possible, depending on contract and module implementation | Possible; module removes and destroys |
+| Do principals remain in Subject after logout? | May remain | Can be empty if cleaned properly |
+| Does snapshot hold its own credentials? | Not applicable | Design-dependent: should **copy only needed identities**, avoiding secrets |
+| Easy to misuse old identity after logout? | High risk if live read-only Subject reference is retained | Still requires invalidating snapshot/tokens in the application |
+| When is it suitable? | Only when modules/providers are designed for read-only cleanup | When separating auth lifecycle from identity view |
 
-**Nguyên tắc bảo mật:** Không dựa vào `Subject.isReadOnly()` làm bằng chứng người dùng **đang đăng nhập**. Một `Subject` có thể read-only dù chưa từng xác thực, và có thể read-only mà chứa principal cũ sau logout. Phải dựa vào **authentication result, thời hạn phiên và policy**.
+**Security rule:** Never rely on `Subject.isReadOnly()` as proof that a user **is currently logged in**. A `Subject` can be read-only without ever being authenticated, and can be read-only while holding stale principals after logout. Rely on **authentication outcome, session expiration, and policy**.
 
-## 10. Lỗi thực tế và cách khắc phục
+## 10. Real-World Errors and How to Fix Them
 
-| Lỗi/triệu chứng | Nguyên nhân | Hướng khắc phục |
+| Error/Symptom | Cause | Remediation |
 | --- | --- | --- |
-| Login thành công nhưng Subject không có Principal | Module không `commit`, commit trả sai, hoặc flags fail | Dùng đúng flow `LoginContext` và kiểm tra `commit` |
-| `FailedLoginException` | Username/password/credential không khớp | Từ chối, áp policy retry, không tiết lộ chi tiết |
-| `CredentialExpiredException` | Credential hết hạn theo provider | Yêu cầu re-auth/renew có kiểm soát |
-| `AccountExpiredException` | Account hết hạn theo policy | Từ chối, không tự bỏ qua expiration |
-| `LoginException` khi `CallbackHandler` chạy | Callback không hỗ trợ, I/O failure | Bọc cause an toàn; không log secret |
-| `LoginException` trong `commit` | Read-only Subject, permission denial, lỗi add state | Rollback owned changes, destroy secret, fail closed |
-| `IllegalStateException` khi `getPrincipals().add()` | `Subject.setReadOnly()` đã được gọi | Không chỉnh sửa read-only Subject; thiết kế snapshot hoặc lifecycle khác |
-| `logout()` xong nhưng Principal còn | Live Subject đã read-only, không gỡ entry được | Đừng dùng Subject ấy làm session active; invalidate authorization/session |
-| `logout()` xong nhưng secret còn | `remove` không đồng nghĩa zero hóa; provider không destroy/revoke | Hủy `Destroyable`, remote revoke và audit |
-| Credential đã `destroy` vẫn trong `getPrivateCredentials()` | Destroy không tự remove, hoặc subject read-only | Dùng module cleanup tương thích, không coi presence là active |
-| Bị `SecurityException` khi đọc private credentials | Runtime có SecurityManager/credential permissions | Kiểm tra security policy, không tắt kiểm soát truy cập |
-| Password vô tình xuất hiện trong logs | Logger in callback hoặc `Subject`/credential `toString` | Redact, chỉ log status/correlation ID |
-| `getPrivateCredentials(MyType.class).clear()` không làm gì với subject | Typed accessor trả copy, không backed set | Module phải remove từ raw backed set khi mutable và được phép |
-| Tài khoản vẫn có quyền sau logout | Cache/token external chưa bị revoke | Kiểm tra session registry, TTL, invalidation, audit |
-| User mượn `Subject` rồi tự thêm role | Live Subject writable bị leak | Encapsulation, immutable principal snapshot, auth boundaries |
-| `LoginModule.abort()` không dọn token tạm | Cleanup thiếu khi overall login thất bại | Dọn state của module trong abort và `finally` |
+| Login succeeds yet Subject has no Principal | Module did not `commit`, commit returned false, or flags failed | Use the proper `LoginContext` flow and check `commit` |
+| `FailedLoginException` | Username/password/credential mismatch | Reject, enforce retry policy, do not leak details |
+| `CredentialExpiredException` | Credential expired per provider | Require controlled re-authentication/renewal |
+| `AccountExpiredException` | Account expired per policy | Reject; never silently bypass expiration |
+| `LoginException` when `CallbackHandler` runs | Unsupported callback, I/O failure | Wrap cause safely; do not log secrets |
+| `LoginException` in `commit` | Read-only Subject, permission denial, state-add error | Roll back owned changes, destroy secrets, fail closed |
+| `IllegalStateException` on `getPrincipals().add()` | `Subject.setReadOnly()` already called | Do not mutate a read-only Subject; adjust snapshot or lifecycle design |
+| After `logout()`, Principal still remains | Live Subject was read-only, could not remove entries | Do not treat that Subject as an active session; invalidate authorization/session |
+| After `logout()`, secret still remains | `remove` does not mean zeroing; provider did not destroy/revoke | Destroy `Destroyable`, revoke remotely, and audit |
+| Destroyed credential still in `getPrivateCredentials()` | Destroy does not auto-remove, or subject is read-only | Use compatible module cleanup; never treat presence as active |
+| `SecurityException` reading private credentials | Runtime has SecurityManager/credential permissions | Review security policy; do not disable access controls |
+| Password accidentally appears in logs | Logger prints callback or `Subject`/credential `toString` | Redact; log only status/correlation ID |
+| `getPrivateCredentials(MyType.class).clear()` does nothing to subject | Typed accessor returns a copy, not a backed set | Module must remove from the raw backed set when mutable and permitted |
+| Account still has privileges after logout | External cache/token not revoked | Inspect session registry, TTL, invalidation, audit |
+| User borrows `Subject` and adds a role | Writable live Subject leaked | Encapsulation, immutable principal snapshot, auth boundaries |
+| `LoginModule.abort()` fails to clean temporary token | Missing cleanup on overall login failure | Clean module state in `abort` and `finally` |
 
-**Lưu ý đặc biệt:** `Subject.setReadOnly()` khóa *các tập* chứ không deep-freeze `Principal`/credential, nên một credential do application tự viết có setter vẫn có thể đổi nội dung sau khi subject read-only. Dùng immutable principal, credential có lifecycle rõ ràng và không cung cấp setter tùy tiện cho secret.
+**Special note:** `Subject.setReadOnly()` locks *the sets* rather than deep-freezing `Principal`/credential objects, so an application-defined credential with setters can still change its contents after the subject is read-only. Use immutable principals, credentials with clear lifecycles, and avoid arbitrary setters on secrets.
 
-## 11. Checklist review code JAAS credential và logout
+## 11. Code Review Checklist for JAAS Credentials and Logout
 
-- [ ] `LoginContext` được dựng với đúng tên cấu hình, handler và `Configuration`/flags do hệ thống quản lý.
-- [ ] `LoginModule.login()` chỉ xác thực và giữ state tối thiểu, không commit Principal trước overall success.
-- [ ] Raw password không ghi vào `String`, logs, Subject hoặc exception messages.
-- [ ] `PasswordCallback.clearPassword()` được gọi; bản sao từ `getPassword()` và từ handler được xóa trong `finally`.
-- [ ] Module không tự loop retry khi thất bại; application áp dụng rate limit/backoff/lockout.
-- [ ] `commit()` thêm **chính xác owned Principal/credential**; xử lý partial commit failure an toàn.
-- [ ] `abort()` dọn state tạm nếu overall authentication fail; `logout()` dọn state module sở hữu.
-- [ ] Private credentials có scope/expiry và `Destroyable`/provider cleanup phù hợp; remove và destroy không được coi là một thao tác.
-- [ ] Không hiển thị raw `Subject`/credential trên logger; `toString` của credential không tiết lộ material.
-- [ ] Nếu Subject read-only, biết `getPrincipals`/credential sets không remove được, nhưng credential destroy vẫn có thể.
-- [ ] Không đặt `setReadOnly()` lên live Subject trước khi biết module có hỗ trợ logout read-only.
-- [ ] Snapshot identity, nếu dùng, **không** chứa private credentials; principal objects immutable.
-- [ ] `LoginException` dẫn tới fail closed, không coi Subject nonempty là authenticated.
-- [ ] Audit logs tách user-safe error khỏi diagnostic nội bộ, không lộ account existence/cause có secret.
-- [ ] Có integration tests cho success, wrong password, callback failure, read-only mutation, logout cleanup, abort, credential destroy, expired/revoked token và race conditions.
+- [ ] `LoginContext` is constructed with the right configuration name, handler, and system-managed `Configuration`/flags.
+- [ ] `LoginModule.login()` only authenticates and keeps minimal state, never committing Principals before overall success.
+- [ ] Raw passwords are never written to `String`, logs, Subject, or exception messages.
+- [ ] `PasswordCallback.clearPassword()` is called; copies from `getPassword()` and from the handler are wiped in `finally`.
+- [ ] Module does not loop retries internally on failure; the application enforces rate limiting/backoff/lockout.
+- [ ] `commit()` adds **exactly the owned Principals/credentials**; partial commit failures are handled safely.
+- [ ] `abort()` cleans temporary state if overall authentication fails; `logout()` cleans module-owned state.
+- [ ] Private credentials have scope/expiry and `Destroyable`/provider cleanup; remove and destroy are not treated as the same operation.
+- [ ] Raw `Subject`/credentials are never printed to loggers; credential `toString` never reveals material.
+- [ ] If the Subject is read-only, you know `getPrincipals`/credential sets cannot be removed from, though credential destruction may still succeed.
+- [ ] `setReadOnly()` is not called on the live Subject before verifying that the module supports read-only logout.
+- [ ] Identity snapshots, if used, contain **no** private credentials; principal objects are immutable.
+- [ ] `LoginException` leads to fail-closed behavior; a non-empty Subject is never treated as authenticated on error.
+- [ ] Audit logs separate user-safe errors from internal diagnostics, exposing neither account existence nor secret-bearing causes.
+- [ ] Integration tests cover success, wrong password, callback failure, read-only mutation, logout cleanup, abort, credential destroy, expired/revoked tokens, and race conditions.
 
-## 12. Bài tập thực hành
+## 12. Hands-On Exercises
 
-**Bài 1 — Phân biệt remove và destroy.**  
-Sửa tạm code `ExampleModule.cleanup()` chỉ remove token mà không gọi `destroy()`, rồi quan sát object `SessionCredential` bạn còn giữ ngoài subject. Vì sao `isDestroyed()` vẫn `false`? Sửa lại để cleanup thực sự xóa secret.
+**Exercise 1 — Distinguish remove from destroy.**  
+Temporarily modify `ExampleModule.cleanup()` to only remove the token without calling `destroy()`, then inspect the `SessionCredential` reference held outside the subject. Why is `isDestroyed()` still `false`? Restore it so cleanup actually wipes the secret.
 
-**Bài 2 — Read-only trước commit.**  
-Thử `live.setReadOnly()` trước `LoginContext.login()`, quan sát commit không thể thêm principal/token. Trình bày vì sao **chỉ callback password đúng không đồng nghĩa login thành công** khi commit thất bại. Không để module `return true` sau exception.
+**Exercise 2 — Read-only before commit.**  
+Try calling `live.setReadOnly()` before `LoginContext.login()`, and observe that commit cannot add the principal/token. Explain why **supplying the right password via callback does not equal a successful login** when commit fails. Do not let the module `return true` after the exception.
 
-**Bài 3 — Snapshot không giữ secret.**  
-Sau login, tạo snapshot chỉ gồm principal. Thử đổi set của snapshot và kiểm tra `IllegalStateException`; kiểm tra `snapshot.getPrivateCredentials().isEmpty()` vẫn đúng. Sau logout live Subject, cân nhắc vì sao snapshot cũ không được xem là active session.
+**Exercise 3 — Snapshot without secrets.**  
+After login, create a principal-only snapshot. Attempt to modify the snapshot's set and verify `IllegalStateException`; verify `snapshot.getPrivateCredentials().isEmpty()` remains true. After logging out the live Subject, explain why the old snapshot must not be treated as an active session.
 
-**Bài 4 — Logout Subject đã đóng.**  
-Gọi `frozen.setReadOnly()` trước logout. Vì sao module không thể `.remove()` nhưng vẫn có thể `destroy()`? Thử một credential không hỗ trợ `Destroyable` và phân tích failure policy; đừng tuyên bố nó chắc chắn được hủy.
+**Exercise 4 — Logout on a frozen Subject.**  
+Call `frozen.setReadOnly()` before logout. Why can the module no longer call `.remove()` yet can still call `destroy()`? Try a credential that does not implement `Destroyable` and analyze the failure policy; never claim it was definitely wiped.
 
-**Bài 5 — Callback failure.**  
-Cho `CallbackHandler` ném `UnsupportedCallbackException` khi gặp `PasswordCallback`. Module nên trả `false`, `true` hay ném `LoginException`? Vì sao phải dọn state trong `abort` khi overall login fail?
+**Exercise 5 — Callback failure.**  
+Have `CallbackHandler` throw `UnsupportedCallbackException` upon seeing `PasswordCallback`. Should the module return `false`, `true`, or throw `LoginException`? Why must state be cleaned in `abort` when overall login fails?
 
-**Bài 6 — Chính sách timeout và revocation.**  
-Với credential dạng access token thật, mô tả tại sao zero hóa mảng trong JVM chưa hủy quyền truy cập của token ở server. Bổ sung TTL, revoke event và invalidation của session registry.
+**Exercise 6 — Timeout and revocation policy.**  
+For a real access token credential, explain why zeroing an array in the JVM does not revoke the token's access on the server. Add TTL, revocation events, and session registry invalidation.
 
-**Bài 7 — Multi-module ownership.**  
-Tưởng tượng hai modules cùng thêm principals vào một Subject. Vì sao `subject.getPrincipals().clear()` trong logout của module A là sai? Sửa để A chỉ gỡ principal/credential do chính A thêm.
+**Exercise 7 — Multi-module ownership.**  
+Imagine two modules both adding principals to one Subject. Why is `subject.getPrincipals().clear()` in module A's logout wrong? Fix it so A removes only the principals/credentials A itself added.
 
-**Bài 8 — Ranh giới authorization.**  
-Một request gửi `"user": "admin"`; application tự tạo `new UserId("admin")` và đưa vào Subject. Vì sao `getPrincipals` chứa admin **không** đủ để cấp quyền admin? Hãy nêu cách identity phải đến từ login success và policy server.
+**Exercise 8 — Authorization boundary.**  
+A request sends `"user": "admin"`; the application directly constructs `new UserId("admin")` and puts it into a Subject. Why is `getPrincipals` containing admin **not** enough to grant admin privileges? Explain how identity must come from a successful login and server-side policy.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-**1. `Subject.getPrivateCredentials()` có phải một kho token đã tự mã hóa không?**  
-Không. Nó là một tập object có cơ chế quyền truy cập theo JAAS/runtime, **không bảo đảm encryption, zeroization hoặc remote revocation**.
+**1. Is `Subject.getPrivateCredentials()` an automatically encrypted token vault?**  
+No. It is a set of objects governed by JAAS/runtime access controls, **not guaranteeing encryption, zeroization, or remote revocation**.
 
-**2. `PasswordCallback.clearPassword()` đã xóa mọi bản sao password chưa?**  
-Chưa. Nó xóa bản lưu của callback; mảng nguồn ở handler và bản sao trả về từ `getPassword()` phải được xử lý riêng, tốt nhất trong `finally`.
+**2. Does `PasswordCallback.clearPassword()` erase every copy of a password?**  
+No. It clears the callback's internal copy; the source array in the handler and the copy returned by `getPassword()` must be wiped separately, preferably in `finally`.
 
-**3. `Subject.setReadOnly()` chặn thao tác nào?**  
-Chặn thêm/xóa phần tử trong principal/public/private credential sets. Nó **không** deep-freeze object, không ngăn destroy credential, không chứng minh user đã xác thực.
+**3. What operations does `Subject.setReadOnly()` block?**  
+It blocks adding/removing elements in the principal and public/private credential sets. It does **not** deep-freeze objects, does not prevent destroying credentials, and does not prove a user authenticated.
 
-**4. Vì sao `logout()` có thể thành công nhưng read-only Subject vẫn giữ principal?**  
-Vì các tập không thể bị sửa sau `setReadOnly`; module có thể chỉ hủy secret trong credential. **Presence của principal sau logout không xác nhận session còn hợp lệ.**
+**4. Why can `logout()` succeed while a read-only Subject still retains principals?**  
+Because the sets cannot be modified after `setReadOnly`; the module may only destroy secrets inside the credentials. **The presence of a principal after logout does not confirm the session is still valid.**
 
-**5. Khi `LoginModule.login()` thành công thì có thể add principal luôn không?**  
-Thông thường phải chờ **overall login success** và `commit()`. Nếu một module khác fail, `abort()` được gọi và state tạm phải được dọn.
+**5. When `LoginModule.login()` succeeds, may it add the principal immediately?**  
+Normally it must wait for **overall login success** and `commit()`. If another module fails, `abort()` is invoked and temporary state must be cleaned up.
 
-**6. `LoginException` chỉ báo sai password?**  
-Không. Nó cũng đại diện lỗi callback, cấu hình, provider hoặc lifecycle; `FailedLoginException` là một trường hợp thường dùng cho credentials không hợp lệ.
+**6. Does `LoginException` only indicate a wrong password?**  
+No. It also represents callback, configuration, provider, or lifecycle errors; `FailedLoginException` is a common subclass for invalid credentials.
 
-**7. Tại sao typed `getPrivateCredentials(MyType.class)` không phải nơi gỡ credentials khỏi subject?**  
-Vì accessor đã lọc trả một **tập mới**; thay đổi tập mới không sửa tập backed bởi Subject.
+**7. Why is the typed `getPrivateCredentials(MyType.class)` not the place to remove credentials from a subject?**  
+Because the filtered accessor returns a **new set**; mutating that new set does not modify the Subject-backed set.
 
-**8. Khi nào dùng snapshot `Subject` chỉ có principals?**  
-Khi muốn cung cấp danh tính đã kiểm tra ở dạng **không sửa cấu trúc** cho code bên ngoài, mà vẫn cho live Subject của `LoginContext` có thể logout/cleanup theo lifecycle. Snapshot không tự duy trì thời hạn phiên.
+**8. When should you use a principal-only `Subject` snapshot?**  
+When you want to provide verified identity in a **structurally unmodifiable** form to external code while still letting the `LoginContext`'s live Subject perform logout/cleanup per its lifecycle. The snapshot does not maintain session expiration by itself.
 
-**9. `Destroyable.destroy()` có thể thay thế remote revoke không?**  
-Không. Nó chỉ là lifecycle của local credential object; quyền ở server/IdP cần cơ chế revoke/expiry riêng.
+**9. Can `Destroyable.destroy()` replace remote revocation?**  
+No. It only manages the local credential object's lifecycle; server/IdP privileges require dedicated revocation/expiry mechanisms.
 
-**10. Ứng dụng có thể tiếp tục xử lý request sau khi `login()` ném `LoginException` không?**  
-Chỉ có thể tiếp tục theo nhánh **unauthenticated** phù hợp, không được cấp quyền dựa vào trạng thái login không được xác nhận.
+**10. May an application continue processing a request after `login()` throws `LoginException`?**  
+It may continue only along an appropriate **unauthenticated** branch and must never grant privileges based on an unconfirmed login state.
 
-## 14. Tài liệu chính thức
+## 14. Official Documentation
 
-- [Java SE 17 — `Subject`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/Subject.html): principal/public/private credentials, `setReadOnly`, `isReadOnly`, typed credentials accessor và hành vi destroy khi read-only.
-- [Java SE 17 — `LoginContext`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/LoginContext.html): `login`, `getSubject`, `logout`, constructors và configuration.
+- [Java SE 17 — `Subject`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/Subject.html): principal/public/private credentials, `setReadOnly`, `isReadOnly`, typed credential accessors, and destroy behavior when read-only.
+- [Java SE 17 — `LoginContext`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/LoginContext.html): `login`, `getSubject`, `logout`, constructors, and configuration.
 - [Java SE 17 — `LoginModule`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/spi/LoginModule.html): `initialize`, `login`, `commit`, `abort`, `logout`.
 - [Java SE 17 — `LoginException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/LoginException.html): checked authentication/login exception.
-- [Java SE 17 — `FailedLoginException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/FailedLoginException.html): xác thực thất bại.
+- [Java SE 17 — `FailedLoginException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/FailedLoginException.html): authentication failure.
 - [Java SE 17 — `PasswordCallback`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/PasswordCallback.html): `setPassword`, `getPassword`, `clearPassword`.
 - [Java SE 17 — `Destroyable`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/Destroyable.html): destroyable secrets/credential lifecycle.
-- [Java SE 17 — `Configuration`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/Configuration.html): cấu hình JAAS modules.
-- [Oracle Java SE 17 — JAAS Authentication](https://docs.oracle.com/en/java/javase/17/security/jaas-authentication.html): kiến trúc Subject, LoginContext, CallbackHandler và JAAS config.
-- [Oracle Java SE 17 — JAAS LoginModule Developer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-authentication-and-authorization-service-jaas-loginmodule-developers-guide1.html): two-phase login, `commit/abort/logout`, ownership và credential destroy khi Subject read-only.
+- [Java SE 17 — `Configuration`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/Configuration.html): configuring JAAS modules.
+- [Oracle Java SE 17 — JAAS Authentication](https://docs.oracle.com/en/java/javase/17/security/jaas-authentication.html): architecture of Subject, LoginContext, CallbackHandler, and JAAS config.
+- [Oracle Java SE 17 — JAAS LoginModule Developer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-authentication-and-authorization-service-jaas-loginmodule-developers-guide1.html): two-phase login, `commit/abort/logout`, ownership, and credential destruction when Subject is read-only.
 
-**Tóm tắt:** `Subject` giữ **identity và credentials** nhưng không tự xác thực/giữ bí mật cho ứng dụng. `LoginModule` phải quản lý `login → commit/abort → logout`, xóa password tạm và hủy credential có thể hủy. **`setReadOnly()` chỉ khóa cấu trúc các tập, không khóa hay thu hồi quyền của secret và không thể thay thế `logout`.** Khi `LoginException` xuất hiện, phải **từ chối quyền**, dọn trạng thái thuộc module và giữ logs sạch bí mật.
+**Summary:** `Subject` holds **identities and credentials** but does not authenticate or protect secrets for the application on its own. `LoginModule` must manage `login → commit/abort → logout`, wipe temporary passwords, and destroy destroyable credentials. **`setReadOnly()` only locks set structure, does not lock or revoke secret permissions, and cannot replace `logout`.** Whenever `LoginException` occurs, **deny access**, clean up module-owned state, and keep logs free of secrets.

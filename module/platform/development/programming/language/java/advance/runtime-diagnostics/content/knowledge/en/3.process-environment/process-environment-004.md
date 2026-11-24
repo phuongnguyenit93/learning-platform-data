@@ -1,27 +1,27 @@
-# 3.4. VM.command_line, VM.flags, VM.system_properties và VM.info
+# 3.4. VM.command_line, VM.flags, VM.system_properties, and VM.info
 
-Khi một ứng dụng Java chạy khác giữa máy phát triển và production, câu hỏi quan trọng thường không phải “cấu hình trong repository là gì?” mà là **JVM đang chạy thực sự được khởi động và cấu hình như thế nào**. Lệnh chạy trong shell, tham số JVM, Java system properties và trạng thái môi trường có thể khác nhau do script khởi động, container, orchestration, biến môi trường, cấu hình runtime hoặc thao tác sau khi process đã bắt đầu.
+When a Java application behaves differently between a developer machine and production, the key question is often not “what is the configuration in the repository?” but **how the running JVM was actually started and configured**. Shell commands, JVM arguments, Java system properties, and environment state can differ due to startup scripts, containers, orchestration, environment variables, runtime configuration, or mutations after the process has started.
 
-Với các JVM HotSpot/OpenJDK hỗ trợ diagnostic commands, tiện ích **`jcmd`** cho phép đọc thông tin trực tiếp từ một **tiến trình JVM còn sống**. Bốn lệnh sau phục vụ bốn câu hỏi riêng:
+For HotSpot/OpenJDK JVMs supporting diagnostic commands, the **`jcmd`** utility lets you read information directly from a **living JVM process**. The following four commands answer four distinct questions:
 
-- **`VM.command_line`:** JVM được khởi động bằng các đối số nào?
-- **`VM.flags`:** các cờ VM hiện có giá trị hiệu lực gì?
-- **`VM.system_properties`:** Java system properties mà process đang thấy là gì?
-- **`VM.info`:** trạng thái và bối cảnh môi trường JVM đang chạy ra sao?
+- **`VM.command_line`:** What arguments was the JVM started with?
+- **`VM.flags`:** What effective values do the VM flags currently have?
+- **`VM.system_properties`:** What Java system properties does the process currently see?
+- **`VM.info`:** What is the running JVM's status and environmental context?
 
-Bài học thuộc nhóm **3. Tiến trình và môi trường**, tập trung vào mục đích, cách dùng, cách đọc, so sánh và giới hạn của bốn diagnostic commands này trong Java 17+. Không nên coi chúng là bằng chứng duy nhất về hành vi ứng dụng, và cũng không được nhầm thông tin chụp được ở thời điểm kiểm tra với cấu hình được version-control lúc build.
+This lesson belongs to **3. Process and Environment**, focusing on the purpose, usage, reading, comparison, and limits of these four diagnostic commands in Java 17+. Do not treat them as the sole evidence of application behavior, and do not confuse information captured at inspection time with configuration version-controlled at build time.
 
-## 1. Điều kiện để đọc trực tiếp JVM đang chạy
+## 1. Prerequisites for Reading a Live JVM Directly
 
-`jcmd` nằm trong bộ công cụ **JDK** phù hợp. Phần lớn lệnh gửi yêu cầu chẩn đoán tới JVM qua cơ chế attach nên cần:
+`jcmd` belongs to the appropriate **JDK** toolset. Most commands send diagnostic requests to the JVM via the attach mechanism, so you need:
 
-1. Tiến trình JVM **đang tồn tại**. Ghi đúng PID, container/pod/host, thời điểm và JDK version.
-2. Chạy `jcmd` trên cùng máy hoặc trong môi trường có thể truy cập process tương ứng, với **effective user/group** phù hợp. Trên container có PID namespace khác, PID trong host và PID bên trong container có thể không trùng.
-3. JVM đích hỗ trợ các lệnh được gọi và cho phép attach. Nếu chạy với `-XX:+DisableAttachMechanism` hoặc môi trường bị chặn quyền/truy cập, lệnh có thể thất bại.
-4. Có chương trình `jcmd` trong môi trường thực thi công cụ. Một runtime image tối giản chỉ chứa JRE/application binary có thể không có `jcmd`; có thể cần JDK và cách truy cập tiến trình phù hợp.
-5. Không giả định mọi vendor/version JVM đều có cùng nội dung hoặc định dạng output. **Hỏi trực tiếp JVM đích bằng `help`** để biết command thực sự được hỗ trợ.
+1. An **existing** JVM process. Record the exact PID, container/pod/host, timestamp, and JDK version.
+2. Run `jcmd` on the same machine or in an environment able to reach that process, with matching **effective user/group**. In containers with a separate PID namespace, the PID on the host and inside the container may not match.
+3. The target JVM supports the invoked commands and permits attach. Running with `-XX:+DisableAttachMechanism` or in an environment with blocked permissions/access can cause the command to fail.
+4. `jcmd` is present in the tool execution environment. A minimal runtime image containing only a JRE/application binary may lack `jcmd`; you may need a JDK and an approved way to access the process.
+5. Do not assume every JVM vendor/version produces identical content or output format. **Ask the target JVM directly with `help`** to see which commands are actually supported.
 
-Các lệnh cơ bản (ví dụ PID là **12345**, cần thay bằng PID thật):
+Basic commands (example PID **12345**, replace with the actual PID):
 
 ~~~bash
 jcmd -l
@@ -32,44 +32,44 @@ jcmd 12345 help VM.system_properties
 jcmd 12345 help VM.info
 ~~~
 
-`jcmd -l` liệt kê JVM nhìn thấy từ môi trường hiện tại. Nó **có thể bỏ sót JVM nằm trong Docker/PID namespace riêng**; khi đó tra PID bằng công cụ process/container ở đúng namespace. Không dùng `jcmd 0 ...` hoặc target theo main class trong môi trường nhiều JVM chỉ để tiện thao tác: có nguy cơ gửi tới **nhiều tiến trình**. Gọi đúng PID cụ thể.
+`jcmd -l` lists JVMs visible from the current environment. It **can miss JVMs inside separate Docker/PID namespaces**; in that case look up the PID with process/container tools in the proper namespace. Do not use `jcmd 0 ...` or target by main class in a multi-JVM environment just for convenience: you risk sending commands to **multiple processes**. Always target a specific PID.
 
-**Phạm vi thao tác:** bốn lệnh đang học dùng để *xem* thông tin, không phải `VM.set_flag` để thay đổi flag. Tuy nhiên output có thể dài và chứa bí mật; nên giới hạn người có quyền đọc, lưu ở nơi bảo vệ và xử lý trước khi chia sẻ.
+**Operation scope:** the four commands covered here are for *viewing* information, unlike `VM.set_flag` which mutates flags. However, output can be long and contain secrets; restrict who can read it, store it in a protected location, and sanitize before sharing.
 
-## 2. Bảng phân biệt nhanh
+## 2. Quick Comparison Table
 
-| Lệnh | Trả lời câu hỏi | Dữ liệu cốt lõi | Điểm cần tránh |
+| Command | Question answered | Core data | Pitfalls to avoid |
 | --- | --- | --- | --- |
-| `VM.command_line` | “Đã khởi chạy bằng gì?” | JVM arguments và Java command/main class/JAR, tùy bản JVM | Không xem như trạng thái **cấu hình ứng dụng hiện tại** sau mọi thay đổi runtime |
-| `VM.flags` | “VM flags đang có giá trị gì?” | Các flag của JVM với giá trị hiệu lực hiện tại; có thể xem toàn bộ bằng `-all` | Không nhầm flag với system property, args của `main` hoặc env var |
-| `VM.system_properties` | “Java system properties hiện tại là gì?” | Danh sách `key=value` tương ứng properties JVM nhìn thấy | Không đồng nhất với **OS environment variables** hoặc mọi cấu hình Spring/application |
-| `VM.info` | “Môi trường và trạng thái JVM như thế nào?” | Báo cáo tổng hợp về JVM/runtime và môi trường, phụ thuộc phiên bản | Không coi là snapshot đầy đủ của mọi vấn đề memory/CPU/thread; không kỳ vọng cấu trúc cố định |
+| `VM.command_line` | “What was it launched with?” | JVM arguments and Java command/main class/JAR, depending on JVM version | Do not treat as **current application configuration** state after runtime mutations |
+| `VM.flags` | “What values do VM flags have?” | JVM flags with current effective values; can view all via `-all` | Do not confuse flags with system properties, `main` args, or env vars |
+| `VM.system_properties` | “What are the current Java system properties?” | List of `key=value` entries seen by the JVM | Do not equate with **OS environment variables** or all Spring/application config |
+| `VM.info` | “What are the JVM's environment and status?” | Summary report of JVM/runtime and environment, version-dependent | Do not treat as a complete snapshot of every memory/CPU/thread issue; do not expect a fixed schema |
 
-**Hình dung ba lớp cấu hình:**
+**Visualizing the three configuration layers:**
 
 ~~~text
-Lệnh/launcher khởi động JVM
+Command/launcher starting the JVM
        |
-       +-- JVM options: -Xmx, -Xms, -XX:... ----> VM.flags (giá trị hiệu lực)
+       +-- JVM options: -Xmx, -Xms, -XX:... ----> VM.flags (effective values)
        |
-       +-- Java properties: -Dkey=value -------> VM.system_properties (snapshot hiện tại)
+       +-- Java properties: -Dkey=value -------> VM.system_properties (current snapshot)
        |
-       +-- Main class/JAR và app args ----------> VM.command_line (dấu vết startup)
+       +-- Main class/JAR and app args ---------> VM.command_line (startup trace)
        |
-       +-- OS/container/JDK/runtime -----------> VM.info (báo cáo môi trường và trạng thái)
+       +-- OS/container/JDK/runtime -----------> VM.info (environment and status report)
 ~~~
 
-Đây là sơ đồ ý niệm, **không phải ánh xạ một-một** giữa các chuỗi ký tự. Ví dụ `-Xmx256m` khi đọc `VM.flags` thường được thể hiện qua flag `MaxHeapSize` theo đơn vị byte; một flag có thể được VM tự tính theo ergonomic defaults; một system property có thể bị chương trình thay đổi bằng `System.setProperty(...)` sau startup.
+This is a conceptual diagram, **not a one-to-one mapping** between character strings. For example, `-Xmx256m` in `VM.flags` is usually represented by the `MaxHeapSize` flag in bytes; a flag may be computed by the VM using ergonomic defaults; a system property may be modified by the program via `System.setProperty(...)` after startup.
 
-## 3. VM.command_line — đối số khi JVM được khởi động
+## 3. VM.command_line — Arguments at JVM Startup
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 jcmd 12345 VM.command_line
 ~~~
 
-Command này in thông tin câu lệnh mà JVM lưu lại khi khởi động. Trên một bản HotSpot, có thể gặp các mục như:
+This command prints the command details recorded by the JVM at startup. On a HotSpot build, you may see entries like:
 
 ~~~text
 VM Arguments:
@@ -79,71 +79,71 @@ java_class_path (initial): .
 Launcher Type: SUN_STANDARD
 ~~~
 
-**Đây là output minh họa**, không phải stdout đảm bảo của mọi JDK/launcher. Vị trí, trường và nội dung thay đổi theo cách khởi chạy, vendor, Java version và classpath/JAR/module path.
+**This is illustrative output**, not guaranteed stdout for every JDK/launcher. Placement, fields, and contents vary by launch method, vendor, Java version, and classpath/JAR/module path.
 
-Thông thường:
-- **`jvm_args`:** đối số gửi vào JVM ở lúc startup, chẳng hạn `-Xmx`, `-XX:+UseG1GC`, `-Ddemo.mode=startup`.
-- **`java_command`:** ứng dụng được khởi chạy và các application arguments theo cách launcher biểu diễn; ví dụ `-jar app.jar` hoặc tên main class kèm `args`.
-- **Classpath/launcher:** có thể cho biết đường dẫn classpath ban đầu hoặc loại launcher, nhưng không nói rằng đường dẫn còn có hiệu lực y nguyên ở mọi classloader sau đó.
+Typically:
+- **`jvm_args`:** arguments passed to the JVM at startup, such as `-Xmx`, `-XX:+UseG1GC`, `-Ddemo.mode=startup`.
+- **`java_command`:** the launched application and application arguments as represented by the launcher; for example `-jar app.jar` or the main class name plus `args`.
+- **Classpath/launcher:** may show the initial classpath or launcher type, but does not mean that path remains identically effective across all subsequent classloaders.
 
-Dùng khi:
-- Deploy báo JVM chạy với `-Xmx` khác cấu hình mong đợi.
-- Cần xác minh process thực tế chạy class/JAR nào, có arguments nào sau main.
-- Hai pod cùng image nhưng script/entrypoint hoặc JVM arguments khác nhau.
-- Cần kiểm tra có vô tình truyền `-D...`, `-XX...`, agent hay option chỉ dành cho môi trường khác.
+Use when:
+- Deployment reports the JVM is running with a different `-Xmx` than expected.
+- You need to verify which class/JAR the process actually runs and what arguments follow main.
+- Two pods use the same image, yet their entrypoint scripts or JVM arguments differ.
+- You need to check whether `-D...`, `-XX...`, agents, or options meant for another environment were accidentally passed.
 
-**Giới hạn quan trọng:** output phản ánh thông tin startup mà VM giữ; nó không phải bản sao đầy đủ, không bị biến đổi của câu lệnh shell gốc, quote/expansion, biến môi trường, configuration files hoặc toàn bộ nội dung application framework đang sử dụng. Nếu application thay đổi một property sau khi start, command line vẫn cho thấy đầu vào khởi động, còn `VM.system_properties` có thể cho giá trị mới. Một số launcher/runtime có thể bổ sung hoặc biến đổi options (ví dụ thông qua biến môi trường Java liên quan đến startup); khi cần truy gốc, đối chiếu với entrypoint, manifest deploy và cấu hình môi trường.
+**Important limitations:** output reflects startup info retained by the VM; it is not an exact, unaltered copy of the original shell command, quoting/expansion, environment variables, configuration files, or everything the application framework uses. If the application changes a property after start, `VM.command_line` still shows startup input, whereas `VM.system_properties` shows the new value. Some launchers/runtimes may add or transform options (for instance via startup-related Java environment variables); to trace the root source, cross-check entrypoint, deployment manifest, and environment config.
 
-Đặc biệt chú ý **bí mật trong command line**: một ứng dụng truyền token/password bằng `-Dsecret=...` hoặc application argument có thể khiến nội dung xuất hiện trong output và cả công cụ quan sát process khác. Tránh đưa bí mật vào command line; khi phải thu chứng cứ, redact trước khi lưu/chia sẻ.
+Pay special attention to **secrets in the command line**: an application passing tokens/passwords via `-Dsecret=...` or application arguments can expose them in this output as well as in other process inspection tools. Avoid placing secrets on the command line; when collecting evidence, redact before saving/sharing.
 
-## 4. VM.flags — flag JVM và giá trị hiệu lực
+## 4. VM.flags — JVM Flags and Effective Values
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 jcmd 12345 VM.flags
 jcmd 12345 VM.flags -all
 ~~~
 
-- **`VM.flags`:** hiển thị các flag VM theo cách định dạng của JVM, thường tập trung vào những flag đáng chú ý/không mặc định, không nhất thiết là danh mục đầy đủ.
-- **`VM.flags -all`:** yêu cầu hiển thị các flags được VM hỗ trợ cùng giá trị hiện tại; output rất dài, thích hợp khi cần điều tra flag cụ thể hoặc nguồn thiết lập.
+- **`VM.flags`:** displays VM flags formatted by the JVM, usually focusing on notable/non-default flags rather than a full catalog.
+- **`VM.flags -all`:** requests all flags supported by the VM along with current values; output is very long and useful when investigating a specific flag or where it was set.
 
-Các tên liên quan thường gặp trong điều tra:
+Commonly encountered names during investigations:
 
-| Flag | Liên quan đến |
+| Flag | Related to |
 | --- | --- |
-| `InitialHeapSize` | Kích thước heap khởi tạo, thường liên hệ `-Xms` |
-| `MaxHeapSize` | Giới hạn Java heap tối đa, thường liên hệ `-Xmx` |
-| `UseG1GC` / flag GC khác | Garbage collector được lựa chọn |
-| `ActiveProcessorCount` | Giá trị cấu hình thủ công cho số processor mà VM sử dụng để ra một số quyết định |
-| `MaxRAMPercentage` | Tỷ lệ RAM được cân nhắc khi tính heap tối đa nếu không đặt trực tiếp giới hạn phù hợp |
-| `UseContainerSupport` | Cơ chế VM xét thông tin container trong các bản HotSpot hỗ trợ |
+| `InitialHeapSize` | Initial heap size, usually related to `-Xms` |
+| `MaxHeapSize` | Maximum Java heap limit, usually related to `-Xmx` |
+| `UseG1GC` / other GC flags | Selected garbage collector |
+| `ActiveProcessorCount` | Manually configured processor count used by the VM for certain decisions |
+| `MaxRAMPercentage` | RAM percentage considered when computing max heap if no direct limit is set |
+| `UseContainerSupport` | Mechanism allowing the VM to inspect container limits on supported HotSpot builds |
 
-Flag có thể là **boolean, số, chuỗi hoặc size**; output thường biểu diễn size theo **bytes** hoặc định dạng nội bộ. Ví dụ `-Xmx256m` thường tương ứng `MaxHeapSize` khoảng **268435456 bytes** (256 × 1024 × 1024), nhưng đừng mặc định mọi ràng buộc/alignment/JVM đều giống nhau. Cần đọc **giá trị thực** tại tiến trình đích.
+Flags can be **boolean, numeric, string, or size**; output typically expresses sizes in **bytes** or internal format. For instance, `-Xmx256m` typically corresponds to a `MaxHeapSize` around **268435456 bytes** (256 × 1024 × 1024), though do not assume all constraints/alignments/JVMs are identical. Always read the **actual value** on the target process.
 
-Trong output `-all` của HotSpot, có thể xuất hiện ký hiệu giá trị và metadata về loại/nguồn, chẳng hạn `{product}`, `{default}`, `{command line}`, `{ergonomic}`; **diễn giải đúng theo phiên bản JVM đích**. Điều này giúp phân biệt:
-- **Giá trị mặc định:** JVM chọn nếu không có điều chỉnh áp dụng.
-- **Giá trị khai báo ở startup:** người vận hành, launcher hoặc cấu hình truyền vào.
-- **Giá trị được tính theo ergonomic logic:** JVM lựa chọn dựa trên môi trường và chính sách.
-- **Giá trị có thể được chỉnh khi chạy:** chỉ với flag đủ điều kiện thay đổi và công cụ có quyền; không coi mọi flag đều mutable.
+In HotSpot `-all` output, value markers and type/origin metadata may appear, such as `{product}`, `{default}`, `{command line}`, `{ergonomic}`; **interpret them according to the target JVM version**. This helps distinguish:
+- **Default value:** chosen by the JVM when no override applies.
+- **Startup-declared value:** passed by the operator, launcher, or configuration.
+- **Ergonomically computed value:** chosen by the JVM based on environment and policy.
+- **Runtime-modifiable value:** only for flags eligible for dynamic change with proper tool privileges; do not assume all flags are mutable.
 
-Đây là lớp **JVM options**. Nó **không** phải tập hợp `-D` system properties và **không** phải đối số truyền vào `main(String[] args)`. Hai nơi có chuỗi tên tương tự nhau vẫn có thể có ý nghĩa độc lập.
+This is the **JVM options** layer. It is **not** the set of `-D` system properties and **not** the arguments passed to `main(String[] args)`. Similar-looking names across those layers can still have independent meanings.
 
-### Vì sao “đã truyền -Xmx” vẫn phải xem VM.flags?
+### Why Check VM.flags Even When “-Xmx Was Already Passed”?
 
-Vì JVM có thể áp dụng tính toán, alignment, chính sách liên quan RAM/container, lựa chọn collector và các defaults theo version. So sánh startup với **giá trị hiệu lực** cho phép xác nhận giả thuyết “đã đặt -Xmx nhưng heap thực tế khác”. Nếu không thấy option trong `VM.flags` dạng rút gọn, không vội kết luận “chưa có”: sử dụng `VM.flags -all`, `VM.command_line` và `help`.
+Because the JVM can apply calculations, alignment, RAM/container policies, collector selection, and version-specific defaults. Comparing startup input with **effective values** lets you test the hypothesis “`-Xmx` was set, yet actual heap differs.” If an option does not appear in the short `VM.flags` output, do not hastily conclude “it isn't set”: check `VM.flags -all`, `VM.command_line`, and `help`.
 
-Không dùng `VM.flags` để kết luận giới hạn bộ nhớ **của cả process**: heap chỉ là một phần; metaspace, code cache, native buffers, stacks và GC/JIT còn tiêu thụ bộ nhớ riêng. Dù biết `MaxHeapSize`, vẫn cần process RSS/cgroup và công cụ memory khác nếu điều tra OOMKilled.
+Do not use `VM.flags` to conclude memory limits **for the entire process**: heap is only one part; metaspace, code cache, native buffers, stacks, and GC/JIT also consume separate memory. Even when `MaxHeapSize` is known, you still need process RSS/cgroup data and other memory tools when investigating OOMKilled.
 
-## 5. VM.system_properties — Java system properties hiện tại
+## 5. VM.system_properties — Current Java System Properties
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 jcmd 12345 VM.system_properties
 ~~~
 
-Nội dung là các cặp **`key=value`** mà Java system properties cung cấp trong JVM tại thời điểm đọc; những property tiêu biểu gồm:
+The output consists of **`key=value`** pairs provided by Java system properties inside the JVM at read time; typical properties include:
 
 ~~~text
 java.version=17...
@@ -154,54 +154,54 @@ file.encoding=...
 demo.mode=runtime
 ~~~
 
-Đây là **ví dụ rút gọn**, dấu `...` biểu thị giá trị phụ thuộc môi trường chứ không phải dữ liệu thực. Chương trình cũng có thể thêm/chỉnh property, ví dụ:
+This is an **abbreviated example**, where `...` denotes environment-dependent values rather than literal data. A program can also add/modify properties, for example:
 
 ~~~java
 System.setProperty("demo.mode", "runtime");
 String mode = System.getProperty("demo.mode");
 ~~~
 
-Đoạn trên chỉ là **minh họa API**, muốn chạy độc lập hãy dùng chương trình đầy đủ ở mục 7. Nếu JVM ban đầu được chạy với `-Ddemo.mode=startup` nhưng chương trình sau đó gọi `System.setProperty("demo.mode", "runtime")`, lúc chụp `VM.system_properties` có thể thấy `demo.mode=runtime`. Điều này là một chứng cứ **cấu hình hiện tại khác đầu vào startup**, không phải sự “mâu thuẫn” giữa hai lệnh.
+The snippet above is **API illustration only**; to run standalone, use the full program in Section 7. If a JVM was originally started with `-Ddemo.mode=startup` and the program later calls `System.setProperty("demo.mode", "runtime")`, capturing `VM.system_properties` may show `demo.mode=runtime`. That is evidence that **current config differs from startup input**, not a “contradiction” between two commands.
 
-Phân biệt ba nguồn thường bị trộn lẫn:
+Distinguish three frequently conflated sources:
 
-| Thứ được đọc | Ví dụ thiết lập | Cách kiểm tra | Giới hạn |
+| What is read | Setting example | How to inspect | Limitations |
 | --- | --- | --- | --- |
-| **Java system property** | `-Ddemo.mode=startup` hoặc `System.setProperty` | `VM.system_properties` / `System.getProperty` | Có thể bị đổi trong runtime |
-| **Environment variable** | `APP_MODE=prod` trong shell/pod | `System.getenv("APP_MODE")` hoặc công cụ OS/container | Không tự động trở thành Java system property |
-| **Application/framework config** | YAML, JSON, config server, secret manager, command-line application args | Cơ chế diagnostics/config của framework ứng dụng | Có thể hợp nhất nhiều nguồn theo precedence; chưa chắc là property của JVM |
+| **Java system property** | `-Ddemo.mode=startup` or `System.setProperty` | `VM.system_properties` / `System.getProperty` | Can be mutated at runtime |
+| **Environment variable** | `APP_MODE=prod` in shell/pod | `System.getenv("APP_MODE")` or OS/container tools | Does not automatically become a Java system property |
+| **Application/framework config** | YAML, JSON, config server, secret manager, command-line application args | Application framework diagnostics/config mechanisms | May merge multiple sources by precedence; not necessarily a JVM property |
 
-Ví dụ `SPRING_PROFILES_ACTIVE` là biến môi trường có thể được framework đọc và chuyển thành cấu hình ứng dụng, nhưng không được mặc định nó xuất hiện nguyên dạng trong `VM.system_properties`. Việc `java.version`/`user.dir` hiện trong hệ thống properties cũng không biến chúng thành environment variables.
+For example, `SPRING_PROFILES_ACTIVE` is an environment variable a framework may read and map into application config, but do not assume it appears verbatim in `VM.system_properties`. Likewise, `java.version`/`user.dir` appearing in system properties does not turn them into environment variables.
 
-**Lưu ý về snapshot:** properties có thể bị code khác thay đổi cùng lúc; chỉ coi output là ảnh chụp tại thời điểm lệnh thực thi. Khi thấy khác nhau giữa hai lần đọc, lưu timestamp và xác định code/config nào thực sự thay đổi chúng. Không lấy nó để suy ra trực tiếp **tất cả** biến môi trường, secrets và runtime configuration.
+**Snapshot note:** properties may be changed concurrently by other code; treat output strictly as a snapshot at command execution time. When two reads differ, save timestamps and identify which code/config mutated them. Do not use it to directly infer **all** environment variables, secrets, and runtime configuration.
 
-**Bảo vệ dữ liệu:** system properties có thể chứa endpoint nội bộ, user information, truststore/key store paths, proxy details, token hoặc thông tin nhạy cảm do app tự nhét vào `-D`. Không công khai dump thô; giới hạn người đọc và redact có kiểm soát khi tạo báo cáo.
+**Data protection:** system properties can contain internal endpoints, user info, truststore/keystore paths, proxy details, tokens, or sensitive data stuffed into `-D` by the app. Do not publish raw dumps; restrict access and perform controlled redaction when building reports.
 
-## 6. VM.info — bối cảnh tổng hợp của JVM và môi trường
+## 6. VM.info — Comprehensive JVM and Environment Context
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 jcmd 12345 VM.info
 ~~~
 
-`VM.info` in báo cáo thông tin về **JVM environment and status** theo bản cài đặt. Trên nhiều bản HotSpot, output có thể dài và gồm các nhóm về JVM/runtime, compiler/GC, cấu hình, OS, CPU, bộ nhớ hoặc các phần liên quan đến trạng thái VM. **Không dựa vào thứ tự hoặc danh mục section cố định**: một JDK khác, vendor khác hoặc bản nâng cấp có thể thay đổi những phần có mặt. Đọc `jcmd 12345 help VM.info` để biết command được hỗ trợ và tùy chọn cho đúng target.
+`VM.info` prints a report on **JVM environment and status** for the running installation. On many HotSpot builds, output can be lengthy and include sections on JVM/runtime, compiler/GC, configuration, OS, CPU, memory, or VM status details. **Do not rely on a fixed section order or catalog**: a different JDK, vendor, or upgrade may alter which sections appear. Run `jcmd 12345 help VM.info` to see supported command options for your exact target.
 
-Khi nào có ích:
-- Điều tra khác biệt giữa các máy/container dù cùng ứng dụng.
-- Bổ sung bối cảnh runtime cho bug report khi cần tái hiện: JDK build/vendor, OS, CPU, memory, trạng thái JVM tại thời điểm chụp.
-- Kết hợp với `VM.command_line` và `VM.flags` để xác minh environment effect, nhất là giới hạn container hoặc quyết định ergonomics.
-- Thu thêm bối cảnh khi thấy CPU/GC/memory bất thường mà log ứng dụng chỉ ghi triệu chứng.
+When it helps:
+- Investigating differences across machines/containers running the same application.
+- Adding runtime context to a bug report for reproduction: JDK build/vendor, OS, CPU, memory, JVM state at capture time.
+- Combining with `VM.command_line` and `VM.flags` to verify environment effects, especially container limits or ergonomic decisions.
+- Gathering extra context when CPU/GC/memory anomalies occur while application logs show only symptoms.
 
-**Không diễn giải quá mức:** `VM.info` không phải heap dump, thread timeline, CPU profiler, JFR recording hay bằng chứng đầy đủ cho từng phân bổ native memory. Tùy vấn đề, có thể cần `GC.heap_info`, `Thread.print`, GC logs/JFR, NMT hoặc metrics OS/container; chúng **nằm ngoài bốn lệnh chính** của bài này.
+**Do not over-interpret:** `VM.info` is not a heap dump, thread timeline, CPU profiler, JFR recording, or full accounting of every native memory allocation. Depending on the issue, you may need `GC.heap_info`, `Thread.print`, GC logs/JFR, NMT, or OS/container metrics; those lie **outside the four core commands** of this lesson.
 
-**Tính vận hành:** bốn command được JDK mô tả là diagnostics có tác động thấp, nhưng `VM.flags -all` và `VM.info` vẫn có thể tạo lượng text đáng kể, tốn thời gian đọc/lưu và chứa thông tin nhạy cảm. Tránh chạy lặp vô hạn hoặc thu thập tràn lan trong sự cố. Chọn thời điểm, PID, phạm vi và nơi lưu an toàn.
+**Operational aspect:** JDK documentation classifies these four commands as low-impact diagnostics, yet `VM.flags -all` and `VM.info` can still produce substantial text, take time to read/store, and contain sensitive data. Avoid tight polling loops or indiscriminate collection during incidents. Choose timing, PID, scope, and storage safely.
 
-## 7. Thực hành Java 17+: nhìn thấy khác biệt startup và runtime
+## 7. Java 17+ Practice: Observing Startup vs. Runtime Differences
 
-Chương trình dưới đây **chạy độc lập**, sử dụng Java 17+. Nó nhận một system property từ startup, sau đó **cố ý thay giá trị trong runtime**, in số lượng application arguments và giữ process sống đủ lâu để bạn gọi `jcmd` từ terminal khác.
+The program below **runs standalone** on Java 17+. It reads a system property from startup, **intentionally mutates it at runtime**, prints the count of application arguments, and keeps the process alive long enough for you to invoke `jcmd` from another terminal.
 
-Lưu nguyên mã vào **VmIntrospectDemo.java**:
+Save the code verbatim as **VmIntrospectDemo.java**:
 
 ~~~java
 public final class VmIntrospectDemo {
@@ -223,14 +223,14 @@ public final class VmIntrospectDemo {
 }
 ~~~
 
-Biên dịch rồi chạy ở **Terminal 1**:
+Compile and run in **Terminal 1**:
 
 ~~~bash
 javac VmIntrospectDemo.java
 java -Xms128m -Xmx256m -Ddemo.mode=startup VmIntrospectDemo alpha beta
 ~~~
 
-**Stdout chính xác của ứng dụng trước khi ngủ:**
+**Exact stdout of the application before sleeping:**
 
 ~~~text
 initial.demo.mode=startup
@@ -239,9 +239,9 @@ appArgCount=2
 ready
 ~~~
 
-Sau đó main thread ngủ tối đa khoảng 120 giây (thực tế có thể bị đánh thức muộn). Nếu thử trong terminal tương tác, có thể kết thúc bằng Ctrl+C sau khi kiểm tra. Chú ý đây là chương trình thí nghiệm, **không phải server có giao diện HTTP**.
+The main thread then sleeps for up to about 120 seconds (in practice it may wake slightly later). In an interactive terminal, you can stop it with Ctrl+C once done testing. Note that this is an experimental program, **not an HTTP server**.
 
-Trong **Terminal 2**, chạy khi tiến trình còn sống:
+In **Terminal 2**, run while the process is still alive:
 
 ~~~bash
 jcmd -l
@@ -252,104 +252,104 @@ jcmd 12345 VM.system_properties
 jcmd 12345 VM.info
 ~~~
 
-**Thay `12345` bằng PID của process `VmIntrospectDemo` thật.** Nếu container không liệt kê được qua `jcmd -l`, cần lấy PID từ đúng môi trường process.
+**Replace `12345` with the actual `VmIntrospectDemo` process PID.** If containers hide it from `jcmd -l`, obtain the PID from the proper process environment.
 
-Đối chiếu có mục tiêu:
+Targeted comparison:
 
-| Câu hỏi | Dấu hiệu mong đợi |
+| Question | Expected indicator |
 | --- | --- |
-| Có truyền `-Ddemo.mode=startup` không? | `VM.command_line` thường có đối số JVM khởi động tương ứng |
-| Giá trị property hiện tại là gì? | `VM.system_properties` có `demo.mode=runtime` do code đã sửa |
-| `alpha beta` thuộc JVM flags hay app arguments? | Chúng là **hai đối số ứng dụng**, xuất hiện theo cách launcher thể hiện trong `java_command`, không phải VM flags |
-| Có đặt `-Xms128m` và `-Xmx256m` không? | Startup chứa options; `VM.flags` có thể cho `InitialHeapSize` và `MaxHeapSize` hiệu lực |
-| Thông tin VM/OS từ đâu? | `VM.info` cung cấp bối cảnh runtime và môi trường, phụ thuộc JVM |
+| Was `-Ddemo.mode=startup` passed? | `VM.command_line` typically shows the corresponding startup JVM argument |
+| What is the current property value? | `VM.system_properties` shows `demo.mode=runtime` because the code modified it |
+| Are `alpha beta` JVM flags or app arguments? | They are **two application arguments**, appearing as represented by the launcher in `java_command`, not VM flags |
+| Were `-Xms128m` and `-Xmx256m` set? | Startup contains the options; `VM.flags` can show effective `InitialHeapSize` and `MaxHeapSize` |
+| Where do VM/OS details come from? | `VM.info` provides runtime and environment context, depending on the JVM |
 
-**Không đưa ra stdout giả cho `jcmd`:** mỗi môi trường có PID, Java build, OS, classpath, danh mục flags và lượng memory khác nhau. Output ví dụ ở trên chỉ minh họa cấu trúc, các dòng chắc chắn được chương trình in là bốn dòng ứng dụng đã nêu.
+**Do not fabricate fake stdout for `jcmd`:** each environment has a different PID, Java build, OS, classpath, flag list, and memory size. The example output above only illustrates structure; the guaranteed lines printed by the program are the four application lines shown above.
 
-### Bài tập tự kiểm tra
+### Self-Check Exercises
 
-1. Bỏ `-Ddemo.mode=startup` rồi chạy lại: `initial.demo.mode=unset`, sau đó property bị thay thành `runtime`. Lần này `VM.command_line` không có `-Ddemo.mode=startup`, nhưng `VM.system_properties` vẫn có `demo.mode=runtime`.
-2. Đổi `-Xmx256m` thành `-Xmx384m`: xem thay đổi ở `VM.command_line` và `MaxHeapSize` qua `VM.flags`. Không suy rằng RSS/cgroup memory bằng heap max.
-3. Bỏ hai đối số `alpha beta`: `appArgCount=0`; điều này không có nghĩa JVM hết flags hoặc system properties.
-4. Quan sát `VM.info` ở hai môi trường khác nhau; ghi rõ **những trường có mặt thực sự** trước khi so sánh, không tự giả định cùng schema output.
+1. Remove `-Ddemo.mode=startup` and run again: `initial.demo.mode=unset`, then the property is changed to `runtime`. This time `VM.command_line` has no `-Ddemo.mode=startup`, yet `VM.system_properties` still contains `demo.mode=runtime`.
+2. Change `-Xmx256m` to `-Xmx384m`: observe the change in `VM.command_line` and `MaxHeapSize` via `VM.flags`. Do not assume RSS/cgroup memory equals heap max.
+3. Omit the two arguments `alpha beta`: `appArgCount=0`; this does not mean the JVM lost its flags or system properties.
+4. Observe `VM.info` across two different environments; record **which fields are actually present** before comparing, rather than assuming an identical output schema.
 
-## 8. Quy trình đối chiếu cấu hình khi chẩn đoán sự cố
+## 8. Configuration Comparison Workflow During Incident Diagnostics
 
-Một bản thu có giá trị hơn nếu trả lời “process nào, lúc nào, đang thấy gì và khác dự kiến ở đâu?”:
+A capture record is far more valuable when it answers “which process, at what time, is seeing what, and where does it differ from expectations?”:
 
-**Bước 1 — Chỉ rõ tiến trình đích.** Ghi service, pod/container, host, timestamp có timezone, PID tại namespace đang dùng, Java version/vendor, deployment revision. PID có thể được OS tái sử dụng sau restart, nên cần liên hệ tới thời điểm start.
+**Step 1 — Specify the target process.** Record service, pod/container, host, timestamp with timezone, PID in the active namespace, Java version/vendor, and deployment revision. PIDs can be reused by the OS after a restart, so tie them to start time.
 
-**Bước 2 — Lưu dấu vết startup.** Thu `VM.command_line` để kiểm tra JVM options, agent, class/JAR và application arguments. So với deployment manifest/entrypoint đã triển khai thực tế, không chỉ file cấu hình nguồn.
+**Step 2 — Save the startup trace.** Capture `VM.command_line` to check JVM options, agents, class/JAR, and application arguments. Compare against the actually deployed manifest/entrypoint, not just source config files.
 
-**Bước 3 — Lưu giá trị flags.** Thu `VM.flags`; dùng `VM.flags -all` khi cần xác định cờ vắng mặt trong bản ngắn. Với nghi vấn heap/GC, đối chiếu `InitialHeapSize`, `MaxHeapSize`, GC choice và dấu chỉ ra nguồn giá trị nếu có.
+**Step 3 — Save flag values.** Capture `VM.flags`; use `VM.flags -all` when you need to find a flag omitted from the short view. For heap/GC suspicions, verify `InitialHeapSize`, `MaxHeapSize`, GC choice, and origin markers if available.
 
-**Bước 4 — Kiểm tra system properties.** Thu `VM.system_properties` và chỉ so sánh các key có liên quan sau khi lọc bí mật. Nếu runtime property khác `-D`, điều tra code đã gọi `System.setProperty`, initialization libraries hoặc cấu hình framework.
+**Step 4 — Check system properties.** Capture `VM.system_properties` and compare only relevant keys after filtering secrets. If a live property differs from `-D`, investigate code calling `System.setProperty`, initialization libraries, or framework config.
 
-**Bước 5 — Gắn môi trường thực thi.** Thu `VM.info` và số liệu OS/container nếu cần. Ví dụ hai pod có cùng `-Xmx` nhưng memory limit/CPU quota khác vẫn có thể hành xử khác nhau. `VM.info` hỗ trợ diễn giải, không thay thế dữ liệu cgroup hoặc metric sát thời điểm sự cố.
+**Step 5 — Attach execution context.** Capture `VM.info` and OS/container metrics if needed. For instance, two pods with the same `-Xmx` but different memory limits/CPU quotas can still behave differently. `VM.info` aids interpretation; it does not replace cgroup data or metrics near the incident time.
 
-**Bước 6 — Lập bảng expected/actual.** Tránh ghi “JVM sai cấu hình” chung chung. Ví dụ:
+**Step 6 — Build an expected/actual table.** Avoid vague notes like “JVM misconfigured”. For example:
 
-| Khoản cần xác minh | Dự kiến từ deployment | Thực tế từ process | Kết luận có thể kiểm chứng |
+| Item to verify | Expected from deployment | Actual from process | Verifiable conclusion |
 | --- | --- | --- | --- |
-| Heap tối đa | `-Xmx512m` | `VM.command_line` thấy `-Xmx256m`; `VM.flags` báo heap max tương ứng | Bản khởi động thực tế khác cấu hình mong đợi; truy entrypoint/override |
-| Property ứng dụng | `-Dapp.mode=prod` | Startup là `prod` nhưng live property là `test` | Có khả năng thay đổi sau startup; tìm nguồn mutation |
-| Java runtime | JDK 17 build đã duyệt | VM.info cho thấy vendor/build khác | Kiểm tra image digest/JDK đóng gói trước khi quy bug cho application |
+| Max heap | `-Xmx512m` | `VM.command_line` shows `-Xmx256m`; `VM.flags` reports corresponding max heap | Actual launch differs from expected config; trace entrypoint/override |
+| App property | `-Dapp.mode=prod` | Startup was `prod` but live property is `test` | Likely mutated after startup; find the mutation source |
+| Java runtime | Approved JDK 17 build | `VM.info` shows a different vendor/build | Check image digest/bundled JDK before blaming application code |
 
-Những giá trị trên **chỉ minh họa cách ghi**, không phải số liệu lấy từ một JVM cụ thể. Cần lưu output cùng mốc thời gian và không đưa chuỗi bí mật vào báo cáo.
+These values **illustrate only how to record**, not data taken from a real JVM. Save outputs with timestamps and exclude secret strings from reports.
 
-### Trường hợp khó: VM.flags không giống command line
+### Tricky Case: VM.flags Does Not Match Command Line
 
-Không phải mọi khác biệt đều là lỗi:
-- `-Xmx` được ánh xạ thành tên flag nội bộ và có thể có điều chỉnh theo alignment.
-- Một số flags được chọn **ergonomically** thay vì xuất hiện trong startup command.
-- `-XX:MaxRAMPercentage` cùng CPU/memory limit ảnh hưởng đến quyết định tự tính heap khi không có override liên quan.
-- Một số flag hỗ trợ thay đổi ở runtime, nên giá trị hiện tại có thể khác đầu vào lúc start; cần xác nhận cách chỉnh thay vì suy từ output duy nhất.
-- Khác vendor/JDK version có thể thay đổi flags được hỗ trợ và cơ chế default.
+Not every difference is a bug:
+- `-Xmx` maps to an internal flag name and may undergo alignment adjustments.
+- Some flags are chosen **ergonomically** rather than appearing on the startup command.
+- `-XX:MaxRAMPercentage` together with CPU/memory limits influences automatic heap calculation when no explicit override is given.
+- Some flags support runtime modification, so current values can differ from startup input; confirm how it was changed rather than guessing from a single output.
+- Different vendors/JDK versions can change supported flags and default mechanisms.
 
-Muốn chứng minh “cấu hình deploy bị override”, kết hợp startup arguments, giá trị hiệu lực, nguồn đặt flag (nếu JVM hiển thị) và cấu hình container/launcher; không suy chỉ từ một dòng.
+To prove “deployment config was overridden,” combine startup arguments, effective values, flag origin (if displayed by the JVM), and container/launcher configuration; do not infer from a single line.
 
-## 9. Khi jcmd thất bại hoặc output thiếu
+## 9. When jcmd Fails or Output Is Incomplete
 
-| Hiện tượng | Khả năng cần xem | Hành động tiếp theo |
+| Symptom | Possibilities to check | Next action |
 | --- | --- | --- |
-| `jcmd -l` không thấy process | PID namespace/container khác; JVM không được discover | Tìm PID qua process tool đúng namespace; không quét all-process |
-| `Could not attach` / permission denied | User/group khác, attach disabled, thư mục tạm hoặc môi trường hạn chế | Kiểm tra quyền và cơ chế attach; chạy công cụ ở môi trường phù hợp |
-| PID có lúc tồn tại, lúc không | Process restart/crash/exit, PID được tái sử dụng | Kiểm tra timestamp, start time, logs và container events |
-| `Unknown diagnostic command` | Vendor/JDK không hỗ trợ hoặc tên lệnh khác | Dùng `jcmd <pid> help` đúng JVM, không đoán option |
-| `VM.flags` thiếu flag muốn xem | Bản mặc định chỉ liệt kê nhóm hạn chế | Thử `VM.flags -all` nếu target hỗ trợ, đối chiếu `help` |
-| `VM.system_properties` không có env variable | OS env không phải Java property | Dùng công cụ env/container thích hợp và logic đọc config |
-| Output quá nhiều hoặc có bí mật | Command/info/property chứa dữ liệu vận hành nhạy cảm | Giới hạn phạm vi, lưu nội bộ, redact trước khi chia sẻ |
-| Số liệu hai lần khác nhau | Process đã restart, runtime đã đổi, hoặc đo sai thời điểm | Xác nhận PID + start time, version, timestamp và truy thay đổi |
+| `jcmd -l` does not see the process | Different PID namespace/container; JVM not discovered | Find PID via process tools in the proper namespace; avoid scanning all-process |
+| `Could not attach` / permission denied | Different user/group, attach disabled, temp dir, or restricted environment | Check permissions and attach mechanism; run tool in appropriate environment |
+| PID exists sometimes and disappears others | Process restarting/crashing/exiting, PID reused | Check timestamps, start time, logs, and container events |
+| `Unknown diagnostic command` | Unsupported by vendor/JDK or different command name | Run `jcmd <pid> help` on the target JVM; do not guess options |
+| `VM.flags` lacks the flag of interest | Default view lists a limited subset | Try `VM.flags -all` if supported by target; check `help` |
+| `VM.system_properties` lacks env variables | OS env vars are not Java properties | Use appropriate env/container tools and config loading logic |
+| Output too large or contains secrets | Command/info/properties contain sensitive operational data | Limit scope, store internally, redact before sharing |
+| Numbers differ between two captures | Process restarted, runtime changed, or measured at wrong time | Verify PID + start time, version, timestamp, and trace changes |
 
-**Không sửa cấu hình chỉ vì thấy một dòng không mong đợi.** Trước tiên xác minh mục đích và nguồn của giá trị, phiên bản JVM, cách khởi chạy, container limit và baseline. Bốn lệnh đang học là công cụ kiểm chứng trạng thái; muốn phân tích CPU hotspot, memory leak hay deadlock cần chứng cứ chuyên biệt.
+**Do not change configuration just because one unexpected line appears.** First verify the value's purpose and origin, JVM version, launch method, container limits, and baseline. The four commands studied here are state-verification tools; analyzing CPU hotspots, memory leaks, or deadlocks requires dedicated evidence.
 
-## 10. Lỗi thường gặp và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-- **Gọi `VM.command_line` là “cấu hình hiện tại của ứng dụng”.** Nó phản ánh startup command theo cách VM giữ lại; framework và runtime có thể đổi config sau đó.
-- **Lẫn `-D` với `-XX`.** `-Dkey=value` tạo Java system property, còn `-XX:...` đặt VM flag; chúng khác hệ thống.
-- **Lẫn args sau main class với JVM flags.** `java -Xmx256m App one two` có `one two` là đối số `main`, không phải JVM option.
-- **Thấy `VM.flags` ngắn rồi kết luận thiếu cờ.** Hỏi `VM.flags -all` và xem nguồn giá trị nếu cần.
-- **Nhầm số heap với bộ nhớ process/container.** `MaxHeapSize` không bao gồm toàn bộ memory footprint.
-- **Nhầm Java properties với environment.** `System.getProperty` và `System.getenv` có nguồn và cách quản lý khác nhau.
-- **Đọc mọi output như một schema cố định.** Section, flag và tên field của `VM.info` hoặc `VM.flags -all` thay đổi theo JDK/vendor.
-- **Đọc PID sai namespace.** Khi JVM chạy trong container, PID trên host và trong container khác nhau; phải gắn evidence với process cụ thể.
-- **Gọi command vào process đã restart.** PID có thể thay đổi hoặc tái sử dụng; cần timestamp và start time.
-- **Coi snapshot là nguyên nhân gốc.** Nó cho biết trạng thái, còn quan hệ nhân quả phải được chứng minh bằng timeline, metrics, logs và deployment events.
-- **Đưa secrets vào command line/properties rồi chia sẻ dump nguyên văn.** Phải xử lý dữ liệu nhạy cảm và hạn chế quyền truy cập.
-- **Dùng lệnh khác để “xác minh nhanh” nhưng thay đổi trạng thái.** `VM.set_flag` hoặc các command chủ động tác động VM là việc khác với bốn lệnh quan sát ở đây.
+- **Calling `VM.command_line` “the current application configuration”.** It reflects the startup command retained by the VM; frameworks and runtime code may alter config afterward.
+- **Confusing `-D` with `-XX`.** `-Dkey=value` creates a Java system property, whereas `-XX:...` sets a VM flag; they are separate systems.
+- **Confusing args after the main class with JVM flags.** In `java -Xmx256m App one two`, `one two` are `main` arguments, not JVM options.
+- **Seeing a short `VM.flags` output and concluding flags are missing.** Query `VM.flags -all` and check value origins if needed.
+- **Confusing heap numbers with process/container memory.** `MaxHeapSize` does not cover the entire memory footprint.
+- **Confusing Java properties with environment variables.** `System.getProperty` and `System.getenv` have different sources and management.
+- **Reading every output as a fixed schema.** Sections, flags, and field names in `VM.info` or `VM.flags -all` vary across JDKs/vendors.
+- **Reading a PID in the wrong namespace.** When a JVM runs in a container, host PID and container PID differ; tie evidence to the exact process.
+- **Running commands against a restarted process.** PIDs can change or be reused; verify timestamps and start time.
+- **Treating a snapshot as root cause.** It shows state; causality must be proven with timelines, metrics, logs, and deployment events.
+- **Putting secrets on command line/properties and sharing raw dumps.** Sanitize sensitive data and restrict access.
+- **Using other commands for a “quick check” that mutate state.** `VM.set_flag` or active VM commands are different from the four observation commands here.
 
-## 11. Checklist tóm tắt khi bàn giao sự cố
+## 11. Summary Checklist for Incident Handoff
 
-Một báo cáo về process Java nên có:
+A report on a Java process should contain:
 
-1. **Identity:** service, PID, host/container, thời điểm quan sát và phiên bản JDK.
-2. **Startup:** các JVM/application arguments có liên quan từ `VM.command_line`.
-3. **Effective VM settings:** các flags quan trọng và giá trị thực từ `VM.flags` hoặc `VM.flags -all`.
-4. **Current Java properties:** key liên quan trong `VM.system_properties`, có xác minh khác biệt với startup và đã lọc bí mật.
-5. **Environment/status:** các trường thực có từ `VM.info`, kết hợp OS/container metrics nếu giả thuyết cần.
-6. **Expected vs actual:** nguồn cấu hình dự kiến và bằng chứng thực tế, thời điểm thay đổi có thể có.
-7. **Điều chưa biết:** không phỏng đoán bản chất override hoặc nguyên nhân sự cố chỉ từ một snapshot.
+1. **Identity:** service, PID, host/container, observation timestamp, and JDK version.
+2. **Startup:** relevant JVM/application arguments from `VM.command_line`.
+3. **Effective VM settings:** key flags and actual values from `VM.flags` or `VM.flags -all`.
+4. **Current Java properties:** relevant keys in `VM.system_properties`, noting any startup discrepancy and with secrets redacted.
+5. **Environment/status:** actual fields observed from `VM.info`, combined with OS/container metrics if the hypothesis requires them.
+6. **Expected vs. actual:** expected configuration source and actual evidence, plus possible change timestamps.
+7. **Unknowns:** do not speculate on override mechanisms or incident root cause from a single snapshot.
 
-**Ghi nhớ:** `VM.command_line` nhìn vào **đầu vào khởi động**; `VM.flags` cho biết **giá trị flag JVM có hiệu lực**; `VM.system_properties` là **ảnh chụp Java properties hiện tại**; `VM.info` cung cấp **bối cảnh tổng hợp về môi trường và tình trạng JVM**. Đọc bốn lớp trên **cùng một PID, cùng khoảng thời gian, cùng JDK** để tránh ghép nhầm chứng cứ.
+**Key takeaway:** `VM.command_line` looks at **startup input**; `VM.flags` reveals **effective JVM flag values**; `VM.system_properties` is a **snapshot of current Java properties**; `VM.info` supplies **overall JVM environment and status context**. Read all four layers for **the same PID, same time window, and same JDK** to avoid mismatching evidence.
 
-**Tài liệu đối chiếu:** Oracle JDK 17, *The jcmd Command*, https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html. Dùng `jcmd <pid> help <command>` để xác nhận cú pháp và flags thực tế trên JVM đang điều tra.
+**Reference:** Oracle JDK 17, *The jcmd Command*, https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html. Use `jcmd <pid> help <command>` to verify actual syntax and flags on the JVM under investigation.

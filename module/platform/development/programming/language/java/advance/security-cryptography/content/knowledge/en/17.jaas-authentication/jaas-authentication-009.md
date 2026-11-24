@@ -1,28 +1,28 @@
-# 17.9 Ranh giới giữa cấu hình JAAS với mô hình security provider của JCA
+# 17.9 Boundary Between JAAS Configuration and the JCA Security Provider Model
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể chỉ ra chính xác thành phần nào quyết định **cách xác thực một chủ thể** và thành phần nào cung cấp **hiện thực thuật toán/dịch vụ bảo mật** trong Java. Bạn cũng có thể giải thích vì sao hai cơ chế đều được gọi là “provider” nhưng không dùng chung một danh sách đăng ký, nhận ra điểm giao đặc biệt ở `Configuration.getInstance(...)` và chẩn đoán lỗi ở đúng lớp.
+After this lesson, you will be able to pinpoint which component determines **how a subject is authenticated** and which component provides **the implementation of a security algorithm or service** in Java. You will also be able to explain why both mechanisms are called "providers" yet do not share the same registry, recognize the special intersection at `Configuration.getInstance(...)`, and diagnose errors at the right layer.
 
-**Ý chính:** Cấu hình JAAS chọn và phối hợp các `LoginModule` cho một ứng dụng đăng nhập. Mô hình `java.security.Provider` của JCA chọn hiện thực của một dịch vụ theo loại dịch vụ và tên thuật toán. Một `LoginModule` có thể *sử dụng* dịch vụ JCA, nhưng việc đăng ký provider JCA không tự đăng ký hay thay thế `LoginModule`.
+**Key takeaway:** JAAS configuration selects and coordinates the `LoginModule`s for an application login. The JCA `java.security.Provider` model selects the implementation of a service by service type and algorithm name. A `LoginModule` may *use* JCA services, but registering a JCA provider does not automatically register or replace a `LoginModule`.
 
-## 1. Hai trục mở rộng khác nhau
+## 1. Two Distinct Axes of Extensibility
 
-| Câu hỏi | JAAS (Java Authentication and Authorization Service) | JCA (Java Cryptography Architecture / Java Security provider) |
+| Question | JAAS (Java Authentication and Authorization Service) | JCA (Java Cryptography Architecture / Java Security provider) |
 |---|---|---|
-| Đối tượng cần giải quyết | Ai đang đăng nhập, dùng cơ chế xác thực nào, kết hợp các bước xác thực ra sao? | Ai cung cấp hiện thực cho `MessageDigest`, `Signature`, `Cipher`, `KeyStore`, `Mac`, `SecureRandom`…? |
-| API khởi đầu thường gặp | `new LoginContext("AppName")` rồi `login()` | `MessageDigest.getInstance("SHA-256")`, `Signature.getInstance("SHA256withRSA")`… |
-| Nơi chọn hiện thực | `javax.security.auth.login.Configuration` ánh xạ tên ứng dụng sang danh sách lớp `LoginModule` cùng control flag/options | Danh sách `java.security.Provider` đăng ký các `Provider.Service` theo loại dịch vụ và thuật toán |
-| Đơn vị được “cắm” | Lớp triển khai `javax.security.auth.spi.LoginModule` | Một provider đăng ký các hiện thực SPI như `MessageDigestSpi`, `SignatureSpi`, `CipherSpi` |
-| Kết quả điển hình | Trạng thái đăng nhập và `Subject` chứa `Principal`/credentials sau khi xác thực thành công | Một engine object có hiện thực thuật toán được chọn, ví dụ `MessageDigest` hoặc `Signature` |
-| Quy tắc kết hợp | Thứ tự module và `required`, `requisite`, `sufficient`, `optional` | Thứ tự ưu tiên provider, dịch vụ/thuật toán được hỗ trợ, provider chỉ định rõ nếu có |
-| Khi thay đổi cấu hình | Đổi phương pháp hoặc chuỗi xác thực cho entry đăng nhập | Đổi hiện thực cryptography/security service được gọi bởi API JCA |
+| Problem addressed | Who is logging in, which authentication mechanism is used, and how are authentication steps combined? | Who provides the implementation for `MessageDigest`, `Signature`, `Cipher`, `KeyStore`, `Mac`, `SecureRandom`…? |
+| Common entry-point API | `new LoginContext("AppName")` then `login()` | `MessageDigest.getInstance("SHA-256")`, `Signature.getInstance("SHA256withRSA")`… |
+| Where implementations are selected | `javax.security.auth.login.Configuration` maps an application name to a list of `LoginModule` classes along with control flags/options | The list of `java.security.Provider` instances registers `Provider.Service` entries by service type and algorithm |
+| Pluggable unit | A class implementing `javax.security.auth.spi.LoginModule` | A provider registering SPI implementations such as `MessageDigestSpi`, `SignatureSpi`, `CipherSpi` |
+| Typical outcome | Login state and a `Subject` containing `Principal`s/credentials after successful authentication | An engine object backed by the selected algorithm implementation, such as `MessageDigest` or `Signature` |
+| Composition rules | Module order and `required`, `requisite`, `sufficient`, `optional` | Provider priority order, supported services/algorithms, and an explicitly specified provider if given |
+| Effect of changing configuration | Changes the authentication method or stack for a login entry | Changes the cryptography/security service implementation called by JCA APIs |
 
-Vì vậy, “thay đổi nơi kiểm tra danh tính” và “thay đổi thư viện thực hiện chữ ký/giải mã” là hai thao tác khác nhau. Chúng có thể phối hợp trong cùng một luồng xác thực, nhưng không thay thế nhau.
+Therefore, "changing where identity is verified" and "changing the library that performs signing/decryption" are two separate operations. They can work together in the same authentication flow, but they do not replace each other.
 
-## 2. Cấu hình JAAS điều khiển `LoginContext` như thế nào?
+## 2. How Does JAAS Configuration Control `LoginContext`?
 
-Một cấu hình JAAS thường có dạng sau (ví dụ minh họa cho môi trường **đã có Kerberos**, không tự chạy nếu máy chưa được cấu hình Kerberos):
+A JAAS configuration typically looks like the following (an illustrative example for an environment that **already has Kerberos**, which will not run on its own if the machine is not configured for Kerberos):
 
 ```text
 BackendLogin {
@@ -31,43 +31,43 @@ BackendLogin {
 };
 ```
 
-- `BackendLogin` là **tên entry JAAS**. Lời gọi `new LoginContext("BackendLogin")` tra cứu chính tên này, không tra cứu tên provider JCA hay tên thuật toán.
-- `com.sun.security.auth.module.Krb5LoginModule` là **tên lớp LoginModule**; cơ chế của nó là xác thực Kerberos. Một module khác có thể kiểm tra tài khoản, token, chứng chỉ hoặc tích hợp hệ thống bên ngoài.
-- `required` là **control flag** cho toàn bộ tiến trình đăng nhập; `useTicketCache` là option do *chính* `Krb5LoginModule` hiểu. JAAS không suy luận option này thành một dịch vụ JCA.
-- `LoginContext` đọc `Configuration`, tạo các `LoginModule` được khai báo, gọi `initialize` và điều phối các bước. Nếu entry được yêu cầu không tồn tại, nó có thể thử entry mặc định `other`; nếu cả hai thiếu, việc tạo `LoginContext` thất bại.
+- `BackendLogin` is the **JAAS entry name**. Calling `new LoginContext("BackendLogin")` looks up this exact name, not a JCA provider name or an algorithm name.
+- `com.sun.security.auth.module.Krb5LoginModule` is the **LoginModule class name**; its mechanism is Kerberos authentication. Another module might check accounts, tokens, certificates, or integrate with an external system.
+- `required` is the **control flag** for the overall login process; `useTicketCache` is an option understood by `Krb5LoginModule` *itself*. JAAS does not interpret this option as a JCA service.
+- `LoginContext` reads the `Configuration`, instantiates the declared `LoginModule`s, calls `initialize`, and orchestrates the steps. If the requested entry does not exist, it may fall back to the default `other` entry; if both are missing, creating the `LoginContext` fails.
 
-Các control flag có ý nghĩa bảo mật rõ ràng:
+The control flags have clear security semantics:
 
-| Flag | Nếu module thất bại | Nếu module thành công |
+| Flag | If the module fails | If the module succeeds |
 |---|---|---|
-| `required` | Tiếp tục chạy các module sau nhưng toàn bộ lần đăng nhập cuối cùng vẫn thất bại | Tiếp tục chạy module sau; thành công của module này là điều kiện bắt buộc |
-| `requisite` | Kết thúc xử lý đăng nhập ngay với thất bại | Tiếp tục chạy module sau; cũng là điều kiện bắt buộc |
-| `sufficient` | Thường tiếp tục chạy module sau | Có thể kết thúc sớm với thành công nếu chưa có `required`/`requisite` trước đó thất bại |
-| `optional` | Thường tiếp tục chạy module sau | Thường tiếp tục chạy module sau; chỉ góp phần vào kết quả chung |
+| `required` | Continues running subsequent modules, but the overall login still ultimately fails | Continues running subsequent modules; this module's success is mandatory |
+| `requisite` | Terminates login processing immediately with failure | Continues running subsequent modules; also mandatory |
+| `sufficient` | Usually continues running subsequent modules | May terminate early with success if no prior `required`/`requisite` module failed |
+| `optional` | Usually continues running subsequent modules | Usually continues running subsequent modules; only contributes to the overall result |
 
-Nếu không có module `required` hay `requisite` thì ít nhất một module `sufficient` hoặc `optional` phải thành công. Đặt sai flag hay thứ tự có thể tạo luồng xác thực yếu hơn dự định. Một `sufficient` thành công **không** xóa lỗi của `required` đã chạy trước đó.
+If there is no `required` or `requisite` module, at least one `sufficient` or `optional` module must succeed. Setting the wrong flag or order can create a weaker authentication flow than intended. A succeeding `sufficient` module does **not** clear the failure of a previously executed `required` module.
 
-Luồng xử lý điển hình:
+Typical processing flow:
 
 ```text
-Ứng dụng
+Application
   -> LoginContext("BackendLogin")
   -> Configuration.getAppConfigurationEntry("BackendLogin")
-  -> các LoginModule theo thứ tự và control flag
-  -> login() từng module (kiểm chứng dữ liệu đầu vào)
-  -> nếu toàn bộ đăng nhập đạt: commit() các module
-     nếu thất bại: abort() và thu dọn trạng thái
-  -> Subject với Principal/credentials sau commit thành công
-  -> logout() khi kết thúc phiên xử lý
+  -> LoginModules in order and by control flag
+  -> login() on each module (validating input data)
+  -> if the overall login succeeds: commit() the modules
+     if it fails: abort() and clean up state
+  -> Subject with Principal/credentials after successful commit
+  -> logout() when the session ends
 ```
 
-`CallbackHandler` cho phép module yêu cầu dữ liệu đầu vào qua `NameCallback`, `PasswordCallback`… thay vì phụ thuộc giao diện nhập liệu cụ thể. `Subject` là nơi tập hợp danh tính/credential sau xác thực; một `Principal` có thể là tên người dùng hoặc danh tính khác. **Có `Subject` không đồng nghĩa mọi API sẽ tự kiểm tra quyền:** ứng dụng/hệ thống còn phải thực thi quy tắc authorization phù hợp.
+`CallbackHandler` allows a module to request input data via `NameCallback`, `PasswordCallback`, and similar callbacks instead of depending on a concrete input UI. `Subject` is the container for identities and credentials after authentication; a `Principal` can be a username or another identity. **Having a `Subject` does not mean every API will automatically enforce permission checks:** the application/system must still enforce appropriate authorization rules.
 
-Quan trọng về ranh giới: dù `LoginModule` là một SPI trong package `javax.security.auth.spi`, nó **không phải** một `java.security.Provider`. Việc thêm `LoginModule` vào file JAAS không đưa module đó vào `Security.getProviders()`.
+Important boundary note: even though `LoginModule` is an SPI in the `javax.security.auth.spi` package, it is **not** a `java.security.Provider`. Adding a `LoginModule` to a JAAS file does not place that module into `Security.getProviders()`.
 
-## 3. JCA chọn `Provider` như thế nào?
+## 3. How Does JCA Select a `Provider`?
 
-JCA tách API mà ứng dụng dùng khỏi hiện thực của các dịch vụ bảo mật. Với ví dụ bên dưới, ứng dụng yêu cầu **loại dịch vụ `MessageDigest` + thuật toán `SHA-256`**, không yêu cầu đăng nhập một người dùng:
+JCA separates the API used by an application from the implementations of security services. In the example below, the application requests the **`MessageDigest` service type + `SHA-256` algorithm**, not a user login:
 
 ```java
 MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -75,82 +75,82 @@ System.out.println(digest.getAlgorithm());
 System.out.println(digest.getProvider().getName());
 ```
 
-Đây là **đoạn mã đặt trong một method**; cần import `java.security.MessageDigest`. Tên provider ở dòng thứ hai phụ thuộc JDK và cấu hình runtime, vì vậy không nên giả định luôn là một tên cố định.
+This is a **snippet placed inside a method**; `java.security.MessageDigest` must be imported. The provider name on the second output line depends on the JDK and runtime configuration, so you should not assume it is always a fixed name.
 
-Cơ chế lựa chọn:
+Selection mechanism:
 
-1. `Security.getProviders()` trả về các `Provider` đã đăng ký và thứ tự ưu tiên của chúng.
-2. Mỗi provider khai báo các `Provider.Service`, ví dụ dịch vụ `MessageDigest` hỗ trợ `SHA-256` hay dịch vụ `Signature` hỗ trợ `SHA256withRSA`.
-3. `getInstance("thuật-toán")` không chỉ định provider sẽ tìm một hiện thực phù hợp theo cơ chế ưu tiên của runtime; JDK có thể áp dụng ưu tiên riêng theo thuật toán qua `jdk.security.provider.preferred`.
-4. `getInstance("thuật-toán", "ProviderName")` yêu cầu provider cụ thể; provider hoặc dịch vụ không tồn tại sẽ dẫn tới exception tương ứng.
-5. Engine API gọi xuống SPI của hiện thực đã chọn, ví dụ `MessageDigestSpi`. Provider có thể triển khai bằng Java, thư viện native hay phần cứng bảo mật.
+1. `Security.getProviders()` returns the registered `Provider`s and their priority order.
+2. Each provider declares `Provider.Service` entries—for example, a `MessageDigest` service supporting `SHA-256` or a `Signature` service supporting `SHA256withRSA`.
+3. `getInstance("algorithm")` without specifying a provider finds a matching implementation according to the runtime's priority mechanism; the JDK may apply algorithm-specific preferences via `jdk.security.provider.preferred`.
+4. `getInstance("algorithm", "ProviderName")` requests a specific provider; a missing provider or unsupported service results in the corresponding exception.
+5. The engine API delegates to the SPI of the selected implementation, such as `MessageDigestSpi`. A provider may be implemented in Java, via native libraries, or with security hardware.
 
-Có thể cấu hình provider từ file security của JDK bằng `security.provider.N` hoặc quản lý tại runtime bằng `Security.addProvider(...)` / `Security.insertProviderAt(...)`. Đây là thay đổi **danh sách dịch vụ JCA trong JVM**, không phải chỉnh chuỗi `LoginModule` của một entry JAAS. Đừng thay đổi thứ tự provider toàn cục một cách tùy tiện: mọi thành phần dùng JCA trong JVM đều có thể bị ảnh hưởng.
+Providers can be configured in the JDK security file via `security.provider.N` or managed at runtime via `Security.addProvider(...)` / `Security.insertProviderAt(...)`. This modifies the **JVM-wide JCA service registry**, not the `LoginModule` chain of a JAAS entry. Do not alter the global provider order arbitrarily: every component using JCA in the JVM can be affected.
 
-JCA/security provider không chỉ có primitive mật mã. Cơ chế provider còn hỗ trợ một số service bảo mật khác, trong đó có `Configuration` của JAAS (xem phần 4). Đây là nguồn gốc của sự nhầm lẫn tên gọi.
+JCA/security providers do not only cover cryptographic primitives. The provider mechanism also supports certain other security services, including JAAS `Configuration` (see Section 4). That is the root cause of the naming confusion.
 
-## 4. Điểm giao tinh tế: provider của `Configuration` không phải provider của `LoginModule`
+## 4. Subtle Intersection: A `Configuration` Provider Is Not a `LoginModule` Provider
 
-Từ “provider” có ít nhất ba ngữ cảnh cần tách bạch:
+The word "provider" has at least three distinct contexts that must be separated:
 
-| Cách gọi | Thành phần thực sự | Được chọn bằng gì? |
+| Term | Actual component | Selected by what? |
 |---|---|---|
-| Authentication provider trong tài liệu JAAS | Một lớp `LoginModule` thực hiện công nghệ xác thực | Entry `Configuration`, tên lớp, thứ tự và flag |
-| Login configuration provider | Một hiện thực `javax.security.auth.login.Configuration` cung cấp danh sách `LoginModule` | `Configuration.getConfiguration()`/`setConfiguration(...)` hoặc một factory `getInstance(...)` |
-| JCA security provider | `java.security.Provider` đăng ký các dịch vụ/thuật toán bằng SPI | Danh sách security providers và factory `getInstance(...)` của service |
+| Authentication provider in JAAS documentation | A `LoginModule` class implementing an authentication technology | `Configuration` entry, class name, order, and flag |
+| Login configuration provider | A `javax.security.auth.login.Configuration` implementation supplying the list of `LoginModule`s | `Configuration.getConfiguration()`/`setConfiguration(...)` or a `getInstance(...)` factory |
+| JCA security provider | A `java.security.Provider` registering services/algorithms via SPI | The security providers list and the service's `getInstance(...)` factory |
 
-Hai con đường tạo `Configuration` rất dễ bị lẫn:
+Two ways of obtaining a `Configuration` are especially easy to confuse:
 
-**Đường 1 — cấu hình JAAS mặc định/được cài đặt cho JVM.** `Configuration.getConfiguration()` lấy đối tượng `Configuration` đã được cài bằng `Configuration.setConfiguration(...)`, hoặc khởi tạo hiện thực mặc định. Security property `login.configuration.provider` có thể chỉ định **tên lớp** của hiện thực `Configuration`. Với hiện thực đọc file, đối tượng này đọc entry trong file JAAS. Việc đổi property này không tương đương `Security.addProvider(...)`.
+**Path 1 — the default/installed JAAS configuration for the JVM.** `Configuration.getConfiguration()` retrieves the `Configuration` object installed via `Configuration.setConfiguration(...)`, or instantiates the default implementation. The security property `login.configuration.provider` can specify the **class name** of the `Configuration` implementation. With the file-based implementation, this object reads entries from the JAAS file. Changing this property is not equivalent to `Security.addProvider(...)`.
 
-**Đường 2 — factory dùng chính mô hình provider của JCA.** `Configuration.getInstance("JavaLoginConfig", null)` tra cứu service **`Configuration`/`ConfigurationSpi`** trong danh sách security providers đã đăng ký, trả về một đối tượng `Configuration` do provider hỗ trợ. Đây đúng là một điểm tích hợp với JCA. Nếu service/type được yêu cầu không có, factory có thể ném `NoSuchAlgorithmException`. Không nên mặc định mọi vendor/JDK sẽ chọn cùng provider.
+**Path 2 — a factory using the JCA provider model itself.** `Configuration.getInstance("JavaLoginConfig", null)` looks up the **`Configuration`/`ConfigurationSpi`** service in the registered security providers list and returns a `Configuration` object supported by that provider. This genuinely is an integration point with JCA. If the requested service/type is unavailable, the factory may throw `NoSuchAlgorithmException`. Do not assume every vendor or JDK will select the same provider.
 
 ```java
 import javax.security.auth.login.Configuration;
 
-// Trích đoạn đặt trong method; provider hỗ trợ JavaLoginConfig phải có trong JVM.
+// Snippet placed inside a method; a provider supporting JavaLoginConfig must be present in the JVM.
 Configuration config = Configuration.getInstance("JavaLoginConfig", null);
 System.out.println(config.getProvider().getName());
 ```
 
-Sau khi có đối tượng `config`, việc xác thực vẫn phải dựa vào các `AppConfigurationEntry` mà `config` trả về. Chính các entry ấy xác định **lớp `LoginModule`**. `Configuration.getInstance(...)` không biến danh sách `LoginModule` thành danh sách `Provider.Service`.
+Once you have the `config` object, authentication still relies on the `AppConfigurationEntry` objects returned by `config`. Those entries determine the **`LoginModule` classes**. `Configuration.getInstance(...)` does not turn the `LoginModule` list into a `Provider.Service` list.
 
-Lập trình viên còn có thể truyền trực tiếp `Configuration` cho constructor `LoginContext(String, Subject, CallbackHandler, Configuration)` để chủ động chọn cấu hình của lần đăng nhập đó, thay vì chỉ phụ thuộc cấu hình JAAS toàn cục.
+Developers can also pass a `Configuration` directly to the `LoginContext(String, Subject, CallbackHandler, Configuration)` constructor to explicitly choose the configuration for that login attempt, rather than relying solely on the global JAAS configuration.
 
-Một `LoginModule` có thể dùng các engine JCA bên trong: ví dụ kiểm tra chữ ký số bằng `Signature`, truy cập khóa qua `KeyStore`, hay chạy thao tác mã hóa qua `Cipher`. Lúc ấy **JAAS chọn module**, còn **JCA chọn hiện thực cryptography/security service mà module gọi**:
+A `LoginModule` may use JCA engines internally: for example, verifying a digital signature with `Signature`, accessing keys through `KeyStore`, or running encryption operations via `Cipher`. At that point, **JAAS selects the module**, while **JCA selects the cryptography/security service implementation that the module calls**:
 
 ```text
-LoginContext -> Configuration -> LoginModule -> kiểm tra credential -> Subject
+LoginContext -> Configuration -> LoginModule -> verify credential -> Subject
                                        |
                                        +-> Signature/KeyStore/Cipher.getInstance(...)
-                                                -> JCA Provider -> SPI hiện thực
+                                                -> JCA Provider -> SPI implementation
 ```
 
-Điểm chung là khả năng thay thế hiện thực; ranh giới là **chọn quy trình xác thực** so với **chọn hiện thực một dịch vụ bảo mật**.
+What they share is the ability to swap implementations; the boundary is **selecting an authentication workflow** versus **selecting the implementation of a security service**.
 
-## 5. Phân biệt các tên cấu hình rất giống nhau
+## 5. Distinguishing Very Similar Configuration Names
 
-| Tên/API | Loại | Quyết định điều gì? |
+| Name/API | Kind | What does it control? |
 |---|---|---|
-| `-Djava.security.auth.login.config=demo-jaas.conf` | JVM **system property** | Vị trí file entry JAAS cho hiện thực cấu hình file mặc định |
-| `login.config.url.1`, `login.config.url.2`… | **Security properties** trong `conf/security/java.security` | Các URL cấu hình JAAS cho hiện thực đọc file |
-| `login.configuration.provider` | **Security property** | Tên lớp hiện thực `Configuration` được dùng cho cấu hình JAAS mặc định |
-| `Configuration.setConfiguration(config)` | Java API | Thay đối tượng `Configuration` JAAS toàn cục đã cài đặt |
-| `Configuration.getInstance(type, params)` | Java API sử dụng provider | Tìm hiện thực `ConfigurationSpi` của type qua JCA provider registry |
-| `security.provider.1`, `security.provider.2`… | **Security properties** | Đăng ký/thứ tự ưu tiên provider JCA |
-| `Security.addProvider(provider)` / `insertProviderAt(...)` | Java API | Thêm provider JCA tại runtime |
+| `-Djava.security.auth.login.config=demo-jaas.conf` | JVM **system property** | Location of the JAAS entry file for the default file-based configuration implementation |
+| `login.config.url.1`, `login.config.url.2`… | **Security properties** in `conf/security/java.security` | JAAS configuration URLs for the file-reading implementation |
+| `login.configuration.provider` | **Security property** | Class name of the `Configuration` implementation used for the default JAAS configuration |
+| `Configuration.setConfiguration(config)` | Java API | Replaces the globally installed JAAS `Configuration` object |
+| `Configuration.getInstance(type, params)` | Provider-backed Java API | Finds a `ConfigurationSpi` implementation for the type through the JCA provider registry |
+| `security.provider.1`, `security.provider.2`… | **Security properties** | JCA provider registration and priority order |
+| `Security.addProvider(provider)` / `insertProviderAt(...)` | Java API | Adds a JCA provider at runtime |
 
-Các system property bắt đầu bằng `-D` không đồng nhất với security properties lấy qua `Security.getProperty(...)`. File `java.security` là file cấu hình security của JDK; file `demo-jaas.conf` chứa **entry LoginModule**. Hai file phục vụ mục đích khác nhau.
+System properties starting with `-D` are not the same as security properties retrieved via `Security.getProperty(...)`. The `java.security` file is the JDK's security configuration file; `demo-jaas.conf` contains **`LoginModule` entries**. The two files serve different purposes.
 
-Khi hỏi “tôi đã cài provider rồi sao JAAS không đổi?”, cần kiểm tra bạn vừa cài **`java.security.Provider`**, đổi **`Configuration`**, hay sửa **entry `LoginModule`**. Ba thao tác không hoán đổi cho nhau.
+When asking "I already installed the provider, so why didn't JAAS change?", check whether you just installed a **`java.security.Provider`**, changed **`Configuration`**, or edited **`LoginModule` entries**. The three actions are not interchangeable.
 
-## 6. Ví dụ Java 17+: một lần JAAS login và một lần chọn provider JCA độc lập
+## 6. Java 17+ Example: One JAAS Login and One Independent JCA Provider Selection
 
-Ví dụ này chạy với JDK có JAAS/JCA tiêu chuẩn, không cần Kerberos. Để tập trung vào **cơ chế chọn module**, `DemoLoginModule` cố ý chấp nhận mọi lần đăng nhập và gắn principal giả lập. **Nó không xác thực credential thật, tuyệt đối không dùng để bảo vệ ứng dụng.**
+This example runs on a standard JDK with JAAS/JCA and does not require Kerberos. To stay focused on the **module selection mechanism**, `DemoLoginModule` intentionally accepts every login and attaches a mock principal. **It does not verify real credentials and must never be used to protect an application.**
 
-Tạo ba file cùng thư mục.
+Create three files in the same directory.
 
-**File `demo-jaas.conf`** — JAAS chọn lớp và control flag:
+**File `demo-jaas.conf`** — JAAS selects the class and control flag:
 
 ```text
 Demo {
@@ -158,7 +158,7 @@ Demo {
 };
 ```
 
-**File `DemoLoginModule.java`** — triển khai JAAS SPI:
+**File `DemoLoginModule.java`** — implements the JAAS SPI:
 
 ```java
 import java.security.Principal;
@@ -180,7 +180,7 @@ public class DemoLoginModule implements LoginModule {
 
     @Override
     public boolean login() {
-        passed = true; // Chỉ minh họa cơ chế; không xác thực người dùng thật.
+        passed = true; // Illustrates the mechanism only; does not authenticate a real user.
         return true;
     }
 
@@ -207,7 +207,7 @@ public class DemoLoginModule implements LoginModule {
 }
 ```
 
-**File `BoundaryDemo.java`** — ứng dụng gọi hai hệ thống:
+**File `BoundaryDemo.java`** — application calling both systems:
 
 ```java
 import java.security.MessageDigest;
@@ -231,14 +231,14 @@ public class BoundaryDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa ba file:
+Compile and run in the directory containing the three files:
 
 ```bash
 javac BoundaryDemo.java DemoLoginModule.java
 java -Djava.security.auth.login.config=demo-jaas.conf BoundaryDemo
 ```
 
-**Kết quả chuẩn** (đã kiểm chứng bằng biên dịch/chạy trên OpenJDK; phần provider chỉ in boolean nên không phụ thuộc tên vendor):
+**Expected output** (verified by compiling and running on OpenJDK; the provider check prints a boolean so it does not depend on vendor name):
 
 ```text
 JAAS principal: demo-user
@@ -247,54 +247,54 @@ JCA provider assigned: true
 JAAS principals after logout: 0
 ```
 
-Hãy lần theo đúng **hai đường chọn hiện thực**:
+Trace the exact **two implementation-selection paths**:
 
-1. `LoginContext("Demo")` tìm entry `Demo` trong file cấu hình JAAS. Entry chỉ định `DemoLoginModule` với flag `required`. `login()` rồi `commit()` thêm principal vào `Subject`; `logout()` gỡ principal.
-2. `MessageDigest.getInstance("SHA-256")` tra registry JCA để tìm provider của thuật toán SHA-256; không nhìn tên `Demo`, tên `DemoLoginModule` hay control flag `required`.
-3. Thay `DemoLoginModule` trong `demo-jaas.conf` sẽ thay luồng JAAS. Thay provider cung cấp `SHA-256` sẽ ảnh hưởng lần tạo `MessageDigest`. Mỗi thao tác độc lập trừ khi module xác thực tự gọi JCA ở bên trong.
+1. `LoginContext("Demo")` looks up the `Demo` entry in the JAAS configuration file. The entry specifies `DemoLoginModule` with the `required` flag. `login()` followed by `commit()` adds the principal to the `Subject`; `logout()` removes the principal.
+2. `MessageDigest.getInstance("SHA-256")` queries the JCA registry to find a provider for the SHA-256 algorithm; it does not inspect the name `Demo`, the class name `DemoLoginModule`, or the `required` control flag.
+3. Replacing `DemoLoginModule` in `demo-jaas.conf` changes the JAAS flow. Replacing the provider that supplies `SHA-256` affects `MessageDigest` instantiation. Each operation is independent unless the authentication module itself calls JCA internally.
 
-Ví dụ chỉ kiểm chứng wiring/luồng gọi. Trong hệ thống thật, `login()` phải kiểm tra bằng chứng xác thực qua dịch vụ đáng tin, xử lý bí mật phù hợp, sau đó mới `commit()` dữ liệu danh tính; không được xem một `Principal` do ứng dụng tự thêm là bằng chứng đã xác thực.
+This example only verifies wiring and call flow. In a real system, `login()` must validate authentication evidence through a trusted service, handle secrets properly, and only then `commit()` identity data; an application-added `Principal` must never be treated as proof of authentication.
 
-## 7. Định vị lỗi theo lớp thay vì sửa nhầm cấu hình
+## 7. Localizing Errors by Layer Instead of Misconfiguring
 
-| Triệu chứng | Nên kiểm tra trước | Không nên kết luận vội |
+| Symptom | Check first | Do not jump to the conclusion |
 |---|---|---|
-| `LoginException` báo thiếu `LoginModule` cho entry | Tên trong `LoginContext("...")`, file JAAS được load, entry `other`, tên lớp/cú pháp | “Chưa cài cryptographic provider” |
-| `LoginException` / `FailedLoginException` trong module | Credential, callback, tùy chọn, thứ tự và flag của module | “Sai thuật toán SHA-256” |
-| `ClassNotFoundException` hoặc lỗi tạo `LoginModule` | Classpath/module path, tên lớp, visibility/constructor, dependency | “Phải gọi `Security.addProvider`” |
-| `NoSuchAlgorithmException` từ `MessageDigest.getInstance`/`Signature.getInstance` | Tên thuật toán/dịch vụ và provider nào hỗ trợ nó | “Thiếu entry `LoginModule`” |
-| `NoSuchProviderException` khi chỉ rõ provider JCA | Tên/đăng ký provider JCA thực sự hiện diện | “JAAS control flag sai” |
-| `NoSuchAlgorithmException` từ `Configuration.getInstance` | Provider nào hỗ trợ service `Configuration` và type như `JavaLoginConfig` | “Mọi `LoginModule` đều chạy qua JCA” |
-| Login thành công nhưng vẫn truy cập tài nguyên sai | Authorization của ứng dụng, mapping principal → quyền, phiên làm việc | “`Subject` tự động bảo vệ tất cả API” |
+| `LoginException` reporting a missing `LoginModule` for an entry | Name in `LoginContext("...")`, loaded JAAS file, `other` entry, class name/syntax | "No cryptographic provider is installed" |
+| `LoginException` / `FailedLoginException` inside a module | Credentials, callbacks, options, module order, and flags | "Wrong SHA-256 algorithm" |
+| `ClassNotFoundException` or `LoginModule` instantiation error | Classpath/module path, class name, visibility/constructor, dependencies | "Must call `Security.addProvider`" |
+| `NoSuchAlgorithmException` from `MessageDigest.getInstance`/`Signature.getInstance` | Algorithm/service name and which provider supports it | "Missing `LoginModule` entry" |
+| `NoSuchProviderException` when specifying a JCA provider | Actual name/registration of the JCA provider present | "Wrong JAAS control flag" |
+| `NoSuchAlgorithmException` from `Configuration.getInstance` | Which provider supports the `Configuration` service and a type such as `JavaLoginConfig` | "Every `LoginModule` runs through JCA" |
+| Login succeeds, yet resource access still fails | Application authorization, principal → permission mapping, session handling | "`Subject` automatically protects every API" |
 
-Hướng kiểm tra ngắn gọn: tìm **API ném lỗi đầu tiên**. Lỗi ở `LoginContext`/`LoginModule` thường thuộc đường JAAS; lỗi từ engine `getInstance` thuộc việc chọn JCA service; lỗi authorization là lớp quyết định quyền độc lập. Nếu `LoginModule` gọi JCA bên trong, stack trace có thể đi qua **cả hai**; xác định chính xác bước thất bại.
+Quick diagnostic rule: locate **the first API that throws the error**. Errors in `LoginContext`/`LoginModule` usually belong to the JAAS path; errors from engine `getInstance` belong to JCA service selection; authorization errors belong to an independent permission-decision layer. If a `LoginModule` calls JCA internally, the stack trace may pass through **both**; identify the exact failing step.
 
-## 8. Khi hai hệ thống cùng xuất hiện trong ứng dụng thực tế
+## 8. When Both Systems Appear Together in Real-World Applications
 
-**Trường hợp A — thay phương thức đăng nhập:** chuyển từ module kiểm tra tài khoản sang Kerberos/LDAP bằng cách đổi cấu hình `LoginModule` và chuẩn bị hạ tầng tương ứng. Thêm provider SHA-256 không thực hiện chuyển đổi phương thức đăng nhập.
+**Case A — changing the login method:** switching from an account-checking module to Kerberos/LDAP is done by changing the `LoginModule` configuration and preparing the corresponding infrastructure. Adding a SHA-256 provider does not switch the login method.
 
-**Trường hợp B — khóa nằm trong HSM/PKCS#11:** đăng ký provider JCA/PKCS#11 để `KeyStore`/`Signature` dùng phần cứng. Một `LoginModule` có thể dùng nó khi xác thực dựa trên chữ ký/chứng chỉ, nhưng quy tắc “ai được đăng nhập” và cách ánh xạ sang `Principal` vẫn do luồng xác thực quản lý.
+**Case B — keys stored in an HSM/PKCS#11:** register a JCA/PKCS#11 provider so `KeyStore`/`Signature` use hardware. A `LoginModule` can use it when authenticating via signatures/certificates, but the rules for "who may log in" and how identities map to a `Principal` are still managed by the authentication flow.
 
-**Trường hợp C — ứng dụng đã xác thực nhưng cần ký tài liệu:** JAAS xác lập `Subject` của người dùng; API nghiệp vụ kiểm tra quyền được ký, rồi `Signature` lấy hiện thực từ JCA provider. “Xác thực thành công”, “có quyền ký” và “thuật toán ký hợp lệ” là ba kiểm tra riêng biệt.
+**Case C — an already-authenticated application needs to sign a document:** JAAS establishes the user's `Subject`; business APIs check signing permissions, and then `Signature` obtains an implementation from a JCA provider. "Authentication succeeded," "authorized to sign," and "valid signing algorithm" are three separate checks.
 
-**Trường hợp D — đổi provider JCA toàn JVM:** thay đổi có thể ảnh hưởng TLS, chữ ký, keystore và các engine khác cùng dùng provider. Hãy nêu lý do cụ thể khi pin tên provider; để JCA tự chọn khi không có yêu cầu tương thích, thiết bị hay tuân thủ đặc biệt.
+**Case D — changing the JVM-wide JCA provider:** the change can affect TLS, signatures, keystores, and other engines using that provider. State a concrete reason when pinning a provider name; let JCA choose automatically when there is no special compatibility, hardware, or compliance requirement.
 
-## 9. Nguyên tắc an toàn và ghi nhớ
+## 9. Safety Principles and Takeaways
 
-- **Không nhầm xác thực với phân quyền.** `Subject`/`Principal` mô tả danh tính sau JAAS; ứng dụng phải kiểm tra quyền trên tài nguyên, và một đối tượng `Subject` không tự khiến mọi API được bảo vệ.
-- **Không coi sự hiện diện của provider là bằng chứng xác thực.** `Security.getProviders()` chỉ cho biết dịch vụ JCA sẵn có; `MessageDigest` tạo được không nói gì về danh tính người dùng.
-- **Không đưa bí mật vào ví dụ demo hoặc log.** `CallbackHandler` nên chuyển dữ liệu nhập tới `LoginModule`; module phải kiểm chứng với hệ thống tin cậy và dọn credential khi không cần. Không dùng `SHA-256` đơn thuần để lưu mật khẩu; hệ thống mật khẩu cần phương pháp KDF phù hợp, salt và cấu hình công sức tính toán.
-- **Đọc thứ tự và control flag JAAS như một chính sách bảo mật.** `required`, `requisite`, `sufficient`, `optional` thay đổi điều kiện thành công; review bằng ca thành công và thất bại cho từng module.
-- **Phân biệt nơi cấu hình.** File JAAS chứa entry `LoginModule`; security properties cấu hình `Configuration` hoặc provider registry; mã ứng dụng gọi API quyết định bước nào được sử dụng.
+- **Do not confuse authentication with authorization.** `Subject`/`Principal` describes identity after JAAS; the application must enforce permissions on resources, and having a `Subject` object does not automatically protect every API.
+- **Do not treat provider presence as proof of authentication.** `Security.getProviders()` only tells you which JCA services are available; being able to create a `MessageDigest` says nothing about a user's identity.
+- **Do not put secrets into demo examples or logs.** `CallbackHandler` should pass user input to the `LoginModule`; the module must verify against a trusted system and clear credentials when no longer needed. Never use plain `SHA-256` to store passwords; password systems need a proper KDF, salt, and configured work factor.
+- **Read JAAS order and control flags as a security policy.** `required`, `requisite`, `sufficient`, and `optional` alter success conditions; review both success and failure cases for every module.
+- **Distinguish where configuration lives.** The JAAS file holds `LoginModule` entries; security properties configure `Configuration` or the provider registry; application code calls the API that determines which step is executed.
 
-Tự kiểm tra hiểu bài:
+Self-check questions:
 
-1. Gọi `Security.addProvider(new MyProvider())` có tự bổ sung `MyLoginModule` vào `LoginContext("App")` không? **Không**; phải cấu hình entry JAAS hoặc cung cấp `Configuration` tương ứng.
-2. Đổi `required` thành `sufficient` có ảnh hưởng `MessageDigest.getInstance("SHA-256")` không? **Không trực tiếp**; nó đổi chính sách kết hợp các module xác thực.
-3. Vì sao `Configuration.getInstance("JavaLoginConfig", null)` là ngoại lệ đáng nhớ? Vì **đối tượng cấu hình JAAS** trong API này được chọn qua cơ chế **JCA provider/`ConfigurationSpi`**; nội dung cấu hình ấy vẫn quyết định `LoginModule`.
-4. Nếu `LoginModule` dùng `Signature.getInstance(...)` và thiếu thuật toán, bạn sửa đâu? Kiểm tra **JCA service/algorithm/provider** mà module yêu cầu, đồng thời giữ nguyên việc JAAS quyết định module nào được gọi.
+1. Does calling `Security.addProvider(new MyProvider())` automatically add `MyLoginModule` to `LoginContext("App")`? **No**; you must configure the JAAS entry or supply a corresponding `Configuration`.
+2. Does changing `required` to `sufficient` affect `MessageDigest.getInstance("SHA-256")`? **Not directly**; it changes the policy for combining authentication modules.
+3. Why is `Configuration.getInstance("JavaLoginConfig", null)` a notable exception? Because in this API, **the JAAS configuration object** is selected via the **JCA provider/`ConfigurationSpi` mechanism**; the contents of that configuration still determine the `LoginModule`s.
+4. If a `LoginModule` uses `Signature.getInstance(...)` and the algorithm is missing, where do you fix it? Check the **JCA service/algorithm/provider** requested by the module, while keeping JAAS responsible for deciding which module is invoked.
 
-## Tài liệu chính thức
+## Official Documentation
 
 - Oracle, *JAAS Reference Guide* (Java 21): https://docs.oracle.com/en/java/javase/21/security/java-authentication-authorization-service-jaas-reference-guide.html
 - Oracle, *JAAS LoginModule Developer's Guide* (Java 21): https://docs.oracle.com/en/java/javase/21/security/java-authentication-and-authorization-service-jaas-loginmodule-developers-guide1.html

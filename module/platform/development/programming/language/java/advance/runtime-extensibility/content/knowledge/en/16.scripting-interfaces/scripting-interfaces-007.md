@@ -1,37 +1,37 @@
-# Đăng ký engine tường minh hoặc xây dựng ScriptEngineFactory, AbstractScriptEngine (JSR-223)
+# Explicit Engine Registration or Building ScriptEngineFactory and AbstractScriptEngine (JSR-223)
 
-## 1. Bài toán: host cần chạy một ngôn ngữ kịch bản qua hợp đồng thống nhất
+## 1. Problem: The Host Needs to Run a Scripting Language Through a Unified Contract
 
-Trong Java, **JSR-223 Scripting API** (package `javax.script`, module chuẩn `java.scripting`) định nghĩa các interface để ứng dụng **host** giao tiếp với một **script engine**. Host có thể yêu cầu đánh giá một đoạn script, truyền dữ liệu vào engine, nhận kết quả, cung cấp đầu ra hoặc đọc metadata ngôn ngữ mà không cần mã host phụ thuộc trực tiếp vào từng implementation.
+In Java, the **JSR-223 Scripting API** (`javax.script` package, standard `java.scripting` module) defines interfaces for a **host** application to communicate with a **script engine**. The host can request script evaluation, pass data into the engine, receive results, capture output, or inspect language metadata without coupling host code directly to individual implementations.
 
-Có hai cách để đưa một engine vào hệ thống:
+There are two ways to bring an engine into the system:
 
-1. **Đăng ký tường minh:** nếu host đã có một `ScriptEngineFactory`, gọi `ScriptEngineManager.registerEngineName`, `registerEngineExtension` hoặc `registerEngineMimeType` để ánh xạ tên/đuôi file/MIME type tới factory. Cách này rất hữu ích trong runtime plugin hoặc khi muốn kiểm soát rõ engine nào được kích hoạt.
-2. **Tự xây engine:** viết implementation của `ScriptEngineFactory` cùng engine kế thừa `AbstractScriptEngine`, rồi đăng ký factory tường minh hoặc đóng gói nó như một service provider để manager tự khám phá.
+1. **Explicit registration:** if the host already holds a `ScriptEngineFactory`, call `ScriptEngineManager.registerEngineName`, `registerEngineExtension`, or `registerEngineMimeType` to map a name/file extension/MIME type to the factory. This is very useful in plugin runtimes or when you want strict control over which engine is activated.
+2. **Building a custom engine:** implement `ScriptEngineFactory` along with an engine extending `AbstractScriptEngine`, then register the factory explicitly or package it as a service provider for automatic discovery by the manager.
 
-Đây là hai phần **bổ trợ**, không đối lập: một engine do bạn xây vẫn có thể được đăng ký tường minh; còn một engine của thư viện bên thứ ba cũng có thể được đăng ký tường minh bằng factory do thư viện cung cấp.
+These two options are **complementary**, not mutually exclusive: an engine you build can still be registered explicitly; conversely, a third-party library's engine can also be registered explicitly using the factory provided by that library.
 
-Một lưu ý từ JDK hiện đại: Java SE cung cấp **Scripting API**, nhưng **không bảo đảm đi kèm engine JavaScript hay engine cho bất kỳ ngôn ngữ cụ thể nào**. Nashorn không còn được đóng gói trong JDK từ JDK 15; việc `getEngineByName("JavaScript")` trả `null` ở nhiều môi trường hiện đại là bình thường. Muốn dùng một ngôn ngữ cụ thể, phải cung cấp implementation tương thích trên classpath/module path hoặc tự xây engine.
+A note on modern JDKs: Java SE provides the **Scripting API**, but **does not guarantee bundling a JavaScript engine or an engine for any specific language**. Nashorn is no longer packaged in the JDK starting with JDK 15; having `getEngineByName("JavaScript")` return `null` in many modern environments is normal. To use a specific language, you must supply a compatible implementation on the classpath/module path or build an engine yourself.
 
-### 1.1. Vai trò của từng thành phần
+### 1.1. Role of Each Component
 
-| Thành phần | Chức năng | Ai sở hữu |
+| Component | Responsibility | Owner |
 | --- | --- | --- |
-| `ScriptEngineManager` | Tìm engine factory, quản lý ánh xạ tên/extension/MIME, cấp engine | Host/application |
-| `ScriptEngineFactory` | Khai báo tên engine, phiên bản, ngôn ngữ, bí danh, định dạng file; tạo engine | Nhà cung cấp engine |
-| `ScriptEngine` | Đánh giá script, quản lý context và binding | Implementation của ngôn ngữ |
-| `AbstractScriptEngine` | Base class triển khai nhiều thao tác tiện ích của `ScriptEngine` | JDK, engine tự kế thừa |
-| `ScriptContext` | Context thực thi: scope, writer, reader, error writer | Host hoặc engine |
-| `Bindings` | Ánh xạ tên → đối tượng Java cho các biến/giá trị script | Theo từng scope/context |
-| `ScriptException` | Lỗi khi đọc/đánh giá script, có thể kèm line/column | Engine ném, host xử lý |
+| `ScriptEngineManager` | Discovers engine factories, manages name/extension/MIME mappings, issues engines | Host/application |
+| `ScriptEngineFactory` | Declares engine name, version, language, aliases, file formats; creates engines | Engine provider |
+| `ScriptEngine` | Evaluates scripts, manages contexts and bindings | Language implementation |
+| `AbstractScriptEngine` | Base class implementing convenience operations of `ScriptEngine` | JDK, subclassed by engine |
+| `ScriptContext` | Execution context: scopes, writer, reader, error writer | Host or engine |
+| `Bindings` | Name → Java object mapping for script variables/values | Per scope/context |
+| `ScriptException` | Error reading/evaluating scripts, optionally with line/column | Thrown by engine, handled by host |
 
-Luồng cơ bản:
+Basic flow:
 
 ```text
 Host
   |
   | new ScriptEngineManager()
-  | registerEngineName("math", myFactory) [tùy chọn]
+  | registerEngineName("math", myFactory) [optional]
   v
 ScriptEngineManager
   |
@@ -43,14 +43,14 @@ ScriptEngineFactory ---- getScriptEngine() ----> ScriptEngine
                                                 |
                                   Bindings / Reader / Writer
                                                 |
-                                  kết quả Java hoặc ScriptException
+                                  Java result or ScriptException
 ```
 
-## 2. Đăng ký engine tường minh với ScriptEngineManager
+## 2. Explicit Engine Registration with ScriptEngineManager
 
-### 2.1. Ba kiểu đăng ký
+### 2.1. Three Registration Methods
 
-Giả sử ứng dụng đã có biến `factory` kiểu `ScriptEngineFactory`:
+Suppose the application already has a `factory` variable of type `ScriptEngineFactory`:
 
 ```java
 ScriptEngineManager manager = new ScriptEngineManager();
@@ -64,48 +64,48 @@ ScriptEngine byExtension = manager.getEngineByExtension("mcalc");
 ScriptEngine byMime = manager.getEngineByMimeType("text/x-minicalc");
 ```
 
-Đây là **đoạn minh họa tích hợp**, chưa phải một chương trình độc lập: `factory` là implementation được cung cấp từ bên ngoài. Phần 5 trình bày một chương trình tự chứa cả factory, engine và manager để chạy được.
+This is an **integration illustration snippet**, not a standalone program: `factory` is supplied externally. Section 5 presents a self-contained runnable program including the factory, engine, and manager.
 
-Các điểm cần hiểu đúng:
+Key points to understand accurately:
 
-- `registerEngineName(String name, ScriptEngineFactory factory)` đăng ký bí danh nhận diện engine.
-- `registerEngineExtension(String extension, ScriptEngineFactory factory)` đăng ký tên phần mở rộng **không kèm dấu chấm**, ví dụ `mcalc` thay vì `.mcalc`.
-- `registerEngineMimeType(String mimeType, ScriptEngineFactory factory)` đăng ký loại nội dung, ví dụ `text/x-minicalc`.
-- Ba bảng ánh xạ **khác nhau**: đăng ký theo tên không tự động đăng ký extension/MIME tương ứng cho một factory chưa được khám phá qua SPI. Nếu host muốn hỗ trợ cả ba cách tra cứu, hãy đăng ký rõ các khóa cần thiết.
-- Đăng ký có hiệu lực với **instance manager đó**, không phải một registry toàn cục của mọi `ScriptEngineManager` trong cùng JVM.
-- Các phương thức `getEngineByName`, `getEngineByExtension` và `getEngineByMimeType` trả về `null` nếu không tìm hoặc không tạo được engine phù hợp; host phải kiểm tra `null` trước khi `eval`.
-- Manager sử dụng factory để nhận `ScriptEngine` (thường factory tạo một instance mới cho mỗi lần yêu cầu). Không nên mặc định nhiều engine từ cùng factory chia sẻ cùng `Bindings`, interpreter state hoặc thread safety.
-- Engine được đăng ký tường minh vẫn phải có class, dependency và quyền truy cập phù hợp trong class loader của host; **đăng ký** không tự động nạp mã còn thiếu từ internet, JAR không tồn tại hay module chưa giải quyết.
+- `registerEngineName(String name, ScriptEngineFactory factory)` registers an alias identifying the engine.
+- `registerEngineExtension(String extension, ScriptEngineFactory factory)` registers the extension name **without a leading dot**, e.g., `mcalc` instead of `.mcalc`.
+- `registerEngineMimeType(String mimeType, ScriptEngineFactory factory)` registers a content type, e.g., `text/x-minicalc`.
+- The three lookup tables are **separate**: registering by name does not automatically register extensions or MIME types for a factory that was not discovered via SPI. If the host wants to support all three lookup paths, register each required key explicitly.
+- Registration applies only to **that manager instance**, not a global registry across all `ScriptEngineManager` instances in the same JVM.
+- `getEngineByName`, `getEngineByExtension`, and `getEngineByMimeType` return `null` if no matching engine is found or created; the host must check for `null` before calling `eval`.
+- The manager uses the factory to obtain a `ScriptEngine` (typically the factory creates a new instance per request). Never assume multiple engines from the same factory share `Bindings`, interpreter state, or thread safety.
+- An explicitly registered engine must still have its classes, dependencies, and access permissions available in the host's class loader; **registering** does not automatically download missing code, load nonexistent JARs, or resolve missing modules.
 
-### 2.2. Khi nào dùng đăng ký tường minh?
+### 2.2. When Should You Use Explicit Registration?
 
-Cách này phù hợp khi host:
+This approach fits when the host:
 
-- Có danh sách engine được phê duyệt và chủ động tạo/nhận factory.
-- Nạp plugin bằng class loader/module layer riêng, rồi nhận factory thông qua API chia sẻ.
-- Muốn đặt alias riêng cho tenant hoặc phiên bản ngôn ngữ, không phụ thuộc thứ tự service discovery.
-- Muốn tắt một engine mà không sửa toàn bộ artifact trong JVM.
-- Muốn kiểm tra compatibility, quyền sử dụng, cấu hình, quota hoặc version **trước** khi cho phép eval.
+- Maintains an allowlisted set of engines and actively instantiates/receives factories.
+- Loads plugins via separate class loaders or module layers, then receives factories through a shared API.
+- Wants custom aliases per tenant or language version, independent of service discovery order.
+- Wants to disable an engine without modifying all artifacts in the JVM.
+- Wants to verify compatibility, permissions, configuration, quotas, or versions **before** allowing `eval`.
 
-Ví dụ, có thể áp dụng `registerEngineName("rules-v2", factoryV2)` thay vì thay thế bí danh `rules` mà nhiều ứng dụng đang dùng. Khi alias trùng, đăng ký mới trên cùng manager có thể thay đổi mapping tường minh của alias; nên quản lý và ghi nhận chính sách override, tránh việc plugin không đáng tin cậy chiếm tên chung.
+For instance, you can apply `registerEngineName("rules-v2", factoryV2)` instead of overwriting the `rules` alias used by existing applications. When aliases collide, a new registration on the same manager can replace that alias's explicit mapping; manage and document override policies to prevent untrusted plugins from hijacking shared names.
 
-### 2.3. Đăng ký tường minh khác với khám phá SPI
+### 2.3. Explicit Registration vs. SPI Discovery
 
-`ScriptEngineManager` có cơ chế tìm các `ScriptEngineFactory` qua service provider. Với classpath, JAR thường chứa descriptor:
+`ScriptEngineManager` includes a service provider discovery mechanism for `ScriptEngineFactory`. On the classpath, a JAR typically contains the descriptor:
 
 ```text
 META-INF/services/javax.script.ScriptEngineFactory
 ```
 
-Nội dung là tên class factory đã biên dịch, ví dụ:
+Its contents list the compiled factory class name, for example:
 
 ```text
 com.example.minicalc.MiniFactory
 ```
 
-Factory được khai báo cần thực sự tồn tại, implement `ScriptEngineFactory` và được service loader có khả năng khởi tạo theo quy định. Khi được khám phá, manager dùng metadata `getNames()`, `getExtensions()`, `getMimeTypes()` để tra cứu engine phù hợp. Chỉ có một tên class trong descriptor **không** bảo đảm mọi dependency, constructor hoặc implementation của engine hợp lệ.
+The declared factory must actually exist, implement `ScriptEngineFactory`, and be instantiable by the service loader as specified. Once discovered, the manager uses `getNames()`, `getExtensions()`, and `getMimeTypes()` metadata to look up matching engines. Merely having a class name in a descriptor **does not** guarantee that all dependencies, constructors, or engine implementations are valid.
 
-Với **named module**, thay vì descriptor classpath, module provider có thể công bố service bằng `provides` trong `module-info.java`:
+With a **named module**, instead of a classpath descriptor, the provider module can publish the service using `provides` in `module-info.java`:
 
 ```java
 module com.example.minicalc {
@@ -115,98 +115,98 @@ module com.example.minicalc {
 }
 ```
 
-Đây là **mô tả đóng gói module**, không phải file hoàn chỉnh chạy được cùng demo ở phần 5. Demo dùng class mặc định `MiniScriptDemo` để giảm số tệp; muốn build named module như trên, cần tách các class vào package `com.example.minicalc`, thêm đúng module descriptor, rồi bảo đảm module được resolve/hiển thị qua cách ứng dụng khám phá.
+This is a **module packaging descriptor**, not a complete runnable file paired with the section 5 demo. The demo uses the default class `MiniScriptDemo` to minimize file count; to build a named module as shown above, move the classes into package `com.example.minicalc`, add the proper module descriptor, and ensure the module is resolved/visible through the application's discovery path.
 
-Không nhầm những khái niệm:
+Do not confuse these concepts:
 
-- **`registerEngineName(...)`** nhận object factory có sẵn, không yêu cầu `META-INF/services`.
-- **Service discovery** nhận factory từ service descriptor/module metadata và các class loader phù hợp.
-- **`getEngineFactories()`** hữu ích khi xem các factory được phát hiện; không nên dùng danh sách này làm phép xác nhận duy nhất rằng một alias đã đăng ký tường minh đang hoạt động. Hãy gọi đúng `getEngineByName` hoặc kiểu lookup cần kiểm tra.
-- Khi manager dùng constructor mặc định, thread context class loader có thể ảnh hưởng khám phá SPI. Có overload `new ScriptEngineManager(classLoader)` để chọn loader khám phá một cách tường minh; điều này không thay thế việc kiểm tra class identity của `ScriptEngineFactory` thuộc API chung.
+- **`registerEngineName(...)`** accepts an existing factory object and requires no `META-INF/services`.
+- **Service discovery** loads factories from service descriptors/module metadata and appropriate class loaders.
+- **`getEngineFactories()`** is useful for inspecting discovered factories; do not rely on this list as the sole confirmation that an explicitly registered alias is active. Call the actual `getEngineByName` or relevant lookup method you intend to verify.
+- When the manager uses the default constructor, the thread context class loader can affect SPI discovery. There is an overload `new ScriptEngineManager(classLoader)` to choose the discovery loader explicitly; this does not replace verifying class identity of `ScriptEngineFactory` from the shared API.
 
-## 3. Thiết kế ScriptEngineFactory
+## 3. Designing ScriptEngineFactory
 
-`ScriptEngineFactory` cung cấp **metadata và phương thức tạo engine**. Một implementation không thể chỉ viết `getScriptEngine()` mà bỏ các phương thức còn lại: chúng là phần của interface và giúp host cùng công cụ biết engine hỗ trợ điều gì.
+`ScriptEngineFactory` provides **metadata and the engine factory method**. An implementation cannot just implement `getScriptEngine()` and ignore the other methods: they are part of the interface and tell the host and tooling what the engine supports.
 
-| API | Ý nghĩa trong bài | Giá trị từ ví dụ |
+| API | Meaning in This Lesson | Example Value |
 | --- | --- | --- |
-| `getEngineName()` | Tên sản phẩm/runtime engine | `MiniCalculator` |
-| `getEngineVersion()` | Phiên bản implementation engine | `1.0` |
-| `getLanguageName()` | Tên ngôn ngữ/script syntax | `MiniCalc` |
-| `getLanguageVersion()` | Phiên bản cú pháp/ngôn ngữ | `1.0` |
-| `getNames()` | Tên/bí danh để có thể được khám phá | `minicalc`, `mc` |
-| `getExtensions()` | Đuôi tệp thường dùng | `mcalc` |
-| `getMimeTypes()` | MIME type được công bố | `text/x-minicalc` |
-| `getParameter(String)` | Metadata cho các khóa `ScriptEngine.*`, `THREADING` | Giá trị tương ứng hoặc `null` |
-| `getMethodCallSyntax(...)` | Cách biểu diễn lời gọi phương thức trong ngôn ngữ | Demo không hỗ trợ, báo unsupported |
-| `getOutputStatement(...)` | Câu lệnh phát sinh output theo cú pháp engine | `print ...` |
-| `getProgram(String...)` | Ghép các câu lệnh thành chương trình | Nối bằng xuống dòng |
-| `getScriptEngine()` | Tạo `ScriptEngine` có khả năng eval | `new MiniEngine(this)` |
+| `getEngineName()` | Product/runtime name of the engine | `MiniCalculator` |
+| `getEngineVersion()` | Engine implementation version | `1.0` |
+| `getLanguageName()` | Language/script syntax name | `MiniCalc` |
+| `getLanguageVersion()` | Syntax/language version | `1.0` |
+| `getNames()` | Names/aliases for discovery | `minicalc`, `mc` |
+| `getExtensions()` | Common file extensions | `mcalc` |
+| `getMimeTypes()` | Advertised MIME types | `text/x-minicalc` |
+| `getParameter(String)` | Metadata for `ScriptEngine.*` keys, `THREADING` | Corresponding value or `null` |
+| `getMethodCallSyntax(...)` | How method calls are represented in the language | Unsupported in demo; throws unsupported |
+| `getOutputStatement(...)` | Output statement in the engine's syntax | `print ...` |
+| `getProgram(String...)` | Joins statements into a program | Joined with newlines |
+| `getScriptEngine()` | Creates a `ScriptEngine` capable of eval | `new MiniEngine(this)` |
 
-Một engine thực nên thống nhất metadata với parser của mình. Ví dụ `getProgram` trả nhiều câu lệnh cách nhau bởi newline thì `eval` phải xử lý được nhiều câu lệnh; `getOutputStatement` trả `print ...` thì interpreter phải biết lệnh `print`.
+A real engine should keep its metadata consistent with its parser. For example, if `getProgram` returns multiple statements separated by newlines, `eval` must handle multi-statement scripts; if `getOutputStatement` returns `print ...`, the interpreter must recognize the `print` command.
 
-### 3.1. Engine name và language name không đồng nghĩa
+### 3.1. Engine Name and Language Name Are Not Synonymous
 
-Một ngôn ngữ có thể có **nhiều implementation engine**. `getLanguageName()` mô tả ngôn ngữ mà script được viết, còn `getEngineName()` mô tả implementation. Tương tự, phiên bản ngôn ngữ (tập cú pháp/công năng) không nhất thiết thay đổi cùng lịch phát hành engine (bug fix, tối ưu, packaging).
+A single language can have **multiple engine implementations**. `getLanguageName()` describes the language scripts are written in, whereas `getEngineName()` describes the implementation. Likewise, the language version (syntax/feature set) does not necessarily change on the same release cadence as the engine (bug fixes, optimizations, packaging).
 
-Nếu các plugin cùng đăng ký một alias ngắn như `javascript` hoặc `rules`, host cần chọn implementation theo version/compatibility rõ ràng; chỉ biết name là chưa đủ để kết luận interpreter nào sẽ chạy.
+If plugins register short aliases like `javascript` or `rules`, the host should pick implementations using explicit version/compatibility metadata; knowing the name alone is not enough to determine which interpreter will run.
 
-### 3.2. Khóa THREADING
+### 3.2. The THREADING Key
 
-`ScriptEngineFactory.getParameter("THREADING")` cho biết mức độ cam kết concurrency của engine theo quy ước API. Trong demo, trả về **`null`**: engine **không cam kết** an toàn khi nhiều thread đánh giá đồng thời cùng một instance. Với engine tự viết có shared state, nên xác định policy riêng: tạo engine/context độc lập theo request, đồng bộ hóa, hoặc thiết kế interpreter không chia sẻ trạng thái mutable.
+`ScriptEngineFactory.getParameter("THREADING")` indicates the engine's concurrency guarantee per API conventions. In the demo, it returns **`null`**: the engine **does not guarantee** safety when multiple threads evaluate concurrently on the same instance. For custom engines with shared state, establish an explicit policy: create an independent engine/context per request, synchronize access, or design an interpreter with no shared mutable state.
 
-Không tự đặt `"MULTITHREADED"`, `"THREAD-ISOLATED"` hoặc `"STATELESS"` chỉ để làm đẹp metadata nếu runtime chưa thật sự đáp ứng hợp đồng đó. Cần phân biệt thread safety của interpreter với việc `Bindings` dùng chung có thể bị nhiều thread cập nhật.
+Do not set `"MULTITHREADED"`, `"THREAD-ISOLATED"`, or `"STATELESS"` just to make metadata look nice if the runtime does not genuinely satisfy that contract. Distinguish interpreter thread safety from shared `Bindings` being mutated concurrently by multiple threads.
 
-### 3.3. Các phương thức sinh cú pháp không được nói quá khả năng
+### 3.3. Syntax-Generation Methods Must Not Overstate Capabilities
 
-MiniCalc demo chỉ có lệnh `add`, `set` và `print`. Nó **không có method call syntax**, vì vậy `getMethodCallSyntax` ném `UnsupportedOperationException` thay vì tạo một chuỗi Java-looking nhưng không thể chạy. `getOutputStatement` chỉ hỗ trợ một dòng output đơn giản, còn `getProgram` nối các statement bằng newline. Với một ngôn ngữ thực, các hàm này phải escape chuỗi hợp lệ và trả code **mà parser thật có thể chấp nhận**.
+The MiniCalc demo only has `add`, `set`, and `print` commands. It has **no method call syntax**, so `getMethodCallSyntax` throws `UnsupportedOperationException` rather than generating a Java-looking string that cannot execute. `getOutputStatement` only supports simple single-line output, while `getProgram` joins statements with newlines. For a real language, these methods must escape strings properly and emit code **that the actual parser accepts**.
 
-## 4. Thiết kế AbstractScriptEngine
+## 4. Designing AbstractScriptEngine
 
-`AbstractScriptEngine` là base class giảm boilerplate cho `ScriptEngine`, nhưng nó **không chứa interpreter sẵn**. Khi kế thừa, tối thiểu phải cung cấp hành vi phù hợp cho:
+`AbstractScriptEngine` is a base class that reduces boilerplate for `ScriptEngine`, but **contains no built-in interpreter**. When extending it, you must at minimum implement:
 
 - `Object eval(String script, ScriptContext context) throws ScriptException`.
 - `Object eval(Reader reader, ScriptContext context) throws ScriptException`.
 - `Bindings createBindings()`.
 - `ScriptEngineFactory getFactory()`.
 
-Các overload tiện dụng như `engine.eval("...")`, `engine.put("x", value)` hay `engine.get("x")` làm việc thông qua cơ chế context/bindings của `AbstractScriptEngine`. Khi override hai phương thức eval có tham số `ScriptContext`, phải dùng chính context truyền vào, không bỏ qua để luôn thao tác trên một map global bí mật.
+Convenience overloads such as `engine.eval("...")`, `engine.put("x", value)`, or `engine.get("x")` operate through `AbstractScriptEngine`'s context/bindings machinery. When overriding the two `eval` methods taking `ScriptContext`, always use the passed `context` rather than ignoring it and operating on a secret global map.
 
-### 4.1. Bindings và scope
+### 4.1. Bindings and Scopes
 
-`Bindings` là map tên biến → giá trị Java. `ScriptContext` có các scope thông dụng:
+`Bindings` is a variable-name → Java-value map. `ScriptContext` has standard scopes:
 
-- **`ENGINE_SCOPE`**: trạng thái của context/engine được dùng trong lời gọi hiện tại. `engine.put(...)` thường đặt giá trị vào bindings của scope này.
-- **`GLOBAL_SCOPE`**: các giá trị chung có thể do host hoặc manager cấp. Lookup của `ScriptContext.getAttribute(name)` tìm theo thứ tự scope; giá trị ở `ENGINE_SCOPE` có thể che giá trị cùng tên ở `GLOBAL_SCOPE`.
+- **`ENGINE_SCOPE`**: state of the context/engine used during the current call. `engine.put(...)` typically stores entries in this scope's bindings.
+- **`GLOBAL_SCOPE`**: shared values optionally provided by the host or manager. `ScriptContext.getAttribute(name)` searches scopes in order; a value in `ENGINE_SCOPE` shadows a same-named value in `GLOBAL_SCOPE`.
 
-Trong demo, `engine.put("seed", 7L)` đưa biến vào engine scope. Lệnh `add $seed 5` đọc biến bằng `context.getAttribute("seed")`. Lệnh `set total 20` ghi vào `context.setAttribute("total", 20L, ScriptContext.ENGINE_SCOPE)`, sau đó `engine.get("total")` đọc lại được.
+In the demo, `engine.put("seed", 7L)` places a variable into engine scope. The command `add $seed 5` reads the variable via `context.getAttribute("seed")`. The command `set total 20` writes via `context.setAttribute("total", 20L, ScriptContext.ENGINE_SCOPE)`, which `engine.get("total")` can then read back.
 
-Cần nhớ: một engine có thể nhận **ScriptContext khác nhau** cho mỗi lần đánh giá. Mã engine không nên dùng `this.getContext()` thay cho `context` của overload khi caller cố ý truyền context riêng.
+Remember: an engine can receive a **different ScriptContext** on each evaluation. Engine code should not read `this.getContext()` instead of the `context` parameter passed to the overload when the caller deliberately supplies a private context.
 
-### 4.2. Reader và Writer
+### 4.2. Reader and Writer
 
-Một script có thể được cung cấp qua `String` hoặc `Reader`. Thực thi `eval(Reader, ScriptContext)` nên đọc đủ văn bản, xử lý IOException và ném `ScriptException` theo contract. Mã demo chọn đọc toàn bộ `Reader` vào `StringBuilder` rồi gọi lại parser String; cách đó đơn giản nhưng nên đặt giới hạn kích thước input khi nhận script bên ngoài.
+A script can be supplied via a `String` or a `Reader`. Implementing `eval(Reader, ScriptContext)` should read the full text, handle `IOException`, and throw `ScriptException` per the contract. The demo chooses to read the entire `Reader` into a `StringBuilder` and delegate to the String parser; this is simple, though you should enforce an input size limit when accepting external scripts.
 
-Để viết output, interpreter dùng `context.getWriter()` chứ không in trực tiếp vào `System.out`. Nhờ đó host có thể dùng `StringWriter` trong test, ghi file/log, hoặc chuyển output tới giao diện khác. `context.getErrorWriter()` và `context.getReader()` cũng có thể được ngôn ngữ sử dụng khi cần error stream hay stdin, nhưng parser đơn giản ở đây không cần chúng.
+To emit output, the interpreter uses `context.getWriter()` rather than printing directly to `System.out`. That lets the host supply a `StringWriter` in tests, write to files/logs, or route output to another UI. `context.getErrorWriter()` and `context.getReader()` can also be used by the language when an error stream or stdin is needed, though this simple parser does not need them.
 
-### 4.3. Parse error thành ScriptException
+### 4.3. Turning Parse Errors into ScriptException
 
-Trong JSR-223, lỗi cú pháp hoặc lỗi đánh giá nên được diễn đạt bằng `ScriptException`, giữ thông tin nguyên nhân/vị trí khi có thể. Một bản parser thực có thể dùng các constructor của `ScriptException` để khai báo tên tệp, dòng/cột cụ thể. Mã demo minh họa việc thêm số dòng vào message, nên không giả vờ có parser hoàn chỉnh hoặc nguồn script đa tệp.
+In JSR-223, syntax or evaluation errors should be expressed as `ScriptException`, preserving cause and location information when possible. A real parser can use `ScriptException` constructors that specify filename, line, and column. The demo illustrates prepending line numbers to the message, without pretending to be a full parser or multi-file script loader.
 
-Phân biệt lỗi đánh giá script với lỗi xảy ra khi host cấp class loader, tạo factory, thiết lập context hoặc quản lý lifecycle. Không tùy tiện bắt mọi `Throwable` để chuyển thành `ScriptException`; điều đó có thể nuốt lỗi JVM nghiêm trọng ngoài phạm vi interpreter.
+Distinguish script evaluation errors from errors occurring when the host supplies a class loader, creates a factory, configures a context, or manages lifecycle. Do not blindly catch every `Throwable` and wrap it into `ScriptException`; doing so can swallow critical JVM errors outside the interpreter's scope.
 
-## 5. Ví dụ Java 17+ chạy được: tự tạo MiniCalc và đăng ký theo ba cách
+## 5. Runnable Java 17+ Example: Building MiniCalc and Registering Three Ways
 
-Ví dụ **một file Java hoàn chỉnh** sử dụng Scripting API chuẩn có trong JDK 17. Ngôn ngữ MiniCalc intentionally nhỏ để việc đăng ký, factory, bindings và context có thể kiểm chứng rõ ràng:
+A **complete single-file Java example** using the standard Scripting API bundled in JDK 17. The MiniCalc language is intentionally tiny so registration, factory, bindings, and context behavior can be verified clearly:
 
-- `add <a> <b>`: cộng hai số nguyên hoặc biến có cú pháp `$name`, trả `long`.
-- `set <name> <value>`: đặt số vào `ENGINE_SCOPE` và trả số vừa đặt.
-- `print <text>`: ghi text và xuống dòng vào `ScriptContext.getWriter()`, trả `null`.
-- Dòng trống và dòng bắt đầu bằng `#` được bỏ qua.
-- Có thể đánh giá nhiều dòng; kết quả `eval` là kết quả của lệnh đã thực hiện cuối cùng.
-- Lệnh không hợp lệ hoặc phép tính sai được báo qua `ScriptException`.
+- `add <a> <b>`: adds two integers or `$name` variables, returning `long`.
+- `set <name> <value>`: stores a number in `ENGINE_SCOPE` and returns the stored value.
+- `print <text>`: writes text and a newline to `ScriptContext.getWriter()`, returning `null`.
+- Blank lines and lines starting with `#` are skipped.
+- Multi-line scripts can be evaluated; `eval` returns the result of the last executed command.
+- Invalid commands or arithmetic errors are reported via `ScriptException`.
 
-**Lưu tệp đúng tên `MiniScriptDemo.java`** trong thư mục làm việc:
+**Save the file as `MiniScriptDemo.java`** in your working directory:
 
 ```java
 import java.io.IOException;
@@ -394,16 +394,16 @@ public class MiniScriptDemo {
 }
 ```
 
-### 5.1. Biên dịch và chạy
+### 5.1. Compile and Run
 
-Dùng JDK 17 trở lên, không cần thư viện ngoài:
+Use JDK 17 or newer, with no external libraries:
 
 ```bash
 javac --release 17 MiniScriptDemo.java
 java MiniScriptDemo
 ```
 
-**Stdout chính xác**, đã được kiểm tra bằng `javac --release 17` và `java`:
+**Exact stdout**, verified with `javac --release 17` and `java`:
 
 ```text
 factory: MiniCalculator
@@ -417,49 +417,49 @@ writer: Hello from Reader
 invalid: line 1: unknown command: unknown
 ```
 
-### 5.2. Vì sao mỗi dòng ra kết quả này?
+### 5.2. Why Does Each Line Produce This Result?
 
-1. `factory: MiniCalculator`: manager tra alias `math`, gọi `MiniFactory.getScriptEngine()` và engine trả đúng factory qua `getFactory()`.
-2. `sum: 12`: `engine.put("seed", 7L)` lưu một giá trị vào bindings; parser giải `$seed` thành `7` rồi cộng `5`.
-3. `last: 22`: script nhiều dòng lưu `total = 20`, sau đó tính `add $total 2`; kết quả cuối là `22`.
-4. `binding: 20`: `engine.get("total")` trả giá trị `set` lưu trong `ENGINE_SCOPE`.
-5. `extension: 3` và `mime: 30`: manager tìm được factory theo hai khóa đã đăng ký riêng. Mỗi `getEngineBy...` trả một engine thích hợp và chạy phép cộng độc lập.
-6. `reader: 7`: overload `eval(Reader, context)` đọc `StringReader` thành script, thực hiện lệnh `print` rồi `add`. Giá trị cuối là `7`.
-7. `writer: Hello from Reader`: output của lệnh `print` được ghi vào `StringWriter` do host cấp, không tự in ra terminal ở bước interpreter.
-8. `invalid: ...`: lệnh không nằm trong tập cú pháp hợp lệ bị chuyển thành `ScriptException` với số dòng và nguyên nhân.
+1. `factory: MiniCalculator`: the manager looks up alias `math`, calls `MiniFactory.getScriptEngine()`, and the engine returns the matching factory via `getFactory()`.
+2. `sum: 12`: `engine.put("seed", 7L)` stores a value in bindings; the parser resolves `$seed` to `7` and adds `5`.
+3. `last: 22`: the multi-line script stores `total = 20`, then computes `add $total 2`; the final result is `22`.
+4. `binding: 20`: `engine.get("total")` returns the value `set` stored in `ENGINE_SCOPE`.
+5. `extension: 3` and `mime: 30`: the manager finds the factory under the two separately registered keys. Each `getEngineBy...` returns an appropriate engine and runs addition independently.
+6. `reader: 7`: the `eval(Reader, context)` overload reads the `StringReader` into a script, executes `print`, and then `add`. The final value is `7`.
+7. `writer: Hello from Reader`: output from `print` is written to the host-supplied `StringWriter`, not printed directly to the terminal by the interpreter.
+8. `invalid: ...`: an instruction outside the valid syntax becomes a `ScriptException` with line number and cause.
 
-Đầu ra không phụ thuộc engine JavaScript cài sẵn. Chương trình chủ động tạo `MiniFactory`, đăng ký ba bảng và không cần `META-INF/services`. Ngoài ra, đây là **ngôn ngữ biểu thức minh họa** chứ không phải trình thông dịch JavaScript, Python hay một DSL production hoàn chỉnh.
+The output does not depend on a pre-installed JavaScript engine. The program explicitly creates `MiniFactory`, registers the three tables, and requires no `META-INF/services`. Moreover, this is an **illustrative expression language**, not a JavaScript/Python interpreter or a complete production DSL.
 
-### 5.3. Những chi tiết triển khai cần nhìn kỹ
+### 5.3. Implementation Details Worth Inspecting Closely
 
-- `MiniFactory` là **static nested public class** của `MiniScriptDemo`, nên dễ đóng gói trong một tệp chạy thử. Nếu muốn phát hành SPI độc lập, thường tách factory/engine ra package rõ ràng.
-- `getScriptEngine()` trả **engine mới**, vì factory không lưu một engine singleton dùng chung vô tình chia sẻ mutable state.
-- `AbstractScriptEngine` được sử dụng để tập trung logic ở hai overload `eval(String, ScriptContext)` và `eval(Reader, ScriptContext)`. Các convenience overload đi qua logic đó.
-- `createBindings()` tạo `SimpleBindings` mới, có thể thay bằng implementation có kiểm soát nếu cần nhưng phải tuân contract của `Bindings`.
-- `getFactory()` trả cùng `factory` được truyền cho constructor, giữ nhất quán metadata mà host nhìn thấy.
-- `Math.addExact` làm phép cộng kiểm soát tràn số `long`. Tràn gây `ArithmeticException` và được bọc thành `ScriptException` với thông tin dòng.
-- `Number.longValue()` trong demo đơn giản hóa chuyển đổi, có thể cắt phần thập phân của `Double`. DSL thật nên xác định chính sách kiểu số, overflow và rounding thay vì ép bừa.
-- `split("\\s+")` chấp nhận token cách nhau bằng whitespace cho lệnh `add/set`; `print` lấy phần text sau prefix, không hỗ trợ quoting/escaping đầy đủ.
-- `getOutputStatement` mới xử lý newline `\n` ở mức minh họa. Nếu engine chấp nhận dữ liệu người dùng không tin cậy, cần grammar, escaping và giới hạn input hoàn chỉnh, không ghép raw string thành code.
+- `MiniFactory` is a **static nested public class** of `MiniScriptDemo`, making it easy to package in a single runnable test file. When publishing a standalone SPI, factories and engines are normally placed in dedicated packages.
+- `getScriptEngine()` returns a **new engine**, so the factory does not hold a shared singleton engine that accidentally leaks mutable state.
+- `AbstractScriptEngine` is used to centralize logic in the two overloads `eval(String, ScriptContext)` and `eval(Reader, ScriptContext)`. The convenience overloads route through them.
+- `createBindings()` creates a fresh `SimpleBindings`, which can be swapped for a controlled implementation if needed as long as it adheres to the `Bindings` contract.
+- `getFactory()` returns the exact `factory` passed to the constructor, keeping the metadata visible to the host consistent.
+- `Math.addExact` performs overflow-checked `long` addition. Overflow raises `ArithmeticException`, which is wrapped into `ScriptException` with line information.
+- `Number.longValue()` in the demo simplifies conversion and may truncate fractional parts of a `Double`. A real DSL should define explicit numeric type, overflow, and rounding policies instead of coercing blindly.
+- `split("\\s+")` accepts whitespace-delimited tokens for `add/set`; `print` takes the substring after the prefix without full quoting/escaping support.
+- `getOutputStatement` only checks newline `\n` at an illustrative level. If an engine accepts untrusted user data, use a proper grammar, escaping, and input limits rather than concatenating raw strings into code.
 
-## 6. Tạo engine và factory có thể bảo trì trong dự án thật
+## 6. Building Maintainable Engines and Factories in Real Projects
 
-### 6.1. Tách các tầng theo trách nhiệm
+### 6.1. Separating Layers by Responsibility
 
-Một kiến trúc mở rộng bền vững nên phân tách:
+A sustainable extensible architecture separates:
 
 ```text
 host scripting module
   ScriptEngineManager
-    - chọn engine theo policy
-    - kiểm tra metadata/compatibility
-    - cấp ScriptContext/Bindings
+    - select engine per policy
+    - verify metadata/compatibility
+    - provision ScriptContext/Bindings
     - logging, quota, audit
 
 provider module/JAR
   ScriptEngineFactory
     - metadata, extension/name/mime
-    - khởi tạo ScriptEngine
+    - instantiate ScriptEngine
 
   ScriptEngine extends AbstractScriptEngine
     - eval(String, ScriptContext)
@@ -468,110 +468,110 @@ provider module/JAR
     - getFactory()
 
   Parser / Interpreter / Runtime
-    - parse AST hoặc bytecode tùy ngôn ngữ
-    - thực thi với context đã cấp
-    - trả kết quả hoặc lỗi có vị trí
+    - parse AST or bytecode depending on language
+    - execute with the provided context
+    - return result or positioned error
 ```
 
-`AbstractScriptEngine` chỉ giúp triển khai hợp đồng Java, không thay cho parser, compiler, evaluator hay dependency isolation. Một ngôn ngữ phức tạp có thể cần AST, bộ nhớ thực thi, service libraries, scheduling, module/class loaders và adapter chuyển kiểu Java ↔ kiểu script.
+`AbstractScriptEngine` only helps implement the Java contract; it does not replace a parser, compiler, evaluator, or dependency isolation. A complex language may require an AST, execution memory management, service libraries, scheduling, module/class loaders, and Java ↔ script type-conversion adapters.
 
-### 6.2. Khi nào nên tự tạo ScriptEngine?
+### 6.2. When Should You Build Your Own ScriptEngine?
 
-Tự viết `ScriptEngineFactory`/`AbstractScriptEngine` có giá trị nếu:
+Writing a custom `ScriptEngineFactory`/`AbstractScriptEngine` is worthwhile when:
 
-- Đang xây DSL có tập lệnh hẹp, cú pháp và tính tương thích do công ty quản lý.
-- Muốn expose một runtime nội bộ hiện có dưới giao diện JSR-223 để host sử dụng chung.
-- Cần wrapper/adaptor cho một interpreter đã tồn tại nhưng không hỗ trợ JSR-223 trực tiếp.
-- Muốn tương thích với các framework chỉ nhận `ScriptEngine`/`ScriptEngineFactory`.
+- You are building a DSL with a narrow instruction set, syntax, and compatibility controlled by your organization.
+- You want to expose an existing internal runtime under the JSR-223 interface for unified host consumption.
+- You need a wrapper/adapter around an existing interpreter that does not natively support JSR-223.
+- You need compatibility with frameworks that accept only `ScriptEngine`/`ScriptEngineFactory`.
 
-**Không nhất thiết nên viết interpreter mới** nếu chỉ cần chạy một ngôn ngữ phổ biến. Khi đó nên đánh giá engine uy tín phù hợp JDK, license, version và mô hình bảo mật, rồi dùng factory của engine đó. Việc viết parser đúng ngữ nghĩa, quản lý loại dữ liệu, exceptions, performance và security có thể lớn hơn rất nhiều so với code JSR-223 adapter.
+**You do not necessarily need to write a new interpreter** if you only need to run a mainstream language. In that case, evaluate a reputable engine compatible with your JDK, license, version, and security model, and use that engine's factory. Writing a semantically sound parser, handling types, exceptions, performance, and security is far larger than writing the JSR-223 adapter code.
 
-### 6.3. Đăng ký khi hệ thống plugin được nạp động
+### 6.3. Registering When Plugins Are Dynamically Loaded
 
-Khi host nạp plugin từ JAR hoặc `ModuleLayer` riêng, một luồng hợp lý là:
+When a host loads plugins from JARs or separate `ModuleLayer`s, a sensible flow is:
 
-1. Khám phá metadata và xác nhận nguồn plugin được cho phép.
-2. Nạp/khởi tạo `ScriptEngineFactory` bằng cơ chế đã được thiết kế.
-3. Kiểm tra các thuộc tính factory, đặc biệt tên, ngôn ngữ, version, API compatibility và policy threading.
-4. Quyết định alias/extension/MIME nào được phép công bố trong manager của host.
-5. Đăng ký factory bằng các lệnh `registerEngineName`/`Extension`/`MimeType` phù hợp.
-6. Khi có yêu cầu thực thi, nhận engine/context thích hợp; cấp binding theo quyền hạn người gọi.
-7. Hủy tham chiếu và tạo manager/registry mới hoặc thiết kế cơ chế thay thế phù hợp khi plugin hết hạn hoặc được nâng version.
+1. Inspect metadata and verify the plugin source is authorized.
+2. Load/instantiate `ScriptEngineFactory` via the designed mechanism.
+3. Verify factory properties—especially name, language, version, API compatibility, and threading policy.
+4. Decide which aliases/extensions/MIME types are permitted to be published in the host's manager.
+5. Register the factory using the appropriate `registerEngineName`/`Extension`/`MimeType` calls.
+6. On execution requests, obtain the appropriate engine/context and supply bindings scoped to the caller's permissions.
+7. Clear references and recreate the manager/registry—or apply a proper replacement mechanism—when a plugin expires or is upgraded.
 
-**Không coi ScriptEngineManager là registry có đầy đủ chức năng unregister/hot-reload.** API đăng ký tường minh không cung cấp một thao tác unregister đối xứng rõ ràng cho từng mapping. Trong runtime nhiều phiên bản hoặc có chính sách tenant, có thể tốt hơn khi host duy trì bảng registry riêng, rồi tạo lại manager/route khi thay đổi engine.
+**Do not treat ScriptEngineManager as a full-featured unregister/hot-reload registry.** The explicit registration API does not provide symmetric unregister operations for every mapping. In multi-version runtimes or systems with per-tenant policies, it is often better for the host to maintain its own registry table and recreate managers/routes when engines change.
 
-Nếu plugin có class loader riêng, việc manager giữ `factory` có thể giữ cả loader/instance/class của plugin, ngăn unload. Cần quản lý vòng đời, cache, thread và tham chiếu rõ ràng; không chỉ xóa một entry trong giao diện UI rồi tưởng plugin đã được thu hồi.
+If a plugin has its own class loader, the manager retaining `factory` can retain the plugin's loader, instances, and classes, preventing unloading. Manage lifecycles, caches, threads, and references explicitly; do not merely delete an entry from a UI and assume the plugin was reclaimed.
 
-## 7. ScriptContext, state và đồng thời
+## 7. ScriptContext, State, and Concurrency
 
-### 7.1. Tách state theo lần gọi
+### 7.1. Isolating State per Invocation
 
-Nếu các script đến từ nhiều request/tenant, không nên chia sẻ một `ENGINE_SCOPE` mutable không có isolation. Host có thể dùng:
+If scripts arrive from multiple requests or tenants, avoid sharing a mutable `ENGINE_SCOPE` without isolation. The host can use:
 
-- Một engine mới và bindings mới cho mỗi request.
-- Một engine (nếu implementation cam kết thread safety) nhưng **context/bindings tách biệt** cho từng execution.
-- Pool engine có lifecycle cụ thể, giới hạn quyền và số lượng request.
-- Một runtime worker bên ngoài tiến trình Java để có ranh giới bảo mật mạnh.
+- A fresh engine and fresh bindings per request.
+- A single engine (if the implementation guarantees thread safety) with **separate context/bindings** per execution.
+- An engine pool with an explicit lifecycle, permission boundaries, and request limits.
+- A worker runtime outside the Java process for strong security boundaries.
 
-Chọn phương án theo **thread-safety contract thực tế**, không chỉ theo tên API. Demo trả `"THREADING" -> null` vì không chứng minh có thể sử dụng đồng thời một instance engine.
+Choose the strategy according to the **actual thread-safety contract**, not merely API names. The demo returns `"THREADING" -> null` because it makes no claim of supporting concurrent evaluation on a single engine instance.
 
-### 7.2. GLOBAL_SCOPE không phải cache tùy tiện
+### 7.2. GLOBAL_SCOPE Is Not an Arbitrary Cache
 
-`ScriptEngineManager` có thể quản lý bindings chung cho các engine do manager tạo. `GLOBAL_SCOPE` phù hợp với các giá trị cấu hình dùng chung **nếu policy cho phép**, nhưng không được dùng để nhét secret, quyền admin hoặc mutable object có thể rò sang script của tenant khác. Một binding chứa object Java có thể mở ra nhiều method/quyền hơn dự kiến.
+`ScriptEngineManager` can manage shared bindings across engines it creates. `GLOBAL_SCOPE` is suitable for shared configuration values **when policy permits**, but must never hold secrets, admin privileges, or mutable objects that could leak into another tenant's script. A binding containing a Java object can expose more methods and privileges than expected.
 
-Nếu cần chia sẻ helper, có thể expose một interface hẹp thay vì truyền thẳng service object quản trị toàn hệ thống. Một khi script có tham chiếu tới object Java, các ràng buộc truy cập phụ thuộc engine và cơ chế tương tác của ngôn ngữ, không tự được JSR-223 sandbox hóa.
+If helpers must be shared, expose a narrow interface rather than passing an administrative service object for the entire system. Once a script holds a reference to a Java object, access constraints depend on the engine and the language's interop mechanism—JSR-223 does not sandbox them automatically.
 
-### 7.3. Eval không bảo đảm timeout hoặc rollback
+### 7.3. Eval Does Not Guarantee Timeouts or Rollback
 
-`ScriptEngine.eval` có thể chạy lâu, chặn thread hoặc làm thay đổi state qua object được expose. Không có bảo đảm chung rằng API JSR-223 có timeout mặc định, rollback binding, checkpoint hoặc cơ chế hủy an toàn mọi engine. Timeout dựa trên `Thread.interrupt()` chỉ hữu ích nếu interpreter hợp tác kiểm tra interrupt và các tác vụ phụ cũng có khả năng dừng.
+`ScriptEngine.eval` can run indefinitely, block threads, or mutate state through exposed objects. There is no universal guarantee that the JSR-223 API provides default timeouts, binding rollback, checkpoints, or safe cancellation across all engines. Timeouts based on `Thread.interrupt()` help only if the interpreter cooperatively checks interrupts and subtasks can also stop.
 
-Nếu input không tin cậy, cân nhắc tiến trình riêng, quota CPU/memory, giới hạn I/O/network, loại bỏ quyền không cần thiết, kiểm thử treo/infinite loop và chính sách kill process. `ClassLoader` riêng và `ScriptContext` riêng chỉ là ranh giới tổ chức code/state, **không phải sandbox bảo mật**.
+For untrusted inputs, consider separate processes, CPU/memory quotas, I/O/network restrictions, stripping unnecessary privileges, testing hangs/infinite loops, and process-kill policies. A separate `ClassLoader` and separate `ScriptContext` are only code/state organization boundaries, **not a security sandbox**.
 
-## 8. Các lỗi thường gặp và cách xử lý
+## 8. Common Errors and How to Handle Them
 
-| Hiện tượng | Nguyên nhân có thể | Cách điều tra |
+| Symptom | Possible Cause | How to Investigate |
 | --- | --- | --- |
-| `getEngineByName("JavaScript") == null` | JDK có API nhưng không có engine JavaScript được cung cấp | Kiểm tra dependency engine và cơ chế SPI/module |
-| `getEngineByName("math") == null` | Chưa đăng ký trong manager đó, sai alias hoặc factory lỗi | Kiểm tra `registerEngineName` và đúng instance manager |
-| `getEngineByExtension("mcalc") == null` | Chỉ đăng ký name, chưa đăng ký extension | Đăng ký `registerEngineExtension` hoặc cấu hình SPI metadata |
-| `getEngineByMimeType(...) == null` | MIME khác chữ hoặc không mapping | Kiểm tra key thực tế và factory |
-| Manager có factory nhưng `eval` lỗi | Parser, context hoặc engine không xử lý script | Lấy `ScriptException` và diagnostics |
-| `ServiceConfigurationError` lúc khám phá | Provider class/factory cấu hình sai hoặc không thể tạo | Kiểm tra descriptor, constructor, module, dependency |
-| `ClassCastException` giữa host và engine | `javax.script` hoặc API chung bị nạp với identity khác | Kiểm tra class loader/shared runtime API |
-| Script đọc biến được nhưng request khác cũng thấy | Scope/bindings bị chia sẻ ngoài ý muốn | Dùng context/engine riêng theo policy |
-| `ScriptException` không có vị trí hữu ích | Engine ném message chung, bỏ line/column/cause | Thiết kế lỗi parser rõ line/column và cause chain |
-| Script có output nhưng host không thu được | Interpreter dùng `System.out` thay vì `context.getWriter()` | Định tuyến writer trong engine |
-| Engine có hỗ trợ Reader nhưng đọc mất dữ liệu | Đọc một lần, không lặp tới EOF; quên xử lý IOException | Test `eval(Reader, ScriptContext)` với input dài |
-| Không unload được plugin | Manager/engine/cache giữ factory và loader | Xác định lifecycle và tất cả tham chiếu |
-| Script chạy quá lâu hoặc truy cập tài nguyên nhạy cảm | JSR-223 không có sandbox mặc định | Cách ly execution và kiểm soát quyền/quota |
+| `getEngineByName("JavaScript") == null` | JDK includes the API but no JavaScript engine is supplied | Check engine dependencies and SPI/module setup |
+| `getEngineByName("math") == null` | Not registered in that manager, wrong alias, or factory failed | Check `registerEngineName` and the exact manager instance |
+| `getEngineByExtension("mcalc") == null` | Only name was registered, extension was not | Call `registerEngineExtension` or configure SPI metadata |
+| `getEngineByMimeType(...) == null` | MIME casing mismatch or missing mapping | Verify the exact key and factory |
+| Manager has factory but `eval` fails | Parser, context, or engine could not process script | Inspect `ScriptException` and diagnostics |
+| `ServiceConfigurationError` during discovery | Provider class/factory misconfigured or cannot be instantiated | Check descriptor, constructor, module, and dependencies |
+| `ClassCastException` between host and engine | `javax.script` or shared API loaded with distinct identities | Inspect class loaders / shared runtime API |
+| Script reads variables, but other requests see them too | Scope/bindings inadvertently shared | Use separate context/engine per policy |
+| `ScriptException` lacks useful location info | Engine throws generic message without line/column/cause | Include clear line/column and cause chain in parser errors |
+| Script produces output, yet host captures nothing | Interpreter writes to `System.out` instead of `context.getWriter()` | Route output through `context.getWriter()` in the engine |
+| Engine supports `Reader` but loses data | Single read without looping to EOF; `IOException` mishandled | Test `eval(Reader, ScriptContext)` with long inputs |
+| Cannot unload plugin | Manager/engine/cache retains factory and loader | Trace lifecycle and all live references |
+| Script runs too long or accesses sensitive resources | JSR-223 has no built-in sandbox | Isolate execution and enforce permissions/quotas |
 
-### 8.1. Chẩn đoán nên log điều gì?
+### 8.1. What Should Diagnostics Log?
 
-Khi một engine không hoạt động, nên ghi:
+When an engine fails to work, log:
 
-- Tên alias/extension/MIME host tra cứu.
-- Metadata `getEngineName`/`getEngineVersion`/`getLanguageName`/`getLanguageVersion` khi factory có sẵn.
-- Class tên và defining loader của factory/engine.
-- Engine được tìm nhờ đăng ký tường minh hay service discovery.
-- Script language/version được yêu cầu, request ID, thời gian và timeout.
-- Loại lỗi, số dòng/vị trí từ `ScriptException` nếu có, và full cause chain.
+- The alias/extension/MIME type looked up by the host.
+- `getEngineName`/`getEngineVersion`/`getLanguageName`/`getLanguageVersion` metadata when the factory is available.
+- Class name and defining loader of the factory/engine.
+- Whether the engine was found via explicit registration or service discovery.
+- Requested script language/version, request ID, duration, and timeout.
+- Error type, line/location from `ScriptException` if present, and full cause chain.
 
-Không tự động log toàn bộ script, bindings hoặc object graph trong production: script có thể chứa dữ liệu khách hàng, token và thông tin nhạy cảm.
+Do not automatically log full scripts, bindings, or object graphs in production: scripts may contain customer data, tokens, and sensitive information.
 
-## 9. Checklist kiểm thử trước khi cung cấp script engine cho host
+## 9. Testing Checklist Before Providing a Script Engine to a Host
 
-1. **Factory đủ hợp đồng:** mọi phương thức `ScriptEngineFactory` có ý nghĩa nhất quán; `getScriptEngine().getFactory()` trả đúng factory.
-2. **Name lookup:** đăng ký name và `getEngineByName` trả instance không null.
-3. **Extension/MIME lookup:** đăng ký riêng và kiểm tra từng khóa; alias không chiếm nhầm mapping khác.
-4. **No discovery dependency:** chế độ đăng ký tường minh chạy được dù không có service descriptor.
-5. **SPI deployment nếu dùng:** kiểm tra `META-INF/services` hoặc `provides` trong named module, class loader, constructor và dependency.
-6. **String/Reader:** `eval(String, context)` và `eval(Reader, context)` cho kết quả đồng nhất với cùng script.
-7. **Bindings/scopes:** `put/get`, `ENGINE_SCOPE`, `GLOBAL_SCOPE`, thứ tự lookup và context riêng hoạt động như contract.
-8. **Output:** `context.getWriter()` nhận output; errors không bị nuốt.
-9. **Parser errors:** lệnh sai, toán hạng sai, overflow và lỗi đọc Reader tạo `ScriptException` phù hợp.
-10. **Threading:** chính sách concurrent eval và lifecycle engine có kiểm thử; `THREADING` không công bố quá khả năng.
-11. **Tương thích:** JDK version, `java.scripting`, language version và engine version phù hợp môi trường deploy.
-12. **Bảo mật:** input size, CPU/quota, quyền truy cập qua exposed Java objects, annotation/module/class loader, logging nhạy cảm.
-13. **Lifecycle:** registry/manager không giữ mã plugin cũ vô hạn sau update hoặc xóa engine.
+1. **Factory meets full contract:** every `ScriptEngineFactory` method returns consistent values; `getScriptEngine().getFactory()` returns the right factory.
+2. **Name lookup:** register the name and verify `getEngineByName` returns a non-null instance.
+3. **Extension/MIME lookup:** register separately and test each key; aliases must not collide with unintended mappings.
+4. **No discovery dependency:** explicit registration mode runs even without a service descriptor.
+5. **SPI deployment if used:** verify `META-INF/services` or `provides` in a named module, class loaders, constructors, and dependencies.
+6. **String/Reader:** `eval(String, context)` and `eval(Reader, context)` produce identical results for the same script.
+7. **Bindings/scopes:** `put/get`, `ENGINE_SCOPE`, `GLOBAL_SCOPE`, lookup order, and private contexts behave per contract.
+8. **Output:** `context.getWriter()` receives output; errors are not swallowed.
+9. **Parser errors:** invalid commands, bad operands, overflow, and `Reader` I/O errors produce appropriate `ScriptException`s.
+10. **Threading:** concurrent `eval` policy and engine lifecycle are tested; `THREADING` never over-promises capabilities.
+11. **Compatibility:** JDK version, `java.scripting`, language version, and engine version match the deployment environment.
+12. **Security:** input size, CPU/quotas, access via exposed Java objects, annotations/modules/class loaders, and sensitive logging.
+13. **Lifecycle:** registries/managers do not retain old plugin code indefinitely after updating or removing an engine.
 
-**Kết luận:** `ScriptEngineManager` là điểm host chọn engine; `ScriptEngineFactory` mô tả và khởi tạo engine; còn `AbstractScriptEngine` hỗ trợ viết implementation nhưng vẫn cần parser và logic đánh giá thật. Khi host đã có factory, **đăng ký tường minh** bằng name/extension/MIME là cách đơn giản, chủ động và không cần service descriptor. Khi muốn cung cấp một DSL hoặc runtime mới, hãy triển khai đầy đủ factory + engine, tôn trọng `ScriptContext`/`Bindings`/`ScriptException`, rồi chọn cơ chế đăng ký hoặc SPI phù hợp với cách đóng gói và quản lý plugin.
+**Conclusion:** `ScriptEngineManager` is where the host selects engines; `ScriptEngineFactory` describes and instantiates engines; and `AbstractScriptEngine` streamlines writing an implementation while still requiring a real parser and evaluation logic. When the host already has a factory, **explicit registration** by name/extension/MIME is simple, deliberate, and requires no service descriptor. When supplying a new DSL or runtime, implement the full factory + engine, honor `ScriptContext`/`Bindings`/`ScriptException`, and choose either explicit registration or SPI to match your packaging and plugin-management model.

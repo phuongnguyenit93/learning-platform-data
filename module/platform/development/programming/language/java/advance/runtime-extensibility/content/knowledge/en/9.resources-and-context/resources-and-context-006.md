@@ -1,71 +1,71 @@
-# Truyền ngữ cảnh qua executor, callback và tác vụ bất đồng bộ
+# Propagating Context Across Executors, Callbacks, and Asynchronous Tasks
 
-## 1. Vấn đề: ngữ cảnh không tự đi theo tác vụ
+## 1. The Problem: Context Does Not Automatically Follow Tasks
 
-Trong hệ thống plugin và mở rộng lúc chạy, một lời gọi có thể bắt đầu trên thread xử lý request, sau đó đi qua executor, callback hoặc \`CompletableFuture\`. Các thông tin liên quan đến lời gọi—\`requestId\`, tenant, người dùng đã xác thực, trace context, deadline, locale và class loader của plugin—thường được gọi chung là **execution context**.
+In a plugin and runtime-extensible system, an invocation may begin on a request-handling thread and then flow through an executor, callback, or `CompletableFuture`. Information associated with the invocation—`requestId`, tenant, authenticated user, trace context, deadline, locale, and the plugin's class loader—is commonly referred to collectively as the **execution context**.
 
-Java **không tự động sao chép mọi ngữ cảnh của thread gọi sang thread thực thi tác vụ**. Đặc biệt, các giá trị đặt trong \`ThreadLocal\` thuộc về thread, không thuộc về đối tượng \`Runnable\` hay \`CompletableFuture\`. Executor pool còn tái sử dụng thread cho nhiều yêu cầu khác nhau. Vì vậy hai lỗi trái ngược đều có thể xảy ra:
+Java **does not automatically copy all context from the calling thread to the task-executing thread**. In particular, values stored in a `ThreadLocal` belong to the thread, not to the `Runnable` or `CompletableFuture` object. Executor pools also reuse threads across different requests. Consequently, two opposite bugs can occur:
 
-- **Mất ngữ cảnh:** tác vụ bất đồng bộ không còn \`requestId\`, security principal hoặc tenant cần thiết.
-- **Rò rỉ ngữ cảnh:** thread pool còn giữ giá trị từ request trước, khiến request sau đọc nhầm dữ liệu, ghi log sai hoặc truy cập sai tenant.
+- **Context loss:** an asynchronous task no longer has the `requestId`, security principal, or tenant it needs.
+- **Context leakage:** a pooled thread retains values from a previous request, causing a subsequent request to read the wrong data, write inaccurate logs, or access the wrong tenant.
 
-Các giải pháp phải bắt đầu từ việc xác định **ngữ cảnh nào thực sự cần truyền**, ai sở hữu nó, thời điểm capture, nơi cài đặt và khi nào phải khôi phục trạng thái cũ.
+Solutions must begin by identifying **which context truly needs propagation**, who owns it, when it is captured, where it is installed, and when the previous state must be restored.
 
-## 2. Phân biệt các loại ngữ cảnh
+## 2. Distinguishing Different Kinds of Context
 
-| Ngữ cảnh | Ví dụ | Cách truyền phù hợp |
+| Context | Examples | Appropriate Propagation Approach |
 |---|---|---|
-| Business context | \`tenantId\`, \`requestId\`, mã chiến dịch | Tham số tường minh hoặc immutable context |
-| Security context | Principal, quyền đã xác thực | Cơ chế propagation được framework hỗ trợ; không tự tin tưởng dữ liệu do plugin gửi |
-| Tracing/logging | Trace ID, span, MDC | Instrumentation/context wrapper chuyên dụng |
-| Locale/time zone | \`Locale\`, \`ZoneId\` | Truyền tường minh hoặc wrapper có phạm vi |
-| Deadline/cancellation | Deadline, cancel token | Đối tượng điều phối được chia sẻ, với chính sách timeout rõ |
-| Thread context class loader (TCCL) | Loader nhìn thấy resource/service của plugin | Thiết lập và khôi phục quanh tác vụ khi thật sự cần |
+| Business context | `tenantId`, `requestId`, campaign code | Explicit parameter or immutable context |
+| Security context | Principal, verified permissions | Framework-supported propagation mechanism; never blindly trust plugin-supplied data |
+| Tracing/logging | Trace ID, span, MDC | Dedicated instrumentation/context wrapper |
+| Locale/time zone | `Locale`, `ZoneId` | Explicit passing or scoped wrapper |
+| Deadline/cancellation | Deadline, cancel token | Shared coordination object with explicit timeout policy |
+| Thread context class loader (TCCL) | Loader seeing the plugin's resources/services | Set and restore around the task when truly required |
 
-**Execution context không đồng nghĩa với Java \`ThreadContextClassLoader\`**. TCCL chỉ là một loại trạng thái liên quan đến thread, thường ảnh hưởng tới service discovery và resource loading. Cũng không được đánh đồng một context snapshot với transaction: transaction, JDBC connection và nhiều request-scoped object không thể chuyển sang thread khác tùy ý.
+**Execution context is not synonymous with Java's `ThreadContextClassLoader`.** The TCCL is merely one kind of thread-associated state, primarily affecting service discovery and resource loading. Nor should a context snapshot be equated with a transaction: transactions, JDBC connections, and many request-scoped objects cannot be arbitrarily transferred to another thread.
 
-## 3. Cách ưu tiên: truyền context tường minh
+## 3. Preferred Approach: Explicit Context Passing
 
-Một giá trị bất biến mô tả các thông tin cần thiết cho công việc thường là giải pháp dễ kiểm thử và kiểm soát nhất.
+An immutable value describing the information needed for the work is usually the easiest solution to test and control.
 
-\`\`\`java
+```java
 record RequestContext(String requestId, String tenantId) {}
 
 String process(RequestContext context, String payload) {
     return context.tenantId() + ":" + payload;
 }
-\`\`\`
+```
 
-Khi gửi tác vụ vào executor:
+When submitting a task to an executor:
 
-\`\`\`java
-// Đoạn tích hợp; giả định executor, context và payload đã được tạo.
+```java
+// Integration snippet; assumes executor, context, and payload are already created.
 CompletableFuture<String> future =
     CompletableFuture.supplyAsync(
         () -> process(context, payload),
         executor
     );
-\`\`\`
+```
 
-Lambda capture tham chiếu tới \`context\`; dữ liệu cần dùng vẫn có mặt khi task chạy trên thread khác. Để giảm race, context nên là immutable và các trường của nó cũng nên bất biến. Nếu context giữ \`Map\`, \`List\` hay object mutable, record **không tự động làm các object ấy immutable**. Có thể dùng \`Map.copyOf\` hoặc defensive copy.
+The lambda captures a reference to `context`; the needed data remains available when the task runs on another thread. To minimize races, `context` should be immutable and its fields should also be immutable. If the context holds a `Map`, `List`, or mutable object, a `record` **does not automatically make those objects immutable**. You can use `Map.copyOf` or defensive copying.
 
-Lợi ích của truyền tường minh: hợp đồng API thể hiện đúng dependency; ít phụ thuộc vào thread; dễ dùng qua queue, process boundary, test và structured task. Nhược điểm là phải đưa context qua nhiều lời gọi, nên một số framework sử dụng cơ chế context propagation có phạm vi để giảm boilerplate.
+Benefits of explicit passing: the API contract makes dependencies visible; minimal reliance on threads; easy to use across queues, process boundaries, tests, and structured tasks. The downside is threading context through multiple calls, which is why some frameworks use scoped context propagation mechanisms to reduce boilerplate.
 
-**Không truyền tất cả dữ liệu request.** Chỉ mang thông tin thực sự cần thiết, tuân thủ chính sách tối thiểu hóa dữ liệu và không sao chép credential/token sang plugin không được phép.
+**Do not pass all request data.** Carry only the information truly required, follow data-minimization policies, and never copy credentials/tokens to unauthorized plugins.
 
-## 4. ThreadLocal: tiện nhưng có phạm vi theo thread
+## 4. ThreadLocal: Convenient, Yet Scoped to a Thread
 
-\`ThreadLocal<T>\` lưu một giá trị riêng cho mỗi thread:
+`ThreadLocal<T>` stores a separate value per thread:
 
-\`\`\`java
+```java
 private static final ThreadLocal<String> REQUEST_ID = new ThreadLocal<>();
-\`\`\`
+```
 
-Khi đặt \`REQUEST_ID.set("req-123")\` trên thread A, task chạy trên thread B thường nhận \`null\`, trừ khi B đã có một giá trị riêng. Với pool tái sử dụng, B còn có thể mang giá trị cũ nếu mã trước đó không \`remove()\`.
+When setting `REQUEST_ID.set("req-123")` on thread A, a task running on thread B normally receives `null`, unless B already has a value of its own. With a pooled thread being reused, B could even carry an old value if prior code failed to call `remove()`.
 
-**Quy tắc cốt lõi:** nếu tự thiết lập \`ThreadLocal\` trong phạm vi tác vụ, dùng \`try/finally\` để khôi phục hoặc xóa giá trị. Điều này áp dụng kể cả khi callback ném exception.
+**Core rule:** if you set a `ThreadLocal` inside a task scope, use `try/finally` to restore or clear the value. This applies even when a callback throws an exception.
 
-\`\`\`java
+```java
 String previous = REQUEST_ID.get();
 try {
     REQUEST_ID.set(currentRequestId);
@@ -77,21 +77,21 @@ try {
         REQUEST_ID.set(previous);
     }
 }
-\`\`\`
+```
 
-Tại sao khôi phục giá trị cũ thay vì luôn \`remove()\`? Một thread có thể đang thực hiện phạm vi lồng nhau; wrapper bên trong cần trả lại context của caller bên ngoài. Nếu contract khẳng định thread hoàn toàn thuộc về tác vụ và không có nesting, \`remove()\` vẫn là thao tác cần thiết khi kết thúc.
+Why restore the previous value instead of always calling `remove()`? A thread might be executing nested scopes; an inner wrapper needs to return the outer caller's context. If the contract guarantees the thread belongs exclusively to the task with no nesting, `remove()` is still essential at completion.
 
-### InheritableThreadLocal không giải quyết executor pool
+### InheritableThreadLocal Does Not Solve Executor Pools
 
-\`InheritableThreadLocal\` có thể sao chép giá trị khởi tạo sang **thread con tại lúc tạo thread**. Với thread pool, thread có thể đã được tạo từ trước và tái sử dụng; do đó nó **không truyền context theo từng task**. Việc sao chép ngữ cảnh tại thời điểm tạo thread còn có thể làm lộ dữ liệu request ngoài ý muốn. Đừng dùng \`InheritableThreadLocal\` như giải pháp tổng quát cho asynchronous propagation.
+`InheritableThreadLocal` can copy initial values to a **child thread at thread creation time**. With a thread pool, threads may have already been created beforehand and reused; thus it **does not propagate context per task**. Copying context at thread creation time can also inadvertently expose request data. Do not use `InheritableThreadLocal` as a general solution for asynchronous propagation.
 
-## 5. Ví dụ Java 17+ chạy được: capture và restore ngữ cảnh
+## 5. Runnable Java 17+ Example: Capturing and Restoring Context
 
-Ví dụ dưới đây tái hiện việc mất \`ThreadLocal\` khi chuyển sang executor, rồi sử dụng wrapper để truyền \`requestId\` an toàn hơn. Chương trình dùng một worker thread để đầu ra xác định.
+The example below reproduces losing a `ThreadLocal` when switching to an executor, then uses a wrapper to propagate `requestId` more safely. The program uses a single worker thread so the output is deterministic.
 
-Tạo file **\`ContextPropagationDemo.java\`**:
+Create **`ContextPropagationDemo.java`**:
 
-\`\`\`java
+```java
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -101,7 +101,7 @@ public class ContextPropagationDemo {
             new ThreadLocal<>();
 
     static Runnable wrap(Runnable task) {
-        // Capture trên thread gửi tác vụ, trước khi executor thực thi.
+        // Capture on the submitting thread, before the executor runs it.
         String captured = REQUEST_ID.get();
 
         return () -> {
@@ -145,35 +145,35 @@ public class ContextPropagationDemo {
         }
     }
 }
-\`\`\`
+```
 
-Chạy:
+Run:
 
-\`\`\`bash
+```bash
 javac ContextPropagationDemo.java
 java ContextPropagationDemo
-\`\`\`
+```
 
-Kết quả:
+Output:
 
-\`\`\`text
+```text
 plain: null
 wrapped: req-42
 after: null
-\`\`\`
+```
 
-Ở đây \`wrap\` lấy snapshot của \`REQUEST_ID\` **khi submit task**. Trước khi gọi \`task.run()\`, wrapper tạm gắn context trên worker; trong \`finally\`, nó khôi phục trạng thái worker trước đó. Vì executor dùng một thread và \`Future.get()\` đợi lần lượt, ví dụ cho thấy tác vụ sau không nhận lại \`req-42\`.
+Here `wrap` takes a snapshot of `REQUEST_ID` **when submitting the task**. Before invoking `task.run()`, the wrapper temporarily attaches the context on the worker; in `finally`, it restores the worker's prior state. Because the executor uses a single thread and `Future.get()` waits sequentially, the example shows that the subsequent task does not receive `req-42` again.
 
-Ví dụ chỉ truyền một chuỗi. Trong thực tế nên đóng gói một context có cấu trúc và giới hạn dữ liệu cần copy. Nếu sử dụng thêm MDC, security context hay TCCL, cần tạo wrapper có chính sách rõ cho từng loại và phục hồi tất cả trong \`finally\`.
+The example only propagates a single string. In practice, encapsulate a structured context and limit the data to copy. If additionally using MDC, security context, or TCCL, build wrappers with explicit policies for each type and restore all of them in `finally`.
 
-## 6. Với Callable, Future và CompletableFuture
+## 6. With Callable, Future, and CompletableFuture
 
-Một wrapper \`Runnable\` không tự bao phủ \`Callable<T>\` hoặc mọi callback trong pipeline bất đồng bộ.
+A `Runnable` wrapper does not automatically cover `Callable<T>` or every callback in an asynchronous pipeline.
 
-Ví dụ wrapper cho \`Callable<T>\`:
+Example wrapper for `Callable<T>`:
 
-\`\`\`java
-// Đoạn tích hợp; REQUEST_ID là ThreadLocal<String> đã định nghĩa.
+```java
+// Integration snippet; REQUEST_ID is an already-defined ThreadLocal<String>.
 static <T> java.util.concurrent.Callable<T> wrapCallable(
         java.util.concurrent.Callable<T> action) {
     String captured = REQUEST_ID.get();
@@ -189,65 +189,65 @@ static <T> java.util.concurrent.Callable<T> wrapCallable(
         }
     };
 }
-\`\`\`
+```
 
-\`CompletableFuture\` cần chú ý **nơi callback thực sự được chạy**:
+With `CompletableFuture`, pay attention to **where the callback actually runs**:
 
-- \`thenApply\`, \`thenAccept\`, \`whenComplete\` không có hậu tố \`Async\` có thể chạy trên thread hoàn thành stage trước hoặc trên thread đang đăng ký callback nếu stage đã hoàn tất. Không được giả định chúng chạy trên thread của request.
-- \`thenApplyAsync\` và các biến thể \`Async\` dùng executor được chỉ định; nếu không chỉ định, hành vi mặc định thường sử dụng \`ForkJoinPool.commonPool()\` theo quy tắc của \`CompletableFuture\`. Không được dựa vào việc thread trong pool ấy có context request.
-- Một callback có thể được tạo trong phạm vi context A rồi thực thi khi stage hoàn thành từ thread có context B. Vì thế phải quyết định **capture lúc đăng ký callback**, không lấy tùy tiện \`ThreadLocal\` hiện hành khi callback chạy.
+- `thenApply`, `thenAccept`, and `whenComplete` without the `Async` suffix may run on the thread that completes the preceding stage, or on the thread registering the callback if the stage is already complete. Never assume they run on the request thread.
+- `thenApplyAsync` and `Async` variants use the specified executor; if unspecified, default behavior typically uses `ForkJoinPool.commonPool()` per `CompletableFuture` rules. Never rely on threads in that pool having the request context.
+- A callback may be created in context A's scope and then execute when the stage completes from a thread in context B. Therefore, decide to **capture at callback registration time**, rather than arbitrarily reading whatever `ThreadLocal` happens to be present when the callback runs.
 
-Ví dụ propagation tường minh:
+Explicit propagation example:
 
-\`\`\`java
-// Đoạn tích hợp; context là immutable RequestContext.
+```java
+// Integration snippet; context is an immutable RequestContext.
 CompletableFuture<String> result =
     CompletableFuture.supplyAsync(() -> fetchData(context), executor)
         .thenApplyAsync(data -> transform(context, data), executor)
         .thenApply(data -> format(context, data));
-\`\`\`
+```
 
-Mỗi lambda dùng cùng \`context\` thông qua closure. Đây thường là cách rõ ràng hơn việc phụ thuộc vào thread-local qua nhiều stage.
+Each lambda uses the same `context` via closure. This is usually clearer than relying on thread-locals across multiple stages.
 
-Nếu bắt buộc dùng \`ThreadLocal\`, hãy wrap **từng entry point/callback** cần context; wrap riêng \`Executor.execute\` không đủ nếu các callback không được gửi qua executor đó. Một \`ContextAwareExecutor\` có thể capture tại \`execute(command)\` rồi chuyển task đã wrap tới delegate, nhưng cần kiểm tra xem callback không-\`Async\` có thực sự đi qua wrapper ấy hay không.
+If you must use `ThreadLocal`, wrap **each entry point/callback** requiring context; wrapping only `Executor.execute` is insufficient if callbacks are not submitted through that executor. A `ContextAwareExecutor` can capture during `execute(command)` and forward the wrapped task to a delegate, but verify whether non-`Async` callbacks actually pass through that wrapper.
 
-## 7. Callback do plugin đăng ký: capture và chủ sở hữu
+## 7. Plugin-Registered Callbacks: Capture and Ownership
 
-Khi host cho phép plugin đăng ký callback:
+When the host lets plugins register callbacks:
 
-\`\`\`java
+```java
 eventBus.subscribe("order-created", event -> handle(event));
-\`\`\`
+```
 
-Callback có thể chạy rất lâu sau thời điểm đăng ký, trên thread của event bus. Không nên capture toàn bộ context của **request đăng ký** rồi tái dùng mãi mãi cho mọi event. Cần phân biệt hai loại:
+The callback may execute long after registration, on an event bus thread. You should not capture the entire context of the **registration request** and reuse it forever for every event. Distinguish two kinds:
 
-1. **Context của plugin/subscription**: định danh plugin, version, capability được cấp và thông tin lifecycle. Có thể được gắn với subscription lâu dài.
-2. **Context của từng event/request**: correlation ID, tenant, tracing span và deadline. Phải đi cùng event cụ thể hoặc được tạo khi dispatch.
+1. **Plugin/subscription context:** plugin identifier, version, granted capabilities, and lifecycle information. Can be bound to the long-lived subscription.
+2. **Per-event/request context:** correlation ID, tenant, tracing span, and deadline. Must travel with the specific event or be created at dispatch time.
 
-Một thiết kế dễ kiểm soát là biểu diễn event dưới dạng envelope:
+A controllable design represents the event as an envelope:
 
-\`\`\`java
-// Đoạn minh họa cấu trúc, chưa gồm EventBus.
+```java
+// Structural illustration snippet, excluding EventBus.
 record EventEnvelope<T>(
     String eventId,
     String tenantId,
     String correlationId,
     T payload
 ) {}
-\`\`\`
+```
 
-Dispatcher chuyển \`EventEnvelope\` vào callback. Trước khi thực thi, host có thể gắn context tương ứng vào logging/tracing framework với scoped lifecycle, sau đó khôi phục trạng thái. Không nhận \`tenantId\` hoặc principal từ plugin chưa tin cậy làm quyền hạn nếu chưa đối chiếu với security policy của host.
+The dispatcher passes `EventEnvelope` into the callback. Before execution, the host can attach the corresponding context to logging/tracing frameworks with scoped lifecycle, then restore state afterward. Do not accept a `tenantId` or principal from an untrusted plugin as authorization without checking against the host's security policy.
 
-Với callback bị hủy đăng ký, cần bảo đảm listener, queue và context snapshot không giữ tham chiếu đến plugin/class loader cũ khiến hot unload không hoàn tất.
+For unregistered callbacks, ensure listeners, queues, and context snapshots do not retain references to old plugins/class loaders that prevent hot unload from completing.
 
-## 8. Thread context class loader trong hệ plugin
+## 8. Thread Context Class Loader in a Plugin System
 
-\`Thread.currentThread().getContextClassLoader()\` (TCCL) là một cơ chế khác với \`ThreadLocal\` do ứng dụng định nghĩa. Một số API/service discovery hoặc thư viện dùng TCCL để tìm class/resource.
+`Thread.currentThread().getContextClassLoader()` (TCCL) is a different mechanism from application-defined `ThreadLocal`s. Some service discovery APIs or libraries use the TCCL to locate classes/resources.
 
-Trong plugin system có nhiều class loader, callback chạy trên thread pool của host có thể mang TCCL của host, không phải loader plugin. Khi thực sự cần chạy một đoạn code với TCCL plugin, host có thể đặt TCCL tạm thời và **luôn khôi phục**:
+In a plugin system with multiple class loaders, callbacks running on a host thread pool may carry the host's TCCL rather than the plugin's loader. When code genuinely needs to run with the plugin's TCCL, the host can set the TCCL temporarily and **always restore it**:
 
-\`\`\`java
-// Đoạn tích hợp; pluginLoader và task được xác định bởi host.
+```java
+// Integration snippet; pluginLoader and task are defined by the host.
 Thread thread = Thread.currentThread();
 ClassLoader previous = thread.getContextClassLoader();
 try {
@@ -256,64 +256,64 @@ try {
 } finally {
     thread.setContextClassLoader(previous);
 }
-\`\`\`
+```
 
-Không đặt TCCL plugin một lần cho thread pool rồi để lại mãi mãi: điều này làm các tác vụ của plugin khác dùng sai loader và có thể giữ plugin loader sau khi đã vô hiệu hóa. Cũng không coi TCCL là biện pháp sandbox; class loader riêng không tạo ra ranh giới bảo mật đáng tin cho mã không tin cậy.
+Do not set the plugin TCCL once on a thread pool and leave it there permanently: doing so causes tasks from other plugins to use the wrong loader and can keep the plugin loader alive after deactivation. Nor should the TCCL be treated as a sandbox measure; a separate class loader does not create a trustworthy security boundary for untrusted code.
 
-Khi dùng \`ServiceLoader.load(ServiceType.class)\`, TCCL có thể ảnh hưởng đến loader được chọn. Nếu host cần kiểm soát chính xác, cân nhắc overload nhận \`ClassLoader\` hoặc API module-layer tương ứng và đảm bảo API chung được định nghĩa từ loader ổn định.
+When using `ServiceLoader.load(ServiceType.class)`, the TCCL can influence which loader is chosen. If the host needs precise control, consider the overload accepting a `ClassLoader` or the corresponding module-layer API, and ensure shared APIs are defined by a stable loader.
 
-## 9. Tích hợp logging, tracing và security context
+## 9. Integrating Logging, Tracing, and Security Context
 
-Trong framework thực tế, đừng tự sao chép trạng thái nội bộ tùy tiện. Tận dụng các API được hỗ trợ:
+In real frameworks, do not arbitrarily copy internal state yourself. Leverage supported APIs:
 
-**MDC (Mapped Diagnostic Context).** Nhiều logging framework gắn dữ liệu log vào thread-local. Khi gửi task sang executor, MDC thường không tự truyền. Nếu wrapper sao chép MDC, hãy lấy snapshot tại thời điểm submit, cài snapshot khi chạy và phục hồi snapshot trước đó trong \`finally\`. Cẩn trọng với key chứa dữ liệu cá nhân và không để MDC giữ lại giữa các request.
+**MDC (Mapped Diagnostic Context).** Many logging frameworks attach log metadata to thread-locals. When submitting a task to an executor, MDC usually does not propagate automatically. If a wrapper copies MDC, take a snapshot at submit time, install the snapshot when running, and restore the previous snapshot in `finally`. Be careful with keys containing personal data and do not let MDC persist across requests.
 
-**Distributed tracing.** Tracing context bao gồm nhiều hơn trace ID: span hierarchy, baggage và quy tắc scope. Sử dụng API/instrumentation context propagation của giải pháp tracing (ví dụ OpenTelemetry) thay vì tạo span ID bằng cách copy một chuỗi. Baggage nên được lọc khi đi qua ranh giới tin cậy.
+**Distributed tracing.** Tracing context includes more than a trace ID: span hierarchy, baggage, and scoping rules. Use the tracing solution's context propagation API/instrumentation (e.g., OpenTelemetry) rather than inventing span IDs by copying a string. Baggage should be filtered when crossing trust boundaries.
 
-**Security context.** Với Spring Security hoặc framework tương đương, dùng cơ chế executor/decorator tích hợp được thiết kế để truyền và dọn dẹp security context. Tính xác thực, quyền và thời hạn phải được kiểm tra tại nơi thực thi. Việc copy principal qua thread không tự cấp quyền cho plugin. Không chia sẻ credential mạnh với code không tin cậy chỉ vì thuận tiện truyền context.
+**Security context.** With Spring Security or similar frameworks, use built-in executor/decorator mechanisms designed to propagate and clear security context. Authentication, permissions, and expiration must still be checked at the execution site. Copying a principal across threads does not automatically grant permissions to a plugin. Do not share high-privilege credentials with untrusted code merely for convenience of context propagation.
 
-**Request-scoped resources.** JDBC transaction, servlet request/response, entity manager và object có vòng đời request thường không an toàn để giữ và chạy lại trên thread khác. Chỉ truyền dữ liệu tối thiểu hoặc mở scope mới theo quy tắc của framework tại nơi thực thi.
+**Request-scoped resources.** JDBC transactions, servlet requests/responses, entity managers, and request-lifecycle objects are generally unsafe to retain and replay on another thread. Pass only minimal data or open a fresh scope per framework rules at the execution site.
 
-## 10. Timeout, cancellation và ngữ cảnh bất đồng bộ
+## 10. Timeouts, Cancellation, and Asynchronous Context
 
-Deadline là thông tin ngữ cảnh có thể truyền bằng giá trị bất biến, ví dụ một \`Instant\` hoặc timeout budget. Nhưng truyền deadline **không tự dừng** task đang chạy. Tác vụ phải hỗ trợ kiểm tra hạn hoặc cơ chế cancellation tương ứng.
+A deadline is contextual information that can be passed as an immutable value, such as an `Instant` or timeout budget. Yet propagating a deadline **does not automatically stop** a running task. The task must support checking the deadline or the corresponding cancellation mechanism.
 
-Với \`Future.cancel(true)\`, Java chỉ yêu cầu ngắt thread nếu task đang chạy; không bảo đảm task dừng ngay. Với \`CompletableFuture.cancel(...)\`, cơ chế cancel completion không nhất thiết interrupt tiến trình tính toán phía dưới. Vì vậy wrapper context không thể thay thế quy tắc quản lý task, resource, timeout và rollback.
+With `Future.cancel(true)`, Java only requests interrupting the thread if the task is running; it does not guarantee the task stops immediately. With `CompletableFuture.cancel(...)`, completion cancellation does not necessarily interrupt the underlying computation. Therefore, a context wrapper cannot replace rules for task, resource, timeout, and rollback management.
 
-Mô hình tốt gồm:
+Good patterns include:
 
-- Capture deadline/correlation context trước khi dispatch.
-- Kiểm tra hạn ở các bước quan trọng và trước khi thực hiện side effect.
-- Truyền cancellation signal tới stage và dependency có hỗ trợ.
-- Khôi phục \`ThreadLocal\`, MDC và TCCL ngay cả khi timeout, exception hoặc interrupt.
-- Đóng tài nguyên và tránh giữ context snapshot lâu hơn vòng đời công việc.
+- Capture deadline/correlation context before dispatch.
+- Check the deadline at key steps and before executing side effects.
+- Propagate cancellation signals to stages and dependencies that support them.
+- Restore `ThreadLocal`, MDC, and TCCL even on timeout, exception, or interrupt.
+- Close resources and avoid retaining context snapshots longer than the work's lifecycle.
 
-## 11. Những lỗi thường gặp
+## 11. Common Mistakes
 
-1. **Dựa vào ThreadLocal trên executor:** \`ThreadLocal.set\` trên thread caller không đảm bảo worker nhìn thấy giá trị.
-2. **Không dọn ThreadLocal:** thread pool tái sử dụng khiến dữ liệu request trước rò sang request sau.
-3. **Dùng InheritableThreadLocal trong pool:** inheritance diễn ra theo thời điểm tạo thread, không theo thời điểm submit task.
-4. **Capture quá sớm:** một callback đăng ký lâu dài giữ \`tenantId\` của request ban đầu.
-5. **Capture quá muộn:** lấy ngữ cảnh từ thread đang chạy callback thay vì context của event/request đúng.
-6. **Không phân biệt callback Async và non-Async:** callback có thể chạy trên thread bất kỳ hoàn thành stage.
-7. **Truyền mutable context dùng chung:** nhiều task cùng sửa map dẫn tới race hoặc nhiễm dữ liệu.
-8. **Không phục hồi TCCL/MDC:** tác vụ của plugin sau nhận sai loader hoặc sai trace.
-9. **Mang transaction/request object sang thread khác:** phá vỡ lifetime và thread affinity của resource.
-10. **Cho plugin không tin cậy quyết định security context:** dữ liệu truyền context bị nhầm thành bằng chứng cấp quyền.
-11. **Bỏ qua lifecycle:** task và callback còn sống giữ class loader/plugin đã được thay thế.
-12. **Coi propagation là cancellation:** có deadline không có nghĩa tác vụ sẽ tự ngừng.
+1. **Relying on ThreadLocal across an executor:** `ThreadLocal.set` on the caller thread does not guarantee the worker sees the value.
+2. **Not cleaning up ThreadLocal:** thread pool reuse causes previous request data to leak into subsequent requests.
+3. **Using InheritableThreadLocal in a pool:** inheritance happens at thread creation time, not at task submission time.
+4. **Capturing too early:** a long-lived registered callback retains the `tenantId` of the initial request.
+5. **Capturing too late:** reading context from the thread running the callback instead of the proper event/request context.
+6. **Not distinguishing Async and non-Async callbacks:** non-Async callbacks can run on whichever thread completes the stage.
+7. **Passing shared mutable context:** multiple tasks mutating the same map leads to races or data corruption.
+8. **Failing to restore TCCL/MDC:** subsequent plugin tasks get the wrong loader or wrong trace.
+9. **Carrying transactions/request objects across threads:** breaks resource lifetimes and thread affinity.
+10. **Letting untrusted plugins dictate security context:** propagated context data is mistaken for authorization proof.
+11. **Ignoring lifecycle:** live tasks and callbacks retain replaced class loaders/plugins.
+12. **Treating propagation as cancellation:** having a deadline does not mean the task will stop on its own.
 
-## 12. Checklist thiết kế
+## 12. Design Checklist
 
-Trước khi đưa một task/callback vào hệ thống mở rộng lúc chạy, trả lời rõ:
+Before putting a task/callback into a runtime-extensible system, answer clearly:
 
-- **Cần truyền gì?** \`requestId\`, tenant, trace, locale, deadline, security principal hay TCCL; loại bỏ mọi trường không cần thiết.
-- **Nguồn sự thật ở đâu?** Context từ host đã được xác thực hay giá trị do plugin tự khai báo?
-- **Capture khi nào?** Lúc submit, đăng ký callback hay dispatch từng event?
-- **Cài và dọn ở đâu?** Mọi entry point thread mới và callback nào thực sự cần scope?
-- **Thứ tự và lỗi thế nào?** Khi exception, timeout hoặc cancel, state trước đó có luôn được phục hồi?
-- **Có chia sẻ mutable state không?** Immutable snapshot, ownership và đồng bộ hóa đã rõ chưa?
-- **Plugin bị gỡ thì sao?** Task in-flight, listener, loader và tài nguyên có được drain/đóng đúng không?
-- **Đã kiểm thử đường chuyển thread chưa?** Kiểm thử task thường, task lỗi, nhiều request xen kẽ, callback hoàn thành tức thì, hot reload và cleanup.
+- **What needs propagation?** `requestId`, tenant, trace, locale, deadline, security principal, or TCCL; strip all unnecessary fields.
+- **Where is the source of truth?** Validated context from the host or self-declared values from a plugin?
+- **When to capture?** At submission, callback registration, or per-event dispatch?
+- **Where to install and clean up?** Every new thread entry point and callback that genuinely needs the scope?
+- **How about ordering and errors?** On exception, timeout, or cancel, is the previous state always restored?
+- **Is mutable state shared?** Are immutable snapshots, ownership, and synchronization clear?
+- **What happens when a plugin is removed?** Are in-flight tasks, listeners, loaders, and resources drained/closed properly?
+- **Have thread-hopping paths been tested?** Test normal tasks, failing tasks, interleaved requests, immediately completing callbacks, hot reload, and cleanup.
 
-**Ghi nhớ:** context phải gắn với **công việc cần thực hiện** và ranh giới tin cậy, không mặc định gắn với thread. Ưu tiên **truyền tường minh bằng immutable context**; khi dùng \`ThreadLocal\`, MDC, security context hoặc TCCL, hãy **capture đúng lúc → cài đặt theo phạm vi → khôi phục trong \`finally\`**.
+**Remember:** context must be tied to the **work to be done** and trust boundaries, not bound by default to a thread. Prefer **explicit passing via immutable context**; when using `ThreadLocal`, MDC, security context, or TCCL, **capture at the right time → install within scope → restore in `finally`**.

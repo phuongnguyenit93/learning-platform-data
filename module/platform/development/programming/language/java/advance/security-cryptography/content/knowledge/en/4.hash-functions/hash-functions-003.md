@@ -1,33 +1,33 @@
-# 4.3. Chu trình `update`, `digest`, `reset` và xử lý dữ liệu nhiều phần
+# 4.3. The `update`, `digest`, `reset` Cycle and Multi-Part Data Processing
 
-## Mục tiêu
+## Objectives
 
-Bài này hướng dẫn sử dụng `java.security.MessageDigest` của Java Cryptography Architecture (JCA) để băm một thông điệp thành nhiều phần, tính digest cuối cùng, chủ động hủy state, và băm dữ liệu lớn mà không cần nạp toàn bộ file vào RAM.
+This lesson explains how to use `java.security.MessageDigest` in the Java Cryptography Architecture (JCA) to hash a message in multiple parts, compute the final digest, explicitly discard state, and hash large data without loading the entire file into RAM.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích vòng đời **`update` → `digest` → reset tự động**, phân biệt với `reset()` do lập trình viên gọi.
-- Nạp dữ liệu bằng `byte[]`, các đoạn có `offset/len` và `ByteBuffer` mà không tính thừa byte.
-- Băm file hoặc `InputStream` theo từng chunk và chứng minh digest không phụ thuộc kích thước chunk khi byte đầu vào giống nhau.
-- Hiểu rõ sự khác biệt giữa `digest()`, `digest(byte[] input)` và `digest(byte[] buf, int offset, int len)`.
-- Tránh tái sử dụng state sai, nhầm ranh giới dữ liệu và các lỗi thường gặp liên quan encoding, concurrency, luồng đọc và tính bảo mật.
+- Explain the **`update` → `digest` → automatic reset** lifecycle, and distinguish it from an explicit `reset()` call by the programmer.
+- Feed data using `byte[]`, slices with `offset/len`, and `ByteBuffer` without hashing extra bytes.
+- Hash a file or `InputStream` in chunks and demonstrate that the digest does not depend on chunk size as long as the input bytes are identical.
+- Understand the exact differences between `digest()`, `digest(byte[] input)`, and `digest(byte[] buf, int offset, int len)`.
+- Avoid improper state reuse, data boundary confusion, and common mistakes involving encoding, concurrency, stream reading, and security.
 
-Ví dụ dùng **Java 17+** và **SHA-256**. `SHA-256` nhận byte input và cho output 256 bit (= 32 byte, thường hiển thị 64 ký tự hex). Các ví dụ tập trung vào API và state, không triển khai thuật toán SHA-256 từ đầu.
+Examples use **Java 17+** and **SHA-256**. `SHA-256` takes byte input and produces a 256-bit output (= 32 bytes, typically displayed as 64 hex characters). The examples focus on the API and state management, not implementing the SHA-256 algorithm from scratch.
 
-## 1. `MessageDigest` là engine có trạng thái
+## 1. `MessageDigest` Is a Stateful Engine
 
-Gọi factory:
+Call the factory:
 
 ```java
 MessageDigest md = MessageDigest.getInstance("SHA-256");
 ```
 
-Snippet giả định đã `import java.security.MessageDigest;` và có xử lý `NoSuchAlgorithmException`. JCA chọn implementation của provider phù hợp đang đăng ký. Đối tượng mới chứa **state của thông điệp rỗng**.
+The snippet assumes `import java.security.MessageDigest;` and handles `NoSuchAlgorithmException`. JCA selects an implementation from a suitable registered provider. The new object holds **the state of an empty message**.
 
-Gọi `md.update(...)` để đưa thêm byte vào state, theo **thứ tự**. Gọi `md.digest()` khi đã nạp đủ để **hoàn tất băm**, nhận mảng digest, đồng thời engine **tự reset** về state ban đầu. Gọi `md.reset()` nếu muốn **hủy dữ liệu đã nạp** mà không lấy kết quả.
+Call `md.update(...)` to feed bytes into the state, in **order**. Call `md.digest()` once all data has been fed to **finalize the hash**, receive the digest array, and simultaneously have the engine **automatically reset** to its initial state. Call `md.reset()` if you want to **discard already-fed data** without obtaining a result.
 
 ```text
-MessageDigest mới (thông điệp rỗng)
+New MessageDigest (empty message)
               |
       update(part 1)
               |
@@ -37,53 +37,53 @@ MessageDigest mới (thông điệp rỗng)
               |
            digest()
               |
-              +----> trả digest của (part1 || part2 || ... || partN)
+              +----> returns digest of (part1 || part2 || ... || partN)
               |
               v
-      state rỗng trở lại
+      state returns to empty
               |
-      sẵn sàng cho thông điệp tiếp theo
+      ready for the next message
 ```
 
-Bất kỳ lúc nào trước `digest()`:
+At any point before `digest()`:
 
 ```text
 update(part1) -> update(part2) -> reset()
                                     |
                                     v
-                          bỏ phần dữ liệu đã nạp
-                          state rỗng, không có digest
+                          discards fed data
+                          empty state, no digest
 ```
 
-Do đó:
+Therefore:
 
-- `update("ab"); update("c"); digest()` băm **`abc`**.
-- `update("ab"); digest("c")` cũng băm **`abc`**: `digest(byte[] input)` nạp thêm `input` rồi final.
-- `update("ab"); reset(); digest("c")` băm **`c`**, vì đã bỏ `ab`.
-- `digest(); digest()` trên cùng instance: lần đầu băm state hiện có, lần sau băm **thông điệp rỗng** do lần trước đã reset.
-- `digest()` không trả về “state đã lưu”; nó **kết thúc thông điệp**. Nếu muốn tiếp tục cùng thông điệp, chưa được gọi `digest()`.
+- `update("ab"); update("c"); digest()` hashes **`abc`**.
+- `update("ab"); digest("c")` also hashes **`abc`**: `digest(byte[] input)` feeds `input` first and then finalizes.
+- `update("ab"); reset(); digest("c")` hashes **`c`**, because `ab` was discarded.
+- `digest(); digest()` on the same instance: the first call hashes the current state, and the second call hashes **the empty message** because the first call reset the state.
+- `digest()` does not return a "saved state"; it **terminates the message**. If you want to continue the same message, you must not call `digest()` yet.
 
-## 2. Các overload cần phân biệt
+## 2. Overloads to Distinguish
 
-| Phương thức | Chức năng | Trạng thái sau lời gọi |
+| Method | Behavior | State after the call |
 | --- | --- | --- |
-| `update(byte b)` | Nạp đúng 1 byte. | Giữ state, có thêm byte. |
-| `update(byte[] input)` | Nạp **toàn bộ mảng**. | Giữ state, có thêm mảng. |
-| `update(byte[] input, int offset, int len)` | Nạp đúng `len` byte từ `input[offset]`. | Giữ state, có thêm đoạn byte. |
-| `update(ByteBuffer input)` | Nạp từ `position` đến trước `limit`; position tiến đến limit. | Giữ state, buffer được tiêu thụ. |
-| `digest()` | Final hóa state hiện tại. | **Tự reset**, trả digest byte[]. |
-| `digest(byte[] input)` | Nạp **input** rồi final hóa. | **Tự reset**, trả digest byte[]. |
-| `digest(byte[] buf, int offset, int len)` | Final hóa và ghi digest vào **buffer đích** tại `offset`, có tối đa `len` byte. | **Tự reset**, trả số byte ghi (có thể ném `DigestException`). |
-| `reset()` | Bỏ toàn bộ state đang nạp, không băm. | State rỗng. |
-| `getDigestLength()` | Hỏi độ dài digest theo byte. | Không nạp byte; có thể trả 0 nếu provider không xác định được. |
+| `update(byte b)` | Feeds exactly 1 byte. | Keeps state, with the byte added. |
+| `update(byte[] input)` | Feeds the **entire array**. | Keeps state, with the array added. |
+| `update(byte[] input, int offset, int len)` | Feeds exactly `len` bytes starting at `input[offset]`. | Keeps state, with the byte slice added. |
+| `update(ByteBuffer input)` | Feeds from `position` up to before `limit`; advances position to limit. | Keeps state, buffer is consumed. |
+| `digest()` | Finalizes the current state. | **Automatically resets**, returns digest `byte[]`. |
+| `digest(byte[] input)` | Feeds **`input`** and then finalizes. | **Automatically resets**, returns digest `byte[]`. |
+| `digest(byte[] buf, int offset, int len)` | Finalizes and writes the digest into the **destination buffer** at `offset`, up to `len` bytes. | **Automatically resets**, returns number of bytes written (may throw `DigestException`). |
+| `reset()` | Discards all fed state without hashing. | Empty state. |
+| `getDigestLength()` | Queries the digest length in bytes. | Feeds no bytes; may return 0 if the provider cannot determine it. |
 
-**Rất dễ nhầm overload:** tham số `byte[]` của `digest(byte[] input)` là **đầu vào**; còn `byte[] buf` của `digest(byte[] buf, offset, len)` là **đầu ra**. Muốn băm một đoạn mảng, dùng `update(input, offset, len)`, sau đó `digest()`.
+**Very easy-to-confuse overload:** the `byte[]` parameter of `digest(byte[] input)` is **input**; whereas `byte[] buf` in `digest(byte[] buf, offset, len)` is **output**. To hash a slice of an array, use `update(input, offset, len)`, followed by `digest()`.
 
-Mỗi lời gọi `update` nối thêm bytes vào cùng một thông điệp. Ranh giới giữa các lời gọi không được mã hóa trong digest; chỉ **chuỗi byte cuối cùng** quan trọng. Vì vậy, chia `abc` thành `a + bc` hay `ab + c` vẫn cho cùng SHA-256 nếu không có `digest` hoặc `reset` xen giữa.
+Each `update` call appends bytes to the same message. Call boundaries are not encoded in the digest; only the **final byte sequence** matters. Thus, splitting `abc` into `a + bc` or `ab + c` yields the same SHA-256 as long as neither `digest` nor `reset` occurs in between.
 
-## 3. Chương trình hoàn chỉnh: update, digest và reset
+## 3. Complete Program: `update`, `digest`, and `reset`
 
-Lưu file **`DigestLifecycleDemo.java`**:
+Save the file as **`DigestLifecycleDemo.java`**:
 
 ```java
 import java.nio.ByteBuffer;
@@ -137,14 +137,14 @@ public final class DigestLifecycleDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 DigestLifecycleDemo.java
 java DigestLifecycleDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 chunks-abc = ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
@@ -157,22 +157,22 @@ written-bytes = 32
 destination-abc = ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
 ```
 
-Cách đọc từng kết quả:
+How to read each result:
 
-1. `md.update("a")` và `md.update("b")` tích lũy `ab`; `md.digest("c")` **nạp tiếp `c`**, trả SHA-256(`abc`) rồi reset.
-2. `md.digest()` ngay sau đó cho SHA-256 của **0 byte** (thông điệp rỗng): một bằng chứng rằng state sau `digest` đã được reset.
-3. `md.update("discard"); md.reset(); md.digest("abc")` bỏ phần đã nạp dở; chỉ tính trên `abc`.
-4. `md.update(src,0,1)` và `md.update(src,1,2)` băm hai đoạn `a` và `bc` chính xác, cũng là `abc`.
-5. `ByteBuffer.wrap("__abc__")` chứa hai byte `_` ở đầu và cuối; đặt position=2, limit=5 để lấy đúng `abc`. `md.update(buffer)` tiêu thụ `remaining()` và làm position bằng limit.
-6. `md.digest(destination,4,32)` ghi **32 byte OUTPUT** kể từ index 4 của mảng 40 byte. `written = 32` và hàm `HexFormat.of().formatHex(destination,4,4+written)` chỉ in vùng đã ghi.
+1. `md.update("a")` and `md.update("b")` accumulate `ab`; `md.digest("c")` **also feeds `c`**, returns SHA-256(`abc`), and resets.
+2. `md.digest()` immediately afterward yields the SHA-256 of **0 bytes** (the empty message): proof that the state was reset after `digest`.
+3. `md.update("discard"); md.reset(); md.digest("abc")` discards the partially fed data and hashes only `abc`.
+4. `md.update(src,0,1)` and `md.update(src,1,2)` hash the exact slices `a` and `bc`, which also equals `abc`.
+5. `ByteBuffer.wrap("__abc__")` contains two `_` bytes at the start and end; setting position=2 and limit=5 selects exactly `abc`. `md.update(buffer)` consumes `remaining()` and advances position to limit.
+6. `md.digest(destination,4,32)` writes **32 OUTPUT bytes** starting at index 4 of the 40-byte array. `written = 32`, and `HexFormat.of().formatHex(destination,4,4+written)` prints only the written region.
 
-Lưu ý: `HexFormat` có trong **Java 17+**. Có thể dùng `String.format` hoặc tự định dạng hex ở Java cũ, nhưng ví dụ này chủ đích yêu cầu Java 17+.
+Note: `HexFormat` was added in **Java 17+**. In older Java versions you can use `String.format` or custom hex formatting, but this example intentionally requires Java 17+.
 
-## 4. Nạp dữ liệu từ `InputStream` vào một digest duy nhất
+## 4. Feeding Data from an `InputStream` into a Single Digest
 
-`MessageDigest` không quan tâm dữ liệu đến từ mảng byte, file hay mạng: điều kiện để kết quả đúng là mọi byte được truyền vào `update` **đúng một lần, đúng thứ tự**, rồi mới gọi `digest()`. Phần này minh họa cách dùng luồng để chứng minh quy tắc state; cách thiết kế, benchmark và kiểm thử file nhiều GiB, `FileChannel` và `ByteBuffer` được triển khai riêng trong bài **4.4 Băm file lớn bằng luồng hoặc ByteBuffer**.
+`MessageDigest` does not care whether data comes from a byte array, a file, or a network socket: the requirement for a correct result is that every byte is passed to `update` **exactly once, in order**, before calling `digest()`. This section illustrates stream usage to demonstrate the state rules; designing, benchmarking, and testing multi-GiB files, `FileChannel`, and `ByteBuffer` are covered separately in lesson **4.4 Hashing Large Files with Streams or ByteBuffer**.
 
-Phương thức minh họa dưới đây nhận `InputStream` đã mở; cần đặt trong class có import `java.io.InputStream` và `java.security.MessageDigest`, xử lý ngoại lệ theo chữ ký. Đây là **đoạn phương thức**, còn `DigestLifecycleDemo` ở mục 3 là chương trình độc lập của bài này:
+The illustrative method below accepts an already-opened `InputStream`; place it inside a class that imports `java.io.InputStream` and `java.security.MessageDigest`, handling exceptions according to the signature. This is a **method snippet**, while `DigestLifecycleDemo` in Section 3 is the standalone program for this lesson:
 
 ```java
 static byte[] sha256(InputStream source) throws Exception {
@@ -188,13 +188,13 @@ static byte[] sha256(InputStream source) throws Exception {
 }
 ```
 
-Một lần `read` có thể trả ít hơn 8192 byte, đặc biệt ở chunk cuối; `update(buffer, 0, n)` vì thế chỉ nhận những byte thực đã đọc. Nếu thay bằng `update(buffer)`, các byte còn sót trong buffer cũng bị nạp, làm sai digest. Nếu gọi `digest()` bên trong vòng lặp, state bị reset giữa các chunk và kết quả không còn là digest của toàn luồng.
+A single `read` call can return fewer than 8192 bytes, especially on the final chunk; therefore `update(buffer, 0, n)` feeds only the bytes actually read. If replaced with `update(buffer)`, leftover bytes in the buffer would also be hashed, corrupting the digest. If `digest()` is called inside the loop, the state resets between chunks and the output is no longer the digest of the whole stream.
 
-Hàm này **không đóng** nguồn mà caller sở hữu: nên gọi bằng `try-with-resources`, chỉ dùng kết quả nếu đọc đến EOF thành công. Với `ByteArrayInputStream` chứa đúng byte UTF-8 của `abc`, kết quả hex là `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad`. Đổi cách chia chunk không đổi digest nếu giữ nguyên chuỗi byte. Với nguồn không có EOF (stream kéo dài vô hạn), ứng dụng phải xác định điểm kết thúc thông điệp trước khi final.
+This method **does not close** the caller-owned source: invoke it inside `try-with-resources`, and use the result only if reading reached EOF cleanly. With a `ByteArrayInputStream` containing the exact UTF-8 bytes of `abc`, the hex result is `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad`. Changing the chunking does not change the digest as long as the byte sequence is unchanged. For sources without EOF (infinite streams), the application must determine the message boundary before finalizing.
 
-## 5. Dùng `DigestInputStream` làm lựa chọn thay thế
+## 5. Using `DigestInputStream` as an Alternative
 
-JDK có `java.security.DigestInputStream`: các byte **đọc qua wrapper** được tự động nạp vào `MessageDigest` gắn với nó. Snippet dưới đây dùng trong một phương thức đã khai báo biến `Path path` và xử lý checked exceptions:
+The JDK includes `java.security.DigestInputStream`: bytes **read through the wrapper** are automatically fed into the attached `MessageDigest`. The snippet below belongs inside a method where `Path path` is declared and checked exceptions are handled:
 
 ```java
 MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -205,104 +205,104 @@ try (DigestInputStream input =
 byte[] result = md.digest();
 ```
 
-Import cần thiết: `java.security.MessageDigest`, `java.security.DigestInputStream`, `java.nio.file.Files`, `java.nio.file.Path` và `java.io.OutputStream`.
+Required imports: `java.security.MessageDigest`, `java.security.DigestInputStream`, `java.nio.file.Files`, `java.nio.file.Path`, and `java.io.OutputStream`.
 
-`transferTo(OutputStream.nullOutputStream())` đọc hết file thông qua wrapper, không giữ toàn bộ file trong RAM. `DigestInputStream` nạp bytes **khi chúng được đọc**, chứ không tự hoàn tất hash lúc constructor hay `close()`; do đó phải gọi `md.digest()` sau khi đã đọc đủ. Nếu chỉ đọc prefix rồi dừng, digest chỉ tính prefix; đọc trực tiếp từ stream gốc (bỏ wrapper) cũng làm mất những byte ấy khỏi digest wrapper. Có thể dùng wrapper để tiết kiệm code, còn vòng lặp `update` thủ công cho quyền kiểm soát rõ ràng hơn về số byte/ranh giới dữ liệu.
+`transferTo(OutputStream.nullOutputStream())` reads the entire file through the wrapper without keeping the whole file in RAM. `DigestInputStream` feeds bytes **as they are read**, rather than finalizing the hash in the constructor or `close()`; therefore you must call `md.digest()` after reading finishes. If you read only a prefix and stop, the digest reflects only that prefix; reading directly from the underlying stream (bypassing the wrapper) also omits those bytes from the wrapper's digest. The wrapper can save code, while a manual `update` loop gives clearer control over byte counts and data boundaries.
 
-## 6. Các chi tiết của `ByteBuffer` và ranh giới dữ liệu
+## 6. `ByteBuffer` Details and Data Boundaries
 
-### `position`, `limit` và `remaining`
+### `position`, `limit`, and `remaining`
 
-`MessageDigest.update(ByteBuffer)` băm bytes trong vùng `[position, limit)` hiện hành của buffer; sau đó position chuyển đến limit, không băm capacity chưa chứa dữ liệu hợp lệ. Với NIO, thường phải gọi `flip()` sau khi ghi vào buffer để chuyển từ mode ghi sang mode đọc. Nếu quên `flip()` hoặc đặt limit sai, có thể băm sai byte.
+`MessageDigest.update(ByteBuffer)` hashes bytes in the buffer's current `[position, limit)` range; afterward `position` advances to `limit`, without hashing unused capacity. With NIO, you typically must call `flip()` after writing into a buffer to switch from write mode to read mode. Forgetting `flip()` or setting the wrong `limit` can hash the wrong bytes.
 
-Khi muốn giữ position của buffer ban đầu, có thể truyền **duplicate**:
+When you want to preserve the original buffer's position, you can pass a **duplicate**:
 
 ```java
 ByteBuffer view = original.duplicate();
-md.update(view);        // Thay đổi position của view; original giữ position.
+md.update(view);        // Modifies view's position; original retains its position.
 ```
 
-Đây là snippet có sẵn `original` kiểu `ByteBuffer` và `md` kiểu `MessageDigest`. `duplicate()` tạo view độc lập về position/limit nhưng **vẫn chia sẻ bộ nhớ chứa byte**, không sao chép dữ liệu nền; đừng để thread khác sửa nội dung đồng thời. Với `ByteBuffer` trực tiếp hoặc read-only, ý nghĩa position/limit và `update` vẫn vậy.
+This snippet assumes `original` of type `ByteBuffer` and `md` of type `MessageDigest` already exist. `duplicate()` creates an independent view for position/limit while **still sharing the underlying byte storage**, without copying backing data; do not let another thread modify the contents concurrently. For direct or read-only `ByteBuffer`s, the semantics of position/limit and `update` are the same.
 
-### Ranh giới chunk không được mã hóa
+### Chunk Boundaries Are Not Encoded
 
-Nếu hai chương trình nạp cùng byte stream `abc`, một chương trình `update("a"); update("bc")` và chương trình kia `update("ab"); update("c")`, digest giống nhau. Đừng tưởng số lần gọi `update` lưu được ranh giới trường.
+If two programs feed the same byte stream `abc`—one calling `update("a"); update("bc")` and the other calling `update("ab"); update("c")`—the digests are identical. Do not assume the number of `update` calls preserves field boundaries.
 
-Ví dụ băm một record bằng cách nối trực tiếp UTF-8: hai cặp (`"ab"`, `"c"`) và (`"a"`, `"bc"`) đều cho byte sequence `abc`. Muốn phân biệt, phải dùng **format mã hóa record có cấu trúc**, chẳng hạn nạp trước độ dài của từng trường bằng số byte cố định rồi nạp chính bytes của trường. Khi dùng độ dài, phải đếm **byte đã encode**, không đếm `String.length()` (đơn vị UTF-16).
+For example, when hashing a record by directly concatenating UTF-8 strings: both pairs (`"ab"`, `"c"`) and (`"a"`, `"bc"`) yield the byte sequence `abc`. To distinguish them, you must use a **structured record encoding format**, such as feeding each field's length as a fixed-size integer before feeding the field's bytes. When encoding lengths, count **encoded bytes**, not `String.length()` (which counts UTF-16 code units).
 
-**Khi hash nhiều thông điệp độc lập**, mỗi thông điệp cần một lần finalize riêng. `update(A1); update(A2); digest()` là hash message A; sau đó `update(B1); digest()` là hash message B. Nếu muốn tách hai nhánh có prefix chung, có thể cân nhắc `clone()` **chỉ khi provider hỗ trợ** hoặc xây hai instance và nạp lại prefix, chứ `reset()` không lưu checkpoint.
+**When hashing multiple independent messages**, each message requires its own finalization. `update(A1); update(A2); digest()` hashes message A; then `update(B1); digest()` hashes message B. If you want to branch two hashes that share a common prefix, consider `clone()` **only if the provider supports it**, or create two instances and re-feed the prefix, because `reset()` does not save checkpoints.
 
-## 7. Văn bản, encoding và tính tái lập
+## 7. Text, Encoding, and Reproducibility
 
-`MessageDigest` chỉ xử lý **byte**. Các biểu diễn khác nhau của cùng văn bản nhìn thấy được có thể tạo byte khác nhau:
+`MessageDigest` operates solely on **bytes**. Different representations of the same visually displayed text can produce different bytes:
 
-- Encoding khác nhau, ví dụ UTF-8 và UTF-16.
-- Unicode normalization khác nhau.
-- Line endings `\n` (LF) và `\r\n` (CRLF).
-- Dấu cách, BOM, ký tự ẩn, thứ tự byte hay việc truyền dữ liệu qua một lớp text decoder/encoder.
+- Different encodings, such as UTF-8 vs. UTF-16.
+- Different Unicode normalization forms.
+- Line endings `\n` (LF) vs. `\r\n` (CRLF).
+- Whitespace, BOM, hidden characters, byte order, or passing data through a text decoder/encoder layer.
 
-Luôn chọn encoding rõ ràng khi chuyển chuỗi:
+Always choose an explicit encoding when converting strings:
 
 ```java
 byte[] data = text.getBytes(StandardCharsets.UTF_8);
 md.update(data);
 ```
 
-Snippet giả định `text` là `String` và `md` đã tạo. Tránh dùng `String.getBytes()` không có charset khi cần kết quả byte ổn định trên nhiều runtime. Đặc biệt, để xác minh hash một **file nhị phân**, hãy hash trực tiếp bytes của file, đừng biến nó thành `String` rồi encode lại. Để so khớp digest giữa hai hệ thống, phải thống nhất **exact byte representation** trước khi xem xét provider hay mã hash.
+This snippet assumes `text` is a `String` and `md` has been created. Avoid `String.getBytes()` without a charset when consistent byte output across runtimes is needed. In particular, to verify the hash of a **binary file**, hash the file's bytes directly rather than converting them to a `String` and re-encoding. To match digests between two systems, agree on the **exact byte representation** before inspecting providers or hash code.
 
-## 8. Tái sử dụng và lỗi trong thực tế
+## 8. Reuse and Real-World Pitfalls
 
-### Khi nào cần gọi `reset()`?
+### When Do You Need to Call `reset()`?
 
-- **Không cần** giữa hai phép băm đã hoàn thành bằng `digest()`: JCA đã reset tự động.
-- **Cần** nếu muốn hủy state đã nạp dở và bắt đầu một thông điệp mới trên cùng instance.
-- **Không dùng** để chốt digest, tạm lưu state, hoặc cố xóa an toàn dữ liệu nhạy cảm khỏi heap; `reset()` không đảm bảo xóa sạch bộ nhớ.
+- **Not needed** between two hashes completed with `digest()`: JCA resets automatically.
+- **Needed** if you want to discard partially fed state and start a new message on the same instance.
+- **Do not use** to finalize a digest, checkpoint state, or attempt to securely erase sensitive data from the heap; `reset()` does not guarantee memory wiping.
 
-### Concurrency và ownership
+### Concurrency and Ownership
 
-`MessageDigest` là đối tượng **mutable**. Không mặc định nó an toàn khi nhiều thread gọi `update`/`digest` đồng thời; state có thể bị trộn giữa các thông điệp, gây kết quả không kiểm soát. Cách đơn giản là **một instance riêng cho mỗi hoạt động băm**, hoặc duy trì ownership đồng bộ nghiêm ngặt. Với workload cần tối ưu, đo chi phí tạo instance và thiết kế vòng đời rõ ràng trước khi cân nhắc pooling. Không dùng `clone()` nếu provider chưa được kiểm chứng hỗ trợ.
+`MessageDigest` is a **mutable** object. Never assume it is safe for multiple threads to call `update`/`digest` concurrently; state can interleave across messages, causing unpredictable results. The simplest pattern is **one dedicated instance per hashing operation**, or maintaining strict synchronized ownership. For workloads requiring optimization, measure instance creation cost and design a clear lifecycle before considering pooling. Do not use `clone()` unless provider support has been verified.
 
-### Đọc lỗi hoặc nguồn thay đổi đồng thời
+### Read Errors or Concurrent Source Modification
 
-Nếu `InputStream` đọc dở rồi lỗi, không thể coi kết quả băm của phần đã nhận là hash toàn bộ. Nên báo lỗi và bỏ instance; nếu tái sử dụng instance thì reset trước lần mới. Nếu file bị sửa trong lúc đọc, phép hash có thể bao phủ một trạng thái không nhất quán dù `read` không ném exception. Với bài toán cần tính nhất quán, phải kiểm soát nguồn hoặc cách chụp dữ liệu đầu vào.
+If an `InputStream` fails mid-read, the hash of the partially received bytes must not be treated as the hash of the whole. Report the error and discard the instance; if reusing the instance, reset it before the next operation. If a file is modified while being read, the hash may span an inconsistent state even if `read` throws no exception. For tasks requiring consistency, control the source or how the input snapshot is captured.
 
-### Digest không phải xác thực
+### A Digest Is Not Authentication
 
-`SHA-256` thuần cho dấu vân tay byte, không chứng minh dữ liệu đến từ ai: ai có thể sửa payload cũng có thể tính lại hash. Với yêu cầu toàn vẹn **có khóa bí mật**, xem xét `Mac`/HMAC; với password lưu trữ, dùng cơ chế password hashing có salt và chi phí thích hợp thay vì SHA-256 trực tiếp. Đây là khác biệt về mục tiêu bảo mật, không làm thay đổi quy tắc `update/digest/reset`.
+Plain `SHA-256` provides a byte fingerprint and does not prove who sent the data: anyone who can alter the payload can also recompute the hash. For integrity requirements **with a secret key**, consider `Mac`/HMAC; for password storage, use a salted password-hashing scheme with appropriate cost rather than plain SHA-256. These differ in security goals, while leaving the `update/digest/reset` rules unchanged.
 
-## 9. Bảng lỗi thường gặp
+## 9. Common Mistakes Table
 
-| Nhầm lẫn/lỗi | Triệu chứng | Sửa đúng |
+| Mistake / Bug | Symptom | Correct Fix |
 | --- | --- | --- |
-| Gọi `digest()` trong mỗi lượt `read` | Cho nhiều hash của từng phần, state reset liên tục. | `update` cho mọi block, `digest` một lần sau khi đọc xong. |
-| Dùng `update(block)` với mảng tái sử dụng | Block cuối có byte cũ, hash sai. | Dùng `update(block,0,n)` chính xác. |
-| Gọi `reset()` giữa hai phần của một thông điệp | Phần đầu bị loại. | Chỉ reset khi chủ động hủy thao tác dở. |
-| Gọi `digest()` rồi tiếp tục `update` | Phần sau trở thành một thông điệp mới. | Chỉ finalize khi có đầy đủ mọi phần. |
-| Cho rằng `digest(bytes)` bỏ dữ liệu đã nạp | Hash vô tình gồm cả pending state và `bytes`. | Tạo instance mới/reset nếu cần hash chỉ `bytes`. |
-| Nhầm `digest(out,off,len)` là update input | Không đưa input mong muốn vào state. | Dùng `update(input,off,len)`; overload digest đó ghi output. |
-| Quên `ByteBuffer.flip()` hoặc giới hạn position/limit | Băm vùng dữ liệu không dự kiến. | Kiểm tra vùng `remaining()` trước `update`. |
-| Lấy `String.length()` làm độ dài byte của trường UTF-8 | Tiền tố độ dài sai, encoding record nhập nhằng. | Mã hóa ra byte trước, dùng `byte[].length`. |
-| Không cố định charset/chuẩn hóa line ending | Digest khác nhau giữa môi trường. | Thống nhất exact bytes/encoding/protocol. |
-| Chia sẻ instance giữa thread | State bị race/trộn. | Instance riêng cho từng phép băm. |
-| Stream thất bại vẫn xuất hash như đã hoàn tất | Hash chỉ tính prefix. | Bỏ kết quả, báo lỗi và khởi tạo lại có kiểm soát. |
-| Coi hash thuần là xác thực nguồn gửi | Không ngăn được giả mạo nếu attacker sửa cả dữ liệu và hash. | Sử dụng HMAC/chữ ký theo yêu cầu bảo mật. |
+| Calling `digest()` on every `read` iteration | Produces multiple per-chunk hashes; state resets continuously. | `update` for all blocks, `digest` once after reading finishes. |
+| Calling `update(block)` with a reused array | Final block includes stale bytes; wrong hash. | Use `update(block, 0, n)` accurately. |
+| Calling `reset()` between two parts of one message | The first part is discarded. | Call `reset` only when intentionally aborting an incomplete hash. |
+| Calling `digest()` and then continuing `update` | Subsequent parts become a new message. | Finalize only after all parts are fed. |
+| Assuming `digest(bytes)` discards previously fed data | Hash accidentally combines pending state and `bytes`. | Create a new instance or reset if you need to hash only `bytes`. |
+| Mistaking `digest(out, off, len)` for an input update | Fails to feed the desired input into state. | Use `update(input, off, len)`; that `digest` overload writes output. |
+| Forgetting `ByteBuffer.flip()` or mismanaging position/limit | Hashes an unintended memory region. | Check `remaining()` before `update`. |
+| Using `String.length()` as the byte length of a UTF-8 field | Wrong length prefix, ambiguous record encoding. | Encode to bytes first and use `byte[].length`. |
+| Not fixing charset/line-ending normalization | Digests differ across environments. | Standardize exact bytes/encoding/protocol. |
+| Sharing an instance across threads | State races/interleaves. | Dedicated instance per hashing operation. |
+| Returning a hash as complete when a stream fails | Hash covers only a prefix. | Discard the result, report the error, and reinitialize cleanly. |
+| Treating a plain hash as sender authentication | Cannot stop forgery if an attacker alters both data and hash. | Use HMAC or digital signatures as required by the security model. |
 
-## 10. Kiểm tra hiểu bài
+## 10. Check Your Understanding
 
-1. Tạo hai instance SHA-256 độc lập. Instance A gọi `update("a")`, `update("bc")`, `digest()`; instance B gọi `digest("abc")`. Tại sao output giống nhau? Điều kiện nào làm chúng khác?
-2. Nạp `a`, gọi `reset()`, nạp `bc` rồi `digest()`. So với SHA-256(`abc`) và SHA-256(`bc`) để xác nhận prefix đã bị bỏ.
-3. Viết một `main` gọi phương thức `sha256(InputStream)` ở mục 4 trên cùng một dữ liệu với buffer dài 1, 7, 8192 rồi 65536 byte; giải thích vì sao digest phải giữ nguyên và tìm lỗi trong `read`/`update` nếu khác.
-4. Dùng một ByteBuffer chứa `__abc__`, đặt position=2 và limit=5, xác nhận kết quả bằng `digest("abc")` trên instance khác. Kiểm tra position sau update.
-5. Tạo mảng output 40 byte, nạp `abc` rồi gọi `digest(output,4,32)`. Giải thích giá trị trả về 32 và vùng nào chứa digest. Thử output nhỏ để xem exception.
-6. Giải thích vì sao hai cặp chuỗi (`ab`, `c`) và (`a`, `bc`) có cùng hash khi nối byte trực tiếp. Đề xuất encoding có tiền tố độ dài giúp tách ranh giới.
-7. Băm một file ở dạng binary stream, so sánh kết quả với công cụ SHA-256 độc lập trên máy. Nếu mismatch, kiểm tra source file đang thay đổi, byte count, encoding, BOM và line ending.
+1. Create two independent SHA-256 instances. Instance A calls `update("a")`, `update("bc")`, `digest()`; instance B calls `digest("abc")`. Why are their outputs identical? Under what condition would they differ?
+2. Feed `a`, call `reset()`, feed `bc`, then call `digest()`. Compare against SHA-256(`abc`) and SHA-256(`bc`) to confirm the prefix was discarded.
+3. Write a `main` method calling `sha256(InputStream)` from Section 4 on the same data with buffer sizes 1, 7, 8192, and 65536 bytes; explain why the digest must stay unchanged and identify the bug in `read`/`update` if it differs.
+4. Use a `ByteBuffer` containing `__abc__`, set `position=2` and `limit=5`, and verify the result against `digest("abc")` on another instance. Check `position` after `update`.
+5. Create a 40-byte output array, feed `abc`, and call `digest(output, 4, 32)`. Explain the return value 32 and which region holds the digest. Try a smaller output slice to observe the exception.
+6. Explain why the two string pairs (`ab`, `c`) and (`a`, `bc`) produce the same hash when bytes are concatenated directly. Propose a length-prefixed encoding that preserves boundaries.
+7. Hash a file as a binary stream and compare the result with a standalone SHA-256 tool on your machine. If there is a mismatch, check for concurrent file modification, byte count, encoding, BOM, and line endings.
 
-Đạt yêu cầu khi bạn giải thích được **`update` tích lũy**, **`digest` chốt và tự reset**, **`reset` bỏ dữ liệu chưa chốt**, và dùng chunk đúng **số byte thực đọc**, giữ digest không đổi khi chỉ đổi kích thước chunk.
+You have met the objectives when you can explain that **`update` accumulates**, **`digest` finalizes and auto-resets**, **`reset` discards uncommitted data**, and chunking uses **exact bytes read**, keeping the digest invariant when only the chunk size changes.
 
-## Tài liệu Java 17 chính thức
+## Official Java 17 Documentation
 
 - [`MessageDigest`: `update`, `digest`, `reset`, `getDigestLength`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/MessageDigest.html)
-- [`DigestInputStream`: cập nhật digest khi đọc qua wrapper](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/DigestInputStream.html)
+- [`DigestInputStream`: updates a digest when reading through a wrapper](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/DigestInputStream.html)
 - [`InputStream`: `read`, `transferTo`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStream.html)
 - [`ByteBuffer`: `position`, `limit`, `remaining`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html)
 - [JCA Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html)

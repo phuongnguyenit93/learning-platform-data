@@ -1,14 +1,14 @@
-# Biểu diễn mã nguồn bằng SimpleJavaFileObject và URI phù hợp
+# Representing Source Code with SimpleJavaFileObject and Appropriate URIs
 
-Trong Java, **biên dịch mã nguồn nằm trong bộ nhớ** không nhất thiết phải tạo file `.java` trên ổ đĩa. API `javax.tools.JavaCompiler` nhận các đối tượng `JavaFileObject` biểu diễn đơn vị biên dịch. Một cách đơn giản để tạo đầu vào là **kế thừa `SimpleJavaFileObject`, gắn cho đối tượng một URI thể hiện đúng tên nguồn, chọn `Kind.SOURCE` và trả về nội dung Java qua `getCharContent(...)`**.
+In Java, **compiling source code in memory** does not necessarily require creating `.java` files on disk. The `javax.tools.JavaCompiler` API accepts `JavaFileObject` instances representing compilation units. A simple way to create an input is to **extend `SimpleJavaFileObject`, attach a URI representing the proper source name, select `Kind.SOURCE`, and return the Java content via `getCharContent(...)`**.
 
-Tuy nhiên, “nội dung là một chuỗi `String`” chưa đủ để compiler hiểu đúng đơn vị biên dịch. **URI phải phù hợp với tên lớp/package và loại file**, bởi compiler/file manager có thể sử dụng tên đó để nhận diện, kiểm tra tính tương thích, đưa ra chẩn đoán và quản lý nhiều nguồn.
+However, "the content is a `String`" is not enough for the compiler to properly understand a compilation unit. **The URI must match the class/package name and file kind**, because the compiler and file manager may use that name to identify the unit, check compatibility, emit diagnostics, and manage multiple sources.
 
-Bài này giải thích các hợp đồng API, quy tắc tạo URI đáng tin cậy, ví dụ Java 17 biên dịch từ `String` và giữ cả file `.class` trong bộ nhớ, cùng lỗi hay gặp ở tên nguồn, namespace, diagnostics, class loader và vòng đời tài nguyên.
+This lesson explains the API contracts, rules for constructing reliable URIs, a Java 17 example compiling from a `String` and keeping `.class` files in memory as well, along with common pitfalls involving source names, namespaces, diagnostics, class loaders, and resource lifecycles.
 
-## 1. Phân biệt mã nguồn, JavaFileObject, URI và file vật lý
+## 1. Distinguishing Source Code, JavaFileObject, URI, and Physical Files
 
-Một bài toán thường bắt đầu bằng mã nguồn được sinh động:
+A problem typically begins with dynamically generated source code:
 
 ```java
 String code = """
@@ -21,61 +21,61 @@ String code = """
         """;
 ```
 
-Đoạn trên là **chuỗi Java**, không phải file trên filesystem. Để truyền cho `JavaCompiler`, cần một **compilation unit** có tên, kiểu và cách đọc nội dung:
+The snippet above is a **Java string**, not a file on the filesystem. To pass it to `JavaCompiler`, you need a **compilation unit** with a name, a kind, and a way to read its content:
 
 ```text
-Chuỗi mã nguồn Java (String)
+Java source code string (String)
           |
           v
 SimpleJavaFileObject (Kind.SOURCE)
   - URI: string:///demo/generated/Greeter.java
-  - getCharContent(): trả mã nguồn
+  - getCharContent(): returns source code
           |
           v
 JavaCompiler.getTask(..., compilationUnits)
           |
           v
-JavaFileManager nhận bytecode đầu ra
+JavaFileManager receives output bytecode
           |
           v
-Class bytes và/hoặc class được nạp vào ClassLoader
+Class bytes and/or class loaded into ClassLoader
 ```
 
-Có bốn khái niệm:
+There are four concepts:
 
-| Khái niệm | Vai trò | Điều không nên nhầm |
+| Concept | Role | What not to confuse it with |
 | --- | --- | --- |
-| `String` / `CharSequence` | Nội dung mã Java theo Unicode | Không chứa metadata package/file kind |
-| `JavaFileObject` | Abstraction cho source, class hoặc loại output khác | Không bắt buộc trỏ tới file trên đĩa |
-| `URI` | Định danh của đối tượng đầu vào/đầu ra | `string:///...` hoặc `mem:///...` không phải địa chỉ web hay file thật |
-| `JavaFileManager` | Cung cấp input/output cho compiler và quản lý nơi ghi class | Đầu vào từ bộ nhớ **không tự động** khiến output cũng vào bộ nhớ |
+| `String` / `CharSequence` | Unicode Java source code content | Does not contain package/file kind metadata |
+| `JavaFileObject` | Abstraction for source, class, or other output kinds | Does not have to point to a file on disk |
+| `URI` | Identifier of the input/output object | `string:///...` or `mem:///...` is not a web address or a real file |
+| `JavaFileManager` | Provides input/output to the compiler and manages where classes are written | Input from memory does **not automatically** make output go to memory |
 
-`SimpleJavaFileObject` là lớp base giúp triển khai `JavaFileObject` với các hành vi mặc định. Khi chỉ cần đưa source từ chuỗi vào compiler, việc override `getCharContent(...)` thường là đủ. Khi cần **lấy bytecode mà không ghi ra đĩa**, phải xử lý thêm output bằng một `JavaFileManager` thích hợp.
+`SimpleJavaFileObject` is a base class that helps implement `JavaFileObject` with default behaviors. When you only need to feed source from a string into the compiler, overriding `getCharContent(...)` is usually sufficient. When you need to **capture bytecode without writing to disk**, you must additionally handle output using an appropriate `JavaFileManager`.
 
-## 2. Các hợp đồng JavaFileObject và SimpleJavaFileObject
+## 2. JavaFileObject and SimpleJavaFileObject Contracts
 
 ### `JavaFileObject.Kind`
 
-`JavaFileObject.Kind` cho compiler biết loại đơn vị:
+`JavaFileObject.Kind` tells the compiler the kind of unit:
 
-- `SOURCE`: mã nguồn Java; extension mặc định `.java`.
-- `CLASS`: bytecode Java; extension `.class`.
-- `HTML`: tài liệu HTML.
-- `OTHER`: các loại còn lại.
+- `SOURCE`: Java source code; default extension `.java`.
+- `CLASS`: Java bytecode; extension `.class`.
+- `HTML`: HTML documentation.
+- `OTHER`: all remaining kinds.
 
-**Nguồn tạo từ `String` phải khai báo `Kind.SOURCE`**, không phải `Kind.CLASS`. Còn class bytes sinh sau biên dịch phải được biểu diễn bằng `Kind.CLASS`. Kiểu không tương ứng với nội dung có thể làm compiler và file manager xử lý sai.
+**Sources created from a `String` must declare `Kind.SOURCE`**, not `Kind.CLASS`. Conversely, class bytes produced after compilation must be represented with `Kind.CLASS`. A kind that does not match the content can cause the compiler and file manager to misbehave.
 
-### Constructor của SimpleJavaFileObject
+### SimpleJavaFileObject Constructor
 
 ```java
 protected SimpleJavaFileObject(URI uri, JavaFileObject.Kind kind)
 ```
 
-Constructor nhận **URI hợp lệ** và `kind`, lưu những thông tin đó để các phương thức như `toUri()`, `getKind()` và `isNameCompatible(...)` sử dụng. URI phải có **path component không rỗng**; không được nghĩ rằng URI chỉ là một chuỗi nhãn tùy ý. URI nên cung cấp một đường dẫn logic nhất quán với package và tên file.
+The constructor takes a **valid URI** and a `kind`, storing that information for use by methods such as `toUri()`, `getKind()`, and `isNameCompatible(...)`. The URI must have a **non-empty path component**; do not think of the URI as merely an arbitrary label string. The URI should provide a logical path consistent with the package and file name.
 
 ### `getCharContent(boolean ignoreEncodingErrors)`
 
-Đối tượng SOURCE từ bộ nhớ thường override:
+An in-memory SOURCE object typically overrides:
 
 ```java
 @Override
@@ -84,25 +84,25 @@ public CharSequence getCharContent(boolean ignoreEncodingErrors) {
 }
 ```
 
-Đây là snippet của subclass có field `sourceCode` kiểu `String` hoặc `CharSequence`. Compiler có thể lấy source qua phương thức này, nên không cần tạo `FileInputStream`. Tham số `ignoreEncodingErrors` vốn có ý nghĩa ở những implementation phải decode byte; khi đã giữ nội dung trong `String`, quá trình giải mã đã xảy ra trước đó. Không được bỏ qua lỗi encoding khi **đọc bytes ban đầu** từ nguồn khác.
+This is a snippet of a subclass having a `sourceCode` field of type `String` or `CharSequence`. The compiler can retrieve the source through this method, so there is no need to create a `FileInputStream`. The `ignoreEncodingErrors` parameter is originally meaningful in implementations that must decode bytes; when the content is already held in a `String`, decoding has already happened earlier. Encoding errors must not be ignored when **reading the initial bytes** from another source.
 
-Các default method của `SimpleJavaFileObject` không biến nó thành file I/O đa năng. Chẳng hạn, nếu bạn chỉ override `getCharContent` thì đừng mặc định `openInputStream`/`openOutputStream` sẽ được hỗ trợ. Nếu compiler hoặc thành phần khác thực sự cần đường byte/reader riêng, phải triển khai đúng hợp đồng đó.
+The default methods of `SimpleJavaFileObject` do not turn it into a general-purpose file I/O object. For example, if you only override `getCharContent`, do not assume `openInputStream`/`openOutputStream` will be supported. If the compiler or another component actually needs a separate byte/reader path, you must implement that contract properly.
 
 ### `isNameCompatible(...)`
 
-`JavaFileObject.isNameCompatible(simpleName, kind)` kiểm tra liệu tên nguồn có tương thích với simple class name và loại file. Với URI:
+`JavaFileObject.isNameCompatible(simpleName, kind)` checks whether the source name is compatible with a simple class name and file kind. With the URI:
 
 ```text
 string:///demo/generated/Greeter.java
 ```
 
-`isNameCompatible("Greeter", Kind.SOURCE)` trả `true` trong ví dụ thực hành. URI kết thúc bằng tên khác hoặc extension khác có thể khiến kiểm tra thất bại. Ngoài sự tương thích tên đơn giản, **tên package trong mã nguồn** cũng cần thống nhất với cách ứng dụng định danh compilation unit.
+`isNameCompatible("Greeter", Kind.SOURCE)` returns `true` in practice. A URI ending in a different name or a different extension can cause the check to fail. In addition to simple-name compatibility, the **package name in the source code** also needs to match how the application identifies the compilation unit.
 
-## 3. URI phù hợp cho nguồn Java tạo trong bộ nhớ
+## 3. Appropriate URIs for Java Sources Created in Memory
 
-### Quy tắc quan trọng nhất
+### The Most Important Rule
 
-Với một **binary name** bình thường của top-level class, ví dụ `demo.generated.Greeter`, có thể đặt:
+For a normal **binary name** of a top-level class, for example `demo.generated.Greeter`, you can construct:
 
 ```java
 String binaryName = "demo.generated.Greeter";
@@ -111,66 +111,66 @@ URI uri = URI.create("string:///" +
         JavaFileObject.Kind.SOURCE.extension);
 ```
 
-Kết quả:
+Result:
 
 ```text
 string:///demo/generated/Greeter.java
 ```
 
-Đường dẫn URI lúc này phản ánh đúng các thành phần:
+The URI path now accurately reflects the components:
 
 - `demo.generated` → `demo/generated/`;
-- `Greeter` → tên top-level type/compilation unit;
-- `.java` → extension của `Kind.SOURCE`;
-- `string` → scheme tùy biến diễn đạt dữ liệu nguồn do ứng dụng cung cấp, không khẳng định tồn tại file `.java` trên filesystem;
-- `///` → cấu trúc URI có đường dẫn tuyệt đối, không phải “ba dấu slash tương đương đường dẫn hệ điều hành”.
+- `Greeter` → top-level type/compilation unit name;
+- `.java` → extension of `Kind.SOURCE`;
+- `string` → custom scheme expressing application-supplied source data, without asserting the existence of a `.java` file on the filesystem;
+- `///` → URI structure with an absolute path, not "three slashes equivalent to an OS path".
 
-Với đơn vị đơn giản, công thức này dễ đọc và được dùng phổ biến cùng API compiler. `JavaCompiler` xem đối tượng `JavaFileObject` là nguồn; nó không cần gọi HTTP hay truy cập file có tên `string:///...`.
+For a simple unit, this formula is readable and commonly used with the compiler API. `JavaCompiler` treats the `JavaFileObject` as the source; it does not need to make an HTTP call or access a file named `string:///...`.
 
-### Vì sao không dùng URI như thế này?
+### Why Not Use URIs Like These?
 
-| URI/biểu diễn | Vấn đề |
+| URI/representation | Problem |
 | --- | --- |
-| `URI.create("Greeter.java")` | URI tương đối, thiếu scheme; không phải lựa chọn phù hợp cho object do compiler/file manager định danh |
-| `URI.create("string:///Greeter")` | Thiếu extension `.java`, tên không tương thích với `Kind.SOURCE` theo quy ước |
-| `URI.create("string:///demo/Other.java")` | Không thống nhất với tên `Greeter` được yêu cầu; dễ khó hiểu trong diagnostics |
-| `URI.create("file:///tmp/Greeter.java")` dù không có file | Dùng scheme `file` dễ gây kỳ vọng sai rằng file thật tồn tại hoặc kích hoạt logic filesystem ở thành phần khác |
-| `URI.create("string:///demo.generated.Greeter.java")` | Dùng dấu chấm của package thay vì chuyển thành các phân đoạn `/`; sai namespace dự định |
-| `URI.create("string:///demo/Greeter.java")` khi source có package `demo.generated` | URI không phản ánh thư mục package dự định; dễ gây lỗi nếu compiler/file manager cần suy ra binary name |
-| `URI.create("string:///demo/My File.java")` | Dấu cách chưa encode khiến `URI.create` báo lỗi; cần validate/encode tên hợp lệ |
+| `URI.create("Greeter.java")` | Relative URI, missing scheme; not a suitable choice for an object identified by the compiler/file manager |
+| `URI.create("string:///Greeter")` | Missing `.java` extension, name is incompatible with `Kind.SOURCE` by convention |
+| `URI.create("string:///demo/Other.java")` | Inconsistent with the requested name `Greeter`; easily confusing in diagnostics |
+| `URI.create("file:///tmp/Greeter.java")` even when no file exists | Using the `file` scheme easily creates false expectations that a real file exists or triggers filesystem logic in other components |
+| `URI.create("string:///demo.generated.Greeter.java")` | Uses package dots instead of converting them into `/` segments; wrong intended namespace |
+| `URI.create("string:///demo/Greeter.java")` when the source has package `demo.generated` | URI does not reflect the intended package directory; prone to errors if the compiler/file manager needs to infer the binary name |
+| `URI.create("string:///demo/My File.java")` | Unencoded space causes `URI.create` to throw an error; valid names must be validated/encoded |
 
-**Không phải mọi URI khác dạng `string:///...` đều bị JDK cấm.** Đây là **quy ước ổn định, dễ tương thích** cho bộ nguồn trên bộ nhớ. Có thể dùng scheme `mem`, `memory` hoặc scheme tùy biến khác nếu file manager/compiler của ứng dụng xử lý được. Điều quan trọng là URI hợp lệ, đủ path, nhất quán với source name/kind và không bị hiểu nhầm là đường dẫn file vật lý.
+**Not every URI other than `string:///...` is forbidden by the JDK.** This is a **stable, highly compatible convention** for in-memory sources. You can use `mem`, `memory`, or another custom scheme if your application's file manager/compiler handles it. What matters is that the URI is valid, has a complete path, is consistent with the source name/kind, and is not mistaken for a physical file path.
 
-### Chuẩn hóa và an toàn tên
+### Normalization and Name Safety
 
-Đừng ghép nguyên giá trị `className` do người dùng nhập tự do vào URI rồi cho compiler xử lý. Trước hết phải:
+Do not concatenate raw, free-form user-entered `className` values directly into a URI and pass them to the compiler. First, you must:
 
-1. Xác định tên lớp từ metadata đã được ứng dụng xác thực hoặc parse theo luật Java, không chỉ đoán từ ký tự cuối.
-2. Kiểm tra package name và từng identifier có hợp lệ, không có `/`, `..` kiểu path traversal, khoảng trắng hoặc ký tự điều khiển.
-3. Áp dụng chính sách lớp/namespace được phép sinh; không tạo tên đè lên class của host.
-4. Dùng API `URI` để encode khi thật sự cần tên chứa ký tự đặc biệt; tránh tạo chuỗi URL bằng tay từ đầu vào không tin cậy.
+1. Determine the class name from application-validated metadata or parse it according to Java rules, rather than just guessing from trailing characters.
+2. Validate that the package name and each identifier are valid, without `/`, path-traversal-style `..`, whitespace, or control characters.
+3. Enforce a policy on allowed generated classes/namespaces; do not create names that shadow host classes.
+4. Use the `URI` API to encode when names genuinely need special characters; avoid hand-building URL strings from untrusted input.
 
-Có thể bắt đầu với whitelist identifier ASCII nếu sản phẩm chỉ cho phép kiểu tên đó; nhưng đừng nhầm whitelist ASCII với **toàn bộ** cú pháp identifier Java, vốn cho phép Unicode.
+You can start with an ASCII identifier whitelist if your product only permits that style of name; however, do not confuse an ASCII whitelist with the **entire** Java identifier syntax, which allows Unicode.
 
-### Tên file đặc biệt
+### Special File Names
 
-Bài toán nhiều compilation units cần xử lý cả:
+Multi-compilation-unit problems also need to handle:
 
-- `package-info.java`: không phải một tên top-level class thông thường;
-- `module-info.java`: descriptor module, không có FQCN của class theo công thức thay dấu chấm;
-- nhiều top-level types trong một file: **tên compilation unit** phải phù hợp với public top-level type và luật file name của Java;
-- nested/anonymous classes: file nguồn top-level có thể sinh ra nhiều file `.class` như `Outer$Inner.class`, không nên tạo “source URI cho inner class” trừ khi đó thật sự là một đơn vị nguồn độc lập.
+- `package-info.java`: not an ordinary top-level class name;
+- `module-info.java`: module descriptor, does not have a class FQCN following the dot-replacement formula;
+- multiple top-level types in one file: the **compilation unit name** must match the public top-level type and Java's file-naming rules;
+- nested/anonymous classes: a top-level source file can emit multiple `.class` files such as `Outer$Inner.class`; you should not create a "source URI for an inner class" unless it truly is an independent source unit.
 
-Vì vậy công thức `binaryName.replace('.', '/') + ".java"` phù hợp cho **top-level type bình thường**, không phải bộ giải tổng quát cho mọi loại Java source file.
+Therefore, the formula `binaryName.replace('.', '/') + ".java"` is suitable for **ordinary top-level types**, not a universal solver for every kind of Java source file.
 
-## 4. Java 17 chạy độc lập: String → SimpleJavaFileObject → bytecode trong bộ nhớ
+## 4. Standalone Java 17 Example: String → SimpleJavaFileObject → Bytecode in Memory
 
-Ví dụ sau thực hiện **cả hai phần**:
+The following example performs **both parts**:
 
-1. Nguồn nằm trong `String`, được đóng gói trong `SourceFile extends SimpleJavaFileObject` với URI `string:///demo/generated/Greeter.java`.
-2. Bytecode đầu ra được chặn bằng `MemoryFileManager`, lưu trong `ByteArrayOutputStream` của `ClassFile` với URI `mem:///demo/generated/Greeter.class`.
+1. The source resides in a `String`, wrapped in `SourceFile extends SimpleJavaFileObject` with URI `string:///demo/generated/Greeter.java`.
+2. The output bytecode is intercepted by `MemoryFileManager` and stored in the `ByteArrayOutputStream` of `ClassFile` with URI `mem:///demo/generated/Greeter.class`.
 
-Sau biên dịch, ví dụ dùng một `ClassLoader` riêng để định nghĩa class từ bytes. Không có file nguồn/bytecode của `demo.generated.Greeter` được tạo trên đĩa; chỉ file `MemoryCompileDemo.java` và `MemoryCompileDemo.class` dùng để chạy **chương trình minh họa** là file vật lý.
+After compilation, the example uses a dedicated `ClassLoader` to define the class from bytes. No source or bytecode file for `demo.generated.Greeter` is created on disk; only `MemoryCompileDemo.java` and `MemoryCompileDemo.class`, used to run the **demonstration program**, are physical files.
 
 ### 4.1. File MemoryCompileDemo.java
 
@@ -322,14 +322,14 @@ public final class MemoryCompileDemo {
 }
 ```
 
-**Biên dịch và chạy:** trong thư mục chứa file `MemoryCompileDemo.java`, với JDK 17+:
+**Compile and run:** in the directory containing `MemoryCompileDemo.java`, with JDK 17+:
 
 ```bash
 javac --release 17 MemoryCompileDemo.java
 java MemoryCompileDemo
 ```
 
-**Stdout đã được kiểm chứng với `javac --release 17` và `java`:**
+**Verified stdout with `javac --release 17` and `java`:**
 
 ```text
 sourceUri=string:///demo/generated/Greeter.java
@@ -339,48 +339,48 @@ generated=true
 result=Hello from memory
 ```
 
-Không cần đưa `demo.generated.Greeter` ra thư mục `demo/generated` để biên dịch: compiler nhận source qua `getCharContent`. Bộ quản lý output nhận tên class được compiler yêu cầu, tạo `ClassFile` rồi thu bytes. Class loader nhận các bytes đó và định nghĩa class khi `loadClass("demo.generated.Greeter")` thực hiện.
+There is no need to place `demo.generated.Greeter` into a `demo/generated` directory to compile: the compiler reads the source via `getCharContent`. The output manager receives the class name requested by the compiler, creates a `ClassFile`, and collects the bytes. The class loader receives those bytes and defines the class when `loadClass("demo.generated.Greeter")` runs.
 
-### 4.2. Phân tích các điểm chính
+### 4.2. Breakdown of Key Points
 
-**A. URI nguồn liên kết logic package và tên đơn vị biên dịch**
+**A. The source URI logically links the package and compilation unit name**
 
-`SourceFile(name, code)` tạo URI:
+`SourceFile(name, code)` creates the URI:
 
 ```text
 string:///demo/generated/Greeter.java
 ```
 
-`Kind.SOURCE` là metadata; `getCharContent` là nội dung. Hai thành phần phải đi đôi, đặc biệt khi compiler phát diagnostics, tìm source file và đối chiếu tên class. `Objects.requireNonNull` tránh source `null` đi qua quá trình biên dịch.
+`Kind.SOURCE` is metadata; `getCharContent` is the content. The two must go together, especially when the compiler emits diagnostics, locates source files, and matches class names. `Objects.requireNonNull` prevents a `null` source from entering compilation.
 
-**B. Output có URI và Kind khác source**
+**B. Output has a different URI and Kind from the source**
 
-`ClassFile` dùng:
+`ClassFile` uses:
 
 ```text
 mem:///demo/generated/Greeter.class
 Kind.CLASS
 ```
 
-`openOutputStream()` cung cấp `ByteArrayOutputStream` để compiler ghi bytecode. Nếu chỉ viết `SourceFile` mà không triển khai file manager, compiler có thể ghi class files theo standard output location, thường trên filesystem. **Source in memory ≠ output in memory.**
+`openOutputStream()` provides a `ByteArrayOutputStream` for the compiler to write bytecode. If you only write `SourceFile` without implementing a file manager, the compiler may write class files to the standard output location, typically on the filesystem. **Source in memory ≠ output in memory.**
 
-**C. JavaFileManager là ranh giới I/O của compiler**
+**C. JavaFileManager is the compiler's I/O boundary**
 
-`MemoryFileManager` kế thừa `ForwardingJavaFileManager<StandardJavaFileManager>` và override `getJavaFileForOutput` để chặn output `Kind.CLASS`. Nó vẫn ủy quyền cho standard file manager với các tác vụ khác như tìm class trên classpath/module path. Trong ví dụ, option `-proc:none` tắt annotation processing nên không có generated source từ annotation processor cần được lưu riêng.
+`MemoryFileManager` extends `ForwardingJavaFileManager<StandardJavaFileManager>` and overrides `getJavaFileForOutput` to intercept `Kind.CLASS` outputs. It still delegates to the standard file manager for other tasks such as locating classes on the classpath/module path. In the example, the `-proc:none` option disables annotation processing so no generated sources from annotation processors need to be stored separately.
 
-Đây là bản trình diễn có chủ đích: nếu compiler được phép tạo `Kind.SOURCE`, file tài nguyên hoặc output module khác, code hiện tại **forward** các loại không phải `CLASS` cho standard manager. Muốn **toàn bộ mọi loại output** đều ở trong RAM cho mọi quy trình phức tạp thì cần xử lý cả những đường output đó thay vì tin rằng override một method là bao phủ mọi trường hợp.
+This is a deliberate demonstration: if the compiler were allowed to create `Kind.SOURCE`, resource files, or other module outputs, the current code **forwards** non-`CLASS` kinds to the standard manager. If you want **every kind of output** to stay in RAM for any complex workflow, you must handle those output paths as well rather than assuming overriding one method covers every case.
 
-**D. Không nhầm package/loader của lớp đang chạy với lớp sinh động**
+**D. Do not confuse the running class's package/loader with dynamically generated classes**
 
-`MemoryCompileDemo` chạy trên classpath hiện tại; `demo.generated.Greeter` được định nghĩa ở class loader riêng. Class loader có mặc định **parent-first delegation**: nếu parent đã có class cùng binary name, `loadClass` có thể trả class của parent mà không gọi `findClass`. Trong ví dụ, tên `demo.generated.Greeter` được chọn duy nhất để không va chạm. Trong plugin runtime thực, cần kiểm soát namespace và class-loader policy, không cho mã động tự ý ghi đè class của host.
+`MemoryCompileDemo` runs on the current classpath; `demo.generated.Greeter` is defined in a separate class loader. Class loaders default to **parent-first delegation**: if the parent already has a class with the same binary name, `loadClass` may return the parent's class without calling `findClass`. In the example, the name `demo.generated.Greeter` is chosen uniquely so it does not collide. In a real plugin runtime, you must control namespaces and class-loader policies so dynamic code cannot arbitrarily override host classes.
 
-**E. Đóng JavaFileManager, không giữ compiler task vô thời hạn**
+**E. Close JavaFileManager, do not keep compiler tasks indefinitely**
 
-`try (MemoryFileManager files = ...)` đóng forwarding manager và standard manager sau khi lấy bản sao class bytes. Java compiler task là thao tác có vòng đời; không tái sử dụng cùng task để biên dịch nhiều lần. Nên tạo một task/file manager hoặc ngữ cảnh được quản lý đúng cho từng lần compile, giải phóng references lớn tới source/bytecode khi hết nhu cầu.
+`try (MemoryFileManager files = ...)` closes the forwarding manager and standard manager after taking a copy of the class bytes. A Java compiler task is a lifecycle-bound operation; do not reuse the same task to compile multiple times. You should create a properly managed task/file manager or context for each compilation and release large references to source/bytecode when no longer needed.
 
-## 5. API compiler: nguồn từ CharSequence vào compilationUnits
+## 5. Compiler API: Feeding Sources from CharSequence into compilationUnits
 
-Phần kết nối quan trọng nằm ở:
+The key wiring lies in:
 
 ```java
 JavaCompiler.CompilationTask task = compiler.getTask(
@@ -393,22 +393,22 @@ JavaCompiler.CompilationTask task = compiler.getTask(
 boolean ok = Boolean.TRUE.equals(task.call());
 ```
 
-Đây là snippet lấy từ chương trình phần 4; các biến `compiler`, `files`, `diagnostics`, `source` đã được tạo trước đó.
+This is a snippet taken from the program in section 4; the variables `compiler`, `files`, `diagnostics`, and `source` were already created beforehand.
 
-Các tham số `getTask` lần lượt là:
+The parameters of `getTask` in order are:
 
-1. `Writer out` để compiler ghi nội dung bổ sung (ở đây `null`);
-2. `JavaFileManager` kiểm soát cách compiler tìm input/ghi output;
-3. `DiagnosticListener` nhận errors/warnings; `DiagnosticCollector` là implementation tiện dụng;
-4. `options` như `--release 17` (biên dịch theo API/ngôn ngữ mục tiêu) và `-proc:none` (không chạy annotation processors);
-5. `classes` dùng cho xử lý annotation processing theo tên class; không phải các source compilation units nên đặt `null` trong ví dụ;
-6. `compilationUnits` là `Iterable<? extends JavaFileObject>`: ở đây nguồn duy nhất là `List.of(source)`.
+1. `Writer out` for the compiler to write additional output (here `null`);
+2. `JavaFileManager` controlling how the compiler finds inputs and writes outputs;
+3. `DiagnosticListener` receiving errors/warnings; `DiagnosticCollector` is a convenient implementation;
+4. `options` such as `--release 17` (compile targeting the specified API/language level) and `-proc:none` (do not run annotation processors);
+5. `classes` used for annotation processing by class name; these are not the source compilation units, so it is set to `null` in the example;
+6. `compilationUnits` is an `Iterable<? extends JavaFileObject>`: here the only source is `List.of(source)`.
 
-Điểm mấu chốt: **`JavaCompiler` không nhận trực tiếp `String` mã nguồn dưới dạng tham số compilationUnits**. Ta dùng `SimpleJavaFileObject` làm cầu nối hợp đồng I/O.
+The key takeaway: **`JavaCompiler` does not accept a source code `String` directly as a `compilationUnits` parameter**. We use `SimpleJavaFileObject` as the I/O contract bridge.
 
-### Khi biên dịch nhiều class cùng lúc
+### Compiling Multiple Classes Together
 
-Có thể truyền nhiều đơn vị nguồn:
+You can pass multiple source units:
 
 ```java
 List<JavaFileObject> units = List.of(
@@ -417,18 +417,18 @@ List<JavaFileObject> units = List.of(
 );
 ```
 
-Đây là snippet cần hai chuỗi mã `greeterSource`, `helperSource` và class `SourceFile` như ví dụ. Nếu các source tham chiếu nhau, truyền đủ compilation units vào cùng task là một cách để compiler biết về các class đó. Không nên gộp hai public top-level classes khác tên vào một file source bất hợp lệ. Nếu code sinh ra nested classes, compiler có thể gọi `getJavaFileForOutput` nhiều lần để ghi `Outer.class`, `Outer$Inner.class`, v.v.; file manager cần lưu theo **binary class name** mà compiler yêu cầu.
+This snippet requires two code strings `greeterSource`, `helperSource` and the `SourceFile` class as in the example. If the sources reference each other, passing all compilation units to the same task is one way for the compiler to know about those classes. You should not combine two differently named public top-level classes into one invalid source file. If the code generates nested classes, the compiler may call `getJavaFileForOutput` multiple times to write `Outer.class`, `Outer$Inner.class`, etc.; the file manager needs to store them by the **binary class name** requested by the compiler.
 
-## 6. Diagnostics: vì sao URI có giá trị ngoài việc “đặt tên”
+## 6. Diagnostics: Why URIs Matter Beyond Just "Naming"
 
-Khi biên dịch lỗi, `Diagnostic<? extends JavaFileObject>` có thể cung cấp:
+When compilation fails, `Diagnostic<? extends JavaFileObject>` can provide:
 
-- `getSource()`: source object gây lỗi, từ đó tra được `toUri()`;
-- `getLineNumber()`, `getColumnNumber()`: vị trí;
+- `getSource()`: the source object that caused the error, from which `toUri()` can be retrieved;
+- `getLineNumber()`, `getColumnNumber()`: the location;
 - `getKind()`: ERROR, WARNING, NOTE;
-- `getMessage(locale)`: lời mô tả.
+- `getMessage(locale)`: the descriptive message.
 
-Đoạn ghi log minh họa (dùng `DiagnosticCollector<JavaFileObject> diagnostics` đã có):
+Illustrative logging snippet (using the existing `DiagnosticCollector<JavaFileObject> diagnostics`):
 
 ```java
 for (Diagnostic<? extends JavaFileObject> d : diagnostics.getDiagnostics()) {
@@ -442,13 +442,13 @@ for (Diagnostic<? extends JavaFileObject> d : diagnostics.getDiagnostics()) {
 }
 ```
 
-Đoạn này không phải chương trình độc lập, cần các import và biến từ phần 4. URI logic ổn định như `string:///demo/generated/Greeter.java` giúp frontend/editor ánh xạ lỗi về đúng tab hoặc bộ nguồn sinh. Nếu tất cả source objects dùng chung `string:///Source.java` thì diagnostics nhiều file có thể không phân biệt được; nếu URI được xây ngẫu nhiên mỗi lần một cách vô cớ, việc đối chiếu kết quả và cache trở nên khó hơn.
+This snippet is not a standalone program; it requires the imports and variables from section 4. A stable logical URI like `string:///demo/generated/Greeter.java` helps frontends/editors map errors back to the right tab or generated source unit. If all source objects share `string:///Source.java`, multi-file diagnostics may become indistinguishable; if URIs are randomly generated every time for no reason, correlating results and caching become harder.
 
-**Diagnostic source không phải lúc nào cũng có** (chẳng hạn một số lỗi option/configuration), nên luôn kiểm tra `null`. Một số lỗi có số dòng/cột âm khi không xác định được vị trí. Đừng để log vô tình chứa mã nguồn bí mật hoặc chi tiết hạ tầng nếu source đến từ nội dung nhạy cảm.
+**A diagnostic's source is not always present** (for instance, certain option/configuration errors), so always check for `null`. Some errors have negative line/column numbers when the position cannot be determined. Do not let logs accidentally contain secret source code or infrastructure details if the source originates from sensitive content.
 
-## 7. Quy tắc định danh: binary name, canonical name, source file name
+## 7. Naming Rules: Binary Name, Canonical Name, Source File Name
 
-Đối với top-level type `demo.generated.Greeter`:
+For the top-level type `demo.generated.Greeter`:
 
 ```text
 Binary name:       demo.generated.Greeter
@@ -460,48 +460,48 @@ Class URI path:    /demo/generated/Greeter.class
 Class kind:        CLASS
 ```
 
-Đó là ánh xạ thông thường. Nhưng cần tách khái niệm khi mở rộng:
+That is the standard mapping. However, concepts must be separated when scaling up:
 
-- **Binary name** của nested class có thể chứa `$`, ví dụ `demo.generated.Outer$Inner`; **source file** khai báo cả hai có thể vẫn là `Outer.java`.
-- **Canonical name** có thể dùng dấu `.` cho nested type; đừng ghép tùy tiện canonical name thành đường source file. Lấy metadata đơn vị nguồn/top-level type thực sự.
-- `package-info.java` và `module-info.java` không đi theo quy tắc “một source cho một top-level class”.
-- Với source không có package (unnamed package), URI như `string:///Greeter.java` có thể phù hợp cho môi trường đơn giản, nhưng plugin/module production nên dùng namespace rõ ràng để tránh xung đột.
+- The **binary name** of a nested class can contain `$`, for example `demo.generated.Outer$Inner`; the **source file** declaring both can still be `Outer.java`.
+- The **canonical name** may use `.` for nested types; do not arbitrarily turn a canonical name into a source file path. Obtain the actual compilation unit/top-level type metadata.
+- `package-info.java` and `module-info.java` do not follow the "one source per top-level class" rule.
+- For sources without a package (unnamed package), a URI such as `string:///Greeter.java` may suit simple environments, but production plugins/modules should use explicit namespaces to avoid collisions.
 
-Trong demo, `MemoryFileManager.getJavaFileForOutput` nhận `className` **do compiler cung cấp**, vì vậy đúng với cả class phụ/nested classes mà compiler sinh. Không nên tự đoán rằng mỗi `SourceFile` chỉ sinh đúng một `.class`.
+In the demo, `MemoryFileManager.getJavaFileForOutput` receives `className` **provided by the compiler**, so it works properly for auxiliary/nested classes emitted by the compiler as well. You should not assume each `SourceFile` produces exactly one `.class`.
 
-### Về URI không phải file: đừng tự biến ngược thành Path
+### On Non-File URIs: Do Not Convert Them Back into Paths
 
-Khi `source.toUri()` là `string:///...`, đoạn này không hợp lệ như một lối lấy file nguồn:
+When `source.toUri()` is `string:///...`, this snippet is invalid as a way to obtain a source file:
 
 ```java
-// Minh họa sai: không có filesystem provider cho scheme "string".
+// Invalid example: there is no filesystem provider for the "string" scheme.
 java.nio.file.Path path = java.nio.file.Path.of(source.toUri());
 ```
 
-Đoạn trên là snippet minh họa sai, không nên thực thi như chương trình mẫu. `Path.of(URI)` cần filesystem provider tương ứng URI; `string` ở đây là định danh logic, không khẳng định tồn tại tệp vật lý. Nếu muốn lưu source khi cần debug hoặc export, phải thực hiện thao tác I/O **tường minh** theo policy ứng dụng, thay vì suy rằng URI tùy biến tự ánh xạ sang file.
+The snippet above is an invalid illustrative example and should not be executed as sample code. `Path.of(URI)` requires a filesystem provider matching the URI; `string` here is a logical identifier, not an assertion that a physical file exists. If you want to save sources for debugging or export, you must perform **explicit** I/O operations according to application policy, rather than assuming a custom URI automatically maps to a file.
 
-## 8. Mã nguồn trong bộ nhớ không đồng nghĩa biên dịch “không dùng đĩa” hoàn toàn
+## 8. Source in Memory Does Not Mean "Disk-Free" Compilation Completely
 
-Một compilation task có thể vẫn cần tham khảo các artifact vật lý:
+A compilation task may still need to reference physical artifacts:
 
-- `javac` tìm các dependency class và module qua standard file manager, classpath/module path;
-- các API của Java và thư viện có thể nằm trong JDK runtime image, JAR hoặc các nguồn ngoài;
-- annotation processor có thể sinh thêm source/class/resources và yêu cầu vị trí output khác;
-- nếu file manager mặc định nhận `CLASS_OUTPUT`, class đầu ra có thể được ghi ra đĩa.
+- `javac` locates dependency classes and modules through the standard file manager, classpath/module path;
+- Java APIs and libraries may reside in the JDK runtime image, JARs, or external sources;
+- annotation processors may generate additional sources/classes/resources and request different output locations;
+- if the default file manager receives `CLASS_OUTPUT`, output classes may be written to disk.
 
-**Ví dụ hoàn chỉnh đã tắt annotation processing (`-proc:none`)** và intercept `Kind.CLASS` để minh họa rõ in-memory output; nó không khẳng định compiler/JDK hoàn toàn không đọc bất kỳ resource vật lý nào ở bước giải quyết dependencies.
+**The complete example disabled annotation processing (`-proc:none`)** and intercepted `Kind.CLASS` to clearly demonstrate in-memory output; it does not claim the compiler/JDK reads zero physical resources during dependency resolution.
 
-Nếu muốn biên dịch một dự án đa-module, annotation processing hoặc incremental compilation chỉ từ bộ nhớ, cần xây dựng `JavaFileManager` quản lý thêm `list`, `getJavaFileForInput`, `inferBinaryName`, các location module, `getFileForOutput`/`getJavaFileForOutput` và cache theo graph. Đừng nghĩ một wrapper `SourceFile` đủ để thay toàn bộ hệ thống build.
+If you want to compile a multi-module project, run annotation processing, or perform incremental compilation solely from memory, you must build a `JavaFileManager` that additionally manages `list`, `getJavaFileForInput`, `inferBinaryName`, module locations, `getFileForOutput`/`getJavaFileForOutput`, and graph-based caching. Do not assume a single `SourceFile` wrapper suffices to replace an entire build system.
 
-### Khi nào nên dùng StandardJavaFileManager?
+### When Should You Use StandardJavaFileManager?
 
-`StandardJavaFileManager` rất phù hợp để compiler lấy thư viện ngoài từ classpath/module path và xử lý các đường chuẩn mà ứng dụng không override. `ForwardingJavaFileManager` cho phép giữ nguyên hành vi đó, chỉ thay phần ghi output hoặc input động cần thiết. Đây thường là cách ít lỗi hơn so với triển khai toàn bộ `JavaFileManager` từ đầu.
+`StandardJavaFileManager` is well suited for the compiler to fetch external libraries from the classpath/module path and handle standard paths that the application does not override. `ForwardingJavaFileManager` lets you preserve that behavior while replacing only the output writing or dynamic input handling as needed. This is usually far less error-prone than implementing `JavaFileManager` entirely from scratch.
 
-Nếu cần hỗ trợ source sinh tự động ở lần biên dịch kế tiếp, registry có thể lưu cả mã nguồn lẫn bytecode và cung cấp `JavaFileObject` tương ứng theo package/binary name. Hãy quản lý phiên bản nguồn, cache invalidation và class loader ownership để tránh chọn nhầm bản cũ.
+If you need to support dynamically generated sources in a subsequent compilation pass, a registry can store both source code and bytecode and supply corresponding `JavaFileObject` instances by package/binary name. Be sure to manage source versions, cache invalidation, and class loader ownership to avoid picking up stale versions.
 
-## 9. Thiết kế SourceFile có thể bảo trì
+## 9. Designing a Maintainable SourceFile
 
-Mẫu tối thiểu:
+Minimal pattern:
 
 ```java
 final class StringSource extends SimpleJavaFileObject {
@@ -521,76 +521,76 @@ final class StringSource extends SimpleJavaFileObject {
 }
 ```
 
-Đây là snippet yêu cầu các import `URI`, `SimpleJavaFileObject` (và môi trường Java 17+) khi đặt riêng. Nó là phần cốt lõi của nguồn text. Trong thực tế, nên tách chức năng:
+This is a snippet requiring `URI` and `SimpleJavaFileObject` imports (and a Java 17+ environment) when placed standalone. It is the core of a text source. In practice, responsibilities should be separated:
 
-1. **Source identity**: package, top-level type, name, version, URI; tạo một cách nhất quán, immutable.
-2. **Source content**: `String` hoặc `CharSequence` immutable để compiler đọc ổn định.
-3. **Compilation diagnostics**: ánh xạ mỗi URI sang input source và lỗi.
-4. **Output bytecode**: map theo binary class name, riêng với nguồn đầu vào.
-5. **Runtime loading**: class loader có scope/version và lifecycle xác định.
+1. **Source identity**: package, top-level type, name, version, URI; created consistently and immutably.
+2. **Source content**: immutable `String` or `CharSequence` for stable reading by the compiler.
+3. **Compilation diagnostics**: map each URI to its input source and errors.
+4. **Output bytecode**: mapped by binary class name, kept separate from the input source.
+5. **Runtime loading**: class loader with well-defined scope/version and lifecycle.
 
-Không nên để `SourceFile` tự tạo class loader, tự lưu file vật lý hoặc giữ cache toàn JVM chỉ vì nó có URI; như vậy sẽ trộn trách nhiệm của mô hình source với trách nhiệm build/runtime.
+`SourceFile` should not create class loaders itself, save physical files on its own, or hold JVM-wide caches merely because it has a URI; doing so mixes source-model responsibilities with build/runtime responsibilities.
 
-### Khả năng an toàn luồng
+### Thread Safety
 
-`SourceFile` chứa `String` không đổi thường dễ chia sẻ dưới dạng dữ liệu. Nhưng **`JavaCompiler.CompilationTask`, `JavaFileManager` và bộ nhớ output** có state và không nên mặc định dùng đồng thời từ nhiều job mà thiếu kiểm soát. Một compilation job nên có riêng source list, diagnostics và output mapping. Nếu có cache, chỉ publish các bản source/bytecode đã hoàn chỉnh với cơ chế concurrency phù hợp.
+A `SourceFile` holding an immutable `String` is generally easy to share as data. However, **`JavaCompiler.CompilationTask`, `JavaFileManager`, and output storage** are stateful and should not be assumed safe for concurrent use across multiple jobs without control. Each compilation job should have its own source list, diagnostics, and output mapping. If caching is used, publish only completed source/bytecode artifacts with proper concurrency mechanisms.
 
-## 10. Lỗi thường gặp và cách xử lý
+## 10. Common Errors and How to Handle Them
 
-| Hiện tượng | Nguyên nhân khả dĩ | Hướng xử lý |
+| Symptom | Possible Cause | Resolution |
 | --- | --- | --- |
-| Compiler nói không tìm thấy source hoặc class dù có String | Chỉ tạo String nhưng không đưa vào `compilationUnits` qua `JavaFileObject` | Tạo `SourceFile(URI, Kind.SOURCE)` và truyền `List.of(source)` |
-| Compiler/diagnostics chỉ ra tên nguồn lạ | URI không thống nhất package/top-level class | Tạo `string:///package/path/Class.java` và validate name |
-| `isNameCompatible` trả false | URI path/extension không tương ứng simple name/kind | Kiểm tra `.java`, ký tự hoa/thường và kiểu `SOURCE` |
-| `URI.create` ném `IllegalArgumentException` | URI không hợp lệ, chứa khoảng trắng/ký tự cần encode | Validate identifier, tạo URI đúng thay vì ghép user input tùy ý |
-| Dù source “trong bộ nhớ”, vẫn thấy file `.class` trên đĩa | Standard file manager vẫn điều khiển output | Intercept `getJavaFileForOutput` với `Kind.CLASS` và lưu `ByteArrayOutputStream` |
-| Có source lỗi nhưng thiếu thông tin dòng | Không dùng `DiagnosticCollector`/URI không phân biệt nguồn | Gắn URI ổn định, đọc `Diagnostic` và ánh xạ sang editor |
-| Sinh nested class nhưng chỉ có bytecode lớp ngoài | Output manager giả định mỗi source sinh một class | Lưu mọi `className` mà compiler yêu cầu |
-| Nạp class trả về implementation cũ | Parent-first loader đã có cùng binary name | Dùng namespace/version/class-loader policy rõ ràng |
-| `ToolProvider.getSystemJavaCompiler()` trả null | Runtime không chứa system compiler (ví dụ bản runtime tinh gọn) | Dùng JDK/runtime có module compiler cần thiết |
-| `task.call()` không thành công | Mã nguồn sai hoặc thiếu classpath/module path | In diagnostics; kiểm tra package, options và dependencies |
-| Chạy tốt trên IDE nhưng lỗi trong deployment | Compilation classpath, module path hoặc encoding khác nhau | Cấu hình tool options/file manager tường minh; kiểm thử runtime thật |
-| Code plugin không đáng tin tạo nguy cơ bảo mật | Tưởng URI custom hoặc class loader là sandbox | Không chạy source chưa tin cậy trong JVM đặc quyền; cô lập bằng tiến trình/OS policy thích hợp |
+| Compiler says source or class not found despite having a String | Created a String without wrapping it into `compilationUnits` via `JavaFileObject` | Create `SourceFile(URI, Kind.SOURCE)` and pass `List.of(source)` |
+| Compiler/diagnostics report strange source names | URI does not match package/top-level class | Build `string:///package/path/Class.java` and validate the name |
+| `isNameCompatible` returns false | URI path/extension does not match simple name/kind | Check `.java`, letter casing, and `SOURCE` kind |
+| `URI.create` throws `IllegalArgumentException` | Invalid URI containing whitespace/characters needing encoding | Validate identifiers and build proper URIs instead of concatenating arbitrary user input |
+| Despite source "in memory", `.class` files still appear on disk | Standard file manager still controls output | Intercept `getJavaFileForOutput` for `Kind.CLASS` and store in `ByteArrayOutputStream` |
+| Source has errors but line information is missing | Not using `DiagnosticCollector` or URIs do not distinguish sources | Attach stable URIs, read `Diagnostic`, and map back to the editor |
+| Nested class generated, but only outer class bytecode is present | Output manager assumed each source produces one class | Store every `className` requested by the compiler |
+| Class loading returns an old implementation | Parent-first loader already holds the same binary name | Use clear namespaces, versioning, and class-loader policies |
+| `ToolProvider.getSystemJavaCompiler()` returns null | Runtime does not include the system compiler (e.g., stripped-down runtime image) | Use a JDK/runtime with the required compiler module |
+| `task.call()` fails | Invalid source code or missing classpath/module path | Print diagnostics; verify package, options, and dependencies |
+| Works in IDE but fails in deployment | Different compilation classpath, module path, or encoding | Configure tool options/file manager explicitly; test in the real runtime |
+| Untrusted plugin code poses a security risk | Mistaking custom URIs or class loaders for a sandbox | Do not run untrusted sources in a privileged JVM; isolate with appropriate process/OS policies |
 
-### Ba ngộ nhận cần tránh
+### Three Misconceptions to Avoid
 
-**“Chỉ cần `new SimpleJavaFileObject(...)` là compiler đọc được String.”** Không đúng: lớp base không tự biết chuỗi nội dung của bạn. Phải override `getCharContent` hoặc method đọc phù hợp.
+**"Just doing `new SimpleJavaFileObject(...)` lets the compiler read a String."** Incorrect: the base class does not automatically know about your content string. You must override `getCharContent` or an appropriate read method.
 
-**“URI `string:///...` là đường dẫn file cần tồn tại.”** Không đúng: nó là định danh logic; có thể chứa package path và extension `.java` mà không có file vật lý. File manager/compiler dùng URI theo hợp đồng `JavaFileObject`.
+**"The URI `string:///...` is a file path that must exist."** Incorrect: it is a logical identifier; it can contain a package path and `.java` extension without any physical file. The file manager/compiler uses the URI according to the `JavaFileObject` contract.
 
-**“Đầu vào memory nghĩa là mọi output và dependency đều trong memory.”** Không đúng: output do file manager quyết định, dependency có thể cần classpath/module path; annotation processors có thể sinh nhiều loại file. Cần thiết kế từng đường I/O riêng.
+**"In-memory input means all outputs and dependencies are in memory."** Incorrect: output is determined by the file manager, dependencies may require the classpath/module path, and annotation processors may generate many kinds of files. Each I/O path must be designed explicitly.
 
-## 11. An toàn và giới hạn khi biên dịch mã động
+## 11. Safety and Limits When Compiling Dynamic Code
 
-Tính đúng của URI **không tạo ranh giới an ninh**. Compiler có thể tiêu tốn nhiều CPU/RAM; code đã biên dịch khi được chạy sẽ có quyền theo tiến trình JVM. Vì vậy:
+URI correctness **does not create a security boundary**. The compiler can consume significant CPU/RAM; compiled code, once executed, runs with the privileges of the JVM process. Therefore:
 
-- Không nhận Java source từ người không tin cậy rồi nạp/chạy trực tiếp vào JVM chứa dữ liệu nhạy cảm. Với use case có nguồn chưa tin cậy, dùng ranh giới process/container/OS permissions và quota phù hợp.
-- `-proc:none` tắt annotation processing trong ví dụ, giảm đường thực thi processor ngoài ý muốn, **không biến javac hoặc class loader thành sandbox**.
-- Hạn chế classpath/module path, API cho phép và cách chọn class loader; không coi việc prefix URI bằng `mem` là cách cách ly code.
-- Giới hạn kích thước source, thời gian biên dịch, số nguồn/lớp đầu ra; quản lý class loader/version để tránh rò rỉ metaspace và tham chiếu cũ.
-- Không ghi toàn bộ source hoặc diagnostics chứa bí mật ra log nếu input có dữ liệu riêng tư.
-- Với ứng dụng multi-tenant, định danh source/cache cần mang tenant/build scope tách biệt để tránh dùng nhầm source hoặc bytecode từ một phiên bản khác.
+- Do not accept Java source from untrusted parties and load/run it directly in a JVM holding sensitive data. For use cases with untrusted sources, use appropriate process/container/OS permission boundaries and quotas.
+- `-proc:none` disables annotation processing in the example, reducing unintended processor execution paths, **without turning javac or a class loader into a sandbox**.
+- Restrict the classpath/module path, exposed APIs, and class loader selection; do not treat prefixing a URI with `mem` as a way to isolate code.
+- Limit source size, compilation time, and the number of output sources/classes; manage class loader/version lifecycles to prevent metaspace leaks and stale references.
+- Do not log full sources or diagnostics containing secrets if inputs contain private data.
+- In multi-tenant applications, source/cache identifiers must carry separate tenant/build scopes to avoid picking up source or bytecode from another version.
 
-## 12. Checklist áp dụng vào hệ thống sinh mã thật
+## 12. Checklist for Applying to a Real Code-Generation System
 
-- [ ] Có top-level source identity chính xác: package, tên unit, mã nguồn, version.
-- [ ] URI hợp lệ với scheme phù hợp, path có dạng `/pkg/path/Class.java` và extension `SOURCE`.
-- [ ] URI và source content nhất quán; xử lý riêng `module-info.java`, `package-info.java` và nested types.
-- [ ] `SourceFile` override `getCharContent(...)`, không dựa vào default unsupported I/O methods.
-- [ ] `JavaCompiler.getTask` nhận đầy đủ compilation units và compiler options rõ ràng.
-- [ ] DiagnosticCollector giữ URI/line/column để tra cứu ngược source khi có lỗi.
-- [ ] Nếu yêu cầu output RAM, file manager chặn toàn bộ những output kinds mà hệ thống có thể sinh, không chỉ dựa vào SOURCE từ String.
-- [ ] Kết quả bytecode được map theo **class binary name** do compiler cung cấp, không đoán một class mỗi source.
-- [ ] Class loader dùng đúng namespace, version, parent delegation; lifecycle và references được quản lý.
-- [ ] Có test cùng package/tên lớp, nhiều source, nested class, Unicode, source lỗi, thiếu compiler và output manager.
-- [ ] Có chính sách resource limits và isolation nếu source không tin cậy.
+- [ ] Accurate top-level source identity: package, unit name, source code, version.
+- [ ] Valid URI with an appropriate scheme, path in the form `/pkg/path/Class.java`, and `SOURCE` extension.
+- [ ] Consistent URI and source content; handle `module-info.java`, `package-info.java`, and nested types separately.
+- [ ] `SourceFile` overrides `getCharContent(...)` rather than relying on default unsupported I/O methods.
+- [ ] `JavaCompiler.getTask` receives complete compilation units and explicit compiler options.
+- [ ] DiagnosticCollector retains URI/line/column to trace back to the source on errors.
+- [ ] If RAM-only output is required, the file manager intercepts all output kinds the system can produce, rather than assuming only `SOURCE` from `String`.
+- [ ] Bytecode results are mapped by the **class binary name** supplied by the compiler, without assuming one class per source.
+- [ ] Class loader uses proper namespace, versioning, and parent delegation; lifecycle and references are managed.
+- [ ] Tests cover matching package/class names, multiple sources, nested classes, Unicode, invalid sources, missing compiler, and output manager behavior.
+- [ ] Resource limits and isolation policies are enforced if sources are untrusted.
 
-### Tài liệu tham khảo chính thức Java 17
+### Official Java 17 References
 
 - [`SimpleJavaFileObject`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/SimpleJavaFileObject.html)
 - [`JavaFileObject`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaFileObject.html)
-- [`JavaCompiler` và `CompilationTask`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html)
+- [`JavaCompiler` and `CompilationTask`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html)
 - [`ForwardingJavaFileManager`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ForwardingJavaFileManager.html)
 - [`DiagnosticCollector`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/DiagnosticCollector.html)
 
-**Kết luận:** `SimpleJavaFileObject` là cầu nối biến nội dung mã nguồn nằm trong `CharSequence` thành một **compilation unit có tên, Kind và URI hợp lệ**. Quy ước `string:///package/path/Type.java` giúp định danh nguồn rõ ràng; `getCharContent` cung cấp bytes đã được giải mã ở dạng ký tự. Muốn giữ cả `.class` trong bộ nhớ, phải thêm file manager xử lý output và class loader thích hợp — **hai trách nhiệm độc lập với việc tạo URI nguồn**.
+**Conclusion:** `SimpleJavaFileObject` is the bridge that turns source code held in a `CharSequence` into a **compilation unit with a valid name, Kind, and URI**. The `string:///package/path/Type.java` convention cleanly identifies the source; `getCharContent` supplies already-decoded characters. To also keep `.class` files in memory, you must add an output-handling file manager and an appropriate class loader — **two responsibilities independent of creating source URIs**.

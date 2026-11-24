@@ -1,0 +1,377 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Spring Security reactive là gì và giải quyết vấn đề nào trong ứng dụng WebFlux
+  - Phân biệt xác thực, phân quyền và bảo vệ trước các kiểu tấn công
+  - Mối quan hệ giữa Spring WebFlux, Reactor và Spring Security
+  - Nhận diện người dùng, thông tin xác thực, vai trò và quyền truy cập
+  - Ranh giới giữa bảo mật reactive và bảo mật Servlet
+  - 'Các mô hình ứng dụng: trình duyệt dùng phiên, REST API dùng token và dịch vụ gọi dịch vụ'
+  - Các ranh giới tin cậy và bề mặt tấn công của một ứng dụng reactive
+  - Kiến thức đầu vào và trình tự học từ yêu cầu HTTP đến bảo mật nghiệp vụ
+- level1: Nền tảng Reactor
+  level2:
+  - Mono, Flux và Publisher trong luồng xử lý bảo mật
+  - Thời điểm tạo Publisher, đăng ký thực thi và đánh giá quyền truy cập
+  - Chuỗi toán tử map, flatMap, filter và switchIfEmpty trong xử lý xác thực
+  - Phân biệt Mono.empty(), giá trị false và tín hiệu lỗi trong quyết định bảo mật
+  - Reactor Context và sự khác biệt với ThreadLocal
+  - Luồng sự kiện, Scheduler và giới hạn của mã chặn luồng
+  - Trì hoãn thực thi với defer và fromCallable khi tích hợp mã đồng bộ
+  - Ảnh hưởng của lỗi, hủy đăng ký và backpressure đến tác vụ bảo mật
+  - Những sai lầm với block(), subscribe() thủ công và tác vụ ngoài chuỗi reactive
+- level1: Khởi tạo ứng dụng
+  level2:
+  - Chọn phiên bản Spring Boot, Spring Security và bộ phụ thuộc tương thích
+  - Thiết lập spring-boot-starter-webflux, spring-boot-starter-security và spring-security-test
+  - Nhận diện ứng dụng reactive khi có đồng thời phụ thuộc Spring MVC và WebFlux
+  - Cấu hình bảo mật mặc định của Spring Boot và tài khoản phát triển được sinh tự động
+  - Tạo SecurityWebFilterChain đầu tiên với ServerHttpSecurity
+  - Vai trò của @EnableWebFluxSecurity và cấu hình tự động
+  - Cấu hình người dùng mẫu bằng MapReactiveUserDetailsService
+  - Tạo điểm truy cập công khai và điểm truy cập yêu cầu đăng nhập
+  - Kiểm chứng ứng dụng bằng trình duyệt, curl và WebTestClient
+- level1: Kiến trúc WebFilter
+  level2:
+  - Đường đi của yêu cầu qua WebFilter, WebFilterChainProxy và SecurityWebFilterChain
+  - ServerWebExchange, ServerHttpRequest và ServerHttpResponse trong bảo mật
+  - Phân biệt WebFilter của ứng dụng và bộ lọc bên trong chuỗi bảo mật
+  - SecurityWebFiltersOrder và thứ tự các giai đoạn xử lý
+  - Vai trò của ReactorContextWebFilter và SecurityContextServerWebExchangeWebFilter
+  - 'AuthenticationWebFilter: chuyển đổi thông tin đầu vào và gọi bộ xác thực'
+  - 'AuthorizationWebFilter: thực thi quyết định phân quyền'
+  - 'ExceptionTranslationWebFilter: chuyển lỗi bảo mật thành phản hồi HTTP'
+  - Cơ chế tiếp tục, kết thúc sớm và lan truyền lỗi trong chuỗi bộ lọc
+  - Áp dụng cùng một chuỗi bảo mật cho Controller và RouterFunction
+- level1: Cấu hình bảo mật
+  level2:
+  - Cấu hình bằng lambda DSL và Customizer trong ServerHttpSecurity
+  - Phân biệt securityMatcher chọn chuỗi và authorizeExchange chọn quy tắc
+  - ServerWebExchangeMatcher, đường dẫn và phương thức HTTP
+  - Nhiều SecurityWebFilterChain với @Order và nguyên tắc chọn chuỗi phù hợp đầu tiên
+  - Tạo chuỗi dự phòng để tránh bỏ sót đường dẫn chưa được bảo vệ
+  - Tách chuỗi cho REST API, giao diện đăng nhập và điểm quản trị
+  - Phân biệt permitAll với bỏ qua toàn bộ chuỗi bảo mật
+  - Bật hoặc tắt từng cơ chế theo mô hình phiên và token
+  - NoOpServerRequestCache và tránh lưu yêu cầu trong API không dùng phiên
+  - Đưa cấu hình theo môi trường ra properties và cấu hình kiểu an toàn
+  - Kiểm soát xung đột bean và hiểu điều kiện cấu hình tự động ngừng áp dụng
+- level1: Ngữ cảnh bảo mật
+  level2:
+  - Authentication, principal, credentials và GrantedAuthority trong SecurityContext
+  - Đọc danh tính hiện tại bằng ReactiveSecurityContextHolder
+  - Phạm vi và chiều truyền của Reactor Context trong một chuỗi Publisher
+  - Thiết lập ngữ cảnh bằng contextWrite và withAuthentication
+  - Truy cập người dùng bằng @AuthenticationPrincipal, Principal và ServerWebExchange
+  - ServerSecurityContextRepository và vòng đời lưu, nạp ngữ cảnh
+  - WebSessionServerSecurityContextRepository và NoOpServerSecurityContextRepository
+  - Truyền ngữ cảnh qua publishOn, subscribeOn và lời gọi bất đồng bộ
+  - Phân biệt ngữ cảnh bảo mật cục bộ với token truyền sang dịch vụ khác
+  - Ngăn rò rỉ danh tính giữa các yêu cầu chạy đồng thời
+- level1: Xác thực reactive
+  level2:
+  - Vòng đời Authentication trước và sau khi xác thực thành công
+  - ReactiveAuthenticationManager và hợp đồng Mono<Authentication>
+  - ServerAuthenticationConverter và chuyển đổi thông tin xác thực từ yêu cầu
+  - Phân biệt không có thông tin, thông tin không được hỗ trợ và thông tin không hợp lệ
+  - AuthenticationWebFilter và lựa chọn yêu cầu cần xác thực
+  - DelegatingReactiveAuthenticationManager và phối hợp nhiều bộ xác thực
+  - ServerAuthenticationSuccessHandler và ServerAuthenticationFailureHandler
+  - Xác thực ẩn danh bằng AnonymousAuthenticationWebFilter
+  - Xử lý tài khoản khóa, vô hiệu hóa, hết hạn và hết hạn mật khẩu
+  - Xóa thông tin bí mật và giới hạn dữ liệu được giữ trong Authentication
+- level1: Người dùng và mật khẩu
+  level2:
+  - ReactiveUserDetailsService, UserDetails và mô hình dữ liệu người dùng
+  - Tạo người dùng trong bộ nhớ bằng MapReactiveUserDetailsService
+  - Tải người dùng từ cơ sở dữ liệu reactive với R2DBC
+  - UserDetailsRepositoryReactiveAuthenticationManager và PasswordEncoder
+  - Băm mật khẩu với BCrypt, Argon2 và lựa chọn chi phí tính toán
+  - DelegatingPasswordEncoder, tiền tố thuật toán và nâng cấp hàm băm
+  - Lập lịch kiểm tra mật khẩu tốn CPU và đánh giá ảnh hưởng đến luồng sự kiện
+  - Tách vai trò, quyền và dữ liệu hồ sơ trong principal
+  - Chuẩn hóa tên đăng nhập và tránh làm lộ sự tồn tại của tài khoản
+  - Giới hạn của JDBC, JPA, LDAP đồng bộ và phương án tích hợp tại ranh giới chặn luồng
+  - Thay đổi mật khẩu, thu hồi phiên và xử lý trạng thái tài khoản đã thay đổi
+- level1: HTTP Basic
+  level2:
+  - Cơ chế HTTP Basic và cấu trúc tiêu đề Authorization
+  - Bật HTTP Basic trong SecurityWebFilterChain
+  - Chuyển đổi tên đăng nhập và mật khẩu thành Authentication
+  - WWW-Authenticate, miền xác thực (realm) và phản hồi khi chưa xác thực
+  - Lựa chọn lưu hoặc không lưu ngữ cảnh khi dùng HTTP Basic
+  - Yêu cầu HTTPS và nguy cơ lộ thông tin qua log, proxy hoặc lịch sử công cụ
+  - HTTP Basic trong trình duyệt và mối liên hệ với CSRF
+  - Tùy chỉnh phản hồi lỗi HTTP Basic cho REST API
+- level1: Đăng nhập biểu mẫu
+  level2:
+  - Luồng truy cập tài nguyên được bảo vệ, chuyển hướng và đăng nhập
+  - Cấu hình formLogin và trang đăng nhập mặc định
+  - Tạo trang đăng nhập riêng và cấu hình địa chỉ xử lý đăng nhập
+  - Đọc dữ liệu biểu mẫu và xác thực người dùng trong WebFlux
+  - Tùy chỉnh đích chuyển hướng sau đăng nhập thành công hoặc thất bại
+  - ServerRequestCache và khôi phục yêu cầu ban đầu
+  - Tích hợp CSRF token vào biểu mẫu đăng nhập
+  - Lưu ngữ cảnh sau đăng nhập và đổi mã phiên để hạn chế session fixation
+  - Tách hành vi đăng nhập của trình duyệt khỏi phản hồi JSON cho API
+  - Giới hạn thử đăng nhập và phòng chống dò mật khẩu ở tầng ứng dụng
+- level1: Phiên và đăng xuất
+  level2:
+  - WebSession, cookie phiên và sự khác biệt với HttpSession
+  - Lưu ngữ cảnh bảo mật theo phiên và kiểm soát thời điểm tạo phiên
+  - Phân biệt ứng dụng có trạng thái và ứng dụng không lưu trạng thái xác thực
+  - Cấu hình Secure, HttpOnly, SameSite và thời hạn cookie phiên
+  - Thời hạn phiên, mất hiệu lực phiên và trải nghiệm khi phiên hết hạn
+  - Chia sẻ phiên giữa các nút bằng Spring Session và Redis reactive
+  - Cấu hình logout, địa chỉ đăng xuất và phương thức HTTP
+  - ServerLogoutHandler, ServerLogoutSuccessHandler và xóa ngữ cảnh
+  - Phối hợp xóa cookie, hủy phiên và xử lý yêu cầu CSRF khi đăng xuất
+  - Phân biệt đăng xuất cục bộ, hết hạn token và thu hồi token tại nhà cung cấp danh tính
+  - Giới hạn số phiên đồng thời bằng maximumSessions và ReactiveSessionRegistry
+  - Lựa chọn hủy phiên cũ hoặc từ chối đăng nhập khi vượt giới hạn phiên
+- level1: Phân quyền HTTP
+  level2:
+  - authorizeExchange và nguyên tắc áp dụng quy tắc theo thứ tự
+  - permitAll, denyAll, authenticated và quyền của người dùng ẩn danh
+  - hasRole, hasAuthority và tiền tố ROLE_
+  - Phân quyền theo đường dẫn, HTTP method và biến đường dẫn
+  - Kết hợp quyền với thông tin ServerWebExchange
+  - ReactiveAuthorizationManager<AuthorizationContext> và AuthorizationDecision
+  - Kết hợp nhiều điều kiện phân quyền theo chính sách nghiệp vụ
+  - Tra cứu quyền bằng dữ liệu reactive mà không chặn luồng
+  - Phân quyền theo chủ sở hữu tài nguyên và phòng tránh IDOR
+  - Thiết kế quy tắc mặc định từ chối và xử lý đường dẫn không khớp
+  - Giữ đồng nhất quy tắc cho Controller và RouterFunction
+- level1: Phân quyền phương thức
+  level2:
+  - Bật @EnableReactiveMethodSecurity và lựa chọn cơ chế AuthorizationManager theo phiên bản
+  - Điều kiện kiểu trả về Publisher khi áp dụng bảo mật phương thức reactive
+  - '@PreAuthorize và kiểm tra quyền trước khi thực thi nghiệp vụ'
+  - '@PostAuthorize và kiểm tra kết quả trước khi trả dữ liệu'
+  - '@PreFilter, @PostFilter và giới hạn lọc dữ liệu theo kiểu trả về, phiên bản'
+  - Biểu thức SpEL với authentication, principal và tham số phương thức
+  - Sử dụng bean trả về Mono<Boolean> cho điều kiện phân quyền
+  - Kiểm tra chủ sở hữu bằng dữ liệu reactive ở tầng dịch vụ
+  - Spring AOP, lời gọi nội bộ cùng đối tượng và nguyên nhân annotation không có hiệu lực
+  - Phối hợp phân quyền HTTP với phân quyền phương thức
+  - Tác dụng phụ đã xảy ra và giới hạn của kiểm tra sau thực thi
+  - Kiểm soát thứ tự thực thi giữa bảo mật, giao dịch và chuỗi reactive
+- level1: Phản hồi lỗi
+  level2:
+  - Phân biệt lỗi xác thực, lỗi phân quyền và lỗi nghiệp vụ
+  - Phân biệt 401 Unauthorized với 403 Forbidden
+  - ServerAuthenticationEntryPoint cho yêu cầu chưa được xác thực
+  - ServerAccessDeniedHandler cho yêu cầu thiếu quyền
+  - AuthenticationFailureHandler và lỗi phát sinh trong quá trình đăng nhập
+  - Chọn chuyển hướng hoặc JSON theo loại điểm truy cập và nội dung yêu cầu
+  - Thiết kế phản hồi lỗi JSON nhất quán và mã tương quan
+  - Ranh giới giữa lỗi WebFilter, @ControllerAdvice và WebExceptionHandler
+  - Không làm lộ mật khẩu, token, stack trace hoặc chi tiết tài khoản
+  - Xử lý lỗi khi phản hồi đã được gửi hoặc luồng dữ liệu đã bắt đầu
+- level1: Bảo vệ CSRF
+  level2:
+  - Cơ chế tấn công CSRF và điều kiện trình duyệt tự gửi thông tin xác thực
+  - Phân biệt CSRF, XSS và CORS trong ứng dụng reactive
+  - CsrfWebFilter, ServerCsrfTokenRepository và vòng đời CSRF token
+  - WebSessionServerCsrfTokenRepository và lưu token trong phiên
+  - CookieServerCsrfTokenRepository và gửi token từ ứng dụng JavaScript
+  - Đọc Mono<CsrfToken> và bảo đảm token được tạo khi cần
+  - ServerCsrfTokenRequestHandler và cơ chế che token chống BREACH
+  - Truyền token qua biểu mẫu, tiêu đề HTTP và yêu cầu bất đồng bộ
+  - CSRF cho đăng nhập, đăng xuất và tải tệp
+  - Xử lý token thiếu, sai hoặc hết hạn và phản hồi lỗi phù hợp
+  - Đánh giá việc miễn CSRF cho API dùng Bearer token theo cách trình duyệt gửi thông tin xác thực
+  - Giới hạn phạm vi bỏ qua CSRF bằng matcher và kiểm chứng bằng kiểm thử
+- level1: Cấu hình CORS
+  level2:
+  - Same-Origin Policy, origin và mục đích của CORS
+  - Yêu cầu đơn giản, yêu cầu preflight và phương thức OPTIONS
+  - Thứ tự xử lý CORS trước các bước xác thực và phân quyền
+  - CorsConfiguration và UrlBasedCorsConfigurationSource cho WebFlux
+  - Khai báo origin, method, header và exposedHeaders cần thiết
+  - allowCredentials, origin cụ thể và giới hạn của ký tự đại diện
+  - Giới hạn origin theo môi trường và tránh phản chiếu origin tùy ý
+  - Phân biệt lỗi CORS tại trình duyệt với lỗi 401 hoặc 403 của máy chủ
+  - Phối hợp CORS với cookie phiên, CSRF và Bearer token
+  - Tránh xung đột giữa CorsWebFilter, cấu hình WebFlux và Spring Security
+- level1: Header và HTTPS
+  level2:
+  - Các header bảo mật mặc định trong Spring Security reactive
+  - Cache-Control và hạn chế lưu đệm phản hồi chứa dữ liệu nhạy cảm
+  - X-Content-Type-Options và phòng tránh suy đoán sai kiểu nội dung
+  - X-Frame-Options, CSP frame-ancestors và phòng chống clickjacking
+  - Content-Security-Policy, nonce và giới hạn bảo vệ trước XSS
+  - Referrer-Policy, Permissions-Policy và giảm rò rỉ dữ liệu trình duyệt
+  - Strict-Transport-Security và điều kiện triển khai HTTPS
+  - Chuyển hướng HTTP sang HTTPS và nhận diện giao thức sau reverse proxy
+  - Xử lý Forwarded, X-Forwarded-* và ranh giới tin cậy của proxy
+  - Tùy chỉnh header theo điểm truy cập và kiểm tra giá trị thực tế
+  - Giới hạn kích thước header, nội dung yêu cầu và tải tệp ở tầng WebFlux, máy chủ
+- level1: Đăng nhập OAuth2/OIDC
+  level2:
+  - Vai trò ứng dụng WebFlux khi dùng OAuth2 Login và OpenID Connect
+  - Phân biệt OAuth2 Client, Resource Server và Authorization Server
+  - ClientRegistration, provider và ReactiveClientRegistrationRepository
+  - Cấu hình oauth2Login với nhà cung cấp danh tính bên ngoài
+  - Luồng Authorization Code, địa chỉ chuyển hướng và callback
+  - state, nonce, PKCE và các ràng buộc bảo vệ luồng đăng nhập
+  - Lưu và khôi phục yêu cầu cấp quyền bằng ServerAuthorizationRequestRepository
+  - OAuth2User, OidcUser và phân biệt access token với ID token
+  - Tùy chỉnh ReactiveOAuth2UserService và ánh xạ claim thành quyền
+  - Tùy chỉnh kết quả đăng nhập, lỗi callback và trang chọn nhà cung cấp
+  - Lưu người dùng nội bộ và liên kết tài khoản ngoài bằng định danh ổn định
+  - Đăng xuất OIDC do ứng dụng khởi tạo và giới hạn đăng xuất liên kết
+- level1: OAuth2 Client
+  level2:
+  - OAuth2AuthorizedClient và vòng đời access token, refresh token
+  - ReactiveOAuth2AuthorizedClientManager, ReactiveOAuth2AuthorizedClientService và ServerOAuth2AuthorizedClientRepository
+  - Tiêm OAuth2AuthorizedClient bằng @RegisteredOAuth2AuthorizedClient
+  - Lựa chọn manager trong yêu cầu web và trong tác vụ ngoài yêu cầu
+  - Cấu hình Authorization Code và Client Credentials theo loại ứng dụng
+  - Cấp mới access token và xử lý refresh token khi hết hạn
+  - Tích hợp ServerOAuth2AuthorizedClientExchangeFilterFunction với WebClient
+  - Lựa chọn clientRegistrationId hoặc OAuth2AuthorizedClient cho từng lời gọi
+  - Phân biệt lấy token của ứng dụng với chuyển tiếp token người dùng
+  - Giới hạn máy chủ đích để tránh gửi Bearer token nhầm dịch vụ
+  - Xử lý token bị từ chối, xóa OAuth2AuthorizedClient và tránh vòng lặp thử lại
+  - Tùy chỉnh kết nối HTTPS, timeout và lỗi khi gọi token endpoint
+- level1: Resource Server JWT
+  level2:
+  - Cơ chế Bearer token và luồng xác thực JWT trong WebFlux
+  - Thiết lập phụ thuộc Resource Server và JOSE
+  - Cấu hình issuer-uri, jwk-set-uri và quan hệ với nhà cung cấp danh tính
+  - ReactiveJwtDecoder và lựa chọn thuật toán chữ ký tin cậy
+  - Xác minh chữ ký và kiểm tra iss, exp, nbf, aud
+  - JWK, kid, bộ nhớ đệm khóa và luân chuyển khóa ký
+  - Ánh xạ scope thành quyền SCOPE_ và tùy chỉnh JwtGrantedAuthoritiesConverter
+  - Chuyển đổi JWT thành Authentication bằng bộ chuyển đổi reactive
+  - Đọc Jwt, claim và principal trong Controller hoặc dịch vụ
+  - Phân quyền theo scope, claim nghiệp vụ và chủ sở hữu tài nguyên
+  - Xử lý token thiếu, sai định dạng, hết hạn hoặc không đủ scope
+  - Giới hạn của JWT tự chứa khi cần thu hồi quyền tức thời
+  - Tránh tự viết bộ lọc giải mã JWT và tránh coi dữ liệu chưa xác minh là danh tính
+- level1: Resource Server Opaque
+  level2:
+  - Opaque token và sự khác biệt với JWT tự xác minh
+  - Token introspection và ranh giới tin cậy với Authorization Server
+  - Cấu hình introspection-uri, client-id và client-secret
+  - ReactiveOpaqueTokenIntrospector và OAuth2AuthenticatedPrincipal
+  - Ánh xạ thuộc tính introspection và scope thành GrantedAuthority
+  - Tùy chỉnh introspector để bổ sung dữ liệu người dùng hoặc quyền
+  - Xử lý token không hoạt động, lỗi mạng và nhà cung cấp không sẵn sàng
+  - Thiết kế timeout và bộ nhớ đệm theo yêu cầu thu hồi token
+  - So sánh JWT và opaque token theo độ trễ, phụ thuộc mạng và khả năng thu hồi
+  - Chuyển tiếp Bearer token bằng WebClient và kiểm soát ranh giới tin cậy
+- level1: Xác thực mở rộng
+  level2:
+  - Thiết kế cơ chế xác thực riêng bằng AuthenticationWebFilter
+  - Tạo Authentication token chuyên biệt và ServerAuthenticationConverter
+  - Triển khai ReactiveAuthenticationManager cho API key
+  - Lưu API key dưới dạng bảo vệ, giới hạn quyền và luân chuyển khóa
+  - Đặt bộ lọc tùy chỉnh bằng addFilterAt, addFilterBefore và addFilterAfter
+  - Phối hợp cơ chế tùy chỉnh với HTTP Basic hoặc Bearer token
+  - Chọn cơ chế xác thực bằng matcher và tránh xử lý trùng yêu cầu
+  - Xác thực chứng thư X.509 và ánh xạ chứng thư thành người dùng
+  - Phân biệt mTLS tại proxy với danh tính đã được ứng dụng xác minh
+  - Tích hợp hệ thống xác thực đồng bộ qua ranh giới chặn luồng có kiểm soát
+- level1: Gateway và nhiều tenant
+  level2:
+  - Phân định bảo mật tại API Gateway và tại dịch vụ phía sau
+  - Chuyển tiếp danh tính, token relay và kiểm tra token ở từng ranh giới
+  - Không tin cậy header người dùng hoặc vai trò do máy khách tự gửi
+  - Nhận diện tenant từ nguồn tin cậy và tách tenant khỏi dữ liệu chưa xác minh
+  - ReactiveAuthenticationManagerResolver<ServerWebExchange> và chọn bộ xác thực
+  - Chọn nhà phát hành JWT theo danh sách tin cậy
+  - Ngăn truy cập chéo tenant khi truy vấn tài nguyên và kiểm tra quyền
+  - Cấu hình nhiều chuỗi cho miền API khác nhau và kiểm chứng vùng bao phủ
+  - Phối hợp giới hạn lưu lượng, timeout và bảo vệ dịch vụ danh tính
+  - Ranh giới giữa bảo mật HTTP, phân quyền nghiệp vụ và chính sách hạ tầng
+- level1: RSocket và luồng dài
+  level2:
+  - Phạm vi hỗ trợ RSocket Security và sự khác biệt với bảo mật HTTP WebFlux
+  - Cấu hình @EnableRSocketSecurity, RSocketSecurity và SocketAcceptorInterceptor
+  - Xác thực RSocket bằng Simple Authentication hoặc Bearer token
+  - Phân biệt danh tính khi thiết lập kết nối và khi xử lý từng payload
+  - Phân quyền theo route và kiểm soát metadata của RSocket
+  - Kiểm thử RSocket với thiếu thông tin xác thực và thiếu quyền
+  - Bảo vệ bước bắt tay WebSocket và kiểm tra Origin
+  - Ranh giới giữa danh tính kết nối WebSocket và phân quyền từng thông điệp
+  - Danh tính, hủy đăng ký và token hết hạn trong SSE hoặc Flux dài hạn
+  - Giới hạn kết nối, tài nguyên và hành vi khi phiên bị thu hồi
+- level1: Kiểm thử HTTP
+  level2:
+  - Thiết lập WebTestClient với springSecurity()
+  - Phân biệt kiểm thử bằng ApplicationContext với kiểm thử qua máy chủ thật
+  - '@WebFluxTest, @SpringBootTest và nạp đúng cấu hình bảo mật'
+  - '@WithMockUser, mockUser() và người dùng ẩn danh'
+  - Ma trận kiểm thử điểm công khai, chưa xác thực, thiếu quyền và đủ quyền
+  - Kiểm thử HTTP Basic với thông tin hợp lệ và không hợp lệ
+  - Kiểm thử biểu mẫu đăng nhập, cookie phiên và đăng xuất
+  - csrf() và các trường hợp token thiếu, sai hoặc hợp lệ
+  - Kiểm thử preflight CORS, origin không được phép và thông tin xác thực
+  - Kiểm tra header bảo mật, chuyển hướng và cấu trúc lỗi JSON
+  - Kiểm chứng nhiều SecurityWebFilterChain và chuỗi dự phòng
+- level1: Kiểm thử chuyên sâu
+  level2:
+  - StepVerifier và kiểm thử Publisher chứa quyết định bảo mật
+  - Thiết lập Reactor Context trong kiểm thử đơn vị
+  - Kiểm thử ReactiveAuthenticationManager và ServerAuthenticationConverter
+  - Kiểm thử @PreAuthorize, @PostAuthorize và lời gọi qua Spring proxy
+  - Kiểm thử phân quyền chủ sở hữu và truy cập chéo tenant
+  - mockJwt(), mockOpaqueToken() và ánh xạ quyền trong Resource Server
+  - mockOAuth2Login(), mockOidcLogin() và principal sau đăng nhập
+  - mockOAuth2Client() và lời gọi WebClient có OAuth2AuthorizedClient
+  - Giới hạn của token giả lập và kiểm thử decoder, chữ ký, issuer, audience thực tế
+  - Giả lập JWK endpoint, introspection endpoint và lỗi nhà cung cấp danh tính
+  - Kiểm thử đồng thời để phát hiện mất ngữ cảnh hoặc rò rỉ danh tính
+  - Kiểm thử thời hạn token, timeout, hủy đăng ký và phản hồi đã bắt đầu
+- level1: Quan sát và hiệu năng
+  level2:
+  - Bật log chẩn đoán Spring Security theo môi trường
+  - Theo dõi quyết định xác thực, phân quyền và mã tương quan của yêu cầu
+  - Ghi nhận sự kiện bảo mật và thiết kế nhật ký kiểm toán
+  - Liên kết Reactor Context với quan sát, trace và MDC có kiểm soát
+  - Che mật khẩu, Authorization header, cookie và dữ liệu cá nhân trong log
+  - Đo độ trễ xác thực, phân quyền và lời gọi nhà cung cấp danh tính
+  - Phát hiện chặn luồng bằng công cụ kiểm tra như BlockHound
+  - Đánh giá chi phí băm mật khẩu, xác minh JWT và introspection
+  - Giới hạn timeout, kết nối và số tác vụ chờ ở các ranh giới bên ngoài
+  - Tác động của thử lại, bộ nhớ đệm và hủy đăng ký đến an toàn bảo mật
+- level1: Triển khai an toàn
+  level2:
+  - Quản lý client secret, khóa và mật khẩu bằng cấu hình bảo mật bên ngoài
+  - HTTPS giữa trình duyệt, proxy, ứng dụng và nhà cung cấp danh tính
+  - Thiết kế cookie và địa chỉ callback khi triển khai sau reverse proxy
+  - Giới hạn quyền của tài khoản dịch vụ và access token
+  - Bảo vệ Actuator, health endpoint, tài liệu API và điểm chẩn đoán
+  - Luân chuyển khóa, secret và chứng thư mà không mở rộng quyền tạm thời
+  - Cân bằng tải, kho phiên chia sẻ và xử lý sự cố Redis
+  - Ứng xử an toàn khi JWK, introspection hoặc dịch vụ phân quyền không sẵn sàng
+  - Gia cố phụ thuộc và kiểm tra thông báo lỗ hổng theo phiên bản
+  - Rà soát CSRF, CORS, header, matcher và dữ liệu nhạy cảm trước phát hành
+- level1: Chuyển đổi và gỡ lỗi
+  level2:
+  - Chuyển từ HttpSecurity và SecurityFilterChain sang ServerHttpSecurity và SecurityWebFilterChain
+  - Chuyển từ UserDetailsService và AuthenticationManager sang hợp đồng reactive
+  - Thay SecurityContextHolder và ThreadLocal bằng ReactiveSecurityContextHolder
+  - Chuyển từ MockMvc sang WebTestClient
+  - Rà soát bộ lọc Servlet, HttpSession và thư viện chặn luồng khi chuyển sang WebFlux
+  - Chẩn đoán 401 dù đã gửi thông tin xác thực
+  - Chẩn đoán 403 do thiếu quyền, tiền tố ROLE_ hoặc CSRF
+  - Chẩn đoán chuyển hướng lặp, mất phiên và cookie không được gửi
+  - Chẩn đoán chuỗi bảo mật không khớp hoặc quy tắc bị che bởi thứ tự
+  - Chẩn đoán mất ngữ cảnh do subscribe() thủ công hoặc Publisher nằm ngoài chuỗi
+  - Chẩn đoán annotation bảo mật không chạy và lỗi tự gọi phương thức
+  - Đọc tài liệu nâng cấp và kiểm tra thay đổi mặc định theo phiên bản
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng REST API WebFlux với HTTP Basic và quyền theo vai trò
+  - Xây dựng ứng dụng dùng biểu mẫu đăng nhập, phiên, CSRF và đăng xuất
+  - Tích hợp OAuth2 Login và ánh xạ người dùng OIDC vào quyền nội bộ
+  - Xây dựng Resource Server JWT với kiểm tra issuer, audience và scope
+  - Bảo vệ tài nguyên theo chủ sở hữu bằng phân quyền reactive ở tầng dịch vụ
+  - Gọi API bên ngoài bằng WebClient và OAuth2 Client Credentials
+  - Triển khai API key tùy chỉnh với luân chuyển khóa và giới hạn quyền
+  - Tách chuỗi bảo mật cho giao diện web, API và điểm quản trị
+  - Xây dựng ma trận kiểm thử bảo mật, lỗi phụ thuộc và rò rỉ ngữ cảnh
+  - Đánh giá thiết kế từ mô hình đe dọa đến kiểm thử và triển khai

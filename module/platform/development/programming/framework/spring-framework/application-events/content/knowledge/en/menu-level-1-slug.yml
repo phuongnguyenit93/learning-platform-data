@@ -1,0 +1,91 @@
+menu:
+- title: Nền tảng Application Events
+  slug: app-events-fundamentals
+  index: 0
+- title: Mô hình sự kiện
+  slug: app-events-event-model
+  index: 1
+- title: Kiểu và payload
+  slug: app-events-types-and-payload
+  index: 2
+- title: Phát sự kiện
+  slug: app-events-event-publication
+  index: 3
+- title: Lắng nghe sự kiện
+  slug: app-events-event-listening
+  index: 4
+- title: Đăng ký listener
+  slug: app-events-listener-registration
+  index: 5
+- title: Lọc và điều kiện
+  slug: app-events-filtering-conditions
+  index: 6
+- title: Thứ tự xử lý
+  slug: app-events-processing-order
+  index: 7
+- title: Event multicaster
+  slug: app-events-event-multicaster
+  index: 8
+- title: Xử lý đồng bộ
+  slug: app-events-synchronous-processing
+  index: 9
+- title: Xử lý bất đồng bộ
+  slug: app-events-asynchronous-processing
+  index: 10
+- title: Event theo transaction
+  slug: app-events-transactional-events
+  index: 11
+- title: Transaction synchronization
+  slug: app-events-transaction-synchronization
+  index: 12
+- title: Reactive transaction events
+  slug: app-events-reactive-transaction-events
+  index: 13
+- title: Vòng đời ApplicationContext
+  slug: app-events-application-context-lifecycle
+  index: 14
+- title: Spring Boot application events
+  slug: spring-boot-events
+  index: 15
+- title: Thiết kế domain event
+  slug: app-events-domain-event-design
+  index: 16
+- title: Thiết kế payload
+  slug: app-events-payload-design
+  index: 17
+- title: Phát lại và chuỗi event
+  slug: app-events-replay-event-chains
+  index: 18
+- title: Lỗi và rollback
+  slug: app-events-errors-rollback
+  index: 19
+- title: Thread và context
+  slug: app-events-threads-context
+  index: 20
+- title: Observability
+  slug: app-events-observability
+  index: 21
+- title: Kiểm thử event
+  slug: app-events-event-testing
+  index: 22
+- title: Chẩn đoán sự cố
+  slug: app-events-troubleshooting
+  index: 23
+- title: Hiệu năng
+  slug: app-events-performance
+  index: 24
+- title: Độ tin cậy
+  slug: app-events-reliability
+  index: 25
+- title: Bảo mật và dữ liệu
+  slug: app-events-security-data
+  index: 26
+- title: Tích hợp ngoài ứng dụng
+  slug: app-events-external-integration
+  index: 27
+- title: Mẫu triển khai
+  slug: app-events-deployment-patterns
+  index: 28
+- title: Thực hành và tổng kết
+  slug: app-events-practice-summary
+  index: 29

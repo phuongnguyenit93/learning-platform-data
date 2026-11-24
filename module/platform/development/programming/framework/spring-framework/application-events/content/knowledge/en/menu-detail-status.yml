@@ -1,0 +1,2773 @@
+menu:
+- slug: app-events-fundamentals
+  title: Nền tảng Application Events
+  childs:
+  - slug: app-events-fundamentals-001
+    title: Application Events là gì và giải quyết vấn đề nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-fundamentals-002
+    title: Giao tiếp giữa các bean trong cùng ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-fundamentals-003
+    title: Event-driven trong phạm vi một ứng dụng Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-fundamentals-004
+    title: Publisher, event và listener trong một luồng xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-fundamentals-005
+    title: Khi nào nên dùng event thay cho gọi phương thức trực tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-fundamentals-006
+    title: Giới hạn của event nội bộ so với message broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-event-model
+  title: Mô hình sự kiện
+  childs:
+  - slug: app-events-event-model-001
+    title: Luồng phát và phân phối một event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-model-002
+    title: Một publisher với nhiều listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-model-003
+    title: Một listener nhận nhiều loại event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-model-004
+    title: Quan hệ giữa ApplicationContext và event bus
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-model-005
+    title: ApplicationEventMulticaster trong mô hình tổng thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-model-006
+    title: Event đồng bộ mặc định trong Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-model-007
+    title: Ranh giới giữa event nội bộ và tích hợp bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-types-and-payload
+  title: Kiểu và payload
+  childs:
+  - slug: app-events-types-and-payload-001
+    title: ApplicationEvent và lớp con tùy biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-types-and-payload-002
+    title: Phát một đối tượng bất kỳ làm event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-types-and-payload-003
+    title: PayloadApplicationEvent và payload thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-types-and-payload-004
+    title: Kiểu event và cơ chế chọn listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-types-and-payload-005
+    title: Event có generic type
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-types-and-payload-006
+    title: Event lồng nhau và dữ liệu dẫn xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-types-and-payload-007
+    title: Payload bất biến và an toàn khi chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-types-and-payload-008
+    title: Event chứa ID hay chứa toàn bộ trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-event-publication
+  title: Phát sự kiện
+  childs:
+  - slug: app-events-event-publication-001
+    title: ApplicationEventPublisher và publishEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-publication-002
+    title: Tiêm ApplicationEventPublisher vào bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-publication-003
+    title: ApplicationEventPublisherAware
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-publication-004
+    title: Phát event từ service và component
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-publication-005
+    title: Phát event trong cùng một use case
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-publication-006
+    title: Phát nhiều event theo thứ tự nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-publication-007
+    title: Phát event sau khi hoàn tất thay đổi trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-publication-008
+    title: Phát event từ ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-publication-009
+    title: Xử lý event được phát sớm trong quá trình khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-event-listening
+  title: Lắng nghe sự kiện
+  childs:
+  - slug: app-events-event-listening-001
+    title: ApplicationListener<E>
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-listening-002
+    title: Chú thích @EventListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-listening-003
+    title: Chọn listener theo kiểu event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-listening-004
+    title: Listener nhận ApplicationEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-listening-005
+    title: Listener nhận payload trực tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-listening-006
+    title: Một phương thức nhận nhiều kiểu event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-listening-007
+    title: Nhiều phương thức listener trong một bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-listening-008
+    title: Listener không trả về và chỉ tạo side effect
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-listening-009
+    title: Điều kiện để listener được gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-listener-registration
+  title: Đăng ký listener
+  childs:
+  - slug: app-events-listener-registration-001
+    title: Component scan và listener tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-listener-registration-002
+    title: Đăng ký listener bằng @Bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-listener-registration-003
+    title: Đăng ký listener trực tiếp với ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-listener-registration-004
+    title: Đăng ký qua ConfigurableApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-listener-registration-005
+    title: Listener của parent và child context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-listener-registration-006
+    title: ApplicationListenerDetector
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-listener-registration-007
+    title: Listener được phát hiện ở thời điểm nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-listener-registration-008
+    title: Listener trong cấu hình Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-listener-registration-009
+    title: Listener trong cấu hình XML hoặc legacy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-filtering-conditions
+  title: Lọc và điều kiện
+  childs:
+  - slug: app-events-filtering-conditions-001
+    title: Điều kiện condition trong @EventListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-filtering-conditions-002
+    title: SpEL truy cập event và payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-filtering-conditions-003
+    title: Lọc theo thuộc tính của event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-filtering-conditions-004
+    title: Lọc theo trạng thái nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-filtering-conditions-005
+    title: Lọc event null và dữ liệu không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-filtering-conditions-006
+    title: Điều kiện động theo environment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-filtering-conditions-007
+    title: Khi nào tách event thành kiểu riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-filtering-conditions-008
+    title: Tránh điều kiện phức tạp trong listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-processing-order
+  title: Thứ tự xử lý
+  childs:
+  - slug: app-events-processing-order-001
+    title: '@Order trên event listener'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-processing-order-002
+    title: Ordered và mức ưu tiên listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-processing-order-003
+    title: Thứ tự giữa nhiều listener cùng event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-processing-order-004
+    title: Thứ tự trong xử lý đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-processing-order-005
+    title: Thứ tự không đảm bảo khi chạy bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-processing-order-006
+    title: Thiết kế listener độc lập với thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-processing-order-007
+    title: Phân tách listener bắt buộc và listener phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-processing-order-008
+    title: Kiểm thử thứ tự khi nghiệp vụ thật sự yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-event-multicaster
+  title: Event multicaster
+  childs:
+  - slug: app-events-event-multicaster-001
+    title: Vai trò của ApplicationEventMulticaster
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-multicaster-002
+    title: ApplicationEventMulticaster trong ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-multicaster-003
+    title: SimpleApplicationEventMulticaster
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-multicaster-004
+    title: Cache danh sách listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-multicaster-005
+    title: Phát hiện listener phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-multicaster-006
+    title: ErrorHandler của multicaster
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-multicaster-007
+    title: Thay thế multicaster mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-multicaster-008
+    title: Cấu hình multicaster bằng bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-multicaster-009
+    title: Ảnh hưởng của multicaster đến transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-multicaster-010
+    title: Ảnh hưởng của multicaster đến thread
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-synchronous-processing
+  title: Xử lý đồng bộ
+  childs:
+  - slug: app-events-synchronous-processing-001
+    title: Listener chạy trên thread của publisher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-synchronous-processing-002
+    title: Publisher chờ listener hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-synchronous-processing-003
+    title: Exception từ listener đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-synchronous-processing-004
+    title: Listener đồng bộ trong transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-synchronous-processing-005
+    title: Tác động của listener chậm lên request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-synchronous-processing-006
+    title: Khi đồng bộ là lựa chọn đúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-synchronous-processing-007
+    title: Đảm bảo tính nhất quán trong cùng use case
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-synchronous-processing-008
+    title: Đo thời gian xử lý event đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-asynchronous-processing
+  title: Xử lý bất đồng bộ
+  childs:
+  - slug: app-events-asynchronous-processing-001
+    title: '@Async trên event listener'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-asynchronous-processing-002
+    title: '@EnableAsync và proxy method'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-asynchronous-processing-003
+    title: Executor mặc định và executor tùy biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-asynchronous-processing-004
+    title: Chỉ định executor bằng qualifier
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-asynchronous-processing-005
+    title: Async listener trả về Future
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-asynchronous-processing-006
+    title: Exception trong async listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-asynchronous-processing-007
+    title: AsyncUncaughtExceptionHandler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-asynchronous-processing-008
+    title: Không dùng giá trị trả về để phát event tiếp theo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-asynchronous-processing-009
+    title: Giới hạn của async listener với transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-asynchronous-processing-010
+    title: Tự gọi method và bẫy self-invocation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-asynchronous-processing-011
+    title: Chọn bounded executor cho event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-asynchronous-processing-012
+    title: Theo dõi queue và từ chối tác vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-transactional-events
+  title: Event theo transaction
+  childs:
+  - slug: app-events-transactional-events-001
+    title: '@TransactionalEventListener'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transactional-events-002
+    title: Khác biệt giữa @EventListener và @TransactionalEventListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transactional-events-003
+    title: Transaction phase AFTER_COMMIT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transactional-events-004
+    title: Transaction phase BEFORE_COMMIT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transactional-events-005
+    title: Transaction phase AFTER_ROLLBACK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transactional-events-006
+    title: Transaction phase AFTER_COMPLETION
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transactional-events-007
+    title: Event không có transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transactional-events-008
+    title: fallbackExecution và hành vi dự phòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transactional-events-009
+    title: Listener sau commit không rollback được transaction đã xong
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transactional-events-010
+    title: Tài nguyên transaction ở thời điểm listener chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transactional-events-011
+    title: Một event với nhiều phase listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-transaction-synchronization
+  title: Transaction synchronization
+  childs:
+  - slug: app-events-transaction-synchronization-001
+    title: Cơ chế gắn listener với transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transaction-synchronization-002
+    title: TransactionSynchronization và callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transaction-synchronization-003
+    title: Thời điểm đăng ký synchronization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transaction-synchronization-004
+    title: Event được phát trước hay sau thay đổi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transaction-synchronization-005
+    title: Persistence context sau commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transaction-synchronization-006
+    title: Đọc lại dữ liệu trong AFTER_COMMIT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transaction-synchronization-007
+    title: Mở transaction mới cho tác vụ hậu commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transaction-synchronization-008
+    title: REQUIRES_NEW khi listener cần ghi dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transaction-synchronization-009
+    title: Rollback và event phụ thuộc transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-transaction-synchronization-010
+    title: Tính idempotent của listener hậu commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-reactive-transaction-events
+  title: Reactive transaction events
+  childs:
+  - slug: app-events-reactive-transaction-events-001
+    title: Transaction reactive trong Spring 6.1
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reactive-transaction-events-002
+    title: Reactor Context và transaction context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reactive-transaction-events-003
+    title: TransactionalEventPublisher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reactive-transaction-events-004
+    title: Đưa transaction context vào event source
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reactive-transaction-events-005
+    title: Khác biệt giữa thread-local và Reactor Context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reactive-transaction-events-006
+    title: Phát event trong reactive pipeline
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reactive-transaction-events-007
+    title: Listener transaction-bound trong reactive flow
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reactive-transaction-events-008
+    title: Kiểm thử reactive transaction event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reactive-transaction-events-009
+    title: Giới hạn khi trộn imperative và reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-application-context-lifecycle
+  title: Vòng đời ApplicationContext
+  childs:
+  - slug: app-events-application-context-lifecycle-001
+    title: ContextRefreshedEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-application-context-lifecycle-002
+    title: ContextStartedEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-application-context-lifecycle-003
+    title: ContextStoppedEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-application-context-lifecycle-004
+    title: ContextClosedEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-application-context-lifecycle-005
+    title: ContextFailedEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-application-context-lifecycle-006
+    title: ApplicationContextEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-application-context-lifecycle-007
+    title: Sự kiện trong refresh context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-application-context-lifecycle-008
+    title: Sự kiện khi start và stop context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-application-context-lifecycle-009
+    title: Sự kiện khi đóng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-application-context-lifecycle-010
+    title: Parent context và lifecycle event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-application-context-lifecycle-011
+    title: Listener phục vụ khởi tạo dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-events
+  title: Spring Boot application events
+  childs:
+  - slug: spring-boot-events-001
+    title: SpringApplication và event lifecycle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-002
+    title: ApplicationStartingEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-003
+    title: ApplicationEnvironmentPreparedEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-004
+    title: ApplicationContextInitializedEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-005
+    title: ApplicationPreparedEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-006
+    title: ApplicationStartedEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-007
+    title: ApplicationReadyEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-008
+    title: ApplicationFailedEvent
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-009
+    title: Event trước khi ApplicationContext tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-010
+    title: SpringApplication.addListeners
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-011
+    title: SpringApplicationBuilder.listeners
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-012
+    title: Khai báo listener qua spring.factories
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-events-013
+    title: Phân biệt event của Boot và event của context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-domain-event-design
+  title: Thiết kế domain event
+  childs:
+  - slug: app-events-domain-event-design-001
+    title: Domain event trong mô hình domain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-domain-event-design-002
+    title: Event biểu diễn điều gì đã xảy ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-domain-event-design-003
+    title: Tên event theo quá khứ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-domain-event-design-004
+    title: Một event một ý nghĩa nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-domain-event-design-005
+    title: Aggregate và domain event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-domain-event-design-006
+    title: Phát domain event từ aggregate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-domain-event-design-007
+    title: Thu thập event trước khi publish
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-domain-event-design-008
+    title: Publish event tại application service
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-domain-event-design-009
+    title: Domain event và transaction boundary
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-domain-event-design-010
+    title: Không để domain phụ thuộc trực tiếp vào Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-payload-design
+  title: Thiết kế payload
+  childs:
+  - slug: app-events-payload-design-001
+    title: Event contract và khả năng tiến hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-payload-design-002
+    title: ID định danh đối tượng nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-payload-design-003
+    title: Snapshot dữ liệu tại thời điểm phát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-payload-design-004
+    title: Tránh truyền entity đang được quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-payload-design-005
+    title: Tránh payload quá lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-payload-design-006
+    title: Payload bất biến bằng record
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-payload-design-007
+    title: Thời điểm tạo và correlation ID
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-payload-design-008
+    title: Actor, tenant và thông tin ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-payload-design-009
+    title: Version của event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-payload-design-010
+    title: Tương thích ngược của payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-payload-design-011
+    title: Dữ liệu nhạy cảm trong event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-replay-event-chains
+  title: Phát lại và chuỗi event
+  childs:
+  - slug: app-events-replay-event-chains-001
+    title: Giá trị trả về của @EventListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-replay-event-chains-002
+    title: Phát event tiếp theo từ kết quả listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-replay-event-chains-003
+    title: Một listener trả về nhiều event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-replay-event-chains-004
+    title: Chuyển tiếp event bằng collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-replay-event-chains-005
+    title: Không dựa vào return value trong @Async
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-replay-event-chains-006
+    title: Chuỗi event dài và độ khó theo dõi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-replay-event-chains-007
+    title: Ngăn vòng lặp phát event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-replay-event-chains-008
+    title: Phân biệt event gốc và event dẫn xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-replay-event-chains-009
+    title: Khi nên dùng orchestration thay vì event chain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-errors-rollback
+  title: Lỗi và rollback
+  childs:
+  - slug: app-events-errors-rollback-001
+    title: Exception trong listener đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-errors-rollback-002
+    title: ErrorHandler của ApplicationEventMulticaster
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-errors-rollback-003
+    title: Exception listener và rollback transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-errors-rollback-004
+    title: Exception trong listener sau commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-errors-rollback-005
+    title: Lỗi trong @TransactionalEventListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-errors-rollback-006
+    title: Lỗi trong async listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-errors-rollback-007
+    title: Fallback và xử lý lỗi có chủ đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-errors-rollback-008
+    title: Retry listener và điều kiện retry
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-errors-rollback-009
+    title: Dead-letter cho event nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-errors-rollback-010
+    title: Ghi nhận lỗi mà không che giấu nguyên nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-errors-rollback-011
+    title: Phân biệt lỗi nghiệp vụ và lỗi hạ tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-threads-context
+  title: Thread và context
+  childs:
+  - slug: app-events-threads-context-001
+    title: ThreadLocal trong listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-threads-context-002
+    title: MDC và correlation ID
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-threads-context-003
+    title: SecurityContext trong async listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-threads-context-004
+    title: Request context không tự truyền sang thread mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-threads-context-005
+    title: ContextPropagatingTaskDecorator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-threads-context-006
+    title: TaskDecorator cho logging context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-threads-context-007
+    title: Context propagation trong executor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-threads-context-008
+    title: Bẫy khi giữ request object trong event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-threads-context-009
+    title: Đóng executor đúng lifecycle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-threads-context-010
+    title: Kiểm tra thread name khi chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-observability
+  title: Observability
+  childs:
+  - slug: app-events-observability-001
+    title: Event listener và Observability
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-observability-002
+    title: Vì sao @EventListener không tự tạo Observation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-observability-003
+    title: Đo thời gian publish và process event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-observability-004
+    title: Tạo Observation cho listener quan trọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-observability-005
+    title: Trace context khi event đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-observability-006
+    title: Trace context khi event bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-observability-007
+    title: Metric số lần phát event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-observability-008
+    title: Metric lỗi và thời gian xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-observability-009
+    title: Log event có cấu trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-observability-010
+    title: Liên kết event với trace và correlation ID
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-event-testing
+  title: Kiểm thử event
+  childs:
+  - slug: app-events-event-testing-001
+    title: Kiểm thử publisher phát đúng event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-002
+    title: Mock ApplicationEventPublisher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-003
+    title: Kiểm thử trực tiếp ApplicationListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-004
+    title: '@RecordApplicationEvents'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-005
+    title: ApplicationEventsTestExecutionListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-006
+    title: Tiêm ApplicationEvents vào test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-007
+    title: Assert event bằng stream
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-008
+    title: Kiểm thử số lần phát event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-009
+    title: Kiểm thử payload và thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-010
+    title: Kiểm thử thứ tự listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-011
+    title: Kiểm thử @TransactionalEventListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-012
+    title: Kiểm thử AFTER_COMMIT và rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-013
+    title: Kiểm thử async listener không flaky
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-event-testing-014
+    title: Chờ event bất đồng bộ đúng cách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: app-events-troubleshooting-001
+    title: Listener không được gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-troubleshooting-002
+    title: Sai kiểu event hoặc sai generic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-troubleshooting-003
+    title: Bean listener không được scan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-troubleshooting-004
+    title: Method listener không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-troubleshooting-005
+    title: Điều kiện SpEL luôn false
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-troubleshooting-006
+    title: Event được phát trước khi listener đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-troubleshooting-007
+    title: Không có transaction cho transactional listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-troubleshooting-008
+    title: Async listener chạy trên thread khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-troubleshooting-009
+    title: Exception bị xử lý bởi executor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-troubleshooting-010
+    title: Listener bị gọi nhiều lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-troubleshooting-011
+    title: Parent-child context nhận event ngoài dự kiến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-troubleshooting-012
+    title: Bật log để theo dõi multicaster
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-performance
+  title: Hiệu năng
+  childs:
+  - slug: app-events-performance-001
+    title: Chi phí phát event trong request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-performance-002
+    title: Listener chậm làm nghẽn publisher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-performance-003
+    title: Số lượng listener và chi phí chọn listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-performance-004
+    title: Payload lớn và áp lực bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-performance-005
+    title: Cache listener trong multicaster
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-performance-006
+    title: Executor capacity cho async event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-performance-007
+    title: Độ trễ do nhiều listener nối tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-performance-008
+    title: Đo throughput và latency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-performance-009
+    title: Batch hóa tác vụ hậu kỳ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-performance-010
+    title: Khi event không phù hợp với tải cao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-reliability
+  title: Độ tin cậy
+  childs:
+  - slug: app-events-reliability-001
+    title: Idempotency của event listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reliability-002
+    title: Duplicate event trong xử lý thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reliability-003
+    title: At-least-once và event nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reliability-004
+    title: Đảm bảo không mất event quan trọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reliability-005
+    title: Event và outbox pattern
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reliability-006
+    title: Chuyển event nội bộ sang message broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reliability-007
+    title: Retry có giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reliability-008
+    title: Backoff và chống bão retry
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reliability-009
+    title: Dead-letter và thao tác bù
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reliability-010
+    title: Theo dõi trạng thái xử lý event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-reliability-011
+    title: Đảm bảo thứ tự khi event có phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-security-data
+  title: Bảo mật và dữ liệu
+  childs:
+  - slug: app-events-security-data-001
+    title: Không đưa bí mật vào event payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-security-data-002
+    title: Quyền truy cập khi listener xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-security-data-003
+    title: Tenant isolation trong event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-security-data-004
+    title: Xử lý dữ liệu cá nhân trong log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-security-data-005
+    title: Ẩn hoặc băm định danh nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-security-data-006
+    title: Event nội bộ không phải ranh giới bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-security-data-007
+    title: Kiểm soát listener của thư viện bên thứ ba
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-security-data-008
+    title: Audit event và retention
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-security-data-009
+    title: Xóa dữ liệu theo chính sách lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-external-integration
+  title: Tích hợp ngoài ứng dụng
+  childs:
+  - slug: app-events-external-integration-001
+    title: Khác biệt giữa Spring event và broker message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-external-integration-002
+    title: Khi dùng Kafka, RabbitMQ hoặc JMS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-external-integration-003
+    title: Đảm bảo publish ra ngoài sau commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-external-integration-004
+    title: Outbox và relay process
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-external-integration-005
+    title: Event contract cho hệ thống khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-external-integration-006
+    title: Schema registry và versioning
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-external-integration-007
+    title: Correlation giữa event nội bộ và message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-external-integration-008
+    title: Retry ở tầng broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-external-integration-009
+    title: Phân tách domain event và integration event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-external-integration-010
+    title: Không dùng ApplicationEvent làm hàng đợi bền vững
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-deployment-patterns
+  title: Mẫu triển khai
+  childs:
+  - slug: app-events-deployment-patterns-001
+    title: Thông báo email sau khi tạo đơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-deployment-patterns-002
+    title: Cập nhật read model sau thay đổi domain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-deployment-patterns-003
+    title: Ghi audit sau thao tác nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-deployment-patterns-004
+    title: Xóa cache sau khi cập nhật dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-deployment-patterns-005
+    title: Phát sự kiện sau commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-deployment-patterns-006
+    title: Chạy tác vụ hậu kỳ bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-deployment-patterns-007
+    title: Nhiều listener độc lập cho một event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-deployment-patterns-008
+    title: Chọn event đồng bộ hay bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-deployment-patterns-009
+    title: Thiết kế listener có thể chạy lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-deployment-patterns-010
+    title: So sánh gọi trực tiếp và publish event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: app-events-practice-summary
+  title: Thực hành và tổng kết
+  childs:
+  - slug: app-events-practice-summary-001
+    title: Xây dựng publisher và listener tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-002
+    title: Tạo event bằng record bất biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-003
+    title: Lọc listener bằng điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-004
+    title: Sắp xếp nhiều listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-005
+    title: Cấu hình async executor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-006
+    title: Tạo transactional event listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-007
+    title: Kiểm thử commit và rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-008
+    title: Ghi nhận metric cho listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-009
+    title: Mô phỏng lỗi và retry
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-010
+    title: Thiết kế outbox cho integration event
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-011
+    title: Checklist review Application Events
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-012
+    title: Câu hỏi phỏng vấn thường gặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: app-events-practice-summary-013
+    title: Bài tập tổng hợp theo use case
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

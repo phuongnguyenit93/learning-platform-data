@@ -1,34 +1,34 @@
-# Đặt và khôi phục Thread Context Class Loader bằng try/finally tại ranh giới gọi
+# Setting and Restoring the Thread Context Class Loader with try/finally at Call Boundaries
 
-Trong ứng dụng Java hỗ trợ plugin, một lời gọi vào thư viện hoặc plugin đôi khi cần tìm class, service provider hay resource từ **ClassLoader của plugin**, thay vì chỉ từ classpath của host. Cơ chế **Thread Context Class Loader (TCCL)** cho phép code đang chạy hỏi "ngữ cảnh class loader của thread hiện tại là gì?" và sử dụng loader đó cho việc tìm kiếm.
+In a Java application supporting plugins, a call into a library or plugin sometimes needs to look up classes, service providers, or resources from the **plugin's ClassLoader**, rather than only from the host's classpath. The **Thread Context Class Loader (TCCL)** mechanism lets running code ask "what is the current thread's class loader context?" and use that loader for lookups.
 
-TCCL rất hữu ích ở ranh giới host → plugin → thư viện, nhưng nó là **trạng thái có thể thay đổi gắn với một Thread**. Nếu host đặt TCCL sang loader của plugin mà quên khôi phục, request tiếp theo trên cùng thread có thể nhìn thấy nhầm class/resource, còn class loader cũ có nguy cơ bị giữ sống lâu hơn dự kiến. Quy tắc nền tảng là: **lưu loader cũ, đặt loader cần dùng, thực hiện công việc trong try, và khôi phục loader cũ trong finally**.
+The TCCL is very useful at the host → plugin → library boundary, yet it is **mutable state attached to a Thread**. If the host sets the TCCL to a plugin's loader and forgets to restore it, the next request on the same thread may see the wrong classes/resources, while the old class loader risks being kept alive longer than intended. The foundational rule is: **save the old loader, set the needed loader, perform the work inside `try`, and restore the old loader in `finally`**.
 
-Bài học tập trung vào ranh giới gọi đồng bộ, giải thích điều gì thực sự sử dụng TCCL, ví dụ Java 17+ tự biên dịch được, lỗi thường gặp và cách chuyển cùng nguyên tắc sang task chạy trên thread pool.
+This lesson focuses on synchronous call boundaries, explains what actually uses the TCCL, provides a self-compilable Java 17+ example, covers common pitfalls, and shows how to apply the same principle to tasks running on a thread pool.
 
-## 1. Phân biệt TCCL với ClassLoader định nghĩa class
+## 1. Distinguishing the TCCL from a Class's Defining ClassLoader
 
-Java có nhiều đường chọn loader. Không phải thao tác nạp class nào cũng lấy TCCL:
+Java has multiple ways to choose a loader. Not every class-loading operation consults the TCCL:
 
-| Đường truy cập | Loader liên quan | Ý nghĩa |
+| Access Path | Loader Involved | Meaning |
 | --- | --- | --- |
-| Thread.currentThread().getContextClassLoader() | Ngữ cảnh hiện tại của **thread đang chạy** | Thư viện có thể dùng để tra cứu class, provider và resource |
-| Thread.currentThread().setContextClassLoader(loader) | Thay TCCL của **thread hiện tại** | Không tự nạp class, không thay loader đã định nghĩa các class |
-| ServiceLoader.load(MyService.class) | Theo Java 17: dùng TCCL của thread gọi | Provider trong loader plugin có thể được tìm khi TCCL trỏ đúng loader |
-| ServiceLoader.load(MyService.class, loader) | Dùng loader được truyền rõ ràng | Hữu ích nếu chỉ một lookup cần plugin loader, không phải toàn bộ call chain |
-| SomeType.class.getClassLoader() | Loader đã định nghĩa SomeType | Không đổi chỉ vì thread chuyển TCCL |
-| SomeType.class.getResourceAsStream("/path") | Tìm resource theo loader của SomeType | Phù hợp khi resource thuộc chính implementation |
-| contextLoader.getResourceAsStream("path") | Tìm resource qua loader được chỉ định | Phù hợp khi framework dùng resource của plugin theo ngữ cảnh |
+| Thread.currentThread().getContextClassLoader() | Current context of the **running thread** | Libraries may use it to look up classes, providers, and resources |
+| Thread.currentThread().setContextClassLoader(loader) | Replaces the TCCL of the **current thread** | Does not load classes itself; does not change which loader defined existing classes |
+| ServiceLoader.load(MyService.class) | Per Java 17: uses the calling thread's TCCL | Providers in the plugin loader can be found when the TCCL points to the right loader |
+| ServiceLoader.load(MyService.class, loader) | Uses the explicitly passed loader | Useful when only a single lookup needs the plugin loader, rather than the entire call chain |
+| SomeType.class.getClassLoader() | Loader that defined SomeType | Does not change simply because the thread switches its TCCL |
+| SomeType.class.getResourceAsStream("/path") | Looks up resource via SomeType's loader | Suitable when the resource belongs to the implementation itself |
+| contextLoader.getResourceAsStream("path") | Looks up resource via the designated loader | Suitable when a framework loads plugin resources by context |
 
-**Class identity** phụ thuộc vào tên binary **và loader định nghĩa class**. Đặt TCCL không biến một class đã nạp bởi host thành class do plugin loader định nghĩa. Nếu host và plugin trao đổi đối tượng qua interface SPI, interface đó phải có danh tính class chung; thông thường loader plugin có parent nhìn thấy SPI do host cung cấp.
+**Class identity** depends on the binary name **and the loader that defined the class**. Setting the TCCL does not turn a class loaded by the host into a class defined by the plugin loader. If the host and plugin exchange objects via an SPI interface, that interface must share a common class identity; typically the plugin loader has a parent that sees the SPI provided by the host.
 
-TCCL không phải classpath toàn JVM, cũng không phải sandbox bảo mật. TCCL chỉ ảnh hưởng đến các API **thực sự tham khảo TCCL**; nhiều lời gọi nạp class/resource khác chọn loader theo cách riêng. Đừng cho rằng mọi lỗi ClassNotFoundException sẽ biến mất sau khi đặt TCCL.
+The TCCL is neither a JVM-wide classpath nor a security sandbox. The TCCL only affects APIs that **actually consult the TCCL**; many other class/resource loading calls choose a loader in their own way. Do not assume every `ClassNotFoundException` will disappear once the TCCL is set.
 
-## 2. Vì sao phải đặt ở ranh giới gọi và khôi phục ngay?
+## 2. Why Set at the Call Boundary and Restore Immediately?
 
-Giả sử host có hai plugin A và B. Cả hai được nạp bằng URLClassLoader khác nhau; cùng có file config/defaults.properties, nhưng dữ liệu khác nhau. Khi framework gọi code của plugin A, một thư viện bên trong sử dụng Thread.currentThread().getContextClassLoader() để tìm resource. Nếu TCCL vẫn trỏ về host loader, thư viện có thể không thấy resource của A. Nếu host đặt TCCL = loaderA và quên trả lại, lượt gọi B trên cùng thread có thể tìm nhầm resource của A.
+Suppose the host has two plugins, A and B. Both are loaded by different `URLClassLoader` instances; both contain `config/defaults.properties`, but with different data. When the framework calls plugin A's code, an internal library uses `Thread.currentThread().getContextClassLoader()` to locate resources. If the TCCL still points to the host loader, the library may fail to see A's resource. If the host sets TCCL = `loaderA` and forgets to revert it, a subsequent call to B on the same thread may mistakenly find A's resource.
 
-Mẫu đúng cho công việc **đồng bộ trên cùng thread**:
+The proper pattern for **synchronous work on the same thread**:
 
 ~~~java
 Thread current = Thread.currentThread();
@@ -36,28 +36,28 @@ ClassLoader previous = current.getContextClassLoader();
 current.setContextClassLoader(pluginLoader);
 
 try {
-    // Toàn bộ lời gọi cần ngữ cảnh plugin nằm trong phạm vi này.
+    // All calls requiring the plugin context reside inside this scope.
     invokePlugin();
 } finally {
     current.setContextClassLoader(previous);
 }
 ~~~
 
-Đoạn mã trên là **mã minh họa ranh giới gọi**, giả định pluginLoader và invokePlugin() đã được xác định bởi host. finally chạy khi thân try trả về bình thường, return sớm, ném checked exception, RuntimeException hoặc Error trong điều kiện JVM tiếp tục thực thi thông thường. Đây là lý do không đặt khôi phục chỉ ở cuối nhánh thành công.
+The snippet above is **illustrative call-boundary code**, assuming `pluginLoader` and `invokePlugin()` are already defined by the host. `finally` runs whether the `try` body returns normally, returns early, throws a checked exception, a `RuntimeException`, or an `Error` as long as the JVM continues normal execution. This is why restoration must not be placed only at the end of the success branch.
 
-Thứ tự thực thi cần giữ:
+Execution order to preserve:
 
-1. Lấy **chính xác loader trước đó**; giá trị có thể là null và null cũng cần được khôi phục nguyên trạng.
-2. Đặt loader của plugin ngay trước lời gọi cần ngữ cảnh đó.
-3. Đưa mọi thao tác cần TCCL, kể cả bước khởi tạo provider theo cách lazy, vào **phạm vi try**.
-4. Trong finally, khôi phục loader đã lưu, không mặc định thay bằng ClassLoader.getSystemClassLoader() hay loader của host.
-5. Chỉ đóng loader và giải phóng tài nguyên plugin **sau khi** các lời gọi đang dùng nó hoàn tất.
+1. Capture the **exact previous loader**; the value may be `null`, and `null` must also be restored verbatim.
+2. Set the plugin's loader right before the call requiring that context.
+3. Keep all operations needing the TCCL, including lazy provider instantiation steps, inside the **`try` scope**.
+4. In `finally`, restore the saved loader; do not default to replacing it with `ClassLoader.getSystemClassLoader()` or the host loader.
+5. Close the loader and release plugin resources **only after** all calls using it have completed.
 
-Lưu ý: setContextClassLoader có thể ném SecurityException trong môi trường dùng chính sách SecurityManager (liên quan đặc biệt tới Java 17 và các ứng dụng cũ). Nếu việc **đặt** loader thất bại trước khi vào try, host phải coi đây là lỗi thiết lập ngữ cảnh; đừng tiếp tục gọi plugin rồi giả định TCCL đã được đổi. Mẫu trên không cố xử lý việc chương trình bị kết thúc cưỡng bức hoặc JVM không còn khả năng chạy finally.
+Note: `setContextClassLoader` can throw `SecurityException` in environments using a `SecurityManager` policy (especially relevant to Java 17 and legacy applications). If **setting** the loader fails before entering `try`, the host must treat that as a context-setup failure; do not proceed to invoke the plugin while assuming the TCCL was changed. The pattern above does not attempt to handle forcible process termination or cases where the JVM can no longer execute `finally`.
 
-## 3. Một phương thức dùng lại cho mọi lời gọi đồng bộ
+## 3. A Reusable Method for All Synchronous Calls
 
-Thay vì rải các cặp set/restore trong nhiều controller và adapter, host có thể cung cấp một helper nhỏ. Dùng Callable<T> để giữ kết quả trả về và cho phép ngoại lệ checked được truyền ra:
+Instead of scattering set/restore pairs across many controllers and adapters, the host can provide a small helper. Using `Callable<T>` preserves the return value and allows checked exceptions to propagate:
 
 ~~~java
 import java.util.concurrent.Callable;
@@ -75,25 +75,25 @@ static <T> T withContextClassLoader(ClassLoader next, Callable<T> action)
 }
 ~~~
 
-Đây là đoạn mã thành viên của một class, không phải file Java độc lập. Đoạn lab ở phần sau sẽ đưa phương thức này vào một chương trình biên dịch được.
+This is a member method snippet for a class, not a standalone Java file. The lab in the next section puts this method into a compilable program.
 
-Các thuộc tính quan trọng:
+Key properties:
 
-- Helper chạy **action trên cùng thread đã gọi helper**. Nó không tự tạo thread mới hay chuyển công việc sang Executor.
-- Nếu action.call() ném ngoại lệ, finally vẫn khôi phục loader trước khi ngoại lệ tiếp tục truyền về caller.
-- Nếu lời gọi khác ở bên trong cũng đổi TCCL theo mẫu chuẩn, hai lớp try/finally sẽ **khôi phục theo thứ tự ngược** (LIFO).
-- Helper **không tự đóng** ClassLoader. Ownership và vòng đời của pluginLoader là trách nhiệm riêng của plugin manager.
-- Nếu code trong action tự đổi TCCL, finally vẫn đưa thread về previous. Vì vậy phải đặt ranh giới đúng quanh lời gọi mà host thực sự sở hữu.
+- The helper runs **`action` on the same thread that called the helper**. It does not spawn a new thread or offload work to an `Executor`.
+- If `action.call()` throws an exception, `finally` still restores the loader before the exception continues propagating to the caller.
+- If an inner call also switches the TCCL using the standard pattern, the two `try/finally` layers **restore in reverse order** (LIFO).
+- The helper **does not close** the `ClassLoader`. Ownership and lifecycle of `pluginLoader` belong separately to the plugin manager.
+- If code inside `action` changes the TCCL on its own, `finally` still reverts the thread back to `previous`. Therefore, place the boundary cleanly around the call the host truly owns.
 
-Trong Java, finally có thể tự ném lỗi, ví dụ khi thao tác khôi phục bị từ chối. Khi đó lỗi khôi phục có thể che lỗi gốc; đây là sự cố môi trường/cấu hình cần quan sát ở lớp quản lý host, không phải tình huống để âm thầm bỏ qua.
+In Java, `finally` itself can throw an error, for example if the restore operation is denied. In that case, the restore error can suppress the original error; this is an environment/configuration fault to observe at the host management layer, not a condition to silently ignore.
 
-## 4. Lab Java 17+: host nhìn thấy plugin sau khi chuyển TCCL
+## 4. Java 17+ Lab: Host Sees the Plugin After Switching TCCL
 
-Thí nghiệm dưới đây tạo **hai artifact độc lập**: api.jar trên classpath host và hello-plugin.jar chỉ được đưa vào URLClassLoader ở runtime. Bên trong hello-plugin.jar có một provider của ServiceLoader và một file resource riêng. Host sử dụng đúng phương thức withContextClassLoader để gọi provider, đọc resource và mô phỏng một ngoại lệ.
+The experiment below builds **two independent artifacts**: `api.jar` on the host classpath and `hello-plugin.jar` loaded only into a `URLClassLoader` at runtime. Inside `hello-plugin.jar` are a `ServiceLoader` provider and a dedicated resource file. The host uses the exact `withContextClassLoader` method to invoke the provider, read the resource, and simulate an exception.
 
-### 4.1. Cấu trúc thư mục
+### 4.1. Directory Structure
 
-Từ thư mục gốc **lab/**:
+From the root directory **lab/**:
 
 ~~~text
 lab/
@@ -104,13 +104,13 @@ lab/
 ├── resources/
 │   ├── META-INF/services/dev.example.spi.Greeter
 │   └── config/message.txt
-├── build/             (tạo khi biên dịch)
-└── dist/              (tạo khi đóng gói)
+├── build/             (created during compilation)
+└── dist/              (created during packaging)
 ~~~
 
-Chỉ cần JDK 17 trở lên với javac, jar, java. Các lệnh build trình bày theo bash/POSIX; trên Windows dùng bash tương thích hoặc chuyển lệnh tạo thư mục và dấu phân cách classpath cho shell đang sử dụng.
+Only JDK 17 or later with `javac`, `jar`, and `java` is needed. Build commands are shown in bash/POSIX syntax; on Windows use a compatible bash shell or adapt directory creation and classpath separators for your shell.
 
-### 4.2. Interface SPI thuộc API chung
+### 4.2. SPI Interface in the Shared API
 
 File **src/api/dev/example/spi/Greeter.java**:
 
@@ -122,9 +122,9 @@ public interface Greeter {
 }
 ~~~
 
-Host và plugin đều tham chiếu interface này. Khi tạo URLClassLoader, host chọn loader đã định nghĩa Greeter làm parent, để provider thấy **cùng bản SPI**, tránh ClassCastException hoặc ServiceConfigurationError vì hai bản SPI khác loader.
+Both the host and the plugin reference this interface. When creating the `URLClassLoader`, the host chooses the loader that defined `Greeter` as the parent, so the provider sees the **same SPI type**, avoiding `ClassCastException` or `ServiceConfigurationError` caused by two copies of the SPI across different loaders.
 
-### 4.3. Provider do plugin cung cấp
+### 4.3. Provider Supplied by the Plugin
 
 File **src/plugin/dev/example/impl/HelloGreeter.java**:
 
@@ -143,7 +143,7 @@ public final class HelloGreeter implements Greeter {
 }
 ~~~
 
-File **resources/META-INF/services/dev.example.spi.Greeter** có đúng một dòng:
+File **resources/META-INF/services/dev.example.spi.Greeter** contains exactly one line:
 
 ~~~text
 dev.example.impl.HelloGreeter
@@ -155,9 +155,9 @@ File **resources/config/message.txt**:
 plugin-message
 ~~~
 
-META-INF/services phải nằm ở **gốc JAR**. Tên file descriptor là tên binary của SPI; nội dung là tên binary của provider. Resource config/message.txt cũng phải là entry ở gốc JAR, không mang tiền tố resources/. Để thấy rõ tác động của TCCL, host sẽ đọc resource bằng loader lấy từ thread thay vì dùng đường dẫn file trên đĩa.
+`META-INF/services` must be at the **root of the JAR**. The descriptor filename is the binary name of the SPI; its content is the binary name of the provider. The resource `config/message.txt` must also be an entry at the root of the JAR, without a `resources/` prefix. To make the TCCL effect clear, the host will read the resource using the loader retrieved from the thread rather than using a file path on disk.
 
-### 4.4. Host tạo plugin loader, đặt TCCL, gọi và khôi phục
+### 4.4. Host Creates Plugin Loader, Sets TCCL, Invokes, and Restores
 
 File **src/host/dev/example/host/Demo.java**:
 
@@ -256,20 +256,20 @@ public final class Demo {
 }
 ~~~
 
-**Điểm mấu chốt của chương trình:**
+**Key points of the program:**
 
-- Classpath của lệnh chạy **không chứa hello-plugin.jar**. Host không thể tìm provider plugin thông qua loader ứng dụng mặc định; lúc chưa chuyển TCCL, ServiceLoader không thấy provider của plugin.
-- new URLClassLoader(..., Greeter.class.getClassLoader()) mở một không gian tìm class/resource có chứa plugin JAR, đồng thời ủy quyền SPI cho loader chung. Tạo plugin loader **chưa tự thay TCCL**.
-- Khi withContextClassLoader đặt TCCL = pluginLoader, ServiceLoader.load(Greeter.class) sử dụng context loader và có thể tìm descriptor bên trong hello-plugin.jar.
-- ClassLoader context.getResourceAsStream("config/message.txt") tìm resource bằng chính loader từ TCCL. Đường dẫn truyền cho ClassLoader không có dấu / ở đầu.
-- Return bình thường hay IllegalArgumentException đều chạy finally để khôi phục exact original.
-- try-with-resources đóng URLClassLoader **sau** khi các lời gọi sử dụng nó đã hoàn tất và TCCL đã được khôi phục.
+- The runtime classpath of the command **does not contain `hello-plugin.jar`**. The host cannot find the plugin provider through the default application loader; before switching the TCCL, `ServiceLoader` sees no plugin provider.
+- `new URLClassLoader(..., Greeter.class.getClassLoader())` opens a class/resource search space containing the plugin JAR while delegating the SPI to the shared loader. Creating a plugin loader **does not automatically change the TCCL**.
+- Once `withContextClassLoader` sets TCCL = `pluginLoader`, `ServiceLoader.load(Greeter.class)` uses the context loader and can locate the descriptor inside `hello-plugin.jar`.
+- `ClassLoader context.getResourceAsStream("config/message.txt")` looks up the resource using that very loader from the TCCL. The path passed to `ClassLoader` has no leading `/`.
+- Both normal return and `IllegalArgumentException` run `finally` to restore the exact `original` loader.
+- `try-with-resources` closes `URLClassLoader` **after** the calls using it have finished and the TCCL has been restored.
 
-Chú ý việc đóng URLClassLoader không cưỡng bức unload class hay hủy mọi instance/provider. Một plugin manager thực tế chỉ đóng loader sau khi không còn request, task, callback, cache hoặc object thuộc plugin đang hoạt động.
+Note that closing a `URLClassLoader` does not forcibly unload classes or destroy all instances/providers. A real plugin manager only closes a loader after no requests, tasks, callbacks, caches, or objects belonging to the plugin remain active.
 
-### 4.5. Biên dịch và chạy
+### 4.5. Compiling and Running
 
-Từ thư mục **lab/**, chạy các lệnh bash:
+From the **lab/** directory, run these bash commands:
 
 ~~~bash
 mkdir -p build/api build/plugin build/host dist
@@ -284,7 +284,7 @@ javac -encoding UTF-8 -cp build/api.jar -d build/host src/host/dev/example/host/
 java -cp "build/host:build/api.jar" dev.example.host.Demo dist/hello-plugin.jar
 ~~~
 
-**Stdout kỳ vọng khi chạy đúng cấu trúc trên, không có provider cùng SPI từ nơi khác trong host classpath:**
+**Expected stdout when running the exact structure above, with no other provider for the same SPI on the host classpath:**
 
 ~~~text
 before original: true
@@ -298,17 +298,17 @@ after failure: true
 after close: true
 ~~~
 
-Dòng providers outside: 0 xuất hiện vì host runtime classpath của lệnh minh họa chỉ có host classes và api.jar. Nếu người học **tự thêm plugin JAR vào host classpath**, không còn đúng điều kiện thí nghiệm và kết quả discovery ở ngoài có thể khác.
+The line `providers outside: 0` appears because the host runtime classpath of the demo command contains only host classes and `api.jar`. If you **manually add the plugin JAR to the host classpath**, the experimental conditions no longer hold and external discovery results may differ.
 
-Trên Windows, trong tham số -cp phân cách các entry bằng dấu **;** thay cho dấu **:**; riêng cú pháp mkdir -p là của bash. Khi dùng PowerShell, có thể tạo thư mục bằng New-Item -ItemType Directory -Force rồi giữ các lệnh javac, jar, java với classpath dùng dấu chấm phẩy.
+On Windows, separate entries in the `-cp` argument with **;** instead of **:**; specifically `mkdir -p` is bash syntax. When using PowerShell, create directories with `New-Item -ItemType Directory -Force` and keep the `javac`, `jar`, and `java` commands using semicolon classpath separators.
 
-Kiểm tra JAR trước khi chạy:
+Inspect the JAR before running:
 
 ~~~bash
 jar --list --file dist/hello-plugin.jar
 ~~~
 
-Trong output phải có các entry quan trọng:
+The output must contain the key entries:
 
 ~~~text
 dev/example/impl/HelloGreeter.class
@@ -316,20 +316,20 @@ META-INF/services/dev.example.spi.Greeter
 config/message.txt
 ~~~
 
-Đây là **ba entry cần xác nhận**, không phải toàn bộ stdout của jar; công cụ có thể liệt kê thêm manifest và các thư mục. Nếu thiếu descriptor, ServiceLoader không tìm provider. Nếu thiếu resource, host sẽ báo Missing plugin resource dù provider có thể nạp thành công. Hai lỗi này khác hoàn toàn việc quên khôi phục TCCL.
+These are the **three entries to verify**, not the entire stdout of `jar`; the tool may also list the manifest and directory entries. If the descriptor is missing, `ServiceLoader` will not find the provider. If the resource is missing, the host will report `Missing plugin resource` even though the provider might load successfully. These two errors are completely different from forgetting to restore the TCCL.
 
-## 5. Phân tích từng bước của ranh giới gọi
+## 5. Step-by-Step Analysis of the Call Boundary
 
-Diễn biến của ví dụ có thể hình dung:
+The timeline of the example can be visualized as:
 
 ~~~text
 Thread main
     TCCL = original
        |
-       | tạo pluginLoader (chưa thay TCCL)
+       | create pluginLoader (TCCL unchanged yet)
        v
     withContextClassLoader(pluginLoader)
-       | lưu previous = original
+       | save previous = original
        | set TCCL = pluginLoader
        |  ServiceLoader.load(Greeter.class)
        |  plugin resource lookup
@@ -338,53 +338,53 @@ Thread main
        v
     Thread main: TCCL = original
        |
-       | vào lần gọi thứ hai
+       | enter second call
        | set pluginLoader
        | throw IllegalArgumentException
        | finally: TCCL = original
        v
     Thread main: TCCL = original
        |
-       | hoàn thành work và đóng pluginLoader
+       | finish work and close pluginLoader
        v
-    Thread main: TCCL vẫn = original
+    Thread main: TCCL still = original
 ~~~
 
-Tại thời điểm finally chạy, **action có thể chưa trả kết quả cho caller** hoặc có thể đang lan truyền ngoại lệ. finally vẫn khôi phục trước khi caller tiếp tục xử lý. Nếu caller dùng thread pool, điều này rất quan trọng: worker thread có thể lập tức nhận công việc của plugin khác.
+At the moment `finally` runs, **`action` may not have returned its result to the caller yet** or may be propagating an exception. `finally` still restores before the caller resumes execution. If the caller uses a thread pool, this is critical: the worker thread can immediately pick up work for another plugin.
 
-Nguyên tắc còn giúp tránh **class loader retention**. TCCL là một tham chiếu từ Thread tới ClassLoader. Nếu thread tồn tại lâu, giữ loader của plugin đã gỡ trong TCCL có thể giữ cả các class và đối tượng liên quan sống lâu. Khôi phục TCCL giải phóng một đường tham chiếu quan trọng; vẫn phải xử lý những reference khác như thread con, registry, ThreadLocal và cache.
+This principle also helps prevent **class loader retention**. The TCCL is a reference from a `Thread` to a `ClassLoader`. If the thread lives long, keeping an unloaded plugin's loader in the TCCL can keep all associated classes and objects alive for a long time. Restoring the TCCL clears one major reference path; you still must handle other references such as child threads, registries, `ThreadLocal`, and caches.
 
-## 6. Gọi lồng nhau: khôi phục chính xác theo thứ tự LIFO
+## 6. Nested Calls: Restoring in Exact LIFO Order
 
-Giả sử host gọi plugin A, bên trong A lại gọi một adapter cần plugin B. Phạm vi B phải khôi phục về **A**, sau đó phạm vi A mới khôi phục về original:
+Suppose the host calls plugin A, and inside A it calls an adapter requiring plugin B. Scope B must restore back to **A**, and then scope A restores back to `original`:
 
 ~~~java
-// Mã minh họa, giả định đã có withContextClassLoader,
-// loaderA, loaderB và phương thức callA()/callB().
+// Illustrative code, assuming withContextClassLoader,
+// loaderA, loaderB, and methods callA()/callB() already exist.
 withContextClassLoader(loaderA, () -> {
     callA(); // TCCL = loaderA
     withContextClassLoader(loaderB, () -> {
         callB(); // TCCL = loaderB
         return null;
     });
-    callA(); // TCCL trở về loaderA
+    callA(); // TCCL returns to loaderA
     return null;
 });
-// Ở đây TCCL trở về loader trước khi gọi A.
+// Here TCCL returns to the loader prior to calling A.
 ~~~
 
-Mỗi phạm vi lưu loader thực tế tại thời điểm **bắt đầu phạm vi đó**. Không dùng biến toàn cục "default loader" để khôi phục, vì nó không thể biểu diễn chính xác ngữ cảnh lồng nhau.
+Each scope saves the actual loader at the **entry of that scope**. Do not use a global "default loader" variable to restore, because it cannot accurately represent nested contexts.
 
-Nếu callB() ném exception, finally của B vẫn chạy, đưa TCCL về loaderA, rồi exception có thể đi qua finally của A và đưa TCCL về original. Đây là tính chất của mô hình stack các ranh giới gọi đồng bộ. Tránh gọi setContextClassLoader trong các nhánh điều kiện mà không có finally tương ứng.
+If `callB()` throws an exception, B's `finally` still runs, returning the TCCL to `loaderA`, and then the exception can pass through A's `finally` and return the TCCL to `original`. This is a property of the stack model for synchronous call boundaries. Avoid calling `setContextClassLoader` in conditional branches without a corresponding `finally`.
 
-## 7. Khi chuyển sang executor và tác vụ bất đồng bộ
+## 7. Moving to Executors and Asynchronous Tasks
 
-**TCCL thuộc về thread**, không thuộc về request, CompletableFuture hay đối tượng plugin. Đặt TCCL trên thread gửi công việc không đảm bảo công việc chạy trên thread đó.
+**The TCCL belongs to the thread**, not to the request, `CompletableFuture`, or plugin object. Setting the TCCL on the thread submitting work does not guarantee the work runs on that thread.
 
-Phản ví dụ:
+Anti-pattern:
 
 ~~~java
-// Phản ví dụ: executor có thể chạy task trên thread khác.
+// Anti-pattern: executor may run the task on a different thread.
 Thread.currentThread().setContextClassLoader(pluginLoader);
 try {
     executor.submit(task);
@@ -393,13 +393,13 @@ try {
 }
 ~~~
 
-Nếu executor đã có worker thread, task sẽ chạy với TCCL của **worker**, có thể không phải pluginLoader. Một thread mới có thể thừa hưởng TCCL của thread tạo nó, nhưng cơ chế kế thừa này không giải quyết việc worker tồn tại lâu, tái sử dụng hoặc thay đổi ngữ cảnh giữa các tác vụ. Tệ hơn, tạo thread mới bên trong phạm vi TCCL tạm thời có thể khiến thread con giữ plugin loader lâu sau khi parent đã khôi phục.
+If the executor already has worker threads, the task will run with the **worker's** TCCL, which may not be `pluginLoader`. A newly created thread might inherit the TCCL of its creator thread, but that inheritance mechanism does not solve long-lived workers, thread reuse, or context switching between tasks. Worse, spawning a new thread inside a temporary TCCL scope can cause the child thread to retain the plugin loader long after the parent has restored it.
 
-Đúng hơn, **đặt và khôi phục ngay bên trong task khi worker thực sự chạy**:
+Better: **set and restore right inside the task when the worker actually runs**:
 
 ~~~java
-// Mã minh họa: executor, pluginLoader, task và previous đã được định nghĩa.
-// Helper Callable<T> là phương thức ở phần 3.
+// Illustrative code: executor, pluginLoader, task, and previous are defined.
+// Callable<T> helper is the method from section 3.
 Future<?> future = executor.submit(() -> {
     withContextClassLoader(pluginLoader, () -> {
         task.run();
@@ -407,70 +407,70 @@ Future<?> future = executor.submit(() -> {
     });
     return null;
 });
-future.get(); // Chờ task hoàn thành trước khi đóng pluginLoader.
+future.get(); // Wait for the task to complete before closing pluginLoader.
 ~~~
 
-Ở đoạn này, lambda được chạy trên worker thread; withContextClassLoader đọc TCCL **của worker** tại thời điểm bắt đầu task và khôi phục nó trong finally. Future.get() chuyển kết quả/lỗi về thread gọi nhưng không làm thay đổi TCCL của thread gọi. Trong sản phẩm thực tế, cần xử lý InterruptedException, ExecutionException, timeout và hủy task theo lifecycle; không chờ vô hạn tùy tiện.
+In this snippet, the lambda runs on the worker thread; `withContextClassLoader` reads **the worker's** TCCL at task start and restores it in `finally`. `Future.get()` transfers the result/exception back to the calling thread without altering the calling thread's TCCL. In production code, you must handle `InterruptedException`, `ExecutionException`, timeouts, and task cancellation per lifecycle; do not wait indefinitely without bounds.
 
-Để code trên biên dịch khi đứng độc lập trong class chứa nó, cần các import java.util.concurrent.Future và các biến executor, task, pluginLoader có kiểu phù hợp; đây là **minh họa tích hợp** chứ không phải chương trình hoàn chỉnh thứ hai.
+To compile the snippet above standalone inside its enclosing class, you need `import java.util.concurrent.Future;` and appropriately typed `executor`, `task`, and `pluginLoader` variables; this is an **integration illustration**, not a second complete program.
 
-**CompletableFuture:** supplyAsync/runAsync và callback async thường chạy trên executor hoặc thread khác. Nếu callback cần TCCL của plugin, phải bọc **chính callback** bằng ranh giới thiết lập/khôi phục trên thread thực thi callback. Không giả định context được tự lan truyền. Với callback không async, có trường hợp callback chạy trên thread hoàn thành stage, vì vậy cần đặc biệt rõ thread nào đang thực hiện mã.
+**CompletableFuture:** `supplyAsync`/`runAsync` and `Async` callbacks normally execute on an executor or another thread. If a callback needs the plugin's TCCL, wrap **the callback itself** with the set/restore boundary on the thread executing the callback. Do not assume the context propagates automatically. For non-Async callbacks, cases exist where the callback runs on whichever thread completes the stage, so be especially clear about which thread executes the code.
 
-**Executor sống lâu:** chỉ giữ reference tới pluginLoader trong những tác vụ đang thuộc vòng đời plugin. Không cache wrapper hoặc lambda giữ loader của plugin đã gỡ trong hàng đợi vô thời hạn; khi stop/reload, dừng nhận task mới, hủy/đợi task cũ, hủy đăng ký callback rồi mới đóng loader.
+**Long-lived executors:** keep references to `pluginLoader` only in tasks belonging to the plugin's lifecycle. Do not cache wrappers or lambdas holding an unloaded plugin's loader in queues indefinitely; when stopping/reloading, stop accepting new tasks, cancel/await old tasks, unregister callbacks, and only then close the loader.
 
-## 8. Khi nào cần TCCL, khi nào dùng loader tường minh?
+## 8. When to Use the TCCL vs. an Explicit Loader?
 
-Nếu API cho truyền loader một cách rõ ràng, đây thường là giải pháp ít phụ thuộc vào trạng thái ngầm hơn:
+If an API allows passing a loader explicitly, that is usually the solution least dependent on hidden state:
 
 ~~~java
-// Khi chỉ cần ServiceLoader tìm provider:
+// When only ServiceLoader needs to find providers:
 ServiceLoader<Greeter> services =
         ServiceLoader.load(Greeter.class, pluginLoader);
 ~~~
 
-Đoạn này là **minh họa** dùng các biến đã giới thiệu trong lab. Lời gọi ServiceLoader.load(service, loader) dùng pluginLoader cho việc tìm provider mà không cần sửa TCCL của thread. Tuy vậy, nếu constructor hoặc phương thức của provider gọi tới một thư viện **tự lấy TCCL**, truyền loader ở một lời gọi ServiceLoader chưa đủ để thiết lập ngữ cảnh cho toàn bộ call chain.
+This snippet is **illustrative**, using the variables introduced in the lab. Calling `ServiceLoader.load(service, loader)` uses `pluginLoader` for provider discovery without mutating the thread's TCCL. However, if a provider's constructor or methods call into a library that **itself reads the TCCL**, passing a loader to one `ServiceLoader` call is not enough to establish context for the whole call chain.
 
-Lựa chọn theo từng tầng:
+Choosing by layer:
 
-- **Truy vấn cục bộ có API nhận ClassLoader:** truyền tham số loader nếu phù hợp, tránh đổi TCCL không cần thiết.
-- **Thư viện/framework chọn TCCL theo hợp đồng:** đặt TCCL bao quanh lời gọi đồng bộ mà host sở hữu, dùng try/finally.
-- **Resource thuộc implementation cụ thể:** cân nhắc SomeProvider.class.getResourceAsStream("/path") để tra cứu theo defining loader của implementation, không phụ thuộc ambient TCCL.
-- **Nhiều plugin với loader riêng:** duy trì SPI do loader dùng chung nạp; TCCL chỉ giúp framework chọn đường tìm, không sửa được sự cố class identity giữa các bản SPI khác loader.
-- **Nghiệp vụ chạy bất đồng bộ:** chuyển ranh giới vào thread thực thi task, không đặt ở thread gửi task rồi giả định lan truyền.
+- **Local query with an API taking `ClassLoader`:** pass the loader argument when appropriate, avoiding unnecessary TCCL changes.
+- **Library/framework consulting TCCL by contract:** wrap the host-owned synchronous call with TCCL using `try/finally`.
+- **Resource belonging to a specific implementation:** consider `SomeProvider.class.getResourceAsStream("/path")` to look up via the implementation's defining loader rather than relying on the ambient TCCL.
+- **Multiple plugins with separate loaders:** keep the SPI loaded by a shared loader; TCCL only helps frameworks pick a lookup path and cannot fix class identity issues between SPI copies in different loaders.
+- **Asynchronous business logic:** move the boundary into the task-executing thread rather than setting it on the submitting thread and assuming propagation.
 
-Một chi tiết dễ bỏ qua: ServiceLoader có tính **lazy**. Nếu host đặt TCCL, tạo ServiceLoader.load(...), rồi khôi phục trước khi gọi iterator, việc tìm provider có thể phụ thuộc vào loader đã được ServiceLoader nắm giữ ở thời điểm tạo. Nhưng provider implementation sau đó có thể dùng TCCL khi khởi tạo hoặc xử lý, nên vẫn phải xác định **ranh giới thực sự chạy code cần TCCL**, không chỉ bọc thao tác tạo ServiceLoader rồi mặc định mọi bước đã xong.
+One easily missed detail: `ServiceLoader` is **lazy**. If the host sets the TCCL, calls `ServiceLoader.load(...)`, and restores it before iterating, provider discovery may rely on the loader captured by `ServiceLoader` at creation time. Yet the provider implementation may still use the TCCL during instantiation or execution, so you must still identify the **actual boundary running code that needs the TCCL**, rather than wrapping only `ServiceLoader` creation and assuming everything else is covered.
 
-## 9. Lỗi phổ biến và cách xử lý
+## 9. Common Errors and How to Handle Them
 
-| Hiện tượng | Nguyên nhân có khả năng | Cách xử lý |
+| Symptom | Likely Cause | How to Fix |
 | --- | --- | --- |
-| Plugin A chạy xong, request B thấy resource của A | Quên restore hoặc khôi phục về loader sai | Lưu previous ngay tại đầu boundary, restore bằng finally |
-| ServiceLoader không tìm thấy provider dù JAR có descriptor | TCCL đang là host loader, plugin không có trong đường tìm | Chỉ rõ pluginLoader qua overload hoặc đặt TCCL quanh lookup |
-| Provider tìm thấy nhưng ném lỗi khi chạy callback | Callback chạy trên thread khác hoặc framework tìm resource bằng TCCL khác | Đặt/khôi phục TCCL trong thread thực thi callback |
-| Plugin có thể nạp nhưng host gặp ClassCastException | SPI bị định nghĩa lại bởi loader khác | Chia sẻ một bản SPI có đúng class identity; kiểm tra parent/delegation |
-| Xóa plugin nhưng loader chưa được giải phóng | Thread pool, TCCL, task, cache hoặc provider instance còn giữ reference | Dừng lifecycle đúng thứ tự, cleanup rồi mới đóng loader |
-| Khôi phục bằng system class loader vẫn gặp lỗi khi gọi lồng nhau | Previous có thể là loader A hoặc null, không phải system loader | Khôi phục **giá trị previous đã lưu** |
-| Gọi setContextClassLoader bên ngoài try rồi action throw | Thiếu finally, thread bị lưu ngữ cảnh cũ | Bao action trong try/finally, kiểm thử cả nhánh lỗi |
-| Đặt TCCL nhưng class loader vẫn không tìm được class | API đang dùng defining/caller loader hoặc JAR/dependency không nằm trong plugin loader | Xác định API lookup thực tế và dependency graph |
-| SecurityException khi setContextClassLoader | Quyền đổi TCCL không được cấp trong môi trường áp dụng kiểm soát | Báo lỗi thiết lập ngữ cảnh, không tiếp tục như thể đã đổi thành công |
-| Thời điểm đóng URLClassLoader quá sớm | Còn task/provider/resource đang hoạt động | Chờ hoàn thành tác vụ và cleanup lifecycle trước khi đóng |
+| Plugin A finishes, request B sees A's resources | Forgot to restore or restored to the wrong loader | Save `previous` right at the start of the boundary; restore with `finally` |
+| ServiceLoader finds no provider even though JAR has descriptor | TCCL is still the host loader; plugin is not in its search path | Specify `pluginLoader` via overload or wrap lookup with TCCL |
+| Provider found, but throws error during callback | Callback runs on another thread or framework reads resource using different TCCL | Set/restore TCCL inside the thread executing the callback |
+| Plugin loads, but host hits ClassCastException | SPI was redefined by another loader | Share one SPI copy with unified class identity; check parent/delegation |
+| Plugin removed, yet loader is not freed | Thread pool, TCCL, tasks, caches, or provider instances still hold references | Stop lifecycle in proper order, clean up, then close loader |
+| Restoring with system class loader still breaks nested calls | `previous` may be loader A or `null`, not the system loader | Restore the **saved `previous` value** |
+| Called setContextClassLoader outside try and action throws | Missing `finally`; thread retains old context | Wrap action inside `try/finally`; test error paths too |
+| TCCL set, yet class loader still cannot find class | API uses defining/caller loader or JAR/dependency missing from plugin loader | Identify actual lookup API and dependency graph |
+| SecurityException on setContextClassLoader | Permission to change TCCL denied under security controls | Report context setup error; do not proceed as if switch succeeded |
+| URLClassLoader closed too early | Tasks/providers/resources are still active | Wait for task completion and lifecycle cleanup before closing |
 
-**Đừng bắt Throwable chỉ để "bảo đảm restore".** finally sẽ khôi phục trong luồng thoát thông thường của Java, kể cả khi action ném RuntimeException hoặc Error, miễn JVM vẫn thực hiện finally. Catch rộng Throwable rồi nuốt lỗi có thể che các sự cố nghiêm trọng. Nếu cần bắt lỗi nghiệp vụ, hãy bắt các kiểu lỗi có ý nghĩa **bên ngoài** ranh giới withContextClassLoader, sau khi TCCL đã được phục hồi.
+**Do not catch `Throwable` just to "guarantee restoration."** `finally` will restore along normal Java exit paths, including when `action` throws a `RuntimeException` or `Error`, as long as the JVM still executes `finally`. Broadly catching `Throwable` and swallowing errors can hide severe failures. If you need to catch business errors, catch meaningful exception types **outside** the `withContextClassLoader` boundary, after the TCCL has already been restored.
 
-## 10. Kiểm thử hành vi khôi phục và tính độc lập giữa các plugin
+## 10. Testing Restoration Behavior and Isolation Between Plugins
 
-Một bài test TCCL tốt kiểm chứng **danh tính loader bằng toán tử ==**, không chỉ so sánh tên class hoặc toString(). Trong lab, các dòng inside plugin loader, after success, after failure và after close đều in true. Điều đó chứng minh trong đúng thread thực thi, ranh giới đã đổi và phục hồi TCCL theo ý muốn.
+A good TCCL test verifies **loader identity using the `==` operator**, not merely comparing class names or `toString()`. In the lab, the lines `inside plugin loader`, `after success`, `after failure`, and `after close` all print `true`. That proves that on the exact execution thread, the boundary switched and restored the TCCL as intended.
 
-Các phép thử có giá trị:
+Valuable tests:
 
-1. **Success path:** gọi provider và resource trong phạm vi plugin; xác nhận tất cả được tìm bằng loader mong muốn, và TCCL sau khi return trùng original.
-2. **Exception path:** action ném IllegalArgumentException hoặc exception nghiệp vụ; caller bắt lỗi và kiểm tra TCCL trùng original. Không đặt restore chỉ trong catch hoặc nhánh thành công.
-3. **Nested calls:** đặt loaderA, gọi lồng loaderB, xác nhận sau B trở về A, sau A trở về original, kể cả khi B ném lỗi.
-4. **Reused worker thread:** gửi liên tiếp task của plugin A và B tới cùng một worker; sau mỗi task phải trở về TCCL trước khi task bắt đầu. Cần tránh dùng thread pool chung theo cách khiến plugin tạo worker bên trong phạm vi ngữ cảnh tạm thời.
-5. **Absent plugin resource:** bỏ config/message.txt khỏi JAR, xác nhận lỗi được báo rõ nhưng finally vẫn khôi phục TCCL.
-6. **Plugin unload:** dừng các task, hủy callback, loại reference và đóng pluginLoader; kiểm tra thread còn sống không giữ loader cũ qua TCCL. Không suy luận rằng loader đã unload ngay chỉ vì close() được gọi.
+1. **Success path:** invoke provider and resource inside the plugin scope; verify everything is resolved with the expected loader, and TCCL upon return equals `original`.
+2. **Exception path:** action throws `IllegalArgumentException` or a business exception; caller catches the error and verifies TCCL equals `original`. Never place restore only in `catch` or the success branch.
+3. **Nested calls:** set `loaderA`, nest `loaderB`, verify after B it returns to A, and after A it returns to `original`, even when B throws.
+4. **Reused worker thread:** submit tasks for plugin A and B consecutively to the same worker; after each task, it must return to the TCCL prior to task start. Avoid using shared thread pools in ways that let a plugin spawn worker threads inside a temporary context scope.
+5. **Absent plugin resource:** omit `config/message.txt` from the JAR, verify a clear error is reported while `finally` still restores the TCCL.
+6. **Plugin unload:** stop tasks, cancel callbacks, drop references, and close `pluginLoader`; verify living threads do not retain the old loader via TCCL. Do not infer that a loader has unloaded immediately simply because `close()` was called.
 
-Ví dụ assertion không cần JUnit trong một đoạn test cục bộ:
+Example assertion without JUnit in a local test snippet:
 
 ~~~java
 Thread thread = Thread.currentThread();
@@ -490,22 +490,22 @@ if (thread.getContextClassLoader() != before) {
 }
 ~~~
 
-Đây là **mã thành viên minh họa** trong phạm vi có sẵn withContextClassLoader và pluginLoader. Nó chứng minh logic quan trọng: nếu code làm việc gặp lỗi, test vẫn kiểm tra được TCCL sau khi lỗi được truyền ra.
+This is **illustrative member code** within a scope where `withContextClassLoader` and `pluginLoader` exist. It demonstrates a crucial check: if the working code fails, the test still verifies the TCCL after the error propagates out.
 
-## 11. Quy tắc áp dụng trong host/plugin manager
+## 11. Rules to Apply in a Host / Plugin Manager
 
-Một host có thể đóng gói logic TCCL tại một nơi, ví dụ tầng adapter gọi plugin. Thiết kế đó cần xác định rõ: **ai sở hữu plugin loader, lời gọi nào thực sự cần context, thread nào chạy lời gọi, và khi nào loader có thể đóng**.
+A host can encapsulate TCCL logic in a single place, such as the adapter layer invoking plugins. That design must clearly define: **who owns the plugin loader, which calls genuinely need context, which thread runs the call, and when the loader can close**.
 
-Một chuỗi thực thi hợp lý:
+A sound execution sequence:
 
-1. Khởi tạo hoặc chọn plugin loader đã được xác minh, có parent chia sẻ API/SPI và dependency đúng.
-2. Xác định boundary đồng bộ gọi provider, callback hoặc framework vốn dùng TCCL; ưu tiên truyền loader rõ ràng nếu API cho phép.
-3. Trên thread đang thực hiện lời gọi, lưu current TCCL rồi đặt pluginLoader.
-4. Chạy trọn các thao tác cần ngữ cảnh (lazy lookup, provider construction, method invocation, resource read).
-5. Khôi phục previous trong finally, bất kể kết quả hay exception.
-6. Chuyển sang thread khác thì lặp lại boundary **trong task thực thi**, không dựa vào TCCL của thread gọi.
-7. Khi gỡ plugin, ngừng nhận việc mới, kết thúc task và callback, loại reference còn giữ loader rồi đóng loader.
+1. Initialize or select a verified plugin loader whose parent shares the API/SPI and correct dependencies.
+2. Identify the synchronous boundary invoking providers, callbacks, or frameworks that use the TCCL; prefer passing an explicit loader if the API supports it.
+3. On the thread executing the call, save the current TCCL and set `pluginLoader`.
+4. Run all operations needing the context (lazy lookup, provider construction, method invocation, resource read).
+5. Restore `previous` in `finally`, regardless of outcome or exception.
+6. When hopping to another thread, repeat the boundary **inside the executing task**, rather than relying on the submitting thread's TCCL.
+7. When removing a plugin, stop accepting new work, finish tasks and callbacks, drop remaining loader references, and then close the loader.
 
-TCCL là cơ chế **định tuyến ngữ cảnh nạp class/resource theo thread**, không phải sự thay đổi classpath toàn cục hay một hàng rào bảo mật. Tài liệu Java SE 17 cần đọc thêm: [Thread.getContextClassLoader/setContextClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html), [ServiceLoader.load](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html).
+The TCCL is a mechanism for **routing class/resource loading context per thread**, not a global classpath mutation or a security barrier. Further Java SE 17 reading: [Thread.getContextClassLoader/setContextClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html), [ServiceLoader.load](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html).
 
-Hãy luôn giữ nguyên tắc **lưu đúng previous → đặt đúng pluginLoader → chạy đúng phạm vi → khôi phục previous bằng finally**. Chính độ chặt chẽ của ranh giới này giúp nhiều plugin dùng chung thread pool mà không làm rò rỉ ngữ cảnh và giảm nguy cơ giữ class loader sau khi plugin ngừng hoạt động.
+Always uphold the rule: **save exact `previous` → set exact `pluginLoader` → run exact scope → restore `previous` via `finally`**. It is the strictness of this boundary that lets multiple plugins share a thread pool without leaking context and reduces the risk of retaining class loaders after a plugin shuts down.

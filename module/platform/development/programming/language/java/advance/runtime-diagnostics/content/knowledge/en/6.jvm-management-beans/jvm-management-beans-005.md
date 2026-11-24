@@ -1,53 +1,53 @@
-# 6.5 ThreadMXBean cho số platform thread, CPU time, contention và phát hiện deadlock
+# 6.5 ThreadMXBean for platform thread counts, CPU time, contention, and deadlock detection
 
-## Mục tiêu học tập
+## Learning objectives
 
-Khi Java service có throughput giảm, CPU cao, số thread tăng dần hoặc request chờ rất lâu, các phép đo ở mức process chưa đủ để biết **luồng nào đang chạy**, **luồng nào đang chờ khóa** và **có chu trình deadlock trong JVM hay không**. `java.lang.management.ThreadMXBean` là một API chuẩn để quan sát hệ thống thread trong JVM, hỗ trợ lập số liệu định lượng và lấy snapshot phục vụ chẩn đoán.
+When a Java service suffers from dropping throughput, high CPU, steadily growing thread counts, or long request waits, process-level metrics are not enough to know **which threads are running**, **which threads are waiting on locks**, and **whether a deadlock cycle exists in the JVM**. `java.lang.management.ThreadMXBean` is a standard API for observing the JVM's thread subsystem, supporting quantitative metrics and diagnostic snapshots.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Lấy `ThreadMXBean` từ `ManagementFactory` và phân biệt **live, peak, total started, daemon thread count**.
-- Đọc CPU time ở mức thread theo nanosecond, kiểm tra `isThreadCpuTimeSupported()` / `isThreadCpuTimeEnabled()` và tính **chênh lệch giữa hai thời điểm** thay vì nhầm số tích lũy là CPU%.
-- Hiểu `ThreadInfo`, `getBlockedCount()`, `getBlockedTime()`, `getWaitedCount()`, `getWaitedTime()` và phạm vi của contention monitoring.
-- Phân biệt `findMonitorDeadlockedThreads()` với `findDeadlockedThreads()`; biết cách lấy lock owner, stack trace và giới hạn của việc phát hiện deadlock.
-- Dùng **Java 17+ chạy được** cho cả snapshot thông thường và một lab monitor deadlock an toàn trong tiến trình thử nghiệm.
-- Viết kết luận chẩn đoán có timestamp, workload, cờ hỗ trợ đo, phạm vi platform threads và các yếu tố gây nhiễu.
+- Obtain `ThreadMXBean` from `ManagementFactory` and distinguish **live, peak, total started, and daemon thread counts**.
+- Read per-thread CPU time in nanoseconds, check `isThreadCpuTimeSupported()` / `isThreadCpuTimeEnabled()`, and compute **deltas between two timestamps** instead of mistaking cumulative totals for CPU%.
+- Understand `ThreadInfo`, `getBlockedCount()`, `getBlockedTime()`, `getWaitedCount()`, `getWaitedTime()`, and the scope of contention monitoring.
+- Distinguish `findMonitorDeadlockedThreads()` from `findDeadlockedThreads()`; know how to retrieve lock owners, stack traces, and the limits of deadlock detection.
+- Use **runnable Java 17+ code** for both regular snapshots and a safe monitor-deadlock lab inside a test process.
+- Write diagnostic conclusions with timestamps, workload, measurement support flags, platform thread scope, and confounding factors.
 
-## 1. ThreadMXBean là gì và “platform thread” nghĩa là gì?
+## 1. What is ThreadMXBean and what does "platform thread" mean?
 
-`ThreadMXBean` thuộc module `java.management`, package `java.lang.management`. JVM cung cấp một instance cho hệ thống quản lý thread, thường truy cập bằng:
+`ThreadMXBean` belongs to the `java.management` module, package `java.lang.management`. The JVM provides a single instance for its thread management system, typically accessed via:
 
 ```java
 ThreadMXBean mx = ManagementFactory.getThreadMXBean();
 ```
 
-Đây là đoạn minh họa cần đặt trong phương thức/class có các import tương ứng; không phải một chương trình độc lập. Một cách khác là truy vấn qua JMX với ObjectName **`java.lang:type=Threading`**.
+This is an illustrative snippet to place inside a method/class with the corresponding imports; it is not a standalone program. Another path is querying via JMX with ObjectName **`java.lang:type=Threading`**.
 
-**Phạm vi theo phiên bản:**
+**Version scope:**
 
-- **Java 17:** Java SE 17 chưa có virtual threads thành tính năng chính thức của nền tảng. Các thread bạn tạo bằng `new Thread(...)` là **platform threads** (các thread do JVM và OS quản lý theo mô hình thread nền tảng). Những con số `ThreadMXBean` phản ánh hệ thống thread này.
-- **Java 21 trở lên:** Java có **virtual threads**, nhưng `java.lang.management.ThreadMXBean` là công cụ quản lý/giám sát **platform threads**, không phải bộ đếm và profiler toàn diện cho từng virtual thread. Không dùng `getThreadCount()` để suy tổng số virtual threads. Các thread thực thi/carrier cần được phân biệt với virtual tasks đang được multiplex trên chúng.
+- **Java 17:** Java SE 17 does not yet include virtual threads as an official platform feature. Threads created via `new Thread(...)` are **platform threads** (threads managed by the JVM and OS under the platform thread model). `ThreadMXBean` numbers reflect this thread subsystem.
+- **Java 21 and later:** Java has **virtual threads**, yet `java.lang.management.ThreadMXBean` is a management/monitoring tool for **platform threads**, not a comprehensive counter and profiler for every virtual thread. Do not use `getThreadCount()` to infer the total number of virtual threads. Carrier/execution threads must be distinguished from virtual tasks multiplexed onto them.
 
-Bởi vậy trong bài này, “thread count” có nghĩa **số platform threads đang sống trong JVM tại thời điểm đo**, không phải request đang xử lý, số task trong queue, CPU cores, Java virtual threads hoặc tổng số kernel threads trên cả node.
+Therefore, in this lesson, "thread count" means **the number of live platform threads in the JVM at measurement time**, not in-flight requests, queued tasks, CPU cores, Java virtual threads, or total kernel threads across the node.
 
-Đối với một dịch vụ được triển khai trong container, cũng cần phân biệt **process/JVM scope** với các metric `pids.current` của cgroup, thread count trong OS và số thread của sidecar/tiến trình khác.
+For a service deployed in a container, also distinguish **process/JVM scope** from cgroup `pids.current` metrics, OS thread counts, and threads belonging to sidecars or other processes.
 
-### 1.1 Tại sao API này quan trọng với runtime diagnostics?
+### 1.1 Why this API matters for runtime diagnostics
 
-`ThreadMXBean` trả lời bốn câu hỏi khác nhau:
+`ThreadMXBean` answers four distinct questions:
 
-| Câu hỏi | Nhóm API | Tín hiệu có được |
+| Question | API group | Signal obtained |
 | --- | --- | --- |
-| JVM có bao nhiêu platform thread? | `getThreadCount()`, `getPeakThreadCount()`, `getTotalStartedThreadCount()`, `getDaemonThreadCount()` | Quy mô thread, đỉnh lịch sử, churn, daemon ratio |
-| Thread nào tiêu thụ CPU? | `getThreadCpuTime(id)`, `getThreadUserTime(id)` | CPU nanoseconds tích lũy theo từng thread |
-| Thread bị block/wait ở đâu? | `getThreadInfo(...)`, `ThreadInfo`, contention counters/times | State, stack, monitor/lock owner, sự kiện/time chờ |
-| Có chu trình chờ khóa trong JVM? | `findMonitorDeadlockedThreads()`, `findDeadlockedThreads()` | Các thread ID thuộc deadlock được JVM phát hiện |
+| How many platform threads does the JVM have? | `getThreadCount()`, `getPeakThreadCount()`, `getTotalStartedThreadCount()`, `getDaemonThreadCount()` | Thread scale, historical peak, churn, daemon ratio |
+| Which thread consumes CPU? | `getThreadCpuTime(id)`, `getThreadUserTime(id)` | Cumulative CPU nanoseconds per thread |
+| Where are threads blocked/waiting? | `getThreadInfo(...)`, `ThreadInfo`, contention counters/times | State, stack, monitor/lock owner, wait events/times |
+| Is there a lock wait cycle in the JVM? | `findMonitorDeadlockedThreads()`, `findDeadlockedThreads()` | Thread IDs belonging to JVM-detected deadlocks |
 
-Đây là một **nguồn chứng cứ**, không phải cơ chế tự động sửa lỗi hay đồng bộ luồng. Khi thực thi dưới tải, phải kết hợp số đo với logs, request traces, queue depth, CPU process/container, GC và thời gian chờ dependency.
+This is an **evidence source**, not an automatic fix or thread synchronization mechanism. Under load, combine these metrics with logs, request traces, queue depth, process/container CPU, GC, and dependency wait times.
 
-## 2. Các bộ đếm số lượng platform thread
+## 2. Platform thread count counters
 
-### 2.1 Bốn phép đo dễ nhầm
+### 2.1 Four easily confused measurements
 
 ```java
 ThreadMXBean mx = ManagementFactory.getThreadMXBean();
@@ -58,32 +58,32 @@ long started = mx.getTotalStartedThreadCount();
 int daemon = mx.getDaemonThreadCount();
 ```
 
-**Ý nghĩa chính xác:**
+**Exact meanings:**
 
-- **`getThreadCount()`:** số thread *đang sống* ở thời điểm đọc, bao gồm daemon và non-daemon.
-- **`getPeakThreadCount()`:** mức *cao nhất của live thread count* kể từ lúc JVM bắt đầu hoặc từ lần gọi `resetPeakThreadCount()` gần nhất. Nó không phải số thread tối đa cấu hình cho ứng dụng.
-- **`getTotalStartedThreadCount()`:** tổng số thread đã được tạo **và bắt đầu chạy** kể từ lúc JVM khởi động. Đây là **counter tích lũy**, thông thường không giảm khi thread kết thúc.
-- **`getDaemonThreadCount()`:** số daemon threads còn sống tại thời điểm đo; không phải số background jobs hay số thread “không quan trọng”.
+- **`getThreadCount()`:** number of *live* threads at read time, including daemon and non-daemon threads.
+- **`getPeakThreadCount()`:** the *highest live thread count* since JVM startup or since the most recent `resetPeakThreadCount()` call. It is not the maximum thread limit configured for the application.
+- **`getTotalStartedThreadCount()`:** total number of threads created **and started** since JVM startup. This is a **cumulative counter** and normally never decreases when threads terminate.
+- **`getDaemonThreadCount()`:** number of live daemon threads at read time; not the count of background jobs or "unimportant" threads.
 
-Ví dụ giả định:
+Hypothetical example:
 
 ```text
 time=T1: live=80, peak=120, totalStarted=1200, daemon=43
 time=T2: live=82, peak=135, totalStarted=1650, daemon=44
 ```
 
-Trong khoảng T1–T2, số thread sống chỉ tăng 2 nhưng tổng số đã khởi động tăng **450**. Điều này có thể cho thấy vòng đời thread churn lớn (tạo/hủy liên tục). Chưa thể tự kết luận là memory leak hay pool sai cấu hình: ứng dụng có thể xử lý nhiều công việc ngắn bằng thread riêng hoặc có chính sách thread factory đặc biệt.
+Between T1 and T2, live threads grew by only 2 while total started grew by **450**. This can indicate heavy thread churn (continuous creation/destruction). It does not automatically conclude a memory leak or misconfigured pool: the application might be running many short tasks on dedicated threads or using a special thread factory policy.
 
-**Lưu ý phạm vi counter:**
+**Counter scope notes:**
 
-- `peak` phụ thuộc thời điểm reset; `resetPeakThreadCount()` **thay đổi mốc chẩn đoán toàn JVM**, không phải thao tác chỉ đọc. Không tự reset khi đang điều tra để “làm biểu đồ đẹp”.
-- `started` tích lũy từ lúc JVM start, không so trực tiếp giữa hai process có uptime khác nhau. Nên tính delta và quy đổi số thread được khởi động/giây theo cùng cửa sổ.
-- Cùng một thread pool cố định 50 worker có thể có 50 platform threads sống nhưng hàng nghìn queued tasks; **thread count không đo queue length hoặc số user**.
-- Một lần đọc không phải snapshot nguyên tử của mọi counter. `live`, `peak`, `started` có thể đổi giữa các lời gọi nếu chương trình đang tạo/hủy thread.
+- `peak` depends on when it was reset; `resetPeakThreadCount()` **mutates a JVM-wide diagnostic landmark**, not a read-only operation. Never reset it mid-investigation just to "make the chart look nicer".
+- `started` accumulates since JVM start; do not compare it directly between two processes with different uptimes. Compute deltas and convert to threads started/second over the same window.
+- A fixed 50-worker thread pool may have 50 live platform threads yet thousands of queued tasks; **thread count does not measure queue length or user count**.
+- A single pass of reads is not an atomic snapshot of all counters. `live`, `peak`, and `started` can change between calls if the program is creating/destroying threads.
 
-### 2.2 Công thức theo cửa sổ
+### 2.2 Windowed formulas
 
-Với hai mẫu tại T1/T2:
+With two samples at T1/T2:
 
 ```text
 deltaStarted = totalStarted(T2) - totalStarted(T1)
@@ -91,69 +91,69 @@ threadStartRatePerSecond = deltaStarted / elapsedSeconds
 liveChange = live(T2) - live(T1)
 ```
 
-Ví dụ từ số liệu trên trong 30 giây: `deltaStarted=450`, tương đương **15 thread starts/giây**. Đây là tín hiệu churn, không phải chắc chắn có 15 thread mới còn sống sau mỗi giây.
+From the numbers above over 30 seconds: `deltaStarted=450`, or **15 thread starts/second**. This is a churn signal, not proof that 15 new threads stay alive every second.
 
-Cần gắn run ID, thời gian và workload. Nếu throughput tăng gấp 10, thread start rate tăng có thể hợp lý; nếu workload giữ nguyên nhưng rate ngày càng tăng và latency/GC xấu, cần điều tra thread factory/executor lifecycles.
+Always attach run ID, timestamps, and workload. If throughput jumped 10x, a higher thread start rate may be reasonable; if workload is flat while the rate climbs and latency/GC degrade, inspect thread factory/executor lifecycles.
 
-## 3. Lấy danh sách thread và thông tin hiện tại
+## 3. Listing threads and current info
 
 ```java
 long[] ids = mx.getAllThreadIds();
 ThreadInfo[] infos = mx.getThreadInfo(ids, 20);
 ```
 
-- `getAllThreadIds()` trả các ID của thread đang sống vào thời điểm lấy danh sách. Khi sau đó gọi `getThreadInfo`, một số thread có thể đã kết thúc.
-- `getThreadInfo(ids, 20)` lấy thông tin và stack trace tối đa **20 frame** trên mỗi thread; phần tử ứng với ID đã chết có thể là `null`. Giới hạn độ sâu giúp hạn chế output.
-- `getThreadInfo(id)` **không** tự lấy stack trace: đây tương đương `getThreadInfo(id, 0)`.
-- `dumpAllThreads(lockedMonitors, lockedSynchronizers)` cung cấp snapshot rộng hơn; các option lấy lock info và stack traces có thể tốn chi phí đáng kể khi số thread lớn.
+- `getAllThreadIds()` returns the IDs of threads live at the time of the call. By the time `getThreadInfo` runs next, some threads may have terminated.
+- `getThreadInfo(ids, 20)` retrieves info and stack traces up to **20 frames** per thread; entries for already-terminated IDs can be `null`. Limiting depth keeps output manageable.
+- `getThreadInfo(id)` **does not** capture stack traces: it is equivalent to `getThreadInfo(id, 0)`.
+- `dumpAllThreads(lockedMonitors, lockedSynchronizers)` provides a broader snapshot; options capturing lock info and stack traces can carry substantial cost when thread counts are large.
 
-Những trường có ích của `ThreadInfo`:
+Useful fields on `ThreadInfo`:
 
-| API | Diễn giải |
+| API | Interpretation |
 | --- | --- |
-| `getThreadId()`, `getThreadName()` | Nhận diện thread trong lần quan sát |
-| `getThreadState()` | Một trạng thái như `RUNNABLE`, `BLOCKED`, `WAITING`, `TIMED_WAITING` |
-| `getStackTrace()` | Call path tại thời điểm chụp (có thể rỗng/thiếu frame) |
-| `getLockInfo()`, `getLockName()` | Khóa/đối tượng mà thread đang chờ, nếu có |
-| `getLockOwnerId()`, `getLockOwnerName()` | Owner của khóa đang chờ, nếu JVM có thể xác định |
-| `getLockedMonitors()`, `getLockedSynchronizers()` | Những khóa đã nắm giữ khi yêu cầu thu thông tin tương ứng và JVM hỗ trợ |
+| `getThreadId()`, `getThreadName()` | Identify the thread in that observation |
+| `getThreadState()` | A state such as `RUNNABLE`, `BLOCKED`, `WAITING`, `TIMED_WAITING` |
+| `getStackTrace()` | Call path at capture time (may be empty/truncated) |
+| `getLockInfo()`, `getLockName()` | Lock/object the thread is waiting on, if any |
+| `getLockOwnerId()`, `getLockOwnerName()` | Owner of the awaited lock, if the JVM can determine it |
+| `getLockedMonitors()`, `getLockedSynchronizers()` | Locks held when requested and supported by the JVM |
 
-**Thread ID** là số dương `long`. Trong Java 17 có thể lấy ID của một `Thread` bằng `Thread.getId()`. ID duy nhất trong vòng đời thread nhưng **có thể được sử dụng lại sau khi thread kết thúc**; đừng dùng ID không có timestamp/process identity như khóa nghiệp vụ tồn tại vĩnh viễn.
+**Thread ID** is a positive `long`. In Java 17 you can retrieve a `Thread`'s ID with `Thread.getId()`. An ID is unique for the thread's lifetime, yet **can be reused after the thread terminates**; never use a thread ID without timestamps/process identity as a permanent business key.
 
-### 3.1 Thread state không cho biết ngay nguyên nhân
+### 3.1 Thread state does not immediately tell the root cause
 
-- **`RUNNABLE`:** có thể đang thực thi hoặc đang sẵn sàng chờ CPU theo ngữ nghĩa của JVM; không tự chứng minh thread đang tiêu thụ CPU cao.
-- **`BLOCKED`:** thường chờ giành **object monitor** để vào `synchronized`; hữu ích khi nghi monitor contention.
-- **`WAITING`:** chờ không giới hạn tại các cơ chế như `Object.wait()`, `Thread.join()` hoặc `LockSupport.park()`.
-- **`TIMED_WAITING`:** tương tự nhưng có thời hạn (sleep, timed wait, park...).
-- **`TERMINATED`:** một thread đã kết thúc sẽ không còn được liệt kê trong tập live; `getThreadInfo(id)` có thể trả `null`.
+- **`RUNNABLE`:** may be executing or ready and waiting for CPU under JVM semantics; does not by itself prove the thread consumes high CPU.
+- **`BLOCKED`:** typically waiting to acquire an **object monitor** to enter `synchronized`; useful when suspecting monitor contention.
+- **`WAITING`:** waiting indefinitely on mechanisms such as `Object.wait()`, `Thread.join()`, or `LockSupport.park()`.
+- **`TIMED_WAITING`:** similar, with a timeout (`sleep`, timed `wait`, `park`, etc.).
+- **`TERMINATED`:** a terminated thread will no longer appear in the live set; `getThreadInfo(id)` may return `null`.
 
-Một worker pool có nhiều `WAITING` vì đang đợi task là trạng thái **bình thường**, không phải deadlock. Một thread `BLOCKED` tại một thời điểm cũng có thể chỉ là contention ngắn; cần nhiều mẫu/counters/latency để định lượng.
+A worker pool with many `WAITING` threads idle for tasks is a **normal** state, not a deadlock. One thread seen `BLOCKED` at a single instant might also be brief contention; multiple samples, counters, and latency are needed to quantify.
 
-## 4. Đọc CPU time theo thread
+## 4. Reading per-thread CPU time
 
-### 4.1 CPU time khác wall-clock time
+### 4.1 CPU time differs from wall-clock time
 
-`getThreadCpuTime(long id)` trả tổng thời gian CPU mà thread đã tiêu thụ (user + system mode nếu JVM phân biệt), đơn vị **nanoseconds**. Đây là **CPU time tích lũy**, không phải độ dài tồn tại của thread, elapsed time của request hoặc phần trăm CPU tại một thời điểm.
+`getThreadCpuTime(long id)` returns total CPU time consumed by the thread (user + system mode if the JVM distinguishes them), in **nanoseconds**. This is **cumulative CPU time**, not how long the thread has existed, request elapsed time, or an instantaneous CPU percentage.
 
-`getThreadUserTime(id)` chỉ đo CPU time ở user mode theo phạm vi implementation; không lấy `getThreadCpuTime - getThreadUserTime` làm một profiler kernel chính xác nếu chưa hiểu hỗ trợ/độ chính xác của JVM/OS.
+`getThreadUserTime(id)` measures only user-mode CPU time within implementation limits; do not treat `getThreadCpuTime - getThreadUserTime` as a precise kernel profiler without understanding JVM/OS support and accuracy.
 
-**Ví dụ cùng một thread:**
+**Example on the same thread:**
 
 ```text
 Wall sample T1: 0.0 s, thread CPU time = 5.100 s
 Wall sample T2: 0.2 s, thread CPU time = 5.150 s
 deltaCpu = 0.050 s; deltaWall = 0.200 s
-CPU share trên cơ sở một logical CPU = 0.050/0.200*100 = 25.0%
+CPU share on a single-logical-CPU basis = 0.050/0.200*100 = 25.0%
 ```
 
-Tỷ lệ 25% ở đây là **mức sử dụng tương đương 0,25 logical CPU trong cửa sổ** của một thread. Nó không phải “25% CPU của toàn máy 16 core” và không đo được thời gian thread bị block/chờ I/O. Tổng tỷ lệ của nhiều thread có thể vượt 100% khi chúng thực sự chạy song song trên nhiều CPU logic.
+The 25% here is **usage equivalent to 0.25 logical CPUs during the window** for one thread. It is not "25% CPU of a 16-core machine" and does not measure time spent blocked/waiting on I/O. The sum across multiple threads can exceed 100% when they actually run concurrently on multiple logical CPUs.
 
-Khi so container CPU limit khác host CPU count, cần giữ rõ **mẫu số**: một core, quota của container hay tổng node. CPU time đo được không trực tiếp cho biết thread bị throttling bao lâu.
+When container CPU limits differ from host CPU count, keep the **denominator** explicit: one core, container quota, or total node. Measured CPU time also does not directly show how long a thread was throttled.
 
-### 4.2 Luôn kiểm tra hỗ trợ và trạng thái bật
+### 4.2 Always check support and enabled state
 
-Trước khi đo thread bất kỳ:
+Before measuring any thread:
 
 ```java
 ThreadMXBean mx = ManagementFactory.getThreadMXBean();
@@ -161,49 +161,49 @@ ThreadMXBean mx = ManagementFactory.getThreadMXBean();
 if (mx.isThreadCpuTimeSupported() && mx.isThreadCpuTimeEnabled()) {
     long cpuNanos = mx.getThreadCpuTime(threadId);
     if (cpuNanos >= 0) {
-        // Có CPU-time sample hợp lệ cho thread đang sống.
+        // Valid CPU-time sample for a live thread.
     }
 }
 ```
 
-Đây là **mã minh họa tích hợp**, với `threadId` là ID dương của thread thực; cần import `ManagementFactory` và `ThreadMXBean`.
+This is an **integrated illustrative snippet**, where `threadId` is the positive ID of a real thread; imports for `ManagementFactory` and `ThreadMXBean` are required.
 
-Các trường hợp cần xét:
+Cases to consider:
 
-- `isThreadCpuTimeSupported() == false`: JVM không hỗ trợ đo CPU time của thread bất kỳ, không gọi `getThreadCpuTime` như thể chắc chắn có số.
-- `isThreadCpuTimeEnabled() == false`: hỗ trợ có thể tồn tại nhưng đo đang tắt; `getThreadCpuTime(id)` thường trả `-1`.
-- `getThreadCpuTime(id) == -1`: có thể vì thread đã chết/không tồn tại hoặc vì đo đang tắt; **không phải 0 nanoseconds**.
-- `isCurrentThreadCpuTimeSupported()`: khả năng đo current thread riêng; không mặc định cả hai khả năng hỗ trợ là giống nhau trên mọi VM.
-- Kích hoạt `setThreadCpuTimeEnabled(true)` là thay đổi cấu hình đo trên JVM và có thể tốn tài nguyên; chỉ thực hiện khi có quyền, mục đích và chiến lược khôi phục. Không lén bật trên production để có metric đẹp hơn.
+- `isThreadCpuTimeSupported() == false`: the JVM does not support measuring CPU time for arbitrary threads; do not call `getThreadCpuTime` assuming numbers will always be available.
+- `isThreadCpuTimeEnabled() == false`: support may exist while measurement is disabled; `getThreadCpuTime(id)` typically returns `-1`.
+- `getThreadCpuTime(id) == -1`: may be because the thread is dead/non-existent or measurement is disabled; **it is not 0 nanoseconds**.
+- `isCurrentThreadCpuTimeSupported()`: capability to measure the current thread only; do not assume both support flags match on every VM.
+- Enabling `setThreadCpuTimeEnabled(true)` changes JVM measurement configuration and can incur resource cost; do so only with authorization, clear purpose, and a rollback plan. Never silently turn it on in production just for prettier charts.
 
-Javadoc Java 17 nói độ phân giải ở **nanoseconds**, nhưng **không đảm bảo độ chính xác nanoseconds**. CPU-time một thread là **counter tích lũy trong vòng đời được đo**; nếu bật đo sau khi thread đã chạy, mốc thời gian bắt đầu accounting có thể phụ thuộc VM. Khi tính delta phải dùng **cùng thread ID, cùng process, cùng trạng thái đo và một khoảng thời gian xác định**.
+Java 17 Javadoc notes **nanosecond** resolution, yet **does not guarantee nanosecond precision**. A thread's CPU time is a **cumulative counter over the measured lifetime**; if enabled after a thread has already been running, when accounting starts can depend on the VM. When computing deltas, use **the same thread ID, same process, same measurement state, and a well-defined interval**.
 
-### 4.3 Tìm top CPU threads đúng cách
+### 4.3 Finding top CPU threads properly
 
-Quy trình có giá trị hơn một lần sort CPU time:
+A workflow far better than sorting total CPU time once:
 
-1. Tại T1 lấy `getAllThreadIds()`, rồi CPU time của các ID sống.
-2. Tại T2 lấy ID/counter lần nữa sau cửa sổ cố định, ví dụ 10 giây; tính `deltaCpuNs` với các thread tồn tại ở cả hai mẫu.
-3. Chỉ giữ delta **không âm**, bỏ `-1`/thread chết; kiểm tra thread ID có thể tái sử dụng nếu khoảng đo dài hoặc thread churn rất cao.
-4. Xếp hạng **CPU delta**, không xếp theo tổng CPU time từ lúc JVM khởi động.
-5. Với thread nghi vấn, thu `ThreadInfo`/stack/JFR CPU samples để biết **đoạn code nào** đang tốn CPU.
+1. At T1 fetch `getAllThreadIds()`, then CPU time for live IDs.
+2. At T2 fetch IDs/counters again after a fixed window, e.g. 10 seconds; compute `deltaCpuNs` for threads present in both samples.
+3. Keep only **non-negative** deltas, discarding `-1`/terminated threads; watch out for thread ID reuse if the window is long or thread churn is very high.
+4. Rank by **CPU delta**, not by total CPU time since JVM startup.
+5. For suspicious threads, capture `ThreadInfo`/stacks/JFR CPU samples to see **which code path** is spending CPU.
 
-Một thread đã chạy 10 giờ có thể có tổng CPU time cao nhưng đang ngủ ở hiện tại. Ngược lại, một thread mới chạy vòng lặp vô hạn có tổng CPU time thấp song **delta** cực cao trong 10 giây gần nhất.
+A thread running for 10 hours might have high cumulative CPU time while currently asleep. Conversely, a newly spawned thread stuck in an infinite loop has low cumulative CPU time yet an extremely high **delta** over the last 10 seconds.
 
-## 5. Contention: blocked count/time và waited count/time
+## 5. Contention: blocked count/time and waited count/time
 
-### 5.1 “Blocked” khác “waited”
+### 5.1 "Blocked" differs from "waited"
 
-`ThreadInfo` cung cấp:
+`ThreadInfo` provides:
 
-- `getBlockedCount()`: số lần thread bị block để vào/re-enter **monitor**.
-- `getBlockedTime()`: thời gian **tích lũy xấp xỉ**, tính bằng **milliseconds**, thread bị block để vào monitor kể từ khi contention monitoring được bật thích hợp.
-- `getWaitedCount()`: số lần thread ở trạng thái chờ thông báo theo semantics của API.
-- `getWaitedTime()`: thời gian tích lũy xấp xỉ, tính bằng milliseconds, thread chờ notification/ở trạng thái waiting tương ứng kể từ khi contention monitoring được bật.
+- `getBlockedCount()`: number of times the thread blocked to enter or re-enter a **monitor**.
+- `getBlockedTime()`: **approximate cumulative** time, in **milliseconds**, the thread blocked waiting to enter a monitor since contention monitoring was appropriately enabled.
+- `getWaitedCount()`: number of times the thread waited for notification per API semantics.
+- `getWaitedTime()`: approximate cumulative time, in milliseconds, the thread waited for notification/in the corresponding waiting state since contention monitoring was enabled.
 
-Chúng không phải “tổng thời gian chờ tất cả loại I/O”, cũng không thay thế trace đo latency request. `BLOCKED` do chờ `synchronized` khác `WAITING` do `Object.wait`, `Thread.join`, park hay chờ task. Trường `getBlockedTime` không đo mọi loại `ReentrantLock`/database/network wait dưới một nhãn chung.
+These are not "total wait time for all I/O", nor do they replace traces for measuring request latency. `BLOCKED` waiting on `synchronized` differs from `WAITING` in `Object.wait`, `Thread.join`, `park`, or waiting for tasks. `getBlockedTime` does not measure every `ReentrantLock`/database/network wait under one catch-all label.
 
-### 5.2 Phải biết trạng thái bật contention monitoring
+### 5.2 Must check whether contention monitoring is enabled
 
 ```java
 if (mx.isThreadContentionMonitoringSupported()) {
@@ -214,78 +214,78 @@ if (mx.isThreadContentionMonitoringSupported()) {
         long blockedMs = info.getBlockedTime();
         long waitedCount = info.getWaitedCount();
         long waitedMs = info.getWaitedTime();
-        // Nếu enabled == false, blockedMs/waitedMs có thể là -1.
+        // If enabled == false, blockedMs/waitedMs may be -1.
     }
 }
 ```
 
-Đây là đoạn minh họa tích hợp. Trong Java 17, contention monitoring **mặc định tắt** theo tài liệu; hãy đọc trạng thái thực tế thay vì đoán. Khi monitoring tắt, `getBlockedTime()` và `getWaitedTime()` trả `-1`, trong khi count có ngữ nghĩa khác; **không thay -1 bằng 0** vì mất phân biệt “không đo” và “đo được không có thời gian chờ”.
+This is an integrated illustrative snippet. In Java 17, contention monitoring is **disabled by default** per documentation; check the actual state instead of guessing. When monitoring is disabled, `getBlockedTime()` and `getWaitedTime()` return `-1`, while counts follow different semantics; **do not replace -1 with 0** because you lose the distinction between "not measured" and "measured zero wait time".
 
-Bật/tắt bằng:
+Enable/disable via:
 
 ```java
 mx.setThreadContentionMonitoringEnabled(true);
 ```
 
-Lệnh này **thay đổi trạng thái quan sát của JVM**, cần quyền quản trị, chỉ khi `isThreadContentionMonitoringSupported()` là true; có thể gây overhead. Khi re-enable, thống kê thời gian liên quan có thể được reset, nên không so sánh raw counter qua mốc bật/tắt như cùng một chuỗi liên tục. Trong production nên dùng chính sách cấu hình/giám sát đã thống nhất và ghi timestamp của thời điểm bật.
+This call **mutates JVM observation state**, requires management permission, only works when `isThreadContentionMonitoringSupported()` is true, and can introduce overhead. Upon re-enabling, related time statistics may reset, so do not compare raw counters across enable/disable toggles as one continuous series. In production, follow an agreed configuration/monitoring policy and record the timestamp of when it was enabled.
 
-### 5.3 Diễn giải đúng bằng delta
+### 5.3 Interpreting properly with deltas
 
-Ví dụ hoàn toàn **giả định** về một platform thread ở cùng JVM:
+Purely **hypothetical** example for a platform thread in the same JVM:
 
-| Chỉ số | T1 | T2 | Chênh lệch |
+| Metric | T1 | T2 | Delta |
 | --- | ---: | ---: | ---: |
-| Blocked count | 20 | 24 | +4 lần |
+| Blocked count | 20 | 24 | +4 times |
 | Blocked time (ms) | 110 | 118 | +8 ms |
-| Waited count | 7 | 8 | +1 lần |
+| Waited count | 7 | 8 | +1 time |
 | Waited time (ms) | 80 | 100 | +20 ms |
 
-Tại T1–T2, nếu đo hợp lệ và chưa reset, có thể nói thread thêm **4 lần blocked** và tích lũy thêm khoảng **8 ms blocked time**. Không thể kết luận “đợi khóa trung bình 2 ms cho mọi transaction” vì đấy là số đo trên một thread và một khoảng ngắn, chưa chắc đại diện cho toàn workload.
+Between T1 and T2, assuming valid measurement and no reset, you can say the thread experienced **4 additional blocked events** and accumulated roughly **8 ms more blocked time**. You cannot conclude "average lock wait is 2 ms across all transactions" because that is one thread over one short interval, not necessarily representative of the whole workload.
 
-Với một thread có `blockedCount` tăng nhưng `blockedTime` thấp, có thể có nhiều contention rất ngắn. Với `blockedTime` tăng mạnh, cần xem owner, stack và các thay đổi về số request/tải trong cùng cửa sổ.
+For a thread whose `blockedCount` climbs while `blockedTime` stays low, there may be frequent very brief contention. When `blockedTime` rises sharply, inspect lock owner, stack, and request/load shifts in the same window.
 
-### 5.4 Vì sao một snapshot chưa giải quyết được contention?
+### 5.4 Why one snapshot does not resolve contention
 
-`ThreadInfo` mô tả một thời điểm. Nếu thấy 30 workers cùng `BLOCKED` đợi một monitor, cần điều tra:
+`ThreadInfo` describes a single instant. If you see 30 workers simultaneously `BLOCKED` waiting on one monitor, investigate:
 
-- Lock nào bị tranh chấp? `getLockInfo`/`getLockName`.
-- Thread nào đang giữ? `getLockOwnerId`/`getLockOwnerName`.
-- Owner đang chạy ở đâu? Lấy `ThreadInfo`/stack của owner.
-- Có xảy ra mỗi lần peak traffic hay ngẫu nhiên? So sánh nhiều mẫu, blocked deltas và p95/p99/throughput.
-- Lock có giữ khi I/O hoặc xử lý dài? Cần trace/call path, không sửa code chỉ dựa trên state.
+- Which lock is contended? `getLockInfo`/`getLockName`.
+- Which thread holds it? `getLockOwnerId`/`getLockOwnerName`.
+- Where is the owner executing? Capture the owner's `ThreadInfo`/stack.
+- Does it happen on every traffic peak or randomly? Compare multiple samples, blocked deltas, and p95/p99/throughput.
+- Is the lock held across I/O or long computation? Need traces/call paths—never rewrite code based solely on one state.
 
-Các thread `WAITING` trong idle executor thường hoàn toàn bình thường. Nếu một dependency chậm, các worker có thể `WAITING`/park mà không có **monitor deadlock**. Đừng đánh đồng mọi sự chờ với lỗi đồng bộ.
+`WAITING` threads in an idle executor are usually completely normal. If a downstream dependency slows down, workers may enter `WAITING`/park without any **monitor deadlock**. Never equate every wait with a synchronization bug.
 
-## 6. Phát hiện deadlock: hai API không giống nhau
+## 6. Deadlock detection: two APIs that are not the same
 
-### 6.1 Deadlock là gì?
+### 6.1 What is a deadlock?
 
-Deadlock trên khóa thường xảy ra khi có **chu trình chờ**:
+Lock deadlock typically occurs when there is a **wait cycle**:
 
 ```text
-Thread A giữ monitor M1, đang chờ M2
-Thread B giữ monitor M2, đang chờ M1
+Thread A holds monitor M1, waiting for M2
+Thread B holds monitor M2, waiting for M1
               A ----waits-for----> B
               ^                    |
               |-----waits-for------|
 ```
 
-Khi cả hai giữ khóa và chờ khóa còn lại, chúng không tự tiến được nếu không có can thiệp khác. `ThreadMXBean` có thể phát hiện một số chu trình chờ khóa tại thời điểm kiểm tra.
+Since each holds a lock and waits for the other's lock, neither can make progress without external intervention. `ThreadMXBean` can detect certain lock wait cycles at the moment of inspection.
 
-### 6.2 So sánh `findMonitorDeadlockedThreads` và `findDeadlockedThreads`
+### 6.2 Comparing `findMonitorDeadlockedThreads` and `findDeadlockedThreads`
 
-| Method | Phạm vi | Return | Lưu ý |
+| Method | Scope | Return | Notes |
 | --- | --- | --- | --- |
-| `findMonitorDeadlockedThreads()` | Chu trình chờ khi giành **object monitor** (khóa dùng bởi `synchronized`) | `long[]` các ID hoặc `null` khi không tìm thấy | Không bao gồm mọi loại ownable synchronizer |
-| `findDeadlockedThreads()` | Chu trình liên quan **object monitor và ownable synchronizer** như một số `java.util.concurrent.locks` | `long[]` hoặc `null` | Có thể ném `UnsupportedOperationException` nếu VM không hỗ trợ quan sát ownable synchronizers |
+| `findMonitorDeadlockedThreads()` | Wait cycles acquiring **object monitors** (locks used by `synchronized`) | `long[]` of IDs or `null` when none found | Does not cover all ownable synchronizers |
+| `findDeadlockedThreads()` | Cycles involving **object monitors and ownable synchronizers** such as certain `java.util.concurrent.locks` | `long[]` or `null` | May throw `UnsupportedOperationException` if the VM does not support observing ownable synchronizers |
 
-Nên kiểm tra `isSynchronizerUsageSupported()` trước khi dùng cách phát hiện rộng hơn. Nếu tính năng không được hỗ trợ, có thể dùng phương án monitor-only nhưng phải **ghi giới hạn phạm vi**. Không biến `null` thành “không tồn tại bất cứ deadlock nào”; kết quả chỉ là **không phát hiện chu trình thuộc loại hỗ trợ vào đúng thời điểm đó**.
+Check `isSynchronizerUsageSupported()` before using the broader detection method. If unsupported, you can use the monitor-only option while **explicitly noting the scope limitation**. Never turn `null` into "no deadlock of any kind exists"; the result only means **no cycle of the supported type was detected at that exact moment**.
 
-Các API deadlock detection là dành cho troubleshooting và **có thể tốn chi phí** khi số thread/lock lớn. Không gọi liên tục ở tần suất cao trên JVM đang quá tải.
+Deadlock detection APIs are meant for troubleshooting and **can be expensive** when thread/lock counts are high. Do not poll them frequently on an already overloaded JVM.
 
-### 6.3 Lấy bằng chứng cụ thể sau khi phát hiện
+### 6.3 Gathering concrete evidence after detection
 
-Với các ID trả về:
+With the returned IDs:
 
 ```java
 long[] deadlocked = mx.findMonitorDeadlockedThreads();
@@ -301,27 +301,27 @@ if (deadlocked != null) {
 }
 ```
 
-Đây là đoạn minh họa tích hợp, stdout phụ thuộc JVM. Khi có sự cố thực, cần lưu thêm stack trace, lock owner ID, danh sách locks đang giữ và timestamp, đồng thời xác minh object monitors/ownable synchronizers có được hỗ trợ khi yêu cầu lock details.
+This is an integrated illustrative snippet; stdout depends on the JVM. In a real incident, also capture stack traces, lock owner ID, held locks list, and timestamp, and verify whether object monitors/ownable synchronizers are supported when requesting lock details.
 
-`findDeadlockedThreads()` **không** phát hiện mọi tình huống “ứng dụng treo”:
+`findDeadlockedThreads()` **does not** detect every "application hung" scenario:
 
-- Thread A chờ database, thread B chờ network mà dependency ngoài JVM không đáp ứng.
-- Task trong pool chờ `Future.get()` của task khác nhưng không có chu trình object monitor/ownable synchronizer được JVM nhận diện.
-- Starvation do thread pool đã kín hoặc lock ở tiến trình khác.
-- Live lock, I/O không có deadline, deadlock phân tán giữa nhiều service.
-- Deadlock xảy ra rồi biến mất trước lần chụp.
+- Thread A waiting on a database, thread B waiting on network where external non-JVM dependencies do not respond.
+- Tasks in a pool waiting on `Future.get()` of other tasks without a JVM-recognized object monitor/ownable synchronizer cycle.
+- Starvation from an exhausted thread pool or locks in another process.
+- Livelocks, I/O without deadlines, or distributed deadlocks across services.
+- Transient deadlocks that resolved before capture.
 
-Với các ca đó, phải điều tra queue, thread stacks, traces, lịch tác vụ, deadline và hệ thống phụ thuộc. “Không tìm thấy monitor deadlock” không đồng nghĩa “đường request không bị tắc nghẽn”.
+In those cases, investigate queues, thread stacks, traces, task scheduling, deadlines, and downstream systems. "No monitor deadlock found" does not mean "the request path isn't stalled".
 
-## 7. Java 17+: một chương trình gồm dữ liệu cố định, snapshot và deadlock lab
+## 7. Java 17+: one program with fixed fixture data, snapshot, and deadlock lab
 
-Bài demo dưới đây có **ba chế độ rõ ràng**:
+The demo below has **three explicit modes**:
 
-- **`fixture`**: tính delta từ các số giả định, cho stdout **chính xác và độc lập môi trường**.
-- **`snapshot`**: quan sát `ThreadMXBean` của JVM đang chạy với feature checks, **không bật/tắt** CPU/contention monitoring; output thay đổi theo OS/JDK/trạng thái.
-- **`deadlock`**: trên **một JVM lab mới**, tạo hai daemon platform threads cố tình deadlock bằng `synchronized`, rồi dùng `findMonitorDeadlockedThreads()` tìm chúng. Không chạy chế độ này trong service thật; daemon threads còn deadlock cho tới khi JVM lab kết thúc.
+- **`fixture`**: computes deltas from hypothetical numbers, giving **exact, environment-independent** stdout.
+- **`snapshot`**: observes the running JVM's `ThreadMXBean` with feature checks, **without enabling/disabling** CPU/contention monitoring; output varies by OS/JDK/state.
+- **`deadlock`**: inside **a fresh lab JVM**, creates two daemon platform threads intentionally deadlocking via `synchronized`, then detects them with `findMonitorDeadlockedThreads()`. Never run this mode in a real service; the daemon threads remain deadlocked until the lab JVM exits.
 
-Tạo tệp **`ThreadMxBeanLab.java`**:
+Create the file **`ThreadMxBeanLab.java`**:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -488,14 +488,14 @@ public class ThreadMxBeanLab {
 }
 ```
 
-Biên dịch bằng **JDK 17 trở lên**:
+Compile with **JDK 17 or later**:
 
 ```bash
 javac ThreadMxBeanLab.java
 java ThreadMxBeanLab fixture
 ```
 
-Stdout **chính xác** của `fixture`:
+**Exact** stdout of `fixture`:
 
 ```text
 live=80 peak=120 started=1200 (fixture)
@@ -504,23 +504,23 @@ blockedCountDelta=4 blockedTimeDeltaMs=8
 deadlockResult=null means not detected
 ```
 
-Cách tính: `(5_150_000_000 - 5_100_000_000) ns = 50 ms`, `200_000_000 ns = 200 ms`, vì thế `cpuShare = 50/200 * 100 = 25.0%`. `blockedCount` tăng 4, `blockedTime` tăng 8 ms. Đây là **bộ số liệu giả định**, không phải thống kê thu từ chương trình Java đang thực thi.
+Calculation: `(5_150_000_000 - 5_100_000_000) ns = 50 ms`, `200_000_000 ns = 200 ms`, so `cpuShare = 50/200 * 100 = 25.0%`. `blockedCount` increased by 4 and `blockedTime` by 8 ms. This is a **synthetic dataset**, not statistics captured from an executing Java workload.
 
-Chạy **snapshot thực**:
+Run the **live snapshot**:
 
 ```bash
 java ThreadMxBeanLab snapshot
 ```
 
-Lệnh này in các bộ đếm hiện tại, tính năng CPU/contention có được hỗ trợ/bật hay không, một số thread và tình trạng phát hiện monitor deadlock. **Không có stdout cố định**: số thread, thời gian CPU, tên thread, ID và cờ tính năng khác nhau theo VM/OS/thời điểm; `cpuSupported=false` không tự động là lỗi.
+This prints current counters, whether CPU/contention monitoring is supported/enabled, a few threads, and monitor deadlock status. **No fixed stdout**: thread count, CPU time, thread names, IDs, and feature flags vary by VM/OS/time; `cpuSupported=false` is not automatically an error.
 
-Thực hành **deadlock chỉ trong JVM lab**:
+Run the **deadlock lab only in a lab JVM**:
 
 ```bash
 java ThreadMxBeanLab deadlock
 ```
 
-Trong JVM hỗ trợ phát hiện monitor deadlock và lên lịch các threads bình thường, output dự kiến khi vòng chờ đã hình thành:
+On a JVM supporting monitor deadlock detection and normal thread scheduling, expected output once the wait cycle forms:
 
 ```text
 monitorDeadlock=lab-deadlock-A,lab-deadlock-B
@@ -528,122 +528,122 @@ lab-deadlock-A state=BLOCKED
 lab-deadlock-B state=BLOCKED
 ```
 
-Chế độ này **cố tình tạo deadlock**, hai thread được đánh dấu `daemon` để không giữ process lab sống mãi sau khi `main` kết thúc. Trên máy quá tải hoặc implementation không phát hiện kịp thời, có thể in `lab=not-ready` hoặc `monitorDeadlock=not-detected-in-time`. Không nhận các trường hợp đó là bằng chứng “không có deadlock” trong ứng dụng nói chung. Không đưa đoạn tạo deadlock vào production hoặc unit test chạy chung JVM dài hạn.
+This mode **intentionally creates a deadlock**; both threads are marked `daemon` so they do not keep the lab process alive after `main` returns. On an overloaded machine or an implementation that does not detect in time, it may print `lab=not-ready` or `monitorDeadlock=not-detected-in-time`. Never treat those cases as proof of "no deadlocks" in applications generally. Do not put deadlock-creating code into production or unit tests sharing a long-lived JVM.
 
-**Điểm QA code:**
+**Code QA points:**
 
-- `getThreadId()` của `ThreadInfo` và `getId()` của `Thread` là API có trên Java 17.
-- Cơ chế `CountDownLatch` bảo đảm cả hai luồng đã giữ monitor đầu tiên trước khi cho phép chúng tìm monitor thứ hai, tạo chu trình chờ đối xứng.
-- `Arrays.sort(ids)` giúp một phần thứ tự snapshot ổn định nhưng không bảo đảm danh sách thread cố định.
-- Demo `snapshot` chỉ **đọc** trạng thái monitoring, không gọi setter thay đổi khả năng đo trên JVM.
-- Trong `deadlock`, các thread daemon có thể vẫn blocked khi chương trình kết thúc; đó là tính chất cố ý của lab, **không** phải hướng thiết kế ứng dụng.
+- `ThreadInfo.getThreadId()` and `Thread.getId()` are Java 17 APIs.
+- The `CountDownLatch` handshake guarantees both threads hold their first monitor before seeking the second, creating a symmetric wait cycle.
+- `Arrays.sort(ids)` partially stabilizes snapshot ordering but does not guarantee a fixed thread list.
+- The `snapshot` demo only **reads** monitoring state and calls no setters that alter JVM measurement settings.
+- In `deadlock`, daemon threads may remain blocked when the program exits; that is an intentional lab trait, **not** an application design pattern.
 
-## 8. Đọc dữ liệu trong chẩn đoán Java thật
+## 8. Reading data in real Java diagnostics
 
-### 8.1 CPU cao nhưng throughput không tăng
+### 8.1 High CPU while throughput fails to grow
 
-**Triệu chứng:** process CPU cao, p99 tăng, throughput đứng yên.
+**Symptom:** high process CPU, rising p99, flat throughput.
 
-Thu dữ liệu:
+Gather data:
 
-1. Ghi offered/received/completed RPS, request mix, GC, CPU quota/throttling và timestamp.
-2. Lấy per-thread CPU time ở hai thời điểm, tính **CPU delta** trong cùng cửa sổ.
-3. Tìm top threads; lấy stack/JFR CPU profile để xem call path; đối chiếu threads làm việc chính và GC/JIT threads.
-4. Tìm trường hợp busy-spin, serialization nặng, polling chặt, retry loop hoặc lock contention; không gán nguyên nhân chỉ từ tên thread.
+1. Record offered/received/completed RPS, request mix, GC, CPU quota/throttling, and timestamps.
+2. Read per-thread CPU time at two timestamps and compute **CPU delta** over the same window.
+3. Find top threads; capture stacks/JFR CPU profiles to inspect call paths; distinguish primary worker threads from GC/JIT threads.
+4. Look for busy-spinning, heavy serialization, tight polling, retry loops, or lock contention; never assign cause from thread name alone.
 
-Một thread mang tên `worker-4` có CPU delta cao chưa chứng minh task/endpoint nào gây CPU, vì pool có thể chạy nhiều task trên cùng thread. Cần trace/task ID, sampling và workload correlation.
+A thread named `worker-4` having a high CPU delta does not yet prove which task/endpoint caused the CPU, because a pool reuses threads across tasks. You need trace/task IDs, sampling, and workload correlation.
 
-### 8.2 Số thread tăng liên tục
+### 8.2 Thread count rising continuously
 
-**Triệu chứng:** `live` tăng cùng RSS/native memory hoặc xuất hiện lỗi tạo thread.
+**Symptom:** `live` rises alongside RSS/native memory, or thread creation errors appear.
 
-Thu:
+Collect:
 
-- `getThreadCount`, `getPeakThreadCount`, `getTotalStartedThreadCount` theo thời gian.
-- Số task đang chờ, pool size/active count, số worker theo tên, thread creation rate, socket/file descriptor usage.
-- Thread dumps/stack của các thread tương tự để xem nơi chúng chờ.
-- Giới hạn container PID/memory/OS và thread stack size nếu liên quan.
+- `getThreadCount`, `getPeakThreadCount`, `getTotalStartedThreadCount` over time.
+- Pending task counts, pool size/active count, worker counts by name, thread creation rate, socket/file descriptor usage.
+- Thread dumps/stacks of similar threads to see where they wait.
+- Container PID/memory/OS limits and thread stack sizes if relevant.
 
-**Kết luận có thể:** live tăng và started tăng là dấu hiệu thread tích lũy; chưa đủ để nói “leak”. Các thread có thể sống hợp lệ theo yêu cầu tải; cần xác nhận những thread nào **đáng lẽ đã kết thúc** mà vẫn bị giữ.
+**Possible conclusion:** rising `live` and rising `started` indicate thread accumulation, yet are not enough to call it a "leak". Threads may be legitimately alive for demand; verify which threads **should have exited** yet remain retained.
 
-Nếu `started` tăng nhanh nhưng live ổn định, dấu hiệu phù hợp hơn với **churn**, có thể gây overhead tạo/hủy thread, chứ không nhất thiết leak.
+If `started` climbs rapidly while `live` stays steady, the pattern fits **churn**, creating thread creation/destruction overhead rather than necessarily a leak.
 
-### 8.3 Thread contention khiến request chậm
+### 8.3 Thread contention slows down requests
 
-**Triệu chứng:** nhiều request chậm ở một đoạn `synchronized`.
+**Symptom:** many requests stall at a `synchronized` section.
 
-Thu:
+Collect:
 
-- Mẫu `getThreadInfo` tại các mốc T1/T2; xem `BLOCKED`, `getLockOwnerName`, stack frame của owner.
-- Blocked count/time deltas khi contention monitoring thực sự bật.
-- CPU delta để biết owner đang tính toán hay cũng bị tắc ở nguồn khác.
-- Request latency, throughput, tải và lock hold time nếu instrument được.
+- `ThreadInfo` samples at T1/T2; inspect `BLOCKED`, `getLockOwnerName`, and the owner's stack frames.
+- Blocked count/time deltas when contention monitoring is actually enabled.
+- CPU deltas to see whether the owner is computing or itself stalled elsewhere.
+- Request latency, throughput, load, and lock hold time if instrumented.
 
-**Kết luận thận trọng:** tăng blocked time cùng lock owner phù hợp giả thuyết monitor contention. Không tuyên bố đã xác nhận nguyên nhân khi chưa chứng minh lock nằm trên đường xử lý chậm và khi chưa loại trừ dependency/GC/scheduling effects.
+**Cautious conclusion:** rising blocked time with a consistent lock owner fits a monitor contention hypothesis. Do not declare the root cause confirmed until proving the lock lies on the slow request path and ruling out dependency/GC/scheduling effects.
 
-### 8.4 Service treo và nghi deadlock
+### 8.4 Service hangs and deadlock is suspected
 
-**Quy trình an toàn:**
+**Safe procedure:**
 
-1. Thu stack trace/thread dump và metrics trước khi thay đổi trạng thái.
-2. Gọi phát hiện monitor deadlock; nếu hỗ trợ synchronizer, cân nhắc phát hiện loại rộng hơn.
-3. Với ID thu được, lấy thread names, lock owner, lock/monitor info, call paths và timestamp.
-4. Kiểm tra đây có phải **chu trình chờ tương hỗ** hay chỉ nhiều threads cùng chờ một worker chậm.
-5. Lưu evidence, phân tích lock ordering và hồi quy; không “sửa” bằng cách gọi setter monitoring hoặc reset counter.
+1. Capture stack traces/thread dumps and metrics before mutating state.
+2. Run monitor deadlock detection; if ownable synchronizers are supported, consider broader detection.
+3. For returned IDs, capture thread names, lock owner, lock/monitor info, call paths, and timestamps.
+4. Verify whether this is a **mutual wait cycle** or simply many threads waiting on one slow worker.
+5. Preserve evidence, analyze lock ordering, and fix regressions; never "fix" by toggling monitoring setters or resetting counters.
 
-**Từ chối kết luận quá mạnh:** cả hai API trả `null` không chứng minh hệ thống không deadlock ở network, DB hoặc ở thời điểm khác.
+**Reject overly strong conclusions:** both APIs returning `null` does not prove the system cannot deadlock on network, DB, or at another instant.
 
-## 9. Truy cập qua JMX và công cụ chẩn đoán
+## 9. Access via JMX and diagnostic tools
 
-Vì `ThreadMXBean` là platform MXBean, bạn có thể dùng local code hoặc các công cụ JMX thích hợp như JConsole/VisualVM/JMX client để xem `java.lang:type=Threading`. Trong môi trường server:
+Because `ThreadMXBean` is a platform MXBean, you can use local code or suitable JMX tools such as JConsole/VisualVM/JMX clients to inspect `java.lang:type=Threading`. In server environments:
 
-- Mọi thao tác từ xa cần thiết lập xác thực, TLS và kiểm soát truy cập phù hợp; không mở JMX remote công khai chỉ để xem vài chỉ số.
-- API và operation thay đổi trạng thái như `setThreadCpuTimeEnabled`, `setThreadContentionMonitoringEnabled`, `resetPeakThreadCount` cần được quản lý riêng, không để dashboard tự ý gọi.
-- Thread dump/deadlock detection có thể tốn CPU, bộ nhớ và pause; không polling quá dày.
-- Thread names, stack traces, class/method names hoặc request-related context có thể là thông tin hệ thống nhạy cảm; phân quyền và giới hạn retention.
-- Trong container hoặc cluster, xác nhận kết nối/agent đang nhắm đúng JVM instance, không vô tình đo JVM sidecar hay process vừa restart.
+- Every remote operation requires proper authentication, TLS, and access control; never open public remote JMX just to view a few metrics.
+- State-mutating APIs and operations such as `setThreadCpuTimeEnabled`, `setThreadContentionMonitoringEnabled`, and `resetPeakThreadCount` must be gated separately—do not let dashboards invoke them automatically.
+- Thread dumps/deadlock detection can consume CPU, memory, and pause time; do not poll too aggressively.
+- Thread names, stack traces, class/method names, or request-related context can be sensitive system info; enforce RBAC and retention limits.
+- In containers or clusters, verify the connection/agent targets the exact JVM instance, rather than accidentally measuring a sidecar JVM or a freshly restarted process.
 
-Nếu không thể gắn agent JMX, có thể thu bằng code instrumentation hoặc `jcmd Thread.print`/JFR theo chính sách vận hành; mỗi lựa chọn có phạm vi và chi phí riêng. Không giả định mọi công cụ trả chính xác cùng một tập thread tại cùng một thời điểm.
+If attaching a JMX agent is not possible, collect via code instrumentation or `jcmd Thread.print`/JFR per operational policy; each option has its own scope and cost. Never assume every tool returns the exact same thread set at the exact same instant.
 
-## 10. Hiệu năng, tác dụng phụ và hạn chế đo lường
+## 10. Performance, side effects, and measurement limitations
 
-### 10.1 Những phép đo có thể làm thay đổi điều kiện quan sát
+### 10.1 Measurements that can alter observation conditions
 
-| Thao tác | Nhóm ảnh hưởng | Thực hành |
+| Operation | Impact category | Practice |
 | --- | --- | --- |
-| `getThreadCount()`, `getPeakThreadCount()` | Quan sát nhẹ tương đối | Chấp nhận biến thiên giữa hai lời gọi |
-| `getThreadCpuTime(id)` | Đọc counter CPU | Kiểm tra enabled/supported; tránh polling rất dày |
-| `setThreadCpuTimeEnabled(true)` | **Thay đổi trạng thái theo dõi** | Phải có quyền và kế hoạch; có overhead |
-| `setThreadContentionMonitoringEnabled(true)` | **Thay đổi trạng thái theo dõi** | Ghi lúc bật, tác động tới mốc thống kê |
-| `getThreadInfo(ids, depth)` | Snapshot stack/lock | Giới hạn số ID và depth nếu có thể |
-| `dumpAllThreads(...)` | Thu toàn bộ thread stack/locks | Có thể nặng với JVM nhiều thread |
-| `findDeadlockedThreads()` | Phân tích quan hệ chờ khóa | Không gọi dày, hiểu capability và null result |
-| `resetPeakThreadCount()` | **Thay đổi lịch sử peak** | Không reset khi đang cần đối chiếu lịch sử |
+| `getThreadCount()`, `getPeakThreadCount()` | Relatively lightweight read | Accept variation between two calls |
+| `getThreadCpuTime(id)` | Reads CPU counter | Check enabled/supported; avoid very tight polling |
+| `setThreadCpuTimeEnabled(true)` | **Mutates tracking state** | Requires authorization and plan; incurs overhead |
+| `setThreadContentionMonitoringEnabled(true)` | **Mutates tracking state** | Record enable time; affects statistics baseline |
+| `getThreadInfo(ids, depth)` | Stack/lock snapshot | Bound ID count and depth when possible |
+| `dumpAllThreads(...)` | Captures all thread stacks/locks | Can be heavy on JVMs with many threads |
+| `findDeadlockedThreads()` | Analyzes lock wait graph | Do not poll frequently; know capability and null result |
+| `resetPeakThreadCount()` | **Mutates peak history** | Do not reset while historical comparison is needed |
 
-Việc lấy `ThreadInfo` hoặc deadlock detection có thể làm nhiễu wall-clock/CPU của hệ thống đang tải cao. Gắn timestamp cho chính thời điểm chụp, đo khoảng thời gian thực thi lệnh và theo dõi symptom trước/sau thao tác.
+Capturing `ThreadInfo` or running deadlock detection can perturb wall-clock/CPU on a heavily loaded system. Stamp the exact capture time, measure command execution duration, and watch symptoms before/after the action.
 
-### 10.2 Cách hiểu `-1`, `null` và `false`
+### 10.2 Interpreting `-1`, `null`, and `false`
 
-- CPU time `-1`: thread chết/không tồn tại hoặc đo disabled; có thể là trạng thái không hợp lệ để tính delta.
-- Blocked/waited time `-1`: contention monitoring bị tắt, **không** có nghĩa thread chưa từng đợi.
-- `ThreadInfo == null`: thread không còn sống tại lần đọc hoặc ID không tồn tại.
-- `long[] deadlocks == null`: không phát hiện chu trình khóa thuộc phạm vi của method **tại lần kiểm tra đó**.
-- `is…Supported() == false`: tính năng không có trên VM/implementation hiện tại, không phải bug của ứng dụng.
+- CPU time `-1`: dead/non-existent thread or measurement disabled; invalid state for delta calculation.
+- Blocked/waited time `-1`: contention monitoring is disabled, **not** meaning the thread never waited.
+- `ThreadInfo == null`: thread is no longer alive at read time or ID does not exist.
+- `long[] deadlocks == null`: no lock cycle within the method's scope detected **at that check**.
+- `is…Supported() == false`: feature unavailable on the current VM/implementation, not an application bug.
 
-Đừng dùng `Math.max(0, value)` để “làm sạch” mọi số âm trước khi báo cáo: biến `-1` thành `0` sẽ làm dashboard báo **sai** rằng CPU wait/blocked time bằng không.
+Never use `Math.max(0, value)` to "sanitize" negative numbers before reporting: turning `-1` into `0` makes dashboards **falsely** report zero CPU or wait/blocked time.
 
-### 10.3 Giới hạn khác cần ghi
+### 10.3 Other limits to note
 
-- **Sampling bias:** chụp một lần có thể bỏ sót luồng bận trong vài millisecond.
-- **Thread churn:** ID từ T1 có thể đã chết trước T2; delta per-thread không còn ý nghĩa.
-- **Container CPU quota:** CPU-time và utilization phải được đặt cạnh throttle/cgroup metrics.
-- **Framework task scheduling:** một worker phục vụ nhiều task; CPU-time thread không thể quy trực tiếp thành một request.
-- **JVM khác nhau:** hỗ trợ CPU/contention monitoring, overhead và thời điểm đo có thể khác implementation.
-- **Phiên bản Java:** kết quả `getThreadCount` không đo lượng virtual threads trên JDK mới.
-- **Thời gian tích lũy:** restart JVM hoặc reset peak/bật monitoring làm thay đổi ý nghĩa counter.
-- **Deadlock scope:** chỉ nhận diện lock cycle thuộc loại hỗ trợ; không phát hiện mọi deadlock logic/phân tán.
+- **Sampling bias:** a single snapshot can miss threads busy for only a few milliseconds.
+- **Thread churn:** IDs from T1 may die before T2; per-thread deltas lose meaning.
+- **Container CPU quota:** CPU-time and utilization must be read alongside throttling/cgroup metrics.
+- **Framework task scheduling:** one worker serves many tasks; thread CPU time cannot be attributed directly to one request.
+- **Different JVMs:** CPU/contention monitoring support, overhead, and measurement timing vary by implementation.
+- **Java version:** `getThreadCount` does not measure virtual thread count on newer JDKs.
+- **Cumulative nature:** JVM restarts, peak resets, or toggling monitoring alter counter semantics.
+- **Deadlock scope:** detects only supported lock cycles; does not detect logical or distributed deadlocks.
 
-## 11. Mẫu báo cáo chẩn đoán ThreadMXBean
+## 11. ThreadMXBean diagnostic report template
 
 ```text
 RUN CONTEXT
@@ -681,48 +681,48 @@ CONCLUSION
 - Risk, remediation owner, verification steps:
 ```
 
-Đây là mẫu **cấu trúc**, không phải báo cáo đã có số đo thực. Nếu dùng trong production, thêm link tới metrics/log/trace/JFR, lưu đúng quyền truy cập, không phát tán nội dung stack nhạy cảm.
+This is a **structural template**, not a report with real measurements. When used in production, add links to metrics/logs/traces/JFR, store under proper access control, and never broadcast sensitive stack contents.
 
-## 12. Những nhầm lẫn phổ biến
+## 12. Common misconceptions
 
-1. **Dùng `getThreadCount()` như số request hoặc task đang xử lý.** Worker thread thường được tái sử dụng; queue cần đo riêng.
-2. **Xem `getTotalStartedThreadCount()` là số thread đang sống.** Đây là tổng đã khởi động từ lúc JVM start.
-3. **Thấy peak cao rồi nói hiện đang thiếu thread.** Peak là lịch sử, có thể được reset; phải xem live và nhu cầu hiện tại.
-4. **Lấy tổng CPU time để xếp top CPU tại hiện tại.** Cần delta trong cùng cửa sổ.
-5. **Quên `isThreadCpuTimeSupported`/Enabled.** `-1` không phải thời gian CPU bằng 0.
-6. **Lấy CPU share của một thread chia cho số core và gọi CPU của toàn container mà không ghi mẫu số.** Các định nghĩa CPU% có thể khác nhau.
-7. **Bật contention monitoring mà không ghi thời điểm/tác động.** Có overhead và có thể reset số liệu thời gian.
-8. **Đồng nhất `BLOCKED` và `WAITING`.** Chờ intrinsic monitor khác chờ notification/park/I/O.
-9. **Coi `getBlockedTime=-1` là không có contention.** Đây thường là dấu hiệu không đo thời gian.
-10. **Gọi `findMonitorDeadlockedThreads` rồi tuyên bố không có deadlock với `ReentrantLock`.** Method monitor-only có phạm vi hẹp hơn.
-11. **Gọi `findDeadlockedThreads` không kiểm tra ownable synchronizer support.** Có thể `UnsupportedOperationException`.
-12. **Coi `null` deadlock result là “ứng dụng không thể treo”.** Có thể là pool starvation hoặc external wait.
-13. **Chỉ lấy một thread dump.** State là snapshot; cần nhiều mẫu/metrics để chẩn đoán hiện tượng theo thời gian.
-14. **Quên ID có thể tái sử dụng.** Gắn process identity, timestamp và name/stack.
-15. **Chụp full stacks liên tục trên JVM quá tải.** Công cụ chẩn đoán có thể làm tăng độ trễ.
-16. **Không phân biệt platform và virtual threads.** Kết quả ThreadMXBean của JDK mới không phản ánh tổng số virtual tasks.
-17. **Nhầm CPU-time với latency.** Thread chờ I/O nhiều có thể tiêu thụ CPU thấp nhưng làm request chậm.
-18. **Dùng ThreadMXBean làm cơ chế đồng bộ.** Nó phục vụ giám sát, không bảo đảm snapshot nguyên tử hoặc thứ tự khóa để điều khiển logic nghiệp vụ.
+1. **Treating `getThreadCount()` as active request or task count.** Worker threads are typically reused; measure queues separately.
+2. **Treating `getTotalStartedThreadCount()` as live threads.** It is the cumulative total started since JVM startup.
+3. **Seeing high peak and claiming threads are currently exhausted.** Peak is historical and resettable; inspect live count and current demand.
+4. **Using cumulative CPU time to rank current top CPU threads.** Use deltas over the same window.
+5. **Forgetting `isThreadCpuTimeSupported`/Enabled.** `-1` does not mean 0 CPU time.
+6. **Dividing one thread's CPU share by core count and calling it container CPU without stating the denominator.** CPU% definitions vary.
+7. **Enabling contention monitoring without recording timestamp/impact.** It adds overhead and can reset time stats.
+8. **Equating `BLOCKED` and `WAITING`.** Waiting on an intrinsic monitor differs from waiting on notifications/park/I/O.
+9. **Treating `getBlockedTime=-1` as zero contention.** That typically means time measurement is off.
+10. **Calling `findMonitorDeadlockedThreads` and declaring no `ReentrantLock` deadlock exists.** The monitor-only method has a narrower scope.
+11. **Calling `findDeadlockedThreads` without checking ownable synchronizer support.** Can throw `UnsupportedOperationException`.
+12. **Treating a `null` deadlock result as "the app cannot hang".** Pool starvation or external waits can still stall it.
+13. **Taking only one thread dump.** States are snapshots; multiple samples/metrics are needed to diagnose over time.
+14. **Forgetting IDs can be reused.** Attach process identity, timestamp, and name/stack.
+15. **Capturing full stacks continuously on an overloaded JVM.** Diagnostic tooling itself can worsen latency.
+16. **Failing to separate platform and virtual threads.** ThreadMXBean on newer JDKs does not reflect total virtual tasks.
+17. **Confusing CPU time with latency.** I/O-bound threads can consume low CPU while making requests slow.
+18. **Using ThreadMXBean as a synchronization mechanism.** It is for monitoring, offering neither atomic snapshots nor lock ordering to drive business logic.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-check questions
 
-1. `getThreadCount()`, `getPeakThreadCount()` và `getTotalStartedThreadCount()` khác nhau ở điểm nào? Khi nào tổng started tăng nhanh nhưng live không tăng?
-2. CPU time tăng 50 ms trong cửa sổ 200 ms thì mức sử dụng tương đương một logical CPU là bao nhiêu phần trăm? Có đồng nghĩa 25% CPU của một node 32 core không?
-3. Điều kiện nào khiến `getThreadCpuTime(id)` trả `-1`? Vì sao không được thay `-1` bằng 0?
-4. Bạn gọi `getThreadInfo(ids, 20)` sau `getAllThreadIds()` và gặp phần tử `null`. Đây có phải lỗi JVM không?
-5. Vì sao `getBlockedCount()` và `getBlockedTime()` không cùng đơn vị? Các giá trị này có đo mọi loại chờ database/network không?
-6. `isThreadContentionMonitoringSupported()` trả true nhưng `getBlockedTime()=-1`. Những kiểm tra tiếp theo là gì?
-7. Sự khác nhau về lock types giữa `findMonitorDeadlockedThreads()` và `findDeadlockedThreads()` là gì? Trường hợp nào cần kiểm tra ownable synchronizer support?
-8. Hai worker đều `WAITING` trong thread dump. Điều đó đã đủ chứng minh deadlock chưa? Bạn sẽ kiểm tra lock owner/queue/stack ra sao?
-9. Trong Java 21+, `ThreadMXBean.getThreadCount()` có thể được dùng làm số virtual threads đang chạy không? Cần những công cụ/số đo gì khác?
-10. Một service có p99 tăng trong khi per-thread CPU time thấp. Những giả thuyết về I/O, GC, lock, thread pool starvation hoặc throttling cần được xem xét?
-11. Những operation nào trong `ThreadMXBean` **thay đổi trạng thái đo** thay vì chỉ đọc? Bạn phải ghi gì trong timeline?
-12. Nếu `findDeadlockedThreads()` trả `null` một lần, kết luận mạnh nhất có thể nói là gì?
+1. How do `getThreadCount()`, `getPeakThreadCount()`, and `getTotalStartedThreadCount()` differ? When does total started climb quickly while live stays flat?
+2. If CPU time grows by 50 ms in a 200 ms window, what percentage of one logical CPU equivalent was used? Does that equal 25% CPU of a 32-core node?
+3. Under what conditions does `getThreadCpuTime(id)` return `-1`? Why must `-1` never be replaced with 0?
+4. You call `getThreadInfo(ids, 20)` after `getAllThreadIds()` and encounter a `null` element. Is that a JVM bug?
+5. Why do `getBlockedCount()` and `getBlockedTime()` have different units? Do these values measure all database/network waits?
+6. `isThreadContentionMonitoringSupported()` returns true, yet `getBlockedTime()=-1`. What are the next checks?
+7. What lock-type difference separates `findMonitorDeadlockedThreads()` from `findDeadlockedThreads()`? When should you check ownable synchronizer support?
+8. Two workers are both `WAITING` in a thread dump. Is that sufficient proof of a deadlock? How would you inspect lock owners/queues/stacks?
+9. In Java 21+, can `ThreadMXBean.getThreadCount()` serve as the count of running virtual threads? What other tools/metrics are needed?
+10. A service has rising p99 while per-thread CPU time is low. What hypotheses around I/O, GC, locks, thread pool starvation, or throttling should be examined?
+11. Which operations in `ThreadMXBean` **mutate measurement state** instead of only reading? What must you record on the timeline?
+12. If `findDeadlockedThreads()` returns `null` once, what is the strongest valid conclusion?
 
-## Nguồn tham khảo
+## References
 
 - Oracle Java SE 17 — ThreadMXBean: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html
 - Oracle Java SE 17 — ThreadInfo: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadInfo.html
-- Oracle Java SE 21 — ThreadMXBean (làm rõ phạm vi platform threads trên JVM có virtual threads): https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html
+- Oracle Java SE 21 — ThreadMXBean (clarifying platform thread scope on JVMs with virtual threads): https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html
 
-**Ghi nhớ:** `ThreadMXBean` đo **số platform threads, CPU time tích lũy, contention và các chu trình deadlock thuộc loại khóa được hỗ trợ**. Muốn chẩn đoán chính xác, phải đọc khả năng hỗ trợ, phân biệt metric tích lũy với delta, so số liệu trong cùng workload/cửa sổ, và không biến `null` hoặc `-1` thành kết luận “không có lỗi”.
+**Remember:** `ThreadMXBean` measures **platform thread counts, cumulative CPU time, contention, and deadlock cycles of supported lock types**. Accurate diagnostics require checking support flags, distinguishing cumulative metrics from deltas, comparing figures within the same workload/window, and never turning `null` or `-1` into "no errors".

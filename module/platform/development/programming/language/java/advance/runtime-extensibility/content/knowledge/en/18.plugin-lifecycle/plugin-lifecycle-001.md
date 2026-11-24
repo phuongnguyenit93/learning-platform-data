@@ -1,46 +1,46 @@
-# Thiết kế các trạng thái phát hiện, xác minh, khởi tạo, hoạt động, dừng và lỗi trong vòng đời plugin Java
+# Designing Discovery, Verification, Initialization, Active, Stopping, and Failed States in the Java Plugin Lifecycle
 
-## 1. Vì sao plugin cần một mô hình trạng thái?
+## 1. Why Does a Plugin Need a State Model?
 
-Plugin là phần mở rộng được host khám phá và gọi thông qua hợp đồng API chung. Một plugin có thể là class được đăng ký bằng Java SPI (`ServiceLoader`), một named module được đưa vào `ModuleLayer`, hoặc một JAR được host nạp bằng class loader riêng. Trong cả ba trường hợp, việc **tìm thấy class** không đồng nghĩa plugin **đã sẵn sàng nhận yêu cầu**.
+A plugin is an extension discovered and invoked by a host through a shared API contract. A plugin may be a class registered via Java SPI (`ServiceLoader`), a named module added to a `ModuleLayer`, or a JAR loaded by the host using a dedicated class loader. In all three cases, **finding a class** does not mean the plugin is **ready to receive requests**.
 
-Hệ thống cần trả lời chính xác:
+The system needs to answer accurately:
 
-- Host đã **phát hiện** được plugin hay chưa?
-- Plugin đã được **xác minh** về danh tính, phiên bản, cấu hình, capability và dependency chưa?
-- Plugin đã được **khởi tạo** tài nguyên, nhận cấu hình và service từ host chưa?
-- Plugin đã **hoạt động** và có thể nhận lệnh mới chưa?
-- Plugin đang **dừng** hay đã giải phóng tài nguyên xong?
-- Plugin đang **lỗi** vì nguyên nhân nào, và có cần thực hiện cleanup/rollback không?
+- Has the host **discovered** the plugin yet?
+- Has the plugin been **verified** for identity, version, configuration, capabilities, and dependencies?
+- Has the plugin **initialized** its resources and received configuration and services from the host?
+- Is the plugin **active** and able to accept new commands?
+- Is the plugin **stopping** or has it finished releasing resources?
+- Why is the plugin in a **failed** state, and does cleanup/rollback need to be performed?
 
-Nếu chỉ dùng biến `boolean loaded`, host rất dễ gặp các lỗi như gọi plugin trước khi cấu hình xong, đưa một instance lỗi vào registry, tiếp nhận request mới khi shutdown, chạy `stop` hai lần hoặc giữ thread/class loader cũ sau khi nâng cấp.
+If only a `boolean loaded` flag is used, the host can easily run into bugs such as invoking a plugin before configuration completes, putting a broken instance into the registry, accepting new requests during shutdown, running `stop` twice, or retaining old threads/class loaders after an upgrade.
 
-**Giải pháp:** thiết kế một *finite-state machine* (máy trạng thái hữu hạn) có **trạng thái rõ ràng, chuyển trạng thái hợp lệ, điều kiện gác (*guards*), sự kiện kích hoạt và hành động cleanup**. Bài này tập trung vào sáu pha cốt lõi theo vòng đời: **phát hiện → xác minh → khởi tạo → hoạt động → dừng**, với nhánh **lỗi** có thể phát sinh từ nhiều pha.
+**Solution:** design a *finite-state machine* with **explicit states, valid state transitions, *guards*, trigger events, and cleanup actions**. This article focuses on the six core lifecycle phases: **discovery → verification → initialization → active → stopping**, with a **failed** branch that can arise from multiple phases.
 
-> Các tên trạng thái trong bài là **thiết kế của host/plugin manager**, không phải một enum chuẩn được Java tự tạo. `ServiceLoader`, `ModuleLayer` và `ClassLoader` không quản lý sẵn những trạng thái nghiệp vụ này.
+> The state names in this article are a **host/plugin manager design**, not a standard enum automatically created by Java. `ServiceLoader`, `ModuleLayer`, and `ClassLoader` do not manage these business lifecycle states out of the box.
 
-## 2. Một mô hình trạng thái tối thiểu nhưng đầy đủ
+## 2. A Minimal Yet Complete State Model
 
-Có thể đặt tên các trạng thái:
+The states can be named as follows:
 
-| Trạng thái | Ý nghĩa | Được phép nhận request nghiệp vụ? |
+| State | Meaning | Allowed to accept business requests? |
 | --- | --- | --- |
-| `DISCOVERED` — Đã phát hiện | Host có một đối tượng provider/metadata được tìm thấy, chưa xác minh toàn bộ điều kiện hoạt động | Không |
-| `VERIFIED` — Đã xác minh | Danh tính, contract, policy, cấu hình và dependency cần thiết đã qua bước kiểm tra phù hợp | Không |
-| `INITIALIZED` — Đã khởi tạo | Plugin được cấp context/tài nguyên ban đầu; chưa được kích hoạt để xử lý request | Không |
-| `ACTIVE` — Hoạt động | `start` và readiness check thành công; plugin đã được publish vào dispatcher/registry | **Có** |
-| `STOPPING` — Đang dừng | Host chặn request mới, thực hiện dọn dẹp, hủy listener và giải phóng tài nguyên | Không |
-| `STOPPED` — Đã dừng | Cleanup hoàn tất theo hợp đồng; instance không còn được tái sử dụng tùy tiện | Không |
-| `FAILED` — Lỗi | Một chuyển trạng thái/hoạt động đã thất bại; phải lưu nguyên nhân và quyết định cleanup/khôi phục | Không |
+| `DISCOVERED` — Discovered | The host has a discovered provider/metadata object; not all operating conditions have been verified yet | No |
+| `VERIFIED` — Verified | Identity, contract, policy, configuration, and required dependencies have passed the appropriate checks | No |
+| `INITIALIZED` — Initialized | The plugin has been given initial context/resources; not yet activated to handle requests | No |
+| `ACTIVE` — Active | `start` and readiness checks succeeded; the plugin has been published to the dispatcher/registry | **Yes** |
+| `STOPPING` — Stopping | The host blocks new requests, performs cleanup, unregisters listeners, and releases resources | No |
+| `STOPPED` — Stopped | Cleanup completed according to contract; the instance can no longer be arbitrarily reused | No |
+| `FAILED` — Failed | A transition/operation failed; the cause must be recorded and cleanup/recovery decided | No |
 
-Trong production, nên thêm `DISCOVERING`, `VERIFYING`, `INITIALIZING`, `STARTING` và **`QUIESCING`** (đã ngừng nhận request mới, đang chờ request cũ kết thúc) nếu các thao tác này kéo dài hoặc bất đồng bộ. Bảng trên mô hình hóa các **mốc đã hoàn thành** để ví dụ dễ quan sát.
+In production, you should add `DISCOVERING`, `VERIFYING`, `INITIALIZING`, `STARTING`, and **`QUIESCING`** (stopped accepting new requests, waiting for in-flight requests to finish) if these operations are long-running or asynchronous. The table above models **completed milestones** to keep the examples easy to follow.
 
-### 2.1. Sơ đồ trạng thái
+### 2.1. State Diagram
 
 ```text
-       [quét artifact / SPI / module finder]
+       [scan artifact / SPI / module finder]
                        │
-             tìm được provider
+                provider found
                        ▼
                   DISCOVERED
                        │ verify + policy checks
@@ -51,7 +51,7 @@ Trong production, nên thêm `DISCOVERING`, `VERIFYING`, `INITIALIZING`, `STARTI
                   INITIALIZED
                        │ start + readiness succeeds
                        ▼
-                    ACTIVE ───────────► xử lý request
+                    ACTIVE ───────────► process request
                        │                       │
                        └──── stop requested ◄──┘
                                │
@@ -62,142 +62,142 @@ Trong production, nên thêm `DISCOVERING`, `VERIFYING`, `INITIALIZING`, `STARTI
                             STOPPED
 
   DISCOVERED / VERIFIED / INITIALIZED / ACTIVE
-                   │ có lỗi
+                   │ error occurred
                    ▼
                  FAILED
-                   │ ghi nguyên nhân, cleanup phần đã cấp phát
+                   │ record cause, clean up allocated parts
                    ▼
                 STOPPING
-                   ├── cleanup thành công ──► STOPPED
-                   └── cleanup thất bại  ──► FAILED (terminal/needs intervention)
+                   ├── cleanup succeeds ──► STOPPED
+                   └── cleanup fails    ──► FAILED (terminal/needs intervention)
 ```
 
-Ở đây `FAILED` có thể là **trạng thái tạm để bắt đầu cleanup** hoặc **trạng thái cuối nếu cleanup không thành công**. Phải lưu riêng **lịch sử lỗi** (`lastFailure`, `hadFailure`, timestamp, stage) vì sau khi cleanup thành công đối tượng có thể chuyển thành `STOPPED`; nếu chỉ nhìn trạng thái cuối sẽ mất thông tin rằng lần khởi động vừa thất bại.
+Here `FAILED` can be a **transient state to initiate cleanup** or a **terminal state if cleanup fails**. You must store **failure history** separately (`lastFailure`, `hadFailure`, timestamp, stage) because after cleanup succeeds, the object may transition to `STOPPED`; looking only at the final state would lose the information that the startup attempt just failed.
 
-Trong hệ thống dùng hot reload, **không nên** tự động chuyển `STOPPED → ACTIVE` trên cùng object nếu implementation không hỗ trợ tái khởi động. Phương án an toàn mặc định là **tạo instance mới** và chạy lại quy trình xác minh/khởi tạo.
+In systems using hot reload, you **should not** automatically transition `STOPPED → ACTIVE` on the same object if the implementation does not support restarting. The safe default is to **create a new instance** and re-run the verification/initialization pipeline.
 
-### 2.2. Sự kiện và điều kiện chuyển trạng thái
+### 2.2. Events and Transition Conditions
 
-| Trạng thái hiện tại | Sự kiện | Điều kiện thành công | Trạng thái tiếp theo | Hành động |
+| Current State | Event | Success Condition | Next State | Action |
 | --- | --- | --- | --- | --- |
-| Chưa có instance | `provider discovered` | SPI/registry tìm và tạo được instance cần thiết | `DISCOVERED` | Gắn ID, artifact và thông tin provenance |
-| `DISCOVERED` | `verify` | ID, API/version, policy, metadata và dependency hợp lệ | `VERIFIED` | Ghi kết quả xác minh |
-| `VERIFIED` | `initialize` | Context và tài nguyên khởi tạo được cấp thành công | `INITIALIZED` | Giữ ownership/resource handles |
-| `INITIALIZED` | `start` | Start và readiness hoàn tất | `ACTIVE` | Chỉ lúc này publish để nhận request |
-| `ACTIVE` | `stop requested` | Ngừng nhận request mới; công việc đang chạy được xử lý theo policy | `STOPPING` | Quiesce và cleanup |
-| `STOPPING` | `cleanup completed` | Tài nguyên do plugin sở hữu đã được giải phóng | `STOPPED` | Gỡ tham chiếu/registry |
-| Bất kỳ pha chưa kết thúc | `operation failed` | Có lỗi xác minh, khởi tạo, start hoặc invocation nghiêm trọng | `FAILED` | Giữ exception/cause, không dispatch |
-| `FAILED` | `cleanup requested` | Có thể thực hiện cleanup an toàn trên trạng thái từng phần | `STOPPING` | Dọn tài nguyên đã mở |
-| `STOPPING` | `cleanup failed` | Exception khi dừng | `FAILED` | Ghi lỗi cleanup và escalation |
+| No instance yet | `provider discovered` | SPI/registry finds and instantiates the required provider | `DISCOVERED` | Attach ID, artifact, and provenance info |
+| `DISCOVERED` | `verify` | ID, API/version, policy, metadata, and dependencies are valid | `VERIFIED` | Record verification result |
+| `VERIFIED` | `initialize` | Context and initialization resources are successfully provided | `INITIALIZED` | Retain ownership/resource handles |
+| `INITIALIZED` | `start` | Start and readiness complete | `ACTIVE` | Only now publish to accept requests |
+| `ACTIVE` | `stop requested` | Stop accepting new requests; in-flight work is handled per policy | `STOPPING` | Quiesce and clean up |
+| `STOPPING` | `cleanup completed` | Resources owned by the plugin have been released | `STOPPED` | Remove references/registry entry |
+| Any non-terminal phase | `operation failed` | Verification, initialization, start, or critical invocation error occurs | `FAILED` | Preserve exception/cause, do not dispatch |
+| `FAILED` | `cleanup requested` | Safe cleanup can be performed on partial state | `STOPPING` | Clean up opened resources |
+| `STOPPING` | `cleanup failed` | Exception during stop | `FAILED` | Record cleanup error and escalate |
 
-**Quan trọng:** Không có provider nào được tìm thấy là **kết quả của bước discovery**, có thể được báo thành `NOT_FOUND` ở cấp yêu cầu/registry mà **không tạo một instance plugin để gắn `DISCOVERED`**. Một provider được khai báo nhưng không thể nạp hoặc khởi tạo có thể gây `ServiceConfigurationError` hoặc lỗi JVM liên quan; đó không phải `Optional.empty()` bình thường.
+**Important:** Finding no provider is a **discovery outcome**, which can be reported as `NOT_FOUND` at the request/registry level **without creating a plugin instance marked `DISCOVERED`**. A provider that is declared but cannot be loaded or instantiated may cause `ServiceConfigurationError` or related JVM errors; that is not a normal `Optional.empty()`.
 
-## 3. Những bất biến (invariants) phải bảo vệ
+## 3. Invariants to Protect
 
-Một state machine tốt không chỉ có tên trạng thái; nó có các quy tắc luôn đúng:
+A good state machine is not just state names; it has rules that always hold true:
 
-1. **Chỉ `ACTIVE` mới được nhận request mới.** `DISCOVERED`/`VERIFIED`/`INITIALIZED` chưa đủ; `FAILED` và `STOPPING` phải từ chối.
-2. **Không publish sớm.** Registry/dispatcher chỉ được nhìn thấy instance sau khi `start` và readiness thành công; nếu `start` ném lỗi, instance không được publish.
-3. **Mỗi bước chỉ thực hiện theo thứ tự cho phép.** Không có `DISCOVERED → ACTIVE` nếu cần verify và initialize.
-4. **Lỗi phải giữ nguyên nhân gốc.** Không biến mọi lỗi thành “plugin không tồn tại”; giữ phase, stack/cause và mã lỗi có ý nghĩa.
-5. **Cleanup được gọi trên cả thành công lẫn thất bại.** Đặc biệt khi `initialize`/`start` đã mở một phần tài nguyên rồi ném lỗi.
-6. **Cleanup cần an toàn khi gọi nhiều lần theo hợp đồng** (idempotent hoặc có cơ chế chống gọi lặp ở manager). Plugin không được để `stop` lặp gây double-close nguy hiểm.
-7. **STOPPED là trạng thái kết thúc của instance** trong mô hình mặc định. Muốn chạy lại hãy tạo instance mới thay vì tái sử dụng object có state khó đoán.
-8. **Quyết định chuyển trạng thái phải nguyên tử** khi nhiều thread cùng yêu cầu dừng, chạy request hoặc báo lỗi. Một biến enum không tự giải quyết *race condition* nếu không có synchronization/atomic protocol.
-9. **Tài nguyên thuộc ai, người đó đóng.** Host đóng executor/loader do host tạo; plugin đóng stream/listener/connection của plugin; tránh cả hai cùng đóng một resource mà không có contract.
-10. **Có thể truy vết lịch sử:** trạng thái cuối `STOPPED` không xóa thông tin đã từng `FAILED`, số lần thử khởi động, thời gian cleanup và kết quả cuối.
+1. **Only `ACTIVE` may accept new requests.** `DISCOVERED`/`VERIFIED`/`INITIALIZED` are not enough; `FAILED` and `STOPPING` must reject them.
+2. **Do not publish prematurely.** The registry/dispatcher must only see the instance after `start` and readiness succeed; if `start` throws an error, the instance must not be published.
+3. **Each step runs only in the allowed order.** No `DISCOVERED → ACTIVE` when verify and initialize are required.
+4. **Errors must preserve the root cause.** Do not turn every error into “plugin not found”; keep the phase, stack/cause, and a meaningful error code.
+5. **Cleanup is invoked on both success and failure.** Especially when `initialize`/`start` has opened partial resources and then throws.
+6. **Cleanup must be safe when called multiple times by contract** (idempotent or guarded against duplicate calls in the manager). Plugins must not let repeated `stop` calls cause dangerous double-closes.
+7. **`STOPPED` is the terminal state of an instance** in the default model. To run again, create a new instance rather than reusing an object with unpredictable state.
+8. **State transition decisions must be atomic** when multiple threads concurrently request stop, run requests, or report errors. An enum field does not solve *race conditions* on its own without a synchronization/atomic protocol.
+9. **Whoever owns a resource closes it.** The host closes executors/loaders created by the host; the plugin closes streams/listeners/connections belonging to the plugin; avoid both closing the same resource without a contract.
+10. **Traceable history:** a final state of `STOPPED` must not erase the record of having been `FAILED`, startup attempt count, cleanup duration, and final outcome.
 
-### 3.1. Trạng thái khác sự kiện, khác health
+### 3.1. State vs. Event vs. Health
 
-- **Trạng thái (`State`):** hiện tại plugin đang ở mốc vòng đời nào, ví dụ `ACTIVE`.
-- **Sự kiện (`Event`):** điều xảy ra thúc đẩy chuyển trạng thái, ví dụ `START_SUCCEEDED`, `STOP_REQUESTED`.
-- **Health/readiness:** kết quả kiểm tra khả năng phục vụ tại một thời điểm. Plugin có thể thuộc `ACTIVE` nhưng trở thành *unhealthy* vì backend tạm thời mất kết nối; host phải định chính sách đưa khỏi routing hoặc chuyển sang failure/quiescing.
-- **Desired state:** mục tiêu do operator đặt, ví dụ `ENABLED`/`DISABLED`; nó không tương đương trạng thái thực tế. Operator có thể muốn enabled nhưng plugin đang `FAILED`.
+- **State (`State`):** which lifecycle milestone the plugin is currently at, e.g. `ACTIVE`.
+- **Event (`Event`):** what happens to drive a transition, e.g. `START_SUCCEEDED`, `STOP_REQUESTED`.
+- **Health/readiness:** the result of checking serving capability at a point in time. A plugin can be `ACTIVE` yet become *unhealthy* because a backend temporarily disconnects; the host must define a policy to remove it from routing or transition to failure/quiescing.
+- **Desired state:** the target set by an operator, e.g. `ENABLED`/`DISABLED`; it is not equivalent to actual state. An operator may desire enabled while the plugin is `FAILED`.
 
-Nếu chỉ dùng một enum để trộn bốn khái niệm, host sẽ khó giải quyết tình huống crash, restart, thay version hoặc dependency của plugin bị lỗi.
+If a single enum is used to mix all four concepts, the host will struggle to handle crashes, restarts, version replacements, or failing plugin dependencies.
 
-## 4. Phát hiện: từ artifact đến `DISCOVERED`
+## 4. Discovery: From Artifact to `DISCOVERED`
 
-### 4.1. Discovery có thể diễn ra theo nhiều lớp
+### 4.1. Discovery Can Occur at Multiple Layers
 
-Plugin có thể được phát hiện bằng:
+Plugins can be discovered via:
 
-- **Java SPI**: `ServiceLoader.load(Extension.class)` phát hiện implementation đã đăng ký trong `META-INF/services` hoặc khai báo JPMS `provides`.
-- **Artifact registry/manifest**: host quét thư mục JAR/module repository, nhận metadata về plugin ID, version, dependency, capability.
-- **JPMS**: `ModuleFinder` quan sát module artifact; `Configuration.resolve(...)` giải quyết module graph; `ModuleLayer` định nghĩa module runtime.
-- **Class loader riêng**: host cấu hình URL/class loader/module layer rồi tìm lớp theo hợp đồng.
+- **Java SPI**: `ServiceLoader.load(Extension.class)` discovers implementations registered in `META-INF/services` or declared via JPMS `provides`.
+- **Artifact registry/manifest**: the host scans a JAR directory/module repository and reads metadata about plugin ID, version, dependencies, and capabilities.
+- **JPMS**: `ModuleFinder` observes module artifacts; `Configuration.resolve(...)` resolves the module graph; `ModuleLayer` defines runtime modules.
+- **Dedicated class loader**: the host configures a URL/class loader/module layer and then searches for classes matching the contract.
 
-Đó là các lựa chọn kỹ thuật, không phải các trạng thái `ACTIVE`. Chẳng hạn `ServiceLoader.findFirst()` có thể trả `Optional<Extension>` chứa một instance mới, nhưng **constructor đã chạy không đồng nghĩa `start()` đã được gọi**.
+Those are technical mechanisms, not `ACTIVE` states. For example, `ServiceLoader.findFirst()` may return an `Optional<Extension>` containing a new instance, but **the constructor having run does not mean `start()` has been called**.
 
-### 4.2. Cẩn thận với mã chạy trong bước khám phá
+### 4.2. Beware of Code Running During Discovery
 
-Khi `ServiceLoader` tạo instance, constructor hoặc static initializer có thể chạy. Vì vậy discovery không nhất thiết hoàn toàn “không có side effect”. Nếu muốn xác minh metadata trước khi tạo instance, host có thể đọc manifest của artifact/registry hoặc làm việc với `ServiceLoader.Provider<S>` và `type()` trước `get()`; dù vậy nạp class/metadata vẫn có thể phát sinh lỗi. **Class loader không phải sandbox**, nên không chạy plugin không tin cậy với quyền của tiến trình chính mà thiếu ranh giới an toàn.
+When `ServiceLoader` creates an instance, constructors or static initializers can run. Therefore, discovery is not necessarily completely “side-effect-free”. If you want to verify metadata before instantiating, the host can read the artifact/registry manifest or work with `ServiceLoader.Provider<S>` and `type()` before `get()`; even so, loading classes/metadata can still raise errors. **A class loader is not a sandbox**, so do not run untrusted plugins with the main process's privileges without a security boundary.
 
-### 4.3. Phân biệt vắng mặt với lỗi provider
+### 4.3. Distinguishing Absence from Provider Errors
 
 ```java
 Optional<Extension> found =
     ServiceLoader.load(Extension.class).findFirst();
 
 if (found.isEmpty()) {
-    System.out.println("Không có extension provider");
+    System.out.println("No extension provider");
 }
 ```
 
-Đây là đoạn minh họa cần import và interface. `Optional.empty()` thể hiện không có provider sau khi duyệt bình thường. Provider được đăng ký hỏng hoặc không thể tạo có thể làm `ServiceLoader` ném `ServiceConfigurationError`. Không nên bắt mọi lỗi rồi trả `Optional.empty()`; làm vậy che cấu hình sai.
+This is an illustrative snippet requiring imports and the interface. `Optional.empty()` indicates no provider was found after normal traversal. A provider that is registered incorrectly or cannot be instantiated can cause `ServiceLoader` to throw `ServiceConfigurationError`. Do not catch all errors and return `Optional.empty()`; doing so hides misconfiguration.
 
-Nếu có nhiều providers, `findFirst()` không bảo đảm chọn đúng bản mong muốn. Host cần chọn theo ID/capability/version/priority, xác minh chính sách rồi mới tạo/kích hoạt plugin. Việc lựa chọn provider cũng **không tự quản lý dependency hoặc vòng đời**.
+If multiple providers exist, `findFirst()` does not guarantee selecting the intended one. The host must select by ID/capability/version/priority, verify policy, and only then instantiate/activate the plugin. Provider selection also **does not automatically manage dependencies or lifecycle**.
 
-## 5. Xác minh: `DISCOVERED → VERIFIED`
+## 5. Verification: `DISCOVERED → VERIFIED`
 
-Bước **verify** phải xác minh điều kiện để plugin **được phép thử khởi tạo**, không chỉ kiểm tra class implement đúng interface.
+The **verify** step must validate the conditions allowing the plugin to **attempt initialization**, not merely check that a class implements the right interface.
 
-### 5.1. Những thứ nên kiểm tra
+### 5.1. What Should Be Checked
 
-| Nhóm | Câu hỏi |
+| Category | Questions |
 | --- | --- |
-| Danh tính | Plugin ID hợp lệ, không trùng? Tên/nguồn artifact rõ ràng? |
-| Tính toàn vẹn/nguồn | JAR có nguồn đáng tin, checksum/chữ ký được xác thực nếu policy yêu cầu? |
-| Contract/API | Plugin dùng đúng interface/binary API, minimum host version và class identity? |
-| Phiên bản | Plugin/dependency version thỏa compatibility matrix? |
-| Phụ thuộc | Có đủ module/JAR, host services và plugin phụ thuộc ở trạng thái cần thiết? |
-| Cấu hình | Các key bắt buộc, secret handles, đường dẫn namespace và schema hợp lệ? |
-| Capability/permission | Plugin có được bật trong môi trường hiện tại? Tính năng yêu cầu có được cấp? |
-| Policy | Giới hạn tenant, giới hạn CPU/memory, quyền truy cập mạng/filesystem nếu hệ thống hỗ trợ? |
+| Identity | Is the plugin ID valid and unique? Are the artifact name and source clear? |
+| Integrity/provenance | Does the JAR come from a trusted source, with checksum/signature verified if required by policy? |
+| Contract/API | Does the plugin use the right interface/binary API, minimum host version, and class identity? |
+| Version | Do the plugin/dependency versions satisfy the compatibility matrix? |
+| Dependencies | Are all required modules/JARs, host services, and dependent plugins in the required state? |
+| Configuration | Are required keys, secret handles, namespace paths, and schemas valid? |
+| Capability/permission | Is the plugin enabled in the current environment? Are requested features granted? |
+| Policy | Tenant limits, CPU/memory limits, network/filesystem permissions if supported by the system? |
 
-Không thể mặc định một lời gọi `plugin.verify()` đơn lẻ sẽ tự kiểm tra **tất cả** điều trên. Chúng cần sự phối hợp giữa plugin manager, metadata và những dịch vụ bảo mật/cấu hình của host.
+You cannot assume a single `plugin.verify()` call will check **all** of the above on its own. They require coordination between the plugin manager, metadata, and the host's security/configuration services.
 
-### 5.2. Xác minh trước khi cấp quyền
+### 5.2. Verify Before Granting Privileges
 
-Nếu xác minh phụ thuộc vào metadata trong JAR, nên kiểm tra những thứ có thể kiểm tra **trước khi tạo instance/chạy code**. Các dữ liệu do chính plugin khai báo có thể thiếu hoặc không đáng tin nếu plugin đến từ nguồn lạ. Tách rõ:
+If verification relies on metadata inside the JAR, check whatever can be checked **before instantiating/executing code**. Data declared by the plugin itself may be incomplete or untrustworthy if the plugin comes from an unknown source. Separate clearly:
 
-1. **Pre-instantiation checks** của host: định danh artifact, chữ ký, manifest, compatibility, dependency graph.
-2. **Post-instantiation validation** của plugin: kiểm tra cấu hình hoặc capability yêu cầu sau khi được cấp một context tối thiểu.
+1. **Host pre-instantiation checks**: artifact identity, signature, manifest, compatibility, dependency graph.
+2. **Plugin post-instantiation validation**: checking configuration or required capabilities after receiving a minimal context.
 
-Không dùng class loader để thay thế OS sandbox cho mã độc. Một JAR có quyền thực thi code trong JVM không tự trở nên an toàn khi nó đã qua module resolution.
+Do not use a class loader as a substitute for an OS sandbox against malicious code. A JAR permitted to execute code in the JVM does not automatically become safe once it passes module resolution.
 
-### 5.3. Xác minh lỗi thì sao?
+### 5.3. What If Verification Fails?
 
-Nếu thiếu dependency bắt buộc, ID xung đột, API không tương thích hoặc cấu hình không hợp lệ, manager:
+If a required dependency is missing, an ID conflicts, the API is incompatible, or configuration is invalid, the manager:
 
-- Ghi `FAILED` và nguyên nhân ở pha verify (hoặc loại artifact trước khi tạo plugin instance).
-- Không gọi `initialize`/`start`, không đưa plugin vào registry nhận request.
-- Dọn các tài nguyên đã thực sự mở trong discovery/validation; không assume chưa có gì cần cleanup.
-- Truyền thông tin lỗi có thể hành động: plugin ID, version, dependency thiếu, nguồn artifact, stage.
+- Records `FAILED` and the cause in the verify phase (or rejects the artifact before creating a plugin instance).
+- Does not call `initialize`/`start`, and does not put the plugin into the request-receiving registry.
+- Cleans up any resources actually opened during discovery/validation; do not assume nothing needs cleanup.
+- Surfaces actionable error information: plugin ID, version, missing dependency, artifact source, stage.
 
-## 6. Khởi tạo: `VERIFIED → INITIALIZED`, rồi kích hoạt `ACTIVE`
+## 6. Initialization: `VERIFIED → INITIALIZED`, Then Activating `ACTIVE`
 
-### 6.1. Tách constructor, initialize và start
+### 6.1. Separating Constructor, Initialize, and Start
 
-Có ít nhất ba mốc rất dễ bị gộp:
+There are at least three milestones that are very easy to conflate:
 
-- **Constructor/provider creation:** JVM tạo object; cố gắng giữ nhẹ, không mở connection hay spawn thread nặng.
-- **`initialize(context)`:** host truyền cấu hình, logger, repository, service facade và resource handles; plugin chuẩn bị trạng thái.
-- **`start()`:** plugin đăng ký listener hoặc chạy thành phần cần thiết; hoàn tất readiness; từ đây manager mới cho phép nhận request.
+- **Constructor/provider creation:** the JVM creates the object; keep it lightweight, without opening connections or spawning heavy threads.
+- **`initialize(context)`:** the host passes configuration, logger, repositories, service facades, and resource handles; the plugin prepares its state.
+- **`start()`:** the plugin registers listeners or starts required components; completes readiness; from here the manager allows accepting requests.
 
-Tại lúc `initialize` hoàn thành, trạng thái là `INITIALIZED`, chưa phải `ACTIVE`. Host có thể gọi thêm readiness check trong `start` hoặc tách thành pha `STARTING` nếu cần.
+At the moment `initialize` completes, the state is `INITIALIZED`, not yet `ACTIVE`. The host may invoke an additional readiness check during `start` or split out a `STARTING` phase if needed.
 
-### 6.2. Thiết kế một plugin context
+### 6.2. Designing a Plugin Context
 
 ```java
 public record PluginContext(
@@ -207,114 +207,114 @@ public record PluginContext(
 }
 ```
 
-Đây là đoạn **minh họa API**, có thể cần điều chỉnh visibility/ownership trong dự án. Thay vì để plugin tự đoán thư mục làm việc hoặc truy cập singleton toàn cục, host cấp dependency qua context. Context không nên trao cho plugin quyền lớn hơn nhu cầu. Secret có thể cấp qua một interface quản lý secret; không nhét token vào log hay lỗi.
+This is an **API illustration**; visibility/ownership may need adjustment in your project. Instead of letting plugins guess the working directory or access global singletons, the host supplies dependencies through the context. The context should not grant the plugin more privileges than needed. Secrets can be supplied via a secret-management interface; never put tokens into logs or error messages.
 
-### 6.3. Khởi tạo một phần và rollback
+### 6.3. Partial Initialization and Rollback
 
-Một chuỗi thực tế:
+A realistic sequence:
 
 ```text
 initialize
-  ├── mở connection pool  [OK]
-  ├── tạo executor         [OK]
-  ├── đăng ký listener     [FAILED]
-  └── return               [không tới]
+  ├── open connection pool  [OK]
+  ├── create executor       [OK]
+  ├── register listener     [FAILED]
+  └── return                [not reached]
 ```
 
-Plugin đã **thất bại trước khi đạt `INITIALIZED`** nhưng hai resource đầu vẫn tồn tại. Manager phải gọi cleanup qua contract an toàn khi khởi tạo một phần. Implementation cũng nên dùng `try/finally` hoặc `try-with-resources` ở bên trong `initialize` để dọn ngay tài nguyên đã tạo trước khi ném lỗi.
+The plugin **failed before reaching `INITIALIZED`**, yet the first two resources still exist. The manager must invoke cleanup via a contract that is safe under partial initialization. Implementations should also use `try/finally` or `try-with-resources` inside `initialize` to immediately clean up already-created resources before throwing.
 
-Nên ghi rõ trong interface: `stop()` (hoặc `close()`) **phải an toàn** nếu `initialize()` chưa được gọi, gọi chưa thành công, `start()` lỗi giữa chừng, hoặc stop đã chạy trước đó. Nếu không bảo đảm được, plugin manager phải theo dõi chính xác các resource handles và gọi cleanup dựa trên mốc cấp phát.
+The interface should explicitly specify: `stop()` (or `close()`) **must be safe** if `initialize()` has not been called, did not finish successfully, `start()` failed midway, or stop has already run before. If that cannot be guaranteed, the plugin manager must accurately track resource handles and invoke cleanup based on allocation checkpoints.
 
-## 7. Hoạt động: chỉ `ACTIVE` mới nhận yêu cầu
+## 7. Active: Only `ACTIVE` Accepts Requests
 
-Khi plugin đã sẵn sàng:
+When the plugin is ready:
 
-1. `start()` hoàn tất, readiness check thành công.
-2. Manager chuyển trạng thái sang `ACTIVE`.
-3. Plugin được đưa vào dispatch registry (phải phối hợp nguyên tử với trạng thái).
-4. Request mới có thể được gửi đến implementation.
+1. `start()` completes and the readiness check succeeds.
+2. The manager transitions the state to `ACTIVE`.
+3. The plugin is placed into the dispatch registry (must be coordinated atomically with the state).
+4. New requests can be dispatched to the implementation.
 
-Đừng publish plugin khi vẫn `INITIALIZED` hoặc đang `STARTING`. Đừng dùng `if (plugin != null)` để quyết định chạy, vì **instance tồn tại chưa có nghĩa nó hoạt động**.
+Do not publish the plugin while it is still `INITIALIZED` or `STARTING`. Do not use `if (plugin != null)` to decide whether to run, because **an instance existing does not mean it is active**.
 
-### 7.1. Lỗi xử lý request: tất cả có làm plugin FAILED không?
+### 7.1. Request Handling Errors: Do All Errors Make the Plugin FAILED?
 
-Không nhất thiết. Hãy phân biệt:
+Not necessarily. Distinguish:
 
-- **Lỗi nghiệp vụ có thể phục hồi:** đầu vào không hợp lệ, yêu cầu không được hỗ trợ, timeout riêng một request. Có thể trả lỗi request và giữ plugin `ACTIVE`.
-- **Lỗi sức khỏe/sự cố hệ thống:** connection pool hỏng, worker thread chết, context sai, state internal corrupt. Manager có thể chuyển `FAILED` hoặc `QUIESCING` tùy policy và health check.
-- **Lỗi nghiêm trọng của JVM:** như `OutOfMemoryError` hoặc một số `LinkageError`; không nên bắt `Throwable` rồi giả vờ plugin vẫn hoạt động bình thường.
+- **Recoverable business errors:** invalid input, unsupported request, single-request timeout. You can return an error for that request and keep the plugin `ACTIVE`.
+- **Health/system failures:** broken connection pool, dead worker thread, invalid context, corrupted internal state. The manager may transition to `FAILED` or `QUIESCING` depending on policy and health checks.
+- **Fatal JVM errors:** such as `OutOfMemoryError` or certain `LinkageError`s; do not catch `Throwable` and pretend the plugin is still operating normally.
 
-Plugin manager cần **error policy** tường minh: lỗi nào chỉ ảnh hưởng một request, lỗi nào cần circuit breaker, lỗi nào bắt buộc dừng plugin.
+The plugin manager needs an explicit **error policy**: which errors affect only a single request, which require a circuit breaker, and which force stopping the plugin.
 
-### 7.2. Đồng thời và request đang chạy
+### 7.2. Concurrency and In-Flight Requests
 
-Production thường có thread A xử lý request và thread B nhận lệnh dừng:
+In production, thread A often handles requests while thread B receives a stop command:
 
 ```text
-Thread A:  [kiểm tra ACTIVE] ───► [đang xử lý] ───► [trả kết quả]
-Thread B:                      [STOP REQUESTED] ─► [dọn resource]
+Thread A:  [check ACTIVE] ───► [processing] ───► [return result]
+Thread B:                      [STOP REQUESTED] ─► [clean up resources]
 ```
 
-Nếu B đóng connection trong khi A vẫn dùng, request có thể thất bại hoặc làm hỏng dữ liệu. Giải pháp là protocol kiểu **quiescing**:
+If B closes a connection while A is still using it, the request can fail or corrupt data. The solution is a **quiescing** protocol:
 
 ```text
 ACTIVE
-   │ khóa cổng request mới (atomic)
+   │ lock new-request gate (atomic)
    ▼
-QUIESCING ── chờ inflight=0 / deadline ──► STOPPING
-                                           │
-                                           ▼
-                                        STOPPED
+QUIESCING ── wait for inflight=0 / deadline ──► STOPPING
+                                                  │
+                                                  ▼
+                                               STOPPED
 ```
 
-Dispatcher cần cấp một *lease/in-flight token* chỉ khi trạng thái còn `ACTIVE`, tăng bộ đếm request đang chạy **trong cùng critical section** với kiểm tra state. Khi request hoàn tất, giảm đếm và đánh thức shutdown. Khi đóng cổng, không request mới nào nhận lease, rồi host đợi số đang chạy về 0 hoặc đạt deadline theo chính sách. Chỉ sau đó mới dọn tài nguyên mà request đang dùng.
+The dispatcher should issue a *lease/in-flight token* only while the state is still `ACTIVE`, incrementing the in-flight request counter **within the same critical section** as the state check. When a request finishes, decrement the counter and wake up shutdown. Once the gate is closed, no new request receives a lease, and the host waits for the in-flight count to reach 0 or hit a policy deadline. Only then are resources used by requests cleaned up.
 
-**Không đủ** nếu chỉ dùng hai thao tác rời `if (state == ACTIVE)` rồi `inFlight++`, vì `STOPPING` có thể xen vào ở giữa. `volatile State` giúp thấy giá trị mới nhưng **không biến hai thao tác thành một transition nguyên tử**.
+**It is not sufficient** to use two separate operations `if (state == ACTIVE)` followed by `inFlight++`, because `STOPPING` can interleave in between. A `volatile State` makes the new value visible, but **does not turn two operations into an atomic transition**.
 
-## 8. Dừng: `ACTIVE/FAILED → STOPPING → STOPPED`
+## 8. Stopping: `ACTIVE/FAILED → STOPPING → STOPPED`
 
-Một quy trình shutdown tốt có các bước:
+A sound shutdown sequence includes these steps:
 
-1. Đánh dấu `QUIESCING` hoặc `STOPPING` và rút instance khỏi danh sách nhận request mới.
-2. Đợi/hủy các request còn chạy theo deadline có kiểm soát.
-3. Gỡ listener, scheduler task, callback, metric hooks, event subscriptions và các object đăng ký vào host.
-4. Đóng connection, stream, file watcher, executor/thread, temporary files và handles mà plugin sở hữu.
-5. Cắt tham chiếu từ registry, cache, `ThreadLocal`/TCCL nếu những tham chiếu này do host/plugin tạo.
-6. Nếu host tạo `URLClassLoader`, cân nhắc `close()` sau khi không còn sử dụng. **Không** cho rằng `close()` tự dừng thread hoặc bảo đảm unload class.
-7. Ghi kết quả cleanup, trạng thái cuối và nguyên nhân lỗi nếu từng có.
+1. Mark `QUIESCING` or `STOPPING` and withdraw the instance from the new-request dispatch list.
+2. Wait for/cancel remaining in-flight requests under a controlled deadline.
+3. Unregister listeners, scheduler tasks, callbacks, metric hooks, event subscriptions, and objects registered with the host.
+4. Close connections, streams, file watchers, executors/threads, temporary files, and handles owned by the plugin.
+5. Sever references from registries, caches, `ThreadLocal`/TCCL if created by the host/plugin.
+6. If the host created a `URLClassLoader`, consider calling `close()` once no longer in use. **Do not** assume `close()` stops threads automatically or guarantees class unloading.
+7. Record cleanup outcome, final state, and failure cause if one ever occurred.
 
-Nếu `stop()` bị gọi lặp, có hai cơ chế bảo vệ bổ sung:
+If `stop()` is called repeatedly, there are two complementary safeguards:
 
-- **Plugin idempotent:** `stop()` lặp an toàn, không gửi double-delete hoặc đóng tài nguyên không đúng chủ sở hữu.
-- **Manager once-only guard:** đảm bảo cùng lifecycle instance chỉ khởi động một lần và cleanup được lên lịch một lần. Trong hệ thống bất đồng bộ, guard nên dùng atomic compare-and-set hoặc lock thích hợp.
+- **Idempotent plugin:** repeated `stop()` is safe and does not send double-deletes or close resources it does not own.
+- **Manager once-only guard:** ensures the same lifecycle instance starts only once and cleanup is scheduled only once. In asynchronous systems, the guard should use atomic compare-and-set or an appropriate lock.
 
-### 8.1. Dừng theo thứ tự phụ thuộc
+### 8.1. Stopping in Dependency Order
 
-Giả sử `ReportingPlugin` cần `StoragePlugin` để flush dữ liệu. Khi khởi động:
+Suppose `ReportingPlugin` needs `StoragePlugin` to flush data. At startup:
 
 ```text
 Storage → Reporting
 ```
 
-Khi dừng, đảo thứ tự:
+At shutdown, reverse the order:
 
 ```text
 Reporting → Storage
 ```
 
-Mặc dù `ServiceLoader` tìm được cả hai provider, nó không giải quyết thứ tự này. Plugin manager cần dependency graph. Nếu Storage đã stop trước Reporting, bước flush trong Reporting có thể thất bại hoặc mất dữ liệu.
+Although `ServiceLoader` finds both providers, it does not resolve this ordering. The plugin manager needs a dependency graph. If Storage stops before Reporting, the flush step in Reporting can fail or lose data.
 
-### 8.2. Đóng class loader khác dừng plugin
+### 8.2. Closing a Class Loader Is Not Stopping a Plugin
 
-Thay JAR và gọi `ServiceLoader.reload()` chỉ làm `ServiceLoader` quên cache provider; nó **không** thay bytecode đã được nạp trong loader hiện tại, không gọi `stop` và không tự đóng tài nguyên. Hot reload cần instance/loader mới, xác minh tương thích, khởi động, chuyển traffic, quiesce instance cũ, stop, xóa callback/thread/caches rồi dọn loader cũ.
+Replacing a JAR and calling `ServiceLoader.reload()` only makes `ServiceLoader` forget its provider cache; it **does not** replace bytecode already loaded in the current loader, does not call `stop`, and does not close resources automatically. Hot reload requires a new instance/loader, compatibility verification, startup, traffic switching, quiescing the old instance, stopping, removing callbacks/threads/caches, and then cleaning up the old loader.
 
-Layer/class loader chỉ giúp kiến trúc nạp mã, **không** tự quản lý lifecycle nghiệp vụ.
+Layers/class loaders only help with code loading architecture; they **do not** automatically manage business lifecycle.
 
-## 9. Lỗi: cách thiết kế `FAILED` không che khuất nguyên nhân
+## 9. Failure: Designing `FAILED` Without Hiding the Cause
 
-`FAILED` cần có **thông tin đi kèm**, không chỉ một nhãn enum.
+`FAILED` needs **accompanying information**, not just an enum label.
 
-Một bản ghi có thể gồm:
+A record might include:
 
 ```text
 pluginId: echo
@@ -324,52 +324,52 @@ state: FAILED
 errorCode: START_FAILED
 message: Backend unavailable
 timestamp: 2026-11-01T10:00:00Z
-retryable: false  (theo policy của host)
+retryable: false  (per host policy)
 cleanupStatus: PENDING
 ```
 
-Đây chỉ là **dữ liệu minh họa**, không phải log của demo bên dưới. Khi cleanup hoàn tất, có thể thấy `state=STOPPED` nhưng `lastFailure` và `cleanupStatus=COMPLETED` vẫn được lưu để người vận hành biết lần chạy đã lỗi.
+This is **illustrative data** only, not log output from the demo below. Once cleanup completes, you may see `state=STOPPED` while `lastFailure` and `cleanupStatus=COMPLETED` remain stored so operators know the run failed.
 
-### 9.1. Bảng lỗi và phản ứng
+### 9.1. Failure and Response Table
 
-| Pha | Lỗi mẫu | Phản ứng đề xuất |
+| Phase | Example Failure | Recommended Response |
 | --- | --- | --- |
-| Discovery | Không có provider | Trả “không tìm thấy” ở cấp host; có thể dùng fallback theo policy |
-| Discovery | Descriptor SPI sai, không tạo được provider | Báo `ServiceConfigurationError`/classload failure, không coi là “không có” |
-| Verify | Sai API version, thiếu dependency, ID trùng | Đánh dấu lỗi hoặc từ chối artifact, không khởi tạo |
-| Initialize | File cấu hình lỗi, tạo connection một phần | Không publish; dọn phần đã mở, giữ nguyên nhân |
-| Start | Đăng ký listener thất bại, readiness timeout | `FAILED`, rollback/dừng, không chuyển `ACTIVE` |
-| Active | Input không hợp lệ | Trả lỗi riêng request, có thể vẫn `ACTIVE` |
-| Active | Internal state corrupt hoặc dependency mất kéo dài | Quiesce/`FAILED` theo policy, tránh dispatch mới |
-| Stop | Resource close throw | Tiếp tục dọn các resource khác khi có thể; ghi lỗi cleanup; escalation |
-| Hot reload | Version mới start thất bại | Giữ phiên bản cũ hoạt động nếu chưa switch; cleanup bản mới |
+| Discovery | No provider found | Return “not found” at the host level; optionally use a fallback per policy |
+| Discovery | Invalid SPI descriptor, provider cannot be instantiated | Report `ServiceConfigurationError`/classload failure; do not treat as “absent” |
+| Verify | Wrong API version, missing dependency, duplicate ID | Mark failed or reject artifact; do not initialize |
+| Initialize | Corrupted config file, partial connection creation | Do not publish; clean up opened parts, preserve cause |
+| Start | Listener registration failed, readiness timeout | `FAILED`, roll back/stop, do not transition to `ACTIVE` |
+| Active | Invalid input | Return per-request error; may remain `ACTIVE` |
+| Active | Corrupted internal state or prolonged dependency loss | Quiesce/`FAILED` per policy; stop dispatching new requests |
+| Stop | Resource close throws | Continue cleaning up other resources where possible; log cleanup error; escalate |
+| Hot reload | New version fails to start | Keep old version active if not switched yet; clean up new version |
 
-### 9.2. Có nên retry từ `FAILED`?
+### 9.2. Should You Retry From `FAILED`?
 
-Không tự động gọi lại `start()` trên object cũ khi không biết nó đã khởi tạo bao nhiêu tài nguyên. Một policy an toàn mặc định:
+Do not automatically call `start()` again on the old object when you do not know how many resources it already initialized. A safe default policy:
 
 ```text
 FAILED instance
    → best-effort cleanup
-   → STOPPED (giữ failure history)
-   → đợi backoff/policy
-   → DISCOVER instance MỚI
+   → STOPPED (keep failure history)
+   → wait per backoff/policy
+   → DISCOVER NEW instance
    → VERIFY → INITIALIZE → START
 ```
 
-Nếu plugin hỗ trợ restart cùng instance, điều này phải được hợp đồng API quy định rõ và được test với mọi bước lỗi/tài nguyên. Mọi retry phải giới hạn số lần, có backoff và tránh lặp vô hạn khi dependency vẫn sai.
+If a plugin supports restarting the same instance, that must be explicitly specified by the API contract and tested across every failure/resource path. All retries must be bounded in count, use backoff, and avoid infinite loops when a dependency remains broken.
 
-## 10. Ví dụ Java 17+ chạy được: state machine rõ ràng với SPI
+## 10. Runnable Java 17+ Example: Explicit State Machine with SPI
 
-Ví dụ gồm:
+The example includes:
 
-- **`Extension`**: contract chung và một record chứa option do host cấp.
-- **`EchoExtension`**: provider được đăng ký bằng Java SPI; cho phép mô phỏng `start()` thành công hoặc thất bại.
-- **`Main`**: host dùng `ServiceLoader.findFirst()` để khám phá, sau đó điều phối `VERIFIED → INITIALIZED → ACTIVE`, và dù thành công hay lỗi cũng cleanup qua `STOPPING → STOPPED`.
+- **`Extension`**: shared contract and a record containing host-supplied options.
+- **`EchoExtension`**: provider registered via Java SPI; allows simulating `start()` success or failure.
+- **`Main`**: host using `ServiceLoader.findFirst()` to discover, then orchestrating `VERIFIED → INITIALIZED → ACTIVE`, and whether succeeding or failing, cleaning up via `STOPPING → STOPPED`.
 
-Ví dụ cố ý dùng **một thread, một provider, một lần chạy** để state transitions và stdout hoàn toàn xác định. Nó không mô phỏng concurrency/quiescing production và không phải sandbox.
+The example intentionally uses **one thread, one provider, one run** so state transitions and stdout are completely deterministic. It does not simulate production concurrency/quiescing and is not a sandbox.
 
-### 10.1. Cấu trúc thư mục
+### 10.1. Directory Structure
 
 ```text
 demo/
@@ -404,15 +404,15 @@ public interface Extension {
 }
 ```
 
-**Ý nghĩa contract:**
+**Contract semantics:**
 
-- `verify` kiểm tra điều kiện mà provider có thể tự xác minh; host còn phải thực hiện các policy checks bên ngoài.
-- `initialize` cấp options/context và chuẩn bị tài nguyên.
-- `start` kích hoạt plugin; chỉ khi thành công host mới chuyển sang `ACTIVE`.
-- `invoke` chỉ được gọi khi ACTIVE.
-- `stop` có trách nhiệm cleanup và **phải an toàn** cả khi `initialize` hoặc `start` chưa hoàn thành. Demo cho phép gọi lặp.
+- `verify` checks conditions the provider can self-verify; the host must still perform external policy checks.
+- `initialize` supplies options/context and prepares resources.
+- `start` activates the plugin; only on success does the host transition to `ACTIVE`.
+- `invoke` may only be called when ACTIVE.
+- `stop` is responsible for cleanup and **must be safe** even when `initialize` or `start` has not completed. The demo allows repeated calls.
 
-Trong ví dụ `Options.failStart` là cờ kiểm thử lỗi, không phải một kiến trúc config đầy đủ. Trong ứng dụng thực tế nên thay bằng `PluginContext` typed, logger, config, host services và policy hạn chế quyền.
+In the example, `Options.failStart` is a failure-testing flag, not a complete configuration architecture. In real applications, replace it with a typed `PluginContext`, logger, config, host services, and permission-restricting policies.
 
 ### 10.3. Implementation: `src/demo/impl/EchoExtension.java`
 
@@ -474,9 +474,9 @@ public final class EchoExtension implements Extension {
 }
 ```
 
-`stop()` chỉ reset state trong demo, nhưng được viết để **không cần `start()` thành công**. Điều này cho phép host cleanup sau tình huống `start refused`. Trong plugin thật, `stop()` phải đóng chính xác các resource đã được cấp phát và tránh double-close.
+`stop()` only resets state in the demo, but is written so it **does not require `start()` to have succeeded**. This allows the host to clean up after a `start refused` situation. In a real plugin, `stop()` must close the exact resources that were allocated and avoid double-close.
 
-Trạng thái `active` ở implementation chỉ là guard minh họa, **không phải đồng bộ hóa thread-safe**. Manager sở hữu trạng thái vòng đời có tính chính thức; plugin có thể tự bảo vệ method của mình như lớp phòng thủ thứ hai.
+The `active` flag in the implementation is only an illustrative guard, **not thread-safe synchronization**. The manager owns the authoritative lifecycle state; the plugin can guard its own methods as a second line of defense.
 
 ### 10.4. Host/manager: `src/demo/host/Main.java`
 
@@ -624,21 +624,21 @@ public final class Main {
 }
 ```
 
-**Ý nghĩa các guard trong host:**
+**Meaning of the guards in the host:**
 
-- `Lifecycle` bắt đầu ở `DISCOVERED` **sau** khi SPI trả instance hợp lệ. Nếu không có provider, không tạo `Lifecycle`.
-- `moveTo` xác minh mọi cạnh của đồ thị trạng thái. Các chuyển không hợp lệ ném `IllegalStateException` để phát hiện lỗi lập trình.
-- `runCalled` ngăn dùng lại cùng manager theo cách ngẫu nhiên.
-- `ACTIVE` chỉ được ghi sau khi `plugin.start()` trả về thành công; `invoke` nằm sau đó.
-- `catch (Exception)` ghi failure và chuyển `FAILED`; `finally` gọi `shutdown` ngay cả khi `verify`, `initialize`, `start` hoặc `invoke` ném exception.
-- `cleanupAttempted` ngăn gọi cleanup nhiều lần từ host; implementation `stop()` vẫn cần hỗ trợ cleanup an toàn khi khởi tạo một phần.
-- `hadFailure` lưu lại lịch sử thất bại **ngay cả khi trạng thái cuối là `STOPPED`**.
+- `Lifecycle` starts at `DISCOVERED` **after** SPI returns a valid instance. If there is no provider, no `Lifecycle` is created.
+- `moveTo` validates every edge of the state graph. Illegal transitions throw `IllegalStateException` to catch programming mistakes.
+- `runCalled` prevents accidental reuse of the same manager.
+- `ACTIVE` is recorded only after `plugin.start()` returns successfully; `invoke` comes after that.
+- `catch (Exception)` records failure and transitions to `FAILED`; `finally` calls `shutdown` even if `verify`, `initialize`, `start`, or `invoke` throws an exception.
+- `cleanupAttempted` prevents calling cleanup multiple times from the host; the `stop()` implementation still needs to support safe cleanup after partial initialization.
+- `hadFailure` preserves the failure history **even when the final state is `STOPPED`**.
 
-Đây là một mô hình **đồng bộ, đơn luồng**. Nếu các thao tác diễn ra trên nhiều thread, `runCalled`, `state`, `cleanupAttempted` và `hadFailure` cần được bảo vệ bằng lock/CAS, và shutdown phải tính đến request inflight. Không copy mã demo rồi coi nó là một plugin manager production thread-safe.
+This is a **synchronous, single-threaded** model. If operations occur across multiple threads, `runCalled`, `state`, `cleanupAttempted`, and `hadFailure` must be protected with locks/CAS, and shutdown must account for in-flight requests. Do not copy the demo code and treat it as a thread-safe production plugin manager.
 
-Một giới hạn khác: lỗi quá nghiêm trọng thuộc `Error` (ví dụ lỗi JVM/linkage) không được bắt bởi `catch (Exception)`; chương trình không giả vờ có thể phục hồi mọi sự cố. `ServiceConfigurationError` trong bước discovery cũng xảy ra **trước** khi tạo manager và cần xử lý ở ranh giới host phù hợp.
+Another limitation: severe errors belonging to `Error` (such as JVM/linkage errors) are not caught by `catch (Exception)`; the program does not pretend it can recover from every failure. `ServiceConfigurationError` during discovery also occurs **before** creating the manager and must be handled at the appropriate host boundary.
 
-### 10.5. SPI descriptor
+### 10.5. SPI Descriptor
 
 **`resources/META-INF/services/demo.api.Extension`**
 
@@ -646,41 +646,41 @@ Một giới hạn khác: lỗi quá nghiêm trọng thuộc `Error` (ví dụ l
 demo.impl.EchoExtension
 ```
 
-Với classpath SPI, tên file phải là fully qualified name của interface, còn nội dung là tên class triển khai. Descriptor phải đóng **bên trong JAR provider** dưới đúng `META-INF/services`. Host chỉ phụ thuộc vào `demo.api.Extension`, không import `EchoExtension`.
+With classpath SPI, the filename must be the fully qualified name of the interface, and the content is the implementation class name. The descriptor must be packaged **inside the provider JAR** directly under `META-INF/services`. The host depends only on `demo.api.Extension` and does not import `EchoExtension`.
 
-### 10.6. Biên dịch/đóng JAR và chạy trên Windows PowerShell
+### 10.6. Compiling/Packaging the JAR and Running on Windows PowerShell
 
-Tại thư mục `demo`, yêu cầu **JDK 17+**:
+From the `demo` directory, **JDK 17+** is required:
 
 ```powershell
 New-Item -ItemType Directory -Force build/host, build/plugin | Out-Null
 
-# Host chứa contract và Lifecycle manager, chưa chứa provider.
+# Host contains the contract and Lifecycle manager, without the provider.
 javac -encoding UTF-8 -d build/host src/demo/api/Extension.java src/demo/host/Main.java
 
-# Provider được compile riêng, tham chiếu cùng API của host.
+# Provider is compiled separately, referencing the same host API.
 javac -encoding UTF-8 -cp build/host -d build/plugin src/demo/impl/EchoExtension.java
 
-# Đóng SPI descriptor vào JAR plugin.
+# Package the SPI descriptor into the plugin JAR.
 New-Item -ItemType Directory -Force build/plugin/META-INF/services | Out-Null
 Copy-Item resources/META-INF/services/demo.api.Extension build/plugin/META-INF/services/demo.api.Extension
 jar --create --file build/echo-plugin.jar -C build/plugin .
 
-# Trường hợp KHÔNG có provider trong runtime classpath.
+# Case WITHOUT a provider on the runtime classpath.
 java -cp build/host demo.host.Main
 
-# Trường hợp có provider và start THÀNH CÔNG.
+# Case WITH a provider and start SUCCEEDS.
 java -cp 'build/host;build/echo-plugin.jar' demo.host.Main
 
-# Trường hợp có provider nhưng start THẤT BẠI.
+# Case WITH a provider but start FAILS.
 java -cp 'build/host;build/echo-plugin.jar' demo.host.Main fail-start
 ```
 
-Trên Windows, dấu `;` ngăn cách các phần tử classpath. Với Linux/macOS, đổi thành dấu `:`, ví dụ `java -cp 'build/host:build/echo-plugin.jar' demo.host.Main`, và thay những lệnh tạo/copy file PowerShell bằng `mkdir -p`, `cp` tương ứng.
+On Windows, `;` separates classpath entries. On Linux/macOS, change it to `:`, e.g. `java -cp 'build/host:build/echo-plugin.jar' demo.host.Main`, and replace the PowerShell directory-creation/copy commands with `mkdir -p` and `cp` respectively.
 
-### 10.7. Kết quả chạy chính xác: không có provider
+### 10.7. Exact Run Output: No Provider
 
-Lệnh:
+Command:
 
 ```powershell
 java -cp build/host demo.host.Main
@@ -692,11 +692,11 @@ Stdout:
 [host] no provider discovered
 ```
 
-Đây là **kết quả discovery không có ứng viên**. Không có instance nên không có `DISCOVERED`, `FAILED` hay `STOPPED` của một plugin cụ thể. Host có thể chọn thông báo, disable tính năng hoặc fallback theo chính sách.
+This is a **discovery outcome with no candidates**. Without an instance, there is no `DISCOVERED`, `FAILED`, or `STOPPED` for a specific plugin. The host can choose to log a notice, disable the feature, or fall back per policy.
 
-### 10.8. Kết quả chạy chính xác: luồng thành công
+### 10.8. Exact Run Output: Success Flow
 
-Lệnh:
+Command:
 
 ```powershell
 java -cp 'build/host;build/echo-plugin.jar' demo.host.Main
@@ -716,14 +716,14 @@ Stdout:
 [host] had failure: false
 ```
 
-Có hai điều dễ kiểm chứng:
+Two things are easy to verify:
 
-1. `result: ECHO: Java` chỉ xuất hiện **sau** khi trạng thái `ACTIVE` đã được ghi.
-2. `cleanup called` nằm **giữa `STOPPING` và `STOPPED`**; host không tuyên bố đã dừng trước khi `plugin.stop()` hoàn tất.
+1. `result: ECHO: Java` appears only **after** the `ACTIVE` state has been recorded.
+2. `cleanup called` appears **between `STOPPING` and `STOPPED`**; the host does not declare itself stopped before `plugin.stop()` finishes.
 
-### 10.9. Kết quả chạy chính xác: start thất bại và cleanup
+### 10.9. Exact Run Output: Start Failure and Cleanup
 
-Lệnh:
+Command:
 
 ```powershell
 java -cp 'build/host;build/echo-plugin.jar' demo.host.Main fail-start
@@ -743,24 +743,24 @@ Stdout:
 [host] had failure: true
 ```
 
-Lần chạy lỗi **không có `ACTIVE`**, vì `plugin.start()` ném `IllegalStateException("start refused")`. Dù vậy, `finally` vẫn dọn tài nguyên. Trạng thái cuối là `STOPPED` nhưng `had failure: true` nhắc rằng plugin không từng sẵn sàng nhận request trong lần chạy này.
+The failed run **has no `ACTIVE`**, because `plugin.start()` threw `IllegalStateException("start refused")`. Even so, `finally` still cleans up resources. The final state is `STOPPED`, but `had failure: true` reminds us that the plugin was never ready to receive requests during this run.
 
-**Đây là sự khác biệt giữa lỗi và dừng:** `FAILED` ghi nhận sự cố; `STOPPING/STOPPED` ghi nhận tiến độ cleanup. Không nên mất một trong hai thông tin.
+**This is the difference between failure and stopping:** `FAILED` records the fault; `STOPPING/STOPPED` records cleanup progress. Neither piece of information should be lost.
 
-### 10.10. Điều ví dụ không giả định
+### 10.10. What the Example Does Not Assume
 
-- Không tự cài hot reload hoặc gỡ class đã nạp khỏi JVM.
-- Không coi `ServiceLoader` là dependency resolver hay plugin lifecycle manager.
-- Không đảm bảo an toàn khi nhiều thread đồng thời gọi invoke/stop.
-- Không xử lý tất cả lỗi ngoài `Exception` hoặc bảo đảm khôi phục JVM sau lỗi hệ thống.
-- Không tự phát hiện plugin không tin cậy theo chính sách chữ ký/OS quyền; bước verify ở demo chỉ kiểm tra ID và method mẫu.
-- Không tự retry trên cùng instance sau `FAILED`.
+- Does not implement hot reload or unload loaded classes from the JVM.
+- Does not treat `ServiceLoader` as a dependency resolver or plugin lifecycle manager.
+- Does not guarantee safety when multiple threads concurrently call invoke/stop.
+- Does not handle all errors outside `Exception` or guarantee JVM recovery after system errors.
+- Does not detect untrusted plugins via signature/OS privilege policies; the demo verify step only checks the ID and a sample method.
+- Does not automatically retry on the same instance after `FAILED`.
 
-Mỗi giới hạn trên cần chính sách và kiểm thử riêng trong ứng dụng thật.
+Each of the limitations above requires its own policy and testing in a real application.
 
-## 11. Thiết kế nâng cao cho production: event-driven state machine
+## 11. Advanced Design for Production: Event-Driven State Machine
 
-Khi plugin có bước start bất đồng bộ, nên phân biệt **lệnh yêu cầu chuyển** và **sự kiện hoàn thành**:
+When a plugin has an asynchronous startup step, distinguish **transition request commands** from **completion events**:
 
 ```text
 DISCOVERED
@@ -787,30 +787,30 @@ STARTING
 ACTIVE
    │ STOP_REQUESTED
    ▼
-QUIESCING ── inflight=0 hoặc deadline ──► STOPPING
+QUIESCING ── inflight=0 or deadline ──► STOPPING
                                           ├── STOP_OK → STOPPED
                                           └── STOP_ERR → FAILED
 ```
 
-Nếu `start` trả về một `CompletionStage`, đừng đổi `STARTING → ACTIVE` ngay lúc nhận future; chỉ đổi khi hoàn tất thành công và readiness check đạt yêu cầu. Nếu future thất bại hay bị timeout, chuyển `FAILED`/cleanup và bỏ qua callback đến muộn theo phiên/generation đã hủy.
+If `start` returns a `CompletionStage`, do not switch `STARTING → ACTIVE` as soon as the future is received; only switch when it completes successfully and the readiness check passes. If the future fails or times out, transition to `FAILED`/cleanup and ignore late callbacks matching the canceled generation.
 
-### 11.1. Số phiên (generation) để tránh callback cũ
+### 11.1. Generation Numbers to Avoid Stale Callbacks
 
-Giả sử plugin version 1 đang stop, version 2 bắt đầu. Callback bất đồng bộ từ version 1 tới sau khi version 2 đã ACTIVE có thể cập nhật nhầm registry. Nên gắn transition với `pluginId + generation/version + instanceId`, và chỉ chấp nhận callback nếu nó còn là **generation hiện hành**.
+Suppose plugin version 1 is stopping while version 2 starts. An asynchronous callback from version 1 arriving after version 2 is already `ACTIVE` could erroneously update the registry. Tie transitions to `pluginId + generation/version + instanceId`, and accept a callback only if it still matches the **current generation**.
 
-Ví dụ trạng thái phải được liên kết với **instance cụ thể**, không lưu chỉ một `Map<String, State>` mà không kiểm tra instance ID trong khi nhiều bản được bật song song.
+For example, state must be tied to a **specific instance**, not stored solely in a `Map<String, State>` without checking the instance ID when multiple versions are enabled in parallel.
 
-### 11.2. Atomic transition và publish
+### 11.2. Atomic Transition and Publish
 
-Một protocol production thường có:
+A production protocol typically includes:
 
-1. Khóa/atomic CAS chuyển state nếu state hiện tại đúng kỳ vọng.
-2. Ghi sự kiện và nguyên nhân với sequence number/timestamp.
-3. Publish/unpublish registry một cách đồng bộ với việc chuyển state.
-4. Không cho request mới nhận lease sau khi quiescing bắt đầu.
-5. Giữ callback cleanup một lần cho một instance và kiểm tra generation.
+1. Locking/atomic CAS to transition state if the current state matches expectations.
+2. Recording the event and cause with a sequence number/timestamp.
+3. Publishing/unpublishing in the registry synchronously with the state transition.
+4. Denying leases to new requests once quiescing starts.
+5. Keeping cleanup callbacks once-only per instance and checking generation.
 
-Ví dụ guard dạng **pseudocode** (không phải Java code hoàn chỉnh):
+Example guard in **pseudocode** (not complete Java code):
 
 ```text
 acquireRequestLease():
@@ -833,88 +833,88 @@ beginStop():
   cleanup()
 ```
 
-Đây là phác thảo thuật toán. Khi triển khai thật, không nên giữ lock trong lúc chờ I/O hoặc gọi code plugin có thể block/re-enter host; phải xét deadlock, timeout và interrupt policy. Sau timeout, có thể vẫn còn code plugin đang chạy, nên không được giả định an toàn tuyệt đối khi đóng resource dùng chung; ứng dụng cần isolation/cancellation strategy phù hợp.
+This is an algorithmic sketch. In a real implementation, do not hold locks while waiting on I/O or calling plugin code that may block/re-enter the host; you must account for deadlocks, timeouts, and interruption policies. After a timeout, plugin code may still be running, so absolute safety cannot be assumed when closing shared resources; the application needs an appropriate isolation/cancellation strategy.
 
-### 11.3. Persistence và crash recovery
+### 11.3. Persistence and Crash Recovery
 
-Nếu host restart giữa `INITIALIZING` hoặc `STOPPING`, trạng thái in-memory sẽ mất. Cần phân biệt:
+If the host restarts mid-`INITIALIZING` or mid-`STOPPING`, in-memory state is lost. Distinguish:
 
-- **Runtime state**: trạng thái object cụ thể trong JVM đang sống.
-- **Durable desired state**: plugin nào operator yêu cầu bật/tắt, version và policy được lưu.
-- **Recovery state**: dấu vết lần khởi động trước nếu hệ thống cần audit/compensation.
+- **Runtime state**: the state of a specific object inside the living JVM.
+- **Durable desired state**: which plugins the operator asked to enable/disable, along with stored version and policy.
+- **Recovery state**: traces of the previous startup attempt if the system needs auditing/compensation.
 
-Sau restart, không thể đơn giản khôi phục object `ACTIVE` từ database; JVM phải tạo instance mới, resolve dependency, verify, initialize, start và kiểm tra readiness lại. Với plugin có side effects bên ngoài, cần idempotency keys/compensation để tránh chạy tác vụ hai lần.
+After a restart, you cannot simply restore an `ACTIVE` object from a database; the JVM must create a new instance, resolve dependencies, verify, initialize, start, and re-run readiness checks. For plugins with external side effects, idempotency keys/compensation are needed to avoid executing tasks twice.
 
-## 12. Chiến lược thử nghiệm và quan sát vòng đời
+## 12. Testing and Observability Strategy for Lifecycle
 
-### 12.1. Ma trận test theo trạng thái
+### 12.1. State-Based Test Matrix
 
-| Test | Kết quả cần xác minh |
+| Test | Outcome to Verify |
 | --- | --- |
-| Không có provider | Host báo vắng mặt; không tạo state manager cho instance chưa tồn tại |
-| Provider hợp lệ | `DISCOVERED → VERIFIED → INITIALIZED → ACTIVE → STOPPING → STOPPED` |
-| Verify lỗi | Không gọi initialize/start, cleanup theo contract, giữ cause |
-| Initialize lỗi giữa chừng | Không ACTIVE; đóng resource đã cấp phát; không leak |
-| Start lỗi | `FAILED`, không dispatch; cleanup hoàn tất |
-| Invoke khi `INITIALIZED` | Bị từ chối |
-| Invoke khi `ACTIVE` | Được xử lý bình thường |
-| Stop khi có request inflight | Không nhận request mới, đợi/hủy theo policy |
-| Stop bị gọi hai lần | Không double-close/double-publish event |
-| Stop ném exception | Ghi cleanup failure; không mất nguyên nhân lỗi khởi đầu |
-| Retry sau FAILED | Tạo instance/generation mới theo policy, không hồi sinh instance hỏng |
-| Hai plugin có dependency | Start theo topo order, stop theo thứ tự ngược |
-| Hot reload version mới lỗi | Nếu chưa switch, bản cũ vẫn hoạt động; bản mới cleanup |
-| Host restart | Không “khôi phục ACTIVE” chỉ từ state cũ; thực thi lại pipeline |
+| No provider | Host reports absence; does not create a state manager for a non-existent instance |
+| Valid provider | `DISCOVERED → VERIFIED → INITIALIZED → ACTIVE → STOPPING → STOPPED` |
+| Verify fails | Does not call initialize/start, cleans up per contract, preserves cause |
+| Initialize fails midway | Not ACTIVE; closes already-allocated resources; no leaks |
+| Start fails | `FAILED`, no dispatch; cleanup completes |
+| Invoke while `INITIALIZED` | Rejected |
+| Invoke while `ACTIVE` | Processed normally |
+| Stop with in-flight requests | Accepts no new requests, waits/cancels per policy |
+| Stop called twice | No double-close/double-published events |
+| Stop throws exception | Records cleanup failure; does not lose initial failure cause |
+| Retry after FAILED | Creates new instance/generation per policy, does not resurrect broken instance |
+| Two plugins with dependency | Start in topological order, stop in reverse order |
+| Hot reload new version fails | If not switched yet, old version keeps working; new version cleans up |
+| Host restart | Does not “restore ACTIVE” solely from old state; re-runs pipeline |
 
-Có thể dùng fake plugin nhận lệnh `failOnVerify`, `failOnInitialize`, `failOnStart`, `failOnInvoke`, `failOnStop` để kiểm thử mọi cạnh; đếm số lần start/stop, giữ list các transitions và assert chính xác thứ tự. Trong test concurrency, dùng latch/barrier thay vì sleep tùy ý để tái lập race giữa request và stop.
+You can use a fake plugin accepting `failOnVerify`, `failOnInitialize`, `failOnStart`, `failOnInvoke`, and `failOnStop` flags to test every edge; count start/stop invocations, keep a list of transitions, and assert the exact order. In concurrency tests, use latches/barriers instead of arbitrary sleeps to reproduce races between requests and stop.
 
-### 12.2. Metrics và diagnostics
+### 12.2. Metrics and Diagnostics
 
-Những trường đáng ghi:
+Fields worth recording:
 
-- Plugin ID, implementation/version, instance/generation, tên loader/module layer nếu có.
-- State trước/sau, event, lý do chuyển, timestamp và correlation ID.
-- Duration của verify, initialize, start, quiesce, stop.
-- Số request inflight, timeouts, exceptions, lần retry và kết quả cleanup.
-- Readiness/health độc lập với state lifecycle.
-- Last failure cause/code và kết quả dọn tài nguyên ngay cả khi cuối cùng ở `STOPPED`.
+- Plugin ID, implementation/version, instance/generation, loader/module layer name if applicable.
+- Previous/next state, event, transition reason, timestamp, and correlation ID.
+- Duration of verify, initialize, start, quiesce, and stop.
+- In-flight request count, timeouts, exceptions, retry count, and cleanup outcome.
+- Readiness/health independent of lifecycle state.
+- Last failure cause/code and resource cleanup outcome even when ending in `STOPPED`.
 
-Log cần tránh lộ password, token hoặc dữ liệu nhạy cảm trong config/exception. Nếu plugin từ bên thứ ba, host nên chuẩn hóa thông tin công bố thay vì cho plugin tùy ý quyết định thông điệp an toàn.
+Logs should avoid exposing passwords, tokens, or sensitive data in config/exceptions. If plugins come from third parties, the host should normalize published information rather than letting plugins arbitrarily decide what messages are safe.
 
-## 13. Lỗi thiết kế phổ biến
+## 13. Common Design Mistakes
 
-| Sai lầm | Hệ quả | Cách khắc phục |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Chỉ dùng `loaded=true` | Không biết đang validate, initialize hay ACTIVE | Dùng enum state + transition policy |
-| Gán ACTIVE ngay khi `ServiceLoader.findFirst()` trả provider | Dẫn tới gọi request trước khi start/readiness | Chỉ publish khi start thành công |
-| `DISCOVERED → ACTIVE` mà bỏ verify/init | Mất kiểm soát config/dependency | Guard thứ tự bắt buộc |
-| Không có trạng thái FAILED | Lỗi bị che dưới “plugin dừng” hoặc “không tìm thấy” | Giữ cause, stage, error code |
-| Bắt mọi `Throwable` rồi fallback | Che JVM/linkage lỗi nghiêm trọng | Phân loại lỗi, xử lý có chủ đích |
-| Start thất bại thì bỏ qua cleanup | Rò thread/connection/listener | Cleanup sau partial initialization |
-| STOPPED xóa sạch lịch sử lỗi | Khó điều tra vì sao plugin không chạy | Giữ lastFailure/hadFailure |
-| Stop nhiều lần từ nhiều thread | Double close, race, deadlock | Idempotent contract + once-only atomic guard |
-| Stop đóng resource khi request cũ đang dùng | Request lỗi, mất dữ liệu | Quiesce/inflight leases, deadline |
-| Retry cùng object không có quy ước | State/tài nguyên từ lần trước còn tồn tại | Tạo instance mới, backoff và generation |
-| Đóng `URLClassLoader` rồi tưởng plugin đã dừng | Thread/callback/class có thể vẫn còn | Stop/cleanup/gỡ reference trước |
-| Dựa vào thứ tự SPI để quản lý dependency | Plugin phụ thuộc start trước dependency | Resolve graph, topo start/reverse stop |
-| Cho rằng class loader cô lập quyền an toàn | Plugin vẫn có quyền process | Process isolation/OS policy cho mã không tin cậy |
+| Using only `loaded=true` | Impossible to tell whether validating, initializing, or ACTIVE | Use a state enum + transition policy |
+| Setting ACTIVE as soon as `ServiceLoader.findFirst()` returns a provider | Leads to invoking requests before start/readiness | Publish only after start succeeds |
+| `DISCOVERED → ACTIVE` skipping verify/init | Loses control over config/dependencies | Enforce required order with guards |
+| No FAILED state | Errors are hidden under “plugin stopped” or “not found” | Preserve cause, stage, and error code |
+| Catching all `Throwable` and falling back | Masks critical JVM/linkage errors | Classify errors and handle deliberately |
+| Skipping cleanup when start fails | Leaks threads/connections/listeners | Clean up after partial initialization |
+| STOPPED erases failure history | Hard to investigate why the plugin is not running | Keep lastFailure/hadFailure |
+| Calling stop multiple times from multiple threads | Double close, races, deadlocks | Idempotent contract + once-only atomic guard |
+| Stop closes resources while old requests are using them | Request failures, data loss | Quiesce/in-flight leases, deadlines |
+| Retrying the same object without a contract | Leftover state/resources from previous attempt | Create a new instance, backoff, and generation |
+| Closing `URLClassLoader` and assuming the plugin stopped | Threads/callbacks/classes may still remain | Stop/clean up/clear references first |
+| Relying on SPI order to manage dependencies | Dependent plugin starts before its dependency | Resolve graph, topological start / reverse stop |
+| Assuming class loaders isolate security privileges | Plugin still has process-level privileges | Process isolation/OS policy for untrusted code |
 
-## 14. Checklist khi thiết kế plugin manager
+## 14. Plugin Manager Design Checklist
 
-- [ ] Phân biệt discovery result “không có provider” với lỗi cấu hình/nạp provider.
-- [ ] Có trạng thái tối thiểu `DISCOVERED`, `VERIFIED`, `INITIALIZED`, `ACTIVE`, `STOPPING`, `STOPPED`, `FAILED`.
-- [ ] Các cạnh chuyển có guards; không có bước nhảy tắt, không gọi request ngoài `ACTIVE`.
-- [ ] Xác minh danh tính, API/version, dependency, cấu hình, capability và policy trước khi kích hoạt.
-- [ ] Constructor nhẹ; initialize và start có ranh giới rõ, rollback được sau lỗi một phần.
-- [ ] Registry chỉ publish instance **sau** start/readiness; unpublish trước cleanup.
-- [ ] Cleanup có hợp đồng xử lý khi chưa initialize hoặc start thất bại; chống double cleanup.
-- [ ] Tách lỗi request có thể phục hồi khỏi lỗi hệ thống bắt buộc `FAILED`.
-- [ ] Xử lý quiescing và inflight requests an toàn khi multi-threaded.
-- [ ] Khi FAILED, lưu phase, nguyên nhân, kết quả cleanup và lịch sử, kể cả sau STOPPED.
-- [ ] Stop theo thứ tự dependency ngược; kiểm tra class loader/callback/thread leaks khi hot reload.
-- [ ] Retry có policy, backoff và instance/generation mới; tránh resurrect object hỏng.
-- [ ] Có test cho mỗi transition, illegal transition, partial failure, concurrency, timeout và restart.
+- [ ] Distinguish discovery result “no provider” from provider configuration/loading errors.
+- [ ] Have at least `DISCOVERED`, `VERIFIED`, `INITIALIZED`, `ACTIVE`, `STOPPING`, `STOPPED`, `FAILED`.
+- [ ] Transition edges have guards; no shortcuts, no request invocation outside `ACTIVE`.
+- [ ] Verify identity, API/version, dependencies, configuration, capabilities, and policy before activation.
+- [ ] Lightweight constructor; initialize and start have clear boundaries and support rollback after partial errors.
+- [ ] Registry publishes the instance **only after** start/readiness; unpublishes before cleanup.
+- [ ] Cleanup has a contract handling uninitialized or failed-start cases; prevents double cleanup.
+- [ ] Separate recoverable request errors from system errors requiring `FAILED`.
+- [ ] Handle quiescing and in-flight requests safely under multithreading.
+- [ ] On FAILED, store phase, cause, cleanup outcome, and history, even after STOPPED.
+- [ ] Stop in reverse dependency order; check for class loader/callback/thread leaks during hot reload.
+- [ ] Retries have a policy, backoff, and new instance/generation; avoid resurrecting broken objects.
+- [ ] Have tests for every transition, illegal transition, partial failure, concurrency, timeout, and restart.
 
-**Kết luận:** Một plugin **được phát hiện** chưa phải plugin **được xác minh**; plugin **đã khởi tạo** chưa phải plugin **hoạt động**; plugin **đang lỗi** vẫn có thể cần đi qua **dừng** để dọn tài nguyên. Khi state machine có guards, history, ownership và cleanup rõ ràng, host mới có thể vận hành plugin an toàn, nhất là trong hệ thống có nhiều provider, dependency và hot reload.
+**Conclusion:** A **discovered** plugin is not yet a **verified** plugin; an **initialized** plugin is not yet an **active** plugin; a **failed** plugin may still need to go through **stopping** to clean up resources. Only when the state machine has clear guards, history, ownership, and cleanup can the host operate plugins safely, especially in systems with multiple providers, dependencies, and hot reload.
 
-**Tài liệu Java SE 17 chính thức:** [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), [`AutoCloseable`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AutoCloseable.html), [`ClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html), [`URLClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html), [`ModuleLayer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html).
+**Official Java SE 17 Documentation:** [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), [`AutoCloseable`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AutoCloseable.html), [`ClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html), [`URLClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html), [`ModuleLayer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html).

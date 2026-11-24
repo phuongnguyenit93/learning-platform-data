@@ -1,51 +1,51 @@
-# 21.1 Thiết kế bộ dữ liệu nền gồm thông tin VM, GC log và JFR theo ngân sách tài nguyên
+# 21.1 Designing a Resource-Budgeted Baseline Dataset of VM Info, GC Logs, and JFR
 
-> **Phạm vi:** Java 21, HotSpot JVM, môi trường service chạy dài hạn trên máy ảo, container hoặc Kubernetes. Bộ dữ liệu nền là tập bằng chứng **được thu có kế hoạch trước sự cố**, đủ để đối chiếu trạng thái JVM, GC và các hoạt động quan trọng trong JFR với triệu chứng người dùng. Thiết kế phải vừa **có dữ liệu trước–trong–sau sự cố**, vừa **không vượt ngân sách CPU, độ trễ, RAM, đĩa, I/O/network và retention**. Không phải cứ ghi càng nhiều thì khả năng chẩn đoán càng tốt.
+> **Scope:** Java 21, HotSpot JVM, long-running service environments on virtual machines, containers, or Kubernetes. The baseline dataset is a collection of evidence **captured proactively before an incident**, sufficient to correlate JVM state, GC, and key JFR activity with user-facing symptoms. The design must both **provide pre-, during-, and post-incident data** and **stay within CPU, latency, RAM, disk, I/O/network, and retention budgets**. Recording more data does not automatically improve diagnostic capability.
 
-## 1. Đầu ra phải đạt
+## 1. Required Outcomes
 
-Một cấu hình nền tốt cần trả lời được sáu câu hỏi:
+A solid baseline configuration must answer six questions:
 
-1. **JVM nào đang chạy?** JDK vendor/build, phiên bản ứng dụng, GC/heap flags, PID và thời gian khởi động, instance/container/pod, giới hạn CPU/RAM.
-2. **GC có ảnh hưởng độ trễ không?** GC log với UTC + uptime, GC ID, pauses, heap trước/sau và thông tin collector cần thiết.
-3. **Điều gì xảy ra cùng thời điểm?** JFR có ring buffer/disk recording, event settings đã kiểm chứng, đủ CPU/threads/GC/locks/I/O theo yêu cầu chẩn đoán thường gặp.
-4. **Dữ liệu giữ được bao lâu?** Có giới hạn dung lượng, tốc độ ghi đã đo, cửa sổ thời gian thực tế dưới tải đỉnh và trigger dump trước khi rotate mất.
-5. **Chi phí là bao nhiêu?** Overhead theo workload, peak disk usage gồm cả file export, quota trong container, băng thông shipping và chi phí bản sao.
-6. **Ai được xem và khi nào xóa?** Có phân loại dữ liệu, ACL, mã hóa, checksum, owner, retention và quy trình bàn giao.
+1. **Which JVM is running?** JDK vendor/build, application version, GC/heap flags, PID and startup time, instance/container/pod, CPU/RAM limits.
+2. **Is GC affecting latency?** GC logs with UTC + uptime, GC ID, pauses, heap before/after, and required collector details.
+3. **What else happened at the same time?** JFR with a ring buffer/disk recording, verified event settings, and sufficient CPU/threads/GC/locks/I/O data for common diagnostic needs.
+4. **How long is data retained?** Size limits, measured write rates, actual time window under peak load, and dump triggers before rotation overwrites data.
+5. **What is the cost?** Per-workload overhead, peak disk usage including exported files, container quotas, shipping bandwidth, and replica multiplication costs.
+6. **Who has access and when is it deleted?** Data classification, ACLs, encryption, checksums, owners, retention policies, and handoff procedures.
 
-Đừng nhầm **đã bật JFR** với **đã giữ được file điều tra**, hoặc **đã có GC logs** với **đã có đủ phút trước một alert**. Cần diễn tập đường đi đầy đủ: startup → ghi dữ liệu → xuất dữ liệu → mở/đọc được → bảo toàn và xóa đúng hạn.
+Do not confuse **having JFR enabled** with **having preserved an investigation file**, or **having GC logs** with **having enough minutes captured before an alert**. You must rehearse the full pipeline: startup → recording → exporting → opening/reading → preserving and deleting on schedule.
 
-## 2. Thiết kế ba tầng theo chi phí
+## 2. Cost-Based Three-Tier Design
 
-| Tầng | Nội dung | Tần suất/điều kiện | Rủi ro chính |
+| Tier | Contents | Frequency / Condition | Main Risks |
 | --- | --- | --- | --- |
-| A — inventory theo phiên JVM | VM.version, VM.flags, VM.command_line khi được phép, VM.uptime, app build, pod UID, container limits | Khi startup/restart và khi config đổi | Rò rỉ secrets trong arguments, sai định danh sau restart |
-| B1 — GC log | Unified logging về GC/pauses, UTC+uptime, có file rotation | Liên tục, mức vừa đủ | Ghi quá nhiều khi GC storm, rotation xóa dữ liệu trước incident |
-| B2 — JFR mặc định | Recording dùng default.jfc, disk=true, maxage/maxsize hữu hạn | Liên tục trong ngân sách | Retention thực ngắn hơn yêu cầu, repository đầy hoặc mất khi pod chết |
-| C — thu chẩn đoán nâng cao | JFR profile/custom config, chi tiết lock/I/O, thread dumps, logging debug | Cửa sổ ngắn khi đã có giả thuyết và cho phép | Overhead, STW/disk/CPU, dữ liệu lớn hoặc nhạy cảm |
+| A — per-JVM-session inventory | VM.version, VM.flags, VM.command_line when permitted, VM.uptime, app build, pod UID, container limits | At startup/restart and on config changes | Leaking secrets in arguments, misidentifying instances after restart |
+| B1 — GC log | Unified logging for GC/pauses, UTC+uptime, with file rotation | Continuous, moderate verbosity | Excessive writes during GC storms, rotation deleting pre-incident data |
+| B2 — default JFR | Recording using default.jfc, disk=true, bounded maxage/maxsize | Continuous within budget | Actual retention shorter than required, repository filling up or lost on pod death |
+| C — elevated diagnostic capture | JFR profile/custom config, detailed lock/I/O, thread dumps, debug logging | Short window once a hypothesis and approval exist | Overhead, STW/disk/CPU impact, large or sensitive data |
 
-Tầng A, B1 và B2 là **bộ dữ liệu nền** của bài này. Tầng C chỉ là chiến lược mở rộng, không được tự động bật toàn bộ trên mọi replica.
+Tiers A, B1, and B2 form the **baseline dataset** of this lesson. Tier C is only an escalation strategy and must not be enabled indiscriminately across all replicas.
 
-**Không nên đưa vào baseline không giới hạn:** heap dump, class histogram, NMT detail, full thread dump vài giây/lần, JFR path-to-GC-roots hay Heap Statistics. Những thao tác này phục vụ mục đích khác và có thể tốn CPU, heap, I/O hoặc gây pause đáng kể.
+**Do not include in an unbounded baseline:** heap dumps, class histograms, NMT detail, full thread dumps every few seconds, JFR path-to-GC-roots, or Heap Statistics. Those operations serve different purposes and can consume significant CPU, heap, and I/O or introduce substantial pauses.
 
-## 3. Thiết kế định danh và trục thời gian chung
+## 3. Shared Identity and Timeline Design
 
-Mỗi artifact phải được nối về **một JVM instance cụ thể**, không chỉ một tên service.
+Every artifact must tie back to **a specific JVM instance**, not just a service name.
 
-| Thuộc tính | Dữ liệu cần giữ | Giá trị |
+| Attribute | Data to Retain | Value |
 | --- | --- | --- |
-| Service/environment | name, deployment, namespace, app build/image digest | Biết nhóm ứng dụng và phiên bản |
-| Instance | hostname, pod UID/container ID, JVM PID và startup timestamp | PID có thể trùng ở nhiều pod hoặc được tái sử dụng |
-| VM | vendor, Java 21 build, VM name, GC, Xms/Xmx, JFR config | Giải thích khác biệt giữa các lần deploy |
-| Resource limits | cgroup CPU quota, CPU throttling, memory limit, volume quota | Diễn giải CPU/RSS và khả năng giữ log |
-| Time | UTC timestamp, JVM uptime, timezone, NTP skew, sampling bucket | Ghép request latency/GC/JFR không lệch đồng hồ |
-| Artifact | type, source, start/end UTC, path, size, checksum, owner, TTL | Bảo vệ và truy vết dữ liệu |
+| Service/environment | name, deployment, namespace, app build/image digest | Identifies the application group and release |
+| Instance | hostname, pod UID/container ID, JVM PID, and startup timestamp | PIDs can collide across pods or be reused |
+| VM | vendor, Java 21 build, VM name, GC, Xms/Xmx, JFR config | Explains differences across deployments |
+| Resource limits | cgroup CPU quota, CPU throttling, memory limit, volume quota | Explains CPU/RSS behavior and log retention capacity |
+| Time | UTC timestamp, JVM uptime, timezone, NTP skew, sampling bucket | Aligns request latency/GC/JFR without clock drift errors |
+| Artifact | type, source, start/end UTC, path, size, checksum, owner, TTL | Protects and traces diagnostic data |
 
-JFR event có timestamp tuyệt đối; unified logging có thể in UTC và uptime; monitoring đôi khi dùng bucket 10 giây hoặc 1 phút. **Không tuyên bố nhân quả ở độ chính xác mili giây khi clock skew hoặc metric resolution không cho phép.**
+JFR events carry absolute timestamps; unified logging can print UTC and uptime; monitoring sometimes uses 10-second or 1-minute buckets. **Do not claim causality at millisecond precision when clock skew or metric resolution does not support it.**
 
-Ví dụ giả định: ba pod đều chạy JVM với PID bằng 1. Chỉ dùng PID để ghép GC log và JFR là **sai**; phải thêm pod UID/instance và JVM startup time. Sau rolling restart cần một record inventory mới, ngay cả nếu image/app version không đổi.
+Hypothetical example: three pods all run a JVM with PID 1. Using only the PID to correlate GC logs and JFR is **wrong**; you must include pod UID/instance and JVM startup time. After a rolling restart, a new inventory record is required even if the image/app version has not changed.
 
-### 3.1. Mẫu manifest dễ triển khai
+### 3.1. Practical Manifest Template
 
 ~~~yaml
 schema: java21-diagnostics-baseline/v1
@@ -74,13 +74,13 @@ artifacts:
     checksum: "compute-after-write"
 ~~~
 
-Đây là **schema minh họa**, chưa phải dữ liệu đã thu. Khi triển khai, điền giá trị thực, không gửi placeholder rồi tuyên bố đã hoàn thành thu thập.
+This is an **illustrative schema**, not captured data. During implementation, populate real values; never submit placeholders and claim collection is complete.
 
-## 4. Tầng A — VM metadata: ít lần thu nhưng phải đủ bối cảnh
+## 4. Tier A — VM Metadata: Infrequent Capture, Complete Context
 
-### 4.1. Bộ lệnh Java 21
+### 4.1. Java 21 Command Set
 
-Với JVM chạy trên host hoặc container mà operator có quyền attach, xác minh PID thật. Các lệnh mẫu:
+For a JVM running on a host or container where the operator has attach permissions, verify the real PID. Sample commands:
 
 ~~~bash
 jcmd -l
@@ -91,22 +91,22 @@ jcmd <PID> VM.command_line
 jcmd <PID> VM.info
 ~~~
 
-Giải thích:
+Explanation:
 
-- **VM.version:** thông tin phiên bản HotSpot/JDK đích; không nhầm với lệnh java -version của máy operator có thể chạy JDK khác.
-- **VM.uptime:** số giây sống của JVM; ghép với mốc khởi động từ orchestrator/monitoring.
-- **VM.flags:** giá trị flags runtime, gồm heap/GC và các biến cấu hình có thể tác động footprint, pause, JFR.
-- **VM.command_line:** startup arguments, có thể chứa đường dẫn app, flags và cấu hình quan trọng.
-- **VM.info:** thông tin JVM/environment/status rộng hơn, hữu ích khi cần phân tích sự cố nhưng có thể dài.
-- **jcmd -l:** tìm PID trong namespace quan sát được, không phải cơ chế định danh bền vững.
+- **VM.version:** target HotSpot/JDK version info; do not confuse with `java -version` on the operator's machine, which may run a different JDK.
+- **VM.uptime:** JVM lifetime in seconds; correlate with startup time from the orchestrator/monitoring.
+- **VM.flags:** runtime flag values, including heap/GC and configuration variables that can affect footprint, pauses, and JFR.
+- **VM.command_line:** startup arguments, which may contain app paths, flags, and important configuration.
+- **VM.info:** broader JVM/environment/status details, useful during incident analysis though it can be long.
+- **jcmd -l:** finds PIDs in the observable namespace, not a durable identity mechanism.
 
-**Bảo mật đặc biệt:** VM.command_line và VM.system_properties có thể chứa token, password, proxy, hostname, cấu hình kết nối nội bộ. Không lưu thẳng vào ticket/Git/chat công khai. Cần tách **raw artifact phân quyền hẹp** và **bản đã che bí mật** dùng khi chia sẻ.
+**Special security note:** `VM.command_line` and `VM.system_properties` may contain tokens, passwords, proxies, hostnames, and internal connection settings. Do not paste them directly into tickets, Git, or public chat. Separate **restricted-access raw artifacts** from **redacted copies** used for sharing.
 
-Một snapshot mỗi lần khởi động/restart hoặc thay đổi cấu hình là đủ để làm **inventory**. Không có ích khi thu VM.info mỗi giây; muốn thấy biến động CPU/heap thì dùng metrics/JFR.
+One snapshot per startup/restart or configuration change is sufficient for **inventory**. Capturing `VM.info` every second serves no purpose; use metrics/JFR to observe CPU/heap fluctuations.
 
-### 4.2. Thu mẫu và kiểm tra file
+### 4.2. Sample Capture and File Verification
 
-Ví dụ shell Linux, người thao tác đã xác minh PID và có quyền:
+Linux shell example, assuming the operator has verified the PID and holds permissions:
 
 ~~~bash
 umask 077
@@ -121,21 +121,21 @@ jcmd "$TARGET_PID" VM.uptime > "$EVIDENCE_DIR/vm-uptime.txt"
 jcmd "$TARGET_PID" VM.flags > "$EVIDENCE_DIR/vm-flags.txt"
 ~~~
 
-**12345 là PID giả định**, không sao chép vào production. Kiểm tra mã thoát của từng jcmd, kích thước và quyền file: shell redirect vẫn có thể tạo file rỗng khi attach lỗi. Thu app build/image digest/CPU quota từ deployment inventory được cấp quyền, không suy ra từ tên PID.
+**12345 is a hypothetical PID**—do not copy it into production. Check the exit code of each `jcmd`, along with file sizes and permissions: shell redirection can still create an empty file when attach fails. Pull app build, image digest, and CPU quota from an authorized deployment inventory rather than inferring them from the PID name.
 
-Không lưu secrets chỉ vì nhu cầu "đầy đủ". Nếu cần giữ startup command line, áp dụng access control và redaction riêng; không tự động đính kèm raw vào hệ thống ticket.
+Do not store secrets merely in the name of "completeness." If startup command lines must be retained, apply dedicated access controls and redaction; never auto-attach raw files to ticketing systems.
 
-## 5. Tầng B1 — GC unified logging: chọn thông tin và rotation
+## 5. Tier B1 — GC Unified Logging: Content Selection and Rotation
 
-### 5.1. GC logs bổ sung gì cho JFR?
+### 5.1. What Do GC Logs Add Beyond JFR?
 
-GC log là chuỗi sự kiện theo collector: GC ID, pha, pause, heap trước/sau, nguyên nhân khi có và thông tin JVM logging configuration. JFR cho timeline nhiều nhóm CPU/GC/threads/locks/I/O; **GC logs thường giàu chi tiết collector hơn**. Cả hai cần UTC/uptime và JVM identity để so với request latency.
+GC logs provide a collector-specific event stream: GC ID, phases, pauses, heap before/after, causes when available, and JVM logging configuration details. JFR gives a timeline across CPU/GC/threads/locks/I/O; **GC logs are typically richer in collector detail**. Both require UTC/uptime and JVM identity to compare against request latency.
 
-**GC duration không luôn bằng STW pause.** Collector có pha concurrent; không cộng một GC duration với các pause phase nằm bên trong thành hai lần dừng. Khi báo p99 bị ảnh hưởng, căn chính xác các **GC pause intervals**, không chỉ GC count.
+**GC duration does not always equal STW pause.** Collectors have concurrent phases; do not add a total GC duration and its internal pause phases together as if there were two separate stops. When reporting p99 impact, align exact **GC pause intervals**, not just GC counts.
 
-### 5.2. Cú pháp khởi động Java 21 có giới hạn đĩa
+### 5.2. Disk-Bounded Java 21 Startup Syntax
 
-Giả sử /srv/diag là filesystem được account JVM ghi được:
+Assume `/srv/diag` is a filesystem writable by the JVM account:
 
 ~~~bash
 java \
@@ -143,15 +143,15 @@ java \
   -jar app.jar
 ~~~
 
-- **gc* và safepoint**: cấu hình tag selectors theo mức mặc định; lượng sự kiện tùy collector/workload.
-- **utctime,uptime**: cho phép đối chiếu với JFR UTC và xác định vị trí theo thời gian sống của JVM.
-- **level,tags**: biết mức log và loại event, tránh mất bối cảnh khi parse.
-- **%p**: gắn PID vào tên log; **không phải unique ID giữa nhiều container**. Nếu dùng volume chung, phân vùng theo pod/instance hoặc file naming/manifest riêng.
-- **filecount=4,filesize=20M**: ngân sách sơ bộ khoảng **80 MiB** log/instance cùng headroom. Rotation thường có chi phí và sai số; kiểm tra file thực sau test.
+- **gc* and safepoint**: tag selectors at default level; event volume depends on collector and workload.
+- **utctime,uptime**: enables correlation with JFR UTC timestamps and positioning along JVM lifetime.
+- **level,tags**: identifies log severity and event type, preserving context during parsing.
+- **%p**: embeds the PID into the log filename; **not a unique ID across multiple containers**. If using a shared volume, partition by pod/instance or use distinct file naming/manifests.
+- **filecount=4,filesize=20M**: rough budget of about **80 MiB** of logs per instance plus headroom. Rotation has overhead and rounding tolerance; verify actual files after testing.
 
-GC storm có thể làm log ghi nhanh gấp nhiều lần. Vì vậy **rotation kiểm soát dung lượng, không bảo đảm số giờ retention**. Nếu output ở mức debug/trace hoặc file shipper nhân bản dữ liệu, chi phí lớn hơn.
+A GC storm can multiply the log write rate several times over. Therefore, **rotation bounds disk space, not retention hours**. If output is set to debug/trace or a log shipper duplicates data, costs are higher.
 
-### 5.3. Đo thực tế trước khi áp dụng đại trà
+### 5.3. Measure in Practice Before Broad Rollout
 
 ~~~bash
 jcmd <PID> VM.log list
@@ -160,35 +160,35 @@ df -h /srv/diag
 df -i /srv/diag
 ~~~
 
-Nếu cú pháp VM.log tùy build cần xác minh, chạy jcmd <PID> help VM.log. Theo dõi bytes written trong một đoạn tải điển hình rồi tính:
+If `VM.log` syntax needs build-specific verification, run `jcmd <PID> help VM.log`. Track bytes written over a representative load period and compute:
 
 ~~~text
 rate_mib_per_hour = measured_log_mib / measured_hours
 expected_retention_hours ≈ configured_rotation_mib / rate_mib_per_hour
 
-Ví dụ: 80 MiB rotation, 10 MiB/giờ = khoảng 8 giờ ở rate đo.
-Khi incident làm rate thành 40 MiB/giờ, khoảng lưu còn 2 giờ.
+Example: 80 MiB rotation, 10 MiB/hour = roughly 8 hours at the measured rate.
+When an incident raises the rate to 40 MiB/hour, retention drops to 2 hours.
 ~~~
 
-Đây là **ước lượng**, không phải cam kết chính xác. Ưu tiên đo tốc độ **giờ cao điểm** để chọn rotation. Nếu cần giữ lâu hơn trước alert, ship GC log sớm tới kho đủ bảo mật và dùng retention riêng, thay vì tăng filecount vô giới hạn.
+This is an **estimate**, not an exact guarantee. Prioritize measuring **peak-hour** rates to size rotation. If longer pre-alert retention is needed, ship GC logs early to a suitably secured store with separate retention instead of increasing `filecount` indefinitely.
 
-Trong JVM đang chạy, jcmd VM.log có thể điều chỉnh một số output/tag khi được phép, nhưng **không phục hồi các log chưa ghi trong quá khứ**. Nâng mức debug tạm thời phải có TTL, owner và rollback.
+In a running JVM, `jcmd VM.log` can adjust some outputs/tags when permitted, but **cannot recover unlogged events from the past**. Temporary debug-level increases must have a TTL, owner, and rollback.
 
-## 6. Tầng B2 — JFR continuous theo cấu hình low-overhead
+## 6. Tier B2 — Continuous Low-Overhead JFR
 
-### 6.1. Default khác profile ra sao?
+### 6.1. How Does `default` Differ from `profile`?
 
-Oracle JDK 21 cung cấp default.jfc và profile.jfc. **default.jfc** được đề xuất để ghi liên tục, có overhead **thường dưới 1%** theo tài liệu Oracle (không phải mức bảo đảm cho mọi workload). **profile.jfc** bật nhiều loại dữ liệu hơn, phù hợp điều tra ngắn, nhưng tiêu thụ CPU/đĩa hơn.
+Oracle JDK 21 ships `default.jfc` and `profile.jfc`. **default.jfc** is recommended for continuous recording, with overhead **typically under 1%** per Oracle documentation (not a guarantee for every workload). **profile.jfc** enables more event types and is suited for short investigations, but consumes more CPU and disk.
 
-| Cấu hình | Nên dùng | Giới hạn cần ghi nhớ |
+| Configuration | Recommended Use | Limitations to Remember |
 | --- | --- | --- |
-| default | Baseline liên tục để tìm cửa sổ sự cố | Không mặc định chứa tất cả event và mọi stack; threshold/sampling có thể bỏ các thao tác ngắn |
-| profile | Đợt profiling ngắn khi cần hot methods hoặc contention chi tiết hơn | Event rate/overhead cao hơn; phải xác định điểm dừng |
-| Custom .jfc | Một giả thuyết cụ thể cần thêm event hoặc threshold thấp | Phải test overhead và giữ bản config để giải thích kết quả |
+| default | Continuous baseline to locate the incident window | Does not enable all events or every stack by default; thresholds/sampling may omit short operations |
+| profile | Short profiling runs when finer hot methods or contention detail is needed | Higher event rate/overhead; must define a stop point |
+| Custom .jfc | A specific hypothesis requiring extra events or lower thresholds | Must benchmark overhead and keep the config file to interpret results |
 
-**Không bật Heap Statistics hoặc path-to-gc-roots trong baseline theo thói quen.** Chúng phục vụ điều tra memory leak nhưng có thể gây thêm GC hoặc thu thập tốn thời gian, làm nhiễu latency mà hệ thống đang đo.
+**Do not enable Heap Statistics or path-to-gc-roots in the baseline out of habit.** They are meant for memory leak investigations and can trigger extra GCs or expensive collections, distorting the very latency the system is measuring.
 
-### 6.2. Khởi động JFR trên JVM cùng GC logs
+### 6.2. Starting JFR Alongside GC Logs
 
 ~~~bash
 java \
@@ -197,17 +197,17 @@ java \
   -jar app.jar
 ~~~
 
-Giải thích cờ JFR:
+JFR flag explanation:
 
-- **name=baseline**: định danh recording dùng khi JFR.check hoặc JFR.dump.
-- **settings=default**: áp dụng default.jfc; không có nghĩa tất cả event đều được bật.
-- **disk=true**: dùng disk repository để giữ recording data; repository path có thể mặc định ở temp của hệ điều hành. Kiểm tra bằng cấu hình thực tế.
-- **maxage=30m**: giới hạn thời gian muốn giữ dữ liệu ghi trên đĩa, trong điều kiện còn đủ dung lượng.
-- **maxsize=128m**: giới hạn lượng recording data giữ lại; JFR lưu theo chunk và có ràng buộc minimum chunk size. Đây không phải giới hạn **tổng đĩa gồm file dump xuất ra, GC logs, log ứng dụng và temporary files**.
+- **name=baseline**: recording identifier used by `JFR.check` or `JFR.dump`.
+- **settings=default**: applies `default.jfc`; does not mean every event is enabled.
+- **disk=true**: uses a disk repository to store recording data; the repository path may default to the OS temp directory. Verify against actual configuration.
+- **maxage=30m**: target time window for retaining recorded data on disk, provided space suffices.
+- **maxsize=128m**: cap on retained recording data; JFR stores data in chunks and enforces a minimum chunk size constraint. This is not a limit on **total disk including exported dump files, GC logs, application logs, and temporary files**.
 
-**Cửa sổ thực tế có thể nhỏ hơn 30 phút** khi dữ liệu ghi nhanh và maxsize đạt ngưỡng trước maxage. Phải đo bytes/giờ và kiểm tra start/end của file dump thật. Nếu JFR ring đã xoay mất phần sự cố, không thể tái tạo các event đó sau này.
+**The actual time window can be shorter than 30 minutes** when data is written rapidly and `maxsize` is reached before `maxage`. You must measure bytes/hour and inspect the start/end timestamps of real dump files. Once the JFR ring has rotated away the incident window, those events cannot be reconstructed later.
 
-### 6.3. Kiểm chứng và bảo toàn khi alert
+### 6.3. Verification and Preservation on Alert
 
 ~~~bash
 jcmd <PID> JFR.check
@@ -215,18 +215,18 @@ jcmd <PID> JFR.check verbose=true
 jcmd <PID> JFR.configure
 ~~~
 
-Kiểm tra recording name, thời gian, event settings/threshold, disk/maxage/maxsize và repository path. Tài khoản chạy jcmd phải có quyền attach; PID trong container khác PID trên host.
+Verify recording name, duration, event settings/thresholds, disk/maxage/maxsize, and repository path. The account running `jcmd` must have attach permissions; container PIDs differ from host PIDs.
 
-Khi incident vừa xảy ra, ghi dump **trước khi ring bị rotate**:
+Right after an incident occurs, write a dump **before the ring rotates**:
 
 ~~~bash
 jcmd <PID> JFR.dump name=baseline \
   filename=/srv/diag/incident-20261029T101500Z.jfr
 ~~~
 
-Tên file mang timestamp **giả định**, phải thay bằng tên duy nhất đúng thời điểm. File dump được tạo trong **filesystem của JVM đích** và có thể chiếm dung lượng tương đương một recording lớn **bên cạnh** các chunk đang có. JFR.dump không dừng recording nền, nhưng ghi file vẫn dùng I/O và cần headroom.
+The timestamped filename is **hypothetical** and must be replaced with a unique name matching the actual time. The dump file is created on the **target JVM's filesystem** and can occupy space comparable to a full recording **in addition to** existing chunks. `JFR.dump` does not stop the background recording, but writing the file still consumes I/O and requires headroom.
 
-Sau khi xuất file:
+After exporting the file:
 
 ~~~bash
 jfr summary /srv/diag/incident-20261029T101500Z.jfr
@@ -234,11 +234,11 @@ jfr metadata --events jdk.GarbageCollection,jdk.CPULoad \
   /srv/diag/incident-20261029T101500Z.jfr
 ~~~
 
-jfr summary xác minh recording interval/event counts của **toàn file**, chưa tự lọc đúng một phút p99 cao. Dùng JDK Mission Control hoặc API jdk.jfr.consumer để phân tích interval. Nếu event không xuất hiện, kiểm tra cấu hình, threshold, sampling, duration, retention và có đúng JVM trước khi kết luận không xảy ra vấn đề.
+`jfr summary` verifies the recording interval and event counts for the **entire file**; it does not isolate a single high-p99 minute on its own. Use JDK Mission Control or the `jdk.jfr.consumer` API to analyze specific intervals. If an event is absent, check configuration, thresholds, sampling, duration, retention, and whether you attached to the right JVM before concluding no issue occurred.
 
-### 6.4. Mở rộng trong cửa sổ ngắn
+### 6.4. Short-Window Escalation
 
-Khi cần nhiều execution samples, stack/lock/I/O details hơn và đã kiểm tra chi phí:
+When more execution samples or finer stack/lock/I/O details are needed and cost has been verified:
 
 ~~~bash
 jcmd <PID> JFR.start name=incident-profile \
@@ -246,18 +246,18 @@ jcmd <PID> JFR.start name=incident-profile \
   filename=/srv/diag/incident-profile.jfr
 ~~~
 
-**Đây là một phiên điều tra có thời hạn**, không thay thế cấu hình nền. Kiểm tra bằng JFR.check và xác nhận recording profile đã dừng đúng lúc, recording baseline vẫn còn. Nếu xuất thêm một file trong khi đang chạy:
+**This is a time-bounded investigation session**, not a replacement for the baseline configuration. Check with `JFR.check` and confirm the profile recording stops on schedule while the baseline recording remains intact. If exporting an intermediate file while it is still running:
 
 ~~~bash
 jcmd <PID> JFR.dump name=incident-profile \
   filename=/srv/diag/incident-profile-partial.jfr
 ~~~
 
-Tính cả **profile recording, file export, baseline ring và GC logs** khi kiểm tra disk budget. Không dựa vào một con số overhead cố định vì các event có thể được thu cùng lúc dưới cấu hình hiệu lực; thử tải theo toàn bộ tổ hợp vận hành.
+Include **the profile recording, exported files, baseline ring, and GC logs** when checking the disk budget. Do not rely on a single static overhead figure because events may be collected concurrently under the effective configuration; load-test the full active combination.
 
-## 7. Ngân sách tài nguyên có thể tính và kiểm tra được
+## 7. Calculable and Verifiable Resource Budgets
 
-### 7.1. Mô hình dung lượng
+### 7.1. Capacity Model
 
 ~~~text
 PerJVM_LocalBudget =
@@ -279,59 +279,59 @@ JFR_retention_hours ≈ min(
 )
 ~~~
 
-Đây là công thức **ước lượng**: event rate tăng khi incident, JFR chunking/temporary files có độ hạt, compression/copy tạo thêm đỉnh, và các giới hạn storage/container có thể khác filesystem của host.
+These are **estimation** formulas: event rates rise during incidents, JFR chunking/temporary files have granularity, compression/copying create transient peaks, and storage/container limits may differ from host filesystems.
 
-### 7.2. Ví dụ định lượng, không phải cấu hình mặc định
+### 7.2. Quantitative Example (Not a Default Configuration)
 
-Giả sử 4 replica, mỗi pod có diagnostics volume 1 GiB, app logs ở volume khác; cho mỗi pod:
+Assume 4 replicas, each pod has a 1 GiB diagnostics volume, and app logs sit on a separate volume; per pod:
 
-| Khoản | Dự trù |
+| Item | Allocation |
 | --- | ---: |
 | GC logs: 4 × 20 MiB | 80 MiB |
 | JFR continuous repository | 128 MiB |
-| Một JFR incident dump đồng thời | 128 MiB |
+| One concurrent JFR incident dump | 128 MiB |
 | VM snapshots + manifest | 5 MiB |
-| Temporary/metadata/khác | 20 MiB |
+| Temporary/metadata/other | 20 MiB |
 | Safety headroom | 128 MiB |
-| **Tổng** | **489 MiB/pod** |
+| **Total** | **489 MiB/pod** |
 
-Phép tính: **80 + 128 + 128 + 5 + 20 + 128 = 489 MiB/pod**. Với 4 replica, tổng phần dành riêng khoảng **1.956 MiB (~1,91 GiB)** trên các volume, chưa tính bộ nhớ đĩa của app hoặc incident profile vượt kế hoạch.
+Calculation: **80 + 128 + 128 + 5 + 20 + 128 = 489 MiB/pod**. Across 4 replicas, total reserved capacity is around **1,956 MiB (~1.91 GiB)** across volumes, excluding app disk usage or unplanned incident profiles.
 
-Nếu cùng lúc lưu **ba** file JFR dump thay vì một, phải cộng thêm dung lượng thực của hai bản nữa; không thể chỉ dựa vào maxsize=128m của ring. Nếu nhiều pod dùng chung PVC, giới hạn theo **PVC/node** chứ không chỉ chia đều theo pod.
+If **three** JFR dump files are kept simultaneously instead of one, you must add the actual size of two additional copies; you cannot rely solely on the ring's `maxsize=128m`. If multiple pods share a PVC, enforce limits per **PVC/node** rather than merely dividing evenly per pod.
 
-Phương án chống lấp đầy: alert khi volume qua ngưỡng đã thống nhất; giới hạn số dump đồng thời, cooldown để tránh alert flapping, hạn chế profile khi thiếu chỗ, ship bằng kênh an toàn và xác minh checksum trước khi xóa bản nguồn.
+Disk-exhaustion safeguards: alert when volume usage crosses an agreed threshold; cap concurrent dumps, apply cooldowns to avoid alert flapping, restrict profiling when space is tight, ship via secure channels, and verify checksums before deleting source files.
 
-### 7.3. CPU, latency và RAM
+### 7.3. CPU, Latency, and RAM
 
-Tài liệu Oracle ghi default.jfc **thường** có overhead thấp, nhưng tổng chi phí của VM snapshots, GC logging, JFR event sampling, exporter, checksum, encryption, compression và shipping phụ thuộc ứng dụng.
+Oracle documentation notes that `default.jfc` **typically** has low overhead, but the total cost of VM snapshots, GC logging, JFR event sampling, exporters, checksums, encryption, compression, and shipping depends on the application.
 
-Thử A/B hoặc canary theo cùng JDK build, GC flags, CPU quota, request load, dataset và warmup:
+Run A/B or canary tests under identical JDK build, GC flags, CPU quota, request load, dataset, and warmup:
 
-1. **A:** ứng dụng và monitoring hiện có, không thêm dữ liệu nền.
-2. **B:** bật VM inventory startup + GC logs có rotation.
-3. **C:** thêm JFR default continuous.
-4. **D:** bật profile/custom recording ngắn để xác định ngân sách escalation.
-5. Lặp ở giờ bình thường và tải đỉnh, giữ đầy đủ số lần đo và độ phân tán.
+1. **A:** application and existing monitoring, no added baseline data.
+2. **B:** enable startup VM inventory + rotated GC logs.
+3. **C:** add continuous default JFR.
+4. **D:** enable a short profile/custom recording to size escalation budget.
+5. Repeat during normal hours and peak load, keeping full measurement counts and variance.
 
-So throughput, p95/p99 latency, error rate, CPU-seconds/request, JVM RSS/cgroup memory, CPU throttling, GC pauses, bytes/s local disk, network ship throughput và disk high-water. Chỉ công bố overhead đã **đo trong workload tương đương**; không mặc định mức <1% tài liệu thành cam kết SLO.
+Compare throughput, p95/p99 latency, error rate, CPU-seconds/request, JVM RSS/cgroup memory, CPU throttling, GC pauses, local disk bytes/s, network ship throughput, and disk high-water mark. Report only overhead **measured on an equivalent workload**; do not treat the documented <1% figure as an SLO commitment.
 
-**RAM:** JFR có các local/global buffers ngoài việc giữ chunk trên đĩa; maxsize/maxage không giới hạn toàn bộ native memory overhead. Chỉ đổi các tham số JFR.configure như memorysize/stackdepth khi có bằng chứng và hiểu ràng buộc initialization của JVM.
+**RAM:** JFR uses local/global buffers in addition to keeping chunks on disk; `maxsize`/`maxage` do not bound all native memory overhead. Only tune `JFR.configure` parameters such as `memorysize`/`stackdepth` with supporting evidence and an understanding of JVM initialization constraints.
 
-### 7.4. Retention thực tế và ngoại lệ vận hành
+### 7.4. Actual Retention and Operational Edge Cases
 
-- GC storm làm bytes/giờ tăng, log rotate nhanh hơn.
-- Default ring maxage 30 phút nhưng maxsize 128 MiB có thể chỉ giữ vài phút nếu recording event rate cao.
-- Container bị OOMKilled/evicted có thể làm mất JFR repository ở ephemeral filesystem trước khi operator kịp dump.
-- Một file dump output có thể làm đầy volume dù ring còn trong maxsize.
-- Khi copy ra kho tập trung, bandwidth và queue của shipper có giới hạn; không để queue/logging backlog tiêu thụ vô hạn disk.
-- Nếu nhiều service chia một volume, phải có quota theo tenant và mức ưu tiên cho log phục vụ ứng dụng.
-- Ghi lại **actual earliest retained event timestamp** trong mỗi lần diễn tập; con số maxage đơn thuần chưa chứng minh retention.
+- GC storms increase bytes/hour, causing logs to rotate faster.
+- A default ring with `maxage=30m` and `maxsize=128m` may retain only a few minutes if recording event rates are high.
+- A container that is OOMKilled/evicted can lose its JFR repository on ephemeral storage before an operator can dump it.
+- An exported dump file can fill the volume even while the ring stays within `maxsize`.
+- When copying to central storage, shipper bandwidth and queues are bounded; never allow queue/logging backlogs to consume unbounded disk.
+- If multiple services share one volume, enforce per-tenant quotas and prioritize logs required for application operation.
+- Record the **actual earliest retained event timestamp** during each drill; `maxage` alone does not prove retention.
 
-## 8. Runbook khởi động, xác nhận và ship
+## 8. Startup, Verification, and Shipping Runbook
 
-### 8.1. Chuẩn bị filesystem
+### 8.1. Preparing the Filesystem
 
-Ví dụ account JVM là app, môi trường Linux:
+Example with JVM account `app` in a Linux environment:
 
 ~~~bash
 sudo install -d -o app -g app -m 0700 /srv/diag
@@ -340,9 +340,9 @@ df -h /srv/diag
 df -i /srv/diag
 ~~~
 
-Đường dẫn, account, owner và volume cần thay theo thực tế. Thư mục nên riêng, có quota, không nằm ở public web root hay repository source code.
+Substitute paths, accounts, owners, and volumes to match reality. The directory should be dedicated, quota-bounded, and outside public web roots or source code repositories.
 
-### 8.2. Cấu hình startup minh họa toàn bộ tầng B
+### 8.2. Illustrative Startup Configuration for All of Tier B
 
 ~~~bash
 java -Xms512m -Xmx2g \
@@ -351,9 +351,9 @@ java -Xms512m -Xmx2g \
   -jar app.jar
 ~~~
 
-**-Xms512m / -Xmx2g chỉ là ví dụ**; service container có thể có memory limit nhỏ hơn heap + metaspace + stacks + buffers, vì vậy phải tính lại. Vùng repository JFR có thể mặc định ở tmp: cần xác minh bằng lệnh JFR.configure và cấu hình lưu trữ theo policy; không suy rằng mọi dữ liệu JFR nằm trong /srv/diag.
+**-Xms512m / -Xmx2g are examples only**; a service container may have a memory limit smaller than heap + metaspace + stacks + buffers, so recalculate accordingly. The JFR repository location may default to temp: verify with `JFR.configure` and configure storage per policy; do not assume all JFR data resides in `/srv/diag`.
 
-### 8.3. Acceptance test bắt buộc
+### 8.3. Mandatory Acceptance Tests
 
 ~~~bash
 jcmd <PID> VM.version
@@ -364,35 +364,35 @@ jcmd <PID> JFR.check verbose=true
 jcmd <PID> JFR.configure
 ~~~
 
-Chỉ PASS khi:
-- PID và JVM instance được xác thực;
-- GC log có dòng với UTC/uptime và rotation hoạt động;
-- JFR.check hiển thị recording baseline chạy, đúng settings;
-- có thể xuất một JFR dump **thực** và mở bằng jfr summary;
-- các artifact có timestamp, owner, checksum và nơi nhận;
-- disk/CPU overhead trong ngân sách đo được;
-- không lộ secrets ở nơi chia sẻ rộng.
+PASS only when:
+- PID and JVM instance are verified;
+- GC logs contain lines with UTC/uptime and rotation works;
+- `JFR.check` shows the `baseline` recording running with the expected settings;
+- a **real** JFR dump can be exported and opened with `jfr summary`;
+- artifacts carry timestamps, owner, checksum, and destination;
+- disk/CPU overhead stays within the measured budget;
+- no secrets are exposed in broadly shared locations.
 
-Lệnh jcmd redirect có thể tạo file rỗng dù attach lỗi; kiểm tra cả exit code và nội dung. Trong container, jcmd từ host có thể không thấy JVM vì PID namespace/user; công cụ trong JDK image có thể không sẵn nếu image tối giản.
+`jcmd` shell redirection can create an empty file even if attach fails; inspect both exit code and contents. In containers, `jcmd` from the host may not see the JVM due to PID namespaces/users; tools inside minimal JDK images may not be installed.
 
-## 9. Thu thập khi có sự cố: ưu tiên giữ dữ liệu sắp mất
+## 9. Incident Collection: Prioritize Volatile Data First
 
-Một quy trình ngắn cho incident:
+A concise incident workflow:
 
-1. **Đóng dấu triệu chứng**: UTC start/end, p95/p99/error rate, endpoint, traffic, pod/host, độ phân giải metrics và clock skew.
-2. **Đúng JVM**: xác nhận version/PID/startup/GC flags, không trộn replica.
-3. **Dump JFR ring ngay** nếu retention còn chứa symptom; dùng tên file duy nhất và filesystem của JVM đích.
-4. **Giữ GC logs** chứa cùng khoảng, gồm các file đã rotate; đừng xóa file đang ghi.
-5. **Lưu VM metadata/manifest** và checksum sau khi artifact đã hoàn thành, copy an toàn ra nơi nhận.
-6. **Đối chiếu cùng timeline** giữa GC pauses, JFR events và APM/trace; kiểm tra request critical path thay vì cộng duration của các thread song song.
-7. **Escalate có điều kiện**: khi evidence thiếu, bật profile hoặc logs chi tiết cho vài phút sau khi có ngân sách và người chịu trách nhiệm. Không thể tạo dữ liệu quá khứ chưa được ghi.
-8. **Quay lại baseline**; lưu hoặc xóa dữ liệu theo retention, ghi rõ khoảng thiếu/đã mất.
+1. **Stamp the symptoms**: UTC start/end, p95/p99/error rate, endpoint, traffic, pod/host, metric resolution, and clock skew.
+2. **Target the right JVM**: confirm version/PID/startup/GC flags; never mix replicas.
+3. **Dump the JFR ring immediately** if retention still covers the symptom; use a unique filename on the target JVM's filesystem.
+4. **Preserve GC logs** covering the same window, including rotated files; do not delete the actively written file.
+5. **Save VM metadata/manifest** and checksums once artifacts finish writing, then copy safely to the destination.
+6. **Align on a single timeline** across GC pauses, JFR events, and APM/traces; inspect the request critical path rather than summing durations of parallel threads.
+7. **Escalate conditionally**: if evidence is missing, enable `profile` or detailed logging for a few minutes with an approved budget and owner. Past unrecorded data cannot be created.
+8. **Return to baseline**; retain or delete data per retention policy, explicitly documenting any missing/lost intervals.
 
-Nếu alert đến trễ hơn retention ring, phải đánh dấu **evidence unavailable** thay vì khẳng định JVM không có event bất thường.
+If an alert arrives later than ring retention, mark **evidence unavailable** rather than claiming the JVM had no anomalous events.
 
-### 9.1. Trích cửa sổ lịch sử còn tồn tại
+### 9.1. Extracting a Surviving Historical Window
 
-Java 21 cho phép JFR.dump begin/end với thời gian xác định. Ví dụ timestamp UTC:
+Java 21 allows `JFR.dump` with explicit `begin`/`end` times. UTC timestamp example:
 
 ~~~bash
 jcmd <PID> JFR.dump name=baseline \
@@ -400,13 +400,13 @@ jcmd <PID> JFR.dump name=baseline \
   filename=/srv/diag/incident-window.jfr
 ~~~
 
-Tên recording/path/timestamp đều là **mẫu** cần thay. Nếu một event dài bắt đầu trước window, trích xuất chunks rồi lọc event theo start/end có thể cần giữ recording gốc rộng hơn. Dump không thể khôi phục segment đã bị maxsize/maxage xoay mất.
+Recording name, path, and timestamps are all **samples** to be replaced. If a long event began before the window, extracting chunks and filtering events by start/end may require keeping a broader source recording. Dumping cannot recover segments already rotated out by `maxsize`/`maxage`.
 
-## 10. Lab Java 21 xác minh ba lớp
+## 10. Java 21 Lab to Verify All Three Layers
 
-Chương trình lab độc lập dưới đây chạy khoảng 20 giây, liên tục tạo mảng nhỏ để có workload thử nghiệm. Nó **không bảo đảm** JFR có mọi loại event hoặc GC xảy ra đúng số lần, nhưng giúp kiểm tra pipeline end-to-end.
+The standalone lab program below runs for about 20 seconds, continuously allocating small arrays to generate a test workload. It **does not guarantee** that JFR contains every event type or that GC occurs a fixed number of times, but it lets you verify the end-to-end pipeline.
 
-Tạo file **BaselineCaptureLab.java**:
+Create **BaselineCaptureLab.java**:
 
 ~~~java
 public final class BaselineCaptureLab {
@@ -429,7 +429,7 @@ public final class BaselineCaptureLab {
 }
 ~~~
 
-Dùng JDK 21 trong một thư mục thực hành có quyền ghi:
+Run using JDK 21 in a writable practice directory:
 
 ~~~bash
 mkdir -p ./diag-lab
@@ -440,14 +440,14 @@ java -Xms32m -Xmx128m \
   BaselineCaptureLab 20
 ~~~
 
-**Stdout do chương trình tự in**, không gồm thông báo JFR/JVM:
+**Stdout printed by the program itself**, excluding JFR/JVM messages:
 
 ~~~text
 BASELINE LAB START
 BASELINE LAB DONE
 ~~~
 
-Trong lúc còn sống, từ terminal khác cùng host/user:
+While it is still running, from another terminal on the same host/user:
 
 ~~~bash
 jcmd -l
@@ -457,7 +457,7 @@ jcmd <LAB_PID> VM.log list
 jcmd <LAB_PID> JFR.check verbose=true
 ~~~
 
-Sau khi chương trình kết thúc bình thường, nhờ dumponexit=true recording được dump thành file basename đã chỉ định (nếu filesystem writable). Kiểm tra:
+After the program exits normally, thanks to `dumponexit=true`, the recording is dumped to the specified basename file (if the filesystem is writable). Inspect:
 
 ~~~bash
 ls -lh ./diag-lab/
@@ -466,100 +466,100 @@ jfr print --events jdk.GarbageCollection,jdk.CPULoad \
   ./diag-lab/baseline-lab.jfr
 ~~~
 
-Không có stdout cố định cho lệnh jfr: event count và runtime timestamps khác theo máy. **GC có thể không xuất hiện** dù cấu hình chính xác, vì app ngắn và heap vẫn đủ; không coi điều đó là bằng chứng thiếu logger. Điều cần chứng minh là file tồn tại, interval đúng, settings có event đã bật và mở được.
+There is no fixed stdout for `jfr` commands: event counts and runtime timestamps vary per machine. **GC events may not appear** even when properly configured, because the run is short and the heap may suffice; do not treat that as proof of missing logging. What must be proven is that the file exists, the interval is accurate, enabled events match settings, and the file opens cleanly.
 
-Thử thêm hai lượt với tải tương tự: một lượt settings=profile; một lượt tăng allocation rate hoặc thay GC log rotation. Đo bytes/s, overhead và retention thực tế thay vì sao chép tham số 64m/10M của lab vào production.
+Try two more runs under similar load: one with `settings=profile`; one with a higher allocation rate or modified GC log rotation. Measure actual bytes/s, overhead, and retention rather than copying the lab's `64m`/`10M` values into production.
 
-## 11. Bảo mật và vòng đời dữ liệu
+## 11. Security and Data Lifecycle
 
-| Artifact | Rủi ro | Biện pháp |
+| Artifact | Risk | Mitigation |
 | --- | --- | --- |
-| VM.command_line, VM.system_properties | Mật khẩu, token, DB URL, proxy credential | Hạn chế thu, raw encrypted, redacted copy, least privilege |
-| VM.version, VM.flags, inventory | Cấu hình hệ thống, đường dẫn và topology | Access theo vai trò, không công khai nội bộ |
-| GC logs | Kích thước heap, GC tuning, thời gian ứng dụng | Rotation, ACL, nơi lưu riêng, xóa đúng policy |
-| JFR | Method/class/thread names, call stacks, host/path/network info, event fields | Kho riêng, encryption khi lưu/truyền, audit/TTL |
-| Manifest và checksum | Thông tin pod/instance và vị trí artifact | Phân loại và quyền xem tương ứng |
+| VM.command_line, VM.system_properties | Passwords, tokens, DB URLs, proxy credentials | Restrict capture, encrypt raw, produce redacted copy, least privilege |
+| VM.version, VM.flags, inventory | System configuration, paths, and topology | Role-based access, do not publish internally without scope |
+| GC logs | Heap sizing, GC tuning, application timing | Rotation, ACLs, isolated storage, policy-driven deletion |
+| JFR | Method/class/thread names, call stacks, host/path/network info, event fields | Isolated storage, encryption at rest/in transit, audit/TTL |
+| Manifest and checksums | Pod/instance info and artifact locations | Appropriate classification and access permissions |
 
-Thiết kế **hai tầng retention**: local ring giữ dữ liệu gần nhất, giới hạn để bảo vệ dịch vụ; khi có incident mới xuất sang kho an toàn được kiểm soát, lưu lâu hơn theo **chính sách** (không có TTL mặc định 7 ngày do Java quy định). Sau copy cần kiểm tra size, checksum ở nguồn/đích, đọc được bằng công cụ phù hợp và ghi người bàn giao.
+Design a **two-tier retention model**: local rings retain recent data with strict bounds to protect the service; upon an incident, artifacts are exported to a controlled secure store and retained longer per **policy** (Java does not enforce a default 7-day TTL). After copying, verify file sizes, source/destination checksums, readability with the appropriate tools, and record the custodian.
 
-Không gửi raw JFR/VM properties lên GitHub, ticket công khai, pastebin hoặc chat không được duyệt. Không xóa file gốc trong khi JVM đang ghi hoặc trước khi bản ở nơi nhận được kiểm chứng; khi hết hạn thì xóa/thu hồi theo policy.
+Never post raw JFR/VM properties to GitHub, public tickets, pastebins, or unapproved chats. Never delete source files while the JVM is still writing or before the destination copy is verified; delete/revoke upon expiration per policy.
 
-## 12. QA và chỉ số giám sát của chính pipeline chẩn đoán
+## 12. QA and Monitoring Metrics for the Diagnostics Pipeline Itself
 
-Một pipeline không đạt chỉ vì startup không có lỗi. Cần kiểm tra:
+A pipeline does not pass merely because startup had no errors. Verify:
 
-| Check | PASS khi | FAIL thì làm gì |
+| Check | PASS When | What to Do on FAIL |
 | --- | --- | --- |
-| JVM identity | Có vendor/build, PID/startup, pod UID, app version nhất quán | Sửa manifest/metadata collection |
-| GC logging | Đã có file, UTC/uptime, rotation đúng, output nằm trên volume dự kiến | Kiểm tra cờ -Xlog, quyền JVM, collector |
-| JFR availability | JFR.check có baseline và settings đúng | Kiểm tra startup flag, JDK, quyền, disk |
-| JFR recoverability | Dump được, jfr summary mở được, file phủ symptom window | Tăng ring phù hợp ngân sách hoặc dump sớm |
-| Disk and quotas | Có cả ring + dump + headroom, không dùng chung volume quan trọng vô kiểm soát | Giảm recording/exports, đổi volume/quota |
-| Latency overhead | p95/p99, throughput, CPU và RSS trong ngưỡng đã đo | Giảm event/log detail, thu ngắn hơn |
-| Security | Raw không nằm trên public storage; ACL/checksum/retention kiểm chứng | Cô lập, redact, revoke và báo incident |
-| Timeline | UTC/uptime có thể ghép với metrics trong sai số được ghi | Kiểm tra NTP/timezone và collector delays |
+| JVM identity | Consistent vendor/build, PID/startup, pod UID, app version | Fix manifest/metadata collection |
+| GC logging | File exists, UTC/uptime present, rotation works, output on intended volume | Check `-Xlog` flags, JVM permissions, collector |
+| JFR availability | `JFR.check` shows `baseline` with correct settings | Check startup flags, JDK, permissions, disk |
+| JFR recoverability | Dump succeeds, `jfr summary` opens it, file covers symptom window | Resize ring within budget or dump earlier |
+| Disk and quotas | Covers ring + dump + headroom without uncontrolled sharing of critical volumes | Reduce recording/exports, adjust volume/quota |
+| Latency overhead | p95/p99, throughput, CPU, and RSS within measured thresholds | Reduce event/log detail, shorten capture |
+| Security | Raw artifacts absent from public storage; ACLs/checksums/retention verified | Isolate, redact, revoke, and report incident |
+| Timeline | UTC/uptime aligns with metrics within documented tolerance | Check NTP/timezone and collector delays |
 
-Theo dõi **tuổi event cũ nhất còn giữ, GC log bytes/hour, JFR write bytes/hour, JFR dump failures, volume used%, shipping backlog, collector CPU, latency overhead, NTP offset**. Kiểm tra lại budget sau mỗi thay đổi JDK build, GC, .jfc, log verbosity, container limits, storage, traffic hoặc số replica.
+Track **oldest retained event age, GC log bytes/hour, JFR write bytes/hour, JFR dump failures, volume used%, shipping backlog, collector CPU, latency overhead, and NTP offset**. Re-verify the budget after every change to JDK build, GC, `.jfc`, log verbosity, container limits, storage, traffic, or replica count.
 
-## 13. Lỗi thiết kế phổ biến
+## 13. Common Design Mistakes
 
-| Sai lầm | Tác hại | Cách sửa |
+| Mistake | Impact | Fix |
 | --- | --- | --- |
-| Chỉ bật JFR khi incident đã kết thúc | Mất quá khứ | Default ring liên tục, dump ngay sau alert |
-| Coi maxage=30m luôn giữ 30 phút | maxsize có thể loại dữ liệu trước đó | Đo peak JFR rate và earliest-event time |
-| Chỉ tính maxsize JFR, bỏ qua file export | Dump làm đầy volume | Dành chỗ cho repository + dump + profile + headroom |
-| Coi GC rotation 80 MiB là 8 giờ cố định | GC storm xoay nhanh hơn | Đo giờ bình thường và tải đỉnh |
-| Dùng profile liên tục ở mọi replica | Overhead/I/O lớn | Default baseline, profile có TTL |
-| Đặt GC/JFR trên volume app data quan trọng | Quota đầy ảnh hưởng service | Volume riêng và cảnh báo |
-| Không lưu JVM start time | PID bị tái sử dụng | Gắn instance/pod + PID + startup UTC |
-| VM flags/args đưa thẳng vào ticket | Lộ secrets | Tách raw và redacted |
-| Không kiểm tra file thực mở được | Thu được file hỏng/rỗng | JFR summary, checksum, readback |
-| Dữ liệu JFR vắng event | Nhầm không có vấn đề | Kiểm tra thresholds, .jfc, sampling |
-| Tăng log debug không có lịch tắt | Giảm retention và tác động latency | Escalation có owner và rollback |
-| Cộng JFR duration nhiều thread | Thổi phồng request downtime | Cùng time window, critical path và interval overlap |
+| Enabling JFR only after the incident ends | Past data is lost | Continuous default ring, dump immediately on alert |
+| Assuming `maxage=30m` always keeps 30 minutes | `maxsize` may evict older data sooner | Measure peak JFR rate and earliest-event time |
+| Counting only JFR `maxsize` and ignoring exported files | Dumps fill the volume | Reserve space for repository + dumps + profile + headroom |
+| Treating 80 MiB GC rotation as a fixed 8 hours | GC storms rotate much faster | Measure normal hours and peak load |
+| Running `profile` continuously on every replica | High overhead/I/O | Default baseline, time-bounded `profile` with TTL |
+| Placing GC/JFR on critical app data volumes | Exhausting quota harms the service | Dedicated volume and alerts |
+| Omitting JVM start time | PIDs get reused | Pair instance/pod + PID + startup UTC |
+| Pasting VM flags/args directly into tickets | Leaks secrets | Separate raw and redacted artifacts |
+| Not verifying files actually open | Empty or corrupt files collected | `jfr summary`, checksums, readback |
+| Missing JFR events interpreted as no issue | False negative conclusion | Check thresholds, `.jfc`, sampling |
+| Turning on debug logging without an off-schedule | Shrinks retention and hits latency | Escalation with owner and rollback |
+| Summing JFR durations across multiple threads | Inflates perceived request downtime | Align time windows, critical path, and interval overlap |
 
-## 14. Checklist triển khai
+## 14. Deployment Checklist
 
-**Trước production**
-- [ ] Có câu hỏi chẩn đoán cho từng tín hiệu.
-- [ ] Chọn đúng JDK 21 build, collector, Xms/Xmx, instance identity và NTP.
-- [ ] VM inventory một lần mỗi phiên, có phương án xử lý secrets.
-- [ ] GC log UTC+uptime, rotation và bytes/hour được đo thực.
-- [ ] JFR default disk recording với maxage/maxsize có giới hạn.
-- [ ] Ngân sách CPU, RAM, disk+export headroom, ship/network và retention theo số replica.
-- [ ] Policy phân quyền, retention, checksum và owner.
+**Pre-production**
+- [ ] A diagnostic question is defined for every signal.
+- [ ] JDK 21 build, collector, Xms/Xmx, instance identity, and NTP are properly selected.
+- [ ] VM inventory captured once per session, with secret-handling procedures in place.
+- [ ] GC logs with UTC+uptime, rotation, and measured bytes/hour.
+- [ ] Default JFR disk recording with bounded `maxage`/`maxsize`.
+- [ ] Budgets calculated for CPU, RAM, disk+export headroom, shipping/network, and retention per replica count.
+- [ ] Policies established for permissions, retention, checksums, and ownership.
 
-**Sau deploy**
-- [ ] VM.version/flags/u​​ptime đúng JVM.
-- [ ] GC log xuất file, rotation có ý nghĩa, timestamp khớp UTC.
-- [ ] JFR.check verbose=true xác nhận baseline và settings.
-- [ ] Thử JFR.dump thật, jfr summary mở được và xác nhận khoảng retained.
-- [ ] Alert quota/dump failures/collector backlog đã cấu hình.
+**Post-deploy**
+- [ ] `VM.version`/`flags`/`uptime` match the intended JVM.
+- [ ] GC logs produce files, meaningful rotation, and UTC-aligned timestamps.
+- [ ] `JFR.check verbose=true` confirms `baseline` and settings.
+- [ ] Tested a real `JFR.dump`, confirmed `jfr summary` opens it, and verified retained window.
+- [ ] Alerts configured for quota, dump failures, and collector backlog.
 
-**Khi incident**
-- [ ] Ghi symptom window, request p99/throughput, host/pod và clock uncertainty.
-- [ ] Dump ring JFR trước khi bị xoay mất; giữ GC logs cùng window.
-- [ ] Gắn VM snapshot/manifest, version, checksum và ACL.
-- [ ] Chỉ nâng mức profile/logs với duration/owner/budget có kiểm soát.
-- [ ] Báo cáo interval thiếu dữ liệu, quay về baseline và lưu/xóa theo TTL.
+**During an incident**
+- [ ] Record symptom window, request p99/throughput, host/pod, and clock uncertainty.
+- [ ] Dump the JFR ring before it rotates out; preserve GC logs for the same window.
+- [ ] Attach VM snapshot/manifest, version, checksum, and ACL.
+- [ ] Escalate profile/logs only with controlled duration, owner, and budget.
+- [ ] Report any missing data intervals, return to baseline, and retain/delete per TTL.
 
-## 15. Bài tập tự đánh giá
+## 15. Self-Assessment Exercises
 
-1. Một pod có GC log 80 MiB, JFR ring 128 MiB, một dump 128 MiB và headroom 128 MiB. Nếu thêm một profile 180 MiB, tối thiểu phải tính bao nhiêu dung lượng? Còn thiếu khoản gì?
-2. GC logs 80 MiB ghi 10 MiB/giờ lúc thường, 40 MiB/giờ lúc GC storm. Retention hai trường hợp xấp xỉ bao nhiêu, và vì sao không cố định?
-3. JFR maxage 30m nhưng maxsize 128m; khi event rate là 32 MiB/phút thì dữ liệu thực còn gần bao nhiêu phút? Thay đổi nào an toàn hơn tăng maxsize vô hạn?
-4. Ba pod cùng PID=1, sau rolling restart lại xuất hiện PID=1. Thiết kế artifact key tránh trộn các recording.
-5. Nếu alert 10:20 và dump 10:22, nhưng vòng JFR chỉ giữ 10:18 trở đi, bạn có thể đưa kết luận về 10:10 không? Viết mức độ tin cậy.
-6. Nêu vì sao VM.system_properties không được tự động dán vào ticket và cách cấp quyền raw vs redacted.
-7. Lập thí nghiệm A/B đo tổng overhead GC logging + JFR default ở workload 100, 500 và 1000 req/s; chọn metrics và ngưỡng dừng.
-8. Thiết kế trigger lưu JFR khi p99 vượt SLO nhưng có cooldown, quota và giới hạn số bản để tránh alert flapping làm đầy đĩa.
+1. A pod has 80 MiB GC logs, a 128 MiB JFR ring, one 128 MiB dump, and 128 MiB headroom. If you add a 180 MiB profile recording, what is the minimum capacity to budget? What items are still missing?
+2. An 80 MiB GC log rotation writes 10 MiB/hour normally and 40 MiB/hour during a GC storm. Approximately what is the retention in each case, and why is it not fixed?
+3. JFR has `maxage=30m` and `maxsize=128m`; at an event rate of 32 MiB/minute, roughly how many minutes of data actually remain? What change is safer than raising `maxsize` indefinitely?
+4. Three pods share PID=1, and after a rolling restart PID=1 appears again. Design an artifact key that prevents mixing recordings.
+5. If an alert fires at 10:20 and the dump occurs at 10:22, while the JFR ring only holds data from 10:18 onward, can you draw conclusions about 10:10? State the confidence level.
+6. Explain why `VM.system_properties` must not be auto-pasted into tickets and how to grant permissions for raw vs. redacted versions.
+7. Design an A/B experiment to measure combined overhead of GC logging + default JFR at 100, 500, and 1000 req/s; choose metrics and stop thresholds.
+8. Design a trigger to save JFR when p99 breaches SLO that includes cooldown, quota, and copy count limits to prevent alert flapping from filling the disk.
 
-**Tiêu chí hoàn thành:** đọc được ba lớp VM info/GC log/JFR; tính được ngân sách và retention; kiểm chứng thực tế trên JDK 21; biết cách giữ bản ghi trước sự cố, bảo vệ dữ liệu và nâng mức an toàn.
+**Completion criteria:** ability to read all three layers (VM info/GC log/JFR); calculate budgets and retention; verify empirically on JDK 21; and preserve pre-incident recordings, protect data, and escalate safely.
 
-## 16. Tài liệu gốc Java 21
+## 16. Java 21 Primary References
 
 - [Oracle JDK 21 — jcmd: VM.version, VM.flags, VM.info, VM.log, JFR.start, JFR.dump, JFR.check](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
 - [Oracle JDK 21 — java: unified logging -Xlog, -XX:StartFlightRecording](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)
-- [Oracle JDK 21 — Flight Recorder Configurations: default.jfc, profile.jfc và overhead](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder-configurations.html)
+- [Oracle JDK 21 — Flight Recorder Configurations: default.jfc, profile.jfc, and overhead](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder-configurations.html)
 - [Oracle JDK 21 — jfr: summary, metadata, print](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
-- [Oracle JDK 21 — Diagnostic Tools: VM inventory và công cụ chẩn đoán](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html)
+- [Oracle JDK 21 — Diagnostic Tools: VM inventory and diagnostic utilities](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html)

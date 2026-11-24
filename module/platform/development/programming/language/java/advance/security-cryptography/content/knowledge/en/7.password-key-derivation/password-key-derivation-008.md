@@ -1,154 +1,154 @@
-# 7.8. Xử lý char[], clearPassword và giới hạn của việc xóa dữ liệu nhạy cảm trên JVM
+# 7.8. Handling `char[]`, `clearPassword`, and the Limits of Sensitive Data Erasure on the JVM
 
-## 1. Vấn đề cần giải quyết: vòng đời mật khẩu trong bộ nhớ
+## 1. The problem to solve: password lifetime in memory
 
-Mật khẩu (password), passphrase, mã PIN hoặc nguyên liệu dùng để dẫn xuất khóa thường chỉ cần tồn tại trong bộ nhớ trong một khoảng thời gian ngắn: nhận từ người dùng, dùng để xác minh hoặc dẫn xuất khóa, rồi không cần giữ dạng rõ nữa. Trên Java/JVM, vấn đề không chỉ là **không log mật khẩu** mà còn là cách đại diện dữ liệu và **ai sở hữu từng bản sao**.
+A password, passphrase, PIN, or key-derivation input normally only needs to live in memory briefly: received from the user, used to verify or derive a key, and then no longer needed in plaintext. On Java/JVM, the issue is not merely **avoiding logging passwords**, but also how the data is represented and **who owns each copy**.
 
-Ba mục tiêu thực tế:
+Three practical goals:
 
-1. **Giảm thời gian lưu trữ plaintext password:** giải phóng/ghi đè những bộ đệm có thể kiểm soát ngay khi hoàn thành công việc.
-2. **Hạn chế tạo bản sao ngoài ý muốn:** đặc biệt là `String`, chuỗi được concat, buffer của encoder, biểu mẫu, object của thư viện, bản sao được trả từ API.
-3. **Hiểu giới hạn:** thao tác xoá trên một `char[]` hoặc gọi `PBEKeySpec.clearPassword()` **không chứng minh** rằng mọi dấu vết mật khẩu trong tiến trình JVM, bộ nhớ vật lý, heap dump, swap, snapshot hay thư viện native đã biến mất.
+1. **Minimize plaintext password retention:** release/overwrite controllable buffers immediately once work finishes.
+2. **Avoid unintended copies:** especially `String`, string concatenation, encoder buffers, forms, library objects, and copies returned by APIs.
+3. **Understand the limits:** clearing a `char[]` or calling `PBEKeySpec.clearPassword()` **does not prove** that every trace of the password in the JVM process, physical memory, heap dumps, swap, snapshots, or native libraries has vanished.
 
-Trong JCA/JCE, `char[]` và `javax.crypto.spec.PBEKeySpec` là các công cụ giúp kiểm soát *một phần* vòng đời mật khẩu. Đây là một biện pháp giảm thiểu rủi ro, **không phải cam kết xoá bí mật tuyệt đối**.
+In JCA/JCE, `char[]` and `javax.crypto.spec.PBEKeySpec` are tools for *partially* controlling password lifetime. This is a risk-mitigation measure, **not an absolute guarantee of secret erasure**.
 
-## 2. Vì sao ưu tiên char[] thay vì String cho mật khẩu dạng rõ?
+## 2. Why prefer `char[]` over `String` for plaintext passwords?
 
-### 2.1. String không có API xoá từng ký tự
+### 2.1. `String` has no API to erase individual characters
 
-`String` là immutable. Sau khi tạo `String password`, ứng dụng không có API công khai để ghi đè đáng tin cậy các byte/ký tự do `String` lưu trữ. Việc gán `password = null` chỉ bỏ một reference; thời điểm thu gom rác không xác định, và bộ nhớ cũ có thể còn dấu vết cho đến khi được tái sử dụng hoặc bị ghi đè. `String` có thể tồn tại lâu hơn dự kiến qua log, exception, cache, stack trace, request object, serializer hoặc thao tác nối chuỗi.
+`String` is immutable. Once `String password` is created, the application has no public API to reliably overwrite the bytes/characters stored by that `String`. Assigning `password = null` only drops one reference; garbage collection timing is nondeterministic, and old memory may retain traces until reused or overwritten. A `String` can also linger longer than expected via logs, exceptions, caches, stack traces, request objects, serializers, or concatenation.
 
-`char[]` thì mutable: ứng dụng có thể gọi:
+`char[]` is mutable: the application can call:
 
 ```java
 Arrays.fill(password, '\0');
 ```
 
-Điều này **ghi giá trị NUL vào các phần tử của chính mảng `password`**, khi phép ghi được thực thi. Nó hỗ trợ hạn chế một số bản sao ở heap mà ứng dụng đang sở hữu.
+This **writes NUL into the elements of the `password` array itself** when executed. It helps limit copies on the heap owned by the application.
 
-| Tiêu chí | `String` | `char[]` |
+| Criterion | `String` | `char[]` |
 | --- | --- | --- |
-| Có thể sửa trực tiếp nội dung bằng API công khai? | Không | Có, dùng `Arrays.fill` hoặc tự đặt từng phần tử |
-| Có thể chủ động xoá buffer do mình sở hữu? | Không bảo đảm bằng API chuẩn | Có thể yêu cầu ghi đè buffer cụ thể, với giới hạn của JVM |
-| Có thể bị copy sang nhiều nơi? | Có | Có |
-| Có bảo đảm xóa mọi dấu vết trong RAM/heap? | Không | **Không** |
-| Dùng trực tiếp với `PBEKeySpec`? | Không; phải tạo `char[]` | Có |
+| Can contents be modified directly via public API? | No | Yes, using `Arrays.fill` or setting elements individually |
+| Can you actively erase an owned buffer? | No guarantee via standard API | Can request overwriting that specific buffer, within JVM limits |
+| Can it be copied in multiple places? | Yes | Yes |
+| Guaranteed erasure of all traces in RAM/heap? | No | **No** |
+| Used directly with `PBEKeySpec`? | No; must create a `char[]` | Yes |
 
-**Lưu ý quan trọng:** `char[]` không “an toàn tuyệt đối” hoặc “được JVM bảo vệ bí mật”. Nó chỉ cho phép yêu cầu sửa nội dung một mảng cụ thể. Các bản sao khác không được xóa chỉ vì ta đã sửa mảng ban đầu.
+**Important note:** `char[]` is not “completely safe” or “secretly shielded by the JVM.” It only lets you request modifying the contents of one specific array. Other copies are not cleared merely because you overwrote the original array.
 
-### 2.2. Một số thao tác nên tránh
+### 2.2. Operations to avoid
 
 ```java
-// Ví dụ lỗi khi xử lý mật khẩu thật:
-String immutable = new String(passwordChars);  // Tạo bản sao String khó chủ động xóa.
-String text = String.valueOf(passwordChars);    // Cũng tạo String.
+// Bad example when handling real passwords:
+String immutable = new String(passwordChars);  // Creates a String copy hard to erase actively.
+String text = String.valueOf(passwordChars);    // Also creates a String.
 String logLine = "password=" + new String(passwordChars);
-System.out.println(passwordChars);             // Không dùng để hiển thị bí mật.
+System.out.println(passwordChars);             // Never use to display secrets.
 ```
 
-Đây là **đoạn mã minh họa các anti-pattern**, không phải chương trình hoàn chỉnh. `String.valueOf(char[])` tạo `String` mới chứa ký tự; `System.out.println(char[])` cũng có thể in nội dung qua overload dành cho `char[]`, do đó **không log bất kỳ char array mật khẩu nào**. Thận trọng với `Arrays.toString(passwordChars)`, debugger/watch expression, metrics labels, log structured fields và message của exception.
+This snippet **illustrates anti-patterns**, not a complete program. `String.valueOf(char[])` creates a new `String` holding the characters; `System.out.println(char[])` can also print the contents via its `char[]` overload, so **never log any password char array**. Be cautious with `Arrays.toString(passwordChars)`, debugger/watch expressions, metric labels, structured log fields, and exception messages.
 
-Cũng nên tránh chuyển mật khẩu sang `StringBuilder`/`StringBuffer` chỉ để tiếp tục xử lý: chúng có bộ đệm riêng và không tự trở thành cơ chế zeroization đáng tin cậy. Ngược lại, nếu framework đầu vào **đã** tạo `String`, việc gọi `string.toCharArray()` chỉ tạo thêm mảng; **không xoá được String nguồn**.
+Also avoid moving passwords into `StringBuilder`/`StringBuffer` just to continue processing: they maintain their own internal buffers and are not reliable zeroization mechanisms. Conversely, if the input framework **already** created a `String`, calling `string.toCharArray()` only creates yet another array; **it does not erase the source `String`**.
 
-## 3. Quyền sở hữu dữ liệu: một mật khẩu có thể có nhiều bản sao
+## 3. Data ownership: one password can have many copies
 
-Xét luồng đơn giản:
+Consider a simple flow:
 
 ```text
-Nguồn nhập (terminal / UI / HTTP framework)
+Input source (terminal / UI / HTTP framework)
    |
    v
 char[] callerPassword  -----------------------------+
    |                                                |
-   | new PBEKeySpec(callerPassword, ...)             | Arrays.fill(callerPassword, '\0')
-   v                                                | chỉ xóa mảng bên gọi
-PBEKeySpec: bản sao nội bộ                         <----+
+   | new PBEKeySpec(callerPassword, ...)            | Arrays.fill(callerPassword, '\0')
+   v                                                | clears only the caller's array
+PBEKeySpec: internal copy                          <----+
    |
    | getPassword()
    v
-char[] trả về: một bản sao mới
+Returned char[]: yet another new copy
    |
-   +-- SecretKeyFactory / provider tạo dữ liệu KDF trung gian
-   +-- SecretKey và có thể có byte[] từ getEncoded()
-   +-- heap, native provider, stack, log, snapshot (tùy hệ thống)
+   +-- SecretKeyFactory / provider creates intermediate KDF data
+   +-- SecretKey and potentially byte[] from getEncoded()
+   +-- heap, native provider, stack, logs, snapshots (system-dependent)
 ```
 
-**Mỗi mũi tên copy là một vùng phải đánh giá riêng.** Xóa `callerPassword` không tự xóa vùng nhớ trong `PBEKeySpec`. Xóa `PBEKeySpec` không tự xóa những `char[]` đã trả từ `getPassword()` hay những byte array của khóa dẫn xuất. Xóa `byte[]` mã hóa đầu ra không có nghĩa đối tượng `SecretKey` hoặc provider đã xóa bản sao của chúng.
+**Every copy arrow represents a separate region to evaluate.** Clearing `callerPassword` does not automatically clear memory inside `PBEKeySpec`. Clearing `PBEKeySpec` does not automatically clear `char[]` instances returned by `getPassword()` or derived-key byte arrays. Clearing output `byte[]` arrays does not mean the `SecretKey` object or provider wiped its own copies.
 
-Đây là lý do không nên thiết kế phương thức nhận password mà âm thầm giữ lại mảng do caller sở hữu hoặc đưa vào cache. Cần xác định rõ: caller hay callee chịu trách nhiệm xóa, có copy hay không, thời điểm có thể xóa và thành phần nào không kiểm soát được.
+This is why methods taking a password must never silently retain the caller-owned array or cache it. Define clearly: whether the caller or callee is responsible for clearing, whether copies are made, when buffers may be cleared, and which components lie outside your control.
 
-## 4. PBEKeySpec: bản sao của password và clearPassword()
+## 4. `PBEKeySpec`: password copy and `clearPassword()`
 
-`javax.crypto.spec.PBEKeySpec` dùng để cung cấp password và tùy chọn salt, iteration count, key length cho các thuật toán *Password-Based Encryption/Key Derivation* (PBE/KDF) thông qua `SecretKeyFactory`.
+`javax.crypto.spec.PBEKeySpec` supplies the password and optional salt, iteration count, and key length to *Password-Based Encryption/Key Derivation* (PBE/KDF) algorithms via `SecretKeyFactory`.
 
-Ví dụ tạo spec:
+Example spec creation:
 
 ```java
 PBEKeySpec spec = new PBEKeySpec(passwordChars, salt, iterations, 256);
 ```
 
-Chữ ký tương ứng là `PBEKeySpec(char[] password, byte[] salt, int iterationCount, int keyLength)`; `keyLength` tính bằng **bit**, không phải byte.
+The matching signature is `PBEKeySpec(char[] password, byte[] salt, int iterationCount, int keyLength)`; `keyLength` is in **bits**, not bytes.
 
-### 4.1. Constructor copy dữ liệu
+### 4.1. The constructor copies data
 
-`PBEKeySpec` tạo **bản sao riêng của password** mà ứng dụng chuyển vào. Vì vậy:
+`PBEKeySpec` creates **its own copy of the password** passed in by the application. Consequently:
 
-- Sửa hoặc `Arrays.fill(passwordChars, '\0')` sau khi tạo spec **không xóa** password trong spec.
-- Điều này hữu ích để tránh thay đổi ngoài ý muốn khi KDF đang chạy, nhưng cũng tạo thêm vùng plaintext password trong bộ nhớ.
-- Spec có API xoá **bản sao của chính nó**, không có quyền tự động xoá mọi mảng bên ngoài.
+- Mutating or calling `Arrays.fill(passwordChars, '\0')` after creating the spec **does not clear** the password inside the spec.
+- This prevents unintended mutations while the KDF runs, yet creates an extra plaintext password region in memory.
+- The spec provides an API to clear **its own copy**, without authority to automatically clear external arrays.
 
-Salt cũng được sao chép khi lưu vào spec; `getSalt()` trả một bản sao. Salt thường **không bí mật**, phải lưu cùng thông tin dẫn xuất khi cần xác minh lại, nhưng tính unique và random quan trọng. Không cần đối xử với salt như password.
+The salt is also copied when stored in the spec; `getSalt()` returns a copy. Salts are typically **non-secret** and must be stored alongside derivation metadata when re-verification is needed, though uniqueness and randomness matter. Salts do not need to be treated like passwords.
 
-### 4.2. getPassword() trả bản sao, không trao quyền sở hữu nội bộ
+### 4.2. `getPassword()` returns a copy, not internal ownership
 
-`spec.getPassword()` trả một `char[]` **mới** chứa password mà spec đang lưu. Nếu gọi lặp nhiều lần, ứng dụng có thể tạo nhiều bản sao nhạy cảm mà không nhận ra.
+`spec.getPassword()` returns a **new** `char[]` containing the password currently held by the spec. Calling it repeatedly can unknowingly create multiple sensitive copies.
 
 ```java
 char[] returnedCopy = spec.getPassword();
 try {
-    // Nếu thật sự cần nội dung, dùng càng ngắn càng tốt.
+    // If contents are truly needed, keep usage as brief as possible.
 } finally {
     Arrays.fill(returnedCopy, '\0');
 }
 ```
 
-Đây là đoạn mã minh họa; `spec` đã được tạo trước đó. Việc xoá `returnedCopy` **không** xoá bản sao nội bộ của spec và không xoá mảng gốc. Tránh gọi `getPassword()` chỉ để log, debug, so sánh không cần thiết hoặc kiểm tra độ dài.
+This snippet is illustrative; `spec` was constructed earlier. Wiping `returnedCopy` **does not** wipe the spec's internal copy and does not wipe the original array. Avoid calling `getPassword()` just for logging, debugging, unnecessary comparisons, or length checks.
 
-### 4.3. clearPassword() tác động vào đâu?
+### 4.3. What does `clearPassword()` affect?
 
-`spec.clearPassword()` yêu cầu xóa bản sao password **được lưu bên trong PBEKeySpec**. Theo hợp đồng API Java, sau khi clear, `getPassword()` sẽ ném `IllegalStateException`.
+`spec.clearPassword()` requests erasure of the password copy **stored inside `PBEKeySpec`**. Per the Java API contract, once cleared, `getPassword()` throws `IllegalStateException`.
 
-Điều `clearPassword()` **không làm**:
+What `clearPassword()` **does not do**:
 
-- Không sửa mảng `passwordChars` do caller truyền vào.
-- Không tìm và sửa các bản sao `char[]` do `getPassword()` đã trả trước đó.
-- Không xóa `String` nếu framework đã tạo String trước đó.
-- Không bảo đảm xóa password bytes tạm do `SecretKeyFactory`/provider/native code tạo ra.
-- Không xóa material trong `SecretKey` được KDF trả về và không tự hủy byte[] do `getEncoded()` trả về.
-- Không hứa dọn sạch heap dump, CPU register, swap, OS page cache, core dump, backup/snapshot.
+- Does not modify the `passwordChars` array passed by the caller.
+- Does not find or modify `char[]` copies previously returned by `getPassword()`.
+- Does not erase any `String` if a framework created one earlier.
+- Does not guarantee wiping temporary password bytes allocated by `SecretKeyFactory`/providers/native code.
+- Does not erase key material inside the `SecretKey` returned by the KDF, and does not destroy `byte[]` returned by `getEncoded()`.
+- Does not promise clean heap dumps, CPU registers, swap, OS page caches, core dumps, or backups/snapshots.
 
-**Thứ tự sử dụng:** tạo `PBEKeySpec` → dùng nó để tạo key/derived bytes → gọi `clearPassword()` trong `finally`. **Đừng clear spec trước khi `SecretKeyFactory.generateSecret(spec)` nếu vẫn cần password để dẫn xuất khóa.**
+**Order of use:** create `PBEKeySpec` → use it to generate key/derived bytes → call `clearPassword()` in `finally`. **Never clear the spec before `SecretKeyFactory.generateSecret(spec)` if the password is still needed for derivation.**
 
-Nếu dùng cùng một spec qua nhiều lần, cần giới hạn vòng đời; tốt nhất chỉ tạo khi cần và đóng “cửa sổ tồn tại” ngay sau công việc. Sau `clearPassword()`, phải tạo spec mới bằng password còn hợp lệ nếu muốn thực hiện derivation khác, không được tự mong spec tái sử dụng nội dung đã xóa.
+If reusing the same spec across multiple calls, bound its lifetime; preferably construct it only when needed and close the “exposure window” right after the work finishes. After `clearPassword()`, you must create a new spec with a valid password to run another derivation—never expect the spec to reuse cleared content.
 
-### 4.4. So sánh API thường bị nhầm
+### 4.4. Comparing commonly confused APIs
 
-| API/Thao tác | Đối tượng bị tác động | Điều **không** được suy ra |
+| API / Operation | Target affected | What must **not** be inferred |
 | --- | --- | --- |
-| `Arrays.fill(charArray, '\0')` | Phần tử của đúng `charArray` | Không xóa những bản sao khác, không bảo đảm phần cứng/RAM đã được tẩy sạch |
-| `PBEKeySpec.clearPassword()` | Bản sao password nội bộ của spec | Không xoá caller `char[]`, array trả từ getPassword, khóa dẫn xuất |
-| `PBEKeySpec.getPassword()` | Tạo và trả **bản sao** mới | Không phải reference trực tiếp để xóa nội bộ spec |
-| `Arrays.fill(keyBytes, (byte) 0)` | Byte array cụ thể | Không xóa key material trong object/provider khác |
-| `password = null` | Reference cục bộ | Không có hợp đồng xóa nội dung trong heap ngay |
-| `System.gc()` | Chỉ là yêu cầu/hint cho GC | Không phải API zeroization, không bảo đảm chạy/xóa đúng lúc |
+| `Arrays.fill(charArray, '\0')` | Elements of that exact `charArray` | Does not erase other copies; does not guarantee hardware/RAM is scrubbed |
+| `PBEKeySpec.clearPassword()` | Internal password copy inside the spec | Does not erase caller `char[]`, arrays from `getPassword()`, or derived keys |
+| `PBEKeySpec.getPassword()` | Creates and returns a new **copy** | Not a direct reference for clearing the spec internally |
+| `Arrays.fill(keyBytes, (byte) 0)` | That specific byte array | Does not erase key material inside other objects/providers |
+| `password = null` | Local reference | No contract to erase heap contents immediately |
+| `System.gc()` | Only a hint/request to the GC | Not a zeroization API; no guarantee of timely execution or erasure |
 
-## 5. Demo Java 17+ chạy độc lập và stdout đã xác minh
+## 5. Standalone Java 17+ demo and verified stdout
 
-Bài demo chứng minh chính xác ba tình huống: một mảng do caller sở hữu, bản sao password qua `PBEKeySpec.getPassword()`, và password nội bộ bị vô hiệu hóa sau `clearPassword()`. Chương trình còn tạo derived key bằng `PBKDF2WithHmacSHA256` để cho thấy spec vẫn hoạt động dù caller đã zero mảng gốc.
+This demo verifies three exact behaviors: a caller-owned array, a password copy from `PBEKeySpec.getPassword()`, and the internal password becoming unavailable after `clearPassword()`. It also derives a key using `PBKDF2WithHmacSHA256` to show the spec still works even after the caller zeroes its original array.
 
-**Chú ý:** chuỗi ký tự cố định trong mã chỉ phục vụ ví dụ có kết quả xác định, **không phải mật khẩu thật**. Giá trị `10_000` iterations là cấu hình minh họa cú pháp và tốc độ chạy, **không** phải thông số an toàn production. Sản phẩm cần lựa chọn thuật toán và chi phí dẫn xuất phù hợp theo hướng dẫn hiện hành, benchmark và threat model.
+**Note:** the fixed characters in code are solely for a deterministic example, **not a real password**. `10_000` iterations illustrates syntax and fast execution, **not** a secure production setting. Production systems must choose derivation algorithms and costs per current guidance, benchmarks, and threat model.
 
-Tạo file `PasswordMemoryDemo.java`:
+Create `PasswordMemoryDemo.java`:
 
 ```java
 import java.security.SecureRandom;
@@ -211,14 +211,14 @@ public final class PasswordMemoryDemo {
 }
 ```
 
-Biên dịch và chạy trên JDK 17 trở lên:
+Compile and run on JDK 17 or newer:
 
 ```bash
 javac PasswordMemoryDemo.java
 java PasswordMemoryDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 Separate returned copy: true
@@ -228,24 +228,24 @@ Derived key size: 32 bytes
 Spec inaccessible after clear: true
 ```
 
-**Giải thích từng dòng:**
+**Line-by-line explanation:**
 
-1. `spec = new PBEKeySpec(entered, salt, ...)` tạo bản sao nội bộ; `fromSpec = spec.getPassword()` tạo **một bản sao nữa**, khác reference với `entered`.
-2. `Arrays.fill(entered, '\0')` làm mọi phần tử trong mảng caller bằng NUL. Thao tác này **không** làm thay đổi nội dung `fromSpec` đã copy trước đó; đó là lý do dòng `Spec copy still held password: true`.
-3. Ta chủ động xóa mảng `fromSpec` ngay sau khi dùng. Spec vẫn giữ bản sao nội bộ để `SecretKeyFactory.generateSecret(spec)` có thể hoàn thành dẫn xuất.
-4. Key length 256 **bit** tương ứng `32 bytes` từ `derived.getEncoded()` trong demo này. Byte array `keyBytes` cũng nhạy cảm, nên được `Arrays.fill` trong `finally`.
-5. `spec.clearPassword()` xóa password nội bộ và các lời gọi `getPassword()` sau đó bị từ chối bằng `IllegalStateException` theo API.
-6. `finally` bảo đảm gọi dọn dẹp trên các mảng đang sở hữu và spec ngay cả khi KDF hoặc bước khác ném exception. Nó **không** hứa xoá `SecretKey derived` hoặc các bản sao nội bộ của provider/JVM.
+1. `spec = new PBEKeySpec(entered, salt, ...)` makes an internal copy; `fromSpec = spec.getPassword()` creates **another copy**, with a different reference from `entered`.
+2. `Arrays.fill(entered, '\0')` sets every element of the caller's array to NUL. This **does not** alter `fromSpec` copied earlier; that is why `Spec copy still held password: true` prints.
+3. We explicitly wipe `fromSpec` right after use. The spec still retains its internal copy so `SecretKeyFactory.generateSecret(spec)` can finish derivation.
+4. A 256-**bit** key length corresponds to `32 bytes` from `derived.getEncoded()` in this demo. The `keyBytes` array is also sensitive, so it is wiped with `Arrays.fill` in `finally`.
+5. `spec.clearPassword()` clears the internal password, and subsequent `getPassword()` calls are rejected with `IllegalStateException` per API contract.
+6. `finally` ensures cleanup runs on owned arrays and the spec even if the KDF or another step throws an exception. It **does not** promise to erase `SecretKey derived` or internal provider/JVM copies.
 
-**Đừng đọc sai demo:** Kết quả `Caller cleared: true` chỉ kiểm tra **các phần tử của đúng một mảng trong ngữ cảnh chạy hiện tại**. Nó không phải phép đo chứng minh heap, native memory hoặc hệ điều hành không còn password. Việc chúng ta không in password/key cũng là chủ ý.
+**Do not misread the demo:** `Caller cleared: true` only checks **the elements of one specific array in the current execution context**. It is not a measurement proving the heap, native memory, or OS retains no password. Omitting printing the password or key is also intentional.
 
-## 6. Xây dựng luồng nhập và xử lý password đúng hơn
+## 6. Building cleaner password input and handling flows
 
-### 6.1. Console.readPassword() cung cấp char[] (khác readLine())
+### 6.1. `Console.readPassword()` returns `char[]` (unlike `readLine()`)
 
-`java.io.Console.readPassword(...)` hỗ trợ đọc ký tự mật khẩu (thường không echo ra màn hình) và trả về `char[]`. Đây là lựa chọn tốt cho ứng dụng CLI khi có interactive console.
+`java.io.Console.readPassword(...)` reads password characters (typically without echoing to screen) and returns `char[]`. It is a good choice for CLI applications when an interactive console is available.
 
-Ví dụ **đoạn mã minh họa**, không phải một chương trình Java độc lập:
+Illustrative **code snippet**, not a standalone Java program:
 
 ```java
 Console console = System.console();
@@ -257,156 +257,156 @@ if (password == null) {
     throw new IllegalStateException("End of input");
 }
 try {
-    // Dùng password ngắn hạn với PBEKeySpec/SecretKeyFactory.
+    // Use password briefly with PBEKeySpec/SecretKeyFactory.
 } finally {
     Arrays.fill(password, '\0');
 }
 ```
 
-Cần import `java.io.Console` và `java.util.Arrays`. `System.console()` có thể trả `null` khi chạy trong IDE, một số môi trường CI hoặc khi stdin/stdout được redirect; **không** tự động fallback sang `Scanner.nextLine()` mà không ý thức rằng cách đó tạo `String` và có thể echo/input handling khác.
+Requires importing `java.io.Console` and `java.util.Arrays`. `System.console()` may return `null` inside IDEs, some CI environments, or when stdin/stdout are redirected; **never** automatically fall back to `Scanner.nextLine()` without recognizing it creates `String` objects and handles echoing/input differently.
 
-Đừng làm `new String(console.readPassword())`: đoạn code đó tạo String dạng rõ và còn làm mất reference tới char[] vừa đọc nên không thể chủ động xóa mảng gốc.
+Never write `new String(console.readPassword())`: that creates a plaintext `String` and drops the reference to the `char[]` just read, preventing active erasure of the original array.
 
-### 6.2. JPasswordField và UI
+### 6.2. `JPasswordField` and UI
 
-Với Swing, `JPasswordField.getPassword()` trả `char[]` để tránh phải yêu cầu một String công khai. Sau khi sử dụng, `Arrays.fill(password, '\0')` đối với chính array nhận được và xóa nội dung trường UI theo chính sách (ví dụ khi form kết thúc). Không suy ra các bước đó đã xóa mọi bản sao từ UI document, clipboard, accessibility tooling, event queue hoặc desktop/swap. Không tự ý copy password vào clipboard hay đặt vào tooltip/exception.
+In Swing, `JPasswordField.getPassword()` returns `char[]` to avoid requiring a public `String`. After use, call `Arrays.fill(password, '\0')` on the received array and clear the UI field per policy (e.g., when closing the form). Do not infer those steps erased every copy in UI documents, clipboards, accessibility tooling, event queues, or desktop/swap memory. Never copy passwords into the clipboard or place them in tooltips/exceptions.
 
-### 6.3. Dữ liệu đã qua HTTP/JSON framework
+### 6.3. Data arriving through HTTP/JSON frameworks
 
-Phần lớn API nhận JSON/web form thường đi qua decoder, request parser và các thư viện có thể tạo `String` hoặc byte buffer. Khi code ứng dụng nhận được `String password`, việc chuyển sang `password.toCharArray()` chỉ giúp bạn **quản lý mảng mới**; nó không điều khiển bộ nhớ giữ String ban đầu hoặc các bản sao của framework.
+Most APIs receiving JSON/web forms pass through decoders, request parsers, and libraries that may allocate `String` objects or byte buffers. Once application code receives `String password`, calling `password.toCharArray()` only lets you **manage the new array**; it does not control memory holding the original `String` or framework buffers.
 
-Cần đánh giá đường đi dữ liệu **từ lớp nhận request**, tắt log/trace chứa secret, cấu hình masking trong observability, giới hạn thời gian giữ request object và không đưa password vào session/cache/message queue ngoài nhu cầu. Không quảng cáo rằng chỉ thay DTO field `String` thành `char[]` là đã giải quyết zeroization.
+Audit the data path **starting from request ingestion**, disable logs/traces containing secrets, configure observability masking, bound request-object lifetimes, and keep passwords out of sessions/caches/message queues unnecessarily. Never claim that merely changing a DTO field from `String` to `char[]` solves zeroization.
 
-## 7. Các bản sao nhạy cảm thường không nhìn thấy
+## 7. Sensitive copies that often go unseen
 
-| Nguồn sao chép | Vì sao có thể còn password? | Điều ứng dụng có thể làm |
+| Copy source | Why might the password remain? | What the application can do |
 | --- | --- | --- |
-| `PBEKeySpec` constructor | Chủ động copy password để giữ nội dung dùng cho KDF | `clearPassword()` trong `finally` |
-| `PBEKeySpec.getPassword()` | Trả về một array mới | Tránh gọi nếu không cần; xóa array đã nhận |
-| `String`, nối chuỗi, formatter, logging | Immutable/copy, không có hợp đồng wipe | Tránh tạo và tuyệt đối không log dạng rõ |
-| Charset/encoder và `byte[]` trung gian | Chuyển UTF-16 char sang bytes để mã hóa/KDF | Quản lý byte[] do mình tạo, `Arrays.fill(..., (byte)0)` |
-| `SecretKeyFactory` và JCE provider | KDF có thể tạo bản sao/working buffers/private state | Giảm vòng đời object; kiểm tra API/provider, không hứa xóa được tất cả |
-| `SecretKey.getEncoded()` | Thường trả mảng byte chứa key material mới; có thể `null` với khóa không export được | Wipe bản sao byte[] do caller sở hữu, tránh lấy key bytes nếu không cần |
-| Heap dump, core dump, crash report | Snapshot có thể ghi lại object/buffer chưa xóa | Hạn chế quyền dump, giữ file dump an toàn, tránh dump môi trường production nếu không cần |
-| Swap, hibernation, VM/container snapshot | OS/hạ tầng có thể ghi trang nhớ ra thiết bị lưu trữ | Chính sách bảo vệ host, swap/dump và ổ đĩa; threat model phù hợp |
-| Native code/HSM/KMS/client library | Dữ liệu có thể ở ngoài heap và ngoài khả năng `Arrays.fill` của Java | Chọn provider/API với contract bảo vệ khóa rõ ràng; đừng mặc định mọi key bị xóa |
+| `PBEKeySpec` constructor | Actively copies the password to hold for KDF use | `clearPassword()` in `finally` |
+| `PBEKeySpec.getPassword()` | Returns a fresh array | Avoid calling unless needed; wipe received array |
+| `String`, concatenation, formatters, logging | Immutable/copied, no wipe contract | Avoid creating and never log in plaintext |
+| Charset/encoders and intermediate `byte[]` | Converts UTF-16 chars to bytes for encryption/KDF | Manage created `byte[]`, `Arrays.fill(..., (byte) 0)` |
+| `SecretKeyFactory` and JCE provider | KDF may allocate copies/working buffers/private state | Minimize object lifetime; inspect API/provider, do not promise full erasure |
+| `SecretKey.getEncoded()` | Usually returns a new byte array of key material; may be `null` for non-exportable keys | Wipe caller-owned `byte[]`, avoid exporting key bytes unnecessarily |
+| Heap dumps, core dumps, crash reports | Snapshots may capture uncleaned objects/buffers | Restrict dump permissions, secure dump files, avoid production dumps needlessly |
+| Swap, hibernation, VM/container snapshots | OS/infra may page memory out to storage | Host, swap/dump, and disk-encryption policies aligned with threat model |
+| Native code/HSM/KMS/client libraries | Data may live off-heap outside Java `Arrays.fill` reach | Choose providers/APIs with clear key-protection contracts; never assume every key is wiped |
 
-Một số key object có API `Destroyable.destroy()` hoặc triển khai đặc thù của provider. Nhưng **không được suy ra** rằng mọi `SecretKey` đều có cơ chế xóa vật liệu khóa đáng tin cậy, hỗ trợ destroy thành công hoặc dọn các bản sao đã từng tạo. Hãy đọc tài liệu của provider, kiểm tra hành vi và thiết kế hạn chế export bí mật.
+Some key objects implement `Destroyable.destroy()` or provider-specific cleanup. Still, **never assume** every `SecretKey` provides reliable material erasure, succeeds on destroy, or cleans up previously created copies. Read provider documentation, test behavior, and design to minimize secret export.
 
-## 8. Giới hạn căn bản của “xóa bộ nhớ” trên JVM
+## 8. Fundamental limits of “memory erasure” on the JVM
 
-### 8.1. GC không phải công cụ zeroization
+### 8.1. GC is not a zeroization tool
 
-**Garbage Collection (GC)** có nhiệm vụ quản lý đối tượng không còn tham chiếu, không có hợp đồng đảm bảo ghi đè sạch mọi vùng nhớ ngay khi `password = null` hoặc `System.gc()`. `System.gc()` cũng chỉ là một yêu cầu; ứng dụng không có quyền yêu cầu JVM đi qua mọi vùng RAM và loại bỏ dấu vết bí mật.
+**Garbage Collection (GC)** reclaims unreferenced objects; it makes no contract to scrub memory regions immediately when `password = null` or `System.gc()` runs. `System.gc()` is merely a hint; the application cannot force the JVM to walk all RAM and scrub secret traces.
 
-JVM có thể di chuyển/copy object trong quá trình GC, để lại các vùng nhớ trước đó cho tới khi được ghi đè; trên nhiều hệ thống còn có dump/snapshot bên ngoài heap mà code Java không kiểm soát. Điều này làm cho “tôi đã fill array” khác với “không còn bản sao ở bất kỳ đâu”.
+The JVM may move/copy objects during GC, leaving previous memory regions intact until overwritten; on many systems, dumps/snapshots also exist outside heap control of Java code. This makes “I filled the array” very different from “no copy exists anywhere.”
 
-### 8.2. Trình biên dịch và tối ưu hóa
+### 8.2. Compilers and optimizations
 
-JIT/compiler có thể áp dụng các tối ưu hóa, ví dụ loại bỏ các phép ghi mà nó đánh giá không có ảnh hưởng quan sát được theo ngữ nghĩa chương trình. Không nên coi một `Arrays.fill` được viết ở source là **bảo đảm mật mã** rằng byte ở mọi cấp bộ nhớ chắc chắn đã được tẩy.
+The JIT/compiler may apply optimizations such as dead-store elimination for writes it deems have no observable effect on program semantics. Never treat an `Arrays.fill` in source code as a **cryptographic guarantee** that bytes at every memory tier were definitely scrubbed.
 
-Điều đó **không** có nghĩa `Arrays.fill` vô dụng: nó là bước **best-effort** hợp lý để giảm thời gian tồn tại giá trị trong mảng do mình sở hữu. Khẳng định chính xác phải là “ứng dụng yêu cầu zero array cụ thể”, không phải “JVM/OS chứng minh toàn bộ secret đã bị tiêu huỷ”.
+That does **not** make `Arrays.fill` useless: it is a sensible **best-effort** step to shorten how long values linger in application-owned arrays. The accurate claim is “the application requested zeroing that specific array,” not “the JVM/OS proved the entire secret was destroyed.”
 
-### 8.3. Biểu diễn dữ liệu và encoding
+### 8.3. Data representation and encoding
 
-Java `char` là một **UTF-16 code unit**, không phải một byte UTF-8. Khi KDF hoặc giao thức cần password bytes, có thể phát sinh phép chuyển mã, bản sao của `byte[]`, chuẩn hóa Unicode và vùng nhớ của provider. Không coi `password.length` là số byte của password.
+A Java `char` is a **UTF-16 code unit**, not a UTF-8 byte. When a KDF or protocol needs password bytes, transcoding, `byte[]` copies, Unicode normalization, and provider buffers may be created. Never treat `password.length` as the byte length of the password.
 
-Để hai hệ thống dẫn xuất cùng khóa từ cùng mật khẩu, phải thống nhất **thuật toán KDF, salt, iterations/work factor, output length, encoding và normalization**; tránh tự chuyển đổi `char[]` sang String chỉ để “chuẩn hóa” mà không quản lý hậu quả. Các thuật toán PBE lịch sử có cách xử lý ký tự khác nhau; không tự suy diễn mọi provider đều chuyển char sang byte giống nhau.
+For two systems to derive the same key from the same password, align **KDF algorithm, salt, iterations/work factor, output length, encoding, and normalization**; avoid converting `char[]` to `String` merely to “normalize” without managing the consequences. Historical PBE algorithms handle characters differently; never assume every provider maps `char` to bytes identically.
 
-### 8.4. Threat model quyết định mức cần thiết
+### 8.4. Threat model determines what is necessary
 
-Với một ứng dụng backend thông thường, ngăn mật khẩu trong logs, áp dụng KDF đúng, giới hạn quyền đọc heap dump và rút ngắn vòng đời bộ đệm có thể là những biện pháp thiết thực. Nhưng nếu đối thủ **đã chạy code trong cùng process hoặc có quyền đọc đầy đủ RAM**, việc zero một vài Java arrays không mang lại cách ly tuyệt đối.
+For a typical backend application, keeping passwords out of logs, applying a proper KDF, restricting heap-dump access, and shortening buffer lifetimes may be practical controls. However, if an adversary **already executes code in the same process or has full RAM read access**, zeroing a few Java arrays provides no absolute isolation.
 
-Trong môi trường có yêu cầu rất cao, cân nhắc API/provider/HSM/KMS không xuất key material, tách tiến trình, giảm quyền tạo dump, mã hóa lưu trữ, hardening OS và thiết kế hạn chế nơi password dạng rõ được đưa tới. Java/JVM phổ thông không có contract tổng quát để “khóa trang nhớ và đảm bảo xóa mọi bản sao” chỉ bằng `char[]`.
+In high-assurance environments, consider non-exportable HSM/KMS APIs/providers, process isolation, disabling dumps, encrypted storage, OS hardening, and architectures that minimize where plaintext passwords appear. Standard Java/JVM has no general contract to “pin memory pages and guarantee erasing every copy” via `char[]` alone.
 
-## 9. Quy tắc triển khai thực tế: giảm lưu giữ bí mật có kiểm soát
+## 9. Practical implementation rules: controlled secret retention reduction
 
-### 9.1. Nguyên tắc ownership
+### 9.1. Ownership principles
 
-- **Caller sở hữu** mảng do nó nhận từ UI/console/request: caller có trách nhiệm xóa sau khi xong, thường ở `finally`.
-- **Callee chỉ giữ tạm** password khi xử lý và không lưu object/reference vào cache, field lâu dài, thread local, queue hoặc callback không cần thiết.
-- Nếu thư viện tạo bản sao như `PBEKeySpec`, **đóng vòng đời bằng API chính thức** của thư viện (ở đây là `clearPassword`) thay vì tìm cách phản chiếu vào field private.
-- Mảng `byte[]` từ encoding hay `getEncoded()` thuộc phạm vi caller khi đã nhận về: wipe khi không còn cần, nhưng hiểu rằng việc này **không** đụng tới material bên trong object khác.
-- Không xóa buffer **trước khi** crypto API cần đọc nó. Sai thứ tự có thể khiến derive sai hoặc dẫn tới logic bảo mật sai. Tạo/derive xong, dọn buffer càng sớm càng tốt.
+- **The caller owns** the array it receives from UI/console/request: the caller is responsible for wiping it when done, usually in `finally`.
+- **The callee holds** the password only transiently during processing and never stores the object/reference in caches, long-lived fields, thread locals, queues, or unnecessary callbacks.
+- When a library creates a copy like `PBEKeySpec`, **close its lifecycle via the library's official API** (here `clearPassword`) rather than reflecting into private fields.
+- `byte[]` arrays from encoding or `getEncoded()` belong to the caller once returned: wipe when no longer needed, understanding this **does not** touch material inside other objects.
+- Never wipe a buffer **before** the crypto API needs to read it. Wrong ordering can derive the wrong key or break security logic. Clear buffers as soon as derivation/creation completes.
 
-### 9.2. Vòng đời khuyến nghị
+### 9.2. Recommended lifecycle
 
 ```text
-NHẬN password vào char[] khi API đầu vào hỗ trợ
+RECEIVE password into char[] when input API supports it
     |
     v
-VALIDATE input tối thiểu (không log password)
+VALIDATE minimal input rules (do not log password)
     |
     v
-Tạo PBEKeySpec (tạo bản sao nội bộ)
+Create PBEKeySpec (creates internal copy)
     |
     v
 SecretKeyFactory / password verification / key derivation
     |
-    +-- Dọn các byte[]/char[] tạm đã tạo và sở hữu
-    +-- Dọn vật liệu khóa nếu API/provider có contract phù hợp
+    +-- Wipe temporary byte[]/char[] created and owned
+    +-- Clean up key material if API/provider has an appropriate contract
     |
     v
-PBEKeySpec.clearPassword() trong finally
+PBEKeySpec.clearPassword() in finally
     |
     v
-Arrays.fill(callerPassword, '\0') trong finally
+Arrays.fill(callerPassword, '\0') in finally
     |
     v
-Tiếp tục xử lý bằng kết quả xác minh/khóa được bảo vệ,
-không giữ password dạng rõ lâu hơn cần thiết.
+Continue with verified result / protected key,
+keeping plaintext password no longer than necessary.
 ```
 
-Không phải mọi hệ thống đều có đủ quyền kiểm soát để thực hiện toàn bộ quy trình; cần ghi rõ giới hạn của framework và thư viện.
+Not every system has full control to enforce every step; document the limits of your framework and libraries clearly.
 
-### 9.3. Password hashing khác với quản lý password trong RAM
+### 9.3. Password hashing differs from RAM password management
 
-Việc chọn `char[]` và xoá bộ đệm **không thay thế** thuật toán password hashing chống dò offline. Nếu lưu thông tin xác thực người dùng, sử dụng password-hashing chuyên dụng có salt riêng cho mỗi tài khoản/bản ghi và chi phí đủ cao; ví dụ Argon2id hoặc lựa chọn phù hợp theo chính sách, thư viện và yêu cầu hệ thống. PBKDF2-HMAC-SHA256 có thể cần trong môi trường Java/JCA hay yêu cầu tương thích, nhưng cost factor phải được thiết kế/điều chỉnh, không lấy `10_000` trong demo làm khuyến nghị production.
+Choosing `char[]` and wiping buffers **does not replace** offline-resistant password hashing. When storing user authentication credentials, use a dedicated password-hashing scheme with a per-account/per-record salt and sufficiently high cost—such as Argon2id or another choice aligned with policy, libraries, and system requirements. PBKDF2-HMAC-SHA256 may be needed in Java/JCA or compliance contexts, but its cost factor must be engineered/tuned—never take `10_000` from the demo as a production recommendation.
 
-Nếu dùng password để **mã hóa dữ liệu**, cần KDF phù hợp để dẫn xuất khóa và mode mã hóa được xác thực như AES-GCM với nonce đúng; không tự hash nhanh password bằng SHA-256 rồi dùng thẳng làm AES key nếu thiếu thiết kế và threat model. Salt, thông số KDF và IV thường **không bí mật**, nhưng cần lưu đúng để mở lại dữ liệu; **khóa dẫn xuất** và plaintext password phải được bảo vệ.
+When using a password to **encrypt data**, use an appropriate KDF for key derivation and an authenticated encryption mode like AES-GCM with proper nonces; never fast-hash a password with SHA-256 and use it directly as an AES key without proper design and threat modeling. Salt, KDF parameters, and IV are usually **non-secret**, yet must be stored intact to reopen data; **derived keys** and plaintext passwords must be protected.
 
-### 9.4. Log, telemetry và kiểm thử
+### 9.4. Logging, telemetry, and testing
 
-- Không log password, salt+password, derived key bytes hay char[] bằng `toString()`/`Arrays.toString()`.
-- Không đưa secret vào URL query, lỗi phản hồi, exception text, event bus hoặc environment variable nếu có lựa chọn an toàn hơn; môi trường và framework có thể giữ bản sao `String`.
-- Khi test, dùng **giá trị giả**, không dùng tài khoản thật hoặc token production. Kiểm tra array đã zero được bằng logic test, nhưng **đừng** viết test khẳng định bộ nhớ native/heap dump hoàn toàn sạch.
-- Kiểm tra `finally` trên cả đường thành công và thất bại: input invalid, exception từ KDF, timeout, cancellation, shutdown. Không để một exception làm bỏ qua bước cleanup của một buffer khác.
-- Với xử lý bất đồng bộ, tránh giữ mật khẩu trong lambda/callback/`CompletableFuture`/queue lâu hơn mong muốn; tính lại ownership và thời điểm safe-to-clear.
+- Never log passwords, salt+password, derived key bytes, or `char[]` via `toString()`/`Arrays.toString()`.
+- Keep secrets out of URL query strings, error responses, exception text, event buses, and environment variables where safer alternatives exist; environments and frameworks may keep `String` copies.
+- In tests, use **dummy values**, never real accounts or production tokens. Verify arrays are zeroed via logic tests, but **never** write tests claiming native memory or heap dumps are completely clean.
+- Test `finally` on both success and failure paths: invalid input, KDF exceptions, timeouts, cancellations, and shutdown. Never let one exception skip cleanup of another buffer.
+- In asynchronous processing, avoid capturing passwords in lambdas/callbacks/`CompletableFuture`/queues longer than intended; re-evaluate ownership and safe-to-clear timing.
 
-## 10. Những ngộ nhận và lỗi thường gặp
+## 10. Common misconceptions and bugs
 
-| Ngộ nhận hoặc lỗi | Vì sao sai | Hướng khắc phục |
+| Misconception or bug | Why it is wrong | Remediation |
 | --- | --- | --- |
-| “Đã đổi `String` thành `char[]` nên password không thể bị lộ” | `char[]` vẫn ở heap, có thể bị copy, dump, log và bị đọc trong process | Quản lý vòng đời, quyền truy cập và threat model |
-| “`clearPassword()` xoá mảng truyền vào constructor” | `PBEKeySpec` lưu bản sao nội bộ riêng | `clearPassword()` cho spec **và** `Arrays.fill` cho caller |
-| “Gọi `getPassword()` nhiều lần không tốn bộ nhớ bí mật” | Mỗi lời gọi tạo một bản sao char[] mới | Tránh gọi thừa, wipe mọi bản sao đã nhận |
-| “`Arrays.fill` xoá String được tạo trước đó” | String immutable/không cùng vùng nhớ | Tránh tạo String password ngay từ đầu khi có thể |
-| “Đặt reference về `null` sẽ xoá password ngay” | GC không có hợp đồng wipe tức thời | Dọn buffer có thể sửa, giảm lifetime và bảo vệ dump |
-| “`System.gc()` là API xóa secret” | Không có bảo đảm thời gian/ghi đè | Không dùng GC làm zeroization |
-| “Đã xóa mảng `keyBytes` nên `SecretKey` chắc chắn bị xóa” | Object/provider có thể giữ key material riêng | Hạn chế export key và kiểm tra provider-specific cleanup |
-| “Xoá password trước generateSecret sẽ an toàn hơn” | KDF cần dữ liệu đầu vào còn hợp lệ | Cleanup **sau** sử dụng, trong `finally` |
-| “Password là char[] nên không thể xuất hiện trong log” | Logging, formatting hoặc debug có thể tạo String/ghi trực tiếp char[] | Thiết kế redaction và chính sách debug |
-| “Xóa bộ nhớ thay thế được password hashing” | Dữ liệu mật khẩu bị rò rỉ từ DB vẫn có nguy cơ offline cracking | KDF/password-hashing có salt và cost phù hợp |
-| “Một lần Arrays.fill chứng minh không còn password trong RAM” | Bản sao, provider, JIT/GC, native memory, swap, snapshots | Diễn đạt như **best-effort mitigation**, không cam kết tuyệt đối |
+| “We switched `String` to `char[]`, so passwords cannot leak” | `char[]` still lives on the heap and can be copied, dumped, logged, or read in-process | Manage lifetime, access controls, and threat model |
+| “`clearPassword()` wipes the array passed to the constructor” | `PBEKeySpec` stores its own internal copy | Call `clearPassword()` on the spec **and** `Arrays.fill` on the caller array |
+| “Calling `getPassword()` repeatedly creates no extra secret memory” | Each call allocates a new `char[]` copy | Avoid unnecessary calls; wipe every returned copy |
+| “`Arrays.fill` erases a `String` created earlier” | `String` is immutable and lives in separate memory | Avoid creating password `String` objects from the start where possible |
+| “Setting the reference to `null` erases the password right away” | GC has no contract for immediate wiping | Wipe mutable buffers, shorten lifetimes, and restrict dumps |
+| “`System.gc()` is a secret-erasure API” | No guarantee on timing or overwriting | Never use GC as zeroization |
+| “Wiping `keyBytes` guarantees the `SecretKey` is erased” | Objects/providers may hold separate key material | Minimize key export and check provider-specific cleanup |
+| “Clearing the password before `generateSecret` is safer” | The KDF needs valid input data to run | Clean up **after** use, inside `finally` |
+| “Password is a `char[]` so it can never appear in logs” | Logging, formatting, or debugging can stringify or print `char[]` directly | Enforce redaction and debugging policies |
+| “Memory wiping replaces password hashing” | Breached DB credentials still face offline cracking | Use salted, properly costed KDF/password hashing |
+| “One `Arrays.fill` proves no password remains in RAM” | Copies, providers, JIT/GC, native memory, swap, snapshots | Describe as **best-effort mitigation**, never an absolute guarantee |
 
-## 11. Bài tập và câu hỏi tự kiểm tra
+## 11. Exercises and self-check questions
 
-1. `PBEKeySpec` được tạo từ `char[] original`. Nếu gọi `Arrays.fill(original, '\0')`, vì sao `SecretKeyFactory.generateSecret(spec)` vẫn có thể dẫn xuất khóa?
-2. `spec.getPassword()` được gọi hai lần. Có bao nhiêu bản sao phải đánh giá về ownership? `spec.clearPassword()` có tự xóa cả hai mảng được trả về không?
-3. Tại sao `new String(passwordChars)` là bước cần tránh trong luồng xử lý mật khẩu dù sau đó đã `Arrays.fill(passwordChars, '\0')`?
-4. Nêu sự khác biệt giữa xóa mảng caller, xóa bản sao của spec, xóa `getEncoded()` result và phá hủy state của `SecretKey`/provider.
-5. Vì sao `finally` quan trọng khi `SecretKeyFactory.generateSecret` có thể ném exception?
-6. Nếu framework gửi password cho controller dưới dạng String, việc `toCharArray()` mang lại ích lợi gì và **không thể giải quyết** điều gì?
-7. Vì sao “zero char[]” và “dùng Argon2id/PBKDF2 đúng chuẩn” giải quyết hai nhóm rủi ro khác nhau?
-8. Những thông tin nào có thể còn tồn tại trong heap dump hoặc snapshot dù tất cả mảng Java bạn thấy đều đã fill NUL?
+1. `PBEKeySpec` is constructed from `char[] original`. If you call `Arrays.fill(original, '\0')`, why can `SecretKeyFactory.generateSecret(spec)` still derive the key?
+2. `spec.getPassword()` is called twice. How many copies must be tracked for ownership? Does `spec.clearPassword()` automatically wipe both returned arrays?
+3. Why is `new String(passwordChars)` something to avoid in password-handling flows even if you call `Arrays.fill(passwordChars, '\0')` afterward?
+4. State the differences among wiping the caller's array, clearing the spec's internal copy, wiping the `getEncoded()` result, and destroying `SecretKey`/provider state.
+5. Why is `finally` critical when `SecretKeyFactory.generateSecret` can throw an exception?
+6. If a framework passes the password to a controller as a `String`, what benefit does `toCharArray()` provide, and what **cannot** it solve?
+7. Why do “zeroing `char[]`” and “using Argon2id/PBKDF2 properly” address two different categories of risk?
+8. What information could still persist in a heap dump or snapshot even after every visible Java array has been filled with NUL?
 
-**Thực hành:** sửa demo để gọi `spec.getPassword()` lần thứ hai rồi kiểm tra hai bản copy không cùng reference và phải được wipe độc lập. Thêm nhánh giả lập exception trong `try`, bảo đảm `finally` chạy và không in mật khẩu. Viết test cho `spec.getPassword()` sau `clearPassword()` ném `IllegalStateException`. Không chạy các thí nghiệm với mật khẩu thật, không ghi heap dump chứa secret production.
+**Practice:** modify the demo to call `spec.getPassword()` a second time and verify the two copies have distinct references and must be wiped independently. Add a branch simulating an exception inside `try`, ensuring `finally` runs without printing the password. Write a test verifying `spec.getPassword()` throws `IllegalStateException` after `clearPassword()`. Never run experiments with real passwords or capture heap dumps containing production secrets.
 
-## 12. Tài liệu API chính thức
+## 12. Official API references
 
-- [PBEKeySpec — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html): constructor, `getPassword`, `clearPassword`, sao chép password/salt và ngoại lệ sau clear.
-- [SecretKeyFactory — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/SecretKeyFactory.html): tạo khóa bí mật từ `KeySpec` qua provider.
-- [Arrays — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html): `Arrays.fill(char[], char)` và `Arrays.fill(byte[], byte)`.
-- [Console — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Console.html): `readPassword` và hành vi khi không có interactive console.
-- [JPasswordField — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/javax/swing/JPasswordField.html): `getPassword()` thay cho các cách xử lý String không cần thiết.
-- [Java Cryptography Architecture (JCA) Reference Guide — Java SE 17](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): khái niệm key, provider, `SecretKeyFactory` và password-based derivation.
+- [PBEKeySpec — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html): constructors, `getPassword`, `clearPassword`, password/salt copying, and post-clear exceptions.
+- [SecretKeyFactory — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/SecretKeyFactory.html): generating secret keys from `KeySpec` via providers.
+- [Arrays — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html): `Arrays.fill(char[], char)` and `Arrays.fill(byte[], byte)`.
+- [Console — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Console.html): `readPassword` and behavior without an interactive console.
+- [JPasswordField — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/javax/swing/JPasswordField.html): `getPassword()` instead of unnecessary `String` handling.
+- [Java Cryptography Architecture (JCA) Reference Guide — Java SE 17](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): key concepts, providers, `SecretKeyFactory`, and password-based derivation.

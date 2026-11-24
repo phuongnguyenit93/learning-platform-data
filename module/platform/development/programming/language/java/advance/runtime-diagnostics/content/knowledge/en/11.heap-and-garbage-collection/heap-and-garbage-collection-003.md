@@ -1,106 +1,106 @@
-# 11.3 Allocation rate, thời gian sống đối tượng và áp lực lên bộ thu gom
+# 11.3 Allocation rate, object lifetime, and pressure on the collector
 
-> Bối cảnh: Java 17+ trên HotSpot JVM. Phần luồng đối tượng dùng G1 GC làm ví dụ cụ thể; chính sách cấp phát, thế hệ và di chuyển đối tượng thay đổi theo collector, phiên bản JDK và cấu hình.
+> Context: Java 17+ on the HotSpot JVM. The object flow section uses G1 GC as a concrete example; allocation policies, generations, and object movement vary by collector, JDK version, and configuration.
 
-## Mục tiêu học tập
+## Learning objectives
 
-Sau bài này, bạn có thể:
-- Tính và diễn giải **allocation rate** (tốc độ cấp phát) mà không nhầm với lượng heap đang được sử dụng.
-- Giải thích vì sao **thời gian sống / khả năng sống sót qua GC** làm thay đổi chi phí thu gom, promotion và áp lực lên old generation.
-- Phân biệt **allocation churn** (tạo đối tượng ngắn hạn liên tục), **retention** hợp lệ và **memory leak** do tham chiếu tồn tại ngoài ý muốn.
-- Dùng GC log, Java Flight Recorder (JFR), Java Mission Control (JMC) và phép đo có kiểm soát để tìm nguyên nhân trước khi tối ưu.
+After this lesson, you can:
+- Calculate and interpret **allocation rate** without confusing it with the amount of heap currently in use.
+- Explain why **object lifetime / survival across GC** changes collection cost, promotion, and pressure on the old generation.
+- Distinguish **allocation churn** (continuous creation of short-lived objects), legitimate **retention**, and a **memory leak** caused by unintended lingering references.
+- Use GC logs, Java Flight Recorder (JFR), Java Mission Control (JMC), and controlled measurements to find root causes before optimizing.
 
-## 1. Ba đại lượng cần tách biệt
+## 1. Three quantities to keep separate
 
-**Allocation rate** là tổng số byte mà chương trình cấp phát trong một khoảng thời gian, chia cho thời gian đo:
+**Allocation rate** is the total number of bytes a program allocates over an interval, divided by the measurement duration:
 
 ~~~text
 allocation rate (MiB/s) ≈ allocated bytes / elapsed seconds / 1_048_576
 ~~~
 
-Ví dụ một luồng xử lý tạo 600 MiB đối tượng trong 5 giây thì allocation rate trung bình là 120 MiB/s. Đây là **lưu lượng cấp phát**, không có nghĩa heap phải có thêm 600 MiB sau 5 giây. Phần lớn đối tượng có thể đã trở nên không còn truy cập được và được GC tái sử dụng không gian.
+For example, if a processing flow creates 600 MiB of objects in 5 seconds, the average allocation rate is 120 MiB/s. This is **allocation throughput**, not a statement that the heap must grow by 600 MiB after 5 seconds. Most of those objects may already have become unreachable and had their space reused by GC.
 
-**Live set / retained heap** là lượng đối tượng vẫn còn *reachable* từ GC roots tại thời điểm quan sát. GC roots có thể gồm local/stack tham chiếu đang còn hiệu lực, trường static, luồng, JNI handles và các cấu trúc JVM. Heap usage trước GC bao gồm cả đối tượng đã chết nhưng chưa được thu hồi; heap usage sau một kỳ GC phù hợp thường gần với live set hơn, song vẫn phụ thuộc giai đoạn collector.
+**Live set / retained heap** is the amount of objects still *reachable* from GC roots at the time of observation. GC roots can include active local/stack references, static fields, threads, JNI handles, and JVM structures. Heap usage before GC includes dead objects not yet reclaimed; heap usage after an appropriate GC cycle is usually closer to the live set, though it still depends on the collector phase.
 
-**Object lifetime** là thời gian từ lúc đối tượng được tạo cho đến khi nó không còn reachable. Thời điểm đối tượng được *thu hồi vật lý* có thể muộn hơn lúc nó chết về mặt reachability. **Object age** trong một GC có thế hệ thường tính bằng số kỳ thu gom trẻ mà đối tượng đã sống sót; nó không đồng nghĩa số mili-giây đối tượng tồn tại.
+**Object lifetime** is the time from when an object is created until it is no longer reachable. The moment an object is *physically reclaimed* may be later than when it dies in terms of reachability. **Object age** in a generational GC is typically counted in the number of young collections an object has survived; it is not synonymous with how many milliseconds the object has existed.
 
-Ví dụ web service nhận 10.000 yêu cầu/giây và cấp phát trung bình 12 KiB/yêu cầu:
+For example, a web service receiving 10,000 requests/second and allocating an average of 12 KiB/request:
 
 ~~~text
-10_000 × 12 KiB/s = 120_000 KiB/s ≈ 117,2 MiB/s
+10_000 × 12 KiB/s = 120_000 KiB/s ≈ 117.2 MiB/s
 ~~~
 
-Nếu 99% lượng cấp phát nhanh chóng trở nên unreachable, chương trình vẫn có thể tạo áp lực GC do liên tục cần không gian cấp phát. Nếu 1% còn lại **tiếp tục được giữ vô thời hạn** trong một cache không giới hạn, riêng phần đó tăng khoảng 1,17 MiB/s, xấp xỉ 70 MiB/phút. Tỷ lệ giữ lại nhỏ vẫn nguy hiểm khi kéo dài và không có chính sách giải phóng.
+If 99% of allocations quickly become unreachable, the program can still generate GC pressure because it continually needs allocation space. If the remaining 1% **keeps being held indefinitely** in an unbounded cache, that portion alone grows at roughly 1.17 MiB/s, approximately 70 MiB/minute. A small retention ratio is still dangerous when sustained without an eviction/release policy.
 
-## 2. Hành trình đối tượng trong heap và mối liên hệ với GC
+## 2. An object's journey in the heap and its relationship with GC
 
-Với cấu hình HotSpot G1 thông dụng, có thể hình dung luồng tổng quát:
+With a typical HotSpot G1 configuration, the general flow can be pictured as follows:
 
-1. Luồng Java thường cấp phát đối tượng nhỏ vào **Thread-Local Allocation Buffer (TLAB)** để tránh tranh chấp trên đường cấp phát nhanh. Khi TLAB hết chỗ, luồng xin vùng mới; một số cấp phát không đi qua TLAB.
-2. Đa số đối tượng mới được đặt trong các vùng **Eden** của young generation. G1 chia heap thành các *region* và điều chỉnh số region trẻ theo mục tiêu của collector.
-3. Young GC tìm đối tượng trẻ còn reachable rồi **evacuate/copy** các đối tượng sống sang Survivor hoặc Old; những đối tượng chết không cần sao chép từng cái. Một đối tượng có thể sống qua nhiều young GC trước khi được promotion; ngưỡng tuổi và quy tắc di chuyển do collector quyết định.
-4. Khi nhiều đối tượng sống lâu, lượng dữ liệu phải sao chép, vùng Survivor và tốc độ đưa đối tượng sang Old cùng tăng. Old occupancy hoặc lượng công việc thu gom old tăng có thể dẫn đến mixed collection, concurrent marking hay những tình huống thu gom tốn kém khác.
-5. Đối tượng rất lớn có thể đi theo đường cấp phát đặc biệt; G1 có khái niệm *humongous object* chiếm các region chuyên biệt. Vì vậy không suy diễn rằng **mọi** đối tượng đều đi tuần tự qua Eden → Survivor → Old.
+1. A Java thread typically allocates small objects into a **Thread-Local Allocation Buffer (TLAB)** to avoid contention on the fast allocation path. When a TLAB runs out of space, the thread requests a new buffer; some allocations bypass TLABs.
+2. Most new objects are placed in **Eden** regions of the young generation. G1 divides the heap into *regions* and adjusts the number of young regions according to the collector's goals.
+3. Young GC finds reachable young objects and **evacuates/copies** live objects to Survivor or Old; dead objects do not need to be copied individually. An object may survive multiple young GCs before being promoted; age thresholds and movement rules are decided by the collector.
+4. When many objects live longer, the volume of data to copy, Survivor usage, and the rate of moving objects to Old all rise. Higher Old occupancy or more Old collection work can lead to mixed collections, concurrent marking, or other costly collection events.
+5. Very large objects can take a special allocation path; G1 has the concept of *humongous objects* occupying dedicated regions. Therefore, do not assume that **every** object moves sequentially through Eden → Survivor → Old.
 
-Không phải collector nào cũng có cùng khái niệm generations/age: cơ chế và chi tiết log của G1, Parallel GC, ZGC, Shenandoah khác nhau; một số collector/phiên bản còn có chế độ generational riêng. Hãy xem collector thực tế được JVM sử dụng trước khi diễn giải promotion hoặc các vùng nhớ.
+Not every collector has the same concept of generations/age: mechanisms and log details differ among G1, Parallel GC, ZGC, and Shenandoah; some collectors/versions also have separate generational modes. Check the actual collector used by the JVM before interpreting promotion or memory regions.
 
-### Vì sao lifetime quan trọng?
+### Why does lifetime matter?
 
-| Nhóm đối tượng | Ví dụ | Hệ quả thường gặp |
+| Object group | Examples | Common consequences |
 | --- | --- | --- |
-| Rất ngắn hạn | Chuỗi trung gian, wrapper, mảng tạm cho một thao tác | Allocation rate có thể cao nhưng tỷ lệ sống qua young GC thấp; young GC thường thu hồi được nhiều chỗ |
-| Qua vài lần young GC | Request chờ hàng đợi, batch đang xử lý, đối tượng được chia sẻ ngắn hạn | Tăng chi phí sao chép Survivor và có thể được promotion |
-| Sống lâu có chủ đích | Cấu hình, cache có giới hạn, index đang dùng | Đóng góp vào live set nền; cần sizing và giới hạn rõ ràng |
-| Bị giữ ngoài ý muốn | Map static tăng mãi, listener không gỡ, queue không tiêu thụ, reference chain còn bám | Old/live set có thể tăng theo thời gian và cuối cùng làm cạn heap |
+| Very short-lived | Intermediate strings, wrappers, temporary arrays for one operation | Allocation rate can be high while survival rate across young GC is low; young GC usually reclaims plenty of space |
+| Survives a few young GCs | Queued requests, in-flight batches, briefly shared objects | Increases Survivor copying cost and may get promoted |
+| Intentionally long-lived | Configuration, bounded caches, active indexes | Contributes to baseline live set; needs clear sizing and bounds |
+| Unintentionally retained | Unbounded growing static Map, unregistered listeners, unconsumed queues, lingering reference chains | Old/live set may grow over time and eventually exhaust the heap |
 
-Sống lâu **không tự động là leak**: một cache ổn định có thể hợp lệ. Ngược lại, allocation rate thấp cũng không bảo đảm GC khỏe nếu live set quá lớn.
+Living long **is not automatically a leak**: a stable cache can be valid. Conversely, a low allocation rate does not guarantee healthy GC if the live set is too large.
 
-## 3. Tại sao allocation rate và lifetime tạo áp lực lên collector?
+## 3. Why do allocation rate and lifetime create pressure on the collector?
 
-Có ít nhất bốn cơ chế liên quan:
+At least four mechanisms are involved:
 
-**(1) Cạn không gian cấp phát nhanh.** Tạo đối tượng càng nhanh, Eden/TLAB càng phải nạp lại và young collection càng có cơ hội diễn ra thường xuyên. Xấp xỉ trực giác:
+**(1) Exhausting fast allocation space.** The faster objects are created, the sooner Eden/TLABs must be refilled and the more frequently young collections can occur. An intuitive approximation:
 
 ~~~text
-khoảng cách giữa các young GC ≈ dung lượng cấp phát trẻ hữu dụng / tốc độ cấp phát vào vùng đó
+interval between young GCs ≈ usable young allocation capacity / allocation rate into that region
 ~~~
 
-Nếu giả sử vùng cấp phát trẻ hữu dụng là 192 MiB và luồng cấp phát vào đó 96 MiB/s, khoảng cách lý tưởng là khoảng 2 giây. Đây chỉ là mô hình đơn giản: TLAB waste, kích thước thế hệ trẻ thay đổi, cấp phát lớn, survivor và chính sách collector khiến số thật khác.
+Assuming usable young allocation capacity is 192 MiB and threads allocate into it at 96 MiB/s, the idealized interval is roughly 2 seconds. This is only a simplified model: TLAB waste, changing young generation size, large allocations, survivors, and collector policy make the real number differ.
 
-**(2) Chi phí thu gom phụ thuộc *đối tượng còn sống*.** GC thường xử lý phần lớn dữ liệu sống để đánh dấu/sao chép/di chuyển. Một Eden đầy đối tượng đã chết có thể tương đối rẻ để thu hồi; Eden chứa nhiều đối tượng sống cần sao chép sẽ tốn CPU, băng thông bộ nhớ và có thể tăng pause.
+**(2) Collection cost depends on *live objects*.** GC largely processes live data to mark/copy/relocate. An Eden full of dead objects can be relatively cheap to reclaim; an Eden holding many live objects that must be copied consumes CPU and memory bandwidth and can increase pauses.
 
-**(3) Áp lực lên Old.** Khi đối tượng sống đủ lâu hoặc không còn chỗ Survivor, chúng có thể được đưa sang Old. Promotion cao kéo theo tăng old occupancy, nhiều việc cho concurrent marking/mixed GC và rủi ro thiếu không gian di chuyển. **Promotion rate không đồng nhất với allocation rate**, và mức tăng old occupancy cũng không đo trực tiếp số byte được giữ mới, vì GC đồng thời có thể thu hồi đối tượng cũ.
+**(3) Pressure on Old.** When objects live long enough or Survivor lacks space, they may be moved to Old. High promotion drives up old occupancy, adds work for concurrent marking/mixed GCs, and risks running out of evacuation space. **Promotion rate is not identical to allocation rate**, and rising old occupancy does not directly measure newly retained bytes either, because concurrent GC may reclaim older objects.
 
-**(4) Cạnh tranh tài nguyên ứng dụng.** GC sử dụng CPU, cache, băng thông bộ nhớ và đôi khi có pha Stop-The-World (STW); việc duy trì collector cao có thể giảm throughput hoặc làm xấu tail latency. Phân biệt **GC CPU / tổng CPU**, **tổng pause time / thời gian chạy**, **p95/p99 pause** và **p95/p99 request latency**: chúng liên quan nhưng không phải một đại lượng.
+**(4) Resource contention with the application.** GC uses CPU, caches, memory bandwidth, and sometimes Stop-The-World (STW) phases; heavy collector activity can reduce throughput or degrade tail latency. Distinguish **GC CPU / total CPU**, **total pause time / uptime**, **p95/p99 pause**, and **p95/p99 request latency**: they are related, not the same quantity.
 
-Như vậy, áp lực GC không thể kết luận bằng một phép đo MiB/s. Phải xem đồng thời **allocation rate + phân bố lifetime/survival + live set + cấu hình heap/collector + mục tiêu latency/throughput**.
+Thus, GC pressure cannot be concluded from a single MiB/s measurement. You must evaluate **allocation rate + lifetime/survival distribution + live set + heap/collector configuration + latency/throughput targets** together.
 
-## 4. Allocation churn, retention và leak: phân biệt bằng dấu hiệu
+## 4. Allocation churn, retention, and leak: distinguishing by symptoms
 
-- **Churn cao, live set ổn định:** Nhiều byte được cấp phát mỗi giây; GC chạy khá thường nhưng lượng heap còn sau GC gần như đi ngang. Khả năng cao là tạo đối tượng tạm liên tục. Tối ưu nếu chi phí GC/CPU hoặc latency thật sự vượt mục tiêu.
-- **Promotion cao, heap sau GC tăng:** Nhiều đối tượng vượt qua các young GC hoặc có thêm tham chiếu sống lâu. Kiểm tra cache, queue, session và pipeline xử lý chậm. Đây là **nghi vấn retention**, chưa đủ để tuyên bố leak.
-- **Live set lớn, allocation rate thấp:** Bộ nhớ đang cần cho trạng thái hợp lệ có thể lớn. Vấn đề lúc này thường là footprint/old GC/giới hạn heap chứ không hẳn tạo đối tượng quá nhanh.
-- **Old occupancy tăng không có điểm dừng ở workload ổn định:** Kiểm tra thứ gì giữ đối tượng và liệu lưu lượng đầu vào có vượt khả năng tiêu thụ. Chỉ sau khi tìm được chuỗi tham chiếu không mong muốn mới kết luận memory leak.
+- **High churn, stable live set:** Many bytes allocated per second; GC runs fairly often, yet post-GC heap remains nearly flat. Likely continuous temporary object creation. Optimize only if GC/CPU cost or latency genuinely exceeds targets.
+- **High promotion, rising post-GC heap:** Many objects survive young GCs or more long-lived references are added. Inspect caches, queues, sessions, and slow processing pipelines. This is **suspected retention**, not yet enough to declare a leak.
+- **Large live set, low allocation rate:** Memory needed for valid state may simply be large. The issue here is usually footprint/old GC/heap limit rather than creating objects too quickly.
+- **Unbounded rising old occupancy under steady workload:** Inspect what retains the objects and whether input rate exceeds consumption capacity. Only after finding an unintended reference chain should you conclude a memory leak.
 
-Một đợt *spike* heap trước young GC là bình thường. Đừng suy ra leak từ đường răng cưa của biểu đồ used heap; cần quan sát nền dùng bộ nhớ qua nhiều chu kỳ GC tương đương và cùng mức tải.
+A heap *spike* before young GC is normal. Do not infer a leak from the sawtooth curve of a used-heap graph; observe the memory baseline across multiple comparable GC cycles at the same load level.
 
-## 5. Đo đạc thực tế: dùng công cụ cho đúng câu hỏi
+## 5. Practical measurement: using the right tool for the right question
 
-### 5.1 GC unified logging: biết GC diễn ra lúc nào và tốn bao nhiêu
+### 5.1 GC unified logging: knowing when GC runs and what it costs
 
-Trên HotSpot Java 17+, có thể chạy ứng dụng với GC log:
+On HotSpot Java 17+, you can run the application with GC logging:
 
 ~~~sh
 java -Xms64m -Xmx64m -XX:+UseG1GC -Xlog:gc*,gc+age=trace:file=gc.log:time,uptime,level,tags AllocationLifetimeDemo
 ~~~
 
-Đây là ví dụ cấu hình để quan sát, **không phải** bộ cờ tối ưu mặc định cho hệ thống thực tế. Trong log, đối chiếu mốc thời gian, loại GC, pause duration, heap trước/sau GC, thay đổi vùng Eden/Survivor/Old và thông tin tuổi/survivor khi collector xuất ra. GC log không tự chỉ ra chính xác dòng Java nào sinh nhiều đối tượng.
+This is an illustrative configuration for observation, **not** a default tuning flag set for production systems. In the log, compare timestamps, GC types, pause durations, heap before/after GC, changes across Eden/Survivor/Old regions, and age/survivor details when output by the collector. GC logs do not by themselves identify which exact line of Java code creates many objects.
 
-Khi đánh giá một dịch vụ, nên so cùng khoảng thời gian với request rate, throughput, tail latency và CPU. Nếu thay đổi collector hoặc phiên bản JDK, tên sự kiện và ý nghĩa một số bộ đếm có thể khác.
+When evaluating a service, compare over the same time window with request rate, throughput, tail latency, and CPU. If you change the collector or JDK version, event names and the meaning of some counters may differ.
 
-### 5.2 JFR + Java Mission Control: tìm call stack cấp phát
+### 5.2 JFR + Java Mission Control: finding allocation call stacks
 
-JFR ghi thông tin chẩn đoán từ JVM với mức overhead phụ thuộc cấu hình. Đối với một tiến trình Java đang chạy, dùng PID thật:
+JFR records diagnostic data from the JVM with configuration-dependent overhead. For a running Java process, use the real PID:
 
 ~~~sh
 jcmd <pid> JFR.start name=allocation-study settings=profile duration=60s filename=allocation.jfr
@@ -108,29 +108,29 @@ jfr summary allocation.jfr
 jfr print --events jdk.ObjectAllocationSample allocation.jfr
 ~~~
 
-Lệnh `jfr summary` và `jfr print` chạy **sau khi** bản ghi đã được ghi thành file. Có thể mở file trong **Java Mission Control** để xem các allocation hot spots, loại đối tượng, thread, stack trace và tương quan với GC/CPU. Trong một bản ghi quá ngắn, có thể không đủ mẫu hữu ích.
+The `jfr summary` and `jfr print` commands run **after** the recording has been written to a file. You can open the file in **Java Mission Control** to inspect allocation hot spots, object types, threads, stack traces, and correlations with GC/CPU. In a recording that is too short, there may not be enough useful samples.
 
-Sự kiện **jdk.ObjectAllocationSample** được lấy mẫu và có trọng số ước tính (*sample weight*); **không cộng số event như thể đó là số đối tượng được cấp phát toàn phần**. Các sự kiện liên quan TLAB và allocation ngoài TLAB có cơ chế thu thập/chi phí khác; phải kiểm tra event thực tế được bật trong file JFR trước khi phân tích. Đừng dùng một stack mẫu duy nhất làm kết luận nguyên nhân của toàn bộ workload.
+The **jdk.ObjectAllocationSample** event is sampled and carries an estimated weight (*sample weight*); **do not sum event counts as if they were the total number of objects allocated**. TLAB and out-of-TLAB allocation events have different collection mechanisms/costs; check which events are actually enabled in the JFR file before analyzing. Do not use a single sampled stack to conclude the cause of an entire workload.
 
-JFR cũng có nhóm sự kiện hỗ trợ phân tích đối tượng sống lâu (ví dụ Old Object Sample khi được cấu hình phù hợp), nhưng đó **không phải** bản ghi đầy đủ thời gian sống của mọi đối tượng. Chụp heap dump / truy GC roots là kỹ thuật kiểm tra retention khi có nghi vấn cụ thể, có chi phí pause và dung lượng file đáng kể.
+JFR also includes events supporting analysis of long-lived objects (such as Old Object Sample when configured appropriately), though that is **not** a complete record of every object's lifetime. Taking a heap dump / tracing GC roots is a technique to inspect retention when you have a specific suspicion, carrying significant pause cost and file size.
 
-### 5.3 JMH: so chi phí cấp phát của một đoạn code nhỏ
+### 5.3 JMH: comparing the allocation cost of a small code snippet
 
-Với benchmark đã được xây bằng JMH, tùy chọn `-prof gc` có thể hiển thị các chỉ số như `gc.alloc.rate` (MB/s) và `gc.alloc.rate.norm` (B/op), cùng các chỉ số GC được hỗ trợ. **B/op** tiện để so hai cách xử lý cùng một đơn vị công việc; **MiB/s** phản ánh lượng byte trên thời gian và còn phụ thuộc số thao tác/giây.
+For benchmarks built with JMH, the `-prof gc` option can display metrics such as `gc.alloc.rate` (MB/s) and `gc.alloc.rate.norm` (B/op), along with supported GC metrics. **B/op** is convenient for comparing two ways to handle the same unit of work; **MiB/s** reflects bytes over time and also depends on operations/second.
 
-Phải có warmup, đủ iteration/fork và tiêu thụ kết quả đúng cách. JIT có thể loại bỏ allocation bằng escape analysis/scalar replacement hoặc dead-code elimination; benchmark quá đơn giản có thể đo **code đã được JVM tối ưu khác xa code tác giả hình dung**. JMH là công cụ đo vi mô, không thay thế phép đo toàn hệ thống dưới tải đại diện.
+You must include warmup, sufficient iterations/forks, and proper result consumption. The JIT can eliminate allocations via escape analysis/scalar replacement or dead-code elimination; an overly simple benchmark may measure **code optimized by the JVM far differently from what the author envisioned**. JMH is a microbenchmarking tool, not a replacement for whole-system measurement under representative load.
 
-### 5.4 Điều nên và không nên đọc từ các công cụ khác
+### 5.4 What to read and not read from other tools
 
-- `jcmd <pid> GC.class_histogram` hoặc heap dump giúp nhận diện loại đối tượng có mặt trong heap, **không trực tiếp cho biết allocation rate theo call site**; một số thao tác có thể gây pause. Dùng có chủ đích, đặc biệt ở production.
-- `GarbageCollectorMXBean` cung cấp số lần/thời gian GC theo collector; các bộ đếm tích lũy cần lấy hiệu giữa hai thời điểm, và không chứng minh nguyên nhân allocation.
-- Used heap, committed heap, max heap và RSS của tiến trình là các thước đo khác nhau. Off-heap/direct buffers, metaspace, stack và native allocations không được phép quy tất cả về Java heap allocation.
+- `jcmd <pid> GC.class_histogram` or a heap dump helps identify which object types are present in the heap, **not allocation rate by call site directly**; some operations can cause pauses. Use deliberately, especially in production.
+- `GarbageCollectorMXBean` provides collection counts/times per collector; cumulative counters require taking the difference between two timestamps, and do not prove the cause of allocation.
+- Used heap, committed heap, max heap, and process RSS are different metrics. Off-heap/direct buffers, metaspace, stacks, and native allocations must not all be attributed to Java heap allocation.
 
-## 6. Ví dụ Java 17+ chạy được: sống ngắn so với bị giữ lại
+## 6. Runnable Java 17+ example: short-lived vs. retained
 
-Chương trình tạo hai kiểu vòng đời. Trong lượt đầu, một mảng 1 KiB được đưa qua trường `volatile` và thường nhanh chóng mất tham chiếu khi mảng mới thay thế nó; trong lượt sau, 4.000 mảng được lưu trong danh sách static nên còn reachable. Không gọi `System.gc()` để ép GC: khi nào thu gom là do JVM.
+The program creates two lifecycle patterns. In the first pass, a 1 KiB array is assigned through a `volatile` field and typically loses references quickly as new arrays replace it; in the second pass, 4,000 arrays are stored in a static list so they remain reachable. `System.gc()` is not called to force GC: when collection happens is up to the JVM.
 
-Lưu tệp **AllocationLifetimeDemo.java**:
+Save the file **AllocationLifetimeDemo.java**:
 
 ~~~java
 import java.util.ArrayList;
@@ -144,7 +144,7 @@ public final class AllocationLifetimeDemo {
         for (int i = 0; i < count; i++) {
             byte[] data = new byte[1_024];
             data[0] = (byte) i;
-            visible = data; // Cho đối tượng escape; hạn chế bị tối ưu loại bỏ.
+            visible = data; // Let the object escape; limit optimization elimination.
             if (hold) {
                 HELD.add(data);
             }
@@ -165,14 +165,14 @@ public final class AllocationLifetimeDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~sh
 javac --release 17 AllocationLifetimeDemo.java
 java -Xms64m -Xmx64m -XX:+UseG1GC AllocationLifetimeDemo
 ~~~
 
-Stdout từ chương trình (không bật log GC):
+Stdout from the program (without GC logging enabled):
 
 ~~~text
 after ephemeral: 0
@@ -180,72 +180,72 @@ after retained: 4000
 after release: 0
 ~~~
 
-**Diễn giải đúng:** 100.000 mảng đầu có tổng *payload được yêu cầu* là 102.400.000 byte (khoảng 97,7 MiB) cộng chi phí object header/alignment. Chúng **không cùng tồn tại trong danh sách**; JVM có thể tái sử dụng không gian của những mảng đã chết. 4.000 mảng ở lượt sau có payload khoảng 3,9 MiB và vẫn reachable qua `HELD` cho đến `clear()`. Kết quả `HELD.size() == 0` chỉ cho thấy danh sách đã bỏ tham chiếu: **không chứng minh GC vừa chạy, heap used đã giảm hay RSS của tiến trình đã trả lại hệ điều hành**.
+**Accurate interpretation:** the first 100,000 arrays have a total *requested payload* of 102,400,000 bytes (about 97.7 MiB) plus object header/alignment overhead. They **do not coexist in the list**; the JVM can reuse the space of dead arrays. The 4,000 arrays in the second pass have a payload of roughly 3.9 MiB and stay reachable via `HELD` until `clear()`. The result `HELD.size() == 0` only shows that the list dropped its references: **it does not prove that GC just ran, that heap used decreased, or that process RSS was returned to the OS**.
 
-Trường `visible` là một cách cho mảng có đường escape để quan sát cấp phát; đây là ví dụ giáo dục, không phải kỹ thuật nên đưa vào code ứng dụng. Các con số GC cụ thể sẽ thay đổi theo JDK, heap, collector, thời gian chạy và hệ thống. Để có JFR với chương trình ngắn này, có thể khởi động bản ghi ngay từ đầu:
+The `visible` field is one way to give the array an escape path so allocations can be observed; this is an educational example, not a pattern to put into production application code. Specific GC figures will vary by JDK, heap, collector, runtime duration, and system. To capture JFR for this short program, you can start the recording right at startup:
 
 ~~~sh
 java -Xms64m -Xmx64m -XX:+UseG1GC -XX:StartFlightRecording=settings=profile,filename=allocation.jfr,dumponexit=true AllocationLifetimeDemo
 jfr summary allocation.jfr
 ~~~
 
-Ở lần chạy rất ngắn, JFR vẫn có thể thiếu mẫu allocation; trên một service dài hạn, hãy ghi trong cửa sổ có workload đủ đại diện. Khi bật `-Xlog:gc*`, stdout có thêm log JVM ngoài ba dòng do chương trình in ra.
+In a very short run, JFR may still lack allocation samples; on a long-running service, record over a window with sufficiently representative workload. When `-Xlog:gc*` is enabled, stdout includes JVM log lines in addition to the three lines printed by the program.
 
-## 7. Quy trình chẩn đoán có thể lặp lại
+## 7. Repeatable diagnostic workflow
 
-1. **Xác lập vấn đề và SLO:** Ví dụ CPU GC tăng từ 3% lên 20%, request p99 vượt ngưỡng hoặc old occupancy tiến sát giới hạn. Ghi rõ khoảng thời gian và phiên bản JDK, collector, `-Xms/-Xmx`, CPU/memory limit của container.
-2. **Cố định workload so sánh:** RPS, kích thước request/response, cache warmup, tỷ lệ lỗi, kiểu dữ liệu, concurrency và thời gian chạy. Đừng so hai profile có lưu lượng khác nhau mà chỉ nhìn MiB/s.
-3. **Đo ba lớp:** (a) allocation rate và top call stacks từ JFR/JMH khi phù hợp; (b) tần suất/pause và young/survivor/old từ GC logs; (c) live set và đồ thị post-GC occupancy qua thời gian. Đồng bộ timestamp với CPU và latency.
-4. **Đặt giả thuyết cụ thể:** “Mỗi request tạo nhiều bản sao `byte[]` vì chuyển đổi định dạng hai lần” hoặc “Queue có tốc độ thêm > tốc độ xử lý nên các request sống lâu”. Dự đoán chỉ số nào phải thay đổi nếu giả thuyết đúng.
-5. **Thay đổi một nguyên nhân:** Loại bỏ copy dư thừa, giới hạn queue, sửa cache eviction, cải thiện streaming/batching... Sau đó đo lại cùng loại workload. Theo dõi cả allocation B/op, throughput, CPU GC, p99 và bộ nhớ còn sau GC.
-6. **Kiểm tra trade-off:** Một kỹ thuật giảm số đối tượng nhưng giữ buffer lâu hơn có thể làm tăng live set hoặc contention. Ưu tiên kết quả đo được và tính đúng đắn, không tối ưu chỉ vì biểu đồ allocation giảm.
+1. **Establish the problem and SLO:** For example, GC CPU rose from 3% to 20%, request p99 crossed the threshold, or old occupancy is approaching the limit. Record the exact time range, JDK version, collector, `-Xms/-Xmx`, and container CPU/memory limits.
+2. **Hold the comparison workload constant:** RPS, request/response size, cache warmup, error rate, data shape, concurrency, and run duration. Do not compare two profiles with different traffic while looking only at MiB/s.
+3. **Measure three layers:** (a) allocation rate and top call stacks from JFR/JMH where appropriate; (b) pause frequency/duration and young/survivor/old from GC logs; (c) live set and post-GC occupancy graphs over time. Synchronize timestamps with CPU and latency.
+4. **Form a concrete hypothesis:** "Each request creates multiple copies of `byte[]` because of double format conversion" or "Queue enqueue rate > processing rate so requests live longer." Predict which metric should change if the hypothesis is right.
+5. **Change one cause at a time:** Remove redundant copies, bound the queue, fix cache eviction, improve streaming/batching... Then re-measure under the same workload type. Monitor allocation B/op, throughput, GC CPU, p99, and post-GC retained memory.
+6. **Check trade-offs:** A technique that reduces object count while holding buffers longer can increase the live set or contention. Prioritize measured results and correctness, rather than optimizing just because an allocation chart went down.
 
-## 8. Ba tình huống đọc số liệu
+## 8. Three data-reading scenarios
 
-| Quan sát dưới tải tương đương | Giả thuyết đầu tiên | Bằng chứng cần kiểm tra |
+| Observation under equivalent load | First hypothesis | Evidence to check |
 | --- | --- | --- |
-| Allocation 300 MiB/s, young GC thường xuyên, sau GC heap ổn định, CPU GC cao | Churn đối tượng ngắn hạn | JFR allocation top stacks và B/op; so p99 trước/sau giảm copy |
-| Allocation 70 MiB/s, old occupancy sau GC tăng liên tục, queue/cache cũng tăng | Dữ liệu bị giữ lại lâu hoặc consumer xử lý không kịp | Heap histogram, đường tham chiếu GC roots, kích thước queue/cache và eviction policy |
-| Allocation 15 MiB/s, post-GC live set sát `-Xmx`, pause xấu | Tập dữ liệu sống lớn so với heap, có thể kèm fragmentation hoặc chính sách GC không hợp | Object histogram, live set ổn định hay tăng, heap/headroom, log collector thực tế |
+| Allocation 300 MiB/s, frequent young GCs, stable post-GC heap, high GC CPU | Short-lived object churn | JFR allocation top stacks and B/op; compare p99 before/after reducing copies |
+| Allocation 70 MiB/s, post-GC old occupancy rising steadily, queues/caches also growing | Data retained long-term or consumers unable to keep up | Heap histogram, GC root reference paths, queue/cache sizes and eviction policy |
+| Allocation 15 MiB/s, post-GC live set near `-Xmx`, poor pauses | Live dataset is large relative to heap, possibly with fragmentation or unsuitable GC policy | Object histogram, whether live set is stable or rising, heap/headroom, actual collector logs |
 
-Các con số trên là tình huống minh họa, **không phải ngưỡng cố định** để chẩn đoán mọi JVM. “Allocation rate cao” chỉ có ý nghĩa khi đặt cạnh ngân sách CPU, pause SLO, workload và mức heap.
+The numbers above are illustrative scenarios, **not fixed thresholds** for diagnosing every JVM. "High allocation rate" is only meaningful alongside CPU budget, pause SLO, workload, and heap size.
 
-## 9. Hướng tối ưu theo nguồn áp lực
+## 9. Optimization directions by pressure source
 
-**Khi churn tạo CPU GC lớn:** Trước tiên xác định hot stack. Cân nhắc bỏ conversion/copy trung gian, tránh boxing và chuỗi tạm trong vòng lặp nóng, chuyển sang streaming khi không cần giữ toàn bộ dữ liệu, hoặc batch các tác vụ nhỏ có chi phí tạo wrapper cao. So **B/op** và thời gian xử lý; một chuỗi API gọn hơn không mặc định tạo ít đối tượng hơn. Đừng triển khai object pool cho đối tượng nhỏ chỉ theo trực giác: pool giữ chúng sống lâu, thêm đồng bộ và có thể kém hơn cơ chế cấp phát nhanh của JVM.
+**When churn causes high GC CPU:** Identify hot stacks first. Consider eliminating intermediate conversions/copies, avoiding boxing and temporary strings in hot loops, switching to streaming when the entire dataset need not be retained, or batching small operations that carry high wrapper overhead. Compare **B/op** and processing time; a cleaner-looking API chain does not by default allocate fewer objects. Do not implement an object pool for small objects purely on intuition: pools keep them alive longer, add synchronization, and can underperform the JVM's fast allocation path.
 
-**Khi retention/promotion lớn:** Rà soát phạm vi tham chiếu; giới hạn cache theo kích thước/TTL, gỡ listener khi hết vòng đời, bảo đảm hàng đợi có backpressure hoặc giới hạn, kết thúc batch và đóng tài nguyên đúng thời điểm. Cắt bớt lượng tham chiếu sống lâu có thể hiệu quả hơn giảm vài byte của đối tượng tạm.
+**When retention/promotion is high:** Audit reference scope; bound caches by size/TTL, unregister listeners at end of lifecycle, ensure queues have backpressure or bounds, finish batches and close resources promptly. Trimming long-lived references can be more effective than shaving a few bytes off temporary objects.
 
-**Khi live set lớn nhưng hợp lệ:** Đánh giá heap headroom, cấu trúc dữ liệu (đặc biệt độ dư/bộ nhớ kèm theo của map/list), nhu cầu giữ dữ liệu, phân vùng/batching và collector thích hợp với mục tiêu latency/throughput. Tuning heap hay collector sau khi có baseline; tăng `-Xmx` có thể giảm tần suất GC nhưng cũng đổi footprint và đặc điểm pause. Không giải quyết leak bằng cách cứ tăng heap.
+**When the live set is large yet legitimate:** Evaluate heap headroom, data structures (especially map/list overhead/padding), actual data-retention needs, partitioning/batching, and a collector suited to latency/throughput goals. Tune heap or collector only after establishing a baseline; increasing `-Xmx` can lower GC frequency but also changes footprint and pause characteristics. Do not solve a leak by continually raising the heap.
 
-**Khi có nhiều đối tượng kích thước lớn:** Xem luồng copy mảng/buffer, đường cấp phát đặc biệt, giới hạn kích thước batch và áp lực lên region/fragmentation theo collector. Đừng đồng nhất cấp phát native/direct memory với Java heap allocation.
+**When many large objects exist:** Inspect array/buffer copy paths, special allocation paths, batch size limits, and region/fragmentation pressure per collector. Do not equate native/direct memory allocations with Java heap allocation.
 
-## 10. Những kết luận sai hay gặp
+## 10. Common wrong conclusions
 
-1. **“Heap tăng trước GC nghĩa là leak.”** Không: trước GC có thể chứa lượng lớn đối tượng đã chết; xem sau GC và các GC roots.
-2. **“Allocation 1 GiB/s buộc heap lớn hơn 1 GiB.”** Không: đó là lưu lượng byte/giây; tốc độ thu hồi và live set quyết định khả năng vận hành.
-3. **“Ít GC nhất là tốt nhất.”** Không: pause dài hoặc live set lớn có thể tệ hơn các young GC ngắn; xem SLO tổng thể.
-4. **“Đối tượng vào Old là leak.”** Không: nhiều cấu trúc sống lâu hợp lệ; promotion chỉ là cơ chế quản lý.
-5. **“Sau `clear()` bộ nhớ hệ điều hành phải giảm.”** Không: GC không nhất thiết chạy ngay, heap đã commit có thể vẫn được JVM giữ.
-6. **“Một JFR allocation event tương đương một allocation thật.”** Không: sampling, event configuration, weight và stack context quyết định cách diễn giải.
-7. **“Giảm số `new` trong source chắc chắn giảm byte cấp phát.”** Không: JIT tối ưu có thể loại bỏ allocation; ngược lại một object pool giữ byte sống lâu có thể tăng áp lực GC.
-8. **“GC pause là nguyên nhân mọi request chậm.”** Không: phải đối chiếu timestamp với CPU, I/O, lock contention, network và thời gian queue.
+1. **"Heap rising before GC means a leak."** No: pre-GC heap can contain many dead objects; look after GC and inspect GC roots.
+2. **"1 GiB/s allocation requires a heap larger than 1 GiB."** No: that is bytes/second throughput; reclamation speed and live set determine feasibility.
+3. **"Fewer GCs is always better."** No: long pauses or a large live set can be worse than brief young GCs; look at overall SLOs.
+4. **"Objects entering Old are a leak."** No: many structures are legitimately long-lived; promotion is just a management mechanism.
+5. **"After `clear()`, OS memory must drop."** No: GC does not necessarily run immediately, and committed heap may still be held by the JVM.
+6. **"One JFR allocation event equals one real allocation."** No: sampling, event configuration, weight, and stack context determine interpretation.
+7. **"Reducing `new` calls in source definitely reduces allocated bytes."** No: JIT optimizations can eliminate allocations; conversely, an object pool holding bytes longer can increase GC pressure.
+8. **"GC pauses cause every slow request."** No: timestamps must be correlated with CPU, I/O, lock contention, network, and queuing time.
 
-## 11. Tự kiểm tra khả năng suy luận
+## 11. Self-check reasoning exercises
 
-**Bài toán A.** Nếu luồng thực sự cấp phát 120 MiB/s và khoảng dung lượng trẻ hữu dụng giả định là 240 MiB, nhịp lấp đầy đơn giản là bao lâu? **Đáp án:** khoảng 2 giây. Đó không phải lịch GC được bảo đảm vì young size và survival thay đổi.
+**Problem A.** If threads actually allocate 120 MiB/s and the assumed usable young capacity is 240 MiB, what is the simple fill interval? **Answer:** about 2 seconds. This is not a guaranteed GC schedule because young size and survival vary.
 
-**Bài toán B.** Hai bản chạy cùng 100 MiB/s. Bản 1 có post-GC live set ổn định 300 MiB; bản 2 tăng từ 300 lên 800 MiB qua nhiều phút ở cùng tải. Bản nào cần điều tra retention trước? **Đáp án:** bản 2. Cần đối chiếu cache/queue/reference chain, không lập tức khẳng định leak.
+**Problem B.** Two builds both run at 100 MiB/s. Build 1 has a stable post-GC live set of 300 MiB; Build 2 climbs from 300 to 800 MiB over several minutes at the same load. Which build needs retention investigation first? **Answer:** Build 2. Check caches/queues/reference chains rather than immediately asserting a leak.
 
-**Bài toán C.** Bạn giảm từ 200 xuống 90 B/op nhưng p99 tăng và old occupancy tăng. Đã tối ưu thành công chưa? **Đáp án:** chưa thể kết luận. Có thể đã đổi allocation ngắn hạn thành giữ buffer lâu, tăng contention hoặc thêm chi phí khác; phải đánh giá throughput, p99, CPU GC và live set cùng nhau.
+**Problem C.** You reduced allocation from 200 to 90 B/op, yet p99 rose and old occupancy increased. Was the optimization successful? **Answer:** cannot conclude so. You may have traded short-lived allocations for longer buffer retention, higher contention, or another cost; evaluate throughput, p99, GC CPU, and live set together.
 
-## Ghi nhớ để áp dụng
+## Key takeaways to apply
 
-- **Allocation rate** trả lời “chương trình tạo bao nhiêu byte mỗi giây?”; **live set** trả lời “bao nhiêu byte vẫn cần giữ?”; **lifetime/survival** nối hai đại lượng đó với chi phí GC.
-- **High churn** và **high retention** đòi hỏi chiến lược khác nhau. Quan sát GC logs để biết *khi nào/chi phí thu gom*; dùng JFR/JMC để biết *ai cấp phát*; dùng reference analysis khi nghi *ai giữ lại*.
-- Một thay đổi tốt được xác minh bằng workload đại diện và mục tiêu ứng dụng, không chỉ bằng việc giảm số lần gọi `new` hay số lần GC.
+- **Allocation rate** answers "how many bytes per second does the program create?"; **live set** answers "how many bytes still need to be kept?"; **lifetime/survival** links those two quantities to GC cost.
+- **High churn** and **high retention** call for different strategies. Read GC logs to learn *when/collection cost*; use JFR/JMC to learn *who allocates*; use reference analysis when suspecting *who retains*.
+- A good change is verified by representative workload and application goals, not merely by reducing `new` calls or GC counts.
 
-### Tài liệu tham khảo
+### References
 
 - Oracle, *Java 21 GC Tuning Guide*: https://docs.oracle.com/en/java/javase/21/gctuning/
 - Oracle, *Java 21 Diagnostic Tools* (JFR, `jcmd`, heap histogram): https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html

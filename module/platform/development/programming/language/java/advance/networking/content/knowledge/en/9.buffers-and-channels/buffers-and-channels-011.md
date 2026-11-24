@@ -1,56 +1,56 @@
-# Unix domain socket qua StandardProtocolFamily.UNIX và UnixDomainSocketAddress
+# Unix domain sockets via StandardProtocolFamily.UNIX and UnixDomainSocketAddress
 
-## 1. Bài toán: giao tiếp giữa các tiến trình trên cùng máy
+## 1. The problem: communication between processes on the same machine
 
-Một ứng dụng Java có thể cần trao đổi dữ liệu với một tiến trình khác trên **cùng máy**: service nội bộ, tiến trình quản lý, daemon, worker hoặc hai chương trình chạy tách biệt nhưng dùng chung hệ điều hành. TCP loopback qua `127.0.0.1`/`::1` là một lựa chọn. **Unix domain socket** là một lựa chọn khác dành cho **local inter-process communication (IPC)**, được định danh chủ yếu bằng **đường dẫn trên hệ thống tệp**, không bằng IP và port.
+A Java application may need to exchange data with another process on the **same machine**: an internal service, a management process, a daemon, a worker, or two programs running separately while sharing the same operating system. TCP loopback via `127.0.0.1`/`::1` is one option. A **Unix domain socket** is another option for **local inter-process communication (IPC)**, identified primarily by a **filesystem path**, rather than an IP and port.
 
-Từ **Java 16** (JEP 380), Java NIO hỗ trợ Unix domain socket qua `ServerSocketChannel` và `SocketChannel`. Vì chủ đề thuộc nhóm **Buffer và channel**, trọng tâm ở đây là **`StandardProtocolFamily.UNIX`, `UnixDomainSocketAddress`, vòng đời channel và `ByteBuffer`**.
+Since **Java 16** (JEP 380), Java NIO supports Unix domain sockets via `ServerSocketChannel` and `SocketChannel`. Because this topic belongs to the **Buffers and channels** group, the focus here is on **`StandardProtocolFamily.UNIX`, `UnixDomainSocketAddress`, channel lifecycle, and `ByteBuffer`**.
 
-Hai đầu trao đổi có mô hình:
+The two communicating ends follow this model:
 
 ~~~text
-Tiến trình server                       Tiến trình client
-ServerSocketChannel                    SocketChannel
-open(StandardProtocolFamily.UNIX)      open(StandardProtocolFamily.UNIX)
-           |                                      |
-bind(UnixDomainSocketAddress)          connect(UnixDomainSocketAddress)
-           |______________________________________|
-                          |
-                  pathname cục bộ
-             ví dụ /run/myapp/service.sock
-                          |
-                server.accept() -> SocketChannel
-                          |
-                đọc/ghi ByteBuffer hai chiều
+Server process                          Client process
+ServerSocketChannel                     SocketChannel
+open(StandardProtocolFamily.UNIX)       open(StandardProtocolFamily.UNIX)
+           |                                       |
+bind(UnixDomainSocketAddress)           connect(UnixDomainSocketAddress)
+           |_______________________________________|
+                           |
+                    local pathname
+             e.g. /run/myapp/service.sock
+                           |
+                 server.accept() -> SocketChannel
+                           |
+                 bidirectional ByteBuffer read/write
 ~~~
 
-Đường dẫn `/run/myapp/service.sock` chỉ là minh họa kiểu Unix/Linux, không phải đường dẫn bắt buộc hay tự có trên mọi hệ điều hành.
+The path `/run/myapp/service.sock` is only a Unix/Linux-style illustration, not a mandatory path or one that exists automatically on every operating system.
 
-**Đặc tính then chốt:**
+**Key characteristics:**
 
-- Dùng để giao tiếp **cùng host**, không phải kết nối trực tiếp từ máy này sang máy khác qua Internet.
-- Không có cặp **IP/port** như `InetSocketAddress`; đối tượng `UnixDomainSocketAddress` bao bọc một `Path`.
-- Kết nối sử dụng **kênh hướng luồng (stream-oriented)**: dữ liệu vẫn là luồng byte, **không có ranh giới thông điệp tự động**.
-- Không cần mở port TCP mạng cho service này, nhưng vẫn cần quản lý **quyền truy cập file/đường dẫn**, kết nối và giới hạn tài nguyên.
-- Việc hỗ trợ phụ thuộc **JDK, hệ điều hành và provider**. Java 17+ có API, nhưng một môi trường cụ thể vẫn có thể không hỗ trợ `UNIX`.
+- Used for **same-host** communication, not direct connections from one machine to another over the Internet.
+- There is no **IP/port** pair like `InetSocketAddress`; a `UnixDomainSocketAddress` object wraps a `Path`.
+- Connections use a **stream-oriented channel**: data is still a byte stream, with **no automatic message boundaries**.
+- No network TCP port needs to be opened for this service, but you still need to manage **file/path access permissions**, connections, and resource limits.
+- Support depends on the **JDK, operating system, and provider**. Java 17+ has the API, but a specific environment may still not support `UNIX`.
 
-## 2. Các API cần phân biệt
+## 2. APIs to distinguish
 
-| API | Vai trò |
+| API | Role |
 | --- | --- |
-| `StandardProtocolFamily.UNIX` | Chọn họ địa chỉ Unix domain, thay vì `INET`/`INET6` |
-| `UnixDomainSocketAddress.of(Path)` | Tạo địa chỉ endpoint từ đường dẫn mặc định của hệ điều hành |
-| `UnixDomainSocketAddress.of(String)` | Tạo địa chỉ từ chuỗi đường dẫn |
-| `ServerSocketChannel.open(UNIX)` | Tạo kênh server cho Unix domain, lúc đầu chưa bind |
-| `server.bind(address)` | Gắn tên socket vào filesystem và bắt đầu lắng nghe |
-| `server.accept()` | Nhận kết nối, trả về `SocketChannel` trao đổi dữ liệu |
-| `SocketChannel.open(UNIX)` | Tạo kênh client Unix domain chưa kết nối |
-| `client.connect(address)` | Kết nối đến đường dẫn socket mà server đang lắng nghe |
-| `SocketChannel.open(address)` | Cách viết rút gọn: tự suy ra họ `UNIX` khi address là `UnixDomainSocketAddress` |
-| `ByteBuffer` | Bộ đệm có `position`/`limit`/`capacity` cho `read` và `write` |
-| `Files.deleteIfExists(path)` | Dọn socket filesystem node **sau khi server đóng** |
+| `StandardProtocolFamily.UNIX` | Selects the Unix domain address family, instead of `INET`/`INET6` |
+| `UnixDomainSocketAddress.of(Path)` | Creates an endpoint address from a path on the default filesystem of the OS |
+| `UnixDomainSocketAddress.of(String)` | Creates an address from a path string |
+| `ServerSocketChannel.open(UNIX)` | Creates a server channel for Unix domain, initially unbound |
+| `server.bind(address)` | Binds the socket name to the filesystem and starts listening |
+| `server.accept()` | Accepts a connection, returning a `SocketChannel` for exchanging data |
+| `SocketChannel.open(UNIX)` | Creates an unconnected Unix domain client channel |
+| `client.connect(address)` | Connects to the socket path that the server is listening on |
+| `SocketChannel.open(address)` | Shorthand: automatically infers the `UNIX` family when address is a `UnixDomainSocketAddress` |
+| `ByteBuffer` | Buffer with `position`/`limit`/`capacity` for `read` and `write` |
+| `Files.deleteIfExists(path)` | Cleans up the socket filesystem node **after the server closes** |
 
-Các import đặc trưng:
+Typical imports:
 
 ~~~java
 import java.net.StandardProtocolFamily;
@@ -61,79 +61,79 @@ import java.nio.channels.SocketChannel;
 import java.nio.file.Path;
 ~~~
 
-*Đây là danh sách import minh họa; ví dụ chạy độc lập phía dưới có đủ import cần thiết.*
+*This is an illustrative list of imports; the standalone runnable examples below include all necessary imports.*
 
-Điểm dễ nhầm: `SocketChannel.open()` và `ServerSocketChannel.open()` **không tham số** thông thường tạo kênh Internet, **không** tự động tạo Unix domain socket. Muốn kiểm soát rõ giao thức, hãy gọi phiên bản `open(StandardProtocolFamily.UNIX)`. Đối với client, `SocketChannel.open(unixAddress)` cũng hợp lệ vì có overload tự suy ra family từ kiểu địa chỉ.
+Common pitfall: the **no-argument** `SocketChannel.open()` and `ServerSocketChannel.open()` normally create Internet channels and do **not** automatically create Unix domain sockets. To control the protocol explicitly, call the `open(StandardProtocolFamily.UNIX)` version. For clients, `SocketChannel.open(unixAddress)` is also valid because there is an overload that automatically infers the family from the address type.
 
-Một số phương thức thích ứng kiểu cũ như `SocketChannel.socket()` hoặc `ServerSocketChannel.socket()` **không hỗ trợ Unix domain socket** và có thể ném `UnsupportedOperationException`. Hãy dùng **API channel trực tiếp**, ví dụ `read(ByteBuffer)`, `write(ByteBuffer)`, `getLocalAddress()` và `getRemoteAddress()`. Đừng chuyển kênh Unix domain thành `java.net.Socket`/`ServerSocket` bằng `socket()` như với Internet channel.
+Some legacy adapter methods such as `SocketChannel.socket()` or `ServerSocketChannel.socket()` **do not support Unix domain sockets** and may throw `UnsupportedOperationException`. Use the **channel API directly**, for example `read(ByteBuffer)`, `write(ByteBuffer)`, `getLocalAddress()`, and `getRemoteAddress()`. Do not convert a Unix domain channel into a `java.net.Socket`/`ServerSocket` via `socket()` as you would with an Internet channel.
 
-## 3. UnixDomainSocketAddress: endpoint là đường dẫn, không phải cổng
+## 3. UnixDomainSocketAddress: the endpoint is a path, not a port
 
-Có thể tạo địa chỉ bằng:
+An address can be created with:
 
 ~~~java
 Path socketPath = Path.of("/run/myapp/service.sock");
 UnixDomainSocketAddress address = UnixDomainSocketAddress.of(socketPath);
 ~~~
 
-*Đoạn minh họa đường dẫn Unix; hãy chọn đường dẫn thực sự tồn tại thư mục cha, có quyền phù hợp với hệ điều hành đang dùng.*
+*Snippet illustrating a Unix path; choose a path whose parent directory actually exists and has appropriate permissions for the operating system in use.*
 
-Hoặc với một chuỗi:
+Or with a string:
 
 ~~~java
 UnixDomainSocketAddress address =
         UnixDomainSocketAddress.of("service.sock");
 ~~~
 
-*Đoạn trên minh họa địa chỉ tương đối. Server và client phải giải thích đường dẫn theo đúng thư mục làm việc/cách triển khai tương ứng.*
+*The snippet above illustrates a relative address. The server and client must resolve the path according to their respective working directories/deployment setups.*
 
-`UnixDomainSocketAddress` là **mô tả địa chỉ**, không tự tạo file, không mở channel và không kết nối. Chỉ khi `server.bind(address)` thành công, hệ điều hành/JDK mới tạo filesystem node cho Unix domain socket ở địa chỉ đó. Client cần một đường dẫn quy chiếu tới **cùng endpoint thực**.
+`UnixDomainSocketAddress` is an **address descriptor**; it does not create a file, open a channel, or connect by itself. Only when `server.bind(address)` succeeds does the OS/JDK create the filesystem node for the Unix domain socket at that address. The client needs a path that refers to the **same actual endpoint**.
 
-Những lưu ý về đường dẫn:
+Notes about paths:
 
-- **Thư mục cha:** phải tồn tại và có quyền truy cập phù hợp. Với dịch vụ thật, đặt socket trong thư mục dành riêng có chủ sở hữu/quyền truy cập được quản lý.
-- **Tên đã tồn tại:** bind thường không thể dùng lại path có sẵn. Chỉ đóng server **không tự xóa** file socket cũ; phải dọn node đúng cách sau khi đóng.
-- **Giới hạn độ dài:** hệ điều hành có giới hạn đường dẫn Unix domain socket theo **byte** (thường quanh 100 byte, tùy nền tảng). Đường dẫn temp hoặc dự án quá sâu có thể làm bind thất bại.
-- **Path từ default filesystem:** `UnixDomainSocketAddress.of(Path)` yêu cầu `Path` thuộc hệ thống tệp mặc định; không dùng tùy tiện một `Path` từ provider ảo/ZIP.
-- **Địa chỉ tương đối:** phụ thuộc working directory và cách hai tiến trình giải quyết path. Chương trình production nên cấu hình và kiểm chứng đường dẫn nhất quán.
-- **Không đồng nghĩa file dữ liệu thường:** node socket được hệ điều hành tạo là điểm đặt tên để IPC; không đọc/ghi nó bằng `Files.readString(...)` như một tệp văn bản.
+- **Parent directory:** must exist and have appropriate access permissions. For a real service, place the socket in a dedicated directory with managed ownership/permissions.
+- **Name already exists:** bind generally cannot reuse an existing path. Simply closing the server **does not automatically delete** the old socket file; the node must be cleaned up properly after closing.
+- **Length limit:** operating systems impose a limit on Unix domain socket paths in **bytes** (typically around 100 bytes, depending on the platform). Deeply nested temp or project paths can cause bind to fail.
+- **Path from the default filesystem:** `UnixDomainSocketAddress.of(Path)` requires a `Path` belonging to the default filesystem; do not arbitrarily use a `Path` from a virtual/ZIP provider.
+- **Relative addresses:** depend on the working directory and how the two processes resolve the path. Production programs should configure and verify paths consistently.
+- **Not synonymous with a regular data file:** the socket node created by the OS is a named endpoint for IPC; do not read/write it with `Files.readString(...)` like a text file.
 
-Ở phía client, khi `connect` mà không `bind` một địa chỉ local tường minh, socket thường **unnamed**: địa chỉ local có path rỗng và **không có file client riêng cần xóa**. Server, ngược lại, cần một tên có thể tìm thấy để các client kết nối.
+On the client side, when calling `connect` without explicitly calling `bind` on a local address, the socket is usually **unnamed**: the local address has an empty path and there is **no separate client file to delete**. The server, on the other hand, needs a discoverable name for clients to connect to.
 
-## 4. Chu trình server và client
+## 4. Server and client lifecycle
 
-**Phía server:**
+**Server side:**
 
 ~~~text
 ServerSocketChannel.open(UNIX)
     -> bind(UnixDomainSocketAddress.of(path))
     -> accept()
-    -> SocketChannel của phiên vừa chấp nhận
-    -> đọc/ghi ByteBuffer trên channel được accept
-    -> đóng accepted channel và server channel
-    -> xóa filesystem socket node của server
+    -> SocketChannel of the newly accepted session
+    -> read/write ByteBuffer on the accepted channel
+    -> close the accepted channel and the server channel
+    -> delete the server's filesystem socket node
 ~~~
 
-**Phía client:**
+**Client side:**
 
 ~~~text
 SocketChannel.open(UNIX)
-    -> connect(UnixDomainSocketAddress.of(cùng path))
-    -> đọc/ghi ByteBuffer
+    -> connect(UnixDomainSocketAddress.of(same path))
+    -> read/write ByteBuffer
     -> close()
 ~~~
 
-`ServerSocketChannel` là **kênh lắng nghe**, không phải kênh trao đổi payload của một client cụ thể. Sau `accept()`, giá trị trả về mới là `SocketChannel` đã kết nối để truyền dữ liệu. Một server có thể `accept()` nhiều lần cho nhiều client, mỗi client có kênh riêng.
+`ServerSocketChannel` is the **listening channel**, not the channel for exchanging payloads with a specific client. Only after `accept()` is the returned value a connected `SocketChannel` for transferring data. A server can call `accept()` multiple times for multiple clients, each with its own channel.
 
-Khi `accept()`, `read()` và `write()` dùng **blocking mode mặc định**: nếu chưa có sự kiện/dữ liệu cần thiết, lời gọi có thể chờ. Có thể `configureBlocking(false)` và dùng `Selector`, nhưng khi đó phải xử lý `accept() == null`, đọc/ghi trả 0, đăng ký `SelectionKey` và hoàn tất kết nối chưa xong bằng `finishConnect()`. Hai ví dụ của bài dùng blocking mode để tập trung đúng vào Unix domain socket và ByteBuffer.
+`accept()`, `read()`, and `write()` use **blocking mode by default**: if the required event or data is not yet available, the call may wait. You can call `configureBlocking(false)` and use a `Selector`, but then you must handle `accept() == null`, reads/writes returning 0, registering `SelectionKey`s, and completing unfinished connections with `finishConnect()`. The two examples in this lesson use blocking mode to stay focused on Unix domain sockets and `ByteBuffer`.
 
-Kênh Unix domain stream **không biến thành UDP datagram**. Một lần `write` không buộc tương ứng đúng một lần `read`. Với thông điệp dài biến đổi, phải có framing (ví dụ length prefix) giống các luồng byte khác.
+A Unix domain stream channel **does not turn into a UDP datagram**. One `write` call does not necessarily correspond to one `read` call. For variable-length messages, you must have framing (such as a length prefix), just like other byte streams.
 
-## 5. Ví dụ Java 17+: tạo Unix domain socket và trao đổi hai chiều
+## 5. Java 17+ example: creating a Unix domain socket and exchanging data bidirectionally
 
-Ví dụ này chạy **cả server và client trong một chương trình** để kiểm chứng API mà không cần hai terminal. Nó tạo một thư mục tạm riêng, bind đến `service.sock` trong thư mục đó, client kết nối, server nhận `"HELLO"` và trả `"OK"`. Đường dẫn được tạo duy nhất cho mỗi lượt chạy, nên không phải ghi đè một socket pathname có sẵn.
+This example runs **both the server and client in a single program** to verify the API without needing two terminals. It creates a dedicated temporary directory, binds to `service.sock` inside that directory, the client connects, the server receives `"HELLO"` and replies `"OK"`. The path is uniquely generated for each run, so it does not overwrite an existing socket pathname.
 
-Lưu vào `UnixSocketBasicDemo.java`:
+Save to `UnixSocketBasicDemo.java`:
 
 ~~~java
 import java.io.EOFException;
@@ -200,14 +200,14 @@ public class UnixSocketBasicDemo {
 }
 ~~~
 
-Biên dịch/chạy với **JDK 17+ và nền tảng hỗ trợ Unix domain socket**:
+Compile/run with **JDK 17+ and a platform supporting Unix domain sockets**:
 
 ~~~bash
 javac UnixSocketBasicDemo.java
 java UnixSocketBasicDemo
 ~~~
 
-Kết quả kiểm thử khi bind/connect qua Unix domain socket thành công:
+Test output when binding/connecting over a Unix domain socket succeeds:
 
 ~~~text
 server unix address: true
@@ -216,35 +216,35 @@ server received: HELLO
 client received: OK
 ~~~
 
-Giải thích thứ tự:
+Step-by-step explanation:
 
-1. `Files.createTempDirectory` cho một thư mục mới duy nhất, sau đó `socketPath = dir.resolve("service.sock")` chọn tên socket chưa tồn tại. Đây là cách tránh đụng tên khi demo chạy nhiều lần; nếu tên temp quá dài so với giới hạn hệ điều hành, phải chọn thư mục ngắn hơn.
-2. `UnixDomainSocketAddress.of(socketPath)` tạo endpoint. `ServerSocketChannel.open(UNIX).bind(endpoint)` tạo server Unix domain và lắng nghe.
-3. `SocketChannel.open(UNIX)` tạo client; `client.connect(endpoint)` kết nối. `server.accept()` trả kênh phía server cho phiên này.
-4. `getLocalAddress() instanceof UnixDomainSocketAddress` xác nhận kiểu endpoint mà server đã bind; `client.isConnected()` cho biết kết nối đã thành công.
-5. `writeAll` lặp khi `ByteBuffer.hasRemaining()` vì ngay cả channel chặn cũng **không được giả định một lần write luôn xử lý toàn bộ buffer**.
-6. `readExactly` lặp đến đủ số byte yêu cầu; `read` trả `-1` khi phía kia đóng đầu ra/luồng kết thúc. `flip()` chuyển buffer từ chế độ ghi dữ liệu vào sang chế độ đọc dữ liệu ra.
+1. `Files.createTempDirectory` provides a unique new directory, then `socketPath = dir.resolve("service.sock")` picks a socket name that does not yet exist. This avoids name collisions when running the demo multiple times; if the temp path is too long for the OS limit, choose a shorter directory.
+2. `UnixDomainSocketAddress.of(socketPath)` creates the endpoint. `ServerSocketChannel.open(UNIX).bind(endpoint)` creates the Unix domain server and listens.
+3. `SocketChannel.open(UNIX)` creates the client; `client.connect(endpoint)` connects. `server.accept()` returns the server-side channel for this session.
+4. `getLocalAddress() instanceof UnixDomainSocketAddress` confirms the endpoint type the server bound to; `client.isConnected()` indicates the connection succeeded.
+5. `writeAll` loops while `ByteBuffer.hasRemaining()` because even with a blocking channel you must **never assume a single write always processes the entire buffer**.
+6. `readExactly` loops until the required number of bytes is read; `read` returns `-1` when the other side closes its output/the stream ends. `flip()` switches the buffer from write-into mode to read-from mode.
 
-**Giới hạn của demo:** hai độ dài 5 và 2 byte đã biết trước. Đây **không phải framing tổng quát** cho message có độ dài bất kỳ. Ở phần kế tiếp ta thêm header độ dài để biết chính xác cần đọc bao nhiêu byte.
+**Demo limitation:** the two lengths of 5 and 2 bytes are known in advance. This is **not general framing** for messages of arbitrary length. In the next section we add a length header to know exactly how many bytes to read.
 
-Trong `finally`, chương trình xóa file socket sau khi các channel đã đóng, rồi xóa thư mục tạm. Đây là trách nhiệm bổ sung so với việc chỉ dùng `try-with-resources`. Vì thư mục được tạo riêng cho demo, việc dọn này không động đến một path dịch vụ có sẵn. Với service production, phải kiểm soát quyền sở hữu và lifecycle trước khi xóa node, tuyệt đối không xóa bừa một path do người dùng/tiến trình khác quản lý.
+In `finally`, the program deletes the socket file after the channels have closed, then deletes the temporary directory. This is an extra responsibility beyond merely using `try-with-resources`. Because the directory was created specifically for the demo, this cleanup does not touch an existing service path. For a production service, ownership and lifecycle must be verified before deleting a node—never blindly delete a path managed by another user/process.
 
-## 6. ByteBuffer: position, limit, flip và read/write đủ byte
+## 6. ByteBuffer: position, limit, flip, and reading/writing full bytes
 
-Trong Java NIO, `ByteBuffer` có ba khái niệm:
+In Java NIO, `ByteBuffer` has three concepts:
 
-| Thuộc tính | Ý nghĩa |
+| Property | Meaning |
 | --- | --- |
-| `capacity()` | Sức chứa cố định của buffer |
-| `position()` | Vị trí thao tác kế tiếp |
-| `limit()` | Ranh giới trên (exclusive) của vùng có thể thao tác |
-| `remaining()` | Số phần tử từ position tới limit |
-| `hasRemaining()` | Còn byte cần đọc/ghi hay không |
-| `flip()` | Đặt limit = position, position = 0, chuyển buffer vừa ghi sang chế độ đọc |
-| `clear()` | position = 0, limit = capacity, chuẩn bị **ghi đè**, không xóa nội dung byte |
-| `compact()` | Dồn byte chưa đọc về đầu buffer, chuẩn bị nhận thêm khi dùng incremental parser |
+| `capacity()` | Fixed capacity of the buffer |
+| `position()` | Next position to operate on |
+| `limit()` | Upper bound (exclusive) of the region that can be operated on |
+| `remaining()` | Number of elements from position to limit |
+| `hasRemaining()` | Whether there are remaining bytes to read/write |
+| `flip()` | Sets limit = position, position = 0, switching a newly written buffer to read mode |
+| `clear()` | position = 0, limit = capacity, preparing to **overwrite**, without erasing byte contents |
+| `compact()` | Shifts unread bytes to the beginning of the buffer, preparing to receive more when using an incremental parser |
 
-Khi ghi dữ liệu **từ chương trình ra channel**, ta thường:
+When writing data **from the program out to a channel**, we typically do:
 
 ~~~java
 ByteBuffer output = StandardCharsets.UTF_8.encode("HELLO");
@@ -253,11 +253,11 @@ while (output.hasRemaining()) {
 }
 ~~~
 
-*Đoạn minh họa trong một phương thức đã có `SocketChannel channel`; không phải chương trình độc lập.*
+*Illustrative snippet inside a method that already has `SocketChannel channel`; not a standalone program.*
 
-`StandardCharsets.UTF_8.encode` trả một `ByteBuffer` có giới hạn tương ứng dữ liệu đã mã hóa, sẵn sàng đọc từ buffer để `channel.write` gửi đi. Nếu dùng `ByteBuffer.allocate(...)` rồi `put(...)`, phải gọi `flip()` trước khi `write()`; nếu không channel có thể gửi byte chưa phải payload mong muốn.
+`StandardCharsets.UTF_8.encode` returns a `ByteBuffer` whose limit matches the encoded data, ready to be read from the buffer for `channel.write` to send. If you use `ByteBuffer.allocate(...)` and then `put(...)`, you must call `flip()` before `write()`; otherwise the channel may send bytes that are not the intended payload.
 
-Khi **đọc từ channel vào buffer**, thứ tự ngược:
+When **reading from a channel into a buffer**, the order is reversed:
 
 ~~~java
 ByteBuffer input = ByteBuffer.allocate(5);
@@ -270,22 +270,22 @@ input.flip();
 String value = StandardCharsets.UTF_8.decode(input).toString();
 ~~~
 
-*Đoạn minh họa cho **blocking SocketChannel** và payload 5 byte đã biết trước; cần import `ByteBuffer`, `EOFException` và `StandardCharsets`.*
+*Illustrative snippet for a **blocking SocketChannel** and a pre-known 5-byte payload; requires importing `ByteBuffer`, `EOFException`, and `StandardCharsets`.*
 
-Khi channel ở non-blocking mode, `read` hoặc `write` có thể trả 0 dù buffer còn byte. Không được bận vòng `while` liên tục mà không dùng `Selector`/readiness hoặc chiến lược scheduling phù hợp. Với blocking mode, vòng lặp đọc/ghi trên là cách đơn giản để xử lý partial I/O.
+When a channel is in non-blocking mode, `read` or `write` can return 0 even while the buffer still has bytes. Do not busy-spin in a continuous `while` loop without using `Selector`/readiness or a proper scheduling strategy. In blocking mode, the read/write loops above are a simple way to handle partial I/O.
 
-**Quan trọng:** Unix domain socket là stream, nên framing không được dựa vào số lần đọc. Ví dụ server viết hai message liên tiếp; phía client có thể đọc nhận các byte theo cách gộp/tách khác. Muốn đọc message trọn vẹn cần **quy tắc ranh giới** và giới hạn kích thước hợp lệ.
+**Important:** A Unix domain socket is a stream, so framing must not rely on the number of read calls. For example, the server writes two consecutive messages; the client may receive the bytes merged or split differently across reads. To read complete messages, you need **boundary rules** and valid size limits.
 
-## 7. Ví dụ Java 17+: hai thông điệp length-prefixed qua một kết nối
+## 7. Java 17+ example: two length-prefixed messages over one connection
 
-Ví dụ này nâng cấp thành giao thức:
-- Header `4 byte int` ở big-endian (theo `ByteBuffer.putInt/getInt` mặc định).
-- Body là số byte UTF-8 đúng bằng length header.
-- Giới hạn `MAX_FRAME_BYTES = 1024` để không cấp phát theo độ dài vô hạn do peer điều khiển.
-- `readFully` nhận đủ header/body hoặc ném `EOFException`.
-- Hai message `"A"` và `"Xin chào"` chạy liên tiếp **trên cùng một kết nối Unix domain socket**, mỗi message được phản hồi `"ACK"`.
+This example upgrades to a protocol with:
+- A `4-byte int` header in big-endian (per `ByteBuffer.putInt/getInt` default).
+- A body with a number of UTF-8 bytes equal to the length header.
+- A limit `MAX_FRAME_BYTES = 1024` to avoid allocating unbounded memory controlled by a peer.
+- `readFully` to receive the complete header/body or throw `EOFException`.
+- Two messages `"A"` and `"Xin chào"` sent consecutively **over the same Unix domain socket connection**, each replied with `"ACK"`.
 
-Lưu `UnixSocketFrameDemo.java`:
+Save `UnixSocketFrameDemo.java`:
 
 ~~~java
 import java.io.EOFException;
@@ -372,14 +372,14 @@ public class UnixSocketFrameDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac UnixSocketFrameDemo.java
 java UnixSocketFrameDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 server received: A
@@ -388,142 +388,142 @@ server received: Xin chào
 client received: ACK
 ~~~
 
-Giải thích các bước của một frame:
+Explanation of the steps for a frame:
 
-1. `String.getBytes(UTF_8)` chuyển message sang byte trước, nên length là **số byte**, không phải `String.length()`. `"Xin chào"` chứa ký tự nhiều byte nhưng vẫn được nhận đúng.
-2. `ByteBuffer.allocate(4 + payload.length)` chứa header và body. `putInt`/`put` tăng position; `flip` đặt đúng limit để `SocketChannel.write` gửi phần dữ liệu đã chuẩn bị.
-3. `readFully(header)` bảo đảm nhận đủ 4 byte, `flip` rồi `getInt()` lấy length.
-4. **Kiểm tra `length < 0 || length > MAX_FRAME_BYTES` trước `ByteBuffer.allocate(length)`**. Không bao giờ cấp phát mảng/buffer dựa trên trường length chưa được kiểm tra.
-5. `readFully(body)` nhận đủ body (có thể qua nhiều lần đọc). `flip` rồi `UTF_8.decode(...)` giải mã đúng vùng byte.
-6. Vòng `for` gửi hai frame qua một kết nối; việc `readFrame` phân tách ranh giới là nhờ **header**, không phải nhờ Unix domain socket tự ghi nhớ ranh giới.
+1. `String.getBytes(UTF_8)` converts the message to bytes first, so the length is the **number of bytes**, not `String.length()`. `"Xin chào"` contains multi-byte characters but is still received correctly.
+2. `ByteBuffer.allocate(4 + payload.length)` holds both the header and body. `putInt`/`put` advance the position; `flip` sets the right limit so `SocketChannel.write` sends the prepared data.
+3. `readFully(header)` ensures all 4 bytes are received, `flip` then `getInt()` reads the length.
+4. **Validate `length < 0 || length > MAX_FRAME_BYTES` before `ByteBuffer.allocate(length)`**. Never allocate an array/buffer based on an unvalidated length field.
+5. `readFully(body)` receives the full body (possibly across multiple reads). `flip` then `UTF_8.decode(...)` decodes the exact byte range.
+6. The `for` loop sends two frames over one connection; `readFrame` separates the boundaries thanks to the **header**, not because the Unix domain socket remembers boundaries on its own.
 
-`readFully` trong ví dụ chỉ dùng với **blocking channel**. Nếu đổi sang non-blocking, phải có trạng thái parser và xử lý `read() == 0` bằng readiness event/Selector thay vì busy-wait. Ngoài ra, message production cần kiểm tra quyền truy cập, authentication/authorization tùy bối cảnh, timeout/deadline, giới hạn số client, hạn mức tổng bộ nhớ và quy tắc giao thức khi EOF/vi phạm length.
+`readFully` in the example is only for **blocking channels**. If switching to non-blocking, you must maintain parser state and handle `read() == 0` with readiness events/Selector instead of busy-waiting. In addition, production messaging needs permission checks, context-appropriate authentication/authorization, timeouts/deadlines, client count limits, total memory quotas, and protocol rules for EOF/length violations.
 
-## 8. Phân biệt Unix domain socket với TCP loopback
+## 8. Distinguishing Unix domain sockets from TCP loopback
 
-| Đặc điểm | TCP loopback | Unix domain socket |
+| Characteristic | TCP loopback | Unix domain socket |
 | --- | --- | --- |
-| Endpoint | `InetSocketAddress` gồm IP + port | `UnixDomainSocketAddress` gồm path |
-| Phạm vi kết nối thông thường | Cùng máy qua loopback, có thể cấu hình TCP trên IP khác cho remote | **Chỉ cùng host/không trực tiếp qua mạng IP** |
-| Java NIO server | `ServerSocketChannel.open()` rồi bind IP/port | `ServerSocketChannel.open(UNIX)` rồi bind path |
-| Java NIO client | `SocketChannel.open()` rồi connect IP/port | `SocketChannel.open(UNIX)` rồi connect path |
-| Bản chất dữ liệu | Byte stream | Byte stream |
-| Ranh giới message | Ứng dụng tự định nghĩa | Ứng dụng tự định nghĩa |
-| Quản lý tên endpoint | Port được giải phóng theo vòng đời socket của OS | Socket path thường **còn lại sau close**, cần dọn |
-| Kiểm soát truy cập | Network binding, firewall, hệ điều hành và ứng dụng | Quyền thư mục/file socket, OS và ứng dụng |
-| Hỗ trợ | Phụ thuộc giao thức Internet trên nền tảng | Phụ thuộc AF_UNIX/JDK/provider, giới hạn tên path |
+| Endpoint | `InetSocketAddress` with IP + port | `UnixDomainSocketAddress` with path |
+| Typical connection scope | Same machine via loopback, or configurable TCP on another IP for remote | **Same host only / not directly over an IP network** |
+| Java NIO server | `ServerSocketChannel.open()` then bind IP/port | `ServerSocketChannel.open(UNIX)` then bind path |
+| Java NIO client | `SocketChannel.open()` then connect IP/port | `SocketChannel.open(UNIX)` then connect path |
+| Data nature | Byte stream | Byte stream |
+| Message boundaries | Application-defined | Application-defined |
+| Endpoint name management | Port is released according to the OS socket lifecycle | Socket path usually **remains after close**, needs cleanup |
+| Access control | Network binding, firewall, OS, and application | Directory/socket file permissions, OS, and application |
+| Support | Depends on platform Internet protocols | Depends on AF_UNIX/JDK/provider, path length limits |
 
-Unix domain socket thường hợp lý khi **cả hai tiến trình ở cùng host** và muốn giao tiếp qua một pathname nội bộ. TCP loopback vẫn hữu ích khi cần khả năng chuyển sang host khác, tích hợp hệ thống vốn đòi IP/port, hoặc môi trường không có AF_UNIX.
+A Unix domain socket is usually appropriate when **both processes are on the same host** and want to communicate through an internal pathname. TCP loopback remains useful when you need the ability to move to another host, integrate with systems that require IP/port, or run in an environment without AF_UNIX.
 
-**Không được kết luận Unix domain socket tự mã hóa dữ liệu hoặc tự xác thực peer.** Bản chất “local only” và quyền filesystem giúp giảm bề mặt truy cập, nhưng ứng dụng vẫn phải xác định trust boundary, quyền mở socket, và khi cần dùng cơ chế nhận diện peer/thông điệp phù hợp. Socket file ở thư mục chung không kiểm soát quyền có thể gây rủi ro giả mạo endpoint hoặc truy cập trái phép.
+**Do not conclude that Unix domain sockets automatically encrypt data or authenticate peers.** Their "local only" nature and filesystem permissions help reduce the attack surface, but the application still must define trust boundaries, socket-opening permissions, and use appropriate peer/message identification mechanisms when needed. A socket file in a shared directory without permission controls can risk endpoint spoofing or unauthorized access.
 
-## 9. Quản lý file socket an toàn và vòng đời tài nguyên
+## 9. Safe socket file management and resource lifecycle
 
-Với server Unix domain socket **có đường dẫn tường minh**, một chu trình triển khai cẩn thận gồm:
+For a Unix domain socket server **with an explicit path**, a careful deployment lifecycle includes:
 
-1. Tạo **thư mục riêng** có quyền hạn phù hợp, tránh tên do bên không tin cậy điều khiển; chọn đường dẫn ngắn, cấu hình nhất quán.
-2. Trước bind, xác nhận tên socket dự kiến **không bị tiến trình khác sở hữu**. Không tự động `deleteIfExists` một path dùng chung trước khi bind: có thể xóa node của dịch vụ đang chạy.
-3. Mở `ServerSocketChannel.open(StandardProtocolFamily.UNIX)` rồi `bind(address)`. Khi cần client biết path, công bố path qua cấu hình được kiểm soát.
-4. `accept` và quản lý từng `SocketChannel` riêng, dùng `try-with-resources` để đóng khi xong.
-5. Khi shutdown, đóng server và toàn bộ accepted channels, dọn node **mà chính server sở hữu** bằng `Files.deleteIfExists(socketPath)`; kiểm soát lỗi cleanup phù hợp.
-6. Theo dõi giới hạn filesystem, hạn mức handle/file descriptor, số connection và số bytes đang đợi xử lý.
+1. Create a **dedicated directory** with appropriate permissions, avoiding names controlled by untrusted parties; choose a short path and configure it consistently.
+2. Before binding, verify that the target socket name **is not owned by another process**. Do not automatically call `deleteIfExists` on a shared path before binding: you might delete the node of a running service.
+3. Open `ServerSocketChannel.open(StandardProtocolFamily.UNIX)` and then `bind(address)`. When clients need to know the path, publish it via controlled configuration.
+4. `accept` and manage each `SocketChannel` individually, using `try-with-resources` to close it when done.
+5. On shutdown, close the server and all accepted channels, clean up the node **owned by the server itself** with `Files.deleteIfExists(socketPath)`, and handle cleanup errors properly.
+6. Monitor filesystem limits, handle/file descriptor quotas, connection counts, and bytes queued for processing.
 
-Nếu server chết đột ngột, file socket có thể còn lại dù tiến trình không còn lắng nghe. Việc một path tồn tại **không chứng minh có server đang sống**. Nhưng cũng không được mặc định mọi file socket còn lại đều “rác”: một tiến trình khác có thể đang dùng tên ấy. Production nên có cơ chế kiểm soát ownership/khởi động để tránh tự xóa endpoint hợp lệ.
+If a server crashes unexpectedly, the socket file may remain even though the process is no longer listening. The existence of a path **does not prove a server is alive**. Yet you must not assume every remaining socket file is "junk": another process may be using that name. Production systems should have ownership/startup checks to avoid deleting a valid endpoint.
 
-Một lựa chọn API khác là `server.bind(null)`: JDK sẽ tạo **một tên socket tự động trong vị trí tạm**, có thể lấy địa chỉ thật bằng `(UnixDomainSocketAddress) server.getLocalAddress()`. File socket được tạo vẫn cần xóa sau khi đóng, không phải “tên tự động nghĩa là auto-delete”. Muốn client biết tên này, phải truyền cho nó qua kênh cấu hình/điều phối riêng. Không nên giả định đường dẫn temp sẽ luôn đủ ngắn cho giới hạn tên AF_UNIX.
+Another API option is `server.bind(null)`: the JDK generates **an automatic socket name in a temporary location**, and you can retrieve the actual address with `(UnixDomainSocketAddress) server.getLocalAddress()`. The created socket file still needs to be deleted after closing—"automatic name" does not mean "auto-delete." For clients to know this name, it must be passed to them via a separate configuration/coordination channel. Do not assume the temp path will always be short enough for the AF_UNIX name limit.
 
-Ví dụ dùng `Files.createTempDirectory` để minh họa cleanup an toàn trên một thư mục thuộc chương trình demo. Với ứng dụng nhiều tiến trình thực sự, không dùng directory tạm được tạo riêng cho server nếu client không biết path; cần giải pháp cung cấp/khám phá tên hợp lý.
+The example uses `Files.createTempDirectory` to demonstrate safe cleanup on a directory owned by the demo program. For real multi-process applications, do not use a temporary directory created exclusively for the server if clients do not know the path; a proper name-provisioning or discovery solution is required.
 
-## 10. Giới hạn nền tảng, ngoại lệ và các API không nên nhầm
+## 10. Platform limits, exceptions, and APIs not to confuse
 
-**Điều kiện Java:** `StandardProtocolFamily.UNIX` và `UnixDomainSocketAddress` có từ Java 16. Để chạy code của bài, dùng **JDK 17 hoặc mới hơn**; source và class không thể biên dịch với JDK 11 vì thiếu các API này. Một số hệ điều hành hoặc cấu hình JDK không hỗ trợ Unix domain socket và `open(UNIX)` có thể báo `UnsupportedOperationException`. Bài kiểm thử không yêu cầu kết nối Internet.
+**Java requirements:** `StandardProtocolFamily.UNIX` and `UnixDomainSocketAddress` were added in Java 16. To run the code in this lesson, use **JDK 17 or newer**; the source and classes cannot compile with JDK 11 because these APIs are missing. Some operating systems or JDK configurations do not support Unix domain sockets, and `open(UNIX)` may throw `UnsupportedOperationException`. The test examples do not require an Internet connection.
 
-Các lỗi có thể gặp:
+Possible errors:
 
-- **Bind path trùng:** tên đã tồn tại hoặc service khác sở hữu; thường là lỗi I/O/bind. Không “sửa” bằng cách tùy tiện xóa path không thuộc mình.
-- **Thư mục không tồn tại/không đủ quyền:** server bind hoặc client connect có thể ném `IOException`; kiểm tra đường dẫn, quyền thư mục và quyền file.
-- **Đường dẫn quá dài:** ràng buộc AF_UNIX ở mức OS (thường cỡ 100 byte nhưng không có con số chung cho mọi máy); chọn tên ngắn hơn.
-- **Connect khi server không lắng nghe:** `connect` thất bại, không tự biến path thành server sống.
-- **Địa chỉ sai loại:** ví dụ mở Internet socket channel rồi truyền địa chỉ Unix domain cho bind/connect không tương thích; có thể gặp `UnsupportedAddressTypeException`.
-- **Gọi `socket()` trên Unix domain channel:** có thể ném `UnsupportedOperationException`; dùng `SocketChannel.read/write(ByteBuffer)` và `ServerSocketChannel.accept()`.
-- **`ClosedChannelException`, `EOFException`, lỗi I/O khác:** cần kiểm soát vòng đời kênh và xử lý ngắt kết nối; `read` trả `-1` khi peer kết thúc đầu ghi.
-- **Non-blocking bị xử lý như blocking:** `accept` có thể trả `null`; `read`/`write` có thể trả 0; phải dùng readiness và trạng thái đúng.
+- **Duplicate bind path:** the name already exists or is owned by another service; usually an I/O/bind error. Do not "fix" this by arbitrarily deleting a path you do not own.
+- **Missing directory / insufficient permissions:** server bind or client connect can throw `IOException`; check the path, directory permissions, and file permissions.
+- **Path too long:** OS-level AF_UNIX constraint (typically around 100 bytes, though there is no universal number across all machines); choose a shorter name.
+- **Connect when the server is not listening:** `connect` fails; it does not turn a path into a live server.
+- **Wrong address type:** for example, opening an Internet socket channel and passing a Unix domain address to bind/connect is incompatible; you may encounter `UnsupportedAddressTypeException`.
+- **Calling `socket()` on a Unix domain channel:** may throw `UnsupportedOperationException`; use `SocketChannel.read/write(ByteBuffer)` and `ServerSocketChannel.accept()`.
+- **`ClosedChannelException`, `EOFException`, and other I/O errors:** you need to control channel lifecycles and handle disconnections; `read` returns `-1` when the peer ends its write side.
+- **Non-blocking treated as blocking:** `accept` can return `null`; `read`/`write` can return 0; you must use readiness and proper state management.
 
-Bảng socket option cũng khác TCP: ví dụ `TCP_NODELAY` là tùy chọn TCP, không phải tùy chọn cho kênh Unix domain. Với Java 21, Unix `SocketChannel` thường có các tùy chọn như `SO_SNDBUF`, `SO_RCVBUF` và `SO_LINGER`; `ServerSocketChannel` Unix hỗ trợ `SO_RCVBUF`. Khi viết code portable hãy hỏi `supportedOptions()` thay vì gán cứng rằng mọi tùy chọn Internet đều hợp lệ.
+The set of socket options also differs from TCP: for instance, `TCP_NODELAY` is a TCP option, not an option for Unix domain channels. In Java 21, a Unix `SocketChannel` typically has options such as `SO_SNDBUF`, `SO_RCVBUF`, and `SO_LINGER`; a Unix `ServerSocketChannel` supports `SO_RCVBUF`. When writing portable code, query `supportedOptions()` instead of hardcoding that every Internet option is valid.
 
-## 11. Channel và Selector: mở rộng khi có nhiều kết nối
+## 11. Channels and Selector: scaling to many connections
 
-Hai ví dụ đầu cố ý dùng blocking mode để dễ chạy. Khi server cần nhiều kết nối concurrent, Java NIO vẫn cho phép dùng `Selector` với Unix domain socket channels:
+The first two examples intentionally use blocking mode for ease of execution. When a server needs many concurrent connections, Java NIO still allows using `Selector` with Unix domain socket channels:
 
-- `ServerSocketChannel` hỗ trợ `SelectionKey.OP_ACCEPT` để nhận client mới.
-- `SocketChannel` hỗ trợ các interest liên quan connect/read/write (tùy trạng thái) giống channel hướng luồng khác.
-- Để register với selector, phải `configureBlocking(false)`.
-- Khi `accept()` trả `null` hoặc `read()/write()` trả `0`, đó có thể là kết quả hợp lệ ở non-blocking mode; đợi readiness hoặc thay đổi interest, **không busy-spin**.
-- Với kết nối chưa xong, dùng `finishConnect()` trước khi đọc/ghi bình thường.
-- Khi đọc nhiều message vào một ByteBuffer, parser phải quản lý trạng thái và dữ liệu chưa đủ bằng `flip/compact`; không coi mỗi readiness event là đúng một frame.
+- `ServerSocketChannel` supports `SelectionKey.OP_ACCEPT` to accept new clients.
+- `SocketChannel` supports connect/read/write interests (depending on state), just like other stream-oriented channels.
+- To register with a selector, you must call `configureBlocking(false)`.
+- When `accept()` returns `null` or `read()/write()` returns `0`, that can be a valid result in non-blocking mode; wait for readiness or update interests, **do not busy-spin**.
+- For unfinished connections, call `finishConnect()` before reading/writing normally.
+- When reading multiple messages into one `ByteBuffer`, the parser must manage state and incomplete data using `flip/compact`; do not treat each readiness event as exactly one frame.
 
-**Ví dụ ý tưởng** (không phải chương trình đầy đủ):
+**Conceptual example** (not a complete program):
 
 ~~~java
 server.configureBlocking(false);
 server.register(selector, SelectionKey.OP_ACCEPT);
-// Tại event OP_ACCEPT: accept(), đăng ký channel mới;
-// Tại OP_READ: đọc vào buffer và phân tích frame khi đủ byte;
-// Tại OP_WRITE: ghi phần ByteBuffer còn remaining.
+// On OP_ACCEPT event: accept(), register the new channel;
+// On OP_READ: read into the buffer and parse the frame when enough bytes arrive;
+// On OP_WRITE: write the remaining portion of the ByteBuffer.
 ~~~
 
-Để chạy thực tế cần khởi tạo `Selector`, vòng lặp `select()`, quản lý selection key, client state, timeout và shutdown. Mục tiêu của phần này là biết Unix domain socket tương thích mô hình NIO và `Selector`, **không** thay thế logic framing hay quản lý ByteBuffer.
+To run in practice, you need to initialize the `Selector`, run the `select()` loop, and manage selection keys, client state, timeouts, and shutdown. The goal of this section is to show that Unix domain sockets are compatible with the NIO and `Selector` model, **not** to replace framing logic or `ByteBuffer` management.
 
-## 12. Những sai lầm phổ biến
+## 12. Common mistakes
 
-1. **Dùng `ServerSocketChannel.open()` rồi cố bind Unix address.** Phiên bản không tham số mở family Internet; phải `open(StandardProtocolFamily.UNIX)`.
-2. **Dùng `InetSocketAddress("localhost", port)` thay cho `UnixDomainSocketAddress`.** Hai mô hình địa chỉ khác nhau; Unix domain không có port TCP.
-3. **Gọi `SocketChannel.socket().getInputStream()`.** Adapter `socket()` không dành cho Unix domain channel; hãy đọc/ghi `ByteBuffer` trực tiếp.
-4. **Quên `flip()` sau `put()` hoặc `read()`.** Buffer position/limit sai dẫn đến gửi byte rác hoặc decode thiếu dữ liệu.
-5. **Cho rằng một lần `write` luôn ghi đủ và một lần `read` luôn đọc đủ.** Phải dùng `remaining/hasRemaining`, framing và xử lý EOF.
-6. **Nghĩ Unix domain socket có message boundary.** Nó cung cấp byte stream; dùng length-prefix hoặc delimiter/application protocol.
-7. **Dùng `new ByteBuffer[length]` hoặc `allocate(length)` từ header chưa validate.** Peer có thể gửi length vô lý; chặn trước allocation.
-8. **Chỉ đóng server mà không dọn file socket.** Node của đường dẫn có thể vẫn tồn tại và chặn bind lần sau.
-9. **Xóa file socket bất kỳ khi khởi động để “sửa lỗi đang dùng”.** Có thể xóa endpoint của tiến trình khác; cần xác định ownership và quyền trước.
-10. **Chọn đường dẫn cực dài trong thư mục nested/temp.** AF_UNIX có giới hạn tên theo byte; chọn đường dẫn phù hợp nền tảng.
-11. **Cho rằng local IPC tự động an toàn.** Cần phân quyền path/parent dir, xác minh peer và bảo vệ dữ liệu theo trust model.
-12. **Gửi client tới path không cùng filesystem namespace.** Hai container/tiến trình phải nhìn thấy cùng endpoint; share path/mount phù hợp mới kết nối được.
-13. **Chuyển sang non-blocking mà giữ vòng `readFully` bận chạy.** Kênh có thể trả 0; phải dùng `Selector`/state machine và fairness.
+1. **Using `ServerSocketChannel.open()` and then trying to bind a Unix address.** The no-argument version opens an Internet family channel; you must use `open(StandardProtocolFamily.UNIX)`.
+2. **Using `InetSocketAddress("localhost", port)` instead of `UnixDomainSocketAddress`.** They are two different addressing models; Unix domain has no TCP port.
+3. **Calling `SocketChannel.socket().getInputStream()`.** The `socket()` adapter is not meant for Unix domain channels; read/write `ByteBuffer` directly.
+4. **Forgetting `flip()` after `put()` or `read()`.** Incorrect buffer position/limit leads to sending garbage bytes or decoding incomplete data.
+5. **Assuming one `write` always writes everything and one `read` always reads everything.** You must use `remaining/hasRemaining`, framing, and EOF handling.
+6. **Thinking Unix domain sockets have message boundaries.** They provide a byte stream; use a length prefix or delimiter/application protocol.
+7. **Using `new ByteBuffer[length]` or `allocate(length)` from an unvalidated header.** A peer could send an absurd length; check bounds before allocating.
+8. **Only closing the server without cleaning up the socket file.** The path node may remain and block the next bind.
+9. **Deleting any existing socket file on startup to "fix address-in-use errors."** You might delete another process's endpoint; verify ownership and permissions first.
+10. **Choosing an extremely long path in nested/temp directories.** AF_UNIX has a byte limit on names; choose a platform-appropriate path.
+11. **Assuming local IPC is automatically secure.** You must restrict path/parent directory permissions, verify the peer, and protect data according to your trust model.
+12. **Pointing a client to a path not in the same filesystem namespace.** Two containers/processes must see the same endpoint; proper shared paths/mounts are needed to connect.
+13. **Switching to non-blocking while keeping a busy `readFully` loop.** The channel can return 0; you must use a `Selector`/state machine and fairness.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-check questions
 
-**Câu 1.** Vì sao địa chỉ Unix domain socket không có `host:port` như TCP? Khi nào nên dùng Unix domain thay TCP loopback?
+**Question 1.** Why does a Unix domain socket address not have `host:port` like TCP? When should you use Unix domain instead of TCP loopback?
 
-Đáp án: nó định danh một endpoint IPC nội bộ qua filesystem path, không qua IP/port. Dùng khi cả hai tiến trình cùng host, kiểm soát đường dẫn và có hỗ trợ hệ điều hành/JDK thích hợp; TCP loopback phù hợp hơn khi cần tích hợp qua giao diện IP/port hoặc có yêu cầu remote sau này.
+Answer: it identifies an internal IPC endpoint via a filesystem path, not via IP/port. Use it when both processes are on the same host, you control the path, and there is appropriate OS/JDK support; TCP loopback is better suited when you need to integrate via an IP/port interface or may have remote requirements later.
 
-**Câu 2.** Vì sao lệnh `ServerSocketChannel.open()` không đủ khi muốn dùng `UnixDomainSocketAddress`?
+**Question 2.** Why is `ServerSocketChannel.open()` insufficient when you want to use `UnixDomainSocketAddress`?
 
-Đáp án: constructor không tham số mở kênh Internet; cần `ServerSocketChannel.open(StandardProtocolFamily.UNIX)`. Với client, `SocketChannel.open(unixAddress)` là overload có thể tự suy ra family.
+Answer: the no-argument constructor opens an Internet channel; you need `ServerSocketChannel.open(StandardProtocolFamily.UNIX)`. For clients, `SocketChannel.open(unixAddress)` is an overload that can automatically infer the family.
 
-**Câu 3.** Vì sao `ByteBuffer.flip()` cần xuất hiện sau `putInt`/`put(bytes)` hoặc sau khi `read` đầy buffer?
+**Question 3.** Why does `ByteBuffer.flip()` need to appear after `putInt`/`put(bytes)` or after `read` fills the buffer?
 
-Đáp án: vì khi ghi dữ liệu vào buffer, `position` tăng. `flip` đặt `limit` bằng position hiện tại và đưa position về 0 để vùng byte vừa nhận/ghi trở thành vùng đọc hợp lệ. `clear` chỉ reset cursor, không xóa byte.
+Answer: because when writing data into the buffer, `position` advances. `flip` sets `limit` to the current position and resets position to 0 so the newly received/written byte region becomes a valid readable region. `clear` only resets the cursors; it does not erase bytes.
 
-**Câu 4.** Server gửi hai frame `"A"` và `"Xin chào"` liên tiếp. Vì sao client không được gọi `read` đúng hai lần rồi giả định nhận đúng hai message?
+**Question 4.** A server sends two frames `"A"` and `"Xin chào"` consecutively. Why can't the client call `read` exactly twice and assume it receives the two messages cleanly?
 
-Đáp án: Unix domain socket dạng stream có thể gộp hoặc chia byte giữa các lần `read`; cần length prefix hoặc framing khác và vòng đọc đủ.
+Answer: a stream-oriented Unix domain socket can merge or split bytes across `read` calls; you need a length prefix or other framing and a loop that reads completely.
 
-**Câu 5.** Sau `server.close()`, tại sao bind vào cùng socket path có thể vẫn thất bại? Có nên luôn `Files.deleteIfExists(path)` lúc khởi động?
+**Question 5.** After `server.close()`, why might binding to the same socket path still fail? Should you always call `Files.deleteIfExists(path)` on startup?
 
-Đáp án: node của server Unix domain socket có thể vẫn tồn tại trên filesystem; nó thường không tự biến mất sau close. Không xóa bừa lúc khởi động: phải xác minh path thuộc dịch vụ/tiến trình mình và có cơ chế tránh race; dọn path sở hữu khi shutdown.
+Answer: the Unix domain socket server's node may still exist on the filesystem; it usually does not disappear automatically after close. Do not blindly delete on startup: you must verify the path belongs to your service/process and have a mechanism to prevent races; clean up owned paths on shutdown.
 
-**Câu 6.** Vì sao `client.getLocalAddress()` đối với Unix domain socket có thể có path rỗng?
+**Question 6.** Why might `client.getLocalAddress()` for a Unix domain socket have an empty path?
 
-Đáp án: client không bắt buộc bind một tên local. Kết nối mặc định có thể dùng địa chỉ **unnamed** nên không có socket file phía client.
+Answer: a client is not required to bind a local name. A default connection can use an **unnamed** address, so there is no client-side socket file.
 
-**Bài thực hành:** 
-- Chạy `UnixSocketBasicDemo` hai lần. Xem vì sao chương trình tạo thư mục temp riêng và dọn `service.sock` trong `finally`.
-- Trong `UnixSocketFrameDemo`, thêm message UTF-8 dài hơn 1 byte/ký tự như `"Việt Nam"`, kiểm tra rằng mã hóa `getBytes(UTF_8)` tạo length theo **byte**.
-- Thử bỏ `frame.flip()` trước `write` để quan sát hành vi sai trong một môi trường kiểm thử riêng, sau đó khôi phục code đúng.
-- Sửa `MAX_FRAME_BYTES` thành `4` và gửi `"HELLO"`, xác minh sender từ chối vì vượt hạn mức trước allocation frame.
-- Thử `ServerSocketChannel.open(StandardProtocolFamily.UNIX).bind(null)`, lấy `server.getLocalAddress()` và lên kế hoạch cleanup path thật trước khi chạy; không ghi đè endpoint hệ thống đã có.
+**Practice exercises:**
+- Run `UnixSocketBasicDemo` twice. Observe why the program creates a dedicated temp directory and cleans up `service.sock` in `finally`.
+- In `UnixSocketFrameDemo`, add a UTF-8 message longer than 1 byte/character such as `"Việt Nam"`, and verify that `getBytes(UTF_8)` encoding produces a length in **bytes**.
+- Try removing `frame.flip()` before `write` to observe the erroneous behavior in a separate test environment, then restore the correct code.
+- Change `MAX_FRAME_BYTES` to `4` and send `"HELLO"`, verifying that the sender rejects it for exceeding the limit before frame allocation.
+- Try `ServerSocketChannel.open(StandardProtocolFamily.UNIX).bind(null)`, retrieve `server.getLocalAddress()`, and plan the real path cleanup before running; do not overwrite an existing system endpoint.
 
-## Tài liệu chuẩn
+## Official references
 
 - [JEP 380 — Unix-Domain Socket Channels](https://openjdk.org/jeps/380)
 - [UnixDomainSocketAddress — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/UnixDomainSocketAddress.html)

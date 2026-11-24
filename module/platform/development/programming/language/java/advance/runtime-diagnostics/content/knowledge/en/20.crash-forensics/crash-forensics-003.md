@@ -1,54 +1,54 @@
-# 20.3 Đọc header lỗi, problematic frame, current thread và danh sách thư viện
+# 20.3 Reading Error Headers, Problematic Frames, Current Thread, and Dynamic Libraries
 
-## Mục tiêu bài học
+## Lesson Objectives
 
-Khi HotSpot/OpenJDK gặp lỗi nghiêm trọng khiến JVM không thể tiếp tục, runtime thường cố ghi tệp `hs_err_pid<PID>.log`. Bốn phần quan trọng nhất để **khoanh vùng crash** là:
+When HotSpot/OpenJDK encounters a severe error from which the JVM cannot continue, the runtime usually attempts to write a file named `hs_err_pid<PID>.log`. The four most important sections for **scoping a crash** are:
 
-1. **Header lỗi:** signal hoặc exception, `pc`, `pid`, `tid`, JRE/JVM build và nền tảng.
-2. **Problematic frame:** mã đang thực thi tại điểm phát hiện lỗi, loại frame và module/offset.
-3. **Current thread:** thread JVM/OS gắn với fatal error, trạng thái và native/Java stack.
-4. **Danh sách thư viện:** các thư viện native đã nạp, đường dẫn binary và memory mapping, giúp xác định đúng phiên bản module.
+1. **Error header:** signal or exception, `pc`, `pid`, `tid`, JRE/JVM build, and platform.
+2. **Problematic frame:** the code executing where the fault was detected, frame type, and module/offset.
+3. **Current thread:** the JVM/OS thread associated with the fatal error, its state, and its native/Java stack.
+4. **Library list:** loaded native libraries, binary paths, and memory mappings, helping identify exact module versions.
 
-Sau bài này bạn có thể đọc bốn phần theo đúng thứ tự, phân biệt các ký hiệu frame `C`/`V`/`v`/`J`/`j`, nối địa chỉ lệnh với library, lập giả thuyết và ghi rõ giới hạn bằng chứng. Nội dung dùng HotSpot/OpenJDK Java 17+; ví dụ Java đã chạy kiểm chứng ở JDK 24. Cấu trúc báo cáo có thể khác theo hệ điều hành, phiên bản và tình trạng crash; log đôi khi bị cắt dở.
+After this lesson, you will be able to read these four sections in the right order, distinguish the frame markers `C`/`V`/`v`/`J`/`j`, map instruction addresses to libraries, form hypotheses, and explicitly note evidence limits. The content uses HotSpot/OpenJDK Java 17+; Java examples were compiled and verified on JDK 24. Report layout may vary by OS, version, and crash conditions; logs are sometimes truncated mid-write.
 
-**Nguyên tắc:** `Problematic frame` cho biết *nơi lỗi biểu hiện*, không tự chứng minh *nguyên nhân gốc*. Native code có thể làm hỏng memory từ trước, rồi JVM mới phát hiện vấn đề trong một frame khác.
+**Core principle:** `Problematic frame` tells *where the failure manifested*, not by itself *the root cause*. Native code may corrupt memory earlier, and the JVM only detects the damage in a different frame later.
 
-## 1. Phân biệt fatal crash với exception Java và OS kill
+## 1. Distinguishing Fatal Crashes from Java Exceptions and OS Kills
 
-| Hiện tượng | Đặc trưng | Bằng chứng nên tìm |
+| Phenomenon | Characteristics | Evidence to look for |
 | --- | --- | --- |
-| `NullPointerException` hoặc `IllegalArgumentException` | Exception bình thường từ mã Java, có thể được catch | Application stack trace/log |
-| `OutOfMemoryError: Java heap space` | Lỗi bộ nhớ Java có thể tạo Throwable; không tự động là fatal native crash | GC/heap/log; chưa chắc có `hs_err` |
-| `SIGSEGV`, `SIGBUS`, `SIGILL` | Signal nghiêm trọng trên Unix khi VM/native code không thể tiếp tục | `hs_err`, core dump, OS logs |
-| `EXCEPTION_ACCESS_VIOLATION` | Lỗi truy cập bộ nhớ theo cơ chế Windows | `hs_err`, dump nếu có |
-| `Internal Error`, VM assertion/`guarantee` | Runtime phát hiện invariant bị vi phạm | Header, VM thread/stack, JVM build |
-| Container `OOMKilled`, OS `SIGKILL` | Process bị kernel/orchestrator kết thúc ngoài JVM | cgroup/OS/pod events; có thể **không có `hs_err`** |
+| `NullPointerException` or `IllegalArgumentException` | Normal exception from Java code, can be caught | Application stack trace / log |
+| `OutOfMemoryError: Java heap space` | Java memory error that can produce a Throwable; not automatically a fatal native crash | GC/heap/log; may not produce `hs_err` |
+| `SIGSEGV`, `SIGBUS`, `SIGILL` | Severe Unix signal when VM/native code cannot continue | `hs_err`, core dump, OS logs |
+| `EXCEPTION_ACCESS_VIOLATION` | Windows memory access violation | `hs_err`, dump if available |
+| `Internal Error`, VM assertion/`guarantee` | Runtime detected a violated invariant | Header, VM thread/stack, JVM build |
+| Container `OOMKilled`, OS `SIGKILL` | Process terminated outside the JVM by kernel/orchestrator | cgroup/OS/pod events; may have **no `hs_err`** |
 
-Không có `hs_err` **không đồng nghĩa** không crash. Trong một lỗi nặng, error handler có thể không ghi được hết file; lỗi quyền ghi, disk đầy hoặc bị kill cứng cũng có thể khiến file không tồn tại. Một Java exception thông thường không thể tự diễn giải thành native segmentation fault.
+Not having `hs_err` **does not mean** there was no crash. In a severe fault, the error handler may fail to write the full file; permission errors, a full disk, or a hard kill can also prevent the file from existing. An ordinary Java exception must never be misread as a native segmentation fault.
 
-Khác biệt cần giữ:
+Distinctions to keep clear:
 
-- **Crash site:** instruction/PC đang được thực thi khi OS/VM phát hiện fatal error.
-- **Fault address:** vị trí bộ nhớ liên quan thao tác truy cập gây fault (nếu log cung cấp), không nhất thiết bằng PC.
-- **Root cause:** bug/dữ liệu/môi trường đã tạo ra tình trạng lỗi; có thể nằm ở thread khác, thư viện khác hoặc xảy ra sớm hơn.
+- **Crash site:** the instruction/PC executing when the OS/VM detected the fatal error.
+- **Fault address:** the memory location involved in the faulting access (if provided by the log), not necessarily equal to PC.
+- **Root cause:** the bug, data, or environment condition that created the failure state; it may reside in another thread, another library, or have occurred earlier.
 
-## 2. Tìm và bảo quản báo cáo đúng cách
+## 2. Finding and Preserving Reports Properly
 
-Một tên mặc định thường gặp là `hs_err_pid4242.log`. HotSpot thường thử ghi tại working directory, có thể thử thư mục tạm khi không ghi được; file thực tế được thông báo trên console nếu quá trình logging đủ hoàn chỉnh. Có thể đặt đường dẫn trước khi khởi động:
+A common default filename is `hs_err_pid4242.log`. HotSpot usually tries writing in the working directory and may try a temporary directory if unable to write; the actual path is printed to the console if logging completes far enough. You can specify the path before startup:
 
 ```bash
 java -XX:ErrorFile=/var/log/myapp/hs_err_pid%p.log -jar app.jar
 ```
 
-`%p` đại diện PID theo cú pháp HotSpot; đường dẫn và `app.jar` chỉ là ví dụ. Thư mục phải tồn tại, ghi được và có đủ dung lượng. Lỗi này không phải một sự kiện có thể bắt an toàn bằng `try/catch` của ứng dụng để đổi path sau crash.
+`%p` represents the PID in HotSpot syntax; the path and `app.jar` are examples. The directory must exist, be writable, and have enough space. This error is not an event that application `try/catch` can safely intercept to change the path after a crash.
 
-Ngay khi có sự cố, ghi **timestamp**, host/pod/container, PID, JDK vendor/build, đường dẫn file, kích thước và checksum. Sao lưu log gốc cùng core/crash dump khi được phép; không ghi đè file khi chạy lại. Nhiều crash trên các lần khởi động có thể trùng PID, nên đừng dựa vào basename để phân biệt.
+Immediately upon an incident, record the **timestamp**, host/pod/container, PID, JDK vendor/build, file path, file size, and checksum. Back up the original log along with any core/crash dump when authorized; do not overwrite files on restart. Multiple crashes across restarts can reuse PIDs, so do not rely on basename alone to tell them apart.
 
-`hs_err` có thể chứa command-line arguments, environment variables, file paths, usernames, network addresses, đôi khi cả chuỗi nhạy cảm trong dump. Chỉ chia sẻ bản sao được redaction; giữ bản gốc ở nơi có quyền truy cập phù hợp.
+`hs_err` can contain command-line arguments, environment variables, file paths, usernames, network addresses, and sometimes sensitive strings in memory dumps. Share only redacted copies; keep the original in a location with appropriate access controls.
 
-### Xem nhanh bốn vùng
+### Quick inspection of the four regions
 
-Linux/macOS (thay tên file thật):
+Linux/macOS (substitute your real filename):
 
 ```bash
 sed -n '1,90p' hs_err_pid4242.log
@@ -61,11 +61,11 @@ Windows PowerShell:
 Select-String -Path '.\hs_err_pid4242.log' -Pattern 'Problematic frame:','Current thread','Native frames:','Java frames:','Dynamic libraries:'
 ```
 
-Lệnh chỉ tìm vị trí. Phải đọc các dòng xung quanh nhãn và kết hợp các vùng, không chỉ trích một dòng có symbol đáng nghi.
+These commands only locate positions. You must read the lines surrounding each label and correlate the regions together, rather than quoting a single line with a suspicious symbol.
 
-## 3. Mẫu log giả lập để học cách đọc
+## 3. Simulated Log Sample for Learning How to Read It
 
-Đây là **dữ liệu mô phỏng**, không phải log thật; PID, địa chỉ, thư viện và hàm đều chỉ minh họa.
+This is **simulated data**, not a real log; PID, addresses, libraries, and functions are purely illustrative.
 
 ```text
 # A fatal error has been detected by the Java Runtime Environment:
@@ -90,109 +90,109 @@ Dynamic libraries:
 VM Arguments:
 ```
 
-Đọc từng vùng:
+Reading each region:
 
-- Header: `SIGSEGV` trong process `pid=4242`, native thread `tid=4249`, tại program counter `pc=0x00007f00001002a4`.
-- Problematic frame: `C` cho native code, module `libsamplecodec.so` tại offset `0x2a4`, symbol `decode_image+0x24`.
-- Current thread: `JavaThread "decoder-worker"` đang ở `_thread_in_native` và mang native ID `4249`. Native stack nhắc lại `libsamplecodec.so`; Java caller giúp tìm nghiệp vụ đã gọi native.
-- Libraries: `/opt/app/lib/libsamplecodec.so` đã nạp tại dải địa chỉ bao phủ PC. Đường dẫn thực gợi ý binary ứng dụng đang dùng, không phải chỉ tên file có thể trùng nơi khác.
+- Header: `SIGSEGV` in process `pid=4242`, native thread `tid=4249`, at program counter `pc=0x00007f00001002a4`.
+- Problematic frame: `C` indicates native code, module `libsamplecodec.so` at offset `0x2a4`, symbol `decode_image+0x24`.
+- Current thread: `JavaThread "decoder-worker"` in `_thread_in_native` with native ID `4249`. The native stack repeats `libsamplecodec.so`; the Java caller helps trace the business code that invoked native code.
+- Libraries: `/opt/app/lib/libsamplecodec.so` is loaded in an address range covering PC. The full path points to the actual binary the application uses, rather than just a filename that might exist elsewhere.
 
-**Kết luận tạm thời đúng:** ưu tiên điều tra native codec, JNI/FFM boundary, lifetime của buffer, binary build và input khi crash. **Kết luận quá mức:** “đã xác nhận một bug ở `decode_image`” — chưa đủ, vì memory corruption có thể phát sinh trước.
+**Appropriate interim conclusion:** prioritize investigating the native codec, JNI/FFM boundary, buffer lifetimes, binary build, and crash-time input. **Overreaching conclusion:** “confirmed a bug in `decode_image`”—insufficient, because memory corruption may have occurred earlier.
 
-## 4. Đọc header lỗi một cách có hệ thống
+## 4. Reading the Error Header Systematically
 
-### Signal/exception nói gì?
+### What does the signal/exception tell you?
 
-| Header field | Nghĩa ban đầu | Cần tránh |
+| Header field | Initial meaning | What to avoid |
 | --- | --- | --- |
-| `SIGSEGV` | OS báo truy cập bộ nhớ không hợp lệ hoặc protection violation | Không tự chứng minh null pointer hoặc thư viện cụ thể gây corruption |
-| `SIGBUS` | Lỗi truy cập bus/memory mapping theo nền tảng | Không mặc định do hỏng phần cứng |
-| `SIGILL` | Instruction không hợp lệ trong ngữ cảnh thực thi | Không mặc định “JIT bug” |
-| `SIGABRT` | Tiến trình bị abort, có thể do assertion/VM/native code chủ động gọi abort | Không mặc định libc là root cause |
-| `EXCEPTION_ACCESS_VIOLATION` | Access violation trên Windows | Xem exception parameters, frame, stack, dump |
-| `Internal Error`/`assert`/`guarantee` | HotSpot nhận thấy invariant thất bại | Phải tìm assertion detail và thread/operation cụ thể |
-| `pc=0x...` | Địa chỉ instruction đang gây ra lỗi/được báo | Không phải chắc chắn địa chỉ dữ liệu lỗi |
-| `pid=...` | Process identifier | Không phải Java thread ID |
-| `tid=...` | Native/OS thread identifier | Không nhất thiết bằng Java `Thread.getId()` |
-| `JRE version` | Runtime distribution/version/build | Không đủ để định danh mọi native library |
-| `Java VM` | VM build, mode, OS, architecture, flags (tùy format) | Không tự xác định root cause |
+| `SIGSEGV` | OS reports invalid memory access or protection violation | Does not by itself prove a null pointer or which library caused corruption |
+| `SIGBUS` | Platform-specific bus / memory-mapping access error | Do not assume hardware failure by default |
+| `SIGILL` | Illegal instruction in the execution context | Do not assume “JIT bug” by default |
+| `SIGABRT` | Process aborted, possibly by an assertion or VM/native code intentionally calling abort | Do not assume libc is the root cause |
+| `EXCEPTION_ACCESS_VIOLATION` | Access violation on Windows | Check exception parameters, frame, stack, and dump |
+| `Internal Error`/`assert`/`guarantee` | HotSpot detected a failed invariant | Find the specific assertion detail and thread/operation |
+| `pc=0x...` | Instruction address where the fault occurred / was reported | Not necessarily the faulting data address |
+| `pid=...` | Process identifier | Not the Java thread ID |
+| `tid=...` | Native/OS thread identifier | Not necessarily equal to Java `Thread.getId()` |
+| `JRE version` | Runtime distribution/version/build | Not enough to identify all native libraries |
+| `Java VM` | VM build, mode, OS, architecture, flags (format varies) | Does not identify the root cause on its own |
 
-Ví dụ:
+Example:
 
 ```text
 #  SIGSEGV (0xb) at pc=0x00007f00001002a4, pid=4242, tid=4249
 ```
 
-Đây là **bản tóm tắt fault**, không phải báo cáo ai đã làm hỏng bộ nhớ. Nếu log có `siginfo`, `si_addr` hay exception code và fault address, đọc riêng: **PC là địa chỉ lệnh, fault address có thể là địa chỉ dữ liệu**. Không được coi hai trường là một.
+This is a **fault summary**, not a report of who corrupted memory. If the log includes `siginfo`, `si_addr`, or an exception code and fault address, read them separately: **PC is the instruction address, while fault address may be the data address**. Never conflate the two fields.
 
-Ghi lại vendor, JDK update/build, architecture, JVM flags, thời điểm crash và OS/container. Một vấn đề chỉ có ở JDK build hoặc CPU architecture cụ thể sẽ khó tái hiện nếu báo cáo chỉ nói “Java 21”.
+Record vendor, JDK update/build, architecture, JVM flags, crash timestamp, and OS/container. An issue specific to a JDK build or CPU architecture is hard to reproduce if the report only says “Java 21.”
 
-### SIGABRT và VM internal error
+### SIGABRT and VM internal errors
 
-`SIGABRT` có thể xuất hiện khi JVM hoặc native library cố ý gọi abort vì đã phát hiện trạng thái không hợp lệ. Khi problematic frame thuộc `abort`/`raise` của libc, phải xem **assertion/internal error text và caller stack**; điểm dừng cuối tại libc không chứng minh lỗi nằm trong libc.
+`SIGABRT` can appear when the JVM or a native library intentionally calls abort after detecting an invalid state. When the problematic frame is `abort`/`raise` in libc, you must read the **assertion/internal error text and caller stack**; stopping inside libc does not prove the bug is in libc.
 
-## 5. Problematic frame: đọc ký hiệu, module và offset
+## 5. Problematic Frame: Reading Markers, Modules, and Offsets
 
-Đây thường là dòng đáng chú ý nhất ở phần đầu:
+This is usually the most eye-catching line near the top:
 
 ```text
 # Problematic frame:
 # C  [libsamplecodec.so+0x2a4]  decode_image+0x24
 ```
 
-| Marker | Loại frame HotSpot | Cách đặt giả thuyết |
+| Marker | HotSpot frame type | How to frame hypotheses |
 | --- | --- | --- |
-| `C` | Native C/C++ code | JNI/JNA/FFM/native module, driver, ABI hoặc dữ liệu đầu vào |
-| `V` | VM frame | HotSpot runtime/GC/JIT/VM operation; vẫn cần loại trừ memory corruption ngoài VM |
-| `v` | VM-generated stub | Code stub/chuyển tiếp runtime/compiled ↔ native |
-| `J` | Compiled Java code | Method đã JIT compile, machine code/optimization state |
-| `j` | Interpreted Java frame | Bytecode method đang chạy bằng interpreter |
+| `C` | Native C/C++ code | JNI/JNA/FFM/native module, driver, ABI, or input data |
+| `V` | VM frame | HotSpot runtime/GC/JIT/VM operation; still must rule out external memory corruption |
+| `v` | VM-generated stub | Code stub / transition between runtime/compiled ↔ native |
+| `J` | Compiled Java code | JIT-compiled method, machine code/optimization state |
+| `j` | Interpreted Java frame | Bytecode method running in the interpreter |
 
-Các dấu và format có thể khác theo JVM/version, thậm chí thiếu symbol. Dùng bảng trên làm **hướng phân loại**, không là phán quyết.
+Markers and formatting can vary by JVM/version, and symbols may be missing. Use the table above as a **classification guide**, not a verdict.
 
-Dòng `C` cho biết PC thuộc native code; `[libsamplecodec.so+0x2a4]` ghi module và offset; `decode_image+0x24` là symbol/offset nếu được biết. Khi binary bị strip, có thể chỉ còn module+offset. **Bắt buộc đối chiếu binary chính xác của lần crash** nếu muốn symbolicate; cùng basename nhưng khác build dẫn đến lời giải mã sai.
+The `C` marker indicates PC is in native code; `[libsamplecodec.so+0x2a4]` gives the module and offset; `decode_image+0x24` is the symbol/offset if known. When binaries are stripped, only module+offset may remain. You **must match against the exact binary from that crash** if you want to symbolicate; the same basename from a different build produces wrong decodings.
 
-### Đối chiếu các trường hợp khác
+### Comparing other cases
 
 ```text
 # V  [libjvm.so+0x123abc]  SomeVMFunction+0x20
 # J 1234 c2 example.Parser.parse([B)I (146 bytes) @ 0x00007f...
 ```
 
-Hai dòng này là **hai dạng frame giả định khác nhau**, không phải hai dòng bắt buộc của cùng crash. Với `V` trong `libjvm.so`, điều tra VM operation, GC/compiler thread, JDK build, core và khả năng native memory corruption xảy ra trước đó. Với `J`, lưu method/compilation info và xem các crash lặp lại; chưa đủ để kết luận JVM compiler bug.
+These two lines are **two different hypothetical frame examples**, not two mandatory lines in the same crash. For `V` in `libjvm.so`, investigate VM operations, GC/compiler threads, JDK build, core dump, and earlier native memory corruption. For `J`, record the method/compilation info and check for recurring crashes; it is not enough to conclude a JVM compiler bug.
 
-Những kết luận vội phải tránh:
+Hasty conclusions to avoid:
 
-- “`libjvm.so` xuất hiện ⇒ JVM chắc chắn sai.”
-- “`libc.so` xuất hiện ⇒ OS chắc chắn sai.”
-- “`J` xuất hiện ⇒ một `NullPointerException` của Java làm JVM crash.”
-- “Tên vendor library xuất hiện ⇒ vendor đó chắc chắn gây ra lỗi.”
-- “Có offset giống lần trước ⇒ cùng root cause” khi build/JDK/ASLR chưa được đối chiếu.
+- “`libjvm.so` appears ⇒ the JVM is definitely broken.”
+- “`libc.so` appears ⇒ the OS is definitely broken.”
+- “`J` appears ⇒ a Java `NullPointerException` crashed the JVM.”
+- “A vendor library name appears ⇒ that vendor definitely caused the bug.”
+- “Same offset as last time ⇒ same root cause” when build/JDK/ASLR have not been verified.
 
-**Vị trí lỗi ≠ nguồn gốc hỏng bộ nhớ.** Dangling pointer, use-after-free, buffer overflow hoặc race từ earlier native operation có thể biểu hiện muộn ở một module khác.
+**Fault location ≠ origin of memory corruption.** A dangling pointer, use-after-free, buffer overflow, or race from an earlier native operation can manifest later in another module.
 
-## 6. Current thread: thread nào đang gây fatal error?
+## 6. Current Thread: Which Thread Hit the Fatal Error?
 
-Ví dụ từ mẫu:
+Example from the sample:
 
 ```text
 Current thread (0x00007f0000001000): JavaThread "decoder-worker" [_thread_in_native, id=4249]
 ```
 
-| Phần | Ý nghĩa |
+| Part | Meaning |
 | --- | --- |
-| `0x00007f...` | Con trỏ tới cấu trúc thread nội bộ HotSpot, hữu ích khi debug sâu |
-| `JavaThread` | Loại thread JVM; không nhất thiết là thread duy nhất trong process |
-| `"decoder-worker"` | Tên Java thread ghi tại thời điểm crash |
-| `_thread_in_native` | Thread đang trong vùng native execution/transition phù hợp |
-| `id=4249` | OS/native thread ID; đối chiếu `tid` ở header khi có |
-| `stack(...)` nếu có | Dải memory stack và kích thước vùng stack để chẩn đoán |
+| `0x00007f...` | Pointer to HotSpot's internal thread structure, useful for deep debugging |
+| `JavaThread` | JVM thread type; not necessarily the only thread in the process |
+| `"decoder-worker"` | Java thread name recorded at crash time |
+| `_thread_in_native` | Thread is in native execution / appropriate transition state |
+| `id=4249` | OS/native thread ID; cross-check with `tid` in the header when available |
+| `stack(...)` if present | Stack memory range and size for diagnostics |
 
-Các trạng thái thường gặp: `_thread_in_Java`, `_thread_in_native`, `_thread_in_vm`, `_thread_blocked`, hậu tố `_trans` cho trạng thái chuyển tiếp. **Thread state là ngữ cảnh, không phải nguyên nhân.**
+Common states include: `_thread_in_Java`, `_thread_in_native`, `_thread_in_vm`, `_thread_blocked`, with `_trans` suffixes for transition states. **Thread state is context, not root cause.**
 
-Current thread có thể là `CompilerThread`, `VMThread` hoặc GC worker chứ không phải một request handler. Nếu là compiler thread, tìm `Current CompileTask`; nếu là VM thread, tìm VM operation/GC phase. Không coi thiếu tên endpoint là bằng chứng thiếu thread.
+The current thread may be a `CompilerThread`, `VMThread`, or GC worker rather than a request handler. If it is a compiler thread, look for `Current CompileTask`; if it is a VM thread, look for the VM operation or GC phase. Do not treat the absence of an endpoint name as evidence of a missing thread.
 
-### Đọc stack theo hai lớp
+### Reading the stack in two layers
 
 ```text
 Native frames:
@@ -204,22 +204,22 @@ j  example.Decoder.run()V+12
 j  example.Decoder.main([Ljava/lang/String;)V+7
 ```
 
-Native frames đưa ra call path nhìn từ native/VM stack (vẫn có thể có frame Java); Java frames giúp tìm Java call chain và đôi khi các method được inline. Stack có thể thiếu hoặc lỗi unwind do chính crash/corruption.
+Native frames show the call path seen from the native/VM stack (which can still include Java frames); Java frames help trace the Java call chain and sometimes inlined methods. Stacks may be incomplete or fail to unwind due to the crash/corruption itself.
 
-Đọc theo thứ tự:
+Read in order:
 
-1. Top native frame có khớp problematic frame?
-2. Các caller ngay dưới là JNI bridge, native lib, VM, hay Java method?
-3. State `_thread_in_native` có nhất quán với `C` frame?
-4. Java caller biểu thị nghiệp vụ nào; input và buffer được truyền qua bridge ra sao?
-5. Có dấu hiệu recursion/stack exhaustion, crash ở compiler/GC thread hoặc stack corrupted không?
-6. Có nhiều crash cùng top symbol và cùng workload không?
+1. Does the top native frame match the problematic frame?
+2. Are the immediate callers a JNI bridge, native lib, VM, or Java method?
+3. Is the `_thread_in_native` state consistent with a `C` frame?
+4. What business logic does the Java caller represent; how are inputs and buffers passed across the bridge?
+5. Are there signs of recursion/stack exhaustion, a compiler/GC thread crash, or a corrupted stack?
+6. Do multiple crashes share the same top symbol and workload?
 
-**Current thread ≠ mọi thread của JVM.** Phần `Java Threads`/`Other Threads` trong hs_err có thể liệt kê các thread khác; ký hiệu `=>` trong thread list đánh dấu thread hiện tại. Thread phát hiện crash chưa chắc là thread ban đầu đã ghi hỏng memory.
+**Current thread ≠ all threads in the JVM.** The `Java Threads` / `Other Threads` section in `hs_err` may list other threads; the `=>` marker in the thread list marks the current thread. The thread that hit the crash is not necessarily the thread that originally corrupted memory.
 
-## 7. Danh sách thư viện: tìm đúng binary, không chỉ basename
+## 7. Dynamic Libraries: Finding the Exact Binary, Not Just the Basename
 
-Ví dụ:
+Example:
 
 ```text
 Dynamic libraries:
@@ -227,48 +227,48 @@ Dynamic libraries:
 0x00007f0000200000-0x00007f0000300000 /usr/lib/libc.so.6
 ```
 
-Phần này (tên section/format có thể khác) giúp tìm:
+This section (section name and format may vary) helps determine:
 
-- **Đường dẫn module** thực tế: `/opt/app/lib/libsamplecodec.so`, `C:\app\bin\codec.dll` hoặc `.dylib` trên macOS.
-- **Memory mapping range** của module khi log có. Mẫu `pc=0x00007f00001002a4` nằm trong range của codec.
-- **Chủ sở hữu binary**: app tự cung cấp, dependency JNI/JNA/FFM, thư viện hệ thống hay JVM runtime.
-- **Build ID/checksum/version**: phải lấy từ artifact thực tế; đừng suy phiên bản từ basename hoặc source tree hiện tại.
-- **Kiến trúc và ABI**: x86-64 vs AArch64, 32/64-bit, compiler/libc/driver compatibility, dependencies.
+- **Actual module path:** `/opt/app/lib/libsamplecodec.so`, `C:\app\bin\codec.dll`, or `.dylib` on macOS.
+- **Memory mapping range** of the module when provided by the log. In the sample, `pc=0x00007f00001002a4` falls within the codec's range.
+- **Binary owner:** application-bundled, JNI/JNA/FFM dependency, system library, or JVM runtime.
+- **Build ID/checksum/version:** must come from the actual deployed artifact; do not infer version from basename or the current source tree.
+- **Architecture and ABI:** x86-64 vs. AArch64, 32/64-bit, compiler/libc/driver compatibility, dependencies.
 
-Trong mẫu, PC trừ base giả định cho `0x2a4`. Trên binary thực, cần xem load bias, ASLR, segment mapping và symbol information trước khi coi kết quả đó là chính xác file offset. Địa chỉ tuyệt đối của hai crash có thể khác dù cùng bug; khi gom nhóm nên dùng **library path/build ID + relative offset/symbol + signal**, kèm stack.
+In the sample, subtracting the hypothetical base from PC yields `0x2a4`. On a real binary, you must account for load bias, ASLR, segment mappings, and symbol info before treating that subtraction as an exact file offset. Absolute addresses across two crashes can differ for the same bug; when grouping crashes, use **library path/build ID + relative offset/symbol + signal**, together with the stack.
 
-**Thư viện loaded không có nghĩa đã thực thi tại thời điểm crash; đã thực thi không tự đồng nghĩa nó tạo ra nguyên nhân gốc.** Danh sách có thể thiếu do log ghi dở. Nếu tên module trong problematic frame khác đường dẫn trong library list, kiểm tra mapping, symlink, multiple copies và build chính xác.
+**A loaded library does not mean it was executing at crash time; executing at crash time does not automatically make it the root cause.** The list can be truncated due to incomplete log writing. If the module name in the problematic frame differs from paths in the library list, check mappings, symlinks, multiple copies, and exact builds.
 
-Khi có core/crash dump và debug symbols, debugger phù hợp (gdb/lldb/WinDbg) có thể xác định instruction, register, call stack và pointer. Dùng binary/symbols **cùng build**; symbols sai build sẽ đưa ra method/source line sai.
+When a core/crash dump and debug symbols are available, an appropriate debugger (gdb/lldb/WinDbg) can inspect instructions, registers, call stacks, and pointers. Use binaries/symbols from the **exact same build**; mismatched symbols produce wrong method names and source lines.
 
-## 8. Ghép bốn vùng thành giả thuyết, không phán đoán từ một dấu
+## 8. Combining the Four Regions into Hypotheses Instead of Guessing from One Clue
 
-| Tổ hợp tín hiệu | Giả thuyết ưu tiên | Điều còn thiếu |
+| Signal combination | Priority hypothesis | What is still missing |
 | --- | --- | --- |
-| `SIGSEGV` + `C` module ứng dụng + `_thread_in_native` | Điều tra native pointer/buffer ownership, ABI, JNI contract | Core/symbols, input, nguồn tạo corruption |
-| `SIGABRT` + libc `abort`/`raise` | Có thể xảy ra assertion/chủ động abort | Assertion text và caller stack, không đổ lỗi libc |
-| `V` `libjvm.so` + `VMThread`/GC worker | VM/GC state hoặc corruption biểu hiện tại JVM | JVM build, logs, core, native code liên quan |
-| `J` compiled Java | JIT-compiled instruction hoặc state bị hỏng | Reproduction, compiled method info, JVM/runtime khác |
-| `CompilerThread` + `Current CompileTask` | Điều tra đường biên dịch method và compiler state | JDK build, reproducer, native corruption bên ngoài |
-| `C` tại JNI lib + native/Java stack nhất quán | Khoanh vùng native boundary có cơ sở | Kiểm tra symbol đúng build và lifetime của dữ liệu |
-| Header có lỗi nhưng danh sách thư viện không có | Có thể log incomplete/format khác | Core/OS logs; không suy chắc không load |
-| Không có hs_err, pod OOMKilled | OS/cgroup kill khác fatal VM crash | Kernel/container events, memory metrics |
+| `SIGSEGV` + application `C` module + `_thread_in_native` | Investigate native pointer/buffer ownership, ABI, JNI contract | Core/symbols, input, source of corruption |
+| `SIGABRT` + libc `abort`/`raise` | Possible assertion or intentional abort | Assertion text and caller stack; do not blame libc |
+| `V` `libjvm.so` + `VMThread`/GC worker | VM/GC state or corruption manifesting in the JVM | JVM build, logs, core, related native code |
+| `J` compiled Java | Corrupted JIT-compiled instruction or state | Reproduction, compiled method info, other JVM/runtime |
+| `CompilerThread` + `Current CompileTask` | Investigate compilation path of that method and compiler state | JDK build, reproducer, external native corruption |
+| `C` in JNI lib + consistent native/Java stack | Well-grounded scoping of native boundary | Verify build-matched symbols and data lifetimes |
+| Error header present but library list missing | Possibly incomplete log or different format | Core/OS logs; do not assume nothing was loaded |
+| No `hs_err`, pod `OOMKilled` | OS/cgroup kill, distinct from fatal VM crash | Kernel/container events, memory metrics |
 
-### Case A: thư viện native gây nghi ngờ
+### Case A: suspicious native library
 
-Header `SIGSEGV`, problematic frame `C [libcodec.so+offset]`, current thread `JavaThread "image-worker" [_thread_in_native]` và full path của codec trong mapping: ưu tiên kiểm tra native decode, input bytes, ownership và phiên bản lib. Tuy nhiên có thể vùng nhớ bị hỏng từ một thư viện khác; kết luận chỉ là **nghi vấn ưu tiên**.
+Header shows `SIGSEGV`, problematic frame is `C [libcodec.so+offset]`, current thread is `JavaThread "image-worker" [_thread_in_native]`, and the codec's full path is in the memory map: prioritize inspecting native decoding, input bytes, ownership, and library version. However, memory could have been corrupted by another library; this is only a **priority suspect**.
 
-### Case B: abort/assert trong VM
+### Case B: abort/assert inside the VM
 
-Header báo `Internal Error` hoặc `SIGABRT`, problematic frame nằm trong VM hoặc libc abort, current thread là compiler thread. Hãy tìm **assertion message**, compiler task, Java VM build và stack phía dưới. Đừng kết luận “libc bug” hoặc “compiler bug” trước khi có reproduction/cùng binary và loại trừ memory corruption từ native code khác.
+Header reports `Internal Error` or `SIGABRT`, problematic frame is inside the VM or libc abort, and current thread is a compiler thread. Look for the **assertion message**, compiler task, Java VM build, and lower stack frames. Do not conclude “libc bug” or “compiler bug” before reproducing on the same binary and ruling out memory corruption from other native code.
 
-### Case C: Java compiled frame xuất hiện
+### Case C: Java compiled frame appears
 
-Một frame `J` trong hot method có thể dẫn đến giả thuyết compiler/runtime hoặc dữ liệu bị hỏng. Nhưng Java exceptions thông thường không làm process segmentation fault; cần đối chiếu native memory/JNI/Unsafe/FFM nếu app có dùng, rồi kiểm chứng bằng core/symbols và nhiều lần tái hiện.
+A `J` frame in a hot method can suggest a compiler/runtime hypothesis or corrupted data. However, ordinary Java exceptions do not cause segmentation faults; check native memory/JNI/Unsafe/FFM if used by the app, then verify with core/symbols and repeated reproductions.
 
-## 9. Thực hành Java 17+: đọc một log giả lập mà không gây crash
+## 9. Java 17+ Practice: Parsing a Simulated Log Without Crashing
 
-Chương trình sau đọc một chuỗi `hs_err` **giả lập** rồi in các vùng thông tin. Nó có thể nhận file ngoài làm đối số, nhưng là **parser minh họa**, không hỗ trợ mọi format `hs_err`: section headers có thể khác, một file fatal có thể hỏng/thiếu, tên exception khác hoặc danh sách thư viện trình bày cách khác. Với incident thật phải kiểm tra file gốc.
+The following program reads a **simulated** `hs_err` string and prints its information regions. It can take an external file path as an argument, but it is an **illustrative parser** and does not support every `hs_err` format: section headers may differ, a fatal file may be corrupted/truncated, exception names differ, or library lists may be formatted differently. For real incidents, always inspect the original file.
 
 ```java
 // File: HsErrFourZonesDemo.java
@@ -367,17 +367,17 @@ public class HsErrFourZonesDemo {
 }
 ```
 
-Lưu tên file **`HsErrFourZonesDemo.java`** và chạy bằng JDK 17+:
+Save as **`HsErrFourZonesDemo.java`** and run with JDK 17+:
 
 ```bash
 javac HsErrFourZonesDemo.java
 java HsErrFourZonesDemo
 
-# Tùy chọn: thử với file log có sẵn
+# Optional: test with an existing log file
 java HsErrFourZonesDemo hs_err_pid4242.log
 ```
 
-**Stdout khi không có đối số** đã được biên dịch/chạy kiểm chứng trên OpenJDK 24:
+**Stdout with no arguments**, compiled and verified on OpenJDK 24:
 
 ```text
 signal=SIGSEGV (0xb) at pc=0x00007f00001002a4, pid=4242, tid=4249
@@ -390,67 +390,67 @@ library=0x00007f0000100000-0x00007f0000120000 /opt/app/lib/libsamplecodec.so
 library=0x00007f0000200000-0x00007f0000300000 /usr/lib/libc.so.6
 ```
 
-Đầu ra `libraries=2` nghĩa là **hai dòng mapping trong ví dụ**, không có nghĩa mọi `hs_err` có hai thư viện. Parser tìm nhãn đơn giản và đọc toàn bộ file vào RAM (`Files.readString`), nên không phù hợp file rất lớn hoặc định dạng thay đổi; không sử dụng kết quả nó trả về như bằng chứng pháp y độc lập. Ví dụ **không** dùng JNI và **không** gây crash thực sự.
+The output `libraries=2` means **two mapping lines in the example**, not that every `hs_err` has two libraries. The parser looks for simple labels and reads the entire file into RAM (`Files.readString`), so it is unsuitable for very large files or varying formats; do not use its output as standalone forensic proof. The example does **not** use JNI and does **not** cause a real crash.
 
-Điều người học cần rút ra: thông tin từ bốn vùng giúp xây một **giả thuyết có thể điều tra**; các trường được trích đúng không tự động chứng minh nguyên nhân gốc.
+The takeaway for learners: information from the four regions helps construct an **investigatable hypothesis**; accurately extracted fields do not automatically prove the root cause.
 
-## 10. Runbook xử lý crash và báo cáo có trách nhiệm
+## 10. Crash Handling Runbook and Responsible Reporting
 
-**Bước 1 — Chốt artifact:** ghi đường dẫn `hs_err`, timestamp, checksum, size, PID, JVM build; lưu bản gốc an toàn. Kiểm tra file có thiếu phần cuối do crash nặng không.
+**Step 1 — Lock down the artifact:** record the `hs_err` path, timestamp, checksum, size, PID, and JVM build; safely store the original. Check whether the file is missing its tail due to a severe crash.
 
-**Bước 2 — Đọc header:** ghi loại signal/exception, PC, PID, TID, Java VM version, architecture. Nếu `SIGABRT`/internal assertion, đọc thêm thông báo assertion.
+**Step 2 — Read the header:** record signal/exception type, PC, PID, TID, Java VM version, and architecture. If `SIGABRT`/internal assertion, also read the assertion message.
 
-**Bước 3 — Đọc frame:** sao nguyên văn loại C/V/v/J/j, module, symbol và offset. Không gán thủ phạm chỉ vì thư viện chứa PC.
+**Step 3 — Read the frame:** copy verbatim the `C`/`V`/`v`/`J`/`j` marker, module, symbol, and offset. Do not assign blame merely because a library contains PC.
 
-**Bước 4 — Đọc current thread:** thread type/name/state/OS ID, native stack, Java frames, JVM compile task hoặc VM operation nếu có. Không nhầm Java thread ID với native tid.
+**Step 4 — Read current thread:** thread type/name/state/OS ID, native stack, Java frames, and JVM compile task or VM operation if present. Do not confuse the Java thread ID with the native `tid`.
 
-**Bước 5 — Kiểm tra libraries:** full path và mapping của module liên quan, phiên bản/build ID từ binary triển khai; đối chiếu OS/architecture/JDK.
+**Step 5 — Check libraries:** full paths and mappings of relevant modules, versions/build IDs from deployed binaries; cross-check OS/architecture/JDK.
 
-**Bước 6 — Tập hợp bối cảnh:** deployment gần nhất, JNI/FFM/JNA/Unsafe, driver/native libraries, OS/core dump, cgroup OOM events, lặp lại hay ngẫu nhiên. Không chạy `jcmd` trên PID đã chết.
+**Step 6 — Gather context:** most recent deployment, JNI/FFM/JNA/Unsafe usage, drivers/native libraries, OS/core dumps, cgroup OOM events, whether it is recurring or isolated. Do not run `jcmd` on a dead PID.
 
-**Bước 7 — Lập giả thuyết, thử an toàn:** chọn 1–3 giả thuyết; nêu bằng chứng ủng hộ/chống và phép kiểm chứng trong môi trường kiểm thử, không cố làm crash production.
+**Step 7 — Form hypotheses and test safely:** pick 1–3 hypotheses; list supporting/contradicting evidence and verification tests in a test environment—do not try to crash production.
 
-**Bước 8 — Báo kết luận có mức tin cậy:** “đã khoanh vùng”, “nghi mạnh”, hoặc “đã xác nhận” chỉ khi có đủ core/symbols, reproduction và/hoặc fix/rollback được đo kiểm.
+**Step 8 — Report conclusions with confidence levels:** state “scoped,” “strongly suspected,” or “confirmed” only when backed by core/symbols, reproduction, and/or measured fix/rollback.
 
-### Mẫu báo cáo
+### Report template
 
 ```text
-Incident: thời gian, host/container/pod, PID và file hs_err gốc.
+Incident: timestamp, host/container/pod, PID, and original hs_err file.
 Header: signal/exception, pc, tid, JVM vendor/version/build, architecture.
-Problematic frame: loại C/V/v/J/j, module, symbol và offset.
-Current thread: type, name, state, native ID và 3-5 frames đầu.
+Problematic frame: C/V/v/J/j type, module, symbol, and offset.
+Current thread: type, name, state, native ID, and top 3-5 frames.
 Libraries: full path + mapping; binary version/build ID/checksum.
 Related evidence: application/OS logs, core, JDK/native deployment changes.
-Hypotheses: nguyên nhân khả dĩ và bằng chứng ủng hộ/chưa loại trừ.
-Next action: thử nghiệm, artifact cần lấy và người phụ trách.
-Confidence: preliminary / likely / confirmed và lý do.
+Hypotheses: likely causes and supporting/unruled-out evidence.
+Next action: experiment, artifacts to gather, and owner.
+Confidence: preliminary / likely / confirmed and rationale.
 ```
 
-### Checklist trước khi kết luận
+### Checklist before concluding
 
-- [ ] Đã phân biệt Java exception, fatal JVM crash và OS/cgroup kill.
-- [ ] Có đúng file, thời điểm, PID, JVM build và bằng chứng file hoàn chỉnh hay bị cắt.
-- [ ] Đã đọc `pc` như instruction pointer, không nhầm với fault data address.
-- [ ] Đã phân loại problematic frame C/V/v/J/j và giữ nguyên module+offset.
-- [ ] Đã đọc current thread/native TID, trạng thái, native stack và Java stack.
-- [ ] Đã phân biệt stack của crash thread với các threads khác.
-- [ ] Đã tìm full path/library mapping và binary build tương ứng.
-- [ ] Không đồng nhất “loaded library” với “bug owner”.
-- [ ] Đã bảo quản/redact dữ liệu nhạy cảm trước khi chia sẻ.
-- [ ] Đã xác định bằng chứng cần thêm để nâng kết luận từ giả thuyết lên xác nhận.
+- [ ] Distinguished Java exceptions, fatal JVM crashes, and OS/cgroup kills.
+- [ ] Confirmed exact file, timestamp, PID, JVM build, and whether the file is complete or truncated.
+- [ ] Read `pc` as the instruction pointer, without confusing it with the fault data address.
+- [ ] Classified problematic frame `C`/`V`/`v`/`J`/`j` and preserved module+offset verbatim.
+- [ ] Read current thread/native TID, state, native stack, and Java stack.
+- [ ] Distinguished the crashing thread's stack from other threads.
+- [ ] Located full paths/library mappings and corresponding binary builds.
+- [ ] Did not equate “loaded library” with “bug owner.”
+- [ ] Preserved originals and redacted sensitive data before sharing.
+- [ ] Identified what additional evidence is needed to promote a hypothesis to confirmed.
 
-### Câu hỏi tự kiểm tra
+### Self-check questions
 
-1. `Problematic frame: C [libcodec.so+...]` chứng minh bug ở codec? **Chưa.** Chỉ xác nhận instruction của module tại crash site; corruption có thể xảy ra trước.
-2. `SIGABRT` và top frame `abort` trong libc nghĩa libc lỗi? **Chưa.** Cần tìm nguyên nhân code/JVM gọi abort.
-3. `tid` có bằng `Thread.getId()` không? **Không được mặc định.** Một bên là OS/native thread ID, bên kia là Java ID.
-4. Vì sao phải đọc danh sách dynamic libraries? **Tìm đúng binary/path/mapping**, tránh nhầm nhiều file cùng tên.
-5. Frame `V` trong `libjvm.so` đủ kết luận JVM bug? **Chưa.** Cần đúng build, thread context, core và loại trừ corruption từ nơi khác.
-6. Nếu pod bị OOMKilled và không có `hs_err`, được gọi segfault không? **Không.** Đó là bằng chứng OS/cgroup kill, cần điều tra theo hướng phù hợp.
+1. Does `Problematic frame: C [libcodec.so+...]` prove the bug is in the codec? **Not yet.** It only confirms that the module's instruction was executing at the crash site; corruption may have occurred earlier.
+2. Does `SIGABRT` with top frame `abort` in libc mean libc has a bug? **Not yet.** You must find why code or the JVM called abort.
+3. Is `tid` equal to `Thread.getId()`? **Never assume so.** One is the OS/native thread ID, the other is a Java ID.
+4. Why must you read the dynamic libraries list? **To identify the exact binary/path/mapping**, avoiding confusion among multiple files with the same name.
+5. Is a `V` frame in `libjvm.so` enough to conclude a JVM bug? **Not yet.** You need the exact build, thread context, core dump, and to rule out corruption from elsewhere.
+6. If a pod is `OOMKilled` with no `hs_err`, can it be called a segfault? **No.** That is evidence of an OS/cgroup kill and must be investigated accordingly.
 
-**Kết luận:** Header trả lời **crash gì, ở tiến trình/thread nào**; problematic frame cho **lệnh/module phát hiện lỗi**; current thread và stack cho **ngữ cảnh thực thi**; danh sách thư viện cho **binary thực tế và mapping**. Chỉ sau khi kết hợp các vùng này với artifact, core, deployment history và phép tái hiện mới có thể nói về nguyên nhân gốc với mức tin cậy cao.
+**Conclusion:** The header answers **what crashed, in which process/thread**; the problematic frame shows **the instruction/module where the fault was detected**; current thread and stacks give **execution context**; and the library list gives **actual binaries and memory mappings**. Only by combining these four regions with artifacts, core dumps, deployment history, and reproduction can you state a root cause with high confidence.
 
-## Tài liệu tham khảo
+## References
 
 - OpenJDK/Java Operations — *How to Find and Interpret the Java HotSpot Fatal Error Log*: https://ops.java/troubleshooting/articles/fatal-error-log/
 - Oracle JDK 21 — *Troubleshooting Guide*: https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-guide.pdf

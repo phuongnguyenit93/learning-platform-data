@@ -1,0 +1,61 @@
+menu:
+- title: Tổng quan
+  slug: cache-overview
+  index: 0
+- title: Kiến trúc
+  slug: cache-architecture
+  index: 1
+- title: Thiết lập
+  slug: cache-setup
+  index: 2
+- title: '@Cacheable'
+  slug: cacheable
+  index: 3
+- title: Thiết kế khóa
+  slug: cache-key-design
+  index: 4
+- title: Biểu thức SpEL
+  slug: cache-spel
+  index: 5
+- title: Điều kiện lưu
+  slug: cache-conditions
+  index: 6
+- title: '@CachePut'
+  slug: cache-put
+  index: 7
+- title: '@CacheEvict'
+  slug: cache-evict
+  index: 8
+- title: Cấu hình chung
+  slug: cache-configuration
+  index: 9
+- title: Chọn vùng cache
+  slug: cache-selection
+  index: 10
+- title: Cơ chế proxy
+  slug: cache-proxy-mechanics
+  index: 11
+- title: Đồng thời
+  slug: cache-concurrency
+  index: 12
+- title: Dữ liệu và vòng đời
+  slug: cache-lifecycle
+  index: 13
+- title: API lập trình
+  slug: cache-api
+  index: 14
+- title: Cache trong bộ nhớ
+  slug: in-memory-cache
+  index: 15
+- title: Tích hợp Caffeine
+  slug: caffeine-integration
+  index: 16
+- title: JCache
+  slug: jcache-integration
+  index: 17
+- title: Giao dịch
+  slug: cache-transactions
+  index: 18
+- title: Bất đồng bộ
+  slug: async-cache
+  index: 19

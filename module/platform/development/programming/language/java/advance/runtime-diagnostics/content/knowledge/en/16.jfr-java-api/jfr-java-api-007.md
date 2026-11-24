@@ -1,27 +1,27 @@
-# 16.7 Đọc file JFR qua RecordingFile và truy cập trường của RecordedEvent
+# 16.7 Reading JFR Files via RecordingFile and Accessing RecordedEvent Fields
 
-## 1. Mục tiêu và vấn đề cần giải quyết
+## 1. Objectives and Problem Statement
 
-Java Flight Recorder (JFR) lưu dữ liệu runtime vào tệp **`.jfr`**: sự kiện GC, CPU, thread, allocation, lock, I/O và những event mà ứng dụng tự định nghĩa. Có thể xem file bằng `jfr print` hoặc JDK Mission Control, nhưng khi cần **tự động lọc, tổng hợp, đối chiếu theo thời gian, xuất kết quả điều tra hoặc viết công cụ nội bộ**, ta cần đọc JFR ngay trong Java.
+Java Flight Recorder (JFR) persists runtime data into **`.jfr`** files: GC events, CPU samples, threads, allocations, locks, I/O, and application-defined custom events. You can view files using `jfr print` or JDK Mission Control, but when you need to **automate filtering, aggregate metrics, correlate timestamps, export investigation summaries, or build internal tooling**, you need to read JFR directly in Java.
 
-Gói `jdk.jfr.consumer` cung cấp hai lớp trung tâm:
+The `jdk.jfr.consumer` package provides two central classes:
 
-- **`RecordingFile`:** mở tệp `.jfr` và lần lượt đọc từng event; triển khai `AutoCloseable` qua `Closeable` nên đặt trong `try-with-resources`.
-- **`RecordedEvent`:** đại diện **một event đã được ghi** trong recording; cung cấp loại event, thời điểm, duration, thread, stack trace và khả năng truy cập các field theo tên.
+- **`RecordingFile`:** opens a `.jfr` file and reads events sequentially; implements `AutoCloseable` via `Closeable`, so wrap it in `try-with-resources`.
+- **`RecordedEvent`:** represents **a single recorded event** in the recording; provides event type, timestamps, duration, thread, stack trace, and typed field access by name.
 
-Bài học này hướng dẫn cách đọc file, chọn đúng loại event, truy cập trường có kiểu, tự khám phá schema, xử lý field vắng mặt và tổng hợp dữ liệu hiệu quả. Các ví dụ chạy với **Java 17+**, kiểm thử trên JDK 21.
+This lesson teaches how to read files, filter by event type, access typed fields, discover schemas dynamically, handle absent fields, and aggregate data efficiently. Examples run on **Java 17+**, verified on JDK 21.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Đọc tuần tự tệp `.jfr` bằng vòng `hasMoreEvents()` / `readEvent()`.
-2. Lọc event bằng `event.getEventType().getName()` và phân biệt tên kỹ thuật với label.
-3. Dùng `getString`, `getInt`, `getLong`, `getBoolean`, `getValue` và `hasField` đúng trường hợp.
-4. Đọc `Instant`, `Duration`, `RecordedThread`, `RecordedStackTrace` và metadata `ValueDescriptor`.
-5. Xử lý tệp lớn, khác phiên bản JDK hoặc có field thiếu mà không suy luận sai từ dữ liệu trống.
+1. Stream a `.jfr` file sequentially using the `hasMoreEvents()` / `readEvent()` loop.
+2. Filter events via `event.getEventType().getName()` and distinguish technical names from display labels.
+3. Use `getString`, `getInt`, `getLong`, `getBoolean`, `getValue`, and `hasField` appropriately.
+4. Read `Instant`, `Duration`, `RecordedThread`, `RecordedStackTrace`, and `ValueDescriptor` metadata.
+5. Handle large files, JDK version differences, or missing fields without drawing false conclusions from empty data.
 
-**Ranh giới quan trọng:** `RecordingFile` là API **đọc dữ liệu đã ghi trong file**. Nó không phải API để bắt đầu recording hoặc subscribe live events. Để tạo recording, dùng `jdk.jfr.Recording` hoặc công cụ `jcmd`; để tiêu thụ event trực tiếp theo luồng, JDK còn có API `RecordingStream`, nhưng đó là cơ chế khác.
+**Important boundary:** `RecordingFile` is an API for **reading events already stored in a file**. It is not an API for starting recordings or subscribing to live events. To create a recording, use `jdk.jfr.Recording` or `jcmd`; to consume events live as a stream, the JDK offers `RecordingStream`, which is a separate mechanism.
 
-## 2. Luồng dữ liệu từ JVM đến đối tượng Java
+## 2. Data Flow from JVM to Java Objects
 
 ```text
 JVM/application
@@ -30,14 +30,14 @@ JVM/application
   v
 JFR recording
   |
-  |  dump / stop / ghi file
+  |  dump / stop / write file
   v
 recording.jfr
   |
   v
 new RecordingFile(Path)
   |
-  +-- hasMoreEvents() ? -- false --> kết thúc + close()
+  +-- hasMoreEvents() ? -- false --> finish + close()
   |
   +-- true --> readEvent() --> RecordedEvent
                                 |
@@ -47,43 +47,43 @@ new RecordingFile(Path)
                                 +-- getThread(), getStackTrace()
                                 |
                                 v
-                         lọc / nhóm / tổng hợp / cảnh báo
+                         filter / group / aggregate / alert
 ```
 
-Một file chứa **nhiều event types**, và mỗi event type có **schema field khác nhau**. Do đó, không viết một parser cố ép mọi `RecordedEvent` thành cấu trúc “duration + bytes + path + thread” cố định.
+A single file contains **many event types**, and each event type has a **different field schema**. Therefore, never write a parser that blindly forces every `RecordedEvent` into a fixed "duration + bytes + path + thread" structure.
 
-Ví dụ:
+For example:
 
-- `jdk.GarbageCollection` mô tả một sự kiện GC theo schema của JDK.
-- `jdk.JavaMonitorEnter` mô tả lần chờ vào monitor.
-- `jdk.FileRead` mô tả một lần đọc file.
-- `demo.Request` có thể là event do ứng dụng định nghĩa với `endpoint`, `status`, `bytes`, `ok`.
+- `jdk.GarbageCollection` describes a GC event using the JDK's schema.
+- `jdk.JavaMonitorEnter` describes waiting to enter a monitor.
+- `jdk.FileRead` describes a file read operation.
+- `demo.Request` can be an application-defined event with `endpoint`, `status`, `bytes`, and `ok`.
 
-Tất cả đều có thể xuất hiện dưới dạng `RecordedEvent`, nhưng những field nghiệp vụ như `status` **chỉ thuộc event type có khai báo nó**. Phải lọc theo type rồi mới đọc field tương ứng.
+All of them appear as `RecordedEvent` instances, yet business fields like `status` **belong only to event types that declare them**. Always filter by type before reading type-specific fields.
 
-## 3. Bộ API cốt lõi
+## 3. Core API Set
 
-| API | Ý nghĩa | Lưu ý |
+| API | Meaning | Notes |
 | --- | --- | --- |
-| `new RecordingFile(Path)` | Mở file JFR đã tồn tại | `IOException` nếu file lỗi/không hợp lệ; dùng nguồn đáng tin |
-| `hasMoreEvents()` | Kiểm tra còn event chưa đọc | Dùng trước `readEvent()` |
-| `readEvent()` | Đọc event kế tiếp | Có thể ném `EOFException` nếu gọi khi hết; cũng có `IOException` |
-| `close()` | Giải phóng tài nguyên file | Dùng `try-with-resources` |
-| `RecordingFile.readAllEvents(Path)` | Lấy danh sách mọi event cùng lúc | Chỉ phù hợp file nhỏ; dễ tốn RAM |
-| `readEventTypes()` | Lấy metadata các event types trong file | Có type trong metadata không có nghĩa có instance khớp |
-| `event.getEventType().getName()` | Tên kỹ thuật của event | Dùng tên đầy đủ để phân loại chính xác |
-| `event.getStartTime()` / `getEndTime()` | Thời điểm dưới dạng `Instant` | Không phải độ dài chờ request |
-| `event.getDuration()` | Thời lượng dưới dạng `Duration` | Không phải millisecond số nguyên |
-| `event.hasField(name)` | Schema có field tên đó không? | Field có thể hiện diện nhưng giá trị `null` |
-| `event.getValue(name)` | Giá trị tổng quát | Kiểu trả về phụ thuộc schema; tránh ép kiểu mù |
-| `event.getString/getInt/getLong/...` | Đọc field theo kiểu | Sai tên hoặc kiểu có thể ném `IllegalArgumentException` |
-| `event.getFields()` | Danh sách `ValueDescriptor` | Xem tên/kiểu field mà không hardcode |
-| `event.getThread()` / `getStackTrace()` | Thông tin thread và stack được ghi | Có thể `null` nếu không được ghi |
+| `new RecordingFile(Path)` | Opens an existing JFR file | `IOException` if file is corrupt/invalid; use trusted sources |
+| `hasMoreEvents()` | Checks whether unread events remain | Call before `readEvent()` |
+| `readEvent()` | Reads the next event | Can throw `EOFException` if called when exhausted; also `IOException` |
+| `close()` | Releases file resources | Use `try-with-resources` |
+| `RecordingFile.readAllEvents(Path)` | Loads all events into a list at once | Suitable only for small files; high RAM usage |
+| `readEventTypes()` | Retrieves metadata of event types in the file | Having a type in metadata does not mean matching instances exist |
+| `event.getEventType().getName()` | Technical name of the event | Use full name for accurate classification |
+| `event.getStartTime()` / `getEndTime()` | Timestamps as `Instant` | Not request wait duration |
+| `event.getDuration()` | Elapsed time as `Duration` | Not a raw integer millisecond count |
+| `event.hasField(name)` | Does the schema contain a field of that name? | A field may exist yet hold `null` |
+| `event.getValue(name)` | Generic value | Return type depends on schema; avoid blind casting |
+| `event.getString/getInt/getLong/...` | Typed field getters | Wrong field name or type can throw `IllegalArgumentException` |
+| `event.getFields()` | List of `ValueDescriptor` | Inspect field names/types without hardcoding |
+| `event.getThread()` / `getStackTrace()` | Recorded thread and stack info | May be `null` if not recorded |
 
-### 3.1. Vòng đọc chuẩn
+### 3.1. Standard reading loop
 
 ```java
-// Fragment minh họa, cần imports, phương thức chứa đoạn mã và đường dẫn thật.
+// Illustrative fragment; requires imports, enclosing method, and a real file path.
 Path path = Path.of("recording.jfr");
 try (RecordingFile file = new RecordingFile(path)) {
     while (file.hasMoreEvents()) {
@@ -93,21 +93,21 @@ try (RecordingFile file = new RecordingFile(path)) {
 }
 ```
 
-Đây là mẫu quan trọng nhất: **đọc từng event**, xử lý xong rồi chuyển sang event kế tiếp. `RecordingFile` quản lý tài nguyên parser/file và đóng đúng cách nếu exception xảy ra.
+This is the most important pattern: **read one event at a time**, process it, and move to the next. `RecordingFile` manages parser/file resources and closes cleanly if an exception occurs.
 
-`readEvent()` không tự đảm bảo type nào đang đến: event A có thể là GC, event B là CPU, event C là event ứng dụng. Trước khi truy cập field đặc thù, lọc type.
+`readEvent()` makes no guarantee about which type arrives next: event A might be GC, event B CPU, event C an application event. Before accessing type-specific fields, filter by type.
 
-### 3.2. Thứ tự và tính toàn vẹn
+### 3.2. Ordering and completeness
 
-`RecordingFile` đọc các event từ file. Khi phân tích latency, dùng **timestamp trong event**, không dùng thứ tự dòng in hoặc thứ tự duyệt làm bằng chứng rằng hai event có quan hệ nhân quả. File có thể chứa nhiều thread, các event duration chồng nhau, cùng mốc timestamp và những event được thu theo chu kỳ.
+`RecordingFile` reads events from the file. When analyzing latency, use **timestamps inside the event**, not print order or iteration order, as evidence of causality between two events. A file can contain multiple threads, overlapping duration events, identical timestamps, and periodic events.
 
-Việc file có thể đọc thành công không chứng minh **đã thu đủ dữ liệu**. Event có thể bị tắt, bị lọc bởi threshold, có sampling, bị giới hạn thời gian ghi hoặc không có hoạt động tương ứng. Đọc được 0 event một type cần phân biệt “không xảy ra”, “không được ghi” và “đã lọc sai”.
+Being able to read a file successfully does not prove **all relevant data was captured**. Events may be disabled, filtered by threshold, sampled, cut off by recording duration, or absent due to inactivity. Reading 0 events of a type requires distinguishing "did not happen", "was not recorded", and "filtered out incorrectly".
 
-## 4. Thực hành hoàn chỉnh: tạo file JFR rồi đọc lại
+## 4. Complete Hands-on Lab: Creating a JFR File and Reading It Back
 
-Để tránh phụ thuộc vào một file `.jfr` bên ngoài, ví dụ tự tạo ba custom events có field xác định, ghi ra `requests-demo.jfr`, rồi mở file bằng `RecordingFile`. Phần tạo recording chỉ phục vụ kiểm thử; **trọng tâm** là phương thức `inspect`.
+To avoid depending on an external `.jfr` file, the example emits three custom events with deterministic fields, writes them to `requests-demo.jfr`, and opens the file with `RecordingFile`. The recording creation part is purely for testing; **the focus** is the `inspect` method.
 
-Tạo **`JfrFileReadLab.java`**:
+Create **`JfrFileReadLab.java`**:
 
 ```java
 import java.nio.file.Path;
@@ -218,14 +218,14 @@ public final class JfrFileReadLab {
 }
 ```
 
-Biên dịch trên JDK 17 trở lên. Lệnh `--release 17` giúp xác minh mã sử dụng API Java 17:
+Compile on JDK 17 or later. The `--release 17` flag verifies the code uses Java 17 APIs:
 
 ```bash
 javac --release 17 JfrFileReadLab.java
 java JfrFileReadLab
 ```
 
-**Stdout xác minh trên JDK 21:**
+**Stdout verified on JDK 21:**
 
 ```text
 /orders status=200 bytes=100 ok=true
@@ -234,62 +234,62 @@ java JfrFileReadLab
 events=3 totalBytes=600 successful=2
 ```
 
-Chương trình chỉ in những event có tên `demo.Request` và sắp xếp chuỗi trước khi in, vì thế kết quả ví dụ không phụ thuộc vào thứ tự đọc event. Phần lớn hoạt động JFR/JVM có thể phát thêm các event type khác, nhưng vòng `if` lọc chúng. Mỗi lần chạy tạo/ghi lại file `requests-demo.jfr` trong thư mục chạy chương trình; hãy dùng thư mục thực hành riêng.
+The program prints only events named `demo.Request` and sorts strings before printing, so the example output does not depend on event read order. Normal JFR/JVM activity may emit other event types as well, which the `if` filter skips. Each run creates/overwrites `requests-demo.jfr` in the working directory; use a dedicated practice directory.
 
-Giải thích phần đọc:
+Explanation of the reading logic:
 
-1. `new RecordingFile(file)` mở snapshot JFR; `try-with-resources` đảm bảo đóng parser.
-2. `hasMoreEvents()` và `readEvent()` duyệt lần lượt những gì file đã ghi.
-3. `getEventType().getName()` giữ đúng custom type `demo.Request`; không đọc field `endpoint` của một GC event khác.
-4. `hasField(...)` xác nhận schema có field cần thiết trước khi đọc.
-5. `getString("endpoint")`, `getInt("status")`, `getLong("bytes")`, `getBoolean("ok")` trả đúng kiểu Java. `totalBytes` là **tổng payload của event demo**, không phải số byte của file JFR.
-6. `getStartTime()` và `getDuration()` được kiểm tra; giá trị thực thay đổi mỗi lần chạy nên chương trình không in chúng trong stdout cố định.
-7. `getThread()` và `getStackTrace()` được xử lý an toàn với `null`. Ở đây `withoutStackTrace()` nhằm tiết kiệm dữ liệu; không kỳ vọng file có stack trace cho custom type này.
-8. Số event, tổng byte và số lần `ok` là phép tổng hợp ứng dụng từ những field đã đọc, không phải counters được `RecordingFile` tự tính.
+1. `new RecordingFile(file)` opens the JFR snapshot; `try-with-resources` guarantees closing the parser.
+2. `hasMoreEvents()` and `readEvent()` iterate sequentially through whatever the file recorded.
+3. `getEventType().getName()` selects only the custom type `demo.Request`; it avoids trying to read an `endpoint` field from an unrelated GC event.
+4. `hasField(...)` verifies the schema has the required fields before reading them.
+5. `getString("endpoint")`, `getInt("status")`, `getLong("bytes")`, and `getBoolean("ok")` return typed Java values. `totalBytes` is the **sum of the demo event payloads**, not the size of the JFR file in bytes.
+6. `getStartTime()` and `getDuration()` are validated; actual values vary per run, so the program does not print them in the fixed stdout.
+7. `getThread()` and `getStackTrace()` are handled safely against `null`. Here `withoutStackTrace()` saves space; do not expect stack traces for this custom type in the file.
+8. Event count, total bytes, and `ok` count are application-level aggregations computed from the read fields, not built-in counters maintained by `RecordingFile`.
 
-Chạy thêm các lệnh ngoài Java để tự đối chiếu:
+Run external CLI commands as well to cross-check:
 
 ```bash
 jfr summary requests-demo.jfr
 jfr print --events demo.Request requests-demo.jfr
 ```
 
-`jfr summary` liệt kê các event types và count trong file; `jfr print` cho bản hiển thị thân thiện. Chúng có thể thêm metadata/timestamp thay đổi giữa các lần chạy, vì vậy không dùng output của công cụ này như transcript cố định.
+`jfr summary` lists event types and counts in the file; `jfr print` displays a human-friendly view. They may include metadata/timestamps that vary across runs, so do not treat CLI output as a fixed transcript.
 
-## 5. Truy cập field của RecordedEvent đúng kiểu
+## 5. Accessing RecordedEvent Fields with the Right Types
 
-`RecordedEvent` kế thừa các phương thức từ `RecordedObject`. Ngoài metadata chung của event, dữ liệu đặc thù được truy cập bằng **tên field trong schema**, không phải tên cột bạn tự đặt trong CSV.
+`RecordedEvent` inherits methods from `RecordedObject`. Beyond common event metadata, specific fields are accessed by **schema field name**, not by custom column headers you might use in a CSV.
 
-### 5.1. Các getter thường gặp
+### 5.1. Common getters
 
-| Kiểu dữ liệu trong event | Đọc bằng | Ví dụ |
+| Data type in event | Read via | Example |
 | --- | --- | --- |
 | `String` | `getString(name)` | `event.getString("endpoint")` |
 | `boolean` | `getBoolean(name)` | `event.getBoolean("ok")` |
 | `int` | `getInt(name)` | `event.getInt("status")` |
 | `long` | `getLong(name)` | `event.getLong("bytes")` |
-| `double` | `getDouble(name)` | Cho field double hoặc primitive widening phù hợp |
-| Giá trị chung | `getValue(name)` | `Object raw = event.getValue("bytes")` |
+| `double` | `getDouble(name)` | For `double` fields or eligible primitive widening |
+| Generic value | `getValue(name)` | `Object raw = event.getValue("bytes")` |
 | Event start/end | `getStartTime()` / `getEndTime()` | `Instant` |
-| Event duration | `getDuration()` **không tham số** | `Duration` |
-| Timespan field riêng có annotation phù hợp | `getDuration("fieldName")` | `Duration` của field đó |
-| Timestamp field riêng có annotation phù hợp | `getInstant("fieldName")` | `Instant` của field đó |
-| Field tham chiếu class | `getClass("fieldName")` | `RecordedClass`, không phải `java.lang.Class` |
-| Field tham chiếu thread | `getThread("fieldName")` | `RecordedThread` |
+| Event duration | `getDuration()` **no arguments** | `Duration` |
+| Annotated custom timespan field | `getDuration("fieldName")` | `Duration` of that field |
+| Annotated custom timestamp field | `getInstant("fieldName")` | `Instant` of that field |
+| Class reference field | `getClass("fieldName")` | `RecordedClass`, not `java.lang.Class` |
+| Thread reference field | `getThread("fieldName")` | `RecordedThread` |
 
-**Không nhầm hai hàm cùng tên**:
+**Do not confuse same-named overloads**:
 
-- `event.getDuration()` trả thời lượng **của toàn bộ event** (từ start đến end).
-- `event.getDuration("myDurationField")` đọc **một field timespan bên trong event** nếu schema khai báo nó theo cách JFR có thể đổi sang `Duration`.
+- `event.getDuration()` returns the duration **of the entire event** (from start to end).
+- `event.getDuration("myDurationField")` reads **a timespan field inside the event** if the schema declares it in a way JFR can convert to `Duration`.
 
-Tương tự, `event.getThread()` là thread gắn với việc commit/record event, còn `event.getThread("sampledThread")` là một **field thread có tên riêng** nếu type ấy có field đó. Với sampling event, thread được lấy mẫu và thread ghi event có thể có ý nghĩa khác nhau.
+Similarly, `event.getThread()` is the thread associated with committing/recording the event, while `event.getThread("sampledThread")` reads a **specifically named thread field** if that type defines one. For sampling events, the sampled thread and the committing thread can differ in meaning.
 
-### 5.2. Field không tồn tại và field có giá trị null
+### 5.2. Missing fields vs. null-valued fields
 
-`hasField("x") == false` nghĩa là schema không chứa field `x`. Nó **không** có nghĩa “field bằng null” hoặc “giá trị là 0”. Nếu field tồn tại nhưng giá trị không được ghi hoặc là null, `hasField("x")` vẫn có thể trả `true`. Đọc field một cách phòng thủ:
+`hasField("x") == false` means the schema does not contain field `x`. It **does not** mean "the field is null" or "the value is 0". If a field exists in the schema but its value was not recorded or is null, `hasField("x")` still returns `true`. Read fields defensively:
 
 ```java
-// Fragment trong nơi có RecordedEvent event.
+// Fragment where RecordedEvent event is available.
 if (event.hasField("endpoint")) {
     String endpoint = event.getString("endpoint");
     if (endpoint != null) {
@@ -298,16 +298,16 @@ if (event.hasField("endpoint")) {
 }
 ```
 
-Một phương thức typed getter có thể ném `IllegalArgumentException` khi tên field không tồn tại hoặc dữ liệu không phù hợp kiểu. `getInt("bytes")` có thể sai nếu field `bytes` thực tế là `long`; `getString("status")` không đổi int thành chuỗi giúp bạn. Muốn hiển thị linh hoạt nhiều event types, sử dụng `ValueDescriptor` và `getValue` rồi kiểm tra kiểu dữ liệu.
+A typed getter can throw `IllegalArgumentException` if the field name does not exist or the data type is incompatible. `getInt("bytes")` can fail if `bytes` is actually `long`; `getString("status")` will not convert an `int` to a `String` for you. To display arbitrary event types flexibly, use `ValueDescriptor` and `getValue` with runtime type checks.
 
-### 5.3. `getValue` và đường dẫn field lồng nhau
+### 5.3. `getValue` and nested field paths
 
-`event.getValue("field")` trả generic value; với dữ liệu phức tạp, nó có thể là `RecordedThread`, `RecordedClass`, `RecordedObject` hoặc kiểu khác mà JFR consumer hỗ trợ. Do đó, tránh ép mọi giá trị thành `String`.
+`event.getValue("field")` returns a generic value; for complex fields, it may be a `RecordedThread`, `RecordedClass`, `RecordedObject`, or another consumer-supported type. Therefore, avoid blindly casting everything to `String`.
 
-`RecordedObject` cũng hỗ trợ đường dẫn lồng nhau qua dấu chấm, ví dụ `"thread.group.parent.name"` nếu field tree thật sự có những thành phần đó. Điều này hữu ích khi truy vấn nested metadata, nhưng **đường dẫn phải tồn tại** trong schema/giá trị thực:
+`RecordedObject` also supports dot-separated nested paths such as `"thread.group.parent.name"` if the field graph actually contains those components. This is convenient for querying nested metadata, provided **the path exists** in the actual schema/value:
 
 ```java
-// Fragment minh họa cách bảo vệ một đường dẫn tùy biến.
+// Illustrative fragment showing how to guard a custom field path.
 String path = "thread.group.parent.name";
 if (event.hasField(path)) {
     Object nested = event.getValue(path);
@@ -315,22 +315,22 @@ if (event.hasField(path)) {
 }
 ```
 
-Đừng suy luận rằng mọi `RecordedEvent` đều có field `thread`, `group` hoặc `parent` theo đúng chuỗi này. Nó là ví dụ về **cú pháp**, không phải schema của tất cả event. Field có thể không hiện diện hoặc có đối tượng trung gian null.
+Do not infer that every `RecordedEvent` has `thread`, `group`, or `parent` fields matching this exact path. It is an example of **syntax**, not a universal schema across all events. A field may be absent or an intermediate object may be `null`.
 
-## 6. Khám phá schema với EventType và ValueDescriptor
+## 6. Discovering Schemas with EventType and ValueDescriptor
 
-Một tool phân tích JFR dùng lâu dài phải chịu được việc các JDK khác nhau có field mới, đổi tên hoặc không phát một số event. Cách an toàn là đọc metadata thay vì hardcode mọi schema.
+A long-lived JFR analysis tool must tolerate different JDK versions adding fields, renaming fields, or omitting certain events. The safe approach is inspecting metadata rather than hardcoding every schema.
 
-- `event.getEventType()` trả `EventType` mô tả loại event.
-- `event.getEventType().getName()` là tên đầy đủ, ví dụ `jdk.JavaMonitorEnter` hoặc `demo.Request`.
-- `event.getEventType().getLabel()` là label dành cho con người, không phải khóa ổn định để filter.
-- `event.getFields()` trả danh sách `ValueDescriptor`; mỗi descriptor có `getName()`, `getTypeName()`, cùng các annotation/metadata khác.
-- `file.readEventTypes()` trả các `EventType` mà file có metadata; đây **không phải** danh sách event instances.
+- `event.getEventType()` returns the `EventType` describing the event's kind.
+- `event.getEventType().getName()` is the full name, e.g., `jdk.JavaMonitorEnter` or `demo.Request`.
+- `event.getEventType().getLabel()` is a human-oriented label, not a stable filter key.
+- `event.getFields()` returns a list of `ValueDescriptor`; each descriptor provides `getName()`, `getTypeName()`, and annotations/metadata.
+- `file.readEventTypes()` returns the `EventType` metadata known in the file; this is **not** a list of event instances.
 
-Ví dụ duyệt schema của một event:
+Example inspecting an event's schema:
 
 ```java
-// Fragment minh họa, yêu cầu import jdk.jfr.ValueDescriptor.
+// Illustrative fragment, requires import jdk.jfr.ValueDescriptor.
 for (ValueDescriptor descriptor : event.getFields()) {
     String fieldName = descriptor.getName();
     String fieldType = descriptor.getTypeName();
@@ -339,11 +339,11 @@ for (ValueDescriptor descriptor : event.getFields()) {
 }
 ```
 
-Đây là cách khám phá **field nào thực sự tồn tại**. Tuy vậy, in toàn bộ `toString()` của nested object/stack trace trên file lớn có thể rất dài. Trong ứng dụng thật, nên giới hạn số event và số field in, xử lý riêng giá trị phức tạp.
+This reveals **which fields actually exist**. However, printing full `toString()` output of nested objects or stack traces across large files can be huge. In real tools, limit the number of events and fields printed, and format complex values explicitly.
 
-### 6.1. Công cụ đọc file bất kỳ: JfrInspect
+### 6.1. A generic file reader: JfrInspect
 
-Tạo **`JfrInspect.java`**. Chương trình lấy file và tên event type từ command line, duyệt toàn bộ file để đếm số event khớp, nhưng **chỉ in tối đa hai mẫu đầu tiên**; khi type là `demo.Request`, nó in hai field `endpoint` và `status` nếu metadata xác nhận sự tồn tại:
+Create **`JfrInspect.java`**. The program takes a file and an event type name from the command line, scans the entire file to count matching events, yet **prints at most the first two samples**; when the type is `demo.Request`, it prints `endpoint` and `status` if metadata confirms their presence:
 
 ```java
 import java.nio.file.Path;
@@ -390,109 +390,109 @@ public final class JfrInspect {
 }
 ```
 
-Biên dịch và đọc file do ví dụ trước tạo:
+Compile and read the file generated by the previous example:
 
 ```bash
 javac --release 17 JfrInspect.java
 java JfrInspect requests-demo.jfr demo.Request
 ```
 
-**Hình dạng output đã kiểm thử** (thời gian và duration thay đổi từng lần):
+**Verified output shape** (timestamp and duration vary per run):
 
 ```text
 type=demo.Request
-start=<Instant thực tế của event thứ nhất>
-duration=<Duration thực tế của event thứ nhất>
+start=<actual Instant of the first event>
+duration=<actual Duration of the first event>
 endpoint [java.lang.String]=/orders
 status [int]=200
 type=demo.Request
-start=<Instant thực tế của event thứ hai>
-duration=<Duration thực tế của event thứ hai>
+start=<actual Instant of the second event>
+duration=<actual Duration of the second event>
 endpoint [java.lang.String]=/reports
 status [int]=503
 matched=3
 ```
 
-Trong transcript trên, những chỗ trong dấu `<...>` là **chỉ dẫn minh họa, không phải stdout nguyên văn**. Khi biên dịch/chạy, `Instant` có dạng ISO-8601 và `Duration` được in theo biểu diễn `PT...S` của Java. Vì trình đọc chỉ in hai event khớp đầu tiên, dòng `matched=3` vẫn đếm toàn bộ ba event.
+In the transcript above, placeholders inside `<...>` are **illustrative annotations, not literal stdout**. When compiled and run, `Instant` prints in ISO-8601 format and `Duration` prints in Java's `PT...S` format. Although the reader prints only the first two matching events, `matched=3` still counts all three events.
 
-Dùng cách tương tự cho file JFR khác, ví dụ:
+Use the same approach on another JFR file, for instance:
 
 ```bash
 java JfrInspect service.jfr jdk.JavaMonitorEnter
 ```
 
-Đối với type này, ví dụ chỉ in tên, timestamp và duration vì chương trình cố tình không hardcode các field không thuộc schema demo. Muốn xem fields cụ thể, dùng `event.getFields()`, metadata từ `jfr metadata` hoặc JMC rồi thêm logic phù hợp. Không suy ra type “không có endpoint” nghĩa là file lỗi: `endpoint` chỉ tồn tại trong custom event demo.
+For that type, the example prints only the name, timestamp, and duration because it intentionally does not hardcode fields outside the demo schema. To inspect specific fields, check `event.getFields()`, metadata from `jfr metadata`, or JMC, then add matching logic. Do not conclude that a type "missing `endpoint`" indicates a corrupt file: `endpoint` exists only in the custom demo event.
 
-### 6.2. Schema và format thay đổi theo JDK
+### 6.2. Schemas and formats vary across JDKs
 
-Một giả định dễ hỏng là mỗi `jdk.FileRead` chắc chắn luôn có cùng field, cùng tên, cùng kiểu ở mọi JDK/vendor. Thực tế JDK có thể thay đổi hoặc bổ sung field. Công cụ robust nên:
+A brittle assumption is expecting every `jdk.FileRead` to always have the exact same fields, names, and types across all JDK releases/vendors. In reality, JDKs can add or alter fields. A robust tool should:
 
-1. Lọc bằng event type name xác định.
-2. Kiểm tra field bắt buộc và kiểu qua `ValueDescriptor`.
-3. Xử lý optional fields bằng `hasField` và `null`.
-4. Ghi rõ JDK/version, recording name, loại event và schema được gặp.
-5. Tránh tự ép kiểu hoặc dùng `toString()` làm định dạng lưu trữ chính thức.
+1. Filter using explicit event type names.
+2. Verify required fields and types via `ValueDescriptor`.
+3. Handle optional fields with `hasField` and `null` checks.
+4. Record the JDK/version, recording name, event types, and schemas encountered.
+5. Avoid blind casting or using `toString()` as a canonical storage format.
 
-Nếu đang tạo JSON/CSV, ánh xạ rõ ràng `RecordedThread`, `RecordedClass`, `Duration`, `Instant` và các nested fields; đừng để serializer tự xuất một object graph khổng lồ.
+If exporting JSON or CSV, explicitly map `RecordedThread`, `RecordedClass`, `Duration`, `Instant`, and nested fields; never let a generic serializer dump a huge object graph.
 
-## 7. Thời gian, duration, đơn vị và ngữ cảnh
+## 7. Time, Duration, Units, and Context
 
-### 7.1. `Instant` khác `Duration`
+### 7.1. `Instant` vs. `Duration`
 
-`getStartTime()` và `getEndTime()` trả `java.time.Instant`: **mốc thời gian**. `getDuration()` trả `java.time.Duration`: **khoảng kéo dài**. Ví dụ một `jdk.JavaMonitorEnter` có thể bắt đầu lúc 10:00:02.123 và duration 24 ms; điều đó **không tự nói** toàn bộ HTTP request mất 24 ms hay request chậm vì đúng một event duy nhất.
+`getStartTime()` and `getEndTime()` return `java.time.Instant`: **points in time**. `getDuration()` returns `java.time.Duration`: **an elapsed interval**. For example, a `jdk.JavaMonitorEnter` event may start at `10:00:02.123` with a 24 ms duration; that **does not prove** the entire HTTP request took 24 ms or was slow solely due to that single event.
 
 ```java
-// Fragment minh họa một RecordedEvent đã đọc.
+// Illustrative fragment for a read RecordedEvent.
 java.time.Instant start = event.getStartTime();
 java.time.Instant end = event.getEndTime();
 java.time.Duration duration = event.getDuration();
 double milliseconds = duration.toNanos() / 1_000_000.0;
 ```
 
-`duration.toMillis()` là `long` nên có thể làm mất phần lẻ của milli giây; dùng `toNanos()/1_000_000.0` khi cần trình bày số thập phân và khoảng thời gian nằm trong giới hạn. Với Duration cực lớn, `toNanos()` có thể overflow, khi ấy cần phép chuyển an toàn hơn. Không nhầm các trường timestamp/size/ratio có metadata unit khác nhau.
+`duration.toMillis()` returns a `long` and truncates sub-millisecond fractions; use `toNanos()/1_000_000.0` when fractional precision is needed and the span fits within bounds. For huge `Duration` values, `toNanos()` can overflow, requiring safer conversion. Never confuse timestamp, size, and ratio fields that carry different unit metadata.
 
-### 7.2. Không tự định nghĩa một tổng thời gian sai
+### 7.2. Do not invent invalid total durations
 
-Nếu event A và B chạy trên hai thread và chồng nhau, cộng duration(A)+duration(B) có thể **lớn hơn** thời gian đồng hồ thực giữa hai mốc. Nếu JFR thu các event bằng sampling/threshold, tổng duration của event được ghi cũng **không nhất thiết** là tổng thời gian toàn bộ hoạt động đã xảy ra.
+If events A and B run concurrently on two threads and overlap, summing `duration(A) + duration(B)` can **exceed** the wall-clock time between the two points. If JFR collects events via sampling or thresholds, the sum of recorded event durations is also **not necessarily** the total duration of all activity that occurred.
 
-Khi phân tích: lọc đúng event type, cửa sổ thời gian, thread/request correlation và đơn vị; trình bày rõ mẫu có bị lọc theo threshold/period hay không.
+When analyzing: filter accurately by event type, time window, thread/request correlation, and units; explicitly note whether the sample was filtered by threshold or period.
 
-### 7.3. Time zone và đối chiếu log khác
+### 7.3. Time zones and correlating other logs
 
-`Instant` không gắn một time zone địa phương; nó mô tả một thời điểm tuyệt đối. Khi xuất báo cáo theo Việt Nam:
+`Instant` carries no local time zone; it represents an absolute point on the timeline. When generating reports in Vietnam time:
 
 ```java
-// Fragment minh họa.
+// Illustrative fragment.
 java.time.ZonedDateTime local = event.getStartTime()
         .atZone(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
 ```
 
-Đối chiếu JFR với application log, APM và container logs bằng timestamp nhất quán, đồng thời lưu ý lệch đồng hồ khi thu nhiều máy. Không đổi `Instant` thành chuỗi local rồi làm mất offset/time zone nếu cần phân tích xuyên service.
+Correlate JFR with application logs, APM, and container logs using consistent timestamps, keeping clock skew in mind across multiple hosts. Do not convert `Instant` into a local string without offset/time zone if cross-service analysis is needed.
 
-## 8. Thread, stack trace và object lồng nhau
+## 8. Threads, Stack Traces, and Nested Objects
 
 ### 8.1. `RecordedThread`
 
-`event.getThread()` trả `RecordedThread` nếu thông tin này có trong event. Để hiển thị tên Java thread:
+`event.getThread()` returns a `RecordedThread` if that information was recorded on the event. To display the Java thread name:
 
 ```java
-// Fragment minh họa, yêu cầu import RecordedThread.
+// Illustrative fragment, requires importing RecordedThread.
 RecordedThread thread = event.getThread();
 String threadName = thread == null ? "(not recorded)"
         : thread.getJavaName();
 System.out.println(threadName);
 ```
 
-`getJavaName()` có thể trả `null` nếu không có Java thread name. `getJavaThreadId()` và `getOSThreadId()` là các ID khác nhau; không thay thế lẫn nhau khi join dữ liệu. Với JDK hỗ trợ virtual threads, `isVirtual()` mô tả loại thread đã ghi, nhưng không suy ra mọi event thuộc cùng một carrier OS thread.
+`getJavaName()` can return `null` if no Java thread name is available. `getJavaThreadId()` and `getOSThreadId()` are distinct IDs; never interchange them when joining data. On JDKs supporting virtual threads, `isVirtual()` describes the recorded thread kind, yet does not imply all events stayed on the same OS carrier thread.
 
-Một event có thể chứa **field thread khác** (ví dụ sampled thread). Khi ấy dùng `event.getThread("fieldName")` nếu schema xác nhận field. Đừng mặc định `event.getThread()` luôn là thread đang bị sampling.
+An event may carry **another thread field** (such as a sampled thread). In that case use `event.getThread("fieldName")` once the schema confirms the field. Never assume `event.getThread()` is always the sampled thread.
 
-### 8.2. `RecordedStackTrace` và `RecordedFrame`
+### 8.2. `RecordedStackTrace` and `RecordedFrame`
 
-`getStackTrace()` có thể `null` khi stack collection bị tắt hoặc event không ghi stack. Nếu có:
+`getStackTrace()` can be `null` when stack capture is disabled or the event type does not record stacks. When present:
 
 ```java
-// Fragment minh họa, yêu cầu import RecordedStackTrace/RecordedFrame.
+// Illustrative fragment, requires importing RecordedStackTrace/RecordedFrame.
 RecordedStackTrace stack = event.getStackTrace();
 if (stack != null) {
     System.out.println("truncated=" + stack.isTruncated());
@@ -503,43 +503,43 @@ if (stack != null) {
 }
 ```
 
-- `getFrames()` trả danh sách `RecordedFrame`; `getLineNumber()` có thể là `-1` khi không có line number.
-- `isTruncated()` cho biết stack có bị cắt do giới hạn độ sâu/kích thước hay không.
-- `frame.getMethod()` trả `RecordedMethod`; nếu cần tên class khai báo method có thể xem `frame.getMethod().getType().getName()`.
-- Frame event không phải distributed trace: nó là call stack ở thời điểm được thu theo semantics của event.
+- `getFrames()` returns a list of `RecordedFrame`; `getLineNumber()` can be `-1` when line numbers are unavailable.
+- `isTruncated()` indicates whether the stack was truncated due to depth/size limits.
+- `frame.getMethod()` returns `RecordedMethod`; to get the declaring class name of the method, check `frame.getMethod().getType().getName()`.
+- Event frames are not a distributed trace: they represent the call stack captured at the point defined by the event's semantics.
 
-Bật stack chỉ ở những event cần để điều tra; trên sự kiện có tần suất lớn, stack trace làm tăng dữ liệu và overhead. Không thể phục hồi stack **không được ghi** bằng cách tăng `jfr print --stack-depth` ở bước đọc.
+Enable stack traces only for events needed in investigations; on high-frequency events, stack traces increase data size and overhead. You cannot recover stacks that **were never recorded** by increasing `jfr print --stack-depth` at read time.
 
-### 8.3. Các kiểu phức hợp
+### 8.3. Composite types
 
-`event.getValue(name)` có thể trả primitive boxed value, `String`, `RecordedClass`, `RecordedThread`, `RecordedObject` hoặc các kiểu dữ liệu phù hợp schema. Khi làm bộ xuất CSV, phải **chọn cách serialize có kiểm soát**:
+`event.getValue(name)` can return boxed primitives, `String`, `RecordedClass`, `RecordedThread`, `RecordedObject`, or other schema-defined types. When building a CSV exporter, **serialize deliberately**:
 
-- `RecordedClass`: xuất tên class.
-- `RecordedThread`: xuất tên/id thread nếu có.
-- `RecordedStackTrace`: chỉ xuất số frame hoặc khung đầu liên quan khi được phép.
-- `Instant`: xuất chuỗi ISO-8601 có offset/ngữ cảnh.
-- `Duration`: xuất số cùng đơn vị, ví dụ nano/milli giây.
-- Field `null`: dùng giá trị rỗng có ý nghĩa rõ ràng, không đổi thành số 0.
+- `RecordedClass`: export the class name.
+- `RecordedThread`: export thread name/ID if present.
+- `RecordedStackTrace`: export only frame count or top relevant frames when permitted.
+- `Instant`: export an ISO-8601 string with offset/context.
+- `Duration`: export a number with explicit units, e.g., nanoseconds or milliseconds.
+- `null` field: emit an explicit empty/null marker rather than converting to `0`.
 
-## 9. Chọn chiến lược đọc cho file nhỏ và file lớn
+## 9. Choosing Reading Strategies for Small vs. Large Files
 
-### 9.1. `readAllEvents(Path)` có tiện nhưng tốn bộ nhớ
+### 9.1. `readAllEvents(Path)` is convenient but memory-heavy
 
 ```java
-// Fragment minh họa: chỉ nên dùng khi file đủ nhỏ.
+// Illustrative fragment: use only when the file is small enough.
 java.util.List<RecordedEvent> events =
         RecordingFile.readAllEvents(Path.of("small.jfr"));
 System.out.println("events=" + events.size());
 ```
 
-`readAllEvents` đọc tất cả event vào một `List`. Nó phù hợp script ngắn/file nhỏ cần nhiều lần duyệt. Với file lớn hàng trăm MB hoặc nhiều triệu events, giữ toàn bộ list trong heap có thể gây GC mạnh hoặc `OutOfMemoryError`. Kích thước object Java sau parse **không nhất thiết bằng** kích thước file JFR nén/nhị phân.
+`readAllEvents` loads all events into a `List`. It suits short scripts or small files needing multiple passes. For large files of hundreds of MB or millions of events, keeping the whole list on the heap can trigger heavy GC or `OutOfMemoryError`. The in-memory size of parsed Java objects **does not equal** the compressed/binary `.jfr` file size.
 
-### 9.2. Streaming qua `RecordingFile`
+### 9.2. Streaming via `RecordingFile`
 
-Với file lớn, giữ một `long count`, một số aggregate nhỏ và chỉ lưu các event cần thiết; không đưa mọi `RecordedEvent` vào một `ArrayList`. Ví dụ:
+For large files, maintain a `long count` or compact aggregates and retain only required events instead of putting every `RecordedEvent` into an `ArrayList`. Example:
 
 ```java
-// Fragment minh họa bộ đếm không giữ tất cả event trong heap.
+// Illustrative counter fragment that avoids keeping all events on the heap.
 long count = 0;
 try (RecordingFile file =
         new RecordingFile(Path.of("service.jfr"))) {
@@ -554,27 +554,27 @@ try (RecordingFile file =
 System.out.println("monitorEvents=" + count);
 ```
 
-Chỉ đếm event đã ghi, **không** suy ra có tổng cộng bao nhiêu lần contention trong ứng dụng vì event có thể bị lọc. Nếu cần percentiles, có thể sử dụng histogram có giới hạn hoặc thuật toán streaming quantile; tránh giữ mọi duration chỉ để tính p99 trên recording lớn.
+Count only recorded events; **do not** infer total lock contentions in the application because events may have been filtered. If you need percentiles, use a bounded histogram or streaming quantile algorithm rather than storing all durations just to compute p99 on a huge recording.
 
-`RecordingFile` là parser một chiều theo lượt đọc; để phân tích lại từ đầu, mở một `RecordingFile` mới. API này đọc file đã có; không dùng nó như cơ chế tail/chờ event live.
+`RecordingFile` is a single-pass forward reader; to re-analyze from the start, open a new `RecordingFile`. This API reads an existing file; do not use it as a live tailing mechanism.
 
-### 9.3. Quản lý tệp và lỗi I/O
+### 9.3. File management and I/O errors
 
-Những lỗi cần nhận diện:
+Errors to recognize:
 
-- `NoSuchFileException`: đường dẫn sai hoặc file chưa được tạo.
-- `IOException`: file không hợp lệ, đọc thất bại hoặc định dạng không được parser hỗ trợ.
-- `EOFException`: gọi `readEvent()` khi không còn event; vòng `hasMoreEvents()` tránh lỗi sử dụng API thông thường.
-- `IllegalArgumentException`: đọc sai tên hoặc sai kiểu field.
-- `SecurityException` hoặc lỗi quyền OS: tiến trình đọc không có quyền với file.
+- `NoSuchFileException`: wrong path or file not created yet.
+- `IOException`: invalid file, read failure, or unsupported format.
+- `EOFException`: calling `readEvent()` when no events remain; the `hasMoreEvents()` loop avoids this during normal API usage.
+- `IllegalArgumentException`: reading a nonexistent field name or wrong field type.
+- `SecurityException` or OS permission errors: the reader process lacks access to the file.
 
-Đọc **file từ nguồn đáng tin cậy**; heap/recording có thể chứa thông tin thread, tên class, path, request metadata và dữ liệu nhạy cảm. Hạn chế quyền trên `.jfr`, xóa an toàn khi hết nhu cầu và không nhận upload tùy ý của người lạ vào parser nội bộ mà không có giới hạn tài nguyên.
+Read **files from trusted sources only**; recordings can contain thread info, class names, file paths, request metadata, and sensitive data. Restrict permissions on `.jfr` files, delete securely when no longer needed, and never accept arbitrary untrusted uploads into an internal parser without resource limits.
 
-Nếu dữ liệu không đầy đủ, hãy kiểm tra file có được dump/stop hoàn chỉnh chưa; recording có thể còn đang chạy, bị xoay vòng, hoặc mất các khoảng do retention setting. Không kết luận từ một file lỗi rằng ứng dụng không phát event.
+If data looks incomplete, check whether the recording stopped/dumped cleanly; the recording may still have been running, rotated, or had intervals evicted by retention settings. Never conclude from a partial/corrupt file that the application emitted no events.
 
-## 10. Đối chiếu bằng CLI trước khi viết parser
+## 10. Cross-Checking with the CLI Before Writing a Parser
 
-Dùng công cụ đi kèm JDK để nắm event name và schema của file:
+Use the JDK's built-in tools to learn event names and schemas in a file:
 
 ```bash
 jfr summary service.jfr
@@ -582,21 +582,21 @@ jfr metadata service.jfr
 jfr print --events jdk.JavaMonitorEnter service.jfr
 ```
 
-- `jfr summary` cho biết event types và counts (tùy phiên bản đầu ra).
-- `jfr metadata` cho metadata/type descriptions, hữu ích trước khi hardcode field.
-- `jfr print --events` cho ví dụ thực về field value và stack (nếu có).
-- Nếu dùng JDK Mission Control, chọn event type và xem fields/aggregation/stack, rồi đối chiếu với mã `RecordingFile` của bạn.
+- `jfr summary` shows event types and counts (format varies slightly by JDK version).
+- `jfr metadata` prints metadata/type descriptions, useful before hardcoding fields.
+- `jfr print --events` shows real examples of field values and stacks (if present).
+- If using JDK Mission Control, select the event type to inspect fields, aggregations, and stacks, then verify against your `RecordingFile` code.
 
-Một parser nên tự khai báo **điều kiện đầu vào**: JDK/build nào tạo file, file nằm trên máy nào, event type nào được bật, khoảng thời gian nào được ghi, liệu có threshold và sampling. Đây là bối cảnh cần để giải thích số liệu; file JFR không phải “toàn bộ lịch sử của JVM”.
+A parser should explicitly record **input conditions**: which JDK/build produced the file, which host it came from, which event types were enabled, what time range was covered, and whether thresholds or sampling applied. This context is essential for interpreting numbers; a JFR file is not "the complete history of the JVM".
 
-## 11. Tình huống áp dụng: từ file đến chẩn đoán
+## 11. Practical Scenarios: From File to Diagnosis
 
-### 11.1. Tìm file read chậm
+### 11.1. Finding slow file reads
 
-Có thể lọc `jdk.FileRead`, đọc `getDuration()` và những field hiện diện như path/bytesRead theo schema thực tế. Giả sử bạn muốn các event đã ghi có duration ít nhất 20 ms:
+You can filter `jdk.FileRead`, read `getDuration()`, and inspect present fields such as `path` or `bytesRead` per the actual schema. Suppose you want recorded events with duration at least 20 ms:
 
 ```java
-// Fragment minh họa trong vòng đọc RecordedEvent event.
+// Illustrative fragment inside a RecordedEvent reading loop.
 if ("jdk.FileRead".equals(event.getEventType().getName())
         && event.getDuration().compareTo(
                 java.time.Duration.ofMillis(20)) >= 0) {
@@ -605,96 +605,96 @@ if ("jdk.FileRead".equals(event.getEventType().getName())
 }
 ```
 
-**Đây là lọc phía consumer sau khi ghi file**. Nó khác setting `jdk.FileRead#threshold` áp dụng **lúc thu**: consumer chỉ có thể bỏ các event **đã tồn tại**, không thể phục hồi event mà recording trước đó không ghi.
+**This is consumer-side filtering after the file was written.** It differs from `jdk.FileRead#threshold` applied **at collection time**: the consumer can only discard events **that already exist** in the file, and cannot recover events the recording never captured.
 
-Nếu path/bytes không có trong schema, đừng áp giả định; kiểm tra `getFields()`. Nếu stack trace null, không quy được caller chỉ bằng file hiện tại; cần recording mới với stack enabled cho event thích hợp.
+If `path`/`bytes` are missing from the schema, do not assume them; inspect `getFields()`. If stack trace is null, you cannot attribute the caller from this file alone; take a new recording with stacks enabled for the target event.
 
-### 11.2. Gom event theo thread
+### 11.2. Grouping events by thread
 
-`event.getThread()` có thể trả thread thực hiện/commit event. Muốn thống kê event counts theo thread, dùng key dựa trên ID phù hợp, kèm tên để đọc dễ. Nhưng ID của Java thread, OS thread và JFR event thread là các khái niệm khác nhau; thread name có thể trùng hoặc thay đổi. Với event sampled thread, ưu tiên field thread được event type đó định nghĩa.
+`event.getThread()` returns the thread that executed/committed the event. To group event counts by thread, key by an appropriate ID alongside the name for readability. Note that Java thread ID, OS thread ID, and JFR event thread are distinct concepts; thread names can collide or change. For events with a sampled thread field, prefer the thread field defined by that event type.
 
-Một lần request thường có thể chạy trên nhiều thread hoặc virtual threads; **đếm theo thread không đồng nghĩa đếm theo request**. Muốn theo request cần correlation ID hay custom event payload do ứng dụng ghi.
+A single request can often run across multiple threads or virtual threads; **grouping by thread does not mean grouping by request**. To group by request, use a correlation ID or application-recorded custom event payload.
 
-### 11.3. Tính số lần custom operation lỗi
+### 11.3. Counting failed custom operations
 
-Với `demo.Request` của ví dụ, ta biết field `ok` là boolean và `status` là int, nên dùng getter typed rồi tổng hợp. Đây là thống kê **những custom events đã được commit/ghi**. Không dùng nó thay cho số request web server nếu ứng dụng không instrument mọi request hoặc recording có threshold/retention.
+For `demo.Request` in our example, we know `ok` is `boolean` and `status` is `int`, so we use typed getters and aggregate. This counts **committed/recorded custom events**. Do not use it as a substitute for web server request totals unless every request is instrumented and the recording had no threshold/retention drops.
 
-### 11.4. Kết hợp nhiều recording
+### 11.4. Combining multiple recordings
 
-Một service có thể tạo nhiều file, mỗi file có thời gian và cấu hình riêng. Để so sánh, nên lưu metadata nguồn: tên file, JVM identity, JDK version, khoảng start/end và cài đặt event. Không nối file rồi cộng duration/count mù quáng khi chúng chồng lấp cùng sự kiện hoặc được thu từ nhiều recording của cùng JVM.
+A service can produce multiple files, each with its own time span and configuration. For comparisons, retain source metadata: filename, JVM identity, JDK version, start/end window, and event settings. Never blindly concatenate files and sum durations or counts when they overlap in time or come from concurrent recordings of the same JVM.
 
-Khi cần hợp nhất, chuẩn hóa time zones và xác định tiêu chí chống trùng theo mục tiêu phân tích; JFR event không mặc định mang unique request ID xuyên các file.
+When merging is required, normalize time zones and define deduplication rules matching your analytical goal; JFR events do not automatically carry a cross-file unique request ID.
 
-## 12. Những lỗi thường gặp và cách sửa
+## 12. Common Mistakes and Corrections
 
-| Lỗi | Vì sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Correct practice |
 | --- | --- | --- |
-| Gọi `getString("bytes")` cho field `long` | Getter typed không tự đổi number thành String | Dùng `getLong("bytes")` hoặc metadata + `getValue` |
-| Gọi `getInt("status")` trên mọi event | Không phải type nào cũng có field `status` | Lọc `getEventType().getName()` trước |
-| `hasField` true nên nghĩ value chắc chắn khác null | Schema tồn tại khác với giá trị được ghi | Kiểm tra `null` cho reference fields |
-| `getStackTrace().getFrames()` trực tiếp | Stack có thể không được ghi | Kiểm tra `getStackTrace() != null` |
-| `event.getDuration()` được dùng như giá trị ms nguyên | API trả `Duration` | Chuyển đơn vị tường minh, giữ độ chính xác |
-| Dùng `readAllEvents` cho file khổng lồ | Giữ toàn bộ event trong RAM | Dùng vòng `RecordingFile` và aggregate nhỏ |
-| In tất cả fields của mọi event | Có thể tạo output rất lớn, lộ metadata | Lọc type, số event, field cần thiết |
-| Không đóng `RecordingFile` | Có thể giữ tài nguyên file/parser | `try-with-resources` |
-| 0 event = không có sự cố | Event có thể disabled, threshold cao hoặc sai cửa sổ | Kiểm tra cấu hình thu và workload |
-| Gộp time/duration của nhiều thread | Event có thể chồng lấp và không có quan hệ nhân quả | Dùng timestamp/correlation và phân tích riêng |
-| Phụ thuộc vào field nội bộ cố định ở mọi JDK | Schema có thể khác | Dùng `getFields()`/`ValueDescriptor`, kiểm tra optional |
-| Nhầm `RecordedThread` với `java.lang.Thread` sống | Object là bản ghi metadata, không phải live JVM thread | Dùng ID/name của metadata, không gọi API điều khiển thread |
+| Calling `getString("bytes")` on a `long` field | Typed getters do not convert numbers to `String` | Use `getLong("bytes")` or metadata + `getValue` |
+| Calling `getInt("status")` on every event | Not every event type has a `status` field | Filter `getEventType().getName()` first |
+| Assuming `hasField` true means non-null value | Schema presence differs from recorded value | Check `null` for reference fields |
+| Calling `getStackTrace().getFrames()` directly | Stack may not have been recorded | Check `getStackTrace() != null` |
+| Treating `event.getDuration()` as integer ms | API returns `Duration` | Convert units explicitly, preserving precision |
+| Using `readAllEvents` on huge files | Loads every event into RAM | Stream with `RecordingFile` and compact aggregates |
+| Printing all fields of every event | Produces massive output and leaks metadata | Filter by type, event limit, and needed fields |
+| Not closing `RecordingFile` | Leaks file/parser handles | Use `try-with-resources` |
+| Assuming 0 events = no incident | Event may be disabled, thresholded, or outside window | Check collection config and workload |
+| Summing times/durations across threads | Events can overlap without causal links | Use timestamps/correlation and analyze separately |
+| Depending on fixed internal fields across all JDKs | Schemas can evolve | Use `getFields()`/`ValueDescriptor`, handle optionals |
+| Confusing `RecordedThread` with a live `java.lang.Thread` | Object is metadata snapshot, not a live JVM thread | Use metadata ID/name; do not invoke thread control APIs |
 
-## 13. Bài tự luyện
+## 13. Self-Practice Exercises
 
-**Bài 1.** Vì sao `RecordingFile.readAllEvents(Path)` không phù hợp để đếm một loại event trong file JFR nhiều GB?
+**Exercise 1.** Why is `RecordingFile.readAllEvents(Path)` unsuitable for counting one event type in a multi-GB JFR file?
 
-*Trả lời:* Nó trả toàn bộ event dưới dạng list trong heap; có nguy cơ sử dụng rất nhiều RAM. Với bài toán đếm, chỉ cần stream bằng `hasMoreEvents/readEvent` và tăng một biến `long`.
+*Answer:* It returns all events as a list on the heap, risking massive RAM usage. For counting, simply stream with `hasMoreEvents`/`readEvent` and increment a `long` counter.
 
-**Bài 2.** Bạn thấy `event.hasField("path") == true` nhưng `event.getString("path")` trả `null`. Hai kết quả có mâu thuẫn không?
+**Exercise 2.** You observe `event.hasField("path") == true` yet `event.getString("path")` returns `null`. Do these two results contradict each other?
 
-*Trả lời:* Không. `hasField` xác nhận schema chứa field; giá trị của field có thể null.
+*Answer:* No. `hasField` confirms the schema defines the field; the field's value can still be `null`.
 
-**Bài 3.** Có thể gọi `event.getDuration("duration")` để đọc thời lượng của mọi event thay vì `event.getDuration()` không?
+**Exercise 3.** Can you call `event.getDuration("duration")` to read every event's duration instead of `event.getDuration()`?
 
-*Trả lời:* Không nên. `getDuration()` không tham số là API dành cho duration của event. Bản có tên field đọc một **timespan field** theo schema; không được tự mặc định tên field phù hợp trong mọi type.
+*Answer:* You should not. No-arg `getDuration()` is the API for the event's own duration. The field-named overload reads a **timespan field** in the schema; never assume that field name exists on every type.
 
-**Bài 4.** Muốn xuất số byte đọc file từ `jdk.FileRead`, có thể luôn gọi `getLong("bytes")` không?
+**Exercise 4.** To extract bytes read from `jdk.FileRead`, can you always call `getLong("bytes")`?
 
-*Trả lời:* Không. Phải kiểm tra schema của JDK đang dùng để biết tên và kiểu field (có thể là `bytesRead` hoặc trường khác), rồi dùng getter phù hợp; code ví dụ chỉ chắc chắn về `bytes` của custom event `demo.Request`.
+*Answer:* No. You must inspect the schema of your target JDK to learn the exact field name and type (which may be `bytesRead` or another name), then use the matching getter; our example only guarantees `bytes` on the custom `demo.Request` event.
 
-**Bài 5.** Sau khi file đã được ghi với `stackTrace=false`, có thể tăng `jfr print --stack-depth=100` để thấy call stack không?
+**Exercise 5.** After a file was recorded with `stackTrace=false`, can you raise `jfr print --stack-depth=100` to see call stacks?
 
-*Trả lời:* Không. Công cụ chỉ hiển thị dữ liệu đã ghi; cần tạo recording mới bật stack trace cho event thích hợp.
+*Answer:* No. The tool can only display data already recorded; you must capture a new recording with stack traces enabled for the relevant events.
 
-**Bài 6.** `readEventTypes()` cho thấy event type `jdk.JavaMonitorEnter` nhưng vòng đọc không gặp instance nào. Có phải code hỏng?
+**Exercise 6.** `readEventTypes()` lists `jdk.JavaMonitorEnter`, yet the reading loop sees zero instances. Is the code broken?
 
-*Trả lời:* Chưa chắc. Metadata có thể hiện diện dù số event thực tế là 0; cần xem `jfr summary`, cấu hình enabled/threshold, cửa sổ ghi, workload và filter type.
+*Answer:* Not necessarily. Metadata can exist even when 0 events occurred or passed filters; check `jfr summary`, enabled/threshold settings, recording window, workload, and type filters.
 
-**Bài 7.** Hai event kéo dài 30 ms và 40 ms trên hai thread cùng thời điểm. Có thể nói ứng dụng đã dừng 70 ms không?
+**Exercise 7.** Two events lasted 30 ms and 40 ms on two threads at the same time. Can you say the application paused for 70 ms?
 
-*Trả lời:* Không. Duration có thể chồng nhau, và hai event không mặc định là global stop-the-world. Phải hiểu semantics của từng type và timeline.
+*Answer:* No. Durations can overlap, and two events do not automatically indicate a global stop-the-world pause. Understand the semantics of each type and the timeline.
 
-## 14. Checklist khi xây công cụ đọc JFR
+## 14. Checklist When Building a JFR Reader Tool
 
-- [ ] Chỉ chấp nhận file `.jfr` hợp lệ, nguồn và đường dẫn đáng tin; dùng `try-with-resources`.
-- [ ] Dùng `hasMoreEvents()` trước `readEvent()`; hiểu `IOException`/`EOFException`.
-- [ ] Lọc bằng **event type name**, không nhầm label hoặc tên class Java của parser.
-- [ ] Dùng `hasField` và `getFields`/`ValueDescriptor` cho field không chắc chắn.
-- [ ] Chọn đúng typed getter; phân biệt field vắng mặt, field null và số 0.
-- [ ] Phân biệt `getDuration()` của event với `getDuration("field")`; luôn ghi đơn vị.
-- [ ] Xử lý `RecordedThread` và `RecordedStackTrace` có thể null.
-- [ ] Với file lớn, dùng streaming/aggregate có giới hạn, không giữ tất cả event.
-- [ ] Đối chiếu bằng `jfr summary`, `jfr metadata` và `jfr print` khi schema không chắc chắn.
-- [ ] Khi tổng hợp, lưu context về JDK, recording, time window, threshold, sampling, thread.
-- [ ] Bảo vệ dữ liệu nhạy cảm; giới hạn log/export và không coi file JFR là dữ liệu công khai.
+- [ ] Accept only valid `.jfr` files from trusted sources/paths; use `try-with-resources`.
+- [ ] Call `hasMoreEvents()` before `readEvent()`; handle `IOException`/`EOFException`.
+- [ ] Filter by **event type name**, never confusing display labels or parser Java class names.
+- [ ] Use `hasField` and `getFields()`/`ValueDescriptor` for uncertain fields.
+- [ ] Pick the right typed getter; distinguish absent fields, `null` fields, and `0`.
+- [ ] Distinguish event `getDuration()` from field `getDuration("field")`; always record units.
+- [ ] Handle nullable `RecordedThread` and `RecordedStackTrace`.
+- [ ] For large files, stream with bounded aggregates rather than holding all events.
+- [ ] Cross-check with `jfr summary`, `jfr metadata`, and `jfr print` when schemas are uncertain.
+- [ ] When aggregating, preserve context on JDK, recording, time window, thresholds, sampling, and threads.
+- [ ] Protect sensitive data; restrict logs/exports and never treat JFR files as public data.
 
-**Ghi nhớ:** `RecordingFile` trả về một chuỗi `RecordedEvent`. Muốn xử lý chính xác, hãy làm theo thứ tự **mở file → duyệt → nhận diện type → kiểm tra schema → đọc field đúng kiểu → tổng hợp → đóng file**. Một `RecordedEvent` là bằng chứng của **sự kiện đã được ghi**; hiểu được gì từ nó còn phụ thuộc định nghĩa event, cấu hình JFR và ngữ cảnh runtime.
+**Takeaway:** `RecordingFile` yields a stream of `RecordedEvent` instances. To process them accurately, follow the sequence **open file → iterate → identify type → verify schema → read typed fields → aggregate → close file**. A `RecordedEvent` is evidence of **an event that was recorded**; what you can conclude from it still depends on event definitions, JFR configuration, and runtime context.
 
-## Tài liệu đối chiếu (JDK 21)
+## Reference Documentation (JDK 21)
 
-- Oracle, [`RecordingFile`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html): `readEvent`, `hasMoreEvents`, `readEventTypes`, `readAllEvents` và đóng file.
-- Oracle, [`RecordedEvent`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedEvent.html): timestamp, duration, thread, stack và event type.
-- Oracle, [`RecordedObject`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedObject.html): `hasField`, typed getters, `getValue` và nested fields.
+- Oracle, [`RecordingFile`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html): `readEvent`, `hasMoreEvents`, `readEventTypes`, `readAllEvents`, and closing files.
+- Oracle, [`RecordedEvent`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedEvent.html): timestamp, duration, thread, stack, and event type.
+- Oracle, [`RecordedObject`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedObject.html): `hasField`, typed getters, `getValue`, and nested fields.
 - Oracle, [`RecordedThread`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedThread.html): Java/OS thread metadata.
-- Oracle, [`RecordedStackTrace`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedStackTrace.html) và [`RecordedFrame`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedFrame.html): frame, line number và truncated stack.
-- Oracle, [`ValueDescriptor`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/ValueDescriptor.html): field name, type và metadata.
-- Oracle, [`Recording`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html): tạo và dump recording.
+- Oracle, [`RecordedStackTrace`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedStackTrace.html) and [`RecordedFrame`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedFrame.html): frames, line numbers, and truncated stacks.
+- Oracle, [`ValueDescriptor`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/ValueDescriptor.html): field name, type, and metadata.
+- Oracle, [`Recording`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html): creating and dumping recordings.
 - Oracle, [`jfr` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): `summary`, `metadata`, `print`.

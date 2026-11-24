@@ -1,115 +1,115 @@
-# 10.7 Phân biệt thiếu carrier, tài nguyên bên ngoài bão hòa và tác vụ tốn CPU
+# 10.7 Distinguishing Carrier Starvation, Saturated External Resources, and CPU-Bound Workloads
 
-## Mục tiêu và bản chất vấn đề
+## Objectives and Nature of the Problem
 
-Một dịch vụ chạy hàng nghìn **virtual thread** vẫn có thể bị tăng p95/p99, timeout và throughput đứng yên. Cần phân biệt ba tình huống:
+A service running thousands of **virtual threads** can still suffer rising p95/p99 latency, timeouts, and flat throughput. You must distinguish three situations:
 
-1. **Không có carrier sẵn sàng:** virtual thread đang cần chạy nhưng không được mount kịp lên platform thread do scheduler thiếu năng lực tiến triển hoặc nhiều carrier bị giữ trong blocking không thể unmount.
-2. **Tài nguyên bên ngoài bão hòa:** tác vụ đã hoạt động và chờ connection pool, DB, HTTP downstream, rate limit, quota hay tài nguyên khác. Việc chờ có thể nhường carrier hoàn toàn; tăng số carrier không giải quyết giới hạn phía ngoài.
-3. **Tác vụ tốn CPU:** công việc tính toán, serialize, nén, mã hóa, xử lý dữ liệu hoặc vòng lặp thực thi liên tục. Virtual thread vẫn cần CPU thật và không tạo thêm lõi xử lý.
+1. **No available carrier:** virtual threads are ready to run but cannot mount onto platform threads in time because the scheduler lacks capacity to make progress or many carriers are held in unmountable blocking calls.
+2. **Saturated external resources:** tasks are active and waiting on a connection pool, DB, downstream HTTP service, rate limit, quota, or other resource. Waiting may release the carrier completely; adding more carriers does not lift external limits.
+3. **CPU-bound tasks:** computation, serialization, compression, encryption, data processing, or tight loops executing continuously. Virtual threads still require real CPU and do not create extra processor cores.
 
-**Yêu cầu chẩn đoán:** xác định *tác vụ chờ tại đâu*, *tài nguyên nào chạm giới hạn*, *CPU dùng cho việc gì*, rồi kiểm chứng bằng thay đổi có kiểm soát. Nhiều bottleneck có thể xảy ra đồng thời; không gán nguyên nhân chỉ dựa trên số virtual thread.
+**Diagnostic requirement:** identify *where tasks are waiting*, *which resource hits its limit*, and *what the CPU is doing*, then verify with a controlled change. Multiple bottlenecks can occur simultaneously; never assign a cause based solely on virtual thread count.
 
-## 1. Cơ chế cần hiểu trước khi đo
+## 1. Mechanics to Understand Before Measuring
 
-Virtual thread (`java.lang.Thread`) do JVM lên lịch trên các **carrier** là platform thread. Khi một thao tác blocking được JVM hỗ trợ (ví dụ `Thread.sleep`, nhiều socket I/O của JDK) làm virtual thread **unmount**, carrier được trả về để chạy virtual thread khác. Virtual thread chờ trong connection pool hoặc chờ HTTP có thể tiêu tốn bộ nhớ/tài nguyên khác nhưng không nhất thiết chiếm carrier. Khi tác vụ sẵn sàng tiếp tục, nó lại cần được scheduler mount.
+A virtual thread (`java.lang.Thread`) is scheduled by the JVM onto **carriers**, which are platform threads. When a JVM-supported blocking operation (such as `Thread.sleep` or many JDK socket I/O calls) causes a virtual thread to **unmount**, the carrier is returned to run another virtual thread. A virtual thread waiting on a connection pool or HTTP response may consume memory or other resources without holding a carrier. Once the task is ready to continue, the scheduler must mount it again.
 
-Tách ít nhất bốn trạng thái:
+Separate at least four states:
 
-- **Mounted và chạy code:** cần carrier và có thể tiêu tốn CPU.
-- **Chờ nhưng đã unmount:** đang đợi permit, I/O hay timer; carrier có thể phục vụ tác vụ khác.
-- **Ready-to-run nhưng chưa được mount:** xếp hàng chờ scheduler; độ trễ ở đây gợi ý áp lực carrier/scheduler.
-- **Pinned trong lúc blocking:** không thể unmount ở đoạn cụ thể, làm carrier bị giữ dù công việc không thực sự chạy CPU.
+- **Mounted and running code:** requires a carrier and may consume CPU.
+- **Waiting while unmounted:** waiting on a permit, I/O, or timer; the carrier can serve other tasks.
+- **Ready-to-run but not yet mounted:** queued waiting for the scheduler; delay here points to carrier/scheduler pressure.
+- **Pinned while blocking:** unable to unmount at a specific point, keeping the carrier occupied even though the task is not actively using CPU.
 
-**Phiên bản JDK thay đổi cách diễn giải pinning.** Trên **JDK 21–23**, blocking khi giữ monitor bằng `synchronized` có thể pin carrier; native/foreign call cũng có thể pin. Từ **JDK 24**, JEP 491 loại bỏ pinning *do `synchronized`*; một số đường native/VM vẫn có thể pin. Vì vậy một stack chứa `synchronized` không tự chứng minh pinning trên JDK 24+. Scheduler parallelism thường lấy số CPU JVM nhìn thấy làm giá trị khởi đầu, nhưng **đây không phải giới hạn tổng virtual thread**. Virtual thread phù hợp với nhiều tác vụ chờ I/O; nó không khiến từng phép tính chạy nhanh hơn.
+**JDK version changes how pinning is interpreted.** On **JDK 21–23**, blocking while holding a `synchronized` monitor can pin the carrier; native/foreign calls can also pin. Starting in **JDK 24**, JEP 491 eliminates pinning *caused by `synchronized`*; certain native/VM paths can still pin. Consequently, a stack containing `synchronized` does not prove pinning on JDK 24+. Scheduler parallelism typically defaults to the number of CPUs visible to the JVM, but **this is not a cap on total virtual threads**. Virtual threads suit many I/O-waiting tasks; they do not make individual computations run faster.
 
-## 2. Bảng phân biệt ba điểm nghẽn
+## 2. Table Distinguishing the Three Bottlenecks
 
-| Dữ liệu quan sát | Carrier thiếu/bị giữ | Bão hòa tài nguyên bên ngoài | CPU-bound |
+| Observation Data | Carrier Shortage / Held Carriers | External Resource Saturation | CPU-Bound |
 | --- | --- | --- | --- |
-| CPU tiến trình | Có thể thấp khi carrier bị pin và chờ, hoặc cao nếu carrier chạy code CPU dài | Thường thấp/vừa khi chờ DB/HTTP; có thể cao nếu retry/serialize kèm theo | Thường gần mức CPU thật được cấp, CPU samples tập trung ở hot code |
-| Hàng đợi tăng | Virtual thread đã ready nhưng chờ scheduler/carrier | Pool pending, permit waiters, DB queue, HTTP queue, rate-limit | Công việc CPU tranh CPU; request đợi các bước tính toán hoàn tất |
-| JFR/dump | `jdk.VirtualThreadPinned` dài/lặp lại nếu có pin; ready queue kéo dài, ít tiến triển | Stack chờ permit/JDBC/HTTP, pool active=max, downstream p95 cao, 429/503 | `jdk.ExecutionSample` dày tại thuật toán, nhiều thời gian tính toán thực |
-| Kiểm chứng | Loại bỏ đúng đoạn gây pin hoặc đối chiếu JDK; đo lại độ trễ ready→run | Giảm admission/điều chỉnh pool hoặc capacity downstream có căn cứ | Giảm CPU concurrency/optimize, thử với giới hạn core tương ứng |
-| Hướng khắc phục | Tránh blocking giữ carrier, rút ngắn critical section, sửa native path | Backpressure, timeout, concurrency limit, tối ưu DB/dịch vụ đích | Tối ưu workload, giới hạn song song CPU, tăng tài nguyên khi cần |
+| Process CPU | Can be low when carriers are pinned and waiting, or high if carriers run long CPU code | Typically low/moderate while waiting on DB/HTTP; can rise if retries/serialization accompany it | Typically near the granted CPU quota, with CPU samples concentrated in hot code |
+| Growing queues | Virtual threads are ready yet waiting on the scheduler/carrier | Pool pending, permit waiters, DB queues, HTTP queues, rate limits | CPU work contends for CPU; requests wait for compute steps to finish |
+| JFR/dumps | Long/repeated `jdk.VirtualThreadPinned` if pinned; growing ready queue, little progress | Stacks waiting on permits/JDBC/HTTP, pool `active=max`, high downstream p95, 429/503 | Dense `jdk.ExecutionSample` in algorithms, high actual compute time |
+| Verification | Remove the pinning site or check JDK behavior; re-measure ready→run latency | Throttle admission or adjust pool/downstream capacity with justification | Reduce CPU concurrency/optimize, test against corresponding core limits |
+| Remediation | Avoid carrier-holding blocking, shorten critical sections, fix native paths | Backpressure, timeouts, concurrency limits, optimize DB/target services | Optimize workload, bound parallel CPU work, scale resources when needed |
 
-Đây là **mẫu tương quan**, không phải công thức suy luận một chỉ số. CPU thấp + p99 cao có thể do DB chậm, monitor contention hoặc pinned carrier; phải đi tiếp bằng metric tại đúng điểm chờ. CPU cao cũng có thể là GC/retry chứ chưa chắc do thuật toán nghiệp vụ.
+These are **correlation patterns**, not a single-metric deduction formula. Low CPU + high p99 can come from a slow DB, monitor contention, or pinned carriers; follow up with metrics at the exact wait point. High CPU can also come from GC or retries rather than business algorithms.
 
-## 3. Quy trình điều tra có bằng chứng
+## 3. Evidence-Based Investigation Workflow
 
-### Bước 1 — Đặt đường cơ sở
+### Step 1 — Establish a Baseline
 
-Ghi lại bản **JDK/build**, CPU JVM nhìn thấy, CPU quota/container, bộ nhớ/GC, arrival rate, throughput, in-flight, timeout/error, p50/p95/p99. So sánh cùng khoảng tải trước và sau suy giảm. Đừng nhìn số lượng virtual thread rồi quy ra số carrier cần có.
+Record the **JDK/build**, CPUs visible to the JVM, container/CPU quota, memory/GC, arrival rate, throughput, in-flight count, timeouts/errors, and p50/p95/p99. Compare comparable load windows before and after degradation. Do not look at virtual thread counts and try to calculate required carriers.
 
-Instrument thời gian tại biên các bước:
+Instrument timing at step boundaries:
 
-- `T_wait_to_start`: từ lúc giao việc tới lúc thực sự bắt đầu hoặc tiếp tục chạy (nếu ứng dụng có đo).
-- `T_wait_pool`: từ lúc xin permit/connection tới lúc được cấp.
-- `T_downstream`: thời gian giữ connection và thực hiện JDBC/HTTP.
-- `T_cpu`: phần tính toán của ứng dụng (cần CPU profiler/CPU-time để ước lượng), cộng các phần khác.
+- `T_wait_to_start`: from task submission until execution actually starts or resumes (if instrumented by the app).
+- `T_wait_pool`: from requesting a permit/connection until it is granted.
+- `T_downstream`: duration holding the connection and executing JDBC/HTTP.
+- `T_cpu`: application computation portion (requires a CPU profiler/CPU-time to estimate), plus other components.
 
-Có thể hình dung với request tuần tự: `T_total ≈ T_wait_to_start + T_wait_pool + T_downstream + T_cpu + T_other`. Với span song song/lồng nhau phải tránh cộng đúp. Theo định luật Little ở trạng thái tương đối ổn định, `L ≈ λ × W`: tăng thời gian chờ làm số request in-flight tăng; **nhiều virtual thread đang tồn tại không phải bằng chứng thiếu carrier**.
+For sequential requests, you can picture: `T_total ≈ T_wait_to_start + T_wait_pool + T_downstream + T_cpu + T_other`. With parallel or nested spans, avoid double counting. By Little's law in steady state, `L ≈ λ × W`: longer wait times increase in-flight requests; **many existing virtual threads do not prove a carrier shortage**.
 
-### Bước 2 — Hỏi CPU và hàng đợi cùng lúc
+### Step 2 — Inspect CPU and Queues Together
 
-1. **CPU gần chạm quota**, profiler cho thấy ứng dụng tính toán liên tục → điều tra **CPU-bound** trước. Phân biệt CPU do logic nghiệp vụ, GC, encode/decode, retry và lock spin.
-2. **CPU còn dư**, pool `active=max`, `pending>0`, acquire-time hoặc downstream p95 tăng → nghiêng về **external saturation**. Virtual thread chờ pool thường không cần giữ carrier.
-3. **CPU còn dư**, pool/downstream không đầy, nhưng virtual thread ready chờ lâu; có pinning events/traces kéo dài hoặc scheduler queue tồn đọng → nghiêng về **carrier/scheduler bottleneck**.
-4. **CPU cao đồng thời pool pending cao** → có thể cả hai. Dùng thời gian từng span và load sweep để tìm ngưỡng nào bị chạm trước, thay một yếu tố mỗi lần.
+1. **CPU near quota** and profiler shows continuous application computation → investigate **CPU-bound** first. Distinguish CPU from business logic, GC, encode/decode, retries, and lock spinning.
+2. **CPU has headroom**, pool `active=max`, `pending>0`, acquire time or downstream p95 rising → points toward **external saturation**. Virtual threads waiting on a pool generally do not hold carriers.
+3. **CPU has headroom**, pools/downstreams are not full, yet ready virtual threads wait a long time, with prolonged pinning events/traces or scheduler queue backlog → points toward a **carrier/scheduler bottleneck**.
+4. **Both CPU and pool pending are high** → could be both. Use per-span timings and a load sweep to find which limit hits first, changing one factor at a time.
 
-CPU 100% trong một công cụ có thể là **một lõi**, không phải 100% toàn bộ CPU quota. State `RUNNABLE`/`WAITING` đơn lẻ không nói được tác vụ đang chiếm carrier hay đã unmount.
+100% CPU in a tool can mean **one core**, not 100% of the entire CPU quota. A `RUNNABLE`/`WAITING` state alone does not tell you whether a task occupies a carrier or has unmounted.
 
-### Bước 3 — Thu thập dump, JFR và số đo downstream
+### Step 3 — Collect Dumps, JFR, and Downstream Metrics
 
-Dùng `jcmd` của đúng JVM/JDK đích; `<PID>` là placeholder được thay bằng PID thực tế:
+Use `jcmd` from the exact target JVM/JDK; `<PID>` is a placeholder replaced by the actual PID:
 
 ~~~bash
 jcmd <PID> Thread.dump_to_file -format=json vthreads.json
 jcmd <PID> Thread.dump_to_file -format=text vthreads.txt
 ~~~
 
-Các lệnh này dành cho JDK 21+ và giúp thấy virtual thread mà thread dump kiểu cũ có thể thiếu. Thu vài snapshot cách nhau một khoảng khi lỗi tái hiện; xem stack trùng lặp, nơi tác vụ chờ và sự tiến triển theo thời gian. Tùy JDK, dump không chứa đầy đủ lock/JNI metadata và không đại diện ảnh chụp nguyên tử tuyệt đối của toàn JVM.
+These commands target JDK 21+ and reveal virtual threads that legacy thread dumps can miss. Capture several snapshots spaced apart while the issue reproduces; look for repeated stacks, where tasks are waiting, and progress over time. Depending on the JDK, dumps lack complete lock/JNI metadata and do not represent an absolute atomic snapshot of the entire JVM.
 
-Khởi động JFR trong khoảng tải bất thường:
+Start JFR during an anomalous load window:
 
 ~~~bash
 jcmd <PID> JFR.start name=vt-triage settings=profile duration=60s filename=vt-triage.jfr
 jfr print --events jdk.VirtualThreadPinned,jdk.VirtualThreadSubmitFailed vt-triage.jfr
 ~~~
 
-Chỉ đọc file sau khi recording hoàn tất (hoặc dump thủ công). Mở bằng JDK Mission Control để phân tích `jdk.ExecutionSample`, sự kiện pinning/blocking, hot methods và thời điểm latency tăng. Trên **JDK 21**, `jdk.VirtualThreadPinned` thường bật mặc định với threshold **20 ms**. Không có event **không đồng nghĩa** scheduler khỏe: thao tác có thể dưới threshold, không thuộc kiểu pin được ghi, không bật trong cấu hình ghi hoặc nghẽn do nguyên nhân khác. `VirtualThreadSubmitFailed` là lỗi submit/unpark, không phải phép đo tổng queue.
+Read the file only after the recording completes (or after a manual dump). Open it in JDK Mission Control to analyze `jdk.ExecutionSample`, pinning/blocking events, hot methods, and timestamps when latency climbed. On **JDK 21**, `jdk.VirtualThreadPinned` is typically enabled by default with a **20 ms** threshold. Zero events **does not mean** the scheduler is healthy: operations may fall below the threshold, belong to an unrecorded pin type, be disabled in settings, or stem from another bottleneck. `VirtualThreadSubmitFailed` indicates submit/unpark failures, not total queue depth.
 
-**Chẩn đoán theo phiên bản:**
+**Version-specific diagnostics:**
 
-- **JDK 21–23:** có thể khởi động với `-Djdk.tracePinnedThreads=full` để thấy stack khi virtual thread blocking lúc pinned. Chỉ dùng khi cần, trong phạm vi test/diagnostic phù hợp.
-- **JDK 24+:** `jdk.management.VirtualThreadSchedulerMXBean` cho biết `getParallelism()`, `getPoolSize()`, `getMountedVirtualThreadCount()` và `getQueuedVirtualThreadCount()`. Các số là ước lượng; nhìn xu hướng khi tải tăng, không xem một sample như kết luận. Interface này **chưa có ở Java 21**. Một số JDK mới có lệnh `jcmd <PID> Thread.vthread_scheduler`; xác minh bằng `jcmd <PID> help` trên phiên bản đang sử dụng.
-- Trên mọi JDK: đo cùng lúc **pool idle/active/pending/acquire-timeout**, DB query duration/slow queries, HTTP duration/status/rate limit, CPU samples và GC. Scheduler thông thoáng không chứng minh downstream thông thoáng.
+- **JDK 21–23:** you can start with `-Djdk.tracePinnedThreads=full` to print stacks when virtual threads block while pinned. Use only when needed in appropriate test/diagnostic scopes.
+- **JDK 24+:** `jdk.management.VirtualThreadSchedulerMXBean` exposes `getParallelism()`, `getPoolSize()`, `getMountedVirtualThreadCount()`, and `getQueuedVirtualThreadCount()`. These counts are estimates; observe trends as load rises rather than treating one sample as conclusive. This interface **does not exist in Java 21**. Some newer JDKs provide `jcmd <PID> Thread.vthread_scheduler`; verify with `jcmd <PID> help` on your running version.
+- On every JDK: simultaneously measure **pool idle/active/pending/acquire-timeout**, DB query duration/slow queries, HTTP duration/status/rate limits, CPU samples, and GC. An unobstructed scheduler does not prove downstream dependencies are unobstructed.
 
-## 4. Phân tích ba sự cố điển hình
+## 4. Analyzing Three Classic Incidents
 
-### A. Carrier bị pin trên JDK 21
+### A. Pinned Carriers on JDK 21
 
-Dịch vụ có nhiều virtual thread chạy `synchronized(lock) { blockingCall(); }` trong đường nóng, mỗi lần đợi vài trăm mili giây. CPU tiến trình chưa đầy, các tác vụ khác ready nhưng tiến triển chậm; JFR xuất hiện nhiều `jdk.VirtualThreadPinned` dài với stack ở vị trí blocking dưới monitor. **Kết luận có căn cứ:** carrier bị giữ lúc virtual thread lẽ ra nên nhường carrier.
+A service has many virtual threads running `synchronized(lock) { blockingCall(); }` on a hot path, each waiting hundreds of milliseconds. Process CPU is not saturated, yet other ready tasks progress slowly; JFR shows many long `jdk.VirtualThreadPinned` events with stacks at the blocking call under the monitor. **Well-supported conclusion:** carriers are being held when virtual threads ought to yield them.
 
-Cách xử lý trên JDK 21: chuyển I/O/blocking ra ngoài vùng khóa nếu giữ nguyên được tính đúng đắn, rút ngắn vùng khóa, hoặc dùng `ReentrantLock` đúng cách khi phải đồng bộ mà vẫn cần unmount. **Không** thay tất cả `synchronized`: critical section ngắn không blocking thường không phải điểm nghẽn. Khi triển khai JDK 24+, monitor-related pinning đã thay đổi; phải đo lại, không suy diễn từ triệu chứng JDK 21. Các call native/VM còn phải kiểm tra riêng.
+Remediation on JDK 21: move I/O/blocking outside the locked region if correctness holds, shrink the locked section, or use `ReentrantLock` properly when synchronization must span an unmount point. **Do not** replace every `synchronized`: short non-blocking critical sections are rarely bottlenecks. When moving to JDK 24+, monitor-related pinning behavior changes; re-measure rather than extrapolating from JDK 21 symptoms. Native/VM calls still need separate checking.
 
-### B. Connection pool hoặc remote service bão hòa
+### B. Saturated Connection Pool or Remote Service
 
-Ứng dụng có **10 DB connection**. Mỗi request giữ connection trung bình **250 ms**. Nếu mọi transaction sử dụng một connection và không có giới hạn khác, trần gần đúng là **10 / 0,25 = 40 transaction/giây**. 10.000 virtual thread không làm mức này tăng lên 400/giây. Khi đến 120 request/giây, `active=10`, pool pending và acquire time tăng, request timeout; CPU phía ứng dụng có thể thấp vì các virtual thread chờ đã unmount.
+An application has **10 DB connections**. Each request holds a connection for **250 ms** on average. If every transaction uses one connection and no other limit applies, the approximate ceiling is **10 / 0.25 = 40 transactions/second**. 10,000 virtual threads will not raise that ceiling to 400/s. At 120 requests/s, `active=10`, pool pending and acquire time climb, and requests time out; application CPU can stay low because waiting virtual threads unmounted.
 
-Xác minh bằng pool metrics, DB query latency, locks, quota, transaction duration, số request hoàn thành. Sửa bằng cách giảm thời gian giữ connection, tối ưu query/transaction, giới hạn đồng thời, timeout và backpressure. **Chỉ tăng pool** khi DB thực sự chịu thêm tải; pool lớn hơn có thể làm DB chậm hơn. Với HTTP 429, cần giảm tốc độ/rate-limit/backoff thay vì bơm thêm request.
+Verify with pool metrics, DB query latency, locks, quotas, transaction duration, and completed request counts. Fix by shortening connection hold time, optimizing queries/transactions, bounding concurrency, setting timeouts, and applying backpressure. **Increase pool size only** if the DB can truly absorb more load; a larger pool can slow the DB down further. For HTTP 429 responses, reduce request rate, enforce rate limits, and apply backoff instead of pumping more requests.
 
-### C. Workload thật sự CPU-bound
+### C. Truly CPU-Bound Workload
 
-Có **4 vCPU hữu dụng**, nhưng 500 virtual thread cùng nén hoặc mã hóa dữ liệu. Profiler thấy CPU time tập trung ở thuật toán, process dùng gần hết quota, throughput ít tăng khi tăng đồng thời 50→500; p99 có thể tệ hơn vì tranh CPU. **Kết luận:** nút thắt CPU. Virtual thread không tự time-slice phép tính CPU dài để tạo thêm năng lực xử lý.
+You have **4 effective vCPUs**, yet 500 virtual threads simultaneously compress or encrypt data. The profiler shows CPU time concentrated in the algorithm, the process hits nearly its entire quota, and throughput barely grows from 50 to 500 concurrent tasks; p99 may worsen from CPU contention. **Conclusion:** CPU bottleneck. Virtual threads do not time-slice long CPU computations to create extra processing capacity.
 
-Ưu tiên giảm work/request, profile/optimize hot path, cache/batch có kiểm chứng, giới hạn tác vụ CPU đồng thời gần năng lực CPU thật hoặc cấp thêm CPU. Nếu luồng vừa chờ DB vừa xử lý JSON lớn, hãy đo **hai pha** độc lập; bottleneck có thể dịch chuyển sau khi sửa DB.
+Prioritize reducing work per request, profiling/optimizing hot paths, adding verified caching/batching, capping concurrent CPU tasks near real CPU capacity, or provisioning more CPU. If a flow both awaits a DB and parses large JSON, measure the **two phases** independently; the bottleneck can shift after fixing the DB.
 
-## 5. Lab Java 21+: đối chiếu ba chế độ
+## 5. Java 21+ Lab: Comparing the Three Modes
 
-Chạy cùng 12 virtual thread với ba kiểu công việc. `external` mô phỏng downstream chỉ có 2 chỗ hoạt động bằng `Semaphore`; `Thread.sleep` đại diện khoảng chờ I/O, không gọi DB thật. `cpu` bận tính toán khoảng 250 ms/task. `pin21` giữ 12 monitor **riêng biệt** khi sleep để minh họa pinning kiểu JDK 21 mà không nhầm với tranh chấp trên cùng lock. Mọi thời gian là kết quả thực nghiệm, không có một stdout định thời cố định.
+Run the same 12 virtual threads across three workload modes. `external` simulates a downstream with only 2 active slots via `Semaphore`; `Thread.sleep` represents an I/O wait without calling a real DB. `cpu` busy-computes for roughly 250 ms/task. `pin21` holds 12 **distinct** monitors while sleeping to illustrate JDK 21-style pinning without conflating it with contention on a shared lock. All timings are empirical; there is no fixed deterministic stdout timing.
 
-Tạo file **`VirtualThreadBottleneckLab.java`**:
+Create the file **`VirtualThreadBottleneckLab.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -209,7 +209,7 @@ public class VirtualThreadBottleneckLab {
 
     private static void pinOnJdk21(int id)
             throws InterruptedException {
-        // Khóa riêng cho mỗi task để không tạo monitor contention giả.
+        // Dedicated lock per task to avoid artificial monitor contention.
         synchronized (LOCKS[id]) {
             Thread.sleep(DURATION_MS);
         }
@@ -217,7 +217,7 @@ public class VirtualThreadBottleneckLab {
 }
 ~~~
 
-Biên dịch/chạy với **Java 21 trở lên**:
+Compile and run with **Java 21 or later**:
 
 ~~~bash
 javac VirtualThreadBottleneckLab.java
@@ -226,50 +226,50 @@ java -Djdk.virtualThreadScheduler.parallelism=2 VirtualThreadBottleneckLab cpu
 java -Djdk.virtualThreadScheduler.parallelism=2 VirtualThreadBottleneckLab pin21
 ~~~
 
-Dòng stdout có dạng `mode=... tasks=12 elapsedMs=... peakExternal=... avgPermitWaitMs=...`; **giá trị `elapsedMs` và `avgPermitWaitMs` thay đổi giữa lần chạy**. Cách đọc:
+Stdout follows `mode=... tasks=12 elapsedMs=... peakExternal=... avgPermitWaitMs=...`; **`elapsedMs` and `avgPermitWaitMs` vary across runs**. How to read the output:
 
-- `external`: `peakExternal` tối đa **2**, permit wait tăng khi slot bận. Với 12 tác vụ × 250 ms / 2 slot, thời gian thường gần **1,5 giây** cộng overhead, mặc dù đa số thời gian là chờ và carrier có thể rảnh.
-- `cpu`: `peakExternal=0`, `avgPermitWaitMs=0`. Năng lực CPU thực của JVM/container quyết định mức song song hữu ích; đặt scheduler parallelism=2 chỉ để mô phỏng, **không phải gợi ý tuning production**.
-- `pin21`: trên **JDK 21–23**, `Thread.sleep` bên trong `synchronized` có thể giữ carrier và kéo dài tổng thời gian khi chỉ có hai carrier; có thể thấy JFR pinning. Trên **JDK 24+**, `synchronized` không còn gây loại pinning này, vì vậy cùng chương trình có thể hoàn thành gần thời gian sleep đơn lẻ. `peakExternal` và permit wait đều bằng 0 ở chế độ này.
+- `external`: `peakExternal` is at most **2**, and permit wait rises as slots stay busy. With 12 tasks × 250 ms / 2 slots, elapsed time is typically near **1.5 seconds** plus overhead, even though most time is spent waiting and carriers remain free.
+- `cpu`: `peakExternal=0`, `avgPermitWaitMs=0`. Actual CPU capacity of the JVM/container governs effective parallelism; setting scheduler parallelism=2 here is strictly for simulation, **not a production tuning recommendation**.
+- `pin21`: on **JDK 21–23**, `Thread.sleep` inside `synchronized` can hold the carrier and lengthen total runtime when only two carriers are available; JFR pinning events may appear. On **JDK 24+**, `synchronized` no longer causes this type of pinning, so the same program can finish close to a single sleep duration. Both `peakExternal` and permit wait are 0 in this mode.
 
-Đây là lab có mục đích minh họa: semaphore **mô phỏng** tài nguyên bên ngoài, `Thread.sleep` **mô phỏng** latency, CPU busy loop không thay cho benchmark chuẩn. Không dùng `pin21` để tạo tải trên production; không suy ra sửa bằng cách luôn tăng `jdk.virtualThreadScheduler.parallelism`.
+This is an illustrative lab: the semaphore **simulates** an external resource, `Thread.sleep` **simulates** latency, and the CPU busy loop is no substitute for a proper benchmark. Do not use `pin21` to generate load in production; do not conclude that raising `jdk.virtualThreadScheduler.parallelism` is the universal fix.
 
-## 6. Quyết định sửa và đo lại
+## 6. Deciding the Fix and Re-Measuring
 
-| Chẩn đoán được xác nhận | Hành động trực tiếp | Tiêu chí sau sửa |
+| Confirmed Diagnosis | Direct Action | Post-Fix Criteria |
 | --- | --- | --- |
-| Carrier bị giữ trong pinning kéo dài | Di chuyển blocking khỏi monitor (đặc biệt JDK 21), chọn lock phù hợp, thay/giới hạn call native gây pin, đánh giá nâng JDK | Pinned duration/count giảm, ready queue tiến triển, throughput và p99 cải thiện cùng tải |
-| External pool/downstream bão hòa | Giảm hold time, tối ưu query, cap concurrency, backpressure, timeout, điều chỉnh downstream capacity hợp lý | Pool pending/acquire time giảm, 429/5xx không tăng, p99/error giảm |
-| CPU-bound | Profile code, giảm việc mỗi request, giới hạn concurrent CPU tasks, tăng CPU nếu cần | CPU time/request giảm hoặc CPU capacity đủ; throughput tăng mà p99/GC không xấu |
+| Carriers held in prolonged pinning | Move blocking out of monitors (especially JDK 21), pick appropriate locks, replace/limit pinning native calls, evaluate JDK upgrade | Pinned duration/count drops, ready queue drains, throughput and p99 improve under the same load |
+| Saturated external pool/downstream | Reduce hold time, optimize queries, cap concurrency, add backpressure and timeouts, size downstream capacity appropriately | Pool pending/acquire time drops, 429/5xx do not climb, p99/errors drop |
+| CPU-bound | Profile code, reduce per-request work, bound concurrent CPU tasks, add CPU if needed | CPU time/request falls or CPU capacity suffices; throughput rises without degrading p99/GC |
 
-Thử với **mức tải nền → sát ngưỡng → trên ngưỡng**, đổi **một yếu tố mỗi lần**, ghi lại throughput, p50/p95/p99, error, CPU/GC, scheduler queue, pool queue và downstream duration. Khi tháo một điểm nghẽn, điểm nghẽn kế tiếp có thể lộ rõ; cần tiếp tục quan sát toàn pipeline.
+Test at **baseline → near-threshold → above-threshold load**, changing **one factor at a time**, while recording throughput, p50/p95/p99, errors, CPU/GC, scheduler queues, pool queues, and downstream durations. Removing one bottleneck often exposes the next; keep observing the full pipeline.
 
-## 7. Lỗi suy luận thường gặp
+## 7. Common Reasoning Errors
 
-1. **“Có 20.000 virtual thread nên cần 20.000 carrier.”** Virtual thread chờ có thể đã unmount; số virtual thread đang sống không phải số carrier cần đồng thời.
-2. **“CPU thấp chứng minh carrier bị pin.”** DB slow query, queue pool, HTTP timeout, lock cũng làm CPU thấp. Cần bằng chứng scheduler/pinning.
-3. **“Không có `jdk.VirtualThreadPinned` thì không thể nghẽn carrier.”** Event có threshold/phạm vi; CPU hog và các vấn đề scheduler khác không bắt buộc tạo event.
-4. **“Tăng virtual thread, pool hoặc scheduler parallelism luôn tăng throughput.”** Không thay đổi capacity downstream hay số lõi; có thể làm p99 tệ hơn do backlog.
-5. **“Mọi `synchronized` đều pin.”** Cần xét có blocking không và xét JDK; JDK 24 loại bỏ monitor-related pinning.
-6. **“Một thread dump đủ kết luận.”** Cần nhiều snapshot và chuỗi thời gian JFR/metrics; trạng thái WAITING/RUNNABLE riêng lẻ dễ gây hiểu nhầm.
-7. **“Tăng connection pool là chữa DB chậm.”** DB quá tải có thể chậm hơn vì nhiều transaction/lock tranh chấp. Tăng sau khi kiểm tra năng lực DB.
-8. **“Virtual thread thích hợp cho CPU jobs dài.”** Virtual thread chủ yếu giúp scale tác vụ I/O-bound; CPU jobs vẫn cần kiểm soát song song theo CPU budget.
+1. **"20,000 virtual threads require 20,000 carriers."** Waiting virtual threads can unmount; live virtual thread count is not the number of carriers needed concurrently.
+2. **"Low CPU proves carriers are pinned."** Slow DB queries, pool queues, HTTP timeouts, and locks also leave CPU low. Scheduler/pinning evidence is required.
+3. **"No `jdk.VirtualThreadPinned` means carriers cannot be bottlenecked."** The event has a threshold and narrow scope; CPU hogs and other scheduler issues do not necessarily emit it.
+4. **"Increasing virtual threads, pool size, or scheduler parallelism always increases throughput."** It changes neither downstream capacity nor core count; larger backlogs can worsen p99.
+5. **"Every `synchronized` pins."** Check whether blocking happens inside and check the JDK version; JDK 24 eliminates monitor-related pinning.
+6. **"A single thread dump is conclusive."** You need multiple snapshots plus JFR/metric time series; isolated WAITING/RUNNABLE states easily mislead.
+7. **"Increasing the connection pool fixes a slow DB."** An overloaded DB can slow down further under extra concurrent transactions and lock contention. Expand only after verifying DB capacity.
+8. **"Virtual threads suit long CPU jobs."** Virtual threads mainly scale I/O-bound workloads; CPU jobs still require concurrency bounds matched to the CPU budget.
 
-## 8. Checklist hiện trường
+## 8. Field Checklist
 
-- [ ] Có JDK build, CPU quota/effective cores, tải phát sinh và khoảng thời gian lỗi.
-- [ ] Có request/s, in-flight, p50/p95/p99, error/timeout và process CPU/GC.
-- [ ] Có số đo thời gian đợi pool/permit, thời gian giữ connection và latency/error downstream.
-- [ ] Có dump chứa virtual thread và JFR CPU samples/pinning tương thích với JDK.
-- [ ] Đã phân biệt **ready chờ carrier**, **unmounted chờ tài nguyên**, **mounted tiêu thụ CPU**.
-- [ ] Đã xác nhận giả thuyết bằng thay đổi một giới hạn với cùng điều kiện tải, quan sát p99 và lỗi.
-- [ ] Đã kiểm tra điểm nghẽn thứ hai sau khi xử lý điểm nghẽn đầu tiên.
+- [ ] Recorded JDK build, CPU quota/effective cores, generated load, and incident time window.
+- [ ] Collected requests/s, in-flight count, p50/p95/p99, errors/timeouts, and process CPU/GC.
+- [ ] Measured pool/permit wait time, connection hold time, and downstream latency/errors.
+- [ ] Captured dumps containing virtual threads and JDK-compatible JFR CPU samples/pinning data.
+- [ ] Separated **ready waiting for carrier**, **unmounted waiting for resource**, and **mounted burning CPU**.
+- [ ] Confirmed the hypothesis by changing a single limit under identical load while watching p99 and errors.
+- [ ] Checked for secondary bottlenecks after resolving the primary bottleneck.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
 - Oracle Java 21 — Virtual Threads: https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html
 - OpenJDK JEP 444 — Virtual Threads: https://openjdk.org/jeps/444
 - OpenJDK JEP 491 — Synchronize Virtual Threads without Pinning: https://openjdk.org/jeps/491
 - JDK 24 `VirtualThreadSchedulerMXBean`: https://docs.oracle.com/en/java/javase/24/docs/api/jdk.management/jdk/management/VirtualThreadSchedulerMXBean.html
 
-**Nguyên tắc kết luận:** xác định vị trí chờ, giới hạn thực và phép thử xác nhận; số virtual thread lớn hoặc latency cao chỉ là triệu chứng, không phải tên nguyên nhân.
+**Concluding principle:** pinpoint where tasks wait, identify the real resource bound, and run a confirming experiment; high virtual thread counts or high latency are symptoms, not root-cause names.

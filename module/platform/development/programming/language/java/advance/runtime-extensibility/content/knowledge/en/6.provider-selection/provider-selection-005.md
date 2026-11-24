@@ -1,16 +1,16 @@
-# Tách kiểm tra mô tả nhẹ khỏi khởi tạo provider tốn tài nguyên
+# Separating Lightweight Metadata Inspection from Expensive Provider Initialization
 
-## 1. Bài toán khi chọn provider
+## 1. The Problem When Selecting Providers
 
-Trong kiến trúc plugin, một host thường phát hiện nhiều **provider** (lớp triển khai hợp đồng mở rộng), nhưng chỉ cần sử dụng một hoặc một số ít. Nếu host tạo tất cả đối tượng chỉ để hỏi chúng có phù hợp hay không, quá trình khám phá có thể vô tình:
+In a plugin architecture, a host often discovers many **providers** (classes implementing an extension contract), yet only needs to use one or a few. If the host instantiates every object just to ask whether it fits, discovery can inadvertently:
 
-- Kết nối mạng hoặc cơ sở dữ liệu trong constructor.
-- Khởi tạo native library, thread pool, cache hoặc đọc cấu hình lớn.
-- Gây hiệu ứng phụ trước khi người dùng chọn chức năng.
-- Làm chậm khởi động hoặc thất bại vì một plugin không được chọn.
-- Khó thu hồi tài nguyên đã cấp phát cho các provider bị bỏ qua.
+- Open network or database connections inside constructors.
+- Initialize native libraries, thread pools, caches, or read large configurations.
+- Trigger side effects before the user selects a feature.
+- Slow down startup or fail because of an unselected plugin.
+- Make it hard to reclaim resources allocated for skipped providers.
 
-Ví dụ sai về thời điểm khởi tạo:
+Wrong instantiation-timing example:
 
 \`\`\`java
 for (MessageProvider provider : ServiceLoader.load(MessageProvider.class)) {
@@ -20,30 +20,30 @@ for (MessageProvider provider : ServiceLoader.load(MessageProvider.class)) {
 }
 \`\`\`
 
-Vòng lặp này gọi \`iterator()\` của \`ServiceLoader\` và yêu cầu các **instance**. Để đến provider phù hợp, nó có thể tạo mọi provider nằm trước trong thứ tự duyệt. Nếu constructor có chi phí đáng kể, chỉ riêng bước kiểm tra \`id()\` đã tạo ra phần việc không cần thiết.
+This loop calls \`ServiceLoader\`'s \`iterator()\` and requests **instances**. To reach the matching provider, it may instantiate every provider preceding it in iteration order. If constructors are costly, checking \`id()\` alone creates unnecessary work.
 
-Mục tiêu: tách **discovery và kiểm tra mô tả nhẹ** khỏi **activation và cấp phát tài nguyên**. Host nên lựa chọn dựa trên thông tin không cần đối tượng đầy đủ, sau đó chỉ khởi tạo provider trúng tuyển khi thật sự cần.
+Goal: separate **discovery and lightweight metadata inspection** from **activation and resource allocation**. The host should select based on information that does not require a full object, and instantiate only the winning provider when truly needed.
 
-## 2. Ba lớp hoạt động cần phân biệt
+## 2. Three Layers of Activity to Distinguish
 
-| Giai đoạn | Việc cần làm | Có nên tạo provider thật? |
+| Phase | Work to perform | Should real providers be instantiated? |
 |---|---|---|
-| **Discovery** | Tìm những provider đã đăng ký trong JAR/module, lấy tên lớp hoặc thông tin nhà cung cấp | Chưa |
-| **Selection** | Kiểm tra metadata: ID, loại chức năng, version, capability, priority, policy | Thường chưa |
-| **Activation** | Tạo instance, nạp config, mở kết nối, thực thi công việc, giải phóng tài nguyên đúng vòng đời | Có, với provider được chọn |
+| **Discovery** | Find providers registered in JARs/modules, obtain class names or supplier info | Not yet |
+| **Selection** | Inspect metadata: ID, feature type, version, capability, priority, policy | Usually not |
+| **Activation** | Create instance, load config, open connections, execute work, release resources per lifecycle | Yes, for the selected provider |
 
-Không phải mọi metadata đều có sẵn từ Java SPI. \`META-INF/services\` theo classpath chỉ ghi tên lớp provider; nó **không** có sẵn trường \`id\`, \`priority\` hoặc \`capabilities\`. Muốn chọn theo những tiêu chí ấy trước khi tạo instance, host và tác giả plugin phải thống nhất một cách mô tả: annotation có retention runtime, manifest/descriptor riêng, registry, hoặc module descriptor và quy tắc nhận diện kiểu.
+Not all metadata is built into Java SPI. Classpath \`META-INF/services\` only lists provider class names; it does **not** inherently provide fields like \`id\`, \`priority\`, or \`capabilities\`. To select on those criteria before instantiation, the host and plugin authors must agree on a description mechanism: runtime-retained annotations, dedicated manifests/descriptors, registries, or module descriptors and type-identification rules.
 
-Cần phân biệt thêm: **không khởi tạo instance** không đồng nghĩa **không tải hoặc không kiểm tra class**. Việc khám phá và truy cập metadata có thể gây class loading/linkage, xử lý module configuration hoặc lỗi provider; vì vậy vẫn cần xử lý lỗi ở giai đoạn khám phá.
+One further distinction: **not instantiating** does not mean **not loading or verifying classes**. Discovery and metadata access can still trigger class loading/linkage, module configuration processing, or provider errors; therefore, error handling is still required during discovery.
 
-## 3. Cơ chế Java 9+: ServiceLoader.Provider
+## 3. Java 9+ Mechanism: ServiceLoader.Provider
 
-Từ Java 9, \`ServiceLoader.stream()\` trả về các phần tử \`ServiceLoader.Provider<S>\`, cho phép:
+Since Java 9, \`ServiceLoader.stream()\` returns \`ServiceLoader.Provider<S>\` elements, enabling:
 
-- \`Provider.type()\`: hỏi kiểu provider (đối tượng \`Class\`) để xem annotation hoặc tên lớp.
-- \`Provider.get()\`: yêu cầu một provider instance khi đã chọn.
+- \`Provider.type()\`: inspect the provider type (\`Class\` object) to check annotations or class name.
+- \`Provider.get()\`: request a provider instance once selected.
 
-Ví dụ:
+Example:
 
 \`\`\`java
 ServiceLoader<MyService> loader = ServiceLoader.load(MyService.class);
@@ -55,11 +55,11 @@ MyService selected = loader.stream()
     .get();
 \`\`\`
 
-Điểm khác biệt so với \`for (MyService instance : loader)\` là quá trình lọc theo \`type()\` không gọi \`get()\` cho các provider bị bỏ qua. **Lưu ý:** \`get()\` là điểm yêu cầu instance; \`ServiceLoader\` có thể cache những instance nó đã tạo trong các lần duyệt tùy cách dùng, nên đừng mặc định mỗi \`get()\` luôn sinh đối tượng mới. Khi làm việc với provider factory của module, \`type()\` có thể mô tả kiểu trả về từ factory; annotation và quy tắc metadata phải tương thích loại provider mà ứng dụng hỗ trợ.
+The difference from \`for (MyService instance : loader)\` is that filtering via \`type()\` does not call \`get()\` for skipped providers. **Note:** \`get()\` is the point where an instance is requested; \`ServiceLoader\` may cache instances it has created across traversals depending on usage, so do not assume every \`get()\` always creates a new object. When working with module provider factories, \`type()\` may describe the factory's return type; annotations and metadata rules must match the provider style the application supports.
 
-### Metadata qua annotation
+### Metadata via Annotations
 
-Định nghĩa annotation:
+Define the annotation:
 
 \`\`\`java
 package example.api;
@@ -75,22 +75,22 @@ public @interface PluginInfo {
 }
 \`\`\`
 
-Đặt annotation lên lớp implementation:
+Place the annotation on the implementation class:
 
 \`\`\`java
 @PluginInfo(id = "uppercase", category = "text", priority = 10)
 public final class UppercaseProvider implements TextProvider {
-    // Chỉ khởi tạo các tài nguyên cần thiết khi provider được sử dụng.
+    // Only initialize required resources when the provider is used.
 }
 \`\`\`
 
-Host có thể đọc \`p.type().getAnnotation(PluginInfo.class)\` trong bước selection. Annotation phải có \`RUNTIME\` retention; nếu dùng \`SOURCE\` hoặc \`CLASS\`, reflection runtime không tìm được. Metadata annotation là thông tin từ mã plugin nên không được mặc nhiên tin cậy: host phải xác thực giá trị và kiểm soát chính sách chọn.
+The host can read \`p.type().getAnnotation(PluginInfo.class)\` during selection. The annotation must have \`RUNTIME\` retention; if \`SOURCE\` or \`CLASS\` is used, runtime reflection cannot find it. Annotation metadata comes from plugin code and must not be trusted blindly: the host must validate values and enforce the selection policy.
 
-## 4. Ví dụ hoàn chỉnh, chạy trên Java 17+
+## 4. Complete Example, Runnable on Java 17+
 
-Ví dụ sau đặt tất cả class trong **một tệp** \`Demo.java\` để dễ biên dịch, đồng thời dùng file SPI riêng. Trong ứng dụng thực, hợp đồng nằm ở API JAR, host và các implementation ở các JAR riêng; nguyên lý selection không đổi.
+The following example places all classes in **a single file** \`Demo.java\` for easy compilation, while using a separate SPI file. In a real application, the contract lives in an API JAR, and the host and implementations live in separate JARs; the selection principle stays the same.
 
-Cấu trúc:
+Structure:
 
 \`\`\`text
 demo/
@@ -100,7 +100,7 @@ demo/
         └── Demo$TextProvider
 \`\`\`
 
-### Mã nguồn Demo.java
+### Source Code Demo.java
 
 \`\`\`java
 import java.lang.annotation.Retention;
@@ -171,23 +171,23 @@ public class Demo {
 }
 \`\`\`
 
-Tệp \`META-INF/services/Demo$TextProvider\` chứa hai dòng:
+The \`META-INF/services/Demo$TextProvider\` file contains two lines:
 
 \`\`\`text
 Demo$LowercaseProvider
 Demo$UppercaseProvider
 \`\`\`
 
-Vì các class lồng nhau là \`public static\`, chúng có tên binary chứa ký hiệu \`$\`. Tên file service descriptor cũng phải là **binary name** của service interface, tức \`Demo$TextProvider\`; không dùng tên viết kiểu source \`Demo.TextProvider\`.
+Because the nested classes are \`public static\`, their binary names contain the \`$\` symbol. The service descriptor filename must also be the **binary name** of the service interface, namely \`Demo$TextProvider\`; do not use the source-style name \`Demo.TextProvider\`.
 
-Biên dịch và chạy từ thư mục \`demo/\`:
+Compile and run from the \`demo/\` directory:
 
 \`\`\`bash
 javac -encoding UTF-8 Demo.java
 java -cp . Demo
 \`\`\`
 
-Kết quả chính xác:
+Exact output:
 
 \`\`\`text
 discovered: 2
@@ -196,9 +196,9 @@ init uppercase
 result: HELLO
 \`\`\`
 
-Điều cần quan sát: không có dòng \`init lowercase\`. Cả hai provider đều đã được phát hiện và đọc annotation, nhưng chỉ provider có \`priority\` cao nhất mới được tạo instance.
+What to observe: there is no \`init lowercase\` line. Both providers were discovered and had their annotations read, but only the provider with the highest \`priority\` was instantiated.
 
-Với ví dụ này, \`Demo.java\` được biên dịch thành nhiều file \`.class\` (gồm các nested classes). Thư mục \`META-INF/services\` là **tài nguyên runtime**, không phải kết quả của \`javac\`; nếu đóng gói thành JAR, phải đưa descriptor vào đúng vị trí. Để xem toàn bộ JAR sau khi đóng gói:
+In this example, \`Demo.java\` compiles into multiple \`.class\` files (including nested classes). The \`META-INF/services\` directory is a **runtime resource**, not an output of \`javac\`; when packaging into a JAR, you must place the descriptor in the right location. To inspect the full JAR after packaging:
 
 \`\`\`bash
 jar --create --file demo.jar \
@@ -212,21 +212,21 @@ jar --list --file demo.jar
 java -cp demo.jar Demo
 \`\`\`
 
-Các lệnh \`jar\` trên dùng cách quote tên file có \`$\` của POSIX shell. Trên Windows, có thể thay phần đóng gói bằng việc đặt class và descriptor trong một thư mục staging rồi chạy \`jar --create --file demo.jar -C staging .\`, đảm bảo staging chứa đúng các file được liệt kê.
+The \`jar\` commands above use POSIX shell quoting for filenames containing \`$\`. On Windows, you can replace packaging by putting the class files and descriptor into a staging directory and running \`jar --create --file demo.jar -C staging .\`, ensuring staging contains the exact listed files.
 
-## 5. Khi nào metadata thực sự “nhẹ”?
+## 5. When Is Metadata Truly “Lightweight”?
 
-Đọc annotation qua reflection thường rẻ hơn khởi tạo provider có kết nối ngoài, nhưng vẫn có chi phí nạp lớp, tra cứu annotation và dependency của kiểu class. Để tối ưu, chọn mức phù hợp:
+Reading annotations via reflection is usually cheaper than instantiating a provider with external connections, yet it still incurs class loading, annotation lookup, and class type-dependency costs. To optimize, choose the right level:
 
-| Cách mô tả | Ưu điểm | Giới hạn |
+| Description approach | Advantages | Limitations |
 |---|---|---|
-| \`Provider.type()\` + annotation | Không tạo instance, gắn metadata sát implementation | Có class loading/reflection; cần kiểm soát tương thích |
-| Descriptor độc lập (JSON/YAML/properties) | Có thể đọc mô tả trước khi nạp lớp plugin | Cần schema, versioning, validation, tránh metadata lỗi thời |
-| Registry được build sinh ra | Tra cứu ID/capability nhanh, thuận tiện kiểm tra trước | Cần pipeline đảm bảo đồng bộ metadata và class |
-| Provider factory nhẹ | Cho phép lựa chọn factory trước khi tạo sản phẩm nặng | Bản thân factory/provider của SPI vẫn có thể được khởi tạo |
-| Khởi tạo mọi provider rồi hỏi \`id()\` | API đơn giản | Tốn tài nguyên, hiệu ứng phụ và nguy cơ thất bại không cần thiết |
+| \`Provider.type()\` + annotation | Avoids instantiation, keeps metadata close to implementation | Involves class loading/reflection; compatibility must be controlled |
+| Standalone descriptor (JSON/YAML/properties) | Can read descriptions before loading plugin classes | Needs schema, versioning, validation, and avoiding stale metadata |
+| Build-generated registry | Fast ID/capability lookup, convenient pre-validation | Needs a pipeline ensuring metadata and classes stay in sync |
+| Lightweight provider factory | Allows choosing a factory before creating heavy products | The SPI factory/provider itself may still be instantiated |
+| Instantiate every provider then ask \`id()\` | Simple API | Wastes resources, causes side effects, and risks unnecessary failures |
 
-Nếu ứng dụng có hàng trăm plugin, metadata độc lập có thể cho phép hiển thị danh sách mà chưa kích hoạt class loader của plugin. Một file minh họa:
+If an application has hundreds of plugins, standalone metadata can allow displaying a list without triggering plugin class loaders. An illustrative file:
 
 \`\`\`properties
 plugin.id=uppercase
@@ -236,11 +236,11 @@ plugin.implementation=example.plugin.UppercaseProvider
 plugin.apiVersion=1
 \`\`\`
 
-Đây là **định dạng do ứng dụng tự quy ước**, không phải chuẩn Java SPI. Host phải kiểm tra tính duy nhất của ID, giá trị \`priority\`, phiên bản API, tên implementation, tính nhất quán giữa descriptor và thực tế, và nguồn cung cấp plugin trước khi quyết định kích hoạt.
+This is an **application-defined convention**, not a Java SPI standard. The host must validate ID uniqueness, \`priority\` values, API version, implementation name, consistency between descriptor and reality, and plugin provenance before deciding to activate.
 
-## 6. Đừng nhầm chọn provider với khởi tạo tài nguyên
+## 6. Do Not Confuse Provider Selection with Resource Initialization
 
-Ngay cả khi \`Provider.get()\` tạo instance, không nhất thiết constructor phải mở mọi tài nguyên. Một thiết kế dễ bảo trì là constructor chỉ nhận cấu hình và dependency; activation thực sự có phương thức vòng đời rõ ràng:
+Even when \`Provider.get()\` creates an instance, the constructor does not have to open all resources. A maintainable design lets the constructor accept only configuration and dependencies; actual activation uses explicit lifecycle methods:
 
 \`\`\`java
 public interface ManagedPlugin extends AutoCloseable {
@@ -250,21 +250,21 @@ public interface ManagedPlugin extends AutoCloseable {
 }
 \`\`\`
 
-Đoạn trên là **một hợp đồng minh họa**, không phải chương trình chạy độc lập. Host chọn implementation bằng metadata, gọi \`get()\`, rồi \`start()\` đúng thời điểm. Khi kết thúc, host gọi \`close()\` trong \`finally\` hoặc dùng \`try-with-resources\` nếu vòng đời thích hợp. Constructor nên tránh kết nối cơ sở dữ liệu hay khởi chạy thread nếu chưa cần; \`start()\` nên rõ lỗi, còn \`close()\` phải giải phóng tài nguyên đã tạo, kể cả activation thất bại một phần.
+The snippet above is **an illustrative contract**, not a standalone runnable program. The host selects an implementation via metadata, calls \`get()\`, and then calls \`start()\` at the right time. Upon completion, the host calls \`close()\` in \`finally\` or uses \`try-with-resources\` if the lifecycle fits. Constructors should avoid opening database connections or starting threads prematurely; \`start()\` should fail clearly, and \`close()\` must release allocated resources even on partial activation failure.
 
-Khi provider quản lý kết nối đắt tiền hoặc state không thread-safe, cần xác định ai sở hữu đối tượng, có reuse hay không, liệu truy cập đồng thời có hợp lệ, và khi nào dừng. \`ServiceLoader\` không thay thế cơ chế lifecycle management.
+When providers manage expensive connections or non-thread-safe state, define who owns the object, whether it is reused, whether concurrent access is valid, and when it stops. \`ServiceLoader\` does not replace lifecycle management.
 
-## 7. Quy tắc lựa chọn để kết quả ổn định
+## 7. Selection Rules for Deterministic Outcomes
 
-Ví dụ dùng \`max(priority)\` ở trên đủ khi priority khác nhau, nhưng hệ thống thật cần quy tắc khi trùng priority:
+Using \`max(priority)\` above suffices when priorities differ, but real systems need rules for equal priorities:
 
-1. **Lọc capability và compatibility**: loại provider sai loại, thiếu tính năng hoặc không hợp phiên bản API/runtime.
-2. **Áp dụng policy**: danh sách allow/deny, quyền truy cập hoặc cấu hình của host.
-3. **Xếp hạng rõ ràng**: so sánh priority, sau đó dùng ID duy nhất làm tie-breaker. Không coi thứ tự khám phá của \`ServiceLoader\` là ý nghĩa nghiệp vụ.
-4. **Chỉ activate provider được chọn**: yêu cầu \`get()\` sau khi lựa chọn; nếu lỗi thì ghi log nguyên nhân và áp dụng chính sách fallback rõ ràng.
-5. **Quan sát được**: log ID, phiên bản, nguyên nhân được chọn/từ chối và thời gian activation, tránh log bí mật.
+1. **Filter capabilities and compatibility**: exclude providers of the wrong category, missing features, or incompatible API/runtime versions.
+2. **Apply policy**: allow/deny lists, permissions, or host configuration.
+3. **Rank explicitly**: compare priority, then use unique ID as a tie-breaker. Do not treat \`ServiceLoader\` discovery order as business semantics.
+4. **Activate only the selected provider**: call \`get()\` after selection; on error, log the cause and apply an explicit fallback policy.
+5. **Observability**: log ID, version, selection/rejection reason, and activation duration, avoiding logging secrets.
 
-Chẳng hạn, host có thể sắp xếp priority giảm dần rồi ID tăng dần để tie-break:
+For example, the host can sort by descending priority and then ascending ID as a tie-breaker:
 
 \`\`\`java
 Comparator<ServiceLoader.Provider<TextProvider>> ranking =
@@ -275,34 +275,34 @@ Comparator<ServiceLoader.Provider<TextProvider>> ranking =
             p -> p.type().getAnnotation(PluginInfo.class).id());
 \`\`\`
 
-Đây là đoạn **minh họa đặt trong ngữ cảnh của Demo.java**, không phải source độc lập. Sau khi sắp xếp \`candidates.stream().sorted(ranking).findFirst()\`, host nhận provider có priority cao nhất; nếu bằng nhau, chọn ID đứng trước theo thứ tự từ điển. Khi metadata từ plugin chưa tin cậy, cần kiểm tra annotation có tồn tại và hợp lệ trước khi chạy comparator để tránh lỗi bất ngờ.
+This is an **illustrative snippet in the context of Demo.java**, not standalone source. After sorting \`candidates.stream().sorted(ranking).findFirst()\`, the host gets the highest-priority provider; on a tie, it picks the lexicographically first ID. When metadata comes from untrusted plugins, check that the annotation exists and is valid before running the comparator to avoid unexpected errors.
 
-## 8. Lỗi thường gặp và cách xử lý
+## 8. Common Errors and How to Handle Them
 
-| Lỗi | Nguyên nhân | Cách khắc phục |
+| Error | Cause | Fix |
 |---|---|---|
-| Provider không được tìm thấy | Thiếu file \`META-INF/services\`, sai binary name, plugin JAR không ở class path/module layer | Kiểm tra descriptor, JAR và class loader |
-| Provider bị khởi tạo khi mới lọc | Duyệt trực tiếp \`ServiceLoader<T>\` lấy instance rồi gọi \`id()\` | Duyệt \`loader.stream()\`, đọc metadata qua \`Provider.type()\` |
-| \`getAnnotation(...)\` trả \`null\` | Annotation thiếu \`RUNTIME\` retention hoặc provider class không có annotation | Khai báo retention đúng và kiểm tra \`null\` |
-| Provider lỗi dù chưa gọi \`get()\` | Class loading, linkage, cấu hình SPI hoặc metadata có lỗi | Bắt và xử lý lỗi khám phá/validation; không giả định discovery là miễn phí |
-| Không chọn đúng provider khi bằng priority | Dựa vào thứ tự duyệt không có contract nghiệp vụ | Sắp xếp có tie-break ổn định |
-| Descriptor nói một đằng, class làm một nẻo | Metadata được viết thủ công, thiếu đồng bộ | Validate lúc build và lúc load, dùng schema/version rõ ràng |
-| Phí khởi tạo vẫn cao | Constructor làm việc nặng ngay khi gọi \`get()\` | Phân tách constructor và \`start()\`; quản lý lifecycle riêng |
-| Plugin bị lặp/hỏng API | Host và plugin nhìn thấy các bản contract khác nhau | Chia sẻ đúng API JAR, kiểm soát class loader và compatibility |
+| Provider not found | Missing \`META-INF/services\` file, wrong binary name, plugin JAR not on classpath/module layer | Check descriptor, JAR, and class loader |
+| Provider instantiated during filtering | Iterating \`ServiceLoader<T>\` directly to get instances and calling \`id()\` | Iterate \`loader.stream()\`, read metadata via \`Provider.type()\` |
+| \`getAnnotation(...)\` returns \`null\` | Annotation lacks \`RUNTIME\` retention or provider class lacks annotation | Declare proper retention and check for \`null\` |
+| Provider fails even before calling \`get()\` | Class loading, linkage, SPI config, or metadata error | Catch and handle discovery/validation errors; do not assume discovery is free |
+| Wrong provider chosen on equal priority | Relying on iteration order without a business contract | Sort with a stable tie-breaker |
+| Descriptor says one thing, class does another | Metadata written manually without synchronization | Validate at build time and load time, use explicit schema/version |
+| Initialization cost remains high | Constructor does heavy work immediately when \`get()\` is called | Separate constructor from \`start()\`; manage lifecycle separately |
+| Duplicated/broken plugin API | Host and plugin see different versions of the contract | Share the API JAR properly, control class loaders and compatibility |
 
-## 9. Kiểm thử đúng hai giai đoạn
+## 9. Properly Testing Both Phases
 
-Một bộ kiểm thử tối thiểu nên xác nhận:
+A minimal test suite should verify:
 
-- **Discovery không activation**: khi chỉ gọi \`stream()\`, \`type()\`, đọc annotation và chọn, constructor của provider không được chọn chưa chạy.
-- **Activation chính xác**: chỉ gọi \`get()\` của provider đã chọn; thực thi kết quả đúng và kiểm tra resource lifecycle.
-- **Không có provider phù hợp**: host trả lỗi có ngữ nghĩa hoặc fallback đã định, không tự khởi tạo tất cả.
-- **Metadata bất hợp lệ**: thiếu annotation, trùng ID, priority không hợp lệ, version không tương thích.
-- **Provider lỗi**: lỗi SPI (\`ServiceConfigurationError\`) và lỗi khởi tạo/activation không làm host mất khả năng chẩn đoán.
-- **Nhiều provider**: selection lặp lại cho kết quả ổn định theo quy tắc đã công bố; không phụ thuộc thứ tự JAR.
+- **Discovery without activation**: when calling only \`stream()\`, \`type()\`, reading annotations, and selecting, constructors of unselected providers have not run.
+- **Exact activation**: only \`get()\` of the selected provider is called; execution produces the right result and resource lifecycle is verified.
+- **No matching provider**: the host returns a semantic error or defined fallback without instantiating all providers.
+- **Invalid metadata**: missing annotations, duplicate IDs, invalid priority, incompatible version.
+- **Failing providers**: SPI errors (\`ServiceConfigurationError\`) and initialization/activation errors do not blind the host's diagnostics.
+- **Multiple providers**: repeated selection yields deterministic results per the published rules, independent of JAR order.
 
-Có thể đo thời gian discovery và activation riêng (ví dụ \`System.nanoTime()\`) để phát hiện constructor gây chậm. Khi benchmark, nên warm up JVM và phân biệt chi phí lần đầu class loading với chi phí thường xuyên; đo một lần không đủ để kết luận hiệu năng.
+You can time discovery and activation separately (for example via \`System.nanoTime()\`) to catch slow constructors. When benchmarking, warm up the JVM and distinguish first-time class loading cost from steady-state cost; a single measurement is insufficient to draw performance conclusions.
 
-## 10. Tổng kết thiết kế
+## 10. Design Summary
 
-Trong hệ thống runtime extensibility, **metadata phục vụ việc quyết định**, còn **instance phục vụ việc thực thi**. Bước quyết định nên càng ít tác dụng phụ càng tốt; bước thực thi nên có quản lý vòng đời, lỗi và tài nguyên rõ ràng. Trên Java 17+, \`ServiceLoader.Provider.type()\` giúp lọc bằng kiểu/annotation trước khi gọi \`get()\`, miễn là metadata phù hợp và host xử lý được giới hạn của discovery. Nếu cần duyệt catalog plugin rất lớn mà không muốn nạp class, hãy tách metadata thành descriptor ngoài class và chỉ load provider sau khi đã quyết định.
+In a runtime extensibility system, **metadata serves decision-making**, while **instances serve execution**. The decision step should have as few side effects as possible; the execution step should have explicit lifecycle, error, and resource management. On Java 17+, \`ServiceLoader.Provider.type()\` helps filter by type/annotation before calling \`get()\`, provided the metadata fits and the host handles discovery limitations. If you must browse a very large plugin catalog without loading classes, extract metadata into external descriptors and load providers only after selection.

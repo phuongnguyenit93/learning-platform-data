@@ -1,0 +1,97 @@
+menu:
+- title: Mô hình tư duy
+  slug: jmx-mental-model
+  index: 0
+- title: JMX nền tảng
+  slug: jmx-fundamentals
+  index: 1
+- title: MBeanServer
+  slug: jmx-mbean-server
+  index: 2
+- title: ObjectName
+  slug: jmx-object-name
+  index: 3
+- title: MBean giao diện
+  slug: jmx-interface-mbeans
+  index: 4
+- title: Notification
+  slug: jmx-notification
+  index: 5
+- title: Công cụ JMX
+  slug: jmx-tools
+  index: 6
+- title: Exporting trong Spring
+  slug: jmx-spring-exporting
+  index: 7
+- title: AnnotationMBeanExporter
+  slug: jmx-annotation-mbean-exporter
+  index: 8
+- title: ManagedResource
+  slug: jmx-managed-resource
+  index: 9
+- title: ManagedAttribute
+  slug: jmx-managed-attribute
+  index: 10
+- title: ManagedOperation
+  slug: jmx-managed-operation
+  index: 11
+- title: Management interface
+  slug: jmx-management-interface
+  index: 12
+- title: Naming strategy
+  slug: jmx-naming-strategy
+  index: 13
+- title: Autodetection
+  slug: jmx-autodetection
+  index: 14
+- title: Registration policy
+  slug: jmx-registration-policy
+  index: 15
+- title: MBeanServer tùy biến
+  slug: jmx-custom-mbean-server
+  index: 16
+- title: Proxy MBean local
+  slug: jmx-local-mbean-proxy
+  index: 17
+- title: Remote connector
+  slug: jmx-remote-connector
+  index: 18
+- title: Spring configuration
+  slug: jmx-spring-configuration
+  index: 19
+- title: Spring Boot integration
+  slug: jmx-spring-boot-integration
+  index: 20
+- title: JMX và AOP
+  slug: jmx-aop
+  index: 21
+- title: Notification trong Spring
+  slug: jmx-spring-notifications
+  index: 22
+- title: Security và vận hành
+  slug: jmx-security-operations
+  index: 23
+- title: Hiệu năng và ổn định
+  slug: jmx-performance-stability
+  index: 24
+- title: Kiểm thử
+  slug: jmx-testing
+  index: 25
+- title: Chẩn đoán sự cố
+  slug: jmx-troubleshooting
+  index: 26
+- title: Thiết kế management API
+  slug: jmx-management-api-design
+  index: 27
+- title: Tiến hóa và tương thích
+  slug: jmx-evolution-compatibility
+  index: 28
+- title: Quan sát và tự động hóa
+  slug: jmx-observability-automation
+  index: 29
+- title: Thực hành
+  slug: jmx-practice
+  index: 30
+- title: Đánh giá thiết kế
+  slug: jmx-design-review
+  index: 31

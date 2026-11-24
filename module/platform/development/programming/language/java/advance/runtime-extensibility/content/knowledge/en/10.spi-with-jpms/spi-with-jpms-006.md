@@ -1,13 +1,13 @@
-# Giới hạn phương thức provider đối với module tự động và classpath
+# Provider Method Limitations for Automatic Modules and Classpath
 
-## 1. Vấn đề cần phân biệt
+## 1. The Distinction to Make
 
-Trong Java Platform Module System (JPMS), ServiceLoader có thể tìm dịch vụ (service) và tạo các đối tượng cung cấp dịch vụ (service providers) từ nhiều cách đóng gói khác nhau. Một điểm dễ nhầm là **public static provider()**: phương thức này có thể được ServiceLoader gọi để tạo service trong **explicit named module**, nhưng **không được ServiceLoader hỗ trợ như cơ chế provider factory cho automatic module hoặc provider trên classpath**.
+In the Java Platform Module System (JPMS), `ServiceLoader` can locate services and create service provider objects across multiple packaging formats. A common source of confusion is **`public static provider()`**: this method can be invoked by `ServiceLoader` to create a service in an **explicit named module**, yet it is **not supported by `ServiceLoader` as a provider factory mechanism for automatic modules or providers on the classpath**.
 
-Xem hai kiểu provider:
+Consider two provider styles:
 
 ~~~java
-// Mảnh minh họa: Greeter là interface service.
+// Illustrative snippet: Greeter is the service interface.
 public final class DirectGreeter implements Greeter {
     public DirectGreeter() { }
     @Override public String greet() { return "direct"; }
@@ -15,7 +15,7 @@ public final class DirectGreeter implements Greeter {
 ~~~
 
 ~~~java
-// Mảnh minh họa: FactoryGreeter không implements Greeter.
+// Illustrative snippet: FactoryGreeter does not implement Greeter.
 public final class FactoryGreeter {
     private FactoryGreeter() { }
     public static Greeter provider() {
@@ -24,49 +24,49 @@ public final class FactoryGreeter {
 }
 ~~~
 
-Class thứ nhất được tạo bằng **public constructor không tham số**. Class thứ hai có **public static provider()** không tham số trả về Greeter, nên có thể được liệt kê trong **provides ... with ...** của một explicit named module dù bản thân FactoryGreeter không implements Greeter. Nếu chỉ ghi FactoryGreeter vào tệp **META-INF/services** trên classpath hoặc đặt JAR legacy chứa đăng ký ấy vào module path dưới dạng automatic module, ServiceLoader **không chuyển sang gọi provider()**; nó yêu cầu provider class tương thích trực tiếp với service và có provider constructor.
+The first class is instantiated via a **public no-arg constructor**. The second class has a no-arg **`public static provider()`** returning `Greeter`, so it can be listed in **`provides ... with ...`** of an explicit named module even though `FactoryGreeter` itself does not implement `Greeter`. However, if you simply write `FactoryGreeter` into a **`META-INF/services`** file on the classpath, or place a legacy JAR containing that registration on the module path as an automatic module, `ServiceLoader` **will not switch to calling `provider()`**; it requires a provider class directly compatible with the service that has a provider constructor.
 
-Đây là quy tắc về **cơ chế triển khai provider**, khác với việc một ứng dụng có thể tự gọi bất kỳ static factory method nào qua Java code thông thường. Sự tồn tại của phương thức tên provider() không tự làm ServiceLoader công nhận nó ở mọi chế độ.
+This is a rule about **provider deployment mechanisms**, separate from the fact that an application can call any static factory method directly through normal Java code. Merely having a method named `provider()` does not make `ServiceLoader` recognize it in every mode.
 
-Bài học giải thích ba môi trường triển khai, đường đăng ký provider, hành vi thực tế của ServiceLoader, ví dụ Java 17 chạy được và cách thiết kế SPI tương thích khi chuyển từ classpath sang JPMS.
+This lesson explains the three deployment environments, provider registration paths, actual `ServiceLoader` behavior, a runnable Java 17 example, and how to design a compatible SPI when migrating from the classpath to JPMS.
 
-## 2. Ba môi trường triển khai không giống nhau
+## 2. Three Deployment Environments Are Not Identical
 
-| Môi trường | JAR/module được nhận diện thế nào? | Khai báo provider cho ServiceLoader | Cơ chế lấy instance được hỗ trợ |
+| Environment | How Is the JAR/Module Identified? | Provider Declaration for ServiceLoader | Supported Instantiation Mechanism |
 |---|---|---|---|
-| **Classpath / unnamed module** | Class nằm trên classpath, thuộc unnamed module của class loader | Tệp **META-INF/services/<tên.binary.của.Service>** | Provider class phải gán được cho service và có **public no-arg constructor** |
-| **Automatic module** | JAR **không có module-info.class**, được đặt trên **module path** và được resolve thành named module tự động | Các tệp **META-INF/services** có thể được ánh xạ thành thông tin provides trong module descriptor suy ra | Cũng phải có **provider constructor**; **không hỗ trợ provider method** |
-| **Explicit named module** | Module có **module-info.class** với module descriptor tường minh | Chỉ thị **provides Service with ProviderClass** trong **module-info.java** | **Public static provider()** không tham số trả kiểu service hợp lệ, **hoặc** nếu không có provider method thì dùng public no-arg constructor |
+| **Classpath / unnamed module** | Classes reside on the classpath, belonging to the class loader's unnamed module | File **`META-INF/services/<binary.name.of.Service>`** | Provider class must be assignable to the service and have a **public no-arg constructor** |
+| **Automatic module** | JAR **without `module-info.class`**, placed on the **module path** and resolved as an automatic named module | **`META-INF/services`** files can be mapped into `provides` entries in the derived module descriptor | Must also have a **provider constructor**; **provider method is not supported** |
+| **Explicit named module** | Module has **`module-info.class`** with an explicit module descriptor | **`provides Service with ProviderClass`** directive in **`module-info.java`** | No-arg **`public static provider()`** returning a valid service type, **or** if no provider method exists, a public no-arg constructor |
 
-**Nhớ hai trục độc lập:**
+**Remember two independent axes:**
 
-1. **Đặt JAR ở đâu?** Classpath đưa class vào unnamed module; module path có thể đưa JAR legacy thành automatic module nếu được resolve; một modular JAR có module-info.class là explicit named module.
-2. **ServiceLoader tạo instance bằng gì?** Classpath và automatic module dùng **constructor route**; explicit named module có thể dùng **provider-method route**.
+1. **Where is the JAR placed?** The classpath puts classes in an unnamed module; the module path can turn a legacy JAR into an automatic module if resolved; a modular JAR with `module-info.class` is an explicit named module.
+2. **How does `ServiceLoader` create instances?** Classpath and automatic modules use the **constructor route**; explicit named modules can use the **provider-method route**.
 
-Automatic module là **named module**, nhưng không phải **explicit named module**. Nó được tạo để hỗ trợ dịch chuyển thư viện legacy lên module path. Tính chất named module, tên module được suy ra hoặc gán qua manifest **Automatic-Module-Name**, và việc ServiceLoader đọc service metadata không làm automatic module có quyền sử dụng provider factory method.
+An automatic module is a **named module**, but it is not an **explicit named module**. It exists to ease migrating legacy libraries onto the module path. Being a named module, having a module name derived or set via the **`Automatic-Module-Name`** manifest attribute, and having `ServiceLoader` read service metadata do not grant an automatic module the right to use a provider factory method.
 
-Ví dụ file **greeter-plugin.jar** không có module-info.class:
+Example with **`greeter-plugin.jar`** lacking `module-info.class`:
 
 ~~~text
 java -cp greeter-plugin.jar ...
     -> classpath / unnamed module
 
 java --module-path greeter-plugin.jar --add-modules greeter.plugin ...
-    -> automatic module tên greeter.plugin
+    -> automatic module named greeter.plugin
 
-# Khi đóng gói module-info.class chứa provides:
+# When packaged with module-info.class containing provides:
 java --module-path mods --add-modules greeter.plugin ...
     -> explicit named module
 ~~~
 
-Các dòng trên chỉ minh họa các chế độ; chương trình chạy đầy đủ nằm ở phần 6.
+The lines above only illustrate the modes; the full runnable program is in Section 6.
 
-## 3. Quy tắc ServiceLoader đối với explicit named module
+## 3. `ServiceLoader` Rules for Explicit Named Modules
 
-Một module khai báo:
+Suppose a module declares:
 
 ~~~java
-// module-info.java: mảnh minh họa
+// module-info.java: illustrative snippet
 module greeting.plugin {
     requires greeting.spi;
     provides greeting.spi.Greeter
@@ -74,10 +74,10 @@ module greeting.plugin {
 }
 ~~~
 
-Khi tìm provider, ServiceLoader biết module đã khai báo FactoryGreeter là provider cho Greeter. Class provider trong module có thể cung cấp **phương thức provider**:
+When looking up providers, `ServiceLoader` knows the module declared `FactoryGreeter` as a provider for `Greeter`. The provider class inside the module can supply a **provider method**:
 
 ~~~java
-// Mảnh minh họa: lớp thuộc module greeting.plugin.
+// Illustrative snippet: class in module greeting.plugin.
 package greeting.impl;
 
 import greeting.spi.Greeter;
@@ -91,41 +91,41 @@ public final class FactoryGreeter {
 }
 ~~~
 
-Điều kiện cần nhớ của **provider method**:
+Requirements to remember for a **provider method**:
 
-- Tên phương thức chính xác là **provider**.
-- Phương thức **public static**, **không nhận tham số**.
-- Kiểu trả về được khai báo phải gán được cho **kiểu service**; chẳng hạn Greeter hoặc một subtype của Greeter.
-- Lớp được liệt kê sau **with** là provider class thuộc chính module khai báo. Lớp đó **không bắt buộc implements Greeter**, vì kết quả từ provider() mới là instance của service.
-- Nếu provider class có provider method hợp lệ, ServiceLoader sẽ **gọi provider method** để lấy instance; constructor của provider class không phải con đường tạo service trong trường hợp này.
-- Nếu provider class không có provider method, nó phải là subtype của service và có **public no-arg constructor** để ServiceLoader khởi tạo trực tiếp.
-- Phương thức provider() có thể trả **null** hoặc ném lỗi tại runtime; đây là lỗi cấu hình/tạo service, thường được ServiceLoader báo qua **ServiceConfigurationError**.
+- The method name must be exactly **`provider`**.
+- The method must be **`public static`** and **accept no parameters**.
+- The declared return type must be assignable to the **service type**; for example, `Greeter` or a subtype of `Greeter`.
+- The class listed after **`with`** is a provider class belonging to the declaring module itself. That class **does not have to implement `Greeter`**, because the result returned by `provider()` is the service instance.
+- If the provider class has a valid provider method, `ServiceLoader` will **invoke the provider method** to obtain the instance; the provider class's constructor is not the service creation path in this case.
+- If the provider class has no provider method, it must be a subtype of the service and have a **public no-arg constructor** for `ServiceLoader` to instantiate directly.
+- The `provider()` method may return **`null`** or throw an error at runtime; this is a configuration/service-creation failure, typically reported by `ServiceLoader` via **`ServiceConfigurationError`**.
 
-Có thể biểu diễn hai nhánh:
+The two branches can be illustrated as:
 
 ~~~text
 Explicit named module:
   module-info: provides Greeter with ProviderClass
                          |
                          v
-             ProviderClass có
+             Does ProviderClass have
              public static provider()?
                   /           \
-                Có            Không
+                Yes            No
                 |               |
-      Gọi provider()      Kiểm tra subtype
-      lấy Greeter          và public no-arg ctor
+      Invoke provider()     Check subtype
+      to get Greeter        and public no-arg ctor
                 |               |
              Greeter        new ProviderClass()
 ~~~
 
-**Lưu ý:** Đây là sơ đồ logic của quy tắc; ServiceLoader còn thực hiện các bước khám phá, nạp, kiểm tra module/class và báo lỗi khi cấu hình không hợp lệ.
+**Note:** This is a logic diagram of the rule; `ServiceLoader` also performs discovery, loading, module/class validation, and error reporting when configuration is invalid.
 
-Một static method tên provider() không có nghĩa là toàn bộ static factory pattern bị giới hạn. Ứng dụng vẫn có thể viết **Factory.create(...)** và gọi trực tiếp trong mọi môi trường. Quy tắc chỉ nói về **entry point mà java.util.ServiceLoader tự động sử dụng**.
+A static method named `provider()` does not mean the entire static factory pattern is restricted. Applications can still write **`Factory.create(...)`** and call it directly in any environment. The rule only governs **the entry point that `java.util.ServiceLoader` uses automatically**.
 
-## 4. Tại sao automatic module không dùng provider()?
+## 4. Why Don't Automatic Modules Use `provider()`?
 
-Automatic module được suy ra từ một JAR legacy trên module path, **không có module-info.class tường minh**. Nó có thể chứa:
+An automatic module is derived from a legacy JAR on the module path, **without an explicit `module-info.class`**. It might contain:
 
 ~~~text
 legacy-greeter.jar
@@ -133,47 +133,47 @@ legacy-greeter.jar
 └── META-INF/services/example.spi.Greeter
 ~~~
 
-Trong đó tệp **META-INF/services/example.spi.Greeter** liệt kê:
+Where **`META-INF/services/example.spi.Greeter`** lists:
 
 ~~~text
 example.impl.LegacyGreeter
 ~~~
 
-Khi công cụ module path suy ra descriptor cho automatic module, thông tin trong các tệp services có thể được chuyển thành các **provides** trong descriptor tự động. Tuy nhiên ServiceLoader quy định **automatic-module provider phải có provider constructor**, tức **public constructor không tham số**. Không có nhánh gọi static provider() cho cách triển khai này.
+When the module path tooling derives a descriptor for an automatic module, entries in `services` files can be translated into **`provides`** directives in the derived descriptor. However, `ServiceLoader` specifies that **an automatic-module provider must have a provider constructor**, meaning a **public no-arg constructor**. There is no branch to call `static provider()` in this deployment style.
 
-Vì vậy:
+Therefore:
 
-- Automatic module vẫn được ServiceLoader tìm thông qua thông tin service đã suy ra.
-- Provider class phải **implements/extends service** và phải có **public no-arg constructor**.
-- Nếu provider class chỉ có static provider() mà không implements service hoặc không có constructor hợp lệ, đó không phải provider thích hợp cho automatic module.
-- Đưa JAR legacy lên module path và đặt **Automatic-Module-Name** trong manifest chỉ tạo tên module ổn định hơn, **không biến nó thành explicit named module**, cũng không bật hỗ trợ factory method.
-- Muốn dùng nhánh factory của ServiceLoader, cần cung cấp module descriptor tường minh phù hợp và khai báo **provides ... with ...** cho provider.
+- An automatic module is still discovered by `ServiceLoader` through its derived service metadata.
+- The provider class must **implement/extend the service** and must have a **public no-arg constructor**.
+- If the provider class only has `static provider()` without implementing the service or lacking a valid constructor, it is not a valid provider for an automatic module.
+- Moving a legacy JAR onto the module path and setting **`Automatic-Module-Name`** in the manifest only gives it a more stable module name—it **does not turn it into an explicit named module**, nor does it enable factory method support.
+- To use `ServiceLoader`'s factory branch, you must provide a proper explicit module descriptor and declare **`provides ... with ...`** for the provider.
 
-**Chú ý khác biệt cấu hình:** Với classpath, một service file có thể liệt kê provider nằm ở một JAR khác nếu class loader tìm thấy class. Khi suy ra automatic module, khai báo service trong JAR phải hợp lệ với module được tạo, trong đó provider được liệt kê phải thuộc module tương ứng; dữ liệu service file bị sao chép sai sau khi shading/relocation có thể khiến quá trình suy ra module descriptor thất bại sớm. Kiểm tra nội dung JAR và dùng **jar --describe-module** trước khi dựa vào automatic module.
+**Watch out for a configuration difference:** on the classpath, a service file can list a provider residing in another JAR as long as the class loader finds the class. When deriving an automatic module, service declarations inside the JAR must be valid for the generated module, where listed providers belong to that module; incorrectly copied service file data after shading/relocation can cause module descriptor derivation to fail early. Inspect JAR contents and run **`jar --describe-module`** before relying on an automatic module.
 
-## 5. Tại sao provider trên classpath không dùng provider()?
+## 5. Why Don't Classpath Providers Use `provider()`?
 
-Khi provider nằm trên classpath, ServiceLoader đọc resource theo quy ước:
+When a provider sits on the classpath, `ServiceLoader` reads resources by convention:
 
 ~~~text
 META-INF/services/example.spi.Greeter
 ~~~
 
-Nội dung là các **tên binary class provider** theo từng dòng, ví dụ:
+Its contents are **binary names of provider classes** one per line, for example:
 
 ~~~text
 example.impl.DirectGreeter
 example.impl.AnotherGreeter
 ~~~
 
-Tệp phải được lưu dưới mã hóa **UTF-8**. ServiceLoader nạp class theo tên, kiểm tra class có assignable tới kiểu service và có **public no-arg constructor**, rồi tạo instance khi cần. Nó không đối xử tên trong service file như một class factory có static provider().
+The file must be saved in **UTF-8** encoding. `ServiceLoader` loads each class by name, verifies that it is assignable to the service type and has a **public no-arg constructor**, and instantiates it when needed. It does not treat a name in the service file as a factory class with `static provider()`.
 
-Một class vừa implements Greeter, vừa có public no-arg constructor, vừa tình cờ có public static provider() vẫn có thể là classpath provider hợp lệ; nhưng ServiceLoader **gọi constructor**, không tự chọn method.
+A class that implements `Greeter`, has a public no-arg constructor, and also happens to have `public static provider()` can still be a valid classpath provider; however, `ServiceLoader` **calls the constructor** and does not pick the method.
 
-Đối chiếu:
+Comparison:
 
 ~~~java
-// Mảnh minh họa: cả hai phương thức đều tồn tại.
+// Illustrative snippet: both mechanisms exist.
 public final class DualGreeter implements Greeter {
     public DualGreeter() {
         System.out.println("CONSTRUCTOR");
@@ -191,23 +191,23 @@ public final class DualGreeter implements Greeter {
 }
 ~~~
 
-Trong **classpath/automatic module**, nếu class này đăng ký hợp lệ, ServiceLoader tạo bằng **DualGreeter()**; trong **explicit named module có provides ... with DualGreeter**, ServiceLoader có thể dùng **provider()**. Ví dụ chạy độc lập ở phần 6 kiểm chứng chính sự khác biệt này.
+In a **classpath/automatic module**, if this class is properly registered, `ServiceLoader` instantiates it via **`DualGreeter()`**; in an **explicit named module with `provides ... with DualGreeter`**, `ServiceLoader` can use **`provider()`**. The standalone runnable example in Section 6 verifies this exact difference.
 
-**Không nhầm:** Tệp **META-INF/services** là metadata chỉ ra *lớp provider*. Nó không có cú pháp để chỉ một phương thức hoặc chuyển tham số đến provider(). Đặt tên class bằng hậu tố **#provider** hay viết chuỗi dạng **Class::provider** trong service file không biến nó thành method reference hợp lệ.
+**Do not confuse:** **`META-INF/services`** is metadata identifying a *provider class*. It has no syntax to point to a method or pass parameters to `provider()`. Appending **`#provider`** to a class name or writing **`Class::provider`** in a service file does not make it a valid method reference.
 
-## 6. Ví dụ Java 17 chạy được: cùng một provider, ba cách triển khai
+## 6. Runnable Java 17 Example: Same Provider, Three Deployment Modes
 
-Ví dụ dùng **cùng một interface Greeter**, **cùng class DualGreeter** và **cùng host App** để so sánh:
+This example uses **the same `Greeter` interface**, **the same `DualGreeter` class**, and **the same host `App`** to compare:
 
-1. JAR trên **classpath** → constructor.
-2. JAR legacy trên **module path** thành **automatic module** → constructor.
-3. Provider được biên dịch thành **explicit named module** có **provides ... with ...** → static provider().
+1. JAR on the **classpath** → constructor.
+2. Legacy JAR on the **module path** as an **automatic module** → constructor.
+3. Provider compiled as an **explicit named module** with **`provides ... with ...`** → `static provider()`.
 
-Tất cả output dùng ASCII để kết quả không phụ thuộc encoding của console.
+All output uses ASCII so results do not depend on console encoding.
 
-### 6.1. Cây nguồn
+### 6.1. Source Tree
 
-Tạo cấu trúc:
+Create the structure:
 
 ~~~text
 service-modes/
@@ -224,9 +224,9 @@ service-modes/
     └── demo.host/module-info.java
 ~~~
 
-Cả ba chế độ dùng lại ba tệp Java thông thường. Chỉ **cách đóng gói và module descriptors** thay đổi.
+All three modes reuse the same three regular Java files. Only **the packaging and module descriptors** change.
 
-### 6.2. Service contract
+### 6.2. Service Contract
 
 **spi/src/demo/spi/Greeter.java**
 
@@ -238,9 +238,9 @@ public interface Greeter {
 }
 ~~~
 
-Interface thuộc nhóm API chung, được host và plugin biên dịch cùng một phiên bản tương thích. Trong ví dụ classpath, nó có trên classpath; trong ví dụ named modules, nó thuộc **demo.spi** và được export.
+The interface belongs to the shared API, compiled identically for both host and plugin. In the classpath example, it sits on the classpath; in the named modules example, it belongs to **`demo.spi`** and is exported.
 
-### 6.3. Provider có cả constructor và static provider()
+### 6.3. Provider Having Both Constructor and `static provider()`
 
 **plugin/src/demo/impl/DualGreeter.java**
 
@@ -266,11 +266,11 @@ public final class DualGreeter implements Greeter {
 }
 ~~~
 
-Provider được cố ý thiết kế hợp lệ cho **constructor route** và cho **provider-method route**. Constructor in **CONSTRUCTOR**; method in **PROVIDER_METHOD**. Giá trị message cũng khác nhau để chứng minh instance nhận được đến từ nhánh nào.
+The provider is deliberately designed to be valid for both the **constructor route** and the **provider-method route**. The constructor prints **`CONSTRUCTOR`**; the method prints **`PROVIDER_METHOD`**. The message values also differ to prove which branch produced the received instance.
 
-Chú ý return type của phương thức provider() là **Greeter**. Trong explicit named module, **Provider.type()** sẽ trả về kiểu khai báo ấy, không nhất thiết trả về **DualGreeter.class**.
+Note that the return type of `provider()` is **`Greeter`**. In an explicit named module, **`Provider.type()`** will return that declared type, not necessarily **`DualGreeter.class`**.
 
-### 6.4. Host dùng ServiceLoader và in kiểu provider
+### 6.4. Host Using `ServiceLoader` and Printing the Provider Type
 
 **host/src/demo/host/App.java**
 
@@ -298,11 +298,11 @@ public final class App {
 }
 ~~~
 
-Lệnh **descriptor.type()** chỉ xem kiểu mà ServiceLoader quảng bá, không khởi tạo service instance. **descriptor.get()** mới kích hoạt nhánh khởi tạo.
+Calling **`descriptor.type()`** only inspects the type advertised by `ServiceLoader` without instantiating the service. **`descriptor.get()`** is what triggers the instantiation branch.
 
-Ví dụ giả định môi trường chỉ có đúng một provider Greeter do project này công bố; khi nhiều provider khả kiến, không nên dùng **findFirst()** làm chính sách chọn provider quan trọng mà thiếu tiêu chí tường minh.
+The example assumes the environment has exactly one `Greeter` provider published by this project; when multiple providers are visible, avoid using **`findFirst()`** as a critical provider-selection policy without explicit criteria.
 
-### 6.5. Service file cho classpath và automatic module
+### 6.5. Service File for Classpath and Automatic Module
 
 **plugin/resources/META-INF/services/demo.spi.Greeter**
 
@@ -310,11 +310,11 @@ Ví dụ giả định môi trường chỉ có đúng một provider Greeter do
 demo.impl.DualGreeter
 ~~~
 
-Tên file là **demo.spi.Greeter**, chính xác theo fully qualified binary name của service. Nội dung là tên implementation class. Bản JAR legacy tạo ở bước kế tiếp **không có module-info.class**.
+The filename is **`demo.spi.Greeter`**, matching the service's exact fully qualified binary name. Its content is the implementation class name. The legacy JAR built in the next step **does not contain `module-info.class`**.
 
-### 6.6. Compile JAR legacy và host
+### 6.6. Compiling the Legacy JAR and Host
 
-Chạy các lệnh dưới đây từ thư mục **service-modes**, trên JDK 17 trở lên.
+Run the commands below from the **`service-modes`** directory on JDK 17 or later.
 
 Linux/macOS (bash):
 
@@ -351,17 +351,17 @@ jar --create --file build/demo-plugin.jar -C build/plugin .
 javac --release 17 -encoding UTF-8 -cp build/api -d build/host host/src/demo/host/App.java
 ~~~
 
-Lệnh jar tạo **build/demo-plugin.jar** chứa **demo/impl/DualGreeter.class** và service file **META-INF/services/demo.spi.Greeter**. Nó không chứa **module-info.class**, và không cần đóng gói bản thứ hai của Greeter.class.
+The `jar` command creates **`build/demo-plugin.jar`** containing **`demo/impl/DualGreeter.class`** and the service file **`META-INF/services/demo.spi.Greeter`**. It contains no **`module-info.class`** and does not need to package a duplicate copy of `Greeter.class`.
 
-Kiểm tra nội dung:
+Inspect the contents:
 
 ~~~bash
 jar --list --file build/demo-plugin.jar
 ~~~
 
-Kết quả có thể còn META-INF/MANIFEST.MF, nhưng cần xuất hiện hai entry quan trọng vừa nêu. Không thay service file bằng tên **demo.impl.DualGreeter.provider** vì ServiceLoader mong đợi tên class.
+The output may also include `META-INF/MANIFEST.MF`, but the two key entries mentioned above should be present. Do not rename the service file to **`demo.impl.DualGreeter.provider`** because `ServiceLoader` expects the class name.
 
-### 6.7. Chạy trên classpath
+### 6.7. Running on the Classpath
 
 Linux/macOS:
 
@@ -383,11 +383,11 @@ CONSTRUCTOR
 value=direct
 ~~~
 
-Giải thích: các class ở classpath thuộc unnamed module; ServiceLoader tìm class theo META-INF/services, đọc kiểu class DualGreeter và gọi **public DualGreeter()**. Nó **không gọi** public static provider(), nên không có dòng PROVIDER_METHOD.
+Explanation: classes on the classpath belong to the unnamed module; `ServiceLoader` locates the class via `META-INF/services`, reads the `DualGreeter` class type, and calls **`public DualGreeter()`**. It **does not call** `public static provider()`, so there is no `PROVIDER_METHOD` line.
 
-### 6.8. Chạy chính JAR đó như automatic module
+### 6.8. Running That Same JAR as an Automatic Module
 
-Vì **build/demo-plugin.jar** không chứa module-info.class, đặt nó trên module path sẽ cho module tự động. Với tên file **demo-plugin.jar**, tên module suy ra là **demo.plugin**.
+Because **`build/demo-plugin.jar`** does not contain `module-info.class`, placing it on the module path makes it an automatic module. Given the filename **`demo-plugin.jar`**, the derived module name is **`demo.plugin`**.
 
 Linux/macOS:
 
@@ -412,13 +412,13 @@ CONSTRUCTOR
 value=direct
 ~~~
 
-Đây là điểm cần quan sát: **module đã là named module**, nhưng **ServiceLoader vẫn dùng constructor**, vì automatic module không hỗ trợ provider factory method. Service file của JAR giúp mô tả dịch vụ trong automatic module. Host và SPI vẫn đang ở unnamed module trên classpath; automatic module có thể đọc các kiểu cần thiết theo cơ chế của automatic modules.
+This is the key observation: **the module is now a named module**, yet **`ServiceLoader` still uses the constructor**, because automatic modules do not support the provider factory method. The JAR's service file supplies the service description in the automatic module. The host and SPI remain in the unnamed module on the classpath; the automatic module can read the required types under automatic-module rules.
 
-Cờ **--add-modules demo.plugin** yêu cầu resolve automatic module vào module graph. Chỉ đặt file ở module path mà không cho module được resolve có thể khiến ServiceLoader không thấy provider như bạn kỳ vọng. Dùng **jar --describe-module --file build/demo-plugin.jar** để kiểm tra tên và descriptor suy ra.
+The **`--add-modules demo.plugin`** flag requests resolving the automatic module into the module graph. Simply placing the file on the module path without resolving the module can prevent `ServiceLoader` from seeing the provider as expected. Use **`jar --describe-module --file build/demo-plugin.jar`** to inspect the derived name and descriptor.
 
-### 6.9. Tạo explicit named modules
+### 6.9. Creating Explicit Named Modules
 
-Giữ nguyên interface, provider và host, thêm ba module descriptor sau.
+Keeping the interface, provider, and host unchanged, add the following three module descriptors.
 
 **modules/demo.spi/module-info.java**
 
@@ -446,9 +446,9 @@ module demo.host {
 }
 ~~~
 
-Tại đây, module provider khai báo **provides ... with ...**. Module host khai báo **uses**. Host không khai báo requires demo.plugin vì phần lõi chỉ biết hợp đồng, không cần phụ thuộc trực tiếp vào module triển khai. Module plugin phải được resolve khi chạy; lệnh dưới dùng **--add-modules** để đảm bảo.
+Here, the provider module declares **`provides ... with ...`**. The host module declares **`uses`**. The host does not declare `requires demo.plugin` because the core only knows the contract and does not need a direct dependency on the implementation module. The plugin module must be resolved at runtime; the command below uses **`--add-modules`** to ensure this.
 
-Biên dịch lại thành ba **exploded named modules**. Linux/macOS (bash):
+Recompile into three **exploded named modules**. Linux/macOS (bash):
 
 ~~~bash
 mkdir -p build/mods/demo.spi build/mods/demo.plugin build/mods/demo.host
@@ -489,7 +489,7 @@ javac --release 17 -encoding UTF-8 --module-path build/mods -d build/mods/demo.h
 java --module-path build/mods --add-modules demo.plugin --module demo.host/demo.host.App
 ~~~
 
-**Stdout của explicit named modules:**
+**Stdout of explicit named modules:**
 
 ~~~text
 type=Greeter
@@ -497,29 +497,29 @@ PROVIDER_METHOD
 value=factory
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Khác với JAR legacy, **demo.plugin** nay có **module-info.class** và **provides demo.spi.Greeter with demo.impl.DualGreeter**.
-2. ServiceLoader thấy trong provider class có **public static Greeter provider()** hợp lệ, nên sử dụng provider method. Constructor **DualGreeter()** không được gọi ở nhánh này.
-3. **Provider.type()** trả về **Greeter** vì đó là **declared return type của provider()**; nó không nhất thiết trả về DualGreeter, cũng không nhất thiết trả về runtime class của lambda.
-4. Khi **descriptor.get()** được gọi, phương thức provider() in **PROVIDER_METHOD** và trả về một instance thực hiện Greeter.
-5. Instance do lambda thực hiện message() trả **factory**.
+1. Unlike the legacy JAR, **`demo.plugin`** now has **`module-info.class`** and **`provides demo.spi.Greeter with demo.impl.DualGreeter`**.
+2. `ServiceLoader` sees a valid **`public static Greeter provider()`** on the provider class, so it uses the provider method. The **`DualGreeter()`** constructor is not called in this branch.
+3. **`Provider.type()`** returns **`Greeter`** because that is the **declared return type of `provider()`**; it does not necessarily return `DualGreeter`, nor does it return the runtime class of the lambda.
+4. When **`descriptor.get()`** is called, `provider()` prints **`PROVIDER_METHOD`** and returns an instance implementing `Greeter`.
+5. The lambda instance's `message()` returns **`factory`**.
 
-Đây là phép so sánh trên **cùng source Java**: khác biệt đến từ **cách triển khai provider và module metadata**, không phải tên method hay cách gọi của host.
+This is a comparison over **the exact same Java source**: the difference comes from **how the provider is deployed and its module metadata**, not method names or how the host calls `ServiceLoader`.
 
-### 6.10. Bảng đối chiếu kết quả
+### 6.10. Results Comparison Table
 
-| Chế độ | Đường đăng ký | Provider.type().getSimpleName() | Cách ServiceLoader lấy instance | message() |
+| Mode | Registration Path | `Provider.type().getSimpleName()` | How `ServiceLoader` Obtains Instance | `message()` |
 |---|---|---|---|---|
-| Classpath | META-INF/services | DualGreeter | public no-arg constructor | direct |
-| Automatic module | Service metadata suy ra từ META-INF/services | DualGreeter | public no-arg constructor | direct |
-| Explicit named module | provides ... with ... | Greeter | public static provider() | factory |
+| Classpath | `META-INF/services` | `DualGreeter` | public no-arg constructor | `direct` |
+| Automatic module | Service metadata derived from `META-INF/services` | `DualGreeter` | public no-arg constructor | `direct` |
+| Explicit named module | `provides ... with ...` | `Greeter` | `public static provider()` | `factory` |
 
-Nếu môi trường có thêm provider Greeter từ JAR/module khác, **findFirst()** có thể chọn provider khác. Giữ ví dụ trong môi trường sạch, hoặc thêm tiêu chí chọn provider cụ thể để kiểm tra độc lập.
+If the environment contains additional `Greeter` providers from other JARs/modules, **`findFirst()`** could pick a different provider. Keep the example in a clean environment, or add explicit provider-selection criteria for independent testing.
 
-## 7. Trường hợp class chỉ có provider() và không implements service
+## 7. Case of a Class Having Only `provider()` and Not Implementing the Service
 
-Giả sử class sau được dùng làm provider:
+Suppose the following class is used as a provider:
 
 ~~~java
 package demo.impl;
@@ -535,7 +535,7 @@ public final class FactoryOnly {
 }
 ~~~
 
-Trong **explicit named module**, đổi khai báo:
+In an **explicit named module**, change the declaration:
 
 ~~~java
 module demo.plugin {
@@ -544,24 +544,24 @@ module demo.plugin {
 }
 ~~~
 
-Cách này hợp lệ vì FactoryOnly có provider method đúng chữ ký, và giá trị nó trả về có kiểu Greeter.
+This is valid because `FactoryOnly` has a provider method with the right signature, and its return value has type `Greeter`.
 
-Trên **classpath**, nếu tệp **META-INF/services/demo.spi.Greeter** ghi **demo.impl.FactoryOnly**, ServiceLoader sẽ không gọi provider(). FactoryOnly không implements Greeter và không có public constructor phù hợp, nên đó là cấu hình provider không hợp lệ: quá trình duyệt/nạp có thể ném **ServiceConfigurationError**.
+On the **classpath**, if **`META-INF/services/demo.spi.Greeter`** lists **`demo.impl.FactoryOnly`**, `ServiceLoader` will not call `provider()`. `FactoryOnly` does not implement `Greeter` and has no matching public constructor, so it is an invalid provider configuration: iteration/loading can throw **`ServiceConfigurationError`**.
 
-Với **automatic module** tạo từ JAR chứa service file tương ứng, trường hợp này cũng **không được hỗ trợ**. Đừng tưởng vì automatic module được suy ra thành named module nên ServiceLoader sẽ tự áp dụng quy tắc của explicit module.
+For an **automatic module** created from a JAR containing the corresponding service file, this case is also **not supported**. Do not assume that because an automatic module resolves to a named module, `ServiceLoader` will apply explicit-module rules.
 
-**Chú ý:** Tại compile-time, một explicit module có thể kiểm tra provider method qua **javac** khi đọc module-info.java. Classpath/automatic không có module-info.java tường minh để biểu diễn factory-only provider, nên cần một provider class trực tiếp hoặc chuyển sang explicit module.
+**Note:** At compile time, an explicit module can validate the provider method via **`javac`** when reading `module-info.java`. Classpath/automatic setups have no explicit `module-info.java` to represent a factory-only provider, so they require a direct provider class or migration to an explicit module.
 
-## 8. Giải pháp khi muốn dùng factory nhưng phải hỗ trợ classpath/automatic
+## 8. Solution When You Want a Factory While Supporting Classpath/Automatic Modules
 
-Một SPI dễ phân phối cho cả ba môi trường thường không bắt ServiceLoader tự gọi static provider(). Thay vào đó, **service do ServiceLoader tạo chính là factory có constructor hợp lệ**, còn factory đó có phương thức instance để tạo đối tượng nghiệp vụ.
+An SPI meant to be distributed easily across all three environments typically avoids having `ServiceLoader` invoke `static provider()` itself. Instead, **the service created by `ServiceLoader` is itself a factory with a valid constructor**, and that factory exposes an instance method to create the domain object.
 
-Ví dụ:
+Example:
 
 ~~~java
 package demo.spi;
 
-// Mảnh minh họa service factory contract.
+// Illustrative snippet of a service factory contract.
 public interface GreeterFactory {
     String id();
     Greeter create(String prefix);
@@ -574,7 +574,7 @@ package demo.impl;
 import demo.spi.Greeter;
 import demo.spi.GreeterFactory;
 
-// Mảnh minh họa provider áp dụng được cho classpath/automatic.
+// Illustrative snippet of a provider usable for classpath/automatic.
 public final class DefaultGreeterFactory implements GreeterFactory {
     public DefaultGreeterFactory() { }
 
@@ -590,10 +590,10 @@ public final class DefaultGreeterFactory implements GreeterFactory {
 }
 ~~~
 
-Host sẽ:
+The host will do:
 
 ~~~java
-// Mảnh minh họa, không phải chương trình Java độc lập.
+// Illustrative snippet, not a standalone Java program.
 GreeterFactory factory = ServiceLoader.load(GreeterFactory.class)
         .findFirst()
         .orElseThrow();
@@ -602,97 +602,97 @@ Greeter greeter = factory.create("Hello");
 System.out.println(greeter.message());
 ~~~
 
-**Stdout của mảnh trên**, nếu interface Greeter có method message() như ví dụ chính và DefaultGreeterFactory là provider duy nhất:
+**Stdout of the snippet above**, assuming `Greeter` has a `message()` method as in the main example and `DefaultGreeterFactory` is the sole provider:
 
 ~~~text
 Hello Java
 ~~~
 
-Cơ chế:
+Mechanism:
 
-- **Classpath:** ServiceLoader gọi **DefaultGreeterFactory()** qua service file META-INF/services/demo.spi.GreeterFactory.
-- **Automatic module:** cũng gọi **public constructor không tham số**, với service metadata trong JAR.
-- **Explicit named module:** có thể khai báo **provides demo.spi.GreeterFactory with demo.impl.DefaultGreeterFactory**, vẫn sử dụng constructor nếu không có static provider() hợp lệ trong class.
-- **Phần tạo đối tượng có tham số** thuộc method instance **create(prefix)** của factory service, sau khi host đã nhận factory.
+- **Classpath:** `ServiceLoader` calls **`DefaultGreeterFactory()`** via the service file `META-INF/services/demo.spi.GreeterFactory`.
+- **Automatic module:** also calls the **public no-arg constructor**, using service metadata inside the JAR.
+- **Explicit named module:** can declare **`provides demo.spi.GreeterFactory with demo.impl.DefaultGreeterFactory`**, still using the constructor as long as there is no valid `static provider()` in the class.
+- **Parameterized object creation** belongs to the **`create(prefix)`** instance method of the factory service, after the host has obtained the factory.
 
-Factory service có thể quản lý cấu hình, cache, dependencies và vòng đời theo hợp đồng riêng; việc tạo đối tượng nghiệp vụ không còn bị giới hạn bởi chữ ký **public static provider() không tham số** của ServiceLoader.
+A factory service can manage configuration, caches, dependencies, and lifecycles under its own contract; domain object construction is no longer constrained by `ServiceLoader`'s **no-arg `public static provider()`** signature.
 
-**Đừng nhầm hai chữ “factory”:** **provider method** là giao thức khởi tạo đặc biệt của ServiceLoader cho explicit named modules; **factory service** là mô hình thiết kế do ứng dụng định nghĩa, hoạt động độc lập với chế độ module.
+**Do not confuse the two uses of "factory":** a **provider method** is `ServiceLoader`'s special instantiation protocol for explicit named modules; a **factory service** is an application-defined design pattern that works regardless of module mode.
 
-## 9. Những lỗi và ngộ nhận phổ biến
+## 9. Common Mistakes and Misconceptions
 
-### 9.1. “Automatic module là named module nên provider() phải hoạt động”
+### 9.1. "An automatic module is a named module, so `provider()` must work"
 
-Sai. Automatic module có tên và được resolve trong module graph, nhưng ServiceLoader **quy định riêng** rằng automatic-module provider phải có **provider constructor**. Nếu cần static provider() làm entry point cho ServiceLoader, hãy biên dịch một **explicit named module** có chỉ thị provides tương ứng.
+False. An automatic module has a name and is resolved in the module graph, but `ServiceLoader` **specifically requires** that an automatic-module provider have a **provider constructor**. If you need `static provider()` as the `ServiceLoader` entry point, compile an **explicit named module** with the corresponding `provides` directive.
 
-### 9.2. “Chỉ cần thêm Automatic-Module-Name trong manifest”
+### 9.2. "Just add `Automatic-Module-Name` in the manifest"
 
-Sai. Manifest **Automatic-Module-Name** đặt tên module ổn định hơn cho JAR không có module-info.class. Nó **không sinh ra module descriptor tường minh** có đầy đủ uses/provides do tác giả viết, và không mở khóa cơ chế provider method.
+False. The **`Automatic-Module-Name`** manifest attribute gives a JAR without `module-info.class` a more stable module name. It **does not generate an explicit module descriptor** with author-written `uses`/`provides`, and it does not unlock the provider method mechanism.
 
-### 9.3. “Chuyển JAR sang module path nhưng giữ nguyên services file là đủ để gọi factory”
+### 9.3. "Moving the JAR to the module path while keeping the services file is enough to invoke the factory"
 
-Sai. Service file có thể được dùng để xác định provider cho automatic module, nhưng bản thân service file chỉ ghi **tên class**, không ghi provider method. Để dùng provider() theo JPMS, cần explicit named module và **provides ... with ...**; class provider trong module phải khai báo phương thức hợp lệ.
+False. A service file can be used to identify providers for an automatic module, yet the service file itself only lists **class names**, not provider methods. To use `provider()` under JPMS, you need an explicit named module and **`provides ... with ...`**; the provider class in that module must declare the valid method.
 
-### 9.4. “Class được liệt kê trong service file chỉ cần có static provider()”
+### 9.4. "A class listed in the service file only needs `static provider()`"
 
-Sai ở classpath và automatic module. Provider class phải **gán được cho service** và có **public constructor không tham số**. Factory-only class thiếu các đặc điểm này sẽ khiến ServiceLoader không lấy được service và có thể ném **ServiceConfigurationError**.
+False on the classpath and in automatic modules. The provider class must be **assignable to the service** and have a **public no-arg constructor**. A factory-only class lacking these traits prevents `ServiceLoader` from obtaining the service and can throw **`ServiceConfigurationError`**.
 
-### 9.5. “ServiceLoader.Provider.type() luôn là class ghi sau with”
+### 9.5. "`ServiceLoader.Provider.type()` is always the class listed after `with`"
 
-Không đúng với provider method. Nếu explicit named module dùng **public static Greeter provider()**, **Provider.type()** trả **Greeter.class** theo chữ ký return type, không phải factory class. Nếu host muốn chọn provider theo annotation ở factory class, bộ lọc dựa trên type() có thể sai; nên công bố metadata phù hợp hoặc dùng factory service/registry.
+Not true for a provider method. If an explicit named module uses **`public static Greeter provider()`**, **`Provider.type()`** returns **`Greeter.class`** per the return type signature, not the factory class. If the host tries to filter providers by annotations on the factory class, filtering based on `type()` will fail; publish explicit metadata or use a factory service/registry instead.
 
-### 9.6. “Dùng static provider(String config) cho ServiceLoader truyền cấu hình”
+### 9.6. "Use `static provider(String config)` for `ServiceLoader` to pass configuration"
 
-Không được hỗ trợ: **provider method của ServiceLoader không nhận tham số**. Những method tên provider nhưng có tham số không phải provider entry point được định nghĩa. Khi cần cấu hình động, dùng **service factory có method create(config)**, DI container hoặc một giao thức khởi tạo rõ khác.
+Not supported: **`ServiceLoader`'s provider method takes no parameters**. Methods named `provider` that take parameters are not recognized provider entry points. When dynamic configuration is needed, use a **service factory with a `create(config)` method**, a DI container, or another explicit initialization protocol.
 
-### 9.7. “Đã có module-info.java thì không cần khai báo uses”
+### 9.7. "Once `module-info.java` exists, there's no need to declare `uses`"
 
-Một **consumer explicit module** dùng ServiceLoader cần khai báo **uses** cho service trong module-info.java theo hợp đồng API. Module provider khai báo provides; ứng dụng không nên phụ thuộc cứng vào module implementation bằng requires trừ khi có lý do riêng. Nếu provider module không được resolve, ServiceLoader vẫn có thể tìm không thấy provider dù module JAR nằm trên module path.
+An **explicit consumer module** using `ServiceLoader` must declare **`uses`** for the service in `module-info.java` per the API contract. The provider module declares `provides`; the application should not hard-couple to the implementation module via `requires` unless there is a specific reason. If the provider module is not resolved, `ServiceLoader` may still find no providers even if the module JAR sits on the module path.
 
-### 9.8. “Không tìm thấy provider nên chắc chắn code provider() bị sai”
+### 9.8. "No provider was found, so the `provider()` code must be wrong"
 
-Không đủ bằng chứng. Hãy kiểm tra đúng tầng: môi trường classpath/module path, module descriptor, service file, tên module, module đã được resolve chưa, visibility của provider class, type assignability, constructor/method access, class loader và lỗi gốc. **Không tìm thấy provider** và **provider bị cấu hình sai** là hai tình huống khác nhau.
+Insufficient evidence. Inspect each layer properly: classpath/module path mode, module descriptors, service files, module names, whether the module was resolved, visibility of the provider class, type assignability, constructor/method access, class loader, and underlying cause. **No provider found** and **misconfigured provider** are two distinct situations.
 
-## 10. Checklist khi chuyển SPI từ classpath sang JPMS
+## 10. Checklist When Migrating an SPI from Classpath to JPMS
 
-1. **Xác định artifact:** JAR không có module-info.class trên module path là automatic module; manifest Automatic-Module-Name chỉ cung cấp tên module.
-2. **Kiểm tra service file:** tên **META-INF/services/<service binary name>** và nội dung class provider hợp lệ, UTF-8, provider thuộc JAR/module dự định.
-3. **Chọn đường khởi tạo:** muốn chạy được trên classpath/automatic thì provider implements service và có public no-arg constructor; muốn ServiceLoader tự gọi provider() thì cung cấp explicit named module.
-4. **Viết module descriptor:** explicit provider module khai báo **provides Service with ProviderClass**; explicit consumer module khai báo **uses Service** và requires module API nếu cần.
-5. **Đảm bảo provider method đúng:** public, static, tên provider, không tham số, return type gán được cho service; không giả định ServiceLoader gọi method trong automatic/classpath.
-6. **Giữ API dùng chung:** cùng danh tính service interface/runtime Class, version API tương thích và module resolution/class loader phù hợp.
-7. **Không dùng thứ tự provider ngẫu nhiên:** lựa chọn dựa trên metadata/ID hoặc chính sách đã định nghĩa; kiểm tra hành vi của **Provider.type()** khi factory method trả kiểu chung.
-8. **Kiểm thử tối thiểu ba chế độ:** legacy classpath, automatic module, explicit named module; quan sát constructor hay provider() được gọi, test lỗi thiếu provider, sai constructor/method, và kiểm tra module graph.
-9. **Dự trù đường tương thích:** nếu phải hỗ trợ cả ba chế độ và cần cấu hình khởi tạo, ưu tiên **factory-as-service** có public no-arg constructor hơn việc phụ thuộc vào static provider().
+1. **Identify the artifact:** a JAR without `module-info.class` on the module path is an automatic module; `Automatic-Module-Name` in the manifest only supplies a module name.
+2. **Verify the service file:** named **`META-INF/services/<service binary name>`**, UTF-8 encoded, containing valid provider class names belonging to the intended JAR/module.
+3. **Choose the instantiation route:** to run on classpath/automatic modules, the provider must implement the service and have a public no-arg constructor; to have `ServiceLoader` invoke `provider()`, provide an explicit named module.
+4. **Write module descriptors:** the explicit provider module declares **`provides Service with ProviderClass`**; the explicit consumer module declares **`uses Service`** and `requires` the API module as needed.
+5. **Ensure a valid provider method:** public, static, named `provider`, no parameters, return type assignable to the service; never assume `ServiceLoader` calls this method in automatic/classpath modes.
+6. **Keep the API shared:** identical service interface identity/runtime `Class`, compatible API versions, and aligned module resolution/class loaders.
+7. **Do not rely on arbitrary provider order:** select based on metadata/IDs or a defined policy; check **`Provider.type()`** behavior when a factory method returns a general interface.
+8. **Test at least all three modes:** legacy classpath, automatic module, explicit named module; observe whether the constructor or `provider()` is called, test missing providers, invalid constructors/methods, and inspect the module graph.
+9. **Plan a compatibility path:** if all three modes must be supported and initialization requires parameters, prefer a **factory-as-service** with a public no-arg constructor rather than relying on `static provider()`.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-**Câu 1.** JAR có file META-INF/services và class chứa public static provider(), nhưng không implements service. Khi đặt JAR lên module path thành automatic module, ServiceLoader có gọi provider() không?
+**Question 1.** A JAR has a `META-INF/services` file and a class containing `public static provider()`, but does not implement the service. When placed on the module path as an automatic module, will `ServiceLoader` call `provider()`?
 
-**Đáp án:** Không. Automatic-module providers yêu cầu provider constructor và subtype phù hợp của service. Cách khai báo factory-only này không hợp lệ cho automatic module; cần chuyển thành explicit named module hoặc sửa service thành lớp factory triển khai trực tiếp contract.
+**Answer:** No. Automatic-module providers require a provider constructor and a matching subtype of the service. This factory-only declaration is invalid for an automatic module; convert it to an explicit named module or refactor the service into a factory class that directly implements the contract.
 
-**Câu 2.** Một class vừa implements service vừa có public no-arg constructor và public static provider() hợp lệ. Điều gì khác khi chuyển từ classpath sang explicit named module?
+**Question 2.** A class implements the service, has a public no-arg constructor, and also has a valid `public static provider()`. What changes when moving from the classpath to an explicit named module?
 
-**Đáp án:** Trên classpath ServiceLoader gọi constructor. Trong explicit named module với provides ... with ... và method hợp lệ, ServiceLoader gọi provider(). Điều này có thể đổi instance được trả về và làm **Provider.type()** trả declared return type của method.
+**Answer:** On the classpath, `ServiceLoader` invokes the constructor. In an explicit named module with `provides ... with ...` and the valid method, `ServiceLoader` invokes `provider()`. This can change the returned instance and causes **`Provider.type()`** to return the method's declared return type.
 
-**Câu 3.** Automatic-Module-Name đặt trong MANIFEST.MF có khiến ServiceLoader dùng provider() không?
+**Question 3.** Does setting `Automatic-Module-Name` in `MANIFEST.MF` make `ServiceLoader` use `provider()`?
 
-**Đáp án:** Không. Thuộc tính đó chỉ giúp ổn định tên của automatic module. Để dùng provider method theo ServiceLoader phải có explicit module descriptor thích hợp.
+**Answer:** No. That attribute only stabilizes the automatic module's name. To use `ServiceLoader`'s provider method, an appropriate explicit module descriptor is required.
 
-**Câu 4.** Tại sao không nên dùng tên class của provider trong file META-INF/services để biểu diễn cú pháp gọi method?
+**Question 4.** Why shouldn't you write method-call syntax after a provider class name in `META-INF/services`?
 
-**Đáp án:** Service configuration file chỉ liệt kê tên binary của **provider class**. ServiceLoader không có cú pháp gọi method trong tệp này; method route được quyết định từ cấu hình explicit named module và chữ ký provider().
+**Answer:** Service configuration files only list binary names of **provider classes**. `ServiceLoader` has no syntax for invoking methods in that file; the method route is determined by explicit named module configuration and the `provider()` signature.
 
-**Câu 5.** Cần truyền prefix và dependency để tạo Greeter, nhưng plugin vẫn phải chạy trên classpath. Nên thiết kế thế nào?
+**Question 5.** You need to pass a prefix and dependencies to create a `Greeter`, yet the plugin must still run on the classpath. How should you design it?
 
-**Đáp án:** ServiceLoader tạo một **GreeterFactory** đơn giản có public no-arg constructor, rồi host gọi **factory.create(prefix, dependencies)** theo hợp đồng tự định nghĩa. Đó là factory service chứ không phải ServiceLoader provider method.
+**Answer:** Have `ServiceLoader` instantiate a simple **`GreeterFactory`** with a public no-arg constructor, then let the host call **`factory.create(prefix, dependencies)`** under a custom contract. That is a factory service, not a `ServiceLoader` provider method.
 
-## 12. Tài liệu chuẩn và điểm cần ghi nhớ
+## 12. Standard References and Key Takeaways
 
-- Oracle Java SE 17 API, **ServiceLoader** — mục Developing service providers, Deploying service providers as modules, Deploying service providers on the class path và Errors: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
-- Oracle Java SE 17 API, **ServiceLoader.Provider** — ý nghĩa type() khi module dùng provider factory method: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.Provider.html
-- Java SE 17 **ModuleFinder**, quy tắc suy ra module descriptor từ JAR/metadata service: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleFinder.html
+- Oracle Java SE 17 API, **ServiceLoader** — sections Developing service providers, Deploying service providers as modules, Deploying service providers on the class path, and Errors: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+- Oracle Java SE 17 API, **ServiceLoader.Provider** — semantics of `type()` when a module uses a provider factory method: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.Provider.html
+- Java SE 17 **ModuleFinder**, rules for deriving module descriptors from JARs/service metadata: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleFinder.html
 - Java Language Specification 17, **§7.7.4 Service Provision**: https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html#jls-7.7.4
 - Dev.java, **Incremental Modularization with Automatic Modules**: https://dev.java/learn/organizing/modules/automatic-module/
 
-**Ghi nhớ:** Provider method của ServiceLoader (**public static provider() không tham số**) thuộc cơ chế khai báo provider của **explicit named module**. Provider trong **automatic module hoặc trên classpath** được ServiceLoader tạo qua **public no-arg constructor** của class triển khai service. Khi cần hỗ trợ đa môi trường mà vẫn muốn cấu hình tạo đối tượng, hãy thiết kế **factory là service** thay vì dựa vào provider() ở những môi trường không hỗ trợ.
+**Key takeaway:** `ServiceLoader`'s provider method (**no-arg `public static provider()`**) belongs to the provider declaration mechanism of **explicit named modules**. Providers in **automatic modules or on the classpath** are instantiated by `ServiceLoader` via the **public no-arg constructor** of a class implementing the service. When multi-environment support is needed alongside parameterized object creation, design a **factory as a service** instead of relying on `provider()` in unsupported environments.

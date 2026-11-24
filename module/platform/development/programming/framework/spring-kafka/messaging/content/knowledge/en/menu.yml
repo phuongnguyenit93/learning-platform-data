@@ -1,0 +1,505 @@
+menu:
+- level1: Nền tảng messaging
+  level2:
+  - Spring Kafka giải quyết bài toán gì trong ứng dụng Spring
+  - Vai trò của producer, consumer và broker
+  - Sự khác nhau giữa event, message và record
+  - Mô hình publish-subscribe trong Kafka
+  - Mô hình queue thông qua consumer group
+  - Luồng dữ liệu từ producer đến consumer
+  - Các bảo đảm cốt lõi của Kafka
+  - Phạm vi trách nhiệm của Spring Kafka
+  - Khi nào nên dùng Kafka và khi nào không nên dùng
+  - Lộ trình học Spring Kafka Messaging
+- level1: Mô hình Kafka
+  level2:
+  - Cluster, broker và controller
+  - Topic và log bất biến
+  - Partition và đơn vị song song
+  - Record key, value và timestamp
+  - Offset và vị trí đọc
+  - Replication và tính sẵn sàng
+  - Retention và thời gian lưu trữ
+  - Compaction và tombstone record
+  - Consumer group như một thuê bao logic
+  - Thứ tự bản ghi trong partition
+- level1: Kiến trúc Spring Kafka
+  level2:
+  - Các thành phần chính của Spring for Apache Kafka
+  - KafkaTemplate và lớp trừu tượng gửi tin
+  - ConsumerFactory và producer factory
+  - Message listener container
+  - ConcurrentMessageListenerContainer
+  - KafkaAdmin và quản lý tài nguyên Kafka
+  - Adapter giữa Kafka record và Spring Message
+  - Application event trong vòng đời container
+  - Ranh giới giữa Spring Boot auto-configuration và cấu hình thủ công
+- level1: Khởi tạo dự án
+  level2:
+  - Chọn starter và phiên bản tương thích
+  - Khai báo spring-kafka trong Gradle
+  - Khai báo spring-boot-starter-kafka
+  - Khai báo dependency cho kiểm thử Kafka
+  - Tổ chức package cho producer và consumer
+  - Cấu hình broker cục bộ bằng Docker Compose
+  - Cấu hình Kafka chạy ở chế độ KRaft
+  - Tạo ứng dụng mẫu gửi và nhận bản ghi
+- level1: Cấu hình kết nối
+  level2:
+  - bootstrap servers và cơ chế khám phá broker
+  - client.id và nhận diện client
+  - Cấu hình producer cơ bản
+  - Cấu hình consumer cơ bản
+  - group.id và tên consumer group
+  - auto.offset.reset và điểm bắt đầu đọc
+  - enable.auto.commit và chiến lược commit
+  - session.timeout.ms và heartbeat
+  - max.poll.interval.ms và thời gian xử lý
+  - max.poll.records và kích thước lô đọc
+  - Cấu hình theo profile và biến môi trường
+  - Kiểm tra cấu hình đã được áp dụng
+- level1: Quản lý topic
+  level2:
+  - Khai báo NewTopic bằng bean
+  - KafkaAdmin và tự động tạo topic
+  - Tên topic và quy ước đặt tên
+  - Số lượng partition khi tạo topic
+  - Replication factor và yêu cầu broker
+  - Cấu hình retention cho topic
+  - Cấu hình cleanup.policy
+  - Tạo topic bằng công cụ Kafka
+  - Kiểm tra metadata của topic
+  - Thay đổi partition và các giới hạn liên quan
+- level1: Producer
+  level2:
+  - ProducerRecord và các trường dữ liệu
+  - Gửi record không có key
+  - Gửi record có key
+  - Chọn partition bằng key
+  - Gửi theo partition chỉ định
+  - Gửi với timestamp tùy chỉnh
+  - Gửi đồng bộ và bất đồng bộ
+  - Callback khi send hoàn tất
+  - Xử lý RecordMetadata
+  - Lỗi khi gửi và khả năng thử lại
+  - Batching ở phía producer
+  - Độ bền và acknowledgement
+- level1: KafkaTemplate
+  level2:
+  - Vai trò của KafkaTemplate
+  - Cấu hình DefaultKafkaProducerFactory
+  - send vào topic và key cụ thể
+  - sendDefault với default topic
+  - send Message<?> qua KafkaTemplate
+  - send ProducerRecord trực tiếp
+  - Nhận CompletableFuture từ thao tác gửi
+  - Xử lý kết quả thành công và thất bại
+  - Tùy biến ProducerListener
+  - Tạo nhiều KafkaTemplate theo kiểu dữ liệu
+  - Định tuyến template bằng qualifier
+  - Kiểm thử KafkaTemplate
+- level1: Consumer
+  level2:
+  - KafkaConsumer và lifecycle đọc record
+  - ConsumerRecord gồm những thông tin gì
+  - Subscribe topic theo tên
+  - Subscribe topic theo regular expression
+  - Assign partition thủ công
+  - Poll loop và chu kỳ lấy dữ liệu
+  - Đọc một hoặc nhiều record
+  - Phân biệt position, committed offset và end offset
+  - Khởi động lại consumer từ offset nào
+  - Xử lý consumer không có dữ liệu
+  - Đóng consumer an toàn
+  - Giới hạn của một consumer trong group
+- level1: Consumer group
+  level2:
+  - Cách các consumer chia sẻ partition
+  - Một record đến bao nhiêu consumer group
+  - Group coordinator và quản lý membership
+  - Group instance id và static membership
+  - Consumer group rebalancing
+  - Partition assignment strategy
+  - Group lag và ý nghĩa vận hành
+  - Đặt group.id cho từng use case
+  - Tách group để phát broadcast
+  - Cân bằng số consumer với số partition
+- level1: '@KafkaListener'
+  level2:
+  - Bật @EnableKafka và đăng ký listener
+  - Listener method dạng record
+  - Listener method dạng payload
+  - Đọc ConsumerRecord trong listener
+  - Đọc Message<?> trong listener
+  - Đọc key, topic, partition và offset
+  - Khai báo topics trên annotation
+  - Khai báo topicPattern
+  - Khai báo topicPartitions
+  - Thiết lập concurrency trên annotation
+  - Thiết lập autoStartup trên annotation
+  - Dùng property placeholder trong annotation
+  - Dùng SpEL trong annotation
+  - Đặt clientIdPrefix cho listener
+- level1: Listener container
+  level2:
+  - KafkaMessageListenerContainer và container factory
+  - ConcurrentKafkaListenerContainerFactory
+  - ListenerContainerFactory làm template cấu hình
+  - ContainerProperties và poll timeout
+  - Record listener và batch listener
+  - AckMode RECORD
+  - AckMode BATCH
+  - AckMode MANUAL
+  - AckMode MANUAL_IMMEDIATE
+  - autoStartup và lifecycle
+  - start, stop và quản lý container
+  - ContainerCustomizer
+  - ContainerProperties.EOSMode và các lựa chọn hiện đại
+  - Theo dõi trạng thái container
+- level1: Offset và commit
+  level2:
+  - Ý nghĩa của offset trong partition
+  - Auto commit và rủi ro xử lý chưa xong
+  - Commit đồng bộ và bất đồng bộ
+  - Commit theo record và theo batch
+  - AckMode ảnh hưởng đến commit thế nào
+  - Acknowledgment trong listener
+  - Commit thủ công theo use case
+  - Seek về offset cụ thể
+  - Seek về đầu hoặc cuối partition
+  - Đọc lại record sau khi xử lý lỗi
+  - Reset offset của consumer group
+  - Đánh đổi giữa at-most-once và at-least-once
+- level1: Partition và ordering
+  level2:
+  - Partition là đơn vị ordering của Kafka
+  - Bảo toàn thứ tự bằng record key
+  - Ordering trong một producer
+  - Ordering khi tăng concurrency
+  - Ordering giữa nhiều partition
+  - Thiết kế key cho aggregate hoặc entity
+  - Hot partition và phân phối không đều
+  - Partition expansion ảnh hưởng routing ra sao
+  - Khi nào cần một partition duy nhất
+  - Đánh đổi ordering với throughput
+- level1: Serialization
+  level2:
+  - Serializer và deserializer là gì
+  - StringSerializer và StringDeserializer
+  - JsonSerializer và JsonDeserializer
+  - ByteArraySerializer cho payload nhị phân
+  - Khai báo key serializer
+  - Khai báo value serializer
+  - Type header và thông tin kiểu Java
+  - Trusted packages khi deserialize JSON
+  - Cấu hình default type
+  - Deserializer cho nhiều kiểu payload
+  - ErrorHandlingDeserializer
+  - Xử lý dữ liệu không deserialize được
+- level1: Message conversion
+  level2:
+  - Mapping giữa Kafka record và Spring Message
+  - MessagingMessageConverter
+  - RecordMessageConverter
+  - BatchMessagingMessageConverter
+  - Chuyển đổi payload theo chữ ký listener
+  - MessageConverter cho JSON
+  - HeaderMapper và header mapping
+  - Converter cho ReplyingKafkaTemplate
+  - Converter khi gửi Message<?>
+  - Khi nào nên dùng converter thay vì serializer
+- level1: Headers và metadata
+  level2:
+  - Kafka headers và Spring MessageHeaders
+  - Đọc header trong listener
+  - Gửi header bằng KafkaTemplate
+  - Mapping header kiểu byte[]
+  - Header chứa correlation id
+  - Header chứa trace context
+  - Header chứa type information
+  - Header trong dead-letter record
+  - Giới hạn kích thước và chi phí header
+  - Quy ước header dùng chung giữa dịch vụ
+- level1: Batch và throughput
+  level2:
+  - Record listener và batch listener
+  - Bật batchListener trên container factory
+  - Nhận List<ConsumerRecord> trong listener
+  - BatchMessagingMessageConverter
+  - Kích thước batch và thời gian poll
+  - Xử lý từng record trong một batch
+  - Tách batch thành công việc nhỏ
+  - Lỗi một record trong batch
+  - AfterRollbackProcessor cho batch
+  - BatchToRecordAdapter
+  - Đánh đổi latency với throughput
+- level1: Concurrency và scale
+  level2:
+  - Concurrency của listener container
+  - Số consumer thực tế được tạo
+  - Giới hạn concurrency theo số partition
+  - Scale trong một JVM
+  - Scale nhiều instance ứng dụng
+  - client.id khi dùng concurrency
+  - Thread safety của listener
+  - ProducerFactory và consumer factory theo thread
+  - Tránh dùng state mutable dùng chung
+  - Chọn concurrency theo tốc độ xử lý
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi producer và consumer
+  - Lỗi tạm thời và lỗi không thể phục hồi
+  - KafkaListenerErrorHandler
+  - CommonErrorHandler
+  - DefaultErrorHandler
+  - ExceptionClassifier
+  - BackOff trong error handler
+  - SeekAfterError và cơ chế đọc lại
+  - AckAfterHandle
+  - Xử lý lỗi deserialize trước listener
+  - AfterRollbackProcessor
+  - Không nuốt lỗi một cách mù quáng
+  - Ghi log lỗi có đủ context
+  - Thiết kế hành vi khi service khởi động lại
+- level1: Retry
+  level2:
+  - Retry đồng bộ trong listener
+  - FixedBackOff và ExponentialBackOff
+  - Số lần thử và khoảng chờ
+  - Phân loại exception được retry
+  - Bỏ qua exception không nên retry
+  - Retry ảnh hưởng đến partition ordering
+  - Blocking retry làm tăng thời gian poll
+  - Retry với manual acknowledgment
+  - Retry ở producer bằng cấu hình client
+  - Retry ở consumer bằng error handler
+  - Đo lường số lần retry
+  - Chọn retry hay dead letter
+- level1: Dead letter và recoverer
+  level2:
+  - Dead-letter topic là gì
+  - DeadLetterPublishingRecoverer
+  - Xác định tên topic dead letter
+  - Xác định partition đích
+  - Giữ lại key và payload lỗi
+  - Dead-letter headers
+  - ConsumerRecordRecoverer
+  - Thực hiện recovery sau số lần thử
+  - Đọc và xử lý dead-letter record
+  - Tránh vòng lặp dead letter
+  - Chính sách lưu trữ dead-letter topic
+  - Quy trình replay record lỗi
+- level1: Non-blocking retry
+  level2:
+  - Mô hình retryable topic
+  - '@RetryableTopic và cách khai báo'
+  - Backoff giữa các retry topic
+  - Tên và số lượng retry topic
+  - Dead-letter topic của non-blocking retry
+  - Retry nhiều exception khác nhau
+  - Ordering bị ảnh hưởng thế nào
+  - Không kết hợp non-blocking retry với container transaction
+  - Chọn blocking hay non-blocking retry
+- level1: Transactions
+  level2:
+  - Kafka transaction giải quyết vấn đề gì
+  - transactional.id và transactionIdPrefix
+  - KafkaTransactionManager
+  - KafkaTemplate local transaction
+  - executeInTransaction
+  - Transactional listener container
+  - Consumer-initiated transaction
+  - Gửi Kafka và cập nhật database
+  - Transaction synchronization với DataSource
+  - Thứ tự commit Kafka và database
+  - Rollback khi listener thất bại
+  - AfterRollbackProcessor trong transaction
+  - Producer bị fence và cách phòng tránh
+  - Điều kiện để transaction hoạt động đúng
+- level1: Exactly-once
+  level2:
+  - Exactly-once semantics trong Kafka
+  - Phân biệt at-most-once, at-least-once và exactly-once
+  - Idempotent producer
+  - Kafka read-process-write
+  - Transactional producer và consumer
+  - EOSMode và phiên bản client
+  - Giới hạn của exactly-once ngoài Kafka
+  - Idempotency khi gọi hệ thống bên ngoài
+  - Kiểm chứng exactly-once bằng thử nghiệm lỗi
+- level1: Request-reply
+  level2:
+  - Mô hình request-reply trên Kafka
+  - ReplyingKafkaTemplate
+  - Correlation id cho request
+  - Reply topic và reply container
+  - Timeout khi chờ reply
+  - Khai báo reply template
+  - Định tuyến reply theo request
+  - Xử lý reply không đúng kiểu
+  - Khi nào không nên dùng request-reply
+  - So sánh request-reply với event-driven
+- level1: Filtering và interceptors
+  level2:
+  - RecordFilterStrategy
+  - Lọc record trước listener
+  - ackDiscarded và offset của record bị lọc
+  - Producer interceptor
+  - Consumer interceptor
+  - Bean interceptor trong Spring Kafka
+  - Thêm metadata hoặc trace context
+  - Không thay đổi payload ngoài dự kiến
+  - Đo lường record bị loại
+  - Chọn filter hay routing logic
+- level1: Dynamic containers
+  level2:
+  - Tạo listener container bằng code
+  - KafkaListenerEndpointRegistry
+  - Đăng ký endpoint động
+  - Khởi động container động
+  - Dừng và xóa container động
+  - Cấu hình nhiều container factory
+  - Container cho tenant hoặc topic động
+  - Quản lý lifecycle trong ứng dụng
+  - Rủi ro khi tạo container không kiểm soát
+- level1: Pause và backpressure
+  level2:
+  - Pause toàn bộ listener container
+  - Resume listener container
+  - Pause partition cụ thể
+  - Resume partition cụ thể
+  - Backpressure khi downstream chậm
+  - Pause khi đầy hàng đợi nội bộ
+  - Khác nhau giữa pause và stop
+  - Theo dõi trạng thái paused
+  - Thiết kế graceful degradation
+- level1: Bảo mật
+  level2:
+  - TLS giữa ứng dụng và Kafka
+  - SASL và cơ chế xác thực
+  - SASL/PLAIN và SASL/SCRAM
+  - JAAS configuration
+  - Kerberos và GSSAPI
+  - Cấu hình truststore và keystore
+  - Bảo vệ thông tin bí mật
+  - Phân quyền ACL cho producer
+  - Phân quyền ACL cho consumer
+  - Bảo vệ group và topic
+  - Kiểm tra kết nối bảo mật
+  - Luân chuyển chứng thư và credential
+- level1: Schema và tiến hóa dữ liệu
+  level2:
+  - Hợp đồng dữ liệu giữa producer và consumer
+  - JSON schema và versioning
+  - Thêm field tương thích ngược
+  - Đổi tên hoặc xóa field
+  - Optional field và default value
+  - Type header khi tiến hóa class
+  - Schema Registry và serializer tương ứng
+  - Avro, Protobuf và JSON Schema
+  - Tách domain event khỏi persistence entity
+  - Kiểm thử tương thích schema
+- level1: Kiểm thử
+  level2:
+  - Mục tiêu của kiểm thử messaging
+  - spring-kafka-test và starter kiểm thử
+  - EmbeddedKafkaKraftBroker
+  - Cấu hình broker nhúng
+  - KafkaTestUtils.consumerProps
+  - KafkaTestUtils.producerProps
+  - Gửi và nhận record trong JUnit
+  - Đợi record bằng Awaitility hoặc polling
+  - Topic riêng cho từng test
+  - Kiểm thử @KafkaListener
+  - Kiểm thử error handler
+  - Kiểm thử retry và dead letter
+  - Kiểm thử transaction
+  - Kiểm thử nhiều partition và ordering
+- level1: Observability
+  level2:
+  - Logging của producer và consumer
+  - Đo consumer lag
+  - Theo dõi tốc độ gửi và nhận
+  - Micrometer metrics cho Kafka
+  - Observation và tracing
+  - Trace context qua Kafka headers
+  - Correlation id trong log
+  - Đo thời gian xử lý listener
+  - Theo dõi retry và dead letter
+  - Cảnh báo consumer không tiến triển
+- level1: Hiệu năng
+  level2:
+  - Đo throughput và latency
+  - Batch size và linger.ms
+  - Compression type
+  - Buffer memory và batch memory
+  - fetch.min.bytes và fetch.max.wait.ms
+  - max.partition.fetch.bytes
+  - Tối ưu số partition
+  - Tối ưu concurrency
+  - Giảm chi phí serialize và deserialize
+  - Tránh block trong listener
+  - Đánh đổi độ bền với hiệu năng
+  - Benchmark theo tải thực tế
+- level1: Vận hành
+  level2:
+  - Kiểm tra broker và bootstrap servers
+  - Kiểm tra topic và partition
+  - Theo dõi consumer group
+  - Đọc current offset và log end offset
+  - Tính và diễn giải consumer lag
+  - Kiểm tra member trong group
+  - Xử lý consumer bị stuck
+  - Replay record từ offset cũ
+  - Quản lý dead-letter topic
+  - Triển khai nhiều instance
+  - Shutdown và rebalance an toàn
+  - Runbook cho sự cố messaging
+- level1: Chẩn đoán sự cố
+  level2:
+  - Không kết nối được broker
+  - Topic không tồn tại
+  - Consumer không nhận record
+  - Producer gửi nhưng không thấy dữ liệu
+  - Deserialize thất bại
+  - Listener bị gọi lặp lại
+  - Offset commit không như mong đợi
+  - Consumer group rebalance liên tục
+  - Lag tăng dù consumer đang chạy
+  - Record sai partition
+  - Transaction bị abort hoặc fence
+  - Dead-letter không được tạo
+- level1: Nâng cấp và tương thích
+  level2:
+  - Theo dõi ma trận phiên bản Spring Kafka
+  - Tương thích Spring Boot và kafka-clients
+  - Thay đổi API của @KafkaListener
+  - Thay đổi error handler qua các phiên bản
+  - Migration từ cấu hình cũ
+  - Migration từ embedded broker cũ
+  - Kiểm tra deprecation trước nâng cấp
+  - Chiến lược nâng cấp không gián đoạn
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng producer phát hành OrderEvent
+  - Xây dựng consumer xử lý OrderEvent
+  - Thiết kế topic và key cho đơn hàng
+  - Cấu hình JSON serialization
+  - Tách consumer group cho billing và notification
+  - Thêm retry và dead-letter
+  - Thêm transaction cho read-process-write
+  - Thêm kiểm thử với broker nhúng
+  - Đo lag và thời gian xử lý
+  - Mô phỏng lỗi deserialize
+  - Mô phỏng consumer restart
+  - Tổng kết kiến trúc và điểm đánh đổi
+- level1: Checklist messaging
+  level2:
+  - Checklist thiết kế topic
+  - Checklist chọn partition key
+  - Checklist cấu hình producer
+  - Checklist cấu hình consumer
+  - Checklist commit và retry
+  - Checklist dead letter và replay
+  - Checklist transaction và idempotency
+  - Checklist kiểm thử trước triển khai

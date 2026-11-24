@@ -1,59 +1,59 @@
-# Định danh kết quả theo mã nguồn, tùy chọn và phụ thuộc để quản lý bộ nhớ đệm
+# Keying Results by Source Code, Options, and Dependencies to Manage Compilation Caches
 
-## 1. Mục tiêu và điều kiện đúng của compilation cache
+## 1. Goals and Correctness Conditions of a Compilation Cache
 
-Khi ứng dụng Java nhận mã nguồn lúc chạy, nó có thể dùng `javax.tools.JavaCompiler` và `JavaFileManager` để biên dịch `.java` thành `.class` trong RAM. Nếu cùng một yêu cầu xuất hiện nhiều lần (rule engine, code playground, scripting, plugin generator), việc biên dịch lại từ đầu làm tăng CPU, cấp phát bộ nhớ và độ trễ. **Compilation cache** giữ kết quả biên dịch đã thành công rồi tái sử dụng.
+When a Java application receives source code at runtime, it can use `javax.tools.JavaCompiler` and `JavaFileManager` to compile `.java` into `.class` in RAM. If the same request arrives repeatedly (rule engines, code playgrounds, scripting, plugin generators), recompiling from scratch increases CPU usage, memory allocation, and latency. A **compilation cache** retains successful compilation results and reuses them.
 
-Tuy nhiên, “mã nguồn không đổi” **không đủ** để cho phép cache hit. Kết quả có thể phụ thuộc vào tùy chọn `javac`, thư viện/module được tìm thấy, annotation processor, các file source phụ, compiler implementation và JDK version. Cache key thiếu một input có thể trả về bytecode cũ dù yêu cầu đã đổi.
+However, "unchanged source code" **is not enough** to permit a cache hit. The output can depend on `javac` options, discovered libraries/modules, annotation processors, auxiliary source files, the compiler implementation, and the JDK version. A cache key missing any input can return stale bytecode even though the request changed.
 
-Hai đặc tính cần giữ:
+Two properties must be maintained:
 
-- **Không false hit:** hai yêu cầu có cùng key phải tương đương đối với output mà cache hứa cung cấp. False hit có thể gây lỗi chạy, kết quả sai hoặc lộ dữ liệu.
-- **Tránh false miss không cần thiết:** hai yêu cầu tương đương nên có key giống nhau. False miss gây tốn tài nguyên nhưng thường không sai kết quả.
+- **No false hits:** two requests with the same key must be equivalent with respect to the outputs the cache promises to supply. A false hit can cause runtime crashes, wrong results, or data leaks.
+- **Avoid unnecessary false misses:** two equivalent requests should share the same key. A false miss wastes resources, though it typically does not produce wrong results.
 
-Ví dụ:
+Example:
 
 ~~~text
 Compile #1:
-  source: Rule.java gọi Api.LIMIT
+  source: Rule.java calls Api.LIMIT
   options: --release 17 -proc:none
-  dependency: api.jar có LIMIT = 10
-  → output A → lưu cache K1
+  dependency: api.jar has LIMIT = 10
+  → output A → cached under K1
 
 Compile #2:
-  source/option vẫn y nguyên
-  dependency: api.jar đổi, LIMIT = 20
-  → KHÔNG dùng lại K1 nếu fingerprint phụ thuộc phản ánh bytes khác.
+  source/options remain identical
+  dependency: api.jar changes, LIMIT = 20
+  → DO NOT reuse K1 if the dependency fingerprint reflects the changed bytes.
 
 Compile #3:
-  toàn bộ source/options/dependencies/toolchain như #1
-  → có thể lấy output A từ cache mà không gọi compiler.
+  all source/options/dependencies/toolchain identical to #1
+  → output A can be served from cache without invoking the compiler.
 ~~~
 
-**Mục tiêu bài học:** xây khóa định danh theo mã nguồn, tùy chọn và phụ thuộc; hiểu cấu trúc kết quả `JavaCompiler`; thực hiện fingerprint/invalidation; kiểm soát concurrent compilation và tách bytecode cache khỏi class loading.
+**Lesson goals:** build a key identifying source code, options, and dependencies; understand the structure of `JavaCompiler` outputs; implement fingerprinting/invalidation; control concurrent compilation; and separate bytecode caching from class loading.
 
-## 2. Chọn đơn vị cache trước khi tạo key
+## 2. Choose the Cache Unit Before Building the Key
 
-Một source `Outer.java` có thể sinh nhiều `.class` (nested/anonymous classes). Một batch nhiều source có thể phụ thuộc lẫn nhau; annotation processors còn có thể sinh source/resource. Vì thế không nên coi giá trị cache luôn là một `byte[]` của class chính.
+A single source `Outer.java` can produce multiple `.class` files (nested/anonymous classes). A multi-source batch can have mutual dependencies; annotation processors can also emit sources/resources. Therefore, you should not assume the cached value is always a single `byte[]` for the main class.
 
-| Phạm vi cache | Input cần đưa vào key | Kết quả lưu | Khi nên chọn |
+| Cache scope | Inputs required in key | Stored results | When to choose |
 | --- | --- | --- | --- |
-| Một source đơn giản | Logical name + source text + môi trường compile | **Tất cả** class files phát sinh | Rule độc lập, không phụ thuộc source khác |
-| Một batch nhiều source | Toàn bộ source units, options, dependencies | Class map và generated outputs của batch | Mã nguồn tham chiếu lẫn nhau |
-| Một JPMS module | Source + `module-info.java` + module path + resolution config | Toàn bộ output module | Plugin modular |
-| Incremental graph | Dependency/symbol graph và fingerprints của từng node | Kết quả theo node/module | Build service lớn đã có tracking chính xác |
+| Single simple source | Logical name + source text + compile environment | **All** emitted class files | Standalone rule with no external source dependencies |
+| Multi-source batch | All source units, options, dependencies | Class map and generated outputs of the batch | Sources referencing one another |
+| JPMS module | Sources + `module-info.java` + module path + resolution config | Entire module output | Modular plugins |
+| Incremental graph | Dependency/symbol graph and per-node fingerprints | Per-node/per-module results | Large build services with accurate tracking |
 
-**Khuyến nghị khởi đầu:** cache **toàn bộ compilation request**; khi một input trong request thay đổi, compile lại toàn bộ. Chỉ chuyển sang incremental per-class sau khi kiểm chứng dependency closure, constant inlining, annotation processing và classpath visibility.
+**Starting recommendation:** cache the **entire compilation request**; when any input in the request changes, recompile the whole request. Only move to per-class incremental compilation after verifying dependency closure, constant inlining, annotation processing, and classpath visibility.
 
-Phân biệt ba đối tượng:
+Distinguish three concepts:
 
-- `CompilationRequest`: toàn bộ thông tin compiler thực sự tiêu thụ.
-- `CompilationArtifact`: bytecode map, generated resources và metadata cần dùng lại.
-- `RuntimeGeneration`: classloader/layer định nghĩa class từ artifact. Hai generation có thể dùng cùng bytecode cached nhưng định nghĩa các runtime `Class<?>` riêng.
+- `CompilationRequest`: everything the compiler actually consumes.
+- `CompilationArtifact`: bytecode map, generated resources, and metadata needed for reuse.
+- `RuntimeGeneration`: class loader/layer defining classes from the artifact. Two generations can use the same cached bytecode while defining distinct runtime `Class<?>` objects.
 
-## 3. Công thức cache key an toàn
+## 3. Safe Cache Key Formula
 
-Một dạng tổng quát:
+A general form:
 
 ~~~text
 key = SHA-256(
@@ -70,26 +70,26 @@ key = SHA-256(
 )
 ~~~
 
-Từ khóa là **canonicalEncode**: encode có ranh giới trường, version và thứ tự xác định. Không nối chuỗi bằng `a + b + c` khi không có length-prefix: các phần `"ab","c"` và `"a","bc"` sẽ cho cùng chuỗi `"abc"`. Có thể dùng encoding nhị phân ghi số lượng trường + số byte + bytes UTF-8, hoặc JSON canonical được chuẩn hóa bằng quy tắc chặt chẽ.
+The key phrase is **canonicalEncode**: encoding with explicit field boundaries, versioning, and deterministic ordering. Never concatenate strings with `a + b + c` without length prefixes: the parts `"ab","c"` and `"a","bc"` yield the same string `"abc"`. You can use a binary encoding that writes field count + byte length + UTF-8 bytes, or canonical JSON normalized under strict rules.
 
-### 3.1. Các thành phần bắt buộc phải cân nhắc
+### 3.1. Required Inputs to Consider
 
-| Input | Tác động | Fingerprint phù hợp |
+| Input | Impact | Suitable fingerprint |
 | --- | --- | --- |
-| Source unit name + source content | Package, declarations, symbols, diagnostics | Logical path/binary name + SHA-256 exact content |
-| Tập source của batch | Type resolution và generated class | Sort theo logical path, hash từng nội dung |
+| Source unit name + source content | Package, declarations, symbols, diagnostics | Logical path/binary name + SHA-256 of exact content |
+| Batch source set | Type resolution and generated classes | Sort by logical path, hash each content |
 | `--release`, debug, `-parameters`, `-Xlint` | Bytecode target/metadata/diagnostics | Effective compiler option tokens |
-| Classpath/module path | Class, method, constants, module visibility | Ordered entries: identity + content digest |
-| Sourcepath/implicit sources | Compiler có thể tự đọc/compile source khác | Fingerprint các source thực sự cho phép đọc |
-| Processor path và `-A` options | Generated sources/classes/resources | Processor artifact/dependencies/config/deterministic inputs |
-| Compiler provider/JDK build | Toolchain có thể sinh output khác | Compiler ID/vendor/exact version/schema |
-| Môi trường có ảnh hưởng | Charset, processor read files/env/clock | Cấu hình tường minh hoặc **non-cacheable** |
+| Classpath/module path | Classes, methods, constants, module visibility | Ordered entries: identity + content digest |
+| Sourcepath/implicit sources | Compiler may implicitly read/compile other sources | Fingerprint all sources actually permitted to be read |
+| Processor path and `-A` options | Generated sources/classes/resources | Processor artifacts/dependencies/config/deterministic inputs |
+| Compiler provider/JDK build | Toolchain may emit different outputs | Compiler ID/vendor/exact version/schema |
+| Influential environment | Charset, processor-read files/env/clock | Explicit configuration or **non-cacheable** |
 
-Đối với cache diagnostics, cần thêm các input ảnh hưởng định dạng lỗi (ví dụ locale hoặc source URI) và warning policy. Đối với cache **chỉ** bytecode, có thể bỏ một số input không ảnh hưởng bytecode **nếu đã chứng minh được**; mặc định fingerprint bảo thủ dễ đúng hơn.
+If caching diagnostics as well, include inputs affecting error formatting (such as locale or source URI) and warning policies. If caching **only** bytecode, you may omit certain inputs that do not affect bytecode **if proven**; by default, a conservative fingerprint is safer.
 
-### 3.2. Manifest mô tả input
+### 3.2. Input Manifest
 
-Đây là một **mẫu biểu diễn khái niệm**, không phải API của JDK và các digest không phải giá trị thực:
+This is a **conceptual representation template**, not a JDK API, and the digests are placeholder values:
 
 ~~~json
 {
@@ -112,124 +112,124 @@ Từ khóa là **canonicalEncode**: encode có ranh giới trường, version v�
 }
 ~~~
 
-Trong triển khai thật, phải điền digest từ bytes đang dùng, cố định cách biểu diễn từng field và **version hóa schema**. Lưu manifest bên cạnh key giúp giải thích cache miss: source, option, dependency hay JDK nào đã đổi.
+In a real implementation, populate digests from the actual bytes used, fix how each field is represented, and **version the schema**. Storing the manifest alongside the key helps explain cache misses: which source, option, dependency, or JDK changed.
 
-## 4. Mã nguồn: hash chính xác phần compiler đọc
+## 4. Source Code: Hash Exactly What the Compiler Reads
 
-### 4.1. Nguồn dạng String hoặc bytes
+### 4.1. Sources as Strings or Bytes
 
-Với `SimpleJavaFileObject.getCharContent(...)` nhận Java `String`, có thể hash nội dung UTF-8 của chuỗi compiler thực sự dùng. Với file trên đĩa, phải chọn charset rõ ràng và hash **nội dung sau khi các bước tiền xử lý cần thiết đã diễn ra**.
+With `SimpleJavaFileObject.getCharContent(...)` receiving a Java `String`, you can hash the UTF-8 content of the exact string the compiler uses. For files on disk, pick an explicit charset and hash **the content after any required preprocessing steps have occurred**.
 
-Ví dụ pipeline:
+Example pipeline:
 
 ~~~text
 template + user input
-     ↓ validate/normalize theo policy đã công bố
+     ↓ validate/normalize per published policy
 generated source String
-     ↓ tạo key từ chính String + config của template/transform
+     ↓ compute key from exact String + template/transform config
 JavaFileObject.getCharContent()
      ↓
 JavaCompiler
 ~~~
 
-Nếu code được inject import, đổi package, expand macro hoặc sinh source từ template, **hash source sau transform** hoặc hash cả phiên bản và input của transform. Hash source gốc nhưng compile nguồn đã sửa sẽ tạo cơ hội false hit.
+If code has imports injected, packages rewritten, macros expanded, or source generated from a template, **hash the post-transform source** or hash both the transform version and its inputs. Hashing the original source while compiling the modified source invites false hits.
 
-Không tự ý `trim()`, xóa comments, đổi line endings hay Unicode normalize chỉ để tăng hit rate. Các thay đổi này có thể ảnh hưởng source positions, diagnostics, Unicode escapes hoặc công cụ xử lý annotation. Nếu compiler thật sự nhận text đã chuẩn hóa, chỉ khi đó mới hash text chuẩn hóa.
+Do not arbitrarily `trim()`, strip comments, normalize line endings, or normalize Unicode merely to boost hit rates. Those changes can affect source positions, diagnostics, Unicode escapes, or annotation processing tools. Only hash normalized text if the compiler actually receives that normalized text.
 
-### 4.2. Tên logical source là một input riêng
+### 4.2. Logical Source Name Is a Separate Input
 
-Nguồn `com.example.Rule` thường được biểu diễn bằng URI `string:///com/example/Rule.java`. Tên file/URI có thể ảnh hưởng diagnostic, quy tắc public top-level type và source lookup. Vì vậy source fingerprint nên là cặp:
+The source `com.example.Rule` is commonly represented by the URI `string:///com/example/Rule.java`. The filename/URI can affect diagnostics, public top-level type rules, and source lookup. Thus a source fingerprint should be a pair:
 
 ~~~text
 logicalPath = com/example/Rule.java
 contentDigest = SHA-256(UTF-8 of exact source String)
 ~~~
 
-Không suy tên class chỉ bằng regex trên source bất kỳ: comment, Unicode escapes, nested classes và nhiều top-level type có thể làm regex sai. Yêu cầu caller cung cấp logical unit name hoặc dùng parser/contract nhất quán.
+Do not infer class names with regex alone on arbitrary source: comments, Unicode escapes, nested classes, and multiple top-level types can break regex. Require the caller to supply the logical unit name or use a consistent parser/contract.
 
-### 4.3. Batch nhiều file phải gồm toàn bộ tập
+### 4.3. Multi-File Batches Must Include the Whole Set
 
-Nếu compiler nhận `Policy.java` và `Rule.java`, sửa `Policy.java` có thể thay output của `Rule.java` dù bản thân `Rule.java` y nguyên. Key batch phải fingerprint cả hai. Hãy sort source units theo logical path để thứ tự duyệt `HashMap` không gây false miss; từ chối duplicate logical path vì mơ hồ. **Không sort classpath/option theo cách này**, vì thứ tự của chúng có thể mang ý nghĩa.
+If the compiler receives `Policy.java` and `Rule.java`, editing `Policy.java` can change the output of `Rule.java` even if `Rule.java` itself is unchanged. The batch key must fingerprint both. Sort source units by logical path so `HashMap` iteration order does not cause false misses; reject duplicate logical paths as ambiguous. **Do not sort classpath/options this way**, because their order can carry meaning.
 
-### 4.4. Hash nào không phù hợp?
+### 4.4. Which Hashes Are Unsuitable?
 
-- `File.lastModified()`: file bị ghi đè trong cùng độ phân giải timestamp hoặc giữ nguyên mtime.
-- Kích thước file: nội dung khác có thể cùng length.
-- `String.hashCode()`: hash 32-bit không đủ làm content-addressed key an toàn.
-- Tên JAR, Maven coordinates, đường dẫn: không đảm bảo bytes.
-- SHA-256 của **canonical manifest gồm toàn bộ input**: phương án thực dụng.
+- `File.lastModified()`: files overwritten within the same timestamp granularity or preserving mtime.
+- File size: different content can have the same length.
+- `String.hashCode()`: a 32-bit hash is insufficient as a safe content-addressed key.
+- JAR names, Maven coordinates, paths: do not guarantee identical bytes.
+- SHA-256 of a **canonical manifest covering all inputs**: the practical choice.
 
-Đừng dùng hash để kết luận artifact “đáng tin”: cache nhiều tenant còn phải kiểm tra quyền, namespace, tính toàn vẹn và nguồn xuất bản.
+Do not use a hash to conclude an artifact is "trusted": multi-tenant caches still need permission, namespace, integrity, and provenance checks.
 
-## 5. Compiler options: dùng cấu hình effective, không dùng một vài checkbox UI
+## 5. Compiler Options: Use Effective Configuration, Not a Few UI Checkboxes
 
-`JavaCompiler.getTask(...)` nhận danh sách option tokens. Để tạo key, phải lấy **options cuối cùng mà adapter truyền vào compiler**, sau khi áp dụng mọi default, policy và overrides. Những nhóm dễ bị bỏ sót:
+`JavaCompiler.getTask(...)` accepts a list of option tokens. To construct the key, capture the **final options the adapter passes to the compiler**, after applying all defaults, policies, and overrides. Groups easily missed:
 
-- **Target và platform:** `--release 17`; hoặc `-source/-target` kết hợp platform configuration tương ứng. `--release` không dùng đồng thời với `-source/-target`.
-- **Bytecode metadata:** `-g`/`-g:none`, `-parameters`, source level; một số option warnings có thể ảnh hưởng diagnostic hoặc thành bại khi đi cùng `-Werror`.
-- **Symbol resolution:** `--class-path`/`-cp`, `--module-path`, `--module-source-path`, `--source-path`, `--patch-module`, `--add-modules`, `--add-exports` và lựa chọn liên quan theo chế độ hợp lệ.
+- **Target and platform:** `--release 17`; or `-source/-target` combined with corresponding platform configuration. `--release` cannot be used together with `-source/-target`.
+- **Bytecode metadata:** `-g`/`-g:none`, `-parameters`, source level; some warning options can affect diagnostics or pass/fail status when combined with `-Werror`.
+- **Symbol resolution:** `--class-path`/`-cp`, `--module-path`, `--module-source-path`, `--source-path`, `--patch-module`, `--add-modules`, `--add-exports`, and related flags in valid modes.
 - **Annotation processing:** `-proc:none`, `-processor`, `--processor-path`, `--processor-module-path`, `-Aname=value`.
-- **Encoding:** `-encoding` cho nguồn file bytes; file manager custom có thể truyền char content đã decode từ trước.
-- **Compiler plugins:** các extension compiler, file manager settings và version adapter.
+- **Encoding:** `-encoding` for byte-based file sources; custom file managers may supply already-decoded char content.
+- **Compiler plugins:** compiler extensions, file manager settings, and version adapters.
 
-**Giữ thứ tự option tokens** ở bước đầu để không bỏ qua ngữ nghĩa của repeated options và path ordering. Nếu muốn canonicalize `-cp` và `--class-path` thành một dạng, phải chứng minh chính compiler đang dùng hiểu chúng tương đương, và cần fingerprint **nội dung** các artifact mà option đó tham chiếu.
+**Preserve the order of option tokens** initially so you do not discard the semantics of repeated options and path ordering. If you want to canonicalize `-cp` and `--class-path` into one form, prove that the specific compiler treats them identically, and fingerprint **the contents** of the artifacts referenced by those options.
 
-Tránh default ngầm từ current working directory hoặc `CLASSPATH`: chúng có thể khiến một request “trông giống nhau” nhưng compiler nhìn thấy class khác. Nên thiết lập classpath/modulepath tường minh, hoặc fingerprint các default thực tế. `JDK_JAVAC_OPTIONS` tác động tới `javac` command launcher; đừng tự giả định nó là options tự động được JavaCompiler API nhận trong cùng cách thức.
+Avoid implicit defaults from the current working directory or `CLASSPATH`: they can make a request "look identical" while the compiler sees different classes. Set classpath/modulepath explicitly, or fingerprint the actual defaults. `JDK_JAVAC_OPTIONS` affects the `javac` command launcher; do not assume the `JavaCompiler` API reads it in the same way automatically.
 
-**Điểm quan trọng:** `--release 17` không cam kết bytecode giống nhau trên mọi compiler/JDK build, dù cùng API target. Include compiler/toolchain identity trong key.
+**Important point:** `--release 17` does not guarantee identical bytecode across every compiler/JDK build, even with the same API target. Include compiler/toolchain identity in the key.
 
-## 6. Phụ thuộc: hash content của toàn bộ compile-visible graph
+## 6. Dependencies: Hash the Content of the Entire Compile-Visible Graph
 
-### 6.1. JAR có thể thay đổi mà path không đổi
+### 6.1. A JAR Can Change While Its Path Stays the Same
 
 ~~~text
 --class-path lib/api.jar
 
-Lần đầu: lib/api.jar chứa Api.VERSION = 1
-Lần sau: cùng path nhưng JAR chứa Api.VERSION = 2
+First run:  lib/api.jar contains Api.VERSION = 1
+Next run:   same path, but JAR contains Api.VERSION = 2
 ~~~
 
-Nếu key chỉ lưu `"lib/api.jar"`, cache có thể trả bytecode cũ. Compiler Java có thể **inline** các compile-time constant như `public static final int`. Vì vậy ngay cả thay đổi chỉ trong classpath JAR, source y nguyên cũng có thể yêu cầu compile lại.
+If the key stores only `"lib/api.jar"`, the cache can return stale bytecode. The Java compiler can **inline** compile-time constants such as `public static final int`. Thus, even a change solely inside a classpath JAR with unchanged source code may require recompilation.
 
-Hash **bytes JAR thực**. Nếu ZIP timestamp/metadata khác nhưng classes không đổi, toàn-file digest gây false miss an toàn. Chỉ chuyển sang ABI hashing sau khi có mô hình chính xác về class ABI, constants, annotations và processors.
+Hash the **actual JAR bytes**. If ZIP timestamps/metadata differ while classes are unchanged, whole-file digests cause a safe false miss. Move to ABI hashing only after building an accurate model of class ABIs, constants, annotations, and processors.
 
-### 6.2. Classpath order không thể sort tùy tiện
+### 6.2. Classpath Order Cannot Be Arbitrarily Sorted
 
-Với hai JAR cùng chứa `com.example.Api`, compiler chọn class theo classpath lookup behavior. Đổi thứ tự:
+With two JARs both containing `com.example.Api`, the compiler picks the class according to classpath lookup behavior. Swapping the order:
 
 ~~~text
 [api-v1.jar, api-v2.jar]
 [api-v2.jar, api-v1.jar]
 ~~~
 
-có thể cho kết quả khác. Trong manifest, mỗi entry nên có **logical artifact identity, lookup ordinal và content digest**. Không sort theo tên JAR để “canonicalize”, vì điều đó có thể làm hai input khác nhau thành cùng key.
+can yield different results. In the manifest, each entry should have a **logical artifact identity, lookup ordinal, and content digest**. Do not sort by JAR name to "canonicalize", as that can collapse two distinct inputs into the same key.
 
-### 6.3. Dependency trực tiếp và bắc cầu
+### 6.3. Direct and Transitive Dependencies
 
-JavaCompiler có thể đọc superclass, generic bound, interface method, annotation, module metadata, static constant, package class và source phụ, không chỉ các class xuất hiện ở `import`. Vì vậy hash “những JAR được import trực tiếp” là chưa đủ.
+`JavaCompiler` can read superclasses, generic bounds, interface methods, annotations, module metadata, static constants, package classes, and auxiliary sources—not only classes listed in `import` statements. Hashing only "directly imported JARs" is therefore insufficient.
 
-Điểm xuất phát đúng đắn là fingerprint **toàn bộ effective classpath/modulepath/sourcepath mà task có thể truy cập**, kể cả transitive JARs. Đây là một **superset an toàn**, có thể tạo miss khi thư viện không liên quan thay đổi. Cách tối ưu incremental dựa trên symbol dependency graph là một bài toán chuyên sâu; đừng chỉ dò `import` text.
+The sound starting point is fingerprinting **the entire effective classpath/modulepath/sourcepath accessible to the task**, including transitive JARs. This is a **safe superset**, though it may cause misses when unrelated libraries change. Incremental optimization based on a symbol dependency graph is an advanced problem; do not just scan `import` text.
 
-### 6.4. Classpath directory và in-memory dependencies
+### 6.4. Classpath Directories and In-Memory Dependencies
 
-Nếu dependency là thư mục `build/classes`, phải hash các file bên trong theo **relative path + content digest**; hash tên folder hoặc lastModified của folder là không đủ. Với modular code cần xét `module-info.class` và resolution config.
+If a dependency is a directory like `build/classes`, hash the files inside by **relative path + content digest**; hashing the folder name or folder `lastModified` is insufficient. For modular code, also consider `module-info.class` and resolution configuration.
 
-Nếu compiler lấy dependency bytecode từ một **MemoryFileManager** hoặc in-memory class map, key phải hash đúng các `byte[]` mà file manager trả cho compiler. Dùng cùng loại fingerprint cho persisted JAR và in-memory dependency, nhưng ghi rõ identity và thứ tự lookup để tránh va chạm giữa các nguồn.
+If the compiler reads dependency bytecode from a **MemoryFileManager** or in-memory class map, the key must hash the exact `byte[]` arrays the file manager supplies to the compiler. Use the same fingerprinting discipline for persisted JARs and in-memory dependencies, recording explicit identities and lookup order to avoid collisions across sources.
 
-### 6.5. Processor paths và input bên ngoài
+### 6.5. Processor Paths and External Inputs
 
-Annotation processor có thể tạo class, source và resource dựa trên:
-- implementation JAR và dependencies của processor;
+Annotation processors can generate classes, sources, and resources based on:
+- the processor's implementation JAR and its dependencies;
 - `-A` options, annotations, resources, config files;
-- filesystem, env vars, clock, random, network.
+- the filesystem, env vars, clock, randomness, network.
 
-Nếu không thể xác định và snapshot hết inputs mà processor được phép dùng, đánh dấu request **non-cacheable** hoặc chạy processor trong môi trường đã được ràng buộc/deterministic. Processor là mã chạy tại compile time; bản thân việc cho chạy processor không tin cậy trong host JVM cũng cần cân nhắc an toàn.
+If you cannot identify and snapshot every input a processor is allowed to read, mark the request **non-cacheable** or run the processor in a constrained/deterministic environment. Processors are code executed at compile time; running untrusted processors inside the host JVM itself requires safety evaluation.
 
-Trong ví dụ chạy được bên dưới dùng `-proc:none` để loại trừ processor khỏi luồng chính.
+In the runnable example below, `-proc:none` is used to exclude processors from the main flow.
 
-## 7. JDK/toolchain identity và reproducibility
+## 7. JDK/Toolchain Identity and Reproducibility
 
-Một cache key nên ghi toolchain ID, ví dụ:
+A cache key should record a toolchain ID, for example:
 
 ~~~text
 compiler implementation/provider: javax.tools JavaCompiler implementation
@@ -240,13 +240,13 @@ compile adapter schema/version
 processor plugins and their versions
 ~~~
 
-Dùng exact version/build thường **bảo thủ nhưng đúng**; đổi JDK patch có thể tạo miss dù bytecode thực tế giống nhau. Không cần hash toàn bộ mọi environment variable vì nhiều biến không liên quan, làm giảm hit rate và có thể lộ secret. Những input bên ngoài mà processor thực sự đọc phải được khai báo và fingerprint hoặc tắt caching cho request ấy.
+Using exact version/build is **conservative but correct**; changing a JDK patch can cause a miss even if the resulting bytecode is identical. Avoid hashing every environment variable since many are irrelevant, lowering hit rates and potentially leaking secrets. Any external input actually read by a processor must be declared and fingerprinted, or caching must be disabled for that request.
 
-`ToolProvider.getSystemJavaCompiler()` có thể trả `null` nếu runtime image không cung cấp JDK compiler; production phải xử lý tình huống này. Nếu dùng Eclipse compiler hay một provider riêng, không dùng key namespace chung với javac trừ khi có kiểm chứng mạnh về tương thích output.
+`ToolProvider.getSystemJavaCompiler()` can return `null` if the runtime image does not provide a JDK compiler; production code must handle that case. If using the Eclipse compiler or another custom provider, do not share a key namespace with `javac` unless output compatibility is strongly verified.
 
-Nếu cache bao gồm formatted diagnostics, locale, source URI, warning/error policy cần được định danh chính xác. Một compilation success không có nghĩa diagnostics có thể tái sử dụng vô điều kiện cho tenant khác.
+If the cache includes formatted diagnostics, then locale, source URIs, and warning/error policies must be explicitly keyed. A successful compilation does not mean diagnostics can be unconditionally reused across different tenants.
 
-## 8. Quy trình canonicalization, lookup và lưu cache
+## 8. Canonicalization, Lookup, and Cache Storage Flow
 
 ~~~text
 CompileRequest
@@ -276,21 +276,21 @@ Canonical manifest → SHA-256 → cache key
                   Runtime ClassLoader generation
 ~~~
 
-**Snapshot phải nhất quán.** Nếu một thread tính SHA-256 của `api.jar`, rồi file trên đĩa bị ghi đè trước khi compiler đọc, key mô tả bytes A nhưng output được tạo từ bytes B. Khắc phục bằng immutable content-addressed artifacts, bản sao snapshot rồi compile từ chính snapshot, hoặc cơ chế khóa/version/integrity phù hợp. Không nên dùng cùng đường dẫn mutable cho hai bước mà thiếu kiểm soát.
+**The snapshot must be consistent.** If one thread computes the SHA-256 of `api.jar` and then the file on disk is overwritten before the compiler reads it, the key describes bytes A while the output is compiled from bytes B. Prevent this with immutable content-addressed artifacts, copying a snapshot and compiling from that snapshot, or proper locking/versioning/integrity mechanisms. Avoid using the same mutable path for both steps without control.
 
-### Những thứ không nên đưa vào key
+### Things NOT to Put in the Key
 
-- `createdAt` và `lastAccessAt`: phục vụ eviction, không phải compile input.
-- Random request ID không ảnh hưởng compiler: làm mọi lần miss.
-- Absolute temporary directory nếu compiler không thấy và diagnostics không thuộc contract.
-- ClassLoader generation ID khi **chỉ cache bytes biên dịch**; có thể load cùng bytes trong generation khác.
-- Secret thô, user data không cần thiết; nếu cần tenant isolation, đặt namespace/quyền ở storage layer.
+- `createdAt` and `lastAccessAt`: used for eviction, not compilation inputs.
+- Random request IDs that do not affect the compiler: causes every lookup to miss.
+- Absolute temporary directory paths if invisible to the compiler and not part of the diagnostic contract.
+- ClassLoader generation ID when **caching only compiled bytes**; the same bytes can be loaded into different generations.
+- Raw secrets or unnecessary user data; if tenant isolation is needed, enforce namespaces/permissions at the storage layer.
 
-## 9. Ví dụ Java 17+ chạy được: tạo key và cache bytecode trong RAM
+## 9. Runnable Java 17+ Example: Keying and Caching Bytecode in RAM
 
-Ví dụ sau có một source `demo.Hello` không dùng thư viện bên ngoài; `-proc:none` vô hiệu hóa annotation processing. `JavaCompiler` tạo `.class` trong RAM qua `ForwardingJavaFileManager`; một `Cache` giữ byte arrays theo fingerprint có length-prefix và SHA-256.
+The following example compiles a single source `demo.Hello` without external libraries; `-proc:none` disables annotation processing. `JavaCompiler` emits `.class` files in RAM via `ForwardingJavaFileManager`; a `Cache` retains byte arrays keyed by a length-prefixed SHA-256 fingerprint.
 
-### 9.1. Tệp CompileCacheDemo.java
+### 9.1. File CompileCacheDemo.java
 
 ~~~java
 import java.io.ByteArrayOutputStream;
@@ -513,14 +513,14 @@ public final class CompileCacheDemo {
 }
 ~~~
 
-Lệnh tại thư mục chứa file, máy có **JDK 17+**:
+Commands in the directory containing the file, on a machine with **JDK 17+**:
 
 ~~~powershell
 javac --release 17 -encoding UTF-8 CompileCacheDemo.java
 java CompileCacheDemo
 ~~~
 
-Stdout được thiết kế cho chương trình:
+Expected stdout for the program:
 
 ~~~text
 MISS
@@ -532,30 +532,30 @@ compiler calls=3
 dependency key changed=true
 ~~~
 
-**Vì sao bốn lần gọi tạo ba lần biên dịch?**
+**Why do four calls cause three compilations?**
 
-1. Request đầu tiên: key chưa tồn tại → `MISS`; compiler được gọi.
-2. Request thứ hai: cùng source + options + toolchain + dependency list → `HIT`, trả bytecode copy từ cache.
-3. Request thứ ba: đổi thân hàm `x * 2` thành `x * 3` → source khác → `MISS`.
-4. Request thứ tư: source cũ, bật `-parameters` → option khác → `MISS`.
-5. Hai chuỗi `api-v1`/`api-v2` **chỉ để cho thấy dependency fingerprint khác tạo key khác**; ví dụ này không biên dịch dựa trên JAR ngoài. Trong production, `dependencyFingerprints` bắt buộc được tính từ **artifact thật mà JavaCompiler nhìn thấy**.
+1. First request: key does not exist yet → `MISS`; compiler is invoked.
+2. Second request: identical source + options + toolchain + dependency list → `HIT`, returns copied bytecode from cache.
+3. Third request: method body changed from `x * 2` to `x * 3` → different source → `MISS`.
+4. Fourth request: original source, `-parameters` enabled → different options → `MISS`.
+5. The two strings `api-v1`/`api-v2` **only illustrate that different dependency fingerprints produce different keys**; this example does not compile against an external JAR. In production, `dependencyFingerprints` must be computed from the **actual artifacts visible to `JavaCompiler`**.
 
-Lệnh `javac` tạo `CompileCacheDemo.class` và các nested class của **chương trình demo** trên đĩa. Source `demo.Hello` được biên dịch trong RAM; `MemoryFileManager` giữ `demo.Hello` bytecode trong `Map<String,byte[]>` mà không ghi `demo/Hello.class` xuống filesystem.
+The `javac` command creates `CompileCacheDemo.class` and nested classes of the **demo program** on disk. The `demo.Hello` source is compiled in RAM; `MemoryFileManager` holds `demo.Hello` bytecode in `Map<String,byte[]>` without writing `demo/Hello.class` to the filesystem.
 
-### 9.2. Vai trò từng lớp
+### 9.2. Role of Each Class
 
-- `SourceUnit`: dùng `SimpleJavaFileObject` có URI logical `.java` và cung cấp `CharSequence` từ `String`.
-- `ClassBytes`: `SimpleJavaFileObject` đại diện output `.class`, nhận bytes qua `openOutputStream()`.
-- `MemoryFileManager`: `ForwardingJavaFileManager` giữ cách tìm dependency của standard manager và override `getJavaFileForOutput` để thu output trong RAM.
-- `Cache`: key → toàn bộ class map; clone `byte[]` khi lưu/trả để caller không sửa dữ liệu cache.
-- `key`: encode có length-prefix, bao gồm compiler identity/JDK identity, source, ordered options và dependency fingerprints rồi dùng `MessageDigest SHA-256`.
-- `compileOnce`: gọi `JavaCompiler.getTask`, thu diagnostics, chỉ trả artifact khi `call()` thành công.
+- `SourceUnit`: uses `SimpleJavaFileObject` with a logical `.java` URI and supplies a `CharSequence` from `String`.
+- `ClassBytes`: `SimpleJavaFileObject` representing `.class` output, receiving bytes via `openOutputStream()`.
+- `MemoryFileManager`: `ForwardingJavaFileManager` preserving the standard manager's dependency lookup and overriding `getJavaFileForOutput` to capture outputs in RAM.
+- `Cache`: key → complete class map; clones `byte[]` on store/return so callers cannot mutate cached data.
+- `key`: length-prefixed encoding including compiler/JDK identity, source, ordered options, and dependency fingerprints, then hashed with `MessageDigest SHA-256`.
+- `compileOnce`: invokes `JavaCompiler.getTask`, collects diagnostics, and returns the artifact only when `call()` succeeds.
 
-**Giới hạn có chủ đích:** chương trình single-threaded, mỗi request một source, không có annotation processor, dependency ngoài, disk cache hoặc class loading. Muốn dùng với nhiều source thì truyền danh sách `JavaFileObject`, hash tất cả source cùng logical paths và giữ toàn bộ generated outputs. Nếu bật annotation processing, cần thu thêm các loại output mà processor tạo (kể cả `getFileForOutput` cho resources). Chỉ dùng code này làm nền để học, không nhận là caching classpath hoàn chỉnh nếu danh sách dependency vẫn rỗng.
+**Intentional limitations:** the program is single-threaded, one source per request, with no annotation processors, external dependencies, disk cache, or class loading. To support multiple sources, pass a list of `JavaFileObject`, hash all sources with their logical paths, and retain all generated outputs. If annotation processing is enabled, capture any additional output kinds produced by processors (including `getFileForOutput` for resources). Use this code only as a learning foundation; do not claim complete classpath caching while the dependency list remains empty.
 
-## 10. Hash JAR/đầu ra thư mục đúng cách
+## 10. Properly Hashing JARs and Directory Outputs
 
-### 10.1. Đoạn minh họa hash một JAR (không chạy độc lập)
+### 10.1. Illustrative Snippet for Hashing a JAR (Not Standalone Runnable)
 
 ~~~java
 static String digestJar(java.nio.file.Path jar) throws Exception {
@@ -572,7 +572,7 @@ static String digestJar(java.nio.file.Path jar) throws Exception {
 }
 ~~~
 
-Nếu `--class-path` là danh sách JAR, ghi các entry theo đúng lookup order:
+If `--class-path` is a list of JARs, record entries in exact lookup order:
 
 ~~~text
 ClasspathEntry(kind=JAR, order=0, logicalId=api.jar, sha256=...)
@@ -580,15 +580,15 @@ ClasspathEntry(kind=JAR, order=1, logicalId=util.jar, sha256=...)
 ...
 ~~~
 
-Với directory chứa classfiles, tạo manifest gồm **relative path + SHA-256 file content** cho mỗi mục mà compiler có thể đọc; sort theo relative path và hash manifest. Không lấy directory modification time làm dấu vân tay. Khi dùng symlink hoặc mount, cần quy ước resolve/snapshot rõ ràng; nếu classpath thay đổi đồng thời thì việc hash và compile có thể không nhất quán.
+For directories containing classfiles, build a manifest of **relative path + SHA-256 of file content** for every entry readable by the compiler; sort by relative path and hash the manifest. Never use directory modification time as a fingerprint. When using symlinks or mounts, establish explicit resolution/snapshot rules; if the classpath mutates concurrently, hashing and compilation can become inconsistent.
 
-### 10.2. Đổi đường dẫn và đổi nội dung khác nhau
+### 10.2. Path Changes vs. Content Changes
 
-JAR cùng bytes nhưng ở một đường dẫn tạm mới có thể cùng content fingerprint. Tuy vậy nếu đường dẫn được ghi vào output/diagnostics, ảnh hưởng resource/package lookup hoặc được processor sử dụng, đường dẫn vẫn là input cần quản lý. **Đừng bỏ path vô điều kiện**; ghi logical ID và path policy đủ để compiler đọc đúng nguồn và hệ thống quyết định thế nào là request tương đương.
+A JAR with identical bytes placed in a new temporary path can share the same content fingerprint. However, if the path is written into outputs/diagnostics, affects resource/package lookup, or is read by a processor, the path remains an input to manage. **Do not discard paths unconditionally**; record a logical ID and path policy sufficient for the compiler to read the right sources and the system to decide which requests are equivalent.
 
-### 10.3. Compile-time ABI và constants
+### 10.3. Compile-Time ABI and Constants
 
-Chỉ hash public method signatures đôi khi chưa đủ. Ví dụ:
+Hashing only public method signatures is sometimes not enough. For example:
 
 ~~~java
 // API dependency v1
@@ -598,32 +598,32 @@ public static final int MAX = 10;
 public static final int MAX = 20;
 ~~~
 
-Hai snippet này là **minh họa, không phải hai file Java độc lập**. Nếu caller compile `return Api.MAX;`, compiler có thể inline giá trị constant vào bytecode. Dù chữ ký field giống nhau, output phụ thuộc vào giá trị. ABI hashing nâng cao phải tính cả constants, generic signatures, annotations, visibility, hierarchy, modules và thứ processor có thể quan sát. **Hash nguyên JAR** thường đơn giản và an toàn hơn.
+These two snippets are **illustrative, not two standalone Java files**. If a caller compiles `return Api.MAX;`, the compiler can inline the constant value into bytecode. Even though the field signature is identical, the output depends on the value. Advanced ABI hashing must account for constants, generic signatures, annotations, visibility, hierarchy, modules, and anything observable by processors. **Hashing the entire JAR** is usually simpler and safer.
 
-## 11. Invalidation: đầu vào nào đổi thì cache miss?
+## 11. Invalidation: Which Input Changes Cause a Cache Miss?
 
-| Sự kiện | Kết quả theo key bảo thủ | Tại sao |
+| Event | Result under conservative key | Why |
 | --- | --- | --- |
-| Source text thay đổi | **MISS** | Compiler nhận nội dung mới |
-| Source mtime đổi, bytes không đổi | HIT nếu mtime không có nghĩa | Không hash metadata thuần túy |
-| Thêm/bớt source trong batch | **MISS** | Symbol table/output thay đổi |
-| Source collection đảo thứ tự không có nghĩa | HIT nếu đã canonical sort | Logical units vẫn như cũ |
-| `--release 17` thành `--release 21` | **MISS** | Ngôn ngữ/platform/target khác |
-| Bật `-parameters` hoặc đổi debug flags | **MISS** | Metadata classfile khác |
-| JDK/compiler provider/version đổi | **MISS** theo policy bảo thủ | Toolchain có thể sinh output khác |
-| JAR cùng path nhưng bytes mới | **MISS** | Class/method/constant thay |
-| Đảo effective classpath order | **MISS** | Resolve class có thể khác |
-| Thay một JAR không liên quan trong full path | MISS theo whole-path model | False miss an toàn; tối ưu về sau |
-| Processor JAR/option/source phụ đổi | **MISS** hoặc non-cacheable | Generated classes/resources thay |
-| Process restart, inputs/toolchain giữ nguyên | Có thể HIT trong persistent cache | Chỉ khi schema và integrity hợp lệ |
-| Loader generation mới, bytecode input cũ | Compile cache có thể HIT | Runtime Class cần loader mới |
-| Cache TTL hết hạn | Recompile khi entry bị evict | TTL quản lý lưu trữ, không thay fingerprints |
+| Source text changes | **MISS** | Compiler receives new content |
+| Source mtime changes, bytes unchanged | HIT if mtime has no effect | Do not hash pure filesystem metadata |
+| Source added/removed in batch | **MISS** | Symbol table/output changes |
+| Source collection order shuffled meaninglessly | HIT if canonically sorted | Logical units are unchanged |
+| `--release 17` changed to `--release 21` | **MISS** | Language/platform/target changed |
+| `-parameters` enabled or debug flags changed | **MISS** | Classfile metadata differs |
+| JDK/compiler provider/version changed | **MISS** under conservative policy | Toolchain may produce different output |
+| JAR at same path has new bytes | **MISS** | Classes/methods/constants changed |
+| Effective classpath order swapped | **MISS** | Class resolution may differ |
+| Unrelated JAR changed on full path | MISS under whole-path model | Safe false miss; optimize later |
+| Processor JAR/options/auxiliary inputs changed | **MISS** or non-cacheable | Generated classes/resources change |
+| Process restarts, inputs/toolchain unchanged | Can HIT in persistent cache | Only if schema and integrity are valid |
+| New loader generation, old bytecode inputs | Compile cache can HIT | Runtime `Class` needs a new loader |
+| Cache TTL expires | Recompile once entry is evicted | TTL manages storage, not fingerprints |
 
-Cần phân biệt **cache invalidation theo nội dung** và **eviction theo thời gian/dung lượng**. TTL không sửa được một key thiếu dependency; entry còn TTL vẫn có thể sai nếu JAR đã đổi mà không được phản ánh vào key.
+You must distinguish **content-based cache invalidation** from **time/capacity-based eviction**. A TTL does not fix a key missing a dependency; a live entry within TTL can still be stale if a JAR changed without being reflected in the key.
 
-## 12. Cache value, integrity và âm bản lỗi
+## 12. Cache Values, Integrity, and Negative Caching
 
-Một success entry đủ dùng:
+A sufficient success entry:
 
 ~~~text
 CompilationArtifact
@@ -632,50 +632,50 @@ CompilationArtifact
   source/option/dependency manifest for debugging
   status = SUCCESS
   classes: Map<binaryName, immutable byte[]>
-  generatedSources/generatedResources (nếu contract yêu cầu)
-  diagnostics (nếu được định danh và cho phép reuse)
+  generatedSources/generatedResources (if required by contract)
+  diagnostics (if keyed and safe to reuse)
   artifact/blob digest for integrity
   createdAt, lastAccessAt, sizeBytes (eviction metadata)
 ~~~
 
-**Không chỉ lưu class chính.** Nếu compile sinh `Outer$Nested.class`, thiếu nó có thể làm class loader phát sinh `NoClassDefFoundError` khi chương trình dùng nested class. Generated resources của annotation processor cũng có thể ảnh hưởng runtime plugin.
+**Do not store only the main class.** If compilation produces `Outer$Nested.class`, missing it can make the class loader throw `NoClassDefFoundError` when the program uses the nested class. Generated resources from annotation processors can also affect runtime plugins.
 
-**Không dùng `Map.copyOf` để coi byte[] bất biến:** map không cho thêm/bớt nhưng các arrays bên trong vẫn mutable. Dùng defensive copies, immutable blob storage hoặc policy không cấp byte arrays mutable trực tiếp cho plugin.
+**Do not rely on `Map.copyOf` to make `byte[]` immutable:** the map forbids adds/removes, but the arrays inside remain mutable. Use defensive copies, immutable blob storage, or a policy that never hands mutable byte arrays directly to plugins.
 
-**Không ghi compile failure thành success entry.** Lỗi có thể do source không hợp lệ, dependency tạm mất, file manager/IO hoặc timeout. Nếu muốn negative cache, chỉ cache lỗi thật sự deterministic theo key đầy đủ, TTL ngắn và phân biệt transient errors. Bảo vệ diagnostics theo tenant, tránh trả thông tin source của user khác.
+**Do not record a compilation failure as a success entry.** Failures can stem from invalid source, temporarily missing dependencies, file manager/I/O issues, or timeouts. If negative caching is desired, cache only genuinely deterministic errors under the full key with a short TTL, separated from transient errors. Isolate diagnostics per tenant to avoid exposing another user's source information.
 
-**Integrity khi đọc persistent/distributed cache:** xác minh schema, namespace/quyền, digest của blob output và manifest. Content digest giảm rủi ro corruption, nhưng một attacker có thể thay cả manifest/blob nếu không có access control; chữ ký/nguồn tin cậy vẫn cần thiết theo chính sách bảo mật.
+**Integrity when reading persistent/distributed caches:** verify schema, namespace/permissions, output blob digests, and manifests. Content digests reduce corruption risk, though an attacker could replace both manifest and blob without access controls; signatures or trusted provenance remain necessary per security policy.
 
-## 13. Đồng thời: tránh compile trùng và publish chưa hoàn chỉnh
+## 13. Concurrency: Avoiding Duplicate Compiles and Incomplete Publishes
 
-Nếu hai request đến cùng key lúc cache chưa có entry, cả hai có thể tự compile cùng source. Điều đó không sai về mặt correctness nhưng tốn tài nguyên. Dùng **single-flight theo key**, ví dụ một `ConcurrentHashMap<Key, CompletableFuture<CompilationArtifact>>` hoặc thư viện cache có compute-once semantics rõ ràng.
+If two requests arrive with the same key while the cache has no entry, both might compile the same source independently. That is not incorrect, but it wastes resources. Use **per-key single-flight**, such as a `ConcurrentHashMap<Key, CompletableFuture<CompilationArtifact>>` or a cache library with clear compute-once semantics.
 
 ~~~text
 Request A ----\
-               +--- fingerprint K --- inFlight[K] --- một compilation task
+               +--- fingerprint K --- inFlight[K] --- single compilation task
 Request B ----/                               |
                                           completed artifact
                                           /             \
-                                        A nhận       B nhận
+                                        A receives     B receives
 ~~~
 
-Đây là **sơ đồ thiết kế**, không phải Java chạy độc lập. Cần bảo đảm:
+This is a **design diagram**, not standalone runnable Java. Ensure that:
 
-1. Có khóa/in-flight entry **theo đúng key** và không ép hai key khác compile chung.
-2. Completion chỉ publish sau khi JavaCompiler kết thúc và toàn bộ output được snapshot.
-3. Failures/cancellations được propagate; remove failed future theo policy để không cache exception vô hạn.
-4. Giới hạn số compile đồng thời, CPU, heap và thời gian chạy.
-5. Không mặc định chia sẻ một `JavaFileManager` mutable cho nhiều task đồng thời; mỗi task có state riêng hoặc cơ chế đồng bộ chính xác.
-6. Một waiter timeout không nhất thiết hủy tác vụ đang phục vụ waiter khác.
-7. Trước khi lưu artifact, xác minh lại consistency nếu inputs có thể thay đổi giữa fingerprint và compile.
+1. Locking/in-flight tracking is **per exact key** and does not force two different keys to share a compile.
+2. Completion is published only after `JavaCompiler` finishes and all outputs are snapshotted.
+3. Failures/cancellations propagate; remove failed futures per policy so exceptions are not cached forever.
+4. Concurrent compiles, CPU, heap, and execution time are bounded.
+5. One mutable `JavaFileManager` is never shared across concurrent tasks by default; each task has its own state or proper synchronization.
+6. One waiter timing out does not necessarily cancel a task serving another waiter.
+7. Before storing the artifact, re-verify consistency if inputs could mutate between fingerprinting and compilation.
 
-Một `HashMap` như demo là **chỉ cho tuần tự**. Trong production, concurrent cache, per-key coordination và immutable artifact là phần thiết kế bắt buộc.
+A `HashMap` as in the demo is **sequential-only**. In production, a concurrent cache, per-key coordination, and immutable artifacts are mandatory design elements.
 
-## 14. Bytecode cache không phải cache của ClassLoader
+## 14. A Bytecode Cache Is Not a ClassLoader Cache
 
-Một loader đã định nghĩa binary name `demo.Rule` từ bytes v1 không thể cứ gọi `defineClass` lại tên đó với bytes v2 để tạo cùng class identity mới. JVM gắn runtime class với **(binary name, defining loader)**.
+A loader that has already defined binary name `demo.Rule` from v1 bytes cannot simply call `defineClass` again on that name with v2 bytes to create a new class identity. The JVM binds a runtime class to **(binary name, defining loader)**.
 
-Để thay plugin/rule được biên dịch mới:
+To swap in a newly compiled plugin/rule:
 
 ~~~text
 source/options/dependency input → compile key → bytecode map
@@ -685,97 +685,97 @@ source/options/dependency input → compile key → bytecode map
                 generation loader A                         generation loader B
                   Rule.class v1                                Rule.class v2
                         │                                           │
-                   request cũ                                  request mới
+                   old requests                                new requests
                         └────────── drain/stop/release ─────────────┘
 ~~~
 
-Bytecode cùng key có thể được dùng ở **hai loader mới khác nhau**, nhưng không đồng nghĩa các `Class<?>` object có cùng identity. Không nên cache `Class<?>` hoặc `ClassLoader` chung với bytecode mà không định nghĩa rõ generation lifecycle: cache đó có thể giữ strong references tới classloader cũ, gây leak Metaspace và giữ threads/resources.
+Bytecode for the same key can be used in **two different new loaders**, though that does not mean the `Class<?>` objects share identity. Do not cache `Class<?>` or `ClassLoader` together with bytecode without a well-defined generation lifecycle: such caches can retain strong references to old class loaders, leaking Metaspace and retaining threads/resources.
 
-`URLClassLoader.close()` (nếu dùng) giải phóng tài nguyên loader, không ép unload class tức thì. `ServiceLoader.reload()` xóa cache provider của service loader, cũng **không** làm source bytecode được biên dịch lại hoặc class đã load thay đổi.
+`URLClassLoader.close()` (if used) releases loader resources without forcing immediate class unloading. `ServiceLoader.reload()` clears the service loader's provider cache, and likewise **does not** recompile source bytecode or alter already-loaded classes.
 
-## 15. Quy trình thử nghiệm và QA
+## 15. Testing and QA Workflow
 
-| Test | Cách thiết lập | Kết quả mong đợi |
+| Test | Setup | Expected result |
 | --- | --- | --- |
-| Lặp input y hệt | Compile hai lần source/options/deps/toolchain giống | HIT lần hai, compiler call = 1 |
-| Source đổi một literal | Thay `x * 2` thành `x * 3` | MISS; bytecode tương ứng |
-| Same source length | Thay nội dung nhưng giữ số ký tự | MISS; không dùng length làm key |
-| Mtime giữ nguyên nhưng JAR đổi | Replace API JAR với bytes khác | MISS |
-| Classpath order đảo | Hai JAR có trùng class name | MISS, resolution đúng |
-| Transitive dependency đổi | Đổi constant/method của thư viện gián tiếp | MISS |
-| Compiler option thay | `--release`, `-parameters` hoặc processor flags đổi | MISS |
-| Annotation processor đọc input phụ | Đổi config/resource của processor | MISS hoặc non-cacheable |
-| Compiler/toolchain nâng version | JDK patch/build/vendor đổi | MISS theo policy |
-| Source batch thêm nested class | Compiler sinh nhiều class output | Cache giữ đủ tất cả `.class` |
-| Missing dependency | Xóa classpath JAR bắt buộc | Không trả stale success; lỗi compile phản ánh input mới |
-| Đồng thời cùng key | 20 request cùng lúc | Chỉ một compile, cùng artifact toàn vẹn |
-| Lỗi compile | Source có cú pháp sai | Không tạo success entry |
-| Cache blob corruption | Sửa cached bytes | Integrity check reject, recompile |
-| Eviction | Xóa cache entry theo quota/TTL | Request tiếp theo compile lại chính xác |
-| Runtime generation mới | Class cùng binary name v1 rồi v2 | Loader mới; không định nghĩa lại trong loader cũ |
+| Identical repeated input | Compile twice with identical source/options/deps/toolchain | HIT on second run, compiler calls = 1 |
+| Source changes one literal | Change `x * 2` to `x * 3` | MISS; corresponding bytecode |
+| Same source length | Change content while keeping character count identical | MISS; length is not used as key |
+| Mtime preserved, JAR changed | Replace API JAR with different bytes | MISS |
+| Classpath order swapped | Two JARs containing the same class name | MISS, accurate resolution |
+| Transitive dependency changed | Change constant/method in an indirect library | MISS |
+| Compiler options changed | `--release`, `-parameters`, or processor flags changed | MISS |
+| Annotation processor reads auxiliary input | Change processor config/resource | MISS or non-cacheable |
+| Compiler/toolchain upgraded | JDK patch/build/vendor changes | MISS per policy |
+| Source batch adds nested class | Compiler emits multiple class outputs | Cache retains all `.class` files |
+| Missing dependency | Remove a required classpath JAR | Never returns stale success; compile error reflects new input |
+| Concurrent same key | 20 simultaneous requests | Only one compilation, same intact artifact |
+| Compile error | Source has syntax errors | No success entry created |
+| Cache blob corruption | Mutate cached bytes | Integrity check rejects, recompiles |
+| Eviction | Evict cache entry by quota/TTL | Subsequent request recompiles cleanly |
+| New runtime generation | Same binary name v1 then v2 | New loader; never redefined in old loader |
 
-**Lab mở rộng A — Dependency path không đổi:** biên dịch `return Api.LIMIT;` với dependency chứa `public static final int LIMIT = 10`; replace JAR cùng path bằng bản `LIMIT = 20`. So sánh cache chỉ hash path với cache hash JAR bytes để thấy nguy cơ stale constant.
+**Extended Lab A — Unchanged dependency path:** compile `return Api.LIMIT;` against a dependency containing `public static final int LIMIT = 10`; replace the JAR at the same path with a version having `LIMIT = 20`. Compare a path-only cache against a JAR-bytes cache to observe the stale constant risk.
 
-**Lab mở rộng B — Một batch:** compile cùng lúc `Policy.java` và `Rule.java`; chỉ sửa `Policy.java` thì key batch phải đổi, dù text `Rule.java` không đổi.
+**Extended Lab B — Single batch:** compile `Policy.java` and `Rule.java` together; modify only `Policy.java` and confirm the batch key changes even though `Rule.java` text is unchanged.
 
-**Lab mở rộng C — Tính ổn định:** cho collection source order thay đổi ngẫu nhiên, nhưng canonical source manifest sort theo logical path; xác minh key không đổi. Đảo **classpath order** thì key phải đổi.
+**Extended Lab C — Determinism:** shuffle the source collection order randomly while sorting the canonical source manifest by logical path; verify the key stays unchanged. Swap **classpath order** and confirm the key changes.
 
-**Lab mở rộng D — Đo hiệu năng:** dùng tập N request với K unique fingerprints, so hit rate = hits / lookups; compiler calls, p95/p99 compile latency, bytes cached, heap/Metaspace và eviction. Không “tối ưu” hit rate bằng cách lược bỏ dependency inputs.
+**Extended Lab D — Benchmarking:** run N requests with K unique fingerprints, measuring hit rate = hits / lookups, compiler calls, p95/p99 compile latency, cached bytes, heap/Metaspace, and evictions. Never "optimize" hit rate by dropping dependency inputs.
 
-## 16. Những sai lầm cần tránh
+## 16. Mistakes to Avoid
 
-### 16.1. Chỉ hash mã nguồn
+### 16.1. Hashing Only Source Code
 
-Cùng source nhưng compiler version, options, JAR/module path hoặc processor khác có thể tạo output khác. Key phải phản ánh các inputs khả dĩ ảnh hưởng.
+Identical source with different compiler versions, options, JAR/module paths, or processors can yield different outputs. The key must reflect all inputs capable of influencing output.
 
-### 16.2. Chỉ hash path/mtime/size của JAR
+### 16.2. Hashing Only JAR Path, mtime, or Size
 
-JAR có thể bị deploy lại với cùng path, timestamp và kích thước. Hash bytes thực tế compiler dùng; đảm bảo compiler đọc **cùng snapshot** đã hash để tránh TOCTOU.
+A JAR can be redeployed with the same path, timestamp, and size. Hash the actual bytes used by the compiler; ensure the compiler reads the **exact snapshot** that was hashed to prevent TOCTOU issues.
 
-### 16.3. Dùng `String.hashCode()`
+### 16.3. Using `String.hashCode()`
 
-Hash 32-bit không đủ làm content key. Dùng SHA-256 trên encoding canonical có length-prefix và namespace/schema version.
+A 32-bit hash is insufficient as a content key. Use SHA-256 over a canonical length-prefixed encoding with namespace/schema versioning.
 
-### 16.4. Sort classpath để key “đẹp”
+### 16.4. Sorting the Classpath to Make Keys "Clean"
 
-Classpath lookup order có thể đổi version class được chọn. Giữ thứ tự có ý nghĩa; chỉ sort các collection logic dạng tập khi thứ tự thực sự không ảnh hưởng compile.
+Classpath lookup order can change which class version is chosen. Preserve meaningful ordering; only sort logical set-like collections when order truly cannot affect compilation.
 
-### 16.5. Bỏ dependency bắc cầu và generated sources
+### 16.5. Omitting Transitive Dependencies and Generated Sources
 
-Compile có thể phụ thuộc vào superclass, annotation, generic type, constants và source tìm qua sourcepath. Annotation processor còn phát sinh outputs mới. Whole-path/batch fingerprint là lựa chọn ban đầu đáng tin.
+Compilation can depend on superclasses, annotations, generic types, constants, and sources found on the sourcepath. Annotation processors also emit new outputs. Whole-path/batch fingerprinting is a reliable starting choice.
 
-### 16.6. Dùng lại bytecode object khi compiler output chưa đầy đủ
+### 16.6. Reusing Bytecode Objects When Compiler Output Is Incomplete
 
-Một compile success phải snapshot **tất cả** class files; không publish map đang được `OutputStream` ghi. Không dùng `Map.copyOf` rồi giả định mảng bytes không thể bị sửa.
+A successful compilation must snapshot **all** class files; do not publish a map while an `OutputStream` is still writing to it. Do not use `Map.copyOf` and assume the byte arrays cannot be mutated.
 
-### 16.7. Cache lỗi vĩnh viễn hoặc dùng TTL để thay invalidation
+### 16.7. Caching Errors Permanently or Replacing Invalidation with TTL
 
-Lỗi transient phải có đường retry. TTL chỉ loại bỏ entry theo thời gian; key thiếu dependency vẫn có thể hit sai trong thời gian TTL.
+Transient errors must have a retry path. TTL only expires entries by time; a key missing a dependency can still produce false hits while within its TTL.
 
-### 16.8. Coi ClassLoader là cache compiler
+### 16.8. Treating ClassLoader as a Compiler Cache
 
-`ClassLoader` quản lý định nghĩa class runtime; compilation cache quản lý bytecode có thể dùng lại. Muốn version runtime mới cần generation/loader mới. Giữ `Class<?>` từ loader cũ có thể khiến unload không xảy ra.
+`ClassLoader` manages runtime class definitions; a compilation cache manages reusable bytecode. A new runtime version requires a new generation/loader. Holding `Class<?>` from an old loader can prevent unloading.
 
-### 16.9. Chạy processor/mã nguồn không tin cậy trong host mà không cách ly
+### 16.9. Running Untrusted Processors or Sources in the Host Without Isolation
 
-Annotation processors là mã Java được thực thi lúc compile; bytecode do user viết có thể tác động tài nguyên khi thực thi. ClassLoader/JPMS không phải sandbox. Với mã không tin cậy, cân nhắc compilation/execution process riêng, giới hạn OS resources, timeouts và kiểm soát quyền.
+Annotation processors are Java code executed during compilation; user-written bytecode can affect resources when executed. Neither `ClassLoader` nor JPMS is a sandbox. For untrusted code, consider separate compilation/execution processes, OS resource limits, timeouts, and permission controls.
 
-## 17. Checklist thiết kế hệ thống thực tế
+## 17. Practical System Design Checklist
 
-1. **Định nghĩa CompilationRequest:** một source, batch hay module; nguồn và logical names được validate.
-2. **Đặt profile compiler:** version/toolchain, `--release`, file manager locations, processor policy.
-3. **Snapshot inputs:** toàn bộ source và compile-visible artifacts, không để JAR đổi giữa fingerprint và task.
-4. **Canonical manifest:** source sort theo logical path; options/classpath giữ thứ tự khi có ý nghĩa; hash nội dung và namespace version.
-5. **SHA-256 key:** encoding có ranh giới trường, không gộp các input không tương đương.
-6. **Compile:** `JavaCompiler.getTask` với `JavaFileManager` thích hợp; thu diagnostics và mọi output.
-7. **Cache success:** bytecode map clone/immutable blob, schema/integrity, atomic publish; failure handling riêng.
-8. **Concurrency:** single-flight per key, task resources và timeout/eviction.
-9. **Runtime loading:** dùng classloader generation, không tái định nghĩa class cùng tên trong loader cũ.
-10. **Verify:** source/options/dependency/toolchain thay đổi thì cache miss đúng; cùng input thì hit; test corruption, version drift và concurrency.
+1. **Define CompilationRequest:** single source, batch, or module; validate sources and logical names.
+2. **Pin compiler profile:** version/toolchain, `--release`, file manager locations, processor policy.
+3. **Snapshot inputs:** all sources and compile-visible artifacts, preventing JAR mutation between fingerprinting and task execution.
+4. **Canonical manifest:** sort sources by logical path; keep meaningful order for options/classpath; hash contents and namespace version.
+5. **SHA-256 key:** encoding with field boundaries, never merging non-equivalent inputs.
+6. **Compile:** `JavaCompiler.getTask` with an appropriate `JavaFileManager`; capture diagnostics and all outputs.
+7. **Cache successes:** cloned bytecode maps/immutable blobs, schema/integrity checks, atomic publish; separate failure handling.
+8. **Concurrency:** per-key single-flight, bounded task resources, and timeouts/eviction.
+9. **Runtime loading:** use classloader generations; never redefine identically named classes in an old loader.
+10. **Verify:** changes to source/options/dependencies/toolchain cause proper misses; identical inputs hit; test corruption, version drift, and concurrency.
 
-**Nguyên tắc xuyên suốt:** cache key phải đại diện cho **toàn bộ môi trường biên dịch có thể ảnh hưởng output**, không chỉ source text. Với JavaCompiler chạy trong bộ nhớ, một manifest ổn định gồm source + effective options + dependency content + compiler identity, được hash SHA-256 và dùng với input snapshot bất biến, là nền tảng để cache bytecode đúng và có thể mở rộng.
+**Guiding principle:** a cache key must represent **the entire compilation environment capable of affecting output**, not just source text. For `JavaCompiler` running in memory, a stable manifest covering sources + effective options + dependency contents + compiler identity, hashed with SHA-256 against immutable input snapshots, is the foundation for correct and scalable bytecode caching.
 
-## 18. Tài liệu tham khảo Java SE 17
+## 18. Java SE 17 References
 
 - JavaCompiler: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html
 - JavaFileManager: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaFileManager.html
@@ -783,6 +783,6 @@ Annotation processors là mã Java được thực thi lúc compile; bytecode do
 - ToolProvider: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ToolProvider.html
 - SimpleJavaFileObject: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/SimpleJavaFileObject.html
 - StandardJavaFileManager: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/StandardJavaFileManager.html
-- javac options, processor paths và --release: https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html
+- javac options, processor paths, and --release: https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html
 - MessageDigest: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/MessageDigest.html
 - ClassLoader: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html

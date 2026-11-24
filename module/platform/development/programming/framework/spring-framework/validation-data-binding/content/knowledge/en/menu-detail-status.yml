@@ -1,0 +1,3373 @@
+menu:
+- slug: validation-overview
+  title: Tổng quan
+  childs:
+  - slug: validation-overview-001
+    title: Data binding là gì và vì sao cần gắn dữ liệu vào đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-overview-002
+    title: Validation là gì và vai trò bảo vệ hợp đồng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-overview-003
+    title: Chuyển đổi kiểu và định dạng dữ liệu trong Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-overview-004
+    title: 'Bản đồ thuật ngữ: target, property, binder, converter và validator'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-overview-005
+    title: Quan hệ giữa DataBinder, BindingResult và Validator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-overview-006
+    title: Quan hệ giữa ConversionService, Converter và Formatter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-overview-007
+    title: Phân biệt Spring Validator, Jakarta Validation và thư viện triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-overview-008
+    title: Phạm vi sử dụng ở tầng web, service và ứng dụng độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-overview-009
+    title: Phân biệt kiểm tra đầu vào, quy tắc nghiệp vụ và ràng buộc lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-overview-010
+    title: Lộ trình học từ dữ liệu thô đến đối tượng hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-flow
+  title: Luồng xử lý
+  childs:
+  - slug: validation-flow-001
+    title: Nguồn dữ liệu, tên trường và giá trị đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-flow-002
+    title: Lựa chọn đối tượng đích và cách khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-flow-003
+    title: Chuẩn hóa dữ liệu trước khi chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-flow-004
+    title: Chuyển từ chuỗi sang kiểu dữ liệu đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-flow-005
+    title: Gắn giá trị vào constructor hoặc thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-flow-006
+    title: Thu thập lỗi binding và tiếp tục xử lý các trường khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-flow-007
+    title: Kích hoạt validator sau bước binding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-flow-008
+    title: Đọc kết quả và quyết định có tiếp tục nghiệp vụ hay không
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-flow-009
+    title: Chuyển mã lỗi thành thông báo theo ngôn ngữ người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-flow-010
+    title: Phân biệt bind thành công với dữ liệu đạt yêu cầu nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-setup
+  title: Thiết lập
+  childs:
+  - slug: validation-setup-001
+    title: Xác định phiên bản Spring, Java và Jakarta Validation tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-setup-002
+    title: Vai trò của spring-beans, spring-core, spring-context và mô-đun web
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-setup-003
+    title: Phân biệt Jakarta Validation API và validation provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-setup-004
+    title: Cấu hình LocalValidatorFactoryBean bằng Java Configuration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-setup-005
+    title: Khai báo ConversionService và tập converter dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-setup-006
+    title: Cấu hình FormattingConversionService cho nhu cầu nhập và hiển thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-setup-007
+    title: Phân biệt cấu hình Spring Framework và tự cấu hình của Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-setup-008
+    title: Chuyển namespace javax.validation sang jakarta.validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-setup-009
+    title: Tra cứu API và hành vi thay đổi theo phiên bản Framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-objects
+  title: Đối tượng đầu vào
+  childs:
+  - slug: input-objects-001
+    title: Thiết kế DTO hoặc form object theo một tác vụ cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-objects-002
+    title: JavaBean với getter, setter và constructor không tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-objects-003
+    title: Record và đối tượng bất biến dùng constructor binding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-objects-004
+    title: Phân biệt kiểu nguyên thủy với kiểu bao khi dữ liệu bị thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-objects-005
+    title: Phân biệt không có trường, null, chuỗi rỗng và chuỗi trắng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-objects-006
+    title: Đối tượng con, danh sách, mảng và Map trong dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-objects-007
+    title: Tách đối tượng tạo mới, cập nhật và tìm kiếm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-objects-008
+    title: Giữ dữ liệu đầu vào độc lập với entity và trạng thái nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-objects-009
+    title: Xác định giá trị mặc định và thời điểm áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-objects-010
+    title: Giới hạn của annotation khi dữ liệu chưa được chuyển đúng kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-validator
+  title: Spring Validator
+  childs:
+  - slug: spring-validator-001
+    title: Hợp đồng org.springframework.validation.Validator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-validator-002
+    title: supports và xác định các kiểu đối tượng được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-validator-003
+    title: validate và ghi lỗi vào Errors
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-validator-004
+    title: ValidationUtils.rejectIfEmpty và rejectIfEmptyOrWhitespace
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-validator-005
+    title: Phân biệt lỗi một trường với lỗi toàn đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-validator-006
+    title: Tổ hợp validator bằng ủy quyền cho bộ kiểm tra con
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-validator-007
+    title: pushNestedPath và popNestedPath khi kiểm tra đối tượng lồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-validator-008
+    title: SmartValidator và truyền gợi ý kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-validator-009
+    title: Kiểm tra trực tiếp với validateObject từ Spring Framework 6.1
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-validator-010
+    title: Validator không trạng thái và an toàn khi dùng đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors
+  title: Errors
+  childs:
+  - slug: errors-001
+    title: Errors và cách thu thập kết quả kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-002
+    title: BindingResult mở rộng Errors với thông tin binding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-003
+    title: ObjectError và FieldError
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-004
+    title: reject và rejectValue với mã lỗi, tham số và thông báo mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-005
+    title: hasErrors, hasFieldErrors, getFieldErrors và getGlobalErrors
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-006
+    title: Giá trị bị từ chối, giá trị trường và kiểu trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-007
+    title: bindingFailure và phân biệt lỗi chuyển kiểu với lỗi validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-008
+    title: BeanPropertyBindingResult, DirectFieldBindingResult và MapBindingResult
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-009
+    title: Mô hình dữ liệu của BindingResult và tên đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-010
+    title: BindException và việc kết thúc DataBinder bằng close
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-binder
+  title: DataBinder
+  childs:
+  - slug: data-binder-001
+    title: Khởi tạo DataBinder với target và objectName
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-binder-002
+    title: PropertyValue, PropertyValues và MutablePropertyValues
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-binder-003
+    title: bind và gắn tập giá trị vào đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-binder-004
+    title: Đặt ConversionService cho binder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-binder-005
+    title: Đăng ký editor hoặc formatter cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-binder-006
+    title: setValidator, addValidators và replaceValidators
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-binder-007
+    title: validate với hoặc không có validation hints
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-binder-008
+    title: getTarget và getBindingResult sau xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-binder-009
+    title: 'Phân biệt bind với validate: hai thao tác riêng biệt'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-binder-010
+    title: Vòng đời binder theo một lần xử lý dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bean-wrapper
+  title: BeanWrapper
+  childs:
+  - slug: bean-wrapper-001
+    title: Vai trò BeanWrapper trong truy cập thuộc tính JavaBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-wrapper-002
+    title: BeanWrapperImpl và đối tượng đang được bọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-wrapper-003
+    title: PropertyDescriptor và thông tin getter, setter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-wrapper-004
+    title: getPropertyValue và setPropertyValue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-wrapper-005
+    title: Đọc hoặc đặt nhiều giá trị thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-wrapper-006
+    title: isReadableProperty và isWritableProperty
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-wrapper-007
+    title: PropertyAccessorFactory cho truy cập theo bean hoặc trường trực tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-wrapper-008
+    title: initBeanPropertyAccess và initDirectFieldAccess của DataBinder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-wrapper-009
+    title: Ảnh hưởng của setter tới bất biến và tác dụng phụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-wrapper-010
+    title: Phân biệt BeanWrapper, BeanUtils và công cụ ánh xạ DTO
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: property-paths
+  title: Đường dẫn thuộc tính
+  childs:
+  - slug: property-paths-001
+    title: Tên thuộc tính đơn và đường dẫn dạng address.city
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-paths-002
+    title: Chỉ số phần tử dạng items[0].name
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-paths-003
+    title: Khóa Map dạng attributes[key]
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-paths-004
+    title: Chuyển kiểu phần tử dựa trên thông tin generic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-paths-005
+    title: Đường dẫn lồng qua đối tượng đang null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-paths-006
+    title: autoGrowNestedPaths và điều kiện tự khởi tạo đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-paths-007
+    title: autoGrowCollectionLimit và phạm vi áp dụng theo kiểu truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-paths-008
+    title: Lỗi thuộc tính không tồn tại, không đọc được hoặc không ghi được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-paths-009
+    title: Phân biệt invalid field với unknown field
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-paths-010
+    title: Giới hạn độ sâu, chỉ số và số phần tử từ dữ liệu không tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: constructor-binding
+  title: Gắn qua constructor
+  childs:
+  - slug: constructor-binding-001
+    title: Constructor binding của DataBinder từ Spring Framework 6.1
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-binding-002
+    title: Khởi tạo binder với target null và thiết lập targetType
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-binding-003
+    title: DataBinder.ValueResolver và tra cứu giá trị tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-binding-004
+    title: construct và đọc đối tượng được tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-binding-005
+    title: Lựa chọn constructor và thông tin tên tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-binding-006
+    title: Vai trò của tùy chọn biên dịch -parameters
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-binding-007
+    title: DataBinder.NameResolver và tên tham số tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-binding-008
+    title: '@BindParam khi binding trong Spring MVC hoặc WebFlux'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-binding-009
+    title: Khởi tạo đệ quy đối tượng con, List, Map và mảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-binding-010
+    title: BindingResult khi chuyển đổi hoặc khởi tạo gặp lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: constructor-binding-011
+    title: Phối hợp constructor binding và property binding một cách có chủ đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: binding-rules
+  title: Quy tắc binding
+  childs:
+  - slug: binding-rules-001
+    title: setAllowedFields và danh sách trường được phép gắn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-002
+    title: setDisallowedFields và giới hạn của danh sách loại trừ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-003
+    title: Mẫu tên trường và các quy tắc so khớp theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-004
+    title: setDeclarativeBinding để kiểm soát ý định binding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-005
+    title: setRequiredFields và lỗi thiếu trường khi property binding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-006
+    title: setIgnoreUnknownFields và quyết định với trường không tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-007
+    title: setIgnoreInvalidFields và đường dẫn không truy cập được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-008
+    title: getSuppressedFields và theo dõi trường bị loại bỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-009
+    title: DefaultBindingErrorProcessor và mã required, typeMismatch, methodInvocation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-rules-010
+    title: Tùy chỉnh BindingErrorProcessor khi có hợp đồng lỗi riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: property-editor
+  title: PropertyEditor
+  childs:
+  - slug: property-editor-001
+    title: PropertyEditor và PropertyEditorSupport theo chuẩn JavaBeans
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-editor-002
+    title: setAsText, getAsText và trạng thái giá trị bên trong editor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-editor-003
+    title: Đăng ký editor theo kiểu hoặc đường dẫn thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-editor-004
+    title: StringTrimmerEditor và chuyển chuỗi rỗng thành null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-editor-005
+    title: CustomNumberEditor, CustomBooleanEditor và CustomDateEditor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-editor-006
+    title: Quy ước tìm lớp editor theo tên kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-editor-007
+    title: PropertyEditorRegistrar và tái sử dụng quy tắc đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-editor-008
+    title: CustomEditorConfigurer trong cấu hình bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-editor-009
+    title: Không chia sẻ editor có trạng thái giữa các luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: property-editor-010
+    title: Lựa chọn PropertyEditor, Converter hoặc Formatter theo nhu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: converter
+  title: Converter
+  childs:
+  - slug: converter-001
+    title: Converter<S,T> và hợp đồng chuyển đổi một cặp kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: converter-002
+    title: Xử lý nguồn không null theo hợp đồng Converter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: converter-003
+    title: Báo đầu vào không hợp lệ bằng ngoại lệ thích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: converter-004
+    title: Viết converter từ chuỗi sang kiểu giá trị nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: converter-005
+    title: ConverterFactory cho một họ kiểu đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: converter-006
+    title: Chuyển đổi String sang Enum và quy tắc phân biệt chữ hoa thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: converter-007
+    title: ConverterRegistry và đăng ký converter theo cặp kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: converter-008
+    title: Converter có thể tái sử dụng cho phần tử mảng hoặc collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: converter-009
+    title: Thiết kế converter thuần và an toàn khi chạy đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: converter-010
+    title: Phân biệt chuyển đổi dữ liệu với kiểm tra quyền hoặc truy vấn nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conversion-service
+  title: ConversionService
+  childs:
+  - slug: conversion-service-001
+    title: ConversionService và API convert
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-service-002
+    title: canConvert và giới hạn khi dự đoán khả năng chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-service-003
+    title: GenericConversionService và cơ chế tra cứu converter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-service-004
+    title: DefaultConversionService và các converter có sẵn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-service-005
+    title: Đăng ký, thay thế hoặc loại bỏ converter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-service-006
+    title: ConversionServiceFactoryBean và bean có tên conversionService
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-service-007
+    title: Tích hợp ConversionService với DataBinder và BeanFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-service-008
+    title: Vai trò chuyển kiểu trong Spring Expression Language
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-service-009
+    title: Chuyển đổi null, chuỗi rỗng và kiểu nguyên thủy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conversion-service-010
+    title: ConverterNotFoundException, ConversionFailedException và TypeMismatchException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-conversion
+  title: Chuyển đổi nâng cao
+  childs:
+  - slug: advanced-conversion-001
+    title: GenericConverter và nhiều cặp kiểu nguồn đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-conversion-002
+    title: ConvertiblePair và khai báo phạm vi chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-conversion-003
+    title: TypeDescriptor với kiểu phần tử, generic và annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-conversion-004
+    title: ConditionalConverter và điều kiện matches
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-conversion-005
+    title: ConditionalGenericConverter khi cần kết hợp hai cơ chế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-conversion-006
+    title: Chuyển đổi mảng, collection và Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-conversion-007
+    title: Kiểu phần tử không xác định và thông tin generic bị mất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-conversion-008
+    title: Chuyển đổi theo annotation trên trường hoặc tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-conversion-009
+    title: Độ ưu tiên giữa converter cụ thể và converter tổng quát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-conversion-010
+    title: Kiểm soát chi phí, tác dụng phụ và lỗi trong converter tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: formatter
+  title: Formatter
+  childs:
+  - slug: formatter-001
+    title: Formatter<T> và nhu cầu nhập xuất dữ liệu theo Locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatter-002
+    title: Parser.parse và Printer.print
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatter-003
+    title: Phân biệt chuyển đổi kiểu tổng quát với định dạng hiển thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatter-004
+    title: FormattingConversionService kết hợp formatter và converter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatter-005
+    title: DefaultFormattingConversionService và bộ định dạng mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatter-006
+    title: FormatterRegistry và các cách đăng ký formatter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatter-007
+    title: Đăng ký theo kiểu trường hoặc annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatter-008
+    title: AnnotationFormatterFactory và tạo annotation định dạng riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatter-009
+    title: FormatterRegistrar và nhóm quy tắc định dạng dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formatter-010
+    title: ParseException, IllegalArgumentException và kết quả lỗi binding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: number-formatting
+  title: Định dạng số
+  childs:
+  - slug: number-formatting-001
+    title: '@NumberFormat với kiểu số, tiền tệ hoặc phần trăm'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-002
+    title: NumberStyleFormatter, CurrencyStyleFormatter và PercentStyleFormatter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-003
+    title: Mẫu số tùy chỉnh và ký hiệu phân cách theo Locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-004
+    title: BigDecimal, độ chính xác và quy tắc làm tròn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-005
+    title: Phân biệt giá trị tỷ lệ với cách hiển thị phần trăm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-006
+    title: Tiền tệ, đơn vị và dữ liệu được phép nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-007
+    title: Xử lý chuỗi rỗng, dấu âm và số vượt phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-008
+    title: Kiểm tra tính nhất quán giữa parse và print
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: number-formatting-009
+    title: Phân biệt định dạng trường của Spring với tuần tự hóa JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: date-time-formatting
+  title: Định dạng thời gian
+  childs:
+  - slug: date-time-formatting-001
+    title: '@DateTimeFormat với ISO, pattern và style'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-002
+    title: LocalDate, LocalTime, LocalDateTime và các kiểu có múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-003
+    title: DateFormatter và DateTimeFormatterRegistrar
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-004
+    title: DateFormatterRegistrar cho API thời gian cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-005
+    title: Cấu hình định dạng ngày giờ dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-006
+    title: Phân biệt múi giờ, độ lệch UTC và Locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-007
+    title: fallbackPatterns và tương thích định dạng đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-008
+    title: Ảnh hưởng của phiên bản JDK tới mẫu định dạng theo Locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-009
+    title: Định dạng Duration theo API mà phiên bản Spring hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: date-time-formatting-010
+    title: Kiểm thử ngày không tồn tại, năm nhuận và thời điểm chuyển giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bean-validation
+  title: Bean Validation
+  childs:
+  - slug: bean-validation-001
+    title: Jakarta Validation và mô hình khai báo constraint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-validation-002
+    title: LocalValidatorFactoryBean tích hợp provider với Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-validation-003
+    title: Phân biệt jakarta.validation.Validator và Spring Validator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-validation-004
+    title: ValidatorFactory, Validator và vòng đời tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-validation-005
+    title: validate, validateProperty và validateValue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-validation-006
+    title: ConstraintViolation và tập kết quả vi phạm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-validation-007
+    title: propertyPath, invalidValue, message và messageTemplate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-validation-008
+    title: '@Valid và ý nghĩa kích hoạt kiểm tra lan truyền'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-validation-009
+    title: '@Validated của Spring và lựa chọn nhóm kiểm tra'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bean-validation-010
+    title: Annotation chỉ có hiệu lực khi cơ chế kiểm tra được gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: standard-constraints
+  title: Ràng buộc chuẩn
+  childs:
+  - slug: standard-constraints-001
+    title: '@Null và @NotNull'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-002
+    title: Phân biệt @NotNull, @NotEmpty và @NotBlank
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-003
+    title: '@Size cho chuỗi, mảng, collection và Map'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-004
+    title: '@Min, @Max, @DecimalMin và @DecimalMax'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-005
+    title: '@Positive, @PositiveOrZero, @Negative và @NegativeOrZero'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-006
+    title: '@Digits và giới hạn phần nguyên, phần thập phân'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-007
+    title: '@Pattern và @Email với phạm vi kiểm tra cú pháp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-008
+    title: '@AssertTrue và @AssertFalse'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-009
+    title: '@Past, @PastOrPresent, @Future và @FutureOrPresent'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-010
+    title: Kiểu dữ liệu được hỗ trợ và UnexpectedTypeException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-constraints-011
+    title: Ngữ nghĩa null và nhu cầu kết hợp nhiều constraint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nested-validation
+  title: Kiểm tra lồng nhau
+  childs:
+  - slug: nested-validation-001
+    title: '@Valid trên thuộc tính tham chiếu tới đối tượng con'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-validation-002
+    title: Kiểm tra lan truyền qua List, mảng và Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-validation-003
+    title: Container element constraint như List<@NotBlank String>
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-validation-004
+    title: Ràng buộc trên khóa và giá trị của Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-validation-005
+    title: Phân biệt ràng buộc container với ràng buộc phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-validation-006
+    title: Xử lý phần tử null và đối tượng con null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-validation-007
+    title: Optional, unwrapping và kiểm tra giá trị được chứa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-validation-008
+    title: Đường dẫn lỗi gồm tên trường, chỉ số và khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-validation-009
+    title: Đồ thị có vòng lặp và phạm vi duyệt kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-validation-010
+    title: Kế thừa constraint từ lớp cha và interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-groups
+  title: Nhóm kiểm tra
+  childs:
+  - slug: validation-groups-001
+    title: Default group và khai báo nhóm bằng interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-002
+    title: Áp dụng constraint cho một hoặc nhiều nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-003
+    title: Truyền nhóm vào Validator hoặc @Validated
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-004
+    title: Nhóm tạo mới, cập nhật và tác vụ chuyên biệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-005
+    title: Kế thừa nhóm kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-006
+    title: '@GroupSequence và thứ tự các giai đoạn'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-007
+    title: Dừng chuỗi nhóm khi một giai đoạn có vi phạm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-008
+    title: Định nghĩa lại Default group cho một lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-009
+    title: '@ConvertGroup khi kiểm tra lan truyền'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-010
+    title: Phân biệt GroupSequence với thứ tự lỗi trong kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-groups-011
+    title: Tiêu chí chọn nhiều DTO thay vì một mô hình có quá nhiều nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-constraints
+  title: Ràng buộc tùy chỉnh
+  childs:
+  - slug: custom-constraints-001
+    title: Định nghĩa annotation với @Constraint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-002
+    title: message, groups và payload của constraint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-003
+    title: '@Target, @Retention và khả năng áp dụng lặp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-004
+    title: ConstraintValidator<A,T>, initialize và isValid
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-005
+    title: Quy định hành vi khi giá trị được kiểm tra là null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-006
+    title: ConstraintValidatorContext và tạo thông báo tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-007
+    title: Đưa lỗi toàn đối tượng về một đường dẫn trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-008
+    title: Ràng buộc cấp lớp cho quan hệ giữa nhiều trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-009
+    title: Tổ hợp constraint và @ReportAsSingleViolation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-010
+    title: '@OverridesAttribute khi tùy chỉnh constraint thành phần'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-011
+    title: Tiêm phụ thuộc qua SpringConstraintValidatorFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-constraints-012
+    title: An toàn đồng thời và tránh trạng thái của từng lần gọi trong validator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-infrastructure
+  title: Hạ tầng kiểm tra
+  childs:
+  - slug: validation-infrastructure-001
+    title: MessageInterpolator và cơ chế nội suy thông báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-infrastructure-002
+    title: ClockProvider cho ràng buộc thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-infrastructure-003
+    title: TraversableResolver và giới hạn duyệt thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-infrastructure-004
+    title: ValueExtractor cho kiểu container tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-infrastructure-005
+    title: '@ExtractedValue, @UnwrapByDefault và chiến lược unwrapping'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-infrastructure-006
+    title: ParameterNameProvider và tên tham số trong kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-infrastructure-007
+    title: Constraint metadata API và ConstraintDescriptor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-infrastructure-008
+    title: Cấu hình META-INF/validation.xml và ánh xạ constraint bằng XML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-infrastructure-009
+    title: Phân biệt tính năng chuẩn với mở rộng riêng của provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-infrastructure-010
+    title: ValidationException, ConstraintDeclarationException và GroupDefinitionException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-validation
+  title: Kiểm tra phương thức
+  childs:
+  - slug: method-validation-001
+    title: Ràng buộc trên tham số và giá trị trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-002
+    title: '@Valid với tham số và kết quả chứa đối tượng lồng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-003
+    title: ExecutableValidator và gọi kiểm tra trực tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-004
+    title: MethodValidationPostProcessor và bean có @Validated
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-005
+    title: Cơ chế AOP proxy kích hoạt kiểm tra phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-006
+    title: Self-invocation, phương thức final và các giới hạn proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-007
+    title: Lựa chọn nhóm ở cấp lớp hoặc phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-008
+    title: ConstraintViolationException và MethodValidationException
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-009
+    title: setAdaptConstraintViolations và kết quả kiểm tra được thích nghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-010
+    title: Ràng buộc chéo tham số của phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-011
+    title: Quy tắc kế thừa tiền điều kiện và hậu điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-validation-012
+    title: Phân biệt kiểm tra constructor bằng API chuẩn với AOP của Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mvc-binding
+  title: Binding trong MVC
+  childs:
+  - slug: mvc-binding-001
+    title: '@ModelAttribute và gắn dữ liệu form hoặc query vào đối tượng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-binding-002
+    title: ServletRequestDataBinder và nguồn tham số HTTP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-binding-003
+    title: Constructor binding và property binding trong controller
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-binding-004
+    title: BindingResult đặt ngay sau tham số được gắn dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-binding-005
+    title: Giữ giá trị bị từ chối để hiển thị lại form
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-binding-006
+    title: Checkbox, field marker và field default của WebDataBinder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-binding-007
+    title: Binding collection, Map và tên trường có chỉ số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-binding-008
+    title: MultipartFile, form multipart và trường bị thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-binding-009
+    title: '@RequestParam, @PathVariable và @RequestHeader với chuyển đổi kiểu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-binding-010
+    title: Phân biệt @ModelAttribute với @RequestBody và HttpMessageConverter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mvc-validation
+  title: Validation trong MVC
+  childs:
+  - slug: mvc-validation-001
+    title: '@Valid hoặc @Validated trên @ModelAttribute'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-validation-002
+    title: Kiểm tra @RequestBody và @RequestPart sau giải tuần tự hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-validation-003
+    title: Phân biệt dữ liệu JSON sai cú pháp với dữ liệu vi phạm constraint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-validation-004
+    title: Ràng buộc trực tiếp trên tham số controller
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-validation-005
+    title: Method validation tích hợp từ Spring Framework 6.1
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-validation-006
+    title: Phân biệt cơ chế tích hợp MVC với @Validated qua AOP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-validation-007
+    title: MethodArgumentNotValidException khi kiểm tra đối tượng tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-validation-008
+    title: HandlerMethodValidationException khi kiểm tra phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-validation-009
+    title: Kết hợp Errors hoặc BindingResult với các kiểu kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-validation-010
+    title: Ràng buộc giá trị trả về và lỗi hợp đồng phía server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-validation-011
+    title: Validator cục bộ, validator toàn cục và nhiều bộ kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-flux-validation
+  title: WebFlux
+  childs:
+  - slug: web-flux-validation-001
+    title: WebExchangeDataBinder và dữ liệu từ ServerWebExchange
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-validation-002
+    title: Binding @ModelAttribute trong ngăn xếp phản ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-validation-003
+    title: Chuyển đổi query, path, header và dữ liệu form
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-validation-004
+    title: '@Valid hoặc @Validated với đối tượng request'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-validation-005
+    title: Kiểm tra body được bọc trong Mono theo kiểu tham số hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-validation-006
+    title: WebExchangeBindException và xử lý lỗi phản ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-validation-007
+    title: HandlerMethodValidationException trong controller WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-validation-008
+    title: Cấu hình converter, formatter và validator bằng WebFluxConfigurer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-validation-009
+    title: Đăng ký binder bằng @InitBinder trong WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-validation-010
+    title: Kiểm tra trong luồng phản ứng và ranh giới với method validation AOP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-validation-011
+    title: Tránh truy vấn hoặc tác vụ chặn trong converter và validator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: binder-configuration
+  title: Cấu hình binder
+  childs:
+  - slug: binder-configuration-001
+    title: '@InitBinder trong @Controller'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binder-configuration-002
+    title: Giới hạn @InitBinder theo tên đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binder-configuration-003
+    title: '@ControllerAdvice và cấu hình binder dùng chung'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binder-configuration-004
+    title: Thứ tự và phạm vi cấu hình cục bộ hoặc toàn cục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binder-configuration-005
+    title: WebBindingInitializer và ConfigurableWebBindingInitializer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binder-configuration-006
+    title: WebMvcConfigurer.addFormatters và getValidator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binder-configuration-007
+    title: Thêm formatter theo trường bằng addCustomFormatter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binder-configuration-008
+    title: Đăng ký editor cục bộ bằng registerCustomEditor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binder-configuration-009
+    title: Thay thế hoặc bổ sung validator mà không vô tình mất bộ mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binder-configuration-010
+    title: Đồng bộ cấu hình binding giữa ứng dụng và kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: internationalized-messages
+  title: Thông báo đa ngữ
+  childs:
+  - slug: internationalized-messages-001
+    title: MessageSource và Locale khi hiển thị lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalized-messages-002
+    title: MessageSourceResolvable và phân giải ObjectError hoặc FieldError
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalized-messages-003
+    title: DefaultMessageCodesResolver và thứ tự mã lỗi dự phòng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalized-messages-004
+    title: Mã lỗi theo tên đối tượng, trường và kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalized-messages-005
+    title: Resource bundle và quy ước tệp thông báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalized-messages-006
+    title: ValidationMessages.properties và message template của Bean Validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalized-messages-007
+    title: validationMessageSource của LocalValidatorFactoryBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalized-messages-008
+    title: Tham số constraint trong thông báo và nội suy biểu thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalized-messages-009
+    title: Phân biệt mã lỗi ổn định với thông báo đã dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalized-messages-010
+    title: Thông báo thiếu bản dịch và giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internationalized-messages-011
+    title: Không đưa dữ liệu nhạy cảm vào thông báo hoặc biểu thức nội suy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-responses
+  title: Phản hồi lỗi
+  childs:
+  - slug: error-responses-001
+    title: Thiết kế lỗi theo trường và lỗi toàn đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-002
+    title: Giữ mã lỗi, đường dẫn, tham số và thông báo cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-003
+    title: Ánh xạ đường dẫn collection hoặc Map ra hợp đồng API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-004
+    title: '@ExceptionHandler, @ControllerAdvice và ResponseEntityExceptionHandler'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-005
+    title: ProblemDetail và ErrorResponse theo khả năng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-006
+    title: Phân biệt lỗi đầu vào của client với lỗi giá trị trả về của server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-007
+    title: Xử lý riêng lỗi thiếu dữ liệu, sai kiểu và vi phạm constraint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-008
+    title: ParameterValidationResult và nhóm lỗi theo tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-009
+    title: Không phụ thuộc thứ tự duyệt của Set<ConstraintViolation>
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-responses-010
+    title: Loại bỏ rejectedValue nhạy cảm và chi tiết nội bộ trước khi trả lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-safety
+  title: An toàn dữ liệu
+  childs:
+  - slug: data-safety-001
+    title: Nguy cơ mass assignment khi binding trực tiếp vào entity
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-002
+    title: DTO theo tác vụ và danh sách trường được phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-003
+    title: Constructor binding và giới hạn bề mặt có thể thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-004
+    title: Ngăn sửa id, vai trò, chủ sở hữu và trạng thái do server quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-005
+    title: Đối tượng con, khóa Map và chỉ số collection ngoài dự kiến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-006
+    title: Giới hạn độ lớn đầu vào và chi phí biểu thức chính quy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-007
+    title: Phân biệt chuẩn hóa, validation, escaping và phân quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-008
+    title: Kiểm tra tính duy nhất với database và nguy cơ tranh chấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-009
+    title: Validation không thay thế ràng buộc database hay kiểm tra nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-010
+    title: Rà soát thay đổi mô hình để không mở thêm trường binding ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-testing
+  title: Kiểm thử
+  childs:
+  - slug: validation-testing-001
+    title: Kiểm thử Spring Validator bằng BeanPropertyBindingResult
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-002
+    title: Kiểm thử lỗi một trường, toàn đối tượng và đường dẫn lồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-003
+    title: Kiểm thử DataBinder với giá trị đúng, sai kiểu và thiếu trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-004
+    title: Kiểm thử allowedFields, suppressedFields và giới hạn auto-grow
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-005
+    title: Kiểm thử constructor binding với record và dữ liệu không đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-006
+    title: Kiểm thử Converter, ConverterFactory và converter có điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-007
+    title: Kiểm thử parse và print theo nhiều Locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-008
+    title: Kiểm thử thời gian với ClockProvider hoặc đồng hồ cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-009
+    title: Kiểm thử constraint riêng, nhóm và kiểm tra lan truyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-010
+    title: Kiểm thử method validation qua bean proxy thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-011
+    title: MockMvc cho lỗi binding, validation và hợp đồng phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-012
+    title: WebTestClient cho WebFlux và lỗi trong luồng phản ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-testing-013
+    title: Kiểm thử thông báo đa ngữ và che dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics
+  title: Chẩn đoán
+  childs:
+  - slug: diagnostics-001
+    title: Constraint không chạy do thiếu provider hoặc thiếu điểm kích hoạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-002
+    title: supports trả về false và validator không phù hợp kiểu đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-003
+    title: BindingResult không đứng đúng vị trí trong chữ ký controller
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-004
+    title: Không có converter phù hợp hoặc converter không được đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-005
+    title: Formatter không áp dụng do dữ liệu đi qua JSON converter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-006
+    title: Sai Locale, charset, pattern hoặc múi giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-007
+    title: UnexpectedTypeException do constraint không hỗ trợ kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-008
+    title: GroupSequence sai hoặc nhóm mong muốn không được kích hoạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-009
+    title: Self-invocation làm bỏ qua method validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-010
+    title: Dữ liệu đã gắn một phần khi còn lỗi và cách ngăn dùng tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-011
+    title: Log có mã đối tượng, đường dẫn và giai đoạn lỗi mà không lộ dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-practice
+  title: Thực hành
+  childs:
+  - slug: validation-practice-001
+    title: Xây dựng bộ kiểm tra form với Spring Validator và Errors
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-practice-002
+    title: Thực nghiệm chuỗi bind, convert, validate và đọc BindingResult
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-practice-003
+    title: Xây dựng DTO bất biến bằng constructor binding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-practice-004
+    title: Viết converter cho mã nghiệp vụ và formatter theo Locale
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-practice-005
+    title: Thiết kế form có địa chỉ lồng, danh sách và Map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-practice-006
+    title: Tổ chức Bean Validation cho tạo mới và cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-practice-007
+    title: Viết constraint kiểm tra quan hệ giữa hai trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-practice-008
+    title: Bảo vệ form cập nhật bằng allowedFields và kiểm tra trường bị loại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-practice-009
+    title: Xây dựng phản hồi lỗi API thống nhất cho MVC hoặc WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-practice-010
+    title: Thực nghiệm kiểm tra tham số và giá trị trả về qua AOP proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-practice-011
+    title: Đối chiếu kết quả với Javadoc và tài liệu đúng phiên bản Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

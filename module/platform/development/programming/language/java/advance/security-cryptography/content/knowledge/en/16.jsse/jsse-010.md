@@ -1,37 +1,37 @@
-# 16.10 Tránh cấu hình tin mọi chứng thư hoặc bỏ qua kiểm tra hostname trong ví dụ ứng dụng
+# 16.10 Avoiding Trust-All Configurations or Skipping Hostname Verification in Application Examples
 
-Một đoạn Java dùng HTTPS có thể **bắt tay TLS thành công, mã hóa dữ liệu và trả về HTTP 200** nhưng vẫn không bảo vệ được người dùng trước kẻ đứng giữa nếu người viết ví dụ cố tình cấu hình **tin mọi chứng thư (trust-all)** hoặc **không xác minh tên máy chủ (hostname verification)**. Đây là một trong những anti-pattern nguy hiểm nhất khi dùng **Java Secure Socket Extension (JSSE)**: lỗi chứng thư bị che đi thay vì được sửa, đoạn mã “chạy được trên máy tôi” bị sao chép sang ứng dụng thật, và thông tin đăng nhập/token có thể được gửi tới đối tác không được xác thực.
+A Java HTTPS snippet can **complete the TLS handshake, encrypt data, and return HTTP 200** yet still fail to protect users from a man-in-the-middle if the example author deliberately configured **trust-all certificates** or **skipped hostname verification**. This is one of the most dangerous anti-patterns when using **Java Secure Socket Extension (JSSE)**: certificate errors are hidden rather than fixed, "works on my machine" snippets get copied into real applications, and credentials/tokens may be sent to an unauthenticated peer.
 
-**Nguyên tắc của bài:** Một TLS client an toàn phải kiểm **cả (1) đường dẫn chứng thư tới trust anchor đáng tin** và **(2) danh tính endpoint đúng hostname/IP mà ứng dụng chủ định kết nối**. Không vì môi trường thử nghiệm hoặc lỗi certificate mà bỏ một trong hai phép kiểm. Ví dụ hoàn chỉnh ở đây sử dụng **trust manager chuẩn của Java và endpoint identification `HTTPS`**, đồng thời chủ động kiểm các trường hợp kết nối **phải bị từ chối** — không xây dựng một trust-all implementation có thể bị copy nhầm.
+**Rule of this lesson:** A secure TLS client must verify **both (1) the certificate path to a trusted trust anchor** and **(2) endpoint identity matching the exact hostname/IP the application intends to connect to**. Never drop either check because of a test environment or certificate error. The complete example here uses **Java's standard trust manager and `HTTPS` endpoint identification**, while actively testing cases where connections **must be rejected** — never building a trust-all implementation that could be copied by mistake.
 
-Bài học thuộc **16. JSSE** và tập trung vào các ví dụ ứng dụng Java 17+: chọn truststore có kiểm soát, bật xác minh endpoint cho `SSLSocket` thấp tầng, giữ mặc định an toàn của HTTPS clients, phân biệt lỗi trust và hostname, cùng chiến lược kiểm thử/code review ngăn cấu hình không an toàn lọt vào production.
+This lesson belongs to **16. JSSE** and focuses on Java 17+ application examples: choosing a controlled truststore, enabling endpoint verification on low-level `SSLSocket`, preserving secure defaults of HTTPS clients, distinguishing trust errors from hostname errors, and testing/code-review strategies to keep unsafe configurations out of production.
 
-## 1. Mục tiêu học tập
+## 1. Learning objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích vì sao **mã hóa TLS không đủ** nếu đối tác không được xác thực, và hai cơ chế **PKIX chain validation** với **hostname verification** giải quyết hai câu hỏi khác nhau.
-2. Nhận diện anti-pattern: trust manager chấp nhận mọi certificate, `HostnameVerifier` luôn trả `true`, vô hiệu hóa endpoint identification, tắt kiểm chữ ký/hạn dùng, hoặc tự động retry với cấu hình “insecure”.
-3. Viết **JSSE client dùng `TrustManagerFactory` chuẩn**, truststore xác định và `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` khi cần.
-4. Hiểu hành vi của `HttpsURLConnection`, `java.net.http.HttpClient`, `SSLSocket` và `SSLEngine`, cùng ranh giới trách nhiệm của `KeyManagerFactory` và `TrustManagerFactory`.
-5. Chạy demo với CA local và chứng thư có SAN `DNS:localhost`: **đúng CA + đúng hostname thì pass; sai CA hoặc sai hostname phải fail**.
-6. Thiết kế test âm tính/CI và sửa tận gốc lỗi `PKIX path building failed`, hostname mismatch, thiếu intermediate và certificate expired mà **không bỏ bảo mật**.
+1. Explain why **TLS encryption is not enough** if the peer is unauthenticated, and how **PKIX chain validation** and **hostname verification** answer two distinct questions.
+2. Recognize anti-patterns: trust managers accepting all certificates, `HostnameVerifier` always returning `true`, disabling endpoint identification, disabling signature/expiration checks, or automatically retrying with an "insecure" configuration.
+3. Write a **JSSE client using standard `TrustManagerFactory`**, a defined truststore, and `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` when needed.
+4. Understand the behavior of `HttpsURLConnection`, `java.net.http.HttpClient`, `SSLSocket`, and `SSLEngine`, along with the responsibility boundary between `KeyManagerFactory` and `TrustManagerFactory`.
+5. Run a demo with a local CA and a certificate having SAN `DNS:localhost`: **right CA + right hostname passes; wrong CA or wrong hostname must fail**.
+6. Design negative/CI tests and fix `PKIX path building failed`, hostname mismatches, missing intermediates, and expired certificates at the root cause **without dropping security**.
 
-## 2. Điều TLS bảo vệ, điều TLS không thể làm khi bỏ xác thực
+## 2. What TLS protects, and what TLS cannot do when authentication is dropped
 
-TLS có nhiều thuộc tính:
+TLS provides multiple properties:
 
-- **Confidentiality:** lưu lượng ứng dụng được mã hóa khi bắt tay và cipher suite được dùng đúng.
-- **Integrity:** bản tin có cơ chế bảo vệ chống sửa đổi trong phiên TLS.
-- **Endpoint authentication:** client cần biết mình đã thiết lập phiên an toàn với **đúng đối tượng**.
-- **Protocol policy:** phiên bản TLS, cipher suite, certificate purpose, trust, identity và các ràng buộc được kiểm theo chính sách.
+- **Confidentiality:** application traffic is encrypted when the handshake and cipher suite are used properly.
+- **Integrity:** messages are protected against tampering within the TLS session.
+- **Endpoint authentication:** the client must know it established a secure session with the **intended entity**.
+- **Protocol policy:** TLS version, cipher suite, certificate purpose, trust, identity, and constraints are enforced per policy.
 
-Nếu client **tin mọi certificate**, một kẻ đứng giữa có thể tạo certificate tự ký mang khóa của họ, thiết lập TLS riêng với client, giải mã request rồi chuyển tiếp tới server thật qua một phiên TLS thứ hai. Cả hai phiên đều có thể “mã hóa mạnh”; **vấn đề nằm ở chỗ client đã xác thực nhầm đối tác**.
+If the client **trusts every certificate**, a man-in-the-middle can create a self-signed certificate with their own key, establish a separate TLS session with the client, decrypt requests, and forward them to the real server over a second TLS session. Both sessions can use "strong encryption"; **the flaw is that the client authenticated the wrong party**.
 
-Nếu client **kiểm CA chain nhưng bỏ hostname check**, kẻ có certificate hợp lệ cho **một hostname khác** cũng có thể được chấp nhận khi ứng dụng muốn kết nối endpoint mục tiêu. Ví dụ CA nội bộ đã cấp chứng thư cho `inventory.internal`, nhưng client cấu hình gọi `payments.internal`: certificate chain có thể hợp lệ và vẫn **không phải danh tính cần gặp**.
+If the client **checks the CA chain yet skips hostname verification**, an attacker holding a valid certificate for **a different hostname** can also be accepted when the application intends to call the target endpoint. For example, an internal CA issued a certificate for `inventory.internal`, while the client is configured to call `payments.internal`: the certificate chain may be valid and still **not the expected identity**.
 
 ~~~text
-Ứng dụng cần gọi: https://payments.example.test
+App intends to call: https://payments.example.test
                 |
                 v
              TLS peer
@@ -40,181 +40,181 @@ Nếu client **kiểm CA chain nhưng bỏ hostname check**, kẻ có certificat
        |                  |
        v                  v
    PATH TRUST         ENDPOINT NAME
-  CA/PKIX chain       DNS/IP trong URL
-  chữ ký/hạn dùng     so với SAN leaf
+  CA/PKIX chain       DNS/IP in URL
+  sig/validity        vs. leaf SAN
        |                  |
        +--------+---------+
                 |
-          CẢ HAI PASS?
-           /       \
-         Có         Không
-         |            |
-   có thể tiếp tục  HỦY bắt tay
-   theo policy       KHÔNG fallback insecure
+           BOTH PASS?
+            /       \
+          Yes        No
+          |           |
+   may proceed     ABORT handshake
+   per policy      NO insecure fallback
 ~~~
 
-**Tin chuỗi chứng thư không đồng nghĩa khớp hostname**, và **khớp hostname không đồng nghĩa CA được tin**. Hai điều kiện đều bắt buộc trong HTTPS client đúng chuẩn; việc TLS có trả `SSLSession` hay phiên đã dùng AES-GCM không làm thay đổi yêu cầu này.
+**Trusting the certificate chain does not mean matching the hostname**, and **matching the hostname does not mean the CA is trusted**. Both conditions are mandatory in a compliant HTTPS client; whether TLS returns an `SSLSession` or uses AES-GCM does not alter this requirement.
 
-### 2.1. Bảng quyết định tối thiểu
+### 2.1. Minimum decision table
 
-| Chain/CA tin cậy | Hostname/IP đúng | Hành vi đúng |
+| Chain/CA trusted | Hostname/IP matches | Right behavior |
 | --- | --- | --- |
-| Pass | Pass | Có thể chấp nhận khi các kiểm tra TLS và chính sách khác đạt |
-| Pass | **Fail** | **Reject**: chứng thư của host khác |
-| **Fail** | Pass | **Reject**: CA/trust anchor không phù hợp |
-| **Fail** | **Fail** | **Reject**: cả hai điều kiện sai |
+| Pass | Pass | Acceptable when other TLS checks and policies pass |
+| Pass | **Fail** | **Reject**: certificate belongs to another host |
+| **Fail** | Pass | **Reject**: inappropriate CA/trust anchor |
+| **Fail** | **Fail** | **Reject**: both conditions fail |
 
-Từ “có thể” là quan trọng: còn phải xét **KeyUsage, EKU, thời hạn, thuật toán, revocation, policy**, và **authorization** ở lớp ứng dụng. Một chứng thư hợp lệ không mặc định cho phép thực hiện lệnh thanh toán hoặc truy cập tenant bất kỳ.
+The word "may" matters: you must also account for **KeyUsage, EKU, validity, algorithms, revocation, policy**, and application-layer **authorization**. A valid certificate does not implicitly permit executing payments or accessing arbitrary tenants.
 
-## 3. Cấu hình “trust-all” thực sự phá điều gì?
+## 3. What does a "trust-all" configuration actually break?
 
-Trong JSSE, trust manager chịu trách nhiệm xác minh certificate chain theo chính sách. Một trust manager bình thường dùng tập **trusted root CAs/certificates được chọn trước**, kiểm chứng chain, thuật toán và các điều kiện liên quan trong ngữ cảnh TLS.
+In JSSE, the trust manager is responsible for verifying the certificate chain per policy. A normal trust manager uses a pre-selected set of **trusted root CAs/certificates**, checking the chain, algorithms, and related conditions in the TLS context.
 
-Anti-pattern trust-all thường có dạng tư duy:
+The trust-all anti-pattern typically follows this reasoning:
 
 ~~~text
-Nếu TLS báo "certificate not trusted":
-    thay trust manager chuẩn bằng bản luôn trả "accept"
-    hoặc bỏ hết logic checkServerTrusted(...)
-    hoặc đổi accepted issuers thành thứ gì đó để tránh lỗi
-Kết quả: handshake có thể pass với certificate của bất kỳ kẻ nào.
+If TLS reports "certificate not trusted":
+    replace standard trust manager with one that always returns "accept"
+    or strip all logic from checkServerTrusted(...)
+    or alter accepted issuers to something else to avoid errors
+Result: handshake can pass with anyone's certificate.
 ~~~
 
-Đây là **mô tả anti-pattern**, không phải hướng dẫn viết/cài trust manager bỏ qua kiểm tra. Không đưa một `X509TrustManager` rỗng hoặc một `SSLContext` trust-all vào chương trình thực hành vì code dễ bị sao chép. Tương tự, `getAcceptedIssuers()` tự nó **không quyết định certificate hợp lệ**; việc giả dữ liệu ở đây không thay thế xác minh chain thực sự.
+This is an **anti-pattern description**, not a guide to writing/installing a check-skipping trust manager. Never put an empty `X509TrustManager` or a trust-all `SSLContext` into practice code because snippets are easily copied. Likewise, `getAcceptedIssuers()` alone **does not decide whether a certificate is valid**; faking data there does not replace actual chain verification.
 
-Một ứng dụng áp dụng trust-all có thể gửi:
+An application using trust-all can send:
 
-- Bearer token, cookie phiên, API key hoặc thông tin tài khoản;
-- Dữ liệu người dùng/thanh toán;
-- Nội dung yêu cầu điều khiển hệ thống;
-- Trả lời quan trọng mà ứng dụng tin là từ server thật;
+- Bearer tokens, session cookies, API keys, or account credentials;
+- User/payment data;
+- System control request payloads;
+- Critical responses the application believes came from the real server;
 
-tới một đối tượng sở hữu private key của certificate **không hề được CA mà người dùng tin chứng nhận**.
+to an entity holding the private key of a certificate **never certified by any CA the user trusts**.
 
-**Mã hóa nhưng không xác thực đúng peer không thể được coi là HTTPS an toàn.** Bật encryption cipher suite mạnh hơn không khôi phục việc xác thực đã bị loại bỏ.
+**Encryption without properly authenticating the peer cannot be considered secure HTTPS.** Turning on a stronger encryption cipher suite does not restore authentication that was removed.
 
-### 3.1. “Chỉ trust-all cho localhost/dev” có được không?
+### 3.1. Is "trust-all for localhost/dev only" okay?
 
-Không nên dùng trust-all làm ví dụ mẫu hoặc workaround:
+Never use trust-all as an example template or workaround:
 
-1. Flag dev/test có thể bị bật nhầm ở staging/production.
-2. Một thư viện dùng `SSLContext.setDefault` hoặc property toàn JVM có thể làm mất bảo mật của **những HTTP clients khác** cùng process.
-3. Proxy, công cụ kiểm thử mạng, Wi-Fi công cộng hoặc kẻ kiểm soát DNS có thể chủ động tạo certificate bất kỳ để đánh chặn lưu lượng.
-4. Cách chữa tạm không hướng dẫn người học **nguyên nhân thực**: CA chưa trust, hostname/SAN sai, thiếu intermediate hoặc certificate hết hạn.
-5. Test chạy thành công với trust-all không kiểm chứng điều quan trọng nhất: ứng dụng **có từ chối peer không hợp lệ không**.
+1. Dev/test flags can accidentally be enabled in staging/production.
+2. A library calling `SSLContext.setDefault` or JVM-wide properties can break security for **other HTTP clients** in the same process.
+3. Proxies, network testing tools, public Wi-Fi, or DNS controllers can actively mint arbitrary certificates to intercept traffic.
+4. Quick workarounds fail to teach learners the **real cause**: untrusted CA, wrong hostname/SAN, missing intermediate, or expired certificate.
+5. Tests passing with trust-all fail to verify the most critical property: whether the app **rejects invalid peers**.
 
-**Thay thế đúng cho môi trường phát triển:** tạo **CA dev riêng**, cấp leaf SAN đúng endpoint, đưa certificate CA dev đã xác minh vào **truststore chỉ dành cho dev**, dùng trust manager mặc định trên store đó, vẫn kiểm hostname.
+**Right alternative for development:** create a **dedicated dev CA**, issue leaves with SANs matching the endpoint, put the verified dev CA certificate into a **dev-only truststore**, use the default trust manager on that store, and keep hostname verification enabled.
 
-### 3.2. Tại sao không “pin certificate” bằng trust-all?
+### 3.2. Why not "pin certificates" using trust-all?
 
-Pinning public key/certificate (khi threat model cần) là **một ràng buộc bổ sung**, không phải giấy phép bỏ CA/hostname validation mặc định. Các triển khai pinning phải có kế hoạch backup pins, rotation, tránh khóa nhầm ứng dụng, và xác định rõ mối quan hệ với trust anchors. Một đoạn code trust-all rồi so string Subject hoặc một fingerprint lấy động từ kết nối **không phải pinning an toàn**; nó có thể pin luôn certificate attacker đưa vào lần đầu.
+Pinning a public key/certificate (when required by the threat model) is **an additional constraint**, not a license to drop default CA/hostname validation. Pinning implementations must plan for backup pins, rotation, avoiding accidental lockouts, and clearly defining the relationship to trust anchors. Trust-all code followed by comparing Subject strings or a fingerprint grabbed dynamically from a connection **is not secure pinning**; it can pin the attacker's certificate on first contact.
 
-## 4. Bỏ hostname verification gây lỗi gì?
+## 4. What failure does skipping hostname verification cause?
 
-Một client có thể **tin CA** của certificate nhưng đang gọi **sai host**:
+A client can **trust the CA** of a certificate yet be calling the **wrong host**:
 
 ~~~text
-URL mục tiêu: https://pay.example.com
-Leaf được CA tin ký:
+Target URL: https://pay.example.com
+Leaf signed by trusted CA:
     SAN DNS: files.example.com
 
 Chain validation = PASS
 Name verification = FAIL
-Quyết định an toàn = REJECT
+Safe decision = REJECT
 ~~~
 
-Tắt hostname verification nghĩa là client **không còn yêu cầu certificate chứng minh tên đích**. Với CA nội bộ có khả năng cấp nhiều dịch vụ, một server hợp lệ khác có thể vô tình hoặc cố ý được dùng để mạo danh endpoint mục tiêu.
+Turning off hostname verification means the client **no longer requires the certificate to prove the target name**. With an internal CA capable of signing for many services, another valid server can accidentally or maliciously impersonate the target endpoint.
 
-Các anti-pattern cần phát hiện:
+Anti-patterns to detect:
 
-- Một `HostnameVerifier` của `HttpsURLConnection` **luôn trả `true`**;
-- Một client library có flag hoặc policy `NoopHostnameVerifier`, `allowAllHosts` hoặc tên tương đương; chú ý API phụ thuộc thư viện/version;
-- Raw `SSLSocket` dùng trust manager chuẩn nhưng **không bật endpoint identification** khi đang dùng làm HTTPS client;
-- `SSLEngine` không được cấu hình thuật toán xác thực endpoint hoặc thiếu peer host chính xác;
-- “Retry fallback”: sau `SSLHandshakeException`, thử lại với client đã tắt hostname checking;
-- Lấy hostname cần kiểm từ **certificate mà peer gửi** thay vì tên trong URL/config tin cậy;
-- Tự viết bộ so khớp DNS bằng `endsWith` hoặc chấp nhận mọi wildcard.
+- A `HostnameVerifier` on `HttpsURLConnection` that **always returns `true`**;
+- A client library flag or policy named `NoopHostnameVerifier`, `allowAllHosts`, or similar (exact API varies by library/version);
+- Raw `SSLSocket` using a standard trust manager while **omitting endpoint identification** when used as an HTTPS client;
+- `SSLEngine` without an endpoint identification algorithm configured or missing the exact peer host;
+- "Retry fallback": after `SSLHandshakeException`, retrying with a client that has hostname checking disabled;
+- Taking the hostname to check from the **peer-sent certificate** instead of the URL/trusted config;
+- Writing custom DNS matching with `endsWith` or accepting arbitrary wildcards.
 
-Không xem `CN` trong Subject hoặc tên **alias** trong `KeyStore` là đủ thay **SAN**. Với chứng thư HTTPS hiện đại, certificate cần có `dNSName SAN` hoặc `iPAddress SAN` đúng loại theo reference identity mà client đã chọn.
+Never treat Subject `CN` or a `KeyStore` **alias** name as sufficient in place of **SAN**. For modern HTTPS certificates, the certificate needs the matching `dNSName SAN` or `iPAddress SAN` type per the client's chosen reference identity.
 
-### 4.1. SAN DNS và SAN IP không hoán đổi
+### 4.1. DNS SAN and IP SAN are not interchangeable
 
-| Đích client chủ định kết nối | Leaf SAN | Name check |
+| Target client intends to connect to | Leaf SAN | Name check |
 | --- | --- | --- |
-| `https://localhost` | `DNS:localhost` | Pass nếu chain được tin |
-| `https://127.0.0.1` | Chỉ `DNS:localhost` | **Fail**: thiếu IP SAN |
-| `https://127.0.0.1` | `IP:127.0.0.1` | Pass về name nếu chain cũng được tin |
-| `https://api.example.test` | `DNS:api.example.test` | Pass về name |
-| `https://api.example.test` | `DNS:another.example.test` | **Fail** |
-| `https://192.0.2.10` | `DNS:192.0.2.10` | Không thay `iPAddress` SAN hợp lệ |
+| `https://localhost` | `DNS:localhost` | Passes if chain is trusted |
+| `https://127.0.0.1` | `DNS:localhost` only | **Fails**: missing IP SAN |
+| `https://127.0.0.1` | `IP:127.0.0.1` | Name passes if chain is also trusted |
+| `https://api.example.test` | `DNS:api.example.test` | Name passes |
+| `https://api.example.test` | `DNS:another.example.test` | **Fails** |
+| `https://192.0.2.10` | `DNS:192.0.2.10` | Does not substitute for a valid `iPAddress` SAN |
 
-DNS có thể resolve `api.example.test` thành địa chỉ IP cụ thể nhưng **tên tham chiếu vẫn là hostname URL**, không phải reverse DNS của IP. Nếu ứng dụng dùng TCP tới IP nhưng mong identity DNS, cần giữ **logical peer hostname** đúng ở tầng TLS/HTTP theo API.
+DNS may resolve `api.example.test` to a specific IP address, yet **the reference name remains the URL hostname**, not reverse DNS of the IP. If the app connects via TCP to an IP while expecting a DNS identity, preserve the proper **logical peer hostname** at the TLS/HTTP layer per API.
 
-**SNI (Server Name Indication)** chỉ giúp server chọn certificate khi phục vụ nhiều virtual hosts; SNI **không tự xác minh certificate do server trả về**. Client vẫn phải kiểm trust chain và SAN.
+**SNI (Server Name Indication)** only helps the server pick a certificate when serving multiple virtual hosts; SNI **does not verify the certificate returned by the server**. The client must still verify the trust chain and SAN.
 
-### 4.2. CN fallback, wildcard và IDN
+### 4.2. CN fallback, wildcards, and IDN
 
-- Tên `CN=api.example.com` trong Subject không nên dùng thay SAN. Một số implementations lịch sử có fallback đặc biệt khi thiếu SAN, nhưng **không dựa vào fallback đó cho cấp certificate hoặc kiểm thử HTTPS mới**.
-- Wildcard `*.example.com` không được coi là hợp lệ cho vô hạn subdomain hay mọi cấp nhãn. Dùng thuật toán endpoint identification của HTTPS client chuẩn, không tự viết regex đơn giản.
-- Internationalized domain names đòi quy tắc IDNA/Punycode và chuẩn so khớp tên phù hợp; `equalsIgnoreCase` trên Unicode string không phải giải pháp đầy đủ.
-- SAN kiểu URI/email/workload identity có quy tắc riêng, không mặc nhiên thay DNS SAN cho HTTPS.
+- `CN=api.example.com` in the Subject should not be used instead of SAN. Some historical implementations had special fallbacks when SAN was absent, yet **never rely on that fallback for issuing certificates or new HTTPS tests**.
+- Wildcards like `*.example.com` must not be treated as valid for unlimited subdomains or arbitrary label depths. Use the standard HTTPS client endpoint identification algorithm rather than custom simple regexes.
+- Internationalized domain names require IDNA/Punycode rules and proper name-matching standards; `equalsIgnoreCase` on Unicode strings is not a complete solution.
+- URI/email/workload-identity SANs have their own rules and do not automatically replace DNS SANs for HTTPS.
 
-## 5. JSSE: ai có trách nhiệm kiểm chứng?
+## 5. JSSE: who is responsible for verification?
 
-Một số API Java thường xuất hiện trong code:
+Common Java APIs seen in code:
 
-| API | Vai trò | Điều phải giữ đúng |
+| API | Role | What must be kept right |
 | --- | --- | --- |
-| `KeyStore` | Lưu identity key/cert hoặc trusted CA certificate | File/type/password/quyền truy cập đúng |
-| `KeyManagerFactory` | Lấy private key và certificate chain để **trình danh tính của chính ứng dụng** | Không dùng key manager thay peer trust checking |
-| `TrustManagerFactory` | Tạo trust manager chuẩn từ truststore | Chỉ import CA/peer cert được xác minh, không trust-all |
-| `X509TrustManager` | Interface kiểm chain server/client theo cơ chế provider | Không thay bằng implementation chấp nhận mọi certificate |
-| `X509ExtendedTrustManager` | Có phiên bản xử lý certificate với ngữ cảnh `Socket`/`SSLEngine` | Không bỏ qua endpoint constraints từ JSSE |
-| `SSLContext` | Tập hợp key managers, trust managers, randomness/policy phiên TLS | Không thay default toàn JVM hoặc dùng manager insecure bừa |
-| `SSLParameters` | Cấu hình protocol, cipher, endpoint identification, SNI... | Với raw HTTPS TLS cần `setEndpointIdentificationAlgorithm("HTTPS")` |
-| `SSLSocket` / `SSLEngine` | API TLS tương đối thấp tầng | Cần biết logical peer name và chủ động bật endpoint check phù hợp |
-| `HttpsURLConnection` | HTTPS client API | Giữ hostname verifier và trust chính thống |
-| `java.net.http.HttpClient` | HTTP client JDK hiện đại | Giữ mặc định xác minh HTTPS, chỉ tùy chỉnh trust đúng phạm vi |
+| `KeyStore` | Stores identity key/cert or trusted CA certificates | Proper file/type/password/access permissions |
+| `KeyManagerFactory` | Loads private key and certificate chain to **present the app's own identity** | Never use key manager instead of peer trust checking |
+| `TrustManagerFactory` | Creates standard trust manager from a truststore | Import only verified CAs/peer certs; no trust-all |
+| `X509TrustManager` | Interface verifying server/client chains per provider | Never replace with an accept-all implementation |
+| `X509ExtendedTrustManager` | Handles certificates with `Socket`/`SSLEngine` context | Never bypass JSSE endpoint constraints |
+| `SSLContext` | Aggregates key managers, trust managers, randomness/TLS session policy | Never mutate JVM-wide default or use insecure managers |
+| `SSLParameters` | Configures protocols, ciphers, endpoint identification, SNI, etc. | Raw HTTPS TLS requires `setEndpointIdentificationAlgorithm("HTTPS")` |
+| `SSLSocket` / `SSLEngine` | Lower-level TLS APIs | Must know logical peer name and actively enable proper endpoint checks |
+| `HttpsURLConnection` | HTTPS client API | Keep default hostname verifier and legitimate trust |
+| `java.net.http.HttpClient` | Modern JDK HTTP client | Keep default HTTPS verification; customize trust only within scope |
 
-**Điều quan trọng:** Có thể endpoint check được triển khai trong call stack trust manager khi handshake có thông tin hostname, nhưng **về mặt an ninh vẫn là hai điều kiện khác nhau**. Nếu chỉ gọi `CertPathValidator("PKIX")`, bạn phải biết rằng API đó không tự nhận hostname URL để kiểm.
+**Important:** Endpoint checks may be invoked inside the trust manager's call stack when the handshake carries hostname info, yet **security-wise they remain two separate conditions**. If calling `CertPathValidator("PKIX")` directly, recognize that API does not automatically take a URL hostname to check.
 
-### 5.1. HTTPS clients cấp cao và raw TLS khác nhau
+### 5.1. High-level HTTPS clients vs. raw TLS
 
-- `HttpsURLConnection` có xử lý HTTPS hostname verification mặc định; cài một verifier luôn trả true là xóa lớp bảo vệ này.
-- `HttpClient` JDK 11+ cũng được thiết kế cho HTTPS endpoint verification theo cấu hình an toàn; không dùng property hoặc option thư viện để tắt vì gặp chứng thư dev.
-- **Raw `SSLSocket`** không nhất thiết biết bạn đang dùng nó cho giao thức nào. Dùng trust manager chuẩn **chưa đủ** nếu bạn không cấu hình HTTPS endpoint identity.
-- **`SSLEngine`** tương tự; phải đảm bảo peer host/port và `SSLParameters` mang policy cần thiết trước khi handshake.
+- `HttpsURLConnection` includes default HTTPS hostname verification; installing an always-true verifier strips this protection.
+- JDK 11+ `HttpClient` is also designed for HTTPS endpoint verification under secure defaults; never use properties or library options to disable it for dev certs.
+- **Raw `SSLSocket`** does not inherently know which application protocol you are using it for. Using a standard trust manager **is not enough** if you omit HTTPS endpoint identity configuration.
+- **`SSLEngine`** is similar; ensure peer host/port and `SSLParameters` carry the required policy before handshaking.
 
-Ví dụ cấu hình an toàn của raw client:
+Example of safe raw client configuration:
 
 ~~~java
-SSLSocket tls = /* đã tạo đúng peer host/connection */;
+SSLSocket tls = /* created with proper peer host/connection */;
 SSLParameters p = tls.getSSLParameters();
 p.setEndpointIdentificationAlgorithm("HTTPS");
 tls.setSSLParameters(p);
 tls.startHandshake();
 ~~~
 
-Đây chỉ là **trích đoạn API**, không phải chương trình độc lập. Quan trọng là `"HTTPS"` được dùng trước `startHandshake()`, và **hostname phải là tên từ URL/config đã xác thực**, không được lấy từ certificate server gửi tới.
+This is only an **API snippet**, not a standalone program. Crucially, `"HTTPS"` is set before `startHandshake()`, and **the hostname must come from the validated URL/config**, never copied from the server-sent certificate.
 
-### 5.2. Không dùng `SSLContext.setDefault(...)` tùy tiện
+### 5.2. Never call `SSLContext.setDefault(...)` indiscriminately
 
-`SSLContext.setDefault(...)` thay context mặc định có ảnh hưởng ngoài phạm vi một HTTP request/client. Một thay đổi không an toàn ở môi trường test có thể làm toàn bộ process tin certificates sai.
+`SSLContext.setDefault(...)` alters the default context beyond the scope of a single HTTP request/client. An unsafe change in test code can make the entire process trust bad certificates.
 
-Ưu tiên xây **`SSLContext` riêng cho client cần CA nội bộ** và truyền vào builder/client cụ thể. Cấu hình truststore riêng làm **các CA được tin khác với tập mặc định**, không nhất thiết tự cộng thêm root mặc định. Nếu ứng dụng cần cả hai tập, phải thiết kế rõ chính sách bổ sung trust anchors và kiểm interop; không nối các store bằng cách tự viết trust-all.
+Prefer building a **dedicated `SSLContext` for clients needing an internal CA** and passing it to the specific builder/client. Configuring a custom truststore makes **trusted CAs differ from the default set** without automatically merging default roots. If an app needs both sets, design an explicit trust-anchor inclusion policy and test interoperability; never merge stores by writing a trust-all wrapper.
 
-## 6. Cấu hình truststore riêng đúng cách
+## 6. Configuring a dedicated truststore properly
 
-Để kết nối một service có certificate do **CA nội bộ đã được xác minh** cấp, hãy:
+To connect to a service whose certificate is issued by a **verified internal CA**:
 
-1. Lấy **public root CA certificate** qua kênh quản trị đáng tin. Đối chiếu fingerprint và đối tượng có quyền quản lý CA.
-2. Tạo một truststore dành cho môi trường/dịch vụ, chẳng hạn PKCS12, chứa **đúng trust anchor được phép**.
-3. Trong Java, dùng `KeyStore.load` và `TrustManagerFactory.init(trustStore)` để tạo trust managers **chuẩn**.
-4. Dùng `SSLContext.init(null, tmf.getTrustManagers(), new SecureRandom())` để lấy TLS context cho **client cụ thể**.
-5. Với raw HTTPS TLS, bật `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`. Với HTTPS client cấp cao, giữ hostname verification mặc định và không override bằng verifier vô điều kiện.
-6. Test cả endpoint **đúng** và endpoint **sai**. “Kết nối thành công” là test chưa đủ.
+1. Obtain the **public root CA certificate** through a trusted administrative channel. Verify its fingerprint and the CA's governing authority.
+2. Create an environment/service-scoped truststore, such as PKCS12, containing **only the approved trust anchor(s)**.
+3. In Java, use `KeyStore.load` and `TrustManagerFactory.init(trustStore)` to create **standard** trust managers.
+4. Use `SSLContext.init(null, tmf.getTrustManagers(), new SecureRandom())` to obtain a TLS context for that **specific client**.
+5. For raw HTTPS TLS, enable `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`. For high-level HTTPS clients, keep default hostname verification and never override with an unconditional verifier.
+6. Test both the **valid** endpoint and the **invalid** endpoint. "Connection succeeded" is an insufficient test.
 
-Trích đoạn đọc truststore chuẩn:
+Standard truststore-loading snippet:
 
 ~~~java
 KeyStore trust = KeyStore.getInstance("PKCS12");
@@ -229,11 +229,11 @@ SSLContext clientContext = SSLContext.getInstance("TLS");
 clientContext.init(null, tmf.getTrustManagers(), new SecureRandom());
 ~~~
 
-Đây là **mảnh ghép minh họa**, chưa phải chương trình độc lập: `trustStorePath`/`password` cần được khai báo, exception cần được xử lý. Đoạn hoàn chỉnh và đã kiểm chứng ở phần 8.
+This is an **illustrative fragment**, not a standalone program: `trustStorePath`/`password` must be declared and exceptions handled. The complete verified program is in section 8.
 
-**Không hard-code password production**. Password bảo vệ file truststore, còn **việc chọn root certificate để tin mới là quyết định an ninh cốt lõi**: không chỉ bảo vệ password mà nhập một CA attacker vào store thì vẫn mất tính xác thực.
+**Never hardcode production passwords.** The password protects the truststore file, while **choosing which root certificates to trust is the core security decision**: protecting the password while importing an attacker's CA into the store still destroys authenticity.
 
-### 6.1. Identity keystore không phải truststore
+### 6.1. An identity keystore is not a truststore
 
 ~~~text
 Server:
@@ -243,52 +243,52 @@ Server:
 Client:
     truststore
        TrustedCertificateEntry: approved root CA certificate
-       (và trust policy ứng dụng)
+       (and application trust policy)
 
 Client checks: chain to approved trust anchor + URL hostname to leaf SAN
 ~~~
 
-`KeyManagerFactory` giúp server chứng minh quyền sở hữu private key, trong khi `TrustManagerFactory` giúp client xác minh certificate của peer. Chuyển server private key vào client truststore để “hết lỗi certificate” là sai và có thể làm lộ secret. Với mTLS, mỗi bên có identity riêng và trust policy riêng.
+`KeyManagerFactory` helps the server prove possession of its private key, whereas `TrustManagerFactory` helps the client verify the peer's certificate. Moving the server private key into the client truststore to "make certificate errors go away" is wrong and can leak secrets. With mTLS, each side has its own identity and its own trust policy.
 
-### 6.2. CA nội bộ và truststore mặc định
+### 6.2. Internal CAs and the default truststore
 
-JDK thường cung cấp tập CA mặc định như `cacerts` (vị trí, nội dung, chính sách có thể khác theo JDK/distribution). Một `SSLContext` khởi tạo với truststore riêng **không mặc nhiên hợp nhất** CA nội bộ với mọi root của JDK. Đừng giả định một API sẽ fallback sang default roots sau khi đã nhận custom trust managers.
+The JDK typically ships a default CA set such as `cacerts` (location, contents, and policy may vary across JDKs/distributions). An `SSLContext` initialized with a custom truststore **does not automatically merge** the internal CA with all JDK roots. Never assume an API falls back to default roots after receiving custom trust managers.
 
-Ứng dụng cần thêm CA nội bộ nên xác định rõ phạm vi:
+Applications needing internal CAs should define their scope clearly:
 
-- **Client chỉ dùng trong một security domain:** truststore riêng hạn chế được CA tin, thường là lựa chọn đơn giản.
-- **Client cần CA công khai và nội bộ:** dùng cấu hình trust policy đã được thiết kế/kiểm kỹ theo platform hoặc thư viện; ghi rõ nguồn roots, không viết bộ trust manager thử lần lượt các CA tùy tiện không có kiểm soát.
-- **Nhiều microservices:** mỗi môi trường/tenant có chính sách cấp certificate và rotation, không trust toàn bộ CA dev ở production.
+- **Client used within one security domain:** a dedicated truststore restricts trusted CAs and is usually the simplest option.
+- **Client needing both public and internal CAs:** use a trust policy configuration designed/reviewed per platform or library; document root sources rather than writing a trust manager that loops arbitrarily over CAs without controls.
+- **Multiple microservices:** each environment/tenant has issuance and rotation policies; never trust dev CAs in production.
 
-## 7. Thực hành: tạo CA và chứng thư local nhưng vẫn giữ xác minh
+## 7. Hands-on: creating a local CA and certificates while keeping verification intact
 
-Bài lab được thực hiện hoàn toàn ở **localhost/loopback** trong một **thư mục thử nghiệm mới**, dùng JDK 17+ và `keytool`. Ta tạo:
+This lab runs entirely on **localhost/loopback** inside a **fresh test directory**, using JDK 17+ and `keytool`. We create:
 
-- `root.p12`: CA root demo đáng tin cho nhánh positive.
-- `other-root.p12`: **CA khác** không liên quan, dùng làm trust anchor **sai** để chứng minh JSSE từ chối.
-- `server.p12`: server private key và leaf được **root.p12** ký, SAN chỉ có `DNS:localhost`.
-- `trusted.p12`: truststore client chứa **root thực sự cấp leaf**.
-- `untrusted.p12`: truststore client chỉ chứa **other-root**, nên chain server không được tin.
+- `root.p12`: trusted demo root CA for the positive branch.
+- `other-root.p12`: an unrelated **other CA**, used as a **wrong** trust anchor to prove JSSE rejects it.
+- `server.p12`: server private key and leaf signed by **root.p12**, with SAN `DNS:localhost` only.
+- `trusted.p12`: client truststore containing the **actual root that issued the leaf**.
+- `untrusted.p12`: client truststore containing only **other-root**, so the server chain is untrusted.
 
-**Không dùng các certificate/keystore demo trong production**; private key CA và server trong bài thực hành được bảo vệ bởi password cố định mẫu, dễ đoán; validity ngắn và không có hạ tầng CRL/OCSP thật. Hãy chạy từng lệnh trong **thư mục trống tạm**, không đụng các file keystore đang dùng.
+**Never use demo certificates/keystores in production**; CA and server private keys in this exercise are protected by a sample fixed, guessable password, short validity, and no real CRL/OCSP infrastructure. Run every command in a **temporary empty directory**, without touching active keystore files.
 
-### 7.1. Tạo root CA demo được phép tin trong bài lab
+### 7.1. Create a demo root CA permitted for trust in the lab
 
 ~~~bash
 keytool -genkeypair -alias lab-root -keyalg RSA -keysize 2048 -dname "CN=Trusted Demo Root,O=Training,C=VN" -validity 7 -ext "bc=ca:true" -ext "ku=keyCertSign,cRLSign" -keystore root.p12 -storetype PKCS12 -storepass demo-pass-123 -keypass demo-pass-123 -noprompt
 ~~~
 
-Root CA certificate được ký bằng chính private key CA. Self-signed **không có nghĩa tự động được tin**; trong bài, **client chủ động chọn root này** bằng cách import vào `trusted.p12`.
+The root CA certificate is signed by the CA private key itself. Self-signed **does not mean automatically trusted**; in this lab, the **client explicitly selects this root** by importing it into `trusted.p12`.
 
-### 7.2. Xuất certificate root public
+### 7.2. Export the public root certificate
 
 ~~~bash
 keytool -exportcert -alias lab-root -keystore root.p12 -storepass demo-pass-123 -rfc -file root.crt
 ~~~
 
-`root.crt` chỉ chứa **certificate công khai**, không chứa private key CA. Trong hệ thống thực, phải xác minh **fingerprint và nguồn phân phối certificate** qua kênh độc lập trước khi import.
+`root.crt` contains only the **public certificate**, not the CA private key. In real systems, verify the **fingerprint and certificate distribution source** over an independent channel before importing.
 
-### 7.3. Tạo một CA khác để kiểm negative trust test
+### 7.3. Create another CA for the negative trust test
 
 ~~~bash
 keytool -genkeypair -alias other-root -keyalg RSA -keysize 2048 -dname "CN=Unrelated Demo Root,O=Training,C=VN" -validity 7 -ext "bc=ca:true" -ext "ku=keyCertSign,cRLSign" -keystore other-root.p12 -storetype PKCS12 -storepass demo-pass-123 -keypass demo-pass-123 -noprompt
@@ -298,17 +298,17 @@ keytool -genkeypair -alias other-root -keyalg RSA -keysize 2048 -dname "CN=Unrel
 keytool -exportcert -alias other-root -keystore other-root.p12 -storepass demo-pass-123 -rfc -file other-root.crt
 ~~~
 
-Việc root thứ hai tự ký và cũng có `CA=true` **không cho nó quyền tin cậy certificate server** vốn được cấp bởi root thứ nhất. Truststore `untrusted.p12` chỉ chứa root khác này sẽ là negative test có thể tái hiện.
+The second root being self-signed and also having `CA=true` **gives it no authority to trust the server certificate** issued by the first root. The `untrusted.p12` truststore holding only this other root provides a reproducible negative test.
 
-### 7.4. Tạo server identity với SAN DNS localhost
+### 7.4. Create the server identity with SAN DNS localhost
 
 ~~~bash
 keytool -genkeypair -alias server-id -keyalg RSA -keysize 2048 -dname "CN=localhost,O=Training,C=VN" -validity 7 -ext "san=dns:localhost" -keystore server.p12 -storetype PKCS12 -storepass demo-pass-123 -keypass demo-pass-123 -noprompt
 ~~~
 
-Lúc mới tạo, `server.p12` có một `PrivateKeyEntry` và certificate self-signed tạm thời. Đó chưa phải leaf do CA demo ký. Alias `server-id` được giữ nguyên ở các bước sau.
+When first created, `server.p12` holds a `PrivateKeyEntry` and a temporary self-signed certificate. That is not yet the demo-CA-signed leaf. The alias `server-id` is preserved in the next steps.
 
-### 7.5. Tạo CSR PKCS#10 và CA đáng tin ký certificate
+### 7.5. Create a PKCS#10 CSR and have the trusted CA sign the certificate
 
 ~~~bash
 keytool -certreq -alias server-id -file server.csr -rfc -keystore server.p12 -storepass demo-pass-123 -ext "san=dns:localhost"
@@ -318,9 +318,9 @@ keytool -certreq -alias server-id -file server.csr -rfc -keystore server.p12 -st
 keytool -gencert -alias lab-root -infile server.csr -outfile issued.crt -rfc -keystore root.p12 -storepass demo-pass-123 -validity 7 -ext "san=dns:localhost" -ext "ku=digitalSignature,keyEncipherment" -ext "eku=serverAuth"
 ~~~
 
-CA demo ký leaf có `SAN DNS:localhost` và `EKU serverAuth`. Một CA thật phải kiểm quyền đối với identity, chứng thư và policy cấp trước khi ký, không tự tin mọi yêu cầu SAN trong CSR.
+The demo CA signs a leaf with `SAN DNS:localhost` and `EKU serverAuth`. A real CA must verify authorization over the identity, certificate, and issuance policy before signing, never blindly trusting every SAN requested in a CSR.
 
-### 7.6. Cài root và certificate reply vào đúng server alias
+### 7.6. Install the root and certificate reply into the right server alias
 
 ~~~bash
 keytool -importcert -alias lab-root -file root.crt -keystore server.p12 -storepass demo-pass-123 -noprompt
@@ -330,9 +330,9 @@ keytool -importcert -alias lab-root -file root.crt -keystore server.p12 -storepa
 keytool -importcert -alias server-id -file issued.crt -keystore server.p12 -storepass demo-pass-123 -noprompt
 ~~~
 
-Bước sau cài **certificate reply vào chính PrivateKeyEntry alias `server-id`** để public key của leaf khớp private key đang được giữ. Không import leaf vào alias mới rồi tưởng server identity đã được thay đúng.
+The second step installs the **certificate reply into the exact `PrivateKeyEntry` alias `server-id`** so the leaf's public key matches the held private key. Do not import the leaf under a new alias and assume the server identity was updated properly.
 
-### 7.7. Tạo hai client truststores có chính sách rõ ràng
+### 7.7. Create two client truststores with explicit policies
 
 ~~~bash
 keytool -importcert -alias lab-root -file root.crt -keystore trusted.p12 -storetype PKCS12 -storepass demo-pass-123 -noprompt
@@ -342,13 +342,13 @@ keytool -importcert -alias lab-root -file root.crt -keystore trusted.p12 -storet
 keytool -importcert -alias other-root -file other-root.crt -keystore untrusted.p12 -storetype PKCS12 -storepass demo-pass-123 -noprompt
 ~~~
 
-- `trusted.p12` chỉ tin root đã ký leaf → kết nối tới `localhost` có khả năng pass.
-- `untrusted.p12` chỉ tin root khác → server certificate không có path tới root đó → **JSSE phải reject**.
-- `server.p12` có private key server và certificate chain; **không có private key của hai root**.
+- `trusted.p12` trusts only the root that signed the leaf → connecting to `localhost` can pass.
+- `untrusted.p12` trusts only the other root → the server certificate has no path to that root → **JSSE must reject**.
+- `server.p12` contains the server private key and certificate chain; it **contains neither root's private key**.
 
-**Cảnh báo:** `-storepass` trên dòng lệnh có thể lộ qua process listing/history; chỉ dùng ở môi trường demo cô lập. `-noprompt` bỏ xác nhận của `keytool`; đừng dùng để tự động import CA từ nguồn chưa được xác minh trong production.
+**Warning:** `-storepass` on the command line can leak via process listings/history; use only in an isolated demo environment. `-noprompt` skips `keytool` confirmation; never use it to auto-import CAs from unverified sources in production.
 
-### 7.8. Xem lại certificates/aliases
+### 7.8. Inspect certificates/aliases
 
 ~~~bash
 keytool -list -v -alias server-id -keystore server.p12 -storetype PKCS12 -storepass demo-pass-123
@@ -356,19 +356,19 @@ keytool -list -v -alias lab-root -keystore trusted.p12 -storetype PKCS12 -storep
 keytool -list -v -alias other-root -keystore untrusted.p12 -storetype PKCS12 -storepass demo-pass-123
 ~~~
 
-Điều cần kiểm: leaf thực tế có `DNSName: localhost`, chain về `lab-root`, còn `untrusted.p12` chứa **root khác**. Root trong `trusted.p12` là `TrustedCertificateEntry` chứ không phải private key CA.
+What to verify: the leaf actually has `DNSName: localhost` and chains to `lab-root`, while `untrusted.p12` contains the **other root**. The root in `trusted.p12` is a `TrustedCertificateEntry`, not a CA private key.
 
-## 8. Java 17+ hoàn chỉnh: đúng CA/tên thì pass, sai CA/tên thì fail
+## 8. Complete Java 17+: right CA/name passes, wrong CA/name fails
 
-Đây là chương trình **runnable**, có thể biên dịch/chạy trên JDK 17+ trong cùng thư mục với các file `server.p12`, `trusted.p12`, `untrusted.p12` ở phần 7.
+This is a **runnable** program that can be compiled/run on JDK 17+ in the same directory as `server.p12`, `trusted.p12`, and `untrusted.p12` from section 7.
 
-Chương trình không có một dòng code trust-all hoặc hostname-verifier vô hiệu hóa nào:
+The program contains zero lines of trust-all or disabled hostname-verifier code:
 
-1. Tạo server TLS cục bộ bằng `KeyManagerFactory` từ `PrivateKeyEntry` trong `server.p12`.
-2. Tạo hai clients bằng **`TrustManagerFactory` chuẩn**: một có root đúng và một chỉ có root không liên quan.
-3. Mở TCP loopback bằng `InetAddress.getLoopbackAddress()` nhưng gán **logical peerName** cho `SSLSocket`.
-4. Luôn bật **`SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`** trước handshake.
-5. Chứng minh ba kết quả mong muốn: **trusted + localhost** thành công; **unrelated CA + localhost** bị từ chối; **trusted + 127.0.0.1** bị từ chối vì thiếu IP SAN.
+1. Creates a local TLS server using `KeyManagerFactory` from `PrivateKeyEntry` in `server.p12`.
+2. Creates two clients using **standard `TrustManagerFactory`**: one with the right root and one with only the unrelated root.
+3. Opens TCP loopback via `InetAddress.getLoopbackAddress()` while assigning a **logical `peerName`** to `SSLSocket`.
+4. Always enables **`SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`** before handshaking.
+5. Proves all three expected outcomes: **trusted + localhost** succeeds; **unrelated CA + localhost** is rejected; **trusted + 127.0.0.1** is rejected due to missing IP SAN.
 
 ### 8.1. Source `SafeJsseDemo.java`
 
@@ -419,8 +419,8 @@ public class SafeJsseDemo {
 
     static void handshake(SSLContext context, int port, String peerName)
             throws Exception {
-        // TCP luôn nối loopback. peerName là identity logic tin cậy
-        // mà TLS cần đối chiếu với Subject Alternative Name của leaf.
+        // TCP always connects to loopback. peerName is the trusted logical identity
+        // that TLS must check against the leaf's Subject Alternative Name.
         Socket tcp = new Socket(InetAddress.getLoopbackAddress(), port);
         try (SSLSocket tls = (SSLSocket) context.getSocketFactory()
                 .createSocket(tcp, peerName, port, true)) {
@@ -435,9 +435,9 @@ public class SafeJsseDemo {
             throws Exception {
         try {
             handshake(context, port, name);
-            return false; // LỖI: kết nối xấu không bị từ chối.
+            return false; // ERROR: bad connection was not rejected.
         } catch (SSLHandshakeException expected) {
-            return true; // PASS: JSSE từ chối ngay ở handshake.
+            return true; // PASS: JSSE rejected right at handshake.
         }
     }
 
@@ -461,8 +461,8 @@ public class SafeJsseDemo {
                                 (SSLSocket) listener.accept()) {
                             accepted.startHandshake();
                         } catch (Exception ignored) {
-                            // Chỉ trong demo: negative tests có thể làm
-                            // client hủy handshake; server tiếp tục test.
+                            // Demo only: negative tests can cause client
+                            // to abort handshake; server continues testing.
                         }
                     }
                 });
@@ -490,14 +490,14 @@ public class SafeJsseDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac SafeJsseDemo.java
 java SafeJsseDemo
 ~~~
 
-**Stdout đã được kiểm chứng bằng JDK, `keytool`, `javac` và `java` trong thư mục tạm** sau khi thực hiện các lệnh phần 7:
+**Stdout verified with JDK, `keytool`, `javac`, and `java` in a temporary directory** after running section 7 commands:
 
 ~~~text
 Trusted + localhost = accepted
@@ -505,48 +505,48 @@ Wrong CA rejected   = true
 Wrong name rejected = true
 ~~~
 
-Dù key pair và các chữ ký được tạo ngẫu nhiên ở mỗi lần chạy, ba kết quả này ổn định theo bộ certificate/KeyStore và chính sách demo. Một môi trường Java hoặc JCE provider có policy thuật toán đặc biệt có thể từ chối cả positive case; khi đó cần kiểm lỗi thực tế, **không hạ cấp xác minh để “làm output giống”**.
+Even though key pairs and signatures are randomly generated each run, these three outcomes remain stable for the demo certificate/KeyStore set and policy. A Java environment or JCE provider with special algorithm policies might reject even the positive case; if so, inspect the real error rather than **downgrading verification to "make output match."**
 
-### 8.2. Phân tích đúng các dòng stdout
+### 8.2. Accurate analysis of the stdout lines
 
 **`Trusted + localhost = accepted`**:
 
-- Server xuất trình certificate leaf do root `lab-root` ký.
-- Client sử dụng `trusted.p12` chứa chính root đó, với trust manager chuẩn.
-- `peerName="localhost"` khớp `dNSName SAN localhost` trên leaf.
-- `SSLSocket.startHandshake()` thành công. Ở đây chưa làm HTTP request hay phân quyền ứng dụng; chỉ kiểm lớp TLS.
+- Server presents the leaf certificate signed by root `lab-root`.
+- Client uses `trusted.p12` containing that exact root, with the standard trust manager.
+- `peerName="localhost"` matches `dNSName SAN localhost` on the leaf.
+- `SSLSocket.startHandshake()` succeeds. Here no HTTP request or application authorization is performed yet; only the TLS layer is tested.
 
 **`Wrong CA rejected = true`**:
 
-- Tên đích vẫn `localhost`, vẫn đúng SAN.
-- Client lại dùng `untrusted.p12` chỉ chứa root **không liên quan** đến issuer leaf.
-- Không có path hợp lệ tới trust anchor client chấp nhận; JSSE ném `SSLHandshakeException`.
-- Chương trình coi việc **từ chối** là kết quả test **thành công**. Không thử lại với trust-all.
+- The target name is still `localhost`, still matching the SAN.
+- However, the client uses `untrusted.p12` containing only a root **unrelated** to the leaf's issuer.
+- There is no valid path to a client-accepted trust anchor; JSSE throws `SSLHandshakeException`.
+- The program treats **rejection** as a **passing** test outcome. It does not retry with trust-all.
 
 **`Wrong name rejected = true`**:
 
-- Client vẫn dùng `trusted.p12` nên chain được trust.
-- Logical peer identity đổi thành IP literal `127.0.0.1`.
-- Leaf chỉ có `DNS:localhost`, không có `iPAddress SAN:127.0.0.1`.
-- `HTTPS` endpoint identification khiến JSSE từ chối ngay cả khi CA chain hợp lệ. Đây là lớp phòng vệ riêng, **không thể bỏ**.
+- The client still uses `trusted.p12`, so the chain is trusted.
+- Logical peer identity changes to IP literal `127.0.0.1`.
+- The leaf has only `DNS:localhost`, lacking `iPAddress SAN:127.0.0.1`.
+- `HTTPS` endpoint identification causes JSSE to reject even when the CA chain is valid. This is a separate defense layer that **must not be omitted**.
 
-### 8.3. Vì sao ví dụ không in chi tiết exception?
+### 8.3. Why doesn't the example print exception details?
 
-Để test đơn giản và độc lập với message text của từng provider, `rejected` chỉ bắt `SSLHandshakeException` và trả boolean. Message/exception chain cụ thể có thể khác giữa JDK, CA profile và thuật toán; **không nên assert nguyên văn exception string**.
+To keep tests simple and independent of provider-specific message text, `rejected` catches `SSLHandshakeException` and returns a boolean. Specific messages/exception chains can vary across JDKs, CA profiles, and algorithms; **never assert exact exception message strings**.
 
-Trong production, hãy giữ nguyên stack/cause có lọc thông tin nhạy cảm và ghi nhật ký quản trị phù hợp. Đừng bắt mọi exception rồi “return success”; test fail nếu xuất hiện lỗi ngoài dự kiến. Thread server trong demo cố tình bỏ qua lỗi handshake ở **negative test** và không in dữ liệu nhạy cảm; **không dùng kỹ thuật nuốt exception như vậy trong server production**.
+In production, preserve stacks/causes with sensitive details filtered and log appropriately for operations. Never catch all exceptions and "return success"; tests must fail if unexpected errors occur. The demo server thread intentionally ignores handshake errors during **negative tests** and prints no sensitive data; **never use such exception-swallowing in production servers**.
 
-### 8.4. Vì sao không viết code trust-all để so sánh?
+### 8.4. Why not write trust-all code for comparison?
 
-Để chứng minh hệ thống đúng, **không cần tạo một cài đặt không an toàn** rồi cho thấy nó chấp nhận CA giả. Thay vào đó, negative tests yêu cầu Java **phải từ chối** root khác và hostname sai; test sẽ báo thất bại nếu ai đó vô tình thay trust manager hoặc tắt HTTPS endpoint identification.
+To prove a system is right, **you do not need to build an insecure setup** and show it accepting a fake CA. Instead, negative tests require Java to **reject** a different root and wrong hostname; tests will fail if anyone accidentally swaps the trust manager or turns off HTTPS endpoint identification.
 
-Đây là kiểu kiểm thử mạnh hơn một “demo chạy được với mọi server”, vì nó kiểm **hành vi từ chối quan trọng đối với an ninh**.
+This is stronger testing than a "demo that works with every server," because it verifies the **security-critical rejection behavior**.
 
-## 9. Với `HttpClient` hoặc `HttpsURLConnection` nên làm gì?
+## 9. What should you do with `HttpClient` or `HttpsURLConnection`?
 
 ### 9.1. `java.net.http.HttpClient`
 
-Đối với JDK 11+ (bao gồm JDK 17), khi cần dùng CA nội bộ, bạn có thể tạo `SSLContext` chứa trust manager chuẩn như phần 6 rồi đưa vào **`HttpClient.Builder`**:
+On JDK 11+ (including JDK 17), when an internal CA is needed, create an `SSLContext` holding a standard trust manager as in section 6 and pass it to **`HttpClient.Builder`**:
 
 ~~~java
 HttpClient client = HttpClient.newBuilder()
@@ -560,315 +560,315 @@ HttpResponse<String> response =
         client.send(request, HttpResponse.BodyHandlers.ofString());
 ~~~
 
-**Đây là mảnh ghép API**, không phải chương trình độc lập: `clientContext` phải được khởi tạo an toàn, các import/exception/URL thật phải được xác định. Mặc định HTTPS endpoint identification phải được giữ nguyên, không bật các switch vô hiệu hóa hostname verification.
+**This is an API fragment**, not a standalone program: `clientContext` must be securely initialized, and real imports/exceptions/URLs provided. Default HTTPS endpoint identification must remain intact; never enable switches that disable hostname verification.
 
-**Sửa đúng:** nếu API ở `https://api.example.test` dùng CA nội bộ, đặt CA đã được kiểm trong truststore; certificate leaf phải có SAN cho `api.example.test`. Nếu gọi bằng `https://10.0.0.20`, hãy có IP SAN phù hợp hoặc sửa URL/tên logic theo chính sách. Không dùng request “insecure mode” vì đang ở staging.
+**Right fix:** if the API at `https://api.example.test` uses an internal CA, place the verified CA in the truststore; the leaf certificate must carry a SAN for `api.example.test`. If calling `https://10.0.0.20`, supply an appropriate IP SAN or fix the URL/logical name per policy. Never use "insecure mode" requests just because you are in staging.
 
 ### 9.2. `HttpsURLConnection`
 
-`HttpsURLConnection` dùng hostname verification mặc định cho HTTPS. Có thể cung cấp một `SSLSocketFactory` được tạo từ `SSLContext` tin đúng CA:
+`HttpsURLConnection` uses default hostname verification for HTTPS. You can supply an `SSLSocketFactory` created from an `SSLContext` trusting the right CA:
 
 ~~~java
 HttpsURLConnection connection = (HttpsURLConnection)
         new URL("https://api.example.test/status").openConnection();
 connection.setSSLSocketFactory(clientContext.getSocketFactory());
-// Giữ HostnameVerifier mặc định, KHÔNG override thành always-true.
+// Keep default HostnameVerifier; NEVER override to always-true.
 int status = connection.getResponseCode();
 ~~~
 
-Đây là **trích đoạn**, cần có import, `clientContext` an toàn, kiểm IO và lifecycle connection trong chương trình thực. Cách làm đúng là **thay nguồn trust anchors có kiểm soát**, không bỏ qua hostname verification.
+This is a **snippet** requiring imports, a secure `clientContext`, I/O checks, and connection lifecycle handling in a real program. The right approach is **replacing the trust anchor source under control**, not skipping hostname verification.
 
-### 9.3. OkHttp, Apache HttpClient, Netty, Spring và thư viện khác
+### 9.3. OkHttp, Apache HttpClient, Netty, Spring, and other libraries
 
-Các thư viện có tên flag/API khác nhau theo version. Quy tắc bất biến:
+Libraries vary in flag/API names across versions. Invariant rules:
 
-- Trust manager thực sự kiểm chain với nguồn CA được chọn, không có `acceptAll`/trust-all.
-- Hostname verifier mặc định hoặc policy xác thực tương đương vẫn hoạt động.
-- Không tự tạo SSLContext “một lần cho toàn hệ thống” rồi thay tất cả clients bằng trust manager không an toàn.
-- Bất kỳ option `NoopHostnameVerifier`, `TrustAllStrategy`, `InsecureTrustManagerFactory` hoặc khái niệm tương tự đều phải bị **báo động trong code review**, đặc biệt với ứng dụng có dữ liệu thật.
-- Test trên đúng **version của client library và JDK** sẽ deploy; cấu hình chắc chắn an toàn trong một API không bảo đảm được copy y nguyên sang API khác.
+- The trust manager genuinely checks the chain against the chosen CA source, with no `acceptAll`/trust-all.
+- Default hostname verification or an equivalent validation policy remains active.
+- Never create a "once for the whole system" SSLContext replacing all clients with an unsafe trust manager.
+- Any `NoopHostnameVerifier`, `TrustAllStrategy`, `InsecureTrustManagerFactory`, or similar concept must be **flagged in code review**, especially in apps with real data.
+- Test on the exact **client library version and JDK** being deployed; a configuration proven safe in one API is not guaranteed to copy verbatim to another.
 
-## 10. Gỡ lỗi TLS mà không hạ cấp bảo mật
+## 10. Debugging TLS without downgrading security
 
-Một exception có thể phát sinh từ nhiều tầng. Hãy điều tra đúng nguyên nhân, không áp “fix chung” là bỏ trust/hostname.
+An exception can arise from multiple layers. Investigate the real cause rather than applying a "universal fix" of dropping trust/hostname checks.
 
-| Triệu chứng | Nhóm nguyên nhân | Hướng khắc phục |
+| Symptom | Root-cause group | Remediation |
 | --- | --- | --- |
-| `PKIX path building failed` | Client không dựng được path tới trust anchor | Xác minh CA/truststore, intermediate chain, đúng runtime đang dùng |
-| `unable to find valid certification path` | Không có trust anchor/path được policy chấp nhận | Chọn đúng root đã thẩm định, không import certificate tùy tiện |
-| `No subject alternative DNS name matching ...` | Leaf SAN không chứa DNS host cần kiểm | CA cấp lại SAN đúng, hoặc dùng endpoint URL đúng identity |
-| `No subject alternative names matching IP address ...` | URL dùng IP nhưng leaf không có IP SAN | Dùng IP SAN đúng loại hoặc URL DNS được chứng thực |
-| `certificate expired` / `not yet valid` | Thời gian leaf/issuer hoặc đồng hồ sai | Renew certificate, kiểm thời gian, không disable validity |
-| `Extended key usage does not permit use for TLS server authentication` | Leaf không có mục đích `serverAuth` phù hợp | Xin cấp certificate đúng EKU |
-| `Algorithm constraints check failed` | Key/signature không đạt policy | Nâng key/CA profile/cipher suite phù hợp |
-| `Certificate revoked` | Certificate bị thu hồi theo policy | Kiểm sự cố key/CA, rotate và xử lý đúng, không bỏ revocation |
-| Lỗi sau khi chuyển Docker/JDK | Store/type/CA bundle/provider khác | Kiểm chính xác truststore file, quyền, JDK distribution và cấu hình tiến trình |
-| “Works after allow-all-hosts” | Name check đã bị vô hiệu hóa | **Rollback bypass** và cấp certificate SAN đúng |
-| “Works after trust-all manager” | Chain trust đã bị vô hiệu hóa | **Rollback bypass** và cấu hình CA đáng tin |
-| Lỗi ngẫu nhiên sau redirect/proxy | Endpoint host thực tế khác hoặc proxy TLS | Kiểm URL từng hop, trust anchors và certificate SAN tại điểm TLS termination |
+| `PKIX path building failed` | Client cannot build a path to a trust anchor | Verify CA/truststore, intermediate chain, and actual runtime in use |
+| `unable to find valid certification path` | No policy-accepted trust anchor/path | Select the vetted root; never import certificates arbitrarily |
+| `No subject alternative DNS name matching ...` | Leaf SAN lacks the expected DNS host | Have CA reissue with right SAN, or use the identity-matched URL |
+| `No subject alternative names matching IP address ...` | URL uses IP while leaf lacks IP SAN | Use matching IP SAN or a certified DNS URL |
+| `certificate expired` / `not yet valid` | Leaf/issuer validity window or clock skew | Renew certificate, check time; never disable validity checks |
+| `Extended key usage does not permit use for TLS server authentication` | Leaf lacks proper `serverAuth` purpose | Request certificate with right EKU |
+| `Algorithm constraints check failed` | Key/signature fails policy | Upgrade key/CA profile/cipher suites accordingly |
+| `Certificate revoked` | Certificate revoked per policy | Investigate key/CA incident, rotate, and handle properly; never skip revocation |
+| Failure after switching Docker/JDK | Different store/type/CA bundle/provider | Inspect exact truststore file, permissions, JDK distribution, and process config |
+| "Works after allow-all-hosts" | Name checking was disabled | **Roll back the bypass** and issue a certificate with right SAN |
+| "Works after trust-all manager" | Chain trust was disabled | **Roll back the bypass** and configure a trusted CA |
+| Intermittent errors after redirect/proxy | Actual endpoint host differs or proxy terminates TLS | Check each hop's URL, trust anchors, and certificate SAN at TLS termination |
 
-### 10.1. Quy trình điều tra có cấu trúc
+### 10.1. Structured investigation workflow
 
 ~~~text
-1. Xác định URL/hostname hoặc IP thật sự do client chủ định gọi.
-2. Xác định HTTPS client API, SSLContext và truststore đang dùng.
-3. Kiểm leaf SAN, issuer, thời hạn, KU/EKU và chain/intermediates.
-4. Kiểm CA root từ nguồn tin cậy; đối chiếu truststore của runtime.
-5. Test chain trust độc lập; test hostname matching độc lập.
-6. Sửa certificate/URL/truststore đúng nguyên nhân.
-7. Rerun positive + negative tests.
-8. Không retry bằng trust-all hoặc skip-hostname.
+1. Identify the exact URL/hostname or IP the client intends to call.
+2. Identify the HTTPS client API, SSLContext, and truststore in use.
+3. Check leaf SAN, issuer, validity, KU/EKU, and chain/intermediates.
+4. Check the root CA from a trusted source; cross-check the runtime's truststore.
+5. Test chain trust independently; test hostname matching independently.
+6. Fix certificate/URL/truststore at the real root cause.
+7. Re-run positive + negative tests.
+8. Never retry with trust-all or skip-hostname.
 ~~~
 
-Dùng `keytool -list -v` hoặc công cụ đã được tổ chức cho phép để xem cấu trúc truststore. Khi dùng `openssl s_client`, nhớ rằng **chỉ in certificate/`Verify return code` chưa chắc đã chạy hostname verification**; phải cung cấp options/trust phù hợp nếu muốn kiểm identity. Không lấy một kết quả path-valid rồi suy ra toàn bộ HTTPS client đã an toàn.
+Use `keytool -list -v` or organization-approved tools to inspect truststore contents. When using `openssl s_client`, remember that **merely printing certificates/`Verify return code` does not guarantee hostname verification ran**; pass appropriate options/trust if checking identity. Never extrapolate from one path-valid check that an entire HTTPS client is secure.
 
-### 10.2. JSSE debug logs có thể chứa dữ liệu nhạy cảm
+### 10.2. JSSE debug logs can contain sensitive data
 
-JDK có một số chế độ debug TLS, ví dụ:
+The JDK offers several TLS debug modes, such as:
 
 ~~~bash
 java -Djavax.net.debug=ssl,handshake,trustmanager YourApplication
 ~~~
 
-Đây là **lệnh khái niệm**, không phải lệnh chạy sample `SafeJsseDemo` vì class name chỉ đại diện ứng dụng cụ thể. Dùng trong môi trường kiểm soát, xem lại nội dung log trước khi chia sẻ: trace TLS có thể lộ metadata hệ thống, hostname, certificate details và thông tin không phù hợp đưa ra công khai. **Không bật verbose debug vô hạn trong production**, không đưa password, private keys, token hoặc toàn bộ body xác thực vào logs.
+This is a **conceptual command**, not a command to run `SafeJsseDemo`, since the class name represents an arbitrary app. Use in controlled environments and review log contents before sharing: TLS traces can expose system metadata, hostnames, certificate details, and info unsuitable for public disclosure. **Never leave verbose debugging on indefinitely in production**, and never put passwords, private keys, tokens, or full auth bodies into logs.
 
-**Không sửa debug bằng cách tắt kiểm chứng để “tiếp tục quan sát request”**. Khi cần tái hiện service lỗi, tạo CA/test certificate đúng yêu cầu, hoặc kiểm endpoints trong môi trường lab cô lập như phần 7–8.
+**Never "debug" by disabling verification to "keep observing the request."** When you need to reproduce a service error, create a proper test CA/certificate or test endpoints in an isolated lab like sections 7–8.
 
-## 11. Không trust CA lạ chỉ vì import thành công
+## 11. Do not trust an unknown CA just because importing succeeded
 
-Một sai lầm gần trust-all là **import mọi CA/certificate mà server gửi** vào truststore của client. Dù không cài trust-all manager, cách này biến tập trust anchors thành một danh sách không có quy trình xác minh.
+A mistake close to trust-all is **importing every CA/certificate sent by a server** into the client's truststore. Even without installing a trust-all manager, this turns the trust anchor set into an unverified list.
 
-**Ví dụ rủi ro:**
+**Risk example:**
 
 ~~~text
-Client báo: issuer chưa được tin
-Operator tải root.crt từ chính đường kết nối chưa xác thực
-Operator import root.crt với -noprompt
-Client kết nối thành công
-=> Không có bằng chứng root này thuộc CA dự kiến.
+Client reports: issuer untrusted
+Operator downloads root.crt from that exact unverified connection
+Operator imports root.crt with -noprompt
+Client connects successfully
+=> No proof this root belongs to the expected CA.
 ~~~
 
-Attacker có thể cung cấp một root giả và leaf do chính họ ký. **Chữ ký có thể kiểm đúng đối với root giả mới import**, nhưng quyết định tin root ban đầu đã sai.
+An attacker can serve a fake root and a leaf signed by themselves. **Signatures verify cleanly against the newly imported fake root**, yet the initial decision to trust that root was compromised.
 
-Cách làm đúng:
+The right approach:
 
-1. Xác minh fingerprint/public key CA qua kênh quản trị độc lập.
-2. Kiểm chủ sở hữu CA, phạm vi cấp certificate, constraints, expiration và chính sách quản lý CA.
-3. Import **đúng certificate được phê duyệt** vào truststore của môi trường cụ thể.
-4. Kiểm permission file, backup, review và rotation; không dùng global truststore nếu chỉ một client cần CA đó.
-5. Giữ hostname verification và kiểm end-to-end.
-6. Audit các thay đổi trust anchors, không tự động cập nhật truststore theo certificate peer gửi trên mạng.
+1. Verify the CA fingerprint/public key through an independent administrative channel.
+2. Verify CA ownership, certificate issuance scope, constraints, expiration, and CA governance policy.
+3. Import **only the approved certificate** into the environment-specific truststore.
+4. Check file permissions, backups, reviews, and rotation; never use a global truststore if only one client needs that CA.
+5. Keep hostname verification enabled and test end-to-end.
+6. Audit trust anchor changes; never auto-update truststores from peer-sent network certificates.
 
-**Certificate pinning đúng** (nếu cần) cũng dựa trên giá trị được phân phối **từ nguồn tin cậy**, không phải fingerprint lấy tự động từ một kết nối chưa được xác thực và được coi là an toàn vĩnh viễn.
+**Proper certificate pinning** (if needed) also relies on values distributed **from a trusted source**, not fingerprints grabbed automatically from an unauthenticated connection and treated as permanently safe.
 
-## 12. Mô hình an toàn cho dev/staging/production
+## 12. Security model across dev/staging/production
 
 ### 12.1. Dev localhost
 
-Nếu test endpoint `https://localhost`, tạo certificate dev có SAN `DNS:localhost`, tin CA dev **chỉ trong dev truststore**. Nếu test bằng `https://127.0.0.1`, phải cấp SAN loại `IP:127.0.0.1` hoặc dùng DNS `localhost` cho đúng.
+If testing `https://localhost`, generate a dev cert with SAN `DNS:localhost` and trust the dev CA **only in the dev truststore**. If testing `https://127.0.0.1`, issue SAN `IP:127.0.0.1` or use DNS `localhost` consistently.
 
-Không yêu cầu developer tắt toàn bộ HTTPS validation vì một server local chỉ có self-signed certificate. CA dev có thể tự ký, nhưng phải được **chủ động tin với phạm vi giới hạn**; khác với trust mọi certificate trên mạng.
+Never ask developers to disable all HTTPS validation just because a local server has a self-signed certificate. A dev CA may be self-signed, yet it must be **explicitly trusted within a bounded scope**—unlike trusting every certificate on the network.
 
-### 12.2. Staging và môi trường kiểm thử tích hợp
+### 12.2. Staging and integration testing environments
 
-Staging nên có hostname ổn định như `staging-api.example.test`, certificate SAN đúng, CA/truststore staging riêng hoặc public CA tùy thiết kế. Negative tests trong CI phải xác nhận:
+Staging should have a stable hostname like `staging-api.example.test`, proper certificate SAN, and a dedicated staging CA/truststore or public CA per design. CI negative tests must confirm:
 
-- Root khác không được chấp nhận.
-- Certificate SAN không khớp không được chấp nhận.
-- Certificate hết hạn/không đạt policy bị từ chối.
-- Sau redirect/proxy, endpoint mới vẫn được xác minh.
-- Không có configuration flag bypass verification tồn tại trong artifact sẽ deploy.
+- Different roots are rejected.
+- Mismatched certificate SANs are rejected.
+- Expired/non-compliant certificates are rejected.
+- After redirects/proxies, the new endpoint is still verified.
+- No verification-bypass configuration flags exist in deployable artifacts.
 
-### 12.3. Production và load balancer
+### 12.3. Production and load balancers
 
-Với ingress/LB terminate TLS, certificate tại điểm TLS termination phải phù hợp hostname URL mà client thấy. Nếu LB mở TLS riêng đến backend, kết nối LB→backend **cũng có identity/trust policy riêng**; không “kế thừa” xác thực từ client→LB nếu chưa thiết kế.
+When an ingress/LB terminates TLS, the certificate at the TLS termination point must match the URL hostname seen by clients. If the LB opens a separate TLS connection to the backend, the LB→backend hop **also has its own identity/trust policy**; never "inherit" client→LB authentication without designing it.
 
-Trong microservices, service A gọi service B qua DNS nội bộ có thể cần CA công ty, identity SAN phù hợp, truststore scoped và mTLS. **mTLS không thay hostname verification của client**, và certificate client được CA công ty ký **không tự cấp quyền** gọi mọi endpoint: authorization identity-to-role phải được kiểm riêng.
+In microservices, service A calling service B over internal DNS may need an enterprise CA, matching SAN identities, scoped truststores, and mTLS. **mTLS does not replace client hostname verification**, and a client certificate signed by an enterprise CA **does not automatically authorize** calling every endpoint: identity-to-role authorization must be checked separately.
 
-### 12.4. Proxy doanh nghiệp và TLS inspection
+### 12.4. Corporate proxies and TLS inspection
 
-Một proxy có thể trình certificate do **CA proxy** cấp thay certificate từ server gốc. Nếu tổ chức có chính sách TLS inspection hợp pháp, client cần quản lý CA đó theo quy trình riêng và vẫn kiểm hostname của URL đích, scope, logging và rủi ro vận hành.
+A proxy may present certificates issued by a **proxy CA** instead of the origin server's certificate. If an organization has a legitimate TLS inspection policy, the client must manage that CA via dedicated procedures while still checking target URL hostnames, scope, logging, and operational risks.
 
-Không tự import CA proxy được gửi bởi một kết nối không tin cậy. Việc thêm CA proxy mở rộng trust anchors và có thể cho phép proxy terminate nhiều kết nối; đây là **quyết định quản trị bảo mật**, không phải workaround ở dòng code.
+Never auto-import a proxy CA delivered by an untrusted connection. Adding a proxy CA widens trust anchors and can allow the proxy to terminate many connections; that is a **security governance decision**, not a one-line code workaround.
 
-## 13. Phòng lỗi trong code review và kiểm thử
+## 13. Preventing bugs in code review and testing
 
-### 13.1. Những dấu hiệu cần tìm trong pull request
+### 13.1. Red flags to look for in pull requests
 
-| Dấu hiệu | Câu hỏi kiểm tra |
+| Signal | Review question |
 | --- | --- |
-| Custom `X509TrustManager` | Có thực sự kiểm chuỗi, thuật toán và trust anchor? Vì sao không dùng provider chuẩn? |
-| `checkServerTrusted` không có logic xác minh | Đây có phải trust-all đang được ẩn bằng try/catch? |
-| `HostnameVerifier` luôn trả true | Có phải đang bỏ mọi endpoint identity checks? |
-| `NoopHostnameVerifier` hoặc `allowAllHosts` | Có test negative mismatch để phát hiện bypass không? |
-| `SSLContext.setDefault` | Có vô tình thay TLS policy toàn process không? |
-| Raw `SSLSocket`/`SSLEngine` | Đã bật endpoint identification và truyền peer name đúng chưa? |
-| `SSLParameters.setEndpointIdentificationAlgorithm("")` hoặc bỏ algorithm | Có làm mất name check trong context HTTPS không? |
-| Cấu hình `disableHostnameVerification` | Có thể lọt vào production build/runtime không? |
-| Truststore import certificate tự động khi lỗi | CA từ đâu và ai xác minh fingerprint? |
-| Retry sau `SSLHandshakeException` | Có nới lỏng trust/hostname ở lần thử sau không? |
-| Test HTTPS chỉ assert HTTP 200 | Có negative tests với wrong CA và wrong hostname không? |
-| Wrapper SSL factory được dùng ở nhiều clients | Có áp phạm vi trust rộng hơn dự kiến không? |
+| Custom `X509TrustManager` | Does it genuinely check chains, algorithms, and trust anchors? Why not use the standard provider? |
+| `checkServerTrusted` has no verification logic | Is this a trust-all hidden behind try/catch? |
+| `HostnameVerifier` always returns true | Is it stripping all endpoint identity checks? |
+| `NoopHostnameVerifier` or `allowAllHosts` | Are there negative mismatch tests to catch bypasses? |
+| `SSLContext.setDefault` | Could this inadvertently alter TLS policy process-wide? |
+| Raw `SSLSocket`/`SSLEngine` | Are endpoint identification enabled and the right peer name passed? |
+| `SSLParameters.setEndpointIdentificationAlgorithm("")` or omitted | Does this drop name checking in an HTTPS context? |
+| `disableHostnameVerification` config | Could this reach production builds/runtimes? |
+| Auto-importing certs into truststore on error | Where did the CA come from and who verified the fingerprint? |
+| Retrying after `SSLHandshakeException` | Does the retry relax trust/hostname checks? |
+| HTTPS test asserting only HTTP 200 | Are there negative tests for wrong CA and wrong hostname? |
+| Shared SSL factory wrapper across clients | Does it grant broader trust scope than intended? |
 
-**Một review tốt không chỉ grep từ khóa.** Có thể thư viện dùng tên khác hoặc configuration trong YAML/properties thay vì Java code. Cần xem **effective TLS settings**, dependency versions, container image và smoke tests.
+**Good reviews go beyond grepping keywords.** Libraries may use different names or YAML/properties configuration instead of Java code. Inspect **effective TLS settings**, dependency versions, container images, and smoke tests.
 
-### 13.2. Test matrix bắt buộc
+### 13.2. Mandatory test matrix
 
-| Test | Chain trust | Hostname | Kết quả mong muốn |
+| Test | Chain trust | Hostname | Expected outcome |
 | --- | --- | --- | --- |
-| Positive | CA đúng | SAN khớp | **Accept** |
-| Wrong root | CA khác | SAN khớp | **Reject** |
-| Wrong DNS | CA đúng | SAN không khớp | **Reject** |
-| Wrong IP | CA đúng | Thiếu iPAddress SAN | **Reject** |
-| Invalid date | CA đúng | SAN khớp | **Reject** |
-| Missing intermediate | Path không dựng được | SAN khớp | **Reject** nếu không dựng được chain hợp lệ |
-| Wrong EKU | Chain/usage policy không đạt | SAN khớp | **Reject** |
-| Tampered certificate | Chữ ký không hợp lệ | SAN khớp | **Reject** |
-| Revoked certificate | Revocation policy từ chối | SAN khớp | **Reject** |
-| Wrong client identity (mTLS) | Client cert có thể hợp lệ | Không được authorization | **Deny** ở tầng tương ứng |
+| Positive | Right CA | SAN matches | **Accept** |
+| Wrong root | Different CA | SAN matches | **Reject** |
+| Wrong DNS | Right CA | SAN mismatches | **Reject** |
+| Wrong IP | Right CA | Missing `iPAddress` SAN | **Reject** |
+| Invalid date | Right CA | SAN matches | **Reject** |
+| Missing intermediate | Path cannot build | SAN matches | **Reject** if valid chain cannot be built |
+| Wrong EKU | Chain/usage policy fails | SAN matches | **Reject** |
+| Tampered certificate | Invalid signature | SAN matches | **Reject** |
+| Revoked certificate | Revocation policy rejects | SAN matches | **Reject** |
+| Wrong client identity (mTLS) | Client cert may be valid | Unauthorized | **Deny** at the appropriate layer |
 
-Hai negative tests **Wrong root** và **Wrong DNS** có giá trị nhất cho chủ đề này vì chúng trực tiếp phát hiện việc một developer đã vô tình bật trust-all hoặc bỏ name check.
+The two negative tests **Wrong root** and **Wrong DNS** are the most valuable for this topic because they directly catch a developer accidentally enabling trust-all or dropping name checks.
 
-### 13.3. Không làm test “đúng” bằng cách chấp nhận lỗi
+### 13.3. Never make tests "pass" by accepting errors
 
-Việc test máy phát triển không có CA đúng là **test setup chưa hoàn chỉnh**, không phải lý do sửa verifier:
+A dev machine lacking the right CA is an **incomplete test setup**, not a reason to alter the verifier:
 
-- Không tắt certificate verification để có HTTP status.
-- Không bắt `SSLHandshakeException` rồi giả lập thành công.
-- Không dùng global insecure client trong test fixtures nếu cùng fixture được tái sử dụng trong production.
-- Không tự import certificate root do server trả về mà không kiểm nguồn.
-- Khi test cần self-signed CA, hãy **tạo và pin trust anchor trong test fixture riêng**, cấp leaf có SAN hợp lệ và giữ verification.
+- Never disable certificate verification just to get an HTTP status.
+- Never catch `SSLHandshakeException` and simulate success.
+- Never use a global insecure client in test fixtures if that fixture is reused in production.
+- Never auto-import root certificates returned by a server without verifying the source.
+- When tests need a self-signed CA, **create and pin the trust anchor in a dedicated test fixture**, issue leaves with valid SANs, and keep verification enabled.
 
-**Đúng là phải có ít nhất một test thất bại theo dự kiến.** Nếu kết nối với CA không tin cậy hoặc hostname sai vẫn thành công, hệ thống **có lỗ hổng xác thực**, không phải “test linh hoạt”.
+**At least one test is supposed to fail as expected.** If connecting with an untrusted CA or wrong hostname succeeds, the system **has an authentication vulnerability**, not "flexible tests."
 
-## 14. Những lỗi dễ nhầm giữa certificate trust và hostname
+## 14. Commonly confused certificate trust vs. hostname errors
 
 ### 14.1. `PKIX path building failed`
 
-Đây thường là lỗi xác minh đường dẫn, không phải lỗi hostname. Hướng xử lý: kiểm certificate chain server gửi, intermediate, root mà client thực sự trust, policy JDK, thời hạn và thuật toán. Import một CA đúng có thể sửa trust issue; **không nên động đến hostname verifier**.
+This is typically a path-validation error, not a hostname error. Resolution: check the server-sent certificate chain, intermediates, the root the client actually trusts, JDK policy, validity, and algorithms. Importing the right CA fixes a trust issue; **never touch the hostname verifier**.
 
 ### 14.2. `No subject alternative DNS name matching ...`
 
-Trust chain có thể đã hợp lệ nhưng SAN không chứa reference hostname. Cách sửa: certificate phải có đúng DNS SAN (CA cấp lại), hoặc ứng dụng dùng hostname thực sự được cấp theo thiết kế. **Không đổi trust manager để xử lý mismatch** và không tắt hostname verification.
+The trust chain may already be valid, yet the SAN lacks the reference hostname. Fix: the certificate must have the right DNS SAN (CA reissues), or the app must use the hostname actually issued per design. **Never swap the trust manager to handle mismatches** and never turn off hostname verification.
 
-### 14.3. Dùng IP thay vì DNS khi test
+### 14.3. Using IP instead of DNS during testing
 
-Server certificate được cấp cho `DNS:api.example.test` nhưng developer test bằng `https://10.10.0.20`. Đây là reference identity khác. Dùng endpoint DNS phù hợp và route DNS đến IP, hoặc xin cấp IP SAN nếu policy cho phép định danh qua IP.
+The server certificate was issued for `DNS:api.example.test`, yet the developer tests `https://10.10.0.20`. That is a different reference identity. Use the matching DNS endpoint and route DNS to the IP, or obtain an IP SAN if policy permits IP-based identification.
 
-### 14.4. Root import sai Java runtime
+### 14.4. Root imported into the wrong Java runtime
 
-Máy dùng nhiều JDK/containers. Bạn import CA vào `cacerts` của JDK A nhưng ứng dụng chạy JDK B, hoặc ứng dụng có custom truststore riêng. Kiểm **đường dẫn thực tế, type, user permissions và effective config**. Không tạo trust-all vì không tìm đúng truststore.
+Machines often have multiple JDKs/containers. You imported the CA into JDK A's `cacerts`, while the app runs on JDK B or uses its own custom truststore. Check **actual paths, types, user permissions, and effective config**. Never build trust-all because you couldn't find the right truststore.
 
-### 14.5. Một server trả nhiều certificate theo SNI
+### 14.5. Server returning different certificates by SNI
 
-Nếu SNI không phù hợp hoặc reverse proxy chọn default certificate, chain có thể hợp lệ nhưng SAN thuộc hostname khác. Sửa SNI routing/server certificate configuration, đảm bảo client gửi đúng hostname, **vẫn cần name check**. Đừng coi vì CA ký nên có thể bỏ SAN.
+If SNI does not match or a reverse proxy picks a default certificate, the chain may be valid yet the SAN belongs to a different hostname. Fix SNI routing/server certificate config, ensure the client sends the right hostname, and **keep name checking on**. Never drop SAN checks just because the CA signed it.
 
-### 14.6. Chỉ một thư viện HTTP thất bại
+### 14.6. Only one HTTP library fails
 
-`HttpClient`, `HttpsURLConnection`, OkHttp, Netty hoặc Apache HttpClient có thể dùng SSLContext/truststore/hostname policies khác nhau. Điều tra **client cụ thể và version cụ thể**, không áp flag JVM global “insecure SSL” hoặc tắt kiểm tên ở mọi client.
+`HttpClient`, `HttpsURLConnection`, OkHttp, Netty, or Apache HttpClient may use different SSLContexts/truststores/hostname policies. Investigate the **specific client and version**, never applying a JVM-wide "insecure SSL" flag or disabling name checks across all clients.
 
-### 14.7. Certificate hết hạn hoặc thu hồi
+### 14.7. Expired or revoked certificates
 
-Chứng thư có SAN đúng và CA được tin có thể hết hạn hoặc bị thu hồi. Không dùng trust-all hoặc set clock giả để bypass. Renew/rotate key/cert, xử lý incident với CA, kiểm đồng bộ thời gian và revocation policy.
+A certificate with the right SAN and trusted CA can expire or be revoked. Never use trust-all or spoof clocks to bypass. Renew/rotate keys/certs, handle CA incidents, verify clock sync, and enforce revocation policies.
 
-## 15. Mật khẩu/khóa, logging và quản trị an toàn
+## 15. Passwords/keys, logging, and secure governance
 
-Mật khẩu PKCS12 bảo vệ file theo provider, **không thay CA validation và hostname verification**. Certificate leaf/root có thể công khai, nhưng private keys, trust policy và các bản sao credential cần được bảo vệ.
+PKCS12 passwords protect the file per provider; they **do not replace CA validation and hostname verification**. Leaf/root certificates may be public, while private keys, trust policies, and credential copies must be protected.
 
-- **Không commit** file `.p12` chứa private key, key pass, secret manager token, `javax.net.ssl.keyStorePassword` hay truststore passwords vào repo.
-- Quản lý keystore/truststore bằng secret manager, deployment policy, volume permission hoặc HSM/KMS theo yêu cầu.
-- Root/CA certificates từ nguồn chính thức cần được xem như **danh sách security policy**, có review/audit/rotation; đừng import không kiểm soát.
-- Hạn chế thay đổi `SSLContext` mặc định toàn JVM; ưu tiên cấu hình per-client.
-- Trong lỗi TLS, log mức phù hợp: hostname đích, loại lỗi, certificate issuer/SAN/expiry đã được lọc theo chính sách; **không log private key, password, session key, bearer token** hoặc full request chứa credential.
-- Đừng vô hiệu hóa revocation theo thói quen: cơ chế CRL/OCSP và chính sách hard/soft-fail phụ thuộc ứng dụng; phải được quyết định rõ.
-- Với server/client mTLS, theo dõi certificate expiry, rotation, cert usage và mapping identity-to-permissions; cả hai chiều vẫn có chính sách trust riêng.
+- **Never commit** `.p12` files containing private keys, key passes, secret manager tokens, `javax.net.ssl.keyStorePassword`, or truststore passwords into repositories.
+- Manage keystores/truststores with secret managers, deployment policies, volume permissions, or HSM/KMS as required.
+- Root/CA certificates from official sources must be treated as a **security policy list**, reviewed/audited/rotated; never import uncontrollably.
+- Avoid mutating the JVM-wide default `SSLContext`; prefer per-client configuration.
+- On TLS errors, log at an appropriate level: target hostname, error category, policy-filtered cert issuer/SAN/expiry; **never log private keys, passwords, session keys, bearer tokens**, or full requests containing credentials.
+- Never disable revocation out of habit: CRL/OCSP mechanisms and hard/soft-fail policies depend on the application and must be explicitly decided.
+- For mTLS servers/clients, monitor certificate expiry, rotation, cert usage, and identity-to-permission mappings; both directions retain separate trust policies.
 
-Đoạn code demo xóa `char[] password` do ứng dụng nắm giữ sau khi sử dụng. Điều này giảm thời gian tồn tại của bản sao do ứng dụng kiểm soát nhưng không chứng minh JVM/provider đã xóa mọi bản copy; password **literal** trong ví dụ là cố ý đơn giản hóa, **không dùng trong sản phẩm**.
+The demo code wipes the application-held `char[] password` after use. This reduces the lifetime of application-controlled copies without proving the JVM/provider wiped every copy; **literal** passwords in examples are intentionally simplified and **never for production**.
 
-## 16. Bài tập tự kiểm tra (có đáp án)
+## 16. Self-check exercises (with answers)
 
-**Câu 1.** Ứng dụng HTTPS kết nối thành công sau khi thay trust manager bằng implementation chấp nhận mọi certificate. Điều gì đã mất?
+**Q1.** An HTTPS app connects successfully after replacing the trust manager with an implementation accepting every certificate. What was lost?
 
-**Đáp án:** Mất **xác thực đường dẫn/chủ thể phát hành certificate**. Attacker có thể dùng self-signed certificate hoặc certificate do họ kiểm soát để làm peer, trong khi phiên vẫn có encryption.
+**Answer:** **Certificate path/issuer authentication** was lost. An attacker can use a self-signed certificate or one they control as the peer, while the session still appears encrypted.
 
-**Câu 2.** Java client đã trust CA công ty nhưng gọi `payments.internal` và peer trình certificate `DNS:reports.internal`. Có được chấp nhận không?
+**Q2.** A Java client trusts the corporate CA, calls `payments.internal`, and the peer presents a `DNS:reports.internal` certificate. Should it be accepted?
 
-**Đáp án:** **Không.** Chain hợp lệ không thay hostname match. Client cần cert đúng SAN `payments.internal` hoặc sửa endpoint hợp lệ, không tắt name check.
+**Answer:** **No.** A valid chain does not replace hostname matching. The client needs a cert with SAN `payments.internal` or must fix the target endpoint; never disable name checking.
 
-**Câu 3.** Một certificate có SAN `DNS:localhost` và client dùng URL `https://127.0.0.1`. Thiếu điều gì?
+**Q3.** A certificate has SAN `DNS:localhost` and the client uses URL `https://127.0.0.1`. What is missing?
 
-**Đáp án:** Thiếu SAN loại **`iPAddress` cho `127.0.0.1`**. Có DNS SAN localhost không làm URL dùng IP trở thành cùng reference identity.
+**Answer:** An **`iPAddress` SAN for `127.0.0.1`** is missing. Having a DNS SAN `localhost` does not make an IP-based URL the same reference identity.
 
-**Câu 4.** Có nên cài `HostnameVerifier` luôn trả true vì TLS vẫn kiểm CA không?
+**Q4.** Should you install a `HostnameVerifier` that always returns true since TLS still checks the CA?
 
-**Đáp án:** Không. Một certificate hợp lệ của hostname khác có thể bị chấp nhận cho endpoint mục tiêu; đó là lỗi endpoint authentication riêng với path trust.
+**Answer:** No. A valid certificate for a different hostname could be accepted for the target endpoint; that is an endpoint authentication failure separate from path trust.
 
-**Câu 5.** Raw `SSLSocket` dùng `TrustManagerFactory` chuẩn. Điều này tự bảo đảm HTTPS hostname đã được kiểm?
+**Q5.** A raw `SSLSocket` uses a standard `TrustManagerFactory`. Does that automatically guarantee HTTPS hostnames are checked?
 
-**Đáp án:** **Không chắc.** Raw TLS không biết mặc định giao thức ứng dụng; cần peer name đúng và cấu hình `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` trước handshake khi áp dụng HTTPS identity.
+**Answer:** **Not necessarily.** Raw TLS does not assume an application protocol by default; you need the right peer name and `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` configured before handshaking when enforcing HTTPS identity.
 
-**Câu 6.** Vì sao test chỉ khẳng định HTTP 200 từ HTTPS server chưa đủ cho security QA?
+**Q6.** Why is a test asserting only HTTP 200 from an HTTPS server insufficient for security QA?
 
-**Đáp án:** Một client trust-all hoặc bỏ hostname vẫn có thể nhận HTTP 200. Phải có **negative tests** với CA không được tin và hostname không khớp, xác minh client từ chối.
+**Answer:** A trust-all or hostname-skipping client can still receive HTTP 200. You need **negative tests** with untrusted CAs and mismatched hostnames verifying the client rejects them.
 
-**Câu 7.** Có thể import root certificate lấy từ cùng kết nối đang bị lỗi TLS để “sửa PKIX” không?
+**Q7.** Can you import a root certificate grabbed from the very connection failing TLS to "fix PKIX"?
 
-**Đáp án:** Không tự ý. Root có thể là của attacker; trust anchor phải được chọn và xác minh fingerprint/nguồn thông qua kênh đáng tin, rồi mới import.
+**Answer:** Never arbitrarily. That root could belong to an attacker; trust anchors must be selected and verified for fingerprint/source via a trusted channel before importing.
 
-**Câu 8.** SNI đã là `api.example.test` nhưng leaf server trả về `DNS:other.example.test`. Có đủ an toàn không?
+**Q8.** SNI is `api.example.test`, yet the server returns a leaf with `DNS:other.example.test`. Is that safe enough?
 
-**Đáp án:** Không. SNI chỉ là thông tin giúp server chọn chứng thư; client vẫn phải kiểm leaf SAN khớp reference hostname.
+**Answer:** No. SNI only helps the server select a certificate; the client must still check that the leaf SAN matches the reference hostname.
 
-**Câu 9.** Test CA khác thất bại với `SSLHandshakeException`. Đó là bug của chương trình `SafeJsseDemo`?
+**Q9.** The test with the other CA fails with `SSLHandshakeException`. Is that a bug in `SafeJsseDemo`?
 
-**Đáp án:** Không. Đây là **expected failure** và được biểu diễn bằng `Wrong CA rejected = true`. Từ chối trust anchor sai là hành vi đúng.
+**Answer:** No. That is an **expected failure** and is reported as `Wrong CA rejected = true`. Rejecting the wrong trust anchor is the right behavior.
 
-**Câu 10.** Trong demo, CA đúng + `localhost` pass, CA đúng + `127.0.0.1` fail. Vì sao?
+**Q10.** In the demo, right CA + `localhost` passes, while right CA + `127.0.0.1` fails. Why?
 
-**Đáp án:** Do **danh tính endpoint khác nhau**. Leaf chỉ có SAN DNS localhost. Phép kiểm CA vẫn pass ở cả hai, nhưng IP literal không có SAN iPAddress tương ứng nên handshake bị từ chối.
+**Answer:** Because the **endpoint identities differ**. The leaf has only `DNS:localhost` SAN. CA validation passes in both, yet the IP literal lacks a matching `iPAddress` SAN so the handshake is rejected.
 
-**Câu 11.** Nếu `PKIX path building failed` sau khi chuyển sang container, có nên bật skip-verify?
+**Q11.** If `PKIX path building failed` appears after moving to a container, should you enable skip-verify?
 
-**Đáp án:** Không. Cần xác minh truststore thực sự được JDK/container dùng, CA/intermediate, file permissions và algorithm policy; fix CA chain/config đúng nguyên nhân.
+**Answer:** No. Verify the truststore actually used by the JDK/container, CA/intermediates, file permissions, and algorithm policy; fix the CA chain/config at the real cause.
 
-**Câu 12.** Một client cần CA công khai và một CA nội bộ. Dùng custom truststore có tự động giữ các root mặc định của JDK không?
+**Q12.** A client needs both public CAs and an internal CA. Does using a custom truststore automatically retain the JDK's default roots?
 
-**Đáp án:** Không mặc định. `TrustManagerFactory.init(customStore)` dùng nội dung store được cấp theo provider/policy; cần thiết kế rõ cách quản lý tập CA cần tin. Không fallback thành trust-all.
+**Answer:** Not by default. `TrustManagerFactory.init(customStore)` uses the supplied store per provider/policy; design explicitly how to manage the trusted CA set. Never fall back to trust-all.
 
-**Câu 13.** mTLS server tin CA của client, vậy mọi client certificate do CA đó ký được quyền gọi tất cả API?
+**Q13.** An mTLS server trusts the client's CA; does every client certificate signed by that CA get to call all APIs?
 
-**Đáp án:** Không. Trust certificate chain xác thực nguồn identity theo policy; ứng dụng vẫn phải **authorization** identity-to-role/tenant, kiểm mục đích certificate như `clientAuth` khi phù hợp.
+**Answer:** No. Trusting the certificate chain verifies the identity source per policy; the app must still perform **authorization** mapping identity to role/tenant and check certificate purposes like `clientAuth` where appropriate.
 
-**Câu 14.** Có thể sửa lỗi CA và hostname bằng cách giảm TLS version/cipher suite để bắt tay thành công không?
+**Q14.** Can CA and hostname errors be fixed by lowering the TLS version/cipher suite so the handshake succeeds?
 
-**Đáp án:** Không. Version/cipher suite là tầng khác; giảm chất lượng thuật toán không thay chain trust hoặc SAN. Sửa certificate/truststore/endpoint đúng chính sách.
+**Answer:** No. Version/cipher suite is a different layer; weakening algorithms does not replace chain trust or SANs. Fix certificates/truststores/endpoints per policy.
 
-**Câu 15.** Nếu team muốn đưa ví dụ TLS vào tài liệu public, nên minh họa như thế nào để người học không copy giải pháp nguy hiểm?
+**Q15.** If a team wants to include a TLS example in public documentation, how should it illustrate it so learners don't copy dangerous shortcuts?
 
-**Đáp án:** Dùng **CA test được tin có chủ đích, hostname SAN đúng, trust manager chuẩn, endpoint identification bật**, và thêm negative tests. Mô tả trust-all/skip-hostname như anti-pattern, không cung cấp helper insecure dễ copy sang production.
+**Answer:** Use an **explicitly trusted test CA, proper SAN hostname, standard trust manager, and enabled endpoint identification**, plus negative tests. Describe trust-all/skip-hostname strictly as anti-patterns without providing copyable insecure helpers.
 
-## 17. Checklist trước khi merge/deploy mã JSSE
+## 17. Checklist before merging/deploying JSSE code
 
-- [ ] **Không** có trust manager bỏ qua kiểm chứng, trust-all SSLContext, certificate verifier “always accept”.
-- [ ] **Không** có `HostnameVerifier` luôn trả true, `NoopHostnameVerifier` hoặc tắt endpoint identification khi dùng HTTPS.
-- [ ] Không có retry insecure sau `SSLHandshakeException`; lỗi TLS phải fail closed.
-- [ ] Trusted CA certificates được chọn từ **nguồn đã xác minh**, phạm vi truststore đúng môi trường/client.
-- [ ] Server certificate có SAN **DNS/IP đúng type** và hostname thực tế từ URL/config; không dùng Subject CN/alias thay SAN.
-- [ ] Client cấp cao giữ hostname verification mặc định; raw `SSLSocket`/`SSLEngine` bật `"HTTPS"` endpoint identification khi giao thức yêu cầu.
-- [ ] Không thay `SSLContext.setDefault` toàn JVM bằng trust config bất cẩn.
-- [ ] Chain đầy đủ/intermediate được xử lý, certificate validity, KU/EKU, algorithm constraints và revocation policy được kiểm đúng.
-- [ ] Có test **đúng CA + đúng hostname ⇒ accept**.
-- [ ] Có test **sai CA + đúng hostname ⇒ reject**.
-- [ ] Có test **đúng CA + sai hostname/IP ⇒ reject**.
-- [ ] Dev/staging/production có CA, truststore và SAN/endpoint riêng theo chính sách; không dùng root dev rộng ở production.
-- [ ] HTTPS qua proxy/LB, redirect và mTLS vẫn xác minh đúng logical peer identity.
-- [ ] Không hard-code password/keystore production, không log private key/session keys/API tokens; có audit và certificate rotation.
-- [ ] CI hoặc code review phát hiện cấu hình insecure từ cả Java source, YAML/properties, system properties và thư viện HTTP đang dùng.
+- [ ] **No** check-skipping trust managers, trust-all SSLContexts, or "always accept" certificate verifiers.
+- [ ] **No** `HostnameVerifier` always returning true, `NoopHostnameVerifier`, or disabled endpoint identification for HTTPS.
+- [ ] No insecure retries after `SSLHandshakeException`; TLS errors must fail closed.
+- [ ] Trusted CA certificates are selected from **verified sources**, with truststore scope matching the environment/client.
+- [ ] Server certificates have the **right-type DNS/IP SAN** matching the actual hostname from URL/config; never use Subject CN/alias instead of SAN.
+- [ ] High-level clients preserve default hostname verification; raw `SSLSocket`/`SSLEngine` enable `"HTTPS"` endpoint identification when required by protocol.
+- [ ] Never mutate JVM-wide `SSLContext.setDefault` with careless trust configs.
+- [ ] Full chains/intermediates are handled, and certificate validity, KU/EKU, algorithm constraints, and revocation policies are properly enforced.
+- [ ] Includes test: **right CA + right hostname ⇒ accept**.
+- [ ] Includes test: **wrong CA + right hostname ⇒ reject**.
+- [ ] Includes test: **right CA + wrong hostname/IP ⇒ reject**.
+- [ ] Dev/staging/production maintain separate CAs, truststores, and SANs/endpoints per policy; never use broad dev roots in production.
+- [ ] HTTPS through proxies/LBs, redirects, and mTLS still verifies the exact logical peer identity.
+- [ ] Never hardcode production passwords/keystores or log private keys/session keys/API tokens; maintain auditing and certificate rotation.
+- [ ] CI or code reviews catch insecure configurations across Java source, YAML/properties, system properties, and active HTTP libraries.
 
-## 18. Kết luận
+## 18. Conclusion
 
-**Đừng biến lỗi TLS thành lý do bỏ xác thực.** Một HTTPS/JSSE client phải chứng minh **hai điều**: chain chứng thư hợp lệ với trust anchors **được chủ động tin**, và certificate leaf mô tả **đúng hostname/IP cần kết nối**. Trust-all bỏ lớp xác thực CA; skip-hostname bỏ lớp ràng buộc danh tính endpoint. Cả hai đều có thể để kẻ đứng giữa mạo danh peer dù lưu lượng vẫn được mã hóa.
+**Never turn a TLS error into an excuse to drop authentication.** An HTTPS/JSSE client must prove **two things**: a valid certificate chain to **explicitly trusted** trust anchors, and a leaf certificate describing the **exact hostname/IP to connect to**. Trust-all drops CA authentication; skipping hostname drops endpoint identity binding. Both allow a man-in-the-middle to impersonate the peer even while traffic remains encrypted.
 
-Ví dụ Java 17+ trong bài không dùng các shortcuts này: nó thiết lập trust manager chuẩn, bật `HTTPS` endpoint identification và **bắt buộc từ chối sai CA/sai hostname**, bên cạnh trường hợp đúng đi qua. Khi gặp lỗi thực tế, sửa nguồn certificate, CA, SAN, URL hoặc client configuration **đúng nguyên nhân**, không giảm mức xác minh để có một lần kết nối “thành công”.
+The Java 17+ example in this lesson avoids those shortcuts: it configures a standard trust manager, enables `HTTPS` endpoint identification, and **enforces rejection of wrong CAs and wrong hostnames** alongside passing valid cases. When facing real-world errors, fix the certificate source, CA, SAN, URL, or client configuration **at the root cause**—never lower verification just to get a "successful" connection.
 
-**Tài liệu tham khảo:** [Java 17 JSSE Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html), [RFC 5280 — PKIX Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280), [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525), [Java 17 keytool documentation](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html).
+**References:** [Java 17 JSSE Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html), [RFC 5280 — PKIX Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280), [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525), [Java 17 keytool documentation](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html).

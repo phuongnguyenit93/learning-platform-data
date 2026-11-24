@@ -1,24 +1,24 @@
-# 16.5 begin, end, commit, isEnabled và shouldCommit trong đường xử lý
+# 16.5 begin, end, commit, isEnabled, and shouldCommit on the Execution Path
 
-## Mục tiêu
+## Objectives
 
-Trong ứng dụng Java, tự định nghĩa sự kiện **Java Flight Recorder (JFR)** giúp gắn thời gian, trạng thái và một vài thuộc tính nghiệp vụ vào những đoạn xử lý cần quan sát. Tuy nhiên, đặt nhầm vị trí **begin()**, **end()** hoặc kiểm tra **shouldCommit()** sai thời điểm có thể tạo duration gây hiểu lầm; thu thập dữ liệu đắt tiền trước khi kiểm tra điều kiện ghi cũng làm tăng overhead.
+In a Java application, defining custom **Java Flight Recorder (JFR)** events attaches timing, state, and a few business attributes to code segments you need to observe. However, misplacing **begin()**, **end()**, or checking **shouldCommit()** at the wrong point can yield misleading durations; computing expensive data before checking recording eligibility also adds overhead.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt vai trò của **Event.begin()**, **Event.end()**, **Event.commit()**, **Event.isEnabled()** và **Event.shouldCommit()** trong vòng đời một custom event.
-2. Thiết kế đúng **ranh giới đo** quanh đoạn xử lý thật, kể cả khi có exception, interruption hoặc nhánh return sớm.
-3. Phân biệt kiểm tra **enabled** trước xử lý với kiểm tra **duration threshold** sau khi đo.
-4. Tránh tính toán field/stack/debug payload đắt tiền khi event không được lưu.
-5. Cấu hình event settings bằng **Recording.enable(...).withThreshold(...)**, rồi kiểm chứng file JFR bằng **jfr summary** và **jfr print**.
-6. Hiểu sự khác nhau giữa event **tức thời (instant)**, event **có thời lượng (duration)** và tính chất của nhiều recording đang chạy đồng thời.
+1. Distinguish the roles of **Event.begin()**, **Event.end()**, **Event.commit()**, **Event.isEnabled()**, and **Event.shouldCommit()** in a custom event's lifecycle.
+2. Design accurate **measurement boundaries** around real work, including with exceptions, interruptions, or early returns.
+3. Distinguish checking **enabled** before execution from checking the **duration threshold** after measurement.
+4. Avoid computing expensive fields, stacks, or debug payloads when an event will not be saved.
+5. Configure event settings with **Recording.enable(...).withThreshold(...)**, then verify the JFR file using **jfr summary** and **jfr print**.
+6. Understand the differences between **instant** events, **duration** events, and how multiple concurrent recordings behave.
 
-Bài sử dụng **jdk.jfr.Event** và các API có từ Java 9, kèm một chương trình **Java 17+** độc lập. Ví dụ kiểm chứng tham chiếu Java/JFR 21, không phụ thuộc vào Spring Boot hay trình giám sát bên ngoài.
+This lesson uses **jdk.jfr.Event** and APIs available since Java 9, along with a standalone **Java 17+** program. Verification examples reference Java/JFR 21 without relying on Spring Boot or external monitors.
 
-## 1. Đặt năm phương thức vào cùng một sơ đồ
+## 1. Putting All Five Methods in One Diagram
 
 ~~~text
-Có một đoạn xử lý cần quan sát
+A processing segment needs observation
              |
              v
      new CustomEvent()
@@ -30,42 +30,42 @@ Có một đoạn xử lý cần quan sát
        |          |
        |        begin()
        |          |
-       |       xử lý thực tế
+       |     actual processing
        |          |
-       |        end()          (nên đặt trong finally)
+       |        end()          (should be in finally)
        |          |
        |    shouldCommit() ?
        |       /       \
        |     false     true
        |       |         |
-       |       |    điền dữ liệu tốn chi phí
+       |       |    populate expensive data
        |       |         |
        |       |      commit()
        |       |         |
        +-------+---------+
              |
-          kết thúc
+            done
 ~~~
 
-Đây là sơ đồ tối ưu hóa **quan sát**; đường xử lý nghiệp vụ phải chạy dù JFR đang tắt. Không bao giờ đặt toàn bộ business logic vào nhánh isEnabled() rồi bỏ qua khi false.
+This diagram optimizes **observation**; the business execution path must run even when JFR is off. Never put the entire business logic inside the `isEnabled()` branch and skip it when false.
 
-| Phương thức | Ý nghĩa chính | Khi nào sử dụng |
+| Method | Primary meaning | When to use |
 | --- | --- | --- |
-| **begin()** | Đánh dấu thời điểm bắt đầu đo duration của instance | Ngay trước phạm vi công việc muốn đo |
-| **end()** | Đánh dấu kết thúc duration; phải được gọi sau begin | Sau công việc được đo, thường trong finally |
-| **commit()** | Gửi timestamp, duration và các field đến JFR theo effective settings | Sau khi field cần lưu đã sẵn sàng |
-| **isEnabled()** | True khi có ít nhất một recording đang chạy và event type được bật trong một recording | Kiểm tra sớm để tránh instrumentation tốn chi phí khi JFR tắt |
-| **shouldCommit()** | True khi event đang được bật và duration đáp ứng threshold áp dụng | Sau end, trước khi tạo dữ liệu field tốn chi phí và commit |
+| **begin()** | Marks the start timestamp for measuring the instance's duration | Immediately before the unit of work to measure |
+| **end()** | Marks the end of the duration; must be called after `begin()` | After the measured work, typically in `finally` |
+| **commit()** | Submits timestamp, duration, and fields to JFR per effective settings | Once required fields are ready |
+| **isEnabled()** | True when at least one recording is running and the event type is enabled in a recording | Check early to skip expensive instrumentation when JFR is off |
+| **shouldCommit()** | True when the event is enabled and duration meets the applicable threshold | After `end()`, before constructing expensive field data and calling `commit()` |
 
-**Lưu ý:** JFR tự quyết định một event có đủ điều kiện được ghi hay không khi gọi commit(). **shouldCommit() không phải lệnh bật/tắt event** và không thay thế commit(); nó là kiểm tra có ích để tránh làm những công việc chuẩn bị vốn sẽ bị bỏ đi.
+**Note:** JFR decides for itself whether an event qualifies to be recorded when `commit()` is called. **shouldCommit() is not a command to enable/disable the event** and does not replace `commit()`; it is a helpful guard to avoid preparation work that would otherwise be discarded.
 
-## 2. Vòng đời của một Event: object, đo thời gian và ghi dữ liệu
+## 2. Lifecycle of an Event: Object, Timing, and Recording
 
-### 2.1. Tạo instance không đồng nghĩa phát một event record
+### 2.1. Creating an instance does not emit an event record
 
-Một class kế thừa **jdk.jfr.Event** là định nghĩa event type. Tạo **new RequestEvent()** mới có một Java object dùng để chuẩn bị event; nó **chưa xuất hiện** trong bản ghi JFR chỉ vì được tạo.
+A class extending **jdk.jfr.Event** defines an event type. Calling **new RequestEvent()** merely creates a Java object for preparing an event; it **does not appear** in the JFR recording just from instantiation.
 
-Ví dụ tối giản, đây là đoạn mã nằm trong một phương thức có import thích hợp:
+Minimal example (a code snippet inside a method with appropriate imports):
 
 ~~~java
 RequestEvent event = new RequestEvent();
@@ -73,23 +73,23 @@ event.operation = "lookup";
 event.commit();
 ~~~
 
-Khi type được bật và threshold cho phép, **commit()** phát một **instant event** nếu không gọi begin(). Instant event có start/end time trùng nhau theo mô hình RecordedEvent; không thích hợp để suy thời lượng nghiệp vụ.
+When the type is enabled and threshold allows, **commit()** emits an **instant event** if `begin()` was not called. An instant event has identical start and end times in the `RecordedEvent` model; it is not suitable for inferring business processing duration.
 
-**Không cần gọi begin()/end() cho mọi event.** Nếu bạn chỉ muốn đánh dấu “cache refreshed”, “feature toggled” hoặc “job accepted”, một instant event có thể đúng nghĩa hơn.
+**You do not need `begin()`/`end()` for every event.** If you only want to mark "cache refreshed", "feature toggled", or "job accepted", an instant event can be more accurate semantically.
 
-### 2.2. begin() đánh dấu điểm bắt đầu đo
+### 2.2. begin() marks the start of measurement
 
 ~~~java
 RequestEvent event = new RequestEvent();
 event.begin();
-// Thực thi công việc được đo.
+// Execute the work being measured.
 ~~~
 
-Từ thời điểm này JFR có thể xác định duration khi có điểm kết thúc. Gọi begin() **sau** đoạn xử lý cần quan sát sẽ bỏ sót thời gian thực. Gọi quá sớm sẽ tính cả thời gian chờ, chuẩn bị dữ liệu hoặc setup không thuộc phạm vi định đo.
+From this point, JFR can determine duration once an end point is marked. Calling `begin()` **after** the observed segment misses real time. Calling it too early includes waiting, data preparation, or setup outside the intended scope.
 
-Ví dụ: nếu muốn đo riêng thao tác truy vấn database, đặt begin ngay trước lần gọi truy vấn; nếu muốn đo toàn bộ request từ lúc nhận đến lúc trả response, phạm vi begin/end phải bao gồm toàn bộ các bước đó. Cả hai đều hợp lệ nhưng có **nghĩa khác nhau**.
+For example, if you want to measure only a database query, put `begin()` right before the query call; if you want to measure the entire request from receipt to response, `begin`/`end` must wrap all those steps. Both are valid, yet have **different meanings**.
 
-### 2.3. end() chốt thời điểm kết thúc
+### 2.3. end() locks in the end timestamp
 
 ~~~java
 event.begin();
@@ -100,11 +100,11 @@ try {
 }
 ~~~
 
-**end() phải đến sau begin().** Đặt trong finally tránh bỏ quên khi method return sớm hoặc ném exception. Bắt exception để điền trạng thái là tùy yêu cầu, nhưng không nên nuốt exception chỉ vì đang ghi JFR.
+**end() must follow begin().** Placing it in `finally` avoids forgetting it on early returns or thrown exceptions. Catching exceptions to record status is optional based on requirements, but never swallow exceptions just because you are recording JFR.
 
-Có thể gọi **commit()** sau begin() mà không gọi end(); theo API, **commit() sẽ tự kết thúc duration** trong trường hợp đó. Tuy nhiên, nếu còn phải tính thông tin bổ sung sau công việc, **end() tường minh** giữ ranh giới đo chính xác và cho phép gọi shouldCommit() dựa trên duration đã hoàn tất.
+You can call **commit()** after `begin()` without calling `end()`; per the API, **commit() will close the duration automatically** in that case. However, if you still need to compute extra information after the work finishes, an **explicit end()** keeps the measurement boundary exact and lets you call `shouldCommit()` based on the completed duration.
 
-### 2.4. commit() gửi dữ liệu của event
+### 2.4. commit() submits the event's data
 
 ~~~java
 event.begin();
@@ -117,17 +117,17 @@ try {
 }
 ~~~
 
-**commit()** ghi **các field đã điền, timestamp và duration** theo settings. Khi event type bị tắt hoặc duration dưới threshold, event không có record tương ứng dù code có gọi commit(). Đây là hành vi lọc thông thường, không phải lỗi.
+**commit()** records **the populated fields, timestamp, and duration** according to settings. When the event type is disabled or the duration is below threshold, no record is written even though the code called `commit()`. This is normal filtering behavior, not a bug.
 
-Thực hành tốt: mỗi operation có một instance Event và một commit có chủ đích. Đừng dùng chung một instance Event được mutate đồng thời giữa nhiều request/thread; dữ liệu có thể chồng chéo và ranh giới thời gian trở nên khó giải thích. Với luồng xử lý async, dùng correlation ID ở field sự kiện và xác định rõ đơn vị công việc muốn đo.
+Best practice: each operation gets its own `Event` instance and one intentional `commit()`. Do not share a single `Event` instance mutated concurrently across requests or threads; data will overlap and timing boundaries will become nonsensical. For async flows, use a correlation ID in an event field and clearly define the unit of work being measured.
 
-## 3. isEnabled(): kiểm tra nhanh trước khi làm việc tốn chi phí
+## 3. isEnabled(): Fast Check Before Expensive Work
 
-**Event.isEnabled()** trả true khi **ít nhất một recording đang RUNNING** và setting **enabled=true** cho event type tương ứng. False có thể do không có recording, event bị tắt theo configuration hoặc chưa bắt đầu thu thập.
+**Event.isEnabled()** returns true when **at least one recording is RUNNING** and **enabled=true** for that event type. False can result from no active recording, the event being disabled in configuration, or collection not having started yet.
 
-Điều quan trọng: **isEnabled() không kiểm tra duration threshold** và **không bảo đảm instance sẽ xuất hiện trong file**. Một event 1 ms có thể isEnabled()=true nhưng không được ghi khi threshold=20 ms.
+Crucially: **isEnabled() does not check the duration threshold** and **does not guarantee the instance will appear in the file**. A 1 ms event can have `isEnabled()=true` yet not be recorded when `threshold=20 ms`.
 
-Cách dùng:
+Usage pattern:
 
 ~~~java
 StepEvent event = new StepEvent();
@@ -138,7 +138,7 @@ if (tracing) {
 }
 
 try {
-    businessLogic(); // Luôn chạy dù tracing=false.
+    businessLogic(); // Always runs even when tracing=false.
 } finally {
     if (tracing) {
         event.end();
@@ -147,37 +147,37 @@ try {
 }
 ~~~
 
-*Đây là fragment minh họa; StepEvent và businessLogic() phải được định nghĩa trong class ứng dụng.* Đoạn này hợp lý khi chỉ cần ghi duration và vài field rẻ, nhưng commit() sẽ tự bỏ event không đạt threshold. Nếu cần tạo thông điệp tốn chi phí, nên thêm shouldCommit() như phần tiếp theo.
+*This is an illustrative fragment; `StepEvent` and `businessLogic()` must be defined in the application class.* This works well when only duration and cheap fields are recorded, since `commit()` automatically drops events below threshold. If you need to build costly messages, add `shouldCommit()` as shown next.
 
-### Tại sao không nên chỉ viết điều kiện bao quanh business logic?
+### Why should you never wrap business logic directly in the guard?
 
-**Đoạn sai về nghiệp vụ:**
+**Business-incorrect snippet:**
 
 ~~~java
 StepEvent event = new StepEvent();
 if (event.isEnabled()) {
     event.begin();
-    businessLogic(); // Khi JFR tắt, nghiệp vụ không chạy.
+    businessLogic(); // When JFR is off, business logic does not run.
     event.commit();
 }
 ~~~
 
-Nghiệp vụ phải **độc lập với bật/tắt JFR**. Bật recording để quan sát không được phép làm thay đổi việc xử lý request. Tách logic xử lý ra khỏi instrumentation, hoặc dùng một nhánh guard chỉ để quyết định có bắt đầu đo hay không.
+Business logic must be **independent of whether JFR is on or off**. Enabling a recording to observe behavior must never change how requests are processed. Keep processing logic outside instrumentation, or use a guard solely to decide whether to begin measurement.
 
-### isEnabled() có phải điều kiện ổn định trong cả operation?
+### Is isEnabled() invariant throughout the operation?
 
-Không. Recording có thể bắt đầu/dừng hoặc settings thay đổi khi operation đang chạy. Kiểm tra lúc đầu chỉ là **tối ưu hóa tại một thời điểm**. JFR có thể áp dụng settings tại lúc ghi; đừng cam kết “isEnabled() true thì chắc chắn file có event”. Khi cần phân tích sau sự cố, xem bản ghi thực tế và thời điểm recording.
+No. A recording can start/stop or settings can change while the operation is running. Checking at the start is only a **point-in-time optimization**. JFR can apply settings at write time; never promise "because `isEnabled()` was true, the file is guaranteed to contain the event". When investigating an incident, inspect the actual recording and its timeframe.
 
-## 4. shouldCommit(): kiểm tra duration threshold sau khi end
+## 4. shouldCommit(): Checking Duration Threshold After end()
 
-Theo API Java 21, **shouldCommit()** trả true nếu event được bật và duration đáp ứng threshold áp dụng. Threshold là **thời lượng tối thiểu**, nên:
+Per the Java 21 API, **shouldCommit()** returns true if the event is enabled and its duration satisfies the active threshold. The threshold is a **minimum duration**, so:
 
-- **duration dưới threshold**: event không được ghi.
-- **duration đủ threshold**: event *có thể* được ghi, nếu event type còn enabled và recording/settings cho phép.
-- **threshold = 0**: không lọc dựa trên thời lượng.
-- **isEnabled() = true** không kéo theo shouldCommit() = true.
+- **duration below threshold**: event is not recorded.
+- **duration meets threshold**: event *may* be recorded, if the event type is still enabled and recording/settings allow.
+- **threshold = 0**: no duration-based filtering.
+- **isEnabled() = true** does not imply `shouldCommit() = true`.
 
-Cách dùng thông thường:
+Typical pattern:
 
 ~~~java
 event.begin();
@@ -192,45 +192,45 @@ try {
 }
 ~~~
 
-*Fragment minh họa; processRequest() và buildExpensiveDescription() là phương thức do ứng dụng định nghĩa.*
+*Illustrative fragment; `processRequest()` and `buildExpensiveDescription()` are application-defined methods.*
 
-**Vì sao gọi sau end?** Lúc này duration cuối đã được xác định. Nếu dùng shouldCommit() ở đầu operation, bạn không thể dùng kết quả đó để quyết định đúng về ngưỡng thời lượng của **công việc chưa xảy ra**. Đầu operation phù hợp với isEnabled(); cuối operation phù hợp với shouldCommit().
+**Why call after end()?** At that point the final duration is fixed. Calling `shouldCommit()` at the start of the operation cannot make a valid threshold decision about **work that has not happened yet**. Start of operation suits `isEnabled()`; end of operation suits `shouldCommit()`.
 
-**Vì sao điền field đắt tiền sau shouldCommit?** Nếu duration bị lọc, bạn không phải tạo chuỗi lớn, serialize object, format stack trace, gọi database bổ sung hay đọc thêm các dữ liệu chỉ phục vụ telemetry. Với field rất rẻ như status code đã có, điền trước cũng được.
+**Why populate expensive fields after shouldCommit()?** If the duration is filtered out, you avoid building large strings, serializing objects, formatting stack traces, making extra DB queries, or reading telemetry-only data. For ultra-cheap fields like an already-available status code, setting them earlier is fine.
 
-**Cần tránh tác dụng phụ:** buildExpensiveDescription() chỉ nên chuẩn bị dữ liệu quan sát; không đặt thao tác có side effect nghiệp vụ, cập nhật database hoặc quyết định trả response trong nhánh shouldCommit(). Thời điểm recording bật/tắt sẽ khiến nhánh đó chạy khác nhau.
+**Avoid side effects:** `buildExpensiveDescription()` should only prepare observational data; never put business side effects, database updates, or response-shaping decisions inside the `shouldCommit()` branch. Turning recording on or off would alter execution behavior.
 
-### Threshold trong nhiều recording đồng thời
+### Thresholds across multiple concurrent recordings
 
-Nếu recording A và B cùng bật một event type với threshold khác nhau, tài liệu API cho biết **shouldCommit() xét ngưỡng nhỏ nhất trong các recording đang chạy**.
+If recordings A and B both enable the same event type with different thresholds, the API docs state that **shouldCommit() considers the smallest threshold among active recordings**.
 
-Ví dụ minh họa:
+Illustrative example:
 
 | Recording | Event enabled | Threshold |
 | --- | --- | --- |
-| A | Có | 10 ms |
-| B | Có | 100 ms |
+| A | Yes | 10 ms |
+| B | Yes | 100 ms |
 
-Một operation 50 ms có thể **shouldCommit()=true** vì đáp ứng ngưỡng 10 ms của A, dù chưa đáp ứng ngưỡng của B. **Không hiểu true là event đã xuất hiện trong tất cả file recording**. Mỗi recording có settings và kết quả lọc riêng. Bật/tắt settings, buffer/loss và thời gian dump còn ảnh hưởng việc quan sát sau đó.
+A 50 ms operation can have **shouldCommit()=true** because it satisfies A's 10 ms threshold, even though it does not meet B's threshold. **Do not interpret true as meaning the event appeared in every recording file**. Each recording has its own settings and filtering results. Settings toggling, buffers/drops, and dump timing also affect what is later observed.
 
-### shouldCommit() không phải điều kiện bắt buộc để commit đúng
+### shouldCommit() is not required for correct commit behavior
 
-Bạn có thể gọi:
+You can write:
 
 ~~~java
 event.begin();
 try {
     doWork();
 } finally {
-    event.commit(); // Tự end nếu chưa gọi end, và tự áp dụng settings.
+    event.commit(); // Automatically ends if end() was not called, and applies settings.
 }
 ~~~
 
-*Đây là fragment minh họa.* Hợp lệ nếu không cần xem duration trước và không có bước tạo payload đắt tiền cần tránh. Tuy nhiên, phạm vi duration sẽ bao gồm mọi công việc diễn ra cho đến commit(); nếu bên trong finally có cleanup, log hoặc serialization trước commit thì chúng cũng nằm trong khoảng đo.
+*This is an illustrative fragment.* It is valid when you do not need to inspect duration beforehand and have no expensive payload construction to skip. However, the duration span will include everything executed up to `commit()`; if `finally` performs cleanup, logging, or serialization before `commit()`, those are included in the measured interval.
 
-## 5. Cấu hình event: enabled, threshold và stack trace
+## 5. Configuring Events: Enabled, Threshold, and Stack Trace
 
-Với **jdk.jfr.Recording**, có thể cấu hình từng custom event:
+With **jdk.jfr.Recording**, you can configure each custom event:
 
 ~~~java
 try (Recording recording = new Recording()) {
@@ -239,37 +239,37 @@ try (Recording recording = new Recording()) {
             .withStackTrace();
 
     recording.start();
-    // Chạy workflow phát các StepEvent.
+    // Run the workflow that emits StepEvents.
     recording.stop();
     recording.dump(Path.of("workflow.jfr"));
 }
 ~~~
 
-*Fragment minh họa cần định nghĩa StepEvent và import Recording, Duration, Path.* Những điều cần hiểu:
+*Illustrative fragment requiring a `StepEvent` definition and imports for `Recording`, `Duration`, and `Path`.* Key points:
 
-- **enable(StepEvent.class)**: bật event type này cho recording. Không mặc nhiên bật mọi event type.
-- **withThreshold(25 ms)**: chỉ những instance đủ duration mới phù hợp ngưỡng này. Có thể dùng **withoutThreshold()** hoặc duration 0 cho instant event.
-- **withStackTrace()**: yêu cầu ghi stack trace khi event được commit và JFR có dữ liệu; stack nằm ở nơi commit và không phải toàn bộ lịch sử call graph của request.
-- **recording.start()**: bắt đầu thu thập. Nếu chạy business logic trước start, isEnabled() không thể thay mặt một recording chưa chạy.
-- **recording.stop()** và **dump(Path)**: kết thúc và xuất dữ liệu. Với Recording dùng disk repository mặc định, dump sau stop là hợp lệ nếu recording chưa đóng.
+- **enable(StepEvent.class)**: enables this event type for the recording. Does not implicitly enable all event types.
+- **withThreshold(25 ms)**: only instances meeting this duration pass this threshold. Use **withoutThreshold()** or duration 0 for instant events.
+- **withStackTrace()**: requests capturing a stack trace when the event is committed and JFR data is available; the stack is captured at the `commit()` call site, not the entire call graph history of the request.
+- **recording.start()**: starts collection. If business logic runs before start, `isEnabled()` cannot act on behalf of an unstarted recording.
+- **recording.stop()** and **dump(Path)**: finish and export data. With a Recording using the default disk repository, dumping after stop is valid as long as the recording is not closed.
 
-Ngoài Recording API, có thể đặt annotation trên event class như **@Enabled(false)**, **@Threshold("20 ms")**, **@StackTrace(false)** để xác định mặc định. Settings của recording có thể điều chỉnh hành vi thu thập thực tế; đừng dựa riêng annotation để suy kết quả nếu có nhiều recording.
+In addition to the Recording API, you can place annotations on the event class such as **@Enabled(false)**, **@Threshold("20 ms")**, and **@StackTrace(false)** to set defaults. Recording settings can override actual collection behavior; do not rely solely on annotations to predict results when multiple recordings exist.
 
-**Khác nhau giữa các loại cấu hình:**
+**Differences across configuration types:**
 
-| Loại | Có tác dụng gì? | Có nên kiểm chứng lúc nào? |
+| Type | What does it control? | When to verify? |
 | --- | --- | --- |
-| @Enabled / enabled setting | Event type có được ghi không | Trước/đang recording |
-| @Threshold / threshold setting | Thời lượng ngắn hơn ngưỡng bị lọc | Sau khi event kết thúc |
-| @StackTrace / stackTrace setting | Có tạo stack snapshot ở commit không | Khi xem event trong file |
-| @Category, @Label, @Description | Metadata giúp hiểu type/field | Khi đọc metadata, không phải bộ lọc nghiệp vụ tự động |
-| Thu thập file JFR | File được dump đúng khoảng thời gian không | Khi phân tích recording thực tế |
+| @Enabled / enabled setting | Whether the event type is recorded | Before/during recording |
+| @Threshold / threshold setting | Durations shorter than the threshold are filtered out | After the event finishes |
+| @StackTrace / stackTrace setting | Whether a stack snapshot is taken at commit | When inspecting events in the file |
+| @Category, @Label, @Description | Metadata aiding comprehension of types/fields | When reading metadata; not automatic business filters |
+| JFR file collection | Whether the file was dumped for the right time window | When analyzing the actual recording |
 
-Các JDK và phiên bản Flight Recorder có thể hỗ trợ setting mở rộng; phần này tập trung vào những setting chuẩn liên quan trực tiếp đến năm phương thức.
+Different JDKs and Flight Recorder versions may support extended settings; this section focuses on the standard settings directly tied to the five methods.
 
-## 6. Mẫu đúng trong request/service: try, catch, finally
+## 6. Correct Pattern in Requests/Services: try, catch, finally
 
-Giả sử cần đo một operation xử lý đơn hàng. Khi ứng dụng ném exception, event vẫn phải kết thúc; trạng thái lỗi chỉ là một **field ghi nhận**, không được làm thay đổi luồng ném exception.
+Suppose you need to measure an order-processing operation. When the application throws an exception, the event must still end; the error status is merely a **recorded field**, and must never alter exception propagation.
 
 ~~~java
 StepEvent event = new StepEvent();
@@ -296,34 +296,34 @@ try {
 }
 ~~~
 
-*Fragment này cần đặt trong method có kiểu trả về phù hợp và có định nghĩa StepEvent, processOrder, orderId.*
+*This fragment must be placed inside a method with a matching return type and definitions for `StepEvent`, `processOrder`, and `orderId`.*
 
-Vì sao có các bước:
+Why each step exists:
 
-1. **isEnabled()** kiểm tra sớm, để có thể bỏ phần đo JFR khi không có recording phù hợp.
-2. **begin()** nằm ngay trước toàn bộ operation.
-3. **try** luôn thực hiện nghiệp vụ.
-4. **catch** ghi trạng thái rồi **throw lại** lỗi; không cố biến lỗi nghiệp vụ thành success.
-5. **finally** gọi **end()** cả khi return lẫn exception.
-6. **shouldCommit()** dùng duration đã chốt để quyết định có đáng tạo field hoặc commit hay không.
-7. **commit()** chỉ làm sau khi field được gán đầy đủ.
+1. **isEnabled()** checks early so JFR timing can be skipped when no relevant recording is active.
+2. **begin()** sits right before the whole operation.
+3. **try** always executes the business logic.
+4. **catch** records the outcome and **rethrows** the error; never turn a business failure into success.
+5. **finally** calls **end()** on both normal returns and exceptions.
+6. **shouldCommit()** uses the finalized duration to decide whether to build fields and commit.
+7. **commit()** runs only after fields are populated.
 
-Đối với **InterruptedException**, nên khôi phục interrupt flag khi ứng dụng chủ động bắt exception để xử lý, rồi tiếp tục tuân theo hợp đồng hủy tác vụ; có thể đánh dấu outcome **interrupted**. Không nên nuốt interrupt để hoàn tất ghi event. Chương trình chạy được dưới đây thực hiện cả nhánh này.
+For **InterruptedException**, restore the interrupt flag when the application explicitly catches the exception to handle it, and continue honoring the cancellation contract; you can mark the outcome as **interrupted**. Never swallow an interrupt just to finish recording an event. The runnable program below includes this branch as well.
 
-**Chọn ranh giới cleanup có chủ đích:** Nếu cleanup là một phần latency muốn quan sát, hãy gọi end sau cleanup. Nếu chỉ muốn đo business computation mà không tính telemetry, gọi end trước xử lý field/logging phục vụ JFR. Phạm vi được đo phải rõ trong tên event và phần mô tả.
+**Choose cleanup boundaries intentionally:** If cleanup is part of the latency you want to observe, call `end()` after cleanup. If you only want to measure business computation without telemetry overhead, call `end()` before JFR field preparation/logging. The measured scope must be clear in the event name and description.
 
-## 7. Chương trình Java 17+ độc lập: instant marker, fast step, slow step và failed step
+## 7. Standalone Java 17+ Program: Instant Marker, Fast Step, Slow Step, and Failed Step
 
-Ví dụ đầy đủ sau cho thấy:
+The following complete example demonstrates:
 
-- **WorkflowMarker**: event tức thời chỉ gọi commit().
-- **StepTiming**: event có duration đo bằng begin()/end().
-- **isEnabled()** bảo đảm công việc vẫn thực thi khi JFR bị tắt.
-- **shouldCommit()** lọc việc tạo field theo threshold 25 ms.
-- **finally** đóng khoảng đo cả khi xử lý thất bại.
-- **Recording** xuất file **step-events.jfr** để đọc lại bằng CLI.
+- **WorkflowMarker**: instant event calling only `commit()`.
+- **StepTiming**: duration event measured with `begin()`/`end()`.
+- **isEnabled()** ensuring work still runs when JFR is disabled.
+- **shouldCommit()** filtering field creation using a 25 ms threshold.
+- **finally** closing the measurement interval even when processing fails.
+- **Recording** exporting **step-events.jfr** to read back via the CLI.
 
-Tạo file **JfrEventLifecycleDemo.java**:
+Create **JfrEventLifecycleDemo.java**:
 
 ~~~java
 import java.nio.file.Path;
@@ -435,14 +435,14 @@ public final class JfrEventLifecycleDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng **JDK 17+**:
+Compile and run with **JDK 17+**:
 
 ~~~bash
 javac --add-modules jdk.jfr JfrEventLifecycleDemo.java
 java --add-modules jdk.jfr JfrEventLifecycleDemo
 ~~~
 
-Đầu ra **stdout do chương trình tự in**, khi chương trình hoàn tất bình thường và thư mục cho phép ghi:
+**Stdout printed by the program itself** when it completes normally in a writable directory:
 
 ~~~text
 FAST
@@ -451,9 +451,9 @@ Handled: simulated failure
 Created step-events.jfr
 ~~~
 
-Không có sự phụ thuộc vào PID, số thread, timezone hoặc thời lượng thực tế trong stdout trên. Tập event ghi vào file có thể khác nhau tùy scheduling/JIT/VM. Điều chắc chắn về nghiệp vụ là nhánh fast và slow trả kết quả, nhánh failed ném exception nhưng được main xử lý.
+There is no dependency on PID, thread count, timezone, or actual runtime duration in the stdout above. The exact set of events written to the file may vary depending on scheduling, JIT, or VM activity. What is guaranteed functionally is that the `fast` and `slow` branches return results, and the `failed` branch throws an exception handled by `main`.
 
-### Đọc kết quả JFR
+### Reading JFR output
 
 ~~~bash
 jfr summary step-events.jfr
@@ -461,22 +461,22 @@ jfr metadata --events demo.StepTiming,demo.WorkflowMarker step-events.jfr
 jfr print --events demo.StepTiming,demo.WorkflowMarker step-events.jfr
 ~~~
 
-Kỳ vọng trong môi trường HotSpot thông thường:
+Expected in a typical HotSpot environment:
 
-- **demo.WorkflowMarker** có một instant event action=workflow-start, vì threshold được bỏ và recording chạy.
-- **demo.StepTiming** thường ghi **slow** và **failed** vì hai lệnh sleep(80 ms) vượt ngưỡng 25 ms.
-- **fast** thường bị lọc vì duration rất ngắn. Tuy nhiên **không khẳng định chắc Count=2**: thread có thể bị scheduler tạm dừng hoặc các bước JIT/class-loading khiến cả fast cũng vượt 25 ms; recording có thể có những bất thường về thu thập. Dùng dữ liệu thật từ jfr summary/print để kiểm chứng.
-- **failed** vẫn có outcome=error khi được ghi, chứng minh finally chạy dù exception xảy ra.
+- **demo.WorkflowMarker** has one instant event with `action=workflow-start`, because the threshold was removed and the recording was running.
+- **demo.StepTiming** typically records **slow** and **failed** because both `sleep(80 ms)` calls exceed the 25 ms threshold.
+- **fast** is usually filtered out due to its very short duration. However, **never assume Count=2 unconditionally**: the thread could be preempted by the scheduler or JIT/class-loading could push `fast` past 25 ms, or collection anomalies could occur. Always verify using actual output from `jfr summary`/`print`.
+- **failed** still carries `outcome=error` when recorded, proving `finally` ran despite the exception.
 
-Thời điểm, thread, duration và stack frames sẽ khác theo lần chạy. **jfr summary** cho Count theo type; **jfr print** mới cho các giá trị field từng instance. Một bản ghi không có event thuộc type nào đó không nhất thiết có nghĩa operation không xảy ra: có thể bị lọc bởi setting/threshold hoặc recording không bao phủ khoảng cần đo.
+Timestamps, threads, durations, and stack frames vary across runs. **jfr summary** shows `Count` per type; **jfr print** reveals individual field values. A recording lacking events of a certain type does not necessarily mean the operation never ran: it may have been filtered by settings/threshold or the recording may not have covered the right interval.
 
-### Điều gì xảy ra nếu tắt recording?
+### What happens if the recording is turned off?
 
-Trong ví dụ, nếu JFR không có recording đang chạy, isEnabled() sẽ false và business logic vẫn phải chạy. Bạn có thể tách runStep() ra để chạy trong ứng dụng không tạo Recording; phương thức **không phụ thuộc kết quả nghiệp vụ vào trạng thái JFR**.
+In the example, if JFR has no active recording, `isEnabled()` is false and business logic still runs. You can extract `runStep()` into an application that never creates a `Recording`; the method **does not couple its business outcome to JFR state**.
 
-### Điều gì xảy ra nếu bỏ shouldCommit()?
+### What happens if you omit shouldCommit()?
 
-Thay nhánh cuối thành:
+Replacing the final branch with:
 
 ~~~java
 event.end();
@@ -485,62 +485,62 @@ event.outcome = outcome;
 event.commit();
 ~~~
 
-JFR vẫn áp dụng threshold khi commit. Với field rẻ như hai chuỗi tham chiếu đã có, chênh lệch overhead có thể nhỏ. Với payload đắt tiền, thiếu shouldCommit() sẽ phí công chuẩn bị cho các events bị bỏ. Thứ tự **end → shouldCommit → build fields → commit** bảo vệ chi phí trong trường hợp thường gặp.
+JFR still enforces the threshold inside `commit()`. For cheap fields like two existing string references, the overhead difference may be tiny. For expensive payloads, omitting `shouldCommit()` wastes work preparing discarded events. The order **end → shouldCommit → build fields → commit** protects against overhead in the common case.
 
-## 8. Chọn pattern theo mục đích
+## 8. Choosing a Pattern by Goal
 
-| Mục đích | Pattern đề xuất | Điều kiện cần chú ý |
+| Goal | Recommended pattern | Conditions to watch |
 | --- | --- | --- |
-| Dấu mốc ngay tại một thời điểm | Điền fields → commit() | Không cần begin/end; kiểm tra event type enabled nếu payload đắt |
-| Đo độ dài của đoạn đồng bộ | begin → try work → finally end → commit | Thiết kế rõ điểm bắt đầu/kết thúc |
-| Đo duration và lọc bước ngắn | isEnabled → begin → work → end → shouldCommit → fields → commit | Đừng dùng shouldCommit trước khi có final duration |
-| Theo dõi exception | begin → try/catch ghi outcome → finally end/commit | Rethrow lỗi, không bỏ commit vì return/throw sớm |
-| Span xử lý bất đồng bộ | Một event per logical operation, đo từ lúc bắt đầu đến khi callback hoàn thành nếu đó là phạm vi cần đo | Dùng correlation ID, ownership rõ ràng; không mutate cùng instance đồng thời |
-| Recording chờ được bật động | isEnabled guard trong đường nóng | Guard là quyết định tại một thời điểm, có thể thay đổi theo recording |
-| Trường telemetry tốn chi phí | shouldCommit sau end rồi mới tính field | Tránh side effect nghiệp vụ trong nhánh telemetry |
+| Point-in-time milestone | Populate fields → `commit()` | No `begin`/`end` needed; check `isEnabled()` if payload is expensive |
+| Measure duration of a synchronous block | `begin` → `try` work → `finally` `end` → `commit` | Define start/end boundaries clearly |
+| Measure duration and filter short steps | `isEnabled` → `begin` → work → `end` → `shouldCommit` → fields → `commit` | Do not call `shouldCommit()` before final duration is known |
+| Track exceptions | `begin` → `try`/`catch` record outcome → `finally` `end`/`commit` | Rethrow errors; do not drop commits on early return/throw |
+| Async processing span | One event per logical operation, measuring from start until callback completion if that is the target scope | Use correlation ID and clear ownership; never mutate the same instance concurrently |
+| Recording enabled dynamically | `isEnabled` guard on hot path | Guard is a point-in-time decision and can change mid-recording |
+| Expensive telemetry fields | `shouldCommit` after `end`, then compute fields | Avoid business side effects inside telemetry branch |
 
-**Không nhầm duration với CPU time.** Một event có 500 ms duration vì chờ khóa, chờ socket hoặc Thread.sleep vẫn chỉ đo **elapsed time**. Nếu cần CPU time, allocation hoặc lock contention, nên thu thêm event chuẩn thích hợp (ExecutionSample, ThreadPark, JavaMonitorEnter, File/Socket I/O) và tương quan timestamps.
+**Do not confuse duration with CPU time.** An event with a 500 ms duration caused by waiting on a lock, socket, or `Thread.sleep` still measures only **elapsed time**. If you need CPU time, allocations, or lock contention, also collect the appropriate standard events (`ExecutionSample`, `ThreadPark`, `JavaMonitorEnter`, File/Socket I/O) and correlate timestamps.
 
-## 9. Hiểu overhead và tránh ghi quá nhiều dữ liệu
+## 9. Understanding Overhead and Avoiding Excessive Data
 
-JFR được thiết kế cho quan sát hiệu quả, nhưng **custom event vẫn có chi phí**. Tần suất event, stack recording, số lượng field, công việc tạo payload và phạm vi retention của recording đều ảnh hưởng đến CPU, bộ nhớ và kích thước file.
+JFR is designed for efficient observation, yet **custom events still carry cost**. Event frequency, stack capture, field count, payload construction, and recording retention all affect CPU, memory, and file size.
 
-Một số thực hành tốt:
+Good practices:
 
-1. Chỉ phát event ở **điểm có ý nghĩa**: request hoàn tất, batch xử lý, truy vấn chậm, retry đáng chú ý. Tránh phát ở mỗi vòng lặp hạt nhỏ khi không có nhu cầu.
-2. Dùng **threshold** để ưu tiên operation chậm, nhưng biết rằng sample đã bị lọc không thể phục hồi từ file sau đó.
-3. Đặt **isEnabled()** trước logic chỉ dành cho instrumentation; đặt **shouldCommit()** sau duration để tránh serialize, format string hoặc chụp dữ liệu đắt tiền không cần.
-4. **Không đưa toàn bộ HTTP body, thông tin xác thực, token, SQL params nhạy cảm hoặc đối tượng lớn vào event**. Dùng status, số lượng, loại operation, correlation ID không nhạy cảm và các trường nhỏ.
-5. JFR Event fields được hỗ trợ trực tiếp là **primitive, String, Thread, Class**. Các reference field như Map, List, Throwable, mảng hoặc enum không trở thành payload tuỳ ý trong recording theo cơ chế mặc định; chúng có thể bị JFR bỏ qua khi tạo event type. Chuyển thông tin thành trường nhỏ có kiểu được hỗ trợ.
-6. Tránh tạo **stack trace thủ công** trong code chỉ để điền String khi JFR có thể thu stack tại commit bằng setting phù hợp.
-7. Không xem event như cơ chế audit transaction bắt buộc hoặc message queue bảo đảm giao nhận; recording có chính sách lưu trữ và có thể bị tắt, lọc, hết dung lượng hoặc chỉ được dump sau khi sự cố đã qua.
-8. Giới hạn maxAge/maxSize và áp dụng chính sách bảo vệ file khi dùng recording lâu; JFR có thể chứa class, method, thread, path và thông tin nghiệp vụ nhạy cảm.
+1. Emit events only at **meaningful points**: completed requests, batch runs, slow queries, notable retries. Avoid emitting inside tight loops unnecessarily.
+2. Use **thresholds** to focus on slow operations, understanding that filtered samples cannot be recovered from the file later.
+3. Place **isEnabled()** before instrumentation-only logic; place **shouldCommit()** after duration measurement to avoid unneeded serialization, string formatting, or heavy snapshots.
+4. **Never put full HTTP bodies, credentials, tokens, sensitive SQL parameters, or large objects into events**. Use status, counts, operation type, non-sensitive correlation IDs, and compact fields.
+5. Directly supported JFR `Event` fields are **primitives, `String`, `Thread`, and `Class`**. Reference fields such as `Map`, `List`, `Throwable`, arrays, or enums do not become arbitrary payloads in the recording by default; JFR may ignore them when constructing the event type. Convert information into small fields of supported types.
+6. Avoid manually capturing **stack traces** in Java code just to populate a `String` when JFR can capture commit-time stacks via appropriate settings.
+7. Never treat events as a mandatory transaction audit mechanism or a guaranteed-delivery message queue; recordings have retention policies and can be disabled, filtered, overrun, or dumped after an incident has passed.
+8. Bound `maxAge`/`maxSize` and apply file access policies for long-lived recordings; JFR files can contain class, method, thread, path, and sensitive business details.
 
-### Khi nào dùng isEnabled() mà không dùng shouldCommit()?
+### When to use isEnabled() without shouldCommit()?
 
-Với event instant hoặc threshold=0, isEnabled() có thể đủ cho phần guard. Nếu field luôn rất rẻ, gọi commit() trực tiếp cũng hợp lệ. Nhưng trong đoạn xử lý có threshold >0 và payload phải format đáng kể, nên dùng cả hai: **isEnabled sớm, shouldCommit muộn**.
+For instant events or `threshold=0`, `isEnabled()` can be sufficient as a guard. If fields are always trivial, calling `commit()` directly is also valid. However, in paths with `threshold > 0` and nontrivial payload formatting, use both: **isEnabled early, shouldCommit late**.
 
-### Khi nào không nên bắt đầu event quá sớm?
+### When should you avoid starting an event too early?
 
-Nếu begin() chạy trước khi request được đưa vào queue, duration đo cả **queue wait + execution**. Nếu mục tiêu là **execution time**, begin() phải nằm ở worker lúc thực sự bắt đầu xử lý. Nếu muốn đo end-to-end latency, bao gồm queue wait lại là chủ ý đúng. Đặt tên event và mô tả để người đọc không nhầm hai loại thời gian.
+If `begin()` runs before a request is enqueued, duration measures **queue wait + execution**. If the goal is **execution time**, `begin()` must be inside the worker when processing actually begins. If you want end-to-end latency, including queue wait is intentional. Name and describe the event so readers do not confuse the two timings.
 
-## 10. Chẩn đoán khi custom event “biến mất”
+## 10. Diagnosing When Custom Events "Disappear"
 
-Khi đã gọi commit() mà file không có type/instance mong đợi, kiểm tra theo thứ tự:
+When `commit()` was called yet the expected type/instance is missing from the file, check in order:
 
-1. **Đúng JVM/file/period chưa?** Recording phải chạy lúc operation diễn ra; file phải được dump từ recording đó.
-2. **Event type có enabled trong ít nhất một recording đang chạy không?** Kiểm tra cấu hình và isEnabled() tại điểm chạy; tên event có thể khác tên class nếu dùng @Name.
-3. **Threshold có loại event không?** Một 2 ms operation không xuất hiện với threshold 25 ms là bình thường. Đừng xóa threshold trong production chỉ để nhìn thấy dữ liệu mà không cân nhắc overhead.
-4. **Event có được commit() trên đường thực tế không?** Return/exception có thể bỏ qua nếu không đặt trong finally.
-5. **begin/end có bao lấy công việc không?** Commit instant hoặc kết thúc quá sớm tạo duration gần zero và bị threshold loại.
-6. **shouldCommit() có được gọi sau end không?** Gọi trước khi công việc kết thúc có thể dẫn đến quyết định lọc sai hoặc khiến bạn hiểu sai cơ chế.
-7. **Có nhiều recording với thresholds khác nhau không?** shouldCommit() dựa trên ngưỡng tối thiểu từ những recording đang chạy; không có nghĩa mọi file đều có instance.
-8. **File JFR đã stop/dump đủ dữ liệu và đọc đúng event type chưa?** Dùng **jfr summary**, **jfr metadata** và **jfr print --events**.
-9. **Có dữ liệu bị giới hạn/lost, recording rotation hoặc khác biệt JDK không?** Đừng dùng sự vắng mặt của event như bằng chứng duy nhất về hành vi ứng dụng.
+1. **Right JVM/file/time window?** The recording must have been running when the operation executed, and the file must be dumped from that recording.
+2. **Was the event type enabled in at least one active recording?** Check configuration and `isEnabled()` at runtime; the event name may differ from the class name if `@Name` is used.
+3. **Did the threshold filter out the event?** A 2 ms operation not appearing under a 25 ms threshold is expected. Do not remove thresholds in production just to see data without assessing overhead.
+4. **Did `commit()` actually run on the executed path?** Early returns or exceptions can skip it if not in `finally`.
+5. **Did `begin`/`end` wrap the work?** An instant commit or ending too early yields near-zero duration that gets dropped by thresholds.
+6. **Was `shouldCommit()` called after `end()`?** Calling it before work finishes can yield wrong filtering decisions or mislead your understanding.
+7. **Are multiple recordings active with different thresholds?** `shouldCommit()` evaluates the lowest threshold among active recordings; that does not mean every file gets the instance.
+8. **Was the JFR file stopped/dumped completely and queried with the right event type?** Check with **jfr summary**, **jfr metadata**, and **jfr print --events**.
+9. **Were events dropped/rotated due to limits, or were there JDK differences?** Never use the absence of an event as sole proof of application behavior.
 
-### Ba mẫu lỗi thường gặp
+### Three common mistake patterns
 
-**Lỗi A — đo sai phạm vi**
+**Mistake A — wrong measurement scope**
 
 ~~~java
 doBusinessWork();
@@ -549,20 +549,20 @@ event.end();
 event.commit();
 ~~~
 
-Duration gần zero và không phản ánh doBusinessWork(). Đặt begin trước phần cần đo và end sau phần cần đo.
+Duration is near zero and does not reflect `doBusinessWork()`. Place `begin` before the work to measure and `end` after it.
 
-**Lỗi B — mất event khi xử lý lỗi**
+**Mistake B — losing events on error paths**
 
 ~~~java
 event.begin();
-doBusinessWork(); // Nếu throw, hai lệnh sau không chạy.
+doBusinessWork(); // If this throws, the next two statements do not run.
 event.end();
 event.commit();
 ~~~
 
-Dùng finally để đóng event; catch nếu cần ghi outcome. Vẫn bảo toàn exception.
+Use `finally` to close the event; `catch` if you need to record an outcome. Still preserve the exception.
 
-**Lỗi C — tính payload tốn chi phí dù event không đạt threshold**
+**Mistake C — computing expensive payloads even when the event fails threshold**
 
 ~~~java
 event.end();
@@ -572,32 +572,32 @@ if (event.shouldCommit()) {
 }
 ~~~
 
-Đặt shouldCommit() **trước expensiveSerialize()**. Nhưng nếu expensiveSerialize() là việc nghiệp vụ cần chạy bất kể JFR, không được chuyển nó vào nhánh điều kiện; tách dữ liệu nghiệp vụ và telemetry.
+Place `shouldCommit()` **before `expensiveSerialize()`**. However, if `expensiveSerialize()` is business work that must run regardless of JFR, do not move it inside the conditional branch; separate business data from telemetry.
 
-## 11. Bài tập phân tích trước–sau
+## 11. Before–After Analysis Exercises
 
-### Bài 1. Tại sao nên gọi end() trước buildDetails()?
+### Exercise 1. Why call end() before buildDetails()?
 
-Một request chạy 12 ms, buildDetails() chạy 80 ms, threshold 50 ms.
+A request runs in 12 ms, `buildDetails()` takes 80 ms, and the threshold is 50 ms.
 
-- Nếu gọi **commit() sau buildDetails()** mà chưa end(), duration có thể bao gồm cả 80 ms của telemetry và event trông như một request chậm.
-- Nếu **end() ngay sau business work**, duration phản ánh 12 ms; **shouldCommit()** loại event theo ngưỡng 50 ms, tránh chạy buildDetails().
+- If you call **commit() after buildDetails()** without `end()`, the duration can include the 80 ms of telemetry work and make the event look like a slow request.
+- If you call **end() right after business work**, the duration reflects 12 ms; **shouldCommit()** filters out the event against the 50 ms threshold and skips `buildDetails()`.
 
-Đó là lý do ranh giới đo và thứ tự kiểm tra phải do mục tiêu phân tích quyết định.
+That is why measurement boundaries and check ordering must match the analytical goal.
 
-### Bài 2. Hai recordings, một event
+### Exercise 2. Two recordings, one event
 
-Recording A bật event threshold=20 ms; B bật cùng event threshold=200 ms. Operation mất 75 ms.
+Recording A enables the event with `threshold=20 ms`; B enables the same event with `threshold=200 ms`. The operation takes 75 ms.
 
-**Kết luận:** isEnabled() có thể true; shouldCommit() có thể true do ngưỡng nhỏ nhất là 20 ms. Sự kiện phù hợp ngưỡng của A, chưa phù hợp ngưỡng của B. Không được kỳ vọng cả hai file chứa record của operation này.
+**Conclusion:** `isEnabled()` can be true; `shouldCommit()` can be true because the minimum threshold is 20 ms. The event meets A's threshold, not B's. Do not expect both files to contain a record for this operation.
 
-### Bài 3. Event type enabled nhưng method không chạy
+### Exercise 3. Event type enabled, but method never ran
 
-Ứng dụng chỉ gọi operation khi có request, recording bật nhưng không có request nào trong khoảng thu. Summary không thấy event. Có lỗi JFR không?
+The application invokes the operation only on incoming requests; the recording is running, yet no requests arrive during the capture window. Summary shows no events. Is this a JFR bug?
 
-**Kết luận:** không thể kết luận là lỗi. Không có instance vì điểm instrumented không được chạy; cần đối chiếu traffic, invocation và recording interval.
+**Conclusion:** Not a bug. No instances appear because the instrumented code path did not execute; cross-check traffic, invocations, and the recording interval.
 
-### Bài 4. Code có return trong try
+### Exercise 4. Code with return inside try
 
 ~~~java
 event.begin();
@@ -614,29 +614,29 @@ try {
 }
 ~~~
 
-**Kết luận:** finally vẫn thực thi khi return bình thường; event kết thúc và được commit nếu settings/threshold cho phép. Để biết cache hit hay miss, bổ sung field hợp lệ trước commit.
+**Conclusion:** `finally` still executes on normal returns; the event ends and is committed if settings/threshold allow. To distinguish cache hit vs. miss, populate a valid field before `commit()`.
 
-### Bài 5. Có 500 ms duration trong JFR, suy CPU cao được không?
+### Exercise 5. 500 ms duration in JFR—can we conclude high CPU?
 
-**Kết luận:** chưa đủ. 500 ms là elapsed duration theo begin/end. Có thể là chờ I/O, lock, sleep, scheduling hoặc CPU. Cần correlation với CPU samples, lock/park và I/O events để xác định nguyên nhân.
+**Conclusion:** Not enough evidence. 500 ms is elapsed duration between `begin`/`end`. It could be I/O wait, lock contention, sleep, scheduling, or CPU. Correlate with CPU samples, lock/park events, and I/O events to identify the cause.
 
-## 12. Checklist dùng trong code review
+## 12. Code Review Checklist
 
-- **Event class** có tên và category dễ tra cứu? Field chỉ chứa kiểu được hỗ trợ, ngắn gọn, không rò thông tin nhạy cảm?
-- **Business logic** luôn chạy dù JFR tắt? Không đặt side effect nghiệp vụ sau điều kiện shouldCommit?
-- **begin/end** bao đúng đoạn cần đo? Có try/finally bảo đảm end trên return/throw?
-- **commit** được gọi với field đã điền? Nếu không cần duration, instant commit có phù hợp hơn không?
-- **isEnabled** đặt sớm cho instrumentation tốn chi phí? **shouldCommit** đặt sau end trước bước tạo payload đắt tiền?
-- **Settings** có xác định threshold, enabled và stackTrace rõ ràng? Có cân nhắc nhiều recording đang chạy?
-- **Java exceptions/interruption** được giữ đúng hợp đồng, outcome được ghi mà không nuốt lỗi?
-- **QA thực tế** có chạy jfr summary/print để xác nhận instances, field, duration và filtering, đồng thời ghi rõ khoảng recording?
+- **Event class**: Does it have an easily searchable name and category? Do fields use only supported types, stay concise, and avoid leaking sensitive data?
+- **Business logic**: Does it always run even when JFR is disabled? Are there zero business side effects gated behind `shouldCommit`?
+- **begin/end**: Do they wrap the exact segment to measure? Is `end()` guaranteed via `try`/`finally` on return and throw?
+- **commit**: Is it called with fields populated? If duration is unneeded, is an instant commit more appropriate?
+- **isEnabled** placed early for costly instrumentation? **shouldCommit** placed after `end` before expensive payload construction?
+- **Settings**: Are threshold, enabled, and stackTrace defined clearly? Were multiple active recordings considered?
+- **Java exceptions/interruption**: Are contracts preserved and outcomes recorded without swallowing errors?
+- **Practical QA**: Did you run `jfr summary`/`print` to confirm instances, fields, durations, and filtering, while noting the recording window?
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle JDK 21 — jdk.jfr.Event API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Event.html): begin, end, commit, isEnabled, shouldCommit và kiểu field hỗ trợ.
-- [Oracle JDK 21 — jdk.jfr.EventSettings API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html): enabled, threshold, stack trace và settings.
-- [Oracle JDK 21 — jdk.jfr.Recording API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html): enable, start, stop, dump và vòng đời recording.
-- [Oracle JDK 21 — jdk.jfr.Threshold annotation](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Threshold.html): mặc định threshold theo event type.
-- [Oracle JDK 21 — jdk.jfr.consumer.RecordedEvent API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedEvent.html): duration, startTime, endTime, thread và stack khi đọc lại.
-- [Oracle JDK 21 — JFR package và predefined settings](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html): enabled, threshold, stackTrace semantics.
-- [Oracle JDK 21 — jfr Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): summary, metadata và print trên file .jfr.
+- [Oracle JDK 21 — `jdk.jfr.Event` API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Event.html): `begin`, `end`, `commit`, `isEnabled`, `shouldCommit`, and supported field types.
+- [Oracle JDK 21 — `jdk.jfr.EventSettings` API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html): `enabled`, `threshold`, `stackTrace`, and settings.
+- [Oracle JDK 21 — `jdk.jfr.Recording` API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html): `enable`, `start`, `stop`, `dump`, and recording lifecycle.
+- [Oracle JDK 21 — `jdk.jfr.Threshold` annotation](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Threshold.html): default threshold per event type.
+- [Oracle JDK 21 — `jdk.jfr.consumer.RecordedEvent` API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedEvent.html): `duration`, `startTime`, `endTime`, `thread`, and stack when reading back.
+- [Oracle JDK 21 — JFR package and predefined settings](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html): `enabled`, `threshold`, `stackTrace` semantics.
+- [Oracle JDK 21 — `jfr` Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): `summary`, `metadata`, and `print` on `.jfr` files.

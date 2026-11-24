@@ -1,65 +1,65 @@
-# 7.4. PBKDF2 qua `SecretKeyFactory` và `PBEKeySpec` trong Java 21
+# 7.4. PBKDF2 via `SecretKeyFactory` and `PBEKeySpec` in Java 21
 
-**PBKDF2** (*Password-Based Key Derivation Function 2*) biến một mật khẩu do người dùng chọn thành chuỗi byte dẫn xuất bằng cách kết hợp **salt**, **số vòng lặp** (*iteration count*) và một hàm giả ngẫu nhiên (*PRF*, thường là HMAC). Trong Java 21, có thể sử dụng PBKDF2-HMAC-SHA256 qua API chuẩn `SecretKeyFactory` và `PBEKeySpec` của JCA/JCE, không cần thêm dependency cho ví dụ cơ bản.
+**PBKDF2** (*Password-Based Key Derivation Function 2*) turns a user-chosen password into derived bytes by combining a **salt**, an **iteration count**, and a pseudorandom function (**PRF**, typically HMAC). In Java 21, you can use PBKDF2-HMAC-SHA256 through the standard JCA/JCE `SecretKeyFactory` and `PBEKeySpec` APIs, without extra dependencies for basic examples.
 
-Đây là chủ đề thuộc **“7. Mật khẩu và dẫn xuất khóa”** trong module Java Advanced – Security & Cryptography. Trọng tâm là hiểu đúng các tham số, dùng API Java để dẫn xuất/kiểm tra mật khẩu, lưu bản ghi có thể xác minh về sau, chọn chi phí phù hợp, và nhận ra các giới hạn bảo mật của PBKDF2.
+This topic belongs to **“7. Passwords and Key Derivation”** in the Java Advanced – Security & Cryptography module. The focus is on understanding the parameters properly, using Java APIs to derive/verify passwords, storing verifiable records for later checks, choosing appropriate costs, and recognizing the security limits of PBKDF2.
 
-## Mục tiêu
+## Objectives
 
-Sau khi học xong, bạn có thể:
+After completing this lesson, you will be able to:
 
-1. Giải thích `PBKDF2(P, S, c, dkLen)`, vai trò của **password**, **salt**, **iterations**, **PRF** và **derived-key length**.
-2. Phân biệt **hash mật khẩu để xác minh đăng nhập** với **dẫn xuất khóa cho mã hóa**, và phân biệt salt với pepper.
-3. Dùng `new PBEKeySpec(char[], byte[], int, int)` và `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` để tạo byte dẫn xuất.
-4. Xây dựng bản ghi có phiên bản/thuật toán/cost/salt/hash, xác minh bằng cách dẫn xuất lại và so sánh an toàn.
-5. Kiểm tra ví dụ Java 21 có kết quả chính xác, xử lý bộ nhớ chứa mật khẩu, tránh salt yếu và chọn tham số có cơ sở.
-6. Giải thích khi nào PBKDF2 là lựa chọn phù hợp, khi nào cần cân nhắc Argon2id, và cách nâng cấp tham số mà không làm mất tài khoản.
+1. Explain `PBKDF2(P, S, c, dkLen)` and the roles of **password**, **salt**, **iterations**, **PRF**, and **derived-key length**.
+2. Distinguish **password hashing for login verification** from **key derivation for encryption**, and distinguish salt from pepper.
+3. Use `new PBEKeySpec(char[], byte[], int, int)` and `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` to generate derived bytes.
+4. Build a record containing version/algorithm/cost/salt/hash, and verify by re-deriving and comparing safely.
+5. Verify Java 21 examples with accurate results, handle password memory carefully, avoid weak salts, and choose parameters on a sound basis.
+6. Explain when PBKDF2 is an appropriate choice, when Argon2id should be considered, and how to upgrade parameters without locking out accounts.
 
-## 1. Vấn đề PBKDF2 giải quyết
+## 1. The problem PBKDF2 solves
 
-Một mật khẩu như `"my-password"` thường có entropy thấp hơn rất nhiều so với khóa ngẫu nhiên 256 bit. **Không nên** lưu mật khẩu bản rõ, không lưu bản mã có thể giải mã để đăng nhập, và không lưu trực tiếp `SHA-256(password)` như một password verifier: SHA-256 tính rất nhanh nên kẻ tấn công có bản sao database có thể thử rất nhiều ứng viên.
+A password such as `"my-password"` usually has far less entropy than a random 256-bit key. **Never** store plaintext passwords, never store decryptable ciphertexts for login, and never store raw `SHA-256(password)` as a password verifier: SHA-256 computes so fast that an attacker with a copy of the database can test vast numbers of candidates.
 
-PBKDF2 tăng chi phí thử một mật khẩu bằng cách lặp lại PRF nhiều lần. Với cùng password và **cùng** salt/iterations/PRF/key length, kết quả là **xác định**; với salt khác, kết quả gần như chắc chắn khác.
+PBKDF2 increases the cost of testing a single password by repeating a PRF many times. Given the same password and the **same** salt/iterations/PRF/key length, the output is **deterministic**; given a different salt, the output is almost certainly different.
 
 ```text
 Password (P) --\
                 +--> PBKDF2(PRF, iterations=c) --> Derived key (DK)
 Random salt (S)-/                         |
-                                         \--> lưu/verifier hoặc dùng làm key material
+                                         \--> store/verifier or use as key material
 ```
 
-**PBKDF2 không tự “mã hóa mật khẩu”.** Đó là hàm dẫn xuất khóa; khi áp dụng để xác minh đăng nhập, ứng dụng lưu **giá trị dẫn xuất** và tham số, không lưu password. Người đăng nhập gửi mật khẩu ứng viên; server tính lại PBKDF2 với salt/cost được lưu rồi so sánh.
+**PBKDF2 does not “encrypt passwords.”** It is a key derivation function; when applied to login verification, the application stores the **derived value** and parameters, not the password. The user logging in submits a candidate password; the server recomputes PBKDF2 using the stored salt/cost and compares.
 
-**Mật khẩu vẫn có thể bị đoán ngoại tuyến** nếu database hash bị lộ; PBKDF2 làm việc đoán tốn CPU hơn, nhưng không thay thế mật khẩu mạnh, MFA, kiểm soát truy cập, giám sát xâm nhập, giới hạn thử đăng nhập hoặc chống rò rỉ bí mật.
+**Passwords can still be guessed offline** if the hash database leaks; PBKDF2 makes guessing more CPU-expensive, but does not replace strong passwords, MFA, access controls, intrusion monitoring, login attempt limits, or secret-leak prevention.
 
-## 2. Năm thành phần đầu vào và đầu ra
+## 2. Five inputs and the output
 
-Ký hiệu chuẩn:
+Standard notation:
 
 ```text
 DK = PBKDF2(P, S, c, dkLen; PRF)
 ```
 
-| Thành phần | Ý nghĩa | Ví dụ trong bài |
+| Component | Meaning | Example in this lesson |
 | --- | --- | --- |
-| `P` | Password, dữ liệu bí mật người dùng biết. Với Java, API nhận `char[]`; quy tắc chuyển ký tự thành byte cần thống nhất khi liên thông hệ thống. | `char[] password` |
-| `S` | Salt: byte ngẫu nhiên **riêng cho từng bản ghi**, không cần giữ bí mật. | `byte[16]` = 128 bit từ `SecureRandom` |
-| `c` | Số lần lặp PBKDF2, **số nguyên dương**; tăng c làm mỗi lần đoán tốn thời gian hơn. | `600_000` vòng cho ví dụ lưu mật khẩu |
-| `dkLen` | Độ dài đầu ra, **tính bằng byte trong công thức PBKDF2**. | 32 byte |
-| `PRF` | Hàm giả ngẫu nhiên, thường là `HMAC-SHA256` hoặc `HMAC-SHA512`. | `HMAC-SHA256` |
-| `DK` | Byte dẫn xuất có độ dài đã chọn. | `byte[32]` |
+| `P` | Password, the secret known by the user. In Java, the API accepts `char[]`; character-to-byte conversion rules must align across systems. | `char[] password` |
+| `S` | Salt: random bytes **unique per record**, does not need to be secret. | `byte[16]` = 128 bits from `SecureRandom` |
+| `c` | PBKDF2 iteration count, a **positive integer**; raising `c` makes every guess take longer. | `600_000` rounds in the password-storage example |
+| `dkLen` | Output length, **measured in bytes in the PBKDF2 formula**. | 32 bytes |
+| `PRF` | Pseudorandom function, typically `HMAC-SHA256` or `HMAC-SHA512`. | `HMAC-SHA256` |
+| `DK` | Derived bytes of the chosen length. | `byte[32]` |
 
-**Chi tiết rất dễ nhầm:** tham số `keyLength` trong constructor Java `PBEKeySpec(password, salt, iterationCount, keyLength)` có đơn vị **bit**, không phải byte. Muốn đầu ra 32 byte cần truyền **256**, chứ không phải 32.
+**A very easy mistake:** the `keyLength` parameter in Java's `PBEKeySpec(password, salt, iterationCount, keyLength)` constructor is in **bits**, not bytes. To get a 32-byte output, pass **256**, not 32.
 
-Salt dài 16 byte được chọn mới cho **mỗi lần tạo hash/mỗi tài khoản** là lựa chọn thông dụng. Có thể lưu salt công khai cạnh hash; không cần “mã hóa salt” để tăng bảo mật. Salt giúp chống bảng tính trước và khiến hai người dùng cùng mật khẩu không có cùng bản ghi hash. Salt **không phải khóa bí mật** và không tự chặn thử mật khẩu yếu.
+A 16-byte salt freshly chosen for **every hash creation / every account** is a common choice. Salts can be stored publicly alongside the hash; there is no need to “encrypt the salt” for extra security. Salts defeat precomputed tables and ensure two users with the same password do not share the same hash record. A salt is **not a secret key** and does not by itself block guessing weak passwords.
 
-**Pepper** khác salt: pepper là bí mật cấp ứng dụng, thường lưu tách database (KMS/HSM hoặc secret manager). Pepper có thể bổ sung phòng vệ nhưng phải có kế hoạch rotate, mất khóa và khôi phục; pepper không thay được salt hay work factor.
+**Pepper** differs from salt: a pepper is an application-level secret usually stored separately from the database (KMS/HSM or secret manager). A pepper can add defense in depth, but requires a rotation, key-loss, and recovery plan; pepper cannot replace salt or work factor.
 
-## 3. PBKDF2 vận hành thế nào?
+## 3. How does PBKDF2 work?
 
-Với `PBKDF2WithHmacSHA256`, PRF là HMAC-SHA256 có output 32 byte. PBKDF2 tính các khối đầu ra bằng chuỗi PRF lặp lại và phép XOR.
+With `PBKDF2WithHmacSHA256`, the PRF is HMAC-SHA256 with a 32-byte output. PBKDF2 computes output blocks via repeated PRF chains and XOR operations.
 
-Ở khối thứ `i` (đánh số từ 1), diễn đạt từ RFC 8018:
+For the `i`-th block (1-indexed), as specified in RFC 8018:
 
 ```text
 U_1 = PRF(P, S || INT_32_BE(i))
@@ -69,24 +69,24 @@ U_3 = PRF(P, U_2)
 U_c = PRF(P, U_(c-1))
 
 T_i = U_1 XOR U_2 XOR ... XOR U_c
-DK  = (T_1 || T_2 || ... ) lấy đúng dkLen byte
+DK  = (T_1 || T_2 || ... ) truncated to dkLen bytes
 ```
 
-Trong đó `INT_32_BE(i)` là số khối biểu diễn bằng 4 byte big-endian; `||` là phép nối. Nếu cần 32 byte từ HMAC-SHA256, chỉ cần một khối; nếu cần 64 byte, sẽ có hai khối. Thời gian tính gần tỷ lệ với số vòng lặp và số khối đầu ra.
+Here `INT_32_BE(i)` is the block index encoded as a 4-byte big-endian integer; `||` denotes concatenation. Requesting 32 bytes from HMAC-SHA256 requires only one block; requesting 64 bytes requires two blocks. Computation time scales roughly linearly with iteration count and number of output blocks.
 
-Một số tính chất quan trọng:
+Several important properties:
 
-- Cùng `P, S, c, dkLen, PRF` phải cho cùng `DK` khi cách chuyển password thành byte giống nhau.
-- Tăng `c` không làm mật khẩu tự có thêm entropy; mục đích là làm **mỗi lần thử** tốn thời gian hơn.
-- Salt mới không làm password mạnh hơn, nhưng ngăn việc tái sử dụng kết quả dò tìm tiền tính cho mọi tài khoản.
-- Sinh `DK` dài 256 bit không biến một mật khẩu có vài bit entropy thành khóa ngẫu nhiên có 256 bit entropy.
-- PBKDF2 chủ yếu tốn CPU, **không memory-hard** như Argon2id; do đó không phải lựa chọn ưu tiên mặc định cho mọi hệ thống mật khẩu mới.
+- Identical `P, S, c, dkLen, PRF` must yield identical `DK` when password-to-byte conversion is identical.
+- Raising `c` does not give the password more entropy; the goal is to make **each attempt** take more time.
+- A fresh salt does not make a password stronger, but prevents reusing precomputed lookup results across all accounts.
+- Generating a 256-bit `DK` does not turn a password with a few bits of entropy into a random key with 256 bits of entropy.
+- PBKDF2 is primarily CPU-bound and **not memory-hard** like Argon2id; therefore it is not the default top preference for every new password system.
 
-Thông thường **không tự triển khai** vòng lặp `U_i`/XOR trong ứng dụng Java. Dùng implementation JCA/JCE đã được kiểm thử, rồi tập trung thiết kế salt, cost, storage, so sánh và quản trị vòng đời.
+Normally, **never implement** the `U_i`/XOR loop yourself in a Java application. Use the tested JCA/JCE implementation and focus on salt, cost, storage, comparison, and lifecycle management.
 
-## 4. API Java 21: `SecretKeyFactory` + `PBEKeySpec`
+## 4. Java 21 API: `SecretKeyFactory` + `PBEKeySpec`
 
-Các import chính:
+Primary imports:
 
 ```java
 import javax.crypto.SecretKeyFactory;
@@ -94,10 +94,10 @@ import javax.crypto.spec.PBEKeySpec;
 import java.security.SecureRandom;
 ```
 
-Luồng API cơ bản:
+Basic API flow:
 
 ```java
-char[] password = /* mật khẩu lấy từ input an toàn */;
+char[] password = /* password obtained from secure input */;
 byte[] salt = new byte[16];
 new SecureRandom().nextBytes(salt);
 
@@ -106,31 +106,31 @@ try {
     SecretKeyFactory factory =
             SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
     byte[] derived = factory.generateSecret(spec).getEncoded();
-    // Dùng derived theo mục đích đã định; không log và xóa khi xong.
+    // Use derived for its intended purpose; do not log and clear when done.
 } finally {
     spec.clearPassword();
-    // Caller còn trách nhiệm xử lý/xóa mảng password của chính mình.
+    // The caller remains responsible for handling/clearing its own password array.
 }
 ```
 
-**Đây là đoạn mã minh họa**, không phải file Java chạy độc lập: biến `password` phải lấy từ input thật và byte `derived` cần được quản lý trong scope thích hợp. Phần 5 và 6 có chương trình độc lập, biên dịch được.
+**This is an illustrative snippet**, not a standalone runnable Java file: the `password` variable must come from real input and the `derived` bytes must be managed within an appropriate scope. Sections 5 and 6 provide complete, compilable programs.
 
-Các thành phần:
+Components:
 
-- `PBEKeySpec` là đối tượng mô tả **password, salt, iteration count, key length**. Constructor kiểm tra salt không null/rỗng, count và key length dương; đối tượng **clone** password và salt để lưu nội bộ.
-- `clearPassword()` xóa **bản sao password trong PBEKeySpec**, không xóa bản gốc do caller giữ. Khi không còn cần, caller phải `Arrays.fill(password, '\0')` trong `finally`. `getPassword()` trả bản sao; không nên gọi chỉ để kiểm tra hoặc log.
-- `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` chọn implementation từ **security provider** có hỗ trợ tên thuật toán này. Tên này thuộc Java Security Standard Algorithm Names; SunJCE trong JDK 21 cung cấp implementation. Không phải mọi provider bên ngoài đều bắt buộc hỗ trợ.
-- `generateSecret(spec)` tạo `SecretKey`. Với provider hỗ trợ xuất key material, `getEncoded()` trả mảng byte của khóa dẫn xuất (đối với demo PBKDF2). Provider có thể từ chối xuất khóa và trả `null`; code sản phẩm nên xử lý trường hợp đó.
-- `getEncoded()` là byte nhạy cảm: không chuyển sang `String` để log, không trả về API response, và chỉ giữ trong RAM trong thời gian cần thiết.
-- `NoSuchAlgorithmException` chỉ ra provider/runtime không cung cấp thuật toán; `InvalidKeySpecException` hoặc lỗi tham số liên quan mật khẩu/salt/cost cần được xử lý như lỗi cấu hình/triển khai, không đánh đồng với việc “user nhập sai password”.
+- `PBEKeySpec` describes **password, salt, iteration count, and key length**. Its constructor checks that salt is non-null/non-empty and count/key length are positive; it **clones** the password and salt internally.
+- `clearPassword()` clears **the copy inside `PBEKeySpec`**, not the original array held by the caller. When no longer needed, the caller must call `Arrays.fill(password, '\0')` in a `finally` block. `getPassword()` returns a copy; avoid calling it just to inspect or log.
+- `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` selects an implementation from a **security provider** supporting this algorithm name. This name is in Java Security Standard Algorithm Names; SunJCE in JDK 21 supplies an implementation. Not every third-party provider is required to support it.
+- `generateSecret(spec)` produces a `SecretKey`. With providers that support exporting key material, `getEncoded()` returns the derived key bytes (as in the PBKDF2 demo). A provider may refuse export and return `null`; production code should handle that case.
+- `getEncoded()` contains sensitive bytes: do not convert it to a `String` for logging, do not return it in an API response, and keep it in RAM only as long as necessary.
+- `NoSuchAlgorithmException` indicates the provider/runtime lacks the algorithm; `InvalidKeySpecException` or parameter errors on password/salt/cost should be handled as configuration/implementation errors rather than equated with “user entered the wrong password.”
 
-**Chú ý Unicode và tính tương thích:** Javadoc của `PBEKeySpec` lưu ý các cơ chế password-based có thể sử dụng số bit khác nhau của ký tự; tài liệu provider còn có giới hạn riêng. Khi cần so khớp hash giữa Java, Node.js, Python hoặc giữa các provider, phải quy định rõ encoding/normalization và kiểm thử với mật khẩu **có dấu, emoji, ký tự kết hợp**; đừng mặc định hai nơi cùng truyền `"mật khẩu"` sẽ ra cùng byte đầu vào. Ví dụ deterministic ở phần tiếp theo dùng ASCII để không tạo giả định Unicode.
+**Unicode and compatibility note:** `PBEKeySpec` Javadoc notes that password-based mechanisms may use varying numbers of bits per character; provider docs also list specific limits. When matching hashes across Java, Node.js, Python, or different providers, explicitly define encoding/normalization and test with passwords containing **diacritics, emojis, and combining characters**; never assume two runtimes passed `"mật khẩu"` yield identical input bytes. The deterministic test-vector example below uses ASCII to avoid Unicode assumptions.
 
-## 5. Thí nghiệm kiểm chứng: test vector PBKDF2-HMAC-SHA256
+## 5. Verification experiment: PBKDF2-HMAC-SHA256 test vectors
 
-Ví dụ đầu tiên sử dụng password ASCII `password`, salt ASCII `salt`, output 256 bit và chỉ **1 hoặc 2 lần lặp** để tạo vector có thể kiểm tra từng byte. Chi phí này chỉ dành cho **kiểm thử chức năng**; tuyệt đối không sử dụng 1–2 iterations để lưu password người dùng.
+The first example uses ASCII password `password`, ASCII salt `salt`, 256-bit output, and only **1 or 2 iterations** to produce byte-verifiable test vectors. This low cost is strictly for **functional testing**; never use 1–2 iterations to store user passwords.
 
-Tạo file **`Pbkdf2Vector.java`**:
+Create **`Pbkdf2Vector.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -164,7 +164,7 @@ public final class Pbkdf2Vector {
 }
 ```
 
-Trong terminal đã dùng JDK 21 (hoặc compiler mới hơn hỗ trợ `--release 21`):
+In a terminal using JDK 21 (or a newer compiler supporting `--release 21`):
 
 ```text
 javac -version
@@ -172,33 +172,33 @@ javac --release 21 -encoding UTF-8 Pbkdf2Vector.java
 java Pbkdf2Vector
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 1: 120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b
 2: ae4d0c95af6b46d32d0adff928f06dd02a303f8ef3c251dfd6e2d85a95474c43
 ```
 
-Bạn nên tự giải thích:
+You should be able to explain:
 
-- Đầu vào chỉ khác **`iterations`**, nên output khác.
-- Mỗi kết quả hexadecimal dài 64 ký tự = 32 byte = 256 bit.
-- `HexFormat` dùng để **hiển thị kết quả thử nghiệm**; không có tác dụng làm PBKDF2 mạnh hơn.
-- Code chỉ là vector chức năng; với mật khẩu thực, salt phải dài/ngẫu nhiên riêng cho từng bản ghi và count phải đủ lớn.
+- Only **`iterations`** differs between inputs, so the outputs differ.
+- Each hexadecimal result is 64 characters = 32 bytes = 256 bits.
+- `HexFormat` is used to **display test results**; it does nothing to make PBKDF2 stronger.
+- This code is strictly a functional vector; for real passwords, salts must be long/random per record and iteration counts must be sufficiently high.
 
-## 6. Ví dụ lưu và xác minh mật khẩu hoàn chỉnh
+## 6. Complete password storage and verification example
 
-Mục tiêu: một API đăng ký tạo salt ngẫu nhiên và record lưu trữ; lúc đăng nhập, server đọc record rồi PBKDF2 lại mật khẩu ứng viên. Không có phép giải mã password.
+Goal: a registration API generates a random salt and storage record; at login, the server reads the record and re-runs PBKDF2 on the candidate password. No password decryption exists.
 
-Định dạng bản ghi sử dụng trong ví dụ:
+Record format used in the example:
 
 ```text
 pbkdf2-sha256:600000:<salt-base64url>:<hash-base64url>
 ```
 
-Trong đó `pbkdf2-sha256` xác định thuật toán, `600000` là work factor được dùng khi tạo, `salt` là 16 byte ngẫu nhiên mã hóa Base64URL và `hash` là 32 byte dẫn xuất mã hóa Base64URL. Ký tự `:` chỉ là delimiter do **ứng dụng này tự định nghĩa**, không phải format tiêu chuẩn chung cho mọi thư viện Java. Base64 dùng để lưu byte vào trường văn bản, **không phải mã hóa bí mật**.
+Here `pbkdf2-sha256` identifies the algorithm, `600000` is the work factor used at creation, `salt` is 16 random bytes Base64URL-encoded, and `hash` is 32 derived bytes Base64URL-encoded. The `:` character is solely a delimiter **defined by this sample application**, not a universal format across all Java libraries. Base64 encodes bytes into text fields; it is **not secret encryption**.
 
-Tạo file **`PasswordHashDemo.java`**:
+Create **`PasswordHashDemo.java`**:
 
 ```java
 import java.security.GeneralSecurityException;
@@ -286,7 +286,7 @@ public final class PasswordHashDemo {
     }
 
     public static void main(String[] args) throws Exception {
-        // Chuỗi literal chỉ để demo; password thực lấy từ input an toàn.
+        // String literals are for demo only; real passwords come from secure input.
         char[] registration = "correct horse battery staple".toCharArray();
         char[] correct = "correct horse battery staple".toCharArray();
         char[] wrong = "wrong password".toCharArray();
@@ -304,14 +304,14 @@ public final class PasswordHashDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```text
 javac --release 21 -encoding UTF-8 PasswordHashDemo.java
 java PasswordHashDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 format: true
@@ -319,128 +319,128 @@ correct: true
 wrong: false
 ```
 
-Chương trình **không in record**, do salt ngẫu nhiên nên chuỗi record khác nhau giữa các lần chạy. Hai lần dẫn xuất trong `verify` dùng lại **đúng salt và cost đã lưu**, vì vậy mật khẩu đúng được chấp nhận. Mật khẩu sai dẫn tới byte khác và trả `false`.
+The program **does not print the record**; because the salt is random, the record string differs on every run. The derivations inside `verify` reuse **the exact stored salt and cost**, so the right password is accepted. The wrong password produces different bytes and returns `false`.
 
-### 6.1 Phân tích bảo vệ và giới hạn của từng dòng
+### 6.1 Line-by-line analysis of protections and limitations
 
-**`RANDOM.nextBytes(salt)`** tạo một salt mới 16 byte; không dùng `Random`, timestamp, user ID hoặc password làm nguồn “ngẫu nhiên”. Nếu cần salt cho người dùng thứ hai, gọi lại `createRecord` để nhận salt mới.
+**`RANDOM.nextBytes(salt)`** creates a fresh 16-byte salt; never use `Random`, timestamps, user IDs, or passwords as a source of “randomness.” To create a salt for a second user, call `createRecord` again to obtain a fresh salt.
 
-**`ROUNDS = 600_000`** là mức tối thiểu mà hướng dẫn OWASP Password Storage hiện nêu cho **PBKDF2-HMAC-SHA256** (tại thời điểm biên soạn). Đây không phải hằng số “đúng mãi mãi” hoặc bảo đảm an toàn trong mọi hoàn cảnh. Thực tế cần benchmark p95/p99 dưới tải cao, cập nhật theo khuyến nghị mới và giới hạn năng lực máy chủ. `MAX_ROUNDS = 3_000_000` chỉ là trần bảo vệ parsing/CPU **ví dụ**; hệ thống thật định nghĩa chính sách tối thiểu/tối đa có quản trị, cân nhắc migration và chống DoS.
+**`ROUNDS = 600_000`** is the minimum currently cited in the OWASP Password Storage guidance for **PBKDF2-HMAC-SHA256** (at the time of writing). It is not a “forever safe” constant or guaranteed sufficient under all conditions. In practice, benchmark p95/p99 under heavy load, update as recommendations change, and respect server capacity. `MAX_ROUNDS = 3_000_000` is solely an **example** parsing/CPU guard ceiling; production systems define governed minimum/maximum policies considering migration and DoS protection.
 
-**`PBEKeySpec` và `clearPassword()`:** `PBEKeySpec` giữ bản clone của `char[]` nên gọi `clearPassword()` trong `finally` kể cả khi `generateSecret` lỗi. Bản `char[]` truyền vào từ API vẫn thuộc người gọi và phải được xóa riêng.
+**`PBEKeySpec` and `clearPassword()`:** `PBEKeySpec` holds a cloned copy of `char[]`, so call `clearPassword()` in `finally` even if `generateSecret` fails. The `char[]` passed into the API still belongs to the caller and must be cleared separately.
 
-**`MessageDigest.isEqual(actual, expected)`** cung cấp cách so sánh hai mảng byte cho kiểm tra tag/digest, hữu ích để tránh tự viết vòng lặp dừng khi gặp byte khác. Ví dụ giới hạn kích thước hash về 32 byte trước khi so. Không suy ra toàn bộ endpoint sẽ có thời gian cố định: thời gian parsing, số vòng lặp, sự tồn tại của tài khoản và error path vẫn khác nhau.
+**`MessageDigest.isEqual(actual, expected)`** provides byte-array comparison suited for verifying tags/digests, avoiding hand-written loops that break on the first mismatched byte. The example validates that the hash length is 32 bytes before comparing. Do not infer that the entire endpoint runs in constant time: parsing time, iteration count, account existence, and error paths still vary.
 
-**`Arrays.fill(derived, (byte) 0)`** dọn mảng derived do mã ứng dụng nắm giữ. Java/JVM có thể tạo các bản sao trong provider, garbage collector hoặc log bên ngoài; không thể hứa “đã xóa mọi bản sao của bí mật trong RAM”. Tránh tạo `String` không cần thiết chứa password. Đoạn mã demo vẫn dùng string literal để test dễ đọc, **không áp dụng literal đó cho mật khẩu production**.
+**`Arrays.fill(derived, (byte) 0)`** wipes derived arrays held by application code. Java/JVM may keep copies in the provider, garbage collector, or external buffers; never claim “every copy of the secret has been erased from RAM.” Avoid creating unnecessary `String` objects holding passwords. The demo still uses string literals for test readability—**never apply literals like that to production passwords**.
 
-**`verify` kiểm tra format và giới hạn iteration/độ dài** trước khi thực hiện PBKDF2 để tránh chấp nhận record sai cấu trúc hoặc cost bất thường. Với record lấy từ database tin cậy, vẫn cần giới hạn kích thước chuỗi trước khi split/decode; khi record có thể bị chỉnh, phải xử lý input không tin cậy và phân biệt lỗi dữ liệu với mật khẩu sai. Những lỗi infrastructure/provider nên được báo qua cơ chế lỗi nội bộ, không trả chi tiết crypto ra client.
+**`verify` checks format and iteration/length bounds** before running PBKDF2 to avoid accepting malformed structures or abnormal costs. Even for records from a trusted database, bound string size before splitting/decoding; if records could be tampered with, treat them as untrusted input and separate data-format errors from wrong-password failures. Infrastructure/provider errors should be routed through internal error handling without returning crypto details to clients.
 
-**Giới hạn còn lại:** đoạn demo chưa xử lý password policy, rate limiting, MFA, session/token, truy vấn user ID, account lockout, logging an toàn, Unicode policy, pepper/KMS, benchmark chi phí, hay nâng cấp hash cũ. Chỉ dùng làm mô hình API + record format, không coi như hệ thống authentication hoàn chỉnh.
+**Remaining limitations:** the demo does not cover password policies, rate limiting, MFA, sessions/tokens, user ID lookup, account lockout, safe logging, Unicode policy, pepper/KMS, cost benchmarking, or upgrading legacy hashes. Use it strictly as an API + record-format model, not as a complete authentication system.
 
-## 7. Lưu gì trong cơ sở dữ liệu?
+## 7. What should be stored in the database?
 
-Một bản ghi verifier nên chứa đủ thông tin để kiểm tra sau này:
+A verifier record should contain enough information for future verification:
 
-| Trường | Ví dụ | Giải thích |
+| Field | Example | Explanation |
 | --- | --- | --- |
-| `scheme/version` | `pbkdf2-sha256` | Xác định cách dẫn xuất/encoding và phiên bản format. |
-| `iterations` | `600000` | Phải lưu với từng record, vì chính sách work factor sẽ đổi theo thời gian. |
-| `salt` | Base64URL 16 byte | Mỗi record một salt ngẫu nhiên; công khai được. |
-| `derivedKey` | Base64URL 32 byte | Giá trị dùng để kiểm chứng mật khẩu, cần bảo vệ như password verifier. |
-| `createdAt/rehashPolicy` (tùy hệ thống) | Thời điểm tạo, phiên bản cấu hình | Giúp quản trị và nâng cấp, không phải đầu vào bắt buộc của PBKDF2. |
+| `scheme/version` | `pbkdf2-sha256` | Identifies derivation/encoding method and format version. |
+| `iterations` | `600000` | Must be stored per record, since work-factor policy changes over time. |
+| `salt` | 16-byte Base64URL | Unique random salt per record; safe to store non-secret. |
+| `derivedKey` | 32-byte Base64URL | Value used to verify passwords; protect as a password verifier. |
+| `createdAt/rehashPolicy` (system-dependent) | Creation timestamp, config version | Aids administration and upgrades; not a required PBKDF2 input. |
 
-**Không lưu** password bản rõ, một “mật khẩu mã hóa để giải mã”, hay secret pepper trong cùng bảng. Tránh log cả record hash: dù không phải password gốc, record chứa đủ đầu vào công khai để kẻ có bản sao thử đoán ngoại tuyến. Bảo vệ backup, snapshot, quyền truy cập DB, bí mật cấu hình và luồng đăng nhập.
+**Do not store** plaintext passwords, “passwords encrypted for decryption,” or secret peppers in the same table. Avoid logging full hash records: even though not the original password, a record contains all public inputs needed for offline guessing if leaked. Protect backups, snapshots, DB access permissions, configuration secrets, and login flows.
 
-Ở lần đăng nhập:
+At login time:
 
-1. Tra bản ghi theo danh tính/ID đã được quy định.
-2. Kiểm tra scheme/format/giới hạn trước khi tính toán.
-3. Tạo `PBEKeySpec` từ **password ứng viên** với salt/iterations/keyLength của record.
-4. Dẫn xuất lại bằng **đúng PRF**, so sánh bằng byte (không so hash qua String nếu có thể tránh).
-5. Nếu hợp lệ và record có work factor thấp hơn chính sách mới, **rehash** bằng salt mới + cost mới, ghi cập nhật an toàn (ví dụ optimistic concurrency trong giao dịch) trước hoặc sau khi tạo session theo thiết kế.
-6. Trả lỗi đăng nhập chung cho mật khẩu sai/ID không có, áp dụng rate limit và quan sát sự kiện an ninh; không tiết lộ chi tiết record.
+1. Look up the record by the defined identity/ID.
+2. Validate scheme/format/bounds before computing.
+3. Construct `PBEKeySpec` from the **candidate password** with the record's salt/iterations/keyLength.
+4. Re-derive using the **exact PRF**, comparing bytes (avoid comparing hashes via `String` where avoidable).
+5. If valid and the record's work factor is below the new policy, **rehash** with a fresh salt + new cost and persist safely (e.g., optimistic concurrency in a transaction) before or after creating a session per design.
+6. Return a unified login error for wrong password / missing ID, enforce rate limiting, and monitor security events without leaking record details.
 
-**Migration từ cost thấp:** demo đặt `verify` từ chối count thấp hơn 600.000 vì cố ý áp dụng chính sách chặt cho dữ liệu mới. Nếu hệ thống có bản ghi cũ 100.000 vòng, luồng thực tế cần **bộ xác minh legacy được kiểm soát** rồi nâng lên 600.000 sau đăng nhập thành công; không dùng nguyên hàm `verify` của demo cho migration và vô tình khóa tài khoản cũ. Khi đổi thuật toán, cần dispatcher theo version trong record và kế hoạch reset/migrate nếu thuật toán cũ quá yếu.
+**Migrating from lower costs:** the demo's `verify` rejects counts below 600,000 because it intentionally enforces strict policy for new data. If a system has legacy 100,000-round records, production code needs a **controlled legacy verification path** that upgrades to 600,000 upon successful login; do not reuse the demo's `verify` directly for migration and accidentally lock out legacy accounts. When switching algorithms, dispatch by the version in the record and plan resets/migrations if an old algorithm is too weak.
 
-## 8. Chọn iteration count và thuật toán
+## 8. Choosing iteration count and algorithm
 
-PBKDF2 có thể phù hợp khi hệ thống yêu cầu **implementation có sẵn trong JDK** hoặc một chế độ tuân thủ tiêu chuẩn cụ thể; với hệ thống lưu password mới, [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) ưu tiên **Argon2id** và xem PBKDF2-HMAC-SHA256 là lựa chọn cần cấu hình chi phí đủ cao (đặc biệt trong môi trường có ràng buộc FIPS).
+PBKDF2 can be appropriate when a system requires a **built-in JDK implementation** or a specific compliance mode; for new password-storage systems, the [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) prefers **Argon2id** and treats PBKDF2-HMAC-SHA256 as an option requiring sufficiently high cost configuration (especially under FIPS constraints).
 
-| Thuật toán | Tính chất | Đề xuất sử dụng |
+| Algorithm | Properties | Usage guidance |
 | --- | --- | --- |
-| `SHA-256(password)` hoặc `MD5(password)` | Rất nhanh, thiếu work factor/salt hợp lý | **Không** dùng làm password verifier mới. |
-| `PBKDF2WithHmacSHA1` | PBKDF2 với HMAC-SHA1; thường để tương thích legacy | Ưu tiên `PBKDF2WithHmacSHA256` cho thiết kế mới nếu cần PBKDF2. |
-| `PBKDF2WithHmacSHA256` | Work factor CPU + salt; có qua `SecretKeyFactory` Java 21/SunJCE | Sử dụng khi điều kiện triển khai phù hợp, benchmark và tuân theo chính sách hiện hành. |
-| `scrypt` | Hàm dẫn xuất có chi phí bộ nhớ; không phải API JDK `SecretKeyFactory` chuẩn chung | Cân nhắc khi cần memory-hard và thư viện được kiểm thử. |
-| `Argon2id` | Memory-hard, có tham số bộ nhớ/time/parallelism | Phương án được OWASP ưu tiên cho hệ thống mật khẩu mới; cần implementation tin cậy bên ngoài JDK chuẩn. |
+| `SHA-256(password)` or `MD5(password)` | Very fast, lacks proper work factor/salt | **Never** use for new password verifiers. |
+| `PBKDF2WithHmacSHA1` | PBKDF2 with HMAC-SHA1; mainly legacy compatibility | Prefer `PBKDF2WithHmacSHA256` for new designs when PBKDF2 is needed. |
+| `PBKDF2WithHmacSHA256` | CPU work factor + salt; available via Java 21/SunJCE `SecretKeyFactory` | Use when deployment requirements fit, benchmarked and aligned with current policy. |
+| `scrypt` | Memory-cost KDF; not a standard general JDK `SecretKeyFactory` API | Consider when memory-hardness is needed with a vetted library. |
+| `Argon2id` | Memory-hard, with memory/time/parallelism parameters | OWASP's preferred choice for new password systems; requires a trusted external library outside standard JDK. |
 
-**Cách benchmark hợp lý:**
+**How to benchmark properly:**
 
-- Thực hiện trên **cấu hình production** (CPU, số worker, container quota, virtualized hardware), đo độ trễ PBKDF2 lúc ít tải và lúc có nhiều phiên đăng nhập đồng thời.
-- Chọn cost theo hướng dẫn bảo mật mới nhất, ngân sách độ trễ và khả năng chống credential stuffing/DoS. Tăng iterations làm cả **client hợp lệ và attacker** tốn CPU; cần giới hạn tần suất, queue và resource budget.
-- Đặt giới hạn **tối đa** cho iteration được đọc từ record/đầu vào ngoài để tránh kẻ tấn công ép một yêu cầu tiêu thụ CPU khổng lồ.
-- Lưu iterations với record, tăng cost cho record mới; sau khi người dùng đăng nhập đúng, nâng cấp từng record khi cần.
-- Dùng salt mới khi rehash, ghi nhận scheme version; không sửa iterations trên record cũ mà giữ nguyên hash, vì như vậy mật khẩu đúng sẽ không còn khớp.
+- Test on **production hardware/configuration** (CPU, worker count, container quotas, virtualized hardware), measuring PBKDF2 latency under low load and concurrent login bursts.
+- Pick cost from the latest security guidance, latency budget, and credential-stuffing/DoS tolerance. Raising iterations consumes CPU for both **legitimate clients and attackers**; enforce rate limits, queues, and resource budgets.
+- Enforce a **maximum** cap on iterations parsed from records/external inputs to prevent an attacker from forcing massive CPU usage on a single request.
+- Store iterations per record, raise cost for new records, and upgrade records after successful user logins as needed.
+- Always generate a fresh salt when rehashing and update the scheme version; never edit iterations on an old record while keeping the old hash, or valid passwords will stop matching.
 
-**Mức cost không phải bảo mật độc lập:** kẻ có GPU/ASIC có thể thực hiện nhiều phép thử; mật khẩu yếu vẫn có rủi ro. PBKDF2 không thay được chính sách mật khẩu mạnh và biện pháp bảo vệ tài khoản.
+**Cost is not standalone security:** attackers with GPUs/ASICs can still run many trials; weak passwords remain vulnerable. PBKDF2 does not replace strong password policies and account protections.
 
-## 9. PBKDF2 cho password verifier khác PBKDF2 cho khóa AES
+## 9. PBKDF2 for a password verifier vs. PBKDF2 for an AES key
 
-`PBKDF2` trả về *key material* và có thể được dùng cho nhiều mục đích; thiết kế phải xác định rõ **mục đích nào** ngay từ đầu.
+`PBKDF2` returns *key material* and can serve multiple purposes; your design must specify **which purpose** from the start.
 
-**A. Xác minh mật khẩu đăng nhập:** lưu `salt + iterations + derivedHash`. Khi đăng nhập, so sánh output; không bao giờ cần giải mã để lấy lại password. Một record verifier không nên được tái sử dụng trực tiếp làm khóa mã hóa dữ liệu người dùng.
+**A. Login password verification:** store `salt + iterations + derivedHash`. At login, compare outputs; there is never any decryption back to the password. A verifier record must never be reused directly as a user data encryption key.
 
-**B. Dẫn xuất khóa từ passphrase để mã hóa:** ứng dụng cần salt, cost, độ dài phù hợp thuật toán mã hóa (ví dụ AES-256 dùng 32 byte) rồi tạo khóa từ byte dẫn xuất. Chỉ dẫn xuất khóa **chưa đủ**: phải dùng mã hóa xác thực như AES-GCM với nonce/IV riêng, không lặp IV với cùng khóa, lưu metadata cần thiết và quản lý lỗi xác thực, backup và thay đổi mật khẩu. Nếu dùng chung passphrase cho nhiều mục đích, tách miền khóa bằng cách dùng salt/context độc lập hoặc KDF/key hierarchy được thiết kế rõ; không dùng cùng derived bytes làm password verifier lẫn encryption key.
+**B. Deriving an encryption key from a passphrase:** the application needs salt, cost, and length matching the cipher (e.g., 32 bytes for AES-256), then builds a key from the derived bytes. Key derivation alone **is not enough**: use authenticated encryption such as AES-GCM with a distinct nonce/IV, never repeat an IV under the same key, store required metadata, and handle authentication failures, backups, and password changes. When sharing one passphrase across purposes, separate key domains via independent salts/contexts or an explicit KDF/key hierarchy; never use the exact same derived bytes as both a password verifier and an encryption key.
 
-Ví dụ minh họa **không độc lập** (giả sử `derived` là byte[32] đã dẫn xuất đúng cách):
+Non-standalone illustration (assuming `derived` is a properly derived `byte[32]`):
 
 ```java
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-// Chỉ là bước chuyển key material sang key AES; chưa thực hiện mã hóa.
+// This only wraps key material as an AES key; no encryption is performed yet.
 SecretKey aesKey = new SecretKeySpec(derived, "AES");
 ```
 
-**Đừng nhầm salt PBKDF2 với IV/nonce của AES-GCM.** Salt làm mỗi lần dẫn xuất password độc lập; IV/nonce của cipher đảm bảo các lần mã hóa an toàn với cùng key. Chúng cần quy tắc quản lý riêng. Nếu dữ liệu mã hóa buộc phải giải mã bằng cùng passphrase về sau, phải lưu salt/cost/IV/format đã dùng; đổi salt sẽ dẫn tới khóa khác trừ khi có migration/rewrap.
+**Do not confuse PBKDF2 salt with AES-GCM IV/nonce.** Salt makes each password derivation independent; the cipher's IV/nonce ensures safe encryptions under the same key. Each has its own management rules. If encrypted data must later be decrypted using the same passphrase, you must store the salt/cost/IV/format used; changing the salt produces a different key unless you migrate/rewrap.
 
-## 10. Vấn đề thường gặp và cách xử lý
+## 10. Common issues and troubleshooting
 
-| Triệu chứng hoặc lỗi | Nguyên nhân hay gặp | Cách kiểm tra |
+| Symptom or error | Common cause | How to check |
 | --- | --- | --- |
-| `NoSuchAlgorithmException: PBKDF2WithHmacSHA256` | JRE/provider không cung cấp algorithm, môi trường chạy khác JDK mong đợi | Xem `java -version`, provider, tên thuật toán và JDK Providers Documentation cho bản đang chạy. |
-| `InvalidKeySpecException` | Spec không hợp lệ hoặc provider không thể chuyển đổi | Kiểm tra loại `KeySpec`, cost, length và provider. |
-| `IllegalArgumentException` ở `PBEKeySpec` | Salt rỗng, iterations không dương hoặc keyLength không dương | Đọc constructor docs, dùng salt không rỗng/cost dương/bit length đúng. |
-| `getEncoded() == null` | Key không được provider xuất raw byte | Bắt rõ lỗi, không mặc định mọi `SecretKey` đều extractable. |
-| Xác minh mật khẩu luôn sai | Salt/cost/PRF/encoding không đúng giữa tạo và verify; đổi format mà không version | Lưu đủ tham số, kiểm thử vector, kiểm tra normalization/Unicode. |
-| Hai account cùng mật khẩu có cùng hash | Dùng chung salt, salt cố định, không sinh lại | Mỗi lần tạo record sinh salt mới bằng `SecureRandom`. |
-| Hiệu năng đăng nhập kém khi tải cao | Cost lớn, nhiều request song song, thiếu rate limit/resource budget | Benchmark trên hạ tầng thực, giới hạn đồng thời và tần suất. |
-| Bản ghi cũ không đăng nhập được sau khi tăng cost | Chỉ đổi iterations cấu hình mà không rehash; verifier chặn legacy | Dùng record version và migration sau xác minh thành công. |
-| Test vector 1–2 vòng chạy đúng nhưng chưa an toàn | Vector chỉ kiểm tra **đúng thuật toán**, không kiểm tra work factor | Dùng policy cost cao, salt riêng và kiểm thử an ninh. |
-| Log chứa password/hash/key | Vô tình chuyển char[]/byte[] thành String hoặc in debug | Loại bỏ logging bí mật, giới hạn truy cập debug và xóa mảng nhạy cảm khi dùng xong. |
+| `NoSuchAlgorithmException: PBKDF2WithHmacSHA256` | JRE/provider does not provide the algorithm, or runtime differs from expected JDK | Check `java -version`, active providers, algorithm name, and JDK Providers Documentation for your version. |
+| `InvalidKeySpecException` | Invalid spec or provider cannot convert it | Inspect `KeySpec` type, cost, length, and provider. |
+| `IllegalArgumentException` in `PBEKeySpec` | Empty salt, non-positive iterations, or non-positive keyLength | Check constructor docs; pass non-empty salt, positive cost, and valid bit length. |
+| `getEncoded() == null` | Provider refuses to export raw key bytes | Handle explicitly; never assume every `SecretKey` is extractable. |
+| Password verification always fails | Mismatched salt/cost/PRF/encoding between creation and verify, or unversioned format change | Store all parameters, run test vectors, check Unicode/normalization. |
+| Two accounts with the same password have the same hash | Shared salt, fixed salt, or salt not regenerated | Generate a fresh salt with `SecureRandom` for every record. |
+| Poor login performance under heavy load | High cost, many concurrent requests, missing rate limit/resource budget | Benchmark on real hardware; limit concurrency and request rate. |
+| Legacy records fail to log in after raising cost | Only changed configured iterations without rehashing, or verifier blocks legacy | Use record versioning and migrate after successful verification. |
+| 1–2 round test vector passes, yet insecure | Vector checks **algorithm correctness**, not work factor | Use policy-compliant high cost, unique salts, and security testing. |
+| Logs contain passwords/hashes/keys | Accidentally converting `char[]`/`byte[]` to `String` or debug printing | Remove secret logging, restrict debug access, and clear sensitive arrays after use. |
 
-Lưu ý thêm: `PBEKeySpec` nhận `char[]` nhưng API web thường nhận byte từ UTF-8 rồi framework chuyển thành `String`. Không thể xóa hoàn toàn String bất biến đã đi qua JVM; làm sạch `char[]` vẫn có giá trị nhưng không nên tuyên bố đã xóa hết bí mật. Khi cần kiểm thử đa hệ thống, **xác định chính sách chuẩn hóa trước khi tạo record** và duy trì nó qua mọi lần đăng nhập.
+Additional note: `PBEKeySpec` takes `char[]`, whereas web APIs typically receive UTF-8 bytes that frameworks decode into `String`. You cannot completely erase immutable `String` objects that have passed through the JVM; clearing `char[]` is still worthwhile, but do not claim every trace of the secret has been purged. For cross-system compatibility, **define a normalization policy before creating records** and maintain it across all logins.
 
-## 11. Bài tập thực hành và checklist
+## 11. Practice exercises and checklist
 
-1. **Tham số:** vì sao `new PBEKeySpec(password, salt, 600_000, 32)` không có nghĩa là “hash 32 byte”? Hãy sửa thành key length đúng.
-2. **Kiểm thử vector:** chạy `Pbkdf2Vector.java` và so đúng hai giá trị hexadecimal. Thay `iterations=2` thành 3 và giải thích vì sao output đổi dù password/salt không đổi.
-3. **Đăng ký và đăng nhập:** chạy `PasswordHashDemo.java`; tự thêm một lần tạo record thứ hai từ cùng password, xác nhận salt của hai record khác nhau. Chỉ hiển thị boolean so sánh, tránh log bản ghi thật.
-4. **Mô hình dữ liệu:** thiết kế schema lưu `scheme, cost, salt, hash` và chính sách migration từ 200.000 lên 600.000 iterations mà không vô hiệu hóa tài khoản cũ.
-5. **Tính toán:** salt 16 byte có bao nhiêu bit? DK 256 bit có bao nhiêu byte? 32 byte hiển thị dạng hex cần bao nhiêu ký tự? Những kích thước này có ý nghĩa gì đối với bảo mật?
-6. **Rà soát:** chỉ ra các lỗi trong mã giả sau: dùng cùng salt cho mọi user, `SHA-256(password)`, so sánh hash bằng `String.equals`, hardcode key, và chỉ thay iterationCount khi nâng cấp record.
-7. **Tình huống production:** nếu 600.000 iterations mất nhiều thời gian dưới tải đăng nhập, bạn đo những chỉ số nào và thêm những biện pháp nào trước khi giảm work factor? Nếu chính sách khuyến nghị thay đổi sau một năm, bạn cập nhật record bằng cách nào?
-8. **Tính tương thích:** kiểm tra mật khẩu tiếng Việt có dấu và ký tự Unicode kết hợp giữa hai môi trường JDK/provider; mô tả cách đảm bảo cùng byte input, cùng cost, salt, PRF và DK length.
+1. **Parameters:** why does `new PBEKeySpec(password, salt, 600_000, 32)` not mean “32-byte hash”? Fix it to the right key length.
+2. **Test vectors:** run `Pbkdf2Vector.java` and match both hexadecimal values exactly. Change `iterations=2` to `3` and explain why the output changes even though password and salt stay unchanged.
+3. **Registration and login:** run `PasswordHashDemo.java`; add a second record creation from the same password and verify the two records' salts differ. Print only comparison booleans—avoid logging real records.
+4. **Data model:** design a schema storing `scheme, cost, salt, hash` and a migration policy from 200,000 to 600,000 iterations without invalidating existing accounts.
+5. **Calculations:** how many bits is a 16-byte salt? How many bytes is a 256-bit DK? How many characters are needed to display 32 bytes in hex? What do these sizes mean for security?
+6. **Code review:** identify the flaws in this pseudocode: sharing one salt for all users, `SHA-256(password)`, comparing hashes with `String.equals`, hardcoding keys, and only updating `iterationCount` when upgrading a record.
+7. **Production scenario:** if 600,000 iterations take too long under login load, which metrics do you measure and which controls do you add before lowering the work factor? If recommended policy changes a year later, how do you update existing records?
+8. **Compatibility:** test passwords with Vietnamese diacritics and combining Unicode characters across two JDK/provider environments; describe how to guarantee identical input bytes, cost, salt, PRF, and DK length.
 
-**Tiêu chí hoàn thành:** bạn có thể giải thích rõ tại sao phải dùng `SecretKeyFactory` + `PBEKeySpec` với **salt ngẫu nhiên, work factor đủ lớn, key length tính bằng bit**, lưu các tham số cần thiết, xác minh lại an toàn, và biết khi nào phải thay PBKDF2 bằng cơ chế password hashing memory-hard.
+**Completion criteria:** you can clearly explain why `SecretKeyFactory` + `PBEKeySpec` must use a **random salt, sufficiently large work factor, and bit-denominated key length**, store the required parameters, verify safely, and recognize when PBKDF2 should be replaced by a memory-hard password hashing scheme.
 
-## 12. Tài liệu đáng tin cậy để đối chiếu
+## 12. Authoritative references
 
-- [Java SE 21 – `javax.crypto.SecretKeyFactory`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/SecretKeyFactory.html): cách lấy instance, `generateSecret(KeySpec)`, provider và exception.
-- [Java SE 21 – `javax.crypto.spec.PBEKeySpec`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html): constructor, đơn vị `keyLength`, clone password/salt, `clearPassword()` và lưu ý về password characters.
-- [Java SE 21 – `java.security.SecureRandom`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/SecureRandom.html): nguồn ngẫu nhiên bảo mật để sinh salt.
-- [Java SE 21 – Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html): tên thuật toán `PBKDF2WithHmacSHA256`.
-- [Java SE 21 – JDK Providers Documentation](https://docs.oracle.com/en/java/javase/21/security/oracle-providers.html): khả năng hỗ trợ `SecretKeyFactory` PBKDF2 trong SunJCE và các ghi chú provider.
-- [RFC 8018 – PKCS #5: Password-Based Cryptography Specification v2.1](https://www.rfc-editor.org/rfc/rfc8018): công thức PBKDF2, salt và iteration count.
-- [OWASP – Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html): lựa chọn Argon2id/scrypt/PBKDF2, salt, pepper, chi phí và rehash.
+- [Java SE 21 – `javax.crypto.SecretKeyFactory`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/SecretKeyFactory.html): obtaining instances, `generateSecret(KeySpec)`, providers, and exceptions.
+- [Java SE 21 – `javax.crypto.spec.PBEKeySpec`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html): constructors, `keyLength` units, password/salt cloning, `clearPassword()`, and notes on password characters.
+- [Java SE 21 – `java.security.SecureRandom`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/SecureRandom.html): cryptographic random source for generating salts.
+- [Java SE 21 – Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html): `PBKDF2WithHmacSHA256` algorithm name.
+- [Java SE 21 – JDK Providers Documentation](https://docs.oracle.com/en/java/javase/21/security/oracle-providers.html): PBKDF2 `SecretKeyFactory` support in SunJCE and provider notes.
+- [RFC 8018 – PKCS #5: Password-Based Cryptography Specification v2.1](https://www.rfc-editor.org/rfc/rfc8018): PBKDF2 formula, salt, and iteration count.
+- [OWASP – Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html): choosing Argon2id/scrypt/PBKDF2, salt, pepper, cost, and rehashing.
 

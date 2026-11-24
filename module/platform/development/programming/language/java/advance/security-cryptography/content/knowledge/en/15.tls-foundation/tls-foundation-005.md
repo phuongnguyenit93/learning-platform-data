@@ -1,157 +1,157 @@
-# 15.5 Khóa tạm thời, forward secrecy và quan hệ với khóa dài hạn của chứng thư
+# 15.5 Ephemeral Keys, Forward Secrecy, and Their Relationship with Long-Term Certificate Keys
 
-## Mục tiêu học tập
+## Learning objectives
 
-Sau bài học này, bạn có thể:
+After this lesson, you can:
 
-1. Phân biệt **khóa định danh dài hạn gắn với chứng thư X.509**, **khóa riêng tạm thời (ephemeral)** dùng trong thỏa thuận khóa, **shared secret**, **traffic keys** và **session resumption PSK**.
-2. Giải thích **forward secrecy (FS)** bảo vệ điều gì, trong mô hình kẻ tấn công nào và với điều kiện nào; không nhầm nó với bảo mật tuyệt đối hay xác thực danh tính.
-3. So sánh **TLS 1.2 RSA key transport** với **TLS 1.2 (EC)DHE**, và hiểu tại sao **TLS 1.3 dùng trao đổi khóa tạm thời khi xác thực bằng chứng thư**, trong khi **PSK-only** và **0-RTT** là các trường hợp phải xem xét riêng.
-4. Hiểu cách TLS ràng buộc phần trao đổi khóa tạm thời với **Certificate**, **CertificateVerify**, **Finished** và trust/hostname verification; giải thích vì sao **server có RSA certificate vẫn có thể có forward secrecy**.
-5. Thực hành Java 17+ bằng **X25519 KeyAgreement** và **Ed25519 Signature** để minh họa shared secret tạm thời và chữ ký của khóa định danh, đồng thời nhận diện giới hạn: đây **không phải giao thức TLS tự xây**.
-6. Kiểm tra TLS trong hệ thống Java/JSSE, tránh lựa chọn lỗi thời, quản lý vòng đời khóa và thiết kế phép thử khi khóa định danh bị lộ sau khi phiên kết thúc.
+1. Distinguish the **long-term identity key bound to an X.509 certificate**, **ephemeral private key** used in key agreement, **shared secret**, **traffic keys**, and **session resumption PSK**.
+2. Explain what **forward secrecy (FS)** protects, under which threat model and conditions; avoid confusing it with absolute security or identity authentication.
+3. Compare **TLS 1.2 RSA key transport** with **TLS 1.2 (EC)DHE**, and understand why **TLS 1.3 uses ephemeral key exchange for certificate authentication**, while **PSK-only** and **0-RTT** are separate cases to examine.
+4. Understand how TLS binds ephemeral key exchange to **Certificate**, **CertificateVerify**, **Finished**, and trust/hostname verification; explain why **a server with an RSA certificate can still have forward secrecy**.
+5. Practice in Java 17+ using **X25519 KeyAgreement** and **Ed25519 Signature** to demonstrate ephemeral shared secrets and identity-key signatures, while recognizing the boundary: this is **not a hand-rolled TLS protocol**.
+6. Inspect TLS in Java/JSSE systems, avoid obsolete choices, manage key lifecycles, and design tests for post-session identity key compromise.
 
-**Điểm then chốt:** **Chứng thư** giúp client xác minh **đối tác nào** đang tham gia (thông qua quyền sở hữu private key và chính sách tin cậy). **Khóa tạm thời** giúp tạo bí mật dùng cho **phiên/kết nối này** mà không cần suy ra từ private key dài hạn của chứng thư. Với một phiên (EC)DHE an toàn, khóa phiên đã được dẫn xuất và secret tạm thời đã được loại bỏ đúng cách, **kẻ đánh cắp private key định danh sau đó không thể chỉ dùng khóa ấy để giải mã bản ghi phiên cũ**.
+**Core point:** **Certificates** let a client verify **which peer** is participating (via private-key possession and trust policy). **Ephemeral keys** create secrets used for **this session/connection** without deriving them from the certificate's long-term private key. In a secure (EC)DHE session whose session keys were properly derived and ephemeral secrets properly discarded, **an attacker who later steals the identity private key cannot use that key alone to decrypt past session recordings**.
 
-Ngược lại, nếu hệ thống sử dụng kiểu trao đổi khóa không có forward secrecy, khóa dài hạn bị lộ có thể kéo theo nhiều bản ghi mạng được lưu từ trước. **Chữ ký số và thỏa thuận khóa là hai chức năng khác nhau; không thay thế nhau.**
+Conversely, if a system uses a key exchange lacking forward secrecy, a compromised long-term key can expose many previously captured network recordings. **Digital signatures and key agreement serve two distinct functions; neither replaces the other.**
 
-## 1. Mô hình đe dọa: “hôm nay ghi lại, ngày mai lấy khóa”
+## 1. Threat model: "harvest today, steal the key tomorrow"
 
-Giả sử Alice dùng HTTPS truy cập máy chủ Bob.
+Suppose Alice accesses Bob's server over HTTPS.
 
-- Ở thời điểm **T1**, Eve ghi lại một bản sao đầy đủ những packet TLS trên mạng nhưng chưa có quyền vào server.
-- Tại **T2** (sau khi phiên TLS cũ đã kết thúc), Eve đánh cắp **private key dài hạn** của Bob, ví dụ file PKCS12, key backup hoặc quyền dùng một khóa định danh.
-- Eve thử giải mã những packet đã ghi ở T1.
+- At time **T1**, Eve records a full copy of the TLS packets on the network without having access to the server yet.
+- At time **T2** (after the old TLS session has ended), Eve steals Bob's **long-term private key**, e.g., a PKCS12 file, key backup, or signing access to an identity key.
+- Eve attempts to decrypt the packets recorded at T1.
 
-Câu hỏi của forward secrecy là:
+Forward secrecy asks:
 
-> Khi Eve lấy được **bí mật dài hạn ở T2**, liệu cô ấy có thể giải mã **traffic của phiên trước ở T1** chỉ từ bản ghi mạng và khóa vừa đánh cắp hay không?
+> Once Eve obtains the **long-term secret at T2**, can she decrypt the **traffic of the earlier session at T1** using only the network capture and the stolen key?
 
-Trong một thiết kế có FS dựa trên **fresh (EC)DHE** và xóa keying material không còn dùng, câu trả lời kỳ vọng là **không** đối với riêng sự lộ **private key định danh dài hạn**. Traffic keys của phiên cũ được dẫn xuất qua một shared secret mà Eve không thể tính chỉ từ public shares đã quan sát và private key định danh lấy được sau này.
+In an FS design built on **fresh (EC)DHE** and erasing no-longer-needed keying material, the expected answer is **no** with respect to the compromise of the **long-term identity private key** alone. Traffic keys of the old session were derived from a shared secret that Eve cannot compute solely from the observed public shares and the later-stolen identity private key.
 
-Sơ đồ thời gian:
+Timeline diagram:
 
 ~~~text
-T1: Handshake dùng fresh ephemeral (EC)DHE
+T1: Handshake using fresh ephemeral (EC)DHE
     Alice <---------------------------------> Bob
       |                                         |
    Ephemeral private a                     Ephemeral private b
       |                                         |
    Shared secret Z ---------------------- Shared secret Z
       |                                         |
-   Derive traffic keys -> truyền dữ liệu mã hóa
+   Derive traffic keys -> transmit encrypted data
       |
-    Eve ghi lại ClientHello, ServerHello, certificate,
-    key shares, handshake và application ciphertext.
+    Eve records ClientHello, ServerHello, certificate,
+    key shares, handshake, and application ciphertext.
 
-T1 kết thúc:
-    a, b và các secret không còn cần được xóa/giải phóng
-    theo khả năng và chính sách của implementation.
+T1 ends:
+    a, b, and unneeded secrets are erased/freed
+    per implementation capability and policy.
 
-T2: Eve có private key định danh dài hạn của Bob.
-    Nếu chỉ có khóa này và bản ghi T1:
-       không suy ra được Z hay traffic keys của T1
-       trong mô hình (EC)DHE an toàn.
+T2: Eve obtains Bob's long-term identity private key.
+    With only this key and the T1 capture:
+       cannot derive Z or T1 traffic keys
+       under a secure (EC)DHE model.
 ~~~
 
-**FS không nói rằng dữ liệu luôn an toàn nếu Bob bị chiếm quyền từ T1.** Nếu Eve đã chiếm server khi phiên đang chạy, lấy được session secrets, plaintext trong RAM, key logs, hoặc kiểm soát ứng dụng, cô ấy có thể đọc dữ liệu dù handshake có (EC)DHE.
+**FS does not mean data stays safe if Bob was compromised at T1.** If Eve compromised the server while the session was active—capturing session secrets, RAM plaintext, key logs, or controlling the application—she can read data even if the handshake used (EC)DHE.
 
-### 1.1 Điều được bảo vệ và không được bảo vệ
+### 1.1 What is protected and what is not
 
-| Câu hỏi | Một phiên (EC)DHE có FS trả lời thế nào? |
+| Question | How does an FS (EC)DHE session answer? |
 | --- | --- |
-| Sau phiên, private key định danh của server bị đánh cắp. Bản ghi traffic cũ có giải mã được bằng khóa đó không? | **Không chỉ từ khóa định danh**, nếu trao đổi khóa/thuật toán an toàn và ephemeral/session secrets không còn bị lộ |
-| Client chưa xác thực certificate, liệu (EC)DHE có tự chống man-in-the-middle không? | **Không**; DH không xác thực có thể bị chèn khóa trung gian |
-| Attacker lấy traffic key hoặc plaintext khi phiên đang sống? | **FS không cứu được dữ liệu đã bị lộ trong thời gian đó** |
-| Attacker có private key định danh trước một handshake mới? | **Có thể giả mạo server trong tương lai**, trừ khi trust/thu hồi/khóa mới và các kiểm soát khác ngăn chặn |
-| Server dùng lại khóa tạm thời rất lâu hoặc log keying material? | Bảo đảm FS có thể bị suy giảm hoặc mất |
-| Ciphertext từ TLS cũ được lưu ở proxy/DB dưới dạng plaintext? | FS của kết nối mạng không bảo vệ các bản sao plaintext đó |
-| Kết nối dùng PSK-only hoặc dữ liệu TLS 1.3 0-RTT? | **Không tự có bảo đảm FS giống full (EC)DHE**; cần xét PSK lifecycle và mode cụ thể |
-| Một công nghệ tính toán mới phá (EC)DH hiện tại trong tương lai? | FS cổ điển **không tự bảo vệ** trước việc giải bài toán DH từ public shares bằng năng lực mới |
+| After the session, the server's identity private key is stolen. Can past traffic recordings be decrypted with that key? | **Not from the identity key alone**, provided key exchange/algorithms are secure and ephemeral/session secrets are no longer exposed |
+| The client did not verify the certificate—does (EC)DHE stop MITM on its own? | **No**; unauthenticated DH can suffer intermediate key insertion |
+| Attacker captures traffic keys or plaintext while the session is live? | **FS cannot rescue data exposed during that live window** |
+| Attacker obtains the identity private key before a new handshake? | **Can impersonate the server going forward**, unless trust/revocation/new keys and other controls block it |
+| Server reuses ephemeral keys for a long time or logs keying material? | FS guarantees can be degraded or lost |
+| Ciphertext from past TLS is stored at a proxy/DB as plaintext? | Network-layer FS does not protect those plaintext copies |
+| Connection uses PSK-only or TLS 1.3 0-RTT data? | **Does not inherently share full (EC)DHE FS guarantees**; examine PSK lifecycle and specific mode |
+| Future computing breakthroughs break today's (EC)DH? | Classical FS **does not protect** against solving the DH problem from public shares with new capabilities |
 
-### 1.2 Forward secrecy và “Perfect Forward Secrecy” có khác không?
+### 1.2 Do forward secrecy and "Perfect Forward Secrecy" differ?
 
-Trong tài liệu cũ và cấu hình hệ thống, thuật ngữ **Perfect Forward Secrecy (PFS)** thường được dùng cho bảo đảm này. Tài liệu tiêu chuẩn mới thường gọi là **forward secrecy**. Chữ “perfect” không nên bị diễn giải thành “không có ngoại lệ”. Bảo đảm mật mã luôn phụ thuộc giả định về thuật toán, cách sinh/xóa secret, mode handshake và mô hình kẻ tấn công.
+In older documents and system configs, the term **Perfect Forward Secrecy (PFS)** was often used for this guarantee. Newer standards commonly say **forward secrecy**. The word "perfect" should not be read as "without exception". Cryptographic guarantees always depend on assumptions about algorithms, secret generation/deletion, handshake modes, and the threat model.
 
-**Định nghĩa thiết thực:** thỏa hiệp một số khóa dài hạn trong tương lai **không tiết lộ các phiên đã hoàn thành trước đó** dưới mô hình an toàn đã quy định.
+**Practical definition:** compromising certain long-term keys in the future **does not reveal previously completed sessions** under the defined security model.
 
-## 2. Phân loại khóa trong TLS — đừng gọi tất cả là “SSL key”
+## 2. Classifying keys in TLS — do not call all of them "the SSL key"
 
-| Thành phần | Vòng đời | Ai giữ? | Công việc chính |
+| Component | Lifecycle | Who holds it? | Main job |
 | --- | --- | --- | --- |
-| **Private key định danh dài hạn** (RSA/ECDSA/EdDSA tùy TLS/provider) | Nhiều phiên, gắn với certificate/identity và rotation | Server hoặc HSM; mTLS có thể cả client | Chứng minh quyền giữ khóa định danh, ký dữ liệu handshake phù hợp giao thức |
-| **Public key trong X.509 certificate** | Công khai, có validity và chuỗi chứng nhận | Peer có thể đọc | Giúp xác minh chữ ký và ràng buộc identity sau kiểm tra PKI |
-| **Ephemeral private key** của (EC)DHE | Tạo cho một handshake hoặc giới hạn thời gian theo giao thức/policy | Mỗi peer giữ riêng | Cùng public share đối tác tạo **shared secret** |
-| **Ephemeral public share** | Truyền trong handshake; không bí mật | Hai peer và người nghe lén có thể thấy | Đầu vào công khai để tính shared secret bằng private share |
-| **(EC)DHE shared secret** | Trung gian, ngắn hạn | Hai peer sau thỏa thuận | Đầu vào key schedule/KDF; không phải raw traffic key để dùng trực tiếp |
-| **Handshake traffic secrets/keys** | Trong lúc hoàn thành handshake | Hai peer theo chiều gửi/nhận | Bảo vệ các handshake record cần mã hóa |
-| **Application traffic secrets/keys** | Trong kết nối, có thể cập nhật | Hai peer theo chiều gửi/nhận | Mã hóa và xác thực application records |
-| **PSK/resumption secret/session ticket keys** | Có thể tồn tại qua nhiều kết nối | Client/server/ticket infrastructure | Xác thực hoặc nối lại phiên; rủi ro FS phụ thuộc cách dùng/giữ/xóa |
-| **CA signing private key** | Dài hạn ở CA, không nằm trong TLS handshake | CA/KMS/HSM | Ký chứng thư, **không** phải key tạo traffic của phiên |
+| **Long-term identity private key** (RSA/ECDSA/EdDSA per TLS/provider) | Many sessions, tied to certificate/identity and rotation | Server or HSM; also client in mTLS | Proves possession of identity key, signs protocol handshake data |
+| **Public key in X.509 certificate** | Public, with validity and certification chain | Readable by peer | Helps verify signatures and bind identity after PKI checks |
+| **(EC)DHE ephemeral private key** | Generated for one handshake or bounded time per protocol/policy | Held separately by each peer | Combined with peer's public share to compute **shared secret** |
+| **Ephemeral public share** | Sent in handshake; not secret | Visible to both peers and eavesdroppers | Public input to compute shared secret with private share |
+| **(EC)DHE shared secret** | Intermediate, short-lived | Both peers after agreement | Input to key schedule/KDF; not a raw traffic key to use directly |
+| **Handshake traffic secrets/keys** | While completing handshake | Both peers per send/receive direction | Protects encrypted handshake records |
+| **Application traffic secrets/keys** | During connection, updatable | Both peers per send/receive direction | Encrypts and authenticates application records |
+| **PSK/resumption secret/session ticket keys** | May persist across multiple connections | Client/server/ticket infrastructure | Authenticates or resumes sessions; FS risk depends on usage/storage/deletion |
+| **CA signing private key** | Long-term at CA, absent from TLS handshake | CA/KMS/HSM | Signs certificates; **not** a key creating session traffic |
 
-**Cặp khóa của chứng thư** và **cặp khóa tạm thời** là **hai cặp khác nhau** về chức năng. Cùng được gọi “public/private key” nhưng vòng đời và mục đích rất khác.
+**The certificate's key pair** and **the ephemeral key pair** are **two functionally distinct pairs**. Both are called "public/private keys", yet their lifecycles and purposes differ sharply.
 
-### 2.1 Chứng thư không chứa private key
+### 2.1 Certificates do not contain private keys
 
-Một chứng thư X.509 chứa public key cùng subject, issuer, validity, SAN, KU/EKU, signature và các extension. **Private key không nằm trong certificate**. Private key có thể được cất trong PKCS12, HSM, OS keystore hoặc KMS. Khi nói “private key của chứng thư”, đó là cách gọi khóa riêng **tương ứng public key được chứng thư ràng buộc**, không phải một trường bí mật bên trong chứng thư.
+An X.509 certificate contains a public key along with subject, issuer, validity, SAN, KU/EKU, signature, and extensions. **Private keys do not reside inside the certificate**. Private keys may be stored in PKCS12, an HSM, an OS keystore, or a KMS. Referring to "the certificate's private key" means the private key **matching the public key bound by the certificate**, not a secret field inside the certificate.
 
-### 2.2 Server certificate có thể là RSA, handshake vẫn có ECDHE
+### 2.2 A server certificate can be RSA while the handshake still uses ECDHE
 
-Điều này thường bị nhầm. Trong TLS 1.2 cipher suite **TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256**:
+This is often confused. In the TLS 1.2 cipher suite **TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256**:
 
-- **ECDHE**: phương pháp thỏa thuận khóa tạm thời.
-- **RSA**: phương pháp xác thực/chữ ký bằng khóa định danh RSA của server.
-- **AES_128_GCM**: cơ chế bảo vệ application records.
-- **SHA256**: thành phần PRF/hash theo đặc tả của cipher suite.
+- **ECDHE**: ephemeral key agreement method.
+- **RSA**: authentication/signing method using the server's RSA identity key.
+- **AES_128_GCM**: protection mechanism for application records.
+- **SHA256**: PRF/hash component per the cipher suite specification.
 
-Chữ **RSA trong tên ECDHE_RSA** không có nghĩa TLS đã mã hóa premaster secret bằng public key RSA của certificate. RSA được dùng cho **chữ ký xác thực**, còn shared secret đến từ **ECDHE**.
+The word **RSA in `ECDHE_RSA`** does not mean TLS encrypted the premaster secret with the certificate's RSA public key. RSA is used for the **authentication signature**, while the shared secret comes from **ECDHE**.
 
-Tương tự, **TLS_ECDHE_ECDSA_...** dùng ECDHE để trao đổi khóa và ECDSA để xác thực. Một certificate có key type RSA hoặc ECDSA không tự quyết định FS; phải xem **handshake/key exchange đã đàm phán thực sự**.
+Similarly, **TLS_ECDHE_ECDSA_...** uses ECDHE for key exchange and ECDSA for authentication. A certificate's key type (RSA or ECDSA) does not by itself decide FS; inspect the **actually negotiated handshake/key exchange**.
 
-## 3. Cơ chế (EC)DHE tạm thời tạo shared secret thế nào?
+## 3. How does ephemeral (EC)DHE create a shared secret?
 
-**Diffie-Hellman (DH)** cho phép hai phía tính được cùng một shared secret bằng private value của mình và public value của đối tác, mà không gửi shared secret trực tiếp qua mạng. “E” trong DHE/ECDHE là **ephemeral**, nghĩa là các giá trị riêng cho trao đổi khóa được tạo mới và có vòng đời ngắn.
+**Diffie-Hellman (DH)** lets two parties compute the same shared secret using their own private value and the peer's public value, without sending the shared secret over the network. The "E" in DHE/ECDHE stands for **ephemeral**, meaning key-exchange values are freshly generated and short-lived.
 
-Sơ đồ khái niệm:
+Conceptual diagram:
 
 ~~~text
 Client Alice                                     Server Bob
 
-Tạo ephemeral private a                         Tạo ephemeral private b
-Tạo public share A                              Tạo public share B
+Generate ephemeral private a                    Generate ephemeral private b
+Generate public share A                         Generate public share B
        |                                               |
        +---------------- A -------------------------->+
        +<--------------- B ---------------------------+
        |                                               |
 Z = DH(a, B)                                     Z = DH(b, A)
        |                                               |
-       +--------------- cùng Z ------------------------+
+       +--------------- same Z ------------------------+
                              |
                  KDF/HKDF + handshake context
                              |
                  Traffic secrets, keys, IVs
                              |
-             Bảo vệ dữ liệu qua AEAD record layer
+             Protect data via AEAD record layer
 ~~~
 
-**Không truyền a, b hoặc Z** trong handshake. Public shares A, B có thể bị ghi lại nhưng không đủ để tính Z theo giả định khó của (EC)DH cổ điển.
+**Neither a, b, nor Z is transmitted** in the handshake. Public shares A and B can be recorded, yet are insufficient to compute Z under classical (EC)DH hardness assumptions.
 
-Với **ECDHE**, phép toán diễn ra trên elliptic curve. Ví dụ nhóm hiện đại có thể là **X25519** hoặc **secp256r1** khi hai phía và provider hỗ trợ. Với finite-field DHE, dùng các nhóm DH đã được tiêu chuẩn hóa và đủ mạnh; **không tự sinh tham số DH yếu hoặc chọn nhóm không được tin cậy**.
+With **ECDHE**, arithmetic takes place over an elliptic curve. Modern groups can include **X25519** or **secp256r1** when supported by both sides and the provider. For finite-field DHE, use standardized, sufficiently strong DH groups; **never generate weak DH parameters yourself or pick untrusted groups**.
 
-### 3.1 Tại sao phải gắn chữ “ephemeral”?
+### 3.1 Why must it be "ephemeral"?
 
-Nếu dùng một private DH value cố định qua nhiều phiên, rò rỉ value đó có thể ảnh hưởng nhiều session và làm tăng tác động của compromise. Với fresh ephemeral keypair cho từng handshake và xóa đúng lúc, một private share đã kết thúc không còn sẵn để attacker thu thập ở T2.
+If a fixed DH private value were reused across many sessions, leaking that value could affect multiple sessions and amplify compromise impact. With fresh ephemeral key pairs per handshake and timely deletion, finished private shares are no longer available for an attacker to harvest at T2.
 
-**Không nên hiểu “ephemeral” chỉ là đặt tên biến tempKey**: phải thực sự dùng key material được sinh an toàn theo policy, không tái sử dụng không cần thiết, không ghi vào log/key dump, không persist trái ý muốn và giải phóng khi đã kết thúc.
+**"Ephemeral" does not mean merely naming a variable `tempKey`**: you must genuinely use securely generated key material per policy, avoid unnecessary reuse, avoid writing it to logs/key dumps, avoid unintended persistence, and release it once done.
 
-Các chi tiết cụ thể như khả năng pre-generate key shares, pool trong implementation, session resumption, KDF và thời điểm xóa phụ thuộc giao thức/runtime. Không tự viết một bộ thỏa thuận khóa qua socket rồi gọi nó là TLS chỉ vì có DH.
+Exact details such as pre-generating key shares, implementation pooling, session resumption, KDFs, and erasure timing depend on the protocol and runtime. Never write a custom key agreement over sockets and call it TLS merely because it uses DH.
 
-### 3.2 Shared secret không phải traffic key trực tiếp
+### 3.2 A shared secret is not a direct traffic key
 
-Một **KeyAgreement.generateSecret()** có thể trả mảng byte shared secret. Trong TLS 1.3, secret này được đưa vào **key schedule sử dụng HKDF** và handshake transcript để dẫn xuất nhiều secret/khóa theo ngữ cảnh:
+A **`KeyAgreement.generateSecret()`** call may return a byte array shared secret. In TLS 1.3, this secret feeds into the **HKDF-based key schedule** along with the handshake transcript to derive multiple context-bound secrets and keys:
 
 ~~~text
-(EC)DHE shared secret (+ PSK nếu handshake có PSK)
+(EC)DHE shared secret (+ PSK if handshake uses PSK)
                          |
                    TLS 1.3 key schedule
               HKDF-Extract / HKDF-Expand-Label
@@ -161,14 +161,14 @@ Một **KeyAgreement.generateSecret()** có thể trả mảng byte shared secre
 Handshake traffic secrets           Application traffic secrets
       |                                     |
   handshake keys                      traffic keys + IVs
-                                      theo chiều gửi/nhận
+                                      per send/receive direction
 ~~~
 
-**Không dùng raw DH shared secret làm AES key ngay** hoặc tự tạo key/IV bằng cách cắt byte tùy ý. Key schedule xử lý phân tách miền, handshake context, hướng gửi/nhận, cập nhật và các bảo đảm khác; implementation TLS phải lo việc đó theo chuẩn.
+**Never use a raw DH shared secret straight as an AES key** or build keys/IVs by slicing bytes arbitrarily. The key schedule handles domain separation, handshake context, send/receive direction, updates, and other guarantees; the TLS implementation must handle this per standard.
 
-### 3.3 Diffie-Hellman không xác thực thì gặp MITM
+### 3.3 Unauthenticated Diffie-Hellman is vulnerable to MITM
 
-Nếu Alice chỉ chấp nhận bất kỳ public share B nào nhận từ mạng, Eve có thể thay nó bằng public share của Eve, thực hiện một trao đổi khóa riêng với Alice và một trao đổi khóa khác với Bob. Hai phía có khóa, nhưng thực ra **mỗi phía trao đổi với Eve**.
+If Alice blindly accepts any public share B arriving from the network, Eve can substitute Eve's public share, running one key exchange with Alice and another with Bob. Both sides obtain keys, yet **each side actually exchanged keys with Eve**.
 
 ~~~text
 Alice                 Eve (MITM)                 Bob
@@ -181,19 +181,19 @@ Alice                 Eve (MITM)                 Bob
 Shared secret Alice-Eve        Shared secret Eve-Bob
 ~~~
 
-**Certificate + handshake authentication** là phần chống tấn công này: client phải kiểm tra chain/trust, hostname và bằng chứng server giữ private key định danh; chữ ký xác thực phải ràng buộc với **handshake transcript gồm phần trao đổi khóa**, không chỉ một public share tùy ý.
+**Certificate + handshake authentication** defeats this attack: the client must validate the chain/trust, hostname, and proof that the server holds the identity private key; the authentication signature must bind to the **handshake transcript including the key exchange**, not just an isolated public share.
 
-## 4. TLS 1.2: RSA key transport khác gì ECDHE_RSA?
+## 4. TLS 1.2: how does RSA key transport differ from ECDHE_RSA?
 
-### 4.1 TLS 1.2 với static RSA key exchange — không có FS
+### 4.1 TLS 1.2 with static RSA key exchange — no FS
 
-Trong kiểu **TLS_RSA_WITH_AES_...** trước đây, client tạo **premaster secret**, sau đó mã hóa nó bằng **public key RSA dài hạn trong server certificate** và gửi tới server. Server dùng private key RSA dài hạn để giải mã premaster secret và cùng client dẫn xuất session keys.
+In the legacy **`TLS_RSA_WITH_AES_...`** style, the client generates a **premaster secret**, encrypts it using the **long-term RSA public key in the server certificate**, and sends it to the server. The server uses its long-term RSA private key to decrypt the premaster secret and derive session keys alongside the client.
 
 ~~~text
 TLS 1.2 static RSA key transport:
 
 Client:
-   Tạo premaster_secret
+   Generate premaster_secret
    RSA_encrypt(server_certificate_public_key, premaster_secret)
                       |
                  network packet
@@ -203,59 +203,59 @@ Server:
    -> premaster_secret -> traffic keys
 ~~~
 
-Nếu Eve ghi lại encrypted premaster secret và bản ghi application traffic tại T1, sau đó đánh cắp RSA private key dài hạn tại T2, Eve **có thể giải mã premaster secret đã ghi và tính lại keying material phiên cũ** (trong điều kiện có đủ bản ghi và không có bảo vệ khác). Vì vậy cơ chế này **không có forward secrecy**.
+If Eve records the encrypted premaster secret and application traffic records at T1, then steals the long-term RSA private key at T2, Eve **can decrypt the recorded premaster secret and recompute the past session's keying material** (given complete records and no other protection). Thus, this mechanism **has no forward secrecy**.
 
-Đó là vấn đề cấu trúc, không phải vì RSA “luôn kém an toàn”. RSA còn có thể đóng vai trò **chữ ký định danh** trong handshake ECDHE_RSA có FS.
+That is a structural issue, not because RSA is "always insecure". RSA can still serve as an **identity signature** in an FS-capable `ECDHE_RSA` handshake.
 
-**Lưu ý trạng thái tiêu chuẩn:** RFC 10015 (2026) đã **deprecated** cơ chế RSA key exchange và một số cơ chế lỗi thời trong (D)TLS 1.2. TLS 1.3 không có static RSA key transport. Tài liệu Java cũ vẫn có thể liệt kê một số cipher suite legacy vì lý do compatibility, nhưng việc nhận ra tên suite cũ không có nghĩa nên bật nó trong cấu hình hiện đại.
+**Standards status note:** RFC 10015 (2026) **deprecated** RSA key exchange and several obsolete mechanisms in (D)TLS 1.2. TLS 1.3 has no static RSA key transport. Legacy Java documentation may still list old cipher suites for compatibility reasons, yet recognizing an old suite name does not mean enabling it in modern configurations.
 
-### 4.2 TLS 1.2 với ECDHE_RSA — có thể có FS
+### 4.2 TLS 1.2 with ECDHE_RSA — can provide FS
 
-Trong **TLS_ECDHE_RSA_...**:
+In **`TLS_ECDHE_RSA_...`**:
 
-1. Client và server trao đổi ephemeral ECDHE shares.
-2. Server chứng minh quyền giữ private key định danh RSA bằng chữ ký trên tham số handshake theo giao thức TLS 1.2 (điển hình **ServerKeyExchange**).
-3. Client xác thực chuỗi chứng thư/hostname và chữ ký.
-4. Cả hai dẫn xuất premaster/shared secret qua ECDHE, không cần giải mã ciphertext của premaster bằng khóa RSA dài hạn.
-5. Khi ephemeral secrets biến mất và các giả định an toàn thỏa mãn, lấy RSA identity private key **sau phiên** không đủ để giải mã traffic cũ.
+1. Client and server exchange ephemeral ECDHE shares.
+2. The server proves possession of its RSA identity private key by signing handshake parameters per TLS 1.2 (typically **`ServerKeyExchange`**).
+3. The client verifies the certificate chain/hostname and signature.
+4. Both derive the premaster/shared secret via ECDHE, without decrypting a premaster ciphertext with the long-term RSA key.
+5. Once ephemeral secrets vanish and security assumptions hold, stealing the RSA identity private key **after the session** is insufficient to decrypt past traffic.
 
 ~~~text
 TLS 1.2 ECDHE_RSA:
 
-RSA certificate/private key dài hạn:
-    xác thực/chữ ký thông điệp ECDHE trong handshake
+Long-term RSA certificate/private key:
+    authenticates/signs ECDHE parameters in handshake
 
 Client ephemeral a, server ephemeral b:
     ECDHE(a, B) == ECDHE(b, A) -> premaster/master/traffic keys
 
-Lộ RSA private key sau phiên:
-    có thể giả mạo identity về sau,
-    nhưng không tự cung cấp ephemeral shared secret đã dùng.
+Post-session compromise of RSA private key:
+    can impersonate identity going forward,
+    but does not yield the ephemeral shared secret already used.
 ~~~
 
-### 4.3 Bảng phân biệt TLS 1.2
+### 4.3 TLS 1.2 distinction table
 
-| Cipher suite / cơ chế | Key exchange | Vai trò certificate/key dài hạn | FS trước việc lộ certificate private key sau phiên? |
+| Cipher suite / mechanism | Key exchange | Role of long-term certificate/key | FS against post-session certificate private key compromise? |
 | --- | --- | --- | --- |
-| **TLS_RSA_WITH_AES_128_GCM_SHA256** | RSA key transport | RSA private key giải mã premaster secret | **Không** |
-| **TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256** | ECDHE tạm thời | RSA ký/xác thực handshake | **Có, với điều kiện của ECDHE và vận hành đúng** |
-| **TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256** | ECDHE tạm thời | ECDSA ký/xác thực handshake | **Có, với điều kiện tương ứng** |
-| **DHE_RSA** (biến thể phù hợp) | Finite-field DHE tạm thời | RSA xác thực | **Có**, nếu dùng nhóm mạnh, ephemeral đúng |
-| **DH/ECDH static** | Khóa DH dài hạn/tĩnh | Có thể liên quan identity/certificate | Không tự cung cấp FS như trao đổi ephemeral |
+| **TLS_RSA_WITH_AES_128_GCM_SHA256** | RSA key transport | RSA private key decrypts premaster secret | **No** |
+| **TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256** | Ephemeral ECDHE | RSA signs/authenticates handshake | **Yes, under ECDHE conditions and proper operations** |
+| **TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256** | Ephemeral ECDHE | ECDSA signs/authenticates handshake | **Yes, under corresponding conditions** |
+| **DHE_RSA** (eligible variants) | Ephemeral finite-field DHE | RSA authenticates | **Yes**, if strong groups and proper ephemeral handling are used |
+| **Static DH/ECDH** | Long-term/static DH keys | May tie into identity/certificate | Does not provide FS like ephemeral exchange |
 
-Tên suite quan trọng trong **TLS 1.2** vì nó chứa cơ chế key exchange/auth. Đừng áp dụng cùng cách đọc tên suite sang TLS 1.3.
+Suite names matter in **TLS 1.2** because they encode key exchange/auth mechanisms. Never apply the same suite-name reading rule to TLS 1.3.
 
-## 5. TLS 1.3: trao đổi khóa tạm thời và xác thực theo chứng thư
+## 5. TLS 1.3: ephemeral key exchange and certificate authentication
 
-Trong **TLS 1.3 full handshake dựa trên chứng thư**, trao đổi khóa và xác thực identity được thiết kế **tách chức năng rõ ràng**:
+In a **certificate-based TLS 1.3 full handshake**, key exchange and identity authentication are designed with **clear functional separation**:
 
-- **ClientHello / ServerHello, key_share:** trao đổi giá trị công khai của (EC)DHE.
-- **Certificate:** server công bố chuỗi chứng thư xác thực identity.
-- **CertificateVerify:** server chứng minh quyền giữ private key định danh bằng **chữ ký số ràng buộc với handshake transcript và ngữ cảnh TLS**.
-- **Finished:** MAC xác nhận handshake transcript và quyền sở hữu handshake secret thích hợp; phát hiện sửa đổi handshake theo thiết kế.
-- **HKDF key schedule:** dẫn xuất các secret/traffic keys từ (EC)DHE secret và ngữ cảnh handshake, tách theo giai đoạn/hướng.
+- **ClientHello / ServerHello, key_share:** exchanges public (EC)DHE values.
+- **Certificate:** server presents the certificate chain authenticating identity.
+- **CertificateVerify:** server proves possession of the identity private key via a **digital signature bound to the handshake transcript and TLS context**.
+- **Finished:** MAC confirming the handshake transcript and possession of the right handshake secret; detects handshake tampering by design.
+- **HKDF key schedule:** derives secrets/traffic keys from the (EC)DHE secret and handshake context, separated by phase and direction.
 
-Sơ đồ giản lược:
+Simplified diagram:
 
 ~~~text
 Client                                             Server
@@ -266,7 +266,7 @@ Client                                             Server
   |       ServerHello + selected key_share B         |
   |<-------------------------------------------------+
   |                                                  |
-  |      [Hai phía đã có Z = (EC)DHE(a,B)/(b,A)]     |
+  |     [Both sides now hold Z = (EC)DHE(a,B)/(b,A)] |
   |                                                  |
   |            EncryptedExtensions                   |
   |            Certificate (server identity)         |
@@ -283,161 +283,161 @@ Client                                             Server
   |<======== encrypted application data ============>|
 ~~~
 
-Đây là **sơ đồ mô tả**, không phải bản sao toàn bộ message-level TLS 1.3. Tùy handshake, có thể có CertificateRequest, client Certificate/CertificateVerify khi mTLS, HelloRetryRequest, resumption/PSK và các extension khác.
+This is an **illustrative diagram**, not a complete message-level replica of TLS 1.3. Depending on the handshake, `CertificateRequest`, client `Certificate`/`CertificateVerify` in mTLS, `HelloRetryRequest`, resumption/PSK, and other extensions may appear.
 
-**Điều quan trọng:** Trong full certificate handshake, **private key của chứng thư dùng để xác thực**, không dùng làm bí mật tĩnh để giải mã shared secret (EC)DHE. Certificate không “chứa khóa phiên”, cũng không “gửi khóa phiên được mã hóa” theo cách RSA key transport TLS 1.2.
+**Crucial point:** In a full certificate handshake, **the certificate's private key is used for authentication**, not as a static secret to decrypt an (EC)DHE shared secret. The certificate neither "contains the session key" nor "carries an encrypted session key" as in TLS 1.2 RSA key transport.
 
-### 5.1 CertificateVerify ràng buộc điều gì?
+### 5.1 What does `CertificateVerify` bind?
 
-Trong TLS 1.3, signature của CertificateVerify được tính theo định dạng có **context string** và **hash của handshake transcript** theo chuẩn, bằng thuật toán chữ ký đã thỏa thuận. Nó **không chỉ là ký chuỗi "hello"** hoặc ký mỗi key share đơn lẻ.
+In TLS 1.3, the `CertificateVerify` signature is computed over a standardized format containing a **context string** and the **handshake transcript hash**, using the negotiated signature algorithm. It **is not merely signing the string `"hello"`** or signing an isolated key share.
 
-Việc ràng buộc transcript giúp client phát hiện kẻ giữa đường tráo các thành phần handshake, nếu signature và PKI validation được thực hiện đúng. Chữ ký xác thực rằng peer giữ private key định danh phù hợp với certificate đã được chấp nhận, còn (EC)DHE tạo secret tạm thời.
+Binding the transcript enables the client to detect a MITM swapping handshake components, provided signature and PKI validation are performed properly. The signature proves the peer holds the identity private key matching the accepted certificate, while (EC)DHE produces the ephemeral secret.
 
-**Chữ ký không tự xác minh SAN/hostname, trust chain, thời hạn, EKU và policy.** Những kiểm tra này là trách nhiệm của certificate/path/endpoint identity validation trong TLS stack.
+**The signature alone does not verify SAN/hostname, trust chain, validity dates, EKU, and policy.** Those checks remain the responsibility of certificate/path/endpoint identity validation in the TLS stack.
 
-### 5.2 Finished là bước gì?
+### 5.2 What step is `Finished`?
 
-**Finished** xác nhận hai bên đã đi tới keying material phù hợp và ràng buộc **nội dung handshake** bằng MAC có khóa. Nếu handshake bị sửa mà không có secret đúng, Finished không xác minh thành công.
+**Finished** confirms both sides arrived at matching keying material and binds the **handshake contents** with a keyed MAC. If the handshake was modified without the proper secret, `Finished` verification fails.
 
-Không nên rút gọn “TLS an toàn vì có CertificateVerify”. An toàn handshake đến từ **nhiều phép kiểm tra liên kết**: version/cipher suite selection, key shares, transcript signatures, Finished, certificate validation và tính toàn vẹn record layer.
+Do not reduce this to "TLS is secure because it has `CertificateVerify`". Handshake security arises from **multiple interlocking checks**: version/cipher suite selection, key shares, transcript signatures, `Finished`, certificate validation, and record-layer integrity.
 
-### 5.3 Certificate RSA không đồng nghĩa RSA key transport
+### 5.3 An RSA certificate does not mean RSA key transport
 
-Trong TLS 1.3, server có thể dùng RSA certificate để **ký handshake** với signature algorithm phù hợp; điều đó **không phục hồi static RSA key transport**. Một TLS 1.3 cipher suite như:
+In TLS 1.3, a server can use an RSA certificate to **sign the handshake** with an appropriate signature algorithm; that **does not reintroduce static RSA key transport**. A TLS 1.3 cipher suite like:
 
 ~~~text
 TLS_AES_128_GCM_SHA256
 ~~~
 
-nêu **AEAD cipher và hash** của bộ mã, **không mã hóa tên key exchange hoặc phương thức chữ ký** trong chính tên suite. Nhìn SSLSession.getCipherSuite() chỉ ra chuỗi trên không đủ để biết group X25519/secp256r1 hay chứng thư RSA/ECDSA mà peer đã dùng.
+names the **AEAD cipher and hash** of the suite, **without encoding the key exchange or signature scheme** in the suite name itself. Seeing `SSLSession.getCipherSuite()` return that string does not tell you whether the peer used X25519/secp256r1 or an RSA/ECDSA certificate.
 
-Với TLS 1.3, cần xem **protocol version, kiểu handshake (full/PSK), key_share/PSK mode, certificate/signature và JSSE handshake diagnostics** nếu muốn xác nhận chi tiết FS.
+With TLS 1.3, inspect the **protocol version, handshake type (full/PSK), `key_share`/PSK mode, certificate/signature, and JSSE handshake diagnostics** to verify FS details.
 
-### 5.4 TLS 1.3 có luôn forward secrecy không?
+### 5.4 Does TLS 1.3 always have forward secrecy?
 
-Không được trả lời một từ “luôn” mà bỏ qua **PSK-only và 0-RTT**.
+You cannot answer with a blanket "always" while ignoring **PSK-only and 0-RTT**.
 
-Theo **RFC 9846 (tháng 7/2026)**, tiêu chuẩn TLS 1.3 hiện hành thay thế RFC 8446, giữ các nguyên tắc quan trọng:
+According to **RFC 9846 (July 2026)**, the current TLS 1.3 specification replacing RFC 8446, core principles remain:
 
-- Khi **public-key handshake dùng fresh (EC)DHE**, thiết kế cung cấp FS theo mô hình mật mã, nếu secret tạm thời/traffic secret được quản lý đúng.
-- TLS 1.3 hỗ trợ **PSK-only (psk_ke)**; mode này **không mặc nhiên cung cấp FS trước việc lộ PSK được giữ lại**, vì không có fresh DH share đóng góp vào shared secret.
-- TLS 1.3 hỗ trợ **PSK + (EC)DHE (psk_dhe_ke)**; fresh DH giúp FS cho traffic 1-RTT được dẫn xuất theo mode này.
-- **0-RTT early data** dựa trên PSK và **không có bảo đảm forward secrecy đầy đủ như 1-RTT DHE**; đồng thời có vấn đề **replay giữa các kết nối**.
-- Với một số cách quản lý PSK và session ticket **một lần rồi xóa mọi bản sao**, phạm vi compromise có thể hẹp hơn; đó là **thuộc tính vận hành phụ thuộc thời điểm xóa PSK**, không phải lời hứa “PSK-only luôn bằng DHE”.
+- When a **public-key handshake uses fresh (EC)DHE**, the design provides FS under the cryptographic model, provided ephemeral/traffic secrets are properly managed.
+- TLS 1.3 supports **PSK-only (`psk_ke`)**; this mode **does not inherently provide FS against compromise of a retained PSK**, because no fresh DH share contributes to the shared secret.
+- TLS 1.3 supports **PSK + (EC)DHE (`psk_dhe_ke`)**; fresh DH provides FS for 1-RTT traffic derived under this mode.
+- **0-RTT early data** relies on PSK and **lacks full forward secrecy guarantees like 1-RTT DHE**; it also introduces **cross-connection replay issues**.
+- Under single-use PSK/session ticket schemes that delete all copies immediately, compromise exposure may be narrower; that is an **operational property depending on PSK deletion timing**, not a promise that "PSK-only always equals DHE".
 
-Nguồn cập nhật: [RFC 9846 — The Transport Layer Security (TLS) Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc9846.html), đặc biệt §2.2–2.3 và Appendix F.
+Updated reference: [RFC 9846 — The Transport Layer Security (TLS) Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc9846.html), especially §2.2–2.3 and Appendix F.
 
-## 6. Resumption, PSK, 0-RTT và những ngoại lệ dễ bỏ sót
+## 6. Resumption, PSK, 0-RTT, and easily missed exceptions
 
-### 6.1 PSK là gì?
+### 6.1 What is a PSK?
 
-**Pre-Shared Key (PSK)** là bí mật mà hai phía đã có trước handshake (do cấp ngoài hoặc được dẫn xuất từ một kết nối trước). Trong TLS 1.3, session resumption có thể dùng resumption PSK và ticket để thiết lập kết nối mới nhanh hơn.
+A **Pre-Shared Key (PSK)** is a secret shared by both sides prior to a handshake (provisioned externally or derived from an earlier connection). In TLS 1.3, session resumption can use a resumption PSK and ticket to establish a subsequent connection faster.
 
-**PSK không phải private key X.509.** Một server có thể sử dụng certificate trong full handshake ban đầu, nhưng một resumption handshake theo PSK có thể không gửi lại certificate tương tự. Phải hiểu TLS state/session và chính sách trust của ứng dụng.
+**A PSK is not an X.509 private key.** A server may present a certificate during the initial full handshake, yet a PSK-based resumption handshake might not resend that certificate. You must understand TLS state/sessions and your application's trust policy.
 
-### 6.2 So sánh psk_ke và psk_dhe_ke
+### 6.2 Comparing `psk_ke` and `psk_dhe_ke`
 
 ~~~text
 TLS 1.3 psk_ke:
     PSK ----------------> key schedule -> traffic keys
-    (Không có fresh key_share đóng góp)
-    => Nếu PSK được giữ và lộ sau này, không có bảo đảm FS
-       tương tự trao đổi fresh (EC)DHE.
+    (No fresh key_share contributes)
+    => If PSK is retained and later compromised, lacks FS guarantees
+       comparable to fresh (EC)DHE exchange.
 
 TLS 1.3 psk_dhe_ke:
     PSK ------------------+
                           +--> key schedule -> traffic keys
     Fresh (EC)DHE Z ------+
-    => FS của traffic 1-RTT khi bảo vệ/xóa ephemeral đúng,
-       dưới các giả định của giao thức.
+    => FS for 1-RTT traffic when ephemerals are properly protected/erased,
+       under protocol assumptions.
 ~~~
 
-**Không được tự suy luận rằng tất cả các session HTTPS dùng PSK đều mất FS**: cần kiểm tra mode, thời điểm PSK bị lộ và lifecycle. Ngược lại, nhìn thấy “TLS 1.3” cũng không tự chứng minh handshake chọn fresh DHE trong mọi trường hợp.
+**Do not assume all HTTPS sessions using PSK lose FS**: examine the mode, when the PSK could be exposed, and its lifecycle. Conversely, seeing "TLS 1.3" does not prove every handshake performed fresh DHE.
 
 ### 6.3 0-RTT early data
 
-Khi client có PSK từ lần kết nối trước, TLS 1.3 có thể cho phép gửi một số application data trong **first flight** của handshake mới. Điều này giảm độ trễ nhưng đánh đổi thuộc tính bảo mật:
+When a client holds a PSK from a prior connection, TLS 1.3 can allow sending some application data in the **first flight** of a new handshake. This cuts latency while trading off security properties:
 
-- **Không có bảo đảm FS đầy đủ cho early data**; khóa early data được dẫn xuất từ PSK trước khi nhận fresh ServerHello key share.
-- **Có nguy cơ replay** giữa nhiều kết nối; attacker có thể thử gửi lại early data đã ghi.
-- Các thao tác có side effect, như **chuyển tiền, mua hàng, tạo đơn, thay đổi mật khẩu**, không nên mặc định cho phép trong 0-RTT; cần profile ứng dụng rõ ràng và biện pháp chống replay/idempotency phù hợp.
-- **1-RTT application data sau handshake** có thể nhận tính bảo vệ khác khi dùng PSK+(EC)DHE; không nên gộp tất cả traffic TLS 1.3 thành một câu “forward secret” duy nhất.
+- **No full FS guarantee for early data**; early-data keys are derived from the PSK before receiving a fresh `ServerHello` key share.
+- **Replay risk** across multiple connections; an attacker can attempt to replay captured early data.
+- Side-effecting operations such as **money transfers, purchases, order creation, or password changes** should not be allowed in 0-RTT by default; explicit application profiles and replay/idempotency protections are required.
+- **1-RTT application data after the handshake** can receive different protection when using PSK+(EC)DHE; never lump all TLS 1.3 traffic under a single "forward secret" claim.
 
-RFC 9846 yêu cầu ứng dụng không bật 0-RTT nếu không có chủ đích, và không gửi early data không an toàn khi bị replay. Đối với Java/JSSE, hỗ trợ thực tế cho 0-RTT phụ thuộc bản JDK/provider/API; không giả định JSSE Java 17 phổ biến luôn bật 0-RTT.
+RFC 9846 requires applications not to enable 0-RTT unintentionally and not to send unsafe replayable early data. In Java/JSSE, actual 0-RTT support depends on the JDK version, provider, and API; never assume common Java 17 JSSE enables 0-RTT automatically.
 
-### 6.4 Session ticket encryption key và vòng đời PSK
+### 6.4 Session ticket encryption keys and PSK lifecycle
 
-Một server có thể phát hành session ticket để resumption. Nếu ticket được mã hóa/xác thực bằng một **server ticket protection key** tồn tại lâu, hoặc resumption PSK được lưu trong cache/DB quá lâu, compromise hạ tầng ticket có thể ảnh hưởng các kết nối nối lại.
+A server may issue session tickets for resumption. If tickets are encrypted/authenticated by a long-lived **server ticket protection key**, or resumption PSKs stay in a cache/DB too long, compromising the ticket infrastructure can impact resumed connections.
 
-Kiểm soát cần có:
+Necessary controls:
 
-- Thời hạn session ticket/resumption PSK thích hợp.
-- Rotation và hạn chế quyền truy cập ticket keys.
-- Xóa key/PSK không còn cần; không log session secrets.
-- Quy tắc single-use hoặc anti-replay nếu ứng dụng cho phép early data.
-- Phân biệt full handshake, resumption psk_ke, resumption psk_dhe_ke.
-- Không thiết kế “forward secrecy” chỉ dựa trên private key certificate mà quên nơi lưu PSK/session tickets.
+- Appropriate lifetimes for session tickets and resumption PSKs.
+- Rotation and strict access control for ticket keys.
+- Deleting unneeded keys/PSKs; never logging session secrets.
+- Single-use or anti-replay rules if the application allows early data.
+- Distinguishing full handshake, `psk_ke` resumption, and `psk_dhe_ke` resumption.
+- Never designing "forward secrecy" around only the certificate private key while forgetting where PSKs/session tickets are stored.
 
-## 7. Tấn công và giới hạn: hiểu đúng lời hứa của FS
+## 7. Attacks and limits: understanding FS promises accurately
 
-### 7.1 Lộ private key chứng thư sau khi phiên cũ kết thúc
+### 7.1 Certificate private key compromised after past sessions ended
 
-**Điều có thể xảy ra:**
+**What can happen:**
 
-- TLS 1.2 RSA key transport: attacker có thể giải mã premaster secret đã bị ghi trong handshake; rủi ro giải mã traffic cũ.
-- TLS 1.2 ECDHE và TLS 1.3 full handshake (EC)DHE: khóa định danh không đủ để tính shared secret cũ; traffic cũ có thể được bảo vệ, miễn secret tạm thời không bị lộ.
-- Trong các handshake mới, attacker đang giữ identity private key **có thể giả mạo server**, vì signature/authentication bị compromise. FS **không tự ngăn** việc giả mạo tương lai.
+- TLS 1.2 RSA key transport: attacker can decrypt recorded premaster secrets from the handshake; risk of decrypting past traffic.
+- TLS 1.2 ECDHE and TLS 1.3 full (EC)DHE handshake: the identity key alone is insufficient to compute past shared secrets; past traffic stays protected as long as ephemeral secrets were not exposed.
+- In new handshakes, an attacker holding the identity private key **can impersonate the server**, because signature/authentication is compromised. FS **does not prevent** future impersonation.
 
-**Việc cần làm khi mất private key định danh:** thu hồi/rotation certificate và khóa, khóa quyền truy cập, điều tra sự cố, cập nhật trust/deployment và phạm vi ảnh hưởng. Bản ghi cũ có FS không phải lý do bỏ qua incident response.
+**Actions when an identity private key is lost:** revoke/rotate certificates and keys, lock down access, investigate the incident, update trust/deployments, and assess scope. Past records having FS is never a reason to skip incident response.
 
-### 7.2 Attacker có traffic secrets hoặc endpoint memory
+### 7.2 Attacker holds traffic secrets or endpoint memory
 
-FS **không** có khả năng xóa ảnh hưởng của dữ liệu từng được attacker đọc. Nếu attacker thu thập:
+FS **cannot** erase exposure of data already read by an attacker. If an attacker obtains:
 
-- Plaintext ở reverse proxy, application logs, traces, heap dump.
-- Ephemeral private key trong lúc phiên đang hoạt động.
-- (EC)DHE shared secret/handshake traffic secret.
-- Application traffic keys hoặc key log export (ví dụ key log files dùng cho packet analysis).
-- Một session ticket/PSK vẫn có giá trị dưới mode resumption phù hợp.
+- Plaintext at reverse proxies, application logs, traces, or heap dumps.
+- Ephemeral private keys while a session is active.
+- (EC)DHE shared secrets or handshake traffic secrets.
+- Application traffic keys or exported key logs (e.g., key log files used for packet analysis).
+- A session ticket/PSK still valid under an eligible resumption mode.
 
-thì một số phiên hoặc dữ liệu có thể bị giải mã/giả mạo. Bảo vệ endpoint, memory dump, debug settings và secret storage vẫn quan trọng **ngay cả khi dùng TLS 1.3**.
+then affected sessions or data can be decrypted or forged. Endpoint hardening, memory-dump hygiene, debug settings, and secret storage remain vital **even when using TLS 1.3**.
 
-### 7.3 KeyUpdate không phải phép trao đổi DH mới
+### 7.3 `KeyUpdate` is not a new DH exchange
 
-TLS 1.3 có cơ chế **KeyUpdate** để dẫn xuất generation traffic keys mới từ secret hiện có. Điều này hữu ích cho giới hạn sử dụng khóa và bảo vệ một số thế hệ cũ nếu key cũ đã được xóa.
+TLS 1.3 provides a **`KeyUpdate`** mechanism to derive a new generation of traffic keys from the existing secret. This helps enforce key-usage limits and protects earlier generations if old keys were erased.
 
-Nhưng **KeyUpdate không tự chạy lại (EC)DHE**. Nếu attacker đã nắm **traffic secret hiện tại**, việc chỉ dẫn xuất thế hệ mới từ secret đó **không tự tạo post-compromise security cho tương lai**. Đừng nhầm FS trước compromise với khả năng “tự hồi phục” sau khi attacker kiểm soát session secret.
+However, **`KeyUpdate` does not re-run (EC)DHE**. If an attacker already holds the **current traffic secret**, merely deriving a new generation from that secret **does not provide post-compromise security going forward**. Never confuse pre-compromise FS with "self-healing" after an attacker steals a live session secret.
 
-Theo phân tích an toàn của RFC 9846, để giảm tác hại của một số loại compromise cho kết nối mới cần **trao đổi khóa bất đối xứng mới**, không chỉ đổi tên key.
+Per RFC 9846's security analysis, mitigating certain compromises for new connections requires a **fresh asymmetric key exchange**, not merely ratcheting the same secret.
 
-### 7.4 Forward secrecy không phải post-quantum security
+### 7.4 Forward secrecy is not post-quantum security
 
-Một attacker có thể ghi lại public DH shares và ciphertext hôm nay. Nếu sau này có năng lực giải bài toán DH/ECDH hiện tại từ public shares (ví dụ năng lực lượng tử đủ mạnh theo mô hình Shor), việc private key định danh đã bị xóa **không còn là vấn đề quyết định**. Vì vậy **FS cổ điển** không đồng nghĩa an toàn trước “harvest now, decrypt later” trong mô hình lượng tử.
+An attacker can record public DH shares and ciphertext today. If future capabilities can solve today's DH/ECDH problem from public shares (such as sufficiently powerful quantum computers running Shor's algorithm), having deleted the identity private key **is no longer decisive**. Therefore, **classical FS** does not equal protection against "harvest now, decrypt later" in a quantum threat model.
 
-Giảm rủi ro HNDL trong tương lai cần đánh giá các giao thức/hybrid post-quantum key establishment đã được chuẩn hóa và triển khai phù hợp, không tự nối X25519 với một thuật toán bất kỳ trong code ứng dụng. **X25519 trong ví dụ Java của bài này là mô hình cổ điển**, không đại diện một bảo đảm post-quantum.
+Reducing future HNDL risk requires evaluating standardized post-quantum or hybrid key-establishment protocols and deploying them properly—not concatenating X25519 with an arbitrary algorithm in application code. **X25519 in this lesson's Java example is a classical model**, not a post-quantum guarantee.
 
-### 7.5 Ứng dụng lưu lại plaintext vẫn có thể làm mất ý nghĩa bảo vệ
+### 7.5 Applications storing plaintext can still negate protection
 
-Một TLS terminator/reverse proxy có thể giải mã traffic, sau đó chuyển plaintext vào service nội bộ hoặc lưu xuống log/database. FS chỉ có ý nghĩa cho **traffic TLS được mã hóa theo phiên**, không tự bảo vệ plaintext đã tồn tại ngoài kết nối đó.
+A TLS terminator or reverse proxy can decrypt traffic, then forward plaintext to internal services or store it in logs/databases. FS applies only to **per-session encrypted TLS traffic**, and does not automatically protect plaintext copies existing outside that connection.
 
-Kiểm tra cả đường đi của dữ liệu: client → CDN/LB/proxy → app → DB/queue/log, và từng ranh giới trust. Một hệ thống nói “TLS có PFS” nhưng lưu access tokens/raw payload vào log công khai vẫn có vấn đề bảo mật nghiêm trọng.
+Trace the full data path: client → CDN/LB/proxy → app → DB/queue/logs, and every trust boundary. A system boasting "TLS with PFS" that writes access tokens or raw payloads into public logs still has a severe security flaw.
 
-## 8. Java 17+: mô phỏng hai vai trò, không tự xây TLS
+## 8. Java 17+: simulating the two roles without building custom TLS
 
-Java có JCA/JCE cho phép học primitives bên dưới:
+Java's JCA/JCE exposes the underlying primitives for learning:
 
-- **KeyPairGenerator.getInstance("X25519")** sinh một cặp khóa X25519 tạm thời.
-- **KeyAgreement.getInstance("X25519")** cho hai phía tạo shared secret trùng nhau.
-- **KeyPairGenerator.getInstance("Ed25519")** sinh một cặp khóa định danh mẫu.
-- **Signature.getInstance("Ed25519")** ký/xác minh một transcript minh họa.
+- **`KeyPairGenerator.getInstance("X25519")`** generates an ephemeral X25519 key pair.
+- **`KeyAgreement.getInstance("X25519")`** lets two sides compute a matching shared secret.
+- **`KeyPairGenerator.getInstance("Ed25519")`** generates a sample identity key pair.
+- **`Signature.getInstance("Ed25519")`** signs/verifies an illustrative transcript.
 
-Trong ví dụ, server giữ một **khóa định danh dài hạn Ed25519**, client biết trước **public key định danh đã tin**. Hai phía sinh fresh X25519 cho từng handshake và tạo secret riêng. Server ký một transcript có chứa **cả hai public ephemeral shares**, client xác thực chữ ký bằng public key định danh đã biết.
+In this example, the server holds a **long-term Ed25519 identity key**, and the client knows the **trusted identity public key** in advance. Both sides generate fresh X25519 pairs per handshake and compute their secret. The server signs a transcript containing **both ephemeral public shares**, and the client verifies the signature with the known identity public key.
 
-**Ranh giới cực kỳ quan trọng:** Đây là **mô hình giáo dục**, **không phải TLS 1.3 implementation**. Trong TLS thật, CertificateVerify có định dạng ngữ cảnh và transcript do RFC quy định; cần certificate/path/hostname validation, Finished MAC, HKDF key schedule, cipher suite negotiation, AEAD record framing, replay/downgrade protections, error handling và nhiều kiểm soát khác. **Không gửi hai public shares + chữ ký dưới định dạng demo này lên mạng sản xuất**.
+**Critical boundary:** This is an **educational model**, **not a TLS 1.3 implementation**. Real TLS defines specific context strings and transcript formats for `CertificateVerify`; requires certificate/path/hostname validation, `Finished` MACs, HKDF key schedule, cipher suite negotiation, AEAD record framing, replay/downgrade protections, error handling, and many other controls. **Never send two public shares + a signature in this demo format over a production network.**
 
-### 8.1 Chương trình Java 17+ hoàn chỉnh
+### 8.1 Complete Java 17+ program
 
-Tạo file **EphemeralIdentityDemo.java** (UTF-8):
+Create **`EphemeralIdentityDemo.java`** (UTF-8):
 
 ~~~java
 import java.nio.ByteBuffer;
@@ -447,8 +447,8 @@ import java.util.Arrays;
 import javax.crypto.KeyAgreement;
 
 public class EphemeralIdentityDemo {
-    // Transcript mô phỏng có domain separation và độ dài từng trường.
-    // Không phải Transcript/CertificateVerify format của TLS 1.3.
+    // Simulated transcript with domain separation and per-field lengths.
+    // Not the TLS 1.3 Transcript/CertificateVerify format.
     private static byte[] transcript(PublicKey client, PublicKey server) {
         byte[] ctx = "educational-ephemeral-v1"
                 .getBytes(StandardCharsets.UTF_8);
@@ -487,11 +487,11 @@ public class EphemeralIdentityDemo {
     }
 
     public static void main(String[] args) throws Exception {
-        // Mô phỏng identity dài hạn của server, ví dụ key của certificate.
+        // Simulate the server's long-term identity, e.g., certificate key.
         KeyPairGenerator idGen = KeyPairGenerator.getInstance("Ed25519");
         KeyPair longTermServerIdentity = idGen.generateKeyPair();
 
-        // Mỗi handshake có hai cặp ephemeral X25519 riêng.
+        // Each handshake uses two separate ephemeral X25519 key pairs.
         KeyPairGenerator ephemeralGen =
                 KeyPairGenerator.getInstance("X25519");
         KeyPair c = ephemeralGen.generateKeyPair();
@@ -500,7 +500,7 @@ public class EphemeralIdentityDemo {
         byte[] secretC = agree(c, s.getPublic());
         byte[] secretS = agree(s, c.getPublic());
 
-        // Server ký transcript dùng khóa định danh dài hạn.
+        // Server signs the transcript using its long-term identity key.
         byte[] handshake = transcript(c.getPublic(), s.getPublic());
         byte[] signed = sign(
                 longTermServerIdentity.getPrivate(), handshake);
@@ -512,7 +512,7 @@ public class EphemeralIdentityDemo {
                 + verify(longTermServerIdentity.getPublic(),
                          handshake, signed));
 
-        // Một attacker thay public share của server trong transcript.
+        // An attacker swaps the server's public share in the transcript.
         KeyPair fakeServerShare = ephemeralGen.generateKeyPair();
         byte[] tampered = transcript(
                 c.getPublic(), fakeServerShare.getPublic());
@@ -520,7 +520,7 @@ public class EphemeralIdentityDemo {
                 + !verify(longTermServerIdentity.getPublic(),
                           tampered, signed));
 
-        // Handshake độc lập khác dùng fresh ephemeral keypairs.
+        // Another independent handshake uses fresh ephemeral key pairs.
         KeyPair nextClient = ephemeralGen.generateKeyPair();
         KeyPair nextServer = ephemeralGen.generateKeyPair();
         byte[] nextSecret = agree(
@@ -528,7 +528,7 @@ public class EphemeralIdentityDemo {
         System.out.println("Fresh exchange differs: "
                 + !MessageDigest.isEqual(secretC, nextSecret));
 
-        // Giảm vòng đời các byte[] secret do chương trình trực tiếp giữ.
+        // Shorten the lifetime of secret byte[] arrays directly held by the program.
         Arrays.fill(secretC, (byte) 0);
         Arrays.fill(secretS, (byte) 0);
         Arrays.fill(nextSecret, (byte) 0);
@@ -536,14 +536,14 @@ public class EphemeralIdentityDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 EphemeralIdentityDemo.java
 java EphemeralIdentityDemo
 ~~~
 
-Stdout dự kiến với provider Java 17+ hỗ trợ **X25519** và **Ed25519**:
+Expected stdout on a Java 17+ provider supporting **X25519** and **Ed25519**:
 
 ~~~text
 X25519 secrets agree: true
@@ -553,64 +553,64 @@ Modified share rejected: true
 Fresh exchange differs: true
 ~~~
 
-**Giải thích từng dòng:**
+**Line-by-line explanation:**
 
-1. **X25519 secrets agree: true** — client và server cùng tính một secret từ cặp private/public tạm thời tương ứng.
-2. **Shared secret bytes: 32** — X25519 trả 32 byte shared secret.
-3. **Identity signature valid: true** — transcript gốc được ký bằng private key Ed25519; public key **được giả định đã được client tin** xác minh đúng chữ ký.
-4. **Modified share rejected: true** — khi server ephemeral share bị tráo trong transcript nhưng chữ ký cũ không đổi, việc xác minh **signature** thất bại.
-5. **Fresh exchange differs: true** — trao đổi X25519 độc lập dùng fresh keypairs cho secret khác với xác suất áp đảo.
+1. **`X25519 secrets agree: true`** — client and server compute the exact same secret from their matching ephemeral private/public key pairs.
+2. **`Shared secret bytes: 32`** — X25519 outputs a 32-byte shared secret.
+3. **`Identity signature valid: true`** — the original transcript was signed with the Ed25519 private key; the public key **assumed already trusted by the client** verifies the signature.
+4. **`Modified share rejected: true`** — when the server's ephemeral share is swapped in the transcript while keeping the old signature, **signature** verification fails.
+5. **`Fresh exchange differs: true`** — an independent X25519 exchange using fresh key pairs produces a different secret with overwhelming probability.
 
-**Không in raw private keys/shared secrets** trong stdout; đây là dữ liệu mật mã nhạy cảm. Raw public keys có thể công khai, nhưng không được nhầm chúng với authenticated identity nếu chưa xác minh chữ ký/certificate.
+**Never print raw private keys or shared secrets** to stdout; those are sensitive cryptographic values. Raw public keys can be public, yet must never be mistaken for authenticated identities without verifying signatures and certificates.
 
-**Giới hạn của Java demo:** Không có PKI, certificate chain, SAN/hostname, TLS HKDF, Finished, record layer hoặc mạng. Client tin thẳng longTermServerIdentity.getPublic() trong cùng tiến trình — điều này **chỉ minh họa chữ ký khi public key đã được tin**. Ở HTTPS thật, public key đến từ certificate phải được xác minh qua truststore và hostname policy. Mã demo cũng không phải bằng chứng hình thức rằng một giao thức mới do người học tự xây có FS hay chống MITM hoàn chỉnh.
+**Limits of the Java demo:** There is no PKI, certificate chain, SAN/hostname, TLS HKDF, `Finished`, record layer, or networking. The client directly trusts `longTermServerIdentity.getPublic()` in the same process—which **only illustrates signatures when the public key is already trusted**. In real HTTPS, the public key arrives in a certificate that must pass truststore and hostname policies. Nor is this demo code a formal proof that a custom-built protocol provides complete FS or MITM resistance.
 
-Các array bị Arrays.fill() chỉ là buffer mà code trực tiếp sở hữu; **không bảo đảm mọi secret trong provider/JVM/native memory được xóa**. Demo vẫn tạo KeyPair chứa private key objects, Java runtime quyết định quản lý vòng đời object; đừng sao chép kỹ thuật xóa này rồi tuyên bố có bảo đảm xóa secret tuyệt đối.
+The arrays zeroed with `Arrays.fill()` are only buffers directly held by our code; **this does not guarantee every copy of secrets inside provider/JVM/native memory is erased**. The demo still creates `KeyPair` instances holding private key objects whose lifetime is managed by the Java runtime; never copy this clearing technique and claim absolute secret erasure.
 
-### 8.2 Điều demo chứng minh và không chứng minh
+### 8.2 What the demo proves and does not prove
 
-| Điều quan sát | Kết luận hợp lệ |
+| Observation | Valid conclusion |
 | --- | --- |
-| X25519 hai phía cho cùng 32 byte | Primitive KeyAgreement hoạt động đúng trong phép thử |
-| Ed25519 xác minh transcript | Có thể ràng buộc public shares với một public key định danh đã tin |
-| Đổi một public share làm chữ ký không hợp lệ | Signature bảo vệ nội dung đã được ký khỏi sửa đổi không có private signing key |
-| Fresh pair cho secret mới | Dùng keypairs mới tạo secret phiên mới, với xác suất trùng cực nhỏ |
-| Ghi lại transcript/public shares và về sau lộ signing key | Không có đường tính lại X25519 secret cũ **chỉ từ signing key** theo giả định X25519, nếu ephemeral private không bị lộ |
-| Demo chạy mà không có TLS | **Không** đồng nghĩa tạo một kênh truyền có xác thực/an toàn production |
+| Two sides compute the same 32 bytes with X25519 | The `KeyAgreement` primitive works correctly in this test |
+| Ed25519 verifies the transcript | Public shares can be bound to a trusted identity public key |
+| Altering one public share invalidates the signature | Signature protects signed content from tampering without the private signing key |
+| Fresh pair yields a new secret | Using new key pairs produces a fresh session secret with negligible collision probability |
+| Recording transcript/public shares and later leaking signing key | No way to recompute the old X25519 secret **from the signing key alone** under X25519 assumptions, if ephemeral privates stayed secret |
+| Demo runs without TLS | **Does not** create a production-grade authenticated or secure transport channel |
 
-### 8.3 Vì sao không dùng chữ ký số thay cho ephemeral key?
+### 8.3 Why not use a digital signature instead of ephemeral keys?
 
-Một chữ ký Ed25519 hoặc RSA có nhiệm vụ **chứng minh người ký sở hữu private signing key** tương ứng với public key được tin. Signature không trực tiếp tạo shared secret bí mật mà chỉ client/server biết. KeyAgreement lại tạo shared secret nhưng **không tự chứng minh danh tính server**.
+An Ed25519 or RSA signature serves to **prove the signer holds the private signing key** matching a trusted public key. A signature does not directly establish a secret known only to client and server. Conversely, `KeyAgreement` establishes a shared secret but **does not authenticate server identity on its own**.
 
-Hai phép toán bổ trợ nhau:
+The two operations complement each other:
 
 ~~~text
-Signature của identity key:
-   "Public share/handshake này thuộc phiên được server hợp lệ xác thực"
-   (nếu PKI/public key trust và giao thức đều đúng)
+Identity key signature:
+   "This public share/handshake belongs to a session authenticated by the valid server"
+   (provided PKI/public-key trust and protocol are sound)
 
 Ephemeral KeyAgreement:
-   "Hai bên cùng biết shared secret riêng phiên"
-   (nhưng một mình nó chưa ngăn MITM)
+   "Both sides share a session-specific secret"
+   (yet on its own cannot prevent MITM)
 
 TLS handshake:
-   kết hợp authentication + authenticated key exchange +
+   combines authentication + authenticated key exchange +
    key schedule + Finished + AEAD traffic protection
 ~~~
 
-Không thay KeyAgreement bằng RSA ký một random string, không gửi raw shared secret qua mạng, cũng không cố “cải tiến” TLS bằng cách tự nối vài primitive.
+Never replace `KeyAgreement` with RSA signing a random string, never send raw shared secrets over the wire, and never try to "improve" TLS by manually stitching primitives together.
 
-## 9. Quan sát TLS thật qua Java JSSE
+## 9. Observing real TLS through Java JSSE
 
-Trong ứng dụng Java 17, **JSSE** và các API **SSLSocket, SSLEngine, SSLContext, SSLParameters, SSLSession, HttpsURLConnection/HttpClient** triển khai hoặc sử dụng TLS theo provider được cấu hình.
+In Java 17 applications, **JSSE** and APIs like **`SSLSocket`, `SSLEngine`, `SSLContext`, `SSLParameters`, `SSLSession`, `HttpsURLConnection`/`HttpClient`** implement or use TLS through the configured provider.
 
-**Điều đầu tiên cần biết:** nhiều thuộc tính trong JVM là **khả năng được hỗ trợ** hoặc **khả năng được bật**, không phải handshake thực tế đã đàm phán. Ví dụ danh sách supported suites có thể chứa tên TLS 1.2 legacy; điều đó không chứng minh server chấp nhận chúng hay bất kỳ connection nào đã dùng chúng.
+**First thing to know:** many properties in the JVM reflect **supported capabilities** or **enabled capabilities**, not an actually negotiated handshake. For example, the supported suites list may include legacy TLS 1.2 names; that does not prove a server accepts them or that any connection used them.
 
-### 9.1 Xem TLS protocol và suite được hỗ trợ
+### 9.1 Inspecting supported TLS protocols and suites
 
-Đoạn Java sau **độc lập** và không kết nối mạng; nó chỉ liệt kê **khả năng của JSSE provider đang chạy**.
+The following Java snippet is **standalone** and makes no network connections; it only lists **capabilities of the active JSSE provider**.
 
-Tệp **JsseCapabilitiesDemo.java**:
+File **`JsseCapabilitiesDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -638,260 +638,260 @@ public class JsseCapabilitiesDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 JsseCapabilitiesDemo.java
 java JsseCapabilitiesDemo
 ~~~
 
-**Output phụ thuộc JDK/provider/security properties thực tế**, nên không đưa một con số cụ thể cho Supported suites count. Trên một JDK 17 JSSE chuẩn hỗ trợ TLS 1.3, hai dòng đầu thường là true; cấu hình bị quản trị giới hạn có thể khác. Chương trình này **không thực hiện handshake**, vì vậy không có chứng minh runtime vừa dùng ECDHE, PKIX hay forward secrecy.
+**Output depends on the actual JDK/provider/security properties**, so no single fixed number is given for `Supported suites count`. On a standard JDK 17 JSSE supporting TLS 1.3, the first two lines are normally `true`; locked-down administrative configs may differ. This program **performs no handshake**, so it does not prove runtime usage of ECDHE, PKIX, or forward secrecy.
 
-### 9.2 Với một handshake thực, kiểm tra những gì?
+### 9.2 What should you check on a real handshake?
 
-Khi có quyền quan sát một endpoint được cấp phép, hãy ghi nhận:
+When authorized to inspect an approved endpoint, record:
 
-1. **Protocol version đã đàm phán**, không chỉ supported protocols. Ví dụ từ **SSLSession.getProtocol()** sau handshake.
-2. **Cipher suite đã đàm phán**, ví dụ từ **SSLSession.getCipherSuite()**.
-3. Với **TLS 1.2**, key exchange thường được thể hiện trong suite (ECDHE_RSA, DHE_RSA hay static RSA).
-4. Với **TLS 1.3**, cipher suite **không chứa KEX/auth mode**; phải xem thêm handshake **key_share**, nhóm được chọn, PSK mode và tình trạng full vs resumption.
-5. Đảm bảo **certificate chain/trust path, hostname, EKU/KU, thời gian và revocation policy** được kiểm tra theo ứng dụng.
-6. Xác nhận **TLS 1.3 0-RTT** có được dùng không, nếu có thì chính sách anti-replay và idempotency là gì.
-7. Nếu phía client dùng mTLS, kiểm tra client certificate/auth riêng, không gộp với xác thực server.
-8. Kiểm tra **termination point**: TLS kết thúc ở reverse proxy hay trực tiếp tại app; có mTLS/TLS ở chặng nội bộ tiếp theo không.
+1. **Negotiated protocol version**, not merely supported protocols—for instance from **`SSLSession.getProtocol()`** after the handshake.
+2. **Negotiated cipher suite**, e.g., from **`SSLSession.getCipherSuite()`**.
+3. For **TLS 1.2**, key exchange is normally visible in the suite (`ECDHE_RSA`, `DHE_RSA`, or static RSA).
+4. For **TLS 1.3**, the cipher suite **omits KEX/auth mode**; also inspect handshake **`key_share`**, chosen group, PSK mode, and full vs. resumption status.
+5. Ensure **certificate chain/trust path, hostname, EKU/KU, validity times, and revocation policy** are enforced by the application.
+6. Confirm whether **TLS 1.3 0-RTT** is enabled, and if so, what anti-replay and idempotency policies apply.
+7. If clients use mTLS, inspect client certificate/auth separately rather than conflating it with server authentication.
+8. Check the **termination point**: does TLS end at a reverse proxy or directly at the app, and is mTLS/TLS used on the next internal hop?
 
-**Đừng suy luận forward secrecy chỉ từ việc chứng thư là ECDSA hoặc RSA**, cũng không chỉ từ việc SSLSession trả TLS_AES_128_GCM_SHA256.
+**Never infer forward secrecy solely because a certificate is ECDSA or RSA**, nor merely because `SSLSession` returns `TLS_AES_128_GCM_SHA256`.
 
-### 9.3 JSSE handshake debugging trong lab
+### 9.3 JSSE handshake debugging in the lab
 
-Trong môi trường được phép, Java hỗ trợ logging phục vụ chẩn đoán JSSE, ví dụ system property:
+In authorized environments, Java supports diagnostic JSSE logging, e.g., via system property:
 
 ~~~text
 javax.net.debug=ssl,handshake
 ~~~
 
-Nó có thể giúp quan sát version, cipher suites, key_share, handshake messages và certificate validation theo bản JDK. Đây **không phải kết quả xác nhận an toàn tự động**: cần đọc cấu hình và kết quả thật; debug có thể lộ metadata nhạy cảm trong log và gây tăng dung lượng. Không bật dài hạn trên production.
+This reveals negotiated versions, cipher suites, `key_share`, handshake messages, and certificate validation depending on the JDK. It **is not an automated security sign-off**: inspect actual configs and outputs; debug logs can leak sensitive metadata and bloat log volume. Never leave it enabled long-term in production.
 
-Nếu phải phân tích packet, dùng công cụ/sniffer được cấp phép trong phạm vi kiểm thử. **Không bật xuất TLS session keys** ra file rồi quên xóa: key logs có thể giúp giải mã traffic mà FS lẽ ra bảo vệ trước việc lộ identity key.
+If packet capture is necessary, use authorized tools/sniffers within approved test scope. **Never enable TLS session key logging** to files and forget to delete them: key logs can decrypt traffic that FS would otherwise protect against identity-key compromise.
 
-### 9.4 Nên cấu hình TLS thế nào trong ứng dụng Java 17?
+### 9.4 How should TLS be configured in Java 17 applications?
 
-Về nguyên tắc:
+In principle:
 
-- **Ưu tiên TLS 1.3** trong những môi trường peer/provider hỗ trợ; khi cần TLS 1.2 để tương thích, chỉ cho phép **cipher suites có (EC)DHE và AEAD** theo policy hiện hành.
-- Không bật **static RSA key transport** vì legacy compatibility mà không đánh giá rủi ro; RFC 10015 đã deprecated phương pháp này.
-- Không bật SSLv3/TLS 1.0/1.1 hoặc các cipher yếu để “thử cho chạy được”.
-- Đảm bảo TrustManager/KeyManager và chứng thư định danh có quyền/chain/hostname đúng.
-- Không dùng **trust-all X509TrustManager** hay **HostnameVerifier luôn true**.
-- Dùng provider/JDK được cập nhật bảo mật; không viết TLS 1.3 từ KeyAgreement + Signature của bài tập.
-- Không hardcode một danh sách duy nhất các named groups hoặc signature algorithms cho mọi máy khi chưa đánh giá tính tương thích/chính sách. Cập nhật theo provider và crypto policy có thẩm quyền.
-- Kiểm thử **1-RTT full handshake, resumption, mTLS nếu có**, không chỉ nhìn một phiên HTTPS thành công.
+- **Prefer TLS 1.3** wherever peers and providers support it; when TLS 1.2 is needed for compatibility, allow only **cipher suites with (EC)DHE and AEAD** per current policy.
+- Never enable **static RSA key transport** for legacy compatibility without risk review; RFC 10015 deprecated it.
+- Never enable SSLv3/TLS 1.0/1.1 or weak ciphers just to "get it working".
+- Ensure `TrustManager`/`KeyManager` and identity certificates have proper permissions, chains, and hostnames.
+- Never use a **trust-all `X509TrustManager`** or an **always-true `HostnameVerifier`**.
+- Keep providers/JDK security-patched; never build TLS 1.3 out of the exercise's `KeyAgreement` + `Signature`.
+- Never hardcode a single list of named groups or signature algorithms across all hosts without assessing compatibility and policy. Align with authoritative provider and crypto policies.
+- Test **1-RTT full handshakes, resumption, and mTLS (if used)**, rather than checking only one successful HTTPS call.
 
-**Lưu ý về cipher suite naming:** Tên TLS 1.3 như TLS_AES_256_GCM_SHA384 chỉ diễn đạt AEAD/hash; **X25519, secp256r1, RSA-PSS hoặc ECDSA không xuất hiện trong tên**. Chúng là những phép chọn của handshake khác với TLS 1.2.
+**Note on cipher suite naming:** TLS 1.3 names such as `TLS_AES_256_GCM_SHA384` only express AEAD/hash; **X25519, secp256r1, RSA-PSS, or ECDSA do not appear in the name**. Those are separate handshake selections from TLS 1.2.
 
-## 10. Vận hành để bảo đảm FS có ý nghĩa thực tế
+## 10. Operating to ensure FS has practical meaning
 
-### 10.1 Bảo vệ private key dài hạn của certificate
+### 10.1 Protect long-term certificate private keys
 
-FS giảm hậu quả **giải mã hồi tố** sau khi lộ identity private key, nhưng không làm khóa đó kém quan trọng. Attacker có private key phù hợp certificate và có khả năng can thiệp mạng có thể **giả mạo peer trong các handshake tương lai** cho đến khi chính sách trust/thu hồi/key rotation chặn.
+FS limits **retroactive decryption** after an identity private key leaks, yet does not make that key unimportant. An attacker with a certificate's private key and network position can **impersonate the peer in future handshakes** until trust, revocation, or key rotation stops them.
 
-Do đó cần:
+Therefore:
 
-- Bảo vệ key bằng HSM, keystore/secret manager theo yêu cầu.
-- Giới hạn quyền ký, quyền xuất khóa, phạm vi dùng và audit.
-- Cấp lại certificate/key đúng chu kỳ và khi có sự cố.
-- Kiểm tra certificate revocation/truststore và hostname chính xác.
-- Không chia sẻ một signing key cho quá nhiều endpoint/tenant nếu không có chính sách rõ.
-- Không gửi private key qua ticket/chat/log hoặc đưa vào source repository.
+- Protect keys with HSMs, keystores, or secret managers as required.
+- Restrict signing privileges, key export, usage scope, and audit access.
+- Reissue certificates/keys on schedule and during incidents.
+- Enforce accurate certificate revocation/truststore and hostname verification.
+- Avoid sharing one signing key across too many endpoints/tenants without explicit policy.
+- Never send private keys through tickets, chat, logs, or source repositories.
 
-### 10.2 Không giữ ephemeral secret “cho tiện debug”
+### 10.2 Never retain ephemeral secrets "for debugging convenience"
 
-Khóa tạm thời, shared secret và session keys cần vòng đời ngắn nhất theo implementation và protocol. Nếu doanh nghiệp log raw session secrets, lưu memory dump mở rộng, bật TLS key logging hoặc backup session state quá dài, **bảo đảm FS trước việc chỉ mất identity key không còn diễn đạt đầy đủ rủi ro thực tế**.
+Ephemeral keys, shared secrets, and session keys require the shortest possible lifetimes per implementation and protocol. If an organization logs raw session secrets, keeps broad memory dumps, enables TLS key logging, or retains session state in backups too long, **FS guarantees against identity-key loss alone no longer reflect real exposure**.
 
-Java app không nên tự lấy shared secret rồi ghi vào log “để so sánh” hoặc giữ private ephemeral key trong cache toàn cục. Dựa vào JSSE implementation chuẩn thay vì tự quản lý raw ephemeral keys trong ứng dụng.
+Java apps should never extract shared secrets to log "for comparison" or keep ephemeral private keys in global caches. Rely on standard JSSE implementations instead of managing raw ephemeral keys in application code.
 
-### 10.3 Session resumption và PSK cần chính sách riêng
+### 10.3 Session resumption and PSK need dedicated policies
 
-Làm rõ:
+Clarify:
 
-- Mode full handshake hay PSK resumption?
-- PSK-only hay PSK+(EC)DHE?
-- Có 0-RTT hay không?
-- Ticket keys được lưu ở đâu, ai có quyền, thời hạn/rotation?
-- Cách xóa ticket/PSK cũ và xử lý failover nhiều instance?
-- Chống replay/idempotency cho 0-RTT ở tầng ứng dụng thế nào?
+- Full handshake mode vs. PSK resumption?
+- PSK-only vs. PSK+(EC)DHE?
+- Is 0-RTT enabled?
+- Where are ticket keys stored, who has access, and what is their lifetime/rotation?
+- How are old tickets/PSKs purged and handled across multi-instance failover?
+- How are 0-RTT anti-replay and idempotency enforced at the application layer?
 
-Bật TLS 1.3 nhưng quản trị session resumption không cẩn thận có thể tạo các đường tấn công khác với những bảo đảm của fresh (EC)DHE full handshake.
+Enabling TLS 1.3 while mismanaging session resumption can introduce attack paths outside the guarantees of a fresh (EC)DHE full handshake.
 
-### 10.4 Không thay thế bảo mật ở các lớp khác
+### 10.4 Do not replace security at other layers
 
-FS không sửa:
+FS does not fix:
 
-- SQL injection, XSS, command injection trong ứng dụng.
-- Lộ JWT/API key qua log hoặc browser storage.
-- Mã hóa dữ liệu lưu trữ thiếu chính sách khóa/rotation.
-- Phân quyền sai giữa tenant.
-- Endpoint chủ động trả plaintext cho attacker được cấp quyền nhầm.
-- CA hoặc truststore bị cài root giả dẫn đến xác thực sai.
-- Backup/monitoring chứa session secrets hoặc raw dữ liệu.
+- SQL injection, XSS, or command injection in the application.
+- Leaking JWTs/API keys through logs or browser storage.
+- Data-at-rest encryption lacking key/rotation policy.
+- Broken cross-tenant authorization.
+- An endpoint willingly returning plaintext to a wrongly authorized attacker.
+- A CA or truststore poisoned with a rogue root causing false authentication.
+- Backups/monitoring containing session secrets or raw sensitive data.
 
-Vì vậy đánh giá TLS là **một** lớp của hệ thống an toàn, không phải “bật PFS là xong”.
+Treat TLS as **one** layer of a secure system, not "turn on PFS and we're done".
 
-## 11. Các hiểu nhầm phổ biến
+## 11. Common misconceptions
 
-1. **“Server certificate là RSA nên chắc chắn không có FS.”** Sai: RSA có thể chỉ dùng xác thực trong ECDHE_RSA/TLS 1.3, còn traffic key đến từ DHE.
-2. **“Đã có ECDHE thì không cần chứng thư.”** Sai: DH không xác thực bị MITM; cần certificate/PSK trust và handshake authentication.
-3. **“Certificate chứa ephemeral session key.”** Sai: cert chứa public key định danh, ephemeral key tạo trong handshake.
-4. **“Private key định danh dùng để giải mã mọi session TLS.”** Sai với ECDHE/TLS 1.3 full certificate handshake; có thể đúng với static RSA key transport TLS 1.2 theo thiết kế legacy.
-5. **“TLS 1.3 cipher suite name cho biết server dùng RSA hay ECDSA và nhóm X25519.”** Sai: TLS 1.3 suite không mang KEX/auth trong tên.
-6. **“TLS 1.3 có FS tuyệt đối trong mọi kết nối, kể cả 0-RTT.”** Sai: phải phân biệt full (EC)DHE, PSK-only và early data.
-7. **“0-RTT an toàn như các request thông thường.”** Sai: có replay risk và thiếu bảo đảm FS đầy đủ; phải chọn các thao tác replay-safe.
-8. **“Ephemeral key phải được gửi cho đối tác để hai bên tính secret.”** Sai: chỉ **public share** được truyền; private share phải giữ bí mật.
-9. **“DH shared secret dùng thẳng làm AES key.”** Sai: TLS key schedule dẫn xuất các key/IV/context riêng.
-10. **“Nhìn thấy cùng shared secret trong hai phía là đã có kênh TLS an toàn.”** Sai: demo chưa có PKI, Finished, AEAD, replay, downgrade protections.
-11. **“Lộ identity key sau phiên cũ thì FS còn bảo vệ mọi phiên trong tương lai.”** Sai: attacker có thể mạo danh khi bắt tay mới.
-12. **“Lộ session traffic key không sao vì có FS.”** Sai: traffic/session keys bị lộ có thể mở dữ liệu được bảo vệ bởi chúng.
-13. **“Dùng KeyUpdate chắc chắn hồi phục nếu key hiện tại đã bị chiếm.”** Sai: KeyUpdate không tự rerun ECDHE; hậu quả phụ thuộc loại key bị lộ.
-14. **“Mỗi kết nối có secret khác nhau nghĩa là chắc chắn FS.”** Chưa đủ: nếu secret được dẫn xuất từ một bí mật dài hạn mà sau đó bị lộ, có thể tái lập các phiên.
-15. **“Forward secrecy đồng nghĩa chống máy tính lượng tử tương lai.”** Không: ECDH cổ điển có thể bị phá khi giả định độ khó không còn đúng.
-16. **“Chỉ test TLSv1.3 supported là chứng minh endpoint dùng TLS 1.3.”** Sai: phải quan sát **protocol negotiated** trên phiên thực.
-17. **“TLS cipher suite ECDHE_RSA nghĩa là RSA encrypt premaster secret.”** Sai: RSA chứng thực chữ ký, ECDHE tạo secret.
-18. **“Thời hạn cert ngắn tự tạo forward secrecy.”** Không: đổi certificate thường xuyên giới hạn hậu quả compromise, nhưng không thay thế ephemeral key exchange.
-19. **“Nếu client không xác thực hostname, ECDHE vẫn chặn MITM.”** Sai: kẻ giữa đường có thể tự thực hiện key exchange với mỗi phía.
-20. **“Có FS rồi có thể lưu TLS session secrets/heap dump thoải mái.”** Sai: rò secrets trực tiếp có thể làm mất bảo mật của phiên được ghi lại.
+1. **"The server certificate is RSA, so there is definitely no FS."** False: RSA may be used only for authentication in `ECDHE_RSA`/TLS 1.3, while traffic keys come from DHE.
+2. **"Since we have ECDHE, we don't need certificates."** False: unauthenticated DH falls to MITM; certificate/PSK trust and handshake authentication are required.
+3. **"The certificate holds the ephemeral session key."** False: the cert holds the identity public key; ephemeral keys are created during the handshake.
+4. **"The identity private key decrypts every TLS session."** False for ECDHE and TLS 1.3 full certificate handshakes; true only for legacy TLS 1.2 static RSA key transport.
+5. **"The TLS 1.3 cipher suite name shows whether the server uses RSA or ECDSA and X25519."** False: TLS 1.3 suites omit KEX/auth from their names.
+6. **"TLS 1.3 has absolute FS on every connection, including 0-RTT."** False: distinguish full (EC)DHE, PSK-only, and early data.
+7. **"0-RTT is as safe as ordinary requests."** False: it carries replay risk and lacks full FS; restrict to replay-safe operations.
+8. **"Ephemeral keys must be sent to the peer so both compute the secret."** False: only the **public share** is sent; the private share stays secret.
+9. **"The DH shared secret is used straight as the AES key."** False: the TLS key schedule derives separate keys, IVs, and contexts.
+10. **"Seeing the same shared secret on both sides means you have a secure TLS channel."** False: a demo lacks PKI, `Finished`, AEAD, replay, and downgrade protections.
+11. **"If the identity key leaks after an old session, FS still protects all future sessions."** False: an attacker can impersonate the server in new handshakes.
+12. **"Leaking a session traffic key doesn't matter because of FS."** False: leaked traffic/session keys unlock the data they protect.
+13. **"Calling `KeyUpdate` definitely recovers if the current key was stolen."** False: `KeyUpdate` does not rerun ECDHE; impact depends on which key leaked.
+14. **"Each connection having a different secret guarantees FS."** Not enough: if secrets derive from a long-term secret that later leaks, past sessions can be reconstructed.
+15. **"Forward secrecy equals protection against future quantum computers."** No: classical ECDH can be broken once its hardness assumption fails.
+16. **"Checking `TLSv1.3` in supported proves endpoints use TLS 1.3."** False: inspect the **negotiated protocol** on a real session.
+17. **"TLS cipher suite `ECDHE_RSA` means RSA encrypts the premaster secret."** False: RSA authenticates signatures, ECDHE establishes the secret.
+18. **"Short certificate lifetimes automatically create forward secrecy."** No: frequent certificate rotation limits compromise windows, yet does not replace ephemeral key exchange.
+19. **"If the client skips hostname verification, ECDHE still blocks MITM."** False: an on-path attacker can run separate key exchanges with each side.
+20. **"Once you have FS, you can freely store TLS session secrets or heap dumps."** False: direct secret leakage breaks confidentiality of recorded sessions.
 
-## 12. Tình huống phân tích
+## 12. Analysis scenarios
 
-### Tình huống A — Máy chủ dùng RSA certificate, cần kiểm tra có FS không
+### Scenario A — Server uses an RSA certificate; need to verify whether FS holds
 
-Nhóm vận hành xem certificate type là RSA rồi kết luận không có FS. Cách đánh giá đúng:
+The ops team sees certificate type RSA and concludes there is no FS. Proper assessment:
 
-- Xem **protocol phiên thật**.
-- Nếu TLS 1.2, xác định suite có **ECDHE_RSA** hay **TLS_RSA_...**; hai loại có tính chất rất khác.
-- Nếu TLS 1.3, xem full handshake/key share hoặc PSK mode; không suy ra từ certificate type và tên TLS_AES_... suite.
-- Kiểm tra JDK/provider, security properties, cipher suites đang enabled thực tế.
+- Inspect the **actual session protocol**.
+- If TLS 1.2, check whether the suite is **`ECDHE_RSA`** or **`TLS_RSA_...`**; their properties differ sharply.
+- If TLS 1.3, inspect full handshake/`key_share` or PSK mode; do not infer from certificate type or `TLS_AES_...` suite name.
+- Check JDK/provider, security properties, and actually enabled cipher suites.
 
-**Kết luận:** Loại khóa chứng thư nói về **xác thực**, không tự quyết định key establishment và forward secrecy.
+**Conclusion:** Certificate key type speaks to **authentication**, and does not by itself decide key establishment or forward secrecy.
 
-### Tình huống B — Private key của server bị lấy cắp sau sáu tháng
+### Scenario B — Server private key stolen after six months
 
-Attacker ghi packet TLS từ sáu tháng trước, nay có server RSA identity key.
+An attacker recorded TLS packets six months ago and now steals the server's RSA identity key.
 
-- Phiên TLS 1.2 static RSA: có thể bị giải mã hồi tố.
-- Phiên TLS 1.2 ECDHE/TLS 1.3 full DHE: không giải mã được chỉ từ RSA identity key, nếu ephemeral/session secrets cũ không bị lộ.
-- Handshake mới: attacker có thể mạo danh server nếu không bị thu hồi/chặn.
+- Static RSA TLS 1.2 sessions: can be decrypted retroactively.
+- TLS 1.2 ECDHE / TLS 1.3 full DHE sessions: cannot be decrypted from the RSA identity key alone, provided old ephemeral/session secrets were not leaked.
+- New handshakes: attacker can impersonate the server unless revoked/blocked.
 
-**Hành động:** đánh giá exposure theo từng protocol/suite/mode và thời điểm lộ; luân chuyển key, chứng thư và xử lý incident, không khẳng định “vì TLS nên không vấn đề”.
+**Action:** assess exposure by protocol/suite/mode and compromise window; rotate keys/certificates and run incident response—never claim "TLS makes it harmless".
 
-### Tình huống C — Dịch vụ bật resumption và 0-RTT
+### Scenario C — Service enables resumption and 0-RTT
 
-Để giảm latency, đội hệ thống chấp nhận 0-RTT request gọi API tạo giao dịch. Attacker gửi lại một request early data đã ghi.
+To cut latency, a team accepts 0-RTT requests calling a transaction-creation API. An attacker replays a captured early-data request.
 
-**Vấn đề:** 0-RTT có replay risk; FS của early data không tương đương 1-RTT fresh DHE. Kết quả có thể là thao tác bị lặp.
+**Problem:** 0-RTT carries replay risk; early-data FS is not equivalent to 1-RTT fresh DHE. Duplicate operations may result.
 
-**Khắc phục:** không gửi thao tác có side effect trong 0-RTT nếu không có profile chống replay và idempotency thích hợp; hạn chế early data, theo dõi session tickets và thực thi anti-replay ở tầng hạ tầng/nghiệp vụ.
+**Fix:** disallow side-effecting operations in 0-RTT without proper replay protection and idempotency profiles; restrict early data, monitor session tickets, and enforce anti-replay at infrastructure/business layers.
 
-### Tình huống D — Lộ session key log trong quá trình debug
+### Scenario D — Session key log leaked during debugging
 
-Một developer bật key logging để Wireshark giải mã HTTPS lab và vô tình tải key log lên artifact store dùng chung. Attacker có file logs và packet capture.
+A developer enables key logging for Wireshark to decrypt lab HTTPS and accidentally uploads the key log to a shared artifact store. An attacker obtains both the log file and packet capture.
 
-**Vấn đề:** FS trước việc lộ **long-term identity key** không bảo vệ khi **session traffic secrets đã bị xuất trực tiếp**. Cần coi file key log là secret, hạn chế truy cập, thu hồi/điều tra và không lưu qua pipeline production.
+**Problem:** FS against **long-term identity key** compromise does not protect when **session traffic secrets were exported directly**. Treat key log files as secrets, restrict access, revoke/investigate, and keep them out of production pipelines.
 
-### Tình huống E — Endpoint bị chiếm khi một phiên đang sống
+### Scenario E — Endpoint compromised while a session is live
 
-Attacker đọc bộ nhớ app hoặc TLS runtime, lấy session keys và plaintext. Sau đó tổ chức xoay certificate.
+An attacker reads app or TLS runtime memory, extracting session keys and plaintext. Afterward, the organization rotates the certificate.
 
-**Vấn đề:** rotation certificate không xóa được dữ liệu phiên đã bị thu thập, và FS không có nghĩa bảo vệ trước **đối thủ đang kiểm soát endpoint**. Cần incident response ở tầng host/app và xác định dữ liệu đã lộ.
+**Problem:** rotating the certificate cannot erase already-captured session data, and FS never promises protection against an **adversary controlling a live endpoint**. Run host/app incident response and determine what data was exposed.
 
-### Tình huống F — TLS 1.3 KeyUpdate bị hiểu là “DH mới”
+### Scenario F — TLS 1.3 `KeyUpdate` mistaken for a "fresh DH"
 
-Một nhóm muốn phục hồi sau khi attacker lấy application traffic secret, nên chỉ yêu cầu KeyUpdate.
+A team wants to recover after an attacker steals an application traffic secret, so they only trigger `KeyUpdate`.
 
-**Vấn đề:** KeyUpdate dẫn xuất từ traffic secret cũ, không trao đổi ephemeral DH mới; attacker có bí mật gốc có thể theo dõi các thế hệ khóa phù hợp. Cần thiết lập handshake mới với key establishment và xác thực được kiểm soát để phục hồi theo mô hình sự cố.
+**Problem:** `KeyUpdate` derives from the existing traffic secret without exchanging fresh ephemeral DH shares; an attacker holding the base secret can track subsequent key generations. Establish a new handshake with controlled key establishment and authentication to recover per incident-response models.
 
-## 13. Test matrix và câu hỏi tự kiểm tra
+## 13. Test matrix and self-check questions
 
-### 13.1 Test matrix cho Java/TLS deployment
+### 13.1 Test matrix for Java/TLS deployments
 
-| Test | Cần quan sát | Kết luận |
+| Test | What to observe | Conclusion |
 | --- | --- | --- |
-| Full TLS 1.3 certificate handshake | key_share + certificate authentication + Finished | Có cơ sở FS theo fresh (EC)DHE; vẫn cần endpoint/secret lifecycle |
-| TLS 1.2 ECDHE_RSA | negotiated suite thực tế chứa ECDHE_RSA | RSA cert dùng xác thực, ECDHE tạo secret |
-| TLS 1.2 TLS_RSA | negotiated suite thực tế static RSA key exchange | Không có FS, cần loại bỏ theo chính sách mới |
-| TLS 1.3 PSK-only | mode psk_ke không có fresh key_share | Không mặc định có FS khi PSK còn tồn tại |
-| TLS 1.3 PSK+(EC)DHE | psk_dhe_ke và fresh key share | FS của 1-RTT dưới điều kiện DHE/secret management |
-| TLS 1.3 0-RTT | early_data, resumption PSK, anti-replay | Không mặc định FS hoặc replay safety |
-| Sai certificate/hostname | handshake bị từ chối | Xác thực identity không bị bypass |
-| Key logging/debug đang bật trên production | kiểm tra config, files, ACL, retention | Không để lộ session secrets |
-| Lộ long-term identity key | kiểm kê protocol/handshake modes & lịch sử | Phân biệt traffic cũ với nguy cơ giả mạo tương lai |
-| Chỉ gọi getSupportedProtocols() | có TLSv1.3 trong danh sách | **Không** đủ để xác nhận negotiated session |
-| Thay certificate RSA bằng ECDSA | chỉ thay signature key algorithm | Không kết luận FS nếu key establishment chưa kiểm tra |
-| TLS terminates ở reverse proxy | chặng mạng sau proxy và log/data storage | FS của TLS client-to-proxy không tự bảo vệ hop khác |
+| Full TLS 1.3 certificate handshake | `key_share` + certificate auth + `Finished` | Establishes FS basis via fresh (EC)DHE; still needs endpoint/secret lifecycle |
+| TLS 1.2 `ECDHE_RSA` | Actual negotiated suite contains `ECDHE_RSA` | RSA cert authenticates; ECDHE establishes secret |
+| TLS 1.2 `TLS_RSA` | Actual negotiated suite uses static RSA key exchange | Lacks FS; eliminate under modern policy |
+| TLS 1.3 PSK-only | `psk_ke` mode without fresh `key_share` | Do not assume FS while the PSK persists |
+| TLS 1.3 PSK+(EC)DHE | `psk_dhe_ke` and fresh key share | FS for 1-RTT subject to DHE/secret management |
+| TLS 1.3 0-RTT | `early_data`, resumption PSK, anti-replay | Do not assume FS or replay safety |
+| Invalid certificate/hostname | Handshake rejected | Identity authentication is not bypassed |
+| Key logging/debug enabled in production | Check configs, files, ACLs, retention | Prevent leaking session secrets |
+| Long-term identity key compromise | Inventory protocols/handshake modes & history | Separate past traffic exposure from future impersonation risk |
+| Calling only `getSupportedProtocols()` | Lists `TLSv1.3` | **Insufficient** to confirm negotiated session |
+| Replacing RSA certificate with ECDSA | Changes only signature key algorithm | Do not conclude FS without checking key establishment |
+| TLS terminates at reverse proxy | Post-proxy network hops and log/data storage | Client-to-proxy TLS FS does not automatically protect downstream hops |
 
-### 13.2 Câu hỏi và đáp án
+### 13.2 Questions and answers
 
-**Câu 1.** Chứng thư X.509 chứa khóa tạm thời của mỗi phiên không?
+**Question 1.** Does an X.509 certificate contain each session's ephemeral key?
 
-**Trả lời:** Không. Chứng thư chứa public key định danh và thông tin xác thực. Ephemeral keypair được tạo cho key exchange của handshake.
+**Answer:** No. The certificate holds the identity public key and verification metadata. Ephemeral key pairs are generated for handshake key exchange.
 
-**Câu 2.** RSA certificate có khiến TLS 1.3 không có forward secrecy không?
+**Question 2.** Does an RSA certificate deprive TLS 1.3 of forward secrecy?
 
-**Trả lời:** Không. RSA certificate có thể dùng xác thực bằng chữ ký; full TLS 1.3 certificate handshake có fresh (EC)DHE tạo shared secret.
+**Answer:** No. An RSA certificate can be used for signature authentication; a full TLS 1.3 certificate handshake uses fresh (EC)DHE to establish the shared secret.
 
-**Câu 3.** TLS 1.2 TLS_RSA khác TLS_ECDHE_RSA ở điểm nào?
+**Question 3.** How does TLS 1.2 `TLS_RSA` differ from `TLS_ECDHE_RSA`?
 
-**Trả lời:** TLS_RSA mã hóa premaster secret bằng static RSA public key, làm mất FS nếu private key bị lộ về sau. TLS_ECDHE_RSA dùng ephemeral ECDHE để tạo premaster secret, RSA chỉ xác thực handshake.
+**Answer:** `TLS_RSA` encrypts the premaster secret with the static RSA public key, losing FS if the private key leaks later. `TLS_ECDHE_RSA` uses ephemeral ECDHE to create the premaster secret, while RSA only authenticates the handshake.
 
-**Câu 4.** Vì sao (EC)DHE một mình chưa chống MITM?
+**Question 4.** Why can't (EC)DHE prevent MITM on its own?
 
-**Trả lời:** Vì ai cũng có thể thay public share; cần xác thực đúng peer và ràng buộc transcript bằng chữ ký/Finished theo giao thức.
+**Answer:** Because anyone can substitute public shares; you must authenticate the right peer and bind the transcript with signatures/`Finished` per protocol.
 
-**Câu 5.** Khi private key định danh của server bị lộ sau phiên cũ có FS, attacker có giải mã được packet cũ chỉ từ private key ấy không?
+**Question 5.** When the server's identity private key leaks after an FS session ended, can an attacker decrypt old packets from that key alone?
 
-**Trả lời:** Không theo mô hình an toàn chuẩn, nếu fresh ephemeral key material và traffic secrets cũ không lộ, thuật toán an toàn. Nhưng attacker có thể giả mạo server trong handshake tương lai.
+**Answer:** Not under standard security assumptions, provided fresh ephemeral key material and past traffic secrets did not leak and algorithms remain sound. However, the attacker can impersonate the server in future handshakes.
 
-**Câu 6.** Session ticket/PSK ảnh hưởng FS thế nào?
+**Question 6.** How do session tickets/PSKs affect FS?
 
-**Trả lời:** PSK-only không tự bảo đảm FS trước việc PSK còn lưu và bị lộ; PSK+(EC)DHE thêm fresh DH có thể cung cấp FS cho 1-RTT. Thời gian sống/xóa PSK là yếu tố vận hành quan trọng.
+**Answer:** PSK-only does not inherently guarantee FS if the PSK remains stored and leaks; PSK+(EC)DHE adds fresh DH to provide FS for 1-RTT. PSK lifetime and deletion are critical operational factors.
 
-**Câu 7.** 0-RTT early data có cùng FS và anti-replay như TLS 1.3 1-RTT DHE không?
+**Question 7.** Does 0-RTT early data have the same FS and anti-replay properties as TLS 1.3 1-RTT DHE?
 
-**Trả lời:** Không. Early data phụ thuộc PSK và có rủi ro replay giữa kết nối; cần giới hạn những thao tác được phép và phòng ngừa tương ứng.
+**Answer:** No. Early data relies on PSK and carries cross-connection replay risk; restrict allowed operations and apply matching safeguards.
 
-**Câu 8.** Vì sao CipherSuite TLS_AES_128_GCM_SHA256 không cho biết X25519 hay RSA?
+**Question 8.** Why doesn't `TLS_AES_128_GCM_SHA256` tell you whether X25519 or RSA was used?
 
-**Trả lời:** TLS 1.3 tách lựa chọn key exchange và signature khỏi tên cipher suite; cần xem handshake negotiated key_share/PSK/certificate.
+**Answer:** TLS 1.3 separates key exchange and signature selection from cipher suite names; inspect the handshake's negotiated `key_share`/PSK/certificate.
 
-**Câu 9.** Demo X25519+Ed25519 của bài có thay thế JSSE không?
+**Question 9.** Does this lesson's X25519+Ed25519 demo replace JSSE?
 
-**Trả lời:** Không. Demo thiếu PKIX, TLS transcript format/Finished/HKDF/record layer/host validation và nhiều cơ chế an toàn bắt buộc.
+**Answer:** No. The demo lacks PKIX, TLS transcript formatting/`Finished`/HKDF/record layer/host validation, and many mandatory security mechanisms.
 
-**Câu 10.** KeyUpdate có đủ để phục hồi nếu attacker biết current application traffic secret không?
+**Question 10.** Is `KeyUpdate` enough to recover if an attacker learns the current application traffic secret?
 
-**Trả lời:** Không. KeyUpdate không rerun DH, chỉ dẫn xuất thế hệ mới từ secret hiện có.
+**Answer:** No. `KeyUpdate` does not rerun DH; it only derives a new generation from the current secret.
 
-**Câu 11.** Tại sao KeyAgreement.generateSecret() không được dùng thẳng làm AES key theo cảm tính?
+**Question 11.** Why shouldn't `KeyAgreement.generateSecret()` output be used directly as an AES key by intuition?
 
-**Trả lời:** TLS dùng key schedule HKDF để phân tách theo context, hướng traffic và giai đoạn, tránh tái sử dụng trực tiếp shared secret.
+**Answer:** TLS uses an HKDF key schedule to separate secrets by context, traffic direction, and phase, avoiding direct reuse of raw shared secrets.
 
-**Câu 12.** Có FS rồi thì cần bảo vệ log/proxy/database không?
+**Question 12.** Once you have FS, do you still need to protect logs, proxies, and databases?
 
-**Trả lời:** Có. FS bảo vệ traffic cũ trước một loại compromise cụ thể, không tự bảo vệ các bản sao plaintext, session key logs và dữ liệu đã được endpoint giải mã.
+**Answer:** Yes. FS protects past traffic against one specific class of compromise; it does not protect plaintext copies, session key logs, or data already decrypted by endpoints.
 
-## 14. Tài liệu tham khảo
+## 14. References
 
-- [RFC 9846 (July 2026) — TLS 1.3](https://www.rfc-editor.org/rfc/rfc9846.html): đặc tả TLS 1.3 hiện hành, **thay thế RFC 8446 (2018)**; §2.2–2.3 về PSK/0-RTT, §4 về handshake, §7 về key schedule, Appendix F về forward secrecy và key compromise.
-- [RFC 8446 (2018) — TLS 1.3, lịch sử](https://www.rfc-editor.org/rfc/rfc8446.html): nguồn học tập cũ, hiện được RFC 9846 thay thế.
-- [RFC 5246 — TLS 1.2, lịch sử](https://www.rfc-editor.org/rfc/rfc5246.html): cơ chế RSA key exchange và (EC)DHE trong TLS 1.2 (đã bị RFC 9846 thay thế ở vị trí chuẩn hiện hành).
-- [RFC 10015 (2026) — Deprecating Obsolete Key Exchange Methods in TLS 1.2](https://www.rfc-editor.org/rfc/rfc10015.html): loại bỏ/khuyến cáo ngừng sử dụng RSA key transport và các phương pháp lỗi thời trong TLS 1.2.
-- [Oracle Java SE 17 — JSSE Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): SSLContext, SSLSocket/SSLEngine, TLS 1.3, handshake, cipher suites, provider và debug.
-- [Oracle Java SE 17 — KeyAgreement](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyAgreement.html): API tạo shared secret cho X25519.
-- [Oracle Java SE 17 — Signature](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html): API tạo/kiểm tra chữ ký định danh.
-- [Oracle Java SE 17 — Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): tên thuật toán X25519/Ed25519/TLS và cipher suites.
-- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525.html): hướng dẫn xác minh danh tính dịch vụ khi dùng TLS.
+- [RFC 9846 (July 2026) — TLS 1.3](https://www.rfc-editor.org/rfc/rfc9846.html): current TLS 1.3 specification, **replacing RFC 8446 (2018)**; §2.2–2.3 on PSK/0-RTT, §4 on handshake, §7 on key schedule, Appendix F on forward secrecy and key compromise.
+- [RFC 8446 (2018) — TLS 1.3, historical](https://www.rfc-editor.org/rfc/rfc8446.html): older study resource, now replaced by RFC 9846.
+- [RFC 5246 — TLS 1.2, historical](https://www.rfc-editor.org/rfc/rfc5246.html): RSA key exchange and (EC)DHE mechanisms in TLS 1.2 (superseded as current standard by RFC 9846).
+- [RFC 10015 (2026) — Deprecating Obsolete Key Exchange Methods in TLS 1.2](https://www.rfc-editor.org/rfc/rfc10015.html): deprecates/recommends discontinuing RSA key transport and obsolete methods in TLS 1.2.
+- [Oracle Java SE 17 — JSSE Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): `SSLContext`, `SSLSocket`/`SSLEngine`, TLS 1.3, handshake, cipher suites, providers, and debugging.
+- [Oracle Java SE 17 — KeyAgreement](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyAgreement.html): API for computing shared secrets with X25519.
+- [Oracle Java SE 17 — Signature](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html): API for signing/verifying identity signatures.
+- [Oracle Java SE 17 — Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): names for X25519/Ed25519/TLS algorithms and cipher suites.
+- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525.html): guidelines for verifying service identity when using TLS.
 
-## Kết luận
+## Conclusion
 
-**Khóa định danh dài hạn và khóa tạm thời giải quyết hai bài toán khác nhau.** Private key tương ứng certificate dùng **xác thực** đối tác và ràng buộc handshake; ephemeral (EC)DHE tạo một shared secret **không phụ thuộc vào khả năng giải mã premaster secret bằng static identity private key**. Với fresh (EC)DHE, xử lý KDF đúng và xóa secret tạm thời, việc đánh cắp private key định danh **sau phiên** không đủ để giải mã traffic cũ đã ghi lại: đó là ý nghĩa thực tế của forward secrecy.
+**Long-term identity keys and ephemeral keys solve two different problems.** The private key matching a certificate **authenticates** the peer and binds the handshake; ephemeral (EC)DHE establishes a shared secret **independent of decrypting a premaster secret with a static identity private key**. With fresh (EC)DHE, proper KDF handling, and ephemeral secret erasure, stealing the identity private key **after a session** is not enough to decrypt previously recorded traffic: that is the practical meaning of forward secrecy.
 
-Khi đánh giá một kết nối TLS, phải xét **protocol phiên thực, key exchange/resumption mode, 0-RTT, certificate validation và key lifecycle**, không kết luận từ loại certificate hoặc tên cipher suite một mình. **TLS 1.2 static RSA key transport không có FS; TLS 1.2 (EC)DHE và full TLS 1.3 certificate handshake dùng fresh (EC)DHE có FS trong mô hình thích hợp; TLS 1.3 PSK-only và 0-RTT là các ngoại lệ phải quản lý có chủ đích.** Trong Java 17+, hãy để **JSSE** thực hiện TLS, dùng JCA X25519/Ed25519 chỉ cho việc học primitive hoặc giao thức chuyên biệt đã được đánh giá chặt chẽ.
+When evaluating a TLS connection, examine the **actual session protocol, key exchange/resumption mode, 0-RTT, certificate validation, and key lifecycle**—never conclude from certificate type or cipher suite name alone. **TLS 1.2 static RSA key transport lacks FS; TLS 1.2 (EC)DHE and full TLS 1.3 certificate handshakes using fresh (EC)DHE provide FS under the appropriate model; TLS 1.3 PSK-only and 0-RTT are exceptions that must be deliberately managed.** In Java 17+, let **JSSE** run TLS, and use JCA X25519/Ed25519 only for learning primitives or rigorously audited specialized protocols.

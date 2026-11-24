@@ -1,147 +1,147 @@
-# 12.9 Phạm vi của cacerts, kho tin cậy riêng và tác động khi thay đổi tập CA được tin
+# 12.9 Scope of `cacerts`, Custom Truststores, and Impact of Changing Trusted CA Sets
 
-Khi ứng dụng Java gọi một dịch vụ HTTPS, nó không thể chỉ kiểm tra rằng “server có gửi một chứng thư X.509”. Ứng dụng phải quyết định **chứng thư đó có được tin cậy theo chính sách của kết nối hay không**, thường thông qua một đường chứng thư (*certificate path*) nối tới một **trust anchor** được cấu hình. Đối với Java, tập trust anchor thường đến từ **truststore**. Trong nhiều JDK, truststore mặc định có liên quan đến file `cacerts`; nhưng tên “mặc định” không đồng nghĩa một file `cacerts` cố định cho mọi process, mọi thư viện mạng hoặc mọi bản phân phối Java.
+When a Java application calls an HTTPS service, it cannot merely verify that "the server sent an X.509 certificate". The application must decide **whether that certificate is trusted under the connection's policy**, typically via a *certificate path* chaining to a configured **trust anchor**. In Java, the trust anchor set usually comes from a **truststore**. In many JDKs, the default truststore involves the `cacerts` file; however, "default" does not mean one fixed `cacerts` file for every process, every networking library, or every Java distribution.
 
-Bài này phân biệt ba tầng:
+This lesson separates three layers:
 
-1. **`cacerts`**: kho chứng thư CA được phân phối/quản lý cùng một Java runtime, thường là nguồn mặc định cho JSSE nếu không có cấu hình ưu tiên khác.
-2. **Kho tin cậy riêng của ứng dụng** (*application-specific truststore*): một tập trust anchor do ứng dụng hoặc môi trường chỉ định; có thể thay hoặc, nếu thiết kế rõ ràng, kết hợp với nguồn mặc định.
-3. **Phạm vi tác động của thay đổi tập CA đáng tin**: thêm/xóa root hoặc intermediate CA làm thay đổi kết nối nào có thể xác thực được, mở rộng/thu hẹp bề mặt tin cậy và ảnh hưởng tới triển khai, rollback, TLS/mTLS và vận hành.
+1. **`cacerts`**: the CA certificate store distributed/managed with a Java runtime, typically the default source for JSSE unless a higher-priority configuration overrides it.
+2. **Application-specific truststore**: a set of trust anchors specified by the application or environment; it may replace or, if explicitly designed, combine with the default source.
+3. **Blast radius of changing the trusted CA set**: adding or removing root or intermediate CAs changes which connections can validate, widens or narrows the trust surface, and affects deployments, rollbacks, TLS/mTLS, and operations.
 
-**Điểm quan trọng:** thêm một CA vào truststore không làm server “an toàn hơn” một cách tự động; nó **cấp thêm quyền được xét là nguồn tin cậy** trong các điều kiện kiểm chứng. Xóa CA không nhất thiết làm mọi phiên kết nối hiện hữu lập tức ngắt, nhưng có thể khiến **những TLS handshake mới** thất bại. Vì vậy, sửa CA store phải được đối xử như một thay đổi chính sách bảo mật có kiểm thử, audit và phương án rollback.
+**Key point:** adding a CA to a truststore does not automatically make a server "more secure"; it **grants additional authority to be treated as a trusted source** under validation conditions. Removing a CA does not necessarily tear down existing connections immediately, yet can cause **new TLS handshakes** to fail. Therefore, modifying a CA store must be treated as a security policy change with testing, auditing, and a rollback plan.
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích vai trò của **truststore**, **keystore**, **trusted certificate entry**, **key entry** và **trust anchor** trong Java.
-2. Biết `cacerts` thường nằm ở đâu, Java runtime/provider nào thực sự đọc nó, và khi nào không được giả định nó được sử dụng.
-3. Phân biệt nguồn trust mặc định của JSSE với kho tin cậy riêng được chỉ định bằng `javax.net.ssl.trustStore` hoặc `SSLContext` / `TrustManagerFactory`.
-4. Hiểu **custom truststore có thay thế hay hợp nhất với public roots**: mặc định không tự union tập CA chỉ vì đặt một file mới.
-5. Phân tích tác động khi **thêm, loại bỏ, thay thế hoặc thu hẹp tập root/intermediate CA**, gồm nguy cơ chấp nhận đối tác không mong muốn hoặc làm đứt kết nối.
-6. Tách **xác minh certificate chain** khỏi **hostname/SAN matching**, certificate usage, thuật toán, revocation, quyền nghiệp vụ và mTLS client authentication.
-7. Tạo một trust manager riêng bằng Java 17+, không cần sửa `cacerts`, và kiểm tra test chứng thư/đường tin cậy theo policy.
-8. Có quy trình vận hành để thay truststore an toàn trong container/Kubernetes, đa JDK, ứng dụng chạy dài hạn và những kết nối đang giữ trong pool.
+1. Explain the roles of **truststore**, **keystore**, **trusted certificate entry**, **key entry**, and **trust anchor** in Java.
+2. Know where `cacerts` typically resides, which Java runtime/provider actually reads it, and when not to assume it is in use.
+3. Distinguish JSSE's default trust source from a custom truststore configured via `javax.net.ssl.trustStore` or `SSLContext` / `TrustManagerFactory`.
+4. Understand whether a **custom truststore replaces or merges with public roots**: by default, specifying a new file does not auto-union CA sets.
+5. Analyze the impact of **adding, removing, replacing, or narrowing root/intermediate CAs**, including the risk of accepting unintended peers or breaking connections.
+6. Separate **certificate chain verification** from **hostname/SAN matching**, certificate usage, algorithms, revocation, business authorization, and mTLS client authentication.
+7. Build a scoped trust manager in Java 17+ without editing `cacerts`, and test certificates/trust paths against policy.
+8. Follow an operational workflow to safely swap truststores in containers/Kubernetes, multi-JDK setups, long-lived apps, and pooled connections.
 
-## 2. Những đối tượng dễ bị nhầm
+## 2. Concepts Easily Confused
 
-Một truststore Java thường là `KeyStore` (định dạng PKCS12 hoặc JKS tùy file/runtime) được dùng để tìm những **chứng thư được tin cậy**. Một keystore cho **danh tính TLS của chính ứng dụng** có thể chứa private key kèm certificate chain. Hai loại thường dùng cùng API `KeyStore` nhưng mục đích khác nhau.
+A Java truststore is typically a `KeyStore` (in PKCS12 or JKS format depending on file/runtime) used to look up **trusted certificates**. A keystore for **the application's own TLS identity** can hold a private key with its certificate chain. Both often use the same `KeyStore` API while serving different purposes.
 
-| Khái niệm | Công dụng | Có private key không? | Dùng trong TLS để làm gì? |
+| Concept | Purpose | Has a private key? | What is it used for in TLS? |
 | --- | --- | --- | --- |
-| **Truststore** | Chứa certificate/trust anchor để kiểm peer | Thường không cần | `TrustManager` kiểm chain của phía đối diện |
-| **`cacerts`** | Nguồn root CA mặc định trong nhiều runtime JDK | Thông thường là các trusted cert entries | Nguồn CA được runtime/JSSE dùng khi được cấu hình làm mặc định |
-| **Identity keystore** | Chứa private key và certificate chain của local endpoint | Có thể có | `KeyManager` trình certificate và dùng private key khi cần |
-| **TrustedCertEntry** | Một certificate được lưu trong `KeyStore` dưới alias | Không | Có thể làm trust anchor tùy cách trust manager nạp |
-| **PrivateKeyEntry** | Private key cùng certificate chain | Có | Phục vụ local identity cho TLS hoặc signing |
-| **Trust anchor** | Điểm kết thúc đường chứng thư mà verifier đã tin theo policy ngoài băng | Không cần private key của anchor | PKIX chấp nhận chain nếu mọi điều kiện và trust anchor phù hợp |
-| **Intermediate CA** | CA cấp chứng thư dưới một root/CA khác | Certificate public của intermediate; private key giữ riêng | Xây dựng chain; không nhất thiết cần cài như trust anchor |
-| **Leaf/end-entity certificate** | Certificate của server/client cụ thể | Bản certificate không chứa private key | Xác minh peer và tên/mục đích sử dụng |
+| **Truststore** | Holds certificates/trust anchors to verify peers | Usually unnecessary | `TrustManager` validates the peer's chain |
+| **`cacerts`** | Default root CA source in many JDK runtimes | Normally trusted cert entries | CA source used by runtime/JSSE when configured as default |
+| **Identity keystore** | Holds private key and certificate chain of local endpoint | Can have one | `KeyManager` presents certificate and uses private key when needed |
+| **`TrustedCertEntry`** | A certificate stored in `KeyStore` under an alias | No | Can act as a trust anchor depending on how the trust manager loads it |
+| **`PrivateKeyEntry`** | Private key with certificate chain | Yes | Serves local identity for TLS or signing |
+| **Trust anchor** | Termination point of a certification path trusted out-of-band by verifier policy | Anchor's private key not needed | PKIX accepts chain if all constraints and trust anchor match |
+| **Intermediate CA** | CA issuing certificates under a root/parent CA | Public certificate of intermediate; private key kept separate | Chain building; not necessarily installed as a trust anchor |
+| **Leaf/end-entity certificate** | Specific server/client certificate | Certificate itself contains no private key | Verifies peer and permitted names/usages |
 
-**Truststore không phải nơi “để lấy khóa AES”**: nó thường quản lý các certificate dùng để xác thực peer. **`cacerts` không phải nơi lưu private key của HTTPS server**; private key của server có thể ở identity keystore/HSM/KMS. Một file PKCS#12 có thể chứa cả key và certificate entries, nhưng ý nghĩa khi được nạp phụ thuộc vào `KeyManagerFactory` hay `TrustManagerFactory`, không chỉ extension `.p12`.
+**A truststore is not a place "to store AES keys"**: it normally manages certificates used to authenticate peers. **`cacerts` is not where an HTTPS server's private key lives**; server private keys belong in an identity keystore/HSM/KMS. A PKCS#12 file can hold both key and certificate entries, yet its meaning when loaded depends on `KeyManagerFactory` vs. `TrustManagerFactory`, not just the `.p12` extension.
 
-### Định nghĩa “tin CA” có phạm vi
+### "Trusting a CA" Has Scoped Conditions
 
-Một CA trusted có thể được xem là trust anchor khi xây dựng chain phù hợp. Tuy nhiên điều kiện chấp nhận leaf còn phụ thuộc:
+A trusted CA can act as a trust anchor when building a valid chain. Still, accepting a leaf certificate also depends on:
 
-- Đường chứng thư hợp lệ theo thuật toán/path-building và các ràng buộc hiện hành.
-- Thời hạn, Basic Constraints, Key Usage và Extended Key Usage thích hợp; algorithm/key-size constraints.
-- Endpoint identification: kết nối đến DNS/IP **đúng** tên trong Subject Alternative Name (*SAN*) của leaf.
-- Revocation policy, distrust policy hoặc các hạn chế riêng của runtime/ứng dụng nếu được cấu hình.
-- Trust anchor nào được phép cho **mục đích** kết nối đó và theo tenant/environment nào.
+- A valid certification path under current path-building algorithms and constraints.
+- Validity period, Basic Constraints, Key Usage, and appropriate Extended Key Usage; algorithm/key-size constraints.
+- Endpoint identification: connecting to a DNS/IP **matching** the leaf's Subject Alternative Name (*SAN*).
+- Revocation policy, distrust policies, or runtime/application-specific restrictions when configured.
+- Which trust anchors are authorized for **the purpose** of that connection and for which tenant/environment.
 
-Vì vậy, có một CA trong truststore **không tự** cấp quyền truy cập API, cho phép mọi certificate của CA làm server certificate, hay chứng minh một request có quyền đọc dữ liệu.
+Thus, having a CA in a truststore **does not automatically** grant API access, allow every certificate from that CA to act as a server certificate, or prove a request is authorized to read data.
 
-## 3. `cacerts` nằm ở đâu và thuộc phạm vi nào?
+## 3. Where Does `cacerts` Live and What Is Its Scope?
 
-Đối với JDK hiện đại, vị trí thường gặp là:
+On modern JDKs, the typical location is:
 
 ```text
 <java.home>/lib/security/cacerts
 ```
 
-Ví dụ nếu Java được cài ở `/opt/jdk-17` thì file có thể là `/opt/jdk-17/lib/security/cacerts`. Trên máy có nhiều JDK/JRE/container image, **mỗi runtime có thể có tập CA khác nhau**. Đường dẫn thật còn phụ thuộc package/vendor, symbolic link và cơ chế tích hợp CA của hệ điều hành.
+For instance, if Java is installed at `/opt/jdk-17`, the file may be `/opt/jdk-17/lib/security/cacerts`. On hosts with multiple JDKs/JREs/container images, **each runtime may have a different CA set**. Exact paths also depend on packaging/vendor, symlinks, and OS CA integration mechanisms.
 
-Để quan sát runtime đang chạy:
+To inspect the active runtime:
 
 ```bash
 java -XshowSettings:properties -version
 ```
 
-Trong output, tìm thuộc tính `java.home` và kiểm cách cấu hình launcher/provider. Dùng `java` đúng đường dẫn mà ứng dụng production chạy; việc terminal sử dụng một JDK khác với service (hoặc một container image khác) rất phổ biến.
+In the output, check the `java.home` property and inspect launcher/provider configs. Always run the exact `java` binary that production uses; having a terminal use a different JDK than the service (or a different container image) is very common.
 
-Để liệt kê chứng thư trong store mặc định được lệnh `keytool` của JDK chỉ định nhận diện:
+To list certificates in the default store recognized by the selected JDK's `keytool`:
 
 ```bash
 keytool -list -cacerts
 ```
 
-`keytool` có thể hỏi mật khẩu để kiểm tính toàn vẹn; không nhập password quản trị thật lên command line hoặc chia sẻ output chứa thông tin không cần thiết. Lệnh chỉ phản ánh **`cacerts` của JDK đi cùng `keytool` đang được chạy**, không xác nhận mọi Java process khác đang dùng chính file ấy.
+`keytool` may prompt for a password to verify integrity; never pass real admin passwords on the command line or share outputs containing unnecessary details. This command reflects **only the `cacerts` of the JDK paired with the `keytool` being executed**, not every other Java process on the system.
 
-### Tác động của bản phân phối Java và hệ điều hành
+### Impact of Java Distributions and Operating Systems
 
-Không có một danh sách CA bất biến gọi là “bộ CA Java”. Runtime JDK có thể mang một tập root riêng, nhận cập nhật root store từ vendor, hoặc liên kết với hệ điều hành trong một số bản đóng gói. Container image được build ở thời điểm khác có thể có root store khác, kể cả nếu ứng dụng cùng version.
+There is no single immutable list called "the Java CA bundle". A JDK runtime may ship its own root set, receive root-store updates from its vendor, or integrate with the OS store in certain builds. Container images built at different times can carry different root stores, even with the same application version.
 
-Hệ quả thực tế:
+Practical consequences:
 
-- Một service chạy JDK A tin certificate chain X, service chạy JDK B có thể từ chối X.
-- Cập nhật JDK/container base image có thể thay tập CA được tin mà **không thay mã nguồn ứng dụng**.
-- Sửa `cacerts` của máy host chưa chắc ảnh hưởng process đang dùng JDK trong container.
-- Sửa file khi process đã khởi tạo `SSLContext`/trust manager không đảm bảo những kết nối mới tự dùng tập CA mới; thường cần **tạo lại trust manager/SSLContext, thay connection pool hoặc restart có kiểm soát**.
-- Một thư viện có TLS stack/native store riêng có thể không dùng JSSE truststore.
-- Đừng suy đoán từ `java -version` trên terminal nếu deployment dùng image/dịch vụ khác; cần quan sát đúng artifact và process.
+- A service on JDK A trusts certificate chain X, while a service on JDK B rejects X.
+- Updating a JDK/container base image can alter trusted CAs **without changing application source code**.
+- Editing the host machine's `cacerts` may not affect a process using a JDK inside a container.
+- Modifying a file after a process has initialized its `SSLContext`/trust manager does not ensure new connections pick up the new CAs automatically; you normally need **recreating trust managers/SSLContexts, cycling connection pools, or a controlled restart**.
+- Libraries with their own TLS stack/native store may ignore the JSSE truststore altogether.
+- Never infer behavior from `java -version` in a terminal if deployment runs a different image/service; inspect the actual artifact and process.
 
-**Không sửa `cacerts` làm lựa chọn mặc định** cho một đối tác duy nhất. Việc thêm CA vào JDK-wide truststore có thể mở rộng tin cậy của nhiều client trong cùng runtime và ảnh hưởng các ứng dụng khác nếu dùng chung JDK. Tốt hơn là tạo **truststore riêng có scope rõ**, hoặc client-specific `SSLContext`.
+**Do not edit `cacerts` as a default fix** for a single partner. Adding a CA to the JDK-wide truststore widens trust for multiple clients inside the same runtime and affects other apps sharing that JDK. Prefer creating a **dedicated scoped truststore** or a client-specific `SSLContext`.
 
-## 4. JSSE chọn truststore như thế nào?
+## 4. How Does JSSE Choose a Truststore?
 
-Với SunJSSE trong OpenJDK/Oracle JDK thông dụng, khi tạo default trust manager (`TrustManagerFactory.init((KeyStore) null)`), cơ chế tìm nguồn trust thường xét:
+With SunJSSE in common OpenJDK/Oracle JDK distributions, when initializing the default trust manager (`TrustManagerFactory.init((KeyStore) null)`), trust source lookup typically checks:
 
-1. Nếu có cấu hình `javax.net.ssl.trustStore`, dùng truststore được chỉ định (cùng type/password/provider phù hợp).
-2. Nếu không được chỉ định, có thể ưu tiên file `jssecacerts` trong thư mục security của runtime nếu tồn tại.
-3. Nếu không có `jssecacerts`, thường dùng `cacerts`.
-4. Nếu không có tập trust anchor khả dụng, việc xác thực TLS có thể thất bại vì không tìm được path tới CA tin cậy.
+1. If `javax.net.ssl.trustStore` is set, use the specified truststore (with matching type/password/provider).
+2. If unset, prefer `jssecacerts` in the runtime's security directory if it exists.
+3. If `jssecacerts` is absent, typically use `cacerts`.
+4. If no usable trust anchor set exists, TLS validation fails because no path to a trusted CA can be built.
 
-**Đây là mô hình áp dụng cho nhiều JSSE provider/JDK phổ biến, không phải cam kết mọi Java runtime hay mọi HTTP client.** Tên file ưu tiên, khả năng load, system properties, cách tích hợp OS store và các trường hợp file không tồn tại/phân quyền lỗi có thể khác theo provider/phiên bản. Với một SunJSSE implementation, đặt `javax.net.ssl.trustStore` trỏ tới file không có thật có thể dẫn đến truststore trống hoặc lỗi load, **không nên giả định fallback an toàn về `cacerts`**.
+**This describes common JSSE providers/JDKs, not a guarantee across every Java runtime or HTTP client.** Priority filenames, loadability, system properties, OS store integration, and missing-file/permission-error handling can differ by provider/version. In SunJSSE implementations, pointing `javax.net.ssl.trustStore` to a non-existent file can yield an empty truststore or load failure—**never assume a safe fallback to `cacerts`**.
 
-Các thuộc tính liên quan:
+Related properties:
 
-| Cấu hình | Ý nghĩa | Cảnh báo |
+| Configuration | Meaning | Warning |
 | --- | --- | --- |
-| `javax.net.ssl.trustStore` | Đường dẫn truststore cho JSSE default trust | Có thể **thay** tập CA mặc định thay vì bổ sung |
-| `javax.net.ssl.trustStoreType` | Kiểu keystore, ví dụ `PKCS12` hoặc `JKS` | Phải phù hợp file/provider |
-| `javax.net.ssl.trustStorePassword` | Mật khẩu khi tải/kiểm tính toàn vẹn truststore | Command-line system property có thể lộ qua process args/log |
-| `javax.net.ssl.trustStoreProvider` | Provider đọc store khi cần | Không tùy tiện chọn provider chưa kiểm tương thích |
-| `javax.net.debug` | Debug TLS handshake/trust processing | Dùng có giới hạn, log có thể lộ metadata nhạy cảm |
-| `java.security.debug` | Một số luồng debug security/certpath | Không bật quá rộng ở môi trường production |
+| `javax.net.ssl.trustStore` | Truststore path for JSSE default trust | Can **replace** default CAs rather than appending |
+| `javax.net.ssl.trustStoreType` | Keystore type, e.g., `PKCS12` or `JKS` | Must match file/provider |
+| `javax.net.ssl.trustStorePassword` | Password when loading/verifying truststore integrity | Command-line system properties can leak via process args/logs |
+| `javax.net.ssl.trustStoreProvider` | Provider reading the store when needed | Do not pick an untested provider arbitrarily |
+| `javax.net.debug` | Debugs TLS handshake/trust processing | Use sparingly; logs can expose sensitive metadata |
+| `java.security.debug` | Security/certpath debug streams | Never enable broadly in production |
 
-Có thể cấu hình JVM lúc khởi động theo ý tưởng:
+Conceptual JVM startup configuration:
 
 ```text
 -Djavax.net.ssl.trustStore=/etc/app/trust/outbound.p12
 -Djavax.net.ssl.trustStoreType=PKCS12
 ```
 
-Đây là **ví dụ các tùy chọn JVM**, không phải lệnh độc lập cần chạy. Phải cung cấp cơ chế mở/kiểm integrity file theo chính sách, chẳng hạn secret manager và code tạo `SSLContext`. Đừng đặt plaintext password bằng `-Djavax.net.ssl.trustStorePassword=secret` trên command line vì có thể lộ qua công cụ giám sát process và log.
+These are **illustrative JVM options**, not a standalone command to run. You must supply an approved mechanism to open/verify file integrity, such as a secret manager and `SSLContext` initialization code. Never pass plaintext passwords via `-Djavax.net.ssl.trustStorePassword=secret` on the command line where process monitors and logs can capture them.
 
-### Truststore riêng có tự cộng thêm root công khai của `cacerts` không?
+### Does a Custom Truststore Automatically Include `cacerts` Public Roots?
 
-**Thông thường không.** Nếu chỉ đặt một file custom qua `javax.net.ssl.trustStore`, JSSE mặc định sẽ lấy tập trust từ file đó cho default trust manager theo provider/config. Nếu file chỉ chứa CA của đối tác, các HTTPS call tới website công khai khác có thể **không còn** xây dựng được chain tới public CA vì những root này không nằm trong kho mới.
+**Normally no.** Setting a custom file via `javax.net.ssl.trustStore` makes default JSSE source trust exclusively from that file for the default trust manager per provider/config. If the file contains only a partner's CA, HTTPS calls to other public websites may **stop** building chains to public CAs because those roots are absent from the new store.
 
-Đừng xem “custom truststore” = “cacerts + một CA”. **Hợp nhất hai bộ tin cậy là một quyết định kiến trúc riêng**, không phải hiệu ứng mặc định của một property.
+Do not equate "custom truststore" = "`cacerts` + one CA". **Merging two trust sets is an explicit architectural decision**, not an automatic side effect of setting a property.
 
-Có những chiến lược khác nhau:
+Different strategies exist:
 
-- **Replace:** custom store chỉ chứa CA cho mục đích cụ thể, dùng trong một `SSLContext` của client. Đây là lựa chọn có scope hẹp, dễ audit.
-- **Curated bundle:** một file chứa tập approved public roots + private CA cần thiết, quản lý tập đó như một artifact có version. Tác động có thể rộng nếu cấu hình JVM-wide.
-- **Composite trust manager có kiểm soát:** kết hợp hai trust managers, nhưng phải định nghĩa chính xác điều kiện OR/AND, thuật toán/hostname/revocation, xử lý lỗi, môi trường sử dụng và scope. Không tự ghép code “thử trust manager này, fail thì manager kia” nếu chưa security-review.
-- **Per-client contexts:** outbound client A dùng public CAs; client B dùng private CA. Tránh làm rộng policy của tất cả outbound connections.
+- **Replace:** a custom store holding only CAs for a specific purpose, wired to a dedicated client `SSLContext`. This offers narrow scope and easy auditing.
+- **Curated bundle:** a single file holding approved public roots + required private CAs, managed as a versioned artifact. Impact can be broad if set JVM-wide.
+- **Controlled composite trust manager:** combining two trust managers, while rigorously defining OR/AND rules, algorithm/hostname/revocation checks, error handling, usage context, and scope. Never cobble together "try this trust manager, if it fails try the other" without a security review.
+- **Per-client contexts:** outbound client A uses public CAs; client B uses the private CA. Avoids widening policy for all outbound connections.
 
-Hợp nhất không phải lúc nào cũng tốt: nếu một client chỉ được phép nói chuyện với một đối tác private CA, tự thêm toàn bộ public roots sẽ **mở rộng** tập certificate chains được xét đáng tin.
+Merging is not always desirable: if a client is only permitted to talk to a single private-CA partner, adding all public roots **expands** the set of certificate chains considered trustworthy.
 
-## 5. Phân biệt truststore mặc định, truststore riêng, và identity keystore
+## 5. Distinguishing Default Truststore, Custom Truststore, and Identity Keystore
 
-Xét một Java service gọi ra ngoài tới hai đích:
+Consider a Java service making outbound calls to two destinations:
 
 ```text
 Java service
@@ -153,34 +153,34 @@ Java service
            uses SSLContext B -> private CA / tightly scoped trust
 ```
 
-Nếu service còn nhận kết nối HTTPS/mTLS:
+If the service also accepts inbound HTTPS/mTLS connections:
 
 ```text
 Inbound server side:
-  KeyManager -> private key + certificate chain của chính server
-  TrustManager -> certificate CAs mà server tin khi xác thực client mTLS
+  KeyManager -> server's own private key + certificate chain
+  TrustManager -> CA certificates the server trusts when verifying mTLS clients
 
 Outbound client side:
-  KeyManager -> client identity nếu endpoint yêu cầu mTLS
-  TrustManager -> CA/path của HTTPS server phía đối diện
+  KeyManager -> client identity if endpoint requires mTLS
+  TrustManager -> CA/path of the peer HTTPS server
 ```
 
-**Đừng nhập hai vai trò vào một**. Việc thêm root CA vào **client truststore** không tự làm server gửi certificate mới hoặc tạo client certificate. Việc nạp private key vào identity keystore không tự làm client tin một CA trên endpoint đích.
+**Never merge the two roles into one**. Adding a root CA to a **client truststore** does not make a server send a new certificate or create a client certificate. Loading a private key into an identity keystore does not make the client trust a CA on the target endpoint.
 
-Ở server mTLS, truststore dùng để xác thực **client certificates** có thể nên chứa riêng những issuing CAs được phép. Nếu vô tình cho toàn bộ public WebPKI roots làm trust anchors của mTLS client auth, phạm vi client certificate được chấp nhận có thể rộng hơn mong muốn; vẫn cần mapping identity/authorization, nhưng tốt nhất thu hẹp trust roots ngay từ đầu.
+On an mTLS server, the truststore used to verify **client certificates** should typically hold only authorized issuing CAs. Accidentally letting all public WebPKI roots act as mTLS client-auth trust anchors can make the accepted client certificate pool far broader than intended; you still need identity mapping/authorization, yet narrowing trust roots upfront is best.
 
-### Scope của một JSSE SSLContext
+### Scope of a JSSE `SSLContext`
 
-- **JVM default:** properties và `SSLContext.getDefault()` có ảnh hưởng rộng tới những thư viện thực sự dùng default context.
-- **Client-specific:** một `SSLContext` mới được cấu hình từ `TrustManagerFactory` riêng và gắn vào HTTP/TLS client cụ thể. Phạm vi thay đổi rõ hơn.
-- **Provider/native TLS:** không phải tất cả thư viện mạng đều dùng JSSE. Cần kiểm tài liệu runtime/client.
-- **Long-lived process:** thay file truststore không buộc các manager/context đã init cập nhật tự động. Version, reload/refresh và connection-pool lifecycle phải được thiết kế.
+- **JVM default:** properties and `SSLContext.getDefault()` have broad impact across libraries that actually use the default context.
+- **Client-specific:** a fresh `SSLContext` built from a dedicated `TrustManagerFactory` and bound to a specific HTTP/TLS client. Change impact is much clearer.
+- **Provider/native TLS:** not all networking libraries use JSSE. Check runtime/client docs.
+- **Long-lived processes:** replacing a truststore file on disk does not force already-initialized managers/contexts to update automatically. Versioning, reload/refresh, and connection-pool lifecycles must be designed explicitly.
 
-Ứng dụng có thể ghi audit về fingerprint/version của **trust bundle**, số CA và thời điểm load; tránh in đầy đủ chứng thư hoặc key material vào log nếu không cần.
+Applications can audit the **trust bundle**'s fingerprint/version, CA count, and load timestamp; avoid logging full certificates or key material unnecessarily.
 
-## 6. Root CA, intermediate CA, leaf certificate và trust anchor
+## 6. Root CA, Intermediate CA, Leaf Certificate, and Trust Anchor
 
-Đường chứng thư thường như sau:
+A typical certification path looks like:
 
 ```text
 Root CA [trusted anchor installed/configured]
@@ -192,99 +192,99 @@ Root CA [trusted anchor installed/configured]
                  +-- appropriate serverAuth purpose
 ```
 
-Trong chain thông thường, **chỉ root CA** cần làm trust anchor; server gửi leaf và intermediate(s), hoặc path builder tìm intermediate từ nguồn thích hợp. Không mặc định phải import mọi intermediate vào truststore. Nếu server thiếu intermediate, sửa cấu hình **certificate chain của server** thường hợp lý hơn là thêm intermediate thành trust anchor trên mọi client.
+In a normal chain, **only the root CA** needs to be a trust anchor; the server sends the leaf and intermediate(s), or the path builder fetches intermediates from an appropriate source. Do not assume every intermediate must be imported into the truststore. If a server omits an intermediate, fixing the **server's certificate chain configuration** is usually better than adding the intermediate as a trust anchor on every client.
 
-**Root vs intermediate:** Khi đưa intermediate trực tiếp vào tập trust anchor, bạn có thể thay đổi trust model: intermediate được tin theo cách khác với việc chỉ chấp nhận nó dưới root và các kiểm tra của chain. Ràng buộc extensions đối với trust anchor có thể được xử lý khác với CA nằm trong chứng thư chain, tùy implementation và chính sách. Chỉ anchor một intermediate nếu bạn hiểu **phạm vi trust** và đã kiểm các ràng buộc cần thiết.
+**Root vs. intermediate:** Placing an intermediate directly in the trust anchor set can alter the trust model: the intermediate is trusted differently than when validated beneath a root and full chain checks. Extension constraints on a trust anchor may be handled differently from intermediate CAs in a chain, depending on implementation and policy. Only anchor an intermediate if you understand the **trust scope** and have verified necessary constraints.
 
-**Leaf pinning:** Import một leaf certificate vào trustedCertEntry có thể giống cách tin trực tiếp certificate đó đối với một số validator, nhưng **không phải thay thế toàn diện** cho certificate pinning, expiry management, hostname validation và revocation policy. Khi leaf renew, pin/truststore có thể phải cập nhật. Một số TLS stack có semantics riêng đối với trust anchor được cấu hình làm leaf.
+**Leaf pinning:** Importing a leaf certificate as a `trustedCertEntry` can look like directly trusting that certificate to certain validators, yet it is **not a comprehensive substitute** for certificate pinning, expiry management, hostname validation, and revocation policies. When the leaf renews, the pin/truststore must be updated. Some TLS stacks apply distinct semantics to leaf-configured trust anchors.
 
-### Chain validation khác hostname verification
+### Chain Validation Differs from Hostname Verification
 
-Một certificate được public CA ký hợp lệ cho `api-a.example.test` **không được** chấp nhận cho `api-b.example.test` chỉ vì CA là trusted. Hostname/IP phải được kiểm đối chiếu SAN theo chính sách HTTPS/TLS.
+A certificate validly signed by a public CA for `api-a.example.test` **must not** be accepted for `api-b.example.test` simply because the CA is trusted. Hostname/IP must be checked against SANs per HTTPS/TLS policy.
 
-- `X509Certificate.getPublicKey()` chỉ lấy public key; không kiểm trust.
-- `X509Certificate.verify(issuerKey)` kiểm chữ ký với key đã cung cấp; không kiểm đầy đủ chain/trust/hostname.
-- `CertificateFactory` parse certificate, không tự quyết định certificate được tin.
-- `CertPathValidator` với `PKIXParameters` có thể thực hiện kiểm path phù hợp cấu hình; hostname kiểm theo endpoint identification riêng.
-- Với `HttpsURLConnection` hoặc `java.net.http.HttpClient` cấu hình chuẩn, dùng chức năng xác minh tên máy chủ của TLS stack; không tắt nó để “sửa” lỗi certificate.
-- Với `SSLSocket` tự quản, có thể cần cấu hình `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` đúng ngữ cảnh; đừng giả định việc cài trust manager đã bật hostname verification ở mọi socket API.
+- `X509Certificate.getPublicKey()` only extracts the public key; it checks no trust.
+- `X509Certificate.verify(issuerKey)` checks the signature against the supplied key; it does not check full chain/trust/hostname.
+- `CertificateFactory` parses certificates; it does not decide whether a certificate is trusted.
+- `CertPathValidator` with `PKIXParameters` can validate paths per configuration; hostnames are checked separately via endpoint identification.
+- With standard-configured `HttpsURLConnection` or `java.net.http.HttpClient`, rely on the TLS stack's hostname verification; never disable it to "fix" certificate errors.
+- With manually managed `SSLSocket`s, you may need `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` in context; never assume setting a trust manager enables hostname verification on every socket API.
 
-Một TLS handshake thành công vẫn không quyết định **authorization** của request; service phải kiểm quyền/tenant và ngữ cảnh nghiệp vụ riêng.
+A successful TLS handshake still does not determine request **authorization**; the service must check permissions/tenants and business context independently.
 
-## 7. Thêm một CA: tác động và vùng tin cậy mở rộng
+## 7. Adding a CA: Impact and Expanded Trust Surface
 
-Giả sử ứng dụng trước đây tin CAs `A` và `B`; bạn nhập thêm CA `C` vào truststore mà một client dùng để xác thực server:
+Suppose an application previously trusted CAs `A` and `B`, and you import CA `C` into the truststore a client uses to verify servers:
 
 ```text
 Before: trusted anchors = {A, B}
 After:  trusted anchors = {A, B, C}
 ```
 
-Nếu CA C có thể phát hành certificate phù hợp tên máy chủ và policy, client đó có thể xác thực một chain mới trước đây bị từ chối. **Điều này có thể đúng mục đích** (kết nối đối tác private PKI) nhưng đồng thời mở rộng những bên có khả năng cấp certificate được xét hợp lệ.
+If CA `C` can issue certificates matching hostnames and policies, that client can now validate a new chain it previously rejected. **This may be intentional** (connecting to a private PKI partner), while simultaneously expanding the parties capable of issuing certificates deemed valid.
 
-Tác động cần phân tích:
+Impact factors to analyze:
 
-1. **Blast radius:** Có áp dụng cho một HTTP client cụ thể, một JVM, một host, toàn cluster hay nhiều service?
-2. **Tên miền/identity:** CA mới có thể cấp cho những DNS nào? Có name constraints được thực thi và application-level allowlist không?
-3. **Nguồn chứng thư:** CA root được lấy từ kênh độc lập đáng tin nào? Fingerprint SHA-256 có được đối chiếu ngoài kênh vận chuyển file không?
-4. **Mục đích:** Đây là CA dùng cho server TLS, client mTLS, code signing hay mục đích khác? Truststore dùng đúng phạm vi chưa?
-5. **Mức độ rủi ro:** Nếu CA bị compromise hoặc governance yếu, attacker có thể lợi dụng để tạo chain hợp lệ cho endpoint mà client gọi (nếu các điều kiện khác như SAN/hostname cũng khớp).
-6. **Vòng đời:** CA mới có expiry, rotation, revocation mechanism và chủ thể vận hành rõ ràng không?
-7. **Rollback:** Nếu CA mới không nên tin nữa, có thể loại bỏ nhanh và khiến các context/pool liên quan nạp lại chính sách không?
-8. **Môi trường:** Dev/staging CA có vô tình xuất hiện trong production truststore không?
+1. **Blast radius:** Does it apply to one specific HTTP client, one JVM, one host, an entire cluster, or multiple services?
+2. **Domains/identities:** Which DNS names can the new CA issue for? Are name constraints enforced and application-level allowlists applied?
+3. **Certificate provenance:** Which independent trusted channel delivered the root CA? Was its SHA-256 fingerprint verified out-of-band from the file transfer?
+4. **Purpose:** Is this CA for server TLS, client mTLS, code signing, or something else? Is the truststore scoped appropriately?
+5. **Risk level:** If the CA is compromised or poorly governed, an attacker could mint a valid chain for endpoints the client calls (provided other checks like SAN/hostname also match).
+6. **Lifecycle:** Does the new CA have clear expiry, rotation, revocation mechanisms, and an operational owner?
+7. **Rollback:** If the new CA should no longer be trusted, can it be removed rapidly and have related contexts/pools reload the policy?
+8. **Environment:** Could a dev/staging CA accidentally land in a production truststore?
 
-**Không “sửa lỗi PKIX” bằng cách import mọi certificate gặp trên mạng.** Trước tiên xác định vấn đề thật: thiếu intermediate, sai chain, hostname khác, certificate hết hạn, hệ thống đồng hồ sai hay public root không nằm trong runtime.
+**Never "fix PKIX errors" by importing any certificate encountered on the network.** First pinpoint the actual issue: missing intermediate, wrong chain, hostname mismatch, expired certificate, skewed system clock, or a public root missing from the runtime.
 
-### Một CA có thể ảnh hưởng nhiều hostname
+### A Single CA Can Affect Many Hostnames
 
-Một root CA được tin trong client WebPKI nói chung có khả năng tạo đường tin cậy cho các hostname khác nhau khi chứng thư được cấp đáp ứng quy tắc/constraint. Thêm CA vào truststore dùng toàn JVM có thể **mở rộng cả các kết nối không liên quan tới đối tác được thêm**.
+A trusted root CA in general WebPKI clients can establish trust paths for arbitrary hostnames whenever issued certificates satisfy rules/constraints. Adding a CA to a JVM-wide truststore can **expand trust even for connections unrelated to the added partner**.
 
-Giới hạn TCP hostname đích, xác thực tên máy chủ và application authorization giúp giảm rủi ro, nhưng chúng không thay thế việc **thu hẹp tập trust anchor** cho client chỉ cần kết nối một domain nội bộ.
+Restricting target TCP hostnames, verifying hostnames, and enforcing application authorization reduce risk, yet they do not replace **narrowing the trust anchor set** for a client that only needs to reach one internal domain.
 
-## 8. Xóa hoặc thay thế CA: nguy cơ mất kết nối
+## 8. Removing or Replacing a CA: Risk of Connection Outages
 
-Giả sử chain server trước đây xây dựng tới CA A. Khi CA A bị xóa khỏi truststore:
+Suppose a server chain previously anchored at CA `A`. When CA `A` is removed from the truststore:
 
-- **TLS handshake mới** có thể thất bại với lỗi kiểu `PKIX path building failed`, `unable to find valid certification path` hoặc `SSLHandshakeException` tùy provider và nguyên nhân.
-- Nếu vẫn có **một đường chứng thư khác hợp lệ** tới anchor B được tin, handshake có thể tiếp tục thành công; không mặc định “xóa A chắc chắn mọi kết nối tới server X đều fail”.
-- Các connection pool, TLS session resumption hoặc kết nối TLS đã thiết lập có thể **không lập tức** áp policy mới. Để thay chính sách nhanh, cần đánh giá đóng pool/reload context/restart và giới hạn session lifetime.
-- Một số ứng dụng chạy custom `SSLContext` nạp truststore lúc khởi động sẽ không thấy thay đổi file cho đến khi được reload.
+- **New TLS handshakes** may fail with errors such as `PKIX path building failed`, `unable to find valid certification path`, or `SSLHandshakeException` depending on provider and cause.
+- If **another valid certification path** to trusted anchor `B` still exists, handshakes can continue succeeding; do not assume "removing `A` guarantees every connection to server `X` fails".
+- Connection pools, TLS session resumption, or already-established TLS connections may **not immediately** enforce the updated policy. For rapid policy enforcement, evaluate draining pools/reloading contexts/restarting and bounding session lifetimes.
+- Applications using custom `SSLContext`s loaded at startup will not see file changes until reloaded.
 
-**Root CA rollover** thường cần một giai đoạn overlap:
+**Root CA rollover** typically requires an overlap window:
 
 ```text
-T0: client tin OldRoot; server trình chain tới OldRoot
-T1: phân phối trust bundle {OldRoot, NewRoot}
-T2: server chuyển sang chain tới NewRoot
-T3: xác minh không còn client quan trọng cần OldRoot
-T4: loại OldRoot theo risk/retention policy và kiểm hậu kiểm
+T0: client trusts OldRoot; server presents chain to OldRoot
+T1: distribute trust bundle {OldRoot, NewRoot}
+T2: server switches to chain ending at NewRoot
+T3: verify no critical clients still require OldRoot
+T4: remove OldRoot per risk/retention policy and run post-checks
 ```
 
-Nếu xóa OldRoot trước khi client và server được cập nhật đồng bộ, có thể gây outage. Nếu giữ OldRoot quá lâu, bạn kéo dài trust đối với một CA không còn cần thiết hoặc đã có rủi ro. **Overlap phải có thời hạn và inventory**, không phải để hai root tồn tại mãi.
+Removing `OldRoot` before clients and servers update in sync can cause an outage. Keeping `OldRoot` too long extends trust in a CA that is no longer needed or carries risk. **Overlap must be time-bounded and inventoried**, not left with two roots forever.
 
-### Cross-sign và alternate path
+### Cross-Signing and Alternate Paths
 
-Một certificate của intermediate hoặc root có thể được cross-sign, tạo nhiều đường path. Việc bạn xóa một root không phải lúc nào loại được mọi đường hợp lệ qua một root khác. Do đó, test phải dùng **chain thực tế, hostname, algorithm policy và truststore chính xác trên từng client/runtime**, thay vì chỉ so sánh số lượng CA entries.
+An intermediate or root certificate can be cross-signed, creating multiple paths. Removing one root does not always block all valid paths through another root. Therefore, testing must exercise **real chains, hostnames, algorithm policies, and the exact truststore on each client/runtime**, rather than merely counting CA entries.
 
-### Khi bị nghi compromise CA
+### Suspected CA Compromise
 
-Trong một security incident, ưu tiên containment và distrust nhanh có thể quan trọng hơn duy trì mọi kết nối. Tuy nhiên cần đánh giá mức ảnh hưởng, thay CA/chain, cập nhật client trust, bảo vệ identity và log, thông báo đối tác, giám sát handshake. Việc chỉ xóa một root mà server vẫn dùng chain cũ sẽ dẫn đến outage nếu chưa xử lý luồng trust migration.
+During a security incident, rapid containment and distrust may outweigh keeping every connection alive. Still, assess blast radius, replace CAs/chains, update client trust, protect identities and logs, notify partners, and monitor handshakes. Merely deleting a root while servers still serve the old chain causes outages if trust migration is uncoordinated.
 
-## 9. Tạo truststore riêng bằng keytool, không sửa trực tiếp cacerts
+## 9. Creating a Dedicated Truststore with `keytool` Without Editing `cacerts` Directly
 
-Quy trình minh họa cho **một private CA của đối tác**:
+Illustrative workflow for **a partner's private CA**:
 
-### 9.1 Nhận CA và xác minh nguồn gốc
+### 9.1 Receiving the CA and Verifying Provenance
 
-Bạn nhận file `partner-root.pem` qua kênh đã được kiểm soát. Kiểm fingerprint SHA-256 và metadata certificate:
+You receive `partner-root.pem` over a controlled channel. Inspect the SHA-256 fingerprint and certificate metadata:
 
 ```bash
 keytool -printcert -file partner-root.pem
 ```
 
-Đây là bước **kiểm tra**, chưa phải tạo trust. Fingerprint cần đối chiếu với giá trị được xác nhận **qua kênh độc lập đáng tin**, ví dụ trang chính thức/đầu mối bảo mật đã được xác minh, thay vì chép fingerprint từ cùng email có thể đã bị sửa. Kiểm subject/issuer, Basic Constraints CA, key usage, thời hạn, thuật toán và phạm vi sử dụng phù hợp.
+This is an **inspection** step, not creating trust. Compare the fingerprint against a value confirmed **via an independent trusted channel**, such as an official portal or verified security contact, rather than copying a fingerprint from the same email that might have been tampered with. Check subject/issuer, Basic Constraints CA flag, key usage, validity, algorithms, and intended scope.
 
-### 9.2 Import vào một file ứng dụng riêng
+### 9.2 Importing into a Dedicated Application File
 
 ```bash
 keytool -importcert -alias partner-root-2026 \
@@ -293,34 +293,34 @@ keytool -importcert -alias partner-root-2026 \
   -storetype PKCS12
 ```
 
-Các dấu `\` cuối dòng là cú pháp shell kiểu POSIX; trên Windows PowerShell, nhập thành một dòng hoặc dùng cú pháp tiếp dòng phù hợp. Công cụ có thể yêu cầu tạo/nhập password và xác nhận chứng thư. **Không dùng `-noprompt` chỉ để tránh kiểm nguồn tin cậy.** Đừng đưa mật khẩu vào `-storepass password` trên shell history/process arguments.
+Trailing `\` characters are POSIX shell line-continuation syntax; on Windows PowerShell, enter on one line or use the appropriate line-continuation syntax. The tool may prompt to set/enter a password and confirm trusting the certificate. **Never use `-noprompt` just to skip origin verification.** Never pass passwords via `-storepass password` into shell history/process arguments.
 
-Kiểm lại:
+Re-verify:
 
 ```bash
 keytool -list -v -keystore app-outbound-trust.p12 \
   -storetype PKCS12 -alias partner-root-2026
 ```
 
-File vừa tạo chứa **một tập tin cậy do bạn chọn**, không tự chứa tất cả public CAs của `cacerts`. Nếu bạn cần public roots, thiết kế rõ ràng client nào dùng nguồn nào và cách duy trì approved bundle; không tự ghép không kiểm soát.
+The created file holds **only the trust set you chose**, not all public CAs from `cacerts`. If you also need public roots, explicitly design which client uses which source and how the approved bundle is maintained; never merge them haphazardly.
 
-### 9.3 Triển khai
+### 9.3 Deployment
 
-- Đặt file trong đường dẫn chỉ ứng dụng và người vận hành có quyền đọc, ví dụ mounted Secret/ConfigMap tùy chính sách; truststore chứa certificate công khai nhưng **tính toàn vẹn cấu hình rất quan trọng**, nên hạn chế người có quyền sửa.
-- Version artifact, ghi fingerprint/certificate inventory và đường dẫn source-of-truth. Có review thay đổi CA và change window.
-- Không commit password hoặc private key vào repository.
-- Cấu hình đúng JDK/runtime chạy ứng dụng; chỉ định `trustStoreType` nếu có khả năng runtime khác default.
-- Chạy test handshake với endpoint thật **sử dụng chính app trust manager** và kiểm hostname; không chỉ `keytool -list`.
-- Có kế hoạch rollover certificate/CA và rollback nếu endpoint outage.
-- Nếu custom store cần chứa public roots, nó phải được cập nhật theo lịch và chính sách distro/vendor, không copy `cacerts` một lần rồi quên nhiều năm.
+- Place the file in a path readable only by the application and operators, such as a mounted Secret/ConfigMap per policy; even though truststores hold public certificates, **configuration integrity is critical**, so restrict write permissions tightly.
+- Version the artifact, recording fingerprints/certificate inventory and the source-of-truth path. Require reviews for CA changes and defined change windows.
+- Never commit passwords or private keys to repositories.
+- Match the target JDK/runtime running the app; specify `trustStoreType` if the runtime default might differ.
+- Run handshake tests against real endpoints **using the app's own trust manager** and hostname checks; do not stop at `keytool -list`.
+- Maintain a certificate/CA rollover plan and rollback procedure for endpoint outages.
+- If a custom store must include public roots, update it on a schedule aligned with distro/vendor policies—never copy `cacerts` once and forget it for years.
 
-## 10. Java 17+: tạo TrustManager và SSLContext có phạm vi riêng
+## 10. Java 17+: Creating a Scoped `TrustManager` and `SSLContext`
 
-Ví dụ độc lập minh họa **ranh giới phạm vi tin cậy** mà không cần kết nối mạng và không sửa `cacerts`. Nó lấy default trust manager từ provider, tạo một PKCS#12 KeyStore **rỗng trong RAM**, sau đó (nếu JDK có default anchors) thêm đúng một certificate được chọn từ default issuers để chứng minh custom manager chỉ nạp certificate đã thêm.
+This standalone example illustrates **trust scope boundaries** without requiring network calls or editing `cacerts`. It retrieves the default trust manager from the provider, creates an **empty PKCS#12 KeyStore in RAM**, and (if the JDK has default anchors) adds a single certificate picked from default issuers to prove the custom manager loads only the added certificate.
 
-**Chú ý:** việc demo lấy phần tử đầu của danh sách public CAs là cách tạo input test từ runtime, **không phải chính sách lựa chọn CA cho ứng dụng thật**. Production phải chọn CA theo danh tính/fingerprint được xác minh độc lập, không theo vị trí trong mảng hoặc tên issuer đơn thuần. Chương trình cũng **không thực hiện TLS handshake**, nên không chứng minh hostname, PKIX hoặc revocation của endpoint nào.
+**Note:** grabbing the first element of the public CA list in the demo is solely a way to generate test input from the runtime, **not a CA selection policy for real applications**. Production must select CAs by independently verified identity/fingerprint, never by array index or bare issuer name. The program also **performs no TLS handshake**, so it does not verify any endpoint's hostname, PKIX path, or revocation.
 
-Lưu thành **`TrustScopeDemo.java`**:
+Save as **`TrustScopeDemo.java`**:
 
 ```java
 import java.security.KeyStore;
@@ -388,14 +388,14 @@ public class TrustScopeDemo {
 }
 ```
 
-Lệnh chạy với JDK 17+:
+Run command on JDK 17+:
 
 ```bash
 javac --release 17 TrustScopeDemo.java
 java TrustScopeDemo
 ```
 
-**Stdout chính xác trong môi trường thử nghiệm có default CA roots:**
+**Exact stdout in a test environment with default CA roots:**
 
 ```text
 Custom empty entries: 0
@@ -407,23 +407,23 @@ Separate trust manager objects: true
 Default issuer list unchanged: true
 ```
 
-Nếu runtime không có bất kỳ default CA được công bố trong `getAcceptedIssuers()`, hai dòng đầu vẫn xuất hiện, sau đó chương trình in `Import demonstration skipped: no default CA` và kết thúc. Đây là khác biệt môi trường được xử lý có chủ đích, không phải test secret hoặc lỗi TLS.
+If the runtime publishes no default CAs in `getAcceptedIssuers()`, the first two lines still appear, and then the program prints `Import demonstration skipped: no default CA` and exits. This is an intentionally handled environment difference, not a secret test or TLS failure.
 
-### Phân tích từng bước
+### Step-by-Step Analysis
 
-1. `TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())` lấy implementation theo provider. `factory.init((KeyStore) null)` chọn nguồn trust **mặc định đã cấu hình**, không chứng minh đã mở đúng file `cacerts` cụ thể.
-2. `KeyStore.getInstance("PKCS12")` + `load(null, ...)` tạo một keystore mới **rỗng trong RAM**. Nó không sửa `cacerts`, không ghi file và không làm default JSSE đổi trạng thái.
-3. Khởi tạo factory với empty custom store cho `getAcceptedIssuers().length == 0` trong môi trường/provider đã thử nghiệm. Một trust manager không có trust anchor sẽ không được dùng như client trust policy cho public web.
-4. `setCertificateEntry("demo-ca", certificate)` thêm **đúng một** certificate vào custom KeyStore. Tạo `TrustManagerFactory` mới nạp đúng nguồn này; nó không tự lấy union tất cả public CAs.
-5. `clientContext.init(null, new TrustManager[] {scoped}, ...)` thiết lập một SSL context riêng dùng trust manager được chọn, không thay đổi `SSLContext.getDefault()`.
-6. `getSocketFactory() != null` cho biết context đã khởi tạo, **không** chứng minh kết nối tới hostname bất kỳ đã được xác thực. Test mạng/cert chain/hostname là việc khác.
-7. `defaults != scoped` minh họa hai đối tượng trust manager độc lập. `Default issuer list unchanged` kiểm rằng code không sửa state của manager ban đầu; nó không đánh giá CA trust của hệ thống ngoài.
+1. `TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())` retrieves the provider implementation. `factory.init((KeyStore) null)` selects the **configured default trust source**, without proving a specific `cacerts` file was opened.
+2. `KeyStore.getInstance("PKCS12")` + `load(null, ...)` creates an **empty in-memory** keystore. It does not edit `cacerts`, write to disk, or mutate default JSSE state.
+3. Initializing the factory with an empty custom store yields `getAcceptedIssuers().length == 0` in the tested environment/provider. A trust manager with no trust anchors cannot serve as a client trust policy for the public web.
+4. `setCertificateEntry("demo-ca", certificate)` adds **exactly one** certificate to the custom KeyStore. Creating a new `TrustManagerFactory` loads solely that source; it does not auto-union all public CAs.
+5. `clientContext.init(null, new TrustManager[] {scoped}, ...)` initializes a dedicated SSL context using the chosen trust manager, without altering `SSLContext.getDefault()`.
+6. `getSocketFactory() != null` shows the context initialized, **not** that connections to any hostname have been authenticated. Network/cert-chain/hostname tests are separate.
+7. `defaults != scoped` demonstrates two independent trust manager instances. `Default issuer list unchanged` confirms the code did not mutate the original manager's state; it does not evaluate external system CA trust.
 
-Một số JDK có default truststore bị cấu hình rỗng hoặc `javax.net.ssl.trustStore` trỏ tới một file riêng. Vì vậy **số lượng root mặc định không cố định** giữa các máy hoặc build; ví dụ chỉ in các thuộc tính kiểm tra ổn định trên môi trường đã thử.
+Some JDKs have an empty configured default truststore or `javax.net.ssl.trustStore` pointing to a custom file. Thus **the number of default roots is not fixed** across machines or builds; the example prints only properties stable across the tested environment.
 
-### Tạo SSLContext từ truststore file thật
+### Creating an `SSLContext` from a Real Truststore File
 
-Ví dụ sau là **đoạn minh họa trong method**, không phải chương trình độc lập. Giả sử `char[] password` được lấy an toàn từ secret manager và `Path path` trỏ tới file `PKCS12` được duyệt:
+The following is an **illustrative snippet inside a method**, not a standalone program. Assume `char[] password` is fetched securely from a secret manager and `Path path` points to an approved `PKCS12` file:
 
 ```java
 import java.io.InputStream;
@@ -446,259 +446,259 @@ SSLContext scopedContext = SSLContext.getInstance("TLS");
 scopedContext.init(null, tmf.getTrustManagers(), null);
 ```
 
-Đoạn này không cài JVM-wide truststore. `password` là biến nhạy cảm, cần dọn dẹp khi có thể và không log. `KeyStore.load` với null password có semantics integrity-check tùy định dạng/provider; hãy dùng đúng password và policy thay vì mặc định file có thể được tải “không cần bảo vệ”.
+This snippet does not set a JVM-wide truststore. `password` is sensitive—wipe it when possible and never log it. `KeyStore.load` with a `null` password has format/provider-dependent integrity-check semantics; use the proper password and policy rather than assuming files should be loaded "unprotected".
 
-`scopedContext` chỉ có tác dụng với client/socket **thực sự được cấu hình dùng nó**. Chẳng hạn Java `HttpClient` hỗ trợ builder với `.sslContext(scopedContext)`; nếu bạn tạo context rồi không gắn vào HTTP client, các request vẫn có thể dùng default context.
+`scopedContext` affects only clients/sockets **explicitly configured to use it**. For example, Java's `HttpClient` supports `.sslContext(scopedContext)` on its builder; if you build the context without wiring it into the HTTP client, requests may continue using the default context.
 
-**Lưu ý endpoint verification:** trust manager xác minh chain nhưng hostname vẫn phải được kiểm theo TLS API. Java `HttpClient`/HTTPS client thông thường có cơ chế endpoint identification, trong khi một raw `SSLSocket` có thể cần cấu hình `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`. Không tắt hostname verification, không dùng “trust all” để chữa chain lỗi.
+**Endpoint verification note:** a trust manager validates the chain, yet the hostname must still be verified per the TLS API. Standard Java `HttpClient`/HTTPS clients enable endpoint identification, whereas a raw `SSLSocket` may require `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`. Never disable hostname verification or use "trust all" to work around broken chains.
 
-## 11. Thay đổi root CAs có ảnh hưởng TLS đang hoạt động ngay không?
+## 11. Do Root CA Changes Affect Live TLS Immediately?
 
-Không nên giả định một sự kiện “thay file truststore” có tác dụng tức thì với toàn bộ process. Có nhiều tầng cache/state:
+Never assume a "swap truststore file" event takes immediate effect across the entire process. Multiple cache/state layers exist:
 
-- **File truststore:** cập nhật file trên disk.
-- **`KeyStore` object trong JVM:** đã load certificate entries tại một thời điểm.
-- **`TrustManagerFactory` / `X509TrustManager`:** đã init trên một tập trust anchors nhất định.
-- **`SSLContext`:** đã init với các trust managers, key managers và session caches.
-- **Connection pool / TLS session:** các TCP/TLS connection đã handshake trước đó có thể được tái sử dụng.
-- **Process/container:** có thể chưa reload file/config sau khi cập nhật secret mount.
+- **Truststore file:** file updated on disk.
+- **`KeyStore` object in the JVM:** loaded certificate entries at a point in time.
+- **`TrustManagerFactory` / `X509TrustManager`:** initialized over a fixed set of trust anchors.
+- **`SSLContext`:** initialized with trust managers, key managers, and session caches.
+- **Connection pool / TLS sessions:** previously handshaked TCP/TLS connections may be reused.
+- **Process/container:** may not have reloaded files/configs after a secret mount update.
 
-Thay CA ở file **không** bảo đảm tất cả các tầng trên thay đổi ngay. Một thiết kế reload đúng thường:
+Updating a CA in a file **does not** guarantee all layers above update immediately. A proper reload design typically:
 
-1. Nhận diện version mới và kiểm tính toàn vẹn của trust bundle.
-2. Tải keystore mới vào bộ nhớ, xác minh các certificates/anchors dự kiến.
-3. Tạo lại `TrustManagerFactory` và `SSLContext` theo cấu hình mới.
-4. Cấu hình client/connection pool mới và chuyển traffic theo cơ chế an toàn.
-5. Đóng hoặc quay vòng pool/session cũ theo threat model, đặc biệt khi **thu hồi trust** khẩn cấp.
-6. Theo dõi handshake metrics, canary health, rollback với phiên bản đã duyệt.
+1. Detects the new version and verifies trust bundle integrity.
+2. Loads the new keystore into memory and verifies expected certificates/anchors.
+3. Rebuilds `TrustManagerFactory` and `SSLContext` per the new configuration.
+4. Configures a new client/connection pool and shifts traffic safely.
+5. Closes or rotates old pools/sessions per the threat model, especially during emergency **trust revocation**.
+6. Monitors handshake metrics, canary health, and keeps an approved rollback version ready.
 
-`SSLContext` không có API “sửa một CA trong mọi connection đang tồn tại” theo nghĩa chung. Cần hiểu lifecycle của HTTP/TLS library cụ thể và xem liệu session resumption có dùng lại trạng thái xác thực cũ hay không.
+`SSLContext` has no generic "patch a CA across all active connections" API. Understand the lifecycle of your specific HTTP/TLS library and check whether session resumption reuses prior validation state.
 
-## 12. Kiểm tra certificate chain và hostname trong production
+## 12. Verifying Certificate Chains and Hostnames in Production
 
-Sau khi có truststore, phải kiểm **TLS kết nối thực tế** với endpoint theo đúng hostname/SNI và chain:
+Once you have a truststore, verify **live TLS connections** against endpoints using the right hostname/SNI and chain:
 
-| Kiểm tra | Câu hỏi |
+| Check | Question |
 | --- | --- |
-| Trust anchor | Certificate chain có kết thúc ở một anchor được policy chấp nhận? |
-| Path building | Intermediate(s) có đầy đủ, path constraints và signature hợp lệ? |
-| Validity | Các certificate trong chain có đáp ứng thời hạn theo policy? |
-| Algorithm | Algorithm/key size có nằm trong danh sách cho phép của runtime và ứng dụng? |
-| ServerAuth/EKU | Leaf có mục đích phù hợp để làm TLS server? |
-| SAN/hostname | Endpoint DNS/IP có khớp danh tính được cấp trong certificate? |
-| Revocation/distrust | Có yêu cầu OCSP/CRL, denylist hoặc cơ chế distrust khác? |
-| Scope | Client này chỉ dùng đúng tập CA cần thiết, không tin nhầm dev/staging CA? |
-| Application authorization | Dù TLS hợp lệ, request có quyền và đúng tenant/resource? |
+| Trust anchor | Does the certificate chain terminate at a policy-approved anchor? |
+| Path building | Are intermediate(s) complete, and are path constraints and signatures valid? |
+| Validity | Do all certificates in the chain satisfy validity periods per policy? |
+| Algorithms | Are algorithms/key sizes within the runtime and application allowlist? |
+| `ServerAuth`/EKU | Does the leaf have the right purpose for a TLS server? |
+| SAN/hostname | Does the endpoint DNS/IP match an identity issued in the certificate? |
+| Revocation/distrust | Are OCSP/CRL, denylists, or other distrust mechanisms required? |
+| Scope | Does this client use only the needed CA set without accidentally trusting dev/staging CAs? |
+| Application authorization | Even when TLS succeeds, is the request authorized for the right tenant/resource? |
 
-**Không phải mọi JSSE trust manager mặc định bật OCSP/CRL revocation checking giống nhau trong mọi cấu hình.** Revocation là quyết định policy và cách cấu hình; đừng tuyên bố “có cacerts thì CA bị thu hồi sẽ bị từ chối ngay”. Cơ chế browser WebPKI (có thể có danh sách distrust/CT policy riêng) cũng không thể suy ra tương đương với mọi Java HTTP client.
+**Not every JSSE trust manager enables OCSP/CRL revocation checking identically by default across all configurations.** Revocation is a policy and configuration decision; never claim "having `cacerts` means revoked CAs are rejected instantly". Browser WebPKI mechanics (which may have dedicated distrust lists/CT policies) cannot be assumed identical in every Java HTTP client.
 
-**Đừng tự viết kiểm hostname đơn giản** như `host.endsWith("example.com")`. Nó dễ mắc lỗi suffix/punycode/wildcard và spoofing. Ưu tiên endpoint identification do TLS stack hỗ trợ.
+**Never hand-roll naive hostname checks** such as `host.endsWith("example.com")`. They are prone to suffix/punycode/wildcard bugs and spoofing. Prefer endpoint identification built into the TLS stack.
 
-## 13. Ví dụ sự cố: thay tập CA làm ứng dụng lỗi
+## 13. Incident Example: Changing the CA Set Breaks an App
 
-**Bối cảnh:** Java service gọi `https://billing.partner.test` và một public API khác. Hệ thống trước đây dùng default JSSE roots. Đội vận hành thêm private CA của đối tác bằng cách đặt:
+**Context:** A Java service calls `https://billing.partner.test` and another public API. Previously the system used default JSSE roots. Operations adds the partner's private CA by setting:
 
 ```text
 javax.net.ssl.trustStore=/etc/app/partner-only.p12
 javax.net.ssl.trustStoreType=PKCS12
 ```
 
-File mới chỉ chứa một private root CA.
+The new file contains only one private root CA.
 
-**Hiện tượng:** kết nối tới `billing.partner.test` hoạt động, nhưng kết nối tới public API bắt đầu thất bại với lỗi `PKIX path building failed`, dù trước đây vẫn hoạt động.
+**Symptom:** Connections to `billing.partner.test` succeed, yet calls to the public API start failing with `PKIX path building failed`, even though they worked previously.
 
-**Nguyên nhân có thể:** custom truststore trở thành tập CA của default trust manager thay cho public roots. Việc tạo file mới **không** làm JSSE tự cộng private CA vào `cacerts`. Đó là tác động có phạm vi **JVM default TLS**, không phải chỉ endpoint đối tác.
+**Likely cause:** The custom truststore became the default trust manager's CA set instead of public roots. Creating a new file **does not** make JSSE auto-append the private CA to `cacerts`. This impact is scoped to **JVM-wide default TLS**, not just the partner endpoint.
 
-**Phương án ưu tiên:**
+**Preferred solution:**
 
-- Public HTTP client dùng default trust policy được duyệt.
-- Partner HTTP client dùng `SSLContext` riêng chỉ tin private CA/approved anchors.
-- Cả hai vẫn bật hostname verification, giới hạn HTTP hosts và kiểm request authorization.
-- Nếu product bắt buộc một JVM-wide bundle chung, tạo **curated bundle** có version gồm tất cả CA được phép và kiểm mọi downstream trước rollout; hiểu blast radius lớn hơn.
+- The public HTTP client uses the approved default trust policy.
+- The partner HTTP client uses a dedicated `SSLContext` trusting only the private CA/approved anchors.
+- Both keep hostname verification enabled, restrict target HTTP hosts, and enforce request authorization.
+- If a single JVM-wide bundle is strictly required, build a versioned **curated bundle** containing all approved CAs and test every downstream call before rollout, understanding the larger blast radius.
 
-**Trường hợp khác:** xóa một root CA để hạn chế rủi ro nhưng không recreate long-lived connection pools. Trong một khoảng thời gian, kết nối cũ vẫn có thể hoạt động; sau restart mới thấy handshake fail. Kiểm thử phải bao gồm **new handshakes** và behavior sau refresh context/pool, không chỉ reuse kết nối đang mở.
+**Another scenario:** Removing a root CA to contain risk without recreating long-lived connection pools. For a while, existing connections keep working; only after a restart do handshakes start failing. Tests must cover **fresh handshakes** and post-context/pool-refresh behavior, not just reusing open connections.
 
-### Sai lầm nghiêm trọng hơn: “trust all certificates”
+### An Even Worse Mistake: "Trust All Certificates"
 
-Code như sau là **mã giả anti-pattern**, không phải triển khai hợp lệ để sử dụng:
+Code like the following is a **pseudo-code anti-pattern**, never a valid implementation:
 
 ```java
-// KHÔNG dùng: chấp nhận mọi certificate chain mà không kiểm trust.
+// DO NOT USE: accepts every certificate chain without checking trust.
 X509TrustManager trustAll = /* custom implementation
-                               với checkServerTrusted() rỗng */;
+                               with an empty checkServerTrusted() */;
 ```
 
-Dù sửa được lỗi bắt tay ở môi trường thử, nó loại bỏ ranh giới xác thực peer và mở đường man-in-the-middle. Tương tự, tắt hostname verification không làm chain đáng tin hơn. Phải sửa nguyên nhân: đúng root/intermediate, hostname, endpoint certificate, thời hạn, thuật toán và cấu hình client.
+Even if it makes handshake errors vanish in a test environment, it removes peer authentication boundaries and opens the door to man-in-the-middle attacks. Similarly, disabling hostname verification does not make a chain trustworthy. Fix the root cause: the right root/intermediate, hostname, endpoint certificate, validity, algorithms, and client config.
 
-## 14. Phân tích lỗi TLS theo từng lớp
+## 14. Layer-by-Layer TLS Error Analysis
 
-Một số thông báo thường gặp:
+Common messages:
 
-| Hiện tượng | Nguyên nhân khả dĩ | Nên kiểm trước |
+| Symptom | Possible causes | What to check first |
 | --- | --- | --- |
-| `PKIX path building failed` | Không dựng được chain tới trust anchor được phép | Runtime nào đang chạy, truststore nào, root/intermediate chain thực tế |
-| `unable to find valid certification path` | Thiếu trust anchor/path phù hợp | `cacerts` vs custom truststore, chain server, constraints |
-| `No subject alternative DNS name matching ...` | Hostname không khớp SAN | URL/SNI/hostname thực tế và leaf SAN |
-| `CertificateExpiredException` / `CertificateNotYetValidException` | Leaf/chain certificate hết hoặc chưa tới hiệu lực | Server cert, chain, đồng hồ hệ thống |
-| `Algorithm constraints check failed` | Key size/algorithm/signature bị policy loại | JDK security properties, certificate chain, kế hoạch chuyển thuật toán |
-| `Invalid keystore format` | File type sai hoặc dữ liệu không phải keystore phù hợp | `PKCS12` vs `JKS`, file đúng, quyền đọc, integrity |
-| `Keystore was tampered with, or password was incorrect` hoặc lỗi password tương tự | Mật khẩu sai, file hỏng hoặc format/provider không khớp | Secret/config/KeyStore.load parameters |
-| Handshake lỗi chỉ sau restart | Process trước đó còn manager/context cũ | Lifecycle reload, phiên bản container/JDK, property startup |
-| Public HTTPS fail sau khi import private CA | Custom store đã thay public roots | Kiểm phạm vi custom truststore, nên tách context |
-| mTLS client auth fail | Server truststore hoặc client identity/chain không khớp | Server trust policy, client cert, KeyManager, EKU/identity |
+| `PKIX path building failed` | Cannot build chain to an allowed trust anchor | Which runtime is running, which truststore, actual root/intermediate chain |
+| `unable to find valid certification path` | Missing matching trust anchor/path | `cacerts` vs. custom truststore, server chain, constraints |
+| `No subject alternative DNS name matching ...` | Hostname mismatches SAN | Actual URL/SNI/hostname and leaf SAN |
+| `CertificateExpiredException` / `CertificateNotYetValidException` | Leaf/chain certificate expired or not yet valid | Server cert, chain, system clock |
+| `Algorithm constraints check failed` | Key size/algorithm/signature blocked by policy | JDK security properties, certificate chain, algorithm migration plan |
+| `Invalid keystore format` | Wrong file type or data is not a valid keystore | `PKCS12` vs. `JKS`, right file, read permissions, integrity |
+| `Keystore was tampered with, or password was incorrect` or similar password error | Wrong password, corrupted file, or format/provider mismatch | Secret/config/`KeyStore.load` parameters |
+| Handshake fails only after restart | Prior process still held old manager/context | Reload lifecycle, container/JDK version, startup properties |
+| Public HTTPS fails after importing private CA | Custom store replaced public roots | Check custom truststore scope; separate contexts |
+| mTLS client auth fails | Server truststore or client identity/chain mismatch | Server trust policy, client cert, `KeyManager`, EKU/identity |
 
-**Không suy nguyên nhân tuyệt đối từ một chuỗi exception.** Lỗi PKIX có thể đến từ missing intermediate, expired/algorithm constraints, truststore sai môi trường hoặc provider policy. Thu thập evidence theo thứ tự: endpoint hostname, server chain, JVM runtime, effective truststore configuration, provider, key/certificate metadata và logs handshake đã được làm sạch.
+**Never deduce a single absolute cause from one exception string.** A PKIX error can stem from a missing intermediate, expiry/algorithm constraints, wrong-environment truststore, or provider policy. Gather evidence systematically: endpoint hostname, server chain, JVM runtime, effective truststore configuration, provider, key/certificate metadata, and sanitized handshake logs.
 
-Các tùy chọn debug (chỉ bật có kiểm soát):
+Debug options (enable only under tight control):
 
 ```text
 -Djavax.net.debug=ssl,handshake,trustmanager
 -Djava.security.debug=certpath
 ```
 
-Output có thể rất lớn và lộ endpoint metadata hoặc thông tin nhạy cảm liên quan. Không bật toàn bộ ở production lâu dài, không gửi debug log thô cho người ngoài mà chưa rà soát.
+Output can be massive and expose endpoint metadata or related sensitive details. Never leave full debugging enabled long-term in production, and never send raw debug logs externally without review.
 
-## 15. Quy trình thay trust bundle an toàn
+## 15. Safe Workflow for Updating Trust Bundles
 
-Trước khi **thêm hoặc xóa** trusted CAs, tạo change plan:
+Before **adding or removing** trusted CAs, create a change plan:
 
-1. **Định nghĩa scope:** đây là truststore outbound riêng của một client, JVM default, host JDK, container, hay inbound mTLS truststore?
-2. **Inventory:** liệt kê trusted roots, intermediate anchors nếu có, fingerprints SHA-256, expiry, owner, mục đích, môi trường, file format và version.
-3. **Xác minh nguồn CA:** nhận certificate từ nguồn uy tín, đối chiếu fingerprint độc lập, kiểm Basic Constraints/key usage/algorithm/expiry.
-4. **Đánh giá ảnh hưởng:** endpoint nào đang dùng chain tới CA bị xóa? CA mới có thể cấp cho những tên nào? Có cross-signed alternate paths?
-5. **Tạo bundle version mới:** không sửa trực tiếp trên production runtime như một thay đổi không theo dõi; có review/approval và cơ chế rollback.
-6. **Kiểm thử âm/dương:** endpoint đúng phải kết nối được, endpoint lạ/sai hostname hoặc CA không được phép phải bị từ chối.
-7. **Triển khai theo canary:** cập nhật một subset instances, tạo TLS handshakes mới, theo dõi lỗi và độ trễ.
-8. **Reload/rotate:** đảm bảo các trust managers, SSLContexts và pools thực sự dùng bundle mới; với distrust khẩn cấp, xem xét đóng session cũ.
-9. **Giám sát:** metrics handshake failures theo endpoint/JVM version, success rate, các đổi root/chain ngoài dự kiến, và audit truststore deployment.
-10. **Rollback an toàn:** giữ bundle trước đó nếu vẫn được phép theo security policy; trong sự cố CA bị compromise, không được “rollback” đưa CA độc hại trở lại chỉ để giảm outage.
-11. **Review sau rollout:** đếm lỗi mới, cập nhật tài liệu root inventory và hạn loại bỏ CA chuyển tiếp.
-12. **Đồng bộ vòng đời:** theo dõi expiry, vendor root program updates, CA rotation, JDK image rebuild và chính sách security hardening.
+1. **Define scope:** Is this a single client's outbound truststore, JVM default, host JDK, container, or inbound mTLS truststore?
+2. **Inventory:** List trusted roots, intermediate anchors if any, SHA-256 fingerprints, expiry, owner, purpose, environment, file format, and version.
+3. **Verify CA provenance:** Obtain certificates from reputable sources, verify fingerprints independently, and check Basic Constraints/key usage/algorithms/expiry.
+4. **Assess impact:** Which endpoints chain to a CA being removed? Which names can a new CA issue for? Are there cross-signed alternate paths?
+5. **Create a new bundle version:** Never patch production runtimes directly as an untracked edit; enforce review/approval and a rollback mechanism.
+6. **Negative/positive tests:** Valid endpoints must connect; unknown endpoints, mismatched hostnames, or disallowed CAs must be rejected.
+7. **Canary rollout:** Update a subset of instances, trigger fresh TLS handshakes, and monitor errors and latency.
+8. **Reload/rotate:** Ensure trust managers, `SSLContext`s, and pools actually adopt the new bundle; for emergency distrust, consider closing old sessions.
+9. **Monitor:** Track handshake failure metrics by endpoint/JDK version, success rates, unexpected root/chain changes, and audit truststore deployments.
+10. **Safe rollback:** Retain the prior bundle if still permitted by security policy; during a CA compromise incident, never "roll back" a malicious CA into trust just to restore uptime.
+11. **Post-rollout review:** Count new errors, update root inventory docs, and set a deadline to retire transitional CAs.
+12. **Synchronize lifecycle:** Track expiry, vendor root program updates, CA rotations, JDK image rebuilds, and security hardening policies.
 
-### Canary cần test cả phép “không tin”
+### Canaries Must Also Test "Distrust"
 
-Nếu chỉ test `curl/java client tới partner => 200`, bạn chưa chứng minh trust policy được thu hẹp. Một suite an toàn nên có:
+If you only test `curl/java client to partner => 200`, you have not proven the trust policy is tightly scoped. A sound suite should include:
 
-- Endpoint đúng chain được duyệt → **thành công**.
-- Endpoint dùng CA thử nghiệm khác, không được duyệt → **thất bại**.
-- Endpoint certificate có SAN sai tên → **thất bại**.
-- CA đã bị xóa và không còn valid alternate path → **thất bại**.
-- Chain hợp lệ nhưng application identity/tenant không được phép → TLS có thể thành công, request **bị từ chối bởi authorization**.
-- Connection pool sau reload → handshake mới dùng đúng policy, không dựa vào session cũ.
-- Multi-region/container images khác nhau → nhất quán theo version hoặc khác biệt được phép có tài liệu.
+- Endpoint with approved chain → **succeeds**.
+- Endpoint using another unapproved test CA → **fails**.
+- Endpoint certificate with wrong SAN → **fails**.
+- Removed CA with no valid alternate path → **fails**.
+- Valid chain yet disallowed application identity/tenant → TLS may succeed, request **rejected by authorization**.
+- Connection pool after reload → fresh handshakes enforce new policy without relying on stale sessions.
+- Multi-region / different container images → version consistency or documented allowed differences.
 
-Đây là cách kiểm **phạm vi trust** thực tế thay vì chỉ nhìn số certificate entries.
+This tests **actual trust scope** rather than merely counting certificate entries.
 
-## 16. Các ranh giới đặc biệt: client/server và môi trường
+## 16. Special Boundaries: Client/Server and Environments
 
-### 16.1 HTTPS outbound tới public internet
+### 16.1 Outbound HTTPS to the Public Internet
 
-Thường phù hợp sử dụng vetted public root bundle của runtime/vendor, với hostname verification và lifecycle update. Nếu cần pinning/CA restriction cho một ứng dụng có threat model đặc biệt, phải thiết kế cả rotation/recovery; pin một leaf có thể gây outage khi certificate renew.
+Usually appropriate to use the runtime/vendor's vetted public root bundle, with hostname verification and lifecycle updates. If an application's threat model requires pinning/CA restrictions, design rotation/recovery alongside it; pinning a leaf can cause outages upon certificate renewal.
 
-### 16.2 HTTPS outbound tới private PKI
+### 16.2 Outbound HTTPS to Private PKI
 
-Dùng truststore riêng chỉ chứa private issuing CAs/approved anchors cần thiết, gắn vào HTTP client cụ thể. Hạn chế DNS destinations và context AAD/authorization ở ứng dụng nếu cần. Không đưa private CA dev/staging vào production JVM-wide `cacerts`.
+Use a dedicated truststore containing only the required private issuing CAs/approved anchors, attached to the specific HTTP client. Restrict DNS destinations and application-level context/authorization as needed. Never place dev/staging private CAs into production JVM-wide `cacerts`.
 
 ### 16.3 Inbound mTLS
 
-Server dùng `TrustManager` để xác minh client certificate. Việc server tin CA không tự trao mọi role cho mọi cert do CA cấp. Cần mapping certificate identity (SAN/subject với profile đúng) tới principal đã được cấp quyền, EKU clientAuth khi yêu cầu, revocation, bảo vệ chống certificate spoofing và chính sách rotation.
+The server uses `TrustManager` to verify client certificates. The server trusting a CA does not grant every role to every certificate that CA issues. You still need certificate identity mapping (SAN/subject with proper profile) to authorized principals, `clientAuth` EKU when required, revocation, anti-spoofing safeguards, and rotation policies.
 
-### 16.4 CI/CD và container
+### 16.4 CI/CD and Containers
 
-Pipeline build có thể cập nhật JDK/root bundle khi rebase image. Image chạy mới không nhất thiết dùng cùng `cacerts` với host. Ghi lại JDK vendor/version, `java.home`, trust bundle digest/version và runtime flags trên release artifact. Với Kubernetes mounted Secrets/ConfigMaps, update file không bảo đảm JVM tự hot reload; có thể cần rollout restart hoặc reload logic đã test.
+Build pipelines may update the JDK/root bundle on base-image rebases. A running image does not necessarily share the host's `cacerts`. Record JDK vendor/version, `java.home`, trust bundle digest/version, and runtime flags on release artifacts. With Kubernetes-mounted Secrets/ConfigMaps, updating the file does not guarantee the JVM hot-reloads; you may need a rollout restart or tested reload logic.
 
-### 16.5 Nhiều HTTP libraries
+### 16.5 Multiple HTTP Libraries
 
-JSSE là cơ chế TLS phổ biến cho Java, nhưng một số native clients, gRPC/Netty/OpenSSL provider, OS-native stack hoặc custom factories có thể dùng trust configuration khác. Khi gặp hai client trong cùng JVM có hành vi khác nhau, kiểm **client implementation thực tế**, không suy rằng cả hai đang dùng `javax.net.ssl.trustStore`.
+JSSE is Java's standard TLS engine, yet native clients, gRPC/Netty/OpenSSL providers, OS-native stacks, or custom factories may use different trust configs. When two clients in the same JVM behave differently, inspect the **actual client implementation** rather than assuming both read `javax.net.ssl.trustStore`.
 
-## 17. Bảng so sánh nhanh
+## 17. Quick Comparison Table
 
-| Tiêu chí | `cacerts`/JSSE default | Custom JVM-wide truststore | Per-client custom `SSLContext` |
+| Criterion | `cacerts`/JSSE default | Custom JVM-wide truststore | Per-client custom `SSLContext` |
 | --- | --- | --- | --- |
-| Nguồn trust | Runtime/provider default, có thể khác nhau | File được chỉ định cho default trust manager | Keystore/manager do client thiết kế |
-| Phạm vi thông thường | Mọi client dùng JSSE default | Mọi client dùng JSSE default trong JVM | Chỉ client/context được gắn |
-| Có tự cộng public roots? | Tùy nguồn default | **Không** tự cộng chỉ vì file được chỉ định | **Không**, trừ khi code chủ động cấu hình |
-| Cập nhật | JDK/vendor/OS policy hoặc custom maintenance | Deploy file+reload/restart | Replace/recreate client/context theo lifecycle |
-| Kiểm soát riêng partner | Khó nếu dùng chung runtime | Có nhưng blast radius lớn | Thường rõ và hẹp nhất |
-| Nguy cơ lớn | JDK root drift, root ngoài scope nếu dùng chung | Làm mất public roots hoặc thêm private CA quá rộng | Quên gắn context, hostname check hoặc reload pool |
-| Phù hợp | Outbound public HTTPS thông thường | Bundle approved chung đã được quản lý | Private PKI, endpoint trust policy hẹp |
+| Trust source | Runtime/provider default, may vary | File designated for default trust manager | Keystore/manager built by client |
+| Typical scope | All clients using JSSE default | All clients using JSSE default in the JVM | Only the attached client/context |
+| Auto-includes public roots? | Depends on default source | **No**, not just from specifying a file | **No**, unless code explicitly configures it |
+| Updates | JDK/vendor/OS policy or custom maintenance | Deploy file + reload/restart | Replace/recreate client/context per lifecycle |
+| Per-partner isolation | Difficult if sharing runtime | Possible yet large blast radius | Usually clearest and narrowest |
+| Major risk | JDK root drift, out-of-scope roots if shared | Dropping public roots or widening private CAs too broadly | Forgetting to bind context, hostname checks, or pool reloads |
+| Best fit | Standard outbound public HTTPS | Managed shared approved bundle | Private PKI, narrow endpoint trust policies |
 
-Bảng mô tả **hành vi thường gặp** với JSSE và kiến trúc hợp lý, không phải lời bảo đảm mọi runtime đều nạp cùng default roots. Chỉ có kết quả kiểm tra trên **ứng dụng và JDK thực tế** mới chứng minh chính sách hiệu lực.
+This table describes **typical JSSE behavior** and sound architecture, not a guarantee that every runtime loads identical default roots. Only test results on the **target application and actual JDK** prove effective policy.
 
-## 18. Lỗi thường gặp cần tránh
+## 18. Common Pitfalls to Avoid
 
-1. **Import CA vào một `cacerts` nhưng app vẫn fail:** Có thể app chạy JDK khác, custom SSLContext, container, native TLS hoặc chưa reload. Xác định effective runtime và trust manager.
-2. **Đặt custom truststore rồi tưởng vẫn tin public web:** Custom file có thể thay default roots; cần tách context hoặc xây curated bundle theo policy.
-3. **Chỉ thêm leaf server certificate để “sửa” chain:** Dễ hết hạn/renew hỏng; không giải quyết hiểu đúng trust anchor, CA và hostname.
-4. **Đổi truststore password bằng lệnh và ghi trong shell history:** Rò credential. Dùng secure prompt/secret manager và quyền file.
-5. **Cho rằng password truststore làm certificate thành bí mật:** Certificate công khai; password chủ yếu bảo vệ cách lưu/integrity tùy format. **Quyền sửa trust bundle** cực kỳ nhạy cảm dù cert public.
-6. **Tin CA có nghĩa tin mọi application user:** CA trust là peer authentication ở TLS, authorization là tầng khác.
-7. **Chỉ kiểm `CertificateFactory` parse được:** Không chứng minh chain/hostname/trust.
-8. **Tắt `HostnameVerifier` hoặc cài `trustAll` để cứu production:** Loại bỏ xác thực peer và tạo MITM risk.
-9. **Không nhớ mTLS server truststore:** Thêm public CA vào server client-auth trust có thể mở rộng tập principal client có certificate được xét, dù ứng dụng còn authorization.
-10. **Sửa trust file mà không refresh manager/pool:** Process có thể dùng policy cũ, nhất là khi phải distrust CA nhanh.
-11. **Remove root đột ngột khi partner chưa rotate:** Gây outage handshake mới. Cần overlapping trust và kế hoạch cutover.
-12. **Không kiểm alternate chain/cross-sign:** Xóa một anchor có thể không làm certificate bị từ chối nếu còn valid path khác; kiểm bằng test thực tế.
-13. **Copy `cacerts` vào riêng một lần và quên cập nhật:** Tập public roots stale, có thể mất CA mới hoặc giữ CA đã bị distrust.
-14. **Nhầm TLS trust với DNS/hostname/IP allowlist:** CA có thể cấp nhiều tên; giới hạn đích và xác minh hostname vẫn cần.
-15. **Không kiểm Java version/vendor và các runtime flags:** Hai instance cùng source code có thể có hành vi trust khác.
-16. **Ghi log toàn bộ certificate và private key chỉ để debug:** Tránh lộ dữ liệu và hạn chế retention logs.
-17. **Không có test negative:** Chỉ chứng minh một endpoint hoạt động, chưa chứng minh tập CA được tin là tối thiểu.
-18. **Đưa certificate không được xác minh vào truststore:** Kẻ tấn công có thể tự gửi root certificate và làm hệ thống tự tin nó; chỉ import CA từ nguồn đã xác minh độc lập.
+1. **Importing a CA into a `cacerts` file yet the app still fails:** The app may run a different JDK, custom `SSLContext`, container, native TLS, or lack a reload. Identify the effective runtime and trust manager.
+2. **Setting a custom truststore and assuming the public web is still trusted:** A custom file can replace default roots; separate contexts or build a curated bundle per policy.
+3. **Adding only the leaf server certificate to "fix" the chain:** Breaks easily on expiry/renewal; skips proper understanding of trust anchors, CAs, and hostnames.
+4. **Changing truststore passwords via CLI recorded in shell history:** Leaks credentials. Use secure prompts/secret managers and file permissions.
+5. **Thinking a truststore password turns certificates into secrets:** Certificates are public; the password primarily protects storage/integrity per format. **Write access to the trust bundle** is still highly sensitive despite public certs.
+6. **Assuming trusting a CA means trusting every application user:** CA trust is TLS peer authentication; authorization is a separate layer.
+7. **Testing only that `CertificateFactory` parses the cert:** Proves nothing about chain/hostname/trust.
+8. **Disabling `HostnameVerifier` or installing `trustAll` to rescue production:** Eliminates peer authentication and introduces MITM risk.
+9. **Forgetting the mTLS server truststore:** Adding public CAs to server client-auth trust expands the set of client principals whose certificates are accepted, even if app authorization still runs.
+10. **Editing the trust file without refreshing managers/pools:** The process may keep enforcing old policies, especially when rushing to distrust a CA.
+11. **Abruptly removing a root before partners rotate:** Breaks new handshakes. Use overlapping trust and a cutover plan.
+12. **Ignoring alternate chains/cross-signing:** Removing one anchor may not reject certificates if another valid path remains; verify with real tests.
+13. **Copying `cacerts` once into a custom store and forgetting updates:** Public roots go stale, missing new CAs or retaining distrusted CAs.
+14. **Confusing TLS trust with DNS/hostname/IP allowlists:** A CA can issue many names; destination restrictions and hostname verification remain necessary.
+15. **Ignoring Java version/vendor and runtime flags:** Two instances running identical source code can exhibit different trust behavior.
+16. **Logging entire certificates and private keys just to debug:** Avoid data exposure and limit log retention.
+17. **Skipping negative tests:** Only proves one endpoint works, not that the trusted CA set is minimal.
+18. **Adding unverified certificates to a truststore:** An attacker can send their own root certificate and trick the system into trusting it; import CAs only from independently verified sources.
 
-## 19. Bài tập thực hành
+## 19. Practice Exercises
 
-### Bài 1 — Xác định effective truststore
+### Exercise 1 — Identify the Effective Truststore
 
-Trên một máy có nhiều JDK, tìm `java.home` của runtime chạy một service. So sánh với `keytool` trên `PATH` và các startup properties `javax.net.ssl.trustStore`. Trả lời: service sử dụng JSSE default hay client custom, và file trust thực tế nào được nạp? Không tự đọc thêm file nhạy cảm hoặc ghi đè CA store production.
+On a machine with multiple JDKs, find the `java.home` of the runtime executing a service. Compare with `keytool` on `PATH` and startup properties `javax.net.ssl.trustStore`. Answer: does the service use JSSE defaults or a custom client, and which actual trust file is loaded? Never read unrelated sensitive files or overwrite production CA stores.
 
-### Bài 2 — Isolated trust bằng Java
+### Exercise 2 — Isolated Trust in Java
 
-Chạy `TrustScopeDemo`. Giải thích vì sao custom empty manager không tự kế thừa CA default, vì sao sau import đúng một certificate manager chỉ có một issuer trong ví dụ, và tại sao chương trình **chưa chứng minh** TLS tới hostname nào thành công. Bổ sung test với private CA certificate được xác minh fingerprint từ kênh đáng tin thay vì `defaultIssuers[0]`.
+Run `TrustScopeDemo`. Explain why the custom empty manager does not inherit default CAs, why after importing one certificate the manager has only one issuer in the example, and why the program **does not yet prove** TLS to any hostname succeeds. Add a test with a private CA certificate whose fingerprint was verified via a trusted channel rather than `defaultIssuers[0]`.
 
-### Bài 3 — Replace vs union
+### Exercise 3 — Replace vs. Union
 
-Một Java app có hai HTTPS clients: client A gọi public API; client B gọi internal API dùng private CA. So sánh:
+A Java app has two HTTPS clients: client A calls a public API; client B calls an internal API using a private CA. Compare:
 
-- Set một custom `javax.net.ssl.trustStore` có duy nhất private CA cho cả JVM.
-- Merge public roots với private CA vào một truststore.
-- Tạo hai `SSLContext` khác nhau và gắn đúng cho từng client.
+- Setting a custom `javax.net.ssl.trustStore` containing only the private CA JVM-wide.
+- Merging public roots with the private CA into one truststore.
+- Creating two separate `SSLContext`s and binding each to its respective client.
 
-Đánh giá ảnh hưởng khi private CA bị lộ và khi public root set của JDK thay đổi. Chọn cách có trust scope phù hợp nhất, giải thích trade-off về maintainability.
+Assess the impact if the private CA is compromised and when the JDK's public root set changes. Pick the option with the most appropriate trust scope and explain maintainability trade-offs.
 
-### Bài 4 — Rollover CA không downtime
+### Exercise 4 — Zero-Downtime CA Rollover
 
-Đối tác chuyển từ OldRoot sang NewRoot trong 60 ngày. Lập kế hoạch canary: nạp cả hai anchors trước cutover, kiểm chain và hostname, chuyển server certificate, đếm clients còn dùng chain cũ, xóa OldRoot sau thời hạn có bằng chứng. Test cả handshake mới và client có keep-alive/TLS resumption.
+A partner migrates from `OldRoot` to `NewRoot` over 60 days. Plan a canary rollout: load both anchors before cutover, verify chains and hostnames, switch the server certificate, count clients still using the old chain, and remove `OldRoot` after the deadline with evidence. Test both fresh handshakes and clients with keep-alive/TLS resumption.
 
-### Bài 5 — Kiểm thử phạm vi tin cậy
+### Exercise 5 — Testing Trust Scope
 
-Dựng hai CA test độc lập trong lab và hai endpoint HTTPS test. Client chỉ tin CA A phải kết nối endpoint A thành công và từ chối endpoint B, đồng thời từ chối hostname không khớp dù chain do CA A cấp. Sau đó thêm CA B và chứng minh scope thay đổi **chỉ đối với client được cấu hình dùng store mới**. Không tạo CA test như trust anchor của production runtime.
+Set up two independent test CAs in the lab and two test HTTPS endpoints. A client trusting only CA A must connect to endpoint A and reject endpoint B, while also rejecting mismatched hostnames even when the chain is issued by CA A. Next, add CA B and prove the scope changes **only for the client configured to use the updated store**. Never install test CAs as trust anchors in a production runtime.
 
-### Bài 6 — mTLS và quyền nghiệp vụ
+### Exercise 6 — mTLS and Business Authorization
 
-Một server bật mTLS và truststore chứa CA phát client certificates. Thêm một root CA mới dẫn đến nhiều client có khả năng trình certificate được chấp nhận hơn. Xác định vì sao vẫn cần mapping certificate identity tới tài khoản/role, EKU clientAuth, revocation và authorization. Lập negative test cho certificate của tenant khác.
+A server enables mTLS and its truststore holds the CA issuing client certificates. Adding a new root CA lets more clients present accepted certificates. Explain why you still need mapping certificate identities to accounts/roles, `clientAuth` EKU, revocation, and authorization. Write a negative test for another tenant's certificate.
 
-### Bài 7 — Incident response
+### Exercise 7 — Incident Response
 
-Một root CA nội bộ bị nghi compromise. Hãy mô tả hành động: inventory clients/server chains, giới hạn CA trust, thu hồi/thay chain, rotate danh tính liên quan, deploy trust bundle mới theo canary, refresh SSLContexts/sessions, log chứng cứ và theo dõi lỗi. Chỉ rõ tại sao khôi phục bundle cũ để sửa outage **có thể không được phép** trong security incident.
+An internal root CA is suspected of compromise. Describe the response steps: inventory client/server chains, restrict CA trust, revoke/replace chains, rotate affected identities, canary-deploy the new trust bundle, refresh `SSLContext`s/sessions, preserve evidence logs, and monitor errors. Explain why rolling back to the old bundle to fix an outage **may be forbidden** during a security incident.
 
-### Bài 8 — Debug một lỗi PKIX
+### Exercise 8 — Debugging a PKIX Error
 
-Một ứng dụng mới chạy JDK trong container báo `unable to find valid certification path`, trong khi lệnh `curl` trên host thành công. Liệt kê các giả thuyết: runtime root khác, custom JVM truststore thay default, server thiếu intermediate, HTTPS hostname/SNI khác, chính sách algorithm, certificate expired, proxy TLS interception. Chọn dữ liệu kiểm thử từng giả thuyết và không tắt trust verification.
+A new containerized JDK app reports `unable to find valid certification path`, while `curl` on the host succeeds. List hypotheses: different runtime roots, custom JVM truststore replacing defaults, server missing an intermediate, HTTPS hostname/SNI mismatch, algorithm policy, expired certificate, TLS interception proxy. Pick evidence to test each hypothesis without disabling trust verification.
 
-**Điều kiện hoàn thành:** bạn phân biệt được `cacerts` là một **nguồn tin cậy mặc định có phạm vi runtime/provider**, kho tin cậy riêng có thể **thay thế hoặc thu hẹp** trust anchors, và mọi thay đổi tập CA tin cậy có tác động tới **bảo mật lẫn khả năng kết nối**. Một quyết định đúng phải có proof về certificate chain, hostname, trust scope và cập nhật lifecycle thật sự của TLS client.
+**Completion criteria:** you can distinguish `cacerts` as a **runtime/provider-scoped default trust source**, explain how custom truststores can **replace or narrow** trust anchors, and understand that every change to trusted CAs affects both **security and connectivity**. Every sound decision must be backed by evidence of certificate chains, hostnames, trust scope, and actual TLS client lifecycle updates.
 
-## 20. Tài liệu tham khảo
+## 20. References
 
-- [Java 17 — Java Secure Socket Extension (JSSE) Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): default truststore search order, `TrustManagerFactory`, SSL contexts và cấu hình.
-- [Java 17 — TrustManagerFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/TrustManagerFactory.html): khởi tạo trust manager từ KeyStore hoặc nguồn mặc định.
-- [Java 17 — SSLContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLContext.html): init và phạm vi context TLS.
-- [Java 17 — X509TrustManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/X509TrustManager.html): kiểm đường chứng thư và accepted issuers.
-- [Java 17 — KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): trustedCertEntry, load và storage.
+- [Java 17 — Java Secure Socket Extension (JSSE) Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): default truststore search order, `TrustManagerFactory`, SSL contexts, and configuration.
+- [Java 17 — TrustManagerFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/TrustManagerFactory.html): initializing trust managers from KeyStore or default source.
+- [Java 17 — SSLContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLContext.html): initialization and TLS context scope.
+- [Java 17 — X509TrustManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/X509TrustManager.html): certificate path checking and accepted issuers.
+- [Java 17 — KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): `trustedCertEntry`, loading, and storage.
 - [Java 17 — SSLParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): endpoint identification algorithm.
-- [Java 17 — HttpClient](https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpClient.Builder.html): cấu hình per-client SSLContext.
-- [Java 17 — keytool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): `-cacerts`, `-list`, `-printcert` và `-importcert`.
-- [RFC 5280 — X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): certificate path, trust anchors và các ràng buộc.
-- [RFC 6125 — Service Identity (historic HTTPS identity rules)](https://www.rfc-editor.org/rfc/rfc6125): danh tính TLS; với thiết kế mới, đối chiếu chuẩn được cập nhật của protocol và TLS stack.
-- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): phương pháp xác minh tên máy chủ/định danh dịch vụ hiện đại.
-- [OWASP Transport Layer Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html): TLS peer validation và vận hành.
+- [Java 17 — HttpClient](https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpClient.Builder.html): per-client `SSLContext` configuration.
+- [Java 17 — keytool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): `-cacerts`, `-list`, `-printcert`, and `-importcert`.
+- [RFC 5280 — X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): certificate paths, trust anchors, and constraints.
+- [RFC 6125 — Service Identity (historic HTTPS identity rules)](https://www.rfc-editor.org/rfc/rfc6125): TLS identity; for new designs, consult updated protocol and TLS stack standards.
+- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): modern hostname/service identity verification methods.
+- [OWASP Transport Layer Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html): TLS peer validation and operations.

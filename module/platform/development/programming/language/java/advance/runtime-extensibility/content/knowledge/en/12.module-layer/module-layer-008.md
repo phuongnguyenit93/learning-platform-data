@@ -1,38 +1,38 @@
-# Dùng ModuleLayer mới cho nhóm plugin mới và hiểu giới hạn thay đổi layer đã tạo
+# Using a New ModuleLayer for a New Plugin Group and Understanding Mutation Limits of an Existing Layer
 
-## 1. Bài toán của plugin runtime với JPMS
+## 1. The Plugin Runtime Problem with JPMS
 
-Trong Java Platform Module System (JPMS), `ModuleLayer` là tập các named module đã được giải quyết (resolved), gắn với một `Configuration` và các classloader. Một layer có thể có một hoặc nhiều parent layer. Khi host cần bổ sung hoặc thay thế nhóm plugin **sau khi ứng dụng đã chạy**, phương án thích hợp là tạo **layer con mới**, thay vì cố sửa danh sách module bên trong layer hiện hữu.
+In the Java Platform Module System (JPMS), a `ModuleLayer` is a set of resolved named modules associated with a `Configuration` and classloaders. A layer can have one or more parent layers. When a host needs to add or replace a group of plugins **after the application is already running**, the appropriate approach is to create a **new child layer**, rather than attempting to mutate the module list inside an existing layer.
 
-Ví dụ host đang chạy plugin `report.plugin.v1`. Khi phát hành phiên bản `report.plugin.v2` hay triển khai nhóm provider mới, host có thể:
+For example, suppose a host is running plugin `report.plugin.v1`. When releasing `report.plugin.v2` or deploying a new group of providers, the host can:
 
-1. Đặt modular JAR mới vào kho artifact hoặc thư mục được phép tải.
-2. Dùng `ModuleFinder` tìm module, tạo `Configuration` mới dựa trên parent configuration.
-3. Định nghĩa **module layer mới** với classloader tương ứng.
-4. Dùng `ServiceLoader.load(layer, Service.class)` khám phá provider trong layer đó.
-5. Chuyển các yêu cầu **mới** sang registry/provider mới sau kiểm tra sức khỏe.
-6. Dừng hoặc drain yêu cầu cũ, đóng tài nguyên và bỏ tham chiếu layer/loader cũ khi an toàn.
+1. Place the new modular JARs in an artifact repository or an authorized load directory.
+2. Use `ModuleFinder` to locate modules and create a new `Configuration` based on the parent configuration.
+3. Define a **new module layer** with corresponding classloaders.
+4. Use `ServiceLoader.load(layer, Service.class)` to discover providers in that layer.
+5. Route **new** requests to the new registry/providers after health checks pass.
+6. Stop or drain old requests, close resources, and drop references to the old layer/loader when safe.
 
-**Điểm mấu chốt:** đây là cơ chế *thay thế bằng cách tạo cấu hình/layer mới*, không phải chỉnh sửa in-place module graph của layer cũ.
+**Key takeaway:** this is a mechanism of *replacing by creating a new configuration/layer*, not mutating the old layer's module graph in place.
 
-## 2. Cần phân biệt module path, Configuration và ModuleLayer
+## 2. Distinguishing Module Path, Configuration, and ModuleLayer
 
-| Khái niệm | Chức năng | Có tự thay đổi khi thêm JAR? |
+| Concept | Function | Does It Automatically Change When Adding a JAR? |
 | --- | --- | --- |
-| Thư mục JAR / module path | Nguồn artifact cho `ModuleFinder` | File trên đĩa có thể thay đổi, nhưng Java không tự nạp lại |
-| `ModuleFinder` | Tìm module descriptors từ nguồn đã chỉ định | Không phải watcher/hot-reload engine |
-| `Configuration` | Mô tả module graph đã resolve (module names, requirements, readability) | Không thêm/bớt module sau khi resolve |
-| `ModuleLayer` | Gắn configuration với runtime modules và classloaders | Không có API add/remove module tùy ý |
-| `ServiceLoader` | Tìm provider phù hợp trong loader/layer | Một loader cần khám phá lại theo API; không biến module graph cũ thành graph mới |
-| Registry của host | Quyết định provider nào xử lý request | Có thể thiết kế để thay đổi qua tham chiếu/phiên bản |
+| JAR directory / module path | Artifact source for `ModuleFinder` | Files on disk may change, yet Java does not automatically reload |
+| `ModuleFinder` | Discovers module descriptors from specified sources | Not a file watcher or hot-reload engine |
+| `Configuration` | Describes the resolved module graph (module names, requirements, readability) | Does not add or remove modules after resolution |
+| `ModuleLayer` | Binds a configuration to runtime modules and classloaders | Has no API to arbitrarily add or remove modules |
+| `ServiceLoader` | Finds matching providers in a loader/layer | A loader must re-discover per API; does not turn an old module graph into a new one |
+| Host registry | Decides which providers handle requests | Can be designed to swap via references/versions |
 
-Java có các API điều chỉnh giới hạn như `Module.addReads`, `Module.addExports`, `Module.addOpens` cho các trường hợp được phép. Chúng **không tương đương** thêm module mới vào một `Configuration` hay thay bytecode của module đã định nghĩa. Không nên xem các API này là hot-swap module graph.
+Java has bounded adjustment APIs such as `Module.addReads`, `Module.addExports`, and `Module.addOpens` for permitted cases. They are **not equivalent** to adding a new module to a `Configuration` or replacing bytecode of an already-defined module. Do not treat these APIs as hot-swapping a module graph.
 
-## 3. Ví dụ Java 17+: tạo layer riêng và khám phá plugin
+## 3. Java 17+ Example: Creating a Dedicated Layer and Discovering Plugins
 
-Ví dụ gồm ba named module: `demo.api` chứa service contract; `demo.host` chạy ở boot layer; `demo.plugin` là provider được nạp từ thư mục `plugins/` vào **child layer**.
+The example consists of three named modules: `demo.api` containing the service contract; `demo.host` running in the boot layer; and `demo.plugin` as a provider loaded from the `plugins/` directory into a **child layer**.
 
-Cấu trúc:
+Structure:
 
 ```text
 demo/
@@ -49,7 +49,7 @@ demo/
   plugins/
 ```
 
-### 3.1. Contract module
+### 3.1. Contract Module
 
 `src/demo.api/module-info.java`:
 
@@ -70,7 +70,7 @@ public interface Greeter {
 }
 ```
 
-### 3.2. Host module
+### 3.2. Host Module
 
 `src/demo.host/module-info.java`:
 
@@ -125,9 +125,9 @@ public final class Main {
 }
 ```
 
-Ở đây `resolve(pluginFinder, ModuleFinder.of(), roots)` dùng plugin finder làm **before finder**, empty after finder, còn parent configuration cung cấp các module được resolve trước đó (trong đó có `demo.api`). `defineModulesWithOneLoader` đưa các module **của configuration mới** vào một loader con có parent là system classloader. Với module API đã ở boot layer, plugin được tạo và dùng qua cùng `Greeter` class identity.
+Here `resolve(pluginFinder, ModuleFinder.of(), roots)` uses `pluginFinder` as the **before finder**, an empty after finder, while the parent configuration supplies previously resolved modules (including `demo.api`). `defineModulesWithOneLoader` places the modules **of the new configuration** into a child loader whose parent is the system classloader. With the API module already in the boot layer, the plugin is instantiated and used through the same `Greeter` class identity.
 
-### 3.3. Provider module
+### 3.3. Provider Module
 
 `src/demo.plugin/module-info.java`:
 
@@ -160,11 +160,11 @@ public final class HelloGreeter implements Greeter {
 }
 ```
 
-Provider package không cần `exports` chỉ để được `ServiceLoader` khởi tạo qua khai báo `provides ... with ...`. Host không viết `requires demo.plugin`; phụ thuộc biên dịch chỉ hướng tới contract.
+The provider package does not need `exports` solely to be instantiated by `ServiceLoader` via `provides ... with ...`. The host does not write `requires demo.plugin`; compile-time dependencies point only to the contract.
 
-### 3.4. Compile, đóng gói và chạy
+### 3.4. Compiling, Packaging, and Running
 
-Trong thư mục `demo` trên shell bash, dùng JDK 17+:
+In the `demo` directory on a bash shell, using JDK 17+:
 
 ```bash
 mkdir -p mods plugins
@@ -173,7 +173,7 @@ jar --create --file plugins/demo.plugin.jar -C mods/demo.plugin .
 java --module-path mods/demo.api:mods/demo.host --module demo.host/demo.host.Main
 ```
 
-Output kỳ vọng:
+Expected output:
 
 ```text
 Plugin: hello
@@ -181,13 +181,13 @@ Hello, Java
 Plugin layer is boot: false
 ```
 
-Trên Windows, module path separator là `;`, ví dụ `--module-path "mods/demo.api;mods/demo.host"`. Quan trọng là **không thêm `demo.plugin` vào boot module path trong lệnh cuối**; provider JAR được đọc qua `ModuleFinder.of(Path.of("plugins"))` và nằm trong layer con. Trong lệnh biên dịch, `mods` là output gồm ba thư mục module.
+On Windows, the module path separator is `;`, for example `--module-path "mods/demo.api;mods/demo.host"`. Crucially, **do not add `demo.plugin` to the boot module path in the final command**; the provider JAR is read via `ModuleFinder.of(Path.of("plugins"))` and lives in the child layer. In the compile command, `mods` is the output directory containing all three module directories.
 
-**Vì sao kiểm tra `false`?** Provider thuộc named module `demo.plugin` được định nghĩa trong layer con; `greeter.getClass().getModule().getLayer()` không phải boot layer. Kết quả này chứng minh host đang sử dụng module ở layer mới, không phải bản provider vô tình xuất hiện trên classpath/boot module path.
+**Why check for `false`?** The provider belongs to the named module `demo.plugin` defined in the child layer; `greeter.getClass().getModule().getLayer()` is not the boot layer. This result proves the host is using the module in the new layer rather than a provider copy accidentally present on the classpath/boot module path.
 
-## 4. Tạo layer mới cho phiên bản hoặc nhóm plugin tiếp theo
+## 4. Creating a New Layer for the Next Version or Plugin Group
 
-Giả sử host đang giữ một `ActivePlugins` registry tham chiếu provider của layer A. Khi plugin B được triển khai, quy trình thay thế có thể là:
+Suppose the host maintains an `ActivePlugins` registry referencing providers from layer A. When plugin B is deployed, the replacement flow can be:
 
 ```text
 Release A                           Release B
@@ -202,9 +202,9 @@ active registry -------- atomic swap --> active registry
 drain A -> close A -> drop references
 ```
 
-Trong ứng dụng, mỗi nhóm artifact/version nên có thư mục riêng, ví dụ `plugins/release-001/` và `plugins/release-002/`. Cách này giảm rủi ro `ModuleFinder` hoặc classloader đọc một JAR đang bị thay byte giữa chừng.
+In an application, each artifact group/version should have its own directory, such as `plugins/release-001/` and `plugins/release-002/`. This reduces the risk of `ModuleFinder` or a classloader reading a JAR whose bytes are being overwritten mid-flight.
 
-Pseudo-code Java minh họa điểm chuyển giao (không phải chương trình độc lập):
+Java pseudo-code illustrating the handoff point (not a standalone program):
 
 ```java
 record PluginSet(ModuleLayer layer, List<Greeter> providers) {}
@@ -213,60 +213,60 @@ AtomicReference<PluginSet> active = new AtomicReference<>();
 
 void publish(PluginSet next) {
     PluginSet previous = active.getAndSet(next);
-    // Điều phối để request đang dùng previous hoàn thành,
-    // rồi gọi plugin stop/close và bỏ references.
+    // Coordinate so requests using previous complete,
+    // then invoke plugin stop/close and drop references.
 }
 ```
 
-Đoạn này cần các import, field và lifecycle implementation thích hợp; riêng `AtomicReference` **không tự bảo đảm drain**. Request đã lấy `previous` vẫn có thể đang gọi provider cũ. Muốn không dừng khi còn request, cần reference counting, lease, read-write coordination hoặc scheduler/quiescence thích hợp.
+This snippet requires appropriate imports, fields, and lifecycle implementations; `AtomicReference` alone **does not guarantee draining**. Requests that already obtained `previous` may still be invoking old providers. To avoid stopping while requests remain in flight, use reference counting, leases, read-write coordination, or appropriate scheduling/quiescence.
 
-### Có thể reuse cùng module name ở layer khác không?
+### Can the Same Module Name Be Reused in Another Layer?
 
-Trong nhiều thiết kế, **cùng module name có thể tồn tại trong các module layer khác nhau**, mỗi layer có configuration/runtime module identity và classloader riêng. Điều này hữu ích khi hai phiên bản plugin cùng có module name `demo.plugin`. Tuy nhiên phụ thuộc parent/layer relation và cách module resolution; không được đưa **hai bản cùng tên** vào **cùng một configuration** rồi kỳ vọng JVM chọn bản theo version. Tách artifact/version theo finder và tạo layer riêng.
+In many designs, **the same module name can exist in different module layers**, each layer having its own configuration/runtime module identity and classloader. This is useful when two plugin versions share the module name `demo.plugin`. However, it depends on parent/layer relationships and module resolution; you must never put **two copies with the same name** into **the same configuration** and expect the JVM to pick one by version. Separate artifacts/versions by finder and create distinct layers.
 
-Giữ service contract ở parent layer giúp cả provider mới và host dùng cùng API identity. Nếu mỗi plugin layer lại tự mang bản sao interface service, classloader/type identity có thể không tương thích và `ServiceLoader` không trả provider như mong đợi.
+Keeping the service contract in a parent layer ensures both the new provider and the host share the same API identity. If each plugin layer carries its own copy of the service interface, classloader/type identities can mismatch and `ServiceLoader` will not return providers as expected.
 
-## 5. Những giới hạn của layer đã tạo
+## 5. Limitations of an Already-Created Layer
 
-### 5.1. Không thêm/bớt named module trong layer hiện hữu
+### 5.1. Cannot Add or Remove Named Modules in an Existing Layer
 
-Không có API `layer.addModule(jar)` hoặc `layer.removeModule(name)`. Một layer sau khi được định nghĩa gắn với graph đã resolve. Thêm JAR vào thư mục `plugins/` **không tự đưa module mới vào layer A**. `ServiceLoader.reload()` chỉ reset cache khám phá của **ServiceLoader instance**, không khiến layer cũ có thêm module.
+There is no `layer.addModule(jar)` or `layer.removeModule(name)` API. Once defined, a layer is tied to its resolved graph. Adding a JAR to `plugins/` **does not automatically bring the new module into layer A**. `ServiceLoader.reload()` only resets the discovery cache of a **`ServiceLoader` instance**; it does not cause the old layer to gain new modules.
 
-Muốn nhìn module mới, phải resolve configuration khác và define **layer khác**, hoặc dùng cơ chế classpath/classloader riêng nếu kiến trúc không dựa vào named modules.
+To see new modules, you must resolve another configuration and define **another layer**, or use a separate classpath/classloader mechanism if the architecture does not rely on named modules.
 
-### 5.2. Không thay thế class/bytecode đã nạp bằng cách sửa JAR
+### 5.2. Cannot Replace Already-Loaded Classes/Bytecode by Editing a JAR
 
-Class đã được định nghĩa bởi JVM không được cập nhật đơn giản khi file JAR bị ghi đè. Một module layer mới với classloader mới có thể nạp phiên bản mới, nhưng object cũ, class cũ và các request đang sử dụng chúng vẫn tồn tại nếu còn reference.
+Classes already defined by the JVM are not updated simply by overwriting a JAR file. A new module layer with a new classloader can load the new version, yet old objects, old classes, and in-flight requests using them still persist as long as references remain.
 
-Ngay cả Java instrumentation/redefinition cũng có giới hạn riêng và không phải cơ chế thay đổi module graph của layer. Với plugin upgrade, hãy dùng new layer + lifecycle handoff thay vì giả định ghi đè file JAR là hot reload.
+Even Java instrumentation/redefinition has its own constraints and is not a mechanism for altering a layer's module graph. For plugin upgrades, use a new layer + lifecycle handoff rather than assuming overwriting a JAR file equals hot reload.
 
-### 5.3. Ràng buộc module graph và classloader
+### 5.3. Module Graph and Classloader Constraints
 
-Module resolution có thể thất bại với `FindException` nếu không tìm được module cần thiết hoặc `ResolutionException` khi graph xung đột. Layer definition có thể ném `LayerInstantiationException` nếu strategy mapping modules/classloaders không hợp lệ (ví dụ package conflicts theo loader).
+Module resolution can fail with `FindException` if a required module cannot be found or `ResolutionException` when the graph conflicts. Layer definition can throw `LayerInstantiationException` if the modules/classloaders mapping strategy is invalid (for example, package conflicts per loader).
 
-Phân biệt các API:
+Distinguish the APIs:
 
-- `defineModulesWithOneLoader`: các module trong configuration mới được đặt trên một loader; cần tránh package conflicts tương ứng.
-- `defineModulesWithManyLoaders`: mỗi module trong configuration mới nhận loader riêng.
-- `defineModules`: callback ánh xạ module name tới classloader; dùng khi cần kiểm soát loader cụ thể.
+- `defineModulesWithOneLoader`: modules in the new configuration are placed on one loader; corresponding package conflicts must be avoided.
+- `defineModulesWithManyLoaders`: each module in the new configuration receives its own loader.
+- `defineModules`: callback mapping module names to classloaders; used when specific loader control is needed.
 
-Không tùy tiện dùng `defineModulesWithManyLoaders` để “bỏ qua mọi split-package conflict”: resolver vẫn kiểm tra graph, và classloader design phải bảo đảm service contract/runtime type identity.
+Do not arbitrarily use `defineModulesWithManyLoaders` to “ignore all split-package conflicts”: the resolver still checks the graph, and the classloader design must preserve service contracts and runtime type identity.
 
-### 5.4. Layer không phải security sandbox
+### 5.4. A Layer Is Not a Security Sandbox
 
-Code của mọi plugin chạy cùng JVM vẫn chia sẻ system properties, heap, thread pools, file/network permissions và native libraries; riêng module encapsulation/readability không cấp process permissions khác. Plugin chưa tin cậy cần tiến trình/container và OS restrictions riêng. Một layer khác cũng không bảo đảm plugin không làm JVM crash hoặc cạn tài nguyên.
+Code across all plugins running in the same JVM still shares system properties, the heap, thread pools, file/network permissions, and native libraries; module encapsulation/readability alone does not grant different process permissions. Untrusted plugins require separate processes/containers and OS restrictions. Nor does a separate layer prevent a plugin from crashing the JVM or exhausting resources.
 
-### 5.5. Không có unload hoặc close(ModuleLayer) ngay lập tức
+### 5.5. No Immediate Unload or close(ModuleLayer)
 
-`ModuleLayer` **không triển khai `AutoCloseable`**, không có `close()` để dỡ toàn bộ module; garbage collection chỉ có thể thu hồi loader/class metadata khi không còn reference thích hợp. Threads, thread-context-classloader, ThreadLocal, singleton registry, static state ở parent loader, callbacks, schedulers và provider references có thể giữ layer cũ tồn tại.
+`ModuleLayer` **does not implement `AutoCloseable`** and has no `close()` to unload all modules; garbage collection can reclaim loader/class metadata only when no relevant references remain. Threads, thread-context-classloaders, `ThreadLocal`s, singleton registries, static state in parent loaders, callbacks, schedulers, and provider references can keep the old layer alive.
 
-Lifecycle nên gồm stop/close providers, hủy đăng ký listener, đóng executor/file/network resources, bỏ reference và kiểm tra memory leaks. Không hứa “unload thành công ngay” khi bỏ reference.
+Lifecycle management should include stopping/closing providers, unregistering listeners, closing executor/file/network resources, dropping references, and checking for memory leaks. Do not promise “immediate unload succeeds” upon dropping references.
 
-## 6. ServiceLoader trong nhiều layer
+## 6. ServiceLoader Across Multiple Layers
 
-`ServiceLoader.load(layer, Service.class)` tìm provider trong layer chỉ định và các ancestor theo cơ chế API; không nên hiểu đây là cách chọn ngẫu nhiên tất cả providers từ **mọi layer ngang hàng**. Nếu host tạo hai sibling layers A và B, hãy quản lý registry riêng cho mỗi nhóm hoặc kết hợp một cách tường minh.
+`ServiceLoader.load(layer, Service.class)` searches for providers in the specified layer and its ancestors per the API mechanism; do not mistake this for a way to arbitrarily pick all providers from **every sibling layer**. If the host creates two sibling layers A and B, manage a separate registry for each group or combine them explicitly.
 
-Ví dụ khi chuyển sang layer B:
+Example when switching to layer B:
 
 ```java
 ServiceLoader<Greeter> loader = ServiceLoader.load(layerB, Greeter.class);
@@ -275,51 +275,51 @@ List<Greeter> selected = loader.stream()
         .toList();
 ```
 
-Đoạn minh họa này đặt trong method có `layerB` là `ModuleLayer` và import tương ứng. `ServiceLoader` giữ cache riêng; nó không biến layer A thành B. Khi cần ưu tiên provider, hãy áp policy của host trên tập provider đã load, không dựa vào thứ tự khám phá.
+This illustrative snippet sits inside a method where `layerB` is a `ModuleLayer` with corresponding imports. `ServiceLoader` keeps its own cache; it does not turn layer A into B. When provider prioritization is needed, apply the host's policy over the loaded providers rather than relying on discovery order.
 
-Vì host giữ reference đến provider instance, lớp wrapper/registry nên gắn provider với **phiên bản/layer** của nó để tránh trộn object giữa hai class identity khác nhau. Trường hợp plugin trả về class thuộc plugin-private packages, phải tránh đưa class đó làm API public chung trừ khi có hợp đồng chuyển đổi dữ liệu rõ ràng.
+Because the host holds references to provider instances, wrapper/registry classes should associate each provider with its **version/layer** to avoid mixing objects across different class identities. If a plugin returns classes from plugin-private packages, avoid exposing those classes as shared public API unless a clear data-conversion contract exists.
 
-## 7. Vấn đề với dependency và service API
+## 7. Issues with Dependencies and Service APIs
 
-Một nhóm plugin mới có thể gồm nhiều module phụ thuộc lẫn nhau. Các module mới cần được resolve **cùng một configuration thích hợp** nếu muốn dùng nhau trong cùng graph. Khi `rootSet` không đầy đủ, dependency chưa có trong module finder/parent có thể khiến resolution thất bại.
+A new plugin group may comprise multiple mutually dependent modules. The new modules must be resolved in **the same appropriate configuration** if they need to use one another in the same graph. When `rootSet` is incomplete, dependencies absent from the module finder/parent can cause resolution to fail.
 
-Nên đặt các loại dependency như sau:
+Place each kind of dependency as follows:
 
-| Thành phần | Vị trí hợp lý | Lý do |
+| Component | Appropriate Location | Reason |
 | --- | --- | --- |
-| Service interfaces / DTO chuẩn | Parent layer (`demo.api`) | Giữ class identity chung |
-| Host implementation | Boot/host layer | Không để plugin nắm vòng đời host |
-| Plugin-private dependencies | Layer mới nếu được module hóa, hoặc classloader thiết kế riêng | Giảm xung đột version |
-| Plugin providers | Layer mới | Có thể thay theo nhóm/phiên bản |
-| Registry chọn active plugin | Host | Điều phối request và chính sách chuyển phiên bản |
+| Shared service interfaces / standard DTOs | Parent layer (`demo.api`) | Preserve shared class identity |
+| Host implementation | Boot/host layer | Prevent plugins from owning host lifecycle |
+| Plugin-private dependencies | New layer if modularized, or dedicated custom classloader | Reduce version conflicts |
+| Plugin providers | New layer | Can be replaced per group/version |
+| Registry selecting active plugin | Host | Orchestrate requests and version switchover policy |
 
-JPMS named modules không tự giải quyết tất cả xung đột thư viện, nhất là khi thư viện legacy là automatic module với split packages hoặc phụ thuộc chưa được module hóa đúng. Cần kiểm tra module descriptors bằng `jar --describe-module`, chạy artifact cuối và thử resolution của đúng layer.
+JPMS named modules do not automatically resolve all library conflicts, especially when legacy libraries are automatic modules with split packages or improperly modularized dependencies. Inspect module descriptors with `jar --describe-module`, run the final artifacts, and test resolution of the exact layer.
 
-## 8. Lỗi thường gặp
+## 8. Common Errors
 
-| Triệu chứng | Nguyên nhân | Cách sửa |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| Thêm plugin JAR nhưng layer cũ vẫn không thấy | Layer graph không đổi sau khi tạo | Resolve và define layer mới |
-| `ServiceLoader` trả 0 provider | `provides` thiếu, root/layer không đúng, module không resolved | Kiểm tra descriptor, finder, layer và dùng đúng overload |
-| `FindException: Module ... not found` | Module/dependency không được finder hoặc parent nhìn thấy | Sửa module path/finder, tên module và root set |
-| `ResolutionException` | Module graph có ràng buộc xung đột | Sửa split packages, readability và graph |
-| Plugin mới `ClassCastException` với API | Plugin có bản sao service API hoặc classloader identity khác | Giữ contract ở parent và thống nhất type identity |
-| Đóng JAR nhưng loader/layer không được GC | Thread, cache, listener hoặc object reference giữ lại | Dừng provider và bỏ mọi reference |
-| Request chạy sai version sau swap | Registry bị thay nhưng in-flight requests chưa drain | Dùng lease/ref-count và lifecycle handoff |
-| Thay file JAR nhưng vẫn chạy bytecode cũ | JVM đã định nghĩa class trong layer cũ | Load bản mới trong layer/classloader mới |
+| Added plugin JAR yet old layer still does not see it | Layer graph does not change after creation | Resolve and define a new layer |
+| `ServiceLoader` returns 0 providers | Missing `provides`, wrong root/layer, module not resolved | Check descriptor, finder, layer, and use the right overload |
+| `FindException: Module ... not found` | Module/dependency not visible to finder or parent | Fix module path/finder, module name, and root set |
+| `ResolutionException` | Module graph has conflicting constraints | Fix split packages, readability, and graph |
+| New plugin throws `ClassCastException` with API | Plugin has a duplicate copy of service API or different classloader identity | Keep contract in parent and unify type identity |
+| Closed JAR yet loader/layer is not GC'd | Threads, caches, listeners, or object references retain it | Stop providers and drop all references |
+| Requests run wrong version after swap | Registry swapped before in-flight requests drained | Use leases/ref-counts and lifecycle handoff |
+| Replaced JAR file yet old bytecode still runs | JVM already defined classes in the old layer | Load the new version in a new layer/classloader |
 
-## 9. Checklist triển khai an toàn
+## 9. Safe Implementation Checklist
 
-- [ ] Giữ service contract dùng chung ở layer cha.
-- [ ] Tách artifact theo release/version và kiểm tra modular JAR thực tế.
-- [ ] Tạo `ModuleFinder` với nguồn artifact rõ ràng.
-- [ ] Resolve `Configuration` mới từ parent configuration cùng root modules đúng.
-- [ ] Chọn loader strategy phù hợp (`one`, `many`, custom).
-- [ ] Dùng `ServiceLoader.load(newLayer, Service.class)` và xác minh provider identity.
-- [ ] Kiểm tra health/compatibility của nhóm mới trước khi publish.
-- [ ] Swap registry/route theo cơ chế thread-safe; drain requests cũ.
-- [ ] Gọi stop/close và dọn ThreadLocal, TCCL, listener, executor, cache.
-- [ ] Không kỳ vọng `reload()` hoặc đổi JAR sẽ biến đổi layer hiện hữu.
-- [ ] Dùng process isolation nếu cần giới hạn quyền, CPU/memory hay chịu lỗi mạnh.
+- [ ] Keep shared service contracts in a parent layer.
+- [ ] Separate artifacts by release/version and verify actual modular JARs.
+- [ ] Create `ModuleFinder` with explicit artifact sources.
+- [ ] Resolve a new `Configuration` from the parent configuration with the right root modules.
+- [ ] Choose an appropriate loader strategy (`one`, `many`, custom).
+- [ ] Use `ServiceLoader.load(newLayer, Service.class)` and verify provider identity.
+- [ ] Verify health/compatibility of the new group before publishing.
+- [ ] Swap registry/routing in a thread-safe manner; drain old requests.
+- [ ] Invoke stop/close and clean up `ThreadLocal`, TCCL, listeners, executors, and caches.
+- [ ] Do not expect `reload()` or swapping JAR files to mutate an existing layer.
+- [ ] Use process isolation if strong permission, CPU/memory, or fault isolation is required.
 
-**Kết luận:** `ModuleLayer` hỗ trợ kiến trúc **nhiều phiên bản/nhóm plugin bằng các layer khác nhau**. Mỗi layer là một cấu hình module đã được resolve và định nghĩa; khi muốn thay đổi thành phần module, hãy tạo layer mới rồi chuyển người sử dụng sang nó có kiểm soát. Không thể cập nhật module graph của layer cũ theo kiểu thêm/bớt JAR tại chỗ.
+**Conclusion:** `ModuleLayer` supports an architecture with **multiple plugin versions/groups via distinct layers**. Each layer is a resolved and defined module configuration; when you want to change module composition, create a new layer and transition consumers to it in a controlled manner. You cannot update an old layer's module graph by adding or removing JARs in place.

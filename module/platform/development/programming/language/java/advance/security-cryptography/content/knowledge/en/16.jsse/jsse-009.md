@@ -1,100 +1,100 @@
-# 16.9. Xử lý `BUFFER_UNDERFLOW`, `BUFFER_OVERFLOW`, đóng kết nối và tài nguyên bộ đệm
+# 16.9. Handling `BUFFER_UNDERFLOW`, `BUFFER_OVERFLOW`, Connection Closure, and Buffer Resources
 
-## Mục tiêu và bối cảnh
+## Objectives and context
 
-Trong **JSSE (Java Secure Socket Extension)**, `SSLEngine` cung cấp TLS/DTLS ở mức bộ đệm `ByteBuffer` thay vì tự sở hữu socket. Ứng dụng chịu trách nhiệm mang dữ liệu qua mạng, xử lý trạng thái bắt tay, cấp phát bộ đệm, điều phối non-blocking I/O và **đóng TLS đúng giao thức**. Đặc biệt, hai kết quả `SSLEngineResult.Status.BUFFER_UNDERFLOW` và `BUFFER_OVERFLOW` **không đơn giản là lỗi cần đóng kết nối**: chúng là tín hiệu điều phối dữ liệu và bộ nhớ.
+In **JSSE (Java Secure Socket Extension)**, `SSLEngine` provides TLS/DTLS at the `ByteBuffer` level rather than owning a socket. The application is responsible for moving data over the network, handling handshake state, allocating buffers, coordinating non-blocking I/O, and **closing TLS per protocol**. In particular, the two `SSLEngineResult.Status` values `BUFFER_UNDERFLOW` and `BUFFER_OVERFLOW` **are not simply errors requiring connection closure**: they are data- and memory-coordination signals.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt **network packet buffers** và **application plaintext buffers** cho cả hai hướng của `SSLEngine`.
-2. Đọc bốn loại `Status` (`OK`, `BUFFER_UNDERFLOW`, `BUFFER_OVERFLOW`, `CLOSED`) cùng `HandshakeStatus`, `bytesConsumed` và `bytesProduced`.
-3. Chữa `BUFFER_UNDERFLOW` bằng **giữ lại bytes chưa xử lý, đọc thêm dữ liệu**, chỉ tăng capacity khi cần đủ chứa TLS record; không làm mất mảnh packet.
-4. Chữa `BUFFER_OVERFLOW` bằng **drain/flush hoặc tăng destination buffer** đúng cho `wrap` và `unwrap`; không lặp vô hạn với buffer không đổi.
-5. Gửi và nhận `close_notify` bằng `closeOutbound`, `wrap`, `unwrap`, theo dõi `isInboundDone/isOutboundDone`; nhận biết EOF đột ngột khác đóng TLS hợp lệ.
-6. Thiết kế giới hạn dung lượng, pooling, backpressure, cleanup, timeout và test lỗi cho một ứng dụng Java 17+ non-blocking.
+1. Distinguish **network packet buffers** from **application plaintext buffers** for both directions of `SSLEngine`.
+2. Interpret all four `Status` values (`OK`, `BUFFER_UNDERFLOW`, `BUFFER_OVERFLOW`, `CLOSED`) together with `HandshakeStatus`, `bytesConsumed`, and `bytesProduced`.
+3. Resolve `BUFFER_UNDERFLOW` by **retaining unprocessed bytes and reading more data**, increasing capacity only when needed to hold a TLS record; never losing packet fragments.
+4. Resolve `BUFFER_OVERFLOW` by **draining/flushing or growing the destination buffer** properly for `wrap` and `unwrap`; never looping endlessly with unchanged buffers.
+5. Send and receive `close_notify` via `closeOutbound`, `wrap`, and `unwrap`, tracking `isInboundDone/isOutboundDone`; distinguish abrupt EOF from valid TLS closure.
+6. Design capacity caps, pooling, backpressure, cleanup, timeouts, and failure tests for a non-blocking Java 17+ application.
 
-Bài có **hai chương trình Java chạy độc lập**: một probe tạo `BUFFER_OVERFLOW`/`BUFFER_UNDERFLOW`, và một vòng lặp TLS 1.3 giữa hai `SSLEngine` trong RAM, có KeyStore/truststore thử nghiệm, truyền dữ liệu, trao đổi `close_notify` và kiểm tra trạng thái đóng. Ví dụ vòng lặp chỉ là **mô phỏng trong bộ nhớ**: khi triển khai `SocketChannel + Selector` thực tế cần bổ sung I/O scheduling, concurrency, timeouts, policy và quản lý tài nguyên như phần sau.
+This lesson includes **two standalone runnable Java programs**: one probe triggering `BUFFER_OVERFLOW`/`BUFFER_UNDERFLOW`, and a TLS 1.3 loop between two `SSLEngine`s in RAM with a test KeyStore/truststore, data exchange, `close_notify` exchange, and close-state verification. The loop example is purely an **in-memory simulation**: when deploying real `SocketChannel + Selector`, add I/O scheduling, concurrency, timeouts, policies, and resource management as covered in later sections.
 
-## 1. Vì sao `SSLEngine` cần bốn hướng bộ đệm?
+## 1. Why does `SSLEngine` need four buffer directions?
 
-Hãy hình dung một TLS connection:
+Visualize a TLS connection:
 
 ```text
-ỨNG DỤNG GỬI                                            ỨNG DỤNG NHẬN
+SENDING APPLICATION                                    RECEIVING APPLICATION
 plaintext ByteBuffer                                        plaintext
          |                                                       ^
          v                                                       |
      engine.wrap(src, networkOut)                    engine.unwrap(networkIn, dst)
          |                                                       ^
          v                                                       |
-TLS record bytes (ciphertext/handshake)       TLS record bytes nhận từ mạng
+TLS record bytes (ciphertext/handshake)       TLS record bytes received from network
          |                                                       ^
          +-------- SocketChannel / network ---------------------+
 ```
 
-Mỗi bên thường tổ chức các buffer riêng:
+Each side typically organizes separate buffers:
 
-| Bộ đệm logic | Chứa gì? | Chủ thể ghi | Bên tiêu thụ |
+| Logical buffer | Contents | Writer | Consumer |
 | --- | --- | --- | --- |
-| `applicationOut` | Plaintext **chờ gửi** | Application | `engine.wrap(...)` |
-| `networkOut` | TLS records **chờ ghi ra socket** | `engine.wrap(...)` | `SocketChannel.write(...)` |
-| `networkIn` | TLS records **đã đọc từ socket** | `SocketChannel.read(...)` | `engine.unwrap(...)` |
-| `applicationIn` | Plaintext **đã giải mã** | `engine.unwrap(...)` | Application |
+| `applicationOut` | Plaintext **waiting to be sent** | Application | `engine.wrap(...)` |
+| `networkOut` | TLS records **waiting to be written to socket** | `engine.wrap(...)` | `SocketChannel.write(...)` |
+| `networkIn` | TLS records **read from socket** | `SocketChannel.read(...)` | `engine.unwrap(...)` |
+| `applicationIn` | **Decrypted** plaintext | `engine.unwrap(...)` | Application |
 
-Đây là **bốn vai trò**, không bắt buộc đúng bốn instance `ByteBuffer` trên đời. Một ứng dụng có thể có hàng đợi nhiều plaintext messages, nhiều network buffers hoặc memory pool. Điều bắt buộc là **không nhầm hướng, trạng thái `position/limit` và quyền sở hữu dữ liệu**.
+These are **four roles**, not strictly four literal `ByteBuffer` instances. An application may maintain queues of plaintext messages, multiple network buffers, or a memory pool. What is mandatory is **never mixing up directions, `position/limit` states, and data ownership**.
 
-Một TLS record có thể gồm handshake content, application content hoặc alert. Vì vậy **`wrap` không phải lúc nào cũng lấy plaintext để mã hóa**, và **`unwrap` không phải lúc nào cũng trả plaintext**. Trong handshake hoặc closure, `wrap(EMPTY, networkOut)` vẫn có thể sinh record điều khiển, và `unwrap` vẫn có thể tiêu thụ network bytes nhưng sinh **0 application bytes**.
+A TLS record can contain handshake content, application content, or alerts. Thus **`wrap` does not always consume plaintext to encrypt**, and **`unwrap` does not always return plaintext**. During handshakes or closure, `wrap(EMPTY, networkOut)` can still emit control records, and `unwrap` can consume network bytes while producing **0 application bytes**.
 
-`SSLEngine` không tự đọc/ghi socket; nếu bạn nhận được `BUFFER_UNDERFLOW` mà không bố trí đọc mạng, trạng thái sẽ không tự tiến triển. Nếu có `BUFFER_OVERFLOW` mà không giải phóng buffer đích, cứ gọi lại cùng tham số sẽ dẫn đến vòng lặp bận (busy spin).
+`SSLEngine` never reads/writes sockets itself; if you receive `BUFFER_UNDERFLOW` without arranging a network read, state will not advance. If you hit `BUFFER_OVERFLOW` without freeing the destination buffer, calling again with identical arguments creates a busy spin.
 
-## 2. `ByteBuffer` là state machine thứ hai
+## 2. `ByteBuffer` is the second state machine
 
-Để điều phối chính xác, luôn nhớ:
+To coordinate accurately, always remember:
 
-- `capacity()`: dung lượng vật lý đã cấp.
-- `position()`: vị trí đọc/ghi hiện tại.
-- `limit()`: ranh giới đọc/ghi.
-- `remaining()`: số bytes có thể đọc/ghi theo mode hiện tại, bằng `limit - position`.
-- `flip()`: chuyển từ **write mode → read mode**, đặt `limit=position` và `position=0`.
-- `compact()`: sau khi đọc, dịch **các bytes còn chưa đọc** về đầu buffer, chuyển sang **write mode** để đọc thêm dữ liệu vào phần trống.
-- `clear()`: chuyển sang write mode, **không xóa bytes vật lý** và **không giữ dữ liệu chưa đọc về mặt logic**.
-- `slice()/duplicate()`: có thể chia sẻ backing memory; phải tách quyền sở hữu, tránh sửa cùng vùng dữ liệu khi `wrap/unwrap` đang dùng.
+- `capacity()`: physical allocated capacity.
+- `position()`: current read/write index.
+- `limit()`: read/write boundary.
+- `remaining()`: number of bytes readable/writable in the current mode, equal to `limit - position`.
+- `flip()`: transitions from **write mode → read mode**, setting `limit=position` and `position=0`.
+- `compact()`: after reading, shifts **unread bytes** to the start of the buffer and switches to **write mode** so more data can be read into the free space.
+- `clear()`: switches to write mode, **does not wipe physical bytes**, and **does not logically preserve unread data**.
+- `slice()/duplicate()`: may share backing memory; keep ownership separate and avoid mutating the same region while `wrap/unwrap` uses it.
 
-Ví dụ nhận hai mảnh của **cùng một TLS record**:
+Example receiving two fragments of the **same TLS record**:
 
 ```text
-networkIn đang WRITE MODE:
-  [record bytes đầu...][chưa được nhận]  position=k
+networkIn in WRITE MODE:
+  [initial record bytes...][not yet received]  position=k
 
 flip():
-  [record bytes đầu...]  position=0, limit=k  READ MODE
+  [initial record bytes...]  position=0, limit=k  READ MODE
 
 engine.unwrap(networkIn, applicationIn) -> BUFFER_UNDERFLOW
 
 compact():
-  [bytes chưa đọc giữ lại][chỗ trống nhận tiếp]  WRITE MODE
+  [retained unread bytes][space for next read]  WRITE MODE
 
-socket.read(networkIn) -> nối thêm dữ liệu mới
+socket.read(networkIn) -> appends new data
 
-flip() -> unwrap(...) lần nữa
+flip() -> unwrap(...) again
 ```
 
-**Không gọi `networkIn.clear()` sau `BUFFER_UNDERFLOW`**, vì nó có thể làm mất phần record chưa tiêu thụ. `compact()` giữ lại phần còn thiếu, là thao tác phù hợp trước khi đọc thêm. Nếu `unwrap` đã tiêu thụ một phần dữ liệu, `compact` chỉ giữ **phần còn lại**, không sao chép lại bytes đã được xử lý.
+**Never call `networkIn.clear()` after `BUFFER_UNDERFLOW`**, because it drops the unconsumed record fragment. `compact()` retains the incomplete piece and is the right operation before reading more. If `unwrap` consumed part of the data, `compact` keeps only **the remainder**, without re-copying already-processed bytes.
 
-Ví dụ nhỏ để tự hình dung (`buffer` là write mode có `position=3`):
+Small mental-model snippet (`buffer` starts in write mode with `position=3`):
 
 ```java
 buffer.flip();           // position=0, limit=3
-// đọc 1 byte từ buffer ...
-buffer.compact();        // giữ 2 byte chưa đọc, position=2, limit=capacity
-// socket.read(buffer);  // điền thêm sau 2 byte đó
+// read 1 byte from buffer ...
+buffer.compact();        // keeps 2 unread bytes, position=2, limit=capacity
+// socket.read(buffer);  // fills more after those 2 bytes
 ```
 
-Đây là snippet minh họa, không phải chương trình độc lập; buffer/socket cần tạo và quản lý phù hợp.
+This is an illustrative snippet, not a standalone program; buffers/sockets must be created and managed properly.
 
-## 3. Đọc `SSLEngineResult`: hai lớp trạng thái độc lập
+## 3. Reading `SSLEngineResult`: two independent status layers
 
-`SSLEngine.wrap` và `SSLEngine.unwrap` trả `SSLEngineResult` với:
+`SSLEngine.wrap` and `SSLEngine.unwrap` return `SSLEngineResult` with:
 
 ```java
 result.getStatus();
@@ -103,96 +103,96 @@ result.bytesConsumed();
 result.bytesProduced();
 ```
 
-**`getStatus()`** cho biết tình trạng thao tác I/O của engine. **`getHandshakeStatus()`** chỉ ra việc tiếp theo cần làm cho handshake TLS/DTLS. Hai trường đó **không thay thế** nhau: ví dụ `Status.OK` vẫn có thể đi kèm `HandshakeStatus.NEED_TASK` hoặc `NEED_WRAP`.
+**`getStatus()`** reports the buffer/I/O outcome of the engine call. **`getHandshakeStatus()`** indicates what to do next for the TLS/DTLS handshake. These two fields **do not replace** each other: for instance, `Status.OK` can accompany `HandshakeStatus.NEED_TASK` or `NEED_WRAP`.
 
-| `SSLEngineResult.Status` | Diễn giải | Hành động thường dùng |
+| `SSLEngineResult.Status` | Interpretation | Typical action |
 | --- | --- | --- |
-| `OK` | Thao tác không bị chặn bởi trạng thái lỗi/buffer | Xử lý bytes consumed/produced, mạng và `HandshakeStatus`; không giả định đã hoàn tất toàn bộ message |
-| `BUFFER_UNDERFLOW` | `unwrap` thiếu TLS record bytes trong input network buffer | Giữ bytes chưa tiêu thụ, kiểm tra capacity rồi **đọc thêm từ peer** |
-| `BUFFER_OVERFLOW` | Destination buffer quá nhỏ/không còn chỗ cho output | **`wrap`: networkOut**; **`unwrap`: applicationIn**. Flush/drain hoặc mở rộng đúng destination |
-| `CLOSED` | Engine đã đóng phần liên quan hoặc thao tác kết thúc vì trạng thái đóng | Xử lý close_notify và half-close; phân biệt thành công và EOF bất thường |
+| `OK` | Operation was not blocked by a buffer/close condition | Process bytes consumed/produced, network I/O, and `HandshakeStatus`; do not assume the full message is done |
+| `BUFFER_UNDERFLOW` | `unwrap` lacks enough TLS record bytes in the input network buffer | Retain unconsumed bytes, check capacity, then **read more from peer** |
+| `BUFFER_OVERFLOW` | Destination buffer too small / out of space for output | **`wrap`: `networkOut`**; **`unwrap`: `applicationIn`**. Flush/drain or grow the right destination |
+| `CLOSED` | Engine closed the relevant side or operation ended due to closed state | Handle `close_notify` and half-close; distinguish clean close from abnormal EOF |
 
-Hai bộ đếm quan trọng:
+Two important counters:
 
-- `bytesConsumed()` là số byte bị tiêu thụ trong **input buffers** của lời gọi đó.
-- `bytesProduced()` là số byte được ghi vào **output buffers** của lời gọi đó.
+- `bytesConsumed()` is the byte count consumed from the **input buffers** in that call.
+- `bytesProduced()` is the byte count written into the **output buffers** in that call.
 
-**Không đồng nhất** số bytes plaintext với TLS network bytes; TLS thêm record headers, authentication tags và metadata. Một lần `unwrap` có thể **tiêu thụ TLS record** rồi produce 0 plaintext vì đó là message handshake/alert. Một lần `wrap` có thể produce record dù consume 0 application bytes.
+**Never equate** plaintext byte counts with TLS network byte counts; TLS adds record headers, authentication tags, and metadata. One `unwrap` may **consume a TLS record** yet produce 0 plaintext because it was a handshake/alert message. One `wrap` may produce a record while consuming 0 application bytes.
 
-Một cách đo progress đúng hơn là **có bytes consumed/produced, handshake state thay đổi, task hoàn thành hoặc socket chuyển dữ liệu**. Nếu không có tiến triển và đã thiếu input, hãy đợi I/O thay vì spin. Dù vậy, một số hành vi TLS/DTLS có thể chuyển internal state không phản ánh đơn giản bằng hai bộ đếm; cần triển khai theo contract của provider.
+A better progress metric is **bytes consumed/produced, handshake state changed, task completed, or socket transferred data**. When there is no progress and input is lacking, wait for I/O instead of spinning. Even so, certain TLS/DTLS transitions may advance internal state without obvious counter changes; implement per provider contract.
 
-## 4. `BUFFER_UNDERFLOW`: thiếu dữ liệu nhận, không phải “packet sai”
+## 4. `BUFFER_UNDERFLOW`: insufficient incoming data, not a "bad packet"
 
-Trong TCP, `SocketChannel.read` **không đảm bảo trả về một TLS record hoàn chỉnh**. Dữ liệu TLS có thể đến theo nhiều mảnh, hoặc nhiều record cùng trong một lần read. `SSLEngine.unwrap` cần đủ bytes để giải mã record cần xử lý; nếu không đủ, nó báo `BUFFER_UNDERFLOW`.
+Over TCP, `SocketChannel.read` **does not guarantee returning one complete TLS record**. TLS data may arrive across multiple fragments, or multiple records may arrive in a single read. `SSLEngine.unwrap` needs enough bytes to decrypt the record at hand; if short, it reports `BUFFER_UNDERFLOW`.
 
-### Quy trình xử lý chuẩn
+### Standard handling procedure
 
-1. `networkIn` ban đầu là **write mode** chứa bytes đã đọc từ socket.
-2. `networkIn.flip()` để engine đọc.
-3. Gọi `SSLEngineResult r = engine.unwrap(networkIn, applicationIn)`.
-4. Nếu `r.getStatus()==BUFFER_UNDERFLOW`, **đừng loại bỏ bytes còn lại**. Gọi `networkIn.compact()` để trở về write mode và giữ bytes chưa tiêu thụ.
-5. Kiểm tra `networkIn.capacity()` có nhỏ hơn `engine.getSession().getPacketBufferSize()` không. Nếu nhỏ, tăng capacity **sau khi bảo toàn bytes**. Nếu capacity đã đủ, **không mở rộng vô điều kiện** chỉ vì underflow.
-6. Đăng ký quan tâm `OP_READ`/đợi socket nhận thêm bytes; chỉ thử `unwrap` tiếp sau khi dữ liệu mới hoặc state TLS cho phép.
-7. Nếu socket trả **-1 (EOF)**, xử lý như **đóng transport**, không đợi vĩnh viễn record không bao giờ đến và không chuyển unknown thành thành công.
+1. `networkIn` starts in **write mode** holding bytes read from the socket.
+2. Call `networkIn.flip()` so the engine can read.
+3. Call `SSLEngineResult r = engine.unwrap(networkIn, applicationIn)`.
+4. If `r.getStatus()==BUFFER_UNDERFLOW`, **do not discard remaining bytes**. Call `networkIn.compact()` to return to write mode preserving unconsumed bytes.
+5. Check whether `networkIn.capacity()` is smaller than `engine.getSession().getPacketBufferSize()`. If smaller, grow capacity **after preserving bytes**. If capacity is already sufficient, **do not grow unconditionally** just on underflow.
+6. Register interest in `OP_READ`/wait for the socket to receive more bytes; retry `unwrap` only when new data or TLS state permits.
+7. If the socket returns **-1 (EOF)**, handle as **transport closure**, never waiting forever for a record that will never arrive and never turning unknown into success.
 
-Snippet xử lý một kết quả (`networkIn` được quản lý theo mô hình write mode ở ngoài lời gọi; `appIn` là write mode):
+Snippet handling one result (`networkIn` is managed in write mode outside the call; `appIn` is in write mode):
 
 ```java
 networkIn.flip();
 SSLEngineResult r = engine.unwrap(networkIn, appIn);
-networkIn.compact(); // bảo toàn network bytes còn lại
+networkIn.compact(); // preserve remaining network bytes
 
 if (r.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
     int expected = engine.getSession().getPacketBufferSize();
     if (networkIn.capacity() < expected) {
         networkIn = growWriteModeBuffer(networkIn, expected);
     }
-    // Chờ socket.read(networkIn) có thêm bytes, KHÔNG spin.
+    // Wait for socket.read(networkIn) to deliver more bytes, DO NOT spin.
 }
 ```
 
-`growWriteModeBuffer(...)` là helper phải **copy bytes đang có trong write mode**, không phải lời gọi chuẩn JDK; ví dụ đầy đủ ở dưới có helper `grow(...)`. Vì `getPacketBufferSize()` có thể thay đổi theo session/handshake, đừng chỉ kiểm tra kích thước một lần lúc kết nối vừa tạo.
+`growWriteModeBuffer(...)` is a helper that must **copy bytes currently held in write mode**, not a built-in JDK method; the full example below provides a `grow(...)` helper. Since `getPacketBufferSize()` can change across session/handshake, do not check the size only once when the connection is first created.
 
-**Hai trường hợp rất dễ nhầm:**
+**Two cases that are easily confused:**
 
-- `BUFFER_UNDERFLOW` khi `networkIn.remaining()==0` ở read mode hoặc chỉ có header/fragment của record: **cần thêm bytes**.
-- `BUFFER_OVERFLOW` trên `unwrap` vì `applicationIn` quá nhỏ: **không được giải bằng đọc thêm network bytes**. Cần xử lý output buffer.
+- `BUFFER_UNDERFLOW` when `networkIn.remaining()==0` in read mode or holding only a record header/fragment: **needs more bytes**.
+- `BUFFER_OVERFLOW` on `unwrap` because `applicationIn` is too small: **cannot be solved by reading more network bytes**. Handle the output buffer.
 
-**Đừng parse TLS record length để tự cấp phát tùy ý** dựa trên input chưa tin cậy. Hãy dùng `getPacketBufferSize` và giới hạn bộ nhớ cho mỗi kết nối, kiểm thử provider và đóng connection vi phạm chính sách.
+**Never parse TLS record lengths to allocate arbitrary amounts** based on untrusted input. Use `getPacketBufferSize` and per-connection memory caps, test the provider, and close policy-violating connections.
 
-## 5. `BUFFER_OVERFLOW`: thiếu chỗ cho output
+## 5. `BUFFER_OVERFLOW`: insufficient space for output
 
-### Trường hợp A — `wrap` overflow: `networkOut` quá nhỏ
+### Case A — `wrap` overflow: `networkOut` is too small
 
-`wrap(applicationOut, networkOut)` tạo TLS network bytes (record headers, ciphertext, tag, handshake/alert). Output không đủ chỗ khiến `BUFFER_OVERFLOW`. Không cố gắng ghi thêm ứng dụng vào `applicationOut` để giải quyết; nguồn không phải vấn đề.
+`wrap(applicationOut, networkOut)` produces TLS network bytes (record headers, ciphertext, tags, handshake/alerts). Insufficient output space causes `BUFFER_OVERFLOW`. Do not try writing more application data into `applicationOut` to fix it; the source is not the problem.
 
-Chọn một trong hai hướng:
+Choose one of two paths:
 
-1. Nếu `networkOut` đã chứa bytes từ các lần wrap trước, **flip và flush đến `SocketChannel`**. Nếu socket chỉ ghi một phần, giữ remainder ở read mode, đăng ký `OP_WRITE`, chờ socket writable rồi ghi nốt. Sau khi flush, `compact` trở lại write mode.
-2. Nếu capacity thực sự nhỏ hơn packet cần sinh, tăng `networkOut` dựa trên `engine.getSession().getPacketBufferSize()` và upper bound của ứng dụng. **Bảo toàn bytes đã ghi nhưng chưa gửi**.
+1. If `networkOut` already holds bytes from earlier wraps, **flip and flush to `SocketChannel`**. If the socket writes partially, keep the remainder in read mode, register `OP_WRITE`, wait for socket writability, and finish writing. After flushing, `compact` back to write mode.
+2. If capacity is genuinely smaller than the packet to emit, grow `networkOut` based on `engine.getSession().getPacketBufferSize()` and the application's upper bound. **Preserve already-written, unsent bytes.**
 
-Snippet khái niệm:
+Conceptual snippet:
 
 ```java
 SSLEngineResult r = engine.wrap(applicationOut, networkOut);
 if (r.getStatus() == SSLEngineResult.Status.BUFFER_OVERFLOW) {
-    // Ưu tiên gửi TLS bytes đang có trong networkOut;
-    // nếu vẫn thiếu: mở rộng destination phù hợp, không clear.
+    // Prioritize sending TLS bytes already in networkOut;
+    // if still insufficient: grow destination properly, never clear.
     int required = engine.getSession().getPacketBufferSize();
     networkOut = growWriteModeBuffer(networkOut, required);
-    // Retry sau khi có chỗ thực sự.
+    // Retry once space actually exists.
 }
 ```
 
-Nếu output còn pending mà tăng buffer, helper phải giữ chính xác bytes chưa gửi, không gửi trùng/làm mất record. Trong mô hình event-loop, **đợi OP_WRITE khi socket không tiến triển**, không bận CPU bằng gọi `wrap` mãi.
+If growing while output is pending, the helper must preserve exact unsent bytes without duplicating or dropping records. In an event-loop model, **wait for `OP_WRITE` when the socket makes no progress**, rather than burning CPU calling `wrap` endlessly.
 
-### Trường hợp B — `unwrap` overflow: `applicationIn` quá nhỏ
+### Case B — `unwrap` overflow: `applicationIn` is too small
 
-`unwrap(networkIn, applicationIn)` giải mã TLS record ra plaintext. Khi plaintext không vừa destination, trả `BUFFER_OVERFLOW`. Khi đó:
+`unwrap(networkIn, applicationIn)` decrypts TLS records into plaintext. When plaintext does not fit the destination, it returns `BUFFER_OVERFLOW`. In that case:
 
-1. Cho application **đọc/xử lý bytes đã có trong `applicationIn`**, sau đó `compact()/clear()` khi thực sự được phép.
-2. Hoặc tăng `applicationIn` ít nhất theo `engine.getSession().getApplicationBufferSize()` và số bytes đang chứa.
-3. Retry `unwrap` với đúng **network bytes chưa bị tiêu thụ**, không tự loại bỏ TLS bytes đang chờ.
+1. Let the application **read/process bytes already in `applicationIn`**, then `compact()/clear()` when genuinely permitted.
+2. Or grow `applicationIn` to at least `engine.getSession().getApplicationBufferSize()` plus any bytes already held.
+3. Retry `unwrap` with the exact **unconsumed network bytes**; never discard queued TLS bytes.
 
 Snippet:
 
@@ -200,15 +200,15 @@ Snippet:
 if (r.getStatus() == SSLEngineResult.Status.BUFFER_OVERFLOW) {
     int required = engine.getSession().getApplicationBufferSize();
     appIn = growWriteModeBuffer(appIn, required);
-    // Sau đó gọi lại unwrap bằng network bytes chưa xử lý.
+    // Then call unwrap again using the unprocessed network bytes.
 }
 ```
 
-**Không bắt buộc cứ overflow là tăng bộ nhớ:** drain đến consumer có thể tốt hơn, đặc biệt khi ứng dụng giữ nhiều connection. Nếu consumer chậm, thực hiện **backpressure** và có giới hạn queue; không tăng buffer vô hạn để “xử lý hết”.
+**You do not have to grow memory on every overflow:** draining to the consumer can be better, especially when holding many connections. If the consumer is slow, apply **backpressure** and enforce queue limits; never grow buffers unboundedly to "absorb everything."
 
-### Cách viết helper tăng buffer đúng mode
+### Writing a mode-safe buffer growth helper
 
-Giả định buffer hiện tại đang ở **write mode** và `position` là lượng bytes cần giữ:
+Assuming the current buffer is in **write mode** and `position` is the byte count to preserve:
 
 ```java
 static ByteBuffer grow(ByteBuffer old, int minimum) {
@@ -217,17 +217,17 @@ static ByteBuffer grow(ByteBuffer old, int minimum) {
         throw new IllegalStateException("Buffer cap exceeded");
     }
     ByteBuffer newer = ByteBuffer.allocate(capacity);
-    old.flip();          // chuyển các bytes đã ghi sang read mode
-    newer.put(old);      // copy đúng bytes đó
-    return newer;        // write mode, position sau dữ liệu được giữ
+    old.flip();          // switch written bytes to read mode
+    newer.put(old);      // copy exact bytes
+    return newer;        // write mode, position after preserved data
 }
 ```
 
-`MAX_BUFFER_BYTES` là chính sách bạn tự đặt; helper **không phải API có sẵn**. Nếu buffer đang ở **read mode** với bytes chưa gửi, phải dùng cách **giữ `remaining()` rồi chuyển mode** phù hợp, không áp helper write-mode này nguyên xi. Ví dụ vòng lặp thứ hai có helper đầy đủ đúng giả định.
+`MAX_BUFFER_BYTES` is your own policy constant; this helper **is not a built-in API**. If a buffer is in **read mode** with unsent bytes, preserve `remaining()` and switch modes appropriately rather than blindly applying a write-mode helper. The second loop example provides a complete helper matching its assumptions.
 
-## 6. Kích thước `SSLSession`: packet khác application
+## 6. `SSLSession` sizes: packet vs. application
 
-Khi khởi tạo:
+At initialization:
 
 ```java
 SSLSession session = engine.getSession();
@@ -240,43 +240,43 @@ ByteBuffer applicationIn =
         ByteBuffer.allocate(session.getApplicationBufferSize());
 ```
 
-Các số trả về là gợi ý/giới hạn từ session/provider cho việc chứa dữ liệu TLS và plaintext. Không coi chúng là kích thước message business (HTTP payload) hoặc là lượng RAM cố định bất biến suốt đời connection.
+The returned numbers are recommendations/bounds from the session/provider for holding TLS and plaintext data. Do not treat them as business message sizes (HTTP payloads) or as immutable RAM amounts for the life of the connection.
 
-| Loại | Getter | Tình huống sử dụng |
+| Type | Getter | Usage |
 | --- | --- | --- |
-| TLS network packet buffer | `getPacketBufferSize()` | Đảm bảo network input có thể giữ record hoàn chỉnh và network output có thể chứa record do wrap tạo |
-| Decrypted application buffer | `getApplicationBufferSize()` | Đảm bảo destination `unwrap` đủ chứa dữ liệu plaintext record |
-| Application output/source | Không có số tối thiểu cứng cho kích thước business input | `wrap` có thể tiêu thụ một phần; dựa vào `bytesConsumed`/`hasRemaining` để gửi tiếp |
+| TLS network packet buffer | `getPacketBufferSize()` | Ensures network input can hold a complete record and network output can hold a `wrap`-generated record |
+| Decrypted application buffer | `getApplicationBufferSize()` | Ensures `unwrap` destination can hold a record's plaintext data |
+| Application output/source | No hard minimum for business input size | `wrap` may consume partially; rely on `bytesConsumed`/`hasRemaining` to send the rest |
 
-**Dữ liệu TLS không phải lúc nào cũng nở đúng một tỉ lệ cố định.** Overhead thay đổi theo TLS version, cipher suite, handshake hay application record. Đừng đoán `plaintext + 32`, hoặc hard-code `16 * 1024` làm capacity duy nhất. Hãy hỏi session và xử lý `SSLEngineResult` thực tế.
+**TLS data does not always expand by a fixed ratio.** Overhead varies by TLS version, cipher suite, and handshake vs. application record. Never guess `plaintext + 32` or hardcode `16 * 1024` as the sole capacity. Query the session and handle actual `SSLEngineResult` values.
 
-**Giới hạn bảo vệ tài nguyên:** ngay cả khi helper gợi ý tăng, ứng dụng vẫn cần giới hạn RAM và số connection; nếu vượt quota thì fail/close theo policy thay vì cấp phát vô hạn. Ví dụ bài học dùng cap minh họa **1 MiB cho mỗi buffer** — đây không phải con số tối ưu cho mọi ứng dụng. Thực tế đo handshake/certificate chains/record sizes và bounded concurrency.
+**Resource protection limits:** even when helpers suggest growing, the application still needs per-connection RAM and connection limits; if quotas are exceeded, fail/close per policy instead of allocating unboundedly. This lesson's example uses an illustrative **1 MiB cap per buffer** — that is not an optimal number for all apps. Measure real handshakes/certificate chains/record sizes and bound concurrency.
 
-## 7. Handshake status vẫn phải được xử lý sau khi buffer OK
+## 7. Handshake status must still be handled when buffers are OK
 
-`SSLEngineResult.HandshakeStatus` gồm:
+`SSLEngineResult.HandshakeStatus` includes:
 
-| Trạng thái | Hành động ứng dụng |
+| Status | Application action |
 | --- | --- |
-| `NEED_WRAP` | Gọi `wrap` để sinh handshake/TLS control records, gửi hết network output |
-| `NEED_UNWRAP` | Chờ TLS bytes từ peer và gọi `unwrap` |
-| `NEED_TASK` | Lấy `engine.getDelegatedTask()` cho đến khi hết task; hoàn thành đúng cách trước khi tiến hành bước tiếp theo |
-| `FINISHED` | Handshake **vừa** hoàn tất; chỉ xuất hiện trên kết quả `wrap/unwrap`, **không** phải từ `engine.getHandshakeStatus()` |
-| `NOT_HANDSHAKING` | Không còn handshake đang diễn ra tại thời điểm kiểm tra; vẫn có thể có application data/closure để xử lý |
-| `NEED_UNWRAP_AGAIN` | Yêu cầu gọi `unwrap` thêm mà không nhất thiết đọc thêm network data; Java 17 document mô tả trạng thái này cho **DTLS** để xử lý handshake data đã được buffer nội bộ |
+| `NEED_WRAP` | Call `wrap` to produce handshake/TLS control records; send all network output |
+| `NEED_UNWRAP` | Wait for TLS bytes from peer and call `unwrap` |
+| `NEED_TASK` | Drain `engine.getDelegatedTask()` until no tasks remain; complete properly before advancing |
+| `FINISHED` | Handshake **just** completed; appears only on `wrap/unwrap` results, **not** from `engine.getHandshakeStatus()` |
+| `NOT_HANDSHAKING` | No handshake currently active at check time; application data/closure may still need handling |
+| `NEED_UNWRAP_AGAIN` | Requests another `unwrap` call without necessarily reading more network data; Java 17 docs describe this for **DTLS** to process internally buffered handshake data |
 
-Khi `NEED_TASK`, một số task (kiểm tra chứng chỉ, khóa, trust manager) có thể **block** dù `SSLEngine` I/O API hướng non-blocking. Trong real selector server, chạy task trong **bounded executor**/worker thích hợp thay vì giữ event-loop. Cẩn thận đồng bộ per-engine: không có nhiều thread cùng tự ý `wrap/unwrap`/thay ByteBuffer của một connection.
+During `NEED_TASK`, some tasks (certificate validation, keys, trust manager) may **block** even though the `SSLEngine` I/O API is non-blocking oriented. In a real selector server, run tasks in a **bounded executor**/worker instead of stalling the event loop. Be careful with per-engine synchronization: never let multiple threads concurrently call `wrap/unwrap`/mutate a single connection's `ByteBuffer`s.
 
-Một flow tổng quát:
+General flow:
 
 ```text
 engine.getHandshakeStatus()
       |
-      +-- NEED_TASK ------> lấy / thực thi delegated tasks ----+
+      +-- NEED_TASK ------> drain / execute delegated tasks ---+
       |                                                       |
-      +-- NEED_WRAP ------> wrap(empty hoặc app bytes) --------+--> ghi networkOut
+      +-- NEED_WRAP ------> wrap(empty or app bytes) ---------+--> write networkOut
       |                                                       |
-      +-- NEED_UNWRAP ----> có network input? ---- no: OP_READ |
+      +-- NEED_UNWRAP ----> network input ready? -- no: OP_READ |
       |                             | yes                      |
       |                             v                          |
       |                           unwrap                       |
@@ -286,17 +286,17 @@ engine.getHandshakeStatus()
       +-- FINISHED/NOT_HANDSHAKING --> application IO / close
 ```
 
-Sau **mỗi `wrap/unwrap`**, xem cả `getStatus()` lẫn `getHandshakeStatus()`. Dù `OK`, engine vẫn có thể cần `NEED_TASK` hoặc `NEED_WRAP`. Và `FINISHED` không có nghĩa connection đã đóng; chỉ là handshake TLS vừa hoàn thành.
+After **every `wrap/unwrap`**, check both `getStatus()` and `getHandshakeStatus()`. Even with `OK`, the engine may still need `NEED_TASK` or `NEED_WRAP`. And `FINISHED` does not mean the connection closed; it only means the TLS handshake just finished.
 
-## 8. Dừng gửi dữ liệu không đồng nghĩa đóng TLS hoàn chỉnh
+## 8. Stopping data writes does not mean complete TLS closure
 
-TLS có **closure alert `close_notify`**. Trên `SSLEngine`, quản lý **hai chiều độc lập**:
+TLS has the **`close_notify` closure alert**. On `SSLEngine`, manage **both directions independently**:
 
-- `closeOutbound()` thông báo ứng dụng sẽ **không gửi plaintext mới**. Engine cần phát ra bản tin đóng qua `wrap(EMPTY, networkOut)`; ứng dụng phải **gửi toàn bộ TLS bytes** đó đến peer.
-- `isOutboundDone()` cho biết engine đã hoàn tất xử lý phía outbound; **không đảm bảo socket đã truyền hết bytes trong `networkOut` hoặc kernel send queue**.
-- Khi nhận `close_notify` của peer, gọi `unwrap(networkIn, applicationIn)` để engine xử lý; kết quả có thể là `Status.CLOSED` và `isInboundDone()==true`.
-- Mỗi bên cần phát `close_notify` theo quy tắc TLS/protocol và policy ứng dụng. Với giao thức client/server phổ biến, bên chủ động đóng gửi trước, bên còn lại nhận rồi gửi close_notify của mình.
-- Khi **cả hai hướng engine done** và toàn bộ network output đã flush, transport có thể đóng; thực tế cần xử lý half-close, outstanding app data, timeout và I/O errors.
+- `closeOutbound()` signals the application will **send no more new plaintext**. The engine must emit a close message via `wrap(EMPTY, networkOut)`; the application must **send all those TLS bytes** to the peer.
+- `isOutboundDone()` reports the engine has finished outbound processing; **it does not guarantee the socket transmitted all bytes in `networkOut` or the kernel send queue**.
+- When receiving the peer's `close_notify`, call `unwrap(networkIn, applicationIn)` so the engine processes it; the result may be `Status.CLOSED` and `isInboundDone()==true`.
+- Each side must emit `close_notify` per TLS/protocol rules and app policy. In common client/server protocols, the side initiating closure sends first, and the peer receives it and sends its own `close_notify`.
+- Once **both engine directions are done** and all network output is flushed, the transport can close; in practice handle half-close, outstanding app data, timeouts, and I/O errors.
 
 ```text
 Client                                Server
@@ -314,39 +314,39 @@ Both outboundDone/inboundDone when fully processed
 Close channels after pending network bytes are flushed
 ```
 
-**Không được** gọi `SocketChannel.close()` ngay sau `engine.closeOutbound()` khi `networkOut` chưa gửi: peer có thể thấy EOF mà không có close_notify, mất tín hiệu kết thúc TLS hợp lệ.
+**Never** call `SocketChannel.close()` right after `engine.closeOutbound()` while `networkOut` remains unsent: the peer may see EOF without `close_notify`, losing the valid TLS termination signal.
 
-### EOF đột ngột, `closeInbound()` và truncation
+### Abrupt EOF, `closeInbound()`, and truncation
 
-Nếu `SocketChannel.read() == -1` mà **chưa** nhận được close_notify:
+If `SocketChannel.read() == -1` before receiving `close_notify`:
 
-- Đây là tình huống **truncated TLS stream / peer transport closed unexpectedly** (hoặc policy/protocol không thực hiện đóng đúng).
-- `engine.closeInbound()` thông báo không còn incoming TLS bytes. Theo Java Javadoc, nó **có thể ném `SSLException` khi peer chưa phát proper closure message** — **không được nuốt lỗi rồi coi kết nối đóng sạch**.
-- Có thể vẫn cần `closeOutbound()` để giải phóng trạng thái của engine theo policy, nhưng không được báo rằng peer đã hoàn thành TLS closure.
-- Đối với dữ liệu nhạy cảm, thiết kế application-level framing và xác nhận completeness (ví dụ content length/expected message count) để không dùng dữ liệu bị cắt như kết quả đầy đủ. `close_notify` không thay thế ý nghĩa “business transaction đã commit thành công”.
+- This is a **truncated TLS stream / unexpected peer transport closure** (or a policy/protocol failure to close cleanly).
+- `engine.closeInbound()` notifies the engine no more incoming TLS bytes will arrive. Per Java Javadoc, it **can throw `SSLException` when the peer has not sent a proper closure message** — **never swallow the error and treat the connection as cleanly closed**.
+- You may still need `closeOutbound()` to release engine state per policy, yet never report that the peer completed TLS closure.
+- For sensitive data, design application-level framing and completeness checks (e.g., content length/expected message count) so truncated data is never treated as complete. `close_notify` does not replace "business transaction committed successfully."
 
-Snippet mang tính minh họa:
+Illustrative snippet:
 
 ```java
 if (endOfStream) {
     try {
         engine.closeInbound();
     } catch (SSLException truncated) {
-        // Peer không đóng TLS đúng; ghi nhận và từ chối dùng dữ liệu chưa hoàn chỉnh.
+        // Peer did not close TLS cleanly; record and refuse incomplete data.
         throw truncated;
     } finally {
-        engine.closeOutbound(); // cho phép cleanup phía gửi theo state machine
+        engine.closeOutbound(); // allow send-side cleanup per state machine
     }
 }
 ```
 
-`endOfStream` và `engine` là biến application đã định nghĩa; đoạn này **không** thay thế bước flush mạng, retry/backpressure/cleanup. Không gọi `closeInbound()` sớm chỉ để “ép” handshake/unwrap hoàn thành.
+`endOfStream` and `engine` are application-defined variables; this snippet **does not** replace network flushing or retry/backpressure/cleanup. Never call `closeInbound()` prematurely just to "force" handshake/unwrap completion.
 
-**TLS 1.3 lưu ý:** `close_notify` và chính sách half-close cần được phối hợp với application protocol. Bên nhận close_notify có thể vẫn có outbound data theo trạng thái và policy cụ thể, nhưng ứng dụng cần xác định rõ lúc nào ngừng gửi và không treo chờ. `SSLEngine` đã đóng **không tái sử dụng** cho connection mới.
+**TLS 1.3 note:** `close_notify` and half-close policies must align with the application protocol. A side receiving `close_notify` may still have outbound data depending on state and policy, yet the application must define clearly when to stop sending and avoid hanging. A closed `SSLEngine` **cannot be reused** for a new connection.
 
-## 9. Ví dụ Java đầu tiên: chủ động tạo OVERFLOW và UNDERFLOW
+## 9. First Java example: deliberately triggering OVERFLOW and UNDERFLOW
 
-`EngineStatusProbe.java` chạy **không cần server thực, certificate hay socket**: tạo hai `SSLEngine` mới bằng default `SSLContext` để quan sát trạng thái. Client cần tạo TLS ClientHello nhưng buffer ghi ra mạng chỉ có **1 byte**, làm `wrap` trả `BUFFER_OVERFLOW`. Server mới bắt đầu handshake và chưa nhận byte nào, nên `unwrap` trả `BUFFER_UNDERFLOW`.
+`EngineStatusProbe.java` runs **without a real server, certificate, or socket**: it creates two fresh `SSLEngine`s from the default `SSLContext` to observe status codes. The client needs to emit a TLS ClientHello, yet the network output buffer is only **1 byte**, making `wrap` return `BUFFER_OVERFLOW`. The server just started handshaking and received zero bytes, so `unwrap` returns `BUFFER_UNDERFLOW`.
 
 ```java
 import java.nio.ByteBuffer;
@@ -390,7 +390,7 @@ javac -encoding UTF-8 EngineStatusProbe.java
 java EngineStatusProbe
 ```
 
-**Stdout đã xác minh trên JDK thử nghiệm:**
+**Verified stdout on the test JDK:**
 
 ```text
 wrapStatus=BUFFER_OVERFLOW
@@ -399,31 +399,31 @@ wrapConsumed=0
 unwrapProduced=0
 ```
 
-Giải thích:
+Explanation:
 
-- `wrapStatus=BUFFER_OVERFLOW` do **destination network output không đủ**, không có nghĩa certificate sai. Vì input là empty và đang handshake, engine chỉ đang cố tạo record điều khiển.
-- `unwrapStatus=BUFFER_UNDERFLOW` do network input có **0 byte**, không có record nào để parse.
-- `wrapConsumed=0` và `unwrapProduced=0` là hợp lý trong hai lời gọi này.
-- Ví dụ **không hoàn tất handshake** và không mở socket. Hai lệnh `closeOutbound()` chỉ đánh dấu không gửi thêm; **không** được coi là trao đổi close_notify thành công.
+- `wrapStatus=BUFFER_OVERFLOW` occurs because **network output destination is too small**, not because of a bad certificate. With empty input during a handshake, the engine is merely trying to emit a control record.
+- `unwrapStatus=BUFFER_UNDERFLOW` occurs because network input has **0 bytes**, with no record to parse.
+- `wrapConsumed=0` and `unwrapProduced=0` are both expected in these two calls.
+- The example **does not complete a handshake** and opens no sockets. The two `closeOutbound()` calls merely mark no further sends; they **must not** be considered a successful `close_notify` exchange.
 
-Output chi tiết có thể khác nếu provider/JSSE version có hành vi đặc biệt; điều chính yếu là cách `Status` cung cấp hướng xử lý. Khi làm việc với provider thực tế, luôn xử lý `Status` thay vì giả định một lời gọi sẽ thành công.
+Exact output details may vary if a provider/JSSE version has special behavior; the core lesson is how `Status` guides handling. When working with real providers, always handle `Status` rather than assuming a single call succeeds.
 
-## 10. Ví dụ Java thứ hai: hai `SSLEngine` TLS 1.3 chạy trong RAM
+## 10. Second Java example: two TLS 1.3 `SSLEngine`s running in RAM
 
-Ví dụ này thể hiện sự phối hợp đầy đủ:
+This example demonstrates full coordination:
 
-- Một **server `SSLEngine`** với `PrivateKeyEntry` và self-signed certificate **lab** trong `server.p12`.
-- Một **client `SSLEngine`** với `trust.p12` chỉ tin certificate lab được tạo. Ví dụ **không dùng `TrustManager` chấp nhận tất cả**.
-- `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` để client kiểm tra `localhost` theo SAN. Việc tạo `SSLEngine("localhost",443)` **không tự đảm bảo** hostname được verify nếu không bật endpoint identification.
-- Bắt tay **TLSv1.3**, trao đổi TLS records giữa hai ByteBuffer trong RAM, giải mã chuỗi `tls-data`.
-- Client gửi `close_notify`, server nhận rồi gửi `close_notify`, client nhận; kiểm tra cả bốn trạng thái inbound/outbound hoàn tất.
-- Xử lý `NEED_TASK`, `NEED_WRAP`, `NEED_UNWRAP`; giải quyết overflow bằng `grow` và underflow bằng đợi thêm bytes mà không làm mất dữ liệu.
+- A **server `SSLEngine`** with a `PrivateKeyEntry` and **lab** self-signed certificate in `server.p12`.
+- A **client `SSLEngine`** with `trust.p12` trusting only the generated lab certificate. The example **does not use an accept-all `TrustManager`**.
+- `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` so the client checks `localhost` against the SAN. Creating `SSLEngine("localhost",443)` **does not automatically guarantee** hostname verification unless endpoint identification is enabled.
+- **TLSv1.3** handshake, exchanging TLS records between two `ByteBuffer`s in RAM, and decrypting the string `tls-data`.
+- Client sends `close_notify`, server receives it and sends `close_notify`, client receives it; verifies all four inbound/outbound completion flags.
+- Handles `NEED_TASK`, `NEED_WRAP`, `NEED_UNWRAP`; resolves overflow via `grow` and underflow by waiting for more bytes without losing data.
 
-**Ranh giới ví dụ:** helper `send` mô phỏng việc copy toàn bộ network output vào peer ngay trong RAM, **không** thay thế `SocketChannel.write` vốn có thể partial write. Task được chạy inline để test đơn luồng; production cần task executor, event-loop scheduling, fairness, cancellation và timeout. Cap **1 MiB** chỉ minh họa giới hạn bộ nhớ.
+**Example boundary:** the `send` helper simulates copying all network output to the peer immediately in RAM, **not** replacing `SocketChannel.write` which can write partially. Tasks run inline for single-threaded testing; production needs a task executor, event-loop scheduling, fairness, cancellation, and timeouts. The **1 MiB** cap merely illustrates a memory limit.
 
-### 10.1. Tạo bộ certificate chỉ trong thư mục lab
+### 10.1. Creating the certificate set inside the lab directory only
 
-Dùng một thư mục mới. Trên Bash, tạo biến password **chỉ dùng cho lab**:
+Use a fresh directory. In Bash, create a **lab-only** password variable:
 
 ```bash
 mkdir jsse-engine-lab
@@ -433,22 +433,22 @@ echo
 export LAB_PASS
 ```
 
-Trên PowerShell, nếu dùng biến môi trường hãy **nhập password lab riêng**, không dùng credential production; ví dụ nhập tương tác qua cơ chế bảo mật phù hợp của môi trường. Cả `keytool -storepass:env` lẫn Java demo sẽ đọc biến `LAB_PASS`. Biến môi trường có thể bị đọc bởi process/diagnostic trong một số tình huống; **không coi `:env` là secret manager**.
+In PowerShell, if using an environment variable, **enter a dedicated lab password**, never production credentials; e.g., prompt interactively via an appropriate environment security mechanism. Both `keytool -storepass:env` and the Java demo read `LAB_PASS`. Environment variables can be read by processes/diagnostics in some cases; **do not treat `:env` as a secret manager**.
 
-Sau khi đã có `LAB_PASS` và ở trong thư mục lab, tạo server key pair/cert, xuất cert và đưa vào truststore lab:
+Once `LAB_PASS` is set and you are in the lab directory, generate the server key pair/cert, export the cert, and import it into the lab truststore:
 
 ```bash
 keytool -genkeypair -alias server -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -validity 1 -dname "CN=localhost" -ext "SAN=dns:localhost" -ext "EKU=serverAuth" -storetype PKCS12 -keystore server.p12 -storepass:env LAB_PASS -keypass:env LAB_PASS
 
 keytool -exportcert -alias server -rfc -file server.pem -keystore server.p12 -storetype PKCS12 -storepass:env LAB_PASS
 
-# Chỉ cho lab tự tạo: tin cert vừa được tạo và đã tự xác minh nguồn!
+# ONLY for self-created lab: trust the cert just created and self-verified!
 keytool -importcert -alias server -file server.pem -keystore trust.p12 -storetype PKCS12 -storepass:env LAB_PASS -noprompt
 ```
 
-`-noprompt` ở đây **chỉ dùng với certificate do chính lab vừa tạo**; không dùng để âm thầm tin chứng chỉ của người lạ. Tệp `server.p12` **chứa private key**, cần bảo vệ/xóa sau lab; `server.pem` chứa certificate public. Certificate có SAN `localhost` để endpoint identification của client có thể thành công; không thực hiện public DNS/TLS call nào trong demo RAM.
+`-noprompt` here is **only for the certificate the lab itself just generated**; never use it to silently trust a stranger's certificate. `server.p12` **contains the private key** and must be protected/deleted after the lab; `server.pem` holds the public certificate. The certificate has SAN `localhost` so the client's endpoint identification succeeds; no public DNS/TLS calls occur in the RAM demo.
 
-### 10.2. Chương trình chạy đầy đủ: `EngineLoopbackDemo.java`
+### 10.2. Complete runnable program: `EngineLoopbackDemo.java`
 
 ```java
 import java.io.InputStream;
@@ -481,7 +481,7 @@ public final class EngineLoopbackDemo {
         }
     }
 
-    // Đầu vào phải đang ở WRITE MODE, giữ những bytes hiện có.
+    // Input must be in WRITE MODE; preserves existing bytes.
     private static ByteBuffer grow(ByteBuffer writeMode, int wanted) {
         int capacity = Math.max(writeMode.capacity() * 2, wanted);
         if (capacity > LIMIT) {
@@ -493,7 +493,7 @@ public final class EngineLoopbackDemo {
         return larger;
     }
 
-    // Trong lab, copy nguyên TLS bytes sang buffer nhận của peer.
+    // In the lab, copies full TLS bytes into the peer's receive buffer.
     private static boolean send(Side side) {
         if (side.networkOut.position() == 0) return false;
         side.networkOut.flip();
@@ -554,7 +554,7 @@ public final class EngineLoopbackDemo {
                                 s.engine.getSession().getPacketBufferSize());
                         return true;
                     }
-                    return false; // Đợi thêm TLS bytes của peer.
+                    return false; // Wait for more TLS bytes from peer.
                 }
                 if (result.getStatus() ==
                         SSLEngineResult.Status.BUFFER_OVERFLOW) {
@@ -752,16 +752,16 @@ public final class EngineLoopbackDemo {
 }
 ```
 
-### 10.3. Biên dịch, chạy và kiểm tra output
+### 10.3. Compiling, running, and verifying output
 
-Sau khi tạo `server.p12`/`trust.p12` và set biến `LAB_PASS` đúng như phần trên:
+After creating `server.p12`/`trust.p12` and setting `LAB_PASS` as shown above:
 
 ```bash
 javac -encoding UTF-8 EngineLoopbackDemo.java
 java EngineLoopbackDemo server.p12 trust.p12
 ```
 
-**Stdout mong đợi trên JDK 17+ có TLS 1.3/KeyStore provider tương thích:**
+**Expected stdout on JDK 17+ with a compatible TLS 1.3/KeyStore provider:**
 
 ```text
 handshakeProtocol=TLSv1.3
@@ -772,29 +772,29 @@ clientOutboundDone=true
 serverOutboundDone=true
 ```
 
-Vì private/public key và TLS session được sinh ngẫu nhiên, **không** dựa vào việc TLS record bytes giống nhau qua các lần chạy. Đầu ra trên là trạng thái logic, không hiển thị secrets.
+Because private/public keys and TLS sessions are randomly generated, **do not** rely on TLS record bytes matching across runs. The output above reports logical state without displaying secrets.
 
-**Đọc code theo trình tự:**
+**Reading the code in sequence:**
 
-1. `context(...,true)` tải KeyStore chứa private key của server qua `KeyManagerFactory`; `context(...,false)` tải truststore chứa certificate lab qua `TrustManagerFactory`. Client kiểm tra chứng chỉ server bằng truststore, không dùng trust-all; `HTTPS endpoint identification` kiểm tra tên `localhost`.
-2. `Side` cấp `networkIn`/`networkOut` theo `getPacketBufferSize()` và `applicationIn` theo `getApplicationBufferSize()`. Chúng bắt đầu ở **write mode**, giúp `send` và `unwrap` xử lý nhất quán.
-3. `handshakeStep` chạy `NEED_TASK`, `NEED_WRAP` và `NEED_UNWRAP`. Với `BUFFER_OVERFLOW`, mở rộng **đích** thích hợp; với `BUFFER_UNDERFLOW`, `compact` giữ bytes và chờ peer có thêm network data. Branch `NEED_UNWRAP_AGAIN` để biết trạng thái API, vốn chủ yếu dùng với DTLS.
-4. `send` mô phỏng `write/network transport` bằng copy TLS bytes từ `networkOut` sang `networkIn` của peer. Trong lab, peer có thể nhận hết bytes ngay. **Socket thật có partial writes/reads**, nên không được đem `send` thay nguyên hàm I/O mạng.
-5. `write` đưa `tls-data` qua `client.wrap`; server gọi `unwrap` để khôi phục plaintext. Mọi bước cần kiểm tra `Status` và không trả về plaintext chưa được bảo vệ/xác minh theo TLS.
-6. `close(client,server)` gọi `closeOutbound`, sinh close_notify qua `wrap(EMPTY)` và đưa sang server `unwrap`. Sau đó server làm tương tự về client.
-7. `isInboundDone/isOutboundDone` kiểm tra trạng thái engine sau khi **đã nhận/gửi close_notify trong mô phỏng**. Trên socket thật còn phải đảm bảo kernel đã gửi hết bytes trước khi đóng transport.
-8. `grow` đặt giới hạn một buffer để ngăn bộ nhớ nở vô hạn; production cần buffer pools, per-connection budget và chiến lược xử lý nếu vượt giới hạn.
-9. `LAB_PASS` được đọc từ environment chỉ để thao tác lab, không xuất raw private key. `Arrays.fill(pass, '\0')` giảm thời gian giữ bản char[]; biến environment/String khác vẫn cần quản trị bằng secret manager/ACL theo policy.
+1. `context(...,true)` loads the KeyStore containing the server's private key via `KeyManagerFactory`; `context(...,false)` loads the truststore containing the lab certificate via `TrustManagerFactory`. The client verifies the server certificate using the truststore without trust-all; `HTTPS endpoint identification` verifies `localhost`.
+2. `Side` allocates `networkIn`/`networkOut` per `getPacketBufferSize()` and `applicationIn` per `getApplicationBufferSize()`. They start in **write mode**, keeping `send` and `unwrap` handling consistent.
+3. `handshakeStep` handles `NEED_TASK`, `NEED_WRAP`, and `NEED_UNWRAP`. On `BUFFER_OVERFLOW`, it grows the right **destination**; on `BUFFER_UNDERFLOW`, `compact` preserves bytes and waits for the peer to provide more network data. The `NEED_UNWRAP_AGAIN` branch reflects the API state, primarily used with DTLS.
+4. `send` simulates `write/network transport` by copying TLS bytes from `networkOut` into the peer's `networkIn`. In the lab, the peer can accept all bytes immediately. **Real sockets have partial writes/reads**, so never replace network I/O primitives directly with `send`.
+5. `write` passes `tls-data` through `client.wrap`; the server calls `unwrap` to recover plaintext. Every step must check `Status` and never return plaintext not protected/verified by TLS.
+6. `close(client,server)` calls `closeOutbound`, generates `close_notify` via `wrap(EMPTY)`, and feeds it to the server's `unwrap`. Then the server does the same back to the client.
+7. `isInboundDone/isOutboundDone` inspect engine state after **simulated `close_notify` exchange**. On real sockets, also ensure the kernel has sent all bytes before closing the transport.
+8. `grow` caps a single buffer to prevent unbounded memory growth; production needs buffer pools, per-connection budgets, and cap-exceeded strategies.
+9. `LAB_PASS` is read from the environment solely for lab operations, without exporting raw private keys. `Arrays.fill(pass, '\0')` shortens the `char[]` lifetime; environment variables/other `String`s still require secret-manager/ACL governance per policy.
 
-**Quan trọng:** chương trình là fixture chứng minh luồng cơ bản **cho một message nhỏ** trên TLS 1.3 trong RAM, không phải implementation NIO server sẵn sàng production. Nó không triển khai socket fairness, partial writes, nhiều request concurrent, memory pressure, cancellation, application framing, shutdown timeout, TLS renegotiation/DTLS retransmission hoặc mọi trường hợp provider-specific handshake. Các phần tiếp theo chỉ rõ những việc cần bổ sung.
+**Important:** this program is a fixture demonstrating the basic flow **for one small message** over TLS 1.3 in RAM, not a production-ready NIO server implementation. It does not implement socket fairness, partial writes, multiple concurrent requests, memory pressure, cancellation, application framing, shutdown timeouts, TLS renegotiation/DTLS retransmission, or all provider-specific handshake cases. Subsequent sections specify what must be added.
 
-Khi học xong, xóa riêng các tệp chứa **private key lab** và biến environment trong phiên shell, ví dụ `unset LAB_PASS` trên Bash. Không copy chứng chỉ tự ký lab vào truststore hệ thống/production. Nếu muốn kiểm thử TLS 1.2, cần thay protocol ở cả hai engine, thử lại đầy đủ chứ không giả định behavior close/handshake y hệt.
+When finished, delete the files containing the **lab private key** and unset the shell environment variable, e.g., `unset LAB_PASS` in Bash. Never copy self-signed lab certificates into system/production truststores. To test TLS 1.2, update the protocol on both engines and re-test thoroughly rather than assuming identical close/handshake behavior.
 
-## 11. Từ mô phỏng RAM sang `SocketChannel + Selector`
+## 11. From RAM simulation to `SocketChannel + Selector`
 
-Trong một Java NIO server thực tế, network buffers cần quản lý **các thao tác bất đồng bộ và partial I/O**.
+In a real Java NIO server, network buffers must manage **asynchronous operations and partial I/O**.
 
-### Luồng đọc
+### Read flow
 
 ```text
 OP_READ fired
@@ -806,102 +806,102 @@ readBytes = channel.read(networkIn in WRITE mode)
     |          engine.unwrap(networkIn, applicationIn)
     |          networkIn.compact()
     |                |
-    |                +-- OK: xử lý result, handshake và plaintext
-    |                +-- UNDERFLOW: giữ remainder, đợi OP_READ hoặc tăng capacity cần thiết
+    |                +-- OK: process result, handshake, and plaintext
+    |                +-- UNDERFLOW: keep remainder, wait OP_READ or grow capacity as needed
     |                +-- OVERFLOW: drain/grow applicationIn, retry
-    |                +-- CLOSED: xử lý inbound close_notify, lên lịch outbound close
+    |                +-- CLOSED: process inbound close_notify, schedule outbound close
     |
-    +-- =0 --> chờ sự kiện kế tiếp, KHÔNG spin
+    +-- =0 --> wait for next event, DO NOT spin
     |
-    +-- -1 --> peer transport EOF; kiểm tra close_notify / closeInbound
+    +-- -1 --> peer transport EOF; check close_notify / closeInbound
 ```
 
-**Đọc đủ trước khi unwrap** không có nghĩa đợi `networkIn` đầy; một buffer có thể chứa một record hoàn chỉnh khi mới dùng vài trăm bytes. Thử `unwrap` với bytes đang có rồi quyết định dựa trên status. Khi có nhiều TLS records trong `networkIn`, tiếp tục xử lý đến khi dưới ngưỡng, thiếu input, output đầy hoặc fairness budget hết.
+**Reading enough before unwrap** does not mean waiting until `networkIn` is full; a buffer may hold a complete record with just a few hundred bytes used. Attempt `unwrap` with available bytes and decide from the status. When multiple TLS records sit in `networkIn`, keep processing until below threshold, input runs short, output fills, or fairness budget expires.
 
-### Luồng ghi
+### Write flow
 
 ```text
-Có app bytes hoặc engine NEED_WRAP/CLOSING
+App bytes present or engine NEED_WRAP/CLOSING
     |
     v
 engine.wrap(applicationOut, networkOut in WRITE mode)
     |
-    +-- BUFFER_OVERFLOW --> flush networkOut hoặc grow networkOut
+    +-- BUFFER_OVERFLOW --> flush networkOut or grow networkOut
     +-- OK/CLOSED -------> networkOut.flip()
                            channel.write(networkOut)
                                 |
-                                +-- partial write --> giữ remainder,
-                                |                    chờ OP_WRITE
+                                +-- partial write --> keep remainder,
+                                |                    wait OP_WRITE
                                 |
                                 +-- all sent -------> networkOut.compact()
-                                |                    (hoặc clear khi hết bytes)
+                                |                    (or clear when empty)
                                 |
                                 +-- exception ------> close/error policy
 ```
 
-Nếu `channel.write(...)` ghi 0 bytes, **đừng** gọi lại trong vòng lặp bận. Đăng ký `OP_WRITE`, tiếp tục khi socket có khả năng nhận; trong nhiều selector implementation, để `OP_WRITE` luôn bật gây wakeup liên tục, nên tắt khi không có output pending.
+If `channel.write(...)` writes 0 bytes, **do not** retry in a busy loop. Register `OP_WRITE` and resume when the socket becomes writable; in many selector implementations, leaving `OP_WRITE` always enabled causes continuous wakeups, so disable it when no output is pending.
 
-**Bảo vệ dữ liệu khi write một phần:**
+**Protecting data during partial writes:**
 
 ```java
 networkOut.flip();
 channel.write(networkOut);
-networkOut.compact(); // giữ bytes chưa được channel tiêu thụ
+networkOut.compact(); // retain bytes not yet consumed by the channel
 ```
 
-Đây là snippet ngắn dùng khi `networkOut` ban đầu ở **write mode**. Nếu channel ghi hết, `compact()` trở lại write mode position=0; nếu ghi một phần, `compact()` giữ TLS bytes còn lại để lần `OP_WRITE` sau. Không gọi `clear()` sau partial write.
+This is a short snippet assuming `networkOut` starts in **write mode**. If the channel wrote everything, `compact()` returns to write mode at position=0; if partially written, `compact()` keeps remaining TLS bytes for the next `OP_WRITE`. Never call `clear()` after a partial write.
 
-### Khi vừa có pending output vừa có handshake NEED_UNWRAP
+### When both pending output and handshake `NEED_UNWRAP` exist
 
-Có thể phải **gửi xong bytes đã sinh** trước khi peer phản hồi handshake, nhưng vẫn cần đọc các bytes inbound đến và chạy tasks. Hãy thiết kế state machine mà mỗi connection có bounded work per event, queue/app-IO riêng, và logic phân bổ `OP_READ/OP_WRITE` theo trạng thái. Đừng giữ lock toàn hệ thống trong khi chạy trust manager hoặc network I/O.
+You may need to **finish sending already-generated bytes** before the peer responds in the handshake, while still reading incoming bytes and running tasks. Design a state machine where each connection has bounded work per event, separate queues/app-I/O, and state-driven `OP_READ/OP_WRITE` allocation. Never hold system-wide locks while running trust managers or network I/O.
 
-## 12. Đóng kết nối theo trạng thái và bảo đảm cleanup
+## 12. State-based connection closure and guaranteed cleanup
 
-Một thiết kế production nên có các phase rõ ràng, không dùng `boolean closed` chung cho mọi nghĩa:
+A production design should use explicit phases rather than a single `boolean closed` for everything:
 
-| Phase | Công việc cần hoàn thành |
+| Phase | Work to complete |
 | --- | --- |
-| `OPEN` | Cho phép app writes, wrap/unwrap bình thường |
-| `DRAIN_APP` | Ngừng nhận thêm app messages mới, đưa các messages đã chấp nhận vào TLS records theo policy |
-| `SEND_CLOSE_NOTIFY` | `closeOutbound`, tiếp tục `wrap(EMPTY)` khi cần, flush toàn bộ TLS outbound bytes |
-| `WAIT_PEER_CLOSE` | Chờ `unwrap` xử lý close_notify của peer, có deadline; không đợi vô hạn |
-| `TRANSPORT_CLOSE` | Khi đạt policy hoặc đã xác định error, ngừng selector interest, hủy task/queue, đóng socket |
-| `RELEASE` | Trả pooled buffers, giải phóng connection state, metrics, không tái dùng engine đã đóng |
+| `OPEN` | Allow app writes, normal wrap/unwrap |
+| `DRAIN_APP` | Stop accepting new app messages, flush accepted messages into TLS records per policy |
+| `SEND_CLOSE_NOTIFY` | `closeOutbound`, continue `wrap(EMPTY)` as needed, flush all outbound TLS bytes |
+| `WAIT_PEER_CLOSE` | Wait for `unwrap` to process peer's `close_notify`, with a deadline; never wait infinitely |
+| `TRANSPORT_CLOSE` | Once policy met or error confirmed, cancel selector interest, cancel tasks/queues, close socket |
+| `RELEASE` | Return pooled buffers, release connection state, emit metrics, never reuse closed engine |
 
-Không nhất thiết mọi ứng dụng phải đợi vô hạn “đối phương close_notify trước”: đặt **shutdown timeout**. Nếu timeout và transport phải đóng, ghi nhận rằng connection **không đóng TLS hoàn chỉnh**, không biến forced close thành success về mặt bảo mật.
+Not every app must wait forever for "the peer's `close_notify` first": set a **shutdown timeout**. If it times out and the transport must close, record that the connection **did not perform a complete TLS close**, never turning a forced close into a security success.
 
-Với connection đột ngột bị reset, I/O exception hoặc EOF thiếu close_notify, cần đánh dấu **truncation/unclean close**. Nếu ứng dụng chỉ xử lý message đã đầy đủ và có framing/authentication riêng, có thể có chính sách riêng cho việc giữ các message đã commit; điều đó **khác** với tuyên bố TLS connection hoàn tất cleanly.
+For abruptly reset connections, I/O exceptions, or EOF without `close_notify`, mark **truncation/unclean close**. If the app processes only complete messages with its own framing/authentication, it may have a policy for retaining committed messages; that is **different** from claiming the TLS connection closed cleanly.
 
-**Không để pool tái sử dụng `SSLEngine` đã đóng**, đặc biệt khi key/session state thay đổi. `SSLSession` có thể được cache/resumed trong JSSE theo cơ chế TLS khác, nhưng đây **không** phải tái sử dụng chính object `SSLEngine` cho nhiều peer.
+**Never let a pool reuse a closed `SSLEngine`**, especially when key/session states change. `SSLSession` may be cached/resumed in JSSE via separate TLS mechanisms, which is **not** reusing the `SSLEngine` object itself across peers.
 
-### `closeInbound()` có phải luôn được gọi?
+### Must `closeInbound()` always be called?
 
-Không. Khi peer gửi close_notify được `unwrap` xử lý, `isInboundDone()` trở thành true theo engine; gọi `closeInbound` **để giả vờ đã nhận close_notify** là sai. Chỉ khi transport kết thúc mà engine chưa nhận closure, dùng `closeInbound` để báo inbound không còn dữ liệu, và **xử lý `SSLException` nếu có**. Đừng “dập lỗi” từ closure alert bằng `try/catch(Exception ignored)`.
+No. When the peer sends `close_notify` and `unwrap` processes it, `isInboundDone()` becomes true inside the engine; calling `closeInbound` **to pretend `close_notify` was received** is wrong. Only when the transport ends without the engine receiving closure should you call `closeInbound` to signal no more inbound data, and **handle any `SSLException`**. Never "suppress errors" from closure alerts with `try/catch(Exception ignored)`.
 
-### Tài nguyên bộ đệm sau khi close
+### Buffer resources after closing
 
-- Java heap `ByteBuffer.allocate` không cần `free()`; không giữ reference để GC thu hồi khi không còn owner.
-- Direct buffers `ByteBuffer.allocateDirect` nằm ngoài heap managed memory, việc giải phóng thực tế do JVM/cleaner và provider quản lý; tránh gọi API nội bộ/`sun.misc.Unsafe` để ép unmap/free không kiểm soát.
-- Nếu dùng **buffer pool**, **trả buffer chính xác một lần** sau khi không còn `wrap/unwrap`/socket write/task sử dụng nó. Không đưa buffer vào pool khi `networkOut` vẫn còn bytes chưa gửi hoặc `networkIn` còn mảnh TLS record.
-- Plaintext `applicationIn/applicationOut` có thể chứa nội dung nhạy cảm. `clear()` và `compact()` chỉ đổi metadata, **không xóa dữ liệu cũ**; khi cần zeroization, chủ động overwrite nội dung có kiểm soát trước khi tái sử dụng, nhận thức giới hạn JVM copies/GC.
-- Tránh giữ `ByteBuffer.slice()`/`duplicate()` sau khi owner đã trả backing buffer vào pool; có thể tạo data race hoặc lộ plaintext giữa kết nối.
+- Java heap `ByteBuffer.allocate` needs no `free()`; drop references so GC reclaims them once unowned.
+- Direct buffers `ByteBuffer.allocateDirect` live outside managed heap memory, with release managed by JVM/Cleaners and providers; avoid internal APIs/`sun.misc.Unsafe` to force uncontrolled unmap/free.
+- If using a **buffer pool**, **return a buffer exactly once** after no `wrap/unwrap`/socket write/task still uses it. Never return a buffer to the pool while `networkOut` still holds unsent bytes or `networkIn` still holds a TLS record fragment.
+- Plaintext `applicationIn/applicationOut` can hold sensitive contents. `clear()` and `compact()` alter only metadata and **do not erase old data**; when zeroization is required, actively overwrite contents cleanly before reuse, mindful of JVM copies/GC limits.
+- Avoid keeping `ByteBuffer.slice()`/`duplicate()` after the owner has returned the backing buffer to the pool; doing so can cause data races or leak plaintext across connections.
 
-## 13. Capacity planning, pooling và backpressure
+## 13. Capacity planning, pooling, and backpressure
 
-Một connection có thể chiếm nhiều buffer với capacity vài chục KiB hoặc cao hơn. Khi có hàng nghìn connection, việc cấp phát dự phòng quá lớn gây áp lực heap/direct memory/GC. Ngược lại buffer quá nhỏ dẫn đến overflow/underflow lặp lại, copy và allocation.
+A single connection may hold multiple buffers of tens of KiB or more. With thousands of connections, oversized pre-allocation strains heap/direct memory/GC. Conversely, undersized buffers cause repeated overflow/underflow, copying, and allocations.
 
-### Quy tắc thiết kế
+### Design rules
 
-1. **Lấy size theo `SSLSession`**, nhưng đừng coi session getter là một allocation bắt buộc cho tất cả buffer cùng lúc. Có thể cấp phát lazy, pool theo size classes, tùy tải.
-2. Đặt **trần bytes per connection**, trần global direct memory/heap, số handshake đồng thời và số delegated tasks. Không vì một peer gửi dữ liệu sai mà tăng buffer vô hạn.
-3. Không cộng dồn app messages chưa tiêu thụ: nếu application consumer chậm, **dừng đọc/giảm OP_READ** trong phạm vi hợp lý, có backpressure vào nguồn và giới hạn queue.
-4. **Pool** network buffers theo kiểu direct nếu đo thực tế có lợi cho socket I/O; heap buffers có thể rẻ hơn cho logic business/plaintext. Không mặc định direct luôn nhanh nhất.
-5. Đặt buffer ownership rõ ràng, không chia sẻ writable buffer giữa hai `SSLEngine` cùng lúc, kể cả khi muốn tiết kiệm memory.
-6. Chỉ tăng buffer khi có bằng chứng cần thiết: `BUFFER_UNDERFLOW` với packet capacity quá nhỏ, `BUFFER_OVERFLOW` với output capacity thiếu hoặc consumer chưa drain.
-7. Khi memory quota bị chạm, ưu tiên fail/close có metric và giảm tải thay vì OOM toàn JVM.
-8. Hạn chế số retries của từng operation trong một event để tránh peer gây CPU starvation; nếu không còn progress, đợi I/O/task tương ứng.
+1. **Size from `SSLSession`**, without treating session getters as mandatory simultaneous allocations for all buffers. Allocate lazily or pool by size classes depending on load.
+2. Set **per-connection byte caps**, global direct/heap caps, concurrent handshake limits, and delegated task caps. Never grow buffers infinitely because a peer sends malformed data.
+3. Do not pile up unconsumed app messages: if the application consumer lags, **pause reading/throttle `OP_READ`** within reason, propagate backpressure upstream, and bound queues.
+4. **Pool** network buffers as direct buffers if real benchmarks show socket I/O gains; heap buffers may be cheaper for business logic/plaintext. Never assume direct is always fastest.
+5. Enforce clear buffer ownership; never share a writable buffer between two `SSLEngine`s concurrently, even to save memory.
+6. Grow buffers only with proven need: `BUFFER_UNDERFLOW` with undersized packet capacity, or `BUFFER_OVERFLOW` with insufficient output capacity or undrained consumer.
+7. When memory quotas are hit, fail/close cleanly with metrics and shed load rather than OOMing the entire JVM.
+8. Cap retries per operation within one event tick so a peer cannot cause CPU starvation; when no progress occurs, wait for the corresponding I/O or task.
 
-Bảng công thức sơ bộ:
+Rough sizing formula:
 
 ```text
 memoryPerConnection ~= networkInCapacity
@@ -915,101 +915,101 @@ total ~= sum(active connection memory)
          + global caches + executor queues + JVM overhead
 ```
 
-Đây là **ước lượng để lập budget**, không phải phép đo chính xác JVM native memory. TLS provider còn dùng object/session caches/temporary buffers; nên đo peak/RSS/direct buffer pool, GC allocation, write queue và handshake concurrency.
+This is a **budgeting estimate**, not an exact JVM native memory measurement. TLS providers also allocate objects/session caches/temporary buffers; measure peak/RSS/direct buffer pools, GC allocation, write queues, and handshake concurrency.
 
-### Metrics hữu ích
+### Useful metrics
 
-| Metric | Ý nghĩa |
+| Metric | Meaning |
 | --- | --- |
-| `sslengine_wrap_status_total{status="BUFFER_OVERFLOW"}` | Output network buffer bị thiếu |
-| `sslengine_unwrap_status_total{status="BUFFER_UNDERFLOW"}` | Input TLS record bị phân mảnh hoặc capacity không đủ |
-| `sslengine_unwrap_status_total{status="BUFFER_OVERFLOW"}` | Plaintext buffer đầy hoặc consumer chậm |
-| `sslengine_handshake_duration`, `task_queue_delay` | Theo dõi latency/độ nghẽn TLS handshake và delegated tasks |
-| `tls_pending_network_out_bytes` | Áp lực pending socket writes |
-| `tls_pending_app_in_bytes` | Áp lực application consumer/backpressure |
-| `tls_unclean_eof_total` | Kết nối bị cắt thiếu close_notify |
-| `tls_clean_close_total` | Đã xử lý close_notify đầy đủ |
-| `tls_buffer_grows_total`, `tls_buffer_cap_exceeded_total` | Churn/capacity pressure và malicious/oversized records |
-| `tls_active_connections`, `pool_bytes_in_use` | Resource budget và pool leak |
+| `sslengine_wrap_status_total{status="BUFFER_OVERFLOW"}` | Output network buffer insufficient |
+| `sslengine_unwrap_status_total{status="BUFFER_UNDERFLOW"}` | Input TLS record fragmented or capacity insufficient |
+| `sslengine_unwrap_status_total{status="BUFFER_OVERFLOW"}` | Plaintext buffer full or consumer slow |
+| `sslengine_handshake_duration`, `task_queue_delay` | Track latency/bottlenecks in TLS handshakes and delegated tasks |
+| `tls_pending_network_out_bytes` | Pending socket write pressure |
+| `tls_pending_app_in_bytes` | Application consumer/backpressure load |
+| `tls_unclean_eof_total` | Connections truncated without `close_notify` |
+| `tls_clean_close_total` | Clean `close_notify` completions |
+| `tls_buffer_grows_total`, `tls_buffer_cap_exceeded_total` | Churn/capacity pressure and malicious/oversized records |
+| `tls_active_connections`, `pool_bytes_in_use` | Resource budget and pool leak detection |
 
-Gắn metrics theo provider/TLS version và high-level service, tránh cardinality quá lớn do connection ID/remote IP cho mọi sample. Đừng log plaintext TLS hoặc private keys để debug; với `-Djavax.net.debug=ssl,handshake` chỉ bật trên hệ thống test có giới hạn và hiểu dữ liệu xuất ra.
+Tag metrics by provider/TLS version and high-level service, avoiding high cardinality from per-sample connection IDs/remote IPs. Never log TLS plaintext or private keys to debug; enable `-Djavax.net.debug=ssl,handshake` only on scoped test systems while understanding its output.
 
-## 14. Ma trận kiểm thử cần thiết
+## 14. Essential test matrix
 
-| Kịch bản | Cách tạo | Kết quả đúng |
+| Scenario | How to reproduce | Right outcome |
 | --- | --- | --- |
-| `wrap` output quá nhỏ | `EngineStatusProbe` `ByteBuffer.allocate(1)` | `BUFFER_OVERFLOW`; không mất app data |
-| `unwrap` input rỗng | Server engine mới, network buffer rỗng | `BUFFER_UNDERFLOW`; đợi network |
-| TLS record chia thành 2–3 mảnh | Socket/test transport chỉ chuyển từng phần | Lưu bytes chưa xử lý qua `compact` và ghép đúng |
-| Hai TLS records trong một lần read | Peer gửi nhiều record trước một `read` | Xử lý lần lượt đến underflow/no progress, không bỏ data |
-| Plaintext buffer đầy | `unwrap` với destination thiếu | `BUFFER_OVERFLOW`; drain/grow app buffer, retry |
-| Socket partial write | Channel chỉ tiêu thụ phần của `networkOut` | Giữ remainder, chờ `OP_WRITE`; không gửi trùng |
-| `SocketChannel.read()==0` | Non-blocking I/O chưa có data | Không spin |
-| `SocketChannel.read()==-1` khi chưa close_notify | Ngắt transport đột ngột | Truncation/unclean EOF; `closeInbound` theo policy và xử lý exception |
-| Client close_notify rồi server phản hồi | `EngineLoopbackDemo` | Cả hai `isInboundDone`/`isOutboundDone` true |
-| Mất close_notify ở một chiều | Bỏ bản tin close_notify trong test transport | Không báo clean close |
-| Handshake `NEED_TASK` chậm | Trust manager tác vụ mô phỏng delay | Không block selector toàn hệ thống; bounded executor |
-| Peer gửi liên tục, consumer chậm | Giới hạn application processing | Backpressure không bùng RAM |
-| Vượt memory cap | Cấu hình buffer cap nhỏ có chủ ý | Fail có kiểm soát, không endless grow |
-| Hết hạn/cert không đáng tin | Dùng keystore khác/hostname mismatch trong lab | Handshake thất bại, không tắt trust check để workaround |
-| TLS 1.2/1.3 và provider khác nhau | Test trên JDK/provider mục tiêu | Xác minh state machine tương thích, không dựa vào một trace cụ thể |
+| `wrap` output too small | `EngineStatusProbe` `ByteBuffer.allocate(1)` | `BUFFER_OVERFLOW`; no app data lost |
+| `unwrap` empty input | Fresh server engine, empty network buffer | `BUFFER_UNDERFLOW`; waits for network |
+| TLS record split across 2–3 fragments | Socket/test transport delivers piece by piece | Retains unprocessed bytes via `compact` and reassembles cleanly |
+| Two TLS records in one read | Peer sends multiple records before one `read` | Processes sequentially until underflow/no progress, dropping nothing |
+| Plaintext buffer full | `unwrap` with insufficient destination | `BUFFER_OVERFLOW`; drains/grows app buffer, retries |
+| Socket partial write | Channel consumes only part of `networkOut` | Retains remainder, waits for `OP_WRITE`; no duplicate sends |
+| `SocketChannel.read()==0` | Non-blocking I/O with no data yet | Does not spin |
+| `SocketChannel.read()==-1` before `close_notify` | Abrupt transport disconnect | Truncation/unclean EOF; `closeInbound` per policy and handles exception |
+| Client `close_notify` then server replies | `EngineLoopbackDemo` | Both `isInboundDone`/`isOutboundDone` true |
+| `close_notify` lost in one direction | Drop `close_notify` message in test transport | Does not report clean close |
+| Slow handshake `NEED_TASK` | Trust manager task simulates delay | Does not block system-wide selector; bounded executor |
+| Peer floods continuously, slow consumer | Throttle application processing | Backpressure prevents RAM explosion |
+| Memory cap exceeded | Intentionally configure small buffer cap | Fails cleanly under control, no endless growth |
+| Expired/untrusted cert | Use wrong keystore/hostname mismatch in lab | Handshake fails; never disable trust checks as a workaround |
+| Different TLS 1.2/1.3 and providers | Test on target JDK/provider | Verifies compatible state machine without relying on one exact trace |
 
-Trong test tích hợp, **đừng tạo kết quả mong muốn bằng cách bắt mọi exception rồi trả success**. Đặc biệt lỗi certificate, TLS record integrity, close_notify/truncation và buffer cap phải là lỗi phân biệt được.
+In integration tests, **never manufacture expected results by catching every exception and returning success**. In particular, certificate errors, TLS record integrity errors, `close_notify`/truncation, and buffer caps must produce distinct, observable failures.
 
-## 15. Lỗi thường gặp và hướng sửa
+## 15. Common mistakes and fixes
 
-| Sai lầm | Vì sao sai | Sửa thế nào |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| Xem `BUFFER_UNDERFLOW` là TLS corrupt | Thiếu bytes chưa có nghĩa record sai | Giữ remainder, chờ thêm bytes, kiểm tra capacity |
-| `clear()` network input sau underflow | Xóa logic bytes của record còn thiếu | `compact()` rồi đọc tiếp |
-| Gọi `unwrap` lặp vô hạn khi không có thêm bytes | Busy loop, CPU tăng | Đợi `OP_READ` hoặc event/task có progress |
-| Cứ underflow là nhân đôi buffer | Tăng RAM vô hạn, che lỗi stall | So `getPacketBufferSize()` và giới hạn capacity |
-| Thấy overflow ở `unwrap` rồi đọc thêm socket | Sai buffer: output app bị đầy | Drain/grow `applicationIn` |
-| Thấy overflow ở `wrap` rồi tăng application buffer | Sai buffer: output network bị đầy | Flush/grow `networkOut` |
-| `clear()` networkOut sau partial socket write | Mất TLS bytes, phá record stream | `flip → write → compact` |
-| Bỏ qua `bytesConsumed()` | Có thể mất plaintext hoặc đếm sai | Dựa vào ByteBuffer positions và result counters |
-| `OK` được xem là handshake xong | `NEED_TASK/NEED_WRAP` có thể còn | Xử lý cả `HandshakeStatus` |
-| Chạy delegated task nặng trên selector | Block hàng trăm connections | Bounded executor và per-engine ownership |
-| `closeOutbound()` rồi đóng socket ngay | close_notify chưa được gửi | `wrap(EMPTY)`, flush TLS bytes trước |
-| `isOutboundDone()==true` nghĩa socket queue rỗng | Engine không quản lý kernel/socket pending bytes | Theo dõi networkOut và socket write completion |
-| Nuốt `SSLException` từ `closeInbound` | Che connection bị truncated | Đánh dấu unclean EOF và kiểm tra app framing |
-| Tái sử dụng `SSLEngine` đã đóng | Engine state không được reset cho connection mới | Tạo engine mới |
-| Tưởng `ByteBuffer.clear()` xóa plaintext khỏi RAM | Chỉ reset metadata position/limit | Zeroization riêng theo policy và lifecycle |
-| Trả buffer vào pool khi còn slice/duplicate đang dùng | Có thể rò dữ liệu / race | Buffer ownership, refcount/lifecycle rõ |
-| Alloc per handshake không giới hạn | Tấn công tạo nhiều handshake gây OOM/GC | Connection quota, memory cap, bounded tasks |
-| Chỉ test happy path | Lỗi xuất hiện dưới fragmentation/partial write | Thử underflow/overflow/truncation/slow consumer |
-| Bật trust-all để demo chạy | Mất TLS identity verification | Truststore lab đúng và endpoint identification |
-| Copy nguyên demo RAM vào production | Không có selector/backpressure/timeout/protocol integration | Xây event loop và tests theo môi trường thật |
+| Treating `BUFFER_UNDERFLOW` as corrupted TLS | Missing bytes does not mean a bad record | Keep remainder, wait for more bytes, check capacity |
+| Calling `clear()` on network input after underflow | Logically discards incomplete record bytes | Call `compact()` then read more |
+| Calling `unwrap` endlessly with no new bytes | Busy loop, CPU spikes | Wait for `OP_READ` or event/task progress |
+| Doubling buffers on every underflow | Unbounded RAM growth, masks stall bugs | Compare `getPacketBufferSize()` and cap capacity |
+| Seeing `unwrap` overflow and reading more from socket | Wrong buffer: app output is full | Drain/grow `applicationIn` |
+| Seeing `wrap` overflow and growing application buffer | Wrong buffer: network output is full | Flush/grow `networkOut` |
+| Calling `clear()` on `networkOut` after partial socket write | Loses TLS bytes, breaks record stream | `flip → write → compact` |
+| Ignoring `bytesConsumed()` | Can lose plaintext or miscount | Rely on ByteBuffer positions and result counters |
+| Treating `OK` as handshake finished | `NEED_TASK/NEED_WRAP` may remain | Always process `HandshakeStatus` |
+| Running heavy delegated tasks on the selector | Blocks hundreds of connections | Bounded executor and per-engine ownership |
+| Closing socket right after `closeOutbound()` | `close_notify` was never sent | `wrap(EMPTY)`, flush TLS bytes first |
+| Assuming `isOutboundDone()==true` means socket queue is empty | Engine does not track kernel/socket pending bytes | Track `networkOut` and socket write completion |
+| Swallowing `SSLException` from `closeInbound` | Hides truncated connections | Mark unclean EOF and check app framing |
+| Reusing a closed `SSLEngine` | Engine state is not reset for a new connection | Create a new engine |
+| Thinking `ByteBuffer.clear()` wipes plaintext from RAM | Only resets position/limit metadata | Perform explicit zeroization per policy and lifecycle |
+| Returning buffer to pool while `slice/duplicate` is active | Causes data leaks / races | Enforce clear buffer ownership, refcounts/lifecycle |
+| Unbounded allocations per handshake | Flood of handshakes causes OOM/GC | Connection quotas, memory caps, bounded tasks |
+| Testing only the happy path | Bugs surface under fragmentation/partial writes | Test underflow/overflow/truncation/slow consumers |
+| Enabling trust-all so the demo runs | Loses TLS identity verification | Use proper lab truststore and endpoint identification |
+| Copying the RAM demo straight into production | Lacks selector/backpressure/timeouts/protocol integration | Build an event loop and tests for the real environment |
 
-## 16. Bài tập thực hành
+## 16. Practice exercises
 
-1. **Nhận diện buffer:** với `wrap` và `unwrap`, chỉ ra buffer nguồn/đích và chứng minh vì sao cùng `BUFFER_OVERFLOW` nhưng phải tăng buffer khác nhau.
-2. **Đọc trạng thái:** `Status.OK`, `HandshakeStatus.NEED_WRAP`, `bytesConsumed=0`, `bytesProduced=125`. Vì sao đây có thể là handshake record chứ không phải app ciphertext?
-3. **Underflow có fragmentation:** peer gửi TLS record theo ba mảnh. Mô tả `position/limit` trước `unwrap`, sau `compact` và khi nhận mảnh thứ ba. Điều gì mất nếu gọi `clear` thay `compact`?
-4. **Overflow khi socket chậm:** `networkOut` có pending record và `channel.write` chỉ ghi 20%. Thiết kế `OP_WRITE` và `compact` để gửi nốt, không tạo record trùng.
-5. **Plaintext buffer đầy:** `unwrap` trả `BUFFER_OVERFLOW` trong khi `networkIn` có đủ bytes. Đề xuất hai phương án sửa: drain consumer hoặc grow buffer, nêu ưu/nhược dưới tải cao.
-6. **Thực nghiệm Java:** chạy `EngineStatusProbe` và giải thích vì sao `wrapConsumed=0` không ngăn client sinh handshake data khi buffer đủ.
-7. **TLS loopback:** chạy `EngineLoopbackDemo` trên TLSv1.3, giải thích vì sao output có `messageRecovered=true` và bốn trạng thái Done đều true.
-8. **Tắt hostname check:** trong một bản copy lab, bỏ `setEndpointIdentificationAlgorithm("HTTPS")` rồi nghĩ lại tác động: vì sao client có thể chấp nhận cert trusted nhưng tên máy không đúng? Tránh đưa thay đổi này vào production.
-9. **Close bất thường:** mô phỏng chỉ gửi TCP FIN không có close_notify. Vì sao gọi `closeInbound` có thể ném exception? Nên xử lý dữ liệu đã nhận thế nào?
-10. **Memory budget:** giả sử 30.000 connections, mỗi connection có hai packet buffers và một app buffer. Xây bảng capacity thực đo và hạn mức tổng RAM, tính tác động của việc tự động gấp đôi mọi buffer.
-11. **TLS states:** phân biệt `NEED_UNWRAP` và `NEED_UNWRAP_AGAIN`. Khi nào cần đọc socket, khi nào không? Trạng thái nào liên quan chủ yếu DTLS?
-12. **Delegated task:** mô phỏng trust manager chậm 200ms và giải thích vì sao không chạy trực tiếp trên selector có nhiều kết nối.
-13. **Result counters:** lý giải khi `unwrap` tiêu thụ 200 TLS bytes nhưng sinh 0 plaintext. Có nghĩa bị mất dữ liệu không?
-14. **Production checklist:** viết pseudo-code cho `Selector` bảo đảm flush trước close, không spin khi I/O trả 0, chặn memory cap, ghi metric underflow/overflow theo thao tác và không dùng plaintext trước TLS record integrity checks.
-15. **Peer reset:** trong test, ngắt transport ngay sau khi application gửi nửa message. Phân biệt TLS stream truncation và “business message hoàn chỉnh”, đề xuất framing/transaction boundary.
-16. **Buffer pooling:** vì sao `ByteBuffer.allocateDirect()` không có nghĩa nên cấp vô hạn? Mô tả quy trình trả pool khi app có `slice()` và socket còn pending writes.
+1. **Buffer identification:** for `wrap` and `unwrap`, identify source/destination buffers and prove why `BUFFER_OVERFLOW` requires growing different buffers.
+2. **Reading statuses:** `Status.OK`, `HandshakeStatus.NEED_WRAP`, `bytesConsumed=0`, `bytesProduced=125`. Why is this likely a handshake record rather than app ciphertext?
+3. **Underflow with fragmentation:** peer sends a TLS record in three fragments. Trace `position/limit` before `unwrap`, after `compact`, and when receiving the third fragment. What is lost if `clear` is called instead of `compact`?
+4. **Overflow on a slow socket:** `networkOut` holds a pending record and `channel.write` sends only 20%. Design `OP_WRITE` and `compact` to finish sending without duplicating records.
+5. **Full plaintext buffer:** `unwrap` returns `BUFFER_OVERFLOW` while `networkIn` has plenty of bytes. Propose two fixes (drain consumer vs. grow buffer) and state pros/cons under high load.
+6. **Java experiment:** run `EngineStatusProbe` and explain why `wrapConsumed=0` does not stop the client from emitting handshake data when the buffer is big enough.
+7. **TLS loopback:** run `EngineLoopbackDemo` on TLSv1.3 and explain why output shows `messageRecovered=true` and all four Done flags true.
+8. **Disabling hostname checks:** in a lab copy, remove `setEndpointIdentificationAlgorithm("HTTPS")` and analyze the impact: why can the client accept a trusted cert with the wrong hostname? Avoid putting this change into production.
+9. **Abnormal closure:** simulate sending only TCP FIN without `close_notify`. Why can calling `closeInbound` throw an exception? How should already-received data be handled?
+10. **Memory budget:** assume 30,000 connections, each with two packet buffers and one app buffer. Build a table of measured capacities and total RAM limits, calculating the impact of automatically doubling every buffer.
+11. **TLS states:** distinguish `NEED_UNWRAP` and `NEED_UNWRAP_AGAIN`. When must you read the socket, and when not? Which status relates primarily to DTLS?
+12. **Delegated tasks:** simulate a 200ms slow trust manager and explain why it must not run directly on a selector serving many connections.
+13. **Result counters:** explain when `unwrap` consumes 200 TLS bytes yet produces 0 plaintext. Does that mean data was lost?
+14. **Production checklist:** write pseudocode for `Selector` ensuring flush before close, no spinning when I/O returns 0, enforced memory caps, per-operation underflow/overflow metrics, and never using plaintext before TLS record integrity checks.
+15. **Peer reset:** in a test, cut transport right after the app sends half a message. Distinguish TLS stream truncation from a "complete business message" and propose framing/transaction boundaries.
+16. **Buffer pooling:** why doesn't `ByteBuffer.allocateDirect()` mean you can allocate endlessly? Describe returning buffers to a pool when the app holds a `slice()` and the socket still has pending writes.
 
-**Tiêu chí hoàn thành:** giải thích đúng `BUFFER_UNDERFLOW` (chờ data) và `BUFFER_OVERFLOW` (thiếu output space); bảo toàn `ByteBuffer` qua `flip/compact`; xử lý handshake và close_notify bằng `SSLEngineResult`, phân biệt clean shutdown/truncation; và vận hành bộ đệm có trần tài nguyên/selector/backpressure hợp lý.
+**Completion criteria:** accurately explain `BUFFER_UNDERFLOW` (wait for data) and `BUFFER_OVERFLOW` (insufficient output space); preserve `ByteBuffer` contents via `flip/compact`; handle handshakes and `close_notify` via `SSLEngineResult`, distinguishing clean shutdown from truncation; and operate buffers with proper resource caps, selector handling, and backpressure.
 
-## Tài liệu tham khảo
+## References
 
 - [Java SE 17 `SSLEngine` Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLEngine.html): `wrap`, `unwrap`, buffer overflow/underflow, closure, `closeInbound/closeOutbound`.
 - [Java SE 17 `SSLEngineResult` Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLEngineResult.html): `getStatus`, `getHandshakeStatus`, `bytesConsumed/bytesProduced`.
 - [Java SE 17 `SSLEngineResult.Status`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLEngineResult.Status.html): `OK`, `BUFFER_OVERFLOW`, `BUFFER_UNDERFLOW`, `CLOSED`.
 - [Java SE 17 `SSLEngineResult.HandshakeStatus`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLEngineResult.HandshakeStatus.html): `NEED_TASK`, `NEED_WRAP`, `NEED_UNWRAP`, `NEED_UNWRAP_AGAIN`, `FINISHED`.
-- [Java SE 17 `SSLSession`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSession.html): `getPacketBufferSize` và `getApplicationBufferSize`.
+- [Java SE 17 `SSLSession`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSession.html): `getPacketBufferSize` and `getApplicationBufferSize`.
 - [Java SE 17 `ByteBuffer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html): `position`, `limit`, `flip`, `compact`, `clear`.
-- [Java SE 17 `SocketChannel`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/SocketChannel.html): non-blocking reads/writes và end-of-stream.
-- [Oracle Java Security Developer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): JSSE, SSLEngine examples, TLS initialization và session configuration.
-- [RFC 8446 — The Transport Layer Security (TLS) Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446): alerts, record layer và `close_notify`.
+- [Java SE 17 `SocketChannel`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/SocketChannel.html): non-blocking reads/writes and end-of-stream.
+- [Oracle Java Security Developer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): JSSE, SSLEngine examples, TLS initialization, and session configuration.
+- [RFC 8446 — The Transport Layer Security (TLS) Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446): alerts, record layer, and `close_notify`.

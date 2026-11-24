@@ -1,21 +1,21 @@
-# 5.6 Kiểm tra tag, dữ liệu bị sửa, sai khóa và giới hạn cắt ngắn tag
+# 5.6 Tag Verification, Tampered Data, Wrong Keys, and Tag Truncation Limits
 
-Một ứng dụng Java nhận được thông điệp cùng một chuỗi byte được gọi là **tag**. Để quyết định có tin nội dung hay không, ứng dụng phải tính hoặc xác minh tag theo **đúng thuật toán, đúng khóa, đúng bytes, đúng tham số và đúng độ dài**. Nếu bỏ qua một trong các điều kiện đó, dữ liệu bị sửa có thể được chấp nhận hoặc thông điệp hợp lệ bị từ chối.
+A Java application receives a message along with a byte sequence called a **tag**. To decide whether to trust the content, the application must compute or verify the tag using **the right algorithm, the right key, the right bytes, the right parameters, and the right length**. Missing any of those conditions can cause tampered data to be accepted or valid messages to be rejected.
 
-Bài này tập trung vào ba tình huống: (1) dữ liệu, tag hoặc metadata bị sửa; (2) bên xác minh sử dụng sai khóa; (3) tag bị cắt ngắn hoặc chương trình chấp nhận độ dài tag không đúng chính sách. Những tình huống này gặp trong HMAC của webhook, thông điệp giữa các dịch vụ, AES-GCM bảo vệ dữ liệu lưu trữ và các giao thức xác thực thông điệp khác.
+This lesson focuses on three scenarios: (1) tampered data, tag, or metadata; (2) the verifier using the wrong key; (3) truncated tags or a program accepting tag lengths outside policy. These situations arise in webhook HMACs, service-to-service messaging, AES-GCM protecting stored data, and other message authentication protocols.
 
-Sau bài học, bạn cần phân biệt được **tag của MAC** với **tag của mã hóa có xác thực (AEAD)**; hiểu giới hạn của mỗi tag; triển khai kiểm tra bằng JCA/JCE; viết negative test cho dữ liệu sai, khóa sai và tag thiếu byte; và thiết kế quy tắc độ dài tag không cho phía gửi tự ý làm yếu kiểm tra.
+After this lesson, you should be able to distinguish a **MAC tag** from an **authenticated encryption (AEAD) tag**; understand the limits of each tag; implement verification with JCA/JCE; write negative tests for bad data, wrong keys, and short tags; and design tag-length rules that never let the sender weaken verification.
 
-## 1. Tag là gì? Tag chứng minh được điều gì?
+## 1. What Is a Tag? What Does a Tag Prove?
 
-### 1.1. MAC tag: dùng bí mật chung để xác thực thông điệp
+### 1.1. MAC tag: using a shared secret to authenticate a message
 
-Với **Message Authentication Code (MAC)**, bên gửi và bên nhận cùng nắm một khóa bí mật. Bên gửi tính tag từ khóa và thông điệp; bên nhận tính lại trên **chính chuỗi byte nhận được** rồi kiểm tra.
+With a **Message Authentication Code (MAC)**, sender and receiver share a secret key. The sender computes a tag from the key and message; the receiver recomputes it over **the exact received byte sequence** and verifies.
 
 ~~~text
-Bên gửi                          Bên nhận
---------                         --------
-Khóa K + thông điệp M            Khóa K + thông điệp M'
+Sender                           Receiver
+------                           --------
+Key K + message M                Key K + message M'
           |                                 |
           v                                 v
       MAC(K, M)                        MAC(K, M')
@@ -23,18 +23,18 @@ Khóa K + thông điệp M            Khóa K + thông điệp M'
        tag T ---------------------->  expected T'
                                              |
                                              v
-                                kiểm tra độ dài + so khớp tag
+                                check length + match tag
                                              |
-                               hợp lệ / từ chối thông điệp
+                               valid / reject message
 ~~~
 
-Nếu dùng thuật toán MAC an toàn, khóa bí mật được bảo vệ và quy trình kiểm tra chính xác, tag hợp lệ cho biết nội dung đã được tạo bởi một chủ thể **biết khóa chung**, và nội dung đó không bị sửa theo cách vượt qua cơ chế MAC. Vì hai bên cùng giữ khóa, HMAC không cho bên thứ ba biết chính xác bên nào đã tạo tag.
+With a secure MAC algorithm, a protected secret key, and a proper verification flow, a valid tag indicates the content was produced by an entity **knowing the shared key**, and that the content was not modified in a way that bypasses the MAC mechanism. Because both parties hold the key, HMAC does not tell a third party which specific side created the tag.
 
-**HmacSHA256** trong JCA tạo kết quả đầy đủ **32 byte = 256 bit**. Một giao thức có thể chọn một đoạn đầu cố định của tag theo thiết kế và giới hạn bảo mật, nhưng không để client tùy ý đưa độ dài cần so sánh.
+**HmacSHA256** in JCA produces a full output of **32 bytes = 256 bits**. A protocol may choose a fixed leading prefix of the tag by design and security bounds, but must never let the client specify the comparison length arbitrarily.
 
-### 1.2. AEAD tag: kiểm tra dữ liệu mã hóa trước khi sử dụng
+### 1.2. AEAD tag: verifying encrypted data before using it
 
-Với **Authenticated Encryption with Associated Data (AEAD)** như AES-GCM, bên mã hóa dùng khóa, IV/nonce, plaintext và có thể cả AAD để tạo **ciphertext cùng authentication tag**. Bên giải mã phải kiểm tra tag bằng chính thuật toán AEAD. Nếu tag không hợp lệ, thao tác giải mã bị từ chối.
+With **Authenticated Encryption with Associated Data (AEAD)** such as AES-GCM, the encryptor uses a key, IV/nonce, plaintext, and optionally AAD to produce **ciphertext together with an authentication tag**. The decryptor must verify the tag via the AEAD algorithm itself. If the tag is invalid, decryption is rejected.
 
 ~~~text
 AES-GCM encrypt:
@@ -47,176 +47,176 @@ AES-GCM decrypt:
   key + IV + ciphertext || tag + AAD
               |
               v
-       kiểm tra tag bằng Cipher.doFinal()
+       verify tag via Cipher.doFinal()
               |
-       thành công: plaintext đã xác thực
-       thất bại: không sử dụng plaintext
+       success: authenticated plaintext
+       failure: do not use plaintext
 ~~~
 
-Trong JCE, **Cipher.getInstance("AES/GCM/NoPadding")** và **GCMParameterSpec** lựa chọn transformation và tag length; **Cipher.doFinal** kiểm tra authentication tag khi giải mã. Khi xác thực thất bại thường nhận **AEADBadTagException**. Không dùng MessageDigest.isEqual để tự thay thế phép xác minh GCM bên trong Cipher.
+In JCE, **Cipher.getInstance("AES/GCM/NoPadding")** and **GCMParameterSpec** select the transformation and tag length; **Cipher.doFinal** checks the authentication tag during decryption. Authentication failure typically throws **AEADBadTagException**. Do not use MessageDigest.isEqual to replace the GCM verification inside Cipher.
 
-### 1.3. Phân biệt với SHA-256, chữ ký số và checksum
+### 1.3. Distinguishing from SHA-256, digital signatures, and checksums
 
-| Cơ chế | Có khóa bí mật không? | Kiểm tra được gì? | Không tự giải quyết gì? |
+| Mechanism | Has Secret Key? | What Can It Verify? | What Does It Not Solve Automatically? |
 | --- | --- | --- | --- |
-| SHA-256 thuần | Không | Dấu vân tay dữ liệu; hữu ích khi giá trị chuẩn đến từ nguồn tin cậy | Người sửa thông điệp có thể tính lại hash; không xác thực người gửi. |
-| CRC/checksum | Không | Phát hiện một số lỗi truyền dẫn/ngẫu nhiên | Không chống đối thủ chủ động sửa dữ liệu. |
-| HMAC-SHA256 | Có, khóa chung | Tính toàn vẹn và xác thực bên biết khóa | Không mã hóa nội dung, không chống replay, không quy trách nhiệm riêng một bên giữ khóa. |
-| AES-GCM tag | Có, khóa AEAD | Xác thực ciphertext và AAD, kết hợp bảo mật plaintext | Không kiểm tra quyền người dùng, không ngăn phát lại bản mã hợp lệ. |
-| Chữ ký số | Khóa riêng để ký, khóa công khai để kiểm tra | Tính toàn vẹn và nguồn ký khi public key được xác thực | Không tự giữ bí mật nội dung và không thay thế kiểm tra quyền. |
+| Plain SHA-256 | No | Data fingerprint; useful when the reference digest comes from a trusted source | Anyone altering the message can recompute the hash; does not authenticate sender. |
+| CRC/checksum | No | Detects certain accidental/transmission errors | Does not resist an active adversary modifying data. |
+| HMAC-SHA256 | Yes, shared key | Integrity and authentication of a key-holding party | Does not encrypt content, prevent replay, or attribute solely to one key holder. |
+| AES-GCM tag | Yes, AEAD key | Authenticates ciphertext and AAD alongside plaintext confidentiality | Does not check user authorization, nor prevent replay of valid ciphertext. |
+| Digital signature | Private key to sign, public key to verify | Integrity and signing origin when the public key is authenticated | Does not keep content confidential by itself and does not replace authorization checks. |
 
-**Một tag hợp lệ không có nghĩa yêu cầu nghiệp vụ được phép thực hiện.** Nó chỉ chứng minh những thuộc tính mật mã cụ thể theo khóa, thuật toán và bytes đã bảo vệ. Ví dụ webhook thanh toán có HMAC đúng vẫn có thể là webhook đã xử lý trước đó hoặc một yêu cầu bị phát lại.
+**A valid tag does not mean the business request is authorized to execute.** It only proves specific cryptographic properties for the key, algorithm, and protected bytes. For instance, a payment webhook with a valid HMAC may still be an already-processed webhook or a replayed request.
 
-## 2. Điều kiện tiên quyết để kiểm tra tag đúng
+## 2. Prerequisites for Correct Tag Verification
 
-Việc so sánh tag chỉ có ý nghĩa khi cả hai bên thống nhất một **hợp đồng mật mã**.
+Tag comparison is meaningful only when both sides agree on a **cryptographic contract**.
 
-| Thành phần | Điều phải thống nhất | Hệ quả khi sai |
+| Component | What Must Be Agreed Upon | Consequence When Wrong |
 | --- | --- | --- |
-| Thuật toán | HmacSHA256, AES-GCM, GMAC hay thuật toán được giao thức quy định | Tính ra tag khác hoặc không thể khởi tạo API. |
-| Khóa và phiên bản | Đúng secret/key ID, đúng quyền sử dụng, đúng phiên bản sau rotation | Tag không khớp; đôi khi báo sai khóa với thông điệp hợp lệ. |
-| Bytes đầu vào | UTF-8, thứ tự trường, dấu cách, xuống dòng, canonicalization, raw body | Cùng ý nghĩa nghiệp vụ nhưng tag khác. |
-| Metadata xác thực | Loại thông điệp, tenant, phiên bản, timestamp, nonce, AAD | Kẻ tấn công có thể sửa phần không được tag bảo vệ. |
-| Định dạng tag | Raw bytes, hex, Base64/Base64url, vị trí tag, quy tắc padding | Giải mã nhầm, mất byte 0 hoặc sai độ dài. |
-| Độ dài tag | Chính sách cố định theo phiên bản giao thức/khóa | Cắt ngắn nhầm gây lỗi; tự động giảm độ dài gây rủi ro giả mạo. |
-| AEAD IV/nonce | IV tương ứng với bản mã, độ dài và quy tắc duy nhất theo khóa | Sai tag hoặc phá vỡ bảo đảm an toàn khi tái sử dụng IV. |
-| Thứ tự xử lý | Parse → kiểm tra chính sách → xác thực → xử lý nghiệp vụ | Tin dữ liệu chưa xác thực hoặc trả lỗi lộ thông tin. |
+| Algorithm | HmacSHA256, AES-GCM, GMAC, or protocol-specified algorithm | Computes a different tag or fails API initialization. |
+| Key and version | Correct secret/key ID, usage permission, right version after rotation | Tag mismatch; sometimes reports wrong key on a valid message. |
+| Input bytes | UTF-8, field order, spaces, line endings, canonicalization, raw body | Same business meaning yet different tag. |
+| Authenticated metadata | Message type, tenant, version, timestamp, nonce, AAD | Attacker can alter fields left outside tag protection. |
+| Tag format | Raw bytes, hex, Base64/Base64url, tag placement, padding rules | Mis-decoding, dropped leading zero bytes, or wrong length. |
+| Tag length | Fixed policy per protocol/key version | Accidental truncation breaks; silently shrinking length adds forgery risk. |
+| AEAD IV/nonce | IV matching the ciphertext, length, and per-key uniqueness rule | Bad tag or catastrophic security failure if IV is reused. |
+| Processing order | Parse → policy checks → verify → business execution | Trusting unauthenticated data or returning info-leaking errors. |
 
-Đặc biệt, MAC được tính trên **byte**, không trên một đối tượng Java trừu tượng. Hai chuỗi JSON có cùng các field nhưng thứ tự field, khoảng trắng, escape, Unicode hay ký tự xuống dòng khác nhau có thể cho tag khác nhau. Với webhook, nếu tài liệu nhà cung cấp yêu cầu HMAC trên **raw request body**, hãy giữ raw bytes thay vì parse JSON rồi serialize lại.
+In particular, a MAC is computed over **bytes**, not an abstract Java object. Two JSON strings with the same fields but different field orders, whitespace, escaping, Unicode, or line endings can yield different tags. For webhooks, if the provider docs require HMAC over the **raw request body**, preserve the raw bytes instead of parsing JSON and re-serializing.
 
-Tránh xây payload bằng cách ghép các field tùy ý như "a" + "bc" và "ab" + "c": hai bộ field khác nhau có thể cho cùng byte sequence. Hãy dùng serialization xác định, tiền tố độ dài hoặc định dạng canonical được giao thức công nhận.
+Avoid building payloads by naively concatenating fields like "a" + "bc" and "ab" + "c": two distinct field tuples can produce the exact same byte sequence. Use deterministic serialization, length prefixes, or a protocol-recognized canonical format.
 
-## 3. Quy trình xác minh an toàn
+## 3. Safe Verification Pipeline
 
-Một pipeline kiểm tra tag nên có thứ tự dễ kiểm chứng:
+A tag verification pipeline should follow an easily auditable order:
 
-1. **Nhận dữ liệu như dữ liệu chưa tin cậy.** Giới hạn kích thước request, kiểm tra định dạng envelope, chỉ nhận version/algorithm/key ID trong danh sách cho phép.
-2. **Giải mã biểu diễn tag một lần** theo quy tắc cố định (ví dụ Base64url). Giải mã lỗi, thiếu field hoặc dữ liệu rác phải bị từ chối; không tự “sửa” tag để được một giá trị hợp lệ.
-3. **Kiểm tra chính sách độ dài trước khi so khớp.** Với HMAC-SHA256-128, tag phải đúng **16 byte sau decode**; không dùng số ký tự Base64/hex như số byte.
-4. **Chọn khóa đáng tin cậy** theo phiên bản, tenant hoặc đối tác được cấu hình. Một key ID từ bên ngoài không được phép mở khóa tùy ý hoặc thay đổi thuật toán sang dạng yếu.
-5. **Chuẩn bị đúng bytes đã được bảo vệ.** Với HMAC đó là message theo đặc tả; với AES-GCM phải cung cấp đúng IV, AAD, ciphertext và tag.
-6. **Xác minh bằng primitive phù hợp.** Với HMAC tự tính tag theo chính sách và so sánh hạn chế timing leak; với AEAD để **Cipher.doFinal** kiểm tra tag.
-7. **Nếu thất bại, từ chối trước khi dùng nội dung.** Không fallback từ tag dài sang tag ngắn, không trả plaintext sau khi GCM thất bại, không tự thử nhiều cách canonicalization cho tới khi khớp.
-8. **Nếu thành công, tiếp tục kiểm tra freshness, replay, quyền và nghiệp vụ.** Tag không tự chứng minh giao dịch chưa được xử lý, tài nguyên thuộc người gọi hay timestamp còn hạn.
+1. **Treat incoming data as untrusted.** Bound request size, validate envelope format, accept only allowlisted versions/algorithms/key IDs.
+2. **Decode the tag representation once** under a fixed rule (e.g., Base64url). Decoding errors, missing fields, or garbage data must be rejected; never "fix up" a tag to make it valid.
+3. **Check the length policy before comparing.** For HMAC-SHA256-128, the tag must be **exact 16 bytes after decoding**; never treat Base64/hex character count as byte count.
+4. **Select a trusted key** by configured version, tenant, or partner. An external key ID must never unlock an arbitrary key or downgrade the algorithm to a weak one.
+5. **Prepare the exact protected bytes.** For HMAC, that is the spec-defined message; for AES-GCM, supply the exact IV, AAD, ciphertext, and tag.
+6. **Verify using the proper primitive.** For HMAC, compute the expected tag per policy and compare while limiting timing leaks; for AEAD, let **Cipher.doFinal** verify the tag.
+7. **On failure, reject before using content.** Never fall back from a long tag to a short tag, never return plaintext after GCM fails, and never try multiple canonicalizations until one matches.
+8. **On success, proceed to freshness, replay, authorization, and business checks.** A tag does not prove the transaction was not already processed, that the resource belongs to the caller, or that the timestamp is still fresh.
 
 ~~~text
-Nhận message/tag
+Receive message/tag
     |
     v
-Kiểm tra format + version + tag length + key ID
+Check format + version + tag length + key ID
     |
-    +-- sai --> REJECT
-    |
-    v
-Chọn khóa hợp lệ + chuẩn bị bytes/AAD chính xác
+    +-- invalid --> REJECT
     |
     v
-Verify MAC hoặc AEAD tag
-    |
-    +-- sai --> REJECT (không dùng nội dung)
+Select valid key + prepare exact bytes/AAD
     |
     v
-Kiểm tra replay / timestamp / authorization / idempotency
+Verify MAC or AEAD tag
     |
-    +-- sai --> REJECT
+    +-- invalid --> REJECT (do not use content)
     |
     v
-Thực hiện nghiệp vụ
+Check replay / timestamp / authorization / idempotency
+    |
+    +-- invalid --> REJECT
+    |
+    v
+Execute business logic
 ~~~
 
-**Không có “xác thực một nửa”.** Phải hoàn tất toàn bộ xác minh trước khi chấp nhận hoặc thực thi một dữ liệu/thao tác được bảo vệ.
+**There is no "half-verified."** All verifications must complete before accepting or executing protected data/operations.
 
-## 4. Dữ liệu bị sửa: những dạng sửa nào phải được phát hiện?
+## 4. Tampered Data: What Modifications Must Be Detected?
 
-Giả sử bên gửi tính HMAC trên bytes tương ứng với thông điệp **order=42;amount=250000**. Sau đó có kẻ đổi số tiền, thay order ID, sửa timestamp hoặc thay chính tag.
+Suppose the sender computes an HMAC over the bytes corresponding to **order=42;amount=250000**. Later someone alters the amount, swaps the order ID, changes the timestamp, or modifies the tag itself.
 
-| Thay đổi trên đường truyền | Kết quả mong đợi | Lưu ý |
+| Change in Transit | Expected Outcome | Notes |
 | --- | --- | --- |
-| Thay một byte thuộc message được HMAC bảo vệ | Từ chối | Tính lại bằng khóa đúng sẽ khác với tag đã nhận, trừ khả năng giả mạo cực nhỏ theo độ dài tag. |
-| Thay chính một byte tag | Từ chối | So sánh tag phải kiểm tra **toàn bộ độ dài được quy định**. |
-| Thay metadata được gắn vào HMAC/AAD | Từ chối | Nếu metadata không nằm trong phạm vi xác thực, tag **không bảo vệ** trường đó. |
-| Đổi charset/serialization giữa hai bên | Từ chối tag, dù người dùng thấy nội dung “giống nhau” | Đây có thể là lỗi giao thức, không nhất thiết có tấn công. |
-| Thay IV/ciphertext/AAD/tag của AES-GCM | Từ chối giải mã | Phải để AEAD kiểm tra tag; sai IV hoặc khóa cũng có thể gây lỗi tương tự. |
-| Gửi lại nguyên thông điệp và tag cũ | Tag vẫn có thể hợp lệ | Chống replay cần timestamp, nonce, transaction ID và trạng thái nghiệp vụ, được bảo vệ bằng tag khi có liên quan. |
+| Flip a byte in the HMAC-protected message | Reject | Recomputing with the right key differs from the received tag, aside from negligible forgery probability per tag length. |
+| Flip a byte in the tag itself | Reject | Tag comparison must check **the entire required length**. |
+| Alter metadata bound into HMAC/AAD | Reject | If metadata is outside the authentication scope, the tag **does not protect** that field. |
+| Change charset/serialization between sides | Reject tag, even if users see "identical" content | This may be a protocol bug rather than an attack. |
+| Alter IV/ciphertext/AAD/tag of AES-GCM | Reject decryption | Let AEAD verify the tag; wrong IV or key can produce the same failure. |
+| Replay old unmodified message and tag | Tag may still verify | Anti-replay requires timestamps, nonces, transaction IDs, and business state, tag-protected when relevant. |
 
-**Ranh giới bảo vệ phải trùng ranh giới tin cậy.** Nếu HMAC chỉ bao phủ body mà hệ thống lại tin vào header tenant-id không được bảo vệ, bên trung gian có thể đổi tenant-id mà tag vẫn đúng. Với AEAD, thông tin không cần mã hóa (như record type, version/tenant) nhưng cần xác thực có thể đặt trong **AAD** theo quy tắc chính xác.
+**The protection boundary must match the trust boundary.** If HMAC covers only the body while the system trusts an unprotected tenant-id header, an intermediary can alter tenant-id while the tag stays valid. With AEAD, unencrypted metadata that still needs authentication (such as record type, version/tenant) can be placed in **AAD** under exact rules.
 
-### Phân biệt phát hiện sửa đổi và phục hồi nội dung
+### Distinguishing tamper detection from content recovery
 
-Xác minh tag trả lời **“nội dung này có hợp lệ theo khóa/giao thức không?”**, chứ không tự sửa nội dung bị hỏng. Khi kiểm tra thất bại, hệ thống thường yêu cầu truyền lại một thông điệp đúng, hoặc báo lỗi có kiểm soát. Không bỏ qua lỗi để “cứ xử lý tạm” vì thông điệp vẫn đọc được một phần.
+Tag verification answers **"is this content valid under the key/protocol?"**, rather than repairing corrupted content. When verification fails, systems typically request retransmission of a valid message or return a controlled error. Never ignore verification failures to "process provisionally" just because part of the message looks readable.
 
-## 5. Sai khóa: ý nghĩa và các nguyên nhân thường gặp
+## 5. Wrong Key: Meaning and Common Causes
 
-Dùng một khóa khác với khóa của bên tạo tag dẫn tới kết quả HMAC khác hoặc tag AEAD không hợp lệ với xác suất áp đảo. Dù triệu chứng giống bị sửa dữ liệu, **sai khóa không đồng nghĩa đã có tấn công**: cấu hình, xoay khóa, alias keystore hoặc chọn nhầm tenant cũng có thể là nguyên nhân.
+Using a different key from the tag creator produces a different HMAC or an invalid AEAD tag with overwhelming probability. Even though the symptom resembles data tampering, **a wrong key does not automatically mean an attack**: configuration, key rotation, keystore aliases, or selecting the wrong tenant can also be the cause.
 
-Các trường hợp cần kiểm tra:
+Cases to check:
 
-- **Key ID sai:** message ghi key-v2 nhưng verifier lấy key-v1; hoặc cơ chế lookup trả khóa của khách hàng khác.
-- **Khóa đúng ID nhưng khác bytes:** hai môi trường có secret khác nhau, mã hóa/giải mã Base64 secret sai, copy có thêm newline.
-- **Rotation không đồng bộ:** sender đã dùng khóa mới, receiver chưa phân phối/chấp nhận khóa mới theo chính sách.
-- **Phân biệt mục đích khóa:** một khóa không nên dùng lẫn cho HMAC, mã hóa và các giao thức khác nếu không có thiết kế derivation/domain separation an toàn.
-- **Key handle/provider:** HSM/KMS có thể quản lý khóa qua alias hoặc handle; khóa không xuất được không có nghĩa bị mất, nhưng verifier phải chọn đúng khóa cho đúng phép toán.
-- **Khóa sai thuật toán hoặc kích thước:** API có thể ném InvalidKeyException ngay tại init, thay vì đợi bước so khớp tag.
+- **Wrong Key ID:** message specifies key-v2 while verifier picks key-v1; or lookup returns another customer's key.
+- **Right ID, different key bytes:** two environments have different secrets, Base64 secret was decoded wrongly, or copy/paste added a newline.
+- **Unsynchronized rotation:** sender started using the new key before the receiver distributed/accepted it per policy.
+- **Key-purpose separation:** one key should not be mixed across HMAC, encryption, and other protocols without secure key derivation/domain separation.
+- **Key handle/provider:** HSM/KMS may manage keys via alias or handle; non-exportable keys are not lost, but the verifier must pick the right key for the right operation.
+- **Wrong algorithm or key size:** the API may throw InvalidKeyException right at init, rather than waiting until tag comparison.
 
-**Phản ứng của hệ thống:** công khai thông điệp lỗi chung như “xác thực thông điệp không thành công”; bên vận hành ghi log an toàn gồm key ID hoặc version đã được phép tiết lộ nội bộ, request ID và loại lỗi kỹ thuật, **không log secret, plaintext nhạy cảm hoặc raw token**.
+**System response:** return a generic public error such as "message authentication failed"; on the operations side, log safely with internally permitted key ID or version, request ID, and technical error category—**never log secrets, sensitive plaintext, or raw tokens**.
 
-### Xoay khóa mà vẫn xác minh dữ liệu cũ
+### Rotating keys while still verifying old data
 
-Một envelope có thể kèm **key ID/version** nằm trong giao thức đã công bố. Server ánh xạ ID này tới **tập khóa được phép sử dụng**, không làm theo URL/path hay tùy chọn thuật toán do người gửi cung cấp. Với dữ liệu lưu trữ, cần giữ khả năng giải mã các bản ghi cũ cho đến khi migrate hoặc hết thời gian lưu trữ. Với webhook, có thể có cửa sổ chuyển đổi giữa khóa cũ và mới, nhưng phải có hạn rõ và không âm thầm thử vô hạn khóa/thuật toán yếu.
+An envelope can carry a **key ID/version** defined in the published protocol. The server maps this ID to **the permitted key set**, never following arbitrary URLs/paths or sender-supplied algorithm choices. For stored data, retain the ability to decrypt legacy records until migration or retention expiry. For webhooks, a transition window between old and new keys may exist, but it must be bounded and never silently try unlimited keys or weak algorithms.
 
-Khi sai khóa, không thể “bỏ kiểm tra tag” để giải mã dữ liệu còn dùng được: chính bước kiểm tra đang ngăn dữ liệu chưa xác thực đi vào xử lý nghiệp vụ.
+When the key is wrong, you cannot "skip tag verification" to decrypt usable data: verification is precisely what stops unauthenticated data from entering business logic.
 
-## 6. Tag dài bao nhiêu là đủ? Hiểu đúng việc cắt ngắn
+## 6. How Long Must a Tag Be? Understanding Truncation Correctly
 
-### 6.1. Phân biệt cắt ngắn được thiết kế và tag bị mất byte
+### 6.1. Distinguishing intentional truncation from dropped tag bytes
 
-**Cắt ngắn có chủ đích (truncation)** là khi giao thức quy định ngay từ đầu rằng cả hai phía dùng **t bit đầu** của kết quả MAC đầy đủ, với t cố định và mức an toàn được chấp nhận.
+**Intentional truncation** is when the protocol specifies upfront that both parties use the **leading t bits** of the full MAC output, with fixed t and an accepted security level.
 
-**Tag bị thiếu ngoài ý muốn** là khi dữ liệu bị cắt trong lưu trữ, chuyển đổi, log, Base64, copy/paste, serialize hoặc truyền mạng. Tag thiếu byte **phải bị từ chối**, không được xem như một phiên bản bảo mật có độ dài thấp hơn.
+**Unintended byte loss** is when data gets cut off in storage, conversion, logs, Base64, copy/paste, serialization, or network transit. A tag missing bytes **must be rejected**, never treated as a lower-security shorter variant.
 
-Ví dụ với HMAC-SHA256:
+Example with HMAC-SHA256:
 
-| Chính sách | Kích thước nhận | Cách xác minh |
+| Policy | Received Size | How to Verify |
 | --- | --- | --- |
-| HMAC-SHA256 đầy đủ | 32 byte (256 bit) | Tính đủ 32 byte và so khớp đủ 32 byte. |
-| HMAC-SHA256-128 do giao thức quy định | 16 byte (128 bit) | Tính HMAC đủ 32 byte, lấy **16 byte đầu**, buộc tag nhận **đúng 16 byte**, rồi so sánh. |
-| Giao thức 16 byte nhưng nhận 15 byte | 15 byte | **Từ chối ngay**; không so sánh 15 byte đầu hoặc tự đổi chính sách. |
-| Giao thức 16 byte nhưng nhận 0 byte | 0 byte | **Từ chối ngay**; không chấp nhận tag rỗng. |
-| Giao thức 16 byte nhưng nhận 32 byte | 32 byte | **Từ chối**, trừ khi phiên bản giao thức khác được cấu hình rõ ràng. |
+| Full HMAC-SHA256 | 32 bytes (256 bits) | Compute full 32 bytes and match all 32 bytes. |
+| Protocol-specified HMAC-SHA256-128 | 16 bytes (128 bits) | Compute full 32-byte HMAC, take the **first 16 bytes**, require received tag to be **exact 16 bytes**, then compare. |
+| 16-byte protocol, receives 15 bytes | 15 bytes | **Reject immediately**; do not compare first 15 bytes or change policy. |
+| 16-byte protocol, receives 0 bytes | 0 bytes | **Reject immediately**; never accept an empty tag. |
+| 16-byte protocol, receives 32 bytes | 32 bytes | **Reject**, unless another protocol version is explicitly configured. |
 
-Độ dài tag HMAC không phụ thuộc số byte của message. HMAC-SHA256 sinh đủ 32 byte cho message rỗng hay dài; cắt ngắn là **chính sách giao thức**, không phải cách xử lý message ngắn.
+HMAC tag length does not depend on message byte count. HMAC-SHA256 emits a full 32 bytes for empty or long messages alike; truncation is a **protocol policy**, not how short messages are handled.
 
-### 6.2. Vì sao tag càng ngắn càng dễ bị đoán?
+### 6.2. Why are shorter tags easier to guess?
 
-Nếu tag có **t bit đủ khó dự đoán** và thiết kế/giả thiết mật mã thích hợp, một lần thử đoán ngẫu nhiên có xác suất thành công xấp xỉ **2^(-t)**. Sau khoảng q lần thử độc lập, xác suất tổng thể có thể tăng gần mức **q / 2^t** khi q còn nhỏ so với 2^t. Đây chỉ là trực giác bảo mật cho MAC lý tưởng; rủi ro của một chế độ cụ thể còn phụ thuộc số thông điệp, kích thước dữ liệu, nonce, giới hạn thuật toán và thiết kế giao thức.
+If a tag has **t sufficiently unpredictable bits** under sound cryptographic assumptions, a single random guess succeeds with probability roughly **2^(-t)**. Over roughly q independent attempts, overall success probability can rise near **q / 2^t** while q is small relative to 2^t. This is only security intuition for an ideal MAC; risk in a concrete mode also depends on message counts, data sizes, nonces, algorithm bounds, and protocol design.
 
-| Độ dài tag | Số byte | Độ khó đoán trong mô hình đơn giản |
+| Tag Length | Byte Count | Guessing Difficulty in Simple Model |
 | --- | ---: | --- |
-| 32 bit | 4 | Khoảng một trong 2^32 lần thử; không phù hợp làm mặc định cho ứng dụng đa dụng. |
-| 64 bit | 8 | Khoảng một trong 2^64; phải đánh giá rất chặt ngân sách giả mạo và vòng đời khóa. |
-| 96 bit | 12 | Khoảng một trong 2^96, vẫn phụ thuộc giới hạn thuật toán/giao thức. |
-| 128 bit | 16 | Khoảng một trong 2^128 cho một lần đoán trong mô hình lý tưởng. |
-| 256 bit | 32 | Kết quả đầy đủ của HMAC-SHA256; không mặc nhiên nâng tổng an toàn hệ thống nếu khóa/quy trình yếu. |
+| 32 bits | 4 | Roughly 1 in 2^32 attempts; unsuitable as a default for general applications. |
+| 64 bits | 8 | Roughly 1 in 2^64; requires very strict evaluation of forgery budget and key lifetime. |
+| 96 bits | 12 | Roughly 1 in 2^96, still subject to algorithm/protocol limits. |
+| 128 bits | 16 | Roughly 1 in 2^128 per guess in an ideal model. |
+| 256 bits | 32 | Full output of HMAC-SHA256; does not automatically raise overall system security if keys/processes are weak. |
 
-**Không kết luận “tag 64 bit luôn an toàn” chỉ từ con số 2^64.** Một dịch vụ cho hàng tỷ request, nhiều tenant, nhiều khóa hoặc có khả năng thử lại liên tục phải xét ngân sách giả mạo, rate limit, giám sát và tuổi thọ khóa.
+**Do not conclude "a 64-bit tag is always safe" solely from the number 2^64.** A service handling billions of requests, multiple tenants, many keys, or repeated retries must evaluate forgery budgets, rate limits, monitoring, and key lifetimes.
 
-RFC 2104, mục 5, mô tả phép truncation HMAC bằng cách lấy các bit bên trái của output và đưa ra khuyến nghị lịch sử **không dưới một nửa độ dài hash và không dưới 80 bit**. Đó không phải giấy phép để tự chọn tag ngắn cho mọi hệ thống hiện đại. Trong bài này, **16 byte (128 bit)** là cấu hình ví dụ rõ ràng cho HMAC-SHA256 khi giao thức cho phép, còn dùng **32 byte đầy đủ** sẽ tránh một quyết định cắt ngắn không cần thiết.
+RFC 2104, Section 5, describes HMAC truncation by taking the leftmost bits of the output and gives a historical floor of **not less than half the hash output and not less than 80 bits**. That is not a blank check to pick short tags for every modern system. In this lesson, **16 bytes (128 bits)** is a clear example configuration for HMAC-SHA256 when permitted by a protocol, while using the **full 32 bytes** avoids an unnecessary truncation decision.
 
-### 6.3. AES-GCM: tag length là tham số của phép mã hóa có xác thực
+### 6.3. AES-GCM: tag length is a parameter of authenticated encryption
 
-Với GCM, **GCMParameterSpec(tagLengthBits, iv)** nhận **độ dài tag tính bằng bit**, không phải byte. Chẳng hạn:
+With GCM, **GCMParameterSpec(tagLengthBits, iv)** takes **tag length in bits**, not bytes. For example:
 
-- **new GCMParameterSpec(128, iv):** tag 128 bit = 16 byte.
-- **iv.length == 12:** IV 96 bit; đây là độ dài IV, **không phải độ dài tag**.
-- JCE GCM thường trả về **ciphertext nối tiếp tag** từ Cipher.doFinal khi mã hóa. Khi giải mã với cấu hình tag 128 bit, API xác minh phần tag tương ứng ở cuối input.
+- **new GCMParameterSpec(128, iv):** 128-bit tag = 16 bytes.
+- **iv.length == 12:** 96-bit IV; that is the IV length, **not the tag length**.
+- JCE GCM typically returns **ciphertext followed by tag** from Cipher.doFinal when encrypting. When decrypting with a 128-bit tag configuration, the API verifies the trailing tag portion of the input.
 
-NIST SP 800-38D chỉ định các độ dài tag GCM thông dụng **128, 120, 112, 104, 96 bit**; **64 và 32 bit** chỉ dành cho ứng dụng đặc biệt với giới hạn nghiêm ngặt về độ dài dữ liệu và vòng đời khóa. Implementation có thể chỉ hỗ trợ một phần các độ dài đã được nêu. Đừng tự hạ tag length của GCM để giải mã một bản mã bị mất byte; nếu một giao thức hợp lệ dùng độ dài khác, đó phải là **quyết định cố định theo key/profile**, được kiểm thử và có đánh giá an toàn riêng.
+NIST SP 800-38D specifies standard GCM tag lengths of **128, 120, 112, 104, 96 bits**; **64 and 32 bits** are only for specialized applications with strict limits on data length and key lifetime. Implementations may support only a subset of those lengths. Do not lower the GCM tag length just to decrypt a truncated ciphertext; if a valid protocol uses another length, it must be a **fixed decision per key/profile**, tested and separately security-reviewed.
 
-**Giới hạn quan trọng khác:** với AES-GCM, không được lặp lại **cặp (khóa, IV)** khi mã hóa thông điệp mới. Lặp IV có thể phá hủy bảo đảm xác thực và bí mật, ngay cả khi tag dài 128 bit. Không dùng độ dài tag lớn để “bù” cho lỗi nonce/IV.
+**Another critical limit:** with AES-GCM, never repeat a **(key, IV)** pair when encrypting a new message. Repeating an IV can destroy both authenticity and confidentiality guarantees, even with a 128-bit tag. Never use a large tag length to "compensate" for nonce/IV bugs.
 
-### 6.4. Không thương lượng mức an toàn từ input không đáng tin
+### 6.4. Do not negotiate security levels from untrusted input
 
-Phản ví dụ nguy hiểm về mặt logic:
+Dangerous logical anti-pattern:
 
 ~~~text
 expectedFullTag = HMAC(secret, message)
@@ -224,28 +224,28 @@ compareLength = receivedTag.length
 accept = compare(first compareLength bytes of expectedFullTag, receivedTag)
 ~~~
 
-Nếu compareLength do client quyết định, kẻ tấn công có thể giảm số byte phải đoán; **tag rỗng** thậm chí có thể được so sánh với một đoạn rỗng và được chấp nhận trong cách cài đặt thiếu kiểm tra.
+If compareLength is controlled by the client, an attacker can reduce how many bytes must be guessed; an **empty tag** might even match an empty slice and be accepted in poorly checked code.
 
-Quy tắc đúng: **server chọn thuật toán và số byte tag theo version/khóa đã cấu hình**, kiểm tra tag nhận có đúng độ dài, rồi so sánh chính xác. Không dùng receivedTag.length để cắt expected tag. Không fallback kiểu “thử 16 byte, nếu sai thì thử 8 byte”.
+Correct rule: **the server selects the algorithm and tag byte count from the configured version/key**, verifies the received tag has that exact length, and compares strictly. Never use receivedTag.length to slice the expected tag. Never fall back like "try 16 bytes, and if wrong try 8 bytes."
 
-## 7. So sánh HMAC tag trong Java: độ dài cố định và giảm rò rỉ timing
+## 7. Comparing HMAC Tags in Java: Fixed Length and Minimizing Timing Leaks
 
-Với **HMAC**, Java cung cấp **javax.crypto.Mac** để tính tag. Khi bên nhận phải so sánh hai tag, nên dùng một cách so sánh không kết thúc sớm phụ thuộc nội dung đối với các mảng có độ dài cố định, chẳng hạn **MessageDigest.isEqual(expected, received)**.
+For **HMAC**, Java provides **javax.crypto.Mac** to compute tags. When the receiver compares two tags, use a comparison that does not exit early based on content for fixed-length arrays, such as **MessageDigest.isEqual(expected, received)**.
 
-Khác biệt cần hiểu:
+Distinctions to understand:
 
-- **Arrays.equals** là công cụ so sánh mảng thông thường, không được chọn làm cơ chế chống timing leak cho tag bí mật.
-- **MessageDigest.isEqual** trong JDK hiện đại so sánh digest theo cách hạn chế phụ thuộc timing vào **nội dung** của các mảng. Không suy ra từ đó rằng toàn bộ request handler, decode, chọn khóa hay mọi nhánh lỗi là constant-time.
-- **Độ dài phải được xác định trước**: từ chối tag null, ngắn hoặc dài hơn chính sách, rồi so sánh hai mảng cùng độ dài.
-- Nếu protocol nhận hex hoặc Base64, **decode ra byte[]** trước khi kiểm tra độ dài. Chuỗi hex 32 ký tự chỉ biểu diễn 16 byte; số ký tự không phải số byte.
+- **Arrays.equals** is a general array comparison utility, not designed to prevent timing leaks for secret tags.
+- **MessageDigest.isEqual** in modern JDKs compares digests in a way that limits timing dependence on array **content**. Do not infer from this that the entire request handler, decoding, key lookup, or all error branches are constant-time.
+- **Length must be enforced first**: reject null, shorter, or longer tags than policy allows, then compare two equal-length arrays.
+- If the protocol receives hex or Base64, **decode to byte[]** before checking length. A 32-character hex string represents only 16 bytes; character count is not byte count.
 
-Trong một ứng dụng thực tế, thực hiện cùng kiểm tra cả hai chiều giao tiếp, áp dụng rate limit và không để bên ngoài phân biệt “key ID có tồn tại”, “tag sai” hay “tag length sai” bằng chi tiết lỗi không cần thiết.
+In real applications, apply the same rigor in both communication directions, enforce rate limits, and avoid letting outsiders distinguish "key ID exists," "wrong tag," or "wrong tag length" through unnecessary error details.
 
-## 8. Ví dụ Java 17+: HMAC-SHA256-128 từ chối tag bị sửa, sai khóa, quá ngắn
+## 8. Java 17+ Example: HMAC-SHA256-128 Rejecting Tampered Tags, Wrong Keys, and Short Tags
 
-Chương trình tạo một khóa HMAC 32 byte bằng SecureRandom, dùng **HmacSHA256**, sau đó lấy **16 byte đầu** làm tag theo chính sách HMAC-SHA256-128. Phía xác minh yêu cầu **đúng 16 byte** và sử dụng MessageDigest.isEqual.
+The program generates a 32-byte HMAC key with SecureRandom, uses **HmacSHA256**, and takes the **first 16 bytes** as the tag under an HMAC-SHA256-128 policy. The verifier requires **exact 16 bytes** and uses MessageDigest.isEqual.
 
-Để chạy, tạo tệp **TagCheckHmacDemo.java**:
+To run, create **`TagCheckHmacDemo.java`**:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -291,49 +291,49 @@ public class TagCheckHmacDemo {
         byte[] otherKey = key.clone();
         otherKey[0] ^= 1;
 
-        System.out.println("Tag đúng: " + verify(key, original, tag));
-        System.out.println("Thông điệp bị sửa: " + verify(key, changed, tag));
-        System.out.println("Khóa sai: " + verify(otherKey, original, tag));
-        System.out.println("Tag ngắn 15 byte: " +
+        System.out.println("Valid tag: " + verify(key, original, tag));
+        System.out.println("Modified message: " + verify(key, changed, tag));
+        System.out.println("Wrong key: " + verify(otherKey, original, tag));
+        System.out.println("Short 15-byte tag: " +
                 verify(key, original, Arrays.copyOf(tag, 15)));
-        System.out.println("Tag rỗng: " + verify(key, original, new byte[0]));
+        System.out.println("Empty tag: " + verify(key, original, new byte[0]));
     }
 }
 ~~~
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac -encoding UTF-8 --release 17 TagCheckHmacDemo.java
 java TagCheckHmacDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Tag đúng: true
-Thông điệp bị sửa: false
-Khóa sai: false
-Tag ngắn 15 byte: false
-Tag rỗng: false
+Valid tag: true
+Modified message: false
+Wrong key: false
+Short 15-byte tag: false
+Empty tag: false
 ~~~
 
-### Giải thích từng điểm bảo mật
+### Security explanation point by point
 
-1. **Mac.getInstance("HmacSHA256")** tính HMAC đúng thuật toán; **SecretKeySpec** cung cấp khóa bí mật cho phép tính. Đầu ra HMAC gốc là 32 byte.
-2. **Arrays.copyOf(..., TAG_BYTES)** chỉ dùng tại **bên tạo expected tag** theo policy cố định 16 byte. Độ dài nhận từ network không ảnh hưởng đến số byte phải đối chiếu.
-3. **receivedTag == null hoặc length != 16** dẫn tới từ chối **trước khi so sánh**. Vì thế mảng 15 byte hoặc rỗng không thể làm hệ thống hạ ngưỡng kiểm tra.
-4. **MessageDigest.isEqual** nhận hai mảng 16 byte. Với JDK hiện đại, nội dung byte đầu tiên khác nhau không phải điều kiện dừng ngay như một phép so sánh thông thường.
-5. **Thay một byte message** làm expected tag khác; **thay khóa** cũng làm expected tag khác. Trong thực tế, xác suất trùng ngẫu nhiên lý thuyết không phải tuyệt đối bằng 0; kết quả kiểm thử trên chỉ mô tả lần chạy với khóa sinh ngẫu nhiên.
-6. Mỗi lần gọi **hmac** tạo một **Mac instance riêng**, tránh trộn trạng thái giữa request song song. Khóa và nội dung test chỉ lưu trong bộ nhớ cho chương trình minh họa.
+1. **Mac.getInstance("HmacSHA256")** computes HMAC with the right algorithm; **SecretKeySpec** supplies the secret key for computation. The raw HMAC output is 32 bytes.
+2. **Arrays.copyOf(..., TAG_BYTES)** is applied only when **computing the expected tag** under the fixed 16-byte policy. Lengths received from the network never influence how many bytes are checked.
+3. **receivedTag == null or length != 16** causes rejection **before comparison**. Thus a 15-byte or empty array cannot lower the verification threshold.
+4. **MessageDigest.isEqual** receives two 16-byte arrays. On modern JDKs, differing at the first byte does not cause an immediate early exit like a naive comparison.
+5. **Flipping one message byte** changes the expected tag; **flipping a key byte** also changes the expected tag. In reality, theoretical random collision probability is not strictly zero; the test output above reflects a run with a randomly generated key.
+6. Each call to **hmac** creates a **separate Mac instance**, avoiding state mixing across concurrent requests. Test keys and data live only in memory for this demonstration program.
 
-**Khi dùng thật:** đừng dùng khóa hard-coded. Lấy secret từ secret manager/KMS hoặc cơ chế được bảo vệ tương ứng, định danh phiên bản khóa, thêm replay protection theo giao thức và tuyệt đối không log secret. Đừng tự tạo một chính sách truncation khác với đặc tả webhook của nhà cung cấp.
+**In production:** never use hardcoded keys. Retrieve secrets from a secret manager/KMS or equivalent protected store, identify key versions, add protocol-level replay protection, and never log secrets. Never invent a truncation policy different from your provider's webhook specification.
 
-## 9. Ví dụ Java 17+: AES-GCM từ chối ciphertext, khóa, AAD hoặc tag sai
+## 9. Java 17+ Example: AES-GCM Rejecting Bad Ciphertext, Key, AAD, or Tag
 
-Khác HMAC, **AES-GCM không chỉ phát ra tag** mà còn mã hóa plaintext. Việc so khớp tag do **Cipher.doFinal** thực hiện. Ví dụ dưới đây mã hóa một message với tag **128 bit (16 byte)**, sau đó thực hiện các phép giải mã đúng và sai.
+Unlike HMAC, **AES-GCM does not just emit a tag**—it also encrypts plaintext. Tag matching is performed by **Cipher.doFinal**. The example below encrypts a message with a **128-bit (16-byte)** tag, then runs valid and invalid decryptions.
 
-Tạo tệp **TagCheckGcmDemo.java**:
+Create **`TagCheckGcmDemo.java`**:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -397,14 +397,14 @@ public class TagCheckGcmDemo {
         byte[] shortTag = Arrays.copyOf(sealed.ciphertextAndTag(),
                 sealed.ciphertextAndTag().length - 1);
 
-        System.out.println("GCM đúng: " + opensAs(key, sealed, aad, plain));
-        System.out.println("Dữ liệu bị sửa: " + opensAs(key,
+        System.out.println("Valid GCM: " + opensAs(key, sealed, aad, plain));
+        System.out.println("Modified data: " + opensAs(key,
                 new Sealed(sealed.iv(), changed), aad, plain));
-        System.out.println("Khóa sai: " +
+        System.out.println("Wrong key: " +
                 opensAs(wrongKey, sealed, aad, plain));
-        System.out.println("AAD sai: " +
+        System.out.println("Wrong AAD: " +
                 opensAs(key, sealed, wrongAad, plain));
-        System.out.println("Tag thiếu byte: " + opensAs(key,
+        System.out.println("Truncated tag: " + opensAs(key,
                 new Sealed(sealed.iv(), shortTag), aad, plain));
     }
 }
@@ -415,208 +415,208 @@ javac -encoding UTF-8 --release 17 TagCheckGcmDemo.java
 java TagCheckGcmDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-GCM đúng: true
-Dữ liệu bị sửa: false
-Khóa sai: false
-AAD sai: false
-Tag thiếu byte: false
+Valid GCM: true
+Modified data: false
+Wrong key: false
+Wrong AAD: false
+Truncated tag: false
 ~~~
 
-### Cách đọc kết quả cho chính xác
+### How to read the results accurately
 
-- **GCM đúng: true** vì cùng khóa, IV, AAD và ciphertext||tag. Trong ví dụ, opensAs còn so plaintext kết quả với expectedPlain để minh họa test. **Phép xác thực mật mã thực sự được Cipher.doFinal thực hiện**, còn Arrays.equals ở đây chỉ là bước assert của test.
-- **Dữ liệu bị sửa: false** vì một byte ciphertext bị thay và tag cũ không còn khớp.
-- **Khóa sai: false** vì verifier khởi tạo bằng khóa AES khác. Ứng dụng không nên nói cho client rằng “sai khóa” hay “có tấn công” dựa trên lỗi tag.
-- **AAD sai: false** vì AAD được xác thực dù không bị mã hóa. Nếu tenant/version là metadata an ninh, phải đưa các byte tương ứng vào chính sách xác thực.
-- **Tag thiếu byte: false** vì mảng đầu vào không còn chứa ciphertext/tag hợp lệ theo profile GCM 128 bit đã cấu hình; **Cipher.doFinal** từ chối.
-- **new GCMParameterSpec(TAG_BITS, iv)** nhận **128 bit** và một IV 12 byte; đừng nhầm TAG_BITS với IV_BYTES.
-- **new SecureRandom().nextBytes(iv)** tạo IV ngẫu nhiên cho một phép mã hóa. Ví dụ dùng một lần với khóa mới; với ứng dụng có số lượng message lớn hoặc nhiều node, cần thiết kế chiến lược nonce **duy nhất theo cùng khóa**, ngân sách va chạm và vòng đời khóa đúng chuẩn.
-- **Sealed** ở đây là record đơn giản chứa mảng byte có thể sửa, để tiện kiểm thử. Record Java không làm mảng bất biến sâu; với production cần kiểm soát ownership/copy dữ liệu và đóng gói version, key ID, IV, ciphertext, tag rõ ràng.
+- **Valid GCM: true** because key, IV, AAD, and ciphertext||tag all match. In the example, opensAs also compares the resulting plaintext with expectedPlain to illustrate a test. **Actual cryptographic authentication is performed by Cipher.doFinal**, while Arrays.equals here is just a test assertion.
+- **Modified data: false** because a ciphertext byte was altered and the old tag no longer matches.
+- **Wrong key: false** because the verifier initialized with a different AES key. Applications should not tell clients "wrong key" or "attack detected" based on a tag failure.
+- **Wrong AAD: false** because AAD is authenticated even though unencrypted. If tenant/version is security metadata, include those corresponding bytes in the authentication policy.
+- **Truncated tag: false** because the input array no longer contains a valid ciphertext/tag under the configured 128-bit GCM profile; **Cipher.doFinal** rejects it.
+- **new GCMParameterSpec(TAG_BITS, iv)** takes **128 bits** and a 12-byte IV; never confuse TAG_BITS with IV_BYTES.
+- **new SecureRandom().nextBytes(iv)** generates a random IV for a single encryption. The example uses it once with a fresh key; applications with high message volumes or multiple nodes must design a **per-key unique** nonce strategy, collision budget, and proper key lifecycle.
+- **Sealed** here is a simple record holding mutable byte arrays for testing convenience. Java records do not make arrays deeply immutable; production code must control data ownership/copying and package version, key ID, IV, ciphertext, and tag cleanly.
 
-Nếu một provider không hỗ trợ biến thể hoặc tham số đã yêu cầu, ứng dụng có thể ném exception khi khởi tạo. **Không nên bắt mọi Exception rồi trả false một cách im lặng**: phân biệt lỗi cấu hình/khả năng hỗ trợ để vận hành, nhưng phản hồi bên ngoài vẫn tránh lộ thông tin nhạy cảm.
+If a provider does not support the requested variant or parameters, the application may throw an exception on initialization. **Do not silently catch every Exception and return false**: distinguish configuration/capability errors for operations while still keeping external responses free of sensitive details.
 
-## 10. Rủi ro khi giải mã theo nhiều bước và dùng plaintext trước khi kiểm tra tag
+## 10. Risks of Multi-Step Decryption and Using Plaintext Before Tag Verification
 
-Trong AEAD, thiết kế luồng giải mã cần bảo đảm **không đưa plaintext chưa được xác thực tới nghiệp vụ, log, file hoặc hệ thống khác**. Một số provider/API có thể buffer dữ liệu giải mã để chỉ trả plaintext sau khi tag hợp lệ; đừng mặc định mọi provider và mọi cách dùng streaming đều mang lại tính chất đó.
+In AEAD, decryption flows must ensure **unauthenticated plaintext is never released to business logic, logs, files, or other systems**. Some providers/APIs may buffer decrypted data and release plaintext only after the tag validates; never assume every provider and every streaming usage pattern guarantees that behavior.
 
-Quy tắc dễ kiểm chứng:
+Easily verifiable rules:
 
-1. Gọi **updateAAD** với toàn bộ AAD trước khi xử lý ciphertext cho GCM/CCM.
-2. Cung cấp đúng ciphertext và tag với **độ dài tag theo giao thức**.
-3. Hoàn tất và xác minh bằng **doFinal**.
-4. **Chỉ sau khi doFinal thành công**, cho phép logic nghiệp vụ tiêu thụ plaintext.
-5. Khi **AEADBadTagException** (hoặc lỗi xác thực theo API) xảy ra, bỏ dữ liệu tạm, không cố phân tích/khôi phục plaintext; không tái sử dụng Cipher đang ở trạng thái lỗi như một thao tác mới.
-6. Nếu cần giải mã file lớn theo luồng, dùng định dạng AEAD theo chunk/record có nonce và tag riêng cùng quy tắc kết thúc rõ; không tự coi phần đã xử lý là hợp lệ trước khi có xác thực phù hợp.
+1. Call **updateAAD** with all AAD before processing ciphertext for GCM/CCM.
+2. Provide the exact ciphertext and tag with **the protocol-mandated tag length**.
+3. Finalize and verify via **doFinal**.
+4. **Only after doFinal succeeds**, allow business logic to consume plaintext.
+5. When **AEADBadTagException** (or an API authentication error) occurs, discard temporary data, do not try to inspect/recover plaintext, and do not reuse a Cipher left in an error state as a fresh operation.
+6. If streaming decryption of large files is needed, use a chunked/record-based AEAD format with per-record nonces and tags plus explicit termination rules; never treat processed chunks as valid prior to proper authentication.
 
-Một **MAC-then-encrypt** hoặc **encrypt-then-MAC** tự thiết kế có thể sinh lỗi thứ tự, phân tách khóa, dữ liệu được MAC và xử lý lỗi. Với bài toán mới, ưu tiên cơ chế **AEAD tiêu chuẩn** được hỗ trợ thay vì tự lắp protocol mật mã không được đánh giá.
+Homegrown **MAC-then-encrypt** or **encrypt-then-MAC** designs can introduce ordering, key-separation, MAC-scope, and error-handling bugs. For new problems, prefer a supported **standard AEAD** mechanism rather than assembling an unvetted cryptographic protocol.
 
-## 11. Độ dài tag, encoding và giao thức truyền tải: lỗi Java thường gặp
+## 11. Tag Length, Encoding, and Transport Protocols: Common Java Pitfalls
 
-### 11.1. So sánh chuỗi thay vì tag bytes
+### 11.1. Comparing strings instead of tag bytes
 
-Nếu API trả tag ở Base64url, server nên decode và so sánh **byte[]**. Base64 (và hex) chỉ mã hóa cách hiển thị; nó không tăng entropy hay biến tag thành bí mật khác. Không chuyển tag thành BigInteger vì có thể mất byte 0 ở đầu, thêm byte biểu diễn dấu hoặc thay đổi format.
+If an API transmits tags in Base64url, the server should decode and compare **byte[]**. Base64 (and hex) only encode display representation; they add no entropy and do not turn a tag into a different secret. Never convert a tag to BigInteger because leading zero bytes can be stripped, sign bytes added, or formatting altered.
 
-Nếu hợp đồng quy định một canonical Base64url representation, hãy kiểm tra đúng format đó trước decode; đừng âm thầm chấp nhận một loạt biến thể đầu vào khác nhau nếu chúng không thuộc giao thức. Nếu hợp đồng nói rõ raw bytes, không tự chuyển sang String và ngược lại với charset mặc định của JVM.
+If the contract mandates a canonical Base64url representation, validate that exact format before decoding; never silently accept a range of variant inputs outside the protocol. If the contract specifies raw bytes, never convert to String and back using the JVM's default charset.
 
-### 11.2. Thay đổi thông điệp trước khi xác minh
+### 11.2. Altering the message before verification
 
-Không tự trim, lower-case, bỏ ký tự xuống dòng, parse số tiền rồi stringify lại hoặc serialize JSON mới trước HMAC nếu giao thức ký raw body. Ví dụ:
+Never trim, lowercase, strip newlines, parse numbers and re-stringify, or re-serialize JSON before HMAC if the protocol signs the raw body. For example:
 
 ~~~text
 Raw body A: {"amount":250000,"order":42}
 Raw body B: { "order": 42, "amount": 250000 }
 
-Ý nghĩa dữ liệu có thể tương đương,
-nhưng HMAC(raw A) và HMAC(raw B) thường khác nhau.
+The data meaning may be equivalent,
+yet HMAC(raw A) and HMAC(raw B) will generally differ.
 ~~~
 
-Để có canonicalization thật sự, hai phía phải dùng **cùng một quy tắc được định nghĩa rõ**. Không lặp lại nhiều phép biến đổi cho tới khi một cách tính “tình cờ” khớp tag.
+For true canonicalization, both parties must follow **the exact same clearly defined rule**. Never retry multiple transformations until one "happens" to match the tag.
 
-### 11.3. Tag bị cắt bởi giới hạn cột, buffer hoặc serialization
+### 11.3. Tags truncated by column limits, buffers, or serialization
 
-Kiểm tra đơn vị đo:
+Verify units of measurement:
 
-- HMAC-SHA256 **32 byte** có **64 ký tự hex**, hoặc độ dài chuỗi Base64 tùy padding/profile.
-- HMAC-SHA256-128 **16 byte** có **32 ký tự hex**; một chuỗi ngắn hơn có thể là lỗi truyền hay encoding, không tự đổi policy.
-- AES-GCM với tag 16 byte thường trả **ciphertext||tag**; nếu cắt mất byte cuối mảng, cần coi envelope không hợp lệ.
-- Với JCE, **GCMParameterSpec(128, iv)** chọn độ dài tag 128 **bit**, không phải 128 byte. Độ dài IV cần xét riêng.
-- Trong API lưu trữ, giới hạn ký tự của field Base64 không bằng giới hạn byte đã decode.
+- **32-byte** HMAC-SHA256 has **64 hex characters**, or a Base64 string length depending on padding/profile.
+- **16-byte** HMAC-SHA256-128 has **32 hex characters**; a shorter string may indicate a transit or encoding bug—never silently change policy.
+- AES-GCM with a 16-byte tag usually outputs **ciphertext||tag**; if trailing bytes are cut off, treat the envelope as invalid.
+- In JCE, **GCMParameterSpec(128, iv)** selects a 128-**bit** tag, not 128 bytes. IV length is specified separately.
+- In storage APIs, the character limit of a Base64 field does not equal the decoded byte limit.
 
-Không dùng cách khôi phục bằng padding byte 0 hoặc tự thêm ký tự vào tag bị cắt. Phải sửa nguồn lỗi truyền/lưu trữ, xác minh lại với bên gửi.
+Never "recover" by zero-padding or appending characters to a truncated tag. Fix the underlying transit/storage bug and re-verify with the sender.
 
-### 11.4. Sai tham số khi thay đổi provider/JDK
+### 11.4. Parameter mismatches when changing provider/JDK
 
-Một provider có thể không hỗ trợ một tag length GCM cụ thể dù chuẩn cho phép; việc lựa chọn transformation, key type, IV length và AAD còn phụ thuộc implementation. Ghi nhận provider và kết quả kiểm thử tương thích ở môi trường triển khai; **không tự giảm độ dài tag khi một provider từ chối tham số**.
+A provider might not support a specific GCM tag length even when permitted by the standard; transformation, key type, IV length, and AAD choices also depend on the implementation. Record the provider and compatibility test results in the target environment; **never shorten tag length when a provider rejects parameters**.
 
-### 11.5. So sánh byte không đổi thời gian nội dung chưa đủ cho toàn hệ thống
+### 11.5. Content-independent byte comparison is not enough for the whole system
 
-Dù dùng MessageDigest.isEqual, thời gian xử lý vẫn có thể khác ở bước parse Base64, key lookup, đọc database, exception hoặc truy cập KMS/HSM. Giải pháp là thiết kế lỗi có kiểm soát, rate limit, không tiết lộ bí mật; không khẳng định cả endpoint constant-time chỉ nhờ một hàm so sánh mảng.
+Even when using MessageDigest.isEqual, timing can still vary in Base64 parsing, key lookup, database reads, exceptions, or KMS/HSM calls. Mitigate with controlled error design, rate limiting, and avoiding secret disclosure; never claim an entire endpoint is constant-time solely because of one array-comparison function.
 
-## 12. Ví dụ vận dụng: xác minh webhook thanh toán
+## 12. Applied Example: Verifying a Payment Webhook
 
-Giả sử cổng thanh toán gửi request có timestamp, transaction ID, raw body và HMAC. Một luồng xác minh đúng cần:
+Suppose a payment gateway sends requests with a timestamp, transaction ID, raw body, and HMAC. A proper verification pipeline needs:
 
-1. Nhận **raw body bytes** với giới hạn kích thước; lấy tag, timestamp, key ID từ những header **được giao thức định nghĩa**.
-2. Parse header an toàn, kiểm tra định dạng và độ dài decoded tag **đúng policy**.
-3. Tìm secret đúng đối tác và key version từ cấu hình tin cậy; không lấy secret trực tiếp từ request.
-4. Tạo byte sequence được HMAC bảo vệ theo đặc tả nhà cung cấp (ví dụ có timestamp + body với delimiter/canonicalization rõ). Không được tự chế nếu bên gửi có đặc tả khác.
-5. Tính HMAC và so sánh đúng số byte; thất bại thì từ chối, **chưa xử lý thanh toán**.
-6. Kiểm tra timestamp/freshness và ID giao dịch theo chính sách; đảm bảo các trường dùng để chống replay cũng nằm trong phạm vi xác thực hoặc được gắn với ngữ cảnh tin cậy.
-7. Kiểm tra trạng thái giao dịch hiện tại và xử lý **idempotent**. Webhook hợp lệ gửi lại không được cộng tiền hoặc phát hành hàng nhiều lần.
-8. Đưa ra kết quả chung phù hợp cho phía gửi, ghi log an toàn phục vụ truy vết nhưng không chứa khóa hoặc thông tin nhạy cảm.
+1. Receive **raw body bytes** within a size limit; read tag, timestamp, and key ID from **protocol-defined** headers.
+2. Parse headers safely, validating format and decoded tag length **strictly per policy**.
+3. Look up the secret for the right partner and key version from trusted configuration; never take secrets from the request.
+4. Construct the HMAC-protected byte sequence per the provider's spec (e.g., timestamp + body with explicit delimiter/canonicalization). Never improvise if the sender specifies a different format.
+5. Compute HMAC and compare the exact byte count; on failure, reject **without processing payment**.
+6. Check timestamp/freshness and transaction ID per policy; ensure replay-protection fields are also covered by authentication or bound to a trusted context.
+7. Check current transaction state and process **idempotently**. A replayed valid webhook must never credit funds or ship goods multiple times.
+8. Return an appropriate generic response to the sender and log safely for traceability without keys or sensitive details.
 
-Ví dụ: kẻ tấn công lấy được một webhook đã ký hợp lệ và gửi lại **nguyên văn**. HMAC vẫn hợp lệ vì bytes và tag không thay đổi; ứng dụng phải dùng transaction ID, timestamp, nonce hoặc dữ liệu nghiệp vụ để từ chối thao tác lặp. Ngược lại, nếu kẻ tấn công sửa amount nhưng không có khóa, tag không hợp lệ và bị từ chối tại bước xác minh.
+Example: an attacker captures a validly signed webhook and resends it **verbatim**. HMAC remains valid because bytes and tag are unchanged; the application must use transaction ID, timestamp, nonce, or business state to reject duplicate execution. Conversely, if an attacker alters the amount without the key, the tag is invalid and rejected at verification.
 
-Nếu giao thức dùng **chữ ký số** thay vì HMAC, luồng tương tự về nguyên tắc kiểm tra bytes và freshness, nhưng dùng **Signature.verify** cùng public key được xác minh nguồn; không tự ép thông điệp sang HMAC.
+If the protocol uses **digital signatures** instead of HMAC, the flow is similar in principle for byte verification and freshness, but uses **Signature.verify** with an origin-verified public key; never force messages into HMAC.
 
-## 13. Thiết kế envelope và quản lý phiên bản cho dữ liệu lưu trữ
+## 13. Designing Envelopes and Versioning for Stored Data
 
-Với một ứng dụng Java lưu bản mã AES-GCM, có thể thiết kế một record versioned ở cấp ứng dụng:
+For a Java application storing AES-GCM ciphertexts, you can design a versioned application-level record:
 
 ~~~text
 RecordV1:
   version       = 1
-  keyId         = ID khóa dùng để chọn đúng khóa AES đã được cấp phép
-  iv            = 12 byte theo chính sách nonce
-  ciphertext    = bytes mã hóa
-  tag           = 16 byte cuối của AES-GCM output
-  aad           = bytes ràng buộc tenant + loại record + version
+  keyId         = key ID used to select the authorized AES key
+  iv            = 12 bytes per nonce policy
+  ciphertext    = encrypted bytes
+  tag           = trailing 16 bytes of AES-GCM output
+  aad           = bytes binding tenant + record type + version
 ~~~
 
-Đây là **ví dụ hợp đồng ứng dụng**, không phải định dạng lưu trữ tiêu chuẩn do JCA tự sinh. Những điểm phải chốt rõ:
+This is an **application contract example**, not a standard storage format automatically produced by JCA. Points to lock down:
 
-- Nếu đưa version/keyId/tenant vào AAD, cần có **quy tắc serialization bytes chính xác**, tránh ghép chuỗi mơ hồ.
-- Khóa giải mã phải được truy xuất theo **định danh được phép** và theo đúng tenant; người gửi không được điều khiển nơi tìm secret tùy ý.
-- Bộ kiểm tra phải biết **tag length** từ profile đã được cấu hình, không lấy length tùy ý từ dữ liệu chưa xác thực.
-- IV phải duy nhất **trong toàn bộ phạm vi cùng khóa AES khi mã hóa**, kể cả khi có nhiều node, restart và backup/restore.
-- Bản ghi cũ cần có key version/format version đủ để giải mã hoặc migrate sau rotation; không ghi đè tag length/algorithm một cách mập mờ.
-- Một record bị hỏng, tag sai hoặc không có khóa thích hợp phải được phân loại là không thể xác minh; không khôi phục plaintext bằng cách bỏ bước xác thực.
+- If placing version/keyId/tenant into AAD, define **exact byte serialization rules**, avoiding ambiguous string concatenation.
+- Decryption keys must be fetched by **permitted identifiers** and matching tenant; senders must never control arbitrary secret lookup locations.
+- The verifier must obtain **tag length** from the configured profile, never reading an arbitrary length from untrusted data.
+- IVs must be unique **across the entire scope of the same AES key during encryption**, even across multiple nodes, restarts, and backups/restores.
+- Legacy records need sufficient key version/format version metadata to decrypt or migrate after rotation; never override tag length/algorithm ambiguously.
+- A corrupted record, bad tag, or missing valid key must be classified as unverifiable; never recover plaintext by skipping verification.
 
-**MAC tag không bảo vệ thông tin không nằm trong input MAC/AAD.** Nếu cần bảo vệ key ID hoặc version khỏi bị đổi, có thể ràng buộc metadata đã được quy định với chính sách AAD/cấu trúc xác thực, đồng thời kiểm tra nó theo ngữ cảnh tin cậy của ứng dụng.
+**A MAC tag does not protect information outside the MAC/AAD input.** If key ID or version must be protected from tampering, bind prescribed metadata into AAD/authenticated structure per policy and validate it against the application's trusted context.
 
-## 14. Kế hoạch kiểm thử: cả happy path lẫn các dạng từ chối
+## 14. Test Plan: Happy Paths and Rejection Cases
 
-Chỉ test một tag đúng là chưa đủ. Các test cần thể hiện điều kiện **chấp nhận duy nhất khi đầy đủ**.
+Testing only a valid tag is insufficient. Tests must demonstrate **acceptance only when all conditions are met**.
 
-| Ca kiểm thử | Dữ liệu đưa vào | Kỳ vọng |
+| Test Case | Input | Expected Outcome |
 | --- | --- | --- |
-| HMAC hợp lệ | Đúng message bytes + đúng key + đúng 16-byte tag theo profile | Accept. |
-| HMAC sửa một byte message | Giữ tag cũ, đổi message bytes | Reject. |
-| HMAC sửa một byte tag | Giữ message, đổi tag bytes | Reject. |
-| HMAC sai khóa | Key khác key của bên tạo | Reject. |
-| HMAC tag rỗng | byte[0] | Reject trước so khớp. |
-| HMAC tag 15 byte | Thiếu một byte khi policy 16 byte | Reject, không so khớp prefix. |
-| HMAC tag 17 hoặc 32 byte | Dài hơn policy 16 byte | Reject nếu không có profile khác đã thỏa thuận. |
-| HMAC sai encoding | Body bị serialize lại khác bytes | Reject; sửa lỗi canonicalization ở giao thức. |
-| GCM hợp lệ | Đúng key, IV, AAD, ciphertext và tag 128 bit | Decrypt thành công rồi dùng plaintext. |
-| GCM sửa ciphertext/tag | Đảo bit nhưng giữ metadata cũ | Reject qua doFinal, không xử lý plaintext. |
-| GCM sai AAD | Tenant/version không khớp | Reject qua doFinal. |
-| GCM sai IV | IV không phải IV đã dùng mã hóa | Reject qua doFinal. |
-| GCM sai khóa | Khóa khác | Reject hoặc báo lỗi khởi tạo có kiểm soát tùy nguyên nhân. |
-| GCM ciphertext/tag bị cắt | Thiếu bytes so với envelope/tag policy | Reject; không tự giảm tagLength. |
-| Replay | Gửi lại message + tag đã từng hợp lệ | MAC vẫn có thể đúng; replay/idempotency phải chặn xử lý lặp. |
-| Key rotation | Message v1/v2 và key ID phù hợp | Dùng khóa được phép theo version và chính sách còn hiệu lực. |
-| Tải đồng thời | Nhiều yêu cầu xác minh khác nhau qua thread pool | Không trộn trạng thái Mac/Cipher hay buffer giữa các request. |
+| Valid HMAC | Exact message bytes + right key + exact 16-byte tag per profile | Accept. |
+| HMAC 1-byte message tamper | Keep old tag, alter message bytes | Reject. |
+| HMAC 1-byte tag tamper | Keep message, alter tag bytes | Reject. |
+| HMAC wrong key | Different key from creator's | Reject. |
+| HMAC empty tag | byte[0] | Reject before comparison. |
+| HMAC 15-byte tag | One byte short under 16-byte policy | Reject; do not match prefix. |
+| HMAC 17- or 32-byte tag | Longer than 16-byte policy | Reject unless another profile is explicitly agreed. |
+| HMAC encoding mismatch | Body re-serialized into different bytes | Reject; fix canonicalization bug in protocol. |
+| Valid GCM | Right key, IV, AAD, ciphertext, and 128-bit tag | Decrypt successfully then use plaintext. |
+| GCM tampered ciphertext/tag | Flip bit while keeping old metadata | Reject via doFinal, do not process plaintext. |
+| GCM wrong AAD | Mismatched tenant/version | Reject via doFinal. |
+| GCM wrong IV | IV not the one used to encrypt | Reject via doFinal. |
+| GCM wrong key | Different key | Reject or fail initialization cleanly depending on cause. |
+| GCM truncated ciphertext/tag | Fewer bytes than envelope/tag policy | Reject; do not lower tagLength. |
+| Replay | Resend previously valid message + tag | MAC may still verify; replay/idempotency must block repeat execution. |
+| Key rotation | v1/v2 messages and matching key IDs | Use key permitted by active version and policy. |
+| Concurrent load | Many distinct verification requests via thread pool | No mixing of Mac/Cipher state or buffers across requests. |
 
-Một bộ test thực tế nên chạy trên provider/JDK triển khai. Thử cả bytes không phải ASCII, dấu tiếng Việt, newline, ký tự Unicode kết hợp và input lớn để phát hiện bất đồng encoding/canonicalization. Test lỗi nên quan sát rằng **không có side effect nghiệp vụ** trước xác thực; chỉ assert exception mà vẫn đã lưu thanh toán là chưa đạt yêu cầu.
+A practical test suite should run on the target deployment provider/JDK. Include non-ASCII bytes, Vietnamese diacritics, newlines, combining Unicode characters, and large inputs to uncover encoding/canonicalization disagreements. Failure tests must assert that **no business side effects occur** before verification; merely asserting an exception after already recording a payment is insufficient.
 
-### Phân biệt lỗi chấp nhận sai và lỗi từ chối sai
+### Distinguishing false accepts from false rejects
 
-- **False accept:** hệ thống chấp nhận tag không hợp lệ; nguy hiểm nhất vì có thể cho phép giả mạo hoặc thay nội dung.
-- **False reject:** tag hợp lệ bị từ chối do chọn sai khóa, format, IV, AAD hoặc canonicalization; gây lỗi tích hợp nhưng không nên “sửa” bằng việc bỏ kiểm tra.
-- **Provider/configuration error:** thuật toán/khóa/tham số không được hỗ trợ hoặc key store không hoạt động; cần xử lý như lỗi hệ thống và giữ nguyên nguyên tắc từ chối dữ liệu chưa xác thực.
+- **False accept:** the system accepts an invalid tag; the most dangerous failure because it can allow forgery or tampering.
+- **False reject:** a valid tag is rejected due to wrong key, format, IV, AAD, or canonicalization; breaks integration, yet must never be "fixed" by disabling verification.
+- **Provider/configuration error:** unsupported algorithm/key/parameters or unavailable key store; treat as a system error while preserving the rule to reject unauthenticated data.
 
-## 15. Những lỗi tư duy và code cần tránh
+## 15. Thinking and Coding Mistakes to Avoid
 
-1. **So sánh prefix theo tagLength do client gửi:** tạo nguy cơ downgrade, đặc biệt khi nhận tag rỗng hoặc rất ngắn.
-2. **Cho phép 8, 12 hoặc 16 byte tùy message mà không có version/profile tin cậy:** không còn một ngưỡng xác thực rõ.
-3. **Dùng equals/toString để so tag biểu diễn:** dễ sai encoding, mất byte, hoặc dùng so sánh không được thiết kế chống timing leak.
-4. **Dùng SHA-256(message) làm MAC:** không có khóa bí mật và đối thủ có thể tính lại sau khi sửa message.
-5. **Đưa chỉ một phần request vào HMAC trong khi tin toàn bộ request:** các field ngoài phạm vi tag có thể bị đổi.
-6. **Bỏ qua AEADBadTagException để vẫn dùng plaintext:** làm mất chức năng bảo vệ cốt lõi của AEAD.
-7. **Nhầm tag length với IV length:** GCMParameterSpec(128, iv) có tag 128 bit, còn 12 byte là IV thường gặp.
-8. **Dùng lại cặp AES-GCM key/IV:** có thể dẫn tới tấn công nghiêm trọng dù tag đủ dài.
-9. **Đổi từ tag 128 bit sang 64 bit để “đọc được dữ liệu cũ”:** hạ bảo đảm và có thể không thuộc policy/protocol; phải sửa định dạng hay key/parameter mismatch đúng nguyên nhân.
-10. **Không phân biệt verify thất bại với lỗi kỹ thuật:** xử lý lỗi phải giữ tính an toàn, đồng thời giúp vận hành chẩn đoán mà không lộ secret.
-11. **Chỉ test đầu vào đúng:** không phát hiện cắt tag, sai khóa, sai tenant/AAD hoặc replay.
-12. **Tin tag đồng nghĩa đã phân quyền:** tag chỉ xác thực bytes theo khóa; nghiệp vụ vẫn cần authorization, kiểm tra trạng thái và chống thao tác lặp.
+1. **Comparing prefixes based on client-supplied tagLength:** creates a downgrade risk, especially with empty or very short tags.
+2. **Allowing 8, 12, or 16 bytes per message without a trusted version/profile:** eliminates a clear authentication threshold.
+3. **Using equals/toString to compare encoded tags:** prone to encoding bugs, dropped bytes, or non-timing-safe comparisons.
+4. **Using SHA-256(message) as a MAC:** has no secret key, and an adversary can recompute it after modifying the message.
+5. **Including only part of a request in HMAC while trusting the whole request:** fields outside tag scope can be altered.
+6. **Ignoring AEADBadTagException to still use plaintext:** defeats AEAD's core protection.
+7. **Confusing tag length with IV length:** GCMParameterSpec(128, iv) specifies a 128-bit tag, while 12 bytes is a common IV size.
+8. **Reusing an AES-GCM key/IV pair:** can enable severe attacks regardless of tag length.
+9. **Switching from 128-bit to 64-bit tag to "read old data":** lowers guarantees and may violate policy/protocol; fix the root format or key/parameter mismatch instead.
+10. **Not distinguishing verification failure from technical errors:** error handling must stay safe while helping operations diagnose without leaking secrets.
+11. **Testing only valid inputs:** misses tag truncation, wrong keys, wrong tenant/AAD, or replay.
+12. **Believing a tag equals authorization:** a tag only authenticates bytes under a key; business logic still needs authorization, state checks, and duplicate prevention.
 
-## 16. Tự kiểm tra kiến thức
+## 16. Knowledge Check
 
-**Câu 1.** Giao thức dùng HMAC-SHA256-128 nhưng nhận 15 byte. Có nên so sánh 15 byte đầu của expected tag không?  
-**Trả lời:** Không. Chính sách yêu cầu **đúng 16 byte**. Từ chối tag 15 byte, dù 15 byte đầu có khớp, bởi độ dài không do client thương lượng.
+**Question 1.** The protocol uses HMAC-SHA256-128, yet 15 bytes are received. Should we compare the first 15 bytes of the expected tag?  
+**Answer:** No. Policy requires **exact 16 bytes**. Reject the 15-byte tag even if the first 15 bytes match, because tag length is never negotiated by the client.
 
-**Câu 2.** HMAC của body hợp lệ nhưng header tenant ID bị thay đổi. Điều gì có thể xảy ra?  
-**Trả lời:** Nếu tenant ID không được bảo vệ bởi MAC hoặc gắn với ngữ cảnh tin cậy, tag trên body vẫn có thể đúng. Phải xác định chính xác metadata nào được HMAC bao phủ và kiểm tra quyền theo tenant ở server.
+**Question 2.** The body's HMAC is valid, but the tenant ID header was modified. What can happen?  
+**Answer:** If tenant ID is not protected by the MAC or bound to a trusted context, the body tag can still verify. You must explicitly specify which metadata HMAC covers and enforce server-side tenant authorization.
 
-**Câu 3.** Dùng đúng AES-GCM key và ciphertext, nhưng AAD khác. Java trả gì?  
-**Trả lời:** Việc xác minh tag thất bại; với JCE GCM, **Cipher.doFinal** có thể ném **AEADBadTagException**. Không thể kết luận chắc chắn có tấn công chỉ từ exception, vì sai AAD cũng gây ra lỗi.
+**Question 3.** Using the right AES-GCM key and ciphertext, but different AAD. What does Java return?  
+**Answer:** Tag verification fails; with JCE GCM, **Cipher.doFinal** can throw **AEADBadTagException**. You cannot conclude with certainty that an attack occurred from the exception alone, since wrong AAD produces the same error.
 
-**Câu 4.** GCMParameterSpec(128, iv) với iv dài 12 byte có nghĩa tag dài 128 byte không?  
-**Trả lời:** Không. 128 là **bit tag = 16 byte**; IV dài 12 byte là một tham số khác.
+**Question 4.** Does GCMParameterSpec(128, iv) with a 12-byte iv mean the tag is 128 bytes long?  
+**Answer:** No. 128 is **tag bits = 16 bytes**; the 12-byte IV is a separate parameter.
 
-**Câu 5.** Nếu server thấy tag 8 byte, vì sao không tự chuyển sang GCM 64-bit tag để thử giải mã?  
-**Trả lời:** Tag length là quyết định của giao thức và chính sách khóa; độ dài ngắn hơn có giới hạn bảo mật nghiêm ngặt và có thể không được provider hỗ trợ. Dữ liệu bị cắt không được hợp thức hóa bằng downgrade.
+**Question 5.** If the server sees an 8-byte tag, why not automatically switch to a 64-bit GCM tag to try decrypting?  
+**Answer:** Tag length is a protocol and key-policy decision; shorter lengths carry strict security limits and may not be supported by the provider. Truncated data must not be legitimized through downgrades.
 
-**Câu 6.** Tag hợp lệ có chứng minh webhook chưa từng được xử lý không?  
-**Trả lời:** Không. Cần thêm timestamp/nonce, transaction ID, kiểm tra trạng thái và idempotency được tích hợp vào giao thức.
+**Question 6.** Does a valid tag prove a webhook was never processed before?  
+**Answer:** No. You also need timestamps/nonces, transaction IDs, state checks, and idempotency built into the protocol.
 
-**Câu 7.** HMAC-SHA256 trả 32 byte nhưng hệ thống dùng 16 byte. Khi xác minh, có tính HMAC trên “nửa message” không?  
-**Trả lời:** Không. **Luôn tính HMAC trên toàn bộ message bytes**; chỉ lấy **16 byte đầu output** theo profile HMAC-SHA256-128 được quy định.
+**Question 7.** HMAC-SHA256 returns 32 bytes, yet the system uses 16 bytes. When verifying, do we compute HMAC over "half the message"?  
+**Answer:** No. **Always compute HMAC over the entire message bytes**; only take the **first 16 output bytes** per the defined HMAC-SHA256-128 profile.
 
-**Câu 8.** MessageDigest.isEqual có làm toàn bộ endpoint trở thành constant-time không?  
-**Trả lời:** Không. Nó hỗ trợ so sánh digest hạn chế timing leak theo nội dung trong điều kiện thích hợp, nhưng decode, key lookup, rate limit, exception và các bước xử lý khác vẫn có hành vi thời gian riêng.
+**Question 8.** Does MessageDigest.isEqual make the entire endpoint constant-time?  
+**Answer:** No. It helps compare digests with reduced content-based timing leaks under suitable conditions, whereas decoding, key lookup, rate limiting, exceptions, and other steps have their own timing behavior.
 
-## 17. Kết luận và tài liệu đối chiếu
+## 17. Conclusion and References
 
-Một cơ chế kiểm tra tag đúng đòi hỏi đủ ba bất biến: **(1) đúng khóa và đúng bytes được bảo vệ; (2) thuật toán/tham số và độ dài tag theo policy cố định; (3) xác thực thất bại thì không sử dụng nội dung**. HMAC xác minh bằng cách tính MAC và so sánh tag; AES-GCM xác minh bằng chính Cipher.doFinal. Tag dài bảo vệ tốt hơn trước đoán giả mạo trong các giới hạn thuật toán, nhưng không thay thế quản lý khóa, IV duy nhất, phân quyền, chống replay và kiểm soát vận hành.
+A sound tag verification mechanism requires all three invariants: **(1) right key and exact protected bytes; (2) fixed policy-defined algorithm/parameters and tag length; (3) never use content when authentication fails**. HMAC verifies by computing a MAC and comparing tags; AES-GCM verifies inside Cipher.doFinal itself. Longer tags defend better against guessing forgeries within algorithm limits, yet never replace key management, unique IVs, authorization, replay protection, and operational controls.
 
-Tài liệu kỹ thuật đáng tham khảo:
+Recommended technical references:
 
-- [RFC 2104 — HMAC: Keyed-Hashing for Message Authentication, mục 5 về truncated output](https://www.rfc-editor.org/rfc/rfc2104.html)
+- [RFC 2104 — HMAC: Keyed-Hashing for Message Authentication, Section 5 on truncated output](https://www.rfc-editor.org/rfc/rfc2104.html)
 - [NIST SP 800-38D — Galois/Counter Mode (GCM) and GMAC](https://csrc.nist.gov/pubs/sp/800/38/d/final)
 - [Java SE 21 — Mac API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Mac.html)
 - [Java SE 21 — Cipher API, GCM/AEAD](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html)

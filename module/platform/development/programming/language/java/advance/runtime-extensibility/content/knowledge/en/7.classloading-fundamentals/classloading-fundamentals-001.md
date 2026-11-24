@@ -1,93 +1,93 @@
-# Phân biệt nạp, liên kết và khởi tạo lớp trong luồng kích hoạt plugin
+# Distinguishing Class Loading, Linking, and Initialization in the Plugin Activation Flow
 
-## 1. Ba giai đoạn của JVM và bước kích hoạt của ứng dụng
+## 1. The Three JVM Phases and the Application Activation Step
 
-Khi một ứng dụng Java nhận thêm plugin, các hành động “tìm thấy tệp JAR”, “nạp lớp”, “liên kết lớp”, “khởi tạo lớp”, “tạo đối tượng” và “bật plugin” **không đồng nghĩa**. Nếu gộp chúng thành một bước, rất khó giải thích vì sao plugin đã được phát hiện nhưng chưa chạy, vì sao lỗi thiếu thư viện chỉ xuất hiện khi gọi phương thức, hoặc vì sao một đoạn mã `static` lại chạy sớm hơn dự định.
+When a Java application receives an additional plugin, the actions "finding the JAR file," "loading the class," "linking the class," "initializing the class," "creating an object," and "enabling the plugin" are **not synonymous**. If you lump them into a single step, it becomes very difficult to explain why a plugin has been discovered but is not yet running, why a missing-library error only appears when a method is invoked, or why a `static` block runs earlier than expected.
 
-Có thể nhìn quy trình ở hai tầng:
+You can view the process at two layers:
 
-- **Tầng JVM:** nạp (loading), liên kết (linking) và khởi tạo (initialization) **lớp/giao diện** theo quy tắc của máy ảo Java.
-- **Tầng ứng dụng:** phát hiện plugin, kiểm tra hợp đồng/siêu dữ liệu, tạo instance, gọi phương thức kích hoạt như `start()`, rồi quản lý hoạt động và dừng plugin. Những bước này do host hoặc plugin manager thiết kế.
+- **JVM layer:** loading, linking, and initialization of **classes/interfaces** according to the rules of the Java Virtual Machine.
+- **Application layer:** plugin discovery, contract/metadata checks, instance creation, invoking activation methods such as `start()`, and then managing operation and stopping the plugin. These steps are designed by the host or plugin manager.
 
 ```text
-Host đọc cấu hình/JAR hoặc thông tin đăng ký plugin
+Host reads plugin configuration/JAR or registration info
                      |
                      v
-            Tìm tên kiểu provider
+            Find provider type name
                      |
                      v
-       JVM nạp lớp (LOADING)
-       tìm bytecode, tạo Class
+       JVM class loading (LOADING)
+       find bytecode, create Class
                      |
                      v
-       JVM liên kết (LINKING)
-       kiểm tra -> chuẩn bị -> phân giải (*)
+       JVM linking (LINKING)
+       verify -> prepare -> resolve (*)
                      |
                      v
-       JVM khởi tạo (INITIALIZATION)
-       chạy logic khởi tạo tĩnh khi có kích hoạt
+       JVM initialization (INITIALIZATION)
+       run static initialization logic when triggered
                      |
                      v
-       Tạo đối tượng plugin (nếu mô hình cần)
+       Create plugin object (if the model requires it)
                      |
                      v
-       Host gọi start()/activate() của plugin
+       Host calls start()/activate() on the plugin
                      |
                      v
-       Plugin được phép phục vụ yêu cầu
+       Plugin is allowed to serve requests
 
-(*) JVM có thể phân giải tham chiếu ký hiệu sớm hoặc trì hoãn
-    cho tới khi dùng; sơ đồ là trình tự khái niệm, không phải
-    bảo đảm mọi tiểu bước đều xảy ra thành từng khối cố định.
+(*) The JVM may resolve symbolic references eagerly or defer them
+    until use; this diagram is a conceptual sequence, not a
+    guarantee that every sub-step occurs in fixed blocks.
 ```
 
-**Khởi tạo lớp** là công việc của JVM; **kích hoạt plugin** là quyết định của host. Một lớp có thể đã được khởi tạo trong JVM nhưng plugin vẫn chưa nhận lời gọi `start()`. Ngược lại, một plugin manager không thể an toàn gọi instance method của plugin khi chưa có đối tượng phù hợp.
+**Class initialization** is the JVM's job; **plugin activation** is the host's decision. A class may already be initialized in the JVM while the plugin has still not received a `start()` call. Conversely, a plugin manager cannot safely invoke an instance method on a plugin before a suitable object exists.
 
-## 2. Nạp lớp (loading): tìm và định nghĩa kiểu
+## 2. Class Loading: Finding and Defining a Type
 
-Nạp lớp là quá trình JVM, thông qua một bộ nạp lớp (class loader), tìm biểu diễn nhị phân của lớp/giao diện và tạo đối tượng `java.lang.Class` tương ứng. Với plugin, bytecode có thể đến từ JAR trên classpath hoặc cơ chế nạp do host quản lý.
+Class loading is the process by which the JVM, through a class loader, finds the binary representation of a class/interface and creates the corresponding `java.lang.Class` object. For a plugin, the bytecode may come from a JAR on the classpath or from a loading mechanism managed by the host.
 
-Ví dụ, host biết tên nhị phân của provider:
+For example, the host knows the binary name of a provider:
 
 ```text
 demo.plugin.GreetingPlugin
 ```
 
-Một lời gọi tiêu biểu là:
+A typical call is:
 
 ```java
 ClassLoader loader = Thread.currentThread().getContextClassLoader();
 Class<?> type = Class.forName("demo.plugin.GreetingPlugin", false, loader);
 ```
 
-Đây là **đoạn mã minh họa**, không phải chương trình độc lập. Tham số `false` yêu cầu **không khởi tạo lớp** trong lời gọi này. Theo API Java, overload `Class.forName(name, initialize, loader)` cố tìm, nạp và liên kết lớp; điều đó **không đồng nghĩa** với thực thi khối `static`. Một số công việc phân giải liên kết có thể vẫn phát sinh sau đó.
+This is an **illustrative snippet**, not a standalone program. The `false` parameter requests **not initializing the class** during this call. According to the Java API, the `Class.forName(name, initialize, loader)` overload attempts to locate, load, and link the class; that is **not synonymous** with executing the `static` block. Some linking resolution work may still occur later.
 
-Phân biệt hai đối tượng thường bị nhầm:
+Distinguish between two objects that are often confused:
 
-- `Class<?>` là đối tượng mô tả **kiểu** mà JVM biết đến; sở hữu đối tượng này chưa có nghĩa đã tạo instance của plugin.
-- `GreetingPlugin` là kiểu lớp; một **instance** chỉ xuất hiện khi host tạo đối tượng bằng `new`, constructor phản chiếu hoặc cơ chế tạo provider khác.
+- `Class<?>` is the object describing the **type** known to the JVM; holding this object does not mean a plugin instance has been created.
+- `GreetingPlugin` is the class type; an **instance** only exists when the host creates an object using `new`, a reflective constructor, or another provider creation mechanism.
 
-`ClassLoader.loadClass("demo.plugin.GreetingPlugin")` cũng thường được dùng để yêu cầu nạp lớp; bản thân thao tác nạp thông thường **không yêu cầu chạy khởi tạo tĩnh**. Tuy nhiên, host không nên dựa vào tên phương thức “load” để đoán mọi phụ thuộc đã tương thích: việc phân giải một số tham chiếu có thể được trì hoãn.
+`ClassLoader.loadClass("demo.plugin.GreetingPlugin")` is also commonly used to request loading a class; the normal loading operation itself **does not require running static initialization**. However, the host should not rely on the method name "load" to assume all dependencies are compatible: resolution of some references may be deferred.
 
-### Vai trò của classloader trong plugin
+### The Role of the ClassLoader in Plugins
 
-Một lớp Java được phân biệt không chỉ bằng tên nhị phân mà còn bằng **bộ nạp đã định nghĩa lớp**. Hai classloader khác nhau có thể tạo hai kiểu riêng biệt cùng tên `demo.spi.Plugin`; plugin thực thi một bản interface có thể không ép kiểu được sang bản do host giữ.
+A Java class is distinguished not only by its binary name but also by **the loader that defined the class**. Two different classloaders can create two distinct types with the same name `demo.spi.Plugin`; a plugin implementing one version of the interface may not be castable to the version held by the host.
 
-Để dùng chung hợp đồng, hệ thống plugin thường để cả host và plugin nhìn thấy **cùng kiểu API/SPI** qua cấu trúc classloader phù hợp. Classloader riêng giúp tổ chức phụ thuộc và có thể hỗ trợ tháo gỡ phiên bản plugin khi mọi tham chiếu đã được giải phóng; nó **không tự là ranh giới bảo mật** và việc nạp động không bảo đảm hot-swap an toàn.
+To share a contract, plugin systems typically make both the host and the plugin see **the same API/SPI type** through an appropriate classloader hierarchy. A dedicated classloader helps organize dependencies and can support unloading a plugin version once all references have been released; it is **not itself a security boundary** and dynamic loading does not guarantee safe hot-swapping.
 
-## 3. Liên kết (linking): kiểm tra, chuẩn bị và phân giải
+## 3. Linking: Verification, Preparation, and Resolution
 
-Liên kết là công việc biến lớp đã nạp thành kiểu có thể sử dụng theo quy tắc JVM. Ba phần cần hiểu:
+Linking is the work of turning a loaded class into a usable type according to JVM rules. Three parts to understand:
 
-| Phần của linking | JVM thực hiện điều gì? | Điều cần nhớ với plugin |
+| Part of linking | What does the JVM do? | What to remember for plugins |
 |---|---|---|
-| **Verification** – kiểm tra | Kiểm tra tính hợp lệ của biểu diễn lớp/bytecode, các ràng buộc kiểu và an toàn kiểm chứng | Plugin bị lỗi bytecode có thể gây `VerifyError` trước khi phương thức nghiệp vụ chạy |
-| **Preparation** – chuẩn bị | Tạo bộ nhớ cho các trường `static` của lớp và đặt giá trị khởi đầu theo quy tắc JVM | Không phải bước chạy toàn bộ mã `static` do lập trình viên viết |
-| **Resolution** – phân giải | Biến tham chiếu ký hiệu trong constant pool thành tham chiếu trực tiếp đến lớp, trường, phương thức... | Thiếu lớp phụ thuộc, sai chữ ký, vi phạm quyền truy cập có thể lộ ra khi tham chiếu được phân giải |
+| **Verification** | Checks the validity of the class/bytecode representation, type constraints, and verification safety | A plugin with invalid bytecode can cause `VerifyError` before any business method runs |
+| **Preparation** | Allocates memory for the class's `static` fields and assigns initial values per JVM rules | This is not the step that runs all programmer-written `static` code |
+| **Resolution** | Turns symbolic references in the constant pool into direct references to classes, fields, methods, etc. | Missing dependency classes, wrong signatures, or access violations can surface when references are resolved |
 
-### 3.1. Preparation không phải initialization
+### 3.1. Preparation Is Not Initialization
 
-Xét một lớp minh họa:
+Consider an illustrative class:
 
 ```java
 final class State {
@@ -101,73 +101,73 @@ final class State {
 }
 ```
 
-Đây là **đoạn lớp minh họa**, không phải chương trình hoàn chỉnh. Ở bước chuẩn bị, các trường `static` thông thường nhận giá trị mặc định phù hợp (`0` hoặc `null`). Những phép gán như `counter = 7` và lời gọi `build()` thuộc công việc **khởi tạo**, không đơn giản được thực thi ở bước chuẩn bị. Vì thế không được kỳ vọng thấy `build()` in ra chỉ vì class đã được nạp hoặc chuẩn bị.
+This is an **illustrative class snippet**, not a complete program. In the preparation step, normal `static` fields receive their appropriate default values (`0` or `null`). Assignments like `counter = 7` and the `build()` call belong to **initialization**, and are not simply executed during preparation. Therefore, you should not expect `build()` to be printed merely because the class has been loaded or prepared.
 
-Ngoại lệ kỹ thuật cần biết: trường `static final` có thuộc tính class file `ConstantValue` được JVM gán giá trị hằng theo quy tắc của bước chuẩn bị. Điều này **không làm thay đổi** kết luận rằng khối `static { ... }` và các biểu thức khởi tạo tĩnh thông thường không chạy trong preparation.
+Technical exception to know: a `static final` field with a `ConstantValue` class file attribute is assigned its constant value by the JVM according to preparation rules. This **does not change** the conclusion that `static { ... }` blocks and ordinary static initialization expressions do not run during preparation.
 
-### 3.2. Resolution có thể đến muộn
+### 3.2. Resolution Can Arrive Late
 
-Bytecode có thể lưu các tên ký hiệu như `demo.spi.Plugin`, tên phương thức và kiểu tham số trong constant pool. JVM có quyền phân giải nhiều tham chiếu khi liên kết hoặc trì hoãn đến lúc lệnh cần dùng chúng. Do đó:
+Bytecode may store symbolic names such as `demo.spi.Plugin`, method names, and parameter types in the constant pool. The JVM has the right to resolve many references during linking or defer them until an instruction actually needs them. Consequently:
 
-- Không thể khẳng định mọi lớp phụ thuộc và mọi phương thức đã được phân giải xong chỉ vì `Class.forName(..., false, ...)` trả về `Class`.
-- Một plugin có thể nạp/khởi tạo được nhưng thất bại khi đi vào **nhánh mã chưa từng chạy** vì thiếu phương thức hoặc lớp phụ thuộc.
-- Các lỗi `NoClassDefFoundError`, `NoSuchMethodError`, `IllegalAccessError` hoặc dạng `LinkageError` khác cần được xem xét cùng bộ nạp, phiên bản bytecode và thư viện thực sự hiện diện.
+- You cannot claim all dependency classes and all methods have been resolved just because `Class.forName(..., false, ...)` returned a `Class`.
+- A plugin may load/initialize successfully yet fail when entering **an unexecuted code branch** due to a missing method or dependency class.
+- Errors like `NoClassDefFoundError`, `NoSuchMethodError`, `IllegalAccessError`, or other forms of `LinkageError` need to be examined alongside the loader, bytecode version, and libraries actually present.
 
-Khả năng phân giải muộn giải thích vì sao preflight tại thời điểm khám phá plugin là cần thiết nhưng chưa chắc phát hiện mọi lỗi chạy về sau.
+The possibility of late resolution explains why preflight checks at plugin discovery time are necessary yet not guaranteed to catch every later runtime error.
 
-## 4. Khởi tạo lớp (initialization): JVM chạy mã tĩnh
+## 4. Class Initialization: The JVM Runs Static Code
 
-Khởi tạo là giai đoạn JVM thực thi logic khởi tạo tĩnh của lớp, thường được trình biên dịch gom thành phương thức đặc biệt `<clinit>`. Nó bao gồm các khối `static { ... }` và các biểu thức khởi tạo trường `static` theo thứ tự hợp lệ. Lập trình viên **không tự gọi** `<clinit>` như phương thức Java bình thường.
+Initialization is the phase in which the JVM executes the class's static initialization logic, typically compiled into the special `<clinit>` method. It includes `static { ... }` blocks and `static` field initialization expressions in valid order. Programmers **do not directly call** `<clinit>` like a normal Java method.
 
-Khi JVM khởi tạo một lớp, nó phải xử lý thứ tự khởi tạo các lớp cha liên quan theo đặc tả; điều này không có nghĩa mọi lớp phụ thuộc được nạp đều tự động khởi tạo ngay.
+When the JVM initializes a class, it must handle the initialization order of related superclasses according to the specification; this does not mean every loaded dependency class is automatically initialized right away.
 
-Các trường hợp **sử dụng chủ động (active use)** có thể kích hoạt khởi tạo lớp nếu lớp chưa được khởi tạo:
+**Active use** cases that can trigger class initialization if the class is not yet initialized:
 
-- Tạo đối tượng bằng `new` (khởi tạo lớp trước khi chạy constructor của instance).
-- Gọi phương thức `static` do lớp khai báo.
-- Đọc hoặc ghi trường `static` không thuộc ngoại lệ hằng compile-time.
-- Một số thao tác phản chiếu hoặc lời gọi method handle theo quy tắc Java/JVM; ví dụ `Class.forName(name, true, loader)` yêu cầu khởi tạo.
+- Creating an object with `new` (initializes the class before running the instance constructor).
+- Calling a `static` method declared by the class.
+- Reading or writing a `static` field that does not fall under the compile-time constant exception.
+- Certain reflective operations or method handle calls per Java/JVM rules; for example, `Class.forName(name, true, loader)` requests initialization.
 
-Ngược lại, lấy class literal `GreetingPlugin.class`, gọi `getName()` trên đối tượng `Class` hoặc dùng `Class.forName(name, false, loader)` **không tự là yêu cầu khởi tạo lớp đó**. Nếu lớp đã được mã khác khởi tạo trước, lời gọi `false` cũng không “hoàn tác” việc này.
+Conversely, taking a class literal `GreetingPlugin.class`, calling `getName()` on a `Class` object, or using `Class.forName(name, false, loader)` **is not itself a request to initialize that class**. If the class was already initialized by other code beforehand, a `false` call does not "undo" that initialization.
 
-**Bẫy hằng số:** tham chiếu trực tiếp đến một biến hằng `static final` nguyên thủy/`String` mà giá trị được xác định lúc biên dịch có thể bị inline vào mã gọi và **không kích hoạt khởi tạo** của lớp khai báo. Đừng dùng việc đọc một hằng như thế làm phép thử xem khối `static` đã chạy chưa.
+**Constant trap:** directly referencing a primitive/`String` `static final` constant variable whose value is determined at compile time can be inlined into the caller and **does not trigger initialization** of the declaring class. Do not use reading such a constant as a test for whether the `static` block has run.
 
-Khởi tạo thành công thông thường xảy ra **một lần cho mỗi lớp được định nghĩa** trong JVM, kể cả khi nhiều thread cùng sử dụng. JVM đồng bộ hóa quy trình; các thread khác có thể phải đợi. Classloader khác định nghĩa một lớp cùng tên là một **định danh kiểu khác**, chứ không phải “khởi tạo lại” chính đối tượng `Class` đã có.
+Successful initialization normally happens **once per defined class** in the JVM, even when multiple threads use it concurrently. The JVM synchronizes the process; other threads may have to wait. A different classloader defining a class with the same name creates a **different type identity**, not a "re-initialization" of the existing `Class` object.
 
-### 4.1. Điều gì xảy ra nếu <clinit> thất bại?
+### 4.1. What Happens if `<clinit>` Fails?
 
-Một khối khởi tạo tĩnh có thể ném ngoại lệ, ví dụ vì phụ thuộc ngoài chưa sẵn sàng. Nếu mã khởi tạo ném ngoại lệ không phải `Error`, JVM thường báo `ExceptionInInitializerError` cho lần thất bại; những nỗ lực sử dụng tiếp theo đối với cùng lớp trong cùng loader có thể gặp `NoClassDefFoundError` vì lớp đã ở trạng thái khởi tạo lỗi. Không nên giả định có thể đơn giản “thử lại `Class.forName(..., true, ...)`” để làm cho lớp lỗi chạy lại `static`.
+A static initialization block may throw an exception, for example because an external dependency is not ready. If initialization code throws a non-`Error` exception, the JVM normally reports `ExceptionInInitializerError` for the failure; subsequent attempts to use the same class in the same loader may encounter `NoClassDefFoundError` because the class is now in an erroneous initialization state. You should not assume you can simply "retry `Class.forName(..., true, ...)`" to make the failed class re-run `static`.
 
-Một ví dụ nguy hiểm là kết nối mạng, mở file, tạo thread hoặc tự đăng ký vào registry ngay trong `static`. Các tác dụng phụ ấy có thể xuất hiện **trước khi host chính thức bật plugin**, khiến kiểm soát lỗi, rollback hoặc tắt plugin khó khăn. Nên để công việc nghiệp vụ và tài nguyên vào vòng đời tường minh khi có thể.
+A dangerous example is making network connections, opening files, spawning threads, or self-registering into a registry directly inside `static`. Those side effects can occur **before the host officially enables the plugin**, making error control, rollback, or shutting down the plugin difficult. Business work and resources should be placed in an explicit lifecycle whenever possible.
 
-## 5. Khởi tạo lớp, tạo instance và kích hoạt plugin là ba hành động riêng
+## 5. Class Initialization, Instance Creation, and Plugin Activation Are Three Separate Actions
 
-Xét một lớp có cả khối `static`, constructor và phương thức `start()`:
+Consider a class that has a `static` block, a constructor, and a `start()` method:
 
-| Hành động | Ai điều phối? | Chạy phần mã nào? |
+| Action | Who coordinates it? | Which code runs? |
 |---|---|---|
-| JVM **khởi tạo lớp** | JVM khi gặp tình huống cần khởi tạo | `static` / `<clinit>`, thông thường một lần |
-| **Tạo instance** | Host/factory/ServiceLoader hoặc mã khác | Constructor và các bộ khởi tạo instance, mỗi đối tượng mới |
-| **Kích hoạt plugin** | Host hoặc plugin manager theo hợp đồng | `start()`/`activate()` do hệ thống tự định nghĩa |
+| JVM **class initialization** | The JVM when encountering a situation requiring initialization | `static` / `<clinit>`, normally once |
+| **Instance creation** | Host/factory/ServiceLoader or other code | Constructor and instance initializers, per new object |
+| **Plugin activation** | Host or plugin manager per contract | `start()`/`activate()` defined by the system |
 
-Một lớp đã khởi tạo **không tự tạo đối tượng**; một đối tượng được tạo **không tự được coi là plugin đã kích hoạt** nếu hợp đồng yêu cầu gọi `start()`. Trong mô hình dùng phương thức `static` làm điểm vào, có thể không cần instance, nhưng host vẫn phải định nghĩa rõ bước kích hoạt ứng dụng.
+An initialized class **does not automatically create an object**; a created object **is not automatically considered an activated plugin** if the contract requires calling `start()`. In a model using a `static` method as an entry point, an instance may not be needed, yet the host must still clearly define the application activation step.
 
-### 5.1. Trình tự kiến trúc nên hướng tới
+### 5.1. Target Architectural Sequence
 
-1. **Phát hiện ứng viên:** đọc descriptor, service provider file hoặc cấu hình để biết plugin nào có thể được nạp.
-2. **Kiểm tra trước:** phiên bản, hợp đồng, chữ ký/nguồn tin cậy, quyền và điều kiện cấu hình. Những kiểm tra có thể làm từ metadata nên thực hiện trước khi chạy mã plugin.
-3. **Nạp/kiểm tra kiểu:** chọn classloader, lấy `Class` khi cần, so sánh khả năng triển khai SPI. Bước này có thể khiến JVM kiểm tra/giải quyết một số phụ thuộc.
-4. **Khởi tạo/tạo instance:** theo cơ chế JVM hoặc provider factory; chấp nhận rằng mã tĩnh và constructor có thể phát sinh tác dụng phụ/lỗi.
-5. **Kích hoạt:** gọi `start()` sau khi host đã quyết định chấp nhận plugin; quản lý kết quả và trạng thái hoạt động.
-6. **Ngừng hoạt động:** gọi `stop()`/`close()` nếu hợp đồng có quy định; giải phóng tài nguyên và tham chiếu.
+1. **Candidate discovery:** read descriptors, service provider files, or configuration to learn which plugins can be loaded.
+2. **Pre-checks:** version, contract, signature/trust source, permissions, and configuration conditions. Checks that can be done from metadata should run before executing plugin code.
+3. **Type loading/checking:** choose the classloader, obtain `Class` as needed, compare SPI implementation compatibility. This step may cause the JVM to verify/resolve some dependencies.
+4. **Initialization/instance creation:** per the JVM mechanism or provider factory; accept that static code and constructors may produce side effects/errors.
+5. **Activation:** call `start()` after the host decides to accept the plugin; manage results and active state.
+6. **Deactivation:** call `stop()`/`close()` if specified by the contract; release resources and references.
 
-Thứ tự này là **chính sách ứng dụng để hạn chế tác dụng phụ**; JVM có quyền phân giải từng tham chiếu vào các thời điểm khác nhau và một số bước có thể đã diễn ra do thao tác khác từ trước. Host không thể bảo đảm mọi mã độc hại được kiểm tra an toàn chỉ bằng việc tải `Class` mà không khởi tạo.
+This ordering is an **application policy to limit side effects**; the JVM retains the right to resolve individual references at different times and some steps may already have occurred due to prior operations. The host cannot guarantee all malicious code is safely checked merely by loading `Class` without initializing it.
 
-## 6. Ví dụ Java 17+: nhìn thấy thời điểm mỗi loại mã chạy
+## 6. Java 17+ Example: Seeing When Each Kind of Code Runs
 
-Ví dụ này dùng reflection để chủ động yêu cầu nạp **không khởi tạo**, sau đó yêu cầu khởi tạo, tạo đối tượng và gọi phương thức kích hoạt. Plugin nằm trong JAR riêng trên classpath; không cần thư viện bên ngoài.
+This example uses reflection to explicitly request loading **without initialization**, then request initialization, create an object, and invoke the activation method. The plugin lives in a separate JAR on the classpath; no external libraries are needed.
 
-### 6.1. Cấu trúc tệp
+### 6.1. File Structure
 
 ```text
 loading-demo/
@@ -179,7 +179,7 @@ loading-demo/
     └── src/demo/host/Main.java
 ```
 
-### 6.2. Hợp đồng — api/src/demo/spi/Plugin.java
+### 6.2. Contract — api/src/demo/spi/Plugin.java
 
 ```java
 package demo.spi;
@@ -189,9 +189,9 @@ public interface Plugin {
 }
 ```
 
-Giao diện này là hợp đồng chung. Host và plugin đều biên dịch dựa trên một bản `Plugin` mà chương trình chạy sẽ dùng chung.
+This interface is the shared contract. Both host and plugin compile against one `Plugin` copy that the running program will share.
 
-### 6.3. Triển khai — plugin/src/demo/plugin/GreetingPlugin.java
+### 6.3. Implementation — plugin/src/demo/plugin/GreetingPlugin.java
 
 ```java
 package demo.plugin;
@@ -214,7 +214,7 @@ public final class GreetingPlugin implements Plugin {
 }
 ```
 
-Thông báo `<clinit>` mô phỏng tên phương thức khởi tạo tĩnh trong JVM; Java sẽ sinh phần tương ứng khi biên dịch. Dòng `<init>` là **chuỗi được in trong constructor**, biểu thị thao tác tạo instance. Còn `start()` là phương thức nghiệp vụ do host gọi, không phải hook khởi tạo tự động của JVM.
+The `<clinit>` message mimics the name of the static initialization method in the JVM; Java generates the corresponding method at compile time. The `<init>` line is a **string printed inside the constructor**, representing instance creation. Meanwhile, `start()` is a business method invoked by the host, not an automatic JVM initialization hook.
 
 ### 6.4. Host — host/src/demo/host/Main.java
 
@@ -250,11 +250,11 @@ public final class Main {
 }
 ```
 
-Lưu ý tên lớp provider nằm trong chuỗi cấu hình của host. Việc dùng `Class.forName` ở đây là ví dụ dạy học để nhìn thấy **ranh giới các giai đoạn**; một ứng dụng thực tế có thể lấy tên từ descriptor hoặc dùng `ServiceLoader`/registry.
+Note that the provider class name sits in a host configuration string. Using `Class.forName` here is a pedagogical example to see **the boundaries between phases**; a real-world application may read the name from a descriptor or use `ServiceLoader`/a registry.
 
-### 6.5. Biên dịch và chạy bằng JDK 17+ trên PowerShell
+### 6.5. Compiling and Running with JDK 17+ on PowerShell
 
-Từ thư mục `loading-demo`, chạy:
+From the `loading-demo` directory, run:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path out\api,out\plugin,out\host | Out-Null
@@ -267,7 +267,7 @@ jar --create --file out\greeting-plugin.jar -C out\plugin .
 java -cp "out\api;out\host;out\greeting-plugin.jar" demo.host.Main
 ```
 
-Đầu ra tiêu chuẩn với các tệp trên:
+Standard output with the files above:
 
 ```text
 1. Nap lop, chua yeu cau khoi tao
@@ -281,26 +281,26 @@ java -cp "out\api;out\host;out\greeting-plugin.jar" demo.host.Main
     start() GreetingPlugin
 ```
 
-Mã in thông báo host không dấu tiếng Việt để dễ đối chiếu chính xác đầu ra trên mọi console. Trên macOS/Linux, dùng đường dẫn/lệnh shell tương đương và thay dấu phân cách classpath `;` bằng `:`.
+The host message code prints unaccented Vietnamese for easy exact output comparison on any console. On macOS/Linux, use the equivalent shell paths/commands and replace the `;` classpath separator with `:`.
 
-### 6.6. Vì sao thứ tự này quan trọng?
+### 6.6. Why Does This Order Matter?
 
-- Sau dòng **1**, JVM tìm và liên kết lớp theo yêu cầu `Class.forName(name, false, loader)`; không có dòng `<clinit>` từ plugin.
-- Dòng **2** chỉ lấy tên của đối tượng `Class`; không tạo instance.
-- Dòng **3** kiểm tra kiểu có triển khai giao diện `Plugin`; chưa gọi mã nghiệp vụ của plugin.
-- Sau dòng **4**, yêu cầu khởi tạo làm JVM thực thi khối `static` và in `<clinit>`.
-- Sau dòng **5**, constructor được gọi để tạo instance và in `<init>`. Lớp đã khởi tạo, nên `<clinit>` không chạy lần thứ hai.
-- Sau dòng **6**, host mới gọi `start()`; lúc này plugin thực hiện thao tác được định nghĩa trong hợp đồng.
+- After line **1**, the JVM locates and links the class per `Class.forName(name, false, loader)`; there is no `<clinit>` line from the plugin.
+- Line **2** only retrieves the `Class` object's name; it does not create an instance.
+- Line **3** checks whether the type implements the `Plugin` interface; no plugin business code has been called yet.
+- After line **4**, requesting initialization makes the JVM execute the `static` block and print `<clinit>`.
+- After line **5**, the constructor is called to create an instance and prints `<init>`. The class is already initialized, so `<clinit>` does not run a second time.
+- Only after line **6** does the host call `start()`; at this point the plugin performs the operation defined in the contract.
 
-Nếu **bỏ lời gọi `Class.forName(name, true, loader)`** nhưng vẫn giữ việc tạo instance, JVM sẽ phải khởi tạo `GreetingPlugin` trước khi constructor của nó chạy. Vì thế dòng `<clinit>` sẽ xuất hiện ở bước tạo đối tượng. Đây là lý do không thể dùng “đã gọi constructor” để suy ra lớp chỉ bắt đầu khởi tạo vào đúng lúc đó.
+If you **omit the `Class.forName(name, true, loader)` call** while still keeping instance creation, the JVM will have to initialize `GreetingPlugin` before its constructor runs. Thus the `<clinit>` line will appear at the object creation step. This is why you cannot use "constructor was called" to infer that the class only began initializing at that exact moment.
 
-Nếu bỏ `greeting-plugin.jar` khỏi classpath, lời gọi `Class.forName(name, false, loader)` sẽ thất bại với `ClassNotFoundException`. Đây là lỗi **chưa nạp được lớp**, không phải lỗi do `start()`.
+If you remove `greeting-plugin.jar` from the classpath, the `Class.forName(name, false, loader)` call will fail with `ClassNotFoundException`. This is a **class loading failure**, not a `start()` error.
 
-## 7. ServiceLoader và việc khởi tạo provider
+## 7. ServiceLoader and Provider Initialization
 
-Trong SPI trên classpath, `ServiceLoader` là cơ chế giúp host khám phá provider được công bố qua `META-INF/services/<tên-nhị-phân-service>`. Nó liên quan tới nạp lớp nhưng **không đồng nghĩa với toàn bộ vòng đời kích hoạt plugin**.
+In SPI on the classpath, `ServiceLoader` is the mechanism that helps the host discover providers published via `META-INF/services/<service-binary-name>`. It involves class loading but **is not synonymous with the entire plugin activation lifecycle**.
 
-Ví dụ ở mức ý tưởng:
+Conceptual example:
 
 ```java
 ServiceLoader<Plugin> services = ServiceLoader.load(Plugin.class);
@@ -310,54 +310,54 @@ for (Plugin plugin : services) {
 }
 ```
 
-Đây là **đoạn bổ sung minh họa**, giả định `Plugin` được import và có provider đăng ký hợp lệ. `ServiceLoader.load(...)` chủ yếu tạo đối tượng loader; việc tìm và tạo provider thường diễn ra **lười** khi duyệt danh sách. Trong ví dụ classpath thông thường, lúc ServiceLoader thực sự tạo instance provider thì JVM phải đảm bảo lớp được khởi tạo trước constructor. Còn `plugin.start()` là quyết định riêng của host.
+This is an **illustrative supplementary snippet**, assuming `Plugin` is imported and a valid provider is registered. `ServiceLoader.load(...)` mainly creates the loader object; locating and instantiating providers normally happens **lazily** when iterating the list. In a typical classpath example, when `ServiceLoader` actually instantiates the provider, the JVM must ensure the class is initialized before the constructor runs. Meanwhile, `plugin.start()` is a separate decision by the host.
 
-Hệ quả quan trọng: nếu host duyệt `ServiceLoader` để “kiểm tra xem có plugin nào” thì quá trình duyệt có thể đã **tạo đối tượng provider và chạy mã tĩnh/constructor**. Nếu muốn xem metadata trước khi chạy mã plugin, hãy thiết kế descriptor hoặc bước kiểm tra riêng, hoặc dùng API provider thích hợp và hiểu rõ giới hạn nạp/khởi tạo của nó. `ServiceLoader` không tự thực thi kiểm tra độ tin cậy, quyền truy cập, thứ tự ưu tiên hay quản lý `stop()`.
+Important consequence: if the host iterates over `ServiceLoader` just to "check which plugins exist," iterating may already **instantiate providers and run static code/constructors**. If you want to inspect metadata before running plugin code, design a separate descriptor or inspection step, or use the appropriate provider API and understand its loading/initialization limits. `ServiceLoader` does not itself enforce trust checks, access permissions, ordering priority, or `stop()` management.
 
-Với provider trên **named module** trong JPMS, quy tắc `provides ... with ...` còn cho phép dạng provider factory theo đặc tả. Chi tiết tạo provider tùy cách công bố; bài học cốt lõi vẫn là tách **việc tìm/định nghĩa kiểu** khỏi **mã được thực thi khi khởi tạo và bật plugin**.
+For providers in a **named module** under JPMS, the `provides ... with ...` rule also allows a provider factory form per the specification. Provider creation details depend on how it is published; the core lesson remains separating **type discovery/definition** from **code executed during initialization and plugin startup**.
 
-## 8. Phân loại lỗi theo giai đoạn
+## 8. Classifying Errors by Phase
 
-| Lỗi hoặc dấu hiệu | Thường liên quan đến | Cách điều tra |
+| Error or symptom | Usually related to | How to investigate |
 |---|---|---|
-| `ClassNotFoundException` khi `Class.forName` | Không tìm được lớp cần nạp bằng loader được chọn | Kiểm tra tên nhị phân, classpath/JAR, bộ nạp hiện hành |
-| `UnsupportedClassVersionError` | Bytecode không tương thích phiên bản JVM | So phiên bản JDK dùng biên dịch và chạy |
-| `VerifyError` | Bytecode/kiểu không hợp lệ theo kiểm chứng | Kiểm tra bytecode, công cụ tạo bytecode và phụ thuộc |
-| `NoClassDefFoundError` | Không thể tìm/định nghĩa lớp phụ thuộc hoặc lớp từng khởi tạo thất bại | Đọc thông điệp và nguyên nhân, phân biệt thiếu class với trạng thái khởi tạo lỗi |
-| `NoSuchMethodError`, `IllegalAccessError` | Phân giải/lệnh dùng thành viên không tương thích thư viện lúc chạy | Kiểm tra phiên bản API/SPI và phương thức/chế độ truy cập |
-| `ExceptionInInitializerError` | Lỗi khi thực thi mã khởi tạo tĩnh | Kiểm tra `cause` và khối `static`; tránh retry mù |
-| `InvocationTargetException` từ reflection | Constructor/phương thức được gọi qua reflection ném lỗi | Kiểm tra ngoại lệ nguyên nhân; phân biệt với lỗi nạp/liên kết |
-| `ClassCastException` khi ép kiểu provider | Không đúng hợp đồng hoặc hai classloader định nghĩa hai bản khác nhau của kiểu cùng tên | Kiểm tra định danh kiểu và loader của cả hai bên |
-| `ServiceConfigurationError` khi duyệt SPI | Khai báo provider sai hoặc không tạo được provider theo ServiceLoader | Kiểm tra `META-INF/services`, constructor/factory, phụ thuộc và nguyên nhân |
+| `ClassNotFoundException` in `Class.forName` | Cannot find the requested class using the chosen loader | Check binary name, classpath/JAR, active class loader |
+| `UnsupportedClassVersionError` | Bytecode is incompatible with the JVM version | Compare JDK versions used for compiling and running |
+| `VerifyError` | Invalid bytecode/types under verification | Check bytecode, bytecode generation tools, and dependencies |
+| `NoClassDefFoundError` | Cannot find/define a dependency class or a class previously failed initialization | Read the message and cause; distinguish a missing class from a failed initialization state |
+| `NoSuchMethodError`, `IllegalAccessError` | Resolution/instruction uses a member incompatible with the runtime library | Check API/SPI versions and method/access modifiers |
+| `ExceptionInInitializerError` | Error while executing static initialization code | Inspect `cause` and the `static` block; avoid blind retries |
+| `InvocationTargetException` from reflection | Constructor/method invoked via reflection threw an exception | Inspect the underlying cause exception; distinguish from loading/linking errors |
+| `ClassCastException` when casting provider | Contract mismatch or two classloaders defined two different copies of a same-named type | Check type identity and loaders on both sides |
+| `ServiceConfigurationError` when iterating SPI | Invalid provider declaration or ServiceLoader failed to create provider | Check `META-INF/services`, constructor/factory, dependencies, and cause |
 
-**Không gán một loại lỗi vào duy nhất một thời điểm tuyệt đối.** Vì JVM có thể phân giải tham chiếu lười, lỗi liên kết có thể xuất hiện ở lần dùng sau, kể cả khi `Class.forName` và constructor trước đó đã thành công. Ghi lại stack trace, classloader và thời điểm host gọi API sẽ giúp định vị đúng nguồn lỗi.
+**Do not assign an error type to a single absolute moment.** Because the JVM can resolve references lazily, linking errors can appear on a later call even when `Class.forName` and the constructor succeeded earlier. Recording the stack trace, classloader, and the point where the host invoked the API helps pinpoint the true source of the error.
 
-## 9. Quy tắc thực hành khi thiết kế kích hoạt plugin
+## 9. Practical Rules for Designing Plugin Activation
 
-**Giữ khối static đơn giản.** Chỉ dùng cho trạng thái bất biến, khởi tạo thuần túy nếu thực sự cần. Tránh tự mở kết nối, khởi tạo thread nền, ghi file hoặc phát lệnh nghiệp vụ từ `static` vì host chưa chắc quyết định bật plugin.
+**Keep static blocks simple.** Use them only for immutable state and pure initialization if truly necessary. Avoid opening connections, starting background threads, writing files, or issuing business commands from `static` because the host may not have decided to enable the plugin yet.
 
-**Kiểm tra hợp đồng trước khi tạo instance.** Ví dụ `Plugin.class.isAssignableFrom(candidate)` có thể phát hiện không tương thích kiểu đã nạp trước khi yêu cầu constructor. Tuy vậy, bước kiểm tra này không thay thế việc xác thực nguồn plugin, kiểm tra phiên bản/phụ thuộc hoặc xử lý lỗi runtime.
+**Verify the contract before creating an instance.** For example, `Plugin.class.isAssignableFrom(candidate)` can detect loaded-type incompatibility before invoking a constructor. Even so, this check does not replace verifying the plugin source, checking versions/dependencies, or handling runtime errors.
 
-**Phân biệt “đã nạp” với “sẵn sàng phục vụ”.** Một trạng thái plugin manager hữu ích có thể là `DISCOVERED` → `VALIDATED` → `LOADED` → `CREATED` → `ACTIVE` → `STOPPED`, nhưng đó là **trạng thái nghiệp vụ do host đặt**, không phải bản sao của ba giai đoạn JVMS. Có thể một provider được nạp trước rồi mới được kích hoạt sau.
+**Distinguish "loaded" from "ready to serve."** Useful plugin manager states might be `DISCOVERED` → `VALIDATED` → `LOADED` → `CREATED` → `ACTIVE` → `STOPPED`, but those are **host-defined business states**, not copies of the three JVMS phases. A provider can be loaded first and activated later.
 
-**Không coi `close()` là “hủy khởi tạo lớp”.** Lời gọi `stop()`/`close()` chỉ giải phóng tài nguyên mà plugin quản lý theo hợp đồng. JVM không có thao tác chuẩn “uninitialize class”; khả năng thu hồi lớp/bộ nạp phụ thuộc việc mọi đối tượng/tham chiếu liên quan đã có thể được thu gom. Muốn thay đổi phiên bản plugin trong cùng tiến trình cần chiến lược classloader và tài nguyên kỹ lưỡng, hoặc tách tiến trình.
+**Do not treat `close()` as "uninitializing a class."** Calling `stop()`/`close()` only releases resources managed by the plugin according to the contract. The JVM has no standard "uninitialize class" operation; reclaiming classes/loaders depends on all related objects/references becoming eligible for collection. Changing a plugin version within the same process requires careful classloader and resource management, or process isolation.
 
-**Giữ quyền kiểm soát ở host.** Host quyết định khi nào chấp nhận plugin, phương thức kích hoạt nào được gọi, khi nào ngắt, log lỗi, timeout hoặc rollback. Việc một lớp đã khởi tạo thành công chỉ cho biết một điều về JVM; không chứng minh plugin đúng hợp đồng nghiệp vụ hoặc an toàn.
+**Keep control in the host.** The host decides when to accept a plugin, which activation method is called, when to interrupt, log errors, apply timeouts, or roll back. That a class has initialized successfully tells you only one thing about the JVM; it does not prove the plugin honors the business contract or is safe.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-1. **Có đối tượng `Class` có nghĩa đã chạy `static` chưa?** Không. Có thể yêu cầu nạp/liên kết mà chưa khởi tạo, ví dụ `Class.forName(name, false, loader)`.
-2. **Preparation có chạy phép gán `static int counter = compute()` không?** Không. Biểu thức gọi `compute()` thuộc khởi tạo lớp; preparation thông thường tạo trường với giá trị mặc định theo quy tắc JVM.
-3. **Vì sao lỗi `NoSuchMethodError` có thể xuất hiện lúc gọi plugin thay vì lúc nạp?** Vì một số tham chiếu có thể được phân giải lười khi cần dùng.
-4. **Khối `static`, constructor và `start()` giống nhau ở chỗ nào?** Cả ba đều có thể chạy mã plugin, nhưng chúng diễn ra tại **ba cơ chế khác nhau**: khởi tạo lớp, tạo instance và kích hoạt nghiệp vụ.
-5. **ServiceLoader tìm thấy provider có đồng nghĩa host đã bật plugin không?** Không; việc tìm/tạo provider và lời gọi `start()` là các quyết định khác nhau.
-6. **Đóng plugin có chạy lại `<clinit>` khi mở lần sau không?** Không theo cách gọi `stop()/start()` trên cùng lớp đã khởi tạo. Muốn lớp mới mang cùng tên trong một loader khác là bài toán nạp lớp và vòng đời riêng.
+1. **Does having a `Class` object mean `static` has already run?** No. You can request loading/linking without initialization, e.g., `Class.forName(name, false, loader)`.
+2. **Does preparation execute the assignment `static int counter = compute()`?** No. The expression calling `compute()` belongs to class initialization; preparation normally creates the field with a default value per JVM rules.
+3. **Why can `NoSuchMethodError` appear when invoking the plugin rather than when loading it?** Because some references can be resolved lazily when needed.
+4. **How are a `static` block, a constructor, and `start()` similar?** All three can run plugin code, but they occur under **three different mechanisms**: class initialization, instance creation, and business activation.
+5. **Does `ServiceLoader` finding a provider mean the host has enabled the plugin?** No; finding/creating the provider and calling `start()` are separate decisions.
+6. **Does closing a plugin re-run `<clinit>` when opening it next time?** Not via calling `stop()/start()` on the same already-initialized class. Getting a fresh class with the same name in a different loader is a separate class-loading and lifecycle problem.
 
-**Bài tập:** Chạy ví dụ mục 6, sau đó (a) bỏ lệnh `Class.forName(name, true, loader)` và quan sát thời điểm `<clinit>`; (b) gọi `plugin.start()` hai lần và so số dòng `<clinit>`, `<init>` và `start()`; (c) bỏ plugin JAR khỏi classpath, ghi lại lỗi xảy ra trước bước nào. Giải thích mỗi kết quả bằng các giai đoạn JVM và vòng đời ứng dụng.
+**Exercise:** Run the example in section 6, then (a) remove the `Class.forName(name, true, loader)` statement and observe when `<clinit>` runs; (b) call `plugin.start()` twice and compare the number of `<clinit>`, `<init>`, and `start()` lines; (c) remove the plugin JAR from the classpath and note which step fails first. Explain each result in terms of the JVM phases and application lifecycle.
 
-## Tài liệu tham khảo
+## References
 
-- Java Virtual Machine Specification 17, Chương 5 – Loading, Linking, and Initializing: https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html
-- Java Language Specification 17, Chương 12 – Execution, Initialization: https://docs.oracle.com/javase/specs/jls/se17/html/jls-12.html
+- Java Virtual Machine Specification 17, Chapter 5 – Loading, Linking, and Initializing: https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html
+- Java Language Specification 17, Chapter 12 – Execution, Initialization: https://docs.oracle.com/javase/specs/jls/se17/html/jls-12.html
 - Java SE 17, `Class.forName(String, boolean, ClassLoader)`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html
 - Java SE 17, `java.util.ServiceLoader`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html

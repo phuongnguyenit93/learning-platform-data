@@ -1,51 +1,51 @@
-# Tách kiểu dữ liệu và API dùng chung khỏi cách triển khai của plugin
+# Separating Shared Data Types and APIs from Plugin Implementations
 
-Khi một ứng dụng cho phép thêm plugin, câu hỏi thiết kế quan trọng là: **host và plugin cần cùng biết điều gì, và điều gì phải nằm riêng trong mỗi plugin?** Nếu host gọi trực tiếp lớp triển khai như UppercaseTransformer, hoặc API dùng chung trả về một lớp chỉ có trong plugin cụ thể, việc bổ sung/thay thế plugin sẽ kéo theo sửa và biên dịch lại host. Giải pháp là định nghĩa một **hợp đồng mở rộng (extension contract)** nhỏ, ổn định, rồi để host và từng plugin phụ thuộc vào hợp đồng đó.
+When an application allows adding plugins, a key design question is: **what must the host and plugins both know, and what must stay private inside each plugin?** If the host directly references an implementation class like UppercaseTransformer, or if the shared API returns a class that exists only inside a specific plugin, adding or replacing a plugin will force modifying and recompiling the host. The solution is to define a small, stable **extension contract** and have both the host and each plugin depend on that contract.
 
-## 1. Ba phần và hướng phụ thuộc
+## 1. Three Parts and Dependency Direction
 
-Giả sử host nhận văn bản và cần gọi một trong nhiều bộ biến đổi do plugin cung cấp:
+Suppose the host receives text and needs to invoke one of several transformers provided by plugins:
 
 ~~~text
-             phụ thuộc lúc biên dịch
+             compile-time dependency
 host-app --------------------------> plugin-api
                                            ^
                                            |
 plugin-uppercase --------------------------+
       |
-      +-- đăng ký implementation để host phát hiện lúc chạy
+      +-- registers implementation for the host to discover at runtime
 
-host-app -- khám phá ở runtime --> plugin-uppercase
+host-app -- runtime discovery --> plugin-uppercase
 ~~~
 
-| Thành phần | Chứa gì | Được phụ thuộc vào |
+| Component | Contains | Depended on by / Depends on |
 | --- | --- | --- |
-| **plugin-api** | Interface SPI, kiểu dữ liệu đầu vào/đầu ra, quy tắc lỗi hoặc khả năng cần công bố | JDK và những thư viện chung thực sự cần thiết |
-| **host-app** | Điều phối, cấu hình, chọn plugin, kiểm soát vòng đời, xử lý lỗi | plugin-api; có thể mang plugin ở runtime |
-| **plugin-uppercase** | Lớp thực thi, thuật toán, dependency nội bộ, metadata đăng ký dịch vụ | plugin-api và dependency riêng của nó |
+| **plugin-api** | SPI interfaces, input/output data types, error rules, or capabilities to expose | JDK and truly essential shared libraries |
+| **host-app** | Orchestration, configuration, plugin selection, lifecycle control, error handling | plugin-api; may load plugins at runtime |
+| **plugin-uppercase** | Implementation classes, algorithms, internal dependencies, service registration metadata | plugin-api and its own dependencies |
 
-SPI (*Service Provider Interface*) là mặt hợp đồng mà plugin phải thực hiện để host gọi được. API chung định nghĩa **lời hứa có thể quan sát**, không định nghĩa **cách một plugin thực hiện lời hứa**.
+An SPI (*Service Provider Interface*) is the contract surface a plugin must implement so the host can invoke it. The shared API defines **observable promises**, not **how a plugin fulfills those promises**.
 
-Một sơ đồ phụ thuộc tốt có hai mũi tên biên dịch cùng đi về plugin-api. Trong ví dụ dưới đây, host không import hay khởi tạo trực tiếp UppercaseTransformer; nó chỉ biết interface Transformer. Plugin có thể đổi thuật toán mà không cần sửa host, miễn là vẫn đáp ứng hợp đồng.
+A clean dependency diagram has both compile-time arrows pointing toward plugin-api. In the example below, the host neither imports nor directly instantiates UppercaseTransformer; it knows only the Transformer interface. A plugin can change its algorithm without modifying the host, as long as it continues to satisfy the contract.
 
-Phân biệt hai việc: **tách phụ thuộc biên dịch** giúp host không biết lớp triển khai; **nạp/khám phá plugin khi chạy** là cơ chế khác (ServiceLoader, DI container, class loader riêng...). Bài này minh họa cả ranh giới và một cách khám phá đơn giản bằng Java SE.
+Distinguish two concerns: **separating compile-time dependencies** prevents the host from knowing implementation classes; **loading/discovering plugins at runtime** is a separate mechanism (ServiceLoader, DI container, custom class loader...). This article demonstrates both the boundary and a simple discovery mechanism using Java SE.
 
-## 2. Đặt kiểu dữ liệu và API nào vào hợp đồng chung?
+## 2. Which Data Types and APIs Belong in the Shared Contract?
 
-Một API tốt nên chứa những khái niệm mà tất cả plugin và host thực sự cùng hiểu:
+A good API should contain only concepts that all plugins and the host genuinely share an understanding of:
 
-- **Đầu vào/đầu ra chung:** DTO có ý nghĩa độc lập với plugin, ví dụ TransformRequest và TransformResult. Java record phù hợp với dữ liệu nhỏ, bất biến về tham chiếu thành phần; lưu ý record không tự làm bất biến những object mutable chứa bên trong.
-- **Hành vi mở rộng:** interface Transformer với id() và transform(...). Chữ ký chỉ dùng kiểu từ JDK hoặc plugin-api.
-- **Ngữ nghĩa hợp đồng:** id phải ổn định/duy nhất trong một tập plugin; transform trả kết quả cho đầu vào hợp lệ; quy định rõ lỗi, null, tài nguyên và tính an toàn luồng khi hệ thống cần.
-- **Version hoặc capability khi cần:** host có thể kiểm tra khả năng/phiên bản trước khi gọi các tính năng mới, thay vì ép mọi plugin phải hiểu ngay một API thay đổi.
+- **Shared input/output:** DTOs that are meaningful independently of any plugin, such as TransformRequest and TransformResult. Java records fit small data whose component references are immutable; note that records do not automatically make mutable objects stored inside them immutable.
+- **Extension behavior:** the Transformer interface with id() and transform(...). Signatures use only types from the JDK or plugin-api.
+- **Contract semantics:** id must be stable/unique within a plugin set; transform returns a result for valid input; clearly specify errors, null handling, resources, and thread safety when required by the system.
+- **Version or capabilities when needed:** the host can check capabilities/versions before calling newer features, instead of forcing every plugin to immediately understand a changed API.
 
-Không đặt vào plugin-api các lớp như UppercaseTransformer, cấu hình cơ sở dữ liệu riêng, HTTP client riêng, repository, entity nội bộ, hay kiểu trả về từ thư viện mà chỉ một plugin sử dụng. Một chữ ký như phương thức trả về com.vendor.plugin.InternalResult sẽ làm host phải hiểu và tải loại dữ liệu đặc thù đó, phá vỡ ranh giới chung.
+Do not place into plugin-api classes such as UppercaseTransformer, plugin-specific database configurations, custom HTTP clients, repositories, internal entities, or return types from a library used by only one plugin. A signature such as a method returning com.vendor.plugin.InternalResult forces the host to understand and load that specific data type, breaking the shared boundary.
 
-API cũng không nên trở thành một túi mọi tính năng có thể có. Nếu hai nhóm plugin có hợp đồng thực sự khác nhau, hãy cân nhắc hai SPI hẹp hoặc một capability được công bố rõ, thay vì một interface lớn buộc mọi plugin cung cấp các phương thức không liên quan.
+Nor should the API become a grab bag of every conceivable feature. If two groups of plugins have genuinely different contracts, consider two narrow SPIs or an explicitly declared capability instead of one large interface forcing every plugin to implement unrelated methods.
 
-## 3. Ví dụ Java 17+ chạy được: API JAR, plugin JAR và host JAR
+## 3. Runnable Java 17+ Example: API JAR, Plugin JAR, and Host JAR
 
-Ví dụ dùng **classpath** thông thường, chưa sử dụng Java Platform Module System (JPMS). Tạo các tệp theo cấu trúc:
+This example uses the standard **classpath**, without using the Java Platform Module System (JPMS). Create the files following this structure:
 
 ~~~text
 src/
@@ -64,7 +64,7 @@ src/
       Main.java
 ~~~
 
-### Bước 1: Viết DTO và SPI trong plugin-api
+### Step 1: Write DTOs and SPI in plugin-api
 
 **src/api/com/example/spi/TransformRequest.java**
 
@@ -105,9 +105,9 @@ public interface Transformer {
 }
 ~~~
 
-Host và plugin sẽ biên dịch dựa trên ba kiểu này. Hợp đồng không đề cập đến chữ "uppercase", lớp triển khai hay cách xử lý văn bản. Kiểm tra null tại biên của DTO giúp lỗi dữ liệu được phát hiện sớm; một dự án thực tế có thể bổ sung các quy tắc khác như giới hạn kích thước đầu vào.
+Both the host and plugins compile against these three types. The contract makes no mention of the word "uppercase", any implementation class, or how text is processed. Checking null at the DTO boundary catches bad data early; a real project may add other rules such as input size limits.
 
-### Bước 2: Viết plugin thực thi riêng
+### Step 2: Write a Separate Implementing Plugin
 
 **src/plugin/com/example/plugin/UppercaseTransformer.java**
 
@@ -132,9 +132,9 @@ public final class UppercaseTransformer implements Transformer {
 }
 ~~~
 
-Ở đây Locale.ROOT giúp cách đổi chữ hoa độc lập với locale mặc định của máy. Quan trọng hơn, plugin chỉ dùng DTO và interface từ plugin-api để trao đổi với host. Các lớp hỗ trợ riêng, nếu có, vẫn có thể nằm trong package của plugin.
+Here Locale.ROOT makes uppercasing independent of the machine's default locale. More importantly, the plugin uses only DTOs and interfaces from plugin-api to communicate with the host. Private helper classes, if any, can stay inside the plugin's own packages.
 
-Để Java ServiceLoader tìm được provider trên classpath, tạo **tệp văn bản** với tên chính xác:
+For Java ServiceLoader to find the provider on the classpath, create a **text file** with the exact name:
 
 **src/plugin/META-INF/services/com.example.spi.Transformer**
 
@@ -142,9 +142,9 @@ public final class UppercaseTransformer implements Transformer {
 com.example.plugin.UppercaseTransformer
 ~~~
 
-Tên tệp là tên nhị phân đầy đủ của SPI; nội dung là tên lớp provider triển khai SPI, mỗi dòng một lớp. Ví dụ này dùng lớp public có constructor không tham số mặc định và không cần thư viện phụ trợ.
+The filename is the fully qualified binary name of the SPI; the content is the provider class name implementing the SPI, one class per line. This example uses a public class with a default no-arg constructor and requires no auxiliary libraries.
 
-### Bước 3: Host chỉ gọi qua interface chung
+### Step 3: Host Calls Only Through the Shared Interface
 
 **src/host/com/example/host/Main.java**
 
@@ -176,11 +176,11 @@ public final class Main {
 }
 ~~~
 
-Host chỉ import các kiểu thuộc com.example.spi. ServiceLoader đọc metadata dịch vụ từ những JAR nhìn thấy được bởi class loader liên quan, rồi tạo provider. TreeMap khiến thứ tự danh sách id ổn định cho ví dụ; putIfAbsent phát hiện id trùng. Trong hệ thống thật, host còn nên kiểm tra id null/rỗng, khả năng tương thích và chính sách khi một provider lỗi.
+The host imports only types in com.example.spi. ServiceLoader reads service metadata from JARs visible to the relevant class loader and instantiates providers. TreeMap keeps the id listing order deterministic for the example; putIfAbsent detects duplicate ids. In a real system, the host should also check for null/blank ids, compatibility, and policies when a provider fails.
 
-### Bước 4: Biên dịch thành ba JAR và chạy
+### Step 4: Compile into Three JARs and Run
 
-Chạy ở thư mục chứa src, với **JDK 17 hoặc mới hơn**. Các lệnh sau dùng **PowerShell trên Windows**; cờ --release 17 khiến mã ví dụ được biên dịch cho Java 17:
+Run from the directory containing src, with **JDK 17 or newer**. The following commands use **PowerShell on Windows**; the --release 17 flag compiles the example code for Java 17:
 
 ~~~powershell
 New-Item -ItemType Directory -Force -Path 'out/api','out/plugin','out/host','dist' | Out-Null
@@ -197,33 +197,33 @@ jar --create --file dist/host.jar -C out/host .
 java -cp "dist/plugin-api.jar;dist/host.jar;dist/uppercase-plugin.jar" com.example.host.Main
 ~~~
 
-Trên Linux/macOS, thay dòng tạo thư mục bằng lệnh sau và đổi dấu phân cách trong classpath cuối từ dấu chấm phẩy thành dấu hai chấm; những lệnh javac và jar còn lại giữ nguyên:
+On Linux/macOS, replace the directory-creation line with the following command and change the classpath separator in the final command from a semicolon to a colon; the remaining javac and jar commands stay the same:
 
 ~~~bash
 mkdir -p out/api out/plugin out/host dist
 java -cp "dist/plugin-api.jar:dist/host.jar:dist/uppercase-plugin.jar" com.example.host.Main
 ~~~
 
-**Stdout khi chạy với plugin JAR:**
+**Stdout when running with the plugin JAR:**
 
 ~~~text
 Plugins: [uppercase]
 HELLO JAVA
 ~~~
 
-Điểm cần kiểm tra trong từng lệnh: bước biên dịch host chỉ có **dist/plugin-api.jar** trên compile classpath; **không có uppercase-plugin.jar**. Plugin cũng biên dịch chỉ với API. Chỉ khi chạy, ta mới đưa ba JAR vào runtime classpath để ServiceLoader phát hiện implementation.
+What to verify in each command: the host compilation step has only **dist/plugin-api.jar** on its compile classpath; **uppercase-plugin.jar is absent**. The plugin also compiles solely against the API. Only at runtime do we place all three JARs on the runtime classpath so ServiceLoader discovers the implementation.
 
-Có thể dùng lệnh sau để kiểm tra provider descriptor thực sự được đóng trong plugin JAR:
+You can use the following command to verify that the provider descriptor is actually packaged inside the plugin JAR:
 
 ~~~powershell
 jar tf dist/uppercase-plugin.jar
 ~~~
 
-Danh sách phải có cả lớp com/example/plugin/UppercaseTransformer.class và META-INF/services/com.example.spi.Transformer. Nếu thiếu tệp đăng ký hoặc bỏ plugin JAR khỏi runtime classpath, ServiceLoader không tìm thấy provider này và host sẽ báo thiếu plugin.
+The listing must contain both com/example/plugin/UppercaseTransformer.class and META-INF/services/com.example.spi.Transformer. If the registration file is missing or the plugin JAR is omitted from the runtime classpath, ServiceLoader will not find this provider and the host will report a missing plugin.
 
-## 4. Đưa ranh giới trên vào một dự án Gradle
+## 4. Applying This Boundary in a Gradle Project
 
-Trong dự án nhiều module, có thể dùng ba module **plugin-api**, **plugin-uppercase** và **host-app**. Ví dụ dependencies viết theo Gradle Groovy DSL, mỗi khối thuộc build.gradle của module tương ứng:
+In a multi-module project, you can use three modules: **plugin-api**, **plugin-uppercase**, and **host-app**. Example dependencies written in Gradle Groovy DSL, each block belonging to the corresponding module's build.gradle:
 
 **plugin-uppercase/build.gradle**
 
@@ -254,59 +254,59 @@ application {
 }
 ~~~
 
-Với cấu hình này, host compile với API và runtime có thể nhận plugin. Module plugin vẫn cần tệp đăng ký tại **src/main/resources/META-INF/services/com.example.spi.Transformer** để Gradle đưa vào JAR. Không đóng gói bản sao các lớp của plugin-api bên trong plugin-uppercase; để host cung cấp hợp đồng chung ở runtime.
+With this configuration, the host compiles against the API and can receive the plugin at runtime. The plugin module still needs the registration file at **src/main/resources/META-INF/services/com.example.spi.Transformer** so Gradle packages it into the JAR. Do not bundle a copy of plugin-api classes inside plugin-uppercase; let the host provide the shared contract at runtime.
 
-Các dependency này phù hợp với tập plugin đã biết lúc build/deploy. Nếu cho phép người dùng thả JAR plugin mới sau khi ứng dụng đã khởi động, cần thêm cơ chế quản lý đường dẫn JAR, class loader, discovery lại, đóng tài nguyên và quy tắc vòng đời. Chỉ thêm một JAR vào thư mục khi JVM đang chạy sẽ **không tự động** làm ServiceLoader.load trên classpath hiện tại nhìn thấy nó.
+These dependencies fit a plugin set known at build/deploy time. If users are allowed to drop in new plugin JARs after the application has started, you need additional mechanisms to manage JAR paths, class loaders, re-discovery, resource closing, and lifecycle rules. Simply dropping a JAR into a folder while the JVM is running will **not automatically** make ServiceLoader.load on the existing classpath see it.
 
-## 5. Ranh giới class loader: cùng tên lớp chưa chắc là cùng kiểu
+## 5. Class Loader Boundaries: Same Class Name Does Not Guarantee Same Type
 
-Trong JVM, danh tính một class được xác định bằng **tên nhị phân + class loader định nghĩa nó**. Nếu host tải com.example.spi.Transformer bằng loader A, còn plugin bằng một loader riêng kiểu child-first lại tự định nghĩa một bản sao Transformer bằng loader B, hai kiểu đó không giống nhau. Kết quả có thể là không cast được, lỗi cấu hình provider hoặc một lỗi liên kết lớp khó hiểu dù tên package/class trông giống hệt.
+In the JVM, a class's identity is defined by **its binary name plus its defining class loader**. If the host loads com.example.spi.Transformer with loader A, while a plugin using a custom child-first loader defines its own copy of Transformer with loader B, those two types are not identical. The result can be an inability to cast, provider configuration errors, or baffling class-linkage errors even though the package/class names look identical.
 
-Quy tắc áp dụng khi dùng class loader riêng:
+Rules to apply when using custom class loaders:
 
-1. Nạp **plugin-api** bằng một loader chung mà cả host và plugin cùng nhìn thấy, thường là parent loader.
-2. Cho plugin loader ủy quyền các package hợp đồng sang parent; chỉ nạp implementation và dependency riêng từ plugin.
-3. Tránh bundle/shade các kiểu hợp đồng chung vào plugin JAR. Shade thư viện nội bộ có thể hợp lệ, nhưng không đổi danh tính các kiểu đi qua biên API.
-4. Kiểm tra provider có thể ép về đúng Transformer.class mà host sử dụng, đặc biệt khi tạo lại loader hoặc nạp nhiều phiên bản plugin.
+1. Load **plugin-api** with a shared loader visible to both host and plugin, typically the parent loader.
+2. Have the plugin loader delegate contract packages to the parent; load only implementations and private dependencies from the plugin.
+3. Avoid bundling/shading shared contract types into plugin JARs. Shading internal libraries can be valid, but never alter the identity of types crossing the API boundary.
+4. Verify that the provider can be cast to the exact Transformer.class used by the host, especially when recreating loaders or loading multiple plugin versions.
 
-Ví dụ này chạy ba JAR trong cùng application classpath nên không đòi hỏi tạo class loader tùy chỉnh. Với môi trường có JPMS, provider có thể được công bố bằng provides và người dùng bằng uses trong module-info.java; đó là cơ chế đóng gói/khám phá khác nhưng ranh giới hợp đồng vẫn giữ nguyên.
+This example runs all three JARs on the same application classpath, so it does not require creating custom class loaders. In an environment with JPMS, providers can be declared with `provides` and consumers with `uses` in module-info.java; that is a different packaging/discovery mechanism, while the contract boundary remains the same.
 
-## 6. Thiết kế hợp đồng cho thay đổi và tương thích
+## 6. Designing the Contract for Change and Compatibility
 
-Tách API khỏi triển khai không có nghĩa mọi sửa đổi API đều an toàn. Plugin thường được biên dịch ở thời điểm khác host, vì vậy cần phân biệt tương thích nguồn, nhị phân và hành vi:
+Separating the API from implementations does not mean every API edit is safe. Plugins are often compiled at a different time than the host, so distinguish source, binary, and behavioral compatibility:
 
-| Thay đổi | Ảnh hưởng có thể xảy ra | Hướng xử lý |
+| Change | Possible impact | How to handle |
 | --- | --- | --- |
-| Sửa thuật toán bên trong UppercaseTransformer, giữ nguyên SPI | Thường không cần biên dịch lại host | Test hành vi, đóng gói lại plugin |
-| Thêm phương thức abstract vào Transformer | Provider cũ có thể thiếu implementation; khi gọi có thể gặp AbstractMethodError | Xem xét default method phù hợp hoặc nâng phiên bản hợp đồng |
-| Đổi package, tên hoặc chữ ký của SPI | Provider đã build có thể không liên kết được; service descriptor cũ không còn khớp | Thay đổi có kế hoạch, build/test lại plugin, version API |
-| Đổi thành phần của một record DTO | Constructor/accessor có thể đổi chữ ký nhị phân; client cũ có thể lỗi khi liên kết | Thêm kiểu mới, adapter hoặc version contract |
-| Thay đổi ý nghĩa id, null, lỗi hay dữ liệu trả về | Có thể vẫn biên dịch nhưng sai hành vi | Viết contract test và ghi rõ quy tắc |
+| Changing internal algorithm of UppercaseTransformer, keeping SPI intact | Usually no host recompilation needed | Test behavior, repackage plugin |
+| Adding an abstract method to Transformer | Older providers may lack the implementation; calling it may cause AbstractMethodError | Consider an appropriate default method or bump the contract version |
+| Changing package, name, or signature of the SPI | Pre-built providers may fail to link; old service descriptors no longer match | Plan changes, rebuild/retest plugins, version the API |
+| Changing components of a record DTO | Constructor/accessor binary signatures may change; old clients may fail linkage | Add new types, adapters, or version the contract |
+| Changing meaning of id, null, errors, or return values | May still compile yet behave incorrectly | Write contract tests and state rules explicitly |
 
-Một chiến lược phổ biến là công bố phiên bản plugin-api, tài liệu phạm vi tương thích và một bộ **contract tests** dùng chung để mọi provider phải chạy qua. Nếu hệ thống cần nhiều thế hệ API đồng thời, host phải chủ động thiết kế adapter/version negotiation; không thể chỉ hy vọng tên class giữ nguyên là đủ.
+A common strategy is publishing the plugin-api version, documenting the compatibility range, and maintaining a shared **contract test suite** that every provider must pass. If the system needs multiple API generations concurrently, the host must proactively design adapters/version negotiation; you cannot simply hope keeping class names unchanged is enough.
 
-Nên làm rõ lỗi nào là lỗi dữ liệu đầu vào, lỗi provider, lỗi tải provider và lỗi của host. Không để host phải catch loại exception riêng chỉ có trong JAR một plugin. Khi xử lý lỗi plugin, host có thể dùng một exception đã quy định trong API hoặc cơ chế bao lỗi nhất quán và ghi lại nguyên nhân gốc để chẩn đoán.
+Clarify which errors are input-data errors, provider errors, provider-loading errors, and host errors. Do not force the host to catch custom exception types that exist only in a single plugin's JAR. When handling plugin errors, the host can use an API-defined exception or a consistent error-wrapping mechanism and record the root cause for diagnostics.
 
-## 7. Những lỗi thiết kế thường gặp
+## 7. Common Design Mistakes
 
-**Host tạo trực tiếp implementation.** Viết new UppercaseTransformer() hay import package plugin trong mã điều phối làm host phụ thuộc triển khai. Thay bằng registry/discovery trả về Transformer, và để host quyết định chọn theo id hoặc capability.
+**Host instantiating implementations directly.** Writing `new UppercaseTransformer()` or importing plugin packages in orchestration code couples the host to the implementation. Replace it with a registry/discovery mechanism returning Transformer, and let the host select by id or capability.
 
-**Dùng DTO của plugin làm chữ ký SPI.** Một interface chung trả về VendorSpecificResponse khiến mọi plugin/host lệ thuộc một vendor. Đưa dữ liệu thật sự chung vào plugin-api; chi tiết nội bộ chỉ được chuyển đổi ở phía plugin. Không biến một DTO chung thành tập hợp field dành riêng cho từng provider.
+**Using a plugin's DTO in the SPI signature.** A shared interface returning VendorSpecificResponse couples all plugins and the host to one vendor. Put genuinely shared data in plugin-api; convert internal details only on the plugin side. Do not turn a shared DTO into a collection of fields tailored to individual providers.
 
-**Đóng nhiều bản plugin-api ở các plugin loader.** Những bản sao có thể tạo lỗi định danh kiểu. Bảo đảm một nguồn cung cấp lớp API qua parent/common loader và kiểm tra sơ đồ class loader khi triển khai.
+**Packaging multiple copies of plugin-api across plugin loaders.** Duplicate copies can cause type-identity errors. Ensure a single source supplies the API classes via a parent/common loader and verify the class-loader layout during deployment.
 
-**Có class triển khai nhưng thiếu đăng ký ServiceLoader.** Java không tự quét mọi class chỉ vì chúng implements interface. Với classpath ServiceLoader, cần đường dẫn META-INF/services đúng và provider hợp lệ; nếu dùng một framework discovery khác thì phải theo quy tắc của framework đó.
+**Having an implementation class without ServiceLoader registration.** Java does not automatically scan all classes just because they implement an interface. With classpath ServiceLoader, you need the exact META-INF/services path and a valid provider; if using a different discovery framework, follow that framework's rules.
 
-**Mặc định mọi plugin đều đáng tin hoặc thread-safe.** Plugin chạy cùng tiến trình có thể giữ thread, mở file/network, ném exception hoặc làm treo luồng host. Tài liệu API phải nói rõ vòng đời, đồng thời host cần timeout/isolation theo kiến trúc phù hợp. Class loader riêng giúp tổ chức dependency nhưng **không phải sandbox bảo mật**. Không bảo đảm hot unload nếu vẫn còn object, thread hay static reference giữ loader.
+**Assuming every plugin is trustworthy or thread-safe.** Plugins running in the same process can hold threads, open files/network connections, throw exceptions, or hang host threads. API documentation must clarify lifecycle, while the host needs appropriate timeouts/isolation per the architecture. A separate class loader helps organize dependencies but **is not a security sandbox**. Hot unload is not guaranteed if objects, threads, or static references still retain the loader.
 
-**Thay API mà không thử với plugin build cũ.** Build thành công cả workspace chưa chứng minh một plugin đã phát hành trước đó tương thích nhị phân. Kiểm thử bằng đúng JAR cũ với API/host mới khi chính sách hỗ trợ tương thích yêu cầu.
+**Changing the API without testing against previously built plugins.** Successfully building the whole workspace does not prove a previously released plugin is binary-compatible. Test using the actual old JAR against the new API/host whenever compatibility policy requires support.
 
-## 8. Cách tự kiểm tra ranh giới trên một hệ plugin thực tế
+## 8. How to Self-Check the Boundary on a Real Plugin System
 
-- Tạm bỏ JAR triển khai khỏi **compile classpath** của host. Host vẫn phải biên dịch được nếu API đã tách đúng.
-- Mở JAR plugin và xác minh có provider descriptor, class implementation, nhưng không có bản sao các class com.example.spi.
-- Chạy host cùng plugin JAR để thấy plugin được discover và gọi qua Transformer; thử bỏ plugin JAR để chắc chắn host báo thiếu provider một cách có chủ đích.
-- Thử hai provider có cùng id để kiểm tra chính sách trùng; thử provider lỗi và xem host ghi nhận/cách ly theo đúng contract.
-- Với loader động, thử lấy Transformer.class từ host và ép provider về interface đó; test tải lại/giải phóng tài nguyên, và kiểm tra plugin được build bằng các phiên bản API còn được hỗ trợ.
+- Temporarily remove implementation JARs from the host's **compile classpath**. The host must still compile if the API is properly separated.
+- Open the plugin JAR and verify it contains the provider descriptor and implementation classes, with no duplicate copy of com.example.spi classes.
+- Run the host with the plugin JAR to confirm the plugin is discovered and invoked via Transformer; try removing the plugin JAR to ensure the host intentionally reports the missing provider.
+- Test two providers with the same id to verify the duplicate policy; test a failing provider and check that the host logs/isolates it according to the contract.
+- With dynamic loaders, obtain Transformer.class from the host and cast the provider to that interface; test reloading/resource cleanup, and test plugins built against all still-supported API versions.
 
-**Nguyên tắc cốt lõi:** kiểu dữ liệu trao đổi và API mà host cùng mọi plugin thực sự dùng chung thuộc một artifact hợp đồng ổn định. Thuật toán, dependency, cấu hình và lớp triển khai thuộc từng plugin. Host quản lý việc tìm, chọn và gọi plugin thông qua hợp đồng đó; cơ chế nạp có thể thay đổi mà không làm đảo ngược hướng phụ thuộc.
+**Core principle:** the exchanged data types and APIs genuinely shared by the host and all plugins belong in a stable contract artifact. Algorithms, dependencies, configuration, and implementation classes belong to each plugin. The host manages discovering, selecting, and invoking plugins through that contract; the loading mechanism can evolve without inverting the dependency direction.

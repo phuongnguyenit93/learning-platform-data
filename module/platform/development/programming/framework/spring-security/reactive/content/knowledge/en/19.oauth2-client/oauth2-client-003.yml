@@ -1,0 +1,3 @@
+menuLevel1: OAuth2 Client
+menuLevel2: Tiêm OAuth2AuthorizedClient bằng @RegisteredOAuth2AuthorizedClient
+status: WRITTEN

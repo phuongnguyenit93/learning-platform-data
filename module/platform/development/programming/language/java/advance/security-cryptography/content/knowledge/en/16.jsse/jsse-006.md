@@ -1,85 +1,85 @@
-# 16.6 X509ExtendedKeyManager chọn alias và X509ExtendedTrustManager kiểm tra đối tác
+# 16.6 X509ExtendedKeyManager Selecting Aliases and X509ExtendedTrustManager Verifying Peers
 
-## 1. Hai trách nhiệm khác nhau trong JSSE
+## 1. Two distinct responsibilities in JSSE
 
-**JSSE (Java Secure Socket Extension)** thực hiện TLS bằng các thành phần như `SSLContext`, `SSLSocket`, `SSLEngine`, `KeyManager` và `TrustManager`. Trong handshake TLS dùng certificate, có **hai câu hỏi tách biệt**:
+**JSSE (Java Secure Socket Extension)** implements TLS using components such as `SSLContext`, `SSLSocket`, `SSLEngine`, `KeyManager`, and `TrustManager`. In a certificate-based TLS handshake, there are **two separate questions**:
 
-1. **“Tôi sẽ trình chứng thư và dùng khóa riêng nào?”** — `X509ExtendedKeyManager` chọn *alias* trỏ đến một cặp private key + certificate chain phù hợp cho **chính endpoint này**. Khi JSSE cần chữ ký hoặc thao tác dùng khóa riêng, key manager cung cấp private key qua alias đã chọn.
-2. **“Tôi có tin certificate của đầu bên kia không?”** — `X509ExtendedTrustManager` xác minh **certificate chain của peer**, ràng buộc PKIX, mục đích sử dụng, thuật toán và **ngữ cảnh kết nối** (socket/engine) theo cấu hình và chính sách. Nếu không tin, nó phải ném `CertificateException` thay vì cho handshake hoàn thành.
+1. **"Which certificate and private key will I present?"** — `X509ExtendedKeyManager` chooses an *alias* pointing to a matching private key + certificate chain for **this endpoint itself**. When JSSE needs a signature or private-key operation, the key manager supplies the private key via the chosen alias.
+2. **"Do I trust the peer's certificate?"** — `X509ExtendedTrustManager` verifies the **peer's certificate chain**, PKIX constraints, intended usage, algorithms, and **connection context** (socket/engine) per configuration and policy. If untrusted, it must throw `CertificateException` instead of allowing the handshake to finish.
 
-Hai thành phần đều dùng thuật ngữ X.509, nhưng **không thay thế nhau**:
+Both components use X.509 terminology, yet **do not replace each other**:
 
-| Thành phần | Đầu vào chính | Quyết định | Đầu ra |
+| Component | Primary inputs | Decision | Output |
 | --- | --- | --- | --- |
-| `X509ExtendedKeyManager` | `keyType`, `issuers`, `Socket` hoặc `SSLEngine`, local keystore | Chọn local alias để client/server trình chứng thư phù hợp | `String alias` hoặc `null`; `getPrivateKey` và `getCertificateChain` |
-| `X509ExtendedTrustManager` | `X509Certificate[] chain` từ **peer**, `authType` và kết nối | Peer chain có đáng tin, hợp lệ và phù hợp ràng buộc không? | Không trả về khi chấp nhận; ném `CertificateException` khi từ chối |
-| `KeyManagerFactory` | KeyStore chứa private key và certificate chain, password/protection | Khởi tạo provider key managers | `KeyManager[]` |
-| `TrustManagerFactory` | TrustStore hoặc PKIX trust anchors/policy | Khởi tạo trust managers | `TrustManager[]` |
+| `X509ExtendedKeyManager` | `keyType`, `issuers`, `Socket` or `SSLEngine`, local keystore | Selects a local alias so client/server presents a matching certificate | `String alias` or `null`; `getPrivateKey` and `getCertificateChain` |
+| `X509ExtendedTrustManager` | `X509Certificate[] chain` from **peer**, `authType`, and connection | Is the peer chain trustworthy, valid, and compliant with constraints? | Returns normally when accepted; throws `CertificateException` when rejected |
+| `KeyManagerFactory` | KeyStore with private key and certificate chain, password/protection | Initializes provider key managers | `KeyManager[]` |
+| `TrustManagerFactory` | TrustStore or PKIX trust anchors/policy | Initializes trust managers | `TrustManager[]` |
 
-Một certificate có thể **được chọn để gửi** bởi key manager nhưng **bị từ chối** bởi trust manager của đối tác. Ngược lại, đối tác có thể tin chain, nhưng handshake vẫn thất bại vì key manager không tìm được alias/khóa riêng tương thích.
+A certificate may be **selected for sending** by a key manager yet **rejected** by the peer's trust manager. Conversely, the peer may trust the chain, yet the handshake still fails because the key manager cannot find a compatible alias/private key.
 
-### Vai trò client, server và mTLS
+### Roles of client, server, and mTLS
 
 ```text
                    TLS server                         TLS client
         +-----------------------------+    +-----------------------------+
-        | KeyManager                  |    | KeyManager (khi mTLS)       |
-        | chọn alias chứng thư server  |    | chọn alias chứng thư client |
+        | KeyManager                  |    | KeyManager (in mTLS)        |
+        | selects server cert alias   |    | selects client cert alias   |
         +--------------+--------------+    +--------------+--------------+
                        |                                  |
-        gửi Certificate/CertificateVerify -->     <-- gửi Certificate/
+        sends Certificate/CertificateVerify -->    <-- sends Certificate/
                                               CertificateVerify (mTLS)
                        |                                  |
         +--------------v--------------+    +--------------v--------------+
-        | TrustManager                 |    | TrustManager                |
-        | kiểm chứng client (nếu mTLS) |    | kiểm chứng server           |
+        | TrustManager                |    | TrustManager                |
+        | verifies client (if mTLS)   |    | verifies server             |
         +-----------------------------+    +-----------------------------+
 ```
 
-Trong TLS **server-auth-only**, client thường không phải gửi certificate và key manager client có thể không được gọi để chọn alias. Trong **mutual TLS (mTLS)**, server yêu cầu client certificate; **cả hai phía** thường có key manager để trình chứng thư của mình và trust manager để kiểm chứng bên kia.
+In **server-auth-only** TLS, the client normally does not send a certificate and the client key manager may not be called to select an alias. In **mutual TLS (mTLS)**, the server requires a client certificate; **both sides** typically have a key manager to present their own certificate and a trust manager to verify the other side.
 
-**Không bao giờ biến “chọn được alias” thành “certificate được peer tin”.** Alias chỉ là tên của local entry (thường trong `KeyStore`), không phải trust decision.
+**Never turn "an alias was selected" into "the peer trusts the certificate."** An alias is merely the name of a local entry (usually in a `KeyStore`), not a trust decision.
 
-## 2. KeyManager, X509KeyManager và X509ExtendedKeyManager
+## 2. KeyManager, X509KeyManager, and X509ExtendedKeyManager
 
-`X509KeyManager` là interface dùng chọn credential X.509 với `Socket`. `X509ExtendedKeyManager` mở rộng lớp này, bổ sung overload cho **`SSLEngine`**. Khi viết TLS client/server trên NIO, HTTP framework, proxy hoặc custom network stack sử dụng `SSLEngine`, các overload extended là thiết yếu.
+`X509KeyManager` is the interface for selecting X.509 credentials with `Socket`. `X509ExtendedKeyManager` extends it, adding overloads for **`SSLEngine`**. When building a TLS client/server on NIO, an HTTP framework, a proxy, or a custom network stack using `SSLEngine`, the extended overloads are essential.
 
-| Method | Chức năng |
+| Method | Function |
 | --- | --- |
-| `getClientAliases(String keyType, Principal[] issuers)` | Liệt kê alias local có thể dùng làm client certificate cho loại key và issuer constraints |
-| `chooseClientAlias(String[] keyTypes, Principal[] issuers, Socket socket)` | Chọn một alias client phù hợp khi handshake bằng socket |
-| `getServerAliases(String keyType, Principal[] issuers)` | Liệt kê alias có thể dùng làm server certificate cho loại key/issuers |
-| `chooseServerAlias(String keyType, Principal[] issuers, Socket socket)` | Chọn một alias server trên handshake socket |
-| `chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine engine)` | Chọn client alias cho `SSLEngine` |
-| `chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine)` | Chọn server alias cho `SSLEngine` |
-| `getCertificateChain(String alias)` | Lấy chuỗi certificate trình với alias, thường từ leaf đến intermediate |
-| `getPrivateKey(String alias)` | Lấy private key **của local alias** để ký/handshake; có thể là opaque provider handle |
+| `getClientAliases(String keyType, Principal[] issuers)` | Lists local aliases usable as a client certificate for the key type and issuer constraints |
+| `chooseClientAlias(String[] keyTypes, Principal[] issuers, Socket socket)` | Selects a suitable client alias during a socket-based handshake |
+| `getServerAliases(String keyType, Principal[] issuers)` | Lists aliases usable as a server certificate for the key type/issuers |
+| `chooseServerAlias(String keyType, Principal[] issuers, Socket socket)` | Selects a server alias on a handshake socket |
+| `chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine engine)` | Selects a client alias for `SSLEngine` |
+| `chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine)` | Selects a server alias for `SSLEngine` |
+| `getCertificateChain(String alias)` | Retrieves the certificate chain presented for the alias, usually leaf to intermediate |
+| `getPrivateKey(String alias)` | Retrieves the private key **of the local alias** for signing/handshaking; may be an opaque provider handle |
 
-### Ý nghĩa của keyType, issuers và alias
+### Meaning of keyType, issuers, and alias
 
-- **`keyType`:** loại khóa/thuật toán phù hợp ngữ cảnh handshake, ví dụ `"RSA"`, `"EC"`; các tên giá trị và ràng buộc lựa chọn có thể phụ thuộc provider, TLS version và signature schemes. **Không** tự kết luận TLS 1.3 cipher suite tên `TLS_AES_128_GCM_SHA256` yêu cầu khóa AES để chọn certificate; TLS 1.3 đàm phán signature scheme riêng.
-- **`String[] keyTypes` phía client:** nhiều loại credential có thể phù hợp theo đề nghị của server. Key manager cân nhắc những loại được phép và issuer constraints; trả `null` nếu không có credential phù hợp.
-- **`Principal[] issuers`:** danh sách CA distinguished names mà phía yêu cầu certificate sẵn sàng chấp nhận, hoặc `null` trong các trường hợp không có giới hạn. Đây là **gợi ý/ràng buộc lựa chọn**, không phải giấy xác nhận một chain đáng tin. Phải truyền/áp dụng constraints đúng ngữ nghĩa thay vì bỏ qua.
-- **`alias`:** định danh local key entry được manager biết; có thể tương ứng một `KeyStore` alias, nhưng một provider có thể tạo alias nội bộ. Đừng giả định alias là hostname, user ID, chứng minh danh tính hay mã định danh ổn định giữa các provider.
-- **`getCertificateChain(alias)` và `getPrivateKey(alias)`:** phải tương ứng với **cùng credential**. Private key phải khớp public key trong certificate leaf. Không trộn chain của alias A với private key của alias B.
+- **`keyType`:** the key/algorithm type fitting the handshake context, e.g., `"RSA"`, `"EC"`; exact value names and selection constraints may depend on provider, TLS version, and signature schemes. **Do not** assume a TLS 1.3 cipher suite named `TLS_AES_128_GCM_SHA256` requires an AES key for certificate selection; TLS 1.3 negotiates signature schemes separately.
+- **`String[] keyTypes` on the client:** multiple credential types may fit the server's request. The key manager considers permitted types and issuer constraints; returns `null` if no credential matches.
+- **`Principal[] issuers`:** list of CA distinguished names accepted by the side requesting the certificate, or `null` when unrestricted. This is a **selection hint/constraint**, not a certificate validating that a chain is trustworthy. Apply/respect constraints semantically rather than ignoring them.
+- **`alias`:** local key entry identifier known to the manager; it may correspond to a `KeyStore` alias, though a provider may synthesize internal aliases. Never assume an alias is a hostname, user ID, proof of identity, or stable identifier across providers.
+- **`getCertificateChain(alias)` and `getPrivateKey(alias)`:** must correspond to the **same credential**. The private key must match the public key in the leaf certificate. Never mix alias A's chain with alias B's private key.
 
-Alias selection có thể cần thêm thông tin handshake như **SNI**, TLS version, signature algorithms và key usages. Với `Socket`, có thể xem handshake session trên `SSLSocket` khi có; với `SSLEngine` có thể xem `engine.getHandshakeSession()` và các thông tin liên quan. **Handshake session có thể là `null` nếu chưa sẵn sàng**; không coi giá trị thiếu là lý do trả credential bừa bãi.
+Alias selection may also need handshake details such as **SNI**, TLS version, signature algorithms, and key usages. With `Socket`, inspect the handshake session on `SSLSocket` when available; with `SSLEngine`, inspect `engine.getHandshakeSession()` and related context. **The handshake session may be `null` if not ready yet**; never treat missing data as a reason to return arbitrary credentials.
 
-### Vì sao không hardcode `"server"` làm alias cho mọi handshake?
+### Why not hardcode `"server"` as the alias for every handshake?
 
-Khi server có nhiều certificate (ví dụ RSA và ECDSA, hoặc nhiều virtual hosts), chọn alias phải tính đến:
+When a server holds multiple certificates (e.g., RSA and ECDSA, or multiple virtual hosts), alias selection must account for:
 
-- keyType và signature schemes được peer hỗ trợ;
-- SNI và virtual host **đã được cấu hình/ủy quyền**;
-- certificate SAN, chain, thời hạn, KU/EKU, các thuật toán bị disabled;
-- issuer constraints và policy;
-- cipher/TLS version, khả năng thao tác của provider hoặc HSM.
+- `keyType` and signature schemes supported by the peer;
+- **Configured/authorized** SNI and virtual host;
+- Certificate SAN, chain, validity, KU/EKU, and disabled algorithms;
+- Issuer constraints and policy;
+- Cipher/TLS version, and provider or HSM capabilities.
 
-Chỉ vì một alias tên `"server"` tồn tại không có nghĩa nó là lựa chọn hợp lệ cho mọi SNI/key type. Nếu không có credential hợp lệ, **trả `null`/để handshake thất bại**, không chọn nhầm tenant hay trình certificate sai danh tính.
+Just because an alias named `"server"` exists does not mean it is a valid choice for every SNI/key type. If no valid credential exists, **return `null`/let the handshake fail** instead of picking the wrong tenant or presenting an identity mismatch certificate.
 
-## 3. TrustManager và X509ExtendedTrustManager
+## 3. TrustManager and X509ExtendedTrustManager
 
-`X509TrustManager` có ba method cơ bản:
+`X509TrustManager` has three basic methods:
 
 ```java
 void checkClientTrusted(X509Certificate[] chain, String authType)
@@ -89,7 +89,7 @@ void checkServerTrusted(X509Certificate[] chain, String authType)
 X509Certificate[] getAcceptedIssuers();
 ```
 
-`X509ExtendedTrustManager` mở rộng với **bốn overload có ngữ cảnh**:
+`X509ExtendedTrustManager` extends it with **four context-aware overloads**:
 
 ```java
 void checkClientTrusted(
@@ -106,51 +106,51 @@ void checkServerTrusted(
         throws CertificateException;
 ```
 
-Các overload nhận `Socket`/`SSLEngine` rất quan trọng: provider có thể sử dụng **SSLParameters, endpoint identification algorithm, handshake session, requested server name, negotiated signature algorithm và TLS-specific constraints** khi xác minh peer. Phần kiểm tra **certificate path** thường cần trust anchor, validity, chữ ký, BasicConstraints, KeyUsage/ExtendedKeyUsage, algorithm constraints, critical extensions và chính sách thu hồi theo profile.
+The overloads accepting `Socket`/`SSLEngine` are crucial: the provider can use **SSLParameters, endpoint identification algorithm, handshake session, requested server name, negotiated signature algorithm, and TLS-specific constraints** when verifying the peer. **Certificate path** validation typically checks trust anchor, validity, signatures, BasicConstraints, KeyUsage/ExtendedKeyUsage, algorithm constraints, critical extensions, and profile-specific revocation policies.
 
-**Ranh giới quan trọng:** overload `checkServerTrusted(chain, authType, socket)` **không được thay bằng** `delegate.checkServerTrusted(chain, authType)` khi đang có socket, vì bạn có thể mất các kiểm tra phụ thuộc ngữ cảnh, đặc biệt hostname/endpoint identification. Tương tự, trong `SSLEngine` phải truyền nguyên engine tới overload extended của delegate.
+**Critical boundary:** `checkServerTrusted(chain, authType, socket)` **must not be replaced by** `delegate.checkServerTrusted(chain, authType)` when a socket is available, because you can lose context-dependent checks, especially hostname/endpoint identification. Likewise, in `SSLEngine`, pass the engine intact to the delegate's extended overload.
 
-### “Chấp nhận” không phải trả true
+### "Accept" does not mean returning true
 
-Method `checkServerTrusted`/`checkClientTrusted` có return type `void`:
+`checkServerTrusted`/`checkClientTrusted` return `void`:
 
-- **Thành công:** kết thúc bình thường (không exception).
-- **Thất bại:** ném `CertificateException` (hoặc subtype) để TLS handshake từ chối peer.
+- **Success:** returns normally (no exception).
+- **Failure:** throws `CertificateException` (or a subtype) so the TLS handshake rejects the peer.
 
-Một custom trust manager như dưới đây **không an toàn**:
+A custom trust manager like the following is **unsafe**:
 
 ```java
-// CỐ TÌNH SAI: KHÔNG DÙNG TRONG SẢN PHẨM.
+// INTENTIONALLY WRONG: DO NOT USE IN PRODUCTION.
 @Override public void checkServerTrusted(
         X509Certificate[] chain, String authType) {
-    // Do nothing => trust-all, không kiểm tra certificate chain.
+    // Do nothing => trust-all, does not check certificate chain.
 }
 ```
 
-Sự tồn tại `getAcceptedIssuers()==new X509Certificate[0]` cũng **không** làm các method `check...Trusted` tự an toàn. Không sử dụng trust-all để “fix PKIX path building failed” hoặc “fix hostname mismatch”.
+Even having `getAcceptedIssuers()==new X509Certificate[0]` does **not** make `check...Trusted` methods safe automatically. Never use trust-all to "fix PKIX path building failed" or "fix hostname mismatch."
 
-### Vai trò của authType
+### Role of authType
 
-`authType` là tham số do JSSE cung cấp về loại xác thực được sử dụng trong handshake theo hợp đồng API và provider, **không phải OID EKU `serverAuth`/`clientAuth`** và không phải giá trị do app chọn tùy ý. Không viết policy kiểu `authType.equals("serverAuth")`. Không tự suy từ tên cipher suite TLS 1.3 ra giá trị `authType` cố định: TLS version/signature schemes/provider có thể thay đổi cách biểu diễn.
+`authType` is a parameter supplied by JSSE indicating the authentication type used in the handshake per the API and provider contract—**not the EKU OID `serverAuth`/`clientAuth`** and not an app-chosen value. Never write policies like `authType.equals("serverAuth")`. Never deduce a fixed `authType` from a TLS 1.3 cipher suite name: TLS version/signature schemes/providers can vary the representation.
 
-## 4. KeyStore và TrustStore: vật liệu khác nhau
+## 4. KeyStore and TrustStore: different materials
 
-Trong JSSE thường có **hai store với vai trò khác nhau**:
+In JSSE there are typically **two stores with distinct roles**:
 
-| Store | Nội dung | Dùng bởi | Có chứa private key local? |
+| Store | Contents | Used by | Contains local private key? |
 | --- | --- | --- | --- |
-| **KeyStore** | `PrivateKeyEntry`: private key + certificate chain tương ứng | `KeyManagerFactory` | Có, với credential phần mềm; HSM có thể dùng handle |
-| **TrustStore** | `TrustedCertificateEntry` hoặc trust anchors/certificates tin cậy | `TrustManagerFactory` | Thường **không cần** private key |
-| **Server key store** | Server private key và server certificate/chain | Server key manager | Có |
-| **Client key store** | Client private key và client certificate/chain | Client key manager khi mTLS | Có |
-| **Server trust store** | CA/certificate được server tin cho **client certificate** | Server trust manager | Không |
-| **Client trust store** | CA/certificate được client tin cho **server certificate** | Client trust manager | Không |
+| **KeyStore** | `PrivateKeyEntry`: private key + matching certificate chain | `KeyManagerFactory` | Yes, for software credentials; HSMs may use handles |
+| **TrustStore** | `TrustedCertificateEntry` or trusted anchors/certificates | `TrustManagerFactory` | Usually **no** private key needed |
+| **Server key store** | Server private key and server certificate/chain | Server key manager | Yes |
+| **Client key store** | Client private key and client certificate/chain | Client key manager in mTLS | Yes |
+| **Server trust store** | CAs/certificates trusted by the server for **client certificates** | Server trust manager | No |
+| **Client trust store** | CAs/certificates trusted by the client for **server certificates** | Client trust manager | No |
 
-Khi mTLS, **server kiểm client**, **client kiểm server**. Nếu đặt sai truststore (ví dụ client chỉ tin client certificate thay vì server issuer), handshake có thể fail dù cả key managers chọn alias hợp lệ.
+In mTLS, **the server checks the client** and **the client checks the server**. Swapping truststores (e.g., client trusts only the client certificate instead of the server's issuer) causes the handshake to fail even when both key managers pick valid aliases.
 
-### Factory khởi tạo đúng cách
+### Initializing factories properly
 
-Đoạn minh họa trong một phương thức Java, chưa phải chương trình độc lập:
+Illustrative snippet inside a Java method, not a standalone program:
 
 ```java
 KeyManagerFactory kmf = KeyManagerFactory.getInstance(
@@ -166,81 +166,81 @@ ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(),
          new SecureRandom());
 ```
 
-Chú ý `KeyManagerFactory.getDefaultAlgorithm()` hoặc `TrustManagerFactory.getDefaultAlgorithm()` **chọn algorithm factory**, không đồng nghĩa “đã dùng đúng KeyStore”, “đã bật hostname verification” hoặc “đã cấu hình mTLS”. Những điều này cần được cấu hình riêng trên socket/engine/server.
+Note that `KeyManagerFactory.getDefaultAlgorithm()` or `TrustManagerFactory.getDefaultAlgorithm()` **selects the factory algorithm**; it does not mean "used the right KeyStore," "enabled hostname verification," or "configured mTLS." Those must be configured separately on the socket/engine/server.
 
-**Một số factory chỉ cung cấp `X509KeyManager`/`X509TrustManager` cơ bản hoặc một implementation khác với JSSE profile:** ví dụ chạy trong bài kiểm tra rõ ràng yêu cầu kiểu `X509Extended...`. Khi không có loại extended tương ứng, ví dụ **fail closed bằng `IllegalStateException`**, không tùy tiện cast hay tự tạo trust-all adapter.
+**Some factories return only basic `X509KeyManager`/`X509TrustManager` or a different implementation depending on the JSSE profile:** the runnable example in this lesson explicitly requires `X509Extended...` types. When the extended type is unavailable, **fail closed with `IllegalStateException`** rather than casting blindly or building a trust-all adapter.
 
-## 5. Cấu hình handshake mTLS an toàn
+## 5. Configuring a secure mTLS handshake
 
-Đối với một mTLS channel qua `SSLSocket`:
+For an mTLS channel over `SSLSocket`:
 
-1. Server có certificate + private key phù hợp hostname/thuật toán và đã khởi tạo `KeyManagerFactory`.
-2. Client có `TrustManagerFactory` gắn trust anchors cho server. Client bật **endpoint identification**: `socket.getSSLParameters().setEndpointIdentificationAlgorithm("HTTPS")` và **áp lại** `socket.setSSLParameters(...)` trước `startHandshake()`.
-3. Server cấu hình **`setNeedClientAuth(true)`**, không chỉ `setWantClientAuth(true)`. `need` yêu cầu client phải cung cấp certificate hợp lệ; `want` vẫn có thể cho phép peer không có certificate.
-4. Client có key manager cung cấp client certificate/private key phù hợp issuer/key type; server có trust manager tin issuer/client certificate theo policy.
-5. Cả hai chạy TLS handshake; `X509ExtendedKeyManager` được gọi để chọn alias phù hợp và `X509ExtendedTrustManager` được gọi để kiểm peer.
-6. Sau thành công, ứng dụng **vẫn phải** thực hiện authorization dựa trên danh tính đã xác minh: role, tenant, endpoint/purpose, ACL, scopes. mTLS xác thực certificate **không** cho phép tất cả API tự động.
+1. Server has a certificate + private key matching hostname/algorithms and an initialized `KeyManagerFactory`.
+2. Client has a `TrustManagerFactory` bound to trust anchors for the server. Client enables **endpoint identification**: `socket.getSSLParameters().setEndpointIdentificationAlgorithm("HTTPS")` and **re-applies** `socket.setSSLParameters(...)` before `startHandshake()`.
+3. Server sets **`setNeedClientAuth(true)`**, not merely `setWantClientAuth(true)`. `need` forces the client to provide a valid certificate; `want` may permit a peer with no certificate.
+4. Client has a key manager supplying a client certificate/private key matching the issuer/key type; server has a trust manager trusting the client's issuer/certificate per policy.
+5. Both execute the TLS handshake; `X509ExtendedKeyManager` is invoked to choose the right alias and `X509ExtendedTrustManager` is invoked to verify the peer.
+6. Upon success, the application **must still** perform authorization based on the verified identity: role, tenant, endpoint/purpose, ACL, scopes. mTLS certificate authentication **does not** automatically authorize all APIs.
 
-Nếu ứng dụng dùng NIO/`SSLEngine`, phải cài **cả các overload `chooseEngine...Alias` và `check...Trusted(..., SSLEngine)`**, rồi đảm bảo peer host và endpoint identification configured hợp lý. Dùng các overload nhận `Socket` cho engine là sai bối cảnh.
+If the app uses NIO/`SSLEngine`, install **both the `chooseEngine...Alias` and `check...Trusted(..., SSLEngine)` overloads**, and ensure peer host and endpoint identification are configured properly. Using `Socket` overloads for an engine is the wrong context.
 
-### SSLParameters và hostname verification
+### SSLParameters and hostname verification
 
-Trong raw `SSLSocket` client, một `TrustManager` xác minh chain **không tự bảo đảm** hostname được kiểm nếu không bật endpoint identification tương ứng. Với HTTPS client frameworks, cơ chế này thường được stack cấu hình cho bạn; với raw socket/engine cần kiểm tra.
+In a raw `SSLSocket` client, a `TrustManager` verifying the chain **does not automatically guarantee** hostname checking unless the matching endpoint identification is enabled. In HTTPS client frameworks, this is usually configured by the stack; with raw sockets/engines, check explicitly.
 
-Ví dụ:
+Example:
 
 ```java
-// Đoạn minh họa, socket phải là SSLSocket client chưa bắt tay.
+// Illustrative snippet; socket must be a client SSLSocket before handshake.
 SSLParameters parameters = socket.getSSLParameters();
 parameters.setEndpointIdentificationAlgorithm("HTTPS");
 socket.setSSLParameters(parameters);
 socket.startHandshake();
 ```
 
-Chữ `"HTTPS"` ở đây là endpoint identification algorithm theo SSLParameters, **không phải** TLS protocol string, không phải cipher suite. Chứng thư server cho IP `127.0.0.1` cần SAN kiểu iPAddress phù hợp; chỉ `CN=localhost` không đủ thay thế SAN trong giao thức hiện đại.
+`"HTTPS"` here is the endpoint identification algorithm per `SSLParameters`, **not** a TLS protocol string or cipher suite. A server certificate for IP `127.0.0.1` needs an `iPAddress` SAN; `CN=localhost` alone cannot replace SAN in modern protocols.
 
-## 6. Java 17+ thực hành: đóng gói extended managers không bỏ qua trust
+## 6. Java 17+ hands-on: wrapping extended managers without bypassing trust
 
-Bài thực hành chạy **server và client trên loopback `127.0.0.1`** với certificate demo:
+This exercise runs **server and client on loopback `127.0.0.1`** with demo certificates:
 
-- Hai local KeyStores riêng `server.p12`/`client.p12`, mỗi store chỉ có một private key alias và certificate tự ký cho riêng peer.
-- Hai truststores riêng `server-trust.p12`/`client-trust.p12`. Server-trust tin certificate client test; client-trust tin certificate server test.
-- `ObservedKeyManager extends X509ExtendedKeyManager` **ủy quyền cho manager do KeyManagerFactory tạo**, đếm các lần chọn alias thành công. Không log alias/private key/certificate chain để tránh lộ metadata không cần thiết.
-- `ObservedTrustManager extends X509ExtendedTrustManager` **ủy quyền cho delegate đúng overload**; tăng bộ đếm **chỉ sau khi delegate kiểm tra thành công**. Không tự cài “trust-all”.
-- Handshake mTLS bắt buộc client certificate, kiểm tra HTTPS endpoint identity theo IP SAN và trao đổi một byte application data sau handshake.
-- Chạy hai phiên riêng biệt **TLSv1.3** và **TLSv1.2**, kiểm tra cả hai phía thống nhất negotiated protocol.
+- Two separate local KeyStores `server.p12`/`client.p12`, each containing one private key alias and a self-signed certificate for its peer.
+- Two separate truststores `server-trust.p12`/`client-trust.p12`. Server-trust trusts the test client cert; client-trust trusts the test server cert.
+- `ObservedKeyManager extends X509ExtendedKeyManager` **delegates to the manager created by KeyManagerFactory**, counting successful alias selections. Do not log aliases/private keys/certificate chains to avoid exposing unnecessary metadata.
+- `ObservedTrustManager extends X509ExtendedTrustManager` **delegates to the matching overload**; increments counters **only after the delegate check succeeds**. Never implement "trust-all."
+- The mTLS handshake mandates a client certificate, checks HTTPS endpoint identity against the IP SAN, and exchanges one byte of application data post-handshake.
+- Runs two separate sessions for **TLSv1.3** and **TLSv1.2**, verifying both sides agree on the negotiated protocol.
 
-**Bảo mật:** Đây là chương trình demo với **chứng thư tự ký tạm** được chính ứng dụng test import làm trust anchor. Trong sản phẩm, chỉ tin CA hoặc public key/certificate được phân phối bằng kênh đáng tin; không nhập chứng thư do remote peer đưa rồi dùng ngay làm trust anchor.
+**Security:** This is a demo program using **temporary self-signed certificates** imported by the test app itself as trust anchors. In production, trust only CAs or public keys/certificates distributed via trusted channels; never import a certificate sent by a remote peer and immediately use it as a trust anchor.
 
-### 6.1 Tạo chứng thư và truststores (PowerShell)
+### 6.1 Creating certificates and truststores (PowerShell)
 
-Chạy những lệnh sau trong **cùng phiên PowerShell** với JDK 17+ có `keytool`. Hai certificate ở đây là test fixtures, password `changeit` chỉ để minh họa.
+Run these commands in the **same PowerShell session** with JDK 17+ `keytool`. Both certificates here are test fixtures, and password `changeit` is purely illustrative.
 
 ```powershell
 $t = Join-Path $env:TEMP ("extended-managers-demo-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $t | Out-Null
-$pw = "changeit"  # DEMO ONLY; không hardcode password sản phẩm.
+$pw = "changeit"  # DEMO ONLY; never hardcode production passwords.
 
-# Server: SAN có iPAddress 127.0.0.1 để client xác minh hostname/IP.
+# Server: SAN with iPAddress 127.0.0.1 so client verifies hostname/IP.
 keytool -genkeypair -alias server -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname "CN=localhost" -ext "SAN=ip:127.0.0.1,dns:localhost" -ext "KU:critical=digitalSignature,keyEncipherment" -ext "EKU=serverAuth" -validity 7 -storetype PKCS12 -keystore (Join-Path $t "server.p12") -storepass $pw -keypass $pw -noprompt
 
-# Client: certificate dùng mTLS client authentication.
+# Client: certificate for mTLS client authentication.
 keytool -genkeypair -alias client -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname "CN=client-demo" -ext "KU:critical=digitalSignature" -ext "EKU=clientAuth" -validity 7 -storetype PKCS12 -keystore (Join-Path $t "client.p12") -storepass $pw -keypass $pw -noprompt
 
-# Export CERTIFICATE PUBLIC, không phải private key.
+# Export PUBLIC CERTIFICATE, not the private key.
 keytool -exportcert -alias server -keystore (Join-Path $t "server.p12") -storepass $pw -rfc -file (Join-Path $t "server.pem")
 keytool -exportcert -alias client -keystore (Join-Path $t "client.p12") -storepass $pw -rfc -file (Join-Path $t "client.pem")
 
-# Server tin client, client tin server.
+# Server trusts client, client trusts server.
 keytool -importcert -alias client -file (Join-Path $t "client.pem") -keystore (Join-Path $t "server-trust.p12") -storetype PKCS12 -storepass $pw -noprompt
 keytool -importcert -alias server -file (Join-Path $t "server.pem") -keystore (Join-Path $t "client-trust.p12") -storetype PKCS12 -storepass $pw -noprompt
 ```
 
-`-noprompt` chỉ dùng trong fixture mà bạn vừa tự tạo. **Không tự động import remote/unverified certificates** vào truststore production. Không reuse `server.p12`/`client.p12` này cho một dịch vụ thật.
+`-noprompt` is used only for fixtures you just created yourself. **Never automatically import remote/unverified certificates** into production truststores. Never reuse these `server.p12`/`client.p12` files for a real service.
 
-### 6.2 Chương trình Java hoàn chỉnh
+### 6.2 Complete Java program
 
-Lưu thành **`ExtendedManagersMutualTlsDemo.java`** trong thư mục làm việc (khác thư mục `$t` cũng được). Mã tương thích **Java 17+**, gồm toàn bộ sáu overload trust manager, bốn đường lựa chọn alias và các getter cần có của key manager.
+Save as **`ExtendedManagersMutualTlsDemo.java`** in your working directory (can be different from `$t`). The code is **Java 17+ compatible**, including all six trust manager overloads, four alias selection paths, and required key manager getters.
 
 ```java
 import java.io.InputStream;
@@ -468,16 +468,16 @@ public final class ExtendedManagersMutualTlsDemo {
 }
 ```
 
-### 6.3 Biên dịch, chạy và output đã xác minh
+### 6.3 Compiling, running, and verified output
 
-Trong **cùng phiên PowerShell** còn biến `$t`/`$pw`, đứng ở thư mục chứa `ExtendedManagersMutualTlsDemo.java`:
+In the **same PowerShell session** while `$t`/`$pw` are set, from the directory containing `ExtendedManagersMutualTlsDemo.java`:
 
 ```powershell
 javac --release 17 -encoding UTF-8 -d $t ExtendedManagersMutualTlsDemo.java
 java -cp $t ExtendedManagersMutualTlsDemo (Join-Path $t "server.p12") (Join-Path $t "server-trust.p12") (Join-Path $t "client.p12") (Join-Path $t "client-trust.p12") $pw
 ```
 
-Kết quả **12 dòng đúng như lần chạy được kiểm thử** trên JDK 17+ có SunJSSE:
+Exact **12-line output as verified on JDK 17+ with SunJSSE**:
 
 ```text
 TLSv1.3 negotiated=true
@@ -494,21 +494,21 @@ TLSv1.2 serverVerifiedClient=true
 TLSv1.2 applicationData=true
 ```
 
-**Diễn giải từng nhóm:**
+**Interpretation of each group:**
 
-- `negotiated=true`: hai bên báo cùng TLS version, khớp danh sách duy nhất được bật cho lần thử. Không suy ra mọi đối tác Internet hỗ trợ hai versions.
-- `serverAliasSelected=true`: delegate key manager phía server đã chọn local server certificate alias được chấp nhận; đây là **đếm selection thành công**, không phải một chứng minh riêng về trust.
-- `clientAliasSelected=true`: vì server yêu cầu client certificate (`setNeedClientAuth(true)`), phía client đã chọn alias để trình mTLS certificate.
-- `clientVerifiedServer=true`: client-side **extended trust manager** đã gọi đúng delegate và chỉ tăng counter sau khi check server thành công.
-- `serverVerifiedClient=true`: phía server cũng kiểm chứng client certificate thành công, thể hiện khác biệt giữa mTLS và TLS server-only.
-- `applicationData=true`: sau handshake, client gửi một byte `17` và server trả `18`, buộc cả hai bên hoàn tất luồng bắt tay và xác nhận kênh có thể dùng để trao đổi data. Một số handshake implementations có thể hoàn tất đọc/ghi ở các thời điểm khác nhau; đừng dựa riêng vào `Future.get` khi chưa có I/O/timeout đúng.
-- Các counter được lấy **trước và sau từng phiên**, vì cùng objects `Side` còn sống trong hai lần thử. Counter chứng minh delegate callback **đã chạy và thành công** trong phiên tương ứng; chúng không phải công cụ phân tích toàn bộ TLS certificate policy.
+- `negotiated=true`: both sides report the same TLS version, matching the sole version enabled for that run. Do not extrapolate that all Internet peers support both versions.
+- `serverAliasSelected=true`: the server-side delegate key manager selected an accepted local server certificate alias; this **counts successful selections**, not a separate proof of trust.
+- `clientAliasSelected=true`: because the server requested a client certificate (`setNeedClientAuth(true)`), the client side selected an alias to present the mTLS certificate.
+- `clientVerifiedServer=true`: the client-side **extended trust manager** called the right delegate and incremented the counter only after the server check succeeded.
+- `serverVerifiedClient=true`: the server side also verified the client certificate successfully, demonstrating the difference between mTLS and server-only TLS.
+- `applicationData=true`: after the handshake, the client sent byte `17` and the server returned `18`, forcing both sides to complete the handshake flow and confirming the channel can exchange data. Some handshake implementations may finish read/write at different points; never rely solely on `Future.get` without proper I/O/timeouts.
+- Counters are captured **before and after each session**, because the same `Side` objects stay alive across both runs. Counters prove the delegate callbacks **ran and succeeded** in that session; they are not an analysis tool for the entire TLS certificate policy.
 
-**Không có trust-all ở đây:** `ObservedTrustManager` chuyển nguyên `chain`, `authType`, `socket/engine` cho `base`, đồng thời client bật HTTPS endpoint identification. Hai truststores tin **test certificate đã được tạo** và không tự chấp nhận mọi chain. Trong hệ thống thực, trusted roots cần xuất phát từ trust configuration có kiểm soát, không được tạo từ certificate do peer gửi không xác thực.
+**There is no trust-all here:** `ObservedTrustManager` passes `chain`, `authType`, and `socket/engine` intact to `base`, while the client enables HTTPS endpoint identification. The two truststores trust the **generated test certificates** and do not blindly accept every chain. In real systems, trusted roots must come from controlled trust configuration, never created from unverified peer-sent certificates.
 
-**Tại sao không in alias/private key?** Key alias, issuer, chain và SNI đôi khi là metadata vận hành nhạy cảm. Log tối thiểu boolean/count và error code không có secret sẽ an toàn hơn so với log `getPrivateKey(alias).getEncoded()` (không bao giờ làm việc đó).
+**Why not print aliases/private keys?** Key aliases, issuers, chains, and SNI are sometimes sensitive operational metadata. Minimal boolean/count logs and secret-free error codes are safer than logging `getPrivateKey(alias).getEncoded()` (never do that).
 
-Khi xong bài, xóa fixtures demo:
+When finished, remove the demo fixtures:
 
 ```powershell
 if ($t -like (Join-Path $env:TEMP "extended-managers-demo-*")) {
@@ -516,183 +516,183 @@ if ($t -like (Join-Path $env:TEMP "extended-managers-demo-*")) {
 }
 ```
 
-Xóa file không bảo đảm xóa sạch mọi bản sao trên SSD/snapshot; **chỉ dùng test private keys** và không lưu chúng trong repository.
+Deleting files does not guarantee wiping all copies on SSDs/snapshots; **use test private keys only** and never store them in repositories.
 
-## 7. Vì sao decorator phải triển khai và ủy quyền đầy đủ?
+## 7. Why must a decorator implement and delegate completely?
 
-Ví dụ dùng hai lớp decorator có trách nhiệm chính là **quan sát, không thay đổi policy**. Một wrapper thực tế có thể thêm lựa chọn certificate hoặc kiểm tra authorization riêng, nhưng phải hiểu hợp đồng cả superclass.
+The example uses two decorator classes whose sole job is **observation, not changing policy**. A real wrapper might add custom certificate selection or authorization checks, yet it must honor the full superclass contract.
 
-### 7.1 Những method key manager không được quên
+### 7.1 Key manager methods you must not forget
 
-Khi extends `X509ExtendedKeyManager`, hãy triển khai:
+When extending `X509ExtendedKeyManager`, implement:
 
-- `getClientAliases` và `getServerAliases`: kết quả có thể là `null` nếu không có credential phù hợp.
-- `chooseClientAlias` / `chooseServerAlias`: cho socket-based handshake.
-- `chooseEngineClientAlias` / `chooseEngineServerAlias`: cho `SSLEngine`.
-- `getCertificateChain` và `getPrivateKey`: JSSE cần lấy certificate chain/private key của alias đã chọn.
+- `getClientAliases` and `getServerAliases`: may return `null` if no matching credential exists.
+- `chooseClientAlias` / `chooseServerAlias`: for socket-based handshakes.
+- `chooseEngineClientAlias` / `chooseEngineServerAlias`: for `SSLEngine`.
+- `getCertificateChain` and `getPrivateKey`: JSSE needs the certificate chain/private key of the selected alias.
 
-Không nên implements `chooseEngineServerAlias` rồi **luôn trả `null`** với suy nghĩ ứng dụng chỉ dùng socket: nhiều frameworks dùng engine ngay cả khi giao thức chạy trên TCP. Khi chuyển từ blocking socket sang NIO, certificate selection có thể dừng hoạt động nếu thiếu engine overload.
+Never implement `chooseEngineServerAlias` and **always return `null`** thinking the app only uses sockets: many frameworks use an engine even when the protocol runs over TCP. When migrating from blocking sockets to NIO, certificate selection can stop working if engine overloads are missing.
 
-Nếu cần ép một alias cụ thể:
+If you need to enforce a specific alias:
 
-1. Cho delegate chọn các candidates theo keyType/issuers/provider.
-2. Chỉ chấp nhận alias được phép theo cấu hình tenant/hostname, key usage, certificate chain, thuật toán và handshake context đã xác minh.
-3. Nếu không có alias phù hợp, fail closed bằng `null`/lỗi rõ ràng.
-4. Không return alias tùy ý không có private key hoặc certificate phù hợp.
+1. Let the delegate select candidates per `keyType`/issuers/provider.
+2. Accept only aliases allowed by verified tenant/hostname config, key usage, certificate chain, algorithms, and handshake context.
+3. If no suitable alias exists, fail closed with `null`/a clear error.
+4. Never return an arbitrary alias lacking a matching private key or certificate.
 
-**SNI không phải identity authentication.** SNI do client đề xuất giúp server chọn virtual host, nhưng bản thân tên SNI không chứng minh client được ủy quyền. Certificate server phải phù hợp hostname và client vẫn cần kiểm tra SAN/endpoint identification. Đừng dùng SNI để cho phép truy cập tenant hoặc quyết định trust client certificate thay thế chính sách mTLS.
+**SNI is not identity authentication.** Client-proposed SNI helps the server pick a virtual host, yet the SNI name itself does not prove the client is authorized. The server certificate must match the hostname and the client must still check SAN/endpoint identification. Never use SNI to grant tenant access or override mTLS client certificate trust policies.
 
-### 7.2 Những method trust manager không được quên
+### 7.2 Trust manager methods you must not forget
 
-Khi extends `X509ExtendedTrustManager`, có **sáu** overload:
+When extending `X509ExtendedTrustManager`, there are **six** overloads:
 
-- `checkServerTrusted(chain, authType)`, `checkClientTrusted(chain, authType)` (cơ bản);
-- `checkServerTrusted(chain, authType, Socket)` và `checkClientTrusted(chain, authType, Socket)`;
-- `checkServerTrusted(chain, authType, SSLEngine)` và `checkClientTrusted(chain, authType, SSLEngine)`.
+- `checkServerTrusted(chain, authType)`, `checkClientTrusted(chain, authType)` (basic);
+- `checkServerTrusted(chain, authType, Socket)` and `checkClientTrusted(chain, authType, Socket)`;
+- `checkServerTrusted(chain, authType, SSLEngine)` and `checkClientTrusted(chain, authType, SSLEngine)`.
 
-Thêm `getAcceptedIssuers()`. Nếu là decorator cho một delegate tin cậy, mỗi method extended cần **gọi delegate đúng overload**; không được rơi về basic overload chỉ vì dễ lập trình. Caller có thể cần chính context để kiểm hostname/SNI/SSLParameters/signature algorithms.
+Plus `getAcceptedIssuers()`. When wrapping a trusted delegate, every extended method must **call the delegate's matching overload**; never fall back to the basic overload just because it is simpler to code. Callers may need the exact context to verify hostname/SNI/SSLParameters/signature algorithms.
 
-**Khi muốn thêm kiểm tra sau xác minh chain**, làm theo nguyên tắc *monotonic restriction*: gọi delegate an toàn trước, sau đó **chỉ thắt chặt** chính sách, ví dụ kiểm tra certificate public-key pin đã được phân phối an toàn hoặc subject mapping. Khi yêu cầu không đạt, ném `CertificateException`. Không cắt bỏ trust chain verification vì đã làm pinning (nếu đó không phải một thiết kế pinning thay thế được phân tích và phê duyệt kỹ).
+**When adding post-chain-verification checks**, follow the principle of *monotonic restriction*: call the safe delegate first, then **only tighten** policy—e.g., checking a securely distributed public-key pin or subject mapping. When requirements fail, throw `CertificateException`. Do not strip out trust chain verification just because you added pinning (unless it is a thoroughly analyzed and approved alternative pinning design).
 
-Đoạn ý tưởng (không phải chương trình độc lập):
+Conceptual snippet (not a standalone program):
 
 ```java
 @Override
 public void checkServerTrusted(X509Certificate[] chain, String authType,
                                SSLEngine engine) throws CertificateException {
     delegate.checkServerTrusted(chain, authType, engine);
-    // Chỉ sau khi delegate xác minh thành công:
-    // verifyApprovedPublicKeyPin(chain[0]); // tự ném CertificateException nếu sai
+    // Only after delegate verification succeeds:
+    // verifyApprovedPublicKeyPin(chain[0]); // throws CertificateException on mismatch
 }
 ```
 
-**Pinning cẩn thận:** đừng hardcode raw certificate DER không có kế hoạch rotation/backup. Public key pin (SPKI hash) và certificate pin có tuổi thọ/rotation khác nhau. Một pin có khả năng chặn cả certificate hợp lệ khi key rotation, nên phải có rollout/escape hatch được bảo vệ; không tự biến đây thành “bỏ qua CA trust khi pin trùng” nếu không có threat model rõ ràng.
+**Pin carefully:** never hardcode raw certificate DER bytes without a rotation/backup plan. Public key pins (SPKI hashes) and certificate pins have different lifetimes/rotation dynamics. A pin can block even valid certificates during key rotation, so maintain protected rollout/escape hatches; never turn this into "skip CA trust when the pin matches" without a clear threat model.
 
-## 8. Socket và SSLEngine: ngữ cảnh ảnh hưởng kết quả
+## 8. Socket and SSLEngine: context affects the outcome
 
-| Tiêu chí | `SSLSocket` | `SSLEngine` |
+| Criterion | `SSLSocket` | `SSLEngine` |
 | --- | --- | --- |
-| Mô hình giao tiếp | Blocking I/O trên socket | TLS state machine với ByteBuffers trong NIO/async/framework |
-| Method chọn local client key | `chooseClientAlias(...,Socket)` | `chooseEngineClientAlias(...,SSLEngine)` |
-| Method chọn local server key | `chooseServerAlias(...,Socket)` | `chooseEngineServerAlias(...,SSLEngine)` |
-| Method kiểm peer trên client | `checkServerTrusted(...,Socket)` | `checkServerTrusted(...,SSLEngine)` |
-| Method kiểm peer trên server mTLS | `checkClientTrusted(...,Socket)` | `checkClientTrusted(...,SSLEngine)` |
-| Endpoint identification | `SSLParameters` trên socket | `SSLParameters` trên engine, cần host context đúng |
-| SNI/handshake context | Có thể qua `SSLSession`/`ExtendedSSLSession` tùy thời điểm | `engine.getHandshakeSession()` và SNI/peer host nếu có |
-| Rủi ro khi wrapper thiếu overload | Có thể hoạt động trên socket nhưng fail khi chuyển framework | Engine path dễ fail/mất context kiểm tra |
+| Communication model | Blocking I/O over a socket | TLS state machine with ByteBuffers in NIO/async/frameworks |
+| Method picking local client key | `chooseClientAlias(...,Socket)` | `chooseEngineClientAlias(...,SSLEngine)` |
+| Method picking local server key | `chooseServerAlias(...,Socket)` | `chooseEngineServerAlias(...,SSLEngine)` |
+| Method verifying peer on client | `checkServerTrusted(...,Socket)` | `checkServerTrusted(...,SSLEngine)` |
+| Method verifying peer on mTLS server | `checkClientTrusted(...,Socket)` | `checkClientTrusted(...,SSLEngine)` |
+| Endpoint identification | `SSLParameters` on socket | `SSLParameters` on engine; requires proper host context |
+| SNI/handshake context | Via `SSLSession`/`ExtendedSSLSession` depending on timing | `engine.getHandshakeSession()` and SNI/peer host if available |
+| Risk when wrapper misses overloads | May work on sockets yet fail when switching frameworks | Engine path easily fails or loses verification context |
 
-**Đặc biệt với SSLEngine:** khi tạo engine cho TLS client, nên có tên peer/port thích hợp (`SSLContext.createSSLEngine(host, port)`) và bật endpoint identification nếu giao thức cần. Dùng `createSSLEngine()` không host rồi mặc định “HTTPS hostname verification sẽ tự chạy” có thể làm thiếu dữ liệu định danh. Nếu handshake diễn ra qua reverse proxy, bảo đảm hostname cần kiểm là service identity mong muốn, **không** chỉ IP của proxy.
+**Especially with SSLEngine:** when creating an engine for a TLS client, supply an appropriate peer host/port (`SSLContext.createSSLEngine(host, port)`) and enable endpoint identification if required by the protocol. Calling hostless `createSSLEngine()` and assuming "HTTPS hostname verification runs automatically" can leave identity info missing. If the handshake goes through a reverse proxy, ensure the hostname checked is the expected service identity, **not** merely the proxy's IP.
 
-Khi override alias selection theo SNI, đọc `ExtendedSSLSession.getRequestedServerNames()` nếu handshake session và thông tin hỗ trợ; không dựa `getSession()` cũ khi đang handshake và không cho null/unsupported SNI trở thành lý do bypass policy.
+When overriding alias selection by SNI, read `ExtendedSSLSession.getRequestedServerNames()` if the handshake session and data support it; do not rely on old `getSession()` mid-handshake and never let null/unsupported SNI become a reason to bypass policy.
 
-## 9. Chọn certificate và kiểm peer không đồng nghĩa authorization ứng dụng
+## 9. Selecting a certificate and verifying a peer do not equal application authorization
 
-Ngay cả khi mTLS thành công:
+Even when mTLS succeeds:
 
-- **Trust manager** chứng minh certificate/chain đạt ràng buộc PKIX/TLS của môi trường đó. Nó **không** tự ánh xạ client certificate sang role “admin” hay tenant.
-- **Certificate subject/CN** không phải định danh ứng dụng đủ mạnh trong mọi profile. Cần quy tắc mapping đã phê duyệt (SAN URI/DNS, SPIFFE ID hoặc field chứng thư tương ứng), issuer đáng tin, policy và key lifecycle.
-- **KeyUsage/ExtendedKeyUsage** quy định certificate được dùng cho mục đích mật mã/giao thức: serverAuth khác clientAuth. Một clientAuth certificate không được tự coi là server identity.
-- **Hostname identification** kiểm tra server identity theo TLS/HTTPS; không thay kiểm tra client authorization trên API.
-- **KeyManager chọn alias** có thể phụ thuộc SNI, issuer, signature algorithms, key type; không có nghĩa owner của alias có quyền truy cập mọi service.
+- **Trust manager** proves the certificate/chain meets PKIX/TLS constraints for that environment. It **does not** map a client certificate to an "admin" role or tenant.
+- **Certificate subject/CN** is not a sufficiently strong application identifier in every profile. Use approved mapping rules (SAN URI/DNS, SPIFFE ID, or relevant certificate field), trusted issuer, policy, and key lifecycle.
+- **KeyUsage/ExtendedKeyUsage** defines cryptographic/protocol purpose: `serverAuth` differs from `clientAuth`. A `clientAuth` certificate must never automatically pass as a `serverAuth` identity.
+- **Hostname identification** checks server identity per TLS/HTTPS; it does not replace client API authorization.
+- **KeyManager alias selection** may depend on SNI, issuers, signature algorithms, and key types; it does not mean the alias owner has permission to access every service.
 
-Ví dụ với một API quản lý dữ liệu nhạy cảm, chỉ “mTLS handshake thành công” không đủ; service phải so định danh client đã xác thực với permission của endpoint/dataset/tenant, rồi audit.
+For instance, on an API managing sensitive data, "mTLS handshake succeeded" alone is insufficient; the service must compare the verified client identity against endpoint/dataset/tenant permissions, and audit it.
 
-Đừng log raw private key hoặc certificate chain đầy đủ trong mỗi handshake. Khi cần forensic, có thể log key ID/certificate fingerprint, issuer, certificate serial, role và TLS version theo chính sách dữ liệu, không đưa bí mật vào log.
+Never log raw private keys or full certificate chains on every handshake. When forensics require it, log key ID/certificate fingerprint, issuer, certificate serial, role, and TLS version per data policy, without putting secrets in logs.
 
-## 10. Vấn đề thực tế và cách chẩn đoán
+## 10. Real-world issues and how to diagnose them
 
-| Dấu hiệu lỗi | Nguyên nhân khả dĩ | Kiểm tra/khắc phục |
+| Error symptom | Likely cause | Check/remediation |
 | --- | --- | --- |
-| `SSLHandshakeException: no suitable certificate` | KeyManager không có alias đúng keyType/issuers/signature schemes | Xem KeyStore entries, chain, provider, `choose...Alias` và certificate profile |
-| `no available authentication scheme` | Server không tìm được credential phù hợp key type/protocol | Kiểm certificate, signature schemes, server key manager và TLS 1.3 compatibility |
-| `PKIX path building failed` | TrustStore không tin CA/peer certificate hoặc thiếu intermediates | Kiểm đúng trust anchors, chain và trust manager; không trust-all |
-| `No subject alternative names matching ...` | HTTPS endpoint identification xác định peer host khác SAN | Cấp lại cert đúng SAN hoặc kết nối đúng hostname; không tắt hostname checks |
-| `bad_certificate` / `certificate_unknown` | Peer từ chối certificate/chain | Xem log hai đầu; phân biệt selection failure với trust failure |
-| `certificate_required` / client handshake rejected | Server yêu cầu client certificate nhưng client key manager trả null/sai loại | Kiểm `setNeedClientAuth`, client KeyStore, issuer list, EKU clientAuth |
-| mTLS “thành công” dù client không có cert | Server đặt `setWantClientAuth(true)` hoặc chưa bật need | Dùng `setNeedClientAuth(true)` đúng socket/engine |
-| Socket TLS thành công nhưng SSLEngine framework fail | Wrapper chỉ override Socket methods, engine methods trả null/không delegate | Implement cả engine overloads |
-| Hostname không được kiểm khi dùng wrapper | `checkServerTrusted(...,Socket)` gọi basic overload, hoặc thiếu SSLParameters HTTPS | Delegate đúng contextual overload và bật endpoint identification |
-| `InvalidKeyException` / key not found | Alias không có private key hoặc key handle/provider không tương thích | Đồng bộ `getCertificateChain`, `getPrivateKey`, provider, key policy |
-| Một server nhiều certificates gửi sai virtual host | Chọn alias chỉ theo `keyType`, bỏ qua SNI/tenant và SAN | Lựa chọn có policy SNI an toàn, test từng hostname |
-| `getAcceptedIssuers()` trả list gây lỗi client selection | Advertised CA list không khớp issuer chain của client | Kiểm trust anchors, issuer constraints; không trả list tùy ý |
-| Certificate chain hợp lệ nhưng ứng dụng từ chối client | mTLS xác thực xong nhưng không có role/permission | Map identity được xác minh sang authorization nghiệp vụ |
-| Fail khi rotate certificate | Alias/chain cũ còn cache, new alias thiếu key, truststore chưa cập nhật | Rollout trust trước, rotate key/cert có version và test |
-| Connection chỉ fail ở TLS 1.3 | Key/cert/sig scheme hoặc group/provider khác TLS 1.2 | Kiểm trace JSSE, signature algorithms và KeyManager alias compatibility |
-| `ClassCastException` khi lấy extended manager | Factory trả implementation chỉ tuân thủ interface cũ | Kiểm `instanceof`, đổi provider có hỗ trợ; không ép cast hoặc trust-all |
-| `KeyStoreException` / `UnrecoverableKeyException` | Sai password, alias, store type hoặc token permissions | Kiểm stores, PIN, key material và provider |
+| `SSLHandshakeException: no suitable certificate` | KeyManager lacks an alias matching `keyType`/issuers/signature schemes | Check KeyStore entries, chain, provider, `choose...Alias`, and certificate profile |
+| `no available authentication scheme` | Server cannot find a credential matching key type/protocol | Check certificates, signature schemes, server key manager, and TLS 1.3 compatibility |
+| `PKIX path building failed` | TrustStore does not trust CA/peer cert or lacks intermediates | Check exact trust anchors, chain, and trust manager; never use trust-all |
+| `No subject alternative names matching ...` | HTTPS endpoint identification found peer host differs from SAN | Reissue cert with matching SAN or connect to matching hostname; do not disable hostname checks |
+| `bad_certificate` / `certificate_unknown` | Peer rejected certificate/chain | Inspect logs on both ends; distinguish selection failure from trust failure |
+| `certificate_required` / client handshake rejected | Server requires client certificate yet client key manager returned null/wrong type | Check `setNeedClientAuth`, client KeyStore, issuer list, `clientAuth` EKU |
+| mTLS "succeeds" even though client has no cert | Server set `setWantClientAuth(true)` or failed to enable need | Use `setNeedClientAuth(true)` on the right socket/engine |
+| Socket TLS succeeds yet SSLEngine framework fails | Wrapper overrode only Socket methods; engine methods return null/fail to delegate | Implement engine overloads too |
+| Hostname unchecked when using a wrapper | `checkServerTrusted(...,Socket)` called basic overload, or missing HTTPS SSLParameters | Delegate to exact contextual overload and enable endpoint identification |
+| `InvalidKeyException` / key not found | Alias lacks private key or key handle/provider mismatch | Align `getCertificateChain`, `getPrivateKey`, provider, and key policy |
+| Multi-cert server sends wrong virtual host | Alias selected only by `keyType`, ignoring SNI/tenant and SAN | Implement safe SNI policy selection; test each hostname |
+| `getAcceptedIssuers()` returns list breaking client selection | Advertised CA list mismatches client's issuer chain | Check trust anchors and issuer constraints; never return arbitrary lists |
+| Valid certificate chain yet app rejects client | mTLS authentication passed but lacks role/permission | Map verified identity to business authorization |
+| Fails during certificate rotation | Old alias/chain cached, new alias lacks key, truststore un-updated | Roll out trust first, rotate keys/certs with versioning, and test |
+| Fails only on TLS 1.3 | Key/cert/sig scheme or group/provider differs from TLS 1.2 | Inspect JSSE trace, signature algorithms, and KeyManager alias compatibility |
+| `ClassCastException` getting extended manager | Factory returned implementation conforming only to legacy interface | Use `instanceof`, switch to supporting provider; never force-cast or trust-all |
+| `KeyStoreException` / `UnrecoverableKeyException` | Wrong password, alias, store type, or token permissions | Check stores, PIN, key material, and provider |
 
-**Không tự khắc phục lỗi bằng cách trả alias bừa bãi hoặc trust-all.** Một handshake thất bại là ranh giới bảo mật hữu ích; phải sửa root cause qua đúng truststore/credential/hostname/profile.
+**Never fix errors by returning arbitrary aliases or using trust-all.** A failed handshake is a useful security boundary; fix the root cause via proper truststore/credentials/hostname/profile.
 
-### Debug và quan sát an toàn
+### Safe debugging and observation
 
-Trong staging/test, có thể bật JSSE trace:
+In staging/test, JSSE tracing can be enabled:
 
 ```powershell
 java "-Djavax.net.debug=ssl,handshake,keymanager,trustmanager" -cp $t ExtendedManagersMutualTlsDemo (Join-Path $t "server.p12") (Join-Path $t "server-trust.p12") (Join-Path $t "client.p12") (Join-Path $t "client-trust.p12") $pw
 ```
 
-Log chứa thông tin certificate, hostname, issuer, alias, handshake metadata, và tùy debug flags có thể rất nhạy cảm. **Chỉ dùng với test certificates, giới hạn quyền truy cập log và không gửi nguyên logs production công khai**. Không bật chế độ dump traffic secrets. Với nhiều framework, xem thêm danh sách enabled protocols/suites, SNI, ALPN, trust anchors và TLS termination hop.
+Logs contain certificate details, hostnames, issuers, aliases, and handshake metadata, and depending on debug flags can be very sensitive. **Use only with test certificates, restrict log access, and never share raw production logs publicly.** Never enable traffic-secret dumping modes. Across frameworks, also check enabled protocols/suites, SNI, ALPN, trust anchors, and TLS termination hops.
 
-### Những test nên có trước khi deploy
+### Tests to include before deploying
 
-- Chứng thư server đúng SAN và EKU serverAuth được client xác minh; sai SAN bị từ chối.
-- mTLS client certificate hợp lệ được server xác minh; thiếu client cert khi `needClientAuth=true` phải thất bại.
-- Client/server certificate do issuer không tin bị từ chối, không được silently import vào truststore.
-- ClientAuth-only certificate không được chấp nhận làm serverAuth identity theo profile.
-- Không có key alias đúng type/issuer: handshake thất bại, không fallback sang một tenant khác.
-- Dùng `SSLEngine`: overload engine được gọi và context/hostname checks còn hiệu lực.
-- Certificate rotation: alias/cert chain và trust anchors thay đổi có kiểm soát, không drop service ngoài kế hoạch.
-- Thử TLS 1.2 và 1.3 phù hợp policy; đừng hạ xuống giao thức yếu vì một lỗi certificate.
+- Server certificate with matching SAN and `serverAuth` EKU is verified by the client; wrong SAN is rejected.
+- Valid mTLS client certificate is verified by the server; missing client cert when `needClientAuth=true` must fail.
+- Client/server certificates from untrusted issuers are rejected, never silently imported into the truststore.
+- A `clientAuth`-only certificate is rejected as a `serverAuth` identity per profile.
+- Missing key alias matching type/issuer: handshake fails, never falls back to another tenant.
+- Using `SSLEngine`: engine overloads are invoked and context/hostname checks remain effective.
+- Certificate rotation: aliases/cert chains and trust anchors change in a controlled way without unplanned outages.
+- Test policy-compliant TLS 1.2 and 1.3; never downgrade to weak protocols because of a certificate error.
 
-## 11. Checklist thiết kế X509Extended managers
+## 11. Checklist for designing X509Extended managers
 
-- [ ] Xác định rõ **local credential selection** và **peer trust validation** là hai bước riêng.
-- [ ] `KeyManagerFactory` nhận đúng KeyStore/private key chain; `TrustManagerFactory` nhận đúng TrustStore/trust anchors.
-- [ ] Cài toàn bộ `X509ExtendedKeyManager` methods, đặc biệt `chooseEngineClientAlias` / `chooseEngineServerAlias`.
-- [ ] Cài đủ sáu overload của `X509ExtendedTrustManager`; delegation nhận đúng `Socket`/`SSLEngine`.
-- [ ] Không dùng `checkServerTrusted` rỗng, trust-all, hoặc `getAcceptedIssuers` giả tạo để vượt xác minh chain.
-- [ ] Client kiểm endpoint identity qua HTTPS/SAN trên raw socket hoặc engine có peer host thích hợp.
-- [ ] Server mTLS bật `setNeedClientAuth(true)` và xác minh client chain theo đúng truststore.
-- [ ] Alias selection tôn trọng `keyType`, `issuers`, SNI/context, algorithm policy, chain và key usage.
-- [ ] Không hardcode một alias cho mọi tenant/host; fail closed nếu credential không phù hợp.
-- [ ] Authentication thành công phải đi tiếp qua authorization ứng dụng theo certificate identity được phép.
-- [ ] Quản lý key/cert/truststore rotation, backup, audit và kiểm thử handshake thật.
-- [ ] Giới hạn debug và logs; không xuất private keys hoặc TLS secrets để quan sát callback.
+- [ ] Clearly separate **local credential selection** and **peer trust validation** as two distinct steps.
+- [ ] `KeyManagerFactory` receives the right KeyStore/private key chain; `TrustManagerFactory` receives the right TrustStore/trust anchors.
+- [ ] Implement all `X509ExtendedKeyManager` methods, especially `chooseEngineClientAlias` / `chooseEngineServerAlias`.
+- [ ] Implement all six overloads of `X509ExtendedTrustManager`; delegation receives the exact `Socket`/`SSLEngine`.
+- [ ] Never use empty `checkServerTrusted`, trust-all, or fake `getAcceptedIssuers` to bypass chain verification.
+- [ ] Client verifies endpoint identity via HTTPS/SAN on raw sockets or engines with proper peer host.
+- [ ] mTLS server enables `setNeedClientAuth(true)` and verifies client chains against the right truststore.
+- [ ] Alias selection respects `keyType`, `issuers`, SNI/context, algorithm policy, chain, and key usage.
+- [ ] Never hardcode one alias for all tenants/hosts; fail closed if credentials do not match.
+- [ ] Successful authentication flows into application authorization based on the permitted certificate identity.
+- [ ] Manage key/cert/truststore rotation, backups, auditing, and real handshake testing.
+- [ ] Restrict debugging and logs; never print private keys or TLS secrets to observe callbacks.
 
-## 12. Tự kiểm tra kiến thức
+## 12. Knowledge self-check
 
-1. **`X509ExtendedKeyManager` làm gì?** Chọn local key alias và cung cấp certificate chain/private key cho handshake.
-2. **`X509ExtendedTrustManager` làm gì?** Kiểm certificate chain của peer, ném `CertificateException` nếu không tin.
-3. **Server certificate do ai chọn và ai kiểm?** Server key manager chọn; client trust manager kiểm.
-4. **Trong mTLS, ai chọn client certificate?** Client key manager, khi server yêu cầu client authentication.
-5. **`setNeedClientAuth(true)` khác `setWantClientAuth(true)`?** Need bắt buộc client cung cấp certificate phù hợp; want có thể chấp nhận thiếu.
-6. **Socket cần method alias nào?** `chooseClientAlias` và `chooseServerAlias`; engine cần `chooseEngineClientAlias`/`chooseEngineServerAlias`.
-7. **Nếu tự viết extended trust decorator, vì sao phải giữ Socket/SSLEngine?** Để giữ ngữ cảnh hostname, handshake, SSLParameters và policy của delegate.
-8. **`checkServerTrusted` trả `boolean` à?** Không, `void`; ném `CertificateException` khi từ chối.
-9. **`getAcceptedIssuers()` trả trust decision cho một certificate cụ thể?** Không; nó trả danh sách issuer certificates theo contract, không xác minh chain hiện tại.
-10. **`authType` có phải OID `serverAuth` không?** Không; đây là thông tin kiểu xác thực handshake do JSSE cung cấp.
-11. **Một alias bất kỳ trong `KeyStore` có đủ để handshake không?** Không; cần private key/chain khớp, keyType, issuer, protocol và provider policy.
-12. **SNI có tự xác thực quyền tenant của client không?** Không; SNI là tín hiệu chọn virtual host, không chứng minh quyền truy cập.
-13. **Vì sao client cần `setEndpointIdentificationAlgorithm("HTTPS")` trong raw SSLSocket demo?** Để kiểm IP/DNS SAN của server identity.
-14. **Nếu trust manager được bọc chỉ gọi `delegate.checkServerTrusted(chain,authType)` thì rủi ro nào?** Bỏ mất kiểm tra phụ thuộc socket/engine, có thể làm yếu hostname/connection checks.
-15. **mTLS thành công có tự cấp quyền gọi mọi API không?** Không; phải map certificate identity sang role/permissions nghiệp vụ.
-16. **Tại sao ví dụ có server-trust.p12 và client-trust.p12 riêng?** Hai phía tin đối tác **khác nhau**; server cần tin client, client cần tin server.
-17. **Nếu client không chọn được alias trong mTLS, nên làm gì?** Trả `null`/handshake failure và sửa credential/issuer constraints; không gửi private key hoặc chọn tenant sai.
-18. **Một factory không trả extended manager, xử lý thế nào?** Phát hiện kiểu, fail closed hoặc dùng provider/adapter được đánh giá; không cast mù.
-19. **TLS 1.2 và 1.3 cùng thành công trên loopback chứng minh Internet service khác cũng hỗ trợ?** Không; kết quả chỉ trên hai local contexts đã cấu hình.
-20. **Làm thế nào thêm custom restriction an toàn?** Delegate full peer validation trước, sau đó chỉ thêm điều kiện reject với `CertificateException`; không thay thế trust bằng “accept all”.
+1. **What does `X509ExtendedKeyManager` do?** Selects a local key alias and supplies the certificate chain/private key for the handshake.
+2. **What does `X509ExtendedTrustManager` do?** Verifies the peer's certificate chain, throwing `CertificateException` if untrusted.
+3. **Who selects and who verifies the server certificate?** The server key manager selects it; the client trust manager verifies it.
+4. **In mTLS, who selects the client certificate?** The client key manager, when the server requests client authentication.
+5. **How does `setNeedClientAuth(true)` differ from `setWantClientAuth(true)`?** Need mandates the client supply a valid certificate; want may allow omission.
+6. **Which alias methods does Socket need?** `chooseClientAlias` and `chooseServerAlias`; engines need `chooseEngineClientAlias`/`chooseEngineServerAlias`.
+7. **When writing an extended trust decorator, why preserve Socket/SSLEngine?** To retain hostname, handshake, SSLParameters, and policy context for the delegate.
+8. **Does `checkServerTrusted` return a `boolean`?** No, `void`; it throws `CertificateException` on rejection.
+9. **Does `getAcceptedIssuers()` return a trust decision for a specific certificate?** No; it returns the list of issuer certificates per contract, without verifying the current chain.
+10. **Is `authType` the `serverAuth` OID?** No; it is handshake authentication-type info supplied by JSSE.
+11. **Is any alias in a `KeyStore` enough for a handshake?** No; it needs a matching private key/chain, `keyType`, issuer, protocol, and provider policy.
+12. **Does SNI authenticate a client's tenant permission?** No; SNI is a virtual-host selection hint, not proof of access rights.
+13. **Why does the client need `setEndpointIdentificationAlgorithm("HTTPS")` in the raw SSLSocket demo?** To verify the IP/DNS SAN of the server identity.
+14. **If a wrapped trust manager only calls `delegate.checkServerTrusted(chain,authType)`, what is the risk?** It loses socket/engine-dependent checks, potentially weakening hostname/connection validation.
+15. **Does successful mTLS automatically grant permission to call every API?** No; certificate identity must be mapped to business roles/permissions.
+16. **Why does the example have separate `server-trust.p12` and `client-trust.p12`?** Both sides trust **different** peers; the server needs to trust the client, and the client needs to trust the server.
+17. **If the client cannot select an alias in mTLS, what should it do?** Return `null`/fail handshake and fix credentials/issuer constraints; never send the wrong private key or pick the wrong tenant.
+18. **If a factory does not return an extended manager, how to handle it?** Check type with `instanceof`, fail closed, or use an evaluated provider/adapter; never blind-cast.
+19. **Does both TLS 1.2 and 1.3 succeeding on loopback prove another Internet service supports them?** No; the result applies only to the two configured local contexts.
+20. **How do you safely add custom restrictions?** Delegate full peer validation first, then only add rejection conditions with `CertificateException`; never replace trust with "accept all."
 
-## Tài liệu chuẩn và Java API
+## Standards and Java API documentation
 
 - [X509ExtendedKeyManager, Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/X509ExtendedKeyManager.html)
 - [X509ExtendedTrustManager, Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/X509ExtendedTrustManager.html)
 - [X509KeyManager / X509TrustManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/X509KeyManager.html)
 - [KeyManagerFactory / TrustManagerFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/KeyManagerFactory.html)
 - [SSLContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLContext.html)
-- [SSLParameters và endpoint identification](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html)
-- [SSLSocket và SSLServerSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html)
-- [SSLEngine và handshake context](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLEngine.html)
-- [ExtendedSSLSession, SNI và peer signature algorithms](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/ExtendedSSLSession.html)
+- [SSLParameters and endpoint identification](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html)
+- [SSLSocket and SSLServerSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html)
+- [SSLEngine and handshake context](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLEngine.html)
+- [ExtendedSSLSession, SNI, and peer signature algorithms](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/ExtendedSSLSession.html)
 - [Oracle Java 17 JSSE Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html)
 - [RFC 5280: X.509 Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280.html)
 - [RFC 8446: TLS 1.3](https://www.rfc-editor.org/rfc/rfc8446.html)

@@ -1,53 +1,53 @@
-# 15.3 TLS 1.2, TLS 1.3 và cách đọc cấu hình giao thức khả dụng
+# 15.3 TLS 1.2, TLS 1.3, and How to Read Available Protocol Configurations
 
-## 1. Mục tiêu: “TLS được hỗ trợ” khác “TLS được sử dụng”
+## 1. Goal: "Supported TLS" differs from "Used TLS"
 
-**Transport Layer Security (TLS)** bảo vệ dữ liệu khi truyền giữa hai endpoint: đàm phán cơ chế mật mã, xác thực bên liên quan theo chính sách, tạo khóa phiên, mã hóa và kiểm tra tính toàn vẹn bản ghi. Với Java 17+, phần lớn ứng dụng làm việc với TLS qua **JSSE (Java Secure Socket Extension)**: `SSLContext`, `SSLSocket`, `SSLServerSocket`, `SSLEngine`, `SSLParameters`, `SSLSession` và các `KeyManager`/`TrustManager`.
+**Transport Layer Security (TLS)** protects data in transit between two endpoints: negotiating cryptographic mechanisms, authenticating parties per policy, establishing session keys, encrypting records, and verifying record integrity. With Java 17+, most applications work with TLS through **JSSE (Java Secure Socket Extension)**: `SSLContext`, `SSLSocket`, `SSLServerSocket`, `SSLEngine`, `SSLParameters`, `SSLSession`, and `KeyManager`/`TrustManager`.
 
-Trong vận hành thường gặp những câu hỏi khác nhau:
+In operations, distinct questions frequently arise:
 
-1. JDK/provider **biết** những phiên bản TLS nào?
-2. Một `SSLContext` hoặc socket **đang cho phép** những phiên bản nào?
-3. Java Security policy có **cấm** thuật toán/phiên bản nào không?
-4. Peer server/client **chấp nhận** và có thể đàm phán những phiên bản nào?
-5. Một kết nối **đã bắt tay thành công thực sự** sử dụng phiên bản và cipher suite nào?
+1. Which TLS versions does the JDK/provider **know about**?
+2. Which versions is an `SSLContext` or socket **configured to allow**?
+3. Does the Java Security policy **forbid** any algorithms or versions?
+4. Which versions does the peer server/client **accept** and manage to negotiate?
+5. Which version and cipher suite did an **actually completed handshake connection** use?
 
-Năm câu trên có thể cho **năm kết quả khác nhau**. Ví dụ trong một runtime SunJSSE đã kiểm thử, `SSLSocket.getSupportedProtocols()` chứa `TLSv1`, `TLSv1.1`, `SSLv3`, nhưng `getEnabledProtocols()` mặc định chỉ có `TLSv1.3` và `TLSv1.2`. **Không** kết luận máy đang cho phép SSLv3/TLS 1.0 vì chúng xuất hiện trong danh sách “supported”.
+These five questions can yield **five different answers**. For example, on a tested SunJSSE runtime, `SSLSocket.getSupportedProtocols()` contains `TLSv1`, `TLSv1.1`, `SSLv3`, while `getEnabledProtocols()` by default only has `TLSv1.3` and `TLSv1.2`. **Do not** conclude the machine allows SSLv3/TLS 1.0 just because they appear in the "supported" list.
 
-Các mục tiêu học tập:
+Learning objectives:
 
-- Phân biệt handshake, key schedule và cipher suite của **TLS 1.2** và **TLS 1.3**.
-- Đọc đúng supported/enabled/default/disabled/negotiated từ JSSE.
-- Hiểu ảnh hưởng của `jdk.tls.disabledAlgorithms`, `jdk.tls.client.protocols`, `jdk.tls.server.protocols`, `https.protocols`, `SSLParameters` và provider.
-- Xem protocol/cipher suite thật **sau handshake** với `SSLSession`.
-- Chẩn đoán lỗi `protocol_version`, `handshake_failure`, `SSLHandshakeException` mà không tắt các cơ chế bảo vệ.
-- Tự chạy hai chương trình Java 17: inventory cấu hình và kết nối TLS 1.2/TLS 1.3 qua loopback có trust/hostname verification.
+- Distinguish the handshake, key schedule, and cipher suites of **TLS 1.2** and **TLS 1.3**.
+- Correctly read supported/enabled/default/disabled/negotiated from JSSE.
+- Understand the impact of `jdk.tls.disabledAlgorithms`, `jdk.tls.client.protocols`, `jdk.tls.server.protocols`, `https.protocols`, `SSLParameters`, and providers.
+- Inspect the real protocol/cipher suite **after the handshake** with `SSLSession`.
+- Diagnose `protocol_version`, `handshake_failure`, and `SSLHandshakeException` errors without disabling protections.
+- Run two Java 17 programs yourself: configuration inventory and TLS 1.2/TLS 1.3 loopback connections with trust/hostname verification.
 
-Bài này tập trung TLS trên TCP qua JSSE; **DTLS**, QUIC/TLS và giao thức ứng dụng HTTP/2, HTTP/3 có ràng buộc riêng. Không dùng thông tin từ một kết nối TLS để tự suy ra trạng thái mọi service trên máy.
+This lesson focuses on TLS over TCP via JSSE; **DTLS**, QUIC/TLS, and application protocols like HTTP/2 and HTTP/3 have their own constraints. Do not extrapolate the status of every service on a machine from a single TLS connection.
 
-## 2. So sánh TLS 1.2 và TLS 1.3
+## 2. Comparing TLS 1.2 and TLS 1.3
 
-TLS 1.2 là phiên bản theo **RFC 5246**; TLS 1.3 theo **RFC 8446**. Cả hai đều dùng được cho các hệ thống tương thích và được cấu hình đúng, nhưng TLS 1.3 đơn giản hóa nhiều chi tiết và loại bỏ các phương thức mật mã lỗi thời.
+TLS 1.2 is specified by **RFC 5246**; TLS 1.3 by **RFC 8446**. Both are usable for compatible, properly configured systems, but TLS 1.3 simplifies many details and removes obsolete cryptographic methods.
 
-| Khía cạnh | TLS 1.2 | TLS 1.3 |
+| Aspect | TLS 1.2 | TLS 1.3 |
 | --- | --- | --- |
 | RFC | `5246` | `8446` |
-| Handshake đầy đủ thông thường | Thường khoảng **2 RTT** trước application data, phụ thuộc loại handshake | Thường **1 RTT**, hỗ trợ resumption và tùy chọn **0-RTT early data** theo giao thức |
-| Trao đổi khóa | Phụ thuộc cipher suite: ECDHE, DHE, RSA key transport lịch sử... | Mô hình (EC)DHE/PSK key schedule được thiết kế lại; loại RSA key transport |
-| Cipher suites | Tên thường mang **key exchange + authentication + symmetric encryption + hash/MAC** | Tên chủ yếu mô tả **AEAD + hash**; nhóm key exchange và signature scheme đàm phán riêng |
-| Ví dụ cipher suite | `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` | `TLS_AES_128_GCM_SHA256` |
-| Encryption cho application data | GCM/ChaCha20-Poly1305 hoặc nhiều cơ chế cũ hơn tùy suite | **AEAD** như AES-GCM hoặc ChaCha20-Poly1305 |
-| Key derivation | TLS 1.2 PRF và key block/Finished theo protocol | **HKDF-based key schedule**, bí mật phân tách theo từng pha |
-| Forward secrecy | Có với ECDHE/DHE; **không tự có** khi dùng RSA static key transport | Thường có với (EC)DHE; **PSK-only không có cùng tính chất forward secrecy** nếu không có fresh DHE |
-| Renegotiation | Có các cơ chế renegotiation cần xử lý an toàn theo version/provider | **Không có TLS 1.2 renegotiation**, có các cơ chế post-handshake như `KeyUpdate` |
-| Certificate authentication | Certificate + handshake signatures theo cipher suite/profile | Certificate + signature schemes được đàm phán riêng (như RSA-PSS/ECDSA) |
-| Tương thích | Nhiều hệ thống legacy hơn | Có thể cần cập nhật proxy/load balancer/server hoặc mã cứng cipher suites |
+| Typical full handshake | Usually about **2 RTT** before application data, depending on handshake type | Usually **1 RTT**, supports resumption and optional **0-RTT early data** per protocol |
+| Key exchange | Depends on cipher suite: ECDHE, DHE, historical RSA key transport... | Redesigned (EC)DHE/PSK key schedule model; eliminates RSA key transport |
+| Cipher suites | Names typically carry **key exchange + authentication + symmetric encryption + hash/MAC** | Names primarily describe **AEAD + hash**; key exchange groups and signature schemes negotiated separately |
+| Example cipher suite | `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` | `TLS_AES_128_GCM_SHA256` |
+| Application data encryption | GCM/ChaCha20-Poly1305 or older mechanisms depending on suite | **AEAD** such as AES-GCM or ChaCha20-Poly1305 |
+| Key derivation | TLS 1.2 PRF and key block/Finished per protocol | **HKDF-based key schedule**, secrets separated per phase |
+| Forward secrecy | Yes with ECDHE/DHE; **not inherently present** with static RSA key transport | Typically yes with (EC)DHE; **PSK-only lacks the same forward secrecy** without fresh DHE |
+| Renegotiation | Has renegotiation mechanisms requiring safe handling per version/provider | **No TLS 1.2 renegotiation**, has post-handshake mechanisms such as `KeyUpdate` |
+| Certificate authentication | Certificate + handshake signatures per cipher suite/profile | Certificate + separately negotiated signature schemes (e.g., RSA-PSS/ECDSA) |
+| Compatibility | Broader legacy system support | May require updating proxies/load balancers/servers or hardcoded cipher suites |
 
-**Lưu ý:** 0-RTT early data có **nguy cơ replay**, không phù hợp mọi thao tác (ví dụ giao dịch không idempotent) và **không đồng nghĩa** ứng dụng Java/JSSE bất kỳ cũng hỗ trợ tự động. Không bật 0-RTT chỉ vì client và server hiển thị hỗ trợ TLS 1.3.
+**Note:** 0-RTT early data carries **replay risk**, is unsuitable for all operations (e.g., non-idempotent transactions), and **does not mean** any Java/JSSE application supports it automatically. Do not enable 0-RTT merely because client and server advertise TLS 1.3 support.
 
-### 2.1 Phác họa TLS 1.2 handshake
+### 2.1 Sketch of a TLS 1.2 handshake
 
-Một full handshake TLS 1.2 có certificate server và ECDHE điển hình:
+A typical TLS 1.2 full handshake with a server certificate and ECDHE:
 
 ```text
 Client                                           Server
@@ -62,13 +62,13 @@ ChangeCipherSpec / Finished --------------->
           <======== Protected application data ========>
 ```
 
-Thông điệp có thể khác tùy cipher suite, client authentication và resumption. Đây là **sơ đồ khái niệm** để so sánh, không phải transcript byte đầy đủ hay mô tả mọi biến thể.
+Messages vary by cipher suite, client authentication, and resumption. This is a **conceptual diagram** for comparison, not a complete byte transcript or every variant.
 
-TLS 1.2 cho phép một số cipher suites có key exchange cũ (ví dụ RSA key transport) và cơ chế CBC/SHA-1 lịch sử. **Không nên tái bật các lựa chọn yếu chỉ để tương thích**. Đối với TLS 1.2 còn cần dùng, ưu tiên suites có **ECDHE/DHE + AEAD** được security policy cho phép, và xử lý signature/certificate đúng profile.
+TLS 1.2 allows some cipher suites with legacy key exchange (e.g., RSA key transport) and historical CBC/SHA-1 mechanisms. **Never re-enable weak options just for compatibility**. For TLS 1.2 where still needed, prefer suites with **ECDHE/DHE + AEAD** permitted by security policy, and handle signatures/certificates per profile.
 
-### 2.2 Phác họa TLS 1.3 handshake
+### 2.2 Sketch of a TLS 1.3 handshake
 
-Full handshake TLS 1.3 với key share:
+TLS 1.3 full handshake with key share:
 
 ```text
 Client                                           Server
@@ -83,11 +83,11 @@ Finished ----------------------------------->
           <======== Protected application data ========>
 ```
 
-Các pha sau `ServerHello` được bảo vệ bằng handshake traffic keys. TLS 1.3 dùng HKDF để tách handshake/application secrets, cho phép forward-secure key exchange khi dùng fresh (EC)DHE và loại bỏ RSA key transport. Trong resumption dùng PSK, số bản tin và bí mật khác; có thể có HelloRetryRequest khi key share đề xuất không phù hợp.
+Phases after `ServerHello` are protected by handshake traffic keys. TLS 1.3 uses HKDF to separate handshake/application secrets, enabling forward-secure key exchange with fresh (EC)DHE and removing RSA key transport. In PSK resumption, message counts and secrets differ; `HelloRetryRequest` may occur if the proposed key share is unsuitable.
 
-**Đừng hiểu số RTT là cam kết thời gian kết nối:** TCP setup, DNS, proxy, network latency, crypto provider, certificate chain, OCSP, HTTP/2/ALPN, session cache và ứng dụng vẫn ảnh hưởng tốc độ thực tế.
+**Do not treat RTT count as a guaranteed connection latency:** TCP setup, DNS, proxies, network latency, crypto provider, certificate chain, OCSP, HTTP/2/ALPN, session cache, and the application all affect real latency.
 
-### 2.3 Tên cipher suite của TLS 1.2 so với 1.3
+### 2.3 TLS 1.2 vs. 1.3 cipher suite names
 
 ```text
 TLS 1.2: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
@@ -99,73 +99,73 @@ TLS 1.3: TLS_AES_128_GCM_SHA256
                 AEAD     HKDF hash
 ```
 
-Với TLS 1.3, **tên cipher suite không xác định nhóm ECDHE/DHE hoặc kiểu chữ ký certificate**. Các thành phần này được thương lượng qua extensions như `supported_groups`, `key_share`, `signature_algorithms` và `signature_algorithms_cert` tùy tình huống. Một server dùng certificate RSA vẫn có thể đàm phán `TLS_AES_128_GCM_SHA256`; không cần một TLS 1.3 suite có chữ “RSA” trong tên.
+In TLS 1.3, **the cipher suite name does not determine the ECDHE/DHE group or certificate signature type**. Those components are negotiated via extensions such as `supported_groups`, `key_share`, `signature_algorithms`, and `signature_algorithms_cert` as applicable. A server using an RSA certificate can still negotiate `TLS_AES_128_GCM_SHA256`; no TLS 1.3 suite needs "RSA" in its name.
 
-**Không đưa** một TLS 1.2 suite `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` làm điều kiện duy nhất cho TLS 1.3 và mong kết nối 1.3 thành công. Ngược lại, chỉ cho phép suites có tên TLS 1.3 rồi cố thương lượng TLS 1.2 có thể khiến handshake thất bại.
+**Do not specify** only a TLS 1.2 suite like `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` and expect a TLS 1.3 connection to succeed. Conversely, allowing only TLS 1.3 suite names while attempting to negotiate TLS 1.2 can cause the handshake to fail.
 
-## 3. “Supported”, “enabled”, “configured” và “negotiated” nghĩa là gì?
+## 3. What do "supported", "enabled", "configured", and "negotiated" mean?
 
-Đây là phần quan trọng nhất khi **đọc cấu hình giao thức khả dụng**.
+This is the most important part of **reading available protocol configurations**.
 
-| Mức | Câu hỏi | Java API/thông tin | Ý nghĩa |
+| Level | Question | Java API / info | Meaning |
 | --- | --- | --- | --- |
-| **Supported** | Implementation này *biết* phiên bản nào? | `SSLSocket.getSupportedProtocols()`, `SSLEngine.getSupportedProtocols()`, `SSLContext.getSupportedSSLParameters().getProtocols()` | Danh sách implementation hỗ trợ; **có thể gồm protocol đã disabled** |
-| **Enabled** | Socket/engine *được cấu hình* thử những phiên bản nào? | `SSLSocket.getEnabledProtocols()`, `SSLEngine.getEnabledProtocols()`, `SSLParameters.getProtocols()` | Phạm vi phép đàm phán từ phía object; chưa chứng minh peer sẽ chấp nhận |
-| **Default** | Context/provider *mặc định* cho phép gì trước khi override? | `SSLContext.getDefaultSSLParameters()` hoặc socket/engine mới | Phụ thuộc JDK, provider, role, security/system properties |
-| **Security policy** | Có protocol/cipher/algorithm nào bị cấm không? | `Security.getProperty("jdk.tls.disabledAlgorithms")`, `jdk.certpath.disabledAlgorithms` | Có thể **ngăn negotiation** ngay cả khi mã đặt protocol trong enabled |
-| **Peer capability** | Đối tác nhận gì? | Server/client settings hoặc handshake trace đã xác thực | Không thể suy từ `getSupportedProtocols` của máy local |
-| **Negotiated** | Kết nối **đã handshake** dùng phiên bản nào? | `socket.getSession().getProtocol()`, `getCipherSuite()` | Giá trị thực của **kết nối cụ thể**, chỉ đáng tin khi handshake thành công |
+| **Supported** | Which versions does this implementation *know*? | `SSLSocket.getSupportedProtocols()`, `SSLEngine.getSupportedProtocols()`, `SSLContext.getSupportedSSLParameters().getProtocols()` | List supported by the implementation; **may include disabled protocols** |
+| **Enabled** | Which versions is the socket/engine *configured* to try? | `SSLSocket.getEnabledProtocols()`, `SSLEngine.getEnabledProtocols()`, `SSLParameters.getProtocols()` | Allowed negotiation scope from this object's side; does not prove peer acceptance |
+| **Default** | What does the context/provider allow *by default* before overrides? | `SSLContext.getDefaultSSLParameters()` or a fresh socket/engine | Depends on JDK, provider, role, and security/system properties |
+| **Security policy** | Are any protocols/ciphers/algorithms forbidden? | `Security.getProperty("jdk.tls.disabledAlgorithms")`, `jdk.certpath.disabledAlgorithms` | Can **block negotiation** even if code puts the protocol in enabled |
+| **Peer capability** | What does the peer accept? | Server/client settings or verified handshake trace | Cannot be inferred from the local machine's `getSupportedProtocols` |
+| **Negotiated** | Which version did the **handshaked** connection use? | `socket.getSession().getProtocol()`, `getCipherSuite()` | Actual value of a **specific connection**, reliable only after handshake succeeds |
 
-Ví dụ:
+Example:
 
 ```text
 SunJSSE supported: [TLSv1.3, TLSv1.2, TLSv1.1, TLSv1, SSLv3, SSLv2Hello]
 SunJSSE enabled:   [TLSv1.3, TLSv1.2]
 Server enabled:    [TLSv1.2]
 Shared usable:     [TLSv1.2]
-Negotiated:        TLSv1.2 (chỉ sau khi handshake thành công)
+Negotiated:        TLSv1.2 (only after handshake succeeds)
 ```
 
-Dù client hỗ trợ TLSv1.3 và bật nó, nó vẫn **có thể** thương lượng TLSv1.2 vì server không hỗ trợ/bật TLSv1.3. Nếu server chỉ bật TLSv1.1 và client chỉ bật TLSv1.2/1.3, handshake **không có protocol chung**, nhưng dấu hiệu lỗi cụ thể phụ thuộc implementation.
+Even if the client supports and enables TLSv1.3, it **can** still negotiate TLSv1.2 because the server does not support/enable TLSv1.3. If the server enables only TLSv1.1 and the client enables only TLSv1.2/1.3, the handshake has **no common protocol**, though the exact error symptom depends on the implementation.
 
-**Đặc biệt:** nhiều JDK vẫn hiển thị TLSv1/TLSv1.1 trong `getSupportedProtocols()`, trong khi `jdk.tls.disabledAlgorithms` cấm negotiation. Thậm chí `setEnabledProtocols(new String[]{"TLSv1"})` được object chấp nhận không đồng nghĩa handshake với TLSv1 được phép. Không xóa TLSv1/TLSv1.1/SSLv3 khỏi security disabled list chỉ để “làm test pass”.
+**Specifically:** many JDKs still list TLSv1/TLSv1.1 in `getSupportedProtocols()`, while `jdk.tls.disabledAlgorithms` forbids negotiating them. Even if `setEnabledProtocols(new String[]{"TLSv1"})` is accepted by the object, that does not mean a TLSv1 handshake is allowed. Never remove TLSv1/TLSv1.1/SSLv3 from the security disabled list just to "make a test pass".
 
-### Quy tắc kiểm tra đúng thứ tự
+### Inspection rules in the right order
 
-1. Đọc **provider/JDK version và security properties**.
-2. Đọc **supported** của chính engine đang sử dụng.
-3. Đọc **enabled/default** trước khi bắt tay; xem ứng dụng có override bằng `setEnabledProtocols`/`SSLParameters` hoặc system properties không.
-4. Kiểm tra **cipher suites, named groups, signature schemes**, key/certificate/trust và peer.
-5. Thực hiện **handshake thật** với trust/hostname verification.
-6. Sau thành công, đọc `SSLSession.getProtocol()` và `getCipherSuite()` để biết giá trị **thật sự được thương lượng**.
+1. Read **provider/JDK version and security properties**.
+2. Read **supported** of the exact engine in use.
+3. Read **enabled/default** before handshaking; check whether the app overrides via `setEnabledProtocols`/`SSLParameters` or system properties.
+4. Inspect **cipher suites, named groups, signature schemes**, keys/certificates/trust, and the peer.
+5. Perform a **real handshake** with trust/hostname verification.
+6. After success, read `SSLSession.getProtocol()` and `getCipherSuite()` to see the **actually negotiated** values.
 
-## 4. Các JSSE API dùng để đọc TLS
+## 4. JSSE APIs for inspecting TLS
 
-| API | Mục đích | Lưu ý |
+| API | Purpose | Notes |
 | --- | --- | --- |
-| `SSLContext.getInstance("TLS")` | Chọn generic TLS engine/provider | Không có nghĩa “chỉ TLS 1.0”; cần đọc default/supported/actual |
-| `SSLContext.init(...)` | Cấp key managers, trust managers, RNG | Cấu hình trust/certificate không thể suy từ tên `TLS` |
-| `SSLContext.getSupportedSSLParameters()` | Supported parameters của context | Includes supported protocols/suites nhưng không bảo đảm được negotiate |
-| `SSLContext.getDefaultSSLParameters()` | Enabled-by-default parameters trong context | Có thể khác tùy SunJSSE/provider và client/server role |
-| `SSLSocket.getSupportedProtocols()` | Protocols implementation có | Danh sách có thể gồm bị disabled |
-| `SSLSocket.getEnabledProtocols()` | Protocols được bật trên socket hiện tại | Chỉ trạng thái **trước/cho phép handshake** |
-| `SSLSocket.setEnabledProtocols(String[])` | Giới hạn protocols cho socket | Ném `IllegalArgumentException` khi protocol không được implementation hỗ trợ; policy vẫn có thể cấm |
-| `SSLParameters.getProtocols()/setProtocols(...)` | Xem/đặt protocol list theo parameter object | Phải áp vào `socket.setSSLParameters(...)` hoặc engine |
-| `SSLSocket.getSupportedCipherSuites()` | Danh sách suite implementation biết | Suite yếu có thể xuất hiện nhưng bị policy chặn |
-| `SSLSocket.getEnabledCipherSuites()` | Suite list hiện bật | Cần tương thích phiên bản TLS, key algorithm, peer |
-| `SSLSocket.startHandshake()` | Khởi động/đợi handshake | Thất bại khi protocol, trust, cipher, cert... không phù hợp |
-| `SSLSession.getProtocol()` | **Phiên bản negotiated** | Chỉ xem sau successful handshake |
-| `SSLSession.getCipherSuite()` | **Suite negotiated** | Không tự nói toàn bộ nhóm ECDHE hay chính sách danh tính |
-| `SSLEngine.getSupportedProtocols()/getEnabledProtocols()` | Tương tự khi dùng NIO/async TLS | Handshake engine cần xử lý state `NEED_WRAP`/`NEED_UNWRAP`/`NEED_TASK` |
-| `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` | Bật identity/hostname verification theo HTTPS trên JSSE | Rất quan trọng với SSLSocket tự tạo; cần trust manager đúng |
+| `SSLContext.getInstance("TLS")` | Selects a generic TLS engine/provider | Does not mean "TLS 1.0 only"; inspect default/supported/actual |
+| `SSLContext.init(...)` | Supplies key managers, trust managers, RNG | Trust/certificate setup cannot be inferred from the name `TLS` |
+| `SSLContext.getSupportedSSLParameters()` | Supported parameters of the context | Includes supported protocols/suites but does not guarantee negotiation |
+| `SSLContext.getDefaultSSLParameters()` | Enabled-by-default parameters in the context | Can differ by SunJSSE/provider and client/server role |
+| `SSLSocket.getSupportedProtocols()` | Protocols known to the implementation | List may include disabled ones |
+| `SSLSocket.getEnabledProtocols()` | Protocols enabled on the current socket | Only **pre-handshake/allowed** state |
+| `SSLSocket.setEnabledProtocols(String[])` | Restricts protocols on the socket | Throws `IllegalArgumentException` if unsupported by implementation; policy may still block |
+| `SSLParameters.getProtocols()/setProtocols(...)` | Reads/sets protocol list on a parameter object | Must be applied via `socket.setSSLParameters(...)` or engine |
+| `SSLSocket.getSupportedCipherSuites()` | Cipher suites known to the implementation | Weak suites may appear yet be blocked by policy |
+| `SSLSocket.getEnabledCipherSuites()` | Currently enabled suite list | Must be compatible with TLS version, key algorithm, and peer |
+| `SSLSocket.startHandshake()` | Starts/waits for the handshake | Fails when protocol, trust, cipher, cert, etc. mismatch |
+| `SSLSession.getProtocol()` | **Negotiated version** | Only inspect after a successful handshake |
+| `SSLSession.getCipherSuite()` | **Negotiated suite** | Does not reveal the full ECDHE group or identity policy |
+| `SSLEngine.getSupportedProtocols()/getEnabledProtocols()` | Equivalent for NIO/async TLS | Handshake engine must handle `NEED_WRAP`/`NEED_UNWRAP`/`NEED_TASK` states |
+| `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` | Enables HTTPS identity/hostname verification in JSSE | Crucial for manually created SSLSockets; requires proper trust manager |
 
-`SSLParameters.setProtocols(...)` không tự thay đổi socket/engine đã tồn tại; phải gọi `setSSLParameters(...)` trên đúng đối tượng trước handshake. Chú ý: `getDefaultSSLParameters()` và socket factory không bắt buộc phản ánh **một danh sách chung cho mọi socket ở mọi role**. Dùng chính socket/engine mà ứng dụng thực tế tạo và in `getEnabledProtocols()` để chẩn đoán.
+`SSLParameters.setProtocols(...)` does not mutate an existing socket/engine automatically; you must call `setSSLParameters(...)` on that exact object before the handshake. Note: `getDefaultSSLParameters()` and socket factories do not necessarily reflect **one identical list for every socket in every role**. Use the actual socket/engine your app creates and print `getEnabledProtocols()` when diagnosing.
 
-Với `SSLEngine`, các method có cùng khái niệm supported/enabled; nhưng handshake nonblocking yêu cầu điều khiển wrap/unwrap buffer và delegated tasks. Không coi việc tạo `SSLEngine` hoặc đọc enabled protocols là đã thực hiện handshake.
+For `SSLEngine`, the methods share the same supported/enabled concepts; however, nonblocking handshakes require driving wrap/unwrap buffers and delegated tasks. Do not mistake creating an `SSLEngine` or reading enabled protocols for completing a handshake.
 
-## 5. Chương trình 1 — kiểm kê TLS từ Java mà không kết nối mạng
+## 5. Program 1 — inventory TLS from Java without network connections
 
-Lưu thành **`TlsProtocolInventoryDemo.java`**, dùng Java 17 trở lên. Chương trình tạo `SSLContext("TLS")` và một `SSLSocket` **chưa kết nối**, in provider, supported/enabled/default protocols, các cờ TLS 1.2/TLS 1.3 và vài configuration properties. **Không có kết nối mạng và không có phiên bản negotiated** trong chương trình này.
+Save as **`TlsProtocolInventoryDemo.java`**, using Java 17 or newer. The program creates an `SSLContext("TLS")` and an **unconnected** `SSLSocket`, printing the provider, supported/enabled/default protocols, TLS 1.2/TLS 1.3 flags, and a few configuration properties. **No network connection and no negotiated version** occur in this program.
 
 ```java
 import java.security.Security;
@@ -217,14 +217,14 @@ public final class TlsProtocolInventoryDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ```powershell
 javac --release 17 -encoding UTF-8 TlsProtocolInventoryDemo.java
 java TlsProtocolInventoryDemo
 ```
 
-**Output chính xác trong môi trường SunJSSE được kiểm thử** (không phải kết quả cố định cho mọi máy):
+**Exact output in the tested SunJSSE environment** (not fixed output across every machine):
 
 ```text
 contextProtocol=TLS
@@ -243,55 +243,55 @@ httpsProtocolsProperty=(not set)
 noHandshakePerformed=true
 ```
 
-### Đọc đúng output
+### Reading the output accurately
 
-- `contextProtocol=TLS` nói tên engine được yêu cầu, **không phải** `SSLSession` negotiated protocol.
-- `supportedProtocols` có những mục cũ: `SSLv3`, `TLSv1`, `TLSv1.1`. Chúng được provider “nhận diện”, **không** có nghĩa được phép đàm phán trong cấu hình mặc định.
-- `enabledProtocols=[TLSv1.3,TLSv1.2]` là khả năng đàm phán mặc định của socket ở môi trường test. Sau khi chạy với `-D...`, sửa `java.security`, chọn provider khác hoặc đổi version JDK, danh sách có thể đổi.
-- `disabledAlgorithmsPresent=true` **chỉ** nói có một giá trị cấu hình security property. Để đánh giá đầy đủ, phải đọc **nội dung thực** bằng `Security.getProperty("jdk.tls.disabledAlgorithms")` và xem thuật toán/nhóm liên quan; không chỉ kiểm `null`.
-- `noHandshakePerformed=true` là lời nhắc `getEnabledProtocols()` **chưa chứng minh** kết nối TLS thật nào thành công.
+- `contextProtocol=TLS` states the requested engine name, **not** the `SSLSession` negotiated protocol.
+- `supportedProtocols` lists older entries: `SSLv3`, `TLSv1`, `TLSv1.1`. They are "known" to the provider, **not** necessarily allowed to be negotiated in default configurations.
+- `enabledProtocols=[TLSv1.3,TLSv1.2]` is the default negotiable range of the socket in the test environment. Running with `-D...`, editing `java.security`, selecting another provider, or changing JDK versions can alter this list.
+- `disabledAlgorithmsPresent=true` **only** says a security property value exists. To evaluate fully, read the **actual content** with `Security.getProperty("jdk.tls.disabledAlgorithms")` and check the relevant algorithms/groups rather than just checking for `null`.
+- `noHandshakePerformed=true` is a reminder that `getEnabledProtocols()` **does not prove** any real TLS connection succeeds.
 
-Không dùng `SSLContext.init(null,null,null)` của chương trình này như “cấu hình trust hoàn chỉnh cho hệ thống thật”. Ở đây context không kết nối mạng, nên không có peer certificate để xác thực.
+Do not use this program's `SSLContext.init(null,null,null)` as a "complete trust configuration for production". Here the context makes no network connections, so there is no peer certificate to verify.
 
-## 6. Chương trình 2 — xác minh *negotiated protocol* bằng TLS handshake thật
+## 6. Program 2 — verifying the *negotiated protocol* with a real TLS handshake
 
-Chương trình thứ hai **tự tạo TLS server và client trên loopback `127.0.0.1`**, thực hiện một handshake chỉ dùng TLS 1.3 và một handshake chỉ dùng TLS 1.2.
+The second program **creates both a TLS server and client on loopback `127.0.0.1`**, performing one TLS 1.3-only handshake and one TLS 1.2-only handshake.
 
-Khác với inventory ở phần 5, ví dụ này kiểm tra:
+Unlike the inventory in section 5, this example verifies:
 
-- Server có `KeyManagerFactory` cung cấp certificate và private key từ PKCS12.
-- Client có `TrustManagerFactory` tin **duy nhất chứng thư local demo** do bạn tạo, không tắt certificate validation.
-- Client gọi `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` để xác minh IP SAN `127.0.0.1` trong certificate, không dùng trust-all `X509TrustManager`.
-- Hai phía đặt `setEnabledProtocols(new String[]{version})` trước handshake.
-- Sau `startHandshake()`, đọc **`SSLSession.getProtocol()`**, **`getCipherSuite()`** và peer certificate; kiểm tra hai bên đồng thuận phiên bản.
+- Server has a `KeyManagerFactory` supplying certificate and private key from PKCS12.
+- Client has a `TrustManagerFactory` trusting **only the local demo certificate** you generated, without disabling certificate validation.
+- Client calls `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` to verify the `127.0.0.1` IP SAN in the certificate, without a trust-all `X509TrustManager`.
+- Both sides call `setEnabledProtocols(new String[]{version})` before the handshake.
+- After `startHandshake()`, read **`SSLSession.getProtocol()`**, **`getCipherSuite()`**, and peer certificates; verify both sides agree on the version.
 
-**Chỉ sử dụng trong môi trường học tập.** Private key tự ký là test fixture, password `changeit` dễ đoán, certificate không thuộc public trust store. Kết quả thành công **không xác nhận một server Internet hay service sản phẩm nào**.
+**For learning environments only.** Self-signed private keys are test fixtures, the password `changeit` is trivial to guess, and the certificate is not in any public trust store. A successful result **does not validate any Internet server or production service**.
 
-### 6.1 Tạo chứng thư test và truststore bằng keytool
+### 6.1 Create test certificate and truststore with keytool
 
-Chạy trong **PowerShell**, từ thư mục chứa hai file source Java. Giữ **cùng phiên PowerShell** để dùng lại biến `$t`. Các lệnh tạo tệp chỉ trong `$env:TEMP` của máy:
+Run in **PowerShell**, from the directory containing the two Java source files. Keep the **same PowerShell session** to reuse `$t`. Commands create files only inside the machine's `$env:TEMP`:
 
 ```powershell
-# Thư mục tạm, không đặt key demo vào repository.
+# Temporary directory; do not place demo keys into the repository.
 $t = Join-Path $env:TEMP ("tls-protocol-lesson-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $t | Out-Null
-$pw = "changeit"  # Chỉ dùng cho demo!
+$pw = "changeit"  # For demo use only!
 
-# RSA test server certificate 7 ngày, SAN gồm IP và DNS cho loopback.
+# 7-day RSA test server certificate; SAN includes IP and DNS for loopback.
 keytool -genkeypair -alias localserver -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname "CN=localhost" -ext "SAN=ip:127.0.0.1,dns:localhost" -ext "KU:critical=digitalSignature,keyEncipherment" -ext "EKU=serverAuth" -validity 7 -storetype PKCS12 -keystore (Join-Path $t "server.p12") -storepass $pw -keypass $pw -noprompt
 
-# Export public certificate; không export server private key.
+# Export public certificate; do not export server private key.
 keytool -exportcert -alias localserver -keystore (Join-Path $t "server.p12") -storepass $pw -rfc -file (Join-Path $t "server.pem")
 
-# Client chỉ tin certificate của localserver trong demo.
+# Client trusts only localserver's certificate in the demo.
 keytool -importcert -alias localserver -file (Join-Path $t "server.pem") -keystore (Join-Path $t "trust.p12") -storetype PKCS12 -storepass $pw -noprompt
 ```
 
-**Vì sao `127.0.0.1` phải có SAN IP?** Client kết nối bằng IP string và bật endpoint identification algorithm `HTTPS`; kiểm tra danh tính phải khớp **iPAddress SAN**, không chỉ CN trong subject. Nếu bỏ SAN, TLS có thể bị từ chối do hostname/IP mismatch ngay cả khi truststore chứa certificate.
+**Why must `127.0.0.1` have an IP SAN?** The client connects using an IP string and enables the `HTTPS` endpoint identification algorithm; identity verification must match an **iPAddress SAN**, not only the subject CN. Without the SAN, TLS may reject the connection for hostname/IP mismatch even when the truststore contains the certificate.
 
-### 6.2 Mã Java hoàn chỉnh
+### 6.2 Complete Java code
 
-Lưu thành **`LoopbackTlsHandshakeDemo.java`**:
+Save as **`LoopbackTlsHandshakeDemo.java`**:
 
 ```java
 import java.io.InputStream;
@@ -403,14 +403,14 @@ public final class LoopbackTlsHandshakeDemo {
 }
 ```
 
-Biên dịch và chạy trên Java 17+ (đứng tại thư mục chứa source, `$t` được tạo ở phần trên):
+Compile and run on Java 17+ (from the source directory, with `$t` created above):
 
 ```powershell
 javac --release 17 -encoding UTF-8 -d $t LoopbackTlsHandshakeDemo.java
 java -cp $t LoopbackTlsHandshakeDemo (Join-Path $t "server.p12") (Join-Path $t "trust.p12") $pw
 ```
 
-**Output chính xác đã kiểm thử** với runtime SunJSSE có TLS 1.2 và TLS 1.3:
+**Verified exact output** on a SunJSSE runtime with TLS 1.2 and TLS 1.3:
 
 ```text
 TLSv1.3 negotiated=TLSv1.3
@@ -423,101 +423,101 @@ TLSv1.2 cipherSuiteNonEmpty=true
 TLSv1.2 peerCertificatePresent=true
 ```
 
-**Không in tên cipher suite cụ thể** để tránh tạo một output giả định cố định: selection phụ thuộc provider, policy, certificate, supported groups và phiên bản JDK. Chỉ kiểm `getCipherSuite()` không rỗng; khi chẩn đoán thực, in tên suite negotiated trong môi trường có quyền, sau đó đối chiếu với policy.
+**Specific cipher suite names are omitted** to avoid assuming a fixed output: selection depends on provider, policy, certificate, supported groups, and JDK version. Here we only check that `getCipherSuite()` is non-empty; during real diagnostics, log the negotiated suite name in an authorized environment and compare against policy.
 
-### 6.3 Đọc kết quả và bảo đảm an toàn
+### 6.3 Interpreting the results and ensuring safety
 
-- `TLSv1.3 negotiated=TLSv1.3` là **giá trị của `SSLSession` sau successful handshake**, khác hẳn dòng `supportedProtocols` hoặc `enabledProtocols` từ inventory.
-- `peersAgree=true` chứng minh server và client cùng thấy phiên bản negotiated và khớp phiên bản được cấu hình cho lần test đó.
-- `peerCertificatePresent=true` cho biết SSLSession có peer certificate. Trong code, **TrustManagerFactory** đã xác minh trust theo truststore demo và **endpoint identification** được bật. Dòng boolean này **đứng riêng không đủ chứng minh** certificate chain/hostname đúng nếu code không bật các cơ chế đó.
-- Demo chỉ chạy trên loopback, không kết nối host bên ngoài. Truststore chỉ tin certificate test được tạo; không import cert từ bên gửi không xác thực vào truststore sản phẩm.
-- Server nhận một kết nối trong background thread (không dùng lại engine state giữa các phiên); thread executor kết thúc sau mỗi test. Với server thật, cần timeout, limit request, resource lifecycle và cấu hình TLS quản lý tập trung.
-- Nếu runtime có security policy cấm TLS 1.2 hoặc 1.3, một phép test có thể fail; **đó là tín hiệu chính sách của môi trường**, không phải lý do bỏ policy. Hãy kiểm `getEnabledProtocols()` và `jdk.tls.disabledAlgorithms` trước khi chọn testcase tương ứng.
+- `TLSv1.3 negotiated=TLSv1.3` is the **`SSLSession` value after a successful handshake**, distinct from `supportedProtocols` or `enabledProtocols` in the inventory.
+- `peersAgree=true` proves both server and client see the negotiated version and that it matches the version configured for that test run.
+- `peerCertificatePresent=true` indicates the `SSLSession` holds a peer certificate. In the code, **`TrustManagerFactory`** validated trust against the demo truststore and **endpoint identification** was enabled. This boolean line **alone would not prove** valid chain/hostname if the code failed to enable those mechanisms.
+- The demo runs only on loopback and connects to no external hosts. The truststore trusts only the generated test certificate; never import certificates from unverified senders into a production truststore.
+- The server accepts one connection in a background thread (without reusing engine state across sessions); the thread executor terminates after each test. Real servers need timeouts, request limits, resource lifecycles, and centrally managed TLS configuration.
+- If a runtime's security policy disables TLS 1.2 or 1.3, one test may fail; **that is an environment policy signal**, not a reason to bypass policy. Check `getEnabledProtocols()` and `jdk.tls.disabledAlgorithms` before selecting corresponding test cases.
 
-Dọn dẹp dữ liệu test:
+Clean up test data:
 
 ```powershell
-# Chỉ xóa đúng thư mục demo do phần 6.1 tạo, không dùng cho dữ liệu thật.
+# Only delete the exact demo directory created in section 6.1; never use on real data.
 if ($t -like (Join-Path $env:TEMP "tls-protocol-lesson-*")) {
     Remove-Item -LiteralPath $t -Recurse -Force
 }
 ```
 
-Xóa file bình thường **không bảo đảm secure erase** khỏi SSD, snapshot, backup; vì vậy chỉ dùng test keys và password mẫu. **Không hardcode password/secret** trong ứng dụng thật.
+Normal file deletion **does not guarantee secure erasure** from SSDs, snapshots, or backups; hence only use test keys and sample passwords. **Never hardcode passwords/secrets** in real applications.
 
-## 7. Cấu hình JSSE: thứ tự ưu tiên và phạm vi tác động
+## 7. JSSE configuration: precedence and scope of impact
 
-Java có hai nhóm cấu hình quan trọng:
+Java has two important configuration groups:
 
-- **System properties** như `jdk.tls.client.protocols`, `jdk.tls.server.protocols`, `https.protocols`, thường nhận qua `-D...` khi khởi động JVM và tác động theo phạm vi của API/provider.
-- **Security properties** như `jdk.tls.disabledAlgorithms` hay `jdk.certpath.disabledAlgorithms`, đọc bằng `java.security.Security.getProperty` và cấu hình trong môi trường `java.security`. Chúng có thể **cấm** protocol/algorithm ngay cả khi application đặt allowed/enabled list.
+- **System properties** such as `jdk.tls.client.protocols`, `jdk.tls.server.protocols`, `https.protocols`, typically passed via `-D...` at JVM startup and scoped by API/provider.
+- **Security properties** such as `jdk.tls.disabledAlgorithms` or `jdk.certpath.disabledAlgorithms`, read via `java.security.Security.getProperty` and configured in `java.security`. They can **forbid** protocols/algorithms even if the application puts them in its allowed/enabled list.
 
-**Không nhầm `System.getProperty("jdk.tls.disabledAlgorithms")` với `Security.getProperty("jdk.tls.disabledAlgorithms")`.** Giá trị chính sách TLS của Oracle/OpenJDK JSSE là Java Security property, không phải chỉ một system property thông thường.
+**Do not confuse `System.getProperty("jdk.tls.disabledAlgorithms")` with `Security.getProperty("jdk.tls.disabledAlgorithms")`.** Oracle/OpenJDK JSSE's TLS policy setting is a Java Security property, not just an ordinary system property.
 
-### 7.1 Những property phải biết
+### 7.1 Properties you must know
 
-| Property/cấu hình | Phạm vi chính | Cách hiểu đúng |
+| Property / setting | Primary scope | Correct interpretation |
 | --- | --- | --- |
-| `jdk.tls.disabledAlgorithms` (**Security**) | JSSE protocol, cipher, key exchange/signature/algorithm restrictions | Có thể chặn TLSv1/TLSv1.1/SSLv3 và thuật toán yếu ngay cả nếu enabled tường minh |
-| `jdk.certpath.disabledAlgorithms` (**Security**) | Certificate path verification | Có thể từ chối chain dùng key size/thuật toán yếu dù TLS version có chung |
-| `jdk.tls.client.protocols` (**System**) | Default client protocol list của **SunJSSE** | Giới hạn phiên bản dùng cho client defaults; ứng dụng `setEnabledProtocols` tường minh có thể override list nhưng không vượt security restrictions |
-| `jdk.tls.server.protocols` (**System**) | Default server protocol list của **SunJSSE**, generic context | Có scope riêng; version-specific context hoặc explicit set có thể bỏ qua setting default |
-| `https.protocols` (**System**) | Mặc định của `HttpsURLConnection` | **Không phải** công tắc toàn bộ kết nối TLS/`java.net.http.HttpClient`/Netty/gRPC |
-| `jdk.tls.client.cipherSuites` / `jdk.tls.server.cipherSuites` (**System**) | Default cipher suites trong SunJSSE | Không vượt allowed algorithms, certificates, named groups, phiên bản hoặc peer |
-| `jdk.tls.namedGroups` (**System**) | Named finite-field/elliptic-curve groups | Có thể làm TLS 1.3/1.2 handshake thất bại nếu peer không có group chung |
-| `javax.net.ssl.keyStore` / `javax.net.ssl.trustStore` (System) | Default key/trust material cho một số factory/default managers | Không tự bảo đảm hostname/identity; explicit `SSLContext` có thể dùng store khác |
-| `SSLParameters.setProtocols` / `SSLSocket.setEnabledProtocols` | Object/session client/server cụ thể | Xác định list phiên bản trực tiếp; vẫn cần peer + security policy phù hợp |
-| `SSLContext.getInstance("TLS")` | JSSE context thuật toán generic | Không có nghĩa một phiên bản đã negotiated; hỗ trợ nhiều TLS versions tùy provider |
+| `jdk.tls.disabledAlgorithms` (**Security**) | JSSE protocol, cipher, key exchange/signature/algorithm restrictions | Can block TLSv1/TLSv1.1/SSLv3 and weak algorithms even if explicitly enabled |
+| `jdk.certpath.disabledAlgorithms` (**Security**) | Certificate path verification | Can reject chains using weak key sizes/algorithms even when TLS versions overlap |
+| `jdk.tls.client.protocols` (**System**) | **SunJSSE** default client protocol list | Limits versions for client defaults; explicit `setEnabledProtocols` can override the list but cannot bypass security restrictions |
+| `jdk.tls.server.protocols` (**System**) | **SunJSSE** default server protocol list, generic context | Has its own scope; version-specific contexts or explicit sets may ignore default settings |
+| `https.protocols` (**System**) | `HttpsURLConnection` defaults | **Not** a global switch for all TLS connections/`java.net.http.HttpClient`/Netty/gRPC |
+| `jdk.tls.client.cipherSuites` / `jdk.tls.server.cipherSuites` (**System**) | Default cipher suites in SunJSSE | Cannot override allowed algorithms, certificates, named groups, versions, or peer support |
+| `jdk.tls.namedGroups` (**System**) | Named finite-field/elliptic-curve groups | Can cause TLS 1.3/1.2 handshakes to fail if peers share no common group |
+| `javax.net.ssl.keyStore` / `javax.net.ssl.trustStore` (System) | Default key/trust material for some factories/default managers | Does not automatically enforce hostname/identity; explicit `SSLContext` may use other stores |
+| `SSLParameters.setProtocols` / `SSLSocket.setEnabledProtocols` | Specific client/server object/session | Directly specifies version list; still subject to peer and security policy |
+| `SSLContext.getInstance("TLS")` | Generic JSSE context algorithm | Does not mean a single negotiated version; supports multiple TLS versions per provider |
 
-**Thứ tự cấu hình cho default enabled list** trong SunJSSE thường có thể hiểu là:
+**Configuration precedence for the default enabled list** in SunJSSE can generally be understood as:
 
 ```text
 Explicit application setting (socket/engine SSLParameters)
         > relevant SunJSSE system property
         > JSSE provider defaults
 
-Sau đó vẫn chịu ràng buộc của Java Security properties
-(ví dụ jdk.tls.disabledAlgorithms, jdk.certpath.disabledAlgorithms),
-thuật toán/curve/certificates và peer capabilities.
+Afterward, it still remains subject to Java Security properties
+(e.g., jdk.tls.disabledAlgorithms, jdk.certpath.disabledAlgorithms),
+algorithms/curves/certificates, and peer capabilities.
 ```
 
-Không nên diễn giải dấu “`>`” là cơ chế bỏ qua chính sách security. Nó chỉ nói **cấu hình enabled/default list** có ưu tiên; **mức cấm** của `jdk.tls.disabledAlgorithms` vẫn áp dụng trong negotiation.
+Do not interpret the "`>`" sign as a mechanism to override security policy. It only describes precedence for **configuring the enabled/default list**; the **prohibitions** in `jdk.tls.disabledAlgorithms` still apply during negotiation.
 
-Ví dụ khởi động demo inventory với cấu hình client default **TLSv1.3** (PowerShell):
+Example launching the inventory demo with client default **TLSv1.3** (PowerShell):
 
 ```powershell
-# Demo: cấu hình system property trước khi context được tạo.
+# Demo: set the system property before the context is created.
 java "-Djdk.tls.client.protocols=TLSv1.3" TlsProtocolInventoryDemo
 ```
 
-Chạy lại bằng terminal/JVM mới và so `enabledProtocols`. **Không** suy mọi application đều dùng same default: chúng có thể tạo riêng `SSLContext`, gọi `setEnabledProtocols`, chạy provider khác hoặc do framework cấu hình. Một số property được JSSE đọc lúc khởi tạo provider/context; đặt giữa lúc ứng dụng đã chạy có thể không cập nhật các context hiện có.
+Rerun in a fresh terminal/JVM and compare `enabledProtocols`. **Do not** assume every application uses the same defaults: they may create a custom `SSLContext`, call `setEnabledProtocols`, use a different provider, or be configured by a framework. Some properties are read by JSSE when initializing the provider/context; setting them mid-run may not update existing contexts.
 
-Ví dụ với một `SSLSocket` đã tạo:
+Example with an already-created `SSLSocket`:
 
 ```java
-// Đoạn minh họa trong phương thức Java, không phải chương trình độc lập.
+// Illustrative snippet inside a Java method, not a standalone program.
 String[] desired = { "TLSv1.3", "TLSv1.2" };
 socket.setEnabledProtocols(desired);
-// Đọc lại từ chính socket rồi mới bắt tay.
+// Read back from the socket itself before starting the handshake.
 System.out.println(java.util.Arrays.toString(
         socket.getEnabledProtocols()));
 ```
 
-Code trên **chưa** kiểm tra handshake. Với server có nhiều client legacy, chọn list theo chính sách khả năng tương thích thật; không bật SSLv3/TLS 1.0/TLS 1.1 hoặc weak cipher vì một lời báo lỗi “no common protocol” nếu không có ngoại lệ bảo mật được duyệt.
+The code above **has not yet** run a handshake. For servers with legacy clients, choose the list based on a real compatibility policy; never enable SSLv3/TLS 1.0/TLS 1.1 or weak ciphers just because of a "no common protocol" error without an approved security exception.
 
-### 7.2 Cách đọc nhanh cấu hình JVM bằng CLI
+### 7.2 Quick CLI check of JVM configuration
 
-Java JDK cung cấp:
+The Java JDK provides:
 
 ```powershell
-# Tóm tắt enabled TLS protocols/suites theo JDK/provider hiện tại.
+# Summary of enabled TLS protocols/suites for the current JDK/provider.
 keytool -showinfo -tls
 
-# Trong môi trường JDK hỗ trợ tùy chọn này:
+# In JDK environments supporting this flag:
 java -XshowSettings:security:tls -version
 ```
 
-Lệnh `keytool -showinfo -tls` đã được kiểm thử trên runtime JDK sử dụng trong bài, phần mở đầu:
+The `keytool -showinfo -tls` command was tested on the JDK runtime used in this lesson; opening excerpt:
 
 ```text
 Enabled Protocols
@@ -532,9 +532,9 @@ TLS_AES_128_GCM_SHA256
 TLS_CHACHA20_POLY1305_SHA256
 ```
 
-Danh sách còn **nhiều suite phía sau** (đã cố ý chỉ in ba dòng đầu để minh họa, **không coi đây là toàn output CLI**). Lệnh này hữu ích để xem enabled profile ở JDK process nhưng **không xác thực cấu hình cụ thể của mọi ứng dụng** vốn có thể override bằng provider/SSLContext/socket settings.
+**Many more suites** follow in the list (only the first three lines are intentionally shown for illustration; **do not treat this as the complete CLI output**). This command is useful to inspect the JDK process's enabled profile, yet **does not verify the specific configuration of every application**, which may override defaults via provider/SSLContext/socket settings.
 
-Nếu muốn xem security property **thực tế** tại runtime mà không sửa policy, trong JShell Java 17:
+To view the **actual** security properties at runtime without modifying policy files, in Java 17 JShell:
 
 ```java
 System.out.println(java.security.Security.getProperty(
@@ -543,131 +543,131 @@ System.out.println(java.security.Security.getProperty(
         "jdk.certpath.disabledAlgorithms"));
 ```
 
-Đây là **đoạn Java trong JShell** hoặc method, không phải lệnh PowerShell độc lập. Không in property đó như một “mật khẩu”; đây là policy cấu hình, nhưng cũng không đưa toàn debug log production ra kênh công khai.
+This is a **Java snippet for JShell** or a method, not a standalone PowerShell command. Do not treat that property as a "password"; it is a configuration policy, though you should still avoid posting full production debug logs to public channels.
 
-## 8. Đọc cấu hình cipher suites và các extensions liên quan
+## 8. Reading cipher suite configurations and related extensions
 
-**Protocol intersection chỉ là điều kiện cần, không đủ.** Hai peer có thể cùng cho TLS 1.3 nhưng vẫn handshake fail vì:
+**Protocol intersection is only a necessary condition, not a sufficient one.** Two peers can both enable TLS 1.3 and still fail the handshake because of:
 
-- Không có **cipher suite** chung được phép, hoặc khóa/cipher bị policy chặn.
-- Không có **named group/key share** chung: `secp256r1`, `x25519`, `ffdhe2048`... tùy provider và protocol.
-- Không có **signature scheme** tương thích certificate/key manager; ví dụ certificate chỉ hỗ trợ thuật toán ký không dùng được ở TLS 1.3.
-- Certificate chain không được tin, thiếu intermediate, hết hạn, không đúng SAN/hostname, EKU/KU không phù hợp hoặc bị `jdk.certpath.disabledAlgorithms` từ chối.
-- Server yêu cầu client certificate và client chưa cấp đúng chứng thư/private key.
-- Lỗi **SNI** routing, **ALPN** (HTTP/2 vs HTTP/1.1), proxy, load balancer hay mTLS policy.
-- Unsupported critical extension, revocation failure hoặc policy TLS riêng của framework.
+- No common permitted **cipher suite**, or a key/cipher blocked by policy.
+- No common **named group/key share**: `secp256r1`, `x25519`, `ffdhe2048`... depending on provider and protocol.
+- No **signature scheme** compatible with the certificate/key manager; e.g., a certificate only supporting a signing algorithm unusable in TLS 1.3.
+- Untrusted certificate chain, missing intermediate, expired cert, mismatched SAN/hostname, unsuitable EKU/KU, or rejection by `jdk.certpath.disabledAlgorithms`.
+- Server requesting a client certificate and the client failing to supply the right certificate/private key.
+- Errors in **SNI** routing, **ALPN** (HTTP/2 vs. HTTP/1.1), proxies, load balancers, or mTLS policy.
+- Unsupported critical extensions, revocation failures, or framework-specific TLS policies.
 
-**ALPN không phải TLS protocol version.** Khi HTTP/2 dùng TLS, ứng dụng có thể dùng ALPN chọn `h2`; TLS version như `TLSv1.3` là lớp **khác**. `SSLParameters.setApplicationProtocols(...)` và `SSLSocket.getApplicationProtocol()` phục vụ ALPN, còn `SSLSession.getProtocol()` trả TLS version. SNI chọn danh tính/certificate server theo hostname; không phải nơi đặt TLSv1.2/TLSv1.3.
+**ALPN is not a TLS protocol version.** When HTTP/2 runs over TLS, the application can use ALPN to select `h2`; the TLS version such as `TLSv1.3` belongs to a **different** layer. `SSLParameters.setApplicationProtocols(...)` and `SSLSocket.getApplicationProtocol()` serve ALPN, while `SSLSession.getProtocol()` returns the TLS version. SNI selects the server identity/certificate by hostname; it is not where `TLSv1.2`/`TLSv1.3` is set.
 
-### 8.1 Tên cipher suite nhìn sao cho đúng?
+### 8.1 How to read cipher suite names correctly
 
-| Cipher suite | Version chủ yếu | Ý nghĩa |
+| Cipher suite | Primary version | Meaning |
 | --- | --- | --- |
-| `TLS_AES_128_GCM_SHA256` | TLS 1.3 | AES-128-GCM AEAD, SHA-256 trong HKDF key schedule |
+| `TLS_AES_128_GCM_SHA256` | TLS 1.3 | AES-128-GCM AEAD, SHA-256 in the HKDF key schedule |
 | `TLS_AES_256_GCM_SHA384` | TLS 1.3 | AES-256-GCM AEAD, SHA-384 |
 | `TLS_CHACHA20_POLY1305_SHA256` | TLS 1.3 | ChaCha20-Poly1305 AEAD, SHA-256 |
 | `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` | TLS 1.2 | ECDHE key exchange, RSA certificate signature/auth, AES-128-GCM |
 | `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384` | TLS 1.2 | ECDHE, ECDSA authentication, AES-256-GCM |
-| `TLS_RSA_WITH_AES_128_CBC_SHA` | Legacy TLS 1.2-era | RSA key transport và CBC; **không dùng** cho cấu hình mới |
+| `TLS_RSA_WITH_AES_128_CBC_SHA` | Legacy TLS 1.2-era | RSA key transport and CBC; **do not use** for new configurations |
 
-Ngay cả khi `getSupportedCipherSuites()` chứa một tên legacy, system policy có thể cấm hoàn toàn. Ưu tiên default an toàn của JDK và hạn chế suites **theo chính sách đã kiểm chứng**; một allow-list tự viết nhưng quá chặt hay không phù hợp certificate có thể ngăn TLS 1.3 dù `enabledProtocols` đúng.
+Even when `getSupportedCipherSuites()` includes a legacy name, system policy may forbid it outright. Prefer the JDK's safe defaults and restrict suites **per a verified policy**; a hand-written allow-list that is overly strict or incompatible with the certificate can prevent TLS 1.3 even when `enabledProtocols` is right.
 
-TLS 1.3 sử dụng key schedule khác TLS 1.2; khi troubleshoot không mong thấy `ServerKeyExchange` theo định dạng TLS 1.2 trong TLS 1.3. Một TLS record có `legacy_record_version` hoặc một `ClientHello` có `legacy_version=0x0303` **không có nghĩa** negotiated TLS 1.2: TLS 1.3 dùng `supported_versions` extension để đàm phán version thực tế. Hãy xem `SSLSession.getProtocol()` hoặc handshake trace `supported_versions` và ServerHello đúng ngữ cảnh.
+TLS 1.3 uses a different key schedule from TLS 1.2; when troubleshooting, do not expect a TLS 1.2-style `ServerKeyExchange` in TLS 1.3. A TLS record showing `legacy_record_version` or a `ClientHello` with `legacy_version=0x0303` **does not mean** TLS 1.2 was negotiated: TLS 1.3 uses the `supported_versions` extension to negotiate the actual version. Inspect `SSLSession.getProtocol()` or the `supported_versions` and `ServerHello` fields in context.
 
-## 9. Chẩn đoán lỗi handshake theo lớp
+## 9. Diagnosing handshake failures by layer
 
-| Triệu chứng | Khả năng gây ra | Cách kiểm tra |
+| Symptom | Possible causes | How to inspect |
 | --- | --- | --- |
-| `SSLHandshakeException: No appropriate protocol` | Không có version/cipher phù hợp, có thứ bị disabled bởi policy | In enabled/supported của **hai phía**, security property và cipher suites |
-| `Received fatal alert: protocol_version` | Peer từ chối protocol versions được đề xuất | So TLS versions và server-side policy, không bật giao thức lỗi thời một cách vội vàng |
-| `Received fatal alert: handshake_failure` | **Nhiều khả năng**: cipher, key exchange group, sig scheme, certificate, client auth, SNI | Đọc handshake trace và peer config; không kết luận chỉ từ alert |
-| `PKIX path building failed` | Truststore thiếu CA/intermediate, chain sai, cert không hợp lệ | Dùng đúng truststore, chain và path validation; không trust-all |
-| `No subject alternative names matching ...` | Host/IP không phù hợp SAN | Cấp lại cert đúng DNS/iPAddress SAN hoặc kết nối tới hostname thật |
-| `No available authentication scheme` | Server không có certificate/key/algorithm tương thích negotiated settings | Xem KeyManagerFactory, keyStore, key algorithm và sig schemes |
-| Handshake dùng TLSv1.2 dù client hỗ trợ TLSv1.3 | Server không enable 1.3, TLS terminator/proxy hoặc policy khác | Xem `SSLSession.getProtocol` ở đúng endpoint và peer config |
-| `getSupportedProtocols()` có TLSv1 nhưng handshake không dùng được | TLSv1 nằm trong `jdk.tls.disabledAlgorithms` hoặc bị policy khác cấm | Kiểm tra security property; không sửa policy chỉ vì supported |
-| `SSLSession.getProtocol()` chưa có ý nghĩa | Socket chưa handshake hoặc handshake fail | Gọi `startHandshake` và chỉ dùng session khi thành công |
-| Java code set `SSLParameters` nhưng kết quả không đổi | Chưa gọi `socket.setSSLParameters(params)`, đặt sau handshake, hoặc dùng socket khác | In params/objects ngay trước handshake |
-| HTTPS URL thành công nhưng raw SSLSocket fail | Hai đường đi có trust, hostname, default protocols khác nhau | Đọc cấu hình đúng stack/framework của từng call |
-| TLS protocol đúng nhưng HTTP/2 fail | ALPN không đồng ý `h2`, server/application policy | Tách TLS `getProtocol` khỏi ALPN `getApplicationProtocol` |
-| Kết nối qua LB/CDN TLS 1.3 nhưng backend cũ | TLS termination và re-encryption diễn ra ở hai connection khác | Kiểm tra từng hop, không dùng kết quả frontend để suy backend |
+| `SSLHandshakeException: No appropriate protocol` | No matching version/cipher, or disabled by policy | Print enabled/supported on **both sides**, security properties, and cipher suites |
+| `Received fatal alert: protocol_version` | Peer rejected proposed protocol versions | Compare TLS versions and server-side policy; do not hastily enable obsolete protocols |
+| `Received fatal alert: handshake_failure` | **Many possibilities**: cipher, key exchange group, sig scheme, certificate, client auth, SNI | Inspect handshake trace and peer config; do not conclude from the alert alone |
+| `PKIX path building failed` | Truststore missing CA/intermediate, broken chain, invalid cert | Use the right truststore, chain, and path validation; never trust-all |
+| `No subject alternative names matching ...` | Host/IP does not match SAN | Reissue cert with proper DNS/iPAddress SAN or connect to the real hostname |
+| `No available authentication scheme` | Server lacks certificate/key/algorithm compatible with negotiated settings | Check `KeyManagerFactory`, `keyStore`, key algorithms, and sig schemes |
+| Handshake uses TLSv1.2 despite client supporting TLSv1.3 | Server does not enable 1.3, TLS terminator/proxy, or another policy | Check `SSLSession.getProtocol` at the exact endpoint and peer config |
+| `getSupportedProtocols()` lists TLSv1 yet handshake cannot use it | TLSv1 is in `jdk.tls.disabledAlgorithms` or blocked by another policy | Check security properties; do not edit policy merely because it is supported |
+| `SSLSession.getProtocol()` is not meaningful yet | Socket has not completed handshake or handshake failed | Call `startHandshake` and read session only upon success |
+| Java code sets `SSLParameters` but nothing changes | Forgot `socket.setSSLParameters(params)`, set after handshake, or used a different socket | Print params/objects right before the handshake |
+| HTTPS URL works while raw `SSLSocket` fails | The two paths have different trust, hostname, and default protocol configs | Inspect the configuration of each stack/framework independently |
+| TLS protocol succeeds yet HTTP/2 fails | ALPN did not agree on `h2`, or server/application policy | Separate TLS `getProtocol` from ALPN `getApplicationProtocol` |
+| Connects via LB/CDN with TLS 1.3 while backend is older | TLS termination and re-encryption happen on two separate connections | Inspect each hop; never infer backend posture from frontend results |
 
-### Debug JSSE
+### JSSE debugging
 
-Trong môi trường thử nghiệm có quyền truy cập:
+In a test environment with proper access:
 
 ```powershell
-# Ví dụ bật trace JSSE cho chương trình local.
+# Example enabling JSSE trace for the local program.
 java "-Djavax.net.debug=ssl,handshake" -cp $t LoopbackTlsHandshakeDemo (Join-Path $t "server.p12") (Join-Path $t "trust.p12") $pw
 ```
 
-Log JSSE có thể rất dài, chứa cấu trúc handshake, certificate metadata, hostname, thông số bảo mật và tùy flags có thể hiện byte nhạy cảm. **Không bật các chế độ dump/key logger trong production hoặc gửi nguyên log công khai**. Chỉ dùng trên test fixtures, lưu vào nơi có quyền phù hợp và xóa sau khi chẩn đoán.
+JSSE logs can be very long, containing handshake structures, certificate metadata, hostnames, security parameters, and depending on flags, sensitive bytes. **Never enable key/dump loggers in production or share raw logs publicly**. Use them only on test fixtures, store them with restricted permissions, and delete them after diagnosing.
 
-Khi đọc trace, tìm tuần tự: `ClientHello`, `supported_versions`, `ServerHello`, selected cipher suite, `Certificate`/certificate validation, handshake Finished. Không nhầm `legacy_version` với negotiated protocol. Với TLS 1.3, nhiều handshake messages sau ServerHello được bảo vệ; logger có quyền trong process có thể nhìn nhiều hơn packet capture ngoài mạng.
+When reading a trace, check in order: `ClientHello`, `supported_versions`, `ServerHello`, selected cipher suite, `Certificate`/certificate validation, and handshake `Finished`. Do not confuse `legacy_version` with the negotiated protocol. In TLS 1.3, many handshake messages after `ServerHello` are encrypted; an in-process logger sees more than an off-box network packet capture.
 
-## 10. Cấu hình thực hành theo mô hình bảo mật
+## 10. Practical configuration by security model
 
-**Môi trường mới có client/server hiện đại:** thường cho phép TLS 1.3 và TLS 1.2 theo chính sách tổ chức, với TLS 1.3 được ưu tiên nếu hai phía tương thích. Đừng tắt TLS 1.2 chỉ vì có TLS 1.3 nếu còn peer hợp lệ cần TLS 1.2. Tuy nhiên nếu chính sách yêu cầu **chỉ TLS 1.3**, hãy áp dụng cả client/server và kiểm thử tương thích.
+**New environments with modern clients/servers:** typically enable both TLS 1.3 and TLS 1.2 per organizational policy, with TLS 1.3 preferred when both sides are compatible. Do not disable TLS 1.2 solely because TLS 1.3 exists if valid peers still require TLS 1.2. However, if policy mandates **TLS 1.3 only**, enforce it on both client and server and run compatibility tests.
 
-**Có legacy service:** trước tiên kiểm kê endpoint, chứng thư, cipher suites, named groups, load balancer và JDK version; lên lịch upgrade. **Không** tự hạ xuống TLS 1.0/1.1, SSLv3, RC4, 3DES hay cipher suite NULL/anonymous để che lỗi negotiation. Nếu phải duy trì legacy ngoài ý muốn, cần đánh giá rủi ro và cô lập có thời hạn theo chính sách bảo mật.
+**With legacy services:** first inventory endpoints, certificates, cipher suites, named groups, load balancers, and JDK versions; schedule upgrades. **Never** downgrade to TLS 1.0/1.1, SSLv3, RC4, 3DES, or NULL/anonymous cipher suites to mask negotiation failures. If legacy support must persist temporarily, perform risk assessment and time-bounded isolation per security policy.
 
-**Trong code JSSE:** sử dụng generic `SSLContext("TLS")`, để provider/security defaults an toàn làm cơ sở, cấu hình rõ ràng protocols và cipher suites khi có chính sách. Xác minh trust chain, hostname, EKU/KU, key sizes và certificate lifecycle qua trust manager/JSSE. Nếu dùng `HttpClient`/Netty/gRPC/server framework, kiểm tra nơi stack đó cấu hình SSL; **không giả định** mọi `-Dhttps.protocols` đều có tác dụng.
+**In JSSE code:** use generic `SSLContext("TLS")`, build on safe provider/security defaults, and explicitly configure protocols and cipher suites when policy dictates. Enforce trust chains, hostnames, EKU/KU, key sizes, and certificate lifecycles via the trust manager/JSSE. When using `HttpClient`/Netty/gRPC/server frameworks, verify where that stack configures SSL; **never assume** `-Dhttps.protocols` affects every library.
 
-**Giám sát thực tế:** đo negotiated TLS version/cipher suite **trên connections đã thành công**, theo endpoint/hop và khoảng thời gian. Không coi thông tin hỗ trợ do scanner trả về (hoặc JDK source code) là bằng chứng negotiated. Không ghi session secrets hoặc dữ liệu chứng thực nhạy cảm trong telemetry.
+**Real monitoring:** measure the negotiated TLS version/cipher suite **on successful connections**, per endpoint/hop and time window. Do not treat supported info returned by a scanner (or JDK source code) as evidence of what is negotiated. Never record session secrets or sensitive auth data in telemetry.
 
-**Thay đổi cấu hình:** deploy vào staging, chạy integration handshake tests cả client/server, test protocol intersection và cert trust, quan sát lỗi theo version. Các bản update JDK/security policy có thể thay đổi defaults/disabled list, nên không hardcode một snapshot của một JDK làm “sự thật vĩnh viễn”.
+**Configuration changes:** deploy to staging, run client/server integration handshake tests, test protocol intersection and cert trust, and monitor errors by version. JDK and security policy updates can alter defaults and disabled lists, so never hardcode a snapshot of one JDK as "permanent truth".
 
-## 11. Các hiểu nhầm cần loại bỏ
+## 11. Misconceptions to eliminate
 
-**“`SSLContext.getInstance("TLS")` nghĩa là TLS 1.0?”** Không. `"TLS"` là tên generic context có thể hỗ trợ nhiều versions; đọc `getEnabledProtocols` và handshake thực.
+**"Does `SSLContext.getInstance("TLS")` mean TLS 1.0?"** No. `"TLS"` is a generic context name capable of multiple versions; inspect `getEnabledProtocols` and actual handshakes.
 
-**“Supported có TLSv1.1 tức là server cho phép TLSv1.1?”** Không. Supported có thể liệt kê các versions disabled; cấu hình socket, security policy và peer mới quyết định có negotiation hay không.
+**"Having TLSv1.1 in supported means the server allows TLSv1.1?"** No. Supported can list disabled versions; socket configuration, security policy, and peer support determine negotiation.
 
-**“`setEnabledProtocols({"TLSv1"})` sẽ vượt `jdk.tls.disabledAlgorithms`?”** Không. Security restrictions vẫn áp dụng, dù API chấp nhận một tên supported.
+**"Will `setEnabledProtocols({"TLSv1"})` bypass `jdk.tls.disabledAlgorithms`?"** No. Security restrictions still apply even if the API accepts a supported name.
 
-**“TLS 1.3 suite `TLS_AES_128_GCM_SHA256` dùng RSA hay ECDHE?”** Tên suite **không mã hóa** thuật toán key agreement/certificate authentication; xem negotiated groups/signature schemes/handshake.
+**"Does the TLS 1.3 suite `TLS_AES_128_GCM_SHA256` use RSA or ECDHE?"** The suite name **does not encode** the key agreement or certificate authentication algorithm; inspect negotiated groups/signature schemes/handshake.
 
-**“TLS 1.3 luôn có forward secrecy bất kể PSK?”** Không. Cơ chế PSK-only không có cùng bảo đảm như fresh (EC)DHE; phải xem mode/protocol thật.
+**"Does TLS 1.3 always provide forward secrecy regardless of PSK?"** No. PSK-only modes lack the same guarantee as fresh (EC)DHE; inspect the actual mode/protocol.
 
-**“TLS 1.3 0-RTT đồng nghĩa truyền mọi request sớm an toàn?”** Không. Early data có rủi ro replay và có thể không được JSSE/app hỗ trợ; giao thức cần bảo vệ/idempotency policy.
+**"Does TLS 1.3 0-RTT mean sending any request early is safe?"** No. Early data has replay risk and may not be supported by JSSE/app; the protocol needs replay protection/idempotency policies.
 
-**“Sau khi gọi `getEnabledProtocols` có thể ghi negotiated version vào logs?”** Chưa. Chỉ `SSLSession.getProtocol` sau handshake thành công mới là version thực.
+**"After calling `getEnabledProtocols`, can we log the negotiated version?"** Not yet. Only `SSLSession.getProtocol` after a successful handshake reflects the real version.
 
-**“Chỉ cần TLS 1.3 là khỏi kiểm certificate, hostname?”** Sai. TLS version không thay trust, EKU/KU, SAN/hostname, revocation hoặc policy.
+**"Using TLS 1.3 means we can skip certificate and hostname checks?"** False. TLS version does not replace trust, EKU/KU, SAN/hostname, revocation, or policy.
 
-**“`https.protocols` điều khiển mọi kết nối SSL/TLS Java?”** Không. Nó chủ yếu ảnh hưởng `HttpsURLConnection`, không tự áp vào mọi HTTP client, server hay thư viện.
+**"Does `https.protocols` control all Java SSL/TLS connections?"** No. It primarily affects `HttpsURLConnection`, and does not automatically apply to all HTTP clients, servers, or libraries.
 
-**“Packet TLS record hiển thị 0x0303 chắc negotiated TLS 1.2?”** Không. TLS 1.3 dùng compatibility/legacy fields; phải kiểm `supported_versions` và session.
+**"A TLS record packet shows `0x0303`, so TLS 1.2 was definitely negotiated?"** No. TLS 1.3 uses compatibility/legacy fields; check `supported_versions` and the session.
 
-**“Thất bại handshake chắc do không có TLS 1.3?”** Không. Lỗi cũng có thể do truststore, SAN, cipher suite, named group, signature scheme, SNI, ALPN hoặc client auth.
+**"A handshake failure definitely means TLS 1.3 is missing?"** No. Failures can also stem from truststores, SANs, cipher suites, named groups, signature schemes, SNI, ALPN, or client auth.
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-1. **Ba mức protocol quan trọng nhất khi debug?** Supported, enabled và **negotiated**, cộng thêm security restrictions và peer capability.
-2. **API Java nào trả negotiated TLS version?** `SSLSession.getProtocol()` sau successful handshake.
-3. **`getSupportedProtocols()` có thể chứa protocol bị disabled không?** Có; SunJSSE test hiển thị TLS 1.0/1.1 và SSLv3 dù không enabled.
-4. **Security property vô hiệu hóa protocol/suite là gì?** `jdk.tls.disabledAlgorithms`; đọc bằng `Security.getProperty`.
-5. **`jdk.tls.client.protocols` có phải `https.protocols` không?** Không; scope khác nhau, property thứ hai tập trung `HttpsURLConnection`.
-6. **TLS 1.2 cipher suite khác TLS 1.3 như thế nào?** 1.2 thường chứa key exchange/auth/symmetric/hash; 1.3 chứa AEAD + HKDF hash, nhóm/chữ ký negotiate riêng.
-7. **TLS 1.3 có còn RSA key transport không?** Không; RSA certificate/signature vẫn có thể dùng, nhưng không là RSA key transport kiểu cũ.
-8. **TLS 1.3 luôn có 0-RTT không?** Không, optional và có rủi ro replay.
-9. **Nếu client bật TLSv1.3 và TLSv1.2, server chỉ bật TLSv1.2, có thể negotiate gì?** TLSv1.2 nếu các điều kiện khác đạt.
-10. **Nếu cả hai bật TLSv1.3, handshake chắc thành công không?** Không; cipher suites, groups, sig scheme, trust, hostname và policy có thể gây fail.
-11. **Tại sao demo bật `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`?** Để xác minh IP/DNS SAN, không chỉ trust certificate.
-12. **`SSLSession.getCipherSuite()` cho biết gì?** Cipher suite của kết nối thành công, không thay thế việc hiểu group/signature trong TLS 1.3.
-13. **Trường `legacy_version=0x0303` của TLS 1.3 chứng minh TLSv1.2 negotiated?** Không; xem supported_versions/ServerHello và SSLSession.
-14. **Có nên gỡ TLSv1 khỏi disabledAlgorithms vì code legacy test fail?** Không mặc định; cần nâng cấp hoặc phê duyệt ngoại lệ an ninh rõ ràng.
-15. **Phân biệt ALPN với TLS version?** ALPN chọn application protocol (ví dụ `h2`), TLS version là `TLSv1.2`/`TLSv1.3`.
-16. **Có thể lấy protocol thực từ socket chưa kết nối như chương trình inventory?** Không; chỉ có supported/enabled/default, chưa negotiated.
-17. **Tại sao không đoán cả hệ thống hỗ trợ TLS theo một SSLContext?** Mỗi client/server/framework/provider/hop có cấu hình riêng.
-18. **Hai phía cùng có TLSv1.2 nhưng `SSLHandshakeException` xảy ra, kiểm gì tiếp?** Trust/certificate, cipher suite, named group, signature scheme, security policy, SNI và logs.
-19. **Khi nào có `protocol_version` alert?** Khi peer từ chối version được đề xuất hoặc không đàm phán được version phù hợp; không đủ để suy ra toàn bộ nguyên nhân.
-20. **Cách xác minh sau deploy?** Integration handshake thật qua đúng endpoint, kiểm session protocol/cipher, certificate identity và chính sách logging/monitoring.
+1. **What are the three most important protocol levels when debugging?** Supported, enabled, and **negotiated**, plus security restrictions and peer capability.
+2. **Which Java API returns the negotiated TLS version?** `SSLSession.getProtocol()` after a successful handshake.
+3. **Can `getSupportedProtocols()` contain disabled protocols?** Yes; the SunJSSE test shows TLS 1.0/1.1 and SSLv3 even when not enabled.
+4. **Which security property disables protocols/suites?** `jdk.tls.disabledAlgorithms`; read via `Security.getProperty`.
+5. **Is `jdk.tls.client.protocols` the same as `https.protocols`?** No; their scopes differ—the latter targets `HttpsURLConnection`.
+6. **How does a TLS 1.2 cipher suite differ from TLS 1.3?** 1.2 normally encodes key exchange/auth/symmetric/hash; 1.3 encodes AEAD + HKDF hash, while groups/signatures are negotiated separately.
+7. **Does TLS 1.3 still have RSA key transport?** No; RSA certificates/signatures can still be used, but not legacy-style RSA key transport.
+8. **Does TLS 1.3 always enable 0-RTT?** No, it is optional and carries replay risk.
+9. **If client enables TLSv1.3 and TLSv1.2, and server enables only TLSv1.2, what can be negotiated?** TLSv1.2 if all other conditions pass.
+10. **If both enable TLSv1.3, is the handshake guaranteed to succeed?** No; cipher suites, groups, sig schemes, trust, hostname, and policy can still fail it.
+11. **Why did the demo enable `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`?** To verify the IP/DNS SAN, not just trust the certificate.
+12. **What does `SSLSession.getCipherSuite()` tell you?** The cipher suite of a successful connection, without replacing knowledge of groups/signatures in TLS 1.3.
+13. **Does `legacy_version=0x0303` in TLS 1.3 prove TLSv1.2 was negotiated?** No; inspect `supported_versions`/ServerHello and `SSLSession`.
+14. **Should TLSv1 be removed from `disabledAlgorithms` because a legacy test fails?** Not by default; upgrade the legacy target or obtain an explicit security exception approval.
+15. **Distinguish ALPN from TLS version.** ALPN chooses the application protocol (e.g., `h2`); TLS version is `TLSv1.2`/`TLSv1.3`.
+16. **Can you retrieve the negotiated protocol from an unconnected socket like the inventory program?** No; only supported/enabled/default exist before negotiation.
+17. **Why not infer system-wide TLS support from a single `SSLContext`?** Each client, server, framework, provider, and hop has its own configuration.
+18. **Both sides support TLSv1.2 yet `SSLHandshakeException` occurs—what to check next?** Trust/certificates, cipher suites, named groups, signature schemes, security policy, SNI, and logs.
+19. **When does a `protocol_version` alert occur?** When the peer rejects the proposed versions or no compatible version can be negotiated; it is not enough to infer the entire root cause alone.
+20. **How should you verify after deployment?** Run real integration handshakes against the target endpoints, check session protocol/cipher, certificate identity, and logging/monitoring policies.
 
-## Tài liệu chính thức
+## Official references
 
 - [Oracle Java 17 — JSSE Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html)
-- [Oracle Java 17 — JDK Providers Documentation, SunJSSE protocols và cipher suites](https://docs.oracle.com/en/java/javase/17/security/oracle-providers.html)
+- [Oracle Java 17 — JDK Providers Documentation, SunJSSE protocols and cipher suites](https://docs.oracle.com/en/java/javase/17/security/oracle-providers.html)
 - [Oracle Java 17 — Standard Algorithm Names, SSLContext](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html)
 - [SSLContext (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLContext.html)
 - [SSLSocket (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html)

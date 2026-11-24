@@ -1,32 +1,32 @@
-# Tương thích bytecode, thư viện và JDK khi biên dịch hoặc triển khai plugin Java
+# Bytecode, Library, and JDK Compatibility When Compiling or Deploying Java Plugins
 
-## 1. Câu hỏi cần giải quyết
+## 1. The problem to solve
 
-Plugin Java có thể được phát triển bằng một JDK, compile theo một phiên bản SPI (Service Provider Interface), đóng gói kèm dependency, rồi triển khai vào host đang chạy JDK và thư viện khác. **Cài được JAR hoặc compile thành công chưa đủ chứng minh plugin có thể chạy đúng.** Việc tương thích phải được xem xét ở nhiều tầng riêng biệt.
+A Java plugin may be developed with one JDK, compiled against one SPI (Service Provider Interface) version, packaged with its dependencies, and then deployed onto a host running a different JDK and libraries. **Installing a JAR or compiling successfully does not prove a plugin can run correctly.** Compatibility must be evaluated across several distinct layers.
 
-Hãy hình dung ba trường hợp:
+Imagine three scenarios:
 
-- Plugin được build ra bytecode Java 21 nhưng máy host chạy Java 17: JVM đích không hiểu class-file version mới.
-- Plugin được build bằng --release 17 nên bytecode hoàn toàn phù hợp với Java 17, nhưng plugin gọi method chỉ có trong phiên bản thư viện mới; host lại nạp phiên bản cũ: bytecode hợp lệ vẫn gây lỗi liên kết.
-- Host và plugin compile cùng một interface và cùng JDK, nhưng hai class loader định nghĩa hai bản class interface cùng tên: type identity không trùng, nên không thể cast một cách an toàn.
+- A plugin is built as Java 21 bytecode while the host machine runs Java 17: the target JVM does not understand the newer class-file version.
+- A plugin is built with `--release 17`, so its bytecode fully fits Java 17, yet the plugin calls a method present only in a newer library version; the host loads an older version: valid bytecode still causes a linkage error.
+- Host and plugin compile against the same interface and same JDK, yet two class loaders define two copies of the identically named interface class: type identities do not match, so casting safely is impossible.
 
-Để thiết kế hệ thống runtime extensibility, luôn phân biệt ít nhất bốn câu hỏi:
+To design a runtime extensibility system, always separate at least four questions:
 
-1. **Bytecode:** JVM đích có đọc được định dạng .class hay không?
-2. **JDK/platform API:** những package, module và method của JDK mà bytecode tham chiếu có hiện diện và cho phép truy cập hay không?
-3. **Library/SPI ABI:** runtime có đúng binary contract của API và các thư viện mà plugin đã dùng lúc compile hay không?
-4. **Loading và hành vi:** class loader/ModuleLayer có định nghĩa đúng identity và version, và plugin có đáp ứng semantics của host hay không?
+1. **Bytecode:** can the target JVM read the `.class` format?
+2. **JDK/platform API:** are the JDK packages, modules, and methods referenced by bytecode present and accessible?
+3. **Library/SPI ABI:** does the runtime provide the exact binary contract of the API and libraries the plugin compiled against?
+4. **Loading and behavior:** do the class loader/`ModuleLayer` define the right identity and version, and does the plugin satisfy the host's semantics?
 
-Chỉ khi cả bốn tầng phù hợp, host mới có thể coi plugin là ứng viên hợp lệ để kích hoạt. Trong production còn cần kiểm tra artifact provenance, trust boundary, quyền và tài nguyên; **compatibility không tự đồng nghĩa security**.
+Only when all four layers align can the host treat the plugin as a valid candidate for activation. In production, you must also verify artifact provenance, trust boundaries, permissions, and resources; **compatibility does not imply security**.
 
-## 2. Hình dung hai thời điểm build và runtime
+## 2. Visualizing build time vs runtime
 
 ~~~text
 BUILD TIME                                      RUNTIME
-Source plugin                                  Host application
+Plugin source                                  Host application
   |                                               |
   v                                               |-- Runtime JDK / runtime image
-javac (toolchain, --release,                  |-- API/SPI mà host thật sự nạp
+javac (toolchain, --release,                  |-- API/SPI actually loaded by host
       compile classpath, module path)              |-- Runtime dependencies
   |                                               |-- ClassLoader / ModuleLayer
   v                                               v
@@ -39,26 +39,26 @@ javac (toolchain, --release,                  |-- API/SPI mà host thật sự n
                                           Create instance, invoke SPI
 ~~~
 
-Compiler ghi vào bytecode các symbolic references tới class, method, field và descriptors của thư viện nhìn thấy khi compile. Sau đó JVM phải phân giải chúng thành các định nghĩa có thực theo class loader/module graph khi code chạy. Bởi vậy **compile classpath** và **runtime classpath/module path** phải được quản lý như hai cấu hình có liên quan, không phải hai tập JAR tùy ý.
+The compiler writes symbolic references into bytecode pointing to classes, methods, fields, and descriptors visible at compile time. The JVM must then resolve them to concrete definitions along the class loader/module graph at runtime. Hence **compile classpath** and **runtime classpath/module path** must be managed as related configurations, not two arbitrary sets of JARs.
 
-Nên lưu các thuộc tính của một bản phát hành:
+Record these attributes for every release:
 
-| Thành phần | Thông tin quan trọng |
+| Component | Key information |
 | --- | --- |
-| JDK build | Vendor, version, compiler options và build tool |
+| Build JDK | Vendor, version, compiler options, and build tool |
 | Target bytecode | Java release, class-file major/minor, preview status |
 | Host API/SPI | Interface/binary names, API version/range, checksum |
-| Dependency | Exact versions và dependency graph, gồm cả transitive |
-| Runtime JDK | Phiên bản tối thiểu, bản thực chạy, module availability |
-| Loader/layer | Parent loader cho SPI, cô lập dependency, JPMS configuration |
+| Dependencies | Exact versions and dependency graph, including transitives |
+| Runtime JDK | Minimum version, actual running build, module availability |
+| Loader/layer | Parent loader for SPI, dependency isolation, JPMS configuration |
 | Plugin artifact | ID, version, SHA-256, manifest/module descriptor, publisher |
-| Contract | Test kết quả, lỗi, thread-safety, lifecycle, format dữ liệu |
+| Contract | Tests for results, errors, thread-safety, lifecycle, data formats |
 
-Không nên lưu riêng một trường “javaVersion: 17” rồi xem là đã đủ thông tin.
+Do not store a single `"javaVersion: 17"` field and assume it is enough information.
 
-## 3. Class-file version: tầng tương thích cơ bản nhất
+## 3. Class-file version: the most basic compatibility layer
 
-Một tệp .class có **major_version** và **minor_version**. JVM phải hỗ trợ class-file version trước khi định nghĩa và sử dụng class. Một số mốc thông dụng:
+A `.class` file has a **major_version** and **minor_version**. The JVM must support the class-file version before defining and using the class. Common milestones:
 
 | Java release | Major version |
 | --- | ---: |
@@ -69,55 +69,55 @@ Một tệp .class có **major_version** và **minor_version**. JVM phải hỗ 
 | Java 24 | 68 |
 | Java 25 | 69 |
 
-JVM Java 17 không hỗ trợ class-file major 65 do JDK 21 tạo ra. Khi cố nạp, thường gặp **UnsupportedClassVersionError**. Ngược lại, class major 61 có thể nạp được trên JVM Java 17 và các runtime Java mới hơn có hỗ trợ định dạng đó, **nhưng khả năng nạp bytecode chưa bảo đảm dependency và hành vi đúng**.
+A Java 17 JVM does not support class-file major 65 produced by JDK 21. Attempting to load it usually throws **`UnsupportedClassVersionError`**. Conversely, major 61 classes can load on a Java 17 JVM and newer Java runtimes supporting that format, **yet bytecode loadability does not guarantee correct dependencies or behavior**.
 
-Kiểm tra class trực tiếp:
+Inspect a class directly:
 
 ~~~bash
 javap -verbose -classpath plugin.jar com.example.plugin.Provider
 ~~~
 
-Trong output tìm:
+In the output, look for:
 
 ~~~text
 major version: 61
 ~~~
 
-**Không chỉ kiểm tra mỗi class chính.** Một plugin JAR có thể chứa nhiều class, dependency được đóng gói hoặc multi-release entries, mỗi phần có class-file version khác nhau. Máy build dùng JDK 21 cũng không có nghĩa mọi class tự động là major 65 nếu compiler được cấu hình target thấp hơn.
+**Do not inspect only the main class.** A plugin JAR may contain many classes, bundled dependencies, or multi-release entries, each potentially having a different class-file version. Building on JDK 21 also does not mean every class is automatically major 65 if the compiler is configured for a lower target.
 
-Class sử dụng **preview features** có thể có minor version đặc biệt **65535**, gắn với quy tắc phiên bản runtime và --enable-preview. Đừng dựa duy nhất vào major version để đánh giá hỗ trợ preview.
+Classes using **preview features** can carry the special minor version **65535**, tied to runtime version rules and `--enable-preview`. Do not rely solely on major version to assess preview support.
 
-## 4. Dùng javac --release đúng cách
+## 4. Using `javac --release` properly
 
-Lựa chọn thường ưu tiên khi muốn plugin chạy trên Java 17:
+The preferred option when targeting Java 17 for a plugin:
 
 ~~~bash
 javac --release 17 -d out src/com/example/Plugin.java
 ~~~
 
-**--release 17** yêu cầu compiler:
-- Áp dụng language rules của Java 17.
-- Sinh class file target cho Java 17, thông thường major 61.
-- Compile code dựa trên **platform API được công bố cho release 17**, ngăn vô tình gọi JDK API chỉ mới xuất hiện ở phiên bản mới hơn trên máy build.
+**`--release 17`** instructs the compiler to:
+- Apply Java 17 language rules.
+- Emit class files targeting Java 17, typically major 61.
+- Compile code against the **published platform API for release 17**, preventing accidental calls to JDK APIs introduced only in newer versions on the build machine.
 
-So với:
+Compare with:
 
 ~~~bash
-# Minh họa giới hạn của -source/-target khi build trên JDK mới:
+# Illustrating the limitation of -source/-target when building on a newer JDK:
 javac -source 17 -target 17 -d out src/com/example/Plugin.java
 ~~~
 
-Hai cờ -source và -target chủ yếu kiểm soát language/class target, **không tự khóa tập platform API ở đúng Java 17**. Một source có thể compile được trên JDK mới với -target 17 dù gọi method JDK chỉ có từ Java mới hơn, rồi thất bại khi host thực sự chạy Java 17.
+`-source` and `-target` mainly control language/class targets and **do not lock the platform API set to Java 17**. Source can compile on a newer JDK with `-target 17` even while calling a JDK method added in a later release, then fail when the host actually runs on Java 17.
 
-**--release không giới hạn API của JAR bên thứ ba.** Nếu plugin compile với library-x v3 nhưng runtime chỉ cung cấp library-x v2, javac --release 17 vẫn có thể compile thành công vì API JDK target và API third-party library là hai việc khác nhau.
+**`--release` does not constrain third-party JAR APIs.** If a plugin compiles against `library-x` v3 while runtime supplies only `library-x` v2, `javac --release 17` still succeeds because the target JDK API and third-party library APIs are separate concerns.
 
-Không phối hợp **--release** với **-source** và **-target** trong cùng invocation. Compiler cũng chỉ hỗ trợ một số release target, tùy phiên bản javac thực tế. Nếu target không còn được hỗ trợ, chọn toolchain khác thay vì lặng lẽ bỏ --release.
+Do not combine **`--release`** with **`-source`** and **`-target`** in the same invocation. A compiler also supports only certain release targets depending on the actual `javac` version. If a target is no longer supported, choose another toolchain instead of silently dropping `--release`.
 
-Ví dụ một pipeline có thể dùng JDK build mới hơn để tạo class major 61 cho JDK runtime 17. Tuy nhiên, kết quả phải được kiểm thử trên **JDK 17 thật** và đúng dependency set; không suy ra tương thích runtime chỉ từ thông báo compile thành công.
+For example, a pipeline may use a newer build JDK to produce major 61 classes for a Java 17 runtime. Even then, verify the result on a **real JDK 17** with the exact dependency set; never infer runtime compatibility purely from a successful compile log.
 
-### Maven và Gradle
+### Maven and Gradle
 
-**Mảnh cấu hình Maven pom.xml:**
+**Maven `pom.xml` snippet:**
 
 ~~~xml
 <properties>
@@ -125,9 +125,9 @@ Ví dụ một pipeline có thể dùng JDK build mới hơn để tạo class m
 </properties>
 ~~~
 
-Dùng maven-compiler-plugin phù hợp, version toolchain/build cố định và dependency versions được khóa. Property này **không tự tải JDK đích, không bảo đảm thư viện tương thích**.
+Use an appropriate `maven-compiler-plugin`, pinned toolchain/build versions, and locked dependency versions. This property **does not download the target JDK and does not guarantee library compatibility**.
 
-**Mảnh Gradle Kotlin DSL:**
+**Gradle Kotlin DSL snippet:**
 
 ~~~kotlin
 java {
@@ -140,11 +140,11 @@ tasks.withType<JavaCompile>().configureEach {
 }
 ~~~
 
-Toolchain xác định compiler; options.release xác định target release. Cần điều chỉnh target theo **runtime tối thiểu** mà nền tảng plugin thực sự hỗ trợ, không tùy tiện chọn theo JDK trên máy phát triển.
+The toolchain selects the compiler; `options.release` sets the target release. Align the target with the **minimum runtime** actually supported by the plugin platform rather than arbitrarily matching the JDK installed on a developer's machine.
 
-## 5. API Java chuẩn và thư viện bên thứ ba khác nhau
+## 5. Standard Java APIs vs third-party libraries
 
-**JDK platform API** được kiểm soát bởi --release. **Third-party API** được kiểm soát bởi các JAR thực sự có mặt trên compile classpath hoặc module path. Vì vậy có thể xảy ra:
+**The JDK platform API** is governed by `--release`. **Third-party APIs** are governed by the JARs actually present on the compile classpath or module path. Hence this can happen:
 
 ~~~text
 Compile:
@@ -158,68 +158,68 @@ Deploy:
   spi-api v1
   json-library v2
 
-Kết quả:
-  Class-file version: hợp lệ
-  Binary contract: có thể KHÔNG hợp lệ
+Result:
+  Class-file version: valid
+  Binary contract: may be INVALID
 ~~~
 
-Plugin ghi lời gọi method mà compiler đã thấy trong spi-api v2. Khi JVM đích lại có v1 thiếu method, **NoSuchMethodError** có thể xuất hiện đúng lúc lời gọi được resolve. Thiếu field tương ứng có thể tạo **NoSuchFieldError**. Nếu method bị đổi static/instance, có thể gặp **IncompatibleClassChangeError**.
+The plugin records method calls the compiler saw in `spi-api` v2. When the target JVM instead has v1 lacking that method, **`NoSuchMethodError`** can appear at the moment the call is resolved. A missing field can likewise trigger **`NoSuchFieldError`**. If a method switched between static and instance, **`IncompatibleClassChangeError`** can occur.
 
-Ràng buộc Java release thấp **không sửa** lỗi ABI của SPI và dependency. Host cần quản lý version/API contract riêng, theo dõi dependency tree và kiểm tra những class thực sự được loader sử dụng.
+Targeting a lower Java release **does not fix** SPI or dependency ABI mismatches. The host must manage API versions/contracts separately, track the dependency tree, and verify which classes the loader actually uses.
 
-### Dependency trực tiếp, gián tiếp và optional
+### Direct, transitive, and optional dependencies
 
-- **Direct:** plugin import API của library-x v3, runtime dùng library-x v2; lỗi thường dễ gắn với method/field bị thiếu.
-- **Transitive:** library-x v3 cần library-y v4, nhưng host ép library-y v2. Plugin có thể chỉ import x mà vẫn bị lỗi từ y.
-- **Optional:** chỉ thực sự optional nếu code path không dùng dependency đó hoặc có cơ chế fallback; “optional trong Maven” không phải cam kết mọi phương thức runtime sẽ luôn chạy.
-- **Shaded/relocated:** có thể cô lập thư viện implementation, nhưng **không relocate/copy SPI chung** một cách khiến plugin dùng bản interface khác của host.
-- **JNI/native:** .dll/.so/.dylib phụ thuộc OS/CPU/ABI, và có thể hỏng dù class-file Java hoàn toàn đúng.
-- **Dynamically referenced:** reflection, ServiceLoader, ResourceBundle và class-name strings có thể yêu cầu class/resource không hiện ra trong static imports.
+- **Direct:** the plugin imports `library-x` v3's API while runtime supplies `library-x` v2; failures usually point directly to missing methods/fields.
+- **Transitive:** `library-x` v3 requires `library-y` v4, yet the host forces `library-y` v2. A plugin importing only `x` can still fail inside `y`.
+- **Optional:** truly optional only if the code path avoids that dependency or has a fallback; `"optional"` in Maven does not promise every runtime path works without it.
+- **Shaded/relocated:** can isolate implementation libraries, yet **never relocate/copy the shared SPI** in a way that gives the plugin a different interface type than the host.
+- **JNI/native:** `.dll`/`.so`/`.dylib` depend on OS/CPU/ABI and can break even when Java class files are completely valid.
+- **Dynamically referenced:** reflection, `ServiceLoader`, `ResourceBundle`, and class-name strings can require classes/resources invisible to static imports.
 
-Đối với mọi dependency được load, cần xem **version compile thực**, **version runtime thực**, artifact hash và class loader/module resolution.
+For every loaded dependency, verify the **actual compile version**, **actual runtime version**, artifact hash, and class loader/module resolution.
 
-## 6. Source, binary và behavioral compatibility
+## 6. Source, binary, and behavioral compatibility
 
-Ba khái niệm quan trọng:
+Three key concepts:
 
-1. **Source compatibility:** source plugin cũ có compile lại được khi host đổi API không?
-2. **Binary compatibility:** plugin đã được build từ trước có tiếp tục link được với API mới mà không recompile không?
-3. **Behavioral compatibility:** sau khi link thành công, semantics, dữ liệu, thứ tự gọi, concurrency và exception contract có còn đúng không?
+1. **Source compatibility:** does old plugin source recompile when the host changes the API?
+2. **Binary compatibility:** do prebuilt plugins keep linking against the new API without recompiling?
+3. **Behavioral compatibility:** after successful linking, do semantics, data, invocation order, concurrency, and exception contracts remain valid?
 
-Không được đồng nhất ba khái niệm. Theo Java Language Specification, một thay đổi có thể bảo toàn binary nhưng khiến source recompile bị ambiguous overload hoặc đổi lựa chọn overload; cũng có thay đổi giữ binary contract mà làm sai nghiệp vụ.
+Never equate the three concepts. Under the Java Language Specification, a change can preserve binaries yet cause source recompilation to fail with an ambiguous overload or pick a different overload; likewise, a change can preserve the binary contract while breaking business behavior.
 
-| Thay đổi SPI/API | Điều cần lưu ý |
+| SPI/API change | What to watch out for |
 | --- | --- |
-| Thêm overload vào class/interface | Thường không phá binary cũ; source recompile có thể chọn overload khác |
-| Thêm method vào class | Thường binary compatible với client cũ; client mới không chạy trên library cũ nếu gọi method đó |
-| Thêm abstract method vào interface | Có thể binary compatible, nhưng khi host mới gọi trên provider cũ có thể **AbstractMethodError** |
-| Thêm default method | Thường binary compatible; có trường hợp xung đột default methods khi invoke |
-| Xóa/đổi method mà binary cũ gọi | Có thể gây **NoSuchMethodError** |
-| Thay descriptor do đổi parameter hoặc return type | Có thể tương đương xóa method cũ rồi thêm method mới |
-| Thay static thành instance hoặc ngược lại | Có thể gây **IncompatibleClassChangeError** |
-| Hạ mức truy cập public / thay module exports | Có thể gây **IllegalAccessError** |
-| Xóa/đổi field | Có thể gây **NoSuchFieldError** hoặc lỗi liên kết tương ứng |
-| Giữ chữ ký method nhưng đổi hành vi | JVM vẫn link được nhưng contract test có thể thất bại |
-| Đổi schema/serialization, nullability, thread contract | Có thể chạy được nhưng sai semantics hoặc hỏng dữ liệu |
+| Add overload to class/interface | Usually preserves old binaries; source rebuild may choose a different overload |
+| Add method to class | Usually binary-compatible for old clients; new clients fail on old libraries if calling that method |
+| Add abstract method to interface | May be binary-compatible, yet a new host calling it on an old provider can hit **`AbstractMethodError`** |
+| Add default method | Usually binary-compatible; cases exist with default method conflicts at invoke time |
+| Remove/rename method called by old binaries | Can throw **`NoSuchMethodError`** |
+| Change descriptor via parameter or return type | Effectively equivalent to removing the old method and adding a new one |
+| Change static to instance or vice versa | Can throw **`IncompatibleClassChangeError`** |
+| Lower public visibility / change module exports | Can throw **`IllegalAccessError`** |
+| Remove/change field | Can throw **`NoSuchFieldError`** or related linkage errors |
+| Keep method signature yet change behavior | JVM links fine, yet contract tests may fail |
+| Change schema/serialization, nullability, threading contract | May run yet violate semantics or corrupt data |
 
-**Hướng tương thích không đối xứng:** nếu API v2 thêm method mới, các client compile cũ có thể tiếp tục chạy với v2. Nhưng client compile bằng v2 và **gọi method mới** không thể tự động chạy trên host v1 thiếu method. Tương thích ngược của API mới với binary cũ không đồng nghĩa binary mới tương thích với API cũ.
+**Compatibility direction is asymmetric:** if API v2 adds a new method, clients compiled earlier can continue running against v2. However, a client compiled against v2 that **calls the new method** cannot automatically run on host v1 lacking that method. Backward compatibility of a new API with old binaries does not imply new binaries are compatible with the old API.
 
-Đối với Java generics, method descriptors ở bytecode phản ánh **type erasure**. Việc đổi generic bound có thể khiến descriptor thay đổi. Khi không chắc một thay đổi có phá ABI không, dùng **javap -s** để so sánh binary descriptors; đừng chỉ nhìn source Java.
+For Java generics, bytecode method descriptors reflect **type erasure**. Changing a generic bound can change the descriptor. Whenever unsure whether a change breaks ABI, compare binary descriptors with **`javap -s`** rather than eyeballing Java source.
 
-## 7. Ví dụ Java 17 đầy đủ: bytecode hợp lệ nhưng API runtime không tương thích
+## 7. Complete Java 17 example: valid bytecode, incompatible runtime API
 
-Ví dụ chủ động tạo hai bản interface **demo.api.Greeting**:
+This example intentionally creates two versions of interface **`demo.api.Greeting`**:
 
-- **api-v1:** chỉ có greet().
-- **api-v2:** cùng greet(), bổ sung static banner().
-- **PluginGreeting:** compile với api-v2, gọi Greeting.banner().
-- **Host:** compile với api-v1, dùng ServiceLoader để lấy plugin và gọi greet().
-- **Runtime tốt:** dùng api-v2 với cùng plugin.
-- **Runtime lỗi:** thay api-v2 bằng api-v1 với cùng plugin.
+- **api-v1:** has only `greet()`.
+- **api-v2:** keeps `greet()`, adds `static banner()`.
+- **PluginGreeting:** compiled against `api-v2`, calls `Greeting.banner()`.
+- **Host:** compiled against `api-v1`, uses `ServiceLoader` to obtain the plugin and calls `greet()`.
+- **Good runtime:** uses `api-v2` with the same plugin.
+- **Failing runtime:** swaps `api-v2` for `api-v1` with the same plugin.
 
-Mọi class được build bằng **--release 17**, cho nên bytecode target không thay đổi giữa hai runtime. Phần khác biệt duy nhất là **binary contract của thư viện API** được nạp.
+Every class is built with **`--release 17`**, so the bytecode target does not change between the two runtimes. The sole difference is the **loaded API library's binary contract**.
 
-### Cấu trúc tệp
+### File layout
 
 ~~~text
 demo/
@@ -238,9 +238,9 @@ demo/
     └── plugin.jar
 ~~~
 
-Chỉ đưa **một** trong api-v1 và api-v2 lên runtime classpath tại mỗi lần chạy. Không thử xếp cả hai cùng tên binary trên một loader rồi suy luận kết quả từ JAR được load trước.
+Put **only one** of `api-v1` and `api-v2` on the runtime classpath for each run. Do not place two copies with the same binary name on a single loader and deduce behavior from JAR load order.
 
-### File src/api-v1/demo/api/Greeting.java
+### File `src/api-v1/demo/api/Greeting.java`
 
 ~~~java
 package demo.api;
@@ -250,7 +250,7 @@ public interface Greeting {
 }
 ~~~
 
-### File src/api-v2/demo/api/Greeting.java
+### File `src/api-v2/demo/api/Greeting.java`
 
 ~~~java
 package demo.api;
@@ -261,7 +261,7 @@ public interface Greeting {
 }
 ~~~
 
-### File src/plugin/demo/impl/PluginGreeting.java
+### File `src/plugin/demo/impl/PluginGreeting.java`
 
 ~~~java
 package demo.impl;
@@ -277,9 +277,9 @@ public final class PluginGreeting implements Greeting {
 }
 ~~~
 
-Lớp plugin là public, implements đúng binary name của SPI, có public no-argument constructor. Nhưng method greet() **phụ thuộc vào banner() chỉ xuất hiện trong API v2**.
+The plugin class is `public`, implements the exact binary name of the SPI, and has a public no-argument constructor. However, `greet()` **depends on `banner()`, which exists only in API v2**.
 
-### File src/host/demo/host/Main.java
+### File `src/host/demo/host/Main.java`
 
 ~~~java
 package demo.host;
@@ -301,19 +301,19 @@ public final class Main {
 }
 ~~~
 
-Host không biết tên implementation lúc compile; ServiceLoader tìm provider từ service descriptor. Lệnh catch NoSuchMethodError chỉ phục vụ **minh họa một lỗi xác định**, giúp chương trình in output có thể kiểm tra được. Không dùng cách này để che toàn bộ LinkageError trong production.
+The host does not know the implementation name at compile time; `ServiceLoader` finds the provider from the service descriptor. Catching `NoSuchMethodError` only serves to **demonstrate a deterministic error** so the program prints testable output. Do not use this pattern to mask `LinkageError`s in production.
 
-### File resources/META-INF/services/demo.api.Greeting
+### File `resources/META-INF/services/demo.api.Greeting`
 
 ~~~text
 demo.impl.PluginGreeting
 ~~~
 
-Đây là service configuration file của classpath. Tên file đúng binary name của SPI, còn dòng bên trong là binary name của implementation.
+This is the classpath service configuration file. The filename matches the SPI's binary name, and the line inside is the implementation's binary name.
 
-### Biên dịch và chạy trên Linux/macOS (bash)
+### Compile and run on Linux/macOS (bash)
 
-Đứng tại thư mục demo:
+From the `demo` directory:
 
 ~~~bash
 mkdir -p out/api-v1 out/api-v2 out/host out/plugin
@@ -336,14 +336,14 @@ cp resources/META-INF/services/demo.api.Greeting \
 
 jar --create --file out/plugin.jar -C out/plugin .
 
-# Trường hợp A: runtime có API v2
+# Case A: runtime has API v2
 java -cp "out/api-v2:out/host:out/plugin.jar" demo.host.Main
 
-# Trường hợp B: runtime chỉ có API v1
+# Case B: runtime has only API v1
 java -cp "out/api-v1:out/host:out/plugin.jar" demo.host.Main
 ~~~
 
-### Biên dịch và chạy trên Windows PowerShell
+### Compile and run on Windows PowerShell
 
 ~~~powershell
 New-Item -ItemType Directory -Force out/api-v1,out/api-v2,out/host,out/plugin | Out-Null
@@ -362,71 +362,71 @@ java -cp "out/api-v2;out/host;out/plugin.jar" demo.host.Main
 java -cp "out/api-v1;out/host;out/plugin.jar" demo.host.Main
 ~~~
 
-Dấu phân tách classpath trên Linux/macOS là dấu hai chấm **:**, trên Windows là dấu chấm phẩy **;**.
+The classpath separator is a colon **:** on Linux/macOS and a semicolon **;** on Windows.
 
-**Output trường hợp A, API v2 tương thích:**
+**Output Case A, compatible API v2:**
 
 ~~~text
 Provider: demo.impl.PluginGreeting
 Result: v2:Java
 ~~~
 
-**Output trường hợp B, API v1 thiếu method:**
+**Output Case B, API v1 missing method:**
 
 ~~~text
 Provider: demo.impl.PluginGreeting
 Linkage: NoSuchMethodError
 ~~~
 
-ServiceLoader vẫn có thể tìm và khởi tạo provider ở trường hợp B vì constructor và interface greet() có thể phân giải. Khi host gọi greet(), JVM mới gặp symbolic reference tới Greeting.banner(), mà API v1 không có. Bởi vậy **discovery thành công và constructor chạy được chưa phải toàn bộ compatibility test**.
+`ServiceLoader` still finds and instantiates the provider in Case B because the constructor and `greet()` interface method resolve. Only when the host calls `greet()` does the JVM encounter the symbolic reference to `Greeting.banner()`, which API v1 lacks. Therefore, **successful discovery and constructor execution are not a complete compatibility test**.
 
-Kiểm tra class-file major của provider:
+Check the provider's class-file major version:
 
 ~~~bash
 javap -verbose -classpath out/plugin.jar demo.impl.PluginGreeting
 ~~~
 
-Trong output có dòng:
+In the output appears the line:
 
 ~~~text
 major version: 61
 ~~~
 
-**Kết luận của bài kiểm chứng:** cả hai trường hợp dùng cùng plugin class major 61; chỉ API runtime thay đổi. NoSuchMethodError là lỗi **library/SPI ABI**, không phải lỗi class-file target của Java 17.
+**Conclusion of the verification:** both runs used the exact same major 61 plugin class; only the runtime API changed. `NoSuchMethodError` is a **library/SPI ABI** error, not a Java 17 class-file target error.
 
-## 8. Phân biệt các lỗi thường gặp
+## 8. Distinguishing common errors
 
-| Lỗi | Tầng thường gặp | Cần kiểm tra |
+| Error | Typical layer | What to check |
 | --- | --- | --- |
-| **UnsupportedClassVersionError** | JVM không hỗ trợ bytecode/preview target | java -version, javap major/minor, toàn bộ JAR dependencies |
-| **NoSuchMethodError** | Library ABI mismatch | Method descriptor compile-time và class thực sự được load |
-| **NoSuchFieldError** | Field ABI mismatch | Version field, descriptor, static/instance |
-| **AbstractMethodError** | Interface/superclass evolution | Phương thức mới có implementation hợp lệ ở provider cũ không |
-| **IncompatibleClassChangeError** | Thay đổi static/instance hoặc loại thành viên | API binary contract, class hierarchy/default method conflicts |
-| **IllegalAccessError** | Accessibility / JPMS | public visibility, module readability/exports |
-| **NoClassDefFoundError** | Dependency không định nghĩa được, lỗi linkage/init | Thiếu class, khởi tạo class lỗi, cause chain |
-| **ClassNotFoundException** | Loader được yêu cầu tìm class theo tên | Tên binary, loader, classpath/module path |
-| **ClassCastException** | Sai type hoặc duplicate SPI identity | Defining class loaders, module identity, API duplication |
-| **ServiceConfigurationError** | Khai báo SPI/provider bất hợp lệ | META-INF/services, provides, constructor/provider method, cause |
-| **ResolutionException** hoặc **LayerInstantiationException** | JPMS module graph/layer | Module names, dependencies, split packages |
-| Sai kết quả, sai schema | Behavioral compatibility | Contract tests, dữ liệu mẫu, serialization, concurrency |
+| **`UnsupportedClassVersionError`** | JVM does not support bytecode/preview target | `java -version`, `javap` major/minor, all JAR dependencies |
+| **`NoSuchMethodError`** | Library ABI mismatch | Compile-time method descriptor vs actually loaded class |
+| **`NoSuchFieldError`** | Field ABI mismatch | Field version, descriptor, static/instance |
+| **`AbstractMethodError`** | Interface/superclass evolution | Whether new method has a valid implementation on old provider |
+| **`IncompatibleClassChangeError`** | Changed static/instance or member kind | API binary contract, class hierarchy/default method conflicts |
+| **`IllegalAccessError`** | Accessibility / JPMS | `public` visibility, module readability/exports |
+| **`NoClassDefFoundError`** | Dependency could not be defined, linkage/init failure | Missing class, class initializer failure, cause chain |
+| **`ClassNotFoundException`** | Loader asked to find a class by name | Binary name, loader, classpath/module path |
+| **`ClassCastException`** | Wrong type or duplicate SPI identity | Defining class loaders, module identity, API duplication |
+| **`ServiceConfigurationError`** | Invalid SPI/provider declaration | `META-INF/services`, `provides`, constructor/provider method, cause |
+| **`ResolutionException`** or **`LayerInstantiationException`** | JPMS module graph/layer | Module names, dependencies, split packages |
+| Wrong results, wrong schema | Behavioral compatibility | Contract tests, sample data, serialization, concurrency |
 
-Lỗi có thể **xuất hiện muộn**: class đã được load hoặc provider đã được tạo nhưng JVM chưa cần resolve tất cả method/field. Đừng chỉ chạy một smoke test “ServiceLoader.findFirst() trả non-null” rồi công bố plugin là hợp lệ.
+Failures can **surface lazily**: a class may already be loaded or a provider instantiated before the JVM needs to resolve all methods/fields. Never run a single smoke test checking "`ServiceLoader.findFirst()` returns non-null" and declare a plugin compatible.
 
-**NoClassDefFoundError không luôn có nghĩa file class không tồn tại.** Nó có thể theo sau một lỗi trong quá trình initialize class; xem cause và các log trước đó. **ClassCastException không nhất thiết do loader**, nhưng khi tên lớp giống nhau mà cast vẫn fail, hãy kiểm tra có hai loader định nghĩa hai SPI identity khác nhau hay không.
+**`NoClassDefFoundError` does not always mean the class file is missing.** It can follow a failure during class initialization; inspect the cause and preceding logs. **`ClassCastException` is not always caused by loaders**, yet when two class names look identical and casting fails, check whether two loaders defined two separate SPI identities.
 
-Bắt **ServiceConfigurationError** ở ranh giới discovery có thể hợp lý với hệ thống plugin để reject/quarantine provider lỗi. Nhưng đừng bắt và nuốt mọi Throwable rồi giả định tất cả lỗi JVM đều có thể tiếp tục một cách an toàn.
+Catching **`ServiceConfigurationError`** at the discovery boundary can make sense in a plugin system to reject/quarantine broken providers. Never catch and swallow every `Throwable` assuming all JVM errors can safely continue.
 
-## 9. ClassLoader và type identity
+## 9. `ClassLoader` and type identity
 
-Trong Java, type identity phụ thuộc vào **binary name và defining class loader**. Hai bản của demo.api.Greeting được định nghĩa bởi hai loader khác nhau không phải là một type chỉ vì cùng package và tên interface.
+In Java, type identity depends on **binary name and defining class loader**. Two copies of `demo.api.Greeting` defined by two different loaders are not the same type simply because they share the same package and interface name.
 
-Mô hình thực tế cho plugin trên classpath:
+Practical model for plugins on the classpath:
 
 ~~~text
 Parent/application ClassLoader
   ├── host app
-  └── spi-api (một bản chung)
+  └── spi-api (one shared copy)
        ^
        |
 Child ClassLoader A
@@ -438,27 +438,27 @@ Child ClassLoader B
   └── implementation dependencies B
 ~~~
 
-Host nên cung cấp API/SPI từ parent, còn plugin loaders được cấu hình để cùng nhìn thấy **đúng Class object của interface** đó. Khi có nhu cầu cô lập thư viện implementation xung đột version, child-first strategies có thể hữu ích, nhưng **không áp dụng child-first vô tội vạ cho API chung**.
+The host should supply the API/SPI from the parent, while plugin loaders are configured to see that **exact same `Class` object of the interface**. When isolating conflicting versions of implementation libraries, child-first strategies can help, yet **never apply child-first indiscriminately to the shared API**.
 
-Những điều phải xác nhận:
-- URLClassLoader hoặc custom loader nào được đưa vào ServiceLoader.load(Service.class, loader)?
-- Code plugin và host có cùng Class object của SPI không?
-- Khi module/plugin mới được cài, loader đang dùng có nhìn thấy JAR mới không?
-- Khi thay plugin v1 bằng v2, loader cũ đã định nghĩa class chưa? Nếu rồi, cần loader mới và vòng đời chuyển đổi phù hợp.
-- Tham chiếu từ thread context class loader, registry, static field, callback hoặc thread pool có giữ loader cũ không?
+Things to confirm:
+- Which `URLClassLoader` or custom loader is passed to `ServiceLoader.load(Service.class, loader)`?
+- Do plugin code and host share the exact same SPI `Class` object?
+- When a new module/plugin is installed, does the active loader see the new JAR?
+- When replacing plugin v1 with v2, has the old loader already defined the class? If so, you need a new loader and proper transition lifecycle.
+- Do references from thread context class loaders, registries, static fields, callbacks, or thread pools pin the old loader?
 
-**ServiceLoader.reload() chỉ xóa cache của ServiceLoader**, không tự thay bytecode class đã load, không nâng dependency và không bảo đảm class unloading. Hot update là trách nhiệm của host.
+**`ServiceLoader.reload()` only clears `ServiceLoader`'s cache**; it does not replace already-loaded class bytecode, does not upgrade dependencies, and does not guarantee class unloading. Hot updates are the host's responsibility.
 
-## 10. JPMS: class-file hợp lệ nhưng module graph vẫn có thể lỗi
+## 10. JPMS: valid class files can still fail the module graph
 
-Java Platform Module System bổ sung các điều kiện:
-- **requires** và readability giữa modules.
-- **exports** cho public package API; **opens** cho reflection theo chính sách.
-- **uses** ở consumer và **provides ... with ...** ở provider.
-- Module path thực tế, resolved module graph, custom **ModuleLayer** và class loader.
-- Trùng module name, split packages, automatic module name và dependency versions.
+The Java Platform Module System adds extra requirements:
+- **`requires`** and readability between modules.
+- **`exports`** for public API packages; **`opens`** for reflection per policy.
+- **`uses`** on consumers and **`provides ... with ...`** on providers.
+- Actual module path, resolved module graph, custom **`ModuleLayer`**, and class loaders.
+- Duplicate module names, split packages, automatic module names, and dependency versions.
 
-Ví dụ ba module descriptors riêng:
+Example of three separate module descriptors:
 
 ~~~java
 // demo.api/module-info.java
@@ -483,17 +483,17 @@ module demo.host {
 }
 ~~~
 
-Ba đoạn trên là **các file module-info.java khác nhau**, không phải một chương trình Java độc lập. Trong JPMS, module API xuất đúng package hợp đồng; module provider được phép giữ package implementation không exports/opens cho host mà ServiceLoader vẫn khởi tạo provider hợp lệ.
+These three snippets are **separate `module-info.java` files**, not a single standalone Java program. In JPMS, the API module exports the contract package; the provider module may keep its implementation package unexported/unopened while `ServiceLoader` still instantiates the provider validly.
 
-Một plugin compile đúng bytecode Java 17 vẫn có thể thất bại khi module chưa được resolve, host không có uses, package không còn được export hoặc module graph không hợp lệ. **Module descriptor là một phần của compatibility contract**, không chỉ là metadata trang trí.
+A plugin compiled as valid Java 17 bytecode can still fail if the module does not resolve, the host lacks `uses`, a package is no longer exported, or the module graph is invalid. **The module descriptor is part of the compatibility contract**, not decorative metadata.
 
-Nếu dùng ModuleLayer mới để cài plugin, host phải tạo configuration/layer và dùng API khám phá tương ứng, ví dụ ServiceLoader.load(layer, Service.class). ServiceLoader không tự tạo layer hay nạp artifact từ Internet.
+If using a new `ModuleLayer` to install plugins, the host must build the configuration/layer and invoke the matching discovery API, e.g., `ServiceLoader.load(layer, Service.class)`. `ServiceLoader` does not create layers or download artifacts from the Internet.
 
-**Thay requires hoặc exports** có thể làm binary đã build bị IllegalAccessError hoặc khiến module resolution fail, dù method names và class-file major không thay đổi. Cần integration test theo đúng module path của môi trường triển khai.
+**Changing `requires` or `exports`** can cause prebuilt binaries to throw `IllegalAccessError` or fail module resolution, even if method names and class-file major versions stay unchanged. Run integration tests with the exact module path of the deployment environment.
 
-## 11. Multi-release JAR và phiên bản JDK
+## 11. Multi-release JARs and JDK versions
 
-Multi-release JAR (MR-JAR) cho phép chứa class implementations khác nhau tùy runtime:
+A Multi-release JAR (MR-JAR) allows shipping different class implementations depending on the runtime:
 
 ~~~text
 plugin.jar
@@ -502,38 +502,38 @@ plugin.jar
 └── META-INF/versions/17/com/example/Plugin.class
 ~~~
 
-Khi cấu hình manifest phù hợp, runtime hỗ trợ MR-JAR có thể chọn implementation ở version directory không vượt quá Java release đang chạy. Điều này có ích khi cùng artifact cần hỗ trợ runtime cũ hơn và tận dụng các API mới trên runtime mới hơn.
+When the manifest is properly configured, runtimes supporting MR-JARs select the implementation in the highest version directory not exceeding the running Java release. This helps when one artifact must support older runtimes while taking advantage of newer APIs on newer runtimes.
 
-Ràng buộc:
-- Base class phải chạy trên runtime tối thiểu bạn công bố.
-- Class trong META-INF/versions/17 chỉ có ích khi runtime đủ mới; không biến toàn bộ artifact thành “tự chạy trên mọi Java”.
-- API public qua các biến thể cần tuân thủ các yêu cầu consistency của MR-JAR; tránh để SPI contract thay đổi tùy JDK ngoài ý muốn.
-- Dependencies và module graph vẫn phải hợp lệ trong từng runtime.
-- Khi phân tích bằng **jdeps**, dùng **--multi-release** thích hợp với JAR dạng này; đừng quên kiểm tra nhiều runtime cần hỗ trợ.
+Constraints:
+- Base classes must run on the minimum runtime you advertise.
+- Classes in `META-INF/versions/17` help only on sufficiently new runtimes; they do not make the entire artifact "automatically run on every Java."
+- Public APIs across variants must follow MR-JAR consistency requirements; avoid letting the SPI contract vary unintentionally across JDKs.
+- Dependencies and the module graph must still be valid on every runtime.
+- When analyzing with **`jdeps`**, pass **`--multi-release`** appropriately for such JARs; remember to test across all supported runtimes.
 
-Không cần dùng MR-JAR nếu toàn bộ hệ thống chỉ chạy Java 17 và một bản implementation đã đáp ứng yêu cầu.
+Do not use MR-JARs if your entire system runs on Java 17 and a single implementation satisfies all requirements.
 
-## 12. Công cụ kiểm chứng
+## 12. Verification tools
 
-| Công cụ | Công dụng | Giới hạn |
+| Tool | Purpose | Limitation |
 | --- | --- | --- |
-| **java -version** | Runtime JVM thực tế | Không cho biết library class nào đã được chọn |
-| **javac -version** | Compiler thực tế | Không chứng minh target |
-| **javac --release 17** | Kiểm soát language, class-file và platform API | Không khóa third-party API |
-| **javap -verbose** | Xem class major/minor, constant pool | Cần kiểm tra tất cả class liên quan |
-| **javap -s** | Xem binary descriptors | Không chỉ ra version runtime được loader chọn |
-| **jar --list --file ...** | Liệt kê class/resources trong artifact | Không chứng minh provider có load thành công |
-| **jar --describe-module --file ...** | Kiểm tra module descriptor/thông tin module | Không chứng minh đã resolve module trong layer |
-| **jdeps --multi-release 17 ...** | Phân tích static dependencies | Không bao quát hoàn toàn reflection, ServiceLoader, JNI |
-| **mvn dependency:tree** | Dependency graph Maven | Không tự kiểm chứng runtime được lắp đúng |
-| **gradle dependencies / dependencyInsight** | Dependency resolution Gradle | Cần kiểm tra classpath runtime thật |
-| **getClassLoader()/getModule()** | Runtime identity/class visibility | Không tự xác minh nguồn gốc artifact |
-| **CodeSource/ProtectionDomain** | Gợi ý nơi class được nạp | Có thể null; không thay checksum hoặc signature |
+| **`java -version`** | Actual runtime JVM | Does not show which library classes were selected |
+| **`javac -version`** | Actual compiler | Does not prove target release |
+| **`javac --release 17`** | Controls language, class-file, and platform API | Does not lock third-party APIs |
+| **`javap -verbose`** | Inspect class major/minor, constant pool | Must inspect all relevant classes |
+| **`javap -s`** | Inspect binary descriptors | Does not show which runtime version a loader picks |
+| **`jar --list --file ...`** | List classes/resources in artifact | Does not prove provider loads cleanly |
+| **`jar --describe-module --file ...`** | Inspect module descriptor/info | Does not prove module resolves in a layer |
+| **`jdeps --multi-release 17 ...`** | Static dependency analysis | Does not fully cover reflection, `ServiceLoader`, JNI |
+| **`mvn dependency:tree`** | Maven dependency graph | Does not verify runtime assembly is right |
+| **`gradle dependencies / dependencyInsight`** | Gradle dependency resolution | Must verify actual runtime classpath |
+| **`getClassLoader()/getModule()`** | Runtime identity/class visibility | Does not verify artifact provenance |
+| **`CodeSource/ProtectionDomain`** | Hints where a class was loaded from | Can be null; does not replace checksums or signatures |
 
-Mảnh code quan sát runtime:
+Runtime inspection snippet:
 
 ~~~java
-// Đoạn minh họa; plugin là một object đã được host nhận.
+// Illustrative snippet; plugin is an object already obtained by the host.
 Class<?> actual = plugin.getClass();
 System.out.println("Class: " + actual.getName());
 System.out.println("Loader: " + actual.getClassLoader());
@@ -543,54 +543,54 @@ System.out.println("Source: " +
         (protectionDomain == null ? null : protectionDomain.getCodeSource()));
 ~~~
 
-Đừng dựa vào tên JAR giống nhau để kết luận rằng đó là **cùng artifact**. Một đường dẫn có thể chứa bản mới còn các class đã được JVM định nghĩa từ bản cũ; cần quản lý version/hash, loader và thời điểm activation.
+Do not rely on identical JAR filenames to conclude two files are **the same artifact**. A path may contain a newer file while the JVM already defined classes from an older build; track versions/hashes, loaders, and activation timing.
 
-## 13. Ma trận kiểm thử compatibility
+## 13. Compatibility test matrix
 
-Một compatibility matrix có thể bao gồm:
+A compatibility matrix may include:
 
-| Runtime | SPI runtime | Dependency runtime | Kết quả cần kiểm |
+| Runtime | Runtime SPI | Runtime dependencies | Expected verification |
 | --- | --- | --- | --- |
-| JDK 17 | API v2 | Library versions đúng | Plugin Java17 được phát hiện, tạo và hoạt động |
-| JDK 21 | API v2 | Library versions đúng | Regression/integration tests; không tự coi tương thích tuyệt đối |
-| JDK 11 | API v2 | Dù đủ dependency | Plugin class major61 phải bị reject trước activation |
-| JDK 17 | API v1 | Library versions đúng | Plugin yêu cầu banner() v2 phải bị reject hoặc test báo NoSuchMethodError |
-| JDK 17 | API v2 | Thư viện gián tiếp quá cũ | Contract/linkage test phát hiện |
-| JDK 17 | API v2 | Hai bản SPI ở hai loaders | Kiểm tra type identity, không tự động cast được |
-| JDK 17 JPMS | API v2 | Module path thiếu module | Kiểm tra resolution/uses/provides trước activation |
-| JDK 17 plugin v1 → v2 | API v2 | Dependency graph mới | Test loader mới, start, chuyển traffic, stop, rollback |
+| JDK 17 | API v2 | Right library versions | Java 17 plugin discovered, instantiated, and working |
+| JDK 21 | API v2 | Right library versions | Regression/integration tests; do not assume automatic compatibility |
+| JDK 11 | API v2 | Even with full dependencies | Major 61 plugin class must be rejected before activation |
+| JDK 17 | API v1 | Right library versions | Plugin calling v2 `banner()` must be rejected or test reports `NoSuchMethodError` |
+| JDK 17 | API v2 | Transitive library too old | Contract/linkage test catches it |
+| JDK 17 | API v2 | Two SPI copies in two loaders | Check type identity; cannot cast automatically |
+| JDK 17 JPMS | API v2 | Module path missing a module | Check resolution/`uses`/`provides` before activation |
+| JDK 17 plugin v1 → v2 | API v2 | New dependency graph | Test new loader, start, traffic shift, stop, rollback |
 
-Đây là ma trận **minh họa**, không phải tuyên bố rằng mọi kịch bản được kiểm chứng chỉ từ một bài test. CI nên chạy thật trên **JDK tối thiểu** đã công bố, JDK sản xuất chính và các kết hợp thư viện có rủi ro.
+This is an **illustrative matrix**, not a claim that every scenario is verified by a single test. CI should genuinely run on the advertised **minimum JDK**, primary production JDK, and high-risk library combinations.
 
-Các bài contract test quan trọng:
-- ServiceLoader có thấy provider và tạo được instance?
-- Instance có assignable vào đúng SPI Class của host?
-- Những method SPI mà host sẽ gọi có thực thi thành công trên runtime dependencies?
-- Giá trị trả về, exception, data schema và concurrency có đúng hợp đồng?
-- Các plugin khác có gây xung đột dependency hoặc duplicate classes không?
-- JPMS layer/module graph đúng cấu hình thực tế không?
-- Có thể start version mới, rollback và stop version cũ một cách kiểm soát không?
+Key contract tests:
+- Does `ServiceLoader` find the provider and instantiate it?
+- Is the instance assignable to the host's exact SPI `Class`?
+- Do SPI methods called by the host execute cleanly on runtime dependencies?
+- Do return values, exceptions, data schemas, and concurrency match the contract?
+- Do other plugins cause dependency conflicts or duplicate classes?
+- Is the JPMS layer/module graph configured properly?
+- Can a new version start, roll back, and stop the old version cleanly?
 
-Chỉ kiểm tra constructor hoặc health endpoint chưa đủ: một lỗi symbolic method reference có thể xuất hiện trên đường thực thi hiếm được gọi.
+Testing only the constructor or health endpoint is insufficient: a broken symbolic method reference can hide on a rarely executed code path.
 
-## 14. Quy trình build và phát hành phù hợp
+## 14. Appropriate build and release workflow
 
-Một quy trình thường có:
+A typical workflow includes:
 
-1. **Định nghĩa runtime minimum:** ví dụ Java 17, SPI API version/range và module/classloader boundary.
-2. **Chọn toolchain:** compiler version và **--release** phù hợp, annotation processor và dependency versions được khóa.
-3. **Biên dịch/test:** compile plugin, chạy unit tests, static analysis và kiểm tra public SPI contract.
-4. **Xác minh artifact:** xem class-file major/minor, manifest, module-info, META-INF/services và dependency graph.
-5. **Integration test trên runtime đích:** đúng JDK version, API/SPI, dependencies và loader/layer; kiểm tra behavior, không chỉ discovery.
-6. **Phát hành artifact versioned:** plugin version, checksum/signature phù hợp, build provenance, requirements rõ.
-7. **Preflight khi host cài:** từ chối target JDK lớn hơn host, thiếu dependency, SPI version ngoài hỗ trợ hoặc sai module configuration.
-8. **Kích hoạt có kiểm soát:** start provider, readiness/health, chuyển lưu lượng nếu đang nâng cấp.
-9. **Rollback/retire:** quay lại artifact đã được test, stop và giải phóng resources; dùng loader/layer mới nếu cần thay bytecode.
-10. **Quan sát:** log version plugin, version SPI, JVM, loader, artifact hash và cause của lỗi linkage.
+1. **Define minimum runtime:** e.g., Java 17, SPI API version/range, and module/classloader boundaries.
+2. **Choose toolchain:** matching compiler version and **`--release`**, locked annotation processors and dependency versions.
+3. **Compile/test:** compile plugin, run unit tests, static analysis, and public SPI contract checks.
+4. **Verify artifact:** inspect class-file major/minor, manifest, `module-info`, `META-INF/services`, and dependency graph.
+5. **Integration test on target runtime:** exact JDK version, API/SPI, dependencies, and loader/layer; verify behavior, not just discovery.
+6. **Publish versioned artifact:** plugin version, proper checksums/signatures, build provenance, clear requirements.
+7. **Host install-time preflight:** reject target JDK higher than host, missing dependencies, unsupported SPI versions, or invalid module configuration.
+8. **Controlled activation:** start provider, check readiness/health, shift traffic if upgrading.
+9. **Rollback/retire:** revert to a tested artifact, stop and release resources; use a new loader/layer when bytecode must change.
+10. **Observe:** log plugin version, SPI version, JVM, loader, artifact hash, and linkage error causes.
 
-Nếu host **nhận source rồi biên dịch động**, thêm chính sách compiler options, diagnostics, cache theo source hash + API version + dependency fingerprint, giới hạn tài nguyên, quyền truy cập và xử lý processor/build-time code. Nhận source Java hoặc JAR đều có thể là rủi ro security; compiler và class loader không phải sandbox.
+If the host **accepts source and compiles dynamically**, add compiler option policies, diagnostics, caching keyed by source hash + API version + dependency fingerprint, resource limits, access controls, and processor/build-time code handling. Accepting Java source or JARs both carry security risks; compilers and class loaders are not sandboxes.
 
-### Metadata ví dụ
+### Example metadata
 
 ~~~text
 pluginId: demo-greeting
@@ -602,44 +602,44 @@ testedRuntimeJdks: actual CI test results
 artifactSha256: actual generated hash
 ~~~
 
-Đây là **mẫu metadata do ứng dụng tự thiết kế**, không phải cú pháp JVM/ServiceLoader hiểu tự động. Không ghi một JDK vào testedRuntimeJdks nếu pipeline chưa thực sự chạy test trên JDK đó.
+This is an **application-designed metadata sample**, not syntax automatically understood by the JVM/`ServiceLoader`. Never record a JDK in `testedRuntimeJdks` unless the pipeline genuinely ran tests on that JDK.
 
-## 15. Các sai lầm thường gặp
+## 15. Common mistakes
 
-- **JDK build = JDK runtime:** compiler version và target release khác nhau; cần xác minh cả hai.
-- **Thấy major61 thì mặc định chạy được mọi Java17:** runtime dependencies, APIs và behavior vẫn có thể không tương thích.
-- **Dùng -target17 mà thiếu ràng buộc platform API:** có thể gọi JDK API mới không tồn tại trên Java17.
-- **Dùng --release17 rồi bỏ qua thư viện:** cờ này không xử lý ABI của Jackson, Guava, JDBC driver hoặc SPI tùy chỉnh.
-- **Chỉ thử ServiceLoader.findFirst():** nhiều symbolic references chưa được invoke nên linkage error có thể đến muộn.
-- **Giữ hai bản SPI trong host/plugin:** class loader identity khác khiến cast và assignability sai.
-- **Cài plugin bằng cách ghi đè JAR đã load:** JVM không tự thay class definition của loader cũ.
-- **Bỏ qua dependency transitive:** plugin compile với library v3 nhưng runtime dependency graph lại chọn v1/v2.
-- **Xem JPMS như classpath:** requires, exports, uses/provides và module resolution còn là các ràng buộc riêng.
-- **Suy compatibility từ tên file hoặc manifest tự viết:** hash, classfile và runtime tests đáng tin hơn.
-- **Chỉ kiểm tra một JVM vendor/version:** test matrix cần phản ánh những runtime mà sản phẩm cam kết hỗ trợ.
-- **Đồng nhất binary compatibility với đúng nghiệp vụ:** giữ method descriptor không đảm bảo semantics và dữ liệu không đổi.
+- **Build JDK = runtime JDK:** compiler version and target release differ; verify both.
+- **Assuming major 61 runs everywhere on Java 17:** runtime dependencies, APIs, and behavior can still be incompatible.
+- **Using `-target 17` without platform API constraints:** can call newer JDK APIs absent on Java 17.
+- **Using `--release 17` and ignoring libraries:** this flag does not check ABIs of Jackson, Guava, JDBC drivers, or custom SPIs.
+- **Testing only `ServiceLoader.findFirst()`:** many symbolic references remain uninvoked, delaying linkage errors.
+- **Keeping two copies of the SPI in host/plugin:** differing class loader identities break casting and assignability.
+- **Installing a plugin by overwriting an already-loaded JAR:** the JVM does not replace class definitions of an existing loader.
+- **Ignoring transitive dependencies:** plugin compiles against library v3 while runtime dependency graph picks v1/v2.
+- **Treating JPMS like the classpath:** `requires`, `exports`, `uses`/`provides`, and module resolution impose separate constraints.
+- **Inferring compatibility from filenames or hand-written manifests:** hashes, classfiles, and runtime tests are far more reliable.
+- **Testing only one JVM vendor/version:** the test matrix must reflect every runtime the product commits to supporting.
+- **Equating binary compatibility with business correctness:** preserving method descriptors does not guarantee unchanged semantics or data.
 
-## 16. Checklist trước khi cho phép plugin hoạt động
+## 16. Pre-activation plugin checklist
 
-- [ ] Runtime JVM tối thiểu và danh sách Java releases hỗ trợ đã được công bố.
-- [ ] Compiler toolchain được kiểm soát, **--release** được cấu hình đúng.
-- [ ] Mọi class có thể load và dependency quan trọng có class-file major/minor phù hợp.
-- [ ] Platform API/JDK module dùng trong plugin tồn tại trên runtime target.
-- [ ] Plugin compile với đúng API/SPI version/range và host thực thi đúng binary contract.
-- [ ] Thư viện trực tiếp, transitive và native dependencies có version/ABI phù hợp.
-- [ ] API/SPI chung có một type identity xuyên host và provider; không duplicate định nghĩa giữa loaders.
-- [ ] Với JPMS, module descriptors, readability, exports/opens, uses/provides và layer được kiểm tra.
-- [ ] Đã chạy integration/contract tests trên runtime đích, bao gồm những method SPI quan trọng.
-- [ ] Có metadata artifact ID/version/hash, build provenance và policy reject trước activation.
-- [ ] Có rollback/hot update dùng loader/layer và lifecycle phù hợp; không phụ thuộc ServiceLoader.reload() để thay bytecode.
-- [ ] Trust boundary, code provenance và các giới hạn tài nguyên được thiết kế độc lập với compatibility.
+- [ ] Minimum JVM runtime and supported Java releases are published.
+- [ ] Compiler toolchain is controlled and **`--release`** is configured properly.
+- [ ] All loadable classes and critical dependencies have compatible class-file major/minor versions.
+- [ ] Platform APIs/JDK modules used by the plugin exist on the target runtime.
+- [ ] Plugin compiles against the right API/SPI version/range and the host fulfills the exact binary contract.
+- [ ] Direct, transitive, and native dependencies have compatible versions/ABIs.
+- [ ] Shared API/SPI has one type identity across host and providers; no duplicate definitions across loaders.
+- [ ] Under JPMS, module descriptors, readability, exports/opens, uses/provides, and layers are verified.
+- [ ] Integration/contract tests ran on the target runtime, covering key SPI methods.
+- [ ] Artifact ID/version/hash metadata, build provenance, and pre-activation rejection policy are in place.
+- [ ] Rollback/hot-update uses proper loaders/layers and lifecycle management; does not rely on `ServiceLoader.reload()` to swap bytecode.
+- [ ] Trust boundaries, code provenance, and resource limits are designed independently of compatibility.
 
-**Kết luận:** Khi biên dịch hoặc triển khai plugin, phải đồng thời kiểm tra **bytecode target**, **JDK/platform API**, **library và SPI binary contract**, **class identity/module graph** và **hành vi runtime**. Bài thực hành dùng cùng một plugin Java17 major61 nhưng thay runtime API v2 bằng v1 đã gây NoSuchMethodError; đây là minh chứng rằng việc hỗ trợ class-file version chỉ là lớp kiểm tra đầu tiên.
+**Conclusion:** When compiling or deploying a plugin, simultaneously verify **bytecode target**, **JDK/platform APIs**, **library and SPI binary contracts**, **class identity/module graph**, and **runtime behavior**. The lab running the exact same Java 17 major 61 plugin while swapping runtime API v2 for v1 triggered `NoSuchMethodError`—proving that supporting the class-file version is only the first verification layer.
 
-## Tài liệu Java 17 chính thức
+## Official Java 17 references
 
 - JLS, Chapter 13 — Binary Compatibility: https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html
 - JVMS, Chapter 4 — Class File Format: https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html
-- javac — --release và cross-compilation: https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html
-- jdeps — dependency analysis: https://docs.oracle.com/en/java/javase/17/docs/specs/man/jdeps.html
-- ServiceLoader API: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+- `javac` — `--release` and cross-compilation: https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html
+- `jdeps` — dependency analysis: https://docs.oracle.com/en/java/javase/17/docs/specs/man/jdeps.html
+- `ServiceLoader` API: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html

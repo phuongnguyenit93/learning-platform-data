@@ -1,71 +1,71 @@
-# Ảnh hưởng của Class-Path, package sealing và JAR đa phiên bản
+# Effects of Class-Path, Package Sealing, and Multi-Release JARs
 
-## Mục tiêu
+## Purpose
 
-Khi đóng gói một plugin Java thành JAR, mã nguồn biên dịch thành công vẫn chưa đảm bảo plugin được nạp hoặc hành xử đúng lúc chạy. Ba cơ chế ảnh hưởng trực tiếp đến điều đó là:
+When packaging a Java plugin as a JAR, compiling source code successfully does not guarantee the plugin will load or behave properly at runtime. Three mechanisms directly affect that behavior:
 
-1. **Class path** xác định nơi JVM và class loader tìm lớp, tài nguyên và service descriptor.
-2. **Package sealing** ràng buộc các lớp cùng một package phải đến từ một code source (thường là cùng JAR) khi được định nghĩa trong cùng class loader.
-3. **Multi-release JAR (MR-JAR)** cho phép một JAR chứa các implementation khác nhau theo phiên bản Java Runtime.
+1. **Class path** determines where the JVM and class loaders look for classes, resources, and service descriptors.
+2. **Package sealing** requires that all classes in the same package originate from the same code source (typically the same JAR) when defined within the same class loader.
+3. **Multi-release JAR (MR-JAR)** allows a single JAR to contain different implementations depending on the Java Runtime version.
 
-Các cơ chế này giải quyết những vấn đề khác nhau. Class path không tự thực hiện cách ly plugin, sealing không phải sandbox bảo mật, còn MR-JAR không chọn phiên bản theo ứng dụng hay framework: nó chọn theo phiên bản Java Runtime.
+These mechanisms address different problems. Class path does not provide plugin isolation by itself, sealing is not a security sandbox, and MR-JAR does not select versions by application or framework: it selects by Java Runtime version.
 
-## 1. Class path ảnh hưởng đến plugin như thế nào?
+## 1. How Does Class Path Affect Plugins?
 
-### 1.1. Tìm lớp và tài nguyên
+### 1.1. Locating Classes and Resources
 
-Ở mô hình đơn giản dùng application class loader, lệnh:
+In a simple model using the application class loader, the command:
 
 \`\`\`bash
 java -cp "app.jar:plugin.jar:api.jar" demo.host.Main
 \`\`\`
 
-cho phép tìm lớp và tài nguyên từ ba JAR trên class path. Trên Windows, dấu phân cách các entry là \`;\`, ví dụ:
+allows classes and resources to be found across the three JARs on the class path. On Windows, the entry separator is \`;\`, for example:
 
 \`\`\`powershell
 java -cp "app.jar;plugin.jar;api.jar" demo.host.Main
 \`\`\`
 
-\`-cp\` và \`-classpath\` tương đương. Thông thường JVM lấy class path từ \`-cp\`, \`--class-path\`, hoặc biến môi trường \`CLASSPATH\` khi không có tùy chọn dòng lệnh tương ứng. Tên class cần nạp phải đúng package, có file \`.class\` tương ứng ở đường dẫn bên trong JAR và tất cả các dependency cần thiết phải nhìn thấy được từ class loader.
+\`-cp\` and \`-classpath\` are equivalent. Normally the JVM obtains the class path from \`-cp\`, \`--class-path\`, or the \`CLASSPATH\` environment variable when no corresponding command-line option is given. The class to load must belong to the proper package, have a corresponding \`.class\` file at that path inside the JAR, and have all required dependencies visible from the class loader.
 
-Ví dụ lớp \`demo.plugin.UppercasePlugin\` phải nằm ở:
+For example, the class \`demo.plugin.UppercasePlugin\` must reside at:
 
 \`\`\`text
 plugin.jar
 └── demo/plugin/UppercasePlugin.class
 \`\`\`
 
-Nếu plugin được phát hiện qua Java SPI, JAR còn phải có:
+If the plugin is discovered via Java SPI, the JAR must also contain:
 
 \`\`\`text
 META-INF/services/demo.api.MessagePlugin
 \`\`\`
 
-và nội dung file này liệt kê tên đầy đủ của provider, chẳng hạn \`demo.plugin.UppercasePlugin\`. \`ServiceLoader\` đọc descriptor theo class loader được sử dụng; JAR có mặt trên đĩa nhưng không nằm trên class path hoặc trong class loader phù hợp sẽ không tự được phát hiện.
+and this file's contents must list the fully qualified provider name, such as \`demo.plugin.UppercasePlugin\`. \`ServiceLoader\` reads descriptors through the class loader being used; a JAR present on disk but not on the class path or in an appropriate class loader will not be discovered automatically.
 
-### 1.2. Thứ tự class path, phiên bản trùng và dependency
+### 1.2. Class Path Ordering, Duplicate Versions, and Dependencies
 
-Nếu hai JAR chứa cùng một binary name, ví dụ đều chứa \`demo.util.Helper\`, hành vi phụ thuộc class loader và thứ tự tra cứu. Với application class loader điển hình, lớp tìm thấy trước trên class path có thể được nạp; class loader khác hoặc launcher đặc thù có thể có chính sách riêng. Không nên dựa vào thứ tự JAR làm cơ chế chọn phiên bản plugin.
+If two JARs contain the same binary name, e.g., both contain \`demo.util.Helper\`, behavior depends on the class loader and lookup order. With a typical application class loader, the class found earlier on the class path may be loaded; other class loaders or specialized launchers may follow different policies. You should not rely on JAR ordering as a plugin version-selection mechanism.
 
-Một ví dụ dễ xảy ra:
+A common failure scenario:
 
 \`\`\`text
-host.jar       → dùng thư viện util bản 2
-plugin-old.jar → đóng gói lại util bản 1 cùng package
+host.jar       → uses util library version 2
+plugin-old.jar → bundles util version 1 in the same package
 \`\`\`
 
-Nếu cả hai phiên bản được đặt chung trong một class loader, bản mà JVM nạp có thể không khớp với bản dùng khi biên dịch. Lỗi thường thấy là \`NoSuchMethodError\`, \`NoClassDefFoundError\`, hoặc thay đổi hành vi khó nhận biết.
+If both versions are placed together in one class loader, the version the JVM loads may not match the version used at compile time. Common symptoms are \`NoSuchMethodError\`, \`NoClassDefFoundError\`, or subtle behavioral changes.
 
-Các biện pháp:
+Mitigations:
 
-- Định nghĩa API chung trong **một contract JAR** mà host và plugin cùng sử dụng, tránh đóng gói trùng contract dưới các class loader khác nhau.
-- Khai báo và kiểm thử các dependency runtime của từng plugin. JAR thường không tự chứa dependency phụ.
-- Với hệ thống cần nhiều phiên bản của cùng thư viện, cân nhắc class loader riêng cho plugin, module layer hoặc đổi namespace bằng shading có kiểm soát; đánh giá kỹ phần giao diện chung và tài nguyên.
-- Kiểm chứng bằng \`jar --list --file plugin.jar\`, cây dependency của công cụ build, và quan sát class loading khi có lỗi (\`-Xlog:class+load=info\` trên HotSpot hiện đại).
+- Define the shared API in **one contract JAR** used by both host and plugins, avoiding duplicate packaging of the contract under different class loaders.
+- Declare and test each plugin's runtime dependencies. Standard JARs do not automatically bundle external dependencies.
+- For systems requiring multiple versions of the same library, consider per-plugin class loaders, module layers, or controlled namespace renaming via shading; carefully evaluate shared interfaces and resources.
+- Verify with \`jar --list --file plugin.jar\`, the build tool's dependency tree, and class-loading logs when diagnosing failures (\`-Xlog:class+load=info\` on modern HotSpot).
 
-### 1.3. Class-Path trong MANIFEST.MF
+### 1.3. Class-Path in MANIFEST.MF
 
-Ngoài class path từ dòng lệnh, manifest của JAR có thể chứa thuộc tính **\`Class-Path\`** để tham chiếu các JAR/phần đường dẫn khác theo quy tắc của cơ chế JAR manifest. Ví dụ:
+Besides the command-line class path, a JAR's manifest can contain the **\`Class-Path\`** attribute to reference other JARs/paths according to the JAR manifest specification. For example:
 
 \`\`\`text
 Manifest-Version: 1.0
@@ -73,7 +73,7 @@ Main-Class: demo.host.Main
 Class-Path: lib/api.jar lib/helper.jar
 \`\`\`
 
-Với JAR khởi chạy ở thư mục \`dist/\`, cách bố trí có thể là:
+With the executable JAR in the \`dist/\` directory, the layout may look like:
 
 \`\`\`text
 dist/
@@ -83,54 +83,54 @@ dist/
     └── helper.jar
 \`\`\`
 
-Chạy:
+Run:
 
 \`\`\`bash
 java -jar dist/host.jar
 \`\`\`
 
-Đối với launcher \`java -jar\`, manifest \`Main-Class\` quyết định entry point; tùy chọn \`-cp\` do người dùng cung cấp không thay thế class path của ứng dụng khi đang dùng chế độ \`-jar\`. Manifest \`Class-Path\` giúp JAR tham chiếu thư viện phụ trợ được đặt đúng vị trí; đây là thông tin về các dependency được liệt kê, không phải lệnh tự quét toàn bộ thư mục plugin.
+For the \`java -jar\` launcher, the manifest's \`Main-Class\` determines the entry point; a user-supplied \`-cp\` option does not replace the application's class path when running in \`-jar\` mode. The manifest \`Class-Path\` helps the JAR reference supporting libraries placed in the right locations; it declares listed dependencies, rather than instructing the JVM to scan an entire plugin directory.
 
-**Lưu ý:** \`Class-Path\` của manifest nhận danh sách các URL tương đối phân cách bằng dấu cách, không dùng \`:\` hoặc \`;\` giống \`-cp\`. Đường dẫn tương đối được giải quyết theo vị trí của JAR chứa manifest; có các hạn chế và quy tắc hợp lệ của JAR specification. Nếu chỉ cần chạy nhanh ứng dụng với thư viện phụ trợ, dùng \`java -cp\` hoặc launcher có kiểm soát thường rõ ràng hơn.
+**Note:** the manifest \`Class-Path\` takes a space-separated list of relative URLs, not \`:\` or \`;\` like \`-cp\`. Relative paths are resolved against the location of the JAR containing the manifest; JAR specification constraints and validity rules apply. If you simply need to run an application quickly with supporting libraries, using \`java -cp\` or a controlled launcher is often clearer.
 
-### 1.4. Wildcard class path
+### 1.4. Wildcard Class Path
 
 \`\`\`bash
 java -cp "dist/host.jar:dist/lib/*" demo.host.Main
 \`\`\`
 
-\`dist/lib/*\` đưa các JAR trong thư mục đó vào class path theo cơ chế wildcard của launcher Java. Nó không quét đệ quy thư mục con; thứ tự liệt kê JAR không nên được coi là ổn định. Dùng wildcard tiện cho môi trường đơn giản nhưng không giải quyết xung đột dependency, version pinning hay khả năng cập nhật plugin khi JVM đã chạy.
+\`dist/lib/*\` adds the JARs in that directory to the class path via the Java launcher's wildcard expansion. It does not recursively scan subdirectories; the order in which JARs are listed should not be assumed stable. Wildcards are convenient for simple environments, but do not solve dependency conflicts, version pinning, or runtime plugin updates after the JVM starts.
 
-## 2. Package sealing là gì?
+## 2. What Is Package Sealing?
 
-### 2.1. Cơ chế và mục đích
+### 2.1. Mechanism and Purpose
 
-Trong JAR manifest, thuộc tính \`Sealed: true\` đánh dấu package được **seal**. Khi class loader định nghĩa package từ JAR đó, các lớp bổ sung của cùng package trong cùng class loader phải có cùng code source được phép theo kiểm tra sealing. Điều này ngăn việc chia một package đã được seal giữa các JAR nguồn khác nhau.
+In a JAR manifest, the \`Sealed: true\` attribute marks packages as **sealed**. When a class loader defines a package from that JAR, any additional classes in the same package within that same class loader must originate from the same permitted code source according to sealing checks. This prevents splitting a sealed package across multiple source JARs.
 
-Ví dụ không nên làm:
+An anti-pattern to avoid:
 
 \`\`\`text
 plugin-core.jar
 └── com/example/plugin/core/Engine.class
-    (package com.example.plugin.core đã seal)
+    (package com.example.plugin.core is sealed)
 
 plugin-extension.jar
 └── com/example/plugin/core/Helper.class
-    (cùng package, nhưng từ JAR khác)
+    (same package, but from a different JAR)
 \`\`\`
 
-Khi cùng một class loader cố định nghĩa cả hai lớp, có thể xuất hiện \`SecurityException: sealing violation\`. Sealing kiểm soát nguồn định nghĩa lớp trong package; nó không ngăn plugin gọi API nguy hiểm, đọc file hay thực thi mã với quyền của process.
+When the same class loader attempts to define both classes, a \`SecurityException: sealing violation\` can occur. Sealing restricts the code source defining classes in a package; it does not prevent a plugin from calling dangerous APIs, reading files, or executing code with the process's privileges.
 
-### 2.2. Manifest cho toàn JAR và từng package
+### 2.2. JAR-Wide and Per-Package Manifests
 
-Một manifest có thể seal mặc định cho các package trong JAR:
+A manifest can seal packages in a JAR by default:
 
 \`\`\`text
 Manifest-Version: 1.0
 Sealed: true
 \`\`\`
 
-Hoặc chỉ seal một package, bằng named section có đường dẫn package kết thúc bằng \`/\`:
+Or seal only a specific package, using a named section whose package path ends with \`/\`:
 
 \`\`\`text
 Manifest-Version: 1.0
@@ -139,34 +139,34 @@ Name: com/example/plugin/internal/
 Sealed: true
 \`\`\`
 
-Các dòng trống trong manifest phân tách main attributes và named sections, vì vậy chúng có ý nghĩa. Tên section sử dụng đường dẫn bằng dấu \`/\`, không dùng dấu \`.\`. Manifest được đóng gói trong \`META-INF/MANIFEST.MF\`.
+Blank lines in a manifest separate the main attributes from named sections, so they are syntactically significant. Section names use \`/\` path separators rather than \`.\`. The manifest is packaged at \`META-INF/MANIFEST.MF\`.
 
-Ví dụ tạo JAR từ class đã biên dịch bằng manifest tự viết:
+Example creating a JAR from compiled classes with a custom manifest:
 
 \`\`\`bash
 jar --create --file plugin.jar --manifest MANIFEST.MF -C build/classes .
 \`\`\`
 
-Không thay \`META-INF/MANIFEST.MF\` tùy tiện sau khi build; công cụ packaging có thể tạo thêm thông tin manifest và các section.
+Do not arbitrarily overwrite \`META-INF/MANIFEST.MF\` after building; packaging tools may generate additional manifest attributes and sections.
 
-### 2.3. Những ảnh hưởng thực tế khi tách plugin
+### 2.3. Practical Effects When Splitting Plugins
 
-- Package nội bộ của plugin nên có namespace riêng, ví dụ \`com.acme.plugin.csv.internal\`, tránh dùng chung package nội bộ với host hoặc plugin khác.
-- Nếu chủ ý chia package giữa nhiều JAR trong **cùng class loader**, sealing có thể khiến thiết kế đó thất bại. Cân nhắc gộp class thuộc package cần seal vào một artifact hoặc đổi package.
-- Hai class loader có thể định nghĩa các package cùng tên độc lập; sealing được kiểm tra trong phạm vi định nghĩa package của loader. Tuy nhiên, các class được nạp từ loader khác nhau có thể không tương thích kiểu, kể cả cùng tên.
-- Nếu package đã được định nghĩa là sealed, việc một JAR khác khai báo unsealed không làm nó tương thích; tính nhất quán của sealing và code source phải được đảm bảo trong cấu trúc nạp lớp.
-- JPMS named modules có quy định package/module và split package riêng; không nên coi manifest sealing là cơ chế thay thế quy tắc module.
+- A plugin's internal packages should have a dedicated namespace, such as \`com.acme.plugin.csv.internal\`, avoiding sharing internal packages with the host or other plugins.
+- If you intentionally split a package across multiple JARs inside the **same class loader**, sealing can cause that design to fail. Consider consolidating classes of a sealed package into a single artifact or renaming the package.
+- Two class loaders can independently define packages with the same name; sealing is checked within the package-definition scope of each loader. However, classes loaded from different loaders may be type-incompatible even with identical names.
+- Once a package has been defined as sealed, another JAR declaring unsealed does not make it compatible; sealing and code-source consistency must hold across the class-loading layout.
+- JPMS named modules have their own package/module rules and split-package restrictions; manifest sealing should not be treated as a replacement for module rules.
 
-### 2.4. Ví dụ tối thiểu kiểm chứng sealing
+### 2.4. Minimal Example Verifying Sealing
 
-Tạo cây source:
+Create the source tree:
 
 \`\`\`text
 src-a/demo/shared/A.java
 src-b/demo/shared/B.java
 \`\`\`
 
-Nội dung \`src-a/demo/shared/A.java\`:
+Contents of \`src-a/demo/shared/A.java\`:
 
 \`\`\`java
 package demo.shared;
@@ -175,7 +175,7 @@ public class A {
 }
 \`\`\`
 
-Nội dung \`src-b/demo/shared/B.java\`:
+Contents of \`src-b/demo/shared/B.java\`:
 
 \`\`\`java
 package demo.shared;
@@ -184,7 +184,7 @@ public class B {
 }
 \`\`\`
 
-Biên dịch hai JAR riêng và seal JAR A:
+Compile two separate JARs and seal JAR A:
 
 \`\`\`bash
 mkdir -p build/a build/b
@@ -195,7 +195,7 @@ jar --create --file a.jar --manifest seal.mf -C build/a .
 jar --create --file b.jar -C build/b .
 \`\`\`
 
-Tệp \`TestSealing.java\`:
+File \`TestSealing.java\`:
 
 \`\`\`java
 public class TestSealing {
@@ -206,29 +206,29 @@ public class TestSealing {
 }
 \`\`\`
 
-Chạy (Linux/macOS):
+Run (Linux/macOS):
 
 \`\`\`bash
 javac TestSealing.java
 java -cp ".:a.jar:b.jar" TestSealing
 \`\`\`
 
-Khi cùng loader nạp \`A\` trước (định nghĩa package đã seal theo nguồn \`a.jar\`), sau đó cố định nghĩa \`B\` từ \`b.jar\`, chương trình lỗi với \`SecurityException\` do sealing violation. Không nên phụ thuộc vào nguyên văn thông báo lỗi hoặc stack trace vì khác nhau theo runtime. Nếu bỏ sealing hoặc chuyển lớp vào package khác, tình huống xung đột sealing này không còn.
+When the same loader loads \`A\` first (defining the sealed package from source \`a.jar\`) and then attempts to define \`B\` from \`b.jar\`, the program fails with a \`SecurityException\` due to a sealing violation. Do not rely on the exact error message text or stack trace, as these vary by runtime. Removing sealing or moving the classes into different packages eliminates this sealing conflict.
 
-Trên Windows, tạo file \`seal.mf\` bằng editor hỗ trợ UTF-8 và dòng mới chuẩn rồi dùng \`java -cp ".;a.jar;b.jar" TestSealing\`. Ví dụ shell phía trên sử dụng \`printf\` theo POSIX.
+On Windows, create \`seal.mf\` with an editor supporting UTF-8 and standard newlines, then run \`java -cp ".;a.jar;b.jar" TestSealing\`. The shell example above uses POSIX \`printf\`.
 
-## 3. Multi-release JAR: cùng API, implementation tùy Java Runtime
+## 3. Multi-Release JAR: Same API, Runtime-Dependent Implementation
 
-### 3.1. Cấu trúc và cách chọn class
+### 3.1. Structure and Class Selection
 
-Multi-release JAR (JEP 238, từ Java 9) cho phép mã mặc định ở root và class thay thế dưới \`META-INF/versions/<N>/\`, với \`N\` là phiên bản Java ít nhất 9. Manifest phải có:
+Multi-release JARs (JEP 238, since Java 9) allow default code at the root and alternative classes under \`META-INF/versions/<N>/\`, where \`N\` is a Java version of at least 9. The manifest must include:
 
 \`\`\`text
 Manifest-Version: 1.0
 Multi-Release: true
 \`\`\`
 
-Cấu trúc điển hình:
+Typical structure:
 
 \`\`\`text
 library.jar
@@ -239,24 +239,24 @@ library.jar
     └── 17/demo/feature/RuntimeFeature.class
 \`\`\`
 
-Ở Java 8, JVM dùng class ở root. Với Java 11, runtime hỗ trợ MR-JAR tìm implementation tại version 11 nếu có; Java 17 ưu tiên implementation version 17. Với runtime lớn hơn, class loader chọn version cao nhất **không vượt quá** phiên bản Java hiện tại. Nếu không tồn tại class override phù hợp, nó rơi về class thấp hơn hoặc root. Mô tả này áp dụng cho cơ chế đọc MR-JAR chuẩn của Java; tooling tự xử lý ZIP hoặc loader tùy chỉnh phải kiểm chứng có hỗ trợ MR-JAR hay không.
+On Java 8, the JVM uses the root class. On Java 11, an MR-JAR-aware runtime selects the version 11 implementation if present; Java 17 prefers the version 17 implementation. On newer runtimes, the class loader picks the highest version **not exceeding** the current Java version. If no matching override class exists, it falls back to a lower version or the root. This applies to Java's standard MR-JAR reader; custom ZIP-processing tools or custom loaders must be verified for MR-JAR support.
 
-\`META-INF/versions/\` không tạo package độc lập ở runtime: các class được chọn có cùng binary name. Public/protected API của versioned class cần giữ hợp đồng tương thích với base, tránh để cùng JAR cho hành vi mà caller không thể dự đoán.
+\`META-INF/versions/\` does not create independent packages at runtime: selected classes share the same binary name. The public/protected API of versioned classes must remain contract-compatible with the base class so the same JAR does not exhibit unpredictable behavior to callers.
 
-### 3.2. Khi nào dùng trong plugin?
+### 3.2. When to Use MR-JARs in Plugins?
 
-Giả sử plugin hỗ trợ nhiều runtime nhưng có thể tối ưu xử lý trên Java mới:
+Suppose a plugin supports multiple runtimes while optimizing execution on newer Java releases:
 
-- Root implementation dùng API Java cũ để giữ mức runtime nền.
-- Versioned implementation dùng API tối ưu hoặc tiện ích của Java 11/17.
-- Host gọi contract ổn định, không cần tự viết \`if (javaVersion >= 17)\` cho logic thay thế class.
-- Một JAR có thể phân phối đến nhiều môi trường, giảm số artifact cần quản lý.
+- The root implementation uses older Java APIs to maintain baseline runtime compatibility.
+- Versioned implementations use optimized APIs or utilities from Java 11/17.
+- The host calls a stable contract without writing \`if (javaVersion >= 17)\` class-switching logic itself.
+- A single JAR can be distributed across environments, reducing the number of artifacts to manage.
 
-MR-JAR chỉ thay thế lớp/tài nguyên theo quy tắc của nền tảng. Nó không cho phép bytecode được biên dịch với target Java 17 chạy trên Java 11 nếu class Java 17 bị đặt nhầm ở root, và cũng không thay thế việc xác định version của contract API.
+An MR-JAR only swaps classes/resources according to platform rules. It does not allow bytecode compiled for target Java 17 to run on Java 11 if the Java 17 class was mistakenly placed at the root, nor does it replace contract API versioning.
 
-### 3.3. Ví dụ MR-JAR chạy được trên Java 17
+### 3.3. Runnable MR-JAR Example on Java 17
 
-Tạo hai bản của cùng class \`demo.feature.Message\`:
+Create two versions of the same class \`demo.feature.Message\`:
 
 \`\`\`text
 src/base/demo/feature/Message.java
@@ -285,7 +285,7 @@ public class Message {
 }
 \`\`\`
 
-Tệp \`Main.java\`:
+File \`Main.java\`:
 
 \`\`\`java
 import demo.feature.Message;
@@ -296,7 +296,7 @@ public class Main {
 }
 \`\`\`
 
-Từ thư mục gốc ví dụ, chạy với JDK 17+:
+From the example's root directory, run with JDK 17+:
 
 \`\`\`bash
 mkdir -p build/base build/v17 build/main
@@ -308,63 +308,63 @@ javac --release 8 -cp feature.jar -d build/main Main.java
 java -cp "build/main:feature.jar" Main
 \`\`\`
 
-Đầu ra trên Java 17:
+Output on Java 17:
 
 \`\`\`text
 java17
 \`\`\`
 
-Tùy chọn \`jar --release 17\` của JDK tạo phần versioned entry và cấu hình manifest \`Multi-Release: true\` tương ứng. Lệnh \`javac --release 8\` biên dịch root với API và bytecode tương thích Java 8. Với Java 8 runtime có thể chạy class base, miễn là app cũng không dùng API Java mới và runtime đọc được JAR đó; trên Java 11 (không có bản override 11), đầu ra là \`base\`. Không thể kiểm chứng Java 8/11 bằng một máy chỉ cài JDK 17; phải chạy trên runtime mục tiêu.
+The JDK's \`jar --release 17\` option creates the versioned entry and configures \`Multi-Release: true\` in the manifest accordingly. \`javac --release 8\` compiles the root with Java 8-compatible APIs and bytecode. A Java 8 runtime can execute the base class, provided the app uses no newer Java APIs and the runtime can read that JAR; on Java 11 (with no version 11 override), the output is \`base\`. You cannot verify Java 8/11 behavior on a machine with only JDK 17 installed; you must run on the target runtimes.
 
-Để xem entry và manifest:
+To inspect entries and manifest:
 
 \`\`\`bash
 jar --list --file feature.jar
 jar --describe-module --file feature.jar
 \`\`\`
 
-Lệnh đầu phải cho thấy \`demo/feature/Message.class\`, \`META-INF/versions/17/demo/feature/Message.class\` và manifest. \`jar --describe-module\` hữu ích khi đánh giá thông tin module nhưng không thay cho việc kiểm tra manifest hoặc chạy trên từng JVM hỗ trợ.
+The first command should show \`demo/feature/Message.class\`, \`META-INF/versions/17/demo/feature/Message.class\`, and the manifest. \`jar --describe-module\` is useful when inspecting module metadata, but does not replace checking the manifest or running on each supported JVM.
 
-### 3.4. Hệ quả đối với API, kiểm thử và phân tích
+### 3.4. Implications for APIs, Testing, and Analysis
 
-- Compiler, IDE, bytecode scanner, code coverage, shading, obfuscation và các công cụ build phải hiểu versioned entries; nếu không, chúng có thể quét nhầm, bỏ sót hoặc phá cấu trúc MR-JAR.
-- Bản root và bản versioned phải giữ hợp đồng API ổn định; test trên **mỗi phiên bản Java được tuyên bố hỗ trợ**, không chỉ JDK build.
-- Nếu plugin đang được nạp bởi class loader tùy chỉnh, xác minh loader dùng cách truy cập JAR có hỗ trợ multi-release. Truy cập file ZIP trực tiếp có thể thấy nhiều entry vật lý khác nhau thay vì class được chọn cho JVM hiện tại.
-- Không đặt service descriptor vào versioned area với kỳ vọng SPI luôn đổi provider theo runtime: việc khám phá tài nguyên service cần được kiểm chứng riêng; thông thường giữ \`META-INF/services\` ở vị trí chuẩn, còn implementation versioned thay thế theo binary name.
-- Cảnh giác class bytes versioned phụ thuộc class khác không có ở runtime tương ứng hoặc thiếu dependency runtime, khiến plugin thất bại dù manifest đúng.
+- Compilers, IDEs, bytecode scanners, code coverage tools, shading, obfuscation, and build tools must understand versioned entries; otherwise they may mis-scan, miss, or corrupt MR-JAR structures.
+- Root and versioned variants must maintain a stable API contract; test on **every declared supported Java version**, not just the build JDK.
+- If the plugin is loaded by a custom class loader, verify that the loader accesses JARs in an MR-JAR-aware manner. Reading the ZIP file directly may expose multiple physical entries instead of the single class selected for the current JVM.
+- Do not place service descriptors in versioned areas expecting SPI to switch providers by runtime: service resource discovery must be verified separately; normally keep \`META-INF/services\` in the standard location and vary the implementation via versioned binary classes.
+- Beware of versioned class bytes depending on classes unavailable on that runtime or missing runtime dependencies, causing the plugin to fail despite a valid manifest.
 
-## 4. Ba cơ chế tương tác ra sao?
+## 4. How Do the Three Mechanisms Interact?
 
-| Tình huống | Cơ chế chi phối | Hệ quả thực tế |
+| Scenario | Governing Mechanism | Practical Consequence |
 |---|---|---|
-| Plugin JAR nằm ngoài class path/class loader | Class path / ClassLoader | Host không tìm thấy lớp hoặc service provider |
-| Hai plugin có class cùng tên trong chung loader | Tra cứu class path và quyền định nghĩa class | Có thể nạp nhầm implementation/version; cần tránh trùng lớp |
-| Cùng package nằm ở hai JAR, một package đã seal | Package sealing | Có thể ném \`SecurityException\` do vi phạm code source |
-| Một MR-JAR có class root + version 17 | Multi-release lookup | Java 17 chọn class version 17; runtime thấp hơn chọn bản phù hợp |
-| MR-JAR được phát hành nhưng thiếu \`Multi-Release: true\` | Manifest / JAR processing | Versioned class không được dùng như lớp override chuẩn |
-| Plugin dùng dependency Java 17 nhưng host chạy Java 11 | Runtime compatibility | Có thể gặp \`UnsupportedClassVersionError\` hoặc lỗi thiếu API |
-| Host và plugin nạp contract bằng hai loader khác nhau | Class identity | Cùng tên interface vẫn có thể không ép kiểu được |
+| Plugin JAR sits outside class path / class loader | Class path / ClassLoader | Host cannot find classes or service providers |
+| Two plugins have identically named classes in a shared loader | Class path lookup and class-defining authority | Wrong implementation/version may load; avoid class collisions |
+| Same package in two JARs, one package is sealed | Package sealing | May throw \`SecurityException\` due to code-source violation |
+| An MR-JAR has a root class + version 17 | Multi-release lookup | Java 17 selects the version 17 class; older runtimes pick an appropriate version |
+| MR-JAR released without \`Multi-Release: true\` | Manifest / JAR processing | Versioned classes are not used as standard overrides |
+| Plugin uses Java 17 dependencies while host runs Java 11 | Runtime compatibility | May fail with \`UnsupportedClassVersionError\` or missing API errors |
+| Host and plugin load contract via two different loaders | Class identity | Identically named interfaces may fail to cast |
 
-Một cách triển khai thực dụng là giữ API JAR chung nhỏ, quy định phạm vi version và class loader, đặt namespace package riêng cho mỗi plugin, và chỉ bật sealing hoặc MR-JAR khi thực sự có yêu cầu kiến trúc. Càng nhiều chính sách packaging, ma trận kiểm thử càng phải đầy đủ.
+A pragmatic approach is keeping the shared API JAR small, specifying version and class loader boundaries, giving each plugin a distinct package namespace, and enabling sealing or MR-JAR only when architecture truly requires it. The more packaging policies you combine, the more thorough your test matrix must be.
 
-## 5. Quy trình chẩn đoán lỗi đóng gói
+## 5. Diagnostic Workflow for Packaging Errors
 
-1. **Xác nhận bytecode và nội dung JAR.** Dùng \`jar --list --file <jar>\`, kiểm tra class đúng đường dẫn, manifest, provider descriptor và \`META-INF/versions/\`.
-2. **Xác nhận runtime và launcher.** Dùng \`java -version\`, xem cách chạy với \`-jar\` hoặc \`-cp\`; kiểm tra dấu phân cách class path theo hệ điều hành và vị trí các JAR phụ thuộc.
-3. **Quan sát class loader.** Với HotSpot, dùng \`-Xlog:class+load=info\` để xem class từ nguồn nào; trong mã chẩn đoán, \`SomeClass.class.getClassLoader()\` cho biết loader nạp class.
-4. **Kiểm tra package sealing.** Đọc \`META-INF/MANIFEST.MF\`, tìm \`Sealed\` trong main section hoặc named package section; rà soát package bị chia giữa nhiều JAR và các nguồn code.
-5. **Kiểm tra MR-JAR.** Xác nhận \`Multi-Release: true\`, đường dẫn versioned và class file version; chạy kiểm thử thực tế trên các Java Runtime được hỗ trợ.
-6. **Kiểm tra compatibility và lỗi liên kết.** Đối chiếu dependency versions; \`ClassNotFoundException\` thường là nạp lớp theo tên không tìm thấy, \`NoClassDefFoundError\` có thể do lớp cần thiết không sẵn có ở runtime hoặc lỗi khởi tạo, \`NoSuchMethodError\` thường báo lệch binary API, còn \`UnsupportedClassVersionError\` báo class file mới hơn JVM có thể xử lý.
+1. **Verify bytecode and JAR contents.** Use \`jar --list --file <jar>\` to verify classes are at the right paths, along with the manifest, provider descriptors, and \`META-INF/versions/\`.
+2. **Verify runtime and launcher.** Check \`java -version\`, inspect \`-jar\` vs. \`-cp\` invocation; verify OS-specific class path separators and locations of dependent JARs.
+3. **Observe class loading.** On HotSpot, use \`-Xlog:class+load=info\` to see where classes load from; in diagnostic code, \`SomeClass.class.getClassLoader()\` reveals the defining loader.
+4. **Check package sealing.** Read \`META-INF/MANIFEST.MF\` for \`Sealed\` in the main section or named package sections; check for packages split across multiple JARs and code sources.
+5. **Check MR-JAR.** Verify \`Multi-Release: true\`, versioned paths, and class file versions; run real tests on supported Java Runtimes.
+6. **Check compatibility and linkage errors.** Cross-check dependency versions; \`ClassNotFoundException\` usually means a class lookup by name failed, \`NoClassDefFoundError\` can indicate a required class was unavailable at runtime or failed initialization, \`NoSuchMethodError\` usually signals a binary API mismatch, and \`UnsupportedClassVersionError\` indicates a class file newer than the JVM can handle.
 
-## 6. Checklist phát hành JAR plugin
+## 6. Plugin JAR Release Checklist
 
-- [ ] Các JAR host, contract và plugin được biên dịch với mức \`--release\` phù hợp; dependency runtime được cung cấp rõ ràng.
-- [ ] Không nhúng bản contract trùng gây xung đột danh tính class giữa các loader.
-- [ ] \`Class-Path\` manifest (nếu dùng) trỏ đến các dependency thực sự phân phối và hoạt động trên đường dẫn cài đặt.
-- [ ] Không dựa vào thứ tự wildcard JAR để giải quyết phiên bản trùng.
-- [ ] Sealing chỉ áp dụng cho package có ranh giới code source rõ ràng, không vô tình seal package chia nhiều JAR.
-- [ ] MR-JAR có manifest và entry version đúng; phần root vẫn chạy trên Java nền được hỗ trợ.
-- [ ] Kiểm thử plugin discovery, thiếu dependency, nhiều provider, lỗi sealing và JVM versions mục tiêu.
-- [ ] Ghi rõ yêu cầu Java Runtime, API compatibility, class loader model và cách cài/gỡ plugin trong tài liệu triển khai.
+- [ ] Host, contract, and plugin JARs are compiled with the appropriate \`--release\` level; runtime dependencies are explicitly supplied.
+- [ ] No duplicate contract copy is embedded to cause class-identity conflicts across loaders.
+- [ ] \`Class-Path\` manifest attribute (if used) points to dependencies actually distributed and valid at the installation path.
+- [ ] Wildcard JAR ordering is not relied upon to resolve duplicate versions.
+- [ ] Sealing is applied only to packages with clear code-source boundaries, without accidentally sealing a package split across JARs.
+- [ ] MR-JAR has the proper manifest and versioned entries; the root still runs on the supported baseline Java version.
+- [ ] Tests cover plugin discovery, missing dependencies, multiple providers, sealing errors, and target JVM versions.
+- [ ] Deployment documentation specifies Java Runtime requirements, API compatibility, class loader model, and install/uninstall steps.
 
-**Ghi nhớ:** Class path quyết định **lớp được tìm ở đâu**, package sealing quyết định **lớp cùng package có được định nghĩa từ nguồn khác không**, còn MR-JAR quyết định **biến thể class nào được chọn theo Java Runtime**. Khi kết hợp chúng trong hệ thống plugin, phải kiểm tra cả ba ở runtime chứ không chỉ dựa vào build thành công.
+**Remember:** Class path governs **where classes are searched**, package sealing governs **whether classes of the same package may come from another source**, and MR-JAR governs **which class variant is chosen for the Java Runtime**. When combining them in a plugin system, test all three at runtime rather than relying solely on a successful build.

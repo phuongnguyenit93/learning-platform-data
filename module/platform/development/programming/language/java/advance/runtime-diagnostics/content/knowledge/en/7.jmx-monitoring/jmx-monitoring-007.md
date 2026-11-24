@@ -1,37 +1,37 @@
-# 7.7 Xuất MBean cho chỉ số riêng của ứng dụng với kiểu dữ liệu phù hợp
+# 7.7 Exposing custom application metrics MBeans with appropriate data types
 
-## Mục tiêu học tập
+## Learning objectives
 
-JMX (Java Management Extensions) không chỉ cung cấp số liệu của JVM như heap, GC hoặc threads. Một dịch vụ Java có thể **đăng ký MBean do ứng dụng sở hữu** để công cụ quản trị quan sát số request đã hoàn tất, số request lỗi, backlog, số công việc đang xử lý, tình trạng sức khỏe hay trạng thái của một thành phần nghiệp vụ.
+JMX (Java Management Extensions) does not provide only JVM metrics like heap, GC, or threads. A Java service can **register application-owned MBeans** so administrative tools can observe completed requests, failed requests, backlog, in-flight tasks, health status, or the state of a business component.
 
-Điểm khó không nằm ở việc viết một getter trả về số nguyên; điểm khó là **xuất đúng ngữ nghĩa và kiểu dữ liệu**, tránh số đếm sai khi nhiều threads cập nhật, không gây tải lớn mỗi lần client poll và không để MBean quản trị vô tình mở quyền thay đổi runtime.
+The hard part is not writing a getter that returns an integer; the hard part is **exposing the right semantics and data types**, avoiding lost counts under concurrent updates, avoiding heavy load on every client poll, and preventing a management MBean from accidentally exposing runtime mutation rights.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **Standard MBean**, **MXBean** và **Dynamic MBean**, chọn giải pháp phù hợp cho Java 17.
-- Thiết kế các JMX attributes với kiểu dữ liệu có ý nghĩa: `long` counter, `int`/`long` gauge, `double` ratio, `boolean` health flag, `String` trạng thái hữu hạn.
-- Hiểu khi nào nên công bố một snapshot bằng **Open Types**, `CompositeData` hoặc `TabularData`, thay vì truyền object Java riêng qua JMX.
-- Tạo Standard MBean **chỉ đọc** bằng interface `*MBean`, `StandardMBean`, `MBeanServer` và `ObjectName`.
-- Xác minh tên/kiểu và quyền đọc/ghi thực sự bằng `getAttribute()` và `getMBeanInfo()`.
-- Cập nhật counters, gauges an toàn giữa nhiều threads; giải thích giới hạn của các getter được đọc ở thời điểm khác nhau.
-- Chạy chương trình Java 17 độc lập, có stdout xác định và chế độ giữ JVM sống để quan sát bằng JConsole local.
-- Viết đặc tả metrics với units, reset semantics, scope, cardinality, sampling window, bảo mật và cách tổng hợp qua replicas.
+- Distinguish **Standard MBean**, **MXBean**, and **Dynamic MBean**, choosing the right option for Java 17.
+- Design JMX attributes with meaningful data types: `long` counter, `int`/`long` gauge, `double` ratio, `boolean` health flag, bounded `String` state.
+- Know when to expose a snapshot using **Open Types**, `CompositeData`, or `TabularData`, instead of passing custom Java objects over JMX.
+- Build a **read-only** Standard MBean using an `*MBean` interface, `StandardMBean`, `MBeanServer`, and `ObjectName`.
+- Verify actual names, types, and read/write permissions using `getAttribute()` and `getMBeanInfo()`.
+- Update counters and gauges safely across multiple threads; explain the limits of getters read at different instants.
+- Run a standalone Java 17 program with deterministic stdout and a keep-alive mode for observing via local JConsole.
+- Write a metrics specification covering units, reset semantics, scope, cardinality, sampling window, security, and multi-replica aggregation.
 
-## 1. MBean là gì, tại sao ứng dụng cần MBean riêng?
+## 1. What is an MBean, and why do applications need custom MBeans?
 
-Một **Managed Bean (MBean)** là Java object mà giao diện quản trị được công bố qua **MBeanServer**. Client có quyền truy cập có thể đọc thuộc tính, gọi operation được công bố và đôi khi nhận notification. MBean không bắt buộc phải là JavaBean theo nghĩa thông thường; nó tuân theo quy ước và metadata của JMX.
+A **Managed Bean (MBean)** is a Java object whose management interface is exposed through an **MBeanServer**. Authorized clients can read attributes, invoke exposed operations, and sometimes receive notifications. An MBean does not have to be a traditional JavaBean; it follows JMX conventions and metadata rules.
 
 ```text
 Application / Java service
   ├── Business requests and background jobs
-  │     └── cập nhật counters/gauges của component
+  │     └── update component counters/gauges
   ├── Metrics implementation
   └── Management interface (MBean/MXBean)
                  │
                  v
         Platform MBeanServer
                  │
-     ObjectName duy nhất trong JVM
+      Unique ObjectName in JVM
                  │
         ┌────────┴─────────┐
         v                  v
@@ -39,73 +39,73 @@ Application / Java service
                       → monitoring system
 ```
 
-**Điều MBean cung cấp:**
+**What an MBean provides:**
 
-- **Attribute:** giá trị được đặt tên và có kiểu; getter `getRequestsTotal()` xuất thuộc tính `RequestsTotal`.
-- **Operation:** hành động công bố để client gọi; ví dụ `resetCache()` nếu và chỉ nếu bạn thật sự chủ động expose.
-- **Notification:** sự kiện đẩy tới listener theo cơ chế JMX.
-- **Metadata:** `MBeanInfo` mô tả tên, kiểu, khả năng đọc/ghi, operation và những thông tin khác.
+- **Attribute:** a named, typed value; getter `getRequestsTotal()` exposes attribute `RequestsTotal`.
+- **Operation:** an action exposed for clients to invoke; e.g., `resetCache()` if and only if you intentionally expose it.
+- **Notification:** an event pushed to listeners per the JMX mechanism.
+- **Metadata:** `MBeanInfo` describing names, types, readability/writability, operations, and more.
 
-Đối với metrics chỉ quan sát, **interface chỉ nên chứa getters**. Không thêm setter/operation có side effect vào MBean đo lường chỉ để tiện thao tác. Một MBean riêng cho ứng dụng là một phần của **hợp đồng vận hành**: dashboard có thể dựa vào tên attribute, ObjectName và kiểu dữ liệu trong nhiều lần triển khai.
+For observation-only metrics, **the interface should contain only getters**. Never add setters or side-effecting operations to a metrics MBean just for convenience. An application-specific MBean forms part of an **operational contract**: dashboards can depend on attribute names, ObjectNames, and data types across many deployments.
 
-**Phạm vi quan trọng:** mỗi JVM có một platform MBeanServer riêng; `RequestsTotal` trong replica A là counter của **replica A**, không tự động là tổng request của cả cluster. Khi nhân nhiều replicas, hệ thống giám sát phải có identity của instance và quy tắc tổng hợp.
+**Critical scope:** each JVM has its own platform MBeanServer; `RequestsTotal` on replica A is **replica A's** counter, not automatically the cluster-wide total. When scaling across replicas, the monitoring system must attach instance identity and aggregation rules.
 
-## 2. Chọn Standard MBean, MXBean hay Dynamic MBean?
+## 2. Standard MBean, MXBean, or Dynamic MBean?
 
-| Loại | Mô hình | Lợi ích | Khi phù hợp |
+| Type | Model | Benefits | When appropriate |
 | --- | --- | --- | --- |
-| Standard MBean | Interface public có hậu tố `MBean`, getters/setters và operations theo JMX conventions | Đơn giản, schema dễ đọc và test | Metrics cơ bản có kiểu primitive/String |
-| MXBean | Interface public có hậu tố `MXBean` hoặc `@MXBean`; giá trị được map sang Open Types | Client không cần class dữ liệu riêng của ứng dụng | Snapshot nhiều trường, cấu trúc/map/list được hỗ trợ |
-| Dynamic MBean | Tự triển khai `DynamicMBean` và metadata/attribute access | Linh hoạt khi schema thật sự động | Framework, công cụ chẩn đoán tự xây |
-| `StandardMBean` wrapper | Dùng `StandardMBean(implementation, interfaceClass, false)` cho Standard MBean | Expose chính xác interface được chọn, không phụ thuộc tên class implementation | Một file demo, implementation không trùng naming convention |
+| Standard MBean | Public interface ending in `MBean`, getters/setters and operations per JMX conventions | Simple, readable schema, easy to test | Basic metrics with primitive/`String` types |
+| MXBean | Public interface ending in `MXBean` or annotated `@MXBean`; values mapped to Open Types | Clients do not need custom application data classes | Multi-field snapshots, supported structs/maps/lists |
+| Dynamic MBean | Custom implementation of `DynamicMBean` and metadata/attribute access | Flexible when schema is genuinely dynamic | Frameworks, custom diagnostic engines |
+| `StandardMBean` wrapper | Uses `StandardMBean(implementation, interfaceClass, false)` for Standard MBean | Exposes the exact chosen interface regardless of implementation class name | Single-file demos, implementation names not matching naming convention |
 
-**Standard MBean mặc định:** theo JMX conventions, class `CheckoutMetrics` implement interface public `CheckoutMetricsMBean`. Một `boolean isHealthy()` là attribute tên `Healthy`; `long getRequestsTotal()` là attribute tên `RequestsTotal`.
+**Default Standard MBean:** per JMX conventions, class `CheckoutMetrics` implements public interface `CheckoutMetricsMBean`. A `boolean isHealthy()` becomes attribute `Healthy`; `long getRequestsTotal()` becomes attribute `RequestsTotal`.
 
-Trong ví dụ bài này dùng `StandardMBean(..., false)` để chỉ rõ phần nào là **giao diện quản trị**. Tham số `false` ở đây có nghĩa **không tạo MXBean**. JDK cũng cho phép `StandardMBean(..., true)` khi muốn tạo MXBean với interface đáp ứng quy tắc tương ứng.
+This lesson's example uses `StandardMBean(..., false)` to explicitly designate the **management interface**. The `false` argument here means **do not create an MXBean**. The JDK also supports `StandardMBean(..., true)` when building an MXBean from a compliant interface.
 
-**Không cần Dynamic MBean** chỉ để trả một counter và một ratio. Tự quản lý `MBeanInfo`/`getAttribute` động gây thêm độ phức tạp, dễ lệch kiểu hoặc không nhất quán schema.
+**There is no need for Dynamic MBean** just to return a counter and a ratio. Manually managing dynamic `MBeanInfo`/`getAttribute` adds complexity, type mismatches, and schema drift risk.
 
-## 3. Chọn kiểu dữ liệu phù hợp với phép đo
+## 3. Choosing data types suited to the measurement
 
-| Metric | Loại đại lượng | Java/JMX type | Định nghĩa và đơn vị |
+| Metric | Quantity kind | Java/JMX type | Definition and unit |
 | --- | --- | --- | --- |
-| Requests đã hoàn tất | Counter tích lũy | `long` | Số lần; từ lúc instance bắt đầu |
-| Requests lỗi đã hoàn tất | Counter tích lũy | `long` | Số lần; định nghĩa failure rõ |
-| Request đang xử lý | Gauge tức thời | `int` hoặc `long` | Số request hiện tại |
-| Tác vụ đang chờ | Gauge tức thời | `int`/`long` | Queue depth, đo tại thời điểm đọc |
-| Error ratio | Ratio | `double` | Fraction từ 0 đến 1 |
-| Utilization ratio | Ratio | `double` | Fraction 0–1, mẫu số phải rõ |
-| Có đạt health criteria? | Boolean | `boolean` | `true`/`false` |
-| Lifecycle state | Giá trị phân loại | `String` | Tập hữu hạn: `STARTING`, `RUNNING`, `DRAINING`... |
-| Lần thành công gần nhất | Timestamp | `long` | Unix epoch milliseconds |
-| Tổng queue wait time | Duration accumulator | `long` | Nanoseconds hoặc milliseconds có ghi rõ |
-| Latency p95 | Quantile từ snapshot | `double` | Milliseconds, **phải** có window và sample count |
+| Completed requests | Cumulative counter | `long` | Count; since instance startup |
+| Failed completed requests | Cumulative counter | `long` | Count; clear failure definition |
+| In-flight requests | Instantaneous gauge | `int` or `long` | Current request count |
+| Queued tasks | Instantaneous gauge | `int`/`long` | Queue depth, measured at read time |
+| Error ratio | Ratio | `double` | Fraction from 0 to 1 |
+| Utilization ratio | Ratio | `double` | Fraction 0–1, explicit denominator |
+| Meets health criteria? | Boolean | `boolean` | `true`/`false` |
+| Lifecycle state | Categorical value | `String` | Finite set: `STARTING`, `RUNNING`, `DRAINING`, etc. |
+| Last success time | Timestamp | `long` | Unix epoch milliseconds |
+| Total queue wait time | Duration accumulator | `long` | Nanoseconds or milliseconds, explicitly documented |
+| Latency p95 | Snapshot quantile | `double` | Milliseconds, **must** include window and sample count |
 
-### 3.1 Counter: dùng `long` cho số lượng tích lũy
+### 3.1 Counter: use `long` for cumulative counts
 
-Counter được tăng theo một sự kiện đã định và **không giảm** trong một vòng đời instance thông thường. `RequestsTotal` không phải RPS; cần **chênh lệch của hai mẫu**:
+A counter increments on a defined event and **never decreases** during a normal instance lifetime. `RequestsTotal` is not RPS; you need the **difference between two samples**:
 
 ```text
 Rate(T1,T2) =
   (RequestsTotal(T2) - RequestsTotal(T1)) / elapsedSeconds
 ```
 
-Ví dụ một JVM hoàn tất 240 request trong 30 giây thì rate trung bình trong cửa sổ là **8 requests/giây**, miễn counter chưa reset. Nếu JVM restart trong cửa sổ, phải nhận diện reset và không lấy delta âm làm tốc độ xử lý.
+For example, if a JVM completes 240 requests in 30 seconds, the average rate in that window is **8 requests/second**, provided the counter did not reset. If the JVM restarts during the window, detect the reset and never treat a negative delta as throughput.
 
-`long` giúp tránh giới hạn nhỏ của `int` đối với service chạy lâu. Không dùng `double` cho số lượng chính xác chỉ vì dashboard thích số thực; số nguyên lớn có thể mất độ chính xác biểu diễn bằng floating point.
+`long` avoids the small ceiling of `int` in long-running services. Never use `double` for exact integer counts just because dashboards prefer floats; large integers lose precision in floating-point representation.
 
-Một counter cần hợp đồng rõ:
+A counter needs a clear contract:
 
-- “RequestsTotal” đếm request **đã bắt đầu**, **đã nhận**, hay **đã hoàn tất**?
-- Có tính retry là một request riêng không?
-- “FailuresTotal” gồm 5xx, timeout, validation/business failure hay exception chưa bắt?
-- Cả hai có cùng phạm vi instance/lifecycle không?
+- Does `RequestsTotal` count requests **started**, **received**, or **completed**?
+- Are retries counted as separate requests?
+- Does `FailuresTotal` include 5xx, timeouts, validation/business errors, or uncaught exceptions?
+- Do both share the exact same instance/lifecycle scope?
 
-Tên đẹp mà không có định nghĩa vẫn là metric không đáng tin.
+A pretty name without a definition is still an untrustworthy metric.
 
-### 3.2 Gauge: giá trị có thể tăng và giảm
+### 3.2 Gauge: values that can go up and down
 
-`InFlight` là số request đang chạy; nó không phải counter lifetime.
+`InFlight` is the number of currently executing requests; it is not a lifetime counter.
 
 ```text
 T1 InFlight=5
@@ -113,13 +113,13 @@ T2 InFlight=17
 T3 InFlight=2
 ```
 
-Các giá trị đều hợp lệ. Gauge phải tăng khi bắt đầu và **giảm chính xác một lần** khi xử lý kết thúc, kể cả khi xảy ra exception/cancellation/timeout. Một đường `finally` phù hợp thường giúp chống quên decrement.
+All three values are valid. A gauge must increment on entry and **decrement exactly once** when processing ends, including on exceptions, cancellations, or timeouts. An appropriate `finally` block helps prevent missed decrements.
 
-`QueueDepth` cần đọc từ cơ chế queue thực. Một queue báo `size()` không nhất thiết snapshot tuyệt đối chính xác khi concurrent modifications; định nghĩa của queue/JDK implementation cần được xem. Không gọi API duyệt hàng triệu phần tử trong getter chỉ để có queue size.
+`QueueDepth` should read from the actual queue mechanism. Calling `size()` on a queue does not necessarily give an exact snapshot under concurrent modifications; check the queue/JDK implementation's contract. Never invoke APIs that scan millions of elements inside a getter just to get queue size.
 
-### 3.3 Ratio: `double` với mẫu số rõ ràng
+### 3.3 Ratio: `double` with an explicit denominator
 
-Đối với hợp đồng **completed requests**, ratio tích lũy:
+Under the **completed requests** contract, cumulative ratio:
 
 ```text
 RequestsTotal = 300
@@ -127,53 +127,53 @@ FailuresTotal = 9
 ErrorRatio = 9 / 300 = 0.03 = 3%
 ```
 
-`0.03` trong `ErrorRatio` là **3%**, không phải **0,03%**. Nếu muốn giá trị 3.0, hãy đặt tên `ErrorPercent` và tài liệu hóa 0–100; không dùng lẫn cả hai.
+`0.03` in `ErrorRatio` means **3%**, not **0.03%**. If you want `3.0`, name it `ErrorPercent` and document 0–100; never mix the two conventions.
 
-Với mẫu số bằng 0, quyết định và công bố chính sách no-data. Demo Java bên dưới trả `0.0` khi chưa có completed request, nhưng nghĩa là **“chưa có lỗi được ghi nhận” theo quy ước demo**, không chứng minh hệ thống healthy. Trong hệ thống phân tích có thể cần `HasSamples` hoặc metadata về sample count.
+When the denominator is 0, decide and publish a no-data policy. The Java demo below returns `0.0` before any completed request, meaning **"no errors recorded yet" per demo convention**, not proof the system is healthy. Analytical systems may need `HasSamples` or sample-count metadata.
 
-`NaN` và infinity có thể làm một số JMX client, exporter hoặc time-series pipeline khó xử lý; tránh dùng tùy tiện để biểu diễn no-data.
+`NaN` and infinity can break or complicate JMX clients, exporters, or time-series pipelines; avoid using them casually to represent no-data.
 
-### 3.4 Boolean và String: đừng biến thành text/numeric mơ hồ
+### 3.4 Boolean and String: do not turn them into ambiguous text or numbers
 
-`boolean isHealthy()` tạo attribute tên `Healthy` có kiểu Boolean ở JMX. Trả `String "true"` khiến client phải parse và dễ không tương thích. Trả `int 0/1` chỉ phù hợp nếu hợp đồng chủ động định nghĩa mã số; đừng tự thay hai trạng thái rõ ràng thành number.
+`boolean isHealthy()` creates a JMX attribute named `Healthy` of type Boolean. Returning `String "true"` forces clients to parse text and risks incompatibility. Returning `int 0/1` fits only when a numeric code contract is intentionally defined; never convert clear two-state booleans into numbers casually.
 
-`String getState()` phù hợp với tập trạng thái hữu hạn. Tránh chứa stack trace, thông tin cá nhân, request ID, token hoặc arbitrary error message trong một String attribute. Dữ liệu đó nên đi vào logs/traces với quản lý quyền truy cập riêng.
+`String getState()` suits a finite state set. Avoid placing stack traces, personal data, request IDs, tokens, or arbitrary error messages inside a `String` attribute. Those belong in logs/traces with dedicated access controls.
 
-Một Boolean `Healthy=true` **không tự chứng minh** endpoint trả lời nhanh; phải ghi chính xác tiêu chí health, ví dụ “component đã tải config, kết nối phụ thuộc thiết yếu sẵn sàng, còn nhận task mới”.
+A Boolean `Healthy=true` **does not automatically prove** an endpoint responds fast; document exact health criteria, e.g., "component loaded config, essential dependency connections ready, accepting new tasks."
 
-### 3.5 Timestamp và duration không cùng loại
+### 3.5 Timestamps and durations are not the same type
 
-- `LastSuccessEpochMillis`: `long` số milliseconds kể từ Unix epoch; dùng để ghép timeline giữa hệ thống.
-- `QueueWaitNanosTotal`: `long` nanoseconds tích lũy; phục vụ delta và average khi có counter số task tương ứng.
-- `System.nanoTime()`: thích hợp đo **elapsed delta trong một JVM**, không phải UTC epoch timestamp.
-- Không trả `String "23 ms"` nếu người dùng cần dashboard tính toán; trả số và khai báo unit ở tên/tài liệu.
+- `LastSuccessEpochMillis`: `long` milliseconds since Unix epoch; used to align timelines across systems.
+- `QueueWaitNanosTotal`: `long` cumulative nanoseconds; supports deltas and averages when paired with a corresponding task counter.
+- `System.nanoTime()`: suited for measuring **elapsed deltas inside one JVM**, not UTC epoch timestamps.
+- Never return `String "23 ms"` when dashboards need numeric math; return numbers and specify units in names/docs.
 
-## 4. Thiết kế một hợp đồng metrics trước khi code
+## 4. Designing a metrics contract before coding
 
-Ví dụ quản lý thành phần checkout:
+Example checkout component management contract:
 
-| Attribute | Kiểu | Loại | Đơn vị | Quy tắc |
+| Attribute | Type | Kind | Unit | Rule |
 | --- | --- | --- | --- | --- |
-| `RequestsTotal` | `long` | Counter | requests | Tăng một lần khi request hoàn tất |
-| `FailuresTotal` | `long` | Counter | requests | Tăng cho một request thất bại đã hoàn tất |
-| `InFlight` | `int` | Gauge | requests | Tăng lúc bắt đầu, giảm khi kết thúc |
-| `ErrorRatio` | `double` | Ratio | fraction 0–1 | `FailuresTotal / RequestsTotal`, khi mẫu số 0 trả 0 |
-| `Healthy` | `boolean` | State | — | Tiêu chí readiness/health đã định |
+| `RequestsTotal` | `long` | Counter | requests | Increments once when a request completes |
+| `FailuresTotal` | `long` | Counter | requests | Increments for a failed completed request |
+| `InFlight` | `int` | Gauge | requests | Increments on start, decrements on completion |
+| `ErrorRatio` | `double` | Ratio | fraction 0–1 | `FailuresTotal / RequestsTotal`, returns 0 if denominator is 0 |
+| `Healthy` | `boolean` | State | — | Defined readiness/health criteria |
 | `State` | `String` | State | enum-like | `STARTING`, `RUNNING`, `DRAINING`, `STOPPED` |
 
-Ở cấp hợp đồng cần ghi thêm: owner, dữ liệu được cập nhật từ đâu, thread-safety, reset policy, thang thời gian và ý nghĩa khi thiếu dữ liệu. Chỉ số p95/p99 riêng nên có **window** và phương pháp ước lượng. Nếu không có dữ liệu phân phối phù hợp, không đưa một số p95 giả vào JMX.
+At the contract level, also document: owner, where updates occur, thread-safety, reset policy, time scale, and missing-data semantics. Dedicated p95/p99 metrics should specify **window** and estimation method. Without proper distribution data, never put a fake p95 number into JMX.
 
-Một điểm quan trọng: mỗi getter có thể được gọi độc lập bởi client JMX. Đừng mặc định `ErrorRatio` tính từ đúng **cùng snapshot nguyên tử** của `RequestsTotal` và `FailuresTotal` đã được đọc trước đó trong khi nhiều requests vẫn đang hoàn tất.
+Crucial point: each getter may be invoked independently by a JMX client. Never assume `ErrorRatio` was computed from the **exact same atomic snapshot** of `RequestsTotal` and `FailuresTotal` read moments earlier while requests continue completing.
 
-## 5. Đặt ObjectName rõ ràng và có cardinality hữu hạn
+## 5. Choosing clear ObjectNames with bounded cardinality
 
-Mọi MBean được đăng ký dưới một `javax.management.ObjectName`. Dạng phổ biến:
+Every MBean is registered under a `javax.management.ObjectName`. Common form:
 
 ```text
 domain:key1=value1,key2=value2
 ```
 
-Ví dụ:
+Example:
 
 ```text
 demo.metrics:type=Checkout,name=Primary
@@ -186,18 +186,18 @@ ObjectName name = new ObjectName(
         "demo.metrics:type=Checkout,name=Primary");
 ```
 
-Đây là đoạn mã minh họa bên trong phương thức có xử lý `MalformedObjectNameException`. Với JVM của một dịch vụ thật, domain có thể do tổ chức sở hữu, chẳng hạn `com.example.app.metrics`.
+This snippet belongs inside a method handling `MalformedObjectNameException`. For a real service JVM, the domain is typically organization-owned, such as `com.example.app.metrics`.
 
-**Không sử dụng các giá trị không giới hạn** trong ObjectName:
+**Never use unbounded values** in an ObjectName:
 
-- Không tạo MBean cho từng request/session/order/user.
-- Không dùng email/khách hàng/trace ID làm `name=...`.
-- Không sinh key/value từ URL chứa ID động mà không chuẩn hóa.
-- Không cho dữ liệu tùy ý chứa `,`, `=`, `:`, `*`, `?` vào ObjectName bằng cách nối chuỗi chưa kiểm tra.
+- Never create an MBean per request, session, order, or user.
+- Never use emails, customer IDs, or trace IDs as `name=...`.
+- Never build keys/values from URLs containing dynamic IDs without normalization.
+- Never concatenate arbitrary input containing `,`, `=`, `:`, `*`, or `?` into an ObjectName unchecked.
 
-`ObjectName.quote(value)` giúp quote **giá trị key property** có ký tự đặc biệt; nó không thay thế kiểm soát cardinality và yêu cầu không lộ PII. `ObjectName` có cả giá trị được quote và unquoted với quy tắc cú pháp riêng.
+`ObjectName.quote(value)` quotes a **key property value** containing special characters; it does not replace cardinality controls or the rule against leaking PII. `ObjectName` has distinct syntax rules for quoted vs. unquoted values.
 
-Một schema có thể dùng:
+A usable schema:
 
 ```text
 com.example.app.metrics:type=WorkerPool,name=Payments
@@ -205,13 +205,13 @@ com.example.app.metrics:type=Cache,name=Products
 com.example.app.metrics:type=Queue,name=Invoices
 ```
 
-Tên ổn định qua rollout giúp dashboard query bền vững. Một `ObjectName` có thể xuất hiện ở nhiều JVM khác nhau: identity toàn cluster phải kết hợp **service/instance/pod** từ monitoring.
+Names stable across rollouts keep dashboard queries resilient. One `ObjectName` can appear across multiple JVMs: cluster-wide identity must combine **service/instance/pod** at the monitoring layer.
 
-MBeanServer yêu cầu **ObjectName duy nhất trong mỗi server**. Khi trùng, `registerMBean` có thể báo `InstanceAlreadyExistsException`. Không tự hủy bean của thành phần khác để “giành tên”.
+The MBeanServer enforces **unique ObjectNames per server**. Collisions cause `registerMBean` to throw `InstanceAlreadyExistsException`. Never unregister another component's bean just to "steal the name."
 
-## 6. Standard MBean read-only: getters và interface
+## 6. Read-only Standard MBean: getters and interface
 
-Một interface quản trị đơn giản:
+A simple management interface:
 
 ```java
 public interface CheckoutMetricsMBean {
@@ -224,43 +224,43 @@ public interface CheckoutMetricsMBean {
 }
 ```
 
-Đây là **đoạn giao diện minh họa**; chương trình độc lập ở phần 9 khai báo interface tương đương bên trong class public.
+This is an **illustrative interface snippet**; the standalone program in section 9 declares an equivalent interface inside the public class.
 
-Với JMX:
+With JMX:
 
-- `getRequestsTotal()` → attribute `RequestsTotal`, kiểu `long`.
-- `getInFlight()` → attribute `InFlight`, kiểu `int`.
-- `getErrorRatio()` → attribute `ErrorRatio`, kiểu `double`.
-- `isHealthy()` → attribute `Healthy`, kiểu `boolean`.
-- `getState()` → attribute `State`, kiểu `java.lang.String`.
-- **Không có setters tương ứng:** các attribute **chỉ đọc**.
+- `getRequestsTotal()` → attribute `RequestsTotal`, type `long`.
+- `getInFlight()` → attribute `InFlight`, type `int`.
+- `getErrorRatio()` → attribute `ErrorRatio`, type `double`.
+- `isHealthy()` → attribute `Healthy`, type `boolean`.
+- `getState()` → attribute `State`, type `java.lang.String`.
+- **No corresponding setters:** all attributes are **read-only**.
 
-Nếu viết thêm `void resetAllCounters()` **trong management interface**, JMX có thể expose nó như **operation**, dù tác giả nghĩ đó chỉ là helper. Vì mục tiêu hiện tại là metrics, không đưa operation có side effect vào interface quan sát.
+If you add `void resetAllCounters()` **to the management interface**, JMX exposes it as an **operation**, even if you only intended it as a helper. Since our goal here is metrics, omit side-effecting operations from observation interfaces.
 
-Việc không có setter trong MBean riêng giảm bề mặt điều khiển, nhưng **không bảo đảm JMX remote tổng thể chỉ đọc**: platform MBeanServer còn có thể chứa nhiều MBeans khác với operations thay đổi trạng thái. Bảo mật connector vẫn phải được quản lý riêng.
+Omitting setters on your custom MBean reduces control surface, yet **does not make remote JMX read-only overall**: the platform MBeanServer still hosts other MBeans with state-mutating operations. Connector security must still be managed separately.
 
-## 7. Thread-safety và những gì getter được phép làm
+## 7. Thread-safety and what getters are allowed to do
 
-Một Java service thường xử lý request đồng thời. Nếu nhiều thread cùng gọi `requestsTotal++` trên một field thông thường mà không có đồng bộ phù hợp, có thể **mất update**. Nếu một thread ghi state mà thread khác đọc không có visibility bảo đảm, getter có thể thấy dữ liệu cũ.
+Java services usually handle concurrent requests. If multiple threads run `requestsTotal++` on an ordinary field without proper synchronization, **updates get lost**. If one thread writes state while another reads without visibility guarantees, getters see stale data.
 
-Các lựa chọn phổ biến:
+Common choices:
 
-- `AtomicLong`: counter tích lũy có `incrementAndGet`, `get`.
-- `AtomicInteger`: gauge có phép tăng/giảm thread-safe.
-- `LongAdder`: counter tăng nhiều từ nhiều threads với contention cao, nhưng `sum()` **không phải snapshot nguyên tử** khi còn cập nhật.
-- `volatile boolean`/`volatile String`: công bố trạng thái mới giữa các threads theo Java Memory Model.
-- `AtomicReference<ImmutableSnapshot>`: khi nhiều trường **phải nhất quán cùng nhau**.
-- Lock có thời gian giữ rất ngắn: có thể dùng khi bảo đảm invariant phức tạp, tránh khóa kéo dài trong JMX getter.
+- `AtomicLong`: cumulative counters via `incrementAndGet`, `get`.
+- `AtomicInteger`: gauges needing thread-safe increment/decrement.
+- `LongAdder`: high-contention counters updated heavily by many threads, though `sum()` is **not an atomic snapshot** while updates continue.
+- `volatile boolean`/`volatile String`: publishes latest state across threads per the Java Memory Model.
+- `AtomicReference<ImmutableSnapshot>`: when multiple fields **must remain mutually consistent**.
+- Very short-held locks: usable to preserve complex invariants, avoiding long lock holds inside JMX getters.
 
-### 7.1 Vòng đời request cần cặp begin/finish
+### 7.1 Request lifecycle needs paired begin/finish
 
-Một đoạn mã tích hợp (biến `failed` phải được khởi tạo trước `try`):
+Integration snippet (`failed` must be initialized before `try`):
 
 ```java
 metrics.beginRequest();
 boolean failed = false;
 try {
-    // Gọi logic xử lý request.
+    // Invoke request handling logic.
 } catch (RuntimeException ex) {
     failed = true;
     throw ex;
@@ -269,49 +269,49 @@ try {
 }
 ```
 
-Thực tế, lỗi HTTP, timeout hoặc cancellation có thể không đi qua chính `catch` này; phải chọn nơi đặt `finishRequest` và phân loại failure phù hợp với framework/lifecycle. Cũng cần bảo đảm không có đường code nào gọi finish **hai lần**, gây InFlight âm.
+In practice, HTTP errors, timeouts, or cancellations may bypass this exact `catch`; place `finishRequest` and classify failures consistently with your framework/lifecycle. Also ensure no code path calls finish **twice**, driving `InFlight` negative.
 
-### 7.2 Nhiều getters không tạo snapshot chung
+### 7.2 Multiple getters do not form a joint snapshot
 
-Ví dụ trong khi worker vẫn chạy:
+Example while workers are still running:
 
 ```text
-T1: client đọc RequestsTotal = 100
-T2: vài request hoàn tất, trong đó có lỗi
-T3: client đọc FailuresTotal = 11
-T4: client đọc ErrorRatio = 0.101
+T1: client reads RequestsTotal = 100
+T2: several requests finish, including failures
+T3: client reads FailuresTotal = 11
+T4: client reads ErrorRatio = 0.101
 ```
 
-Các số không nhất thiết khớp khi tự chia giá trị lấy ở những thời điểm khác nhau. Một bulk `getAttributes()` cũng không mặc nhiên bảo đảm tính nguyên tử giữa getters.
+Numbers will not necessarily match when dividing values fetched at different instants. Even bulk `getAttributes()` does not automatically guarantee atomicity across getters.
 
-Nếu một báo cáo cần bộ số nhất quán, tạo snapshot bất biến được công bố theo cơ chế đồng bộ phù hợp rồi expose một attribute tổng hợp qua MXBean/Open Type. Nếu chỉ cần monitoring xu hướng, đọc counters độc lập theo cùng cửa sổ thường đủ.
+When a report requires a mutually consistent tuple, build an immutable snapshot published with proper synchronization and expose it as a single composite MXBean/Open Type attribute. For trend monitoring, reading independent counters in the same window is usually sufficient.
 
-**Đừng** giữ một lock toàn service để JMX client có thể đọc mọi thuộc tính “thật nhất quán”: khóa nặng có thể làm tăng chính request latency đang điều tra.
+**Never** hold a service-wide lock just so JMX clients can read every attribute "strictly consistently": heavy locking can inflate the very request latency you are investigating.
 
-### 7.3 Getter JMX phải nhẹ, không có side effect
+### 7.3 JMX getters must be lightweight and side-effect-free
 
-Tránh một getter thực hiện:
+Avoid getters that perform:
 
 ```java
-// KHÔNG đưa các tác vụ này vào getter polling định kỳ:
-// 1. Quét tất cả objects trong heap để tính histogram.
-// 2. Truy vấn database/network để đếm dữ liệu mỗi lần poll.
-// 3. Sort hàng triệu latency samples để tính p99.
-// 4. Ghi file log lớn, reset counters hoặc thay trạng thái component.
+// DO NOT put these tasks in periodically polled getters:
+// 1. Scanning all heap objects to compute a histogram.
+// 2. Querying a database/network to count items on every poll.
+// 3. Sorting millions of latency samples to compute p99.
+// 4. Writing large log files, resetting counters, or mutating component state.
 ```
 
-Thay vào đó, cập nhật metrics trong đường xử lý hoặc snapshot định kỳ có budget rõ. JMX getter chỉ đọc giá trị đã chuẩn bị. Định nghĩa rõ độ trễ cập nhật nếu snapshot không hoàn toàn tức thời.
+Instead, update metrics along the processing path or via budgeted periodic snapshots. JMX getters only read prepared values. Document update lag explicitly if snapshots are not instantaneous.
 
-## 8. MBeanServer, metadata và lifecycle
+## 8. MBeanServer, metadata, and lifecycle
 
-Lấy server chung của JVM:
+Obtain the JVM's shared server:
 
 ```java
 MBeanServer server =
         ManagementFactory.getPlatformMBeanServer();
 ```
 
-Đăng ký:
+Register:
 
 ```java
 StandardMBean bean = new StandardMBean(
@@ -319,40 +319,40 @@ StandardMBean bean = new StandardMBean(
 server.registerMBean(bean, objectName);
 ```
 
-Đây là các đoạn mã tích hợp; các tên `metrics`, `objectName` và import được cung cấp trong ví dụ hoàn chỉnh bên dưới.
+These are integration snippets; `metrics`, `objectName`, and imports are provided in the complete example below.
 
-Sau khi đăng ký, client có thể đọc:
+After registration, clients can read:
 
 ```java
 Object value = server.getAttribute(objectName, "RequestsTotal");
 MBeanInfo info = server.getMBeanInfo(objectName);
 ```
 
-**Kiểm tra bằng metadata thật:**
+**Verify using real metadata:**
 
-- `MBeanAttributeInfo.getName()`: tên attribute.
-- `getType()`: kiểu được công bố.
-- `isReadable()`: có thể đọc.
-- `isWritable()`: có thể ghi.
-- `MBeanInfo.getOperations()`: các operation được công bố.
+- `MBeanAttributeInfo.getName()`: attribute name.
+- `getType()`: exposed type.
+- `isReadable()`: readable flag.
+- `isWritable()`: writable flag.
+- `MBeanInfo.getOperations()`: exposed operations.
 
-Đừng đọc tên từ Java implementation class rồi suy mọi method đều expose; quản lý interface mới quyết định phần lớn schema cho Standard MBean.
+Never inspect the Java implementation class and assume every method is exposed; the management interface defines the Standard MBean schema.
 
-Khi component kết thúc, `server.unregisterMBean(objectName)` giúp dọn registry. Trong ứng dụng có component restart/reload, nên quản lý owner và không unregister một bean đã được thay bằng owner khác một cách mù quáng. Một bean giữ tham chiếu tới đối tượng trạng thái cũ có thể gây số liệu stale và ảnh hưởng memory.
+When the component shuts down, `server.unregisterMBean(objectName)` cleans up the registry. In apps with component restarts/reloads, track ownership carefully so you never blindly unregister a bean replaced by a new owner. A bean holding references to stale state objects yields stale metrics and leaks memory.
 
-## 9. Ví dụ Java 17 hoàn chỉnh: Standard MBean chỉ đọc
+## 9. Complete Java 17 example: read-only Standard MBean
 
-Chương trình dưới đây:
+The program below:
 
-1. Định nghĩa public management interface gồm sáu getters có kiểu rõ.
-2. Dùng `AtomicLong`, `AtomicInteger` để cập nhật các metrics từ một tình huống mô phỏng.
-3. Đăng ký bằng `StandardMBean` với interface được chọn tường minh.
-4. Đọc attributes qua `MBeanServer` (không chỉ gọi trực tiếp implementation).
-5. Kiểm tra metadata để xác nhận đúng sáu attributes và **không writable**.
-6. Hủy đăng ký qua `finally`.
-7. Có chế độ `serve` giữ JVM sống khoảng 60 giây để quan sát bằng JConsole local.
+1. Defines a public management interface with six strongly typed getters.
+2. Uses `AtomicLong` and `AtomicInteger` to update metrics from a simulated scenario.
+3. Registers via `StandardMBean` with an explicitly selected interface.
+4. Reads attributes through `MBeanServer` (not merely calling the implementation directly).
+5. Inspects metadata to confirm six attributes and **none writable**.
+6. Unregisters inside `finally`.
+7. Supports a `serve` mode keeping the JVM alive ~60 seconds for observation via local JConsole.
 
-Tạo file **`AppJmxMetricsDemo.java`**:
+Create **`AppJmxMetricsDemo.java`**:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -384,7 +384,7 @@ public class AppJmxMetricsDemo {
         private volatile boolean healthy = true;
         private volatile String state = "RUNNING";
 
-        // Cập nhật nội bộ, không expose như JMX operations.
+        // Internal updates, not exposed as JMX operations.
         void beginRequest() {
             inFlight.incrementAndGet();
         }
@@ -499,14 +499,14 @@ public class AppJmxMetricsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac AppJmxMetricsDemo.java
 java AppJmxMetricsDemo
 ```
 
-Stdout **chính xác** của chế độ không có argument trên JVM Java 17 có JMX chuẩn:
+**Exact stdout** in zero-argument mode on a standard Java 17 JVM with JMX:
 
 ```text
 registered=true
@@ -521,61 +521,61 @@ allReadOnly=true
 unregistered=true
 ```
 
-**Giải thích kết quả:**
+**Output explanation:**
 
-- MBean được đăng ký và `server.isRegistered(name)` trả `true`.
-- Ba cặp `beginRequest()`/`finishRequest()` làm `RequestsTotal=3`, `FailuresTotal=1`, `InFlight=0`.
-- `ErrorRatio=1/3` được format bằng `Locale.ROOT` thành `0.3333`; JMX vẫn trả kiểu `double`.
-- `isHealthy()` tạo `Healthy=true`; trạng thái ví dụ là `RUNNING`.
-- Interface có sáu getters, không có setters nên sáu JMX attributes đều read-only.
-- `unregisterMBean` chạy trong `finally`; sau đó `isRegistered(name)` trả `false`.
+- The MBean registers and `server.isRegistered(name)` returns `true`.
+- Three `beginRequest()`/`finishRequest()` pairs produce `RequestsTotal=3`, `FailuresTotal=1`, `InFlight=0`.
+- `ErrorRatio=1/3` is formatted with `Locale.ROOT` as `0.3333`; JMX still returns type `double`.
+- `isHealthy()` produces `Healthy=true`; the sample state is `RUNNING`.
+- The interface declares six getters and no setters, so all six JMX attributes are read-only.
+- `unregisterMBean` runs in `finally`; afterward `isRegistered(name)` returns `false`.
 
-**Quan trọng:** demo mô phỏng ba request **tuần tự** để stdout ổn định; nó không tự chứng minh invariants vẫn đúng dưới mọi race của production. `healthy=true` là trạng thái demo được khởi tạo, không phải health check thực.
+**Important:** the demo simulates three **sequential** requests so stdout stays deterministic; it does not prove invariants hold under every production race. `healthy=true` is an initialized demo flag, not a real health check.
 
-### 9.1 Quan sát live bằng JConsole local
+### 9.1 Observing live via local JConsole
 
-Chạy:
+Run:
 
 ```bash
 java AppJmxMetricsDemo serve
 ```
 
-Chế độ này in thêm `localPid=<PID>` rồi giữ JVM sống khoảng **60 giây**. Trong cửa sổ đó, mở công cụ JConsole có trong JDK desktop:
+This mode prints `localPid=<PID>` and keeps the JVM alive for about **60 seconds**. Within that window, launch JConsole from a desktop JDK:
 
 ```bash
 jconsole
 ```
 
-Chọn local Java process có PID vừa in, tìm trong cây MBeans tên:
+Select the local Java process matching the printed PID and locate in the MBeans tree:
 
 ```text
 demo.metrics:type=Checkout,name=Primary
 ```
 
-Mỗi phiên bản UI có thể nhóm `type`/`name` khác nhau; tìm theo **ObjectName** và xác minh sáu attributes, kiểu và trạng thái read-only. Không cần mở remote JMX port chỉ để làm lab này.
+UI versions may group `type`/`name` slightly differently; locate by **ObjectName** and verify the six attributes, their types, and read-only status. No remote JMX port is needed for this lab.
 
-Chế độ `serve` không có stdout cố định vì PID và thời gian chạy phụ thuộc máy. Nếu attach thất bại, kiểm tra JDK tools, quyền OS, process còn sống và cơ chế local monitoring; không kết luận “service không có MBean” chỉ từ một lỗi attach.
+The `serve` mode has no fixed stdout because PID and timing depend on the machine. If attach fails, check JDK tools, OS permissions, whether the process is still alive, and local monitoring support; never conclude "the service has no MBean" from an attach failure alone.
 
-### 9.2 Vì sao client dùng MBeanServer thay vì gọi implementation trực tiếp?
+### 9.2 Why do clients use MBeanServer instead of calling the implementation directly?
 
-Một client JMX remote không có tham chiếu Java tới object `CheckoutMetrics` bên trong JVM khác. Nó sử dụng **ObjectName** với `MBeanServerConnection` hoặc proxy. Các kiểu primitive/String được JMX và Java client hỗ trợ tốt.
+A remote JMX client holds no Java object reference to the `CheckoutMetrics` instance inside another JVM. It uses an **ObjectName** with `MBeanServerConnection` or a proxy. Primitive/`String` types are broadly supported by JMX and Java clients.
 
-Client đọc `RequestsTotal` từ MBeanServer nhận giá trị được boxing thành `Long` tương ứng với Java `long`. Hợp đồng metric không nên dựa vào các class nội bộ không có trên máy client.
+A client reading `RequestsTotal` from `MBeanServer` receives a boxed `Long` matching Java `long`. Metric contracts should not depend on internal classes absent from the client's classpath.
 
-### 9.3 Nếu đăng ký gặp lỗi?
+### 9.3 What if registration fails?
 
-- `InstanceAlreadyExistsException`: ObjectName đã tồn tại trong cùng server.
-- `NotCompliantMBeanException`: đối tượng/interface không đúng quy ước JMX.
-- `MBeanRegistrationException`: lỗi trong quá trình lifecycle registration.
-- `MalformedObjectNameException`: cú pháp ObjectName không hợp lệ (khi tạo `ObjectName`).
+- `InstanceAlreadyExistsException`: the ObjectName already exists in the same server.
+- `NotCompliantMBeanException`: the object/interface violates JMX conventions.
+- `MBeanRegistrationException`: an error occurred during registration lifecycle callbacks.
+- `MalformedObjectNameException`: invalid ObjectName syntax (when constructing `ObjectName`).
 
-Không tự động xóa bean trùng tên của một component khác. Trong service thật, handle lỗi startup có thông tin context và ownership rõ; hủy đăng ký bean do **chính mình** đăng ký khi component đóng.
+Never automatically delete another component's colliding bean. In real services, handle startup errors with clear context and ownership; unregister only the beans **you registered** when the component shuts down.
 
-## 10. Khi nào cần MXBean và Open Types?
+## 10. When are MXBeans and Open Types needed?
 
-Nếu cần expose dữ liệu nhiều trường để client không có class model riêng vẫn đọc được, **MXBean** hữu ích vì các kiểu Java được hỗ trợ sẽ ánh xạ tới **JMX Open Types**.
+When exposing multi-field data so clients lacking your custom model classes can still read it, **MXBeans** are helpful because supported Java types map onto **JMX Open Types**.
 
-Ví dụ contract **mang tính minh họa**, cần implementation mới chạy được:
+**Illustrative** contract example (requires an implementation to run):
 
 ```java
 import javax.management.MXBean;
@@ -587,40 +587,40 @@ public interface CacheView {
 }
 ```
 
-MXBean có quy tắc mapping tới các dạng như `SimpleType`, `ArrayType`, `CompositeType`, `TabularType`, với `CompositeData` và `TabularData` đại diện cho cấu trúc tổng hợp ở phía JMX.
+MXBeans define mappings to `SimpleType`, `ArrayType`, `CompositeType`, and `TabularType`, with `CompositeData` and `TabularData` representing composite structures on the JMX side.
 
-| Kiểu dữ liệu | Khi thích hợp | Điều cần chú ý |
+| Data type | When appropriate | What to watch out for |
 | --- | --- | --- |
-| Primitive, wrapper, `String` | Counter/gauge/ratio/status đơn giản | Tài liệu hóa unit/semantics |
-| Enum có tập giá trị ổn định | Trạng thái hữu hạn | Schema và name không đổi tùy tiện |
-| `CompositeData` từ snapshot | Nhiều trường cần đọc cùng một lần | Mapping/metadata phải rõ, snapshot phải được lấy nhất quán |
-| `TabularData` từ map/bảng nhỏ | Breakdown theo vài chiều hữu hạn | Giới hạn cardinality và response size |
-| Java object riêng trong Standard MBean | Giao diện client Java nội bộ cùng model | Client remote có thể cần class tương ứng; ưu tiên MXBean/Open Types nếu muốn tương thích rộng |
+| Primitive, wrapper, `String` | Simple counter/gauge/ratio/status | Document units and semantics |
+| Enum with stable value set | Finite states | Do not rename schema/values casually |
+| `CompositeData` from a snapshot | Multiple fields needed together in one read | Clear mapping/metadata; snapshot taken consistently |
+| `TabularData` from a small map/table | Breakdown across a few bounded dimensions | Limit cardinality and response size |
+| Custom Java object in Standard MBean | Internal Java client sharing the same model | Remote clients may need the class; prefer MXBean/Open Types for wide compatibility |
 
-Một **immutable snapshot** với `sampleEpochMillis`, `completed`, `failed`, `inFlight` có thể được tạo ở một thời điểm được đồng bộ thích hợp, rồi expose như một MXBean attribute tổng hợp. Nhờ đó consumer có bộ số liên quan chặt hơn so với nhiều lần gọi getters độc lập.
+An **immutable snapshot** holding `sampleEpochMillis`, `completed`, `failed`, and `inFlight` can be captured under proper synchronization and exposed as a single composite MXBean attribute. That gives consumers a tighter, mutually consistent tuple than multiple independent getter calls.
 
-Dù dùng MXBean, không bảo đảm mọi object Java đều map được tự động; phải theo Javadoc và test trên JDK mục tiêu. Không biến `Map<String,Long>` có hàng triệu request IDs thành TabularData lớn chỉ vì interface cho phép.
+Even with MXBeans, not every arbitrary Java object maps automatically; check the Javadoc and test on your target JDK. Never turn a `Map<String,Long>` with millions of request IDs into a massive `TabularData` just because the interface allows it.
 
-## 11. Vì sao high-cardinality vẫn nguy hiểm khi chỉ có một MBean?
+## 11. Why high cardinality is still dangerous with a single MBean
 
-Có hai kiểu cardinality:
+There are two kinds of cardinality:
 
-1. **Cardinality của MBeans:** số ObjectNames trong registry. Một MBean cho mỗi session/user/order là nguy hiểm.
-2. **Cardinality của attribute values:** chỉ một MBean nhưng trả `Map<String,Long>` với hàng triệu keys cũng có thể quá lớn.
+1. **MBean cardinality:** number of ObjectNames in the registry. One MBean per session/user/order is dangerous.
+2. **Attribute value cardinality:** even a single MBean returning a `Map<String,Long>` with millions of keys can grow too huge.
 
-Với monitoring:
+For monitoring:
 
-- Tên pool/cache/dependency nên là tập hữu hạn đã tài liệu hóa.
-- Nhóm operation nên chuẩn hóa, ví dụ `READ`, `WRITE`, `DELETE`.
-- Không đưa path URL chứa ID động hoặc string do người dùng nhập vào metric labels.
-- Chuyển request-specific details sang logs/traces với trace ID thay vì JMX.
-- Đặt giới hạn số entries, kích thước dữ liệu và thời gian xử lý getters.
+- Pool/cache/dependency names should be a finite documented set.
+- Operation groups should be normalized, e.g., `READ`, `WRITE`, `DELETE`.
+- Never put URL paths with dynamic IDs or user-supplied strings into metric labels.
+- Send per-request details to logs/traces with trace IDs rather than JMX.
+- Cap entry counts, payload sizes, and getter execution time.
 
-Tính sẵn sàng của ứng dụng quan trọng hơn việc xuất được “mọi chiều” trên một endpoint quan sát.
+Application availability matters far more than exporting "every dimension" on one monitoring endpoint.
 
-## 12. Read-only metrics khác operation quản trị
+## 12. Read-only metrics vs. administrative operations
 
-Một số method không nên xuất trong interface metrics mặc định:
+Certain methods should not appear on a default metrics interface:
 
 ```java
 void resetCounters();
@@ -629,29 +629,29 @@ void drainWorkerPool();
 void setHealthy(boolean value);
 ```
 
-Đây là các method **có side effect**. Nếu cho client gọi trong MBean, bạn đã mở một API điều khiển runtime, không chỉ đo lường.
+These are **side-effecting** methods. Exposing them on the MBean turns it into a runtime control API, not just telemetry.
 
-Nếu nghiệp vụ thật sự cần control plane, tách interface/đối tượng và quyền, ghi audit, xác nhận identity, thiết kế cơ chế rollback/guardrails. Đừng cho dashboard định kỳ có quyền reset counters chỉ vì chúng nằm chung trong MBeanServer.
+If business workflows genuinely need a control plane, separate the interface/object and permissions, enforce auditing, verify identity, and build rollback/guardrails. Never grant periodic dashboards permission to reset counters just because both live in the same `MBeanServer`.
 
-**Lưu ý:** getter cũng có thể vô tình gây side effect nếu implementation gọi DB, reset cache, tạo file hoặc giữ lock. “Read-only” phải đúng trong cả **schema** lẫn **implementation**.
+**Note:** a getter can also cause accidental side effects if its implementation queries a DB, clears a cache, creates files, or holds locks. "Read-only" must hold in both **schema** and **implementation**.
 
-## 13. Tích hợp với JMX exporter và time-series monitoring
+## 13. Integrating with JMX exporters and time-series monitoring
 
-JMX thường được một collector **poll** theo chu kỳ. Ví dụ một exporter đọc `RequestsTotal` mỗi 15 giây rồi chuyển giá trị sang time series. Exporter phải được cấu hình đúng **loại metric**, đơn vị và labels; JMX không tự biến `RequestsTotal` thành Counter Prometheus đúng ngữ nghĩa.
+JMX is commonly **polled** periodically by a collector. For example, an exporter reads `RequestsTotal` every 15 seconds and translates it into time series. The exporter must configure the right **metric type**, units, and labels; JMX does not turn `RequestsTotal` into a semantically valid Prometheus Counter automatically.
 
-Các điểm cần chú ý:
+Key points:
 
-- Counter lifetime: tính rate/increase trên từng instance và xử lý restart/reset.
-- Gauge: dùng giá trị hiện tại, không mặc định dùng `rate`.
-- Ratio: phân biệt lifetime ratio với rolling/window error ratio.
-- Percentile: không tính average của p95 giữa replicas để ra global p95.
-- Missing data: JMX disconnect/exporter error là **không có mẫu**, không phải bằng 0.
-- Khác biệt thời điểm poll: hai attributes lấy cách nhau vài milliseconds không phải ảnh chụp nguyên tử.
-- Java process restart: identity và uptime/start timestamp giúp phát hiện reset.
-- Sampling frequency: đừng poll quá dày làm nhiều getter tranh CPU/lock.
-- Cardinality: domain/keys/schema phải ổn định qua rollout.
+- Lifetime counter: compute rates/increases per instance and handle restarts/resets.
+- Gauge: use current values, never `rate` by default.
+- Ratio: distinguish lifetime ratios from rolling/window error ratios.
+- Percentiles: never average per-replica p95s to obtain global p95.
+- Missing data: JMX disconnect / exporter failure means **no sample**, not zero.
+- Poll timing skew: two attributes read milliseconds apart are not an atomic snapshot.
+- Java process restarts: instance identity and uptime/start timestamps detect resets.
+- Sampling frequency: never poll so aggressively that getters contend for CPU/locks.
+- Cardinality: domain/keys/schema must remain stable across rollouts.
 
-Một counter có thể giảm sau restart:
+A counter can drop after a restart:
 
 ```text
 09:00 RequestsTotal = 152000
@@ -660,96 +660,96 @@ Một counter có thể giảm sau restart:
 09:03 RequestsTotal = 230
 ```
 
-Không tính `230 - 153800` thành throughput âm. Pipeline phải nhận ra instance reset và xử lý dữ liệu phù hợp.
+Never compute `230 - 153800` as negative throughput. The pipeline must detect the instance reset and handle it properly.
 
-### 13.1 Error ratio rolling và lifetime ratio
+### 13.1 Rolling vs. lifetime error ratio
 
-`ErrorRatio` trong demo là ratio kể từ lúc JVM khởi động. Nếu service chạy lâu, một burst lỗi ngắn có thể bị “pha loãng” bởi hàng triệu requests thành công trước đó.
+`ErrorRatio` in the demo is the ratio since JVM startup. In a long-running service, a brief error burst can be "diluted" by millions of earlier successful requests.
 
-Trong cửa sổ [T1,T2] có cùng instance, nếu không reset:
+Over window `[T1,T2]` on the same instance with no reset:
 
 ```text
 windowErrorRatio =
     delta(FailuresTotal) / delta(RequestsTotal)
 ```
 
-Chỉ tính khi delta completed requests lớn hơn 0; nếu không có dữ liệu, cần giữ trạng thái no-data. Đừng tạo alert “error ratio dưới 0.1%” chỉ từ lifetime metric nếu mục tiêu là phát hiện sự cố trong 5 phút gần nhất.
+Compute only when the delta of completed requests exceeds 0; otherwise keep a no-data state. Never alert on "error ratio below 0.1%" using a lifetime metric if your goal is detecting an outage in the last 5 minutes.
 
-### 13.2 Quantile/histogram nên xuất thế nào?
+### 13.2 How should quantiles/histograms be exposed?
 
-Nếu cần latency p95/p99:
+If p95/p99 latency is needed:
 
-- Ghi rõ đơn vị (`Millis`/`Seconds`), kích thước cửa sổ, sample count và phương pháp ước lượng.
-- Không sort danh sách mọi request khi client poll; dùng histogram/snapshot đã chuẩn bị.
-- Không lấy trung bình p95 của từng replica để kết luận p95 toàn cluster.
-- Nếu cần tính global quantile, export histogram buckets/distribution có thể tổng hợp theo phương pháp được hỗ trợ.
-- `Double.NaN`/Infinity phải được xử lý theo hợp đồng pipeline; không tự dùng làm metric giả.
-- Đừng xuất histogram buckets như một String dài khó parse; dùng Open Types/metric exporter thích hợp.
+- Document units (`Millis`/`Seconds`), window size, sample count, and estimation method.
+- Never sort a list of all requests on client poll; use pre-aggregated histograms/snapshots.
+- Never average per-replica p95s to claim cluster-wide p95.
+- To compute global quantiles, export histogram buckets/distributions aggregatable by supported methods.
+- Handle `Double.NaN`/Infinity per pipeline contract; never emit them as fake metrics.
+- Never serialize histogram buckets as one hard-to-parse long `String`; use Open Types or proper metric exporters.
 
-## 14. JMX local, remote và bảo mật
+## 14. Local JMX, remote JMX, and security
 
-**Local JMX** hữu ích khi developer đang kiểm tra một Java process trên cùng máy. **Remote JMX** là bề mặt quản trị nhạy cảm vì một platform MBeanServer có thể chứa MBeans có operations ảnh hưởng ứng dụng/JVM.
+**Local JMX** is helpful when a developer inspects a Java process on the same host. **Remote JMX** is a sensitive control surface because the platform MBeanServer can contain MBeans with operations affecting the application or JVM.
 
-Nguyên tắc:
+Principles:
 
-- Không mở remote JMX port công khai hoặc vô hiệu hóa authentication/TLS chỉ để debug.
-- Áp dụng network controls, identity, authorization, audit và nguyên tắc đặc quyền tối thiểu.
-- Không nhét token, password, customer ID vào ObjectName hoặc String attribute.
-- Với môi trường container, xác định **đúng PID, container, pod, JVM build và timeframe**.
-- Phân quyền đọc metrics khác với gọi operation thay đổi cấu hình trên những MBeans khác.
-- Nếu client ngoài tổ chức cần đọc, ưu tiên exporter đã bảo vệ và chỉ công bố các số liệu cần thiết.
+- Never open public remote JMX ports or disable authentication/TLS just to debug.
+- Enforce network controls, identity, authorization, auditing, and least privilege.
+- Never place tokens, passwords, or customer IDs in ObjectNames or `String` attributes.
+- In container environments, verify the **exact PID, container, pod, JVM build, and timeframe**.
+- Separate metric-reading permissions from configuration-changing operations on other MBeans.
+- If external clients need metrics, prefer a secured exporter exposing only necessary figures.
 
-Ngay cả khi MBean do bạn viết chỉ đọc, nó không thay đổi chính sách của các platform MBeans khác. Không được xem sự hiện diện của một interface `*MBean` read-only là bảo đảm remote JMX an toàn.
+Even when your custom MBean is strictly read-only, that does not change policies on other platform MBeans. Never treat the presence of one read-only `*MBean` interface as proof remote JMX is safe.
 
-## 15. Quy trình triển khai metrics MBean trong Java service
+## 15. Workflow for implementing metrics MBeans in a Java service
 
-### Bước 1 — Đặt câu hỏi chẩn đoán cụ thể
+### Step 1 — Define the concrete diagnostic question
 
-Ví dụ “request lỗi tăng trong 5 phút gần đây?”, “pool có backlog?”, “worker còn xử lý task hay đang chờ phụ thuộc?”. Chọn số đo thực sự giúp quyết định thay vì expose mọi field.
+For instance: "Did failed requests rise in the last 5 minutes?", "Is the pool backed up?", or "Are workers processing tasks or blocked on dependencies?" Expose measurements that drive decisions rather than every internal field.
 
-### Bước 2 — Viết contract
+### Step 2 — Write the contract
 
-Ghi tên, ObjectName, data type, counter/gauge/ratio/state, unit, update event, reset semantics, no-data rule, concurrency/snapshot guarantees, owner và người sử dụng.
+Specify name, ObjectName, data type, counter/gauge/ratio/state, unit, update trigger, reset semantics, no-data rule, concurrency/snapshot guarantees, owner, and consumers.
 
-### Bước 3 — Instrument ở đúng điểm nghiệp vụ
+### Step 3 — Instrument at the right business boundary
 
-Đảm bảo completed counter tăng đúng một lần; failure được phân loại nhất quán; InFlight được cleanup kể cả lỗi; health/state phản ánh điều kiện có định nghĩa. Không tăng counter chỉ khi log thành công, vì lỗi logging không phải lỗi nghiệp vụ.
+Ensure the completed counter increments once; failures are classified consistently; `InFlight` cleans up even on errors; health/state reflects explicit criteria. Never increment counters only when logging succeeds, since logging failures are not business failures.
 
-### Bước 4 — Đăng ký MBean đúng lifecycle
+### Step 4 — Register the MBean with proper lifecycle
 
-Dùng ObjectName hữu hạn và ổn định. Đăng ký khi component có dữ liệu thực, xử lý tên trùng và rollback startup nếu cần, unregister khi component đóng. Không đăng ký trong mỗi request.
+Use bounded, stable ObjectNames. Register once the component has real state, handle collisions and startup rollback cleanly, and unregister on shutdown. Never register per request.
 
-### Bước 5 — Test bằng JMX API thật
+### Step 5 — Test via real JMX APIs
 
-Truy vấn `isRegistered`, `getMBeanInfo`, `getAttribute` để xác nhận tên/kiểu/read-only đúng schema. Demo phần 9 là baseline cho bước này.
+Query `isRegistered`, `getMBeanInfo`, and `getAttribute` to confirm names, types, and read-only schema. The section 9 demo serves as a baseline for this step.
 
-### Bước 6 — Stress concurrency
+### Step 6 — Concurrency stress test
 
-Tạo nhiều requests đồng thời, bao gồm failure, timeout, cancellation. Đối chiếu counters với số task; bảo đảm InFlight không âm hoặc rò. Kiểm tra metrics getter không tranh lock nặng với request processing.
+Drive concurrent requests including failures, timeouts, and cancellations. Reconcile counters against task totals; verify `InFlight` never goes negative or leaks. Verify metric getters do not contend heavily on locks with request processing.
 
-### Bước 7 — Test exporter và dashboard
+### Step 7 — Test exporter and dashboards
 
-Kiểm tra mapping loại metric, đơn vị, labels, reset/restart, missing data, multi-replica aggregation và alert. Đừng chỉ nhìn một biểu đồ “có số”.
+Verify metric type mapping, units, labels, resets/restarts, missing data, multi-replica aggregation, and alerts. Never stop at checking that a chart "shows numbers."
 
-### Bước 8 — Theo dõi chi phí và bảo mật
+### Step 8 — Monitor cost and security
 
-Thử poll ở tần suất dự kiến, đo overhead, kích thước response, quyền remote, schema compatibility. Ghi rõ giới hạn đo và kế hoạch thay đổi khi API tiến hóa.
+Test polling at target cadence; measure overhead, response size, remote permissions, and schema compatibility. Document measurement limits and a change plan as the API evolves.
 
-## 16. Ba tình huống chẩn đoán
+## 16. Three diagnostic scenarios
 
-### 16.1 RequestsTotal tăng chậm, InFlight và QueueDepth tăng
+### 16.1 RequestsTotal climbs slowly while InFlight and QueueDepth rise
 
-Điều này ủng hộ khả năng backlog hoặc downstream processing chậm, nhưng **chưa đủ** để kết luận CPU hay lock là nguyên nhân. Đối chiếu RPS offered/completed, latency, queue wait, thread dump/JFR, CPU/GC và dependency traces trong cùng cửa sổ. Không tăng thread pool một cách máy móc.
+This points toward a backlog or slow downstream processing, yet **is not enough** to blame CPU or locks alone. Cross-check offered/completed RPS, latency, queue wait, thread dumps/JFR, CPU/GC, and dependency traces over the same window. Never blindly raise thread pool sizes.
 
-### 16.2 Healthy=true nhưng dịch vụ trả nhiều timeout
+### 16.2 Healthy=true while the service returns many timeouts
 
-Cờ `Healthy` chỉ mạnh bằng **tiêu chí triển khai** của nó. Nếu chỉ dựa vào “process còn sống”, một service có thể vẫn healthy=true khi queue quá tải hoặc dependency critical không đáp ứng. Cần phân biệt liveness, readiness và degraded state; thêm metrics/error ratio và health policy phù hợp.
+A `Healthy` flag is only as strong as **its implementation criteria**. If it merely checks "process alive," a service can report `healthy=true` while queues overflow or critical dependencies fail. Separate liveness, readiness, and degraded states; add error ratio metrics and sound health policies.
 
-### 16.3 MBean xuất hiện ở staging nhưng không có ở production
+### 16.3 MBean appears in staging yet is missing in production
 
-Xác minh đúng bản build/PID/container, component đã khởi tạo, ObjectName và cách exporter query. Kiểm tra lỗi `InstanceAlreadyExistsException`, `NotCompliantMBeanException`, quyền JMX, kết nối/agent và tình trạng unregister. Dashboard không hiện số **không tự chứng minh** bean không tồn tại.
+Verify exact build/PID/container, component initialization, ObjectName, and exporter queries. Check for `InstanceAlreadyExistsException`, `NotCompliantMBeanException`, JMX permissions, connector/agent errors, and unregistration. A blank dashboard **does not prove** the bean does not exist.
 
-## 17. Mẫu đặc tả vận hành
+## 17. Operational specification template
 
 ```text
 COMPONENT
@@ -788,58 +788,58 @@ CONCLUSION
 - Change owner and rollback criteria:
 ```
 
-Đây là **mẫu báo cáo**, không phải số liệu đã quan sát từ một JVM thật. Ghi rõ chứng cứ, môi trường, phiên bản và thời gian để người khác có thể kiểm chứng.
+This is a **report template**, not numbers observed from a real JVM. Record evidence, environment, versions, and timestamps so others can verify.
 
-## 18. Những lỗi thường gặp
+## 18. Common mistakes
 
-1. **Trả String cho mọi con số.** Mất kiểu, phải parse, sai unit/locale.
-2. **Dùng int cho lifetime counter.** Có nguy cơ tràn sau thời gian dài.
-3. **Dùng double cho số lượng nguyên.** Không phù hợp với đếm chính xác.
-4. **Nhầm RequestsTotal với requests/second.** Rate cần delta theo thời gian.
-5. **Nhầm ErrorRatio 0–1 với ErrorPercent 0–100.** Dashboard có thể sai 100 lần.
-6. **Gộp mọi lỗi vào FailuresTotal không định nghĩa failure.** Không thể so giữa endpoints/versions.
-7. **Để InFlight không được decrement khi lỗi.** Gauge tăng giả tạo.
-8. **Cộng counter bằng toán tử `++` trên field không thread-safe.** Mất updates.
-9. **Đòi các getters tự cung cấp snapshot nguyên tử.** Mỗi getter được gọi ở thời điểm khác.
-10. **Lấy health boolean làm bằng chứng duy nhất về SLO.** Thiếu latency, correctness và capacity.
-11. **Quét DB hoặc sort histogram trong getter.** Polling có thể làm chậm service.
-12. **Công khai reset/shutdown operations trong metrics interface.** Tăng rủi ro cấu hình/quản trị.
-13. **Đăng ký MBean theo request/user/session.** Cardinality và privacy bùng nổ.
-14. **Đưa untrusted input vào ObjectName.** Có thể gây lỗi cú pháp hoặc wildcard/pattern ngoài ý muốn.
-15. **Không unregister khi component đóng.** Stale bean giữ state/đối tượng cũ.
-16. **Xóa bean trùng tên mà chưa biết owner.** Có thể phá monitoring của component khác.
-17. **Coi MXBean nhận mọi object Java tùy ý.** Phải tuân thủ Open Type mapping.
-18. **Dùng Map dữ liệu động quá lớn trong một MXBean.** Vẫn có cardinality và response-size risk.
-19. **Lấy trung bình p95 giữa replicas.** Không tính ra global percentile chính xác.
-20. **Biến missing data thành 0.** Mất khả năng phát hiện exporter/JMX failure.
-21. **Không xử lý counter reset sau JVM restart.** Rate sai hoặc báo alert giả.
-22. **Đổi tên hoặc type không có migration.** Dashboard/alerts bị gãy.
-23. **Chỉ test demo tuần tự.** Chưa chứng minh concurrency correctness.
-24. **Mở remote JMX thiếu auth/TLS.** Tăng bề mặt tấn công cho toàn bộ JVM, không chỉ metrics của bạn.
-25. **Nhầm số liệu một instance với tổng cluster.** Phải có instance identity và aggregation rules.
-26. **Không ghi window của p95/ratio.** Không biết giá trị đại diện cho khoảng nào.
-27. **Dùng `System.nanoTime` như UTC timestamp.** Sai ngữ nghĩa clock.
-28. **Không kiểm tra schema qua MBeanInfo.** Implementation method không đồng nghĩa được expose.
+1. **Returning Strings for every number.** Loses type safety, forces parsing, breaks on units/locales.
+2. **Using `int` for lifetime counters.** Risks overflow over long uptimes.
+3. **Using `double` for integer counts.** Unsuitable for exact counting.
+4. **Confusing `RequestsTotal` with requests/second.** Rates require deltas over time.
+5. **Confusing `ErrorRatio` 0–1 with `ErrorPercent` 0–100.** Dashboards can be off by 100x.
+6. **Lumping all errors into `FailuresTotal` without defining failure.** Prevents comparing endpoints/versions.
+7. **Failing to decrement `InFlight` on errors.** Causes phantom gauge drift.
+8. **Incrementing counters with `++` on non-thread-safe fields.** Loses updates.
+9. **Expecting separate getters to return an atomic snapshot.** Each getter runs at a different instant.
+10. **Using a health boolean as sole proof of SLO compliance.** Misses latency, correctness, and capacity.
+11. **Scanning DBs or sorting histograms inside getters.** Polling can degrade the service.
+12. **Exposing reset/shutdown operations in metrics interfaces.** Increases configuration/admin risk.
+13. **Registering MBeans per request, user, or session.** Explodes cardinality and privacy risks.
+14. **Putting untrusted input into ObjectNames.** Risks syntax errors or unintended wildcards/patterns.
+15. **Failing to unregister on component shutdown.** Stale beans retain old state and objects.
+16. **Deleting colliding beans without knowing the owner.** Can break another component's monitoring.
+17. **Assuming MXBeans accept arbitrary Java objects.** Must follow Open Type mapping rules.
+18. **Using oversized dynamic `Map`s in an MXBean.** Still creates cardinality and response-size risk.
+19. **Averaging p95 across replicas.** Never produces an accurate global percentile.
+20. **Turning missing data into 0.** Hides exporter/JMX failures.
+21. **Ignoring counter resets after JVM restarts.** Causes negative rates or false alerts.
+22. **Renaming attributes or changing types without migration.** Breaks dashboards and alerts.
+23. **Testing only sequential demos.** Does not prove concurrency correctness.
+24. **Opening remote JMX without auth/TLS.** Widens the attack surface for the entire JVM, not just your metrics.
+25. **Confusing single-instance metrics with cluster totals.** Requires instance identity and aggregation rules.
+26. **Omitting the window on p95/ratios.** Leaves unclear which interval the value represents.
+27. **Using `System.nanoTime` as a UTC timestamp.** Wrong clock semantics.
+28. **Skipping `MBeanInfo` schema verification.** Implementation methods do not equal exposed attributes.
 
-## 19. Tự kiểm tra
+## 19. Self-check
 
-1. Method `long getRequestsTotal()` trong Standard MBean tạo attribute gì? Kiểu và read-only status xác định ra sao?
-2. Vì sao lifetime count nên là `long`, còn ratio nên là `double`?
-3. ErrorRatio=0.025 theo hợp đồng [0,1] tương đương bao nhiêu phần trăm?
-4. Counter tăng từ 1.000 lên 1.300 trong 60 giây thì completed rate trung bình là bao nhiêu nếu không có restart?
-5. Vì sao `InFlight` phải giảm qua `finally` và không thể dùng rate của InFlight thay request throughput?
-6. Trong lúc nhiều requests chạy, `getAttribute` cho RequestsTotal và FailuresTotal có tự bảo đảm cùng một snapshot không?
-7. Việc dùng user ID làm `ObjectName` gây hai rủi ro lớn nào?
-8. Khi nào dùng MXBean để trả `CompositeData` thay cho nhiều getters?
-9. `isHealthy()` trả true có chứng minh mọi request đang thành công không? Cần xác minh thêm gì?
-10. Nếu `MBeanAttributeInfo.isWritable()` trả true cho attribute bạn muốn chỉ đọc, phải kiểm tra phần nào?
-11. Counter giảm mạnh sau restart thì exporter phải làm gì, thay vì tính rate âm?
-12. Có thể lấy average của p95 trên từng replica để có p95 toàn cluster không?
-13. Vì sao việc getter gọi DB trong mỗi lần poll có thể tạo ra sự cố mới?
-14. Một ObjectName đã tồn tại: tại sao không nên unregister nó khi chưa biết component đang sở hữu?
-15. Những tests nào cần có trước khi cho exporter đọc MBean trong production?
+1. What attribute does `long getRequestsTotal()` create in a Standard MBean? How are its type and read-only status verified?
+2. Why should lifetime counts use `long` while ratios use `double`?
+3. What percentage does `ErrorRatio=0.025` under a `[0,1]` contract correspond to?
+4. If a counter rises from 1,000 to 1,300 over 60 seconds with no restart, what is the average completion rate?
+5. Why must `InFlight` decrement in `finally`, and why can't the rate of `InFlight` replace request throughput?
+6. While many requests run concurrently, do `getAttribute` calls for `RequestsTotal` and `FailuresTotal` automatically guarantee the same snapshot?
+7. What two major risks arise from putting a user ID inside an `ObjectName`?
+8. When should an MXBean return `CompositeData` instead of exposing multiple separate getters?
+9. Does `isHealthy()` returning `true` prove every request is succeeding? What else must be verified?
+10. If `MBeanAttributeInfo.isWritable()` returns `true` for an attribute meant to be read-only, what should you inspect?
+11. When a counter drops sharply after a restart, what should an exporter do instead of computing a negative rate?
+12. Can you average per-replica p95s to obtain cluster-wide p95?
+13. Why can a getter calling the DB on every poll trigger a new incident?
+14. When an `ObjectName` already exists, why shouldn't you unregister it without knowing which component owns it?
+15. What tests should pass before letting an exporter scrape a new MBean in production?
 
-## Tài liệu đối chiếu
+## Reference documentation
 
 - Oracle Java SE 17 — JMX package/MBeans: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/package-summary.html
 - Oracle Java SE 17 — StandardMBean: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/StandardMBean.html
@@ -848,4 +848,4 @@ CONCLUSION
 - Oracle Java SE 17 — MXBean: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/MXBean.html
 - Oracle Java SE 17 — MBeanAttributeInfo: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/javax/management/MBeanAttributeInfo.html
 
-**Ghi nhớ:** xuất MBean riêng không có nghĩa công khai tất cả biến trong ứng dụng. Một MBean có giá trị khi chỉ số có **kiểu phù hợp, unit rõ, định nghĩa cập nhật và reset chính xác, getter nhẹ, ObjectName ổn định, concurrent reads an toàn và quyền truy cập được kiểm soát**. Chỉ khi đó MBean mới là chứng cứ đáng tin cho chẩn đoán vận hành.
+**Key takeaway:** exposing a custom MBean does not mean publishing every internal variable in the application. An MBean is valuable only when its metrics have **appropriate types, clear units, exact update and reset definitions, lightweight getters, stable ObjectNames, safe concurrent reads, and controlled access**. Only then does the MBean serve as trustworthy evidence for operational diagnostics.

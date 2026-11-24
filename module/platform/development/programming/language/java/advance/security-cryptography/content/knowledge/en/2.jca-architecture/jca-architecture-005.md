@@ -1,65 +1,65 @@
-# 2.5. Khám phá `Provider.Service` và danh sách thuật toán đang có trong tiến trình
+# 2.5. Exploring `Provider.Service` and the List of Available Algorithms in the Process
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích quan hệ giữa kiến trúc Java Cryptography Architecture (JCA), `Provider`, `Provider.Service` và các API kiểu `getInstance(...)`.
-- Liệt kê **provider đang đăng ký trong chính JVM hiện tại**, các loại dịch vụ và thuật toán mà chúng công bố.
-- Tìm provider cung cấp một cặp **loại dịch vụ + thuật toán**, xem thông tin triển khai và xác nhận provider thực sự được chọn khi tạo đối tượng.
-- Phân biệt **được quảng bá trong registry**, **có thể tạo instance**, và **sử dụng được với key/tham số thực tế**.
+- Explain the relationship between the Java Cryptography Architecture (JCA), `Provider`, `Provider.Service`, and `getInstance(...)`-style APIs.
+- List **providers registered in the current JVM**, along with the service types and algorithms they advertise.
+- Find providers supplying a **service type + algorithm** pair, inspect implementation metadata, and confirm the provider actually selected when instantiating an object.
+- Distinguish **advertised in the registry**, **capable of creating an instance**, and **usable with real keys/parameters**.
 
-Ví dụ dùng Java 17+; danh sách provider và thuật toán phụ thuộc JDK, nhà cung cấp JDK, bản cấu hình, thư viện cài đặt và thời điểm quan sát. Không có một danh sách đầu ra cố định cho mọi máy.
+Examples use Java 17+; the list of providers and algorithms depends on the JDK, JDK vendor, configuration, installed libraries, and observation time. There is no single fixed output list across all machines.
 
-## 1. `Provider.Service` nằm ở đâu trong JCA?
+## 1. Where Does `Provider.Service` Fit in JCA?
 
-JCA dùng kiến trúc có thể thay thế implementation. Ứng dụng gọi một **engine API** như `MessageDigest`, `Signature`, `KeyStore` hoặc `SecureRandom`. Một **provider** đăng ký các implementation cho từng loại dịch vụ và tên thuật toán. `Provider.Service` là **bản mô tả đăng ký** cho một implementation: dịch vụ gì, thuật toán nào, provider nào, lớp triển khai nào và có những thuộc tính gì.
+JCA uses a pluggable-implementation architecture. An application calls an **engine API** such as `MessageDigest`, `Signature`, `KeyStore`, or `SecureRandom`. A **provider** registers implementations for each service type and algorithm name. `Provider.Service` is the **registration descriptor** for an implementation: which service, which algorithm, which provider, which implementation class, and which attributes it has.
 
 ```text
-Ứng dụng: MessageDigest.getInstance("SHA-256")
+Application: MessageDigest.getInstance("SHA-256")
                     |
             JCA engine / factory
                     |
-       Danh sách provider được đăng ký
+        Registered provider list
                     |
           Provider -> Provider.Service
                     |
               Implementation (SPI)
 ```
 
-- `Security.getProviders()` trả về các provider **đã đăng ký** trong JVM, theo thứ tự ưu tiên (vị trí 1 được xét trước). Một JAR có trên classpath/module path chưa đồng nghĩa provider của nó đã được đăng ký.
-- `provider.getServices()` trả về tập các bản mô tả dịch vụ mà provider công bố. Cùng một loại và thuật toán có thể xuất hiện ở **nhiều provider** khác nhau.
-- Với `MessageDigest.getInstance("SHA-256")`, JCA tìm implementation phù hợp qua cơ chế lựa chọn provider. Nếu không chỉ định provider, đừng giả định tên provider luôn cố định. Một số engine có thể trì hoãn việc chọn implementation đến khi biết key/tham số.
-- Registry có thể thay đổi khi ứng dụng đăng ký, chèn ưu tiên hoặc gỡ provider; kết quả khám phá chỉ phản ánh **tiến trình và thời điểm đã đọc**.
+- `Security.getProviders()` returns the **registered** providers in the JVM, in priority order (position 1 is checked first). Having a JAR on the classpath/module path does not automatically mean its provider is registered.
+- `provider.getServices()` returns the set of service descriptors advertised by the provider. The same type and algorithm may appear in **multiple different providers**.
+- With `MessageDigest.getInstance("SHA-256")`, JCA locates a matching implementation through the provider selection mechanism. If no provider is specified, do not assume the provider name is always fixed. Some engines may defer selecting an implementation until keys/parameters are known.
+- The registry can change when an application registers, inserts by priority, or removes providers; discovery results reflect only **that specific process and moment in time**.
 
-Các engine tiêu biểu: `MessageDigest` (băm), `Signature` (chữ ký số), `Cipher` (mã hóa/giải mã), `Mac` (mã xác thực thông điệp), `KeyAgreement` (thỏa thuận khóa), `KeyFactory`, `KeyGenerator`, `KeyStore`, `SecureRandom` và `SSLContext`. Mỗi engine có ý nghĩa, thuật toán và điều kiện sử dụng khác nhau.
+Representative engines: `MessageDigest` (hashing), `Signature` (digital signatures), `Cipher` (encryption/decryption), `Mac` (message authentication codes), `KeyAgreement` (key agreement), `KeyFactory`, `KeyGenerator`, `KeyStore`, `SecureRandom`, and `SSLContext`. Each engine has different semantics, algorithms, and usage preconditions.
 
-## 2. Bộ API khám phá cần biết
+## 2. Essential Discovery APIs
 
-| Câu hỏi | API Java | Ý nghĩa |
+| Question | Java API | Meaning |
 | --- | --- | --- |
-| JVM đã đăng ký những provider nào? | `Security.getProviders()` | Mảng provider theo thứ tự ưu tiên. |
-| Tìm một provider theo tên? | `Security.getProvider(name)` | Trả về `Provider` hoặc `null`. |
-| Provider cung cấp những dịch vụ nào? | `provider.getServices()` | Tập `Provider.Service` không thể sửa qua tập trả về; không dựa vào thứ tự duyệt. |
-| Provider có cặp type/algorithm này không? | `provider.getService(type, algorithm)` | Trả về descriptor hoặc `null`; tên thuật toán có thể là tên chính hoặc alias provider biết. |
-| Tên thuật toán đang được quảng bá cho một loại dịch vụ? | `Security.getAlgorithms(type)` | Tập tên thuật toán/kiểu có sẵn theo registry, không thể sửa trực tiếp; nếu không có trả tập rỗng. |
-| Provider nào công bố một cặp dịch vụ/thuật toán? | `Security.getProviders("MessageDigest.SHA-256")` | Mảng provider phù hợp, hoặc `null` nếu không có. |
-| Instance cụ thể đã chọn provider nào? | `engineInstance.getProvider()` | Provider thực tế của đối tượng, có ý nghĩa hơn dự đoán từ registry. |
+| Which providers are registered in the JVM? | `Security.getProviders()` | Array of providers in priority order. |
+| Find a provider by name? | `Security.getProvider(name)` | Returns `Provider` or `null`. |
+| Which services does a provider supply? | `provider.getServices()` | Set of `Provider.Service`, unmodifiable via the returned set; do not rely on iteration order. |
+| Does a provider have this type/algorithm pair? | `provider.getService(type, algorithm)` | Returns descriptor or `null`; the algorithm name can be the primary name or an alias known to the provider. |
+| Which algorithm names are advertised for a service type? | `Security.getAlgorithms(type)` | Unmodifiable set of available algorithm/type names in the registry; returns an empty set if none. |
+| Which providers advertise a service/algorithm pair? | `Security.getProviders("MessageDigest.SHA-256")` | Array of matching providers, or `null` if none. |
+| Which provider did a specific instance pick? | `engineInstance.getProvider()` | Actual provider of the object, more reliable than guessing from the registry. |
 
-Trên mỗi `Provider.Service`, các getter thiết yếu là:
+On each `Provider.Service`, the essential getters are:
 
-- `getProvider()`: provider sở hữu descriptor.
-- `getType()`: tên loại dịch vụ, chẳng hạn `MessageDigest`.
-- `getAlgorithm()`: tên thuật toán hoặc kiểu do provider đăng ký, chẳng hạn `SHA-256`.
-- `getClassName()`: tên lớp triển khai mà provider khai báo; chủ yếu hữu ích cho chẩn đoán, **không có nghĩa** ứng dụng nên tự tải hay khởi tạo lớp SPI đó.
-- `getAttribute(name)`: thuộc tính tùy chọn theo tên, trả `null` khi không có. Ví dụ một số dịch vụ/provider có `KeySize` hoặc `SupportedKeyClasses`; đừng giả định tất cả đều có.
-- `supportsParameter(...)` và `newInstance(...)` là các cơ chế framework dùng theo quy ước từng engine. Trong code ứng dụng, ưu tiên factory công khai (`MessageDigest.getInstance`, `Cipher.getInstance`...) thay vì tự gọi `newInstance(...)`.
+- `getProvider()`: the provider owning the descriptor.
+- `getType()`: service type name, such as `MessageDigest`.
+- `getAlgorithm()`: algorithm or type name registered by the provider, such as `SHA-256`.
+- `getClassName()`: implementation class name declared by the provider; primarily useful for diagnostics, **does not mean** the application should load or instantiate that SPI class directly.
+- `getAttribute(name)`: optional attribute by name, returning `null` if absent. For instance, some services/providers define `KeySize` or `SupportedKeyClasses`; do not assume all have them.
+- `supportsParameter(...)` and `newInstance(...)` are mechanisms used by the framework according to each engine's conventions. In application code, prefer public factories (`MessageDigest.getInstance`, `Cipher.getInstance`, etc.) rather than calling `newInstance(...)` directly.
 
-**Chi tiết quan trọng về alias:** `Provider.Service` có thể chứa các tên thay thế bên trong descriptor nhưng **không có public getter `getAliases()`**. Muốn kiểm tra một alias cụ thể, dùng `provider.getService(type, alias)` hoặc thử factory tương ứng; đừng suy ra danh sách alias đầy đủ chỉ từ `getAlgorithm()`.
+**Important detail about aliases:** `Provider.Service` may hold alternative names internally in its descriptor, yet **there is no public `getAliases()` getter**. To test a specific alias, use `provider.getService(type, alias)` or try the corresponding factory; do not infer a complete alias list solely from `getAlgorithm()`.
 
-## 3. Chương trình liệt kê provider, service và thuật toán
+## 3. Program to List Providers, Services, and Algorithms
 
-Lưu toàn bộ mã sau vào **`ProviderExplorer.java`**. Mặc định chỉ in các service `MessageDigest` để dễ đọc. Có thể truyền loại dịch vụ khác, hoặc `*` để xem tất cả service. Chương trình **chỉ quan sát**, không thêm/gỡ/thay đổi provider.
+Save the entire code below to **`ProviderExplorer.java`**. By default it prints only `MessageDigest` services for readability. You can pass another service type, or `*` to view all services. The program **only observes** and does not add/remove/modify providers.
 
 ```java
 import java.security.MessageDigest;
@@ -76,7 +76,7 @@ public final class ProviderExplorer {
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
         if (args.length > 1) {
-            System.err.println("Cách dùng: java ProviderExplorer [serviceType|*]");
+            System.err.println("Usage: java ProviderExplorer [serviceType|*]");
             return;
         }
 
@@ -86,7 +86,7 @@ public final class ProviderExplorer {
         System.out.printf("Java: %s (%s)%n",
                 System.getProperty("java.version"),
                 System.getProperty("java.vendor"));
-        System.out.printf("So provider: %d%n", providers.length);
+        System.out.printf("Provider count: %d%n", providers.length);
 
         for (int i = 0; i < providers.length; i++) {
             Provider provider = providers[i];
@@ -112,7 +112,7 @@ public final class ProviderExplorer {
             Set<String> names = Security.getAlgorithms(typeFilter);
             TreeSet<String> sortedNames = new TreeSet<>(names);
 
-            System.out.printf("%nThuat toan (%s): %d%n",
+            System.out.printf("%nAlgorithms (%s): %d%n",
                     typeFilter, names.size());
             for (String name : sortedNames) {
                 System.out.println("  " + name);
@@ -120,13 +120,13 @@ public final class ProviderExplorer {
         }
 
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        System.out.printf("%nSHA-256 duoc chon tu provider: %s%n",
+        System.out.printf("%nSHA-256 selected from provider: %s%n",
                 digest.getProvider().getName());
     }
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa file:
+Compile and run in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 ProviderExplorer.java
@@ -136,26 +136,26 @@ java ProviderExplorer Cipher
 java ProviderExplorer "*"
 ```
 
-Cách đọc kết quả:
+How to read the output:
 
-1. Dòng `Java` ghi phiên bản và vendor runtime; `So provider` là số lượng provider **đang đăng ký**, không phải số provider có trên máy.
-2. `[01]`, `[02]`, ... thể hiện **thứ tự ưu tiên ban đầu** từ `Security.getProviders()`. Mỗi dòng dịch vụ gồm **type**, **algorithm** và **implementation class**; kết quả đã được sắp xếp **trong từng provider** để dễ đối chiếu.
-3. Cuối kết quả, `Security.getAlgorithms(typeFilter)` cho tập **tên thuật toán phân biệt theo service type** trên toàn bộ provider. Tập này là bản tổng hợp, vì vậy tên xuất hiện ở hai provider vẫn chỉ là một mục trong tập.
-4. Dòng cuối cho provider của instance `MessageDigest("SHA-256")` mà JCA đã tạo. Đó là quan sát tại runtime, không phải cam kết mọi máy đều chọn cùng provider.
-5. Với `*`, chương trình duyệt **mọi loại dịch vụ** và bỏ qua phần tổng hợp `Security.getAlgorithms` vì `*` không phải tên engine hợp lệ. Kết quả có thể rất dài.
+1. The `Java` line shows the runtime version and vendor; `Provider count` is the number of **currently registered** providers, not the number of providers installed on the machine.
+2. `[01]`, `[02]`, ... show the **initial priority order** from `Security.getProviders()`. Each service line includes **type**, **algorithm**, and **implementation class**; results are sorted **within each provider** for easier comparison.
+3. Near the end, `Security.getAlgorithms(typeFilter)` gives the set of **distinct algorithm names for that service type** across all providers. This set is an aggregate, so a name present in two providers still appears only once in the set.
+4. The final line shows the provider of the `MessageDigest("SHA-256")` instance created by JCA. That is a runtime observation, not a guarantee that every machine picks the same provider.
+5. With `*`, the program iterates through **all service types** and skips the `Security.getAlgorithms` summary because `*` is not a valid engine name. Output can be very long.
 
-Ví dụ, trên một JDK có provider tên `SUN`, bạn *có thể* thấy `MessageDigest / SHA-256` thuộc provider này. Tên provider, version, số service, thứ tự, lớp triển khai và tên thuật toán thực tế **không được coi là output cố định**. Nếu lọc loại không được đăng ký, không có dòng dịch vụ tương ứng và tập thuật toán có thể rỗng.
+For instance, on a JDK that has a provider named `SUN`, you *might* see `MessageDigest / SHA-256` under it. Actual provider names, versions, service counts, order, implementation classes, and algorithm names **must not be treated as fixed output**. If filtering by an unregistered type, no matching service lines appear and the algorithm set may be empty.
 
-## 4. Tra cứu dịch vụ cụ thể và các provider cùng hỗ trợ
+## 4. Looking Up a Specific Service and Co-Supporting Providers
 
-Đoạn sau là **snippet đặt bên trong một phương thức** (với `import java.security.Provider;` và `import java.security.Security;`), không phải chương trình độc lập:
+The following is a **snippet placed inside a method** (with `import java.security.Provider;` and `import java.security.Security;`), not a standalone program:
 
 ```java
 Provider[] candidates =
         Security.getProviders("MessageDigest.SHA-256");
 
 if (candidates == null) {
-    System.out.println("Khong co provider phu hop");
+    System.out.println("No matching provider");
 } else {
     for (Provider provider : candidates) {
         Provider.Service service =
@@ -163,24 +163,24 @@ if (candidates == null) {
 
         System.out.printf("%s -> %s%n",
                 provider.getName(),
-                service == null ? "(khong co descriptor)" :
+                service == null ? "(no descriptor)" :
                         service.getClassName());
     }
 }
 ```
 
-Chỉ rõ cả **type và algorithm** rất quan trọng: `SHA-256` trong `MessageDigest` không phải dịch vụ cùng loại với một thuật toán `Signature` hay `Mac`. `Security.getProviders(filter)` trả `null` khi không có provider thỏa điều kiện; cần kiểm tra trước khi duyệt. Khi đã có `Provider`, `getService(type, algorithm)` hỗ trợ tên thuật toán chính hoặc **alias mà provider nhận biết**, và có thể trả `null`.
+Specifying both **type and algorithm** is crucial: `SHA-256` under `MessageDigest` is not the same kind of service as a `Signature` or `Mac` algorithm. `Security.getProviders(filter)` returns `null` when no provider matches; check before iterating. Once you have a `Provider`, `getService(type, algorithm)` supports the primary algorithm name or **an alias recognized by that provider**, and can return `null`.
 
-Khi cần in metadata, ví dụ `service.getAttribute("KeySize")`, hãy xử lý `null`. Attribute là thông tin provider công bố, không thay thế kiểm tra ràng buộc thực tế của key, mode, padding hay policy.
+When printing metadata such as `service.getAttribute("KeySize")`, handle `null`. Attributes are provider-advertised metadata and do not replace checking actual key, mode, padding, or policy constraints.
 
 
-## 5. Đọc metadata sâu mà không nhầm descriptor với engine
+## 5. Reading Deep Metadata Without Confusing Descriptors with Engines
 
-Sau khi đã chạy `ProviderExplorer` ở mục 3, chọn một dòng `MessageDigest / SHA-256` hoặc một service khác và kiểm tra các tầng sau. `Provider.Service` là **metadata có thể tra cứu**, còn việc tạo engine và thực hiện phép toán là **bằng chứng sử dụng**. Không cần lặp một chương trình băm `abc` chỉ để chứng minh giá trị SHA-256 đã biết.
+After running `ProviderExplorer` in section 3, pick a `MessageDigest / SHA-256` entry or another service and inspect the following layers. `Provider.Service` is **queryable metadata**, whereas creating an engine and performing an operation is **proof of usability**. There is no need to repeat an `abc` hashing program just to prove a known SHA-256 value.
 
 ~~~java
-// Snippet đặt trong một phương thức có xử lý ngoại lệ thích hợp.
-// "provider" là một Provider lấy từ Security.getProviders().
+// Snippet placed inside a method with appropriate exception handling.
+// "provider" is a Provider obtained from Security.getProviders().
 Provider.Service service = provider.getService("MessageDigest", "SHA-256");
 
 if (service != null) {
@@ -189,11 +189,11 @@ if (service != null) {
     System.out.println("class=" + service.getClassName());
     System.out.println("provider=" + service.getProvider().getName());
 
-    // Một thuộc tính tùy chọn; null là bình thường.
+    // An optional attribute; null is normal.
     String formats = service.getAttribute("SupportedKeyFormats");
     System.out.println("formatsAdvertised=" + (formats != null));
 
-    // Kiểm tra khả năng tạo instance bằng API công khai, không new SPI.
+    // Verify instance creation using the public API, not instantiating SPI directly.
     java.security.MessageDigest engine =
             java.security.MessageDigest.getInstance("SHA-256", provider);
     System.out.println("digestLength="
@@ -202,58 +202,58 @@ if (service != null) {
 }
 ~~~
 
-Với SHA-256 đúng chuẩn, `digestLength=32` khi nhánh chạy được. **Tên class, provider và attribute** phụ thuộc implementation, nên không thể ghi stdout cố định cho chúng. Đây là snippet để chèn vào vòng lặp `ProviderExplorer`, không phải file độc lập; import `java.security.Provider` là đủ nếu đã có biến `provider`.
+With standard SHA-256, `digestLength=32` when the branch runs. **Class name, provider, and attributes** depend on the implementation, so fixed stdout cannot be written for them. This snippet is meant to be inserted into the `ProviderExplorer` loop, not run as an independent file; importing `java.security.Provider` suffices if you already have a `provider` variable.
 
-Điểm cần đối chiếu: (a) descriptor tồn tại; (b) engine tạo được với **chính provider này**; (c) digest dùng được. Với `Signature` hoặc `Cipher`, bước (c) phải gồm `init` với khóa/tham số đại diện cho điều kiện thật. `supportsParameter(...)` là một gợi ý nội bộ theo loại service: kết quả `true` có thể chỉ nghĩa “có thể hỗ trợ/chưa rõ”, **không phải xác nhận rằng mọi khóa hay operation đều chạy được**.
+Points to compare: (a) the descriptor exists; (b) the engine can be created with **this exact provider**; (c) the digest operation works. For `Signature` or `Cipher`, step (c) must include `init` with keys/parameters representative of real conditions. `supportsParameter(...)` is an internal hint per service type: a `true` result may only mean “possibly supported/unknown”, **not confirmation that every key or operation will work**.
 
 
-## 6. Ba mức bằng chứng khi lập bản đồ dịch vụ runtime
+## 6. Three Levels of Evidence When Mapping Runtime Services
 
-| Bằng chứng | Kết luận được phép | Kết luận chưa được phép |
+| Evidence | Permitted conclusion | Unwarranted conclusion |
 | --- | --- | --- |
-| `Security.getAlgorithms(type)` | Tên đang được quảng bá theo service type trong registry | Toàn bộ alias, mọi transformation hoặc khả năng với khóa cụ thể |
-| `provider.getServices()` / `getService(type, algorithm)` | Descriptor của provider, type, tên chính/alias, class triển khai, attribute tùy chọn | Provider chắc chắn tạo được mọi engine và xử lý thành công |
-| `getInstance(..., provider)` + `init` + phép toán | Tổ hợp thuật toán, key, tham số được thử trên runtime/provider này | Mọi key, mọi version, mọi trạng thái HSM đều được bảo đảm |
+| `Security.getAlgorithms(type)` | Names advertised for the service type in the registry | All aliases, all transformations, or capability with specific keys |
+| `provider.getServices()` / `getService(type, algorithm)` | Provider descriptor, type, primary name/alias, implementation class, optional attributes | That the provider can definitely create every engine and succeed |
+| `getInstance(..., provider)` + `init` + operation | The algorithm, key, and parameter combination tested on this runtime/provider | That all keys, all versions, or all HSM states are guaranteed |
 
-**Bẫy catalog:** `Security.getAlgorithms("Cipher")` không sinh tất cả tổ hợp mode/padding; một provider có `Cipher.AES` có thể chấp nhận `AES/GCM/NoPadding` dù `getService("Cipher", "AES/GCM/NoPadding")` không cho descriptor trực tiếp. Khi kiểm tra transformation, hãy thử chính `Cipher.getInstance(transformation, provider)` và thao tác có tham số hợp lệ. Tương tự, alias có thể được `getService` phân giải dù không xuất hiện như một service riêng; `Provider.Service` không có public `getAliases()`.
+**Catalog trap:** `Security.getAlgorithms("Cipher")` does not generate all mode/padding combinations; a provider listing `Cipher.AES` may accept `AES/GCM/NoPadding` even though `getService("Cipher", "AES/GCM/NoPadding")` yields no direct descriptor. When checking a transformation, test `Cipher.getInstance(transformation, provider)` itself and an operation with valid parameters. Likewise, an alias can be resolved by `getService` without appearing as a separate service entry; `Provider.Service` has no public `getAliases()`.
 
-**Bẫy ưu tiên:** thứ tự `Security.getProviders()` giúp mô tả registry, nhưng không thay thế việc quan sát `engine.getProvider()` khi engine đã khởi tạo đủ thông tin. **Bẫy an toàn:** registry có thể còn MD5 hoặc thuật toán cũ vì tương thích; có service không đồng nghĩa được phép dùng trong giao thức mới.
+**Priority trap:** the order of `Security.getProviders()` describes the registry, but does not replace observing `engine.getProvider()` once the engine has been initialized with full context. **Security trap:** the registry may still contain MD5 or legacy algorithms for compatibility; having a service does not mean it is permitted in new protocols.
 
-Bảng khám phá là **ảnh chụp tại thời điểm chạy**. Nếu ứng dụng thêm/gỡ provider trong cùng JVM, hoặc chạy trên HSM/JDK khác, cần chụp lại cấu hình; không mang một bản catalog từ laptop áp đặt cho production.
+A discovery table is a **snapshot at runtime**. If the application adds/removes providers in the same JVM, or runs on another HSM/JDK, re-capture the configuration; do not carry a catalog from a laptop and impose it on production.
 
-## 7. Quy trình chẩn đoán có thể lặp lại
+## 7. A Repeatable Diagnostic Workflow
 
-Khi một môi trường báo `NoSuchAlgorithmException`, `NoSuchPaddingException` hoặc provider được chọn khác dự kiến, tiến hành theo thứ tự:
+When an environment reports `NoSuchAlgorithmException`, `NoSuchPaddingException`, or a selected provider different from expectations, proceed in order:
 
-1. Ghi **`java.version`, `java.vendor`** và danh sách `Security.getProviders()` của chính tiến trình lỗi. Không lấy danh sách của laptop để kết luận về container/server đang chạy.
-2. Xác định **engine type chính xác** (ví dụ `MessageDigest` hay `Cipher`) và tên thuật toán/transformation mà code thật đang yêu cầu. Lấy `Security.getAlgorithms(type)` để định hướng, rồi tìm descriptor qua từng `provider.getService(type, algorithm)`.
-3. Tìm các provider ứng viên với `Security.getProviders("Type.Algorithm")` khi bộ lọc phù hợp; nhớ kiểm tra kết quả `null`. Với transformation `Cipher`, kiểm tra thêm bằng factory thực tế.
-4. Thử `getInstance(...)` và, nếu cần, `init(...)`/thao tác thật với key và tham số hợp lệ. Đọc `getProvider()` của đối tượng đã chọn và ghi lỗi đầy đủ nếu thất bại.
-5. So sánh **cùng phiên bản JDK, security configuration, provider đăng ký, thứ tự ưu tiên, dependencies và môi trường chạy**. Provider PKCS#11/HSM/native có thể phụ thuộc cấu hình thiết bị; có tên trong registry vẫn chưa chứng minh sẵn sàng vận hành.
-6. Giữ chẩn đoán ở chế độ chỉ đọc; tránh thêm/gỡ provider toàn cục chỉ để “thử”, vì có thể làm thay đổi hành vi các luồng khác trong cùng JVM. Không log key, mật khẩu, secret hay dữ liệu nhạy cảm.
+1. Record **`java.version`, `java.vendor`**, and the `Security.getProviders()` list of the exact failing process. Do not use a laptop's list to draw conclusions about a running container/server.
+2. Identify the **exact engine type** (e.g., `MessageDigest` vs. `Cipher`) and the algorithm/transformation name that real code requests. Use `Security.getAlgorithms(type)` for orientation, then locate descriptors via each `provider.getService(type, algorithm)`.
+3. Find candidate providers with `Security.getProviders("Type.Algorithm")` when the filter applies; remember to check for `null`. For `Cipher` transformations, also test via the actual factory.
+4. Try `getInstance(...)` and, if applicable, `init(...)`/real operations with valid keys and parameters. Read `getProvider()` on the selected object and log full error details if it fails.
+5. Compare **exact JDK version, security configuration, registered providers, priority order, dependencies, and runtime environment**. PKCS#11/HSM/native providers can depend on device configuration; appearing in the registry does not prove operational readiness.
+6. Keep diagnostics read-only; avoid adding/removing global providers just to “test”, as that can alter behavior for other threads in the same JVM. Never log keys, passwords, secrets, or sensitive data.
 
-## 8. Những nhầm lẫn phổ biến và tự kiểm tra
+## 8. Common Misconceptions and Self-Check
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Accurate understanding |
 | --- | --- |
-| “JAR provider có trên classpath là đã được chọn.” | Provider cần được đăng ký hoặc được cơ chế runtime nạp phù hợp; quan sát bằng `Security.getProviders()`. |
-| “`getServices()` có thứ tự ưu tiên trong từng Set.” | Thứ tự ưu tiên nằm ở **mảng provider**; hãy tự sort service khi in. |
-| “`Security.getAlgorithms("Cipher")` liệt kê mọi transformation.” | Đây là tập tên được registry công bố cho service type, không phải tích Descartes của thuật toán/mode/padding. |
-| “Có `Provider.Service` nghĩa là mọi key đều được chấp nhận.” | Cần thử factory và thao tác thực với key/params; implementation có thể từ chối. |
-| “`getClassName()` là lớp API nên new trực tiếp.” | Nên dùng engine factory; SPI là chi tiết implementation. |
-| “Provider đầu tiên luôn là provider mà `Cipher` dùng.” | Có thể xảy ra lựa chọn muộn theo key và tham số; kiểm tra instance thực tế. |
-| “Thuật toán có trong registry thì an toàn.” | Khả năng cung cấp không phải khuyến nghị bảo mật. |
+| “A provider JAR on the classpath is already selected.” | The provider must be registered or loaded by the runtime mechanism; verify with `Security.getProviders()`. |
+| “`getServices()` has priority order inside each Set.” | Priority order lives in the **provider array**; sort services yourself when printing. |
+| “`Security.getAlgorithms("Cipher")` lists every transformation.” | It is the set of names advertised by the registry for the service type, not the Cartesian product of algorithm/mode/padding. |
+| “Having a `Provider.Service` means every key is accepted.” | You must test the factory and real operations with keys/params; implementations can still reject them. |
+| “`getClassName()` is the API class, so instantiate it directly.” | Use the engine factory; SPI is an implementation detail. |
+| “The first provider is always the one `Cipher` uses.” | Delayed selection by key and parameters can occur; inspect the actual instance. |
+| “An algorithm in the registry is safe.” | Availability is not a security recommendation. |
 
-**Bài tự kiểm tra:**
+**Self-check exercises:**
 
-1. Chạy `java ProviderExplorer MessageDigest` và `java ProviderExplorer Signature`. So sánh provider nào đăng ký các type này và vì sao hai danh sách thuật toán khác nhau.
-2. Chạy `java ProviderExplorer Cipher`, sau đó tra API `Cipher.getInstance("AES/GCM/NoPadding")`. Giải thích vì sao không thể suy ra mọi transformation chỉ từ `getAlgorithms("Cipher")`.
-3. Tìm một cặp `type + algorithm` có ở hơn một provider (nếu môi trường có). So sánh `getClassName()`, sau đó quan sát `getProvider()` từ instance được tạo mà không ép provider.
-4. Nếu `Security.getProviders("MessageDigest.SHA-256")` trả `null`, điều đó nói gì về registry của tiến trình tại thời điểm gọi? Vì sao chưa nên kết luận cùng một điều về JVM khác?
+1. Run `java ProviderExplorer MessageDigest` and `java ProviderExplorer Signature`. Compare which providers register these types and why the two algorithm lists differ.
+2. Run `java ProviderExplorer Cipher`, then inspect the `Cipher.getInstance("AES/GCM/NoPadding")` API. Explain why you cannot deduce every transformation solely from `getAlgorithms("Cipher")`.
+3. Find a `type + algorithm` pair present in more than one provider (if available in your environment). Compare `getClassName()`, then observe `getProvider()` from an instance created without forcing a provider.
+4. If `Security.getProviders("MessageDigest.SHA-256")` returns `null`, what does that say about the process's registry at the time of the call? Why should you not jump to the same conclusion for another JVM?
 
-## Tài liệu API chính thức (Java 17)
+## Official API Documentation (Java 17)
 
 - [`Security` — `getProviders`, `getAlgorithms`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Security.html)
 - [`Provider` — `getServices`, `getService`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Provider.html)
-- [`Provider.Service` — cấu trúc descriptor và các phương thức](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Provider.Service.html)
+- [`Provider.Service` — descriptor structure and methods](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Provider.Service.html)
 - [JCA Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html)

@@ -1,25 +1,25 @@
-# 17.4 Phân biệt thời gian riêng của phương thức với chi phí qua các lời gọi con
+# 17.4 Distinguishing a Method's Own Time from Costs Through Child Calls
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Khi đọc Java Flight Recorder (JFR), Java Mission Control (JMC), call tree, flame graph hoặc báo cáo CPU profiler, cùng một phương thức có thể xuất hiện với hai con số rất khác nhau: **self/exclusive** và **total/inclusive**. Một phương thức có self thấp nhưng total cao có thể là nơi **điều phối** những lời gọi tốn kém; một phương thức có self cao có thể thực sự tiêu nhiều CPU ở phần thân của nó. Nếu không phân biệt được hai cách tính, ta dễ tối ưu sai vị trí hoặc gán nhầm độ trễ của database, GC hay thread waiting cho một hàm Java.
+When reading Java Flight Recorder (JFR), Java Mission Control (JMC), call trees, flame graphs, or CPU profiler reports, the same method can appear with two very different numbers: **self/exclusive** and **total/inclusive**. A method with low self yet high total may simply be **orchestrating** expensive calls; a method with high self may actually be consuming heavy CPU in its own body. If you cannot distinguish the two calculations, it is easy to optimize the wrong place or misattribute database, GC, or thread-waiting latency to a Java method.
 
-Bài này đặt trong ngữ cảnh **CPU, JIT và lớp**: tập trung vào việc đọc mẫu stack của JFR, phân tích cấu trúc lời gọi và hiểu tác động của inlining/JIT, chứ không biến các số từ sampler thành thời gian thực thi chính xác từng lời gọi.
+This lesson is framed within **CPU, JIT, and classes**: it focuses on reading JFR stack samples, analyzing call structures, and understanding the effect of inlining/JIT, rather than turning sampler counts into exact per-call execution durations.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích self/exclusive và total/inclusive, cách tính và mối quan hệ với cây lời gọi.
-2. Đọc đúng Hot Methods, Call Tree và flame graph trên dữ liệu CPU samples.
-3. Phân biệt chi phí CPU của phương thức với elapsed/wall-clock time, thời gian blocked/waiting và latency end-to-end.
-4. Hiểu tại sao recursion, cùng phương thức xuất hiện ở nhiều nhánh, stack truncation, JIT inlining và sampling khiến số liệu dễ bị hiểu sai.
-5. Truy từ phương thức total cao sang lời gọi con tạo chi phí và từ phương thức self cao tới đoạn mã cần đo/đánh giá.
-6. Dùng JFR/JMC và số liệu bên ngoài để tạo giả thuyết hiệu suất có thể kiểm chứng; tránh kết luận root cause từ một thanh flame graph.
+1. Explain self/exclusive and total/inclusive, how they are computed, and their relationship to the call tree.
+2. Correctly read Hot Methods, Call Tree, and flame graphs over CPU sample data.
+3. Distinguish a method's CPU cost from elapsed/wall-clock time, blocked/waiting time, and end-to-end latency.
+4. Understand why recursion, the same method appearing in multiple branches, stack truncation, JIT inlining, and sampling cause metrics to be misread.
+5. Trace from a high-total method down to the child calls creating cost and from a high-self method to the code needing measurement/evaluation.
+6. Use JFR/JMC and external metrics to form testable performance hypotheses; avoid declaring a root cause from a single flame graph bar.
 
-Phạm vi: Java 17+ (HotSpot/OpenJDK, ví dụ lệnh theo JDK 21). Tên cột, cách tổng hợp và đơn vị của profiler có thể khác nhau; luôn kiểm tra **dữ liệu đầu vào là sample count, estimated CPU time, instrumented wall time hay một loại metric khác**.
+Scope: Java 17+ (HotSpot/OpenJDK, command examples for JDK 21). Column names, aggregation rules, and profiler units may differ; always verify whether **the input data is sample count, estimated CPU time, instrumented wall time, or another metric**.
 
-## 1. Mô hình cơ bản: phương thức và cây lời gọi
+## 1. Fundamental Model: Methods and Call Trees
 
-Xét một đường gọi đồng bộ:
+Consider a synchronous call path:
 
 ~~~text
 main()
@@ -30,27 +30,27 @@ main()
             -> Formatter.render()
 ~~~
 
-Tại thời điểm thread đang chạy trong Repository.query(), stack có thể chứa main, Controller.handle, Service.execute và Repository.query(). Nếu bạn hỏi “code đang chạy **ở frame nào**?”, câu trả lời thường là frame ở **đỉnh stack** (leaf trong cây từ caller xuống callee). Nếu bạn hỏi “lời gọi Controller.handle() chịu trách nhiệm cho bao nhiêu công việc trên toàn nhánh?”, phải tính cả những hoạt động xảy ra trong các phương thức con.
+At the moment the thread is running inside `Repository.query()`, the stack may contain `main`, `Controller.handle`, `Service.execute`, and `Repository.query`. If you ask "at **which frame** is code currently executing?", the answer is usually the frame at the **top of the stack** (a leaf in the caller-to-callee tree). If you ask "how much work across the whole branch is the `Controller.handle()` call responsible for?", you must include activity occurring in child methods.
 
-Hai khái niệm:
+Two concepts:
 
-- **Self time / exclusive cost (chi phí riêng):** phần thời gian hoặc số mẫu được quy cho chính phương thức đó, **không cộng công việc bên trong các lời gọi con** theo mô hình đo đang dùng.
-- **Total time / inclusive cost (chi phí bao gồm):** phần thời gian hoặc số mẫu được quy cho phương thức đó **và toàn bộ lời gọi con** bên dưới nó trên đường gọi được xét.
+- **Self time / exclusive cost:** the portion of time or samples attributed to that method itself, **excluding work inside child calls** under the measurement model in use.
+- **Total time / inclusive cost:** the portion of time or samples attributed to that method **plus all child calls** beneath it along the examined call path.
 
-Trong cây một thread thực thi tuần tự, không chồng lấp, dùng cùng một đồng hồ đo và dữ liệu instrument đầy đủ:
+In a single-threaded sequential execution tree with no overlap, using the same clock and complete instrumentation data:
 
 ~~~text
 inclusive(A) = exclusive(A)
              + inclusive(B) + inclusive(C) + ...
 ~~~
 
-ở đây B, C là **những lời gọi con trực tiếp của đúng một lần gọi A**, không phải mọi method trùng tên trên toàn ứng dụng. Biểu thức này không tự áp dụng cho nhiều thread song song, lời gọi bất đồng bộ, vòng đệ quy đã gộp thành method-level row, hay dữ liệu sampling khi thiếu mẫu. Một phương thức gọi con nhiều lần thì tổng bao gồm các lần gọi tương ứng, nếu dữ liệu đo đủ và không đếm trùng.
+Here `B, C` are the **direct child calls of one single invocation of A**, not every method with the same name across the application. This identity does not automatically hold for multiple parallel threads, asynchronous calls, recursive loops collapsed into a method-level row, or sampling data with missing samples. When a method calls a child multiple times, its total includes all corresponding invocations, assuming complete measurement without double counting.
 
-**Nguyên tắc:** self trả lời “thời gian/mẫu nằm ở chính thân A bao nhiêu?”, inclusive trả lời “khi stack đi qua A, cả nhánh đó chiếm bao nhiêu?”. Chúng trả lời **hai câu hỏi khác nhau**, không phải hai phép đo mâu thuẫn.
+**Principle:** self answers "how much time/samples sit in A's own body?", while inclusive answers "when the stack passes through A, how much does that entire branch account for?". They answer **two different questions**, not two conflicting measurements.
 
-## 2. Ví dụ tính theo thời gian elapsed, đồng bộ và không chồng lấp
+## 2. Example Calculation Using Sequential, Non-Overlapping Elapsed Time
 
-Giả sử một request thực hiện đúng cấu trúc tuần tự sau. Các giá trị là **số liệu minh họa**, không phải JFR đã đo được:
+Suppose a request executes the exact sequential structure below. The values are **illustrative figures**, not measured JFR data:
 
 ~~~text
 Controller.handle()       total 120 ms
@@ -59,114 +59,114 @@ Controller.handle()       total 120 ms
 └── Formatter.encode()     total  20 ms
 ~~~
 
-Nếu không có lời gọi con khác và không xảy ra overlap:
+If there are no other child calls and no overlap occurs:
 
-| Phương thức | Total / inclusive wall time | Thời gian trong con trực tiếp | Self / exclusive wall time |
+| Method | Total / inclusive wall time | Time in direct children | Self / exclusive wall time |
 | --- | ---: | ---: | ---: |
 | Controller.handle | 120 ms | 90 + 20 = 110 ms | 10 ms |
 | Repository.load | 90 ms | 85 ms | 5 ms |
 | Socket.read | 85 ms | 0 ms | 85 ms |
 | Formatter.encode | 20 ms | 0 ms | 20 ms |
 
-Tổng self của các node trong cây là 10 + 5 + 85 + 20 = **120 ms**, khớp thời lượng của lời gọi Controller.handle, với các giả định ở trên. Nhưng tổng các giá trị inclusive ở những hàng là 120 + 90 + 85 + 20 = **315 ms**: đó là **đếm lại cùng những khoảng thời gian** ở nhiều cấp caller/callee, không phải request kéo dài 315 ms.
+The sum of self across all nodes in the tree is 10 + 5 + 85 + 20 = **120 ms**, matching the duration of the `Controller.handle` call under the assumptions above. Yet the sum of the inclusive values across the rows is 120 + 90 + 85 + 20 = **315 ms**: that **re-counts the same time intervals** across multiple caller/callee levels, not a 315 ms request.
 
-Cách đọc đúng:
+How to read this properly:
 
-- Controller.handle có total 120 ms nhưng self chỉ 10 ms: tối ưu những lệnh riêng trong controller tối đa chỉ tác động tới một phần nhỏ thời gian nếu không thay đổi cách gọi con.
-- Repository.load có total 90 ms nhưng self 5 ms: phần lớn thời gian do Socket.read bên dưới; nên điều tra network/database, connection handling hoặc mô hình truy vấn trước khi tối ưu vài dòng Java trong repository.
-- Socket.read có self wall time 85 ms nhưng **không có nghĩa đã dùng 85 ms CPU**. Thread có thể đang chờ dữ liệu, tiêu rất ít CPU.
-- Formatter.encode có self wall time 20 ms: nếu thực sự chạy CPU-bound, đây có thể là đối tượng tối ưu CPU; cần profiler đo CPU để xác minh.
+- `Controller.handle` has total 120 ms yet self is only 10 ms: optimizing instructions inside the controller itself can affect at most a small fraction of time unless you change how it invokes its children.
+- `Repository.load` has total 90 ms yet self 5 ms: most time comes from `Socket.read` underneath; investigate network/database, connection handling, or query patterns before optimizing a few Java lines in the repository.
+- `Socket.read` has self wall time 85 ms, which **does not mean it used 85 ms of CPU**. The thread may be waiting for data while consuming very little CPU.
+- `Formatter.encode` has self wall time 20 ms: if it is genuinely CPU-bound, it may be a CPU optimization target; verify with a CPU profiler.
 
-Đây là ví dụ theo **wall-clock instrumentation**. Đừng mang các con số wall này gắn nhãn là CPU samples của JFR.
+This example uses **wall-clock instrumentation**. Do not label these wall numbers as JFR CPU samples.
 
-### Tại sao phương thức total cao không nhất thiết là thủ phạm?
+### Why Is a High-Total Method Not Necessarily the Culprit?
 
-Controller là điểm bao ngoài của request nên tự nhiên có total cao. Với request handler, thread root, servlet dispatch, executor worker, framework interceptor hoặc một vòng xử lý, inclusive thường cao vì **đầu mối gọi nhiều công việc**, không phải do thân method tự chậm. Hãy mở rộng các node con tới điểm chi phí tập trung; sau đó xét liệu đây là CPU computation, blocking I/O, scheduling hay waiting.
+A controller is the outer wrapper of a request, so it naturally has high total. For request handlers, thread roots, servlet dispatchers, executor workers, framework interceptors, or processing loops, inclusive is usually high because they are **coordination hubs calling lots of work**, not because the method body itself is slow. Expand child nodes down to where cost concentrates, then classify whether it is CPU computation, blocking I/O, scheduling, or waiting.
 
-## 3. Công thức đọc kết quả từ CPU sampling
+## 3. Formulas for Reading CPU Sampling Results
 
-JFR thường hỗ trợ **stack sampling** để tìm các đường thực thi nóng. Khi lấy mẫu, công cụ quan sát stack của những thread phù hợp tại các thời điểm, tạo các event như jdk.ExecutionSample (theo cấu hình/JDK). Mỗi mẫu là một snapshot, không phải một lời gọi method hoàn chỉnh có start/end.
+JFR typically supports **stack sampling** to locate hot execution paths. When sampling, the tool inspects stacks of eligible threads at points in time, emitting events such as `jdk.ExecutionSample` (depending on settings/JDK). Each sample is a snapshot, not a complete method invocation with start and end timestamps.
 
-Giả sử có N mẫu được chọn trong một time window và mỗi mẫu là một chuỗi stack từ caller đến frame đang thực thi. Với phương thức M, nếu tổng hợp theo **method identity** (không theo từng node đường gọi):
+Suppose `N` samples are selected in a time window and each sample is a stack chain from caller to executing frame. For method `M`, when aggregating by **method identity** (not per call-path node):
 
-- **Self samples(M):** số mẫu mà M là frame thực thi/leaf được quy cho mẫu.
-- **Inclusive samples(M):** số mẫu có M xuất hiện ở bất kỳ vị trí phù hợp nào trong stack, theo quy tắc aggregation của công cụ.
-- **Self share(M):** self samples(M) / N, nếu N là đúng tập mẫu và cùng bộ lọc.
-- **Inclusive share(M):** inclusive samples(M) / N, nếu mỗi mẫu chỉ được tính một lần cho method M ở phép tổng hợp đó.
+- **Self samples(M):** the number of samples where `M` is the executing/leaf frame attributed to the sample.
+- **Inclusive samples(M):** the number of samples where `M` appears in any eligible position on the stack, per the tool's aggregation rules.
+- **Self share(M):** `self samples(M) / N`, when `N` is the exact sample set under the same filter.
+- **Inclusive share(M):** `inclusive samples(M) / N`, when each sample is counted at most once for method `M` in that aggregation.
 
-Ví dụ có 100 samples:
+Example with 100 samples:
 
-| Method | Self samples | Inclusive samples | Cách hiểu |
+| Method | Self samples | Inclusive samples | Interpretation |
 | --- | ---: | ---: | --- |
-| Controller.handle | 3 | 80 | Rất thường nằm trên stack, nhưng ít mẫu dừng ở phần thân của chính nó |
-| Repository.lookup | 2 | 60 | Nhánh gọi con của repository nổi bật |
-| Parser.parse | 35 | 35 | Nhiều mẫu có Parser.parse là frame thực thi |
-| Hash.compute | 25 | 25 | Hotspot self đáng xem |
-| Thread.run | 0 | 100 | Root bao toàn bộ thread được chọn, không có nghĩa Thread.run tốn CPU riêng |
+| Controller.handle | 3 | 80 | Very often on the stack, but few samples stop inside its own body |
+| Repository.lookup | 2 | 60 | Repository's child call branch is prominent |
+| Parser.parse | 35 | 35 | Many samples have `Parser.parse` as the executing frame |
+| Hash.compute | 25 | 25 | Notable self hotspot worth inspecting |
+| Thread.run | 0 | 100 | Root wrapping all selected threads; does not mean `Thread.run` uses CPU itself |
 
-Các hàng chỉ minh họa cách đọc, không yêu cầu self sum của 5 hàng bằng 100 vì bảng không liệt kê đủ mọi method. **Inclusive share của nhiều method có thể cùng cao và tổng vượt 100%**: một sample có thể đồng thời đóng góp cho Controller.handle, Repository.lookup và Hash.compute vì cả ba nằm trên một stack.
+The rows only illustrate how to read the numbers, and do not require the self sum of these 5 rows to equal 100 because the table does not list every method. **Inclusive share across multiple methods can each be high and sum past 100%**: one sample can simultaneously contribute to `Controller.handle`, `Repository.lookup`, and `Hash.compute` because all three lie on the same stack.
 
-Cũng không được phát biểu “inclusive 80 samples = 80 ms CPU” nếu profiler không đưa mô hình chuyển đổi có căn cứ. Sampling có thể không đều, bị trễ hoặc ưu tiên một số thread; sample count trước hết là **tần suất quan sát tương đối**, không phải bộ đếm chính xác thời gian thực thi.
+Nor may you state "80 inclusive samples = 80 ms of CPU" unless the profiler provides a grounded conversion model. Sampling can be uneven, delayed, or skewed toward certain threads; sample counts are primarily **relative observation frequency**, not an exact execution-time counter.
 
-### Self ở Hot Methods và self ở Call Tree có thể khác phạm vi
+### Self in Hot Methods vs. Self in Call Tree Can Differ in Scope
 
-Một hàng trong **Hot Methods** có thể gom các mẫu của cùng method từ **mọi đường gọi**. Một node trong **Call Tree** thường gắn với **một đường gọi cụ thể**. Cùng method có thể xuất hiện nhiều lần ở các node khác nhau, mỗi node có inclusive/self riêng. Vì vậy không so một dòng Hot Methods với một node Call Tree rồi gọi chúng mâu thuẫn nếu bạn chưa đồng nhất phạm vi.
+A row in **Hot Methods** can combine samples for the same method from **all call paths**. A node in **Call Tree** is typically tied to **one specific call path**. The same method can appear in multiple different nodes, each with its own inclusive/self. Therefore, do not compare a Hot Methods row against a single Call Tree node and claim they contradict without aligning scope first.
 
-## 4. Ba góc nhìn: Hot Methods, Call Tree và flame graph
+## 4. Three Views: Hot Methods, Call Tree, and Flame Graph
 
-### 4.1. Hot Methods: “self ở đâu tập trung?”
+### 4.1. Hot Methods: "Where Is Self Concentrated?"
 
-Một danh sách hot methods thường giúp tìm những frame thường xuất hiện ở nơi thực thi thực tế hoặc có exclusive cost cao. Sử dụng nó để tìm các phép toán, vòng lặp, parser, serializer, hashing, regex, compression hoặc các thư viện có thể chiếm CPU.
+A hot methods list helps find frames that appear frequently at active execution points or carry high exclusive cost. Use it to spot math, loops, parsers, serializers, hashing, regexes, compression, or libraries likely consuming CPU.
 
-Cần kiểm tra:
+Check:
 
-- Cột dùng self, total hay count? Tool có gom theo thread, method, stack path hay class?
-- Các method có overload/tên giống nhau không? Phân biệt class, signature, classloader nếu cần.
-- Số samples đủ đại diện không? Có sample bias hoặc missing stacks không?
-- CPU thực tế của process/thread có cao trong khoảng đó không?
-- Method có JIT inlining, compiled/native frames hoặc bị thiếu metadata làm hiển thị khác dự kiến không?
+- Does the column show self, total, or count? Does the tool group by thread, method, stack path, or class?
+- Are there overloaded methods or identical names? Distinguish class, signature, and classloader when needed.
+- Is the sample count representative? Is there sample bias or missing stacks?
+- Was actual process/thread CPU high during that interval?
+- Does the method involve JIT inlining, compiled/native frames, or missing metadata altering display?
 
-Hot method self cao **gợi ý** vùng tính toán nóng, nhưng chưa đo mức cải thiện khi sửa và chưa chứng minh đó là critical path của request bị chậm.
+A high-self hot method **suggests** a hot compute area, but has not yet measured the gain of changing it or proven it sits on the critical path of slow requests.
 
-### 4.2. Call Tree, top-down: “chi phí đi qua nhánh nào?”
+### 4.2. Call Tree, Top-Down: "Which Branch Does the Cost Flow Through?"
 
-Bắt đầu từ entry/root (Thread.run, request dispatcher, task/executor hoặc method được chọn), đi xuống các caller→callee. Ở mỗi node:
+Start from an entry/root (`Thread.run`, request dispatcher, task/executor, or selected method) and walk caller → callee. At each node:
 
-1. Xem inclusive share của node so với mẫu đã chọn.
-2. Xem self share của node.
-3. Nếu inclusive cao nhưng self thấp, **mở rộng con**.
-4. Tiếp tục tìm node con có self cao hoặc nhánh chiếm phần đáng kể.
-5. Xác minh đây là path thuộc workload cần tối ưu, không phải background worker/GC/compiler thread.
+1. Check the node's inclusive share relative to the selected samples.
+2. Check the node's self share.
+3. If inclusive is high while self is low, **expand children**.
+4. Keep descending to find child nodes with high self or branches taking a substantial share.
+5. Verify this path belongs to the workload you want to optimize, rather than background worker/GC/compiler threads.
 
-**Tỷ lệ trên nhánh:** Một node con chiếm 70% mẫu **của cha** có thể chỉ chiếm 7% tổng samples toàn recording nếu cha chỉ chiếm 10%. Hãy xem denominator ở từng cột/view, tránh đọc tỷ lệ theo cha thành phần trăm CPU toàn hệ thống.
+**Branch percentages:** A child node taking 70% of its **parent's** samples may represent only 7% of total samples across the recording if the parent accounts for only 10%. Always check the denominator of each column/view to avoid reading parent-relative percentages as system-wide CPU percentages.
 
-### 4.3. Bottom-up / caller tree: “phương thức nóng được gọi từ đâu?”
+### 4.3. Bottom-Up / Caller Tree: "Where Is the Hot Method Called From?"
 
-Bắt đầu từ một method self cao (ví dụ Parser.parse), mở các caller phía trên để biết ai kích hoạt nó: endpoint A, batch B hay framework C. Cách này hữu ích khi cùng method được gọi từ nhiều đường nhưng **chỉ một đường** gây bottleneck.
+Start from a high-self method (for example `Parser.parse`) and expand callers above it to see what triggers it: endpoint A, batch B, or framework C. This is valuable when the same method is invoked from many paths yet **only one path** creates the bottleneck.
 
-Ví dụ Parser.parse có 40 samples self toàn ứng dụng:
-- 30 samples thuộc endpoint /import với payload rất lớn;
-- 10 samples thuộc endpoint /preview với payload nhỏ.
+For example, `Parser.parse` has 40 self samples across the application:
+- 30 samples belong to `/import` with huge payloads;
+- 10 samples belong to `/preview` with small payloads.
 
-Tối ưu Parser.parse có thể tác động cả hai, nhưng điều tra ngữ cảnh /import giúp biết có nên streaming hoặc giảm parse lặp. Nếu bạn chỉ nhìn Hot Methods, dễ bỏ qua **lời gọi nào** làm tăng nhu cầu xử lý.
+Optimizing `Parser.parse` may help both, yet inspecting the `/import` context reveals whether streaming or cutting repeated parses is needed. Looking only at Hot Methods makes it easy to miss **which caller** drives the processing demand.
 
-### 4.4. Flame graph: chiều rộng không bằng số lần gọi
+### 4.4. Flame Graph: Width Does Not Equal Call Count
 
-Trong flame graph CPU sampling:
+In a CPU sampling flame graph:
 
-- Mỗi stack sample đóng góp vào việc tổng hợp chiều rộng của các frame trên đường gọi.
-- Một node cha rộng do bao nhiều stack samples; một node lá rộng do xuất hiện thường xuyên ở phần thực thi.
-- Độ cao thể hiện độ sâu stack; không phải thời lượng.
-- Trục ngang thường là bố cục gộp stack, **không phải dòng thời gian** như timeline event.
-- Màu sắc trong nhiều flame graph chỉ hỗ trợ phân biệt/nhóm, **không mặc định là mức cảnh báo hoặc nhiệt độ CPU**.
+- Each stack sample contributes to aggregating the width of the frames along its call path.
+- A parent node is wide because it encloses many stack samples; a leaf node is wide because it frequently appears at the executing tip.
+- Height represents stack depth, not duration.
+- The horizontal axis is usually a grouped stack layout, **not a chronological timeline** like timeline events.
+- Colors in many flame graphs only aid distinction/grouping, and **do not by default indicate severity or CPU temperature**.
 
-Nếu có 60% mẫu đi qua Controller.handle và 35% có Parser.parse ở leaf, không thể nói controller mất 60% CPU **ngoài** 35% CPU của parser. Hai phần có quan hệ bao hàm, không được cộng như hai khoản độc lập.
+If 60% of samples pass through `Controller.handle` and 35% have `Parser.parse` at the leaf, you cannot say the controller spends 60% CPU **on top of** the parser's 35% CPU. The two have a containment relationship and cannot be added as two independent expenses.
 
-## 5. Cách kiểm tra phép tính theo sample stack cụ thể
+## 5. How to Verify Calculations Using Concrete Stack Samples
 
-Giả sử 20 stack samples, đã gom các stack giống nhau. Mỗi dòng được viết **leaf → root**; tần suất là số samples:
+Suppose we have 20 stack samples, with identical stacks grouped. Each line is written **leaf → root**; frequency is the sample count:
 
-| Tần suất | Stack (leaf → root) |
+| Frequency | Stack (leaf → root) |
 | ---: | --- |
 | 6 | Parser.parse → Service.handle → Thread.run |
 | 4 | Sorter.sort → Service.handle → Thread.run |
@@ -174,27 +174,27 @@ Giả sử 20 stack samples, đã gom các stack giống nhau. Mỗi dòng đư�
 | 2 | Service.handle → Thread.run |
 | 5 | Scheduler.idle → Thread.run |
 
-Kết quả:
+Result:
 
-| Method | Self samples | Inclusive samples | Giải thích |
+| Method | Self samples | Inclusive samples | Explanation |
 | --- | ---: | ---: | --- |
-| Parser.parse | 6 | 6 | Chỉ xuất hiện ở leaf |
-| Sorter.sort | 4 | 4 | Chỉ xuất hiện ở leaf |
-| Hash.compute | 3 | 3 | Chi phí riêng của hash |
-| Cache.lookup | 0 | 3 | Chỉ là caller của hash trong mẫu này |
-| Service.handle | 2 | 15 | Góp mặt ở 6 + 4 + 3 + 2 samples |
-| Scheduler.idle | 5 | 5 | 5 mẫu còn lại ở nhánh khác |
-| Thread.run | 0 | 20 | Root của mọi stack được chọn |
+| Parser.parse | 6 | 6 | Only appears at the leaf |
+| Sorter.sort | 4 | 4 | Only appears at the leaf |
+| Hash.compute | 3 | 3 | Self cost of hashing |
+| Cache.lookup | 0 | 3 | Only a caller of hash in these samples |
+| Service.handle | 2 | 15 | Present in 6 + 4 + 3 + 2 samples |
+| Scheduler.idle | 5 | 5 | Remaining 5 samples on another branch |
+| Thread.run | 0 | 20 | Root of all selected stacks |
 
-**Kiểm tra bảo toàn ở node Service.handle:** self 2 + inclusive của ba nhánh con (6 + 4 + 3) = 15. Nhưng nếu cộng inclusive của Service.handle (15) với inclusive của các con (6 + 4 + 3) bạn đã đếm trùng.
+**Conservation check at node `Service.handle`:** self 2 + inclusive of its three child branches (6 + 4 + 3) = 15. Yet if you add `Service.handle`'s inclusive (15) to its children's inclusive (6 + 4 + 3), you double-count.
 
-Ví dụ này cố ý dùng **mẫu tổng hợp giả lập**, không phải thời gian CPU thực hay output mặc định của JMC. Với sản phẩm thật, phải biết công cụ đang tính theo mẫu/stack, trọng số, số lượng samples và bộ lọc thread/time window.
+This example intentionally uses **synthetic aggregate samples**, not real CPU time or default JMC output. With real tools, know whether the tool computes by sample/stack, weight, sample count, and thread/time-window filters.
 
-## 6. Điểm dễ sai: đệ quy và phương thức xuất hiện nhiều lần
+## 6. Easy-to-Miss Edge Cases: Recursion and Multi-Occurrence Methods
 
-### 6.1. Một method ở hai cấp của cùng stack
+### 6.1. One Method at Two Levels of the Same Stack
 
-Ví dụ recursion:
+Recursion example:
 
 ~~~text
 Worker.run()
@@ -203,192 +203,192 @@ Worker.run()
             -> Factorial.compute(3)
 ~~~
 
-Nếu một sample có stack chứa Factorial.compute **ba lần**, khi tổng hợp theo **method identity**, inclusive samples của Factorial.compute thường nên tính **một sample có method đó** (để không vượt quá số samples vì recursion). Nhưng khi hiển thị **call tree theo đường gọi**, ba node Factorial.compute tại ba độ sâu là ba invocation/path khác nhau; cùng sample có thể góp vào inclusive của từng node.
+If a sample has a stack containing `Factorial.compute` **three times**, when aggregating by **method identity**, `Factorial.compute`'s inclusive samples should normally count **one sample containing that method** (so inclusive cannot exceed total samples due to recursion). Yet when displaying a **call-path call tree**, the three `Factorial.compute` nodes at three depths are three distinct invocations/paths; the same sample can contribute to each node's inclusive count.
 
-Hai kiểu biểu diễn phục vụ hai mục đích:
+The two representations serve two purposes:
 
-- **Method aggregate:** “Method Factorial.compute xuất hiện trong bao nhiêu samples?”. Cần tránh đếm trùng method trong cùng stack nếu định nghĩa inclusive là số samples có method.
-- **Call-path/node aggregate:** “Ở độ sâu/lời gọi cụ thể này, có bao nhiêu samples thuộc nhánh?”. Có thể hiển thị nhiều node cùng method, và các node này bao nhau.
+- **Method aggregate:** "In how many samples does method `Factorial.compute` appear?". Avoid counting the same method multiple times within one sample when defining inclusive as the number of samples containing the method.
+- **Call-path/node aggregate:** "At this specific depth/call, how many samples belong to this branch?". Multiple nodes for the same method can be shown, and these nodes nest inside each other.
 
-Đối chiếu cách tool hiển thị recursion; đừng khẳng định mọi profiler đều dùng công thức tổng hợp giống nhau, đặc biệt khi method-level rows và call-path nodes dùng cách tính khác.
+Check how your tool displays recursion; do not claim every profiler uses the exact same aggregation formula, especially when method-level rows and call-path nodes compute differently.
 
-### 6.2. Một method được gọi bởi nhiều cha
+### 6.2. One Method Called by Multiple Parents
 
 ~~~text
 RequestA.handle() -> JsonParser.parse()
 RequestB.handle() -> JsonParser.parse()
 ~~~
 
-Hot Methods gom JsonParser.parse self samples trên cả RequestA/RequestB. Call Tree tách hai nhánh. Inclusive của RequestA và RequestB chỉ bao những samples thuộc nhánh tương ứng; inclusive của JsonParser.parse trong Hot Methods có thể gom hai tập này. Để quyết định sửa parser hay chỉ tối ưu RequestB, cần xem caller distribution, payload và SLO theo route.
+Hot Methods combines `JsonParser.parse` self samples across both `RequestA` and `RequestB`. Call Tree separates the two branches. Inclusive for `RequestA` and `RequestB` only includes samples on their respective branches; inclusive for `JsonParser.parse` in Hot Methods can merge both sets. To decide whether to fix the parser or only optimize `RequestB`, inspect caller distribution, payloads, and per-route SLOs.
 
-### 6.3. Vòng lặp gọi nhiều lần không bằng “chi phí một lời gọi”
+### 6.3. A Loop Calling Many Times ≠ "Cost of One Invocation"
 
-Một vòng lặp gọi decode() 100.000 lần có thể tạo nhiều CPU samples dù mỗi lần decode rẻ. Profiler sampling không tự cho bạn count chính xác hoặc độ dài riêng **mỗi invocation**. Muốn quyết định nên giảm số lời gọi, memoize hay tối ưu body, cần bổ sung invocation count, allocation metrics, benchmark phù hợp và đo với workload thực. “Self 20%” không cho biết decode() được gọi 10 hay 10 triệu lần.
+A loop calling `decode()` 100,000 times can generate many CPU samples even if each `decode()` is cheap. Sampling profilers do not automatically give exact counts or individual duration **per invocation**. To decide whether to reduce call count, memoize, or optimize the body, add invocation counts, allocation metrics, proper benchmarks, and measure with a realistic workload. "Self 20%" does not tell you whether `decode()` ran 10 or 10 million times.
 
-## 7. CPU time khác wall-clock elapsed time
+## 7. CPU Time Differs from Wall-Clock Elapsed Time
 
-Đây là ranh giới quan trọng nhất khi nói “chi phí qua lời gọi con” trong module CPU/JIT:
+This is the most critical boundary when discussing "cost through child calls" in the CPU/JIT module:
 
-- **Wall-clock/elapsed:** thời gian trôi qua từ lúc lời gọi bắt đầu đến kết thúc, có thể gồm CPU running, waiting I/O, locks, sleep, scheduling và tác động thread khác.
-- **Thread CPU time:** thời gian CPU thực tế được OS quy cho thread, không bao gồm đa phần thời gian thread blocked/sleeping; chi tiết theo OS/JVM.
-- **Process CPU time:** tổng CPU mà các threads trong process tiêu thụ; trong 1 giây wall có thể dùng hơn 1 giây CPU nếu chạy trên nhiều core.
-- **JFR execution samples:** các mẫu stack thực thi được ghi theo cấu hình; tỷ lệ mẫu giúp định vị nơi chạy code, **không tự là đồng hồ đo duration chính xác**.
+- **Wall-clock/elapsed:** time elapsed from call start to finish; can include running on CPU, waiting on I/O, locks, sleep, scheduling, and interference from other threads.
+- **Thread CPU time:** actual CPU time attributed by the OS to the thread, excluding most blocked/sleeping time; exact details vary by OS/JVM.
+- **Process CPU time:** total CPU consumed by threads in the process; within 1 wall second, more than 1 CPU second can be used across multiple cores.
+- **JFR execution samples:** recorded execution stack snapshots per configuration; sample share locates where code runs and **is not itself an exact duration timer**.
 
-Giả sử trong một request 200 ms:
-- 18 ms CPU tính toán trên thread request;
-- 160 ms chờ network/DB;
-- 22 ms khác (đợi queue, scheduling, serialization trên thread khác hoặc hoạt động xen kẽ).
+Suppose in a 200 ms request:
+- 18 ms of CPU computation on the request thread;
+- 160 ms waiting on network/DB;
+- 22 ms other (queue wait, scheduling, serialization on another thread, or interleaved work).
 
-Một CPU flame graph có thể làm phần 18 ms nổi bật và **không thể hiện trực tiếp** 160 ms chờ. Nếu gán 70% CPU samples cho Parser.parse, điều đó không nghĩa parser gây 70% của 200 ms end-to-end latency.
+A CPU flame graph can highlight the 18 ms portion and **not directly show** the 160 ms wait. Attributing 70% of CPU samples to `Parser.parse` does not mean the parser causes 70% of the 200 ms end-to-end latency.
 
-Ngược lại, trong profiler instrumented wall time, Repository.load có total 160 ms vì chờ I/O, còn self của Socket.read có thể rất lớn theo wall. Hai báo cáo cùng nói “time” nhưng dùng **khác đồng hồ đo**. Luôn ghi đơn vị và nguồn.
+Conversely, in an instrumented wall-time profiler, `Repository.load` shows total 160 ms because of I/O waiting, while `Socket.read`'s self may be huge in wall time. Both reports say "time" yet use **different clocks**. Always state units and source.
 
-### 7.1. Không lấy tổng thời gian con khi các con chạy song song
+### 7.1. Do Not Sum Child Times When Children Run in Parallel
 
-Nếu một phương thức dispatch hai tasks chạy đồng thời, mỗi task mất 80 ms wall và cha hoàn tất sau 100 ms wall, tổng durations của các con có thể là 160 ms > 100 ms. Công thức “inclusive cha = self + tổng inclusive con” theo **mốc wall-clock không chồng lấp** không còn đúng cho mô hình công việc song song.
+If a method dispatches two tasks concurrently, each taking 80 ms wall time while the parent finishes in 100 ms wall time, the sum of child durations can be 160 ms > 100 ms. The identity "parent inclusive = self + sum of child inclusives" under **non-overlapping wall-clock intervals** no longer holds for parallel work models.
 
-Cần phân biệt:
-- **Critical-path latency:** nhánh thực thi nối tiếp dài nhất mà người dùng phải chờ.
-- **Total CPU work:** tổng CPU trên các tasks/threads; có thể lớn hơn wall duration.
-- **Sum of child durations:** lượng công việc gộp, có thể đếm overlap và không phản ánh response time.
+Distinguish:
+- **Critical-path latency:** the longest sequential execution chain the user must wait for.
+- **Total CPU work:** total CPU across tasks/threads; can exceed wall duration.
+- **Sum of child durations:** combined work, which can count overlap and fail to reflect response time.
 
-Ví dụ StructuredTaskScope, CompletableFuture, executor pools và virtual threads càng cần nhìn trace/context liên kết thay vì tưởng stack của một thread chứa mọi công việc bất đồng bộ. JFR stack của một sampled thread không tự nối các call chains xuyên thread.
+With `StructuredTaskScope`, `CompletableFuture`, executor pools, and virtual threads, you especially need linked traces/contexts rather than assuming one thread's stack contains all asynchronous work. A JFR stack of one sampled thread does not automatically stitch cross-thread call chains.
 
-### 7.2. Thread state là một bộ lọc quan trọng
+### 7.2. Thread State Is a Crucial Filter
 
-HotSpot JFR method profiling theo execution sampling thiên về threads đang thực thi Java code; threads đang sleeping, waiting for lock hoặc blocking I/O có thể không được phản ánh tương xứng trong các event mẫu chạy CPU. Để tìm bottleneck thời gian chờ, hãy xem event chờ/park/monitor/socket/file và distributed traces, không chỉ Hot Methods.
+HotSpot JFR method profiling via execution sampling favors threads actively executing Java code; threads sleeping, waiting on locks, or blocking on I/O may be underrepresented in CPU-running sample events. To find waiting bottlenecks, inspect wait/park/monitor/socket/file events and distributed traces, not just Hot Methods.
 
-Nếu CPU thấp nhưng p99 cao, **đừng kết luận code Java không có bottleneck** từ một flame graph thưa; ứng dụng có thể chờ pool, DB, network, disk hoặc bị backpressure. Tùy JFR configuration, có thể có NativeMethodSample và các event khác; không gom chúng với ExecutionSample khi chưa hiểu semantics.
+If CPU is low while p99 is high, **do not conclude Java code has no bottleneck** from a sparse flame graph; the application may be waiting on pools, DB, network, disk, or backpressure. Depending on JFR configuration, `NativeMethodSample` and other events may exist; do not merge them with `ExecutionSample` without understanding their semantics.
 
-## 8. JFR và JMC: biết chắc số liệu bạn đang xem
+## 8. JFR and JMC: Know for Sure Which Metric You Are Viewing
 
-### 8.1. JFR có thể chứa những nguồn dữ liệu nào?
+### 8.1. Which Data Sources Can a JFR Recording Contain?
 
-Một bản ghi có thể chứa:
-- jdk.ExecutionSample: snapshots của thread thực thi Java, kèm stack trong phạm vi đã thu.
-- jdk.NativeMethodSample: một số snapshots liên quan native code (phạm vi/cách ghi theo JVM).
-- jdk.CPULoad và jdk.ThreadCPULoad: góc nhìn sử dụng CPU qua thời gian.
-- jdk.ThreadPark, jdk.JavaMonitorEnter, jdk.SocketRead, jdk.FileRead...: sự kiện chờ/I/O **nếu đã bật và vượt threshold**.
-- JIT/classloading/compilation/deoptimization events **nếu cấu hình cho phép**, có thể giúp hiểu thời đoạn warm-up.
-- GC events: hoạt động GC, đôi khi cần bổ sung GC logs để diễn giải pause/concurrent phases.
+A recording may contain:
+- `jdk.ExecutionSample`: snapshots of threads executing Java code, with stacks within capture limits.
+- `jdk.NativeMethodSample`: certain snapshots related to native code (scope/capture depends on JVM).
+- `jdk.CPULoad` and `jdk.ThreadCPULoad`: CPU utilization view over time.
+- `jdk.ThreadPark`, `jdk.JavaMonitorEnter`, `jdk.SocketRead`, `jdk.FileRead`, etc.: wait/I/O events **if enabled and above threshold**.
+- JIT/classloading/compilation/deoptimization events **if configuration allows**, which can help explain warm-up windows.
+- GC events: GC activity, sometimes needing GC logs to interpret pauses/concurrent phases.
 
-Danh sách không có nghĩa file của bạn chứa tất cả. Nhiều event có thresholds, periods, filters và stack trace settings riêng. Nếu không có jdk.ExecutionSample, bạn không thể tạo lại CPU call tree đáng tin chỉ từ tổng jdk.CPULoad.
+This list does not guarantee your file contains all of them. Many events have their own thresholds, periods, filters, and stack trace settings. Without `jdk.ExecutionSample`, you cannot reliably reconstruct a CPU call tree from `jdk.CPULoad` totals alone.
 
-### 8.2. Đọc đúng nhãn/đơn vị trong JMC
+### 8.2. Read Labels and Units Correctly in JMC
 
-Trong các phiên bản JMC thường có khu vực Code/Hot Methods/Call Tree. Ở từng view:
+JMC versions typically have a Code/Hot Methods/Call Tree area. In each view:
 
-1. Chọn recording và time range đúng với incident hoặc khoảng tải đại diện.
-2. Kiểm tra thread/event filters: service worker, request threads, background jobs, GC/JIT worker nếu được tách biệt.
-3. Xem cột **Self** hay **Total**, **Samples** hay **Estimated time**, % theo toàn view hay theo parent.
-4. Chú ý số mẫu N, thông báo thiếu dữ liệu và truncated stacks.
-5. Với method total cao, mở rộng children; với method self cao, kiểm tra leaf stacks và callers.
-6. So với CPU process, thread CPU, RPS, payload và p99; tránh chọn method do traffic peak mà không có regression.
-7. Ghi rõ phiên bản JMC, tên view, settings .jfc và khoảng thời gian khi chia sẻ kết quả.
+1. Select the recording and time range matching the incident or representative load window.
+2. Check thread/event filters: service workers, request threads, background jobs, GC/JIT workers if separated.
+3. Check whether columns show **Self** or **Total**, **Samples** or **Estimated time**, and % of the whole view or of the parent.
+4. Watch sample count `N`, missing-data warnings, and truncated stacks.
+5. For high-total methods, expand children; for high-self methods, inspect leaf stacks and callers.
+6. Cross-check with process CPU, thread CPU, RPS, payload, and p99; avoid picking a method caused only by a traffic peak without an actual regression.
+7. Record JMC version, view name, `.jfc` settings, and time window when sharing findings.
 
-Không phải JMC nào cũng có đúng các nhãn cột hay thuật toán nội suy time giống nhau. Đừng mô tả mỗi số trong cột “Time” như thời gian thực thi hoàn chỉnh của method nếu nguồn chỉ là sampled stacks.
+Not every JMC version uses identical column labels or time interpolation algorithms. Never describe every number in a "Time" column as a method's exact complete execution time when the source is only sampled stacks.
 
-### 8.3. Top-down và bottom-up không phải hai tập chi phí khác
+### 8.3. Top-Down and Bottom-Up Are Not Two Different Cost Sets
 
-Top-down gom stacks theo prefix caller → callee; bottom-up gom theo hậu tố callee → caller. Cả hai có thể được tạo từ **cùng tập samples**, chỉ khác phép nhóm. Nếu tổng self samples toàn view thay đổi giữa hai tab, kiểm tra filter, stack truncation, grouping, hidden threads hoặc conversion, thay vì mặc định đây là chứng cứ mới.
+Top-down groups stacks by caller → callee prefix; bottom-up groups by callee → caller suffix. Both can be generated from **the exact same sample set**, differing only in grouping. If the view-wide total self samples change between the two tabs, inspect filters, stack truncation, grouping, hidden threads, or conversions rather than assuming it is new evidence.
 
-## 9. JIT inlining và compiled code làm thay đổi cách nhìn
+## 9. JIT Inlining and Compiled Code Change What You See
 
-### 9.1. Inlining là gì trong bối cảnh profiler?
+### 9.1. What Is Inlining in a Profiler Context?
 
-JIT có thể **inline** một lời gọi: mã máy của method con được gộp vào code đã biên dịch của caller, giảm overhead gọi hàm và mở ra các tối ưu khác. Cấu trúc **Java source call graph** vẫn có lời gọi logic, nhưng ranh giới machine instructions không nhất thiết còn là một call instruction rõ ràng.
+The JIT can **inline** a call: the child method's machine code is merged into the caller's compiled code, removing call overhead and enabling further optimizations. The **Java source call graph** still has the logical call, yet machine instruction boundaries no longer necessarily contain an explicit call instruction.
 
-Phụ thuộc profiler/JVM/compiler metadata, stack trace có thể tái tạo **logical inlined frames** ở mức nào đó hoặc trình bày khác với source-level stack. Vì vậy:
+Depending on profiler/JVM/compiler metadata, stack traces may reconstruct **logical inlined frames** to some degree or display differently from source-level stacks. Therefore:
 
-- Không kết luận “method B không chạy” chỉ vì không thấy B như một frame riêng trong một view.
-- Không kết luận “caller A dùng toàn bộ CPU” nếu B đã inline và công cụ không phân rã được frame như mong muốn.
-- Không khẳng định “B self bằng 0” nghĩa thân B thực thi miễn phí; có thể bị gộp vào caller hoặc thiếu mẫu.
-- Không tin mỗi sample trỏ chính xác line number khi thông tin ánh xạ compiled code không đầy đủ.
+- Do not conclude "method B didn't run" just because B does not appear as a separate frame in one view.
+- Do not conclude "caller A used all the CPU" if B was inlined and the tool did not split the frames as expected.
+- Do not claim "B self = 0" means B's body executes for free; it may be merged into the caller or lack samples.
+- Do not trust every sample's exact line number when compiled-code mapping metadata is incomplete.
 
-**JIT không làm định nghĩa self/inclusive mất ý nghĩa**, nhưng làm phép quy trách nhiệm từ machine code về từng Java method/line **phụ thuộc cách công cụ thu stack và metadata**.
+**JIT does not invalidate the definitions of self/inclusive**, but makes attribution from machine code back to individual Java methods/lines **dependent on how the tool collects stacks and metadata**.
 
-### 9.2. Warm-up, tiered compilation và deoptimization
+### 9.2. Warm-Up, Tiered Compilation, and Deoptimization
 
-Một method có thể chạy interpreter, C1 rồi C2 (tùy HotSpot/compiler flags và điều kiện), được inline, deoptimize hoặc recompile khi profile thay đổi. Điều này ảnh hưởng sample distribution, branch costs và kết quả benchmark.
+A method can run in the interpreter, C1, then C2 (depending on HotSpot/compiler flags and conditions), be inlined, deoptimized, or recompiled when profiles change. This affects sample distributions, branch costs, and benchmark results.
 
-Khi so hai recordings:
+When comparing two recordings:
 
-- Có cùng JDK/vendor, JVM flags, collector và trạng thái warm-up chưa?
-- Có startup, lazy class loading, JIT compilation, code cache pressure hoặc deoptimization trong một bản mà bản kia không có?
-- Có cùng request mix/payload/concurrency, cache state và CPU quota?
-- Có đủ thời lượng **steady-state** hoặc đang cố tình điều tra startup?
-- Có classloading/compilation events và logs để hỗ trợ giải thích không?
+- Do they share the same JDK/vendor, JVM flags, collector, and warm-up state?
+- Did startup, lazy class loading, JIT compilation, code cache pressure, or deoptimization happen in one recording and not the other?
+- Do they share the same request mix/payload/concurrency, cache state, and CPU quota?
+- Is there enough **steady-state** duration, or are you intentionally investigating startup?
+- Are classloading/compilation events and logs available to support the explanation?
 
-Không sửa logic method dựa trên 10 giây CPU samples trong lúc app đang tải class, rồi ngoại suy kết quả cho steady-state.
+Do not alter method logic based on 10 seconds of CPU samples taken while the app is still loading classes, then extrapolate to steady state.
 
-### 9.3. Stack depth và giới hạn metadata
+### 9.3. Stack Depth and Metadata Limits
 
-Nếu stack quá sâu và ghi bị truncate, một sample có thể thiếu caller ở gần root hoặc thiếu thông tin trên một số frame. Điều này làm inclusive của ancestor thấp hơn thực tế hoặc khiến call tree bị tách thành nhánh “unknown”. Độ sâu stack JFR có thể cấu hình (ví dụ FlightRecorderOptions=stackdepth theo JDK/version), nhưng tăng depth làm tăng chi phí/dung lượng. Kiểm tra JDK help/docs và đo overhead trước khi đổi production settings.
+If stacks are very deep and recording truncates them, a sample may lose callers near the root or lack metadata on some frames. This lowers an ancestor's inclusive share or splits the call tree into an "unknown" branch. JFR stack depth is configurable (e.g., `FlightRecorderOptions=stackdepth` depending on JDK/version), yet increasing depth increases overhead/storage. Check JDK help/docs and measure overhead before changing production settings.
 
-Không nên bổ sung option JIT diagnostic “trên mọi service” chỉ để profile đẹp hơn; một số flags ảnh hưởng compiler metadata, memory hoặc code generation. Chọn công cụ/độ sâu theo giả thuyết và dùng A/B nếu muốn so chính xác.
+Do not add JIT diagnostic options "on every service" just for prettier profiles; some flags affect compiler metadata, memory, or code generation. Choose tools/depth per hypothesis and use A/B testing for exact comparisons.
 
-## 10. Đọc self cao và inclusive cao thành quyết định kỹ thuật
+## 10. Turning High Self and High Inclusive into Engineering Decisions
 
-| Self (riêng) | Inclusive (bao gồm) | Cách hiểu bước đầu | Bằng chứng/hành động tiếp theo |
+| Self (exclusive) | Inclusive (total) | Initial Interpretation | Next Evidence / Action |
 | --- | --- | --- | --- |
-| Cao | Cao | Method hoặc node đang thực thi nhiều việc ở thân nó và nhánh nó | Xem CPU samples/lines, vòng lặp, thuật toán, allocation, workload |
-| Thấp | Cao | Method thường làm caller/dispatcher, chi phí dồn ở con | Mở Call Tree, tìm con hotspot hay blocking |
-| Cao | Thấp | Thường **bất khả thi nếu cùng thước đo, cùng tập samples, cùng phạm vi**, vì inclusive phải ≥ self | Kiểm tra đang so khác thread/time range, units, recursion grouping hoặc columns |
-| Thấp | Thấp | Ít được quan sát trong tập samples đã chọn | Có thể không phải ưu tiên CPU; vẫn có thể quan trọng với tail latency/blocked I/O |
+| High | High | Method or node executes heavy work in its own body and its branch | Inspect CPU samples/lines, loops, algorithms, allocations, workload |
+| Low | High | Method mainly acts as caller/dispatcher; cost concentrates in children | Expand Call Tree; find child hotspots or blocking |
+| High | Low | Usually **impossible under the same metric, sample set, and scope**, since inclusive must be ≥ self | Check whether comparing different threads/time ranges, units, recursion grouping, or columns |
+| Low | Low | Rarely observed in selected samples | Likely not a CPU priority; may still matter for tail latency/blocked I/O |
 
-Trong profiling của **một call path**, một node total cao/self thấp tự nhiên dẫn bạn xuống con; nhưng “đi xuống cho đến self cao” không đủ nếu mục tiêu là wall-clock latency và con đang chờ network. Hãy phân loại bản chất của con trước khi sửa code.
+When profiling **a call path**, a high-total/low-self node naturally leads you downward into children; however, "drilling down until self is high" is insufficient if the goal is wall-clock latency and the child is waiting on the network. Classify the child's nature before editing code.
 
-### 10.1. Mục tiêu giảm inclusive cần can thiệp đúng chỗ
+### 10.1. Reducing Inclusive Requires Intervening at the Right Place
 
-Muốn giảm inclusive của Service.handle, có nhiều lựa chọn khác nhau:
-- Giảm self: cải thiện thuật toán chạy trực tiếp trong Service.handle.
-- Giảm inclusive child: sửa Parser.parse/Serializer.encode/Repository.query thật sự tốn chi phí.
-- Giảm **số lần gọi con**: cache, batch, tránh N+1 queries, gom request, tránh parse lặp.
-- Thay đổi đường gọi/parallelism: giảm wall critical path, nhưng có thể tăng total CPU work hoặc tăng áp lực downstream.
-- Giảm waiting: giải quyết contention, pool saturation, network/DB latency (không nhất thiết giảm CPU self của method Java).
+To reduce `Service.handle`'s inclusive cost, several different options exist:
+- Reduce self: improve algorithms running directly inside `Service.handle`.
+- Reduce child inclusive: fix `Parser.parse`/`Serializer.encode`/`Repository.query` where cost truly lies.
+- Reduce **child call count**: cache, batch, eliminate N+1 queries, coalesce requests, avoid repeated parsing.
+- Change call path/parallelism: shorten wall critical path, though this may increase total CPU work or downstream pressure.
+- Reduce waiting: address contention, pool saturation, network/DB latency (does not necessarily reduce Java method self CPU).
 
-Cần chọn theo loại chi phí và SLO, không phải chỉ nhìn chữ “Total”.
+Choose based on cost type and SLOs, not merely by chasing the word "Total".
 
-## 11. Các tình huống dễ đánh lừa người đọc profiler
+## 11. Scenarios That Easily Mislead Profiler Readers
 
-### 11.1. Controller total 95%, self 1%
+### 11.1. Controller Total 95%, Self 1%
 
-Một nhóm nhìn tổng 95% và quyết định viết lại controller. Nhưng call tree cho thấy 70% samples đi qua Serializer.encode và 24% qua Crypto.hash, phần thân controller chỉ 1%. Quyết định tốt hơn là kiểm tra caller-specific CPU, response size, serialization overhead và hashing strategy. Chỉ thay controller orchestration nếu nó gọi con quá nhiều hoặc gọi sai chỗ.
+A team sees total 95% and decides to rewrite the controller. Yet the call tree shows 70% of samples go through `Serializer.encode` and 24% through `Crypto.hash`, with the controller body at only 1%. A better decision is to check caller-specific CPU, response size, serialization overhead, and hashing strategy. Only change controller orchestration if it calls children too often or in the wrong places.
 
-### 11.2. Parser self 40%, nhưng CPU process chỉ 5%
+### 11.2. Parser Self 40%, Yet Process CPU Is Only 5%
 
-40% **trên tập execution samples nhỏ** không có nghĩa parser lấy 40% năng lực CPU của máy. Trong workload mostly-blocked, ít CPU được sử dụng, parser có thể nổi bật vì các samples khác thưa. Trước khi tối ưu, xem process CPU/quota, sample count, latency traces và nhu cầu tải. Nếu mục tiêu p99 do DB, tối ưu parser có thể không đáng kể.
+40% **of a small execution sample set** does not mean the parser takes 40% of machine CPU capacity. In a mostly-blocked workload where little CPU is used, the parser can look prominent because other samples are sparse. Before optimizing, check process CPU/quota, sample count, latency traces, and load demand. If p99 is dominated by the DB, optimizing the parser may be negligible.
 
-### 11.3. Framework dispatcher inclusive 100%
+### 11.3. Framework Dispatcher Inclusive 100%
 
-Thread.run hoặc framework dispatch thường có total gần 100% của mẫu trong thread được chọn vì nó là ancestor của mọi lần chạy. Đây không phải “framework bug”. Chọn nhánh con theo request/job, tìm leaf hotspots hoặc child wait. Cột self của dispatcher mới cho thấy bản thân nó được sample như leaf bao nhiêu trong cấu hình tương ứng.
+`Thread.run` or a framework dispatcher typically has total near 100% of samples in the selected thread because it is the ancestor of every execution. This is not a "framework bug." Pick child branches by request/job and look for leaf hotspots or child waits. The dispatcher's self column reveals how often it was sampled as a leaf under the active configuration.
 
-### 11.4. Một phương thức recursive xuất hiện ở nhiều node
+### 11.4. A Recursive Method Appears in Multiple Nodes
 
-Method-level Hot Methods ghi inclusive 30 samples, Call Tree có ba node recursion mỗi node inclusive 30/20/10. Không cộng 30+20+10 để nói method tạo 60 samples độc lập. Một sample có thể đi qua các node này. Quyết định có cần tối ưu recursion phải dựa vào số samples self, depth, input size, allocation/stack growth và alternative algorithm.
+Method-level Hot Methods reports 30 inclusive samples, while Call Tree has three recursion nodes with inclusive 30/20/10. Do not add 30+20+10 and claim the method produced 60 independent samples. A single sample can pass through all three nodes. Decide whether to optimize recursion based on self samples, depth, input size, allocation/stack growth, and alternative algorithms.
 
-### 11.5. CPU không cao nhưng request chậm vì chờ
+### 11.5. CPU Is Not High, Yet Requests Are Slow Because of Waiting
 
-Repository.load total wall time 300 ms, self CPU sampling gần 0. Điều này không mâu thuẫn: thread có thể chờ database/network. Cần JFR socket/file/park/monitor events, distributed tracing và downstream metrics, thay vì tăng CPU hoặc viết lại một vòng lặp Java không liên quan.
+`Repository.load` total wall time is 300 ms while CPU sampling self is near 0. There is no contradiction: the thread may be waiting on a database or network. You need JFR socket/file/park/monitor events, distributed tracing, and downstream metrics, rather than adding CPU or rewriting an unrelated Java loop.
 
-### 11.6. Hot method thay đổi sau warm-up
+### 11.6. Hot Methods Shift After Warm-Up
 
-A xuất hiện nóng ở startup do classloading/JIT, B nóng ở steady state do payload parsing. Nếu gộp recording dài vào một chart toàn cục, có thể nhận định sai. Tách thời đoạn và quyết định bạn đang tối ưu cold start hay steady-state throughput.
+A appears hot at startup due to classloading/JIT, while B is hot in steady state due to payload parsing. Merging a long recording into one global chart can lead to the wrong conclusion. Split time segments and decide whether you are optimizing cold start or steady-state throughput.
 
-### 11.7. Flame graph rộng của GC/JIT có bị tính vào CPU request?
+### 11.7. Are Wide GC/JIT Flame Graph Bars Counted in Request CPU?
 
-JVM có GC threads, compiler threads, service threads và native runtime activity. CPU process tổng bao gồm nhiều thành phần, còn jdk.ExecutionSample có phạm vi khác. Không thể dùng một call tree Java app samples để khẳng định toàn bộ process CPU đã được phân bổ theo methods. Đối chiếu jdk.CPULoad, jdk.ThreadCPULoad, GC logs và metrics runtime trước khi nêu tỷ lệ CPU toàn process.
+The JVM runs GC threads, compiler threads, service threads, and native runtime activity. Total process CPU encompasses many components, whereas `jdk.ExecutionSample` has a different scope. You cannot use a Java app-sample call tree to claim the entire process CPU has been attributed across methods. Cross-check `jdk.CPULoad`, `jdk.ThreadCPULoad`, GC logs, and runtime metrics before quoting whole-process CPU shares.
 
-## 12. Thực hành đọc JFR trên JDK 21
+## 12. Hands-On: Reading JFR on JDK 21
 
-Các lệnh sau là ví dụ cho môi trường có JDK tools, JVM cho phép attach và đường dẫn file ghi/đọc có quyền hợp lệ. Không chạy profiling nặng trên production mà chưa đánh giá chi phí.
+The commands below illustrate an environment with JDK tools, an attachable JVM, and valid file read/write permissions. Do not run heavy profiling in production without evaluating overhead first.
 
-### 12.1. Thu recording có execution samples
+### 12.1. Capture a Recording with Execution Samples
 
 ~~~bash
 java -version
 jcmd -l
-PID=12345          # Thay bằng PID thật của JVM cần điều tra
+PID=12345          # Replace with the actual PID of the JVM under investigation
 jcmd "$PID" VM.command_line
 jcmd "$PID" VM.flags
 jcmd "$PID" help JFR.start
@@ -396,14 +396,14 @@ jcmd "$PID" JFR.start name=cpu_path_probe settings=profile \
   disk=true duration=2m filename=/var/tmp/cpu-path-probe.jfr
 ~~~
 
-Giải thích:
+Explanation:
 
-- settings=profile thường cung cấp method profiling chi tiết hơn default, tùy JDK và cấu hình thực tế; không đảm bảo mọi event đều được bật.
-- duration=2m là khoảng **thu** minh họa, không phải lời khuyên thời lượng cố định cho mọi workload.
-- filename là đường dẫn từ ngữ cảnh JVM, cần quyền ghi và không gian đủ. Kiểm tra recording thực sự đã kết thúc/được xuất trước khi mở file.
-- Để so hai runs, dùng **cùng settings và thời đoạn cùng tải**, có warm-up phù hợp; recording lâu hơn không tự tạo tỷ lệ đúng nếu event settings khác.
+- `settings=profile` typically provides finer method profiling than `default`, depending on JDK and actual settings; it does not guarantee every event is enabled.
+- `duration=2m` is an illustrative **recording** window, not a fixed recommendation for every workload.
+- `filename` is a path in the JVM's context, requiring write permission and sufficient space. Verify the recording has actually finished/dumped before opening the file.
+- To compare two runs, use **identical settings and windows under matching load**, with proper warm-up; a longer recording does not produce valid ratios if event settings differ.
 
-### 12.2. Kiểm tra dữ liệu có chứa event cần xem
+### 12.2. Verify the File Contains the Needed Events
 
 ~~~bash
 jfr summary /var/tmp/cpu-path-probe.jfr
@@ -412,18 +412,18 @@ jfr print --events jdk.ExecutionSample --stack-depth 64 \
   /var/tmp/cpu-path-probe.jfr
 ~~~
 
-Nếu output quá lớn, hãy xem sample nhỏ trong môi trường có kiểm soát, rồi phân tích bằng JMC hoặc tool có khả năng lọc/time-range. jfr print với stack-depth chỉ **giới hạn phần in ra**, không khôi phục các frame vốn không được lưu ở recording.
+If output is very large, inspect a small sample in a controlled environment, then analyze with JMC or a tool supporting filtering/time ranges. `jfr print` with `--stack-depth` only **limits printed output**, and does not recover frames never saved in the recording.
 
-Các checks tối thiểu:
-- jdk.ExecutionSample count > 0 và stack traces hữu ích.
-- Timestamp cover đúng CPU spike/test window.
-- Số thread thực thi, loại event và settings/period phù hợp.
-- Đã tách CPU computation khỏi blocked/waiting theo yêu cầu bài toán.
-- Không đọc event count của một run settings=profile rồi so thẳng với settings=default như thể cùng tốc độ sampling.
+Minimum checks:
+- `jdk.ExecutionSample` count > 0 with useful stack traces.
+- Timestamps cover the exact CPU spike/test window.
+- Active threads, event types, and settings/periods are appropriate.
+- CPU computation is separated from blocked/waiting as required by the problem.
+- Do not read event counts from a `settings=profile` run and compare them directly against `settings=default` as if they sampled at the same rate.
 
-Nếu tool phiên bản hiện tại có các predefined views qua jfr view, xem danh sách bằng help trước khi dùng; tên view có thể thay đổi.
+If your tool version offers predefined views via `jfr view`, check the list via help before using; view names can change.
 
-### 12.3. Kết hợp CPU và sự kiện chờ
+### 12.3. Combine CPU and Waiting Events
 
 ~~~bash
 jfr print --events jdk.CPULoad /var/tmp/cpu-path-probe.jfr
@@ -432,28 +432,28 @@ jfr print --events jdk.JavaMonitorEnter /var/tmp/cpu-path-probe.jfr
 jfr print --events jdk.ThreadPark /var/tmp/cpu-path-probe.jfr
 ~~~
 
-Lệnh chỉ in event có trong file; không có event không chứng minh không có CPU/chờ. Monitor và park events có thresholds/cấu hình riêng. Với network I/O có thể xem jdk.SocketRead/jdk.SocketWrite nếu recording chứa các events này; cần so với request traces, DB/network metrics và SLA.
+The commands print only events present in the file; absence of an event does not prove absence of CPU or waiting. Monitor and park events have their own thresholds and settings. For network I/O, inspect `jdk.SocketRead`/`jdk.SocketWrite` if contained in the recording; compare against request traces, DB/network metrics, and SLAs.
 
-### 12.4. Trong JMC: phân tích từng nhánh
+### 12.4. In JMC: Analyze Branch by Branch
 
-1. Chọn recording và time selection trùng đoạn SLO/thử nghiệm.
-2. Trong Code/Hot Methods, sắp xếp theo **self samples/cost** nếu view hỗ trợ; xác nhận tên cột và đơn vị.
-3. Chọn một method hot và mở Call Tree/Stack Trace; xác định **các caller** gây ra phần lớn samples.
-4. Từ entry/endpoint quan trọng, đi top-down theo **inclusive**, mở con cho đến các leaf nóng.
-5. Với leaf nóng, phân loại CPU compute hay block/native call; đừng bỏ qua waiting và tải.
-6. Thử lọc theo request worker thread/job nếu điều đó khớp mục tiêu; đồng thời kiểm tra các threads khác.
-7. Đối chiếu CPU process/quota, p99, RPS, GC, allocation và thời điểm peak.
-8. Ghi lại số mẫu, time range, profiler settings và quan hệ parent→child thay vì chỉ chụp ảnh một thanh màu.
+1. Select the recording and a time range matching the SLO/test period.
+2. In Code/Hot Methods, sort by **self samples/cost** if the view supports it; verify column names and units.
+3. Pick a hot method and open Call Tree/Stack Trace; identify **the callers** driving most samples.
+4. From key entries/endpoints, walk top-down by **inclusive**, expanding children down to hot leaves.
+5. At hot leaves, classify CPU compute vs. blocking/native call; do not ignore waiting and load.
+6. Try filtering by request worker threads/jobs if appropriate for the goal; also check other threads.
+7. Cross-check process CPU/quota, p99, RPS, GC, allocations, and peak timing.
+8. Record sample counts, time range, profiler settings, and parent→child relationships instead of just screenshotting a colored bar.
 
-Vị trí tab và tên column có thể đổi theo JMC version; trọng tâm là **phép nhóm và semantics**, không phải thao tác nhấp chuột cụ thể.
+Tab locations and column names can change across JMC versions; focus on **grouping and semantics**, not specific mouse clicks.
 
-## 13. Ví dụ Java 17+: tính self và inclusive từ stack samples giả lập
+## 13. Java 17+ Example: Computing Self and Inclusive from Synthetic Stack Samples
 
-Chương trình độc lập sau minh họa thuật toán **tổng hợp theo method identity**. Nó không đọc .jfr và không tự đo CPU; đầu vào là các nhóm sample stacks được tạo cố định để phép tính dễ kiểm chứng. Các stack ghi từ **leaf đến root**; mỗi stack có số samples tương ứng.
+The standalone program below illustrates the **method-identity aggregation** algorithm. It does not read a `.jfr` file and does not measure CPU itself; input consists of fixed synthetic sample stack groups so calculations are easy to verify. Stacks are written **leaf to root**; each stack has a sample count.
 
-Điểm quan trọng: một frame có thể xuất hiện nhiều lần trong cùng stack vì recursion. Ở aggregation theo method identity, chương trình chỉ cộng **một lần cho mỗi method trên một sample** khi tính inclusive; self lấy frame leaf. Đây là một định nghĩa nhất quán để minh họa, không khẳng định mọi profiler hiển thị recursion y hệt.
+Key point: a frame can appear multiple times in the same stack due to recursion. In method-identity aggregation, the program adds **once per method per sample** when computing inclusive; self takes the leaf frame. This is one consistent definition for illustration, not a claim that every profiler displays recursion identically.
 
-Lưu thành file **MethodCostSamples.java**:
+Save as **`MethodCostSamples.java`**:
 
 ~~~java
 import java.util.HashMap;
@@ -477,7 +477,7 @@ public class MethodCostSamples {
                 new Sample(2, "recur", "recur", "run")
         );
 
-        // Giá trị [0] = self samples; [1] = inclusive samples.
+        // Values: [0] = self samples; [1] = inclusive samples.
         Map<String, long[]> counts = new HashMap<>();
         long total = 0;
 
@@ -491,7 +491,7 @@ public class MethodCostSamples {
             counts.computeIfAbsent(stack[0], key -> new long[2])[0]
                     += sample.count();
 
-            // Deduplicate cùng method trên một stack (ví dụ recursion).
+            // Deduplicate the same method within one stack (e.g., recursion).
             Set<String> present = new HashSet<>();
             for (String method : stack) {
                 if (present.add(method)) {
@@ -514,14 +514,14 @@ public class MethodCostSamples {
 }
 ~~~
 
-Biên dịch/chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac MethodCostSamples.java
 java MethodCostSamples
 ~~~
 
-Stdout xác định chính xác bởi đầu vào cố định:
+Deterministic stdout determined by the fixed input:
 
 ~~~text
 samples=22
@@ -532,159 +532,159 @@ recur: self=2, inclusive=2
 run: self=0, inclusive=22
 ~~~
 
-Giải thích phép tính:
-- 6 + 4 + 3 + 2 + 5 + 2 = 22 mẫu.
-- handle ở 6 + 4 + 3 + 2 = 15 mẫu; là leaf ở đúng 2 mẫu.
-- lookup xuất hiện trên 3 mẫu có hash ở leaf; self của lookup bằng 0.
-- recur có hai frame cùng tên trên 2 mẫu; inclusive theo method identity là **2**, không phải 4. Call tree path vẫn có thể cho thấy hai node recur lồng nhau.
-- run xuất hiện ở mọi stack: inclusive 22 dù self 0.
+Calculation breakdown:
+- 6 + 4 + 3 + 2 + 5 + 2 = 22 samples.
+- `handle` is in 6 + 4 + 3 + 2 = 15 samples; it is the leaf in exactly 2 samples.
+- `lookup` appears on 3 samples where `hash` is the leaf; `lookup`'s self is 0.
+- `recur` has two frames of the same name across 2 samples; inclusive by method identity is **2**, not 4. A call-tree path view can still show two nested `recur` nodes.
+- `run` appears in every stack: inclusive 22 even though self is 0.
 
-Dù có 22 samples, tổng inclusive của tất cả methods trên mọi dòng sẽ lớn hơn 22 do **cùng sample góp cho nhiều ancestors**. Đó là đặc điểm của số liệu call stack, không phải phép đo sai. Chương trình không suy ra wall time, CPU nanoseconds hay số lần method được gọi trong ứng dụng thật.
+Even with 22 samples, the sum of inclusive across all methods on all rows exceeds 22 because **the same sample contributes to multiple ancestors**. That is a property of call-stack metrics, not a measurement error. The program does not infer wall time, CPU nanoseconds, or how many times methods were called in a real application.
 
-### 13.1. Nếu muốn tổng hợp theo từng node call tree
+### 13.1. If You Want to Aggregate per Call-Tree Node
 
-Thay vì map theo tên method, phải dùng **đường gọi đầy đủ** (ví dụ run→handle→lookup) làm key cho node. Một method có thể xuất hiện ở nhiều vị trí; mỗi vị trí có self/inclusive riêng. Với recursion, hai frame recur cùng tên là hai node khác nhau trên một đường. Tổng hợp theo path cần giữ identity của node chứ không chỉ deduplicate tên method.
+Instead of keying by method name, you must use the **full call path** (e.g., `run→handle→lookup`) as the node key. One method can appear in multiple positions; each position has its own self/inclusive. With recursion, two identically named `recur` frames are two distinct nodes on one path. Path-level aggregation must preserve node identity rather than merely deduplicating method names.
 
-Cần tránh biến bài toán path-level thành method-level bằng cách cộng nhầm các hàng đã bao hàm nhau. Muốn biến samples thành estimated CPU, cần hiểu công cụ, sampling period/weighting và giới hạn điều tra, không chỉ lấy số mẫu nhân một hằng số tùy ý.
+Avoid turning a path-level problem into a method-level one by mistakenly summing rows that already contain one another. Converting samples into estimated CPU requires understanding the tool, sampling period/weighting, and measurement limits, not simply multiplying sample counts by an arbitrary constant.
 
-## 14. Ví dụ quyết định: tối ưu caller hay callee?
+## 14. Decision Example: Optimize Caller or Callee?
 
-Giả sử trong 10 phút peak load:
-- Service.handle xuất hiện trong 60% execution samples và chỉ 2% samples ở leaf;
-- Json.encode nằm dưới Service.handle với 35% self samples;
-- Cache.lookup chỉ có 2% self nhưng 20% inclusive do Hash.compute;
-- process CPU gần quota, RPS/payload ổn định và p99 tăng.
+Suppose during 10 minutes of peak load:
+- `Service.handle` appears in 60% of execution samples and only 2% of samples at the leaf;
+- `Json.encode` sits under `Service.handle` with 35% self samples;
+- `Cache.lookup` has only 2% self yet 20% inclusive due to `Hash.compute`;
+- process CPU is near quota, RPS/payload are stable, and p99 rises.
 
-**Cách đọc:**
-1. Service.handle inclusive cao: chưa chứng minh nó tự chậm. Mở rộng children.
-2. Json.encode self 35%: kiểm tra type/size payload, serialization hot path, allocations và có thể giảm serialization lặp.
-3. Cache.lookup inclusive 20% nhưng self 2%: đi tiếp tới Hash.compute và kiểm tra key/data volume, concurrency và cache design.
-4. Xác nhận CPU quota/throttling: nếu quá tải CPU, tối ưu compute hoặc scale hợp lý là giả thuyết mạnh. Nếu CPU không cao, tìm I/O/wait.
-5. Chạy benchmark so sánh có kiểm soát, đo throughput/p99/CPU và cùng sampling settings.
-6. Không cộng 60 + 35 + 20 thành 115% CPU: các tập samples chồng lấp trong call paths.
+**How to read this:**
+1. High `Service.handle` inclusive: does not prove it is slow itself. Expand children.
+2. `Json.encode` self 35%: inspect payload type/size, serialization hot path, allocations, and possible reduction of repeated serialization.
+3. `Cache.lookup` inclusive 20% yet self 2%: follow down to `Hash.compute` and check key/data volume, concurrency, and cache design.
+4. Confirm CPU quota/throttling: if CPU-saturated, optimizing compute or scaling appropriately is a strong hypothesis. If CPU is not high, look for I/O/waits.
+5. Run a controlled comparison benchmark measuring throughput/p99/CPU with identical sampling settings.
+6. Do not add 60 + 35 + 20 into 115% CPU: the sample sets overlap along call paths.
 
-Kết luận điều tra nên là **“nhánh Service.handle chứa phần lớn samples; phần self nổi bật nằm ở Json.encode và Hash.compute”**, chưa phải **“Service.handle đã được chứng minh gây toàn bộ p99”**.
+The investigation conclusion should be **"the `Service.handle` branch contains most samples; prominent self lies in `Json.encode` and `Hash.compute`"**, not **"it has been proven that `Service.handle` causes all of p99."**
 
-## 15. Từ số mẫu tới cơ hội tối ưu: bằng chứng bổ sung
+## 15. From Sample Counts to Optimization Opportunities: Additional Evidence
 
-### 15.1. CPU bound
+### 15.1. CPU-Bound
 
-Khi process CPU cao, worker threads đang chạy, sample counts đủ và hot leaf method phù hợp:
-- Xem thuật toán và độ phức tạp theo kích thước input.
-- Kiểm tra boxing, regex, collections, compression, serialization, repeated parsing.
-- Kiểm tra JIT warm-up, intrinsics/inlining, allocations và code path khác nhau giữa inputs.
-- Dùng JMH hoặc benchmark phù hợp cho micro-level; end-to-end load test để xác nhận cải thiện thực.
+When process CPU is high, worker threads are running, sample counts are sufficient, and hot leaf methods align:
+- Check algorithm and complexity relative to input size.
+- Check boxing, regexes, collections, compression, serialization, and repeated parsing.
+- Check JIT warm-up, intrinsics/inlining, allocations, and code paths varying across inputs.
+- Use JMH or appropriate benchmarks at the micro level; use end-to-end load tests to confirm real improvement.
 
-**Lưu ý:** một microbenchmark nhanh hơn không đảm bảo service p99 tốt hơn khi bottleneck là network, DB hay queue.
+**Note:** a faster microbenchmark does not guarantee better service p99 when the bottleneck is network, DB, or queuing.
 
-### 15.2. Waiting / I/O bound
+### 15.2. Waiting / I/O-Bound
 
-Khi method inclusive wall cao nhưng CPU self thấp:
-- Kiểm tra socket/file/lock/park events và thread dumps.
-- So traces với database/downstream latency, connection pool, rate limits và retries.
-- Tìm synchronous fan-out, N+1 calls, timeout/retry và backlog.
-- Ưu tiên giảm số roundtrips, bounded concurrency, caching đúng vòng đời hoặc tối ưu dependency.
+When method inclusive wall time is high while self CPU is low:
+- Inspect socket/file/lock/park events and thread dumps.
+- Compare traces with database/downstream latency, connection pools, rate limits, and retries.
+- Look for synchronous fan-out, N+1 calls, timeouts/retries, and backlogs.
+- Prioritize reducing roundtrips, bounded concurrency, lifecycle-appropriate caching, or optimizing the dependency.
 
-Thay đổi parallelism có thể giảm wall time nhưng tăng total CPU và pressure. Đo cả throughput, error rate, resource usage và downstream SLO.
+Changing parallelism can lower wall time yet raise total CPU and pressure. Measure throughput, error rate, resource usage, and downstream SLOs together.
 
-### 15.3. Allocation/GC bound
+### 15.3. Allocation/GC-Bound
 
-Khi nhiều samples ở allocation-heavy code, cần phân biệt:
-- Method tạo nhiều objects nhưng được GC nhanh và không gây pressure đáng kể.
-- Method tạo nhiều allocations làm tăng GC CPU/pause/throughput cost.
-- Object được giữ lâu làm tăng live set/retention.
+When many samples sit in allocation-heavy code, distinguish:
+- Methods creating many objects that are collected quickly without significant pressure.
+- Methods creating allocations that raise GC CPU/pause/throughput cost.
+- Long-lived objects increasing live set/retention.
 
-Dùng allocation profile, GC events/logs, heap post-GC trend và workload normalization. **Self CPU samples cao không chứng minh memory leak**; object retention cần bằng chứng riêng.
+Use allocation profiles, GC events/logs, post-GC heap trends, and workload normalization. **High self CPU samples do not prove a memory leak**; object retention requires separate evidence.
 
-## 16. Thiết kế phép đo đáng tin
+## 16. Designing Trustworthy Measurements
 
-### 16.1. Baseline và candidate phải so cùng điều kiện
+### 16.1. Baseline and Candidate Must Be Compared Under Identical Conditions
 
-Ghi lại:
+Record:
 - JDK/vendor, JVM flags, GC, JFR settings, sampling interval/stack depth;
-- CPU/memory limits, số replicas/cores, host contention và throttling;
-- Build version, cache/warm-up state, thread pool và dependency behavior;
+- CPU/memory limits, replica/core counts, host contention, and throttling;
+- Build version, cache/warm-up state, thread pools, and dependency behavior;
 - Requests/s, request mix, payload size, batch volume, concurrency;
-- Duration, exact time window, samples count, CPU, throughput, p95/p99, error rate.
+- Duration, exact time window, sample count, CPU, throughput, p95/p99, error rate.
 
-Một bản ghi 30 giây low traffic và một bản ghi 10 phút peak không nên dùng để kết luận “self share tăng 2 lần” nếu số samples quá nhỏ hoặc mix công việc khác. Normalize theo requests/bytes/jobs khi phù hợp và luôn xem **mức tác động tuyệt đối**.
+A 30-second low-traffic recording and a 10-minute peak recording should not be used to claim "self share doubled" when sample counts are too small or the work mix differs. Normalize per request/byte/job when appropriate and always check **absolute impact**.
 
-### 16.2. Kiểm tra thay đổi ở cả hai thang đo
+### 16.2. Verify Changes on Both Scales
 
-Nếu đã tối ưu Hash.compute:
-- **Cơ chế:** self samples/định lượng CPU của Hash.compute giảm ở workload tương đương?
-- **Hệ thống:** process CPU/RPS, throughput/p99, error rate có cải thiện không?
-- **Giá phải trả:** memory, allocations, GC, thread contention hoặc downstream calls có tăng không?
-- **Tính lặp lại:** kết quả ổn qua nhiều runs, không chỉ một lần khác thường?
+If you optimized `Hash.compute`:
+- **Mechanism:** did `Hash.compute` self samples/quantified CPU drop under equivalent workload?
+- **System:** did process CPU/RPS, throughput/p99, and error rate improve?
+- **Trade-offs:** did memory, allocations, GC, thread contention, or downstream calls rise?
+- **Repeatability:** do results hold across multiple runs, not just one outlier?
 
-Nếu self share giảm chỉ vì tổng CPU samples ở những methods khác tăng, có thể không hề giảm CPU thực. Cần đánh giá absolute process CPU hoặc công việc trên mỗi request, thay vì chỉ một phần trăm tương đối.
+If self share drops only because total CPU samples in other methods increased, real CPU may not have dropped at all. Evaluate absolute process CPU or work per request rather than relative percentages alone.
 
-### 16.3. Ước lượng lợi ích và giới hạn Amdahl
+### 16.3. Estimating Gains and Amdahl's Limit
 
-Nếu một phần code chiếm 20% CPU công việc hiện tại và bạn làm nó nhanh gấp 2, giới hạn lợi ích **trong mô hình tuần tự, CPU-bound và workload không đổi** là:
+If a piece of code accounts for 20% of current CPU work and you make it 2x faster, the upper bound on gain **in a sequential, CPU-bound, fixed-workload model** is:
 
 ~~~text
 Speedup <= 1 / ((1 - 0.20) + (0.20 / 2))
         = 1 / 0.90
-        ≈ 1.11 lần
+        ≈ 1.11x
 ~~~
 
-Con số 1,11 không có nghĩa p99 toàn hệ thống chắc chắn cải thiện 11%: hệ thống có concurrency, waiting, CPU quotas, caches, JIT, downstream bottlenecks và tail latency. Đặc biệt, dùng **inclusive share của caller** làm phần việc có thể tăng tốc độc lập thường thổi phồng lợi ích vì nhiều children không bị tác động bởi thay đổi.
+The number 1.11 does not mean system-wide p99 will definitely improve by 11%: systems involve concurrency, waiting, CPU quotas, caches, JIT, downstream bottlenecks, and tail latency. In particular, using a **caller's inclusive share** as the independently speedable fraction overstates gains because many children are unaffected by the change.
 
-## 17. Bốn sai lầm phổ biến và cách sửa
+## 17. Four Common Pitfalls and How to Fix Them
 
-| Sai lầm | Vì sao sai | Sửa cách đọc |
+| Pitfall | Why It Is Wrong | How to Read Correctly |
 | --- | --- | --- |
-| “Total của handler 90%, phải tối ưu thân handler.” | Handler bao toàn nhánh; self có thể thấp | Mở rộng children và xác định CPU/wait bottleneck |
-| “Self method B là 30 ms vì có 30 samples.” | Sample count không là đồng hồ đo ms chính xác | Giữ đơn vị samples; đối chiếu sampling/CPU metrics |
-| “Cộng tất cả total của các methods = tổng thời gian CPU.” | Parent/child bao nhau; recursion/grouping đếm trùng | Tổng theo các vùng không chồng lấp hoặc dùng self với cùng phạm vi |
-| “Không thấy method sau JIT nghĩa method không chạy.” | Inlining, stack reconstruction, filter và sample bias | Kiểm tra compiled frames, JVM/JIT/recording settings |
+| "Handler total is 90%, must optimize handler body." | Handler wraps the whole branch; self may be low | Expand children and identify the CPU/wait bottleneck |
+| "Method B self is 30 ms because there are 30 samples." | Sample count is not an exact millisecond timer | Keep units as samples; correlate with sampling/CPU metrics |
+| "Summing all method totals = total CPU time." | Parent/child overlap; recursion/grouping double-counts | Sum over non-overlapping regions or use self within the same scope |
+| "Method missing after JIT means it didn't run." | Inlining, stack reconstruction, filters, and sample bias | Check compiled frames and JVM/JIT/recording settings |
 
-Các sai lầm khác:
+Other pitfalls:
 
-- So cột % trong một node với % toàn file nhưng không đọc denominator.
-- So Hot Methods theo method identity với Call Tree theo path identity.
-- Gán p99 wall latency cho execution samples mà không kiểm tra I/O, locks, queue và GC.
-- Kết luận self=0 nghĩa method vô dụng hoặc không có work; method có thể chỉ gọi con hoặc bị ảnh hưởng cách attribution.
-- Suy ra invocation count từ sample count.
-- Gộp threads khác vai trò hoặc startup với steady-state rồi kết luận hotspot.
-- Bỏ qua overload, lambda synthetic methods, dynamic proxies, classloader và recursion khi nhóm theo tên.
-- Dựa vào ảnh flame graph không có time window, sample count, settings và CPU process metrics.
-- Tối ưu phần self rất nhỏ trong khi phần inclusive chủ yếu là downstream wait.
-- So recordings ở hai JDK/profile settings khác nhau mà không đánh giá sampling và JIT differences.
+- Comparing a `% of node` column against `% of whole file` without checking denominators.
+- Comparing method-identity Hot Methods against path-identity Call Tree.
+- Attributing p99 wall latency to execution samples without checking I/O, locks, queues, and GC.
+- Concluding `self=0` means the method is useless or does no work; it may simply call children or be affected by attribution rules.
+- Inferring invocation count from sample count.
+- Merging threads with different roles or mixing startup with steady state before calling a hotspot.
+- Ignoring overloads, synthetic lambda methods, dynamic proxies, classloaders, and recursion when grouping by name.
+- Relying on a flame graph screenshot without time window, sample count, settings, and process CPU metrics.
+- Micro-optimizing a tiny self fraction while inclusive is dominated by downstream waits.
+- Comparing recordings from two different JDKs/profile settings without accounting for sampling and JIT differences.
 
-## 18. Checklist trước khi kết luận
+## 18. Pre-Conclusion Checklist
 
-- [ ] Tôi xác định data source: instrumented wall time, thread CPU time, process CPU hay JFR execution samples.
-- [ ] Tôi hiểu self là chi phí quy cho thân method/node, inclusive là chi phí bao cả các lời gọi con trong scope tương ứng.
-- [ ] Tôi biết đang xem Hot Methods theo method identity hay Call Tree theo call path.
-- [ ] Tôi không cộng inclusive của cha và con thành một tổng CPU/thời gian mới.
-- [ ] Tôi đã xem recursion và method được gọi từ nhiều callers.
-- [ ] Tôi kiểm tra số samples, event settings, threshold, stack depth, thread và time filters.
-- [ ] Tôi kiểm tra các hạn chế của JIT inlining, compilation, warm-up và missing frames khi cần.
-- [ ] Tôi phân biệt CPU computation với blocking/waiting và latency end-to-end.
-- [ ] Tôi đối chiếu method hotspots với process CPU, CPU quota/throttling, GC, RPS, p99 và workload.
-- [ ] Với inclusive cao/self thấp, tôi đã mở con và tìm nơi thực sự tập trung chi phí.
-- [ ] Với self cao, tôi đã kiểm tra thuật toán, invocation count và mức lợi ích thực tế có thể đạt.
-- [ ] Tôi có giả thuyết cạnh tranh, benchmark/load test tương đương, guardrails và rollback.
-- [ ] Kết luận ghi đúng mức chắc chắn: quan sát sample ≠ đo CPU time chính xác ≠ root cause đã được chứng minh.
+- [ ] I identified the data source: instrumented wall time, thread CPU time, process CPU, or JFR execution samples.
+- [ ] I understand self as cost attributed to the method/node body, and inclusive as cost including child calls within the respective scope.
+- [ ] I know whether I am viewing Hot Methods by method identity or Call Tree by call path.
+- [ ] I did not sum parent and child inclusive values into a new total CPU/time.
+- [ ] I accounted for recursion and methods called from multiple callers.
+- [ ] I checked sample counts, event settings, thresholds, stack depth, and thread/time filters.
+- [ ] I checked limits of JIT inlining, compilation, warm-up, and missing frames when relevant.
+- [ ] I separated CPU computation from blocking/waiting and end-to-end latency.
+- [ ] I correlated method hotspots with process CPU, CPU quota/throttling, GC, RPS, p99, and workload.
+- [ ] For high inclusive / low self, I expanded children and located where cost actually concentrates.
+- [ ] For high self, I checked algorithms, invocation counts, and realistic achievable benefit.
+- [ ] I have competing hypotheses, an equivalent benchmark/load test, guardrails, and a rollback plan.
+- [ ] Conclusions reflect the right certainty level: sample observation ≠ exact CPU time measurement ≠ proven root cause.
 
-## 19. Kết luận
+## 19. Conclusion
 
-Hai con số tự bổ sung nhau:
+The two metrics complement each other:
 
-**Self/exclusive** giúp biết code đang được quy trách nhiệm trực tiếp ở method nào. **Inclusive/total** giúp biết đường gọi nào đang bao phần lớn chi phí, để tiếp tục lần xuống các methods con hoặc lần ngược callers.
+**Self/exclusive** tells you which method body is directly credited with execution. **Inclusive/total** tells you which call path wraps most of the cost so you can drill down into child methods or trace back up to callers.
 
-Đối với JFR method profiling, phần lớn kết quả từ Call Tree/Hot Methods dựa trên **sampled stacks**, vì vậy ưu tiên nói “mẫu xuất hiện ở đâu” trước khi chuyển thành tuyên bố “mất bao nhiêu mili-giây”. CPU samples không tự giải thích thời gian chờ network/lock hoặc tail latency; JIT inlining và stack reconstruction cũng có thể tác động tới cách các method được hiển thị.
+For JFR method profiling, most Call Tree/Hot Methods results rely on **sampled stacks**, so prioritize saying "where samples appeared" before claiming "how many milliseconds it took." CPU samples alone do not explain network/lock wait time or tail latency; JIT inlining and stack reconstruction can also alter how methods are displayed.
 
-Quy trình điều tra đáng tin:
+A reliable diagnostic flow:
 
-**Xác nhận loại metric → chọn đúng thread và time window → xem self/inclusive → mở call path → xác định CPU hoặc waiting → đối chiếu JFR/OS/APM và tải → thử một thay đổi có kiểm soát → đo lại SLO.**
+**Confirm metric type → select exact thread and time window → inspect self/inclusive → expand call path → distinguish CPU vs. waiting → correlate JFR/OS/APM and load → test one controlled change → re-measure SLOs.**
 
-### Tài liệu tham khảo
+### References
 
-- Oracle Java 17 — Troubleshoot Performance Issues Using JFR, phần Code Execution Performance/Call Tree: https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html
-- Oracle JDK 21 — jfr command (summary, metadata, print, view): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html
-- Oracle JDK 21 — jcmd JFR.start/JFR.check/VM.flags: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
+- Oracle Java 17 — Troubleshoot Performance Issues Using JFR, Code Execution Performance/Call Tree section: https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html
+- Oracle JDK 21 — `jfr` command (`summary`, `metadata`, `print`, `view`): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html
+- Oracle JDK 21 — `jcmd` `JFR.start`/`JFR.check`/`VM.flags`: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
 - Java SE 21 — Java Flight Recorder API/settings: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html
 - OpenJDK JDK Mission Control project: https://github.com/openjdk/jmc

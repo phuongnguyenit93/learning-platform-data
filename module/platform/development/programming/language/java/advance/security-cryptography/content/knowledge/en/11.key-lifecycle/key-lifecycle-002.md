@@ -1,141 +1,141 @@
-# 11.2. Sinh khóa, cấp phát, lưu trữ, sử dụng, luân chuyển và thu hồi
+# 11.2. Key Generation, Provisioning, Storage, Usage, Rotation, and Revocation
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Kết thúc bài, bạn có thể:
+By the end of this lesson, you will be able to:
 
-1. Mô tả **vòng đời khóa mật mã** từ hoạch định, sinh khóa, cấp phát, kích hoạt, lưu trữ, sử dụng đến luân chuyển, vô hiệu hóa, thu hồi, lưu trữ lịch sử và hủy bỏ.
-2. Phân biệt **khóa dữ liệu (DEK)**, **khóa bọc khóa (KEK)**, **khóa đối xứng**, **khóa riêng/khóa công khai**, chứng thư số và bí mật truy cập; xác định đúng mục đích, chủ sở hữu và quyền của từng khóa.
-3. Tạo khóa an toàn bằng Java 17+ với `KeyGenerator`, `KeyPairGenerator` và `SecureRandom`; hiểu giới hạn của `KeyStore`, vai trò của KMS/HSM và nguyên tắc không làm lộ raw key.
-4. Thiết kế **key version**, **cryptoperiod**, phân quyền decrypt-only đối với khóa cũ, rotation định kỳ và **emergency rotation** khi nghi ngờ lộ khóa.
-5. Giải thích vì sao **disable/revoke**, **delete/destroy**, **re-encrypt**, **rewrap** và **certificate revocation** khác nhau; tránh khiến dữ liệu cũ không thể giải mã hoặc tin nhầm chữ ký của khóa đã bị lộ.
-6. Chạy ví dụ Java 17+ mô phỏng sinh hai phiên bản AES key, lưu/đọc lại `PKCS12 KeyStore`, mã hóa AES-GCM có key-version, đọc ciphertext cũ sau rotation và từ chối khi phiên bản key bị retire.
+1. Describe the **cryptographic key lifecycle** from planning, key generation, provisioning, activation, storage, and usage to rotation, deactivation, revocation, archival, and destruction.
+2. Distinguish **data encryption keys (DEKs)**, **key encryption keys (KEKs)**, **symmetric keys**, **private/public keys**, digital certificates, and access secrets; accurately determine each key's purpose, owner, and permissions.
+3. Generate keys securely in Java 17+ using `KeyGenerator`, `KeyPairGenerator`, and `SecureRandom`; understand the limits of `KeyStore`, the role of KMS/HSM, and the principle of never exposing raw keys.
+4. Design **key versions**, **cryptoperiods**, decrypt-only permissions for old keys, scheduled rotation, and **emergency rotation** when key compromise is suspected.
+5. Explain why **disable/revoke**, **delete/destroy**, **re-encrypt**, **rewrap**, and **certificate revocation** differ; avoid rendering old data undecryptable or mistakenly trusting signatures from a compromised key.
+6. Run a Java 17+ example simulating generating two AES key versions, saving/reloading a `PKCS12 KeyStore`, encrypting with AES-GCM using a key version, reading old ciphertext after rotation, and rejecting a retired key version.
 
-**Phạm vi:** Bài thuộc **Java Advance – security-cryptography / 11. Vòng đời khóa**. Trọng tâm là kiểm soát *toàn vòng đời và các ranh giới tin cậy*, không phải chỉ chọn một thuật toán AES/RSA hoặc một đường dẫn keystore.
+**Scope:** This lesson belongs to **Java Advance – security-cryptography / 11. Key Lifecycle**. The focus is on controlling *the entire lifecycle and trust boundaries*, not merely picking an AES/RSA algorithm or a keystore file path.
 
 ---
 
-## 1. Vì sao quản lý khóa quan trọng hơn một dòng gọi `Cipher`?
+## 1. Why Does Key Management Matter More Than a Single `Cipher` Call?
 
-Một ứng dụng có thể mã hóa chính xác bằng `AES/GCM/NoPadding` nhưng vẫn không an toàn nếu:
+An application can encrypt properly with `AES/GCM/NoPadding` and still be insecure if:
 
-- khóa AES bị hard-code trong repository hoặc cấu hình được chia sẻ;
-- cùng khóa dùng cho mọi tenant mà không có ranh giới truy cập;
-- bản sao khóa ở log, cache, backup, crash dump không bị kiểm soát;
-- khi khóa cần rotate, hệ thống xóa ngay khóa cũ và **mất khả năng giải mã dữ liệu lịch sử**;
-- khóa ký bị lộ nhưng hệ thống tiếp tục coi mọi chữ ký mới như hợp lệ;
-- người vận hành bấm **disable** rồi nhầm tưởng ciphertext đã bị mã hóa lại hoặc kẻ tấn công đã mất bản sao khóa.
+- the AES key is hard-coded in the repository or a shared configuration;
+- the same key is used across all tenants without access boundaries;
+- copies of the key in logs, caches, backups, or crash dumps are uncontrolled;
+- when the key needs to rotate, the system immediately deletes the old key and **loses the ability to decrypt historical data**;
+- a signing key is compromised yet the system continues treating all new signatures as valid;
+- an operator clicks **disable** and mistakenly believes ciphertext has been re-encrypted or that the attacker lost their copy of the key.
 
-Các primitive mật mã giải quyết những phép toán như encrypt/decrypt, sign/verify, HMAC; **key management** trả lời ai được tạo, sử dụng, lưu giữ, phân phối, đổi, thu hồi và xóa các khóa mà primitive sử dụng.
+Cryptographic primitives solve operations like encrypt/decrypt, sign/verify, and HMAC; **key management** answers who is allowed to create, use, store, distribute, rotate, revoke, and destroy the keys used by those primitives.
 
-Nguyên tắc cơ bản: **độ an toàn của ciphertext không lớn hơn độ an toàn của khóa cùng quá trình sử dụng khóa**. Nếu đối thủ lấy được khóa plaintext hợp lệ, AES mạnh không tự bảo vệ được thông điệp đã mã hóa dưới khóa đó.
+Fundamental principle: **the security of ciphertext is no greater than the security of the key and the processes using that key**. If an adversary obtains a valid plaintext key, strong AES alone cannot protect messages encrypted under that key.
 
-### 1.1. Khái niệm cần phân biệt
+### 1.1. Concepts to Distinguish
 
-| Thuật ngữ | Định nghĩa thực hành | Cạm bẫy |
+| Term | Practical Definition | Pitfall |
 | --- | --- | --- |
-| **Secret key** | Khóa đối xứng dùng chung cho thao tác như AES/HMAC | Ai nắm được khóa thường có thể thực hiện thao tác được thuật toán cho phép; policy phải hạn chế |
-| **Private key** | Thành phần bí mật của key pair (RSA/ECDSA/Ed25519...) | Public key có thể phát hành, private key phải được bảo vệ |
-| **Public key** | Thành phần công khai dùng verify chữ ký hoặc bước mật mã tương ứng | Public key chưa được xác thực danh tính không thể tự chứng minh “đúng chủ sở hữu” |
-| **DEK – Data Encryption Key** | Khóa mã hóa payload/file/record | Có thể tạo riêng theo object/tenant và bọc bằng KEK |
-| **KEK – Key Encryption Key** | Khóa bọc/giải bọc DEK hoặc key material khác | Compromise KEK có thể ảnh hưởng nhiều wrapped DEK tùy phạm vi |
-| **Key ID / version** | Danh tính ổn định của đối tượng khóa và phiên bản key material | Không phải bí mật, nhưng không được tin version do client tùy ý đưa vào mà bỏ qua policy |
-| **Cryptoperiod** | Khoảng thời gian khóa được phép sử dụng theo mục đích nhất định | Hết thời gian **encrypt new** không nhất thiết có nghĩa không được **decrypt old** |
-| **Rotation** | Chuyển từ khóa/phiên bản cũ sang khóa/phiên bản mới | Rotation metadata chưa làm dữ liệu cũ tự đổi khóa |
-| **Rewrap** | Bảo vệ lại DEK bằng KEK mới | Không thay bản mã payload nếu DEK giữ nguyên; không sửa được DEK đã lộ |
-| **Re-encrypt** | Giải mã và mã hóa lại payload bằng DEK/key mới | Tốn I/O, cần kiểm integrity, atomic migration và backup |
-| **Revoke / disable** | Rút quyền/đánh dấu không cho dùng key trong hệ thống quản lý | Không xóa bản sao raw key mà đối thủ đã lưu |
-| **Destroy** | Hủy vật liệu khóa với bảo đảm/quy trình thích hợp | Xóa alias file đơn thuần không chứng minh mọi bản sao, backup, memory đã bị xóa |
+| **Secret key** | Symmetric key shared for operations like AES/HMAC | Whoever holds the key can generally perform operations permitted by the algorithm; policy must restrict it |
+| **Private key** | Secret component of a key pair (RSA/ECDSA/Ed25519...) | The public key may be published; the private key must be protected |
+| **Public key** | Public component used to verify signatures or corresponding cryptographic steps | An unauthenticated public key cannot by itself prove “the right owner” |
+| **DEK – Data Encryption Key** | Key that encrypts payloads/files/records | Can be generated per object/tenant and wrapped by a KEK |
+| **KEK – Key Encryption Key** | Key that wraps/unwraps DEKs or other key material | Compromising a KEK can affect many wrapped DEKs depending on scope |
+| **Key ID / version** | Stable identity of a key object and version of key material | Not a secret, yet a client-supplied version must not be trusted arbitrarily while bypassing policy |
+| **Cryptoperiod** | Time span during which a key is authorized for a given purpose | Ending the **encrypt new** period does not necessarily mean **decrypt old** is disallowed |
+| **Rotation** | Transitioning from an old key/version to a new key/version | Rotating metadata does not automatically rekey existing data |
+| **Rewrap** | Re-protecting a DEK using a new KEK | Does not change payload ciphertext if the DEK stays the same; cannot fix an exposed DEK |
+| **Re-encrypt** | Decrypting and re-encrypting payload under a new DEK/key | I/O intensive; requires integrity checks, atomic migration, and backups |
+| **Revoke / disable** | Withdrawing permissions / marking a key unusable in the management system | Does not erase raw key copies an adversary already saved |
+| **Destroy** | Destroying key material with appropriate assurance/procedures | Simply deleting a file alias does not prove every copy, backup, or memory residue is gone |
 
-### 1.2. Không phải mọi loại khóa có vòng đời giống nhau
+### 1.2. Not All Key Types Share the Same Lifecycle
 
-**AES data key:** Dùng encrypt/decrypt, cần quản lý nonce riêng dưới cùng key, nhiều khi giải mã dữ liệu lịch sử sau khi ngừng encrypt new. 
+**AES data key:** Used for encrypt/decrypt, requires unique nonce management under the same key, and often still needs to decrypt historical data after stopping new encryptions. 
 
-**HMAC key:** Dùng tạo/verify MAC; sau rotation có thể cần verify thông điệp cũ trong thời hạn chấp nhận. Quyền tạo MAC mới không giống quyền verify MAC cũ trong mô hình shared-secret; bên có HMAC key vẫn có năng lực tạo MAC nên không thể coi “verify-only” là phân biệt mật mã nếu họ giữ raw key.
+**HMAC key:** Used to create/verify MACs; after rotation it may be needed to verify old messages within an acceptance window. Creating a new MAC is not separated from verifying an old MAC in a shared-secret model; anyone holding the HMAC key can still compute new MACs, so “verify-only” cannot be enforced cryptographically if they hold the raw key.
 
-**Private signing key:** Dùng ký; public key tương ứng dùng verify. Sau ngừng ký, có thể vẫn cần public key/cert hoặc metadata để verify chữ ký lịch sử, nhưng phải xét **thời điểm ký**, trust chain và chính sách khi private key bị compromise.
+**Private signing key:** Used to sign; the corresponding public key verifies. After retiring signing, the public key/cert or metadata may still be needed to verify historical signatures, taking into account **signing time**, trust chains, and private key compromise policies.
 
-**TLS private key/certificate:** Certificate có thời hạn và có thể bị thu hồi qua cơ chế PKI; việc thay certificate không tự xóa private key bị rò ở mọi nơi.
+**TLS private key/certificate:** A certificate has an expiration date and can be revoked through PKI mechanisms; replacing a certificate does not automatically purge a leaked private key everywhere.
 
-**KEK trong KMS/HSM:** Có thể không export được; rotate KEK liên quan những wrapped DEK, quyền unwrap và chính sách sử dụng của dịch vụ.
+**KEK in KMS/HSM:** May be non-exportable; rotating a KEK involves wrapped DEKs, unwrap permissions, and service usage policies.
 
-**Password-derived key:** Độ mạnh bị giới hạn bởi password, cần KDF có salt/work factor; không đánh đồng với khóa ngẫu nhiên mạnh. Nếu đổi password để bảo vệ DEK, có thể rewrap DEK thay vì re-encrypt toàn bộ dữ liệu.
+**Password-derived key:** Strength is bounded by the password and requires a KDF with salt and work factor; do not equate it with a strong random key. If changing the password protecting a DEK, you can rewrap the DEK instead of re-encrypting all data.
 
-## 2. Vòng đời khóa: giai đoạn công việc và trạng thái sử dụng
+## 2. Key Lifecycle: Operational Stages and Usage States
 
-Một mô hình dễ nhớ:
+An easy-to-remember model:
 
 ```text
-Định nghĩa mục đích / threat model
+Define purpose / threat model
                  │
                  ▼
-              Sinh khóa
+            Key generation
                  │
                  ▼
-       Đăng ký / cấp phát / phân quyền
+     Registration / provisioning / authorization
                  │
                  ▼
-            Kích hoạt (ACTIVE)
+            Activation (ACTIVE)
                  │
         ┌────────┴──────────┐
         ▼                   ▼
-  Sử dụng hợp lệ       Backup / giám sát
+  Authorized usage     Backup / monitoring
         │
         ▼
-  Rotation định kỳ / kết thúc originator use
+  Scheduled rotation / end of originator use
         │
         ▼
-  Không tạo dữ liệu mới bằng khóa cũ
-  (DECRYPT-ONLY / DEACTIVATED theo policy)
+  Stop creating new data with old key
+  (DECRYPT-ONLY / DEACTIVATED per policy)
         │
         ▼
-  Hết nhu cầu đọc lịch sử + giữ chứng cứ
+  End of historical read & evidence retention needs
         │
         ▼
     Destroy / crypto-erase
 
-Bất kỳ thời điểm nào phát hiện nghi lộ khóa:
-  COMPROMISED → ngăn sử dụng, thông báo, thay khóa,
-  điều tra phạm vi và xử lý dữ liệu/chữ ký bị ảnh hưởng
+Whenever suspected key compromise is detected:
+  COMPROMISED → block usage, notify, replace key,
+  investigate scope, and handle affected data/signatures
 ```
 
-NIST SP 800-57 Part 1 Rev. 5 mô tả các trạng thái như **pre-activation, active, deactivated, compromised, destroyed** và các chuyển đổi, đồng thời phân biệt quyền dùng khóa để *bảo vệ dữ liệu mới* với quyền *xử lý dữ liệu đã bảo vệ*. Sơ đồ ở đây là mô hình ứng dụng học tập, không phải sao chép nguyên state machine của tiêu chuẩn.
+NIST SP 800-57 Part 1 Rev. 5 defines states such as **pre-activation, active, deactivated, compromised, destroyed** and their transitions, separating permission to use a key to *protect new data* from permission to *process previously protected data*. The diagram above is an application-oriented learning model, not a verbatim copy of the standard's state machine.
 
-| Trạng thái | Cho phép làm gì? | Phải chặn/đặc biệt cẩn trọng |
+| State | What Is Allowed? | What Must Be Blocked / Handled Carefully |
 | --- | --- | --- |
-| **PENDING / PRE-ACTIVATION** | Nhập metadata, xác thực key ownership, chuẩn bị và phê duyệt | Chưa dùng để encrypt/sign production |
-| **ACTIVE** | Thao tác đúng mục đích, chính sách, cryptoperiod và quota | Không cấp tự do toàn quyền; audit, kiểm nonce, policy |
-| **DECRYPT-ONLY / DEACTIVATED** | Chỉ đọc dữ liệu cũ hoặc verify lịch sử nếu chính sách/loại khóa cho phép | Không encrypt/sign dữ liệu mới bằng key cũ |
-| **SUSPENDED** | Tạm ngưng hoạt động theo điều tra/chính sách, có thể phục hồi nếu không compromise | Không tiếp tục cấp phép ở lớp ứng dụng chỉ vì key material vẫn tồn tại |
-| **REVOKED / COMPROMISED** | Chỉ thao tác điều tra/khôi phục đặc biệt đã được kiểm soát | Không tạo dữ liệu/chữ ký đáng tin mới; xử lý dữ liệu cũ theo incident plan |
-| **DESTROYED** | Có thể giữ *metadata chứng cứ* không nhạy cảm | Không còn dùng key để decrypt/sign; không được tuyên bố destroyed nếu còn key copies |
+| **PENDING / PRE-ACTIVATION** | Metadata entry, key ownership verification, preparation, and approval | Not yet used for production encrypt/sign |
+| **ACTIVE** | Operations matching intended purpose, policy, cryptoperiod, and quota | Do not grant unrestricted access; audit, check nonces, enforce policy |
+| **DECRYPT-ONLY / DEACTIVATED** | Only reading old data or verifying history if policy/key type permits | Do not encrypt/sign new data with the old key |
+| **SUSPENDED** | Temporarily paused during investigation/policy check; recoverable if not compromised | Do not keep granting access at the application layer merely because key material still exists |
+| **REVOKED / COMPROMISED** | Only tightly controlled investigation/recovery actions | Do not create new trusted data/signatures; handle old data per incident plan |
+| **DESTROYED** | Non-sensitive *evidence metadata* may be retained | Key can no longer be used to decrypt/sign; must not claim destroyed if key copies remain |
 
-**Cẩn thận ngôn ngữ:** “Đã ngừng encrypt bằng khóa cũ” là **deactivation/rotation** thường quy. “Đã phát hiện khóa bị lấy cắp” là **compromise**, đòi hỏi phản ứng khẩn cấp; không thể xử lý bằng cùng thủ tục đơn giản rồi coi rủi ro chấm dứt.
+**Watch your terminology:** “Stopped encrypting with the old key” is routine **deactivation/rotation**. “Discovered the key was stolen” is a **compromise**, requiring emergency response; it cannot be handled with the same simple routine and declared over.
 
-### 2.1. Cryptoperiod là một quyết định theo rủi ro
+### 2.1. Cryptoperiod Is a Risk-Based Decision
 
-Cryptoperiod nên phụ thuộc thuật toán, mục đích khóa, lượng dữ liệu, tác động nếu key lộ, số lần sử dụng/giới hạn nonce, loại dữ liệu và yêu cầu compliance. **Không có một chu kỳ 90 ngày/1 năm phù hợp mọi khóa.** Đặt lịch tự động và sự kiện rotation có căn cứ; không copy một con số từ ví dụ sang tất cả hệ thống.
+Cryptoperiod should depend on the algorithm, key purpose, data volume, impact of compromise, invocation count/nonce limits, data classification, and compliance requirements. **There is no single 90-day or 1-year schedule that fits every key.** Set automated schedules and justified rotation triggers; never copy one number from an example blindly across all systems.
 
-Một DEK chỉ được dùng để mã hóa trong một ngày có thể vẫn cần để giải mã bản ghi chưa hết thời hạn lưu trữ trong nhiều năm. Đây là lý do quản lý **originator-usage period** (sinh bảo vệ mới) tách khỏi **recipient-usage period** (xử lý dữ liệu cũ) theo NIST.
+A DEK used for encryption for only a single day may still be needed for years to decrypt records within their retention period. That is why NIST separates the **originator-usage period** (creating new protection) from the **recipient-usage period** (processing legacy protected data).
 
-## 3. Bước 1 – Sinh khóa: đúng thuật toán, kích thước và nguồn entropy
+## 3. Step 1 – Key Generation: Right Algorithm, Size, and Entropy Source
 
-### 3.1. Xác định ý định trước khi tạo key
+### 3.1. Define Intent Before Creating a Key
 
-Trước khi gọi API, cần có ít nhất:
+Before calling any API, specify at minimum:
 
-- **Key purpose:** encryption, decryption, signing, verification, HMAC, key wrapping hay handshake;
-- **Algorithm / size:** AES-128/256, HMAC-SHA256, RSA hoặc Ed25519 tùy protocol và chính sách;
-- **Owner/tenant/service/asset:** khóa thuộc đối tượng nào và ai chịu trách nhiệm;
-- **Exportability:** có được export key bytes không, hay phải giữ non-exportable trong HSM/KMS?
-- **Allowed operations:** encrypt/decrypt, sign/verify, wrap/unwrap và context cụ thể;
-- **Environment:** production/staging/test phải tách key material; không dùng cùng khóa trên cả ba;
-- **Lifetime/volume:** thời hạn, quota, rotation trigger, giới hạn số lần mã hóa/nonce;
-- **Recovery:** backup/escrow/wrapped form, ứng dụng có cần giải mã dữ liệu cũ hay không.
+- **Key purpose:** encryption, decryption, signing, verification, HMAC, key wrapping, or handshake;
+- **Algorithm / size:** AES-128/256, HMAC-SHA256, RSA, or Ed25519 depending on protocol and policy;
+- **Owner/tenant/service/asset:** which entity owns the key and who is accountable;
+- **Exportability:** can raw key bytes be exported, or must they remain non-exportable inside an HSM/KMS?
+- **Allowed operations:** encrypt/decrypt, sign/verify, wrap/unwrap, and specific context;
+- **Environment:** production/staging/test must isolate key material; never share a key across all three;
+- **Lifetime/volume:** validity window, quota, rotation triggers, encryption/nonce count limits;
+- **Recovery:** backup/escrow/wrapped form, and whether the application needs to decrypt legacy data.
 
-Một khóa mạnh được dùng sai mục đích, sai tenant hoặc sai algorithm vẫn là lỗi bảo mật. Không chọn RSA chỉ vì “khóa dài hơn”; không tái sử dụng một key để vừa encrypt vừa MAC hoặc nhiều protocol mà không có thiết kế key separation.
+A strong key used for the wrong purpose, wrong tenant, or wrong algorithm is still a security failure. Do not choose RSA just because “the key is longer”; never reuse one key for both encryption and MAC, or across multiple protocols, without explicit key separation design.
 
-### 3.2. Tạo AES secret key với Java 17+
+### 3.2. Generating an AES Secret Key in Java 17+
 
 ```java
 import java.security.SecureRandom;
@@ -148,17 +148,17 @@ generator.init(256, rng);
 SecretKey key = generator.generateKey();
 ```
 
-Đây là **đoạn minh họa cần nằm trong method xử lý checked exception**. Với Java 17 và provider thông dụng, AES-256 được hỗ trợ; với môi trường/provider bị giới hạn, kiểm theo chính sách và khả năng cung cấp thuật toán thực tế. Trong chương trình chạy đầy đủ ở mục 12, dùng AES-128 để ví dụ rộng rãi trên các môi trường Java 17, không ngụ ý AES-128 luôn phù hợp mọi threat model.
+This is an **illustrative snippet that belongs inside a method handling checked exceptions**. In Java 17 with standard providers, AES-256 is supported; in restricted environments/providers, check policy and actual algorithm availability. In the full runnable program in Section 12, AES-128 is used for broad portability across Java 17 environments, which does not imply AES-128 fits every threat model.
 
-Các ý quan trọng:
+Key points:
 
-1. `KeyGenerator` biểu diễn yêu cầu **khóa cho thuật toán AES**, không phải mật khẩu.
-2. `SecureRandom` là API tạo bit có chất lượng mật mã; không dùng `Random`, `ThreadLocalRandom`, timestamp, UUID ghép hay seed hard-code.
-3. `SecretKey` là một đối tượng tham chiếu khóa. Một provider có thể giữ key ngoài phần mềm và `key.getEncoded()` có thể trả `null` đối với non-exportable key.
-4. **Không in raw key** bằng `Base64.getEncoder().encodeToString(key.getEncoded())` rồi ghi vào log/config.
-5. Độ dài output 256 bit từ một mật khẩu yếu đã băm không tương đương khóa 256 bit lấy từ CSPRNG; nếu đầu vào là password, cần KDF và chính sách password.
+1. `KeyGenerator` requests a **key for the AES algorithm**, not a password.
+2. `SecureRandom` is the API for cryptographically strong bits; never use `Random`, `ThreadLocalRandom`, timestamps, concatenated UUIDs, or hard-coded seeds.
+3. `SecretKey` is a key reference object. A provider may store the key outside software memory, and `key.getEncoded()` may return `null` for non-exportable keys.
+4. **Never print raw keys** via `Base64.getEncoder().encodeToString(key.getEncoded())` into logs or config files.
+5. A 256-bit output hashed from a weak password is not equivalent to a 256-bit key from a CSPRNG; if the input is a password, you need a KDF and password policy.
 
-### 3.3. Sinh cặp khóa ký trong Java
+### 3.3. Generating a Signing Key Pair in Java
 
 ```java
 import java.security.KeyPair;
@@ -166,79 +166,79 @@ import java.security.KeyPairGenerator;
 
 KeyPairGenerator generator = KeyPairGenerator.getInstance("Ed25519");
 KeyPair pair = generator.generateKeyPair();
-// pair.getPrivate() phải được bảo vệ.
-// pair.getPublic() có thể xuất bản theo cơ chế tin cậy.
+// pair.getPrivate() must be protected.
+// pair.getPublic() can be published via a trusted mechanism.
 ```
 
-Đây là đoạn minh họa, cần xử lý checked exception và khả năng hỗ trợ provider. `Ed25519` dành cho **chữ ký số**; không sử dụng key pair Ed25519 để làm khóa mã hóa AES.
+This is an illustrative snippet requiring checked exception handling and provider support checks. `Ed25519` is for **digital signatures**; do not use an Ed25519 key pair as an AES encryption key.
 
-`KeyPairGenerator.getInstance("RSA")` cũng có thể dùng trong giao thức/PKI tương thích, nhưng kích thước key và scheme/padding phải theo chính sách. Với TLS, việc tự tạo key pair chưa phát hành một **certificate được CA tin cậy**; quy trình CSR, cấp chứng thư, kiểm chain và chính sách tin cậy là một bước riêng.
+`KeyPairGenerator.getInstance("RSA")` can also be used in compatible protocols/PKI, but key size and scheme/padding must follow policy. For TLS, generating a key pair alone does not issue a **CA-trusted certificate**; CSR generation, certificate issuance, chain validation, and trust policy are separate steps.
 
-### 3.4. Ưu tiên tạo khóa ở đúng ranh giới bảo mật
+### 3.4. Prefer Generating Keys Inside the Right Security Boundary
 
-- **Software-generated/exportable:** Java `KeyGenerator` hoặc `KeyPairGenerator` trả đối tượng key, dễ tích hợp, nhưng RAM/process và backup phải được bảo vệ.
-- **Provider-backed:** HSM/PKCS#11 có thể tạo khóa tại token và không cho xuất private/raw key, giúp giảm số bản sao key material.
-- **Cloud KMS:** có thể tạo và sử dụng key trong dịch vụ quản lý, hoặc tạo DEK dạng plaintext tạm thời + wrapped key. Cách dùng và export policy khác nhau theo provider/API, **không mặc nhiên mọi khóa KMS đều exportable hay mọi lời gọi KMS trả raw key**.
+- **Software-generated/exportable:** Java `KeyGenerator` or `KeyPairGenerator` returns key objects that are easy to integrate, but process RAM and backups must be protected.
+- **Provider-backed:** HSM/PKCS#11 can generate keys on the hardware token and forbid exporting private/raw keys, reducing copies of key material.
+- **Cloud KMS:** can generate and use keys within the managed service, or generate a temporary plaintext DEK + wrapped key. Usage and export policies vary by provider/API; **never assume every KMS key is exportable or every KMS call returns raw keys**.
 
-Nếu chính sách yêu cầu non-exportable, không tạo khóa exportable trong ứng dụng rồi import một bản sao và tuyên bố “khóa chưa bao giờ rời HSM”. Cần kiểm chứng nơi key thực sự được sinh và những chỗ raw key đi qua.
+If policy requires non-exportability, do not generate an exportable key in the application, import a copy, and claim “the key never left the HSM.” Verify where the key was actually generated and every path raw bytes travel through.
 
-### 3.5. Kiểm thử entropy không đồng nghĩa kiểm thử randomness bằng mắt
+### 3.5. Testing Entropy Does Not Mean Eyeballing Randomness
 
-Một vòng lặp in 100 khóa khác nhau không chứng minh generator an toàn. Chất lượng `SecureRandom` phụ thuộc triển khai/provider và nguồn entropy; không dùng thời gian hoặc giá trị dễ đoán để thay nguồn seed. Trên hệ thống có yêu cầu cao, xem cấu hình JDK/provider, kiểm soát môi trường container/VM, chuẩn vận hành CSPRNG và chính sách compliance.
+A loop printing 100 distinct keys does not prove a generator is secure. `SecureRandom` quality depends on the implementation/provider and entropy source; never substitute time or predictable values as a seed. In high-assurance systems, inspect JDK/provider configuration, container/VM entropy environments, CSPRNG operational standards, and compliance policies.
 
-## 4. Bước 2 – Cấp phát (provisioning): đưa khóa đến đúng bên có quyền
+## 4. Step 2 – Provisioning: Delivering Keys to the Right Authorized Party
 
-**Cấp phát khóa** không phải việc gửi raw key qua email/chat hoặc copy file keystore cho mọi service. Nó là quy trình bảo đảm đúng đối tượng **được đăng ký, nhận quyền và có khả năng dùng khóa cho đúng purpose**.
+**Key provisioning** is not emailing/chatting raw keys or copying a keystore file to every service. It is the workflow ensuring the right entity **is registered, authorized, and able to use the key for its exact purpose**.
 
-Một workflow thường gồm:
+A typical workflow includes:
 
-1. **Yêu cầu:** service/owner khai báo mục đích, key type, algorithm, environment, tenant, retention, cần export hay không.
-2. **Phê duyệt:** policy/IAM và separation of duties quyết định ai được create/activate/access/delete.
-3. **Tạo hoặc import:** key được sinh ở ranh giới an toàn, gắn key ID/metadata. Với import phải xác minh nguồn, algorithm, format và đường truyền an toàn.
-4. **Liên kết chủ sở hữu:** key ID ↔ service identity / tenant / dataset / operation / environment. Không tin tên alias tùy ý do request bên ngoài gửi.
-5. **Phân quyền:** chỉ cấp `Encrypt`/`Decrypt`/`GenerateDataKey`/`Sign`/`Verify`/`Wrap`/`Unwrap` cần thiết; tránh quyền quản trị/disable/delete cho runtime ứng dụng.
-6. **Kích hoạt:** chỉ dùng trong thời gian, quota và trạng thái cho phép; cấu hình monitoring/audit.
-7. **Kiểm chứng:** chạy test không dùng dữ liệu thật để biết đúng identity, key version và expected operation.
+1. **Request:** service/owner declares purpose, key type, algorithm, environment, tenant, retention, and export requirements.
+2. **Approval:** policy/IAM and separation of duties determine who can create/activate/access/delete.
+3. **Create or import:** key is generated within a secure boundary and tagged with key ID/metadata. Imports must verify origin, algorithm, format, and secure transport.
+4. **Owner binding:** key ID ↔ service identity / tenant / dataset / operation / environment. Never trust arbitrary alias names sent in external requests.
+5. **Authorization:** grant only the required `Encrypt`/`Decrypt`/`GenerateDataKey`/`Sign`/`Verify`/`Wrap`/`Unwrap`; avoid granting admin/disable/delete rights to runtime apps.
+6. **Activation:** allow use only within permitted time, quota, and state; configure monitoring/auditing.
+7. **Verification:** run tests without real production data to confirm identity, key version, and expected operations.
 
-Ví dụ mô hình phân quyền:
+Example authorization model:
 
-| Role | Quyền nên có | Quyền nên tránh |
+| Role | Permissions to Grant | Permissions to Avoid |
 | --- | --- | --- |
-| Application writer | `Encrypt` hoặc `GenerateDataKey` với key/context được phép | `DeleteKey`, export KEK, quản lý key của tenant khác |
-| Application reader | `Decrypt`/`Unwrap` đúng đối tượng và điều kiện | Create/rotate vô hạn, xóa key, key admin |
-| Key administrator | Tạo, cấu hình policy, lên lịch rotation theo phê duyệt | Đọc plaintext dữ liệu nếu không có nhu cầu |
-| Incident responder | Disable, audit, kích hoạt workflow khẩn cấp theo kiểm soát | Tự ý phá hủy key khi chưa đánh giá recovery/retention |
-| Auditor | Read-only metadata, log, trạng thái và rotation history | Raw key material hoặc plaintext |
+| Application writer | `Encrypt` or `GenerateDataKey` for permitted keys/context | `DeleteKey`, exporting KEK, managing other tenants' keys |
+| Application reader | `Decrypt`/`Unwrap` for specific objects and conditions | Unlimited create/rotate, delete key, key admin |
+| Key administrator | Create, configure policy, schedule rotation upon approval | Reading plaintext data unless required |
+| Incident responder | Disable, audit, trigger emergency workflows under controls | Unilaterally destroying keys before evaluating recovery/retention |
+| Auditor | Read-only metadata, logs, status, and rotation history | Raw key material or plaintext |
 
-Một dịch vụ có quyền decrypt tất cả tenant tương đương “chìa khóa vạn năng” dù AES rất mạnh. Cần phối hợp IAM, policy theo resource, key alias/context, business authorization và log. KMS quyền thao tác mật mã không tự thay thế **kiểm tra quyền đối tượng nghiệp vụ**.
+A service permitted to decrypt every tenant effectively holds a “master skeleton key” even with strong AES. Combine IAM, resource policies, key aliases/context, business authorization, and audit logs. KMS cryptographic permissions do not replace **business-object authorization checks**.
 
-### 4.1. Đưa public key và secret key ra ngoài khác nhau
+### 4.1. Distributing Public Keys vs. Secret Keys Differs
 
-- **Public key:** có thể phân phối, nhưng cần bảo đảm **authenticity/binding** bằng certificate, pinned key, trusted registry hoặc kênh đáng tin; public key không phải bí mật.
-- **Private/secret key:** chỉ vận chuyển qua cơ chế key transport/wrapping có bảo mật, quy trình HSM/KMS hoặc keystore được bảo vệ. Nếu raw key được xuất ra RAM, đánh giá cả process, log, crash dump, truyền mạng và bên nhận.
-- **Wrapped DEK:** vẫn cần authenticated key wrapping và ràng buộc context (tenant, object, version), không phải “Base64 của key” hoặc XOR password hash.
-- **Certificate:** chứa public key và thông tin danh tính/issuer/signature; **không** phải cùng thứ với private key. Certificate đã được CA cấp không đồng nghĩa private key đang được bảo vệ.
+- **Public key:** can be distributed, but requires **authenticity/binding** via certificates, pinned keys, a trusted registry, or a trusted channel; a public key is not a secret.
+- **Private/secret key:** transport only via secure key transport/wrapping mechanisms, HSM/KMS workflows, or protected keystores. If raw keys enter RAM, assess the process, logs, crash dumps, network transfer, and recipient.
+- **Wrapped DEK:** still requires authenticated key wrapping and context binding (tenant, object, version), not “Base64 of the key” or XOR with a password hash.
+- **Certificate:** contains a public key and identity/issuer/signature details; it is **not** the same thing as a private key. A CA-issued certificate does not imply the private key is securely protected.
 
-**Đường cấp phát cũng là một phần của lifecycle**, vì key rất mạnh vẫn có thể lộ trong một lần copy sai kênh.
+**The provisioning path is part of the lifecycle**, because even a very strong key can leak through one copy over an insecure channel.
 
-## 5. Bước 3 – Lưu trữ: KeyStore, KMS, HSM và backup
+## 5. Step 3 – Storage: KeyStore, KMS, HSM, and Backups
 
-| Phương án | Lưu gì? | Khi nào phù hợp? | Giới hạn |
+| Option | What Does It Store? | When Is It Appropriate? | Limitations |
 | --- | --- | --- | --- |
-| Java `KeyStore` loại `PKCS12` | Private key + certificate chain, `SecretKeyEntry` khi provider hỗ trợ, hoặc certs | App/tool cần lưu key có password/file control | File và password là hai tài sản cần bảo vệ; không có IAM/audit tập trung như KMS |
-| Java `KeyStore` loại `PKCS11` | Tham chiếu key/token thông qua provider PKCS#11 | HSM/token và yêu cầu phần cứng | Phụ thuộc thiết bị, provider, session/login và cấu hình token |
-| Cloud KMS | KEK/key object, key policy, version, encrypt/decrypt hoặc wrap/unwrap | Nhiều service, quyền tập trung, audit, rotation | Availability, permissions, network/latency, nhà cung cấp |
-| HSM | Key operations trong module bảo mật, có thể non-exportable | Compliance, signing authority, KEK/tài sản nhạy cảm | Chi phí/quản trị, quota, backup/recovery theo cơ chế HSM |
-| Envelope encryption | Ciphertext data + wrapped DEK; KEK ở KMS/HSM | Lượng dữ liệu lớn, rotation KEK, nhiều tenant | Phải giữ wrapped DEK, key ID/context, xử lý plaintext DEK tạm trong RAM |
-| Secret manager | Secret được quản lý qua API và policy | Lưu các secret/phần mềm cần truy xuất | Không tự động thay mọi chức năng KMS/HSM và không bảo đảm non-exportability |
+| Java `KeyStore` type `PKCS12` | Private key + certificate chain, `SecretKeyEntry` when supported by provider, or certs | App/tool needing password/file-protected key storage | Both file and password are assets to protect; lacks centralized IAM/audit like KMS |
+| Java `KeyStore` type `PKCS11` | Key/token references via a PKCS#11 provider | HSM/hardware tokens and hardware-backed requirements | Depends on device, provider, session/login, and token configuration |
+| Cloud KMS | KEK/key object, key policy, versions, encrypt/decrypt or wrap/unwrap | Multi-service systems, centralized permissions, audit, rotation | Availability, permissions, network/latency, vendor lock-in |
+| HSM | Key operations inside a secure hardware module, potentially non-exportable | Compliance, signing authority, KEKs/high-value assets | Cost/administration, quota, HSM-specific backup/recovery |
+| Envelope encryption | Data ciphertext + wrapped DEK; KEK in KMS/HSM | Large data volumes, KEK rotation, multi-tenant | Must retain wrapped DEK, key ID/context, and handle temporary plaintext DEK in RAM |
+| Secret manager | Secrets managed via API and policy | Storing app/software secrets requiring retrieval | Does not automatically replace all KMS/HSM functions or guarantee non-exportability |
 
-**Chú ý:** Có file `.p12` không tự động có security posture của HSM. `PKCS12` là định dạng/keystore được bảo vệ bằng password; nếu file và password cùng bị lộ, key có thể mất an toàn. Đừng lưu cả `keystore.p12` và password giải khóa trong cùng repository/container image rồi coi đã tách secret.
+**Note:** Having a `.p12` file does not automatically give you an HSM's security posture. `PKCS12` is a password-protected keystore format; if both the file and password are compromised, the keys are exposed. Never store `keystore.p12` and its unlock password in the same repository or container image and assume secrets are separated.
 
-### 5.1. Phân biệt keystore và truststore
+### 5.1. Distinguishing Keystore and Truststore
 
-**Keystore cho identity của chính ứng dụng** thường giữ private key cùng certificate chain hoặc secret key. **Truststore** giữ trust anchor/chứng chỉ công khai mà ứng dụng tin cậy cho TLS/PKIX. Lưu certificate trong truststore **không** đồng nghĩa có private key tương ứng; truststore cũng cần bảo vệ tính toàn vẹn để ngăn attacker thay trust anchors.
+**A keystore for the application's own identity** typically holds a private key with its certificate chain, or a secret key. **A truststore** holds trust anchors/public certificates the application trusts for TLS/PKIX. Storing a certificate in a truststore **does not** mean you hold the matching private key; the truststore also requires integrity protection so attackers cannot inject rogue trust anchors.
 
-Với Java:
+In Java:
 
 ```java
 KeyStore store = KeyStore.getInstance("PKCS12");
@@ -246,44 +246,44 @@ store.load(inputStream, password);
 Key key = store.getKey("data-v1", password);
 ```
 
-Đây là đoạn **minh họa chưa độc lập**: cần import `java.security.KeyStore` và `java.security.Key`, `inputStream`, `password`; phải xử lý checked exception. Key có thể không tồn tại, password sai hoặc keystore/provider không hỗ trợ loại entry. `getKey` trả tham chiếu `Key`; không tự giải quyết permission/quota/cryptoperiod cấp ứng dụng.
+This is a **non-standalone snippet**: it needs imports for `java.security.KeyStore` and `java.security.Key`, plus `inputStream`, `password`, and checked exception handling. The key may not exist, the password may be wrong, or the keystore/provider may not support the entry type. `getKey` returns a `Key` reference; it does not enforce application-level permissions, quotas, or cryptoperiods.
 
-### 5.2. Nguyên tắc lưu khóa trong production
+### 5.2. Principles for Storing Keys in Production
 
-1. **Hạn chế khả năng export:** nếu không cần raw key, ưu tiên thao tác trong KMS/HSM.
-2. **Least privilege:** process runtime chỉ được dùng đúng key/operation; không cấp delete/rotate cho toàn bộ service.
-3. **Access controls độc lập:** file permissions, secret distribution, token/service identity, network và IAM.
-4. **Encryption + integrity:** wrapped DEK/PKCS12/password phải được bảo vệ, key metadata/alias cũng phải có integrity.
-5. **Backup và recovery:** backup của key khác với backup của ciphertext. Mất key mà còn data ≠ khôi phục được data.
-6. **Audit:** theo dõi create/import/activate/use/rotate/disable/delete/export, nhưng **không log raw key, password hay plaintext**.
-7. **Tách môi trường:** dev/test/prod và tenant/scope; không chuyển file prod keystore sang laptop dev.
-8. **Vòng đời bản sao:** cache, disaster-recovery replicas, snapshots, exported keystore, laptop, build pipeline, CI artifacts.
-9. **Phê duyệt thao tác nguy hiểm:** delete/destroy cần kiểm retention, legal hold, phụ thuộc các phiên bản dữ liệu cũ và two-person control khi phù hợp.
+1. **Limit exportability:** if raw keys are not needed, prefer executing operations inside KMS/HSM.
+2. **Least privilege:** runtime processes may only use the exact key/operation needed; never grant delete/rotate to every service.
+3. **Independent access controls:** file permissions, secret distribution, token/service identity, network, and IAM.
+4. **Encryption + integrity:** wrapped DEKs/PKCS12/passwords must be protected, and key metadata/aliases must also have integrity protection.
+5. **Backup and recovery:** backing up keys differs from backing up ciphertext. Losing the key while keeping the data ≠ recoverable data.
+6. **Audit:** track create/import/activate/use/rotate/disable/delete/export, while **never logging raw keys, passwords, or plaintext**.
+7. **Environment isolation:** separate dev/test/prod and tenants/scopes; never copy a prod keystore onto a developer laptop.
+8. **Copy lifecycle:** track caches, disaster-recovery replicas, snapshots, exported keystores, laptops, build pipelines, and CI artifacts.
+9. **Approval for destructive actions:** delete/destroy requires checking retention, legal hold, legacy data version dependencies, and two-person control where appropriate.
 
-### 5.3. Backup key không phải tạo nhiều bản sao vô quản lý
+### 5.3. Key Backups Must Not Create Unmanaged Copies
 
-Backup key phải có encryption, ownership, access policy, inventory và định kỳ kiểm tra restore. Khả năng recovery phải được **diễn tập**, không chỉ dựa vào checkbox “backup enabled”. Nếu HSM/KMS key không export, phải hiểu khả năng backup/restore của chính sản phẩm và giới hạn về vùng địa lý/account.
+Key backups must have encryption, ownership, access policies, an inventory, and regular restore tests. Recovery capability must be **drilled**, not assumed from a “backup enabled” checkbox. If an HSM/KMS key is non-exportable, understand the product's own backup/restore capabilities and regional/account boundaries.
 
-Khi muốn **crypto-shredding/cryptographic erasure**, phải xác định mọi bản DEK/KEK cần hủy, wrapped copies, backups và nơi key được cache. Xóa một blob mật mã không có nghĩa data không thể khôi phục nếu key vẫn còn trong bản sao khác.
+When performing **crypto-shredding/cryptographic erasure**, identify every DEK/KEK copy to destroy, wrapped copies, backups, and cache locations. Deleting a single cryptographic blob does not guarantee data is unrecoverable if the key survives in another copy.
 
-## 6. Bước 4 – Sử dụng khóa: đúng phạm vi và ràng buộc mật mã
+## 6. Step 4 – Key Usage: Correct Scope and Cryptographic Constraints
 
-### 6.1. Không dùng cùng khóa cho mọi nhu cầu
+### 6.1. Never Reuse the Same Key for Every Need
 
-**Key usage separation:** Khóa AES mã hóa dữ liệu nên được tách khỏi key HMAC, key-wrapping, signing key, JWT secret và những protocol khác trừ khi thiết kế thuật toán chuẩn quy định cách derive subkeys an toàn. Khóa chứa 256 bit entropy không có nghĩa được tái sử dụng vô hạn giữa các mục đích.
+**Key usage separation:** An AES key for data encryption should be separated from HMAC keys, key-wrapping keys, signing keys, JWT secrets, and other protocols unless a standard algorithm specification defines safe subkey derivation. Having 256 bits of entropy does not mean a key can be reused endlessly across purposes.
 
-Ví dụ:
+For example:
 
-- `data-v7`: AES-GCM cho record tenant A;
-- `wrap-v3`: KEK bọc DEK của tenant A;
-- `sign-v5`: private key ký message;
-- `tls-server-v2`: private key cho TLS server identity.
+- `data-v7`: AES-GCM for tenant A records;
+- `wrap-v3`: KEK wrapping tenant A DEKs;
+- `sign-v5`: private key signing messages;
+- `tls-server-v2`: private key for TLS server identity.
 
-Một key ID phải dẫn tới **một key material + purpose + policy + version** rõ ràng. Nếu một application user đổi `keyId` trong JSON để truy cập khóa tenant khác, backend phải từ chối dù lookup key theo ID có kết quả.
+A key ID must map to **one unambiguous key material + purpose + policy + version**. If an application user edits `keyId` in JSON to target another tenant's key, the backend must reject it even if the key ID lookup succeeds.
 
-### 6.2. AES-GCM: nonce duy nhất dưới cùng key
+### 6.2. AES-GCM: Unique Nonce Under the Same Key
 
-Mọi lần `AES/GCM/NoPadding` dùng một **key giống nhau** phải tránh dùng lại **nonce giống nhau**. Nonce reuse phá nghiêm trọng confidentiality và authentication của GCM. Thông thường dùng nonce 12 byte (96 bit), tag 128 bit; cơ chế uniqueness phải tính số lượng encryption, concurrency, restart/snapshot và provider behavior.
+Every `AES/GCM/NoPadding` call using the **same key** must avoid reusing the **same nonce**. Nonce reuse severely breaks GCM's confidentiality and authenticity. Typically a 12-byte (96-bit) nonce and 128-bit tag are used; the uniqueness scheme must account for encryption volume, concurrency, restarts/snapshots, and provider behavior.
 
 ```java
 byte[] nonce = new byte[12];
@@ -296,204 +296,204 @@ cipher.updateAAD(metadataBytes);
 byte[] ciphertextAndTag = cipher.doFinal(plaintextBytes);
 ```
 
-Đây là **đoạn minh họa chưa độc lập**: cần imports JCA/JCE, các biến `secureRandom`, `aesKey`, `metadataBytes`, `plaintextBytes` và exception handling. Trong production, AAD phải ràng buộc **key version, tenant, object, schema/operation** theo thiết kế, và bên decrypt phải truyền y hệt. Nonce là dữ liệu có thể công khai nhưng phải lưu cùng ciphertext nếu cần decrypt.
+This is a **non-standalone snippet**: it requires JCA/JCE imports, variables `secureRandom`, `aesKey`, `metadataBytes`, `plaintextBytes`, and exception handling. In production, AAD should bind **key version, tenant, object, schema/operation** per design, and the decryptor must supply the exact same bytes. A nonce can be public, but it must be stored alongside ciphertext if decryption is required.
 
-**Thêm key version vào AAD không tự ngăn nonce reuse.** Tương tự, rotation không hợp lệ hóa những ciphertext đã bị tạo bằng cặp key–nonce lặp trong quá khứ.
+**Adding key version to AAD does not prevent nonce reuse.** Likewise, rotation does not retroactively fix ciphertexts already created with a repeated key–nonce pair in the past.
 
-### 6.3. Giới hạn quyền: encrypt-only và decrypt-only
+### 6.3. Restricting Permissions: Encrypt-Only and Decrypt-Only
 
-Khi app dừng sử dụng key v1 để **mã hóa mới**, nó vẫn có thể cần v1 để giải mã record cũ. Giao thức nên buộc:
+When an app stops using key v1 for **new encryptions**, it may still need v1 to decrypt old records. The protocol should enforce:
 
-- Encryption luôn lấy **active key version** từ key registry tin cậy, không lấy từ tham số caller.
-- Decryption đọc key ID/version từ envelope đã được xác thực/bảo vệ, kiểm rằng version này được phép decrypt record/context tương ứng.
-- Key v1 chuyển sang **decrypt-only** hoặc deactivated processing mode theo semantics của KMS/policy; không dùng để mint ciphertext mới.
-- Retention và migration biết bao nhiêu dữ liệu v1 còn tồn tại và ở đâu, trước khi retire/destroy.
-- Không dùng key version làm dữ liệu quyết định authorization duy nhất: version là metadata, phải có role/owner/tenant binding và integrity.
+- Encryption always fetches the **active key version** from a trusted key registry, never from caller parameters.
+- Decryption reads the key ID/version from an authenticated/protected envelope and verifies that this version is permitted to decrypt the matching record/context.
+- Key v1 transitions to **decrypt-only** or deactivated processing mode per KMS/policy semantics; it must not mint new ciphertexts.
+- Retention and migration track how much v1 data remains and where, before retiring/destroying it.
+- Never use key version as the sole authorization check: version is metadata, requiring role/owner/tenant binding and integrity.
 
-**Lưu ý HMAC:** Vì cùng secret key thực hiện được cả tạo MAC lẫn kiểm MAC, việc thiết lập “verify-only” ở hệ thống chia sẻ raw HMAC key không thể ngăn người cầm raw key tính MAC mới. Cần enforce ở ranh giới dịch vụ/HSM hoặc thay scheme khi cần tách năng lực.
+**HMAC note:** Because the same secret key performs both MAC generation and verification, setting “verify-only” in a system sharing raw HMAC keys cannot prevent someone holding the raw key from computing new MACs. Enforce this at a service/HSM boundary or switch schemes when capabilities must be separated.
 
-### 6.4. Quan sát hoạt động mà không làm lộ bí mật
+### 6.4. Observing Operations Without Exposing Secrets
 
-Log nên chứa **key ID/version, service principal, operation name, outcome, timestamp, request ID, policy decision**, các mã lỗi đã chuẩn hóa. Không log `SecretKey.getEncoded()`, password, token bearer, plaintext, IV+key cùng lúc như debug dump. Cần kiểm các đường bất thường: crash dump, heap dump, APM tracing, exception stack, metrics labels và test fixtures.
+Logs should record **key ID/version, service principal, operation name, outcome, timestamp, request ID, policy decision**, and standardized error codes. Never log `SecretKey.getEncoded()`, passwords, bearer tokens, plaintext, or IV+key together as a debug dump. Audit less obvious channels: crash dumps, heap dumps, APM traces, exception stacks, metrics labels, and test fixtures.
 
-Không phải mọi quyền truy cập key thất bại đều là attack, nhưng gia tăng nhanh `Decrypt` sai key/tenant, `AccessDenied`, nonce duplication hoặc thay đổi policy không mong muốn phải được giám sát.
+Not every failed key access is an attack, yet sudden spikes in wrong-key/tenant `Decrypt` calls, `AccessDenied`, nonce duplication, or unexpected policy changes must be monitored.
 
-## 7. Bước 5 – Luân chuyển (rotation) bình thường
+## 7. Step 5 – Routine Rotation
 
-**Rotation** thường có nghĩa bắt đầu dùng **key material mới** hoặc một phiên bản mới cho hoạt động mới, trong khi có lộ trình xử lý dữ liệu cũ. Việc chuyển alias `current=v2` không tự tái mã hóa dữ liệu v1.
+**Rotation** typically means starting to use **new key material** or a new key version for new operations while maintaining a path to handle legacy data. Switching an alias `current=v2` does not automatically re-encrypt v1 data.
 
-### 7.1. Quy trình đối xứng key version v1 → v2
+### 7.1. Symmetric Key Version Workflow v1 → v2
 
 ```text
-Trước:
+Before:
   ACTIVE encryption key = v1
-  Record cũ: [version=v1, nonce1, ciphertext1, tag1]
+  Old record: [version=v1, nonce1, ciphertext1, tag1]
 
-Tạo v2:
+Create v2:
   Generate(v2) → Policy/QA → ACTIVE for new writes
   Deactivate v1 for new encryption; keep v1 for permitted reads
 
-Trong migration:
+During migration:
   New record: [version=v2, nonce2, ciphertext2, tag2]
-  Old record vẫn decrypt bằng v1 khi cần
+  Old record still decrypts with v1 when needed
 
-Nếu mục tiêu là loại bỏ v1:
-  Xác thực/giải mã record v1 → encrypt lại bằng v2 + nonce mới
-  → kiểm readback + atomic switch → xác nhận không còn dependency
-  → hủy v1 theo policy và kiểm backups
+If the goal is to retire v1:
+  Authenticate/decrypt v1 record → re-encrypt with v2 + fresh nonce
+  → verify readback + atomic switch → confirm no remaining dependencies
+  → destroy v1 per policy and inspect backups
 ```
 
-Bảng quyết định:
+Decision table:
 
-| Trạng thái | Encrypt record mới | Decrypt record v1 | Decrypt record v2 |
+| State | Encrypt New Record | Decrypt v1 Record | Decrypt v2 Record |
 | --- | --- | --- | --- |
-| Chưa rotate, v1 active | v1 | Có | Không có v2 |
-| Đã activate v2 | **v2** | **Có** trong read window/policy | Có |
-| Đã migrate toàn bộ + xác nhận không còn v1 | **v2** | Không nếu đã hủy key v1 | Có |
-| V1 bị compromise | Không v1 | Chỉ xử lý đặc biệt trong incident plan | Có nếu v2 được tạo/giữ an toàn |
+| Not rotated yet, v1 active | v1 | Yes | No v2 exists |
+| v2 activated | **v2** | **Yes** within read window/policy | Yes |
+| Fully migrated + confirmed no v1 remains | **v2** | No if v1 key was destroyed | Yes |
+| v1 compromised | No v1 | Special handling only per incident plan | Yes if v2 was created/kept securely |
 
-Điều kiện **“toàn bộ dữ liệu đã migrate”** gồm backup, replica, archive, delayed messages và bản ghi ít được truy cập; nếu bỏ sót, xóa v1 có thể làm data lịch sử không thể giải mã. Không để một node vẫn encrypt bằng v1 trong khi node khác đã chuẩn bị xóa v1; rotation phải phối hợp với rollout và active-version registry.
+The condition **“all data migrated”** includes backups, replicas, archives, delayed messages, and rarely accessed records; missing any of them before deleting v1 can render historical data undecryptable. Never let one node keep encrypting under v1 while another node prepares to delete v1; rotation must be coordinated with rollouts and an active-version registry.
 
-### 7.2. Envelope encryption: rewrap khác re-encrypt
+### 7.2. Envelope Encryption: Rewrap vs. Re-Encrypt
 
-Giả sử một file lớn được mã hóa bằng **DEK ngẫu nhiên**:
+Suppose a large file is encrypted with a **random DEK**:
 
 ```text
 payloadCiphertext = AES-GCM(DEK, plaintext, nonce)
 wrappedDEK_v1    = Wrap(KEK_v1, DEK)
 ```
 
-Khi chỉ thay **KEK**, ta có thể:
+When only rotating the **KEK**, we can do:
 
 ```text
 DEK = Unwrap(KEK_v1, wrappedDEK_v1)
 wrappedDEK_v2 = Wrap(KEK_v2, DEK)
 
-payloadCiphertext vẫn như cũ vì DEK không đổi.
+payloadCiphertext stays identical because the DEK did not change.
 ```
 
-Đây là **rewrap**: thay cơ chế bảo vệ DEK, không cần xử lý lại hàng gigabyte ciphertext. Nhưng nếu **DEK đã lộ**, rewrap không làm payload an toàn trở lại: phải sinh DEK mới và **re-encrypt data**. Nếu KEK v1 đã lộ và attacker đã giữ wrappedDEK_v1, họ có thể đã khôi phục DEK; cần incident investigation thay vì chỉ rewrap rồi coi an toàn.
+This is **rewrap**: changing the DEK's protection mechanism without reprocessing gigabytes of ciphertext. However, if the **DEK was exposed**, rewrapping does not make the payload safe again: you must generate a new DEK and **re-encrypt the data**. If KEK v1 was compromised and the attacker already captured `wrappedDEK_v1`, they may have already recovered the DEK; conduct an incident investigation instead of merely rewrapping and assuming safety.
 
-Một KMS có thể hỗ trợ các thao tác re-encrypt/wrap key chuyên dụng mà không trả plaintext DEK về ứng dụng. Kiểm đặc tả từng provider, policy và loại key; không tự suy ra mọi KMS cung cấp cùng API.
+A KMS may provide dedicated re-encrypt/wrap key operations without returning the plaintext DEK to the application. Check each provider's specification, policies, and key types; do not assume all KMS offerings expose the same API.
 
-### 7.3. Rotation của signing key khác data encryption key
+### 7.3. Signing Key Rotation Differs from Data Encryption Keys
 
-Với private signing key `sign-v1`:
+For a private signing key `sign-v1`:
 
-1. Tạo và kích hoạt `sign-v2`, phát hành public key/certificate tương ứng qua kênh đáng tin.
-2. Ngừng phát hành chữ ký **mới** bằng private key v1.
-3. Verifier tiếp tục nhận chữ ký **lịch sử hợp lệ** của v1 theo chính sách thời điểm ký, validity và trạng thái compromise.
-4. Sau thời gian cần thiết, ngừng chấp nhận v1 hoặc áp dụng quy trình lưu bằng chứng thời gian/chứng thực dài hạn.
+1. Create and activate `sign-v2`, publishing the corresponding public key/certificate through a trusted channel.
+2. Stop issuing **new** signatures with private key v1.
+3. Verifiers continue accepting **valid historical** v1 signatures according to signing-time, validity, and compromise policies.
+4. After the required period, stop accepting v1 or apply long-term timestamp/attestation preservation workflows.
 
-Cần phân biệt **public key vẫn có thể được lưu để verify** với **private signing key vẫn được phép sign**. Đừng xóa mọi public key cũ nếu hệ thống còn chữ ký lịch sử cần xác minh. Nếu v1 bị compromise, vấn đề phức tạp hơn: chữ ký mới có thể bị giả mạo, và chữ ký lịch sử cần đánh giá với timestamp/trust evidence phù hợp.
+Distinguish **keeping the public key available to verify** from **allowing the private signing key to continue signing**. Do not delete all old public keys while historical signatures still require verification. If v1 was compromised, the situation is harder: forged new signatures may exist, and historical signatures require evaluation with proper timestamps/trust evidence.
 
-### 7.4. Kịch bản zero-downtime có kiểm soát
+### 7.4. Controlled Zero-Downtime Rollout Scenario
 
-Một rotation production tốt thường là:
+A sound production rotation generally follows:
 
-1. **Prepare:** tạo v2, thiết lập quyền, backup/restore, kiểm compatibility và version-aware parser.
-2. **Deploy reader first:** đảm bảo mọi instance có thể giải mã v1 và v2 (theo phân quyền), chưa chuyển writer.
-3. **Activate v2 writers:** đổi active version qua registry/cấu hình đáng tin, theo dõi writer có đang còn tạo v1 không.
-4. **Observe:** đo tỷ lệ encrypt v2, decrypt v1/v2, latency, error rate, audit logs, replication consistency.
-5. **Re-encrypt/rewrap (nếu cần):** chạy migration có checkpoint/idempotency và verify tag, tránh mất data khi rollback.
-6. **Retire old:** chỉ sau kiểm inventory/dependencies, backup/DR, retention, approvals và rollback policy.
-7. **Document:** ghi actor, thời điểm, lý do, incident/ticket, key IDs và kết quả kiểm chứng.
+1. **Prepare:** create v2, configure permissions, backups/restore, check compatibility and version-aware parsers.
+2. **Deploy readers first:** ensure every instance can decrypt both v1 and v2 (subject to authorization) before switching writers.
+3. **Activate v2 writers:** update the active version via a trusted registry/configuration and monitor whether any writer still emits v1.
+4. **Observe:** track v2 encrypt rates, v1/v2 decrypt rates, latency, error rates, audit logs, and replication consistency.
+5. **Re-encrypt/rewrap (if needed):** run checkpointed, idempotent migrations that verify tags and prevent data loss on rollback.
+6. **Retire old:** only after checking inventory/dependencies, backup/DR, retention, approvals, and rollback policy.
+7. **Document:** record actor, timestamp, reason, incident/ticket, key IDs, and verification results.
 
-Với multi-region, stale caches và asynchronous queues, có thể tồn tại cửa sổ cả v1/v2 đồng thời. Protocol phải quy định rõ quyền decrypt và **một nguồn chân lý cho active encryption version**, không sử dụng wall-clock time riêng từng máy để chọn key.
+With multi-region setups, stale caches, and asynchronous queues, an overlap window where both v1 and v2 appear is common. The protocol must clearly govern decrypt permissions and maintain **a single source of truth for the active encryption version**, rather than relying on each machine's local wall-clock time to choose a key.
 
-## 8. Bước 6 – Thu hồi (revoke) và phản ứng khi khóa lộ
+## 8. Step 6 – Revocation and Incident Response on Key Compromise
 
-Thu hồi không chỉ là “rotate nhanh hơn”. **Khi nghi ngờ khóa bị lộ**, phải giả định attacker có thể có bản sao raw key hoặc đã thực hiện các thao tác mật mã không được phép.
+Revocation is not just “faster rotation.” **When key compromise is suspected**, assume an attacker may hold a copy of the raw key or may have already executed unauthorized cryptographic operations.
 
-### 8.1. Những hành động khác nhau
+### 8.1. Actions That Do Different Things
 
-| Hành động | Tác dụng thực tế | Không bảo đảm điều gì? |
+| Action | Actual Effect | What Does It Not Guarantee? |
 | --- | --- | --- |
-| **Disable key** trong KMS/policy | Ngăn thao tác mới qua hệ thống KMS đã áp dụng chính sách | Không xóa raw key đã export/cached hay giải mã được bằng bản sao |
-| **Revoke access grant / IAM** | Rút quyền của identity thực hiện encrypt/decrypt/sign | Không hủy secret đã bị người đó sao chép trước đó |
-| **Rotate key** | Tạo material mới và chuyển thao tác mới sang v2 | Không đổi ciphertext cũ, không thu hồi bản sao v1 |
-| **Rewrap DEK** | Bảo vệ DEK bằng KEK mới | Không cứu dữ liệu nếu DEK đã bị lộ |
-| **Re-encrypt payload** | Tạo bản mã mới dưới DEK mới, nonce mới | Không thể “lấy lại” plaintext đã bị attacker đọc trước đó |
-| **Revoke certificate** | Thông báo certificate/key identity không còn được tin cho mục đích/từ thời điểm theo chính sách PKI | Không xóa private key hoặc khiến tất cả client kiểm revocation ngay |
-| **Delete/destroy key** | Loại bỏ key material theo quy trình, có thể tạo cryptographic erasure | Không chứng minh mọi bản backup/cached copy đều biến mất |
-| **Expire credentials/token** | Chặn việc gọi API bằng credential cũ qua hệ thống kiểm soát | Không thay key mã hóa nếu đó là hai bí mật khác nhau |
+| **Disable key** in KMS/policy | Blocks new operations through the policy-enforcing KMS | Does not delete exported/cached raw keys or stop decryption using a copy |
+| **Revoke access grant / IAM** | Removes an identity's permission to encrypt/decrypt/sign | Does not destroy secrets that the identity copied earlier |
+| **Rotate key** | Generates new material and directs new operations to v2 | Does not alter old ciphertext or revoke v1 copies |
+| **Rewrap DEK** | Protects the DEK under a new KEK | Does not rescue data if the DEK itself was compromised |
+| **Re-encrypt payload** | Creates new ciphertext under a new DEK and fresh nonce | Cannot “un-read” plaintext the attacker already decrypted earlier |
+| **Revoke certificate** | Announces the certificate/key identity is no longer trusted for its purpose/from a point in time per PKI policy | Does not delete the private key or guarantee all clients check revocation immediately |
+| **Delete/destroy key** | Removes key material per procedure, potentially achieving cryptographic erasure | Does not prove all backups or cached copies disappeared |
+| **Expire credentials/tokens** | Blocks API calls using old credentials at the control plane | Does not change the encryption key if those are separate secrets |
 
-### 8.2. Incident response khi nghi lộ DEK
+### 8.2. Incident Response for Suspected DEK Compromise
 
-Ví dụ khóa AES `data-v1` được ghi vào log:
+For example, AES key `data-v1` was written into a log:
 
-1. **Cô lập nguồn rò:** chặn xuất log và quyền đọc không cần thiết, bảo quản chứng cứ cho điều tra theo quy trình.
-2. **Đánh giá phạm vi:** key version, tenant, data sets, wrapped DEKs, logs/backups, retention và khoảng thời gian lộ.
-3. **Ngăn tạo dữ liệu mới:** disable v1 for new encrypt, activate v2 từ nguồn an toàn; cân nhắc chặn decrypt v1 qua API trừ luồng recovery hạn chế.
-4. **Xử lý ciphertext cũ:** nếu cần phục hồi confidentiality, giải mã từ bản dữ liệu tin cậy rồi mã hóa lại bằng DEK mới/nonce mới; chú ý đối thủ có thể đã đọc bản mã cũ.
-5. **Rút quyền/credential liên quan:** IAM keys, deployment secrets, service accounts, key grants và mọi bản sao v1.
-6. **Migrate và xác minh:** kiểm tất cả primary/replica/backup theo phạm vi; giữ lịch sử và bằng chứng.
-7. **Retire/destroy** v1 khi pháp lý/khả năng recovery/incident plan cho phép; báo cáo và cập nhật detection.
+1. **Isolate the leak source:** stop log emission and unnecessary read access, preserving forensic evidence per procedure.
+2. **Assess scope:** key version, tenants, data sets, wrapped DEKs, logs/backups, retention, and exposure window.
+3. **Block new data creation:** disable v1 for new encryptions and activate v2 from a secure source; consider blocking v1 decrypt via API except for a restricted recovery pipeline.
+4. **Handle legacy ciphertext:** if confidentiality must be restored going forward, decrypt from trusted data stores and re-encrypt with a new DEK/fresh nonce; recognize the adversary may already have read old ciphertext.
+5. **Revoke related credentials/grants:** IAM keys, deployment secrets, service accounts, key grants, and all v1 copies.
+6. **Migrate and verify:** inspect all primaries/replicas/backups in scope; preserve history and evidence.
+7. **Retire/destroy** v1 once legal, recovery, and incident plans allow; report and update detection controls.
 
-Không tự động delete v1 ngay khi thấy dấu hiệu compromise nếu hệ thống cần nó để khôi phục/migrate và chưa có bản backup tin cậy. Tuy nhiên cũng không được tiếp tục dùng v1 cho encryption mới chỉ vì “còn cần decrypt”. Đây là bài toán balance giữa containment và recovery, cần runbook đã được phê duyệt.
+Do not blindly delete v1 the instant compromise is spotted if the system needs it to recover/migrate and has no trusted alternative backup. Conversely, never keep using v1 for new encryption simply because “it is still needed for decryption.” This is a balance between containment and recovery that requires an approved runbook.
 
-### 8.3. Thu hồi private signing key/TLS certificate
+### 8.3. Revoking a Private Signing Key / TLS Certificate
 
-Nếu private signing key hoặc TLS private key lộ:
+If a private signing key or TLS private key is exposed:
 
-- Kích hoạt cặp khóa mới, phân phối public key/certificate mới từ kênh tin cậy.
-- Ngừng **ký mới/handshake mới** bằng private key cũ trong hệ thống kiểm soát.
-- Nếu là chứng thư X.509, thực hiện revocation tại CA hoặc cơ chế tương ứng (CRL/OCSP hoặc mô hình nhà cung cấp) và kiểm hành vi của relying parties.
-- Xem xét **chữ ký đã phát hành**: việc verify signature toán học không trả lời chữ ký đã được tạo *trước hay sau khi compromise*. Signed timestamp hoặc bằng chứng thời gian được tin cậy có thể cần trong hệ thống lưu chữ ký dài hạn.
-- Nếu verifier pin public key không qua PKI, phải cập nhật trusted-key registry/pin trực tiếp theo protocol; CRL/OCSP có thể không liên quan.
+- Activate a new key pair and distribute the new public key/certificate through a trusted channel.
+- Stop **new signing/new handshakes** with the old private key in controlled systems.
+- For X.509 certificates, perform revocation at the CA or equivalent mechanism (CRL/OCSP or provider workflow) and verify relying party behavior.
+- Review **issued signatures**: mathematical signature verification alone does not tell whether a signature was created *before or after the compromise*. Signed timestamps or trusted time evidence may be needed in long-term signature archives.
+- If verifiers pin the public key without PKI, update the trusted-key registry/pins directly per protocol; CRL/OCSP may not apply.
 
-**Không nhầm:** thu hồi certificate không phải hủy private key trên máy đã bị tấn công. Và public key thường không có bí mật nên không phải mục tiêu xóa để “khóa kẻ tấn công”; cần thay chính sách tin cậy của verifier và rút quyền dùng private key.
+**Do not confuse:** revoking a certificate does not destroy the private key on a compromised host. And public keys are usually non-secret, so deleting them is not how you “lock out an attacker”; update verifier trust policies and revoke access to the private key.
 
-### 8.4. Revocation và backup
+### 8.4. Revocation and Backups
 
-Một backup hệ thống lưu **old key material** có thể làm key đã “xóa khỏi active store” xuất hiện lại sau disaster recovery. Runbook cần quản lý trạng thái revoked/compromised như metadata đáng tin cậy áp dụng **sau restore**, không chỉ restore raw keystore cũ rồi tự động tái kích hoạt v1.
+A system backup storing **old key material** can reintroduce a key “deleted from the active store” after disaster recovery. Runbooks must maintain revoked/compromised status as trusted metadata reapplied **after restore**, rather than restoring an old raw keystore and accidentally re-enabling v1.
 
-Nếu một service bị compromise, phải xem cả bản sao secret trong container image, environment, CI logs, crash dumps, snapshots, terminal history và artifacts. Việc xoay key trên dashboard không xóa được các bản sao đó.
+If a service is compromised, check secret copies in container images, environment variables, CI logs, crash dumps, snapshots, terminal histories, and build artifacts. Clicking rotate in a dashboard does not erase those copies.
 
-## 9. Bước 7 – Hủy bỏ, lưu trữ lịch sử và khả năng chứng minh
+## 9. Step 7 – Destruction, Archival History, and Auditability
 
-**Hủy khóa** có thể là một hành động gây mất dữ liệu không thể đảo ngược. Chỉ nên thực hiện khi:
+**Key destruction** can be an irreversible, data-losing action. Perform it only when:
 
-- key đã hết cryptoperiod và không còn dữ liệu hợp lệ cần decrypt/sign/recover theo policy;
-- dữ liệu đã được migrate hoặc được cho phép không khôi phục nữa;
-- backup, archive, replicas, các bản sao khôi phục được đánh giá;
-- có phê duyệt hoặc retention/legal-hold controls;
-- thao tác hủy đáp ứng yêu cầu sản phẩm/môi trường, với audit/bằng chứng.
+- the key's cryptoperiod has ended and no valid data still requires decrypt/sign/recovery under policy;
+- data has been migrated or is explicitly authorized to become unrecoverable;
+- backups, archives, replicas, and recovery copies have been assessed;
+- approvals and retention/legal-hold checks are satisfied;
+- destruction meets product/environment requirements with audit evidence.
 
-**Crypto-erasure** là việc làm dữ liệu mã hóa không thể giải mã bằng cách phá hủy vật liệu key cần thiết; hiệu quả phụ thuộc việc key **không còn bản sao khả dụng**, các đường recovery không còn và key thật sự là điểm kiểm soát duy nhất. Không được khẳng định `KeyStore.deleteEntry(alias)` trên file hoặc xóa một row DB là bằng chứng cryptographic erasure hoàn chỉnh.
+**Crypto-erasure** makes encrypted data undecryptable by destroying the required key material; its effectiveness depends on **no usable key copies remaining**, no recovery paths surviving, and the key genuinely being the sole point of control. Never claim `KeyStore.deleteEntry(alias)` on a file or deleting a database row constitutes complete cryptographic erasure.
 
-Sau khi hủy, có thể vẫn cần giữ metadata không nhạy cảm: key ID, version, purpose, created/activated/retired time, owner, algorithm, policy approvals, các sự kiện rotate/revoke/destroy và đối chiếu audit; **không giữ raw secret** chỉ để audit.
+After destruction, non-sensitive metadata may still need to be retained: key ID, version, purpose, created/activated/retired timestamps, owner, algorithm, policy approvals, rotate/revoke/destroy events, and audit reconciliation; **never retain raw secrets** just for audit.
 
-### 9.1. Key destruction không phải xóa dữ liệu người dùng
+### 9.1. Key Destruction Is Not User Data Deletion
 
-Nếu xóa DEK của một record, ciphertext vẫn có thể tồn tại nhưng không đọc được bằng cơ chế hợp lệ. Đây là một chính sách cần quyết định rõ; nếu người dùng yêu cầu **xóa dữ liệu**, hệ thống còn cần xử lý bản sao plaintext, searchable indexes, caches, logs và các nghĩa vụ retention riêng. Mã hóa và key destruction không thay thế toàn bộ data-governance workflow.
+Deleting a record's DEK may leave ciphertext behind that cannot be read via normal mechanisms. This is an explicit policy decision; if a user requests **data deletion**, the system must also handle plaintext copies, searchable indexes, caches, logs, and separate retention obligations. Encryption and key destruction do not replace the full data-governance workflow.
 
-### 9.2. Không kỳ vọng zeroization tuyệt đối từ Java object
+### 9.2. Do Not Expect Absolute Zeroization from Java Objects
 
-`SecretKey` hoặc `PrivateKey` có thể là object nằm trên Java heap, trong provider native memory hoặc trên token. Không phải mọi implementation cho phép xóa ngay tất cả bản copy; GC không cam kết tức thời hay secure wipe. Có thể xóa buffer `byte[]` do ứng dụng kiểm soát bằng `Arrays.fill` khi thích hợp, nhưng việc đó **không** chứng minh mọi copy đã được xóa. Nếu yêu cầu kiểm soát nghiêm, ưu tiên non-exportable KMS/HSM và quy trình vận hành được thẩm định.
+A `SecretKey` or `PrivateKey` may live on the Java heap, in native provider memory, or on a hardware token. Not every implementation lets you immediately wipe all copies; GC gives no guarantee of immediate or secure erasure. You can wipe application-owned `byte[]` buffers with `Arrays.fill` where appropriate, yet that **does not** prove every copy is gone. For strict control requirements, prefer non-exportable KMS/HSM keys and audited operational procedures.
 
-## 10. Sổ đăng ký khóa: key inventory và metadata
+## 10. Key Registry: Key Inventory and Metadata
 
-Một hệ thống trưởng thành cần có **key inventory/registry** thay vì đoán key qua tên file hoặc biến môi trường. Gợi ý schema nghiệp vụ:
+A mature system needs a **key inventory/registry** rather than guessing keys from filenames or environment variables. Suggested business schema:
 
-| Trường | Ý nghĩa |
+| Field | Meaning |
 | --- | --- |
-| `key_id` | Định danh key logic ổn định, không chứa material |
-| `version` | Phiên bản key material, ví dụ 1, 2, 3 |
-| `algorithm`, `length` | AES-256, Ed25519, RSA..., thông số cần biết |
+| `key_id` | Stable logical key identifier, containing no key material |
+| `version` | Version of key material, e.g., 1, 2, 3 |
+| `algorithm`, `length` | AES-256, Ed25519, RSA..., required parameters |
 | `purpose` | Encrypt, Decrypt, Sign, Verify, Wrap, Unwrap |
-| `owner`, `tenant`, `environment` | Danh tính/ranh giới trách nhiệm |
+| `owner`, `tenant`, `environment` | Identity/responsibility boundaries |
 | `state` | PRE-ACTIVE, ACTIVE, DECRYPT-ONLY, REVOKED, DESTROYED... |
-| `created_at`, `activated_at`, `retired_at` | Mốc lifecycle và cryptoperiod |
+| `created_at`, `activated_at`, `retired_at` | Lifecycle milestones and cryptoperiod |
 | `provider_ref` | KMS key ARN/URI, HSM label, keystore alias... |
-| `origin`, `exportable` | Nơi sinh/import; policy xuất raw key |
-| `rotation_policy` | Ngày/số lượt/incident trigger; chủ sở hữu việc thay key |
-| `dependencies` | Datasets, wrapped DEKs, certificates và backups |
-| `approval/audit_ref` | Ticket, identity, action/outcome và evidence |
+| `origin`, `exportable` | Origin of generation/import; raw key export policy |
+| `rotation_policy` | Time/usage/incident triggers; owner responsible for rotation |
+| `dependencies` | Datasets, wrapped DEKs, certificates, and backups |
+| `approval/audit_ref` | Ticket, identity, action/outcome, and evidence |
 
-**Không** đặt raw key, private key bytes, password hoặc master secret vào registry metadata. Một key-version có thể được ghi trong ciphertext header, nhưng backend **không** chỉ dựa vào header đó để cấp quyền truy cập: phải kiểm key/tenant/object binding và integrity.
+**Never** store raw keys, private key bytes, passwords, or master secrets inside registry metadata. A key version may be written in a ciphertext header, yet the backend must **never** grant access based solely on that header: verify key/tenant/object binding and integrity.
 
-### 10.1. Envelope record mẫu
+### 10.1. Sample Envelope Record
 
 ```text
 version=2
@@ -505,15 +505,15 @@ ciphertextAndTag=<...>
 aad=canonical(version,tenant,key_id,key_version,record_id)
 ```
 
-Đây là **định dạng khái niệm**, chưa phải parser/schema sản xuất. Trong AES-GCM, AAD được xác thực nhưng không mã hóa. Bên decrypt cần sử dụng cùng encoding/AAD và đúng key version; sau đó vẫn kiểm authorization để tránh tráo record giữa tenant/đối tượng.
+This is a **conceptual format**, not a production parser/schema. In AES-GCM, AAD is authenticated but not encrypted. The decryptor must pass the exact same encoding/AAD and key version, and still enforce authorization to prevent swapping records across tenants/objects.
 
-Nếu nhiều record cùng encrypt bằng AES-GCM một key, thiết kế nonce phải bảo đảm không trùng cặp key/nonce; không dựa vào việc key version khác nhưng thực tế raw key giống nhau.
+If multiple records are encrypted with AES-GCM under the same key, the nonce design must ensure no key/nonce pair repeats; never rely on differing logical key versions if the underlying raw key is actually identical.
 
-## 11. Mối liên hệ với Java `KeyStore`, keytool và TLS
+## 11. Relationship with Java `KeyStore`, `keytool`, and TLS
 
-### 11.1. Java `KeyStore` là nơi cất key, không phải key-lifecycle service
+### 11.1. Java `KeyStore` Is Key Storage, Not a Key-Lifecycle Service
 
-`KeyStore` có các entry như `SecretKeyEntry`, `PrivateKeyEntry` và `TrustedCertificateEntry` tùy loại/store/provider. Việc gọi:
+`KeyStore` supports entries such as `SecretKeyEntry`, `PrivateKeyEntry`, and `TrustedCertificateEntry` depending on store type/provider. Calling:
 
 ```java
 KeyStore ks = KeyStore.getInstance("PKCS12");
@@ -523,45 +523,45 @@ ks.setEntry("data-v1",
     new KeyStore.PasswordProtection(password));
 ```
 
-chỉ mô tả việc tạo và thêm entry. **Không tự có** rotation scheduler, IAM, tenant isolation, revocation log, dữ liệu migration hay remote audit. `KeyStore` API có thao tác `deleteEntry`, nhưng đó chỉ là xóa một entry tại nơi quản lý hiện tại, không phải bằng chứng tất cả các bản sao v1 đều biến mất.
+only creates and adds an entry. It **does not provide** a rotation scheduler, IAM, tenant isolation, revocation logs, data migration, or remote auditing. `KeyStore` exposes `deleteEntry`, yet that only deletes an entry in the current store instance, not proof that every copy of v1 is gone.
 
-Cần bảo vệ password dùng với `PKCS12` khác với dữ liệu cần mã hóa; hard-code store password vào source chỉ phù hợp minh họa, không production.
+Protect the password used with `PKCS12` separately from the encrypted data; hard-coding store passwords in source code is suitable only for demos, never production.
 
-### 11.2. `keytool` và chứng thư
+### 11.2. `keytool` and Certificates
 
-Ví dụ tạo cặp RSA + chứng thư tự ký trong file PKCS12 để **thử nghiệm**:
+Example generating an RSA pair + self-signed certificate in a PKCS12 file for **testing**:
 
 ```shell
 keytool -genkeypair -alias service-sign-v1 -keyalg RSA -keysize 3072 -sigalg SHA256withRSA -keystore service-sign.p12 -storetype PKCS12 -validity 365
 ```
 
-Lệnh trên chạy tương tác hỏi password/subject; không có stdout cố định. **Self-signed certificate không tự được các client khác tin cậy**. Production cần cơ chế CA/PKI hoặc trusted-key distribution phù hợp, policy bảo vệ private key và kế hoạch rotate trước expiry.
+This command runs interactively prompting for password/subject; it has no fixed stdout. **A self-signed certificate is not automatically trusted by other clients**. Production requires proper CA/PKI or trusted-key distribution, private key protection policies, and rotation plans before expiry.
 
-Xem alias/public certificate trong keystore:
+Inspect aliases/public certificates in a keystore:
 
 ```shell
 keytool -list -v -keystore service-sign.p12 -storetype PKCS12
 ```
 
-**Không** truyền password thực bằng argument command-line nếu có nguy cơ lộ process list/shell history. Không đưa file private key và store password vào cùng repository, Docker image hoặc bộ sao lưu công khai.
+**Never** pass real passwords via command-line arguments where process lists or shell history may expose them. Never place private key files and store passwords together in repositories, Docker images, or public backups.
 
-### 11.3. TLS certificate rotation
+### 11.3. TLS Certificate Rotation
 
-TLS thường cần cập nhật key pair/certificate chain, cấu hình server/client trust, OCSP/CRL hoặc policy PKI và triển khai đồng bộ. Việc có certificate mới trên disk không có nghĩa các kết nối/server instance đã reload. Phải kiểm handshake thật, trust chain, hostname, notBefore/notAfter, private-key possession, rollback và thời hạn overlapping certificates.
+TLS typically requires updating the key pair/certificate chain, server/client trust configuration, OCSP/CRL or PKI policies, and synchronized deployment. Having a new certificate on disk does not mean running connections/server instances have reloaded it. Verify real handshakes, trust chains, hostnames, `notBefore`/`notAfter`, private-key possession, rollback, and overlapping certificate validity windows.
 
-**Nhớ:** đổi chứng thư hoặc alias không tự đổi khóa mã hóa dữ liệu trong database. Hai mục đích key khác nhau phải có inventory/lifecycle khác nhau.
+**Remember:** changing a certificate or alias does not automatically rotate data encryption keys in your database. Distinct key purposes require distinct inventories and lifecycles.
 
-## 12. Chương trình Java 17+ độc lập: sinh khóa, lưu trữ, mã hóa, rotate và retire
+## 12. Standalone Java 17+ Program: Generate, Store, Encrypt, Rotate, and Retire
 
-Tạo file **`KeyLifecycleDemo.java`**. Demo này mô phỏng vòng đời nhỏ của hai **AES data keys**:
+Create file **`KeyLifecycleDemo.java`**. This demo simulates a small lifecycle of two **AES data keys**:
 
-1. Tạo v1 bằng `KeyGenerator`, đặt vào `PKCS12 KeyStore`, dùng v1 mã hóa một record.
-2. Tạo v2 mới độc lập, lưu v2; serialized bytes của KeyStore được ghi ra buffer và nạp lại để minh họa **store/load** mà không tạo file thật.
-3. Bắt đầu encrypt mới bằng v2; vẫn giải mã record v1 bằng v1 được lưu, chứng minh rotation không bắt buộc làm mất dữ liệu cũ.
-4. Dùng `AES/GCM/NoPadding` với nonce 12 byte, tag 128 bit và AAD gắn với key version; thử sửa tag hoặc gán sai version.
-5. Xóa alias v1 khỏi store *đang dùng*, xác nhận record v1 **không còn giải mã được qua store này**. Đây chỉ là mô phỏng retirement, **không phải quy trình destroy/compromise response production**.
+1. Generate v1 with `KeyGenerator`, store it in a `PKCS12 KeyStore`, and encrypt a record with v1.
+2. Generate an independent v2, store v2; serialize the KeyStore to a byte buffer and reload it to demonstrate **store/load** without creating actual files.
+3. Start encrypting new data with v2; still decrypt the v1 record using the stored v1, proving rotation does not force losing legacy data.
+4. Use `AES/GCM/NoPadding` with a 12-byte nonce, 128-bit tag, and AAD bound to the key version; test tampering with the tag or specifying the wrong version.
+5. Delete the v1 alias from the *active* store and verify the v1 record **can no longer be decrypted through this store**. This only simulates retirement, **not a production destroy/compromise response procedure**.
 
-**Giới hạn đã biết:** Password literal và KeyStore in-memory phục vụ demo, **không dùng để bảo vệ dữ liệu thật**. Trong ứng dụng thực tế, keystore password phải được đưa qua cơ chế secret management; runtime policy phải kiểm phép encrypt/decrypt theo state/tenant/authorization; cần persistence an toàn, backup, audit, nonce uniqueness ở quy mô lớn và key migration. JDK 17 với provider PKCS12 thông dụng hỗ trợ `SecretKeyEntry`; provider bên thứ ba có thể có giới hạn riêng.
+**Known limitations:** The password literal and in-memory KeyStore are for demonstration only, **not for protecting real data**. In real applications, keystore passwords must come from secret management; runtime policy must enforce encrypt/decrypt permissions by state/tenant/authorization; and you need secure persistence, backups, auditing, large-scale nonce uniqueness, and key migration. JDK 17 with standard PKCS12 providers supports `SecretKeyEntry`; third-party providers may have their own restrictions.
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -728,14 +728,14 @@ public class KeyLifecycleDemo {
 }
 ```
 
-Biên dịch và chạy tại thư mục chứa file:
+Compile and run in the directory containing the file:
 
 ```shell
 javac KeyLifecycleDemo.java
 java KeyLifecycleDemo
 ```
 
-**Stdout kỳ vọng trên Java 17 thông dụng hỗ trợ PKCS12 `SecretKeyEntry` và AES/GCM:**
+**Expected stdout on standard Java 17 supporting PKCS12 `SecretKeyEntry` and AES/GCM:**
 
 ```text
 bothVersionsRestored=true
@@ -747,103 +747,103 @@ v1AliasRetired=true
 oldUnavailableThroughStore=true
 ```
 
-### 12.1. Giải thích kết quả
+### 12.1. Explaining the Results
 
-- `bothVersionsRestored=true`: KeyStore chứa alias v1 và v2 và có thể nạp lại từ định dạng đã serialize. **Không** có nghĩa việc bảo vệ password, backup và quyền truy cập đã đáp ứng production.
-- `oldRecordReadableAfterRotation=true`: v2 xuất hiện không tự vô hiệu hóa v1; record cũ vẫn cần v1 cho decrypt. Đây là trạng thái **decrypt-old / encrypt-new** quan trọng khi migrate.
-- `newRecordReadable=true`: key v2 encrypt/decrypt thành công với AES-GCM, cùng AAD và nonce.
-- `wrongVersionRejected=true`: lấy ciphertext v1 nhưng gán key version 2 khiến decryption dùng key v2/AAD v2, nên GCM tag không khớp. Không được dùng cách “thử mọi key cho đến khi giải mã được” để bỏ qua ownership và policy.
-- `tamperRejected=true`: sửa authentication tag khiến `AEADBadTagException`, ứng dụng phải từ chối bản mã.
-- `v1AliasRetired=true`: alias v1 bị xóa **trong đối tượng KeyStore `restored`**, không phải trong mọi bản sao.
-- `oldUnavailableThroughStore=true`: lookup v1 qua **store đang dùng** thất bại, nên oldRecord không giải mã được qua đường đó. **Không phải bằng chứng crypto-erasure**: biến `keyV1`, `firstStore` và bytes đã serialize vẫn tồn tại trong chương trình demo. Sự khác biệt này rất quan trọng khi định nghĩa “destroy key”.
+- `bothVersionsRestored=true`: the KeyStore holds aliases v1 and v2 and can reload from its serialized form. This **does not** mean password protection, backups, and access controls meet production standards.
+- `oldRecordReadableAfterRotation=true`: introducing v2 does not invalidate v1; old records still require v1 for decryption. This is the crucial **decrypt-old / encrypt-new** phase during migration.
+- `newRecordReadable=true`: key v2 encrypts/decrypts successfully with AES-GCM, matching AAD and nonce.
+- `wrongVersionRejected=true`: taking v1 ciphertext and labeling it key version 2 causes decryption to use key v2 and AAD v2, so the GCM tag mismatches. Never “try every key until decryption succeeds” to bypass ownership and policy.
+- `tamperRejected=true`: modifying the authentication tag triggers `AEADBadTagException`, and the application must reject the ciphertext.
+- `v1AliasRetired=true`: alias v1 was deleted **from the `restored` KeyStore object**, not from all copies.
+- `oldUnavailableThroughStore=true`: looking up v1 through **the active store** fails, so `oldRecord` cannot be decrypted via that path. This is **not proof of crypto-erasure**: `keyV1`, `firstStore`, and the serialized bytes still exist in the demo program. This distinction is critical when defining “key destruction.”
 
-**Cảnh báo bài học:** Code tạo nonce ngẫu nhiên mới cho mỗi lần encrypt ở quy mô minh họa. Production với lượng ciphertext lớn phải thiết kế uniqueness/usage limits theo key và môi trường, không tin rằng ngẫu nhiên có nghĩa không bao giờ trùng. `Envelope` là record chứa mảng mutable và chưa phải parser/format sản xuất, không có defensive copy, tenant ID, record ID, key registry/IAM hay persistence dữ liệu thật.
+**Lesson warning:** The code generates a new random nonce per encryption at demo scale. Production systems with large ciphertext volumes must design nonce uniqueness and usage limits per key and environment, never trusting that random implies zero collisions. `Envelope` is a record holding mutable arrays and is not a production parser/format; it lacks defensive copies, tenant ID, record ID, key registry/IAM, and real data persistence.
 
-### 12.2. Vì sao không “xóa v1 ngay sau khi tạo v2”?
+### 12.2. Why Not “Delete v1 Immediately After Creating v2”?
 
-Nếu gọi `deleteEntry("data-v1")` ngay khi active v2, record v1 chưa migrate sẽ không mở được qua store hiện tại. Với hệ thống thực, còn có hàng triệu bản ghi và backup chưa scan. Cần **migration plan, dữ liệu kiểm kê, read compatibility, restore test và retention policy** trước khi retire/destroy.
+Calling `deleteEntry("data-v1")` the moment v2 becomes active renders unmigrated v1 records unreadable through the current store. In real systems, millions of records and unscanned backups may exist. You need a **migration plan, inventory data, read compatibility, restore tests, and retention policies** before retiring/destroying keys.
 
-Nếu v1 **bị compromise**, ta có thể phải khóa quyền mới lập tức, nhưng vẫn cần đường recovery rất hạn chế để re-encrypt. Đó là một luồng khẩn cấp khác với rotation định kỳ.
+If v1 is **compromised**, you may need to revoke new usage immediately while keeping a tightly restricted recovery path for re-encryption. That is an emergency workflow distinct from scheduled rotation.
 
-### 12.3. Những việc demo cố ý không làm
+### 12.3. What the Demo Intentionally Omits
 
-Demo không cấp credential cho người dùng, không lưu key file lên disk, không ghi log audit, không dùng KMS/HSM, không tạo certificate/PKI, không bảo đảm xóa raw key khỏi RAM, không triển khai decrypt-only permissions hay trạng thái compromised thực sự. Nó cho phép bạn nhìn thấy **khác biệt giữa tạo phiên bản mới, đọc dữ liệu cũ và xóa alias khỏi lookup**; sản phẩm thực tế cần ranh giới quyền và quản lý trạng thái trên server.
+The demo does not provision user credentials, persist key files to disk, write audit logs, use a KMS/HSM, issue certificates/PKI, guarantee wiping raw keys from RAM, or enforce decrypt-only permissions or real compromised states. It lets you observe the **difference between creating a new version, reading legacy data, and deleting an alias from lookup**; real products require permission boundaries and server-side state management.
 
-## 13. Các lỗi phổ biến, hậu quả và cách khắc phục
+## 13. Common Mistakes, Consequences, and Fixes
 
-| Lỗi | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Proper Practice |
 | --- | --- | --- |
-| Hard-code key/password trong source, image hoặc env chia sẻ | Rò cho nhiều bản deployment, khó rotate | KMS/HSM/secret manager, IAM/ACL, distribution an toàn |
-| Sinh AES bằng `Random`, `Math.random()`, timestamp | Key có thể đoán được | `KeyGenerator`/`SecureRandom` hoặc key generation trong HSM/KMS |
-| Cất private key và certificate vào public repository | Ai đọc repository có thể giả mạo chủ thể | Public certificate được phép phát, private key phải bí mật |
-| Dùng cùng raw key giữa prod và test | Compromise môi trường test ảnh hưởng prod | Tách key material và policy theo môi trường |
-| Dùng một key chung mọi tenant | Vượt ranh giới dữ liệu nếu quyền decrypt quá rộng | Key scoping/authorization theo tenant và context |
-| Cấp quyền runtime `DeleteKey`/admin | Lỗi app có thể làm mất toàn bộ dữ liệu | Least privilege, separation of duties, approval |
-| Mặc định mọi key version đều được encrypt | App ghi record mới bằng key đã retire | Trusted active-version registry, phép encrypt bị ràng buộc state |
-| Rotation nhưng quên đưa key version vào envelope | Không biết dùng khóa nào để decrypt lịch sử | Versioned/authenticated metadata, lookup có policy |
-| Xóa khóa cũ trước migration | Dữ liệu backup/record v1 không khôi phục | Reader hỗ trợ old versions, checkpoint và kiểm hết dependencies |
-| Tưởng rewrap xong sẽ cứu dữ liệu nếu DEK lộ | DEK đã bị lộ vẫn decrypt bản mã cũ | Rotate DEK + re-encrypt + incident response |
-| Dùng lại AES-GCM nonce dưới cùng key | Nguy cơ phá confidentiality và authenticity | Nonce uniqueness, giới hạn use, coordination qua restart |
-| “Disable” rồi coi attacker không còn key | Bản copy/cached raw key ngoài KMS còn dùng được | Scope compromise, re-encrypt, revoke credentials và điều tra |
-| Bấm delete ngay để chặn sự cố | Mất khả năng re-encrypt/recover trong incident | Containment có kiểm soát trước, hủy theo runbook |
-| Coi `KeyStore.deleteEntry` là secure wipe | Key vẫn còn ở backup, memory, bản clone | Truy vết tất cả key material, hủy theo assurance mục tiêu |
-| Chỉ đổi cert mà không kiểm TLS trust chain/reload | Server/client vẫn chạy cấu hình cũ, lỗi handshake | Test thật, rollout overlapping, revocation theo PKI |
-| Log raw key hoặc `getEncoded()` | Mất bí mật và tạo bản sao khó xóa | Chỉ log key ID/version/operation/outcome |
-| Dùng key ID client gửi để cho phép decrypt bất kỳ | Cross-tenant data access | Binding key↔tenant↔resource, server-side authorization |
-| Không có backup key | Mất key = mất khả năng đọc ciphertext | Backup/restore drill theo chính sách, bảo vệ mọi bản sao |
-| Không theo dõi expiration/cryptoperiod | Key sử dụng vượt hạn/không có owner | Inventory + alerts + scheduled/event-driven rotation |
-| Mở lại backup keystore có key đã revoke | Vô tình tái kích hoạt key bị lộ | Restore phải áp dụng lại denylist/status từ registry đáng tin |
+| Hard-coding keys/passwords in source, images, or shared env | Leaked across deployments, hard to rotate | KMS/HSM/secret manager, IAM/ACL, secure distribution |
+| Generating AES keys with `Random`, `Math.random()`, timestamps | Keys can be predicted | `KeyGenerator`/`SecureRandom` or HSM/KMS key generation |
+| Storing private keys and certificates in a public repository | Anyone reading the repo can impersonate the subject | Public certificates can be shared; private keys must stay secret |
+| Sharing the same raw key between prod and test | Test environment compromise affects prod | Separate key material and policies by environment |
+| Using one shared key for all tenants | Cross-tenant exposure if decrypt permissions are broad | Key scoping/authorization by tenant and context |
+| Granting runtime `DeleteKey`/admin permissions | An app bug can wipe all data | Least privilege, separation of duties, approvals |
+| Allowing all key versions to encrypt by default | App writes new records with retired keys | Trusted active-version registry; state-bound encryption permission |
+| Rotating without storing key version in the envelope | No way to know which key decrypts history | Versioned/authenticated metadata, policy-checked lookup |
+| Deleting old keys before migration completes | Backups/v1 records become unrecoverable | Readers supporting old versions, checkpoints, full dependency checks |
+| Thinking rewrap saves data after a DEK leak | Exposed DEK still decrypts old ciphertext | Rotate DEK + re-encrypt + incident response |
+| Reusing an AES-GCM nonce under the same key | Breaks confidentiality and authenticity | Nonce uniqueness, usage limits, coordination across restarts |
+| Clicking “Disable” and assuming the attacker lost the key | Exported/cached raw copies outside KMS still work | Scope compromise, re-encrypt, revoke credentials, investigate |
+| Hitting delete immediately during an incident | Loses ability to re-encrypt/recover during incident | Controlled containment first; destroy per runbook |
+| Treating `KeyStore.deleteEntry` as secure wipe | Keys remain in backups, memory, clones | Trace all key material; destroy to required assurance |
+| Replacing a cert without checking TLS trust chain/reload | Server/client keeps running old config; handshake failures | Real handshake tests, overlapping rollouts, PKI revocation |
+| Logging raw keys or `getEncoded()` | Secret exposure creating hard-to-purge copies | Log only key ID/version/operation/outcome |
+| Letting client-supplied key ID authorize arbitrary decryption | Cross-tenant data access | Key↔tenant↔resource binding, server-side authorization |
+| Having no key backups | Losing the key = losing all ciphertext | Policy-driven backup/restore drills, protecting all copies |
+| Not tracking expiration/cryptoperiod | Overdue or orphaned keys in use | Inventory + alerts + scheduled/event-driven rotation |
+| Restoring a backup keystore containing a revoked key | Accidentally reactivating a compromised key | Restore must reapply denylist/status from a trusted registry |
 
-## 14. Tình huống luyện tập có đáp án
+## 14. Practice Scenarios with Answers
 
-**Tình huống A – ứng dụng v1 → v2 nhưng không đọc được bản ghi cũ.**  
-Nguyên nhân có thể là bỏ key version, xóa v1 quá sớm, hoặc parser chỉ hỗ trợ active key. Giải pháp: versioned envelope, v1 decrypt permission cho giai đoạn migration, reader-first rollout, dữ liệu inventory và QA trước retirement.
+**Scenario A – App upgraded v1 → v2 but cannot read old records.**  
+Likely causes include omitting key version, deleting v1 too early, or a parser that only supports the active key. Solution: versioned envelopes, v1 decrypt permission during migration, reader-first rollout, data inventory, and QA before retirement.
 
-**Tình huống B – KEK trong KMS được rotate nhưng wrapped DEK cũ chưa rewrap.**  
-Nếu policy hỗ trợ các key versions cũ cho unwrap thì dữ liệu có thể vẫn đọc, nhưng còn dependency với key material cũ; cần biết đúng semantic provider và lên kế hoạch rewrap/retire. Không đồng nhất “KMS auto-rotation” với “mọi ciphertext đã thay sang key material mới”.
+**Scenario B – KEK in KMS rotated, yet old wrapped DEKs were not rewrapped.**  
+If policy allows old key versions for unwrap, data may still be readable, though dependency on old key material remains; verify exact provider semantics and schedule rewrap/retirement. Do not confuse “KMS auto-rotation” with “all ciphertexts switched to new key material.”
 
-**Tình huống C – một nhân viên cũ có bản sao raw AES key.**  
-Rút IAM/KMS grant sẽ chặn API ở hệ thống hiện tại nhưng **không làm bản sao raw key mất tác dụng**. Cần xác định ciphertext liên quan, key exposure window, re-encrypt bằng key mới, hạn chế bản sao và xem quyền/secret bị lộ khác.
+**Scenario C – A former employee holds a copy of a raw AES key.**  
+Revoking IAM/KMS grants blocks API calls on current systems, **but does not invalidate the copied raw key**. Identify affected ciphertexts and the exposure window, re-encrypt under a new key, restrict copies, and review other exposed permissions/secrets.
 
-**Tình huống D – khóa ký đã hết hạn nhưng cần xác minh hợp đồng cũ.**  
-Ngừng dùng private key ký mới; giữ public key/certificate và bằng chứng thời điểm ký theo policy lưu chữ ký dài hạn. Nếu private key bị lộ, không chỉ nhìn `Signature.verify == true` mà phải xét trạng thái compromise/time evidence/trust.
+**Scenario D – A signing key expired, yet old contracts must still be verified.**  
+Stop using the private key for new signatures; retain the public key/certificate and signing-time evidence per long-term signature policy. If the private key was compromised, do not rely solely on `Signature.verify == true`; evaluate compromise status, time evidence, and trust.
 
-**Tình huống E – để “xóa dữ liệu” chỉ xóa DEK ở keystore chính.**  
-Phải kiểm wrapped copies, backup, replicas, process memory, snapshot và chính sách recovery; còn cần xử lý bản copy plaintext/data indexes. Một thao tác delete alias không chứng minh tất cả bí mật đã biến mất.
+**Scenario E – To “delete data,” only the DEK in the primary keystore was deleted.**  
+Check wrapped copies, backups, replicas, process memory, snapshots, and recovery policies; plaintext copies and search indexes must also be handled. Deleting a single alias does not prove all secrets are gone.
 
-**Tình huống F – khi deploy v2, một node cũ vẫn encrypt bằng v1.**  
-Cần active-version registry, enforcement của key-management layer, deploy reader-first và quan sát audit số lần encrypt theo version; nếu có writer v1 phải fix trước khi retire.
+**Scenario F – While deploying v2, an old node keeps encrypting with v1.**  
+Use an active-version registry, key-management layer enforcement, reader-first deployment, and audit monitoring of encrypt counts by version; fix any v1 writers before retirement.
 
-**Tình huống G – có 10.000 record được mã hóa AES-GCM bằng cùng key, nonce ngẫu nhiên mỗi lần. Có thể mặc định an toàn mãi không?**  
-Không. Phải tuân thủ giới hạn nonce/usage của GCM theo độ lớn hệ thống, xác suất trùng, concurrency/restart, threat model và tiêu chuẩn provider. Khi cần, dùng nonce counter được điều phối và rotate key trước giới hạn.
+**Scenario G – 10,000 records are encrypted with AES-GCM under the same key using a random nonce each time. Can it be assumed safe forever?**  
+No. Follow GCM nonce/usage limits for system scale, collision probability, concurrency/restarts, threat model, and provider standards. When needed, use coordinated nonce counters and rotate keys before hitting limits.
 
-**Tình huống H – tenant A muốn decrypt record tenant B bằng cách thay `keyId` trong request.**  
-Backend phải từ chối dựa trên tenant/resource authorization và key binding, dù keyId hợp lệ và key tồn tại trong KMS. Cryptography không tự làm business authorization.
+**Scenario H – Tenant A tries to decrypt tenant B's record by changing `keyId` in the request.**  
+The backend must reject it based on tenant/resource authorization and key binding, even if `keyId` is valid and exists in KMS. Cryptography alone does not enforce business authorization.
 
-## 15. Checklist vận hành trước khi go-live
+## 15. Pre-Go-Live Operations Checklist
 
-- [ ] **Inventory:** mọi key có owner, purpose, algorithm, ID/version, môi trường, trạng thái, cryptoperiod, dependencies?
-- [ ] **Generation:** được sinh bằng CSPRNG/HSM/KMS thích hợp, kích thước phù hợp, không seed cố định hoặc export không cần thiết?
-- [ ] **Provisioning:** key được cấp tới đúng service/tenant, có IAM least privilege, approval và kênh phân phối bí mật?
-- [ ] **Storage:** file keystore/password tách rời, backup được mã hóa, HSM/KMS policy rõ, restore đã được thử?
-- [ ] **Usage:** encryption key được chọn bởi active-version registry, AAD/nonce hợp lệ, authentication tag được kiểm, quyền decrypt theo đối tượng?
-- [ ] **Rotation:** có reader-first rollout, old decrypt-only, migration/rewrap/re-encrypt khi cần, xác nhận không còn old dependencies?
-- [ ] **Revocation:** có incident runbook về suspected compromise, rút quyền, đánh giá bản sao và dữ liệu/chữ ký đã bị ảnh hưởng?
-- [ ] **Destruction:** biết điều kiện hủy, retention/legal hold và cách chứng minh key không còn bản sao khả dụng?
-- [ ] **Audit:** ghi metadata không nhạy cảm, giám sát use anomalies, truy vết create/activate/rotate/disable/delete?
-- [ ] **Recovery:** có kế hoạch mất KMS/HSM, mất keystore password, disaster recovery, key escrow phù hợp và kiểm lại trạng thái revoked sau restore?
+- [ ] **Inventory:** does every key have an owner, purpose, algorithm, ID/version, environment, state, cryptoperiod, and dependencies?
+- [ ] **Generation:** generated with an appropriate CSPRNG/HSM/KMS, proper key size, no fixed seeds or unnecessary exports?
+- [ ] **Provisioning:** provisioned to the right service/tenant with least-privilege IAM, approvals, and secure distribution channels?
+- [ ] **Storage:** keystore files and passwords separated, backups encrypted, HSM/KMS policies clear, restores tested?
+- [ ] **Usage:** encryption key selected via active-version registry, valid AAD/nonces, authentication tags verified, object-level decrypt authorization?
+- [ ] **Rotation:** reader-first rollout, old decrypt-only support, migration/rewrap/re-encryption where needed, zero remaining old dependencies confirmed?
+- [ ] **Revocation:** incident runbook for suspected compromise, access revocation, assessment of copies and affected data/signatures?
+- [ ] **Destruction:** destruction criteria defined, retention/legal hold checked, and method to verify no usable key copies remain?
+- [ ] **Audit:** non-sensitive metadata logged, usage anomalies monitored, create/activate/rotate/disable/delete traced?
+- [ ] **Recovery:** plans for KMS/HSM outage, lost keystore password, disaster recovery, proper key escrow, and reapplying revoked status after restore?
 
-**Câu kết luận cần nhớ:** Sinh ra một khóa an toàn chỉ là bước đầu. **Cấp phát đúng đối tượng, lưu giữ đúng nơi, kiểm soát sử dụng, xoay phiên bản an toàn, thu hồi có ngữ nghĩa và hủy khi hết phụ thuộc** mới tạo thành vòng đời khóa đáng tin cậy.
+**Key takeaway to remember:** Generating a key securely is only step one. **Provisioning to the right entity, storing in the right place, controlling usage, rotating versions safely, revoking with proper semantics, and destroying once dependencies end** together form a trustworthy key lifecycle.
 
-## Tài liệu chính thống
+## References
 
-- [NIST SP 800-57 Part 1 Rev. 5 – Recommendation for Key Management: General](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final): key types, trạng thái vòng đời, cryptoperiod, tạo/backup/thu hồi/hủy key.
-- [OWASP Key Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html): key inventory, least privilege, storage, key rotation và monitoring.
-- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html): key handling, AEAD, key storage, ciphertext và key lifecycle.
-- [Java SE 17 – KeyGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html): tạo secret keys theo thuật toán.
-- [Java SE 17 – KeyPairGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyPairGenerator.html): sinh keypairs.
-- [Java SE 17 – SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): nguồn ngẫu nhiên mật mã cho key material và nonce.
-- [Java SE 17 – KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): `SecretKeyEntry`, `PrivateKeyEntry`, `setEntry`, `getEntry`, `store/load` và `deleteEntry`.
-- [Java SE 17 – Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html) và [GCMParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): AES-GCM, tag, nonce, AAD và authentication.
-- [JDK 17 keytool documentation](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): tạo, quản lý key pair/certificate và keystore dạng PKCS12.
-- [NIST SP 800-38D – Galois/Counter Mode](https://csrc.nist.gov/pubs/sp/800/38/d/final): đặc tính AEAD và yêu cầu về nonce/IV AES-GCM.
+- [NIST SP 800-57 Part 1 Rev. 5 – Recommendation for Key Management: General](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final): key types, lifecycle states, cryptoperiods, key generation/backup/revocation/destruction.
+- [OWASP Key Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html): key inventory, least privilege, storage, key rotation, and monitoring.
+- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html): key handling, AEAD, key storage, ciphertext, and key lifecycle.
+- [Java SE 17 – KeyGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html): generating secret keys by algorithm.
+- [Java SE 17 – KeyPairGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyPairGenerator.html): generating key pairs.
+- [Java SE 17 – SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): cryptographic randomness source for key material and nonces.
+- [Java SE 17 – KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): `SecretKeyEntry`, `PrivateKeyEntry`, `setEntry`, `getEntry`, `store/load`, and `deleteEntry`.
+- [Java SE 17 – Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html) and [GCMParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): AES-GCM, tags, nonces, AAD, and authentication.
+- [JDK 17 keytool documentation](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): creating and managing key pairs/certificates and PKCS12 keystores.
+- [NIST SP 800-38D – Galois/Counter Mode](https://csrc.nist.gov/pubs/sp/800/38/d/final): AEAD properties and AES-GCM nonce/IV requirements.

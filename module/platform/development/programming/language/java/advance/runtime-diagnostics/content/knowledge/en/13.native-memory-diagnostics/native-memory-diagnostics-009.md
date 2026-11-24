@@ -1,64 +1,64 @@
-# 13.9. Phân biệt lỗi tạo native thread, cấp phát trực tiếp thất bại và heap Java đầy
+# 13.9. Distinguishing Native Thread Creation Failures, Direct Allocation Failures, and Java Heap Exhaustion
 
-## Mục tiêu
+## Objectives
 
-Ba lỗi Java có thể cùng chứa chữ `OutOfMemoryError` nhưng chỉ đến **ba tài nguyên và bước cấp phát khác nhau**:
+Three Java errors can all contain `OutOfMemoryError` yet point to **three distinct resources and allocation steps**:
 
-1. JVM không tạo được **native thread** mới.
-2. JVM hoặc thư viện không cấp phát được **direct/off-heap buffer**.
-3. JVM không cấp phát được **đối tượng trong Java heap**.
+1. The JVM cannot create a new **native thread**.
+2. The JVM or a library cannot allocate a **direct/off-heap buffer**.
+3. The JVM cannot allocate an **object in the Java heap**.
 
-Vì thế, thấy `java.lang.OutOfMemoryError` không đủ để kết luận “heap thiếu, tăng `-Xmx`”. Cần đọc **toàn bộ detail message, stack trace, log JVM, bộ đếm và giới hạn hệ điều hành/container**. Bài tập trung vào **HotSpot JDK 17+**. Thông điệp chính xác, nhóm tài nguyên và cơ chế fail có thể khác theo vendor/JDK, hệ điều hành, collector và thư viện.
+Therefore, seeing `java.lang.OutOfMemoryError` is not enough to conclude "heap is too small, increase `-Xmx`". You must read **the full detail message, stack trace, JVM logs, counters, and OS/container limits**. This lesson focuses on **HotSpot JDK 17+**. Exact messages, resource groups, and failure mechanics may vary by vendor/JDK, OS, collector, and library.
 
-## 1. Các vùng tài nguyên khác nhau trong cùng một JVM
+## 1. Distinct Resource Regions Within the Same JVM
 
 ```text
-Một tiến trình Java (trong giới hạn OS/container)
+A Java process (within OS/container limits)
 │
-├── Java heap                    → Java objects/arrays, GC quản lý, -Xmx
-│   └── DirectByteBuffer wrapper → object trên heap, nhưng payload nằm ngoài heap
+├── Java heap                    → Java objects/arrays, GC-managed, -Xmx
+│   └── DirectByteBuffer wrapper → object on heap, while payload resides off-heap
 │
 ├── Native / off-heap memory
-│   ├── Native thread stacks     → stack và metadata phục vụ OS threads
-│   ├── Direct buffer payload    → thường được cấp phát ngoài Java heap
+│   ├── Native thread stacks     → stacks and metadata serving OS threads
+│   ├── Direct buffer payload    → typically allocated outside the Java heap
 │   ├── Metaspace / Code Cache / JVM internals / GC structures
-│   └── JNI / native libraries / memory-mapped regions / phần khác
+│   └── JNI / native libraries / memory-mapped regions / other
 │
-└── Các giới hạn độc lập
+└── Independent limits
     ├── Java heap maximum (-Xmx)
     ├── Direct-buffer reservation limit (-XX:MaxDirectMemorySize)
-    ├── OS task/thread quotas và per-thread stack (-Xss ảnh hưởng stack)
-    └── Address space, RAM/swap, container memory và cgroup PID quotas
+    ├── OS task/thread quotas and per-thread stack (-Xss affects stack)
+    └── Address space, RAM/swap, container memory, and cgroup PID quotas
 ```
 
-Một số khái niệm cần phân biệt:
+Key concepts to distinguish:
 
-- **Java heap used:** phần heap chứa đối tượng theo thống kê JVM; **heap committed** là bộ nhớ JVM đã cam kết cho heap, còn **heap max** là trần heap được báo. Ba số này không giống nhau.
-- **Native memory:** vùng nhớ ngoài Java heap do JVM, OS, thư viện native hoặc các cơ chế cấp phát ngoài heap sử dụng; **không đồng nghĩa riêng với direct buffer**.
-- **Thread stack:** các luồng nền tảng của JVM cần tài nguyên hệ điều hành và vùng stack; tăng số thread có thể tăng native memory hoặc chạm giới hạn task/PID dù heap không đầy.
-- **Direct buffer:** đối tượng `java.nio.DirectByteBuffer` có wrapper trong Java heap, nhưng phần dữ liệu thông thường nằm trong native/off-heap memory. Việc nhìn thấy wrapper nhỏ trong heap dump không phản ánh đầy đủ chi phí payload.
-- **Reserved, committed và RSS không đồng nhất:** reserved là vùng địa chỉ được dành, committed là mức JVM/OS cam kết theo cơ chế báo cáo, RSS là số trang thực sự resident mà OS ghi nhận tại thời điểm đo. Không cộng cơ học các giá trị reserved để khẳng định RSS.
+- **Java heap used:** the portion of the heap holding objects per JVM stats; **heap committed** is the memory the JVM has committed for the heap, while **heap max** is the reported heap ceiling. These three numbers are not the same.
+- **Native memory:** memory outside the Java heap used by the JVM, OS, native libraries, or off-heap allocators; **not synonymous with direct buffers alone**.
+- **Thread stack:** JVM platform threads require OS resources and stack regions; increasing thread count can raise native memory or hit task/PID limits even when the heap is not full.
+- **Direct buffer:** a `java.nio.DirectByteBuffer` has its wrapper on the Java heap, while its data payload typically resides in native/off-heap memory. Seeing a small wrapper in a heap dump does not reflect the full payload cost.
+- **Reserved, committed, and RSS are not identical:** reserved is a set-aside address range, committed is the JVM/OS-committed amount per reporting rules, and RSS is actually resident pages observed by the OS at measurement time. Do not mechanically sum reserved values to claim RSS.
 
-Cùng một ứng dụng có thể gặp cả ba loại lỗi tại những thời điểm khác nhau. Xác định **thao tác cấp phát nào thất bại trước tiên** rồi mới quyết định cách xử lý.
+The same application can encounter all three error types at different times. Identify **which allocation operation failed first** before deciding on a fix.
 
-## 2. Bảng nhận diện nhanh
+## 2. Quick Identification Table
 
-| Dấu hiệu nổi bật | Tạo native thread thất bại | Direct buffer thất bại | Java heap đầy |
+| Prominent Signal | Native Thread Creation Failure | Direct Buffer Failure | Java Heap Exhaustion |
 | --- | --- | --- | --- |
-| Detail message thường gặp | `unable to create native thread`; có thể kèm `possibly out of memory or process/resource limits reached` | `Cannot reserve ... bytes of direct buffer memory (allocated: ..., limit: ...)` hoặc `Direct buffer memory` | `Java heap space` |
-| Vị trí thường thấy trong stack | `Thread.start0`, `Thread.start`, executor tạo worker | `java.nio.Bits.reserveMemory`, `DirectByteBuffer`, `ByteBuffer.allocateDirect` hoặc thư viện NIO/netty | `new`, tạo array, collection, object deserialization; nhiều vị trí khác |
-| Tài nguyên trực tiếp bị từ chối | Native thread/OS task và tài nguyên phụ trợ | Direct buffer reservation hoặc cấp phát native | Object/array trên Java heap |
-| Bộ đếm cần xem | Số OS threads, Java live threads, `pids.max`/`pids.current`, NMT Thread, memory/address space | BufferPoolMXBean `direct`, direct allocated/capacity, `MaxDirectMemorySize`, RSS, NMT/OS | Heap used/max, GC log, heap sau GC, histogram/dump |
-| Khắc phục điển hình sau khi có bằng chứng | Sửa thread growth/pool, giảm concurrency hợp lý; xem quota/stack | Giải phóng buffer/pool đúng vòng đời; chỉnh direct budget trong headroom | Giảm live set/cấp phát, sửa retention; xem `-Xmx` |
-| Điều **không** suy được | “Tăng `-Xmx` sẽ tạo thêm thread” | “Java heap thấp thì direct không thể đầy” | “Cứ Java heap space là có memory leak” |
+| Common detail message | `unable to create native thread`; may include `possibly out of memory or process/resource limits reached` | `Cannot reserve ... bytes of direct buffer memory (allocated: ..., limit: ...)` or `Direct buffer memory` | `Java heap space` |
+| Typical stack location | `Thread.start0`, `Thread.start`, executor creating a worker | `java.nio.Bits.reserveMemory`, `DirectByteBuffer`, `ByteBuffer.allocateDirect`, or NIO/Netty libraries | `new`, array creation, collections, object deserialization; many sites |
+| Resource directly rejected | Native thread / OS task and auxiliary resources | Direct buffer reservation or native allocation | Object / array on the Java heap |
+| Counters to check | OS thread count, Java live threads, `pids.max`/`pids.current`, NMT Thread, memory/address space | BufferPoolMXBean `direct`, direct allocated/capacity, `MaxDirectMemorySize`, RSS, NMT/OS | Heap used/max, GC logs, post-GC heap, histogram/dump |
+| Typical fix after evidence | Fix thread growth/pools, bound concurrency reasonably; inspect quotas/stacks | Release buffers/pools per lifecycle; tune direct budget within headroom | Shrink live set/allocations, fix retention; review `-Xmx` |
+| What **cannot** be inferred | "Raising `-Xmx` will allow more threads" | "Low Java heap means direct cannot fill up" | "Any Java heap space error means a memory leak" |
 
-**Chi tiết quan trọng:** `OutOfMemoryError` là một `Error` do JVM/thư viện phát sinh, không phải tình huống kinh doanh bình thường để xử lý bằng cách bắt rồi tiếp tục vô hạn. Khi tiến trình đã cạn tài nguyên, đường xử lý lỗi và cả các lệnh chẩn đoán cũng có thể thất bại.
+**Important detail:** `OutOfMemoryError` is an `Error` thrown by the JVM/library, not a normal business case to catch and ignore indefinitely. Once a process has exhausted resources, error-handling paths and even diagnostic commands can fail too.
 
-## 3. Loại A: Không tạo được native thread
+## 3. Type A: Unable to Create Native Thread
 
-### 3.1 Thông điệp, nguồn gốc và ví dụ
+### 3.1 Message, Origin, and Example
 
-Một tình huống trên HotSpot/Linux có thể xuất hiện:
+On HotSpot/Linux, a failure may look like:
 
 ```text
 java.lang.OutOfMemoryError: unable to create native thread:
@@ -67,31 +67,31 @@ possibly out of memory or process/resource limits reached
     at java.base/java.lang.Thread.start(Thread.java:...)
 ```
 
-Hoặc log JVM/OS có thể cho thấy `pthread_create` thất bại, ví dụ `EAGAIN`. Đây là **minh họa dạng lỗi**, số dòng, văn bản và errno thực tế tùy nền tảng/JDK.
+Or JVM/OS logs may show `pthread_create` failing, e.g., with `EAGAIN`. This is an **illustrative error format**; exact line numbers, wording, and errno depend on platform/JDK.
 
-`Thread.start()` phải tạo một platform/native thread. Hệ điều hành có thể từ chối vì:
+`Thread.start()` must create a platform/native thread. The OS can reject it due to:
 
-- **Số thread tăng quá nhiều**: mỗi request tạo thread mới; không giới hạn số worker; thread không kết thúc; `ExecutorService` được tạo liên tục mà không `shutdown()`; thread pool cấu hình lớn.
-- **Giới hạn PID/task**: `RLIMIT_NPROC`, systemd `TasksMax`, cgroup `pids.max` hoặc giới hạn hệ thống khác. Trên Linux, cgroup PID controller đếm **tasks**, nên nhiều thread có thể làm chạm giới hạn ngay cả khi ít process.
-- **Không đủ native memory/address space để tạo stack hoặc metadata**: hàng trăm/hàng nghìn thread có thể cùng giữ vùng stack riêng; các thành phần native khác cũng tranh tài nguyên.
-- **Memory pressure hoặc giới hạn container**: process còn dư Java heap nhưng OS không thể cấp thêm tài nguyên native. Ngược lại, chỉ thấy `-Xss` lớn chưa đủ kết luận thiếu RAM vật lý vì stack reserved và resident khác nhau.
+- **Excessive thread count:** spawning a new thread per request; unbounded workers; threads that never exit; `ExecutorService` instances created repeatedly without `shutdown()`; oversized thread pools.
+- **PID/task limits:** `RLIMIT_NPROC`, systemd `TasksMax`, cgroup `pids.max`, or other system limits. On Linux, the cgroup PID controller counts **tasks**, so many threads can hit the limit even with few processes.
+- **Insufficient native memory/address space for stacks or metadata:** hundreds or thousands of threads can reserve separate stack regions while other native components also compete for resources.
+- **Memory pressure or container limits:** the process still has Java heap headroom, yet the OS cannot grant more native resources. Conversely, simply seeing a large `-Xss` is insufficient to prove physical RAM exhaustion because stack reserved and resident differ.
 
-**Điểm chẩn đoán:** nếu heap dùng thấp nhưng `Thread.start()` fail, hãy kiểm tra quota thread/PID và native memory trước. Cũng cần phân biệt luồng Java ứng dụng với các luồng GC/JIT/native của JVM: số lượng trong `ThreadMXBean` không nhất thiết bằng tổng dòng `Threads` của OS.
+**Diagnostic clue:** if heap usage is low while `Thread.start()` fails, check thread/PID quotas and native memory first. Also distinguish Java application threads from JVM GC/JIT/native threads: counts in `ThreadMXBean` do not necessarily match total OS `Threads`.
 
-### 3.2 Thu thập dữ liệu
+### 3.2 Collecting Data
 
-Cho tiến trình ví dụ có PID `12345`:
+For an example process with PID `12345`:
 
 ```bash
 jcmd 12345 Thread.print -l
 jcmd 12345 VM.native_memory summary
 ```
 
-- `Thread.print -l` ghi thread dump và lock information, giúp nhận diện rất nhiều thread cùng tên/cùng stack (ví dụ worker pool tăng vô hạn). Với hàng nghìn thread, output và chi phí có thể lớn.
-- `VM.native_memory summary` chỉ có dữ liệu nếu **Native Memory Tracking (NMT) đã bật khi JVM khởi động**. Trong nhóm `Thread` xem lượng `reserved`, `committed` và số thread JVM hạch toán; không tự đồng nhất các giá trị này với RAM/RSS.
-- Đừng vội dump cả heap chỉ để điều tra việc tạo native thread.
+- `Thread.print -l` records a thread dump and lock info, helping spot huge numbers of threads with identical names/stacks (e.g., an unbounded worker pool). With thousands of threads, output and cost can be large.
+- `VM.native_memory summary` has data only if **Native Memory Tracking (NMT) was enabled at JVM startup**. In the `Thread` category, inspect `reserved`, `committed`, and JVM-accounted thread count; do not automatically equate these numbers with RAM/RSS.
+- Do not rush to capture a full heap dump just to investigate native thread creation.
 
-Trên **Linux**, kết hợp thông tin OS và cgroup (đường dẫn sau phù hợp **cgroup v2 phổ biến**, có thể khác trong container/v1):
+On **Linux**, combine OS and cgroup info (the following paths match **common cgroup v2**, and may differ in containers/v1):
 
 ```bash
 cat /proc/12345/status
@@ -103,18 +103,18 @@ cat /sys/fs/cgroup/memory.current
 cat /sys/fs/cgroup/memory.max
 ```
 
-- `/proc/12345/status` có `Threads` và `VmRSS`; `limits` có giới hạn process/task liên quan.
-- Nếu `pids.current` sát `pids.max`, ưu tiên xác minh quota. Giá trị `max` thường biểu thị không đặt giới hạn ở cấp cgroup đó, song có thể còn giới hạn cấp cha.
-- Các file `/sys/fs/cgroup/...` phía trên mô tả cgroup mà đường dẫn đang trỏ tới. Trong host/container, hãy xác định **đúng cgroup của tiến trình đích** từ `/proc/12345/cgroup`; không lấy chỉ số của một cgroup khác để kết luận.
-- Nếu hệ thống không có `/proc` hoặc cgroup v2, dùng công cụ tương đương của OS/Windows (ví dụ Process Explorer/PerfMon) thay vì áp dụng nguyên các lệnh Linux.
+- `/proc/12345/status` shows `Threads` and `VmRSS`; `limits` shows relevant process/task limits.
+- If `pids.current` is close to `pids.max`, verify quotas first. A value of `max` usually means no limit is set at that cgroup level, though parent-level limits may still exist.
+- The `/sys/fs/cgroup/...` files above describe whichever cgroup that path points to. On hosts/containers, identify **the exact cgroup of the target process** from `/proc/12345/cgroup`; do not draw conclusions from another cgroup's metrics.
+- If the system lacks `/proc` or cgroup v2, use equivalent OS/Windows tools (e.g., Process Explorer/PerfMon) instead of applying Linux commands verbatim.
 
-**Hướng sửa:** giới hạn tạo thread, dùng thread pool có kích thước và hàng đợi có chủ đích, đóng executor đúng vòng đời, tìm thread leak. Chỉ chỉnh quota sau khi biết ứng dụng cần concurrency đó. `-Xss` ảnh hưởng kích thước stack mỗi Java thread; giảm nó có thể giảm reservation nhưng tăng rủi ro `StackOverflowError` nếu stack call sâu. `-Xmx` không phải nút điều chỉnh trực tiếp cho lỗi này.
+**Remediation direction:** bound thread creation, use purposefully sized thread pools and queues, shut down executors properly, and track down thread leaks. Adjust quotas only after confirming the app legitimately needs that concurrency. `-Xss` affects per-Java-thread stack size; lowering it can reduce reservations but increases `StackOverflowError` risk for deep call stacks. `-Xmx` is not a direct knob for this error.
 
-## 4. Loại B: Cấp phát direct buffer thất bại
+## 4. Type B: Direct Buffer Allocation Failure
 
-### 4.1 Bản chất và thông điệp
+### 4.1 Nature and Messages
 
-Với `java.nio.ByteBuffer.allocateDirect(n)`, wrapper quản lý nằm trong Java heap nhưng payload thường được cấp ngoài heap. HotSpot có cơ chế quản lý budget direct buffer; khi không thể dành thêm capacity, đường `java.nio.Bits.reserveMemory` có thể ném:
+With `java.nio.ByteBuffer.allocateDirect(n)`, the management wrapper lives on the Java heap while the payload is typically allocated off-heap. HotSpot tracks a direct-buffer budget; when it cannot reserve additional capacity, `java.nio.Bits.reserveMemory` may throw:
 
 ```text
 java.lang.OutOfMemoryError:
@@ -125,69 +125,69 @@ Cannot reserve 1048576 bytes of direct buffer memory
     at java.base/java.nio.ByteBuffer.allocateDirect(ByteBuffer.java:...)
 ```
 
-Đây là **ví dụ thông điệp**, không phải stdout bảo đảm. `allocated/limit` là số liệu từ bộ đếm/quy tắc reservation của triển khai direct buffer; **không đồng nghĩa tổng RSS** của cả process. Một phiên bản hoặc thư viện có thể dùng thông điệp khác như `Direct buffer memory`, hoặc báo thất bại cấp phát native ở chỗ khác.
+This is an **example message**, not guaranteed stdout. `allocated/limit` comes from the direct buffer implementation's reservation counters/rules; **it does not equal total process RSS**. A different JDK version or library may report `Direct buffer memory` or fail native allocation elsewhere.
 
-Hai nhóm nguyên nhân phải tách biệt:
+Two cause groups must be separated:
 
-1. **Chạm giới hạn direct budget** do `-XX:MaxDirectMemorySize` hoặc cấu hình mặc định của JVM, trong khi Java heap vẫn còn chỗ.
-2. **Không thể lấy thêm native memory thực tế** do container/OS/address space/allocator, hoặc vì nguồn native khác đang chiếm nhiều tài nguyên. Một chương trình có thể fail native allocation ngay cả khi chưa đạt hạn mức reservation được cấu hình.
+1. **Hitting the direct budget limit** set by `-XX:MaxDirectMemorySize` or JVM defaults while the Java heap still has free room.
+2. **Inability to obtain actual native memory** due to container/OS/address space/allocator limits, or because other native sources consume too much memory. A program can fail native allocation even before reaching its configured reservation cap.
 
-Những tình huống làm direct buffer tăng là I/O/Network, read/write channel, pooled buffer, tạo `allocateDirect` quá thường xuyên, thư viện giữ buffer trong cache/pool, hoặc wrapper còn reachable nên cleaner chưa giải phóng payload.
+Situations that grow direct buffers include I/O/networking, channel reads/writes, pooled buffers, calling `allocateDirect` too frequently, libraries holding buffers in caches/pools, or reachable wrappers preventing cleaners from freeing payloads.
 
-### 4.2 Direct memory cap và giải phóng
+### 4.2 Direct Memory Cap and Reclamation
 
 ```bash
 java -Xmx512m -XX:MaxDirectMemorySize=128m -jar app.jar
 ```
 
-- `-XX:MaxDirectMemorySize=128m` đặt trần bộ nhớ direct buffer theo triển khai HotSpot/JDK tương ứng, **không phải trần tất cả native memory** (thread stacks, JNI allocations, metaspace, v.v.).
-- Direct buffer có thể được dọn khi wrapper không còn reachable và cơ chế cleaner/reference processing hoạt động; **không bảo đảm sẽ được giải phóng ngay khi gán `null`**.
-- Nhiều framework có buffer pooling, reference count hoặc cơ chế release riêng; phải đọc lifecycle của framework. Việc giữ một buffer trong pool có thể là chiến lược tái sử dụng hợp lệ, nhưng pool không giới hạn hoặc không release đúng cách có thể gây tăng chiếm dụng.
-- `System.gc()` không phải phương thức giải phóng direct buffer đáng tin cậy để cứu một hệ thống đang hết tài nguyên; GC có thể bị trì hoãn hoặc cấu hình khác, và không sửa nguyên nhân giữ buffer.
-- **Tăng `-XX:MaxDirectMemorySize`** chỉ hợp lý khi direct usage thực sự bị giới hạn, ứng dụng có nhu cầu chính đáng và OS/container còn đủ headroom. Tăng trần mà không điều tra buffer retention có thể đẩy lỗi từ direct budget sang OOM killer/thiếu native memory.
+- `-XX:MaxDirectMemorySize=128m` caps direct buffer memory per the HotSpot/JDK implementation, **not all native memory** (thread stacks, JNI allocations, metaspace, etc.).
+- Direct buffers may be cleaned when wrappers become unreachable and cleaner/reference processing runs; **there is no guarantee of immediate deallocation upon setting `null`**.
+- Many frameworks use custom buffer pooling, reference counting, or release mechanisms; read the framework's lifecycle contract. Keeping a buffer in a pool can be a valid reuse strategy, whereas an unbounded pool or missing releases drives rising usage.
+- `System.gc()` is not a reliable way to free direct buffers and rescue an exhausted system; GC can be delayed or configured differently, and it does not fix buffer retention.
+- **Raising `-XX:MaxDirectMemorySize`** makes sense only when direct usage is genuinely capped, the app has a legitimate need, and the OS/container has sufficient headroom. Raising the cap without investigating retention can shift the failure from direct budget to an OOM kill/native memory exhaustion.
 
-### 4.3 Đo trực tiếp bằng BufferPoolMXBean
+### 4.3 Direct Measurement with BufferPoolMXBean
 
-JDK cung cấp `java.lang.management.BufferPoolMXBean`. Với pool tên `direct`:
+The JDK provides `java.lang.management.BufferPoolMXBean`. For the pool named `direct`:
 
-- `getCount()`: số buffer trong pool được báo cáo, mang tính ước lượng.
-- `getTotalCapacity()`: tổng capacity (byte) của các buffer được quản lý trong pool, mang tính ước lượng.
-- `getMemoryUsed()`: ước lượng native memory dùng bởi pool; có thể khác capacity do alignment/allocator và **có thể trả `-1`** khi không đo được.
+- `getCount()`: estimated number of buffers in the pool.
+- `getTotalCapacity()`: estimated total capacity (bytes) of managed buffers in the pool.
+- `getMemoryUsed()`: estimated native memory used by the pool; may differ from capacity due to alignment/allocator and **can return `-1`** when unavailable.
 
-Những chỉ số này không bao phủ mọi allocation bằng JNI, native library, framework tự quản lý hay mọi loại off-heap memory. Cần so với `MaxDirectMemorySize`, log và RSS. Nếu pool direct tăng liên tục trong lúc heap ổn định, ưu tiên tìm những buffer bị giữ, pool không release hoặc mức concurrency I/O.
+These metrics do not cover every JNI allocation, native library, self-managed framework pool, or every kind of off-heap memory. Compare against `MaxDirectMemorySize`, logs, and RSS. If the direct pool climbs continuously while the heap stays flat, prioritize finding retained buffers, unreleased pools, or excessive I/O concurrency.
 
-**Heap dump có thể hiển thị wrapper `DirectByteBuffer` và đường giữ tham chiếu**, nhưng phần payload nằm ngoài heap nên `shallow heap` không biểu thị đầy đủ dung lượng native. Heap dump cũng có thể làm thay đổi hiện trường; không dùng dung lượng file HPROF làm tổng direct memory.
+**A heap dump can show `DirectByteBuffer` wrappers and reference paths**, but because payloads live off-heap, `shallow heap` does not reflect full native size. Capturing a heap dump can also perturb the scene; never treat HPROF file size as total direct memory.
 
-## 5. Loại C: Java heap đầy
+## 5. Type C: Java Heap Exhaustion
 
-### 5.1 Dấu hiệu và nguyên nhân
+### 5.1 Symptoms and Causes
 
-Một mẫu lỗi:
+An error pattern:
 
 ```text
 Exception in thread "worker" java.lang.OutOfMemoryError: Java heap space
     at com.example.Service.buildResult(Service.java:...)
 ```
 
-Đây là minh họa vị trí stack, không phải mã/lỗi của một ứng dụng cụ thể. JVM không đủ chỗ trong **Java heap** để cấp phát object/array cần thiết (và không thể đáp ứng sau những cơ chế thu gom/mở rộng cho phép).
+This illustrates a stack location, not code/error from a specific app. The JVM lacks enough space in the **Java heap** to allocate the needed object/array (and cannot satisfy it after allowed collection/expansion mechanisms).
 
-Nguyên nhân điển hình:
+Typical causes:
 
-- Heap giới hạn quá thấp so với **live set** và tải hợp lệ.
-- Memory leak theo nghĩa object vẫn bị giữ bởi GC roots: `static` cache không eviction, `ThreadLocal` không dọn, listener không unregister, collection tăng liên tục, session lâu không hết hạn.
-- Burst cấp phát quá lớn: đọc toàn bộ file/response vào bộ nhớ, tạo cấu trúc trung gian lớn, số request đồng thời cao.
-- GC nhiều nhưng thu hồi được rất ít vì phần lớn object vẫn reachable.
+- Heap limit set too low for the **live set** and legitimate load.
+- Memory leak where objects remain held by GC roots: `static` caches without eviction, uncleaned `ThreadLocal`s, unregistered listeners, ever-growing collections, non-expiring sessions.
+- Oversized allocation bursts: reading whole files/responses into memory, large intermediate structures, high request concurrency.
+- Frequent GCs reclaiming very little because most objects remain reachable.
 
-**Không phải mọi `OutOfMemoryError` liên quan heap đều có detail `Java heap space`**. Các lỗi `GC overhead limit exceeded`, `Requested array size exceeds VM limit`, `Metaspace` hoặc `Direct buffer memory` có ý nghĩa riêng. Ví dụ `Requested array size exceeds VM limit` có thể do kích thước mảng vượt giới hạn JVM, ngay cả khi heap còn nhiều bộ nhớ.
+**Not every heap-related `OutOfMemoryError` carries the detail `Java heap space`**. Errors such as `GC overhead limit exceeded`, `Requested array size exceeds VM limit`, `Metaspace`, or `Direct buffer memory` have distinct meanings. For instance, `Requested array size exceeds VM limit` can occur when an array length exceeds JVM limits even if the heap has ample memory.
 
-### 5.2 Đo Java heap và theo dõi GC
+### 5.2 Measuring Java Heap and Monitoring GC
 
 ```bash
 jcmd 12345 GC.heap_info
 jcmd 12345 VM.flags
 ```
 
-Có thể bật GC log ngay khi JVM khởi động:
+GC logging can be enabled at JVM startup:
 
 ```bash
 java -Xms256m -Xmx512m \
@@ -195,17 +195,17 @@ java -Xms256m -Xmx512m \
   -jar app.jar
 ```
 
-Khi phân tích, tìm **heap used sau GC**, tần suất GC, pause, tốc độ cấp phát, heap occupancy, object retention và thay đổi sau các đợt tải. Một lúc heap used cao chưa chứng minh leak; **live set tăng dai dẳng qua nhiều lần GC trong điều kiện tải ổn định** là bằng chứng đáng xem.
+When analyzing, check **post-GC heap used**, GC frequency, pauses, allocation rate, heap occupancy, object retention, and changes across load waves. One moment of high heap used does not prove a leak; **live set rising persistently across multiple GCs under steady load** is strong evidence worth investigating.
 
-Nếu cần heap dump để truy vết root:
+When a heap dump is needed to trace roots:
 
 ```bash
 jcmd 12345 GC.heap_dump /tmp/java-heap.hprof
 ```
 
-Lệnh này có chi phí CPU/I/O, cần dung lượng đĩa và trên HotSpot JDK 17 **mặc định yêu cầu Full GC** trừ khi chọn `-all`. Vì vậy nó có thể thay đổi hiện trường; lựa chọn dựa theo mục tiêu điều tra, và không mặc định chạy trên một tiến trình production đang cạn tài nguyên. Có thể dùng MAT để xem Dominator Tree, retained heap, path to GC roots.
+This command has CPU/I/O cost, requires disk space, and on HotSpot JDK 17 **requests a Full GC by default** unless `-all` is chosen. Thus it can alter the scene; use it based on diagnostic goals and avoid running it blindly on an already resource-starved production process. You can inspect Dominator Tree, retained heap, and paths to GC roots in MAT.
 
-Khi cần lưu dump vào lúc JVM ném OOME, có thể chuẩn bị trước:
+When you need a dump automatically when the JVM throws OOME, prepare beforehand:
 
 ```bash
 java -XX:+HeapDumpOnOutOfMemoryError \
@@ -213,13 +213,13 @@ java -XX:+HeapDumpOnOutOfMemoryError \
   -jar app.jar
 ```
 
-**Đừng khẳng định một file HPROF đủ giải thích mọi loại OOME**: heap dump mô tả Java heap và object graph, không phải thống kê toàn bộ native memory hay quota thread/PID. Việc tạo dump khi sự cố cũng cần tài nguyên và có thể thất bại.
+**Do not claim one HPROF file explains every kind of OOME**: a heap dump describes the Java heap and object graph, not all native memory or thread/PID quotas. Creating a dump during an incident also needs resources and can fail.
 
-## 6. Cách lấy số liệu NMT và giới hạn của nó
+## 6. Getting NMT Metrics and Their Limits
 
-**Native Memory Tracking (NMT)** là công cụ của HotSpot giúp theo dõi bộ nhớ nội bộ JVM theo nhóm như `Java Heap`, `Thread`, `Class`, `Code`, `GC`. Cần bật khi **khởi động tiến trình**, không giả định có thể bật đầy đủ cho tiến trình đang chạy nếu trước đó tắt.
+**Native Memory Tracking (NMT)** is a HotSpot tool tracking internal JVM memory by categories like `Java Heap`, `Thread`, `Class`, `Code`, and `GC`. It must be enabled at **process startup**; do not assume you can fully enable it on a running process if it started disabled.
 
-Ví dụ:
+Example:
 
 ```bash
 java -Xms256m -Xmx512m \
@@ -228,30 +228,30 @@ java -Xms256m -Xmx512m \
   -jar app.jar
 ```
 
-Sau đó chạy lệnh từ cùng môi trường có quyền attach:
+Then run commands from the same environment with attach permissions:
 
 ```bash
 jcmd 12345 VM.native_memory summary scale=MB
 jcmd 12345 VM.native_memory baseline
 ```
 
-Sau một khoảng workload, lấy delta:
+After a workload interval, capture the delta:
 
 ```bash
 jcmd 12345 VM.native_memory summary.diff scale=MB
 ```
 
-- **`Thread` tăng** cùng số thread: xem stack reservations và các cấu trúc native; đồng thời đối chiếu OS task count/quota.
-- **`Java Heap` trong NMT** chủ yếu cho biết phạm vi reserved/committed heap, **không thay thế `MemoryMXBean.getHeapMemoryUsage().getUsed()`** để xem object usage.
-- **Các nhóm native khác tăng**: cần biết nhóm nào và đối chiếu với profiler, JNI, allocator, OS RSS, BufferPoolMXBean; đừng coi một nhóm NMT bất kỳ là direct buffer.
-- **`reserved` lớn không có nghĩa cùng lượng RAM vật lý đã dùng**. `committed` cũng không bằng toàn bộ RSS của tiến trình.
-- NMT **không theo dõi toàn bộ allocation của thư viện native/JNI bên thứ ba** và có overhead; kết hợp công cụ OS khi cần. Trong production, cân nhắc chi phí bật NMT.
+- **`Thread` growing** alongside thread count: check stack reservations and native structures; also cross-check OS task counts/quotas.
+- **`Java Heap` in NMT** primarily reports reserved/committed heap ranges, **not replacing `MemoryMXBean.getHeapMemoryUsage().getUsed()`** for object usage.
+- **Other native categories growing:** identify which category and cross-check profilers, JNI, allocators, OS RSS, and BufferPoolMXBean; do not treat any arbitrary NMT category as direct buffers.
+- **Large `reserved` does not mean the same amount of physical RAM is used**. Nor does `committed` equal total process RSS.
+- NMT **does not track all third-party native/JNI library allocations** and incurs overhead; combine with OS tools when needed. In production, weigh the cost of enabling NMT.
 
-Nếu lệnh báo NMT chưa bật, **đó là giới hạn quan sát**, không phải bằng chứng tiến trình không dùng native memory.
+If the command reports NMT is not enabled, **that is an observation gap**, not proof the process uses no native memory.
 
-## 7. Java 17: chương trình chụp ba nhóm chỉ số mà không cố tình gây OOME
+## 7. Java 17: Program Capturing Three Metric Groups Without Intentionally Triggering OOME
 
-Ví dụ an toàn hơn việc tạo hàng nghìn thread hay cấp phát bộ nhớ đến khi crash là **quan sát các tín hiệu** trước/sau một direct-buffer allocation nhỏ. Tạo file **`MemoryFailureSignals.java`**:
+A safer example than spawning thousands of threads or allocating until crash is **observing signals** before and after a small direct-buffer allocation. Create **`MemoryFailureSignals.java`**:
 
 ```java
 import java.lang.management.BufferPoolMXBean;
@@ -296,7 +296,7 @@ public class MemoryFailureSignals {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 MemoryFailureSignals.java
@@ -306,7 +306,7 @@ java -Xms64m -Xmx256m \
   MemoryFailureSignals
 ```
 
-Các dòng **chắc chắn theo logic ví dụ khi allocation thành công**:
+Lines **guaranteed by the example's logic when allocation succeeds**:
 
 ```text
 BEFORE
@@ -317,113 +317,113 @@ sample.capacity=1048576
 sample.value=42
 ```
 
-`...` trong đoạn trên chỉ diễn đạt rằng có những dòng metric **biến động theo JVM/môi trường**, không phải output thực để sao chép. Giá trị `heap.used`, `heap.committed`, `heap.max`, `threads.live` và các chỉ số direct pool cần đọc từ lần chạy thật; `direct.used` có thể là `-1` nếu JVM không hỗ trợ ước lượng. Có thể có nhiều nền tảng JVM mà cách hiện metric không hoàn toàn giống HotSpot.
+`...` above simply indicates metric lines that **vary by JVM/environment**, not literal output to copy. `heap.used`, `heap.committed`, `heap.max`, `threads.live`, and direct pool values should be read from an actual run; `direct.used` may be `-1` if the JVM does not support an estimate. On some JVM platforms, metric reporting may not match HotSpot identically.
 
-**Diễn giải:**
+**Interpretation:**
 
-- `heap.used` và `heap.max` cho biết áp lực Java heap. Một direct-buffer payload 1 MiB không có nghĩa `heap.used` phải tăng thêm 1 MiB.
-- `direct.capacity` và `direct.used` phản ánh buffer pool do JVM báo; sau khi tạo buffer mới, thường tăng tương ứng nếu buffer còn reachable. Giới hạn `MaxDirectMemorySize` áp dụng theo ngữ nghĩa JVM, không phải toàn bộ native RSS.
-- `threads.live` là **số Java platform threads còn sống** do `ThreadMXBean` thấy; không coi nó là con số task/PID chính xác của OS.
-- Để xác định **nguyên nhân OOME**, chụp metric định kỳ và ghép với **stack trace/detail message tại thời điểm lỗi**. Một lần snapshot không chứng minh memory leak.
+- `heap.used` and `heap.max` indicate Java heap pressure. A 1 MiB direct-buffer payload does not mean `heap.used` must rise by 1 MiB.
+- `direct.capacity` and `direct.used` reflect the JVM-reported buffer pool; after allocating a new buffer, they typically rise accordingly while the buffer remains reachable. The `MaxDirectMemorySize` limit applies per JVM semantics, not total native RSS.
+- `threads.live` is the **live Java platform thread count** seen by `ThreadMXBean`; do not treat it as the OS's exact task/PID count.
+- To determine **OOME root cause**, sample metrics periodically and pair them with the **stack trace/detail message at failure time**. A single snapshot does not prove a memory leak.
 
-Chương trình không chủ động làm cạn bộ nhớ và không tạo thread hàng loạt. Nếu môi trường đã quá hạn chế, bản thân `allocateDirect` 1 MiB vẫn có thể thất bại; đó là một dấu hiệu cần điều tra, không phải kết quả được ép sẵn.
+The program does not intentionally exhaust memory or spawn threads en masse. If an environment is already severely constrained, even a 1 MiB `allocateDirect` can fail; that is a signal to investigate, not a forced outcome.
 
-## 8. Quy trình điều tra: đọc bằng chứng rồi mới chỉnh cấu hình
+## 8. Investigation Workflow: Read Evidence Before Tuning Flags
 
-### Bước 1 — Chốt loại lỗi chính xác
+### Step 1 — Pin Down the Exact Error Type
 
-Giữ **nguyên văn một vài dòng đầu và stack trace**, PID, timestamp, JVM vendor/version, cờ khởi động, workload, giới hạn container/OS. Phân nhánh theo detail message:
+Preserve **the verbatim first few lines and stack trace**, PID, timestamp, JVM vendor/version, startup flags, workload, and container/OS limits. Branch by detail message:
 
 ```text
-Có OutOfMemoryError?
+OutOfMemoryError occurred?
   |
   +-- "unable to create native thread"
   |      -> Thread count / task quota / native stacks / native headroom
   |
-  +-- "Cannot reserve ... direct buffer memory" hoặc "Direct buffer memory"
+  +-- "Cannot reserve ... direct buffer memory" or "Direct buffer memory"
   |      -> Direct pool / MaxDirectMemorySize / buffer lifecycle / native headroom
   |
   +-- "Java heap space"
-  |      -> Heap used/limit / GC / live set / allocation / GC roots
+  |      -> Heap used/limit / GC / live set / allocations / GC roots
   |
-  +-- Thông điệp khác (Metaspace, array size, native allocation ...)
-         -> Điều tra đúng vùng tài nguyên của thông điệp đó
+  +-- Other message (Metaspace, array size, native allocation ...)
+         -> Investigate the exact resource region named by that message
 ```
 
-Stack trace bổ sung nơi cấp phát thất bại; **không suy toàn bộ nguyên nhân chỉ từ tên method** nếu detail message đã có ngữ nghĩa rõ hơn.
+The stack trace adds where the allocation failed; **do not infer the whole cause from a method name alone** when the detail message carries clearer semantics.
 
-### Bước 2 — Kiểm tra tài nguyên nền và container
+### Step 2 — Check Underlying Resources and Container
 
-- `-Xmx` và heap usage, `-XX:MaxDirectMemorySize`, số thread, `-Xss`, native NMT, RSS.
-- Với Linux: process limits, `pids.current/pids.max` và `memory.current/memory.max` của **đúng cgroup**; nếu bị giới hạn ở cha, cần kiểm tra cây cgroup.
-- **OS OOM killer là sự kiện khác với Java `OutOfMemoryError`**: một tiến trình bị `SIGKILL` có thể không in Java exception. Container thường báo exit code 137 khi nhận SIGKILL, nhưng **137 một mình không chứng minh OOM kill**; cần đối chiếu kernel log, Kubernetes event hoặc cgroup `memory.events`/`oom_kill`.
+- `-Xmx` and heap usage, `-XX:MaxDirectMemorySize`, thread count, `-Xss`, NMT native memory, RSS.
+- On Linux: process limits, `pids.current/pids.max`, and `memory.current/memory.max` of **the exact cgroup**; if capped at a parent level, inspect the cgroup hierarchy.
+- **An OS OOM killer event differs from a Java `OutOfMemoryError`**: a process killed with `SIGKILL` may print no Java exception. Containers often report exit code 137 on SIGKILL, yet **137 alone does not prove an OOM kill**; cross-check kernel logs, Kubernetes events, or cgroup `memory.events`/`oom_kill`.
 
-### Bước 3 — Đối chiếu tín hiệu và quyết định hướng sửa
+### Step 3 — Cross-Check Signals and Choose Remediation
 
-| Tình huống | Bằng chứng cần thêm | Hướng xử lý sau khi xác minh |
+| Situation | Additional Evidence Needed | Remediation After Verification |
 | --- | --- | --- |
-| Heap sau GC bình thường, thread count tăng liên tục, `pids.current` sát `pids.max` | Thread dump theo thời gian, stack/owner, cấu hình pool | Sửa tạo thread vô hạn/thiếu shutdown, giảm số worker hoặc điều chỉnh quota có cơ sở |
-| Thread count không quá lớn nhưng `Thread.start` fail, native committed/RSS cao | Cgroup RAM, `/proc/PID/limits`, `-Xss`, NMT/OS usage | Xác định hạn mức stack/address space/native; dành headroom hoặc điều chỉnh phù hợp |
-| `direct.capacity` sát mức limit, heap còn dư | Buffer pool/JMX theo thời gian, Netty/framework release, stack `allocateDirect` | Sửa lifecycle/pooling, kiểm soát concurrency, cân nhắc direct cap nếu đủ RAM |
-| Direct reservation chưa sát cap nhưng OS hết memory | RSS/cgroup, NMT, native library stats, allocator | Điều tra phần native khác; tăng cap direct sẽ không giải quyết thiếu RAM |
-| `Java heap space`, heap sau GC tăng qua nhiều cửa sổ tải ổn định | GC log, heap dump, retained heap, GC root | Sửa retention/leak hoặc mức sử dụng hợp lệ vượt cấu hình |
-| Heap OOME khi batch dữ liệu rất lớn | Allocation profiling, số phần tử, payload size, concurrency | Stream/chunk dữ liệu, giảm buffering, kiểm soát kích thước batch; cân nhắc heap size |
-| Process bị OOMKilled không có Java exception | Cgroup `oom_kill`/OS log, RSS, process limit | Cân đối toàn bộ RSS và giới hạn container, không quy ngay cho heap |
+| Post-GC heap normal, thread count climbs steadily, `pids.current` near `pids.max` | Time-series thread dumps, stacks/owners, pool config | Fix unbounded thread creation/missing shutdown, lower worker count, or adjust quotas with justification |
+| Thread count modest yet `Thread.start` fails, native committed/RSS high | Cgroup RAM, `/proc/PID/limits`, `-Xss`, NMT/OS usage | Identify stack/address-space/native limits; reserve headroom or tune appropriately |
+| `direct.capacity` near limit while heap has free space | Time-series buffer pool/JMX, Netty/framework releases, `allocateDirect` stacks | Fix lifecycle/pooling, bound concurrency, consider direct cap if RAM suffices |
+| Direct reservation nowhere near cap yet OS out of memory | RSS/cgroup, NMT, native library stats, allocator | Investigate other native usage; raising direct cap will not solve RAM exhaustion |
+| `Java heap space`, post-GC heap climbs across steady load windows | GC logs, heap dump, retained heap, GC roots | Fix retention/leak or legitimate usage exceeding config |
+| Heap OOME during huge data batches | Allocation profiling, element count, payload size, concurrency | Stream/chunk data, reduce buffering, control batch size; review heap size |
+| Process OOMKilled with no Java exception | Cgroup `oom_kill`/OS logs, RSS, process limits | Balance total RSS against container limits rather than blaming heap immediately |
 
-### Bước 4 — Đặt ngân sách bộ nhớ có khoảng dự phòng
+### Step 4 — Budget Memory with Headroom
 
-Ví dụ container có **1 GiB memory limit** nhưng JVM được cấu hình `-Xmx768m`, direct cap `256m` và chạy vài trăm platform threads: đây là **cấu hình có nguy cơ thiếu headroom** cho thread stacks, metaspace, code cache, JIT, GC, thư viện native, page cache và hoạt động phụ trợ.
+For example, a container has a **1 GiB memory limit** yet the JVM is configured with `-Xmx768m`, a `256m` direct cap, and runs several hundred platform threads: this configuration **risks lacking headroom** for thread stacks, metaspace, code cache, JIT, GC, native libraries, page cache, and auxiliary work.
 
-Tuy nhiên **không được cộng `768 + 256 + N × Xss` rồi gọi kết quả là RSS**: `-Xmx` là heap max, direct cap là hạn mức, stack có reserved/committed khác nhau, và một số cấp phát không trực tiếp resident. Phải đo thực tế dưới peak load rồi đặt headroom phù hợp môi trường.
+However, **do not sum `768 + 256 + N × Xss` and call the result RSS**: `-Xmx` is heap max, direct cap is a ceiling, stacks have distinct reserved/committed behavior, and some allocations are not immediately resident. Measure under peak load and set headroom suitable for the environment.
 
-Điều chỉnh cần theo đúng nút giới hạn:
+Tune the exact limiting knob:
 
-- **Thread problem:** ưu tiên nguyên nhân tăng thread và quota/task; đừng tăng heap chỉ vì thông điệp có chữ `OutOfMemoryError`.
-- **Direct problem:** quản lý direct buffers và reservation; tránh tăng direct cap vượt RAM thực.
-- **Heap problem:** giảm live set hoặc sizing hợp lý; đừng giảm `-Xmx` mù quáng vì muốn “chừa native memory” khi heap đã thật sự quá nhỏ.
+- **Thread problem:** address thread growth drivers and task quotas first; do not raise heap just because the message says `OutOfMemoryError`.
+- **Direct problem:** manage direct buffers and reservations; avoid raising direct cap past physical RAM.
+- **Heap problem:** shrink the live set or size appropriately; do not blindly cut `-Xmx` to "leave room for native memory" when the heap is genuinely too small.
 
-Sau khi sửa, chạy lại **cùng workload** và so sánh heap after-GC, thread growth, direct pool, RSS, cgroup pressure và các lỗi/pause.
+After fixing, rerun **the same workload** and compare post-GC heap, thread growth, direct pool, RSS, cgroup pressure, and errors/pauses.
 
-## 9. Sai lầm thường gặp
+## 9. Common Mistakes
 
-1. **“Mọi `OutOfMemoryError` đều do Java heap đầy.”** Sai: native thread, direct buffer, metaspace và native allocator có thể thất bại độc lập.
-2. **“Heap used chỉ 40% thì toàn bộ process vẫn dư 60% RAM.”** Sai: heap used không tính direct, native thread stacks và các vùng khác.
-3. **“Tăng `-Xmx` sửa được `unable to create native thread`.”** Không có bảo đảm; trong container giới hạn, tăng heap còn có thể thu hẹp headroom native.
-4. **“Giảm `-Xss` luôn an toàn và giải quyết hết lỗi thread.”** Sai: có thể chạm quota task, và stack nhỏ hơn có thể gây `StackOverflowError`.
-5. **“DirectByteBuffer nằm trong heap nên tăng `-Xmx` là đủ.”** Wrapper ở heap nhưng payload ngoài heap; cần xem direct cap và native memory.
-6. **“`-XX:MaxDirectMemorySize` là trần native memory toàn tiến trình.”** Sai: nó chỉ điều khiển một phạm vi direct-buffer reservation, không quản lý mọi JNI/native allocations.
-7. **“Cứ gọi `System.gc()` để chữa direct buffer OOME.”** Không đáng tin cậy; không sửa buffer vẫn reachable hay pool quản lý sai.
-8. **“Có nhiều object trong heap dump là leak.”** Chưa đủ: cần retained heap/path tới GC roots và xu hướng.
-9. **“NMT summary là số RSS chính xác hoặc bao quát JNI.”** Sai: nguồn dữ liệu có phạm vi và semantics riêng.
-10. **“Exit code 137 luôn là Java heap OOME.”** Sai: SIGKILL và OOM killer khác Java exception; cần OS/cgroup event.
-11. **“Thấy `Threads` trong Java MXBean là biết chính xác OS task quota.”** Sai: còn native JVM threads và các task khác cùng cgroup.
-12. **“Cứ tăng cả `-Xmx`, direct cap và thread pool cho chắc.”** Trong cùng memory limit, các khoản chi tiêu cạnh tranh nhau; phải đo trước, tăng có mục tiêu.
+1. **"Every `OutOfMemoryError` is caused by a full Java heap."** False: native threads, direct buffers, metaspace, and native allocators can fail independently.
+2. **"Heap used is only 40%, so the process still has 60% RAM free."** False: heap used excludes direct buffers, native thread stacks, and other regions.
+3. **"Increasing `-Xmx` fixes `unable to create native thread`."** No guarantee; inside a constrained container, enlarging the heap can shrink native headroom.
+4. **"Lowering `-Xss` is always safe and solves all thread errors."** False: you can still hit task quotas, and smaller stacks risk `StackOverflowError`.
+5. **"`DirectByteBuffer` is on the heap, so raising `-Xmx` is enough."** The wrapper is on the heap, while the payload is off-heap; check direct cap and native memory.
+6. **"`-XX:MaxDirectMemorySize` caps all process native memory."** False: it only governs a scope of direct-buffer reservations, not all JNI/native allocations.
+7. **"Just call `System.gc()` to cure direct buffer OOME."** Unreliable; it does not fix still-reachable buffers or mismanaged pools.
+8. **"Many objects in a heap dump means a leak."** Insufficient: inspect retained heap/paths to GC roots and trends.
+9. **"NMT summary is exact RSS or covers JNI."** False: each source has its own scope and semantics.
+10. **"Exit code 137 is always Java heap OOME."** False: SIGKILL and OOM killer differ from Java exceptions; check OS/cgroup events.
+11. **"Seeing `Threads` in Java MXBean tells you the exact OS task quota."** False: native JVM threads and other tasks share the cgroup.
+12. **"Just raise `-Xmx`, direct cap, and thread pool together to be safe."** Within one memory limit, those budgets compete; measure first and tune purposefully.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**Câu 1:** `heap.used` thấp, `Thread.start()` ném `unable to create native thread`, `pids.current` gần `pids.max`. Bước đầu cần làm gì?  
-**Đáp án:** Điều tra số thread/tasks và quota, tìm thread pool/thread leak và xác định cgroup thật của tiến trình; tăng `-Xmx` không phải câu trả lời trực tiếp.
+**Question 1:** `heap.used` is low, `Thread.start()` throws `unable to create native thread`, and `pids.current` is near `pids.max`. What should you do first?  
+**Answer:** Investigate thread/task counts and quotas, check for thread pools/thread leaks, and identify the process's actual cgroup; raising `-Xmx` is not the direct answer.
 
-**Câu 2:** `ByteBuffer.allocateDirect` ném `Cannot reserve ... allocated: 134217728, limit: 134217728`. Điều này nói gì?  
-**Đáp án:** Theo ngữ nghĩa của thông báo, direct-buffer reservation đang chạm giới hạn 128 MiB; kiểm tra buffer lifecycle, pool/concurrency và `MaxDirectMemorySize` trước khi tăng cap.
+**Question 2:** `ByteBuffer.allocateDirect` throws `Cannot reserve ... allocated: 134217728, limit: 134217728`. What does this tell you?  
+**Answer:** Per the message's semantics, direct-buffer reservations hit a 128 MiB limit; inspect buffer lifecycles, pools/concurrency, and `MaxDirectMemorySize` before raising the cap.
 
-**Câu 3:** `OutOfMemoryError: Java heap space` nhưng RSS vẫn thấp hơn memory limit của container. Có mâu thuẫn không?  
-**Đáp án:** Không. `-Xmx` là giới hạn heap riêng, có thể hết heap trước khi process chạm memory limit.
+**Question 3:** `OutOfMemoryError: Java heap space` occurs while RSS is still below the container's memory limit. Is this contradictory?  
+**Answer:** No. `-Xmx` is a heap-specific limit, so the heap can run out before the process hits the container memory limit.
 
-**Câu 4:** NMT báo `Thread reserved=1 GiB`. Có nghĩa ngay lập tức 1 GiB RAM vật lý đang resident?  
-**Đáp án:** Không. Reserved virtual address không bằng RSS; cần xem committed, OS RSS và cgroup usage.
+**Question 4:** NMT reports `Thread reserved=1 GiB`. Does that mean 1 GiB of physical RAM is immediately resident?  
+**Answer:** No. Reserved virtual addresses do not equal RSS; check committed, OS RSS, and cgroup usage.
 
-**Câu 5:** Direct buffer cap chỉ 256 MiB, OS báo process RSS cao. Có thể khẳng định direct buffer là thủ phạm?  
-**Đáp án:** Không. Cần JMX direct pool, NMT/OS metrics và những native allocations khác; cap không phải mức đã dùng.
+**Question 5:** Direct buffer cap is only 256 MiB, yet the OS reports high process RSS. Can you conclude direct buffers are the culprit?  
+**Answer:** No. Check the JMX direct pool, NMT/OS metrics, and other native allocations; a cap is not current usage.
 
-**Câu 6:** Container bị `OOMKilled` nhưng không thấy `java.lang.OutOfMemoryError`. Vì sao?  
-**Đáp án:** Kernel/container có thể kill tiến trình từ bên ngoài khi cạn tài nguyên; Java không bắt buộc kịp tạo exception. Kiểm tra `memory.events`/system logs và cấu hình limit.
+**Question 6:** A container was `OOMKilled` with no `java.lang.OutOfMemoryError` logged. Why?  
+**Answer:** The kernel/container can kill the process externally on resource exhaustion before Java can throw or log an exception. Check `memory.events`/system logs and limit configs.
 
-## Tài liệu tra cứu
+## Reference Documentation
 
 - [Oracle JDK 17 — The `jcmd` Command (Thread.print, VM.native_memory, GC.heap_info)](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html)
 - [Oracle JDK 17 — The `java` Command (`-Xmx`, `-XX:MaxDirectMemorySize`, `-XX:NativeMemoryTracking`)](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html)
-- [Oracle JDK 17 — Troubleshoot Memory Leaks và Java OutOfMemoryError](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshooting-memory-leaks.html)
-- [Oracle JDK 17 — Diagnostic Tools và Native Memory Tracking](https://docs.oracle.com/en/java/javase/17/troubleshoot/diagnostic-tools.html)
+- [Oracle JDK 17 — Troubleshoot Memory Leaks and Java OutOfMemoryError](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshooting-memory-leaks.html)
+- [Oracle JDK 17 — Diagnostic Tools and Native Memory Tracking](https://docs.oracle.com/en/java/javase/17/troubleshoot/diagnostic-tools.html)
 - [Java SE 17 — BufferPoolMXBean](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/BufferPoolMXBean.html)
 - [Java SE 17 — ThreadMXBean](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html)

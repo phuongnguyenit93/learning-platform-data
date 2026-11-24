@@ -1,50 +1,50 @@
-# 5.3 Sử dụng Mac với init, update, doFinal và quản lý trạng thái
+# 5.3 Using Mac with init, update, doFinal, and State Management
 
-Trong Java Cryptography Architecture (JCA), lớp `javax.crypto.Mac` tính **mã xác thực thông điệp** (*Message Authentication Code*, MAC): một giá trị ngắn được tính từ **khóa bí mật** và **đúng dãy byte của thông điệp**. Khi bên nhận có khóa tương ứng, tính lại MAC và so sánh đúng cách, họ có thể phát hiện thông điệp bị thay đổi hoặc được tạo bởi một bên không sở hữu khóa theo giả định an toàn của thuật toán.
+In the Java Cryptography Architecture (JCA), the `javax.crypto.Mac` class computes a **Message Authentication Code (MAC)**: a short value derived from a **secret key** and the **exact byte sequence of a message**. When the receiver holds the corresponding key, recomputes the MAC, and compares properly, they can detect whether a message was modified or created by a party that does not possess the key under the algorithm's security assumptions.
 
-Bài này tập trung vào **vòng đời và trạng thái** của `Mac` trong Java: `getInstance` → `init` → `update` → `doFinal`, khi nào dùng `reset`, cách xử lý nhiều thông điệp, cách cho dữ liệu đi theo từng khối, và cách xác minh MAC. Hiểu đúng trạng thái là điều thiết yếu: cùng một đối tượng `Mac` có thể được tái sử dụng tuần tự **sau khi hoàn tất và reset đúng cách**, nhưng rất dễ tạo MAC sai nếu lẫn byte giữa hai thông điệp hoặc chia sẻ đối tượng cho nhiều luồng.
+This lesson focuses on the **lifecycle and state** of `Mac` in Java: `getInstance` → `init` → `update` → `doFinal`, when to use `reset`, how to handle multiple messages, how to feed data in chunks, and how to verify a MAC. Understanding state properly is essential: the same `Mac` object can be reused sequentially **after completion and proper reset**, yet it is very easy to produce wrong MACs if bytes from two messages get mixed or an instance is shared across threads.
 
-## 1. Kết quả học tập
+## 1. Learning Outcomes
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích MAC bảo vệ **tính toàn vẹn và xác thực dựa trên khóa chung**, khác với hash thuần, chữ ký số và mã hóa dữ liệu.
-2. Khởi tạo `Mac` với thuật toán HMAC như `HmacSHA256`, khóa `SecretKey` phù hợp và một giao thức xác định.
-3. Dùng `update(byte)`, `update(byte[])`, `update(byte[], offset, len)` và `update(ByteBuffer)` để cấp dữ liệu theo từng khối.
-4. Phân biệt `doFinal()`, `doFinal(byte[])`, `doFinal(byte[], int)` và hành vi **reset tự động** sau khi hoàn tất.
-5. Biết `reset()` loại bỏ dữ liệu **đã update nhưng chưa final**, trong khi `init(...)` thiết lập khóa/tham số và bắt đầu trạng thái mới.
-6. Tránh lỗi tái sử dụng `Mac` không an toàn giữa các request/luồng, xử lý exception và phân tách thông điệp.
-7. Xác minh tag bằng tính lại MAC trên đúng byte và sử dụng phép so sánh phù hợp với ngữ cảnh bảo mật; tách MAC khỏi chống replay.
-8. Kiểm thử một HMAC-SHA-256 với test vector chuẩn, rồi áp dụng vào xử lý file/API trong hệ thống Java.
+1. Explain how a MAC protects **integrity and shared-key authentication**, differing from plain hashes, digital signatures, and data encryption.
+2. Initialize `Mac` with an HMAC algorithm such as `HmacSHA256`, an appropriate `SecretKey`, and a well-defined protocol.
+3. Use `update(byte)`, `update(byte[])`, `update(byte[], offset, len)`, and `update(ByteBuffer)` to feed data incrementally in chunks.
+4. Distinguish `doFinal()`, `doFinal(byte[])`, `doFinal(byte[], int)`, and the **automatic reset** behavior upon completion.
+5. Know that `reset()` discards data **that was updated but not yet finalized**, whereas `init(...)` sets the key/parameters and starts a new state.
+6. Avoid unsafe `Mac` reuse across requests/threads, handle exceptions, and enforce message boundaries.
+7. Verify tags by recomputing the MAC over the exact bytes and using a comparison appropriate for security contexts; separate MAC verification from replay protection.
+8. Test an HMAC-SHA-256 implementation with standard test vectors, then apply it to file/API processing in Java systems.
 
-## 2. MAC, HMAC, hash và chữ ký số
+## 2. MAC, HMAC, Hash, and Digital Signatures
 
-Ký hiệu khái quát:
+General notation:
 
 ```text
 tag = MAC(secretKey, messageBytes)
 
 sender:   messageBytes + tag
 receiver: recomputedTag = MAC(secretKey, receivedMessageBytes)
-          -> xác minh tag nhận được với recomputedTag
+          -> verify received tag against recomputedTag
 ```
 
-MAC là kết quả của phép tính **có khóa**, khác với `MessageDigest` không cần khóa. HMAC là một cách xây MAC dựa trên hàm băm được chuẩn hóa; `HmacSHA256` sử dụng SHA-256 bên trong cấu trúc HMAC. SHA-256 một mình **không thay thế HMAC** cho xác thực thông điệp và không nên tự thiết kế MAC bằng cách ghép `SHA256(key || message)`.
+A MAC is the result of a **keyed** computation, unlike an unkeyed `MessageDigest`. HMAC is a standardized way to build a MAC from a hash function; `HmacSHA256` uses SHA-256 inside the HMAC construction. SHA-256 alone **does not replace HMAC** for message authentication, and you should not design a MAC yourself by concatenating `SHA256(key || message)`.
 
-| Công cụ | Có khóa bí mật? | Mục tiêu | Giới hạn đáng nhớ |
+| Tool | Has Secret Key? | Purpose | Key Limitation to Remember |
 | --- | --- | --- | --- |
-| `MessageDigest` / SHA-256 | Không | Tạo digest của dãy byte | Ai cũng tính được digest mới nếu sửa dữ liệu; không xác thực người gửi |
-| `Mac` / HMAC-SHA-256 | Có, khóa dùng chung | Phát hiện sửa đổi và xác thực thông điệp giữa các bên có khóa | Hai bên cùng có khóa đều tạo được MAC; không cung cấp tính bí mật hay bằng chứng chống chối bỏ như chữ ký bất đối xứng |
-| `Signature` (ví dụ Ed25519) | Khóa riêng để ký, khóa công khai để kiểm | Chữ ký số có thể kiểm bằng khóa công khai | Yêu cầu quản lý cặp khóa và xác thực khóa công khai |
-| `Cipher` / AEAD (ví dụ AES-GCM) | Có | Bảo mật và/hoặc xác thực dữ liệu theo cơ chế mã hóa xác thực | Phải quản lý khóa, nonce, AAD và tag đúng cách |
+| `MessageDigest` / SHA-256 | No | Produces a digest of a byte sequence | Anyone can compute a new digest after modifying data; does not authenticate sender |
+| `Mac` / HMAC-SHA-256 | Yes, shared key | Detects tampering and authenticates messages between key holders | Both sides with the key can create the MAC; provides neither confidentiality nor asymmetric non-repudiation |
+| `Signature` (e.g., Ed25519) | Private key to sign, public key to verify | Digital signature verifiable with a public key | Requires key-pair management and public key authentication |
+| `Cipher` / AEAD (e.g., AES-GCM) | Yes | Provides confidentiality and/or authenticity via authenticated encryption | Requires proper management of keys, nonces, AAD, and tags |
 
-**MAC không mã hóa dữ liệu.** Thông điệp có thể vẫn đọc được khi truyền; dùng TLS hoặc mã hóa thích hợp nếu cần tính bí mật. MAC cũng **không tự ngăn phát lại**: kẻ tấn công có thể gửi lại nguyên thông điệp và tag hợp lệ nếu giao thức không có nonce, counter, thời điểm hoặc cơ chế idempotency và xác minh vòng đời.
+**A MAC does not encrypt data.** The message can still be read in transit; use TLS or appropriate encryption when confidentiality is required. Nor does a MAC **prevent replay by itself**: an attacker can resend an unmodified message and its valid tag if the protocol lacks nonces, counters, timestamps, or idempotency and lifecycle validation.
 
-Bởi vì hai bên đều giữ khóa HMAC, một MAC hợp lệ chứng tỏ dữ liệu đến từ **một bên có khóa** (trong giả định thuật toán và triển khai an toàn), không chứng minh duy nhất cá nhân nào đã gửi khi nhiều thành phần chia sẻ khóa. Để lập luận về quyền thực hiện nghiệp vụ, vẫn cần danh tính, authorization, phân tách khóa và audit theo ngữ cảnh.
+Because both parties hold the HMAC key, a valid MAC shows that the data came from **a party holding the key** (assuming a secure algorithm and implementation), not which specific individual sent it when multiple components share the key. To reason about business authorization, you still need identity, authorization, key separation, and contextual auditing.
 
-## 3. Kiến trúc API Java: Mac là một đối tượng có trạng thái
+## 3. Java API Architecture: Mac Is a Stateful Object
 
-Các API liên quan nằm trong JCA/JCE:
+The relevant APIs are in JCA/JCE:
 
 ```java
 import javax.crypto.Mac;
@@ -54,67 +54,67 @@ import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 ```
 
-Đây là tập import minh họa, không phải chương trình độc lập. Tên thuật toán thông dụng: `HmacSHA256`; có `HmacSHA384`, `HmacSHA512` và các thuật toán khác tùy provider. **Không dùng tên thuật toán do client tự chọn** mà không kiểm soát, và không dùng HMAC-SHA1 cho thiết kế mới nếu không có yêu cầu tương thích đã được đánh giá.
+This is an illustrative import set, not a standalone program. Common algorithm name: `HmacSHA256`; `HmacSHA384`, `HmacSHA512`, and others exist depending on the provider. **Do not accept arbitrary client-chosen algorithm names** without validation, and do not use HMAC-SHA1 in new designs unless an evaluated compatibility requirement demands it.
 
-Chu trình logic:
+Logical lifecycle:
 
 ```text
                   Mac.getInstance("HmacSHA256")
                                |
                                v
-                    [Chưa khởi tạo với khóa]
+                    [Uninitialized with key]
                                |
                          init(secretKey)
                                |
                                v
-                    [Đã khởi tạo, rỗng]
+                     [Initialized, empty]
                        /             \
                  update(...)       doFinal(input)
                      |                   |
                      v                   |
-                  [Đang tích lũy byte]   |
+                 [Accumulating bytes]    |
                    /           \         |
-             update(...)     doFinal()    |
-                 |              |         |
-                 v              v         v
-            [Tích lũy]       [Sinh tag, reset]
+             update(...)     doFinal()   |
+                 |              |        |
+                 v              v        v
+          [Accumulating]   [Emit tag, reset]
                                  |
                                  v
-                         [Đã khởi tạo, rỗng]
+                         [Initialized, empty]
 ```
 
-Mô hình này mô tả **nội dung logic mà đối tượng đã xử lý**, không tiết lộ các buffer nội bộ của provider. MAC có thể tính dần theo từng khối; chương trình không cần tạo một mảng byte chứa toàn bộ file lớn.
+This model describes the **logical content processed by the object**, without exposing provider-internal buffers. A MAC can be computed incrementally in chunks; the program does not need to allocate a single byte array holding an entire large file.
 
-### Phân biệt từng phương thức
+### Distinguishing each method
 
-| Phương thức | Tác dụng | Trạng thái sau khi gọi |
+| Method | Effect | State After Call |
 | --- | --- | --- |
-| `Mac.getInstance("HmacSHA256")` | Lấy implementation từ provider | Có đối tượng nhưng **chưa dùng được để update/final nếu chưa init** |
-| `mac.init(key)` | Cấp khóa và thiết lập trạng thái tính MAC | Đã init, chưa có byte thông điệp; dữ liệu pending trước đó bị loại bỏ khi khởi tạo lại thành công |
-| `mac.init(key, params)` | Khởi tạo với tham số thuật toán khi được hỗ trợ | Trạng thái mới theo khóa/tham số; HMAC thông thường không cần tham số riêng |
-| `mac.update(byte)` | Đưa một byte vào thông điệp hiện tại | Đang tích lũy dữ liệu |
-| `mac.update(byte[])` | Đưa toàn bộ mảng byte vào thông điệp hiện tại | Đang tích lũy dữ liệu |
-| `mac.update(data, offset, len)` | Đưa đúng đoạn byte vào thông điệp hiện tại | Đang tích lũy dữ liệu; tránh phải tạo array con |
-| `mac.update(ByteBuffer)` | Đưa các byte từ vị trí hiện tại đến limit của buffer | Vị trí buffer tiến đến limit, MAC tích lũy phần dữ liệu đó |
-| `mac.doFinal()` | Tính tag của **tất cả byte đã update** | Tự reset về trạng thái sau lần `init` gần nhất |
-| `mac.doFinal(input)` | Update thêm **toàn bộ input**, final, trả tag | Tự reset về trạng thái sau `init` |
-| `mac.doFinal(output, offset)` | Ghi tag vào mảng đầu ra từ offset; không trả mảng tag | Tự reset về trạng thái sau `init`; output phải đủ `getMacLength()` byte |
-| `mac.reset()` | Hủy dữ liệu pending đang update | Đã init, rỗng, **giữ cùng khóa/tham số** |
-| `mac.getMacLength()` | Lấy độ dài tag tính theo **byte** | Không thay đổi dữ liệu thông điệp |
-| `mac.getAlgorithm()` | Trả tên thuật toán đối tượng đang sử dụng | Không thay đổi dữ liệu thông điệp |
+| `Mac.getInstance("HmacSHA256")` | Obtains an implementation from a provider | Object exists, **cannot call update/final until initialized** |
+| `mac.init(key)` | Supplies the key and initializes MAC computation state | Initialized with no message bytes; prior pending data is discarded on successful re-init |
+| `mac.init(key, params)` | Initializes with algorithm parameters when supported | Fresh state with key/params; standard HMAC typically needs no extra parameters |
+| `mac.update(byte)` | Feeds a single byte into the current message | Accumulating data |
+| `mac.update(byte[])` | Feeds the entire byte array into the current message | Accumulating data |
+| `mac.update(data, offset, len)` | Feeds a specific byte slice into the current message | Accumulating data; avoids creating a subarray |
+| `mac.update(ByteBuffer)` | Feeds bytes from current position to buffer limit | Buffer position advances to limit; MAC accumulates those bytes |
+| `mac.doFinal()` | Computes the tag of **all updated bytes** | Automatically resets to the state after the most recent `init` |
+| `mac.doFinal(input)` | Updates with **all of input**, finalizes, returns tag | Automatically resets to the state after `init` |
+| `mac.doFinal(output, offset)` | Writes tag into output array starting at offset; returns void | Automatically resets to the state after `init`; output needs `getMacLength()` bytes |
+| `mac.reset()` | Discards pending updated data | Initialized, empty, **retaining the same key/parameters** |
+| `mac.getMacLength()` | Returns tag length in **bytes** | Does not modify message data |
+| `mac.getAlgorithm()` | Returns the algorithm name used by the instance | Does not modify message data |
 
-**Hai hành vi cần nhớ nhất:**
+**Two key behaviors to remember:**
 
-- `doFinal()` và các biến thể sau khi hoàn tất sẽ **tự reset** đối tượng để có thể tính thông điệp mới với khóa/tham số đã dùng ở `init`. Không cần `init` lại với cùng khóa sau mỗi `doFinal` chỉ để reset, dù trong code xử lý request tách biệt thường dễ kiểm soát hơn nếu tạo instance mới.
-- `reset()` **không trả về tag**, chỉ bỏ phần dữ liệu đã `update`. Gọi `reset` trước `doFinal` làm mất dữ liệu pending. `reset` không đổi khóa và không phải thao tác xóa khóa khỏi bộ nhớ.
+- After finishing, `doFinal()` and its overloads **automatically reset** the object so it can compute a new message with the key/parameters supplied to `init`. You do not need to re-call `init` with the same key after every `doFinal` just to reset, though in isolated request handlers it is often cleaner to create a new instance.
+- `reset()` **does not return a tag**; it only discards data passed to `update`. Calling `reset` before `doFinal` drops pending data. `reset` does not change the key and does not wipe the key from memory.
 
-Gọi `update` hoặc `doFinal` khi đối tượng chưa được khởi tạo có thể gây `IllegalStateException`. `init` với khóa sai loại/không được hỗ trợ có thể ném `InvalidKeyException`; việc dùng `init(key, params)` có thể liên quan `InvalidAlgorithmParameterException`. Với output buffer thiếu dung lượng, `doFinal(output, offset)` có thể ném `ShortBufferException`. Nên kiểm tra và xử lý lỗi tại ranh giới ứng dụng, không nuốt exception rồi xem như MAC hợp lệ.
+Calling `update` or `doFinal` before initialization can throw `IllegalStateException`. Calling `init` with a wrong or unsupported key type can throw `InvalidKeyException`; using `init(key, params)` can involve `InvalidAlgorithmParameterException`. If the output buffer lacks capacity, `doFinal(output, offset)` can throw `ShortBufferException`. Validate and handle errors at the application boundary; never swallow exceptions and treat the MAC as valid.
 
-## 4. Chuỗi ví dụ nhỏ: hiểu chính xác update và doFinal
+## 4. Mini Examples: Understanding update and doFinal Precisely
 
-Giả sử `mac` đã được khởi tạo bằng HMAC-SHA-256 và khóa hợp lệ.
+Assume `mac` has been initialized with HMAC-SHA-256 and a valid key.
 
-### 4.1 Nhiều update là một thông điệp ghép nối
+### 4.1 Multiple updates form one concatenated message
 
 ```java
 mac.update("order=".getBytes(StandardCharsets.UTF_8));
@@ -122,18 +122,18 @@ mac.update("123".getBytes(StandardCharsets.UTF_8));
 byte[] tag = mac.doFinal();
 ```
 
-Đây là đoạn mã minh họa (biến `mac` và các import đã có). Tag ở đây tương đương với HMAC của đúng chuỗi byte UTF-8 `order=123`. **Hai lời gọi `update` không tạo hai tag độc lập**; chúng đang tạo một thông điệp duy nhất.
+This is an illustrative snippet (`mac` and imports are already present). Here the tag equals the HMAC of the exact UTF-8 byte sequence `order=123`. **Two `update` calls do not produce two independent tags**; they build a single message.
 
-### 4.2 doFinal(input) nối input vào phần đã update
+### 4.2 doFinal(input) appends input to already updated bytes
 
 ```java
 mac.update("A".getBytes(StandardCharsets.UTF_8));
 byte[] tag = mac.doFinal("B".getBytes(StandardCharsets.UTF_8));
 ```
 
-Tag này xác thực `AB`, **không phải chỉ `B`**. Nếu ý định tính MAC chỉ cho `B`, không được giữ `A` pending từ một thao tác trước. Sau `doFinal`, một lần `mac.doFinal("B".getBytes(UTF_8))` mới trên cùng đối tượng đã reset sẽ xử lý riêng `B`.
+This tag authenticates `AB`, **not just `B`**. If the intent is to compute a MAC only for `B`, there must be no pending `A` left over from a prior operation. After `doFinal`, a new `mac.doFinal("B".getBytes(UTF_8))` on the same reset object processes `B` alone.
 
-### 4.3 reset hủy dữ liệu pending
+### 4.3 reset discards pending data
 
 ```java
 mac.update("draft".getBytes(StandardCharsets.UTF_8));
@@ -141,9 +141,9 @@ mac.reset();
 byte[] tag = mac.doFinal("final".getBytes(StandardCharsets.UTF_8));
 ```
 
-Tag cuối là HMAC của `final`. Đây là cách hủy một thao tác chưa hoàn tất trước khi dùng lại **cùng khóa**. Nó không thay thế việc tạo context mới cho request độc lập, cũng không có nghĩa là khóa nhạy cảm đã được xóa khỏi JVM.
+The resulting tag is the HMAC of `final`. This is how you cancel an incomplete operation before reusing **the same key**. It neither replaces creating a fresh context for independent requests nor implies that sensitive key material was wiped from the JVM.
 
-### 4.4 init thiết lập một vòng đời mới
+### 4.4 init starts a fresh lifecycle
 
 ```java
 mac.init(otherSecretKey);
@@ -151,15 +151,15 @@ mac.update(messageBytes);
 byte[] tag = mac.doFinal();
 ```
 
-Đây là đoạn mã minh họa; `otherSecretKey` là `SecretKey` phù hợp thuật toán và `messageBytes` là `byte[]`. Việc `init` lại thay khóa/tham số và bỏ trạng thái xử lý thông điệp cũ; đừng dùng chung một `Mac` rồi đổi khóa liên tục giữa nhiều request đồng thời.
+This is an illustrative snippet; `otherSecretKey` is an algorithm-compatible `SecretKey` and `messageBytes` is a `byte[]`. Re-calling `init` replaces the key/parameters and discards any previous message-processing state; do not share one `Mac` instance and swap keys across concurrent requests.
 
-## 5. Ví dụ Java 17+ chạy độc lập, có test vector HMAC-SHA-256
+## 5. Standalone Java 17+ Example with HMAC-SHA-256 Test Vector
 
-Ví dụ dưới đây dùng **test vector RFC 4231**: key gồm 20 byte `0b`, message ASCII `Hi There`, expected tag là `b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7`.
+The example below uses the **RFC 4231 test vector**: a 20-byte key of `0b`, ASCII message `Hi There`, and expected tag `b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7`.
 
-**Chú ý:** khóa cố định trong ví dụ **chỉ dành cho kiểm thử**. Hệ thống thật cần key bí mật được tạo ngẫu nhiên bằng nguồn phù hợp và được bảo vệ trong secret manager/KMS/HSM hoặc vùng bảo vệ tương đương.
+**Note:** the hardcoded key in the example is **for testing only**. Real systems require secret keys generated randomly from an appropriate source and protected in a secret manager/KMS/HSM or equivalent boundary.
 
-Lưu thành file **`MacLifecycleDemo.java`**:
+Save as **`MacLifecycleDemo.java`**:
 
 ```java
 import java.nio.ByteBuffer;
@@ -213,14 +213,14 @@ public class MacLifecycleDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên (ví dụ `javac --release 17`):
+Compile and run with JDK 17 or later (e.g., `javac --release 17`):
 
 ```bash
 javac --release 17 MacLifecycleDemo.java
 java MacLifecycleDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 Algorithm: HmacSHA256
@@ -233,22 +233,22 @@ Fresh verifier: true
 Changed message accepted: false
 ```
 
-Giải thích:
+Explanation:
 
-1. `newMac` tạo một đối tượng mới và khởi tạo bằng khóa HMAC.
-2. `mac.update(message, 0, 2)` nạp `Hi`; `ByteBuffer.wrap(message, 2, message.length - 2)` cung cấp phần còn lại ` There`. `update(ByteBuffer)` xử lý từ `position` đến `limit` và tiến vị trí tới limit.
-3. `doFinal()` sinh tag 32 byte đúng RFC 4231. Sau khi final, `Mac` tự reset, nên `doFinal(message)` ngay sau đó tính MAC riêng của đúng `Hi There` và khớp tag cũ.
-4. `mac.update((byte) 0x01)` thử đưa một byte khác vào, nhưng `reset()` loại bỏ nó. Vì vậy tag sau reset vẫn khớp.
-5. Bên xác minh tạo `Mac` mới với cùng key và tính MAC trên đúng message. Thay `Hi There` thành `Hi there` làm byte thay đổi; xác minh thất bại.
-6. `HexFormat` có từ Java 17; `Arrays.equals` ở đây chỉ kiểm tra **tính tương đương trong demo**. Khi xác thực tag, ví dụ sử dụng `MessageDigest.isEqual` với hai dãy byte.
+1. `newMac` creates a new instance and initializes it with the HMAC key.
+2. `mac.update(message, 0, 2)` feeds `Hi`; `ByteBuffer.wrap(message, 2, message.length - 2)` supplies the remaining ` There`. `update(ByteBuffer)` processes from `position` to `limit` and advances the position to limit.
+3. `doFinal()` produces the 32-byte tag matching RFC 4231. After finalizing, `Mac` auto-resets, so the immediately following `doFinal(message)` computes the MAC of `Hi There` alone and matches the previous tag.
+4. `mac.update((byte) 0x01)` attempts to feed another byte, but `reset()` discards it. Thus the post-reset tag still matches.
+5. The verifier creates a fresh `Mac` with the same key and computes the MAC over the exact message. Changing `Hi There` to `Hi there` alters the bytes; verification fails.
+6. `HexFormat` was added in Java 17; `Arrays.equals` here only checks **equivalence in the demo**. When authenticating tags, the example uses `MessageDigest.isEqual` on the two byte arrays.
 
-Đây là **test vector công khai**: không nên coi giá trị key hoặc tag ở ví dụ là bí mật thực tế. Khi dùng tag trong API, thường truyền dưới dạng Base64 hoặc hex theo giao thức và decode về byte trước khi kiểm tra.
+This is a **public test vector**: do not treat the key or tag values in the example as real secrets. When using tags in APIs, they are commonly transmitted in Base64 or hex per protocol and decoded back to bytes before verification.
 
-## 6. Quản lý trạng thái giữa nhiều thông điệp
+## 6. Managing State Across Multiple Messages
 
-### 6.1 Một Mac không đồng nghĩa một request
+### 6.1 One Mac does not equal one request
 
-`Mac` có trạng thái mutable. Một đối tượng không được thiết kế để nhiều luồng gọi `update` xen kẽ nhau mà không có đồng bộ hóa. Nếu request A và B cùng dùng một instance chia sẻ, trình tự có thể xảy ra:
+`Mac` holds mutable state. A single instance is not designed for multiple threads to interleave `update` calls without synchronization. If requests A and B share one instance, the following sequence can occur:
 
 ```text
 A: update(bytesA_1)
@@ -258,16 +258,16 @@ B: doFinal()
 A: doFinal()
 ```
 
-Khi đó tag của B có thể bao gồm byte từ A và trạng thái của A đã bị B reset; kết quả phụ thuộc interleaving, tạo lỗi xác thực khó tái hiện. Ngay cả khi code dùng `synchronized` để tránh data race, việc chia một phiên update của A bởi request B cũng không còn đúng ranh giới thông điệp nếu không khóa toàn bộ phiên. Cách triển khai đơn giản và dễ kiểm tra:
+Then B's tag may include bytes from A, and A's state gets reset by B; the outcome depends on interleaving, producing hard-to-reproduce authentication failures. Even if code uses `synchronized` to avoid data races, interleaving request B into A's update sequence still breaks message boundaries unless the entire session is locked. Simple, verifiable implementation practices:
 
-- **Tạo một đối tượng `Mac` mới cho mỗi phép tính** hoặc mỗi request; dùng khóa đã được cấp đúng quyền để init.
-- Giữ `Mac` **cục bộ trong method** hay phạm vi xử lý tuần tự. Không giữ một `static Mac` để tất cả request tái sử dụng.
-- Nếu triển khai pool chỉ vì hiệu năng, phải có ownership rõ ràng, checkout độc quyền, cleanup/reset, cách ly key và xử lý exception; chỉ tối ưu sau đo đạc và review bảo mật.
-- `Mac.clone()` có thể được một số provider hỗ trợ, nhưng không phải cơ chế bảo đảm cross-provider, và clone một trạng thái đã update cũng mang theo dữ liệu pending; không dùng clone làm biện pháp thread safety mặc định.
+- **Create a new `Mac` instance for each computation** or each request; initialize with an appropriately authorized key.
+- Keep `Mac` **local to a method** or sequential processing scope. Never hold a `static Mac` reused across all requests.
+- If implementing a pool purely for performance, enforce clear ownership, exclusive checkout, cleanup/reset, key isolation, and exception handling; optimize only after benchmarking and security review.
+- `Mac.clone()` may be supported by some providers, but it is not a cross-provider guarantee, and cloning an already-updated state also copies pending data; do not use `clone` as a default thread-safety mechanism.
 
-### 6.2 DoFinal và reset theo đơn vị nghiệp vụ
+### 6.2 doFinal and reset per business unit
 
-Giả sử hệ thống xử lý hai file hoặc hai webhook:
+Suppose a system processes two files or two webhooks:
 
 ```java
 Mac mac = newMac(key);
@@ -275,7 +275,7 @@ byte[] tagA = mac.doFinal(fileA);
 byte[] tagB = mac.doFinal(fileB);
 ```
 
-Đây là đoạn code minh họa (biến `key`, `fileA`, `fileB` thuộc phạm vi method, `newMac` như bài mẫu). Hai tag riêng vì `doFinal` reset. Trái lại:
+This is an illustrative snippet (`key`, `fileA`, `fileB` are method-scoped variables, `newMac` as in the sample). Two separate tags are produced because `doFinal` resets. By contrast:
 
 ```java
 Mac mac = newMac(key);
@@ -284,17 +284,17 @@ mac.update(fileB);
 byte[] combinedTag = mac.doFinal();
 ```
 
-Tag thứ hai là HMAC của `fileA || fileB` theo thứ tự cấp vào. Điều này có thể đúng nếu hợp đồng quy định một bản tin gồm nhiều khối, nhưng **sai nếu bạn muốn hai file có hai MAC độc lập**.
+The second tag is the HMAC of `fileA || fileB` in the order fed. This may be right if the contract defines a multi-chunk message, but **wrong if you want two independent MACs for two files**.
 
-### 6.3 Xử lý khi thao tác bị lỗi giữa chừng
+### 6.3 Handling mid-operation errors
 
-Nếu đọc file thất bại sau khi `update` một phần dữ liệu, **không** dùng `doFinal` rồi đánh dấu file là đã xác thực; kết quả chỉ thuộc byte đã đọc thành công. Hủy thao tác, bỏ instance, hoặc reset trước khi tính bản tin khác theo quy trình có kiểm soát.
+If reading a file fails after calling `update` on partial data, **do not** call `doFinal` and mark the file as authenticated; the result only reflects the bytes successfully read. Abort the operation, discard the instance, or reset under a controlled workflow before computing another message.
 
-Ví dụ stream bị timeout không làm trạng thái MAC tự biết bản tin “chưa đủ”. MAC không nắm kích thước file, message length hoặc semantic của bản tin nếu ứng dụng không cung cấp. Vì vậy, code nghiệp vụ phải xác nhận **đã nhận đủ toàn bộ byte theo giao thức** trước khi coi tag là MAC của bản tin hoàn chỉnh.
+For example, a stream timeout does not make the `Mac` state aware that the message is "incomplete." `Mac` knows nothing about file size, message length, or message semantics unless the application provides them. Therefore, business code must confirm that **all expected bytes per the protocol were received** before treating a tag as the MAC of a complete message.
 
-## 7. Xử lý thông điệp lớn bằng update từng khối
+## 7. Processing Large Messages with Chunked updates
 
-Để xác thực file lớn, không cần đọc toàn bộ file vào `byte[]`. Ví dụ sau là **đoạn code minh họa bên trong method**; giả sử đã có `Path path` và `SecretKey key` thích hợp, các import tương ứng và xử lý ngoại lệ:
+To authenticate a large file, you do not need to read the entire file into a `byte[]`. The following is an **illustrative snippet inside a method**; assume an appropriate `Path path` and `SecretKey key`, corresponding imports, and exception handling:
 
 ```java
 Mac mac = Mac.getInstance("HmacSHA256");
@@ -312,23 +312,23 @@ try (var input = java.nio.file.Files.newInputStream(path)) {
 byte[] tag = mac.doFinal();
 ```
 
-Điểm cần quan sát:
+Points to note:
 
-- `update(buffer, 0, n)` chỉ đưa **n byte thực đọc** vào MAC, không đưa byte còn sót từ vòng trước trong buffer. Dùng `update(buffer)` ở đây là sai nếu lần đọc cuối nhỏ hơn `buffer.length`.
-- Mọi vòng lặp cùng đóng góp vào **một thông điệp duy nhất**; chỉ gọi `doFinal` **sau** khi đã nhận hết file.
-- Nên có giới hạn dung lượng, quyền đọc file, cơ chế xác định file không bị thay đổi ngoài ý muốn trong lúc đọc, timeout/cancellation, và chính sách khi xảy ra lỗi I/O. Không xác thực một file đang bị thay đổi giữa các bước theo giả định file là bất biến.
-- Nếu MAC cũng phải bảo vệ tên file, tenant, content type hoặc metadata, phải đưa những trường đó vào thông điệp MAC theo serialization không mơ hồ; HMAC riêng byte file không tự bảo vệ metadata ở bên ngoài.
-- `Files.newInputStream` cung cấp stream; ở API HTTP, luồng bytes ký phải đúng với phiên bản raw/canonical mà cả bên gửi và bên nhận thống nhất, không tự deserialize rồi serialize lại trước khi xác minh.
+- `update(buffer, 0, n)` feeds only the **n bytes actually read** into the MAC, avoiding leftover bytes in the buffer from a previous iteration. Calling `update(buffer)` here is wrong when the final read is smaller than `buffer.length`.
+- Every loop iteration contributes to **a single message**; call `doFinal` **only after** the entire file has been read.
+- Enforce size limits, file read permissions, checks ensuring the file is not unexpectedly modified during reading, timeouts/cancellation, and an I/O error policy. Do not authenticate a file being mutated mid-read under an immutability assumption.
+- If the MAC must also protect filename, tenant, content type, or metadata, include those fields in the MAC message using unambiguous serialization; computing HMAC over the file bytes alone does not protect external metadata.
+- `Files.newInputStream` provides a byte stream; in HTTP APIs, the signed byte stream must match the exact raw/canonical version agreed upon by sender and receiver—never deserialize and re-serialize before verifying.
 
-Ví dụ khi nhận webhook có JSON: bên gửi định nghĩa MAC trên **raw body bytes**, bên nhận cần lấy đúng raw bytes đó để kiểm MAC (và bổ sung các trường khác theo đặc tả chữ ký). Thêm khoảng trắng, đổi thứ tự field hoặc Unicode normalization trước kiểm MAC đều có thể làm tag không khớp.
+For example, when receiving a JSON webhook: if the sender defines the MAC over **raw body bytes**, the receiver must fetch those exact raw bytes to verify the MAC (along with any other fields specified by the signature spec). Adding whitespace, reordering fields, or normalizing Unicode before MAC verification can cause a tag mismatch.
 
-## 8. Thiết kế key, thuật toán và ngữ cảnh sử dụng
+## 8. Designing Keys, Algorithms, and Usage Context
 
-### 8.1 Test key khác key sản xuất
+### 8.1 Test keys vs. production keys
 
-Trong ví dụ học, `"0b".repeat(20)` là key của RFC 4231. Hệ thống sản xuất không lấy key từ ví dụ, password thường hoặc chuỗi cố định trong mã nguồn.
+In the learning example, `"0b".repeat(20)` is an RFC 4231 key. Production systems never take keys from examples, plain passwords, or hardcoded strings in source code.
 
-Có thể tạo khóa HMAC-SHA-256 mới bằng `KeyGenerator`:
+A new HMAC-SHA-256 key can be generated using `KeyGenerator`:
 
 ```java
 import java.security.SecureRandom;
@@ -340,37 +340,37 @@ generator.init(256, new SecureRandom());
 SecretKey secretKey = generator.generateKey();
 ```
 
-Đây là đoạn code minh họa trong method có xử lý `GeneralSecurityException`. Kích thước 256 bit là lựa chọn phổ biến cho key HMAC-SHA-256 của một triển khai mới, nhưng yêu cầu key/thuật toán phải được ghi trong chính sách và phù hợp provider. Để sử dụng key, gọi `mac.init(secretKey)`. Với key thô lấy từ kho bí mật, có thể dùng `SecretKeySpec(keyBytes, "HmacSHA256")`, nhưng việc lớp này có thể tạo object từ byte **không** chứng minh nguồn key đủ ngẫu nhiên, có phân quyền hay được luân chuyển an toàn.
+This is an illustrative snippet inside a method handling `GeneralSecurityException`. A 256-bit size is a common choice for an HMAC-SHA-256 key in new deployments, though key/algorithm requirements must be documented in policy and compatible with the provider. To use the key, call `mac.init(secretKey)`. For raw keys retrieved from a secret store, `SecretKeySpec(keyBytes, "HmacSHA256")` can be used, though wrapping bytes in this class **does not** prove the key source had sufficient randomness, access control, or safe rotation.
 
-Quy tắc quản lý khóa:
+Key management rules:
 
-- Sinh key bằng bộ sinh ngẫu nhiên mật mã phù hợp, hoặc nhận từ KMS/HSM có cơ chế được phê duyệt; hạn chế xuất byte key khi hệ thống quản lý khóa có API ký/MAC chuyên dụng.
-- Bảo vệ key ở cấu hình, log, memory dump, backup và quyền của tài khoản dịch vụ; tránh commit hoặc gửi key qua message queue.
-- Dùng **key ID/version** để xác định key khi xác minh message cũ. Có kế hoạch rotation, thu hồi, thời gian chấp nhận key cũ và ứng phó khi nghi lộ.
-- Tách key theo mục đích/protocol, tenant hoặc trust domain khi yêu cầu cách ly; không dùng cùng key cho HMAC và AES hay nhiều giao thức khác nếu không có thiết kế và key derivation có domain separation rõ ràng.
-- Nếu dùng key derivation, dùng KDF chuẩn đã được thiết kế cho mục đích đó, ví dụ HKDF theo tiêu chuẩn áp dụng; không tự ghép key với text rồi hash và gọi là quản lý khóa.
-- Hạn chế chủ thể có quyền tạo MAC: bất kỳ ai có key đều có khả năng làm giả tag trong cùng phạm vi key. Việc chỉ đọc được tag không cho phép tự tạo tag hợp lệ nếu HMAC và key an toàn.
+- Generate keys with a suitable cryptographic random generator, or obtain them from an approved KMS/HSM; avoid exporting key bytes when the key management system offers a dedicated signing/MAC API.
+- Protect keys in configs, logs, memory dumps, backups, and service account permissions; avoid committing keys or sending them over message queues.
+- Use **key ID/version** to identify the key when verifying older messages. Maintain a plan for rotation, revocation, grace periods for old keys, and compromise response.
+- Separate keys by purpose/protocol, tenant, or trust domain when isolation is required; do not use the same key for HMAC and AES or across multiple protocols without an explicit design and key derivation with clear domain separation.
+- If using key derivation, use a standard KDF designed for that purpose, such as HKDF per the applicable standard; do not concatenate a key with text, hash it, and call it key management.
+- Restrict which principals have permission to generate MACs: anyone holding the key can forge tags within that key's scope. Merely reading a tag does not allow forging a valid tag if HMAC and the key are secure.
 
-### 8.2 Thuật toán nằm trong hợp đồng
+### 8.2 The algorithm is part of the contract
 
-`HmacSHA256` tạo tag dài **32 byte** theo HMAC-SHA-256. `mac.getMacLength()` trả độ dài theo byte, không phải số ký tự Base64/hex. Hex của tag 32 byte dài 64 ký tự ASCII; Base64 thông thường biểu diễn cùng tag với độ dài khác.
+`HmacSHA256` produces a **32-byte** tag per HMAC-SHA-256. `mac.getMacLength()` returns the length in bytes, not the number of Base64/hex characters. Hex for a 32-byte tag is 64 ASCII characters; standard Base64 encodes the same tag with a different length.
 
-Không tự đổi `HmacSHA256` sang `HmacSHA512` hoặc thay provider chỉ dựa trên ý thích ở phía receiver: hai bên phải thỏa thuận thuật toán, key, độ dài tag, cách serialization và policy. Khi giao thức có ID thuật toán trên wire, receiver phải **giới hạn danh sách thuật toán được phép** theo cấu hình đáng tin; không nhận mọi thuật toán client đề nghị.
+Do not unilaterally switch `HmacSHA256` to `HmacSHA512` or swap providers based on receiver preference: both parties must agree on the algorithm, key, tag length, serialization, and policy. When the protocol carries an algorithm ID on the wire, the receiver must **restrict allowed algorithms to a trusted allowlist**; never accept every algorithm proposed by the client.
 
-Cắt ngắn tag (*truncation*) là một lựa chọn giao thức phải được phân tích, kiểm thử và chỉ định chính xác độ dài/thuật toán, không phải phép “lấy vài ký tự đầu cho gọn”. Bài này dùng **toàn bộ 32 byte tag**.
+Tag *truncation* is a protocol choice that must be analyzed, tested, and specified with exact length and algorithm, not "taking the first few characters for brevity." This lesson uses **the full 32-byte tag**.
 
-## 9. Cách xác minh MAC an toàn
+## 9. How to Verify a MAC Safely
 
-Cách xác minh điển hình:
+Typical verification flow:
 
-1. Nhận dãy byte message theo định dạng được công bố. Phân biệt **raw bytes** với dữ liệu đã parse/canonicalize.
-2. Đọc key theo key ID/context đã được kiểm soát bởi server, không để request chỉ định key thô.
-3. Tạo `Mac` mới, gọi `init` và tính `doFinal(messageBytes)` hoặc streaming với `update` rồi `doFinal`.
-4. Decode tag đính kèm (ví dụ từ Base64) về byte; kiểm tra encoding hợp lệ và độ dài theo giao thức.
-5. Dùng `MessageDigest.isEqual(calculatedTag, receivedTag)` để so sánh hai dãy tag; xử lý lỗi xác minh bằng phản hồi thống nhất theo chính sách.
-6. Sau xác thực, vẫn kiểm tra **chống replay, quyền truy cập, thời hạn thông điệp và ràng buộc với tài nguyên/hành động**.
+1. Receive the message bytes in the published format. Distinguish **raw bytes** from parsed/canonicalized data.
+2. Look up the key by server-controlled key ID/context; never let the request supply a raw key.
+3. Create a fresh `Mac`, call `init`, and compute `doFinal(messageBytes)` or stream via `update` then `doFinal`.
+4. Decode the attached tag (e.g., from Base64) to bytes; validate proper encoding and protocol-expected length.
+5. Use `MessageDigest.isEqual(calculatedTag, receivedTag)` to compare the two tag arrays; handle verification failures with a uniform policy-driven response.
+6. After authentication, still verify **replay protection, access permissions, message expiration, and binding to the target resource/action**.
 
-Ví dụ trong ngữ cảnh method đã có `key`, `messageBytes` và `receivedTag`:
+Example inside a method that already has `key`, `messageBytes`, and `receivedTag`:
 
 ```java
 Mac verifier = Mac.getInstance("HmacSHA256");
@@ -382,165 +382,165 @@ boolean accepted = receivedTag != null
         && MessageDigest.isEqual(calculated, receivedTag);
 ```
 
-Đây là đoạn code minh họa, không phải chương trình độc lập. Kiểm độ dài giúp từ chối dữ liệu sai giao thức; `MessageDigest.isEqual` là công cụ Java phù hợp hơn `Arrays.equals` khi so sánh tag bảo mật. Tuy nhiên, **không tự khẳng định toàn endpoint chạy constant-time**: chọn key, xử lý lỗi, length check, decode, truy vấn DB và logic nghiệp vụ vẫn có thể khác biệt về thời gian. Cần đánh giá toàn protocol nếu threat model coi side-channel là quan trọng.
+This is an illustrative snippet, not a standalone program. Length checking rejects protocol-invalid data; `MessageDigest.isEqual` is more suitable in Java than `Arrays.equals` for security tag comparison. However, **do not assume the whole endpoint runs in constant time**: key lookup, error handling, length checks, decoding, DB queries, and business logic can still exhibit timing differences. Evaluate the entire protocol if side-channels matter in your threat model.
 
-Không dùng `Arrays.equals(tag, received)` làm phương pháp mặc định để xác thực MAC nhạy cảm, và không so sánh string Base64/hex trực tiếp bằng `String.equals` khi có thể decode và kiểm tra byte. Việc xác minh MAC không được coi là phép đo quyền: một tag hợp lệ có thể đến từ client có key chung nhưng **không được phép** thực hiện hành động trong tenant khác.
+Do not use `Arrays.equals(tag, received)` as the default way to authenticate sensitive MACs, and do not compare Base64/hex strings directly with `String.equals` when you can decode and check bytes. MAC verification must not be treated as a permission check: a valid tag can come from a client holding a shared key that is **not authorized** to act in another tenant.
 
-### 9.1 Không biến so sánh byte thành logic chống replay
+### 9.1 Do not confuse byte comparison with anti-replay logic
 
-Một request đã ký có thể được gửi lại nguyên vẹn. Ví dụ `POST /pay` với body và tag hợp lệ được replay sẽ có **tag vẫn hợp lệ**. Cần gắn timestamp/nonce/request ID/sequence number và phạm vi tác vụ vào dữ liệu MAC rồi thực thi policy hạn dùng, phát hiện nonce đã sử dụng, kiểm tra idempotency của xử lý nghiệp vụ và chống đua tranh trong kho dữ liệu.
+A signed request can be replayed verbatim. For instance, `POST /pay` with a valid body and tag replayed later will **still have a valid tag**. You must bind timestamp/nonce/request ID/sequence number and operation scope into the MAC data, then enforce expiration policies, detect reused nonces, verify business idempotency, and guard against race conditions in the data store.
 
-Chỉ “ký nonce” mà không **lưu/kiểm tra nonce đã dùng** sẽ không ngăn phát lại. Chỉ gắn timestamp mà không có giới hạn thời gian hoặc xử lý clock skew cũng không hoàn chỉnh.
+Merely "signing a nonce" without **persisting/checking used nonces** will not stop replays. Merely attaching a timestamp without enforcing a time window or handling clock skew is also incomplete.
 
-### 9.2 Đừng quên xác định chính xác thứ được MAC bảo vệ
+### 9.2 Do not forget to define exactly what the MAC protects
 
-Ví dụ token có HMAC trên `userId` nhưng không bao gồm `role` hay `tenantId`: sửa những trường nằm ngoài MAC có thể làm sai ý nghĩa xác thực. Với webhook, nếu chữ ký chỉ bao gồm body mà không có method/path/time trong khi protocol yêu cầu ràng buộc đường đi, kẻ tấn công có thể thử đem cùng body/tag tới endpoint khác.
+For example, a token with an HMAC over `userId` that omits `role` or `tenantId`: tampering with fields outside the MAC can subvert the authentication meaning. For webhooks, if the signature covers only the body without method/path/time while the protocol requires route binding, an attacker can try replaying the same body/tag to a different endpoint.
 
-Mỗi định dạng nên công bố: **thứ tự trường, encoding, cách biểu diễn null/empty, version, thuật toán, key ID, tag encoding, phạm vi thời gian, nonce và nơi lấy danh tính đã xác minh**.
+Every format should publish: **field order, encoding, null/empty representation, version, algorithm, key ID, tag encoding, time window, nonce, and where verified identity is obtained**.
 
-## 10. Cấu trúc byte không mơ hồ khi dùng nhiều update
+## 10. Unambiguous Byte Structure When Using Multiple updates
 
-Vì `update(partA); update(partB)` tương đương xử lý byte nối nhau, một giao thức ghép chuỗi tùy tiện có thể tạo cùng byte cho các cặp trường khác nhau.
+Because `update(partA); update(partB)` is equivalent to processing concatenated bytes, an ad-hoc string concatenation protocol can produce the same bytes for different field pairs.
 
-Ví dụ:
+Example:
 
 ```text
 ("ab", "c") -> UTF8("abc")
 ("a", "bc") -> UTF8("abc")
 ```
 
-Nếu đây là hai bộ dữ liệu nghiệp vụ khác nhau, HMAC của cùng dãy byte sẽ **giống hệt**; điều đó không phải điểm yếu của HMAC mà là **thiếu ranh giới serialization**. Cần định nghĩa format rõ ràng, ví dụ:
+If these represent two distinct business tuples, the HMAC of the identical byte sequence will be **identical**; that is not an HMAC weakness, but a **lack of serialization boundaries**. Define an explicit format, for example:
 
 ```text
 version | domain | length(field1) | field1 | length(field2) | field2
 ```
 
-Các trường length-prefix phải xác định width, endianness và đơn vị (byte), mọi giá trị được mã hóa theo charset rõ ràng, và các byte version/domain cũng được đưa vào MAC. Có thể dùng protobuf/CBOR canonical hoặc một format đã được đặc tả; tránh tự chế nếu có chuẩn thích hợp.
+Length-prefix fields must specify width, endianness, and unit (bytes), all values must be encoded in an explicit charset, and the version/domain bytes must also be included in the MAC. Canonical protobuf/CBOR or an established specified format can be used; avoid inventing one if a suitable standard exists.
 
-Giữa các dịch vụ, chốt quy tắc cho Unicode normalization, JSON number, URL decoding, newline, ký tự rỗng, thứ tự field và literal escape. **NFC, UTF-8, canonical JSON và canonical HTTP request là những lớp khác nhau.** Không giả định gọi `String.getBytes(UTF_8)` đủ để hai hệ thống ký cùng một đối tượng JSON.
+Across services, settle rules for Unicode normalization, JSON numbers, URL decoding, newlines, empty values, field ordering, and literal escaping. **NFC, UTF-8, canonical JSON, and canonical HTTP requests are distinct layers.** Do not assume calling `String.getBytes(UTF_8)` is enough for two systems to sign the same JSON object.
 
 ### Domain separation
 
-Dùng một key hoặc hệ key có phạm vi rộng, nếu thiếu ngữ cảnh, một tag hợp lệ từ giao thức A có thể bị diễn giải là hợp lệ cho thông điệp B có byte trùng nhau. Tách key theo mục đích là lựa chọn mạnh; đồng thời đưa **nhãn ngữ cảnh và version giao thức** vào đúng phần dữ liệu được MAC bảo vệ, ví dụ nhãn ASCII `"invoice-webhook:v1"` đi cùng bộ field có ranh giới rõ ràng.
+With a single key or broad key hierarchy, lacking context allows a valid tag from protocol A to be accepted as valid for message B with matching bytes. Separating keys by purpose is a strong option; additionally, include a **context label and protocol version** directly in the MAC-protected data, such as an ASCII label `"invoice-webhook:v1"` alongside clearly delimited fields.
 
-Không cho user thay đổi tự do nhãn mục đích hoặc key ID để né policy. Với multi-tenant, ràng buộc tenant vào dữ liệu xác thực và **kiểm tra quyền** ở service. Domain separation hỗ trợ chống dùng nhầm tag, nhưng không thay thế authorization.
+Do not allow users to freely alter purpose labels or key IDs to bypass policy. In multi-tenant systems, bind the tenant into the authenticated data and **enforce authorization** in the service. Domain separation helps prevent cross-context tag misuse, but does not replace authorization.
 
-## 11. Những vấn đề đặc biệt của trạng thái và ByteBuffer
+## 11. Special Pitfalls with State and ByteBuffer
 
-### 11.1 Trạng thái của ByteBuffer
+### 11.1 ByteBuffer state
 
-`mac.update(buffer)` chỉ xử lý byte giữa `position` và `limit` của `buffer`. Sau khi thành công, vị trí buffer tiến đến limit; không được mặc định rằng dữ liệu từ đầu mảng backing array đã được xử lý nếu position không ở 0. Nếu muốn đọc lại cùng byte, cần `duplicate`, `rewind` hoặc chỉnh lại position/limit theo quy tắc ByteBuffer có kiểm soát.
+`mac.update(buffer)` only processes bytes between the `position` and `limit` of `buffer`. Upon completion, the buffer position advances to limit; never assume data from the start of the backing array was processed if position was not 0. To read the same bytes again, use `duplicate`, `rewind`, or adjust position/limit under controlled ByteBuffer rules.
 
-Trong demo, `ByteBuffer.wrap(message, 2, message.length - 2)` tạo buffer có vị trí 2 và limit bằng 8, nên xử lý đúng **6 byte còn lại**. Không nhầm nó với mảng mới dài 6 byte. Nếu sử dụng buffer tái sử dụng trong pipeline I/O, kiểm tra `flip`/`clear` theo hợp đồng producer/consumer để không ký byte thừa hoặc bỏ byte.
+In the demo, `ByteBuffer.wrap(message, 2, message.length - 2)` creates a buffer with position 2 and limit 8, so it processes the exact **remaining 6 bytes**. Do not mistake it for a new 6-byte array. When reusing buffers in an I/O pipeline, check `flip`/`clear` per the producer/consumer contract so you neither sign leftover bytes nor skip bytes.
 
-### 11.2 Output buffer của doFinal
+### 11.2 doFinal output buffer
 
-Nếu tránh cấp phát mảng mới, `doFinal(byte[] output, int outOffset)` ghi tag vào mảng đã cấp. Mảng phải đủ chỗ kể từ `outOffset` cho `mac.getMacLength()` byte; method này trả `void`. Ví dụ minh họa với `mac` đã init và update xong:
+To avoid allocating a new array, `doFinal(byte[] output, int outOffset)` writes the tag into a preallocated array. The array must have room from `outOffset` for `mac.getMacLength()` bytes; this method returns `void`. Illustrative example with `mac` initialized and updated:
 
 ```java
 byte[] output = new byte[mac.getMacLength()];
 mac.doFinal(output, 0);
 ```
 
-Không nhầm `doFinal(output, 0)` là “xác thực mảng output”; đây là **mảng nhận tag**, khác `doFinal(byte[] input)` nơi mảng là **thông điệp được MAC**. Đây là lỗi overload dễ gây nhầm khi đọc code.
+Do not mistake `doFinal(output, 0)` for "authenticating the output array"; this is **the destination array receiving the tag**, unlike `doFinal(byte[] input)` where the array is **the message being MACed**. This overload difference is easy to misread in code reviews.
 
-### 11.3 reset, init và clear key khác nhau
+### 11.3 reset, init, and clearing keys are different
 
-- `reset()` chỉ hủy kết quả update pending và trả object về trạng thái MAC mới **với cùng key**.
-- `doFinal()` làm final rồi reset, giữ khả năng tính thông điệp mới cùng key.
-- `init(newKey)` thiết lập khóa/tham số mới và trạng thái mới khi thành công.
-- Không có API `Mac.destroyKey()` tổng quát đảm bảo xóa tất cả bản sao key trong provider/JVM; `SecretKey` có thể do provider/HSM quản lý, và thao tác xóa/thu hồi phụ thuộc loại key, bộ nhớ, đời sống object và cơ chế quản lý khóa.
+- `reset()` only discards pending update results and returns the object to a fresh MAC state **with the same key**.
+- `doFinal()` finalizes and then resets, keeping the ability to compute a new message with the same key.
+- `init(newKey)` installs a new key/parameters and a fresh state upon success.
+- There is no universal `Mac.destroyKey()` API guaranteeing erasure of all key copies in the provider/JVM; `SecretKey` may be managed by a provider/HSM, and clearing/revocation depends on key type, memory, object lifetime, and key management mechanisms.
 
-Với yêu cầu nghiêm ngặt về vòng đời secret, xác định rõ provider, key store/KMS, rotation và cơ chế dispose; đừng dựa vào `reset()` như hành động bảo mật xóa khóa.
+For strict secret-lifecycle requirements, define the provider, key store/KMS, rotation, and disposal mechanisms clearly; never rely on `reset()` as a security operation to wipe keys.
 
-### 11.4 Lỗi mid-stream và retry
+### 11.4 Mid-stream errors and retries
 
-Ví dụ hệ thống streaming tính HMAC của body được đọc dở, rồi retry bằng cách gọi `update` với body từ đầu **trên cùng Mac chưa reset**. Kết quả là HMAC của `partial || full`, không phải `full`. Khi retry thao tác, tốt nhất **khởi tạo instance mới** hoặc reset dưới ownership độc quyền, rồi tính lại từ đầu. Đảm bảo kết quả của lượt xử lý thất bại không được publish.
+For instance, a streaming system computes the HMAC of a partially read body, then retries by calling `update` with the body from the beginning **on the same un-reset Mac**. The result is the HMAC of `partial || full`, not `full`. When retrying an operation, it is best to **create a new instance** or reset under exclusive ownership, then recompute from the start. Ensure results from a failed attempt are never published.
 
-Không log byte key/tag nhạy cảm, nội dung payload có thông tin cá nhân hoặc toàn bộ file chỉ để debug thất bại. Có thể log request ID, algorithm đã được allowlist, key version không nhạy cảm, độ dài byte và mã lỗi theo policy.
+Do not log sensitive key/tag bytes, payloads containing personal data, or entire files just to debug a failure. You may log request ID, allowlisted algorithm, non-sensitive key version, byte length, and policy-compliant error codes.
 
-## 12. Xác thực khác với bảo mật đường truyền và phân quyền
+## 12. Authentication Differs from Transport Security and Authorization
 
-Một MAC hợp lệ trả lời câu hỏi: “Thông điệp này có được tạo bởi **bên có khóa** và còn nguyên vẹn trong phạm vi byte đã ký không?”. Nó **không** tự trả lời:
+A valid MAC answers the question: "Was this message created by **a party holding the key** and kept intact over the signed byte scope?" It does **not** by itself answer:
 
-- User/client đang gọi API là ai? (authentication/identity)
-- User đó có quyền làm gì với đối tượng/tenant? (authorization)
-- Message này đã được xử lý trước đây chưa? (anti-replay/idempotency)
-- Payload có hợp lệ về schema, logic nghiệp vụ và giới hạn tài nguyên không? (validation)
-- Nội dung có bí mật trên kênh truyền và khi lưu trữ không? (confidentiality)
-- Key có bị lộ hoặc bị chia sẻ vượt miền tin cậy không? (key management)
+- Who is the user/client calling the API? (authentication/identity)
+- What is that user permitted to do on this object/tenant? (authorization)
+- Has this message already been processed before? (anti-replay/idempotency)
+- Is the payload valid in schema, business logic, and resource limits? (validation)
+- Is the content confidential in transit and at rest? (confidentiality)
+- Has the key been leaked or shared beyond the trust boundary? (key management)
 
-Ví dụ với webhook từ đối tác, sau khi verify MAC vẫn phải kiểm tenant mapping, business order ID, trạng thái đơn hàng và chống xử lý lặp. Với yêu cầu cấp quyền, đừng tin trường `role=admin` chỉ vì cùng một key HMAC dùng chung cho nhiều service; policy phải dựa trên ngữ cảnh đáng tin và quyền đã cấp.
+For example, with a partner webhook, after verifying the MAC you must still check tenant mapping, business order ID, order status, and duplicate-processing prevention. For authorization requests, do not trust a field like `role=admin` merely because multiple services share an HMAC key; policy must rely on trusted context and granted permissions.
 
-## 13. Bảng lỗi thường gặp
+## 13. Common Mistakes Table
 
-| Lỗi | Hậu quả | Cách phòng |
+| Mistake | Consequence | Prevention |
 | --- | --- | --- |
-| Quên `init` trước `update`/`doFinal` | `IllegalStateException` hoặc luồng xử lý sai | Tạo và init Mac trong cùng phạm vi tính tag; fail fast |
-| Dùng một `static Mac` chung cho request song song | Trộn byte, reset chéo, kết quả race | Một `Mac` riêng cho mỗi phép tính/request |
-| Nghĩ `update` tạo MAC độc lập mỗi lần | Ghép nhiều bản tin thành một MAC | Gọi `doFinal` đúng ranh giới bản tin |
-| Gọi `doFinal(input)` sau khi đã update prefix không chủ ý | Tag tính trên `prefix \|\| input` | Reset hoặc new instance trước input độc lập |
-| Gọi `reset` trước khi final dữ liệu cần xác thực | Mất byte pending | Chỉ reset khi cố tình hủy phép tính |
-| Retry mà không reset/new instance | HMAC của `partial \|\| retry` | Retry với context mới |
-| Dùng `getBytes()` không charset | Byte thay đổi theo runtime | Chỉ định UTF-8 hay charset đã thỏa thuận |
-| Serialize lại JSON trước verify raw-body signature | Byte khác body gốc | Verify trên byte theo đúng đặc tả bên gửi |
-| Ghép field không có length/boundary | Hai tuple khác nhau cho cùng byte | Canonical serialization, length-prefix, version/domain |
-| Dùng `Arrays.equals` / string equality khi verify tag | Không phù hợp mục tiêu kiểm soát timing | Decode byte và dùng `MessageDigest.isEqual`, đánh giá toàn pipeline |
-| Cắt tag tùy tiện hoặc dùng thuật toán từ request | Hạ mức bảo vệ, giao thức không tương thích | Allowlist thuật toán, độ dài tag theo hợp đồng |
-| Dùng key cứng hoặc key tái sử dụng quá rộng | Rủi ro giả mạo lớn khi key lộ | Sinh key an toàn, scope, rotation, key version |
-| Dùng HMAC để “mã hóa” | Payload vẫn đọc được | TLS/mã hóa khi cần bí mật |
-| Không bảo vệ replay | Bản tin/tag cũ có thể gửi lại | Nonce/counter/time window và kiểm soát xử lý lặp |
-| Không MAC các trường quyết định quyền | Tag hợp lệ nhưng resource/action bị sửa | Bao phủ mọi field nhạy cảm đúng phạm vi và xác minh quyền riêng |
-| Chỉ xem unit test là bằng chứng đủ | Provider, key và wire protocol có thể khác thật | Test tích hợp với provider, vectors và giao thức thực tế |
+| Forgetting `init` before `update`/`doFinal` | `IllegalStateException` or broken processing flow | Create and init `Mac` in the same tag-computation scope; fail fast |
+| Using one shared `static Mac` for concurrent requests | Mixed bytes, cross-resets, race results | One dedicated `Mac` per computation/request |
+| Thinking `update` produces an independent MAC each time | Concatenates multiple messages into one MAC | Call `doFinal` at exact message boundaries |
+| Calling `doFinal(input)` after an unintended prior update | Tag computed over `prefix \|\| input` | Reset or create a new instance before an independent input |
+| Calling `reset` before finalizing data to authenticate | Drops pending bytes | Only reset when intentionally aborting a computation |
+| Retrying without reset or a new instance | HMAC of `partial \|\| retry` | Retry with a fresh context |
+| Calling `getBytes()` without a charset | Bytes vary by runtime environment | Specify UTF-8 or the agreed charset |
+| Re-serializing JSON before verifying a raw-body signature | Bytes differ from the original body | Verify over exact bytes per the sender's specification |
+| Concatenating fields without lengths/boundaries | Two distinct tuples yield the same bytes | Canonical serialization, length-prefixing, version/domain |
+| Using `Arrays.equals` / string equality to verify tags | Unsuitable for timing control goals | Decode bytes and use `MessageDigest.isEqual`, evaluate whole pipeline |
+| Arbitrarily truncating tags or accepting algorithm from request | Weakened protection, protocol mismatch | Allowlist algorithms, enforce contract tag length |
+| Hardcoded keys or overly broad key reuse | High forgery blast radius if key leaks | Generate keys securely, scope, rotate, use key versions |
+| Using HMAC to "encrypt" | Payload remains readable | Use TLS/encryption when confidentiality is needed |
+| No replay protection | Old valid message/tag can be resent | Nonce/counter/time window and duplicate-processing checks |
+| Omitting permission-critical fields from the MAC | Valid tag while resource/action is altered | Cover all sensitive fields in scope and verify permissions separately |
+| Treating unit tests alone as sufficient proof | Provider, keys, and wire protocol may differ in practice | Integration tests with provider, vectors, and real protocol |
 
-## 14. Checklist thiết kế và kiểm thử
+## 14. Design and Testing Checklist
 
-Đối với một service Java tính hoặc xác minh HMAC, đi qua checklist sau:
+For a Java service computing or verifying HMACs, walk through this checklist:
 
-1. **Thuật toán:** dùng `HmacSHA256` được chọn server-side và tương thích chuẩn của đối tác.
-2. **Key:** key đủ entropy, không hard-code; quyền sử dụng và rotation rõ ràng, key ID không dẫn tới lấy nhầm key.
-3. **Dữ liệu:** byte input đúng contract, charset/serialization rõ ràng, không thay đổi âm thầm ở phía xác minh.
-4. **Ranh giới:** một tag cho **một thông điệp**; `update` theo thứ tự đúng, `doFinal` sau đúng byte cuối.
-5. **Trạng thái:** không chia sẻ `Mac` qua thread; reset khi hủy pending; không tái sử dụng trạng thái lỗi.
-6. **Lỗi:** fail closed khi tag sai, input không hợp lệ, key không tìm thấy hoặc provider lỗi; không coi payload chưa đọc hết là đã xác thực.
-7. **Kiểm tag:** độ dài/encoding theo chuẩn; `MessageDigest.isEqual` trên byte, kiểm tra thời gian đáp ứng nếu cần.
-8. **Chống replay:** timestamp/nonce/idempotency có trạng thái và hạn dùng theo thiết kế.
-9. **Authorization:** kiểm actor, action và resource độc lập với MAC; ghi audit vừa đủ.
-10. **Test:** RFC vector, chunked vs one-shot, reset, thay byte, lỗi stream, các trường metadata ngoài body, số lượng request đồng thời và key rotation.
+1. **Algorithm:** use `HmacSHA256` chosen server-side and compatible with the partner's specification.
+2. **Key:** high-entropy key, never hardcoded; clear usage permissions and rotation; key ID cannot lead to fetching the wrong key.
+3. **Data:** input bytes match contract, explicit charset/serialization, never silently mutated on the verifier side.
+4. **Boundaries:** one tag per **single message**; `update` in the right order, `doFinal` right after the last byte.
+5. **State:** never share `Mac` across threads; reset when canceling pending work; never reuse errored state.
+6. **Errors:** fail closed on invalid tag, invalid input, missing key, or provider error; never treat an incompletely read payload as authenticated.
+7. **Tag check:** length/encoding per standard; `MessageDigest.isEqual` on bytes, evaluate response timing if needed.
+8. **Replay protection:** stateful timestamp/nonce/idempotency with expiration per design.
+9. **Authorization:** verify actor, action, and resource independently of MAC; log adequate audit info.
+10. **Tests:** RFC vectors, chunked vs. one-shot, reset, single-byte flip, stream errors, metadata fields outside body, concurrent requests, and key rotation.
 
-Các test tối thiểu hữu ích:
+Minimal useful test cases:
 
-| Ca | Thiết lập | Kết quả mong đợi |
+| Case | Setup | Expected Result |
 | --- | --- | --- |
-| Vector RFC 4231 | Key 20 byte `0b`, payload `Hi There`, HmacSHA256 | Tag bằng `b0344c61...e32cff7` |
-| Chia chunk | Cấp cùng byte theo `update` nhiều lần rồi `doFinal` | Bằng tag của `doFinal(fullInput)` |
-| Sau `doFinal` | Tính cùng input ngay lần kế | Tag bằng nhau vì trạng thái reset |
-| `reset` trước final | `update(bad)`, `reset`, `doFinal(good)` | Tag bằng HMAC của `good` riêng |
-| Thay một byte | Đổi `Hi There` thành `Hi there` | Xác minh không chấp nhận |
-| Quên `init` | Cố update/final trên Mac chưa init | Lỗi; không sinh tag hợp lệ |
-| Streaming | File 20.000 byte, read từng khối 8192 byte | Tag khớp one-shot của toàn bộ file |
-| Lỗi streaming | Stream lỗi sau một phần nội dung | Không công nhận tag; hủy lượt xử lý |
-| Hai request đồng thời | Cùng service, hai message khác nhau | Tag của từng message ổn định, không trộn trạng thái |
-| Replay | Gửi lại request và tag hợp lệ | MAC vẫn hợp lệ nhưng anti-replay/idempotency phải chặn lặp khi policy yêu cầu |
-| Key rotation | Verify tag cũ bằng key version cũ còn được cho phép | Đúng trong giai đoạn chuyển đổi; key đã thu hồi thì bị từ chối theo chính sách |
+| RFC 4231 vector | 20-byte `0b` key, payload `Hi There`, HmacSHA256 | Tag equals `b0344c61...e32cff7` |
+| Chunked | Feed same bytes across multiple `update` calls then `doFinal` | Matches tag from `doFinal(fullInput)` |
+| Post-`doFinal` | Compute same input immediately afterward | Tags match because state auto-resets |
+| `reset` before final | `update(bad)`, `reset`, `doFinal(good)` | Tag equals HMAC of `good` alone |
+| Single-byte flip | Change `Hi There` to `Hi there` | Verification rejects |
+| Forgot `init` | Attempt update/final on uninitialized Mac | Error; no valid tag produced |
+| Streaming | 20,000-byte file, read in 8192-byte chunks | Tag matches one-shot over entire file |
+| Streaming error | Stream fails after partial content | Do not accept tag; abort processing |
+| Two concurrent requests | Same service, two different messages | Each message's tag is stable, no state mixing |
+| Replay | Resend valid request and tag | MAC still verifies, but anti-replay/idempotency blocks duplicate when policy requires |
+| Key rotation | Verify old tag with still-permitted old key version | Valid during transition window; revoked keys rejected per policy |
 
-**Gợi ý test lớn:** Đừng chỉ kiểm tag của cùng thư viện với chính nó. Hãy lưu ít nhất một **golden vector độc lập** (RFC 4231 hoặc từ đối tác) để phát hiện lỗi algorithm, charset, key parsing và serialization.
+**Major testing tip:** Do not only check tags from the same library against itself. Keep at least one **independent golden vector** (RFC 4231 or from your partner) to catch bugs in algorithm, charset, key parsing, and serialization.
 
-## 15. Bài tập thực hành
+## 15. Hands-on Exercises
 
-### Bài 1 — Ba phương thức update
+### Exercise 1 — Three update methods
 
-Sử dụng key test `0b` lặp 20 lần và message `Hi There`. Viết ba phép tính:
+Use the test key `0b` repeated 20 times and message `Hi There`. Write three computations:
 
 1. `mac.doFinal(messageBytes)`.
-2. `mac.update(messageBytes, 0, 2)` rồi `mac.update(messageBytes, 2, messageBytes.length - 2)`, cuối cùng `mac.doFinal()`.
-3. `mac.update(ByteBuffer.wrap(messageBytes))` rồi `mac.doFinal()`.
+2. `mac.update(messageBytes, 0, 2)` then `mac.update(messageBytes, 2, messageBytes.length - 2)`, finally `mac.doFinal()`.
+3. `mac.update(ByteBuffer.wrap(messageBytes))` then `mac.doFinal()`.
 
-So sánh cả ba tag với RFC 4231. Giải thích tại sao chunking không thay đổi tag khi **thứ tự byte và nội dung không đổi**.
+Compare all three tags against RFC 4231. Explain why chunking does not change the tag when **byte order and content remain unchanged**.
 
-### Bài 2 — Bắt lỗi quản lý trạng thái
+### Exercise 2 — Catching a state management bug
 
-Một developer viết:
+A developer writes:
 
 ```java
 static final Mac SHARED_MAC = createAndInitializeMac();
@@ -550,29 +550,29 @@ byte[] sign(byte[] requestBody) {
 }
 ```
 
-Đây là **mã giả minh họa lỗi**, không phải chương trình Java độc lập: `createAndInitializeMac()` không được định nghĩa ở đây. Hãy chỉ ra vì sao code có thể sai trong web service xử lý nhiều request song song, kể cả khi một request riêng có vẻ chạy đúng. Sửa theo hướng tạo `Mac` mới cho từng phép tính và giữ khóa trong secret manager/KMS. Viết test hai luồng để chứng minh tính độc lập.
+This is **illustrative buggy pseudocode**, not a standalone Java program: `createAndInitializeMac()` is not defined here. Point out why this code can fail in a web service handling concurrent requests, even when a single isolated request appears to work. Fix it by creating a fresh `Mac` per computation and keeping the key in a secret manager/KMS. Write a two-thread test demonstrating independence.
 
-### Bài 3 — Thiết kế chữ ký webhook
+### Exercise 3 — Designing a webhook signature
 
-Một đối tác gửi các trường `timestamp`, `eventId`, `tenantId`, `body` và tag HMAC.
+A partner sends fields `timestamp`, `eventId`, `tenantId`, `body`, and an HMAC tag.
 
-- Định nghĩa byte chính xác đưa vào MAC, version, charset và ranh giới giữa field.
-- Quyết định lúc nào xác minh MAC và lúc nào parse JSON.
-- Đề xuất cách lưu nonce/event ID để chống xử lý lặp với các request concurrent.
-- Xác minh tenant và quyền cập nhật một bản ghi nghiệp vụ cụ thể.
-- Kiểm thử request hợp lệ, body thay một byte, tag sai, timestamp quá hạn, event ID trùng, thay `tenantId` và dùng key đã thu hồi.
+- Define the exact bytes fed into the MAC, version, charset, and field boundaries.
+- Decide when to verify the MAC and when to parse JSON.
+- Propose how to store nonces/event IDs to prevent duplicate processing under concurrent requests.
+- Verify the tenant and permission to update a specific business record.
+- Test a valid request, a 1-byte modified body, wrong tag, expired timestamp, duplicate event ID, altered `tenantId`, and a revoked key.
 
-### Bài 4 — Streaming file
+### Exercise 4 — Streaming a file
 
-Viết method tính HMAC-SHA-256 của một file theo từng block; kết quả phải bằng one-shot của toàn byte. Sau đó giả lập file 1 MB, file rỗng, đọc được một phần rồi lỗi I/O, hai file liên tiếp và retry. Đảm bảo failure không xuất tag như thể file đã xác thực thành công.
+Write a method to compute the HMAC-SHA-256 of a file block by block; the result must match one-shot over all bytes. Then simulate a 1 MB file, an empty file, partial read followed by an I/O error, two consecutive files, and a retry. Ensure failures do not emit a tag as if the file authenticated successfully.
 
-**Điều kiện hoàn thành bài:** bạn có thể giải thích chính xác byte nào đã đi qua từng `update`, vì sao `doFinal` tạo ranh giới thông điệp và reset trạng thái, khi nào nên khởi tạo lại `Mac`, và tại sao việc có một tag HMAC hợp lệ vẫn cần authorization cùng anti-replay riêng.
+**Lesson completion criteria:** you can explain accurately which bytes passed through each `update`, why `doFinal` establishes a message boundary and resets state, when to re-initialize `Mac`, and why having a valid HMAC tag still requires separate authorization and anti-replay checks.
 
-## 16. Tài liệu tham khảo
+## 16. References
 
-- [Java SE 17 — javax.crypto.Mac](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Mac.html): API, trạng thái init/update/doFinal/reset, các overload và exceptions.
-- [Java SE 17 — SecretKeySpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/SecretKeySpec.html): biểu diễn khóa bí mật từ byte.
-- [Java SE 17 — MessageDigest.isEqual](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/MessageDigest.html#isEqual(byte%5B%5D,byte%5B%5D)): so sánh byte trong trường hợp kiểm tag.
-- [RFC 2104 — HMAC: Keyed-Hashing for Message Authentication](https://www.rfc-editor.org/rfc/rfc2104): mô tả cấu trúc HMAC.
-- [RFC 4231 — Identifiers and Test Vectors for HMAC-SHA-224/256/384/512](https://www.rfc-editor.org/rfc/rfc4231): test vector chuẩn cho HMAC-SHA-256 và các biến thể.
-- [OWASP — Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html): quản lý key, thuật toán và các lưu ý bảo vệ dữ liệu.
+- [Java SE 17 — javax.crypto.Mac](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Mac.html): API, init/update/doFinal/reset state, overloads, and exceptions.
+- [Java SE 17 — SecretKeySpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/SecretKeySpec.html): representing a secret key from bytes.
+- [Java SE 17 — MessageDigest.isEqual](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/MessageDigest.html#isEqual(byte%5B%5D,byte%5B%5D)): byte comparison for tag verification.
+- [RFC 2104 — HMAC: Keyed-Hashing for Message Authentication](https://www.rfc-editor.org/rfc/rfc2104): specification of the HMAC construction.
+- [RFC 4231 — Identifiers and Test Vectors for HMAC-SHA-224/256/384/512](https://www.rfc-editor.org/rfc/rfc4231): standard test vectors for HMAC-SHA-256 and variants.
+- [OWASP — Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html): key management, algorithms, and data protection notes.

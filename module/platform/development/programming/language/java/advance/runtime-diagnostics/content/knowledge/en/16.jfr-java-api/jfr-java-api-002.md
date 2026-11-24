@@ -1,36 +1,36 @@
-# 16.2 Vòng đời tạo, cấu hình, start, stop, dump và close của Recording
+# 16.2 Recording Lifecycle: Creation, Configuration, Start, Stop, Dump, and Close
 
-## Mục tiêu học tập
+## Learning Objectives
 
-`jdk.jfr.Recording` là API dùng để điều khiển một phiên **Java Flight Recorder (JFR)** từ mã Java: tạo recording, cấu hình event, khởi động, ghi dữ liệu ra tệp `.jfr`, dừng và giải phóng tài nguyên. Trọng tâm không chỉ là biết tên phương thức, mà còn hiểu **trạng thái hợp lệ và dữ liệu còn được giữ hay đã bị giải phóng** sau mỗi lời gọi.
+`jdk.jfr.Recording` is the API for controlling a **Java Flight Recorder (JFR)** session from Java code: creating a recording, configuring events, starting, writing data to a `.jfr` file, stopping, and releasing resources. The key is not just knowing method names, but understanding **valid states and whether data is still retained or already released** after each call.
 
-Sau bài này bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt `NEW`, `DELAYED`, `RUNNING`, `STOPPED` và `CLOSED`, cùng các chuyển trạng thái hợp lệ.
-2. Chọn constructor/configuration, bật event, đặt threshold, storage, duration và chính sách retention trước khi `start()`.
-3. Giải thích vì sao `dump(Path)` không dừng recording, vì sao `stop()` không mặc nhiên tạo file, và vì sao `close()` không thay thế thao tác lưu.
-4. Chọn đúng giữa hai quy trình: **dump thủ công sau stop** và **`setDestination` tự ghi file khi stop**.
-5. Viết, biên dịch, chạy một chương trình Java 17+ minh họa toàn bộ chuỗi `NEW → RUNNING → STOPPED → CLOSED`; đọc lại event đã ghi.
-6. Xử lý tình huống exception, recording dừng tự động, disk/memory retention và dữ liệu JFR thiếu.
+1. Distinguish `NEW`, `DELAYED`, `RUNNING`, `STOPPED`, and `CLOSED`, along with valid state transitions.
+2. Choose constructors/configurations, enable events, and configure thresholds, storage, duration, and retention policies before `start()`.
+3. Explain why `dump(Path)` does not stop a recording, why `stop()` does not implicitly create a file, and why `close()` does not replace saving.
+4. Choose properly between two workflows: **manual dump after stop** and **`setDestination` automatic write on stop**.
+5. Write, compile, and run a Java 17+ program demonstrating the full `NEW → RUNNING → STOPPED → CLOSED` sequence; read back the recorded events.
+6. Handle exception flows, auto-stopping recordings, disk/memory retention, and missing JFR data.
 
-Ví dụ sử dụng API `jdk.jfr` trên HotSpot/OpenJDK Java 17+; đoạn Java chạy được bên dưới đã kiểm chứng bằng OpenJDK 24. API `RecordingStream` phục vụ tiêu thụ event gần thời gian thực và có vòng đời riêng; bài này chỉ nói về `Recording`.
+Examples use the `jdk.jfr` API on HotSpot/OpenJDK Java 17+; the runnable Java code below was verified on OpenJDK 24. The `RecordingStream` API is for near-real-time event consumption and has its own lifecycle; this lesson covers only `Recording`.
 
-## 1. Phân biệt đối tượng Recording, phiên thu event và file JFR
+## 1. Distinguishing the Recording Object, Collection Session, and JFR File
 
-Một `Recording` là handle trong ứng dụng: nó có ID, tên, cấu hình event, policy lưu giữ và `RecordingState`. **Bản ghi đang chạy** là khoảng thời gian thực sự nhận event; tệp `.jfr` là một kết quả trích xuất dữ liệu đã được recording giữ. Ba thực thể này có vòng đời liên quan nhưng khác nhau.
+A `Recording` is an application-side handle: it has an ID, name, event configuration, retention policy, and `RecordingState`. The **active collection session** is the period during which events are actually received; a `.jfr` file is an extracted snapshot of data retained by the recording. These three entities have related yet distinct lifecycles.
 
-| API | Ý nghĩa | Điều không được ngầm hiểu |
+| API | Meaning | What must not be assumed |
 | --- | --- | --- |
-| `new Recording(...)` | Tạo handle, trạng thái ban đầu `NEW` | Chưa thu event, chưa có file đích |
-| `start()` | Bắt đầu thu event theo settings, state `RUNNING` | Không tự xuất file `.jfr` |
-| `dump(path)` | Sao chép dữ liệu hiện còn sẵn sang file | **Không tự stop** recording `RUNNING` |
-| `stop()` | Kết thúc cửa sổ thu, recording không restart được | Không nhất thiết tự có file |
-| `setDestination(path)` | Đặt file tự ghi **khi stop** | Bản thân thao tác này chưa ghi file; stop thành công có thể **tự close** |
-| `close()` | Giải phóng dữ liệu/tài nguyên gắn với handle | Không phải lệnh dump/export dữ liệu |
+| `new Recording(...)` | Creates a handle, initial state `NEW` | Not collecting events yet; no destination file yet |
+| `start()` | Starts event collection per settings, state `RUNNING` | Does not automatically export a `.jfr` file |
+| `dump(path)` | Copies currently available data to a file | **Does not stop** a `RUNNING` recording |
+| `stop()` | Ends the collection window; recording cannot be restarted | Does not necessarily produce a file |
+| `setDestination(path)` | Sets the file to write automatically **on stop** | Calling this does not write the file yet; a successful stop may **auto-close** |
+| `close()` | Releases data/resources bound to the handle | Not a dump/export command |
 
-Điểm dễ sai nhất là đồng nhất `stop()` với `close()`: không đặt destination thì một recording đã **STOPPED** vẫn giữ dữ liệu để `dump()` sau đó khi `toDisk=true`; **CLOSED** nghĩa là dữ liệu do handle giữ đã được giải phóng. Nếu gọi close trước dump, cơ hội xuất file từ handle đó mất đi.
+The easiest mistake is equating `stop()` with `close()`: without a destination set, a **STOPPED** recording still retains data for a later `dump()` when `toDisk=true`; **CLOSED** means data held by the handle has been released. If you call close before dump, the chance to export a file from that handle is lost.
 
-## 2. Máy trạng thái của Recording
+## 2. State Machine of Recording
 
 ```text
                new Recording(...)
@@ -45,68 +45,68 @@ Một `Recording` là handle trong ứng dụng: nó có ID, tên, cấu hình e
              v                            v
            RUNNING                     DELAYED
              |                            |
-             |                       hết thời gian chờ
+             |                       delay expires
              |                            |
              |<---------------------------+
              |
-             +---- dump(path) ----> RUNNING (không dừng)
+             +---- dump(path) ----> RUNNING (does not stop)
              |
              +---- stop() --------> STOPPED
                                        |
-                                       +-- dump(path), nếu toDisk=true
+                                       +-- dump(path), if toDisk=true
                                        |
                                        +-- close() --> CLOSED
 
-  close() có thể kết thúc handle còn mở.
-  Khi setDestination(path) được đặt và stop ghi file thành công,
-  recording tự đóng thay vì ở lại để dump thủ công.
+  close() can terminate any still-open handle.
+  When setDestination(path) is set and stop writes the file successfully,
+  the recording closes automatically rather than staying open for manual dump.
 ```
 
-| Trạng thái | Nguồn gốc | Có thể làm gì? |
+| State | Origin | What can be done? |
 | --- | --- | --- |
-| `NEW` | Vừa tạo | Đặt settings, `start()` hoặc `scheduleStart()` |
-| `DELAYED` | Sau `scheduleStart(delay)` | Chờ thời điểm start; đừng suy rằng event đã được thu |
-| `RUNNING` | `start()` thành công hoặc hết delay | Thu event; `dump(path)` để lấy snapshot mà vẫn tiếp tục chạy; `stop()` để kết thúc |
-| `STOPPED` | `stop()` thành công, hoặc recording tự dừng do duration | Không `start()` lại; có thể dump nếu `toDisk=true` và chưa close |
-| `CLOSED` | `close()` hoặc stop với destination được ghi thành công | Không dùng lại handle để dump/start |
+| `NEW` | Newly created | Set settings, `start()` or `scheduleStart()` |
+| `DELAYED` | After `scheduleStart(delay)` | Wait for start time; do not assume events are already being collected |
+| `RUNNING` | Successful `start()` or delay elapsed | Collect events; `dump(path)` to take a snapshot while continuing; `stop()` to end |
+| `STOPPED` | Successful `stop()`, or recording auto-stopped due to duration | Cannot `start()` again; can dump if `toDisk=true` and not closed |
+| `CLOSED` | `close()` or stop with destination written successfully | Cannot reuse handle to dump/start |
 
-**Những quy tắc phải nhớ:**
+**Rules to remember:**
 
-- Recording là phiên **một lần**. Sau khi đã stop, muốn bắt đầu lượt đo khác thì tạo một `Recording` mới; không gọi `start()` lần hai.
-- `start()` trên recording đã bắt đầu/đã CLOSED và `stop()` khi chưa start hoặc đã stop là các trường hợp sai trạng thái có thể gây `IllegalStateException`.
-- `dump(Path)` theo Javadoc chỉ thành công khi recording đang **RUNNING**, hoặc đang **STOPPED và toDisk=true**. Ở NEW/DELAYED/CLOSED, hoặc STOPPED nhưng không dùng disk repository, có thể ném `IOException`.
-- `getState()` phản ánh trạng thái quan sát tại lúc gọi. Nếu có nhiều luồng điều khiển cùng recording, việc check trạng thái rồi thực hiện thao tác vẫn cần đồng bộ/owner rõ ràng để tránh race.
-- `scheduleStart(Duration)` tạo giai đoạn DELAYED; `setDuration(Duration)` có thể làm recording tự dừng sau thời gian được đặt. Đừng luôn giả định recording vẫn RUNNING trong callback cleanup.
-- Nếu có `setDestination(path)`, stop sẽ ghi dữ liệu sang file và **tự động đóng recording sau khi sao chép thành công**. Không cố dump lần nữa trên handle đã đóng.
+- A recording is a **one-shot** session. Once stopped, to start another measurement run, create a new `Recording`; do not call `start()` a second time.
+- Calling `start()` on an already started/CLOSED recording or `stop()` when not started/already stopped are invalid state transitions that can throw `IllegalStateException`.
+- According to the Javadoc, `dump(Path)` succeeds only when the recording is **RUNNING**, or when it is **STOPPED and toDisk=true**. In NEW/DELAYED/CLOSED, or STOPPED without a disk repository, it may throw `IOException`.
+- `getState()` reflects the state observed at the moment of the call. If multiple threads control the same recording, checking state and acting still requires clear ownership/synchronization to avoid races.
+- `scheduleStart(Duration)` creates a DELAYED phase; `setDuration(Duration)` can cause the recording to auto-stop after the configured time. Do not always assume a recording is still RUNNING in a cleanup callback.
+- If `setDestination(path)` is set, `stop()` writes data to the file and **automatically closes the recording after a successful copy**. Do not try to dump again on the closed handle.
 
-## 3. Tạo recording đúng cách
+## 3. Creating a Recording Properly
 
-### 3.1. Constructor và template
+### 3.1. Constructors and templates
 
-Ba kiểu tạo thường gặp:
+Three common creation patterns:
 
 ```java
-// Các dòng minh họa bên trong method, chưa bao gồm import và xử lý exception:
+// Illustrative lines inside a method, omitting imports and exception handling:
 Recording r1 = new Recording();
 Recording r2 = new Recording(Configuration.getConfiguration("default"));
 Recording r3 = new Recording(Configuration.getConfiguration("profile"));
 ```
 
-Đây là các **đoạn minh họa**, không phải chương trình độc lập. `Recording` và `Configuration` thuộc `jdk.jfr`; mọi handle cần close khi kết thúc.
+These are **illustrative snippets**, not standalone programs. `Recording` and `Configuration` belong to `jdk.jfr`; every handle must be closed when finished.
 
-- `new Recording()` tạo recording **không có sẵn event settings**. Không được mặc định nó tương đương template `default.jfc`.
-- `Configuration.getConfiguration("default")` lấy bộ cấu hình mặc định JDK, hữu ích cho thu thường xuyên với overhead tương đối thấp.
-- `Configuration.getConfiguration("profile")` lấy template phục vụ phân tích sâu hơn, có thể tạo nhiều dữ liệu và overhead hơn. Hai template không bật mọi event; kiểm tra phiên bản JDK và thiết lập thực.
-- `new Recording(Map<String,String>)` nhận settings do ứng dụng dựng; `setSettings(map)` **thay thế** tập settings đang có. `getSettings()` trả về map để kiểm tra/điều chỉnh bản sao; thay đổi map đó không tự cập nhật recording nếu không gọi `setSettings`.
+- `new Recording()` creates a recording **without built-in event settings**. Do not assume it is equivalent to the `default.jfc` template.
+- `Configuration.getConfiguration("default")` loads the JDK default configuration, useful for continuous collection with relatively low overhead.
+- `Configuration.getConfiguration("profile")` loads a template for deeper analysis, which can generate more data and higher overhead. Neither template enables all events; verify the JDK version and actual settings.
+- `new Recording(Map<String,String>)` accepts application-built settings; `setSettings(map)` **replaces** the current settings. `getSettings()` returns a map for inspecting/adjusting a copy; mutating that map does not update the recording unless you call `setSettings`.
 
-**Nên hoàn tất cấu hình trước `start()`**: Javadoc khuyến nghị để các event và tùy chọn được áp dụng nhất quán, giảm thay đổi giữa phiên làm phép đo khó so sánh.
+**Finish configuration before `start()`**: The Javadoc recommends this so events and options apply consistently, avoiding mid-session changes that make measurements hard to compare.
 
-### 3.2. Chọn event và setting
+### 3.2. Selecting events and settings
 
-Ví dụ về API event:
+Example of the event API:
 
 ```java
-// Đoạn trong method, giả định biến recording và class MyEvent đã tồn tại:
+// Snippet inside a method, assuming recording variable and MyEvent class already exist:
 recording.enable(MyEvent.class).withThreshold(Duration.ZERO);
 recording.enable("jdk.JavaMonitorEnter")
          .withThreshold(Duration.ofMillis(10))
@@ -114,67 +114,67 @@ recording.enable("jdk.JavaMonitorEnter")
 recording.disable("jdk.ExceptionThrow");
 ```
 
-Đây là **mã minh họa chưa độc lập**: cần class `MyEvent extends jdk.jfr.Event`, `Duration` và một `Recording` hợp lệ.
+This is **non-standalone illustrative code**: it requires a `MyEvent extends jdk.jfr.Event` class, `Duration`, and a valid `Recording`.
 
-Các lựa chọn thường gặp:
+Common options:
 
-- **enabled:** event type có được recording cho phép thu không.
-- **threshold:** với event có thời lượng, những event ngắn hơn ngưỡng không được lưu. `Duration.ZERO` có thể dùng trong một cửa sổ đo hẹp để nhìn cả event rất ngắn.
-- **stackTrace:** thu stack trace của event, có chi phí bổ sung.
-- **period:** một số event phát định kỳ; số mẫu không phải số lần một phương thức đã chạy.
+- **enabled:** whether the event type is allowed to be collected by the recording.
+- **threshold:** for events with duration, events shorter than the threshold are not saved. `Duration.ZERO` can be used in a narrow measurement window to see very short events as well.
+- **stackTrace:** captures the event's stack trace, incurring additional overhead.
+- **period:** some events are emitted periodically; sample counts do not equal the number of times a method ran.
 
-Bật event không đảm bảo nó sẽ xuất hiện: workload phải thực sự tạo event, event phải qua ngưỡng, recording phải đang RUNNING, và dữ liệu phải còn được giữ đến khi dump.
+Enabling an event does not guarantee it will appear: the workload must actually emit the event, the event must pass the threshold, the recording must be RUNNING, and the data must still be retained until dump time.
 
-### 3.3. Các tùy chọn cấp recording
+### 3.3. Recording-level options
 
-| Phương thức | Vai trò | Lưu ý vận hành |
+| Method | Role | Operational notes |
 | --- | --- | --- |
-| `setName(String)` | Đặt tên dễ đọc cho recording | `getId()` cung cấp ID riêng; không dựa duy nhất vào tên nếu có nhiều recording |
-| `setToDisk(true)` | Cho phép JFR dùng disk repository; mặc định `true` | Là lựa chọn phù hợp khi cần dump sau stop |
-| `setToDisk(false)` | Không liên tục flush đến disk repository; bị giới hạn bởi buffer trong bộ nhớ | `getSize()` bằng 0 theo API; sau stop không có đường dump hợp lệ |
-| `setMaxAge(Duration)` | Giới hạn tuổi dữ liệu giữ trong repository | Chunk cũ bị loại, không thể phục hồi bằng dump sau đó |
-| `setMaxSize(long)` | Giới hạn lượng dữ liệu giữ (byte); `0` là không giới hạn | Dữ liệu cũ có thể bị loại nếu vượt giới hạn |
-| `setDuration(Duration)` | Tự dừng sau thời lượng chỉ định | Đặt trước start, rồi kiểm tra state trước thao tác sau thu |
-| `scheduleStart(Duration)` | Bắt đầu sau một khoảng chờ | State ban đầu DELAYED; chưa thu trước lúc thực sự start |
-| `setDestination(Path)` | Chỉ định file xuất khi stop | Ghi thành công sẽ tự close recording |
-| `setDumpOnExit(true)` | Yêu cầu dump khi JVM thoát theo cơ chế JFR hỗ trợ | Không thể bảo đảm đủ dữ liệu khi kill cứng/crash |
+| `setName(String)` | Sets a human-readable name for the recording | `getId()` provides a distinct ID; do not rely solely on name when multiple recordings exist |
+| `setToDisk(true)` | Enables JFR to use the disk repository; default `true` | The right choice when you need to dump after stop |
+| `setToDisk(false)` | Does not continuously flush to the disk repository; bounded by in-memory buffers | `getSize()` returns 0 per API; no valid dump path after stop |
+| `setMaxAge(Duration)` | Limits age of data retained in the repository | Old chunks are evicted and cannot be recovered by a later dump |
+| `setMaxSize(long)` | Limits amount of retained data (bytes); `0` means unlimited | Old data may be evicted if the limit is exceeded |
+| `setDuration(Duration)` | Auto-stops after the specified duration | Set before start, then check state before post-collection operations |
+| `scheduleStart(Duration)` | Starts after a wait interval | Initial state is DELAYED; nothing collected before actual start |
+| `setDestination(Path)` | Specifies the output file on stop | A successful write auto-closes the recording |
+| `setDumpOnExit(true)` | Requests a dump when the JVM exits via supported JFR hooks | Cannot guarantee complete data on hard kill/crash |
 
-Lưu ý `setToDisk(true)` là **disk repository nội bộ của JFR**, không đồng nghĩa đã có file báo cáo cuối cùng ở đường dẫn bạn muốn. Tệp xuất cuối phải đến từ `dump(path)` hoặc `setDestination(path)` khi stop.
+Note that `setToDisk(true)` refers to **JFR's internal disk repository**, which does not mean a final report file exists at your desired path. The final output file must come from `dump(path)` or `setDestination(path)` on stop.
 
-Với ứng dụng chạy lâu, nếu không đặt max age/max size, dữ liệu trong repository có thể tăng mạnh; hãy chọn retention theo chi phí và cửa sổ sự cố cần phân tích.
+For long-running applications, without max age/max size limits, repository data can grow sharply; choose retention based on cost and the incident window you need to analyze.
 
-## 4. Hai chuỗi thao tác hợp lệ
+## 4. Two Valid Operation Sequences
 
-### 4.1. Chuỗi A: tự điều khiển dump
+### 4.1. Sequence A: manual dump control
 
-Khi cần snapshot lúc đang xử lý và file cuối sau khi kết thúc:
+When you need a snapshot while running and a final file after finishing:
 
 ```text
-create & configure (toDisk=true, không setDestination)
+create & configure (toDisk=true, no setDestination)
         |
       start
         |
-  chạy workload A
+   run workload A
         |
- dump(snapshot.jfr)  -- vẫn RUNNING
+ dump(snapshot.jfr)  -- still RUNNING
         |
-  chạy workload B
+   run workload B
         |
       stop            -- STOPPED
         |
- dump(final.jfr)     -- hợp lệ vì toDisk=true
+  dump(final.jfr)     -- valid because toDisk=true
         |
       close           -- CLOSED
 ```
 
-`dump(Path)` ở RUNNING không dừng recording. Snapshot chỉ có dữ liệu có sẵn **đến lúc dump**, không tự cập nhật khi event phát sinh sau đó. `stop()` kết thúc thu, và `dump(finalPath)` trên STOPPED có thể xuất file cuối nếu recording dùng disk repository và vẫn giữ dữ liệu.
+`dump(Path)` in RUNNING does not stop the recording. The snapshot contains only data available **up to the time of the dump**, and does not automatically update with subsequent events. `stop()` ends collection, and `dump(finalPath)` on STOPPED can export the final file if the recording used the disk repository and still holds data.
 
-### 4.2. Chuỗi B: tự ghi file khi stop
+### 4.2. Sequence B: automatic file write on stop
 
-Khi chỉ cần một file cuối:
+When you only need one final file:
 
 ```java
-// Mẫu bên trong method; doWork() là hàm ứng dụng cần tự định nghĩa.
+// Pattern inside a method; doWork() is an application method you must define.
 Path output = Path.of("final.jfr");
 try (Recording r =
         new Recording(Configuration.getConfiguration("default"))) {
@@ -182,23 +182,23 @@ try (Recording r =
     r.setDestination(output);
     r.start();
     doWork();
-    r.stop(); // Tự ghi final.jfr và đóng recording khi thành công.
+    r.stop(); // Automatically writes final.jfr and closes recording on success.
 }
 ```
 
-Đoạn **minh họa**, chưa độc lập vì `doWork()` không được định nghĩa. `setDestination` chỉ đăng ký vị trí đầu ra. Dữ liệu được ghi khi stop; sau khi ghi thành công, recording đã tự close, nên **không gọi tiếp `r.dump(...)`**.
+This is an **illustrative** snippet, not standalone because `doWork()` is undefined. `setDestination` only registers the output location. Data is written on stop; after a successful write, the recording has already auto-closed, so **do not call `r.dump(...)` afterward**.
 
-Nếu định dùng `setDuration` để tự stop, việc có destination giúp file được xuất ở thời điểm tự dừng (với điều kiện quá trình hoàn tất thành công). Nếu cần kiểm soát lỗi lưu/timestamp, kiểm tra file thực sự tồn tại và đọc được, không dựa vào suy đoán.
+If you plan to use `setDuration` for auto-stop, setting a destination ensures the file is exported when it auto-stops (provided the process completes normally). When you need to verify save errors or timestamps, check that the actual file exists and is readable rather than assuming.
 
-### 4.3. Stop khác Close ra sao?
+### 4.3. How does Stop differ from Close?
 
-Trong chuỗi A, `stop()` dừng tạo dữ liệu mới nhưng giữ nội dung để dump sau đó; `close()` giải phóng nội dung được giữ. Trình tự **stop → close → dump** là sai. Thực hiện **stop → dump → close**.
+In Sequence A, `stop()` halts creation of new data while keeping content for a subsequent dump; `close()` releases the retained content. The sequence **stop → close → dump** is invalid. Follow **stop → dump → close**.
 
-Trong chuỗi B, stop thành công **đã bao gồm file export và close** do destination được thiết lập. Một lệnh dump tiếp trên recording đó sẽ thất bại. Nếu muốn thêm file snapshot, dump **trước** stop, khi còn RUNNING, hoặc dùng chuỗi A.
+In Sequence B, a successful stop **already includes file export and close** because a destination was configured. A subsequent dump call on that recording will fail. If you want an additional snapshot file, dump **before** stop while still RUNNING, or use Sequence A.
 
-## 5. Chương trình Java 17+ chạy được, đã kiểm chứng stdout
+## 5. Runnable Java 17+ Program with Verified Stdout
 
-Ví dụ tạo custom event `demo.Milestone` để không phụ thuộc vào GC/I/O xảy ra ngẫu nhiên. Chương trình tạo hai event, dump một snapshot lúc RUNNING, stop, dump file cuối, đếm số event, và close bằng `try-with-resources`.
+This example creates a custom `demo.Milestone` event so it does not depend on random GC/I/O occurrences. The program emits two events, dumps a snapshot while RUNNING, stops, dumps the final file, counts the events, and closes via `try-with-resources`.
 
 ```java
 // File: RecordingLifecycleDemo.java
@@ -268,14 +268,14 @@ public class RecordingLifecycleDemo {
 }
 ```
 
-Lưu file đúng tên `RecordingLifecycleDemo.java`. Biên dịch/chạy bằng JDK 17+:
+Save the file with the exact name `RecordingLifecycleDemo.java`. Compile and run with JDK 17+:
 
 ```bash
 javac RecordingLifecycleDemo.java
 java RecordingLifecycleDemo
 ```
 
-Stdout chính xác đã kiểm chứng trên OpenJDK 24:
+Exact stdout verified on OpenJDK 24:
 
 ```text
 created=NEW
@@ -286,37 +286,37 @@ saved-events=2
 closed=CLOSED
 ```
 
-Giải thích:
+Explanation:
 
-1. `NEW`: đã có handle, chưa thu event.
-2. `RUNNING` sau start: recording nhận event đã bật. `emit("first")` commit event đầu.
-3. `after-running-dump=RUNNING`: `dump(snapshot)` xuất snapshot nhưng recording tiếp tục chạy; event `second` được commit sau dump.
-4. `STOPPED` sau stop: recording không nhận event mới, vẫn giữ dữ liệu để dump bởi `toDisk=true` và không có destination.
-5. `saved-events=2`: file cuối chứa cả hai instance của `demo.Milestone`. `RecordingFile` duyệt event type và đếm đúng hai event.
-6. `CLOSED` sau khi rời try-with-resources: handle đã được close.
+1. `NEW`: handle exists, not collecting events yet.
+2. `RUNNING` after start: recording receives enabled events. `emit("first")` commits the first event.
+3. `after-running-dump=RUNNING`: `dump(snapshot)` exports a snapshot while the recording continues running; the `second` event is committed after the dump.
+4. `STOPPED` after stop: recording accepts no new events, still retains data for dumping because `toDisk=true` and no destination was set.
+5. `saved-events=2`: the final file contains both instances of `demo.Milestone`. `RecordingFile` iterates over event types and counts both events accurately.
+6. `CLOSED` after exiting `try-with-resources`: the handle has been closed.
 
-Tệp snapshot và final được tạo trong thư mục tạm của hệ điều hành rồi xóa sau phép kiểm tra. Nếu cần mở tệp trong JDK Mission Control, hãy chủ động lưu bản chẩn đoán ở một đường dẫn cần giữ và không xóa nó trước khi phân tích. Ví dụ này không minh họa lỗi disk, crash hoặc quyền ghi; production cần xử lý riêng.
+The snapshot and final files are created in the OS temp directory and deleted after the test. If you need to open the file in JDK Mission Control, intentionally save the diagnostic file to a persistent path and do not delete it before analysis. This example does not demonstrate disk errors, crashes, or write permissions; production code needs separate handling for those.
 
-## 6. Stop, dump, close trong luồng có exception
+## 6. Stop, Dump, and Close in Exception Flows
 
-`Recording` triển khai `AutoCloseable`/`Closeable`. `try-with-resources` đảm bảo `close()` chạy khi ra khỏi scope, cả khi workload ném exception; **nhưng nó không tự đảm bảo file đã được dump**.
+`Recording` implements `AutoCloseable`/`Closeable`. `try-with-resources` guarantees `close()` runs when leaving scope, even if the workload throws an exception; **however, it does not guarantee that a file was dumped**.
 
-Xét đoạn minh họa:
+Consider this illustrative snippet:
 
 ```java
-// Minh họa logic trong method; configuration, work và destination do ứng dụng cung cấp.
+// Illustrates logic inside a method; configuration, work, and destination are supplied by the application.
 try (Recording r = new Recording(configuration)) {
     r.setToDisk(true);
     r.start();
-    work();             // Nếu ném exception, các dòng dưới bị bỏ qua.
+    work();             // If this throws an exception, lines below are skipped.
     r.stop();
     r.dump(destination);
 }
 ```
 
-Nếu `work()` ném exception, recording được close khi thoát try, **trước khi stop/dump** trong nhánh bình thường. Do đó không nên hứa sẽ có file khi xảy ra lỗi. Khi yêu cầu là giữ bằng chứng ngay cả nếu nghiệp vụ thất bại, thực hiện cleanup trong `finally` có kiểm tra trạng thái và xử lý lỗi xuất file riêng.
+If `work()` throws an exception, the recording is closed on exiting the `try` block, **before stop/dump** in the normal path. Therefore, do not promise a file will exist when an error occurs. When the requirement is to preserve diagnostic evidence even if business logic fails, perform cleanup inside `finally` with state checks and dedicated error handling for exporting the file.
 
-Mẫu tư duy (pseudocode, **không phải Java chạy nguyên văn**):
+Mental model (pseudocode, **not literal runnable Java**):
 
 ```text
 create + configure
@@ -325,34 +325,34 @@ try:
     run workload
 finally:
     if getState() == RUNNING:
-        stop (nếu chính sách yêu cầu)
+        stop (if policy requires)
     if getState() == STOPPED and isToDisk():
-        dump(result.jfr) nếu cần chứng cứ
-    close dù dump/stop thất bại
+        dump(result.jfr) if evidence is needed
+    close even if dump/stop fails
 ```
 
-Vì `stop()`/`dump()` có thể ném exception, code thật cần giữ lỗi gốc, log lỗi cleanup bổ sung và luôn close. Nếu có destination và stop đã tự close, đừng chạy nhánh dump trên handle CLOSED.
+Because `stop()`/`dump()` can throw exceptions, real code must preserve the original error, log additional cleanup errors, and always close. If a destination was set and stop auto-closed the handle, do not execute the dump branch on a CLOSED handle.
 
-Có hai tình huống cần cẩn trọng:
+Two situations require extra care:
 
-- **Duration/đối tượng khác tự stop:** callback finally không được `stop()` lần nữa nếu state đã STOPPED.
-- **Nhiều thread cùng điều khiển:** check `getState()` rồi stop không tránh race; chỉ định một owner chịu trách nhiệm lifecycle hoặc dùng cơ chế đồng bộ phù hợp.
+- **Duration/external auto-stop:** a `finally` callback must not call `stop()` again if the state is already STOPPED.
+- **Multiple threads controlling the handle:** checking `getState()` then stopping does not prevent races; assign a single owner responsible for the lifecycle or use appropriate synchronization.
 
-## 7. File, repository và sự đầy đủ của dữ liệu
+## 7. Files, Repository, and Data Completeness
 
-Một file `.jfr` tồn tại **chưa chắc chứa đầy đủ event mà bạn mong đợi**.
+The existence of a `.jfr` file **does not guarantee it contains all the events you expect**.
 
-- Event chưa được enable hoặc không đạt threshold.
-- Event diễn ra **trước start** hay **sau stop**.
-- Snapshot được dump khi RUNNING **trước** khi event cần phân tích xảy ra.
-- `maxAge`/`maxSize` làm loại chunk cũ khỏi disk repository.
-- `toDisk=false` giới hạn dữ liệu bởi bộ đệm; `dump` sau STOPPED không khả dụng.
-- Disk không ghi được, JVM bị dừng bất thường hoặc file dump lỗi.
-- Công cụ xem file áp bộ lọc loại event, time range hoặc thread.
+- The event was not enabled or did not meet the threshold.
+- The event occurred **before start** or **after stop**.
+- A snapshot was dumped while RUNNING **before** the target event occurred.
+- `maxAge`/`maxSize` evicted older chunks from the disk repository.
+- `toDisk=false` bounded data to memory buffers; `dump` after STOPPED is unavailable.
+- Disk write failed, JVM exited abnormally, or dump file was corrupted.
+- The viewer tool applied event type, time range, or thread filters.
 
-Phân biệt file đích với repository: `setToDisk(true)` làm JFR có thể flush vào repository nội bộ; nó không chọn file `result.jfr` cho bạn. Cần gọi `dump(Path)` hoặc `setDestination(Path)` + stop. `getSize()` phản ánh kích thước dữ liệu recording trong repository sau flush (theo tài liệu API), **không phải số byte chính xác file export**; khi `toDisk=false`, phương thức này trả về 0, nhưng không có nghĩa không tồn tại event trong buffer.
+Distinguish the destination file from the repository: `setToDisk(true)` allows JFR to flush into its internal repository; it does not choose `result.jfr` for you. You must call `dump(Path)` or `setDestination(Path)` + stop. `getSize()` reflects the size of recording data in the repository after flushing (per API docs), **not the exact size of the exported file**; when `toDisk=false`, this method returns 0, which does not mean no events exist in the buffer.
 
-Nếu đã lưu file thật, kiểm tra bằng JDK tools:
+Once a real file is saved, inspect it using JDK tools:
 
 ```bash
 jfr summary path/to/result.jfr
@@ -360,66 +360,66 @@ jfr metadata path/to/result.jfr
 jfr print --events demo.Milestone path/to/result.jfr
 ```
 
-`path/to/result.jfr` chỉ là đường dẫn minh họa. `jfr summary` cho số event thực sự có trong file; `metadata` mô tả schema event, không chứng minh đã có instance; `print` liệt kê những instance phù hợp bộ lọc. Khi kết luận thiếu event, kiểm tra cả setting, thời gian, và file có chứa đủ lịch sử hay không.
+`path/to/result.jfr` is only an example path. `jfr summary` shows the actual event counts in the file; `metadata` describes event schemas, not proof of instances; `print` lists instances matching the filter. Before concluding events are missing, check settings, timestamps, and whether the file holds sufficient history.
 
-## 8. Các tình huống lỗi và cách sửa
+## 8. Error Scenarios and Fixes
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common cause | How to fix |
 | --- | --- | --- |
-| `start()` ném `IllegalStateException` | Recording đã start, đã STOPPED hoặc CLOSED | Tạo recording mới cho vòng đo mới |
-| `stop()` ném `IllegalStateException` | Chưa chạy, đã stop, hoặc xử lý shutdown gọi trùng | Kiểm tra state và chỉ định một owner |
-| `dump()` ném `IOException` | NEW/DELAYED/CLOSED, STOPPED mà toDisk=false, hoặc path không ghi được | Đúng state; chọn `toDisk=true` khi cần dump sau stop; kiểm tra filesystem |
-| Stop xong không có file | Không gọi dump và không đặt destination | Chọn một trong hai chuỗi export ở mục 4 |
-| Stop xong dump lần nữa không được | `setDestination` đã tự đóng recording khi ghi thành công | Dùng file destination; nếu cần snapshot bổ sung, dump trước stop |
-| Không thấy event trong file | Event không bật, threshold, sai cửa sổ, retention hoặc sai loại event | Kiểm tra cấu hình và event count, thu lại khi cần |
-| File quá lớn | Không giới hạn retention, nhiều event chi tiết, duration dài | `maxAge`/`maxSize`/threshold; chọn event đủ dùng |
-| `getSize()==0` với `toDisk=false` | Không dùng disk repository | Đừng kết luận recording không có event |
-| Cleanup làm mất dữ liệu điều tra | `close()` trước `dump()` | Dump trước close; thiết kế error path |
-| File không đọc được sau crash | Chưa dump hoàn tất hoặc dữ liệu chưa được flush | Kiểm tra log/file thực tế; đừng coi dump-on-exit là bảo đảm chống crash |
+| `start()` throws `IllegalStateException` | Recording already started, STOPPED, or CLOSED | Create a new recording for a new measurement run |
+| `stop()` throws `IllegalStateException` | Not started yet, already stopped, or duplicate shutdown handler call | Check state and assign a single owner |
+| `dump()` throws `IOException` | NEW/DELAYED/CLOSED, STOPPED with `toDisk=false`, or unwritable path | Ensure valid state; use `toDisk=true` if dumping after stop; check filesystem |
+| Stop finishes with no file | Neither `dump` called nor destination set | Pick one of the two export sequences in section 4 |
+| Cannot dump again after stop | `setDestination` auto-closed the recording on successful write | Use the destination file; if an extra snapshot is needed, dump before stop |
+| Expected events missing in file | Event disabled, threshold, wrong window, retention, or wrong event type | Check configuration and event counts; re-record if needed |
+| File too large | Unbounded retention, verbose events, long duration | Set `maxAge`/`maxSize`/threshold; select only needed events |
+| `getSize()==0` with `toDisk=false` | Not using disk repository | Do not conclude the recording has no events |
+| Cleanup loses diagnostic data | `close()` before `dump()` | Dump before close; design the error path |
+| Unreadable file after crash | Dump did not complete or data was not flushed | Check logs/actual file; do not treat dump-on-exit as crash-proof |
 
-### Những hiểu lầm cần loại bỏ
+### Misconceptions to eliminate
 
-**“Gọi dump là dừng recording.”** Không. `dump` lúc RUNNING tạo snapshot và recording vẫn RUNNING. Bằng chứng là ví dụ in đúng state sau live dump.
+**"Calling dump stops the recording."** No. `dump` while RUNNING creates a snapshot and the recording stays RUNNING. Proof is the example printing the exact state after a live dump.
 
-**“Stop và close tương đương.”** Không. Với `toDisk=true` không destination, STOPPED vẫn có thể dump, CLOSED không thể.
+**"Stop and close are equivalent."** No. With `toDisk=true` and no destination, STOPPED can still dump, while CLOSED cannot.
 
-**“Đã gọi start thì mọi event có mặt.”** Không. Recording chỉ ghi những event được cấu hình, xảy ra trong cửa sổ đo và đạt bộ lọc.
+**"Once start is called, every event is present."** No. A recording only captures events that are configured, occur within the recording window, and pass filters.
 
-**“Đặt destination là file xuất ngay lập tức.”** Không. File được ghi khi stop; còn việc export thành công phải được kiểm chứng.
+**"Setting destination exports the file immediately."** No. The file is written on stop, and export success must still be verified.
 
-**“STOPPED luôn dump được.”** Không. Javadoc đòi `toDisk=true` nếu dump sau stop. `toDisk=false` chỉ phù hợp với chiến lược lưu theo bộ đệm và cần xử lý khi đang RUNNING nếu phải xuất snapshot.
+**"STOPPED can always be dumped."** No. Javadoc requires `toDisk=true` for dumping after stop. `toDisk=false` suits buffer-only strategies and must be handled while RUNNING if a snapshot needs to be exported.
 
-**“JFR dùng disk repository nghĩa là tự có file phân tích cuối.”** Không. Repository không đồng nhất với file export; chọn đường dẫn rõ ràng.
+**"JFR using a disk repository means a final analysis file is automatically created."** No. The repository is not the same as the export file; specify an explicit output path.
 
-**“Close trong finally là đủ để lưu dữ liệu khi có lỗi.”** Không. Close giải phóng dữ liệu. Cần chính sách stop/dump trước close trên cả đường thành công và lỗi.
+**"Closing in finally is enough to save data on error."** No. Close releases data. You need an explicit stop/dump policy before close on both success and error paths.
 
-## 9. Quy trình áp dụng cho ứng dụng thật
+## 9. Applying This in Real Applications
 
-1. **Xác định mục tiêu đo:** CPU, lock contention, allocation, GC, I/O hay custom event? Chọn `default`/`profile` và những event/threshold cần thiết.
-2. **Quyết định thời lượng và cửa sổ:** start ngay, schedule delay, hay set duration? Dự tính các mốc workload.
-3. **Chọn chiến lược file:** manual `dump` (nhất là khi cần live snapshot) hay `setDestination` (một file khi stop). Ghi rõ nơi lưu, retention và disk budget.
-4. **Tạo và cấu hình Recording:** event settings, name, `toDisk`, `maxAge`, `maxSize`, duration/destination trước start; log ID và mốc thời gian cần thiết.
-5. **Start và chạy workload:** kiểm tra state khi có auto-stop; đừng thay cấu hình tùy tiện giữa phiên.
-6. **Dump/stop theo chiến lược đã chọn:** kiểm tra từng thao tác trả về thành công và không trộn hai quy trình gây auto-close bất ngờ.
-7. **Close bảo đảm:** dùng try-with-resources/finally, quản lý exception, tránh hai nơi cùng stop.
-8. **Kiểm chứng dữ liệu:** file tồn tại và đọc được; `jfr summary` có khoảng thời gian và loại event dự kiến. Trình bày giới hạn nếu event thiếu.
+1. **Define the measurement goal:** CPU, lock contention, allocation, GC, I/O, or custom events? Choose `default`/`profile` and the required events/thresholds.
+2. **Decide duration and window:** start immediately, schedule a delay, or set a duration? Estimate workload milestones.
+3. **Choose a file strategy:** manual `dump` (especially if live snapshots are needed) or `setDestination` (one file on stop). Document storage location, retention, and disk budget.
+4. **Create and configure Recording:** event settings, name, `toDisk`, `maxAge`, `maxSize`, duration/destination before start; log ID and timestamps as needed.
+5. **Start and run workload:** check state when using auto-stop; avoid arbitrarily changing configuration mid-session.
+6. **Dump/stop per chosen strategy:** verify each operation succeeds and avoid mixing the two workflows in a way that causes unexpected auto-close.
+7. **Ensure close:** use try-with-resources/finally, handle exceptions, and avoid two places calling stop.
+8. **Verify data:** confirm file exists and is readable; `jfr summary` shows expected time span and event types. Note limitations if events are missing.
 
-### Checklist bàn giao
+### Handoff checklist
 
-- [ ] Dùng đúng JDK hỗ trợ `jdk.jfr`; chọn đúng template và event settings.
-- [ ] Hiểu state hiện tại; NEW, DELAYED, RUNNING, STOPPED, CLOSED có ý nghĩa khác nhau.
-- [ ] Đặt event, threshold, storage, duration và retention trước start khi có thể.
-- [ ] Không restart recording đã STOPPED; tạo handle mới.
-- [ ] Live dump không dừng recording; file snapshot không tự nhận event tương lai.
-- [ ] Dùng `toDisk=true` nếu cần dump sau stop.
-- [ ] Nếu dùng `setDestination`, stop thành công sẽ xuất file rồi tự close, không dump lại.
-- [ ] Gọi close để giải phóng tài nguyên sau khi đã lưu dữ liệu cần thiết.
-- [ ] Error path không làm mất chứng cứ do close trước dump.
-- [ ] File đã được đọc lại, đúng thời gian và event mong đợi; không kết luận từ file thiếu dữ liệu.
+- [ ] Use a JDK supporting `jdk.jfr`; select the right template and event settings.
+- [ ] Understand the current state; NEW, DELAYED, RUNNING, STOPPED, and CLOSED have distinct meanings.
+- [ ] Set events, thresholds, storage, duration, and retention before start whenever possible.
+- [ ] Do not restart a STOPPED recording; create a new handle.
+- [ ] Live dump does not stop a recording; the snapshot file does not automatically receive future events.
+- [ ] Use `toDisk=true` if you need to dump after stop.
+- [ ] If using `setDestination`, a successful stop exports the file and auto-closes; do not dump again.
+- [ ] Call close to release resources after saving the required data.
+- [ ] Error paths must not lose evidence by closing before dumping.
+- [ ] File has been read back with expected timestamps and events; do not draw conclusions from incomplete files.
 
-**Điểm cốt lõi:** `start()` mở cửa sổ ghi; `dump(Path)` lấy một bản sao dữ liệu và có thể diễn ra khi recording vẫn RUNNING; `stop()` kết thúc thu; `close()` giải phóng dữ liệu. Việc đặt `setDestination(Path)` quyết định recording **tự xuất và tự đóng** lúc stop. Hãy thiết kế đúng chuỗi lifecycle theo nhu cầu file, xác nhận state và kiểm chứng nội dung tệp trước khi dùng JFR làm bằng chứng chẩn đoán.
+**Core takeaway:** `start()` opens the recording window; `dump(Path)` takes a copy of the data and can happen while the recording is still RUNNING; `stop()` ends collection; `close()` releases data. Setting `setDestination(Path)` determines whether the recording **auto-exports and auto-closes** on stop. Design the exact lifecycle sequence to match your file needs, verify state, and inspect file contents before using JFR as diagnostic evidence.
 
-## Tài liệu API chính thức
+## Official API Documentation
 
 - Oracle JDK 21 — `Recording`: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html
 - Oracle JDK 21 — `RecordingState`: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/RecordingState.html

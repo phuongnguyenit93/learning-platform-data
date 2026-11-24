@@ -1,74 +1,74 @@
-# 14.8 Phân tích CertPathValidatorException theo vị trí chứng thư và nguyên nhân
+# 14.8 Analyzing CertPathValidatorException by Certificate Position and Reason
 
-## Mục tiêu
+## Objectives
 
-Bài học thuộc **14. Đường dẫn tin cậy** của module Java Advance – security-cryptography. Sau bài này, bạn sẽ biết cách:
+This lesson belongs to **14. Trust Paths** in the Java Advanced – security-cryptography module. After this lesson, you will know how to:
 
-1. Đọc `CertPathValidatorException` của Java bằng **`getIndex()`, `getReason()`, `getCertPath()`, `getCause()` và `getMessage()`**, thay vì chỉ nhìn vào chuỗi “PKIX path validation failed”.
-2. Liên hệ **index** với đúng certificate trong `CertPath`, đặc biệt quy tắc thông thường **index 0 = leaf**, index 1 = intermediate gần leaf và **trust anchor không nằm trong path**.
-3. Phân biệt mã **`BasicReason`** (hết hạn, chữ ký sai, thu hồi, thuật toán bị hạn chế...) với **`PKIXReason`** (không có trust anchor phù hợp, sai KeyUsage, không phải CA, lỗi name chaining...).
-4. Nhận diện **index = -1** là “không gắn được lỗi cho một certificate tại một chỉ số hợp lệ”, **không được tự suy ra root hỏng hoặc index âm là lỗi của root**.
-5. Tạo fixture X.509 và chạy chương trình **Java 17+** để xác nhận các tình huống: path hợp lệ; trust anchor không liên quan; chữ ký leaf bị thay; chữ ký intermediate bị thay; leaf hết hạn ở thời điểm kiểm định giả lập.
-6. Xây dựng quy trình chẩn đoán an toàn trong hệ thống TLS, PKIX, truststore, CRL/OCSP, chain provisioning và quan sát log mà **không vô hiệu hóa xác minh**.
+1. Inspect Java's `CertPathValidatorException` using **`getIndex()`, `getReason()`, `getCertPath()`, `getCause()`, and `getMessage()`**, rather than just reading the string “PKIX path validation failed”.
+2. Map **index** to the exact certificate in `CertPath`, specifically the standard convention **index 0 = leaf**, index 1 = the intermediate closest to the leaf, and **the trust anchor is not in the path**.
+3. Distinguish **`BasicReason`** codes (expired, invalid signature, revoked, algorithm constrained...) from **`PKIXReason`** codes (no matching trust anchor, wrong KeyUsage, not a CA cert, name chaining failure...).
+4. Recognize **index = -1** as “unable to associate the failure with a single valid certificate index”, and **never infer that the root is broken or that a negative index means a root error**.
+5. Generate X.509 fixtures and run a **Java 17+** program to verify five scenarios: valid path; unrelated trust anchor; tampered leaf signature; tampered intermediate signature; expired leaf at a simulated validation date.
+6. Build a safe diagnostic workflow across TLS, PKIX, truststores, CRL/OCSP, chain provisioning, and log observation **without disabling verification**.
 
-**Giới hạn:** Một exception không cho phép kết luận “đã bị tấn công” hay “chắc chắn lỗi ở một chứng thư” nếu không đối chiếu path, reason, params và chính sách. Các kết quả `reason/index` trong ví dụ được kiểm thử bằng JDK hỗ trợ PKIX; nhà cung cấp dịch vụ bảo mật và đầu vào khác có thể báo khác. Không dùng cấu hình **tắt revocation** của lab để thay thế chính sách production.
+**Scope limits:** an exception alone does not let you conclude “we are under attack” or “the fault definitely lies in one specific certificate” without cross-checking the path, reason, parameters, and policy. The `reason/index` results in the examples were tested on a PKIX-supporting JDK; other security providers and inputs may report differently. Never use the lab's **revocation-disabled** setting as a substitute for production policy.
 
-## 1. `CertPathValidatorException` xuất hiện tại đâu?
+## 1. Where Does `CertPathValidatorException` Occur?
 
-Trong Java Security, một chuỗi chứng thư số X.509 thường được trình bày từ **certificate end-entity (leaf)** tới một hoặc nhiều **intermediate CA** và kết thúc tại **trust anchor** mà ứng dụng đã tin từ trước. Khi dùng PKIX:
+In Java Security, an X.509 certificate chain is typically presented from the **end-entity (leaf) certificate** through one or more **intermediate CAs** up to a **trust anchor** pre-trusted by the application. Under PKIX:
 
 ```java
 CertPathValidator validator = CertPathValidator.getInstance("PKIX");
 CertPathValidatorResult result = validator.validate(certPath, pkixParams);
 ```
 
-Đoạn này là **snippet**, chưa phải chương trình độc lập: cần import `java.security.cert.CertPathValidator` và `CertPathValidatorResult`; `certPath` phải được dựng đúng thứ tự; `pkixParams` chứa trust anchors và các thông số kiểm định. `validate` kiểm tra path đã cung cấp theo thuật toán PKIX/chính sách, và khi phát hiện lỗi liên quan path thường ném `CertPathValidatorException`.
+This is a **snippet**, not a standalone program: it requires importing `java.security.cert.CertPathValidator` and `CertPathValidatorResult`; `certPath` must be built in the right order; `pkixParams` holds trust anchors and validation settings. `validate` checks the supplied path against the PKIX algorithm/policy, and when a path error occurs it typically throws `CertPathValidatorException`.
 
-**Ba thao tác cần phân biệt:**
+**Three operations to distinguish:**
 
-- `CertificateFactory.generateCertificate(...)` **parse chứng thư** từ DER/PEM. Parse được không đồng nghĩa tin cậy.
-- `X509Certificate.verify(issuerPublicKey)` kiểm tra **chữ ký của đúng một certificate** bằng khóa issuer. Không kiểm tra cả chain/hostname/ủy quyền.
-- `CertPathValidator.validate(...)` xét **cả path đã có** với trust anchors, constraints và các tham số. Nó vẫn không thay thế kiểm tra **hostname/SAN, expected issuer, mục đích nghiệp vụ và authorization** của ứng dụng.
+- `CertificateFactory.generateCertificate(...)` **parses a certificate** from DER/PEM. Being parseable does not imply trust.
+- `X509Certificate.verify(issuerPublicKey)` checks **only a single certificate's signature** using an issuer key. It does not check the whole chain, hostname, or authority.
+- `CertPathValidator.validate(...)` evaluates **the entire supplied path** against trust anchors, constraints, and parameters. It still does not replace application-level checks for **hostname/SAN, expected issuer, business purpose, and authorization**.
 
-Không nhầm `CertPathValidator` với `CertPathBuilder`: **builder** tìm/ghép đường dẫn từ certificate và nguồn chứng thư đã được cung cấp; **validator** xác minh một path cụ thể. Nếu không tìm được path, builder có thể ném **`CertPathBuilderException`** thay vì một `CertPathValidatorException` trực tiếp. Lớp lỗi TLS/JDBC/HTTP cao hơn có thể bọc các lỗi này trong `SSLHandshakeException` hoặc ngoại lệ kết nối khác.
+Do not confuse `CertPathValidator` with `CertPathBuilder`: the **builder** discovers/assembles a path from supplied certificates and certificate sources; the **validator** checks a specific path. If no path can be found, the builder may throw **`CertPathBuilderException`** instead of a direct `CertPathValidatorException`. Higher-level TLS/JDBC/HTTP layers may wrap these in `SSLHandshakeException` or another connection exception.
 
-### Ví dụ chain thông thường
+### Typical Chain Example
 
 ```text
-                 truststore của client (đã chọn trước)
+               client's truststore (pre-selected)
           [Root CA certificate / trust anchor]
                          |
-                root CA ký intermediate
+                root CA signs intermediate
                          |
              [Intermediate CA certificate]
                          |
-               intermediate CA ký leaf
+               intermediate CA signs leaf
                          |
             [Leaf: api.example.test]
                          |
-              dùng private key cho TLS
+              uses private key for TLS
 ```
 
-`TrustAnchor` có thể giữ certificate hoặc tên/khóa CA; **niềm tin bắt đầu từ cấu hình của bên kiểm tra**, không đến từ một root tự ký do peer bất kỳ gửi qua mạng. Trong `CertPath` cho PKIX thông thường, chỉ **leaf và intermediate** được liệt kê; trust anchor cung cấp riêng qua `PKIXParameters`.
+`TrustAnchor` can hold a CA certificate or CA name/key; **trust starts from the verifier's own configuration**, never from an arbitrary peer-sent self-signed root over the network. In a typical PKIX `CertPath`, only **leaf and intermediates** are listed; the trust anchor is supplied separately in `PKIXParameters`.
 
-## 2. Cấu trúc quan trọng của ngoại lệ
+## 2. Key Anatomy of the Exception
 
-`java.security.cert.CertPathValidatorException` kế thừa `GeneralSecurityException` và cung cấp các getter rất hữu ích:
+`java.security.cert.CertPathValidatorException` extends `GeneralSecurityException` and provides very useful getters:
 
-| API | Giá trị | Cách sử dụng đúng |
+| API | Value | Proper usage |
 | --- | --- | --- |
-| `e.getIndex()` | Chỉ số 0-based trong `CertPath` mà exception liên hệ, hoặc **`-1`** | Kiểm tra khoảng `0 <= index < path.size()` trước khi đọc certificate. Không coi `-1` là “root” |
-| `e.getCertPath()` | Path liên quan lỗi, hoặc `null` khi không có thông tin | Dùng **path đi cùng exception** để tra certificate, thay vì đoán từ danh sách khác |
-| `e.getReason()` | Một `CertPathValidatorException.Reason`, thường là `BasicReason` hoặc `PKIXReason` | Ưu tiên reason enum hơn parse message phụ thuộc provider |
-| `e.getCause()` | Nguyên nhân bên dưới nếu có, có thể `null` | Hữu ích khi debug thư viện/validator khác; không tự coi message từ cause là mã lỗi bất biến |
-| `e.getMessage()` | Văn bản do implementation cung cấp | Chỉ để hỗ trợ con người; không viết control flow dựa trên so khớp chuỗi |
-| `e.getSuppressed()` | Những ngoại lệ bị suppressed nếu có | Kiểm tra khi công cụ bao bọc có sử dụng; không phải cách chính đọc PKIX reason |
+| `e.getIndex()` | 0-based index in `CertPath` associated with the exception, or **`-1`** | Bounds-check `0 <= index < path.size()` before reading a certificate. Never treat `-1` as “root” |
+| `e.getCertPath()` | Path associated with the failure, or `null` if unavailable | Use **the path attached to the exception** to look up the certificate, instead of guessing from another list |
+| `e.getReason()` | A `CertPathValidatorException.Reason`, usually `BasicReason` or `PKIXReason` | Prefer the reason enum over parsing provider-dependent messages |
+| `e.getCause()` | Underlying cause if any, may be `null` | Helpful when debugging libraries/other validators; do not treat cause messages as immutable error codes |
+| `e.getMessage()` | Human-oriented text from the implementation | For human diagnostics only; never write control flow via string matching |
+| `e.getSuppressed()` | Suppressed exceptions if any | Check when wrapping tools use them; not the primary way to read PKIX reasons |
 
-**Cảnh báo:** `e.getIndex()` không nhất thiết “trỏ vào certificate gây ra **nguyên nhân vật lý**”. Nó báo **certificate tại đó validator ghi nhận lỗi**, với một lý do cụ thể. Ví dụ certificate leaf có `issuer` không khớp intermediate, validator có thể báo `NAME_CHAINING` tại một vị trí; có thể lỗi ban đầu là hệ thống lấy sai intermediate. Chẩn đoán cần kết hợp path, metadata và policies.
+**Warning:** `e.getIndex()` does not necessarily “point to the certificate containing the **physical root cause**”. It indicates **the certificate at which the validator recorded the error** with a specific reason. For instance, if the leaf's `issuer` mismatches the intermediate, the validator may report `NAME_CHAINING` at one position while the underlying issue was fetching the wrong intermediate. Diagnosis requires combining path, metadata, and policies.
 
-### Index nào là leaf, intermediate, root?
+### Which Index Is Leaf, Intermediate, or Root?
 
-Với path được tạo bằng:
+For a path built with:
 
 ```java
 CertificateFactory factory = CertificateFactory.getInstance("X.509");
@@ -76,80 +76,80 @@ CertPath path = factory.generateCertPath(
         List.of(leafCertificate, intermediateCertificate));
 ```
 
-Đây là **snippet** cần có `leafCertificate`/`intermediateCertificate` đã parse và imports `java.security.cert.CertificateFactory`, `CertPath`, `java.util.List`. Java `generateCertPath(List)` giữ thứ tự list. Khi đó:
+This is a **snippet** requiring parsed `leafCertificate`/`intermediateCertificate` and imports for `java.security.cert.CertificateFactory`, `CertPath`, and `java.util.List`. Java's `generateCertPath(List)` preserves list order. Accordingly:
 
-| Index | Certificate trong path | Vai trò |
+| Index | Certificate in path | Role |
 | ---: | --- | --- |
 | `0` | `leafCertificate` | End-entity/leaf |
-| `1` | `intermediateCertificate` | Intermediate trực tiếp ký leaf |
-| `2` (nếu có) | Intermediate cấp trên nữa | Đứng gần trust anchor hơn |
-| **Không nằm trong path** | Root/trust anchor đã cấu hình | Không được tự gán index `path.size()` hoặc `-1` |
+| `1` | `intermediateCertificate` | Intermediate directly signing the leaf |
+| `2` (if present) | Higher-level intermediate | Closer to the trust anchor |
+| **Not in the path** | Configured root/trust anchor | Never assign index `path.size()` or `-1` as its index |
 
-Bất kỳ điều kiện `getIndex() = -1` đều chỉ có nghĩa **index không chỉ định một certificate** (ví dụ không tìm được trust anchor phù hợp trong môi trường thử nghiệm); với path khác hoặc provider khác, tình huống có thể khác. **Index không được xem là một mức độ nghiêm trọng**: lỗi index 0 không “nhẹ hơn” lỗi index 1.
+Any `getIndex() = -1` simply means **no single certificate index is designated** (for example, no matching trust anchor could be found in the test setup); on a different path or provider, behavior may vary. **Index is not a severity level**: an index 0 error is no “lighter” than an index 1 error.
 
-## 3. Hai nhóm `Reason` nên biết
+## 3. Two `Reason` Groups to Know
 
-Giá trị `getReason()` có kiểu interface `CertPathValidatorException.Reason`; Java định nghĩa các enum chính sau.
+`getReason()` returns the interface `CertPathValidatorException.Reason`; Java defines these primary enums.
 
 ### 3.1 `CertPathValidatorException.BasicReason`
 
-| Reason | Ý nghĩa cơ bản | Kiểm tra đầu tiên |
+| Reason | Core meaning | Check first |
 | --- | --- | --- |
-| `UNSPECIFIED` | Không có reason cụ thể hơn được báo | Đọc cause, message, provider/debug log, path và params; **không suy đoán** |
-| `EXPIRED` | Certificate bị coi là hết hiệu lực tại **ngày validation** | `NotAfter`, đồng hồ hệ thống, `PKIXParameters.getDate()` |
-| `NOT_YET_VALID` | Certificate chưa tới `NotBefore` tại ngày validation | Clock skew, notBefore và thời gian được cấu hình |
-| `REVOKED` | Validator đánh giá certificate đã bị thu hồi | CRL/OCSP, revocation policy, revocation date/reason (nếu có) |
-| `UNDETERMINED_REVOCATION_STATUS` | Không đủ cơ sở xác định trạng thái thu hồi theo chính sách | Kết nối CRL/OCSP, timeout, responder, cache, fail-open/fail-closed |
-| `INVALID_SIGNATURE` | Một chữ ký trong path không xác minh được theo khóa được chọn | Sai intermediate/issuer key, certificate bytes bị sửa, chain pha trộn |
-| `ALGORITHM_CONSTRAINED` | Một thuật toán/key bị ràng buộc bởi chính sách bảo mật | JDK security policy, `jdk.certpath.disabledAlgorithms`, key size, digest, thời điểm dùng |
+| `UNSPECIFIED` | No more specific reason reported | Read cause, message, provider/debug logs, path, and params; **do not guess** |
+| `EXPIRED` | Certificate is deemed expired at **validation date** | `NotAfter`, system clock, `PKIXParameters.getDate()` |
+| `NOT_YET_VALID` | Certificate is before `NotBefore` at validation date | Clock skew, `notBefore`, and configured time |
+| `REVOKED` | Validator determined the certificate was revoked | CRL/OCSP, revocation policy, revocation date/reason (if present) |
+| `UNDETERMINED_REVOCATION_STATUS` | Insufficient basis to determine revocation status per policy | CRL/OCSP connectivity, timeouts, responder, cache, fail-open/fail-closed |
+| `INVALID_SIGNATURE` | A signature in the path failed to verify under the selected key | Wrong intermediate/issuer key, altered certificate bytes, mixed chain |
+| `ALGORITHM_CONSTRAINED` | An algorithm/key is restricted by security policy | JDK security policy, `jdk.certpath.disabledAlgorithms`, key size, digest, usage date |
 
-Danh sách này mô tả **ý nghĩa reason**, không bảo đảm một provider nhất định lúc nào cũng gán cùng enum cho cùng tình huống. Một số lỗi có thể thành `UNSPECIFIED` hoặc bị wrapper đổi dạng.
+This table describes **the meaning of each reason**, without guaranteeing a specific provider always assigns the exact same enum in every situation. Some failures may map to `UNSPECIFIED` or be transformed by wrappers.
 
 ### 3.2 `java.security.cert.PKIXReason`
 
-| Reason | Điều PKIX đang thông báo | Hướng điều tra |
+| Reason | What PKIX is reporting | Investigation direction |
 | --- | --- | --- |
-| `NO_TRUST_ANCHOR` | Path không nối tới một trust anchor được cung cấp phù hợp | Truststore thực tế, root key ID, CA cấu hình sai, incomplete/misordered chain |
-| `NAME_CHAINING` | Liên kết tên issuer ↔ subject giữa certificate trong path không hợp lệ | Intermediate không tương ứng leaf, DN/issuer và key ID |
-| `INVALID_KEY_USAGE` | Certificate/key usage không cho phép vai trò cần kiểm tra | `KeyUsage.keyCertSign` đối với CA, profile ký phù hợp |
-| `INVALID_POLICY` | Certificate Policies hoặc policy constraints không thỏa mãn | Explicit policy, mapping, profile CA và params |
-| `UNRECOGNIZED_CRIT_EXT` | Có critical extension không được validator hiểu/xử lý theo yêu cầu | Xem OID, policy, provider; **không tắt kiểm tra critical extension** |
-| `NOT_CA_CERT` | Certificate tại vị trí CA không được phép đóng vai trò CA | `BasicConstraints: CA=true`, certificate profile |
-| `PATH_TOO_LONG` | Vi phạm `pathLenConstraint` hoặc ràng buộc chiều sâu đường dẫn | Số CA trung gian (lưu ý self-issued), path builder/issuer chain |
-| `INVALID_NAME` | Vi phạm ràng buộc tên, ví dụ `NameConstraints` | DNS/email/URI constraints của các CA trong path |
+| `NO_TRUST_ANCHOR` | Path does not chain to a supplied matching trust anchor | Actual truststore, root key ID, misconfigured CA, incomplete/misordered chain |
+| `NAME_CHAINING` | Invalid issuer ↔ subject name linkage between certificates in the path | Intermediate does not match leaf, DN/issuer, and key IDs |
+| `INVALID_KEY_USAGE` | Certificate/key usage disallows the required role | `KeyUsage.keyCertSign` for CAs, appropriate signing profile |
+| `INVALID_POLICY` | Certificate Policies or policy constraints unsatisfied | Explicit policy, mapping, CA profile, and params |
+| `UNRECOGNIZED_CRIT_EXT` | A critical extension is not understood/processed as required | Inspect OID, policy, provider; **never disable critical extension checks** |
+| `NOT_CA_CERT` | A certificate in a CA position is not authorized to act as a CA | `BasicConstraints: CA=true`, certificate profile |
+| `PATH_TOO_LONG` | Violates `pathLenConstraint` or path depth constraints | Number of intermediate CAs (mind self-issued), path builder/issuer chain |
+| `INVALID_NAME` | Violates name constraints, e.g., `NameConstraints` | DNS/email/URI constraints on CAs in the path |
 
-**`INVALID_NAME` không đồng nghĩa mọi lỗi hostname mismatch sẽ được `CertPathValidator` báo ở đây.** Hostname/SAN cho một HTTPS endpoint thường được kiểm tra **riêng** bởi JSSE/HTTP client sau hoặc trong TLS handshake; path PKIX có thể hợp lệ trong khi hostname sai.
+**`INVALID_NAME` does not mean every hostname mismatch is reported here by `CertPathValidator`.** Hostname/SAN checking for an HTTPS endpoint is usually performed **separately** by JSSE/HTTP clients after or during the TLS handshake; a PKIX path can be valid while the hostname mismatches.
 
-### 3.3 Đừng sử dụng `getMessage()` làm “mã lỗi”
+### 3.3 Never Use `getMessage()` as an “Error Code”
 
-Ví dụ:
+Example:
 
 ```java
 if (e.getMessage().contains("expired")) {
-    // Không an toàn để điều khiển chương trình theo văn bản provider.
+    // Unsafe to drive program control flow from provider message text.
 }
 ```
 
-Đây là minh họa **anti-pattern**, không phải cách nên sử dụng. Message phụ thuộc JDK/provider/ngôn ngữ/nguồn lỗi; có thể `null`, chứa thông tin nhạy cảm hoặc thay đổi sau nâng cấp. Thay vào đó, ưu tiên `e.getReason()` và `e.getIndex()`, rồi phân loại nội bộ. **Không** tự động sửa sai cấu hình truststore hoặc chấp nhận certificate dựa trên một reason string.
+This illustrates an **anti-pattern**, not recommended practice. Messages vary by JDK/provider/locale/failure source; they can be `null`, contain sensitive details, or change across upgrades. Instead, prefer `e.getReason()` and `e.getIndex()`, then classify internally. **Never** automatically alter truststore config or accept a certificate based on a reason string.
 
-## 4. Quy trình đọc ngoại lệ theo thứ tự
+## 4. Ordered Procedure for Reading the Exception
 
-Khi bắt được `CertPathValidatorException e`:
+When catching `CertPathValidatorException e`:
 
-1. **Ghi bối cảnh kiểm định đã xác thực:** hệ thống nào, expected hostname/service/tenant, mục đích `serverAuth` hay `clientAuth`, thuật toán validation, JDK/provider version, thời điểm xét và chính sách revocation. Không tin “expected identity” do certificate chưa được xác minh tự khai.
-2. **Lấy `reason` từ `e.getReason()`**: nó nêu loại vi phạm ở mức validator.
-3. **Lấy `index` và `path` từ chính exception**: nếu index hợp lệ, lấy certificate **tại vị trí đó** để xem `Subject`, `Issuer`, `Serial`, `NotBefore/NotAfter`, BasicConstraints, KeyUsage, SKI/AKI và fingerprint.
-4. Nếu **`index=-1`**, nêu rõ “lỗi không được gắn vào một certificate cụ thể”; so trust anchors, path construction, security parameters và error chain, **không gán cho root tùy ý**.
-5. **Kiểm tra chain theo chiều leaf → issuer → trust anchor**: đúng intermediate? `Issuer DN` khớp? Chữ ký thật có hợp lệ? `BasicConstraints/KeyUsage` cho CA? Có thiếu intermediate? Có cross-sign/alternate chain?
-6. **Kiểm tra chính sách path**: ngày validation, CA constraints, name constraints, các critical extensions, disabled algorithms, certificate policies, trust anchors và revocation.
-7. **Kiểm tra endpoint identity và authorization riêng** sau path validation khi use case yêu cầu; không coi `CertPathValidator.validate` thành công là chứng minh hostname/role đúng.
-8. **Khắc phục nguồn gốc và thử lại trên dữ liệu chuẩn** (đúng truststore/intermediate/certificate được phát hành lại), không chỉnh sửa chữ ký, tắt revocation hay trust-all để ép thành công.
+1. **Record the verified validation context:** which system, expected hostname/service/tenant, `serverAuth` vs `clientAuth` purpose, validation algorithm, JDK/provider version, evaluation time, and revocation policy. Never trust an “expected identity” self-declared by an unverified certificate.
+2. **Read `reason` via `e.getReason()`**: it states the validator-level violation category.
+3. **Read `index` and `path` from the exception itself**: if `index` is in bounds, retrieve the certificate **at that position** to inspect `Subject`, `Issuer`, `Serial`, `NotBefore/NotAfter`, BasicConstraints, KeyUsage, SKI/AKI, and fingerprint.
+4. If **`index=-1`**, record explicitly “error not tied to a single certificate”; check trust anchors, path construction, security parameters, and cause chain, **never attributing it arbitrarily to the root**.
+5. **Trace the chain leaf → issuer → trust anchor:** right intermediate? Matching `Issuer DN`? Actually valid signature? `BasicConstraints/KeyUsage` for CA? Missing intermediate? Cross-signing/alternate chain?
+6. **Check path policies:** validation date, CA constraints, name constraints, critical extensions, disabled algorithms, certificate policies, trust anchors, and revocation.
+7. **Check endpoint identity and authorization separately** after path validation when required by the use case; never treat `CertPathValidator.validate` success as proof of hostname/role.
+8. **Fix the root cause and retest with valid data** (right truststore/intermediate/reissued certificate), never editing signatures, disabling revocation, or using trust-all to force success.
 
-Với exception nằm trong `SSLHandshakeException`, có thể duyệt `Throwable.getCause()` để tìm `CertPathValidatorException`; có khi lớp trên chỉ ném `CertPathBuilderException` vì không thể tìm được đường dẫn. Đừng lấy mọi lỗi handshake làm lỗi certificate: TLS còn có lỗi protocol/cipher/IO/peer alert.
+For exceptions wrapped in `SSLHandshakeException`, traverse `Throwable.getCause()` to locate `CertPathValidatorException`; sometimes the upper layer throws only `CertPathBuilderException` because no path could be built. Never treat every handshake failure as a certificate error: TLS also has protocol/cipher/IO/peer alert errors.
 
-## 5. Code phân tích index an toàn (snippet có thể tích hợp)
+## 5. Safe Index-Inspection Code (Integrable Snippet)
 
-Đoạn **không độc lập** sau nằm trong một phương thức đã có `CertPathValidatorException e`, sử dụng `getCertPath()` thay vì đoán từ mảng input khác:
+The following **non-standalone** snippet sits inside a method holding `CertPathValidatorException e`, using `getCertPath()` rather than guessing from another input array:
 
 ```java
 int index = e.getIndex();
@@ -169,39 +169,39 @@ if (failedPath != null
 }
 ```
 
-Cần import `java.security.cert.CertPath` và `X509Certificate`. Đoạn này giả định certificate trong path là **X.509**; trong thư viện tổng quát cần kiểm tra `instanceof X509Certificate`. Khi đưa vào logging thật, không dùng `System.out`, tránh đưa nguyên chuỗi subject/issuer chứa dữ liệu cá nhân hoặc raw DER certificate vào log công khai; chỉ log trường cần thiết dưới quyền xem phù hợp.
+Requires importing `java.security.cert.CertPath` and `X509Certificate`. This assumes certificates in the path are **X.509**; generic library code should check `instanceof X509Certificate`. In real logging, never use `System.out`, avoid dumping full subject/issuer strings containing personal data or raw DER certificates into public logs; log only necessary fields under appropriate access controls.
 
-**Điều quan trọng:** Vị trí `index` có ý nghĩa **trong `failedPath`**. Nếu bạn copy/reverse list, thêm trust anchor vào đầu, hoặc dùng chain theo thứ tự server gửi nhưng không kiểm chứng, bạn có thể báo sai “lỗi tại root” trong khi index thực là leaf.
+**Crucial point:** `index` is meaningful **within `failedPath`**. If you copy/reverse the list, prepend a trust anchor, or use the server's raw chain order unchecked, you can misreport “root error” when the real index was the leaf.
 
-## 6. Lab Java 17 có thể tái lập: năm kết quả PKIX
+## 6. Reproducible Java 17 Lab: Five PKIX Outcomes
 
-Trong lab, tạo:
+In the lab, create:
 
 ```text
-root.pem (self-signed CA; được chọn làm TrustAnchor)
+root.pem (self-signed CA; chosen as TrustAnchor)
      |
-intermediate.pem (CA=true, được root ký)
+intermediate.pem (CA=true, signed by root)
      |
-leaf.pem (CA=false, SAN=api.example.test, được intermediate ký)
+leaf.pem (CA=false, SAN=api.example.test, signed by intermediate)
 
-rogue.pem (một self-signed CA độc lập, không ký chain trên)
+rogue.pem (an independent self-signed CA; did not sign the chain above)
 ```
 
-Ta sẽ chạy các biến thể:
+We will run these variants:
 
-| Ca kiểm thử | Thao tác | Kết quả kỳ vọng trong JDK thử nghiệm |
+| Test case | Action | Expected result on test JDK |
 | --- | --- | --- |
 | **Valid chain** | Path `[leaf, intermediate]`, trust anchor root | `OK` |
-| **Wrong trust anchor** | Cùng path, trust anchor là rogue | `index=-1`, `reason=NO_TRUST_ANCHOR` |
-| **Tampered leaf signature** | Đổi bit cuối trong phần chữ ký DER của leaf, giữ nguyên intermediate | `index=0`, `reason=INVALID_SIGNATURE` |
-| **Tampered intermediate signature** | Đổi bit cuối chữ ký DER intermediate, giữ nguyên leaf | `index=1`, `reason=INVALID_SIGNATURE` |
-| **Expired leaf at future validation date** | `PKIXParameters.setDate` bằng ngày sau leaf NotAfter, trong khi intermediate còn hiệu lực | `index=0`, `reason=EXPIRED` |
+| **Wrong trust anchor** | Same path, trust anchor is rogue | `index=-1`, `reason=NO_TRUST_ANCHOR` |
+| **Tampered leaf signature** | Flip last bit in leaf's DER signature, keep intermediate unchanged | `index=0`, `reason=INVALID_SIGNATURE` |
+| **Tampered intermediate signature** | Flip last bit in intermediate's DER signature, keep leaf unchanged | `index=1`, `reason=INVALID_SIGNATURE` |
+| **Expired leaf at future validation date** | `PKIXParameters.setDate` set past leaf `NotAfter`, while intermediate remains valid | `index=0`, `reason=EXPIRED` |
 
-Đây là **fixture thử nghiệm tự sinh** không có kết nối tới một máy chủ thực. Thao tác thay bit cuối DER chỉ để minh họa **chữ ký certificate không hợp lệ**; ngoài lab, không sửa certificate/DER để làm nó “hợp lệ”. Đoạn keytool dùng RSA 2048 bit cho sự tương thích lab, không nhằm chọn chính sách lâu dài cho mọi sản phẩm.
+These are **self-generated test fixtures** with no real server connection. Flipping the last DER bit illustrates **an invalid certificate signature**; outside a lab, never edit certificate/DER bytes to make something “valid”. The keytool commands use 2048-bit RSA for lab compatibility, not as a long-term policy choice for every product.
 
-### 6.1 Sinh các certificate bằng `keytool` (PowerShell/Windows)
+### 6.1 Generating Certificates with `keytool` (PowerShell/Windows)
 
-Tạo thư mục tạm riêng và chạy trọn script sau trong PowerShell với JDK 17+ có `keytool.exe` trên `PATH`. Script chỉ tạo fixture trong `%TEMP%\certpath-reason-training`; mật khẩu `changeit` là **dùng cho lab**. Không tái sử dụng keystore này trong môi trường thật.
+Create a dedicated temp folder and run the entire script in PowerShell with JDK 17+ and `keytool.exe` on `PATH`. The script only creates fixtures in `%TEMP%\certpath-reason-training`; the password `changeit` is **for the lab**. Never reuse this keystore in real environments.
 
 ```powershell
 $ErrorActionPreference = 'Continue'
@@ -290,21 +290,21 @@ foreach ($alias in @("root","intermediate","leaf","rogue")) {
 Write-Output "Four PEM certificate fixture files generated"
 ```
 
-**Đầu ra cuối trên môi trường đã kiểm thử:**
+**Final output in the tested environment:**
 
 ```text
 Four PEM certificate fixture files generated
 ```
 
-Script tạo bốn file cần cho Java: `root.pem`, `intermediate.pem`, `leaf.pem` và `rogue.pem`. Các file `intermediate-issued.pem` và `leaf-issued.pem` lưu certificate replies, còn `certs.p12` lưu các private key **chỉ phục vụ lab**. Bốn file PEM được xuất bằng `-exportcert` **không chứa private key**.
+The script creates the four files needed by Java: `root.pem`, `intermediate.pem`, `leaf.pem`, and `rogue.pem`. `intermediate-issued.pem` and `leaf-issued.pem` store certificate replies, while `certs.p12` holds private keys **for lab use only**. The four PEM files exported with `-exportcert` **contain no private keys**.
 
-**Lưu ý:** Nếu keystore chứa aliases cũ hoặc script bị ngắt giữa chừng, nên xóa toàn bộ thư mục **lab vừa tạo** theo quy trình an toàn hoặc chọn thư mục tạm mới. Không xóa tệp khác chỉ vì có tên `certs.p12` ở nơi không phải thư mục lab. Trên macOS/Linux có thể dùng `keytool` tương đương với cú pháp Bash, nhưng đoạn trên dành riêng cho PowerShell.
+**Note:** if the keystore has leftover aliases or the script stops midway, delete the entire **newly created lab folder** safely or pick a fresh temp folder. Do not delete unrelated files named `certs.p12` outside the lab directory. On macOS/Linux you can run equivalent `keytool` commands in Bash, though the snippet above is written for PowerShell.
 
-**Tại sao leaf chỉ có validity 7 ngày?** Để chương trình có thể chọn một validation date **sau `leaf.getNotAfter()`** nhưng vẫn trong hạn intermediate 365 ngày. Nhờ vậy test `EXPIRED` tại index 0 không bị một intermediate hết hạn che khuất.
+**Why does the leaf have only 7-day validity?** So the program can pick a validation date **after `leaf.getNotAfter()`** yet still within the intermediate's 365-day validity. That prevents an expired intermediate from masking the `EXPIRED` test at index 0.
 
-### 6.2 Chương trình Java 17 độc lập: `CertPathFailureDemo.java`
+### 6.2 Standalone Java 17 Program: `CertPathFailureDemo.java`
 
-Lưu tệp **`CertPathFailureDemo.java`** trong đúng thư mục có các PEM và chạy. Code parse các file, dựng path theo thứ tự **leaf rồi intermediate**, gọi PKIX với trust anchor cụ thể, tạo dữ liệu sai **chỉ trong bộ nhớ** để test lỗi chữ ký, và dùng `getIndex/getReason/getCertPath` để báo lỗi.
+Save **`CertPathFailureDemo.java`** in the exact directory containing the PEMs and run it. The code parses the files, builds the path in **leaf then intermediate** order, invokes PKIX with a specific trust anchor, tampers bytes **in memory only** to test signature errors, and uses `getIndex/getReason/getCertPath` to report failures.
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -415,14 +415,14 @@ public final class CertPathFailureDemo {
 }
 ```
 
-Lệnh biên dịch/chạy trên PowerShell (vẫn ở thư mục lab):
+Compile and run in PowerShell (still in the lab directory):
 
 ```powershell
 javac --release 17 CertPathFailureDemo.java
 java -cp . CertPathFailureDemo
 ```
 
-**Stdout đã kiểm thử trên JDK Java 17 hỗ trợ PKIX:**
+**Verified stdout on a PKIX-supporting Java 17 JDK:**
 
 ```text
 Path order: index 0=leaf; index 1=intermediate
@@ -435,116 +435,116 @@ Leaf is CA: false
 Intermediate is CA: true
 ```
 
-Trong chương trình, phần tên `cert=leaf` hoặc `cert=intermediate` là **nhãn riêng của fixture**: helper xem subject DN có chuỗi `Intermediate` hay không; không dùng cách nhận diện tên này trong hệ thống thật. Ứng dụng production nên log subject/issuer/fingerprint được **trích từ certificate tại index hợp lệ**, và đối chiếu với expected chain. Đừng điều khiển authorization dựa trên việc subject chứa một từ như “Root” hoặc “Intermediate”.
+In the program, the `cert=leaf` or `cert=intermediate` label is a **fixture-specific label**: the helper checks if the subject DN contains the string `Intermediate`; never use this name-checking approach in real systems. Production apps should log subject/issuer/fingerprint **extracted from the certificate at the valid index**, and compare against the expected chain. Never base authorization on whether a subject contains a word like “Root” or “Intermediate”.
 
-### 6.3 Tại sao kết quả này đáng tin?
+### 6.3 Why Are These Results Reliable?
 
-- **Valid chain: OK:** Root đã được **trực tiếp chọn** thành `TrustAnchor`, intermediate có `CA=true`/`keyCertSign` và leaf do intermediate ký. Lab không thực hiện kết nối TLS/hostname.
-- **Wrong trust anchor: index=-1 reason=NO_TRUST_ANCHOR:** Root `rogue.pem` tự ký hợp lệ nhưng **không liên quan** chain này. Validator không có anchor phù hợp. **`-1` trong ca này không chỉ một certificate “root lỗi” ở index -1**.
-- **Tampered leaf signature: index=0 INVALID_SIGNATURE:** Đổi một bit cuối DER khiến chữ ký leaf không còn khớp public key intermediate. Path vẫn có hai certificate; lỗi gắn ở **leaf (index 0)**.
-- **Tampered intermediate signature: index=1 INVALID_SIGNATURE:** Chữ ký intermediate không còn khớp public key root. Leaf có thể vẫn có chữ ký hợp lệ theo public key intermediate; lỗi gắn ở **intermediate (index 1)**.
-- **Expired leaf at future validation date: index=0 EXPIRED:** `params.setDate(future)` thay thời điểm validation, không chỉnh certificate bytes. Leaf có thời hạn 7 ngày; intermediate có 365 ngày; ngày giả lập vượt leaf NotAfter.
-- **CA checks:** `leaf.getBasicConstraints()<0` và `intermediate.getBasicConstraints()>=0`, phản ánh profile leaf/CA. Không đủ để tự chứng minh trust.
+- **Valid chain: OK:** Root was **explicitly chosen** as `TrustAnchor`, intermediate has `CA=true`/`keyCertSign`, and leaf is signed by intermediate. The lab makes no TLS/hostname connections.
+- **Wrong trust anchor: index=-1 reason=NO_TRUST_ANCHOR:** `rogue.pem` is validly self-signed yet **unrelated** to this chain. The validator has no matching anchor. **`-1` here does not denote a “broken root” certificate at index -1**.
+- **Tampered leaf signature: index=0 INVALID_SIGNATURE:** flipping the last DER bit breaks the leaf's signature against the intermediate's public key. The path still has two certificates; the error is reported at **leaf (index 0)**.
+- **Tampered intermediate signature: index=1 INVALID_SIGNATURE:** the intermediate's signature no longer matches the root's public key. The leaf's own signature against the intermediate may still be valid; the error is reported at **intermediate (index 1)**.
+- **Expired leaf at future validation date: index=0 EXPIRED:** `params.setDate(future)` changes the validation time without altering certificate bytes. The leaf is valid for 7 days; the intermediate for 365 days; the simulated date exceeds leaf `NotAfter`.
+- **CA checks:** `leaf.getBasicConstraints()<0` and `intermediate.getBasicConstraints()>=0`, reflecting the leaf/CA profiles. Insufficient to prove trust by itself.
 
-**Đây là kết quả cho fixture đã kiểm thử, không phải bảng ánh xạ bắt buộc với mọi provider.** Trên JDK/provider khác, policy, thời gian tạo, extension, security properties hoặc cách dựng path có thể làm reason/exception thay đổi; **không viết unit test production bắt buộc mọi hệ thống có đúng message string**.
+**These are the results for the tested fixture, not a mandatory mapping across every provider.** On another JDK/provider, policy, creation time, extensions, security properties, or path construction can change reasons/exceptions; **never write production unit tests asserting exact message strings across all runtimes**.
 
-### 6.4 Tại sao phải dùng `getCertPath()` từ exception?
+### 6.4 Why Must You Use `getCertPath()` from the Exception?
 
-Nếu `CertPathValidator` được gọi qua một thư viện, path thật có thể là path được builder chọn, không phải danh sách certificate mà bạn nghĩ server gửi. `e.getCertPath()` (nếu có) là path được gắn trong exception; tra certificate theo `e.getIndex()` và kiểm tra giới hạn giúp tránh gắn sai lỗi cho một intermediate khác.
+If `CertPathValidator` is invoked through a library, the actual path may be one selected by a builder rather than the raw certificate list you think the server sent. `e.getCertPath()` (when present) is the path attached to the exception; looking up the certificate at `e.getIndex()` with bounds checks prevents blaming the wrong intermediate.
 
-Với `index=-1`, code giữ `cert=none`; **không lấy phần tử cuối của path rồi gọi nó là root**, và không cố đọc `path.getCertificates().get(-1)`. Với list certificate rỗng/path null, cũng không cố truy cập theo index.
+When `index=-1`, the code keeps `cert=none`; **never take the last element of the path and call it the root**, and never attempt `path.getCertificates().get(-1)`. When the certificate list is empty or the path is null, never index into it either.
 
-## 7. `PKIXParameters` quyết định câu trả lời của validator
+## 7. `PKIXParameters` Determines the Validator's Answer
 
-Hai lần gọi `validate` với **cùng certificate path** có thể cho kết quả khác nhau khi tham số thay đổi. Các tham số quan trọng:
+Two `validate` calls with **the exact same certificate path** can yield different outcomes when parameters change. Key parameters:
 
-- **`TrustAnchors`:** root/CA key đã được provision từ nguồn tin cậy. Danh sách khác nhau giữa JDK, container, JVM, custom truststore và OS có thể làm kết quả khác.
-- **`Date`:** `params.setDate(date)` cho phép kiểm định tại thời điểm xác định; nếu không đặt, thường là thời điểm hiện tại. Dùng thời gian đúng theo hợp đồng hệ thống và xem xét clock skew.
-- **`RevocationEnabled` và `PKIXRevocationChecker`:** chính sách CRL/OCSP/cache/responder, độ tin cậy và khi mạng không truy cập được. Trạng thái thu hồi không thể suy ra từ hạn `NotAfter`.
-- **`InitialPolicies` / explicit-policy-required:** các certificate policies/constraints được chấp nhận; khác nhau theo purpose, tenant, hệ thống.
-- **`CertStores`:** nguồn intermediate/CRL để xây dựng và kiểm tra path, tùy workflow. Validator không tự “sửa” missing issuer chỉ vì certificate có URL AIA.
-- **`AlgorithmConstraints`/JDK security properties:** khóa yếu, digest và thuật toán không còn được policy cho phép, có thể cho `ALGORITHM_CONSTRAINED`. Không tắt policy để chạy certificate cũ trừ khi có quyết định rủi ro được đánh giá và lộ trình thay thế.
+- **`TrustAnchors`:** root/CA keys provisioned from a trusted source. Differences across JDKs, containers, JVMs, custom truststores, and OS stores can alter results.
+- **`Date`:** `params.setDate(date)` allows checking at a specific instant; if unset, normally defaults to current time. Use time per system contract and watch for clock skew.
+- **`RevocationEnabled` and `PKIXRevocationChecker`:** CRL/OCSP/cache/responder policy, trust, and unreachable-network behavior. Revocation status cannot be inferred from `NotAfter`.
+- **`InitialPolicies` / explicit-policy-required:** accepted certificate policies/constraints; vary by purpose, tenant, and system.
+- **`CertStores`:** source of intermediates/CRLs for path building and checking, depending on workflow. The validator does not automatically “fix” a missing issuer simply because a certificate carries an AIA URL.
+- **`AlgorithmConstraints`/JDK security properties:** weak keys, digests, and disallowed algorithms can trigger `ALGORITHM_CONSTRAINED`. Never disable policy to keep legacy certificates working unless backed by an evaluated risk decision and migration roadmap.
 
-**Cảnh báo rất quan trọng:** Lab dùng `params.setRevocationEnabled(false)` để chạy offline không cần CRL/OCSP. Trên production, cấu hình kiểm tra thu hồi phải theo chính sách bảo mật của use case. Khi gặp `UNDETERMINED_REVOCATION_STATUS` không được tự bật `false` để “sửa lỗi” nếu chính sách yêu cầu kiểm tra thu hồi.
+**Critical warning:** the lab uses `params.setRevocationEnabled(false)` to run offline without CRL/OCSP. In production, configure revocation checking per your use case's security policy. When encountering `UNDETERMINED_REVOCATION_STATUS`, never flip it to `false` to “fix the error” if policy requires revocation checking.
 
-### Validation date không bằng “ngày phát hành certificate”
+### Validation Date Does Not Equal “Certificate Issuance Date”
 
-Certificate có `NotBefore/NotAfter` riêng. Thời điểm `PKIXParameters.getDate()` dùng để xét hiệu lực không tự biến một certificate hết hạn thành còn hiệu lực. Không “chỉnh đồng hồ” hoặc chọn ngày tùy ý nhằm bỏ qua certificate hết hạn ngoài một use case được thiết kế rõ (ví dụ kiểm chứng dữ liệu ký lâu dài kèm timestamp/evidence được đánh giá phù hợp).
+Each certificate has its own `NotBefore/NotAfter`. The `PKIXParameters.getDate()` timestamp used for evaluation does not magically turn an expired certificate into a valid one. Never “turn back the clock” or pick arbitrary dates to bypass expired certificates outside a well-designed use case (such as validating long-term archived signed data with properly evaluated timestamps/evidence).
 
-### Root trust anchor và path
+### Root Trust Anchor and the Path
 
-Với Java PKIX thông thường, trust anchor **được cung cấp riêng** chứ không nhất thiết là phần tử trong `CertPath`. Trạng thái validity của trust-anchor certificate không tự được xử lý y hệt certificate nằm trong path; chính sách quản trị root/truststore và các bước bổ sung có thể khác. **Đừng suy ra `index=-1` nghĩa là root hết hạn**; đó chỉ là không có index cụ thể được gán trong exception.
+In standard Java PKIX, the trust anchor **is supplied separately** and is not necessarily an element inside `CertPath`. The validity status of a trust-anchor certificate is not automatically handled identically to certificates in the path; root/truststore governance policies and extra checks may apply. **Never infer `index=-1` means the root expired**; it only means no specific index was assigned in the exception.
 
-## 8. Những reason phổ biến trong hệ thống thật
+## 8. Common Reasons in Real Systems
 
-### 8.1 `NO_TRUST_ANCHOR` hoặc “PKIX path building failed”
+### 8.1 `NO_TRUST_ANCHOR` or “PKIX path building failed”
 
-Hãy hỏi: ứng dụng **đang chạy trên JVM nào**, tải truststore nào, trust anchors gồm những CA nào? Server có gửi **đúng intermediate** không? Có cross-signing khiến client cũ cần một đường dẫn khác không? Certificate có issuer thật được ký bởi public key nào?
+Ask: **which JVM** is the app running on, which truststore is loaded, and which CAs are in trust anchors? Did the server send the **right intermediate**? Is cross-signing causing older clients to need a different path? Which public key signed the certificate's true issuer?
 
-- Dùng `keytool -list -v -keystore ...` hoặc công cụ quản trị truststore tương ứng để kiểm tra **có kiểm soát**. `cacerts` của JVM và truststore custom/container có thể khác nhau.
-- So issuer/subject, SKI/AKI và signature link để hiểu intermediate; nhưng **chỉ so DN chưa đủ** để chứng minh issuer ký.
-- Nếu server không gửi intermediate, có thể phải sửa **certificate chain server-side** hoặc provisioning ở phía ứng dụng. Không tự đưa root mới từ response của server vào truststore.
-- Với các certificate tự ký của môi trường nội bộ, pin/trust anchor chỉ được cài khi danh tính/khóa đã được xác thực qua kênh đáng tin.
+- Use `keytool -list -v -keystore ...` or appropriate truststore management tools to inspect **under control**. JVM `cacerts` and custom/container truststores may differ.
+- Compare issuer/subject, SKI/AKI, and signature links to trace intermediates; yet **comparing DNs alone is not enough** to prove issuer signing.
+- If the server omits the intermediate, you may need to fix the **server-side certificate chain** or application-side provisioning. Never import a new root from a server response into the truststore.
+- For self-signed certificates in internal environments, install pins/trust anchors only once identity/keys are verified over a trusted channel.
 
-Cần phân biệt `CertPathBuilderException` (không tìm được path) với `CertPathValidatorException` (một path được kiểm tra và thất bại). Lỗi ở tầng TLS có thể bọc cả hai. **Đừng giả định builder thất bại có một `getIndex()`**.
+Distinguish `CertPathBuilderException` (no path found) from `CertPathValidatorException` (a path was checked and failed). TLS-layer errors can wrap either. **Never assume a builder failure exposes a `getIndex()`**.
 
-### 8.2 `EXPIRED` và `NOT_YET_VALID`
+### 8.2 `EXPIRED` and `NOT_YET_VALID`
 
-Kiểm tra `NotBefore/NotAfter` của certificate **được index nêu ra**, đồng hồ máy, múi giờ/UTC và validation date thực tế. Một intermediate hết hạn có thể khiến **nhiều leaf** cùng gặp lỗi dù leaf còn hiệu lực.
+Inspect `NotBefore/NotAfter` of the certificate **at the reported index**, host clock, timezone/UTC, and actual validation date. One expired intermediate can cause **many leaves** to fail even while the leaves themselves are unexpired.
 
-Không sửa bằng cách tắt validity validation. Quy trình đúng là renew/replace certificate theo chain phù hợp, cập nhật issuer/intermediate nếu cần, kiểm tra lại key usage, SAN/EKU, chính sách và triển khai có rollback.
+Never fix this by disabling validity checks. The right process is renewing/replacing certificates in the chain, updating issuers/intermediates if needed, rechecking key usage, SAN/EKU, policies, and deploying with rollback.
 
 ### 8.3 `INVALID_SIGNATURE`
 
-Bắt đầu từ **certificate tại index**, tìm **issuer key phù hợp** trong certificate phía trên hoặc trust anchor; kiểm tra chữ ký bằng khóa đó trong môi trường debug. Các nguyên nhân hay gặp: leaf đi kèm intermediate sai, trộn chain từ hai đợt phát hành, certificate DER bị hỏng hoặc issuer key rollover. Việc message đề cập “signature” **không có nghĩa chữ ký dữ liệu ứng dụng bị sai**; ở đây là **chữ ký của X.509 certificate** trong path.
+Start at **the certificate at `index`**, locate the **matching issuer key** in the parent certificate or trust anchor, and verify the signature with that key during debugging. Common causes: leaf paired with wrong intermediate, mixed chains from two issuance generations, corrupted DER bytes, or issuer key rollover. A message mentioning “signature” **does not mean application payload signing failed**; here it refers to **the X.509 certificate signature** in the path.
 
-Đừng “khắc phục” bằng việc chuyển sang trust-all, bỏ qua signature link hoặc dùng public key từ payload chưa xác thực.
+Never “fix” this by switching to trust-all, skipping signature links, or using public keys from untrusted payloads.
 
 ### 8.4 `NOT_CA_CERT`, `INVALID_KEY_USAGE`, `PATH_TOO_LONG`
 
-Trọng tâm là **vai trò CA**:
+Focus on **CA authority**:
 
-- Intermediate phải có `BasicConstraints: CA=true` và `KeyUsage.keyCertSign` khi extension yêu cầu.
-- `pathLenConstraint=0` ở một intermediate nghĩa là không có **CA intermediate không tự phát hành** thêm bên dưới (nhưng vẫn có thể cấp leaf).
-- Certificate `CA=false` không được tự nâng thành CA chỉ vì private key của nó có thể ký một chữ ký kỹ thuật.
+- An intermediate must have `BasicConstraints: CA=true` and `KeyUsage.keyCertSign` when the extension applies.
+- `pathLenConstraint=0` on an intermediate means no further **non-self-issued intermediate CAs** below it (though it can still issue leaves).
+- A `CA=false` certificate must not be promoted to a CA just because its private key can technically sign bytes.
 
-Kiểm tra bản profile được cấp bởi CA, không tự “vá” extension local vì certificate được ký: thay một byte extension làm chữ ký certificate sai. Cần phát hành lại certificate đúng quy trình.
+Inspect the CA-issued profile; never “patch” extensions locally because certificates are signed—altering one byte invalidates the signature. Reissue the certificate properly.
 
 ### 8.5 `REVOKED` / `UNDETERMINED_REVOCATION_STATUS`
 
-Certificate có thể đã bị thu hồi dù chưa tới `NotAfter`. Xem CRL/OCSP, cache, responder, network controls, nonce/stapling nếu áp dụng và chính sách khi không có kết quả. Một exception revocation có thể chứa dữ liệu chi tiết trong `cause` (ví dụ `CertificateRevokedException`); xử lý có kiểm soát, tránh lộ ra client.
+A certificate may be revoked even prior to `NotAfter`. Check CRL/OCSP, caching, responders, network controls, nonce/stapling if used, and policy when status is unavailable. A revocation exception may carry detailed data in `cause` (such as `CertificateRevokedException`); handle carefully to avoid leaking to clients.
 
-`UNDETERMINED_REVOCATION_STATUS` **không đồng nghĩa certificate sạch**. Nó cho biết không xác định được trạng thái theo chính sách. Có hệ thống dùng soft-fail có đánh giá rủi ro, nhưng quyết định này **không nên phát sinh tự động từ một catch block**.
+`UNDETERMINED_REVOCATION_STATUS` **does not mean a clean certificate**. It means status could not be determined per policy. Some systems use risk-evaluated soft-fail, yet that decision **must never arise ad hoc from a catch block**.
 
 ### 8.6 `ALGORITHM_CONSTRAINED`
 
-Mật mã path có thể bị policy từ chối dù chữ ký tự thân toán học còn verify được: RSA modulus quá nhỏ, SHA-1 hoặc thuật toán không được dùng trong mục đích này, thời điểm sử dụng không thỏa policy. Kiểm tra `java.security`, `jdk.certpath.disabledAlgorithms` và thông số JDK/provider triển khai.
+Path cryptography can be rejected by policy even when the signature itself verifies mathematically: small RSA modulus, SHA-1, disallowed algorithms for that purpose, or usage date violating policy. Inspect `java.security`, `jdk.certpath.disabledAlgorithms`, and target JDK/provider parameters.
 
-Phương án bền vững là phát hành lại chain theo scheme/key size được phép, cùng lộ trình tương thích. **Không** vô hiệu hóa constraints trên toàn JVM để một certificate yếu tiếp tục hoạt động.
+The sustainable fix is reissuing the chain with permitted schemes/key sizes and a compatibility plan. **Never** disable constraints JVM-wide just to keep a weak certificate running.
 
-### 8.7 `INVALID_NAME` không phải mọi lỗi hostname mismatch
+### 8.7 `INVALID_NAME` Is Not Every Hostname Mismatch
 
-`INVALID_NAME` có thể gắn với **NameConstraints** trong chain. Nhưng TLS endpoint identity (DNS SAN/IP) của certificate leaf so với tên máy bạn kết nối thường là bước **bên ngoài generic PKIX path validation**. Một path có thể `validate == OK` nhưng TLS handshake bị chặn do SAN không khớp. Đừng “sửa” bằng cách hạ expected hostname hoặc sửa `CN`.
+`INVALID_NAME` can relate to **NameConstraints** in the chain. However, TLS endpoint identity (DNS SAN/IP) on the leaf vs the host you connect to is usually a step **outside generic PKIX path validation**. A path can have `validate == OK` while the TLS handshake is blocked due to a SAN mismatch. Never “fix” it by relaxing the expected hostname or editing `CN`.
 
-## 9. Khi exception bị bọc trong TLS hoặc thư viện
+## 9. When the Exception Is Wrapped by TLS or Libraries
 
-Thường thấy stack kiểu:
+A typical stack looks like:
 
 ```text
 javax.net.ssl.SSLHandshakeException
-  -> javax.net.ssl.SSLException / ValidatorException (tùy provider)
+  -> javax.net.ssl.SSLException / ValidatorException (provider-dependent)
       -> java.security.cert.CertPathValidatorException
 ```
 
-Hoặc:
+Or:
 
 ```text
 javax.net.ssl.SSLHandshakeException
   -> sun.security.provider.certpath.SunCertPathBuilderException
-     (không xây dựng được đường dẫn tin cậy)
+     (unable to build a trusted certification path)
 ```
 
-Hai sơ đồ là **hình minh họa cấu trúc thường gặp**, không cam kết tất cả JDK/provider có cùng chuỗi cause hay cho phép import lớp nội bộ `sun.*`. Không viết logic nghiệp vụ phụ thuộc tên lớp Sun internal. Ví dụ snippet bên dưới là **đoạn phụ trợ**, không phải chương trình độc lập:
+Both diagrams **illustrate common structures**, without promising every JDK/provider has the exact same cause chain or permits importing internal `sun.*` classes. Never write business logic depending on Sun internal class names. The snippet below is a **helper fragment**, not a standalone program:
 
 ```java
 static CertPathValidatorException findValidationProblem(Throwable error) {
@@ -560,125 +560,125 @@ static CertPathValidatorException findValidationProblem(Throwable error) {
 }
 ```
 
-Đặt trong một class, import `java.security.cert.CertPathValidatorException`. Giới hạn `depth` tránh loop bất thường trong exception chain; trong thư viện thực có thể xem thêm suppressed causes. Nếu trả `null`, không kết luận certificate đúng: có thể lỗi thuộc builder/hostname/protocol hoặc bị che bởi wrapper.
+Place inside a class and import `java.security.cert.CertPathValidatorException`. The `depth` cap prevents abnormal cycles in cause chains; real libraries may also inspect suppressed exceptions. If it returns `null`, never conclude the certificate is valid: the error may belong to the builder/hostname/protocol or be masked by a wrapper.
 
-**Cẩn thận:** Không “catch tất cả `SSLHandshakeException` rồi kết luận `NO_TRUST_ANCHOR`”. Ghi loại lỗi thật, xác định mục đích TLS và phân loại theo các lớp thông tin có sẵn.
+**Be careful:** never “catch all `SSLHandshakeException` and conclude `NO_TRUST_ANCHOR`”. Record the actual exception type, verify TLS purpose, and classify using available diagnostic layers.
 
-## 10. Logging và debug thực tế
+## 10. Practical Logging and Debugging
 
-### 10.1 Những trường có giá trị điều tra
+### 10.1 Fields Worth Capturing for Investigation
 
-Một log nội bộ (được hạn chế quyền) có thể ghi:
+An access-restricted internal log can record:
 
-| Field | Tại sao cần? | Cách xử lý |
+| Field | Why is it needed? | How to handle |
 | --- | --- | --- |
-| `correlationId` | Ghép sự kiện request với certificate failure | Không lộ dữ liệu nhạy cảm từ request |
-| `validationAlgorithm`, `provider`, `javaVersion` | Tìm khác biệt giữa JVM/provider và thuật toán | Lưu phiên bản cấu hình đủ để tái hiện |
-| `exceptionReason` | Phân loại ổn định hơn message text | Dùng enum, có fallback `UNSPECIFIED` |
-| `pathIndex` và `pathLength` | Xác định certificate trong path theo vị trí | Nêu `-1` là không có certificate index |
-| `certificateSubject/Issuer/Fingerprint` | Gắn lỗi vào certificate thực tế | Lọc PII, dùng SHA-256 fingerprint thay vì log nguyên DER |
-| `expectedHostname/Role/Tenant` | So với danh tính cần xác thực | Nguồn từ policy/ngữ cảnh đã tin |
-| `validationDate/NotBefore/NotAfter` | Điều tra hết hạn/đồng hồ | Dùng timezone rõ ràng |
-| `trustAnchorId` / `truststoreVersion` | Phân biệt cấu hình giữa môi trường | Không ghi mật khẩu truststore hoặc key riêng |
-| `revocationPolicy/Result` | Phân biệt revoked và không xác định được trạng thái | Không log OCSP secrets/nhạy cảm nếu có |
+| `correlationId` | Correlates request events with certificate failures | Avoid exposing sensitive request data |
+| `validationAlgorithm`, `provider`, `javaVersion` | Spots JVM/provider and algorithm differences | Record enough config version info to reproduce |
+| `exceptionReason` | More stable classification than message text | Use enum, with `UNSPECIFIED` fallback |
+| `pathIndex` and `pathLength` | Identifies the certificate position in the path | Note `-1` means no certificate index |
+| `certificateSubject/Issuer/Fingerprint` | Ties failure to the concrete certificate | Filter PII; log SHA-256 fingerprint rather than full DER |
+| `expectedHostname/Role/Tenant` | Compares against intended identity | Sourced from trusted policy/context |
+| `validationDate/NotBefore/NotAfter` | Investigates expiry/clock issues | Use explicit timezones |
+| `trustAnchorId` / `truststoreVersion` | Distinguishes config across environments | Never log truststore passwords or private keys |
+| `revocationPolicy/Result` | Separates revoked from undetermined status | Never log OCSP secrets/sensitive data if any |
 
-**Không log private key, keystore password, token, session secrets hoặc thông tin khách hàng không cần thiết**. Certificate public có thể chứa danh tính/địa chỉ nên vẫn phải tuân thủ chính sách log.
+**Never log private keys, keystore passwords, tokens, session secrets, or unnecessary customer data.** Public certificates may contain identities/addresses and must still obey logging policies.
 
-### 10.2 Bật debug có kiểm soát
+### 10.2 Enabling Controlled Debug Output
 
-Ví dụ khi chạy một ứng dụng Java (chỉ dành cho troubleshooting ở môi trường an toàn):
+Example when running a Java application (strictly for troubleshooting in a secure environment):
 
 ```powershell
 java -Djava.security.debug=certpath -cp . CertPathFailureDemo
 ```
 
-Đây là lệnh có thêm **debug trace**, không phải stdout cố định. JDK có thể in dữ liệu path/trust/algorithms rất dài; bảo vệ trace, bật có thời hạn và không để trong log public.
+This command adds **debug traces**, not stable stdout. The JDK may print lengthy path/trust/algorithm details; protect traces, enable temporarily, and never leave in public logs.
 
-Với JSSE/TLS, có thể dùng option:
+For JSSE/TLS, you can use:
 
 ```powershell
 java -Djavax.net.debug=ssl,handshake,trustmanager -cp . YourTlsClient
 ```
 
-`YourTlsClient` chỉ là tên minh họa của một ứng dụng TLS **đã tồn tại**, không phải class do lab tạo. Một số shell/JVM yêu cầu quoting tham số khác. TLS debug có thể chứa certificate chains và metadata nhạy cảm; không mặc định để debug trong production.
+`YourTlsClient` is just an illustrative name for an **existing** TLS application, not a lab-generated class. Some shells/JVMs require different quoting. TLS debug output can contain certificate chains and sensitive metadata; never leave debugging enabled by default in production.
 
-### 10.3 Giới hạn của ví dụ lab
+### 10.3 Limitations of the Lab Example
 
-Chương trình `CertPathFailureDemo` gọi validator trực tiếp, **không làm TLS handshake**, không verify hostname trên mạng và không thực hiện revocation vì fixture offline. Nó cũng không chứng minh certificate không bị lộ private key. Để triển khai một TLS client, dùng JSSE/HTTP client với trust manager, endpoint identification và policy đúng; **không** lấy kết quả `CertPathValidator.validate(path)==OK` làm toàn bộ quyết định kết nối.
+`CertPathFailureDemo` invokes the validator directly, **performs no TLS handshake**, checks no hostname over the network, and performs no revocation checking due to offline fixtures. It also does not prove a certificate's private key has not been compromised. To build a TLS client, use JSSE/HTTP clients with proper trust managers, endpoint identification, and policy; **never** treat `CertPathValidator.validate(path)==OK` as the entire connection decision.
 
-## 11. Bảng tra nhanh index + reason
+## 11. Quick Reference Table: Index + Reason
 
-| Quan sát | Không nên kết luận ngay | Cần làm |
+| Observation | Do not jump to this conclusion | What to do |
 | --- | --- | --- |
-| `index=0, reason=EXPIRED` | “Root đã hết hạn” | Xem certificate index 0 trong `getCertPath()`, thường leaf |
-| `index=1, reason=INVALID_SIGNATURE` | “Chữ ký ứng dụng sai” | Xem intermediate index 1 và issuer key ký certificate của nó |
-| `index=-1, reason=NO_TRUST_ANCHOR` | “Certificate ở index -1 là root bị lỗi” | So trusted anchors với chain/cross-sign; không có cert index tương ứng |
-| `index=0, reason=INVALID_SIGNATURE` | “Leaf chắc chắn bị hacker sửa” | Kiểm tra đúng intermediate, chain và bytes; lỗi có thể do thao tác vận hành |
-| `reason=ALGORITHM_CONSTRAINED` | “Cứ bật lại thuật toán yếu” | Xem `java.security` policy, key strength và phát hành lại chain |
-| `reason=UNDETERMINED_REVOCATION_STATUS` | “Certificate không bị revoke” | Kiểm tra revocation checker/responder/network và fail policy |
-| `reason=NOT_CA_CERT` | “CA thiếu một nhãn hiển thị” | Kiểm tra BasicConstraints thực được ký và profile CA |
-| `reason=INVALID_NAME` | “Hostname TLS sai” | Xem NameConstraints của path, đồng thời kiểm tra hostname/SAN **riêng** |
-| `getCertPath()==null` | “Không có certificate nên chắc chắn không liên quan PKIX” | Path không được cung cấp trong exception; kiểm tra cause và context |
-| Lỗi `CertPathBuilderException` | “Gọi `getIndex` trực tiếp được” | Builder thất bại khác validator; xem wrapper/cause/issuer source |
-| `CertPathValidator.validate()==OK` | “Truy cập API tự động được phép” | Kiểm tra đúng endpoint identity, EKU, tenant/role và authorization |
+| `index=0, reason=EXPIRED` | “The root expired” | Check certificate at index 0 in `getCertPath()`, usually leaf |
+| `index=1, reason=INVALID_SIGNATURE` | “The app's signature is wrong” | Inspect intermediate at index 1 and the issuer key that signed it |
+| `index=-1, reason=NO_TRUST_ANCHOR` | “The certificate at index -1 is a broken root” | Compare trusted anchors against chain/cross-signs; no cert index applies |
+| `index=0, reason=INVALID_SIGNATURE` | “The leaf was definitely tampered by a hacker” | Check right intermediate, chain, and bytes; could be an operational mix-up |
+| `reason=ALGORITHM_CONSTRAINED` | “Just re-enable the weak algorithm” | Check `java.security` policy, key strength, and reissue the chain |
+| `reason=UNDETERMINED_REVOCATION_STATUS` | “The certificate is not revoked” | Check revocation checker/responder/network and failure policy |
+| `reason=NOT_CA_CERT` | “The CA is missing a display label” | Check signed BasicConstraints and CA profile |
+| `reason=INVALID_NAME` | “TLS hostname mismatch” | Check path `NameConstraints`, and check hostname/SAN **separately** |
+| `getCertPath()==null` | “No certificate, so definitely unrelated to PKIX” | Exception did not include the path; check cause and context |
+| `CertPathBuilderException` failure | “Can call `getIndex` directly” | Builder failure differs from validator; inspect wrapper/cause/issuer sources |
+| `CertPathValidator.validate()==OK` | “API access is automatically authorized” | Verify right endpoint identity, EKU, tenant/role, and authorization |
 
-## 12. Các lỗi lập trình thường gặp
+## 12. Common Programming Mistakes
 
-1. **Reverse chain khi đọc index:** Phần tử 0 trong list demo là **leaf**, không phải root. `CertPath` có thứ tự xác định.
-2. **Coi `-1` là root:** Root/trust anchor không có index trong path, và `-1` không gắn cho bất kỳ certificate cụ thể nào.
-3. **Dùng `getMessage().contains(...)` để xử lý logic:** message thay đổi theo provider, locale, bản JDK và tình huống.
-4. **Chỉ xét certificate tại index mà bỏ context:** đúng certificate cũng có thể bị validator gắn lỗi do thiếu issuer/truststore/params.
-5. **Gán tất cả lỗi TLS cho PKIX:** certificate builder failure, hostname mismatch, protocol mismatch, TLS alert và IO khác nhau.
-6. **Tắt revocation sau khi gặp `UNDETERMINED_REVOCATION_STATUS`:** đây là thay đổi chính sách bảo mật, không phải sửa lỗi an toàn mặc định.
-7. **Lấy root trong handshake làm trust anchor:** attacker có thể gửi root tự ký của họ. Trust phải provision ngoài đường truyền chưa tin.
-8. **Import bất kỳ issuer mới vào `cacerts`:** thay đổi vùng tin cậy của cả JVM; cần quy trình xác minh, duyệt và giới hạn.
-9. **Sửa certificate DER thủ công để đổi extension/validity:** làm mất chữ ký CA. Cần CA phát hành lại.
-10. **Nhầm `EXPIRED` của leaf với hệ thống thời gian sai luôn luôn:** phải so `NotAfter` với validation date; đồng hồ có thể đúng và cert thực sự hết hạn.
-11. **Nhầm `INVALID_SIGNATURE` với `Signature.verify` của payload:** ở đây chủ đề là certificate signature trong PKIX.
-12. **Dùng subject CN làm hostname matcher thủ công:** hostname/SAN phải theo chuẩn TLS (DNS/IP, wildcard, IDNA) và expected target.
-13. **Dùng root trust anchor thử nghiệm của lab trong production:** phá ranh giới niềm tin, đặc biệt vì private key lab tồn tại trong PKCS#12 cùng mật khẩu dễ đoán.
-14. **Chỉ kiểm tra `Reason` để cho phép truy cập:** lý do exception là tín hiệu thất bại, không phải token quyền. Mọi failure phải từ chối đường dẫn tương ứng.
-15. **Nuốt ngoại lệ sau khi log:** nếu validation fail, không gọi tiếp nghiệp vụ như thể có certificate hợp lệ.
-16. **Thử tất cả truststore đến khi có path OK:** nguy hiểm nếu tập anchors thử chứa root không được policy chấp thuận. Xác định đúng trust configuration từ trước.
+1. **Reversing the chain when reading index:** element 0 in the demo list is **leaf**, not root. `CertPath` has a defined direction.
+2. **Treating `-1` as root:** root/trust anchor has no index in the path, and `-1` refers to no specific certificate.
+3. **Using `getMessage().contains(...)` for control flow:** messages vary by provider, locale, JDK version, and context.
+4. **Inspecting only the certificate at `index` without context:** a valid certificate can still be flagged due to missing issuer/truststore/params.
+5. **Blaming all TLS errors on PKIX:** certificate builder failure, hostname mismatch, protocol mismatch, TLS alerts, and IO are distinct.
+6. **Disabling revocation after hitting `UNDETERMINED_REVOCATION_STATUS`:** that is a security policy change, not a safe default fix.
+7. **Using the handshake root as a trust anchor:** attackers can send their own self-signed root. Trust must be provisioned outside the untrusted channel.
+8. **Importing arbitrary new issuers into `cacerts`:** alters the trust boundary of the entire JVM; requires verification, approval, and scoping.
+9. **Editing DER certificate bytes to change extensions/validity:** breaks the CA signature. Must be reissued by the CA.
+10. **Assuming leaf `EXPIRED` always means a broken system clock:** compare `NotAfter` against validation date; the clock may be right and the cert truly expired.
+11. **Confusing `INVALID_SIGNATURE` with payload `Signature.verify`:** here the topic is PKIX certificate signatures.
+12. **Using subject CN as a manual hostname matcher:** hostname/SAN must follow TLS rules (DNS/IP, wildcards, IDNA) and expected target.
+13. **Using lab test root trust anchors in production:** breaks trust boundaries, especially since lab private keys sit in PKCS#12 with guessable passwords.
+14. **Checking only `Reason` to grant access:** exception reasons signal failure, never an authorization token. Every failure must reject the corresponding path.
+15. **Swallowing exceptions after logging:** if validation fails, never proceed with business logic as though the certificate were valid.
+16. **Trying every truststore until a path succeeds:** dangerous if trial anchor sets include roots unapproved by policy. Determine the right trust config upfront.
 
-## 13. Checklist cho dịch vụ Java
+## 13. Checklist for Java Services
 
-- [ ] Xác định đúng **expected endpoint/identity/role/tenant** từ nguồn tin cậy.
-- [ ] Ghi nguồn `CertPath` đang validate và thứ tự certificate rõ ràng, không đảo list tùy tiện.
-- [ ] Khi bắt lỗi, lấy `getReason()`, `getIndex()`, `getCertPath()` với kiểm tra index bounds.
-- [ ] Với index hợp lệ, đối chiếu certificate **tại index trong path của exception**, không suy từ tên file.
-- [ ] Với `index=-1`, giữ nhãn “không có certificate index”, kiểm tra truststore/params/cause.
-- [ ] Ưu tiên `BasicReason`/`PKIXReason` cho phân loại; không dùng chuỗi `getMessage` làm mã lỗi duy nhất.
-- [ ] Trust anchors được provision đáng tin; certificate server gửi không tự động biến thành trusted anchor.
-- [ ] Intermediate có đúng issuer/signature, CA BasicConstraints, KeyUsage, pathLen và constraints khác.
-- [ ] Time, signature schemes, key size, algorithm constraints và chính sách revocation được cấu hình nhất quán.
-- [ ] Endpoint identity/SAN, EKU/application purpose và authorization kiểm tra **ngoài** generic PKIX path.
-- [ ] Không tắt certificate validation, hostname verification hoặc revocation chỉ để “hết lỗi”.
-- [ ] Có test happy path, wrong anchor, tampered leaf, tampered intermediate, expired leaf, missing issuer, key usage và revocation policy.
-- [ ] Log có correlationId/provider/đường dẫn/path index/reason theo quyền, tránh tiết lộ secrets.
-- [ ] Có quy trình cập nhật truststore, certificate rotation, CRL/OCSP monitoring và diễn tập phục hồi.
+- [ ] Identify **expected endpoint/identity/role/tenant** from trusted sources.
+- [ ] Record the source of the `CertPath` under validation and its certificate order clearly; never reorder arbitrarily.
+- [ ] On failure, read `getReason()`, `getIndex()`, and `getCertPath()` with index bounds checking.
+- [ ] For a valid index, inspect the certificate **at that index in the exception's path**, not by guessing from filenames.
+- [ ] For `index=-1`, label as “no single certificate index” and inspect truststore/params/cause.
+- [ ] Prefer `BasicReason`/`PKIXReason` for classification; never rely solely on `getMessage` strings.
+- [ ] Trust anchors are provisioned securely; server-sent certificates never auto-promote into trusted anchors.
+- [ ] Intermediates have matching issuer/signature, CA BasicConstraints, KeyUsage, `pathLen`, and other constraints.
+- [ ] Validation time, signature schemes, key sizes, algorithm constraints, and revocation policy are configured consistently.
+- [ ] Endpoint identity/SAN, EKU/application purpose, and authorization are verified **outside** generic PKIX path validation.
+- [ ] Never disable certificate validation, hostname verification, or revocation just to “clear errors”.
+- [ ] Include tests for happy path, wrong anchor, tampered leaf, tampered intermediate, expired leaf, missing issuer, key usage, and revocation policy.
+- [ ] Logs include correlationId/provider/path info/path index/reason per access policy, avoiding secret leaks.
+- [ ] Maintain procedures for truststore updates, certificate rotation, CRL/OCSP monitoring, and recovery drills.
 
-## 14. Bài tập
+## 14. Exercises
 
-1. Chạy `CertPathFailureDemo.java`. Tại sao hai test `Tampered leaf` và `Tampered intermediate` đều có reason `INVALID_SIGNATURE` nhưng index lần lượt `0` và `1`?
-2. Đổi thứ tự `List.of(leaf, intermediate)` thành `List.of(intermediate, leaf)`. Hãy ghi lại reason/index của JDK; vì sao không còn được đọc index theo sơ đồ ban đầu?
-3. Giữ nguyên certificate path, thay trust anchor bằng `rogue.pem`. Có phải `rogue.pem` “không tự ký hợp lệ” không? Vì sao vẫn gặp `NO_TRUST_ANCHOR`?
-4. Đặt validation date vào thời điểm trước `leaf.getNotBefore()`. Reason nào xuất hiện trên JDK của bạn và tại index nào? Thử so với intermediate validity.
-5. Tạo intermediate có `BasicConstraints:CA=false` rồi cho nó cấp leaf, thử validate. Bạn mong chờ nhóm `PKIXReason` nào? Có thể `leaf.verify(intermediateKey)` vẫn thành công không?
-6. Kiểm tra một chain server TLS thiếu intermediate. Phân biệt lỗi builder không tìm được đường dẫn với validator có đường dẫn nhưng bị lỗi chữ ký. Bạn sẽ bổ sung intermediate ở phía nào cho đúng?
-7. Làm một bảng chẩn đoán cho `ALGORITHM_CONSTRAINED` khi một môi trường JDK chặn thuật toán hoặc key size mà môi trường cũ còn chấp nhận. Đề xuất biện pháp không hạ chuẩn bảo mật.
-8. Với `UNDETERMINED_REVOCATION_STATUS`, thiết kế runbook kiểm tra CRL/OCSP, cache, proxy/firewall và fail policy. Vì sao không nên vô hiệu hóa revocation trong production?
-9. Thêm helper lấy SHA-256 fingerprint của certificate **tại getIndex() hợp lệ**; ghi trong log nội bộ bằng hex, không in private key hay secret.
-10. Một path PKIX hợp lệ cho certificate `api-b.example.test` nhưng ứng dụng gọi `api-a.example.test`. Bước kiểm tra nào vẫn có thể fail? Vì sao `CertPathValidatorException` không phải tín hiệu duy nhất cho TLS hostname mismatch?
+1. Run `CertPathFailureDemo.java`. Why do both `Tampered leaf` and `Tampered intermediate` report reason `INVALID_SIGNATURE` yet indices `0` and `1` respectively?
+2. Reverse `List.of(leaf, intermediate)` to `List.of(intermediate, leaf)`. Record the JDK's reason/index; why can the index no longer be read per the original diagram?
+3. Keep the certificate path unchanged and swap the trust anchor to `rogue.pem`. Is `rogue.pem` “invalidly self-signed”? Why does `NO_TRUST_ANCHOR` still occur?
+4. Set the validation date before `leaf.getNotBefore()`. Which reason appears on your JDK and at which index? Compare with intermediate validity.
+5. Create an intermediate with `BasicConstraints:CA=false`, have it sign a leaf, and validate. Which `PKIXReason` do you expect? Could `leaf.verify(intermediateKey)` still succeed?
+6. Inspect a TLS server chain missing an intermediate. Distinguish a builder failure to find a path from a validator failure due to a bad signature. On which side should the missing intermediate be fixed?
+7. Build a diagnostic table for `ALGORITHM_CONSTRAINED` when a newer JDK environment blocks an algorithm or key size accepted by an older environment. Propose fixes without lowering security standards.
+8. For `UNDETERMINED_REVOCATION_STATUS`, design a runbook checking CRL/OCSP, cache, proxy/firewall, and fail policy. Why should revocation not be disabled in production?
+9. Add a helper to compute the SHA-256 fingerprint of the certificate **at a valid `getIndex()`**; log it internally in hex without printing private keys or secrets.
+10. A PKIX path validates for certificate `api-b.example.test` while the app calls `api-a.example.test`. Which verification step must still fail? Why is `CertPathValidatorException` not the sole signal for TLS hostname mismatch?
 
-## Tài liệu tham khảo chính thức
+## Official References
 
-- [Java SE 17 — CertPathValidatorException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidatorException.html): `getIndex`, `getReason`, `getCertPath` và constructors.
+- [Java SE 17 — CertPathValidatorException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidatorException.html): `getIndex`, `getReason`, `getCertPath`, and constructors.
 - [Java SE 17 — CertPathValidatorException.BasicReason](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidatorException.BasicReason.html): `EXPIRED`, `INVALID_SIGNATURE`, `REVOKED`, `UNDETERMINED_REVOCATION_STATUS`, `ALGORITHM_CONSTRAINED`.
-- [Java SE 17 — PKIXReason](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXReason.html): `NO_TRUST_ANCHOR`, `NOT_CA_CERT`, `NAME_CHAINING` và các reason PKIX khác.
-- [Java SE 17 — CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): kiểm định đường dẫn và thuật toán PKIX.
-- [Java SE 17 — CertPathBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathBuilder.html): tìm/dựng đường dẫn và khác biệt với validation.
-- [Java SE 17 — PKIXParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors, date, revocation, policy.
-- [Java SE 17 — X509Certificate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html): subject, issuer, validity, BasicConstraints, SAN/EKU, chữ ký.
-- [JDK 17 — keytool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): sinh CSR, ký certificate, import reply, export PEM.
-- [RFC 5280 — Internet X.509 Public Key Infrastructure Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): chứng thư X.509, trust/path, validity, BasicConstraints, Certificate Policies và CRL.
+- [Java SE 17 — PKIXReason](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXReason.html): `NO_TRUST_ANCHOR`, `NOT_CA_CERT`, `NAME_CHAINING`, and other PKIX reasons.
+- [Java SE 17 — CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): path validation and the PKIX algorithm.
+- [Java SE 17 — CertPathBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathBuilder.html): finding/building paths and differences from validation.
+- [Java SE 17 — PKIXParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors, date, revocation, policies.
+- [Java SE 17 — X509Certificate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html): subject, issuer, validity, BasicConstraints, SAN/EKU, signatures.
+- [JDK 17 — keytool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): generating CSRs, signing certificates, importing replies, exporting PEMs.
+- [RFC 5280 — Internet X.509 Public Key Infrastructure Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): X.509 certificates, trust/paths, validity, BasicConstraints, Certificate Policies, and CRLs.

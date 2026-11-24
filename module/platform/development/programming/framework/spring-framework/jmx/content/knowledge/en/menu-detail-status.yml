@@ -1,0 +1,3031 @@
+menu:
+- slug: jmx-mental-model
+  title: Mô hình tư duy
+  childs:
+  - slug: jmx-mental-model-001
+    title: JMX giải quyết bài toán quản trị, giám sát và điều khiển ứng dụng Java như thế nào?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mental-model-002
+    title: Spring Framework bổ sung những khả năng gì trên nền JMX?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mental-model-003
+    title: 'Bốn năng lực chính: đăng ký MBean, kiểm soát giao diện, truy cập từ xa và tạo proxy'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mental-model-004
+    title: Luồng từ bean Spring đến MBeanServer và công cụ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mental-model-005
+    title: Phân biệt MBean, bean Spring, endpoint và chỉ số ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mental-model-006
+    title: Quản trị trạng thái với đọc thuộc tính, ghi thuộc tính và gọi operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mental-model-007
+    title: Đưa khả năng quản trị ra ngoài ứng dụng mà không làm mã miền phụ thuộc JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mental-model-008
+    title: Khi nào JMX phù hợp hơn HTTP endpoint hoặc hệ thống metrics?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mental-model-009
+    title: Ranh giới giữa quan sát, chẩn đoán và điều khiển thay đổi trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mental-model-010
+    title: Lộ trình học từ JMX nền tảng đến cấu hình Spring và truy cập từ xa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-fundamentals
+  title: JMX nền tảng
+  childs:
+  - slug: jmx-fundamentals-001
+    title: Java Management Extensions gồm những thành phần nào?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-fundamentals-002
+    title: MBeanServer như một registry và điểm thực thi quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-fundamentals-003
+    title: ObjectName, domain, key property và định danh MBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-fundamentals-004
+    title: Attribute, operation, constructor và notification trong MBeanInfo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-fundamentals-005
+    title: Standard MBean và quy ước tên giao diện quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-fundamentals-006
+    title: MXBean và cách ánh xạ kiểu dữ liệu mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-fundamentals-007
+    title: DynamicMBean và mô tả giao diện được tạo lúc chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-fundamentals-008
+    title: Model MBean và metadata cho khả năng quản trị nâng cao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-fundamentals-009
+    title: Open MBean và các kiểu dữ liệu mở rộng chuẩn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-fundamentals-010
+    title: Phân biệt management interface với lớp cài đặt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-fundamentals-011
+    title: Giới hạn kiểu dữ liệu khi giao tiếp qua JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-mbean-server
+  title: MBeanServer
+  childs:
+  - slug: jmx-mbean-server-001
+    title: Đăng ký và hủy đăng ký MBean trong MBeanServer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mbean-server-002
+    title: Tra cứu MBean bằng ObjectName
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mbean-server-003
+    title: Đọc và ghi attribute qua MBeanServer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mbean-server-004
+    title: Gọi operation với chữ ký và tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mbean-server-005
+    title: Lấy MBeanInfo để biết giao diện đang được phơi bày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mbean-server-006
+    title: Phân biệt lỗi tên, lỗi kiểu và lỗi thực thi operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mbean-server-007
+    title: MBeanServer nền tảng và MBeanServer do ứng dụng tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mbean-server-008
+    title: Đăng ký MBean ở JVM local và khả năng truy cập của tiến trình khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mbean-server-009
+    title: Quản lý vòng đời MBeanServer trong ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-mbean-server-010
+    title: Kiểm tra registry bằng JConsole hoặc công cụ JMX tương đương
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-object-name
+  title: ObjectName
+  childs:
+  - slug: jmx-object-name-001
+    title: Cấu trúc domain:key=value của ObjectName
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-object-name-002
+    title: Tên thuộc tính, giá trị thuộc tính và ký tự cần escape
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-object-name-003
+    title: ObjectName cụ thể và mẫu ObjectName có wildcard
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-object-name-004
+    title: Tránh xung đột tên giữa nhiều bean hoặc nhiều ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-object-name-005
+    title: Chọn domain theo sản phẩm, mô-đun và môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-object-name-006
+    title: Định danh ổn định qua các lần khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-object-name-007
+    title: ObjectName trong truy vấn, listener và proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-object-name-008
+    title: Đọc tên hiển thị khác với tên dùng để định tuyến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-object-name-009
+    title: Kiểm tra ObjectName bằng API thay vì ghép chuỗi tùy tiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-object-name-010
+    title: Chiến lược đặt tên khi triển khai nhiều instance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-interface-mbeans
+  title: MBean giao diện
+  childs:
+  - slug: jmx-interface-mbeans-001
+    title: Quy ước tên Interface và MBean cho Standard MBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-interface-mbeans-002
+    title: Thuộc tính chỉ đọc, chỉ ghi và đọc–ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-interface-mbeans-003
+    title: Operation có tham số, kiểu trả về và overload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-interface-mbeans-004
+    title: Kiểm soát điều gì được public nhưng không được phơi bày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-interface-mbeans-005
+    title: MXBean và quy tắc chuyển đổi kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-interface-mbeans-006
+    title: Thiết kế management interface nhỏ và ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-interface-mbeans-007
+    title: Tách interface quản trị khỏi interface nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-interface-mbeans-008
+    title: Ảnh hưởng của proxy hoặc decorator tới việc nhận diện MBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-interface-mbeans-009
+    title: Kiểm thử giao diện quản trị như một hợp đồng công khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-interface-mbeans-010
+    title: Khi nào interface-based MBean phù hợp hơn annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-notification
+  title: Notification
+  childs:
+  - slug: jmx-notification-001
+    title: Notification là gì và khác với đọc metric định kỳ ra sao?
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-notification-002
+    title: NotificationBroadcaster và NotificationEmitter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-notification-003
+    title: Notification type, source, sequence number và timestamp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-notification-004
+    title: AttributeChangeNotification cho thay đổi thuộc tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-notification-005
+    title: NotificationListener, NotificationFilter và handback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-notification-006
+    title: Đăng ký listener và hủy đăng ký listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-notification-007
+    title: Lọc notification ở phía phát hay phía nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-notification-008
+    title: Thứ tự, mất notification và giới hạn bảo đảm chuyển giao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-notification-009
+    title: Phát sự kiện quản trị từ MBean an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-notification-010
+    title: Kiểm thử notification bằng listener quan sát được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-tools
+  title: Công cụ JMX
+  childs:
+  - slug: jmx-tools-001
+    title: JConsole kết nối tới MBeanServer local và remote
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-tools-002
+    title: Java Mission Control và cách quan sát thông tin quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-tools-003
+    title: jcmd, JVM flags và quan hệ với JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-tools-004
+    title: Đọc cây domain, thuộc tính và operation trong công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-tools-005
+    title: Gọi operation có tác dụng phụ từ công cụ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-tools-006
+    title: Kiểm tra notification trong công cụ JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-tools-007
+    title: Phân biệt dữ liệu JMX với logs, traces và metrics
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-tools-008
+    title: Quyền truy cập của công cụ đối với JMX connector
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-tools-009
+    title: Chẩn đoán lỗi không thấy MBean trong giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-tools-010
+    title: Thực hành quan sát một ứng dụng Java nhỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-spring-exporting
+  title: Exporting trong Spring
+  childs:
+  - slug: jmx-spring-exporting-001
+    title: MBeanExporter là trung tâm xuất bean Spring sang MBeanServer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-exporting-002
+    title: Xuất bean đã là MBean và bean thường qua assembler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-exporting-003
+    title: Cấu hình map beans giữa ObjectName và bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-exporting-004
+    title: Đăng ký exporter như một bean trong ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-exporting-005
+    title: Spring bean không cần phụ thuộc trực tiếp vào API JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-exporting-006
+    title: Phân biệt exporter với MBeanServerFactoryBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-exporting-007
+    title: Chọn server JMX đã có hoặc tạo server riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-exporting-008
+    title: Vòng đời export và unexport khi context khởi động, dừng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-exporting-009
+    title: Exporter listener theo dõi đăng ký và hủy đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-exporting-010
+    title: Đọc lỗi exporter trong giai đoạn khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-annotation-mbean-exporter
+  title: AnnotationMBeanExporter
+  childs:
+  - slug: jmx-annotation-mbean-exporter-001
+    title: AnnotationMBeanExporter và lý do dùng annotation-based export
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-annotation-mbean-exporter-002
+    title: '@EnableMBeanExport để bật cấu hình Java'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-annotation-mbean-exporter-003
+    title: Thuộc tính server và defaultDomain của exporter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-annotation-mbean-exporter-004
+    title: Liên hệ với phần tử context:mbean-export trong XML
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-annotation-mbean-exporter-005
+    title: Autodetection và cách exporter chọn bean cần phơi bày
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-annotation-mbean-exporter-006
+    title: Kiểm tra bean được scan có đúng phạm vi không
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-annotation-mbean-exporter-007
+    title: Phân biệt cấu hình exporter tường minh và tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-annotation-mbean-exporter-008
+    title: Thứ tự khởi tạo exporter với các bean phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-annotation-mbean-exporter-009
+    title: Tùy biến exporter khi có nhiều ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-annotation-mbean-exporter-010
+    title: Giới hạn khi dùng annotation nhưng proxy che khuất target class
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-managed-resource
+  title: ManagedResource
+  childs:
+  - slug: jmx-managed-resource-001
+    title: '@ManagedResource đánh dấu bean được quản lý qua JMX'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-resource-002
+    title: ObjectName, description và class-level metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-resource-003
+    title: Autodetect bean có @ManagedResource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-resource-004
+    title: Thuộc tính currencyTimeLimit và persistence metadata ở đâu còn phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-resource-005
+    title: Phạm vi annotation trên class proxy và target class
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-resource-006
+    title: Bean prototype, singleton và tính phù hợp để quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-resource-007
+    title: Không phơi bày nhầm service nội bộ qua annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-resource-008
+    title: Tài liệu hóa mục đích của resource quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-resource-009
+    title: Kiểm thử scan annotation trong ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-resource-010
+    title: Khi nên chọn interface thay cho @ManagedResource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-managed-attribute
+  title: ManagedAttribute
+  childs:
+  - slug: jmx-managed-attribute-001
+    title: '@ManagedAttribute và cách phơi bày property'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-attribute-002
+    title: Getter tạo attribute chỉ đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-attribute-003
+    title: Getter và setter tạo attribute đọc–ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-attribute-004
+    title: Description, default descriptor và metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-attribute-005
+    title: Kiểu property được JMX hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-attribute-006
+    title: Đặt tên attribute ổn định khi refactor phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-attribute-007
+    title: Không dùng attribute để lộ dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-attribute-008
+    title: Kiểm tra getter có gây truy vấn hoặc tác dụng phụ không
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-attribute-009
+    title: Phân biệt attribute quản trị với field nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-attribute-010
+    title: Thiết kế API đọc trạng thái có chi phí chấp nhận được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-managed-operation
+  title: ManagedOperation
+  childs:
+  - slug: jmx-managed-operation-001
+    title: '@ManagedOperation và cách phơi bày phương thức'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-operation-002
+    title: Description và metadata cho operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-operation-003
+    title: Tham số operation và @ManagedOperationParameter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-operation-004
+    title: Kiểu tham số, kiểu trả về và tương thích JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-operation-005
+    title: Operation có tác dụng phụ và yêu cầu xác nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-operation-006
+    title: Tránh overload gây khó chọn chữ ký từ công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-operation-007
+    title: Ném exception từ operation và cách người gọi nhìn thấy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-operation-008
+    title: Phân biệt operation điều khiển với endpoint nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-operation-009
+    title: Kiểm thử gọi operation qua MBeanServer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-managed-operation-010
+    title: Thiết kế operation an toàn khi gọi nhiều lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-management-interface
+  title: Management interface
+  childs:
+  - slug: jmx-management-interface-001
+    title: Management interface mặc định và mức độ phơi bày public
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-interface-002
+    title: SimpleReflectiveMBeanInfoAssembler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-interface-003
+    title: MetadataMBeanInfoAssembler và nguồn metadata annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-interface-004
+    title: InterfaceBasedMBeanInfoAssembler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-interface-005
+    title: MethodNameBasedMBeanInfoAssembler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-interface-006
+    title: Đăng ký assembler trong MBeanExporter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-interface-007
+    title: Chọn một nguồn metadata duy nhất để tránh khó đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-interface-008
+    title: Kiểm tra MBeanInfo thực tế sau khi export
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-interface-009
+    title: Ẩn phương thức không thuộc giao diện quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-interface-010
+    title: So sánh assembler với @ManagedAttribute và @ManagedOperation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-naming-strategy
+  title: Naming strategy
+  childs:
+  - slug: jmx-naming-strategy-001
+    title: ObjectNamingStrategy và vai trò trong MBeanExporter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-naming-strategy-002
+    title: KeyNamingStrategy dùng key của map bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-naming-strategy-003
+    title: IdentityNamingStrategy và định danh theo identity
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-naming-strategy-004
+    title: MetadataNamingStrategy lấy tên từ metadata nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-naming-strategy-005
+    title: '@ManagedResource đặt ObjectName cho bean'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-naming-strategy-006
+    title: defaultDomain và namespace của ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-naming-strategy-007
+    title: Đảm bảo tên nhất quán giữa local và remote
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-naming-strategy-008
+    title: Xử lý nhiều instance cùng một loại bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-naming-strategy-009
+    title: Kiểm thử tên bằng ObjectName và MBeanServer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-naming-strategy-010
+    title: Không để tên lớp Java làm hợp đồng quản trị duy nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-autodetection
+  title: Autodetection
+  childs:
+  - slug: jmx-autodetection-001
+    title: Autodetect MBean đã triển khai giao diện JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-autodetection-002
+    title: Autodetect resource dựa trên assembler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-autodetection-003
+    title: AutodetectCapableMBeanInfoAssembler và cơ chế vote
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-autodetection-004
+    title: Phân biệt bean được phát hiện với bean được khai báo trong map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-autodetection-005
+    title: Autodetection trên bean proxied
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-autodetection-006
+    title: Proxy interface che annotation và vì sao có thể bị bỏ qua
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-autodetection-007
+    title: Target-class proxy khi cần giữ metadata JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-autodetection-008
+    title: Giới hạn phạm vi autodetection trong context lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-autodetection-009
+    title: Chẩn đoán MBean biến mất sau khi bật AOP hoặc transaction
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-autodetection-010
+    title: Chọn autodetection hay đăng ký tường minh theo rủi ro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-registration-policy
+  title: Registration policy
+  childs:
+  - slug: jmx-registration-policy-001
+    title: Lỗi trùng ObjectName khi đăng ký mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-registration-policy-002
+    title: RegistrationPolicy.FAIL_ON_EXISTING
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-registration-policy-003
+    title: RegistrationPolicy.IGNORE_EXISTING
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-registration-policy-004
+    title: RegistrationPolicy.REPLACE_EXISTING
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-registration-policy-005
+    title: Đánh đổi khi thay thế MBean đang được sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-registration-policy-006
+    title: Ảnh hưởng của thứ tự khởi tạo nhiều context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-registration-policy-007
+    title: Tránh hai ứng dụng cùng chiếm một ObjectName
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-registration-policy-008
+    title: Kiểm thử khởi động lại và redeploy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-registration-policy-009
+    title: Giám sát log khi đăng ký thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-registration-policy-010
+    title: Chọn chính sách theo môi trường và mức an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-custom-mbean-server
+  title: MBeanServer tùy biến
+  childs:
+  - slug: jmx-custom-mbean-server-001
+    title: Chọn MBeanServer bằng thuộc tính server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-custom-mbean-server-002
+    title: MBeanServerFactoryBean và exposePlatformMBeanServer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-custom-mbean-server-003
+    title: PlatformMBeanServer của JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-custom-mbean-server-004
+    title: Đăng ký bean vào server đã tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-custom-mbean-server-005
+    title: Chia sẻ server giữa nhiều context Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-custom-mbean-server-006
+    title: Domain riêng và tránh trộn MBean không cùng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-custom-mbean-server-007
+    title: Quản lý vòng đời server trong container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-custom-mbean-server-008
+    title: Kiểm tra server đang được exporter dùng thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-custom-mbean-server-009
+    title: Ảnh hưởng của classloader và nhiều ứng dụng trong một JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-local-mbean-proxy
+  title: Proxy MBean local
+  childs:
+  - slug: jmx-local-mbean-proxy-001
+    title: MBeanProxyFactoryBean dùng để tạo proxy typed
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-local-mbean-proxy-002
+    title: ProxyInterface và hợp đồng Java phía người gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-local-mbean-proxy-003
+    title: ObjectName của MBean mục tiêu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-local-mbean-proxy-004
+    title: MBeanServerConnection local và lời gọi qua proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-local-mbean-proxy-005
+    title: Đọc attribute như lời gọi phương thức Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-local-mbean-proxy-006
+    title: Gọi operation và xử lý lỗi từ MBeanServer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-local-mbean-proxy-007
+    title: Proxy động và giới hạn của kiểu trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-local-mbean-proxy-008
+    title: Phân biệt proxy local với gọi trực tiếp bean Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-local-mbean-proxy-009
+    title: Kiểm thử proxy bằng MBeanServer giả hoặc thật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-local-mbean-proxy-010
+    title: Chọn proxy khi muốn tách client khỏi implementation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-remote-connector
+  title: Remote connector
+  childs:
+  - slug: jmx-remote-connector-001
+    title: JSR-160 và mô hình kết nối JMX từ xa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-remote-connector-002
+    title: MBeanServerConnectionFactoryBean trong Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-remote-connector-003
+    title: Service URL và cấu hình connector client
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-remote-connector-004
+    title: RMI connector và các thành phần liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-remote-connector-005
+    title: Xác thực, TLS và quyền truy cập connector
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-remote-connector-006
+    title: MBeanProxyFactoryBean với server connection từ xa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-remote-connector-007
+    title: Độ trễ, timeout và lỗi mạng khi gọi operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-remote-connector-008
+    title: Khác biệt giữa local ObjectName và server từ xa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-remote-connector-009
+    title: Kiểm tra phiên bản, firewall và port cần mở
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-remote-connector-010
+    title: Không coi remote JMX là kênh không cần bảo vệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-spring-configuration
+  title: Spring configuration
+  childs:
+  - slug: jmx-spring-configuration-001
+    title: Cấu hình JMX bằng Java Config
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-configuration-002
+    title: Cấu hình JMX bằng XML namespace context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-configuration-003
+    title: '@EnableMBeanExport trong nhiều profile'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-configuration-004
+    title: Đặt defaultDomain theo môi trường triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-configuration-005
+    title: Kết hợp exporter với bean configuration hiện có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-configuration-006
+    title: Giải quyết bean name, ObjectName và tên hiển thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-configuration-007
+    title: Không tạo exporter trùng trong cùng ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-configuration-008
+    title: Kiểm tra cấu hình hiệu lực từ ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-configuration-009
+    title: Giữ cấu hình quản trị tách khỏi nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-configuration-010
+    title: Migration từ XML exporter sang Java Config
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-spring-boot-integration
+  title: Spring Boot integration
+  childs:
+  - slug: jmx-spring-boot-integration-001
+    title: Spring Boot Actuator và quan hệ với JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-boot-integration-002
+    title: management.endpoints.jmx.exposure.include
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-boot-integration-003
+    title: Phân biệt endpoint Actuator với MBean tự định nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-boot-integration-004
+    title: Định danh endpoint JMX và domain mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-boot-integration-005
+    title: Chọn endpoint được phép expose theo môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-boot-integration-006
+    title: JMX trong ứng dụng chạy embedded server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-boot-integration-007
+    title: Kiểm tra MBean Actuator bằng JConsole
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-boot-integration-008
+    title: Tránh expose endpoint nhạy cảm cho môi trường production
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-boot-integration-009
+    title: Kết hợp MBean tự định nghĩa với endpoint framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-boot-integration-010
+    title: Phân biệt JMX exposure với HTTP exposure
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-aop
+  title: JMX và AOP
+  childs:
+  - slug: jmx-aop-001
+    title: Ảnh hưởng của proxy Spring tới việc nhận diện annotation JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-aop-002
+    title: Interface-based proxy che target class
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-aop-003
+    title: Target-class proxy và cờ proxy-target-class
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-aop-004
+    title: Thứ tự tạo proxy, exporter và metadata assembler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-aop-005
+    title: Transaction proxy trên bean có @ManagedResource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-aop-006
+    title: Security proxy và quyền gọi operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-aop-007
+    title: Đọc MBeanInfo sau khi bean đã qua nhiều interceptor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-aop-008
+    title: Tránh export proxy thay vì target khi hợp đồng cần ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-aop-009
+    title: Kiểm thử JMX cùng AOP, transaction và async
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-aop-010
+    title: Chẩn đoán bean bị bỏ qua sau khi bật auto-proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-spring-notifications
+  title: Notification trong Spring
+  childs:
+  - slug: jmx-spring-notifications-001
+    title: notificationListenerMappings của MBeanExporter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-notifications-002
+    title: Đăng ký một listener cho một MBean cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-notifications-003
+    title: Đăng ký listener cho nhiều MBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-notifications-004
+    title: Wildcard listener cho các MBean exporter quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-notifications-005
+    title: notificationListeners và NotificationListenerBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-notifications-006
+    title: Mapped ObjectNames, NotificationFilter và handback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-notifications-007
+    title: Phát notification từ MBean được export
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-notifications-008
+    title: AttributeChangeNotification và thay đổi attribute
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-notifications-009
+    title: Đồng bộ, bất đồng bộ và thread khi xử lý listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-notifications-010
+    title: Tháo listener khi context dừng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-spring-notifications-011
+    title: Kiểm thử notification và chống xử lý trùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-security-operations
+  title: Security và vận hành
+  childs:
+  - slug: jmx-security-operations-001
+    title: Rủi ro của JMX remote không xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-security-operations-002
+    title: Phân quyền đọc attribute và gọi operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-security-operations-003
+    title: Bảo vệ connector bằng xác thực và TLS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-security-operations-004
+    title: Giảm surface area bằng cách chỉ export MBean cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-security-operations-005
+    title: Không phơi bày bí mật, token hoặc dữ liệu cá nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-security-operations-006
+    title: Operation có thể thay đổi cấu hình, cache hoặc luồng xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-security-operations-007
+    title: Audit lời gọi quản trị và người thực hiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-security-operations-008
+    title: Đặt tên để phân biệt production, staging và local
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-security-operations-009
+    title: Giám sát lỗi connector và đăng nhập thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-security-operations-010
+    title: Quy trình tắt hoặc thu hồi remote JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-performance-stability
+  title: Hiệu năng và ổn định
+  childs:
+  - slug: jmx-performance-stability-001
+    title: Chi phí đọc attribute và gọi operation qua JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-performance-stability-002
+    title: Attribute có tính toán nặng hoặc truy cập I/O
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-performance-stability-003
+    title: Notification dồn dập và áp lực lên listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-performance-stability-004
+    title: Giới hạn tần suất phát notification
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-performance-stability-005
+    title: Không chạy công việc dài trực tiếp trên thread quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-performance-stability-006
+    title: Snapshot trạng thái thay cho đọc nhiều attribute rời rạc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-performance-stability-007
+    title: Ảnh hưởng của remote latency đến thao tác quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-performance-stability-008
+    title: Đảm bảo operation quản trị có timeout và phản hồi rõ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-performance-stability-009
+    title: Xử lý lỗi listener để không làm hỏng nguồn phát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-performance-stability-010
+    title: Đo chi phí JMX trong môi trường gần production
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-testing
+  title: Kiểm thử
+  childs:
+  - slug: jmx-testing-001
+    title: Kiểm thử bean có metadata JMX trong context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-testing-002
+    title: Kiểm tra ObjectName đã đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-testing-003
+    title: Đọc MBeanInfo và xác nhận attribute mong đợi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-testing-004
+    title: Gọi attribute read-only, read–write và operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-testing-005
+    title: Kiểm thử duplicate registration theo từng policy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-testing-006
+    title: Kiểm thử exporter start và stop
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-testing-007
+    title: Kiểm thử notification listener và filter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-testing-008
+    title: Kiểm thử proxy local qua MBeanServerConnection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-testing-009
+    title: Kiểm thử connector remote trong môi trường cô lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-testing-010
+    title: Kiểm thử proxy hoặc AOP không làm mất metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-testing-011
+    title: Kiểm thử quyền truy cập và lỗi xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: jmx-troubleshooting-001
+    title: Bean không xuất hiện trong MBeanServer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-troubleshooting-002
+    title: ObjectName khác với tên dự kiến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-troubleshooting-003
+    title: Trùng tên khi khởi động hoặc redeploy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-troubleshooting-004
+    title: Annotation không được nhận diện do proxy interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-troubleshooting-005
+    title: Attribute hoặc operation không xuất hiện trong MBeanInfo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-troubleshooting-006
+    title: Không gọi được operation do sai chữ ký hoặc kiểu tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-troubleshooting-007
+    title: Notification không đến listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-troubleshooting-008
+    title: JConsole không kết nối được tới remote server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-troubleshooting-009
+    title: Connector kết nối được nhưng proxy gọi thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-troubleshooting-010
+    title: Phân biệt lỗi Spring context với lỗi JMX runtime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-troubleshooting-011
+    title: Đọc log exporter, MBeanServer và connector để khoanh vùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-management-api-design
+  title: Thiết kế management API
+  childs:
+  - slug: jmx-management-api-design-001
+    title: Chọn thông tin quản trị có ích cho vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-api-design-002
+    title: Đặt tên attribute và operation theo ý nghĩa ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-api-design-003
+    title: Giữ management interface tương thích khi nâng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-api-design-004
+    title: Thiết kế operation an toàn khi gọi lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-api-design-005
+    title: Trả về kiểu dữ liệu nhỏ, rõ và dễ quan sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-api-design-006
+    title: Tách lệnh chẩn đoán khỏi lệnh thay đổi trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-api-design-007
+    title: Đặt mô tả và ví dụ sử dụng cho người vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-api-design-008
+    title: Không biến JMX thành API nghiệp vụ thay thế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-api-design-009
+    title: Quản lý quyền theo mức tác động của từng operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-management-api-design-010
+    title: Rà soát management surface trước khi phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-evolution-compatibility
+  title: Tiến hóa và tương thích
+  childs:
+  - slug: jmx-evolution-compatibility-001
+    title: Thêm attribute mới mà không phá client hiện có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-evolution-compatibility-002
+    title: Đổi ObjectName và tác động tới dashboard hoặc script
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-evolution-compatibility-003
+    title: Đổi kiểu attribute và tương thích với proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-evolution-compatibility-004
+    title: Xóa operation đang được gọi từ công cụ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-evolution-compatibility-005
+    title: Phiên bản hóa management interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-evolution-compatibility-006
+    title: Migration từ interface MBean sang annotation metadata
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-evolution-compatibility-007
+    title: Thay đổi domain khi tách mô-đun
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-evolution-compatibility-008
+    title: Đồng bộ cấu hình giữa Spring Framework và Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-evolution-compatibility-009
+    title: Kiểm tra thay đổi JDK hoặc framework ảnh hưởng JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-evolution-compatibility-010
+    title: Giữ tài liệu và kiểm thử hợp đồng sau nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-observability-automation
+  title: Quan sát và tự động hóa
+  childs:
+  - slug: jmx-observability-automation-001
+    title: Đọc MBean bằng script hoặc Web API trung gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-observability-automation-002
+    title: Kết hợp JMX với metrics registry
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-observability-automation-003
+    title: Đồng bộ giá trị JMX vào hệ thống giám sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-observability-automation-004
+    title: Đẩy notification thành sự kiện vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-observability-automation-005
+    title: Job định kỳ gọi operation và kiểm tra điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-observability-automation-006
+    title: Idempotency khi tự động hóa thao tác quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-observability-automation-007
+    title: Giới hạn quyền của tài khoản tự động hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-observability-automation-008
+    title: Đối chiếu dữ liệu JMX với logs và traces
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-observability-automation-009
+    title: Xử lý server không phản hồi hoặc dữ liệu cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-observability-automation-010
+    title: Thiết kế cảnh báo dựa trên ngưỡng và xu hướng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-practice
+  title: Thực hành
+  childs:
+  - slug: jmx-practice-001
+    title: Export một bean Spring bằng MBeanExporter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-002
+    title: Phơi bày resource bằng @ManagedResource
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-003
+    title: Tạo attribute đọc–ghi bằng @ManagedAttribute
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-004
+    title: Phơi bày operation có tham số bằng @ManagedOperation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-005
+    title: Đặt ObjectName bằng naming strategy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-006
+    title: Kiểm tra registration policy với hai bean trùng tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-007
+    title: Phát và nhận AttributeChangeNotification
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-008
+    title: Tạo proxy local để đọc và gọi MBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-009
+    title: Kết nối remote qua JSR-160 trong môi trường thử nghiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-010
+    title: Kết hợp JMX với Spring Boot Actuator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-011
+    title: Thử lỗi proxy AOP và khắc phục bằng target-class proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-012
+    title: Viết kiểm thử xác nhận management interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-practice-013
+    title: Thiết lập checklist bảo mật cho remote JMX
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-design-review
+  title: Đánh giá thiết kế
+  childs:
+  - slug: jmx-design-review-001
+    title: Xác định mục tiêu quản trị trước khi tạo MBean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-design-review-002
+    title: Chọn Standard MBean, MXBean, annotation hay assembler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-design-review-003
+    title: Kiểm tra ObjectName, quyền, vòng đời và registration policy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-design-review-004
+    title: Đánh giá attribute, operation và notification theo tác động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-design-review-005
+    title: Xác minh exporter thực sự dùng đúng MBeanServer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-design-review-006
+    title: Kiểm tra hành vi local, remote, proxy và lỗi mạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-design-review-007
+    title: Rà soát ảnh hưởng của AOP, transaction và proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-design-review-008
+    title: Đánh giá khả năng kiểm thử, quan sát và tự động hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-design-review-009
+    title: Kiểm tra tương thích khi thay đổi management interface
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-design-review-010
+    title: Tự đánh giá bằng bằng chứng từ MBeanInfo, tool và test
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

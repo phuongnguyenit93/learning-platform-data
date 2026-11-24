@@ -1,31 +1,31 @@
-# Định nghĩa dịch vụ và tạo nhiều phần triển khai độc lập trên classpath
+# Defining a Service and Creating Multiple Independent Implementations on the Classpath
 
-Khi xây dựng ứng dụng Java có thể mở rộng, ta thường muốn thêm một cách xử lý mới mà không phải sửa mọi nơi đang sử dụng chức năng đó. Một hướng thiết kế là **định nghĩa một hợp đồng dịch vụ (service contract)** rồi cho nhiều thư viện độc lập hiện thực hợp đồng. Trên Java classpath, `ServiceLoader` giúp ứng dụng khám phá những phần triển khai (service provider) đã được đăng ký.
+When building an extensible Java application, we often want to add a new way of handling logic without having to modify every place that uses that functionality. One design approach is to **define a service contract** and let multiple independent libraries implement the contract. On the Java classpath, `ServiceLoader` helps the application discover registered implementations (service providers).
 
-Bài này xây dựng **một SPI, hai provider nằm trong hai JAR riêng và một ứng dụng gọi chúng**. Qua đó, bạn sẽ thấy phần nào được chia sẻ khi biên dịch, phần nào có thể thêm/bớt khi chạy, và điều kiện để Java thực sự tìm được provider.
+This lesson builds **one SPI, two providers in two separate JARs, and an application that calls them**. Through it, you will see what is shared at compile time, what can be added or removed at runtime, and the conditions required for Java to actually find the providers.
 
-## 1. Mô hình cần nắm trước khi viết mã
+## 1. The Model to Understand Before Writing Code
 
-Giả sử ứng dụng cần lời chào theo nhiều ngôn ngữ. Cách viết phụ thuộc trực tiếp vào implementation thường trông như sau:
+Suppose the application needs greetings in multiple languages. An approach that depends directly on implementations usually looks like this:
 
 ```java
-// Minh họa mã ghép cứng, không phải chương trình hoàn chỉnh.
+// Illustrates hardcoded logic, not a complete program.
 if (language.equals("en")) {
     return new EnglishGreetingService().greet(name);
 }
 return new VietnameseGreetingService().greet(name);
 ```
 
-Mỗi lần thêm một ngôn ngữ, đoạn chọn lớp có nguy cơ phải sửa. Hơn nữa, ứng dụng phải biết tên lớp triển khai ngay từ lúc biên dịch.
+Every time a language is added, the class-selection block risks needing modification. Moreover, the application must know the implementation class names at compile time.
 
-Mô hình SPI tách ba trách nhiệm:
+The SPI model separates three responsibilities:
 
-1. **Hợp đồng dịch vụ:** mô tả chức năng và các quy tắc mà mọi provider phải tuân theo.
-2. **Các provider độc lập:** mỗi provider hiện thực cùng hợp đồng nhưng tự quyết định thuật toán và cách đóng gói; provider A không phải import provider B.
-3. **Consumer và bộ khám phá:** ứng dụng chỉ biết hợp đồng, để `ServiceLoader` tìm các provider có mặt và đã đăng ký trong môi trường chạy.
+1. **Service contract:** describes the functionality and rules that all providers must follow.
+2. **Independent providers:** each provider implements the same contract while deciding its own algorithm and packaging; provider A does not need to import provider B.
+3. **Consumer and discovery mechanism:** the application knows only the contract, letting `ServiceLoader` find providers that are present and registered in the runtime environment.
 
 ```text
-                 Phụ thuộc vào hợp đồng chung
+                 Depends on shared contract
                               |
                  +------------v------------+
                  | GreetingService (SPI)   |
@@ -42,28 +42,28 @@ Mô hình SPI tách ba trách nhiệm:
           |                                       |
           +-------------------+-------------------+
                               |
-             ServiceLoader tìm provider
+             ServiceLoader finds providers
                               |
                  +------------v------------+
                  | greeting-app.jar        |
-                 | Main dùng hợp đồng SPI  |
+                 | Main uses SPI contract  |
                  +-------------------------+
 ```
 
-Interface `GreetingService` là **SPI đối với người viết provider** và đồng thời là kiểu dịch vụ mà consumer có thể gọi. Thuật ngữ API/SPI mô tả *vai trò sử dụng hợp đồng*, không bắt buộc mỗi vai trò phải có một interface riêng.
+The `GreetingService` interface is the **SPI for provider authors** and simultaneously the service type that consumers can call. The terms API/SPI describe *the role in using the contract*, and do not require each role to have a separate interface.
 
-**“Độc lập” ở đây có nghĩa:** hai provider có mã nguồn, vòng đời phát hành và JAR riêng; chúng chỉ phụ thuộc vào hợp đồng chung, không phụ thuộc vào nhau. Điều này không có nghĩa provider được cách ly tiến trình, được tự động cập nhật nóng hoặc có thể bỏ qua việc quản lý phiên bản SPI.
+**"Independent" here means:** the two providers have their own source code, release lifecycle, and JARs; they depend only on the shared contract, not on each other. This does not mean providers are process-isolated, automatically hot-updated, or exempt from SPI version management.
 
-## 2. Thiết kế hợp đồng dịch vụ
+## 2. Designing the Service Contract
 
-Trước khi viết provider, ta cần xác định điều gì phải ổn định. Trong ví dụ:
+Before writing providers, we need to determine what must remain stable. In this example:
 
-- `languageTag()` trả về mã ngôn ngữ để consumer nhận diện dịch vụ. Mỗi provider dùng một mã duy nhất, ví dụ `en` hoặc `vi`.
-- `greet(name)` nhận tên người dùng và trả về câu chào.
-- Để demo có đầu ra rõ ràng, quy ước `name` khác `null`, không rỗng; lời chào trả về khác `null`. Đây là **quy ước hợp đồng**; interface Java tự nó chưa kiểm tra các điều kiện đó.
-- Provider không duy trì trạng thái thay đổi giữa các lần gọi, nên có thể tái sử dụng instance trong ví dụ. Với dịch vụ có trạng thái/tài nguyên, hợp đồng cần nói rõ thread safety và cách đóng tài nguyên.
+- `languageTag()` returns a language code so the consumer can identify the service. Each provider uses a unique code, such as `en` or `vi`.
+- `greet(name)` takes a user's name and returns a greeting.
+- For the demo to produce clear output, the convention is that `name` is non-`null` and non-empty; the returned greeting is non-`null`. This is a **contract convention**; a Java interface by itself does not enforce these conditions.
+- Providers do not maintain mutable state between calls, so instances can be reused in this example. For services with state or resources, the contract must specify thread safety and how resources are closed.
 
-Tệp `contract/src/com/example/spi/GreetingService.java`:
+File `contract/src/com/example/spi/GreetingService.java`:
 
 ```java
 package com.example.spi;
@@ -75,11 +75,11 @@ public interface GreetingService {
 }
 ```
 
-Đây là một **service type** hợp lệ cho `ServiceLoader`. Interface chỉ nêu những thao tác mà các implementation phải cung cấp. Nó không biết lớp tiếng Anh, lớp tiếng Việt, thư mục lưu JAR, hay cơ chế chọn provider. Việc giữ hợp đồng nhỏ, có ngữ nghĩa rõ ràng giúp tác giả provider độc lập thực hiện đúng cùng một kỳ vọng.
+This is a valid **service type** for `ServiceLoader`. The interface specifies only the operations that implementations must provide. It does not know about the English class, the Vietnamese class, the directory storing JARs, or the provider selection mechanism. Keeping the contract small with clear semantics helps independent provider authors fulfill the exact same expectations.
 
-## 3. Cấu trúc dự án: bốn thành phần riêng
+## 3. Project Structure: Four Separate Components
 
-Để dễ theo dõi, ta dùng bốn thư mục nguồn. Bạn có thể tạo cây tệp sau trong thư mục `spi-demo`:
+To make it easy to follow, we use four source directories. You can create the following file tree in the `spi-demo` directory:
 
 ```text
 spi-demo/
@@ -95,22 +95,22 @@ spi-demo/
     └── src/com/example/app/Main.java
 ```
 
-Khi biên dịch, ta sẽ tạo bốn JAR:
+When compiled, we will produce four JARs:
 
-| JAR | Chứa gì? | Phụ thuộc khi biên dịch |
+| JAR | What does it contain? | Compile-time dependencies |
 |---|---|---|
-| `greeting-spi.jar` | Interface `GreetingService` | Không phụ thuộc provider |
-| `greeting-en.jar` | Provider tiếng Anh và đăng ký của nó | `greeting-spi.jar` |
-| `greeting-vi.jar` | Provider tiếng Việt và đăng ký của nó | `greeting-spi.jar` |
+| `greeting-spi.jar` | `GreetingService` interface | No provider dependencies |
+| `greeting-en.jar` | English provider and its registration | `greeting-spi.jar` |
+| `greeting-vi.jar` | Vietnamese provider and its registration | `greeting-spi.jar` |
 | `greeting-app.jar` | Consumer `Main` | `greeting-spi.jar` |
 
-Hai provider **không cần thấy mã hoặc JAR của nhau** khi biên dịch. Consumer cũng không cần import lớp provider cụ thể. Đây là ranh giới phụ thuộc quan trọng nhất của bài.
+The two providers **do not need to see each other's code or JAR** at compile time. The consumer also does not need to import concrete provider classes. This is the most important dependency boundary in this lesson.
 
-## 4. Hai implementation độc lập
+## 4. Two Independent Implementations
 
-### 4.1. Provider tiếng Anh
+### 4.1. English Provider
 
-Tệp `provider-en/src/com/example/provider/en/EnglishGreetingService.java`:
+File `provider-en/src/com/example/provider/en/EnglishGreetingService.java`:
 
 ```java
 package com.example.provider.en;
@@ -130,11 +130,11 @@ public final class EnglishGreetingService implements GreetingService {
 }
 ```
 
-`EnglishGreetingService` tự hiện thực hai method của SPI. Vì class là `public` và không khai báo constructor riêng, Java cấp constructor không tham số với mức truy cập công khai, đáp ứng cách khởi tạo provider theo classpath trong ví dụ.
+`EnglishGreetingService` implements the two SPI methods on its own. Because the class is `public` and declares no explicit constructor, Java provides a no-argument constructor with public access, satisfying how classpath providers are instantiated in this example.
 
-### 4.2. Provider tiếng Việt
+### 4.2. Vietnamese Provider
 
-Tệp `provider-vi/src/com/example/provider/vi/VietnameseGreetingService.java`:
+File `provider-vi/src/com/example/provider/vi/VietnameseGreetingService.java`:
 
 ```java
 package com.example.provider.vi;
@@ -154,54 +154,54 @@ public final class VietnameseGreetingService implements GreetingService {
 }
 ```
 
-Lớp này chỉ biết `GreetingService`. Nó không `extends`, `imports` hoặc gọi `EnglishGreetingService`. Hai provider được phép dùng thư viện nội bộ khác nhau, miễn tuân thủ hợp đồng chung.
+This class knows only `GreetingService`. It does not `extends`, `imports`, or call `EnglishGreetingService`. The two providers are allowed to use different internal libraries as long as they adhere to the shared contract.
 
-**Phân biệt quan trọng:** `implements GreetingService` chỉ thỏa yêu cầu về kiểu Java. Để `ServiceLoader` *tìm thấy* provider trên classpath, ta vẫn phải đăng ký lớp bằng tài nguyên dịch vụ.
+**Important distinction:** `implements GreetingService` only satisfies the Java type requirement. For `ServiceLoader` to *find* the provider on the classpath, we still must register the class using a service resource.
 
-## 5. Đăng ký từng provider bằng `META-INF/services`
+## 5. Registering Each Provider via `META-INF/services`
 
-Cơ chế đăng ký trên **classpath** dùng tệp cấu hình với đường dẫn chính xác:
+The registration mechanism on the **classpath** uses a configuration file with the exact path:
 
 ```text
-META-INF/services/<tên-đầy-đủ-của-service-type>
+META-INF/services/<fully-qualified-name-of-service-type>
 ```
 
-Trong ví dụ, cả hai JAR đều có một tệp cùng đường dẫn:
+In this example, both JARs have a file at the same path:
 
 ```text
 META-INF/services/com.example.spi.GreetingService
 ```
 
-Nhưng **nội dung mỗi tệp khác nhau**.
+But **the contents of each file differ**.
 
-Nội dung `provider-en/resources/META-INF/services/com.example.spi.GreetingService`:
+Contents of `provider-en/resources/META-INF/services/com.example.spi.GreetingService`:
 
 ```text
 com.example.provider.en.EnglishGreetingService
 ```
 
-Nội dung `provider-vi/resources/META-INF/services/com.example.spi.GreetingService`:
+Contents of `provider-vi/resources/META-INF/services/com.example.spi.GreetingService`:
 
 ```text
 com.example.provider.vi.VietnameseGreetingService
 ```
 
-`ServiceLoader` đọc các tài nguyên cấu hình dịch vụ mà class loader nhìn thấy. Khi hai JAR cùng nằm trên classpath, hai tài nguyên có cùng tên vẫn được khám phá; **không phải ghép hai tệp thành một hoặc chỉ giữ một tệp**. Mỗi JAR tự mang đăng ký của chính nó. Đây là điều khiến việc thêm/bớt provider JAR thuận tiện.
+`ServiceLoader` reads service configuration resources visible to the class loader. When both JARs are on the classpath together, both resources with the same name are still discovered; **you do not merge the two files into one or keep only one file**. Each JAR carries its own registration. This is what makes adding and removing provider JARs convenient.
 
-Các quy tắc cần nhớ:
+Rules to remember:
 
-- Tên file sau `services/` phải là tên đầy đủ của **interface dịch vụ**, không phải tên provider.
-- Mỗi dòng nội dung ghi tên đầy đủ của **lớp provider**. Có thể có nhiều provider trong một file, nhưng ví dụ cố ý đặt một provider trên một JAR.
-- Không đặt phần mở rộng `.txt`, `.java` hoặc `.properties` cho tệp đăng ký.
-- Trên classpath, lớp provider phải hiện thực service type và có constructor không tham số công khai phù hợp cơ chế khởi tạo của `ServiceLoader`.
-- File cấu hình phải được đóng gói **bên trong provider JAR**, đúng đường dẫn gốc `META-INF/services/...`. Để file bên ngoài JAR nhưng không nằm trong đường dẫn tài nguyên được tìm thấy sẽ không đủ.
-- Khai báo sai tên lớp, kiểu không phù hợp hoặc lỗi tạo instance có thể gây `ServiceConfigurationError` khi duyệt provider.
+- The file name after `services/` must be the fully qualified name of the **service interface**, not the provider name.
+- Each content line lists the fully qualified name of the **provider class**. There can be multiple providers in one file, but this example intentionally places one provider per JAR.
+- Do not add `.txt`, `.java`, or `.properties` extensions to the registration file.
+- On the classpath, the provider class must implement the service type and have a public no-argument constructor suitable for `ServiceLoader`'s instantiation mechanism.
+- The configuration file must be packaged **inside the provider JAR**, at the exact root path `META-INF/services/...`. Leaving the file outside the JAR without being in a discovered resource path will not be enough.
+- Specifying a wrong class name, an incompatible type, or an instantiation error can cause `ServiceConfigurationError` when iterating over providers.
 
-Không cần dùng `Class.forName(...)`, không cần đăng ký thủ công qua `new` trong consumer và không cần thay đổi hợp đồng SPI khi thêm một implementation tuân thủ hợp đồng hiện có.
+There is no need to use `Class.forName(...)`, no need for manual registration via `new` in the consumer, and no need to change the SPI contract when adding a new implementation that conforms to the existing contract.
 
-## 6. Viết consumer chỉ biết hợp đồng
+## 6. Writing a Consumer That Knows Only the Contract
 
-Tệp `app/src/com/example/app/Main.java`:
+File `app/src/com/example/app/Main.java`:
 
 ```java
 package com.example.app;
@@ -235,17 +235,17 @@ public final class Main {
 }
 ```
 
-Mã consumer không import `EnglishGreetingService` hay `VietnameseGreetingService`. Nó yêu cầu dịch vụ qua `GreetingService.class`, duyệt provider được phát hiện, kiểm tra mã ngôn ngữ trùng rồi sử dụng method `greet()`.
+The consumer code does not import `EnglishGreetingService` or `VietnameseGreetingService`. It requests the service via `GreetingService.class`, iterates over discovered providers, checks for duplicate language codes, and then uses the `greet()` method.
 
-Vì `ServiceLoader` **không hứa thứ tự các provider**, ví dụ đưa chúng vào `TreeMap` để in theo thứ tự từ điển của mã ngôn ngữ. Điều này bảo đảm đầu ra `en` rồi `vi`, dù thứ tự khám phá thực tế khác nhau. Dùng `putIfAbsent` còn tránh lỗi âm thầm ghi đè hai provider khai báo cùng `languageTag()`.
+Because `ServiceLoader` **does not promise provider ordering**, the example puts them into a `TreeMap` to print in lexicographical order of language codes. This ensures output of `en` then `vi`, even if the actual discovery order differs. Using `putIfAbsent` also avoids silently overwriting when two providers declare the same `languageTag()`.
 
-Với ứng dụng lớn, bạn có thể viết một lớp điều phối hoặc facade để consumer chỉ gọi `getGreeting("vi")`. `ServiceLoader` là cơ chế phát hiện provider; chính ứng dụng quyết định cách chọn, ưu tiên, xử lý trùng lặp và báo lỗi.
+For a large application, you can write a coordinator class or facade so the consumer only calls `getGreeting("vi")`. `ServiceLoader` is the provider discovery mechanism; the application itself decides how to select, prioritize, handle duplicates, and report errors.
 
-## 7. Biên dịch, đóng JAR và chạy trên Java 17+
+## 7. Compiling, Packaging into JARs, and Running on Java 17+
 
-Ví dụ không dùng Maven/Gradle để làm rõ trực tiếp quan hệ classpath. Cần cài **JDK 17 trở lên** và có lệnh `javac`, `jar`, `java`. Chạy từ thư mục gốc `spi-demo`; đảm bảo đã tạo đúng các tệp ở phần trên.
+The example does not use Maven/Gradle in order to directly clarify classpath relationships. You need **JDK 17 or higher** installed with the `javac`, `jar`, and `java` commands available. Run from the `spi-demo` root directory; make sure the files above have been created properly.
 
-### 7.1. Lệnh trên Windows PowerShell
+### 7.1. Commands on Windows PowerShell
 
 ```powershell
 New-Item -ItemType Directory -Force -Path out/spi,out/en,out/vi,out/app,dist | Out-Null
@@ -265,9 +265,9 @@ jar --create --file dist/greeting-app.jar -C out/app .
 java --class-path 'dist/greeting-spi.jar;dist/greeting-en.jar;dist/greeting-vi.jar;dist/greeting-app.jar' com.example.app.Main
 ```
 
-### 7.2. Lệnh trên Linux/macOS
+### 7.2. Commands on Linux/macOS
 
-Cùng các tệp nguồn, trên hệ Unix dùng dấu `:` để ngăn các phần tử classpath:
+With the same source files, on Unix systems use `:` to separate classpath elements:
 
 ```bash
 mkdir -p out/spi out/en out/vi out/app dist
@@ -287,119 +287,119 @@ jar --create --file dist/greeting-app.jar -C out/app .
 java -cp "dist/greeting-spi.jar:dist/greeting-en.jar:dist/greeting-vi.jar:dist/greeting-app.jar" com.example.app.Main
 ```
 
-Đầu ra tiêu chuẩn khi có đủ hai provider và terminal hiển thị Unicode:
+Standard output when both providers are present and the terminal displays Unicode:
 
 ```text
 en => Hello, Linh!
 vi => Xin chào, Linh!
 ```
 
-Trong cả hai bộ lệnh:
+In both sets of commands:
 
-1. `greeting-spi.jar` được biên dịch **trước** vì ba thành phần còn lại phụ thuộc hợp đồng.
-2. Mỗi provider được biên dịch chỉ với `greeting-spi.jar` trên compile classpath; không cần JAR của provider còn lại.
-3. `jar -C ... . -C provider-.../resources .` đưa cả class đã biên dịch và tài nguyên `META-INF/services/...` vào cùng JAR.
-4. Consumer được biên dịch **chỉ với hợp đồng SPI**, chưa cần biết JAR provider.
-5. Khi chạy, classpath chứa contract, app và **hai provider JAR** để `ServiceLoader` nhìn thấy đủ dịch vụ.
+1. `greeting-spi.jar` is compiled **first** because the other three components depend on the contract.
+2. Each provider is compiled with only `greeting-spi.jar` on the compile classpath; the other provider's JAR is not needed.
+3. `jar -C ... . -C provider-.../resources .` puts both the compiled classes and the `META-INF/services/...` resource into the same JAR.
+4. The consumer is compiled **only with the SPI contract**, without needing to know about provider JARs yet.
+5. At runtime, the classpath contains the contract, app, and **both provider JARs** so `ServiceLoader` sees all services.
 
-Để kiểm tra nội dung đăng ký thực sự đã vào JAR, chạy:
+To verify that the registration contents actually made it into the JAR, run:
 
 ```powershell
 jar --list --file dist/greeting-en.jar
 jar --list --file dist/greeting-vi.jar
 ```
 
-Trong danh sách của **cả hai JAR** phải có `META-INF/services/com.example.spi.GreetingService` và class tương ứng. Thứ tự các mục mà lệnh `jar --list` in ra không phải hợp đồng của ví dụ.
+In the listing of **both JARs**, `META-INF/services/com.example.spi.GreetingService` and the corresponding class must appear. The order of entries printed by `jar --list` is not part of this example's contract.
 
-## 8. Thử thay đổi classpath mà không sửa consumer
+## 8. Experimenting with Changing the Classpath Without Modifying the Consumer
 
-### Thử nghiệm A: chỉ mang provider tiếng Anh
+### Experiment A: Including Only the English Provider
 
-Trên Windows:
+On Windows:
 
 ```powershell
 java --class-path 'dist/greeting-spi.jar;dist/greeting-en.jar;dist/greeting-app.jar' com.example.app.Main
 ```
 
-Đầu ra:
+Output:
 
 ```text
 en => Hello, Linh!
 ```
 
-Trên Linux/macOS thay dấu `;` trong classpath bằng `:`. Mã nguồn `Main.java` và JAR consumer **không đổi**: chỉ môi trường chạy thiếu `greeting-vi.jar` nên danh sách dịch vụ có một provider.
+On Linux/macOS replace `;` in the classpath with `:`. The `Main.java` source code and consumer JAR **do not change**: only the runtime environment lacks `greeting-vi.jar`, so the service list has one provider.
 
-### Thử nghiệm B: không có provider nào
+### Experiment B: Having No Providers at All
 
-Trên Windows:
+On Windows:
 
 ```powershell
 java --class-path 'dist/greeting-spi.jar;dist/greeting-app.jar' com.example.app.Main
 ```
 
-`ServiceLoader` không tìm thấy provider qua classpath này. `byLanguage` rỗng, nên chương trình ném `IllegalStateException` với thông báo:
+`ServiceLoader` finds no providers through this classpath. `byLanguage` is empty, so the program throws `IllegalStateException` with the message:
 
 ```text
 No greeting providers found
 ```
 
-Đây là **thông báo ngoại lệ**, không phải một dòng stdout do chương trình in ra; Java còn có stack trace trên stderr. Trong sản phẩm thật, phải chọn rõ chính sách thiếu provider: thất bại sớm, dịch vụ mặc định, hay cấu hình bắt buộc.
+This is an **exception message**, not a stdout line printed by the program; Java also outputs a stack trace on stderr. In a real product, you must explicitly choose a policy for missing providers: fail early, default service, or required configuration.
 
-### Thử nghiệm C: thêm provider mới
+### Experiment C: Adding a New Provider
 
-Bạn có thể tạo `FrenchGreetingService implements GreetingService`, dùng mã `fr`, đóng một `greeting-fr.jar` riêng gồm class và tệp `META-INF/services/com.example.spi.GreetingService`, rồi **thêm JAR này vào classpath khi khởi chạy**.
+You can create `FrenchGreetingService implements GreetingService`, use the code `fr`, package a separate `greeting-fr.jar` containing the class and `META-INF/services/com.example.spi.GreetingService`, and **add this JAR to the classpath at launch**.
 
-Nếu hợp đồng không đổi và provider đúng quy định, consumer đã biên dịch vẫn chạy được mà không cần import, sửa `switch`, hoặc biên dịch lại `Main.java`. Nhớ rằng “thêm JAR vào lệnh chạy mới” khác với “thả JAR vào thư mục trong khi JVM đang chạy”: classpath mặc định không tự cập nhật để nạp nóng plugin mới.
+If the contract does not change and the provider follows the rules, the compiled consumer still runs without needing imports, editing a `switch`, or recompiling `Main.java`. Remember that "adding a JAR to a new launch command" is different from "dropping a JAR into a directory while the JVM is running": the default classpath does not automatically update to hot-load new plugins.
 
-## 9. Điều gì thật sự xảy ra khi `ServiceLoader` hoạt động?
+## 9. What Really Happens When `ServiceLoader` Runs?
 
-Đối với chương trình chạy bằng **classpath** như ví dụ:
+For a program run with the **classpath** like this example:
 
-1. `Main` yêu cầu `ServiceLoader.load(GreetingService.class)`.
-2. Cơ chế nạp dùng class loader phù hợp (overload một tham số dùng context class loader của luồng) để tra cứu các tài nguyên `META-INF/services/com.example.spi.GreetingService`.
-3. Khi chương trình duyệt các provider, `ServiceLoader` đọc khai báo và nạp/khởi tạo lớp provider theo cơ chế dành cho classpath.
-4. Đối tượng trả về có kiểu `GreetingService` và được consumer gọi qua hai method của interface.
+1. `Main` requests `ServiceLoader.load(GreetingService.class)`.
+2. The loading mechanism uses the appropriate class loader (the single-parameter overload uses the thread's context class loader) to look up `META-INF/services/com.example.spi.GreetingService` resources.
+3. When the program iterates over providers, `ServiceLoader` reads the declarations and loads/instantiates provider classes using the classpath mechanism.
+4. The returned objects have type `GreetingService` and are called by the consumer via the two interface methods.
 
-Quá trình khám phá/khởi tạo thường **lười (lazy)**: gọi `load` không khởi tạo sẵn toàn bộ provider. Việc duyệt `for` trong `Main` mới khiến các provider được sử dụng. Một đối tượng `ServiceLoader` có cache các provider đã nạp; `reload()` làm mới cache của đối tượng loader đó nhưng **không thêm JAR vào classpath hoặc thay lớp đã nạp**.
+The discovery/instantiation process is usually **lazy**: calling `load` does not pre-instantiate all providers. Iterating with `for` in `Main` is what causes providers to be used. A `ServiceLoader` instance caches already-loaded providers; `reload()` refreshes the cache of that loader object, but **does not add JARs to the classpath or replace already-loaded classes**.
 
-Không nên dùng chung một instance `ServiceLoader` giữa nhiều luồng mà không tự quản lý đồng bộ vì `ServiceLoader` không bảo đảm thread-safe. `ServiceLoader` cũng **không phải bộ chứa dependency injection**, không tự kiểm tra nghiệp vụ của các method và không cung cấp cơ chế cô lập bảo mật cho mã provider.
+You should not share a single `ServiceLoader` instance across multiple threads without managing synchronization yourself because `ServiceLoader` is not guaranteed to be thread-safe. `ServiceLoader` is also **not a dependency injection container**, does not automatically validate business logic of methods, and does not provide security isolation for provider code.
 
-Bài này áp dụng mô hình **classpath**. Với Java Platform Module System (JPMS), named module thường khai báo `uses` và `provides ... with ...` trong `module-info.java`. Đó là cơ chế đăng ký khác; không được nhầm việc đóng gói JAR classpath ở đây với cấu hình module path.
+This lesson applies the **classpath** model. With the Java Platform Module System (JPMS), a named module typically declares `uses` and `provides ... with ...` in `module-info.java`. That is a different registration mechanism; do not confuse classpath JAR packaging here with module path configuration.
 
-## 10. Lỗi thường gặp và cách chẩn đoán
+## 10. Common Errors and How to Diagnose Them
 
-| Hiện tượng | Nguyên nhân thường gặp | Kiểm tra hoặc xử lý |
+| Symptom | Common Cause | Check or Resolution |
 |---|---|---|
-| Không tìm thấy provider dù có class | Provider JAR không nằm trên runtime classpath, hoặc thiếu resource đăng ký | Kiểm tra `java -cp` và `jar --list --file ...` |
-| Thiếu một provider khi có nhiều JAR | Chỉ đưa một JAR vào classpath hoặc một JAR thiếu `META-INF/services` | Xác minh từng JAR đóng gói metadata độc lập |
-| `ServiceConfigurationError` khi duyệt | Sai tên class trong tệp đăng ký, provider không đúng kiểu, không khởi tạo được | Kiểm tra tên đầy đủ, `implements`, quyền truy cập, constructor và nguyên nhân lỗi |
-| `ClassNotFoundException`/`NoClassDefFoundError` | Thiếu JAR contract hoặc phụ thuộc của provider lúc chạy | Kiểm tra đủ dependency trên classpath |
-| “Not a subtype” trong lỗi cấu hình | Provider không thực sự hiện thực đúng `GreetingService`, đôi khi do class loader nạp hai bản khác nhau của cùng interface | Kiểm tra class loader và thống nhất artifact chứa SPI |
-| Kết quả không theo thứ tự mong muốn | Phụ thuộc thứ tự `ServiceLoader` phát hiện provider | Chọn/sắp xếp theo khóa rõ ràng như `TreeMap` |
-| Hai provider cùng `languageTag()` | Hợp đồng nhận diện không bảo đảm duy nhất | Phát hiện trùng và quy định cách xử lý, như mã `putIfAbsent` |
-| Thêm JAR nhưng JVM đang chạy không thấy | Classpath/class loader hiện tại không tự cập nhật | Khởi chạy lại hoặc thiết kế riêng cơ chế nạp plugin/class loader động |
+| Provider not found despite class existing | Provider JAR is not on the runtime classpath, or the registration resource is missing | Check `java -cp` and `jar --list --file ...` |
+| One provider missing when multiple JARs exist | Only one JAR was put on the classpath or one JAR is missing `META-INF/services` | Verify each JAR packages metadata independently |
+| `ServiceConfigurationError` during iteration | Wrong class name in registration file, provider has wrong type, cannot be instantiated | Check fully qualified name, `implements`, visibility, constructor, and error cause |
+| `ClassNotFoundException`/`NoClassDefFoundError` | Missing contract JAR or provider dependencies at runtime | Verify all dependencies on the classpath |
+| "Not a subtype" in configuration error | Provider does not actually implement the exact `GreetingService`, sometimes because class loaders loaded two different copies of the same interface | Check class loaders and unify the artifact containing the SPI |
+| Results not in expected order | Relied on `ServiceLoader` provider discovery order | Select/sort by an explicit key such as `TreeMap` |
+| Two providers have the same `languageTag()` | Identification contract does not guarantee uniqueness | Detect duplicates and define handling, such as `putIfAbsent` |
+| Added JAR not seen by running JVM | Current classpath/class loader does not update dynamically | Restart or design a dedicated dynamic plugin/class loader mechanism |
 
-**Tương thích phiên bản cũng là một phần của thiết kế.** Nếu nâng SPI bằng cách thêm method trừu tượng mới, provider cũ có thể không còn tương thích khi được gọi; cần quản lý version và lựa chọn chiến lược tiến hóa hợp đồng. Kiểm tra tương thích phải xét cả chữ ký method, ý nghĩa kết quả, ngoại lệ và vòng đời.
+**Version compatibility is also part of the design.** If an SPI is upgraded by adding a new abstract method, older providers may no longer be compatible when called; you need version management and a contract evolution strategy. Compatibility checks must examine method signatures, result semantics, exceptions, and lifecycle.
 
-**Bảo mật:** provider chạy trong JVM của ứng dụng với khả năng truy cập tương ứng; việc đi qua SPI không tự tạo sandbox. Chỉ tải provider JAR đáng tin cậy hoặc thiết kế lớp cô lập thật sự nếu cần chạy mã không tin cậy.
+**Security:** providers run in the application's JVM with corresponding access capabilities; going through an SPI does not automatically create a sandbox. Only load trusted provider JARs or design genuine isolation layers if running untrusted code is required.
 
-## 11. Tiêu chí của một service extensible tốt
+## 11. Criteria for a Good Extensible Service
 
-Khi thiết kế SPI mới, tự trả lời:
+When designing a new SPI, ask yourself:
 
-- **Hợp đồng:** consumer và provider hiểu thống nhất đầu vào, đầu ra, lỗi, tính bất biến/thread safety và giới hạn trách nhiệm chưa?
-- **Độc lập:** mỗi provider biên dịch chỉ cần SPI và phụ thuộc riêng, không tham chiếu provider khác chưa?
-- **Đăng ký:** mỗi JAR tự mang đúng file `META-INF/services` và lớp provider có thể được khởi tạo theo hợp đồng chưa?
-- **Khám phá:** ứng dụng biết phải làm gì khi không có provider, khi provider lỗi, khi có nhiều provider hoặc trùng mã chưa?
-- **Thử nghiệm:** có chạy với 0, 1 và nhiều provider bằng cách thay classpath mà không sửa consumer chưa?
-- **Phát hành:** hợp đồng SPI có quản lý phiên bản và bộ kiểm thử tương thích cho provider ngoài nhóm phát triển chưa?
+- **Contract:** do the consumer and provider agree on inputs, outputs, errors, immutability/thread safety, and responsibility boundaries?
+- **Independence:** does each provider compile needing only the SPI and its own dependencies, without referencing other providers?
+- **Registration:** does each JAR carry its own proper `META-INF/services` file and can the provider class be instantiated according to the contract?
+- **Discovery:** does the application know what to do when no provider exists, when a provider fails, when there are multiple providers, or when codes collide?
+- **Testing:** can it run with 0, 1, and multiple providers by changing the classpath without modifying the consumer?
+- **Release:** does the SPI contract have version management and a compatibility test suite for external development teams' providers?
 
-## 12. Bài tập củng cố
+## 12. Reinforcement Exercises
 
-1. **Tạo provider thứ ba:** hiện thực `GreetingService` cho mã `fr` trong JAR riêng. Biên dịch nó với duy nhất `greeting-spi.jar`, đóng gói tài nguyên dịch vụ và thêm JAR mới vào lệnh chạy. Dự đoán vì sao `Main` không cần biên dịch lại.
-2. **Phá đăng ký có kiểm soát:** bỏ tệp `META-INF/services/...` khỏi bản đóng gói của `greeting-vi.jar` rồi chạy lại. Phân biệt “class có trong JAR” với “provider được khai báo”.
-3. **Thử lỗi trùng mã:** tạo thêm provider trả `"en"` ở `languageTag()`. Giải thích vì sao `Main` báo lỗi trùng thay vì âm thầm ghi đè. Hãy thay bằng một chính sách chọn ưu tiên có quy tắc nếu sản phẩm cho phép nhiều provider cùng nhóm.
-4. **Đánh dấu phụ thuộc:** vẽ mũi tên compile-time từ app và từng provider về `greeting-spi.jar`; sau đó liệt kê các JAR phải có trên runtime classpath. Hai sơ đồ này có gì khác nhau?
-5. **Thảo luận mở rộng:** khi nào interface SPI nhỏ như ví dụ là đủ, và khi nào cần hợp đồng bổ sung về version, khởi tạo, đóng tài nguyên, cấu hình, lỗi và bảo mật?
+1. **Create a third provider:** implement `GreetingService` for the `fr` code in a separate JAR. Compile it with only `greeting-spi.jar`, package the service resource, and add the new JAR to the run command. Predict why `Main` does not need to be recompiled.
+2. **Controlled registration break:** remove the `META-INF/services/...` file from the packaging of `greeting-vi.jar` and run again. Distinguish between "class present in JAR" and "declared provider".
+3. **Test duplicate code error:** create another provider returning `"en"` in `languageTag()`. Explain why `Main` reports a duplicate error instead of silently overwriting. Replace it with a rule-based priority selection policy if the product allows multiple providers in the same group.
+4. **Mark dependencies:** draw compile-time arrows from the app and each provider to `greeting-spi.jar`; then list the JARs that must be on the runtime classpath. How do these two diagrams differ?
+5. **Extended discussion:** when is a small SPI interface like this example sufficient, and when is an additional contract needed for versioning, initialization, resource closing, configuration, errors, and security?
 
-Nắm được cách định nghĩa service type, đóng gói từng implementation và đăng ký provider vào classpath là nền tảng để xây dựng extension point trong Java. Điểm cốt lõi là **provider độc lập với nhau nhưng cùng tuân thủ một hợp đồng**, còn consumer chỉ phụ thuộc vào hợp đồng và quyết định cách sử dụng các provider được khám phá.
+Understanding how to define a service type, package each implementation, and register providers onto the classpath is the foundation for building extension points in Java. The core point is that **providers are independent of each other yet adhere to a single contract**, while the consumer depends only on the contract and decides how to use the discovered providers.

@@ -1,25 +1,25 @@
-# Đóng gói plugin: Tổ chức lớp, tài nguyên và phụ thuộc riêng trong gói phát hành
+# Plugin Packaging: Organizing Classes, Resources, and Private Dependencies in a Release Bundle
 
-Một plugin Java không chỉ là một file JAR chứa vài class. Gói phát hành phải cho host biết **đâu là hợp đồng dùng chung, đâu là implementation của plugin, tài nguyên được tìm ở đâu và các thư viện nào phải được nạp cùng plugin**. Sắp xếp đúng những thành phần này giúp host nạp/gỡ plugin có kiểm soát, tránh xung đột phiên bản và có thể chẩn đoán lỗi khi triển khai.
+A Java plugin is not just a JAR file containing a few classes. A release bundle must tell the host **which part is the shared contract, which part is the plugin implementation, where resources are located, and which libraries must be loaded alongside the plugin**. Organizing these components properly enables the host to load and unload plugins in a controlled manner, avoid version conflicts, and diagnose deployment failures.
 
-## 1. Xác định ranh giới trước khi đóng gói
+## 1. Defining Boundaries Before Packaging
 
-Giả sử một ứng dụng host hỗ trợ các plugin triển khai giao diện Greeter. Có bốn nhóm cần phân biệt:
+Suppose a host application supports plugins implementing the Greeter interface. There are four groups to distinguish:
 
-| Thành phần | Vai trò | Nơi nên đặt |
+| Component | Role | Where It Should Be Placed |
 | --- | --- | --- |
-| **Plugin API/SPI** | Hợp đồng mà cả host và plugin cùng biên dịch, chẳng hạn interface Greeter và kiểu dữ liệu trao đổi | Một artifact API ổn định, do class loader dùng chung của host nạp |
-| **Plugin implementation** | Class hiện thực SPI, thuật toán, cấu hình nội bộ | JAR của từng plugin |
-| **Plugin resources** | File cấu hình, template, message bundle, descriptor dịch vụ, dữ liệu mặc định | Đường dẫn resource trong JAR của plugin hoặc thư mục cấu hình được xác định rõ |
-| **Private dependencies** | Các thư viện chỉ implementation này sử dụng | JAR phụ thuộc trong thư mục lib của plugin hoặc đã được đóng gói hợp lệ vào JAR plugin |
+| **Plugin API/SPI** | Contract that both the host and plugins compile against, such as the Greeter interface and data exchange types | A stable API artifact, loaded by the host's shared class loader |
+| **Plugin implementation** | SPI implementation classes, algorithms, internal configuration | Each plugin's own JAR |
+| **Plugin resources** | Config files, templates, message bundles, service descriptors, default data | Resource paths inside the plugin's JAR or a well-defined configuration directory |
+| **Private dependencies** | Libraries used solely by this implementation | Dependency JARs in the plugin's lib directory or validly packaged into the plugin JAR |
 
-**Nguyên tắc class identity:** trong JVM, danh tính một class phụ thuộc vào cả *tên nhị phân* và *class loader đã định nghĩa nó*. Hai bản dev.example.spi.Greeter do hai loader khác nhau định nghĩa là hai kiểu khác nhau, dù bytecode giống hệt. Vì vậy host và plugin phải nhìn thấy **cùng một bản API**. Không kèm bản API trùng lặp như một thư viện riêng bị loader con ưu tiên định nghĩa lại.
+**Class identity principle:** in the JVM, a class's identity depends on both its *binary name* and the *class loader that defined it*. Two copies of dev.example.spi.Greeter defined by two different loaders are two distinct types, even with identical bytecode. Therefore, the host and plugin must see **the exact same copy of the API**. Do not include a duplicate API copy as a private library that a child loader might preferentially redefine.
 
-**Ranh giới trách nhiệm:** host quyết định cách phát hiện, tạo loader, kiểm tra tương thích và quản lý vòng đời; plugin cung cấp implementation cùng tài nguyên/phụ thuộc thực sự cần thiết. Đóng gói tốt không thay thế chính sách nạp class của host: hai việc phải được thiết kế đồng bộ.
+**Boundary of responsibilities:** the host decides how to discover, create loaders, verify compatibility, and manage the lifecycle; the plugin provides the implementation along with only the resources/dependencies it genuinely needs. Good packaging does not replace the host's class-loading policy: both must be designed in alignment.
 
-## 2. Cấu trúc mã nguồn và gói phát hành
+## 2. Source Structure and Release Bundle
 
-Ví dụ tối giản dùng Java 17+, một host, một API, một plugin và một thư viện trợ giúp chỉ plugin sử dụng:
+A minimal example using Java 17+, one host, one API, one plugin, and one helper library used only by the plugin:
 
 ~~~text
 demo/
@@ -32,29 +32,29 @@ demo/
 └── host/src/main/java/dev/example/host/Host.java
 ~~~
 
-Sau khi build, nơi cài plugin có dạng:
+After building, the plugin installation layout looks like:
 
 ~~~text
 release/
 └── hello/
-    ├── hello-plugin.jar           # implementation + resource + service descriptor
+    ├── hello-plugin.jar           # implementation + resources + service descriptor
     └── lib/
-        └── plugin-helper.jar      # phụ thuộc riêng của plugin
+        └── plugin-helper.jar      # plugin's private dependency
 ~~~
 
-File plugin-api.jar ở **classpath của host**; không đặt thêm một bản khác vào release/hello/lib. Bản minh họa sử dụng thư viện helper do chính ta biên dịch để thấy rõ cách liên kết phụ thuộc, không cần tải thư viện từ Internet.
+The plugin-api.jar file stays on the **host's classpath**; do not place another copy in release/hello/lib. The demo uses a helper library we compile ourselves to clearly illustrate dependency linkage without needing to download libraries from the Internet.
 
-Trong dự án thực tế, nên phân biệt rõ ba loại đường dẫn:
+In real projects, clearly distinguish three types of paths:
 
-- **Source path:** nơi lưu file .java và resource trước khi build.
-- **JAR entry path:** đường dẫn bên trong JAR; Java tìm resource theo đường dẫn này, không dựa vào vị trí file nguồn trên đĩa.
-- **Deployment path:** nơi host tìm JAR của plugin và các JAR trong lib lúc chạy.
+- **Source path:** where .java files and resources live before building.
+- **JAR entry path:** path inside the JAR; Java looks up resources by this path, not by the source file's location on disk.
+- **Deployment path:** where the host finds the plugin JAR and lib JARs at runtime.
 
-Đổi đường dẫn thư mục triển khai không tự động đổi đường dẫn resource bên trong JAR.
+Changing the deployment directory path does not automatically change resource paths inside the JAR.
 
-## 3. Ví dụ chạy được: API, class plugin, resource và dependency riêng
+## 3. Runnable Example: API, Plugin Class, Resource, and Private Dependency
 
-### 3.1. Hợp đồng do host cung cấp
+### 3.1. Contract Provided by the Host
 
 File **api/src/main/java/dev/example/spi/Greeter.java**:
 
@@ -67,9 +67,9 @@ public interface Greeter {
 }
 ~~~
 
-Interface chỉ chứa những kiểu mà host và plugin đều hiểu. Nếu một phương thức SPI để lộ class của thư viện riêng trong tham số hoặc kiểu trả về, thư viện đó không còn thực sự là private dependency: host cũng phải hiểu kiểu ấy. Với hợp đồng công khai, hãy ưu tiên JDK types hoặc các DTO thuộc artifact API.
+The interface contains only types understood by both host and plugin. If an SPI method exposes a class from a private library in its parameters or return type, that library is no longer truly a private dependency: the host must understand that type as well. For public contracts, prefer JDK types or DTOs belonging to the API artifact.
 
-### 3.2. Thư viện chỉ plugin sử dụng
+### 3.2. Library Used Only by the Plugin
 
 File **helper/src/main/java/dev/example/helper/TextUtil.java**:
 
@@ -85,9 +85,9 @@ public final class TextUtil {
 }
 ~~~
 
-Helper không được host tham chiếu trực tiếp. Khi chạy, loader dành cho plugin phải tìm được plugin-helper.jar; chỉ đưa JAR vào thư mục lib là chưa đủ nếu host không thêm nó vào đường tìm class.
+Helper must not be referenced directly by the host. At runtime, the loader created for the plugin must be able to find plugin-helper.jar; merely putting the JAR into the lib folder is not enough if the host does not add it to the class lookup path.
 
-### 3.3. Class implementation đọc resource của chính plugin
+### 3.3. Implementation Class Reading the Plugin's Own Resource
 
 File **plugin/src/main/java/dev/example/plugin/HelloGreeter.java**:
 
@@ -123,23 +123,23 @@ public final class HelloGreeter implements Greeter {
 }
 ~~~
 
-File **plugin/src/main/resources/hello-plugin/message.txt** chứa đúng một dòng:
+File **plugin/src/main/resources/hello-plugin/message.txt** contains a single line:
 
 ~~~text
-Xin chào
+Hello
 ~~~
 
-Đường dẫn bắt đầu bằng dấu / trong Class.getResourceAsStream là đường dẫn tuyệt đối từ **gốc classpath của loader định nghĩa HelloGreeter**. Khi build, entry tương ứng trong JAR là hello-plugin/message.txt, không có tiền tố src/main/resources. Việc chỉ định UTF-8 tránh phụ thuộc vào charset mặc định của môi trường.
+A path starting with / in Class.getResourceAsStream is an absolute path from the **classpath root of the loader that defined HelloGreeter**. When built, the corresponding entry inside the JAR is hello-plugin/message.txt, without the src/main/resources prefix. Specifying UTF-8 avoids depending on the environment's default charset.
 
-File **plugin/src/main/resources/META-INF/services/dev.example.spi.Greeter** chứa tên binary của provider, không có đuôi .class:
+File **plugin/src/main/resources/META-INF/services/dev.example.spi.Greeter** contains the provider's binary name without the .class extension:
 
 ~~~text
 dev.example.plugin.HelloGreeter
 ~~~
 
-Tên file descriptor phải khớp **tên đầy đủ của interface SPI**; tên trong file phải khớp class implementation. Ví dụ này dùng Java ServiceLoader trên classpath; khi chuyển sang JPMS module path, cơ chế khai báo uses/provides trong module-info.java cần được thiết kế riêng.
+The descriptor filename must match the **fully qualified name of the SPI interface**; the name inside the file must match the implementation class. This example uses Java ServiceLoader on the classpath; when migrating to the JPMS module path, the uses/provides declarations in module-info.java must be designed separately.
 
-### 3.4. Host tạo class loader có đủ JAR
+### 3.4. Host Creating a Class Loader with All Required JARs
 
 File **host/src/main/java/dev/example/host/Host.java**:
 
@@ -185,13 +185,13 @@ public final class Host {
 }
 ~~~
 
-Đây là **demo với tên file cố định** để dễ kiểm chứng. Host sản phẩm thực tế cần đọc manifest/metadata của plugin, kiểm tra danh sách JAR được phép nạp và quản lý từng loader; không nên suy tên dependency bằng cách ghép tùy tiện từ tên plugin.
+This is a **demo with hardcoded filenames** for easy verification. A real production host needs to read the plugin's manifest/metadata, validate the list of permitted JARs, and manage each loader; it should not arbitrarily infer dependency names by concatenating strings from the plugin name.
 
-Parent của URLClassLoader là loader đã nạp Greeter. URLClassLoader thông thường ủy quyền cho parent trước; vì vậy host và implementation cùng nhìn thấy một class Greeter. URL của plugin-helper.jar cũng được thêm vào loader, giúp HelloGreeter tìm thấy TextUtil mà host không cần thêm helper vào classpath chung.
+The parent of URLClassLoader is the loader that loaded Greeter. A standard URLClassLoader delegates to its parent first; thus the host and implementation see the same Greeter class. The URL of plugin-helper.jar is also added to the loader, enabling HelloGreeter to find TextUtil without the host needing to add helper to the shared classpath.
 
-### 3.5. Biên dịch, đóng JAR và chạy
+### 3.5. Compiling, Creating JARs, and Running
 
-Chạy từ thư mục **demo/** trong shell POSIX (Linux/macOS, hoặc bash tương thích); cần JDK 17 trở lên:
+Run from the **demo/** directory in a POSIX shell (Linux/macOS, or compatible bash); requires JDK 17 or later:
 
 ~~~bash
 mkdir -p build/api build/helper build/plugin build/host release/hello/lib
@@ -209,22 +209,22 @@ javac -encoding UTF-8 -cp build/plugin-api.jar -d build/host host/src/main/java/
 java -cp "build/host:build/plugin-api.jar" dev.example.host.Host release/hello
 ~~~
 
-Kết quả tiêu chuẩn:
+Expected output:
 
 ~~~text
-hello -> Xin chào, Java!
+hello -> Hello, Java!
 ~~~
 
-Trên Windows, thay dấu **:** phân cách các phần của classpath trong tham số -cp bằng dấu **;**, đồng thời tạo thư mục theo cú pháp shell đang dùng. Câu lệnh jar -C đóng nội dung class và resource vào **gốc JAR**; không tạo một tầng thừa build/plugin hoặc src/main/resources trong archive.
+On Windows, replace the **:** separator between classpath entries in the -cp argument with **;**, and create directories using your shell's syntax. The jar -C flag packages classes and resources at the **root of the JAR**; it does not create an extra build/plugin or src/main/resources directory layer inside the archive.
 
-Kiểm tra gói plugin:
+Inspect the plugin bundle:
 
 ~~~bash
 jar --list --file release/hello/hello-plugin.jar
 jar --list --file release/hello/lib/plugin-helper.jar
 ~~~
 
-Trong hello-plugin.jar phải thấy ít nhất ba entry sau (ngoài META-INF/MANIFEST.MF và thư mục):
+In hello-plugin.jar, at least the following three entries must appear (in addition to META-INF/MANIFEST.MF and directories):
 
 ~~~text
 dev/example/plugin/HelloGreeter.class
@@ -232,70 +232,70 @@ META-INF/services/dev.example.spi.Greeter
 hello-plugin/message.txt
 ~~~
 
-Trong plugin-helper.jar phải có dev/example/helper/TextUtil.class. **Không** cần Greeter.class nằm trong hello-plugin.jar hoặc plugin-helper.jar. Nếu thiếu service descriptor, ServiceLoader không phát hiện implementation; nếu thiếu resource, phương thức greet báo lỗi theo kiểm tra ở ví dụ; nếu thiếu helper, việc nạp hoặc sử dụng implementation có thể gây NoClassDefFoundError.
+In plugin-helper.jar, dev/example/helper/TextUtil.class must be present. Greeter.class does **not** need to be inside hello-plugin.jar or plugin-helper.jar. If the service descriptor is missing, ServiceLoader will not discover the implementation; if the resource is missing, the greet method throws an error per the check in the example; if helper is missing, loading or using the implementation may cause NoClassDefFoundError.
 
-## 4. Chọn hình thức phân phối phụ thuộc riêng
+## 4. Choosing How to Distribute Private Dependencies
 
-| Phương án | Gói phát hành | Điều cần chú ý |
+| Approach | Release Bundle | Key Considerations |
 | --- | --- | --- |
-| **Thin plugin JAR + lib/** | JAR plugin chỉ chứa implementation/resource; thư viện phụ thuộc đặt thành JAR riêng bên cạnh | Host phải đưa **tất cả** JAR cần thiết vào class loader của plugin, gồm cả dependency bắc cầu cần thiết |
-| **Uber/Fat JAR** | Gộp class và resource của nhiều dependency vào một JAR | Phải gộp ServiceLoader descriptors và resource trùng tên đúng cách; kiểm tra trùng class, giấy phép, chữ ký và các file META-INF đặc biệt |
-| **Shading + relocation** | Gộp và đổi package của thư viện có nguy cơ xung đột | Cập nhật mọi tham chiếu class/resource/service phù hợp; xem xét reflection, serialisation và tên class lưu trong cấu hình |
-| **JAR lồng JAR** | JAR plugin chứa các file .jar bên trong | URLClassLoader/JDK classpath thông thường **không tự tìm class** trong nested JAR; cần loader hỗ trợ rõ ràng hoặc giải nén an toàn trước khi nạp |
+| **Thin plugin JAR + lib/** | Plugin JAR contains only implementation/resources; dependency libraries are placed as separate JARs alongside | The host must include **all** required JARs in the plugin's class loader, including required transitive dependencies |
+| **Uber/Fat JAR** | Bundles classes and resources from multiple dependencies into one JAR | Must properly merge ServiceLoader descriptors and identically named resources; check duplicate classes, licenses, signatures, and special META-INF files |
+| **Shading + relocation** | Bundles and renames packages of libraries prone to conflicts | Update all class/resource/service references accordingly; watch out for reflection, serialization, and class names stored in config |
+| **JAR-in-JAR (nested JAR)** | Plugin JAR contains .jar files inside it | Standard URLClassLoader/JDK classpath **does not automatically find classes** in nested JARs; requires explicit loader support or safe extraction before loading |
 
-Trong Gradle Java plugin, tác vụ jar mặc định thường đóng **output của source set** (class và resource), không tự gộp các external implementation dependencies vào archive. Tương tự, khai báo Maven/Gradle dependency chỉ đảm bảo quan hệ build/resolution theo cấu hình; nó không có nghĩa host đang chạy sẽ tự quét lib của plugin.
+In the Gradle Java plugin, the default jar task typically packages the **source set outputs** (classes and resources), without automatically bundling external implementation dependencies into the archive. Similarly, declaring a Maven/Gradle dependency only ensures build-time/resolution relationships according to configuration; it does not mean a running host will automatically scan the plugin's lib directory.
 
-Một cách phân loại dependency trong bản build:
+One way to classify dependencies in a build:
 
-- **API do host cung cấp:** plugin cần ở compile time, nhưng bản phát hành của plugin không kèm một bản API được nạp riêng. Với Gradle có thể dùng cấu hình compileOnly cho SPI tương ứng, tùy thiết kế multi-project.
-- **Implementation dependency riêng:** cần ở runtime và phải được phân phối trong lib/, hoặc được gộp/relocate theo chiến lược đã kiểm thử.
-- **Dependency cần host và plugin chia sẻ:** phải có thỏa thuận phiên bản và class loader thống nhất; chỉ gọi là private khi không xuất hiện trong API/đối tượng trao đổi với host.
-- **Tài nguyên riêng:** đóng cùng JAR hoặc chỉ ra vị trí cấu hình bên ngoài; ưu tiên tiền tố tên thư mục theo plugin để tránh resource collision.
+- **Host-provided API:** needed by the plugin at compile time, but the plugin release does not ship its own separately loaded copy of the API. With Gradle you can use the compileOnly configuration for the corresponding SPI, depending on the multi-project design.
+- **Private implementation dependency:** needed at runtime and must be distributed in lib/, or bundled/relocated using a tested strategy.
+- **Dependency shared by host and plugin:** must have an agreed version and unified class loader; it is only private if it does not appear in the API or objects exchanged with the host.
+- **Private resources:** packaged inside the JAR or pointed to via an external config location; prefer a plugin-prefixed directory name to avoid resource collisions.
 
-Khi có nhiều plugin, **mỗi plugin nên có dependency closure riêng và class loader/lifecycle rõ ràng**. Dùng một classpath toàn cục cho mọi dependency có thể khiến plugin A vô tình dùng phiên bản thư viện do plugin B đưa vào. Tuy nhiên, parent-first loader vẫn có thể chọn class đã có trong parent, kể cả khi lib của plugin có bản khác: thư mục riêng **chưa đủ** để đảm bảo cô lập phiên bản. Nếu thực sự cần nhiều phiên bản cùng tồn tại, hãy kiểm soát những package được parent cung cấp và những package được nạp riêng (chẳng hạn chính sách child-first có chọn lọc hoặc shading), luôn giữ JDK classes và SPI dùng chung ở phía parent.
+When there are multiple plugins, **each plugin should have its own dependency closure and explicit class loader/lifecycle**. Using one global classpath for all dependencies can cause plugin A to inadvertently use a library version brought in by plugin B. However, a parent-first loader can still pick a class already present in the parent, even if the plugin's lib has a different version: separate directories alone are **not enough** to guarantee version isolation. If multiple versions truly must coexist, control which packages are supplied by the parent and which are loaded privately (such as a selective child-first policy or shading), always keeping JDK classes and the shared SPI on the parent side.
 
-## 5. Quy tắc tổ chức class và resource
+## 5. Rules for Organizing Classes and Resources
 
-**Giữ package rõ nghĩa.** Đặt SPI vào package độc lập, ví dụ dev.example.spi; implementation vào package của plugin, ví dụ dev.example.plugin; private helper vào package thuộc thư viện riêng. Tránh đặt class plugin vào package của host hoặc cùng tên class với host rồi dựa vào thứ tự classpath.
+**Keep packages meaningful.** Place the SPI in an independent package, e.g., dev.example.spi; the implementation in the plugin's package, e.g., dev.example.plugin; and private helpers in packages belonging to their own libraries. Avoid placing plugin classes in the host's package or giving them the same class name as host classes and relying on classpath order.
 
-**Dùng đúng loader để tìm resource.** Với resource gắn chặt implementation, cách gọi HelloGreeter.class.getResourceAsStream giúp tìm theo loader của class ấy. ClassLoader.getResourceAsStream nhận đường dẫn không bắt đầu bằng /; Class.getResourceAsStream với / dùng đường dẫn từ gốc. Đừng giả định System.getClassLoader() hay working directory tìm được resource chỉ nằm trong plugin JAR.
+**Use the right loader to locate resources.** For resources tightly coupled to the implementation, calling HelloGreeter.class.getResourceAsStream searches using that class's loader. ClassLoader.getResourceAsStream takes a path without a leading /; Class.getResourceAsStream with / uses a path from the root. Do not assume System.getClassLoader() or the working directory can find resources located only inside the plugin JAR.
 
-**Lưu ý context class loader (TCCL).** Một số framework/provider dùng Thread.currentThread().getContextClassLoader() để tra cứu class và service. Host có thể cần đặt TCCL bằng loader của plugin trong phạm vi lời gọi thích hợp, rồi **khôi phục trong finally** để không ảnh hưởng tác vụ khác. Ví dụ ở trên dùng overload ServiceLoader.load(service, loader) nên chỉ rõ loader tìm provider.
+**Mind the thread context class loader (TCCL).** Some frameworks/providers use Thread.currentThread().getContextClassLoader() to look up classes and services. The host may need to set the TCCL to the plugin's loader within the appropriate invocation scope, then **restore it in a finally block** so other tasks are unaffected. The example above uses the ServiceLoader.load(service, loader) overload, explicitly specifying the loader to search for providers.
 
-**Namespace của resource cũng có thể va chạm.** Hai plugin đều có config.yml ở gốc JAR sẽ khó phân biệt nếu host tìm theo class loader chung. Đặt resource dưới đường dẫn riêng như hello-plugin/; cân nhắc cách parent-first tìm resource trước khi khẳng định đó là tài nguyên riêng.
+**Resource namespaces can also collide.** Two plugins both having config.yml at the JAR root will be hard to distinguish if the host searches via a shared class loader. Place resources under a dedicated path like hello-plugin/; consider how parent-first resource lookup behaves before assuming a resource is private.
 
-**Đừng xuất lộ dependency private qua SPI.** Nếu host nhận về đối tượng thuộc thư viện riêng và muốn ép kiểu/call method, class identity và phiên bản trở thành hợp đồng ngoài ý muốn. Chuyển qua DTO ổn định của API hoặc kiểu JDK.
+**Do not leak private dependencies through the SPI.** If the host receives an object belonging to a private library and tries to cast or call methods on it, class identity and version become an unintended contract. Pass stable API DTOs or JDK types instead.
 
-**Cơ chế discovery phải được đóng gói đầy đủ.** Với ServiceLoader trên classpath, file META-INF/services/<tên đầy đủ SPI> là một resource của JAR, không phải class và cũng không phải Java manifest. Nếu dùng metadata riêng như plugin.properties hoặc JSON manifest, host phải có code đọc và xác thực nó; Java không tự kích hoạt plugin chỉ vì file tồn tại.
+**Discovery mechanisms must be packaged completely.** For ServiceLoader on the classpath, the file META-INF/services/<fully-qualified-SPI-name> is a JAR resource, not a class and not a Java manifest. If using custom metadata such as plugin.properties or a JSON manifest, the host must have code to read and validate it; Java does not activate a plugin merely because the file exists.
 
-## 6. Version, vòng đời và tính an toàn của gói
+## 6. Versioning, Lifecycle, and Bundle Safety
 
-Một release nên khai báo/ghi nhận ít nhất **plugin ID, plugin version, API compatibility, entry point/discovery convention, Java target version, tập dependency đã khóa phiên bản và checksum**. Có thể giữ metadata trong manifest hoặc file riêng theo hợp đồng của host. Dùng version pinning và dependency lock khi build; CI tạo cùng một tập artifact dự kiến, kiểm tra license và nguồn dependency.
+A release should declare or record at least **plugin ID, plugin version, API compatibility, entry point/discovery convention, Java target version, locked dependency set, and checksum**. Metadata can be kept in the manifest or a separate file according to the host's contract. Use version pinning and dependency locking during builds; CI should produce the exact expected set of artifacts and verify licenses and dependency sources.
 
-Tại runtime, host nên thực hiện thứ tự:
+At runtime, the host should follow this sequence:
 
-1. Khám phá thư mục/gói plugin và kiểm tra metadata, file tồn tại, checksum/chữ ký theo chính sách triển khai.
-2. Kiểm tra Java/API compatibility; phát hiện trùng plugin ID và yêu cầu dependency không thỏa.
-3. Tạo class loader/module layer với đúng classpath của plugin; giữ SPI thống nhất với host.
-4. Nạp provider, kiểm tra type, cấu hình, resource và chạy kiểm thử khởi tạo nhẹ; nếu thất bại, ghi rõ **plugin ID + phiên bản + nguyên nhân**.
-5. Theo dõi plugin đang hoạt động; khi dừng, hủy đăng ký, kết thúc task/thread, đóng stream, socket, JDBC pool và loader thích hợp.
+1. Discover the plugin directory/bundle and verify metadata, file existence, and checksum/signature per deployment policy.
+2. Check Java/API compatibility; detect duplicate plugin IDs and unmet dependency requirements.
+3. Create the class loader/module layer with the plugin's exact classpath; keep the SPI consistent with the host.
+4. Load the provider, verify types, configuration, resources, and run a lightweight initialization check; on failure, log **plugin ID + version + cause** clearly.
+5. Monitor active plugins; on stop, unregister, terminate tasks/threads, and close streams, sockets, JDBC pools, and loaders appropriately.
 
-Đóng URLClassLoader giải phóng khả năng truy cập file JAR của loader, nhưng **không đảm bảo JVM unload ngay class**. Nếu còn thread, static cache, ThreadLocal, callback hoặc reference từ host tới class/object thuộc plugin, loader có thể tiếp tục được giữ sống. Cơ chế cập nhật nóng cần quy trình dừng/khởi tạo lại và xử lý trạng thái riêng; không giả định chỉ thay JAR trên đĩa là lớp đang nạp tự đổi.
+Closing a URLClassLoader releases the loader's access to JAR files, but **does not guarantee the JVM will immediately unload classes**. If threads, static caches, ThreadLocals, callbacks, or references from the host to plugin classes/objects remain, the loader may stay alive. Hot-update mechanisms require dedicated stop/reinitialize procedures and state handling; do not assume merely replacing a JAR on disk automatically swaps already-loaded classes.
 
-Class loader là ranh giới namespace, **không phải sandbox bảo mật**. Plugin chạy trong cùng JVM có thể sử dụng quyền của tiến trình. Không nạp mã không tin cậy vào host chỉ vì nó nằm trong JAR riêng; với mã chưa tin cậy cần cách ly tiến trình/container, kiểm soát quyền và giao thức trao đổi phù hợp.
+A class loader is a namespace boundary, **not a security sandbox**. Plugins running in the same JVM can exercise the process's permissions. Do not load untrusted code into the host merely because it resides in a separate JAR; for untrusted code, process/container isolation, permission controls, and appropriate communication protocols are required.
 
-## 7. Lỗi thường gặp và cách kiểm tra
+## 7. Common Errors and How to Verify
 
-| Triệu chứng | Nguyên nhân đáng kiểm tra | Cách xử lý |
+| Symptom | Causes to Check | How to Fix |
 | --- | --- | --- |
-| ServiceLoader không thấy provider | Thiếu/sai META-INF/services, sai tên binary, provider không nằm trong loader | Liệt kê JAR entries; kiểm tra descriptor, provider có triển khai SPI và loader được truyền đúng |
-| ServiceConfigurationError: not a subtype hoặc ClassCastException | Host và plugin đang thấy **hai bản SPI khác class loader** | Đảm bảo SPI đến từ loader chung; bỏ bản API được loader plugin định nghĩa lại |
-| ClassNotFoundException / NoClassDefFoundError | Thiếu dependency runtime, sai URL hoặc dependency bắc cầu chưa được mang theo | Liệt kê đủ JAR runtime; so dependency tree và deployment classpath |
-| NoSuchMethodError / IncompatibleClassChangeError | Thư viện thực tế được nạp khác bản dùng lúc biên dịch, ABI không tương thích | Kiểm tra class được loader nào nạp; ghim version và kiểm thử với chính gói phát hành |
-| Resource trả về null | File không nằm trong JAR, sai đường dẫn hoặc tìm bằng loader khác | Dùng jar --list; kiểm tra dấu / và đường dẫn nội bộ; ưu tiên class gốc của plugin |
-| Chạy từ IDE được, cài plugin không chạy | IDE thêm dependency vào classpath toàn cục nhưng release không mang theo | Kiểm thử bằng JAR đã đóng gói trên classpath chỉ chứa host và API |
-| Lỗi sau nhiều lần reload | Plugin chưa dừng thread/callback hoặc host vẫn giữ reference tới loader | Theo dõi lifecycle và memory/class loader; cleanup trước khi thay phiên bản |
+| ServiceLoader finds no provider | Missing/wrong META-INF/services, wrong binary name, provider not visible to loader | List JAR entries; check descriptor, verify provider implements SPI and correct loader is passed |
+| ServiceConfigurationError: not a subtype or ClassCastException | Host and plugin see **two copies of SPI from different class loaders** | Ensure SPI comes from the shared loader; remove API copy redefined by the plugin loader |
+| ClassNotFoundException / NoClassDefFoundError | Missing runtime dependency, wrong URL, or missing transitive dependency | List all runtime JARs; compare dependency tree against deployment classpath |
+| NoSuchMethodError / IncompatibleClassChangeError | Library actually loaded differs from compile-time version; incompatible ABI | Check which loader loaded the class; pin versions and test with the exact release bundle |
+| Resource returns null | File not in JAR, wrong path, or looked up via a different loader | Use jar --list; check leading / and internal path; prefer the plugin's own root class |
+| Works in IDE, fails when installed as plugin | IDE adds dependencies to global classpath that release does not carry | Test using packaged JARs on a classpath containing only host and API |
+| Fails after multiple reloads | Plugin did not stop threads/callbacks or host still holds references to loader | Track lifecycle and memory/class loaders; clean up before replacing versions |
 
-**Checklist trước khi phát hành:** (1) build sạch từ source; (2) chỉ rõ API chung và dependency riêng; (3) kiểm tra nội dung archive gồm class, META-INF/services và resource; (4) kiểm tra dependency bắc cầu, phiên bản và xung đột; (5) chạy integration test với host thực tế từ thư mục release đã đóng gói, không dựa vào IDE; (6) thử một trường hợp thiếu JAR/resource để xác nhận lỗi có thể chẩn đoán; (7) thử hai plugin có phụ thuộc khác phiên bản nếu hệ thống tuyên bố hỗ trợ cô lập; (8) thử stop/reload và quan sát reference, thread, file handle.
+**Pre-release checklist:** (1) clean build from source; (2) clearly distinguish shared API and private dependencies; (3) verify archive contents including classes, META-INF/services, and resources; (4) check transitive dependencies, versions, and conflicts; (5) run integration tests against the actual host from the packaged release directory, not relying on the IDE; (6) test a missing JAR/resource case to confirm errors are diagnosable; (7) test two plugins with different versions of a dependency if the system claims isolation support; (8) test stop/reload and observe references, threads, and file handles.
 
-Khi tổ chức đúng **API dùng chung – implementation – resource – private dependencies**, gói plugin có thể được triển khai, kiểm tra và nâng cấp độc lập với mã nguồn host, trong giới hạn compatibility và class-loader policy đã xác định.
+When **shared API – implementation – resources – private dependencies** are properly organized, plugin bundles can be deployed, tested, and upgraded independently of host source code, within the defined compatibility bounds and class-loader policy.

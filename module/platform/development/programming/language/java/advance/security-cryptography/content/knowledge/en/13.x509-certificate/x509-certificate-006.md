@@ -1,32 +1,32 @@
-# 13.6 KeyUsage, ExtendedKeyUsage, BasicConstraints và extension critical
+# 13.6 KeyUsage, ExtendedKeyUsage, BasicConstraints, and Critical Extensions
 
-## 1. Vì sao chứng thư X.509 cần các extension giới hạn quyền?
+## 1. Why Do X.509 Certificates Need Extensions That Restrict Permissions?
 
-Chứng thư **X.509 v3** gắn một *public key* với chủ thể, tổ chức cấp, thời hạn, chữ ký và nhiều điều kiện sử dụng. Chữ ký CA xác nhận nội dung chứng thư không bị sửa và được CA phát hành, nhưng **không tự cho phép dùng khóa cho mọi mục đích**. Một chứng thư được cấp để xác thực TLS server, ký mã ứng dụng, xác thực máy khách hoặc **ký chứng thư CA** thường cần các ràng buộc **khác nhau**.
+An **X.509 v3** certificate binds a *public key* with a subject, issuing organization, validity period, signature, and various usage conditions. The CA's signature confirms the certificate contents were not altered and were issued by the CA, yet **does not automatically permit using the key for every purpose**. A certificate issued to authenticate a TLS server, sign application code, authenticate a client, or **sign CA certificates** typically requires **different** constraints.
 
-Ba extension quan trọng trong bài:
+Three key extensions in this lesson:
 
-1. **KeyUsage (KU, OID `2.5.29.15`):** những **nhóm phép toán mật mã cơ bản** mà public key trong chứng thư được phép thực hiện, biểu diễn bằng các bit như `digitalSignature`, `keyEncipherment`, `keyCertSign`.
-2. **ExtendedKeyUsage (EKU, OID `2.5.29.37`):** những **mục đích ứng dụng/giao thức** được phép, biểu diễn bằng danh sách OID như TLS server authentication hoặc client authentication.
-3. **BasicConstraints (BC, OID `2.5.29.19`):** chủ thể có phải **Certificate Authority (CA)** có thể phát hành chứng thư hay không và độ sâu CA con (`pathLenConstraint`).
+1. **KeyUsage (KU, OID `2.5.29.15`):** the **basic cryptographic operation groups** the public key in the certificate is allowed to perform, expressed as bits such as `digitalSignature`, `keyEncipherment`, and `keyCertSign`.
+2. **ExtendedKeyUsage (EKU, OID `2.5.29.37`):** the permitted **application/protocol purposes**, expressed as a list of OIDs such as TLS server authentication or client authentication.
+3. **BasicConstraints (BC, OID `2.5.29.19`):** whether the subject is a **Certificate Authority (CA)** authorized to issue certificates and the depth of subordinate CAs (`pathLenConstraint`).
 
-Mỗi extension có thêm cờ **critical**. Nếu một extension được đánh dấu critical, bên xác minh phải **hiểu và xử lý đúng ngữ nghĩa** của extension đó, hoặc **từ chối chứng thư** khi không có cơ chế được phê duyệt để xử lý. Cờ này **không đồng nghĩa chứng thư đáng tin, mạnh hơn hoặc có quyền cao hơn**.
+Each extension also carries a **critical** flag. If an extension is marked critical, the verifier must **understand and properly enforce the semantics** of that extension, or **reject the certificate** when no approved mechanism exists to handle it. This flag **does not mean the certificate is trusted, stronger, or has higher privileges**.
 
-### 1.1 Một chứng thư có chữ ký hợp lệ vẫn có thể bị từ chối
+### 1.1 A Certificate with a Valid Signature Can Still Be Rejected
 
-Giả sử một CA được trust đã phát hành một certificate cho `service.example.test`:
+Suppose a trusted CA issued a certificate for `service.example.test`:
 
-- `KeyUsage` không cho phép `digitalSignature`, trong khi handshake TLS 1.3 cần server dùng khóa ký handshake.
-- Hoặc EKU chỉ chứa `clientAuth`, không chứa `serverAuth` trong profile ứng dụng yêu cầu.
-- Hoặc certificate có extension critical riêng mà verifier không hiểu.
-- Hoặc chứng thư cấp dưới được dùng làm CA mặc dù `BasicConstraints.cA=false`.
-- Hoặc SAN không khớp DNS đang truy cập; hoặc chứng thư quá hạn, bị thu hồi, chain không về trust anchor được chấp nhận.
+- `KeyUsage` does not allow `digitalSignature`, while a TLS 1.3 handshake requires the server to use the key to sign the handshake.
+- Or EKU contains only `clientAuth`, omitting `serverAuth` required by the application profile.
+- Or the certificate has a custom critical extension that the verifier does not understand.
+- Or an intermediate certificate is used as a CA even though `BasicConstraints.cA=false`.
+- Or SAN does not match the accessed DNS name; or the certificate is expired, revoked, or does not chain to an accepted trust anchor.
 
-Trong mỗi trường hợp, **chỉ kiểm tra chữ ký cryptographic trên certificate là chưa đủ** để đưa ra quyết định “cho phép dùng làm TLS server”. Cần thực hiện **PKIX path validation, identity/hostname validation, usage validation, algorithm policy và (khi cần) revocation checking** theo giao thức.
+In every case, **checking only the cryptographic signature on the certificate is insufficient** to decide “allow use as a TLS server”. You must perform **PKIX path validation, identity/hostname validation, usage validation, algorithm policy checks, and (when required) revocation checking** per protocol.
 
-## 2. Cấu trúc extension trong X.509 v3
+## 2. Extension Structure in X.509 v3
 
-Mỗi extension có cấu trúc ASN.1 đại ý:
+Each extension has roughly this ASN.1 structure:
 
 ```text
 Extension ::= SEQUENCE {
@@ -41,39 +41,39 @@ TBSCertificate ::= SEQUENCE {
 }
 ```
 
-- **`extnID`** xác định loại extension theo OID. Các OID chuẩn: KU `2.5.29.15`, BC `2.5.29.19`, EKU `2.5.29.37`, SAN `2.5.29.17`.
-- **`critical`** mặc định **false** nếu không ghi trong DER. Có thể đánh dấu true với các extension cần bên xác minh thực thi bắt buộc.
-- **`extnValue`** là một `OCTET STRING` chứa **DER encoding của giá trị bên trong** từng loại extension. Java `X509Certificate.getExtensionValue(oid)` trả byte của **DER-encoded OCTET STRING bên ngoài**, không trực tiếp trả đối tượng Java đã phân tích.
+- **`extnID`** identifies the extension type by OID. Standard OIDs: KU `2.5.29.15`, BC `2.5.29.19`, EKU `2.5.29.37`, SAN `2.5.29.17`.
+- **`critical`** defaults to **false** if omitted in DER. It may be marked true for extensions that verifiers must strictly enforce.
+- **`extnValue`** is an `OCTET STRING` containing the **inner DER encoding** of each extension type. Java's `X509Certificate.getExtensionValue(oid)` returns the bytes of the **outer DER-encoded OCTET STRING**, not a parsed Java object directly.
 
-Đừng parse `getExtensionValue("2.5.29.15")` như một mảng bool thô: bên trong còn ASN.1 encoding. Với KU/EKU/BC, **dùng API typed** của `X509Certificate`; với extension tùy biến cần bộ decoder ASN.1 có kiểm soát và chính sách xử lý OID.
+Never parse `getExtensionValue("2.5.29.15")` as a raw boolean array: there is ASN.1 encoding inside. For KU/EKU/BC, **use the typed APIs** on `X509Certificate`; for custom extensions, use a controlled ASN.1 decoder and an OID handling policy.
 
-Một certificate có nhiều extension khác: `subjectAltName` (SAN), `authorityKeyIdentifier`, `subjectKeyIdentifier`, `nameConstraints`, `certificatePolicies`, `authorityInfoAccess`, CRL distribution points... Không được bỏ qua toàn bộ extension khác chỉ vì bài này tập trung KU/EKU/BC.
+A certificate has many other extensions: `subjectAltName` (SAN), `authorityKeyIdentifier`, `subjectKeyIdentifier`, `nameConstraints`, `certificatePolicies`, `authorityInfoAccess`, CRL distribution points, etc. Do not ignore all other extensions simply because this lesson focuses on KU/EKU/BC.
 
-## 3. KeyUsage: từng bit nói lên quyền gì?
+## 3. KeyUsage: What Permission Does Each Bit Indicate?
 
-Java đọc `boolean[] ku = cert.getKeyUsage()`. Các bit có **chỉ số cố định** theo ASN.1 và Java API:
+Java reads `boolean[] ku = cert.getKeyUsage()`. Bits have **fixed indices** per ASN.1 and the Java API:
 
-| Chỉ số | Bit KU | Ý nghĩa điển hình |
+| Index | KU bit | Typical meaning |
 | ---: | --- | --- |
-| 0 | `digitalSignature` | Xác minh chữ ký trên dữ liệu, giao thức xác thực thực thể, chữ ký handshake; **không** phải chữ ký cấp chứng thư/CRL |
-| 1 | `nonRepudiation` / `contentCommitment` | Chữ ký mang ngữ nghĩa cam kết nội dung theo chính sách, không phải phép bảo đảm pháp lý tự động |
-| 2 | `keyEncipherment` | Khóa công khai được dùng **bọc/vận chuyển key** (`key transport`), ví dụ RSA key transport lịch sử |
-| 3 | `dataEncipherment` | Mã hóa trực tiếp dữ liệu người dùng bằng public key trong một số giao thức, hiếm gặp |
-| 4 | `keyAgreement` | Tham gia phép thỏa thuận khóa như DH/ECDH trong các profile phù hợp |
-| 5 | `keyCertSign` | Public key được dùng **xác minh chữ ký phát hành chứng thư** của CA |
-| 6 | `cRLSign` | Public key được dùng **xác minh chữ ký CRL** |
-| 7 | `encipherOnly` | Hạn chế mục đích “chỉ mã hóa” khi `keyAgreement` được bật |
-| 8 | `decipherOnly` | Hạn chế mục đích “chỉ giải mã” khi `keyAgreement` được bật |
+| 0 | `digitalSignature` | Verifying signatures on data, entity authentication protocols, handshake signatures; **not** certificate/CRL issuance signatures |
+| 1 | `nonRepudiation` / `contentCommitment` | Signatures carrying content-commitment semantics per policy, not an automatic legal guarantee |
+| 2 | `keyEncipherment` | Public key used for **key wrapping/transport**, e.g., legacy RSA key transport |
+| 3 | `dataEncipherment` | Direct encryption of user data with the public key in certain protocols, rare |
+| 4 | `keyAgreement` | Participating in key agreement such as DH/ECDH in appropriate profiles |
+| 5 | `keyCertSign` | Public key used to **verify CA certificate issuance signatures** |
+| 6 | `cRLSign` | Public key used to **verify CRL signatures** |
+| 7 | `encipherOnly` | Restricts purpose to “encipher only” when `keyAgreement` is set |
+| 8 | `decipherOnly` | Restricts purpose to “decipher only” when `keyAgreement` is set |
 
-**Điều kiện quan trọng:**
+**Important conditions:**
 
-- Nếu KU **có mặt**, khóa không được dùng ngoài các mục đích mà bit được bật cho phép. Nếu KU **không có**, `getKeyUsage() == null`; điều đó không tự có nghĩa mọi hệ thống đều nên cấp quyền, vì **EKU, profile/giao thức và policy riêng** vẫn có thể hạn chế.
-- Nếu KU chứa `keyCertSign`, BC cần thể hiện chủ thể là **CA** (`cA=true`) theo RFC 5280. Nếu BC không có hoặc `cA=false`, public key **không được dùng để xác minh chữ ký chứng thư** chỉ vì nó có bit keyCertSign.
-- `encipherOnly` và `decipherOnly` chỉ có ý nghĩa khi `keyAgreement` bật; dùng chúng độc lập với keyAgreement là không phù hợp profile RFC 5280.
-- Khi CA dùng public key ký chứng thư/CRL, KU cần bit `keyCertSign`/`cRLSign` tương ứng. RFC 5280 yêu cầu extension KU trên chứng thư của CA có những mục đích đó và khuyến nghị đánh dấu critical.
-- **TLS 1.3** dùng chữ ký trong cơ chế xác thực server bằng certificate, nên `digitalSignature` là bit KU liên quan. `keyEncipherment` xuất hiện trên nhiều chứng thư RSA để tương thích profile TLS cũ, nhưng **không thay thế `digitalSignature` trong TLS 1.3**. Sự phù hợp chính xác phải theo TLS version, key algorithm, signature scheme và profile hiện hành.
+- If KU **is present**, the key must not be used outside purposes permitted by the enabled bits. If KU **is absent**, `getKeyUsage() == null`; that does not automatically mean every system should allow everything, because **EKU, profile/protocol, and local policy** can still restrict usage.
+- If KU includes `keyCertSign`, BC must indicate the subject is a **CA** (`cA=true`) per RFC 5280. If BC is absent or `cA=false`, the public key **must not be used to verify certificate issuance signatures** merely because it has the `keyCertSign` bit.
+- `encipherOnly` and `decipherOnly` are meaningful only when `keyAgreement` is set; using them without `keyAgreement` violates the RFC 5280 profile.
+- When a CA uses a public key to sign certificates/CRLs, KU needs the corresponding `keyCertSign`/`cRLSign` bits. RFC 5280 requires the KU extension on CA certificates with those purposes and recommends marking it critical.
+- **TLS 1.3** uses signatures in server certificate authentication, so `digitalSignature` is the relevant KU bit. `keyEncipherment` appears on many RSA certificates for compatibility with older TLS profiles, but **does not replace `digitalSignature` in TLS 1.3**. Exact suitability depends on TLS version, key algorithm, signature scheme, and the active profile.
 
-Ví dụ một leaf certificate RSA cho TLS server có thể có:
+For example, an RSA leaf certificate for a TLS server might have:
 
 ```text
 KeyUsage: critical
@@ -83,64 +83,64 @@ KeyUsage: critical
   cRLSign          = false
 ```
 
-`keyEncipherment=true` **không** làm chứng thư trở thành CA và không chứng minh serverAuth EKU tồn tại. Ngược lại, chứng thư CA thường bật `keyCertSign` và có thể bật `cRLSign`, đồng thời cần BC `cA=true`.
+`keyEncipherment=true` does **not** make the certificate a CA and does not prove `serverAuth` EKU is present. Conversely, a CA certificate typically sets `keyCertSign` and may set `cRLSign`, while also needing BC `cA=true`.
 
-### Java: đọc bit an toàn
+### Java: Reading Bits Safely
 
 ```java
-// Đoạn minh họa trong phương thức Java, với X509Certificate cert.
-boolean[] usage = cert.getKeyUsage(); // null nếu thiếu extension
+// Illustrative snippet inside a Java method, given X509Certificate cert.
+boolean[] usage = cert.getKeyUsage(); // null if extension is absent
 boolean canSignData = usage != null
         && usage.length > 0 && usage[0];
 boolean canIssueCerts = usage != null
         && usage.length > 5 && usage[5];
 ```
 
-Đây là ví dụ **policy nghiêm ngặt** yêu cầu bit phải có, chứ không tự diễn giải sự vắng KU là “cấm mọi thao tác” ở mọi giao thức. Với các profile cho phép KU vắng mặt, hãy triển khai quy tắc **“nếu extension có mặt thì phải phù hợp”** và các yêu cầu bắt buộc riêng của profile.
+This is a **strict policy** example requiring the bit to be present, rather than interpreting an absent KU as “forbid all operations” in every protocol. For profiles that allow KU to be omitted, implement the rule **“if the extension is present, it must permit the operation”** alongside any mandatory profile-specific requirements.
 
-## 4. ExtendedKeyUsage: mục đích ứng dụng
+## 4. ExtendedKeyUsage: Application Purposes
 
-`ExtendedKeyUsage` là danh sách **KeyPurposeId OID**, không phải bit array. Java trả `List<String>` từ `cert.getExtendedKeyUsage()` (và có thể ném `CertificateParsingException` nếu encoding sai).
+`ExtendedKeyUsage` is a list of **KeyPurposeId OIDs**, not a bit array. Java returns `List<String>` from `cert.getExtendedKeyUsage()` (and may throw `CertificateParsingException` if malformed).
 
-Các OID thường gặp:
+Common OIDs:
 
-| EKU | OID | Trường hợp sử dụng |
+| EKU | OID | Use case |
 | --- | --- | --- |
-| `serverAuth` | `1.3.6.1.5.5.7.3.1` | Xác thực TLS server |
-| `clientAuth` | `1.3.6.1.5.5.7.3.2` | Xác thực TLS client |
-| `codeSigning` | `1.3.6.1.5.5.7.3.3` | Ký mã phần mềm |
-| `emailProtection` | `1.3.6.1.5.5.7.3.4` | Bảo vệ email/S/MIME theo profile |
+| `serverAuth` | `1.3.6.1.5.5.7.3.1` | TLS server authentication |
+| `clientAuth` | `1.3.6.1.5.5.7.3.2` | TLS client authentication |
+| `codeSigning` | `1.3.6.1.5.5.7.3.3` | Software code signing |
+| `emailProtection` | `1.3.6.1.5.5.7.3.4` | Email/S/MIME protection per profile |
 | `timeStamping` | `1.3.6.1.5.5.7.3.8` | Time-stamping authority |
-| `OCSPSigning` | `1.3.6.1.5.5.7.3.9` | Ủy quyền ký phản hồi OCSP |
-| `anyExtendedKeyUsage` | `2.5.29.37.0` | OID đặc biệt; cách chấp nhận chịu ràng buộc profile và chính sách relying party |
+| `OCSPSigning` | `1.3.6.1.5.5.7.3.9` | Authorization to sign OCSP responses |
+| `anyExtendedKeyUsage` | `2.5.29.37.0` | Special OID; acceptance is governed by profile and relying-party policy |
 
-**Quy tắc kết hợp:** khi **cả KU và EKU có mặt**, mục đích sử dụng cần phù hợp **với cả hai**. EKU `serverAuth` không cấp quyền ký handshake nếu KU cấm digital signature trong profile có yêu cầu nó; KU `digitalSignature` cũng không vượt qua EKU chỉ ghi `clientAuth` nếu ứng dụng đang xác thực **server**.
+**Combination rule:** when **both KU and EKU are present**, the intended use must comply **with both**. EKU `serverAuth` does not grant handshake signing permission if KU forbids digital signature in a profile that requires it; likewise, KU `digitalSignature` does not override an EKU listing only `clientAuth` when the application is authenticating a **server**.
 
-**EKU vắng mặt:** `getExtendedKeyUsage()==null` nghĩa là chứng thư **không bị ràng buộc bởi extension EKU**; không phải certificate bị hỏng, cũng **không chứng minh quyền dùng trong mọi hệ thống**. Ứng dụng hoặc tổ chức có thể yêu cầu **EKU serverAuth phải hiện diện rõ ràng**; đó là lựa chọn policy và có thể nghiêm hơn yêu cầu chung của một số profile.
+**Absent EKU:** `getExtendedKeyUsage()==null` means the certificate **is not constrained by an EKU extension**; it does not mean the certificate is broken, nor **does it prove permission for use in every system**. An application or organization can explicitly require **EKU `serverAuth` to be present**; that is a policy choice and may be stricter than general baseline requirements of some profiles.
 
-**EKU có mặt:** danh sách OID chỉ định các mục đích được cấp. EKU có thể được đánh dấu critical **hoặc non-critical** theo RFC 5280; dù non-critical, verifier **biết rõ** EKU vẫn phải thực thi ràng buộc khi xét mục đích sử dụng. Không coi non-critical là “được bỏ qua mọi lúc”.
+**Present EKU:** the OID list specifies the granted purposes. EKU may be marked critical **or non-critical** per RFC 5280; even when non-critical, a verifier **that recognizes** EKU must still enforce its constraints when evaluating purpose. Never treat non-critical as “can always be ignored”.
 
-**`anyExtendedKeyUsage`:** không phải nút “bỏ qua mọi kiểm tra”. RFC có khái niệm OID này nhưng relying party có thể đòi explicit OID mục đích và các profile riêng có quy tắc chặt hơn. Với TLS server trong một policy nội bộ yêu cầu `serverAuth`, nên yêu cầu rõ OID tương ứng thay vì tự suy diễn từ `anyExtendedKeyUsage`.
+**`anyExtendedKeyUsage`:** not a “bypass all checks” button. The RFC defines this OID, yet relying parties may require an explicit purpose OID and specific profiles impose stricter rules. For TLS servers under an internal policy requiring `serverAuth`, require the explicit OID rather than inferring from `anyExtendedKeyUsage`.
 
-### Tình huống rõ nhất: một certificate clientAuth dùng làm server
+### Clear Scenario: A `clientAuth` Certificate Used as a Server
 
 ```text
 Leaf certificate:
   KeyUsage: digitalSignature
   ExtendedKeyUsage: clientAuth
   BasicConstraints: cA=false
-  Signature: hợp lệ bởi CA được trust
+  Signature: valid by a trusted CA
 
-Kết quả:
-  PKIX path validation thuần: có thể PASS.
-  TLS-server purpose "phải có EKU serverAuth": FAIL.
+Result:
+  Pure PKIX path validation: may PASS.
+  TLS-server purpose "must have EKU serverAuth": FAIL.
 ```
 
-**Vì sao?** PKIX `CertPathValidator` kiểm tra chuỗi/điều kiện PKIX, nhưng **không tự là HTTPS hostname verifier hoặc bộ đánh giá mọi purpose nghiệp vụ**. Người lập trình phải dùng trust manager/phân hệ TLS được cấu hình đầy đủ; ví dụ bên dưới cố ý tách hai kiểm tra để người học thấy rõ.
+**Why?** The PKIX `CertPathValidator` checks the chain/PKIX conditions, yet **is not itself an HTTPS hostname verifier or evaluator of every business purpose**. Developers must use properly configured trust managers/TLS subsystems; the example below intentionally separates both checks so learners see the distinction clearly.
 
-## 5. BasicConstraints: ai có thể phát hành chứng thư?
+## 5. BasicConstraints: Who Can Issue Certificates?
 
-Cấu trúc:
+Structure:
 
 ```text
 BasicConstraints ::= SEQUENCE {
@@ -149,146 +149,146 @@ BasicConstraints ::= SEQUENCE {
 }
 ```
 
-- `cA=false`: chủ thể không phải CA phát hành chứng thư theo profile, thường là **end entity (EE)** như một server hoặc client certificate.
-- `cA=true`: chứng thư có thể được dùng làm CA **nếu** các điều kiện khác như `keyCertSign`, trust, thuật toán, path validation đều thỏa.
-- `pathLenConstraint`: số lượng tối đa **chứng thư CA trung gian không tự cấp (non-self-issued)** được phép nằm sau CA này trong đường dẫn hợp lệ, trước end entity. Không tính end-entity leaf. **`pathLen=0` vẫn cho phép CA trực tiếp ký leaf**, nhưng không cho thêm intermediate CA không tự cấp bên dưới theo RFC 5280.
-- Không có `pathLenConstraint` ở một certificate CA `cA=true`: không giới hạn CA-chain depth bởi **chính field này**; path vẫn phải tuân thủ các constraint/policy khác.
-- RFC 5280 không cho phép khai báo pathLen trên certificate có `cA=false`; và khi CA dùng khóa để ký chứng thư, BC phải hiện diện và **critical** theo profile.
+- `cA=false`: the subject is not a CA issuing certificates per profile, typically an **end entity (EE)** such as a server or client certificate.
+- `cA=true`: the certificate may act as a CA **if** other conditions such as `keyCertSign`, trust, algorithms, and path validation all pass.
+- `pathLenConstraint`: the maximum number of **non-self-issued intermediate CA certificates** permitted after this CA in a valid path, before the end entity. Does not count the end-entity leaf. **`pathLen=0` still permits the CA to sign leaves directly**, while disallowing further non-self-issued intermediate CAs beneath it per RFC 5280.
+- Absence of `pathLenConstraint` on a `cA=true` CA certificate: no CA-chain depth limit imposed by **this field itself**; the path must still obey other constraints/policies.
+- RFC 5280 forbids declaring `pathLen` on a certificate with `cA=false`; and when a CA uses its key to sign certificates, BC must be present and **critical** per profile.
 
-Trong Java:
+In Java:
 
 ```java
-// Đoạn minh họa: cert là X509Certificate.
+// Illustrative snippet: cert is X509Certificate.
 int constraint = cert.getBasicConstraints();
 boolean isCa = constraint >= 0;
-// constraint == -1: không phải CA (hoặc BC không có).
-// constraint == 0 : CA nhưng không có non-self-issued intermediate CA sau nó.
-// constraint > 0  : CA với giới hạn độ sâu tương ứng.
-// constraint == Integer.MAX_VALUE : CA không khai báo pathLen.
+// constraint == -1: not a CA (or BC is absent).
+// constraint == 0 : CA with no non-self-issued intermediate CAs allowed after it.
+// constraint > 0  : CA with the corresponding depth limit.
+// constraint == Integer.MAX_VALUE : CA with no pathLen declared.
 ```
 
-**Điểm dễ nhầm:** giá trị Java `-1` xuất hiện cả khi BC **không có** lẫn khi BC có `cA=false`; muốn biết extension có hiện diện, kiểm tra `cert.getExtensionValue("2.5.29.19") != null`. `getBasicConstraints()` là một **convenience API**, không phải công cụ dump toàn bộ ASN.1.
+**Common pitfall:** Java returns `-1` both when BC **is absent** and when BC has `cA=false`; to check whether the extension is present, check `cert.getExtensionValue("2.5.29.19") != null`. `getBasicConstraints()` is a **convenience API**, not a full ASN.1 dump tool.
 
-### CA chain và trust anchor
+### CA Chain and Trust Anchor
 
 ```text
-Trust anchor (CA root được cấu hình tin cậy)
+Trust anchor (configured trusted root CA)
     |
     +--- Intermediate CA (BC cA=true, KU keyCertSign)
              |
              +--- End entity / server (BC cA=false, EKU serverAuth)
 ```
 
-**Không tự coi certificate có `cA=true` là root đáng tin.** Bất kỳ attacker nào cũng có thể tự ký một certificate `CA=true`; chỉ trust anchor được cấp qua cấu hình/PKI đáng tin mới là cơ sở trust. Trong Java `TrustAnchor(rootCert,null)` cố ý **coi rootCert được tin**; nếu nhận file root từ mạng không tin rồi lập tức đưa làm TrustAnchor, toàn bộ kiểm tra chuỗi trở nên vô nghĩa.
+**Never treat a certificate with `cA=true` as a trusted root automatically.** Any attacker can self-sign a `CA=true` certificate; only trust anchors provisioned via trusted configuration/PKI form the basis of trust. In Java, `TrustAnchor(rootCert,null)` explicitly **treats `rootCert` as trusted**; if you take a root file from an untrusted network and immediately pass it as a `TrustAnchor`, the entire chain check becomes meaningless.
 
-Trust anchor có thể được xử lý khác một intermediate certificate khi kiểm tra path: nhiều ràng buộc trong certificate tự ký của root không được áp dụng hệt như các chứng thư nằm *trong* CertPath. Phải quản lý chính sách trust anchor/PKIXParameters riêng, không lấy kết quả `CertPathValidator` làm chứng cứ root đã được kiểm duyệt.
+A trust anchor may be processed differently from an intermediate certificate during path validation: many constraints on a root's self-signed certificate are not evaluated in the exact same way as certificates *within* the `CertPath`. Manage trust anchor/`PKIXParameters` policies separately rather than taking `CertPathValidator` output as proof that the root itself was vetted.
 
-## 6. Extension critical: “hiểu và xử lý hoặc từ chối”
+## 6. Critical Extensions: “Understand and Enforce, or Reject”
 
-Theo RFC 5280, cờ critical được đặt trong **từng extension**, không phải cờ toàn certificate.
+Per RFC 5280, the critical flag is set on **each extension**, not as a certificate-wide flag.
 
-| Tình huống | Hành vi của bộ xác minh phù hợp |
+| Situation | Proper verifier behavior |
 | --- | --- |
-| Extension **critical** và được hiểu/được xử lý | Áp dụng ràng buộc của nó trong bối cảnh PKIX/application |
-| Extension **critical** nhưng chưa có checker xử lý | **Từ chối certificate/path** |
-| Extension **non-critical** không được hiểu | Có thể bỏ qua extension chưa biết theo profile |
-| Extension **non-critical** đã biết và liên quan purpose (như EKU) | Không được tự ý bỏ ràng buộc cần thực thi khi xét usage |
-| Có các extension critical quen thuộc, nhưng key usage/mục đích không phù hợp | **Vẫn từ chối** dù parser hiểu extension |
-| Không có extension unknown critical, nhưng chain/hostname sai | **Vẫn từ chối**; critical không thay thế PKIX/identity validation |
+| Extension is **critical** and understood/handled | Apply its constraints within the PKIX/application context |
+| Extension is **critical** with no checker handling it | **Reject the certificate/path** |
+| Extension is **non-critical** and unrecognized | May ignore the unknown extension per profile |
+| Extension is **non-critical**, recognized, and purpose-related (e.g., EKU) | Must not arbitrarily skip enforcing constraints when checking usage |
+| Familiar critical extensions present, yet key usage/purpose is inappropriate | **Still reject** even though the parser understands the extension |
+| No unknown critical extensions, yet chain/hostname is wrong | **Still reject**; criticality does not replace PKIX/identity validation |
 
-Ví dụ:
+For example:
 
 ```text
 Certificate A:
   Critical: KeyUsage (2.5.29.15)
   Noncritical: ExtendedKeyUsage (2.5.29.37)
-  Khả năng: verifier hiểu KU và kiểm tra purpose EKU -> có thể hợp lệ.
+  Outcome: verifier understands KU and checks EKU purpose -> may be valid.
 
 Certificate B:
-  Critical: 1.2.3.4.5 (OID custom không ai xử lý)
-  Khả năng: parser X.509 đọc được file nhưng PKIX phải từ chối path.
+  Critical: 1.2.3.4.5 (custom OID handled by no one)
+  Outcome: X.509 parser reads the file, yet PKIX must reject the path.
 
 Certificate C:
   Noncritical: 1.2.3.4.5
-  Khả năng: PKIX có thể bỏ qua OID không biết nếu các kiểm tra khác đạt.
+  Outcome: PKIX may ignore the unknown OID if other checks pass.
 ```
 
-### Các API Java liên quan
+### Related Java APIs
 
-| API | Trả về | Lưu ý |
+| API | Returns | Notes |
 | --- | --- | --- |
-| `getCriticalExtensionOIDs()` | `Set<String>` các OID critical; có thể `null` | Không tự nói extension có được **xử lý đúng** hay không |
-| `getNonCriticalExtensionOIDs()` | `Set<String>` các OID non-critical | Sử dụng để kiểm tra nhãn, không thay định nghĩa extension |
-| `hasUnsupportedCriticalExtension()` | `boolean` | Chỉ phản ánh sự hỗ trợ mà implementation báo cáo; **không đủ thay PKIX/purpose validation** |
-| `getExtensionValue(oid)` | `byte[]` DER của outer OCTET STRING hoặc `null` | Không phải kết quả parse typed; phải decode ASN.1 đúng lớp |
-| `getKeyUsage()` | `boolean[]` hoặc `null` | Các bit cố định 0..8 |
-| `getExtendedKeyUsage()` | `List<String>` hoặc `null` | OID, không phải tên thân thiện |
-| `getBasicConstraints()` | `int` | `-1` end entity/not CA; giá trị CA là path length |
-| `checkValidity()` | Không trả về khi ngày hợp lệ | Chỉ thời gian, không kiểm tra chain/trust/purpose |
+| `getCriticalExtensionOIDs()` | `Set<String>` of critical OIDs; may be `null` | Does not itself tell whether the extension was **processed properly** |
+| `getNonCriticalExtensionOIDs()` | `Set<String>` of non-critical OIDs | Used to inspect labels, not a substitute for extension semantics |
+| `hasUnsupportedCriticalExtension()` | `boolean` | Only reflects support reported by the implementation; **insufficient to replace PKIX/purpose validation** |
+| `getExtensionValue(oid)` | DER `byte[]` of the outer OCTET STRING, or `null` | Not a typed parse result; must decode ASN.1 at the proper layer |
+| `getKeyUsage()` | `boolean[]` or `null` | Fixed bits 0..8 |
+| `getExtendedKeyUsage()` | `List<String>` or `null` | OIDs, not friendly names |
+| `getBasicConstraints()` | `int` | `-1` for end entity/not CA; CA value is path length |
+| `checkValidity()` | Void when dates are valid | Time only; does not check chain/trust/purpose |
 
-Cần sử dụng `CertificateFactory` để parse chứng thư, `CertPathValidator.getInstance("PKIX")` để kiểm tra một CertPath đến trust anchor đã cấu hình, và TLS trust manager/hostname verifier cho HTTPS. `certificate.verify(issuerPublicKey)` chỉ kiểm tra **chữ ký của certificate**, không tự xác minh CA chain, KU/EKU, critical extensions, SAN, thời hạn hoặc revocation.
+Use `CertificateFactory` to parse certificates, `CertPathValidator.getInstance("PKIX")` to check a `CertPath` against configured trust anchors, and TLS trust managers/hostname verifiers for HTTPS. `certificate.verify(issuerPublicKey)` checks only **the certificate's signature**, without automatically verifying CA chain, KU/EKU, critical extensions, SAN, validity, or revocation.
 
-## 7. Tạo bộ chứng thư demo với keytool (Java 17+)
+## 7. Creating a Demo Certificate Set with keytool (Java 17+)
 
-Để ví dụ **không phụ thuộc CA/tệp bí mật bên ngoài**, dùng `keytool` đi kèm JDK để tạo **chứng thư test tự ký** và certificate leaf được CA test ký. Toàn bộ key material chỉ phục vụ học tập.
+So the example **does not depend on external CAs or secret files**, use JDK's bundled `keytool` to generate a **self-signed test certificate** and leaf certificates signed by the test CA. All key material is strictly for learning.
 
-Sử dụng **PowerShell 5.1+ trên Windows** hoặc PowerShell 7+; chạy trong một phiên PowerShell và lưu nguồn Java của phần 8 ở file `X509ExtensionsDemo.java` trong thư mục đang làm việc.
+Use **PowerShell 5.1+ on Windows** or PowerShell 7+; run within a single PowerShell session and save the Java source from section 8 as `X509ExtensionsDemo.java` in the working directory.
 
-**Không dùng password mẫu `changeit` hoặc root CA test này trong sản phẩm.** Mã demo tạo `root.p12` chứa private key CA trong một thư mục tạm; hãy bảo vệ/xóa thư mục và không commit lên repository. Những chứng thư này **không thuộc hệ thống CA công khai và không được trust ngoài chương trình demo**.
+**Never use the sample password `changeit` or this test root CA in production.** The demo script creates `root.p12` containing the CA private key in a temporary directory; protect/delete that directory and never commit it to a repository. These certificates **do not belong to any public CA and are not trusted outside the demo program**.
 
 ```powershell
-# Tạo thư mục tạm và password DEMO. Chạy liên tiếp cùng phiên PowerShell.
+# Create a temporary directory and DEMO password. Run consecutively in the same PowerShell session.
 $t = Join-Path $env:TEMP ("x509-extension-demo-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $t | Out-Null
 $pw = "changeit"
 
-# CA root: BasicConstraints critical, CA=true, pathLen=0;
-# KeyUsage critical, cho phép ký certificate và CRL.
+# Root CA: BasicConstraints critical, CA=true, pathLen=0;
+# KeyUsage critical, allowing certificate and CRL signing.
 keytool -genkeypair -alias root -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname "CN=Example Test Root" -validity 365 -storetype PKCS12 -keystore (Join-Path $t "root.p12") -storepass $pw -keypass $pw -ext "BC:critical=ca:true,pathlen:0" -ext "KU:critical=keyCertSign,cRLSign" -noprompt
 
-# Leaf tạo khóa và CSR, chưa phải certificate do CA ký.
+# Leaf generates key and CSR; not yet a CA-signed certificate.
 keytool -genkeypair -alias leaf -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname "CN=service.example.test" -validity 30 -storetype PKCS12 -keystore (Join-Path $t "leaf.p12") -storepass $pw -keypass $pw -noprompt
 keytool -certreq -alias leaf -keystore (Join-Path $t "leaf.p12") -storepass $pw -file (Join-Path $t "leaf.csr")
 
-# Export root certificate (không phải private key).
+# Export root certificate (not the private key).
 keytool -exportcert -alias root -keystore (Join-Path $t "root.p12") -storepass $pw -rfc -file (Join-Path $t "root.pem")
 
-# Các tham số chung cho 4 leaf certificates do root ký.
+# Common parameters for 4 leaf certificates signed by root.
 $base = @("-gencert", "-alias", "root",
   "-keystore", (Join-Path $t "root.p12"), "-storepass", $pw,
   "-infile", (Join-Path $t "leaf.csr"), "-validity", "30", "-rfc",
   "-ext", "KU:critical=digitalSignature,keyEncipherment",
   "-ext", "BC=ca:false", "-ext", "SAN=dns:service.example.test")
 
-# Server hợp lệ theo mục đích demo.
+# Valid server for demo purpose.
 & keytool @base -outfile (Join-Path $t "server.pem") -ext "EKU=serverAuth"
 
-# OID tùy biến dạng critical: validator thông thường không xử lý được.
+# Critical custom OID: standard validator cannot process it.
 & keytool @base -outfile (Join-Path $t "critical.pem") -ext "EKU=serverAuth" -ext "1.2.3.4.5:critical=0101FF"
 
-# Cùng OID tùy biến dạng noncritical: validator có thể bỏ qua.
+# Same custom OID non-critical: validator can ignore it.
 & keytool @base -outfile (Join-Path $t "noncritical.pem") -ext "EKU=serverAuth" -ext "1.2.3.4.5=0101FF"
 
-# Chứng thư chỉ có EKU clientAuth, không có serverAuth.
+# Certificate with only EKU clientAuth, no serverAuth.
 & keytool @base -outfile (Join-Path $t "client.pem") -ext "EKU=clientAuth"
 ```
 
-Lệnh `-gencert` cho ra các leaf certificate đã được root ký. Tham số `-ext "1.2.3.4.5:critical=0101FF"` biểu diễn một OID tùy biến giả lập cho bài học, với một giá trị DER nhỏ. Không dùng OID tùy tiện như vậy để thiết kế extension sản phẩm; cần OID/schema đã đăng ký và bộ xử lý phù hợp.
+The `-gencert` commands output leaf certificates signed by root. The option `-ext "1.2.3.4.5:critical=0101FF"` represents a simulated custom OID for this lesson with a small DER value. Do not use arbitrary OIDs like this when designing production extensions; use registered OIDs/schemas and proper handlers.
 
-Các lệnh `keytool` có thể in thông báo tạo chứng thư trên stderr/stdout tùy JDK; **stdout chính xác** mà phần 8 ghi là output của **lệnh `java`**, không bao gồm thông báo `keytool`. Nếu môi trường không có `keytool`, cần cài JDK hỗ trợ. Khi chạy ở macOS/Linux, có thể chuyển script PowerShell sang cú pháp shell tương ứng, nhưng các tham số `keytool` và ý nghĩa certificate không thay đổi.
+`keytool` commands may print certificate creation messages to stderr/stdout depending on the JDK; the **exact stdout** listed in section 8 is the output of **the `java` command**, excluding `keytool` messages. If your environment lacks `keytool`, install a supported JDK. When running on macOS/Linux, translate the PowerShell script into equivalent shell syntax, while `keytool` arguments and certificate semantics remain unchanged.
 
-## 8. Chương trình Java 17+: đọc KU/EKU/BC và thử critical/noncritical
+## 8. Java 17+ Program: Reading KU/EKU/BC and Testing Critical vs. Non-Critical
 
-Chương trình sau dùng **chỉ Java SE** để:
+The following program uses **only Java SE** to:
 
-1. Đọc chứng thư PEM bằng `CertificateFactory("X.509")`.
-2. Kiểm tra CA `BasicConstraints.cA=true`, `pathLen=0`, KU `keyCertSign` và BC `critical`.
-3. Kiểm tra leaf `cA=false`, KU `digitalSignature/keyEncipherment`, EKU `serverAuth`, KU critical, EKU noncritical.
-4. Thiết lập một trust anchor CA test **cố ý tin cậy trong phạm vi demo**, tạo `CertPath` cho leaf và gọi `CertPathValidator("PKIX")`.
-5. So sánh certificate có OID tùy biến **critical vs noncritical**: critical bị từ chối, noncritical được chấp nhận theo PKIX khi các điều kiện khác đúng.
-6. So sánh certificate chỉ có `clientAuth`: PKIX path thuần vẫn được chấp nhận, nhưng phép kiểm tra *server purpose* riêng từ chối.
+1. Read PEM certificates using `CertificateFactory("X.509")`.
+2. Inspect CA `BasicConstraints.cA=true`, `pathLen=0`, KU `keyCertSign`, and BC `critical`.
+3. Inspect leaf `cA=false`, KU `digitalSignature/keyEncipherment`, EKU `serverAuth`, critical KU, and non-critical EKU.
+4. Set up a test CA trust anchor **intentionally trusted within the demo scope**, build a `CertPath` for the leaf, and call `CertPathValidator("PKIX")`.
+5. Compare certificates with a custom OID **critical vs. non-critical**: critical is rejected, while non-critical is accepted by PKIX when all other checks pass.
+6. Compare a certificate with only `clientAuth`: pure PKIX path validation still accepts it, yet the separate *server purpose* check rejects it.
 
-Lưu thành **`X509ExtensionsDemo.java`**:
+Save as **`X509ExtensionsDemo.java`**:
 
 ```java
 import java.io.InputStream;
@@ -420,14 +420,14 @@ public final class X509ExtensionsDemo {
 }
 ```
 
-Biên dịch và chạy (trong **cùng phiên PowerShell** còn giữ biến `$t`):
+Compile and run (in **the same PowerShell session** that still holds `$t`):
 
 ```powershell
 javac --release 17 -encoding UTF-8 X509ExtensionsDemo.java
 java X509ExtensionsDemo (Join-Path $t "root.pem") (Join-Path $t "server.pem") (Join-Path $t "critical.pem") (Join-Path $t "noncritical.pem") (Join-Path $t "client.pem")
 ```
 
-**Kết quả đã kiểm tra** với JDK 17+ có provider PKIX/keytool thông dụng:
+**Verified output** on JDK 17+ with standard PKIX/keytool providers:
 
 ```text
 rootIsCa=true
@@ -450,138 +450,138 @@ clientOnlyPkixAccepted=true
 clientOnlyServerPurpose=false
 ```
 
-Sau khi học xong, xóa các private keys/certificates demo trong thư mục tạm:
+After finishing the lesson, remove the demo private keys/certificates in the temporary directory:
 
 ```powershell
-# Chỉ chạy khi $t đúng là thư mục DEMO vừa tạo, không chứa dữ liệu cần giữ.
+# Run only when $t is indeed the newly created DEMO directory containing nothing you need to keep.
 if ($t -like (Join-Path $env:TEMP "x509-extension-demo-*")) {
     Remove-Item -LiteralPath $t -Recurse -Force
 }
 ```
 
-**Cảnh báo:** xóa file thông thường không đồng nghĩa secure erase khỏi SSD/snapshot/backup. Test fixture không nên dùng key thật; thư mục đã được tạo chỉ để thực hành.
+**Warning:** normal file deletion is not secure erasure from SSDs/snapshots/backups. Test fixtures must never use real keys; the created directory is strictly for practice.
 
-### 8.1 Vì sao các nhóm kết quả quan trọng?
+### 8.1 Why Does Each Group of Results Matter?
 
-**`rootIsCa=true`, `rootPathLen=0`, `rootKeyCertSign=true`:** root test có BC CA=true, không cho trung gian CA non-self-issued sau root, nhưng vẫn có thể ký trực tiếp end-entity leaf. `rootBcCritical=true` chứng minh flag critical của BC hiện diện trong fixture.
+**`rootIsCa=true`, `rootPathLen=0`, `rootKeyCertSign=true`:** the test root has BC `CA=true`, forbids non-self-issued intermediate CAs beneath it, yet can still sign end-entity leaves directly. `rootBcCritical=true` confirms the critical flag on BC is present in the fixture.
 
-**`leafIsEndEntity=true`:** `getBasicConstraints() == -1` chứng minh Java xem leaf không phải CA. **Không được** dùng leaf để ký chứng thư con kể cả khi khóa của nó có khả năng kỹ thuật tạo RSA signature.
+**`leafIsEndEntity=true`:** `getBasicConstraints() == -1` shows Java treats the leaf as not a CA. **Never** use a leaf to sign child certificates even if its key is technically capable of generating an RSA signature.
 
-**`leafDigitalSignature=true` và `leafKeyEncipherment=true`:** hai quyền KU đều bật trong fixture. Không có nghĩa leaf có quyền `keyCertSign`; đây là quyền khác ở bit 5.
+**`leafDigitalSignature=true` and `leafKeyEncipherment=true`:** both KU permissions are enabled in the fixture. That does not mean the leaf has `keyCertSign` permission; that is a separate permission at bit 5.
 
-**`leafServerAuthEku=true`, `leafKuCritical=true`, `leafEkuNonCritical=true`:** xác nhận EKU serverAuth được phát hành, KU được đánh dấu critical và EKU được đánh dấu non-critical. Việc EKU non-critical không làm ràng buộc mục đích bị vô hiệu.
+**`leafServerAuthEku=true`, `leafKuCritical=true`, `leafEkuNonCritical=true`:** confirms `serverAuth` EKU was issued, KU is marked critical, and EKU is marked non-critical. EKU being non-critical does not disable its purpose constraint.
 
-**`serverPkixAccepted=true`:** chuỗi leaf → root **với root test đã được cấu hình như TrustAnchor** qua `PKIXParameters` vượt qua các kiểm tra chung trong runtime. Đây **không** có nghĩa root tự nhiên được Internet trust. Trong ví dụ `params.setRevocationEnabled(false)` chỉ để fixture không cần CRL/OCSP; **không nên tắt revocation mặc định trong hệ thống thực** mà không có chính sách thay thế thích hợp.
+**`serverPkixAccepted=true`:** the leaf → root chain **with the test root configured as a `TrustAnchor`** via `PKIXParameters` passes general runtime checks. This does **not** mean the root is naturally trusted on the Internet. In the example `params.setRevocationEnabled(false)` only avoids needing CRL/OCSP for the fixture; **never disable revocation by default in real systems** without an appropriate compensating policy.
 
-**`unknownCriticalRejected=true`:** chứa OID critical không có checker xử lý khiến CertPathValidator trả `CertPathValidatorException` và path bị loại. Chỉ parse certificate thành công bằng `CertificateFactory` **không chứng minh** nó có thể được chấp nhận.
+**`unknownCriticalRejected=true`:** having a critical OID with no checker handling it causes `CertPathValidator` to throw `CertPathValidatorException` and reject the path. Simply parsing a certificate with `CertificateFactory` **does not prove** it can be accepted.
 
-**`unknownNoncriticalAccepted=true`:** OID không hiểu nhưng non-critical có thể được bỏ qua, miễn tất cả yêu cầu khác đạt. Điều này không có nghĩa một non-critical EKU serverAuth/clientAuth đã biết cũng có thể bỏ qua khi kiểm tra mục đích.
+**`unknownNoncriticalAccepted=true`:** an unrecognized non-critical OID can be ignored, provided all other requirements pass. This does not mean a known non-critical EKU like `serverAuth`/`clientAuth` can be ignored when evaluating purpose.
 
-**`clientOnlyPkixAccepted=true` nhưng `clientOnlyServerPurpose=false`:** generic PKIX path validator **không tự xác minh mọi mục đích nghiệp vụ**. Trong fixture, leaf có EKU `clientAuth`, còn policy minh họa yêu cầu EKU `serverAuth`; do đó không cho phép dùng nó làm TLS-server certificate.
+**`clientOnlyPkixAccepted=true` yet `clientOnlyServerPurpose=false`:** the generic PKIX path validator **does not automatically verify every business purpose**. In the fixture, the leaf has EKU `clientAuth`, while the illustrative policy requires EKU `serverAuth`; therefore it is disallowed as a TLS server certificate.
 
-### 8.2 Những giới hạn cố ý của ví dụ
+### 8.2 Intentional Limitations of the Example
 
-- `demoServerPurpose` chỉ kiểm tra **đúng một DNS SAN** không wildcard/IDNA, KU digitalSignature, EKU serverAuth và BC EE. Đây là **giải thích học thuật**, **không phải hostname verifier sản phẩm**. TLS phải dùng `TrustManagerFactory`, `X509ExtendedTrustManager`/JSSE và cơ chế endpoint identification phù hợp.
-- `CertPathValidator` trong ví dụ chỉ xác nhận **một leaf** do root demo ký. Hệ thống thực có intermediate CA, name constraints, certificate policy, algorithm constraints, revocation, các ràng buộc trust store, EKU TLS và identity/hostname cần xử lý theo giao thức.
-- `params.setRevocationEnabled(false)` chỉ cho môi trường test không có CRL/OCSP. Trong sản phẩm cần chính sách revocation được đánh giá, cache/failure mode phù hợp, có thể dùng `PKIXRevocationChecker` hoặc JSSE provider được cấu hình.
-- `TrustAnchor(root, null)` giả định root đã được trust. **Không bao giờ lấy root từ người gửi không xác thực rồi tự thêm làm trust anchor.**
-- `keytool` và cách nhận biết custom extension của các provider khác có thể có khác biệt. Mã và output trên đã được kiểm thử trên môi trường JDK có các thành phần trên, không hứa mọi provider sẽ có cùng diagnostic message.
-- Không dùng private key test chứa trong PKCS12 demo cho bất cứ hệ thống thật. Password `changeit` dễ đoán; mọi bí mật sản phẩm phải dùng storage và lifecycle riêng.
+- `demoServerPurpose` checks only **a single exact DNS SAN** without wildcard/IDNA, KU `digitalSignature`, EKU `serverAuth`, and EE BC. This is an **educational illustration**, **not a production hostname verifier**. TLS must use `TrustManagerFactory`, `X509ExtendedTrustManager`/JSSE, and proper endpoint identification.
+- `CertPathValidator` in the example validates only **one leaf** signed by the demo root. Real systems have intermediate CAs, name constraints, certificate policies, algorithm constraints, revocation, trust store constraints, TLS EKU, and identity/hostname handling per protocol.
+- `params.setRevocationEnabled(false)` is only for test environments without CRL/OCSP. Production needs an evaluated revocation policy, appropriate caching/failure modes, potentially via `PKIXRevocationChecker` or a configured JSSE provider.
+- `TrustAnchor(root, null)` assumes the root is already trusted. **Never take a root from an unauthenticated sender and add it as a trust anchor.**
+- `keytool` and how different providers recognize custom extensions can vary. The code and output above were tested on a JDK environment with those components and do not promise identical diagnostic messages across every provider.
+- Never use test private keys from the demo PKCS12 in any real system. The password `changeit` is trivial to guess; all production secrets must use dedicated storage and lifecycles.
 
-## 9. KU/EKU/BC phối hợp trong các tình huống thực tế
+## 9. How KU/EKU/BC Work Together in Real-World Scenarios
 
-| Certificate | KU quan trọng | EKU theo purpose | BC | Chú ý |
+| Certificate | Important KU | EKU by purpose | BC | Notes |
 | --- | --- | --- | --- | --- |
-| TLS server key ký handshake | `digitalSignature` | `serverAuth` khi profile yêu cầu | EE `cA=false` | Cần SAN/hostname + PKIX + thuật toán/signature scheme |
-| TLS mutual-auth client | `digitalSignature` | `clientAuth` | EE | Không dùng làm server nếu policy yêu cầu serverAuth |
-| CA phát hành certificate | `keyCertSign` (và `cRLSign` nếu ký CRL) | Theo policy CA, nhiều trường hợp không có EKU hoặc bị ràng buộc | CA `cA=true`, BC critical | Phải trust/path valid, pathLen tuân thủ |
-| CA trung gian | `keyCertSign` | Nếu có EKU, cần xem giới hạn mục đích chain theo profile | CA `cA=true` | `pathLen` xác định CA con non-self-issued tối đa |
-| Ký mã nguồn/phần mềm | `digitalSignature` hoặc profile thích hợp | `codeSigning` | EE | Không tự được dùng làm TLS server |
-| S/MIME email | KU tùy chức năng ký/mã hóa | `emailProtection` | EE | Cần policy và kiểm tra địa chỉ/chủ thể liên quan |
-| OCSP delegated responder | `digitalSignature` | `OCSPSigning` | Theo profile OCSP | Cần xác minh ủy quyền OCSP/responder chain |
-| Chứng thư giả làm CA chỉ bật KU keyCertSign | `keyCertSign` | Bất kỳ | `cA=false` | **Không** được dùng cấp certificate theo RFC 5280 |
+| TLS server key signing handshake | `digitalSignature` | `serverAuth` when required by profile | EE `cA=false` | Requires SAN/hostname + PKIX + algorithm/signature scheme |
+| TLS mutual-auth client | `digitalSignature` | `clientAuth` | EE | Do not use as server if policy requires `serverAuth` |
+| Certificate-issuing CA | `keyCertSign` (and `cRLSign` if signing CRLs) | Per CA policy; often omitted or constrained | CA `cA=true`, BC critical | Must have valid trust/path and obey `pathLen` |
+| Intermediate CA | `keyCertSign` | If EKU is present, check chain purpose restrictions per profile | CA `cA=true` | `pathLen` caps maximum non-self-issued subordinate CAs |
+| Source code/software signing | `digitalSignature` or appropriate profile | `codeSigning` | EE | Must not be used as a TLS server |
+| S/MIME email | KU per signing/encryption function | `emailProtection` | EE | Requires policy and relevant address/subject checks |
+| OCSP delegated responder | `digitalSignature` | `OCSPSigning` | Per OCSP profile | Must verify OCSP delegation/responder chain |
+| Fake CA certificate with only KU `keyCertSign` enabled | `keyCertSign` | Any | `cA=false` | **Must not** be used to issue certificates per RFC 5280 |
 
-**Đừng sao chép KU/EKU template vô điều kiện** giữa các sản phẩm. Các chuẩn TLS, S/MIME, CMS, code-signing, OCSP, CA/B Forum, PKI nội bộ có yêu cầu chi tiết khác nhau và có thể thay đổi. Chọn extension theo **mục đích key, cơ chế signature/encryption và relying-party profile**.
+**Never blindly copy KU/EKU templates** across products. TLS, S/MIME, CMS, code signing, OCSP, CA/B Forum, and internal PKI standards have different detailed requirements that evolve over time. Select extensions according to **key purpose, signature/encryption mechanism, and relying-party profile**.
 
-Một chứng thư CA có `pathLen=0` có thể trực tiếp phát hành leaf; nếu cần intermediate CA mới dưới nó, phải có CA pathLen phù hợp và được cấp lại với key hierarchy thích hợp. `BasicConstraints` không phải công cụ phân quyền nghiệp vụ tất cả loại chứng thư; nó chủ yếu giới hạn **quyền phát hành certificate** và chain depth.
+A CA certificate with `pathLen=0` can issue leaves directly; if a new intermediate CA is needed beneath it, a CA with an appropriate `pathLen` and proper key hierarchy must be re-issued. `BasicConstraints` is not an access-control tool for all certificate types; it primarily restricts **certificate issuance authority** and chain depth.
 
-## 10. Phân tích lỗi và chống sai cấu hình
+## 10. Troubleshooting Errors and Preventing Misconfigurations
 
-| Biểu hiện | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common cause | Resolution |
 | --- | --- | --- |
-| `InvalidCertificate` hoặc `CertificateParsingException` khi đọc EKU | DER ASN.1 của extension sai | Từ chối certificate, xác định issuer, dùng parser/provider an toàn |
-| `getKeyUsage()==null` | Certificate không có KU | Phân biệt “không hạn chế bởi KU” với policy yêu cầu KU hiện diện |
-| `getExtendedKeyUsage()==null` | Certificate không có EKU | Đánh giá profile/purpose, không mặc định mọi ứng dụng đều cho phép |
-| `getBasicConstraints()==-1` | EE `cA=false` hoặc không có BC | Không dùng làm CA; kiểm tra presence nếu cần phân biệt |
-| `Integer.MAX_VALUE` từ `getBasicConstraints` | CA không có `pathLenConstraint` | Không có giới hạn **từ field pathLen**, nhưng các constraint khác vẫn áp dụng |
-| KU `keyCertSign=true` nhưng BC `cA=false` | Extension mâu thuẫn | Từ chối dùng làm CA, sửa cấp phát certificate |
-| Generic PKIX PASS nhưng HTTPS fail | SAN/hostname, serverAuth EKU, KU/signature algorithm hoặc TLS policy khác | Dùng JSSE trust manager và endpoint verification đầy đủ |
-| PKIX fail ở `UNRECOGNIZED_CRIT_EXT` / lỗi critical | Extension critical OID không được checker nào xử lý | Bổ sung checker hợp lệ hoặc yêu cầu issuer cấp chứng thư tương thích; không bỏ cờ critical tại runtime |
-| Unknown non-critical bị bỏ qua | Đúng hành vi khi extension không ảnh hưởng purpose/profile | Không nhầm với extension được biết nhưng hạn chế usage |
-| Test self-signed root “pass” dù root không tin cậy | Ứng dụng tự thêm root tùy ý làm `TrustAnchor` | Chỉ dùng trust store/anchor được quản trị qua kênh xác thực |
-| `CertificateFactory` parse được certificate nhưng validation fail | Parse cú pháp không bằng xác minh chain/trust | Gọi `CertPathValidator`/TLS engine đúng nhiệm vụ |
-| Leaf KU/EKU không khớp mục đích | CA dùng extension template sai | Cấp lại với purpose và thuật toán phù hợp; không bỏ qua policy |
-| PKIX fail do thời hạn hoặc chính sách crypto | Chứng thư hết hạn, key yếu, algorithm disabled | Rotate/re-issue, cập nhật PKI an toàn, không tắt algorithm constraints |
-| Không xác minh revocation | Không cấu hình CRL/OCSP hoặc cố ý disable để demo | Thiết kế revocation policy cho môi trường thực |
+| `InvalidCertificate` or `CertificateParsingException` reading EKU | Malformed ASN.1 DER in extension | Reject certificate, identify issuer, use safe parser/provider |
+| `getKeyUsage()==null` | Certificate has no KU | Distinguish “unrestricted by KU” from a policy requiring KU presence |
+| `getExtendedKeyUsage()==null` | Certificate has no EKU | Evaluate profile/purpose; do not assume every app permits it |
+| `getBasicConstraints()==-1` | EE `cA=false` or BC absent | Do not use as CA; check extension presence if distinguishing is needed |
+| `Integer.MAX_VALUE` from `getBasicConstraints` | CA has no `pathLenConstraint` | No depth limit **from the `pathLen` field**, though other constraints still apply |
+| KU `keyCertSign=true` yet BC `cA=false` | Conflicting extensions | Refuse to use as CA; fix certificate issuance |
+| Generic PKIX PASS yet HTTPS fails | SAN/hostname, `serverAuth` EKU, KU/signature algorithm, or other TLS policy | Use full JSSE trust manager and endpoint verification |
+| PKIX fails on `UNRECOGNIZED_CRIT_EXT` / critical error | Critical extension OID not handled by any checker | Add valid checker or ask issuer for compatible certificate; never strip critical flag at runtime |
+| Unknown non-critical is ignored | Expected behavior when extension does not affect purpose/profile | Do not confuse with a recognized extension that restricts usage |
+| Test self-signed root “passes” despite untrusted root | App arbitrarily added root as `TrustAnchor` | Only use trust stores/anchors managed through an authenticated channel |
+| `CertificateFactory` parses cert yet validation fails | Syntax parsing does not equal chain/trust verification | Invoke `CertPathValidator`/TLS engine for its intended job |
+| Leaf KU/EKU mismatches purpose | CA used wrong extension template | Re-issue with proper purpose and algorithms; do not bypass policy |
+| PKIX fails on expiration or crypto policy | Expired cert, weak key, disabled algorithm | Rotate/re-issue, update PKI safely; never disable algorithm constraints |
+| Revocation not checked | CRL/OCSP unconfigured or intentionally disabled for demo | Design revocation policy for production environments |
 
-### Quy trình kiểm tra đề xuất
+### Recommended Verification Workflow
 
-1. **Parse:** `CertificateFactory("X.509")`, giới hạn kích thước input, không coi file PEM hợp lệ là certificate đáng tin.
-2. **Xem extension:** `getKeyUsage()`, `getExtendedKeyUsage()`, `getBasicConstraints()`, OID critical/noncritical; chú ý vắng extension và các giá trị mặc định.
-3. **Xác minh chain:** cấu hình trusted anchors thực, intermediate certificates, thời hạn, algorithm constraints, policy, critical extensions, revocation theo profile.
-4. **Xác minh purpose:** KU/EKU phù hợp thao tác và hệ thống, ví dụ TLS server vs client. Khi cả hai có mặt phải đồng thời phù hợp.
-5. **Xác minh identity:** SAN hostname/IP hay định danh khác theo giao thức; không dùng CN đơn thuần như thay thế SAN trong hệ thống TLS hiện đại.
-6. **Chỉ cho phép operation sau khi tất cả bước liên quan PASS.** Ghi audit có chọn lọc (subject, issuer, serial, fingerprint public certificate), không log private keys/tokens nhạy cảm.
+1. **Parse:** `CertificateFactory("X.509")`, bound input size, never treat a valid PEM file as a trusted certificate.
+2. **Inspect extensions:** `getKeyUsage()`, `getExtendedKeyUsage()`, `getBasicConstraints()`, critical/non-critical OIDs; pay attention to absent extensions and defaults.
+3. **Verify chain:** configure real trusted anchors, intermediate certificates, validity period, algorithm constraints, policies, critical extensions, and revocation per profile.
+4. **Verify purpose:** KU/EKU match the operation and system, e.g., TLS server vs. client. When both are present, both must be satisfied simultaneously.
+5. **Verify identity:** SAN hostname/IP or other protocol-mandated identifier; never use bare CN as a substitute for SAN in modern TLS systems.
+6. **Permit the operation only after all relevant steps PASS.** Log selectively for audit (subject, issuer, serial, public certificate fingerprint); never log private keys or sensitive tokens.
 
-## 11. Các hiểu lầm cần nhớ
+## 11. Misconceptions to Remember
 
-**“KeyUsage critical thì certificate tự đáng tin?”** Không. Critical chỉ yêu cầu verifier hiểu và xử lý extension; trust anchor, chain, thời hạn, danh tính và purpose vẫn phải kiểm tra.
+**“If KeyUsage is critical, is the certificate automatically trusted?”** No. Critical only requires the verifier to understand and enforce the extension; trust anchor, chain, validity, identity, and purpose must still be checked.
 
-**“EKU non-critical nghĩa là được bỏ qua serverAuth?”** Không. Nếu một application verifier hiểu EKU, nó phải xét quyền sử dụng trong profile; noncritical chỉ cho phép bỏ qua **extension không hiểu** theo chính sách.
+**“Does non-critical EKU mean `serverAuth` can be ignored?”** No. If an application verifier recognizes EKU, it must evaluate permitted usage under the profile; non-critical only permits ignoring **unrecognized extensions** per policy.
 
-**“CA=true là root CA đáng tin?”** Không. `cA=true` là quyền phát hành về mặt cấu trúc; trust anchor cần được thiết lập ngoài certificate bằng cơ chế đáng tin.
+**“Does `CA=true` mean a trusted root CA?”** No. `cA=true` is a structural issuance capability; trust anchors must be established outside the certificate via trustworthy mechanisms.
 
-**“pathLen=0 nghĩa là không được cấp leaf?”** Không. Nó hạn chế **non-self-issued intermediate CA** ở phía dưới, không cấm cấp end entity trực tiếp.
+**“Does `pathLen=0` mean no leaves can be issued?”** No. It restricts **non-self-issued intermediate CAs** below it, without forbidding direct end-entity issuance.
 
-**“Có KU digitalSignature nghĩa là được cấp CA?”** Không. Muốn ký chứng thư cần `keyCertSign` và `BasicConstraints.cA=true`, cùng path/trust/policy phù hợp.
+**“Does having KU `digitalSignature` allow acting as a CA?”** No. Signing certificates requires `keyCertSign` and `BasicConstraints.cA=true`, plus valid path/trust/policy.
 
-**“Có KU keyEncipherment nghĩa là server TLS 1.3 dùng được?”** Không đủ. TLS 1.3 certificate authentication dùng chữ ký; certificate algorithm, digitalSignature, EKU và SAN/hostname phải được đánh giá.
+**“Does having KU `keyEncipherment` suffice for a TLS 1.3 server?”** Insufficient. TLS 1.3 certificate authentication uses signatures; certificate algorithm, `digitalSignature`, EKU, and SAN/hostname must be evaluated.
 
-**“Nếu `getExtendedKeyUsage() == null` thì chứng thư không dùng được?”** Không tự động. Nó chỉ không có ràng buộc EKU được khai báo; giao thức/policy có thể yêu cầu cụ thể.
+**“If `getExtendedKeyUsage() == null`, is the certificate unusable?”** Not automatically. It simply has no declared EKU restriction; the protocol or policy may still require a specific one.
 
-**“`certificate.verify(publicKey)` là đã kiểm PKIX?”** Không. Đó là kiểm chữ ký certificate, không làm toàn bộ path validation và hostname/purpose checks.
+**“Does `certificate.verify(publicKey)` perform PKIX checks?”** No. That only checks the certificate's signature, not full path validation or hostname/purpose checks.
 
-**“`getCriticalExtensionOIDs()` rỗng thì HTTPS an toàn?”** Không. Thiếu critical unknown chỉ loại một nhóm lỗi; các điều kiện trust/identity khác vẫn bắt buộc.
+**“If `getCriticalExtensionOIDs()` is empty, is HTTPS safe?”** No. Having no unknown critical extensions eliminates only one error category; all other trust/identity requirements remain mandatory.
 
-## 12. Tự kiểm tra kiến thức
+## 12. Self-Check Knowledge Questions
 
-1. **OID của KU, BC, EKU?** Lần lượt `2.5.29.15`, `2.5.29.19`, `2.5.29.37`.
-2. **Chỉ số bit `digitalSignature`, `keyEncipherment`, `keyCertSign`?** `0`, `2`, `5`.
-3. **Java trả gì nếu KU không có?** `X509Certificate.getKeyUsage()==null`.
-4. **Java trả gì nếu EKU không có?** `getExtendedKeyUsage()==null`.
-5. **`getBasicConstraints()==-1` có thể có mấy tình huống?** `cA=false` hoặc BC không có; đều không thể dựa vào đó để cấp quyền làm CA.
-6. **`getBasicConstraints()==Integer.MAX_VALUE` thường là gì?** CA có `cA=true` nhưng không nêu `pathLenConstraint`.
-7. **Root CA có `pathLen=0` có được ký leaf trực tiếp không?** Có; không được có thêm non-self-issued intermediate CA bên dưới theo ràng buộc đó.
-8. **KU `keyCertSign=true` có đủ để dùng key làm CA không?** Không; cần `BasicConstraints.cA=true`, trust/path và chính sách.
-9. **EKU serverAuth có thay thế KU digitalSignature cho TLS 1.3 không?** Không; khi cả hai có mặt phải phù hợp nhau.
-10. **Một certificate chỉ có EKU clientAuth, generic PKIX chain có thể pass không?** Có; server-purpose verifier vẫn phải từ chối khi yêu cầu `serverAuth`.
-11. **Extension critical không nhận biết có thể được bỏ qua không?** Không; verifier phù hợp phải hiểu và xử lý hoặc từ chối.
-12. **Unknown non-critical có thể bỏ qua không?** Có thể, khi extension không được hỗ trợ và profile cho phép; không có nghĩa được bỏ qua EKU/KU đã biết.
-13. **`getExtensionValue(oid)` trả raw nội dung extension hay bytes outer OCTET STRING?** Bytes **DER-encoded OCTET STRING** bên ngoài.
-14. **Dùng `TrustAnchor(rootFromNetwork,null)` tùy tiện có an toàn không?** Không, vì đã tự tin một CA không được xác minh.
-15. **`checkValidity()` có xác minh hostname/EKU/CRL không?** Không; chỉ kiểm tra thời hạn.
-16. **Tại sao trong demo tắt revocation?** Để bộ fixture tạm không cần CRL/OCSP; hệ thống thực phải thiết lập chính sách revocation thích hợp.
-17. **Một certificate được parse thành công bởi `CertificateFactory` có chắc được chấp nhận bởi `CertPathValidator` không?** Không, có thể fail critical, chain, signature, constraints, policy.
-18. **Muốn dùng certificate cho HTTPS nên tự gọi một vài hàm KU/EKU không?** Không nên thay thế JSSE/TrustManager và hostname verification bằng checker đơn giản; phải dùng bộ xác minh giao thức đầy đủ.
+1. **OIDs of KU, BC, and EKU?** `2.5.29.15`, `2.5.29.19`, and `2.5.29.37`, respectively.
+2. **Bit indices of `digitalSignature`, `keyEncipherment`, and `keyCertSign`?** `0`, `2`, `5`.
+3. **What does Java return if KU is absent?** `X509Certificate.getKeyUsage()==null`.
+4. **What does Java return if EKU is absent?** `getExtendedKeyUsage()==null`.
+5. **How many situations can produce `getBasicConstraints()==-1`?** `cA=false` or BC absent; neither permits granting CA authority.
+6. **What does `getBasicConstraints()==Integer.MAX_VALUE` usually mean?** A CA with `cA=true` and no `pathLenConstraint` specified.
+7. **Can a root CA with `pathLen=0` sign a leaf directly?** Yes; it cannot have additional non-self-issued intermediate CAs below it under that constraint.
+8. **Is KU `keyCertSign=true` enough to use a key as a CA?** No; it requires `BasicConstraints.cA=true`, trust/path, and policy.
+9. **Does EKU `serverAuth` replace KU `digitalSignature` for TLS 1.3?** No; when both are present, both must align.
+10. **If a certificate has only EKU `clientAuth`, can generic PKIX chain validation pass?** Yes; a server-purpose verifier must still reject it when `serverAuth` is required.
+11. **Can an unrecognized critical extension be ignored?** No; a compliant verifier must understand and enforce it or reject.
+12. **Can an unknown non-critical extension be ignored?** Yes, when unsupported and allowed by profile; that does not mean known EKU/KU constraints can be ignored.
+13. **Does `getExtensionValue(oid)` return the raw extension content or the outer OCTET STRING bytes?** The outer **DER-encoded OCTET STRING** bytes.
+14. **Is using `TrustAnchor(rootFromNetwork,null)` arbitrarily safe?** No, because it blindly trusts an unverified CA.
+15. **Does `checkValidity()` verify hostname/EKU/CRL?** No; it only checks the validity period.
+16. **Why does the demo disable revocation?** So the temporary fixture needs no CRL/OCSP infrastructure; real systems must configure an appropriate revocation policy.
+17. **Is a certificate successfully parsed by `CertificateFactory` guaranteed to be accepted by `CertPathValidator`?** No; it can fail critical extensions, chain, signature, constraints, or policy.
+18. **To use a certificate for HTTPS, should you just call a few KU/EKU getters yourself?** Never replace JSSE/`TrustManager` and hostname verification with ad-hoc checks; use a complete protocol verifier.
 
-## Tài liệu chuẩn và API chính thức
+## Standards and Official API Documentation
 
 - [RFC 5280 — Internet X.509 PKI Certificate and CRL Profile: `4.2.1.3 Key Usage; `4.2.1.9 Basic Constraints; `4.2.1.12 EKU](https://www.rfc-editor.org/rfc/rfc5280.html)
 - [X509Certificate (Java SE 21): getKeyUsage, getExtendedKeyUsage, getBasicConstraints](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/X509Certificate.html)
 - [X509Extension: getCriticalExtensionOIDs, hasUnsupportedCriticalExtension, getExtensionValue](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/X509Extension.html)
-- [CertificateFactory: parse X.509 certificate và CertPath](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/CertificateFactory.html)
-- [CertPathValidator và PKIXParameters](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/CertPathValidator.html)
+- [CertificateFactory: parsing X.509 certificates and CertPath](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/CertificateFactory.html)
+- [CertPathValidator and PKIXParameters](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/CertPathValidator.html)
 - [TrustAnchor](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/TrustAnchor.html)
-- [X509CertSelector (lọc theo KU, EKU, constraints — không thay path validation)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/X509CertSelector.html)
-- [JSSE Reference Guide — TLS validation và trust managers](https://docs.oracle.com/en/java/javase/21/security/java-secure-socket-extension-jsse-reference-guide.html)
-- [keytool: quản lý và cấp chứng thư demo](https://docs.oracle.com/en/java/javase/21/docs/specs/man/keytool.html)
+- [X509CertSelector (filtering by KU, EKU, constraints — does not replace path validation)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/X509CertSelector.html)
+- [JSSE Reference Guide — TLS validation and trust managers](https://docs.oracle.com/en/java/javase/21/security/java-secure-socket-extension-jsse-reference-guide.html)
+- [keytool: managing and issuing demo certificates](https://docs.oracle.com/en/java/javase/21/docs/specs/man/keytool.html)

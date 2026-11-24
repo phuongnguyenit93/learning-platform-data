@@ -1,21 +1,21 @@
-# 17.6 required, requisite, sufficient, optional và phối hợp nhiều LoginModule
+# 17.6 required, requisite, sufficient, optional, and Combining Multiple LoginModules
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích cách **JAAS (Java Authentication and Authorization Service)** dùng `LoginContext`, `Configuration`, `LoginModule`, `Subject`, `Principal` và `CallbackHandler` để kết hợp nhiều nguồn xác thực trong Java 17.
-2. Phân biệt bốn **LoginModule control flags**: `required`, `requisite`, `sufficient` và `optional` — đặc biệt là quy tắc tiếp tục, dừng sớm và kết quả **toàn bộ stack**.
-3. Dự đoán đúng các trường hợp khó: `required` thất bại nhưng `sufficient` phía sau thành công; `sufficient` thành công trước một `required`; nhiều `optional`; `requisite` thất bại giữa stack.
-4. Hiểu hai giai đoạn của JAAS: `login()` để kiểm tra từng module, sau đó `commit()` hoặc `abort()`; dùng `logout()` để gỡ identity/credential do module thêm.
-5. Tạo và chạy **hai chương trình Java 17 độc lập**: mô phỏng ma trận control flags và chứng minh cấu hình **MFA có OTP `optional`** có thể vô tình cho phép đăng nhập khi OTP sai.
-6. Phân biệt **OR (các cơ chế thay thế)** với **AND (nhiều yếu tố bắt buộc)**; thiết kế cấu hình, callback, shared state, quản lý lỗi và kiểm thử để tránh đường vòng bảo mật.
+1. Explain how **JAAS (Java Authentication and Authorization Service)** uses `LoginContext`, `Configuration`, `LoginModule`, `Subject`, `Principal`, and `CallbackHandler` to combine multiple authentication sources in Java 17.
+2. Distinguish the four **LoginModule control flags**: `required`, `requisite`, `sufficient`, and `optional`—especially continuation rules, early termination, and **entire-stack** outcomes.
+3. Correctly predict tricky cases: a `required` module fails yet a subsequent `sufficient` succeeds; a `sufficient` succeeds before a `required`; multiple `optional` modules; a `requisite` fails mid-stack.
+4. Understand the two phases of JAAS: `login()` to evaluate each module, followed by `commit()` or `abort()`; use `logout()` to remove module-added identities/credentials.
+5. Create and run **two standalone Java 17 programs**: simulating the control-flag matrix and proving that an **MFA configuration with an `optional` OTP** can unintentionally allow login when OTP is wrong.
+6. Distinguish **OR (alternative mechanisms)** from **AND (multiple mandatory factors)**; design configurations, callbacks, shared state, error handling, and tests to prevent security bypasses.
 
-## 1. JAAS hỗ trợ “stacked authentication” như thế nào?
+## 1. How Does JAAS Support "Stacked Authentication"?
 
-JAAS là mô hình đăng nhập có thể thay thế và kết hợp nhiều thành phần xác thực. Ứng dụng không cần biết chi tiết đang kiểm password, Kerberos, smart card hay một cơ chế khác; nó gọi `LoginContext`. Các thành phần xác thực cụ thể triển khai interface `javax.security.auth.spi.LoginModule`.
+JAAS is a pluggable authentication model capable of combining multiple authentication components. The application does not need to know whether it is checking a password, Kerberos, a smart card, or another mechanism; it calls `LoginContext`. Concrete authentication components implement `javax.security.auth.spi.LoginModule`.
 
-Một sơ đồ:
+A diagram:
 
 ```text
 Application
@@ -31,50 +31,50 @@ JAAS LoginContext
     |       +-- OtpModule       required
     |       +-- AuditModule     optional
     |
-    +--> LoginModule.login() theo thứ tự
+    +--> LoginModule.login() in order
     |
-    +--> Đánh giá các control flags
+    +--> Evaluate control flags
     |
-    +--> Nếu login phase thành công: commit()
-    |      và cập nhật Subject/Principal
+    +--> If login phase succeeds: commit()
+    |      and update Subject/Principal
     |
-    +--> Nếu login phase thất bại: abort()
-           và xóa trạng thái tạm
+    +--> If login phase fails: abort()
+           and clear temporary state
     |
     v
-Application nhận Subject nếu thành công
+Application receives Subject on success
 ```
 
-Các khái niệm:
+Core concepts:
 
-| Thành phần | Vai trò |
+| Component | Role |
 | --- | --- |
-| `LoginContext` | Đầu mối ứng dụng gọi `login()`, `getSubject()`, `logout()`; điều phối nhiều module |
-| `Configuration` | Danh sách module, **thứ tự**, flag, options theo tên ứng dụng |
-| `AppConfigurationEntry` | Mô tả một module class, một flag, options map |
-| `LoginModule` | Kiểm một hình thức xác thực, quản lý lifecycle của trạng thái/Principal |
-| `CallbackHandler` | Cơ chế module lấy thông tin đầu vào, ví dụ username/password hoặc mã xác thực |
-| `sharedState` | Map cùng phiên đăng nhập được chia sẻ giữa các module; cần tránh chứa secret không cần thiết |
-| `Subject` | Thực thể đã xác thực và tập `Principal`/credentials của nó |
-| `Principal` | Danh tính/thuộc tính chủ thể ở mức identity; **không tự chứng minh quyền truy cập** |
+| `LoginContext` | Entry point where the application calls `login()`, `getSubject()`, `logout()`; orchestrates multiple modules |
+| `Configuration` | Module list, **order**, flags, and options mapped by application name |
+| `AppConfigurationEntry` | Describes one module class, one flag, and an options map |
+| `LoginModule` | Verifies one form of authentication; manages state/Principal lifecycle |
+| `CallbackHandler` | Mechanism for modules to gather input such as username/password or verification codes |
+| `sharedState` | Per-login-attempt map shared across modules; avoid storing unnecessary secrets |
+| `Subject` | Authenticated entity and its sets of `Principal`s/credentials |
+| `Principal` | Subject identity/attribute at the identity level; **does not prove access permissions by itself** |
 
-Lời gọi ứng dụng có thể rất đơn giản:
+Application code can be very simple:
 
 ```java
 LoginContext context = new LoginContext("MyApplication", callbackHandler);
-context.login(); // Thành công thì trả về; thất bại ném LoginException
+context.login(); // Returns on success; throws LoginException on failure
 Subject subject = context.getSubject();
-// Sử dụng subject theo chính sách ứng dụng, rồi:
+// Use subject per application policy, then:
 context.logout();
 ```
 
-Đây là **đoạn code nhúng**, không phải file Java độc lập: cần imports, định nghĩa `callbackHandler` và cấu hình JAAS cho tên `MyApplication`. `LoginContext` quyết định module nào được gọi dựa trên cấu hình, không phải caller tự chạy từng `LoginModule.login()` để “lấy phiếu”.
+This is an **embedded snippet**, not a standalone Java file: it requires imports, a `callbackHandler` definition, and a JAAS configuration for the name `MyApplication`. `LoginContext` decides which modules are called based on the configuration, rather than the caller invoking each `LoginModule.login()` manually.
 
-**Thứ tự module là một phần của chính sách bảo mật.** Cùng danh sách nhưng đổi vị trí `sufficient` hoặc `requisite` có thể đổi kết quả và số cơ chế xác thực thực sự được yêu cầu.
+**Module ordering is part of your security policy.** With the exact same list, moving `sufficient` or `requisite` can change the outcome and how many authentication mechanisms are actually required.
 
-## 2. Cấu trúc cấu hình và bốn control flags
+## 2. Configuration Structure and the Four Control Flags
 
-Một login configuration file thường có cấu trúc:
+A login configuration file typically has the structure:
 
 ```text
 ApplicationName {
@@ -85,100 +85,100 @@ ApplicationName {
 };
 ```
 
-Đây là **cú pháp minh họa cấu trúc**, không phải cấu hình chạy được vì các class name trong đoạn này chỉ mô tả vị trí và không phải class đã được triển khai. Mỗi module entry kết thúc bằng `;`, nhóm ứng dụng kết thúc bằng `};`. Tên app được truyền vào `LoginContext`.
+This is **structural syntax for illustration**, not a runnable configuration because the class names here only indicate placeholders and are not implemented classes. Each module entry ends with `;`, and the application stanza ends with `};`. The application name is passed to `LoginContext`.
 
-Tài liệu `Configuration` của Java 17 nêu chính xác:
+The Java 17 `Configuration` documentation specifies:
 
-| Flag | Phải thành công để toàn bộ stack hợp lệ? | Nếu `login()` thành công | Nếu `login()` thất bại |
+| Flag | Must succeed for the overall stack to pass? | If `login()` succeeds | If `login()` fails |
 | --- | --- | --- | --- |
-| **`required`** | **Có** | Tiếp tục module phía sau | **Vẫn tiếp tục**, nhưng kết quả toàn stack sẽ fail |
-| **`requisite`** | **Có** | Tiếp tục module phía sau | **Dừng phase login ngay**, trả failure |
-| **`sufficient`** | Không bắt buộc | **Có thể kết thúc sớm thành công** nếu **chưa có `required`/`requisite` phía trước thất bại** | Tiếp tục module phía sau |
-| **`optional`** | Không bắt buộc | Tiếp tục module phía sau | Tiếp tục module phía sau |
+| **`required`** | **Yes** | Proceed to subsequent modules | **Still proceeds**, but the overall stack will fail |
+| **`requisite`** | **Yes** | Proceed to subsequent modules | **Stops the login phase immediately**, returns failure |
+| **`sufficient`** | Not mandatory | **May finish early with success** if **no prior `required`/`requisite` failed** | Proceed to subsequent modules |
+| **`optional`** | Not mandatory | Proceed to subsequent modules | Proceed to subsequent modules |
 
-**Điều kiện tổng thể:** tất cả module `required` và `requisite` **được áp dụng trước khi kết thúc sớm hợp lệ** phải thành công. Nếu cấu hình **không có `required`/`requisite`**, ít nhất **một** `sufficient` hoặc `optional` phải thành công. `SUFFICIENT` thành công có thể chặn việc thực thi các module nằm phía sau; do đó không thể hiểu câu “mọi required luôn phải chạy” một cách tách rời thứ tự cấu hình.
+**Overall rule:** all `required` and `requisite` modules **evaluated before any valid early termination** must succeed. If the configuration has **no `required`/`requisite` modules**, at least **one** `sufficient` or `optional` module must succeed. A succeeding `SUFFICIENT` module can prevent subsequent modules from executing; therefore you cannot interpret "every `required` module always runs" in isolation from configuration order.
 
-### 2.1 `required` — bắt buộc nhưng không dừng ngay khi thất bại
+### 2.1 `required` — Mandatory, Yet Does Not Halt Immediately on Failure
 
-Ví dụ:
+Example:
 
 ```text
 PasswordCheck  required  -> FAIL
 DeviceCheck    optional  -> PASS
 AuditCheck     optional  -> PASS
 
-Kết quả cuối: FAIL
+Final result: FAIL
 ```
 
-`LoginContext` vẫn gọi các module sau `PasswordCheck`. Ưu điểm: giúp tránh tiết lộ quá rõ việc thất bại xảy ra ở bước nào chỉ bằng **việc dừng ngay**, và cho phép các thành phần khác thực hiện công việc đã được thiết kế. Nhưng điều này **không tự đảm bảo thời gian phản hồi constant-time** vì các module có thể mất thời gian khác nhau.
+`LoginContext` still invokes the modules after `PasswordCheck`. Advantage: it avoids revealing too blatantly which step failed merely by **stopping immediately**, and lets downstream components execute as designed. However, this **does not guarantee constant-time responses** since modules can take different amounts of time.
 
-**Không** xem kết quả `optional` thành công là “cứu” được một `required` đã thất bại.
+**Never** treat a succeeding `optional` module as "rescuing" a failed `required` module.
 
-### 2.2 `requisite` — bắt buộc và có khả năng short-circuit thất bại
+### 2.2 `requisite` — Mandatory and Short-Circuits on Failure
 
-Ví dụ:
+Example:
 
 ```text
 AccountExists  requisite -> FAIL
-PasswordCheck  required  -> KHÔNG login()
-OtpCheck       required  -> KHÔNG login()
+PasswordCheck  required  -> NO login()
+OtpCheck       required  -> NO login()
 
-Kết quả cuối: FAIL
+Final result: FAIL
 ```
 
-Nếu `requisite` thất bại, JAAS dừng **phase kiểm tra `login()`** ngay. Tuy nhiên, cơ chế cleanup `abort()` vẫn được gọi theo lifecycle; “dừng sớm” không có nghĩa bỏ sạch xử lý hậu kỳ.
+If a `requisite` module fails, JAAS halts the **`login()` evaluation phase** immediately. Nevertheless, `abort()` cleanup still runs per the lifecycle; "stopping early" does not mean skipping post-failure cleanup.
 
-Đặt `requisite` ở phía trước có thể **tiết kiệm chi phí** khi không cần xử lý các bước sau lúc một điều kiện bắt buộc đã hỏng. Đổi lại, thời gian hoặc cách truy cập external system có thể lộ dấu hiệu lý do lỗi nếu không thiết kế thông báo và timing phù hợp.
+Placing `requisite` earlier can **save cost** by skipping downstream steps once a mandatory condition has already failed. On the flip side, timing or external system calls can leak why login failed if messages and timing are not carefully designed.
 
-### 2.3 `sufficient` — đủ để hoàn tất sớm nếu không có thất bại bắt buộc trước đó
+### 2.3 `sufficient` — Enough to Finish Early If No Prior Mandatory Failure Occurred
 
-Hai ví dụ cần phân biệt:
+Compare two cases carefully:
 
 ```text
 Case A:
 PasswordCheck  required   -> PASS
 TrustedTicket  sufficient -> PASS
-ExtraCheck     optional   -> KHÔNG login()
+ExtraCheck     optional   -> NO login()
 
-Kết quả: PASS (không có mandatory failure phía trước)
+Result: PASS (no prior mandatory failure)
 ```
 
 ```text
 Case B:
 PasswordCheck  required   -> FAIL
 TrustedTicket  sufficient -> PASS
-ExtraCheck     optional   -> vẫn login()
+ExtraCheck     optional   -> still calls login()
 
-Kết quả: FAIL (required failure đã xảy ra)
+Result: FAIL (a required failure occurred)
 ```
 
-Điều kiện “không có lỗi bắt buộc trước đó” là **điểm dễ bị ghi thiếu** khi tóm tắt JAAS. `SUFFICIENT` không xóa một lỗi `REQUIRED`/`REQUISITE` đã phát sinh.
+The condition "no prior mandatory failure" is **frequently omitted** in quick JAAS summaries. `SUFFICIENT` does not erase an earlier `REQUIRED`/`REQUISITE` failure.
 
-Ngược lại, `sufficient` **ở quá sớm** có thể tạo lỗ hổng policy:
+Conversely, placing `sufficient` **too early** can open a policy hole:
 
 ```text
 CachedTicket   sufficient -> PASS
-PasswordCheck  required   -> KHÔNG login()
+PasswordCheck  required   -> NO login()
 
-Kết quả: PASS
+Result: PASS
 ```
 
-Nếu business rule yêu cầu password **luôn phải kiểm**, cách xếp trên là sai. Không thể nói “PasswordCheck được đánh dấu required, nên chắc chắn password bắt buộc” khi đã có `sufficient` được phép dừng sớm trước đó.
+If business rules state that password **must always be checked**, the ordering above is wrong. You cannot claim "`PasswordCheck` is marked `required`, so password is definitely mandatory" when an earlier `sufficient` is allowed to short-circuit.
 
-### 2.4 `optional` — không phải “cấm”, cũng không phải “phải kiểm”
+### 2.4 `optional` — Neither "Forbidden" Nor "Mandatory"
 
-`Optional` có thể thành công hoặc thất bại mà vẫn cho JAAS chạy tiếp:
+An `optional` module can succeed or fail while JAAS continues:
 
 ```text
 PasswordCheck  required -> PASS
 OtpCheck       optional -> FAIL
 
-Kết quả: PASS
+Result: PASS
 ```
 
-Nếu team nghĩ OTP là **bắt buộc**, đây là một cấu hình MFA sai nghiêm trọng. `optional` thích hợp cho module bổ sung hợp lệ theo thiết kế (ví dụ optional environment identity enrichment), không phải cho yếu tố bảo mật quan trọng mà user **phải** vượt qua.
+If the team intended OTP to be **mandatory**, this is a severe MFA misconfiguration. `optional` is appropriate for benign supplemental modules by design (e.g., optional environment identity enrichment), never for a critical security factor the user **must** pass.
 
-Khi chỉ có các module `optional`:
+When there are only `optional` modules:
 
 ```text
 A optional -> FAIL
@@ -190,11 +190,11 @@ B optional -> FAIL
 => FAIL
 ```
 
-Ít nhất một module phải thành công nếu không có module mandatory. Đây là quy tắc aggregate, **không phải `optional` nghĩa “luôn cho phép login”**.
+At least one module must succeed when no mandatory modules exist. That is an aggregation rule, **not "`optional` means always allow login."**
 
-## 3. Cách hình dung thuật toán tổng hợp
+## 3. Visualizing the Aggregation Algorithm
 
-Để dự đoán kết quả, có thể dùng mô hình khái niệm sau (không phải source code nội bộ JDK):
+To predict outcomes, you can use this conceptual model (not JDK internal source code):
 
 ```text
 mandatoryFailure = false
@@ -203,52 +203,52 @@ anySuccess = false
 for each LoginModule in Configuration order:
     result = module.login()
 
-    nếu REQUIRED:
-        thành công -> anySuccess = true
-        thất bại  -> mandatoryFailure = true
-        luôn tiếp tục
+    if REQUIRED:
+        success -> anySuccess = true
+        failure -> mandatoryFailure = true
+        always continue
 
-    nếu REQUISITE:
-        thành công -> anySuccess = true, tiếp tục
-        thất bại  -> dừng phase login, overall FAIL
+    if REQUISITE:
+        success -> anySuccess = true, continue
+        failure -> stop login phase, overall FAIL
 
-    nếu SUFFICIENT:
-        thành công:
+    if SUFFICIENT:
+        success:
             anySuccess = true
-            nếu !mandatoryFailure: kết thúc phase login sớm PASS
-            nếu mandatoryFailure: tiếp tục, overall cuối vẫn FAIL
-        thất bại -> tiếp tục
+            if !mandatoryFailure: finish login phase early PASS
+            if mandatoryFailure: continue, overall result still FAIL
+        failure -> continue
 
-    nếu OPTIONAL:
-        thành công -> anySuccess = true
-        thất bại  -> tiếp tục
+    if OPTIONAL:
+        success -> anySuccess = true
+        failure -> continue
 
-sau phase login:
-    nếu mandatoryFailure: overall FAIL
-    nếu không mandatoryFailure và có đủ thành công: overall PASS
-    nếu không có module nào xác thực thành công: overall FAIL
+after login phase:
+    if mandatoryFailure: overall FAIL
+    if not mandatoryFailure and enough success: overall PASS
+    if no module authenticated successfully: overall FAIL
 
 overall PASS -> commit phase
 overall FAIL -> abort phase
 ```
 
-Mô hình cố ý giản lược các chi tiết `LoginModule.login()` trả `false` (module xin **bị bỏ qua**, xem mục 8), thứ tự exception ưu tiên và cơ chế commit/abort; không dùng nó để tự viết engine JAAS thay `LoginContext`.
+This model intentionally simplifies cases where `LoginModule.login()` returns `false` (module asks to **be ignored**, see Section 8), exception precedence, and commit/abort mechanics; do not use it to re-implement a JAAS engine replacing `LoginContext`.
 
-Một cách kiểm tra nhanh khi review config:
+A quick checklist when reviewing configs:
 
-1. Đọc module **từ trên xuống**.
-2. Đánh dấu lỗi `required`/`requisite` bắt buộc.
-3. Nếu một `requisite` thất bại: dừng phase login ngay.
-4. Nếu `sufficient` thành công: kiểm **trước nó** có mandatory failure không; nếu không có, các module **sau nó không còn là điều kiện login**.
-5. Nếu hết stack: tất cả mandatory phải pass; trường hợp toàn optional/sufficient phải có ít nhất một pass.
+1. Read modules **top to bottom**.
+2. Flag any failed `required`/`requisite` module.
+3. If a `requisite` fails: stop the login phase immediately.
+4. If a `sufficient` succeeds: check whether a mandatory failure occurred **before it**; if not, modules **after it are no longer login conditions**.
+5. At the end of the stack: all evaluated mandatory modules must pass; an all-`optional`/`sufficient` stack needs at least one pass.
 
-## 4. Thực hành 1 — Java 17 kiểm chứng ma trận tám trường hợp
+## 4. Lab 1 — Java 17 Verifying the Eight-Case Matrix
 
-Chương trình sau tạo **một `Configuration` ở bộ nhớ**, không thay đổi global JAAS configuration hoặc file của máy. Nó dùng `ProbeModule` giả lập kết quả `login()` dựa trên options của từng entry: `pass`, `fail` hoặc `ignore`. Mục tiêu là nhìn thấy **module nào được chạy** và **kết quả toàn stack**.
+The program below creates **an in-memory `Configuration`** without touching the machine's global JAAS config or files. It uses `ProbeModule` to simulate `login()` results from each entry's options: `pass`, `fail`, or `ignore`. The goal is to observe **which modules execute** and **the overall stack result**.
 
-Dữ liệu là giả lập, **không xác thực người dùng thật**. Không dùng cơ chế “`behavior=pass`” làm LoginModule production. Chương trình vẫn triển khai đầy đủ interface `LoginModule` và dùng `LoginContext` thật để kiểm nghiệm hành vi.
+The data is mocked and **authenticates no real users**. Never use a "`behavior=pass`" trick as a production `LoginModule`. The program still implements the full `LoginModule` interface and uses a real `LoginContext` to verify behavior.
 
-Tạo file **`JaasFlagsMatrixDemo.java`**:
+Create the file **`JaasFlagsMatrixDemo.java`**:
 
 ```java
 import java.security.Principal;
@@ -385,14 +385,14 @@ public class JaasFlagsMatrixDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 JaasFlagsMatrixDemo.java
 java JaasFlagsMatrixDemo
 ```
 
-**Stdout đã kiểm tra bằng JDK có Java 17-compatible APIs:**
+**Verified stdout on a JDK with Java 17-compatible APIs:**
 
 ```text
 required-fail-then-sufficient-pass -> FAIL; login calls=A,B,C
@@ -405,45 +405,45 @@ sufficient-before-required -> PASS; login calls=A
 sufficient-fail-required-pass -> PASS; login calls=A,B
 ```
 
-### 4.1 Phân tích từng dòng kết quả
+### 4.1 Analyzing Each Output Line
 
-| Kịch bản | Đọc thứ tự module | Kết quả và lý do |
+| Scenario | Module order read | Result and reason |
 | --- | --- | --- |
-| `required-fail-then-sufficient-pass` | A required fail, B sufficient pass, C optional pass | **FAIL**: lỗi mandatory A tồn tại; B không thể short-circuit để xóa lỗi A |
-| `required-pass-sufficient-pass` | A required pass, B sufficient pass, C optional fail | **PASS**: B đủ điều kiện kết thúc sớm, C không được gọi trong login phase |
-| `requisite-fail-stops` | A optional pass, B requisite fail, C optional pass | **FAIL**: B dừng phase login ngay, C không được gọi |
-| `only-optional-one-pass` | A optional fail, B optional pass | **PASS**: không có mandatory và ít nhất một optional pass |
-| `only-optional-all-fail` | A optional fail, B optional return false | **FAIL**: không có module nào xác thực thành công |
-| `required-pass-optional-fail` | A required pass, B optional fail | **PASS**: B không bắt buộc |
-| `sufficient-before-required` | A sufficient pass, B required fail nếu được gọi | **PASS**: B **không được gọi** vì A kết thúc sớm; đây là nguy cơ sai cấu hình |
-| `sufficient-fail-required-pass` | A sufficient fail, B required pass | **PASS**: A không bắt buộc, B pass |
+| `required-fail-then-sufficient-pass` | A required fail, B sufficient pass, C optional pass | **FAIL**: mandatory failure in A exists; B cannot short-circuit to erase A's failure |
+| `required-pass-sufficient-pass` | A required pass, B sufficient pass, C optional fail | **PASS**: B qualifies to terminate early; C is not called in the login phase |
+| `requisite-fail-stops` | A optional pass, B requisite fail, C optional pass | **FAIL**: B stops the login phase immediately; C is not called |
+| `only-optional-one-pass` | A optional fail, B optional pass | **PASS**: no mandatory modules and at least one optional passes |
+| `only-optional-all-fail` | A optional fail, B optional returns false | **FAIL**: no module authenticated successfully |
+| `required-pass-optional-fail` | A required pass, B optional fail | **PASS**: B is not mandatory |
+| `sufficient-before-required` | A sufficient pass, B required would fail if called | **PASS**: B **is not called** because A terminates early; this is a misconfiguration hazard |
+| `sufficient-fail-required-pass` | A sufficient fail, B required pass | **PASS**: A is not mandatory, B passes |
 
-**Chú ý:** bảng và stdout theo dõi **những lời gọi `login()`**. Khi một `sufficient` kết thúc phase login sớm, vòng đời phase hai của JAAS vẫn cần được giải quyết. Không dùng danh sách `login calls` để tự suy ra chắc chắn mỗi `commit()/abort()` trên mọi provider đã được gọi thế nào; `LoginModule` phải xử lý an toàn ngay cả khi module chưa có trạng thái login thành công.
+**Note:** the table and stdout track **`login()` invocations**. When a `sufficient` module finishes the login phase early, JAAS's second-phase lifecycle still must be resolved. Do not infer from `login calls` alone exactly how every provider invokes `commit()`/`abort()`; a `LoginModule` must behave safely even if it never reached a successful login state.
 
-### 4.2 Giải thích code
+### 4.2 Explaining the Code
 
-1. `AppConfigurationEntry` mang class name, control flag và options. Trong một stack, cùng class `ProbeModule` được dùng nhiều lần với tên/behavior khác nhau — các instance riêng vẫn có thể xuất hiện.
-2. `Configuration#getAppConfigurationEntry("lab")` trả **danh sách entry đúng thứ tự**. Demo cung cấp cấu hình trực tiếp qua constructor `LoginContext(..., config)`, không đổi cấu hình bảo mật toàn JVM.
-3. `ProbeModule.login()` minh họa **true** khi thành công, **LoginException** khi thất bại, **false** khi module chọn bị bỏ qua. Trên hệ thống thật phải kiểm credential/identity đúng nghĩa.
-4. `commit()` chỉ thêm `Principal` vào `Subject` khi module có `passed=true`. Nếu module không login thành công, trả false để không thêm danh tính giả.
-5. `abort()` và `logout()` dọn `Principal` do module thêm, không xóa `Principal` của module khác; vòng đời này cần được triển khai chính xác để tránh state leak.
-6. `CALLED` là danh sách static chỉ dùng để **quan sát một process lab chạy tuần tự**, không phù hợp làm global request trace cho dịch vụ đa luồng.
+1. `AppConfigurationEntry` carries the class name, control flag, and options. Within one stack, the same `ProbeModule` class is reused with different names/behaviors—distinct instances are still created.
+2. `Configuration#getAppConfigurationEntry("lab")` returns **entries in exact order**. The demo supplies the configuration directly through `LoginContext(..., config)` without changing JVM-wide security configuration.
+3. `ProbeModule.login()` demonstrates **`true`** on success, **`LoginException`** on failure, and **`false`** when the module chooses to be ignored. Real systems must perform genuine credential/identity checks.
+4. `commit()` adds a `Principal` to `Subject` only when `passed=true`. If the module did not authenticate successfully, it returns `false` to avoid adding fake identities.
+5. `abort()` and `logout()` remove only the `Principal` added by this module, without deleting other modules' `Principal`s; this lifecycle must be implemented accurately to prevent state leaks.
+6. `CALLED` is a static list used solely to **observe a single sequential lab process**, unsuitable as a global request trace in a multi-threaded service.
 
-## 5. Hai giai đoạn `login/commit/abort`: chi tiết bảo mật rất quan trọng
+## 5. Two Phases `login/commit/abort`: Crucial Security Details
 
-Nhiều người chỉ đọc bảng flag mà bỏ qua lifecycle. Theo `LoginModule` Developer's Guide:
+Many people read only the flag table and ignore the lifecycle. According to the `LoginModule` Developer's Guide:
 
-**Giai đoạn 1 — thử xác thực:**
-- `initialize(Subject, CallbackHandler, sharedState, options)` trước các lời gọi của module.
-- `login()` xác minh credential hoặc trạng thái đối với cơ chế đó và ghi **trạng thái tạm riêng** (ví dụ `succeeded`).
-- Module nên **không** vội công bố identity/credential lâu dài cho `Subject` ngay khi `login()` thành công: các module mandatory **khác có thể vẫn thất bại**.
-- `login()` trả `true` nếu module xác thực thành công; trả `false` nếu module chọn “ignore”; ném `LoginException` nếu authentication thất bại.
+**Phase 1 — attempt authentication:**
+- `initialize(Subject, CallbackHandler, sharedState, options)` before module operations.
+- `login()` checks credentials or state for that mechanism and records **private temporary state** (e.g., `succeeded`).
+- The module should **not** prematurely publish long-lived identity/credentials to `Subject` as soon as `login()` succeeds: **other mandatory modules might still fail**.
+- `login()` returns `true` if the module authenticated successfully; `false` if the module chooses to be "ignored"; or throws `LoginException` if authentication failed.
 
-**Giai đoạn 2 — hoàn tất hoặc hủy:**
-- Nếu kiểm tra tổng thể thành công, `LoginContext` gọi `commit()` trên các module theo lifecycle: module có trạng thái thành công thêm `Principal`/credential được phép vào `Subject`.
-- Nếu tổng thể thất bại, `abort()` được gọi để hủy trạng thái đăng nhập tạm, xóa password/token ngắn hạn và tránh rò rỉ state.
-- Nếu `commit()` ở một module thất bại, engine phải xử lý failure/abort; bản thân module cần thực hiện cleanup đầy đủ.
-- Sau phiên thành công, `LoginContext.logout()` gọi `logout()` để gỡ những identity/credentials **do module đó thêm**, không xóa của module khác.
+**Phase 2 — finalize or abort:**
+- If overall evaluation succeeds, `LoginContext` invokes `commit()` on the modules per lifecycle: succeeding modules add allowed `Principal`s/credentials to `Subject`.
+- If overall evaluation fails, `abort()` is invoked to discard temporary login state, wipe short-lived passwords/tokens, and prevent state leaks.
+- If `commit()` fails in one module, the engine handles failure/abort; the module itself must perform complete cleanup.
+- After a successful session, `LoginContext.logout()` invokes `logout()` to remove only identities/credentials **added by that module**, leaving other modules' entries untouched.
 
 ```text
 Module A.login() PASS ---+
@@ -452,7 +452,7 @@ Module B.login() FAIL ---+--> Overall FAIL
                          |
                          v
                  abort() / cleanup
-                 (KHÔNG publish Subject được xác thực)
+                 (DO NOT publish an authenticated Subject)
 ```
 
 ```text
@@ -470,91 +470,91 @@ Module B.login() PASS ---+--> Overall PASS
                        logout()
                          |
                          v
-                Dọn identity/credential đã thêm
+                Clean up added identity/credentials
 ```
 
-**Không được tự gọi `module.commit()` để “cứu” một stack thất bại.** Giao thức hai phase bảo vệ tính nhất quán của danh tính giữa nhiều module và hỗ trợ rollback.
+**Never call `module.commit()` manually to "rescue" a failing stack.** The two-phase protocol protects identity consistency across multiple modules and enables rollback.
 
-### 5.1 Đừng nhầm `LoginModule.login()` trả `false` và ném exception
+### 5.1 Do Not Confuse Returning `false` from `LoginModule.login()` with Throwing an Exception
 
-Theo interface `LoginModule`:
+By the `LoginModule` interface:
 
-- `return true`: module xác thực thành công.
-- `return false`: module muốn được **bỏ qua** (ignored), không phải hình thức báo rõ một lần kiểm tra credential đã thất bại.
-- `throw new LoginException(...)`: module báo **authentication failed**.
+- `return true`: module authenticated successfully.
+- `return false`: module asks to be **ignored**, not a way to report that a credential check failed.
+- `throw new LoginException(...)`: module reports **authentication failed**.
 
-Vì flag được đánh giá trên kết quả module, **không** tùy tiện thay việc ném `LoginException` bằng `return false` trong module dùng làm chính sách bắt buộc. Việc module tự tuyên bố ignored có semantics khác với explicit failed và có thể gây hậu quả không mong đợi cho quá trình tổng hợp.
+Because flags evaluate module results, **never** replace throwing `LoginException` with `return false` in a module enforcing mandatory policy. Declaring itself ignored has different semantics from an explicit failure and can produce unexpected aggregation outcomes.
 
-Hãy tuân theo contract của module/provider thực tế và có unit/integration tests cho cả ba kiểu kết quả. Đừng dùng `catch (Exception ignored) { return true; }` hoặc nuốt lỗi network/credential rồi cho JAAS pass.
+Follow the contract of real modules/providers and write unit/integration tests for all three return behaviors. Never write `catch (Exception ignored) { return true; }` or swallow network/credential errors and let JAAS pass.
 
-### 5.2 `Subject` sau login có đúng những danh tính nào?
+### 5.2 Which Identities Should `Subject` Hold After Login?
 
-`Subject` chứa tập `Principal`, public credentials và private credentials. Mỗi module có thể đóng góp danh tính (account ID, realm, role đã xác thực...) trong `commit()` nếu module đó thực sự thành công.
+`Subject` holds `Principal`, public credential, and private credential sets. Each module may contribute identities (account ID, realm, verified roles, etc.) in `commit()` if that module genuinely succeeded.
 
-Hai vấn đề:
+Two issues:
 
-- **Conflicting identity**: nếu password module xác thực user A nhưng token module xác thực user B và cả hai cùng trả pass, hệ thống không nên tự xem đó là cùng một chủ thể. Cần ràng buộc identity/tenant/session xuyên module.
-- **Privilege pollution**: nếu một module không bắt buộc thêm role/quyền một cách thiếu kiểm soát, `Subject` có thể mang Principal có ý nghĩa quá mạnh so với bằng chứng. Tách việc **xác thực danh tính** với **ủy quyền thao tác** dựa trên policy.
+- **Conflicting identity**: if a password module authenticates user A while a token module authenticates user B and both pass, the system must not treat them as the same entity. Enforce identity/tenant/session binding across modules.
+- **Privilege pollution**: if an unrequired module adds roles/permissions loosely, `Subject` may carry Principals stronger than the evidence warrants. Separate **identity authentication** from policy-based **operation authorization**.
 
-`Principal` chỉ là object đại diện danh tính. Bản thân việc có `Principal("admin")` trong `Subject` không phải chứng chỉ cho phép truy cập nếu ứng dụng không xác minh nguồn và quy tắc cấp quyền.
+A `Principal` is just an identity object. Simply having `Principal("admin")` inside `Subject` is not an access grant if the application does not verify its source and authorization rules.
 
-## 6. AND versus OR: chọn flag để biểu đạt chính sách
+## 6. AND versus OR: Choosing Flags to Express Policy
 
-### 6.1 Chính sách AND — phải qua nhiều điều kiện
+### 6.1 AND Policy — Must Pass Multiple Conditions
 
-Ví dụ ứng dụng đòi **password và OTP**:
+For example, an application requiring **both password and OTP**:
 
 ```text
 PasswordModule required
 OtpModule      required
 ```
 
-Tổng thể pass nếu **cả hai** pass. Một trong hai fail thì phải reject, nhưng `required` vẫn cho module sau chạy. Nếu muốn dừng ngay khi password fail để tránh OTP request vô ích (với đánh đổi về timing), có thể:
+Overall login passes only if **both** pass. If either fails, the login is rejected, though `required` lets the subsequent module still run. If you want to stop immediately when password fails to avoid wasted OTP requests (trading off timing uniformity), you can use:
 
 ```text
 PasswordModule requisite
 OtpModule      required
 ```
 
-Cả hai vẫn là mandatory khi được gọi theo thứ tự. Tuy nhiên **đặt một `sufficient` trước các bước bắt buộc** có thể biến “AND” thành OR ngoài ý muốn.
+Both remain mandatory when evaluated in order. However, **placing a `sufficient` before mandatory steps** can accidentally turn "AND" into OR.
 
-### 6.2 Chính sách OR — một cơ chế đáng tin cậy có thể đủ
+### 6.2 OR Policy — One Trusted Mechanism May Suffice
 
-Ví dụ một ứng dụng có thể xác thực bằng **một trong hai cơ chế thay thế**, với policy cho phép:
+For instance, an application might authenticate via **either of two alternative mechanisms**, if policy permits:
 
 ```text
 KerberosTicketModule sufficient
 FallbackPasswordModule required
 ```
 
-Nếu ticket hợp lệ, stack có thể kết thúc sớm, không kiểm password; nếu ticket không hợp lệ, module password trở thành đường thay thế bắt buộc. Chỉ dùng nếu **hai cơ chế thực sự được tổ chức đánh giá là đủ độc lập cho cùng mức bảo mật**, không phải một yếu tố yếu được phép bỏ qua yếu tố mạnh.
+If the ticket is valid, the stack can finish early without checking the password; if the ticket is invalid, the password module becomes the mandatory fallback. Use this only when **both mechanisms have been independently vetted by your organization as providing equivalent security**, never allowing a weak factor to bypass a strong factor.
 
-Không được viết “`sufficient` == MFA thành công” hay “`required` được bỏ qua vì đã có một cơ chế khác” như quy tắc tổng quát. Sự cho phép bypass phải được mô tả trong threat model và test.
+Never treat "`sufficient` == MFA passed" or "`required` is skipped because another mechanism exists" as a general rule. Any bypass path must be explicitly documented in your threat model and tested.
 
-### 6.3 Một module “audit” nên ở đâu?
+### 6.3 Where Should an "Audit" Module Live?
 
-Nếu audit/logging là **hành động bắt buộc**, không nên dựa vào một `AuditModule optional` đứng sau `SufficientModule`: module audit có thể không được gọi ở phase login khi sufficient short-circuit. Audit tập trung ở tầng điều phối trước/sau `LoginContext.login()` hoặc hệ thống eventing được thiết kế rõ có thể phù hợp hơn, và phải test các đường dừng sớm/failure.
+If auditing/logging is a **mandatory action**, do not rely on an `AuditModule optional` placed after a `SufficientModule`: the audit module might never have `login()` called when `sufficient` short-circuits. Centralized auditing at the orchestration layer around `LoginContext.login()` or a dedicated event pipeline is usually better, and must be tested for early-termination and failure paths.
 
-Vì `LoginModule` dành cho authentication, việc nhét mọi side effect như audit, provisioning, billing vào callback đăng nhập có thể khiến các control flags bất ngờ thay đổi cách hoạt động của chúng.
+Because `LoginModule` is designed for authentication, stuffing arbitrary side effects like auditing, provisioning, or billing into login callbacks can cause control flags to alter their behavior unexpectedly.
 
-## 7. Thực hành 2 — Minh họa MFA bị bỏ qua khi OTP chuyển thành OPTIONAL
+## 7. Lab 2 — Demonstrating MFA Bypass When OTP Becomes OPTIONAL
 
-Bài lab sau dùng hai `LoginModule`:
+The lab below uses two `LoginModule`s:
 
-1. `PasswordModule` mô phỏng xác minh username/password cố định cho **user lab**.
-2. `OtpModule` mô phỏng so mã OTP cố định trong bộ nhớ **chỉ để minh họa control flag**, không triển khai TOTP/HOTP/chống replay thật.
+1. `PasswordModule` simulates verifying a fixed username/password for a **lab user**.
+2. `OtpModule` simulates checking a fixed OTP in memory **solely to illustrate control flags**, without implementing real TOTP/HOTP or replay defenses.
 
-Hai module dùng chung một `Subject`, `CallbackHandler` và `sharedState`. `PasswordModule` ghi **username không bí mật** vào shared state sau khi xác minh; `OtpModule` đọc username này rồi xác minh OTP. Đừng lưu password, OTP hoặc khóa MFA vào shared state theo cách không kiểm soát.
+Both modules share one `Subject`, `CallbackHandler`, and `sharedState`. `PasswordModule` writes the **non-secret username** into shared state after verification; `OtpModule` reads this username and checks the OTP. Never put passwords, OTPs, or MFA keys into shared state carelessly.
 
-Chương trình thử ba cấu hình:
+The program tests three configurations:
 
-- Password required, OTP required và mã đúng → **PASS** với hai Principal.
-- Password required, OTP required và mã sai → **FAIL**.
-- Password required, OTP **optional** và mã sai → **PASS** với **một** Principal: đây là bằng chứng rằng optional không thực thi MFA.
+- Password required, OTP required, valid code → **PASS** with two Principals.
+- Password required, OTP required, wrong code → **FAIL**.
+- Password required, OTP **optional**, wrong code → **PASS** with **one** Principal: proving that `optional` does not enforce MFA.
 
-**Security notice:** password `lab-pass` và OTP `123456` cố định chỉ dành cho lab. `Arrays.equals` trên mảng password demo không thay thế password KDF/PBKDF2/Argon2id trong sản phẩm. Đây là bài về **JAAS orchestration**, không phải hướng dẫn viết hệ thống password hoặc OTP production.
+**Security notice:** the fixed password `lab-pass` and OTP `123456` are for lab use only. `Arrays.equals` on demo password arrays does not replace password KDFs like PBKDF2/Argon2id in production. This lesson covers **JAAS orchestration**, not building production password or OTP systems.
 
-### 7.1 Mã Java 17 `JaasTwoFactorPolicyDemo.java`
+### 7.1 Java 17 Code `JaasTwoFactorPolicyDemo.java`
 
 ```java
 import java.security.Principal;
@@ -601,7 +601,7 @@ public class JaasTwoFactorPolicyDemo {
                         typed != null && Arrays.equals(typed, demoExpected);
                 Arrays.fill(demoExpected, '\0');
                 if (!match) throw new LoginException("Password factor rejected");
-                shared.put("user", name.getName()); // Không đưa secret vào shared state
+                shared.put("user", name.getName()); // Do not put secrets into shared state
                 success = true;
                 return true;
             } catch (Exception ex) {
@@ -735,14 +735,14 @@ public class JaasTwoFactorPolicyDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile and run:
 
 ```bash
 javac --release 17 JaasTwoFactorPolicyDemo.java
 java JaasTwoFactorPolicyDemo
 ```
 
-Đầu ra **đã biên dịch và chạy kiểm chứng**:
+**Compiled and verified output:**
 
 ```text
 both-required-correct-otp: PASS, principals=2
@@ -752,37 +752,37 @@ otp-optional-wrong-otp: PASS, principals=1
 otp-optional-wrong-otp: after logout=0
 ```
 
-### 7.2 Tại sao thay một flag làm mất chính sách MFA?
+### 7.2 Why Does Changing One Flag Break MFA Policy?
 
-Ở trường hợp OTP `REQUIRED`, khi OTP sai, `OtpModule.login()` ném `LoginException`. Dù password module đã pass, toàn `LoginContext.login()` phải thất bại. `PasswordModule.abort()` được dùng để xóa trạng thái tạm — `Subject` không được coi đã xác thực hai yếu tố.
+In the OTP `REQUIRED` case, when the OTP is wrong, `OtpModule.login()` throws `LoginException`. Even though the password module passed, the entire `LoginContext.login()` must fail. `PasswordModule.abort()` runs to wipe temporary state—the `Subject` is never treated as two-factor authenticated.
 
-Khi OTP `OPTIONAL`, lỗi OTP không phải mandatory. Password `REQUIRED` đã pass nên toàn stack **có thể PASS**. `Subject` khi đó có `UserPrincipal` nhưng **không có `FactorPrincipal("otp")`** (stdout có một Principal). Nếu ứng dụng cấp quyền như đã hoàn thành MFA chỉ vì `LoginContext.login()` thành công, nó đã tạo đường bỏ qua OTP.
+When OTP is `OPTIONAL`, an OTP failure is non-mandatory. Because `REQUIRED` password passed, the overall stack **can PASS**. The `Subject` then has `UserPrincipal` yet **lacks `FactorPrincipal("otp")`** (stdout shows one Principal). If the application grants MFA-level privileges merely because `LoginContext.login()` succeeded, it has created an OTP bypass.
 
-**Cách xử lý:** nếu MFA thực sự bắt buộc, phải thể hiện bằng `REQUIRED/REQUISITE` hoặc policy điều phối tương đương không bị bypass, và áp dụng quy tắc chỉ cấp quyền “MFA-complete” khi đủ bằng chứng. Không nên chữa lỗi bằng cách “OTP optional nhưng login code sau đó đoán xem user đã nhập mã hay chưa” mà không có authorization policy rõ ràng.
+**Remediation:** if MFA is genuinely mandatory, express it with `REQUIRED`/`REQUISITE` or equivalent non-bypassable orchestration policy, and enforce a rule that grants "MFA-complete" access only with sufficient evidence. Do not paper over the bug with "OTP is optional, and login code guesses afterward whether the user entered a code" without clear authorization policy.
 
-### 7.3 Những chi tiết đáng học từ code
+### 7.3 Key Takeaways from the Code
 
-- `LoginContext(..., config)` nhận `Configuration` riêng nên không cần file global và không vô tình đổi cấu hình JAAS của ứng dụng khác.
-- `CallbackHandler` chuyển username/password/OTP đến module qua các loại `Callback` tương ứng; không log credential.
-- `sharedState` được `PasswordModule` ghi **sau khi xác minh**, rồi `OtpModule` đọc. Demo ép thứ tự Password trước OTP; đảo thứ tự này sẽ khiến `OtpModule` không thấy user.
-- `commit()` mới thêm các `Principal` có ý nghĩa vào `Subject` sau khi tổng thể pass.
-- `logout()` gỡ đúng những Principal do module thêm. Stdout `after logout=0` là kiểm tra cleanup trong lab.
-- Một implementation thật phải dùng password hashing chuẩn, TOTP/HOTP/WebAuthn kiểm tra chống replay/rate limit, source of truth người dùng và session-bound MFA; không dùng mã cố định hoặc `String` immutable chứa secret như trong demo.
-- Với nhiều module xác thực nhiều factor, cần **ràng buộc các bằng chứng với cùng principal/session**; không để account A dùng password và account B dùng OTP mà app vẫn coi là MFA cho một user.
+- `LoginContext(..., config)` accepts an isolated `Configuration`, avoiding a global file and avoiding altering other applications' JAAS setups.
+- `CallbackHandler` passes username/password/OTP to modules via their corresponding `Callback` types; never log credentials.
+- `sharedState` is written by `PasswordModule` **after verification**, then read by `OtpModule`. The demo enforces Password-before-OTP order; reversing it leaves `OtpModule` without a user.
+- `commit()` adds meaningful `Principal`s to `Subject` only after the overall stack passes.
+- `logout()` removes only Principals added by the module. Stdout `after logout=0` verifies cleanup in the lab.
+- Real implementations must use standard password hashing, TOTP/HOTP/WebAuthn with replay/rate-limit checks, a real user source of truth, and session-bound MFA; never use fixed codes or immutable `String`s holding secrets as in the demo.
+- When multiple modules verify multiple factors, **bind all evidence to the same principal/session**; never allow account A's password combined with account B's OTP to count as MFA for one user.
 
-## 8. Cấu hình JAAS dạng file và cấu hình programmatic
+## 8. File-Based JAAS Configuration vs. Programmatic Configuration
 
-### 8.1 Cấu hình file
+### 8.1 File Configuration
 
-Có thể cung cấp file cấu hình cho JDK qua property:
+You can supply a configuration file to the JDK via the property:
 
 ```bash
 java -Djava.security.auth.login.config=jaas.conf MyApplication
 ```
 
-Đây là **mẫu lệnh cấu hình**, không chạy độc lập khi chưa có file `jaas.conf` và class ứng dụng `MyApplication`. Cách mở/config bảo mật có thể khác theo framework/container.
+This is a **configuration command template**, which does not run standalone without a `jaas.conf` file and `MyApplication` class. Security configuration loading can vary by framework/container.
 
-Ví dụ một file `jaas.conf` **tham khảo dùng chính các class được triển khai trong demo thứ hai** (các class phải nằm trên classpath):
+Example `jaas.conf` **referencing the actual classes implemented in the second demo** (classes must be on the classpath):
 
 ```text
 twoFactor {
@@ -791,15 +791,15 @@ twoFactor {
 };
 ```
 
-Đối với cấu hình này, ứng dụng cần gọi `new LoginContext("twoFactor", handler)` với một `CallbackHandler` cung cấp username/password/OTP; nguồn class demo ở trên dùng `Configuration` programmatic nên **không tự đọc file này** khi chạy `JaasTwoFactorPolicyDemo.main`. Để tích hợp config file, caller phải không truyền `Configuration` tùy chỉnh vào constructor.
+With this configuration, the application would call `new LoginContext("twoFactor", handler)` with a `CallbackHandler` supplying username/password/OTP; the demo source above uses a programmatic `Configuration`, so it **does not read this file** when running `JaasTwoFactorPolicyDemo.main`. To use the config file, the caller must not pass a custom `Configuration` to the constructor.
 
-**Cẩn thận:** tên module là **tên binary class** (`Outer$Nested`), không phải `Outer.Nested` của mã nguồn; đó là lý do config trên dùng ký tự `$`. Trong hệ thống thật nên dùng class có package namespace rõ ràng, ví dụ tự xây `com.company.auth.PasswordLoginModule` và `com.company.auth.OtpLoginModule` thay vì default package của demo.
+**Watch out:** the module name is the **binary class name** (`Outer$Nested`), not the source-code `Outer.Nested`; that is why the config above uses `$`. In real systems, use classes with clear package namespaces, such as `com.company.auth.PasswordLoginModule` and `com.company.auth.OtpLoginModule`, rather than the demo's default package.
 
-Không ghi credential, password hoặc private key làm `ModuleOptions` trong file config. Options phù hợp cho tham số không bí mật như realm, chế độ debug có kiểm soát hoặc cấu hình endpoint đã được bảo vệ.
+Never put credentials, passwords, or private keys in `ModuleOptions` inside the config file. Options are suitable for non-secret parameters such as realms, controlled debug modes, or protected endpoint identifiers.
 
 ### 8.2 Programmatic `Configuration`
 
-Hai demo ở trên dùng:
+Both demos above use:
 
 ```java
 Configuration config = new Configuration() {
@@ -811,38 +811,38 @@ LoginContext ctx = new LoginContext(
         "lab", new Subject(), handler, config);
 ```
 
-Đây là đoạn nhúng giải thích API; cần các biến `stack` và `handler`. Cách này hữu ích khi cần test **nhiều tổ hợp flags** trong một process, mỗi test có cấu hình độc lập, không chỉnh global `Configuration.setConfiguration(...)`.
+This is an API-explaining snippet requiring `stack` and `handler` variables. This approach is useful for testing **many flag combinations** in one process, giving each test an isolated configuration without mutating global `Configuration.setConfiguration(...)`.
 
-Ngoài ra, khi caller dùng cấu hình cài sẵn qua `Configuration.getConfiguration()`, tên ứng dụng không có entry có thể được xử lý bằng entry `other` nếu đã định nghĩa; nếu không có entry tương ứng, `LoginContext` báo `LoginException`. Không vô tình dùng `other` quá rộng vì một lỗi đánh máy `appName` có thể đưa request tới **stack yếu hơn mong muốn**.
+Also, when using an installed configuration via `Configuration.getConfiguration()`, an unknown application name may fall back to the `other` entry if defined; if no matching entry exists, `LoginContext` throws `LoginException`. Do not make `other` overly permissive, because a typo in `appName` could route requests to a **weaker stack than intended**.
 
-### 8.3 Thứ tự và việc nạp lại cấu hình
+### 8.3 Ordering and Reloading Configurations
 
-`Configuration` kiểm soát thứ tự entry theo đúng danh sách. Có thể có nhiều ứng dụng/realm với nhiều chính sách khác nhau. Một thay đổi flag hoặc vị trí module nên được code review tương tự thay đổi security policy:
+`Configuration` controls entry order strictly according to the list. Different applications/realms can have different policies. Any change to a flag or module position deserves code review just like a security policy change:
 
-- Không xếp cơ chế `sufficient` yếu trước yếu tố `required` mà business bắt buộc.
-- Không chuyển `required` sang `optional` chỉ để giảm tỉ lệ login fail khi upstream down nếu yếu tố đó thuộc yêu cầu bảo mật.
-- Nếu triển khai fallback, phân biệt **fallback thay thế được phép** với **bypass điều kiện bắt buộc**.
-- Nếu config lấy từ file/DB/config service, kiểm soát quyền sửa, version/approval và hành vi reload; không cho user tự chọn cấu hình kém an toàn bằng request parameter.
+- Never place a weak `sufficient` mechanism ahead of a business-mandatory `required` factor.
+- Never downgrade `required` to `optional` just to reduce login failures during upstream outages if that factor is a security requirement.
+- When implementing fallbacks, distinguish **approved alternative fallbacks** from **bypassing mandatory conditions**.
+- If configs come from files/DB/config services, protect write permissions, versioning/approval, and reload behavior; never let users pick a weaker configuration via a request parameter.
 
-## 9. CallbackHandler, options và sharedState: cách phối hợp an toàn
+## 9. `CallbackHandler`, Options, and `sharedState`: Safe Coordination
 
-### 9.1 CallbackHandler và dữ liệu nhạy cảm
+### 9.1 `CallbackHandler` and Sensitive Data
 
-`CallbackHandler` là ranh giới giữa ứng dụng/UI và các module. Những callback JAAS phổ biến:
+`CallbackHandler` is the boundary between the application/UI and modules. Common JAAS callbacks:
 
-| Callback | Để lấy/đưa thông tin | Lưu ý |
+| Callback | Purpose | Note |
 | --- | --- | --- |
-| `NameCallback` | Tên user | Không tin giá trị name nếu chưa được xác minh |
-| `PasswordCallback` | Mảng `char[]` password | `getPassword()` và `clearPassword()`, tránh tạo bản sao String không cần thiết |
-| `TextInputCallback` | Text phụ như OTP trong demo | Chỉ minh họa; secret thực cần policy bảo vệ memory/log riêng |
-| `ConfirmationCallback` | Yêu cầu user xác nhận | Không đồng nghĩa bằng chứng xác thực cryptographic |
-| `UnsupportedCallbackException` | Handler không hỗ trợ callback | Cần fail authentication theo policy, không tự pass |
+| `NameCallback` | Username | Do not trust the name value until verified |
+| `PasswordCallback` | Password `char[]` array | Use `getPassword()` and `clearPassword()`; avoid unnecessary `String` copies |
+| `TextInputCallback` | Auxiliary text such as demo OTP | Illustrative only; real secrets need dedicated memory/log protection policies |
+| `ConfirmationCallback` | User confirmation prompt | Not equivalent to cryptographic authentication proof |
+| `UnsupportedCallbackException` | Handler does not support callback | Fail authentication per policy; never pass silently |
 
-Đừng đặt password/token vào log, trace, exception message hoặc `sharedState` kéo dài quá scope. Password phải được xác minh qua phương thức an toàn chuyên dụng; `PasswordCallback` chỉ là cơ chế truyền input, không thay thế password hashing/KDF hoặc rate limiting.
+Never put passwords/tokens into logs, traces, exception messages, or long-lived `sharedState`. Passwords must be verified via a dedicated secure method; `PasswordCallback` is only an input-passing mechanism, not a substitute for password hashing/KDF or rate limiting.
 
-### 9.2 sharedState cho nhiều module
+### 9.2 `sharedState` Across Multiple Modules
 
-`initialize` nhận:
+`initialize` receives:
 
 ```java
 public void initialize(
@@ -852,142 +852,142 @@ public void initialize(
     Map<String, ?> options)
 ```
 
-Đây là chữ ký method ở mức **đoạn nhúng**, cần một class triển khai `LoginModule`. `sharedState` cho phép các module trong một lần `LoginContext` trao đổi state, còn `options` là cấu hình dành cho từng entry.
+This is a **snippet-level** method signature inside a class implementing `LoginModule`. `sharedState` allows modules in one `LoginContext` invocation to share state, while `options` holds per-entry configuration.
 
-Các lưu ý:
+Key considerations:
 
-- Chỉ đặt giá trị thật sự cần chia sẻ; tránh password/OTP/raw credential.
-- Xác định **nguồn nào có quyền viết** một key và cách bên đọc xác thực nguồn.
-- Không dùng `sharedState` để bỏ qua bước xác minh: module sau cần kiểm kết quả/identity đủ mạnh, không tin một khóa `"authenticated"` do module tùy ý set.
-- Cleanup trong `abort/logout`, tránh dữ liệu cũ còn trong Map khi retry hoặc tái sử dụng.
-- Thứ tự module quyết định dữ liệu nào đã được đưa vào shared state trước thời điểm module khác được gọi.
-- Nếu module cung cấp Kerberos/SSO cùng password, kiểm identity có nhất quán; principal từ hai nguồn không khớp không được tự gộp quyền.
+- Store only values genuinely needing sharing; avoid passwords/OTPs/raw credentials.
+- Define **who is authorized to write** a key and how readers validate its provenance.
+- Never use `sharedState` to skip verification: downstream modules must verify strong outcomes/identities, not blindly trust an arbitrary `"authenticated"` flag key.
+- Clean up in `abort`/`logout` so stale data does not linger across retries or reuse.
+- Module order determines what data is already present in shared state when another module runs.
+- When combining Kerberos/SSO modules with passwords, verify identity consistency; mismatched principals from two sources must not be merged automatically.
 
-### 9.3 Exceptions và thông điệp lỗi
+### 9.3 Exceptions and Error Messages
 
-Một `requisite` có thể dừng sớm, trong khi `required` tiếp tục module phía sau dù fail. Điều này có thể làm thời gian phản hồi hoặc side effects khác nhau:
+A `requisite` module can stop early, whereas `required` continues to subsequent modules even after failure. This can produce observable differences in timing or side effects:
 
 ```text
-A requisite -> FAIL:  B, C không login
-A required  -> FAIL:  B, C vẫn có thể login
+A requisite -> FAIL:  B, C do not call login
+A required  -> FAIL:  B, C can still call login
 ```
 
-Việc chọn flag **không thay thế** kiểm soát account enumeration, rate limiting, audit và thông báo lỗi chung. Nếu ứng dụng trả về “OTP sai” khác “password sai”, kẻ tấn công có thể học thêm trạng thái tài khoản. Nên giữ error messages thống nhất ở bên ngoài, phân loại nguyên nhân trong audit nội bộ có kiểm soát, và bảo đảm mọi nhánh đều không cấp phiên trên failure.
+Choosing flags **does not replace** account-enumeration defenses, rate limiting, auditing, and generic error messages. If an app returns "wrong OTP" differently from "wrong password," attackers learn account state. Keep external errors uniform, classify causes in controlled internal audit logs, and ensure no failure branch ever issues a session.
 
-## 10. Khi nào cần REQUIRED, REQUISITE, SUFFICIENT, OPTIONAL?
+## 10. When to Use `REQUIRED`, `REQUISITE`, `SUFFICIENT`, `OPTIONAL`?
 
-| Yêu cầu | Cách nghĩ về flag | Cảnh báo |
+| Requirement | How to choose flags | Warning |
 | --- | --- | --- |
-| Phải có password và OTP | Cả hai `required` hoặc một số `requisite`/`required` theo thứ tự hợp lý | Không đặt OTP optional hoặc bị bypass bởi sufficient trước đó |
-| Chỉ cần một trong hai phương thức SSO/Password **được phê duyệt là tương đương** | Dùng `sufficient` cho phương thức ưu tiên, fallback phù hợp | Cần kiểm độ mạnh/issuer/tenant, không mặc định mọi SSO đủ mạnh |
-| Cần module kiểm mandatory trước khi làm việc tốn chi phí | `requisite` phía trước | Khác biệt timing/side effects và abort phải được đánh giá |
-| Một phép enrichment không quyết định login | `optional` | Không cho phép module tùy ý thêm quyền nhạy cảm |
-| Một điều kiện bắt buộc nhưng vẫn muốn chạy các module còn lại để giảm tiết lộ điểm lỗi | `required` | Vẫn phải có timeout và giới hạn chi phí |
-| Audit/telemetry bắt buộc dù login thành công sớm | Tổ chức bên ngoài stack hoặc cơ chế đảm bảo audit riêng | `optional` đứng sau `sufficient` có thể không chạy login() |
-| Nhiều nguồn identity trong cùng phiên | Stack có quy tắc identity binding rõ | Một Principal pass không có nghĩa user của các module khác là một người |
+| Must require both password and OTP | Both `required`, or `requisite`/`required` in a sensible order | Never make OTP `optional` or bypassable by an earlier `sufficient` |
+| Either SSO or Password **vetted as equivalent** suffices | `sufficient` for the preferred method, appropriate fallback | Verify strength/issuer/tenant; never assume every SSO is strong enough |
+| Mandatory pre-check needed before expensive work | `requisite` upfront | Evaluate timing/side-effect differences and `abort` behavior |
+| Non-decisive enrichment step | `optional` | Never let it arbitrarily add sensitive privileges |
+| Mandatory check while still running remaining modules to reduce failure-point leakage | `required` | Still enforce timeouts and cost bounds |
+| Mandatory audit/telemetry even on early login success | Handle outside the stack or via a dedicated guaranteed audit mechanism | An `optional` after `sufficient` may skip `login()` |
+| Multiple identity sources in one session | Stack with explicit identity-binding rules | One passing Principal does not mean different modules verified the same person |
 
-Không có flag nào tự giải quyết authorization, MFA phishing resistance hoặc credential storage. Đây chỉ là **control-flow và aggregation của nhiều LoginModule**.
+No flag by itself solves authorization, phishing-resistant MFA, or credential storage. These flags only govern **control flow and aggregation across multiple `LoginModule`s**.
 
-## 11. Test matrix trước khi đưa cấu hình vào production
+## 11. Test Matrix Before Shipping a Configuration to Production
 
-Không chỉ test “password đúng” và “password sai”. Ít nhất nên có:
+Do not test only "right password" and "wrong password." At a minimum include:
 
-1. **Một required fail, optional/sufficient khác pass:** toàn stack phải fail.
-2. **Requisite fail giữa stack:** module phía sau không được gọi trong login phase; state tạm được dọn.
-3. **Sufficient pass trước mandatory:** chứng minh các mandatory phía sau **bị skip**, kiểm xem đây có phải policy mong muốn.
-4. **Sufficient pass sau mandatory pass:** skip phần không còn cần thiết, vẫn trả pass.
-5. **Sufficient fail rồi required pass:** fallback hợp lệ nếu business rule cho phép.
-6. **Chỉ optional, ít nhất một pass:** pass.
-7. **Chỉ optional, tất cả fail/ignore:** fail.
-8. **Required pass, optional fail:** pass — với module bảo mật quan trọng, đây có thể là lỗ hổng policy.
-9. **Hai factor đều required, OTP sai:** fail và không cấp principal MFA.
-10. **OTP bị cấu hình optional:** test phải phát hiện nếu yêu cầu MFA bắt buộc.
-11. **Login succeeded, commit module sau thất bại:** abort/cleanup các state/Principal đã thêm đúng.
-12. **Login failed ở module cuối:** không còn token, password buffer, session hoặc Principal bị rò qua retry.
-13. **Logout sau success:** chỉ gỡ credential/Principal do đúng module thêm; không xóa dữ liệu thuộc module khác.
-14. **CallbackHandler thiếu callback:** fail đúng chính sách, không ngầm trả true hoặc chấp nhận dữ liệu null.
-15. **Hai module xác thực identity khác nhau:** reject hoặc rõ ràng map identity theo chính sách, không cộng quyền tùy ý.
-16. **Config name sai/`other` fallback:** không vô tình dùng realm yếu.
-17. **Config order thay đổi/rollout:** snapshot test bảo đảm policy mạnh không bị làm yếu vì reorder.
-18. **Concurrency:** không chia sẻ mutable `LoginContext`/`LoginModule`/static sharedState giữa phiên độc lập.
-19. **Timeout/upstream unavailable:** không chuyển mandatory module thành optional tự động.
-20. **Audit/logging:** tất cả đường success/failure/short-circuit có record sự kiện đủ điều tra, không lộ secret.
+1. **One `required` fails, other `optional`/`sufficient` pass:** entire stack must fail.
+2. **`requisite` fails mid-stack:** downstream modules are not invoked in the login phase; temp state is cleaned.
+3. **`sufficient` passes before a mandatory module:** verify downstream mandatory modules **are skipped** and confirm whether that matches desired policy.
+4. **`sufficient` passes after a mandatory pass:** skips unneeded remaining steps and still passes.
+5. **`sufficient` fails then `required` passes:** valid fallback if business rules permit.
+6. **Only `optional`, at least one passes:** passes.
+7. **Only `optional`, all fail/ignore:** fails.
+8. **`required` passes, `optional` fails:** passes—for critical security modules, this may be a policy flaw.
+9. **Two factors both `required`, wrong OTP:** fails and grants no MFA principal.
+10. **OTP misconfigured as `optional`:** tests must catch this if MFA is mandatory.
+11. **`login` succeeded, later module's `commit` fails:** `abort`/cleanup removes added state/Principals properly.
+12. **Login failed at the final module:** no leaked tokens, password buffers, sessions, or Principals across retries.
+13. **`logout` after success:** removes only credentials/Principals added by the right module; preserves other modules' data.
+14. **`CallbackHandler` missing a callback:** fails per policy, never silently returns true or accepts null data.
+15. **Two modules verify different identities:** reject or explicitly reconcile per policy; never blindly merge privileges.
+16. **Wrong config name / `other` fallback:** never accidentally route to a weak realm.
+17. **Config ordering changes/rollouts:** snapshot tests ensure strong policies are not weakened by reordering.
+18. **Concurrency:** never share mutable `LoginContext`/`LoginModule`/static `sharedState` across independent sessions.
+19. **Timeout/upstream unavailable:** never automatically downgrade a mandatory module to `optional`.
+20. **Audit/logging:** all success/failure/short-circuit paths emit investigable events without leaking secrets.
 
-**Bảo mật của stack là bảo mật của mọi đường đi có thể thành công**, không chỉ cấu hình nhìn “có required ở vài dòng”. Một `sufficient` thành công quá sớm có thể tạo đường đăng nhập không thực hiện yếu tố bắt buộc ở cuối.
+**The security of a stack is the security of every path that can succeed**, not simply a config that "has `required` on a few lines." An early-succeeding `sufficient` can create a login path that skips mandatory checks at the end.
 
-## 12. Các sai lầm thường gặp
+## 12. Common Misconceptions
 
-| Nhận định sai | Giải thích đúng |
+| Misconception | Accurate explanation |
 | --- | --- |
-| “`required` fail thì Java dừng ngay.” | Không; nó tiếp tục module phía sau nhưng kết quả toàn stack cuối cùng fail. |
-| “`requisite` giống `required` hoàn toàn.” | Cả hai mandatory, nhưng requisite fail **dừng login phase ngay**. |
-| “`sufficient` pass luôn thắng, kể cả required trước đó fail.” | Không; prior mandatory failure vẫn khiến tổng thể fail. |
-| “Một `required` ở cuối file sẽ luôn chạy.” | Có thể không: `sufficient` thành công trước đó có thể short-circuit. |
-| “`optional` không ảnh hưởng gì.” | Optional success có thể tạo tổng thể pass khi không có mandatory; nó cũng có thể thêm Principal khi commit đúng. |
-| “Tất cả optional fail cũng cho qua.” | Không; nếu không có mandatory, phải có ít nhất một optional/sufficient success. |
-| “OTP optional là MFA bắt buộc vì ứng dụng hiển thị ô nhập OTP.” | Sai; required password pass đủ làm toàn stack pass nếu OTP optional fail. |
-| “`LoginModule.login` trả false và ném `LoginException` giống nhau.” | Không; `false` là ignored theo contract, exception báo failure. |
-| “Ngay khi module pass thì ghi role vào Subject luôn.” | Nên đợi commit sau tổng thể pass, tránh publish identity từ stack thất bại. |
-| “`Subject` chứa admin Principal là có quyền admin.” | Không; quyền phải dựa vào policy, nguồn Principal đáng tin và authorization. |
-| “`sufficient` short-circuit nên không cần abort/commit nữa.” | Phase login dừng sớm nhưng lifecycle xử lý trạng thái vẫn cần đúng. |
-| “`requisite` fail thì cleanup không chạy.” | Sai: abort phase vẫn có trách nhiệm dọn state. |
-| “Các module dùng chung sharedState nên có thể tin mọi key trong đó.” | Không; cần kiểm provenance, scope và identity binding. |
-| “Global static list trace dùng được trong multi-user server.” | Không; demo chạy tuần tự, production cần trace theo request/login context. |
-| “Chỉ cần đặt `required` cho nhiều module là bảo vệ MFA khỏi phishing.” | Không; còn phụ thuộc loại factor, tính chống phishing, replay, session binding và chính sách. |
-| “Thay config không phải thay code nên không cần security review.” | Sai; chỉ reorder/đổi flag có thể thay đổi toàn bộ login policy. |
+| "When `required` fails, Java stops immediately." | No; it continues running later modules, though the overall stack ultimately fails. |
+| "`requisite` is completely identical to `required`." | Both are mandatory, but a `requisite` failure **halts the login phase immediately**. |
+| "A passing `sufficient` always wins, even if an earlier `required` failed." | No; a prior mandatory failure still causes overall failure. |
+| "A `required` at the end of the file will always run." | Not necessarily: an earlier succeeding `sufficient` can short-circuit. |
+| "`optional` has no effect." | Optional success can produce an overall pass when no mandatory modules exist; it can also add Principals on commit. |
+| "All `optional` failing still passes." | No; without mandatory modules, at least one `optional`/`sufficient` must succeed. |
+| "An `optional` OTP enforces MFA because the UI shows an OTP box." | False; a passing `required` password suffices to pass the whole stack if OTP is `optional` and fails. |
+| "Returning `false` from `LoginModule.login` is the same as throwing `LoginException`." | No; `false` means ignored per contract, whereas an exception reports failure. |
+| "Write roles into `Subject` as soon as a module passes." | Wait for `commit` after overall pass to avoid publishing identities from a failing stack. |
+| "A `Subject` containing an admin `Principal` has admin permissions." | No; permissions depend on policy, trusted Principal provenance, and authorization. |
+| "`sufficient` short-circuits, so `abort`/`commit` are unneeded." | The login phase stops early, yet second-phase state lifecycle still must be handled cleanly. |
+| "When `requisite` fails, cleanup does not run." | False: the `abort` phase is still responsible for cleaning up state. |
+| "Modules share `sharedState`, so any key in it can be trusted." | No; verify provenance, scope, and identity binding. |
+| "A global static trace list works in a multi-user server." | No; the demo runs sequentially, whereas production needs per-request/login-context tracing. |
+| "Setting `required` on multiple modules makes MFA phishing-resistant." | No; phishing resistance depends on factor type, replay defenses, session binding, and policy. |
+| "Changing config is not changing code, so no security review is needed." | False; reordering or changing a single flag can rewrite the entire login policy. |
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-**1.** `required` và `requisite` khác nhau ở điểm nào khi fail?  
-**Đáp:** Cả hai làm tổng thể fail; required **tiếp tục** module phía sau, requisite **dừng ngay phase login**.
+**1.** How do `required` and `requisite` differ when they fail?  
+**Answer:** Both cause overall failure; `required` **continues** to subsequent modules, while `requisite` **halts the login phase immediately**.
 
-**2.** Một `required` trước đó đã thất bại, sau đó `sufficient` thành công. Có cho login không?  
-**Đáp:** Không. Prior mandatory failure chưa được xóa, tổng thể vẫn fail.
+**2.** An earlier `required` failed, and a later `sufficient` succeeds. Does login succeed?  
+**Answer:** No. The prior mandatory failure was not cleared, so overall login still fails.
 
-**3.** Một `sufficient` thành công đứng trước `required`. Module required phía sau có chạy không?  
-**Đáp:** Không trong phase login nếu sufficient short-circuit hợp lệ. Vì vậy placement có thể tạo bypass.
+**3.** A succeeding `sufficient` sits before a `required`. Does the downstream `required` module run?  
+**Answer:** Not during the login phase if the `sufficient` validly short-circuits. Thus placement can create a bypass.
 
-**4.** Có hai module `optional`; một fail, một pass. Tổng thể ra sao khi không có mandatory?  
-**Đáp:** Pass vì có ít nhất một module xác thực thành công.
+**4.** There are two `optional` modules; one fails and one passes. What is the overall result when no mandatory modules exist?  
+**Answer:** Pass, because at least one module authenticated successfully.
 
-**5.** Cả hai optional đều fail/ignored, không có required/requisite; có thành công không?  
-**Đáp:** Không; thiếu bất kỳ thành công nào.
+**5.** Both `optional` modules fail/ignore, with no `required`/`requisite`; does it succeed?  
+**Answer:** No; there was no successful authentication.
 
-**6.** Password required pass nhưng OTP optional fail, ứng dụng có thể login thành công không?  
-**Đáp:** Có; đó là lý do không dùng optional cho yếu tố MFA bắt buộc.
+**6.** If `required` password passes and `optional` OTP fails, can the application log in successfully?  
+**Answer:** Yes; that is why `optional` must never be used for a mandatory MFA factor.
 
-**7.** `commit()` được dùng để làm gì?  
-**Đáp:** Hoàn tất các identity/credential của module đã thành công sau khi **tổng thể** login phase đạt điều kiện.
+**7.** What is `commit()` used for?  
+**Answer:** Finalizing the identities/credentials of succeeding modules once the **overall** login phase meets policy conditions.
 
-**8.** `abort()` khi nào được gọi?  
-**Đáp:** Khi quy trình xác thực tổng thể fail hoặc cần rollback trạng thái; nó xóa state tạm và các thay đổi phải hủy theo contract.
+**8.** When is `abort()` called?  
+**Answer:** When overall authentication fails or state must be rolled back; it clears temporary state and reverts changes per contract.
 
-**9.** `CallbackHandler` và `sharedState` khác nhau thế nào?  
-**Đáp:** Handler là giao diện yêu cầu/cung cấp input, sharedState là map trao đổi state **giữa các module cùng LoginContext**.
+**9.** How do `CallbackHandler` and `sharedState` differ?  
+**Answer:** A handler is the interface for requesting/providing input, whereas `sharedState` is a map exchanging state **between modules inside the same `LoginContext`**.
 
-**10.** `LoginContext.logout()` nên làm gì với `Subject`?  
-**Đáp:** Các module dọn Principal/credential do **chính module đó thêm**, không xóa tài nguyên của module khác.
+**10.** What should `LoginContext.logout()` do to `Subject`?  
+**Answer:** Modules clean up Principals/credentials added **by that module itself**, without deleting other modules' resources.
 
-**11.** Nếu một module xác thực user A và module khác xác thực user B, đều pass, có nên ghép quyền?  
-**Đáp:** Không. Phải ràng buộc đúng cùng identity/session và áp dụng policy authorization.
+**11.** If one module authenticates user A and another authenticates user B and both pass, should their privileges be combined?  
+**Answer:** No. Bind to the exact same identity/session and enforce authorization policy.
 
-**12.** Vì sao một cấu hình JAAS thay đổi từ `required` sang `optional` phải được review bảo mật?  
-**Đáp:** Vì đó là thay đổi điều kiện thành công của login; có thể biến một yếu tố bắt buộc thành không bắt buộc.
+**12.** Why must changing a JAAS flag from `required` to `optional` undergo security review?  
+**Answer:** Because it changes the login success condition and can turn a mandatory factor into an optional one.
 
-## Tổng kết
+## Summary
 
 ```text
-required  = bắt buộc, fail vẫn tiếp tục login() module sau
-requisite = bắt buộc, fail dừng login() ngay
-sufficient= không bắt buộc; pass có thể dừng sớm nếu
-            không có required/requisite failure trước đó
-optional  = không bắt buộc; luôn tiếp tục module sau
+required  = mandatory; on failure still runs login() on later modules
+requisite = mandatory; on failure halts login() immediately
+sufficient= not mandatory; pass may short-circuit early if
+            no prior required/requisite failure occurred
+optional  = not mandatory; always continues to later modules
 
-Nếu không có required/requisite:
-    cần ít nhất một sufficient/optional thành công
+If no required/requisite exists:
+    at least one sufficient/optional must succeed
 
 JAAS authentication lifecycle:
-    login() các module theo config order
+    login() modules in config order
                 |
        aggregate flags/result
         /                \
@@ -999,18 +999,18 @@ JAAS authentication lifecycle:
        |
      logout()
 
-Bảo mật phụ thuộc vào:
-    flags + THỨ TỰ + identity binding + cleanup + policy.
+Security depends on:
+    flags + ORDER + identity binding + cleanup + policy.
 ```
 
-**Kết luận:** bốn control flags không chỉ là nhãn mô tả “mức quan trọng” của từng module; chúng quyết định **đường đi của toàn bộ quy trình đăng nhập**. `REQUIRED` và `REQUISITE` dùng cho điều kiện bắt buộc, `SUFFICIENT` thể hiện cơ chế có thể **đủ để dừng sớm**, còn `OPTIONAL` không thể thực thi một yếu tố MFA bắt buộc. Muốn đúng, phải **test các nhánh thành công/thất bại và thứ tự module**, không chỉ đọc một dòng cấu hình.
+**Conclusion:** the four control flags are not merely labels indicating a module's "importance"; they govern **the control flow of the entire login process**. `REQUIRED` and `REQUISITE` enforce mandatory conditions, `SUFFICIENT` expresses a mechanism **enough to terminate early**, and `OPTIONAL` cannot enforce a mandatory MFA factor. To get it right, **test both success/failure branches and module ordering**, rather than reading a single config line in isolation.
 
-## Tài liệu tham khảo chính thức
+## Official References
 
-- [Java SE 17 — Configuration API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/Configuration.html): định nghĩa chính xác bốn flags, quy tắc tổng hợp và thứ tự module.
-- [Java SE 17 — AppConfigurationEntry.LoginModuleControlFlag](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/AppConfigurationEntry.LoginModuleControlFlag.html): các hằng `REQUIRED`, `REQUISITE`, `SUFFICIENT`, `OPTIONAL`.
-- [Java SE 17 — LoginContext API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/LoginContext.html): stacked authentication, `login`, `getSubject`, `logout`, cấu hình và CallbackHandler.
+- [Java SE 17 — Configuration API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/Configuration.html): exact definition of the four flags, aggregation rules, and module ordering.
+- [Java SE 17 — AppConfigurationEntry.LoginModuleControlFlag](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/AppConfigurationEntry.LoginModuleControlFlag.html): constants `REQUIRED`, `REQUISITE`, `SUFFICIENT`, `OPTIONAL`.
+- [Java SE 17 — LoginContext API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/LoginContext.html): stacked authentication, `login`, `getSubject`, `logout`, configuration, and `CallbackHandler`.
 - [Java SE 17 — LoginModule API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/spi/LoginModule.html): `initialize`, `login`, `commit`, `abort`, `logout`.
-- [Oracle — JAAS LoginModule Developer's Guide (Java 17)](https://docs.oracle.com/en/java/javase/17/security/java-authentication-and-authorization-service-jaas-loginmodule-developers-guide1.html): hai phase, giá trị return, cleanup và Subject.
-- [Java SE 17 — Subject API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/Subject.html): Principal/credentials và vòng đời subject.
-- [Java SE 17 — NameCallback / PasswordCallback](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/package-summary.html): callback framework và handling dữ liệu đăng nhập.
+- [Oracle — JAAS LoginModule Developer's Guide (Java 17)](https://docs.oracle.com/en/java/javase/17/security/java-authentication-and-authorization-service-jaas-loginmodule-developers-guide1.html): two phases, return values, cleanup, and `Subject`.
+- [Java SE 17 — Subject API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/Subject.html): Principals/credentials and subject lifecycle.
+- [Java SE 17 — NameCallback / PasswordCallback](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/package-summary.html): callback framework and login input handling.

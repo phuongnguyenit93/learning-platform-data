@@ -1,42 +1,42 @@
-# Đàm phán khả năng hỗ trợ và từ chối phiên bản hợp đồng không tương thích
+# Negotiating Supported Capabilities and Rejecting Incompatible Contract Versions
 
-## 1. Vì sao nạp được class chưa chắc đã tương thích?
+## 1. Why being able to load a class does not mean it is compatible
 
-Trong hệ thống Java runtime-extensibility, plugin và host trao đổi qua một **hợp đồng API/SPI**. `ServiceLoader` hoặc classloader có thể phát hiện provider, nhưng việc khởi tạo được class không chứng minh rằng provider hiểu đúng semantics mà host cần. Một plugin có thể biên dịch với bản hợp đồng cũ, thiếu chức năng mới, hiểu khác định dạng dữ liệu hoặc dựa trên behavior đã bị loại bỏ.
+In a Java runtime-extensibility system, plugins and hosts communicate through an **API/SPI contract**. `ServiceLoader` or a class loader can discover a provider, but instantiating a class does not prove the provider understands the semantics the host requires. A plugin may have compiled against an older contract version, lack new functionality, interpret data formats differently, or rely on removed behavior.
 
-Cần phân biệt ba câu hỏi:
+Three questions must be distinguished:
 
-1. **Binary compatibility:** bytecode plugin có liên kết với các class/method host đang cung cấp không?
-2. **Contract compatibility:** ý nghĩa, invariants, dữ liệu và lifecycle của phiên bản API có còn được tôn trọng không?
-3. **Capability compatibility:** plugin cụ thể có hỗ trợ các tính năng bắt buộc cho workload hiện tại không?
+1. **Binary compatibility:** does plugin bytecode link against the classes/methods the host currently provides?
+2. **Contract compatibility:** are the meaning, invariants, data formats, and lifecycle of the API version still honored?
+3. **Capability compatibility:** does the specific plugin support the required features for the current workload?
 
-Ví dụ: plugin và host cùng biết `PaymentProvider`, nhưng host yêu cầu idempotent refunds và plugin chỉ xử lý thanh toán một chiều. Dù object có kiểu Java hợp lệ, host phải **từ chối plugin cho tác vụ refund**, thay vì chờ lỗi ở production.
+For example, both plugin and host know `PaymentProvider`, yet the host requires idempotent refunds while the plugin handles only one-way payments. Even though the object has a valid Java type, the host must **reject the plugin for refund tasks** rather than waiting for production failures.
 
-## 2. Một hợp đồng đàm phán gồm những thành phần nào?
+## 2. What components make up a negotiation contract?
 
-| Thông tin | Phía cung cấp | Cách kiểm tra |
+| Information | Provider side | Verification method |
 | --- | --- | --- |
-| Contract/API identity | SDK chung và host | Cùng service interface/namespace và class identity |
-| Contract major/minor hoặc protocol version | SDK/plugin metadata | Chính sách compatibility đã công bố |
-| Supported version range | Plugin hoặc manifest | Host version thuộc miền hỗ trợ |
-| Capability set | Provider | Chứa toàn bộ capability bắt buộc |
-| Capability semantics | Contract documentation | Định nghĩa rõ điều kiện/đầu ra của từng capability |
-| Runtime prerequisites | Plugin metadata | JDK, OS, native dependency, quyền/quotas |
-| Optional extensions | Provider | Chỉ gọi khi được xác nhận hỗ trợ |
+| Contract/API identity | Shared SDK and host | Same service interface/namespace and class identity |
+| Contract major/minor or protocol version | SDK/plugin metadata | Published compatibility policy |
+| Supported version range | Plugin or manifest | Host version falls within supported range |
+| Capability set | Provider | Contains all required capabilities |
+| Capability semantics | Contract documentation | Clear definition of preconditions/outputs per capability |
+| Runtime prerequisites | Plugin metadata | JDK, OS, native dependencies, permissions/quotas |
+| Optional extensions | Provider | Invoked only when support is confirmed |
 
-**Nguyên tắc:** đàm phán phải diễn ra **trước khi kích hoạt provider để nhận request**, tốt nhất trước khi mở nhiều tài nguyên hoặc đăng ký callback. Mọi lỗi ở bước handshake phải dẫn đến reject rõ ràng, không ghi plugin là READY.
+**Principle:** negotiation must happen **before activating a provider to receive requests**, ideally before opening heavy resources or registering callbacks. Any failure during the handshake must lead to a clear rejection, never marking the plugin as READY.
 
-## 3. Tách compatibility policy khỏi việc so sánh chuỗi phiên bản
+## 3. Separating compatibility policy from version string comparison
 
-Semantic versioning (SemVer) có thể là một **quy ước phát hành** hữu ích, nhưng JVM không tự áp dụng SemVer cho API và JPMS module version cũng không tự giải quyết mọi tương thích semantic. Một host có thể định nghĩa:
+Semantic Versioning (SemVer) can be a useful **release convention**, but the JVM does not enforce SemVer on APIs, and JPMS module versions do not automatically solve all semantic compatibility. A host may define:
 
-- `major` đổi khi breaking contract: ví dụ loại method, đổi kiểu dữ liệu, đổi semantics bắt buộc.
-- `minor` tăng khi thêm capability tùy chọn hoặc behavior tương thích đã được quy định.
-- `patch` dùng cho bug fix không phá hợp đồng.
+- `major` changes on breaking contract changes: e.g., removing methods, changing data types, changing mandatory semantics.
+- `minor` increments when adding optional capabilities or specified compatible behavior.
+- `patch` is used for bug fixes that do not break the contract.
 
-Tuy nhiên không thể kết luận `host.major == plugin.major` là đủ. Cần kiểm tra required features, giới hạn optional behavior, phiên bản nhỏ tối thiểu và binary linkage thực tế. Ngược lại, plugin báo cùng major nhưng không khai báo capability bắt buộc vẫn phải bị từ chối.
+However, checking `host.major == plugin.major` is not enough. You must verify required features, bounds of optional behavior, minimum minor version, and actual binary linkage. Conversely, a plugin reporting the same major version without declaring a required capability must still be rejected.
 
-Ví dụ chính sách cho một hợp đồng đã công bố:
+Example policy for a published contract:
 
 ```text
 Host contract: 2.4
@@ -51,28 +51,28 @@ Provider C: major=2, supportedMinor=1..5, capabilities=[] -> REJECT capability
 Provider D: major=2, supportedMinor=5..8, capabilities=[BATCH] -> REJECT range
 ```
 
-Đây là **policy minh họa** chứ không phải quy luật bắt buộc của mọi plugin system. Với các hợp đồng nghiêm ngặt, host và provider có thể dùng exact version hoặc protocol schema hash thay vì một range.
+This is an **illustrative policy**, not a mandatory rule for every plugin system. For strict contracts, host and provider may use an exact version or protocol schema hash instead of a range.
 
-## 4. Thiết kế interface: metadata trước, tác vụ sau
+## 4. Interface design: metadata first, operations second
 
-Host nên sở hữu `ProviderDescriptor` và validator ở một module API/host ổn định. Provider có thể khai báo version range và tập capability; host phải kiểm chứng dữ liệu đó, không mặc định tin một chuỗi quảng cáo.
+The host should own `ProviderDescriptor` and the validator in a stable API/host module. Providers can declare a version range and a capability set; the host must validate that data rather than blindly trusting a self-advertised string.
 
-Điều cần tránh:
+What to avoid:
 
 ```java
-// Anti-pattern: gọi tính năng mới rồi mới biết plugin không hỗ trợ.
+// Anti-pattern: calling a new feature only to discover the plugin does not support it.
 provider.processBatch(input);
 ```
 
-Đoạn minh họa này không phải chương trình độc lập. Cách tiếp cận đúng là **validate → select → activate → invoke**.
+This snippet is not a standalone program. The right approach is **validate → select → activate → invoke**.
 
-Đàm phán thường là capability discovery ở runtime, không phải thương lượng không giới hạn. Host phải xác định rõ những yêu cầu bắt buộc; provider chỉ khai báo khả năng; quyết định cuối thuộc về host. Các capability nhạy cảm (ví dụ quyền đọc file/mạng) cần kiểm tra quyền thực tế ở OS/runtime, không chỉ metadata tự khai.
+Negotiation is usually runtime capability discovery rather than open-ended bargaining. The host must clearly specify required criteria; the provider only declares its capabilities; the final decision belongs to the host. Sensitive capabilities (such as file or network permissions) must be verified against actual OS/runtime permissions, not solely self-declared metadata.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: host chấp nhận/từ chối provider
+## 5. Complete Java 17+ example: host accepting/rejecting providers
 
-Ví dụ dùng một service contract đơn giản. Tất cả nằm trong một file để chạy độc lập, nhưng khi triển khai plugin thật hãy tách SPI vào module API, provider vào JAR riêng và host phụ trách negotiation.
+The example uses a simple service contract. Everything is in one file so it runs standalone, though in a real plugin deployment you should separate the SPI into an API module, providers into separate JARs, and let the host perform negotiation.
 
-Tạo file `CapabilityNegotiationDemo.java`:
+Create `CapabilityNegotiationDemo.java`:
 
 ```java
 import java.util.EnumSet;
@@ -155,7 +155,7 @@ public class CapabilityNegotiationDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac --release 17 CapabilityNegotiationDemo.java
@@ -171,11 +171,11 @@ C: REJECT - missing required capability
 D: REJECT - unsupported contract minor
 ```
 
-Ví dụ chứng minh rằng **provider được nhìn thấy** không đồng nghĩa **được chọn**. Host xét version range và capabilities trước, rồi mới gọi `executeBatch()` của provider A. Trong ứng dụng thực tế, phải bảo đảm phần metadata/handshake dùng API chung đã tương thích; nếu chữ ký interface handshake bị phá, plugin có thể thất bại khi linkage trước khi kịp tự báo version.
+The example demonstrates that **a provider being visible** does not mean **being selected**. The host evaluates the version range and capabilities first, and only then invokes `executeBatch()` on provider A. In real applications, ensure the metadata/handshake part uses a compatible shared API; if the handshake interface signature itself breaks, the plugin may fail during linkage before it can report its version.
 
-## 6. Gắn negotiation vào ServiceLoader hoặc registry plugin
+## 6. Integrating negotiation into ServiceLoader or a plugin registry
 
-Với service provider nạp bằng SPI, thứ tự xử lý nên như sau:
+For service providers loaded via SPI, the processing order should be:
 
 ```text
 Discover candidates
@@ -193,7 +193,7 @@ Reject with reason OR activate
 Route requests only to accepted providers
 ```
 
-Đoạn code minh họa (bên trong method có `ServiceLoader<Provider> loader`, `Contract host` và `Set<Capability> required`):
+Illustrative snippet (inside a method with `ServiceLoader<Provider> loader`, `Contract host`, and `Set<Capability> required`):
 
 ```java
 for (Provider provider : loader) {
@@ -207,95 +207,95 @@ for (Provider provider : loader) {
 }
 ```
 
-Trong đoạn này, `logRejected` và `registerAccepted` là hàm ứng dụng tự định nghĩa. `ServiceLoader` có thể tạo provider instance khi iterator được duyệt; nếu constructor/provider initialization đã có side effect, chỉ kiểm tra `descriptor()` là chưa đủ an toàn. Plugin framework nâng cao nên đọc metadata **trước khởi tạo implementation** (manifest/descriptor được ký hoặc kiểm soát), sau đó load provider và xác thực lại.
+In this snippet, `logRejected` and `registerAccepted` are application-defined methods. `ServiceLoader` may instantiate provider classes as its iterator is traversed; if constructor/provider initialization already has side effects, checking `descriptor()` alone is not safe enough. Advanced plugin frameworks should read metadata **before instantiating implementations** (signed or verified manifests/descriptors), then load the provider and re-verify.
 
-Đặc biệt khi host và provider được nạp bởi các classloader khác nhau, cả hai phải nhìn thấy **cùng class identity của SPI**. Nạp hai bản interface trùng tên từ child-first loaders không tự động tạo hợp đồng tương thích; có thể gây `ClassCastException`, `ServiceConfigurationError` hoặc lỗi linkage.
+In particular, when host and provider are loaded by different classloaders, both must see **the exact same SPI class identity**. Loading two copies of an identically named interface from child-first loaders does not automatically create a compatible contract; it can cause `ClassCastException`, `ServiceConfigurationError`, or linkage errors.
 
-## 7. Thương lượng capability có semantics rõ ràng
+## 7. Negotiating capabilities with explicit semantics
 
-Capability không chỉ là một nhãn string. Chẳng hạn `BATCH` cần quy định:
+A capability is not just a string label. For instance, `BATCH` needs to define:
 
-- `BATCH` xử lý atomic hay partial success?
-- Batch size tối đa, order guarantees và retry policy là gì?
-- Lỗi có idempotency key không?
-- Version nào đưa capability này vào contract?
-- Nếu capability được khai báo nhưng request vượt giới hạn, host cần fallback hay reject?
+- Does `BATCH` process atomically or allow partial success?
+- What are the maximum batch size, ordering guarantees, and retry policy?
+- Do failures carry an idempotency key?
+- Which contract version introduced this capability?
+- If the capability is declared yet a request exceeds limits, should the host fall back or reject?
 
-Nên gắn mỗi capability với schema/contract revision nếu semantics phát triển độc lập, hoặc dùng typed descriptor như `BatchSupport(maxSize, atomic, retrySafe)`. `Set<String>` có thể đủ cho demo, nhưng production cần validation, tránh typo, unknown capability và thay đổi ý nghĩa âm thầm.
+Attach a schema/contract revision to each capability if semantics evolve independently, or use a typed descriptor such as `BatchSupport(maxSize, atomic, retrySafe)`. `Set<String>` may suffice for demos, while production needs validation to prevent typos, unknown capabilities, and silent semantic drift.
 
-**Optional capability:** host chỉ gọi khi provider xác nhận hỗ trợ. **Required capability:** thiếu là lý do reject. Không fallback sang phương án làm mất correctness (ví dụ chuyển thanh toán atomic thành partial) nếu business contract không cho phép.
+**Optional capability:** the host calls it only when the provider confirms support. **Required capability:** its absence is grounds for rejection. Do not fall back to an approach that breaks correctness (such as turning atomic payment into partial) if the business contract forbids it.
 
-## 8. Fail-fast và báo lỗi có thể hành động
+## 8. Fail-fast and actionable error reporting
 
-Đầu ra từ negotiation không nên chỉ là boolean. Cần lý do cụ thể và có cấu trúc:
+Output from negotiation should not be just a boolean. It needs specific, structured reasons:
 
-| Mã từ chối | Ý nghĩa | Hành động vận hành |
+| Rejection code | Meaning | Operational action |
 | --- | --- | --- |
-| `API_MAJOR_MISMATCH` | Không cùng major được hỗ trợ | Nâng cấp/hạ cấp SDK hoặc provider |
-| `API_MINOR_OUT_OF_RANGE` | Host nằm ngoài range plugin hỗ trợ | Xác định dải version phù hợp |
-| `MISSING_CAPABILITY` | Không có tính năng bắt buộc | Cài provider phù hợp hoặc đổi yêu cầu |
-| `INVALID_DESCRIPTOR` | Metadata rỗng/sai/không nhất quán | Sửa artifact plugin |
-| `BINARY_INCOMPATIBLE` | Linkage/API signature không phù hợp | Kiểm tra JAR, SDK version, classloader |
-| `RUNTIME_UNSUPPORTED` | JDK/OS/native dependency không đáp ứng | Chọn runtime phù hợp |
+| `API_MAJOR_MISMATCH` | Supported major does not match | Upgrade/downgrade SDK or provider |
+| `API_MINOR_OUT_OF_RANGE` | Host falls outside plugin's supported range | Determine a compatible version range |
+| `MISSING_CAPABILITY` | Lacks a required feature | Install a suitable provider or change requirements |
+| `INVALID_DESCRIPTOR` | Metadata is empty/malformed/inconsistent | Fix the plugin artifact |
+| `BINARY_INCOMPATIBLE` | Linkage/API signature mismatch | Inspect JAR, SDK version, classloader |
+| `RUNTIME_UNSUPPORTED` | JDK/OS/native dependency unmet | Choose a compatible runtime |
 
-Host nên log plugin ID, artifact version, host contract, supported range, required vs advertised capabilities và reason code. Tránh đổ stacktrace dài cho mọi trường hợp version không tương thích đã biết; chỉ giữ stacktrace khi có lỗi bất thường. Không expose path hoặc secrets qua message gửi người dùng cuối.
+The host should log the plugin ID, artifact version, host contract, supported range, required vs advertised capabilities, and reason code. Avoid dumping long stack traces for every known version incompatibility; keep stack traces only for unexpected errors. Do not expose paths or secrets in end-user messages.
 
-## 9. Thời điểm nào phải thương lượng lại?
+## 9. When must renegotiation occur?
 
-Không chỉ lúc khởi động. Cần negotiation lại khi:
+Not only at startup. Renegotiation is needed when:
 
-1. Host nâng API version hoặc thay đổi required capabilities.
-2. Plugin được hot-reload hoặc thay JAR/provider.
-3. Tạo `ModuleLayer` hoặc classloader mới cho nhóm plugin mới.
-4. Chuyển workload sang chế độ mới cần feature khác (ví dụ `AUDIT`).
-5. Plugin báo runtime capability degradation có thể kiểm chứng được.
+1. The host upgrades its API version or changes required capabilities.
+2. A plugin is hot-reloaded or its JAR/provider is replaced.
+3. A new `ModuleLayer` or classloader is created for a new plugin group.
+4. The workload switches to a new mode needing different features (e.g., `AUDIT`).
+5. A plugin reports verifiable runtime capability degradation.
 
-Mỗi lần publish plugin set mới nên thực hiện handshake và health check **trước atomic switch**. Request đang chạy với plugin cũ cần hoàn tất hoặc bị hủy theo policy, không đổi provider giữa một transaction đang diễn ra.
+Each time a new plugin set is published, perform handshake and health checks **before the atomic switch**. In-flight requests on the old plugin must complete or be canceled per policy, never switching providers mid-transaction.
 
-Không cache kết quả negotiation chỉ theo provider name: cùng tên có thể xuất hiện ở nhiều version/layer. Cache key nên gồm artifact identity/version, contract revision, required capabilities và execution environment khi có liên quan.
+Do not cache negotiation results keyed solely by provider name: the same name can appear across multiple versions/layers. Cache keys should include artifact identity/version, contract revision, required capabilities, and execution environment where relevant.
 
-## 10. Binary compatibility và limits của negotiation
+## 10. Binary compatibility and the limits of negotiation
 
-Negotiation chỉ hoạt động nếu host có thể **đọc metadata** hoặc gọi **handshake API ổn định**. Nếu Java class đã bị thay signature incompatibly, quá trình load/link có thể thất bại trước khi gọi `descriptor()`.
+Negotiation works only if the host can **read metadata** or call a **stable handshake API**. If a Java class has had its signature changed incompatibly, loading/linking may fail before `descriptor()` can ever be called.
 
-Các ví dụ breaking changes cần lưu ý:
+Breaking changes to watch out for:
 
-- Xóa hoặc đổi chữ ký method mà bytecode plugin cũ gọi: có thể gây `NoSuchMethodError`.
-- Đổi static/instance method hoặc kiểu field: có thể gây `IncompatibleClassChangeError`.
-- Đổi interface hierarchy hoặc duplicate interface class qua loaders: có thể gây class identity mismatch.
-- Thêm abstract method vào SPI interface có thể khiến provider cũ compile được trước đây nhưng gây `AbstractMethodError` khi host gọi method mới.
-- Đổi meaning của field/enum mà không tăng major: Java có thể link được nhưng semantics sai.
+- Removing or changing the signature of a method called by old plugin bytecode: can cause `NoSuchMethodError`.
+- Changing static/instance method kind or field type: can cause `IncompatibleClassChangeError`.
+- Changing interface hierarchy or duplicating an interface class across loaders: can cause a class identity mismatch.
+- Adding an abstract method to an SPI interface can allow old providers to have compiled previously yet cause `AbstractMethodError` when the new host calls the new method.
+- Changing the meaning of a field/enum without bumping major: Java may link it, yet semantics are wrong.
 
-Vì thế nên phân tầng: **artifact manifest metadata** đủ ổn định để preflight trước khi nạp, **SPI handshake** nhỏ và duy trì tương thích, rồi **capability validation** chi tiết. Không cố catch mọi `LinkageError` rồi ép dùng plugin nguy hiểm; isolate lỗi và fail closed.
+Therefore, layer your defenses: **artifact manifest metadata** stable enough for preflight before loading, a minimal and stable **SPI handshake**, and then detailed **capability validation**. Do not try to catch every `LinkageError` and force a dangerous plugin into service; isolate failures and fail closed.
 
-## 11. Kiểm thử compatibility matrix
+## 11. Testing the compatibility matrix
 
-| Test | Kỳ vọng |
+| Test | Expectation |
 | --- | --- |
-| Cùng major, minor nằm range, đủ required capabilities | Accept |
-| Sai major | Reject trước activate |
-| Minor dưới min hoặc trên max | Reject có reason rõ |
-| Thiếu một trong nhiều required capabilities | Reject, liệt kê capability thiếu |
-| Có extra optional capability | Accept nhưng host chỉ dùng khi hỗ trợ |
-| Descriptor null, range ngược hoặc capability unknown | Reject/validation error |
-| Provider constructor ném lỗi | Không route request; cleanup partial resources |
-| SDK artifact khác version binary-incompatible | Linkage fail được cô lập, không đánh dấu READY |
-| Reload cùng tên provider với version khác | Negotiation lại theo artifact identity |
-| Runtime mất quyền/network hoặc JDK prerequisite | Fail health check hoặc degrade theo policy |
+| Same major, minor in range, all required capabilities present | Accept |
+| Wrong major | Reject before activation |
+| Minor below min or above max | Reject with clear reason |
+| Missing one of multiple required capabilities | Reject, listing missing capability |
+| Extra optional capability present | Accept, yet host uses it only when supported |
+| Null descriptor, inverted range, or unknown capability | Reject/validation error |
+| Provider constructor throws an error | Do not route requests; clean up partial resources |
+| Binary-incompatible SDK artifact version | Linkage failure is isolated, not marked READY |
+| Reload same provider name with different version | Renegotiate by artifact identity |
+| Runtime loses permissions/network or JDK prerequisite | Fail health check or degrade per policy |
 
-Test nên chạy trên **artifact JAR được phát hành thật**, cùng module path/classloader setup với production. Không chỉ dùng mock provider trên classpath IDE; mock không phát hiện vấn đề SPI descriptor, module resolution hay Java binary linkage.
+Tests should run against **actual published JAR artifacts** with the production module path/classloader setup. Do not rely solely on mock providers on the IDE classpath; mocks do not catch SPI descriptor issues, module resolution problems, or Java binary linkage failures.
 
-## 12. Checklist triển khai
+## 12. Implementation checklist
 
-- [ ] Hợp đồng API định nghĩa rõ version semantics, breaking changes và capability semantics.
-- [ ] Tách required và optional capabilities theo workload.
-- [ ] Có descriptor có cấu trúc, validate null/range/capability values.
-- [ ] Kiểm tra artifact metadata trước khi tạo provider nếu có thể.
-- [ ] Giữ handshake SPI tối thiểu và stable, một API class identity chia sẻ.
-- [ ] Fail-fast khi major/range/capability không đáp ứng; không register provider bị reject.
-- [ ] Báo reason code rõ và log đủ thông tin chẩn đoán.
-- [ ] Không gọi optional feature trước khi kiểm tra khả năng.
-- [ ] Negotiation lại khi reload, nâng host hoặc đổi workload.
-- [ ] Test compatibility matrix bằng JAR/module path cuối cùng.
+- [ ] API contract clearly defines version semantics, breaking changes, and capability semantics.
+- [ ] Separate required and optional capabilities per workload.
+- [ ] Structured descriptor present, validating null/range/capability values.
+- [ ] Inspect artifact metadata before instantiating providers when possible.
+- [ ] Keep SPI handshake minimal and stable, with one shared API class identity.
+- [ ] Fail-fast when major/range/capability is unmet; do not register rejected providers.
+- [ ] Report clear reason codes and log sufficient diagnostic details.
+- [ ] Do not invoke optional features before checking support.
+- [ ] Renegotiate on reload, host upgrade, or workload change.
+- [ ] Test the compatibility matrix using final JARs/module path.
 
-**Kết luận:** nạp được provider chỉ là bước khám phá. Host phải **đàm phán hợp đồng và khả năng** theo quy tắc tường minh, từ chối sớm những plugin có API version hoặc capability không phù hợp và chỉ kích hoạt provider đã qua kiểm tra. Đây là điều kiện quan trọng để hệ thống Java mở rộng động mà vẫn giữ tính đúng đắn khi SDK và plugin được phát hành độc lập.
+**Conclusion:** being able to load a provider is only the discovery step. The host must **negotiate the contract and capabilities** according to explicit rules, reject plugins with incompatible API versions or capabilities early, and activate only verified providers. This is essential for dynamically extensible Java systems to maintain correctness when SDKs and plugins are released independently.

@@ -1,206 +1,206 @@
-# 19.2. Vai trò của JDWP, JDI và jdb trong kiến trúc debugging Java
+# 19.2. The Role of JDWP, JDI, and jdb in Java Debugging Architecture
 
-Khi đặt breakpoint trong IntelliJ IDEA, Eclipse hoặc gõ lệnh bằng `jdb`, chúng ta đang điều khiển **một JVM khác** để dừng luồng, xem call stack, đọc biến và tiếp tục chạy chương trình. Phần giao diện debugger nhìn thấy chỉ là lớp trên cùng. Bên dưới là Java Platform Debugger Architecture (**JPDA**) — kiến trúc chia trách nhiệm thành giao diện lập trình, giao thức truyền thông và dịch vụ của JVM.
+When setting a breakpoint in IntelliJ IDEA, Eclipse, or typing commands in `jdb`, we are controlling **another JVM** to suspend threads, inspect the call stack, read variables, and resume execution. The debugger UI we see is only the top layer. Underneath lies the Java Platform Debugger Architecture (**JPDA**) — an architecture that separates responsibilities into a programming interface, a communication protocol, and JVM services.
 
-Ba tên rất dễ nhầm:
+Three names are very easy to confuse:
 
-- **JDWP — Java Debug Wire Protocol:** giao thức trao đổi yêu cầu và sự kiện giữa debugger và JVM được debug.
-- **JDI — Java Debug Interface:** API Java cấp cao để *viết debugger* hoặc công cụ điều tra từ phía debugger.
-- **jdb — Java Debugger:** chương trình dòng lệnh đi kèm JDK, **sử dụng JDI**, để debug ứng dụng Java.
+- **JDWP — Java Debug Wire Protocol:** the protocol for exchanging requests and events between the debugger and the debugged JVM.
+- **JDI — Java Debug Interface:** the high-level Java API for *writing debuggers* or diagnostic tools on the debugger side.
+- **jdb — Java Debugger:** the command-line program bundled with the JDK, **using JDI**, to debug Java applications.
 
-Một thành phần liên quan cần biết là **JVM TI — Java Virtual Machine Tool Interface**. Đây là giao diện native ở phía JVM cho công cụ chẩn đoán/debugging. Trong triển khai JPDA tham chiếu của HotSpot, **JDWP agent** dùng JVM TI để thực hiện các yêu cầu được chuyển từ debugger. Nhờ phân lớp, người dùng `jdb` không phải tự đóng gói packet JDWP, còn người viết công cụ JDI không phải gọi trực tiếp API native JVM TI.
+One related component to know is **JVM TI — Java Virtual Machine Tool Interface**. This is the native interface on the JVM side for diagnostic/debugging tools. In HotSpot's reference JPDA implementation, the **JDWP agent** uses JVM TI to execute requests forwarded from the debugger. Thanks to layering, `jdb` users do not have to pack JDWP packets manually, and JDI tool authors do not have to call native JVM TI APIs directly.
 
-Mục tiêu bài: giải thích được sơ đồ và luồng yêu cầu/sự kiện JPDA, phân biệt giao thức với API và công cụ CLI, tự mở một phiên `jdb` trên Java 17+, biết nơi đặt `-agentlib:jdwp`, thực hiện breakpoint/step/inspect, nhận diện lỗi kết nối và bảo vệ cổng debug.
+Lesson goal: explain the JPDA diagram and request/event flow, distinguish the protocol from the API and CLI tool, open a `jdb` session on Java 17+, know where to place `-agentlib:jdwp`, perform breakpoints/stepping/inspection, identify connection errors, and secure the debug port.
 
-## 1. Sơ đồ kiến trúc JPDA từ debugger đến JVM
+## 1. JPDA Architecture Diagram from Debugger to JVM
 
 ~~~text
-   MÁY / TIẾN TRÌNH DEBUGGER                      MÁY / TIẾN TRÌNH DEBUGGEE
-   (front-end)                                    (back-end + ứng dụng)
+   DEBUGGER MACHINE / PROCESS                     DEBUGGEE MACHINE / PROCESS
+   (front-end)                                    (back-end + application)
 
   +----------------------------+                 +----------------------------+
-  | jdb / IDE / custom tool    |                 | Ứng dụng Java              |
-  | Giao diện, breakpoint UI   |                 | Thread, object, stack      |
+  | jdb / IDE / custom tool    |                 | Java Application           |
+  | UI, breakpoint UI          |                 | Threads, objects, stacks   |
   +-------------+--------------+                 +--------------+-------------+
                 |                                                 ^
-                | Gọi JDI API                                     | dịch vụ debug
-                v                                                 | từ JVM TI
+                | Calls JDI API                                   | debug services
+                v                                                 | from JVM TI
   +----------------------------+                 +--------------+-------------+
   | JDI implementation         |                 | JVM + JVM TI               |
   | com.sun.jdi.*              |                 | Debuggee runtime           |
   | Connectors, mirrors,       |                 +--------------+-------------+
   | event requests/queues      |                                ^
   +-------------+--------------+                                |
-                |                                                | JVM TI calls / events
-                v                                                |
+                |                                               | JVM TI calls / events
+                v                                               |
   +----------------------------+                 +--------------+-------------+
   | JDWP front-end             | <-- JDWP -->    | JDWP agent / back-end      |
   | Serialize / decode packet  |   over socket   | Decode packet, query VM    |
   +----------------------------+                 +----------------------------+
              <---------------------- transport -------------------->
-                      dt_socket (TCP) hoặc transport được hỗ trợ
+                      dt_socket (TCP) or supported transport
 ~~~
 
-Sơ đồ là mô hình **triển khai tham chiếu điển hình**: thành phần cụ thể có thể khác ở các JVM/IDE. Điều ổn định để hiểu là **debugger đặt câu hỏi và điều khiển trạng thái**, còn JVM đích cung cấp thông tin/thi hành điều khiển. JDWP quy định dữ liệu trao đổi qua kênh truyền; `dt_socket` là **transport TCP**, không phải tên gọi khác của JDWP.
+The diagram shows a **typical reference implementation** model: specific components may vary across JVMs/IDEs. What remains constant to understand is that **the debugger asks questions and controls state**, while the target JVM provides information/executes control. JDWP defines the data exchanged over the transport channel; `dt_socket` is the **TCP transport**, not another name for JDWP.
 
-Trong JPDA:
+In JPDA:
 
-1. **Debugger front-end** nhận thao tác của người dùng: đặt breakpoint, xem giá trị biến, bước qua dòng lệnh.
-2. **JDI** cho phép mã Java ở debugger biểu diễn JVM, thread, stack frame, class, field và event như những object/mirror.
-3. **JDWP** biểu diễn các yêu cầu, phản hồi và thông báo sự kiện thành message truyền qua kết nối.
-4. **JDWP back-end/agent** chạy trong tiến trình debuggee nhận message, phối hợp với JVM TI để truy xuất hoặc thay đổi trạng thái thực thi.
-5. JVM có thể phát sinh sự kiện breakpoint/exception/thread-start; agent chuyển chúng ngược qua JDWP, JDI đưa về debugger qua `EventQueue`.
+1. **The debugger front-end** receives user actions: setting breakpoints, inspecting variable values, stepping through lines.
+2. **JDI** allows Java code in the debugger to represent the JVM, threads, stack frames, classes, fields, and events as objects/mirrors.
+3. **JDWP** represents requests, replies, and event notifications as messages sent over a connection.
+4. **The JDWP back-end/agent** running inside the debuggee process receives messages and coordinates with JVM TI to retrieve or alter execution state.
+5. The JVM can emit breakpoint/exception/thread-start events; the agent sends them back over JDWP, and JDI delivers them to the debugger via `EventQueue`.
 
-**JPDA không phải một chương trình riêng**, còn `jdb` không phải một tầng của đặc tả protocol. `jdb` là **một ứng dụng debugger cụ thể** được xây trên API JDI.
+**JPDA is not a standalone program**, and `jdb` is not a layer of the protocol specification. `jdb` is **a concrete debugger application** built on top of the JDI API.
 
-## 2. Bảng phân biệt JDWP, JDI, jdb và JVM TI
+## 2. Comparison Table: JDWP, JDI, jdb, and JVM TI
 
-| Thành phần | Bản chất | Ở phía nào? | Ai dùng? | Nó giải quyết vấn đề gì? |
+| Component | Nature | Which side? | Who uses it? | What problem does it solve? |
 | --- | --- | --- | --- | --- |
-| **JDWP** | Đặc tả *wire protocol*, gồm các command/reply/event packet | Giữa debugger và JVM đích | Implementations của debugger và agent | Hai tiến trình nói chuyện debug với nhau theo định dạng thống nhất |
-| **JDI** | API Java cấp cao trong module `jdk.jdi`, packages `com.sun.jdi.*` | Chủ yếu ở debugger/front-end | `jdb`, IDE hoặc custom debugger Java | Viết code attach/launch, đọc state, đặt event request, nhận event mà không viết packet tay |
-| **jdb** | Công cụ dòng lệnh trong JDK | Tiến trình debugger | Lập trình viên, vận hành, người học | Debug trực tiếp bằng lệnh: attach, breakpoint, step, print, where |
-| **JVM TI** | Native tool interface (C/C++) | Trong/tiếp xúc JVM đích | Native agents, JDWP back-end của HotSpot | Lấy trạng thái VM, hook vào runtime, nhận sự kiện ở mức VM |
+| **JDWP** | *Wire protocol* specification, consisting of command/reply/event packets | Between debugger and target JVM | Debugger and agent implementations | Two processes speak debugging with each other in a standardized format |
+| **JDI** | High-level Java API in module `jdk.jdi`, packages `com.sun.jdi.*` | Mainly on debugger/front-end | `jdb`, IDEs, or custom Java debuggers | Write attach/launch code, read state, place event requests, receive events without hand-crafting packets |
+| **jdb** | Command-line tool in the JDK | Debugger process | Developers, operators, learners | Debug directly via commands: attach, breakpoint, step, print, where |
+| **JVM TI** | Native tool interface (C/C++) | Inside/attached to target JVM | Native agents, HotSpot's JDWP back-end | Retrieve VM state, hook into runtime, receive VM-level events |
 
-Vì vậy:
+Therefore:
 
-- Gõ `jdb -attach 5005` là **khởi chạy một debugger CLI**, dùng **JDI connector** để kết nối và dùng **JDWP** truyền lệnh tới **agent**.
-- Viết `VirtualMachine vm = connector.attach(...)` trong Java là **sử dụng JDI**, nhưng vẫn có thể nói chuyện với agent qua JDWP.
-- Cấu hình `-agentlib:jdwp=...` là **bật debug agent phía debuggee**, không phải “bật JDI trên server”.
-- `dt_socket` hoặc `dt_shmem` là **phương thức vận chuyển**, không phải một lớp debugger hay câu lệnh của Java.
-- `JMX`, `jcmd` và **JFR** là các cơ chế quản lý/chẩn đoán khác; chúng không đồng nghĩa với phiên debug JPDA. Một tiến trình có JMX hoặc JFR không có nghĩa tự nhiên đã mở JDWP.
+- Running `jdb -attach 5005` is **launching a CLI debugger**, using a **JDI connector** to connect and **JDWP** to transmit commands to the **agent**.
+- Writing `VirtualMachine vm = connector.attach(...)` in Java is **using JDI**, though it still communicates with the agent over JDWP.
+- Configuring `-agentlib:jdwp=...` is **enabling the debug agent on the debuggee side**, not "enabling JDI on the server."
+- `dt_socket` or `dt_shmem` is a **transport mechanism**, not a debugger layer or Java statement.
+- `JMX`, `jcmd`, and **JFR** are separate management/diagnostic mechanisms; they are not synonymous with a JPDA debug session. A process with JMX or JFR enabled does not automatically mean JDWP is open.
 
-## 3. JDWP: hợp đồng trao đổi trên đường truyền
+## 3. JDWP: The Communication Contract on the Wire
 
-JDWP định nghĩa định dạng packet mang:
+JDWP defines packet formats carrying:
 
-- **Command** từ debugger, ví dụ yêu cầu lấy giá trị biến cục bộ, danh sách thread, thiết lập breakpoint.
-- **Reply** từ JVM, gồm dữ liệu hoặc mã lỗi phản hồi yêu cầu.
-- **Event** gửi từ JVM về debugger, ví dụ breakpoint hit, exception, VM start/death và thread events khi được đăng ký.
+- **Commands** from the debugger, e.g., requesting local variable values, thread lists, setting breakpoints.
+- **Replies** from the JVM, containing data or error codes responding to a request.
+- **Events** sent from the JVM to the debugger, e.g., breakpoint hits, exceptions, VM start/death, and thread events when registered.
 
-JDWP **không quy định debugger phải vẽ giao diện thế nào**. IDE có thể tạo cửa sổ Variables/Threads, còn `jdb` in text; cả hai vẫn có thể nói chuyện với cùng kiểu JDWP agent. Tương tự, JDWP **không buộc chỉ được dùng TCP**: vận chuyển trong reference implementation có `dt_socket`; `dt_shmem` là shared-memory transport trên Windows, và cấu trúc JPDA cho phép những transport khác.
+JDWP **does not dictate how a debugger must draw its UI**. An IDE can create Variables/Threads windows while `jdb` prints text; both can still talk to the same type of JDWP agent. Similarly, JDWP **does not force only TCP**: transports in the reference implementation include `dt_socket`; `dt_shmem` is a shared-memory transport on Windows, and JPDA's structure permits other transports.
 
-Ví dụ luồng khi người dùng muốn xem giá trị `int a` trong một stack frame đã bị dừng:
+Example flow when the user wants to view `int a` in a suspended stack frame:
 
 ~~~text
-Người dùng chọn biến a
-  -> jdb / IDE gọi JDI: StackFrame.getValue(LocalVariable)
-  -> JDI front-end mã hóa JDWP request GetValues
-  -> TCP socket (dt_socket) chuyển request
-  -> JDWP back-end trong JVM đích giải mã
-  -> JVM TI / JVM cung cấp giá trị của slot ở frame
-  -> JDWP reply mang kết quả về debugger
-  -> JDI tạo Value mirror
-  -> UI/jdb hiển thị số nguyên
+User selects variable a
+  -> jdb / IDE calls JDI: StackFrame.getValue(LocalVariable)
+  -> JDI front-end encodes JDWP request GetValues
+  -> TCP socket (dt_socket) transfers the request
+  -> JDWP back-end in target JVM decodes it
+  -> JVM TI / JVM supplies the slot's value in the frame
+  -> JDWP reply carries result back to debugger
+  -> JDI creates Value mirror
+  -> UI/jdb displays the integer
 ~~~
 
-**Breakpoint đi chiều ngược lại khi đã được thiết lập:** VM chạy tới vị trí có breakpoint, JVM TI báo cho back-end, JDWP agent gửi event về, JDI chuyển thành `BreakpointEvent` cho event queue, và công cụ debugger xử lý event, hiển thị call stack rồi chờ người dùng.
+**Breakpoints go in the reverse direction once configured:** the VM executes to the breakpoint location, JVM TI notifies the back-end, the JDWP agent sends an event back, JDI turns it into a `BreakpointEvent` for the event queue, and the debugger tool processes the event, displays the call stack, and waits for the user.
 
-JDWP là giao thức *debugging có quyền cao*: sau khi kết nối thành công, debugger có thể quan sát và tác động mạnh tới trạng thái JVM, bao gồm pause/resume, field/method operations nếu VM hỗ trợ. **Không coi JDWP socket là endpoint HTTP/REST, kênh log hoặc service công khai**. Trong cấu hình socket thông dụng không có cơ chế đăng nhập ứng dụng như một API nghiệp vụ; không mở port ra mạng không tin cậy.
+JDWP is a *high-privilege debugging* protocol: once connected successfully, the debugger can inspect and strongly influence JVM state, including pause/resume and field/method operations if the VM supports them. **Never treat a JDWP socket as an HTTP/REST endpoint, log channel, or public service**. In standard socket configurations there is no application-level login mechanism like a business API; never expose the port to untrusted networks.
 
-## 4. JDI: API cho người xây debugger, không phải công cụ CLI
+## 4. JDI: An API for Debugger Authors, Not a CLI Tool
 
-**Java Debug Interface (JDI)** là tập interface Java trong module `jdk.jdi`, package chính `com.sun.jdi` cùng `com.sun.jdi.connect`, `com.sun.jdi.request`, `com.sun.jdi.event`. Ví dụ các loại API:
+**Java Debug Interface (JDI)** is a set of Java interfaces in module `jdk.jdi`, with primary package `com.sun.jdi` along with `com.sun.jdi.connect`, `com.sun.jdi.request`, and `com.sun.jdi.event`. Examples of API groups:
 
-| Nhóm API | Vai trò |
+| API Group | Role |
 | --- | --- |
-| `Bootstrap.virtualMachineManager()` | Điểm khởi đầu lấy `VirtualMachineManager` |
-| `AttachingConnector` / `LaunchingConnector` / `ListeningConnector` | Kết nối JVM đang chạy, khởi tạo JVM mới, hoặc chờ JVM kết nối |
-| `VirtualMachine` | “Mirror” JVM đích, truy vấn class, threads, capabilities, resume/dispose |
-| `ReferenceType` / `Method` / `Field` / `Location` | Mô tả loại/class, phương thức, field, vị trí bytecode/source |
-| `ThreadReference` / `StackFrame` / `LocalVariable` / `Value` | Truy cập luồng, stack frame và giá trị tại điểm suspend thích hợp |
-| `EventRequestManager` / `BreakpointRequest` / `ExceptionRequest` | Đăng ký điều kiện cần JVM thông báo |
-| `EventQueue` / `EventSet` / `BreakpointEvent` | Nhận các event và quản lý suspend/resume sau khi xử lý |
+| `Bootstrap.virtualMachineManager()` | Entry point to obtain `VirtualMachineManager` |
+| `AttachingConnector` / `LaunchingConnector` / `ListeningConnector` | Connect to a running JVM, launch a new JVM, or wait for a JVM to connect |
+| `VirtualMachine` | "Mirror" of the target JVM, querying classes, threads, capabilities, resume/dispose |
+| `ReferenceType` / `Method` / `Field` / `Location` | Describes types/classes, methods, fields, and bytecode/source locations |
+| `ThreadReference` / `StackFrame` / `LocalVariable` / `Value` | Accesses threads, stack frames, and values at an appropriate suspend point |
+| `EventRequestManager` / `BreakpointRequest` / `ExceptionRequest` | Registers conditions the JVM should notify on |
+| `EventQueue` / `EventSet` / `BreakpointEvent` | Receives events and manages suspend/resume after handling |
 
-Một debugger Java điển hình:
+A typical Java debugger:
 
-1. Tìm JDI connector phù hợp, ví dụ `com.sun.jdi.SocketAttach`.
-2. Cung cấp `hostname`, `port`, timeout theo yêu cầu connector, rồi `attach` tới JVM đích.
-3. Tìm các `ReferenceType` đã nạp hoặc đợi class-prepare event, xác định `Location` cần đặt breakpoint.
-4. Tạo `BreakpointRequest` từ `EventRequestManager`, cấu hình suspend policy/filter, rồi `enable()`.
-5. Tiếp tục VM, chờ `EventQueue.remove()`. Khi nhận `BreakpointEvent`, xem `ThreadReference`, `StackFrame`, locals rồi xử lý event set.
-6. Resume event/VM đúng lúc và `dispose()` khi hoàn tất.
+1. Finds a suitable JDI connector, e.g. `com.sun.jdi.SocketAttach`.
+2. Supplies `hostname`, `port`, and timeout as required by the connector, then calls `attach` to the target JVM.
+3. Finds already loaded `ReferenceType`s or waits for a class-prepare event, identifying the `Location` to place a breakpoint.
+4. Creates a `BreakpointRequest` from `EventRequestManager`, configures suspend policy/filters, and calls `enable()`.
+5. Resumes the VM, waits on `EventQueue.remove()`. Upon receiving `BreakpointEvent`, inspects `ThreadReference`, `StackFrame`, locals, and processes the event set.
+6. Resumes events/VM at the right time and calls `dispose()` when finished.
 
-Đây là **luồng triển khai** chứ không phải ví dụ chạy độc lập; ở phần 8 có một chương trình JDI thực tế để kiểm tra kết nối và truy vấn JVM. Một debugger production còn phải xử lý `VMDisconnectEvent`, `VMDeathEvent`, class loading, timeout, nhiều thread, disconnect bất ngờ và quyền truy cập. Không được giữ toàn bộ VM suspended vô hạn vì có thể gây treo dịch vụ.
+This is an **implementation flow**, not a runnable standalone example; section 8 provides a real JDI program to test connection and query the JVM. A production debugger must also handle `VMDisconnectEvent`, `VMDeathEvent`, class loading, timeouts, multiple threads, unexpected disconnects, and access permissions. Never keep the entire VM suspended indefinitely, as it can hang the service.
 
-### JDI “mirror” là gì?
+### What Is a JDI "Mirror"?
 
-`VirtualMachine`, `ObjectReference` hoặc `ThreadReference` ở debugger **không phải bản sao đầy đủ mọi Java object từ heap**. Chúng là đối tượng đại diện cho thực thể trong JVM đích, cho phép truy vấn/thao tác qua backend. Nhiều thao tác có chi phí trao đổi thông tin và có thể thất bại khi VM disconnect hoặc object không còn hợp lệ. Đọc hàng triệu object qua JDI không phải cách thay thế heap dump để đo retained size.
+`VirtualMachine`, `ObjectReference`, or `ThreadReference` in the debugger are **not full copies of every Java object from the heap**. They are proxy/representative objects for entities in the target JVM, enabling queries/operations through the back-end. Many operations incur communication overhead and can fail if the VM disconnects or the object becomes invalid. Reading millions of objects over JDI is not a replacement for a heap dump to measure retained size.
 
-## 5. jdb: công cụ kiểm chứng và học kiến trúc nhanh nhất
+## 5. jdb: The Fastest Tool to Verify and Learn the Architecture
 
-`jdb` là debugger dòng lệnh do JDK cung cấp, dựa trên JDI. Bạn không cần tự viết một frontend để thử:
+`jdb` is the command-line debugger provided by the JDK, built on JDI. You do not need to write your own front-end to try:
 
-- Launch hoặc attach tới một JVM.
-- Đặt breakpoint ở phương thức/dòng.
-- Tiến từng bước `step` hoặc `next`.
-- Xem stack, locals và biểu thức đơn giản.
-- Theo dõi exception và tiếp tục chạy.
+- Launching or attaching to a JVM.
+- Setting breakpoints on methods/lines.
+- Stepping via `step` or `next`.
+- Inspecting stacks, locals, and simple expressions.
+- Monitoring exceptions and continuing execution.
 
-Các nhóm lệnh cơ bản (cú pháp cụ thể kiểm tra bằng `help` trên bản `jdb` đang sử dụng):
+Basic command groups (check exact syntax via `help` in the `jdb` version you use):
 
-| Lệnh `jdb` | Tác dụng |
+| `jdb` Command | Effect |
 | --- | --- |
-| `jdb MainClass` | jdb **tạo một JVM mới** để chạy class cần debug |
-| `jdb -attach 127.0.0.1:5005` | Attach qua socket tới JVM đang chạy **có JDWP agent phù hợp** |
-| `jdb -listconnectors` | Liệt kê các cách kết nối JDI được cung cấp |
-| `stop in MyClass.method` | Đặt breakpoint đầu phương thức |
-| `stop at MyClass:42` | Đặt breakpoint ở dòng 42, khi source mapping khả dụng |
-| `stop` / `clear` | Xem, dỡ hoặc quản lý breakpoint theo cú pháp lệnh |
-| `cont` | Tiếp tục chạy sau khi bị dừng |
-| `step` | Đi tới dòng tiếp theo, có thể bước vào lời gọi |
-| `next` | Đi tới dòng tiếp theo trong frame hiện tại, thường bỏ qua chi tiết bên trong lời gọi |
-| `where` | Hiển thị call stack của thread đang chọn |
-| `locals` | Hiển thị local variables nếu class có debug metadata |
-| `print variable` | Xem giá trị biến/biểu thức jdb hỗ trợ |
-| `threads` | Xem thread đang được debugger theo dõi |
-| `catch ExceptionClass` | Yêu cầu dừng khi exception thuộc class chỉ định được ném |
+| `jdb MainClass` | `jdb` **launches a new JVM** to run the class being debugged |
+| `jdb -attach 127.0.0.1:5005` | Attaches over socket to a running JVM **with a suitable JDWP agent** |
+| `jdb -listconnectors` | Lists available JDI connection methods |
+| `stop in MyClass.method` | Sets a breakpoint at the start of a method |
+| `stop at MyClass:42` | Sets a breakpoint at line 42, when source mapping is available |
+| `stop` / `clear` | Views, removes, or manages breakpoints according to command syntax |
+| `cont` | Resumes execution after pausing |
+| `step` | Advances to the next line, stepping into calls if applicable |
+| `next` | Advances to the next line in the current frame, generally skipping inside calls |
+| `where` | Displays the call stack of the selected thread |
+| `locals` | Displays local variables if the class has debug metadata |
+| `print variable` | Evaluates variables/expressions supported by `jdb` |
+| `threads` | Shows threads tracked by the debugger |
+| `catch ExceptionClass` | Requests a pause when an exception of the specified class is thrown |
 
-Lưu ý: `jdb -attach 5005` dùng **socket port**, không phải PID. Cần phân biệt `jcmd <PID> ...` dùng PID JVM với `jdb -attach <address>` dùng địa chỉ debugger. Việc `jdb` có thể attach qua socket **không** có nghĩa mọi tiến trình Java bất kỳ sẽ chấp nhận attach khi chưa cấu hình agent hoặc phương án connector tương ứng.
+Note: `jdb -attach 5005` uses a **socket port**, not a PID. Distinguish `jcmd <PID> ...` which uses a JVM PID from `jdb -attach <address>` which uses a debugger address. The fact that `jdb` can attach over a socket **does not** mean any arbitrary Java process will accept an attach without configuring the agent or corresponding connector mechanism.
 
-## 6. Bật JDWP trên JVM cần debug
+## 6. Enabling JDWP on the JVM to Be Debugged
 
-Cách điển hình với **HotSpot JDK 17+/21**, chỉ bind localhost để luyện tập:
+Typical usage with **HotSpot JDK 17+/21**, binding only to localhost for practice:
 
 ~~~bash
 java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=127.0.0.1:5005 DebugArchitectureDemo
 ~~~
 
-Giải thích từng phần:
+Explanation of each part:
 
-| Option | Ý nghĩa | Điểm dễ nhầm |
+| Option | Meaning | Common misconception |
 | --- | --- | --- |
-| `-agentlib:jdwp` | Nạp JDWP agent trong **JVM đích** | Không phải nạp JDI vào ứng dụng |
-| `transport=dt_socket` | Kết nối TCP/IP | JDWP vẫn là protocol bên trên transport |
-| `server=y` | JVM đích **listen** để debugger connect vào | “Server” là **vai trò kết nối**, không phải HTTP server |
-| `suspend=y` | JVM dừng trước khi main chạy, chờ debugger kết nối/resume | Với dịch vụ, có thể trông như khởi động treo |
-| `suspend=n` | JVM chạy ngay, debugger có thể attach sau | Có thể bỏ lỡ lỗi diễn ra rất sớm |
-| `address=127.0.0.1:5005` | Bind port 5005 trên loopback | `address=*:5005` nghe mọi interface, có rủi ro bảo mật lớn |
+| `-agentlib:jdwp` | Loads the JDWP agent in the **target JVM** | Does not load JDI into the application |
+| `transport=dt_socket` | TCP/IP connection | JDWP is still the protocol riding over the transport |
+| `server=y` | Target JVM **listens** for debugger connections | "Server" is the **connection role**, not an HTTP server |
+| `suspend=y` | JVM pauses before `main` runs, waiting for debugger connect/resume | For services, may look like a hung startup |
+| `suspend=n` | JVM runs immediately, debugger can attach later | Can miss bugs that happen very early |
+| `address=127.0.0.1:5005` | Binds port 5005 on loopback | `address=*:5005` listens on all interfaces, a major security risk |
 
-`server=n` có nghĩa **JVM chủ động kết nối tới debugger đang listen**. Đó là một chế độ kết nối hợp lệ của JPDA, nhưng không dùng trong lab ở đây. Trên Windows, HotSpot còn có `dt_shmem` cho debugging cùng máy; ví dụ xuyên nền tảng trong bài ưu tiên `dt_socket`.
+`server=n` means **the JVM actively connects to a listening debugger**. That is a valid JPDA connection mode, though not used in this lab. On Windows, HotSpot also has `dt_shmem` for same-machine debugging; cross-platform examples in this lesson prefer `dt_socket`.
 
-Để attach vào JVM trên máy khác, đừng mở bừa debug port ra Internet. Ưu tiên cơ chế truy cập được kiểm soát, ví dụ SSH tunnel tới **loopback trên host đích**:
+To attach to a JVM on another machine, do not blindly open debug ports to the Internet. Prefer controlled access mechanisms, such as an SSH tunnel to **loopback on the target host**:
 
 ~~~bash
 ssh -L 5005:127.0.0.1:5005 user@debug-host
 ~~~
 
-Sau khi kênh an toàn đã thiết lập và chính sách truy cập cho phép, debugger phía local kết nối `127.0.0.1:5005`. Nếu JVM chạy trong container/Kubernetes, loopback của host và loopback của container **khác namespace mạng**; cần bố trí tunnel/forward theo đúng topology, không đổi sang `*:5005` chỉ vì kết nối chưa tới được.
+Once the secure channel is established and access policies permit, the local debugger connects to `127.0.0.1:5005`. If the JVM runs inside a container/Kubernetes, the host's loopback and the container's loopback are **different network namespaces**; configure tunneling/forwarding according to topology rather than switching to `*:5005` just because a connection cannot reach.
 
-**Không bật JDWP trong production theo mặc định.** Debugging có thể làm dừng application threads, lộ secrets trong biến và tạo quyền điều khiển sâu với JVM. Phải có phê duyệt, giới hạn thời gian, cổng chỉ reachable từ nơi đáng tin, và đóng/debug agent theo quy trình vận hành.
+**Do not enable JDWP in production by default.** Debugging can pause application threads, expose secrets in variables, and grant deep control over the JVM. Require approval, time limits, ports reachable only from trusted locations, and close/disable the debug agent per operational procedures.
 
-## 7. Lab Java 17+: quan sát JDWP → JDI → jdb thật
+## 7. Java 17+ Lab: Observe Real JDWP → JDI → jdb
 
-### Bước 1 — chương trình đích độc lập
+### Step 1 — Standalone Target Program
 
-Tạo file **`DebugArchitectureDemo.java`**:
+Create file **`DebugArchitectureDemo.java`**:
 
 ~~~java
 public final class DebugArchitectureDemo {
     public static void main(String[] args) throws Exception {
         System.out.println("PID=" + ProcessHandle.current().pid());
         System.out.println("Press Enter to compute");
-        System.in.read(); // Giữ JVM sống để chủ động chọn thời điểm breakpoint.
+        System.in.read(); // Keep JVM alive to choose breakpoint timing manually.
 
         int result = multiply(6, 7);
         System.out.println("Result=" + result);
@@ -213,45 +213,45 @@ public final class DebugArchitectureDemo {
 }
 ~~~
 
-Biên dịch với **debug information đầy đủ**:
+Compile with **full debug information**:
 
 ~~~bash
 javac -g DebugArchitectureDemo.java
 ~~~
 
-`-g` yêu cầu javac ghi line numbers, source information và local-variable table cần cho các thao tác `locals`/`stop at`. Không cần JDI import trong **ứng dụng đích**; chương trình chỉ chạy Java bình thường và **JDWP agent** được nạp bởi tùy chọn khởi động JVM.
+`-g` tells `javac` to emit line numbers, source information, and the local-variable table needed for `locals`/`stop at`. No JDI imports are needed in the **target application**; the program simply runs normal Java and the **JDWP agent** is loaded via the JVM startup option.
 
-### Bước 2 — khởi động JVM ở terminal A
+### Step 2 — Start the JVM in Terminal A
 
 ~~~bash
 java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=127.0.0.1:5005 DebugArchitectureDemo
 ~~~
 
-Khi `suspend=y`, JVM đợi debugger trước khi vào `main`. Agent có thể in thông báo dạng “Listening for transport dt_socket at address: 5005”; đó là **thông báo runtime/agent** chứ không phải stdout của class. Chương trình **chưa in** dòng `Press Enter to compute`.
+With `suspend=y`, the JVM waits for a debugger before entering `main`. The agent may print a message like "Listening for transport dt_socket at address: 5005"; that is a **runtime/agent message**, not the class's stdout. The program **has not printed** `Press Enter to compute` yet.
 
-### Bước 3 — attach bằng `jdb` ở terminal B
+### Step 3 — Attach with `jdb` in Terminal B
 
 ~~~bash
 jdb -attach 127.0.0.1:5005
 ~~~
 
-Ở prompt của `jdb`:
+At the `jdb` prompt:
 
 ~~~text
 stop in DebugArchitectureDemo.multiply
 cont
 ~~~
 
-Breakpoint có thể hiển thị trạng thái **deferred** nếu class `DebugArchitectureDemo` chưa được load; debugger sẽ xử lý khi class chuẩn bị được nạp. `cont` cho chương trình tiếp tục.
+The breakpoint may show a **deferred** status if `DebugArchitectureDemo` is not yet loaded; the debugger will resolve it when the class is prepared. `cont` lets the program continue.
 
-Ở terminal A, ứng dụng in:
+In terminal A, the application prints:
 
 ~~~text
-PID=<số PID thực tế>
+PID=<actual PID number>
 Press Enter to compute
 ~~~
 
-Nhấn **Enter trong terminal A** để `main` gọi `multiply(6,7)`. Vì breakpoint đã đặt trước lời gọi, JVM dừng tại đầu phương thức. Quay lại terminal B dùng:
+Press **Enter in terminal A** so `main` calls `multiply(6,7)`. Because the breakpoint was set before the call, the JVM pauses at the start of the method. Return to terminal B and run:
 
 ~~~text
 where
@@ -263,31 +263,31 @@ locals
 cont
 ~~~
 
-Kỳ vọng `print a` và `print b` phản ánh giá trị **6** và **7** khi debugger đang đứng trong frame `multiply`. Sau `next`, debugger có thể tới dòng `return`; `locals` có thể thấy `product=42` khi đã chạy phép nhân. Đầu ra chính xác của prompt, vị trí dòng, thread ID và trạng thái breakpoint là **động theo JDK và thời điểm**, không được xem là chuỗi cố định.
+Expect `print a` and `print b` to show **6** and **7** while the debugger is in the `multiply` frame. After `next`, the debugger may reach the `return` line; `locals` may show `product=42` once the multiplication has executed. Exact prompt output, line positions, thread IDs, and breakpoint statuses are **dynamic per JDK and timing** and must not be treated as fixed strings.
 
-Khi `cont` thực thi nốt chương trình, terminal A in:
+When `cont` finishes executing the rest of the program, terminal A prints:
 
 ~~~text
 Result=42
 ~~~
 
-Đây là **stdout xác định** của chương trình nếu không có ai chỉnh sửa trạng thái biến và tiến trình hoàn tất bình thường.
+This is the **deterministic stdout** of the program if nobody modifies variable state and the process exits normally.
 
-### Điều bạn vừa quan sát
+### What You Just Observed
 
-- `jdb` = giao diện CLI và logic debugger.
-- Lệnh `stop in` / `print` được công cụ chuyển thành thao tác **JDI**.
-- **JDI implementation** chuyển yêu cầu qua các message **JDWP** tới debug agent.
-- Agent trong JVM đích phản hồi thông tin stack/biến và thông báo breakpoint.
-- `-agentlib:jdwp` làm JVM đích có khả năng kết nối với debugger ngay từ khởi động.
+- `jdb` = CLI interface and debugger logic.
+- `stop in` / `print` commands are translated by the tool into **JDI** calls.
+- The **JDI implementation** sends requests via **JDWP** messages to the debug agent.
+- The agent in the target JVM replies with stack/variable info and breakpoint notifications.
+- `-agentlib:jdwp` makes the target JVM connectable by a debugger right from startup.
 
-Nếu chưa có metadata local-variable table hoặc chạy nhầm build class, `locals` có thể thiếu thông tin; soát `javac -g` và classpath trước khi nghi kết nối sai.
+If local-variable table metadata is missing or the wrong compiled class is running, `locals` may lack information; verify `javac -g` and the classpath before suspecting connection failure.
 
-## 8. Lab thứ hai: viết JDI client tối thiểu bằng Java 17+
+## 8. Second Lab: Writing a Minimal JDI Client in Java 17+
 
-`jdb` phù hợp để học thao tác bằng tay; còn **JDI API** cho phép viết debugger hoặc công cụ quan sát chuyên biệt. Đoạn này xây **chương trình độc lập** chỉ attach rồi đọc metadata JVM và số thread, sau đó disconnect. Nó **không** đặt breakpoint hay thay thế một debugger hoàn chỉnh.
+`jdb` is suited for learning manual operations; the **JDI API** lets you write custom debuggers or specialized observation tools. This section builds a **standalone program** that only attaches, reads JVM metadata and thread count, and disconnects. It **does not** set breakpoints or replace a full debugger.
 
-Tạo file **`JdiProbe.java`**:
+Create file **`JdiProbe.java`**:
 
 ~~~java
 import com.sun.jdi.Bootstrap;
@@ -321,182 +321,182 @@ public final class JdiProbe {
             System.out.println("Target version=" + target.version());
             System.out.println("Threads visible=" + target.allThreads().size());
         } finally {
-            // Chỉ ngắt phiên debugger này; không phải lệnh tắt JVM đích.
+            // Disconnects only this debugger session; does not shut down the target JVM.
             target.dispose();
         }
     }
 }
 ~~~
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac --add-modules jdk.jdi JdiProbe.java
 ~~~
 
-**Dừng phiên `jdb` trước đó** rồi khởi chạy lại chương trình đích trong terminal A với `suspend=n` (để main chạy và chờ bạn nhấn Enter):
+**Stop the previous `jdb` session**, then relaunch the target program in terminal A with `suspend=n` (so `main` runs and waits for your Enter key):
 
 ~~~bash
 java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:5005 DebugArchitectureDemo
 ~~~
 
-Đừng nhấn Enter khi mới thấy `Press Enter to compute`. Trong terminal B:
+Do not press Enter yet when you see `Press Enter to compute`. In terminal B:
 
 ~~~bash
 java --add-modules jdk.jdi JdiProbe 127.0.0.1 5005
 ~~~
 
-Ví dụ dạng kết quả (giá trị **phụ thuộc phiên bản và JVM đích**):
+Example output structure (values **depend on target version and JVM**):
 
 ~~~text
-Target VM=<tên JVM đích>
-Target version=<chuỗi phiên bản JVM đích>
-Threads visible=<số nguyên hiện tại>
+Target VM=<target JVM name>
+Target version=<target JVM version string>
+Threads visible=<current integer count>
 ~~~
 
-Ba giá trị trên không được giả định là cố định. Sau khi `JdiProbe` kết thúc và đã gọi `dispose()`, JVM đích vẫn chờ bạn nhấn Enter. Khi nhấn Enter ở terminal A, nó in `Result=42` rồi kết thúc. Đây là minh chứng rằng một **JDI client do bạn viết** và `jdb` có thể dùng cùng một kiểu **JDWP socket endpoint**, dù UI và chức năng của hai chương trình khác nhau.
+The three values above must not be assumed to be fixed. After `JdiProbe` exits and calls `dispose()`, the target JVM continues waiting for Enter. When you press Enter in terminal A, it prints `Result=42` and exits. This demonstrates that a **custom JDI client you wrote** and `jdb` can use the same **JDWP socket endpoint**, even though their UIs and capabilities differ.
 
-### Vì sao ví dụ dùng `jdk.jdi`?
+### Why Does the Example Use `jdk.jdi`?
 
-Từ hệ module Java, các package `com.sun.jdi.*` nằm trong **module `jdk.jdi`**. Tên package có tiền tố `com.sun` không đồng nghĩa code bạn tự viết đang nạp một native agent vào JVM đích; đây là API **phía debugger**, được JDK cung cấp. Các JDI connector có thể thay đổi theo runtime/vendor; chương trình kiểm tra `SocketAttach` tồn tại rồi mới dùng, thay vì giả định luôn có trên mọi JVM.
+Since the Java module system, the `com.sun.jdi.*` packages live in **module `jdk.jdi`**. The `com.sun` package prefix does not mean your own code is loading a native agent into the target JVM; this is a **debugger-side** API supplied by the JDK. JDI connectors can vary by runtime/vendor; the program checks that `SocketAttach` exists before using it, rather than assuming it is always present on every JVM.
 
-Trong code thật, cũng nên kiểm tra `options.get("hostname")`/`get("port")` không null, đặt timeout và xử lý `VMDisconnectedException`, `IOException`/`IllegalConnectorArgumentsException` phù hợp. Demo sử dụng reference connector chuẩn để tập trung vào vai trò JDI.
+In real code, you should also check that `options.get("hostname")`/`get("port")` are non-null, configure timeouts, and handle `VMDisconnectedException`, `IOException`/`IllegalConnectorArgumentsException` appropriately. The demo uses the standard reference connector to stay focused on JDI's role.
 
-## 9. Các phương thức kết nối: launch, attach, listen
+## 9. Connection Modes: Launch, Attach, Listen
 
-| Tình huống | JVM đích | Debugger/JDI | Đặc điểm |
+| Scenario | Target JVM | Debugger/JDI | Characteristics |
 | --- | --- | --- | --- |
-| **Launch từ debugger** | Do debugger khởi động | `LaunchingConnector`; `jdb MainClass` | Thuận tiện debug từ đầu chương trình; debugger kiểm soát launch/options |
-| **Attach tới JVM có debug agent** | `server=y`, listen trên `dt_socket` | `AttachingConnector`; `jdb -attach host:port` | Dùng khi tiến trình được khởi động với cấu hình debug |
-| **JVM chủ động connect tới debugger** | `server=n`, biết debugger address | `ListeningConnector`; `jdb -listen` hoặc cấu hình connector | Hữu ích trong một số topology nhưng cần bố trí mạng và quyền phù hợp |
+| **Launch from debugger** | Started by debugger | `LaunchingConnector`; `jdb MainClass` | Convenient for debugging from program start; debugger controls launch/options |
+| **Attach to JVM with debug agent** | `server=y`, listens on `dt_socket` | `AttachingConnector`; `jdb -attach host:port` | Used when the process was started with debug configuration |
+| **JVM actively connects to debugger** | `server=n`, knows debugger address | `ListeningConnector`; `jdb -listen` or connector config | Useful in certain topologies, though requires proper network setup and permissions |
 
-Những chế độ này là **cách thiết lập kết nối**. Sau khi kết nối ổn định, JDWP requests/replies và cách debugger dùng JDI vẫn cùng bản chất. Đặc biệt:
+These modes are **ways of establishing the connection**. Once the connection is established, JDWP requests/replies and how the debugger uses JDI remain the same in nature. Specifically:
 
-- `server=y` trong agent nghĩa **JVM chờ debugger**, không liên quan “ứng dụng của bạn là web server hay command-line program”.
-- `suspend=y` nghĩa JVM **chờ resume**, không phải “đặt breakpoint ở mọi dòng”.
-- `jdb -attach` không nhận PID thông thường trong ví dụ socket, mà nhận địa chỉ kết nối.
-- Cổng debug có thể đang **được sử dụng bởi một debugger khác** hoặc bị firewall ngăn; không kết luận do code Java sai nếu chưa kiểm tra socket.
+- `server=y` in the agent means **the JVM waits for the debugger**, unrelated to whether "your app is a web server or a command-line program."
+- `suspend=y` means the JVM **waits for resume**, not "set a breakpoint on every line."
+- `jdb -attach` does not take a regular PID in the socket example; it takes a connection address.
+- The debug port may already be **in use by another debugger** or blocked by a firewall; do not blame Java code before checking the socket.
 
-## 10. Request và event: hai chiều không thể thiếu
+## 10. Requests and Events: Two Essential Directions
 
-Chỉ hiểu “debugger gửi lệnh” là chưa đủ. JPDA còn yêu cầu JVM chủ động báo sự kiện:
+Understanding only "the debugger sends commands" is not enough. JPDA also requires the JVM to proactively report events:
 
 **Request flow (debugger → JVM):**
 
 ~~~text
-User: "Đặt breakpoint tại multiply"
-  -> jdb gọi API JDI/EventRequestManager
-  -> JDI chuyển thành JDWP command
-  -> JDWP agent trao đổi với JVM TI
-  -> JVM ghi nhận breakpoint request
-  -> Reply thành công/lỗi quay về debugger
+User: "Set breakpoint at multiply"
+  -> jdb calls JDI/EventRequestManager API
+  -> JDI translates into JDWP command
+  -> JDWP agent interacts with JVM TI
+  -> JVM records breakpoint request
+  -> Success/error reply returns to debugger
 ~~~
 
 **Event flow (JVM → debugger):**
 
 ~~~text
-Thread của JVM thực thi vào multiply
-  -> JVM/JVM TI phát sinh sự kiện breakpoint
-  -> JDWP agent tạo event packet
-  -> JDI EventQueue nhận BreakpointEvent trong EventSet
-  -> jdb hiển thị prompt + stack
-  -> Người dùng xem biến/step/continue
-  -> Debugger resume theo suspend policy
+JVM thread executes into multiply
+  -> JVM/JVM TI emits breakpoint event
+  -> JDWP agent creates event packet
+  -> JDI EventQueue receives BreakpointEvent in EventSet
+  -> jdb displays prompt + stack
+  -> User inspects variables/steps/continues
+  -> Debugger resumes according to suspend policy
 ~~~
 
-**Sự khác biệt cần nhớ:** request thiết lập một điều kiện, còn event được phát **khi điều kiện xảy ra**. Nếu method chưa chạy, breakpoint đã đặt có thể chưa phát event. Nếu class chưa load, debugger có thể phải đợi class-prepare event mới đặt được location. Nếu method đã chạy qua trước khi attach với `suspend=n`, không thể quay ngược thời gian để bắt breakpoint đã bỏ lỡ.
+**Key distinction to remember:** a request establishes a condition, whereas an event is emitted **when the condition occurs**. If a method has not run yet, an installed breakpoint may not have fired an event. If the class is not loaded yet, the debugger may wait for a class-prepare event before setting the location. If the method already ran before attaching with `suspend=n`, you cannot rewind time to catch the missed breakpoint.
 
-JDI có nhiều lựa chọn về **suspend policy** (dừng cả VM, dừng thread báo event hoặc không dừng). Đặt suspend policy sai có thể khiến ứng dụng dừng nhiều hơn dự kiến hoặc không có stack frame ở trạng thái thích hợp để đọc. Đừng dùng thuật toán tự resume mọi thread nếu chưa hiểu `EventSet` và quy tắc cân bằng suspend count.
+JDI provides multiple options for **suspend policy** (suspend the whole VM, suspend the event thread, or do not suspend). Setting the wrong suspend policy can pause more of the application than intended or leave stack frames in an unsuitable state for reading. Do not implement auto-resume across all threads without understanding `EventSet` and suspend-count balancing rules.
 
-## 11. Debug information, class loading và giới hạn khả năng quan sát
+## 11. Debug Information, Class Loading, and Observability Limits
 
-Breakpoint và việc hiển thị locals phụ thuộc vào class file và trạng thái JVM:
+Breakpoints and displaying locals depend on class files and JVM state:
 
-- **`javac -g`:** sinh metadata đầy đủ cho local variables, line numbers và source files. Nếu không có local variable table, debugger có thể xem stack/method nhưng không hiện được tên biến local hoặc báo `AbsentInformationException` trong JDI.
-- **Line breakpoint:** gắn với source mapping; biên dịch tối ưu, source không trùng bytecode, hoặc jar khác phiên bản có thể làm lệch vị trí. Đặt breakpoint theo method đôi khi ổn định hơn trong lab.
-- **Lớp chưa được load:** `stop in` hoặc JDI breakpoint request có thể bị hoãn cho đến khi class xuất hiện. Không đồng nhất “deferred” với “failed”.
-- **Inlining/optimization/JIT:** trạng thái thực thi, stepping và giá trị local có thể khác trực giác từ source; debugger có thể yêu cầu runtime deoptimization hoặc các cơ chế hỗ trợ tương tự. Không giả định lúc nào dòng source cũng ánh xạ 1–1 với bytecode/CPU instruction.
-- **Thread state:** đọc frame/local variables thường đòi hỏi thread đang bị suspend đúng cách; nếu không, JDI có thể ném ngoại lệ.
-- **Phiên bản JDK/VM:** bản ghi wire-level và API có quy tắc tương thích, nhưng vendor, module, transport và khả năng hỗ trợ các event đặc biệt có thể khác. Kiểm tra `jdb -help`/`jdb -listconnectors` cùng tài liệu JDK đích.
-- **Nhiều thread/virtual threads:** debug trên JDK mới có thể có nhiều virtual threads. Không bật tracking tất cả thread chỉ để “xem hết” nếu số lượng quá lớn; chi phí và hành vi cần được cân nhắc theo phiên bản.
+- **`javac -g`:** generates full metadata for local variables, line numbers, and source files. Without a local variable table, the debugger can see the stack/method, yet cannot show local variable names or throws `AbsentInformationException` in JDI.
+- **Line breakpoints:** tied to source mapping; optimized compilation, source mismatching bytecode, or a different jar version can shift positions. Method breakpoints are sometimes more stable in labs.
+- **Unloaded classes:** `stop in` or a JDI breakpoint request may be deferred until the class appears. Do not equate "deferred" with "failed."
+- **Inlining/optimization/JIT:** execution state, stepping, and local values may differ from source intuition; the debugger may request runtime deoptimization or similar support mechanisms. Never assume source lines always map 1–1 to bytecode/CPU instructions.
+- **Thread state:** reading frames/local variables typically requires the thread to be properly suspended; otherwise, JDI can throw an exception.
+- **JDK/VM versions:** wire-level and API records have compatibility rules, but vendors, modules, transports, and support for special events can differ. Check `jdb -help`/`jdb -listconnectors` and target JDK documentation.
+- **Many threads/virtual threads:** debugging on newer JDKs can involve many virtual threads. Do not enable tracking for all threads just to "see everything" if counts are huge; cost and behavior depend on the version.
 
-Đọc `StackFrame.getValue` hay dừng tại breakpoint là **quan sát tức thời** trong runtime đang sống, không phải timeline quá khứ. Khi cần phân tích những sự kiện xảy ra trước đó hoặc phân phối hiệu năng theo thời gian, hãy kết hợp logging, JFR hoặc metrics thay vì giữ tiến trình suspended lâu.
+Calling `StackFrame.getValue` or pausing at a breakpoint is an **instantaneous observation** in a live runtime, not a past timeline. When you need to analyze prior events or performance distributions over time, combine logging, JFR, or metrics rather than keeping a process suspended for long.
 
-## 12. JDWP và vấn đề bảo mật, hiệu năng
+## 12. JDWP Security and Performance Concerns
 
-Một cổng debug không phải cổng monitoring chỉ đọc. Khi debugger có quyền truy cập, nó có thể xem object, biến, call stack và có thể thực hiện thao tác điều khiển JVM. Rủi ro:
+A debug port is not a read-only monitoring port. Once a debugger has access, it can view objects, variables, call stacks, and perform JVM control operations. Risks:
 
-1. **Lộ dữ liệu nhạy cảm:** token, cấu hình, dữ liệu khách hàng có thể nằm trong heap/local variables.
-2. **Thay đổi thực thi:** suspend/step/mutate state hoặc invoke methods có thể ảnh hưởng nghiệp vụ.
-3. **Gián đoạn dịch vụ:** breakpoint với suspend-all có thể dừng tất cả application threads, gây timeout và ảnh hưởng heartbeat/health check.
-4. **Tăng overhead:** bước từng dòng, theo dõi field/exception, nhiều thread hoặc frequent event callbacks có thể làm runtime chậm đi.
-5. **Truy cập trái phép:** mở `address=*:5005` không có bảo vệ mạng thích hợp có thể cho người không được phép kết nối và kiểm soát JVM.
+1. **Sensitive data exposure:** tokens, configs, and customer data can reside in heap/local variables.
+2. **Execution alteration:** suspending/stepping/mutating state or invoking methods can affect business behavior.
+3. **Service disruption:** breakpoints with suspend-all can freeze all application threads, causing timeouts and breaking heartbeats/health checks.
+4. **Increased overhead:** stepping line by line, watching fields/exceptions, many threads, or frequent event callbacks can slow down the runtime.
+5. **Unauthorized access:** exposing `address=*:5005` without proper network protection can allow unauthorized parties to connect and take control of the JVM.
 
-Vì vậy, trong môi trường thật:
+Therefore, in real environments:
 
-- Chỉ bật khi có nhu cầu được phép; ưu tiên staging hoặc instance tách khỏi tải chính.
-- Bind loopback (`127.0.0.1`/`::1`) hoặc dùng tunnel an toàn qua mạng quản trị được kiểm soát; không công khai port.
-- Chọn `suspend=n` nếu không chủ đích dừng startup. `suspend=y` phù hợp lab/lỗi khởi động sớm khi có operator sẵn sàng.
-- Đặt breakpoint có thời hạn, tránh suspend-all trên luồng xử lý request đang phục vụ production.
-- Kết thúc kết nối, kiểm tra trạng thái dịch vụ, không để agent mở vô thời hạn nếu không còn cần.
-- Đảm bảo bản build, symbols/source và version debugger phù hợp.
+- Enable only with an approved need; prefer staging or an instance isolated from main traffic.
+- Bind loopback (`127.0.0.1`/`::1`) or use a secure tunnel over a controlled management network; never expose the port publicly.
+- Choose `suspend=n` unless intentionally pausing startup. `suspend=y` fits labs/early startup bugs when an operator is ready.
+- Keep breakpoints time-bounded, avoiding suspend-all on request-handling threads serving production.
+- Close the connection, verify service health, and do not leave the agent open indefinitely when no longer needed.
+- Ensure build artifacts, symbols/source, and debugger versions match.
 
-Tách bạch **“có JDK tools trên máy”** khỏi **“được phép debug process này”**. `jdb` có sẵn không cấp quyền tự động vượt cơ chế mạng/OS/JVM.
+Separate **"having JDK tools on the machine"** from **"being permitted to debug this process"**. Having `jdb` installed does not automatically grant permission to bypass network/OS/JVM controls.
 
-## 13. Lỗi thường gặp: xác định đúng tầng trước khi xử lý
+## 13. Common Errors: Identify the Right Layer Before Acting
 
-| Hiện tượng | Tầng cần xem | Nguyên nhân/cách kiểm tra |
+| Symptom | Layer to check | Cause / how to check |
 | --- | --- | --- |
-| `jdb -attach` báo connection refused | Transport/JDWP agent | JVM chưa bật `-agentlib:jdwp`, sai port/host, server chưa listen, JVM đã thoát |
-| Connect timeout | Mạng/firewall/namespace | DNS, firewall, container port forwarding, SSH tunnel sai; không vội mở bind all interfaces |
-| `suspend=y` làm ứng dụng không in gì | Cấu hình debuggee | Đây là cơ chế chờ debugger trước main; attach rồi `cont`/resume |
-| “Not connected to VM” | Session JDI | Chưa attach thành công hoặc disconnect; kiểm tra trạng thái agent |
-| “Deferring breakpoint” | Class loading | Class chưa load; đợi class prepare, đừng sửa source vô cớ |
-| Breakpoint không hit | Request/location/luồng thực thi | Code path chưa chạy, class khác build, đã chạy trước khi attach, breakpoint đặt sai overload |
-| `locals` không có tên biến | Class debug metadata | Biên dịch `javac -g`, đúng file class/jar, kiểm tra source maps |
-| Method breakpoint hit nhưng giá trị lạ | Runtime/frame state | Thread/frame không đúng, method overload, JIT, biến đã bị sửa |
-| Chương trình dừng mọi request | Suspend policy | Có thể dừng toàn VM; giảm phạm vi, dùng logpoint/telemetry khi phù hợp |
-| `jdb -attach 12345` không đúng JVM | Nhầm port và PID | `jdb` cần socket address; `jcmd` thường dùng PID |
-| IDE debug được nhưng `jdb` không | Tool/config | IDE có thể dùng connector, port, tunnel hoặc launch config khác; so thông số |
-| Debug port trong container không kết nối | Network namespace | Port bind trong container localhost không tự thành localhost host; kiểm tra forwarding |
-| Port đã chiếm | Transport | Chọn port khác hoặc dừng phiên cũ, tránh nhiều JDWP agent cùng listen một address |
-| Mã custom JDI lỗi `VMDisconnectedException` | JDI lifecycle | JVM đích thoát/disconnect trong khi đang query; xử lý event và dọn tài nguyên |
-| JVM chạy bình thường nhưng không có log debug | Hiểu nhầm cơ chế | JDWP chỉ kênh debug; nó không tạo JFR/log/HPROF tự động |
+| `jdb -attach` reports connection refused | Transport/JDWP agent | JVM lacks `-agentlib:jdwp`, wrong port/host, server not listening, JVM exited |
+| Connect timeout | Network/firewall/namespace | DNS, firewall, container port forwarding, wrong SSH tunnel; do not rush to bind all interfaces |
+| `suspend=y` makes app print nothing | Debuggee config | Expected mechanism waiting for debugger before `main`; attach then `cont`/resume |
+| "Not connected to VM" | JDI session | Not attached successfully or disconnected; check agent status |
+| "Deferring breakpoint" | Class loading | Class not loaded yet; wait for class prepare, do not edit source needlessly |
+| Breakpoint does not hit | Request/location/execution flow | Code path did not run, class differs from build, already ran before attach, wrong overload |
+| `locals` lacks variable names | Class debug metadata | Compile with `javac -g`, verify class/jar files, check source maps |
+| Method breakpoint hits with strange values | Runtime/frame state | Wrong thread/frame, method overload, JIT, variable already mutated |
+| Program freezes all requests | Suspend policy | Likely suspending entire VM; narrow scope, use logpoints/telemetry when appropriate |
+| `jdb -attach 12345` targets wrong JVM | Confusing port and PID | `jdb` needs socket address; `jcmd` typically uses PID |
+| IDE debugs fine, `jdb` fails | Tool/config | IDE may use a different connector, port, tunnel, or launch config; compare settings |
+| Debug port in container won't connect | Network namespace | Port bound to container localhost does not become host localhost automatically; check forwarding |
+| Port already in use | Transport | Pick another port or stop old session; avoid multiple JDWP agents listening on one address |
+| Custom JDI code fails with `VMDisconnectedException` | JDI lifecycle | Target JVM exited/disconnected while querying; handle events and clean up resources |
+| JVM runs fine without debug logs | Misunderstood mechanism | JDWP is only a debug channel; it does not produce JFR/logs/HPROF automatically |
 
-**Checklist theo thứ tự:** đúng PID ứng dụng → đúng JVM đã bật agent → đúng địa chỉ/port/namespace → đúng debugger/connector → đúng breakpoint location và class metadata → đúng thread/suspend state → đúng source/bytecode. Điều tra tầng thấp trước giúp tránh sửa sai ứng dụng.
+**Ordered checklist:** right application PID → right JVM with agent enabled → right address/port/namespace → right debugger/connector → right breakpoint location and class metadata → right thread/suspend state → right source/bytecode. Investigating lower layers first prevents wrong application edits.
 
-## 14. Ba câu hỏi kiểm tra hiểu biết
+## 14. Three Comprehension Check Questions
 
-**Câu 1.** Một IDE cho bạn bấm vào `int product` và đọc `42`. Thành phần nào biến yêu cầu cấp cao thành lệnh gửi sang JVM?
+**Question 1.** An IDE lets you click on `int product` and read `42`. Which component turns that high-level request into commands sent to the JVM?
 
-*Đáp án:* Giao diện IDE sử dụng **JDI** để thao tác trên mirror `StackFrame`/`LocalVariable`; implementation của JDI mã hóa yêu cầu theo **JDWP**. JDWP agent phía debuggee có thể dùng **JVM TI** để lấy giá trị. `jdb` chỉ là một frontend khác, không cần có mặt trong trường hợp này.
+*Answer:* The IDE UI uses **JDI** to operate on `StackFrame`/`LocalVariable` mirrors; the JDI implementation encodes requests using **JDWP**. The JDWP agent on the debuggee side can use **JVM TI** to fetch the value. `jdb` is merely another front-end and does not need to be present here.
 
-**Câu 2.** Bạn chạy `jdb -attach 5005` nhưng JVM không có `-agentlib:jdwp` và chỉ đang bật JFR. Vì sao không attach được?
+**Question 2.** You run `jdb -attach 5005`, but the JVM lacks `-agentlib:jdwp` and only has JFR enabled. Why can't it attach?
 
-*Đáp án:* Vì ví dụ `jdb -attach` cần một endpoint debug JDWP tương thích, trong khi **JFR không phải JDWP agent**. Cần khởi chạy/thiết lập đúng debugging agent và quyền truy cập, không thể dùng cổng JFR như cổng JDWP.
+*Answer:* Because `jdb -attach` in this example requires a compatible JDWP debug endpoint, whereas **JFR is not a JDWP agent**. You must launch/configure the proper debugging agent and access permissions; a JFR port cannot serve as a JDWP port.
 
-**Câu 3.** Trong kiến trúc JPDA, việc dùng `dt_socket` có biến JDWP thành một API TCP của riêng ứng dụng không?
+**Question 3.** In JPDA architecture, does using `dt_socket` turn JDWP into an application-specific TCP API?
 
-*Đáp án:* Không. **JDWP** mô tả ngữ nghĩa và wire format debug. **`dt_socket`** chỉ là transport truyền các message đó qua TCP; ứng dụng nghiệp vụ không tự định nghĩa protocol hoặc xác thực người dùng cho JDWP.
+*Answer:* No. **JDWP** defines the debugging semantics and wire format. **`dt_socket`** is solely the transport carrying those messages over TCP; the business application does not define its own protocol or user authentication for JDWP.
 
-**Tóm tắt cuối:** Hãy nhớ theo thứ tự **công cụ → API → giao thức → JVM**:
+**Final Summary:** Remember the order **tool → API → protocol → JVM**:
 
 ~~~text
-jdb (CLI) hoặc IDE
+jdb (CLI) or IDE
     -> JDI (API / debugger front-end)
-    -> JDWP (wire protocol trên dt_socket, ...)
+    -> JDWP (wire protocol over dt_socket, ...)
     -> JDWP agent (debuggee back-end)
     -> JVM TI (VM service interface)
-    -> Java VM chạy ứng dụng
+    -> Java VM running the application
 ~~~
 
-Bạn chỉ cần **`jdb`** để thao tác debug từ terminal; dùng **JDI** khi viết debugger/tool; dùng tài liệu **JDWP** khi cần hiểu hoặc triển khai truyền thông debugger; cần hiểu **JVM TI** khi nghiên cứu back-end/native agent. Với ứng dụng thật, **bảo mật debug port và kiểm soát tác động suspend** quan trọng không kém việc đặt đúng breakpoint.
+You only need **`jdb`** for manual terminal debugging; use **JDI** when building debuggers/tools; consult **JDWP** specs when understanding or implementing debugger transport; study **JVM TI** when researching back-ends/native agents. In real applications, **securing the debug port and controlling suspend impact** are just as critical as setting the right breakpoint.
 
-## Tài liệu tham khảo chính thức
+## Official References
 
 - Oracle Java SE 21 — *Java Platform Debugger Architecture* (JVM TI, JDWP, JDI, front-end/back-end): https://docs.oracle.com/en/java/javase/21/docs/specs/jpda/jpda.html
 - Oracle Java SE 21 — *Connection and Invocation Details* (connectors, dt_socket, `-agentlib:jdwp`, `server`/`suspend`/`address`): https://docs.oracle.com/en/java/javase/21/docs/specs/jpda/conninv.html
 - Oracle Java SE 21 — *The jdb Command* (launch/attach, `stop`, `step`, `next`, `-listconnectors`): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jdb.html
-- Java SE 21 API — module `jdk.jdi`, `com.sun.jdi` và `com.sun.jdi.connect`: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jdi/module-summary.html
-- Java SE 21 API — `AttachingConnector` và `VirtualMachineManager`: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jdi/com/sun/jdi/connect/AttachingConnector.html
-- Oracle — *JPDA Frequently Asked Questions* (khi nào dùng JDI/JDWP/JVM TI, debug metadata): https://www.oracle.com/java/technologies/javase/java-platform-debugger-architecture.html
+- Java SE 21 API — module `jdk.jdi`, `com.sun.jdi` and `com.sun.jdi.connect`: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jdi/module-summary.html
+- Java SE 21 API — `AttachingConnector` and `VirtualMachineManager`: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jdi/com/sun/jdi/connect/AttachingConnector.html
+- Oracle — *JPDA Frequently Asked Questions* (when to use JDI/JDWP/JVM TI, debug metadata): https://www.oracle.com/java/technologies/javase/java-platform-debugger-architecture.html

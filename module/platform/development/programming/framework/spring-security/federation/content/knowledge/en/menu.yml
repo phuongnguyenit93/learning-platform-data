@@ -1,0 +1,389 @@
+menu:
+- level1: Tổng quan liên kết
+  level2:
+  - Liên kết danh tính (identity federation) là gì và giải quyết vấn đề nào
+  - Đăng nhập một lần (SSO) và mối quan hệ với liên kết danh tính
+  - Nhà cung cấp danh tính (IdP), ứng dụng sử dụng danh tính và người dùng
+  - Phân biệt xác thực tập trung, phân quyền và cấp phát tài khoản
+  - Phiên tại ứng dụng, phiên tại IdP và trải nghiệm đăng nhập một lần
+  - Liên kết danh tính nội bộ doanh nghiệp và giữa nhiều tổ chức
+  - Trách nhiệm của Spring Security, máy chủ danh tính và hệ thống nghiệp vụ
+  - Kiến thức đầu vào và trình tự học từ mô hình tin cậy đến tích hợp SSO
+- level1: Giao thức SSO
+  level2:
+  - SAML2, OpenID Connect, CAS và Kerberos trong hệ sinh thái danh tính
+  - Phân biệt OAuth2 cấp quyền với OpenID Connect xác thực người dùng
+  - Assertion SAML, ID token, access token và service ticket
+  - Vai trò trình duyệt trong chuyển hướng và trao đổi thông điệp
+  - Trao đổi qua trình duyệt và trao đổi trực tiếp giữa các máy chủ
+  - Phân biệt Service Provider, Relying Party, CAS service và Resource Server
+  - Lựa chọn giao thức theo ứng dụng web, mạng nội bộ và đối tác
+  - Giới hạn dùng assertion hoặc ticket đăng nhập để gọi API
+  - Phân biệt liên kết danh tính, môi giới danh tính và chuyển đổi giao thức
+- level1: Ranh giới tin cậy
+  level2:
+  - Xác định bên phát hành, bên tiếp nhận và tài nguyên được bảo vệ
+  - Thiết lập tin cậy bằng metadata, khóa, chứng thư và cấu hình đối tác
+  - Phân biệt danh tính do đối tác khẳng định với quyền do ứng dụng quyết định
+  - Giới hạn bên phát hành và ứng dụng được phép nhận thông tin xác thực
+  - Liên kết yêu cầu đăng nhập với phản hồi và phiên trình duyệt ban đầu
+  - Định danh người dùng ổn định trong phạm vi từng nhà cung cấp
+  - 'Mô hình đe dọa: giả mạo IdP, đánh cắp assertion và chiếm phiên'
+  - Ranh giới của HTTPS, chữ ký số và mã hóa thông điệp
+  - Trách nhiệm bảo vệ danh tính khi một đối tác hoặc máy chủ trung gian bị xâm nhập
+- level1: Nền tảng Spring
+  level2:
+  - Chọn phiên bản Spring Boot, Spring Security và thư viện giao thức tương thích
+  - Phạm vi SAML2 Service Provider của Spring Security và ranh giới triển khai Identity Provider
+  - Phân biệt hỗ trợ Servlet, WebFlux và phần mở rộng bên ngoài theo giao thức
+  - Thiết lập spring-security-saml2-service-provider và các phụ thuộc OpenSAML
+  - Thiết lập spring-security-cas và thư viện CAS client tương thích Jakarta Servlet
+  - Vai trò của phần mở rộng Spring Security Kerberos và kiểm tra tương thích
+  - SecurityFilterChain, AuthenticationProvider và AuthenticationEntryPoint trong SSO
+  - Tách cấu hình theo môi trường và quản lý thông tin bí mật
+  - Chuẩn bị ứng dụng mẫu, IdP thử nghiệm, HTTPS và đồng bộ thời gian
+- level1: Mô hình SAML2
+  level2:
+  - Cấu trúc Response, Assertion và Subject trong SAML2
+  - Entity ID của Service Provider và Identity Provider
+  - NameID, NameIDFormat và định danh liên kết
+  - AuthnStatement, AuthnContext và thời điểm xác thực
+  - AttributeStatement, thuộc tính đơn trị và đa trị
+  - Conditions, AudienceRestriction và thời hạn assertion
+  - SubjectConfirmation, Recipient và InResponseTo
+  - Chữ ký ở Response, Assertion và phân biệt với assertion được mã hóa
+  - HTTP-Redirect, HTTP-POST và giới hạn các binding được hỗ trợ
+  - Phân biệt đăng nhập do Service Provider khởi tạo và do Identity Provider khởi tạo
+- level1: Đăng ký SAML2
+  level2:
+  - RelyingPartyRegistration và mô hình cấu hình một quan hệ SP–IdP
+  - RelyingPartyRegistrationRepository và InMemoryRelyingPartyRegistrationRepository
+  - Khởi tạo đăng ký bằng RelyingPartyRegistrations và metadata của IdP
+  - Cấu hình spring.security.saml2.relyingparty.registration trong Spring Boot
+  - Phân biệt registrationId, entityId và tên hiển thị nhà cung cấp
+  - Cấu hình SSO endpoint, binding và yêu cầu ký AuthnRequest
+  - Thiết lập Assertion Consumer Service và địa chỉ nhận SAMLResponse
+  - Cấu hình khóa ký, khóa giải mã và chứng thư xác minh
+  - Bật saml2Login và xác định các điểm truy cập công khai cần thiết
+  - Đăng ký thông tin Service Provider tại IdP và đối chiếu cấu hình hai phía
+- level1: Metadata SAML2
+  level2:
+  - EntityDescriptor, IDPSSODescriptor và SPSSODescriptor
+  - Các endpoint SSO, ACS, SLO và binding trong metadata
+  - Đọc metadata từ classpath, tệp và địa chỉ HTTPS đã được tin cậy
+  - Công bố metadata của Service Provider bằng saml2Metadata
+  - Địa chỉ metadata mặc định và tùy chỉnh theo phiên bản Spring Security
+  - Chứng thư ký, chứng thư mã hóa và thông tin KeyDescriptor
+  - Xác minh chữ ký metadata bằng khóa tin cậy được cấp qua kênh độc lập
+  - validUntil, cacheDuration và chính sách làm mới metadata
+  - Xây dựng kho đăng ký có thể làm mới và đánh giá API hỗ trợ theo phiên bản
+  - Xử lý metadata hết hạn, sai cấu trúc hoặc IdP tạm ngừng hoạt động
+  - Kiểm soát URL metadata, chuyển hướng HTTP và nguy cơ SSRF
+- level1: Luồng đăng nhập SAML2
+  level2:
+  - Đường đi từ tài nguyên được bảo vệ đến IdP và trở lại ứng dụng
+  - Saml2WebSsoAuthenticationRequestFilter và khởi tạo AuthnRequest
+  - Lưu yêu cầu bằng Saml2AuthenticationRequestRepository
+  - HttpSessionSaml2AuthenticationRequestRepository và liên kết với phiên ban đầu
+  - RelayState và khôi phục đích truy cập sau đăng nhập
+  - Saml2WebSsoAuthenticationFilter và tiếp nhận SAMLResponse
+  - Saml2AuthenticationTokenConverter và lựa chọn đăng ký phù hợp
+  - AuthenticationProvider dựa trên OpenSAML và quá trình tạo Saml2Authentication
+  - Lưu SecurityContext và tạo phiên ứng dụng sau khi xác thực thành công
+  - Xử lý thành công, thất bại và trang lựa chọn phương thức đăng nhập
+  - Đăng nhập do IdP khởi tạo và rủi ro khi không có yêu cầu tương ứng
+- level1: Tùy chỉnh AuthnRequest
+  level2:
+  - Saml2AuthenticationRequestResolver và các điểm mở rộng theo phiên bản
+  - Điều chỉnh địa chỉ bắt đầu đăng nhập và Assertion Consumer Service
+  - Chọn HTTP-Redirect hoặc HTTP-POST theo khả năng của đối tác
+  - Cấu hình ký AuthnRequest và lựa chọn thuật toán chữ ký
+  - NameIDPolicy và thỏa thuận định dạng định danh với IdP
+  - RequestedAuthnContext và yêu cầu mức độ xác thực
+  - ForceAuthn, IsPassive và giới hạn bảo đảm do IdP thực thi
+  - Bổ sung thông tin mở rộng mà không phá vỡ cấu trúc giao thức
+  - Giới hạn RelayState và ngăn chuyển hướng tới địa chỉ không tin cậy
+  - Tùy chỉnh kho lưu AuthnRequest khi triển khai nhiều nút
+  - Kiểm chứng thông điệp phát đi bằng metadata và chính sách của IdP
+- level1: Kiểm chứng SAML2
+  level2:
+  - Giải mã thông điệp vận chuyển và phân tích XML bằng thư viện chuyên dụng
+  - Xác minh chữ ký bằng khóa của đúng nhà cung cấp danh tính
+  - Phân biệt xác minh chữ ký Response với xác minh Assertion được sử dụng
+  - Kiểm tra Issuer, Destination và ứng dụng tiếp nhận
+  - Kiểm tra AudienceRestriction và SubjectConfirmation Recipient
+  - Đối chiếu InResponseTo với yêu cầu đăng nhập đã lưu
+  - Kiểm tra NotBefore, NotOnOrAfter và độ lệch đồng hồ cho phép
+  - Giải mã EncryptedAssertion và lựa chọn khóa giải mã phù hợp
+  - Phân biệt mã trạng thái lỗi từ IdP với lỗi xác minh tại ứng dụng
+  - Mở rộng bộ kiểm chứng của OpenSAML mà vẫn giữ các kiểm tra mặc định
+  - Chống phát lại assertion và đánh giá cơ chế lưu vết dùng chung giữa các nút
+  - Từ chối thông điệp không hợp lệ mà không làm lộ assertion hoặc khóa
+- level1: Danh tính và quyền
+  level2:
+  - Saml2AuthenticatedPrincipal, Saml2Authentication và truy cập thuộc tính
+  - Lựa chọn khóa định danh từ Issuer và NameID ổn định
+  - Định danh bền vững, định danh tạm thời và tác động đến liên kết tài khoản
+  - Đọc thuộc tính đơn trị, đa trị và xử lý thuộc tính bắt buộc bị thiếu
+  - Chuẩn hóa tên, email và nhóm từ các IdP khác nhau
+  - Chuyển thuộc tính hoặc nhóm thành GrantedAuthority có kiểm soát
+  - Không tự cấp quyền quản trị từ tên nhóm hoặc thuộc tính chưa được cho phép
+  - Kết hợp quyền từ IdP với quyền nghiệp vụ trong cơ sở dữ liệu nội bộ
+  - Tùy chỉnh kết quả xác thực bằng bộ chuyển đổi của AuthenticationProvider
+  - Phân quyền HTTP và phương thức dựa trên danh tính đã liên kết
+  - Xử lý người dùng hợp lệ tại IdP nhưng bị khóa hoặc chưa được cấp quyền tại ứng dụng
+- level1: Khóa và chứng thư
+  level2:
+  - Saml2X509Credential và phân biệt signing, verification, encryption, decryption
+  - Phân biệt chứng thư ký SAML với chứng thư HTTPS
+  - Định dạng PEM, PKCS#8 và kho khóa trong môi trường triển khai
+  - Bảo quản private key bằng kho bí mật và giới hạn quyền đọc
+  - Lựa chọn thuật toán chữ ký, hàm băm và chính sách từ chối thuật toán yếu
+  - Chính sách hết hạn, thu hồi chứng thư và giới hạn kiểm tra mặc định
+  - Luân chuyển chứng thư ký của IdP với giai đoạn chấp nhận đồng thời nhiều khóa
+  - Luân chuyển khóa ký và khóa giải mã của Service Provider
+  - Đồng bộ metadata hai phía trước khi loại bỏ khóa cũ
+  - Phân biệt nhận diện khóa tin cậy từ metadata với xác minh chuỗi PKI
+  - 'Ứng phó khi lộ khóa: ngừng tin cậy, thu hồi phiên và phối hợp đối tác'
+- level1: Đăng xuất SAML2
+  level2:
+  - Phân biệt đăng xuất cục bộ với Single Logout liên kết
+  - Đăng xuất do Service Provider khởi tạo và do Identity Provider khởi tạo
+  - Cấu hình saml2Logout và endpoint SingleLogoutService trong metadata
+  - LogoutRequest, LogoutResponse và mối liên hệ giữa các thông điệp
+  - NameID, SessionIndex và xác định phiên cần kết thúc
+  - Ký, xác minh chữ ký và kiểm tra đích của thông điệp đăng xuất
+  - Lưu yêu cầu đăng xuất và kiểm tra InResponseTo của phản hồi
+  - Tách endpoint đăng xuất cục bộ với endpoint đăng xuất liên kết
+  - Xử lý CSRF cho thao tác đăng xuất do người dùng khởi tạo
+  - Xử lý IdP không hỗ trợ SLO, lỗi một phần và thời gian chờ
+  - Giới hạn của SLO khi người dùng có nhiều ứng dụng, thiết bị hoặc phiên
+- level1: Phiên và trình duyệt
+  level2:
+  - Phân biệt phiên ứng dụng với phiên đăng nhập của nhà cung cấp danh tính
+  - Session fixation và thay đổi mã phiên sau đăng nhập
+  - Cookie Secure, HttpOnly, SameSite và phản hồi SAML qua HTTP-POST
+  - Mất phiên khi quay lại từ IdP và ảnh hưởng đến AuthnRequest đã lưu
+  - Kho phiên phân tán, cân bằng tải và lựa chọn giữ phiên trên một nút
+  - Thời hạn phiên ứng dụng, thời hạn assertion và phiên IdP độc lập
+  - Thay đổi quyền hoặc khóa tài khoản khi phiên ứng dụng vẫn còn hiệu lực
+  - Đăng nhập nhiều tab và xử lý nhiều yêu cầu đang chờ
+  - Giới hạn cookie bên thứ ba và ảnh hưởng tới đăng nhập hoặc đăng xuất qua trình duyệt
+  - Yêu cầu xác thực lại và điều kiện thực thi xác thực tăng cường tại IdP
+- level1: Nhiều IdP và tenant
+  level2:
+  - Đăng ký nhiều IdP và chọn nhà cung cấp trên trang đăng nhập
+  - Phân biệt nhiều nhà cung cấp với nhiều tổ chức sử dụng ứng dụng (tenant)
+  - RelyingPartyRegistrationResolver và lựa chọn đăng ký theo yêu cầu
+  - Ánh xạ domain, đường dẫn và tenant tới cấu hình đã được cho phép
+  - Xác định IdP từ thông tin chưa được xác minh mà không tự thiết lập tin cậy
+  - Tách entityId, ACS, khóa và chính sách thuộc tính theo đối tác
+  - Kho đăng ký động và quy trình thêm hoặc ngừng một đối tác
+  - Ngăn nhầm lẫn IdP, nhầm tenant và truy cập dữ liệu chéo tổ chức
+  - Giới hạn tính duy nhất của NameID và email giữa các IdP
+  - Quản lý thay đổi metadata và luân chuyển khóa độc lập cho từng tenant
+  - Đối chiếu callback và thông điệp đăng xuất với đúng đăng ký ban đầu
+- level1: OIDC và môi giới
+  level2:
+  - Đăng nhập OIDC trong một kiến trúc liên kết danh tính
+  - Cấu hình oauth2Login và ClientRegistration cho nhà cung cấp OIDC
+  - Authorization Code, state, nonce và PKCE ở ranh giới ứng dụng
+  - Định danh người dùng OIDC bằng cặp issuer và subject
+  - Ánh xạ OidcUser và Saml2AuthenticatedPrincipal vào mô hình danh tính chung
+  - So sánh AuthnContext của SAML với acr, amr và yêu cầu xác thực lại trong OIDC
+  - Môi giới danh tính giữa ứng dụng và nhiều IdP bên ngoài
+  - Chuyển đổi SAML sang OIDC tại hệ thống môi giới và trách nhiệm của từng bên
+  - Phân biệt đăng xuất ứng dụng, đăng xuất OIDC và đăng xuất IdP phía sau môi giới
+  - Giới hạn truyền mức độ xác thực, thuộc tính và quyền qua nhiều tầng liên kết
+  - Ranh giới với cấu hình Authorization Server và bảo vệ API bằng access token
+- level1: Nền tảng CAS
+  level2:
+  - CAS server, CAS service và trình duyệt trong đăng nhập tập trung
+  - Ticket Granting Ticket, Ticket Granting Cookie và Service Ticket
+  - Luồng chuyển hướng đăng nhập và xác minh ticket qua kết nối máy chủ
+  - Tham số service và đăng ký ứng dụng được phép sử dụng CAS
+  - Tính ràng buộc với dịch vụ, thời hạn và giới hạn sử dụng Service Ticket
+  - Phân biệt CAS protocol với SAML2 Web Browser SSO
+  - Thuộc tính người dùng do CAS phát hành và chính sách giải phóng thuộc tính
+  - renew, gateway và ảnh hưởng đến trải nghiệm đăng nhập
+  - Lựa chọn phiên bản giao thức CAS và thư viện client tương thích
+- level1: Tích hợp CAS
+  level2:
+  - ServiceProperties và cấu hình địa chỉ dịch vụ, endpoint xử lý ticket
+  - CasAuthenticationEntryPoint và chuyển hướng tới CAS server
+  - CasAuthenticationFilter và tiếp nhận Service Ticket
+  - CasAuthenticationProvider và lựa chọn TicketValidator
+  - Đối chiếu service URL khi xác minh ticket và khi triển khai sau proxy
+  - AuthenticationUserDetailsService và chuyển thuộc tính CAS thành quyền
+  - CasAuthenticationToken và lưu ngữ cảnh trong phiên ứng dụng
+  - Đặt bộ lọc CAS trong SecurityFilterChain và tránh xử lý trùng yêu cầu
+  - Phân biệt phiên ứng dụng có trạng thái với chế độ xác thực ticket không lưu phiên
+  - Tùy chỉnh phản hồi khi ticket hết hạn, bị dùng lại hoặc không hợp lệ
+  - Bảo vệ kết nối HTTPS giữa ứng dụng và CAS server
+- level1: CAS Proxy
+  level2:
+  - Tình huống dịch vụ cần gọi dịch vụ khác thay mặt người dùng
+  - Proxy Granting Ticket, Proxy Granting Ticket IOU và Proxy Ticket
+  - Endpoint proxy callback và điều kiện HTTPS, chứng thư
+  - Liên kết PGT IOU với Proxy Granting Ticket tại ứng dụng
+  - Lấy Proxy Ticket cho đúng dịch vụ đích
+  - Xác minh Proxy Ticket và kiểm tra toàn bộ chuỗi proxy
+  - Giới hạn proxy được tin cậy và tránh chấp nhận mọi proxy
+  - StatelessTicketCache, thời hạn và giới hạn tái sử dụng kết quả xác thực proxy
+  - Kho lưu Proxy Granting Ticket, thời hạn và bảo vệ bí mật
+  - Phân biệt ủy quyền CAS Proxy với OAuth2 và lựa chọn phương án chuyển đổi
+- level1: Đăng xuất CAS
+  level2:
+  - Phân biệt đăng xuất ứng dụng, đăng xuất CAS và Single Sign-Out
+  - Luồng CAS thông báo kết thúc phiên đến các dịch vụ
+  - Ánh xạ Service Ticket tới phiên ứng dụng để xử lý thông báo đăng xuất
+  - SingleSignOutFilter, listener và thành phần hỗ trợ theo thư viện client
+  - Thứ tự bộ lọc, endpoint thông báo và phạm vi miễn CSRF cần thiết
+  - Xác minh điều kiện tin cậy khi tiếp nhận thông báo đăng xuất từ CAS
+  - Xử lý thông báo lặp, phiên đã hết hạn và sự cố mạng
+  - Giới hạn kho ánh xạ phiên trong bộ nhớ khi ứng dụng chạy nhiều nút
+  - Kiểm chứng hành vi đăng xuất khi nhiều dịch vụ cùng có phiên hoạt động
+- level1: Kerberos và SPNEGO
+  level2:
+  - Kerberos trong đăng nhập mạng nội bộ và mối liên hệ với SSO
+  - Realm, KDC, principal và Service Principal Name
+  - Ticket Granting Ticket và service ticket trong Kerberos
+  - SPNEGO, HTTP Negotiate và vai trò của trình duyệt
+  - Phân biệt mật khẩu người dùng, ticket Kerberos và keytab dịch vụ
+  - DNS, tên máy chủ, đồng bộ thời gian và điều kiện hoạt động
+  - Thiết lập tin cậy giữa các realm và giới hạn triển khai tại hạ tầng
+  - Phân biệt Kerberos SSO với LDAP bind và đăng nhập bằng mật khẩu Active Directory
+  - Rủi ro ủy quyền danh tính và nhu cầu giới hạn delegation
+- level1: Tích hợp Kerberos
+  level2:
+  - Cấu hình phần mở rộng Spring Security Kerberos tương thích với ứng dụng
+  - 'SpnegoEntryPoint và phản hồi WWW-Authenticate: Negotiate'
+  - SpnegoAuthenticationProcessingFilter và tiếp nhận token SPNEGO
+  - KerberosServiceAuthenticationProvider và xác minh ticket của dịch vụ
+  - SunJaasKerberosTicketValidator, service principal và keytab
+  - Phân biệt KerberosAuthenticationProvider với xác thực service ticket
+  - Tải quyền người dùng sau khi xác minh principal Kerberos
+  - Cấu hình JAAS, krb5.conf và đường dẫn thông tin bí mật
+  - Luân chuyển keytab, phiên bản khóa và xử lý khóa không khớp
+  - Phương án đăng nhập dự phòng mà không hạ thấp chính sách xác thực
+  - Giới hạn của đăng xuất ứng dụng khi vé Kerberos của máy người dùng còn hiệu lực
+- level1: Xác thực qua proxy
+  level2:
+  - Pre-authentication và trách nhiệm xác thực đã được thực hiện ở tầng trước
+  - RequestHeaderAuthenticationFilter và PreAuthenticatedAuthenticationProvider
+  - Lấy danh tính và quyền từ gateway, container hoặc hệ thống truy cập tập trung
+  - Giới hạn nguồn mạng và ngăn truy cập trực tiếp bỏ qua proxy
+  - Xóa header danh tính do máy khách gửi trước khi proxy thiết lập giá trị tin cậy
+  - mTLS giữa proxy và ứng dụng và ranh giới bảo vệ đường truyền
+  - Phân biệt header danh tính với assertion hoặc token có chữ ký
+  - Chuẩn hóa principal và tải quyền nội bộ bằng dịch vụ người dùng
+  - Xử lý thiếu header, thay đổi người dùng và phiên cũ còn tồn tại
+  - Rà soát nguy cơ giả mạo danh tính khi có nhiều lớp reverse proxy
+- level1: Thư mục và tài khoản
+  level2:
+  - Vai trò LDAP và Active Directory làm nguồn danh tính phía sau IdP
+  - Phân biệt truy vấn thư mục, xác thực trực tiếp và liên kết danh tính
+  - Tải nhóm hoặc thuộc tính nội bộ sau khi xác thực liên kết
+  - Cấp phát tài khoản khi đăng nhập lần đầu và mô hình Just-in-Time provisioning
+  - Đồng bộ tài khoản bằng SCIM tại hệ thống chuyên trách và giới hạn của Spring Security
+  - Liên kết nhiều danh tính bên ngoài với một tài khoản ứng dụng
+  - Chống chiếm tài khoản khi liên kết chỉ dựa trên email trùng nhau
+  - Xử lý đổi tên, thay email, chuyển tổ chức và xóa tài khoản
+  - Thu hồi quyền, khóa tài khoản và vô hiệu hóa phiên đang tồn tại
+  - Tối thiểu hóa thuộc tính chia sẻ và giới hạn lưu dữ liệu cá nhân
+  - Phối hợp quy trình thêm người dùng, đổi vai trò và ngừng quyền truy cập
+- level1: Gia cố an toàn
+  level2:
+  - XML Signature Wrapping và nguyên tắc chỉ dùng assertion đã được xác minh
+  - XXE, XML mở rộng thực thể và sử dụng bộ phân tích an toàn
+  - Chống phát lại assertion, Response và thông điệp đăng xuất
+  - Login CSRF, đăng nhập không được yêu cầu và nhầm lẫn phiên
+  - Open redirect qua RelayState, service URL và địa chỉ sau đăng xuất
+  - Nhầm lẫn IdP, issuer hoặc tenant khi chọn cấu hình xác minh
+  - Giới hạn kích thước SAMLResponse, XML và dữ liệu thuộc tính
+  - Không bỏ kiểm tra chữ ký, audience, recipient hoặc thời gian để chữa lỗi cấu hình
+  - Không tự động tin chứng thư nằm trong thông điệp chưa được xác minh
+  - Bảo vệ callback, khóa, keytab và endpoint quản trị cấu hình đối tác
+  - Chống rò rỉ assertion, ticket và token qua URL, log hoặc bộ nhớ đệm trình duyệt
+  - Phân biệt tín hiệu MFA do IdP xác nhận với giá trị thuộc tính tự khai báo
+- level1: Kiểm thử SAML2
+  level2:
+  - Thiết lập MockMvc với Spring Security cho ứng dụng Service Provider
+  - saml2Login() trong kiểm thử và tùy chỉnh principal, thuộc tính, quyền
+  - Giới hạn của xác thực giả lập khi kiểm thử bộ kiểm chứng SAML thực tế
+  - Tạo bộ dữ liệu SAML thử nghiệm với khóa ký dành riêng cho kiểm thử
+  - Kiểm thử SP-initiated SSO từ AuthnRequest đến phiên ứng dụng
+  - Kiểm thử chữ ký sai, issuer sai và khóa không được tin cậy
+  - Kiểm thử audience, recipient, destination và InResponseTo không khớp
+  - Kiểm thử assertion hết hạn, chưa có hiệu lực và lệch đồng hồ
+  - Kiểm thử assertion mã hóa, thiếu thuộc tính và dữ liệu đa trị
+  - Kiểm thử RelayState, mất phiên và hai luồng đăng nhập đồng thời
+  - Kiểm thử RP-initiated SLO, IdP-initiated SLO và đăng xuất cục bộ
+  - Kiểm thử làm mới metadata, luân chuyển khóa và nhiều đăng ký
+- level1: Kiểm thử SSO
+  level2:
+  - Dựng IdP hoặc máy chủ SSO thử nghiệm tách biệt với môi trường thật
+  - Kiểm thử nhiều ứng dụng dùng chung IdP và phiên đăng nhập
+  - Kiểm thử CAS với Service Ticket hợp lệ, hết hạn, dùng lại và sai service
+  - Kiểm thử CAS Proxy với callback và chuỗi proxy không được phép
+  - Kiểm thử CAS Single Sign-Out trên nhiều phiên và nhiều nút
+  - Kiểm thử SPNEGO với KDC thử nghiệm, keytab và tên dịch vụ phù hợp
+  - Kiểm thử sai realm, lệch giờ và keytab không khớp
+  - Kiểm thử header giả mạo và truy cập bỏ qua gateway xác thực
+  - Kiểm thử liên kết tài khoản, thiếu quyền nội bộ và người dùng đã bị khóa
+  - Kiểm thử truy cập chéo IdP hoặc tenant và va chạm định danh
+  - Kiểm thử lỗi mạng, thời gian chờ và hành vi từ chối khi thiếu tin cậy
+- level1: Quan sát và gỡ lỗi
+  level2:
+  - Theo dõi chuỗi chuyển hướng và xác định bước SSO thất bại
+  - Ghi mã tương quan giữa yêu cầu ứng dụng, AuthnRequest và sự kiện IdP
+  - Đọc SAMLRequest, SAMLResponse và metadata trong môi trường thử nghiệm
+  - Chẩn đoán entityId, ACS, Destination hoặc Audience không khớp
+  - Chẩn đoán mất AuthnRequest, sai InResponseTo và cookie không được gửi
+  - Chẩn đoán chữ ký không hợp lệ, không tìm thấy khóa và chứng thư đã đổi
+  - Chẩn đoán lỗi thời gian, múi giờ và độ lệch đồng hồ
+  - Chẩn đoán CAS INVALID_SERVICE, INVALID_TICKET và chuyển hướng lặp
+  - Chẩn đoán SPNEGO không được thương lượng và service principal không khớp
+  - Phân biệt đăng nhập thành công với lỗi thiếu quyền sau đăng nhập
+  - Che dữ liệu nhạy cảm khi bật log Spring Security, OpenSAML hoặc Kerberos
+  - Thu thập nhật ký kiểm toán đăng nhập, đăng xuất và thay đổi đối tác
+- level1: Triển khai và vận hành
+  level2:
+  - Địa chỉ công khai, HTTPS và callback khi ứng dụng nằm sau reverse proxy
+  - Chỉ tin Forwarded hoặc X-Forwarded-* từ proxy được kiểm soát
+  - Quản lý session, AuthnRequest và ánh xạ đăng xuất trong cụm nhiều nút
+  - Đồng bộ đồng hồ và giám sát độ lệch thời gian
+  - Giám sát thời hạn chứng thư, metadata và keytab
+  - Quy trình trao đổi metadata và luân chuyển khóa có giai đoạn chồng lấp
+  - Phân tách cấu hình IdP giữa phát triển, kiểm thử và production
+  - Khả năng khởi động và hoạt động khi metadata endpoint hoặc IdP bị gián đoạn
+  - Giới hạn thời gian chờ và kết nối khi gọi metadata, CAS hoặc dịch vụ thư mục
+  - Kế hoạch dự phòng được phê duyệt mà không tự động bỏ qua xác thực
+  - Ứng phó sự cố mất tin cậy đối tác, lộ khóa và thu hồi phiên diện rộng
+  - Rà soát quyền truy cập, dữ liệu chia sẻ và cấu hình đối tác định kỳ
+- level1: Chuyển đổi và nâng cấp
+  level2:
+  - Chuyển từ Spring Security SAML Extension cũ sang hỗ trợ SAML2 hiện hành
+  - Đối chiếu metadata, entityId và endpoint khi thay thư viện SAML
+  - Chọn OpenSAML 4 hoặc OpenSAML 5 theo phiên bản Spring Security
+  - Rà soát bộ kiểm chứng và bộ chuyển đổi tùy chỉnh khi nâng phiên bản
+  - Chuyển CAS client và bộ lọc sang thư viện tương thích Jakarta Servlet
+  - Kiểm tra tương thích Java, Spring Boot và phần mở rộng Kerberos
+  - Chuyển ứng dụng từ CAS hoặc SAML sang OIDC thông qua môi giới danh tính
+  - Giữ ổn định định danh người dùng và liên kết tài khoản khi đổi IdP
+  - Chạy song song nhà cung cấp cũ và mới mà không trộn khóa hoặc quyền
+  - Đối chiếu chính sách đăng xuất, MFA và thời hạn phiên trước khi chuyển đổi
+  - Kế hoạch kiểm thử, chuyển lưu lượng và quay lui có kiểm soát
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng Service Provider SAML2 với metadata và IdP thử nghiệm
+  - Bổ sung chữ ký AuthnRequest, assertion mã hóa và xác minh đúng bên tiếp nhận
+  - Ánh xạ nhóm SAML thành quyền nội bộ theo danh sách được cho phép
+  - Tích hợp hai IdP với định danh ổn định và cách ly dữ liệu tenant
+  - Triển khai đăng xuất cục bộ và Single Logout với kiểm thử luồng lỗi
+  - Luân chuyển chứng thư IdP và Service Provider mà vẫn duy trì đăng nhập
+  - Tích hợp CAS Login, xác minh Service Ticket và Single Sign-Out
+  - Tích hợp SPNEGO với keytab dịch vụ trong môi trường Kerberos thử nghiệm
+  - Bảo vệ ứng dụng sau gateway xác thực và kiểm chứng chống giả mạo header
+  - Kết nối ứng dụng OIDC với hệ thống môi giới dùng IdP SAML phía sau
+  - Xây dựng bộ kiểm thử bảo mật, bảng theo dõi sự cố và quy trình vận hành liên kết

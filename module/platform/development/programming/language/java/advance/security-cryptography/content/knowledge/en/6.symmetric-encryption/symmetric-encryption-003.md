@@ -1,28 +1,28 @@
-# 6.3 Tạo khóa AES bằng KeyGenerator và dựng khóa từ vật liệu hợp lệ
+# 6.3 Generating AES Keys with KeyGenerator and Constructing Keys from Valid Material
 
-## 1. Bản chất khóa AES
+## 1. Nature of AES Keys
 
-AES là thuật toán mã hóa **đối xứng**: bên mã hóa và giải mã cần cùng khóa bí mật. Trong JCA/JCE, khóa AES thường được đại diện bởi giao diện `javax.crypto.SecretKey` và được cung cấp cho `Cipher.init(...)`.
+AES is a **symmetric** encryption algorithm: both the encryptor and decryptor need the same secret key. In JCA/JCE, an AES key is commonly represented by the `javax.crypto.SecretKey` interface and passed to `Cipher.init(...)`.
 
-| AES | Độ dài tính bằng bit | Raw key bytes |
+| AES | Length in Bits | Raw Key Bytes |
 | --- | ---: | ---: |
 | AES-128 | 128 bit | 16 byte |
 | AES-192 | 192 bit | 24 byte |
 | AES-256 | 256 bit | 32 byte |
 
-AES luôn có kích thước **block 128 bit**, bất kể dùng AES-128/192/256. Độ dài key cũng khác IV/nonce (AES-GCM thường dùng IV 12 byte) và authentication tag (thường là 128 bit). **Key phải bí mật**, IV không cần bí mật nhưng **không được lặp khi mã hóa với cùng một key**.
+AES always has a **128-bit block size**, regardless of whether AES-128/192/256 is used. Key length is also distinct from the IV/nonce (AES-GCM typically uses a 12-byte IV) and authentication tag (typically 128 bits). **The key must remain secret**; the IV does not need to be secret, yet **must never repeat when encrypting under the same key**.
 
-Phân biệt ba đầu vào:
+Distinguish three input scenarios:
 
-1. **Cần tạo khóa mới ngẫu nhiên:** dùng `KeyGenerator`.
-2. **Đã có đúng raw AES key từ nguồn an toàn:** kiểm tra 16/24/32 byte rồi dựng `SecretKeySpec`.
-3. **Chỉ có password hoặc master secret:** phải thực hiện **key derivation** thích hợp, không bọc trực tiếp byte của password thành key.
+1. **Need to generate a fresh random key:** use `KeyGenerator`.
+2. **Already have exact raw AES key bytes from a trusted source:** validate 16/24/32 bytes, then construct a `SecretKeySpec`.
+3. **Only have a password or master secret:** perform proper **key derivation**; do not wrap raw password bytes directly into a key.
 
-Chiều dài đúng mới chỉ chứng minh key có hình dạng hợp lệ. Mảng 32 byte toàn số 0 hoặc một password dễ đoán không bảo mật chỉ vì dài 32 byte.
+Having the right length only proves the key has a valid shape. A 32-byte all-zero array or a predictable password is not secure merely because it is 32 bytes long.
 
-## 2. Sinh khóa AES mới với KeyGenerator
+## 2. Generating a New AES Key with KeyGenerator
 
-`KeyGenerator` là engine của JCA để tạo khóa bí mật. Đoạn mã minh họa nằm trong một phương thức Java:
+`KeyGenerator` is the JCA engine for creating secret keys. The illustrative snippet sits inside a Java method:
 
 ```java
 KeyGenerator generator = KeyGenerator.getInstance("AES");
@@ -30,22 +30,22 @@ generator.init(256, new SecureRandom());
 SecretKey aesKey = generator.generateKey();
 ```
 
-Các import cần có: `javax.crypto.KeyGenerator`, `javax.crypto.SecretKey` và `java.security.SecureRandom`. Chương trình hoàn chỉnh ở phần 5 có đầy đủ mã nguồn.
+Required imports: `javax.crypto.KeyGenerator`, `javax.crypto.SecretKey`, and `java.security.SecureRandom`. The complete program in Section 5 contains the full source code.
 
-- `getInstance("AES")` chọn engine/provider cung cấp AES; `NoSuchAlgorithmException` xảy ra nếu runtime không hỗ trợ.
-- `init(256, random)` thiết lập **256 bit**, không phải 256 byte. AES có các độ dài khóa hợp lệ 128/192/256 bit; provider có thể áp dụng hạn chế riêng.
-- `SecureRandom` tạo randomness dành cho mật mã. Không dùng `java.util.Random`, `Math.random()` hay seed cố định để cố tạo khóa tái lập.
-- `generateKey()` trả `SecretKey` mới; không tự tạo IV cho từng bản ghi và không tự lưu key để dùng lại sau restart.
-- Hãy `init` tường minh để tránh phụ thuộc lựa chọn kích thước mặc định của provider. Overload `init(int)` có thể sử dụng RNG do provider chọn, nhưng overload có `SecureRandom` làm rõ nguồn sinh.
+- `getInstance("AES")` selects an engine/provider supporting AES; `NoSuchAlgorithmException` occurs if the runtime does not support it.
+- `init(256, random)` configures **256 bits**, not 256 bytes. Valid AES key sizes are 128/192/256 bits; a provider may enforce its own restrictions.
+- `SecureRandom` produces cryptographic randomness. Never use `java.util.Random`, `Math.random()`, or a fixed seed to try generating reproducible keys.
+- `generateKey()` returns a new `SecretKey`; it does not generate per-record IVs or persist the key across restarts.
+- Call `init` explicitly to avoid relying on a provider's default key size choice. The `init(int)` overload may use a provider-chosen RNG, whereas the overload taking `SecureRandom` makes the randomness source explicit.
 
-Sai: `new SecretKeySpec(new byte[32], "AES")` vì `new byte[32]` toàn **zero**. Nếu giao thức riêng buộc phải tạo raw bytes, có thể dùng `SecureRandom.nextBytes(raw)` với đúng 16/24/32 byte; với JCA thông thường, `KeyGenerator` dễ đọc và bảo trì hơn.
+Wrong: `new SecretKeySpec(new byte[32], "AES")` because `new byte[32]` is all **zeros**. If a custom protocol requires generating raw bytes directly, you can use `SecureRandom.nextBytes(raw)` with exact 16/24/32 bytes; for standard JCA usage, `KeyGenerator` is clearer and easier to maintain.
 
-## 3. Dựng khóa từ raw key hợp lệ bằng SecretKeySpec
+## 3. Constructing a Key from a Valid Raw Key with SecretKeySpec
 
-Giả sử ứng dụng đã nhận raw key bytes từ một kho khóa hay giao thức được xác thực. Hãy kiểm tra trước khi dựng khóa:
+Suppose an application receives raw key bytes from a key vault or authenticated protocol. Validate before constructing the key:
 
 ```java
-// Đoạn minh họa; raw là byte[] nguồn tin cậy.
+// Illustrative snippet; raw is a byte[] from a trusted source.
 if (raw == null ||
         (raw.length != 16 && raw.length != 24 && raw.length != 32)) {
     throw new IllegalArgumentException("Invalid AES key length");
@@ -53,16 +53,16 @@ if (raw == null ||
 SecretKey key = new SecretKeySpec(raw, "AES");
 ```
 
-`SecretKeySpec` **sao chép** các key bytes và gắn tên thuật toán. Nó **không tự sinh randomness, không dẫn xuất key và không đánh giá entropy**. Constructor có thể chấp nhận nguyên liệu có độ dài không tương thích với AES; `Cipher.init` mới có thể ném `InvalidKeyException`. Vì thế phải validate length ở ranh giới nhận dữ liệu và xử lý cả lỗi provider.
+`SecretKeySpec` **copies** the key bytes and attaches the algorithm name. It **does not generate randomness, derive keys, or assess entropy**. Its constructor may accept material whose length is incompatible with AES; `Cipher.init` is what may throw `InvalidKeyException`. Therefore, validate length at the ingestion boundary and handle provider errors as well.
 
-**Encoding khác raw bytes:**
+**Encodings are not raw bytes:**
 
-- Raw AES-256 key có **32 byte**; dạng **hex dài 64 ký tự** vì mỗi byte chiếm hai ký tự.
-- Base64 của 32 byte thường có **44 ký tự**, kể cả padding `=`. Hex/Base64 **chỉ là biểu diễn**, không mã hóa bảo mật.
-- Nhập từ hệ thống bên ngoài: `Base64.getDecoder().decode(base64Key)` hoặc `HexFormat.of().parseHex(hexKey)` (Java 17+), rồi validate **độ dài mảng đã decode**.
-- Không gọi `base64Key.getBytes(UTF_8)` để tạo AES key: đó là bytes của **chữ mã hóa**, không phải raw key.
+- A raw AES-256 key is **32 bytes**; its **hex form is 64 characters**, since each byte takes two characters.
+- Base64 of 32 bytes is typically **44 characters**, including `=` padding. Hex/Base64 **are only representations**, not protective encryption.
+- Importing from an external system: `Base64.getDecoder().decode(base64Key)` or `HexFormat.of().parseHex(hexKey)` (Java 17+), then validate the **decoded array length**.
+- Do not call `base64Key.getBytes(UTF_8)` to build an AES key: those are bytes of the **encoded characters**, not the raw key.
 
-Mã minh họa decode Base64 (không phải chương trình độc lập, vì `base64Key` do caller cung cấp):
+Illustrative Base64 decoding snippet (not a standalone program, since `base64Key` is caller-supplied):
 
 ```java
 byte[] raw = java.util.Base64.getDecoder().decode(base64Key);
@@ -71,21 +71,21 @@ try {
         throw new IllegalArgumentException("Wrong AES key size");
     }
     SecretKey imported = new SecretKeySpec(raw, "AES");
-    // Dung imported trong pham vi can thiet.
+    // Use imported within the required scope.
 } finally {
     java.util.Arrays.fill(raw, (byte) 0);
 }
 ```
 
-Chỉ nhập raw key nếu đã xác thực **nguồn, định dạng, quyền dùng và bảo mật kênh truyền**. Không ghi log raw key hay chuỗi Base64/hex của nó. Một số khóa do HSM/PKCS#11/KMS hoặc provider đặc biệt quản lý **không export được**, `SecretKey.getEncoded()` có thể trả `null`. Với loại khóa đó, dùng trực tiếp `SecretKey`/key handle và provider tương thích, không cố dựng `SecretKeySpec`.
+Import raw keys only after authenticating **source, format, usage permissions, and transport security**. Never log raw keys or their Base64/hex strings. Some keys managed by HSM/PKCS#11/KMS or specialized providers are **non-exportable**, where `SecretKey.getEncoded()` may return `null`. For such keys, use the `SecretKey`/key handle directly with a compatible provider rather than attempting to build a `SecretKeySpec`.
 
-**Giới hạn xóa bộ nhớ:** `SecretKeySpec` giữ bản sao key bytes; `Arrays.fill(raw, 0)` chỉ xóa mảng `raw` của ứng dụng, không bảo đảm xóa bản sao trong key object hoặc provider. `String` immutable khó làm sạch hơn mảng; hạn chế xuất/copy key, giữ thời gian sống ngắn và dùng KMS/HSM khi chính sách yêu cầu.
+**Memory-clearing limitation:** `SecretKeySpec` retains its own copy of the key bytes; `Arrays.fill(raw, 0)` only zeroes the application's `raw` array and does not guarantee clearing copies inside the key object or provider. Immutable `String` objects are harder to scrub than arrays; minimize key exports/copies, keep lifetimes short, and use KMS/HSM when required by policy.
 
-## 4. Password chưa phải AES key: cần một KDF
+## 4. A Password Is Not an AES Key: Use a KDF
 
-Sai lầm quen thuộc là lấy bytes UTF-8 của password đủ 16/32 byte rồi tạo `SecretKeySpec`. Một password dễ đoán như `"1234567890123456"` vẫn dễ bị brute force dù có **16 byte**. Một phép `SHA-256(password)` trực tiếp cũng chưa phải password KDF phù hợp: hàm băm nhanh cho phép thử nhiều mật khẩu offline.
+A common mistake is taking UTF-8 bytes of a 16/32-byte password and creating a `SecretKeySpec`. A guessable password like `"1234567890123456"` remains trivial to brute-force even though it is **16 bytes**. A single direct `SHA-256(password)` is also not a proper password KDF: fast hashes allow massive offline password guessing.
 
-Trong Java 17+, `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` cùng `PBEKeySpec` hỗ trợ dẫn xuất khóa từ password:
+In Java 17+, `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` with `PBEKeySpec` supports deriving a key from a password:
 
 ```text
 password (char[]) -----+
@@ -98,17 +98,17 @@ random salt (16B+) ----+                         |
                                       SecretKeySpec(raw, "AES")
 ```
 
-- **Salt** ngẫu nhiên, ví dụ 16 byte từ `SecureRandom`; không cần bí mật, nhưng phải lưu lại để có thể tái tạo cùng key khi giải mã. Salt mới với cùng password ⇒ key mới.
-- **Iterations** làm tăng chi phí thử password. Giá trị `210_000` trong chương trình là minh họa API; cần điều chỉnh theo threat model, hiệu năng và chính sách cập nhật, không coi là hằng số được khuyến nghị vĩnh viễn.
-- `PBEKeySpec(password, salt, iterations, 256)` yêu cầu **256 bit**, tạo 32 byte. Hai lần derive cùng password/salt/iterations/algorithm/length cho cùng key.
-- Lưu **version, tên KDF, salt, iteration count và output length** với định dạng bản ghi. Nếu thay tham số rồi cố giải mã ciphertext cũ, key tái tạo sẽ khác.
-- Dùng `char[]` thay vì giữ password lâu trong `String` khi ứng dụng cho phép; `PBEKeySpec.clearPassword()` và `Arrays.fill(...)` làm sạch các mảng có thể kiểm soát, nhưng không bảo đảm mọi bản sao nội bộ đã bị xóa.
+- **Salt** is random, e.g. 16 bytes from `SecureRandom`; it does not need to be secret, but must be stored so the exact same key can be re-derived on decryption. A new salt with the same password yields a new key.
+- **Iterations** raise the cost of password guessing. The value `210_000` in the program illustrates the API; tune it to your threat model, performance budget, and evolving policy rather than treating it as a permanent recommended constant.
+- `PBEKeySpec(password, salt, iterations, 256)` requests **256 bits**, producing 32 bytes. Two derivations with identical password/salt/iterations/algorithm/length produce the same key.
+- Store **version, KDF name, salt, iteration count, and output length** in the record format. Changing parameters and attempting to decrypt old ciphertext will derive a different key.
+- Use `char[]` instead of holding passwords long-term in `String` when your application allows it; `PBEKeySpec.clearPassword()` and `Arrays.fill(...)` scrub arrays you control, though they do not guarantee every internal copy is erased.
 
-Các thư viện hiện đại có thể hỗ trợ KDF tốn bộ nhớ như **Argon2id** theo chính sách; Java SE JCA không bảo đảm sẵn tên thuật toán này. Với master secret ngẫu nhiên cần tạo nhiều key con, dùng KDF/context separation theo giao thức thích hợp (chẳng hạn HKDF), không tự dùng byte của password hoặc một phép hash nhanh làm giải pháp chung.
+Modern libraries may support memory-hard KDFs such as **Argon2id** per policy; Java SE JCA does not guarantee this algorithm name out of the box. When a high-entropy master secret must produce multiple subkeys, use a protocol-appropriate KDF/context separation (such as HKDF) rather than password bytes or a bare fast hash as a universal shortcut.
 
-## 5. Ví dụ chạy được: KeyGenerator, SecretKeySpec và AES-GCM
+## 5. Runnable Example: KeyGenerator, SecretKeySpec, and AES-GCM
 
-Lưu thành **`AesKeySourcesDemo.java`**, Java 17+. Chương trình tạo AES-256 key, **chỉ vì mục đích giáo dục** lấy raw bytes qua `getEncoded()`, dựng một `SecretKeySpec` từ chính raw bytes đó, rồi mã hóa bằng key gốc và giải mã bằng key nhập lại.
+Save as **`AesKeySourcesDemo.java`**, Java 17+. The program generates an AES-256 key, **solely for educational purposes** extracts raw bytes via `getEncoded()`, builds a `SecretKeySpec` from those raw bytes, then encrypts with the original key and decrypts with the imported key.
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -178,13 +178,13 @@ invalidLengthRejected=true
 roundTrip=true
 ```
 
-Đầu ra ổn định dù key và IV ngẫu nhiên vì không in bytes bí mật. `sameMaterial=true` chứng minh bản sao raw key giống key gốc; `roundTrip=true` chứng minh cùng key/IV/AAD có thể mã hóa và giải mã đúng. **Không** chứng minh nguồn bên ngoài tin cậy, quyền truy cập hay lưu khóa đã an toàn.
+The output stays stable despite random key and IV because no secret bytes are printed. `sameMaterial=true` proves the copied raw key matches the original key; `roundTrip=true` proves the same key/IV/AAD encrypts and decrypts accurately. It does **not** prove external source trust, access control, or key storage security.
 
-`AES/GCM/NoPadding` là transformation được chỉ rõ; `Cipher.getInstance("AES")` ngắn gọn có thể để provider chọn mode/padding mặc định không mong muốn (chẳng hạn ECB). Với AES-GCM, nonce thường 12 byte và tag thường 128 bit; `GCMParameterSpec(128, iv)` dùng **128 bit cho tag**, không phải kích thước key. Khi mã hóa bản ghi **mới dưới cùng key**, phải chọn **IV mới không trùng** và gọi `Cipher.init` lại. Không được lấy việc engine reset sau `doFinal` làm lý do tái sử dụng cặp key+IV.
+`AES/GCM/NoPadding` is an explicitly specified transformation; the shorter `Cipher.getInstance("AES")` lets the provider pick an unwanted default mode/padding (such as ECB). For AES-GCM, the nonce is typically 12 bytes and the tag is typically 128 bits; `GCMParameterSpec(128, iv)` uses **128 bits for the tag**, not the key size. When encrypting a **new record under the same key**, you must pick a **fresh non-repeating IV** and call `Cipher.init` again. Never treat engine reset after `doFinal` as permission to reuse a key+IV pair.
 
-## 6. Ví dụ chạy được: tạo raw AES key từ password bằng PBKDF2
+## 6. Runnable Example: Deriving a Raw AES Key from a Password with PBKDF2
 
-Lưu thành **`PasswordDerivedAesDemo.java`**. Password trong code chỉ phục vụ demo chạy độc lập, không hardcode như vậy trong ứng dụng thật.
+Save as **`PasswordDerivedAesDemo.java`**. The password in the code is strictly for a standalone runnable demo—never hardcode passwords like this in real applications.
 
 ```java
 import java.security.MessageDigest;
@@ -253,61 +253,61 @@ sameInputsSameKey=true
 changedSaltChangesKey=true
 ```
 
-Cùng password + salt + iterations + KDF + output length sẽ tái tạo **cùng raw AES key**. Nếu khi giải mã dữ liệu cũ lại sinh salt mới, không còn cùng key. Khi đổi password, ứng dụng cần thiết kế re-encryption hoặc re-wrapping đúng giao thức; bản mã cũ không tự giải mã bằng key mới.
+Identical password + salt + iterations + KDF + output length will re-derive the **exact same raw AES key**. Generating a fresh salt when decrypting old data yields a different key. When changing passwords, applications must design proper protocol-level re-encryption or re-wrapping; old ciphertexts do not automatically decrypt under the new key.
 
-## 7. Khóa được lưu trữ hoặc quản lý ở đâu?
+## 7. Where Are Keys Stored or Managed?
 
-| Nguồn | Hành động đúng |
+| Source | Proper Action |
 | --- | --- |
-| Sinh khóa ngẫu nhiên trong process | Dùng `SecretKey` trực tiếp; cần chiến lược lưu/khôi phục nếu phải giải mã sau restart |
-| Raw AES key đã được cấp an toàn | Decode (nếu có), validate 16/24/32 byte, tạo `SecretKeySpec` |
-| Password | KDF salt/cost phù hợp, lưu tham số để có thể tái tạo |
-| Java `KeyStore`, HSM hoặc PKCS#11 | Dùng `SecretKey` hay key handle qua provider; không giả định export được |
-| Cloud KMS | Tuân thủ API, key ID/permissions và chính sách không xuất raw key |
-| Master secret entropy cao | Tách khóa theo ngữ cảnh và mục đích bằng KDF của giao thức |
+| Randomly generated key in-process | Use `SecretKey` directly; requires a storage/recovery strategy if decryption is needed after restarts |
+| Securely provisioned raw AES key | Decode (if encoded), validate 16/24/32 bytes, create `SecretKeySpec` |
+| Password | KDF with proper salt/cost; store parameters so it can be re-derived |
+| Java `KeyStore`, HSM, or PKCS#11 | Use `SecretKey` or key handle via provider; do not assume exportability |
+| Cloud KMS | Follow API, key ID/permissions, and non-exportable raw key policies |
+| High-entropy master secret | Derive context- and purpose-separated keys via a protocol KDF |
 
-`KeyStore` là **API** quản lý key entries; mức bảo vệ phụ thuộc loại store và provider (ví dụ PKCS12, PKCS11), không mặc nhiên là HSM. Tách quyền **dùng key** khỏi quyền **xuất raw key**. Khi xoay khóa, lưu **key ID/version** cùng metadata bản mã; dữ liệu mã hóa bằng key cũ thường cần key cũ hoặc quy trình re-encrypt/rewrap có kiểm soát.
+`KeyStore` is an **API** for managing key entries; protection strength depends on the store type and provider (e.g., PKCS12, PKCS11), and it is not automatically an HSM. Separate permission to **use a key** from permission to **export a raw key**. During key rotation, store **key ID/version** in ciphertext metadata; data encrypted with an old key generally requires either the old key or a controlled re-encryption/re-wrapping workflow.
 
-Một bản ghi AES-GCM cần có đủ **key ID, IV, ciphertext+tag, AAD (hoặc quy tắc tạo AAD)** và version định dạng. Nếu nguồn là password, bổ sung **KDF algorithm/salt/iterations/output bits**. Không lưu raw key như metadata ở nơi người đọc ciphertext có thể xem được.
+An AES-GCM record needs **key ID, IV, ciphertext+tag, AAD (or AAD construction rules)**, and format version. If the source is a password, include **KDF algorithm/salt/iterations/output bits**. Never store raw keys as metadata where ciphertext readers can inspect them.
 
-## 8. Lỗi thường gặp và cách tránh
+## 8. Common Errors and How to Avoid Them
 
-| Vấn đề | Nguyên nhân | Cách xử lý |
+| Issue | Cause | Resolution |
 | --- | --- | --- |
-| `NoSuchAlgorithmException` | Provider thiếu thuật toán AES hoặc PBKDF2 | Xác minh tên và provider/runtime |
-| `InvalidParameterException` tại `KeyGenerator.init` | Độ dài key không phù hợp/chính sách hạn chế | Chọn 128/192/256 bit được hỗ trợ |
-| `IllegalArgumentException` khi import | Base64/hex sai hoặc raw key length sai | Decode đúng định dạng, kiểm tra **số byte** |
-| `InvalidKeyException` tại `Cipher.init` | SecretKey không hợp lệ cho thuật toán/provider | Xác minh key algorithm, size, provider |
-| `InvalidAlgorithmParameterException` | Tham số IV/tag/mode sai | Xác minh transformation và `GCMParameterSpec` |
-| `AEADBadTagException` khi giải mã | Key, IV, AAD hoặc ciphertext/tag sai | Từ chối bản ghi, không dùng plaintext chưa xác thực |
-| `getEncoded() == null` | Key không export được | Dùng trực tiếp key handle và provider hỗ trợ |
-| Mất quyền giải mã sau restart | Không lưu đúng key/version/salt/IV | Thiết kế key management và metadata trước khi mã hóa |
+| `NoSuchAlgorithmException` | Provider lacks AES or PBKDF2 algorithm | Verify algorithm name and provider/runtime |
+| `InvalidParameterException` in `KeyGenerator.init` | Unsuitable key length or policy restriction | Choose supported 128/192/256 bits |
+| `IllegalArgumentException` on import | Invalid Base64/hex or wrong raw key length | Decode proper format, validate **byte count** |
+| `InvalidKeyException` in `Cipher.init` | SecretKey invalid for algorithm/provider | Verify key algorithm, size, and provider |
+| `InvalidAlgorithmParameterException` | Wrong IV/tag/mode parameters | Verify transformation and `GCMParameterSpec` |
+| `AEADBadTagException` on decryption | Wrong key, IV, AAD, or ciphertext/tag | Reject record, do not use unauthenticated plaintext |
+| `getEncoded() == null` | Key is non-exportable | Use key handle directly with a supporting provider |
+| Lost ability to decrypt after restart | Key/version/salt/IV not persisted properly | Design key management and metadata before encrypting |
 
-Không chia sẻ cùng một `Cipher` đang xử lý giữa nhiều thread/request. Đừng log bí mật hoặc trả lỗi nội bộ quá chi tiết cho người ngoài; khi GCM xác thực thất bại thì loại bỏ plaintext chưa được xác thực.
+Never share a single active `Cipher` instance across multiple threads/requests. Do not log secrets or return overly detailed internal errors to external callers; when GCM authentication fails, discard any unauthenticated plaintext.
 
-### Checklist trước khi đưa vào ứng dụng
+### Pre-Production Checklist
 
-- Khóa mới do `KeyGenerator`/CSPRNG sinh, hoặc raw key đã xác thực nguồn và có chiều dài hợp lệ.
-- Password luôn đi qua KDF với salt và cost; có chiến lược lưu/khôi phục tham số.
-- `Cipher` dùng transformation xác định rõ, ví dụ `AES/GCM/NoPadding`; IV duy nhất trong phạm vi mỗi key mã hóa.
-- Có key ID/version, chính sách lưu giữ, sao lưu, giới hạn quyền và rotation.
-- Không hardcode, log, export vô cớ hoặc lưu raw key chung nơi có ciphertext.
-- Có test key length sai, PBKDF2 cùng/khác salt, AES-GCM round-trip và GCM tag bị thay đổi.
+- New keys are generated by `KeyGenerator`/CSPRNG, or raw keys come from a verified source with valid lengths.
+- Passwords always go through a KDF with salt and cost factor; parameter persistence/recovery is designed.
+- `Cipher` uses an explicit transformation such as `AES/GCM/NoPadding`; IVs are unique within each encryption key's scope.
+- Key ID/version, retention policy, backup, least-privilege access, and rotation are in place.
+- No hardcoded keys, logging, unnecessary exports, or raw keys stored alongside ciphertext.
+- Tests cover invalid key lengths, PBKDF2 same/different salts, AES-GCM round-trip, and modified GCM tags.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-1. AES-128/192/256 có bao nhiêu raw key bytes? **16/24/32**.
-2. Tham số `256` của `KeyGenerator.init(256)` là bit hay byte? **Bit**.
-3. `SecretKeySpec` có tăng entropy hoặc tự sinh key không? **Không**.
-4. Chuỗi 64 ký tự hex của AES-256 cần decode thành bao nhiêu raw bytes? **32**.
-5. Password 16 ký tự được dùng trực tiếp làm AES-128 key có an toàn không? **Không bảo đảm**; cần KDF thích hợp.
-6. Vì sao phải lưu PBKDF2 salt? Để **dẫn xuất lại cùng key** khi giải mã, ngoài các tham số khác.
-7. GCM có được tái dùng IV khi vẫn dùng cùng key không? **Không**.
-8. `getEncoded()==null` có nghĩa gì? Key có thể **không export được**, cần provider/handle tương thích.
-9. Xóa mảng `raw` có xóa bản sao trong `SecretKeySpec` không? **Không**.
-10. Key mới có tự giải mã ciphertext của key cũ không? **Không**; cần version/key cũ hoặc quy trình di chuyển dữ liệu.
+1. How many raw key bytes do AES-128/192/256 have? **16/24/32**.
+2. Is parameter `256` in `KeyGenerator.init(256)` bits or bytes? **Bits**.
+3. Does `SecretKeySpec` add entropy or generate keys? **No**.
+4. A 64-character hex string for AES-256 decodes to how many raw bytes? **32**.
+5. Is using a 16-character password directly as an AES-128 key secure? **Not guaranteed**; a proper KDF is required.
+6. Why must the PBKDF2 salt be stored? To **re-derive the exact same key** during decryption, alongside the other parameters.
+7. Can GCM reuse an IV while keeping the same key? **No**.
+8. What does `getEncoded()==null` mean? The key may be **non-exportable**, requiring a compatible provider/handle.
+9. Does zeroing the `raw` array erase the copy inside `SecretKeySpec`? **No**.
+10. Does a new key automatically decrypt ciphertexts from an old key? **No**; version/old key tracking or a data migration process is needed.
 
-## Tài liệu Java SE 21
+## Java SE 21 References
 
 - [KeyGenerator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KeyGenerator.html)
 - [SecretKey](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/SecretKey.html)

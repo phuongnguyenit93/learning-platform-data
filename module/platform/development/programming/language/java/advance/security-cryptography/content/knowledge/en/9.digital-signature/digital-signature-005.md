@@ -1,118 +1,118 @@
-# 9.5. PSSParameterSpec, digest, MGF1 và độ dài salt của chữ ký
+# 9.5. PSSParameterSpec, Digest, MGF1, and Signature Salt Length
 
-## Mục tiêu học tập
+## Learning objectives
 
-Trong Java Cryptography Architecture (JCA), `RSASSA-PSS` là cơ chế **chữ ký số RSA** dùng phép đệm xác suất (Probabilistic Signature Scheme) được chuẩn hóa trong PKCS #1 (RFC 8017). Để hai bên tạo và kiểm tra chữ ký tương thích, chỉ biết “RSA” hoặc “SHA-256” **chưa đủ**: phải thống nhất cả **digest của thông điệp, hàm MGF, digest bên trong MGF1, số byte salt và trailer field**.
+In the Java Cryptography Architecture (JCA), `RSASSA-PSS` is an **RSA digital signature** mechanism using probabilistic padding (Probabilistic Signature Scheme) standardized in PKCS #1 (RFC 8017). For two parties to produce and verify compatible signatures, knowing just “RSA” or “SHA-256” is **not enough**: both must agree on the **message digest, MGF function, digest inside MGF1, salt byte length, and trailer field**.
 
-Sau bài này bạn có thể:
+After this lesson, you can:
 
-- Đọc từng trường của `java.security.spec.PSSParameterSpec` và phân biệt **message digest** với **MGF1 digest**.
-- Tạo hồ sơ **RSA-PSS SHA-256 / MGF1-SHA256 / salt 32 byte / trailer 1** trên Java 17+.
-- Dùng `Signature.getInstance("RSASSA-PSS")`, `setParameter(...)`, `initSign/initVerify`, `update` và `sign/verify` cho một thông điệp byte chính xác.
-- Tính giới hạn độ dài salt theo `modulusBits` của RSA và độ dài digest; biết vì sao thay salt length có thể làm xác minh thất bại.
-- Chẩn đoán sai khác giữa Java và OpenSSL/JWS/X.509 hoặc giữa các provider; phân biệt RSA-PSS với RSA PKCS#1 v1.5.
+- Read every field of `java.security.spec.PSSParameterSpec` and distinguish the **message digest** from the **MGF1 digest**.
+- Configure an **RSA-PSS SHA-256 / MGF1-SHA256 / 32-byte salt / trailer 1** profile on Java 17+.
+- Use `Signature.getInstance("RSASSA-PSS")`, `setParameter(...)`, `initSign/initVerify`, `update`, and `sign/verify` for an exact message byte sequence.
+- Compute the salt length limit from the RSA `modulusBits` and digest length; understand why changing the salt length causes verification to fail.
+- Diagnose mismatches between Java and OpenSSL/JWS/X.509 or across providers; distinguish RSA-PSS from RSA PKCS#1 v1.5.
 
-Ví dụ dùng khóa RSA 2048 bit tạo **ngay trong tiến trình chỉ để học API**. Trong ứng dụng thực tế, khóa private phải được quản lý an toàn (KeyStore/KMS/HSM theo kiến trúc), nguồn dữ liệu được ký phải có định dạng/canonicalization nhất quán và phải xác minh public key thực sự đáng tin.
+The examples use a 2048-bit RSA key generated **in-process solely for learning the API**. In real applications, private keys must be managed securely (KeyStore/KMS/HSM per architecture), signed data sources must use consistent formatting/canonicalization, and public keys must be verified as genuinely trusted.
 
-## 1. RSA-PSS hoạt động khác chữ ký RSA PKCS#1 v1.5 như thế nào?
+## 1. How does RSA-PSS work differently from RSA PKCS#1 v1.5 signatures?
 
-Cả hai đều dùng RSA private key để ký và RSA public key để kiểm tra. Sự khác nhau nằm ở **cách encode thông điệp trước phép toán RSA**:
+Both use an RSA private key to sign and an RSA public key to verify. The difference lies in **how the message is encoded before the RSA operation**:
 
-| Thành phần | RSA PKCS#1 v1.5 (thường `SHA256withRSA` trong JCA) | RSASSA-PSS (`RSASSA-PSS` trong JCA) |
+| Component | RSA PKCS#1 v1.5 (usually `SHA256withRSA` in JCA) | RSASSA-PSS (`RSASSA-PSS` in JCA) |
 | --- | --- | --- |
-| Padding/encoding chữ ký | EMSA-PKCS1-v1_5 | EMSA-PSS |
-| Tính ngẫu nhiên | Với message/key cố định, chữ ký theo scheme cơ bản là xác định | Thường dùng **salt ngẫu nhiên mới mỗi lần ký** |
-| Tham số cần thống nhất | Hash và scheme, cộng quy tắc về key | Hash, MGF, MGF digest, salt length, trailer field và key |
-| Khả năng tương thích | Không thể kiểm tra chữ ký PSS bằng verifier v1.5 | Không thể kiểm tra chữ ký v1.5 bằng verifier PSS |
-| Ví dụ JCA | `Signature.getInstance("SHA256withRSA")` | `Signature.getInstance("RSASSA-PSS")` rồi `setParameter(PSSParameterSpec)` |
+| Signature padding/encoding | EMSA-PKCS1-v1_5 | EMSA-PSS |
+| Randomness | For a fixed message/key, the signature under the basic scheme is deterministic | Typically uses a **fresh random salt on each signing call** |
+| Parameters to agree on | Hash and scheme, plus key rules | Hash, MGF, MGF digest, salt length, trailer field, and key |
+| Compatibility | Cannot verify a PSS signature with a v1.5 verifier | Cannot verify a v1.5 signature with a PSS verifier |
+| JCA example | `Signature.getInstance("SHA256withRSA")` | `Signature.getInstance("RSASSA-PSS")` then `setParameter(PSSParameterSpec)` |
 
-Tên `SHA256withRSA` **không** đồng nghĩa `RSA-PSS với SHA-256`. Bên ký chọn PSS thì bên xác minh cũng phải chọn PSS với cấu hình khớp. Tên như `SHA256withRSAandMGF1` có thể xuất hiện ở provider/thư viện riêng, nhưng không nên dựa vào alias đó cho code JCA độc lập provider; chọn `RSASSA-PSS` và khai báo `PSSParameterSpec` rõ ràng.
+The name `SHA256withRSA` is **not** synonymous with `RSA-PSS with SHA-256`. If the signer chooses PSS, the verifier must also choose PSS with matching configuration. Names such as `SHA256withRSAandMGF1` may appear in specific providers/libraries, but you should not rely on such aliases for provider-independent JCA code; choose `RSASSA-PSS` and declare `PSSParameterSpec` explicitly.
 
-**Chữ ký số không phải mã hóa dữ liệu:** `Signature.sign()` tạo chữ ký cho input đã cung cấp; nó **không** giữ bí mật thông điệp. Verify thành công chỉ xác nhận chữ ký phù hợp với public key và message, còn việc public key có thuộc đúng chủ thể/tổ chức hay không là bước quản lý tin cậy khác (chứng chỉ, trust store, pinning, chính sách định danh...).
+**A digital signature is not data encryption:** `Signature.sign()` creates a signature for the supplied input; it **does not** keep the message secret. Successful verification only confirms that the signature matches the public key and message, whereas whether the public key belongs to the right entity/organization is a separate trust-management step (certificates, trust store, pinning, identity policies...).
 
-## 2. Năm trường của `PSSParameterSpec`
+## 2. The five fields of `PSSParameterSpec`
 
-Constructor đầy đủ:
+Full constructor:
 
 ```java
 PSSParameterSpec pss = new PSSParameterSpec(
         "SHA-256",                   // message digest
         "MGF1",                      // mask generation function
-        MGF1ParameterSpec.SHA256,    // digest dùng bên trong MGF1
-        32,                          // salt length tính bằng BYTE
+        MGF1ParameterSpec.SHA256,    // digest used inside MGF1
+        32,                          // salt length in BYTES
         PSSParameterSpec.TRAILER_FIELD_BC
 );
 ```
 
-Đây là snippet; cần import `java.security.spec.PSSParameterSpec` và `java.security.spec.MGF1ParameterSpec`.
+This is a snippet; you must import `java.security.spec.PSSParameterSpec` and `java.security.spec.MGF1ParameterSpec`.
 
-| Trường | API getter | Ý nghĩa | Ví dụ SHA-256 PSS |
+| Field | Getter API | Meaning | SHA-256 PSS example |
 | --- | --- | --- | --- |
-| Message digest | `getDigestAlgorithm()` | Hàm hash dùng để băm **message** và trong encoding EMSA-PSS | `"SHA-256"` |
-| MGF algorithm | `getMGFAlgorithm()` | Hàm tạo mask, thường là **MGF1** | `"MGF1"` |
-| Tham số MGF | `getMGFParameters()` | Với MGF1: một `MGF1ParameterSpec` chỉ ra digest dùng trong MGF1 | `MGF1ParameterSpec.SHA256` |
-| Salt length | `getSaltLength()` | Số **byte** ngẫu nhiên dùng cho mỗi lần PSS encoding khi ký | `32` byte |
-| Trailer field | `getTrailerField()` | Mã nhận diện trailer theo PKCS#1; giá trị `1` ứng với trailer octet `0xBC` | `PSSParameterSpec.TRAILER_FIELD_BC` (giá trị 1) |
+| Message digest | `getDigestAlgorithm()` | Hash function used to hash the **message** and inside EMSA-PSS encoding | `"SHA-256"` |
+| MGF algorithm | `getMGFAlgorithm()` | Mask generation function, typically **MGF1** | `"MGF1"` |
+| MGF parameters | `getMGFParameters()` | For MGF1: an `MGF1ParameterSpec` specifying the digest used inside MGF1 | `MGF1ParameterSpec.SHA256` |
+| Salt length | `getSaltLength()` | Number of random **bytes** used for each PSS encoding when signing | `32` bytes |
+| Trailer field | `getTrailerField()` | Trailer identifier per PKCS#1; value `1` corresponds to trailer octet `0xBC` | `PSSParameterSpec.TRAILER_FIELD_BC` (value 1) |
 
-**Ba nhầm lẫn cần tránh:**
+**Three common pitfalls to avoid:**
 
-1. `"SHA-256"` và `MGF1ParameterSpec.SHA256` mô tả **hai vai trò hash** khác nhau. Mặc dù nên khớp theo nhiều profile hiện đại, thiết kế PSS về mặt khái niệm không đồng nhất hai trường; verifier cần đọc chính xác **cả hai**.
-2. `saltLength=32` có nghĩa **32 byte = 256 bit**, không phải 32 bit. Nó cũng **không phải** độ dài public/private RSA key và không quyết định kích thước chữ ký RSA.
-3. `TRAILER_FIELD_BC` là giá trị constructor **1**; đừng truyền số `0xBC` (188) thay cho tham số trailer. Giá trị 1 biểu thị byte đệm cuối `0xBC` theo định nghĩa scheme.
+1. `"SHA-256"` and `MGF1ParameterSpec.SHA256` describe **two distinct hash roles**. Although they should match in many modern profiles, the PSS design conceptually does not equate the two fields; the verifier must read **both** accurately.
+2. `saltLength=32` means **32 bytes = 256 bits**, not 32 bits. It is also **not** the length of the RSA public/private key and does not determine the RSA signature size.
+3. `TRAILER_FIELD_BC` has the constructor value **1**; do not pass `0xBC` (188) as the trailer parameter. The value 1 denotes the trailing padding byte `0xBC` per the scheme definition.
 
-### Cảnh báo về giá trị mặc định
+### Warning about default values
 
-`PSSParameterSpec.DEFAULT` là profile **lịch sử**: message digest `SHA-1`, `MGF1` với `SHA-1`, salt dài **20 byte**, trailer `1`. Constructor ngắn `new PSSParameterSpec(int saltLen)` cũng dựa trên các mặc định SHA-1/MGF1-SHA1, chỉ thay độ dài salt.
+`PSSParameterSpec.DEFAULT` is a **historical** profile: message digest `SHA-1`, `MGF1` with `SHA-1`, **20-byte** salt, trailer `1`. The short constructor `new PSSParameterSpec(int saltLen)` also builds on those SHA-1/MGF1-SHA1 defaults, changing only the salt length.
 
-Vì vậy, **`new PSSParameterSpec(32)` không tự chuyển thành SHA-256-PSS**. Trong hệ thống mới, hãy tạo constructor năm tham số dựa trên profile bảo mật đã chọn, không phụ thuộc vào `DEFAULT` hoặc việc provider tự chọn giá trị. SHA-1 trong defaults chỉ giúp đọc legacy/API, không phải một đề xuất cho chữ ký mới.
+Therefore, **`new PSSParameterSpec(32)` does not automatically become SHA-256-PSS**. In new systems, invoke the five-argument constructor based on your chosen security profile rather than relying on `DEFAULT` or provider-chosen defaults. SHA-1 in the defaults exists only for legacy/API comprehension, not as a recommendation for new signatures.
 
-### `MGF1ParameterSpec` không phải chính `MGF1`
+### `MGF1ParameterSpec` is not `MGF1` itself
 
-`MGF1ParameterSpec.SHA256` là một đối tượng chứa **tên hash dùng để tạo mask**, không tự ký/hashing dữ liệu. `MGF1` (Mask Generation Function 1) sinh mask có độ dài cần thiết từ seed bằng các lần gọi hàm hash với counter. Việc mã hóa PSS dùng mask đó để che phần dữ liệu encoded; digest của MGF1 **không thay thế** message digest mà signer dùng trên message ban đầu.
+`MGF1ParameterSpec.SHA256` is an object carrying the **hash name used to generate the mask**, and does not itself sign or hash data. `MGF1` (Mask Generation Function 1) generates a mask of the required length from a seed via repeated hash invocations with a counter. PSS encoding uses that mask to mask part of the encoded data; the MGF1 digest **does not replace** the message digest that the signer applies to the original message.
 
-## 3. Đi sâu vừa đủ vào cơ chế EMSA-PSS
+## 3. Just enough detail on the EMSA-PSS mechanism
 
-RFC 8017 mô tả encoding trước phép toán RSA với `emBits = modBits - 1` và `emLen = ceil(emBits / 8)`. Với message `M`:
+RFC 8017 describes the encoding prior to the RSA operation with `emBits = modBits - 1` and `emLen = ceil(emBits / 8)`. Given message `M`:
 
 ```text
 M (message bytes)
    |
    v
-mHash = Hash(M)                  Hash = message digest (ví dụ SHA-256)
+mHash = Hash(M)                  Hash = message digest (e.g., SHA-256)
    |
-   +----------- random salt (sLen byte)
+   +----------- random salt (sLen bytes)
    |                 |
    v                 v
-M' = 0x00 (8 byte) || mHash || salt
+M' = 0x00 (8 bytes) || mHash || salt
    |
    v
-H = Hash(M')                    Cùng message digest của profile PSS
+H = Hash(M')                    Same message digest of the PSS profile
    |
    v
-dbMask = MGF1(H, targetLength)  MGF1 dùng digest riêng từ MGF1ParameterSpec
+dbMask = MGF1(H, targetLength)  MGF1 uses separate digest from MGF1ParameterSpec
    |
    v
 maskedDB = DB XOR dbMask
    |
    v
-EM = maskedDB || H || 0xBC      encoded message trước RSA operation
+EM = maskedDB || H || 0xBC      encoded message before RSA operation
 ```
 
-Ở bước này `DB` có dạng `PS || 0x01 || salt`, với `PS` là chuỗi byte zero đệm đủ độ dài; một số bit cao của `maskedDB` được điều chỉnh theo `emBits`. Phép toán RSA sau đó biến `EM` thành signature bytes. Bên verify dùng public key lấy lại encoding, tái tạo/kiểm tra mask, trích salt và đối chiếu hash.
+Here `DB` has the form `PS || 0x01 || salt`, where `PS` is a zero-byte padding string of sufficient length; certain high bits of `maskedDB` are cleared according to `emBits`. The RSA operation then converts `EM` into signature bytes. The verifier uses the public key to recover the encoding, recompute/check the mask, extract the salt, and compare the hash.
 
-Ý nghĩa của từng thành phần:
+Meaning of each component:
 
-- **`mHash`:** hash của **chính xác bytes mà signer nhận qua `Signature.update(...)`**.
-- **`salt`:** một chuỗi byte được sinh cho mỗi lần PSS ký, không phải salt dùng cho password hashing; có thể làm hai chữ ký của cùng message/key **khác bytes**. Salt được mã hóa trong phần EMSA-PSS mà verifier kiểm tra; không cần truyền salt ở một trường riêng nếu protocol dùng RSASSA-PSS thông thường.
-- **`MGF1`:** sinh mask từ `H`; mask không phải key hay IV của một thuật toán mã hóa.
-- **`trailer 0xBC`:** marker cuối của encoding; getter/setter Java dùng mã `1`.
-- **`RSA key`:** độ dài modulus ràng buộc tổng không gian cho digest, salt và các byte overhead.
+- **`mHash`:** hash of the **exact bytes the signer received via `Signature.update(...)`**.
+- **`salt`:** a byte sequence generated per PSS signing operation, not a password-hashing salt; it can cause two signatures of the same message/key to have **different bytes**. The salt is encoded inside EMSA-PSS and checked by the verifier; there is no need to transmit the salt in a separate field under standard RSASSA-PSS.
+- **`MGF1`:** generates a mask from `H`; the mask is not an encryption key or IV.
+- **`trailer 0xBC`:** trailing marker of the encoding; Java getters/setters use code `1`.
+- **`RSA key`:** the modulus length bounds the total space available for the digest, salt, and overhead bytes.
 
-Không tự viết lại EMSA-PSS/MGF1/RSA primitive trong ứng dụng. Dùng Java `Signature` và chỉ hiểu cấu trúc để chọn tham số, điều tra lỗi, cấu hình định dạng chữ ký.
+Do not re-implement EMSA-PSS/MGF1/RSA primitives in application code. Use Java `Signature` and understand the structure only to select parameters, investigate errors, and configure signature formats.
 
-## 4. Vì sao signer và verifier phải khớp toàn bộ profile?
+## 4. Why must signer and verifier match the entire profile?
 
-Một bên ký với:
+Suppose one side signs with:
 
 ```text
 algorithm=RSASSA-PSS
@@ -123,11 +123,11 @@ saltLength=32 bytes
 trailerField=1
 ```
 
-Bên xác minh có thể có đúng public key và message nhưng vẫn **không verify** nếu kỳ vọng saltLength=20, MGF1 dùng SHA-1, message digest=SHA-384 hoặc scheme thành `SHA256withRSA`. Với key/type/params hợp lệ và signature không phù hợp, `Signature.verify` thường trả `false`; nếu thuật toán, provider hoặc tham số không được hỗ trợ, có thể ném exception trước hoặc trong verify. Đừng nuốt mọi lỗi thành một lý do duy nhất.
+The verifier may hold the right public key and message yet still **fail to verify** if it expects `saltLength=20`, MGF1 with SHA-1, message digest SHA-384, or uses scheme `SHA256withRSA`. With a valid key/type/params and a non-matching signature, `Signature.verify` normally returns `false`; if the algorithm, provider, or parameters are unsupported, it may throw an exception before or during verify. Never swallow all failures into a single vague reason.
 
-**Khuyến nghị thực hành:** định nghĩa profile tại một nơi có tên rõ ràng (ví dụ `PSS_SHA256_MGF1_SHA256_SALT32`), dùng cùng profile cho signer và verifier, và có test giao tiếp qua hai tiến trình/thư viện. Trong môi trường phải tương thích chuẩn bên ngoài, profile **phải theo chuẩn đó**, không tự chọn số salt tùy ý.
+**Practical recommendation:** define the profile in one clearly named place (e.g., `PSS_SHA256_MGF1_SHA256_SALT32`), use the exact same profile for signer and verifier, and test interoperability across two processes/libraries. When interoperating with an external standard, the profile **must follow that standard** rather than picking an arbitrary salt count.
 
-Cách kiểm tra profile trong ứng dụng Java:
+How to inspect the profile in a Java application:
 
 ```java
 AlgorithmParameters params = signer.getParameters();
@@ -139,11 +139,11 @@ if (params != null) {
 }
 ```
 
-Snippet dùng `java.security.AlgorithmParameters` và giả định `signer` là `Signature` đã `setParameter`. `Signature.getParameters()` có thể trả `null` nếu implementation không hỗ trợ xuất đối tượng parameters theo API. Vì vậy nếu cần kiểm chứng tuyệt đối cấu hình protocol, giữ bản `PSSParameterSpec` mà code đã truyền vào, dùng test xác minh thực tế và không suy diễn từ `null` rằng provider đã dùng defaults gì.
+This snippet uses `java.security.AlgorithmParameters` and assumes `signer` is a `Signature` that has called `setParameter`. `Signature.getParameters()` may return `null` if the implementation does not support exporting parameters via this API. Therefore, to guarantee strict protocol configuration, retain the `PSSParameterSpec` instance passed in by code, run actual verification tests, and never infer from `null` what provider defaults were used.
 
-## 5. Java 17: ký và xác minh RSASSA-PSS với tham số rõ ràng
+## 5. Java 17: signing and verifying RSASSA-PSS with explicit parameters
 
-Lưu toàn bộ mã sau vào **`RsaPssDemo.java`**. Chương trình tạo một key pair RSA 2048 bit (mục đích demo), ký chuỗi `hello PSS` bằng **hai lần `update`**, sau đó xác minh đủ bốn trường hợp: đúng profile, message bị sửa, salt length khác và MGF digest khác.
+Save the following full code into **`RsaPssDemo.java`**. The program generates a 2048-bit RSA key pair (for demo purposes), signs the string `hello PSS` using **two `update` calls**, and then verifies all four cases: matching profile, modified message, different salt length, and different MGF digest.
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -216,14 +216,14 @@ public final class RsaPssDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 RsaPssDemo.java
 java RsaPssDemo
 ```
 
-**Stdout trên JDK 24/OpenJDK provider đã kiểm tra** (các trường hợp verify sai tương ứng có thể bị provider khác từ chối bằng exception khi xử lý tham số thay vì trả `false`):
+**Stdout on a tested JDK 24/OpenJDK provider** (the mismatching verification cases may be rejected with an exception on another provider when validating parameters rather than returning `false`):
 
 ```text
 modulusBits=2048
@@ -238,85 +238,85 @@ wrongSaltAccepted=false
 wrongMgfAccepted=false
 ```
 
-Điểm học tập:
+Key takeaways:
 
-1. `KeyPairGenerator.getInstance("RSA")` và `initialize(2048)` tạo khóa đủ cho ví dụ, và `Signature.getInstance("RSASSA-PSS")` yêu cầu scheme PSS. Bảo mật thực tế còn phụ thuộc kích thước khóa theo chính sách, nguồn ngẫu nhiên, quyền truy cập private key và vòng đời key.
-2. `signer.initSign(privateKey)` chọn private key; `setParameter(spec)` thiết lập digest/MGF/salt/trailer. `update(first)` rồi `update(second)` nạp đúng bytes `hello PSS`, không tự chèn dấu phân cách.
-3. `signer.sign()` hoàn tất phép ký, sinh salt ngẫu nhiên theo profile; chữ ký có **256 byte** vì modulus RSA là **2048 bit**, **không** phải vì SHA-256 hoặc sLen=32.
-4. `verifier.initVerify(publicKey)` + `verifier.setParameter(spec)` + `update(whole)` + `verify(signature)` trả true khi message/key/profile khớp. Hai lần `update` của signer và một lần của verifier tương đương vì **chuỗi bytes** giống nhau.
-5. `modifiedMessageAccepted=false` cho thấy sửa `PSS` thành `Pss` làm thông điệp thay đổi. Đây là hiệu ứng trên bytes sau UTF-8, không có “so sánh chữ tương đương” tự động.
-6. `wrongSaltAccepted=false`: verifier kỳ vọng **20 byte salt** nhưng signer đã ký với **32 byte**.
-7. `wrongMgfAccepted=false`: verifier kỳ vọng MGF1-SHA1 thay vì MGF1-SHA256. Mặc dù message digest vẫn SHA-256, **MGF digest khác** khiến không khớp.
-8. `signer.getParameters()` cho biết cấu hình thực tế trên provider của demo. Ví dụ assume provider hỗ trợ trả về `AlgorithmParameters`; nếu gặp `null` trên provider khác, tự lưu spec đã dùng và chẩn đoán theo contract của provider.
+1. `KeyPairGenerator.getInstance("RSA")` and `initialize(2048)` create a key sufficient for the example, and `Signature.getInstance("RSASSA-PSS")` selects the PSS scheme. Real-world security also depends on policy-compliant key sizes, random sources, private key access control, and key lifecycle.
+2. `signer.initSign(privateKey)` sets the private key; `setParameter(spec)` configures digest/MGF/salt/trailer. `update(first)` followed by `update(second)` supplies the exact bytes `hello PSS` without inserting any separator.
+3. `signer.sign()` completes signing and generates a random salt per the profile; the signature is **256 bytes** because the RSA modulus is **2048 bits**, **not** because of SHA-256 or `sLen=32`.
+4. `verifier.initVerify(publicKey)` + `verifier.setParameter(spec)` + `update(whole)` + `verify(signature)` returns true when message/key/profile match. The signer's two `update` calls and the verifier's single call are equivalent because the **byte sequence** is identical.
+5. `modifiedMessageAccepted=false` shows that changing `PSS` to `Pss` alters the message. This operates on UTF-8 bytes, with no automatic “case-insensitive text comparison.”
+6. `wrongSaltAccepted=false`: the verifier expects a **20-byte salt** while the signer signed with **32 bytes**.
+7. `wrongMgfAccepted=false`: the verifier expects MGF1-SHA1 instead of MGF1-SHA256. Even though the message digest is still SHA-256, the **different MGF digest** prevents a match.
+8. `signer.getParameters()` reports the active configuration on the demo provider. The example assumes the provider returns `AlgorithmParameters`; if you get `null` on another provider, retain the `spec` your code supplied and diagnose per that provider's contract.
 
-**Không được** lưu private key trong source, không in private key để debug, không chấp nhận public key tùy ý do người gửi dữ liệu không đáng tin cung cấp rồi tuyên bố người gửi “hợp lệ”. Demo tạo cả hai key trong cùng tiến trình chỉ nhằm chứng minh luồng API.
+**Never** store private keys in source code, print private keys for debugging, or accept an arbitrary public key supplied by an untrusted data sender and declare the sender “valid.” The demo generates both keys in-process solely to demonstrate the API flow.
 
-## 6. Digest của message và digest của MGF1 khác nhau ở đâu?
+## 6. How do the message digest and MGF1 digest differ?
 
-`PSSParameterSpec.getDigestAlgorithm()` cho biết hàm hash tính `mHash = Hash(M)` và `H = Hash(0x00... || mHash || salt)`. `MGF1ParameterSpec.getDigestAlgorithm()` cho biết hash dùng **bên trong MGF1** để tạo mask từ `H`.
+`PSSParameterSpec.getDigestAlgorithm()` specifies the hash function computing `mHash = Hash(M)` and `H = Hash(0x00... || mHash || salt)`. `MGF1ParameterSpec.getDigestAlgorithm()` specifies the hash used **inside MGF1** to generate the mask from `H`.
 
-| Profile | Message digest | MGF | MGF digest | Salt bytes | Ý nghĩa |
+| Profile | Message digest | MGF | MGF digest | Salt bytes | Meaning |
 | --- | --- | --- | --- | ---: | --- |
-| SHA-256 PSS thường dùng | SHA-256 | MGF1 | SHA-256 | 32 | Tương thích profile PS256 trong JOSE khi các quy tắc khác phù hợp. |
-| SHA-384 PSS thường dùng | SHA-384 | MGF1 | SHA-384 | 48 | Profile PS384. |
-| SHA-512 PSS thường dùng | SHA-512 | MGF1 | SHA-512 | 64 | Profile PS512. |
-| SHA-256 + MGF1-SHA1 | SHA-256 | MGF1 | SHA-1 | 32 | Về mặt cấu trúc PSS có thể mô tả; không phải profile PS256 và khả năng hỗ trợ phụ thuộc provider. |
-| `PSSParameterSpec.DEFAULT` | SHA-1 | MGF1 | SHA-1 | 20 | Legacy defaults, không nên ngầm dùng cho chữ ký mới. |
+| Common SHA-256 PSS | SHA-256 | MGF1 | SHA-256 | 32 | Compatible with the `PS256` profile in JOSE when other rules match. |
+| Common SHA-384 PSS | SHA-384 | MGF1 | SHA-384 | 48 | `PS384` profile. |
+| Common SHA-512 PSS | SHA-512 | MGF1 | SHA-512 | 64 | `PS512` profile. |
+| SHA-256 + MGF1-SHA1 | SHA-256 | MGF1 | SHA-1 | 32 | Expressible structurally in PSS; not the `PS256` profile, and provider support varies. |
+| `PSSParameterSpec.DEFAULT` | SHA-1 | MGF1 | SHA-1 | 20 | Legacy defaults; do not implicitly use for new signatures. |
 
-Trong nhiều protocol hiện đại, message digest và MGF digest **phải là cùng loại**; ví dụ RFC 7518 định nghĩa **JOSE PS256** là SHA-256 cho cả hai, saltLength=32, trailer theo mặc định PSS, và key RSA ít nhất 2048 bit. Tương tự PS384 dùng 48 byte salt, PS512 dùng 64 byte salt.
+In many modern protocols, the message digest and MGF digest **must be the same hash**; for instance, RFC 7518 defines **JOSE PS256** as SHA-256 for both, `saltLength=32`, standard PSS trailer, and an RSA key of at least 2048 bits. Similarly, `PS384` uses a 48-byte salt and `PS512` uses a 64-byte salt.
 
-**Không có quy tắc “cứ SHA-256 thì Java tự chọn salt 32 byte” khi bạn chỉ gọi `getInstance("RSASSA-PSS")`.** Độ dài salt là **tham số độc lập**, và yêu cầu protocol cần được khai báo đầy đủ. Nếu phải verify một chữ ký có salt dài 20 dù dùng SHA-256, chỉ dùng profile đó khi đúng giao thức/hệ thống legacy và đã xem xét chính sách chấp nhận.
+**There is no rule that “SHA-256 makes Java automatically pick a 32-byte salt” when you just call `getInstance("RSASSA-PSS")`.** Salt length is an **independent parameter**, and protocol requirements must be declared explicitly. If you must verify a signature using a 20-byte salt with SHA-256, use that profile only when required by a legacy protocol/system and after reviewing acceptance policy.
 
-### Có nên tự gọi `MessageDigest` trước khi `Signature.update`?
+### Should you call `MessageDigest` yourself before `Signature.update`?
 
-**Không** khi dùng `Signature.getInstance("RSASSA-PSS")` với `PSSParameterSpec("SHA-256",...)`. `Signature.update(message)` nhận **message bytes**; engine tự thực hiện hash theo profile. Nếu bạn:
+**No**, when using `Signature.getInstance("RSASSA-PSS")` with `PSSParameterSpec("SHA-256",...)`. `Signature.update(message)` takes **message bytes**; the engine computes the hash internally per the profile. If you write:
 
 ```java
 byte[] prehashed = MessageDigest.getInstance("SHA-256").digest(message);
 signer.update(prehashed);
 ```
 
-thì signer PSS sẽ hash **32 byte prehashed** như một thông điệp mới; chữ ký đó **không** là chữ ký trực tiếp trên original `message` theo giao thức thông thường. Code trên chỉ là snippet minh họa lỗi (giả định `message` là `byte[]`, `signer` đã init, đã khai báo/catch exception); không dùng trong luồng chuẩn. Đừng “tối ưu” bằng cách prehash vì engine PSS đã bao gồm hash. Một API prehashed chuyên biệt, nếu tồn tại ở provider/protocol, phải tuân thủ contract riêng và không được nhầm với `Signature` RSASSA-PSS thông thường.
+then the PSS signer hashes the **32-byte `prehashed` value** as if it were a new message; that signature is **not** a direct signature over the original `message` under standard protocols. The snippet above only illustrates the bug (assuming `message` is a `byte[]`, `signer` is initialized, and exceptions are declared/caught); never use it in a standard flow. Do not “optimize” by prehashing since the PSS engine already includes hashing. Any specialized prehashed API, if offered by a provider/protocol, has its own contract and must not be confused with standard `RSASSA-PSS` `Signature`.
 
-## 7. Salt length bị giới hạn bởi digest và RSA modulus
+## 7. Salt length is bounded by digest and RSA modulus
 
-RFC 8017, EMSA-PSS encoding quy định:
+RFC 8017, EMSA-PSS encoding specifies:
 
 ```text
-modBits = số bit của RSA modulus n
+modBits = bit length of RSA modulus n
 emBits  = modBits - 1
-emLen   = ceil(emBits / 8)       // byte của encoded message
-hLen    = số byte output của message digest
-sLen    = số byte của salt
+emLen   = ceil(emBits / 8)       // bytes of encoded message
+hLen    = output bytes of message digest
+sLen    = byte length of salt
 
-Yêu cầu cơ bản: emLen >= hLen + sLen + 2
-Hay: sLen <= emLen - hLen - 2
+Basic requirement: emLen >= hLen + sLen + 2
+Or: sLen <= emLen - hLen - 2
 ```
 
-Ví dụ **RSA modulus 2048 bit**:
+Example with a **2048-bit RSA modulus**:
 
-- `emBits=2047`, `emLen=256 byte`.
-- SHA-256: `hLen=32`, nên **sLen tối đa = 256 - 32 - 2 = 222 byte** về mặt kích thước encoding.
-- SHA-512: `hLen=64`, sLen tối đa **190 byte**.
-- Khi sLen=32 với SHA-256, còn nhiều khoảng trống padding, và profile **hoàn toàn vừa** vào RSA-2048.
+- `emBits=2047`, `emLen=256 bytes`.
+- SHA-256: `hLen=32`, so **maximum sLen = 256 - 32 - 2 = 222 bytes** from an encoding-size standpoint.
+- SHA-512: `hLen=64`, maximum sLen is **190 bytes**.
+- When `sLen=32` with SHA-256, ample padding room remains and the profile **fits comfortably** in RSA-2048.
 
-**Salt length tối đa không có nghĩa đó là lựa chọn cần dùng.** Mỗi protocol có thể yêu cầu salt bằng digest length (ví dụ PS256 sLen=32); tăng lên 222 byte không tự làm chữ ký “mạnh hơn 6,9 lần” và có thể phá tương thích. Một số provider hoặc key RSA-PSS có ràng buộc riêng nghiêm hơn giới hạn toán học; luôn kiểm tra trên implementation và protocol thực tế.
+**Maximum salt length does not mean it is the right choice.** Protocols typically mandate salt equal to digest length (e.g., `PS256` `sLen=32`); raising it to 222 bytes does not make the signature “6.9x stronger” and can break interoperability. Some providers or RSA-PSS keys impose stricter constraints than the mathematical bound; always test against the real implementation and protocol.
 
-Bảng tính nhanh (khóa RSA có modulus đúng số bit ghi):
+Quick reference table (for RSA keys with the exact listed modulus bits):
 
-| RSA modulus | Message digest | hLen | emLen | sLen tối đa theo công thức |
+| RSA modulus | Message digest | hLen | emLen | Maximum sLen by formula |
 | ---: | --- | ---: | ---: | ---: |
-| 1024 bit | SHA-256 | 32 byte | 128 byte | 94 byte |
-| 2048 bit | SHA-256 | 32 byte | 256 byte | 222 byte |
-| 2048 bit | SHA-512 | 64 byte | 256 byte | 190 byte |
-| 3072 bit | SHA-256 | 32 byte | 384 byte | 350 byte |
-| 4096 bit | SHA-512 | 64 byte | 512 byte | 446 byte |
+| 1024 bits | SHA-256 | 32 bytes | 128 bytes | 94 bytes |
+| 2048 bits | SHA-256 | 32 bytes | 256 bytes | 222 bytes |
+| 2048 bits | SHA-512 | 64 bytes | 256 bytes | 190 bytes |
+| 3072 bits | SHA-256 | 32 bytes | 384 bytes | 350 bytes |
+| 4096 bits | SHA-512 | 64 bytes | 512 bytes | 446 bytes |
 
-Dòng RSA-1024 chỉ để làm **bài toán kích thước**, **không** là khuyến nghị sử dụng RSA-1024 cho chữ ký mới. Dùng RSA key size theo tiêu chuẩn và chính sách đang áp dụng.
+The RSA-1024 row is solely for the **size math**, **not** a recommendation to use RSA-1024 for new signatures. Use RSA key sizes compliant with current standards and policies.
 
-### Java tính budget thay vì đoán
+### Computing the budget in Java instead of guessing
 
-Lưu **`PssSaltBudgetDemo.java`**:
+Save **`PssSaltBudgetDemo.java`**:
 
 ```java
 import java.security.MessageDigest;
@@ -370,24 +370,24 @@ salt32FitsRSA2048_SHA256=true
 salt223FitsRSA2048_SHA256=false
 ```
 
-Chương trình chỉ thực hiện **phép tính giới hạn encoding từ RFC**, không thử hỗ trợ của provider, không chứng minh algorithm policy nào được chấp nhận và không tạo chữ ký. Với key có sẵn, lấy bit length thực từ `((RSAPublicKey) publicKey).getModulus().bitLength()`, không giả định key luôn có đúng modulus size như mô tả trong cấu hình.
+This program only performs the **RFC encoding-bound calculation**; it does not probe provider support, prove any algorithm policy is accepted, or create signatures. For an existing key, obtain the actual bit length via `((RSAPublicKey) publicKey).getModulus().bitLength()` rather than assuming the key matches a documented config size.
 
-### Điều gì xảy ra khi salt vượt giới hạn?
+### What happens when salt exceeds the limit?
 
-Với RSA-2048/SHA-256, yêu cầu sLen=223 làm `hLen+sLen+2=257 > emLen=256`. PSS không thể encode thông điệp theo tham số đó; JCA/provider có thể từ chối tại `setParameter`, `initSign` hoặc `sign` bằng exception phù hợp. Đừng giả định duy nhất một loại exception ở mọi provider. Cần **validate sLen** trước khi thử ký, chọn key đủ lớn và profile đáp ứng protocol.
+For RSA-2048/SHA-256, requesting `sLen=223` makes `hLen+sLen+2=257 > emLen=256`. PSS cannot encode the message under those parameters; JCA/the provider may reject it at `setParameter`, `initSign`, or `sign` with an appropriate exception. Do not assume a single exception type across all providers. Always **validate `sLen`** beforehand, choose a sufficiently large key, and use a protocol-compliant profile.
 
-`sLen=0` được chuẩn định dạng PSS cho phép về mặt encoding; khi đó salt rỗng và tính ngẫu nhiên của chính scheme không còn từ salt. Đây không phải mặc định profile PS256/PS384/PS512; chỉ dùng khi một giao thức/chính sách xác định cụ thể, không tùy tiện đặt 0 để được chữ ký có thể so sánh bytes.
+`sLen=0` is permitted structurally by the PSS encoding standard; in that case the salt is empty and randomness from the salt is gone. This is not the default for `PS256`/`PS384`/`PS512`; use it only when an explicit protocol/policy specifies it, never setting it to 0 arbitrarily to obtain byte-comparable signatures.
 
-## 8. Sử dụng đúng `Signature`: thứ tự gọi và byte đầu vào
+## 8. Proper `Signature` usage: call order and input bytes
 
-Vòng đời một thao tác ký:
+Lifecycle of a signing operation:
 
 ```text
 Signature.getInstance("RSASSA-PSS")
    |
 initSign(privateKey, [SecureRandom])
    |
-setParameter(profile phù hợp)
+setParameter(matching profile)
    |
 update(messageByteChunk1)
 update(messageByteChunk2)
@@ -395,101 +395,101 @@ update(messageByteChunk2)
 sign() -> signatureBytes
 ```
 
-Vòng đời xác minh:
+Verification lifecycle:
 
 ```text
 Signature.getInstance("RSASSA-PSS")
    |
 initVerify(trustedPublicKey)
    |
-setParameter(CÙNG profile)
+setParameter(SAME profile)
    |
-update(CÙNG message bytes theo thứ tự)
+update(SAME message bytes in order)
    |
-verify(signatureBytes) -> true/false hoặc exception
+verify(signatureBytes) -> true/false or exception
 ```
 
-Tùy provider, `setParameter` có thể được phép gọi trước `initSign/initVerify` hoặc chỉ sau khi engine được khởi tạo với key; ví dụ bài dùng thứ tự **init trước, setParameter sau** đã chạy trên provider kiểm thử. Với RSA-PSS key có ràng buộc thuật toán sẵn, engine có thể từ chối profile trái ràng buộc của key.
+Depending on the provider, `setParameter` may be allowed before `initSign/initVerify` or only after the engine has been initialized with a key; this lesson's example uses **init first, `setParameter` second**, which ran on the tested provider. With an RSA-PSS key that has pre-bound algorithm constraints, the engine may reject a profile violating the key's constraints.
 
-**Một số lưu ý cần nhớ:**
+**Points to remember:**
 
-- `Signature.update(...)` **không** tạo chữ ký từng chunk. Nó chỉ tiếp nhận bytes vào thông điệp đang ký/xác minh. Chia `"hello PSS"` thành hai lần update hay một lần update cho cùng bytes thì kết quả xác minh vẫn đúng.
-- `Signature.sign()` trả signature bytes có độ dài theo RSA modulus (RSA-2048 là 256 byte), không bằng SHA-256 digest 32 byte hoặc salt 32 byte.
-- Mỗi lần ký PSS thường sinh salt mới; **cùng message và key có thể cho chữ ký bytes khác nhau**. Đừng viết test yêu cầu hai signature PSS phải giống byte. Hãy kiểm tra `verify(...) == true` và xử lý sự khác biệt dự kiến của randomness.
-- `initSign(privateKey, SecureRandom random)` có overload cho phép cấp RNG; cần CSPRNG phù hợp, tránh seed bằng hằng số hoặc lộ RNG state. Trong code tiêu chuẩn, provider có cơ chế sinh ngẫu nhiên riêng; không tự tạo và đưa salt như tham số ngoài.
-- `Signature` có trạng thái mutable và không nên chia sẻ cùng instance giữa nhiều thread/request; mỗi operation dùng instance riêng hoặc quản lý chặt chẽ.
-- Khi chuyển `String` thành bytes, chỉ định `StandardCharsets.UTF_8`. Dữ liệu JSON/XML cần protocol đảm bảo **chuỗi bytes đã chuẩn hóa** giống nhau; ký JSON nguyên gốc rồi verify JSON được sắp xếp/serialize lại có thể làm verify false dù “nội dung logic” tương đương.
-- Khi xác minh, public key phải được chọn theo **nguồn tin cậy**; không tin tên thuật toán hoặc đường dẫn key do input không tin cậy yêu cầu. Kiểm tra metadata key/algorithm và chính sách chấp nhận từ cấu hình/định danh đáng tin.
+- `Signature.update(...)` **does not** produce a per-chunk signature. It only feeds bytes into the message being signed/verified. Splitting `"hello PSS"` across two `update` calls or one yields identical verification outcomes because the byte sequence is the same.
+- `Signature.sign()` returns signature bytes matching the RSA modulus length (256 bytes for RSA-2048), not the 32-byte SHA-256 digest or 32-byte salt.
+- Each PSS signing call normally generates a new salt; **the same message and key can produce different signature bytes**. Never write tests requiring two PSS signatures to be byte-equal. Check `verify(...) == true` and account for expected randomness.
+- `initSign(privateKey, SecureRandom random)` has an overload allowing an explicit RNG; use a proper CSPRNG, avoiding fixed seeds or exposed RNG state. In standard code, the provider manages random salt generation internally; do not generate and inject a salt as an external parameter.
+- `Signature` holds mutable state and should not be shared across threads/requests; use a dedicated instance per operation or strict isolation.
+- When converting `String` to bytes, specify `StandardCharsets.UTF_8`. Structured JSON/XML data needs a protocol ensuring **identical canonicalized byte sequences**; signing raw JSON and verifying re-ordered/re-serialized JSON can make `verify` return false even when the “logical content” is equivalent.
+- When verifying, the public key must come from a **trusted source**; do not trust an algorithm name or key path requested by untrusted input. Enforce key/algorithm metadata and acceptance policy from trusted configuration/identities.
 
-## 9. Liên thông chuẩn JOSE/JWT, X.509 và thư viện khác
+## 9. Interoperating with JOSE/JWT, X.509, and other libraries
 
-### JWS/JWT: PS256 không phải RS256
+### JWS/JWT: PS256 is not RS256
 
-RFC 7518 `3.5 quy định:
+RFC 7518 section 3.5 specifies:
 
 | JWS `alg` | Scheme | Message digest | MGF1 digest | Salt length |
 | --- | --- | --- | --- | ---: |
-| `PS256` | RSASSA-PSS | SHA-256 | SHA-256 | 32 byte |
-| `PS384` | RSASSA-PSS | SHA-384 | SHA-384 | 48 byte |
-| `PS512` | RSASSA-PSS | SHA-512 | SHA-512 | 64 byte |
-| `RS256` | RSASSA-PKCS1-v1_5 | SHA-256 | Không dùng MGF1 | Không có PSS salt |
+| `PS256` | RSASSA-PSS | SHA-256 | SHA-256 | 32 bytes |
+| `PS384` | RSASSA-PSS | SHA-384 | SHA-384 | 48 bytes |
+| `PS512` | RSASSA-PSS | SHA-512 | SHA-512 | 64 bytes |
+| `RS256` | RSASSA-PKCS1-v1_5 | SHA-256 | No MGF1 | No PSS salt |
 
-Trong JWS, input thực tế được ký là **JWS Signing Input** theo chuẩn (chẳng hạn chuỗi ASCII `BASE64URL(UTF8(protectedHeader)) || "." || BASE64URL(payload)` với các điều kiện `b64` extension tương ứng), không phải tùy tiện đưa JSON đã parse/serialize lại vào `Signature.update`. Nếu áp dụng `PS256`, `PSSParameterSpec` của mục 2 đúng về digest/MGF/salt/trailer, nhưng ứng dụng vẫn phải thực hiện **toàn bộ các quy tắc JWS**, không chỉ gọi raw `Signature` lên phần payload.
+In JWS, the actual signed input is the standard **JWS Signing Input** (such as the ASCII string `BASE64URL(UTF8(protectedHeader)) || "." || BASE64URL(payload)` subject to `b64` extension rules), not arbitrarily feeding parsed/re-serialized JSON into `Signature.update`. When applying `PS256`, the `PSSParameterSpec` from section 2 matches in digest/MGF/salt/trailer, yet the application must still enforce **all JWS rules**, not just call raw `Signature` on the payload.
 
-**Không để header `alg` chưa tin cậy tự mở quyền chọn scheme/key.** Verifier cần có danh sách thuật toán được phép theo ứng dụng và key cụ thể, không tự động cho phép mọi algorithm do token yêu cầu. Library JWT/JWS có chức năng verify phù hợp sẽ giúp kiểm tra format, key và chính sách; `Signature` trực tiếp thích hợp khi xây giao thức riêng có spec rõ ràng.
+**Never allow an untrusted `alg` header to open up arbitrary scheme/key selection.** The verifier must maintain an application- and key-specific allowlist of permitted algorithms, rather than automatically honoring whatever algorithm the token requests. A maintained JWT/JWS library with proper verification handles format, key, and policy checks; direct `Signature` fits custom protocols with explicit specs.
 
-### X.509 và thông số được mã hóa
+### X.509 and encoded parameters
 
-Chữ ký RSASSA-PSS có thể có **algorithm identifier và tham số ASN.1** đi cùng chứng chỉ/cấu trúc giao thức. Java `AlgorithmParameters` có thể xuất thông số PSS từ provider, nhưng những raw `byte[] signature` do `Signature.sign()` trả **không tự chứa mọi trường profile được khai báo trong một header tự mô tả**. Do đó khi truyền chữ ký “thô” cùng file/message, bạn phải định nghĩa/biết trước thuật toán, digest/MGF/saltLen/trailer và khóa tương ứng.
+An RSASSA-PSS signature can carry an **algorithm identifier and ASN.1 parameters** inside certificates or protocol structures. Java `AlgorithmParameters` can export PSS parameters from a provider, whereas the raw `byte[] signature` returned by `Signature.sign()` **does not embed a self-describing header declaring every profile field**. Thus when transmitting “raw” signatures alongside files/messages, both sides must pre-define or know the algorithm, digest/MGF/saltLen/trailer, and corresponding key.
 
-Nếu dùng public key cấu hình cho riêng RSASSA-PSS hoặc certificate có ràng buộc tham số, không được tự đổi digest/salt tùy ý; dùng khóa và thuật toán theo metadata/chính sách được xác minh của chứng chỉ. Không nên tự viết ASN.1 encoder/decoder khi thư viện chuẩn đã có.
+If using a public key restricted to RSASSA-PSS or a certificate binding specific parameters, do not arbitrarily alter digest/salt; apply the key and algorithm per verified certificate metadata/policy. Do not hand-write ASN.1 encoders/decoders when standard libraries exist.
 
-### Đối chiếu với OpenSSL
+### Comparing with OpenSSL
 
-Một bên dùng OpenSSL có thể chọn `rsa_padding_mode:pss`, `rsa_mgf1_md:sha256` và `rsa_pss_saltlen:32` cho RSA-PSS SHA-256. Nếu OpenSSL đang dùng chế độ tự suy salt length (`auto`), max salt hoặc khác chính sách, kết quả có thể không tương thích với verifier yêu cầu đúng saltLength=32. Khi debug, ghi rõ **năm trường profile và độ dài key**, rồi thử verify với test vector đã biết.
+An OpenSSL peer might configure `rsa_padding_mode:pss`, `rsa_mgf1_md:sha256`, and `rsa_pss_saltlen:32` for RSA-PSS SHA-256. If OpenSSL is using automatic salt-length detection (`auto`), max salt, or another policy, the output may fail verification against a verifier strictly requiring `saltLength=32`. When debugging, write down all **five profile fields and key length**, then test verification with a known test vector.
 
-Không quy mọi lỗi `verify=false` thành lỗi encoding text. Kiểm tra **cả** input bytes, key, padding mode, digest chính, MGF1 digest, salt length và trailer.
+Do not blame every `verify=false` on text encoding. Check **all** of input bytes, key, padding mode, primary digest, MGF1 digest, salt length, and trailer.
 
-## 10. Checklist chẩn đoán khi chữ ký không xác minh được
+## 10. Diagnostic checklist when a signature fails verification
 
-| Hiện tượng | Khả năng nguyên nhân | Cách kiểm tra |
+| Symptom | Likely cause | How to check |
 | --- | --- | --- |
-| Java ký được, OpenSSL/JWS verify false | MGF1 digest hoặc salt length khác | Ghi rõ SHA message/MGF, sLen và protocol profile; đối chiếu ký và verify. |
-| `verify=false` dù digest chính cùng SHA-256 | MGF1-SHA1 ở một phía, hoặc sLen 20 vs 32 | Đọc `PSSParameterSpec` và đặt rõ từng trường ở cả hai bên. |
-| RSA key đúng nhưng `SHA256withRSA` verify false | PKCS#1 v1.5 khác scheme PSS | Chọn `RSASSA-PSS` và đầy đủ params. |
-| `InvalidAlgorithmParameterException` | Provider không chấp nhận profile | Kiểm tra MGF, digest, key constraints và provider. |
-| `InvalidKeyException` hoặc `SignatureException` khi ký | RSA key không phù hợp, salt quá dài hoặc key restrictions | Xem modulusBits, emLen/hLen/sLen và thông báo lỗi. |
-| `verify=false` chỉ với message có Unicode | Byte/charset/canonicalization khác | So byte input thực trước `Signature.update`; thống nhất UTF-8 và canonicalization. |
-| Ký cùng message hai lần cho signature bytes khác | PSS sinh salt ngẫu nhiên | Verify từng chữ ký thay vì so byte signature. |
-| Dùng `PSSParameterSpec.DEFAULT` rồi bên ngoài yêu cầu PS256 | DEFAULT dùng SHA-1/MGF1-SHA1/sLen20 | Dùng constructor năm tham số SHA-256/MGF1-SHA256/sLen32/trailer1. |
-| Salt length đặt bằng 256 vì “SHA-256 là 256” | Nhầm bit và byte | SHA-256 output 256 bit = 32 byte; sLen=32 cho PS256. |
-| Salt length quá lớn với RSA key nhỏ | Không đủ encoding space | Tính `emLen >= hLen+sLen+2`; đổi profile/key theo chuẩn. |
-| Lấy `Signature.update(digestBytes)` thay vì message | Engine PSS hash digest như message mới | Đưa original signed-input bytes vào Signature. |
-| API trả `getParameters()==null` | Provider không expose AlgorithmParameters | Lưu/kiểm tra spec của ứng dụng và thử interoperability trên provider thật. |
-| Verify “đúng” với public key do attacker cung cấp | Chưa xác minh danh tính/key origin | Dùng trust store/certificate chain/chính sách khóa đã được tin cậy. |
+| Java signs cleanly, OpenSSL/JWS verifies false | Mismatched MGF1 digest or salt length | Explicitly record message/MGF SHA, `sLen`, and protocol profile; compare sign vs verify. |
+| `verify=false` despite both using SHA-256 primary digest | MGF1-SHA1 on one side, or `sLen` 20 vs 32 | Inspect `PSSParameterSpec` and set every field explicitly on both sides. |
+| Right RSA key, yet `SHA256withRSA` verifies false | PKCS#1 v1.5 differs from PSS scheme | Select `RSASSA-PSS` with complete params. |
+| `InvalidAlgorithmParameterException` | Provider rejects the profile | Check MGF, digest, key constraints, and provider support. |
+| `InvalidKeyException` or `SignatureException` on sign | Unsuitable RSA key, salt too long, or key restrictions | Inspect `modulusBits`, `emLen/hLen/sLen`, and error details. |
+| `verify=false` only on Unicode messages | Byte/charset/canonicalization mismatch | Compare exact input bytes before `Signature.update`; standardize UTF-8 and canonicalization. |
+| Signing the same message twice yields different bytes | PSS generates random salt | Verify each signature rather than comparing signature bytes. |
+| Used `PSSParameterSpec.DEFAULT` while peer expects PS256 | `DEFAULT` uses SHA-1/MGF1-SHA1/`sLen=20` | Use the five-arg constructor SHA-256/MGF1-SHA256/`sLen=32`/trailer 1. |
+| Salt length set to 256 because “SHA-256 is 256” | Confusing bits and bytes | SHA-256 output is 256 bits = 32 bytes; `sLen=32` for PS256. |
+| Salt length too large for a small RSA key | Insufficient encoding space | Check `emLen >= hLen+sLen+2`; adjust profile/key per standard. |
+| Called `Signature.update(digestBytes)` instead of message | PSS engine hashes digest as if it were a new message | Feed original signed-input bytes into `Signature`. |
+| API returns `getParameters()==null` | Provider does not expose `AlgorithmParameters` | Retain/check the application's spec and test interoperability on the real provider. |
+| Verification “succeeds” with attacker-supplied public key | Identity/key origin was not verified | Use a trusted trust store / certificate chain / key policy. |
 
-**Độ nhạy về lỗi:** khi xử lý chữ ký từ dữ liệu bên ngoài, xử lý input không hợp lệ có kiểm soát. Đừng coi `verify=false` và exception là hai mức “gần đúng” của chữ ký; cả hai đều **không được chấp nhận** nếu chưa được xác minh đầy đủ.
+**Error handling discipline:** when processing signatures from external data, handle invalid inputs cleanly. Do not treat `verify=false` and an exception as two “almost-valid” grades of a signature; neither is **acceptable** unless fully verified.
 
-## 11. Bài tập thực hành
+## 11. Hands-on exercises
 
-1. **Đọc profile:** giải thích từng getter `getDigestAlgorithm`, `getMGFAlgorithm`, `getMGFParameters`, `getSaltLength` và `getTrailerField`. Vì sao `MGF1ParameterSpec.SHA256` không thay thế trường message digest?
-2. **Chạy ví dụ:** biên dịch `RsaPssDemo.java`, giải thích vì sao signature có 256 byte trong khi digest và salt đều dài 32 byte.
-3. **Thay message:** đổi một chữ cái của `hello PSS` phía verify rồi mô tả kết quả. Giữ nguyên key/profile.
-4. **Thay MGF digest:** giữ SHA-256 ở `PSSParameterSpec.getDigestAlgorithm` nhưng đổi MGF1-SHA1 ở verifier; theo RFC và test, vì sao điều này làm chữ ký không khớp? Nếu provider từ chối param khác, đó là lỗi ở bước nào?
-5. **Thay sLen:** ký bằng sLen32, verify bằng sLen20. Sau đó ký mới **với cùng sLen20 ở cả hai bên** và giải thích vì sao có thể verify true nhưng không còn là profile JOSE PS256.
-6. **Giới hạn encoding:** với RSA-2048/SHA-256, tính emBits, emLen và maxSalt; thử sLen=223 với signer và ghi nhận exception trên provider đang chạy. Đừng dùng tham số vô nghĩa này trong production.
-7. **Đổi message digest:** với RSA-2048/SHA-512, tính hLen=64 và maxSalt=190; đề xuất `PSSParameterSpec` tương ứng PS512 (SHA-512, MGF1-SHA512, salt64, trailer1).
-8. **Tách chunk:** signer gọi `update("hello ")` và `update("PSS")`, verifier gọi `update("hello PSS")`. Vì sao vẫn verify true? Trường hợp `hello` vs `hello ` khác nhau thế nào?
-9. **JWS:** mô tả đủ PS256 và RS256 khác nhau ở đâu, bao gồm message input bytes theo JWS, scheme, MGF và salt length.
-10. **Thiết kế API:** phác thảo hàm `verify(byte[] message, byte[] signature, PublicKey trustedKey, PSSParameterSpec approvedProfile)` và nêu vì sao profile phải đến từ chính sách tin cậy, thay vì message chưa xác minh.
-11. **Test interoperability:** tạo một test vector qua hai provider/ứng dụng. Ghi metadata algorithm, modulus bit length, hash, mgf, mgf digest, salt length, trailer và chính xác bytes được ký; phân loại từng lỗi `verify=false`/exception.
+1. **Reading a profile:** Explain each getter—`getDigestAlgorithm`, `getMGFAlgorithm`, `getMGFParameters`, `getSaltLength`, and `getTrailerField`. Why does `MGF1ParameterSpec.SHA256` not replace the message digest field?
+2. **Running the demo:** Compile `RsaPssDemo.java` and explain why the signature is 256 bytes even though both the digest and salt are 32 bytes.
+3. **Altering the message:** Change one letter of `hello PSS` on the verifier side and describe the result while keeping key and profile unchanged.
+4. **Changing MGF digest:** Keep SHA-256 in `PSSParameterSpec.getDigestAlgorithm` but switch the verifier to MGF1-SHA1; per the RFC and test, why does this break matching? If a provider rejects mismatched params, at which step does that error occur?
+5. **Changing `sLen`:** Sign with `sLen=32`, verify with `sLen=20`. Then re-sign **with `sLen=20` on both sides** and explain why it can verify true yet is no longer the JOSE `PS256` profile.
+6. **Encoding limit:** For RSA-2048/SHA-256, compute `emBits`, `emLen`, and `maxSalt`; try `sLen=223` with the signer and record the exception on your runtime provider. Never use such nonsensical parameters in production.
+7. **Changing message digest:** For RSA-2048/SHA-512, compute `hLen=64` and `maxSalt=190`; write out the `PSSParameterSpec` corresponding to `PS512` (SHA-512, MGF1-SHA512, salt 64, trailer 1).
+8. **Chunk splitting:** Signer calls `update("hello ")` and `update("PSS")`, verifier calls `update("hello PSS")`. Why does verification still return true? How does `hello` vs `hello ` differ?
+9. **JWS:** Describe every difference between `PS256` and `RS256`, including JWS message input bytes, scheme, MGF, and salt length.
+10. **API design:** Sketch a function `verify(byte[] message, byte[] signature, PublicKey trustedKey, PSSParameterSpec approvedProfile)` and explain why the profile must come from trusted policy rather than the unverified message.
+11. **Interoperability test:** Build a test vector across two providers/applications. Record algorithm metadata, modulus bit length, hash, MGF, MGF digest, salt length, trailer, and exact signed bytes; categorize every `verify=false` or exception failure.
 
-**Tiêu chí đạt:** bạn tạo được profile PSS rõ ràng, thực hiện `sign/verify` với đúng bytes, phân biệt message digest với MGF1 digest, chọn salt length theo protocol và kiểm tra giới hạn RSA, đồng thời nêu được ít nhất ba nguyên nhân khiến chữ ký PSS không liên thông dù dùng đúng public key.
+**Completion criteria:** you can construct an explicit PSS profile, run `sign/verify` over exact bytes, distinguish the message digest from the MGF1 digest, choose salt length per protocol while checking RSA bounds, and name at least three reasons a PSS signature fails interoperability despite using the right public key.
 
-## Tài liệu chính thức
+## Official documentation
 
 - [Java SE 17 `PSSParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/PSSParameterSpec.html)
 - [Java SE 17 `MGF1ParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/MGF1ParameterSpec.html)
 - [Java SE 17 `Signature` — `initSign`, `initVerify`, `setParameter`, `update`, `sign`, `verify`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html)
-- [RFC 8017 — PKCS #1 v2.2, `8.1 RSASSA-PSS` và `9.1 EMSA-PSS`](https://www.rfc-editor.org/rfc/rfc8017.html)
+- [RFC 8017 — PKCS #1 v2.2, `8.1 RSASSA-PSS` and `9.1 EMSA-PSS`](https://www.rfc-editor.org/rfc/rfc8017.html)
 - [RFC 7518 3.5 — JWS algorithms PS256, PS384, PS512](https://www.rfc-editor.org/rfc/rfc7518.html)

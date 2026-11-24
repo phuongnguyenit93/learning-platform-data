@@ -1,72 +1,72 @@
-# 8.8. Phân biệt thread đang đợi công việc bình thường với thread đang chặn xử lý
+# 8.8. Distinguishing threads normally waiting for work from threads blocking processing
 
-Một thread dump Java có thể chứa hàng chục hoặc hàng trăm thread ở `WAITING` hay `TIMED_WAITING` mà ứng dụng vẫn hoạt động tốt. Worker của executor thường **chờ công việc mới**; scheduler chờ đúng thời điểm chạy; consumer chờ queue có dữ liệu. Nhưng một request đã nhận có thể đang **chờ kết quả không bao giờ đến**, chiếm hết worker hoặc tài nguyên khiến các request khác không tiến triển. Hai trường hợp đôi khi cùng hiển thị `WAITING (parking)`.
+A Java thread dump can contain dozens or hundreds of threads in `WAITING` or `TIMED_WAITING` while the application still runs smoothly. Executor workers normally **wait for new work**; schedulers wait until the next scheduled run time; consumers wait for a queue to receive data. Yet an already-accepted request may be **waiting for a result that never arrives**, occupying workers or resources so other requests cannot progress. Both situations sometimes display the exact same `WAITING (parking)`.
 
-Bài học thuộc **8. Thread dump** này giúp trả lời: **thread đang đợi việc theo đúng thiết kế, hay đang giữ/cản một công việc đáng lẽ phải hoàn thành?** Câu trả lời phải kết hợp **vai trò thread, đầy đủ call stack, điều kiện để thức dậy, owner/producer, queue và số liệu tiến độ qua nhiều thời điểm**, không suy từ một dòng trạng thái.
+This lesson in **8. Thread dumps** helps answer: **is the thread waiting for work by design, or is it holding/blocking work that ought to complete?** The answer must combine **thread role, the complete call stack, the wake-up condition, owners/producers, queues, and progress metrics across multiple points in time**, rather than inferring from a single state line.
 
-Sau bài học, bạn sẽ nhận diện idle stack như `ThreadPoolExecutor.getTask`, hiểu các wait trong handler như `Future.get()`, phân biệt monitor contention với starvation, dùng `jcmd` và `ThreadMXBean` có kiểm soát, và chạy ví dụ Java 17 có một worker WAITING bình thường cùng một worker BLOCKED thực sự cản tiến độ.
+After this lesson, you will recognize idle stacks like `ThreadPoolExecutor.getTask`, understand in-handler waits like `Future.get()`, distinguish monitor contention from starvation, use `jcmd` and `ThreadMXBean` in a controlled manner, and run a Java 17 example featuring a normally WAITING worker alongside a BLOCKED worker genuinely impeding progress.
 
-## 1. Trạng thái thread và tác động nghiệp vụ là hai trục khác nhau
+## 1. Thread state and business impact are two different axes
 
-Trong Java 17, `Thread.State` có sáu giá trị: `NEW`, `RUNNABLE`, `BLOCKED`, `WAITING`, `TIMED_WAITING`, `TERMINATED`. Bốn trạng thái thường cần phân tích khi điều tra service không tiến triển:
+In Java 17, `Thread.State` has six values: `NEW`, `RUNNABLE`, `BLOCKED`, `WAITING`, `TIMED_WAITING`, `TERMINATED`. Four states typically need analysis when investigating a non-progressing service:
 
-| Java state | Ý nghĩa của JVM | Ví dụ | Không thể kết luận chỉ từ state |
+| Java state | JVM meaning | Examples | Cannot conclude from state alone |
 | --- | --- | --- | --- |
-| **RUNNABLE** | Thread đang có thể thực thi trong JVM; có thể đợi tài nguyên OS | Java code, native socket read, loop | Không chắc đang sử dụng CPU hoặc xử lý hữu ích |
-| **BLOCKED** | Chờ lấy/reenter một **intrinsic monitor** | Thread khác giữ `synchronized(lock)` | Không tự động là deadlock |
-| **WAITING** | Chờ hành động của thread/event khác, không có timeout ở lời gọi hiện tại | `Object.wait()`, `Thread.join()`, `LockSupport.park()` | Không có nghĩa chờ “mãi” hay chắc chắn lỗi |
-| **TIMED_WAITING** | Chờ với khoảng thời gian giới hạn | `Thread.sleep`, timed wait/join/park | Không đảm bảo request hoàn thành trước SLO |
+| **RUNNABLE** | Thread is executable in the JVM; may be waiting on OS resources | Java code, native socket read, loop | Not certain it is consuming CPU or doing useful work |
+| **BLOCKED** | Waiting to acquire/reenter an **intrinsic monitor** | Another thread holds `synchronized(lock)` | Not automatically a deadlock |
+| **WAITING** | Waiting for another thread/event's action, with no timeout on the current call | `Object.wait()`, `Thread.join()`, `LockSupport.park()` | Does not mean waiting “forever” or definitely a bug |
+| **TIMED_WAITING** | Waiting with a bounded duration | `Thread.sleep`, timed wait/join/park | Does not guarantee the request finishes within SLO |
 
-`NEW` là chưa start, `TERMINATED` là đã kết thúc; thread dump của những threads đang sống có thể không có những thread này. Java state không phải bản sao OS thread state.
+`NEW` is unstarted, `TERMINATED` is finished; thread dumps of live threads may omit these threads. Java states are not copies of OS thread states.
 
-**Quan trọng:** `Thread.State.BLOCKED` cụ thể là đang chờ intrinsic monitor. Một thread chờ `ReentrantLock`, `Semaphore`, `Future`, connection pool hoặc native I/O **không nhất thiết** mang state BLOCKED. Khi nói “thread đang chặn xử lý”, đó là **kết luận ở tầng hệ thống**, không phải nhãn của enum.
+**Important:** `Thread.State.BLOCKED` specifically means waiting on an intrinsic monitor. A thread waiting on a `ReentrantLock`, `Semaphore`, `Future`, connection pool, or native I/O **does not necessarily** carry state BLOCKED. When we say “a thread is blocking processing”, that is a **system-level conclusion**, not an enum label.
 
-Ba câu hỏi bắt buộc:
+Three mandatory questions:
 
-1. **Thread đang làm vai trò gì?** Worker rảnh, request handler, scheduled job, consumer, event-loop hay background helper?
-2. **Nó đang chờ điều kiện nào?** Task queue, future completion, monitor, latch, permit, timeout, network event?
-3. **Chỗ chờ đó có làm chậm công việc có thật không?** Có request quá hạn, backlog tăng, completed tasks dừng hoặc dependency không được chạy không?
+1. **What role is the thread playing?** Idle worker, request handler, scheduled job, consumer, event-loop, or background helper?
+2. **What condition is it waiting on?** Task queue, future completion, monitor, latch, permit, timeout, or network event?
+3. **Is that wait slowing down real work?** Are requests exceeding deadlines, backlogs growing, completed tasks stalling, or dependencies unable to run?
 
-Một worker idle `WAITING` 10 phút vẫn có thể khỏe mạnh nếu không có task. Một request `WAITING` 30 giây có thể là sự cố nghiêm trọng khi SLO chỉ 2 giây.
+A worker idling in `WAITING` for 10 minutes can be healthy if there are no tasks. A request `WAITING` for 30 seconds can be a severe incident when the SLO is 2 seconds.
 
-## 2. Hai vị trí WAITING có ý nghĩa khác nhau
+## 2. Two WAITING sites with different meanings
 
-Mô hình vòng đời một executor worker:
+Lifecycle model of an executor worker:
 
 ~~~text
-Worker được tạo
+Worker created
       |
       v
-Lấy task từ work queue
+Fetch task from work queue
       |
-      +-- Chưa có task: chờ trong take()/poll()
-      |    Đây thường là idle bình thường
+      +-- No task yet: wait in take()/poll()
+      |    This is usually normal idle
       |
-      +-- Đã có task: chạy handler
+      +-- Task received: run handler
            |
-           +-- Xử lý xong, tăng completed count
+           +-- Finished processing, increment completed count
            |
-           +-- Chờ Future/lock/DB/IO bên trong task
-                Nếu vượt deadline hoặc không có producer,
-                worker có thể cản tiến độ
+           +-- Wait on Future/lock/DB/IO inside task
+                If past deadline or no producer exists,
+                worker may impede progress
 ~~~
 
-| Câu hỏi | Idle worker | Worker có khả năng cản xử lý |
+| Question | Idle worker | Worker potentially blocking processing |
 | --- | --- | --- |
-| Đã nhận task chưa? | Chưa, đang chờ lấy task mới | Có, đang ở trong handler hoặc transaction |
+| Has it accepted a task? | No, waiting to fetch a new task | Yes, currently inside a handler or transaction |
 | Top call path | `ThreadPoolExecutor.getTask` → `BlockingQueue.take` | `OrderService.process` → `Future.get/join` |
-| Queue của đúng executor | Không có backlog, hoặc đã được xử lý | Queue tăng/oldest task age tăng |
-| Completion counter | Tăng khi có công việc | Đứng yên dù có công việc sẵn |
-| Điều kiện đánh thức | Có task mới hoặc timer tới hạn | Producer, lock owner, RPC, signal hoặc permit |
-| Tác động | SLO/throughput vẫn tốt | Timeouts, inflight requests, p99 tăng |
+| Queue of that exact executor | No backlog, or already being drained | Queue growing / oldest task age increasing |
+| Completion counter | Increases when work arrives | Stalled even though work is available |
+| Wake-up condition | New task arrives or timer expires | Producer, lock owner, RPC, signal, or permit |
+| Impact | SLO/throughput remain healthy | Timeouts, in-flight requests, and p99 rise |
 
-Đọc trạng thái mà **không đọc các frame phía dưới** là sai lầm phổ biến: `LockSupport.park()` chỉ mô tả cách thread đợi, không cho biết nó đợi **công việc mới** hay **kết quả để hoàn tất công việc hiện tại**.
+Reading the state while **ignoring the frames underneath** is a common mistake: `LockSupport.park()` only describes how the thread waits, not whether it is waiting for **new work** or **a result to finish current work**.
 
-## 3. Những pattern chờ công việc bình thường
+## 3. Normal work-waiting patterns
 
-### 3.1. `ThreadPoolExecutor.getTask` trên queue rỗng
+### 3.1. `ThreadPoolExecutor.getTask` on an empty queue
 
-Với fixed executor của Java 17, worker thường chờ trong queue lấy task mới. Stack HotSpot **minh họa**, có thể khác theo version:
+With a fixed Java 17 executor, workers commonly wait on the queue for new tasks. **Illustrative** HotSpot stack, which may vary by version:
 
 ~~~text
 "order-pool-3" #48 ...
@@ -79,15 +79,15 @@ Với fixed executor của Java 17, worker thường chờ trong queue lấy tas
         at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:...)
 ~~~
 
-Diễn giải: worker nằm ở `getTask`, **chưa có task tiếp theo**. Khi queue đúng của pool này rỗng, completed tasks ổn định theo nhu cầu và request latency bình thường, đây là idle khỏe mạnh.
+Interpretation: the worker is in `getTask`, with **no next task yet**. When this pool's queue is empty, completed tasks keep pace with demand, and request latency is normal, this is healthy idle behavior.
 
-Không cứng nhắc yêu cầu state phải WAITING: với `ThreadPoolExecutor` dùng `SynchronousQueue`, `ArrayBlockingQueue`, core-thread timeout hoặc `poll(timeout)`, worker có thể ở `TIMED_WAITING`/frame khác nhưng vẫn là idle.
+Do not rigidly demand the state be WAITING: with a `ThreadPoolExecutor` using `SynchronousQueue`, `ArrayBlockingQueue`, core-thread timeouts, or `poll(timeout)`, workers may appear in `TIMED_WAITING`/different frames while still being idle.
 
-**Đặc biệt:** một queue rỗng chỉ chứng minh queue đó rỗng. Công việc có thể bị giữ ở producer, ở upstream queue, bị rejected hoặc gửi nhầm executor. Vì vậy vẫn cần kiểm tra flow end-to-end.
+**In particular:** an empty queue only proves that queue is empty. Work could be stuck at the producer, in an upstream queue, rejected, or routed to the wrong executor. Therefore, always inspect the end-to-end flow.
 
-### 3.2. Scheduler đợi tới thời điểm chạy
+### 3.2. Scheduler waiting until run time
 
-`ScheduledThreadPoolExecutor` dùng delayed work queue để chờ deadline. Một worker có thể ở `TIMED_WAITING` trong `LockSupport.parkNanos` hoặc `DelayedWorkQueue.take`, cũng có thể WAITING khi chưa có task.
+`ScheduledThreadPoolExecutor` uses a delayed work queue to wait until deadlines. A worker can be in `TIMED_WAITING` in `LockSupport.parkNanos` or `DelayedWorkQueue.take`, or WAITING when no tasks exist.
 
 ~~~text
 "scheduler-1" ...
@@ -98,16 +98,16 @@ Không cứng nhắc yêu cầu state phải WAITING: với `ThreadPoolExecutor`
         at java.util.concurrent.ThreadPoolExecutor.getTask(...)
 ~~~
 
-Đây là pattern định hướng, không phải stdout cố định. Nếu bây giờ 09:59 và job kế tiếp lúc 10:00, scheduler chờ là hợp lệ. Nếu 10:05 job chưa chạy, mới điều tra backlog, worker đang thực thi job quá lâu, exception, shutdown, rejection hoặc clock.
+This is an orientation pattern, not fixed stdout. If it is 09:59 and the next job is at 10:00, the scheduler waiting is valid. If at 10:05 the job still has not run, investigate backlog, a worker running a previous job too long, exceptions, shutdown, rejections, or clock skew.
 
-### 3.3. ForkJoin workers và background consumers
+### 3.3. ForkJoin workers and background consumers
 
-- `ForkJoinPool` workers có thể park khi không có task, nhưng implementation method names thay đổi theo JDK. Xem active/running, queued submissions/tasks và work-stealing statistics.
-- Consumer trong `BlockingQueue.take` khi queue không có event là bình thường. Nếu producer không phát event, **lỗi có thể ở upstream**.
-- Network selector/acceptor có thể chờ I/O readiness. Với native I/O, Java state đôi khi là `RUNNABLE`, không phải WAITING.
-- Metrics writer, cleaner, background poller, health timer có thể sleep hoặc wait theo lịch; cần đối chiếu job deadline.
+- `ForkJoinPool` workers can park when there are no tasks, though internal method names change across JDKs. Check active/running counts, queued submissions/tasks, and work-stealing statistics.
+- A consumer in `BlockingQueue.take` when the queue has no events is normal. If the producer stops emitting events, **the bug may be upstream**.
+- Network selectors/acceptors can wait for I/O readiness. With native I/O, Java state is sometimes `RUNNABLE`, not WAITING.
+- Metrics writers, cleaners, background pollers, and health timers can sleep or wait on schedule; correlate with job deadlines.
 
-Ví dụ consumer logic (đoạn **minh họa**, chưa có imports và catch `InterruptedException`):
+Example consumer logic (**illustrative** snippet, omitting imports and `InterruptedException` handling):
 
 ~~~java
 while (!Thread.currentThread().isInterrupted()) {
@@ -116,13 +116,13 @@ while (!Thread.currentThread().isInterrupted()) {
 }
 ~~~
 
-Khi queue rỗng, thay `take()` bằng busy-loop chỉ khiến CPU tăng mà không có dữ liệu mới. Nếu service thiếu event, truy producer, transport, retry, routing và message broker.
+When the queue is empty, replacing `take()` with a busy-loop only burns CPU with no new data. If the service lacks events, trace the producer, transport, retries, routing, and message broker.
 
-## 4. Những kiểu chờ có thể thực sự cản tiến độ
+## 4. Wait patterns that can genuinely block progress
 
-### 4.1. Request handler chờ một `Future`
+### 4.1. Request handler waiting on a `Future`
 
-Đoạn logic **minh họa không độc lập**:
+**Non-standalone illustrative** logic snippet:
 
 ~~~java
 CompletableFuture<Result> result =
@@ -130,9 +130,9 @@ CompletableFuture<Result> result =
 return result.join();
 ~~~
 
-Nếu task producer có capacity và hoàn thành nhanh, wait có thể đúng theo kiến trúc. Nếu producer không thể chạy, hoặc request chờ quá deadline, handler đã giữ một slot để chờ mà không tiến triển.
+If the task producer has capacity and finishes quickly, waiting may match the architecture. If the producer cannot run, or the request waits past its deadline, the handler holds a slot waiting without making progress.
 
-Thread dump minh họa:
+Illustrative thread dump:
 
 ~~~text
 "http-worker-7" ...
@@ -144,11 +144,11 @@ Thread dump minh họa:
         at com.example.CheckoutController.checkout(CheckoutController.java:...)
 ~~~
 
-Tìm producer của future: task được submit đến pool nào, pool có worker trống không, callback exception hay cancellation có được propagate, downstream call có deadline không? Một lần dump `WAITING` chưa đủ kết luận lỗi; cần event timeline, request age và completion metrics.
+Locate the future's producer: which pool was the task submitted to, does that pool have free workers, are callback exceptions or cancellations propagated, and does the downstream call have a deadline? A single `WAITING` dump is insufficient to conclude a bug; you need an event timeline, request age, and completion metrics.
 
-### 4.2. Monitor contention, owner đang đợi nhưng vẫn giữ lock
+### 4.2. Monitor contention: owner waiting while still holding the lock
 
-Hai threads có thể hiển thị:
+Two threads may display:
 
 ~~~text
 "request-8" ...
@@ -163,79 +163,79 @@ Hai threads có thể hiển thị:
         - locked <0x00000000AAAABBBB> (a java.lang.Object)
 ~~~
 
-Địa chỉ, lớp, số dòng và header chỉ là **giá trị minh họa**. Thread owner ở TIMED_WAITING nhưng đang giữ monitor; request-8 BLOCKED nên không thể xử lý.
+Addresses, classes, line numbers, and headers are **illustrative values**. The owner thread is in TIMED_WAITING yet holds the monitor; request-8 is BLOCKED and cannot proceed.
 
-Hãy tìm monitor ID giống nhau ở `waiting to lock` và `locked`, stack của owner, thời gian giữ lock, số waiters và progress qua nhiều dumps. Đây là **contention**; nếu owner có thể release, chưa phải deadlock. Deadlock đòi quan hệ chờ vòng hoặc một dependency không thể thỏa.
+Check for matching monitor IDs in `waiting to lock` and `locked`, the owner's stack, lock hold time, waiter count, and progress across multiple dumps. This is **contention**; if the owner can release, it is not yet a deadlock. Deadlock requires a cyclic wait relationship or an unsatisfiable dependency.
 
-### 4.3. Chờ `ReentrantLock` hoặc connection pool có thể là WAITING
+### 4.3. Waiting on a `ReentrantLock` or connection pool can appear as WAITING
 
-Thread chờ `ReentrantLock.lock()` thường park trong `AbstractQueuedSynchronizer`, nên có thể ở `WAITING`. `Semaphore.acquire`, `Condition.await`, `CountDownLatch.await`, lấy DB connection hoặc chờ HTTP connection cũng có thể dùng park/wait.
+A thread waiting on `ReentrantLock.lock()` typically parks inside `AbstractQueuedSynchronizer`, so it can be in `WAITING`. `Semaphore.acquire`, `Condition.await`, `CountDownLatch.await`, acquiring a DB connection, or waiting on an HTTP connection pool can also use park/wait.
 
-Không được chỉ lọc `BLOCKED` để tìm bottleneck. Xem frame **ứng dụng** dưới `LockSupport.park`, resource owner và metrics của pool: active, idle, pending acquire, timeout, queue age. Một worker WAITING do `LinkedBlockingQueue.take` khác hoàn toàn WAITING do `DataSource.getConnection` khi pool cạn.
+Never filter only by `BLOCKED` to find bottlenecks. Inspect the **application** frames beneath `LockSupport.park`, resource owners, and pool metrics: active, idle, pending acquires, timeouts, and queue age. A worker WAITING due to `LinkedBlockingQueue.take` is completely different from WAITING due to `DataSource.getConnection` on an exhausted pool.
 
-### 4.4. RUNNABLE vẫn có thể chặn vì native I/O
+### 4.4. RUNNABLE can still block on native I/O
 
-Một thread ở native socket/file/DNS/TLS wait có thể hiển thị `RUNNABLE`, tùy JDK/OS. Nếu thread đó là event-loop, một blocking call có thể ngăn nhiều requests được xử lý.
+A thread in a native socket/file/DNS/TLS wait can appear `RUNNABLE`, depending on JDK/OS. If that thread is an event-loop thread, a single blocking call can prevent many requests from being processed.
 
-Đối chiếu per-thread CPU:
-- RUNNABLE + CPU tăng liên tục + Java loop không progress → nghi CPU-bound.
-- RUNNABLE + CPU thấp + socket native read + remote latency cao → nghi chờ I/O.
-- WAITING ở Future.get + producer queue có backlog → nghi dependency/capacity.
+Correlate per-thread CPU:
+- RUNNABLE + continuously rising CPU + non-progressing Java loop → suspect CPU-bound work.
+- RUNNABLE + low CPU + socket native read + high remote latency → suspect I/O wait.
+- WAITING at Future.get + producer queue backlog → suspect dependency/capacity bottleneck.
 
-`Thread.State` không trực tiếp đo CPU usage hoặc tác động SLO.
+`Thread.State` does not directly measure CPU usage or SLO impact.
 
-### 4.5. Latch và condition không có ai đánh thức
+### 4.5. Latches and conditions with nobody waking them
 
-Khi thấy `Object.wait`, `Condition.await`, `LockSupport.park`, `Thread.join` hoặc `CountDownLatch.await`, hỏi:
-1. Điều kiện thoát wait là gì?
-2. Thread/producer nào phải gọi `notify/signal/unpark/countDown/complete`?
-3. Producer có còn chạy/được schedule không?
-4. Có exception/cancellation làm mất signal không?
-5. Có timeout, fallback và rollback đúng contract không?
+When seeing `Object.wait`, `Condition.await`, `LockSupport.park`, `Thread.join`, or `CountDownLatch.await`, ask:
+1. What is the exit condition for the wait?
+2. Which thread/producer must call `notify/signal/unpark/countDown/complete`?
+3. Is that producer still running/scheduled?
+4. Could an exception/cancellation have dropped the signal?
+5. Are timeouts, fallbacks, and rollbacks implemented per contract?
 
-`Object.wait()` **nhả monitor của object được gọi wait** khi chờ và phải reacquire để tiếp tục. `Thread.sleep()` và `CountDownLatch.await()` **không tự nhả monitor ngoại vi đang giữ**. Thread WAITING vẫn có thể là chủ của lock làm thread khác BLOCKED.
+`Object.wait()` **releases the monitor of the object on which wait is called** while waiting and must reacquire it to proceed. `Thread.sleep()` and `CountDownLatch.await()` **do not automatically release any held outer monitors**. A WAITING thread can still be the lock owner causing other threads to be BLOCKED.
 
-## 5. Thread-pool starvation: tất cả đều WAITING nhưng không phải idle
+## 5. Thread-pool starvation: everyone is WAITING, yet not idle
 
-Một trường hợp rất đáng nhận diện:
+A classic case worth recognizing:
 
 ~~~text
-Single-thread executor có Worker-1
+Single-thread executor has Worker-1
     |
-    Worker-1 nhận OuterTask
+    Worker-1 picks up OuterTask
     |
-    OuterTask submit InnerTask vào cùng executor
+    OuterTask submits InnerTask to same executor
     |
-    OuterTask gọi Future.get() chờ InnerTask
+    OuterTask calls Future.get() waiting for InnerTask
     |
-    InnerTask nằm trong queue
+    InnerTask sits in queue
     |
-    Worker-1 không rảnh để chạy InnerTask
+    Worker-1 is not free to run InnerTask
     |
-    Công việc không thể hoàn thành nếu không hủy/đổi thiết kế
+    Work cannot complete without cancelling/redesigning
 ~~~
 
-Ví dụ **chỉ để đọc** (không độc lập, có nguy cơ chờ vô hạn, không chạy trên service thật):
+**Read-only** example (non-standalone, risks infinite wait, do not run on a real service):
 
 ~~~java
-// executor là Executors.newSingleThreadExecutor().
+// executor is Executors.newSingleThreadExecutor().
 Future<String> outer = executor.submit(() -> {
     Future<String> inner = executor.submit(() -> "done");
     return inner.get();
 });
 ~~~
 
-Trong dump, worker có thể `WAITING` tại `FutureTask.get`, pool active=1, queue=1, completed không tăng. Không có Java monitor `BLOCKED`, deadlock detector có thể trả `null` vì nó không phát hiện mọi dependency trên future/executor.
+In a dump, the worker may be `WAITING` at `FutureTask.get`, with pool active=1, queue=1, and completed not increasing. There is no Java monitor `BLOCKED`, and a deadlock detector may return `null` because it does not detect every future/executor dependency.
 
-**Đây là starvation**: task tồn tại, nhưng worker duy nhất đã chiếm chỗ để đợi chính task nằm trong queue. Sửa bằng async continuation/composition, tránh nested blocking, phân tách tài nguyên hợp lý hoặc thiết kế timeout/cancellation; tăng pool size tùy tiện chỉ che một cấu hình và không giải quyết chu trình phụ thuộc tổng quát.
+**This is starvation**: tasks exist, yet the sole worker occupies its slot waiting for a task sitting in the queue. Fix via async continuation/composition, avoiding nested blocking, proper resource isolation, or timeout/cancellation design; arbitrarily increasing pool size merely masks one configuration and does not solve general dependency cycles.
 
-`ThreadMXBean.findDeadlockedThreads()` tìm vòng chờ trên object monitors/ownable synchronizers (khi được hỗ trợ), không bảo đảm tìm mọi Future starvation, remote wait hay business deadlock.
+`ThreadMXBean.findDeadlockedThreads()` finds wait cycles on object monitors/ownable synchronizers (when supported), and is not guaranteed to find all Future starvation, remote waits, or business deadlocks.
 
-## 6. Thu và phân tích thread dump từng bước
+## 6. Step-by-step thread dump collection and analysis
 
-### 6.1. Chọn đúng JVM/PID
+### 6.1. Pick the right JVM/PID
 
-Với JDK 17 HotSpot, ví dụ:
+On HotSpot JDK 17, for example:
 
 ~~~bash
 jcmd -l
@@ -243,11 +243,11 @@ jcmd 12345 help Thread.print
 jcmd 12345 Thread.print -l
 ~~~
 
-`12345` là PID **minh họa**, phải thay bằng PID đã xác minh của service và đúng PID namespace. `-l` của `Thread.print` lấy thêm thông tin `java.util.concurrent` locks nếu được hỗ trợ; nó khác `jcmd -l` liệt kê JVM. Có thể dùng `jstack 12345` ở JDK/OS hỗ trợ.
+`12345` is an **illustrative** PID; substitute the service's verified PID in the right PID namespace. `-l` on `Thread.print` collects additional `java.util.concurrent` lock details when supported; it differs from `jcmd -l` which lists JVMs. `jstack 12345` can also be used on supporting JDKs/OSes.
 
-Thread dump có chi phí phụ thuộc số threads, nên thu vài snapshots có timestamp **khi đang có triệu chứng**, không liên tục không giới hạn. Nếu không attach được, kiểm tra quyền user/group, JVM đã thoát, container namespace và cấu hình attach.
+Thread dumps carry cost proportional to thread count, so capture a few timestamped snapshots **during the symptom**, not endlessly. If attach fails, check user/group permissions, whether the JVM exited, container namespaces, and attach configuration.
 
-### 6.2. Đọc cả header, state và call chain
+### 6.2. Read header, state, and call chain together
 
 ~~~text
 "pool-4-thread-1" #59 ... tid=0x00007f... nid=0x1a2b waiting on condition
@@ -260,18 +260,18 @@ Thread dump có chi phí phụ thuộc số threads, nên thu vài snapshots có
         at java.util.concurrent.ThreadPoolExecutor.runWorker(...)
 ~~~
 
-- Thread name giúp biết executor nhưng không phải request ID.
-- `#59` trong một số HotSpot headers là Java thread ID.
-- `tid=0x...` thường là VM thread pointer/ID nội bộ, không tự đồng nhất Linux TID.
-- `nid=0x...` là native ID trong HotSpot, thường hex, cần đúng OS/PID namespace để đối chiếu CPU.
-- Dòng `java.lang.Thread.State` là enum snapshot; chữ “waiting” ở header chưa chắc trùng enum.
-- Top frames mô tả cơ chế park/monitor, còn **frames phía dưới** cho biết đang lấy task mới hay chờ bên trong handler.
+- Thread name hints at the executor, but is not a request ID.
+- `#59` in some HotSpot headers is the Java thread ID.
+- `tid=0x...` is typically an internal VM thread pointer/ID, not automatically equivalent to Linux TID.
+- `nid=0x...` is the native ID in HotSpot, usually hex, requiring the right OS/PID namespace for CPU correlation.
+- The `java.lang.Thread.State` line is the snapshot enum; the word “waiting” in the header does not always match the enum.
+- Top frames describe the park/monitor primitive, while **frames below** reveal whether it is fetching a new task or waiting inside a handler.
 
-Đọc stack từ dưới lên tìm caller nghiệp vụ và từ trên xuống tìm primitive. Không kết luận chỉ vì xuất hiện `Unsafe.park`.
+Read stacks bottom-up to find business callers and top-down to find primitives. Never conclude solely because `Unsafe.park` appears.
 
-### 6.3. Xem owner và quan hệ chờ
+### 6.3. Inspect owners and wait relationships
 
-Trong dump có thể có các annotations:
+Dumps may contain annotations:
 
 ~~~text
 - waiting to lock <0x0000000011112222> (a java.lang.Object)
@@ -279,11 +279,11 @@ Trong dump có thể có các annotations:
 - parking to wait for <0x0000000033334444> (...)
 ~~~
 
-Đối với `synchronized`, tìm owner đang `locked` cùng monitor. Với `ReentrantLock`/ownable synchronizers, xem lock information khi tool/runtime cung cấp. `parking to wait for` có thể chỉ chờ queue trống; phải xem các frames bên dưới. Không phải mọi dump đều có cùng định dạng/annotations.
+For `synchronized`, find the owner showing `locked` on the same monitor. For `ReentrantLock`/ownable synchronizers, inspect lock info when provided by the tool/runtime. `parking to wait for` may simply be waiting on an empty queue; check the frames underneath. Not all dumps share identical formats or annotations.
 
-### 6.4. So nhiều snapshots và tiến độ
+### 6.4. Compare multiple snapshots and progress
 
-Tại thời điểm T0 (giả định):
+At T0 (hypothetical):
 
 ~~~text
 worker-A WAITING at Future.get
@@ -291,7 +291,7 @@ worker-B WAITING at queue.take
 queue_depth=4; completed_tasks=1000
 ~~~
 
-Năm giây sau:
+Five seconds later:
 
 ~~~text
 worker-A WAITING at same Future.get
@@ -299,25 +299,25 @@ worker-B WAITING at queue.take
 queue_depth=27; completed_tasks=1000
 ~~~
 
-Điều này gợi ý một luồng **không tiến triển**, nhưng chưa thể quy worker-B là nguyên nhân nếu queue_depth thuộc executor khác. Cần xem task producer, oldest age, request deadlines và stack owner. Một snapshot không phải video; cùng stack qua nhiều mốc + backlog/timeouts mới giúp đánh giá chỗ chờ có tác động.
+This suggests a thread **is not progressing**, though you cannot blame worker-B if `queue_depth` belongs to another executor. Check task producers, oldest age, request deadlines, and owner stacks. One snapshot is not a video; identical stacks across multiple timestamps + backlog/timeouts establish whether a wait has impact.
 
-## 7. Số liệu đối chiếu quan trọng
+## 7. Key metrics to correlate
 
-| Nguồn | Metrics | Mục đích |
+| Source | Metrics | Purpose |
 | --- | --- | --- |
-| Executor | `getPoolSize()`, `getActiveCount()` | Biết pool và worker xử lý task (số ước lượng) |
-| Executor | `getQueue().size()`, oldest task age | Có backlog đang chờ xử lý? |
-| Executor | `getCompletedTaskCount()`, task rejected count | Task có hoàn thành; có bị reject? |
-| Service | inflight requests, throughput, timeout, p95/p99 | Tác động thực tế tới người dùng |
-| Dependency | DB pool active/idle/pending, HTTP latency, remote errors | Wait vì resource/downstream? |
-| JVM/OS | thread CPU, GC pauses, RSS, FD count | CPU loop, I/O wait hay runtime pressure |
-| Logs/traces | requestId, traceId, event start/end, duration | Điểm nào trong workflow không tiến triển |
+| Executor | `getPoolSize()`, `getActiveCount()` | Know pool size and busy workers (approximate figures) |
+| Executor | `getQueue().size()`, oldest task age | Is there a waiting backlog? |
+| Executor | `getCompletedTaskCount()`, task rejected count | Are tasks completing; are any rejected? |
+| Service | in-flight requests, throughput, timeouts, p95/p99 | Real impact on users |
+| Dependency | DB pool active/idle/pending, HTTP latency, remote errors | Waiting on resources/downstream? |
+| JVM/OS | thread CPU, GC pauses, RSS, FD count | CPU loop, I/O wait, or runtime pressure |
+| Logs/traces | requestId, traceId, event start/end, duration | Which point in the workflow is stalled |
 
-Các API về pool thường trả **ước lượng ở thời điểm gọi**. `Executors.newSingleThreadExecutor()` trả wrapper `ExecutorService`, không đảm bảo expose tất cả `ThreadPoolExecutor` getter trực tiếp; instrument executor/framework phù hợp.
+Pool APIs typically return **point-in-time estimates**. `Executors.newSingleThreadExecutor()` returns an `ExecutorService` wrapper and does not guarantee exposing all `ThreadPoolExecutor` getters directly; instrument the executor/framework appropriately.
 
-### `ThreadMXBean` bổ trợ, không thay tiến độ nghiệp vụ
+### `ThreadMXBean` supplements, but does not replace, business progress
 
-`ManagementFactory.getThreadMXBean()` cung cấp `ThreadInfo`, stack và thông tin synchronization khi JVM hỗ trợ. Đoạn sau là **minh họa**, cần imports bao quanh:
+`ManagementFactory.getThreadMXBean()` provides `ThreadInfo`, stacks, and synchronization info when supported by the JVM. The following is **illustrative** and requires surrounding imports:
 
 ~~~java
 ThreadMXBean bean = ManagementFactory.getThreadMXBean();
@@ -333,17 +333,17 @@ for (ThreadInfo info : infos) {
 }
 ~~~
 
-Kiểm tra `isObjectMonitorUsageSupported()` và `isSynchronizerUsageSupported()` trước khi yêu cầu thông tin tương ứng; thu dump có chi phí. `getBlockedTime()`/`getWaitedTime()` cần thread contention monitoring được bật/hỗ trợ, thường mặc định tắt và có thể trả `-1`. Đừng bật `setThreadContentionMonitoringEnabled(true)` tùy tiện trong production vì overhead. Per-thread CPU time cũng có support/enablement riêng.
+Check `isObjectMonitorUsageSupported()` and `isSynchronizerUsageSupported()` before requesting the corresponding info; dumping incurs overhead. `getBlockedTime()`/`getWaitedTime()` require thread contention monitoring to be enabled/supported, which is usually disabled by default and returns `-1`. Do not enable `setThreadContentionMonitoringEnabled(true)` arbitrarily in production due to overhead. Per-thread CPU time also has its own support/enablement flags.
 
-## 8. Thực hành Java 17+: WAITING đúng và BLOCKED cản tiến độ
+## 8. Java 17+ Hands-on: normal WAITING vs progress-blocking BLOCKED
 
-Chương trình dùng JDK 17+ và không cần thư viện ngoài. Nó tạo hai tình huống:
-1. `idle-queue-worker` trong `newSingleThreadExecutor`: chạy xong task rỗng rồi **WAITING** để lấy task mới từ queue. Không có backlog, đây là idle khỏe mạnh.
-2. `lock-owner` giữ một monitor; `blocked-worker` đã được giao việc nhưng chờ monitor nên **BLOCKED**. Chỉ khi owner nhả monitor thì work mới hoàn tất.
+This program uses JDK 17+ with no external libraries. It creates two scenarios:
+1. `idle-queue-worker` in `newSingleThreadExecutor`: finishes an empty task and enters **WAITING** to fetch a new task from the queue. With no backlog, this is healthy idle behavior.
+2. `lock-owner` holds a monitor; `blocked-worker` has work assigned but waits on the monitor, so it is **BLOCKED**. Only when the owner releases the monitor does the work complete.
 
-Main thread chờ cho đến khi từng state thực sự được quan sát rồi mới in, nên giảm lỗi race khi lấy snapshot quá sớm. Chỉ main in stdout để không xen kẽ.
+The main thread waits until each state is genuinely observed before printing, reducing race errors from snapshotting too early. Only main writes to stdout so lines never interleave.
 
-Tạo tệp **IdleVsBlockedDemo.java**:
+Create file **IdleVsBlockedDemo.java**:
 
 ~~~java
 import java.util.concurrent.CountDownLatch;
@@ -442,14 +442,14 @@ public final class IdleVsBlockedDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac IdleVsBlockedDemo.java
 java IdleVsBlockedDemo
 ~~~
 
-**Stdout chính xác trong môi trường scheduling bình thường:**
+**Exact stdout under normal scheduling conditions:**
 
 ~~~text
 idle_worker=WAITING
@@ -458,78 +458,78 @@ completed_before_release=false
 completed_after_release=true
 ~~~
 
-**Giải thích từng dòng:**
-- Task rỗng đã xong; worker của fixed one-thread executor đợi task tiếp theo. `WAITING` tại queue `take()` là bình thường.
-- `ownerHolding` bảo đảm owner đã vào `synchronized` trước khi blocked worker chạy. Worker chờ monitor, do đó `BLOCKED`.
-- Trước `releaseOwner.countDown()`, `workCompleted` vẫn là 1; kết quả là `false`.
-- Sau release, owner thoát monitor; blocked worker vào critical section và countDown; kết quả thành `true`.
-- `finally` release, interrupt và shutdown để tránh để lại worker kẹt.
+**Line-by-line explanation:**
+- The empty task finished; the fixed single-thread executor's worker awaits the next task. `WAITING` at queue `take()` is normal.
+- `ownerHolding` ensures the owner entered `synchronized` before the blocked worker starts. The worker awaits the monitor, hence `BLOCKED`.
+- Before `releaseOwner.countDown()`, `workCompleted` remains 1; the result is `false`.
+- After release, the owner exits the monitor; the blocked worker enters the critical section and counts down; the result becomes `true`.
+- `finally` releases, interrupts, and shuts down to avoid leaving stuck workers behind.
 
-**Điểm then chốt:** `lock-owner` ở `WAITING` trong `CountDownLatch.await()` nhưng **vẫn giữ monitor ngoại vi**, vì latch await không nhả monitor. Đọc state của owner riêng lẻ không cho biết tác động đến waiter; phải đọc owner/waiter lock annotations.
+**Key point:** `lock-owner` is `WAITING` inside `CountDownLatch.await()`, yet **still holds the outer monitor**, because latch await does not release monitors. Reading the owner's state alone does not reveal its impact on the waiter; you must read owner/waiter lock annotations.
 
-**Giới hạn:** `Thread.getState()` là snapshot, có thể đổi ngay sau khi đọc. Poll deadline 10 giây giảm race nhưng trong môi trường quá tải hoặc không thể tạo threads, `awaitState` có thể throw `IllegalStateException`; bốn dòng trên là output kỳ vọng trong môi trường Java 17 bình thường.
+**Limitation:** `Thread.getState()` is a snapshot and can change immediately after reading. A 10-second polling deadline reduces races, though in heavily overloaded environments or where threads cannot be created, `awaitState` may throw `IllegalStateException`; the four lines above are expected output in a normal Java 17 environment.
 
-Để thử `jcmd` khi demo đang chờ, có thể thêm một câu `Thread.sleep(10_000L);` **ngay sau khi in `completed_before_release` và trước `releaseOwner.countDown()`**, rồi chạy từ terminal khác:
+To try `jcmd` while the demo is waiting, you can add `Thread.sleep(10_000L);` **right after printing `completed_before_release` and before `releaseOwner.countDown()`**, then run from another terminal:
 
 ~~~bash
 jcmd -l
 jcmd 12345 Thread.print -l
 ~~~
 
-Thay `12345` bằng PID thực, không giữ monitor/sleep kiểu demo trong production.
+Replace `12345` with the real PID; never hold monitors/sleep like a demo in production.
 
-## 9. Ma trận tình huống thực tế
+## 9. Real-world scenario matrix
 
-| Tình huống | Dấu hiệu | Nhận định |
+| Scenario | Signs | Assessment |
 | --- | --- | --- |
-| Pool 20 workers `WAITING` ở `getTask`, queue 0, throughput bình thường | Không có việc đang đợi trong queue đó | Idle hợp lệ, không cần đánh thức |
-| Handler `WAITING` tại `CompletableFuture.join`, request quá SLO, task producer chưa chạy | Queue producer tăng, completions đứng | Nghi Future dependency/executor starvation |
-| Thread `RUNNABLE` ở native socket read, CPU delta thấp, remote p99 cao | Network call chậm | Nghi I/O wait, không suy CPU loop |
-| Owner `TIMED_WAITING` đang `sleep` nhưng `locked <0xABCD>`, nhiều waiters `BLOCKED` cùng monitor | Lock được giữ lâu | Monitor contention, tìm cách giảm critical section |
-| Consumer `WAITING` ở `queue.take`, queue 0 nhưng upstream errors tăng | Producer không phát event | Consumer chờ hợp lệ, lỗi ở upstream |
-| Pool A rảnh, Pool B có 300 queued tasks và worker chờ Future | Hai executors khác nhau | Phải phân tích đúng pool, không cộng nhầm |
-| Single-thread executor active=1, queue=1, worker `WAITING` tại Future.get | Outer đợi Inner trong cùng pool | Starvation/dependency cycle |
-| Scheduler `TIMED_WAITING` trước deadline | Task chưa tới giờ | Bình thường; nếu deadline qua lâu thì điều tra |
+| Pool of 20 workers `WAITING` in `getTask`, queue 0, normal throughput | No work waiting in that queue | Valid idle, no need to wake them |
+| Handler `WAITING` at `CompletableFuture.join`, request past SLO, producer task not yet run | Producer queue grows, completions stalled | Suspect Future dependency/executor starvation |
+| Thread `RUNNABLE` in native socket read, low CPU delta, high remote p99 | Slow network call | Suspect I/O wait, do not infer CPU loop |
+| Owner `TIMED_WAITING` sleeping yet `locked <0xABCD>`, many waiters `BLOCKED` on same monitor | Lock held too long | Monitor contention; look to shrink critical section |
+| Consumer `WAITING` at `queue.take`, queue 0 while upstream errors rise | Producer not emitting events | Valid consumer wait; bug is upstream |
+| Pool A idle, Pool B has 300 queued tasks and workers awaiting Future | Two different executors | Analyze the right pool; do not mix metrics |
+| Single-thread executor active=1, queue=1, worker `WAITING` at Future.get | Outer waiting on Inner in same pool | Starvation/dependency cycle |
+| Scheduler `TIMED_WAITING` before deadline | Task not yet due | Normal; if well past deadline, investigate |
 
-Các số trong bảng chỉ là giả định minh họa; phải đối chiếu workload, JDK, timestamp và metrics thực tế.
+Numbers in the table are illustrative assumptions; verify against real workloads, JDK versions, timestamps, and metrics.
 
-## 10. Những lỗi suy luận phổ biến
+## 10. Common reasoning errors
 
-- **“WAITING nghĩa là ứng dụng treo.”** Worker chờ task mới thường khỏe mạnh.
-- **“RUNNABLE nghĩa là CPU cao.”** Native I/O và OS wait có thể hiện RUNNABLE; đo CPU time.
-- **“BLOCKED gồm mọi kiểu chờ.”** Java `BLOCKED` chỉ về intrinsic monitor.
-- **“Owner đang WAITING thì không giữ lock.”** Nó có thể await một latch bên trong `synchronized`.
-- **“Deadlock detector trả null nghĩa là không có starvation.”** Future/queue/external RPC dependencies nằm ngoài nhiều phép kiểm.
-- **“Nhiều WAITING thì phải tăng worker pool.”** Khi traffic thấp, đây có thể là capacity dư; tăng threads còn tốn memory/context switches.
-- **“Queue rỗng nghĩa mọi công việc đã hoàn thành.”** Producer có thể chưa dispatch hoặc task bị giữ ở queue khác.
-- **“Queue lớn chứng minh mọi WAITING đều bất thường.”** Phải xác định queue của đúng executor.
-- **“Một snapshot đủ chứng minh không tiến triển.”** Cần timeline và completion/latency.
-- **“Thấy `park` thì sửa `LockSupport`.”** Park chỉ là primitive; bug có thể nằm trong handler, future hoặc producer.
-- **“Tăng timeout là giải quyết.”** Timeout dài có thể giữ slot lâu hơn; cần cancellation và thiết kế lại dependency.
-- **“Thread name là request ID.”** Pool tái sử dụng thread; dùng correlation/trace ID.
-- **“Mọi `TIMED_WAITING` đều vô hại.”** Sleep khi giữ lock hoặc retry storm có thể ảnh hưởng nhiều threads.
-- **“Chỉ cần gọi notifyAll để đánh thức.”** Nếu protocol/condition sai, notify không sửa được nguyên nhân.
-- **“Không thấy completion log là task chưa chạy.”** Log có thể bị sampled/drop; kiểm tra business state và metrics.
+- **“WAITING means the application is hung.”** Workers waiting for new tasks are usually healthy.
+- **“RUNNABLE means high CPU.”** Native I/O and OS waits can appear as RUNNABLE; measure CPU time.
+- **“BLOCKED covers every kind of wait.”** Java `BLOCKED` applies only to intrinsic monitors.
+- **“An owner in WAITING holds no locks.”** It may be awaiting a latch inside `synchronized`.
+- **“Deadlock detector returning null means no starvation.”** Future/queue/external RPC dependencies fall outside many checks.
+- **“Many WAITING threads means increase the worker pool.”** During low traffic, that is just spare capacity; adding threads wastes memory and context switches.
+- **“Empty queue means all work is done.”** Producers may not have dispatched yet or tasks may sit in another queue.
+- **“Large queue proves every WAITING thread is abnormal.”** Verify the queue belongs to that exact executor.
+- **“One snapshot suffices to prove no progress.”** Timeline and completion/latency metrics are needed.
+- **“Seeing `park` means fix `LockSupport`.”** Park is only a primitive; the bug may be in a handler, future, or producer.
+- **“Increasing timeout fixes it.”** Longer timeouts can hold slots longer; fix cancellation and dependency design.
+- **“Thread name is request ID.”** Pools reuse threads; use correlation/trace IDs.
+- **“All `TIMED_WAITING` are harmless.”** Sleeping while holding a lock or retry storms can impact many threads.
+- **“Just call notifyAll to wake them.”** If protocol/condition logic is broken, notify will not fix the root cause.
+- **“No completion log means the task never ran.”** Logs may be sampled/dropped; check business state and metrics.
 
-## 11. Playbook chẩn đoán production
+## 11. Production diagnostic playbook
 
-1. **Chốt triệu chứng:** service, pod, PID/start time, Java version, thời gian, SLO, request timeout, throughput và error rate.
-2. **Lấy vài thread dumps có timestamp** đúng lúc sự cố; không spam `jcmd` trên JVM quá tải.
-3. **Phân loại thread theo vai trò:** handler, executor worker, scheduler, selector, consumer, DB pool, JVM helpers.
-4. **Đọc call chain đầy đủ:** `getTask/take` chờ task hay `Future.get/join/await` trong handler? Có `waiting to lock`, `locked` hoặc native read không?
-5. **Xác định quan hệ phụ thuộc:** task cần kết quả của ai, owner giữ resource gì, producer có khả năng chạy không?
-6. **Đo tiến độ:** queue depth/age, active/completed/rejected tasks, inflight, p99, connection pool, GC, thread CPU, dependencies.
-7. **So nhiều mốc thời gian:** trạng thái có thay đổi, tasks có hoàn tất, oldest pending age có tăng, trace events có tiếp tục?
-8. **Phân biệt loại vấn đề:** healthy idle, contention, starvation, true deadlock, I/O wait, hot CPU loop hay producer outage.
-9. **Sửa đúng nguyên nhân:** không block event loop, tránh nested Future trên bounded executor, thu hẹp monitor critical section, xử lý downstream timeout/cancellation, kiểm soát pool/retry.
-10. **Đo lại SLO/tiến độ**, không lấy số thread WAITING giảm làm tiêu chí duy nhất.
-11. **Lưu chứng cứ an toàn:** dumps có class, path, nội dung nội bộ; che thông tin nhạy cảm và giới hạn quyền truy cập.
+1. **Lock the symptom:** service, pod, PID/start time, Java version, time window, SLO, request timeout, throughput, and error rate.
+2. **Collect a few timestamped thread dumps** during the incident; do not spam `jcmd` on an overloaded JVM.
+3. **Classify threads by role:** handlers, executor workers, schedulers, selectors, consumers, DB pools, JVM helpers.
+4. **Read the full call chain:** `getTask/take` waiting for tasks or `Future.get/join/await` inside a handler? Are there `waiting to lock`, `locked`, or native reads?
+5. **Map dependencies:** whose result is the task awaiting, what resource does the owner hold, and can the producer run?
+6. **Measure progress:** queue depth/age, active/completed/rejected tasks, in-flight count, p99, connection pools, GC, thread CPU, dependencies.
+7. **Compare multiple timestamps:** did states change, did tasks complete, did oldest pending age grow, did trace events continue?
+8. **Distinguish problem category:** healthy idle, contention, starvation, true deadlock, I/O wait, hot CPU loop, or producer outage.
+9. **Fix the real cause:** avoid blocking event loops, avoid nested Futures on bounded executors, shrink monitor critical sections, handle downstream timeouts/cancellations, control pools/retries.
+10. **Re-measure SLO/progress**, never using a drop in WAITING thread count as the sole criterion.
+11. **Store evidence safely:** dumps contain classes, paths, and internal details; redact sensitive data and restrict access.
 
-**Checklist nhanh trước khi kết luận một thread đang chặn xử lý:** Thread đã nhận task hay chờ task mới? Nó đợi resource nào và ai đánh thức? Có task backlog tại đúng executor không? Có producer/completer còn chạy không? Request đã vượt deadline chưa? Qua nhiều snapshots có tiến độ không? Owner đang giữ monitor/connection/permit nào? CPU/JFR/metrics có hỗ trợ giả thuyết không?
+**Quick checklist before concluding a thread is blocking processing:** Has the thread accepted a task or is it waiting for a new task? Which resource is it waiting on and who wakes it? Is there a task backlog on that exact executor? Is the producer/completer still running? Has the request exceeded its deadline? Is there progress across multiple snapshots? Which monitor/connection/permit does the owner hold? Do CPU/JFR/metrics support the hypothesis?
 
-**Ghi nhớ:** `WAITING` ở `ThreadPoolExecutor.getTask` thường là **worker rảnh sẵn sàng nhận việc**, còn `WAITING` ở `Future.get` bên trong handler là **công việc đã nhận đang đợi một kết quả khác**. Chỉ khi xem **full stack, đúng queue/resource, người tạo tín hiệu và tiến độ nghiệp vụ** mới phân biệt được đợi bình thường với chặn xử lý.
+**Key takeaway:** `WAITING` in `ThreadPoolExecutor.getTask` is usually an **idle worker ready for work**, whereas `WAITING` in `Future.get` inside a handler is **accepted work waiting for another result**. Only by inspecting **the full stack, the right queue/resource, the signaler, and business progress** can you distinguish normal waiting from blocked processing.
 
-### Tài liệu tham khảo
+### References
 
 - Oracle Java 17, `Thread.State`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.State.html
 - Oracle Java 17, `ThreadPoolExecutor`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html
@@ -537,4 +537,4 @@ Các số trong bảng chỉ là giả định minh họa; phải đối chiếu
 - Oracle Java 17, `ThreadInfo`: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadInfo.html
 - Oracle JDK 17, `jcmd` (`Thread.print`): https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html
 
-Các stack snippets và số liệu được ghi là minh họa; method nội bộ, state và thread dump format có thể thay đổi theo JVM/vendor/OS. Khi điều tra, ưu tiên output và timeline thực tế.
+Stack snippets and figures are marked as illustrative; internal methods, states, and thread dump formats may vary by JVM/vendor/OS. During investigations, prioritize actual outputs and timelines.

@@ -1,24 +1,24 @@
-# Cơ chế ủy quyền cho loader cha và phạm vi nhìn thấy giữa các ClassLoader trong Java
+# Parent Delegation and Visibility Across ClassLoaders in Java
 
-## 1. Vì sao cần hiểu ranh giới giữa các loader?
+## 1. Why Understand Loader Boundaries?
 
-Trong Java, cùng một JVM có thể sử dụng nhiều **ClassLoader** để nạp các lớp từ classpath, module path, các JAR plugin hoặc thư mục được thêm lúc chạy. Khi xây dựng một hệ thống có khả năng mở rộng (runtime extensibility), host thường cần dùng chung một API/SPI với các plugin nhưng vẫn muốn mỗi plugin giữ các implementation và dependency riêng.
+In Java, a single JVM can use multiple **ClassLoaders** to load classes from the classpath, module path, plugin JARs, or directories added at runtime. When building a runtime-extensibility system, the host usually needs to share an API/SPI with plugins while keeping each plugin's implementations and dependencies separate.
 
-Hai câu hỏi dễ bị nhầm là:
+Two questions are easily confused:
 
-- **Ai được yêu cầu tìm một lớp?** Ví dụ: childLoader.loadClass("demo.api.Task").
-- **Loader nào thực sự định nghĩa lớp đó?** Ví dụ: Task được định nghĩa bởi application loader, mặc dù childLoader là bên nhận lời gọi.
+- **Who was asked to find a class?** For example: `childLoader.loadClass("demo.api.Task")`.
+- **Which loader actually defined that class?** For example: `Task` was defined by the application loader, even though `childLoader` received the call.
 
-Cơ chế **ủy quyền cho loader cha (parent delegation)** quyết định cách tìm lớp theo mặc định. Phạm vi **nhìn thấy (visibility)** mô tả lớp nào có thể được tìm thông qua loader nào, cùng điều kiện truy cập của Java. Chúng liên quan chặt chẽ nhưng không đồng nghĩa: tìm được bytecode chưa chắc có quyền sử dụng lớp, và một lớp đã được load qua child chưa chắc được child định nghĩa.
+The **parent delegation** mechanism determines how classes are searched by default. **Visibility** describes which classes can be found through which loaders, alongside Java access rules. They are closely related yet not synonymous: finding bytecode does not guarantee access to use the class, and a class loaded through a child was not necessarily defined by the child.
 
-Với Java 17, hiểu đúng hai cơ chế giúp tránh ClassNotFoundException, ClassCastException, NoClassDefFoundError, xung đột phiên bản thư viện và lỗi nhận diện SPI giữa host với plugin.
+With Java 17, understanding both mechanisms helps prevent `ClassNotFoundException`, `ClassCastException`, `NoClassDefFoundError`, library version conflicts, and SPI recognition errors between host and plugins.
 
-## 2. Cây loader và quan hệ cha/con
+## 2. Loader Tree and Parent/Child Relationships
 
-Một cấu trúc thường gặp trong ứng dụng Java 17:
+A common structure in Java 17 applications:
 
 ~~~text
-Bootstrap loader (thường được biểu diễn bằng null)
+Bootstrap loader (typically represented as null)
           |
           v
 Platform class loader
@@ -26,37 +26,37 @@ Platform class loader
           v
 Application/System class loader
   - Host
-  - API/SPI dùng chung
+  - Shared API/SPI
           |
           +------------------------+
           |                        |
           v                        v
    Plugin loader A          Plugin loader B
    - Provider A              - Provider B
-   - Thư viện riêng A        - Thư viện riêng B
+   - Private library A       - Private library B
 ~~~
 
-Trong cấu trúc này, hai loader A và B cùng có parent là application loader. Đây là một mô hình minh họa phổ biến, không phải một cây cố định mà mọi ứng dụng Java bắt buộc sử dụng.
+In this structure, loaders A and B both have the application loader as their parent. This is a common illustrative model, not a fixed tree that every Java application must use.
 
-- **Bootstrap loader** nạp các lớp nền tảng quan trọng. Trong nhiều API Java, Class.getClassLoader() trả về null cho lớp do bootstrap định nghĩa; null là cách biểu diễn, không phải bằng chứng không có cơ chế nạp.
-- **Platform class loader** có thể truy cập qua ClassLoader.getPlatformClassLoader(); quản lý nhiều lớp nền tảng/JDK.
-- **System/application class loader** lấy qua ClassLoader.getSystemClassLoader(); thông thường xử lý các lớp ứng dụng được đưa vào classpath.
-- **Custom loader** như URLClassLoader có thể được tạo với một parent cụ thể và tập URL chứa lớp/plugin. Một loader con có thể là parent của các loader khác.
+- **Bootstrap loader** loads critical core classes. In many Java APIs, `Class.getClassLoader()` returns `null` for classes defined by bootstrap; `null` is a representation, not proof that no loading mechanism exists.
+- **Platform class loader** is accessible via `ClassLoader.getPlatformClassLoader()`; manages many platform/JDK classes.
+- **System/application class loader** is obtained via `ClassLoader.getSystemClassLoader()`; normally handles application classes placed on the classpath.
+- **Custom loaders** such as `URLClassLoader` can be created with a specific parent and a set of URLs containing classes/plugins. A child loader can itself be the parent of other loaders.
 
-**Parent ở đây là quan hệ ủy quyền**, không phải quan hệ extends của các Java class tạo loader. ClassLoader A được tạo bởi một đối tượng loader B không có nghĩa B sẽ tự động là parent của A; parent được xác định bởi constructor/cấu hình.
+**Parent here is a delegation relationship**, not an `extends` relationship between Java classes implementing loaders. That `ClassLoader` A was instantiated by an object of loader B does not automatically make B the parent of A; the parent is determined by the constructor/configuration.
 
-Các built-in loader chịu thêm quy tắc của Java Platform Module System (JPMS). Với named module nâng cấp/đặc biệt, platform loader có thể phải chuyển yêu cầu tới loader khác; đừng suy diễn rằng mọi trường hợp đều là một cây tra cứu cứng nhắc chỉ có ba nút.
+Built-in loaders are additionally subject to Java Platform Module System (JPMS) rules. For upgraded/special named modules, the platform loader may have to forward requests to another loader; do not assume every case is a rigid three-node lookup tree.
 
-## 3. Thuật toán parent-first của ClassLoader.loadClass
+## 3. The Parent-First Algorithm of ClassLoader.loadClass
 
-Lớp java.lang.ClassLoader có quy ước mặc định cho phương thức loadClass(String, boolean). Ý tưởng chính khi loader L nhận yêu cầu nạp một tên nhị phân là:
+The `java.lang.ClassLoader` class defines a default convention for `loadClass(String, boolean)`. The core idea when loader `L` receives a request to load a binary name is:
 
-1. Kiểm tra lớp đó đã được L nạp hoặc được ghi nhận là đã nạp qua L chưa, bằng **findLoadedClass**.
-2. Nếu chưa có, thử **ủy quyền cho parent**. Nếu parent là null, thử đường nạp bootstrap.
-3. Nếu parent/bootstrap không tìm thấy, L mới gọi **findClass** để tìm/định nghĩa lớp từ nguồn riêng.
-4. Nếu yêu cầu resolve, thực hiện **resolveClass**; sau đó trả về Class tương ứng.
+1. Check whether the class has already been loaded by `L` or recorded as loaded via `L`, using **findLoadedClass**.
+2. If not present, try **delegating to parent**. If parent is `null`, try the bootstrap loading path.
+3. Only if parent/bootstrap does not find it does `L` invoke **findClass** to locate/define the class from its own source.
+4. If resolve is requested, perform **resolveClass**; then return the corresponding `Class`.
 
-Sơ đồ khái niệm:
+Conceptual diagram:
 
 ~~~text
 L.loadClass("pkg.Example")
@@ -67,96 +67,96 @@ L.loadClass("pkg.Example")
       | no
       v
    parent.loadClass?
-      | found -> return Class từ parent
+      | found -> return Class from parent
       | ClassNotFoundException
       v
    L.findClass?
-      | found -> định nghĩa/trả Class thuộc L
+      | found -> define/return Class belonging to L
       | not found -> ClassNotFoundException
 ~~~
 
-Đây là **mã ý tưởng**, không phải toàn bộ source code của JDK. Thực tế còn có lock theo tên lớp, thao tác resolve/linking và xử lý lỗi. Một custom loader có thể ghi đè loadClass để thay đổi chiến lược; vì vậy **parent-first là quy ước mặc định của ClassLoader, không phải quy luật JVM áp đặt cho mọi loader tùy biến**.
+This is **conceptual pseudocode**, not the full JDK source code. In reality there is also per-class-name locking, resolution/linking work, and error handling. A custom loader can override `loadClass` to change the strategy; therefore **parent-first is the default convention of ClassLoader, not a JVM law imposed on every custom loader**.
 
-Các method thường bị lẫn:
+Frequently confused methods:
 
-| API | Vai trò |
+| API | Role |
 | --- | --- |
-| loadClass(name) | Yêu cầu nạp class theo thuật toán của loader; mặc định thử parent trước |
-| findClass(name) | Hook để custom loader tự tìm/định nghĩa class khi đường parent thất bại; không phải API tìm toàn cây |
-| defineClass(...) | Chuyển bytecode thành một Class được loader hiện tại định nghĩa, chịu các ràng buộc JVM |
-| findLoadedClass(name) | Tìm Class đã được ghi nhận là nạp thông qua loader này |
-| resolveClass(clazz) | Thực hiện bước linking/resolution phù hợp; khác với chạy static initializer |
-| Class.forName(name, initialize, loader) | Tìm class bằng loader chỉ định và có thể yêu cầu khởi tạo lớp |
+| `loadClass(name)` | Request loading a class per the loader's algorithm; defaults to trying parent first |
+| `findClass(name)` | Hook for a custom loader to locate/define a class itself when the parent path fails; not a whole-tree search API |
+| `defineClass(...)` | Turns bytecode into a `Class` defined by the current loader, subject to JVM constraints |
+| `findLoadedClass(name)` | Looks up a `Class` already recorded as loaded through this loader |
+| `resolveClass(clazz)` | Performs the appropriate linking/resolution step; distinct from running static initializers |
+| `Class.forName(name, initialize, loader)` | Locates a class using the specified loader and can request class initialization |
 
-**Loading, linking và initialization** không phải một việc. ClassLoader.loadClass tự nó không bảo đảm static initializer đã chạy. Class.forName(name, true, loader) yêu cầu khởi tạo; constructor hoặc truy cập thành viên static có thể kích hoạt khởi tạo theo quy tắc ngôn ngữ. Đừng suy ra "class đã load" nghĩa là "class đã được tạo object".
+**Loading, linking, and initialization** are not the same thing. `ClassLoader.loadClass` by itself does not guarantee static initializers have run. `Class.forName(name, true, loader)` requests initialization; constructors or accessing static members can trigger initialization per language rules. Do not infer from "class is loaded" that "an object of the class has been created."
 
-## 4. Parent thấy gì, child thấy gì, sibling thấy gì?
+## 4. What Does Parent See, Child See, Sibling See?
 
-Giả sử **P** là application loader, **A** và **B** đều có parent P:
+Assume **P** is the application loader, and **A** and **B** both have parent **P**:
 
-| Lớp được định nghĩa ở đâu? | P yêu cầu nạp | A yêu cầu nạp | B yêu cầu nạp |
+| Where is the class defined? | P requests load | A requests load | B requests load |
 | --- | --- | --- | --- |
-| SharedApi chỉ có ở P | Thành công, Class của P | Thành công qua ủy quyền, Class của P | Thành công qua ủy quyền, Class của P |
-| PluginAOnly chỉ có ở A | Không tìm thấy theo cây của P | Thành công, Class của A | Không tìm thấy theo cây của B |
-| PluginBOnly chỉ có ở B | Không tìm thấy theo cây của P | Không tìm thấy theo cây của A | Thành công, Class của B |
-| com.demo.Impl có bản riêng ở cả A và B, không có ở P | Không tìm thấy | Class của A | Class của B |
-| com.demo.Version có bản ở P và bản khác ở A | Class của P | **Class của P** theo parent-first | Class của P nếu B cũng ủy quyền cho P |
+| `SharedApi` only in P | Succeeds, P's `Class` | Succeeds via delegation, P's `Class` | Succeeds via delegation, P's `Class` |
+| `PluginAOnly` only in A | Not found along P's tree | Succeeds, A's `Class` | Not found along B's tree |
+| `PluginBOnly` only in B | Not found along P's tree | Not found along A's tree | Succeeds, B's `Class` |
+| `com.demo.Impl` has separate copies in both A and B, none in P | Not found | A's `Class` | B's `Class` |
+| `com.demo.Version` has a copy in P and another in A | P's `Class` | **P's `Class`** due to parent-first | P's `Class` if B also delegates to P |
 
-Những kết quả này giả định các loader chuẩn parent-first, các thư mục/JAR không bị bổ sung vào classpath cha và không có quy tắc delegation tùy biến.
+These outcomes assume standard parent-first loaders, no directories/JARs added to the parent classpath, and no custom delegation rules.
 
-### 4.1. Child thường thấy lớp của ancestor
+### 4.1. Children Normally See Ancestor Classes
 
-A yêu cầu tải SharedApi; A thử parent P trước. Vì P có lớp, A nhận **chính Class do P định nghĩa**, không tự tạo bản sao. B cũng nhận cùng Class này. Nhờ đó một provider ở A hoặc B có thể implements cùng một interface SPI mà host dùng.
+A requests loading `SharedApi`; A tries parent P first. Because P has the class, A receives **the exact `Class` defined by P**, without creating a copy of its own. B receives the same `Class`. Thus, providers in A or B can implement the exact same SPI interface used by the host.
 
-### 4.2. Parent không tự động thấy lớp riêng của child
+### 4.2. Parent Does Not Automatically See Child-Private Classes
 
-P không duyệt xuống các con để tìm PluginAOnly. Đồ thị ủy quyền mặc định đi **từ child lên parent**, không tự tìm các loader con. Vì vậy một thư viện nạp bằng P sẽ không tự động phát hiện lớp nằm trong A nếu nó chỉ gọi P.loadClass(name).
+P does not walk down into its children to search for `PluginAOnly`. The default delegation graph runs **from child up to parent**, and does not automatically scan child loaders. Consequently, a library loaded by P will not automatically discover a class living inside A if it only calls `P.loadClass(name)`.
 
-Tuy nhiên, host có thể **chủ động giữ tham chiếu tới A rồi gọi A.loadClass(name)**; framework cũng có thể nhận loader A qua tham số hoặc thread context class loader. Đây là việc sử dụng A một cách tường minh, không phải parent đã có quyền nhìn xuống con theo mặc định.
+However, the host can **explicitly hold a reference to A and call `A.loadClass(name)`**; frameworks can also receive loader A via a parameter or the thread context class loader. That is explicit use of A, not the parent having default downward visibility into children.
 
-### 4.3. Hai loader sibling không tự nhìn thấy nhau
+### 4.3. Sibling Loaders Do Not Automatically See Each Other
 
-A và B có cùng parent P; A không trở thành parent của B và ngược lại. Khi B tìm một class chỉ nằm trong A, B thử P rồi thử nguồn riêng của B, không tự hỏi A. Muốn giao tiếp giữa hai plugin, cần một **API dùng chung ở parent**, hoặc cơ chế bridge/registry có chủ đích; không lấy class riêng của A làm hợp đồng trực tiếp mà B phải ép kiểu.
+A and B share parent P; A does not become B's parent or vice versa. When B searches for a class located only in A, B tries P and then B's own sources, without querying A. To communicate between two plugins, you need a **shared API in the parent**, or an intentional bridge/registry mechanism; never treat A's private class as a direct contract that B must cast to.
 
-## 5. Class identity: trùng tên không có nghĩa cùng lớp
+## 5. Class Identity: Same Name Does Not Mean Same Class
 
-Trong JVM, identity của một reference type gắn với **tên nhị phân và defining class loader**. Vì vậy hai bản demo.provider.TaskImpl do A và B định nghĩa có thể cùng Class.getName() nhưng là hai Class khác nhau:
+In the JVM, the identity of a reference type is bound to **its binary name and defining class loader**. Hence two copies of `demo.provider.TaskImpl` defined by A and B can have the same `Class.getName()` yet be two different `Class` objects:
 
 ~~~java
-// Minh họa trong một host đã có hai loader A, B:
+// Illustration inside a host that already has two loaders A, B:
 Class<?> a = loaderA.loadClass("demo.provider.TaskImpl");
 Class<?> b = loaderB.loadClass("demo.provider.TaskImpl");
-boolean same = (a == b); // false nếu A và B tự định nghĩa hai bản độc lập
+boolean same = (a == b); // false if A and B define two independent copies
 ~~~
 
-Một object của TaskImpl-A không thể tùy tiện cast sang TaskImpl-B. Khi hai class trùng tên nhưng identity khác nhau, ClassCastException vẫn có thể xảy ra; nhìn tên trong stack trace không đủ để hiểu nguyên nhân. Quan hệ assignability cũng phụ thuộc vào đúng Class object, không chỉ chuỗi tên.
+An object of `TaskImpl-A` cannot arbitrarily be cast to `TaskImpl-B`. When two classes share a name yet differ in identity, `ClassCastException` can still occur; reading class names in a stack trace is not enough to understand the cause. Assignability also depends on the exact `Class` object, not just the name string.
 
-Mặt khác, nếu cả hai TaskImpl đều implements **demo.api.Task do parent P định nghĩa**, host có thể cast mỗi instance thành Task của P:
+On the other hand, if both `TaskImpl` classes implement **demo.api.Task defined by parent P**, the host can cast each instance to P's `Task`:
 
 ~~~text
-Task interface: P định nghĩa
+Task interface: defined by P
          ^                 ^
          |                 |
 TaskImpl-A (A)        TaskImpl-B (B)
          |                 |
-   cast thành Task    cast thành Task
+   cast to Task      cast to Task
          \                 /
           \               /
-            Host sử dụng
+            Used by Host
 ~~~
 
-Đây là nền tảng của kiến trúc plugin: **chia sẻ API/SPI ổn định qua loader chung; cô lập implementation và dependency bên dưới**. Cẩn trọng nếu mỗi plugin vô tình đóng gói thêm một bản API nhưng custom loader dùng child-first: lúc đó interface có thể bị định nghĩa nhiều lần và mất khả năng gán kiểu cho host.
+This is the foundation of plugin architecture: **share stable APIs/SPIs via a common loader; isolate implementations and dependencies underneath**. Be careful if each plugin accidentally bundles an extra copy of the API while a custom loader uses child-first: the interface can then be defined multiple times and lose assignability to the host.
 
-## 6. Ví dụ Java 17+ chạy được: hai loader con và một API chung
+## 6. Runnable Java 17+ Example: Two Child Loaders and One Shared API
 
-Bài thực hành sau minh họa đồng thời:
+The following hands-on example simultaneously demonstrates:
 
-- Hai loader con có chung một parent và nhận cùng Class cho SPI.
-- Mỗi loader con định nghĩa một provider **cùng binary name**, nhưng mỗi bản có hành vi khác.
-- B không nhìn thấy class chỉ có ở A; parent không tự nhìn thấy provider của con.
-- Nếu parent và A cùng chứa một binary name, **parent-first chọn bản ở parent**.
+- Two child loaders sharing one parent and receiving the same `Class` for the SPI.
+- Each child loader defining a provider **with the same binary name**, where each copy has different behavior.
+- B cannot see a class present only in A; the parent cannot automatically see the children's providers.
+- If both the parent and A contain a binary name, **parent-first picks the parent's copy**.
 
-Không cần framework hoặc thư viện ngoài JDK. Các file source được đặt trong thư mục demo theo cây sau:
+No frameworks or libraries outside the JDK are needed. Source files are placed in directory `demo` according to this tree:
 
 ~~~text
 demo/
@@ -182,9 +182,9 @@ demo/
     └── host/
 ~~~
 
-Lưu ý **out/** là thư mục class đã biên dịch, được tạo bởi lệnh chạy bên dưới. Khi chạy, out/api và out/host nằm trên application classpath; out/a và out/b **không** nằm trên application classpath mà chỉ được truyền làm URL cho loader con.
+Note that **out/** is the compiled classes directory created by the commands below. At runtime, `out/api` and `out/host` are on the application classpath; `out/a` and `out/b` are **not** on the application classpath and are passed only as URLs to the child loaders.
 
-### 6.1. API thuộc parent
+### 6.1. API Belonging to the Parent
 
 **api/demo/api/Task.java**
 
@@ -208,9 +208,9 @@ public final class Origin {
 }
 ~~~
 
-Origin là lớp minh họa để kiểm tra thứ tự tìm kiếm; không phải SPI. Một bản cùng tên cũng sẽ được biên dịch vào plugin A để quan sát bản nào được chọn.
+`Origin` is an illustrative class used to verify lookup order; it is not an SPI. A copy with the same name will also be compiled into plugin A to observe which copy is chosen.
 
-### 6.2. Hai provider ở hai loader con
+### 6.2. Two Providers in Two Child Loaders
 
 **a/demo/provider/TaskImpl.java**
 
@@ -263,9 +263,9 @@ public final class TaskImpl implements Task {
 }
 ~~~
 
-Hai file TaskImpl có **cùng package, cùng tên class và cùng interface**. Chúng được biên dịch ra hai thư mục độc lập. Khi chạy, URLClassLoader A chỉ tìm out/a sau khi hỏi parent; URLClassLoader B chỉ tìm out/b sau khi hỏi parent.
+Both `TaskImpl` files have **the same package, the same class name, and the same interface**. They are compiled into two independent directories. At runtime, `URLClassLoader` A searches `out/a` only after asking the parent; `URLClassLoader` B searches `out/b` only after asking the parent.
 
-### 6.3. Host tạo URLClassLoader với cùng parent
+### 6.3. Host Creating URLClassLoaders with the Same Parent
 
 **host/demo/host/Main.java**
 
@@ -325,23 +325,23 @@ public final class Main {
 }
 ~~~
 
-**Phân tích lời gọi quan trọng:** parent nhận từ Task.class.getClassLoader(), tức loader đang sở hữu SPI của host. Mỗi URLClassLoader nhận đúng parent đó. Vì parent không có demo.provider.TaskImpl, A và B mới định nghĩa hai bản riêng. Ngược lại, parent có demo.api.Task nên cả A và B trả về cùng một Class cho interface.
+**Analysis of key calls:** `parent` is obtained from `Task.class.getClassLoader()`, i.e., the loader owning the host's SPI. Each `URLClassLoader` receives that exact parent. Because the parent does not have `demo.provider.TaskImpl`, A and B define two separate copies. Conversely, the parent has `demo.api.Task`, so both A and B return the same `Class` for the interface.
 
-### 6.4. Biên dịch và chạy
+### 6.4. Compiling and Running
 
-Đứng tại thư mục **demo/**. Trên Linux/macOS, tạo các thư mục output:
+Stand in the **demo/** directory. On Linux/macOS, create the output directories:
 
 ~~~bash
 mkdir -p out/api out/a out/b out/host
 ~~~
 
-Trên Windows PowerShell có thể dùng:
+On Windows PowerShell, you can use:
 
 ~~~powershell
 New-Item -ItemType Directory -Force out/api,out/a,out/b,out/host | Out-Null
 ~~~
 
-Các lệnh javac sau chạy được trên cả hai hệ thống vì mỗi lệnh chỉ có **một classpath entry**:
+The following `javac` commands work on both operating systems because each command has only **one classpath entry**:
 
 ~~~bash
 javac --release 17 -d out/api api/demo/api/Task.java api/demo/common/Origin.java
@@ -350,19 +350,19 @@ javac --release 17 -cp out/api -d out/b b/demo/provider/TaskImpl.java
 javac --release 17 -cp out/api -d out/host host/demo/host/Main.java
 ~~~
 
-Chạy trên Linux/macOS (dấu **:** phân tách các classpath entry):
+Run on Linux/macOS (**`:`** separates classpath entries):
 
 ~~~bash
 java -cp "out/api:out/host" demo.host.Main out/a out/b
 ~~~
 
-Hoặc trên Windows PowerShell/cmd (dấu **;**):
+Or on Windows PowerShell/cmd (**`;`**):
 
 ~~~powershell
 java -cp "out/api;out/host" demo.host.Main out/a out/b
 ~~~
 
-**Standard output chính xác:**
+**Exact standard output:**
 
 ~~~text
 A: alpha
@@ -375,41 +375,41 @@ B sees OnlyA: false
 Parent sees provider: false
 ~~~
 
-Các dòng có ý nghĩa:
+Meaning of the lines:
 
-1. A và B tạo được provider riêng, chạy cùng một phương thức id() nhưng trả giá trị khác.
-2. Hai provider có cùng binary name nhưng **không có cùng Class identity**, bởi A và B định nghĩa chúng độc lập.
-3. Hai lời gọi nạp demo.api.Task trả về một Class duy nhất của parent, giúp cả hai instance cast sang Task thành công.
-4. Plugin A cũng chứa demo.common.Origin trả "child A", nhưng childA.loadClass trả về Origin của parent vì parent-first. Hai bản không được chọn theo "mới hơn" hay "nằm gần hơn".
-5. Loader B không tìm được demo.only.OnlyA vì class chỉ nằm ở A. Parent không tìm được demo.provider.TaskImpl vì provider chỉ được đưa vào các URL của con.
+1. A and B create their own providers, running the same `id()` method yet returning different values.
+2. Both providers have the same binary name yet **do not share the same `Class` identity**, because A and B define them independently.
+3. Both calls loading `demo.api.Task` return the single `Class` from the parent, enabling both instances to cast cleanly to `Task`.
+4. Plugin A also contains `demo.common.Origin` returning `"child A"`, yet `childA.loadClass` returns the parent's `Origin` due to parent-first. Two copies are not chosen by "newer" or "closer."
+5. Loader B cannot find `demo.only.OnlyA` because that class exists only in A. The parent cannot find `demo.provider.TaskImpl` because the providers are only placed in the children's URLs.
 
-**Điều kiện để kết quả đúng:** chạy trong JVM thông thường với classpath chỉ gồm out/api và out/host; không vô tình thêm out/a, out/b hoặc một JAR chứa provider vào classpath cha. Nếu thay đổi cách khởi chạy, phạm vi tìm lớp và kết quả có thể thay đổi.
+**Conditions for correct results:** run in a standard JVM whose classpath contains only `out/api` and `out/host`; do not accidentally add `out/a`, `out/b`, or a JAR containing providers to the parent classpath. Changing the launch setup can change class visibility and the results.
 
-## 7. Parent-first khác child-first ở đâu?
+## 7. Where Does Parent-First Differ from Child-First?
 
-Default ClassLoader và URLClassLoader thường tìm parent trước rồi mới tìm nguồn riêng. Điều này tạo ra một lợi thế: các lớp Java core và các API dùng chung của host được nhìn thấy nhất quán từ plugin.
+Default `ClassLoader` and `URLClassLoader` normally check the parent first and then their own sources. This offers a clear benefit: core Java classes and the host's shared APIs are seen consistently from plugins.
 
-Nhưng có hệ thống plugin cần **cô lập dependency version**. Ví dụ, host có library-x phiên bản 1, plugin A cần library-x phiên bản 2. Với parent-first, nếu loader cha đã nhìn thấy library-x cùng binary name, A có thể vô tình dùng phiên bản 1, dẫn tới lỗi method/field không khớp.
+However, some plugin systems need **dependency version isolation**. For example, the host has `library-x` version 1, while plugin A requires `library-x` version 2. Under parent-first, if the parent loader already sees `library-x` with the same binary name, A may accidentally receive version 1, leading to mismatched method/field errors.
 
-Hai chiến lược thường được cân nhắc:
+Two strategies are commonly weighed:
 
-| Chiến lược | Nguyên tắc | Ưu và rủi ro |
+| Strategy | Principle | Advantages and risks |
 | --- | --- | --- |
-| Parent-first | Parent được ưu tiên trước khi child tìm lớp riêng | Giữ API dùng chung thống nhất, nhưng dễ va chạm dependency nếu parent chứa thư viện plugin |
-| Child-first có kiểm soát | Với các namespace nhất định, thử nguồn riêng trước rồi mới hỏi parent | Có thể cô lập phiên bản, nhưng dễ nhân đôi class API/SPI và làm hỏng khả năng cast |
+| Parent-first | Parent takes precedence before child searches its own classes | Keeps shared APIs consistent, but risks dependency collisions if parent contains plugin libraries |
+| Controlled child-first | For designated namespaces, try own sources first before asking parent | Can isolate versions, but easily duplicates API/SPI classes and breaks casting |
 
-**Chỉ override findClass không tự biến loader thành child-first.** Muốn thay đổi ưu tiên phải điều chỉnh loadClass một cách có chủ đích, giữ lock, xử lý findLoadedClass, delegation, resolve và các yêu cầu về bảo toàn class identity. Không được cố định nghĩa lại lớp lõi trong namespace java.*; JVM có ràng buộc bảo vệ riêng. Một chiến lược child-first thiếu kiểm soát có thể gây ClassCastException, LinkageError, vòng phụ thuộc và deadlock khi tải lớp.
+**Overriding `findClass` alone does not turn a loader into child-first.** Changing precedence requires intentionally adjusting `loadClass`, preserving locks, handling `findLoadedClass`, delegation, resolution, and class-identity safeguards. You must never try to redefine core classes in the `java.*` namespace; the JVM enforces its own protection constraints. An uncontrolled child-first strategy can trigger `ClassCastException`, `LinkageError`, dependency cycles, and class-loading deadlocks.
 
-Thực tế, thường nên **parent-first cho Java/platform và API/SPI của host; quyết định rõ namespace nào của plugin được phép riêng**. Với thư viện có nguy cơ xung đột nhưng không cần xuất hiện trong API, có thể cô lập qua loader hoặc relocate/shade package khi phù hợp.
+In practice, it is usually best to keep **parent-first for Java/platform and host APIs/SPIs; explicitly decide which plugin namespaces may stay private**. For conflicting libraries that do not need to appear in the API, you can isolate them via loaders or relocate/shade packages where appropriate.
 
-## 8. Thread context class loader: vì sao mã ở parent đôi khi tìm được plugin?
+## 8. Thread Context Class Loader: Why Can Parent Code Sometimes Find Plugins?
 
-Một thư viện nằm ở loader cha thường không biết trước tên lớp hoặc đường dẫn JAR của plugin. Nó có thể dùng **thread context class loader (TCCL)** để nhận loader do môi trường thực thi cung cấp.
+A library residing in a parent loader normally does not know the class names or JAR paths of plugins ahead of time. It can use the **thread context class loader (TCCL)** to obtain a loader supplied by the execution environment.
 
-Ví dụ một framework muốn khám phá implementation của SPI:
+Example where a framework wants to discover SPI implementations:
 
 ~~~java
-// Mã minh họa trong host đã có biến pluginLoader và MyService.class.
+// Illustrative snippet inside a host that already has pluginLoader and MyService.class.
 ClassLoader old = Thread.currentThread().getContextClassLoader();
 
 try {
@@ -424,66 +424,66 @@ try {
 }
 ~~~
 
-Đây là **mảnh minh họa**, không phải chương trình độc lập; cần MyService, pluginLoader và cấu hình provider hợp lệ. ServiceLoader.load(service) sử dụng context loader của thread; cũng có overload **ServiceLoader.load(service, loader)** để chọn loader rõ ràng, thường dễ kiểm soát hơn trong host plugin.
+This is an **illustrative fragment**, not a standalone program; it requires `MyService`, `pluginLoader`, and valid provider configuration. `ServiceLoader.load(service)` uses the thread's context loader; there is also the **ServiceLoader.load(service, loader)** overload to select a loader explicitly, which is often easier to control in plugin hosts.
 
-TCCL **không đảo chiều quan hệ parent**, không khiến P.loadClass tự động nhìn thấy mọi child, và không sửa identity của các lớp. Nó chỉ thay đổi loader mà những API có ý thức dùng TCCL chọn cho thao tác discovery/loading.
+TCCL **does not invert the parent relationship**, does not cause `P.loadClass` to automatically see every child, and does not alter class identity. It only changes which loader APIs that consciously consult TCCL pick for discovery/loading.
 
-Khi đổi TCCL, luôn khôi phục trong finally, nhất là trên thread pool nơi thread được tái sử dụng. Không để code plugin tùy ý chiếm context loader trong thời gian dài. Thread con có thể kế thừa context loader của thread tạo ra nó; một tham chiếu giữ lại loader cũ cũng có thể cản quá trình giải phóng plugin.
+When changing TCCL, always restore it in `finally`, especially on thread pools where threads are reused. Do not let plugin code hold onto the context loader indefinitely. Child threads may inherit the context loader of the thread that spawned them; a retained reference to an old loader can also prevent plugin unloading.
 
-## 9. Visibility của resource không hoàn toàn giống visibility của class
+## 9. Resource Visibility Is Not Identical to Class Visibility
 
-ClassLoader còn tìm các **resource** như file cấu hình và META-INF/services. Với triển khai ClassLoader mặc định:
+`ClassLoader` also looks up **resources** such as configuration files and `META-INF/services`. With the default `ClassLoader` implementation:
 
-- **getResource(name)** thử parent trước rồi đến findResource của chính loader.
-- **getResources(name)** có thể thu thập nhiều URL; thứ tự mặc định ưu tiên kết quả parent rồi kết quả tìm bởi loader hiện tại.
-- **findResource/findResources** là hook để custom loader tìm trong nguồn riêng.
-- **getResourceAsStream(name)** mở resource dưới dạng InputStream nếu tìm thấy; cần đóng stream khi dùng xong.
+- **getResource(name)** tries the parent first and then the loader's own `findResource`.
+- **getResources(name)** can collect multiple URLs; the default order puts parent results first followed by results found by the current loader.
+- **findResource/findResources** are hooks for a custom loader to search its own sources.
+- **getResourceAsStream(name)** opens the resource as an `InputStream` if found; close the stream when done.
 
-Ví dụ minh họa trong host:
+Illustrative example in a host:
 
 ~~~java
-// Mã minh họa, pluginLoader là một ClassLoader đã cấu hình.
+// Illustrative snippet; pluginLoader is an already configured ClassLoader.
 java.net.URL config = pluginLoader.getResource("config/plugin.properties");
 if (config == null) {
     throw new IllegalStateException("Missing plugin resource");
 }
 ~~~
 
-Với ClassLoader.getResource, tên resource thông thường **không có dấu /** ở đầu. Ngược lại, Class.getResource có quy tắc đường dẫn tương đối với package và đường dẫn tuyệt đối bắt đầu bằng /. Hai API dễ bị nhầm.
+With `ClassLoader.getResource`, ordinary resource names **do not begin with a leading `/`**. By contrast, `Class.getResource` uses package-relative paths and absolute paths starting with `/`. These two APIs are easily confused.
 
-Nếu parent và plugin cùng chứa tên resource, parent-first có thể làm cấu hình của host được chọn trước cấu hình trong plugin; vì vậy tránh dùng tên resource quá chung chung. Service descriptor cũng có thể xuất hiện ở nhiều JAR; trường hợp này API như ServiceLoader cần duyệt resource tương ứng theo quy tắc của chính nó.
+If both parent and plugin contain the same resource name, parent-first can cause the host's configuration to be picked ahead of the plugin's; therefore avoid overly generic resource names. Service descriptors can also appear in multiple JARs; in that case an API like `ServiceLoader` iterates through the corresponding resources according to its own rules.
 
-**Named modules có thêm quy tắc đóng gói tài nguyên**: một resource có sẵn trong module không nhất thiết được getResource hiển thị như một file classpath tùy ý. Readability/exports/opens và quy tắc mở resource của module có thể ảnh hưởng; không suy diễn rằng mọi tài nguyên module đều được truy cập như tài nguyên của unnamed module.
+**Named modules introduce additional resource encapsulation rules**: a resource present in a module is not necessarily visible via `getResource` like an arbitrary classpath file. Module readability/exports/opens and resource-opening rules can apply; do not assume all module resources can be accessed like unnamed-module resources.
 
-## 10. Tìm được class chưa chắc truy cập hoặc ép kiểu được
+## 10. Finding a Class Does Not Guarantee Access or Casting
 
-Cần tách ba tầng:
+Separate three layers:
 
-1. **Reachability/loading**: loader có tìm được định nghĩa class theo tên không?
-2. **Type identity/compatibility**: Class đó có cùng identity hoặc quan hệ assignability với kiểu host mong đợi không?
-3. **Access control**: caller có quyền truy cập class, package, constructor và thành viên được gọi không?
+1. **Reachability/loading**: can the loader locate a class definition by name?
+2. **Type identity/compatibility**: does that `Class` have the same identity or assignability relationship with the type expected by the host?
+3. **Access control**: does the caller have permission to access the class, package, constructor, and invoked members?
 
-Ví dụ, hai class do loader khác nhau định nghĩa có thể trùng tên nhưng không gán cho nhau. Ngay cả khi tìm đúng class, constructor không public vẫn có thể gây IllegalAccessException khi reflection tạo instance. Đối với **named module**, việc package được export hoặc open cho caller là một điều kiện khác; có class loader nhìn thấy bytecode chưa đủ để vượt module access control. Trong các hệ thống sử dụng API/SPI, host nên đặt interface/DTO công khai trong module hoặc thư viện chung có xuất bản hợp lệ.
+For example, two classes defined by different loaders may share a name yet not be assignable to each other. Even when the exact class is found, a non-public constructor can still cause `IllegalAccessException` when reflection instantiates it. For **named modules**, whether a package is exported or opened to the caller is an additional condition; having a class loader that sees the bytecode is not enough to bypass module access control. In systems using APIs/SPIs, the host should place public interfaces/DTOs in a properly exported shared module or library.
 
-**Runtime package** cũng phụ thuộc vào class loader (và thông tin module tương ứng), vì vậy package-private access không được bảo đảm chỉ nhờ hai class cùng chuỗi tên package nếu chúng đến từ loader khác nhau.
+**Runtime packages** also depend on the class loader (and corresponding module metadata), so package-private access is not guaranteed merely because two classes share the same package name string if they come from different loaders.
 
-## 11. Lỗi thường gặp và cách chẩn đoán
+## 11. Common Errors and How to Diagnose Them
 
-| Hiện tượng | Khả năng chính | Cách điều tra |
+| Symptom | Primary likelihood | How to investigate |
 | --- | --- | --- |
-| ClassNotFoundException khi gọi loadClass | Không loader nào trong đường ủy quyền tìm được tên nhị phân | Kiểm tra classpath, URL, tên package/class và loader đang gọi |
-| NoClassDefFoundError khi dùng một class | Dependency cần lúc linking/initialization không có hoặc class không khởi tạo thành công | Kiểm tra cause, classpath, dependencies và lỗi initializer |
-| ClassCastException dù tên class nhìn giống nhau | Hai defining loader khác nhau hoặc quan hệ kiểu thực sự không tương thích | So sánh Class object và getClassLoader của từng kiểu |
-| NoSuchMethodError/NoSuchFieldError | Class version được chọn khác version lúc compile | Kiểm tra parent-first đã chọn bản library nào và binary compatibility |
-| LinkageError khác | Vi phạm ràng buộc liên kết hoặc các định nghĩa không tương thích | Xem cause, class loader identity và dependency graph |
-| ServiceLoader không tìm provider | TCCL sai, loader không thấy META-INF/services, descriptor sai | Thử ServiceLoader.load(service, loader) với loader cụ thể; kiểm tra resource |
-| Plugin A chạy, plugin B không tìm được lớp A | Hai loader sibling không tự ủy quyền cho nhau | Di chuyển contract cần chia sẻ lên API parent hoặc thiết kế bridge |
-| Resource cùng tên bị lấy từ host | Parent-first trong getResource | In URL trả về và đặt tên resource rõ namespace |
+| `ClassNotFoundException` when calling `loadClass` | No loader along the delegation path found the binary name | Check classpath, URLs, package/class name, and the loader being called |
+| `NoClassDefFoundError` when using a class | A dependency needed at linking/initialization is missing, or the class failed to initialize earlier | Inspect cause, classpath, dependencies, and initializer errors |
+| `ClassCastException` even though class names look identical | Two different defining loaders or genuinely incompatible type relationship | Compare `Class` objects and `getClassLoader` on each type |
+| `NoSuchMethodError`/`NoSuchFieldError` | Selected class version differs from the version used at compile time | Check which library copy parent-first picked and verify binary compatibility |
+| Other `LinkageError` | Linkage constraint violation or incompatible definitions | Inspect cause, class loader identity, and dependency graph |
+| `ServiceLoader` does not find providers | Wrong TCCL, loader cannot see `META-INF/services`, invalid descriptor | Try `ServiceLoader.load(service, loader)` with an explicit loader; check resources |
+| Plugin A runs, plugin B cannot find A's classes | Sibling loaders do not delegate to each other automatically | Move shared contract to parent API or design a bridge |
+| Same-named resource gets picked from host | Parent-first in `getResource` | Print returned URL and give resources clear namespaces |
 
-Có thể in định danh loader cùng tên class để quan sát:
+You can print the loader identity alongside the class name to observe:
 
 ~~~java
-// Mảnh minh họa, nhận Class<?> từ thao tác nạp thực tế.
+// Illustrative fragment taking Class<?> from an actual load operation.
 static void describe(Class<?> type) {
     System.out.println(type.getName());
     System.out.println(type.getClassLoader());
@@ -491,46 +491,46 @@ static void describe(Class<?> type) {
 }
 ~~~
 
-Đoạn này chỉ minh họa ý tưởng debug, không phải một chương trình Java độc lập. Cần in cả tên lẫn loader, bởi việc Class.getName giống nhau không đủ để xác định Class identity. Với class của bootstrap, Class.getClassLoader() có thể trả null; không gọi method trên kết quả đó mà chưa kiểm tra.
+This snippet only illustrates a debugging idea, not a standalone Java program. Print both the name and the loader, because identical `Class.getName` is not enough to determine `Class` identity. For bootstrap classes, `Class.getClassLoader()` can return `null`; do not invoke methods on that result without checking first.
 
-Nếu cần chi tiết hơn, có thể dùng **-Xlog:class+load=info** khi khởi động JVM hỗ trợ unified logging (Java 17) để quan sát các lớp được nạp và nguồn bytecode. Việc nạp class diễn ra lazily, nên log có thể khác nhau tùy đường thực thi; không suy luận toàn bộ hệ thống từ một danh sách lớp chưa từng được truy cập.
+If you need more detail, you can pass **-Xlog:class+load=info** when launching a JVM supporting unified logging (Java 17) to watch classes being loaded and their bytecode sources. Class loading happens lazily, so logs can vary depending on execution paths; do not infer the entire system from a list of classes that have never been touched.
 
-## 12. Vòng đời và giới hạn của cơ chế delegation
+## 12. Lifecycle and Limits of the Delegation Mechanism
 
-Tạo URLClassLoader mới không tự động "reload" một Class đã được định nghĩa trong loader cũ. Khi muốn nhận phiên bản mới của class cùng tên, hệ thống thường tạo loader mới rồi chuyển trách nhiệm sang instance mới, bảo đảm không còn các tham chiếu cũ. Một Class đã được định nghĩa không thể bị thay đổi định nghĩa bình thường chỉ bằng việc nạp lại file cùng đường dẫn trong cùng loader.
+Creating a new `URLClassLoader` does not automatically "reload" a `Class` already defined in an old loader. To pick up a new version of a class with the same name, systems typically create a new loader and hand over responsibility to new instances while ensuring no old references remain. An already-defined `Class` cannot normally have its definition replaced simply by reloading a file from the same path in the same loader.
 
-URLClassLoader là AutoCloseable/Closeable; nên đóng khi không sử dụng để giải phóng resource và file handle. **close() không lập tức unload Class** và không bảo đảm các object/Thread/TCCL/callback đang giữ tham chiếu biến mất. Class unloading còn phụ thuộc garbage collection và việc không còn loader/class/object reachable. Nếu host giữ static registry hoặc thread context loader trỏ tới plugin cũ, việc gỡ plugin có thể không thu hồi được bộ nhớ.
+`URLClassLoader` is `AutoCloseable`/`Closeable`; close it when no longer in use to release resources and file handles. **`close()` does not immediately unload classes** and does not guarantee that objects/Threads/TCCLs/callbacks holding references disappear. Class unloading also depends on garbage collection and having no reachable loaders/classes/objects left. If the host retains a static registry or thread context loader pointing to the old plugin, removing the plugin may fail to reclaim memory.
 
-Parent delegation cũng **không phải cơ chế sandbox bảo mật**. Plugin chạy cùng JVM vẫn có khả năng tác động tới tài nguyên hoặc state mà nó được cấp; muốn cách ly mã không tin cậy cần thiết kế quyền truy cập và ranh giới tiến trình phù hợp.
+Parent delegation is also **not a security sandbox**. Plugins running inside the same JVM can still affect resources or state they are able to reach; isolating untrusted code requires appropriate permission controls and process boundaries.
 
-## 13. Ma trận kiểm thử và checklist
+## 13. Test Matrix and Checklist
 
-| Kịch bản kiểm thử | Kết quả cần xác nhận |
+| Test scenario | Expected result to confirm |
 | --- | --- |
-| Child nạp class chỉ có ở parent | Nhận đúng Class do parent định nghĩa |
-| Child và parent có cùng binary name | Với parent-first, chọn bản ở parent |
-| Class chỉ tồn tại trong child A | Parent và sibling B không tự nạp được nó |
-| A và B tự định nghĩa cùng binary name | Hai Class object khác nhau |
-| Provider ở A/B implements API do parent định nghĩa | Cả hai cast được thành SPI của host |
-| Plugin mang bản API riêng và dùng child-first | Phát hiện nguy cơ class identity/assignability |
-| Class.load và Class.forName với initialize | Phân biệt đã load với đã chạy static initializer |
-| Parent/resource và child/resource trùng tên | Xác định thứ tự getResource/getResources |
-| ServiceLoader dùng TCCL hoặc loader explicit | Discovery sử dụng đúng class loader |
-| Đóng và thay plugin loader | Không giữ tham chiếu cũ trong TCCL/thread/registry |
+| Child loads class present only in parent | Receives the exact `Class` defined by parent |
+| Both child and parent have the same binary name | With parent-first, the parent's copy is chosen |
+| Class exists only in child A | Parent and sibling B cannot automatically load it |
+| A and B each define the same binary name | Two distinct `Class` objects |
+| Providers in A/B implement API defined by parent | Both can cast to the host's SPI |
+| Plugin carries its own API copy and uses child-first | Detects risk to class identity/assignability |
+| `Class.load` vs `Class.forName` with `initialize` | Distinguishes loaded from having executed static initializers |
+| Parent/resource and child/resource have the same name | Confirms ordering of `getResource`/`getResources` |
+| `ServiceLoader` using TCCL or explicit loader | Discovery uses the intended class loader |
+| Closing and replacing plugin loader | No stale references left in TCCL/threads/registries |
 
-Trước khi triển khai một extension point, hãy kiểm tra những việc sau:
+Before deploying an extension point, check the following:
 
-1. Có một bản API/SPI dùng chung ở loader mà host và plugin thực sự cùng nhìn thấy.
-2. Parent được chọn tường minh khi tạo loader; không mặc định rằng "cùng JVM" là "cùng classpath".
-3. Namespace của implementation, dependency và resource đã có chính sách parent-first/child-first rõ ràng.
-4. Những class cần giao tiếp qua ranh giới chỉ sử dụng các kiểu có identity chung; không xuất class riêng của plugin trong API mà các plugin khác phải trực tiếp cast.
-5. Host hiểu được đường đi của ClassNotFoundException, NoClassDefFoundError, ClassCastException và lỗi linkage; có log loader identity khi cần.
-6. Các thao tác discovery dùng loader explicit hoặc TCCL có kiểm soát; luôn khôi phục TCCL sau khi thay đổi.
-7. Module accessibility, resource lookup và vòng đời class loader đã được kiểm chứng bằng thử nghiệm trong môi trường triển khai thực tế.
+1. There is one shared API/SPI copy in a loader actually visible to both host and plugins.
+2. The parent is chosen explicitly when creating loaders; do not assume "same JVM" means "same classpath."
+3. Namespaces of implementations, dependencies, and resources have explicit parent-first/child-first policies.
+4. Classes communicating across boundaries use only types with shared identity; never expose plugin-private classes in the API for other plugins to cast directly.
+5. The host understands the paths of `ClassNotFoundException`, `NoClassDefFoundError`, `ClassCastException`, and linkage errors; log loader identity when needed.
+6. Discovery operations use an explicit loader or controlled TCCL; always restore TCCL after changing it.
+7. Module accessibility, resource lookup, and class loader lifecycle have been verified by tests in a realistic deployment environment.
 
-**Ghi nhớ:** default ClassLoader tìm lớp theo hướng **child → parent → nguồn riêng của child**; child có thể dùng Class của ancestor, nhưng parent và sibling không tự thấy lớp riêng của child. Chia sẻ **kiểu hợp đồng** ở loader chung và cô lập **implementation** theo loader riêng là cách thiết kế nền tảng cho runtime extensibility đáng tin cậy.
+**Key takeaway:** default `ClassLoader` looks up classes in the direction **child → parent → child's own sources**; a child can use ancestor `Class` objects, while parents and siblings do not automatically see a child's private classes. Sharing **contract types** in a common loader and isolating **implementations** in separate loaders is the foundational design for reliable runtime extensibility.
 
-Tài liệu Java 17 chính thức:
+Official Java 17 documentation:
 
 - https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html
 - https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html

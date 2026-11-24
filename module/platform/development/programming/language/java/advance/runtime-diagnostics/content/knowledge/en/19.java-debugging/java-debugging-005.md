@@ -1,196 +1,196 @@
-# 19.5. Breakpoint, stepping, stack frame, biến cục bộ và điều kiện có debug information
+# 19.5. Breakpoints, Stepping, Stack Frames, Local Variables, and Conditions Requiring Debug Information
 
-Khi debug Java, một breakpoint giúp **tạm dừng thực thi tại một vị trí được JVM/debugger hỗ trợ**, rồi kiểm tra call stack, biến cục bộ, object và trạng thái các thread. Nhưng debugger không “đọc trực tiếp” các dòng source đang mở trong IDE để thực thi: JVM chạy **bytecode của những class thực sự đã được nạp**. Khả năng liên kết bytecode trở lại source, dừng ở một dòng và hiển thị tên biến phụ thuộc vào **debug information trong `.class`**, phiên bản class, đường dẫn source và trạng thái runtime.
+When debugging Java, a breakpoint lets you **pause execution at a location supported by the JVM/debugger**, then inspect the call stack, local variables, objects, and thread states. However, the debugger does not "directly read" the source lines open in your IDE to execute them: the JVM runs **the bytecode of the classes actually loaded**. The ability to map bytecode back to source, pause at a line, and display variable names depends on **debug information inside `.class`**, class versions, source paths, and runtime state.
 
-Bài học này phân biệt **breakpoint, step into/over/out, stack frame, local variable** và giải thích chính xác **khi nào cần thông tin debug**. Ví dụ chạy bằng Java 17+ với `javac`, `javap` và `jdb`; IDE như IntelliJ IDEA, Eclipse hay VS Code có giao diện khác nhưng nguyên lý dựa trên Java Platform Debugger Architecture (JPDA) tương tự.
+This lesson distinguishes **breakpoints, step into/over/out, stack frames, and local variables**, and explains exactly **when debug information is needed**. Examples run on Java 17+ with `javac`, `javap`, and `jdb`; IDEs like IntelliJ IDEA, Eclipse, or VS Code have different UIs, yet the underlying principles based on the Java Platform Debugger Architecture (JPDA) are similar.
 
-## 1. Mô hình tư duy: source code, bytecode, debugger, JVM
+## 1. Mental Model: Source Code, Bytecode, Debugger, JVM
 
-Một luồng debug điển hình:
+A typical debug flow:
 
 ```text
 DebugFrameDemo.java
-       │ javac (có/không có -g)
+       │ javac (with or without -g)
        ▼
 DebugFrameDemo.class
-  ├─ bytecode + method/field descriptors (để thực thi)
-  ├─ SourceFile (nếu có)
-  ├─ LineNumberTable (nếu có)
-  └─ LocalVariableTable / LocalVariableTypeTable (nếu có)
+  ├─ bytecode + method/field descriptors (for execution)
+  ├─ SourceFile (if present)
+  ├─ LineNumberTable (if present)
+  └─ LocalVariableTable / LocalVariableTypeTable (if present)
        │
        ▼
-JVM chạy class đã nạp ─── JDWP/JVMTI ─── debugger (IDE / jdb)
+JVM runs loaded class ─── JDWP/JVMTI ─── debugger (IDE / jdb)
       │ suspend thread                        │
-      └── stack frame, bytecode location ──────┘ hiển thị dòng/biến
+      └── stack frame, bytecode location ─────┘ display lines/variables
 ```
 
-JPDA có ba thành phần liên quan:
+JPDA has three related components:
 
-- **JDI — Java Debug Interface:** API cho debugger điều khiển và truy vấn JVM, thread, breakpoint, stack frame, variable.
-- **JDWP — Java Debug Wire Protocol:** giao thức liên lạc giữa debugger và JVM đang được debug, thường dùng socket trong remote attach.
-- **JVMTI — JVM Tool Interface:** giao diện ở phía runtime cho agent/debugger thực hiện nhiều thao tác quan sát/điều khiển.
+- **JDI — Java Debug Interface:** API for the debugger to control and query the JVM, threads, breakpoints, stack frames, and variables.
+- **JDWP — Java Debug Wire Protocol:** communication protocol between the debugger and the debugged JVM, commonly using sockets for remote attach.
+- **JVMTI — JVM Tool Interface:** runtime-side interface for agents/debuggers to perform observation/control operations.
 
-IDE thường bọc các API này thành nút **Resume**, **Step Into**, **Step Over**, **Step Out**, **Frames**, **Variables**, **Evaluate Expression**. Tên nút và phím tắt khác nhau giữa các IDE, nên không đoán phím tắt là tiêu chuẩn Java.
+IDEs typically wrap these APIs into buttons like **Resume**, **Step Into**, **Step Over**, **Step Out**, **Frames**, **Variables**, and **Evaluate Expression**. Button labels and shortcuts vary across IDEs, so do not assume any shortcut is a Java standard.
 
-**Phân biệt cốt lõi:** file source mới nhất trên máy bạn không nhất thiết tương ứng với `.class` JVM đang chạy. Debugger có thể tô đậm dòng source “đúng tên” nhưng mapping đã lệch sau một lần build/deploy không đồng bộ. Khi trạng thái vô lý, hãy kiểm tra **bytecode đang được nạp** và debug attributes trước khi nghi JVM tính toán sai.
+**Core distinction:** the newest source file on your machine does not necessarily match the `.class` the JVM is running. A debugger may highlight a "right-named" source line while the mapping is shifted after an out-of-sync build/deploy. When state makes no sense, verify the **loaded bytecode** and debug attributes before suspecting the JVM computed wrongly.
 
-## 2. Breakpoint là gì và các loại thường dùng?
+## 2. What Is a Breakpoint and What Types Are Commonly Used?
 
-Breakpoint là một điều kiện khiến debugger yêu cầu VM **báo sự kiện và/hoặc suspend** khi tiến trình thực thi đến vị trí phù hợp. Một source-line breakpoint thường được ánh xạ thành **vị trí bytecode (code index) trong method**, nhờ `LineNumberTable`. Không phải mọi dòng source đều có lệnh thực thi riêng.
+A breakpoint is a condition causing the debugger to ask the VM to **report an event and/or suspend** when execution reaches a matching location. A source-line breakpoint is normally mapped to a **bytecode position (code index) inside a method** via `LineNumberTable`. Not every source line has its own executable instruction.
 
-| Loại breakpoint | Khi phát sinh | Dùng để làm gì | Lưu ý |
+| Breakpoint type | When it triggers | What it is used for | Caveats |
 | --- | --- | --- | --- |
-| **Line breakpoint** | Khi một thread đến vị trí bytecode tương ứng một dòng source. | Xem giá trị biến trước/sau một thao tác cụ thể. | Cần line mapping và code thực thi; comment, import, khai báo không sinh code thường không đặt được. |
-| **Method entry breakpoint** | Khi method phù hợp được gọi. | Bắt đầu theo dõi một method mà chưa biết dòng cụ thể. | Có thể hoạt động khi thiếu line mapping, nhưng nhiều call gây overhead lớn. |
-| **Conditional breakpoint** | Khi đạt vị trí và biểu thức điều kiện đúng. | Dừng chỉ cho trường hợp như `orderId == 42`. | Biểu thức được debugger đánh giá; có thể tốn CPU, invoke code, gây side effect hoặc exception. |
-| **Exception breakpoint** | Khi loại exception được throw (theo cấu hình caught/uncaught). | Tìm điểm phát sinh lỗi thay vì chỉ thấy nơi bắt lỗi. | Exception có thể throw thường xuyên như luồng điều khiển bình thường. |
-| **Field watchpoint** | Khi đọc/ghi một field được theo dõi (nếu debugger/VM hỗ trợ). | Tìm chỗ thay đổi state bất ngờ. | Không giống watch local variable; chi phí có thể cao. |
-| **Logpoint/tracepoint của IDE** | Khi chạm vị trí và IDE ghi thông tin thay vì dừng (theo cấu hình). | Điều tra nhiều request mà ít gián đoạn. | Vẫn có chi phí instrumentation/evaluate và có nguy cơ lộ dữ liệu nhạy cảm. |
+| **Line breakpoint** | When a thread reaches the bytecode location corresponding to a source line. | Inspect variable values before/after a specific operation. | Requires line mapping and executable code; comments, imports, and declarations without emitted code usually cannot hold one. |
+| **Method entry breakpoint** | When a matching method is invoked. | Start watching a method when the exact line is unknown. | Can still work without line mapping, yet frequent calls cause heavy overhead. |
+| **Conditional breakpoint** | When reaching a location and the condition expression evaluates to true. | Pause only for cases like `orderId == 42`. | Expression is evaluated by the debugger; can burn CPU, invoke code, cause side effects, or throw exceptions. |
+| **Exception breakpoint** | When an exception type is thrown (per caught/uncaught configuration). | Find where an error originates instead of only where it is caught. | Exceptions may be thrown frequently as normal control flow. |
+| **Field watchpoint** | When reading/writing a watched field (if supported by debugger/VM). | Find where state mutates unexpectedly. | Not the same as a local-variable watch; overhead can be high. |
+| **IDE logpoint/tracepoint** | When hitting a location and the IDE logs info instead of pausing (per config). | Investigate high request volumes with minimal disruption. | Still incurs instrumentation/evaluation cost and risks exposing sensitive data. |
 
-Một breakpoint **không bảo đảm chỉ dừng một lần**: một dòng trong vòng lặp có thể được chạy hàng nghìn lần, nhiều thread có thể đi qua cùng method, và một class có thể được nạp nhiều lần bởi các class loader khác nhau.
+A breakpoint **is not guaranteed to hit only once**: a line inside a loop can execute thousands of times, multiple threads can pass through the same method, and a class can be loaded multiple times by different class loaders.
 
-### Breakpoint có thể không dừng vì sao?
+### Why Might a Breakpoint Fail to Pause?
 
-- **Class chưa được nạp:** debugger có thể đánh dấu breakpoint là pending/deferred rồi gắn khi class tương ứng được load.
-- **Dòng không thực thi:** dòng comment, import, khai báo hoặc code bị compiler loại bỏ không có bytecode location tương ứng.
-- **Thiếu/mất line debug info:** thiếu `LineNumberTable` khiến không thể ánh xạ chính xác source line.
-- **Source khác class đã deploy:** line 25 trong source hiện tại là code khác so với class đang chạy.
-- **Class loader hoặc module khác:** cùng tên class có thể tồn tại ở nhiều loader; breakpoint gắn sai bản.
-- **Chưa đi qua đường code:** điều kiện `if` sai, method không được gọi, thread đã kết thúc.
-- **Filter/condition/suspend policy:** IDE đặt điều kiện không khớp, đang disable breakpoint hoặc chỉ dừng thread khác.
-- **Build optimization/instrumentation:** bytecode biến đổi bởi agent, obfuscator, build tool hoặc generated code làm location không tương ứng kỳ vọng.
+- **Class not yet loaded:** the debugger may mark the breakpoint pending/deferred and bind it when the class loads.
+- **Non-executable line:** comments, imports, declarations, or compiler-eliminated code have no matching bytecode location.
+- **Missing/stripped line debug info:** lacking `LineNumberTable` prevents accurate source-line mapping.
+- **Source differs from deployed class:** line 25 in current source is different code from the running class.
+- **Different class loader or module:** the same class name can exist across multiple loaders; the breakpoint bound to the wrong copy.
+- **Code path not taken:** `if` condition is false, method never called, or thread already exited.
+- **Filters/conditions/suspend policy:** IDE condition did not match, breakpoint disabled, or only another thread was paused.
+- **Build optimization/instrumentation:** bytecode transformed by agents, obfuscators, build tools, or generated code shifts locations unexpectedly.
 
-Không bật tắt breakpoint ngẫu nhiên để chữa lỗi. Đọc thông báo “verified/unverified”, xác nhận PID, classpath/module-path, class loader và kiểm tra `javap` trên **artifact thực sự được dùng để chạy**.
+Do not toggle breakpoints randomly to "fix" the issue. Read "verified/unverified" indicators, verify PID, classpath/module-path, class loader, and inspect `javap` on the **actual artifact used to run**.
 
-## 3. Stepping: Step Into, Step Over, Step Out và Resume
+## 3. Stepping: Step Into, Step Over, Step Out, and Resume
 
-Khi JVM đã tạm dừng ở breakpoint, các thao tác stepping giúp theo dõi đường chạy:
+Once the JVM is paused at a breakpoint, stepping actions help trace the execution path:
 
-| Thao tác | Ý nghĩa đơn giản | Câu hỏi phù hợp |
+| Action | Simple meaning | Appropriate question |
 | --- | --- | --- |
-| **Step Into** | Tiến tới bước source tiếp theo, có thể đi vào method được gọi. | “Lời gọi này làm gì bên trong?” |
-| **Step Over** | Chạy qua lời gọi method ở dòng hiện tại, rồi dừng ở bước kế tiếp trong **frame hiện tại** nếu có. | “Giá trị thay đổi ra sao sau khi method trả về?” |
-| **Step Out** | Tiếp tục đến khi **method của frame hiện tại** trả về, rồi dừng ở caller khi có thể. | “Điểm gọi nhận kết quả nào?” |
-| **Resume/Continue** | Tiếp tục đến breakpoint/exception/sự kiện dừng kế tiếp. | “Có còn tái hiện ở vị trí này không?” |
-| **Run to Cursor** (IDE) | Đặt mục tiêu chạy đến vị trí được chọn, có điều kiện công cụ hỗ trợ. | “Bỏ qua những dòng không liên quan.” |
+| **Step Into** | Advances to the next source step, potentially entering a called method. | "What does this call do inside?" |
+| **Step Over** | Runs through method calls on the current line, then pauses at the next step in the **current frame** if any. | "How did values change after the method returned?" |
+| **Step Out** | Continues until the **current frame's method** returns, then pauses in the caller when possible. | "What result did the call site receive?" |
+| **Resume/Continue** | Continues until the next breakpoint/exception/stop event. | "Does it still reproduce at this spot?" |
+| **Run to Cursor** (IDE) | Sets a target to run to the selected location, subject to tool support. | "Skip unrelated lines." |
 
-Trong `jdb`:
+In `jdb`:
 
-- `step` tương đương với tiến tới dòng kế tiếp, **có thể vào method khác**.
-- `next` tiến tới dòng kế tiếp trong **frame hiện tại**.
-- `cont` tiếp tục chạy.
-- `step up` (trong các phiên bản `jdb` hỗ trợ) thực hiện cho tới khi method hiện tại trả về; dùng `help` của chính `jdb` để xác nhận.
+- `step` advances to the next line, **potentially entering another method**.
+- `next` advances to the next line in the **current frame**.
+- `cont` resumes execution.
+- `step up` (in `jdb` versions that support it) executes until the current method returns; verify with your `jdb`'s own `help`.
 
-**Không hiểu Step Over là “không thực thi method được gọi”**. Method vẫn chạy đầy đủ, có thể I/O, ném exception, spawn thread, chạm breakpoint khác hoặc gây side effect; debugger chỉ không đi vào từng dòng method ấy theo chế độ step-over.
+**Do not misunderstand Step Over as "skipping execution of the called method."** The method still runs in full—it can perform I/O, throw exceptions, spawn threads, hit other breakpoints, or cause side effects; the debugger merely avoids stepping line by line inside that method.
 
-Cũng không nên hiểu **Step Out** là “bỏ qua phần code còn lại”. Những statement còn lại vẫn được thực thi cho đến khi method trả về hoặc bị exception/unwind.
+Likewise, do not misunderstand **Step Out** as "skipping the remaining code." The remaining statements still execute until the method returns or unwinds via exception.
 
-### Vì sao bấm Step Into nhưng không vào dòng mình muốn?
+### Why Does Clicking Step Into Not Enter the Line I Wanted?
 
-Có thể dòng hiện tại có **nhiều lời gọi** và debugger bước vào lời gọi được thực thi trước; lời gọi là native, thư viện bị filter; compiler tạo bridge/synthetic method; lambda/method reference đi qua code được sinh; hoặc source mapping chỉ có một dòng cho nhiều bytecode instructions. Nhiều IDE hỗ trợ **Smart Step Into** để chọn lời gọi cụ thể, nhưng đó là tính năng của IDE, không phải cú pháp chung của Java.
+The current line may contain **multiple calls** and the debugger enters whichever executes first; the call may be native or a filtered library; the compiler may emit bridge/synthetic methods; lambdas/method references pass through generated code; or source mapping maps one line to multiple bytecode instructions. Many IDEs support **Smart Step Into** to pick a specific call, though that is an IDE feature rather than general Java syntax.
 
-Khi stack trace hiện `lambda$...`, `access$...`, `$Proxy...` hoặc generated frame, cần hiểu compiler/framework có thể sinh phương thức/class trung gian. Điều này không nhất thiết báo lỗi; hãy kiểm tra logic thực tế và debug mapping.
+When stack traces show `lambda$...`, `access$...`, `$Proxy...`, or generated frames, understand that compilers/frameworks can generate intermediate methods/classes. This does not automatically indicate an error; inspect the actual logic and debug mapping.
 
-## 4. Stack frame: “đang ở phương thức nào, do ai gọi?”
+## 4. Stack Frames: "Which Method Am I In, and Who Called It?"
 
-Mỗi Java thread có call stack của riêng mình. Khi một method được gọi, runtime tạo một **stack frame** tương ứng với lần gọi đó. Frame chứa trạng thái thực thi cần thiết, bao gồm local-variable slots, operand stack và thông tin để trả về caller; debugger trình bày những dữ liệu truy cập được ở frame đang tạm dừng.
+Each Java thread has its own call stack. When a method is invoked, the runtime creates a **stack frame** for that invocation. A frame holds the necessary execution state, including local-variable slots, operand stack, and caller return information; the debugger presents accessible data in the suspended frame.
 
-Ví dụ:
+Example:
 
 ```text
-Thread "main" tại breakpoint trong calculateSubtotal(...)
+Thread "main" at breakpoint in calculateSubtotal(...)
 ┌────────────────────────────────────────────┐
-│ frame #0: DebugFrameDemo.calculateSubtotal │ ← frame hiện tại
-│           quantity=3, price=7, raw=21       │
+│ frame #0: DebugFrameDemo.calculateSubtotal │ ← current frame
+│           quantity=3, price=7, raw=21      │
 ├────────────────────────────────────────────┤
-│ frame #1: DebugFrameDemo.main               │ ← caller
-│           quantity=3, price=7               │
+│ frame #1: DebugFrameDemo.main              │ ← caller
+│           quantity=3, price=7              │
 └────────────────────────────────────────────┘
 ```
 
-*Đây là sơ đồ minh họa sau khi `raw` đã được gán; không phải output cố định của `jdb`.*
+*This is an illustrative diagram after `raw` has been assigned; it is not fixed `jdb` output.*
 
-- **Top frame** là method đang thực thi hoặc đang bị dừng, thường gần nhất với breakpoint.
-- **Caller frame** là nơi method hiện tại được gọi; có thể xem biến của frame caller nếu metadata có sẵn.
-- **Chọn frame** trong debugger chỉ đổi bối cảnh bạn đang xem/evaluate; không tự làm JVM quay ngược thời gian.
-- Một method có thể xuất hiện nhiều lần ở các frame khác nhau do **đệ quy**, mỗi lần có local values riêng.
-- **Local variable** là của **một lần thực thi method** (một frame), khác với field thuộc object hoặc static field thuộc class.
+- **Top frame** is the currently executing or paused method, usually closest to the breakpoint.
+- **Caller frame** is where the current method was invoked; caller variables can be viewed if metadata is available.
+- **Selecting a frame** in the debugger only switches the context you are viewing/evaluating; it does not rewind the JVM in time.
+- The same method can appear multiple times across frames due to **recursion**, each invocation having its own local values.
+- **Local variables** belong to **one method invocation** (one frame), unlike instance fields on an object or static fields on a class.
 
-Khi thread resume, stack tiến triển: frame có thể biến mất khi method trả về, exception unwind stack hoặc tiếp tục vào method mới. Không giữ một đối tượng `StackFrame`/biến JDI cũ rồi dùng sau khi thread đã resume; JDI có thể báo `InvalidStackFrameException`.
+When the thread resumes, the stack advances: frames vanish when methods return, exceptions unwind the stack, or execution enters new methods. Never hold onto an old JDI `StackFrame`/variable object and use it after the thread resumes; JDI may throw `InvalidStackFrameException`.
 
-### “Stack frame” khác “Java stack trace” như thế nào?
+### How Is a "Stack Frame" Different from a "Java Stack Trace"?
 
-**Stack frame đang tạm dừng** là snapshot của một vị trí thực thi có thể xem locals nếu có metadata. **Stack trace được log từ exception** thường chủ yếu là tên class/method, source file và line (nếu có); nó **không in mọi biến cục bộ**. Một exception stack trace không phải heap dump, cũng không phải lịch sử mọi lần method đã được gọi.
+A **suspended stack frame** is a live snapshot of an execution point where locals can be inspected if metadata exists. A **stack trace logged from an exception** usually consists mainly of class/method names, source files, and line numbers (if available); it **does not print all local variables**. An exception stack trace is neither a heap dump nor a history of every method ever called.
 
-Với async (`CompletableFuture`, executor, reactive chains), worker đang chạy callback có **stack của worker đó**. Method đã submit task từ thread khác có thể đã kết thúc hoặc đang chờ; nó không tự động nằm dưới callback trong call stack. Muốn nối logical call chain qua thread, sử dụng trace/correlation ID, async stack tooling hoặc instrumentation phù hợp, không chỉ nhìn `where` của một thread.
+With async code (`CompletableFuture`, executors, reactive chains), the worker running a callback has **that worker's stack**. The method that submitted the task from another thread may already have returned or be waiting elsewhere; it does not automatically sit beneath the callback in the call stack. To connect a logical call chain across threads, use trace/correlation IDs, async stack tooling, or proper instrumentation rather than looking only at one thread's `where`.
 
-## 5. Biến cục bộ (local variables) và phạm vi quan sát
+## 5. Local Variables and Visibility Scope
 
-Để debug `int subtotal` hoặc `String customerId`, cần phân biệt:
+To debug `int subtotal` or `String customerId`, distinguish:
 
-| Dữ liệu | Nằm ở đâu về mặt ngữ nghĩa | Cách debug thường gặp |
+| Data | Where it lives semantically | Typical way to debug |
 | --- | --- | --- |
-| **Parameter** của method | Đầu vào của một lần gọi/frame. | Mở frame hiện tại; tên parameter có thể cần `LocalVariableTable` để debugger hiển thị đúng. |
-| **Local variable** | Khai báo trong method/block, có phạm vi và thời điểm sống. | `Variables`/`locals`, nhưng phải ở code location nơi biến được coi là visible. |
-| **Instance field** | Thuộc một object Java. | Mở `this` hoặc object reference rồi xem field; không phải “local” theo nghĩa này. |
-| **Static field** | Thuộc class, dùng chung qua các instance theo class-loader identity. | Xem field qua class/debugger; có thể liên quan nhiều thread. |
-| **Captured variable** của lambda | Giá trị/reference được capture khi tạo lambda theo quy tắc Java. | Có thể xuất hiện dưới field/synthetic structure, không nhất thiết như local trực tiếp. |
-| **Operand stack/slot tạm** | Trạng thái bytecode nội bộ. | Không nhất thiết có tên source; debugger không thể hiện như local Java. |
+| Method **parameter** | Input of a single invocation/frame. | Open current frame; parameter names may need `LocalVariableTable` for the debugger to display properly. |
+| **Local variable** | Declared inside a method/block, with scope and lifetime. | `Variables`/`locals`, only at code locations where the variable is considered visible. |
+| **Instance field** | Belongs to a Java object. | Expand `this` or an object reference to inspect fields; not a "local" in this sense. |
+| **Static field** | Belongs to a class, shared across instances per class-loader identity. | Inspect via class/debugger; may involve multiple threads. |
+| Lambda **captured variable** | Value/reference captured when constructing a lambda per Java rules. | May appear under synthetic fields/structures rather than directly as a local. |
+| **Operand stack/temporary slot** | Internal bytecode state. | Not necessarily named in source; debugger cannot show it as a Java local. |
 
-Một local có **lexical scope** trong Java source, nhưng metadata `LocalVariableTable` mô tả **phạm vi code index** để debugger biết tên, kiểu và slot tương ứng. Khi dừng **trước dòng gán đầu tiên**, biến có thể chưa được khởi tạo hoặc chưa được báo visible; sau khi `next` qua dòng đó, biến mới có giá trị có thể xem.
+A local has **lexical scope** in Java source, whereas `LocalVariableTable` metadata describes **code index ranges** so the debugger knows its name, type, and slot. When paused **before the first assignment line**, a variable may be uninitialized or not yet reported visible; after stepping with `next` past that line, it holds an inspectable value.
 
-Đừng coi mọi giá trị hiển thị là “đã được tính xong”. Nếu debugger dừng ở đầu dòng:
+Do not assume every displayed value is "already computed." If the debugger pauses at the start of:
 
 ```java
 int total = compute(subtotal);
 ```
 
-thì `total` có thể **chưa được gán**. Cần `next` để chạy statement, sau đó mới kiểm tra giá trị `total`. Không sửa local trong debugger mà quên rằng việc sửa sẽ thay đổi đường chạy; nhiều IDE cho phép `Set Value` chỉ khi JDI/VM hỗ trợ và biến đang ở vị trí hợp lệ.
+then `total` may **not be assigned yet**. Step with `next` to execute the statement before inspecting `total`. Never edit locals in the debugger while forgetting that the edit changes execution; many IDEs allow `Set Value` only when JDI/VM supports it and the variable is in a valid slot.
 
-### Vì sao IDE báo “Variable not available” hoặc `AbsentInformationException`?
+### Why Does the IDE Report "Variable not available" or `AbsentInformationException`?
 
-Các trường hợp khác nhau cần xử lý khác nhau:
+Different causes require different actions:
 
-1. **Thiếu debug-info về local:** file `.class` không có `LocalVariableTable`; JDI `StackFrame.visibleVariables()` có thể ném `AbsentInformationException`.
-2. **Biến chưa vào scope hoặc đã ra scope:** code location hiện tại không thuộc phạm vi hợp lệ của biến.
-3. **Đã đi qua lời gọi hoặc thread resume:** frame trước đó đã bị hủy/không còn hợp lệ.
-4. **Đang ở native frame:** không có local-variable table Java như method bytecode thông thường.
-5. **Compiler/JIT/lambda instrumentation:** debugger không có mapping rõ ràng đến một biểu thức source; tên có thể được tối ưu/diễn giải khác hoặc không đánh giá được.
-6. **Source/artifact lệch:** local tên `discount` trong source mới chưa tồn tại ở bytecode cũ.
+1. **Missing local debug info:** the `.class` file lacks `LocalVariableTable`; JDI's `StackFrame.visibleVariables()` can throw `AbsentInformationException`.
+2. **Variable not yet in scope or out of scope:** current code location falls outside the variable's live range.
+3. **Call returned or thread resumed:** the prior frame was destroyed/invalidated.
+4. **Inside a native frame:** there is no Java local-variable table like normal bytecode methods.
+5. **Compiler/JIT/lambda instrumentation:** the debugger lacks a clear mapping to a source expression; names may be optimized/reinterpreted or un-evaluatable.
+6. **Source/artifact mismatch:** a local named `discount` in newer source did not exist in older bytecode.
 
-Thiếu local metadata không đồng nghĩa **JVM không có giá trị nội bộ**. Nó có nghĩa giao diện debugger không có đủ thông tin tin cậy để ánh xạ slot bytecode sang **tên source** ở vị trí đó.
+Missing local metadata does not mean **the JVM lacks internal values**. It means the debugger UI lacks reliable information to map bytecode slots to **source names** at that location.
 
-## 6. Debug information trong class file: ba nhóm cần nhớ
+## 6. Debug Information in Class Files: Three Groups to Remember
 
-`javac` có thể nhúng các thuộc tính debug bổ sung vào `.class`:
+`javac` can embed extra debug attributes into `.class` files:
 
-| Thành phần | Vai trò | Ảnh hưởng thực tế |
+| Attribute | Role | Practical impact |
 | --- | --- | --- |
-| `SourceFile` | Tên tệp source ban đầu (ví dụ `DebugFrameDemo.java`). | Giúp debugger/stack trace xác định source file; **không chứa nguyên file source**. |
-| `LineNumberTable` | Ánh xạ bytecode offsets sang line numbers trong source. | Giúp line breakpoint, stepping và stack trace có số dòng. |
-| `LocalVariableTable` (và đôi khi `LocalVariableTypeTable`) | Ánh xạ slot thành tên/kiểu/phạm vi của local và parameter. | Giúp `locals`/Variables hiển thị tên và giá trị trong frame hiện tại. |
-| `MethodParameters` | Tên và flags của formal parameters cho reflection khi được biên dịch với `-parameters`. | **Không thay thế `LocalVariableTable`** để xem mọi biến local. |
+| `SourceFile` | Original source filename (e.g., `DebugFrameDemo.java`). | Helps debuggers/stack traces identify the source file; **does not embed the entire source file**. |
+| `LineNumberTable` | Maps bytecode offsets to source line numbers. | Enables line breakpoints, stepping, and line numbers in stack traces. |
+| `LocalVariableTable` (and sometimes `LocalVariableTypeTable`) | Maps slots to names/types/scopes of locals and parameters. | Enables `locals`/Variables to display names and values in the current frame. |
+| `MethodParameters` | Formal parameter names and flags for reflection when compiled with `-parameters`. | **Does not replace `LocalVariableTable`** for inspecting all local variables. |
 
-Các thuộc tính như `SourceFile`, `LineNumberTable`, `LocalVariableTable` là **thông tin tùy chọn** trong class file. `-g:none` vẫn tạo ra class có bytecode, methods, fields và những metadata bắt buộc để JVM thực thi; nó không “xóa tên method” hay biến code thành bí ẩn tuyệt đối.
+Attributes such as `SourceFile`, `LineNumberTable`, and `LocalVariableTable` are **optional information** in class files. `-g:none` still produces a valid class with bytecode, methods, fields, and mandatory metadata for JVM execution; it does not "erase method names" or turn code into an absolute mystery.
 
-### `javac` mặc định khác `javac -g`
+### Default `javac` Differs from `javac -g`
 
-Điểm đặc biệt quan trọng ở **Oracle/OpenJDK javac 17**:
+A critical point in **Oracle/OpenJDK javac 17**:
 
-- **Mặc định không thêm `-g`:** compiler thường ghi **`lines` và `source`**, nhưng **không ghi local variable debug information**.
-- **`-g`:** ghi đầy đủ `lines,vars,source`, gồm thông tin local variables.
-- **`-g:lines,source`:** ghi line number và source file nhưng không yêu cầu local-variable info.
-- **`-g:vars`:** ghi thông tin local variables, nhưng **không đồng thời yêu cầu line numbers/source file**; không phù hợp nếu muốn source-line debugging đầy đủ.
-- **`-g:none`:** không ghi nhóm debug information đó.
-- **`-parameters`:** bổ sung metadata tên formal method parameters để reflection đọc; **không thay `-g`**.
+- **Default without `-g`:** the compiler typically records **`lines` and `source`**, yet **does not record local variable debug information**.
+- **`-g`:** records full `lines,vars,source`, including local variable info.
+- **`-g:lines,source`:** records line numbers and source file without requesting local-variable info.
+- **`-g:vars`:** records local variable info, without **requiring line numbers/source file**; unsuitable if you want full source-line debugging.
+- **`-g:none`:** emits none of those debug information groups.
+- **`-parameters`:** adds formal method parameter name metadata for reflection; **does not replace `-g`**.
 
-Đối với build cần debug từng dòng và inspect variables, chọn **`javac -g`** (hoặc `-g:lines,vars,source`) trên artifact test/staging. Nếu chỉ chạy `javac Demo.java`, line breakpoint có thể hoạt động nhưng `locals` trong `jdb` không đủ thông tin tên local.
+For builds needing line-by-line debugging and variable inspection, choose **`javac -g`** (or `-g:lines,vars,source`) on test/staging artifacts. Running plain `javac Demo.java` lets line breakpoints work while `locals` in `jdb` lacks local names.
 
-Không nhầm `-g` của compiler với `-agentlib:jdwp` của Java launcher: **`-g` quyết định thông tin được đóng gói khi biên dịch**, còn **JDWP agent** mở khả năng debugger gắn vào **JVM đang chạy**. Hai lựa chọn bổ sung nhau, không thay thế nhau.
+Do not confuse compiler `-g` with Java launcher `-agentlib:jdwp`: **`-g` determines metadata packaged at compile time**, whereas the **JDWP agent** enables debuggers to attach to a **running JVM**. The two options complement each other and do not replace one another.
 
-## 7. Java 17+ — chương trình thực hành breakpoint, frame và locals
+## 7. Java 17+ — Hands-On Program for Breakpoints, Frames, and Locals
 
-Lưu thành tệp **`DebugFrameDemo.java`**:
+Save as **`DebugFrameDemo.java`**:
 
 ```java
 public final class DebugFrameDemo {
@@ -221,9 +221,9 @@ public final class DebugFrameDemo {
 }
 ```
 
-Phép tính xác định: `3 × 7 = 21`, giảm `2` còn `19`, cộng phí `5` thành `24`.
+Deterministic calculation: `3 × 7 = 21`, minus `2` gives `19`, plus `5` delivery fee gives `24`.
 
-Biên dịch với **đầy đủ debug information** và chạy bình thường (JDK 17+):
+Compile with **full debug information** and run normally (JDK 17+):
 
 ```bash
 mkdir -p out
@@ -231,49 +231,49 @@ javac -g -d out DebugFrameDemo.java
 java -cp out DebugFrameDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 total=24
 ```
 
-Nếu chương trình không in `total=24` khi chạy ngoài debugger, hãy kiểm tra đúng classpath và file source trước khi debug; tránh dùng debugger để che lỗi do chạy nhầm artifact.
+If the program does not print `total=24` outside the debugger, verify the classpath and source file before debugging; avoid using a debugger to mask errors caused by running the wrong artifact.
 
-### 7.1. Debug bằng IDE
+### 7.1. Debugging with an IDE
 
-Trong IDE Java bất kỳ có hỗ trợ JDWP/JDI:
+In any Java IDE supporting JDWP/JDI:
 
-1. Mở project chứa source, đảm bảo dùng **JDK 17+** và build ra đúng class đang chạy. Bật chế độ debug và tạm dừng tại dòng `int raw = quantity * unitPrice;`.
-2. Khi dừng ở đầu dòng, kiểm tra `quantity=3`, `unitPrice=7` trong **frame `calculateSubtotal`**. `raw` có thể chưa được gán, tùy position.
-3. Nhấn **Step Over** một lần để thực thi gán `raw`, rồi kiểm tra `raw=21`.
-4. Step Over tiếp qua `discount` và `afterDiscount`; tại vị trí sau các dòng tương ứng, kiểm tra `discount=2` và `afterDiscount=19`.
-5. Dùng **Step Out** để trở về `main`: thấy `subtotal=19` sau khi lời gọi hoàn tất.
-6. Ở dòng gọi `addDeliveryFee(subtotal)`, dùng **Step Into** để vào method, kiểm tra `subtotal=19`; Step Over để tính `total=24`; Step Out về `main` rồi Resume.
-7. Mở **Frames/Call Stack** khi dừng trong `calculateSubtotal`; chọn `main` để xem local của caller, sau đó quay về frame hiện tại.
+1. Open the project containing the source, ensure **JDK 17+** is used, and build the exact class being run. Start in debug mode and pause at `int raw = quantity * unitPrice;`.
+2. When paused at the start of the line, check `quantity=3`, `unitPrice=7` inside **frame `calculateSubtotal`**. `raw` may not be assigned yet, depending on position.
+3. Press **Step Over** once to execute the `raw` assignment, then confirm `raw=21`.
+4. Step Over across `discount` and `afterDiscount`; at positions after those lines, verify `discount=2` and `afterDiscount=19`.
+5. Use **Step Out** to return to `main`: observe `subtotal=19` after the call completes.
+6. On the `addDeliveryFee(subtotal)` call line, use **Step Into** to enter the method, verify `subtotal=19`; Step Over to compute `total=24`; Step Out back to `main` and Resume.
+7. Open **Frames/Call Stack** while paused inside `calculateSubtotal`; select `main` to inspect the caller's locals, then switch back to the current frame.
 
-Thời điểm một biến trở nên visible phụ thuộc source line/bytecode location; không tự kết luận giá trị “sai” vì debugger vẫn đang dừng **trước** phép gán. Nếu IDE dừng ở dòng kế tiếp hoặc chỉ bước tới một breakpoint đã gắn, xem cấu hình step filters và compiler mapping.
+When a variable becomes visible depends on source line/bytecode location; do not conclude a value is "wrong" when the debugger is still paused **before** the assignment. If the IDE stops on the next line or jumps past step targets, check step filter settings and compiler mapping.
 
-### 7.2. Debug bằng `jdb` và JDWP trên localhost
+### 7.2. Debugging with `jdb` and JDWP on Localhost
 
-Nếu muốn thấy debugger ở terminal, dùng **hai terminal** trên **máy thử nghiệm**. Terminal 1 khởi chạy JVM với JDWP, tạm dừng trước khi vào `main`:
+To observe the debugger in terminals, use **two terminals** on the **test machine**. Terminal 1 starts the JVM with JDWP, paused before entering `main`:
 
 ```bash
 java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=127.0.0.1:5005 \
   -cp out DebugFrameDemo
 ```
 
-- `transport=dt_socket`: debugger kết nối qua socket.
-- `server=y`: JVM mở socket lắng nghe.
-- `suspend=y`: JVM chờ debugger kết nối/cho phép tiếp tục trước khi thực thi `main`.
-- `address=127.0.0.1:5005`: chỉ lắng nghe loopback IPv4 của máy này, tránh mở cổng debug ra mạng.
+- `transport=dt_socket`: debugger connects over a socket.
+- `server=y`: JVM opens a listening socket.
+- `suspend=y`: JVM waits for debugger connection/resume before executing `main`.
+- `address=127.0.0.1:5005`: listens only on this machine's IPv4 loopback, avoiding exposing a debug port to the network.
 
-Terminal 2 kết nối bằng **jdb của JDK**, trỏ source path về thư mục có `DebugFrameDemo.java`:
+Terminal 2 connects with **the JDK's `jdb`**, pointing source path to the directory containing `DebugFrameDemo.java`:
 
 ```bash
 jdb -attach 127.0.0.1:5005 -sourcepath .
 ```
 
-Sau khi kết nối, tại prompt của `jdb` nhập từng lệnh (đây **không phải** lệnh Bash):
+After connecting, enter each command at the `jdb` prompt (these are **not** Bash commands):
 
 ```text
 stop in DebugFrameDemo.calculateSubtotal
@@ -291,43 +291,43 @@ down
 cont
 ```
 
-Ý nghĩa:
-- `stop in ...` đặt **method entry breakpoint** (có thể deferred cho đến lúc class được nạp).
-- `cont` cho tiến trình chạy đến breakpoint đó.
-- `where` in Java stack trace của **thread đang dừng**.
-- `locals` xem các local/parameter đang visible nếu `-g` đã cung cấp metadata.
-- `print quantity`, `print unitPrice` xem giá trị của biến trong frame hiện tại.
-- `next` chạy qua statement đang dừng và dừng ở vị trí source tiếp theo trong frame phù hợp; sau đó `raw` dự kiến là `21`.
-- `up`/`down` (khi có trong `help` của bản `jdb`) chọn frame caller/callee để đọc bối cảnh, **không làm code thực thi lùi lại**.
-- `cont` tiếp tục cho chương trình hoàn tất và in `total=24`.
+Meaning:
+- `stop in ...` sets a **method entry breakpoint** (may be deferred until the class loads).
+- `cont` lets execution run to that breakpoint.
+- `where` prints the Java stack trace of the **suspended thread**.
+- `locals` shows visible locals/parameters if `-g` supplied metadata.
+- `print quantity`, `print unitPrice` inspect variable values in the current frame.
+- `next` executes past the paused statement and stops at the next source location in the matching frame; afterward `raw` is expected to be `21`.
+- `up`/`down` (when available in your `jdb`'s `help`) select caller/callee frames to read context, **without rolling execution backward**.
+- `cont` resumes so the program finishes and prints `total=24`.
 
-Output của **`jdb`** (prompt, thread id, line number, thứ tự message) phụ thuộc JDK và session; không đưa ra một log output cố định. Đối với method breakpoint vừa vào `calculateSubtotal`, bạn có thể xem `quantity` và `unitPrice` trước, còn `raw` chỉ nên kiểm tra **sau** khi bước qua dòng gán.
+**`jdb`** output (prompts, thread IDs, line numbers, message ordering) depends on JDK and session; no fixed log output is guaranteed. For a method breakpoint right on entering `calculateSubtotal`, inspect `quantity` and `unitPrice` first, and check `raw` only **after** stepping past its assignment line.
 
-Nếu muốn thực hành **line breakpoint**, thay `stop in ...` bằng dạng `stop at DebugFrameDemo:<line-number>` với số dòng **thực tế** trong source của bạn. Ví dụ không khóa cứng số dòng vì thêm/bớt comment có thể làm số dòng thay đổi. `jdb` hỗ trợ phương thức `stop in Class.method` và dòng `stop at Class:line` theo tài liệu JDK 17.
+To practice a **line breakpoint**, replace `stop in ...` with `stop at DebugFrameDemo:<line-number>` using the **actual** line number in your source. Examples avoid hardcoding line numbers because adding/removing comments shifts them. `jdb` supports method `stop in Class.method` and line `stop at Class:line` per JDK 17 docs.
 
-**Bảo mật:** JDWP là giao diện điều khiển JVM rất nhạy cảm. Chỉ dùng trên môi trường kiểm soát, bind loopback, không public port hay chuyển tiếp cổng không bảo vệ. Một debugger có thể đọc thông tin nhạy cảm, tạm dừng thread hoặc thay đổi trạng thái trong JVM. Không dùng `address=*:5005` trên production chỉ để tiện kết nối.
+**Security:** JDWP is a highly sensitive JVM control interface. Use it only in controlled environments, bind loopback, and never expose or forward the port unprotected. A debugger can read sensitive data, pause threads, or alter state inside the JVM. Never use `address=*:5005` in production merely for convenience.
 
-## 8. Tự kiểm tra `-g` bằng `javap`
+## 8. Self-Checking `-g` with `javap`
 
-Để biết file `.class` có metadata gì, dùng `javap` thay vì đoán từ IDE. Dùng **cùng source** nhưng biên dịch vào các thư mục riêng để không ghi đè:
+To know what metadata a `.class` file contains, use `javap` instead of guessing from an IDE. Use the **same source** compiled into separate directories so builds do not overwrite one another:
 
 ```bash
 mkdir -p build/default build/full build/none build/partial
 
-# Mặc định: thường có lines và source, không có vars
+# Default: usually includes lines and source, omits vars
 javac -d build/default DebugFrameDemo.java
 
-# Ghi đầy đủ line/source/local variable debug info
+# Emit full line/source/local variable debug info
 javac -g -d build/full DebugFrameDemo.java
 
-# Không ghi những debug attributes đó
+# Omit those debug attributes
 javac -g:none -d build/none DebugFrameDemo.java
 
-# Chỉ source + line number
+# Only source + line numbers
 javac -g:lines,source -d build/partial DebugFrameDemo.java
 ```
 
-Kiểm tra từng artifact:
+Inspect each artifact:
 
 ```bash
 javap -l -p -classpath build/default DebugFrameDemo
@@ -335,21 +335,21 @@ javap -l -p -classpath build/full DebugFrameDemo
 javap -l -p -classpath build/none DebugFrameDemo
 javap -l -p -classpath build/partial DebugFrameDemo
 
-# Khi muốn xem đầy đủ attributes và bytecode location:
+# To inspect full attributes and bytecode locations:
 javap -v -p -classpath build/full DebugFrameDemo
 ```
 
-Dự kiến về loại metadata (không phải số dòng cố định):
+Expected metadata types (not fixed line numbers):
 
-| Build | `SourceFile` | `LineNumberTable` | `LocalVariableTable` | Tác động khi debug |
+| Build | `SourceFile` | `LineNumberTable` | `LocalVariableTable` | Impact when debugging |
 | --- | --- | --- | --- | --- |
-| `javac` mặc định trên JDK 17 | Có | Có | Thường **không** | Line breakpoint/stack trace có line; `locals` có thể thiếu tên biến. |
-| `javac -g` | Có | Có | Có | Thuận tiện cho line stepping, inspect local/parameters. |
-| `javac -g:none` | Không | Không | Không | Method breakpoint có thể vẫn khả dụng; không thể tin cậy map line hoặc tên biến. |
-| `javac -g:lines,source` | Có | Có | Không | Có line, thiếu local variable metadata. |
-| `javac -g:vars` | Không yêu cầu | Không yêu cầu | Có | Có tên local nhưng source-line breakpoint vẫn thiếu mapping nếu không có `lines`. |
+| Default `javac` on JDK 17 | Yes | Yes | Usually **no** | Line breakpoints/stack traces have line numbers; `locals` may lack variable names. |
+| `javac -g` | Yes | Yes | Yes | Convenient for line stepping and inspecting locals/parameters. |
+| `javac -g:none` | No | No | No | Method breakpoints may still work; cannot reliably map lines or variable names. |
+| `javac -g:lines,source` | Yes | Yes | No | Has line numbers, lacks local variable metadata. |
+| `javac -g:vars` | Not requested | Not requested | Yes | Has local names, yet source-line breakpoints still lack mapping without `lines`. |
 
-`javap -l` chủ yếu in **line và local variable tables**, còn `javap -v` liệt kê thêm thuộc tính lớp như `SourceFile`. Trong output full debug, tìm các phần:
+`javap -l` primarily prints **line and local variable tables**, while `javap -v` also lists class attributes like `SourceFile`. In full-debug output, look for:
 
 ```text
 LineNumberTable:
@@ -361,63 +361,63 @@ LocalVariableTable:
   ...    ...     ...   raw           I
 ```
 
-Các dấu `...` là placeholder mô tả cấu trúc, **không phải output copy nguyên** từ một file đã chạy. Số start/length/slot và line number phải xem từ artifact thật.
+The `...` markers are structural placeholders, **not verbatim copy-pasted output** from a real run. Actual start/length/slot and line numbers must be read from the real artifact.
 
-### Những điều `javap` cho biết và không cho biết
+### What `javap` Tells You and What It Does Not
 
-`LineNumberTable` lưu mapping PC → line trong một method, không khôi phục **toàn bộ source code**. `LocalVariableTable` lưu tên, kiểu, slot và phạm vi bytecode, không phải log giá trị biến qua thời gian. `SourceFile` là tên file, **không chứa nội dung source**. Do đó cần giữ source tương ứng với build để IDE mở đúng dòng.
+`LineNumberTable` stores PC → line mappings inside a method, not **the entire source code**. `LocalVariableTable` stores names, types, slots, and bytecode ranges, not a log of variable values over time. `SourceFile` is just a filename, **not the source contents**. Therefore, keep source aligned with the build so the IDE opens the right lines.
 
-Bộ biên dịch khác `javac` (Kotlin, Scala, Groovy), các bước bytecode weaving, obfuscation, shrink hoặc ProGuard có thể thay đổi debug attributes và tên. Hãy kiểm tra class **sau bước build cuối** chứ không chỉ class trung gian của `javac`. Nếu có obfuscation, giữ mapping file một cách an toàn.
+Non-`javac` compilers (Kotlin, Scala, Groovy), bytecode weaving steps, obfuscation, shrinking, or ProGuard can alter debug attributes and names. Inspect classes **after the final build step**, not just intermediate `javac` outputs. If obfuscated, store mapping files securely.
 
-## 9. `-parameters` không tương đương thông tin local trong debugger
+## 9. `-parameters` Is Not Equivalent to Local Debug Info in a Debugger
 
-`javac -parameters` tạo thuộc tính `MethodParameters` để Java Reflection API có thể lấy **tên tham số** của method/constructor, ví dụ `Executable.getParameters()`. Nhưng nó không lưu tên của biến `int raw` trong thân method.
+`javac -parameters` emits the `MethodParameters` attribute so the Java Reflection API can retrieve **parameter names** of methods/constructors, e.g. `Executable.getParameters()`. However, it does not record the name of `int raw` inside the method body.
 
-Có thể biên dịch:
+You can compile:
 
 ```bash
 javac -parameters -g:none -d build/none DebugFrameDemo.java
 javap -v -p -classpath build/none DebugFrameDemo
 ```
 
-Trong build này, `MethodParameters` có thể xuất hiện cho method có tham số dù `LineNumberTable` và `LocalVariableTable` bị tắt. Nghĩa là một framework reflection có thể thấy tên tham số nhưng IDE không nhất thiết có đủ dữ liệu để làm line breakpoint và xem `raw`. Ngược lại, `-g` giúp debugger local nhưng không tự bảo đảm mọi reflection API báo `isNamePresent() == true` nếu không dùng `-parameters`.
+In this build, `MethodParameters` can appear for methods with parameters even though `LineNumberTable` and `LocalVariableTable` are disabled. That means a reflection framework sees parameter names while an IDE does not necessarily have enough data for line breakpoints and viewing `raw`. Conversely, `-g` helps local debugging without guaranteeing every reflection API reports `isNamePresent() == true` unless `-parameters` is also passed.
 
-Nếu mục tiêu là **both reflection và full source debugging** trong môi trường thử nghiệm, có thể dùng:
+If the goal is **both reflection and full source debugging** in a test environment, you can use:
 
 ```bash
 javac -g -parameters -d out DebugFrameDemo.java
 ```
 
-Không nên thay đổi cờ compile mù quáng trong production build; debug metadata có thể làm file lớn hơn và khiến việc xem nội bộ dễ hơn khi ai đó lấy được artifact, dù bản thân nó không biến Java bytecode thành dữ liệu bí mật.
+Do not blindly change compiler flags in production builds; debug metadata can enlarge artifacts and make internals easier to read if someone obtains the binary, though it does not turn Java bytecode into secret data on its own.
 
-## 10. Điều kiện breakpoint: chọn đúng thời điểm và tránh side effect
+## 10. Conditional Breakpoints: Picking the Right Moment and Avoiding Side Effects
 
-Một conditional breakpoint có thể dùng biểu thức như:
+A conditional breakpoint can use an expression like:
 
 ```java
 quantity == 3 && unitPrice == 7
 ```
 
-Đây là **biểu thức đặt trong UI cấu hình conditional breakpoint của IDE**, không phải chương trình độc lập. Khi code chạy đến vị trí, IDE chỉ quyết định suspend nếu điều kiện đúng theo cơ chế của debugger.
+This is an **expression entered in the IDE's conditional breakpoint configuration UI**, not a standalone program. When execution reaches that location, the IDE suspends only if the condition holds according to the debugger mechanism.
 
-Các điểm cần cân nhắc:
+Points to consider:
 
-- Điều kiện phải dùng **biến đang visible ở frame/breakpoint**. Nếu gắn ở đầu `main` thì `quantity` chưa được khai báo/gán, biểu thức có thể chưa evaluate được.
-- Một điều kiện trên line nóng chạy hàng triệu lần có thể gây overhead rất lớn vì debugger phải đánh giá mỗi lần gặp.
-- Không gọi method có side effect như `order.setStatus(...)` hoặc `repository.save(...)` trong conditional breakpoint.
-- Ngay cả getter tưởng vô hại có thể lazy-load, lock hoặc gọi mạng; ưu tiên biểu thức thuần, field/primitive/simple comparisons.
-- Điều kiện có thể ném exception (`null`, index out of bounds) khiến debugger không dừng như kỳ vọng; xem log lỗi evaluation của IDE.
-- Không log/hiển thị token, password hoặc PII nếu debug production data.
+- The condition must reference **variables visible in the breakpoint's frame**. Placed at the top of `main`, `quantity` is not yet declared/assigned, so the expression may fail to evaluate.
+- A condition on a hot line executed millions of times can cause massive overhead because the debugger evaluates it on every hit.
+- Never call methods with side effects like `order.setStatus(...)` or `repository.save(...)` inside a conditional breakpoint.
+- Even seemingly harmless getters can lazy-load, lock, or make network calls; prefer pure expressions, fields/primitives/simple comparisons.
+- Conditions can throw exceptions (`null`, index out of bounds), preventing the debugger from pausing as expected; check IDE evaluation error logs.
+- Never log/display tokens, passwords, or PII if debugging production data.
 
-**Hit-count breakpoint** (“dừng ở lượt thứ N”) phù hợp hơn khi muốn xem một iteration cụ thể. **Exception breakpoint** phù hợp nếu muốn bắt nơi `throw` diễn ra; điều kiện chỉ đúng cho một input cụ thể. Không nên mặc định dùng conditional breakpoint ở mọi vòng lặp.
+A **hit-count breakpoint** ("pause on the Nth pass") is better when inspecting a specific iteration. An **exception breakpoint** is better when catching where `throw` happens; conditions only fit matching a specific input. Do not default to conditional breakpoints inside every loop.
 
-Với `jdb` JDK 17, các lệnh `stop at` và `stop in` là hình thức cơ bản. Khả năng “conditional breakpoint” tiện lợi phụ thuộc debugger/IDE, đừng giả định cú pháp `stop ... if ...` luôn được `jdb` hỗ trợ.
+With JDK 17 `jdb`, `stop at` and `stop in` are the basic forms. Convenient "conditional breakpoint" support depends on the debugger/IDE; never assume `stop ... if ...` syntax is universally supported in `jdb`.
 
-## 11. Exception breakpoint: caught khác uncaught
+## 11. Exception Breakpoints: Caught vs. Uncaught
 
-Java có thể ném và bắt exception trong cùng request. Chỉ đặt breakpoint ở câu lệnh `catch` chưa chắc cho biết **gốc tạo exception** nằm ở đâu. Debugger có chế độ dừng khi một exception thuộc loại quan tâm được **throw**, kể cả nếu cuối cùng nó được bắt, tùy cấu hình “caught/uncaught”.
+Java can throw and catch an exception within the same request. Setting a breakpoint only on a `catch` clause may not show **where the exception originated**. Debuggers offer a mode to pause when an exception of interest is **thrown**, even if ultimately caught, depending on "caught/uncaught" settings.
 
-Ví dụ độc lập `ParseDebugDemo.java`:
+Standalone example `ParseDebugDemo.java`:
 
 ```java
 public final class ParseDebugDemo {
@@ -439,33 +439,33 @@ public final class ParseDebugDemo {
 }
 ```
 
-Biên dịch/chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac -g ParseDebugDemo.java
 java ParseDebugDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 handled=must be positive
 ```
 
-Vì `main` bắt `IllegalArgumentException`, chương trình **hoàn tất bình thường**. Tuy nhiên, nếu debugger được cấu hình break on **caught exceptions**, bạn có thể thấy stack frame tại `throw new IllegalArgumentException(...)` trong `parsePositive` **trước khi** đi vào `catch`.
+Because `main` catches `IllegalArgumentException`, the program **exits normally**. However, if the debugger is configured to break on **caught exceptions**, you can see the stack frame at `throw new IllegalArgumentException(...)` inside `parsePositive` **before** entering `catch`.
 
-Trong `jdb`, lệnh `catch java.lang.IllegalArgumentException` cấu hình dừng khi loại exception này được ném. Câu lệnh `ignore java.lang.IllegalArgumentException` hủy việc theo dõi ở debugger; nó **không** khiến JVM bỏ qua exception về mặt chương trình. Trên ứng dụng dùng exception có chủ đích nhiều lần, loại breakpoint này có thể dừng rất thường xuyên; hãy giới hạn scope và dọn breakpoint khi xong.
+In `jdb`, `catch java.lang.IllegalArgumentException` configures pausing when that exception class is thrown. `ignore java.lang.IllegalArgumentException` stops the debugger from watching it; it **does not** cause the JVM to ignore the exception at runtime. In applications that throw expected exceptions frequently, this breakpoint type can fire very often; narrow the scope and remove the breakpoint when finished.
 
-## 12. Nhiều thread: breakpoint ở thread nào?
+## 12. Multiple Threads: Which Thread Hit the Breakpoint?
 
-Giả sử `main` submit một `Runnable` cho worker. Khi breakpoint trong `run()`/method được gọi bởi worker:
+Suppose `main` submits a `Runnable` to a worker. When a breakpoint inside `run()` or a worker-called method triggers:
 
-- Call stack của **worker** có các frame executor/`ThreadPoolExecutor` và method đang chạy; `main` đã submit không tự nằm dưới những frame đó.
-- Nếu chọn **thread main** trong panel Threads, debugger có thể hiển thị nó đang `Future.get()` hoặc một vị trí khác.
-- Local `int jobId` trong frame của worker khác với local của main, dù biến trùng tên hoặc cùng object reference.
-- Nếu breakpoint suspend **all threads**, ứng dụng có thể dừng toàn JVM theo policy của debugger, gây timeout ở socket/database/health check; nếu chỉ suspend **event thread**, thread khác tiếp tục thay đổi shared state.
+- The **worker's** call stack holds executor/`ThreadPoolExecutor` frames and the running method; the `main` thread that submitted it does not sit underneath those frames.
+- If you select the **main thread** in the Threads panel, the debugger may show it inside `Future.get()` or elsewhere.
+- A local `int jobId` in the worker's frame differs from a local in `main`, even if the variable shares a name or object reference.
+- If the breakpoint suspends **all threads**, the app can freeze the entire JVM per debugger policy, timing out sockets/databases/health checks; if it suspends only the **event thread**, other threads continue mutating shared state.
 
-Ví dụ `AsyncDebugDemo.java`:
+Example `AsyncDebugDemo.java`:
 
 ```java
 import java.util.concurrent.ExecutorService;
@@ -491,144 +491,144 @@ public final class AsyncDebugDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile and run:
 
 ```bash
 javac -g AsyncDebugDemo.java
 java AsyncDebugDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 result=8
 ```
 
-Đặt breakpoint ở `int result = input * 2;`. Khi worker dừng, xem **Threads** rồi **Frames** của worker; caller của `doubleValue` có thể là phần lambda/`FutureTask`/executor. Thread main có thể đang chờ ở `future.get()`. Đừng cố tìm `main` bên dưới `doubleValue` trong cùng stack của worker.
+Set a breakpoint on `int result = input * 2;`. When the worker pauses, inspect **Threads** and then the worker's **Frames**; the caller of `doubleValue` may be lambda/`FutureTask`/executor internals. The main thread may be waiting in `future.get()`. Do not look for `main` beneath `doubleValue` on the worker's stack.
 
-Với futures/reactive pipelines, một request có thể có **logical call chain** qua nhiều thread/callback; Java stack trace chỉ là call chain đồng bộ của thread tại thời điểm quan sát. Dùng correlation ID/tracing hoặc công cụ async debugger khi cần quan hệ nguồn–đích.
+With futures/reactive pipelines, a request can have a **logical call chain** spanning multiple threads/callbacks; a Java stack trace is only one thread's synchronous call chain at observation time. Use correlation IDs/tracing or async debugger support when tracing origin-to-destination relationships.
 
-### Debugger đôi khi khiến bug biến mất
+### Debuggers Can Sometimes Make Bugs Disappear
 
-Breakpoint thay đổi timing. Thread đang giữ lock bị suspend có thể khiến thread khác timeout; data race có thể không tái hiện vì lịch scheduler đã thay đổi. Với bug concurrency, kết hợp **thread dumps, JFR, logs có correlation ID, kiểm thử stress** thay vì chỉ step bằng tay.
+Breakpoints alter timing. A suspended thread holding a lock can cause another thread to time out; a data race may stop reproducing because scheduler interleaving changed. For concurrency bugs, combine **thread dumps, JFR, correlation-ID logs, and stress tests** instead of relying solely on manual stepping.
 
-Java 17 dùng platform threads phổ biến; virtual threads là tính năng xuất hiện ở các bản JDK sau. Nếu debug JDK khác, UI/support cho virtual threads có thể khác, nên không áp dụng cứng mọi đặc tính debugger JDK 17 sang một runtime mới mà không kiểm tra.
+Java 17 primarily uses platform threads; virtual threads are a feature in later JDK releases. When debugging newer JDKs, UI/support for virtual threads can differ, so do not blindly carry every JDK 17 debugger assumption onto a newer runtime without checking.
 
-## 13. JIT, inlining, lambda và generated code làm stepping khác trực giác
+## 13. JIT, Inlining, Lambdas, and Generated Code Make Stepping Counter-Intuitive
 
-JVM HotSpot có JIT có thể inline method hoặc tối ưu đường thực thi. Debugger có thể sử dụng cơ chế runtime để quan sát/tạm dừng và điều chỉnh trạng thái compiled code; tuy nhiên **việc stepping theo source không đồng nghĩa mỗi dòng source là một bước máy đơn nhất**.
+HotSpot's JIT can inline methods or optimize execution paths. Debuggers use runtime mechanisms to observe/pause and adjust compiled code state; nevertheless, **source-level stepping does not mean each source line maps to a single machine step**.
 
-Những tình huống dễ gây ngạc nhiên:
+Surprising cases:
 
-- Một dòng source có **nhiều expression** hoặc method calls, `step into` có thể đi vào lời gọi khác với dự đoán.
-- Một source line tương ứng nhiều bytecode offsets; stepping có thể dừng lại ở cùng dòng hoặc nhảy qua dòng chỉ khai báo.
-- Local chưa khởi tạo hoặc đã hết scope sẽ không còn visible dù tên xuất hiện gần đó trên màn hình.
-- Lambda, bridge method, record constructors, generated proxy, framework bytecode có thể tạo những frame/tên method không viết trực tiếp trong source.
-- Exception/`finally` và compiler-generated code có thể làm đường điều khiển đi qua những điểm không giống cú pháp nhìn bề ngoài.
-- Khi JVM đang ở native method, line/local debugging theo source Java có giới hạn khác.
+- A source line with **multiple expressions** or method calls can cause `step into` to enter a different call than expected.
+- One source line corresponds to multiple bytecode offsets; stepping may pause on the same line again or skip declaration-only lines.
+- Uninitialized or out-of-scope locals become unavailable even though their names appear nearby on screen.
+- Lambdas, bridge methods, record constructors, generated proxies, and framework bytecode create frames/method names not written directly in source.
+- Exceptions/`finally` blocks and compiler-generated code can route control flow through points that look different from surface syntax.
+- When the JVM is inside a native method, Java source-level line/local debugging has different limits.
 
-Nếu cần kiểm tra **bytecode nào đang chạy**, dùng `javap -c -l -p` trên đúng class:
+To check **which bytecode is actually running**, run `javap -c -l -p` on the exact class:
 
 ```bash
 javap -c -l -p -classpath out DebugFrameDemo
 ```
 
-Tùy tình huống, thử **Step Into chọn lọc**, tắt step filters với phạm vi hẹp, hoặc breakpoint ở method entry thay vì ép `step` qua hàng trăm library frames. Có thể dùng `-Xint` để nghiên cứu hành vi interpreter trong test nhưng nó làm thay đổi hiệu năng/timing đáng kể; không coi đó là giải pháp mặc định cho bug production.
+Depending on the situation, try **selective Step Into**, narrow step filters, or method-entry breakpoints rather than forcing `step` through hundreds of library frames. You can use `-Xint` to study interpreter behavior in tests, though it dramatically changes performance/timing and must never be treated as a default fix for production bugs.
 
-## 14. Khi có source nhưng không có debug info — vẫn làm được gì?
+## 14. When You Have Source Without Debug Info — What Can You Still Do?
 
-Trong một bản build với `-g:none`:
+In a `-g:none` build:
 
-- JVM vẫn chạy Java bytecode bình thường; class/method/field descriptors còn để liên kết và thực thi.
-- Có thể đặt **method entry breakpoint** hoặc dùng các công cụ quan sát class/method phù hợp, tùy hỗ trợ của JVM/debugger.
-- Có thể đọc field của object/static khi có reference và quyền debug; không cần tên mọi local variable trong source.
-- Có thể dùng `javap -c -p` để xem bytecode và quyết định điểm quan sát khác, dù không có source line mapping.
-- Có thể bổ sung log/JFR/metrics ở bản build khác hoặc tái tạo cùng lỗi trên **staging có `-g`**.
+- The JVM still runs Java bytecode normally; class/method/field descriptors remain for linking and execution.
+- You can set **method entry breakpoints** or use appropriate class/method observation tools, depending on JVM/debugger support.
+- You can read object/static fields when holding a reference and debug access; not every local variable's source name is required.
+- You can run `javap -c -p` to inspect bytecode and pick alternative observation points, even without source line mapping.
+- You can add logs/JFR/metrics in another build or reproduce the same bug on **staging built with `-g`**.
 
-Nhưng không thể lấy lại chính xác toàn bộ tên local, tên file và line mapping **chỉ bằng cách mở đúng source trong IDE** nếu bytecode không chứa thông tin tương ứng. Decompiler có thể dựng **source giả định** để hiểu control flow, không tái tạo được mọi biểu thức/biến gốc và không được coi là bằng chứng các line numbers gốc.
+However, you cannot recover all local names, filenames, and line mappings **merely by opening the matching source in an IDE** if the bytecode lacks that metadata. Decompilers can reconstruct **synthetic source** to understand control flow, yet cannot restore every original expression/variable and must never be treated as proof of original line numbers.
 
-Các IDE có thể cố hiển thị tên tạm (`var1`, `arg0`) hoặc dùng thông tin từ compiler riêng; những tên này không phải lúc nào cũng là tên trong source. Phân biệt “debugger đoán/trình bày được giá trị” với “LocalVariableTable chứng minh tên và scope của biến”.
+IDEs may display synthetic names (`var1`, `arg0`) or compiler-specific hints; those names are not always the original source names. Distinguish "the debugger guessed/rendered a value" from "`LocalVariableTable` proving a variable's name and scope."
 
-## 15. Workflow điều tra một breakpoint không khớp code
+## 15. Workflow for Investigating a Breakpoint That Does Not Match Code
 
-Khi debugger báo **“No executable code found at line”**, breakpoint không verified hoặc locals bị thiếu:
+When the debugger reports **"No executable code found at line"**, an unverified breakpoint, or missing locals:
 
-1. **Kiểm tra chương trình thật:** đúng PID/port, đúng main class, JDK/vendor, version của service và container/pod chưa?
-2. **Kiểm tra class được nạp:** classpath/module-path, JAR/module, checksum/version của artifact, class loader. Có phiên bản `DebugFrameDemo` nào khác đang chạy không?
-3. **Kiểm tra source:** file source bạn mở có đúng commit/build tương ứng class không? IDE có đang dùng source jar cũ không?
-4. **Kiểm tra debug metadata:** chạy `javap -v -l -p` trên file `.class` **đúng build**. Có `SourceFile`, `LineNumberTable`, `LocalVariableTable` không?
-5. **Kiểm tra vị trí dừng:** dòng có code thực thi, method có được gọi và condition có true không? Biến đã initialized/in scope chưa?
-6. **Kiểm tra trạng thái thread:** đã suspend đúng thread không? Frame đang chọn là frame của method cần xem hay caller?
-7. **Kiểm tra setting debugger:** disable breakpoint, suspend policy, class/exception filters, evaluation errors, compiler/IDE step filter.
-8. **Thử tối giản:** build test với `javac -g`, chạy trực tiếp bằng `java -cp ...`, đặt method breakpoint, xác nhận locals/stepping rồi mới quay lại môi trường phức tạp.
-9. **Đối chiếu hành vi:** nếu bug chỉ xảy ra khi timing tự nhiên, dùng JFR/logging/metrics thay vì thêm hàng chục breakpoint gây thay đổi lịch thread.
-10. **Đóng phiên debug:** tháo JDWP nếu không còn cần; không để cổng mở, không lưu screenshot/variables chứa secret trong ticket công khai.
+1. **Verify the real process:** right PID/port, right main class, JDK/vendor, service version, and container/pod?
+2. **Verify loaded classes:** classpath/module-path, JAR/module, artifact checksum/version, class loader. Is another copy of `DebugFrameDemo` running?
+3. **Verify source:** does the open source file match the exact commit/build of the class? Is the IDE reading an outdated source jar?
+4. **Verify debug metadata:** run `javap -v -l -p` on the `.class` file from **the actual build**. Are `SourceFile`, `LineNumberTable`, and `LocalVariableTable` present?
+5. **Verify stop location:** does the line have executable code, is the method called, and is the condition true? Is the variable initialized/in scope?
+6. **Verify thread state:** is the right thread suspended? Is the selected frame the target method or its caller?
+7. **Verify debugger settings:** disabled breakpoints, suspend policy, class/exception filters, evaluation errors, compiler/IDE step filters.
+8. **Try a minimal reproduction:** compile a test with `javac -g`, run directly with `java -cp ...`, set a method breakpoint, verify locals/stepping, then return to the complex environment.
+9. **Cross-check behavior:** if the bug only triggers under natural timing, use JFR/logging/metrics instead of adding dozens of breakpoints that skew thread scheduling.
+10. **Close the debug session:** remove JDWP when no longer needed; never leave ports open or save screenshots/variables containing secrets in public tickets.
 
-### Bảng quyết định nhanh
+### Quick Decision Table
 
-| Triệu chứng | Kiểm tra đầu tiên | Hướng xử lý |
+| Symptom | First check | Resolution |
 | --- | --- | --- |
-| Line breakpoint xám/unbound | `LineNumberTable`, class có load, source đúng build. | Compile `-g`/`-g:lines,source`, xác nhận artifact/line thực thi. |
-| `locals` không có hoặc JDI `AbsentInformationException` | `LocalVariableTable` có tồn tại không? | Compile lại `-g` hoặc `-g:vars` với line/source phù hợp; attach đúng JVM. |
-| Stack trace ghi `Unknown Source` hoặc không có line | `SourceFile`/`LineNumberTable` trong class. | Kiểm tra build debug info; không chỉ copy source. |
-| Biến báo chưa available | Đang trước gán, ngoài scope, hoặc frame khác? | Step Over tới dòng sau gán, chọn đúng frame. |
-| Giá trị khác source đang mở | Class/JAR đã deploy có lệch source? | Kiểm tra checksum/artifact, rebuild và redeploy test có kiểm soát. |
-| Step Into đi vào thư viện/framework | Method order, compiler synthetic, step filters. | Smart Step Into (nếu IDE có), method breakpoint, chọn frame. |
-| Breakpoint dừng nhiều lần/hết sức chậm | Vòng lặp, nhiều thread, conditional evaluation. | Hit count, filter phù hợp, log/JFR ít intrusive. |
-| Main đứng ở `future.get()`, worker dừng ở handler | Hai thread có stack riêng. | Chuyển thread trong debugger, dùng trace cho async boundary. |
-| Application timeout khi dừng | Breakpoint suspend all/lock/health checks. | Debug trên staging; giới hạn suspend và không pause production. |
-| Attach không được | JVM không bật JDWP, sai bind port, network/permission. | Bật trên localhost/test, kiểm tra cổng và cấu hình JDWP an toàn. |
+| Gray/unbound line breakpoint | `LineNumberTable`, class loaded, source matches build. | Compile `-g`/`-g:lines,source`, verify artifact/executable line. |
+| Missing `locals` or JDI `AbsentInformationException` | Does `LocalVariableTable` exist? | Recompile with `-g` or `-g:vars` plus appropriate lines/source; attach to right JVM. |
+| Stack trace shows `Unknown Source` or no line numbers | `SourceFile`/`LineNumberTable` in class. | Fix build debug info; copying source alone does not help. |
+| Variable reported unavailable | Before assignment, out of scope, or wrong frame? | Step Over to line after assignment; select the right frame. |
+| Values differ from open source | Deployed class/JAR out of sync with source? | Check checksums/artifacts, rebuild, and redeploy controlled test. |
+| Step Into enters library/framework | Call order, compiler synthetics, step filters. | Smart Step Into (if IDE supports), method breakpoint, select frame. |
+| Breakpoint pauses too often / extremely slow | Loops, many threads, conditional evaluation. | Hit count, targeted filters, less intrusive logs/JFR. |
+| Main parked at `future.get()`, worker paused in handler | Two threads have separate stacks. | Switch threads in debugger; use tracing across async boundaries. |
+| Application times out while paused | Breakpoint suspended all/locks/health checks. | Debug on staging; limit suspend scope and avoid pausing production. |
+| Cannot attach | JVM lacks JDWP, wrong bind port, network/permissions. | Enable on localhost/test, verify port and secure JDWP config. |
 
-## 16. Lỗi thường gặp và cách sửa cách nghĩ
+## 16. Common Misconceptions and How to Fix Your Thinking
 
-- **“Có source Java là IDE luôn xem được locals.”** Sai: tên/scope cần metadata của class, nhất là `LocalVariableTable`.
-- **“`javac` mặc định luôn chứa tất cả debug info.”** Sai ở JDK 17: mặc định có source/lines, không mặc định local vars.
-- **“`-parameters` đủ để xem `int raw` trong debugger.”** Sai: `MethodParameters` cho tên formal parameters qua reflection, không thay LocalVariableTable của locals.
-- **“`-g:none` khiến mọi method breakpoint không thể dùng.”** Sai: thiếu line mapping/locals, nhưng method/class metadata vẫn còn.
-- **“Step Over không chạy method được gọi.”** Sai: method chạy, chỉ debugger không đi sâu vào từng dòng của frame mới.
-- **“Step Out nhảy qua những câu lệnh còn lại.”** Sai: vẫn thực thi đến khi trả về/unwind.
-- **“Nếu break ở dòng gán, biến bên trái đã có giá trị mới.”** Sai: thường debugger dừng **trước khi** statement được thực thi.
-- **“Stack trace luôn chứa giá trị biến.”** Sai: thông thường chỉ có method/file/line, không phải locals.
-- **“Caller của callback async phải hiện trong stack của worker.”** Sai: stack frame theo thread, logical trace qua nhiều thread cần cơ chế riêng.
-- **“Breakpoint không hit nghĩa là bug không xảy ra.”** Chưa chắc: breakpoint pending, class khác loader, source khác artifact hoặc condition sai.
-- **“Giá trị trong conditional breakpoint luôn an toàn để evaluate.”** Sai: method evaluation có thể có side effect, lock và overhead.
-- **“Thread suspend không ảnh hưởng ứng dụng.”** Sai: dễ gây timeout, deadlock và thay đổi timing race.
-- **“Remote debug port chỉ là cổng quan sát read-only.”** Sai: JDWP có khả năng điều khiển/sửa trạng thái, phải bảo vệ nghiêm ngặt.
-- **“`javap` in source gốc đầy đủ.”** Sai: nó xem bytecode và metadata; `SourceFile` chỉ là tên file.
-- **“Debugger có thể đi ngược lại frame đã return chỉ bằng nút Up.”** Sai: Up/Down chỉ chọn **frame vẫn còn trong stack của thread đang dừng**.
-- **“Dừng đúng thread là đã hiểu toàn bộ concurrency.”** Sai: shared state/lock/other threads có thể tiếp tục hoặc bị suspend tùy policy.
+- **"If I have Java source, the IDE can always show locals."** False: names/scopes require class metadata, especially `LocalVariableTable`.
+- **"Default `javac` always includes all debug info."** False on JDK 17: default includes source/lines, not local vars.
+- **"`-parameters` is enough to inspect `int raw` in the debugger."** False: `MethodParameters` gives formal parameter names via reflection, not `LocalVariableTable` for locals.
+- **"`-g:none` makes all method breakpoints unusable."** False: line mapping/locals are absent, yet method/class metadata still exists.
+- **"Step Over does not execute the called method."** False: the method executes; the debugger just does not step line by line into the new frame.
+- **"Step Out skips the remaining statements."** False: remaining statements still execute until return/unwind.
+- **"If paused on an assignment line, the left-hand variable already holds the new value."** False: debuggers typically pause **before** the statement executes.
+- **"Stack traces always include variable values."** False: normally they only have method/file/line, not locals.
+- **"An async callback's caller must appear in the worker's stack."** False: stack frames are per thread; logical traces across threads require dedicated mechanisms.
+- **"Breakpoint didn't hit means the bug didn't happen."** Not necessarily: breakpoint may be pending, different class loader, source mismatch, or wrong condition.
+- **"Expressions in conditional breakpoints are always safe to evaluate."** False: method evaluations can have side effects, locks, and overhead.
+- **"Suspending threads does not affect the application."** False: it easily causes timeouts, deadlocks, and altered race timing.
+- **"A remote debug port is just a read-only observation port."** False: JDWP can control/mutate state and must be strictly protected.
+- **"`javap` prints the full original source."** False: it inspects bytecode and metadata; `SourceFile` is only a filename.
+- **"The debugger can step backward into a returned frame just by clicking Up."** False: Up/Down only selects **frames still present on the suspended thread's stack**.
+- **"Pausing the right thread means you understand all concurrency."** False: shared state/locks/other threads may keep running or be suspended depending on policy.
 
-## 17. Checklist thực hành
+## 17. Practice Checklist
 
-Trước phiên debug:
-- [ ] Biết **bản build và JVM đang chạy**, đúng source/commit/JAR.
-- [ ] Với bài cần locals và source lines, compile bằng `javac -g`; xác minh `javap -v -p` khi nghi thiếu metadata.
-- [ ] Phân biệt `SourceFile`, `LineNumberTable`, `LocalVariableTable` và `MethodParameters`.
-- [ ] Chọn method/line breakpoint có executable bytecode; hạn chế conditional breakpoint ở hot path.
-- [ ] Nếu remote debug, bind loopback trong môi trường thử nghiệm, kiểm soát quyền truy cập, không expose JDWP ra Internet.
+Before a debug session:
+- [ ] Know **the build and JVM running**, matching source/commit/JAR.
+- [ ] For tasks needing locals and source lines, compile with `javac -g`; verify with `javap -v -p` if metadata seems missing.
+- [ ] Distinguish `SourceFile`, `LineNumberTable`, `LocalVariableTable`, and `MethodParameters`.
+- [ ] Pick method/line breakpoints with executable bytecode; avoid conditional breakpoints on hot paths.
+- [ ] If debugging remotely, bind loopback in a test environment, control access, and never expose JDWP to the Internet.
 
-Trong phiên debug:
-- [ ] Quan sát thread nào bị dừng, suspend event thread hay suspend all.
-- [ ] Mở call stack, chọn đúng frame và hiểu caller/callee.
-- [ ] Xem parameter/local **sau thời điểm khởi tạo**, đúng lexical scope.
-- [ ] Dùng Step Into/Over/Out theo câu hỏi điều tra; nhớ method vẫn thực thi khi Step Over.
-- [ ] Với async, quan sát worker thread riêng và dùng correlation/trace khi cần logic xuyên thread.
-- [ ] Ghi lại giá trị cần thiết nhưng tránh thông tin bí mật; phân biệt output chương trình với output debugger.
+During a debug session:
+- [ ] Check which thread is paused, and whether policy is suspend event thread or suspend all.
+- [ ] Open the call stack, pick the right frame, and understand caller/callee.
+- [ ] Inspect parameters/locals **after initialization**, within their lexical scope.
+- [ ] Use Step Into/Over/Out according to your investigation question; remember methods still execute on Step Over.
+- [ ] For async flows, inspect worker threads separately and use correlation/tracing for cross-thread logic.
+- [ ] Record needed values while avoiding secrets; distinguish program output from debugger output.
 
-Sau phiên debug:
-- [ ] Reproduce bằng test hoặc log/JFR để xác thực giả thuyết trong điều kiện ít intrusive.
-- [ ] So sánh trước/sau thay đổi trên **cùng bản build/workload**.
-- [ ] Gỡ breakpoint tốn kém, đóng debug session, tắt JDWP nếu không còn cần.
-- [ ] Không tự kết luận JVM có lỗi vì source line “nhảy lạ” trước khi kiểm tra bytecode mapping.
+After a debug session:
+- [ ] Reproduce with a test or low-intrusion log/JFR to validate the hypothesis.
+- [ ] Compare before/after changes on **the same build/workload**.
+- [ ] Remove costly breakpoints, close the debug session, and disable JDWP when no longer needed.
+- [ ] Never assume the JVM is buggy because source lines "jump oddly" before checking bytecode mapping.
 
-**Ghi nhớ:** Breakpoint là **điểm dừng tại bytecode location**, stepping là cách chọn **ranh giới chạy tiếp**, stack frame là bối cảnh **một method invocation trên một thread**, local variables có **scope và lifetime riêng**. Muốn source-line debugging và xem tên locals chính xác, JDK 17 thường cần **`javac -g`**; chỉ mở source trong IDE không tạo lại được metadata bị thiếu từ `.class`. Luôn xác minh artifact, đúng thread/frame, thời điểm gán và tính an toàn của remote debugger.
+**Remember:** A breakpoint is a **stop point at a bytecode location**, stepping chooses **the next execution boundary**, a stack frame is the context of **one method invocation on one thread**, and local variables have their **own scope and lifetime**. For accurate source-line debugging and local variable names, JDK 17 typically requires **`javac -g`**; opening source in an IDE alone cannot recreate metadata missing from `.class`. Always verify the artifact, right thread/frame, assignment timing, and remote debugger safety.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
-- [Oracle JDK 17 — `javac`: `-g`, `-g:none`, `-g:lines,vars,source` và `-parameters`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html)
+- [Oracle JDK 17 — `javac`: `-g`, `-g:none`, `-g:lines,vars,source`, and `-parameters`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html)
 - [Oracle JDK 17 — `javap`: `-l`, `-c`, `-v`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html)
-- [Oracle JDK 17 — `jdb`: method/line breakpoint và `step`/`next`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jdb.html)
+- [Oracle JDK 17 — `jdb`: method/line breakpoints and `step`/`next`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jdb.html)
 - [Oracle JDK 17 — JPDA connection / `-agentlib:jdwp`](https://docs.oracle.com/en/java/javase/17/docs/specs/jpda/conninv.html)
-- [Oracle — JPDA FAQ: `AbsentInformationException` khi thiếu LocalVariableTable/LineNumberTable](https://www.oracle.com/java/technologies/javase/java-platform-debugger-architecture.html)
+- [Oracle — JPDA FAQ: `AbsentInformationException` when LocalVariableTable/LineNumberTable are missing](https://www.oracle.com/java/technologies/javase/java-platform-debugger-architecture.html)
 - [Oracle JDK 17 — JDI `StackFrame`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jdi/com/sun/jdi/StackFrame.html)
-- [Java SE 17 JVM Specification — các class-file attributes](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7)
+- [Java SE 17 JVM Specification — class-file attributes](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.7)

@@ -1,46 +1,46 @@
-# 8.6 Phân biệt DER, PEM, khóa thô, khóa mã hóa và chứng thư
+# 8.6 Distinguishing DER, PEM, Raw Keys, Encrypted Keys, and Certificates
 
-Trong Java Security/JCA, một file mang tên `server.pem`, `public.der`, `private.key` hoặc `certificate.crt` không tự cho biết nó chứa loại khóa nào, có mật khẩu bảo vệ hay không, và có được tin cậy hay không. **DER, PEM, raw key, encrypted key và certificate mô tả những chiều khác nhau của dữ liệu mật mã**. Nhầm các chiều này thường dẫn tới `InvalidKeySpecException`, lỗi TLS, lộ private key hoặc xác thực nhầm đối tác.
+In Java Security/JCA, a file named `server.pem`, `public.der`, `private.key`, or `certificate.crt` does not by itself tell you what kind of key it contains, whether it is password-protected, or whether it is trusted. **DER, PEM, raw key, encrypted key, and certificate describe different dimensions of cryptographic data**. Confusing these dimensions often leads to `InvalidKeySpecException`, TLS failures, private-key leaks, or authenticating the wrong peer.
 
-Một public key RSA có thể nằm trong cấu trúc ASN.1 **SubjectPublicKeyInfo (SPKI)** được mã hóa **DER**, rồi bọc text **PEM** với nhãn `-----BEGIN PUBLIC KEY-----`. Một chứng thư X.509 cũng thường được mã hóa DER và bọc PEM nhưng có nhãn `-----BEGIN CERTIFICATE-----`: bên trong có public key *cùng* các trường subject, issuer, validity, extension và chữ ký số. Một private key có thể là PKCS#8 không mã hóa (`BEGIN PRIVATE KEY`), PKCS#8 đã mã hóa (`BEGIN ENCRYPTED PRIVATE KEY`), hoặc dạng riêng của RSA/EC.
+An RSA public key may reside in an ASN.1 **SubjectPublicKeyInfo (SPKI)** structure encoded as **DER**, then wrapped in **PEM** text with the label `-----BEGIN PUBLIC KEY-----`. An X.509 certificate is also typically DER-encoded and PEM-wrapped, yet carries the label `-----BEGIN CERTIFICATE-----`: inside it contains the public key *along with* subject, issuer, validity, extension fields, and a digital signature. A private key may be unencrypted PKCS#8 (`BEGIN PRIVATE KEY`), encrypted PKCS#8 (`BEGIN ENCRYPTED PRIVATE KEY`), or an RSA/EC-specific format.
 
-Bài này giải thích từ lớp byte tới lớp tin cậy, đề xuất cách chọn parser và thuật toán, có ví dụ Java 17+ biên dịch/chạy được, cùng checklist chống nhầm lẫn và thực hành bảo vệ khóa.
+This lesson explains from the byte layer up to the trust layer, recommends how to choose parsers and algorithms, provides a compilable/runnable Java 17+ example, and includes an anti-confusion checklist and key-protection practices.
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích sự khác nhau giữa **vật liệu khóa**, **cấu trúc dữ liệu**, **binary encoding**, **text armor**, **mã hóa khi lưu** và **chứng thư/tin cậy**.
-2. Nhận ra cấu trúc SPKI, PKCS#8, PKCS#1, SEC 1 và X.509 certificate từ **quy ước được công bố**, không chỉ từ đuôi file.
-3. Dùng đúng các API Java: `PKCS8EncodedKeySpec`, `X509EncodedKeySpec`, `KeyFactory`, `EncryptedPrivateKeyInfo`, `CertificateFactory`, `X509Certificate` và `KeyStore`.
-4. Biết vì sao **PEM không phải encryption**, **X509EncodedKeySpec không nhận certificate**, và **public key không chứng minh danh tính**.
-5. Phân biệt **encryption key** (khóa dùng mã hóa) với **encrypted key** (khóa đã được mã hóa để bảo vệ) và **wrapped key**.
-6. Thiết kế luồng nhập/xuất key và chứng thư có kiểm soát thuật toán, permission, trust anchor, hostname, rotation và lỗi parser.
-7. Kiểm thử DER ↔ PEM và chứng minh cặp khóa khôi phục có thể ký/xác minh, đồng thời không nhầm đó với việc xác minh chứng thư.
+1. Explain the differences among **key material**, **data structures**, **binary encoding**, **text armor**, **encryption at rest**, and **certificates/trust**.
+2. Identify SPKI, PKCS#8, PKCS#1, SEC 1, and X.509 certificate structures from **published conventions**, not merely file extensions.
+3. Properly use Java APIs: `PKCS8EncodedKeySpec`, `X509EncodedKeySpec`, `KeyFactory`, `EncryptedPrivateKeyInfo`, `CertificateFactory`, `X509Certificate`, and `KeyStore`.
+4. Understand why **PEM is not encryption**, **`X509EncodedKeySpec` does not accept certificates**, and **a public key does not prove identity**.
+5. Distinguish an **encryption key** (a key used to encrypt) from an **encrypted key** (a key encrypted for protection) and a **wrapped key**.
+6. Design key and certificate import/export flows that enforce algorithms, permissions, trust anchors, hostnames, rotation, and parser error handling.
+7. Test DER ↔ PEM round-trips and demonstrate that recovered key pairs can sign/verify, without mistaking that for certificate validation.
 
-## 2. Đừng so sánh những thứ thuộc các lớp khác nhau
+## 2. Do Not Compare Things Belonging to Different Layers
 
-Hãy đặt năm câu hỏi trước khi “chuyển đổi định dạng”:
+Ask five questions before "converting formats":
 
-| Câu hỏi | Ví dụ câu trả lời | Điều không suy ra |
+| Question | Example answer | What not to infer |
 | --- | --- | --- |
-| **Đây là đối tượng gì?** | Public key, private key, symmetric key, CSR, certificate | File `.pem` không nói rõ đối tượng |
-| **Cấu trúc của nó là gì?** | SPKI, PKCS#8 PrivateKeyInfo, EncryptedPrivateKeyInfo, X.509 Certificate | ASN.1 SEQUENCE không đủ để biết loại |
-| **Byte được serialize thế nào?** | DER theo ASN.1; raw bytes theo một chuẩn thuật toán | DER không mặc định là certificate |
-| **Có được bọc thành text/container?** | PEM/Base64, PKCS#12, JWK, OpenSSH | PEM không tự mã hóa bảo mật |
-| **Ai có quyền và ai đáng tin?** | Key được giữ trong HSM; certificate có chain tới CA được phép | Parse đúng không đồng nghĩa trust |
+| **What object is this?** | Public key, private key, symmetric key, CSR, certificate | A `.pem` file does not specify the object |
+| **What is its structure?** | SPKI, PKCS#8 PrivateKeyInfo, EncryptedPrivateKeyInfo, X.509 Certificate | An ASN.1 SEQUENCE is not enough to identify the type |
+| **How are bytes serialized?** | DER per ASN.1; raw bytes per an algorithm standard | DER is not by default a certificate |
+| **Is it wrapped in text/container?** | PEM/Base64, PKCS#12, JWK, OpenSSH | PEM does not automatically provide cryptographic protection |
+| **Who has permissions and who is trusted?** | Key held in HSM; certificate chaining to an allowed CA | Successful parsing does not imply trust |
 
-Sơ đồ quan hệ:
+Relationship diagram:
 
 ```text
-Vật liệu khóa hoặc thông tin chứng thư
+Key material or certificate information
   |
-  +-- Raw bytes theo đặc tả thuật toán (nếu dùng raw representation)
+  +-- Raw bytes per algorithm specification (if raw representation is used)
   |
   +-- ASN.1 schema
         +-- SubjectPublicKeyInfo             [public key]
         +-- PrivateKeyInfo / OneAsymmetricKey [private key]
-        +-- EncryptedPrivateKeyInfo           [private key đã được mã hóa]
+        +-- EncryptedPrivateKeyInfo           [encrypted private key]
         +-- Certificate                      [X.509 certificate]
         +-- RSAPublicKey / RSAPrivateKey     [RSA PKCS#1]
         +-- ECPrivateKey                     [SEC 1]
@@ -48,134 +48,134 @@ Vật liệu khóa hoặc thông tin chứng thư
         v
      DER binary bytes
         |
-        +-- file nhị phân theo contract
+        +-- binary file per contract
         |
-        +-- Base64 + PEM BEGIN/END label -> file PEM văn bản
+        +-- Base64 + PEM BEGIN/END labels -> text PEM file
 ```
 
-Cùng một **certificate** có thể có hai file khác nhau, một file là DER bytes và file còn lại là PEM của chính những DER bytes đó. Chỉ đổi lớp armor **không** làm thay đổi tính hợp lệ hoặc độ tin cậy của certificate.
+The same **certificate** can exist in two files, one containing DER bytes and the other containing PEM of those exact DER bytes. Changing only the armor layer does **not** alter the certificate's validity or trustworthiness.
 
-## 3. DER là gì?
+## 3. What Is DER?
 
-**DER** (*Distinguished Encoding Rules*) là quy tắc chuẩn tắc mã hóa một giá trị ASN.1 thành byte theo ITU-T X.690. Nhiều cấu trúc khóa và chứng thư trong hệ sinh thái PKIX/PKCS được đặc tả bằng ASN.1; sau đó DER thể hiện cấu trúc đó ở mức binary.
+**DER** (*Distinguished Encoding Rules*) is the canonical rule set for encoding an ASN.1 value into bytes per ITU-T X.690. Many key and certificate structures in the PKIX/PKCS ecosystem are specified in ASN.1; DER then represents those structures at the binary level.
 
-ASN.1 mô tả **kiểu dữ liệu/schema**, DER mô tả **cách encoding**. Ví dụ, SPKI bao gồm một `AlgorithmIdentifier` và trường chứa public key. Cấu trúc PKCS#8 cũng thường có algorithm identifier nhưng chứa private key trong vị trí được quy định khác. Certificate X.509 lại có cấu trúc certificate hoàn chỉnh gồm phần dữ liệu được ký, thông tin thuật toán và chữ ký.
+ASN.1 describes the **data type/schema**, whereas DER describes the **encoding**. For example, SPKI includes an `AlgorithmIdentifier` and a field holding the public key. The PKCS#8 structure typically also has an algorithm identifier, yet holds the private key in a different designated field. An X.509 certificate has a complete certificate structure consisting of the signed `tbsCertificate` data, signature algorithm info, and signature.
 
-DER có quy tắc định dạng tag/length/value (TLV), có các ràng buộc canonical chặt hơn BER (*Basic Encoding Rules*). Tag byte `0x30` có thể báo một ASN.1 SEQUENCE, nhưng **không phải dấu hiệu đủ để phân biệt SPKI, private key hay certificate** vì cả ba loại có thể bắt đầu bằng SEQUENCE.
+DER uses tag/length/value (TLV) formatting rules with stricter canonical constraints than BER (*Basic Encoding Rules*). A tag byte of `0x30` can indicate an ASN.1 SEQUENCE, yet is **not a sufficient marker to distinguish SPKI, private key, or certificate** because all three can start with a SEQUENCE.
 
-Những điều DER **không** làm:
+What DER does **not** do:
 
-- Không mã hóa dữ liệu để giữ bí mật: DER của private key PKCS#8 không mã hóa vẫn tiết lộ private key.
-- Không cho biết public key thuộc ai hay issuer có đáng tin không.
-- Không thay certificate chain validation, algorithm policy và authorization.
-- Không biến raw key byte thành PKCS#8/SPKI bằng cách thêm vài byte tùy ý.
-- Không cung cấp metadata tự mô tả đầy đủ nếu bạn thiếu ASN.1 schema cần dùng.
+- Does not encrypt data for confidentiality: DER of an unencrypted PKCS#8 private key still exposes the private key.
+- Does not tell you who owns a public key or whether the issuer is trustworthy.
+- Does not replace certificate chain validation, algorithm policy, and authorization.
+- Does not turn raw key bytes into PKCS#8/SPKI by prepending a few arbitrary bytes.
+- Does not provide full self-describing metadata if you lack the expected ASN.1 schema.
 
-Không dùng `new String(derBytes, StandardCharsets.UTF_8)` để “đọc” DER. Binary DER không phải văn bản UTF-8. Khi cần debug, dùng công cụ ASN.1 và hex, bảo đảm không làm lộ private key.
+Never call `new String(derBytes, StandardCharsets.UTF_8)` to "read" DER. Binary DER is not UTF-8 text. When debugging, use ASN.1 tools and hex while ensuring private keys are never exposed.
 
-**BER/CER/DER:** có nhiều ASN.1 encoding rules. Một parser có thể chấp nhận BER rộng hơn tùy implementation, nhưng khi giao thức quy định DER thì **đầu ra và validation cần tuân DER**, nhất là với dữ liệu được ký. Chuyển đổi đúng là parse theo schema và serialize theo chuẩn đích, không chỉnh sửa byte đầu theo cảm tính.
+**BER/CER/DER:** there are multiple ASN.1 encoding rules. A parser might accept broader BER depending on the implementation, yet when a protocol specifies DER, **output and validation must follow DER**, especially for signed data. Proper conversion parses against the source schema and serializes per the target standard, rather than tweaking leading bytes by guesswork.
 
-## 4. PEM là gì?
+## 4. What Is PEM?
 
-**PEM** trong ngữ cảnh key/certificate thường là văn bản chứa **Base64 của một payload nhị phân**, kèm các dòng BEGIN/END cho biết loại payload. Ví dụ dưới đây chỉ là **sơ đồ**, không phải private/public key hợp lệ để copy trực tiếp:
+**PEM** in a key/certificate context is typically text containing **Base64 of a binary payload**, paired with BEGIN/END lines indicating the payload type. The example below is only a **diagram**, not a valid private/public key to copy and run directly:
 
 ```text
 -----BEGIN PUBLIC KEY-----
-Base64 của một cấu trúc SPKI DER hợp lệ
+Base64 of a valid SPKI DER structure
 -----END PUBLIC KEY-----
 ```
 
-Để tạo file thực tế, phải lấy đúng SPKI DER bytes, encode Base64 đúng quy tắc và dùng label tương ứng. Ví dụ Java chạy được ở mục 11 thực hiện việc đó từ key đã sinh.
+To create a real file, you must obtain valid SPKI DER bytes, Base64-encode them properly, and use the matching label. The runnable Java example in section 11 does this from a generated key.
 
-PEM thường sử dụng armor theo RFC 7468 và convention của từng hệ sinh thái. Một số định dạng có cấu trúc bọc khác như OpenSSH; **đừng mặc định mọi file có BEGIN/END đều là PKCS#8 hoặc SPKI**.
+PEM typically uses armor defined by RFC 7468 and ecosystem conventions. Some formats have different wrapping structures such as OpenSSH; **do not assume every file with BEGIN/END is PKCS#8 or SPKI**.
 
-Đặc tính cần nhớ:
+Key properties to remember:
 
-- PEM dễ dùng trong text config/email nhưng Base64 **không phải mã hóa bảo mật**; đọc được PEM không mã hóa là decode được private key.
-- Nhãn có ý nghĩa: `BEGIN PRIVATE KEY` ≠ `BEGIN ENCRYPTED PRIVATE KEY` ≠ `BEGIN CERTIFICATE`.
-- Một PEM file có thể chứa **nhiều block**, chẳng hạn certificate chain. Parser phải xử lý đúng số lượng, thứ tự và loại block mà protocol yêu cầu.
-- Đuôi `.pem`, `.crt`, `.cer`, `.key` không đáng tin bằng **cấu trúc thực tế và hợp đồng định dạng**.
-- LF, CRLF, khoảng trắng và PEM headers legacy có thể khác nhau; code học tập dạng split dòng đơn giản thường không đủ cho mọi loại input bên ngoài.
-- Không đổi nhãn BEGIN/END để biến payload từ private key thành public key hay certificate. Nhãn sai không tự thay cấu trúc bên trong.
+- PEM is convenient in text configs/emails, yet Base64 **is not security encryption**; anyone who can read an unencrypted PEM can decode the private key.
+- Labels carry meaning: `BEGIN PRIVATE KEY` ≠ `BEGIN ENCRYPTED PRIVATE KEY` ≠ `BEGIN CERTIFICATE`.
+- A PEM file may contain **multiple blocks**, such as a certificate chain. Parsers must handle the exact count, order, and block types required by the protocol.
+- Extensions `.pem`, `.crt`, `.cer`, `.key` are less reliable than **actual structure and format contracts**.
+- LF, CRLF, whitespace, and legacy PEM headers can vary; simple line-splitting educational code is usually insufficient for arbitrary external inputs.
+- Never rename BEGIN/END labels to turn a private key payload into a public key or certificate. Changing the label does not alter the inner structure.
 
-### So sánh DER và PEM
+### Comparing DER and PEM
 
-| Tiêu chí | DER | PEM |
+| Criterion | DER | PEM |
 | --- | --- | --- |
-| Cách biểu diễn | Binary bytes theo quy tắc ASN.1 | Text armor chứa Base64 |
-| Nội dung có thể là | SPKI, PKCS#8, X.509 certificate, v.v. | Những object đó sau khi bọc đúng label |
-| Khả năng bảo mật mặc định | Không | Không |
-| Dễ hiển thị trong terminal | Không | Có |
-| Đọc bằng Java | Chọn parser đúng cấu trúc | Decode armor rồi chọn parser đúng cấu trúc |
-| Chuyển đổi DER ↔ PEM | Giữ nguyên DER payload nếu bọc/giải bọc đúng | Không tự chuyển đổi loại key/certificate |
+| Representation | Binary bytes per ASN.1 rules | Text armor containing Base64 |
+| Possible contents | SPKI, PKCS#8, X.509 certificate, etc. | Those same objects wrapped in the proper labels |
+| Built-in confidentiality | No | No |
+| Easy to display in terminal | No | Yes |
+| Reading in Java | Choose parser matching the structure | Decode armor then choose parser matching the structure |
+| DER ↔ PEM conversion | Preserves DER payload if armored/unarmored properly | Does not convert key/certificate types |
 
-Nếu một certificate X.509 DER được bọc PEM, chính **DER payload** đại diện cho certificate; không nên hash cả dấu xuống dòng/armor rồi nhầm với certificate fingerprint theo DER.
+If an X.509 DER certificate is PEM-armored, the **DER payload** itself represents the certificate; do not hash the newlines/armor and confuse it with the DER certificate fingerprint.
 
-## 5. Khóa thô (raw key): không có schema chung
+## 5. Raw Keys: No Universal Schema
 
-**Raw key** là byte của vật liệu khóa theo biểu diễn của **một thuật toán cụ thể**, thay vì một cấu trúc có wrapper chung như SPKI/PKCS#8. Ý nghĩa của raw bytes thay đổi theo thuật toán, library và protocol:
+A **raw key** consists of the key material bytes in an **algorithm-specific representation**, rather than a generic wrapper structure like SPKI/PKCS#8. The meaning of raw bytes varies by algorithm, library, and protocol:
 
-| Trường hợp | Raw material thường được hiểu là gì? | Thông tin còn cần |
+| Case | What raw material usually represents | Information still needed |
 | --- | --- | --- |
-| AES-256 | 32 byte symmetric key | Algorithm, usage, key ID, nguồn entropy, quyền |
-| Ed25519 public | 32 byte public key encoding theo RFC 8032 | Algorithm/format, policy, trust binding |
-| Ed25519 private | Có protocol dùng seed 32 byte; có library dùng cách biểu diễn khác | Định nghĩa seed vs private encoding; không tự coi là PKCS#8 |
-| X25519 | 32 byte coordinate/secret scalar theo RFC 7748 | Public/private, endianness, clamping/handling theo API |
-| EC P-256 public | Điểm trên đường cong ở dạng compressed/uncompressed | Curve/domain parameters và kiểm point |
-| RSA public | Hai số nguyên `n` và `e`, hoặc một cấu trúc thuật toán-cụ-thể `RSAPublicKey` | Modulus/exponent, padding/signature scheme, key policy |
-| RSA private | Các thành phần RSA, đôi khi cấu trúc `RSAPrivateKey` PKCS#1 | Kiểm nhất quán tham số, CRT, độ dài, bảo vệ |
+| AES-256 | 32-byte symmetric key | Algorithm, usage, key ID, entropy source, permissions |
+| Ed25519 public | 32-byte public key encoding per RFC 8032 | Algorithm/format, policy, trust binding |
+| Ed25519 private | Some protocols use a 32-byte seed; some libraries use another representation | Definition of seed vs. private encoding; do not treat as PKCS#8 |
+| X25519 | 32-byte coordinate/secret scalar per RFC 7748 | Public/private, endianness, clamping/handling per API |
+| EC P-256 public | Point on curve in compressed/uncompressed form | Curve/domain parameters and point validation |
+| RSA public | Two integers `n` and `e`, or an algorithm-specific `RSAPublicKey` structure | Modulus/exponent, padding/signature scheme, key policy |
+| RSA private | RSA components, sometimes PKCS#1 `RSAPrivateKey` structure | Parameter consistency check, CRT, length, protection |
 
-**Cùng 32 byte không có nghĩa hai key có thể dùng thay nhau.** Raw AES-256 key và raw Ed25519 public key có thể cùng kích thước nhưng là hai đối tượng với phép toán hoàn toàn khác nhau.
+**Having the same 32 bytes does not mean two keys are interchangeable.** A raw AES-256 key and a raw Ed25519 public key may be the same size, yet represent completely different cryptographic objects and operations.
 
-Raw key không bắt buộc kém an toàn, nhưng rất dễ bị hiểu nhầm nếu truyền không có algorithm/version/curve/usage. Chỉ dùng raw representation khi một protocol có đặc tả chính xác và implement parser theo chuẩn đó.
+Raw keys are not inherently insecure, yet are very easy to misinterpret when transmitted without algorithm/version/curve/usage metadata. Only use raw representations when a protocol specifies them precisely and implement parsers to that exact standard.
 
-### Raw key khác EncodedKeySpec
+### Raw Keys Differ from EncodedKeySpec
 
-`PKCS8EncodedKeySpec` đòi **cấu trúc private key PKCS#8**, không nhận trực tiếp mọi raw secret scalar/seed. `X509EncodedKeySpec` đòi **cấu trúc SPKI**, không nhận trực tiếp mọi raw public point. Nếu đưa 32 byte raw Ed25519 vào `new X509EncodedKeySpec(rawBytes)`, việc Java constructor tạo object spec không chứng minh bytes hợp lệ; `KeyFactory.generatePublic` thường từ chối vì thiếu đúng wrapper.
+`PKCS8EncodedKeySpec` requires a **PKCS#8 private-key structure**, not any raw secret scalar/seed directly. `X509EncodedKeySpec` requires an **SPKI structure**, not any raw public point directly. If you pass 32 raw Ed25519 bytes into `new X509EncodedKeySpec(rawBytes)`, the Java constructor creating the spec object does not validate the bytes; `KeyFactory.generatePublic` will typically reject it for lacking the right wrapper.
 
-Với AES, việc dùng `new SecretKeySpec(rawAesBytes, "AES")` là một mô hình khác: nó mô tả **symmetric key** từ byte đã có. Điều này không chứng minh key có entropy đủ hoặc được cấp phát quyền. Đối với RSA/EC từ thành phần thô, Java có những spec phù hợp từng thuật toán như `RSAPublicKeySpec`, `RSAPrivateCrtKeySpec`, `ECPublicKeySpec`, `ECPrivateKeySpec`; phải có đủ thông số và validation.
+With AES, `new SecretKeySpec(rawAesBytes, "AES")` follows a different model: it wraps existing bytes as a **symmetric key**. It does not prove the key has sufficient entropy or proper authorization. For RSA/EC from raw components, Java offers algorithm-specific specs such as `RSAPublicKeySpec`, `RSAPrivateCrtKeySpec`, `ECPublicKeySpec`, and `ECPrivateKeySpec`, which require complete parameters and validation.
 
-## 6. SPKI, PKCS#8, PKCS#1 và SEC 1: đúng loại cấu trúc mới dùng đúng API
+## 6. SPKI, PKCS#8, PKCS#1, and SEC 1: Only the Right Structure Works with the Right API
 
-Bảng nhận dạng quan trọng:
+Important identification table:
 
-| Cấu trúc | Đối tượng | PEM label phổ biến | Java 17 |
+| Structure | Object | Common PEM label | Java 17 |
 | --- | --- | --- | --- |
-| **SubjectPublicKeyInfo (SPKI)** | Public key với AlgorithmIdentifier | `PUBLIC KEY` | `X509EncodedKeySpec` rồi `KeyFactory.generatePublic` |
-| **PKCS#8 PrivateKeyInfo / OneAsymmetricKey** | Private key cùng thông tin thuật toán | `PRIVATE KEY` | `PKCS8EncodedKeySpec` rồi `KeyFactory.generatePrivate` |
-| **PKCS#8 EncryptedPrivateKeyInfo** | Private key đã mã hóa cùng tham số mã hóa | `ENCRYPTED PRIVATE KEY` | Giải mã bằng provider thích hợp trước, rồi parse private key |
-| **PKCS#1 RSAPublicKey** | RSA public modulus + exponent | `RSA PUBLIC KEY` | Không phải SPKI, cần parse/convert đúng |
-| **PKCS#1 RSAPrivateKey** | RSA private key theo cấu trúc thuật toán | `RSA PRIVATE KEY` | Không phải PKCS#8, cần parse/convert đúng |
-| **SEC 1 ECPrivateKey** | EC private key kiểu truyền thống | `EC PRIVATE KEY` | Không phải PKCS#8, cần parse/convert đúng |
-| **X.509 Certificate** | Public key + chủ thể/issuer/validity/extension/signature | `CERTIFICATE` | `CertificateFactory.getInstance("X.509")` |
+| **SubjectPublicKeyInfo (SPKI)** | Public key with AlgorithmIdentifier | `PUBLIC KEY` | `X509EncodedKeySpec` then `KeyFactory.generatePublic` |
+| **PKCS#8 PrivateKeyInfo / OneAsymmetricKey** | Private key with algorithm info | `PRIVATE KEY` | `PKCS8EncodedKeySpec` then `KeyFactory.generatePrivate` |
+| **PKCS#8 EncryptedPrivateKeyInfo** | Encrypted private key with encryption parameters | `ENCRYPTED PRIVATE KEY` | Decrypt via appropriate provider first, then parse private key |
+| **PKCS#1 RSAPublicKey** | RSA public modulus + exponent | `RSA PUBLIC KEY` | Not SPKI; must parse/convert properly |
+| **PKCS#1 RSAPrivateKey** | RSA private key in algorithm-specific structure | `RSA PRIVATE KEY` | Not PKCS#8; must parse/convert properly |
+| **SEC 1 ECPrivateKey** | Traditional EC private key | `EC PRIVATE KEY` | Not PKCS#8; must parse/convert properly |
+| **X.509 Certificate** | Public key + subject/issuer/validity/extensions/signature | `CERTIFICATE` | `CertificateFactory.getInstance("X.509")` |
 
-**Chú ý tên gây nhầm:**
+**Watch out for confusing names:**
 
-- `X509EncodedKeySpec` không phải parser certificate. Nó đại diện cho **SPKI public key encoding**. Tên “X.509” phản ánh xuất xứ cú pháp public-key information, không có nghĩa tham số đầu vào là nguyên chứng thư X.509.
-- `PKCS8EncodedKeySpec` dùng với **private key không mã hóa**. `BEGIN ENCRYPTED PRIVATE KEY` là một container khác, phải được giải mã theo đúng format/thuật toán/password trước.
-- `RSA PRIVATE KEY` có thể là PKCS#1 legacy chưa mã hóa, hoặc mang lớp PEM encryption legacy tùy headers; không vì nhãn chứa “PRIVATE” mà mặc định decode bằng PKCS#8.
-- `PUBLIC KEY` theo SPKI khác `RSA PUBLIC KEY` theo PKCS#1. Cả hai có thể mô tả cùng toán học RSA public key nhưng **byte và schema không giống nhau**.
+- `X509EncodedKeySpec` is not a certificate parser. It represents **SPKI public key encoding**. The "X.509" name reflects the syntax origin of public-key information, not that the input parameter is a full X.509 certificate.
+- `PKCS8EncodedKeySpec` is used for **unencrypted private keys**. `BEGIN ENCRYPTED PRIVATE KEY` is a different container and must be decrypted according to the right format/algorithm/password first.
+- `RSA PRIVATE KEY` may be unencrypted legacy PKCS#1, or carry legacy PEM encryption headers depending on the header lines; do not assume a label containing "PRIVATE" decodes as PKCS#8.
+- `PUBLIC KEY` (SPKI) differs from `RSA PUBLIC KEY` (PKCS#1). Both can describe the same mathematical RSA public key, yet their **bytes and schemas differ**.
 
-### Liên hệ với Ed25519, X25519 và EC
+### Connection to Ed25519, X25519, and EC
 
-RFC 8410 mô tả algorithm identifiers/encoding cho các key thuật toán Ed25519/Ed448/X25519/X448 trong SPKI/PKCS#8. Nếu protocol đưa **raw 32-byte Ed25519 public key**, cần conversion đúng tiêu chuẩn, không thêm “prefix cố định” tùy tiện. Dữ liệu PKCS#8 Ed25519 private cũng không đơn giản là 32-byte seed được Base64 bọc nhãn `PRIVATE KEY`.
+RFC 8410 defines algorithm identifiers/encodings for Ed25519/Ed448/X25519/X448 keys inside SPKI/PKCS#8. If a protocol supplies a **raw 32-byte Ed25519 public key**, convert it per the standard rather than prepending an arbitrary "fixed prefix". Similarly, PKCS#8 Ed25519 private key data is not simply a 32-byte seed Base64-wrapped under `PRIVATE KEY`.
 
-Với EC, một encoded point thiếu domain parameters có thể dẫn tới nhầm curve. Phải xác định chuẩn representation, public-key validation và thuật toán, không giả định mọi EC point đều thuộc P-256.
+For EC, an encoded point lacking domain parameters can cause curve mismatches. You must specify the representation standard, public-key validation, and algorithm rather than assuming every EC point belongs to P-256.
 
-## 7. “Khóa mã hóa” có hai nghĩa khác nhau
+## 7. "Encryption Key" vs. "Encrypted Key"
 
-Cụm “khóa mã hóa” đôi khi có nghĩa **encryption key** (key dùng để mã hóa dữ liệu), nhưng trong thảo luận file format có thể có nghĩa **encrypted key** (bản thân key được mã hóa để bảo vệ khi lưu/truyền).
+The phrase "encryption key" is sometimes confused with "encrypted key": an **encryption key** is a key used to encrypt data, whereas in file-format discussions an **encrypted key** is a key itself encrypted for protection at rest/in transit.
 
-1. **Encryption key / decryption key**: key dùng trong thuật toán, ví dụ AES key hoặc RSA public/private key cho encryption/decryption theo scheme cho phép. Key có thể lưu dạng raw, DER, PEM hay trong HSM tùy loại.
-2. **Encrypted private key**: blob chứa private key được mã hóa, chẳng hạn PKCS#8 `EncryptedPrivateKeyInfo`, mở được bằng mật khẩu hoặc cơ chế khóa tương ứng theo thuật toán và policy. Không thể dùng trực tiếp ciphertext của key như object `PrivateKey`.
-3. **Wrapped key**: key được bao bọc bằng *key encryption/wrapping key (KEK)* hoặc KMS wrapping operation, ví dụ AES Key Wrap hoặc envelope encryption. Không mặc định là PKCS#8 hay dùng cùng PEM label.
-4. **Certificate**: chứng thư chứa **public key**, không chứa private key; nó không “mã hóa private key” và không thay thế việc bảo vệ key thật.
+1. **Encryption key / decryption key:** a key used by an algorithm, such as an AES key or an RSA public/private key for encryption/decryption under an allowed scheme. Depending on type, it may be stored as raw, DER, PEM, or inside an HSM.
+2. **Encrypted private key:** a blob holding an encrypted private key, such as PKCS#8 `EncryptedPrivateKeyInfo`, opened with a password or matching key mechanism per algorithm and policy. You cannot use a key's ciphertext directly as a `PrivateKey` object.
+3. **Wrapped key:** a key wrapped by a *key encryption/wrapping key (KEK)* or a KMS wrapping operation, such as AES Key Wrap or envelope encryption. It is not by default PKCS#8 nor does it use the same PEM label.
+4. **Certificate:** a certificate contains a **public key**, not a private key; it does not "encrypt the private key" and does not replace protecting the real key.
 
-Hãy luôn viết chính xác “key dùng để mã hóa”, “key đã được mã hóa” hay “key được bọc (wrapped)” trong tài liệu kỹ thuật để tránh đặt sai API/quyền truy cập.
+Always write explicitly "encryption key" (key used to encrypt), "encrypted key" (key that has been encrypted), or "wrapped key" in technical documentation to avoid assigning the wrong API or access permissions.
 
-## 8. PKCS#8 được mã hóa: không đồng nghĩa với PEM
+## 8. Encrypted PKCS#8: Not Synonymous with PEM
 
-Một private key PKCS#8 chưa mã hóa thường có dạng:
+An unencrypted PKCS#8 private key typically takes the form:
 
 ```text
 PrivateKeyInfo
@@ -184,7 +184,7 @@ PrivateKeyInfo
   -> optional PEM armor "PRIVATE KEY"
 ```
 
-Khi bảo vệ private key tại rest bằng password/secret:
+When protecting a private key at rest with a password/secret:
 
 ```text
 PrivateKeyInfo DER
@@ -194,86 +194,86 @@ PrivateKeyInfo DER
   -> optional PEM armor "ENCRYPTED PRIVATE KEY"
 ```
 
-**Bảo mật nằm ở thuật toán và cách quản lý password/key**, không nằm ở việc thêm PEM armor. Mật khẩu yếu có thể bị brute-force offline nếu blob rơi vào tay attacker. Mặt khác, encrypted key không tự cho biết người được phép sử dụng hay algorithm có an toàn đủ không.
+**Security lies in the algorithm and password/key management**, not in adding PEM armor. A weak password can be brute-forced offline if the blob falls into an attacker's hands. Moreover, an encrypted key does not by itself state who is authorized to use it or whether the algorithm is sufficiently strong.
 
-### Những yếu tố cần hiểu khi mở encrypted key
+### Factors to Understand When Opening an Encrypted Key
 
-- **KDF và tham số:** salt, iteration count, thuật toán PRF hoặc profile khác; lựa chọn phù hợp workload và khuyến nghị hiện hành.
-- **Thuật toán bảo vệ:** lựa chọn mạnh, không dùng profile legacy yếu không cần thiết. Cần biết liệu format có cung cấp authenticated encryption hay chỉ encryption+padding.
-- **Tương thích provider:** Java có `EncryptedPrivateKeyInfo`, `Cipher` và `SecretKeyFactory`, nhưng các cách encoding PBES2/algorithm names/parameters giữa OpenSSL và JDK/provider có thể khác; không giả định mọi file OpenSSL đều chạy với một lệnh JCA generic.
-- **Nguồn password:** secure input, secret manager; tránh hard-code, CLI history, log. Với KMS/HSM có thể không bao giờ có bản sao raw private key trong ứng dụng.
-- **Validation:** sau decrypt, phải kiểm private key structure, algorithm và policy. Không xem byte giải mã được là key an toàn bất kể format.
-- **Legacy PEM encryption:** một số `BEGIN RSA PRIVATE KEY` có PEM headers `Proc-Type: 4,ENCRYPTED`, `DEK-Info`. Đó không đồng nghĩa `BEGIN ENCRYPTED PRIVATE KEY` dạng PKCS#8. Dùng parser/migration hiểu chính xác định dạng.
+- **KDF and parameters:** salt, iteration count, PRF algorithm, or other profile; choose appropriately for your workload and current recommendations.
+- **Protection algorithm:** pick a strong one; avoid weak legacy profiles unless strictly necessary. Know whether the format provides authenticated encryption or only encryption+padding.
+- **Provider compatibility:** Java has `EncryptedPrivateKeyInfo`, `Cipher`, and `SecretKeyFactory`, yet PBES2 encodings/algorithm names/parameters between OpenSSL and JDK/providers can differ; do not assume every OpenSSL file opens with a generic JCA call.
+- **Password source:** secure input or secret manager; avoid hardcoding, CLI history, or logs. With KMS/HSM, there may never be a raw private key copy in the application.
+- **Validation:** after decrypting, validate private key structure, algorithm, and policy. Never treat decrypted bytes as a safe key regardless of format.
+- **Legacy PEM encryption:** some `BEGIN RSA PRIVATE KEY` files carry PEM headers `Proc-Type: 4,ENCRYPTED`, `DEK-Info`. That is not PKCS#8 `BEGIN ENCRYPTED PRIVATE KEY`. Use a parser/migration tool that understands the exact format.
 
-### Ví dụ thao tác OpenSSL (minh họa CLI, không phải Java)
+### OpenSSL Command Examples (CLI Illustration, Not Java)
 
-Giả sử bạn có một private key hợp lệ trong file `private.pem` và OpenSSL thích hợp:
+Suppose you have a valid private key in `private.pem` and a suitable OpenSSL installation:
 
 ```bash
-# Trích public key dạng SPKI PEM từ private key
+# Extract SPKI PEM public key from private key
 openssl pkey -in private.pem -pubout -out public.pem
 
-# Mã hóa private key thành encrypted PKCS#8; công cụ yêu cầu nhập password
+# Encrypt private key into encrypted PKCS#8; the tool prompts for a password
 openssl pkcs8 -topk8 -in private.pem -out private-encrypted.pem \
   -v2 aes-256-cbc -v2prf hmacWithSHA256 -iter 200000
 
-# Đọc metadata certificate, không cần private key
+# Read certificate metadata without needing the private key
 openssl x509 -in certificate.pem -noout -subject -issuer -dates
 ```
 
-Các lệnh yêu cầu file đầu vào phù hợp, quyền truy cập và policy của hệ thống. Con số vòng lặp chỉ minh họa, không phải khuyến nghị dùng mãi cho mọi tải và threat model. AES-CBC trong cấu hình PBE này không đồng nghĩa một envelope authenticated AEAD hoàn chỉnh. Không ghi password trong argv hoặc commit encrypted private key với password yếu chỉ vì nghĩ “đã mã hóa là an toàn”.
+These commands require valid input files, permissions, and system policy compliance. The iteration count is illustrative, not a permanent recommendation for every workload and threat model. AES-CBC in this PBE configuration does not equal a full authenticated AEAD envelope. Never pass passwords in `argv` or commit an encrypted private key with a weak password thinking "it's encrypted so it's safe".
 
-## 9. Certificate X.509: một public key với các khẳng định có chữ ký
+## 9. X.509 Certificate: A Public Key with Signed Assertions
 
-X.509 certificate chứa public key dưới cấu trúc SPKI *và* nhiều trường khẳng định về chủ thể, issuer, hiệu lực, usage. Theo cấu trúc tổng quát, certificate bao gồm phần được ký `tbsCertificate`, thông tin signature algorithm và signature bits.
+An X.509 certificate holds a public key in an SPKI structure *and* many assertion fields about subject, issuer, validity, and usage. Structurally, a certificate includes the signed portion `tbsCertificate`, signature algorithm info, and signature bits.
 
-| Trường | Ý nghĩa |
+| Field | Meaning |
 | --- | --- |
-| Serial number, version | Số serial do issuer quản lý và version cấu trúc |
-| Subject, Issuer | Chủ thể được cấp và thực thể cấp/ký |
-| NotBefore / NotAfter | Khoảng hiệu lực của certificate |
-| SubjectPublicKeyInfo | Public key cùng algorithm identifier |
-| Subject Alternative Name (SAN) | DNS/IP/định danh khác, đặc biệt quan trọng với TLS hostname |
-| Key Usage / Extended Key Usage | Mục đích sử dụng chứng thư và key được cho phép |
-| Basic Constraints | Có phải CA, giới hạn path length |
-| Chữ ký của issuer | Cho phép xác minh dữ liệu certificate không bị sửa với public key issuer theo trust model |
+| Serial number, version | Issuer-managed serial number and structure version |
+| Subject, Issuer | Issued entity and issuing/signing entity |
+| NotBefore / NotAfter | Validity window of the certificate |
+| SubjectPublicKeyInfo | Public key along with algorithm identifier |
+| Subject Alternative Name (SAN) | DNS/IP/other identifiers, especially critical for TLS hostname checks |
+| Key Usage / Extended Key Usage | Permitted purposes for the certificate and key |
+| Basic Constraints | Whether it is a CA, path length limits |
+| Issuer signature | Allows verifying certificate data was not altered using the issuer's public key per the trust model |
 
-**Certificate không mang private key** tương ứng. Private key được giữ ở server, HSM/KMS hoặc keystore bảo vệ; client nhận certificate/public key phục vụ quá trình xác thực theo protocol.
+**A certificate does not carry the corresponding private key.** The private key stays on the server, HSM/KMS, or protected keystore; clients receive the certificate/public key for protocol authentication.
 
-### Parse được không phải trust
+### Being Parseable Is Not Trust
 
-Ba câu hỏi cần tách biệt:
+Separate three questions:
 
-1. **Parse hợp lệ:** `CertificateFactory` dựng object `X509Certificate` từ DER/PEM certificate.
-2. **Chữ ký certificate có đúng với một issuer public key cụ thể?** `certificate.verify(issuerPublicKey)` có thể giúp kiểm chữ ký với key được chỉ định, nhưng tự nó không chứng minh issuer key đáng tin.
-3. **Có thể tin chủ thể để thực hiện tác vụ này?** Cần **PKIX path validation tới trust anchor được phép**, hiệu lực, algorithm constraints, basic constraints, key usage/EKU, revocation theo policy và với HTTPS còn **hostname/SAN matching**.
+1. **Valid parse:** `CertificateFactory` constructs an `X509Certificate` object from DER/PEM certificate bytes.
+2. **Does the certificate signature match a specific issuer public key?** `certificate.verify(issuerPublicKey)` checks the signature against the specified key, which by itself does not prove the issuer key is trusted.
+3. **Can the subject be trusted to perform this task?** You need **PKIX path validation to an authorized trust anchor**, validity checks, algorithm constraints, basic constraints, key usage/EKU, revocation per policy, and for HTTPS, **hostname/SAN matching**.
 
-Chứng thư self-signed có thể tự verify chữ ký của chính nó; điều đó **không** tự đưa nó vào truststore. Chứng thư hết hạn vẫn parse được. Certificate có tên trong Subject rất giống tên công ty không tự tạo bằng chứng danh tính.
+A self-signed certificate can verify its own signature; that does **not** put it into a truststore. An expired certificate still parses cleanly. A certificate whose Subject looks just like a company's name does not constitute proof of identity.
 
-Java dùng `CertificateFactory`, `CertPathValidator`, `PKIXParameters` và các thành phần JSSE/`TrustManager` phù hợp để xác minh trust. Với HTTPS bình thường, ưu tiên client/TLS stack đáng tin với hostname verification bật, không tự xây lại toàn bộ PKIX logic từ vài lời gọi `verify`.
+Java uses `CertificateFactory`, `CertPathValidator`, `PKIXParameters`, and JSSE/`TrustManager` components to verify trust. For normal HTTPS, prefer a trusted client/TLS stack with hostname verification enabled rather than rebuilding PKIX logic from a few `verify` calls.
 
-### CSR khác certificate
+### CSR vs. Certificate
 
-`BEGIN CERTIFICATE REQUEST` là CSR/PKCS#10: yêu cầu CA cấp chứng thư, có public key và chữ ký chứng minh possession của private key. CSR **chưa phải certificate đã được CA cấp**. Certificate từ CA có issuer, time validity, signature/usage semantics riêng. Không dùng CSR thay certificate để xác thực TLS peer.
+`BEGIN CERTIFICATE REQUEST` is a CSR/PKCS#10: a request for a CA to issue a certificate, containing a public key and a signature proving possession of the private key. A CSR is **not yet a CA-issued certificate**. A CA-issued certificate has its own issuer, validity period, and signature/usage semantics. Never use a CSR in place of a certificate to authenticate a TLS peer.
 
-## 10. PKCS#12/PFX và các format khác
+## 10. PKCS#12/PFX and Other Formats
 
-Nhiều hệ thống lưu private key + certificate chain trong **PKCS#12** (`.p12`/`.pfx`), một **container** có thể chứa nhiều entry, password protection và metadata. Nó không phải một file DER SPKI hoặc một PEM certificate đơn thuần. Trong Java, `KeyStore.getInstance("PKCS12")` cho phép đọc các entry khi có quyền/mật khẩu phù hợp.
+Many systems store private keys + certificate chains in **PKCS#12** (`.p12`/`.pfx`), a **container** capable of holding multiple entries, password protection, and metadata. It is neither a plain SPKI DER file nor a single PEM certificate. In Java, `KeyStore.getInstance("PKCS12")` reads entries when given appropriate permissions/passwords.
 
-Các format khác cần nhận diện riêng:
+Other formats requiring dedicated recognition:
 
-- **OpenSSH**: `BEGIN OPENSSH PRIVATE KEY` và public-key dòng `ssh-ed25519 AAAA...` thuộc định dạng SSH, không mặc định là PKCS#8/SPKI PEM.
-- **JWK/JWKS**: key biểu diễn bằng JSON/JSON Web Key với `kty`, `crv`, `n`, `e` hoặc `x` tùy loại; giá trị Base64url không biến JSON thành DER.
-- **PKCS#1 / SEC 1 legacy**: key RSA/EC truyền thống, có thể convert sang PKCS#8 bằng công cụ hiểu schema; chỉ đổi `BEGIN` là sai.
-- **PEM certificate chain**: nhiều block `CERTIFICATE` trong cùng file, phải xác định leaf/intermediate/anchor và policy. Không tự xem root do peer gửi là trust anchor.
+- **OpenSSH:** `BEGIN OPENSSH PRIVATE KEY` and public-key lines like `ssh-ed25519 AAAA...` belong to the SSH format, not PKCS#8/SPKI PEM by default.
+- **JWK/JWKS:** keys represented in JSON/JSON Web Key with `kty`, `crv`, `n`, `e`, or `x` depending on type; Base64url values do not turn JSON into DER.
+- **Legacy PKCS#1 / SEC 1:** traditional RSA/EC keys, convertible to PKCS#8 using schema-aware tools; merely changing `BEGIN` is wrong.
+- **PEM certificate chain:** multiple `CERTIFICATE` blocks in one file, requiring identification of leaf/intermediate/anchor and policy checks. Never treat a peer-sent root as a trust anchor automatically.
 
-Với PKCS#12, private key vẫn cần được bảo vệ cả khi container được password-protected: secret có thể bị sao chép và tấn công offline; certificate chain trong container cũng không tự là chain đáng tin.
+With PKCS#12, the private key still needs protection even when the container is password-protected: the file could be copied and attacked offline, and a certificate chain inside the container is not automatically a trusted chain.
 
-## 11. Ví dụ Java 17+ hoàn chỉnh: SPKI/PKCS#8 DER ↔ PEM
+## 11. Complete Java 17+ Example: SPKI/PKCS#8 DER ↔ PEM
 
-Chương trình sau sinh một cặp **RSA** dùng cho minh họa, xuất private key theo **PKCS#8 DER** và public key theo **SPKI DER**, tạo PEM, đọc lại bằng `KeyFactory` và kiểm chữ ký. Nó cố ý **không tạo certificate**: key ASN.1 SPKI không phải X.509 certificate.
+The following program generates an **RSA** pair for demonstration, exports the private key as **PKCS#8 DER** and public key as **SPKI DER**, builds PEMs, imports them back with `KeyFactory`, and verifies a signature. It intentionally **does not create a certificate**: an ASN.1 SPKI key is not an X.509 certificate.
 
-Lưu file đúng tên **`KeyFormatsDemo.java`**:
+Save the file as **`KeyFormatsDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -362,14 +362,14 @@ public class KeyFormatsDemo {
 }
 ```
 
-Biên dịch/chạy với **JDK 17 trở lên**:
+Compile/run with **JDK 17 or higher**:
 
 ```bash
 javac --release 17 KeyFormatsDemo.java
 java KeyFormatsDemo
 ```
 
-**Stdout đã kiểm chứng:**
+**Verified stdout:**
 
 ```text
 Private format: PKCS#8
@@ -384,22 +384,22 @@ Signature valid: true
 Certificate label accepted: false
 ```
 
-### Phân tích ví dụ
+### Example Analysis
 
-1. `getEncoded()` của khóa software exportable được provider tạo trong demo trả bytes theo `getFormat()` tương ứng. `PKCS#8` là private encoding, `X.509` trong `PublicKey.getFormat()` là **SPKI public-key encoding**, không phải certificate.
-2. `toPem` Base64-encode DER rồi thêm label đúng. Không có password-based encryption trong bước này. File private PEM tạo được vẫn là **secret cần bảo vệ**.
-3. `fromPem` được viết *cố ý giới hạn*: một block duy nhất, label đúng, Base64 line được kiểm. Đây **không phải parser PEM đầy đủ** cho file từ đối tác; production dùng thư viện/logic RFC 7468 phù hợp, giới hạn kích thước/headers và số block.
-4. `KeyFactory.getInstance("RSA")` parse hai cấu trúc đúng bằng `PKCS8EncodedKeySpec` và `X509EncodedKeySpec`. Nếu thay private DER bằng encrypted PKCS#8 hoặc PKCS#1 raw, cách này **không áp dụng trực tiếp**.
-5. `Signature` chỉ xác nhận cặp key vừa khôi phục ký/xác minh được trên đúng byte message. Nó **không** chứng minh bên thứ ba hoặc một certificate chain đáng tin.
-6. Hai DER bytes trong demo bắt đầu bằng `0x30` vì cùng là ASN.1 SEQUENCE, nhưng là **hai schema khác nhau**. Không dùng tag đầu làm parser-type detector.
-7. `PUBLIC KEY` PEM không qua được parser kỳ vọng nhãn `CERTIFICATE`; nhãn đúng chỉ là một bước, muốn dùng certificate vẫn cần parser chứng thư và trust policy.
-8. Ví dụ dùng RSA-2048 để chạy phổ biến, không nhằm quy định mọi use case phải dùng RSA-2048; thuật toán/kích thước/trọn vòng đời phải tuân chính sách.
+1. `getEncoded()` on exportable software keys created by the provider in the demo returns bytes per `getFormat()`. `PKCS#8` is private encoding, and `X.509` in `PublicKey.getFormat()` is **SPKI public-key encoding**, not a certificate.
+2. `toPem` Base64-encodes DER and adds the proper label. There is no password-based encryption in this step. The generated private PEM file remains a **secret to protect**.
+3. `fromPem` is *deliberately limited*: a single block, exact label, validated Base64 lines. This is **not a full PEM parser** for partner files; production uses RFC 7468-compliant libraries/logic with limits on size/headers and block count.
+4. `KeyFactory.getInstance("RSA")` parses both structures properly via `PKCS8EncodedKeySpec` and `X509EncodedKeySpec`. If private DER is replaced with encrypted PKCS#8 or raw PKCS#1, this does **not apply directly**.
+5. `Signature` only confirms the reconstructed key pair can sign/verify on the exact message bytes. It does **not** prove a third party or certificate chain is trustworthy.
+6. Both DER byte arrays in the demo start with `0x30` because both are ASN.1 SEQUENCEs, yet they follow **two different schemas**. Never use the leading tag as a parser-type detector.
+7. A `PUBLIC KEY` PEM fails a parser expecting the `CERTIFICATE` label; the right label is only one step—using certificates still requires a certificate parser and trust policy.
+8. The example uses RSA-2048 for broad runnability, not to dictate that every use case must use RSA-2048; algorithms, sizes, and full lifecycles must follow policy.
 
-Với khóa HSM/KMS không xuất được, `getEncoded()` có thể trả `null`. Đừng coi đó là lỗi cần bypass security; thay vào đó dùng key handle/API ký hoặc giải mã được provider cho phép.
+For non-exportable HSM/KMS keys, `getEncoded()` may return `null`. Do not treat that as an error to bypass; instead use provider-permitted key handles and signing/decryption APIs.
 
-## 12. Java: parse certificate X.509 đúng API
+## 12. Java: Parsing X.509 Certificates with the Right API
 
-Đoạn sau **minh họa bên trong method** có các import và exception handling thích hợp; giả sử file `certificate.pem` tồn tại và chứa một certificate X.509 hợp lệ về cú pháp:
+The snippet below **illustrates code inside a method** with proper imports and exception handling; assume `certificate.pem` exists and holds a syntactically valid X.509 certificate:
 
 ```java
 import java.io.InputStream;
@@ -421,22 +421,22 @@ try (InputStream input = Files.newInputStream(Path.of("certificate.pem"))) {
 }
 ```
 
-Việc `getPublicKey()` trả về một `PublicKey` không thay thế chain validation. Nếu đây là certificate của endpoint TLS, cần kiểm trust anchor, chain, SAN/hostname, thời hạn và policy usage qua JSSE hoặc cơ chế PKIX đúng chuẩn. `certificate.checkValidity()` chỉ kiểm khoảng hiệu lực; `certificate.verify(somePublicKey)` chỉ kiểm chữ ký với key đã cho, không tự chứng minh `somePublicKey` thuộc issuer đáng tin.
+Returning a `PublicKey` from `getPublicKey()` does not replace chain validation. If this is a TLS endpoint certificate, check the trust anchor, chain, SAN/hostname, validity period, and usage policy via JSSE or standard PKIX validation. `certificate.checkValidity()` only checks the validity dates; `certificate.verify(somePublicKey)` only checks the signature against that key, without proving `somePublicKey` belongs to a trusted issuer.
 
-### Phân biệt certificate DER và PEM
+### Distinguishing Certificate DER and PEM
 
-Hai dạng có thể chứa **cùng một certificate**:
+Both forms can contain **the exact same certificate**:
 
 ```text
-cert.der    = DER bytes của X.509 Certificate
-cert.pem    = BEGIN CERTIFICATE + Base64 của chính DER bytes + END CERTIFICATE
+cert.der    = DER bytes of the X.509 Certificate
+cert.pem    = BEGIN CERTIFICATE + Base64 of those exact DER bytes + END CERTIFICATE
 ```
 
-Đổi dạng PEM ↔ DER **không** cấp thêm niềm tin. Certificate fingerprint thông thường hash **DER certificate bytes**, không hash cả dấu xuống dòng và PEM armor. Nếu file certificate bị thay, chữ ký/đường tin cậy cần được kiểm lại theo trust policy.
+Converting PEM ↔ DER does **not** grant extra trust. A certificate fingerprint normally hashes the **DER certificate bytes**, not the line breaks and PEM armor. If a certificate file is swapped, signatures and trust paths must be re-validated per trust policy.
 
-## 13. Java: PKCS#12 keystore không phải một private-key PEM
+## 13. Java: A PKCS#12 Keystore Is Not a Private-Key PEM
 
-Một service có thể nhận identity dưới dạng `identity.p12` gồm private key và certificate chain. API Java minh họa (không phải chương trình độc lập, cần biến `password` và `alias` lấy từ cấu hình tin cậy và xử lý exception):
+A service may receive an identity as `identity.p12` containing a private key and certificate chain. Illustrative Java API usage (not a standalone program; requires `password` and `alias` from trusted configuration and exception handling):
 
 ```java
 import java.io.InputStream;
@@ -454,150 +454,150 @@ Key privateKey = store.getKey(alias, password);
 Certificate[] chain = store.getCertificateChain(alias);
 ```
 
-Không suy ra mọi PKCS#12 đều có private key; entry có thể là certificate hoặc key tùy cấu hình. Một private key và certificate chain trong cùng container không có nghĩa chain **được tin cậy**; bên nhận vẫn phải thực hiện validation theo yêu cầu, không lấy root peer gửi tự động làm CA.
+Do not assume every PKCS#12 contains a private key; entries may be certificates or keys depending on configuration. Having a private key and certificate chain in the same container does not mean the chain is **trusted**; the receiving side must still run required validation rather than trusting a peer-sent root as a CA.
 
-Mật khẩu container bảo vệ thông tin ở rest theo provider/profile, **không phải khóa mã hóa dữ liệu ứng dụng**. Với HSM/KMS non-exportable key, thường service tham chiếu key handle và giữ certificate chain riêng, không cần xuất private key để tạo `.p12`.
+The container password protects contents at rest per provider/profile and is **not an application data encryption key**. With non-exportable HSM/KMS keys, a service typically references a key handle and keeps the certificate chain separately without exporting the private key into a `.p12`.
 
-## 14. Quy trình nhận diện file và chọn parser
+## 14. Workflow for Identifying Files and Choosing a Parser
 
-Đầu tiên xác định **hợp đồng nguồn dữ liệu** rồi kiểm thực tế:
+First establish the **data source contract**, then inspect the actual input:
 
 ```text
-Input có dòng BEGIN/END?
+Does input have BEGIN/END lines?
   |
-  +-- Có:
+  +-- Yes:
   |   |
   |   +-- PUBLIC KEY            -> SPKI DER -> KeyFactory / X509EncodedKeySpec
   |   +-- PRIVATE KEY           -> PKCS#8 DER -> KeyFactory / PKCS8EncodedKeySpec
-  |   +-- ENCRYPTED PRIVATE KEY -> giải mã PKCS#8 outer trước
+  |   +-- ENCRYPTED PRIVATE KEY -> decrypt outer PKCS#8 first
   |   +-- CERTIFICATE           -> X.509 CertificateFactory + trust validation
-  |   +-- RSA/EC PRIVATE KEY    -> parser legacy riêng / conversion phù hợp
-  |   +-- OPENSSH ...           -> parser định dạng SSH
+  |   +-- RSA/EC PRIVATE KEY    -> separate legacy parser / proper conversion
+  |   +-- OPENSSH ...           -> SSH format parser
   |
-  +-- Không:
+  +-- No:
       |
-      +-- Binary DER SPKI/PKCS#8/Certificate -> parser đúng schema
+      +-- Binary DER SPKI/PKCS#8/Certificate -> schema-matching parser
       +-- Raw key bytes                     -> algorithm-specific spec/format
-      +-- PKCS#12                           -> KeyStore PKCS12
-      +-- JWK/JWKS JSON                      -> JWK parser + policy
+      +-- PKCS#12                           -> PKCS12 KeyStore
+      +-- JWK/JWKS JSON                     -> JWK parser + policy
 ```
 
-**Không đoán chỉ từ extension**. Một ASN.1 DER blob chứa certificate có thể dùng `.cer`, `.crt`, `.der`; một file `.pem` có thể chứa nhiều certificate block. Khi nhận input không tin cậy:
+**Do not guess solely from file extensions.** An ASN.1 DER blob holding a certificate might use `.cer`, `.crt`, or `.der`; a `.pem` file might hold multiple certificate blocks. When receiving untrusted input:
 
-- Giới hạn kích thước trước khi Base64 decode hoặc ASN.1 parse; giới hạn số block, chiều sâu/cấu trúc và thời gian xử lý.
-- Từ chối label không thuộc allowlist và algorithm OID/kích thước/curve không đáp ứng chính sách.
-- Nếu yêu cầu một public key SPKI thì từ chối certificate hoặc PKCS#1 RSA public key trừ khi đặc tả cho phép và parser đúng loại.
-- Nếu cần certificate, không chỉ parse mà còn validate chain/identity/usage.
-- Nếu cần private key, kiểm quyền và cách lưu/mở khóa, tránh xuất dữ liệu nhạy cảm ra log/heap không cần thiết.
-- Nếu có nhiều block, dùng format mô tả **đúng cách chọn** leaf/intermediate và private key, không lấy ngẫu nhiên block đầu.
+- Bound input size before Base64 decoding or ASN.1 parsing; limit block count, structural depth, and processing time.
+- Reject labels outside an allowlist and algorithm OIDs/sizes/curves that violate policy.
+- If an SPKI public key is expected, reject certificates or PKCS#1 RSA public keys unless specified and handled by a dedicated parser.
+- If a certificate is required, do not stop at parsing—validate chain, identity, and usage.
+- If a private key is required, control permissions and unlocking/storage, avoiding unnecessary exposure in logs/heap.
+- If multiple blocks exist, follow a format specifying **exactly how** to select leaf/intermediate and private keys rather than grabbing the first block arbitrarily.
 
-## 15. Các lỗi Java phổ biến và cách khắc phục
+## 15. Common Java Errors and How to Fix Them
 
-| Triệu chứng | Nguyên nhân có khả năng | Cách xử lý |
+| Symptom | Likely cause | How to resolve |
 | --- | --- | --- |
-| `InvalidKeySpecException` khi đọc `RSA PRIVATE KEY` bằng `PKCS8EncodedKeySpec` | PKCS#1 RSA private khác PKCS#8 | Dùng parser/convert schema chuẩn |
-| `InvalidKeySpecException` với raw Ed25519 public 32 byte đưa vào `X509EncodedKeySpec` | Raw key không có SPKI wrapper | Dùng raw-key API phù hợp hoặc convert đúng RFC 8410 |
-| CertificateFactory không nhận `PUBLIC KEY` | SPKI public key không phải X.509 certificate | `KeyFactory` cho SPKI; `CertificateFactory` cho certificate |
-| Mở `ENCRYPTED PRIVATE KEY` như `PRIVATE KEY` | Chưa giải mã EncryptedPrivateKeyInfo | Dùng password/algorithm/provider phù hợp |
-| OpenSSL encrypted key không mở được ở Java provider hiện tại | PBES2/algorithm identifiers/parameters khác hoặc unsupported | Kiểm compatibility/migrate bằng tooling an toàn |
-| `getEncoded() == null` | Key không export được do HSM/provider | Dùng key handle để thực hiện crypto operation |
-| Certificate parse thành công nhưng HTTPS fail | Chain/SAN/hostname/expiry/EKU/trust policy không hợp lệ | Kiểm PKIX/endpoint identification đúng cách |
-| Signature verify sai sau khi convert key | Không đúng key pair, algorithm, message bytes hoặc scheme | Kiểm khóa và signed bytes trước khi quy lỗi cho PEM |
-| Chỉ đổi PEM label mà parser báo lỗi | Payload ASN.1 bên trong không khớp label | Parse/serialize thực sự sang cấu trúc đích |
-| PKCS#12 mở được nhưng không có private key alias kỳ vọng | Container/alias/entry khác yêu cầu | Liệt kê/kiểm entry theo policy và quyền |
+| `InvalidKeySpecException` reading `RSA PRIVATE KEY` with `PKCS8EncodedKeySpec` | PKCS#1 RSA private differs from PKCS#8 | Use a standard schema parser/converter |
+| `InvalidKeySpecException` passing 32-byte raw Ed25519 public key to `X509EncodedKeySpec` | Raw key lacks SPKI wrapper | Use a matching raw-key API or convert per RFC 8410 |
+| `CertificateFactory` rejects `PUBLIC KEY` | SPKI public key is not an X.509 certificate | `KeyFactory` for SPKI; `CertificateFactory` for certificates |
+| Opening `ENCRYPTED PRIVATE KEY` as `PRIVATE KEY` | `EncryptedPrivateKeyInfo` has not been decrypted | Use the matching password/algorithm/provider |
+| OpenSSL encrypted key fails in current Java provider | Different or unsupported PBES2/algorithm identifiers/parameters | Check compatibility or migrate with safe tooling |
+| `getEncoded() == null` | Key is non-exportable due to HSM/provider | Use the key handle to perform crypto operations |
+| Certificate parses, yet HTTPS fails | Invalid chain/SAN/hostname/expiry/EKU/trust policy | Run proper PKIX/endpoint identification checks |
+| Signature verification fails after key conversion | Wrong key pair, algorithm, message bytes, or scheme | Verify keys and signed bytes before blaming PEM |
+| Changing only the PEM label causes parser failure | Inner ASN.1 payload does not match label | Actually parse and re-serialize into target structure |
+| PKCS#12 opens, yet expected private key alias is missing | Different container/alias/entry than expected | List/inspect entries per policy and permissions |
 
-Không giải quyết lỗi trust bằng cách tắt TLS verification, tắt hostname verification, tự thêm certificate bất kỳ vào truststore, hoặc fallback sang thuật toán yếu. Không giải quyết lỗi key format bằng cách in private key raw vào log để thử.
+Never resolve trust errors by disabling TLS verification, disabling hostname verification, blindly adding arbitrary certificates to a truststore, or falling back to weak algorithms. Never resolve key format errors by printing raw private keys to logs to inspect them.
 
-## 16. Vận hành: key lifecycle và certificate lifecycle
+## 16. Operations: Key Lifecycle and Certificate Lifecycle
 
 **Private key:**
 
-1. Sinh bằng CSPRNG/provider tin cậy hoặc HSM/KMS theo chính sách thuật toán/độ dài.
-2. Giữ bí mật và hạn chế export; nếu cần lưu file, ACL/private-key encryption/password đủ mạnh, backup và auditing.
-3. Không lưu plaintext private key trong source control, issue tracker, chat, config không được bảo vệ.
-4. Dùng key ID/version để quản lý rotation; không lẫn secret key material với public metadata.
-5. Khi convert/backup, bảo vệ file tạm và xóa theo quy trình; việc chuyển sang PEM không tự mã hóa.
-6. Với encryption key và signing key, tách mục đích; không dùng một key cho mọi giao thức không được thiết kế.
-7. Nếu nghi lộ private key, thực hiện quy trình revoke/rotate và phát hành lại certificate cần thiết.
+1. Generate with a trusted CSPRNG/provider or HSM/KMS per algorithm/length policy.
+2. Keep confidential and restrict export; if file-stored, use ACLs, strong private-key encryption/passwords, backups, and auditing.
+3. Never store plaintext private keys in source control, issue trackers, chat, or unprotected configs.
+4. Use key IDs/versions to manage rotation; never mix secret key material with public metadata.
+5. During conversion/backup, protect temporary files and delete per procedure; converting to PEM does not encrypt them.
+6. Separate encryption keys and signing keys; never reuse one key across protocols not designed for it.
+7. If private key compromise is suspected, execute revocation/rotation and reissue required certificates.
 
-**Certificate và public key:**
+**Certificate and public key:**
 
-1. Xác minh nguồn gốc bằng chain/trust anchor hoặc pinning có lifecycle phù hợp; không tin chỉ vì parse được.
-2. Kiểm SAN/hostname và intended key usage theo ứng dụng; kiểm validity và revocation theo policy.
-3. Kiểm cặp public/private key tương ứng khi triển khai server identity; certificate không chứa private key.
-4. Tự động theo dõi expiry/renewal theo hệ thống vận hành, bảo đảm không phát key ra ngoài.
-5. Khi chuyển DER ↔ PEM, giữ đúng bytes và kiểm lại format; không coi conversion là trust validation.
-6. Với CSR, kiểm yêu cầu và quyền cấp certificate; CSR không phải certificate đã cấp.
+1. Verify origin via chain/trust anchor or pinning with a proper lifecycle; never trust simply because parsing succeeded.
+2. Validate SAN/hostname and intended key usage per application; check validity and revocation per policy.
+3. Verify public/private key correspondence when deploying server identity; certificates do not hold private keys.
+4. Automate expiry/renewal monitoring in operations without leaking private keys externally.
+5. When converting DER ↔ PEM, preserve exact bytes and re-check format; do not mistake conversion for trust validation.
+6. For CSRs, verify requests and issuance authorization; a CSR is not an issued certificate.
 
-**Key wrapping/container:**
+**Key wrapping/containers:**
 
-1. Biết rõ key encryption key (KEK) và data encryption key (DEK) thuộc vùng nào, bảo vệ bằng KMS/HSM khi phù hợp.
-2. Không xem encrypted blob là private key đã mở; phải qua decrypt/unwrap với quyền tương ứng.
-3. Version KDF/algorithm và kiểm interoperability trước khi rotation/migration.
-4. Chống downgrade profile hoặc dùng key không còn được phép do request chỉ định.
-5. Không cài password trong lệnh hoặc log; không nhầm password container với algorithm key.
+1. Know clearly where the key encryption key (KEK) and data encryption key (DEK) reside, protecting them with KMS/HSM where appropriate.
+2. Never treat an encrypted blob as an unlocked private key; it must go through authorized decrypt/unwrap first.
+3. Version KDF/algorithms and test interoperability prior to rotation/migration.
+4. Prevent profile downgrade or accepting disallowed keys specified by a request.
+5. Never pass passwords on command lines or in logs; never confuse a container password with an algorithm key.
 
-## 17. Bộ test kỹ thuật nên chạy
+## 17. Recommended Technical Test Suite
 
-| Test | Đầu vào | Kỳ vọng |
+| Test | Input | Expected result |
 | --- | --- | --- |
-| PKCS#8 round trip | RSA private key exportable → DER → PEM → DER | Byte DER và key sau parse khớp |
-| SPKI round trip | RSA public key → DER → PEM → DER | Byte DER và key sau parse khớp |
-| Ký/xác minh | Private PKCS#8 và public SPKI vừa parse | Chữ ký xác minh đúng message |
-| Nhãn PEM sai | SPKI `PUBLIC KEY` đưa vào parser chờ `CERTIFICATE` | Bị từ chối |
-| PKCS#1/PKCS#8 nhầm | `RSA PRIVATE KEY` đưa vào PKCS#8 parser | Bị từ chối/không parse sai schema |
-| Raw Ed25519 vs SPKI | Raw bytes theo RFC 8032 | Không tự parse như SPKI nếu thiếu wrapper |
-| Encrypted PKCS#8 | Password đúng/sai, KDF/algorithm theo policy | Chỉ mở khóa với quyền/password đúng; lỗi được xử lý an toàn |
-| Certificate parse | X.509 DER và PEM của cùng certificate | Parse được; public key/SPKI giống nhau |
-| Certificate trust | Self-signed không nằm trong truststore | Có thể parse nhưng không tự được tin |
-| Hostname | Certificate cho DNS A dùng truy cập DNS B | Endpoint identification từ chối |
-| Expired certificate | Certificate ngoài validity | Bị từ chối theo policy dù ASN.1 parse được |
-| Kích thước input | PEM/ASN.1 quá lớn hoặc quá nhiều block | Từ chối sớm theo quota |
-| Container PKCS#12 | Entry/cert chain/password phù hợp | Lấy đúng entry, không tự tin chain |
-| Non-exportable key | Hardware/provider key có `getEncoded() == null` | Dùng handle, không cố export |
-| Định dạng nhiều ngôn ngữ | Java và OpenSSL cùng SPKI/PKCS#8 | Có thể parse và ký/verify chéo đúng chuẩn |
+| PKCS#8 round trip | Exportable RSA private key → DER → PEM → DER | DER bytes and parsed key match |
+| SPKI round trip | RSA public key → DER → PEM → DER | DER bytes and parsed key match |
+| Sign/verify | Parsed PKCS#8 private and SPKI public | Signature verifies on exact message |
+| Wrong PEM label | SPKI `PUBLIC KEY` fed to parser expecting `CERTIFICATE` | Rejected |
+| PKCS#1/PKCS#8 confusion | `RSA PRIVATE KEY` fed to PKCS#8 parser | Rejected / not parsed under wrong schema |
+| Raw Ed25519 vs. SPKI | Raw bytes per RFC 8032 | Not parsed as SPKI when wrapper is missing |
+| Encrypted PKCS#8 | Valid/invalid password, policy KDF/algorithm | Unlocks only with valid credentials/password; errors handled safely |
+| Certificate parse | X.509 DER and PEM of the same certificate | Both parse; public key/SPKI match |
+| Certificate trust | Self-signed not in truststore | Parses, yet is not automatically trusted |
+| Hostname | Certificate for DNS A used to access DNS B | Endpoint identification rejects |
+| Expired certificate | Certificate outside validity window | Rejected per policy even though ASN.1 parses |
+| Input bounds | Oversized PEM/ASN.1 or excessive blocks | Rejected early per quota |
+| PKCS#12 container | Matching entry/cert chain/password | Retrieves right entry without blindly trusting chain |
+| Non-exportable key | Hardware/provider key with `getEncoded() == null` | Uses handle without attempting export |
+| Cross-language format | Java and OpenSSL sharing SPKI/PKCS#8 | Parses and cross-signs/verifies per standard |
 
-**Test phân biệt trust:** cho ứng dụng parse một certificate tự ký và thử tự verify bằng public key từ chính certificate. Việc toán học thành công không được tự biến đối tượng thành peer đáng tin. Hãy test đầy đủ trust anchor/chain, SAN và authorization.
+**Trust distinction test:** let the application parse a self-signed certificate and verify it against the public key extracted from that same certificate. Mathematical success must not promote the peer to trusted. Thoroughly test trust anchors/chains, SANs, and authorization.
 
-## 18. Bài tập thực hành
+## 18. Practice Exercises
 
-### Bài 1 — Đọc nhãn và chọn API
+### Exercise 1 — Reading Labels and Selecting APIs
 
-Bạn nhận năm nguồn dữ liệu: `BEGIN PUBLIC KEY`, `BEGIN PRIVATE KEY`, `BEGIN ENCRYPTED PRIVATE KEY`, `BEGIN CERTIFICATE` và `BEGIN RSA PRIVATE KEY`. Với mỗi nguồn, hãy xác định payload/schema, có chắc chứa private key không, có password không, Java parser/KeySpec phù hợp và rủi ro nếu nhận từ client chưa tin cậy.
+You receive five data sources: `BEGIN PUBLIC KEY`, `BEGIN PRIVATE KEY`, `BEGIN ENCRYPTED PRIVATE KEY`, `BEGIN CERTIFICATE`, and `BEGIN RSA PRIVATE KEY`. For each source, identify the payload/schema, whether it definitely contains a private key, whether a password is involved, the right Java parser/KeySpec, and risks if received from an untrusted client.
 
-### Bài 2 — Chạy KeyFormatsDemo
+### Exercise 2 — Running KeyFormatsDemo
 
-Biên dịch bằng `javac --release 17`. Giải thích vì sao public format hiển thị `X.509` nhưng chương trình không hề tạo certificate. Thử thay nhãn PEM của public key thành `CERTIFICATE` mà không thay DER, rồi mô tả tại sao đó không phải conversion đúng.
+Compile with `javac --release 17`. Explain why the public format displays `X.509` even though the program never creates a certificate. Try changing the public key's PEM label to `CERTIFICATE` without altering the DER, and explain why that is not a valid conversion.
 
-### Bài 3 — Migrate khóa RSA kiểu cũ
+### Exercise 3 — Migrating Legacy RSA Keys
 
-Một đối tác gửi private key `BEGIN RSA PRIVATE KEY` không mã hóa. Thiết kế quy trình chuyển sang encrypted PKCS#8: chọn parser chuẩn, giới hạn input, kiểm public key tương ứng, mã hóa với password/algorithm theo policy, bảo vệ file tạm, kiểm compatibility và theo dõi rotation. Chỉ rõ nơi không được log secret.
+A partner sends an unencrypted `BEGIN RSA PRIVATE KEY`. Design a migration workflow to encrypted PKCS#8: select a standard parser, bound inputs, verify matching public key, encrypt with policy-compliant password/algorithm, protect temporary files, test compatibility, and track rotation. Specify where secrets must never be logged.
 
-### Bài 4 — Raw Ed25519
+### Exercise 4 — Raw Ed25519
 
-Một giao thức trả 32 byte Ed25519 public key. Bạn cần dùng Java JCA để verify. Ghi rõ chuẩn byte input, cách tạo public-key object hoặc SPKI theo spec phù hợp, algorithm allowlist và cách xác lập **key đó thuộc bên nào** (trust binding) trước khi verify message.
+A protocol returns a 32-byte Ed25519 public key. You need to verify with Java JCA. Document the byte input standard, how to build the public-key object or SPKI via an appropriate spec, the algorithm allowlist, and how to establish **which party owns the key** (trust binding) before verifying messages.
 
-### Bài 5 — Certificate bị giả mạo tên
+### Exercise 5 — Certificate with a Spoofed Name
 
-Một endpoint gửi certificate tự ký có Subject ghi tên doanh nghiệp và public key hoạt động bình thường. Vì sao `getPublicKey()` và `verify(ownPublicKey)` vẫn chưa đủ để tin API? Mô tả trust anchor, chain, hostname/SAN, validity, KU/EKU, revocation policy và quyền thực hiện tác vụ.
+An endpoint sends a self-signed certificate whose Subject lists a company name and whose public key works normally. Why are `getPublicKey()` and `verify(ownPublicKey)` still insufficient to trust the API? Describe trust anchor, chain, hostname/SAN, validity, KU/EKU, revocation policy, and task authorization.
 
-### Bài 6 — Vận hành server key + certificate
+### Exercise 6 — Operating Server Keys + Certificates
 
-So sánh ba lựa chọn: (a) `PRIVATE KEY` PEM + certificate PEM, (b) password-protected PKCS#12, (c) HSM/KMS non-exportable key + certificate chain. Phân tích cách triển khai, backup, rotation, quyền và nguy cơ lộ secret. Khi certificate hết hạn, vì sao không nhất thiết phải thay đổi thuật toán/format private key mà vẫn phải tuân chính sách rotation?
+Compare three options: (a) `PRIVATE KEY` PEM + certificate PEM, (b) password-protected PKCS#12, (c) HSM/KMS non-exportable key + certificate chain. Analyze deployment, backup, rotation, permissions, and secret-exposure risks. When a certificate expires, why doesn't the private key's algorithm/format necessarily have to change, yet rotation policy still applies?
 
-**Điều kiện hoàn thành:** bạn nhận biết chính xác **kiểu dữ liệu, schema, encoding, lớp bảo vệ và trust policy**; phân biệt được “convert PEM/DER” với “convert PKCS#1/PKCS#8”, “decrypt private key” với “dùng key để mã hóa”, và “đọc certificate” với “tin cậy certificate”.
+**Completion criteria:** you accurately identify **data types, schemas, encodings, protection layers, and trust policies**; distinguish "converting PEM/DER" from "converting PKCS#1/PKCS#8", "decrypting a private key" from "using a key to encrypt", and "reading a certificate" from "trusting a certificate".
 
-## 19. Tài liệu tham khảo
+## 19. References
 
-- [RFC 7468 — Textual Encodings of PKIX, PKCS, and CMS Structures](https://www.rfc-editor.org/rfc/rfc7468): PEM textual encoding và labels.
-- [ITU-T X.690 — ASN.1 Encoding Rules](https://www.itu.int/rec/T-REC-X.690/): BER, CER và DER.
-- [RFC 5280 — Internet X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): X.509 certificate và PKIX.
+- [RFC 7468 — Textual Encodings of PKIX, PKCS, and CMS Structures](https://www.rfc-editor.org/rfc/rfc7468): PEM textual encoding and labels.
+- [ITU-T X.690 — ASN.1 Encoding Rules](https://www.itu.int/rec/T-REC-X.690/): BER, CER, and DER.
+- [RFC 5280 — Internet X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): X.509 certificates and PKIX.
 - [RFC 5958 — Asymmetric Key Packages](https://www.rfc-editor.org/rfc/rfc5958): OneAsymmetricKey, EncryptedPrivateKeyInfo.
-- [RFC 5208 — PKCS#8 Private-Key Information Syntax](https://www.rfc-editor.org/rfc/rfc5208): PrivateKeyInfo/EncryptedPrivateKeyInfo truyền thống.
-- [RFC 8017 — PKCS#1: RSA Cryptography Specifications](https://www.rfc-editor.org/rfc/rfc8017): cấu trúc và thuật toán RSA.
-- [RFC 8410 — Algorithm Identifiers for Ed25519, Ed448, X25519, X448](https://www.rfc-editor.org/rfc/rfc8410): SPKI/PKCS#8 cho thuật toán hiện đại.
-- [RFC 7292 — PKCS#12](https://www.rfc-editor.org/rfc/rfc7292): container key/certificate.
-- [Java SE 17 — PKCS8EncodedKeySpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/PKCS8EncodedKeySpec.html) và [X509EncodedKeySpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/X509EncodedKeySpec.html): các key spec cần phân biệt.
-- [Java SE 17 — EncryptedPrivateKeyInfo](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/EncryptedPrivateKeyInfo.html): private key được mã hóa.
-- [Java SE 17 — CertificateFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateFactory.html), [X509Certificate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html), [CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): parse và validate certificate.
-- [Java SE 17 — KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): PKCS#12 và keystore providers.
+- [RFC 5208 — PKCS#8 Private-Key Information Syntax](https://www.rfc-editor.org/rfc/rfc5208): traditional PrivateKeyInfo/EncryptedPrivateKeyInfo.
+- [RFC 8017 — PKCS #1: RSA Cryptography Specifications](https://www.rfc-editor.org/rfc/rfc8017): RSA structures and algorithms.
+- [RFC 8410 — Algorithm Identifiers for Ed25519, Ed448, X25519, X448](https://www.rfc-editor.org/rfc/rfc8410): SPKI/PKCS#8 for modern algorithms.
+- [RFC 7292 — PKCS#12](https://www.rfc-editor.org/rfc/rfc7292): key/certificate container.
+- [Java SE 17 — PKCS8EncodedKeySpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/PKCS8EncodedKeySpec.html) and [X509EncodedKeySpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/X509EncodedKeySpec.html): key specs to distinguish.
+- [Java SE 17 — EncryptedPrivateKeyInfo](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/EncryptedPrivateKeyInfo.html): encrypted private keys.
+- [Java SE 17 — CertificateFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateFactory.html), [X509Certificate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html), [CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): parsing and validating certificates.
+- [Java SE 17 — KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): PKCS#12 and keystore providers.

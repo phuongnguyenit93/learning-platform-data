@@ -1,18 +1,18 @@
-# Giới hạn tài nguyên ở hệ điều hành và giới hạn của ngắt luồng Java
+# OS-Level Resource Limits and the Limits of Java Thread Interruption
 
-Một ứng dụng Java có khả năng nạp plugin, chạy script hay thực thi mã mở rộng phải giải quyết hai vấn đề khác nhau: **làm sao đề nghị tác vụ dừng**, và **làm sao bảo đảm mã đang chạy không vượt quá ngân sách tài nguyên**. Chúng không thể thay thế cho nhau.
+A Java application capable of loading plugins, running scripts, or executing extension code must solve two distinct problems: **how to request a task to stop**, and **how to ensure running code does not exceed its resource budget**. They cannot substitute for one another.
 
-- `Thread.interrupt()`, `Future.cancel(true)` và các timeout ở mức Java chủ yếu thuộc nhóm **hủy hợp tác** (*cooperative cancellation*). Chúng có thể khiến tác vụ nhận tín hiệu ngắt, nhưng không phải cơ chế cưỡng chế dừng mọi bytecode đang chạy.
-- Cgroup, container quota, giới hạn process/job của hệ điều hành và các chính sách cô lập cấp OS mới là nơi đặt **trần CPU, bộ nhớ, số process/thread, file descriptor, dung lượng đĩa hoặc quyền truy cập tài nguyên** theo điều kiện nền tảng hỗ trợ.
-- `ProcessBuilder` giúp host khởi động và quản lý vòng đời một tiến trình con; `Process.destroyForcibly()` có thể cưỡng chế kết thúc tiến trình. Tuy nhiên, **quản lý timeout của process không tự thiết lập hạn mức CPU/RAM** và cũng không mặc nhiên dọn mọi tiến trình cháu.
+- `Thread.interrupt()`, `Future.cancel(true)`, and Java-level timeouts belong primarily to **cooperative cancellation**. They can deliver an interruption signal to a task, but they are not mechanisms to forcibly halt arbitrary running bytecode.
+- Cgroups, container quotas, OS process/job limits, and OS-level isolation policies are where **ceilings on CPU, memory, process/thread count, file descriptors, disk space, or resource access privileges** are enforced according to platform capabilities.
+- `ProcessBuilder` lets the host start and manage the lifecycle of a child process; `Process.destroyForcibly()` can forcibly terminate the process. However, **managing a process timeout does not automatically impose CPU/RAM quotas**, nor does it automatically clean up all descendant processes.
 
-Đối với **ranh giới tin cậy** của cơ chế mở rộng Java, nguyên tắc là: mã đủ tin cậy có thể dùng `interrupt` để đóng tác vụ gọn gàng; mã không tin cậy hoặc có thể không hợp tác cần được đặt trong **ranh giới process/OS độc lập** có quota, quyền tối thiểu và cơ chế thu hồi.
+For the **trust boundary** of a Java extensibility mechanism, the principle is: sufficiently trusted code can use `interrupt` to shut down tasks cleanly; untrusted or potentially uncooperative code must be placed inside an **independent process/OS boundary** with quotas, least privilege, and reclamation mechanisms.
 
-Bài học dùng Java 17+ và một chương trình chạy được để quan sát: một thread hợp tác dừng khi bị ngắt; một task cố ý bỏ qua interrupt vẫn sống dù `Future` báo đã hủy; một tiến trình con bị host kết thúc sau deadline. Các ví dụ cố tình giới hạn thời gian, không chạy vòng lặp vô hạn trong JVM host mà không có đường dọn dẹp.
+This lesson uses Java 17+ and a runnable program to observe: a cooperative thread stopping when interrupted; a task intentionally ignoring interrupts staying alive even though its `Future` reports cancelled; and a child process terminated by the host after a deadline. The examples intentionally bound execution time rather than running infinite loops in the host JVM without a cleanup path.
 
-## 1. Vì sao plugin hay script tạo ra rủi ro tài nguyên?
+## 1. Why Do Plugins or Scripts Create Resource Risks?
 
-Giả sử một server nhận request và gọi một plugin qua SPI:
+Suppose a server receives a request and invokes a plugin via SPI:
 
 ```text
 HTTP request
@@ -24,55 +24,55 @@ Host Java server
 Plugin API / ScriptEngine / dynamically loaded class
      |
      +--> CPU loop
-     +--> Cấp phát heap và direct memory
-     +--> Tạo thread/process mới
-     +--> Mở file/socket
-     +--> Gọi native library hoặc I/O vô hạn
+     +--> Heap and direct memory allocation
+     +--> Spawning new threads/processes
+     +--> Opening files/sockets
+     +--> Calling native libraries or unbounded I/O
 ```
 
-Ngay cả plugin không có chủ đích xấu cũng có thể vô tình:
+Even a plugin with no malicious intent can accidentally:
 
-1. Lặp vô hạn vì một điều kiện sai.
-2. Tạo cấu trúc dữ liệu không có giới hạn.
-3. Giữ quá nhiều thread, socket hoặc file descriptor.
-4. Gọi API ngoài bị treo.
-5. Cố truy cập tài nguyên không thuộc phạm vi công việc.
+1. Loop infinitely due to a buggy condition.
+2. Build unbounded data structures.
+3. Hold too many threads, sockets, or file descriptors.
+4. Call external APIs that hang.
+5. Attempt to access resources outside the scope of its work.
 
-Nếu plugin chạy **trong cùng JVM** với host, nó dùng chung không gian tiến trình, heap và nhiều tài nguyên process. Một plugin gây `OutOfMemoryError` hoặc làm cạn CPU có thể ảnh hưởng các request không liên quan. Cùng class loader hay tách class loader **không biến plugin thành sandbox**.
+If a plugin runs **in the same JVM** as the host, it shares the process space, heap, and many process resources. A plugin that triggers `OutOfMemoryError` or starves CPU can impact unrelated requests. Sharing a class loader or separating class loaders **does not turn a plugin into a sandbox**.
 
-Đối với script/plugin do bên ngoài cung cấp, nên đặt câu hỏi về **ranh giới tin cậy** trước khi chọn API timeout. Chỉ thêm `Future.get(2, TimeUnit.SECONDS)` không tạo giới hạn CPU, RAM hoặc quyền hệ điều hành.
+For externally supplied scripts/plugins, ask about the **trust boundary** before picking timeout APIs. Merely adding `Future.get(2, TimeUnit.SECONDS)` creates no CPU, RAM, or OS privilege limits.
 
-## 2. Ba lớp kiểm soát — ba loại bảo đảm khác nhau
+## 2. Three Control Layers — Three Different Guarantees
 
-| Lớp kiểm soát | Công cụ điển hình | Có thể bảo đảm gì? | Không nên kỳ vọng gì? |
+| Control layer | Typical tools | What can it guarantee? | What should not be expected? |
 |---|---|---|---|
-| **Hợp tác trong Java** | `Thread.interrupt()`, cờ dừng, `Future.cancel(true)`, API interruptible | Tác vụ **được viết đúng** nhận tín hiệu và chủ động thoát, cleanup | Buộc mã cố tình bỏ qua interrupt phải dừng |
-| **Quản lý vòng đời process** | `ProcessBuilder`, `Process.waitFor(timeout, unit)`, `destroy()`, `destroyForcibly()` | Host có thể giám sát và chấm dứt **tiến trình con** đang quản lý | Tự áp quota CPU/RAM hay chắc chắn chấm dứt mọi process cháu |
-| **Cô lập và quota của OS** | Linux cgroups, namespaces, container/VM, Windows Job Objects, process limits, access policy | Giới hạn/quan sát tài nguyên và quyền trong phạm vi OS/cấu hình được áp dụng | Cứ có một Java thread là OS sẽ riêng biệt giới hạn nó theo request |
+| **Java cooperative** | `Thread.interrupt()`, stop flags, `Future.cancel(true)`, interruptible APIs | **Properly written** tasks receive the signal and actively exit and clean up | Forcing code that intentionally ignores interrupts to stop |
+| **Process lifecycle management** | `ProcessBuilder`, `Process.waitFor(timeout, unit)`, `destroy()`, `destroyForcibly()` | The host can monitor and terminate the managed **child process** | Automatically enforcing CPU/RAM quotas or guaranteeing all grandchild processes terminate |
+| **OS isolation and quotas** | Linux cgroups, namespaces, containers/VMs, Windows Job Objects, process limits, access policies | Limiting/observing resources and privileges within the applied OS/config scope | Automatically capping every Java thread individually per request |
 
-Phải phân biệt thêm **wall-clock deadline** (thời gian trôi qua) và **CPU quota** (lượng CPU được tiêu thụ theo chu kỳ đo). Một process bị chờ I/O có thể gần như không dùng CPU mà vẫn vượt deadline. Một process bị bóp CPU quota vẫn có thể sống mãi nếu host không thực thi timeout.
+You must further distinguish **wall-clock deadlines** (elapsed time) from **CPU quotas** (CPU time consumed per measurement period). A process blocked on I/O may consume almost no CPU while still exceeding its deadline. A process throttled by a CPU quota can still live forever if the host enforces no timeout.
 
-Tương tự, giới hạn heap `-Xmx` chỉ giới hạn phần **Java heap** được JVM quản lý, không giới hạn đầy đủ RSS, metaspace, direct buffers, code cache, native allocations và thread stacks.
+Similarly, the `-Xmx` heap limit only caps the **Java heap** managed by the JVM; it does not fully cap RSS, metaspace, direct buffers, code cache, native allocations, or thread stacks.
 
-## 3. Java `interrupt` thực sự hoạt động thế nào?
+## 3. How Does Java `interrupt` Actually Work?
 
-### 3.1. Interrupt là tín hiệu, không phải lệnh giết thread
+### 3.1. Interruption Is a Signal, Not a Thread-Kill Command
 
-Lời gọi:
+The call:
 
 ```java
 worker.interrupt();
 ```
 
-gửi **yêu cầu ngắt** tới một `Thread`. JVM không được yêu cầu kết thúc thread ngay tại chỗ. Phản ứng phụ thuộc vào trạng thái và mã đang chạy:
+sends an **interruption request** to a `Thread`. The JVM is not asked to terminate the thread on the spot. The reaction depends on the thread's state and currently executing code:
 
-- Nếu thread đang thực hiện thao tác **có hỗ trợ interruption** như `Thread.sleep`, `Object.wait`, `Thread.join` hoặc một số phương thức trong `java.util.concurrent`, nó có thể nhận `InterruptedException`.
-- Nếu thread đang chạy code tính toán thông thường, interrupt thường chỉ làm cờ interruption của thread được đặt. Mã cần kiểm tra cờ và tự thoát ở thời điểm phù hợp.
-- Một số thao tác I/O/channel hoặc đồng bộ có cách phản ứng với interruption riêng, ví dụ đóng channel hoặc ném exception đặc thù. Không nên coi mọi lời gọi I/O đều dừng tức thì khi interrupt.
-- Nếu mã bắt `InterruptedException` rồi bỏ qua và tiếp tục vô hạn, `interrupt()` **không cưỡng chế** được nó.
-- Nếu đang chờ chiếm monitor của `synchronized`, việc chờ monitor không trở thành interruptible chỉ vì thread bị ngắt.
+- If the thread is executing an **interruptible** operation such as `Thread.sleep`, `Object.wait`, `Thread.join`, or certain methods in `java.util.concurrent`, it may throw `InterruptedException`.
+- If the thread is running ordinary computational code, interrupting normally only sets the thread's interrupt flag. The code must check the flag and exit on its own at an appropriate point.
+- Some I/O/channel or synchronization operations respond to interruption in specific ways, such as closing the channel or throwing a dedicated exception. Never assume every I/O call stops immediately upon interruption.
+- If code catches `InterruptedException`, ignores it, and continues looping forever, `interrupt()` **cannot force** it to stop.
+- If waiting to acquire a `synchronized` monitor, waiting on the monitor does not become interruptible simply because the thread is interrupted.
 
-Ví dụ vòng tính toán **hợp tác**:
+Example of a **cooperative** computation loop:
 
 ```java
 while (!Thread.currentThread().isInterrupted()) {
@@ -80,25 +80,25 @@ while (!Thread.currentThread().isInterrupted()) {
 }
 ```
 
-Đây là **đoạn minh họa**, `processOneBoundedChunk()` phải do ứng dụng định nghĩa. Điều kiện quan trọng là mỗi vòng có phạm vi công việc hữu hạn, được kiểm tra thường xuyên; nếu một lần gọi bên trong không bao giờ trả, vòng ngoài không có cơ hội đọc cờ.
+This is an **illustrative snippet**; `processOneBoundedChunk()` must be defined by the application. The critical condition is that each iteration covers a finite amount of work and returns frequently to the check; if an inner call never returns, the outer loop never gets a chance to read the flag.
 
-### 3.2. `isInterrupted()` khác `Thread.interrupted()`
+### 3.2. `isInterrupted()` vs. `Thread.interrupted()`
 
-Hai API dễ bị nhầm:
+Two easily confused APIs:
 
 ```java
 boolean stillSet = Thread.currentThread().isInterrupted();
 boolean beforeClearing = Thread.interrupted();
 ```
 
-- `isInterrupted()` kiểm tra cờ của đối tượng thread, **không xóa** cờ.
-- `Thread.interrupted()` là static method, kiểm tra **thread hiện tại** và **xóa cờ** sau khi đọc.
+- `isInterrupted()` checks the thread object's flag **without clearing** it.
+- `Thread.interrupted()` is a static method that checks the **current thread** and **clears the flag** upon reading.
 
-Dùng `Thread.interrupted()` trong điều kiện lặp có thể vô tình “nuốt” tín hiệu nếu phần mã còn phải truyền việc hủy lên tầng trên. Trong vòng tác vụ, thường dùng `isInterrupted()` để kiểm tra mà vẫn giữ tín hiệu.
+Using `Thread.interrupted()` in a loop condition can accidentally "swallow" the signal if surrounding code also needs to propagate cancellation upward. Inside a task loop, `isInterrupted()` is typically used to check while preserving the signal.
 
-### 3.3. `InterruptedException` và việc khôi phục cờ
+### 3.3. `InterruptedException` and Restoring the Flag
 
-Một số thao tác blocking khi ném `InterruptedException` **xóa interrupt status**. Nếu tầng xử lý không thể `throws InterruptedException` cho caller, cách thường dùng là dọn tài nguyên rồi **đặt lại cờ** để tầng trên biết yêu cầu hủy:
+Some blocking operations **clear the interrupt status** when throwing `InterruptedException`. If the handling layer cannot declare `throws InterruptedException` for its caller, the usual pattern is to clean up resources and **re-set the flag** so higher layers see the cancellation request:
 
 ```java
 try {
@@ -109,24 +109,24 @@ try {
 }
 ```
 
-Trong một phương thức đã khai báo `throws InterruptedException`, có thể để exception truyền lên sau cleanup thích hợp, không nhất thiết phải tự khôi phục cờ rồi lại ném.
+In a method already declaring `throws InterruptedException`, you can let the exception propagate after appropriate cleanup without necessarily restoring the flag only to rethrow.
 
-Không nên dùng:
+Do not do this:
 
 ```java
-// PHẢN VÍ DỤ: nuốt interrupt và tiếp tục mãi.
+// ANTI-PATTERN: swallowing interrupt and continuing forever.
 try {
     Thread.sleep(1_000);
 } catch (InterruptedException ignored) {
-    // Tiếp tục chạy bất chấp yêu cầu hủy.
+    // Keep running despite cancellation request.
 }
 ```
 
-Bài demo ở phần 7 **cố tình** dùng phản ví dụ này ở một task hữu hạn để chứng minh vì sao không được xem interrupt như cơ chế cưỡng chế.
+The demo in section 7 **intentionally** uses this anti-pattern in a bounded task to prove why interruption must never be treated as an enforcement mechanism.
 
-### 3.4. Tài nguyên vẫn cần cleanup
+### 3.4. Resources Still Need Cleanup
 
-Nếu một task đã mở file, connection, lock hoặc đăng ký callback, phản hồi interrupt đúng không chỉ là `return`. Tùy nghiệp vụ, có thể dùng `try/finally`, `try-with-resources` và chiến lược rollback/compensation thích hợp:
+If a task opened files, connections, locks, or registered callbacks, responding properly to an interrupt is more than just `return`. Depending on business logic, use `try/finally`, `try-with-resources`, and suitable rollback/compensation strategies:
 
 ```java
 try {
@@ -136,103 +136,103 @@ try {
 }
 ```
 
-Đây là **mã ý tưởng**, không phải Java chạy độc lập; `doWorkWithResource` và `closeOrReleaseResource` tượng trưng cho các thao tác nghiệp vụ. Cần tránh gọi cleanup không có deadline hoặc có thể treo vô hạn khi hệ thống đang cố hủy.
+This is **conceptual code**, not standalone runnable Java; `doWorkWithResource` and `closeOrReleaseResource` stand for business operations. Avoid cleanup calls without deadlines that might hang indefinitely while the system is trying to cancel.
 
-## 4. Các API timeout/cancel **không** phải hạn mức thực thi
+## 4. Timeout/Cancel APIs Are **Not** Execution Quotas
 
-Một số nhầm lẫn rất phổ biến:
+Several very common misconceptions:
 
-| API | Ý nghĩa thực tế | Giới hạn cần nhớ |
+| API | Actual meaning | Limit to remember |
 |---|---|---|
-| `Future.get(2, SECONDS)` | Luồng **gọi get** chỉ đợi tối đa khoảng thời gian chỉ định | Timeout không tự hủy task đang chạy |
-| `Future.cancel(true)` | Cố hủy `Future`, **có thể yêu cầu interrupt** nếu task đã chạy | `isCancelled()==true` không chứng minh code đã thoát |
-| `Future.cancel(false)` | Hủy theo trạng thái Future, không yêu cầu interrupt thread đang chạy | Tác vụ đang chạy có thể tiếp tục |
-| `ExecutorService.shutdownNow()` | Thử dừng task đang chạy và ngăn task chờ | Thường thực hiện bằng interrupt; **không bảo đảm** mọi task kết thúc |
-| `Thread.join(timeout)` | Thread gọi `join` đợi có thời hạn | Thread được đợi không bị kill khi hết giờ |
-| `CompletableFuture.orTimeout(...)` | Hoàn tất future theo lỗi timeout nếu chưa có kết quả | Không tự dừng công việc trong thread đang thực thi |
-| `CompletableFuture.cancel(true)` | Chuyển trạng thái completion sang canceled | Với `CompletableFuture`, tham số `mayInterruptIfRunning` **không điều khiển việc interrupt tác vụ** như Future của executor |
+| `Future.get(2, SECONDS)` | The thread **calling `get`** waits at most the specified duration | Timeout does not stop the running task |
+| `Future.cancel(true)` | Attempts to cancel the `Future`, **may request an interrupt** if already running | `isCancelled()==true` does not prove the code exited |
+| `Future.cancel(false)` | Cancels the Future state without requesting interruption of a running thread | Running work may continue |
+| `ExecutorService.shutdownNow()` | Attempts to stop active tasks and halt queued ones | Usually acts via interrupt; **no guarantee** every task terminates |
+| `Thread.join(timeout)` | The thread calling `join` waits up to a limit | The waited-on thread is not killed when time expires |
+| `CompletableFuture.orTimeout(...)` | Completes the future exceptionally on timeout if no result yet | Does not stop work in the executing thread |
+| `CompletableFuture.cancel(true)` | Transitions completion state to cancelled | For `CompletableFuture`, `mayInterruptIfRunning` **does not control interrupting the task** like executor Futures |
 
-**Cờ `cancelled` là trạng thái của abstraction Future, không phải phép kiểm tra sống/chết của OS thread.** Nếu plugin cố ý bỏ qua cờ interruption, một future có thể đã bị hủy trong khi thread thực thi vẫn giữ CPU, bộ nhớ hoặc lock.
+**The `cancelled` flag is a state of the `Future` abstraction, not an OS thread liveness check.** If a plugin intentionally ignores the interrupt flag, a `Future` may already be cancelled while the execution thread still holds CPU, memory, or locks.
 
-Không dùng `Thread.stop()` như biện pháp khắc phục. API này không an toàn: việc dừng bất ngờ có thể để object trong trạng thái không nhất quán và phá vỡ những bất biến đồng bộ. Trong các JDK hiện đại, nó còn bị hạn chế hơn; đây không phải cơ chế kill plugin đáng tin cậy.
+Never use `Thread.stop()` as a workaround. This API is unsafe: abrupt termination can leave objects in inconsistent states and break synchronization invariants. In modern JDKs it is further restricted; it is not a reliable plugin-killing mechanism.
 
-### `synchronized`, I/O và native code
+### `synchronized`, I/O, and Native Code
 
-Một task có thể không phản hồi nhanh với interrupt dù developer đã viết một số chỗ kiểm tra cờ. Chẳng hạn:
+A task may fail to respond promptly to an interrupt even when the developer wrote flag checks. For example:
 
-- Vòng tính toán xử lý một phần việc rất dài mà không quay về điểm kiểm tra.
-- Thread đợi chiếm một monitor `synchronized` của thread khác.
-- Một API native/driver cũ không có cơ chế cancellation rõ ràng.
-- Một lời gọi mạng/đĩa không được cấu hình timeout hoặc có semantics interrupt khác mong đợi.
-- Code giữ một lock ở vị trí khiến cleanup hoặc shutdown không thể tiếp tục.
+- A computation loop processes one very long chunk without returning to the checkpoint.
+- The thread waits to enter a `synchronized` monitor held by another thread.
+- An older native/driver API lacks clear cancellation support.
+- A network/disk call has no configured timeout or has different interrupt semantics than expected.
+- Code holds a lock in a way that blocks cleanup or shutdown from proceeding.
 
-Nếu cần đáp ứng deadline, hãy ưu tiên **API có timeout riêng** (socket connect/read timeout, HTTP client deadline, database statement timeout, `Lock.lockInterruptibly()`...) bên cạnh interrupt. Nhưng với **mã không tin cậy**, cả hai vẫn phải nằm sau ranh giới thực thi cưỡng chế ở cấp process/OS.
+When deadlines must be met, prefer **APIs with built-in timeouts** (socket connect/read timeouts, HTTP client deadlines, database statement timeouts, `Lock.lockInterruptibly()`, etc.) alongside interruption. Yet for **untrusted code**, both must still sit behind an enforced process/OS execution boundary.
 
-## 5. Vì sao không thể đặt hạn mức CPU/RAM đáng tin cậy cho plugin chỉ bằng một thread?
+## 5. Why Can't You Enforce Reliable CPU/RAM Quotas for a Plugin Using Just a Thread?
 
-Nhiều plugin Java được nạp trong cùng JVM. Những thread đó thường chia sẻ:
+Multiple Java plugins loaded in the same JVM typically share:
 
-- Một **Java heap**, trong đó object của plugin và host cùng được cấp phát.
-- Metaspace/class metadata, JIT code cache và các vùng native khác.
-- File descriptors, sockets, environment, system properties và tài nguyên của tiến trình.
-- Các native libraries hoặc singleton/static state liên quan đến class loaders.
-- Ngân sách CPU và giới hạn process-level mà OS áp cho **toàn JVM**.
+- One **Java heap**, where plugin and host objects are allocated together.
+- Metaspace/class metadata, JIT code cache, and other native regions.
+- File descriptors, sockets, environment variables, system properties, and process resources.
+- Native libraries or singletons/static state tied to class loaders.
+- CPU budgets and process-level limits applied by the OS to **the entire JVM**.
 
-Không có API Java SE 17 chuẩn nào cho phép nói: “Thread plugin A chỉ được cấp phát tối đa 64 MiB heap, nếu vượt thì kill duy nhất thread A và thu hồi an toàn mọi object của nó”. Ngắt thread không thu hồi bytecode đã thực thi, không quay lại mọi side effect và không tự hoàn tác object graph.
+No standard Java SE 17 API lets you declare: "Plugin A's thread may allocate at most 64 MiB of heap; if exceeded, kill only thread A and safely reclaim all its objects." Interrupting a thread does not roll back executed bytecode, undo side effects, or unwind object graphs automatically.
 
-`ThreadMXBean` hay các công cụ profiling có thể giúp **đo** CPU time theo thread trong những điều kiện được hỗ trợ, nhưng đo lường không đồng nghĩa OS quota có hiệu lực. Một bộ monitor Java có thể phát hiện dấu hiệu vượt ngân sách và yêu cầu dừng, nhưng vẫn phụ thuộc vào mã thực thi hợp tác.
+`ThreadMXBean` or profiling tools can help **measure** per-thread CPU time under supported conditions, but measurement does not mean an OS quota is enforced. A Java monitor can detect budget overruns and request stopping, yet it still relies on cooperative code.
 
-### `-Xmx` không phải giới hạn tổng memory
+### `-Xmx` Is Not a Total Memory Limit
 
-Ví dụ:
+For example:
 
 ```bash
 java -Xms64m -Xmx192m -jar plugin-runner.jar
 ```
 
-`-Xmx192m` đặt kích thước tối đa Java heap của JVM đó. **Nó không giới hạn toàn bộ RSS ở 192 MiB** và không giới hạn riêng một script trong tiến trình. JVM còn dùng metaspace, direct buffers, stack, JIT, JNI và memory allocator của OS.
+`-Xmx192m` sets the maximum Java heap size of that JVM. **It does not cap total RSS at 192 MiB**, nor does it individually cap one script inside the process. The JVM also uses metaspace, direct buffers, stacks, JIT, JNI, and the OS memory allocator.
 
-Nếu container/process có hạn mức memory thấp hơn tổng nhu cầu, process có thể bị OS cắt khi vượt quota. Khi đó **không được kỳ vọng luôn bắt được `OutOfMemoryError` và chạy được `finally`/cleanup trong Java**. Tài nguyên của worker cần được thiết kế để OS có thể thu hồi mà host vẫn tồn tại.
+If a container/process has a memory limit lower than total demand, the process can be killed by the OS upon exceeding the quota. In that case, **never expect Java to always catch `OutOfMemoryError` and run `finally`/cleanup**. Worker resources must be designed so the OS can reclaim them while the host survives.
 
-## 6. Những giới hạn tài nguyên cần áp tại hệ điều hành
+## 6. Resource Limits to Enforce at the OS Level
 
-| Loại ngân sách | Nguồn tiêu thụ | Cơ chế kiểm soát theo môi trường | Quan sát quan trọng |
+| Budget type | Sources of consumption | Environment-specific controls | Key observation |
 |---|---|---|---|
-| **CPU** | Tính toán, JIT, vòng lặp | Cgroup CPU quota, giới hạn container, Windows Job CPU controls | CPU quota giảm throughput; deadline vẫn cần theo dõi riêng |
-| **RAM / memory** | Heap, metaspace, direct/native memory, stack | Cgroup memory limit/container memory, Job memory limits | Hạn mức áp cho process/group; `-Xmx` chỉ là một phần |
-| **Số process/thread** | Tạo process, thread hoặc subprocess không giới hạn | Cgroup `pids.max`, container `--pids-limit`, Job process controls, RLIMIT theo môi trường | Tạo process phụ cũng phải nằm trong nhóm bị giới hạn |
-| **File descriptors / handles** | File, socket, pipe, nhiều file mở | `RLIMIT_NOFILE`, OS/container policy, Windows handle monitoring và hạn chế khác | Tài nguyên không được đóng có thể làm cả worker lỗi |
-| **Đĩa / I/O** | Log, file tạm, cache, upload | Filesystem quota, tmpfs size, container storage policy, I/O controller | Read-only filesystem khác với quota dung lượng; cần giới hạn file tạm |
-| **Network** | HTTP, kết nối nội bộ, truy cập dữ liệu | Network namespace, firewall/egress policy, service identity | CPU/RAM limit **không** chặn việc đọc dữ liệu qua mạng |
-| **Thời gian chạy** | Task treo, sleep, chờ I/O | Deadline trong supervisor + terminate process | Không thể thay bằng CPU quota nếu process đang block |
-| **Tốc độ/tần suất** | Hàng loạt task song song | Admission control, queue cap, rate limit | Cần chặn quá nhiều worker trước khi hệ thống cạn tài nguyên |
+| **CPU** | Computation, JIT, loops | Cgroup CPU quotas, container limits, Windows Job CPU controls | CPU quotas reduce throughput; deadlines must still be tracked separately |
+| **RAM / memory** | Heap, metaspace, direct/native memory, stacks | Cgroup/container memory limits, Job memory limits | Limits apply to the process/group; `-Xmx` is only one piece |
+| **Process/thread count** | Unbounded thread, process, or subprocess creation | Cgroup `pids.max`, container `--pids-limit`, Job process controls, RLIMITs | Child processes must remain inside the bounded group |
+| **File descriptors / handles** | Files, sockets, pipes, many open files | `RLIMIT_NOFILE`, OS/container policies, Windows handle monitoring/limits | Unclosed resources can break the entire worker |
+| **Disk / I/O** | Logs, temp files, caches, uploads | Filesystem quotas, tmpfs size, container storage policies, I/O controllers | A read-only filesystem differs from space quotas; bound temp files |
+| **Network** | HTTP, internal connections, data access | Network namespaces, firewall/egress policies, service identities | CPU/RAM limits do **not** stop reading data over the network |
+| **Execution time** | Hung tasks, sleeps, I/O waits | Supervisor deadlines + process termination | Cannot be replaced by CPU quotas if the process is blocked |
+| **Rate/frequency** | Bursts of parallel tasks | Admission control, queue caps, rate limits | Block excess workers before the system runs out of resources |
 
-Từng cơ chế có phạm vi riêng. Ví dụ hạn mức ở mức container áp lên các process nằm **trong container đó**; nếu một plugin có thể gọi sang dịch vụ ngoài hoặc thực thi side effect, tài nguyên và quyền của các hệ thống khác cần kiểm soát riêng.
+Each mechanism has its own scope. For example, container-level limits apply to processes **inside that container**; if a plugin can call external services or trigger side effects, resources and privileges of those external systems must be governed separately.
 
-### Linux: cgroups và namespaces
+### Linux: Cgroups and Namespaces
 
-Trên hệ thống Linux hiện đại, **cgroups** cung cấp các controller cho tài nguyên ở mức nhóm tiến trình, ví dụ:
+On modern Linux systems, **cgroups** provide resource controllers at the process-group level, such as:
 
 ```text
-memory.max   -> trần bộ nhớ cgroup
-cpu.max      -> quota CPU theo chu kỳ
-pids.max     -> trần số process/task trong cgroup
-io.max       -> điều tiết một số loại block I/O
+memory.max   -> cgroup memory ceiling
+cpu.max      -> periodic CPU quota
+pids.max     -> ceiling on processes/tasks in cgroup
+io.max       -> throttling for certain block I/O
 ```
 
-Đây là tên giao diện cgroup v2 **minh họa**, không phải các file bạn nên ghi trực tiếp trong host một cách tùy tiện. Việc cấu hình thường nên được giao cho container runtime hoặc service manager có quyền và lifecycle rõ ràng.
+These are **illustrative** cgroup v2 interface names, not files you should arbitrarily write to directly from the host. Configuration should normally be delegated to a container runtime or service manager with proper privileges and lifecycle management.
 
-**Namespaces** giúp tách các không gian như process IDs, mount/network; **seccomp**, AppArmor/SELinux và quyền OS bổ sung các ràng buộc về hành vi. Cgroup chỉ là quota tài nguyên, **không phải toàn bộ cơ chế bảo mật**.
+**Namespaces** separate scopes like process IDs, mounts, and networking; **seccomp**, AppArmor/SELinux, and OS permissions add behavioral constraints. Cgroups are only resource quotas, **not a complete security mechanism**.
 
-### Windows: process và Job Objects
+### Windows: Processes and Job Objects
 
-Trên Windows, có thể dùng **Job Objects** để nhóm process và áp các giới hạn phù hợp với tính năng hệ điều hành (ví dụ memory/process count hoặc một số chính sách CPU), đồng thời cấu hình cleanup khi job kết thúc. Việc dùng Job Objects thường đòi hỏi native API/orchestration tương ứng; `ProcessBuilder` của Java SE **không tự tạo Job Object có quota**.
+On Windows, **Job Objects** can group processes and apply limits supported by the OS (such as memory/process counts or certain CPU policies), and configure cleanup when the job ends. Using Job Objects generally requires native APIs/orchestration; Java SE's `ProcessBuilder` **does not automatically create a quota-enforced Job Object**.
 
-Không nên cố thay thế chính sách job bằng một Java thread “canh” riêng: nếu JVM host bị lỗi, thread canh cũng có thể không còn hoạt động.
+Do not try to replace job policies with a separate "watchdog" Java thread: if the host JVM fails, that watchdog thread may stop running too.
 
-### Ví dụ cấu hình container mang tính triển khai
+### Deployment-Oriented Container Configuration Example
 
-Sau khi đã đóng gói một worker **đã kiểm tra** vào image, một kiểu lệnh triển khai Linux với Docker có thể có dạng:
+After packaging a **verified** worker into an image, a Linux Docker deployment command might look like:
 
 ```bash
 docker run --rm \
@@ -249,32 +249,32 @@ docker run --rm \
   my-plugin-runner:17
 ```
 
-Đây là **mẫu cấu hình minh họa**, không phải lệnh của demo Java và không thể chạy nếu chưa có image `my-plugin-runner:17`, runtime và chính sách quyền tương thích. Giá trị `256m`, `64`, `1 CPU` chỉ là ngân sách **ví dụ**, phải kiểm tra trên workload thực. Một số tùy chọn hoặc mức cưỡng chế phụ thuộc Linux kernel, cgroup mode, runtime và quyền của daemon.
+This is an **illustrative configuration sample**, not a command for the Java demo, and cannot run without a compatible `my-plugin-runner:17` image, runtime, and privilege policy. Values like `256m`, `64`, and `1 CPU` are **example** budgets that must be validated against real workloads. Some flags and enforcement levels depend on the Linux kernel, cgroup mode, runtime, and daemon privileges.
 
-Đọc ý nghĩa:
+Reading the flags:
 
-- `--cpus=1`: hạn chế ngân sách CPU của container.
-- `--memory=256m`: đặt trần memory được container runtime áp theo cơ chế nền tảng.
-- `--memory-swap=256m`: trong cấu hình hỗ trợ, cố đặt trần tổng memory+swap cùng mức memory; không thể suy ra mọi host đều cưỡng chế swap như nhau.
-- `--pids-limit=64`: hạn chế số task/process trong container theo cấu hình runtime.
-- `--network=none`, `--read-only`, `--tmpfs`: hạn chế mạng và đường ghi filesystem thông thường, vẫn cần đánh giá mount/host sharing và quyền đặc biệt.
-- `--cap-drop=ALL`, `--security-opt=no-new-privileges`, `--user=...`: giảm quyền, không thay nhu cầu seccomp/policy và isolation thực tế.
+- `--cpus=1`: caps the container's CPU budget.
+- `--memory=256m`: sets a memory ceiling enforced by the container runtime via platform mechanisms.
+- `--memory-swap=256m`: in supported configurations, caps total memory+swap at the memory limit; do not assume every host enforces swap identically.
+- `--pids-limit=64`: caps tasks/processes inside the container per runtime configuration.
+- `--network=none`, `--read-only`, `--tmpfs`: restricts networking and ordinary filesystem writes; mounts/host sharing and special privileges still need evaluation.
+- `--cap-drop=ALL`, `--security-opt=no-new-privileges`, `--user=...`: drops privileges; does not remove the need for seccomp/policies and real isolation.
 
-Một container **không tự động là sandbox tuyệt đối**. Với mã có mức độ tin cậy rất thấp, cân nhắc boundary mạnh hơn như microVM/VM, tách host và identity, cùng chính sách egress, secret và dữ liệu đầu vào.
+A container **is not automatically an absolute sandbox**. For code with very low trust, consider stronger boundaries such as microVMs/VMs, separate hosts and identities, alongside egress, secrets, and input policies.
 
-## 7. Ví dụ Java 17: hợp tác, bỏ qua interrupt và deadline của process
+## 7. Java 17 Example: Cooperation, Ignoring Interrupts, and Process Deadlines
 
-Ta viết một chương trình duy nhất `RuntimeBoundaryDemo.java`, **không cần thư viện ngoài**. Nó chạy ba phép thử có kiểm soát:
+We write a single program `RuntimeBoundaryDemo.java`, **requiring no external libraries**. It runs three controlled experiments:
 
-1. Một thread `sleep` trong vòng lặp, bắt `InterruptedException`, khôi phục cờ và thoát: **cooperative cancellation**.
-2. Một task trong `ExecutorService` cố tình nuốt `InterruptedException`. Sau `Future.cancel(true)`, Future báo cancelled nhưng task **vẫn còn sống**. Sau đó host đặt một cờ stop riêng để dọn sạch và kết thúc thử nghiệm.
-3. Tạo một **JVM con** bằng `ProcessBuilder`; nếu vượt 300 ms, host dừng process bằng `destroy()` và nếu cần leo thang lên `destroyForcibly()`. Đây là **quản lý deadline tiến trình**, không áp RAM/CPU quota.
+1. A thread sleeping in a loop catches `InterruptedException`, restores the flag, and exits: **cooperative cancellation**.
+2. A task in an `ExecutorService` intentionally swallows `InterruptedException`. After `Future.cancel(true)`, the Future reports cancelled yet the task **remains alive**. Then the host sets an explicit stop flag to clean up and end the test.
+3. Spawns a **child JVM** via `ProcessBuilder`; if it exceeds 300 ms, the host stops the process with `destroy()` and escalates to `destroyForcibly()` if needed. This is **process deadline management**, not RAM/CPU quota enforcement.
 
-Chương trình được thiết kế để **không giữ task cố ý bỏ qua interrupt chạy vô hạn** sau demo. Nó sẽ thu hồi task bằng stop flag và chờ executor kết thúc. Worker con trong chế độ `child` sẽ đợi lâu, nhưng luôn được host xử lý trong nhánh `finally` nếu demo bình thường tiếp tục chạy. Nếu host bị kill đột ngột, cleanup bằng `finally` không phải bảo đảm OS; các hệ thống production cần process group/cgroup/Job Object tương ứng.
+The program is designed **never to leave the interrupt-ignoring task running forever** after the demo. It reclaims the task using the stop flag and waits for the executor to shut down. The child worker in `"child"` mode sleeps for a long time, yet is always handled by the host in the `finally` branch during normal execution. If the host is killed abruptly, `finally` cleanup is not an OS guarantee; production systems need appropriate process groups/cgroups/Job Objects.
 
-### 7.1. Mã nguồn hoàn chỉnh
+### 7.1. Complete Source Code
 
-Tệp `RuntimeBoundaryDemo.java`:
+File `RuntimeBoundaryDemo.java`:
 
 ```java
 import java.nio.file.Path;
@@ -401,20 +401,20 @@ public final class RuntimeBoundaryDemo {
 }
 ```
 
-### 7.2. Biên dịch và chạy
+### 7.2. Compiling and Running
 
-Yêu cầu **JDK 17 trở lên**; trong thư mục có `RuntimeBoundaryDemo.java`, chạy:
+Requires **JDK 17 or newer**; in the directory containing `RuntimeBoundaryDemo.java`, run:
 
 ```bash
 javac --release 17 -encoding UTF-8 RuntimeBoundaryDemo.java
 java RuntimeBoundaryDemo
 ```
 
-Hai lệnh này dùng được trên Linux, macOS và Windows PowerShell khi `java`/`javac` nằm trong `PATH`. Khi chạy, Java tạo một JVM con bằng executable trong `java.home`; do đó môi trường cần cho phép khởi động process con.
+Both commands work on Linux, macOS, and Windows PowerShell when `java`/`javac` are in `PATH`. When executed, Java spawns a child JVM using the executable in `java.home`; thus the environment must permit spawning child processes.
 
-### 7.3. Stdout chuẩn
+### 7.3. Standard Stdout
 
-Khi môi trường cho phép khởi động và kết thúc process bình thường:
+When the environment permits starting and terminating processes normally:
 
 ```text
 Cooperative interrupt stopped thread: true
@@ -425,56 +425,56 @@ Child process timed out: true
 Child process stopped: true
 ```
 
-Chương trình cố ý in giá trị boolean thay vì PID/exit code, vì PID, timing chi tiết, exit code và hình thức tín hiệu hủy phụ thuộc hệ điều hành.
+The program intentionally prints booleans instead of PIDs/exit codes, because PIDs, exact timings, exit codes, and termination signals depend on the operating system.
 
-Nếu process con không được phép spawn, hoặc host bị đình chỉ/bị can thiệp khiến `waitFor` trả kết quả khác, chương trình có thể ném exception; các dòng trên là kết quả của **đường chạy thành công**, không phải cam kết mọi máy đều luôn chạy được. Môi trường chạy thật phải có khả năng tạo, theo dõi và chấm dứt JVM con.
+If child processes cannot be spawned, or the host is suspended/interfered with causing `waitFor` to return differently, the program may throw an exception; the lines above represent the **successful execution path**, not a guarantee every machine can always run it. A real runtime environment must be able to spawn, monitor, and terminate child JVMs.
 
-## 8. Diễn giải thí nghiệm: vì sao kết quả như vậy?
+## 8. Interpreting the Experiment: Why Are the Results Like This?
 
-### 8.1. Thread hợp tác
+### 8.1. Cooperative Thread
 
-Đoạn `interruptibleWorker()` tạo thread rồi chờ `CountDownLatch` xác nhận thread bắt đầu. Nó gửi `interrupt()` và chờ tối đa hai giây bằng `join(2_000)`. Nếu thread vẫn sống thì báo lỗi.
+`interruptibleWorker()` creates a thread and waits on a `CountDownLatch` confirming the thread started. It sends `interrupt()` and waits up to two seconds via `join(2_000)`. If the thread is still alive, it throws an error.
 
-`Thread.sleep` phản ứng với interrupt bằng `InterruptedException`. Worker không tiếp tục vòng lặp nữa; nó khôi phục cờ và đi tới cuối lambda để kết thúc. **Ở đây thread dừng vì mã đã chủ động thoát**, không phải JVM tự kill thread.
+`Thread.sleep` responds to interruption with `InterruptedException`. The worker stops looping, restores the flag, and reaches the end of the lambda to finish. **Here the thread stopped because the code actively exited**, not because the JVM killed the thread.
 
-Đối với một worker thực tế, hãy đưa logic cleanup vào `finally` và cho interruption propagage theo thiết kế API.
+For a real worker, put cleanup logic in `finally` and let interruption propagate according to your API design.
 
-### 8.2. `Future` đã hủy nhưng task vẫn đang chạy
+### 8.2. `Future` Cancelled Yet Task Still Running
 
-Task thứ hai có điều kiện `while (!stop.get())`. Nó cố ý bắt `InterruptedException` và **không thoát**, nên `future.cancel(true)` không có quyền ép vòng lặp kết thúc.
+The second task loops on `while (!stop.get())`. It intentionally catches `InterruptedException` and **does not exit**, so `future.cancel(true)` has no authority to force the loop to end.
 
-Sau `future.cancel(true)`, chương trình quan sát:
+After `future.cancel(true)`, the program observes:
 
 ```text
 Future cancelled: true
 Ignored interrupt task still alive: true
 ```
 
-Trong ví dụ, `CountDownLatch finished` chỉ được giảm khi task **thật sự kết thúc**. Tính toán `finished.getCount() != 0` khác với `future.isCancelled()`. Đây là cách tránh đánh đồng trạng thái Future với sự sống của công việc bên dưới.
+In the example, `CountDownLatch finished` only decrements when the task **truly finishes**. Checking `finished.getCount() != 0` differs from `future.isCancelled()`. This avoids conflating `Future` status with the liveness of the underlying work.
 
-Khi host đặt `stop.set(true)` và gọi `shutdownNow()`, task có đường thoát rõ ràng; `awaitTermination(...)` cho phép xác minh executor đã kết thúc trong ngân sách. Trong mã thực tế, `shutdownNow` vẫn chỉ cố interrupt nên không thể thay cờ stop đối với worker cố ý bỏ qua interrupt.
+Once the host sets `stop.set(true)` and calls `shutdownNow()`, the task has a clear exit path; `awaitTermination(...)` lets us verify the executor stopped within budget. In real code, `shutdownNow` still only attempts to interrupt, so it cannot replace a stop flag for a worker that intentionally ignores interrupts.
 
-**Không lấy phản ví dụ này làm mẫu viết task production.** Task tốt phải tôn trọng interrupt, exit path và cleanup; phản ví dụ chỉ cho thấy giới hạn của cancellation trong Java.
+**Do not copy this anti-pattern into production tasks.** Well-behaved tasks must respect interrupts, exit paths, and cleanup; the anti-pattern merely demonstrates the limits of cancellation in Java.
 
-### 8.3. Tiến trình khác là đơn vị có thể chấm dứt độc lập
+### 8.3. A Separate Process Is an Independently Terminable Unit
 
-`timedChildProcess()` khởi chạy cùng chương trình ở mode `"child"` trong **một JVM riêng**. Worker con chỉ đợi trong vòng lặp `Thread.sleep(...)` dài; nó không nhận `Thread.interrupt()` từ JVM host.
+`timedChildProcess()` starts the same program in `"child"` mode inside **a separate JVM**. The child worker waits inside a long `Thread.sleep(...)` loop; it never receives `Thread.interrupt()` from the host JVM.
 
-Host theo dõi:
+The host monitors:
 
 ```java
 boolean finished = process.waitFor(300, TimeUnit.MILLISECONDS);
 ```
 
-Trong mã đầy đủ, logic tương đương được viết thành `timedOut = !process.waitFor(...)`. Timeout chỉ cho biết **host đã hết thời gian chờ**; bản thân `waitFor(timeout)` không hủy tiến trình.
+In the full code, equivalent logic is written as `timedOut = !process.waitFor(...)`. Timing out only indicates **the host finished waiting**; `waitFor(timeout)` itself does not kill the process.
 
-Host sau đó **chủ động** gọi `destroy()` và, nếu tiến trình không kết thúc kịp, leo thang `destroyForcibly()` rồi `waitFor(...)` để xác nhận tiến trình đã chấm dứt. Lựa chọn tín hiệu/chi tiết terminate phụ thuộc hệ điều hành. Mã có `finally` để cố dọn tiến trình nếu phát sinh lỗi khi đang xử lý.
+The host then **proactively** calls `destroy()` and, if the process fails to exit in time, escalates to `destroyForcibly()` followed by `waitFor(...)` to confirm termination. Signal/termination details depend on the OS. The code has a `finally` block to attempt process cleanup if errors arise during handling.
 
-**Giới hạn ví dụ:** chỉ có một process con và process đó không tạo cháu. Với process tự tạo subprocess, `Process.destroyForcibly()` trên process cha không bảo đảm toàn bộ process tree đều bị chấm dứt. Trong hệ thống thật, nên đặt nhóm process của plugin dưới OS cgroup/Job Object/container phù hợp và dọn **cả nhóm** khi hết hạn.
+**Example limitation:** there is only one child process and it spawns no grandchildren. For a process that spawns subprocesses, `Process.destroyForcibly()` on the parent PID does not guarantee the entire process tree terminates. In real systems, place the plugin's process group under an appropriate OS cgroup/Job Object/container and clean up **the whole group** on expiration.
 
-## 9. Tách deadline với quota trong thiết kế supervisor
+## 9. Separating Deadlines from Quotas in Supervisor Design
 
-Một supervisor của plugin nên có hai lớp kiểm soát độc lập:
+A plugin supervisor should have two independent control layers:
 
 ```text
                        Host (trusted)
@@ -507,149 +507,149 @@ Một supervisor của plugin nên có hai lớp kiểm soát độc lập:
                 Return timeout / failure
 ```
 
-Các giới hạn cần được quyết định theo workload:
+Limits to decide based on workload:
 
-- **Wall time:** ví dụ 2 giây cho một phép tính ngắn, bao gồm thời gian xếp hàng hay chỉ thời gian thực thi phải được định nghĩa rõ.
-- **CPU budget:** có thể giới hạn bằng quota CPU OS, nhưng quota không tự hủy process khi vượt một lượng tổng CPU time trừ khi hệ thống giám sát còn thiết kế cơ chế hành động.
-- **Memory:** chọn cgroup/job limit đủ cho cả JVM (heap + native + thread stacks), phối hợp `-Xmx` với tổng memory. Nếu tổng memory quá sát `-Xmx`, worker có thể bị OS kill trước khi JVM tự báo OOM.
-- **PIDs/threads:** tính cả native threads/JVM worker threads, subprocess và số worker trong cùng nhóm.
-- **I/O/temporary files:** dùng thư mục tạm riêng, quota storage và hạn chế mount; tránh để plugin ghi bừa vào thư mục host.
-- **Network:** mặc định từ chối egress không cần thiết; nếu cho gọi API ngoài, đặt timeout, allowlist và secret scope.
-- **Cleanup:** khi timeout xảy ra, đừng để request mới tái sử dụng worker có trạng thái không rõ. Có thể chọn bỏ cả process và tạo worker mới.
+- **Wall time:** e.g., 2 seconds for a short calculation; whether that includes queue wait time or only execution time must be clearly defined.
+- **CPU budget:** can be bounded via OS CPU quotas, though quotas do not automatically kill a process upon exceeding a total CPU time unless the monitor also defines an enforcement action.
+- **Memory:** pick a cgroup/job limit sufficient for the whole JVM (heap + native + thread stacks), aligning `-Xmx` with total memory. If total memory is too close to `-Xmx`, the worker can be OS-killed before the JVM reports OOM.
+- **PIDs/threads:** account for native threads/JVM worker threads, subprocesses, and worker counts in the same group.
+- **I/O/temporary files:** use dedicated temp directories, storage quotas, and restricted mounts; avoid letting plugins write freely into host directories.
+- **Network:** deny unnecessary egress by default; when external APIs are permitted, enforce timeouts, allowlists, and secret scoping.
+- **Cleanup:** after a timeout, never let a new request reuse a worker in an unknown state. You may choose to discard the whole process and spawn a fresh worker.
 
-OS resource limit **chỉ áp nếu worker thực sự được đưa vào phạm vi chịu limit**. Chạy `java -jar plugin.jar` bằng `ProcessBuilder` mà không đặt vào cgroup/Job Object phù hợp **không** tạo quota tự động.
+OS resource limits **only take effect if the worker is actually placed within the limited scope**. Launching `java -jar plugin.jar` via `ProcessBuilder` without attaching an appropriate cgroup/Job Object **creates no automatic quotas**.
 
-### Vì sao chỉ dùng thread pool trong host không đủ?
+### Why Isn't a Thread Pool in the Host Enough?
 
-Một `ExecutorService` giúp giới hạn **số task được xếp/chạy** theo số thread và queue capacity, nhưng **không giới hạn memory của từng task** và **không cưỡng chế dừng mã không hợp tác**. Một task treo có thể giữ thread pool slot, connection hoặc lock; đến khi pool cạn, các request khác cũng bị ảnh hưởng.
+An `ExecutorService` limits **the number of queued/running tasks** via thread counts and queue capacity, yet **does not cap per-task memory** and **cannot forcibly stop uncooperative code**. A hung task can pin a pool slot, connection, or lock; once the pool is exhausted, other requests suffer too.
 
-Ngay cả khi tăng số thread để bù, hành động đó có thể làm tình hình tệ hơn do tài nguyên process-level bị dùng nhiều hơn. Cần admission control, queue bounded và ranh giới worker process cho mã không tin cậy.
+Even increasing thread count to compensate can worsen the situation due to higher process-level resource usage. Admission control, bounded queues, and worker process boundaries are needed for untrusted code.
 
-## 10. Thiết kế ranh giới tin cậy theo mức độ kiểm soát mã
+## 10. Designing Trust Boundaries by Level of Code Control
 
-| Loại mã chạy | Cách tổ chức thường phù hợp | Cảnh báo |
+| Code category | Usually appropriate structure | Warning |
 |---|---|---|
-| Business logic nội bộ đã review, có test | Cùng JVM, `ExecutorService`, interrupt/timeout ở API liên quan | Bug vẫn có thể gây OOM hoặc treo process |
-| Plugin do đối tác tin cậy nhưng có dependency phức tạp | Cân nhắc process riêng để tách lỗi và dependency; dùng SPI/protocol rõ | Tách class loader một mình không bảo vệ CPU/RAM |
-| Script theo user nội bộ với quyền hạn nhất định | Tùy rủi ro, process worker riêng, restricted API, quota, deadline | `ScriptEngine`/Bindings không phải sandbox |
-| Java/script không tin cậy từ internet | Process/container/VM được cô lập mạnh, least privilege, no secrets, OS quota, network policy | Không chạy trực tiếp trong JVM host chỉ dựa vào `Thread.interrupt()` |
+| Reviewed, tested internal business logic | Same JVM, `ExecutorService`, interrupts/timeouts on relevant APIs | Bugs can still cause OOM or hang the process |
+| Trusted partner plugin with complex dependencies | Consider a separate process to isolate faults and dependencies; clear SPI/protocol | Separating class loaders alone does not protect CPU/RAM |
+| Internal-user scripts with bounded privileges | Depending on risk, dedicated worker process, restricted APIs, quotas, deadlines | `ScriptEngine`/Bindings are not a sandbox |
+| Untrusted Java/scripts from the Internet | Strongly isolated process/container/VM, least privilege, no secrets, OS quotas, network policies | Never run directly in the host JVM relying solely on `Thread.interrupt()` |
 
-Mục tiêu là tách **fault containment** khỏi **API extensibility**. SPI/ModuleLayer/ClassLoader giải quyết bài toán kết nối và nạp mã; container/OS policy giải quyết an toàn tài nguyên và quyền. Chúng có thể được phối hợp nhưng không thể thay thế cho nhau.
+The goal is separating **fault containment** from **API extensibility**. SPI/`ModuleLayer`/`ClassLoader` solve wiring and code loading; container/OS policies solve resource and privilege safety. They can be combined, but cannot substitute for one another.
 
-### Một ranh giới process cần có protocol
+### A Process Boundary Requires a Protocol
 
-Khi plugin chạy khác JVM, host không thể đơn giản truyền một object Java từ class loader của host và gọi trực tiếp method trong process kia. Cần một giao thức giao tiếp có hợp đồng như:
+When a plugin runs in another JVM, the host cannot simply pass a Java object from the host's class loader and invoke methods directly across processes. A contract-based communication protocol is required, such as:
 
 ```text
 Host Java  --request ID + JSON/Protobuf-->  Worker Java
 Host Java  <--status + result/error-------  Worker Java
 ```
 
-Tùy độ phức tạp có thể dùng stdin/stdout đóng khung dữ liệu, local socket, gRPC hoặc message queue. Giao thức nên có version, giới hạn size, deadline, cancellation request, quyền truy cập và chính sách idempotency.
+Depending on complexity, you can use framed stdin/stdout, local sockets, gRPC, or message queues. The protocol should define versioning, size limits, deadlines, cancellation requests, access controls, and idempotency policies.
 
-Nếu plugin thực hiện side effect như ghi database hoặc gửi email, **kill process không tự rollback giao dịch ngoài**. Khi timeout, host có thể không biết thao tác đã thành công hay chưa; nên thiết kế idempotency key, trạng thái request và cơ chế hòa giải thay vì retry vô điều kiện.
+If a plugin performs side effects such as database writes or sending emails, **killing the process does not automatically roll back external transactions**. On timeout, the host may not know whether the operation succeeded; design idempotency keys, request states, and reconciliation mechanisms instead of blind retries.
 
-## 11. Vòng đời đúng khi worker hết thời hạn
+## 11. Proper Lifecycle When a Worker Exceeds Its Deadline
 
-Một quy trình thực tế:
+A practical workflow:
 
-1. **Tạo nhóm tài nguyên**: container/cgroup/Job Object/worker process với quyền tối thiểu và quota.
-2. **Đăng ký deadline**: bắt đầu đếm từ thời điểm được định nghĩa (nhận request, bắt đầu thực thi hay sau warm-up).
-3. **Gửi hủy hợp tác**: nếu protocol hỗ trợ, yêu cầu worker dừng; cho một khoảng grace hữu hạn.
-4. **Theo dõi liveness**: đừng chỉ nhìn `Future.isCancelled()` hay timeout từ phía client; kiểm tra process/group còn sống.
-5. **Cưỡng chế kết thúc**: terminate/kill đúng **nhóm worker** qua cơ chế OS phù hợp khi hết grace.
-6. **Thu dọn**: đóng pipe, handle, file tạm, rút worker khỏi registry, hoàn trả quota/slot; tránh zombie/leak.
-7. **Công bố trạng thái**: timeout, bị giới hạn tài nguyên, lỗi child process hoặc bị hủy bởi client là những nguyên nhân khác nhau.
-8. **Phòng retry sai**: giữ request ID và semantics idempotency khi kết quả không chắc chắn.
+1. **Create resource group:** container/cgroup/Job Object/worker process with least privilege and quotas.
+2. **Register deadline:** start counting from a defined point (request receipt, execution start, or post-warm-up).
+3. **Send cooperative cancel:** if supported by the protocol, ask the worker to stop; allow a finite grace period.
+4. **Track liveness:** do not look only at `Future.isCancelled()` or client-side timeouts; verify whether the process/group is still alive.
+5. **Forcible termination:** terminate/kill the **worker group** via the appropriate OS mechanism once grace expires.
+6. **Clean up:** close pipes, handles, temp files, remove the worker from registries, and return quotas/slots; avoid zombies/leaks.
+7. **Report status:** timeouts, resource-limit kills, child process errors, and client cancellations are distinct causes.
+8. **Prevent bad retries:** retain request IDs and idempotency semantics when outcomes are uncertain.
 
-Một `finally` trong host là cần thiết nhưng không đủ khi chính host bị crash. Nếu cần bảo đảm cleanup ngay cả khi supervisor chết, hãy dùng lifecycle control của OS/container orchestrator có chính sách phù hợp.
+A `finally` block in the host is necessary but insufficient if the host itself crashes. To guarantee cleanup even if the supervisor dies, use lifecycle controls from the OS or container orchestrator with appropriate policies.
 
-### Cần kiểm tra cả process tree
+### Check the Entire Process Tree
 
-Java cung cấp `ProcessHandle` và `ProcessHandle.descendants()` để **quan sát** những process con/cháu vào một thời điểm nhất định, nhưng liệt kê descendants chỉ là snapshot: cây process có thể đổi trong lúc dọn. Không thể mặc định `destroyForcibly()` một PID bảo đảm tất cả descendants đều chết.
+Java provides `ProcessHandle` and `ProcessHandle.descendants()` to **observe** child/descendant processes at a point in time, yet listing descendants is only a snapshot: the process tree can mutate while cleaning up. You cannot assume `destroyForcibly()` on one PID guarantees all descendants die.
 
-Nếu yêu cầu cleanup cưỡng chế đáng tin, nên tổ chức worker trong **process group/cgroup/container/Job Object** mà OS kiểm soát, dùng thao tác dừng cả nhóm theo nền tảng. Đừng để worker tự thoát khỏi nhóm hay tạo process có quyền cao hơn nếu policy không cho phép.
+When reliable forcible cleanup is required, organize workers inside an OS-controlled **process group/cgroup/container/Job Object** and terminate the entire group using platform operations. Never allow a worker to escape its group or spawn higher-privilege processes unless policy permits.
 
-## 12. Các loại lỗi và tín hiệu giám sát nên phân biệt
+## 12. Failure Types and Monitoring Signals to Distinguish
 
-| Sự kiện | Triệu chứng | Hành động gợi ý |
+| Event | Symptom | Suggested action |
 |---|---|---|
-| Thread hợp tác nhận interrupt | Task thoát qua `InterruptedException` hoặc cờ dừng | Cleanup, trả trạng thái canceled |
-| Future timeout | Thread client dừng chờ; task có thể chưa dừng | Quyết định cancel và xác nhận task hoàn tất |
-| Future cancelled nhưng thread tiếp tục | `isCancelled=true` nhưng worker vẫn chạy | Không xem Future status là kill; với mã không tin cậy dùng process boundary |
-| Process vượt deadline | `waitFor(timeout)` trả `false` | Gửi terminate, chờ grace, cưỡng chế kill và xác minh |
-| Memory quota bị vượt | Worker có thể bị OS/container kill | Ghi nhận tín hiệu OOM từ orchestrator/cgroup, không giả định Java cleanup đã chạy |
-| Hết CPU quota | Worker bị throttling hoặc chậm đi | Theo dõi throttling, deadline và sizing |
-| Hết PIDs/threads | Tạo thread/process mới thất bại | Giới hạn concurrency, xử lý lỗi tài nguyên, điều chỉnh ngân sách |
-| File descriptor quá nhiều | `Too many open files` hoặc I/O thất bại | Theo dõi leaks, cấu hình limit và cleanup |
-| Mã worker gọi mạng trái phép | Truy cập bị chặn theo policy | Xác minh network namespace/firewall và identity; audit |
-| Worker chết giữa thao tác có side effect | Host không chắc operation đã commit chưa | Truy vấn/truy nguyên trạng thái, idempotency, reconciliation |
+| Cooperative thread receives interrupt | Task exits via `InterruptedException` or stop flag | Clean up, return cancelled status |
+| Future timeout | Calling thread stops waiting; task may still be running | Decide on cancellation and confirm task completion |
+| Future cancelled yet thread continues | `isCancelled=true` while worker keeps running | Do not equate Future status with a kill; use process boundaries for untrusted code |
+| Process exceeds deadline | `waitFor(timeout)` returns `false` | Send terminate, wait grace, force kill, and verify |
+| Memory quota exceeded | Worker may be killed by OS/container | Record OOM signals from orchestrator/cgroup; do not assume Java cleanup ran |
+| CPU quota exhausted | Worker throttled or slowed down | Monitor throttling, deadlines, and sizing |
+| PIDs/threads exhausted | Spawning new threads/processes fails | Cap concurrency, handle resource errors, adjust budgets |
+| Too many file descriptors | `Too many open files` or I/O failures | Track leaks, configure limits, and clean up |
+| Worker makes unauthorized network call | Access blocked by policy | Verify network namespace/firewall and identity; audit |
+| Worker dies mid-operation with side effects | Host unsure if operation committed | Query/trace state, idempotency, reconciliation |
 
-Đừng hard-code một exit code như `"137"` là dấu hiệu OOM duy nhất. Các platform/container runtime có thể báo trạng thái kill theo nhiều cách; hãy đọc **trạng thái orchestrator, event của cgroup, log và thông tin process** cùng nhau.
+Do not hard-code a single exit code like `"137"` as the sole indicator of OOM. Platforms/container runtimes report kills in multiple ways; read **orchestrator state, cgroup events, logs, and process info** together.
 
-Tương tự, việc không có exception trong log Java **không chứng minh** không có lỗi: OS kill có thể chấm dứt process mà không cho JVM chạy shutdown hook hay `finally`.
+Similarly, the absence of exceptions in Java logs **does not prove** there was no failure: an OS kill can terminate the process without letting the JVM run shutdown hooks or `finally`.
 
-## 13. Các lỗi thiết kế thường gặp
+## 13. Common Design Mistakes
 
-| Nhận định sai | Vì sao sai? | Cách làm đúng hơn |
+| False assumption | Why is it wrong? | Better approach |
 |---|---|---|
-| “`Thread.interrupt()` giết thread bất kỳ” | Interrupt là tín hiệu hợp tác | Thiết kế điểm kiểm tra/hủy và ranh giới process cho mã không hợp tác |
-| “`Future.cancel(true)` trả true tức là task dừng” | Future status không phản ánh chắc chắn trạng thái thread | Theo dõi task kết thúc, resource và process liveness |
-| “`get(timeout)` tự hủy việc đang chạy” | Nó chỉ giới hạn thời gian caller chờ | Gọi cancel và thực hiện shutdown có xác nhận |
-| “`shutdownNow()` có thể kill mọi task” | Nó chỉ cố interrupt | Giới hạn task hợp tác, hoặc dùng OS process termination |
-| “`Thread.stop()` là phương án cuối an toàn” | Có thể phá bất biến và bỏ cleanup | Không dùng; thiết kế cooperative cancellation/process isolation |
-| “`-Xmx` là trần tổng memory” | Còn native, stacks, metaspace, direct buffers | Đặt memory limit ở OS, sizing heap trong ngân sách ấy |
-| “Tách class loader nghĩa là tách quyền, CPU và heap” | Các loader vẫn ở chung process | Dùng OS/container/VM boundary với least privilege |
-| “`ProcessBuilder` tự tạo cgroup/quota” | Process mới chưa tự có hạn mức riêng | Supervisor/orchestrator phải gắn worker vào quota thích hợp |
-| “Kill PID cha sẽ dọn mọi process cháu” | Descendants có thể tiếp tục sống | Quản lý cả worker group bằng OS |
-| “Container có memory limit là đủ an toàn” | Vẫn còn network, filesystem, privileges, syscall | Phối hợp namespace, seccomp/MAC, quyền tối thiểu, egress policy |
-| “Sau timeout có thể retry mọi request” | Thao tác bên ngoài có thể đã commit | Định nghĩa idempotency và trạng thái không chắc chắn |
-| “Nếu có interrupt check thì không cần timeout I/O” | Gọi API có thể không trả về để check cờ | Cấu hình timeout cấp API và deadline ngoài |
-| “Đóng thread đồng nghĩa thu hồi toàn bộ memory” | Object có thể còn được tham chiếu; native resource có vòng đời riêng | Quản lý resource/lifetime, hoặc hủy process worker |
+| "`Thread.interrupt()` kills any thread" | Interrupt is a cooperative signal | Design checkpoints/cancellation and process boundaries for uncooperative code |
+| "`Future.cancel(true)` returning true means the task stopped" | Future status does not reliably reflect thread state | Track task completion, resources, and process liveness |
+| "`get(timeout)` cancels the running work" | It only bounds how long the caller waits | Call cancel and perform verified shutdown |
+| "`shutdownNow()` can kill any task" | It only attempts interruption | Restrict to cooperative tasks or use OS process termination |
+| "`Thread.stop()` is a safe last resort" | Can break invariants and skip cleanup | Do not use; design cooperative cancellation/process isolation |
+| "`-Xmx` caps total memory" | Native, stacks, metaspace, and direct buffers remain | Set OS memory limits and size heap within that budget |
+| "Separating class loaders separates privileges, CPU, and heap" | Loaders remain in the same process | Use OS/container/VM boundaries with least privilege |
+| "`ProcessBuilder` creates a cgroup/quota automatically" | New processes do not automatically get individual quotas | Supervisor/orchestrator must attach workers to proper quotas |
+| "Killing the parent PID cleans up all grandchildren" | Descendants may stay alive | Manage the entire worker group via the OS |
+| "A container with a memory limit is safe enough" | Networking, filesystem, privileges, and syscalls remain | Combine namespaces, seccomp/MAC, least privilege, and egress policies |
+| "Any request can be retried after a timeout" | External operations may already have committed | Define idempotency and uncertain outcomes |
+| "Having interrupt checks removes the need for I/O timeouts" | API calls may block and never return to check the flag | Configure API-level timeouts and external deadlines |
+| "Closing a thread reclaims all memory" | Objects may stay referenced; native resources have separate lifecycles | Manage resource lifetimes or terminate the worker process |
 
-## 14. Kiểm thử cần thực hiện trong môi trường an toàn
+## 14. Tests to Run in a Safe Environment
 
-Nên dựng một **worker thử nghiệm được cách ly và có quota thấp** rồi kiểm tra các trường hợp:
+Build an **isolated test worker with low quotas** and verify these scenarios:
 
-1. **Tác vụ hợp tác:** task `sleep`/queue wait bị interrupt, thoát sạch và đóng resource; thread không còn sống sau deadline.
-2. **Tác vụ bỏ qua interrupt:** Future đã canceled nhưng task vẫn chạy; supervisor vẫn có thể kết thúc worker process có kiểm soát.
-3. **Vòng CPU bận:** workload thử nghiệm có thời lượng bounded, quan sát CPU throttling và deadline, **không** chạy vòng vô hạn chưa có process quota.
-4. **Bộ nhớ vượt ngân sách:** chỉ thử trong môi trường có memory limit và cơ chế thu hồi được xác nhận; ghi nhận worker bị OS kill hay báo OOM theo nền tảng.
-5. **Nhiều thread/process:** dùng workload bounded để xác minh PID/thread quota và admission control; không chạy chương trình tạo tiến trình vô hạn.
-6. **I/O chậm:** kiểm tra read/connect timeout, cleanup socket và xử lý request bị bỏ dở.
-7. **Worker spawn subprocess:** xác minh việc kết thúc worker có dọn cả nhóm theo OS hay không.
-8. **Host supervisor restart/crash:** kiểm tra worker mồ côi có bị orchestrator/Job Object/cgroup quản lý và thu hồi không.
-9. **Side effect khi timeout:** chứng minh retry với idempotency key không ghi trùng.
-10. **Tenant khác cùng lúc:** một plugin bị kill/oom không làm các request của tenant khác mất tài nguyên hoặc lộ dữ liệu nếu đúng isolation.
+1. **Cooperative task:** a task sleeping/waiting on a queue gets interrupted, exits cleanly, and closes resources; thread is no longer alive after deadline.
+2. **Interrupt-ignoring task:** Future is cancelled yet task keeps running; supervisor can still terminate the worker process cleanly.
+3. **Busy CPU loop:** bounded-duration test workload observing CPU throttling and deadlines; **do not** run unbounded loops without process quotas.
+4. **Over-budget memory:** test only inside an environment with verified memory limits and reclamation; record whether the worker is OS-killed or throws OOM per platform.
+5. **Many threads/processes:** use bounded workloads to verify PID/thread quotas and admission control; do not run unbounded fork programs.
+6. **Slow I/O:** test read/connect timeouts, socket cleanup, and handling of abandoned requests.
+7. **Worker spawning subprocesses:** verify whether terminating the worker cleans up the whole OS group.
+8. **Host supervisor restart/crash:** verify orphaned workers are tracked and reclaimed by the orchestrator/Job Object/cgroup.
+9. **Side effects on timeout:** prove retries with an idempotency key do not double-write.
+10. **Concurrent other tenants:** a killed/OOMed plugin does not starve other tenants' requests or leak data when properly isolated.
 
-Mọi thử nghiệm giới hạn tài nguyên nên diễn ra trên máy/thùng thử có quyền phù hợp; tránh dùng môi trường production chung hoặc cố gây quá tải host để “xem limit có hoạt động” khi chưa có biện pháp cách ly.
+All resource-limit tests should occur on dedicated test machines/containers with appropriate permissions; avoid shared production environments or trying to overload the host "to see if limits work" without isolation in place.
 
-## 15. Checklist triển khai ranh giới tin cậy cho Java runtime extensibility
+## 15. Trust Boundary Implementation Checklist for Java Runtime Extensibility
 
-Trước khi cho phép plugin/script chạy:
+Before allowing plugins/scripts to run:
 
-- **Trust:** ai cung cấp mã, có quyền truy cập secrets/network/host filesystem nào?
-- **Boundary:** chạy cùng JVM, classloader riêng, process riêng, container hay VM? Lý do chọn đủ mạnh?
-- **Quota:** CPU, RAM, PIDs, disk/tmpfs, FD/handles, network, số request đồng thời đã được kiểm soát ở đúng scope?
-- **Timeout:** deadline tính từ đâu, grace period bao lâu, khi hết grace ai kill worker group?
-- **Concurrency:** queue và worker count có bounded; việc tăng worker không vượt tổng ngân sách host?
-- **Cancellation:** task có kiểm tra interrupt, dọn resource, truyền signal hủy qua protocol khi có thể?
-- **Process cleanup:** biết process/subprocess nào thuộc worker, có xác minh sau terminate không?
-- **Heap sizing:** `-Xmx` có được chọn dưới OS memory limit, chừa chỗ cho native memory không?
-- **Isolation:** có least privilege, seccomp/AppArmor/SELinux/Job policy theo môi trường, cấm mount/egress không cần thiết?
-- **Recovery:** nếu process chết, hệ thống có phân biệt timeout, crash, OOM, manual cancellation, và tránh retry side effect mù quáng?
-- **Observability:** theo dõi deadline, CPU throttling, memory high/OOM, task count và trạng thái process với request ID không nhạy cảm?
-- **Test:** đã thử code hợp tác, bỏ qua interrupt và lỗi cleanup ở môi trường cách ly chưa?
+- **Trust:** who supplies the code, and what access does it have to secrets/network/host filesystem?
+- **Boundary:** same JVM, separate class loader, separate process, container, or VM? Is the rationale strong enough?
+- **Quota:** are CPU, RAM, PIDs, disk/tmpfs, FDs/handles, network, and concurrent request counts controlled at the right scope?
+- **Timeout:** where does the deadline start, how long is the grace period, and who kills the worker group when grace expires?
+- **Concurrency:** are queues and worker counts bounded so scaling workers cannot exceed the total host budget?
+- **Cancellation:** do tasks check interrupts, clean up resources, and propagate cancel signals across the protocol where possible?
+- **Process cleanup:** do you know which processes/subprocesses belong to a worker, and verify termination afterward?
+- **Heap sizing:** is `-Xmx` chosen well below the OS memory limit, leaving room for native memory?
+- **Isolation:** are least privilege, seccomp/AppArmor/SELinux/Job policies applied per environment, blocking unnecessary mounts/egress?
+- **Recovery:** when a process dies, does the system distinguish timeouts, crashes, OOMs, and manual cancellations, avoiding blind retries of side effects?
+- **Observability:** are deadlines, CPU throttling, memory highs/OOMs, task counts, and process states tracked with non-sensitive request IDs?
+- **Tests:** have cooperative code, interrupt-ignoring code, and cleanup failures been tested in an isolated environment?
 
-## 16. Bài tập củng cố
+## 16. Reinforcement Exercises
 
-1. **Hiểu interrupt:** trong demo, thay `catch (InterruptedException ignored)` của task thứ hai bằng `Thread.currentThread().interrupt(); return;` và xem `finished` thay đổi thế nào. Vì sao khi đó `Future.cancel(true)` có thể khiến task thoát đúng?
-2. **Hiểu Future:** gọi `future.cancel(false)` trên một task đã chạy và quan sát vì sao trạng thái canceled không đồng nghĩa đã có yêu cầu interrupt tới worker.
-3. **Hiểu timeout:** bỏ lệnh `process.destroy()` và `destroyForcibly()` trong một **bản thử nghiệm có supervisor bên ngoài**. Dự đoán `waitFor(300ms)` có tự dừng child không; tuyệt đối không để worker treo lại sau thử nghiệm.
-4. **Ước lượng memory:** một JVM có `-Xmx=192m`, metaspace, direct buffers, thread stacks và native libraries. Giải thích vì sao container `--memory=192m` có thể không đủ.
-5. **Chọn giới hạn OS:** cho một worker không cần network, chỉ nhận JSON và trả JSON, đề xuất quyền file/network và memory/CPU/PIDs limit.
-6. **Quản lý process tree:** giả sử plugin gọi một subprocess. So sánh kill PID cha với kill cả worker group bằng cgroup/Job Object; cách nào phù hợp với yêu cầu cleanup?
-7. **Phân biệt trách nhiệm:** đánh dấu mỗi mục thuộc Java cooperative, supervisor deadline hay OS quota: `Thread.interrupt`, `Future.get(timeout)`, `Process.destroyForcibly`, cgroup `memory.max`, Windows Job Objects, network namespace.
-8. **Thiết kế giao thức:** bổ sung deadline, request ID, trạng thái `COMPLETED/TIMED_OUT/FAILED/CANCELLED` và idempotency key vào protocol host↔worker.
+1. **Understanding interrupts:** in the demo, replace the second task's `catch (InterruptedException ignored)` with `Thread.currentThread().interrupt(); return;` and observe how `finished` changes. Why can `Future.cancel(true)` then make the task exit cleanly?
+2. **Understanding `Future`:** call `future.cancel(false)` on an already-running task and observe why cancelled status does not mean an interrupt request reached the worker.
+3. **Understanding timeouts:** remove `process.destroy()` and `destroyForcibly()` in a **test run supervised externally**. Predict whether `waitFor(300ms)` stops the child on its own; never leave a hung worker behind after testing.
+4. **Estimating memory:** a JVM has `-Xmx=192m`, metaspace, direct buffers, thread stacks, and native libraries. Explain why container `--memory=192m` may be insufficient.
+5. **Choosing OS limits:** for a worker needing no network that only receives JSON and returns JSON, propose file/network permissions and memory/CPU/PIDs limits.
+6. **Managing process trees:** suppose a plugin spawns a subprocess. Compare killing the parent PID against killing the entire worker group via cgroups/Job Objects; which fits cleanup requirements?
+7. **Distinguishing responsibilities:** label each item as Java cooperative, supervisor deadline, or OS quota: `Thread.interrupt`, `Future.get(timeout)`, `Process.destroyForcibly`, cgroup `memory.max`, Windows Job Objects, network namespace.
+8. **Protocol design:** add deadlines, request IDs, `COMPLETED/TIMED_OUT/FAILED/CANCELLED` statuses, and idempotency keys to the host↔worker protocol.
 
-**Kết luận:** `Thread.interrupt()` là **cơ chế yêu cầu hợp tác**; các Future timeout/cancel không phải nút kill thread; `ProcessBuilder` là **cơ chế quản lý tiến trình**, không tự áp tài nguyên; và **OS quotas cùng process isolation** mới là nền tảng của ranh giới tài nguyên đáng tin cậy khi chạy plugin hoặc script không tin cậy. Đừng giao nhiệm vụ bảo vệ host khỏi mã không hợp tác cho một interrupt flag trong chính JVM đang bị đe dọa.
+**Conclusion:** `Thread.interrupt()` is a **cooperative request mechanism**; Future timeouts/cancellations are not thread-kill switches; `ProcessBuilder` is a **process lifecycle mechanism** that does not impose resource limits on its own; and **OS quotas together with process isolation** form the foundation of reliable resource boundaries when running untrusted plugins or scripts. Never entrust protecting the host from uncooperative code to an interrupt flag inside the very JVM under threat.

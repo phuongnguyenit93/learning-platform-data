@@ -1,0 +1,3 @@
+menuLevel1: Phản hồi lỗi
+menuLevel2: '@ExceptionHandler, @ControllerAdvice và ResponseEntityExceptionHandler'
+status: WRITTEN

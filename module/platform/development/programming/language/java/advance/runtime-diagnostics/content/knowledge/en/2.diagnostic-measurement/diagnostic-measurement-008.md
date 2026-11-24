@@ -1,108 +1,108 @@
-# 2.8 Kiểm chứng một thay đổi dưới cùng tải và ghi rõ giới hạn của kết luận
+# 2.8 Verifying a Change Under Equivalent Load and Stating Conclusion Limits
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Khi sửa một truy vấn, đổi cấu hình GC, tăng connection pool hay tối ưu một đoạn Java, câu hỏi quan trọng không chỉ là **“sau thay đổi hệ thống có nhanh hơn không?”** mà là: **“Dưới cùng một tải và những điều kiện so sánh được, thay đổi này có cải thiện đúng hiện tượng cần xử lý, có gây hồi quy khác và bằng chứng cho phép kết luận đến đâu?”**
+When fixing a query, changing GC configuration, expanding a connection pool, or optimizing a piece of Java code, the critical question is not just **"is the system faster after the change?"** but rather: **"Under equivalent load and comparable conditions, did this change improve the target symptom, did it introduce other regressions, and how far does the evidence justify concluding?"**
 
-Sau bài học, bạn sẽ có thể:
+After this lesson, you will be able to:
 
-- Xây dựng phép so sánh **trước (baseline/A)** và **sau (candidate/B)** cho một thay đổi cụ thể, với tiêu chí đo, điều kiện tải và quy tắc PASS/FAIL định nghĩa từ trước.
-- Xác định yếu tố nào phải giữ ổn định, yếu tố nào được phép khác và cách phát hiện những khác biệt khiến phép so sánh mất giá trị.
-- Đọc đồng thời **tải phát ra**, **tải thực đến**, **thông lượng hoàn thành**, **độ trễ**, **lỗi** và **chi phí tài nguyên** khi đánh giá hiệu quả.
-- Kiểm chứng **cơ chế giả thuyết** bằng logs, metrics, traces, JFR/GC/thread evidence khi cần, thay vì suy ra nguyên nhân chỉ từ một số đo.
-- Viết một kết luận có phạm vi, độ tin cậy, hạn chế và đề xuất tiếp theo rõ ràng; phân biệt cải thiện quan sát được với bằng chứng nhân quả và xác minh trên production.
+- Build a **before (baseline/A)** and **after (candidate/B)** comparison for a specific change, with predefined measurement criteria, load conditions, and PASS/FAIL rules.
+- Identify which factors must remain constant, which are allowed to differ, and how to detect differences that invalidate the comparison.
+- Read **offered load**, **achieved arrived load**, **completed throughput**, **latency**, **errors**, and **resource costs** simultaneously when evaluating effectiveness.
+- Verify **hypothesized mechanisms** with logs, metrics, traces, and JFR/GC/thread evidence when needed, rather than inferring causality from a single metric.
+- Write a conclusion with clear scope, confidence level, limitations, and next recommendations; distinguish observed improvement from causal proof and production verification.
 
-## 1. “Dưới cùng tải” nghĩa là gì?
+## 1. What Does "Under Equivalent Load" Mean?
 
-**Kiểm chứng thay đổi** là so sánh hành vi hệ thống tại hai trạng thái, trong đó ta cố gắng chỉ thay đổi đúng yếu tố cần kiểm tra. Trong ứng dụng Java, yếu tố đó có thể là:
+**Change verification** compares system behavior across two states while trying to vary only the factor under test. In a Java application, that factor may be:
 
-- Mã nguồn hoặc thuật toán: giảm allocation, sửa vòng lặp, loại bỏ khóa thừa, thay truy vấn.
-- Cấu hình runtime: heap size, GC, thread pool, connection pool, retry, timeout, cache.
-- Hệ thống phụ thuộc: index database, API downstream, cách kết nối hoặc giới hạn tài nguyên.
-- Cấu trúc triển khai: số instance, CPU/memory limit, container image hoặc phiên bản JDK.
+- Source code or algorithm: reducing allocations, fixing loops, removing redundant locks, changing a query.
+- Runtime configuration: heap size, GC, thread pools, connection pools, retries, timeouts, caches.
+- Dependent systems: database indexes, downstream APIs, connection behavior, or resource limits.
+- Deployment topology: instance counts, CPU/memory limits, container images, or JDK versions.
 
-**Cùng tải** không chỉ là hai lần chạy đều hiển thị “100 RPS” hoặc “100 virtual users”. Cần xác định *công việc được đưa vào hệ thống* có tương đương về đặc tính và lịch phát sinh hay không:
+**Equivalent load** is not merely two runs both showing "100 RPS" or "100 virtual users". You must verify whether *the work fed into the system* matches in characteristics and arrival schedule:
 
-| Yếu tố | Điều cần so khớp hoặc ghi rõ |
+| Factor | What Must Be Matched or Explicitly Recorded |
 | --- | --- |
-| Tốc độ gửi | Arrival rate theo thời gian, ramp-up, spike, think time, open/closed workload |
-| Mức đồng thời | Số request in-flight, client workers, giới hạn concurrency và queue |
-| Cơ cấu thao tác | Tỷ trọng endpoint/operation, tỉ lệ đọc/ghi, nhánh cache hit/miss |
-| Đầu vào | Payload size, phân phối khóa, số record, seed, dataset/snapshot ban đầu |
-| Thời gian | Warm-up, thời lượng đo, thời điểm thu mẫu, cách xử lý cold start |
-| Hệ thống | Build, JDK, JVM flags, OS/container, CPU/memory, số replica, topology |
-| Phụ thuộc | Trạng thái DB, pool, cache, network, external service, giới hạn rate |
-| Công cụ đo | Phiên bản load generator, vị trí đo latency, profiler/logging/sampling |
-| Kết quả tải | RPS **đã gửi**, **đã đến**, **đã hoàn thành**; timeout/error, backlog |
+| Send rate | Arrival rate over time, ramp-up, spikes, think time, open/closed workload |
+| Concurrency level | In-flight requests, client workers, concurrency and queue limits |
+| Operation mix | Endpoint/operation weights, read/write ratio, cache hit/miss branches |
+| Inputs | Payload sizes, key distribution, record counts, seeds, initial dataset/snapshot |
+| Timing | Warm-up, measurement duration, sampling timestamps, cold-start handling |
+| System | Build, JDK, JVM flags, OS/container, CPU/memory, replica counts, topology |
+| Dependencies | DB state, pools, caches, network, external services, rate limits |
+| Measurement tools | Load generator version, latency measurement point, profiler/logging/sampling |
+| Load outcome | **Offered**, **arrived**, and **completed** RPS; timeouts/errors, backlog |
 
-Một so sánh chỉ có giá trị khi các điều kiện **liên quan đến giả thuyết** đủ tương đương, hoặc khi sự khác biệt đã được ghi nhận và được tính tới trong cách diễn giải. Trong môi trường thật hiếm khi mọi yếu tố giống hệt nhau; điều quan trọng là biết khác biệt nào có thể làm sai kết luận.
+A comparison is valid only when conditions **relevant to the hypothesis** are sufficiently equivalent, or when differences are documented and accounted for in interpretation. In real environments, all factors are rarely identical; what matters is knowing which differences can invalidate the conclusion.
 
-**Lưu ý về “cùng môi trường”:** nếu đang kiểm tra chính thay đổi tăng CPU limit, tăng heap hay số instance, yếu tố đó *phải* khác theo thiết kế. Khi ấy giữ ổn định các yếu tố còn lại và mô tả phép so sánh là **hiệu quả của cả thay đổi tài nguyên** cùng chi phí tăng thêm. Không gọi đây là “cải thiện thuật toán” nếu chưa có bằng chứng về thuật toán.
+**Note on "same environment":** if the change under test is increasing the CPU limit, heap size, or instance count, that factor *must* differ by design. In that case, hold the remaining factors constant and describe the comparison as **the effect of the resource change** plus its added cost. Never call this an "algorithmic improvement" without evidence about the algorithm.
 
-## 2. Vì sao nhìn một phép đo trước và một phép đo sau thường không đủ?
+## 2. Why One Before Measurement and One After Measurement Are Usually Not Enough
 
-Giả sử p95 latency giảm từ 400 ms xuống 290 ms sau khi sửa code. Mức giảm quan sát được là:
+Suppose p95 latency drops from 400 ms to 290 ms after a code fix. The observed reduction is:
 
 ```text
 reduction (%) = (before - after) / before × 100
               = (400 - 290) / 400 × 100 = 27.5%
 ```
 
-**Quan sát:** p95 thấp hơn 110 ms, tương đương 27,5% so với mốc trước, *trong hai phép đo đó*. Chưa thể kết luận toàn bộ cải thiện do bản sửa vì còn các khả năng:
+**Observation:** p95 is 110 ms lower, or 27.5% below the prior mark, *in those two measurements*. You cannot yet attribute the full improvement to the fix because of other possibilities:
 
-1. Bản sau vô tình chạy với **tải nhẹ hơn**, dù cùng cấu hình của bộ phát.
-2. Cache, JIT hoặc connection pool đã **ấm hơn** sau các lần chạy trước.
-3. Database xử lý nhanh hơn vào thời điểm B, hoặc một batch/cron cạnh tranh tài nguyên đã kết thúc.
-4. Bản sau loại bỏ những request chậm khỏi histogram vì chúng **timeout**, làm p95 của response thành công trông tốt hơn.
-5. Công cụ đo hoặc số instance/giới hạn CPU/JVM flags khác.
-6. Tập mẫu quá nhỏ hoặc p95 thay đổi mạnh giữa các lần đo ngay cả khi không có thay đổi code.
+1. The after run accidentally received **lighter load**, despite identical generator configuration.
+2. Caches, JIT, or connection pools were **warmer** from earlier runs.
+3. The database responded faster at time B, or a resource-competing batch/cron job finished.
+4. The after run dropped slow requests from the histogram because they **timed out**, making successful-response p95 look better.
+5. Measurement tooling, instance count, CPU limits, or JVM flags differed.
+6. The sample size was too small or p95 fluctuates strongly across runs even with zero code changes.
 
-Bởi vậy, một kết quả “B nhanh hơn A” là **mô tả số liệu**. Một nhận định “thay đổi X làm B nhanh hơn” cần **thiết kế đối chứng, lặp lại, loại trừ yếu tố gây nhiễu và bằng chứng về cơ chế**.
+Therefore, "B was faster than A" is a **data description**. Claiming "change X made B faster" requires **controlled comparison design, repetitions, ruling out confounders, and mechanism evidence**.
 
-Trong kiểm chứng runtime, hãy ghi rõ ba tầng kết luận:
+In runtime verification, state three layers of conclusions clearly:
 
-- **Quan sát được:** số liệu trước/sau thay đổi thế nào, ở thời gian và môi trường nào.
-- **Có bằng chứng ủng hộ:** so sánh được dưới tải, lặp lại và các dấu hiệu runtime phù hợp giả thuyết.
-- **Chưa xác nhận hoặc chỉ áp dụng có điều kiện:** những khác biệt môi trường, workload chưa thử, sai số mẫu hoặc khả năng giải thích thay thế.
+- **Observed:** how before/after metrics behaved, at what time and in what environment.
+- **Evidence-supported:** comparable under load, repeatable, and accompanied by runtime signals consistent with the hypothesis.
+- **Unconfirmed or conditional:** environment differences, untested workloads, sample error, or alternative explanations.
 
-## 3. Đặt giả thuyết và tiêu chí từ trước
+## 3. State Hypotheses and Criteria Upfront
 
-Trước khi thử một thay đổi, viết giả thuyết có thể bị bác bỏ:
+Before testing a change, write a falsifiable hypothesis:
 
-> “Trong workload `checkout-open-100rps-v1`, tối ưu câu truy vấn X sẽ giảm p95 latency của `POST /checkout` ít nhất 20%, trong khi error rate không tăng, throughput hoàn tất đạt mục tiêu và CPU trung vị không tăng quá 8 điểm phần trăm. Nếu giảm độ trễ nhưng tăng timeout hoặc không đạt tải, thay đổi chưa đạt cổng chấp nhận.”
+> "Under workload `checkout-open-100rps-v1`, optimizing query X will reduce `POST /checkout` p95 latency by at least 20%, with no error rate increase, achieved throughput meeting target, and median CPU rising no more than 8 percentage points. If latency drops yet timeouts increase or target load is not sustained, the change fails the acceptance gate."
 
-Ví dụ trên là tiêu chí **minh họa**, không phải ngưỡng SLO mặc định cho mọi hệ thống.
+The example above uses **illustrative** criteria, not universal default SLO thresholds.
 
-Một giả thuyết tốt xác định đủ năm phần:
+A solid hypothesis specifies all five elements:
 
-1. **Thay đổi duy nhất:** commit/config/feature flag nào khác so với baseline; nếu nhiều thay đổi bắt buộc đi chung, coi chúng là **một gói can thiệp** và không gán tác dụng riêng cho từng thành phần.
-2. **Cơ chế dự đoán:** vì sao thay đổi giúp (ít allocation hơn, giảm thời gian chờ lock, query thực thi nhanh, giảm GC pause, ...).
-3. **Tải và điều kiện:** operation mix, RPS/concurrency, trạng thái cache/data, số instance, JVM, giai đoạn đo.
-4. **Metric chính và guardrails:** p95/p99, số lỗi, correctness, throughput, CPU, heap/GC, DB pressure, queue.
-5. **Tiêu chí thất bại:** nếu cải thiện chưa đủ, xảy ra hồi quy, điều kiện so sánh không đạt hoặc evidence không đủ thì kết quả là FAIL hoặc INCONCLUSIVE.
+1. **Single change:** which commit/config/feature flag differs from baseline; if multiple changes must ship together, treat them as **one intervention bundle** and do not credit individual pieces separately.
+2. **Expected mechanism:** why the change helps (fewer allocations, less lock wait, faster query execution, shorter GC pauses, etc.).
+3. **Load and conditions:** operation mix, RPS/concurrency, cache/data state, instance count, JVM, measurement phase.
+4. **Primary metric and guardrails:** p95/p99, errors, correctness, throughput, CPU, heap/GC, DB pressure, queues.
+5. **Failure criteria:** if improvement is insufficient, regressions appear, comparability fails, or evidence is missing, the outcome is FAIL or INCONCLUSIVE.
 
-Không nên lựa chọn metric chính hay ngưỡng **sau khi đã xem số liệu**, vì sẽ có xu hướng chọn chỉ số thuận lợi nhất để tuyên bố thành công. Đặt mục tiêu hiệu quả kỹ thuật theo SLO, mức chậm gây ảnh hưởng hoặc yêu cầu nghiệp vụ; đồng thời định nghĩa phạm vi sai số và các trade-off chấp nhận được.
+Do not choose the primary metric or thresholds **after seeing the numbers**, as that biases toward picking whichever metric looks best to declare success. Base technical targets on SLOs, impactful latency bounds, or business needs; also define error margins and acceptable trade-offs.
 
-### 3.1 Phân biệt mục tiêu và hàng rào kiểm soát
+### 3.1 Distinguish Goals from Guardrails
 
-Ví dụ một bản sửa làm p95 giảm 25% nhưng tiêu thụ CPU tăng 80%, gây timeout ở database hoặc trả kết quả sai. Khi đó tốc độ tốt hơn **không** đồng nghĩa thay đổi có thể chấp nhận.
+Suppose a fix lowers p95 by 25% yet increases CPU usage by 80%, triggers database timeouts, or returns incorrect results. Faster speed **does not** make the change acceptable.
 
-| Nhóm | Metric | Câu hỏi |
+| Category | Metrics | Question |
 | --- | --- | --- |
-| Mục tiêu chính | p95/p99 latency hoặc throughput đúng nghiệp vụ | Thay đổi có giải quyết vấn đề đặt ra không? |
-| Correctness | Assertion, trạng thái DB, kết quả tính toán, lỗi nghiệp vụ | Có làm sai dữ liệu hoặc hành vi không? |
-| Reliability | 5xx, timeout, retry, dropped request, crash | Có đánh đổi bằng lỗi không? |
-| Khả năng chịu tải | Offered/received/completed RPS, queue, in-flight | Có thực sự xử lý cùng lượng việc không? |
-| Chi phí | CPU, RSS/heap, GC pause, I/O, DB connections | Có đẩy nghẽn hoặc chi phí sang chỗ khác không? |
-| Điều kiện | Workload mix, dataset, JDK, resource limit | Kết quả trước và sau có đủ so sánh không? |
+| Primary goal | p95/p99 latency or business-valid throughput | Did the change solve the stated problem? |
+| Correctness | Assertions, DB state, computed results, business errors | Did it corrupt data or behavior? |
+| Reliability | 5xx, timeouts, retries, dropped requests, crashes | Did it trade speed for failures? |
+| Load capacity | Offered/received/completed RPS, queues, in-flight | Did it actually process the same amount of work? |
+| Cost | CPU, RSS/heap, GC pauses, I/O, DB connections | Did it shift the bottleneck or cost elsewhere? |
+| Comparability | Workload mix, dataset, JDK, resource limits | Are before and after results fairly comparable? |
 
-Với một thay đổi về memory leak, metric chính có thể là **xu thế retained heap sau GC dưới cùng workload trong khoảng thời gian đủ dài**; dùng p95 làm metric chính sẽ không đo đúng giả thuyết. Với thay đổi deadlock, metric chính là **tác vụ hoàn tất/có hoặc không có chu trình chờ khóa** theo điều kiện kích hoạt. Không áp một bộ tiêu chí hiệu năng cho mọi loại sự cố.
+For a memory leak fix, the primary metric may be **the post-GC retained heap trend under equal workload over a long enough duration**; using p95 as the primary metric would miss the hypothesis. For a deadlock fix, the primary metric is **task completion and absence of lock-wait cycles** under the trigger conditions. Never apply one fixed performance scorecard to every type of incident.
 
-## 4. Thiết kế thử nghiệm A/B có kiểm soát
+## 4. Designing a Controlled A/B Experiment
 
-### 4.1 Khóa hồ sơ thử nghiệm (run manifest)
+### 4.1 Freeze the Experiment Profile (Run Manifest)
 
-Lập một bản mô tả bất biến trước khi chạy:
+Create an immutable description before running:
 
 ```yaml
 experiment_id: checkout-query-v2
@@ -128,113 +128,113 @@ guardrails: "errors, achieved throughput, CPU, correctness"
 stop_condition: "abort on agreed resource/error/safety threshold"
 ```
 
-Đây là **mẫu minh họa**, không phải tệp cấu hình bắt buộc của JDK hoặc benchmark. Giá trị “jdk: 17” chưa thay thế cho việc ghi đúng bản patch/vendor thực tế. Một hệ thống kiểm chứng tốt lưu thêm command của load generator, sampling, bộ dữ liệu/seed, thời gian UTC, phiên bản profiler, trạng thái cache và link tới artifact của mỗi run.
+This is an **illustrative template**, not a required config file for the JDK or any benchmark tool. A string like `"17"` does not replace recording the actual vendor and patch version. A thorough verification suite also records load generator commands, sampling, dataset/seed, UTC timestamps, profiler versions, cache state, and links to each run's artifacts.
 
-Với test liên quan JIT, class loading, GC hoặc cache, cần ghi rõ liệu **warm-up nằm ngoài cửa sổ đo** và các lần chạy có reset JVM/cache hay không. Nếu lỗi chỉ xảy ra ở cold start hoặc sau thời gian tích lũy dài, **không** được bỏ giai đoạn gây lỗi đi chỉ để số liệu đẹp hơn.
+For tests involving JIT, class loading, GC, or caches, specify whether **warm-up sits outside the measurement window** and whether runs reset the JVM/cache. If the bug occurs only on cold start or after prolonged accumulation, **do not** discard the failing phase merely to make numbers look prettier.
 
-### 4.2 Chọn cách so sánh phù hợp
+### 4.2 Choose an Appropriate Comparison Layout
 
-**Chạy nối tiếp A rồi B trên cùng môi trường:** dễ thực hiện và ít cần thêm tài nguyên, nhưng dễ bị ảnh hưởng bởi khác biệt theo thời gian (cache, mạng, batch, tải hệ thống). Chạy A nhiều lần rồi B nhiều lần có thể khiến thời gian là yếu tố gây nhiễu.
+**Sequential A then B in the same environment:** easy to run and needs fewer resources, yet vulnerable to time-dependent drift (caches, network, batch jobs, background load). Running all A trials then all B trials lets time act as a confounder.
 
-**Đan xen A–B–A–B hoặc B–A–B–A** khi có thể reset điều kiện: giúp nhận ra drift theo thời gian. Cần khởi tạo lại dataset/cache đúng quy tắc, tránh trạng thái từ một run lan sang run sau; nếu không reset được, phải ghi hạn chế.
+**Interleaved A–B–A–B or B–A–B–A** when conditions can be reset: helps spot drift over time. Reinitialize datasets/caches strictly so state from one run does not bleed into the next; if reset is impossible, document the limitation.
 
-**Hai nhóm chạy song song:** giảm biến thiên do thời gian, nhưng phải kiểm tra tính tương đương của node, network, data và load routing. Nếu A và B cùng dùng một DB bão hòa, chúng có thể **can thiệp lẫn nhau**, nên song song không tự động là đối chứng tốt.
+**Parallel groups:** cuts time-of-day variance, yet you must verify parity of nodes, network, data, and load routing. If A and B share a saturated DB, they can **interfere with each other**, so parallel execution is not automatically a clean control.
 
-**Canary/A-B production:** phản ánh tải thực hơn, nhưng hai nhóm phải được chia traffic tương đồng và có guardrails/rollback. Khác biệt tenant, loại request, vị trí máy, cache, phiên bản dependency có thể làm lệch kết luận. Không tổ chức thí nghiệm tác động người dùng chỉ để có số benchmark nếu chưa có quy trình vận hành phù hợp.
+**Production canary / A-B:** reflects real traffic best, yet both groups must receive comparable traffic splits with guardrails and rollback ready. Differences in tenants, request types, host placement, caches, or dependency versions can skew results. Never run user-impacting experiments just for benchmark numbers without proper operational controls.
 
-Không có một thứ tự chạy “chuẩn” áp dụng mọi trường hợp. Chọn thiết kế theo khả năng reset, độ nhạy thời gian, trạng thái dữ liệu và rủi ro vận hành; ghi rõ lý do chọn.
+No single run order is "standard" for all cases. Choose the layout based on resetability, time sensitivity, data state, and operational risk, and record why you chose it.
 
-### 4.3 Lặp lại và theo dõi biến thiên
+### 4.3 Repeat Runs and Track Variance
 
-Một lần A và một lần B chỉ cho hai điểm đo. Nên có **nhiều run độc lập** ở điều kiện tương đương, lưu từng run thay vì chỉ lưu một trung bình. Ba run là một ví dụ dễ học, **không phải chuẩn đủ mẫu thống kê**.
+One A run and one B run give only two points. Run **multiple independent trials** under equivalent conditions, keeping per-run data instead of only an average. Three runs is an easy teaching example, **not a statistical sample-size standard**.
 
-Với metric có phân phối lệch như p99 latency, số lượng mẫu, thời lượng và độ độc lập của mẫu rất quan trọng. Các request trong cùng run thường có tương quan do GC, burst, dependency hoặc queue; không được coi từng request là một phép đo hoàn toàn độc lập để tạo độ tin cậy giả.
+For skewed metrics like p99 latency, sample count, duration, and sample independence matter greatly. Requests within the same run are often correlated via GC, bursts, dependencies, or queues; do not treat individual requests as independent trials to fabricate false statistical confidence.
 
-Ghi kết quả từng run (A1/A2/A3, B1/B2/B3), cả thành công lẫn thất bại. Có thể dùng median giữa các run để mô tả mức điển hình của **run-level p95**; hãy nêu đây là **median của p95 từng run**, không phải p95 gộp của toàn bộ request. Muốn tính percentile gộp phải có phân phối/quan sát hoặc histogram tương thích và phương pháp ghép hợp lệ; **không lấy trung bình các p95/p99 rồi gọi là p95/p99 tổng**.
+Record every run (`A1/A2/A3`, `B1/B2/B3`), both successes and failures. You can use the median across runs to describe typical **run-level p95**; state clearly that this is **the median of per-run p95s**, not the pooled p95 of all requests combined. Computing a pooled percentile requires raw distributions/observations or compatible histograms and a valid merge method; **never average per-run p95/p99 values and call it total p95/p99**.
 
-## 5. Kiểm tra tải thực tế trước khi nhìn biểu đồ kết quả
+## 5. Verify Actual Load Before Looking at Result Charts
 
-Một bản sửa chỉ được xem là “nhanh hơn dưới cùng tải” khi workload **được thực thi đúng như thiết kế** ở cả hai phiên bản.
+A fix is only "faster under equivalent load" when the workload **executed as designed** on both versions.
 
-### 5.1 Offered load, achieved load, completed load
+### 5.1 Offered Load, Achieved Load, Completed Load
 
-- **Offered load:** lịch và lượng request mà bộ phát *dự định* gửi, ví dụ 100 request mới mỗi giây.
-- **Sent/received:** request được phát và đến hệ thống thực tế; cần quan sát lỗi của load generator, proxy và kết nối.
-- **Completed throughput:** request đã hoàn tất mỗi giây, thành công hay thất bại cần phân biệt rõ.
-- **In-flight/queue/backlog:** lượng công việc còn đang xử lý/chờ tại thời điểm đo; nếu tăng liên tục, hệ thống chưa ở trạng thái ổn định.
+- **Offered load:** schedule and rate the generator *intended* to send, e.g., 100 new requests per second.
+- **Sent/received:** requests actually emitted and reaching the system; watch load generator, proxy, and connection errors.
+- **Completed throughput:** requests finished per second, clearly separating successes and failures.
+- **In-flight/queue/backlog:** work currently active or queued at measurement time; if rising continuously, the system is not in steady state.
 
-Ví dụ:
+Example:
 
-| Chỉ số | Trước A | Sau B |
+| Metric | Before A | After B |
 | --- | ---: | ---: |
 | Offered RPS | 100 | 100 |
 | Received RPS | 99 | 98 |
 | Completed RPS | 98 | 97 |
 | p95 latency | 400 ms | 290 ms |
-| Timeout rate | 0,3% | 0,3% |
+| Timeout rate | 0.3% | 0.3% |
 
-Các số liệu **chỉ mang tính minh họa**. Nếu cả hai nhận/hoàn tất gần mức tải mục tiêu, không có backlog tăng mãi và request mix/data tương đương, phép so sánh có cơ sở tốt hơn.
+Numbers are **illustrative only**. If both received/completed close to target load with no unbounded backlog growth and equivalent request mix/data, the comparison stands on solid ground.
 
-Ngược lại, nếu B chỉ xử lý 55 RPS vì bộ phát bị nghẽn hoặc client dừng gửi khi server chậm, p95 của B không thể được gọi là cải thiện “ở cùng 100 RPS” chỉ vì cả hai được cấu hình 100 RPS.
+Conversely, if B processed only 55 RPS because the generator stalled or clients stopped sending when the server slowed down, B's p95 cannot be called an improvement "at the same 100 RPS" merely because both were configured for 100 RPS.
 
-### 5.2 Open workload và closed workload
+### 5.2 Open Workload vs. Closed Workload
 
-**Open model:** request đến theo lịch tốc độ cố định độc lập tương đối với thời gian hoàn tất trước đó. Thích hợp cho nhiều bài toán mô phỏng traffic ngoại sinh; phải đo độ chính xác của lịch gửi và queue khi server chậm.
+**Open model:** requests arrive on a fixed-rate schedule largely independent of prior completion times. Well-suited for modeling external traffic; verify schedule accuracy and queue growth when the server slows down.
 
-**Closed model:** có số client/tác vụ đồng thời cố định; một client thường chờ phản hồi rồi mới gửi tiếp (có thể thêm think time). Khi hệ thống chậm, tổng throughput có thể giảm. Bằng nhau về số virtual users không đủ để khẳng định bằng nhau về RPS.
+**Closed model:** a fixed count of concurrent clients/tasks; each client typically waits for a response before sending the next (optionally after think time). When the system slows down, total throughput can drop. Equal virtual-user counts do not guarantee equal RPS.
 
-**Coordinated omission:** khi hệ thống chậm, công cụ đo kiểu closed hoặc tự giảm phát tải có thể bỏ qua các request lẽ ra đến trong khoảng nghẽn, khiến histogram latency đánh giá thấp trải nghiệm dưới traffic thực. Đọc kỹ mô hình phát tải và cách công cụ ghi các request bị trì hoãn/mất trước khi diễn giải p95/p99.
+**Coordinated omission:** when a system stalls, closed-loop tools or generators that throttle themselves can omit requests that should have arrived during the stall, making latency histograms underestimate real-traffic experience. Understand the load model and how the tool accounts for delayed/dropped requests before interpreting p95/p99.
 
-Trong cả hai mô hình, hãy tính lỗi và timeout đầy đủ. Một histogram chỉ chứa response thành công có thể giảm p99 khi số timeout tăng; đó không phải thành công.
+In both models, count errors and timeouts completely. A histogram containing only successful responses can show lower p99 as timeouts climb; that is not success.
 
-### 5.3 Cùng load không đồng nghĩa chỉ số khác đều phải giống
+### 5.3 Same Load Does Not Mean Other Metrics Must Stay Identical
 
-Nếu chính thay đổi làm giảm CPU hoặc GC, CPU/GC **được mong đợi khác** và là kết quả cần đo. Điều cần giữ tương đương là yếu tố đầu vào/đối chứng như điều kiện CPU limit, tải gửi, dataset và JVM khác ngoài can thiệp. Với throughput test tìm **khả năng chịu tải tối đa**, có thể tăng offered load theo cùng quy trình ramp ở cả A và B để so đường cong capacity; khi đó không nên chỉ so một mốc RPS đơn lẻ.
+If the change itself lowers CPU or GC work, CPU/GC **are expected to change** and are part of the measured outcome. What must stay equivalent are inputs/controls such as CPU limits, offered load, datasets, and JVM settings outside the intervention. For capacity tests seeking **maximum sustainable throughput**, ramp offered load identically for A and B to compare capacity curves rather than checking just one RPS point.
 
-## 6. Đọc kết quả với ngưỡng chấp nhận và hiệu ứng phụ
+## 6. Interpret Results with Acceptance Thresholds and Side Effects
 
-Một mẫu cổng kiểm chứng, chỉ áp dụng khi workload và điều kiện có thể so sánh:
+A verification gate template, applicable only when workload and conditions are comparable:
 
 ```text
 Precondition:
-- A và B có cùng workload plan/dataset/build-context ngoài thay đổi X;
-- load generator không nghẽn; received/completed đạt mức cho phép;
-- warm-up và cửa sổ đo tương đương; không có backlog tăng vô hạn.
+- A and B share the same workload plan/dataset/build-context except change X;
+- load generator is not bottlenecked; received/completed reach allowed target;
+- warm-up and measurement windows are equivalent; no unbounded backlog growth.
 
 Primary:
-- median của p95 theo từng run giảm ít nhất 20%
-  (tính cả mức cải thiện tuyệt đối bằng ms).
+- median of per-run p95 decreases by at least 20%
+  (also report absolute improvement in ms).
 
 Guardrails:
-- error/timeout rate không tăng vượt ngưỡng đặt trước;
+- error/timeout rate does not rise above predefined threshold;
 - correctness assertions PASS;
-- throughput thực đạt mục tiêu;
-- CPU, heap/GC, DB wait, queue không vi phạm ngân sách;
-- không phát sinh lỗi mới ở workload khác trong phạm vi kiểm thử.
+- achieved throughput meets target;
+- CPU, heap/GC, DB wait, and queues stay within budget;
+- no new failures on other workloads within test scope.
 
 Outcome:
-PASS nếu toàn bộ điều kiện định trước đạt.
-FAIL nếu can thiệp không đạt hoặc có hồi quy.
-INCONCLUSIVE nếu workload/điều kiện/quan sát không so sánh được.
+PASS if all predefined conditions pass.
+FAIL if intervention falls short or introduces a regression.
+INCONCLUSIVE if workload/conditions/observations are not comparable.
 ```
 
-Đừng sửa tiêu chí PASS giữa chừng chỉ vì bản B đạt số đẹp ở một metric. Nếu tăng CPU để giảm latency là đánh đổi có chủ đích, ghi chi phí tài nguyên và điều kiện có thể chấp nhận từ trước.
+Never alter PASS criteria mid-experiment just because B looks good on one metric. If trading higher CPU for lower latency is intentional, document resource cost and acceptable limits upfront.
 
-**Các số cần báo cùng nhau:**
+**Numbers to report together:**
 
-- Giá trị trước/sau và **chênh lệch tuyệt đối**, ví dụ giảm 110 ms.
-- **Chênh lệch tương đối** với baseline, ví dụ giảm 27,5%.
-- Phân bố từng run hoặc khoảng biến thiên, số run và số request quan sát.
-- Error/timeout, achieved throughput, tài nguyên và trạng thái queue.
-- Định nghĩa metric: latency ở client hay server, percentile per-run hay pooled, request lỗi được xử lý thế nào.
+- Before/after values and **absolute delta**, e.g., reduced by 110 ms.
+- **Relative delta** vs. baseline, e.g., reduced by 27.5%.
+- Per-run distribution or range, run count, and observed request count.
+- Errors/timeouts, achieved throughput, resources, and queue state.
+- Metric definitions: client vs. server latency, per-run vs. pooled percentiles, and how failed requests are handled.
 
-Một mức tăng 10 ms có thể rất đáng kể với endpoint vốn chạy 20 ms, nhưng ít quan trọng với batch vài phút. “Có ý nghĩa thống kê” (nếu được ước lượng đúng) và “đáng triển khai” là hai câu hỏi khác nhau; SLO, correctness, chi phí và tác động nghiệp vụ quyết định giá trị thực tế.
+A 10 ms difference can be huge for a 20 ms endpoint yet negligible for a multi-minute batch job. "Statistically significant" (when properly estimated) and "worth deploying" are different questions; SLOs, correctness, cost, and business impact decide practical value.
 
-## 7. Ví dụ Java 17+: kiểm tra một bộ kết quả trước/sau được ghi sẵn
+## 7. Java 17+ Example: Checking Pre-Recorded Before/After Results
 
-Ví dụ dưới đây dùng các **bản ghi giả định** của ba run A và ba run B. Chương trình không tạo load, không đo JFR/GC, không giả vờ tạo benchmark thực. Mục tiêu là mô tả cách **kiểm tra metadata tải trước khi so sánh**, tính hiệu quả trên run-level p95 và áp guardrails với dữ liệu đã có. Trong công việc thật, dữ liệu này phải đến từ load generator, hệ thống metric và bằng chứng runtime.
+The example below uses **hypothetical records** of three A runs and three B runs. The program does not generate load, measure JFR/GC, or pretend to run a real benchmark. Its goal is illustrating how to **verify load metadata before comparing**, compute gains on run-level p95, and apply guardrails on existing data. In real work, this data must come from load generators, metrics systems, and runtime evidence.
 
-Tạo tệp `ChangeVerificationDemo.java`:
+Create `ChangeVerificationDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -322,14 +322,14 @@ public class ChangeVerificationDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac ChangeVerificationDemo.java
 java ChangeVerificationDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 metadata=matched; achieved>=95 RPS
@@ -339,128 +339,128 @@ cpu median: 57% -> 62%
 gate=PASS
 ```
 
-**Giải thích phép tính:**
+**Calculation explanation:**
 
-- Có ba p95 theo run của A: 390, 400, 420 ms; median = 400 ms.
-- Có ba p95 theo run của B: 280, 290, 300 ms; median = 290 ms.
-- Mức giảm = `(400 - 290) / 400 × 100 = 27.5%`.
-- Error median: 30 basis points = 0,30% ở cả A và B.
-- CPU median tăng từ 57% lên 62%, tức **5 điểm phần trăm**, nằm trong ngân sách minh họa không quá 8 điểm phần trăm.
-- Mọi run ghi cùng `Plan` và `achievedRps >= 95`, nên **metadata validation** của ví dụ qua cổng; các rule đặt trước dẫn tới PASS.
+- A has three per-run p95s: 390, 400, 420 ms; median = 400 ms.
+- B has three per-run p95s: 280, 290, 300 ms; median = 290 ms.
+- Reduction = `(400 - 290) / 400 × 100 = 27.5%`.
+- Error median: 30 basis points = 0.30% in both A and B.
+- CPU median rises from 57% to 62%, i.e., **5 percentage points**, within the illustrative budget of at most 8 percentage points.
+- Every run records the same `Plan` and `achievedRps >= 95`, so the example's **metadata validation** passes; the predefined rules yield PASS.
 
-**Giới hạn của ví dụ:** `Plan.equals(...)` chỉ xác nhận *metadata khai báo giống nhau*. Nó không chứng minh các request thực đến cùng lịch, cùng query plan, cùng cache, cùng phiên bản driver/JVM patch hoặc máy phát tải không nghẽn; các điều đó cần đối chiếu artifact thật. `achievedRps >= 95` là một điều kiện đơn giản, **không** kiểm tra queue, sai lệch lịch arrival hay correctness. Median p95 của ba run không phải p95 gộp của mọi request. Tập dữ liệu nhỏ và được dựng sẵn **không** chứng minh thay đổi là nguyên nhân, cũng không cung cấp confidence interval.
+**Example limitations:** `Plan.equals(...)` only checks *matching declared metadata*. It does not prove requests actually arrived on the same schedule, used the same query plan, caches, driver/JVM patch versions, or an unbottlenecked load generator; those require checking real artifacts. `achievedRps >= 95` is a simple check and does **not** verify queues, arrival schedule drift, or correctness. Median of three per-run p95s is not the pooled p95 across all requests. A small fabricated dataset **does not** prove the change is causal, nor does it provide confidence intervals.
 
-Nếu thay `B` bằng số liệu mới, luôn đọc metadata/tải và định nghĩa metric trước khi chạy cổng số học. Chương trình minh họa giúp kiểm tra tính nhất quán của quyết định, **không thay thế chẩn đoán JVM và thiết kế benchmark**.
+If substituting new measurements for `B`, always inspect load metadata and metric definitions before running numerical gates. This demo checks decision consistency and **does not replace JVM diagnostics or benchmark design**.
 
-## 8. Kiểm chứng cơ chế: đo đúng điều thay đổi đáng lẽ tác động
+## 8. Verifying the Mechanism: Measure What the Change Should Affect
 
-Ngay cả khi B đạt ngưỡng p95, cần xem **dấu hiệu dẫn đến cải thiện có phù hợp với giả thuyết**:
+Even when B passes the p95 threshold, check whether **the observed mechanism matches the hypothesis**:
 
-| Thay đổi đang thử | Cơ chế dự đoán | Bằng chứng nên đối chiếu |
+| Change Under Test | Expected Mechanism | Evidence to Cross-Check |
 | --- | --- | --- |
-| Giảm allocation Java | Ít byte cấp phát hơn trên mỗi request, giảm áp lực GC | Allocation profiling/JFR, allocation rate, GC events, CPU và latency |
-| Giảm contention | Luồng chờ lock ít hơn, thời gian blocked/wait giảm | JFR lock events, thread dump nhiều thời điểm, throughput và p95 |
-| Tối ưu query | Query latency/rows read/cost giảm | DB execution plan/metrics, trace span, pool wait, query correctness |
-| Đổi connection pool | Ít request chờ connection hơn | Pool in-use/pending/wait time, DB connections, DB CPU/latency và timeout |
-| Đổi GC/heap | Phân phối pause/throughput/footprint phù hợp mục tiêu | GC logs/JFR, heap after GC, CPU, RSS, p99 và OOM behavior |
-| Thêm cache | Cache hit tăng, dependency call giảm | Hit/miss, stale data/correctness, memory footprint, cache warm/cold behavior |
+| Reduce Java allocations | Fewer bytes allocated per request, lower GC pressure | Allocation profiling/JFR, allocation rate, GC events, CPU, and latency |
+| Reduce contention | Fewer threads waiting on locks, less blocked/wait time | JFR lock events, multi-point thread dumps, throughput, and p95 |
+| Optimize query | Lower query latency / rows read / cost | DB execution plans/metrics, trace spans, pool wait, query correctness |
+| Tune connection pool | Fewer requests waiting for connections | Pool in-use/pending/wait time, DB connections, DB CPU/latency, and timeouts |
+| Change GC/heap | Pause/throughput/footprint distribution aligns with goal | GC logs/JFR, post-GC heap, CPU, RSS, p99, and OOM behavior |
+| Add cache | Higher cache hit ratio, fewer dependency calls | Hit/miss, stale data/correctness, memory footprint, warm/cold cache behavior |
 
-Cần tránh một vòng suy luận: “B có p95 thấp hơn, nên GC đã tốt hơn; GC tốt hơn, nên B có p95 thấp hơn”. Chỉ kết luận về GC khi **thật sự đo GC** và evidence nhất quán với thời gian request bị ảnh hưởng.
+Avoid circular reasoning: "B has lower p95, so GC got better; GC got better, so B has lower p95". Only draw conclusions about GC when you **actually measured GC** and the evidence aligns with the affected requests' timing.
 
-**Cơ chế có thể là trade-off.** Tăng thread pool đôi khi giúp xử lý đồng thời nhiều request hơn, nhưng cũng có thể tăng context switching, áp lực DB hoặc tail latency. Việc tăng/giảm một metric không xác nhận toàn hệ thống tối ưu nếu không xem tài nguyên và các dependency liên quan.
+**Mechanisms can be trade-offs.** Expanding a thread pool can sometimes process more concurrent requests, yet also raise context switching, DB pressure, or tail latency. One metric moving favorably does not confirm system-wide improvement without checking resources and dependencies.
 
-Khi thay đổi là **bug fix về tính đúng đắn**, điều kiện quan trọng nhất là test tái hiện lỗi và regression tests PASS. Chạy performance benchmark chỉ hữu ích nếu bản sửa có rủi ro hiệu năng hoặc tác động dưới tải; không dùng một p95 đẹp để biện hộ cho kết quả nghiệp vụ sai.
+When the change is a **correctness bug fix**, the most important gate is passing the failing reproduction test and regression suite. Running performance benchmarks helps only if the fix carries performance risk or load sensitivity; never use a pretty p95 to excuse wrong business results.
 
-## 9. Xử lý biến thiên và độ tin cậy của kết luận
+## 9. Handling Variance and Conclusion Confidence
 
-Dữ liệu runtime thường nhiễu. Một số nguồn biến thiên điển hình:
+Runtime data is noisy. Typical variance sources:
 
-- JIT compilation/deoptimization, class loading, cache, GC, CPU scheduling, container throttling.
-- Network jitter, database plan/cache, index/update, queue, downstream workload và batch jobs.
-- Sai khác giữa các máy/instance, load generator quá tải, clock/metric sampling và instrumentation overhead.
-- Workload mix, payload distribution, dữ liệu nóng/lạnh, retries và request timeout.
+- JIT compilation/deoptimization, class loading, caches, GC, CPU scheduling, container throttling.
+- Network jitter, database plans/caches, index/updates, queues, downstream load, and batch jobs.
+- Host/instance differences, overloaded load generators, clock/metric sampling, and instrumentation overhead.
+- Workload mix, payload distributions, hot/cold data, retries, and request timeouts.
 
-Để giảm nhầm lẫn:
+To reduce confusion:
 
-1. **Lặp lại theo thiết kế**, lưu toàn bộ từng run và điều kiện. Không vứt run xấu chỉ vì không hợp giả thuyết; nếu loại bỏ run do lỗi công cụ, ghi lý do trước hoặc độc lập với kết quả mong muốn.
-2. **Dùng baseline đối chứng** gần thời điểm đo và, nếu phù hợp, đan xen thứ tự chạy. Kiểm tra việc revert B về A có đưa hành vi quay gần baseline không; đây có thể là bằng chứng mạnh thêm về tác động nhưng cũng bị ảnh hưởng bởi trạng thái/tải.
-3. **Xem phân phối**, không chỉ mean. Đối với tail latency, cần đủ request ở cửa sổ đo và lưu p95/p99 cùng error/timeout; các mẫu cực đoan quan trọng với người dùng.
-4. **Phân biệt đơn vị mẫu**. Request trong một run có thể tương quan; các run thực sự độc lập có giá trị khác với hàng triệu request cùng một đợt nghẽn.
-5. **Ước lượng bất định khi cần**. Có thể tính khoảng tin cậy cho chênh lệch run-level với phương pháp phù hợp hoặc bootstrap trên các đơn vị độc lập; không tự tuyên bố “95% chắc chắn” từ một phép đo hoặc từ ba run giả định.
-6. **Đánh giá tính thực tiễn**. Chênh lệch nhỏ hơn dao động baseline hoặc không có tác động SLO/người dùng có thể chưa đủ để triển khai, kể cả khi tìm được một p-value nhỏ trong tập dữ liệu lớn.
+1. **Repeat by design**, saving every run and its conditions. Never discard bad runs just because they conflict with the hypothesis; if dropping a run due to tooling failure, document the rule upfront or independent of desired outcomes.
+2. **Use nearby control baselines** and interleave run order when appropriate. Check whether reverting B back to A brings behavior back near baseline; this strengthens evidence of impact though it is still subject to state/load effects.
+3. **Inspect distributions**, not just means. For tail latency, collect enough requests in the measurement window and store p95/p99 alongside errors/timeouts; extreme samples matter to users.
+4. **Distinguish the unit of sampling**. Requests inside one run can be correlated; genuinely independent runs carry different statistical weight than millions of requests within one congested period.
+5. **Estimate uncertainty when needed**. Compute confidence intervals for run-level differences using suitable methods or bootstrap over independent units; never declare "95% confidence" from one measurement or three fabricated runs.
+6. **Evaluate practical significance**. Differences smaller than baseline variance or with no SLO/user impact may not justify shipping, even with a small p-value in a huge dataset.
 
-Nếu dữ liệu mâu thuẫn, ví dụ p95 cải thiện ở một mức tải nhưng xấu đi ở mức cao, hãy báo **đường cong theo tải** và kết luận có điều kiện. Đừng ép các trường hợp trái chiều vào một nhãn “nhanh hơn 20%”.
+When data conflicts—for example, p95 improves at moderate load yet worsens at high load—report **the curve across load levels** and conditional conclusions. Never force opposing regimes into a single "20% faster" label.
 
-### 9.1 Các trạng thái kết luận nên phân biệt
+### 9.1 Conclusion States to Distinguish
 
-- **PASS (theo cổng định trước):** điều kiện so sánh thỏa và mọi metric/guardrail của phạm vi đã đo đạt ngưỡng. Không đồng nghĩa chứng minh hiệu quả trong mọi tải/môi trường.
-- **FAIL:** thay đổi không đạt mục tiêu, có hồi quy hoặc vi phạm guardrail trong điều kiện hợp lệ.
-- **INCONCLUSIVE:** không đủ bằng chứng đáng tin để PASS/FAIL: tải không tương đương, mất dữ liệu, không đủ mẫu, run lỗi công cụ, biến gây nhiễu lớn.
-- **NOT TESTED:** một workload/môi trường/tác động nằm ngoài kế hoạch, không được suy ra từ PASS của workload khác.
+- **PASS (by predefined gate):** comparability conditions hold and all metrics/guardrails within the measured scope pass thresholds. Does not prove effectiveness across all loads or environments.
+- **FAIL:** change misses the target, regresses, or violates a guardrail under valid conditions.
+- **INCONCLUSIVE:** insufficient reliable evidence to call PASS/FAIL: non-equivalent load, missing data, too few samples, tooling errors, or major confounders.
+- **NOT TESTED:** a workload/environment/effect outside the test plan; cannot be inferred from PASSing another workload.
 
-Các nhãn này thuộc **thí nghiệm đo**, không đồng nhất với trạng thái **sửa lỗi đã triển khai/đóng incident**.
+These labels belong to **measurement experiments**, distinct from **fix deployed / incident closed** status.
 
-## 10. Những giới hạn phải viết ra trong báo cáo
+## 10. Limitations That Must Be Stated in the Report
 
-Một kết luận có trách nhiệm luôn đặt số liệu vào phạm vi thực tế. Các dạng giới hạn thường gặp:
+A responsible conclusion always anchors numbers to their actual scope. Common limitation categories:
 
-### 10.1 Giới hạn về môi trường
+### 10.1 Environment Limitations
 
-- Benchmark chạy trên staging, chưa kiểm chứng traffic production và topology thực.
-- JDK 17, heap 2 GiB, 2 CPU và ba replica là điều kiện của thí nghiệm; không mặc định kết quả giữ nguyên ở cấu hình khác.
-- Database synthetic nhỏ hơn dữ liệu production, khác phân phối khóa/query plan/cache hoặc không có contention thật.
+- Benchmark ran in staging, not yet verified under real production traffic and topology.
+- JDK 17, 2 GiB heap, 2 CPUs, and three replicas were the experimental conditions; results are not guaranteed under other configs.
+- Synthetic database is smaller than production data, differing in key distribution, query plans, caches, or real contention.
 
-### 10.2 Giới hạn về workload
+### 10.2 Workload Limitations
 
-- Chỉ đo 100 RPS và mix 70:30, chưa kiểm chứng 300 RPS, spike, tải nền hoặc payload lớn.
-- Chỉ đo steady state 10 phút sau warm-up; chưa đánh giá cold start, leak dài hạn, rollover và trạng thái sau giờ cao điểm.
-- Chỉ đo hai endpoint; không kết luận các job batch, scheduled tasks hay API khác đều cải thiện.
+- Tested only 100 RPS and a 70:30 mix; 300 RPS, spikes, background jobs, and large payloads are unverified.
+- Measured only 10 minutes of steady state post-warmup; cold start, long-term leaks, rollovers, and post-peak states were not evaluated.
+- Tested only two endpoints; batch jobs, scheduled tasks, or other APIs are not covered.
 
-### 10.3 Giới hạn về đo lường và thống kê
+### 10.3 Measurement and Statistical Limitations
 
-- Chỉ có ba run/phiên bản, độ biến thiên lớn; chưa đủ chứng minh cải thiện ổn định ở mức thống kê mong muốn.
-- Chưa xác minh load generator phát đúng lịch hoặc chưa ghi đủ timeout; p99 có thể bị thiên lệch.
-- Dùng median của p95 từng run, không phải p95 gộp, và không kèm khoảng tin cậy.
-- Chưa đo CPU throttling, DB wait, GC hay ảnh hưởng lâu dài; các nguyên nhân khác vẫn có thể giải thích chênh lệch.
+- Only three runs per variant with notable spread; insufficient to prove consistent improvement at desired statistical confidence.
+- Did not verify load generator schedule accuracy or capture all timeouts; p99 may be biased.
+- Used median of per-run p95s rather than pooled p95, without confidence intervals.
+- Did not measure CPU throttling, DB waits, GC, or long-term effects; other causes could still explain the delta.
 
-### 10.4 Giới hạn của suy luận nguyên nhân
+### 10.4 Causal Inference Limitations
 
-- Nếu cùng lúc đổi code và cấu hình, phép thử chỉ cho biết hiệu ứng **gộp**; không thể tách tác động của từng thay đổi.
-- Nếu A đo sáng, B đo chiều và dependency thay đổi, kết luận nhân quả bị giới hạn bởi time-of-day và external load.
-- Nếu không có đối chứng độc lập hoặc không thử revert, có thể nói “phù hợp giả thuyết”, chưa nên nói “đã chứng minh nguyên nhân gốc”.
-- Nếu sample chỉ là ba run thuận lợi được chọn từ nhiều run, kết luận dễ bị selection bias.
+- Changing code and configuration together only reveals the **combined** effect; individual contributions cannot be separated.
+- Measuring A in the morning and B in the afternoon while dependencies shifted limits causal inference due to time-of-day and external load.
+- Without an independent control or a revert check, you may say "consistent with hypothesis", not "root cause proven".
+- Picking three favorable runs out of many introduces selection bias.
 
-Giới hạn không làm báo cáo “yếu”; nó giúp người đọc biết phải áp dụng kết quả vào quyết định nào và cần thí nghiệm bổ sung ở đâu.
+Stating limitations does not make a report "weak"; it tells readers which decisions the results can safely inform and where follow-up experiments are needed.
 
-## 11. Ví dụ viết kết luận đúng mức bằng chứng
+## 11. Example of Writing an Evidence-Proportional Conclusion
 
-Giả sử nhóm đo ba lần A và ba lần B trong staging theo cùng plan khai báo, thu được median run-level p95 là 400 ms và 290 ms, error median bằng nhau ở 0,30%, CPU median tăng 5 điểm phần trăm và achieved throughput mỗi run >=95% của 100 RPS mục tiêu.
+Suppose a team runs A three times and B three times in staging under the declared plan, obtaining median run-level p95s of 400 ms and 290 ms, identical error medians at 0.30%, CPU median rising 5 percentage points, and every run achieving >=95% of the 100 RPS target.
 
-**Kết luận quá mạnh:**
+**Overstated conclusion:**
 
-> “Bản B đã được chứng minh nhanh hơn 27,5% trong production và loại bỏ hoàn toàn vấn đề hiệu năng.”
+> "Version B has been proven 27.5% faster in production and completely eliminates the performance issue."
 
-Câu này vượt quá bằng chứng vì phép đo staging không chứng minh production, không bao quát mọi workload và không nói rõ tính bất định.
+This overreaches the evidence because staging measurements do not prove production behavior, do not cover all workloads, and omit uncertainty.
 
-**Kết luận phù hợp:**
+**Appropriate conclusion:**
 
-> “Trong ba run/biến thể của workload synthetic 100 RPS trên môi trường staging đã khai báo, median của p95 theo run giảm từ 400 xuống 290 ms (giảm 110 ms, tương đương 27,5%). Error median giữ ở 0,30%; CPU median tăng từ 57% lên 62%; các run đạt ngưỡng achieved throughput tối thiểu. Bộ số liệu đáp ứng cổng chấp nhận minh họa của thử nghiệm. Giới hạn: ít run, chưa có khoảng tin cậy và chưa xác nhận trạng thái dependency/cache thực giống nhau hoặc hiệu quả ở traffic production; cần thêm đối chứng và theo dõi canary trước khi khẳng định hiệu quả triển khai rộng.”
+> "Across three runs per variant of the 100 RPS synthetic workload in the documented staging environment, median per-run p95 dropped from 400 to 290 ms (a 110 ms or 27.5% reduction). Median error rate held at 0.30%; median CPU rose from 57% to 62%; all runs met the minimum achieved-throughput threshold. The dataset satisfies the experiment's illustrative acceptance gate. Limitations: small run count, no confidence intervals, and unverified parity of real dependency/cache states or production traffic effectiveness; further control checks and canary monitoring are required before claiming broad deployment effectiveness."
 
-Nếu đã có metric/JFR/trace chứng minh query X giảm thời gian xử lý đúng như giả thuyết, có thể bổ sung: “Các trace/DB metrics liên kết theo run ID ủng hộ việc giảm latency ở query X là cơ chế đóng góp chính”, kèm link bằng chứng. Không tự thêm một kết luận này nếu chưa thật sự đo.
+If metrics/JFR/traces actually verify that query X reduced execution time as hypothesized, you can add: "Traces and DB metrics linked by run ID support reduced latency in query X as the primary contributing mechanism", with evidence links. Never insert this sentence unless you actually measured it.
 
-## 12. Quy trình thực hành theo từng bước
+## 12. Step-by-Step Practical Workflow
 
-1. **Định nghĩa thay đổi và giả thuyết.** Ghi commit/config diff, cơ chế dự đoán, metric chính, guardrails và tiêu chí PASS/FAIL/INCONCLUSIVE.
-2. **Khóa hợp đồng so sánh.** Workload model, offered rate và lịch gửi, concurrency, operation mix, dataset, warm-up, thời lượng, JDK/JVM, resource, dependency và nguồn metric.
-3. **Chuẩn hóa các run.** Lưu run ID, timestamp có múi giờ, build digest, command load generator, seed, metrics và nơi lưu artifact. Kiểm tra công cụ đo hoạt động trước khi đo.
-4. **Chạy baseline và candidate nhiều lần.** Giữ điều kiện tương đương, có chiến lược giảm drift, không trộn warm-up với steady-state nếu đang kiểm tra steady-state.
-5. **Kiểm tra tính hợp lệ của phép so sánh.** Đối chiếu offered/sent/received/completed RPS, in-flight/queue, lỗi load generator, mix, data, instance, dependency; nếu không hợp lệ, đánh dấu INCONCLUSIVE trước khi diễn giải cải thiện.
-6. **Phân tích hiệu quả và guardrails.** Công bố từng run, chênh lệch tuyệt đối/tương đối, biến thiên, correctness, errors/timeouts, CPU/heap/GC, DB; không chỉ báo con số có lợi.
-7. **Kiểm tra cơ chế và các cách giải thích khác.** Nối logs, metrics, traces, JFR hoặc GC/thread evidence theo cùng cửa sổ; thử lại khi cần, kiểm tra tác động phụ và trường hợp workload khác.
-8. **Ra quyết định có điều kiện.** PASS/FAIL/INCONCLUSIVE theo tiêu chí đặt trước; ghi giới hạn, độ tin cậy, tài nguyên/chi phí, hướng hành động, owner và cổng canary/rollback nếu triển khai.
-9. **Theo dõi sau thay đổi.** Với production, kiểm tra SLO, error/timeout, user impact, CPU/DB, load mix và thời gian dài hơn; lưu kết quả để đối chiếu với dự báo của thí nghiệm.
+1. **Define the change and hypothesis.** Record commit/config diff, expected mechanism, primary metric, guardrails, and PASS/FAIL/INCONCLUSIVE rules.
+2. **Lock the comparison contract.** Workload model, offered rate and arrival schedule, concurrency, operation mix, dataset, warm-up, duration, JDK/JVM, resources, dependencies, and metric sources.
+3. **Standardize runs.** Save run IDs, timezone-aware timestamps, build digests, load generator commands, seeds, metrics, and artifact locations. Verify measurement tools work before starting.
+4. **Run baseline and candidate multiple times.** Maintain equivalent conditions, use a drift-mitigation layout, and avoid mixing warm-up into steady state when testing steady state.
+5. **Validate comparability.** Check offered/sent/received/completed RPS, in-flight/queues, generator errors, mix, data, instances, and dependencies; if invalid, mark INCONCLUSIVE before interpreting gains.
+6. **Analyze effectiveness and guardrails.** Report individual runs, absolute/relative deltas, variance, correctness, errors/timeouts, CPU/heap/GC, and DB; never cherry-pick favorable numbers.
+7. **Check mechanisms and alternative explanations.** Align logs, metrics, traces, JFR, or GC/thread evidence over the same window; retry if needed, check side effects and other workloads.
+8. **Make a conditional decision.** PASS/FAIL/INCONCLUSIVE per predeclared criteria; document limitations, confidence, resource cost, action plan, owner, and canary/rollback gates if deploying.
+9. **Monitor post-change.** In production, track SLOs, errors/timeouts, user impact, CPU/DB, load mix, and longer durations; retain results to compare against experimental predictions.
 
-### Mẫu báo cáo so sánh
+### Comparison Report Template
 
 ```text
 CHANGE / HYPOTHESIS
@@ -496,30 +496,30 @@ DECISION
 - Owner and date:
 ```
 
-## 13. Lỗi thường gặp khi kiểm chứng thay đổi
+## 13. Common Mistakes When Verifying Changes
 
-- **“Cùng 100 virtual users” được gọi là “cùng 100 RPS”.** Mô hình closed không bảo đảm throughput giống nhau; phải đo arrival và completed RPS.
-- **Benchmark chỉ chạy một lần.** Kết quả có thể phụ thuộc JIT, cache, GC hoặc tải dependency; cần lặp và ghi độ biến thiên.
-- **Chỉ so p95 response 200.** Timeout/retry bị bỏ qua khiến cải thiện giả; phải báo lỗi và policy tính latency.
-- **Warm-up khác nhau giữa A/B.** Một bản cache nóng, bản kia lạnh; so sánh sai đối tượng.
-- **Không giữ dữ liệu đầu vào tương đương.** Dataset, khóa nóng, schema/index hoặc state thay đổi có thể chi phối metric.
-- **Chạy nhiều thay đổi trong cùng một B rồi gán công cho một dòng code.** Chỉ có bằng chứng về gói thay đổi; muốn tách riêng cần thiết kế thử nghiệm khác.
-- **Dùng trung bình của p99 và gọi đó là p99 toàn bộ request.** Percentile không cộng gộp theo cách đó.
-- **Bỏ guardrails khi thấy p95 tốt.** CPU, heap, database, correctness hay error rate có thể hồi quy.
-- **Không kiểm tra công cụ phát tải.** Generator nghẽn hoặc coordinated omission có thể làm B trông nhanh hơn.
-- **Gọi tương quan là nhân quả.** Không xem mechanism, drift, canary split và yếu tố gây nhiễu.
-- **Kết luận “fix production” từ staging.** Chỉ nên nói kết quả áp dụng trong workload/môi trường đã đo và nêu điều kiện xác minh rollout.
-- **Không ghi điều chưa biết.** Người đọc dễ áp dụng một kết luận có điều kiện thành khẳng định tuyệt đối.
+- **"Same 100 virtual users" called "same 100 RPS".** Closed models do not guarantee equal throughput; measure arrival and completed RPS.
+- **Benchmarking only once.** Results can depend on JIT, caches, GC, or dependency load; repeat and report variance.
+- **Comparing p95 of HTTP 200 responses only.** Dropped timeouts/retries create fake gains; report errors and latency policy.
+- **Different warm-up between A and B.** One build has a warm cache, the other cold; invalid comparison.
+- **Failing to keep input data equivalent.** Dataset, hot keys, schema/indexes, or state changes can dominate metrics.
+- **Bundling multiple changes into B and crediting one line of code.** You only have evidence for the bundle; isolating parts requires another experiment.
+- **Averaging p99s and calling it global p99.** Percentiles do not aggregate by averaging.
+- **Ignoring guardrails when p95 looks good.** CPU, heap, database, correctness, or error rates may have regressed.
+- **Failing to check the load generator.** A throttled generator or coordinated omission can make B look faster.
+- **Calling correlation causation.** Ignoring mechanisms, drift, canary splits, and confounders.
+- **Concluding "production fixed" from staging.** Only state results apply to the measured workload/environment and list rollout verification gates.
+- **Omitting unknowns.** Readers easily turn conditional conclusions into absolute claims.
 
-## 14. Tự kiểm tra kiến thức
+## 14. Knowledge Self-Check
 
-1. Hai phiên bản đều có `targetRps=100`, nhưng A hoàn thành 99 RPS, B hoàn thành 60 RPS và B có p95 thấp hơn. Vì sao chưa thể gọi B nhanh hơn “ở cùng tải”?
-2. B có p95 thấp hơn 30% nhưng timeout tăng từ 0,2% lên 5%. Kết quả có vượt cổng reliability nếu tiêu chí định trước là lỗi không tăng không?
-3. Vì sao không thể lấy trung bình ba giá trị p99 theo run rồi gọi là p99 của toàn bộ request A hoặc B?
-4. Nếu đổi JVM flags, `-Xmx` và code cùng lúc, kết luận nhân quả tối đa có thể nói về điều gì?
-5. Bạn có ba run A/B ở staging và kết quả ổn định; những giới hạn nào phải nêu trước khi quyết định production rollout?
-6. Một thay đổi giảm median p95 nhưng làm CPU tăng 20 điểm phần trăm, trong khi ngân sách định trước chỉ cho phép tăng 8. Trạng thái PASS/FAIL/INCONCLUSIVE nên là gì khi dữ liệu hoàn chỉnh và workload tương đương?
-7. Làm sao sử dụng trace, GC log hoặc JFR để tăng bằng chứng cho **cơ chế** của thay đổi, thay vì chỉ thấy “trước/sau khác nhau”?
-8. Trong benchmark của dịch vụ có queue, vì sao phải quan sát backlog theo thời gian chứ không chỉ throughput và p95 tại một thời điểm?
+1. Both versions specify `targetRps=100`, yet A completes 99 RPS while B completes 60 RPS and B shows lower p95. Why can you not call B faster "under equivalent load"?
+2. B achieves 30% lower p95, yet timeouts climb from 0.2% to 5%. Does the result pass the reliability gate if the predefined rule says errors must not increase?
+3. Why can you not average three per-run p99 values and call it the overall p99 of all requests for A or B?
+4. If you change JVM flags, `-Xmx`, and application code simultaneously, what is the strongest causal claim you can legitimately make?
+5. You have three stable A/B runs in staging; what limitations must be stated before deciding on a production rollout?
+6. A change reduces median p95 yet increases CPU by 20 percentage points when the predefined budget allowed at most 8. What should the PASS/FAIL/INCONCLUSIVE status be if data is complete and workloads are equivalent?
+7. How do you use traces, GC logs, or JFR to strengthen evidence for the **mechanism** of a change, rather than merely seeing "before/after differed"?
+8. In a benchmark for a queued service, why must you monitor backlog over time instead of only throughput and p95 at a single point?
 
-**Ghi nhớ:** kiểm chứng một thay đổi yêu cầu **tải và điều kiện có thể so sánh**, **tiêu chí định trước**, **đủ số run/bằng chứng**, **đánh giá cả guardrails** và **một kết luận được giới hạn bởi những gì thực sự đã đo**. “B đạt cổng ở 100 RPS trên staging” là một kết luận hữu ích; từ đó không tự suy ra “B tốt hơn ở mọi tải và mọi production environment”.
+**Remember:** verifying a change requires **comparable load and conditions**, **predeclared criteria**, **sufficient runs/evidence**, **guardrail evaluation**, and **a conclusion bounded by what was actually measured**. "B passed the gate at 100 RPS in staging" is a useful conclusion; from it, never automatically extrapolate "B is better under every load and every production environment".

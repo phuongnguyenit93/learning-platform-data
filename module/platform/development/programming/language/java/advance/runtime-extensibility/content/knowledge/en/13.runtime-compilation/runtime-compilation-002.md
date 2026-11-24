@@ -1,30 +1,30 @@
-# Phân biệt module java.compiler, jdk.compiler và trình biên dịch thực tế
+# Distinguishing the java.compiler Module, jdk.compiler, and the Actual Compiler
 
-## 1. Ba khái niệm không đồng nghĩa
+## 1. Three Concepts That Are Not Synonymous
 
-Khi Java ứng dụng muốn biên dịch mã nguồn ngay lúc chạy—chẳng hạn hệ thống plugin, sandbox thực hành hoặc trình tạo mã—cần phân biệt **API biên dịch**, **implementation của JDK** và **công cụ thực sự có thể sử dụng trong runtime hiện tại**.
+When a Java application wants to compile source code at runtime—such as a plugin system, practice sandbox, or code generator—it is necessary to distinguish **the compilation API**, **the JDK implementation**, and **the tool actually usable in the current runtime**.
 
-| Thành phần | Vai trò | Có gì? |
+| Component | Role | What Does It Contain? |
 |---|---|---|
-| \`java.compiler\` | Module chuẩn Java SE định nghĩa API biên dịch | \`javax.tools.JavaCompiler\`, \`ToolProvider\`, \`JavaFileObject\`, \`DiagnosticCollector\` |
-| \`jdk.compiler\` | Module của JDK chứa compiler implementation | Trình biên dịch \`javac\` và các API \`com.sun.source.*\`, implementation liên quan |
-| Trình biên dịch thực tế | Compiler được ứng dụng chọn và có thể gọi ở runtime | System compiler, công cụ \`javac\` bên ngoài, hoặc compiler khác hỗ trợ hợp đồng |
+| \`java.compiler\` | Standard Java SE module defining the compilation API | \`javax.tools.JavaCompiler\`, \`ToolProvider\`, \`JavaFileObject\`, \`DiagnosticCollector\` |
+| \`jdk.compiler\` | JDK module containing the compiler implementation | The \`javac\` compiler and \`com.sun.source.*\` APIs, related implementations |
+| Actual compiler | Compiler chosen by the application and invokable at runtime | System compiler, external \`javac\` tool, or another compiler supporting the contract |
 
-**Điểm mấu chốt:** có module \`java.compiler\` không có nghĩa máy ảo hiện tại chứa compiler implementation. API chỉ định nghĩa cách giao tiếp; một runtime image tùy chỉnh có thể không chứa \`jdk.compiler\`. Do đó \`ToolProvider.getSystemJavaCompiler()\` có thể trả về \`null\`.
+**Key point:** having the \`java.compiler\` module does not mean the current virtual machine contains a compiler implementation. The API only defines how to communicate; a custom runtime image may omit \`jdk.compiler\`. Therefore \`ToolProvider.getSystemJavaCompiler()\` can return \`null\`.
 
-## 2. \`java.compiler\`: hợp đồng Java Compiler API
+## 2. \`java.compiler\`: The Java Compiler API Contract
 
-\`java.compiler\` là module tiêu chuẩn cung cấp package \`javax.tools\`. Những kiểu thường gặp:
+\`java.compiler\` is the standard module providing the \`javax.tools\` package. Commonly encountered types:
 
-- \`JavaCompiler\`: interface biểu diễn compiler xử lý Java source;
-- \`JavaCompiler.CompilationTask\`: tác vụ biên dịch có thể gọi qua \`call()\`;
-- \`ToolProvider\`: cách lấy system compiler theo quy tắc JDK;
-- \`JavaFileObject\` và \`SimpleJavaFileObject\`: mô hình tệp nguồn/class, có thể xây dựng in-memory file object;
-- \`StandardJavaFileManager\`: xử lý tệp chuẩn và đường dẫn;
-- \`DiagnosticListener\`/\`DiagnosticCollector\`: nhận lỗi, cảnh báo và thông tin dòng/cột;
-- \`JavaFileManager\`: có thể tùy chỉnh để lưu kết quả ra bộ nhớ.
+- \`JavaCompiler\`: interface representing a compiler that processes Java source;
+- \`JavaCompiler.CompilationTask\`: compilation task invokable via \`call()\`;
+- \`ToolProvider\`: way to obtain the system compiler per JDK rules;
+- \`JavaFileObject\` and \`SimpleJavaFileObject\`: model for source/class files, supporting in-memory file objects;
+- \`StandardJavaFileManager\`: handles standard files and paths;
+- \`DiagnosticListener\`/\`DiagnosticCollector\`: receives errors, warnings, and line/column information;
+- \`JavaFileManager\`: customizable to store outputs in memory.
 
-Một named module dùng API này khai báo:
+A named module using this API declares:
 
 \`\`\`java
 module example.host {
@@ -32,35 +32,35 @@ module example.host {
 }
 \`\`\`
 
-Nếu dùng classpath (unnamed module) trong runtime JDK thông thường, thường không cần \`module-info.java\`.
+If using the classpath (unnamed module) in a regular JDK runtime, \`module-info.java\` is usually not needed.
 
-**Cần phân biệt \`javax.tools\` với \`javax.annotation.processing\`**: cả hai thuộc phạm vi API biên dịch nhưng chức năng khác nhau. Một bên quản lý compiler/file manager/diagnostics, bên kia cung cấp annotation processing API. Đối với plugin chạy mã mới, việc biên dịch bytecode chỉ là một bước; phải có class loader/module layer riêng để định nghĩa class và quản lý vòng đời.
+**Distinguish \`javax.tools\` from \`javax.annotation.processing\`**: both belong to the compilation API scope, but their functions differ. One manages the compiler/file manager/diagnostics, while the other provides the annotation processing API. For plugins running new code, compiling bytecode is only one step; a separate class loader/module layer is needed to define classes and manage the lifecycle.
 
-## 3. \`jdk.compiler\`: implementation của javac
+## 3. \`jdk.compiler\`: The javac Implementation
 
-\`jdk.compiler\` là module đặc thù JDK cung cấp implementation của Java compiler. Trong JDK hiện đại, module này bao gồm command compiler provider và các package như \`com.sun.source.tree\`, \`com.sun.source.util\` dành cho phân tích cây cú pháp.
+\`jdk.compiler\` is a JDK-specific module providing the implementation of the Java compiler. In modern JDKs, this module includes the command compiler provider and packages such as \`com.sun.source.tree\` and \`com.sun.source.util\` for syntax tree analysis.
 
-Có thể xem thông tin module trên JDK:
+You can inspect module information on the JDK:
 
 \`\`\`bash
 java --describe-module jdk.compiler
 \`\`\`
 
-Hoặc:
+Or:
 
 \`\`\`bash
 java --list-modules
 \`\`\`
 
-Kết quả phụ thuộc bản phân phối và runtime image. Ví dụ trên một JDK 17 đầy đủ, danh sách thường có \`java.compiler@17...\` và \`jdk.compiler@17...\`. Không nên hardcode phiên bản hoặc toàn bộ output vì vendor, bản vá và cách tạo runtime image có thể khác.
+The output depends on the distribution and runtime image. For example, on a full JDK 17, the list typically includes \`java.compiler@17...\` and \`jdk.compiler@17...\`. Do not hardcode versions or exact full output because vendors, patch levels, and runtime image builds can differ.
 
-\`jdk.compiler\` **không đồng nghĩa với việc mọi class nội bộ \`com.sun.tools.javac.*\` là public API ổn định**. JPMS có cơ chế export package; code ứng dụng nên dùng \`javax.tools\` khi chỉ cần biên dịch, và dùng public API \`com.sun.source.*\` khi cần thông tin AST được hỗ trợ. Tránh truy cập trực tiếp các package implementation nội bộ vì có thể bị chặn bởi module encapsulation hoặc thay đổi giữa các phiên bản JDK.
+\`jdk.compiler\` **does not mean every internal \`com.sun.tools.javac.*\` class is a stable public API**. JPMS enforces package exports; application code should use \`javax.tools\` when only compilation is needed, and use the supported \`com.sun.source.*\` public APIs when AST information is required. Avoid directly accessing internal implementation packages because module encapsulation may block them or they may change across JDK versions.
 
-Trong thiết kế thông thường, **host chỉ cần \`requires java.compiler\`**, không cần \`requires jdk.compiler\` chỉ để gọi \`ToolProvider.getSystemJavaCompiler()\`. Điều này giữ code của host phụ thuộc vào hợp đồng Java SE và cho phép kiểm tra implementation vào runtime.
+In a typical design, **the host only needs \`requires java.compiler\`** and does not need \`requires jdk.compiler\` just to call \`ToolProvider.getSystemJavaCompiler()\`. This keeps the host code dependent on the Java SE contract and allows checking for an implementation at runtime.
 
-## 4. \`ToolProvider.getSystemJavaCompiler()\` và \`null\`
+## 4. \`ToolProvider.getSystemJavaCompiler()\` and \`null\`
 
-\`javax.tools.ToolProvider.getSystemJavaCompiler()\` trả về compiler do môi trường Java hiện tại cung cấp theo cơ chế system compiler. Khi không có compiler, kết quả là \`null\`.
+\`javax.tools.ToolProvider.getSystemJavaCompiler()\` returns the compiler provided by the current Java environment via the system compiler mechanism. When no compiler is present, the result is \`null\`.
 
 \`\`\`java
 import javax.tools.JavaCompiler;
@@ -72,21 +72,21 @@ if (compiler == null) {
 }
 \`\`\`
 
-*Đoạn này minh họa cách kiểm tra, chưa là chương trình độc lập.*
+*This snippet illustrates how to check and is not a standalone program.*
 
-Một số tình huống cần đặc biệt chú ý:
+Situations that deserve special attention:
 
-- **JDK đầy đủ**: thông thường có compiler khả dụng.
-- **Runtime image \`jlink\` chỉ gồm module cần chạy**: có thể có \`java.compiler\` nhưng thiếu \`jdk.compiler\`; system compiler không khả dụng.
-- **Container tối giản**: image runtime có thể không có compiler dù máy phát triển có JDK.
-- **Ứng dụng chạy bằng native image hoặc runtime đặc thù**: cơ chế compiler/Java module có thể khác JVM JDK thường; cần xác minh trên môi trường triển khai thực tế.
-- **JDK compiler module có nhưng đường dẫn output không ghi được**: compiler tồn tại, nhưng compilation vẫn thất bại vì quyền ghi/đường dẫn/classpath/module path.
+- **Full JDK**: normally has an available compiler.
+- **\`jlink\` runtime image containing only runtime modules**: may include \`java.compiler\` while missing \`jdk.compiler\`; the system compiler is unavailable.
+- **Minimal container**: the runtime image may lack a compiler even though the development machine has a JDK.
+- **Applications running on native image or specialized runtimes**: compiler/Java module mechanics may differ from a standard JDK JVM; verify on the actual deployment environment.
+- **JDK compiler module is present, but the output path is not writable**: the compiler exists, yet compilation still fails due to write permissions/paths/classpath/module path.
 
-Trước khi tuyên bố hệ thống hỗ trợ biên dịch lúc chạy, phải kiểm tra **compiler tồn tại**, **source/target/release phù hợp**, **dependency path đúng**, **file manager đủ quyền** và **môi trường có tài nguyên cần thiết**.
+Before claiming a system supports runtime compilation, verify **compiler presence**, **appropriate source/target/release**, **correct dependency paths**, **sufficient file manager permissions**, and **necessary environment resources**.
 
-## 5. Ví dụ Java 17+ đầy đủ: phát hiện và chạy system compiler
+## 5. Complete Java 17+ Example: Detecting and Running the System Compiler
 
-Tạo tệp **\`CompilerProbe.java\`**:
+Create file **\`CompilerProbe.java\`**:
 
 \`\`\`java
 import java.io.IOException;
@@ -148,14 +148,14 @@ public class CompilerProbe {
 }
 \`\`\`
 
-Chạy trên **JDK 17+ có \`jdk.compiler\` và hỗ trợ \`--release 17\`**:
+Run on **JDK 17+ with \`jdk.compiler\` and support for \`--release 17\`**:
 
 \`\`\`bash
 javac CompilerProbe.java
 java CompilerProbe
 \`\`\`
 
-Kết quả khi chạy trên JDK 17 đầy đủ với các module được resolve thông thường:
+Output when run on a full JDK 17 with normally resolved modules:
 
 \`\`\`text
 java.compiler present: true
@@ -165,22 +165,22 @@ compilation successful: true
 class file present: true
 \`\`\`
 
-Chương trình tạo thư mục tạm, ghi \`Hello.java\`, dùng Java Compiler API biên dịch nó vào cùng thư mục, và kiểm tra có \`Hello.class\`. Việc biên dịch **không tự chạy \`Hello\`**: muốn sử dụng class cần loader phù hợp hoặc tích hợp với module layer và lifecycle của plugin. Để tránh tích lũy file tạm trong ứng dụng thật, cần bổ sung chính sách dọn dẹp; ví dụ giữ thư mục để có thể kiểm tra output.
+The program creates a temporary directory, writes \`Hello.java\`, uses the Java Compiler API to compile it into the same directory, and checks that \`Hello.class\` exists. Compiling **does not automatically run \`Hello\`**: using the class requires an appropriate loader or integration with a module layer and plugin lifecycle. To avoid accumulating temporary files in a real application, add a cleanup policy; the example keeps the directory so you can inspect the output.
 
-Không nên lấy tên \`java.compiler\` hoặc \`jdk.compiler\` trong \`ModuleLayer.boot()\` làm bằng chứng duy nhất. Kiểm tra \`compiler != null\` mới là bước sát mục tiêu, và kết quả \`task.call()\` mới cho biết một lần biên dịch cụ thể thành công hay không.
+Do not treat the presence of \`java.compiler\` or \`jdk.compiler\` in \`ModuleLayer.boot()\` as the sole proof. Checking \`compiler != null\` is closer to the goal, and the result of \`task.call()\` is what indicates whether a specific compilation succeeded.
 
-## 6. Đánh giá module có mặt bằng ModuleLayer và ModuleFinder
+## 6. Evaluating Module Presence with ModuleLayer and ModuleFinder
 
-Có hai mức câu hỏi:
+There are two levels of questions:
 
-**(1) Module hiện thuộc layer hay chưa?**
+**(1) Is the module currently in the layer?**
 
 \`\`\`java
 boolean inBootLayer =
         ModuleLayer.boot().findModule("jdk.compiler").isPresent();
 \`\`\`
 
-**(2) Runtime image có module để tìm kiếm không?**
+**(2) Does the runtime image contain the module for discovery?**
 
 \`\`\`java
 boolean observable =
@@ -189,11 +189,11 @@ boolean observable =
                 .isPresent();
 \`\`\`
 
-\`ModuleFinder.ofSystem()\` tìm module trong system module image; nó không tự tạo compiler instance hoặc tự resolve module trong boot layer. Hai kết quả có thể khác nhau nếu module có trong image nhưng không được resolve vào layer đang xét.
+\`ModuleFinder.ofSystem()\` searches modules in the system module image; it does not create a compiler instance or automatically resolve the module into the boot layer. The two results can differ if the module exists in the image but was not resolved into the layer being checked.
 
-Khi chọn runtime image cho ứng dụng, **khả năng tìm thấy module khác với việc compiler thực sự có thể gọi và biên dịch thành công**. Host nên đánh giá theo feature test thích hợp, nhất là khi chạy trong image được tạo bằng \`jlink\`.
+When choosing a runtime image for an application, **being able to find the module differs from the compiler actually being invokable and compiling successfully**. The host should evaluate using an appropriate feature test, especially when running in an image created with \`jlink\`.
 
-### Ví dụ module-info.java cho host
+### Example module-info.java for the Host
 
 \`\`\`java
 module example.runtimecompiler.host {
@@ -201,34 +201,34 @@ module example.runtimecompiler.host {
 }
 \`\`\`
 
-Host chỉ phụ thuộc vào giao diện trong \`java.compiler\`; runtime deployment quyết định có implementation phù hợp không. Nếu dùng package \`com.sun.source.*\` của JDK compiler, cần cân nhắc dependency tường minh \`requires jdk.compiler\`, đồng thời chấp nhận đây là dependency đặc thù JDK.
+The host only depends on the interfaces in \`java.compiler\`; runtime deployment determines whether a suitable implementation is present. If using the JDK compiler's \`com.sun.source.*\` packages, consider an explicit dependency \`requires jdk.compiler\`, while accepting that this is a JDK-specific dependency.
 
-## 7. Tự thiết kế runtime image với jlink
+## 7. Designing a Custom Runtime Image with jlink
 
-Một ví dụ tạo image chứa compiler:
+An example of creating an image containing the compiler:
 
 \`\`\`bash
 jlink --add-modules java.base,java.compiler,jdk.compiler \
       --output runtime-with-compiler
 \`\`\`
 
-Sau đó dùng executable \`java\` trong thư mục \`runtime-with-compiler/bin\` để chạy ứng dụng đã biên dịch. Khi triển khai thực tế, thêm các module mà host và plugin thực sự cần. Cần chú ý compiler implementation có các dependency module riêng và \`jlink\` sẽ giải quyết dependencies theo module graph.
+Then use the \`java\` executable inside \`runtime-with-compiler/bin\` to run the compiled application. In real deployments, add the modules that the host and plugins actually need. Note that the compiler implementation has its own module dependencies, and \`jlink\` resolves dependencies according to the module graph.
 
-Một image không chứa \`jdk.compiler\` có thể vẫn chứa \`java.compiler\` nếu ứng dụng cần compile API như một phần của dependency graph nhưng không có compiler implementation để chạy.
+An image without \`jdk.compiler\` may still contain \`java.compiler\` if the application needs the compile API as part of its dependency graph without having a compiler implementation to execute.
 
-**Giới hạn quan trọng:** runtime image được tạo bởi \`jlink\` không đồng nghĩa một bộ JDK đầy đủ. Nó có thể thiếu executable \`javac\` trong \`bin\` ngay cả khi runtime đủ module để Java Compiler API hoạt động. Hãy phân biệt compile **in-process qua \`javax.tools\`** với gọi command **\`javac\` bên ngoài**. Khả năng có command-line tool cần được xác minh riêng.
+**Important limitation:** a runtime image built by \`jlink\` is not equivalent to a full JDK. It may lack the \`javac\` executable in \`bin\` even when the runtime has enough modules for the Java Compiler API to work. Distinguish **in-process compilation via \`javax.tools\`** from invoking the **external \`javac\` command**. Availability of the command-line tool must be verified separately.
 
-## 8. Compiler API so với \`javac\` command và compiler bên thứ ba
+## 8. Compiler API vs. \`javac\` Command and Third-Party Compilers
 
-Có ba chiến lược thực thi biên dịch:
+There are three compilation execution strategies:
 
-| Chiến lược | Ưu điểm | Ràng buộc |
+| Strategy | Advantages | Constraints |
 |---|---|---|
-| \`ToolProvider.getSystemJavaCompiler()\` | API Java chuẩn; diagnostics/file manager linh hoạt; có thể biên dịch in-process | Phụ thuộc compiler implementation trong runtime; mã compiler chạy trong tiến trình host |
-| Chạy \`javac\` bằng \`ProcessBuilder\` | Tiến trình riêng, dễ kiểm soát timeout/output; dùng toolchain được chọn | Cần executable và JDK/toolchain phù hợp; phải xử lý process, môi trường, classpath, output |
-| Compiler bên thứ ba | Phù hợp runtime hoặc tính năng riêng; có thể cung cấp API khác | Cần kiểm tra mức hỗ trợ Java, API, dependency và bảo trì |
+| \`ToolProvider.getSystemJavaCompiler()\` | Standard Java API; flexible diagnostics/file manager; supports in-process compilation | Depends on compiler implementation in runtime; compiler code runs inside the host process |
+| Running \`javac\` via \`ProcessBuilder\` | Separate process, easier timeout/output control; uses chosen toolchain | Requires executable and matching JDK/toolchain; must handle process, environment, classpath, output |
+| Third-party compiler | Fits specific runtimes or features; may offer a different API | Must verify Java support level, API, dependencies, and maintenance |
 
-Ví dụ chạy trình biên dịch ngoài qua \`ProcessBuilder\` (mã minh họa, chưa là chương trình đầy đủ):
+Example of running an external compiler via \`ProcessBuilder\` (illustrative snippet, not a complete program):
 
 \`\`\`java
 Process process = new ProcessBuilder(
@@ -239,64 +239,64 @@ Process process = new ProcessBuilder(
 ).redirectErrorStream(true).start();
 \`\`\`
 
-Cần đọc stdout/stderr kịp thời để tránh deadlock do buffer đầy, đặt timeout, kiểm tra exit code, hủy process khi cần, và dùng đường dẫn đã kiểm soát. Không xây câu lệnh shell bằng cách nối chuỗi lấy từ người dùng. \`ProcessBuilder\` nhận danh sách argument riêng biệt nên dễ kiểm soát hơn shell interpolation, nhưng vẫn phải kiểm tra source/target path và quyền filesystem.
+Read stdout/stderr promptly to avoid buffer-full deadlocks, set timeouts, check the exit code, kill the process when necessary, and use controlled paths. Do not construct shell commands by concatenating strings taken from users. \`ProcessBuilder\` accepts separate argument lists so it is easier to control than shell interpolation, yet source/target paths and filesystem permissions must still be validated.
 
-Bên thứ ba có thể cung cấp \`JavaCompiler\` implementation hoặc API riêng tùy thư viện. Không giả định mọi compiler Java đều xuất hiện từ \`ToolProvider.getSystemJavaCompiler()\`: overload này dùng cơ chế system compiler của môi trường, không phải registry tổng quát cho mọi compiler tùy chọn.
+Third parties may provide a \`JavaCompiler\` implementation or a library-specific API. Do not assume every Java compiler appears via \`ToolProvider.getSystemJavaCompiler()\`: this method uses the environment's system compiler mechanism, not a general registry for arbitrary compilers.
 
-## 9. Mối liên hệ với plugin và biên dịch lúc chạy
+## 9. Relationship to Plugins and Runtime Compilation
 
-Đối với hệ thống runtime extensibility, một quy trình an toàn thường là:
+For a runtime extensibility system, a safe workflow is typically:
 
-\`\`\`text
-Nguồn plugin được cho phép
+~~~text
+Allowed plugin source
         |
         v
-Kiểm tra định dạng + giới hạn kích thước + quyền
+Check format + size limits + permissions
         |
         v
-Chọn compiler/toolchain phù hợp
+Select appropriate compiler/toolchain
         |
         v
-Compile vào vùng staging riêng
+Compile into isolated staging area
         |
         v
-Thu thập diagnostics và xác thực output
+Collect diagnostics and validate output
         |
         v
-Kiểm tra hợp đồng API/dependency/module
+Verify API/dependency/module contract
         |
         v
-Chuyển artifact được duyệt sang class loader/layer
+Pass approved artifact to class loader/layer
         |
         v
-Khởi tạo và kích hoạt plugin có kiểm soát
-\`\`\`
+Instantiate and activate plugin under control
+~~~
 
-**Biên dịch không phải ranh giới bảo mật.** JavaCompiler có thể kích hoạt annotation processor hoặc các plugin compiler trong quá trình biên dịch, tùy option và môi trường, và có thể chạy mã trong tiến trình host. Với nguồn không tin cậy, cần kiểm soát processor path; cân nhắc \`-proc:none\` khi không cần annotation processing, và ưu tiên compile trong process/container cô lập với hạn chế tài nguyên/quyền. Các option được hỗ trợ thay đổi theo compiler/toolchain, nên kiểm tra trên phiên bản mục tiêu.
+**Compilation is not a security boundary.** JavaCompiler can trigger annotation processors or compiler plugins during compilation, depending on options and environment, and can execute code inside the host process. For untrusted sources, control the processor path; consider \`-proc:none\` when annotation processing is unnecessary, and prefer compiling in an isolated process/container with resource/permission restrictions. Supported options vary by compiler/toolchain, so verify on the target version.
 
-Với bytecode đã compile, việc load và chạy cũng yêu cầu chính sách riêng; class loader/module layer không tự sandbox mã độc. Nếu module API của plugin được chia sẻ, tránh đóng gói lặp để không gây lỗi class identity hoặc liên kết.
+For compiled bytecode, loading and execution also require separate policies; a class loader/module layer does not automatically sandbox malicious code. If the plugin's API module is shared, avoid duplicate packaging so as not to cause class identity or linkage errors.
 
-## 10. Các lỗi thường gặp
+## 10. Common Misconceptions
 
-- **“Có \`java.compiler\` nghĩa là có \`javac\`.”** Sai: module chuẩn định nghĩa API, không cam kết có compiler executable.
-- **“Chỉ cần \`requires java.compiler\` là compiler luôn hoạt động.”** Sai: implementation cần được cung cấp bởi runtime.
-- **“\`jdk.compiler\` là API Java SE bắt buộc trong mọi runtime image.”** Sai: đây là module JDK, có thể bị loại khỏi custom image.
-- **“Có module \`jdk.compiler\` là mọi tác vụ compile sẽ thành công.”** Sai: source, options, dependency, quyền ghi hoặc tài nguyên vẫn có thể gây lỗi.
-- **“Gọi \`ToolProvider\` sẽ tìm mọi compiler bên thứ ba.”** Sai: nó truy cập system compiler theo cơ chế môi trường hiện tại.
-- **“Compile source là an toàn nếu không thực thi class output.”** Sai: annotation processing hoặc compiler plugin có thể chạy code trong lúc compile.
-- **“Compile xong thì class mới có thể gọi trực tiếp.”** Sai: còn bước nạp/định nghĩa class và kiểm tra tương thích API.
-- **“Có \`javac\` trong máy dev thì container production cũng có.”** Sai: mỗi runtime cần được kiểm tra độc lập.
+- **“Having \`java.compiler\` means having \`javac\`.”** False: the standard module defines the API; it does not promise a compiler executable.
+- **“Just declaring \`requires java.compiler\` guarantees the compiler always works.”** False: the implementation must be provided by the runtime.
+- **“\`jdk.compiler\` is a mandatory Java SE API in every runtime image.”** False: it is a JDK module and can be omitted from custom images.
+- **“Having the \`jdk.compiler\` module means every compile task will succeed.”** False: source, options, dependencies, write permissions, or resources can still cause failures.
+- **“Calling \`ToolProvider\` discovers every third-party compiler.”** False: it accesses the system compiler per the current environment's mechanism.
+- **“Compiling source is safe as long as you don't execute the output classes.”** False: annotation processing or compiler plugins can execute code during compilation.
+- **“Once compiled, the new class can be called directly.”** False: you still need the class loading/definition step and API compatibility checks.
+- **“Because \`javac\` is on the dev machine, the production container has it too.”** False: each runtime must be verified independently.
 
-## 11. Checklist trước khi triển khai runtime compilation
+## 11. Checklist Before Implementing Runtime Compilation
 
-1. Xác minh phiên bản Java/runtime và các module quan sát được.
-2. Kiểm tra \`ToolProvider.getSystemJavaCompiler()\` thực tế, hoặc toolchain command đã chọn.
-3. Thực hiện một compile smoke test với \`--release\` phù hợp.
-4. Đặt source/output trong thư mục staging riêng có giới hạn và cleanup.
-5. Thiết lập classpath/module path, annotation processing policy và dependency allowlist.
-6. Thu thập diagnostics đầy đủ, mã lỗi và nguyên nhân; không dựa chỉ vào \`Hello.class\` có tồn tại.
-7. Với nguồn không tin cậy, tách tiến trình/giới hạn tài nguyên và quyền.
-8. Sau compile, xác minh bytecode/API/module và chỉ kích hoạt plugin khi đã qua preflight.
-9. Kiểm thử cả môi trường dev, CI, container và runtime image tùy chỉnh.
+1. Verify the Java/runtime version and observable modules.
+2. Check \`ToolProvider.getSystemJavaCompiler()\` in practice, or the chosen toolchain command.
+3. Perform a compile smoke test with an appropriate \`--release\`.
+4. Place source/output in an isolated staging directory with limits and cleanup.
+5. Configure classpath/module path, annotation processing policy, and dependency allowlist.
+6. Collect full diagnostics, error codes, and causes; do not rely solely on whether \`Hello.class\` exists.
+7. For untrusted sources, isolate the process/limit resources and permissions.
+8. After compilation, verify bytecode/API/modules and activate the plugin only after preflight passes.
+9. Test across dev, CI, container, and custom runtime image environments.
 
-**Ghi nhớ:** \`java.compiler\` là **hợp đồng Java Compiler API**, \`jdk.compiler\` là **implementation compiler của JDK**, và **compiler thực tế** là công cụ ứng dụng có thể gọi thành công tại runtime. Ba lớp này cần được kiểm tra riêng khi xây dựng tính năng biên dịch plugin lúc chạy.
+**Takeaway:** \`java.compiler\` is **the Java Compiler API contract**, \`jdk.compiler\` is **the JDK's compiler implementation**, and **the actual compiler** is the tool the application can successfully invoke at runtime. These three layers must be verified separately when building a runtime plugin compilation feature.

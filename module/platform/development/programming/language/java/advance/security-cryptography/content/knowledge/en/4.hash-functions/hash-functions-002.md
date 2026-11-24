@@ -1,16 +1,16 @@
-# 4.2 MessageDigest với SHA-2, SHA-3 và việc kiểm tra khả năng hỗ trợ
+# 4.2 MessageDigest with SHA-2, SHA-3, and Support Checking
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể: sử dụng `java.security.MessageDigest` để băm một mảng byte hoặc luồng dữ liệu; phân biệt SHA-2 với SHA-3 và chọn đúng **tên thuật toán chuẩn trong Java**; kiểm tra thuật toán có thực sự hoạt động trên JVM/provider mục tiêu; đọc và xử lý `NoSuchAlgorithmException`; và tránh các lỗi bảo mật như coi digest là bằng chứng xác thực hoặc băm mật khẩu trực tiếp.
+After this lesson, you will be able to: use `java.security.MessageDigest` to hash a byte array or data stream; distinguish SHA-2 from SHA-3 and choose the correct **standard algorithm name in Java**; verify whether an algorithm actually works on the target JVM/provider; read and handle `NoSuchAlgorithmException`; and avoid security mistakes such as treating a digest as proof of authentication or hashing passwords directly.
 
-Đây là bài về **hàm băm mật mã (cryptographic hash)** trong kiến trúc JCA, không phải mã hóa/giải mã. Với cùng một chuỗi byte đầu vào và cùng thuật toán, đầu ra băm là xác định; dữ liệu đầu vào dài tùy ý tạo ra digest có độ dài cố định. Thay đổi dữ liệu đầu vào thường làm digest thay đổi mạnh, nhưng **digest không thể dùng để khôi phục plaintext** và cũng không thể tự chứng minh ai là người gửi dữ liệu.
+This lesson covers **cryptographic hash functions** in the JCA architecture, not encryption/decryption. Given the same input byte sequence and the same algorithm, the hash output is deterministic; arbitrarily long input data produces a fixed-length digest. Changing the input data usually causes the digest to change drastically, yet **a digest cannot be used to recover the plaintext** and cannot by itself prove who sent the data.
 
-## 1. SHA-2 và SHA-3: cùng mục tiêu, khác thuật toán
+## 1. SHA-2 and SHA-3: Same Goal, Different Algorithms
 
-Cả SHA-2 (chuẩn FIPS 180-4) và SHA-3 (chuẩn FIPS 202) đều là các họ hàm băm mật mã. SHA-2 dùng các cấu trúc dựa trên các hàm nén; SHA-3 dựa trên cấu trúc *sponge* của Keccak. Cùng số bit đầu ra không có nghĩa hai thuật toán cho cùng digest hoặc có thể thay thế tùy tiện trong giao thức đã triển khai.
+Both SHA-2 (standard FIPS 180-4) and SHA-3 (standard FIPS 202) are cryptographic hash families. SHA-2 uses constructions based on compression functions; SHA-3 is based on the Keccak *sponge* construction. Having the same number of output bits does not mean the two algorithms produce the same digest or can be swapped arbitrarily in a deployed protocol.
 
-| Họ | Tên chuẩn truyền cho `MessageDigest.getInstance(...)` | Digest (bit) | Byte | Hex ký tự |
+| Family | Standard name passed to `MessageDigest.getInstance(...)` | Digest (bits) | Bytes | Hex characters |
 | --- | --- | ---: | ---: | ---: |
 | SHA-2 | `SHA-224` | 224 | 28 | 56 |
 | SHA-2 | `SHA-256` | 256 | 32 | 64 |
@@ -23,39 +23,39 @@ Cả SHA-2 (chuẩn FIPS 180-4) và SHA-3 (chuẩn FIPS 202) đều là các h�
 | SHA-3 | `SHA3-384` | 384 | 48 | 96 |
 | SHA-3 | `SHA3-512` | 512 | 64 | 128 |
 
-**Điểm dễ nhầm:**
+**Common pitfalls:**
 
-- `SHA-256` thuộc **SHA-2**, còn `SHA3-256` thuộc **SHA-3**. Hai giá trị băm đều 256 bit, nhưng **khác nhau đối với cùng dữ liệu**. Một hệ thống đã dùng SHA-256 không thể tự đổi thành SHA3-256 khi verify dữ liệu cũ.
-- `SHA-512/256` là **một biến thể SHA-2 được xác định riêng** (có giá trị khởi tạo riêng), không tương đương với lấy 32 byte đầu của kết quả `SHA-512`.
-- `SHA3-256` là tên SHA-3 được chuẩn hóa theo FIPS 202; không coi các đầu ra có nhãn `Keccak-256` ở thư viện khác là tương thích mặc định vì quy ước padding/domain separation có thể khác.
-- `SHA-1` **không** thuộc họ SHA-2 và đã không phù hợp cho các ứng dụng mới cần chống va chạm. `MD5` cũng không nên dùng để bảo vệ tính toàn vẹn trước đối thủ chủ động.
+- `SHA-256` belongs to **SHA-2**, whereas `SHA3-256` belongs to **SHA-3**. Both hash values are 256 bits, yet **they differ for the same data**. A system already using SHA-256 cannot simply switch to SHA3-256 when verifying legacy data.
+- `SHA-512/256` is **a separately defined SHA-2 variant** (with its own initial values), not equivalent to taking the first 32 bytes of the `SHA-512` result.
+- `SHA3-256` is the SHA-3 name standardized under FIPS 202; do not assume outputs labeled `Keccak-256` in other libraries are compatible by default, because padding/domain separation conventions can differ.
+- `SHA-1` does **not** belong to the SHA-2 family and is no longer suitable for new applications requiring collision resistance. `MD5` should also not be used to protect integrity against an active adversary.
 
-Tên trên là các **standard algorithm names** của Java SE 17; chúng mô tả cách đặt tên, không bảo đảm **mọi provider** đều cài mọi biến thể. Thực tế khả dụng phụ thuộc bản JDK, provider đã đăng ký và cấu hình runtime. Đặc biệt, đừng giả định SHA3 luôn có ở mọi bản phân phối hoặc mọi provider.
+The names above are Java SE 17 **standard algorithm names**; they describe naming conventions, not a guarantee that **every provider** implements every variant. Actual availability depends on the JDK build, registered providers, and runtime configuration. In particular, do not assume SHA3 is always available in every distribution or every provider.
 
-### Đầu vào/đầu ra thực chất là byte
+### Inputs and Outputs Are Actually Bytes
 
-`MessageDigest` xử lý `byte[]`/`ByteBuffer` hoặc các phần byte được truyền qua `update`; nó không biết JSON, Unicode, tệp hay nội dung giao thức. Bạn phải quy định cách chuyển **chính xác** dữ liệu thành byte: ví dụ `"abc".getBytes(StandardCharsets.UTF_8)`. UTF-8 của các ký tự, dấu xuống dòng `LF`/`CRLF`, khoảng trắng, thứ tự trường JSON hoặc Unicode normalization khác nhau có thể tạo digest khác nhau dù người đọc thấy văn bản gần giống nhau.
+`MessageDigest` processes `byte[]`/`ByteBuffer` or byte chunks passed via `update`; it knows nothing about JSON, Unicode, files, or protocol payloads. You must specify **exactly** how data is converted to bytes: for example, `"abc".getBytes(StandardCharsets.UTF_8)`. Different UTF-8 characters, `LF`/`CRLF` line endings, whitespace, JSON field ordering, or Unicode normalization can produce different digests even when the text looks nearly identical to a human reader.
 
-Giá trị trả về là `byte[]`, không phải chuỗi hex. Hex chỉ là cách **biểu diễn**: mỗi byte được viết thành hai ký tự hex. Java 17 có `HexFormat.of().formatHex(digestBytes)` để in ổn định.
+The return value is a `byte[]`, not a hex string. Hex is just a **representation**: each byte is written as two hex characters. Java 17 provides `HexFormat.of().formatHex(digestBytes)` for consistent formatting.
 
-## 2. Vòng đời của `MessageDigest`
+## 2. Lifecycle of `MessageDigest`
 
-Bốn thao tác cốt lõi:
+Four core operations:
 
-1. **Chọn engine/thuật toán:** `MessageDigest.getInstance("SHA-256")` yêu cầu một provider triển khai dịch vụ JCA có loại `MessageDigest` và tên `SHA-256`.
-2. **Nạp dữ liệu:** `update(byte[])`, `update(byte[], offset, length)` hoặc `update(ByteBuffer)` có thể gọi nhiều lần, theo đúng thứ tự các byte. Có thể thay bằng `digest(byte[])` nếu toàn bộ nội dung đã ở trong mảng.
-3. **Kết thúc phép băm:** `digest()` xử lý toàn bộ các byte đã `update` rồi trả về `byte[]`; `digest(byte[])` đồng thời xử lý mảng byte đó. Hai cách cho cùng kết quả nếu chuỗi byte giống nhau.
-4. **Trạng thái sau khi kết thúc:** sau một lần `digest()`, đối tượng `MessageDigest` được reset để có thể tính digest mới. Gọi `digest()` tiếp mà không nạp lại dữ liệu sẽ băm **chuỗi rỗng**, không lặp lại kết quả cũ.
+1. **Select engine/algorithm:** `MessageDigest.getInstance("SHA-256")` requests a provider implementing a JCA service of type `MessageDigest` with the name `SHA-256`.
+2. **Feed data:** `update(byte[])`, `update(byte[], offset, length)`, or `update(ByteBuffer)` can be called multiple times, in the exact order of the bytes. This can be replaced with `digest(byte[])` if all content is already in a single array.
+3. **Finalize hashing:** `digest()` processes all bytes passed via `update` and returns `byte[]`; `digest(byte[])` also processes that byte array. Both produce the same result if the byte sequence is identical.
+4. **State after finalization:** after a `digest()` call, the `MessageDigest` object is reset so it can compute a new digest. Calling `digest()` again without feeding new data will hash the **empty byte sequence**, not repeat the previous result.
 
-Mã minh họa **đặt bên trong phương thức có xử lý `NoSuchAlgorithmException`**:
+Illustrative code **placed inside a method that handles `NoSuchAlgorithmException`**:
 
 ```java
 byte[] input = "abc".getBytes(StandardCharsets.UTF_8);
 
-// Một lần: truyền toàn bộ byte.
+// One-shot: pass all bytes at once.
 byte[] whole = MessageDigest.getInstance("SHA-256").digest(input);
 
-// Nhiều phần: thứ tự và các byte ghép lại phải giống nhau.
+// Incremental: the order and concatenated bytes must be identical.
 MessageDigest md = MessageDigest.getInstance("SHA-256");
 md.update((byte) 'a');
 md.update("bc".getBytes(StandardCharsets.UTF_8));
@@ -64,11 +64,11 @@ byte[] parts = md.digest();
 boolean equal = MessageDigest.isEqual(whole, parts); // true
 ```
 
-Đoạn trên chỉ là một phần chương trình; import cần `java.security.MessageDigest` và `java.nio.charset.StandardCharsets`. Đối tượng `MessageDigest` có trạng thái thay đổi qua `update` nên **không chia sẻ một instance cho nhiều luồng đồng thời** nếu không có cơ chế đồng bộ phù hợp. Cách đơn giản là tạo instance riêng cho từng tác vụ. `getDigestLength()` thường cho số byte đầu ra, nhưng theo API có thể trả `0` nếu provider không xác định được; `digest().length` là độ dài thực tế của kết quả đã tính.
+The snippet above is only a fragment; imports require `java.security.MessageDigest` and `java.nio.charset.StandardCharsets`. A `MessageDigest` instance holds mutable state across `update` calls, so **do not share a single instance concurrently across multiple threads** without proper synchronization. The simplest approach is to create a separate instance per task. `getDigestLength()` typically returns the output byte length, though per the API it may return `0` if the provider cannot determine it; `digest().length` is the actual length of the computed result.
 
-## 3. Chương trình Java 17 chạy được: SHA-2, SHA-3 và hỗ trợ theo provider
+## 3. Runnable Java 17 Program: SHA-2, SHA-3, and Provider Support
 
-Tạo đúng tệp **`HashFamiliesDemo.java`**:
+Create the exact file **`HashFamiliesDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -157,14 +157,14 @@ public final class HashFamiliesDemo {
 }
 ```
 
-Biên dịch/run bằng JDK 17 trở lên (ví dụ mã đã kiểm bằng `javac --release 17`):
+Compile/run on JDK 17 or later (for example, code verified with `javac --release 17`):
 
 ```bash
 javac --release 17 HashFamiliesDemo.java
 java HashFamiliesDemo
 ```
 
-Một lần chạy trên JVM có provider `SUN` cho các thuật toán được thử cho kết quả:
+One run on a JVM whose `SUN` provider supports the tested algorithms produced:
 
 ```text
 SHA-256     bits=256 provider=SUN
@@ -179,65 +179,65 @@ Providers registering SHA3-256:
   SUN -> SHA3-256 (256 bits)
 ```
 
-Đây là **stdout thực tế của một cấu hình thử nghiệm**, không phải kết quả bắt buộc của mọi máy. Tên provider, tổng số tên đăng ký, số provider và những thuật toán báo `unsupported` phụ thuộc môi trường. Hai chuỗi hex nêu trên là **test vector chuẩn của dữ liệu UTF-8 `abc`**; nếu có implementation SHA-256/SHA3-256 tuân thủ chuẩn, hai digest này phải trùng.
+This is **actual stdout from one test configuration**, not a mandatory output on every machine. The provider names, total number of registered names, provider count, and any algorithms reporting `unsupported` depend on the environment. The two hex strings shown above are **standard test vectors for UTF-8 `abc`**; any compliant SHA-256/SHA3-256 implementation must match these two digests.
 
-Khi chạy với đối số là đường dẫn tệp, ví dụ:
+When run with a file path argument, for example:
 
 ```bash
 java HashFamiliesDemo document.bin
 ```
 
-chương trình còn in `SHA-256(file)=...` cho **toàn bộ các byte** của tệp `document.bin`. Tệp phải tồn tại; đây là thao tác tùy chọn khi người học cung cấp tệp thật. Không có dòng kết quả cố định cho tệp bất kỳ vì nó phụ thuộc vào nội dung tệp.
+the program also prints `SHA-256(file)=...` for **all bytes** of the file `document.bin`. The file must exist; this is an optional operation when the learner supplies a real file. There is no fixed output line for an arbitrary file because it depends on the file's contents.
 
-### Vì sao cách băm tệp an toàn về bộ nhớ?
+### Why Is File Hashing Memory-Safe?
 
-Hàm `hashFile` đọc tối đa một buffer 8 KiB cho mỗi vòng lặp rồi gọi `update(buffer, 0, count)`. Nó không cần giữ toàn bộ tệp trong RAM. Dùng **đúng `count` byte đã đọc** là quan trọng: `update(buffer)` sẽ đưa cả phần byte cũ còn sót trong buffer vào digest khi lần đọc cuối có ít hơn 8192 byte. Độ dài buffer có thể thay đổi mà không đổi giá trị digest miễn chuỗi byte đầu vào giữ nguyên.
+The `hashFile` method reads at most an 8 KiB buffer per loop iteration and calls `update(buffer, 0, count)`. It does not need to hold the entire file in RAM. Passing **the exact `count` bytes read** is important: `update(buffer)` would include leftover old bytes in the buffer when the final read returns fewer than 8192 bytes. The buffer size can be changed without changing the digest value as long as the input byte stream remains the same.
 
-Chú ý: hàm băm đọc nội dung tệp tại thời điểm mở/đọc. Nếu có tiến trình khác sửa tệp trong lúc băm, digest thu được không nhất thiết đại diện cho một snapshot nhất quán; tùy yêu cầu, cần đóng băng nguồn/kiểm tra metadata hoặc dùng cơ chế lưu trữ có snapshot.
+Note: the hash function reads file contents at the time of opening/reading. If another process modifies the file while it is being hashed, the resulting digest does not necessarily represent a consistent snapshot; depending on requirements, you may need to freeze the source, check metadata, or use storage with snapshot support.
 
-## 4. Kiểm tra khả năng hỗ trợ: ba lớp bằng chứng
+## 4. Checking Support: Three Layers of Evidence
 
-### 4.1 Tên chuẩn của Java
+### 4.1 Java Standard Names
 
-Tài liệu **Java Security Standard Algorithm Names** liệt kê những tên như `SHA-256`, `SHA-512/256`, `SHA3-256`. Dùng đúng tên chuẩn để giảm phụ thuộc alias riêng của provider. Đừng coi tên chuẩn tồn tại trong tài liệu là bằng chứng rằng JVM đang chạy đã cài provider cung cấp nó.
+The **Java Security Standard Algorithm Names** specification lists names such as `SHA-256`, `SHA-512/256`, and `SHA3-256`. Use the exact standard names to reduce reliance on provider-specific aliases. Do not treat a standard name existing in documentation as proof that the running JVM has a provider installed that supplies it.
 
-### 4.2 Danh sách thuật toán được đăng ký
+### 4.2 List of Registered Algorithms
 
-`Security.getAlgorithms("MessageDigest")` trả về tập các tên thuật toán được những provider đăng ký cho engine `MessageDigest` tại thời điểm gọi. Ví dụ đoạn sau **không phải chương trình độc lập**:
+`Security.getAlgorithms("MessageDigest")` returns the set of algorithm names registered by providers for the `MessageDigest` engine at the time of the call. For example, the following snippet **is not a standalone program**:
 
 ```java
 Set<String> names = Security.getAlgorithms("MessageDigest");
 names.stream().sorted(String.CASE_INSENSITIVE_ORDER).forEach(System.out::println);
 ```
 
-Cần import `java.security.Security` và `java.util.Set`. Đây là công cụ **khám phá** runtime; không dùng thứ tự/tên và số lượng trả về làm hợp đồng portable giữa nhiều JVM. Việc xuất hiện tên trong danh sách đăng ký chưa chứng minh một instance khởi tạo và tính digest thành công.
+This requires importing `java.security.Security` and `java.util.Set`. It is a runtime **discovery** tool; do not rely on the ordering, names, or count returned as a portable contract across JVMs. A name appearing in the registered list does not yet prove that an instance can be initialized and compute a digest successfully.
 
-### 4.3 Kiểm tra provider cụ thể rồi thực hiện digest
+### 4.3 Inspecting a Specific Provider and Computing a Digest
 
-`Security.getProviders()` liệt kê các provider đã đăng ký. Dùng:
+`Security.getProviders()` lists the registered providers. Use:
 
-- `provider.getService("MessageDigest", "SHA3-256")` để xem provider đó **công bố** dịch vụ thích hợp (có thể nhận tên chính hoặc alias đã đăng ký). `null` là không tìm thấy service với tên được yêu cầu ở provider đó.
-- `MessageDigest.getInstance("SHA3-256", provider)` để yêu cầu **chính provider đó** tạo implementation. Nếu thành công, kiểm tra thêm kết quả `digest` bằng vector chuẩn.
-- `digest.getProvider().getName()` để xác định provider của instance đã tạo khi dùng overload **không** chỉ định provider.
-- `Security.getProviders("MessageDigest.SHA3-256")` là một filter khác cho các provider phù hợp; API có thể trả `null` nếu không tìm được, nên phải kiểm tra null trước khi duyệt.
+- `provider.getService("MessageDigest", "SHA3-256")` to see whether that provider **advertises** the appropriate service (it may match a primary name or a registered alias). `null` means no service with the requested name was found on that provider.
+- `MessageDigest.getInstance("SHA3-256", provider)` to ask **that exact provider** to create an implementation. If successful, further verify the `digest` result against a standard test vector.
+- `digest.getProvider().getName()` to identify the provider of the created instance when using an overload that **does not** specify a provider.
+- `Security.getProviders("MessageDigest.SHA3-256")` is another filter for matching providers; the API can return `null` if none match, so you must check for null before iterating.
 
-Khi gọi `MessageDigest.getInstance("SHA3-256")` **không truyền provider**, JCA chọn trong tập provider đã đăng ký theo cơ chế lựa chọn của runtime. JDK Reference Implementation còn có cấu hình ưu tiên theo thuật toán; đừng suy ra chắc chắn lựa chọn cuối chỉ từ vị trí trong `Security.getProviders()`.
+When calling `MessageDigest.getInstance("SHA3-256")` **without passing a provider**, JCA selects from the set of registered providers according to the runtime's selection mechanism. The JDK Reference Implementation also supports algorithm-based priority configuration; do not assume the final selection is determined solely by position in `Security.getProviders()`.
 
-| Mức kiểm tra | API | Có thể kết luận |
+| Verification Level | API | What Can Be Concluded |
 | --- | --- | --- |
-| Tên chuẩn | Standard Algorithm Names | Tên hợp lệ theo tiêu chuẩn đặt tên |
-| Đăng ký chung | `Security.getAlgorithms("MessageDigest")` | Runtime quảng bá tên cho engine hiện tại |
-| Đăng ký từng provider | `provider.getService(type, name)` | Provider quảng bá một dịch vụ phù hợp |
-| Tạo implementation | `MessageDigest.getInstance(name, provider)` | Provider tạo được instance khi thử |
-| Hoạt động chính xác | `digest(input)` và so test vector | Implementation đã tạo tính đúng với dữ liệu thử nghiệm |
+| Standard name | Standard Algorithm Names | Valid name under the naming standard |
+| Global registration | `Security.getAlgorithms("MessageDigest")` | Runtime advertises the name for the engine currently |
+| Per-provider registration | `provider.getService(type, name)` | Provider advertises a matching service |
+| Implementation instantiation | `MessageDigest.getInstance(name, provider)` | Provider can instantiate an object when requested |
+| Correct operation | `digest(input)` compared with test vector | Created implementation computes correctly on test data |
 
-Nếu provider cung cấp alias như `SHA256` cho `SHA-256`, alias đó **không bắt buộc** phải tồn tại trong provider khác. Dùng tên chuẩn `SHA-256` cho API công khai/trường dữ liệu hệ thống, đồng thời ghi rõ tên thuật toán cùng digest khi trao đổi giữa các dịch vụ: cả hai bên phải dùng đúng cùng một họ và biến thể.
+If a provider supplies an alias such as `SHA256` for `SHA-256`, that alias is **not required** to exist in another provider. Use the standard name `SHA-256` for public APIs and system data fields, and explicitly record the algorithm name alongside the digest when exchanging across services: both sides must use the exact same family and variant.
 
-## 5. Chính sách ứng dụng khi thuật toán không có sẵn
+## 5. Application Policy When an Algorithm Is Unavailable
 
-`MessageDigest.getInstance("SHA3-256")` có thể ném `NoSuchAlgorithmException` nếu không provider nào cung cấp dịch vụ. Khi thuật toán là một phần của giao thức, chữ ký dữ liệu, kiểm tra checksum hay định dạng file, **hãy fail fast và báo thiếu capability** hoặc triển khai provider đã được phê duyệt. **Không tự fallback** `SHA3-256` → `SHA-256` chỉ vì hai digest đều dài 256 bit, hoặc SHA-256 → MD5/SHA-1 để “chạy cho được”: cả hai thay đổi hợp đồng dữ liệu, và fallback yếu còn làm giảm bảo mật.
+`MessageDigest.getInstance("SHA3-256")` can throw `NoSuchAlgorithmException` if no provider supplies the service. When the algorithm is part of a protocol, data signature, checksum verification, or file format, **fail fast and report the missing capability** or deploy an approved provider. **Do not silently fall back** from `SHA3-256` → `SHA-256` merely because both digests are 256 bits long, or from SHA-256 → MD5/SHA-1 just to "make it run": both break the data contract, and weak fallbacks degrade security.
 
-Một cách tổ chức kiểm tra ở startup là đặt tên yêu cầu trong cấu hình rõ ràng:
+One way to organize startup checks is to place the required name explicitly in configuration:
 
 ```java
 static MessageDigest requireDigest(String standardName) {
@@ -250,56 +250,56 @@ static MessageDigest requireDigest(String standardName) {
 }
 ```
 
-Đoạn trên là phương thức minh họa để chèn vào một class Java có import `MessageDigest` và `NoSuchAlgorithmException`. Chọn/chấp nhận provider theo chính sách deployment. Khi yêu cầu tuân thủ FIPS hoặc provider phần cứng, kiểm tra và chỉ định đúng provider được phép; một instance “tồn tại” trong JVM không tự chứng minh môi trường đạt yêu cầu tuân thủ.
+The snippet above is an illustrative method to place inside a Java class that imports `MessageDigest` and `NoSuchAlgorithmException`. Select/accept providers according to deployment policy. When FIPS compliance or a hardware provider is required, verify and specify the exact authorized provider; an instance merely "existing" in the JVM does not by itself prove the environment meets compliance requirements.
 
-Nếu sản phẩm **thực sự hỗ trợ nhiều lựa chọn** theo một giao thức có thương lượng, cần đưa algorithm identifier vào metadata, ràng buộc danh sách cho phép ở hai phía và kiểm tra digest theo đúng thuật toán được thỏa thuận. Không dựa vào độ dài digest để đoán thuật toán.
+If a product **genuinely supports multiple choices** under a negotiated protocol, include the algorithm identifier in metadata, restrict the allowlist on both sides, and verify the digest using the exact negotiated algorithm. Do not guess the algorithm from the digest length.
 
-## 6. Tính toàn vẹn, xác thực và so sánh digest
+## 6. Integrity, Authentication, and Digest Comparison
 
-Giả sử bạn lưu SHA-256 của một bản phát hành, rồi kiểm tra bản tải về. Khi digest khớp, bạn có bằng chứng byte tải về giống **nội dung gắn với digest mà bạn đang tin cậy**, với giới hạn bảo mật của thuật toán. Nhưng nếu đối thủ có thể thay **cả tệp lẫn digest công bố**, digest thuần không chứng minh nguồn gốc và không bảo vệ khỏi giả mạo.
+Suppose you store the SHA-256 of a release and later verify a downloaded copy. When the digests match, you have evidence that the downloaded bytes match **the content bound to the digest you trust**, within the security limits of the algorithm. However, if an adversary can alter **both the file and the published digest**, a plain digest does not prove origin and does not protect against forgery.
 
-- Để kiểm tra dữ liệu bị thay đổi vô ý hoặc so khớp với digest đã xác thực từ kênh tin cậy: `MessageDigest` phù hợp.
-- Để **xác thực thông điệp** bằng khóa bí mật: dùng engine `Mac` như `HmacSHA256` với quản lý khóa đúng; không tự tạo “MAC” bằng cách nối chuỗi bí mật và dữ liệu rồi gọi `SHA-256`.
-- Để **xác thực nguồn gốc bằng khóa bất đối xứng**: dùng `Signature` với thuật toán/mode thích hợp và kiểm tra khóa công khai được tin cậy.
-- Để lưu mật khẩu: **không dùng SHA-256/SHA3-256 trực tiếp** dù thêm salt; sử dụng cơ chế password-hashing chuyên dụng có salt riêng, chi phí tính toán phù hợp (ví dụ Argon2id, scrypt, bcrypt hoặc PBKDF2 theo yêu cầu hệ thống).
+- To check for accidental data corruption or compare against a digest authenticated over a trusted channel: `MessageDigest` is appropriate.
+- To **authenticate a message** using a secret key: use a `Mac` engine such as `HmacSHA256` with proper key management; do not build a homemade "MAC" by concatenating a secret string and data and calling `SHA-256`.
+- To **authenticate origin using asymmetric keys**: use `Signature` with an appropriate algorithm/mode and verify against a trusted public key.
+- To store passwords: **do not use SHA-256/SHA3-256 directly** even with a salt; use a dedicated password-hashing mechanism with a per-password salt and appropriate computational cost (for example, Argon2id, scrypt, bcrypt, or PBKDF2 depending on system requirements).
 
-So hai mảng byte digest bằng `MessageDigest.isEqual(expected, actual)` thay vì kiểm tra reference với `==`. Phương thức hỗ trợ so sánh nội dung byte; nó **không biến digest không khóa thành chữ ký/MAC** và không giải quyết vấn đề tin cậy đối với digest mong đợi. Không tự chuyển digest sang `String` bằng charset text; dùng `HexFormat` hoặc Base64 khi cần lưu/trao đổi.
+Compare two digest byte arrays using `MessageDigest.isEqual(expected, actual)` instead of checking references with `==`. This helper compares byte contents; it **does not turn an unkeyed digest into a signature/MAC** and does not solve trust issues for the expected digest. Do not convert a digest to a `String` using a text charset; use `HexFormat` or Base64 when storing or transmitting textually.
 
-## 7. Lỗi thường gặp và cách xác định nguyên nhân
+## 7. Common Errors and Root-Cause Diagnosis
 
-| Hiện tượng | Khả năng gây ra và cách sửa |
+| Symptom | Likely Cause and Fix |
 | --- | --- |
-| `NoSuchAlgorithmException: SHA3-256` | Provider trong runtime hiện tại không cung cấp tên được yêu cầu; kiểm tra tên chuẩn, `Security.getProviders()` và thử `getInstance` theo từng provider |
-| `SHA3_256` hoặc `SHA-3-256` không nhận | Sai tên chuẩn; trong JCA dùng `SHA3-256` (không gạch nối giữa `SHA` và `3`) |
-| Hai chương trình băm “cùng text” ra hai chuỗi hex khác nhau | So lại **byte** UTF-8, newline, BOM, Unicode normalization, ký tự khoảng trắng và cùng tên thuật toán |
-| `SHA-512/256` không trùng với 256 bit đầu của `SHA-512` | Đây là hai thuật toán khác nhau; `SHA-512/256` có đặc tả riêng |
-| Băm một file lớn bị thiếu bộ nhớ | Chuyển từ `Files.readAllBytes` sang streaming `InputStream` + `update` theo buffer |
-| Kết quả băm lần thứ hai bất ngờ | `digest()` reset trạng thái; phải nạp lại dữ liệu cho lần mới. Không chia sẻ instance có trạng thái giữa các thread |
-| Nhìn thấy `SHA3-256` trong danh sách nhưng `getInstance` thất bại | Thông tin quảng bá chưa chắc chứng minh khởi tạo thành công; thử đúng overload với provider và kiểm tra ngoại lệ |
-| Hash khớp nhưng vẫn không tin nguồn gửi | Digest không có khóa không cung cấp authentication; xác thực digest qua kênh đáng tin hoặc dùng MAC/chữ ký |
+| `NoSuchAlgorithmException: SHA3-256` | No provider in the current runtime supplies the requested name; check the standard name, `Security.getProviders()`, and test `getInstance` per provider |
+| `SHA3_256` or `SHA-3-256` not recognized | Wrong standard name; in JCA use `SHA3-256` (no hyphen between `SHA` and `3`) |
+| Two programs hashing the "same text" output different hex strings | Compare UTF-8 **bytes**, newlines, BOM, Unicode normalization, whitespace characters, and algorithm names |
+| `SHA-512/256` does not match the first 256 bits of `SHA-512` | These are two distinct algorithms; `SHA-512/256` has its own specification |
+| Hashing a large file runs out of memory | Switch from `Files.readAllBytes` to streaming `InputStream` + buffered `update` |
+| Second hash result is unexpected | `digest()` resets state; you must feed new data for the next hash. Do not share stateful instances across threads |
+| `SHA3-256` appears in the list but `getInstance` fails | Advertising a name does not guarantee successful instantiation; test the provider-specific overload and inspect exceptions |
+| Hash matches yet the sender is still untrusted | An unkeyed digest provides no authentication; authenticate the digest via a trusted channel or use a MAC/signature |
 
-### Kiểm tra trước khi đưa vào production
+### Pre-Production Checklist
 
-1. Xác nhận thuật toán yêu cầu bằng **tên chuẩn**, khả năng hỗ trợ trong đúng JVM/container và chính sách provider cần dùng.
-2. Chuẩn hóa cách biểu diễn **byte đầu vào** (charset, định dạng serialization, newline, thứ tự trường, canonicalization) cho cả phía tạo lẫn phía kiểm tra.
-3. Dùng dữ liệu kiểm thử cố định: SHA-256(UTF-8 `abc`) = `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad`; SHA3-256(UTF-8 `abc`) = `3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532`.
-4. Với dữ liệu lớn, dùng `update` từng phần và đo bộ nhớ; giữ đúng thứ tự byte, đọc đúng số lượng byte thực nhận.
-5. Khi thiếu thuật toán bắt buộc, lỗi rõ ràng tại startup hoặc điểm dùng; không đổi thuật toán một cách ngầm định.
-6. Ghi/chuyển algorithm identifier cùng hash khi dữ liệu đi qua ranh giới hệ thống; nhớ rằng digest không chứng minh tính xác thực nếu nguồn digest chưa được tin cậy.
+1. Confirm the required algorithm using its **standard name**, its availability in the exact target JVM/container, and the required provider policy.
+2. Standardize how **input bytes** are produced (charset, serialization format, newlines, field order, canonicalization) on both the producer and verifier sides.
+3. Use fixed test vectors: SHA-256(UTF-8 `abc`) = `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad`; SHA3-256(UTF-8 `abc`) = `3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532`.
+4. For large data, use incremental `update` and measure memory usage; preserve byte order and pass the exact byte count actually read.
+5. When a required algorithm is missing, fail clearly at startup or point of use; never switch algorithms implicitly.
+6. Store/transmit the algorithm identifier alongside the hash when data crosses system boundaries; remember that a digest does not prove authenticity if the digest's source is untrusted.
 
-## Bài tự luyện
+## 8. Self-Practice Exercises
 
-1. Chạy chương trình, ghi lại các tên SHA-2/SHA-3 được hỗ trợ, provider được chọn cho từng tên và tập provider quảng bá `SHA3-256`.
-2. Sửa đoạn `update` thành ba lần truyền từng ký tự `a`, `b`, `c`, kiểm tra giá trị `SHA-256` có giữ nguyên không; sau đó đảo thứ tự hai phần để quan sát thay đổi digest.
-3. Tạo hai tệp UTF-8 chỉ khác newline cuối cùng, chạy chương trình với từng đường dẫn. Giải thích vì sao hash khác nhau.
-4. Thử `MessageDigest.getInstance("SHA3-256", provider)` với từng provider trong máy và phân biệt **“provider công bố service”** với **“instance chạy đúng test vector”**.
-5. Thiết kế metadata cho hệ thống kiểm tra tệp gửi qua mạng: cần lưu hash, tên thuật toán, cách tạo byte đầu vào và **cơ chế tin cậy digest** ra sao?
+1. Run the program, record the supported SHA-2/SHA-3 names, the provider chosen for each name, and the set of providers advertising `SHA3-256`.
+2. Modify the `update` block to pass each character `a`, `b`, `c` in three separate calls, and verify whether the `SHA-256` value remains identical; then reverse the order of two chunks to observe the digest change.
+3. Create two UTF-8 files differing only in their trailing newline, and run the program with each path. Explain why the hashes differ.
+4. Try `MessageDigest.getInstance("SHA3-256", provider)` for each provider on your machine and distinguish **"provider advertises a service"** from **"instance passes the test vector"**.
+5. Design metadata for a system that verifies files sent over a network: how should it store the hash, algorithm name, input-byte construction rules, and **the digest trust mechanism**?
 
-## Tài liệu tham khảo
+## 9. References
 
-- [Java SE 17 — Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): các tên SHA-2/SHA-3 chuẩn, kích thước digest và yêu cầu hỗ trợ.
-- [Java SE 17 — `MessageDigest` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/MessageDigest.html): `getInstance`, `update`, `digest`, `reset` và `isEqual`.
-- [Java SE 17 — `Security` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Security.html): `getAlgorithms`, `getProviders` và lọc provider.
-- [Java SE 17 — `Provider` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Provider.html): `getService`, `getServices` và tên thuật toán provider hỗ trợ.
-- [NIST FIPS 180-4](https://csrc.nist.gov/pubs/fips/180-4/upd1/final): các biến thể SHA-2.
-- [NIST FIPS 202](https://csrc.nist.gov/pubs/fips/202/final): định nghĩa SHA-3.
+- [Java SE 17 — Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): standard SHA-2/SHA-3 names, digest sizes, and support requirements.
+- [Java SE 17 — `MessageDigest` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/MessageDigest.html): `getInstance`, `update`, `digest`, `reset`, and `isEqual`.
+- [Java SE 17 — `Security` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Security.html): `getAlgorithms`, `getProviders`, and provider filtering.
+- [Java SE 17 — `Provider` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Provider.html): `getService`, `getServices`, and provider-supported algorithm names.
+- [NIST FIPS 180-4](https://csrc.nist.gov/pubs/fips/180-4/upd1/final): SHA-2 variants.
+- [NIST FIPS 202](https://csrc.nist.gov/pubs/fips/202/final): SHA-3 specification.

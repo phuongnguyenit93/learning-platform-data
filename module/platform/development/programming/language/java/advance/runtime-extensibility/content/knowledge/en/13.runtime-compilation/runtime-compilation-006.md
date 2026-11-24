@@ -1,54 +1,54 @@
-# Cấu hình classpath, module path, thư mục đầu ra và --release khi biên dịch Java lúc chạy
+# Configuring Classpath, Module Path, Output Directory, and --release When Compiling Java at Runtime
 
-## 1. Bối cảnh và bốn cấu hình bắt buộc hiểu
+## 1. Context and Four Mandatory Configurations to Understand
 
-Trong hệ thống Java có khả năng mở rộng lúc chạy (*runtime extensibility*), ứng dụng chủ (host) có thể nhận file `.java` của plugin, biên dịch bằng `javax.tools.JavaCompiler` và nạp các file `.class` vừa tạo. Biên dịch trong ứng dụng khác biên dịch trong IDE ở chỗ **host phải quyết định tường minh** loại dependency được phép nhìn thấy, mô hình module, nơi đặt bytecode và phiên bản Java đích.
+In a Java system with *runtime extensibility*, the host application may receive plugin `.java` files, compile them using `javax.tools.JavaCompiler`, and load the newly generated `.class` files. Compiling inside an application differs from compiling in an IDE because **the host must explicitly decide** which dependencies are visible, the module model, where bytecode is placed, and the target Java version.
 
-Bốn tham số trọng tâm của bài:
+Four core parameters of this lesson:
 
-| Cấu hình | Cờ javac | Vai trò chính |
+| Configuration | javac Flag | Primary Role |
 | --- | --- | --- |
-| **Classpath** | `--class-path` / `-classpath` / `-cp` | Cho compiler tìm các class, package và JAR trong **mô hình classpath** |
-| **Module path** | `--module-path` / `-p` | Cho compiler tìm những **named modules đã biên dịch** dùng trong JPMS |
-| **Thư mục output** | `-d` | Chỉ đường dẫn lưu kết quả `.class`, có thể gồm `module-info.class` |
-| **Java release đích** | `--release N` | Giới hạn mức cú pháp, class-file version và Java platform API theo phiên bản N được javac hỗ trợ |
+| **Classpath** | `--class-path` / `-classpath` / `-cp` | Lets the compiler locate classes, packages, and JARs in the **classpath model** |
+| **Module path** | `--module-path` / `-p` | Lets the compiler locate **compiled named modules** used in JPMS |
+| **Output directory** | `-d` | Specifies the path to store `.class` outputs, potentially including `module-info.class` |
+| **Target Java release** | `--release N` | Constrains syntax level, class-file version, and Java platform APIs to version N supported by javac |
 
-Ví dụ, host chạy trên JDK 21 có thể muốn tạo plugin dùng được ở Java 17. `--release 17` sẽ ngăn source sử dụng tính năng ngôn ngữ hoặc Java platform API chỉ có ở Java 21. Tuy nhiên, nó **không tự cố định phiên bản thư viện của plugin** và không bảo đảm JVM lúc chạy tìm được mọi dependency.
+For example, a host running on JDK 21 might want to produce a plugin usable on Java 17. `--release 17` prevents source code from using language features or Java platform APIs introduced only in Java 21. However, it **does not automatically pin the plugin's library versions** and does not guarantee the runtime JVM will find every dependency.
 
-**Mục tiêu học tập:** biết khi nào dùng classpath hay module path; truyền chúng vào `JavaCompiler.getTask`; chọn thư mục output sạch; compile cho đúng release; kiểm tra kết quả và nạp plugin mà không nhầm compile-time với runtime.
+**Learning goal:** know when to use classpath vs. module path; pass them to `JavaCompiler.getTask`; choose a clean output directory; compile for the right release; verify outputs and load plugins without confusing compile time with runtime.
 
-## 2. Phân tách quá trình compile và quá trình nạp
+## 2. Separating Compilation from Loading
 
-Luồng tổng quát:
+Overall workflow:
 
 ~~~text
-File .java của plugin
+Plugin .java file
       |
       v
 JavaCompiler (javac)
-      |  --class-path     -> nơi tìm class/JAR không theo named module
-      |  --module-path    -> nơi tìm dependency named module
-      |  --release 17     -> cú pháp + bytecode + platform API
-      |  -encoding UTF-8  -> charset đọc source
-      |  -d build/output  -> gốc file .class được sinh ra
+      |  --class-path     -> where to find non-named-module classes/JARs
+      |  --module-path    -> where to find named-module dependencies
+      |  --release 17     -> syntax + bytecode + platform API
+      |  -encoding UTF-8  -> charset for reading source
+      |  -d build/output  -> root for generated .class files
       v
-Class files trong build/output
+Class files in build/output
       |
-      | host xác minh artifact và runtime dependencies
+      | host verifies artifacts and runtime dependencies
       v
-ClassLoader hoặc JPMS module layer thích hợp
+Appropriate ClassLoader or JPMS module layer
       |
       v
-Plugin được nạp và gọi qua hợp đồng dùng chung
+Plugin loaded and invoked through shared contract
 ~~~
 
-**Biên dịch thành công chưa phải là nạp thành công.** Compiler cần các đường dẫn để phân giải kiểu ở source. JVM cần loader hoặc module graph để tìm các lớp lúc chạy. Cờ `-d` chỉ quyết định output của compiler, không tự thêm output vào classpath của tiến trình hiện tại.
+**Successful compilation is not successful loading.** The compiler needs paths to resolve types in source code. The JVM needs a loader or module graph to find classes at runtime. The `-d` flag only determines compiler output; it does not automatically add the output to the current process's classpath.
 
-Trước khi compile, host nên xác định source là code classpath hay source của named module, compiler/JDK thực tế đang dùng, phiên bản API host mà plugin được phép tham chiếu, các JAR/module được tin cậy và thư mục do ai sở hữu. Đây là đầu vào của mỗi build, không nên lấy ngầm tất cả dependency của host hoặc toàn bộ classpath của ứng dụng.
+Before compiling, the host should determine whether the source is classpath code or named-module source, the actual compiler/JDK in use, the host API version the plugin is permitted to reference, trusted JARs/modules, and who owns the directories. These are explicit inputs for every build, rather than implicitly pulling in all host dependencies or the entire application classpath.
 
-## 3. Classpath: cấu hình phụ thuộc theo mô hình truyền thống
+## 3. Classpath: Configuring Dependencies in the Traditional Model
 
-Giả sử host công bố hợp đồng sau trong `plugin-api.jar`:
+Suppose the host publishes the following contract in `plugin-api.jar`:
 
 ~~~java
 package demo.api;
@@ -58,7 +58,7 @@ public interface Transformer {
 }
 ~~~
 
-Plugin cung cấp implementation:
+The plugin provides an implementation:
 
 ~~~java
 package demo.plugin;
@@ -77,7 +77,7 @@ public final class UppercaseTransformer implements Transformer {
 }
 ~~~
 
-Các đoạn trên là file nội dung sẽ dùng trong ví dụ chạy được ở mục 7. Khi biên dịch `UppercaseTransformer.java`, javac phải tìm được `demo.api.Transformer`. Nếu API nằm trong `build/plugin-api.jar`:
+The snippets above are file contents used in the runnable example in Section 7. When compiling `UppercaseTransformer.java`, `javac` must locate `demo.api.Transformer`. If the API is inside `build/plugin-api.jar`:
 
 ~~~bash
 javac --release 17 --class-path build/plugin-api.jar \
@@ -85,52 +85,52 @@ javac --release 17 --class-path build/plugin-api.jar \
   src/plugin/demo/plugin/UppercaseTransformer.java
 ~~~
 
-Trong đó:
+Where:
 
-- `--class-path build/plugin-api.jar` là **compile-time dependency**; cho phép javac phân giải `demo.api.Transformer`.
-- `--release 17` chọn ngôn ngữ, class-file format và Java platform APIs của Java 17.
-- `-d build/generated/classes` tạo file `build/generated/classes/demo/plugin/UppercaseTransformer.class` (giả sử thư mục output gốc có quyền ghi).
+- `--class-path build/plugin-api.jar` is the **compile-time dependency**; it lets `javac` resolve `demo.api.Transformer`.
+- `--release 17` selects Java 17 language features, class-file format, and Java platform APIs.
+- `-d build/generated/classes` creates `build/generated/classes/demo/plugin/UppercaseTransformer.class` (assuming the root output directory is writable).
 
-`--release` không thể thay thế classpath của thư viện nghiệp vụ: Java 17 không tự chứa `demo.api.Transformer`. Nếu thiếu API JAR, compiler sẽ báo lỗi như `package demo.api does not exist` hoặc `cannot find symbol`.
+`--release` cannot substitute for the business library classpath: Java 17 does not inherently contain `demo.api.Transformer`. If the API JAR is missing, the compiler reports errors such as `package demo.api does not exist` or `cannot find symbol`.
 
-### 3.1. Nhiều dependency và dấu phân cách path
+### 3.1. Multiple Dependencies and Path Separators
 
-Một compile classpath có thể chứa nhiều JAR hoặc thư mục chứa file `.class`. Dùng một chuỗi path-list được nối theo hệ điều hành:
+A compile classpath can include multiple JARs or directories containing `.class` files. Use a path-list string joined according to the operating system:
 
-| Hệ điều hành | Ký tự phân cách | Ví dụ |
+| Operating System | Separator | Example |
 | --- | --- | --- |
 | Linux/macOS | `:` | `"build/plugin-api.jar:lib/helper.jar"` |
 | Windows | `;` | `"build/plugin-api.jar;lib/helper.jar"` |
 
-Nếu host tự tạo chuỗi path trong Java, dùng `File.pathSeparator` thay vì hard-code dấu hai chấm. Với code dùng Java Compiler API, mỗi cặp option/value nên là hai phần tử danh sách riêng, ví dụ `List.of("--class-path", cp)`.
+If the host constructs path strings in Java, use `File.pathSeparator` instead of hardcoding a colon. With code using the Java Compiler API, each option/value pair should be two separate list elements, e.g. `List.of("--class-path", cp)`.
 
-Classpath wildcard, chẳng hạn `lib/*`, có thể đưa các JAR trực tiếp trong thư mục vào classpath theo quy tắc của công cụ Java, nhưng không là lời hứa tự quét đệ quy mọi thư mục con. Nên chỉ định rõ API và thư viện được phép thay vì quét mọi JAR không kiểm soát; thứ tự và phiên bản dependency có thể ảnh hưởng resolution.
+Classpath wildcards, such as `lib/*`, can add JARs directly inside a directory to the classpath per Java tool rules, but they do not promise recursive scanning of subdirectories. Explicitly specify permitted APIs and libraries instead of scanning arbitrary JARs; dependency ordering and versions can affect resolution.
 
-### 3.2. Classpath lúc compile khác classpath lúc chạy
+### 3.2. Compile-Time Classpath vs. Runtime Classpath
 
-Plugin được compile thành `build/generated/classes`, nhưng host đang chạy **không tự nhìn thấy** các lớp mới. Có thể:
+The plugin compiles into `build/generated/classes`, yet the running host **does not automatically see** the new classes. You can:
 
-1. Khởi động một JVM mới với output directory/JAR trên runtime classpath.
-2. Dùng `URLClassLoader` hoặc classloader riêng nhìn thấy output directory.
-3. Với named modules, tạo module layer hoặc khởi động JVM với module path phù hợp.
+1. Start a new JVM with the output directory/JAR on the runtime classpath.
+2. Use a `URLClassLoader` or dedicated class loader that sees the output directory.
+3. For named modules, create a module layer or start the JVM with the appropriate module path.
 
-Nếu classpath compile dùng `plugin-api.jar` phiên bản A, nhưng runtime host chỉ có API phiên bản B không tương thích, plugin có thể lỗi liên kết/ép kiểu khi chạy. Vì vậy build nên ghi nhận version và kiểm thử với runtime API thật.
+If the compile classpath uses `plugin-api.jar` version A, while the host runtime only has an incompatible API version B, the plugin may suffer linkage/cast errors at runtime. Therefore builds should record versions and test against the real runtime API.
 
-## 4. Module path: cấu hình JPMS khác với classpath
+## 4. Module Path: JPMS Configuration Differs from Classpath
 
-**Java Platform Module System (JPMS)** từ Java 9 dùng `module-info.java` mô tả named module, phụ thuộc `requires`, package công khai `exports`, và service `uses`/`provides`.
+The **Java Platform Module System (JPMS)** since Java 9 uses `module-info.java` to describe named modules, `requires` dependencies, exported packages (`exports`), and services (`uses`/`provides`).
 
-Ba descriptor minh họa:
+Three illustrative descriptors:
 
 ~~~java
-// File module-info.java của module demo.api
+// module-info.java file for module demo.api
 module demo.api {
     exports demo.api;
 }
 ~~~
 
 ~~~java
-// File module-info.java của module demo.provider
+// module-info.java file for module demo.provider
 module demo.provider {
     requires demo.api;
     provides demo.api.Transformer
@@ -139,16 +139,16 @@ module demo.provider {
 ~~~
 
 ~~~java
-// File module-info.java của module demo.host
+// module-info.java file for module demo.host
 module demo.host {
     requires demo.api;
     uses demo.api.Transformer;
 }
 ~~~
 
-Đây là **ba file khác nhau** (không thể đặt cả ba khai báo vào một file). Mục 8 có source code và lệnh chạy đầy đủ.
+These are **three separate files** (you cannot put all three declarations into one file). Section 8 provides complete source code and run commands.
 
-`--module-path` trỏ tới các **named modules đã biên dịch** trong các modular JAR hoặc exploded module directories. Ví dụ `demo.api` đã được biên dịch vào `build/mods/demo.api` thì compiler của `demo.provider` có thể dùng:
+`--module-path` points to **compiled named modules** inside modular JARs or exploded module directories. For example, if `demo.api` was compiled into `build/mods/demo.api`, compiling `demo.provider` can use:
 
 ~~~bash
 javac --release 17 --module-path build/mods \
@@ -157,25 +157,25 @@ javac --release 17 --module-path build/mods \
   modsrc/demo.provider/demo/provider/UppercaseTransformer.java
 ~~~
 
-Compiler biết `module demo.provider` có `requires demo.api`, từ đó tìm `demo.api` trong module path và kiểm tra package `demo.api` có được export hay không.
+The compiler sees `module demo.provider` has `requires demo.api`, locates `demo.api` on the module path, and checks whether package `demo.api` is exported.
 
-**Không đánh đồng** đường dẫn sau:
+**Do not conflate** the following options:
 
-| Option | Dùng cho |
+| Option | Used For |
 | --- | --- |
-| `--class-path` | Class/JAR theo mô hình unnamed module và classpath |
-| `--module-path` | Module **đã biên dịch** được tìm theo module name |
-| `--module-source-path` | Cây **source** tổ chức theo từng module, thường dùng khi compile nhiều module cùng lần |
-| `--add-modules` | Bổ sung root modules cần resolve |
-| `--add-reads` | Điều chỉnh quan hệ đọc module cho một trường hợp tích hợp có chủ đích |
+| `--class-path` | Classes/JARs in the unnamed-module and classpath model |
+| `--module-path` | **Compiled** modules located by module name |
+| `--module-source-path` | **Source** tree organized by module, typically used when compiling multiple modules together |
+| `--add-modules` | Adding root modules to resolve |
+| `--add-reads` | Adjusting module read edges for an intentional integration case |
 
-Một named module không thể viết `requires unnamed` để tự đọc dependency trên classpath. Khi plugin và host dùng JPMS, nên có module API được đặt đúng module path hoặc một cơ chế bridge được thiết kế tường minh; không dùng các option vá module graph một cách ngẫu nhiên.
+A named module cannot write `requires unnamed` to automatically read classpath dependencies. When plugins and host use JPMS, place the API module properly on the module path or design an explicit bridge mechanism; avoid patching the module graph ad hoc.
 
-Module path có thể gồm nhiều phần tử, nối bằng `File.pathSeparator`. Nó không có nghĩa mọi module trên đĩa đều tự được resolved hay mọi package đều được truy cập. Cần phân biệt **tìm thấy module**, **module được resolve**, **quan hệ requires/reads** và **exports/opens**.
+A module path can contain multiple entries joined by `File.pathSeparator`. Its presence does not mean every module on disk is automatically resolved or every package is accessible. Distinguish **observable modules**, **resolved modules**, **`requires`/`reads` edges**, and **`exports`/`opens`**.
 
-## 5. Thư mục đầu ra -d và quản lý artifact
+## 5. Output Directory -d and Artifact Management
 
-`-d <dir>` chỉ định thư mục gốc để javac ghi các file `.class` theo cấu trúc package. Ví dụ:
+`-d <dir>` specifies the root directory where `javac` writes `.class` files following the package hierarchy. For example:
 
 ~~~text
 build/generated/classes/
@@ -184,7 +184,7 @@ build/generated/classes/
       UppercaseTransformer.class
 ~~~
 
-Với JPMS biên dịch từng module, output có thể là:
+With JPMS compiling per module, the output can look like:
 
 ~~~text
 build/mods/
@@ -199,47 +199,47 @@ build/mods/
     demo/host/ModHost.class
 ~~~
 
-Directory `build/mods` chứa các exploded modules ở thư mục con trực tiếp. `module-info.class` nằm ở gốc directory **của từng module**.
+Directory `build/mods` holds exploded modules in its direct subdirectories. `module-info.class` resides at the root directory **of each module**.
 
-Các quy tắc quan trọng khi biên dịch lúc chạy:
+Important rules when compiling at runtime:
 
-- Tạo directory output với `Files.createDirectories(output)` và kiểm tra quyền ghi. Không để source của người dùng tự quyết định đường dẫn output bên ngoài vùng host kiểm soát.
-- Dùng đường dẫn riêng theo plugin/build/version, tránh trộn các file từ lần compile cũ vào lần mới.
-- Một compile thất bại vẫn có thể tạo **một phần output**. Không được phát hành hoặc nạp folder này chỉ vì nó có file `.class`.
-- `-d` không tự làm output trở thành runtime classpath/module path; loader phải được cấu hình rõ.
-- `-s` dành cho generated source của annotation processing; `-h` dành cho native headers khi có nhu cầu. Đừng dùng `-d` để trộn output khác loại vào cùng directory mà không kiểm soát.
-- Khi thay version plugin, compile vào chỗ mới và chỉ chuyển sang artifact đó khi QA đạt. Tránh ghi đè directory/JAR đang được loader hoặc thread plugin cũ sử dụng.
-- Dọn output theo lifecycle sau khi chắc rằng không còn reader, handle, classloader hoặc task nào cần artifact cũ.
+- Create the output directory with `Files.createDirectories(output)` and verify write permissions. Never let user-supplied source dictate output paths outside host-controlled areas.
+- Use separate paths per plugin/build/version to avoid mixing files from old compilations into new ones.
+- A failed compilation can still emit **partial output**. Never publish or load this directory merely because `.class` files exist inside it.
+- `-d` does not automatically turn the output into a runtime classpath/module path; the loader must be configured explicitly.
+- `-s` is for generated sources from annotation processing; `-h` is for native headers when needed. Do not use `-d` to mix different output kinds in the same directory without control.
+- When swapping plugin versions, compile into a new location and switch to that artifact only after QA passes. Avoid overwriting directories/JARs currently used by running plugin loaders or threads.
+- Clean up outputs according to lifecycle once certain no reader, handle, class loader, or task still needs the old artifact.
 
-Thư mục output đóng vai trò **build artifact**, không phải mặc định là nguồn sự thật hay nơi tự do cho mọi plugin ghi file. Nếu cần tính lặp lại, lưu lại source hash, compiler version, options, dependency versions và ID bản build.
+The output directory serves as a **build artifact**, not implicitly as a source of truth or a free-for-all scratch area for any plugin to write files. If reproducibility is required, record source hash, compiler version, options, dependency versions, and build ID.
 
-## 6. --release so với -source/-target
+## 6. --release vs. -source/-target
 
-`--release 17` yêu cầu compiler tạo class file phù hợp Java 17 và chỉ cho sử dụng các cú pháp cùng Java platform APIs được hỗ trợ trong Java 17. Với Java 17, major version của file class là **61**.
+`--release 17` instructs the compiler to generate class files compatible with Java 17 and allow only syntax and Java platform APIs supported in Java 17. For Java 17, the class-file major version is **61**.
 
-| Cấu hình | Cú pháp | Bytecode | Hạn chế Java platform API |
+| Configuration | Syntax | Bytecode | Java Platform API Restriction |
 | --- | --- | --- | --- |
-| `--release 17` | Java 17 | Java 17 | Có: theo API của release 17 |
-| `-source 17 -target 17` | Java 17 | Java 17 | Không bảo đảm khi javac chạy trên JDK mới hơn |
-| Không có cờ phiên bản | Mặc định bản javac được gọi | Mặc định javac | Có thể đổi khi nâng compiler |
+| `--release 17` | Java 17 | Java 17 | Yes: per release 17 APIs |
+| `-source 17 -target 17` | Java 17 | Java 17 | Not guaranteed when `javac` runs on a newer JDK |
+| No version flag | Default of the invoked `javac` | Default of `javac` | Can change when upgrading the compiler |
 
-Khi dùng `-source 17 -target 17` trên JDK mới, code có thể vẫn tham chiếu một method của Java platform vừa xuất hiện ở release mới; việc tạo bytecode version 61 **không ngăn runtime Java 17 gặp lỗi** vì method không tồn tại. `--release 17` là cách thông thường để ràng buộc source, target và platform API trong một option.
+When using `-source 17 -target 17` on a newer JDK, code can still reference a Java platform method introduced in a newer release; emitting bytecode version 61 **does not prevent a Java 17 runtime from failing** because that method does not exist. `--release 17` is the standard way to constrain source, target, and platform APIs in a single option.
 
-Lưu ý:
+Notes:
 
-1. Không kết hợp `--release` với `-source` hoặc `-target` cho một compilation task.
-2. Bản javac chỉ hỗ trợ những release mà compiler đó công bố trong `javac --help`; JDK 17 không thể compile với `--release 21`.
-3. `--release 17` không khóa phiên bản JAR bên ngoài JDK. Dependency được compile cho Java 21 hoặc API host/plugin khác nhau vẫn có thể làm build/runtime thất bại.
-4. `--release` không phải sandbox; nó không ngăn source, annotation processor hoặc bytecode đã nạp có tác dụng phụ khi chạy.
-5. Nếu host dùng JavaCompiler API, truyền cờ dưới dạng các phần tử option, ví dụ `List.of("--release", "17")`. Tránh gộp thành một string `"--release 17"` rồi truyền cho `getTask`.
+1. Do not combine `--release` with `-source` or `-target` in the same compilation task.
+2. A `javac` binary only supports the releases it advertises in `javac --help`; JDK 17 cannot compile with `--release 21`.
+3. `--release 17` does not pin JAR versions outside the JDK. Dependencies compiled for Java 21 or mismatched host/plugin APIs can still break build/runtime.
+4. `--release` is not a sandbox; it does not prevent sources, annotation processors, or loaded bytecode from having side effects at runtime.
+5. If the host uses the `JavaCompiler` API, pass flags as separate option elements, e.g. `List.of("--release", "17")`. Avoid combining them into a single `"--release 17"` string passed to `getTask`.
 
-Với một hệ thống plugin, cần chạy **integration tests trên runtime đích** bên cạnh compile với `--release`.
+For a plugin system, run **integration tests on the target runtime** in addition to compiling with `--release`.
 
-## 7. Chương trình Java 17 chạy được: host gọi JavaCompiler để biên dịch plugin
+## 7. Runnable Java 17 Program: Host Invoking JavaCompiler to Compile a Plugin
 
-Ví dụ này chứng minh cả classpath, `-d` và `--release` trong một luồng thực tế. Host chỉ được compile trước với API; file source plugin vẫn chưa có `.class`. Khi chạy, host gọi compiler, tạo class output rồi chủ động nạp nó.
+This example demonstrates classpath, `-d`, and `--release` in one realistic flow. Only the host and API are compiled upfront; the plugin source still has no `.class` file. At runtime, the host invokes the compiler, generates the class output, and actively loads it.
 
-### 7.1. Cấu trúc thư mục
+### 7.1. Directory Structure
 
 ~~~text
 runtime-compiler-demo/
@@ -254,9 +254,9 @@ runtime-compiler-demo/
     generated/classes/
 ~~~
 
-Các file bên dưới nằm đúng đường dẫn nêu trên. Thư mục `build` được tạo trong quá trình chạy lệnh, không cần tự tạo file `.class`.
+The files below live at the exact paths shown above. The `build` directory is created while running the commands; there is no need to create `.class` files manually.
 
-### 7.2. File hợp đồng API
+### 7.2. API Contract File
 
 **`src/api/demo/api/Transformer.java`:**
 
@@ -268,7 +268,7 @@ public interface Transformer {
 }
 ~~~
 
-### 7.3. File nguồn plugin
+### 7.3. Plugin Source File
 
 **`src/plugin/demo/plugin/UppercaseTransformer.java`:**
 
@@ -289,9 +289,9 @@ public final class UppercaseTransformer implements Transformer {
 }
 ~~~
 
-Interface thuộc API dùng chung; implementation chỉ biết hợp đồng và Java standard library. Ta chưa dùng javac để compile file plugin ở terminal.
+The interface belongs to the shared API; the implementation knows only the contract and the Java standard library. We have not used `javac` in the terminal to compile the plugin file yet.
 
-### 7.4. File host gọi JavaCompiler API
+### 7.4. Host File Invoking JavaCompiler API
 
 **`src/host/demo/host/CompileHost.java`:**
 
@@ -381,78 +381,78 @@ public final class CompileHost {
 }
 ~~~
 
-**Giải thích các điểm quan trọng:**
+**Important points explained:**
 
-1. `ToolProvider.getSystemJavaCompiler()` lấy system compiler trên JDK phù hợp. Một runtime image không có compiler có thể trả `null`; host phải báo lỗi tường minh.
-2. `StandardJavaFileManager` chuyển `Path` thành `JavaFileObject`, quản lý I/O và được đóng bằng try-with-resources. `DiagnosticCollector` ghi lại lỗi/warning khi compile.
-3. `--class-path build/plugin-api.jar` cho javac giải quyết `demo.api.Transformer` mà plugin cần. Host không compile phụ thuộc implementation plugin.
-4. `--release 17` chọn Java 17; `-encoding UTF-8` đọc source nhất quán. `-proc:none` tắt annotation processing vì ví dụ không dùng processor.
-5. `-d build/generated/classes` chỉ file output. Sau compile, host tự tạo `URLClassLoader` trỏ đến output.
-6. Parent loader của plugin là loader của `CompileHost` đang biết `Transformer`, nhờ vậy cast sang interface dùng chung có thể thực hiện.
-7. Host chỉ nạp plugin nếu compilation task trả `true`. Một task trả `false` phải kèm diagnostics; không dùng class cũ tồn dư từ lần compile trước.
-8. `URLClassLoader.close()` đóng tài nguyên do loader quản lý, nhưng không tự ngắt các thread plugin hay bảo đảm class được unload ngay. Plugin thực tế cần hợp đồng lifecycle riêng.
+1. `ToolProvider.getSystemJavaCompiler()` retrieves the system compiler on a suitable JDK. A runtime image without a compiler can return `null`; the host must report an explicit error.
+2. `StandardJavaFileManager` converts `Path`s into `JavaFileObject`s, handles I/O, and is closed via try-with-resources. `DiagnosticCollector` records compile errors/warnings.
+3. `--class-path build/plugin-api.jar` lets `javac` resolve `demo.api.Transformer` needed by the plugin. The host is not compiled against the plugin implementation.
+4. `--release 17` targets Java 17; `-encoding UTF-8` ensures consistent source decoding. `-proc:none` disables annotation processing since the example uses no processors.
+5. `-d build/generated/classes` specifies the output files. After compiling, the host creates a `URLClassLoader` pointing to that output.
+6. The plugin loader's parent is `CompileHost`'s loader, which already knows `Transformer`, allowing casting to the shared interface.
+7. The host loads the plugin only if the compilation task returns `true`. A task returning `false` must carry diagnostics; never reuse leftover classes from an earlier compile.
+8. `URLClassLoader.close()` closes resources managed by the loader, yet does not automatically terminate plugin threads or guarantee immediate class unloading. Real plugins require an explicit lifecycle contract.
 
-Các path tương đối được giải theo **working directory của tiến trình host**. Khi chạy từ thư mục khác, cần tính absolute paths hoặc truyền cấu hình rõ ràng. Không xây một shell command bằng cách nối source path của người dùng: `getTask` nhận **danh sách option** nên host có thể kiểm tra từng path và policy trước khi gọi compiler.
+Relative paths are resolved against **the host process's working directory**. When running from another directory, compute absolute paths or pass explicit configuration. Do not build a shell command by concatenating user source paths: `getTask` takes an **option list**, allowing the host to validate each path and policy before invoking the compiler.
 
-### 7.5. Lệnh biên dịch và chạy
+### 7.5. Compile and Run Commands
 
-Từ thư mục `runtime-compiler-demo` trên Linux/macOS với JDK 17+, dùng Bash:
+From the `runtime-compiler-demo` directory on Linux/macOS with JDK 17+, using Bash:
 
 ~~~bash
 mkdir -p build/api build/host
 
-# Biên dịch API và đóng gói thành JAR.
+# Compile the API and package it into a JAR.
 javac --release 17 -encoding UTF-8 \
   -d build/api src/api/demo/api/Transformer.java
 jar --create --file build/plugin-api.jar -C build/api .
 
-# Host được biên dịch với API mà không cần implementation plugin.
+# Host is compiled against the API without needing the plugin implementation.
 javac --release 17 -encoding UTF-8 \
   --class-path build/plugin-api.jar \
   -d build/host src/host/demo/host/CompileHost.java
 
-# Không biên dịch UppercaseTransformer ở terminal.
-# CompileHost sẽ dùng JavaCompiler khi chạy.
+# Do not compile UppercaseTransformer in the terminal.
+# CompileHost will invoke JavaCompiler at runtime.
 java --class-path "build/host:build/plugin-api.jar" \
   demo.host.CompileHost
 ~~~
 
-**Stdout chính xác khi build thành công:**
+**Exact stdout on successful build:**
 
 ~~~text
 compiled=true
 result=HELLO PLUGIN
 ~~~
 
-Vì source hợp lệ, không có diagnostics được in lên stderr trong lần chạy thành công. Sau khi host hoàn tất, xuất hiện:
+Since the source is valid, no diagnostics are printed to stderr in a successful run. After the host finishes, the following appears:
 
 ~~~text
 build/generated/classes/
   demo/plugin/UppercaseTransformer.class
 ~~~
 
-Với Windows PowerShell, lệnh khởi chạy tương ứng (sau khi đã tạo JAR và class host) dùng dấu chấm phẩy:
+On Windows PowerShell, the corresponding launch command (after building the JAR and host classes) uses a semicolon:
 
 ~~~powershell
 java --class-path "build/host;build/plugin-api.jar" demo.host.CompileHost
 ~~~
 
-Các lệnh Bash nhiều dòng dùng ký tự nối dòng backslash, còn PowerShell nên dùng lệnh `javac`/`jar` trên một dòng hoặc cú pháp riêng.
+Multi-line Bash commands use backslash line continuations, whereas PowerShell should run `javac`/`jar` on a single line or use PowerShell syntax.
 
-### 7.6. Nếu đổi option thì điều gì xảy ra?
+### 7.6. What Happens If Options Change?
 
-- Bỏ `--class-path build/plugin-api.jar` khi compile plugin: javac không thấy `demo.api.Transformer` và báo lỗi tên package/symbol.
-- Bỏ `-d`: output có thể đi vào vị trí mặc định không nằm nơi host dự kiến. Với runtime compiler, đặt location có chủ đích để dễ kiểm soát và dọn dẹp.
-- Dùng `--release 21` trên JDK 17: compiler không hỗ trợ target mới hơn chính nó; không được giả định sẽ compile thành công.
-- Thay `-d` bằng một directory cũ còn file class phiên bản trước: compile lỗi có thể vẫn để lại artifact có vẻ hợp lệ. Dùng output directory mới theo từng build để không nhầm lần compile.
-- Bỏ `URLClassLoader` hoặc không cấu hình classpath runtime: compile vẫn thành công nhưng host không tự nhìn thấy class trong `-d`.
-- Tạo một bản `Transformer.class` khác trong plugin loader: có nguy cơ hai class identity khác nhau, dẫn tới lỗi subtype/cast.
+- Omitting `--class-path build/plugin-api.jar` when compiling the plugin: `javac` cannot see `demo.api.Transformer` and reports package/symbol errors.
+- Omitting `-d`: output may go to a default location other than where the host expects. With a runtime compiler, set an intentional location for easier control and cleanup.
+- Using `--release 21` on JDK 17: the compiler does not support targets newer than itself; do not assume compilation will succeed.
+- Pointing `-d` to an old directory still holding previous-version class files: a failed compile might still leave behind seemingly valid artifacts. Use a fresh output directory per build so compilations never get confused.
+- Omitting `URLClassLoader` or misconfiguring the runtime classpath: compilation succeeds, yet the host does not automatically see classes in `-d`.
+- Creating another copy of `Transformer.class` inside the plugin loader: risks two distinct class identities, causing subtype/cast failures.
 
-## 8. Ví dụ JPMS đầy đủ: ba named module và module path
+## 8. Complete JPMS Example: Three Named Modules and Module Path
 
-Bây giờ biên dịch **một chương trình khác** theo JPMS. Có ba named module: API, provider và host. Trên module path, provider dùng `provides` trong descriptor thay vì file `META-INF/services` như SPI classpath.
+Now compile **a different program** using JPMS. There are three named modules: API, provider, and host. On the module path, the provider uses `provides` in its descriptor instead of `META-INF/services` as in classpath SPI.
 
-### 8.1. Cấu trúc nguồn
+### 8.1. Source Layout
 
 ~~~text
 modsrc/
@@ -466,10 +466,10 @@ modsrc/
     module-info.java
     demo/host/ModHost.java
 build/
-  mods/                (được tạo trong các bước compile)
+  mods/                (created during compilation steps)
 ~~~
 
-Tên module trong `module-info.java` phải đúng với module mà các lệnh `requires` và `--module` tham chiếu.
+Module names in `module-info.java` must match the names referenced by `requires` and `--module`.
 
 **`modsrc/demo.api/module-info.java`:**
 
@@ -553,36 +553,36 @@ public final class ModHost {
 }
 ~~~
 
-Module `demo.provider` không cần `exports demo.provider` để service provider được tìm bởi `ServiceLoader` khi nó được công bố trong `provides` và module đã resolved. Host chỉ dùng API và `ServiceLoader`, không tham chiếu tên implementation.
+Module `demo.provider` does not need `exports demo.provider` for its service provider to be discovered by `ServiceLoader` once declared in `provides` and the module is resolved. The host uses only the API and `ServiceLoader`, without referencing the implementation name.
 
-### 8.2. Biên dịch từng module bằng --module-path
+### 8.2. Compiling Each Module with --module-path
 
-Trong terminal tại directory chứa `modsrc`, với JDK 17+:
+In a terminal in the directory containing `modsrc`, with JDK 17+:
 
 ~~~bash
 mkdir -p build/mods/demo.api build/mods/demo.provider build/mods/demo.host
 
-# 1. Module API.
+# 1. API module.
 javac --release 17 -encoding UTF-8 \
   -d build/mods/demo.api \
   modsrc/demo.api/module-info.java \
   modsrc/demo.api/demo/api/Transformer.java
 
-# 2. Module provider cần demo.api từ module path.
+# 2. Provider module needs demo.api from the module path.
 javac --release 17 -encoding UTF-8 \
   --module-path build/mods \
   -d build/mods/demo.provider \
   modsrc/demo.provider/module-info.java \
   modsrc/demo.provider/demo/provider/UppercaseTransformer.java
 
-# 3. Module host cũng cần demo.api.
+# 3. Host module also needs demo.api.
 javac --release 17 -encoding UTF-8 \
   --module-path build/mods \
   -d build/mods/demo.host \
   modsrc/demo.host/module-info.java \
   modsrc/demo.host/demo/host/ModHost.java
 
-# 4. Chạy module host, resolve rõ provider.
+# 4. Run host module, explicitly resolving the provider.
 java --module-path build/mods --add-modules demo.provider \
   --module demo.host/demo.host.ModHost
 ~~~
@@ -593,9 +593,9 @@ java --module-path build/mods --add-modules demo.provider \
 module=HELLO MODULE
 ~~~
 
-`--add-modules demo.provider` bảo đảm provider module được đưa vào module graph trong demo. `demo.host` khai báo `uses demo.api.Transformer` và `demo.provider` khai báo `provides`, nên `ServiceLoader` trả implementation.
+`--add-modules demo.provider` ensures the provider module is included in the module graph in the demo. `demo.host` declares `uses demo.api.Transformer` and `demo.provider` declares `provides`, so `ServiceLoader` returns the implementation.
 
-Kết quả biên dịch:
+Compilation output:
 
 ~~~text
 build/mods/
@@ -610,11 +610,11 @@ build/mods/
     demo/host/ModHost.class
 ~~~
 
-`build/mods` là directory chứa các exploded modules con, nên dùng nó làm `--module-path` cho compile/run. Nếu ở Windows có nhiều đường dẫn module path, nối bằng dấu chấm phẩy; ví dụ hiện tại chỉ có **một** phần tử `build/mods` nên không cần dấu phân cách.
+`build/mods` is the directory holding the exploded child modules, so pass it as `--module-path` for compiling/running. If multiple module-path entries are needed on Windows, join them with a semicolon; the current example has only **one** entry `build/mods`, so no separator is required.
 
-### 8.3. Lựa chọn khác: compile nhiều module qua --module-source-path
+### 8.3. Alternative: Compiling Multiple Modules via --module-source-path
 
-Với layout `modsrc/<module-name>/...`, có thể biên dịch cùng ba module **trong một lần javac**, thay cho ba lệnh compile riêng ở trên:
+With the layout `modsrc/<module-name>/...`, all three modules can be compiled **in a single `javac` invocation**, instead of the three separate compile commands above:
 
 ~~~bash
 mkdir -p build/allmods
@@ -626,9 +626,9 @@ java --module-path build/allmods --add-modules demo.provider \
   --module demo.host/demo.host.ModHost
 ~~~
 
-Cờ `--module-source-path` mô tả **nơi tìm source theo module**, còn `--module-path` mô tả nơi tìm **các module đã compile**. Ở tình huống compile từ đầu cả ba module, `--module-source-path` cho javac biết layout và dependency giữa các module ngay trong cùng task.
+The `--module-source-path` flag describes **where to find per-module sources**, whereas `--module-path` describes where to find **already-compiled modules**. When compiling all three modules from scratch, `--module-source-path` tells `javac` the layout and inter-module dependencies within a single task.
 
-Trong Java Compiler API, cách cấu hình options (đoạn minh họa, chưa phải chương trình độc lập):
+In the Java Compiler API, option configuration looks like (illustrative snippet, not a standalone program):
 
 ~~~java
 List<String> moduleOptions = List.of(
@@ -639,71 +639,71 @@ List<String> moduleOptions = List.of(
 );
 ~~~
 
-Cần sử dụng `JavaCompiler.getTask` và file manager phù hợp, hoặc compile từng module trong nhiều task với module path cập nhật sau mỗi lần. Đừng bỏ qua việc phát hành output và classloader/module layer sau compile: các module vừa compile không tự động xuất hiện trong graph của JVM host đã khởi động.
+Use `JavaCompiler.getTask` with an appropriate file manager, or compile one module at a time across multiple tasks while updating the module path after each step. Do not neglect publishing outputs and configuring class loaders/module layers after compilation: newly compiled modules do not automatically enter the module graph of an already-started host JVM.
 
-## 9. Ánh xạ với Java Compiler API
+## 9. Mapping to the Java Compiler API
 
-`JavaCompiler` thuộc package `javax.tools` của module `java.compiler`. Ví dụ mục 7 dùng `getTask` với `StandardJavaFileManager` và `DiagnosticCollector`. Trên JDK thông thường, compiler được tìm qua `ToolProvider.getSystemJavaCompiler()`.
+`JavaCompiler` belongs to package `javax.tools` in module `java.compiler`. The Section 7 example uses `getTask` with `StandardJavaFileManager` and `DiagnosticCollector`. On standard JDKs, the compiler is obtained via `ToolProvider.getSystemJavaCompiler()`.
 
-| Nhu cầu | Command-line javac | List options của getTask |
+| Need | Command-Line javac | getTask options List |
 | --- | --- | --- |
-| Thư viện classpath | `--class-path cp` | `List.of("--class-path", cp)` |
+| Classpath libraries | `--class-path cp` | `List.of("--class-path", cp)` |
 | Module dependencies | `--module-path mp` | `List.of("--module-path", mp)` |
-| Source layout của nhiều module | `--module-source-path src` | `List.of("--module-source-path", src)` |
-| Chọn module cần biên dịch | `--module names` | `List.of("--module", names)` |
-| Output class files | `-d out` | `List.of("-d", out)` |
+| Multi-module source layout | `--module-source-path src` | `List.of("--module-source-path", src)` |
+| Select modules to compile | `--module names` | `List.of("--module", names)` |
+| Class file output | `-d out` | `List.of("-d", out)` |
 | Target platform release | `--release 17` | `List.of("--release", "17")` |
-| Charset source | `-encoding UTF-8` | `List.of("-encoding", "UTF-8")` |
-| Tắt annotation processing | `-proc:none` | `List.of("-proc:none")` |
-| Source code do processor tạo | `-s generated` | `List.of("-s", generated)` |
+| Source charset | `-encoding UTF-8` | `List.of("-encoding", "UTF-8")` |
+| Disable annotation processing | `-proc:none` | `List.of("-proc:none")` |
+| Processor-generated source code | `-s generated` | `List.of("-s", generated)` |
 
-Ngoài options, `StandardJavaFileManager` cho phép cấu hình locations như `StandardLocation.CLASS_PATH`, `MODULE_PATH`, `CLASS_OUTPUT` và `SOURCE_OUTPUT`. Có thể dùng các setter phù hợp để cấu hình đường dẫn qua API; tránh đồng thời truyền options mâu thuẫn với các locations đã thiết lập. `getTask` lấy source qua `Iterable<? extends JavaFileObject>`, không phải bằng cách ghép câu lệnh shell và gọi subprocess.
+Besides options, `StandardJavaFileManager` lets you configure locations such as `StandardLocation.CLASS_PATH`, `MODULE_PATH`, `CLASS_OUTPUT`, and `SOURCE_OUTPUT`. You can use the corresponding setters to configure paths programmatically; avoid passing options that conflict with locations set on the file manager. `getTask` accepts sources via `Iterable<? extends JavaFileObject>`, rather than concatenating shell commands and spawning a subprocess.
 
-**Quan trọng với đường dẫn:** trong process Java, một path tương đối như `build/plugin-api.jar` được giải theo working directory, không mặc nhiên theo directory chứa source file. Host nên resolve path, kiểm tra nó thuộc vùng được phép, ghi log path đã chuẩn hóa và lựa chọn `File.pathSeparator` phù hợp OS khi tạo path-list.
+**Important regarding paths:** in a Java process, a relative path such as `build/plugin-api.jar` resolves against the working directory, not automatically relative to the source file's directory. The host should resolve paths, verify they stay within permitted zones, log normalized paths, and choose the OS-appropriate `File.pathSeparator` when building path lists.
 
-**Diagnostics và kết quả:** khi task trả `false`, `DiagnosticCollector` chứa thông tin có thể gồm file, dòng, cột, mức độ lỗi. Hãy ghi chúng theo build ID; không nạp output cũ. Khi task ném exception do cấu hình path, file manager hoặc option, cũng cần báo lỗi rõ. Một lượt compile chỉ được công bố là thành công khi kết quả compiler và các điều kiện artifact của hệ thống đều đạt.
+**Diagnostics and results:** when a task returns `false`, `DiagnosticCollector` holds details that can include file, line, column, and severity. Log them under the build ID; do not load stale outputs. When a task throws an exception due to path, file manager, or option configuration, report a clear error as well. A compile run should only be declared successful when both the compiler result and the system's artifact checks pass.
 
-## 10. Các lỗi thường gặp
+## 10. Common Errors
 
-| Hiện tượng | Nguyên nhân điển hình | Cách kiểm tra |
+| Symptom | Typical Cause | How to Inspect |
 | --- | --- | --- |
-| `package ... does not exist` / `cannot find symbol` | Thiếu API/dependency trong classpath hoặc package module không được đọc/export | Kiểm tra `--class-path`, `--module-path`, `requires`/`exports` |
-| `module not found` | Tên/module output sai hoặc module chưa nằm ở `--module-path` | Kiểm tra `module-info.class` và tên module |
-| Compile thành công nhưng `ClassNotFoundException` | Output `-d` không có trong runtime classpath/loader | Xem file class, classloader URL, runtime path |
-| Compile thành công nhưng `NoClassDefFoundError` | Thiếu runtime dependency hoặc liên kết loại lớp thất bại | Đọc cause/stack trace và dependency runtime |
-| `UnsupportedClassVersionError` | Class được compile với Java mới hơn runtime | Đối chiếu javac `--release` với JVM target |
-| Có provider module nhưng ServiceLoader rỗng | Provider module chưa resolved hoặc `uses`/`provides` sai | Kiểm tra `--add-modules`, module graph, descriptors |
-| Plugin bị `ClassCastException` | API bị định nghĩa bởi hai classloaders hoặc sai kiểu | Giữ API chung, kiểm tra defining loader |
-| Output bị lẫn file cũ | Dùng lại output directory sau build lỗi hoặc đổi package | Dùng directory sạch theo build/version |
-| `ToolProvider.getSystemJavaCompiler() == null` | JVM đang chạy thiếu system compiler | Dùng JDK/runtime image có compiler |
-| Lỗi API trên runtime Java cũ | Dùng `-source/-target` mà không giới hạn platform API hoặc thư viện ngoài quá mới | Dùng `--release` và test trên runtime thật |
-| Compiler báo lỗi mà host tiếp tục nạp | Không kiểm tra `CompilationTask.call()` / diagnostics | Fail-fast, rollback artifact, không chạy class cũ |
+| `package ... does not exist` / `cannot find symbol` | Missing API/dependency on classpath, or module package is not read/exported | Check `--class-path`, `--module-path`, `requires`/`exports` |
+| `module not found` | Wrong module/output name or module missing from `--module-path` | Check `module-info.class` and module name |
+| Compiles successfully, then `ClassNotFoundException` | Output `-d` is absent from runtime classpath/loader | Check class files, class loader URLs, runtime paths |
+| Compiles successfully, then `NoClassDefFoundError` | Missing runtime dependency or class linkage failure | Inspect cause/stack trace and runtime dependencies |
+| `UnsupportedClassVersionError` | Class compiled for a newer Java than runtime | Match `javac --release` with target JVM |
+| Provider module exists, yet ServiceLoader is empty | Provider module unresolved or `uses`/`provides` mismatch | Check `--add-modules`, module graph, descriptors |
+| Plugin throws `ClassCastException` | API defined by two class loaders or wrong type | Keep API shared; check defining loader |
+| Output contaminated with stale files | Reused output directory after failed build or package rename | Use a clean directory per build/version |
+| `ToolProvider.getSystemJavaCompiler() == null` | Running JVM lacks system compiler | Use a JDK/runtime image containing the compiler |
+| API error on older Java runtime | Used `-source/-target` without constraining platform APIs, or external library too new | Use `--release` and test on real runtime |
+| Compiler reports errors, yet host still loads | Did not check `CompilationTask.call()` / diagnostics | Fail-fast, roll back artifacts, never run stale classes |
 
-Nếu compile thất bại, xử lý lỗi **compile** trước. Nếu compile thành công nhưng load thất bại, kiểm tra **runtime path, classloader identity, module resolution và dependency** thay vì giả định compiler không nhận cờ.
+If compilation fails, fix **compilation** errors first. If compilation succeeds yet loading fails, inspect **runtime paths, class loader identity, module resolution, and dependencies** rather than assuming the compiler ignored flags.
 
-## 11. Quy ước vận hành cho biên dịch động
+## 11. Operational Conventions for Dynamic Compilation
 
-Một implementation có thể áp dụng các chính sách:
+An implementation can enforce these policies:
 
-1. **Input và version:** nhận source, định danh plugin, chế độ classpath/module, API version, target `--release` và danh sách dependency được phép. Không lấy tùy tiện toàn bộ host classpath.
-2. **Output ownership:** compiler service tạo directory build riêng, không sửa directory đang được plugin chạy sử dụng. Đặt cấu trúc output dễ truy vết và dọn cleanup theo lifecycle.
-3. **Idempotency:** với cùng source, options, compiler và dependencies đã pin, kết quả build có thể được xác minh/đối chiếu theo fingerprint. Không để file build cũ làm thay đổi kết quả.
-4. **Build failure:** thu diagnostics, đánh dấu build thất bại, không publish output một phần và không fallback âm thầm sang class cũ.
-5. **Publish:** xác minh bytecode/manifest/dependency trước khi chuyển plugin mới sang active; có đường rollback về artifact đã kiểm tra.
-6. **Runtime boundary:** compile xong mới chọn classloader/module layer; kiểm tra API compatibility, stop/cancel/close plugin cũ theo hợp đồng.
-7. **An toàn:** tắt processor khi không cần (ví dụ `-proc:none`). Compiler/processor và bytecode/plugin có thể chạy mã có tác dụng phụ; `--release`, `-proc:none` và classloader **không phải sandbox** cho mã không tin cậy. Nếu cần, biên dịch và chạy trong tiến trình cô lập với giới hạn OS, CPU, bộ nhớ và thời gian.
+1. **Inputs and versioning:** accept source, plugin ID, classpath/module mode, API version, `--release` target, and an allowlist of dependencies. Never pull in the entire host classpath indiscriminately.
+2. **Output ownership:** the compiler service creates dedicated build directories without modifying directories in active use by running plugins. Structure outputs for traceability and lifecycle cleanup.
+3. **Idempotency:** given identical pinned source, options, compiler, and dependencies, build results can be verified/matched by fingerprint. Prevent stale build files from altering outcomes.
+4. **Build failures:** collect diagnostics, mark the build failed, never publish partial outputs, and never silently fall back to an old class.
+5. **Publishing:** verify bytecode/manifest/dependencies before promoting a new plugin to active; maintain a rollback path to a verified artifact.
+6. **Runtime boundary:** select the class loader/module layer only after compilation completes; check API compatibility and stop/cancel/close old plugins per contract.
+7. **Safety:** disable processors when unneeded (e.g. `-proc:none`). Compilers/processors and loaded bytecode/plugins can run code with side effects; `--release`, `-proc:none`, and class loaders **are not a sandbox** for untrusted code. When needed, compile and run in an isolated process with OS, CPU, memory, and time limits.
 
-Một compile task chạy trong JVM host cũng có thể tốn thời gian/bộ nhớ đáng kể. Hệ thống dùng trong sản phẩm cần giới hạn số job song song, theo dõi cancel/timeout theo hợp đồng và bảo vệ storage khỏi output không giới hạn.
+A compile task running inside the host JVM can also consume substantial time and memory. Production systems should cap concurrent jobs, enforce contract timeouts/cancellations, and protect storage against unbounded outputs.
 
-## 12. Tự kiểm tra nhanh
+## 12. Quick Self-Check
 
-1. Source `UppercaseTransformer.java` cần `demo.api.Transformer` trong JAR: cờ nào cho javac thấy API? **`--class-path build/plugin-api.jar`**.
-2. Muốn file `.class` ra `build/generated/classes`: dùng **`-d build/generated/classes`**, và sau compile còn phải cho loader nhìn thấy directory này.
-3. Có `module-info.java` với `requires demo.api` và module API đã biên dịch: dùng **`--module-path`** trỏ tới module path chứa `demo.api`.
-4. Có cả cây source `modsrc/demo.api`, `modsrc/demo.provider`, `modsrc/demo.host`: dùng **`--module-source-path modsrc`** nếu muốn compile nhiều module cùng lần.
-5. Host dùng JDK 21, plugin phải chạy trên Java 17: dùng **`--release 17`** và test dependency/runtime phiên bản Java 17. `-target 17` đơn lẻ chưa đủ để ràng buộc platform APIs.
-6. Dùng `getTask`: mỗi compiler option và giá trị truyền thành **phần tử riêng** trong `List<String>`; `"--release 17"` không phải một phần tử option hợp lệ thay cho hai phần tử `"--release", "17"`.
-7. Thấy `compiled=true` nhưng host không tìm thấy class: xem **loader/runtime classpath hoặc module layer**; `-d` chỉ ghi output.
-8. Lần build mới thất bại nhưng directory còn class cũ: **không nạp file ấy**; tạo build directory mới và chỉ công bố artifact đủ điều kiện.
+1. `UppercaseTransformer.java` needs `demo.api.Transformer` from a JAR: which flag makes the API visible to `javac`? **`--class-path build/plugin-api.jar`**.
+2. You want `.class` files in `build/generated/classes`: use **`-d build/generated/classes`**, and after compiling ensure the loader can see that directory.
+3. You have `module-info.java` with `requires demo.api` and the API module is already compiled: use **`--module-path`** pointing to the module path containing `demo.api`.
+4. You have a source tree `modsrc/demo.api`, `modsrc/demo.provider`, `modsrc/demo.host`: use **`--module-source-path modsrc`** to compile multiple modules in one pass.
+5. Host runs JDK 21, plugin must run on Java 17: use **`--release 17`** and test dependencies/runtime on Java 17. `-target 17` alone is insufficient to constrain platform APIs.
+6. Using `getTask`: each compiler option and its value must be passed as **separate elements** in `List<String>`; `"--release 17"` is not a valid single element replacing `"--release", "17"`.
+7. You see `compiled=true` but the host cannot find the class: check **loader/runtime classpath or module layer**; `-d` only writes outputs.
+8. A new build fails, leaving old classes in the directory: **never load those files**; use a fresh build directory per build and publish only qualifying artifacts.
 
-**Kết luận:** Khi biên dịch plugin lúc chạy, cần xác định đúng **classpath hay module path**, truyền phụ thuộc tường minh, đặt **output directory** do host kiểm soát và dùng **--release** phù hợp với runtime đích. Tách compilation và class loading, cùng với diagnostics và quản lý artifact, giúp host thêm khả năng mở rộng mà không biến compiler thành một nguồn trạng thái không kiểm soát.
+**Conclusion:** When compiling plugins at runtime, correctly decide **classpath vs. module path**, pass explicit dependencies, specify a host-controlled **output directory**, and set **`--release`** matching the target runtime. Separating compilation from class loading—together with diagnostics and artifact management—lets a host gain extensibility without turning the compiler into an uncontrolled source of state.

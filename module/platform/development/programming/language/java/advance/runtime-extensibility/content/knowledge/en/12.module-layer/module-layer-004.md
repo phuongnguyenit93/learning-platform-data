@@ -1,36 +1,36 @@
-# Tra cứu module, loader và quan hệ layer cha
+# Looking Up Modules, Loaders, and Parent Layer Relationships
 
-## 1. Bối cảnh: ModuleLayer trong hệ thống plugin
+## 1. Context: ModuleLayer in a Plugin System
 
-`ModuleLayer` là một tập module đã được resolve và định nghĩa tại runtime, kèm quan hệ với các layer cha. Boot layer được tạo khi JVM khởi động; một host có thể tạo layer khác để nạp plugin sau này. Mỗi layer có `Configuration` (đồ thị module đã resolve) và các module thực tế được định nghĩa với một hoặc nhiều class loader.
+A `ModuleLayer` is a set of modules resolved and defined at runtime, along with relationships to parent layers. The boot layer is created when the JVM starts; a host can create additional layers to load plugins later. Each layer has a `Configuration` (the resolved module graph) and the actual modules defined with one or more class loaders.
 
-Cần phân biệt ba câu hỏi:
+Three questions must be distinguished:
 
-1. **Module nào có trong layer?** Dùng `layer.modules()` hoặc `layer.findModule(name)`.
-2. **Class loader nào được dùng để nạp module?** Dùng `layer.findLoader(name)` khi module thuộc chính layer đó; dùng `Module.getClassLoader()` khi đã có đối tượng `Module`.
-3. **Module được tìm ở layer hiện tại hay layer cha?** Dùng `layer.parents()` để duyệt cây/đồ thị quan hệ; `findModule` có thể tìm qua ancestors.
+1. **Which modules are in a layer?** Use `layer.modules()` or `layer.findModule(name)`.
+2. **Which class loader is used to load a module?** Use `layer.findLoader(name)` when the module belongs to that exact layer; use `Module.getClassLoader()` when you already have the `Module` object.
+3. **Is a module found in the current layer or a parent layer?** Use `layer.parents()` to traverse the tree/graph of relationships; `findModule` can search across ancestors.
 
-Layer không đồng nghĩa class loader. Có thể định nghĩa nhiều module trong một loader hoặc chia nhiều loader, tùy lựa chọn khi tạo layer. Named module có danh tính và readability riêng; một layer mới không mặc nhiên là sandbox bảo mật hoặc cơ chế hot-unload.
+A layer is not synonymous with a class loader. Multiple modules can be defined in one loader or split across multiple loaders, depending on the choice made when creating the layer. Named modules have their own identity and readability; a new layer is not by default a security sandbox or a hot-unload mechanism.
 
-## 2. Các API tra cứu quan trọng
+## 2. Important Lookup APIs
 
-| API | Kết quả | Điều cần nhớ |
+| API | Result | Key Things to Remember |
 |---|---|---|
-| `ModuleLayer.boot()` | Boot layer của JVM hiện tại | Không tự thay đổi khi nạp plugin về sau |
-| `layer.modules()` | `Set<Module>` trực tiếp thuộc layer | Không trả toàn bộ module của ancestors |
-| `layer.findModule("name")` | `Optional<Module>` | Tìm trong layer và các ancestor layers |
-| `layer.findLoader("name")` | `ClassLoader` cho module được định nghĩa trong layer | Có thể ném `IllegalArgumentException` nếu module không được định nghĩa **trong layer này** |
-| `layer.parents()` | `List<ModuleLayer>` cha trực tiếp | Một layer có thể có nhiều cha; không giả định duy nhất |
-| `layer.configuration()` | `Configuration` đã resolve | Khác với việc nạp class hoặc tạo instance |
-| `module.getLayer()` | Layer chứa named module (nếu có) | Với unnamed module, giá trị là `null` |
-| `module.getClassLoader()` | Defining loader của module | Có thể là `null` với module do bootstrap loader định nghĩa |
-| `Class.getModule()` | Module sở hữu class | Hữu ích khi debug lớp nào thực sự được nạp |
+| `ModuleLayer.boot()` | Boot layer of the current JVM | Does not automatically change when plugins are loaded later |
+| `layer.modules()` | `Set<Module>` directly belonging to the layer | Does not return all modules of ancestors |
+| `layer.findModule("name")` | `Optional<Module>` | Searches in the layer and ancestor layers |
+| `layer.findLoader("name")` | `ClassLoader` for a module defined in the layer | Can throw `IllegalArgumentException` if the module is not defined **in this layer** |
+| `layer.parents()` | `List<ModuleLayer>` of direct parents | A layer can have multiple parents; do not assume a single one |
+| `layer.configuration()` | Resolved `Configuration` | Different from loading classes or creating instances |
+| `module.getLayer()` | Layer containing the named module (if any) | For an unnamed module, the value is `null` |
+| `module.getClassLoader()` | Defining loader of the module | Can be `null` for modules defined by the bootstrap loader |
+| `Class.getModule()` | Module owning the class | Useful when debugging which class was actually loaded |
 
-**Bẫy phổ biến:** `layer.findModule(name)` tìm cả layer cha; nhưng `layer.findLoader(name)` yêu cầu tên module thuộc **chính layer**. Vì vậy một module lấy được qua `findModule` chưa đủ để gọi `findLoader` trên layer đang xét. Hãy lấy đối tượng `Module`, kiểm tra `module.getLayer()` rồi gọi `module.getClassLoader()` nếu cần.
+**Common pitfall:** `layer.findModule(name)` searches parent layers as well; however, `layer.findLoader(name)` requires the module name to belong to **the layer itself**. Therefore, a module obtained via `findModule` is not guaranteed to be valid for calling `findLoader` on the layer being inspected. Obtain the `Module` object, check `module.getLayer()`, and call `module.getClassLoader()` if needed.
 
-## 3. Ví dụ chạy được trên Java 17+: tra cứu boot layer
+## 3. Runnable Example on Java 17+: Inspecting the Boot Layer
 
-Tạo file `BootLayerInspect.java`:
+Create the file `BootLayerInspect.java`:
 
 ```java
 import java.lang.ModuleLayer;
@@ -57,14 +57,14 @@ public final class BootLayerInspect {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac BootLayerInspect.java
 java BootLayerInspect
 ```
 
-Đầu ra có những dòng ổn định:
+The output has these stable lines:
 
 ```text
 java.base present: true
@@ -73,13 +73,13 @@ java.base loader is bootstrap: true
 boot parent count: 1
 ```
 
-Danh sách `sample:` phụ thuộc vào tập module được resolve bởi launcher và môi trường, nên không gắn cứng toàn bộ stdout. Boot layer có parent là `ModuleLayer.empty()`; đây là một layer rỗng đặc biệt. Không nên kết luận mọi module hệ thống đều nằm trong boot layer: chỉ module được resolve mới xuất hiện trong `modules()`.
+The `sample:` list depends on the set of modules resolved by the launcher and environment, so do not hardcode the entire stdout. The boot layer has `ModuleLayer.empty()` as its parent; this is a special empty layer. Do not conclude that every system module resides in the boot layer: only resolved modules appear in `modules()`.
 
-## 4. Ví dụ đầy đủ: tạo plugin layer và lần theo layer cha
+## 4. Complete Example: Creating a Plugin Layer and Tracing Parent Layers
 
-Ta tạo `demo.api` chứa interface, `demo.plugin` chứa provider và host tạo layer mới. Mục tiêu chính là quan sát quan hệ layer, module và class loader; không cần network hoặc framework.
+We create `demo.api` containing an interface, `demo.plugin` containing a provider, and a host that creates a new layer. The main goal is to observe layer, module, and class loader relationships; no network or framework is needed.
 
-Cây thư mục:
+Directory tree:
 
 ```text
 layer-demo/
@@ -134,7 +134,7 @@ public final class HelloGreeter implements Greeter {
 }
 ```
 
-`Host.java` (ứng dụng host chạy trên class path):
+`Host.java` (host application running on the class path):
 
 ```java
 import java.lang.module.Configuration;
@@ -164,7 +164,7 @@ public final class Host {
         System.out.println("plugin loader matches: "
                 + (child.findLoader("demo.plugin") == plugin.getClassLoader()));
 
-        // API nằm ở boot layer; KHÔNG gọi child.findLoader("demo.api").
+        // The API resides in the boot layer; DO NOT call child.findLoader("demo.api").
         ServiceLoader<demo.api.Greeter> services =
                 ServiceLoader.load(child, demo.api.Greeter.class);
         for (demo.api.Greeter service : services) {
@@ -174,9 +174,9 @@ public final class Host {
 }
 ```
 
-**Điều kiện cấu hình:** Để `demo.api` có mặt trong boot layer khi chạy host class path, cần thêm module API vào module path và resolve nó qua `--add-modules demo.api`. Host là code thuộc unnamed module, và được phép dùng public API đã export từ `demo.api`. Plugin nằm trong một JAR riêng chưa nằm trên boot module path; `ModuleFinder` chỉ đọc JAR đó khi tạo child layer.
+**Configuration condition:** For `demo.api` to be present in the boot layer when running the class path host, the API module must be added to the module path and resolved via `--add-modules demo.api`. The host is code belonging to the unnamed module and is allowed to use public APIs exported from `demo.api`. The plugin resides in a separate JAR not on the boot module path; `ModuleFinder` only reads that JAR when creating the child layer.
 
-Biên dịch và đóng gói với JDK 17+ từ thư mục `layer-demo/` (lệnh shell POSIX):
+Compile and package with JDK 17+ from the `layer-demo/` directory (POSIX shell commands):
 
 ```bash
 mkdir -p build/api build/plugin mods/api mods/plugin
@@ -190,7 +190,7 @@ javac --module-path mods/api --add-modules demo.api Host.java
 java --module-path mods/api --add-modules demo.api -cp . Host
 ```
 
-Đầu ra chính xác trong mô hình trên:
+Exact output in the model above:
 
 ```text
 child owns plugin: true
@@ -202,24 +202,24 @@ plugin loader matches: true
 Hello, JPMS
 ```
 
-`child.findModule("demo.api")` tìm được module API từ layer cha dù `child.modules()` không chứa nó. Đây là điểm phân biệt quan trọng giữa **visible via ancestors** và **defined in this layer**.
+`child.findModule("demo.api")` finds the API module from the parent layer even though `child.modules()` does not contain it. This is an important distinction between **visible via ancestors** and **defined in this layer**.
 
-Với thiết kế khác, ví dụ không resolve API ở parent, `resolve(...)` có thể đưa API vào configuration của child nếu finder có API module. Khi đó kết quả ownership khác. Luôn kiểm tra graph và lớp loader thực tế thay vì áp dụng một giả định cứng.
+With a different design, for example not resolving the API in the parent, `resolve(...)` might place the API into the child's configuration if the finder has the API module. In that case, ownership results differ. Always inspect the actual graph and class loader rather than applying a rigid assumption.
 
-## 5. Quan hệ layer cha và đồ thị configuration
+## 5. Parent Layer Relationships and Configuration Graphs
 
-ModuleLayer tổ chức dưới dạng đồ thị có hướng không chu trình theo quan hệ parent. Các layer cha có thể chia sẻ module giữa các nhánh; một layer có thể có nhiều parent nếu được tạo bằng API tương ứng.
+`ModuleLayer` is organized as a directed acyclic graph by parent relationships. Parent layers can share modules across branches; a layer can have multiple parents if created with the corresponding API.
 
-Phân biệt:
+Distinguish:
 
-- `layer.parents()`: danh sách **cha trực tiếp** của runtime layer.
-- `layer.configuration().parents()`: danh sách parent **configuration** dùng khi resolve, phản ánh graph cấu hình.
-- `layer.modules()`: module được định nghĩa trực tiếp trong layer.
-- `layer.findModule(name)`: có thể trả module trong layer hoặc ancestors, tùy tập module được xét.
+- `layer.parents()`: list of **direct parents** of the runtime layer.
+- `layer.configuration().parents()`: list of parent **configurations** used during resolution, reflecting the configuration graph.
+- `layer.modules()`: modules defined directly in the layer.
+- `layer.findModule(name)`: can return a module in the layer or ancestors, depending on the set of modules examined.
 
-Nếu chỉ cần module cụ thể, `findModule` là API trực tiếp. Nếu cần hiển thị toàn bộ cây, có thể duyệt `parents()` nhưng phải tránh lặp layer trong graph có nhiều đường dẫn tới cùng ancestor.
+If you only need a specific module, `findModule` is the direct API. If you need to display the entire tree, you can traverse `parents()`, but you must avoid revisiting layers in a graph that has multiple paths to the same ancestor.
 
-Đoạn tiện ích minh họa duyệt ancestors (đặt trong một class Java đã import `java.util.*`):
+Sample utility illustrating ancestor traversal (placed inside a Java class that has imported `java.util.*`):
 
 ```java
 static void printLayers(ModuleLayer root) {
@@ -236,46 +236,46 @@ static void printLayers(ModuleLayer root) {
 }
 ```
 
-Đây là **đoạn mã minh họa**, không phải chương trình độc lập. Sử dụng identity set để tránh duyệt lặp cùng một layer trong đồ thị.
+This is an **illustrative code snippet**, not a standalone program. It uses an identity set to avoid repeatedly traversing the same layer in the graph.
 
-## 6. Class loader và loại module
+## 6. Class Loaders and Module Types
 
-JPMS cho phép nhiều chiến lược định nghĩa module trong child layer:
+JPMS allows multiple strategies for defining modules in a child layer:
 
-| Cách tạo | Đặc điểm |
+| Creation Method | Characteristics |
 |---|---|
-| `defineModulesWithOneLoader` | Module trong configuration child được định nghĩa bằng một loader do cơ chế tạo layer quản lý; phù hợp khi dependency của plugin có thể chia sẻ loader |
-| `defineModulesWithManyLoaders` | Mỗi module trong configuration được nạp qua loader riêng do cơ chế tạo layer quản lý |
-| `defineModules` | Cho phép ánh xạ module name tới loader theo chính sách tùy chỉnh |
+| `defineModulesWithOneLoader` | Modules in the child configuration are defined using one loader managed by the layer creation mechanism; suitable when plugin dependencies can share a loader |
+| `defineModulesWithManyLoaders` | Each module in the configuration is loaded via its own loader managed by the layer creation mechanism |
+| `defineModules` | Allows mapping module names to loaders according to a custom policy |
 
-`ClassLoader` truyền vào `defineModulesWithOneLoader` là **parent loader** của loader mới mà cơ chế tạo layer sử dụng; nó không đồng nghĩa loader mới chính là đối tượng được truyền. Vì vậy trong ví dụ kiểm tra `child.findLoader("demo.plugin") == plugin.getClassLoader()` và không so sánh với `ClassLoader.getSystemClassLoader()`.
+The `ClassLoader` passed to `defineModulesWithOneLoader` is the **parent loader** of the new loader used by the layer creation mechanism; it does not mean the new loader is the exact object passed in. Therefore, the example checks `child.findLoader("demo.plugin") == plugin.getClassLoader()` and does not compare against `ClassLoader.getSystemClassLoader()`.
 
-Trong mô hình plugin, API contract nên được định nghĩa một lần trong parent layer/loader mà host và provider cùng nhìn thấy. Nếu cùng binary name của interface bị định nghĩa bởi nhiều loader, ép kiểu hoặc `ServiceLoader` có thể thất bại dù tên package/class giống nhau.
+In a plugin model, the API contract should be defined once in a parent layer/loader visible to both the host and the provider. If the same binary name of an interface is defined by multiple loaders, casting or `ServiceLoader` can fail even when package and class names match.
 
-Không nên thiết kế giao tiếp host-plugin dựa vào package-private member giữa các loader khác nhau. Runtime package phụ thuộc tên package và defining loader; các module có tên còn chịu ràng buộc `exports`/`opens`.
+Do not design host-plugin communication around package-private members across different loaders. A runtime package depends on the package name and the defining loader; named modules are also subject to `exports`/`opens` constraints.
 
-## 7. Lỗi và giới hạn thường gặp
+## 7. Common Errors and Limitations
 
-| Hiện tượng | Nguyên nhân có thể | Cách xử lý |
+| Symptom | Possible Cause | Resolution |
 |---|---|---|
-| `findModule(...)` trả rỗng | Module không nằm trong layer hoặc ancestor được tìm | Xem root set, `ModuleFinder`, resolution và layer parents |
-| `findLoader(...)` ném `IllegalArgumentException` | Module nằm ở layer cha hoặc không thuộc layer đang hỏi | Dùng `module.getLayer()` rồi tra loader tại layer sở hữu, hoặc `module.getClassLoader()` |
-| Không tìm thấy provider | Provider module chưa resolve, thiếu `provides`, service API không thống nhất, sai layer | Kiểm tra descriptor, `ServiceLoader.load(layer, ...)` và graph |
-| `LayerInstantiationException` | Cấu hình loader/package/module không hợp lệ khi định nghĩa layer | Kiểm tra split package, package mapping và cách tạo loader |
-| `FindException` / `ResolutionException` | Module descriptor thiếu/sai dependency, trùng module hoặc graph không hợp lệ | Kiểm tra module path, tên module và `requires` |
-| `ClassCastException` / `ServiceConfigurationError` | Host và plugin nhìn thấy các bản API khác nhau hoặc provider sai kiểu | Giữ API ở parent, tránh duplicate contract |
+| `findModule(...)` returns empty | Module is not in the layer or searched ancestors | Check the root set, `ModuleFinder`, resolution, and layer parents |
+| `findLoader(...)` throws `IllegalArgumentException` | Module resides in a parent layer or does not belong to the queried layer | Use `module.getLayer()` then query the loader on the owning layer, or `module.getClassLoader()` |
+| Provider not found | Provider module not resolved, missing `provides`, inconsistent service API, wrong layer | Check the descriptor, `ServiceLoader.load(layer, ...)`, and the graph |
+| `LayerInstantiationException` | Invalid loader/package/module configuration when defining the layer | Check for split packages, package mapping, and loader creation |
+| `FindException` / `ResolutionException` | Module descriptor missing/wrong dependency, duplicate module, or invalid graph | Check module path, module names, and `requires` |
+| `ClassCastException` / `ServiceConfigurationError` | Host and plugin see different copies of the API or provider has wrong type | Keep the API in the parent, avoid duplicate contracts |
 
-**Quan sát đúng:** `module.getClassLoader()` trả `null` là bình thường đối với module do bootstrap loader định nghĩa (ví dụ `java.base`), không tự chỉ ra lỗi. `module.getLayer()` trả `null` đối với class thuộc unnamed module. Tránh dùng tên hiển thị của loader làm danh tính tuyệt đối.
+**Correct observation:** `module.getClassLoader()` returning `null` is normal for modules defined by the bootstrap loader (such as `java.base`) and does not by itself indicate an error. `module.getLayer()` returns `null` for classes belonging to an unnamed module. Avoid using a loader's display name as an absolute identity.
 
-## 8. Checklist khi thêm một plugin mới
+## 8. Checklist When Adding a New Plugin
 
-1. Xác định JAR nào là named module, automatic module hoặc class path artifact.
-2. Kiểm tra `ModuleFinder.of(...)` nhìn thấy đúng module name và version metadata.
-3. Resolve graph từ `parentLayer.configuration()` với root đúng; xác minh các dependency cần thiết tồn tại.
-4. Tạo child layer với số loader phù hợp; ghi lại owner layer của từng module.
-5. Tra module bằng `findModule`, chỉ dùng `findLoader` trên layer trực tiếp định nghĩa nó.
-6. Dùng `ServiceLoader.load(layer, serviceApiClass)` và kiểm chứng provider assignable với API chung.
-7. Có test cho thiếu provider, thiếu dependency, module trùng tên, split package và lỗi khi kích hoạt.
-8. Quản lý close/dừng plugin, thread và resource riêng; tạo layer không tự unload hoặc sandbox mã.
+1. Identify which JARs are named modules, automatic modules, or class path artifacts.
+2. Verify that `ModuleFinder.of(...)` sees the correct module names and version metadata.
+3. Resolve the graph from `parentLayer.configuration()` with the right roots; verify required dependencies exist.
+4. Create the child layer with the appropriate number of loaders; record the owner layer of each module.
+5. Look up modules with `findModule`, and only use `findLoader` on the layer that directly defines them.
+6. Use `ServiceLoader.load(layer, serviceApiClass)` and verify the provider is assignable to the shared API.
+7. Have tests for missing providers, missing dependencies, duplicate module names, split packages, and activation failures.
+8. Manage closing/stopping plugins, threads, and resources explicitly; creating a layer does not automatically unload or sandbox code.
 
-**Ghi nhớ:** `findModule` trả lời *module ở đâu trong layer graph*; `findLoader` trả lời *loader của module trực tiếp thuộc layer này*; `parents()` cho biết đường đi tới các layer trước đó. Việc nhìn thấy module ở ancestor không có nghĩa nó thuộc layer hiện tại. Phân biệt chính xác ba điều này giúp host tránh nạp trùng API, chọn sai loader và mất provider trong hệ thống plugin.
+**Remember:** `findModule` answers *where the module is in the layer graph*; `findLoader` answers *which loader belongs to a module directly in this layer*; `parents()` shows the path to preceding layers. Seeing a module in an ancestor does not mean it belongs to the current layer. Distinguishing these three accurately helps the host avoid loading duplicate APIs, picking the wrong loader, and losing providers in a plugin system.

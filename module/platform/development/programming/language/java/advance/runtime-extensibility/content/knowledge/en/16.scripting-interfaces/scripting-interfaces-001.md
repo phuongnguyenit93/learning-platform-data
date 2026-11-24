@@ -1,37 +1,37 @@
-# Chuyển đổi kiểu giữa Java và ngôn ngữ kịch bản theo quy tắc của engine
+# Type Conversion Between Java and Scripting Languages According to Engine Rules
 
-## 1. Bản chất của ranh giới Java ↔ script
+## 1. Nature of the Java ↔ Script Boundary
 
-Trong ứng dụng Java nhúng kịch bản qua JSR 223 (`javax.script`), chương trình Java truyền dữ liệu vào `ScriptEngine`, cho phép kịch bản tính toán rồi nhận dữ liệu trở lại. Điều dễ nhầm là **JSR 223 không quy định một bảng chuyển đổi kiểu phổ quát cho mọi ngôn ngữ**. API chỉ trao đổi các đối tượng Java qua `Bindings`, `ScriptContext` và giá trị `Object` từ `eval`; engine cụ thể quyết định cách biểu diễn, ép kiểu, chuyển đổi và truy cập các đối tượng ấy từ phía ngôn ngữ script.
+In a Java application embedding scripts via JSR 223 (`javax.script`), the Java program passes data into a `ScriptEngine`, lets the script perform computations, and then receives data back. A common misconception is that **JSR 223 does not mandate a universal type conversion table for all languages**. The API only exchanges Java objects through `Bindings`, `ScriptContext`, and the `Object` value returned from `eval`; the specific engine decides how those objects are represented, coerced, converted, and accessed from the scripting language side.
 
-Ví dụ `java.lang.Integer` có thể được nhìn như số nguyên, số động, đối tượng Java được bọc (*host object*) hoặc một giá trị đặc biệt tùy engine. Một array, `List`, `Map`, `null` hoặc đối tượng domain cũng không có hành vi đồng nhất giữa JavaScript, Python, Groovy, Kotlin scripting và các runtime khác.
+For example, `java.lang.Integer` may be viewed as an integer, a dynamic number, a wrapped Java object (*host object*), or a special value depending on the engine. An array, `List`, `Map`, `null`, or domain object also does not behave uniformly across JavaScript, Python, Groovy, Kotlin scripting, and other runtimes.
 
-### Ba bước độc lập
+### Three Independent Steps
 
-1. **Marshalling vào script**: host đưa Java object vào `Bindings`/`ScriptContext`; engine ánh xạ object đó sang giá trị mà script nhìn thấy.
-2. **Tính toán và gọi API**: script có thể áp dụng quy tắc numeric coercion, property lookup, overload resolution và các chuyển đổi nội bộ riêng.
-3. **Marshalling về Java**: `ScriptEngine.eval(...)` trả `Object`; host phải kiểm tra class thực tế và chuyển sang kiểu domain mong muốn theo contract đã định.
+1. **Marshalling into the script**: the host places a Java object into `Bindings`/`ScriptContext`; the engine maps that object to a value visible to the script.
+2. **Computation and API calls**: the script may apply numeric coercion rules, property lookup, overload resolution, and its own internal conversions.
+3. **Marshalling back to Java**: `ScriptEngine.eval(...)` returns `Object`; the host must check the actual runtime class and convert it to the desired domain type according to a defined contract.
 
-Không nên suy luận kiểu của giá trị chỉ từ cú pháp script. Hãy kiểm tra tài liệu engine, version cụ thể và dùng thử nghiệm tương thích trước khi xây dựng API ổn định.
+You should not infer a value's type solely from script syntax. Check the engine documentation, specific version, and run compatibility tests before building a stable API.
 
-## 2. JSR 223 cung cấp những gì và không cung cấp gì?
+## 2. What Does JSR 223 Provide and Not Provide?
 
-| Thành phần | Hợp đồng JSR 223 | Không được bảo đảm chung |
+| Component | JSR 223 Contract | Not Universally Guaranteed |
 |---|---|---|
-| `ScriptEngine.put(name, Object)` | Đưa giá trị vào engine-scope bindings | Engine sẽ hiển thị Java object như loại script nào |
-| `Bindings` | Ánh xạ key `String` sang giá trị Java | Tự động chuyển `Map`, `List`, `record` thành object native của script |
-| `ScriptContext` | Quản lý scope, reader/writer/error writer, attributes | Cô lập bảo mật hoặc ngăn mọi tác dụng phụ |
-| `ScriptEngine.eval(source)` | Đánh giá script, trả Java `Object` hoặc `null` | Kết quả số luôn là `Integer`/`Double` hoặc boolean luôn là `Boolean` |
-| `Invocable.invokeFunction/invokeMethod` | Gọi hàm/phương thức nếu engine triển khai `Invocable` | Engine luôn hỗ trợ gọi function hoặc tự map overload chính xác |
-| `getInterface(...)` | Tùy chọn ánh xạ script sang interface Java | Mọi engine đều hỗ trợ hoặc có cùng quy tắc chuyển kiểu |
+| `ScriptEngine.put(name, Object)` | Places a value into the engine-scope bindings | Which script type the engine exposes the Java object as |
+| `Bindings` | Maps a `String` key to a Java value | Automatically converting `Map`, `List`, `record` into native script objects |
+| `ScriptContext` | Manages scopes, reader/writer/error writer, and attributes | Security isolation or preventing all side effects |
+| `ScriptEngine.eval(source)` | Evaluates a script, returning a Java `Object` or `null` | Numeric results always being `Integer`/`Double` or booleans always being `Boolean` |
+| `Invocable.invokeFunction/invokeMethod` | Invokes a function/method if the engine implements `Invocable` | Every engine supporting function invocation or automatically resolving overloads accurately |
+| `getInterface(...)` | Optionally maps a script to a Java interface | Every engine supporting it or sharing the same type conversion rules |
 
-JDK 17 có module `java.scripting` chứa API, nhưng **không kèm sẵn một JavaScript engine**. Nashorn đã bị loại khỏi JDK từ Java 15. Muốn dùng JavaScript, Python hoặc Groovy cần engine phù hợp được cài và nhìn thấy được qua module path/class loader. Bài này vì vậy sử dụng một engine JSR 223 tối giản để minh họa contract mà không phụ thuộc thư viện ngoài.
+JDK 17 includes the `java.scripting` module containing the API, but **does not bundle a JavaScript engine**. Nashorn was removed from the JDK in Java 15. To use JavaScript, Python, or Groovy, a suitable engine must be installed and visible via the module path or class loader. This lesson therefore uses a minimal JSR 223 engine to demonstrate the contract without depending on external libraries.
 
-## 3. Những nhóm kiểu thường gặp
+## 3. Common Type Categories
 
-### 3.1. Số: Integer, Long, Double, BigDecimal
+### 3.1. Numbers: Integer, Long, Double, BigDecimal
 
-Engine có thể dùng số thực 64-bit cho mọi phép tính, phân biệt integer/float, dùng big integers hoặc trả wrapper Java. Khi trả kết quả sang Java, **không ép kiểu cứng** nếu chưa kiểm tra:
+An engine may use 64-bit floating-point numbers for all calculations, distinguish integers from floats, use big integers, or return Java wrappers. When returning results to Java, **do not perform a hard cast** without checking first:
 
 ```java
 Object result = engine.eval("someNumericExpression");
@@ -41,21 +41,21 @@ if (!(result instanceof Number number)) {
 double value = number.doubleValue();
 ```
 
-Đây là đoạn minh họa, không chạy độc lập vì cần `engine`. `doubleValue()` có thể mất độ chính xác đối với `BigDecimal` hoặc số nguyên rất lớn; nếu là tiền hoặc dữ liệu chính xác, hãy dùng contract trả decimal string hoặc `BigDecimal` khi engine hỗ trợ.
+This is an illustrative snippet and does not run standalone because it requires `engine`. `doubleValue()` can lose precision for `BigDecimal` or very large integers; for monetary values or exact data, use a contract that returns a decimal string or `BigDecimal` when the engine supports it.
 
-Quy tắc chuyển kiểu nên được viết ra rõ ràng: số nguyên không âm trong khoảng nào, xử lý overflow/underflow ra sao, có cho phép `NaN`/`Infinity` không, và khi nào được làm tròn. Không coi việc `Number` tồn tại là đủ để dữ liệu hợp lệ.
+Conversion rules should be written down explicitly: what range non-negative integers must fall within, how overflow/underflow is handled, whether `NaN`/`Infinity` are allowed, and when rounding occurs. Do not treat the mere presence of `Number` as sufficient proof that the data is valid.
 
-### 3.2. Chuỗi và ký tự
+### 3.2. Strings and Characters
 
-Java `String` thường dễ truyền qua biên giới nhưng engine có thể trả kiểu string riêng. `String.valueOf(result)` chỉ là chuyển bằng Java `toString()`, **không** phải bộ chuyển ngữ nghĩa tổng quát: với `null` nó trả chuỗi ký tự `"null"`, không biểu diễn missing value; với một đối tượng phức tạp nó có thể trả mô tả thay vì dữ liệu.
+Java `String` is usually easy to pass across the boundary, but an engine may return its own string type. `String.valueOf(result)` only performs a Java `toString()` conversion, **not** a general semantic converter: for `null` it returns the literal string `"null"` rather than representing a missing value; for a complex object it may return a description instead of data.
 
-Với API public, nên yêu cầu rõ `result instanceof String`, hoặc dùng hàm serializer được chỉ định (JSON/DTO) thay vì bất kỳ object nào cũng gọi `toString()`.
+For public APIs, you should explicitly require `result instanceof String`, or use a designated serializer function (JSON/DTO) instead of calling `toString()` on arbitrary objects.
 
-### 3.3. Boolean, null, missing và undefined
+### 3.3. Boolean, null, missing, and undefined
 
-`null` trong Java không nhất thiết tương ứng với `null`, `nil`, `None` hay `undefined` của script. Một số ngôn ngữ phân biệt giá trị *không có property*, *property có giá trị null* và *undefined*. Ở ranh giới Java phải quyết định liệu các trạng thái này được đồng nhất hay giữ riêng.
+`null` in Java does not necessarily correspond one-to-one with `null`, `nil`, `None`, or `undefined` in a script. Some languages distinguish between *missing property*, *property with value null*, and *undefined*. At the Java boundary, you must decide whether these states are unified or kept distinct.
 
-Ví dụ với bindings:
+Example with bindings:
 
 ```java
 Bindings bindings = engine.createBindings();
@@ -64,25 +64,25 @@ System.out.println(bindings.containsKey("presentButNull")); // true
 System.out.println(bindings.containsKey("missing"));        // false
 ```
 
-Đoạn minh họa cho thấy `Bindings` có thể phân biệt key tồn tại với giá trị `null` và key không tồn tại; cách ngôn ngữ script truy cập hai trạng thái đó lại tùy engine. Đừng dùng `bindings.get(name) == null` để kết luận key chắc chắn không tồn tại.
+This illustrative snippet shows that `Bindings` can distinguish between an existing key with a `null` value and a non-existent key; how the scripting language accesses those two states depends on the engine. Do not use `bindings.get(name) == null` to conclude that a key definitely does not exist.
 
-### 3.4. Collection, Map và object
+### 3.4. Collections, Maps, and Objects
 
-Java `List`/`Map` có thể được engine đưa vào như proxy/host object, chuyển thành array/object script hoặc chỉ cung cấp một số thao tác. Truy cập `map.key` không nhất thiết tương đương `map.get("key")`; index bắt đầu 0 hay 1, iteration order, mutability và treatment of missing keys còn tùy ngôn ngữ.
+A Java `List`/`Map` may be exposed by the engine as a proxy/host object, converted into a script array/object, or only expose a subset of operations. Accessing `map.key` is not necessarily equivalent to `map.get("key")`; whether indexing starts at 0 or 1, iteration order, mutability, and treatment of missing keys all depend on the language.
 
-Khi chuyển dữ liệu qua biên giới engine, hướng tiếp cận dễ kiểm thử là định nghĩa DTO có kiểu hạn chế (string, boolean, number trong range, list/map đã kiểm tra, null) hoặc JSON schema. Tuy nhiên JSON không tự giữ nguyên `BigDecimal`, ngày giờ, binary data, object identity hay circular reference; phải có quy ước nếu cần các dạng đó.
+When transferring data across the engine boundary, a testable approach is to define a DTO with restricted types (string, boolean, number within range, validated list/map, null) or a JSON schema. However, JSON does not automatically preserve `BigDecimal`, date/time, binary data, object identity, or circular references; explicit conventions are needed if those forms are required.
 
-### 3.5. Java domain object
+### 3.5. Java Domain Objects
 
-Nếu đặt một đối tượng Java vào bindings, script engine có thể cho phép gọi method/property theo quy tắc reflection hoặc proxy của engine. Điều này tạo coupling mạnh với API Java, overload, visibility, class loader và module accessibility.
+If you place a Java object into bindings, the script engine may allow calling methods or accessing properties according to the engine's reflection or proxy rules. This creates tight coupling to the Java API, overloads, visibility, class loaders, and module accessibility.
 
-Với nguồn script không tin cậy, tuyệt đối không truyền object có quyền hệ thống mạnh như `ClassLoader`, `Runtime`, file system handle, credential holder hoặc service quản trị. **Class loader riêng không phải sandbox bảo mật**.
+For untrusted script sources, never pass objects with powerful system privileges such as `ClassLoader`, `Runtime`, file system handles, credential holders, or administrative services. **A separate class loader is not a security sandbox**.
 
-## 4. Ví dụ Java 17+ có thể chạy mà không cần engine bên thứ ba
+## 4. Runnable Java 17+ Example Without Third-Party Engines
 
-Để tập trung vào quy tắc **do engine xác định**, ta viết một JSR 223 engine rất nhỏ hiểu ba lệnh: `echo`, `number`, `text`. Nó không phải một ngôn ngữ thực tế; các luật được định nghĩa trong mã để người học có thể kiểm chứng và thay đổi.
+To focus on rules **determined by the engine**, we write a minimal JSR 223 engine that understands three commands: `echo`, `number`, and `text`. It is not a real-world language; the rules are defined in code so learners can inspect and modify them.
 
-Cây thư mục:
+Directory tree:
 
 ```text
 convert-demo/
@@ -182,14 +182,14 @@ public final class Demo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 Demo.java
 java Demo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 Integer: 42
@@ -199,13 +199,13 @@ nil is null: true
 missing rejected
 ```
 
-**Đọc kết quả:** `echo count` giữ nguyên `Integer` đã truyền; `number decimal` dùng luật riêng của engine (`Double.valueOf`) nên chuỗi `"3.5"` trở thành `Double`; `text count` trả Java `String`; `echo nil` trả `null`; còn key `missing` không tồn tại thì báo lỗi. Đây là minh chứng JSR 223 không mặc định áp đặt các quy tắc chuyển đổi kể trên: tác giả engine đã tự viết chúng.
+**Reading the output:** `echo count` preserves the passed `Integer`; `number decimal` uses the engine's own rule (`Double.valueOf`), so the string `"3.5"` becomes a `Double`; `text count` returns a Java `String`; `echo nil` returns `null`; and the non-existent key `missing` raises an error. This demonstrates that JSR 223 does not enforce the conversion rules above by default: the engine author wrote them explicitly.
 
-**Giới hạn ví dụ:** `getFactory()` trả `null` trong engine demo vì không sử dụng `ScriptEngineManager` và không xuất bản SPI provider. Một engine dùng để phân phối thực tế phải cung cấp `ScriptEngineFactory` phù hợp. Bài này chỉ nhằm khảo sát các quy tắc `Object`/`Bindings` và không nhằm mô phỏng toàn bộ JSR 223 implementation.
+**Example limitations:** `getFactory()` returns `null` in the demo engine because it does not use `ScriptEngineManager` and does not publish an SPI provider. An engine intended for real distribution must provide an appropriate `ScriptEngineFactory`. This lesson is only meant to examine `Object`/`Bindings` rules and does not aim to simulate a complete JSR 223 implementation.
 
-## 5. Giao tiếp với engine thật: kiểm tra khả năng trước khi giả định
+## 5. Interacting with a Real Engine: Check Capabilities Before Assuming
 
-Trong thực tế, cách viết phổ biến:
+In practice, a common pattern is:
 
 ```java
 ScriptEngine engine = new javax.script.ScriptEngineManager()
@@ -218,11 +218,11 @@ engine.put("amount", java.math.BigDecimal.valueOf(12.50));
 Object result = engine.eval("someExpression");
 ```
 
-Đây là **đoạn minh họa**, không chạy độc lập: tên engine và script expression phải được thay bằng giá trị đúng cho provider thực tế. Không suy đoán rằng `BigDecimal` sẽ trở thành numeric primitive native. Với host plugin, nên kiểm tra `ScriptEngineFactory.getLanguageName()`, version, `getParameter("THREADING")` cùng tài liệu chuyển kiểu của engine.
+This is an **illustrative snippet** and does not run standalone: the engine name and script expression must be replaced with valid values for an actual provider. Do not assume that `BigDecimal` will become a native numeric primitive. For a plugin host, check `ScriptEngineFactory.getLanguageName()`, version, `getParameter("THREADING")`, and the engine's type conversion documentation.
 
-### 5.1. Khi nào dùng Invocable?
+### 5.1. When to Use Invocable?
 
-Một số engine triển khai `javax.script.Invocable`, cho phép host gọi hàm script và chuyển các tham số Java qua cầu nối của engine:
+Some engines implement `javax.script.Invocable`, allowing the host to call script functions and pass Java arguments through the engine's bridge:
 
 ```java
 if (engine instanceof javax.script.Invocable invocable) {
@@ -230,11 +230,11 @@ if (engine instanceof javax.script.Invocable invocable) {
 }
 ```
 
-Đoạn này không độc lập vì hàm `calculate` phải được script định nghĩa trước; `invokeFunction` có thể ném `NoSuchMethodException` và `ScriptException`. Quy tắc ép kiểu tham số, chọn overloaded method và kiểu giá trị trả lại vẫn do engine quyết định. Không giả định mọi engine đều hỗ trợ `Invocable`.
+This snippet is not standalone because the `calculate` function must first be defined by the script; `invokeFunction` can throw `NoSuchMethodException` and `ScriptException`. Parameter coercion rules, overloaded method selection, and return value types are still determined by the engine. Do not assume every engine supports `Invocable`.
 
-### 5.2. Chuyển dữ liệu theo contract typed adapter
+### 5.2. Converting Data via a Typed Adapter Contract
 
-Một lớp adapter giữa Java domain và engine giúp tránh logic chuyển kiểu phân tán:
+An adapter layer between the Java domain and the engine prevents type conversion logic from being scattered:
 
 ```java
 static int requireInt(Object value) {
@@ -252,53 +252,53 @@ static int requireInt(Object value) {
 }
 ```
 
-Đây là **đoạn tiện ích minh họa** để kiểm tra kiểu sau khi nhận kết quả. Với `Double.NaN`, `Infinity` và các số thực cực lớn, cách kiểm tra dựa trên `longValue()` cần xem xét thêm; hệ thống quan trọng nên đặt quy tắc chi tiết theo từng loại numeric class và kiểm tra cả `Double.isFinite(...)`. Không dùng `intValue()` âm thầm nếu dữ liệu cần chính xác.
+This is an **illustrative utility snippet** for validating the type after receiving a result. For `Double.NaN`, `Infinity`, and extremely large floating-point numbers, checks based on `longValue()` need extra care; critical systems should define detailed rules per numeric class and also check `Double.isFinite(...)`. Do not silently call `intValue()` when exactness is required.
 
-## 6. Những rủi ro quan trọng khi chuyển kiểu
+## 6. Key Risks During Type Conversion
 
-| Tình huống | Rủi ro | Cách xử lý |
+| Scenario | Risk | Mitigation |
 |---|---|---|
-| `Integer` thành `Double`/script number | Mất ý nghĩa số nguyên hoặc precision với số lớn | Quy định range, dùng decimal string/BigDecimal khi cần |
-| `BigDecimal` thành floating point | Sai số tiền tệ | Dùng typed adapter, giữ decimal dạng chính xác |
-| `null`/`undefined`/key missing | Đồng nhất các trạng thái khác nhau | Contract phân biệt `containsKey` và value null |
-| Java `Map` thành object script | Property syntax và mutability phụ thuộc engine | Kiểm tra mapping, serialize dữ liệu đã validate |
-| Date/time | Time zone và calendar semantics khác nhau | Dùng ISO-8601 với offset/instant và schema rõ ràng |
-| Enum | Engine có thể dùng Java object, name hoặc ordinal | Dùng enum name và kiểm tra allowlist |
-| Overloaded Java methods | Ambiguous overload resolution | Cung cấp wrapper public API không overload phức tạp |
-| Class loader khác nhau | Cùng class name nhưng khác runtime identity | Dùng contract types trong loader chung |
-| Script object trả về Java | Có thể là proxy/value wrapper không assignable | Adapter theo engine, kiểm tra class và lifetime |
+| `Integer` to `Double`/script number | Loss of integer semantics or precision for large numbers | Specify range; use decimal string/`BigDecimal` when needed |
+| `BigDecimal` to floating point | Monetary rounding errors | Use a typed adapter; preserve exact decimal representation |
+| `null`/`undefined`/missing key | Conflating distinct states | Define a contract distinguishing `containsKey` from a `null` value |
+| Java `Map` to script object | Property syntax and mutability depend on the engine | Test the mapping; serialize validated data |
+| Date/time | Differing time zone and calendar semantics | Use ISO-8601 with offset/instant and an explicit schema |
+| Enum | Engine may use Java object, name, or ordinal | Use enum name and validate against an allowlist |
+| Overloaded Java methods | Ambiguous overload resolution | Provide a public API wrapper without complex overloads |
+| Different class loaders | Same class name but different runtime identity | Place contract types in a shared loader |
+| Script object returned to Java | May be a proxy/value wrapper that is not assignable | Use an engine-specific adapter; check class and lifetime |
 
-### 6.1. Tương tác với class loader và ModuleLayer
+### 6.1. Interaction with Class Loaders and ModuleLayer
 
-Engine và host có thể dùng class loader khác nhau. Nếu host đưa instance của `com.example.api.Dto` vào script trong khi plugin loader có bản `Dto` khác cùng binary name, reflection/proxy/cast có thể lỗi. Dùng API JAR được định nghĩa một lần ở loader chung, tránh đóng gói trùng contract vào engine JAR.
+The engine and host may use different class loaders. If the host passes an instance of `com.example.api.Dto` into a script while the plugin loader has another copy of `Dto` with the same binary name, reflection, proxying, or casting can fail. Use an API JAR defined once in a shared loader, and avoid bundling duplicate contract classes inside the engine JAR.
 
-Named modules còn chịu JPMS readability, `exports` và `opens` khi engine dùng reflection để đọc Java objects. Một public class không đồng nghĩa được engine truy cập mọi private field. Không mở toàn bộ package chỉ để chữa một lỗi chuyển kiểu; nên xây dựng DTO hoặc façade public có kiểm soát.
+Named modules are also subject to JPMS readability, `exports`, and `opens` when the engine uses reflection to read Java objects. A public class does not automatically allow the engine to access all private fields. Do not open an entire package just to fix a type conversion error; instead, build a controlled DTO or public façade.
 
-### 6.2. Đối tượng có mutable state và vòng đời
+### 6.2. Objects with Mutable State and Lifecycle
 
-Truyền Java `List`, `Map` hoặc domain object vào bindings có thể trao cho script **tham chiếu thực**. Nếu script sửa đối tượng đó, host có thể nhìn thấy mutation; nếu engine copy/convert thì có thể không. Cần thử nghiệm copy-vs-reference semantics và giới hạn quyền ghi.
+Passing a Java `List`, `Map`, or domain object into bindings may give the script a **live reference**. If the script mutates that object, the host may observe the mutation; if the engine copies or converts it, the host may not. Test copy-vs-reference semantics and restrict write permissions.
 
-Script engine không nhất thiết thread-safe. Không chia sẻ một engine instance giữa các request nếu provider không cam kết mô hình đồng thời; cần quản lý bindings riêng cho mỗi lượt chạy, dữ liệu không mutable hoặc instance-per-task tùy workload.
+Script engines are not necessarily thread-safe. Do not share a single engine instance across requests unless the provider guarantees a concurrency model; manage separate bindings per execution, use immutable data, or maintain an instance-per-task depending on the workload.
 
-## 7. Chiến lược thiết kế cầu nối kiểu an toàn
+## 7. Strategy for Designing a Type-Safe Bridge
 
-1. **Định nghĩa schema dữ liệu** giữa Java và script (kiểu, nullability, giới hạn số, encoding, nested objects).
-2. **Chuẩn hóa đầu vào** thành DTO hoặc primitive/collection có thể kiểm chứng; không truyền trực tiếp service object có quyền cao.
-3. **Chọn engine và version cụ thể**, kiểm tra tài liệu mapping và đánh dấu version trong kết quả nếu có thay đổi.
-4. **Thực hiện adapter một chiều** `Java→script` và `script→Java`, không rải ép kiểu tùy tiện trong business code.
-5. **Xử lý lỗi chuyển đổi** bằng exception có ngữ nghĩa, không tự ý làm tròn, cắt số hoặc stringify giá trị lạ.
-6. **Kiểm thử boundary** gồm số rất lớn, số thập phân, `NaN`, `Infinity`, Unicode, null/missing, collections lồng nhau và cyclic object.
-7. **Giới hạn script không tin cậy** bằng cách không phơi bày host objects nhạy cảm; dùng isolation ở process/OS khi cần.
+1. **Define a data schema** between Java and the script (types, nullability, numeric bounds, encoding, nested objects).
+2. **Normalize inputs** into verifiable DTOs or primitives/collections; do not pass high-privilege service objects directly.
+3. **Select a specific engine and version**, verify its mapping documentation, and record the version in results if behavior changes.
+4. **Implement one-way adapters** for `Java→script` and `script→Java`, rather than scattering ad-hoc casts throughout business code.
+5. **Handle conversion errors** with meaningful exceptions instead of silently rounding, truncating numbers, or stringifying unexpected values.
+6. **Test boundaries** including very large numbers, decimals, `NaN`, `Infinity`, Unicode, null/missing, nested collections, and cyclic objects.
+7. **Restrict untrusted scripts** by not exposing sensitive host objects; use process/OS-level isolation when needed.
 
-## 8. Checklist kiểm thử theo từng engine
+## 8. Per-Engine Testing Checklist
 
-- [ ] Engine được tìm thấy bằng `ScriptEngineManager`/class loader đúng và phiên bản được ghi nhận.
-- [ ] Có test round-trip cho `String`, `Boolean`, `Integer`, `Long`, `Double`, `BigDecimal` nếu contract hỗ trợ.
-- [ ] Kiểm tra đầy đủ null, missing key, giá trị không hợp lệ và lỗi cast.
-- [ ] `List`/`Map` được xác minh là copy hay reference, có mutability rõ ràng.
-- [ ] Host không suy đoán `Object` trả về luôn là một class Java cụ thể.
-- [ ] Module exports/opens và class identity đúng khi engine gọi Java API.
-- [ ] Không có shared mutable bindings bất ngờ giữa các script executions.
-- [ ] Script không có quyền truy cập những host objects không cần thiết.
+- [ ] The engine is discovered via the right `ScriptEngineManager`/class loader and its version is recorded.
+- [ ] Round-trip tests exist for `String`, `Boolean`, `Integer`, `Long`, `Double`, and `BigDecimal` if supported by the contract.
+- [ ] `null`, missing keys, invalid values, and cast errors are thoroughly tested.
+- [ ] `List`/`Map` behavior is verified as copy vs. reference, with clear mutability guarantees.
+- [ ] The host never assumes a returned `Object` is always a specific Java class.
+- [ ] Module exports/opens and class identity are verified when the engine calls Java APIs.
+- [ ] There are no unexpected shared mutable bindings across script executions.
+- [ ] Scripts have no access to unnecessary host objects.
 
-**Kết luận:** Java Scripting API cung cấp cơ chế trao đổi đối tượng Java với engine chứ không định nghĩa một bảng ép kiểu chung cho mọi ngôn ngữ. Mọi chuyển đổi Java↔script cần được xem là **hợp đồng riêng của engine và phiên bản engine**. Hãy chuẩn hóa dữ liệu tại boundary, kiểm tra kiểu thực tế khi nhận kết quả, xử lý null/precision rõ ràng và kiểm thử bằng engine thật trước khi phát hành plugin.
+**Conclusion:** The Java Scripting API provides a mechanism for exchanging Java objects with an engine rather than defining a universal coercion table for all languages. Every Java↔script conversion must be treated as a **contract specific to the engine and engine version**. Normalize data at the boundary, verify actual runtime types on return, handle null and precision explicitly, and test with the real engine before releasing a plugin.

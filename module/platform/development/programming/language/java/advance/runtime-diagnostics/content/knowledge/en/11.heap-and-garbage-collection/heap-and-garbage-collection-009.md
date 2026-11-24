@@ -1,108 +1,108 @@
-# 11.9 Xác định bằng chứng cần có trước khi thay heap size hoặc tham số GC
+# 11.9 Identifying required evidence before changing heap size or GC parameters
 
-## Mục tiêu
+## Objectives
 
-Khi ứng dụng Java chậm, tốn bộ nhớ hoặc xuất hiện lỗi hết bộ nhớ, tăng heap hay chỉnh Garbage Collector (GC) là một **giả thuyết can thiệp**, không phải kết luận mặc định. Trước khi thay đổi, người vận hành cần chứng minh vấn đề liên quan tới quản lý bộ nhớ/GC, xác định giới hạn tài nguyên thực tế, và có số liệu nền để đánh giá tác dụng lẫn tác dụng phụ.
+When a Java application is slow, consumes a lot of memory, or throws out-of-memory errors, increasing the heap or tuning the Garbage Collector (GC) is an **intervention hypothesis**, not a default conclusion. Before making changes, operators need to prove the issue relates to memory/GC management, determine actual resource limits, and establish baseline metrics to evaluate both benefits and side effects.
 
-Sau bài này, bạn cần trả lời được bốn câu hỏi: **(1)** Triệu chứng nào đang vi phạm mục tiêu? **(2)** Dữ liệu nào nối triệu chứng với heap/GC? **(3)** Điều gì có thể bị ảnh hưởng bởi thay đổi dự kiến? **(4)** Làm sao xác nhận thay đổi tốt hơn và biết khi nào phải rollback?
+After this lesson, you should be able to answer four questions: **(1)** Which symptom is violating targets? **(2)** Which data links that symptom to heap/GC? **(3)** What could be affected by the planned change? **(4)** How will you confirm the change is better and know when to roll back?
 
-Phạm vi minh họa: HotSpot/OpenJDK 17+ (đặc biệt JDK 21), với G1 là ví dụ phổ biến. Tên cờ, khả năng của GC và công cụ có thể khác giữa phiên bản JVM/vendor; luôn xác nhận cấu hình thực tế.
+Illustrative scope: HotSpot/OpenJDK 17+ (especially JDK 21), with G1 as a common example. Flag names, GC capabilities, and tools may vary across JVM versions/vendors; always verify actual configuration.
 
-## 1. Xác định vấn đề trước khi chọn tham số
+## 1. Define the problem before picking parameters
 
-Không có một giá trị heap “đúng” cho mọi hệ thống. Heap lớn hơn có thể giảm số lần thu gom nhưng làm tăng áp lực bộ nhớ của container; pause goal nhỏ hơn có thể tăng số lần GC và chi phí CPU. GC chỉ là một trong nhiều nguồn gây độ trễ.
+There is no single "right" heap size for every system. A larger heap can reduce collection count yet increase container memory pressure; a smaller pause goal can increase GC frequency and CPU cost. GC is only one of many sources of latency.
 
-Trước tiên, ghi rõ:
+First, record clearly:
 
-- **Triệu chứng:** p95/p99 latency vượt SLO, throughput giảm, tỉ lệ lỗi tăng, CPU cao, process bị OOMKilled, lỗi OutOfMemoryError, hoặc pause dài.
-- **Thời điểm và phạm vi:** bắt đầu khi nào; xảy ra ở pod/instance nào; chỉ lúc tăng tải, sau deploy hay trong steady state; có tái hiện được không?
-- **Ngưỡng chấp nhận:** SLO latency, throughput tối thiểu, error budget, giới hạn CPU và memory, yêu cầu an toàn vận hành.
-- **Bối cảnh:** JDK/vendor/phiên bản, collector đang bật, cờ heap, CPU quota, cgroup/container memory limit, số replica và đặc trưng tải.
+- **Symptom:** p95/p99 latency breaching SLO, throughput drop, rising error rate, high CPU, process OOMKilled, OutOfMemoryError, or long pauses.
+- **Timing and scope:** when did it start; which pods/instances are affected; only during traffic spikes, after deploy, or in steady state; is it reproducible?
+- **Acceptable thresholds:** latency SLO, minimum throughput, error budget, CPU and memory limits, operational safety requirements.
+- **Context:** JDK/vendor/version, active collector, heap flags, CPU quota, cgroup/container memory limit, replica count, and workload characteristics.
 
-Một biểu đồ heap used hình răng cưa chỉ cho biết JVM đang cấp phát và thu gom; **tự nó không chứng minh heap thiếu**. Tương tự, p99 tăng đồng thời với CPU cao chưa đủ chứng minh GC là tác nhân.
+A sawtooth `heap used` graph only shows that the JVM is allocating and collecting; **by itself it does not prove the heap is too small**. Similarly, p99 rising alongside high CPU is not enough to prove GC is the culprit.
 
-### Phân biệt các khái niệm bộ nhớ
+### Distinguishing memory concepts
 
-| Khái niệm | Ý nghĩa khi đọc số liệu | Điều dễ nhầm |
+| Concept | Meaning when reading metrics | Common confusion |
 | --- | --- | --- |
-| Heap used | Bộ nhớ heap đang được sử dụng ở thời điểm lấy mẫu | Không đồng nghĩa với số object còn sống sau GC |
-| Heap committed | Phần heap JVM đã cam kết từ hệ điều hành | Không nhất thiết bằng heap used hoặc RSS |
-| Heap max / -Xmx | Trần dung lượng heap do JVM cho phép | Không phải trần tổng bộ nhớ của tiến trình |
-| Live set (ước lượng) | Các object còn reachable sau một lần GC phù hợp | Occupancy ngay sau young GC không phải phép đo live set tuyệt đối |
-| Non-heap/native | Metaspace, code cache, stack, direct buffer, vùng nội bộ JVM và native allocations | Có thể làm RSS tăng dù heap còn trống |
-| RSS / working set | Bộ nhớ vật lý/working set được quan sát ở cấp process/container | Khác với reserved/committed được báo bởi JVM; phụ thuộc công cụ |
-| GC pause (STW) | Khoảng thời gian ứng dụng phải dừng cho pha GC/safepoint liên quan | Không thể thay thế toàn bộ phép đo latency hay CPU do concurrent GC |
+| Heap used | Heap memory currently in use at sampling time | Not synonymous with live objects remaining after GC |
+| Heap committed | Heap portion the JVM has committed from the OS | Does not necessarily equal heap used or RSS |
+| Heap max / -Xmx | Heap capacity ceiling permitted by the JVM | Not the ceiling for total process memory |
+| Live set (estimated) | Objects still reachable after an appropriate GC run | Occupancy immediately after a young GC is not an absolute live-set measurement |
+| Non-heap/native | Metaspace, code cache, stacks, direct buffers, internal JVM regions, and native allocations | Can drive RSS up even when the heap has free space |
+| RSS / working set | Physical memory / working set observed at the process/container level | Differs from reserved/committed reported by the JVM; tool-dependent |
+| GC pause (STW) | Time the application must stop for the corresponding GC/safepoint phase | Cannot replace full latency measurements or CPU spent by concurrent GC |
 
-**Điểm mấu chốt:** OutOfMemoryError: Java heap space, OutOfMemoryError: Metaspace, lỗi native thread và container OOMKilled có nguyên nhân cũng như bằng chứng cần kiểm tra khác nhau.
+**Key takeaway:** OutOfMemoryError: Java heap space, OutOfMemoryError: Metaspace, native thread errors, and container OOMKilled have different causes as well as different evidence to inspect.
 
-## 2. Hồ sơ bằng chứng tối thiểu
+## 2. Minimum evidence dossier
 
-Trước bất kỳ đề xuất đổi heap/GC nào, thu thập dữ liệu dưới cùng một cửa sổ thời gian và cùng điều kiện tải. Mỗi nguồn có câu hỏi riêng:
+Before any proposal to change heap/GC settings, collect data within the same time window and under the same load conditions. Each source answers its own question:
 
-| Nhóm | Cần có bằng chứng | Dùng để quyết định |
+| Group | Evidence required | Used to decide |
 | --- | --- | --- |
-| Mục tiêu ứng dụng | RPS/throughput, p50/p95/p99, errors/timeouts, SLO, thời điểm spike | Có vấn đề thực sự và thay đổi cần cải thiện chỉ số nào? |
-| Workload | Request mix, concurrency, batch size, phân bổ payload, cache warm-up, deploy/scaling events | Có đang so sánh cùng tải và cùng giai đoạn vận hành? |
-| Cấu hình chạy | Java version/vendor, GC hiện tại, -Xms/-Xmx, MaxRAMPercentage nếu áp dụng, JVM flags, CPU/memory quota | JVM đang hoạt động dưới giới hạn nào, có đúng với suy đoán không? |
-| Heap | Used/committed/max theo thời gian, mức sử dụng sau các chu kỳ GC, peak theo tải | Heap thiếu headroom, allocation burst hay live set đang tăng? |
-| Hoạt động GC | Timestamp, loại/cause GC, thời lượng pause, tần suất, tổng thời gian GC, Full GC, concurrent cycle, dấu hiệu allocation/evacuation failure nếu collector báo | Có tương quan nhân quả hợp lý giữa GC và triệu chứng không? |
-| CPU và OS/container | Process/container CPU, throttling, RSS/working set, memory limit, OOM events, swap/page pressure khi áp dụng | Có vấn đề ngoài heap hoặc giới hạn tài nguyên khiến tuning phản tác dụng không? |
-| Phân bổ/giữ object | Allocation hotspots từ JFR/profiler, class histogram/heap dump nếu thật cần, trend object sống | Tăng heap chỉ trì hoãn leak hay workload cấp phát quá nhiều? |
-| Những nguồn độ trễ khác | Thread states, lock contention, I/O, database/network latency, safepoint không thuộc GC | Có nguyên nhân khác giải thích p99 tốt hơn không? |
+| Application targets | RPS/throughput, p50/p95/p99, errors/timeouts, SLO, spike timestamps | Is there a real problem and which metric must the change improve? |
+| Workload | Request mix, concurrency, batch size, payload distribution, cache warm-up, deploy/scaling events | Are we comparing identical loads and operating phases? |
+| Runtime config | Java version/vendor, active GC, -Xms/-Xmx, MaxRAMPercentage if applicable, JVM flags, CPU/memory quota | Under what limits is the JVM actually running, and do they match assumptions? |
+| Heap | Used/committed/max over time, usage after GC cycles, peaks under load | Does the heap lack headroom, face allocation bursts, or have a growing live set? |
+| GC activity | Timestamps, GC type/cause, pause duration, frequency, total GC time, Full GC, concurrent cycles, allocation/evacuation failure signs if reported by collector | Is there a plausible causal correlation between GC and the symptom? |
+| CPU and OS/container | Process/container CPU, throttling, RSS/working set, memory limit, OOM events, swap/page pressure where applicable | Are there off-heap issues or resource limits that would make tuning backfire? |
+| Object allocation/retention | Allocation hotspots from JFR/profiler, class histogram/heap dump if truly needed, live object trend | Would raising heap merely delay a leak, or is the workload allocating too much? |
+| Other latency sources | Thread states, lock contention, I/O, database/network latency, non-GC safepoints | Does another cause explain p99 better? |
 
-**Tối thiểu để kết luận:** (a) triệu chứng đo được; (b) cấu hình và giới hạn tài nguyên đã xác minh; (c) dữ liệu heap và GC có timestamp; (d) tương quan với tải và latency; (e) kế hoạch đo trước/sau. Thiếu một mục thì ghi “chưa đủ bằng chứng”, thay vì đoán tham số.
+**Minimum to conclude:** (a) measured symptom; (b) verified configuration and resource limits; (c) timestamped heap and GC data; (d) correlation with load and latency; (e) before/after measurement plan. If any item is missing, state "insufficient evidence" instead of guessing parameters.
 
-### Chuẩn hóa thời gian và độ tin cậy
+### Time alignment and reliability
 
-Sử dụng timestamp có múi giờ/UTC nhất quán, đối chiếu đồng hồ giữa APM, hệ điều hành và GC log. Đo nhiều khoảng tải tương đương, gồm thời điểm bình thường lẫn lúc lỗi; phân biệt warm-up với steady state. Tránh kết luận dựa vào một snapshot heap hoặc một log sự kiện đơn lẻ. Ghi rõ thời gian lấy mẫu, cấu hình, đơn vị (MiB, ms, %, requests/s) và phiên bản bản build.
+Use consistent timezones/UTC timestamps, reconciling clocks across APM, OS, and GC logs. Measure across multiple comparable load intervals, covering both normal periods and failures; separate warm-up from steady state. Avoid concluding from a single heap snapshot or a single log event. Record sampling times, configuration, units (MiB, ms, %, requests/s), and build versions.
 
-## 3. Thu thập bằng chứng trên JVM đang chạy
+## 3. Collecting evidence on a running JVM
 
-Ví dụ dưới đây dùng JDK 17+ và shell trên Linux/macOS; thay PID/đường dẫn theo môi trường thực tế. Các lệnh attach thường yêu cầu cùng người dùng hệ điều hành với tiến trình Java, quyền container phù hợp và JDK tools có sẵn; trên một số image chỉ có JRE hoặc cơ chế attach bị hạn chế.
+The examples below use JDK 17+ and a Linux/macOS shell; adjust PID/paths for your actual environment. Attach commands typically require the same OS user as the Java process, appropriate container permissions, and JDK tools installed; some images ship only a JRE or restrict attach mechanisms.
 
-### 3.1. Xác nhận JVM, cờ và heap hiện tại
+### 3.1. Confirming JVM, flags, and current heap
 
 ~~~bash
 java -version
 jcmd -l
-PID=12345  # Thay bằng PID thật của tiến trình cần khảo sát
+PID=12345  # Replace with the real PID of the process to inspect
 jcmd "$PID" VM.command_line
 jcmd "$PID" VM.flags
 jcmd "$PID" GC.heap_info
 jstat -gcutil "$PID" 1000 30
 ~~~
 
-Cách đọc:
+How to read:
 
-- **VM.command_line / VM.flags:** xác nhận cờ thực sự của tiến trình, tránh lấy cấu hình từ tài liệu triển khai đã cũ. Có thể chứa thông tin nhạy cảm trong arguments: chỉ chia sẻ bản đã loại bỏ bí mật.
-- **GC.heap_info:** ảnh chụp tình trạng heap hiện tại; cấu trúc báo cáo tùy collector. Muốn hiểu xu hướng phải lấy mẫu liên tục hoặc dùng telemetry.
-- **jstat -gcutil:** lấy mẫu mỗi 1 giây, 30 lần. Các cột tỷ lệ lấp đầy và số lần/thời gian GC tùy collector/JDK; tổng thời gian GC cần tính chênh lệch trên cửa sổ đo, không dùng tổng từ lúc process khởi động làm tỷ lệ của cửa sổ ngắn.
-- **Cảnh báo:** jcmd và jstat cung cấp phần thông tin khác nhau; không dùng kết quả từ một PID khác hoặc từ thời điểm sau restart để giải thích sự cố trước restart.
+- **VM.command_line / VM.flags:** confirms the process's actual flags, avoiding reliance on outdated deployment docs. Arguments may contain sensitive data: share only sanitized output.
+- **GC.heap_info:** snapshot of current heap state; output format depends on the collector. To understand trends, sample continuously or use telemetry.
+- **jstat -gcutil:** samples every 1 second, 30 times. Occupancy percentage columns and GC counts/times depend on collector/JDK; total GC time must be computed as a delta across the measurement window, not by using cumulative startup totals as a short-window ratio.
+- **Warning:** jcmd and jstat provide different slices of information; never use results from another PID or from after a restart to explain a pre-restart incident.
 
-### 3.2. GC log có timestamp để đối chiếu latency
+### 3.2. Timestamped GC logs to align with latency
 
-Bật Unified JVM Logging từ khi khởi động ứng dụng, nếu phương án triển khai cho phép:
+Enable Unified JVM Logging from application startup, if deployment policies allow:
 
 ~~~bash
 java -Xlog:help
 java '-Xlog:gc*,safepoint=info:file=gc.log:time,uptime,level,tags:filecount=5,filesize=20M' -jar app.jar
 ~~~
 
-Đây là ví dụ **thu thập log**, không phải đề xuất heap size. Cần bảo đảm đường dẫn ghi hợp lệ, rotation/dung lượng disk phù hợp, quyền bảo vệ log và kiểm tra chi phí quan sát. Nếu dịch vụ đã chạy, đánh giá khả năng cấu hình logging động bằng lệnh được JVM hỗ trợ và chính sách vận hành; đừng restart production chỉ để thử một cờ mà chưa có phương án an toàn.
+This is an example of **log collection**, not a heap size recommendation. Ensure valid write paths, proper rotation/disk capacity, log access controls, and check observation overhead. If the service is already running, evaluate dynamic logging configuration via JVM-supported commands and operational policy; do not restart production just to test a flag without a safe plan.
 
-Đọc GC log theo các trục:
+Read GC logs along these axes:
 
-1. **When:** timestamp của pause/GC cycle có trùng khoảng p99 hoặc timeout tăng không?
-2. **What:** young/mixed/full GC, safepoint, concurrent marking, nguyên nhân được collector ghi nhận.
-3. **How long/how often:** phân phối pause (p95/p99/max), số lần GC mỗi phút, tỉ lệ thời gian STW trong cửa sổ đo; đừng chỉ nhìn trung bình.
-4. **Memory before/after:** heap occupancy thu hồi được bao nhiêu, có tăng theo cùng mức tải hay không; dữ liệu “after” phụ thuộc loại sự kiện.
-5. **Pressure:** có Full GC, to-space exhausted/evacuation failure, allocation failure, humongous allocation hoặc bất thường do collector báo? Chỉ diễn giải sau khi biết collector và JDK.
+1. **When:** do pause/GC cycle timestamps coincide with rising p99 or timeouts?
+2. **What:** young/mixed/full GC, safepoints, concurrent marking, and the cause recorded by the collector.
+3. **How long/how often:** pause distribution (p95/p99/max), GCs per minute, STW time fraction in the window; do not look only at the average.
+4. **Memory before/after:** how much heap occupancy is reclaimed, and does it rise at the same load level? "After" figures depend on event type.
+5. **Pressure:** are there Full GCs, to-space exhausted/evacuation failures, allocation failures, humongous allocations, or collector-reported anomalies? Interpret only after confirming collector and JDK.
 
-GC có thể chạy concurrent và dùng CPU mà không có pause lớn. Vì vậy chỉ cộng pause time vẫn chưa mô tả hết chi phí GC. Ngược lại, độ trễ dài có thể do safepoint, lock, I/O hoặc scheduler ngay cả khi GC pause ngắn.
+GC can run concurrently and use CPU without large pauses. Therefore, summing pause times alone does not capture total GC cost. Conversely, long latency can come from safepoints, locks, I/O, or the scheduler even when GC pauses are short.
 
-### 3.3. JFR và nguồn chứng cứ ứng dụng
+### 3.3. JFR and application evidence sources
 
-Khi cần đối chiếu allocation/GC/CPU/latency, cân nhắc Java Flight Recorder (JFR), nếu môi trường cho phép:
+When you need to correlate allocation/GC/CPU/latency, consider Java Flight Recorder (JFR), if the environment allows:
 
 ~~~bash
 jcmd "$PID" JFR.start name=heap_gc_probe settings=profile duration=5m filename=heap-gc-probe.jfr
@@ -110,27 +110,27 @@ jcmd "$PID" JFR.check
 jfr summary heap-gc-probe.jfr
 ~~~
 
-Lệnh summary chạy **sau khi file ghi xong** và tại nơi có file. Năm phút chỉ là ví dụ; chọn cửa sổ đại diện cho vấn đề. Hồ sơ profile có chi phí thu thập, cần đo/giới hạn và bảo vệ dữ liệu nhạy cảm. Dùng JFR để tìm allocation hotspot, GC events, thread/lock/I/O activity mà recording thực sự chứa; không khẳng định mọi event đều bật với mọi cấu hình.
+The summary command runs **after the file finishes writing** and where the file resides. Five minutes is only an example; pick a window representative of the problem. The profile configuration has collection overhead that should be measured/bounded, and sensitive data must be protected. Use JFR to inspect allocation hotspots, GC events, and thread/lock/I/O activity actually present in the recording; do not assume every event is enabled under every configuration.
 
-Ghép JFR, metrics APM và log ứng dụng theo timestamp. Ví dụ request p99 tăng 500 ms nhưng không có pause hoặc GC CPU tương ứng thì chưa đủ cơ sở nói GC là nguyên nhân. Nếu phát hiện lock contention hoặc truy vấn database chậm cùng thời điểm, ưu tiên điều tra tác nhân đó.
+Align JFR, APM metrics, and application logs by timestamp. For example, if request p99 jumps by 500 ms with no matching pause or GC CPU, there is insufficient basis to blame GC. If lock contention or slow database queries appear at the same timestamp, investigate those factors first.
 
-### 3.4. Native memory và container memory
+### 3.4. Native memory and container memory
 
-Với HotSpot, Native Memory Tracking (NMT) giúp xem phần native memory do JVM theo dõi, nhưng thường **phải bật lúc khởi động**; ví dụ cấu hình quan sát:
+On HotSpot, Native Memory Tracking (NMT) helps inspect JVM-tracked native memory, though it usually **must be enabled at startup**; example observation configuration:
 
 ~~~text
 -XX:NativeMemoryTracking=summary
 ~~~
 
-Khi NMT đã bật:
+Once NMT is enabled:
 
 ~~~bash
 jcmd "$PID" VM.native_memory summary
 ~~~
 
-NMT báo reserved/committed theo nhóm, không phải phép đo RSS, cũng không bao trùm mọi cấp phát của thư viện native bên ngoài JVM. Không nên bật/tắt tùy tiện trên production mà không xét overhead và quy trình restart.
+NMT reports reserved/committed by category; it is not an RSS measurement, nor does it cover all allocations from external native libraries outside the JVM. Do not toggle it casually in production without weighing overhead and restart procedures.
 
-Nếu chạy Linux cgroup v2, có thể kiểm tra từ đúng cgroup của tiến trình/container:
+When running on Linux cgroup v2, you can inspect the exact process/container cgroup:
 
 ~~~bash
 cat /sys/fs/cgroup/memory.max
@@ -138,141 +138,141 @@ cat /sys/fs/cgroup/memory.current
 cat /sys/fs/cgroup/memory.events
 ~~~
 
-Đường dẫn trên chỉ là trường hợp mount cgroup v2 thông thường; vị trí và giao diện khác trên cgroup v1/Kubernetes/host. Đối chiếu thêm process RSS, container working set, CPU throttling và sự kiện OOMKilled từ hệ điều phối. **Memory limit áp dụng cho nhiều thành phần ngoài heap**: metaspace, code cache, stack threads, direct/native buffers, GC metadata, thư viện native và các chi phí liên quan.
+The paths above represent a standard cgroup v2 mount; locations and interfaces differ on cgroup v1/Kubernetes/hosts. Cross-check process RSS, container working set, CPU throttling, and orchestrator OOMKilled events. **Memory limits apply to many non-heap components**: metaspace, code cache, thread stacks, direct/native buffers, GC metadata, native libraries, and related overhead.
 
-### 3.5. Heap dump, histogram: chỉ khi giả thuyết cần đến
+### 3.5. Heap dumps and histograms: only when the hypothesis requires them
 
-Nếu mức used sau những chu kỳ GC phù hợp liên tục tăng ở tải tương tự, nghi vấn object retention/leak cần dữ liệu về object sống và đường tham chiếu. Có thể cân nhắc histogram, JFR allocation profiling hoặc heap dump với kế hoạch riêng. **GC.class_histogram** có thể gây pause/GC; **GC.heap_dump** có tác động cao và thường yêu cầu Full GC nếu không có tùy chọn đặc biệt. Heap dump có thể chứa token, dữ liệu người dùng và làm đầy disk. Chỉ thực hiện khi có quyền, không gian và thời gian bảo trì phù hợp; không lấy dump thường xuyên như một metric nhẹ. Tăng -Xmx không chữa được leak.
+If post-GC `used` across appropriate collection cycles keeps climbing under similar load, suspecting object retention/leaks requires data on live objects and reference paths. You can consider a histogram, JFR allocation profiling, or a heap dump with a dedicated plan. **GC.class_histogram** can cause pauses/GC; **GC.heap_dump** has high impact and often requests a Full GC unless special options are used. Heap dumps can contain tokens and user data and can fill up disks. Collect only with proper authorization, disk space, and maintenance timing; never take dumps routinely like a lightweight metric. Increasing -Xmx does not cure a leak.
 
-## 4. Từ số liệu đến chẩn đoán
+## 4. From metrics to diagnosis
 
-### 4.1. Kiểm tra mối liên hệ với latency
+### 4.1. Checking the link to latency
 
-Một quan hệ đồng thời chưa đủ để chứng minh nguyên nhân. Với mỗi sự cố, lập timeline chung:
+Correlation alone does not prove causation. For each incident, build a shared timeline:
 
-| Mốc thời gian | Ứng dụng | GC/heap | CPU/OS | Nhận định |
+| Time marker | Application | GC/heap | CPU/OS | Assessment |
 | --- | --- | --- | --- | --- |
-| Trước sự cố | RPS, p99 bình thường | Pause, occupancy nền | RSS và CPU nền | Đường cơ sở |
-| Lúc sự cố | p99/errors tăng rõ | GC event/cycle nào, thời lượng, used trước–sau | Throttling, OOM, I/O, lock | Có trùng thời gian và cường độ đủ giải thích không? |
-| Sau sự cố | p99 hồi phục hay tiếp tục xấu | Heap có được thu hồi, live set còn cao? | Tài nguyên hồi phục? | Nguyên nhân nào còn hợp lý? |
+| Before incident | Normal RPS, p99 | Baseline pauses, occupancy | Baseline RSS and CPU | Baseline |
+| During incident | Clear p99/error spike | Which GC events/cycles, durations, before–after used | Throttling, OOM, I/O, locks | Do timing and magnitude match enough to explain it? |
+| After incident | Does p99 recover or stay degraded | Was heap reclaimed, is live set still high? | Did resources recover? | Which causes remain plausible? |
 
-Ví dụ giả định: tại 10:00, p99 tăng từ 90 ms lên 550 ms; GC log chỉ có pause 12–24 ms và không có Full GC gần đó. Không thể quy toàn bộ 460 ms chênh lệch cho các pause ấy; cần điều tra request path, contention, CPU throttling và I/O. Nếu thấy các pause Full GC cỡ 600 ms trùng các lần p99 tăng, GC trở thành giả thuyết mạnh hơn, nhưng vẫn phải xem **vì sao** heap/collector bị dồn vào Full GC.
+Hypothetical example: at 10:00, p99 climbs from 90 ms to 550 ms; GC logs show only 12–24 ms pauses and no nearby Full GCs. You cannot attribute the entire 460 ms difference to those pauses; investigate the request path, contention, CPU throttling, and I/O. If ~600 ms Full GC pauses align with the p99 spikes, GC becomes a stronger hypothesis, yet you must still ask **why** the heap/collector was pushed into Full GCs.
 
-### 4.2. Đọc “heap after GC” đúng cách
+### 4.2. Reading "heap after GC" properly
 
-- Theo dõi occupancy sau những lần collection có ý nghĩa tương đương, cùng collector và tải; không so bừa số after-young-GC với after-full-GC.
-- Nếu đáy heap dần tăng xuyên nhiều chu kỳ ở cùng tải, nghi retention, cache tăng không giới hạn hoặc live set tăng. Cần allocation/retention evidence; mở rộng heap có thể chỉ trì hoãn lỗi.
-- Nếu đáy ổn định nhưng đỉnh chạm giới hạn theo burst và GC phải chạy dồn dập, giả thuyết thiếu heap headroom đáng kiểm tra, sau khi loại trừ allocation burst bất thường.
-- Nếu heap còn dư nhiều và thời gian GC nhỏ so với SLO, việc đổi -Xmx hoặc GC không có nền tảng đo lường vững chắc.
-- Không dùng một ngưỡng occupancy chung, ví dụ “80% là phải tăng Xmx”: tỷ lệ này phụ thuộc collector, GC phase, phân bố object, tải và khoảng đo.
+- Track occupancy after collections of comparable scope, on the same collector and load; never mix after-young-GC with after-full-GC numbers carelessly.
+- If the heap trough climbs across cycles at constant load, suspect retention, unbounded cache growth, or a growing live set. You need allocation/retention evidence; expanding the heap may only postpone failure.
+- If the trough is stable while peaks hit the limit during bursts and GC runs back-to-back, the hypothesis of insufficient heap headroom is worth checking after ruling out abnormal allocation bursts.
+- If plenty of heap headroom remains and GC time is tiny compared to SLOs, changing -Xmx or GC lacks a solid empirical basis.
+- Do not use a universal occupancy threshold like "80% means raise Xmx": that ratio depends on collector, GC phase, object distribution, load, and measurement window.
 
-### 4.3. Phân biệt throughput, latency và footprint
+### 4.3. Distinguishing throughput, latency, and footprint
 
-**Latency:** GC pause hoặc CPU contention có thể góp phần tăng tail latency. So timestamp và độ dài pause với p99, đồng thời kiểm tra các nguyên nhân ngoài GC.
+**Latency:** GC pauses or CPU contention can contribute to tail latency. Compare pause timestamps and durations against p99 while also checking non-GC causes.
 
-**Throughput:** GC ăn nhiều CPU/thời gian trong các khoảng tải ổn định có thể giảm công suất xử lý. Đổi pause goal có thể khiến GC thường xuyên hơn, giảm throughput dù pause đơn lẻ ngắn đi.
+**Throughput:** GC consuming significant CPU/time during steady load reduces processing capacity. Tightening pause goals can make GC run more often, lowering throughput even as individual pauses shrink.
 
-**Footprint:** Một heap tối đa lớn có thể làm JVM giữ thêm bộ nhớ trong quá trình vận hành, khiến container gần memory limit. Xmx đặt giới hạn heap; nó **không** bảo đảm toàn process luôn nằm dưới giới hạn container.
+**Footprint:** A large maximum heap can allow the JVM to retain more memory during operation, pushing containers close to memory limits. Xmx bounds the heap; it **does not** guarantee the whole process stays under the container limit.
 
-## 5. Ma trận quyết định: cần thấy gì trước khi chỉnh?
+## 5. Decision matrix: what must be observed before tuning?
 
-| Dấu hiệu quan sát | Bằng chứng phải kiểm tra thêm | Hướng xử lý hợp lý |
+| Observed signal | Additional evidence to check | Reasonable course of action |
 | --- | --- | --- |
-| p99 tăng, GC pause nhỏ/không tương quan | APM traces, thread/lock, I/O, CPU throttling, safepoint | Ưu tiên nguyên nhân ngoài GC; chưa có cơ sở tuning |
-| Young GC rất thường xuyên, allocation rate cao | Allocation profiling, request mix, live set ổn định, CPU/GC time | Giảm churn/object allocation nếu có thể; sau đó mới thử headroom/GC |
-| Full GC hoặc evacuation/allocation failure lặp lại | GC log, occupancy trước–sau, peak load, retained objects, container headroom | Xác định thiếu heap tạm thời hay live set/leak; chỉ thử tăng heap khi có dư địa |
-| Sau GC, occupancy tăng dài hạn dù tải tương đương | Retention trend, heap histogram/dump khi đủ điều kiện, cache policy | Điều tra leak/object giữ lâu; tăng heap không phải cách sửa gốc |
-| Container OOMKilled, heap chưa đầy | RSS/working set, native/direct/metaspace, threads, cgroup events | Điều tra native/limit; tăng Xmx có thể làm tệ hơn |
-| GC pause gây tail latency đã được chứng minh | Pause histogram, SLO, GC CPU, throughput, collector/JDK | Thử pause goal/collector trong phép đo đối chứng có guardrail |
-| Ứng dụng khỏe, GC ít, có đủ memory headroom | SLO và đường cơ sở ổn định | Giữ nguyên; tránh tuning vì cảm giác “heap chưa tối ưu” |
+| p99 rises, GC pauses are small/uncorrelated | APM traces, threads/locks, I/O, CPU throttling, safepoints | Prioritize non-GC causes; no basis for GC tuning yet |
+| Very frequent Young GCs, high allocation rate | Allocation profiling, request mix, stable live set, CPU/GC time | Cut churn/object allocations if possible; only then test headroom/GC |
+| Repeating Full GCs or evacuation/allocation failures | GC logs, before–after occupancy, peak load, retained objects, container headroom | Determine temporary heap shortage vs. live set/leak; test raising heap only if budget allows |
+| Long-term post-GC occupancy growth at equivalent load | Retention trend, heap histogram/dump when appropriate, cache policy | Investigate leak/long-retained objects; raising heap is not the root fix |
+| Container OOMKilled while heap is not full | RSS/working set, native/direct/metaspace, threads, cgroup events | Investigate native/limits; raising Xmx may worsen it |
+| GC pauses proven to drive tail latency | Pause histogram, SLO, GC CPU, throughput, collector/JDK | Test pause goal/collector in a controlled experiment with guardrails |
+| Healthy app, infrequent GC, ample memory headroom | SLO and stable baseline | Leave unchanged; avoid tuning just because "heap feels unoptimized" |
 
-**Chẩn đoán trước tham số:** cần chứng minh nút thắt đang ở đâu. Không có một tham số nào vừa bảo đảm p99 thấp, throughput cao, footprint nhỏ cho mọi workload.
+**Diagnose before changing parameters:** prove where the bottleneck sits. No single parameter guarantees low p99, high throughput, and small footprint for every workload.
 
-## 6. Chọn giả thuyết thay đổi và hiểu trade-off
+## 6. Choosing an intervention hypothesis and understanding trade-offs
 
-### 6.1. Thử thay -Xmx khi nào?
+### 6.1. When to test changing -Xmx?
 
-Cơ sở hợp lý: có GC pressure do thiếu không gian làm việc tạm thời **sau khi đã hiểu live set và allocation rate**, và memory budget thực sự cho phép. Trước khi đề xuất Xmx mới, ghi:
+Sound rationale: GC pressure stems from insufficient temporary working space **after understanding live set and allocation rate**, and the memory budget genuinely permits it. Before proposing a new Xmx, record:
 
-- Heap max/committed/used hiện tại, đỉnh dùng dưới peak load, đáy sau GC, allocation rate, số/độ dài Full GC và các dấu hiệu collector báo thiếu headroom.
-- Memory limit/host capacity, peak RSS/native/non-heap, margin cho thread stacks/direct buffers/code cache/metaspace, biến động theo tải và tiến trình khác.
-- Dự báo tác động đến tần suất GC, thời lượng pause, container OOM risk và số replica.
+- Current max/committed/used heap, peak usage under peak load, post-GC trough, allocation rate, count/duration of Full GCs, and collector signals of tight headroom.
+- Memory limit / host capacity, peak RSS/native/non-heap, margin for thread stacks/direct buffers/code cache/metaspace, variance with load, and other processes.
+- Expected impact on GC frequency, pause duration, container OOM risk, and replica count.
 
-Một phép kiểm tra ngân sách sơ bộ là: **Xmx ứng viên + phần non-heap/native có thể tăng đến đỉnh + margin an toàn phải thấp hơn giới hạn RAM khả dụng**. Đây là điều kiện cần để thử nghiệm, không phải công thức chọn heap tự động. Đừng trừ số RSS hiện tại khỏi memory limit rồi gán toàn bộ phần dư cho heap: RSS hiện tại đã bao gồm heap resident, và nhiều phần native có thể tăng theo tải.
+A preliminary budget check is: **candidate Xmx + peak possible non-heap/native + safety margin must stay below available RAM limit**. This is a prerequisite for testing, not an automatic heap-sizing formula. Never subtract current RSS from the memory limit and give the entire remainder to the heap: current RSS already includes resident heap, and many native regions grow with load.
 
-### 6.2. Thử thay -Xms khi nào?
+### 6.2. When to test changing -Xms?
 
--Xms là heap ban đầu; -Xmx là heap tối đa. Chỉ cân nhắc -Xms khi quan sát thấy việc heap mở rộng/co lại hoặc giai đoạn warm-up gây bất ổn đáng kể; đo thời gian khởi động, RSS/committed và khả năng dùng RAM của môi trường. Đặt -Xms bằng -Xmx có thể phù hợp một số service ổn định nhưng cam kết bộ nhớ cao hơn, không phải quy tắc phổ quát.
+-Xms is initial heap; -Xmx is maximum heap. Consider -Xms only when observing that heap expansion/shrinking or warm-up causes significant instability; measure startup time, RSS/committed, and the environment's RAM budget. Setting -Xms equal to -Xmx can fit some steady services yet commits more memory up front, and is not a universal rule.
 
-### 6.3. -XX:MaxRAMPercentage và giới hạn container
+### 6.3. -XX:MaxRAMPercentage and container limits
 
-Nếu không đặt -Xmx trực tiếp, HotSpot có thể chọn max heap từ RAM được JVM nhận diện và các cờ phần trăm như -XX:MaxRAMPercentage. Cần đối chiếu **giá trị max heap thực tế** trong process với cgroup/container limit. Không đồng thời diễn giải -Xmx và MaxRAMPercentage như hai trần heap độc lập được cộng vào nhau. Tăng tỷ lệ heap mà không dành headroom cho native memory có thể dẫn tới OOMKilled.
+If -Xmx is not set explicitly, HotSpot may choose max heap from JVM-detected RAM and percentage flags such as -XX:MaxRAMPercentage. Compare **the actual max heap value** in the process against the cgroup/container limit. Do not treat -Xmx and MaxRAMPercentage as two independent heap ceilings that add together. Raising the heap ratio without leaving headroom for native memory can trigger OOMKilled.
 
-### 6.4. Pause goal và lựa chọn GC
+### 6.4. Pause goals and GC selection
 
-Với G1, -XX:MaxGCPauseMillis là **mục tiêu mềm**, không phải bảo đảm pause luôn thấp hơn giá trị đã đặt. Siết mục tiêu có thể dẫn tới GC thường xuyên hơn, tăng CPU hoặc giảm throughput. Khi đánh giá, so **p99 ứng dụng + GC pause histogram + GC CPU + throughput + RSS**, không chỉ một biểu đồ pause.
+With G1, -XX:MaxGCPauseMillis is a **soft goal**, not a guarantee that pauses always stay below the set value. Tightening the goal can cause more frequent GCs, higher CPU, or lower throughput. When evaluating, compare **application p99 + GC pause histogram + GC CPU + throughput + RSS**, not just one pause chart.
 
-Đổi collector (ví dụ các collector tối ưu latency nếu JDK/vendor hỗ trợ) là thay đổi lớn: cần xác nhận khả năng tương thích, CPU/memory cost, hành vi theo workload và cấu hình vận hành. Với G1, tránh khóa young generation bằng -Xmn hay NewRatio chỉ để “ít GC hơn” khi chưa có bằng chứng; G1 dùng kích thước young generation để điều chỉnh pause goal. Các cờ chuyên sâu như IHOP, region size, thread counts chỉ nên xét khi dữ liệu GC cụ thể chỉ ra nút thắt liên quan và thử nghiệm chứng minh cải thiện.
+Switching collectors (for example, latency-oriented collectors if supported by JDK/vendor) is a major change: validate compatibility, CPU/memory cost, behavior under workload, and operational settings. With G1, avoid locking young generation size via -Xmn or NewRatio merely for "fewer GCs" without evidence; G1 adjusts young generation size to pursue its pause goal. Advanced flags such as IHOP, region size, or thread counts should only be considered when concrete GC data points to that bottleneck and tests prove improvement.
 
-## 7. Thiết kế phép thử đối chứng trước khi áp dụng
+## 7. Designing a controlled experiment before rollout
 
-Mỗi phép thử là một giả thuyết đo được, ví dụ: “Với cùng request mix ở 800 RPS, tăng max heap từ 2 GiB lên 2,5 GiB sẽ giảm Full GC gây p99 spike, trong khi peak RSS vẫn nằm dưới budget.” Các số ở đây **chỉ minh họa**, không phải khuyến nghị cấu hình.
+Each test is a measurable hypothesis, for example: "With the same request mix at 800 RPS, raising max heap from 2 GiB to 2.5 GiB will eliminate Full GCs causing p99 spikes while peak RSS stays within budget." Numbers here are **illustrative only**, not configuration recommendations.
 
-1. **Lưu baseline:** revision/build, Java version, GC, toàn bộ JVM flags liên quan, CPU/memory limit, số replica, tải, thời gian warm-up và khoảng steady state; lưu GC logs/JFR/metrics cùng mốc thời gian.
-2. **Đổi một biến chính:** ví dụ chỉ -Xmx; tránh đồng thời đổi GC, replica, CPU limit, cache policy hoặc request mix khiến kết quả không quy được nguyên nhân.
-3. **Tạo tải so sánh hợp lệ:** cùng concurrency, request mix, payload, peak/burst và warm-up; lặp lại đủ số lần để tránh nhiễu. Nếu A/B production, kiểm soát traffic split và khác biệt instance.
-4. **Đo cùng cửa sổ và đơn vị:** p50/p95/p99, throughput, errors, GC count/pause p95/p99/max, tổng thời gian pause, GC/total CPU, allocation rate, heap peak/after-GC, process/container RSS, throttling và OOM events.
-5. **Xác định guardrail trước:** không đánh đổi SLO hoặc tăng OOM risk quá mức; chuẩn bị rollback nhanh về cấu hình baseline nếu p99, error rate, CPU/RSS hay stability xấu đi.
-6. **Kết luận dựa vào phân phối và lặp lại:** khác biệt cần đủ lớn, ổn định, có ý nghĩa với mục tiêu ứng dụng. Chỉ báo GC tốt hơn nhưng p99/throughput không cải thiện có thể không đáng thay đổi.
+1. **Save the baseline:** revision/build, Java version, GC, all relevant JVM flags, CPU/memory limits, replica count, load, warm-up time, and steady-state window; archive GC logs/JFR/metrics with matching timestamps.
+2. **Change one primary variable:** e.g., only -Xmx; avoid changing GC, replicas, CPU limits, cache policy, or request mix simultaneously so results remain attributable.
+3. **Generate comparable load:** identical concurrency, request mix, payloads, peaks/bursts, and warm-up; repeat enough times to filter noise. For production A/B, control traffic split and instance differences.
+4. **Measure identical windows and units:** p50/p95/p99, throughput, errors, GC count/p95/p99/max pauses, total pause time, GC/total CPU, allocation rate, peak/after-GC heap, process/container RSS, throttling, and OOM events.
+5. **Define guardrails upfront:** do not trade away SLOs or spike OOM risk; prepare a fast rollback to baseline config if p99, error rate, CPU/RSS, or stability degrades.
+6. **Conclude from distributions and repeatability:** differences must be substantial, consistent, and meaningful for application goals. Better GC indicators without p99/throughput improvement may not justify the change.
 
-Mẫu bảng ghi quyết định:
+Sample decision record table:
 
-| Trường | Baseline | Ứng viên | Điều kiện chấp nhận |
+| Field | Baseline | Candidate | Acceptance criteria |
 | --- | --- | --- | --- |
-| JDK / collector / cờ | Ghi giá trị thực | Ghi đúng một thay đổi chính | Môi trường tương đương |
-| Tải và cửa sổ | RPS, request mix, thời gian | Cùng workload | Chênh lệch tải trong ngưỡng đã chọn |
-| p99 / errors | Số đo nền | Số đo mới | Đạt SLO, không phát sinh regression |
-| GC pause và CPU | Histogram, tổng pause, GC CPU | Cùng cách tính | Có cải thiện liên quan tới giả thuyết |
-| Heap after-GC và RSS | Trend/peak | Trend/peak | Không đẩy process/container tới OOM |
-| Quyết định | Giữ lại dữ liệu | Keep / rollback | Có bằng chứng, chủ sở hữu và ngày review |
+| JDK / collector / flags | Record actual values | Record exactly one primary change | Equivalent environment |
+| Load and window | RPS, request mix, duration | Same workload | Load variance within chosen threshold |
+| p99 / errors | Baseline reading | New reading | Meets SLO, zero regression |
+| GC pause and CPU | Histogram, total pause, GC CPU | Same calculation | Improvement aligned with hypothesis |
+| Heap after-GC and RSS | Trend/peak | Trend/peak | Does not push process/container toward OOM |
+| Decision | Retain baseline data | Keep / rollback | Backed by evidence, owner, and review date |
 
-## 8. Ví dụ phân tích có đủ/thiếu bằng chứng
+## 8. Examples of analysis with sufficient vs. insufficient evidence
 
-### Tình huống A — chưa được phép kết luận “phải tăng heap”
+### Scenario A — not yet justified to conclude "must increase heap"
 
-Service trên JDK 21/G1, memory limit 4 GiB, Xmx 2 GiB. Giờ cao điểm, p99 từ 90 ms lên 550 ms; GC pauses tối đa 24 ms gần các spike, không thấy Full GC; container working set đã gần giới hạn và CPU throttling tăng. Từ dữ liệu này **chưa đủ bằng chứng** cho tăng Xmx hoặc đổi GC. Tăng Xmx có thể làm rủi ro OOMKilled lớn hơn. Cần xem traces, CPU quota/throttling, lock và I/O, đồng thời xác nhận memory breakdown và tương quan theo timestamp.
+A service on JDK 21/G1 has a 4 GiB memory limit and 2 GiB Xmx. At peak hours, p99 jumps from 90 ms to 550 ms; max GC pauses near the spikes are 24 ms, with no Full GCs; container working set is near its limit and CPU throttling increases. From this data there is **insufficient evidence** to increase Xmx or switch GC. Raising Xmx could heighten OOMKilled risk. Inspect traces, CPU quota/throttling, locks, and I/O, while confirming memory breakdown and timestamp correlation.
 
-### Tình huống B — có lý do để thử nghiệm, chưa đủ để triển khai thẳng
+### Scenario B — grounds to run an experiment, not yet enough to roll out directly
 
-Một service khác có Full GC dài trùng với p99 spike, GC log báo thiếu headroom trong peak burst; sau các collection tương đương, occupancy nhìn chung ổn định, không có dấu hiệu retention tăng lâu dài. Metrics cho thấy memory limit vẫn có margin cho native/GC overhead nếu thử Xmx lớn hơn. Có thể đặt giả thuyết “thiếu heap headroom tại peak” và thử **một thay đổi Xmx** dưới tải kiểm soát. Nếu chỉ pause giảm nhưng RSS sát memory limit hoặc throughput xấu, phải loại ứng viên; nếu Full GC biến mất, p99 đạt SLO và CPU/RSS an toàn qua nhiều lần thử tương đương, mới có cơ sở triển khai.
+Another service sees long Full GCs coinciding with p99 spikes, and GC logs show insufficient headroom during peak bursts; after comparable collections, occupancy is broadly stable with no sign of long-term retention growth. Metrics indicate the memory limit still leaves margin for native/GC overhead if testing a larger Xmx. You can hypothesize "insufficient heap headroom at peak" and test **a single Xmx change** under controlled load. If pauses drop while RSS crowds the memory limit or throughput suffers, reject the candidate; if Full GCs disappear, p99 meets SLO, and CPU/RSS remain safe across repeated equivalent trials, then you have grounds to roll out.
 
-### Tình huống C — dấu hiệu leak, tăng heap chỉ trì hoãn
+### Scenario C — signs of a leak, raising heap only delays it
 
-Sau mỗi đợt tải tương tự, mức heap occupancy sau collection tiếp tục cao hơn qua hàng giờ, số object retained tăng và cuối cùng phát sinh Full GC/OOME. Cần xem allocation/retention, cache size, collection giữ reference, thread-local, listener hoặc classloader theo triệu chứng cụ thể. Heap tăng có thể kéo dài thời gian tới sự cố nhưng không giải quyết nguyên nhân giữ object.
+After every similar load wave, post-collection heap occupancy climbs higher over hours, retained object count rises, and eventually Full GC/OOME occurs. Inspect allocation/retention, cache size, reference-holding collections, thread-locals, listeners, or classloaders per the specific symptoms. Raising the heap may extend time-to-failure, yet never resolves what retains the objects.
 
-## 9. Checklist trước khi thay một tham số
+## 9. Checklist before changing a parameter
 
-- [ ] Triệu chứng, SLO và thời điểm vi phạm đã đo được; có baseline đủ đại diện.
-- [ ] Đã xác minh JDK/vendor, collector, các cờ JVM **đang có hiệu lực**, CPU/memory limit, build và workload.
-- [ ] GC log/metrics có timestamp trùng với latency/errors, cùng timezone và đủ giai đoạn trước–trong–sau.
-- [ ] Có trend heap used/committed/max, post-GC occupancy, allocation rate hoặc phương án đo bổ sung khi thiếu.
-- [ ] Đã đối chiếu pause/GC CPU/throughput với vấn đề; kiểm tra lock, I/O, CPU throttling và safepoint ngoài GC.
-- [ ] Đã phân biệt Java heap OOME, native/metaspace issue và container OOMKilled; xác minh RSS/memory headroom.
-- [ ] Đã điều tra retention/leak nếu đáy heap tăng theo thời gian ở cùng tải.
-- [ ] Viết giả thuyết: thay **tham số nào**, vì quan sát gì, kỳ vọng chỉ số nào cải thiện, tác dụng phụ nào cần theo dõi.
-- [ ] Có phép so sánh hợp lệ, guardrail, rollback và người chịu trách nhiệm đánh giá.
-- [ ] Nếu thiếu bằng chứng, ghi rõ phần thiếu và **chưa thay** heap/GC chỉ vì cảm giác hệ thống “thiếu RAM”.
+- [ ] Symptoms, SLOs, and violation timestamps are measured; a representative baseline exists.
+- [ ] JDK/vendor, collector, **active** JVM flags, CPU/memory limits, build, and workload are verified.
+- [ ] GC logs/metrics share aligned timestamps with latency/errors, same timezone, covering before–during–after phases.
+- [ ] Heap used/committed/max trends, post-GC occupancy, and allocation rate are available—or a plan exists to gather missing data.
+- [ ] Pauses/GC CPU/throughput are correlated with the issue; locks, I/O, CPU throttling, and non-GC safepoints are checked.
+- [ ] Java heap OOME, native/metaspace issues, and container OOMKilled are distinguished; RSS/memory headroom is verified.
+- [ ] Retention/leaks are investigated if the heap trough climbs over time at constant load.
+- [ ] Hypothesis written: **which parameter** changes, based on what observation, which metric is expected to improve, and which side effects to monitor.
+- [ ] Valid comparison, guardrails, rollback plan, and evaluation owner are in place.
+- [ ] If evidence is missing, state what is missing and **do not change** heap/GC merely because the system "feels short on RAM".
 
-## 10. Kết luận thực hành
+## 10. Practical conclusion
 
-Hãy coi heap size và GC flags là **biến cần kiểm chứng** trong một hệ thống nhiều nguồn gây chậm/hết bộ nhớ. Chuỗi ra quyết định đúng là:
+Treat heap size and GC flags as **testable variables** inside a system with many sources of slowness or memory exhaustion. The proper decision chain is:
 
-**Triệu chứng/SLO → cấu hình và giới hạn thực tế → timeline workload + heap + GC + OS → loại trừ nguyên nhân khác → giả thuyết có thể bác bỏ → A/B với guardrail → quyết định giữ hoặc rollback.**
+**Symptom/SLO → actual configuration and limits → workload + heap + GC + OS timeline → rule out other causes → falsifiable hypothesis → A/B test with guardrails → keep or roll back.**
 
-Chứng cứ mạnh nhất không phải “GC chạy nhiều” hay “heap đầy 80%”, mà là: **dữ liệu đúng lúc, đúng tiến trình, đúng collector; diễn giải được cơ chế; và thay đổi được xác nhận cải thiện mục tiêu ứng dụng mà không đẩy rủi ro sang CPU, native memory hoặc độ ổn định**.
+The strongest evidence is not "GC runs a lot" or "heap is 80% full", but rather: **data from the right time, right process, and right collector; a clear explanation of the mechanism; and a change confirmed to improve application targets without shifting risk onto CPU, native memory, or stability**.
 
-### Tài liệu tham khảo chính thức
+### Official reference documentation
 
 - Oracle JDK 21 — jcmd: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
-- Oracle JDK 21 — Java launcher, JVM options và Unified Logging: https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
+- Oracle JDK 21 — Java launcher, JVM options, and Unified Logging: https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
 - Oracle JDK 21 — Garbage-First GC Tuning: https://docs.oracle.com/en/java/javase/21/gctuning/garbage-first-garbage-collector-tuning.html

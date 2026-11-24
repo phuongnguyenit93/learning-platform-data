@@ -1,114 +1,114 @@
-# 18.2 SaslClient, SaslServer và vòng trao đổi challenge–response
+# 18.2 SaslClient, SaslServer, and the Challenge–Response Exchange
 
-## 1. Bức tranh tổng thể
+## 1. The Big Picture
 
-**SASL (Simple Authentication and Security Layer)** là khung xác thực cho các giao thức ứng dụng, mô tả cách chọn *cơ chế* (mechanism) và trao đổi các thông điệp xác thực. SASL không tự định nghĩa TCP, HTTP, LDAP hay định dạng gói mạng: giao thức sử dụng SASL phải quy định lệnh bắt đầu xác thực, nơi mang token, trạng thái tiếp tục/thành công/thất bại và cách đóng kết nối. RFC 4422 là tài liệu nền tảng.
+**SASL (Simple Authentication and Security Layer)** is an authentication framework for application protocols that describes how to select a *mechanism* and exchange authentication messages. SASL does not define TCP, HTTP, LDAP, or wire packet formats: a protocol using SASL must specify the command that starts authentication, where tokens are carried, continuation/success/failure states, and how connections are closed. RFC 4422 is the foundational specification.
 
-Trong Java, gói `javax.security.sasl` (module `java.security.sasl`) đưa cơ chế xác thực vào hai đối tượng có trạng thái:
+In Java, the `javax.security.sasl` package (module `java.security.sasl`) models the authentication mechanism through two stateful objects:
 
-| Thành phần | Phía sử dụng | Vai trò |
+| Component | Side | Role |
 | --- | --- | --- |
-| `SaslClient` | Client | Nhận challenge từ server, sinh response, theo dõi trạng thái phía client. |
-| `SaslServer` | Server | Nhận response từ client, kiểm tra thông tin xác thực, có thể sinh challenge mới và xác định danh tính được ủy quyền. |
-| `Sasl` | Cả hai | Tìm `SaslClientFactory`/`SaslServerFactory` qua các security provider đã đăng ký, tạo đối tượng phù hợp với mechanism và cấu hình. |
-| `CallbackHandler` | Cả hai | Cung cấp dữ liệu mà mechanism yêu cầu (tên đăng nhập, mật khẩu, realm, quyết định ủy quyền...). |
+| `SaslClient` | Client | Receives challenges from the server, produces responses, and tracks client-side state. |
+| `SaslServer` | Server | Receives responses from the client, verifies credentials, optionally produces new challenges, and determines the authorized identity. |
+| `Sasl` | Both | Discovers `SaslClientFactory`/`SaslServerFactory` through registered security providers and creates instances matching the mechanism and configuration. |
+| `CallbackHandler` | Both | Supplies data requested by the mechanism (username, password, realm, authorization decision, etc.). |
 
-**Phân biệt ba lớp:** (1) giao thức ứng dụng chuyên chở dữ liệu, (2) SASL điều phối xác thực, (3) mechanism thực hiện thuật toán cụ thể. Ví dụ, LDAP có thể mang token của cơ chế `GSSAPI`; SMTP có thể dùng cơ chế SASL khác. Việc chọn mechanism phải thuộc chính sách bảo mật và khả năng của cả hai đầu.
+**Distinguish three layers:** (1) the application protocol transports data, (2) SASL orchestrates authentication, and (3) the mechanism executes the specific algorithm. For example, LDAP can carry tokens for the `GSSAPI` mechanism; SMTP can use another SASL mechanism. Mechanism selection must obey security policy and the capabilities of both endpoints.
 
-## 2. Hai giao diện Java và trạng thái của chúng
+## 2. The two Java interfaces and their state
 
 ### 2.1. `SaslClient`
 
-Tạo client bằng:
+Create a client with:
 
 ```java
 SaslClient client = Sasl.createSaslClient(
-    new String[] {"GSSAPI"},  // danh sách cơ chế chấp nhận, theo thứ tự ưu tiên
-    null,                     // authorizationId mong muốn, nếu mechanism hỗ trợ
-    "ldap",                   // tên giao thức/dịch vụ
-    "ldap.example.com",       // tên server đích
-    props,                    // thuộc tính SASL
+    new String[] {"GSSAPI"},  // accepted mechanisms, in preference order
+    null,                     // desired authorizationId, if supported by mechanism
+    "ldap",                   // protocol/service name
+    "ldap.example.com",       // target server name
+    props,                    // SASL properties
     clientCallbackHandler
 );
 if (client == null) {
-    throw new IllegalStateException("Không có SASL client mechanism phù hợp");
+    throw new IllegalStateException("No matching SASL client mechanism available");
 }
 ```
 
-Đây là **đoạn minh họa API**, chỉ hoạt động khi `props`, `clientCallbackHandler`, provider và thông tin dịch vụ/Kerberos thích hợp đã được chuẩn bị; không phải chương trình hoàn chỉnh. Các phương thức quan trọng:
+This is an **API illustration snippet** that works only when `props`, `clientCallbackHandler`, providers, and appropriate service/Kerberos setup are prepared; it is not a standalone program. Key methods:
 
-- `getMechanismName()`: trả tên mechanism thực sự được chọn. Khi truyền nhiều lựa chọn, phải gửi **đúng tên đã chọn** cho server; không giả định phần tử đầu tiên luôn có provider hỗ trợ.
-- `hasInitialResponse()`: cho biết mechanism có dữ liệu client gửi ngay khi bắt đầu hay không. Nếu `true` và giao thức hỗ trợ initial response, gọi `evaluateChallenge(new byte[0])` để lấy token đầu tiên.
-- `evaluateChallenge(byte[] challenge)`: nhận token của server, cập nhật state nội bộ và trả token response. Kết quả có thể là `null` trong trường hợp đặc biệt của dữ liệu cuối đi kèm trạng thái thành công, nghĩa là **không cần gửi response**; `new byte[0]` lại là **một response rỗng có thật**.
-- `isComplete()`: cho biết state machine của client hoàn tất. Điều này **chưa đủ** để coi đăng nhập thành công: còn phải nhận trạng thái `SUCCESS` của giao thức/server.
-- `getNegotiatedProperty(...)`, `wrap(...)`, `unwrap(...)`: dùng sau khi hoàn tất, nếu mechanism thương lượng được các thuộc tính hoặc lớp bảo vệ dữ liệu phù hợp.
-- `dispose()`: giải phóng state và dữ liệu nhạy cảm do mechanism giữ.
+- `getMechanismName()`: returns the mechanism name actually selected. When passing multiple candidates, send **the exact selected name** to the server; never assume a provider supports the first array element.
+- `hasInitialResponse()`: indicates whether the mechanism produces data the client sends immediately upon starting. If `true` and the protocol supports an initial response, call `evaluateChallenge(new byte[0])` to obtain the first token.
+- `evaluateChallenge(byte[] challenge)`: processes a server token, updates internal state, and returns a response token. The result may be `null` in the special case of final data accompanying a success status, meaning **no response needs to be sent**; `new byte[0]`, by contrast, is **an actual empty response**.
+- `isComplete()`: indicates that the client state machine has finished. This **is not sufficient** to treat login as successful: the protocol/server `SUCCESS` status must still be received.
+- `getNegotiatedProperty(...)`, `wrap(...)`, `unwrap(...)`: used after completion if the mechanism negotiated properties or a data protection layer.
+- `dispose()`: releases state and sensitive data held by the mechanism.
 
 ### 2.2. `SaslServer`
 
-Tạo server bằng:
+Create a server with:
 
 ```java
 SaslServer server = Sasl.createSaslServer(
     selectedMechanism, "ldap", "ldap.example.com", props, serverCallbackHandler
 );
 if (server == null) {
-    throw new IllegalStateException("Không có SASL server mechanism phù hợp");
+    throw new IllegalStateException("No matching SASL server mechanism available");
 }
 ```
 
-Đây cũng là **đoạn minh họa API**: `selectedMechanism`, `props` và handler do ứng dụng cung cấp. Phương thức quan trọng:
+This is also an **API illustration snippet**: `selectedMechanism`, `props`, and the handler are supplied by the application. Key methods:
 
-- `evaluateResponse(byte[] response)`: xử lý token client và trả challenge tiếp theo; một số mechanism cần nhiều vòng. Giá trị trả về có thể là `null` nếu không còn challenge.
-- `isComplete()`: state machine phía server đã kết thúc xác thực; với cơ chế/provider cụ thể, lỗi xác thực có thể được thông báo bằng `SaslException`.
-- `getAuthorizationID()`: chỉ gọi **sau khi** `isComplete() == true`; trả danh tính mà client được phép sử dụng (authorization identity), không nhất thiết đồng nhất tên đăng nhập xác thực.
-- `getNegotiatedProperty(...)`, `wrap(...)`, `unwrap(...)` và `dispose()` có vai trò tương ứng phía server.
+- `evaluateResponse(byte[] response)`: processes a client token and returns the next challenge; some mechanisms require multiple rounds. The return value may be `null` when no further challenge is needed.
+- `isComplete()`: the server-side state machine has finished authentication; depending on the mechanism/provider, authentication failures may be signaled by throwing `SaslException`.
+- `getAuthorizationID()`: call **only after** `isComplete() == true`; returns the identity the client is permitted to act as (the authorization identity), which does not have to be identical to the authentication username.
+- `getNegotiatedProperty(...)`, `wrap(...)`, `unwrap(...)`, and `dispose()` play the corresponding server-side roles.
 
-Cả `SaslClient` lẫn `SaslServer` đều **có trạng thái, gắn với một phiên trao đổi**. Không chia sẻ một instance giữa các kết nối, không dùng lại instance đã `dispose()`, không giả định có thể gọi `evaluateChallenge`/`evaluateResponse` từ nhiều luồng đồng thời.
+Both `SaslClient` and `SaslServer` are **stateful and bound to a single exchange session**. Never share an instance across connections, never reuse an instance after `dispose()`, and never assume `evaluateChallenge`/`evaluateResponse` can be called concurrently from multiple threads.
 
-### 2.3. Callback và identity
+### 2.3. Callbacks and identity
 
-Các mechanism hỏi thông tin qua `CallbackHandler.handle(Callback[])`. Những callback phổ biến gồm:
+Mechanisms request data through `CallbackHandler.handle(Callback[])`. Common callbacks include:
 
-- `NameCallback`: tên xác thực (authentication identity, ví dụ `alice`).
-- `PasswordCallback`: bí mật được dùng để chứng minh danh tính; phải quản lý vòng đời và không ghi log.
-- `RealmCallback`/`RealmChoiceCallback`: realm, khi mechanism yêu cầu.
-- `AuthorizeCallback`: phía server quyết định danh tính đã xác thực có được **hành động dưới authorization ID** được yêu cầu hay không.
+- `NameCallback`: the authentication name (authentication identity, e.g., `alice`).
+- `PasswordCallback`: the secret used to prove identity; its lifecycle must be managed and it must never be logged.
+- `RealmCallback`/`RealmChoiceCallback`: realm information, when required by the mechanism.
+- `AuthorizeCallback`: used on the server side to decide whether the authenticated identity may **act under the requested authorization ID**.
 
-**Authentication** trả lời “đây là ai?”; **authorization** trả lời “người này được phép hành động dưới danh tính/quyền nào?”. Cùng một tên ở hai bước trong demo đơn giản không có nghĩa ứng dụng thật được bỏ qua kiểm tra quyền. Các loại callback thực tế phụ thuộc mechanism/provider; handler phải từ chối callback không hỗ trợ bằng `UnsupportedCallbackException`.
+**Authentication** answers "who is this?"; **authorization** answers "under which identity or permissions is this party allowed to act?". Seeing the same name in both steps in a simple demo does not mean a real application may skip permission checks. Actual callback types depend on the mechanism and provider; handlers must reject unsupported callbacks with `UnsupportedCallbackException`.
 
-## 3. Vòng trao đổi challenge–response
+## 3. The challenge–response exchange loop
 
-Một vòng tổng quát diễn ra như sau:
+A general exchange proceeds as follows:
 
 ```text
 Client (SaslClient)                     Server (SaslServer)
        |                                          |
-       |-- AUTH <mechanism> [+ initial token] --->|  [giao thức ứng dụng]
+       |-- AUTH <mechanism> [+ initial token] --->|  [application protocol]
        |<--------------- CHALLENGE ---------------|  evaluateResponse(...)
        |-- RESPONSE ----------------------------->|  evaluateChallenge(...)
-       |<----------- CHALLENGE tiếp (nếu có) -----|
-       |-- RESPONSE tiếp ------------------------>|
-       |<----- SUCCESS / FAILURE [+ final data] --|  [giao thức ứng dụng]
+       |<----------- next CHALLENGE (if any) -----|
+       |-- next RESPONSE ------------------------>|
+       |<----- SUCCESS / FAILURE [+ final data] --|  [application protocol]
        |                                          |
 ```
 
-1. **Chọn và chấp nhận cơ chế.** Client chỉ chọn trong danh sách server công bố và chính sách cục bộ cho phép. Server xác nhận mechanism được phép rồi tạo `SaslServer`. Thông điệp chọn mechanism là một phần của giao thức ứng dụng, **không** do `SaslClient` tự gửi qua mạng.
-2. **Khởi tạo đúng chiều.** Nếu `client.hasInitialResponse()` là `true`, client có thể tạo token đầu bằng `evaluateChallenge(new byte[0])`; nếu `false`, client chờ challenge đầu của server. Một giao thức không cho gửi initial response có thể yêu cầu một challenge rỗng đầu tiên với mechanism client-first.
-3. **Trao đổi token.** Server chuyển response nhận được vào `server.evaluateResponse(...)`; client chuyển challenge nhận được vào `client.evaluateChallenge(...)`. Mỗi lần gọi có thể làm thay đổi state và sinh token để chuyển sang phía đối diện.
-4. **Lặp khi cần.** Không giả định “một challenge, một response” cho mọi mechanism: một số có nhiều lượt, mutual authentication hoặc thông tin đàm phán bổ sung.
-5. **Xác nhận kết thúc ở hai cấp.** Server phải báo `SUCCESS`/`FAILURE` theo giao thức. Client chỉ chấp nhận thành công khi trạng thái giao thức và trạng thái của `SaslClient` nhất quán; server phải kiểm tra xác thực và ủy quyền theo chính sách. Dữ liệu cuối kèm thông báo thành công, nếu có, vẫn có thể cần được client xử lý.
-6. **Chỉ sau thành công** mới dùng authorization ID và các thuộc tính/lớp bảo vệ đã thương lượng để chuyển sang trao đổi dữ liệu ứng dụng.
+1. **Select and accept a mechanism.** The client selects only from mechanisms advertised by the server and allowed by local policy. The server verifies that the mechanism is permitted and creates `SaslServer`. The mechanism-selection message belongs to the application protocol; `SaslClient` does **not** send it over the network itself.
+2. **Initialize in the right direction.** If `client.hasInitialResponse()` is `true`, the client can generate the initial token via `evaluateChallenge(new byte[0])`; if `false`, the client waits for the server's initial challenge. A protocol that forbids initial responses may require sending an initial empty challenge for a client-first mechanism.
+3. **Exchange tokens.** The server passes the received response to `server.evaluateResponse(...)`; the client passes the received challenge to `client.evaluateChallenge(...)`. Each call may advance internal state and produce a token for the peer.
+4. **Loop as needed.** Do not assume "one challenge, one response" for every mechanism: some involve multiple turns, mutual authentication, or extra negotiation data.
+5. **Confirm completion at both levels.** The server must report `SUCCESS`/`FAILURE` via the protocol. The client accepts success only when both the protocol status and `SaslClient` state agree; the server must enforce both authentication and authorization policies. Any final data accompanying a success notice may still need to be processed by the client.
+6. **Only after success** should the authorization ID and negotiated properties or protection layer be used to transition to application data traffic.
 
-`null` khác với mảng byte rỗng: `null` thường mang ý nghĩa “không có token để gửi”, còn `byte[0]` là token độ dài 0 mà giao thức vẫn có thể phải chuyển đi. Phải phân biệt thêm trạng thái `CONTINUE` và `SUCCESS`; chỉ nhìn thấy mảng rỗng không chứng minh xác thực hoàn tất.
+`null` differs from an empty byte array: `null` typically means "there is no token to send," whereas `byte[0]` is a zero-length token that the protocol may still need to transmit. You must also distinguish `CONTINUE` from `SUCCESS`; seeing an empty array does not prove authentication is complete.
 
-Ở mức vận chuyển, SASL token là `byte[]` **nhị phân tùy ý**. Nếu giao thức dùng dòng văn bản, nó có thể quy định Base64; nếu dùng giao thức nhị phân, nó có thể truyền payload có length-prefix. Không tùy tiện chuyển token qua `new String(bytes)`/encoding mặc định, không tự thêm newline và không làm mất byte `0x00`.
+At the transport level, SASL tokens are **arbitrary binary** `byte[]` arrays. If a protocol uses text lines, it may require Base64; if it is binary, it may transmit length-prefixed payloads. Never casually convert tokens via `new String(bytes)` with a default encoding, never inject newlines, and never drop `0x00` bytes.
 
-## 4. Ví dụ Java 17+ chạy được: vòng CRAM-MD5 trong một JVM
+## 4. Runnable Java 17+ example: a CRAM-MD5 round-trip inside one JVM
 
-Ví dụ chọn `CRAM-MD5` vì JDK thường có provider cho cả client và server và có thể mô phỏng một vòng challenge–response **mà không cần Kerberos hay server mạng**. CRAM-MD5 là cơ chế cũ, có hạn chế bảo mật; **chỉ dùng để học API/state machine, không đề xuất cho hệ thống mới**. Để mô phỏng, hai đầu được gọi trực tiếp trong cùng tiến trình; ứng dụng thực phải truyền token qua giao thức được thiết kế rõ ràng.
+This example uses `CRAM-MD5` because the JDK commonly includes providers for both client and server and can simulate a challenge–response round-trip **without requiring Kerberos or a network server**. CRAM-MD5 is a legacy mechanism with security limitations; **use it only to learn the API and state machine, not in new production systems**. For simulation, both sides are invoked directly in the same process; real applications must transport tokens over a well-defined protocol.
 
-Lưu tệp `SaslRoundTripDemo.java`:
+Save the file `SaslRoundTripDemo.java`:
 
 ```java
 import java.io.IOException;
@@ -118,7 +118,7 @@ import javax.security.auth.callback.*;
 import javax.security.sasl.*;
 
 public class SaslRoundTripDemo {
-    // Bí mật cố định và dùng chung chỉ nhằm mô phỏng, KHÔNG làm vậy ở production.
+    // Fixed shared secret for simulation only; NEVER do this in production.
     private static final char[] SECRET = "demo-only-secret".toCharArray();
 
     public static void main(String[] args) throws Exception {
@@ -162,7 +162,7 @@ public class SaslRoundTripDemo {
         }
 
         try {
-            // CRAM-MD5 là server-first. Phản hồi rỗng mô phỏng điểm khởi động.
+            // CRAM-MD5 is server-first. An empty response simulates the trigger point.
             byte[] challenge = server.evaluateResponse(new byte[0]);
             int rounds = 0;
 
@@ -195,14 +195,14 @@ public class SaslRoundTripDemo {
 }
 ```
 
-Biên dịch và chạy (JDK 17 trở lên có provider hỗ trợ `CRAM-MD5`):
+Compile and run (JDK 17 or later with a provider supporting `CRAM-MD5`):
 
 ```bash
 javac --release 17 SaslRoundTripDemo.java
 java SaslRoundTripDemo
 ```
 
-Kết quả đã kiểm tra khi chạy với JDK có provider `CRAM-MD5`:
+Verified output when run on a JDK with a `CRAM-MD5` provider:
 
 ```text
 Mechanism: CRAM-MD5
@@ -211,80 +211,80 @@ Authorized ID: alice
 Rounds: 1
 ```
 
-**Đọc mã theo đúng chiều:** server nhận lời bắt đầu giả lập và sinh challenge → client xử lý bằng `evaluateChallenge` để tạo response → server kiểm tra response → cả hai báo hoàn tất → ứng dụng mới lấy `getAuthorizationID()`. `rounds = 1` chỉ đúng với luồng CRAM-MD5 của ví dụ, không phải số vòng mặc định của SASL. Callback phía server tra cứu mật khẩu theo tên do mechanism cung cấp; chương trình dùng một user và một bí mật cố định cho dễ quan sát, còn hệ thống thật cần nguồn credential an toàn và kiểm tra quyền độc lập.
+**Reading the code in sequence:** the server receives a simulated start signal and generates a challenge → the client processes it with `evaluateChallenge` to create a response → the server validates the response → both report completion → only then does the application call `getAuthorizationID()`. `rounds = 1` applies only to the CRAM-MD5 flow in this example, not as a default round count for SASL. The server-side callback looks up the password for the username supplied by the mechanism; this program uses a single user and fixed secret for clarity, whereas real systems need a protected credential source and independent permission checks.
 
-Nếu thay bí mật của một phía, trao đổi phải thất bại (`SaslException` hoặc lỗi xác thực tương ứng), tuyệt đối không chuyển sang trạng thái ứng dụng đã đăng nhập. Nếu provider bị vô hiệu hóa hoặc không có implementation, `createSaslClient`/`createSaslServer` có thể trả `null`; không được mặc định là thành công.
+If the secret on one side is changed, the exchange must fail (`SaslException` or the corresponding authentication error) and must never transition the application into a logged-in state. If the provider is disabled or lacks an implementation, `createSaslClient`/`createSaslServer` can return `null`; this must never be treated as success.
 
-## 5. Phân biệt state machine với giao thức mạng thật
+## 5. Distinguishing the state machine from a real network protocol
 
-Đoạn Java trên gọi trực tiếp hai đối tượng nên **không** phải một server LDAP/SMTP hoàn chỉnh. Khi tích hợp vào giao thức thực, cần viết lớp điều phối riêng:
+The Java snippet above invokes two objects directly, so it is **not** a complete LDAP/SMTP server. When integrating into a real protocol, you must build your own orchestration layer:
 
-- Định nghĩa frame/lệnh chứa tên mechanism, initial response, challenge, response, trạng thái `CONTINUE`, `SUCCESS`, `FAILURE` và (nếu có) dữ liệu cuối.
-- Bảo toàn **từng byte token**, ranh giới từng message và thứ tự lượt. Khi message dài hoặc bị chia khung, phải ghép đủ token trước khi đưa vào `evaluateChallenge`/`evaluateResponse`.
-- Điều khiển vòng lặp theo cả trạng thái message **lẫn** `isComplete()`; giới hạn số vòng, kích cỡ token và thời gian; lỗi giao thức hoặc state lệch nhau thì hủy phiên.
-- Nếu client có initial response, truyền nó ở phần được giao thức cho phép; nếu server-first, không tự gửi token client trước khi có challenge. Nếu server trả final data cùng `SUCCESS`, client xử lý đúng như đặc tả mechanism/giao thức mà không gửi response bổ sung sau khi đã kết thúc.
-- Chỉ báo ứng dụng “đã xác thực” sau khi server thực sự công nhận thành công và client nhận được kết quả tương ứng. Trên thất bại, đóng/hủy phiên và dọn state bảo mật.
+- Define frames/commands carrying the mechanism name, initial response, challenge, response, `CONTINUE`/`SUCCESS`/`FAILURE` states, and any final data.
+- Preserve **every token byte**, message boundaries, and turn ordering. When messages are long or fragmented across frames, reassemble the complete token before passing it to `evaluateChallenge`/`evaluateResponse`.
+- Drive the loop by both protocol message status **and** `isComplete()`; enforce caps on round count, token size, and timeouts; abort the session on protocol errors or state mismatches.
+- If the client has an initial response, send it where the protocol permits; if server-first, never send a client token before receiving a challenge. If the server returns final data alongside `SUCCESS`, the client handles it per the mechanism/protocol spec without sending an extra response after completion.
+- Signal "authenticated" to the application only after the server genuinely confirms success and the client receives the matching result. On failure, close/abort the session and clean up security state.
 
-Một sơ đồ trạng thái giản lược:
+A simplified state diagram:
 
 ```text
 NEW
   -> MECHANISM_SELECTED
-  -> EXCHANGING (challenge <-> response, lặp 0..n lần)
-  -> AUTHENTICATED + AUTHORIZED  [server SUCCESS và state nhất quán]
+  -> EXCHANGING (challenge <-> response, repeated 0..n times)
+  -> AUTHENTICATED + AUTHORIZED  [server SUCCESS and consistent state]
   -> APPLICATION_TRAFFIC
                   \-> DISPOSED
   -> FAILED / ABORTED -> DISPOSED
 ```
 
-Đây là mô hình để tư duy, **không phải** tập giá trị enum có sẵn trong Java SASL API.
+This is a conceptual model, **not** a built-in enum in the Java SASL API.
 
-## 6. QOP, authorization và mối liên hệ GSS-API
+## 6. QOP, authorization, and the relationship to GSS-API
 
-SASL có thể thương lượng **quality of protection** qua thuộc tính `Sasl.QOP`:
+SASL can negotiate **quality of protection** via the `Sasl.QOP` property:
 
-| QOP | Ý nghĩa |
+| QOP | Meaning |
 | --- | --- |
-| `auth` | Chỉ xác thực; **không tự cung cấp** tính toàn vẹn/bí mật cho dữ liệu ứng dụng. |
-| `auth-int` | Xác thực cộng kiểm tra tính toàn vẹn của message. |
-| `auth-conf` | Xác thực cộng bảo vệ tính bí mật (và toàn vẹn) của message. |
+| `auth` | Authentication only; **does not provide** integrity or confidentiality for application data. |
+| `auth-int` | Authentication plus message integrity verification. |
+| `auth-conf` | Authentication plus message confidentiality (and integrity) protection. |
 
-Sau khi cả hai phía hoàn tất, ứng dụng có thể kiểm tra `getNegotiatedProperty(Sasl.QOP)`. Chỉ dùng `wrap`/`unwrap` nếu mechanism và QOP thực sự hỗ trợ lớp bảo vệ (`auth-int`/`auth-conf`); các hàm này không phải thao tác luôn hợp lệ cho mọi cơ chế. Giao thức ứng dụng còn phải đóng khung các bản ghi được bảo vệ theo đúng quy định.
+After both sides complete, the application can inspect `getNegotiatedProperty(Sasl.QOP)`. Call `wrap`/`unwrap` only if the mechanism and QOP actually support a protection layer (`auth-int`/`auth-conf`); these methods are not valid for every mechanism. The application protocol must also frame protected records according to specification.
 
-**GSSAPI** là một SASL mechanism sử dụng GSS-API, thường gắn với Kerberos trong JDK. Cấu hình GSSAPI cần các thông tin như principal/service name, ticket và môi trường Kerberos hợp lệ; không thể thay chuỗi `"CRAM-MD5"` bằng `"GSSAPI"` trong demo rồi mặc nhiên chạy được. Cơ chế có thể cung cấp mutual authentication và đàm phán QOP, nhưng kết quả phụ thuộc provider, cấu hình và chính sách của ứng dụng.
+**GSSAPI** is a SASL mechanism built on GSS-API, usually backed by Kerberos in the JDK. Configuring GSSAPI requires principals/service names, tickets, and a working Kerberos environment; you cannot simply replace `"CRAM-MD5"` with `"GSSAPI"` in the demo and expect it to run out of the box. The mechanism can provide mutual authentication and QOP negotiation, though the outcome depends on the provider, configuration, and application policy.
 
-`AuthorizeCallback` và `getAuthorizationID()` xử lý **ủy quyền danh tính**, còn quyền đọc/sửa tài nguyên nghiệp vụ vẫn phải do application kiểm tra sau đó. Một phiên SASL thành công không có nghĩa người dùng được truy cập mọi tài nguyên.
+`AuthorizeCallback` and `getAuthorizationID()` handle **identity authorization**, while permissions to read or modify business resources must still be enforced afterward by the application. A successful SASL session does not mean the user may access every resource.
 
-## 7. Những lỗi phổ biến và lưu ý an toàn
+## 7. Common mistakes and safety notes
 
-| Sai lầm | Hậu quả và cách sửa |
+| Mistake | Consequence and fix |
 | --- | --- |
-| Gọi `evaluateChallenge` trước khi biết ai gửi token đầu | Sai thứ tự handshake; kiểm tra `hasInitialResponse()` và đặc tả mechanism/giao thức. |
-| Dựa riêng vào `client.isComplete()` hoặc response không rỗng để kết luận đăng nhập thành công | Có thể chấp nhận state lệch/protocol failure; bắt buộc xử lý kết quả `SUCCESS`/`FAILURE` và kiểm tra phía server. |
-| Coi `null` và `byte[0]` như nhau | Làm mất hoặc tạo thừa message; bảo toàn ý nghĩa token rỗng. |
-| Chuyển token SASL thành chuỗi bằng charset mặc định | Hỏng dữ liệu nhị phân; dùng `byte[]` và encoding do giao thức quy định. |
-| Giả định mọi JDK/provider có mọi cơ chế | Có thể nhận `null` từ `Sasl.createSaslClient/Server`; phải kiểm tra và fail closed. |
-| Nhầm authentication ID với authorization ID | Có thể cấp nhầm quyền; áp dụng `AuthorizeCallback` và kiểm tra quyền ứng dụng. |
-| Gọi `wrap`/`unwrap` lúc chưa hoàn tất hoặc với `QOP=auth` | Không có lớp bảo vệ phù hợp; kiểm tra negotiated QOP trước. |
-| Ghi log password, token hoặc dùng lại state của kết nối khác | Rò rỉ bí mật/lỗi trạng thái; xóa bí mật tạm, `dispose()` và mỗi phiên một instance. |
+| Calling `evaluateChallenge` before knowing who sends the first token | Broken handshake order; check `hasInitialResponse()` and the mechanism/protocol specification. |
+| Relying solely on `client.isComplete()` or a non-empty response to declare login successful | Can accept mismatched state or protocol failure; require handling `SUCCESS`/`FAILURE` and server verification. |
+| Treating `null` and `byte[0]` as identical | Drops or fabricates extra messages; preserve the semantics of empty tokens. |
+| Converting SASL tokens to strings using the default charset | Corrupts binary data; use `byte[]` and the protocol-defined encoding. |
+| Assuming every JDK/provider ships every mechanism | `Sasl.createSaslClient/Server` may return `null`; check for null and fail closed. |
+| Confusing authentication ID with authorization ID | Can grant wrong privileges; enforce `AuthorizeCallback` and application permissions. |
+| Calling `wrap`/`unwrap` before completion or with `QOP=auth` | No protection layer exists; verify negotiated QOP first. |
+| Logging passwords/tokens or reusing state from another connection | Secret leakage or state corruption; wipe temporary secrets, call `dispose()`, and use one instance per session. |
 
-Trong hệ thống thật:
+In production systems:
 
-1. **Cho phép có chọn lọc mechanism** theo chính sách hiện tại; CRAM-MD5/DIGEST-MD5 là cơ chế cũ, không nên lấy ví dụ giáo dục làm cấu hình production. Những mechanism như SCRAM có thể cần provider thư viện riêng; không mặc định JDK nào cũng hỗ trợ.
-2. **Bảo vệ kênh và danh sách cơ chế** bằng TLS được xác thực hoặc lớp bảo vệ tương đương khi mô hình đe dọa yêu cầu. SASL không tự mã hóa lưu lượng và việc công bố/chọn mechanism có thể bị hạ cấp nếu không được bảo vệ. Không dùng `PLAIN` trên kênh chưa bảo vệ.
-3. **Không hardcode credential**, không phản hồi lỗi tiết lộ user có tồn tại hay không, không lưu token nhạy cảm trong log. Handler phía server phải lấy bí mật đúng user từ nguồn được bảo vệ và kiểm tra authorization.
-4. **Fail closed** trước lỗi token, timeout, response sai, QOP không đạt yêu cầu, mechanism không hỗ trợ hoặc hai bên báo trạng thái không nhất quán.
-5. **Dọn phiên** bằng `dispose()`, đóng/loại bỏ kết nối thất bại; đặt giới hạn kích thước payload, số vòng và thời gian để tránh tiêu thụ tài nguyên vô hạn.
+1. **Allow mechanisms selectively** according to current policy; CRAM-MD5/DIGEST-MD5 are legacy mechanisms, so never copy teaching examples into production config. Mechanisms like SCRAM may require third-party providers; not every JDK supports them by default.
+2. **Protect the channel and mechanism list** with verified TLS or an equivalent protection layer when required by the threat model. SASL does not encrypt traffic by itself, and mechanism advertisement/selection can be downgraded if unprotected. Never use `PLAIN` over an unprotected channel.
+3. **Never hardcode credentials**, never return error messages that reveal whether a user exists, and never log sensitive tokens. Server handlers must fetch the right user's secret from a protected store and enforce authorization.
+4. **Fail closed** on malformed tokens, timeouts, wrong responses, insufficient QOP, unsupported mechanisms, or inconsistent state between peers.
+5. **Clean up sessions** with `dispose()`, close/discard failed connections, and enforce payload size, round count, and timeout limits to prevent unbounded resource consumption.
 
-## 8. Tự kiểm tra hiểu bài
+## 8. Self-check questions
 
-- Vì sao `Sasl.createSaslClient(...)` trả `null` không tương đương “mật khẩu sai”? (Vì chưa tạo được implementation cho cơ chế và chính sách đã yêu cầu.)
-- Vì sao CRAM-MD5 demo gọi `server.evaluateResponse(new byte[0])` trước? (Mechanism server-first cần tạo challenge; chương trình mô phỏng phần khởi động của giao thức.)
-- Sau khi `client.isComplete() == true` có được cấp quyền ngay không? (Chưa; cần server báo thành công, xác minh state phù hợp và kiểm tra quyền nghiệp vụ.)
-- Khi negotiated QOP là `auth`, nên gọi `wrap` để “mã hóa” bản tin không? (Không; không có lớp bảo vệ thông điệp được thương lượng.)
-- Hai luồng dùng chung một `SaslClient` cho hai kết nối liệu có an toàn? (Không; đối tượng giữ state theo một phiên.)
+- Why is `Sasl.createSaslClient(...)` returning `null` not equivalent to "wrong password"? (Because no implementation was created for the requested mechanism and policy.)
+- Why does the CRAM-MD5 demo call `server.evaluateResponse(new byte[0])` first? (A server-first mechanism needs to produce an initial challenge; the program simulates the protocol trigger.)
+- Once `client.isComplete() == true`, should privileges be granted immediately? (No; the server must report success, state must be verified consistent, and business permissions must be checked.)
+- When the negotiated QOP is `auth`, should you call `wrap` to "encrypt" messages? (No; no message protection layer was negotiated.)
+- Is it safe for two threads to share one `SaslClient` across two connections? (No; the object maintains per-session state.)
 
-## 9. Tài liệu tham khảo
+## 9. References
 
 - [RFC 4422 — Simple Authentication and Security Layer](https://www.rfc-editor.org/rfc/rfc4422)
 - [Java SE 21 — `Sasl` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.security.sasl/javax/security/sasl/Sasl.html)

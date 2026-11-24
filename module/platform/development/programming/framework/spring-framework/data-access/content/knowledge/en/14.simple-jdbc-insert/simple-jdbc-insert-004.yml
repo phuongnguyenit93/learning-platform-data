@@ -1,0 +1,3 @@
+menuLevel1: SimpleJdbcInsert
+menuLevel2: Truyền giá trị bằng Map hoặc SqlParameterSource
+status: WRITTEN

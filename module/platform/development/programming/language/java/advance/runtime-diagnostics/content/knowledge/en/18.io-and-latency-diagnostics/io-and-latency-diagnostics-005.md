@@ -1,133 +1,133 @@
-# 18.5 Thu thời điểm nhận, bắt đầu, kết thúc và kết quả bằng log hoặc custom event
+# 18.5 Capturing Receive, Start, End, and Result via Logs or Custom Events
 
-## 1. Mục tiêu: dựng lại một hành trình I/O thay vì chỉ biết “request chậm”
+## 1. Goal: reconstruct an I/O journey instead of only knowing "the request was slow"
 
-Trong ứng dụng Java có HTTP handler, message consumer, worker pool, tác vụ ghi file, gọi database hoặc gọi HTTP downstream, một thao tác có thể trải qua **chờ trước khi được xử lý** và **thời gian thực hiện công việc**. Chỉ ghi “bắt đầu xử lý” và “xử lý xong” thường bỏ qua phần queue/dispatch; chỉ ghi một tổng thời gian lại không cho biết chậm ở đâu.
+In a Java application with HTTP handlers, message consumers, worker pools, file writes, database calls, or downstream HTTP calls, an operation can experience both **waiting before processing** and **time spent executing work**. Logging only "started processing" and "finished processing" misses queuing/dispatch; logging only one total duration hides where the slowdown occurred.
 
-Để truy vấn và chẩn đoán **I/O và độ trễ**, hãy thu bốn thành phần thống nhất cho mỗi operation/attempt:
+To query and diagnose **I/O and latency**, capture four consistent components per operation/attempt:
 
-1. **RECEIVED (nhận):** thời điểm ứng dụng nhận/tiếp nhận công việc tại ranh giới đã định nghĩa.
-2. **STARTED (bắt đầu):** thời điểm worker thực sự bắt đầu xử lý công việc đó.
-3. **ENDED (kết thúc):** thời điểm thao tác được coi là hoàn thành theo ranh giới đo, kể cả nhánh lỗi.
-4. **RESULT (kết quả):** trạng thái thành công/thất bại/timeout/huỷ/từ chối và thông tin lỗi an toàn để quan sát.
+1. **RECEIVED:** when the application accepts/receives work at the defined boundary.
+2. **STARTED:** when a worker actually starts executing that work.
+3. **ENDED:** when the operation is considered complete at the measurement boundary, including error paths.
+4. **RESULT:** success/failure/timeout/cancelled/rejected status and safe observable error metadata.
 
-Có thể ghi ba mốc thời gian cộng kết quả vào **structured logs**, **custom JFR event**, hoặc kết hợp cả hai. Việc chọn phương án phụ thuộc nhu cầu truy vấn online, overhead, độ chi tiết, thời gian lưu trữ và dữ liệu cần liên kết giữa hệ thống.
+You can record the three timestamps plus the result in **structured logs**, a **custom JFR event**, or both. Choosing between them depends on online query needs, overhead, detail level, retention, and cross-system correlation requirements.
 
-Sau bài này, bạn có thể thiết kế schema, tính queue-to-start/work/end-to-end latency, gắn correlation ID, đo chính xác bằng `System.nanoTime()`, ghi đủ các nhánh kết quả trong `try/finally`, tạo custom JFR event Java 17+, và đọc lại event để kiểm tra bằng chứng.
+After this lesson, you will be able to design schemas, compute queue-to-start/work/end-to-end latencies, attach correlation IDs, measure accurately with `System.nanoTime()`, record all outcome branches in `try/finally`, create a Java 17+ custom JFR event, and read events back to verify evidence.
 
-**Điều đầu tiên phải định nghĩa:** “nhận” là lúc service tiếp nhận request/message hay lúc job được enqueue? “kết thúc” là lúc I/O callback hoàn tất hay lúc response được flush? Nếu các service hoặc đoạn code dùng ranh giới khác nhau, phép so sánh số liệu có thể vô nghĩa dù timestamp hợp lệ.
+**The first thing to define:** Is "received" when the service receives the request/message or when the job is enqueued? Is "ended" when the I/O callback finishes or when the response is flushed? If different services or code paths use different boundaries, comparing metrics can be meaningless even when timestamps are valid.
 
-## 2. Bốn mốc và ranh giới đo
+## 2. Four milestones and measurement boundaries
 
 ```text
 Client / upstream
        |
        v
-  [RECEIVED] t_recv     Service đã nhận/accept công việc
+  [RECEIVED] t_recv     Service received/accepted the work
        |
-       | chờ dispatch / queue / permit / worker
+       | waiting for dispatch / queue / permit / worker
        |
-  [STARTED] t_start     Worker bắt đầu công việc cần đo
+  [STARTED] t_start     Worker begins the work to measure
        |
-       | thực hiện I/O, compute, retry nội bộ theo phạm vi
+       | executing I/O, compute, internal retries within scope
        |
-  [ENDED]   t_end       Kết quả thao tác đã được xác định
+  [ENDED]   t_end       Operation outcome has been determined
        |
        +---- RESULT     SUCCESS / ERROR / TIMEOUT / CANCELLED / REJECTED ...
        |
        v
-     response / ack / downstream outcome (tuỳ ranh giới)
+     response / ack / downstream outcome (depending on boundary)
 ```
 
-### 2.1. RECEIVED: nhận ở ranh giới nào?
+### 2.1. RECEIVED: at which boundary?
 
-Ví dụ:
+Examples:
 
-- **HTTP server:** khi handler hoặc middleware đầu vào nhận request sau khi container đã dispatch; đây không phải thời điểm packet đầu tiên đến NIC.
-- **Message consumer:** khi callback nhận message, hoặc khi hệ thống enqueue job để xử lý.
-- **Worker queue:** khi job được nhận tại producer và chuẩn bị submit, có thể trước lúc thực sự đặt vào queue.
-- **File I/O:** khi ứng dụng chấp nhận yêu cầu ghi/đọc, không nhất thiết khi syscall bắt đầu.
+- **HTTP server:** when the entry handler or middleware receives the request after container dispatch; this is not when the first packet hits the NIC.
+- **Message consumer:** when the message-delivery callback runs, or when the system enqueues a job to process it.
+- **Worker queue:** when the job is accepted at the producer and about to be submitted, possibly before entering the queue itself.
+- **File I/O:** when the application accepts the read/write request, not necessarily when the syscall begins.
 
-Gắn `requestId` / `operationId` và chụp timestamp **ngay khi nhận**. Với job retry, cần thêm `attempt` hoặc `attemptId` để không ghép nhầm hai lần chạy có cùng business ID.
+Attach `requestId` / `operationId` and capture the timestamp **immediately upon receipt**. For retried jobs, add `attempt` or `attemptId` so two runs sharing a business ID are not stitched together by mistake.
 
-Nếu mục tiêu là đo **thời gian đợi trong queue thuần túy**, nên có thêm `enqueuedAt` và `dequeuedAt`. Trong bài, `t_start - t_recv` được gọi là **wait-to-start** vì nó có thể bao gồm xác thực, dựng context, dispatch và chờ queue; không được mặc nhiên gọi là “queue time” chính xác.
+If the goal is to measure **pure queue wait time**, also capture `enqueuedAt` and `dequeuedAt`. In this lesson, `t_start - t_recv` is called **wait-to-start** because it may include authentication, context setup, dispatch, and queue waiting; it must not be assumed to equal exact "queue time."
 
-### 2.2. STARTED: bắt đầu xử lý thật sự
+### 2.2. STARTED: true start of processing
 
-`t_start` phải lấy khi công việc **được worker chạy**, không phải khi gọi `executor.submit(...)`. Hai mốc này khác nhau dưới tải nặng. Với async API, thời điểm khởi tạo `CompletableFuture` cũng không bảo đảm I/O đã bắt đầu.
+`t_start` must be taken when the work **is actually executed by a worker**, not when calling `executor.submit(...)`. Those two moments diverge under heavy load. With async APIs, creating a `CompletableFuture` also does not guarantee I/O has started.
 
-Trường hợp có semaphore hoặc rate limiter, xác định rõ STARTED trước hay sau bước acquire; nếu trước, thời gian chờ permit sẽ nằm trong work duration, còn nếu sau, nó nằm trong wait-to-start. Điều này không sai nếu được ghi rõ và nhất quán.
+If a semaphore or rate limiter is used, define explicitly whether STARTED comes before or after acquire; if before, permit wait falls into work duration, whereas if after, it falls into wait-to-start. Either is fine as long as it is documented and consistent.
 
-### 2.3. ENDED: đúng định nghĩa hoàn tất
+### 2.3. ENDED: exact definition of completion
 
-Với I/O đồng bộ, ENDED có thể là lúc method đọc/ghi trả về hoặc throw. Với I/O bất đồng bộ, ENDED là khi callback/completion báo xong **toàn bộ thao tác bạn định đo**, không phải lúc đăng ký callback hoặc lúc trả một future chưa hoàn thành.
+With synchronous I/O, ENDED can be when the read/write method returns or throws. With asynchronous I/O, ENDED is when the callback/completion signals that **the entire operation you intended to measure** is finished, not when registering a callback or returning an incomplete future.
 
-Nếu phần “ghi file” chỉ được đưa vào OS page cache, method hoàn thành **không đồng nghĩa dữ liệu đã fsync xuống thiết bị lưu trữ bền vững**. Nếu mục tiêu là durability, phải thiết kế mốc theo API đảm bảo durability tương ứng. Tương tự, một response đã tạo xong chưa hẳn đã được gửi hết đến client.
+If "writing a file" only writes into the OS page cache, method completion **does not mean data was `fsync`ed to durable storage**. If durability is your target, place the milestone on the API guaranteeing durability. Likewise, a serialized response is not necessarily fully transmitted to the client yet.
 
-### 2.4. RESULT: trạng thái phải ghép với ENDED
+### 2.4. RESULT: status paired with ENDED
 
-`result` nên có từ vựng rõ ràng, ví dụ:
+`result` should use a clear vocabulary, for example:
 
-| Result | Ý nghĩa | Thông tin bổ sung có ích |
+| Result | Meaning | Useful additional fields |
 | --- | --- | --- |
-| `SUCCESS` | Công việc thành công theo hợp đồng | status/code, số byte/rows, downstream status |
-| `ERROR` | Công việc kết thúc thất bại | loại exception, error code đã chuẩn hoá |
-| `TIMEOUT` | Vượt deadline được thiết kế | deadline, loại timeout, caller/downstream |
-| `CANCELLED` | Bị huỷ có chủ đích hoặc bị interrupt | lý do, bên phát lệnh huỷ |
-| `REJECTED` | Bị từ chối trước khi bắt đầu | queue full, overload, rate limit |
-| `UNKNOWN` | Chưa xác định kết quả cuối | Không tự chuyển sang SUCCESS/ERROR |
+| `SUCCESS` | Work succeeded per contract | status/code, bytes/rows count, downstream status |
+| `ERROR` | Work ended in failure | normalized exception type, error code |
+| `TIMEOUT` | Exceeded configured deadline | deadline, timeout type, caller/downstream |
+| `CANCELLED` | Deliberately cancelled or interrupted | reason, cancelling party |
+| `REJECTED` | Rejected before starting | queue full, overload, rate limit |
+| `UNKNOWN` | Final outcome undetermined | Do not silently convert to SUCCESS/ERROR |
 
-Không log exception stack trace đầy đủ ở mọi event nếu tần suất rất cao; có thể lưu `errorType` và error code dạng chuẩn, còn stack chi tiết ở nơi thích hợp. Đặc biệt không ghi token, password, request body hoặc PII vào log/JFR.
+Avoid logging full exception stack traces on every event at very high rates; store normalized `errorType` and error codes, keeping detailed stacks where appropriate. Never write tokens, passwords, request bodies, or PII into logs or JFR.
 
-Thông thường, **ENDED + RESULT nằm chung một structured-log record hoặc một custom event được commit sau khi kết thúc**. Không bắt buộc phải có dòng log thứ tư mang tên RESULT nếu outcome đã gắn với ENDED. Nhưng phải đảm bảo result là giá trị cuối, không phải `PENDING` còn sót.
+Normally, **ENDED + RESULT live in one structured-log record or one custom event committed after completion**. A separate fourth log line named RESULT is unnecessary if outcome is attached to ENDED. However, ensure result holds the final value rather than a leftover `PENDING`.
 
-## 3. Ba khoảng thời gian cần tính
+## 3. Three intervals to compute
 
-Khi ba mốc thuộc **cùng một process/JVM** và lấy từ đồng hồ monotonic:
+When all three timestamps belong to **the same process/JVM** and come from a monotonic clock:
 
 - `waitToStart = t_start - t_recv`
 - `work = t_end - t_start`
 - `endToEnd = t_end - t_recv`
-- Bất biến kiểm tra: **`endToEnd = waitToStart + work`** nếu các mốc dùng cùng clock/cùng đơn vị và không bị xử lý sai.
+- Invariant check: **`endToEnd = waitToStart + work`** when timestamps share the same clock/unit and are handled cleanly.
 
-Ví dụ giả định, các mốc sau đều tính theo **milli giây trên một đồng hồ monotonic chung**, chỉ dùng để tính tay:
+Hypothetical example, with all timestamps in **milliseconds on a shared monotonic clock**, solely for hand calculation:
 
 | Operation | `t_recv` | `t_start` | `t_end` | Wait-to-start | Work | End-to-end | Result |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | `r-101` | 1.000 | 1.012 | 1.060 | 12 ms | 48 ms | **60 ms** | SUCCESS |
 | `r-102` | 2.000 | 2.080 | 2.110 | 80 ms | 30 ms | **110 ms** | ERROR |
 
-Diễn giải:
+Interpretation:
 
-- `r-101` có tổng 60 ms, chủ yếu ở execution (48 ms).
-- `r-102` có tổng 110 ms dù work chỉ 30 ms; phần lớn nằm trước khi worker bắt đầu (80 ms).
-- Một kết quả `ERROR` có thể trả rất nhanh; không được tự biến “lỗi” thành “chậm”, hay “thành công” thành “nhanh”.
-- Hai request có thể chạy chồng lấp, không thể cộng end-to-end của chúng để suy ra thời gian đồng hồ của cả hệ thống.
+- `r-101` took 60 ms total, mostly in execution (48 ms).
+- `r-102` took 110 ms total even though work was only 30 ms; most of it occurred before the worker started (80 ms).
+- An `ERROR` result can return very quickly; never equate "error" with "slow" or "success" with "fast."
+- Two requests can overlap in time, so you cannot add their end-to-end durations to infer wall-clock time of the system.
 
-Khi có retry, phải phân biệt **latency của một attempt** với **latency của logical request**. Ba attempt 30 ms, 40 ms, 50 ms với backoff 100 ms giữa các lần không tạo ra tổng end-to-end 120 ms; thời gian chờ retry thuộc hành trình request dù không nằm trong work của từng attempt.
+When retries occur, distinguish **single-attempt latency** from **logical request latency**. Three attempts of 30 ms, 40 ms, and 50 ms with 100 ms backoff between them do not yield 120 ms end-to-end; retry wait belongs to the request journey even though it sits outside each attempt's work.
 
-## 4. Chọn đúng đồng hồ: timestamp để ghép log, nanoTime để đo duration
+## 4. Choosing the right clock: timestamps to join logs, nanoTime to measure duration
 
 ### 4.1. Wall clock: `Instant.now()` / `System.currentTimeMillis()`
 
-Wall clock gắn với UTC/Unix epoch. Nó phục vụ:
+The wall clock ties to UTC/Unix epoch. It is used for:
 
-- đặt một mốc trên trục thời gian, đối chiếu với HTTP access log, tracing, GC/JFR;
-- tìm lúc nào sự cố xảy ra;
-- diễn đạt thời gian cho người vận hành.
+- placing an event on a timeline to correlate with HTTP access logs, traces, GC/JFR;
+- finding when an incident occurred;
+- presenting times to operators.
 
-Ví dụ `2026-01-01T10:00:00.000Z` là một thời điểm UTC; có thể hiển thị sang `Asia/Ho_Chi_Minh` khi cần. Tuy nhiên, wall clock có thể bị điều chỉnh vì NTP, môi trường ảo hóa hoặc thay đổi clock system. `currentTimeMillis()` còn có độ phân giải mili giây. **Không lấy hiệu hai wall-clock timestamps làm nguồn chuẩn duy nhất để đo latency ngắn**.
+For example, `2026-01-01T10:00:00.000Z` is a UTC instant; it can be displayed in `Asia/Ho_Chi_Minh` when needed. However, wall clocks can jump due to NTP, virtualization, or system clock changes, and `currentTimeMillis()` has millisecond resolution. **Never rely solely on the difference of two wall-clock timestamps to measure short latencies.**
 
 ### 4.2. Monotonic elapsed clock: `System.nanoTime()`
 
-`nanoTime()` trả clock tick đơn điệu phục vụ **đo thời gian trôi qua**, không phải epoch time. Giá trị tuyệt đối không có ý nghĩa lịch, có thể âm, nhưng hiệu hai lần gọi trong **cùng JVM/process** có ý nghĩa duration:
+`nanoTime()` returns monotonic clock ticks meant for **measuring elapsed time**, not epoch time. Absolute values have no calendar meaning and may be negative, yet differences between two calls within **the same JVM/process** meaningfully measure duration:
 
 ```java
-// Fragment minh họa, không phải chương trình độc lập.
+// Illustrative fragment, not a standalone program.
 long receivedNano = System.nanoTime();
-// ... sau khi worker thật sự bắt đầu:
+// ... once the worker actually starts:
 long startedNano = System.nanoTime();
-// ... khi thao tác hoàn thành:
+// ... when the operation finishes:
 long endedNano = System.nanoTime();
 
 long waitNanos = startedNano - receivedNano;
@@ -137,44 +137,44 @@ long totalNanos = endedNano - receivedNano;
 double totalMillis = totalNanos / 1_000_000.0;
 ```
 
-Cách này tránh lỗi đồng hồ tường bị chỉnh làm duration âm hoặc bị nhảy bất thường. Độ phân giải của giá trị tính theo nano giây **không đồng nghĩa phần cứng có độ chính xác một nano giây**. Đừng đối chiếu các số `nanoTime` tuyệt đối giữa **hai JVM khác nhau hoặc hai máy khác nhau**; chỉ tính hiệu các mốc thuộc cùng process/clock domain.
+This avoids wall-clock adjustments producing negative durations or sudden jumps. Nanosecond units **do not mean hardware has one-nanosecond accuracy**. Never compare raw `nanoTime` values across **two different JVMs or two different machines**; subtract only timestamps from the same process/clock domain.
 
-Nếu request đi từ gateway sang service khác, hãy mang **traceId/spanId**, ghi timestamps UTC có đồng bộ clock và dùng distributed tracing để kết nối các span. Với mỗi service, đo duration bằng monotonic clock cục bộ. Không trừ `nanoTime` của service A cho `nanoTime` của service B.
+When a request travels from a gateway to another service, propagate `traceId`/`spanId`, record clock-synchronized UTC timestamps, and use distributed tracing to connect spans. Inside each service, measure durations with its local monotonic clock. Never subtract service B's `nanoTime` from service A's `nanoTime`.
 
-### 4.3. Ghi hai loại clock mà không nhầm
+### 4.3. Recording both clocks without confusion
 
-Mỗi mốc quan trọng có thể chụp một cặp:
+Each milestone can capture a pair:
 
 ```text
 receivedAtEpochMs     = System.currentTimeMillis()
-receivedAtMonotonicNs  = System.nanoTime()     (chỉ dùng nội bộ JVM)
+receivedAtMonotonicNs  = System.nanoTime()     (JVM-internal use only)
 ```
 
-Hai lệnh gọi không xảy ra đúng một tích tắc; khoảng lệch nhỏ là bình thường. Cần thống nhất thứ tự lấy mốc và tránh suy luận rằng hiệu timestamp wall **phải bằng chính xác** hiệu nanoTime. Có thể log UTC time và giá trị duration đã tính, nhưng không cần ghi `nanoTime` tuyệt đối lâu dài nếu không có trường hợp dùng.
+The two calls do not execute at the exact same instant; a tiny offset is normal. Keep capture ordering consistent and do not assume wall-timestamp deltas **must exactly equal** `nanoTime` deltas. Log UTC time and computed durations, but there is rarely a reason to persist raw `nanoTime` values long-term unless specifically needed.
 
-**Đơn vị:** `1 ms = 1.000.000 ns`; dùng `long` để lưu `...Nanos` và đổi sang `double millis = nanos / 1_000_000.0` khi hiển thị. Không đặt tên field `latencyMs` nhưng lại lưu nano giây.
+**Units:** `1 ms = 1,000,000 ns`; use `long` for `...Nanos` and convert via `double millis = nanos / 1_000_000.0` for display. Never name a field `latencyMs` while storing nanoseconds in it.
 
-## 5. Thiết kế structured-log schema tối thiểu
+## 5. Designing a minimal structured-log schema
 
-Một log record phục vụ điều tra không nên chỉ là chuỗi “started processing...”. Cần tên field ổn định và có khả năng lọc:
+An investigative log record should never be just `"started processing..."`. It needs stable, filterable fields:
 
-| Field | Kiểu gợi ý | Ý nghĩa |
+| Field | Suggested type | Meaning |
 | --- | --- | --- |
-| `timestamp` hoặc `epochMs` | ISO-8601 UTC / epoch milliseconds | Wall-clock khi phát log |
+| `timestamp` or `epochMs` | ISO-8601 UTC / epoch milliseconds | Wall-clock time when logged |
 | `phase` | Enum-like string | `RECEIVED`, `STARTED`, `ENDED` |
-| `requestId` | String | Correlation ID cho logical request |
-| `attemptId` / `attemptNo` | String / integer | Phân biệt retries |
-| `operation` | String | Tên thao tác giới hạn cardinality, ví dụ `file.write` |
+| `requestId` | String | Correlation ID for logical request |
+| `attemptId` / `attemptNo` | String / integer | Distinguish retries |
+| `operation` | String | Bounded-cardinality operation name, e.g., `file.write` |
 | `result` | String | `PENDING`, `RUNNING`, `SUCCESS`, `ERROR`, ... |
-| `errorType` / `errorCode` | String optional | Loại lỗi, không chứa secret/message nhạy cảm |
-| `waitToStartNanos` | long, khi có STARTED/ENDED | Thời gian từ nhận tới start |
-| `workNanos` | long, khi ENDED | Thời gian start đến end |
-| `totalNanos` | long, khi ENDED | End-to-end theo ranh giới đã chọn |
-| `threadName` | String optional | Hữu ích khi điều tra executor |
-| `traceId` / `spanId` | String optional | Liên kết telemetry giữa service |
-| `bytes` / `status` | long / int optional | Kết quả I/O có ý nghĩa nghiệp vụ |
+| `errorType` / `errorCode` | Optional string | Error classification without secrets/sensitive messages |
+| `waitToStartNanos` | long, on STARTED/ENDED | Time from receive to start |
+| `workNanos` | long, on ENDED | Time from start to end |
+| `totalNanos` | long, on ENDED | End-to-end across chosen boundary |
+| `threadName` | Optional string | Useful when investigating executors |
+| `traceId` / `spanId` | Optional string | Cross-service telemetry linking |
+| `bytes` / `status` | Optional long / int | Meaningful I/O outcome |
 
-Ví dụ log JSON **minh họa**, mốc thời gian giả định, không phải stdout của chương trình:
+**Illustrative** JSON log lines with hypothetical timestamps, not program stdout:
 
 ```json
 {"timestamp":"2026-01-01T10:00:00.000Z","phase":"RECEIVED","requestId":"r-101","attemptNo":1,"operation":"file.write","result":"PENDING"}
@@ -182,11 +182,11 @@ Ví dụ log JSON **minh họa**, mốc thời gian giả định, không phải
 {"timestamp":"2026-01-01T10:00:00.060Z","phase":"ENDED","requestId":"r-101","attemptNo":1,"operation":"file.write","result":"SUCCESS","waitToStartNanos":12000000,"workNanos":48000000,"totalNanos":60000000,"bytes":4096}
 ```
 
-Không tự tin hoàn toàn vào việc ghép ba dòng bằng **thread name**: request có thể chuyển thread, các thread được tái sử dụng, cùng tên có thể xuất hiện ở nhiều JVM. Dùng correlation ID nhất quán, và nếu có retry thì ghép trên `requestId + attemptNo` hoặc một `attemptId` duy nhất.
+Never rely solely on **thread name** to join the three lines: requests can hop threads, threads are reused, and identical names exist across JVMs. Use consistent correlation IDs, and with retries join on `requestId + attemptNo` or a unique `attemptId`.
 
-### 5.1. Log ở đâu để đủ cả nhánh lỗi?
+### 5.1. Where to log so error branches are never missed
 
-Một flow đồng bộ lý tưởng:
+An ideal synchronous flow:
 
 ```text
 ingress:
@@ -199,61 +199,61 @@ worker:
     log STARTED
     result = UNKNOWN
     try:
-        thực hiện I/O
+        perform I/O
         result = SUCCESS
     catch timeout:
         result = TIMEOUT
-        rethrow/hoàn tất thất bại theo hợp đồng
+        rethrow/fail per contract
     catch other error:
         result = ERROR
-        rethrow/hoàn tất thất bại theo hợp đồng
+        rethrow/fail per contract
     finally:
         capture ended
         compute wait/work/total
-        log ENDED với result cuối cùng
+        log ENDED with final result
 ```
 
-Đây là **pseudocode**, không phải Java runnable. Với async, đặt ENDED trong callback kết thúc của `CompletionStage` hoặc API tương ứng, không đặt ngay sau lời gọi trả `Future`. Trong luồng cancel/timeout/race, cần bảo đảm chỉ một nơi commit kết quả cuối cho một attempt; một `AtomicBoolean.compareAndSet(false, true)` hoặc state machine có thể giúp tránh ghi hai ENDED khi timeout và completion cùng đến.
+This is **pseudocode**, not runnable Java. For async flows, place ENDED inside the `CompletionStage` (or equivalent) completion callback, not immediately after returning the `Future`. Under cancel/timeout/race conditions, guarantee only one place commits the final outcome per attempt; an `AtomicBoolean.compareAndSet(false, true)` or state machine prevents emitting two ENDED records when timeout and completion race.
 
-### 5.2. Thread pools, MDC và context propagation
+### 5.2. Thread pools, MDC, and context propagation
 
-Log framework như SLF4J/Logback có thể dùng **MDC** đưa `requestId`, `traceId` vào mỗi dòng. Nhưng MDC thường dựa vào context gắn với thread, nên không được giả định nó tự động đi từ thread nhận request sang worker của `ExecutorService`. Hãy truyền một context object, hoặc cấu hình context propagation có chủ đích.
+Logging frameworks like SLF4J/Logback can use **MDC** to attach `requestId` and `traceId` to every line. However, MDC typically relies on thread-bound context, so do not assume it propagates automatically from the ingress thread to an `ExecutorService` worker. Pass an explicit context object or configure deliberate context propagation.
 
-Trong worker, cần dọn MDC bằng `try/finally` để không rò `requestId` của request trước sang task sau. Với virtual threads hay reactive code, chọn cơ chế propagation tương ứng; không dựa vào ThreadLocal thiếu kiểm soát.
+Inside the worker, clear MDC in `try/finally` so a previous request's `requestId` does not leak into the next task. With virtual threads or reactive code, choose the corresponding propagation mechanism instead of relying on uncontrolled `ThreadLocal`s.
 
-### 5.3. Ưu tiên logs hay custom JFR event?
+### 5.3. Prefer logs or custom JFR events?
 
-| Phương án | Điểm mạnh | Hạn chế |
+| Approach | Strengths | Limitations |
 | --- | --- | --- |
-| Structured logs ở từng phase | Dễ stream, index, alert, điều tra xuyên service bằng trace ID | Nhiều dòng/event, logging backend có thể chịu tải lớn; clock bị lệch |
-| Một custom JFR event khi hoàn tất | Gom bốn mốc, duration và outcome vào một bản ghi nhị phân; thuận tiện đối chiếu JVM events | Cần bật recording, thu/dump file, không phải kho truy vấn online tự động |
-| Kết hợp log + custom JFR | Log cho kiểm soát online; JFR cho phiên chẩn đoán sâu và correlation trong JVM | Phải nhất quán schema/ID; tránh ghi trùng payload nhạy cảm |
+| Structured logs per phase | Easy to stream, index, alert, and search cross-service by trace ID | Many lines/events, heavy load on logging backends; clock skew |
+| One custom JFR event on completion | Packs all milestones, durations, and outcome in one binary record; correlates neatly with JVM events | Requires active recording and dump/collection; not an automatic online query store |
+| Logs + custom JFR combined | Logs for online monitoring; JFR for deep diagnostics and JVM correlation | Must keep schemas/IDs consistent; avoid duplicating sensitive payloads |
 
-Không có lựa chọn bắt buộc dùng cả hai. Với service đang có tracing/metrics, thường chỉ cần mức log phù hợp và phát JFR custom events khi điều tra sâu.
+Using both is not mandatory. When a service already has tracing/metrics, appropriate log levels plus custom JFR events during deep investigations are often sufficient.
 
-## 6. Custom JFR event: lưu cả timeline và kết quả trong một record
+## 6. Custom JFR event: storing timeline and result in one record
 
-Một event subclass của `jdk.jfr.Event` có thể chứa những field do ứng dụng định nghĩa. Dùng các annotation:
+A subclass of `jdk.jfr.Event` can carry application-defined fields. Use annotations:
 
-- `@Name("demo.IoRequest")`: tên event kỹ thuật ổn định để lọc khi đọc file.
-- `@Label`: tên hiển thị thân thiện.
-- `@Timestamp(Timestamp.MILLISECONDS_SINCE_EPOCH)`: nói rõ long field đó là timestamp epoch milliseconds.
-- `@Timespan(Timespan.NANOSECONDS)`: nói rõ long field đó lưu duration nano giây.
-- `@StackTrace(false)`: tắt ghi stack mặc định để giảm overhead khi chưa cần call site; có thể override trong recording.
+- `@Name("demo.IoRequest")`: stable technical event name for filtering when reading files.
+- `@Label`: human-friendly display name.
+- `@Timestamp(Timestamp.MILLISECONDS_SINCE_EPOCH)`: clarifies that a `long` field holds epoch milliseconds.
+- `@Timespan(Timespan.NANOSECONDS)`: clarifies that a `long` field holds nanosecond duration.
+- `@StackTrace(false)`: disables default stack capture to reduce overhead when call sites are not needed; can be overridden per recording.
 
-**Lựa chọn quan trọng về event duration:** Trong ví dụ, `event.begin()` xảy ra **khi worker bắt đầu** và `event.end()` ngay khi work kết thúc. Vì vậy duration nội tại của event JFR chủ yếu đại diện **thời gian xử lý trong worker**, không bao gồm chờ từ nhận đến start. Ta lưu thêm `receivedEpochMs`, `startedEpochMs`, `endedEpochMs`, `waitToStartNanos`, `workNanos`, `totalNanos` để không mất thông tin trước start.
+**Key choice about event duration:** In the example, `event.begin()` runs **when the worker starts** and `event.end()` right when work ends. Thus JFR's intrinsic duration mainly represents **worker processing time**, excluding wait-to-start. We store `receivedEpochMs`, `startedEpochMs`, `endedEpochMs`, `waitToStartNanos`, `workNanos`, and `totalNanos` so pre-start time is preserved.
 
-Nếu thay vì thế bạn muốn duration JFR đại diện toàn bộ end-to-end, phải đặt `begin()` ở ranh giới nhận và `end()` ở ranh giới hoàn tất với thiết kế vòng đời event an toàn, kể cả chuyển thread và nhánh timeout. Đừng đổi nghĩa duration mà không cập nhật tên/metadata của event.
+If instead you want JFR duration to represent total end-to-end time, you must call `begin()` at receive and `end()` at completion with a thread-safe lifecycle design across thread handoffs and timeouts. Never change duration semantics without updating the event's name/metadata.
 
-**Threshold trap:** JFR `threshold` áp dụng cho **duration nội tại event**. Nếu event `begin/end` chỉ bao work, đặt threshold 50 ms có thể làm **mất một request chờ queue 800 ms nhưng xử lý chỉ 2 ms**. Trong ví dụ, đặt `withThreshold(Duration.ZERO)` để giữ cả hai event thử nghiệm; nếu điều tra production, cân nhắc sampling/overhead và chọn threshold phù hợp ranh giới thực sự.
+**Threshold trap:** JFR `threshold` filters by **the event's intrinsic duration**. If `begin/end` spans only work, setting `threshold=50 ms` can **drop a request that queued for 800 ms and ran in 2 ms**. In the example, we set `withThreshold(Duration.ZERO)` to retain both demo events; in production investigations, weigh sampling/overhead and set thresholds matching the intended boundary.
 
-## 7. Thực hành Java 17+: ghi logs và custom JFR, rồi đọc lại
+## 7. Java 17+ lab: recording logs and custom JFR, then reading them back
 
-Ví dụ dưới đây tạo hai request giả lập. Cả hai được nhận trước khi submit vào **một worker duy nhất**; worker xử lý lần lượt để thể hiện rõ sự chờ đợi giữa RECEIVED và STARTED. Một request `SUCCESS` và một request ném lỗi I/O giả lập, được phân loại là `ERROR`.
+The example below creates two simulated requests. Both are received before submission to **a single worker**; the worker processes them sequentially to demonstrate waiting between RECEIVED and STARTED. One request ends in `SUCCESS`, and the other throws a simulated I/O error classified as `ERROR`.
 
-Chương trình **không thực hiện ghi file thực**: `Thread.sleep` mô phỏng thời gian thao tác để tập trung vào kỹ thuật instrument. Thời gian và mức wait-to-start thực tế thay đổi theo máy.
+The program **does not perform real file writes**: `Thread.sleep` simulates operation duration to focus on instrumentation technique. Actual timings and wait-to-start values vary per machine.
 
-Tạo file **`IoMilestonesDemo.java`**:
+Create **`IoMilestonesDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -375,7 +375,7 @@ public final class IoMilestonesDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên. Flag `--release 17` kiểm tra mã tương thích Java 17:
+Compile and run with JDK 17 or newer. `--release 17` checks Java 17 compatibility:
 
 ```bash
 javac --release 17 IoMilestonesDemo.java
@@ -384,7 +384,7 @@ jfr summary io-milestones.jfr
 jfr print --events demo.IoRequest io-milestones.jfr
 ```
 
-Lệnh `java IoMilestonesDemo` in **sáu dòng phase log với epoch milliseconds thay đổi**, rồi một dòng summary. Ví dụ kết quả từ một lần chạy JDK 24:
+`java IoMilestonesDemo` prints **six phase log lines with varying epoch milliseconds**, followed by a summary line. Example output from a JDK 24 run:
 
 ```text
 phase=RECEIVED id=req-001 epochMs=1793271670097 result=PENDING
@@ -396,31 +396,31 @@ phase=ENDED id=req-002 epochMs=1793271670190 result=ERROR
 verified=2 success=1 error=1
 ```
 
-**Cần phân biệt:** Các số `epochMs` ở trên là số của *một lần chạy thực*, không phải giá trị phải tái tạo. Thời điểm và khoảng chờ thay đổi trên mỗi máy/chạy. Với chương trình này, khi thực hiện thành công, **dòng cuối được kỳ vọng ổn định**:
+**Distinguish clearly:** The `epochMs` values above are from *one actual run*, not values you must reproduce. Timestamps and wait durations differ across machines and runs. When this program succeeds, **the final line is expected to remain stable**:
 
 ```text
 verified=2 success=1 error=1
 ```
 
-Hai dòng `RECEIVED` luôn xuất hiện trước các dòng `STARTED` vì ví dụ nhận cả hai request rồi mới submit. Single-thread executor xử lý `req-001` và `req-002` theo thứ tự; work của request thứ hai chứa lỗi giả lập. `jfr summary` báo event type `demo.IoRequest` có **2 instances** trong lần kiểm thử; metadata/bytes và format output của công cụ JFR có thể khác theo JDK.
+Both `RECEIVED` lines always precede the `STARTED` lines because the example receives both requests before submitting them. The single-thread executor handles `req-001` and `req-002` in order; the second request's work includes the simulated failure. `jfr summary` reported **2 instances** of `demo.IoRequest` in our test run; metadata/byte sizes and JFR tool output formatting may differ by JDK.
 
-### 7.1. Tại sao dùng Request record?
+### 7.1. Why use a `Request` record?
 
-`Request` lưu `id`, `operation`, timestamp tường và `receivedNano`. Nó đi theo task đến worker, không phụ thuộc vào ThreadLocal hay MDC tự truyền qua executor. Đây là mẫu tối thiểu để **không đánh rơi ranh giới nhận** khi có queue.
+`Request` stores `id`, `operation`, wall timestamp, and `receivedNano`. It travels with the task to the worker without relying on `ThreadLocal` or automatic MDC propagation across executors. This is the minimal pattern to **avoid dropping the receive boundary** when queuing is involved.
 
-Trong hệ thống thật, context còn có `traceId`, `spanId`, `attemptNo`, deadline và metadata không nhạy cảm. Không nên truyền mọi HTTP headers, body hoặc secrets vào JFR payload chỉ để debugging.
+In real systems, context also carries `traceId`, `spanId`, `attemptNo`, deadlines, and non-sensitive metadata. Never pass arbitrary HTTP headers, bodies, or secrets into JFR payloads just for debugging.
 
-### 7.2. Tại sao ghi ENDED ở finally?
+### 7.2. Why record ENDED in `finally`?
 
-Một thao tác hoàn tất theo cả nhánh thành công và lỗi. Nếu chỉ log sau `try`, exception khiến không có ENDED, khiến bạn tưởng request vẫn còn chạy. `finally` thực hiện capture mốc kết thúc, tính ba duration, commit custom JFR event và in log chung với outcome.
+An operation completes on both success and failure paths. Logging only after `try` means an exception skips ENDED, making it look like the request is still running. `finally` captures the end timestamp, computes all three durations, commits the custom JFR event, and logs ENDED alongside the outcome.
 
-Trong demo, lỗi `IOException` được **chuyển thành result=ERROR** chứ không được rethrow để chương trình có kết quả kiểm thử ổn định. **Ứng dụng thật không nên nuốt lỗi ngoài ý muốn**: sau khi ghi telemetry, phải propagate exception hoặc hoàn thành response/future thất bại theo hợp đồng. Có thể lưu failure rồi rethrow sau khi đã thu mốc; tránh vô tình báo SUCCESS cho caller.
+In the demo, `IOException` is **converted to `result=ERROR`** rather than rethrown so the test output remains deterministic. **Real applications should not swallow unexpected errors**: after recording telemetry, propagate the exception or fail the response/future per contract. Save the failure and rethrow after capturing milestones; avoid accidentally reporting SUCCESS to the caller.
 
-Với `InterruptedException`, demo restore interrupt flag và ghi `CANCELLED`. Trong ứng dụng có cancellation protocol, cần chuyển thông tin huỷ cho caller và đảm bảo resource cleanup; không phải mọi interrupt đều tương đương HTTP client cancellation.
+For `InterruptedException`, the demo restores the interrupt flag and records `CANCELLED`. In applications with a cancellation protocol, propagate cancellation to the caller and ensure resource cleanup; not every interrupt corresponds to an HTTP client cancellation.
 
-### 7.3. Bất biến tổng thời gian
+### 7.3. Total-time invariant
 
-Demo lấy `receivedNano` trước submit, `startedNano` khi worker chạy và `endedNano` trong finally. Từ đó:
+The demo captures `receivedNano` before submit, `startedNano` when the worker starts, and `endedNano` in `finally`. Thus:
 
 ```text
 waitToStartNanos = startedNano - receivedNano
@@ -430,82 +430,82 @@ totalNanos       = endedNano - receivedNano
 totalNanos == waitToStartNanos + workNanos
 ```
 
-Đây là bất biến đại số của **ba mốc trên cùng clock**. Đoạn `verify` đọc lại file `.jfr` và ném lỗi nếu các field duration âm hoặc không khớp tổng. Bất biến này giúp phát hiện code ghi sai đơn vị hoặc trộn hai loại clock.
+This is an algebraic invariant of **three timestamps on the same clock**. `verify` reads the `.jfr` file back and throws if duration fields are negative or fail to sum cleanly. This invariant catches unit mismatches or mixing two clock types.
 
-Lưu ý: `workNanos` bắt đầu khi lấy `startedNano`, còn duration nội tại của JFR bắt đầu khi gọi `event.begin()` (sau khi log STARTED và tạo object event). Do đó hai duration rất gần nhau nhưng **không nhất thiết bằng chính xác**. Không dùng chênh lệch nhỏ này để kết luận JFR đo sai.
+Note: `workNanos` begins at `startedNano`, whereas JFR's intrinsic duration begins at `event.begin()` (after logging STARTED and allocating the event object). Hence the two durations are very close but **need not be identical**. Never treat that tiny offset as a JFR measurement bug.
 
-### 7.4. Dùng RecordingFile để kiểm tra schema và outcome
+### 7.4. Using `RecordingFile` to verify schema and outcomes
 
-Khi đọc file JFR:
+When reading a JFR file:
 
-- `RecordingFile` mở file; vòng `hasMoreEvents()` / `readEvent()` lần lượt duyệt các event.
-- `getEventType().getName()` lọc chính xác `demo.IoRequest`; event JVM khác không lẫn vào.
-- `getString("outcome")` lấy SUCCESS/ERROR; `getLong("waitToStartNanos")`, `getLong("workNanos")`, `getLong("totalNanos")` lấy các giá trị `long`.
-- `@Timestamp` và `@Timespan` là metadata giúp công cụ hiểu **đơn vị**. Khi cần, có thể dùng các API chuyển sang `Instant`/`Duration` tương ứng trên `RecordedEvent` theo field annotation.
-- `errorType` trong demo có thể là `"IOException"`; không nên log nội dung message có secrets.
-- `try-with-resources` đóng file parser và recording sau khi xong.
+- `RecordingFile` opens the file; the `hasMoreEvents()` / `readEvent()` loop iterates over events in order.
+- `getEventType().getName()` matches `demo.IoRequest` exactly so other JVM events do not mix in.
+- `getString("outcome")` reads SUCCESS/ERROR; `getLong("waitToStartNanos")`, `getLong("workNanos")`, and `getLong("totalNanos")` read `long` values.
+- `@Timestamp` and `@Timespan` are metadata telling tools the **units**. Where needed, you can use `RecordedEvent` APIs to convert annotated fields to `Instant`/`Duration`.
+- `errorType` in the demo can be `"IOException"`; avoid logging raw exception messages that may contain secrets.
+- `try-with-resources` closes the file reader and recording when finished.
 
-**Không nhầm:** File `io-milestones.jfr` chứa telemetry của chương trình; nó không chứa mọi I/O của OS, và trong demo không có I/O thật ngoài cơ chế JFR ghi file. Các dòng log chỉ chứng minh ranh giới mà code tự đánh dấu.
+**Do not confuse:** `io-milestones.jfr` contains the program's telemetry; it does not contain all OS I/O, and the demo performs no real I/O besides JFR writing its file. Log lines prove only the boundaries marked by the code itself.
 
-## 8. Logs hay JFR: áp dụng theo môi trường
+## 8. Logs vs. JFR: choosing by environment
 
-### 8.1. Khi ưu tiên logs
+### 8.1. When to prefer logs
 
-Structured logs phù hợp nếu cần:
+Structured logs fit well when you need to:
 
-- tìm request bằng ID trên log aggregator;
-- biết request nào bị từ chối trước khi worker start;
-- phát cảnh báo dựa vào trạng thái hoặc time-to-result;
-- liên kết nhiều service bằng traceId và timestamps UTC;
-- điều tra lỗi không có recording JFR.
+- look up a request by ID in a log aggregator;
+- see which requests were rejected before a worker ever started;
+- trigger alerts based on status or time-to-result;
+- correlate across multiple services using `traceId` and UTC timestamps;
+- investigate failures when no JFR recording exists.
 
-Dùng logging framework với JSON encoder có cấu hình, tránh `System.out.printf` ở production. Ví dụ chương trình dùng stdout để chạy độc lập không cần thư viện ngoài, **không phải khuyến nghị cách logging production**.
+Use a logging framework with a structured JSON encoder in production, avoiding `System.out.printf`. The demo uses stdout solely to run standalone without external dependencies—**not as a production logging recommendation**.
 
-Nếu log mọi RECEIVED/STARTED/ENDED cho hàng triệu request/giây, lượng dữ liệu có thể lớn. Có thể dùng metrics cho phân phối/traffic, logs chi tiết có sampling, và JFR cho các đợt chẩn đoán. Nhưng nếu sampling, phải giữ logic nhất quán: tránh ghi chỉ RECEIVED mà mất ENDED do lấy mẫu độc lập, khiến tỷ lệ unfinished bị thổi phồng.
+Logging RECEIVED/STARTED/ENDED for millions of requests per second produces huge data volume. Use metrics for distributions/traffic, intentionally sampled detailed logs, and JFR for diagnostic bursts. If sampling, keep sampling consistent per request: avoid logging RECEIVED and dropping ENDED via independent per-line sampling, which inflates unfinished rates.
 
-### 8.2. Khi ưu tiên custom JFR events
+### 8.2. When to prefer custom JFR events
 
-Custom JFR event phù hợp cho điều tra JVM:
+Custom JFR events fit JVM diagnostics well:
 
-- thu duration với overhead thấp tương đối khi cấu hình phù hợp;
-- đối chiếu operation với GC, CPU, allocation, monitor contention, file/socket events;
-- chỉ bật event trong giai đoạn cần quan sát;
-- tích hợp JMC/JFR parser để nhóm event theo duration/outcome.
+- capturing durations with relatively low overhead when configured properly;
+- correlating operations with GC, CPU, allocations, monitor contention, and file/socket events;
+- enabling events only during targeted observation windows;
+- integrating with JMC/JFR parsers to group events by duration/outcome.
 
-JFR chỉ ghi event **được enable và thỏa threshold/sampling/cấu hình thu**. Nếu thấy 0 event, không được suy luận ứng dụng không chạy thao tác ấy: có thể event bị tắt, threshold loại bỏ, recording không đúng thời gian, hoặc chưa dump file.
+JFR records only events that are **enabled and satisfy thresholds/sampling/capture settings**. Seeing 0 events never proves the app did not run the operation: the event may be disabled, filtered by threshold, outside the recording window, or not yet dumped.
 
-Đối với custom event có nhiều thuộc tính, khởi tạo/ghi một object per operation vẫn có chi phí. Trong hot path, có thể kiểm tra `event.isEnabled()`/`event.shouldCommit()` để tránh tính payload đắt tiền, nhưng cần đảm bảo **durations/metrics/logs độc lập vẫn được đo** nếu JFR bị tắt. Đừng chỉ ghi outcome trong JFR nếu operations quan trọng cần phản ánh qua monitoring luôn bật.
+For custom events with many fields, allocating/writing an object per operation still has cost. On hot paths, check `event.isEnabled()`/`event.shouldCommit()` to skip building expensive payloads, while ensuring **independent durations/metrics/logs still run** when JFR is off. Never store critical operation outcomes solely in JFR if always-on monitoring needs them.
 
-### 8.3. Ngưỡng và kết quả: tránh mất request chậm vì queue
+### 8.3. Thresholds and outcomes: avoid dropping queue-delayed requests
 
-Nhắc lại một trường hợp rất dễ đánh giá sai:
+To reiterate a common misjudgment:
 
 ```text
 RECEIVED ---- waitToStart=800 ms ---- STARTED --- work=2 ms --- ENDED
 ```
 
-Nếu `Event.begin()` ở STARTED và `Event.end()` ở ENDED, đặt `threshold=50 ms` sẽ **không ghi event** (duration nội tại xấp xỉ 2 ms), dù end-to-end hơn 800 ms. Một schema chứa `totalNanos` không khiến `threshold` tự chuyển sang lọc theo field đó.
+If `Event.begin()` is at STARTED and `Event.end()` is at ENDED, a `threshold=50 ms` setting **will not record the event** (intrinsic duration is ~2 ms), even though end-to-end exceeded 800 ms. Having a `totalNanos` field in the schema does not make `threshold` filter on that field.
 
-Nếu mục tiêu là tìm request bị chậm **vì queue**, cân nhắc `threshold=0` rồi tự lọc theo `totalNanos`, hoặc thiết kế một loại event duration bao toàn bộ lifecycle với vòng đời an toàn. Nếu khối lượng quá lớn, cần sampling/tail-based strategy hoặc metrics có giới hạn; đừng vô thức bật chi tiết vô hạn.
+If your goal is catching requests slowed **by queuing**, consider `threshold=0` and filtering on `totalNanos` afterward, or design a duration event covering the full lifecycle with safe lifetime handling. At very high volumes, use sampling/tail-based strategies or bounded metrics instead of blindly enabling unbounded detail.
 
-## 9. Các tình huống bất đồng bộ đặc biệt
+## 9. Special asynchronous scenarios
 
-### 9.1. CompletionStage và callback
+### 9.1. `CompletionStage` and callbacks
 
-Sai:
+Wrong:
 
 ```java
-// Minh họa sai: kết thúc ngay sau khi đăng ký async operation.
+// Wrong example: ending right after registering the async operation.
 long start = System.nanoTime();
 java.util.concurrent.CompletableFuture<String> future = startAsyncIo();
-long end = System.nanoTime(); // Chỉ đo thời gian tạo Future!
+long end = System.nanoTime(); // Only measures Future creation time!
 ```
 
-Đây là **fragment minh họa**, `startAsyncIo()` chưa được định nghĩa nên không phải chương trình độc lập. Bản đúng về nguyên tắc cần lấy ENDED **trong completion path**:
+This is an **illustrative fragment**; `startAsyncIo()` is undefined, so it is not a standalone program. In principle, the right approach records ENDED **inside the completion path**:
 
 ```java
-// Fragment nguyên tắc, không phải chương trình độc lập.
-// 'future', 'context', 'completeOnce' do ứng dụng cung cấp.
+// Conceptual fragment, not a standalone program.
+// 'future', 'context', and 'completeOnce' are provided by the application.
 future.whenComplete((value, failure) -> {
     long endedNano = System.nanoTime();
     String outcome = (failure == null) ? "SUCCESS" : "ERROR";
@@ -513,163 +513,163 @@ future.whenComplete((value, failure) -> {
 });
 ```
 
-Callback có thể chạy trên thread khác; cần **truyền context và monotonic timestamp đúng phạm vi JVM**. Nếu timeout và callback cùng xảy ra, `completeOnce` nên là cơ chế atomic/terminal-state một lần để không ghi hai ENDED. Cũng phải làm rõ ranh giới: timeout của caller chưa chắc huỷ tác vụ I/O dưới tầng dưới; nếu request kết thúc với TIMEOUT nhưng downstream vẫn chạy, có thể cần hai spans/events riêng.
+Callbacks may run on a different thread; **pass context and monotonic timestamps scoped to the same JVM**. If timeout and completion race, `completeOnce` should use an atomic/terminal-state guard so ENDED is recorded once. Also keep boundaries clear: a caller timeout does not automatically cancel underlying I/O; if the caller finishes with TIMEOUT while downstream continues, two separate spans/events may be required.
 
-### 9.2. Request không bao giờ có ENDED
+### 9.2. Requests that never record ENDED
 
-Một số trường hợp không thể thực hiện finally: process crash, `kill -9`, mất máy, shutdown bất thường hoặc log pipeline đánh rơi dữ liệu. Có RECEIVED mà không có ENDED **chỉ là tín hiệu missing terminal record**, không chứng minh tác vụ treo vĩnh viễn.
+Sometimes `finally` cannot run: process crash, `kill -9`, machine loss, abrupt shutdown, or dropped log pipelines. Seeing RECEIVED without ENDED **is only a signal of a missing terminal record**, not proof of an eternal hang.
 
-Để phân biệt:
+To tell them apart:
 
-- có heartbeat/process restart và time window;
-- kiểm tra deadline/timeout ở nguồn và nơi nhận;
-- dùng metric `in_flight`, hàng đợi và trạng thái executor;
-- ghi `attemptId` để xác định retries;
-- theo dõi log-drop và retention của hệ thống telemetry.
+- check heartbeats/process restarts and time windows;
+- verify deadlines/timeouts on both sender and receiver;
+- inspect `in_flight` metrics, queues, and executor state;
+- log `attemptId` to identify retries;
+- monitor log drops and telemetry retention.
 
-Một event JFR commit ở cuối cũng **không xuất hiện** nếu JVM chết trước commit hoặc recording chưa flush/dump được. Khi cần phát hiện hung jobs từ xa, logs ở RECEIVED/STARTED và metric live có thể đáng tin hơn một event chỉ phát lúc hoàn tất.
+A JFR event committed at the end also **vanishes** if the JVM dies before commit or before flushing/dumping the recording. When remote hang detection is needed, logs at RECEIVED/STARTED plus live gauges are more reliable than completion-only events.
 
 ### 9.3. Rejected tasks, timeouts, retries
 
-- **REJECTED:** nếu executor không nhận task, có thể không có STARTED. Ghi terminal result tại ingress/dispatch với t_end tại lúc từ chối; cấu trúc time có thể không có `workNanos`. Không giả tạo STARTED bằng t_received.
-- **TIMEOUT:** đánh dấu theo deadline thích hợp. Nếu operation thực sự còn chạy ở background, ghi riêng trạng thái caller kết thúc và background completion để không nhầm.
-- **CANCELLED:** chỉ đánh dấu khi có thông tin huỷ; “thiếu log ENDED” không có nghĩa cancelled.
-- **RETRY:** một logical request nên có nhiều `attemptId` với cùng `requestId`, mỗi attempt có received/start/end riêng hoặc dùng attempt-start riêng theo contract.
-- **Partial result:** thao tác ghi 1 MB thành công 900 KB rồi lỗi cần trạng thái rõ ràng `PARTIAL_FAILURE` hoặc trường `bytesWritten`/`errorCode`, không chỉ có boolean.
+- **REJECTED:** if an executor rejects a task, there may be no STARTED. Record the terminal result at ingress/dispatch with `t_end` at rejection time; `workNanos` may be absent/not applicable. Never fake STARTED using `t_received`.
+- **TIMEOUT:** mark according to the relevant deadline. If the operation continues in the background, track caller termination and background completion separately to avoid confusion.
+- **CANCELLED:** mark only when cancellation actually occurs; "missing ENDED log" does not mean cancelled.
+- **RETRY:** one logical request should have multiple `attemptId`s under one `requestId`, each with its own receive/start/end or per-attempt start per contract.
+- **Partial result:** a 1 MB write that writes 900 KB before failing needs an explicit status like `PARTIAL_FAILURE` or `bytesWritten`/`errorCode`, not merely a boolean.
 
-### 9.4. Clock domain qua nhiều JVM
+### 9.4. Clock domains across multiple JVMs
 
-Với một request từ gateway → service A → service B, các đồng hồ monotonic của từng JVM không chia sẻ origin. Chỉ thực hiện phép trừ thời gian trong cùng domain. Để dựng timeline xuyên service, cần wall-clock đã đồng bộ tương đối và distributed trace với span boundaries; vẫn có thể lệch do NTP/scheduling/network. Nếu cần đo network round trip chính xác, dùng send/receive trên cùng process để tạo duration cục bộ.
+For a request traversing gateway → service A → service B, each JVM's monotonic clock has an independent origin. Perform time subtractions only within the same domain. To build cross-service timelines, use roughly synchronized wall clocks and distributed traces with span boundaries, noting possible NTP/scheduling/network skew. To measure exact network round-trip, measure send/receive on the same process for a local duration.
 
-## 10. Từ dữ liệu đến giả thuyết về độ trễ I/O
+## 10. From data to I/O latency hypotheses
 
-| Dấu hiệu | Giải thích khả dĩ | Bước kiểm tra tiếp |
+| Signal | Possible explanation | Next checks |
 | --- | --- | --- |
-| `waitToStart` tăng, `work` ổn định | Queue backlog, worker pool saturation, rate limiter, scheduler/dispatch | Queue depth, pool size, active workers, rejected counts |
-| `work` tăng, `waitToStart` ổn định | I/O downstream, file system, contention hoặc CPU trong worker | File/socket events, JFR thread stack, downstream latency |
-| `total` tăng nhưng cả hai số thấp | Ranh giới đo không bao trùm phần phát sinh độ trễ, thiếu bước sau ENDED | So sánh ingress/server response time, tracing spans |
-| `ERROR`/`TIMEOUT` tăng mà duration không lớn | Fast-fail, validation, circuit breaker hoặc deadline sớm | Error codes, downstream status, retry policy |
-| Có RECEIVED nhưng không có STARTED | Rejected, queue backlog, shutdown hoặc missing logs | Dispatcher metrics, queue acceptance, log health |
-| Có STARTED nhưng không có ENDED | Hang, process crash hoặc missing telemetry | Thread dump/JFR, in-flight metric, process restarts |
-| `work` cao chỉ ở một path | Phụ thuộc I/O hoặc payload khác nhau | Group theo operation, endpoint template, payload size |
-| JFR không có event nhưng logs có ENDED | JFR disabled, threshold/sampling, recording sai thời gian | `jfr summary`, event settings, recording window |
+| `waitToStart` rises, `work` stays stable | Queue backlog, worker pool saturation, rate limiter, scheduler/dispatch | Queue depth, pool size, active workers, rejected counts |
+| `work` rises, `waitToStart` stays stable | Downstream I/O, filesystem, contention, or CPU inside worker | File/socket events, JFR thread stacks, downstream latency |
+| `total` rises yet both numbers stay low | Measurement boundary misses where latency occurs, gap after ENDED | Compare ingress/server response time, tracing spans |
+| `ERROR`/`TIMEOUT` rises while duration stays small | Fast-fail, validation, circuit breaker, or early deadline | Error codes, downstream status, retry policy |
+| RECEIVED present without STARTED | Rejected, queue backlog, shutdown, or missing logs | Dispatcher metrics, queue acceptance, log health |
+| STARTED present without ENDED | Hang, process crash, or missing telemetry | Thread dumps/JFR, in-flight metrics, process restarts |
+| `work` high only on one path | Different I/O dependency or payload size | Group by operation, endpoint template, payload size |
+| JFR has no events while logs show ENDED | JFR disabled, threshold/sampling, wrong recording window | `jfr summary`, event settings, recording window |
 
-Các dòng trên là **giả thuyết**, không phải kết luận duy nhất. Work duration có thể gồm CPU, locks, network và scheduling chứ không nhất thiết thuần I/O. Kết hợp JFR `jdk.FileRead`, `jdk.SocketRead`, `jdk.JavaMonitorEnter`, execution samples, metrics của downstream và traces để kiểm tra nguyên nhân.
+The rows above are **hypotheses**, not sole conclusions. Work duration can combine CPU, locks, network, and scheduling rather than pure I/O. Combine JFR `jdk.FileRead`, `jdk.SocketRead`, `jdk.JavaMonitorEnter`, execution samples, downstream metrics, and traces to verify the cause.
 
-### 10.1. Đừng dùng trung bình thay cho tail latency
+### 10.1. Never substitute averages for tail latency
 
-Đối với sự cố p99, một số request có wait-to-start hàng giây có thể biến mất trong average vài chục mili giây. Nên lưu histograms/phân vị cho **wait-to-start**, **work**, **end-to-end**, phân tách theo operation và outcome. Đừng cộng p99 của hai giai đoạn để suy ra p99 end-to-end: percentile không có tính cộng đơn giản. Tính phân vị trên distribution end-to-end quan sát trực tiếp.
+During p99 incidents, a few requests waiting seconds before start can disappear inside an average of tens of milliseconds. Keep histograms/percentiles for **wait-to-start**, **work**, and **end-to-end**, split by operation and outcome. Never add p99 of two stages to infer end-to-end p99: percentiles are not simply additive. Compute percentiles from directly observed end-to-end distributions.
 
-Dùng nhãn metrics có cardinality thấp (`operation`, `result`, service name). Đừng gắn từng `requestId` làm nhãn Prometheus metric — cardinality sẽ bùng nổ; request ID phù hợp hơn trong logs/traces/JFR payload được lấy mẫu.
+Use low-cardinality metric labels (`operation`, `result`, service name). Never put `requestId` as a Prometheus metric label—cardinality will explode; request IDs belong in logs, traces, and sampled JFR payloads.
 
-### 10.2. Giải thích số liệu khi có sampling
+### 10.2. Interpreting numbers when sampling is active
 
-Nếu JFR ghi chỉ những event vượt threshold theo **work duration**, không được tính median của mẫu ấy rồi tuyên bố đó là median của mọi request. Mẫu bị chọn lọc. Tương tự, nếu logs được sampling độc lập theo phase, việc “thiếu ENDED” có thể do sampling chứ không phản ánh job in-flight.
+If JFR records only events exceeding a **work duration** threshold, never take the median of those recorded events and claim it is the median of all requests—the sample is biased. Likewise, if logs are sampled independently per phase, "missing ENDED" can simply be sampling rather than in-flight stalls.
 
-Cấu hình thu phải là một phần của báo cáo: event name, threshold, sampling rate, thời gian ghi, JDK version và dữ liệu được lọc. Phân biệt **telemetry gap** với **application failure**.
+Capture configuration must be part of the report: event names, thresholds, sampling rates, recording times, JDK version, and filters applied. Distinguish **telemetry gaps** from **application failures**.
 
-## 11. Giảm overhead và bảo vệ dữ liệu
+## 11. Reducing overhead and protecting data
 
-Thu telemetry vẫn tiêu thụ CPU, allocation, queue và I/O. Một chiến lược thực tế:
+Collecting telemetry consumes CPU, allocations, queues, and I/O. A practical strategy:
 
-1. Dùng metrics/histograms luôn bật cho count, status và end-to-end duration tổng quan.
-2. Ghi structured log ở ranh giới phù hợp, có thể lấy mẫu có chủ đích khi volume cao.
-3. Dùng custom JFR event trong recording chẩn đoán hoặc cấu hình được kiểm thử overhead; không bật mọi event/stack vô hạn.
-4. Đo số log lines/s, bytes/s, kích thước `.jfr` và chi phí logging sink; không để log synchronous trên hot I/O path trở thành bottleneck mới.
-5. Phân biệt **kết quả nghiệp vụ** với việc ghi telemetry thành công. Logging backend lỗi không nên làm nghiệp vụ SUCCESS thành ERROR trừ khi hợp đồng yêu cầu.
-6. Tránh PII và secrets. `requestId` không nên có thông tin nhận diện trực tiếp; không ghi raw Authorization header, token, SQL bind values, body nhạy cảm.
-7. Áp retention và quyền file JFR: recording có thể chứa tên class, thread, stack, file path và payload custom do bạn ghi.
-8. Với log JSON, dùng thư viện encoder escape đúng ký tự đặc biệt/newline; ví dụ stdout trong demo chỉ có ID/trạng thái cố định nên không xử lý arbitrary input.
+1. Use always-on metrics/histograms for counts, statuses, and overall end-to-end duration.
+2. Emit structured logs at appropriate boundaries, intentionally sampled when volume is high.
+3. Use custom JFR events in diagnostic recordings or overhead-tested configurations; never enable all events/stacks unboundedly.
+4. Measure log lines/s, bytes/s, `.jfr` size, and logging-sink cost; prevent synchronous logging on hot I/O paths from becoming the new bottleneck.
+5. Separate **business outcome** from telemetry write success. A logging backend outage should not turn a business SUCCESS into ERROR unless required by contract.
+6. Avoid PII and secrets. `requestId` should not embed direct personal identifiers; never log raw `Authorization` headers, tokens, SQL bind values, or sensitive bodies.
+7. Enforce retention and file permissions on JFR recordings: they can contain class names, threads, stacks, file paths, and custom payloads you recorded.
+8. For JSON logs, use an encoder library that properly escapes special characters/newlines; stdout in the demo only prints fixed IDs/statuses and does not handle arbitrary input.
 
-Nếu log các field `requestId`, `operation` từ user input, phải validate/normalize/escape. Không ghép dữ liệu chưa tin cậy vào log line không có escaping vì có nguy cơ log injection.
+If logging fields like `requestId` or `operation` derived from user input, validate/normalize/escape them. Never concatenate untrusted data unescaped into log lines due to log-injection risk.
 
-## 12. Lỗi thường gặp
+## 12. Common mistakes
 
-**Lỗi 1 — Lấy STARTED lúc enqueue thay vì lúc worker chạy.** Mọi request có vẻ wait-to-start gần 0 dù queue rất dài. Phải đặt STARTED tại ranh giới worker thực bắt đầu.
+**Mistake 1 — Capturing STARTED at enqueue instead of worker start.** Every request shows near-zero wait-to-start even with huge queues. Place STARTED where the worker truly begins running.
 
-**Lỗi 2 — Gọi ENDED ngay sau khi nhận được Future.** Bạn mới đo thời gian submit bất đồng bộ, không đo I/O completion. Chuyển ENDED vào completion callback.
+**Mistake 2 — Recording ENDED right after getting a `Future`.** You measured only async submission time, not I/O completion. Move ENDED into the completion callback.
 
-**Lỗi 3 — Dùng `Instant.now()` hai lần rồi trừ để ra duration chuẩn.** Wall clock có thể điều chỉnh; đo duration cùng JVM bằng `System.nanoTime()` và dùng Instant/epoch millis để liên kết timeline.
+**Mistake 3 — Calling `Instant.now()` twice and subtracting for precise duration.** Wall clocks can jump; measure same-JVM durations with `System.nanoTime()` and use Instant/epoch millis to align timelines.
 
-**Lỗi 4 — Trừ `nanoTime` của hai process.** Origin của monotonic clock không bảo đảm tương thích giữa các JVM. Dùng distributed tracing/UTC timestamps cho liên kết cross-service, không trừ ticks.
+**Mistake 4 — Subtracting `nanoTime` across two processes.** Monotonic clock origins are not comparable across JVMs. Use distributed tracing/UTC timestamps for cross-service correlation, never cross-process tick subtraction.
 
-**Lỗi 5 — Chỉ ghi END khi SUCCESS.** Exception/timeout/cancel khiến request không có kết thúc, tạo thống kê sai. Ghi terminal outcome trong finally/callback một lần.
+**Mistake 5 — Recording END only on SUCCESS.** Exceptions/timeouts/cancellations leave requests open-ended and skew statistics. Record terminal outcomes once in `finally`/completion callbacks.
 
-**Lỗi 6 — Ghi một result cố định mặc dù đã có lỗi.** `result=SUCCESS` phải gắn với việc công việc thực sự đáp ứng hợp đồng, không chỉ vì phương thức đã quay về. Lưu error type/status rõ ràng.
+**Mistake 6 — Recording a fixed result despite errors.** `result=SUCCESS` must reflect meeting the contract, not merely method return. Store clear error types/statuses.
 
-**Lỗi 7 — Ghi timestamp nhưng không có request ID/attempt ID.** Không thể ghép chắc ba phase khi nhiều request chạy cùng thread hoặc liên tiếp. Cần context propagation và khóa tương quan.
+**Mistake 7 — Logging timestamps without `requestId`/`attemptId`.** You cannot reliably join the three phases when multiple requests share or run sequentially on threads. Use context propagation and correlation keys.
 
-**Lỗi 8 — Dùng `event.getDuration()` của JFR làm end-to-end dù begin() ở STARTED.** Event intrinsic duration chỉ bao phần được begin/end. Muốn tổng, dùng field `totalNanos` hoặc đổi định nghĩa event.
+**Mistake 8 — Using JFR `event.getDuration()` as end-to-end when `begin()` is at STARTED.** Intrinsic event duration covers only the `begin`/`end` span. Use `totalNanos` or redefine event boundaries for total time.
 
-**Lỗi 9 — Đặt threshold theo work khiến mất request chậm vì queue.** Request wait 800 ms nhưng work 2 ms có thể bị lọc bởi threshold 50 ms. Xác định boundary của event và mục tiêu sampling.
+**Mistake 9 — Setting a work-based threshold that drops queue-slowed requests.** A request with 800 ms wait and 2 ms work is dropped by a 50 ms threshold. Match event boundaries and sampling goals.
 
-**Lỗi 10 — Hiểu `REJECTED` như đã được worker xử lý.** Request bị từ chối trước start có kết quả terminal nhưng không có khoảng work hợp lệ. Schema nên cho phép trường không áp dụng.
+**Mistake 10 — Treating `REJECTED` as processed by a worker.** Requests rejected before start have a terminal outcome without valid work duration. Schemas should allow non-applicable fields.
 
-**Lỗi 11 — Tính `queue + work` từ log của hai attempts khác nhau.** Kiểm tra `requestId + attemptId` và mốc thứ tự trước khi tính; log có thể đến aggregator không theo thứ tự thời gian.
+**Mistake 11 — Computing `queue + work` from logs of different attempts.** Verify `requestId + attemptId` and ordering before computing; logs can reach aggregators out of order.
 
-**Lỗi 12 — Dùng requestId làm metric label.** Cardinality bùng nổ; request ID dành cho logs/traces, metrics dùng nhãn phân loại.
+**Mistake 12 — Putting `requestId` into metric labels.** Cardinality explodes; request IDs belong in logs/traces, while metrics use categorical labels.
 
-**Lỗi 13 — Không xem xét retry/backoff.** Tổng một logical request có thể dài do khoảng chờ retry nằm ngoài work mỗi attempt; đo logical request và attempt riêng.
+**Mistake 13 — Ignoring retry/backoff.** A logical request can stretch because retry waits sit outside each attempt's work; measure logical requests and attempts separately.
 
-**Lỗi 14 — Nhầm “không có JFR event” là “không có request”.** Recording có thể chưa start, event disabled, threshold cao hoặc bị ghi thiếu. Đối chiếu logs, metrics, `jfr summary`.
+**Mistake 14 — Mistaking "no JFR events" for "no requests."** The recording may not have started, events may be disabled, thresholds too high, or data missing. Cross-check logs, metrics, and `jfr summary`.
 
-## 13. Bài tự kiểm tra
+## 13. Self-check quiz
 
-**Câu 1.** Các mốc monotonic (cùng JVM) là `t_recv=1000 ms`, `t_start=1060 ms`, `t_end=1100 ms`. Tính wait-to-start, work, end-to-end.
+**Question 1.** Monotonic timestamps (same JVM) are `t_recv=1000 ms`, `t_start=1060 ms`, `t_end=1100 ms`. Compute wait-to-start, work, and end-to-end.
 
-*Đáp án:* 60 ms, 40 ms và 100 ms. Tổng 60+40=100 ms.
+*Answer:* 60 ms, 40 ms, and 100 ms. Total 60+40=100 ms.
 
-**Câu 2.** Một request có wait-to-start 800 ms, work 2 ms. Custom JFR event gọi `begin` ở STARTED và có `threshold=50 ms`. Nó có chắc được ghi không?
+**Question 2.** A request has 800 ms wait-to-start and 2 ms work. A custom JFR event calls `begin` at STARTED and has `threshold=50 ms`. Is it guaranteed to be recorded?
 
-*Đáp án:* Không. Threshold áp trên intrinsic duration (xấp xỉ work 2 ms), nên có thể bị loại dù end-to-end khoảng 802 ms. Để điều tra queue latency, cần giữ những event này hoặc thay boundary/sampling.
+*Answer:* No. The threshold applies to intrinsic duration (~2 ms work), so it can be dropped despite ~802 ms end-to-end. To investigate queue latency, retain these events or adjust boundaries/sampling.
 
-**Câu 3.** Một async method trả `CompletableFuture` sau 1 ms, nhưng operation I/O xong sau 300 ms. Nên lấy ENDED lúc nào?
+**Question 3.** An async method returns a `CompletableFuture` after 1 ms, while the I/O completes after 300 ms. When should ENDED be captured?
 
-*Đáp án:* Khi future hoàn thành thật sự theo contract, không phải khi method trả future.
+*Answer:* When the future genuinely completes per contract, not when the method returns the future.
 
-**Câu 4.** Có ba attempt của cùng `requestId`: ERROR, TIMEOUT, SUCCESS. Làm sao tránh ghép sai thời gian?
+**Question 4.** There are three attempts for the same `requestId`: ERROR, TIMEOUT, SUCCESS. How do you avoid mixing timings across them?
 
-*Đáp án:* Ghi `attemptNo` hoặc `attemptId` cho từng attempt, đo ranh giới attempt riêng; thêm logical end-to-end span/request outcome cho cả quá trình và backoff.
+*Answer:* Record `attemptNo` or `attemptId` per attempt and measure attempt boundaries separately; add a logical end-to-end span/request outcome covering the full flow and backoff.
 
-**Câu 5.** Vì sao log không có ENDED không tự chứng minh deadlock?
+**Question 5.** Why does a log missing ENDED not by itself prove a deadlock?
 
-*Đáp án:* Có thể bị lỗi log ingestion, sampling, process crash, reject/abort, mất completion callback hoặc chưa vượt deadline. Cần process/thread/queue/in-flight metrics và dữ liệu bổ sung.
+*Answer:* It may be due to log ingestion failure, sampling, process crash, rejection/abort, lost completion callbacks, or not yet hitting a deadline. Check process/thread/queue/in-flight metrics and additional evidence.
 
-**Câu 6.** Từ nhiều request, p99 wait-to-start = 100 ms và p99 work = 300 ms. P99 end-to-end có chắc = 400 ms không?
+**Question 6.** Across many requests, p99 wait-to-start = 100 ms and p99 work = 300 ms. Is p99 end-to-end guaranteed to be 400 ms?
 
-*Đáp án:* Không. Percentile của tổng không đơn giản bằng tổng percentiles. Cần tính end-to-end duration cho từng request rồi xây distribution riêng.
+*Answer:* No. The percentile of a sum does not simply equal the sum of percentiles. Compute end-to-end duration per request and build its own distribution.
 
-**Câu 7.** Ghi `ERROR` có bắt buộc phải ghi full exception message không?
+**Question 7.** Does logging `ERROR` require logging the full exception message?
 
-*Đáp án:* Không. Nên lưu error type/code chuẩn hóa, stack/traces có kiểm soát và loại bỏ nội dung nhạy cảm. Full message có thể chứa secrets.
+*Answer:* No. Store normalized error types/codes, controlled stacks/traces, and strip sensitive content. Full messages can leak secrets.
 
-## 14. Checklist trước khi xem là đủ bằng chứng
+## 14. Checklist before treating evidence as complete
 
-- [ ] Đã định nghĩa rõ RECEIVED, STARTED, ENDED và RESULT theo business boundary.
-- [ ] Có `requestId`/`operationId`, `attemptId` và `traceId` khi cần.
-- [ ] Đo duration bằng `System.nanoTime()` trong cùng clock domain; timestamp UTC để ghép logs.
-- [ ] Có trường `waitToStartNanos`, `workNanos`, `totalNanos` và thống nhất đơn vị.
-- [ ] Đã kiểm tra `total = wait + work` và các mốc có thứ tự hợp lệ.
-- [ ] Ghi terminal result cả SUCCESS, ERROR, TIMEOUT, CANCELLED, REJECTED khi áp dụng.
-- [ ] Với async I/O, ENDED được ghi ở completion callback, không phải lúc submit.
-- [ ] Không nhầm wait-to-start với queue thuần túy nếu chưa có enqueue/dequeue markers.
-- [ ] Với custom JFR, hiểu rõ `Event.begin/end`, `threshold`, `commit` và nội tại duration.
-- [ ] Nếu JFR có 0 event, đã kiểm tra event enable, threshold, recording và workload.
-- [ ] Đã đo log/JFR overhead, giới hạn field nhạy cảm, kiểm soát retention.
-- [ ] Đã đối chiếu duration và outcome với hệ metrics, traces và JFR JVM events.
-- [ ] Không dùng request IDs làm metric labels có cardinality cao.
-- [ ] Có cách phân biệt operation in-flight, telemetry bị thiếu và thật sự timeout.
+- [ ] Clearly defined RECEIVED, STARTED, ENDED, and RESULT at business boundaries.
+- [ ] Included `requestId`/`operationId`, `attemptId`, and `traceId` where needed.
+- [ ] Measured durations via `System.nanoTime()` in one clock domain; UTC timestamps for joining logs.
+- [ ] Captured `waitToStartNanos`, `workNanos`, `totalNanos` with consistent units.
+- [ ] Verified `total = wait + work` and valid timestamp ordering.
+- [ ] Recorded terminal results across SUCCESS, ERROR, TIMEOUT, CANCELLED, and REJECTED where applicable.
+- [ ] For async I/O, recorded ENDED in completion callbacks rather than at submission.
+- [ ] Did not confuse wait-to-start with pure queue time without enqueue/dequeue markers.
+- [ ] For custom JFR events, understood `Event.begin/end`, `threshold`, `commit`, and intrinsic duration.
+- [ ] If JFR shows 0 events, verified event enablement, thresholds, recording window, and workload.
+- [ ] Measured log/JFR overhead, limited sensitive fields, and enforced retention.
+- [ ] Correlated durations and outcomes with system metrics, traces, and JVM JFR events.
+- [ ] Avoided using high-cardinality request IDs as metric labels.
+- [ ] Able to distinguish in-flight operations, missing telemetry, and real timeouts.
 
-**Ghi nhớ:** Để chẩn đoán I/O latency, một mốc “xong” là không đủ. Ghi **nhận → bắt đầu → kết thúc + kết quả** trên **cùng attempt**; dùng **monotonic time** cho duration, **UTC wall-clock** cho correlation; tách **wait-to-start** khỏi **work**; và bảo đảm event/log terminal được ghi cả khi lỗi. Structured logs thuận tiện cho điều tra online, còn custom JFR event gom timeline và kết quả để đối chiếu với bằng chứng JVM.
+**Remember:** For diagnosing I/O latency, a single "done" timestamp is not enough. Record **receive → start → end + result** on **the same attempt**; use **monotonic time** for durations and **UTC wall-clock** for correlation; separate **wait-to-start** from **work**; and guarantee terminal events/logs are written even on errors. Structured logs excel for online investigation, while custom JFR events bundle timelines and outcomes to align with JVM evidence.
 
-## Tài liệu tham khảo
+## References
 
 - Oracle JDK 21 — [`Event` API: `begin`, `end`, `commit`, `shouldCommit`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Event.html).
 - Oracle JDK 21 — [`jdk.jfr` package, event fields and settings](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html).
 - Oracle JDK 21 — [`@Timestamp` annotation, `MILLISECONDS_SINCE_EPOCH`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Timestamp.html).
 - Oracle JDK 21 — [`@Timespan` annotation, `NANOSECONDS`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Timespan.html).
-- Oracle JDK 21 — [`Recording` API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html) và [`RecordingFile` API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html).
+- Oracle JDK 21 — [`Recording` API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html) and [`RecordingFile` API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html).
 - Oracle — [JFR Event Threshold / `shouldCommit`](https://docs.oracle.com/en/java/javase/21/jfapi/event-threshold.html).
 - Oracle JDK 21 — [`jfr` command: `summary`, `print`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html).
-- SLF4J — [MDC API](https://www.slf4j.org/apidocs/org/slf4j/MDC.html): quản lý diagnostic context trên thread.
-- Oracle Java 17 — [`System.nanoTime()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#nanoTime()): elapsed-time measurement, origin không có ý nghĩa UTC.
+- SLF4J — [MDC API](https://www.slf4j.org/apidocs/org/slf4j/MDC.html): managing thread-scoped diagnostic context.
+- Oracle Java 17 — [`System.nanoTime()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#nanoTime()): elapsed-time measurement, origin has no UTC meaning.

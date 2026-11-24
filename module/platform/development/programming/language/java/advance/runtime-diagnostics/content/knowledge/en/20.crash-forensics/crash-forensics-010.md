@@ -1,124 +1,124 @@
-# 20.10 Lập gói bằng chứng tối thiểu và tình huống tái hiện cho việc điều tra tiếp
+# 20.10 Building a Minimal Evidence Bundle and Reproducer for Further Investigation
 
-## 1. Mục tiêu: giao một sự cố cho người khác mà họ vẫn có thể điều tra
+## 1. Goal: Handing Over an Incident So Someone Else Can Still Investigate It
 
-Sau khi JVM gặp sự cố, người tiếp nhận thường không có đúng terminal, phiên đăng nhập, dữ liệu và trí nhớ của người đã chứng kiến. Một dòng “Java crash lúc khoảng 10 giờ” hoặc một tệp `hs_err_pid*.log` đứng riêng lẻ thường chưa đủ. Muốn tiếp tục điều tra, phải có **gói bằng chứng tối thiểu, có nguồn gốc và thời gian rõ ràng**, kèm **công thức tái hiện an toàn**.
+After a JVM incident, the person taking over usually lacks the exact terminal, login session, data, and memory of whoever witnessed it. A single line like “Java crashed around 10 o'clock” or an isolated `hs_err_pid*.log` file is rarely enough. To enable continued investigation, you need a **minimal evidence bundle with clear provenance and timestamps**, paired with a **safe reproduction recipe**.
 
-Một gói tốt trả lời được sáu câu hỏi:
+A solid bundle answers six questions:
 
-1. **Chuyện gì xảy ra?** Triệu chứng quan sát được, tác động và điểm khác nhau giữa hành vi mong đợi với hành vi thực tế.
-2. **Xảy ra với cái gì?** JDK vendor/build, JVM flags, ứng dụng/commit, OS, CPU architecture, container, cgroup, tài nguyên.
-3. **Xảy ra khi nào?** Timeline, timezone, PID, thời điểm JVM bắt đầu và thời điểm lỗi, tương quan với deploy/tải/GC.
-4. **Còn chứng cứ gốc nào?** Fatal error log, stderr/stdout, heap/core dump, JFR, GC log, exit status và OS events **tùy loại sự cố**.
-5. **Làm thế nào thử lại?** Điều kiện ban đầu, dữ liệu thử đã được làm sạch, lệnh, bước kích hoạt, số lần thử, kết quả và phép thử đối chứng.
-6. **Cần làm gì tiếp?** Giả thuyết, dữ kiện ủng hộ/phản bác, lỗ hổng bằng chứng, người phụ trách, phạm vi truy cập dữ liệu.
+1. **What happened?** Observed symptoms, impact, and the difference between expected and actual behavior.
+2. **What did it happen to?** JDK vendor/build, JVM flags, application/commit, OS, CPU architecture, container, cgroups, and resources.
+3. **When did it happen?** Timeline, timezone, PID, JVM start time and failure time, and correlation with deployments/load/GC.
+4. **What raw evidence remains?** Fatal error logs, stderr/stdout, heap/core dumps, JFR, GC logs, exit status, and OS events **depending on incident type**.
+5. **How to retry/reproduce?** Initial conditions, sanitized test data, commands, trigger steps, trial count, results, and control runs.
+6. **What comes next?** Hypotheses, supporting/contradicting facts, evidence gaps, owner, and data access scope.
 
-“**Tối thiểu**” không có nghĩa “ít file nhất bằng mọi giá”, mà là **đủ dữ liệu để người khác phân biệt các giả thuyết chính, không phơi lộ dữ liệu ngoài mức cần thiết**. Chỉ gửi một screenshot khi đã có timeline, log và tệp phân tích thường không đáp ứng được mục tiêu này.
+“**Minimal**” does not mean “as few files as possible at all costs,” but rather **enough data for another engineer to distinguish the main hypotheses without exposing unnecessary data**. Sending only a screenshot when timelines, logs, and diagnostic files exist rarely meets this goal.
 
-Phạm vi: Java 17+ trên HotSpot với ví dụ lệnh JDK 21, trọng tâm **crash và điều tra sau lỗi**; không dùng cách tái hiện gây crash cưỡng bức trên hệ thống production. Với JVM khác, hệ điều hành khác hoặc môi trường container, cách tạo/lưu core và công cụ thu thập có thể khác.
+Scope: Java 17+ on HotSpot with JDK 21 command examples, focusing on **crashes and post-failure investigation**; never use forced crash reproduction on production systems. On other JVMs, operating systems, or container environments, core creation/storage and collection tools may differ.
 
-## 2. Trước khi thu thập: phân loại đúng hiện tượng
+## 2. Before Collecting: Classify the Phenomenon Properly
 
-Không phải mọi trường hợp “Java app chết” đều là **JVM fatal crash**. Loại sự cố quyết định artefact nào có khả năng tồn tại.
+Not every case of “Java app died” is a **JVM fatal crash**. The incident type dictates which artifacts can plausibly exist.
 
-| Loại hiện tượng | Dấu hiệu thường gặp | Chứng cứ ưu tiên | Điều không được mặc định |
+| Phenomenon type | Common symptoms | Priority evidence | What must not be assumed |
 | --- | --- | --- | --- |
-| **Unhandled Java exception** | Stack trace `Exception in thread "main"`, process có thể thoát nếu không còn thread non-daemon | App stderr/stdout, log, exception class/message/stack, exit status, input/path gây lỗi | Có `hs_err_pid*.log` hoặc core dump của JVM |
-| **HotSpot fatal error/native crash** | `SIGSEGV`, `SIGBUS`, `EXCEPTION_ACCESS_VIOLATION`, thông báo fatal error của VM | `hs_err_pid*.log`, core/crash dump nếu có, native library/build, OS event | “Problematic frame” duy nhất đã xác nhận nguyên nhân |
-| **`java.lang.OutOfMemoryError`** | `Java heap space`, `Metaspace`, `Direct buffer memory`... | Message/stack, heap metrics/GC, `.hprof` nếu đã bật và ghi thành công, config memory | Mọi OOME đều là heap leak; heap dump luôn có |
-| **OS/container OOM kill** | Process biến mất, orchestrator có thể ghi `OOMKilled`, host có OOM killer event | Kernel/cgroup/orchestrator events, limits/usage, restart history, exit status | JVM đủ thời gian tạo `hs_err`, heap dump hoặc shutdown JFR |
-| **Forced termination** | `SIGKILL`, container bị hủy, watchdog/timeout | Service manager, audit/orchestrator, exit reason/timeline | Exit code 137 **một mình** chứng minh OOM kill |
-| **Hang/deadlock, chưa crash** | Process vẫn sống, request timeout; thread không tiến triển | Thread dumps nhiều mốc, JFR, metrics, queues, lock info | Có fatal error log; nên kill ngay để “lấy chứng cứ” |
-| **JVM/process exit có chủ ý** | `System.exit`, shutdown do deploy/health policy | App shutdown logs, exit status, deploy/orchestration timeline | Đây chắc chắn là lỗi HotSpot |
+| **Unhandled Java exception** | Stack trace `Exception in thread "main"`; process may exit if no non-daemon threads remain | App stderr/stdout, logs, exception class/message/stack, exit status, triggering input/path | That `hs_err_pid*.log` or a JVM core dump exists |
+| **HotSpot fatal error / native crash** | `SIGSEGV`, `SIGBUS`, `EXCEPTION_ACCESS_VIOLATION`, VM fatal error notice | `hs_err_pid*.log`, core/crash dump if present, native library/build, OS events | That the single “Problematic frame” already confirms root cause |
+| **`java.lang.OutOfMemoryError`** | `Java heap space`, `Metaspace`, `Direct buffer memory`, etc. | Message/stack, heap/GC metrics, `.hprof` if enabled and written cleanly, memory config | That every OOME is a heap leak; that a heap dump always exists |
+| **OS/container OOM kill** | Process vanishes; orchestrator may log `OOMKilled`, host has OOM killer events | Kernel/cgroup/orchestrator events, limits/usage, restart history, exit status | That the JVM had time to write `hs_err`, heap dump, or shutdown JFR |
+| **Forced termination** | `SIGKILL`, container killed, watchdog/timeout | Service manager, audit/orchestrator, exit reason/timeline | That exit code 137 **alone** proves an OOM kill |
+| **Hang/deadlock, not crashed yet** | Process stays alive, requests time out; threads make no progress | Multi-point thread dumps, JFR, metrics, queues, lock info | That a fatal error log exists; that you should kill immediately “to get evidence” |
+| **Intentional JVM/process exit** | `System.exit`, shutdown from deploy or health policy | App shutdown logs, exit status, deploy/orchestration timeline | That this is definitely a HotSpot bug |
 
-**Quy tắc triage:** nếu không có `hs_err`, điều đó không chứng minh “không phải JVM crash” vì không đủ quyền/đĩa hoặc tiến trình bị kill quá sớm. Ngược lại, nếu có Java exception stack thì **không tự suy** rằng HotSpot hỏng. Cần kiểm tra chứng cứ độc lập.
+**Triage rule:** if `hs_err` is absent, that does not prove “not a JVM crash,” since insufficient permissions/disk or an abrupt kill can prevent it. Conversely, having a Java exception stack **does not justify assuming** HotSpot itself is broken. Always check independent evidence.
 
-### Điểm khác nhau quan trọng
+### Key differences
 
-- **Fatal error log** báo trạng thái HotSpot tại lỗi không thể khôi phục; không giống stack trace Java do exception.
-- **Core dump** thường chứa bộ nhớ tiến trình ở tầng OS/native, rất lớn và có thể có mật khẩu/token/dữ liệu cá nhân trong memory.
-- **Heap dump HPROF** mô tả Java object graph/heap; hữu ích với một số OOME/leak, nhưng không mô tả đầy đủ native heap, stacks, kernel hay mọi nguyên nhân crash.
-- **JFR** kể lại sự kiện JVM trong cửa sổ còn giữ; hữu ích khi đã bật trước đó. Một crash/kill bất ngờ **không đảm bảo** bản ghi exit-dump được tạo.
-- **App/OS logs** có thể xác nhận request, deploy, resource limit, signal và điểm bắt đầu triệu chứng; đôi khi chúng quan trọng hơn cả file lớn.
+- **Fatal error log** reports HotSpot's state at an unrecoverable error; it is not the same as a Java exception stack trace.
+- **Core dump** usually holds OS/native-level process memory, can be huge, and may contain passwords, tokens, or personal data in memory.
+- **HPROF heap dump** describes the Java object graph / heap; useful for some OOMEs/leaks, yet does not fully describe native heap, stacks, kernel state, or all crash causes.
+- **JFR** recounts JVM events within its retained window; useful when enabled beforehand. An unexpected crash or kill **does not guarantee** an exit-dump recording is produced.
+- **App/OS logs** can confirm requests, deploys, resource limits, signals, and symptom onset; sometimes they matter even more than giant binary files.
 
-## 3. Thứ tự hành động khi sự cố vừa xảy ra
+## 3. Order of Actions Right When an Incident Occurs
 
-Trong sự cố thật, thao tác ưu tiên phải cân bằng **khôi phục dịch vụ** và **giữ chứng cứ dễ biến mất**. Áp dụng quy trình sự cố/ủy quyền của tổ chức; không tự giữ service hỏng chỉ để thu thập dữ liệu.
+In a real incident, priority actions must balance **service recovery** and **preserving volatile evidence**. Follow your organization's incident and authorization procedures; never leave a broken service down solely to gather data.
 
-1. **Đánh dấu mốc thời gian:** ghi giờ theo UTC (ISO 8601), timezone đang hiển thị, host/pod/instance, tên service, phiên bản triển khai và người ghi nhận. Nếu đồng hồ các máy lệch, ghi cả chênh lệch đã biết.
-2. **Xác nhận process còn sống không:** nếu còn sống, thu các snapshot rủi ro thấp và có mục tiêu; nếu đã chết, không cố `jcmd` vào PID cũ hoặc suy rằng một process mới có cùng PID là process lỗi.
-3. **Giữ artifact sắp mất:** log còn trong buffer, tệp trong container sắp bị xóa, JFR còn retention, kernel/orchestrator events, `hs_err` và core location. Ưu tiên copy có kiểm soát **trước** khi restart/cleanup nếu khả thi.
-4. **Chụp trạng thái vận hành liên quan:** resource limits, GC/JIT flags, CPU/memory pressure, queue, traffic, deploy/restart, các thay đổi cấu hình; ghi cách lấy từng số.
-5. **Không ghi đè nguồn gốc:** tạo bản sao gốc ở nơi lưu an toàn, tính checksum khi khả thi; thao tác redaction trên **bản sao làm việc**, không sửa bản gốc.
-6. **Khôi phục và theo dõi:** sau khi đã lưu chứng cứ cần thiết và theo runbook, khôi phục service, xác nhận health rồi ghi mốc hồi phục. Một lần restart có thể làm mất dữ liệu, vì vậy thứ tự hành động phải được ghi trong timeline.
-7. **Đóng gói cho người tiếp theo:** cung cấp tóm tắt một trang, manifest, timeline, các tệp có liên quan và recipe tái hiện; nêu rõ phần **chưa thu được**.
+1. **Mark timestamps:** record UTC time (ISO 8601), displayed timezone, host/pod/instance, service name, deployed version, and recorder. If host clocks drift, record known skew.
+2. **Verify whether the process is still alive:** if alive, collect low-risk, targeted snapshots; if dead, never try `jcmd` on the old PID or assume a new process with the same PID is the failed one.
+3. **Preserve artifacts about to vanish:** buffered logs, files in containers about to be deleted, JFR within retention, kernel/orchestrator events, `hs_err`, and core locations. Prefer controlled copying **before** restart/cleanup when feasible.
+4. **Capture relevant operational state:** resource limits, GC/JIT flags, CPU/memory pressure, queues, traffic, deploys/restarts, and config changes; note how each figure was obtained.
+5. **Never overwrite originals:** store original copies in secure storage and compute checksums when feasible; perform redaction on **working copies**, never mutating originals.
+6. **Recover and monitor:** after securing needed evidence per the runbook, restore the service, verify health, and record recovery time. A restart can wipe data, so order of actions must be recorded in the timeline.
+7. **Package for the next person:** deliver a one-page summary, manifest, timeline, relevant files, and a reproduction recipe; explicitly list what **could not be collected**.
 
-Nếu việc thu core/heap dump có thể khiến hệ thống hết đĩa, tăng pause hoặc phơi lộ dữ liệu, **không cưỡng ép thu để “đủ checklist”**. Việc không có artifact phải được ghi rõ lý do và hướng thu lần sau.
+If capturing a core or heap dump could exhaust disk, worsen pauses, or expose sensitive data, **do not force capture just to “check off a list.”** Record why the artifact is missing and how to collect it next time.
 
-## 4. “Gói tối thiểu” gồm những phần nào?
+## 4. What Parts Make Up a “Minimal Bundle”?
 
-Tối thiểu nên có ba nhóm **tài liệu + dữ kiện + tái hiện**. Cấu trúc ví dụ:
+At minimum, include three groups: **documentation + facts + reproduction**. Example layout:
 
 ```text
 INC-LAB-001/
-├── README.md                 # Tóm tắt: điều quan sát và câu hỏi cần trả lời
-├── manifest.json             # Máy/JDK/build/flags/giới hạn/timestamps/nguồn
-├── timeline.csv              # Mốc deploy, request, GC, lỗi, restart, lấy bằng chứng
-├── reproduction.md           # Điều kiện + bước chạy + oracle xác nhận
+├── README.md                 # Summary: observations and questions to answer
+├── manifest.json             # Host/JDK/build/flags/limits/timestamps/sources
+├── timeline.csv              # Deploy, request, GC, error, restart, and capture milestones
+├── reproduction.md           # Preconditions + execution steps + verification oracle
 ├── artifacts/
-│   ├── stdout.log            # Log đã được xét tính nhạy cảm
+│   ├── stdout.log            # Logs reviewed for sensitivity
 │   ├── stderr.log
 │   ├── exit-code.txt
-│   ├── app.log               # Chỉ khi có
-│   ├── gc.log                # Chỉ khi có
-│   ├── hs_err_pid12345.log   # CHỈ nếu là fatal log đã xuất hiện
-│   ├── incident.jfr          # CHỈ nếu đã có recording hợp lệ
-│   ├── java_pid12345.hprof   # CHỈ nếu phù hợp và đã thu được
-│   └── core                 # CHỈ nếu được phép/thu được
-└── SHA256SUMS.txt            # Hash của đúng các file thực sự được đóng gói
+│   ├── app.log               # Only if present
+│   ├── gc.log                # Only if present
+│   ├── hs_err_pid12345.log   # ONLY if a fatal log actually appeared
+│   ├── incident.jfr          # ONLY if a valid recording exists
+│   ├── java_pid12345.hprof   # ONLY if applicable and collected
+│   └── core                  # ONLY if authorized/collected
+└── SHA256SUMS.txt            # Hashes of the exact files actually packaged
 ```
 
-Cây thư mục là **ví dụ cấu trúc**, không hàm ý mọi lần lỗi phải có đủ các file. Với một Java exception đơn giản, `README.md`, `manifest.json`, `reproduction.md`, stderr, lệnh và exit status thường đủ để giao tiếp. Với fatal JVM crash phức tạp, `hs_err`/core/native libraries mới là trọng tâm.
+This directory tree is an **example structure**, not implying every incident must contain all files. For a straightforward Java exception, `README.md`, `manifest.json`, `reproduction.md`, stderr, command, and exit status are usually enough for handover. For a complex fatal JVM crash, `hs_err`/core/native libraries take center stage.
 
-Mọi file trong gói cần được phân loại:
+Every file in the bundle should be classified:
 
-- **Required:** phải có để người tiếp nhận hiểu lỗi, ví dụ bản build và thông điệp lỗi.
-- **Conditional:** chỉ có khi loại lỗi/thiết lập hỗ trợ, như HPROF hoặc JFR.
-- **Missing with reason:** lẽ ra hữu ích nhưng đã mất hoặc không thể thu; nêu lý do, đừng âm thầm bỏ qua.
-- **Restricted:** có dữ liệu mật/nhạy cảm, chỉ cấp quyền cho người cần.
+- **Required:** essential for the recipient to understand the failure, such as build version and error message.
+- **Conditional:** present only when the error type and settings support it, such as HPROF or JFR.
+- **Missing with reason:** would have been useful yet was lost or uncollectable; state why rather than silently omitting it.
+- **Restricted:** contains secrets or sensitive data; restrict access strictly to those who need it.
 
-## 5. README của sự cố: một trang có cấu trúc
+## 5. Incident README: A Structured One-Pager
 
-Một bản tóm tắt nên rõ hơn “gặp lỗi JVM, nhờ xem”. Ví dụ **giả định trong lab**:
+A summary should be far clearer than “hit a JVM error, please check.” **Hypothetical lab example**:
 
-> **INC-LAB-001, trạng thái:** chưa kết luận nguyên nhân.  
-> **Triệu chứng:** chạy `IncidentReproDemo range-error` làm main thread ném `IllegalArgumentException` với thông điệp `quota out of range: 150` và process trả exit status khác 0.  
-> **Mong đợi:** input hợp lệ `valid` tạo `quota=25` và thoát thành công; input ngoài phạm vi được xử lý theo hợp đồng ứng dụng thay vì gây crash luồng chính.  
-> **Môi trường:** JDK 21 (ghi vendor/update thực tế vào manifest), local Linux, single JVM, không container.  
-> **Tái hiện:** theo `reproduction.md`; đã lặp 3/3 lần với cùng build và input.  
-> **Bằng chứng:** stdout/stderr, exit code, source test, phiên bản JDK, SHA-256.  
-> **Chưa có:** `hs_err`/core không được kỳ vọng trong tình huống Java exception này.  
-> **Điều tra tiếp:** kiểm tra validation và error handling tại ranh giới nhập liệu; đối chiếu điều kiện của môi trường thật.
+> **INC-LAB-001, status:** root cause not yet concluded.  
+> **Symptom:** running `IncidentReproDemo range-error` causes the main thread to throw `IllegalArgumentException` with message `quota out of range: 150`, and the process returns a nonzero exit status.  
+> **Expected:** valid input `valid` produces `quota=25` and exits successfully; out-of-range input is handled per the application contract rather than crashing the main thread.  
+> **Environment:** JDK 21 (record actual vendor/update in manifest), local Linux, single JVM, no container.  
+> **Reproduction:** per `reproduction.md`; repeated 3/3 times with the same build and input.  
+> **Evidence:** stdout/stderr, exit code, test source, JDK version, SHA-256.  
+> **Not present:** `hs_err`/core are not expected in this Java exception scenario.  
+> **Next investigation:** inspect validation and error handling at the input boundary; compare against real-environment conditions.
 
-Không ghi “**root cause confirmed**” chỉ vì tái hiện được một exception; tái hiện xác nhận **đường tạo triệu chứng**, còn nguyên nhân gốc ở production có thể chứa thêm concurrency, dữ liệu, cấu hình và chuỗi sự kiện chưa được kiểm chứng.
+Never write “**root cause confirmed**” merely because an exception was reproduced; reproduction confirms **a path that produces the symptom**, whereas production root cause may involve concurrency, data, configuration, and event sequences not yet verified.
 
-### Các trường quan trọng của bản tóm tắt
+### Key summary fields
 
-| Trường | Mức chi tiết cần |
+| Field | Level of detail needed |
 | --- | --- |
-| Incident ID và contact | Mã nhất quán; đầu mối liên hệ, quyền truy cập |
-| Triệu chứng và impact | Observable fact, phạm vi người dùng/request, thời lượng |
-| Expected vs actual | Hành vi mong đợi có thể kiểm tra và sai khác |
-| Mức độ chắc chắn | Observed, suspected, confirmed-by-test; tránh kết luận quá mức |
-| Môi trường | Version, OS, architecture, container, build, JVM flags |
-| Time window | UTC và timezone, liên hệ tới logs/JFR |
-| Hướng tái hiện | Command/script, input sạch, preconditions, tần suất thành công |
-| Bằng chứng còn thiếu | Không có, vì sao thiếu, cách thu lần kế tiếp |
-| Next actions | Giả thuyết ưu tiên, người phụ trách, phép thử phân biệt |
+| Incident ID and contact | Consistent ID; point of contact and access scope |
+| Symptoms and impact | Observable facts, user/request scope, duration |
+| Expected vs. actual | Verifiable expected behavior and exact deviation |
+| Confidence level | Observed, suspected, confirmed-by-test; avoid overclaiming |
+| Environment | Version, OS, architecture, container, build, JVM flags |
+| Time window | UTC and timezone, linked to logs/JFR |
+| Reproduction steps | Command/script, sanitized input, preconditions, success rate |
+| Missing evidence | Absent items, why missing, how to capture next time |
+| Next actions | Priority hypotheses, owner, discriminating experiments |
 
-## 6. Manifest là bản ghi bối cảnh, không phải bản sao tràn lan mọi env var
+## 6. The Manifest Is a Context Record, Not an Indiscriminate Dump of Every Env Var
 
-Một `manifest.json` có schema đơn giản để giao người khác máy vẫn đọc được. Dưới đây là **ví dụ dùng dữ liệu lab giả định**, không phải số liệu của một service thật:
+A `manifest.json` has a simple schema so both humans and machines can read it on handover. Below is an **example using hypothetical lab data**, not metrics from a real service:
 
 ```json
 {
@@ -158,13 +158,13 @@ Một `manifest.json` có schema đơn giản để giao người khác máy v�
 }
 ```
 
-Các giá trị mô tả như `record-the-actual-java-version-output` nhấn mạnh **quy tắc không giả mạo metadata**: khi áp dụng thật, điền giá trị **đã đo**; nếu chưa thu được thì lưu `null` và giải thích trong `README`. Không điền bừa thông tin vendor, version, commit hay PID. Có thể dùng một schema JSON riêng của tổ chức, miễn là người tiếp nhận hiểu ý nghĩa từng trường.
+Descriptive placeholders like `record-the-actual-java-version-output` emphasize the **rule against fabricating metadata**: in real incidents, fill in **measured** values; if uncollected, store `null` and explain in `README`. Never guess vendor, version, commit, or PID. You may use your organization's own JSON schema as long as the recipient understands every field.
 
-**Trường nên được ghi khi sự cố production:** JDK distribution/build/update, kiến trúc CPU, tên host/pod/container và restart count, base image, OS/kernel, deployment ID/commit, thời gian process start và uptime, `-Xms/-Xmx`, collector, heap/native/cgroup limits, tình trạng disk, tính năng/thao tác đã bật, traffic/queue tại mốc lỗi. Ghi cả **config source và thời điểm**; đừng copy nguyên environment variables vì có thể chứa secrets.
+**Fields worth recording in production incidents:** JDK distribution/build/update, CPU architecture, host/pod/container name and restart count, base image, OS/kernel, deployment ID/commit, process start time and uptime, `-Xms/-Xmx`, collector, heap/native/cgroup limits, disk status, enabled features/operations, and traffic/queue depth at failure time. Record both **config source and timestamp**; never dump raw environment variables because they may contain secrets.
 
-## 7. Ghi timeline: thời gian là bằng chứng, không phải phần trang trí
+## 7. Recording the Timeline: Time Is Evidence, Not Decoration
 
-Một timeline tách **sự kiện đã ghi** khỏi **giả thuyết**. Mẫu giả định:
+A timeline separates **recorded events** from **hypotheses**. Hypothetical template:
 
 ```csv
 timestamp_utc,source,event,evidence,confidence
@@ -175,62 +175,62 @@ timestamp_utc,source,event,evidence,confidence
 2026-10-29T09:20:15Z,operator,incident acknowledged,incident-log,observed
 ```
 
-Đừng ghi một giả thuyết kiểu “GC gây crash” vào cột `event` như sự thật. Hãy ghi “GC pause reported in GC log”; nhận định “có thể có quan hệ nhân quả” nằm trong phần phân tích, với mức độ tin cậy riêng.
+Never put a hypothesis like “GC caused the crash” in the `event` column as fact. Record “GC pause reported in GC log”; the assessment “may have a causal relationship” belongs in the analysis section with its own confidence rating.
 
-Các timestamp có thể đến từ đồng hồ JVM, OS, collector, APM và load balancer:
+Timestamps can come from JVM clocks, OS, collectors, APM, and load balancers:
 
-- Giữ ISO 8601 với **offset/timezone**; đừng trộn `09:20` UTC với `09:20` giờ Việt Nam.
-- Ghi **start và end** của event có duration (GC pause, request) thay vì một điểm.
-- Khi đồng hồ các host bị lệch, ghi ước lượng skew/nguồn đồng bộ; thứ tự nhìn thấy trên dashboard chưa chắc là thứ tự vật lý.
-- Sau restart, PID có thể được cấp lại; ghép **PID + process start time + instance/container ID** để phân biệt.
-- JFR có thể có cửa sổ retention; file còn dữ liệu sau thời điểm T không chứng minh nó từng lưu sự kiện trước T.
+- Keep ISO 8601 with **offset/timezone**; never mix `09:20` UTC with `09:20` Vietnam time.
+- Record **start and end** of durational events (GC pauses, requests) instead of a single point.
+- When host clocks drift, record estimated skew and sync source; dashboard display order is not guaranteed to be physical order.
+- After a restart, PIDs can be reused; pair **PID + process start time + instance/container ID** to tell runs apart.
+- JFR has a retention window; having data after time T does not prove it retained events prior to T.
 
-## 8. Chuẩn bị trước: thiết lập để lần sau không mất chứng cứ
+## 8. Preparing Ahead: Configure So Evidence Isn't Lost Next Time
 
-Nếu chỉ bắt đầu chuẩn bị **sau** khi JVM đã chết, nhiều artefact không thể tạo ngược lại. Trên HotSpot, có thể cân nhắc cấu hình trước theo mức rủi ro, dung lượng đĩa và chính sách riêng của hệ thống.
+If you only start preparing **after** the JVM has died, many artifacts cannot be created retroactively. On HotSpot, consider pre-configuring flags aligned with risk, disk capacity, and system policies.
 
-Ví dụ các **lựa chọn cấu hình riêng lẻ** khi khởi động JVM (Linux, đường dẫn chỉ mang tính minh họa):
+Examples of **individual startup configuration choices** (Linux, paths are illustrative):
 
 ```bash
-# Fatal VM error: file tai duong dan co quyen ghi.
+# Fatal VM error: file at a writable path.
 java -XX:ErrorFile=/var/log/java/hs_err_pid%p.log -jar service.jar
 
-# Khi OutOfMemoryError: heap dump neu co du cho va JVM co the ghi.
+# On OutOfMemoryError: heap dump if space suffices and JVM can write.
 java -XX:+HeapDumpOnOutOfMemoryError \
      -XX:HeapDumpPath=/var/log/java/ -jar service.jar
 
-# GC + safepoint log co gio va vong log huu han.
+# GC + safepoint log with timestamps and bounded log rotation.
 java -Xlog:gc*,safepoint:file=/var/log/java/gc.log:time,uptime,level,tags:filecount=5,filesize=20m \
      -jar service.jar
 ```
 
-Đây là **các ví dụ thay thế/độc lập** để đọc cú pháp, không phải ba lệnh cần chạy cùng lúc cho một service; trong vận hành sẽ phối hợp những option cần thiết vào **một** cấu hình launch được kiểm thử. Trước đó hãy tạo thư mục, cấp quyền cho **user của JVM**, định mức dung lượng và retention; path phải tồn tại trong filesystem của JVM/container.
+These are **separate/alternative syntax examples**, not three commands to launch simultaneously for one service; in operations, combine needed options into **one** tested launch configuration. Beforehand, create directories, grant permissions to the **JVM user**, and set storage quotas and retention; paths must exist inside the JVM/container filesystem.
 
-Những điều cần hiểu:
+What to understand:
 
-- `-XX:ErrorFile=...` chọn vị trí fatal error log. Không phải mọi exception Java đều tạo file này. Nếu vị trí không ghi được, JVM có thể thử chỗ khác như thư mục temp của hệ điều hành.
-- `-XX:+HeapDumpOnOutOfMemoryError` với `-XX:HeapDumpPath=...` hỗ trợ một số trường hợp OOME. File `.hprof` có thể rất lớn và chứa dữ liệu nhạy cảm; thiếu đĩa/permission/loại lỗi có thể khiến dump không xuất hiện.
-- `-Xlog` giúp lưu GC/safepoint evidence có mốc thời gian; rotation có thể xóa giai đoạn sớm khi log quay vòng. Khi incident kéo dài, phải bảo đảm vẫn còn cửa sổ cần phân tích.
-- Core dump do **OS/runtime policy** quyết định, không chỉ do flag Java. Nhiều môi trường container/service manager có giới hạn `ulimit`, kernel core pattern, systemd-coredump, disk quota hoặc cơ chế thu khác.
-- Trong production, thay JVM flags có thể cần restart và thay đổi overhead; phải theo quy trình triển khai được phê duyệt.
+- `-XX:ErrorFile=...` picks the fatal error log location. Not every Java exception creates this file. If the path is unwritable, the JVM may try a fallback such as the OS temp directory.
+- `-XX:+HeapDumpOnOutOfMemoryError` with `-XX:HeapDumpPath=...` helps in certain OOME cases. `.hprof` files can be huge and hold sensitive data; lack of disk/permissions or certain error types can prevent the dump from appearing.
+- `-Xlog` preserves timestamped GC/safepoint evidence; rotation can overwrite earlier phases as logs wrap. During long incidents, ensure enough window remains for analysis.
+- Core dumps are governed by **OS/runtime policy**, not Java flags alone. Many container/service-manager environments impose `ulimit`, kernel `core_pattern`, `systemd-coredump`, disk quotas, or other capture rules.
+- In production, changing JVM flags may require a restart and alter overhead; follow approved deployment procedures.
 
-### Thu JFR có cửa sổ lịch sử
+### Capturing JFR with a rolling history window
 
-Khi cần timeline trước sự cố và chấp nhận chi phí lưu trữ:
+When you need a pre-incident timeline and accept the storage cost:
 
 ```bash
 java -XX:StartFlightRecording=name=service_ring,settings=default,disk=true,maxage=30m,maxsize=256m,dumponexit=true,filename=/var/log/java/exit-%p-%t.jfr -jar service.jar
 ```
 
-- `maxage/maxsize` giới hạn phần dữ liệu **còn giữ trong repository**, không phải toàn bộ file `.jfr` đã xuất.
-- `dumponexit=true` có cơ hội dump khi JVM **shutdown bình thường và recording còn chạy**. Với `SIGKILL`, mất điện hoặc crash không có shutdown thông thường, **không được hứa** file exit-dump sẽ xuất hiện.
-- Khi JVM **còn sống**, có thể gọi `JFR.dump` để chốt dữ liệu trước khi incident trôi khỏi retention; không thể gọi sau khi process đã chết.
+- `maxage/maxsize` bound data **retained in the repository**, not necessarily the entire exported `.jfr` file.
+- `dumponexit=true` can dump when the JVM **shuts down normally while the recording is active**. With `SIGKILL`, power loss, or crashes bypassing normal shutdown, there is **no guarantee** the exit-dump file will appear.
+- While the JVM is **alive**, you can call `JFR.dump` to persist data before the incident ages out of retention; you cannot call it after the process has died.
 
-Các thiết lập cần được kiểm thử trước incident: có đủ disk hay không, event nào được bật, naming tránh ghi đè, nơi file nằm trong container, kiểm tra tệp bằng `jfr summary`, chính sách cất giữ và quyền truy cập.
+Test settings before an incident: verify disk capacity, enabled events, collision-free naming, container path placement, `jfr summary` readability, retention policy, and access controls.
 
-## 9. Khi JVM vẫn sống: bộ lệnh thu thập có chọn lọc
+## 9. While the JVM Is Still Alive: Selective Collection Commands
 
-Với HotSpot còn sống và **PID đã xác nhận là 12345**, trong môi trường được phép:
+With a live HotSpot JVM and a **verified PID 12345**, in an authorized environment:
 
 ```bash
 jcmd -l
@@ -242,9 +242,9 @@ jcmd 12345 VM.info
 jcmd 12345 Thread.print -l
 ```
 
-Đây là **các lệnh đọc trạng thái tại thời điểm chạy**; phù hợp khi phát hiện hang/latency bất thường mà process vẫn hoạt động. `jcmd` cần JDK tool, quyền attach và namespace phù hợp. Một số lệnh có chi phí đáng kể nếu nhiều thread; đừng lấy snapshot quá thường xuyên.
+These are **live state-reading commands**, suitable when investigating hangs or abnormal latency while the process is still running. `jcmd` requires JDK tools, attach permissions, and matching namespaces. Some commands incur significant cost with many threads; do not take snapshots too frequently.
 
-Để xuất thành các file riêng trong thư mục chứng cứ đã tạo và cấp quyền:
+To export into separate files in a dedicated, permission-restricted evidence directory:
 
 ```bash
 jcmd 12345 VM.version > vm-version.txt
@@ -253,103 +253,103 @@ jcmd 12345 VM.flags > vm-flags.txt
 jcmd 12345 Thread.print -l > threads-T0.txt
 ```
 
-Đảm bảo file thu được có timestamp trong manifest/tên file và log lệnh đã dùng. **`VM.command_line` hoặc `VM.info` có thể lộ token/URI/config**, nên phải hạn chế truy cập và redaction trước khi chia sẻ.
+Ensure collected files carry timestamps in the manifest/filenames and log the exact commands run. **`VM.command_line` or `VM.info` can expose tokens/URIs/configs**, so restrict access and redact before sharing.
 
-Nếu JVM đang có recording JFR tên `service_ring`:
+If the JVM has an active JFR recording named `service_ring`:
 
 ```bash
 jcmd 12345 JFR.check
 jcmd 12345 JFR.dump name=service_ring filename=/var/log/java/on-incident-%p-%t.jfr
 ```
 
-`JFR.dump` xuất bản ghi còn giữ **mà không dừng** recording. File nằm ở đường dẫn được giải quyết từ **JVM đích**, nhất là trong container. Chỉ dùng `name=service_ring` nếu `JFR.check` thật sự báo tên đó; không đoán rằng mọi JVM đều đang bật JFR.
+`JFR.dump` exports retained data **without stopping** the recording. The file is written to a path resolved by the **target JVM**, especially inside containers. Only pass `name=service_ring` if `JFR.check` actually lists that name; never guess that every JVM has JFR running.
 
-**Không phải hành động “tối thiểu” mặc định:** `jcmd PID GC.heap_dump ...`, `GC.class_histogram` hoặc ép Full GC. Những lệnh này có thể gây pause/lượng I/O cao, có thể ảnh hưởng chính hiện tượng đang khảo sát. Chỉ dùng khi giả thuyết cần và đã có phê duyệt/dung lượng.
+**Not default “minimal” actions:** `jcmd PID GC.heap_dump ...`, `GC.class_histogram`, or forcing a Full GC. Those commands can cause pauses and heavy I/O that perturb the very phenomenon under study. Use them only when required by a hypothesis and with approval and capacity.
 
-Nếu JVM **đã chết**, phải dừng tại đây: các lệnh `jcmd` không thể hồi sinh một process. Chuyển sang `hs_err`, core, app/OS logs, JFR đã xuất, OOM records và build/environment metadata còn lưu.
+If the JVM **has already died**, stop here: `jcmd` commands cannot revive a dead process. Switch to `hs_err`, cores, app/OS logs, exported JFRs, OOM records, and saved build/environment metadata.
 
-## 10. Chọn bằng chứng đúng theo triệu chứng
+## 10. Choosing the Right Evidence by Symptom
 
 ### 10.1. Fatal error log: `hs_err_pid*.log`
 
-Với fatal HotSpot error, tìm log theo vị trí cấu hình `-XX:ErrorFile` hoặc working directory/temp fallback. Đọc theo thứ tự có lợi:
+For a fatal HotSpot error, check the configured `-XX:ErrorFile` location or working directory / temp fallback. Read in a productive order:
 
-1. **Header:** loại tín hiệu/native exception, JDK vendor/build, VM, OS/architecture.
-2. **Problematic frame:** frame native/VM/JIT liên quan nơi crash được phát hiện; phân biệt kí hiệu `C` (native), `V` (VM code), `J` (compiled Java) trong định dạng liên quan.
-3. **Current thread / native & Java frames:** thread nào báo sự cố, ngữ cảnh stack, nguồn gọi JNI/JNA/native library.
-4. **Process/VM info:** loaded libraries, `VM Arguments`, heap, thread stack, address/memory map, môi trường.
-5. **Trước/sau trong timeline:** deploy, native library update, GC activity, resource pressure, container events.
+1. **Header:** signal/native exception type, JDK vendor/build, VM, OS/architecture.
+2. **Problematic frame:** native/VM/JIT frame where the crash was detected; distinguish `C` (native), `V` (VM code), and `J` (compiled Java) in the relevant format.
+3. **Current thread / native & Java frames:** which thread reported the fault, stack context, and JNI/JNA/native library call origins.
+4. **Process/VM info:** loaded libraries, `VM Arguments`, heap, thread stack, address/memory map, and environment.
+5. **Before/after in timeline:** deploys, native library updates, GC activity, resource pressure, and container events.
 
-**Không kết luận** “library X chắc chắn là root cause” chỉ vì nó xuất hiện trong problematic frame. Nó có thể là nơi lỗi truy cập bộ nhớ **biểu lộ**, trong khi memory corruption đã xảy ra trước đó. Cần core, symbol/build, reproducer và phép thử giả thuyết.
+**Never conclude** “library X is definitely the root cause” just because it appears in the problematic frame. It may be where the memory access fault **surfaced**, whereas memory corruption occurred earlier. You need cores, symbols/builds, a reproducer, and hypothesis testing.
 
-File fatal log có thể **không hoàn chỉnh** nếu sự cố nặng hoặc ghi file thất bại; không làm sai lệch chứng cứ bằng cách tự bổ sung nội dung đoán.
+The fatal log may be **incomplete** if the failure was severe or file writing failed; never taint evidence by inventing guessed missing content.
 
-### 10.2. Core/crash dump: khi cần điều tra native state
+### 10.2. Core/crash dump: when native state investigation is needed
 
-Core dump là artifact rất lớn, chỉ thu khi có nhu cầu. Nó có thể chứa **toàn bộ vùng nhớ của process**: bí mật xác thực, dữ liệu người dùng, nội dung heap và native buffers. Cần hạn chế quyền, mã hóa/lưu giữ theo chính sách và đánh dấu dữ liệu nhạy cảm.
+A core dump is a massive artifact—collect it only when needed. It can contain **the entire memory of the process**: authentication secrets, user data, heap contents, and native buffers. Enforce strict permissions, encryption/retention per policy, and mark sensitive data.
 
-Khi giao core cho người phân tích, thường cần **đúng** executable/runtime build, native libraries, debug symbols nếu có, OS/architecture, container context và thời gian capture. Không thay bằng một JDK “gần giống” rồi coi backtrace là chứng cứ chính xác. Trên Linux, core có thể được systemd-coredump giữ thay vì tạo file `core` trong working directory; liên hệ người quản trị về cấu hình và quyền truy cập.
+When handing a core to an analyst, you generally also need the **exact** executable/runtime build, native libraries, debug symbols if available, OS/architecture, container context, and capture timestamp. Never substitute a “close” JDK and treat the backtrace as exact proof. On Linux, cores may be held by `systemd-coredump` instead of creating a `core` file in the working directory; check configuration and access permissions with administrators.
 
-Ví dụ **chỉ để kiểm tra sự tồn tại metadata** trên một Linux có systemd-coredump, khi được phép:
+Example **solely to check metadata presence** on a Linux host with `systemd-coredump`, when authorized:
 
 ```bash
 coredumpctl list
 coredumpctl info
 ```
 
-Không phải hệ điều hành nào cũng có `coredumpctl`; kết quả đọc từ host/container khác nhau. Không dùng lệnh tạo core cưỡng bức trên production chỉ để hoàn thành checklist.
+Not every OS has `coredumpctl`; outputs differ between host and containers. Never run forced core-generation commands in production just to fill out a checklist.
 
-### 10.3. OOME: đừng nhầm vùng bộ nhớ
+### 10.3. OOME: do not confuse memory regions
 
-`OutOfMemoryError` có thể xảy ra vì `Java heap space`, `Metaspace`, native allocation, thread creation hoặc direct buffers. Heap dump hữu ích khi hỏi Java object nào chiếm heap, **không** đủ để giải thích mọi native OOM hoặc OS kill. Nếu ứng dụng không còn sống, `jcmd` không thể tạo heap dump hồi tố.
+`OutOfMemoryError` can arise from `Java heap space`, `Metaspace`, native allocations, thread creation, or direct buffers. A heap dump helps answer which Java objects occupy the heap, yet is **insufficient** to explain all native OOMs or OS kills. If the app is no longer alive, `jcmd` cannot generate a retroactive heap dump.
 
-Thu thêm nếu sẵn có: `-Xmx`, cgroup limit, GC logs/after-GC used, metaspace/NMT khi được bật, native allocation metrics, số thread, container OOM events, history và kích thước input/batch. Khi `.hprof` tồn tại, kiểm tra path, kích thước, khả năng mở và quyền trước khi chuyển; không gửi file nhạy cảm qua email công khai.
+Collect additionally if available: `-Xmx`, cgroup limits, GC logs/post-GC used, metaspace/NMT if enabled, native allocation metrics, thread counts, container OOM events, history, and input/batch sizes. When an `.hprof` exists, verify path, size, readability, and permissions before transferring; never email sensitive files over public channels.
 
-### 10.4. OS kill: tìm chứng cứ từ bên ngoài JVM
+### 10.4. OS kill: look for evidence outside the JVM
 
-Nếu container báo `OOMKilled` hoặc process thoát với status `137`, đối chiếu **orchestrator events/kernel/cgroup metrics, limit/peak usage và lịch sử restart**. Status 137 thường phù hợp với SIGKILL theo quy ước shell/container, nhưng **không đủ chứng minh** OOM killer: lệnh `kill -9` của người vận hành hoặc policy timeout cũng có thể dẫn tới cùng dạng kết thúc.
+If the container reported `OOMKilled` or exited with status `137`, cross-check **orchestrator events, kernel/cgroup metrics, limits/peak usage, and restart history**. Status 137 commonly aligns with `SIGKILL` under shell/container conventions, yet **does not prove** the OOM killer: an operator's `kill -9` or a policy timeout can produce the exact same exit code.
 
-Đừng tìm `hs_err` như điều kiện bắt buộc của OS kill; JVM có thể không có cơ hội tạo fatal log/heap/JFR exit dump.
+Do not treat `hs_err` as a mandatory requirement for an OS kill; the JVM may have had no chance to create a fatal log, heap dump, or JFR exit dump.
 
-### 10.5. Hang: nhiều stack snapshots và tiến triển
+### 10.5. Hang: multiple stack snapshots and progress
 
-Một thread dump duy nhất cho biết trạng thái thời điểm đó, không cho biết thread có **tiến triển** hay kẹt lâu. Nếu được phép và process vẫn sống, lấy nhiều snapshot cách nhau có chủ đích, ghi timestamps, so stack/lock/queue cùng request metrics. Đừng suy “deadlock” chỉ vì nhiều thread ở trạng thái `WAITING`: nhiều thread pool bình thường vẫn chờ nhiệm vụ.
+A single thread dump shows state at one instant, not whether threads are **making progress** or stuck long-term. If authorized and the process is alive, take several intentionally spaced snapshots, record timestamps, and compare stacks/locks/queues alongside request metrics. Do not infer “deadlock” simply because many threads are `WAITING`: normal thread pools often wait for work.
 
-## 11. Tình huống tái hiện: thế nào là đủ cho người không chứng kiến?
+## 11. Reproducer: What Is Enough for Someone Who Wasn't There?
 
-Bản mô tả “thỉnh thoảng crash khi nhiều tải” không phải recipe hoàn chỉnh. Một **reproducer** nên có:
+A description like “crashes occasionally under heavy load” is not a complete recipe. A **reproducer** should include:
 
-| Thành phần | Câu trả lời phải rõ |
+| Component | What must be answered clearly |
 | --- | --- |
-| **Preconditions** | JDK vendor/build, OS/arch, flags, memory/CPU limits, input dataset đã làm sạch, cấu hình phụ thuộc |
-| **Artifact chính xác** | Commit hoặc SHA-256 của JAR/container image/native library; source và cách build khi cần |
-| **Điểm khởi đầu** | Process mới hay service warm; cache, DB state, queue/traffic, thời gian từ start |
-| **Trigger** | Lệnh cụ thể, request pattern, endpoint/case, sequence, concurrency và thời lượng |
-| **Oracle** | Dấu hiệu kết quả mong đợi và lỗi thực tế: exception class/message, exit code, `hs_err`, tín hiệu, timeline |
-| **Tần suất** | Ví dụ 3/3 lần hay 2/20 lần, tổng số lần thử, khoảng tin cậy/độ biến động nếu cần |
-| **Control** | Cùng điều kiện nhưng không kích hoạt; hoặc đổi **một** biến để phân biệt giả thuyết |
-| **Evidence per run** | Thư mục/log, timestamp, PID/start time, seed, flags, OS events, checksum |
-| **Safety boundary** | Chỉ lab/staging; dữ liệu synthetic; giới hạn tài nguyên/thời gian; không làm sập production |
-| **Known gaps** | Phụ thuộc bên ngoài chưa mô phỏng được, data đã ẩn, tác động concurrency khó đo |
+| **Preconditions** | JDK vendor/build, OS/arch, flags, memory/CPU limits, sanitized input dataset, dependency configs |
+| **Exact artifact** | Commit or SHA-256 of JAR/container image/native library; source and build instructions if needed |
+| **Starting state** | Fresh process or warmed service; caches, DB state, queue/traffic, uptime since start |
+| **Trigger** | Exact command, request pattern, endpoint/case, sequence, concurrency, and duration |
+| **Oracle** | Expected vs. actual signals: exception class/message, exit code, `hs_err`, signals, timeline |
+| **Frequency** | E.g., 3/3 runs or 2/20 runs, total trials, confidence/variance if relevant |
+| **Control** | Same conditions without the trigger; or changing **one** variable to distinguish hypotheses |
+| **Evidence per run** | Directory/logs, timestamps, PID/start time, seed, flags, OS events, checksums |
+| **Safety boundary** | Lab/staging only; synthetic data; resource/time caps; never take down production |
+| **Known gaps** | Unsimulated external dependencies, redacted data, hard-to-measure concurrency effects |
 
-**Phân biệt determinism và xác suất:** lỗi có thể tái hiện 3/3 lần với input cụ thể hoặc 2/20 lần dưới concurrency 50 threads. Cả hai đều có giá trị nếu điều kiện và mẫu số được ghi chính xác. Không tuyên bố “luôn xảy ra” từ một lần thành công.
+**Distinguish determinism from probability:** a bug may reproduce 3/3 times on specific input or 2/20 times under 50 concurrent threads. Both are valuable if conditions and denominators are recorded accurately. Never claim “always happens” from one successful run.
 
-### Chuẩn hóa một run
+### Standardizing a run
 
-1. Khởi tạo **môi trường và dataset** theo commit/artifact hash đã chọn; ghi các biến khác nhau so với production.
-2. Xác nhận JVM/OS/flags/limits; dọn **chỉ dữ liệu lab đã được phép**, không xóa chứng cứ gốc.
-3. Bắt đầu bộ thu log/timeline ở trạng thái rõ ràng; đánh dấu UTC và run ID.
-4. Thực hiện đúng trigger với seed/input/concurrency/timeout cố định nếu có.
-5. Đo oracle một cách độc lập: code/exit status, logs, health, JFR/GC, OS events.
-6. Dừng thí nghiệm an toàn, thu file và checksum; đánh dấu **pass-to-reproduce** hay **not-reproduced**.
-7. Lặp lại cùng điều kiện; làm **negative control**, rồi thay một giả thuyết mỗi lần.
-8. Ghi những khác biệt vẫn còn, không che đi các lần tái hiện thất bại.
+1. Initialize the **environment and dataset** matching the chosen commit/artifact hash; document any differences from production.
+2. Verify JVM/OS/flags/limits; clean **only authorized lab data**, never deleting original evidence.
+3. Start log/timeline collectors in a clean state; record UTC timestamp and run ID.
+4. Execute the exact trigger with fixed seed/input/concurrency/timeout where applicable.
+5. Measure the oracle independently: exit code/status, logs, health, JFR/GC, and OS events.
+6. Stop the experiment safely, gather files and checksums; mark **pass-to-reproduce** or **not-reproduced**.
+7. Repeat under identical conditions; run a **negative control**, then change one hypothesis variable at a time.
+8. Document remaining discrepancies without hiding failed reproduction attempts.
 
-## 12. Ví dụ Java 17+: reproducible Java exception, không gây JVM fatal crash
+## 12. Java 17+ Example: Reproducible Java Exception Without a Fatal JVM Crash
 
-Thí nghiệm này minh họa **cách ghi trigger và oracle**, không cố tình dùng JNI, `Unsafe` hoặc lệnh native để làm sập JVM. Một **uncaught Java exception** là lỗi ứng dụng và **thường không tạo `hs_err`**.
+This experiment illustrates **how to record triggers and oracles**, without intentionally using JNI, `Unsafe`, or native calls to crash the JVM. An **uncaught Java exception** is an application error and **usually does not produce `hs_err`**.
 
-Lưu file `IncidentReproDemo.java`:
+Save **`IncidentReproDemo.java`**:
 
 ```java
 public final class IncidentReproDemo {
@@ -379,7 +379,7 @@ public final class IncidentReproDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac -g IncidentReproDemo.java
@@ -388,14 +388,14 @@ java IncidentReproDemo range-error
 java IncidentReproDemo format-error
 ```
 
-**Dự kiến về mặt logic:**
+**Expected behavior logically:**
 
-- `valid` in `scenario=valid`, `pid=...` và **`quota=25`**, kết thúc với exit status thành công khi môi trường không có lỗi khác.
-- `range-error` in `scenario=range-error`, `pid=...` rồi ném `java.lang.IllegalArgumentException` với message **`quota out of range: 150`**. Dòng `quota=...` **không được in**, vì exception xảy ra khi đánh giá biểu thức trước `println`.
-- `format-error` in `scenario=format-error`, `pid=...` rồi ném `NumberFormatException` từ `Integer.parseInt("many")`.
-- PID và số dòng stack trace phụ thuộc JVM/build/source, nên **không bịa stdout/stderr y hệt**. Tình huống có thể được xác nhận bằng class/message/exit status cùng các dòng đầu đã biết.
+- `valid` prints `scenario=valid`, `pid=...`, and **`quota=25`**, exiting with a success status when no other environment error occurs.
+- `range-error` prints `scenario=range-error`, `pid=...`, then throws `java.lang.IllegalArgumentException` with message **`quota out of range: 150`**. The `quota=...` line is **not printed**, because the exception happens while evaluating the argument before `println`.
+- `format-error` prints `scenario=format-error`, `pid=...`, then throws `NumberFormatException` from `Integer.parseInt("many")`.
+- PID and stack-trace line numbers depend on JVM/build/source, so **do not fabricate verbatim stdout/stderr**. The scenario can be verified by exception class/message/exit status plus the known initial lines.
 
-Để lưu lại chứng cứ của một run trong **Linux shell** với thư mục riêng:
+To save evidence from a run in a **Linux shell** using a dedicated directory:
 
 ```bash
 mkdir -p INC-LAB-001/artifacts
@@ -409,9 +409,9 @@ printf 'exit=%s\n' "$?" > INC-LAB-001/artifacts/exit-code.txt
 java -version 2> INC-LAB-001/artifacts/java-version.txt
 ```
 
-Các lệnh phải chạy trong shell **không được cấu hình dừng toàn bộ script ngay khi lệnh Java trả nonzero** (chẳng hạn `set -e`); nếu dùng `set -e`, phải xử lý riêng exit status để bước lưu chứng cứ vẫn chạy. `$?` ở lệnh `printf` là exit code của **lệnh `java` ngay trước nó**, không được chèn lệnh khác giữa hai bước.
+The commands must run in a shell **not configured to abort the whole script on a nonzero Java exit** (such as `set -e`); if `set -e` is enabled, handle the exit status explicitly so evidence saving still runs. `$?` in `printf` captures the exit code of the **immediately preceding `java` command**, with no other command inserted in between.
 
-Có thể ghi lại một run đối chứng:
+You can also record a control run:
 
 ```bash
 java IncidentReproDemo valid \
@@ -420,23 +420,23 @@ java IncidentReproDemo valid \
 printf 'exit=%s\n' "$?" > INC-LAB-001/artifacts/control-exit.txt
 ```
 
-Tổng hợp: **cùng JDK, cùng class, thay một biến `scenario`**. Nếu `range-error` luôn thất bại còn `valid` luôn qua, ta đã chứng minh được sự khác biệt **của ví dụ này**. Đừng nói đó là JVM crash: không có fatal error/`hs_err` được kỳ vọng. Trong production, muốn kết nối ví dụ với sự cố thật phải chứng minh input path/logic tương đương.
+Summary: **same JDK, same class, changing one `scenario` variable**. If `range-error` always fails while `valid` always passes, you have demonstrated the contrast **for this example**. Never call it a JVM crash: no fatal error or `hs_err` is expected. In production, linking an example to a real incident requires proving an equivalent input path and logic.
 
-### Tình huống tái hiện cho fatal crash thực sự
+### Reproducers for actual fatal crashes
 
-Nếu sự cố thật là SIGSEGV trong native/JNI code, chỉ nên thử tái hiện **trong môi trường được phép**, đúng JDK build/native library/OS/architecture, dataset synthetic và giới hạn tài nguyên. Không yêu cầu đồng nghiệp chạy code “chủ động làm sập JVM” trên production để thu đủ hồ sơ.
+If the real incident is a `SIGSEGV` in native/JNI code, attempt reproduction **only in an authorized environment** with the exact JDK build, native library, OS/architecture, synthetic dataset, and resource caps. Never ask colleagues to run code that “intentionally crashes the JVM” in production just to fill out a bundle.
 
-Một recipe an toàn cho người điều tra có thể ghi: “Đưa input synthetic thuộc lớp dữ liệu X qua parser JNI version Y trên staging cùng bản native library; đợi callback Z; lỗi có dấu `SIGSEGV` và problematic frame cùng signature; nếu xuất hiện, lưu hs_err/core bằng policy đã chuẩn bị”. Nó vẫn cần thông số đo thật và số lần thành công; **không biến một phương pháp nguy hiểm thành điều kiện bắt buộc**.
+A safe recipe for investigators might state: “Feed synthetic input of data class X through JNI parser version Y on staging with the matching native library; wait for callback Z; failure exhibits `SIGSEGV` and problematic frame with the matching signature; if observed, capture `hs_err`/core per prepared policy.” It still requires real measurements and success counts; **never turn a hazardous step into a mandatory requirement**.
 
-## 13. Checksums, tính toàn vẹn và chuỗi bàn giao
+## 13. Checksums, Integrity, and Chain of Handover
 
-Tệp `hs_err`, `.hprof`, `.jfr` hoặc core có thể đổi kích thước khi đang ghi; **đừng hash rồi kết luận “đã hoàn tất” khi producer chưa đóng file**. Xác nhận file ổn định, có quyền đọc và không còn được ghi trước khi lưu bản bất biến. Với JFR đã export:
+`hs_err`, `.hprof`, `.jfr`, or core files can change size while still being written; **never hash a file and declare it “complete” before the producer closes it**. Confirm the file is stable, readable, and no longer being written before archiving an immutable copy. For an exported JFR:
 
 ```bash
 jfr summary /var/log/java/incident.jfr
 ```
 
-Dùng **tên file thật và filesystem đúng**; nếu report `jfr` lỗi thì chưa thể đánh dấu JFR là artifact hợp lệ. Sau khi có file chứng cứ đã được duyệt chia sẻ, tính hash:
+Use the **real filename and exact filesystem**; if `jfr` reports an error, do not mark the JFR as a valid artifact. Once the share-approved evidence files are ready, compute hashes:
 
 ```bash
 cd INC-LAB-001
@@ -448,9 +448,9 @@ sha256sum artifacts/stdout.log \
 sha256sum -c SHA256SUMS.txt
 ```
 
-Các lệnh trên dành cho gói `INC-LAB-001` khi bốn file được tạo đúng như ví dụ mục 12. Nếu gửi thêm file, đưa **đúng file đã thực sự tồn tại** vào danh sách hash. File SHA256 chỉ chứng minh **byte content không đổi giữa hai lần kiểm tra**, không chứng minh file có nguồn gốc đúng hoặc nội dung không bị chỉnh trước khi hash; vì vậy vẫn cần log về ai/when/how đã thu.
+These commands apply to the `INC-LAB-001` bundle when those four files are created as in Section 12. If adding more files, put the **exact existing files** into the hash list. A SHA-256 file only proves **bytes did not change between two checks**, not that the file came from the right origin or was unedited prior to hashing; hence you still need logs of who/when/how it was collected.
 
-Tạo archive nếu được phép:
+Create an archive if permitted:
 
 ```bash
 cd ..
@@ -458,128 +458,128 @@ tar -czf INC-LAB-001.tar.gz INC-LAB-001
 sha256sum INC-LAB-001.tar.gz > INC-LAB-001.tar.gz.sha256
 ```
 
-**Cảnh báo:** archive này chỉ nên chứa tài liệu **đã qua duyệt quyền chia sẻ và kiểm tra dữ liệu nhạy cảm**. Không đưa raw heap/core/secrets vào một archive trao đổi rộng. Hash không phải mã hóa. File gốc nhạy cảm lưu ở kho hạn chế quyền, còn bản redacted có checksum riêng và nêu rõ đã che những gì.
+**Warning:** this archive must contain **only materials approved for sharing and checked for sensitive data**. Never bundle raw heaps, cores, or secrets into a broadly shared archive. Hashing is not encryption. Store sensitive originals in access-restricted storage, while redacted copies carry their own checksums and document what was masked.
 
-### Khi cần chỉnh để bảo vệ thông tin
+### When redaction is needed to protect information
 
-Giữ hai lớp rõ ràng:
+Maintain two distinct tiers:
 
-- **Original, restricted:** bản gốc không đổi, có hash, thời điểm thu, ACL và thời hạn lưu giữ.
-- **Sanitized, shareable:** bản sao đã che token, email, payload, PII, thông tin người dùng, credential trong command line/env; hash của bản sao và mô tả thao tác redaction.
+- **Original, restricted:** unaltered original with hash, capture timestamp, ACLs, and retention deadline.
+- **Sanitized, shareable:** copy with tokens, emails, payloads, PII, user details, and command-line/env credentials masked; hash of the copy plus a description of the redaction applied.
 
-Không thể chỉ xóa vài dòng tùy tiện rồi gọi sanitized dump. Heap/core chứa dữ liệu nhị phân, và text output có thể có secret ở chỗ khó nhìn; đôi khi **không thể chia sẻ dump** ngoài nhóm được cấp quyền. Đối với investigation ticket, có thể cung cấp **chỉ metadata, signature và đường dẫn kho hạn chế**, thay vì đính kèm dữ liệu đầy đủ.
+You cannot delete a few random lines and call it a sanitized dump. Heaps and cores hold binary data, and text outputs can hide secrets in unobvious places; sometimes **a dump simply cannot be shared** outside an authorized group. For investigation tickets, you may provide **only metadata, signatures, and the restricted vault path**, instead of attaching full data.
 
-## 14. Từ bằng chứng tới giả thuyết, không nhảy thẳng tới kết luận
+## 14. From Evidence to Hypotheses, Without Jumping Straight to Conclusions
 
-Ví dụ một sự cố sau deploy có dấu fatal error trong JNI library, đồng thời memory usage cao. Ít nhất các giả thuyết sau cần được phân biệt:
+Suppose a post-deploy incident shows signs of a fatal error in a JNI library alongside high memory usage. At minimum, distinguish these hypotheses:
 
-| Giả thuyết | Bằng chứng có thể ủng hộ | Cách thử phản chứng |
+| Hypothesis | Potentially supporting evidence | How to falsify |
 | --- | --- | --- |
-| Native library version mới gây lỗi | `hs_err` ở native frame phù hợp, chỉ xảy ra với build chứa library mới | Chạy cùng input trên hai phiên bản native library trong lab |
-| Memory pressure tạo điều kiện lỗi | GC/native memory pressure đi trước crash, giới hạn container gần trần | Tái hiện cùng input với memory budget khác, kiểm tra loại crash |
-| Dữ liệu đầu vào kích hoạt code path lỗi | Crash gắn với một payload/format cụ thể, stack path nhất quán | Input synthetic tương đương vs input đối chứng |
-| Concurrency/race | Chỉ xuất hiện ở mức tải cao, nhiều thread/interleaving | Lặp nhiều runs, thay concurrency/seed nhưng giữ các biến khác |
-| OS kill chứ không phải fatal JVM crash | Kernel/cgroup OOM events, `OOMKilled`, không có fatal signature | So exit reason ngoài JVM, kiểm tra metrics và kill policy |
+| New native library version introduced a bug | `hs_err` in matching native frame, occurs only on builds with the new library | Run identical input on both native library versions in lab |
+| Memory pressure created failure conditions | GC/native memory pressure precedes crash, container near ceiling | Reproduce identical input under a different memory budget, check crash type |
+| Input data triggers buggy code path | Crash correlates with specific payload/format, consistent stack path | Equivalent synthetic input vs. control input |
+| Concurrency / race | Appears only under high load, many threads/interleavings | Repeat multiple runs, vary concurrency/seed while holding other variables fixed |
+| OS kill rather than fatal JVM crash | Kernel/cgroup OOM events, `OOMKilled`, no fatal signature | Check external exit reason, metrics, and kill policy |
 
-Dòng trong `hs_err` có thể chỉ là **nơi phát hiện** lỗi. Một correlation giữa thời điểm GC và crash chưa xác nhận GC là nguyên nhân. Kết luận nên chia mức:
+A line in `hs_err` may only be **where the fault was detected**. A timing correlation between GC and a crash does not prove GC caused it. State conclusions by tier:
 
-1. **Observed:** “Process exit, kernel báo OOMKilled” hoặc “hs_err header ghi SIGSEGV”.
-2. **Consistent with:** “Tình huống phù hợp với race trong native callback”.
-3. **Confirmed by controlled reproduction:** “Trong lab, thay duy nhất library version A→B dưới cùng input/limits làm signature chỉ xuất hiện trên B trong nhiều runs”.
-4. **Fix validated:** “Sau bản vá, test tái hiện và regression tests không còn xuất hiện signature trong phạm vi mẫu đã nêu”.
+1. **Observed:** “Process exited, kernel reported `OOMKilled`” or “`hs_err` header shows `SIGSEGV`.”
+2. **Consistent with:** “Situation is consistent with a race in the native callback.”
+3. **Confirmed by controlled reproduction:** “In lab, changing only library version A→B under identical inputs/limits caused the signature to appear only on B across multiple runs.”
+4. **Fix validated:** “After the patch, the reproduction test and regression suite no longer exhibit the signature within the stated sample scope.”
 
-Ngay cả “0 lỗi sau 100 lần” không chứng minh xác suất bằng 0; báo số lần và điều kiện cụ thể. Tránh viết kết luận lớn hơn bằng chứng.
+Even “0 failures after 100 runs” does not prove zero probability; report exact trial counts and conditions. Avoid writing conclusions broader than the evidence.
 
-## 15. Tiêu chí một gói đủ để chuyển giao
+## 15. Criteria for a Handover-Ready Bundle
 
-Người nhận không chứng kiến sự cố phải có khả năng trả lời được bảng kiểm:
+A recipient who did not witness the incident must be able to answer this checklist:
 
-| Kiểm tra | Pass khi |
+| Check | Passes when |
 | --- | --- |
-| **Định danh** | Incident ID, service, build/commit, JVM version, instance/PID/start time rõ ràng |
-| **Phân loại** | Phân biệt exception, fatal HotSpot crash, OOME, OS kill hay hang |
-| **Timeline** | Có cửa sổ thời gian cùng timezone, các mốc kích hoạt/crash/restart |
-| **Raw facts** | Ghi evidence filenames/source/commands; không chỉ screenshot hoặc lời kể |
-| **Tính toàn vẹn** | File đã hoàn tất, checksum/ownership/retention được quản lý |
-| **Khả năng phân tích** | `hs_err`/HPROF/JFR (nếu có) mở/đọc được, hoặc giải thích cụ thể vì sao thiếu |
-| **Reproducer** | Điều kiện, trigger, oracle, cách build/run, số lần thử và kết quả đối chứng |
-| **An toàn** | Dữ liệu nhạy cảm được phân loại, redaction/hạn quyền, không gửi secret |
-| **Giới hạn** | Hypothesis khác fact; ghi lỗ hổng bằng chứng, tính bất định |
-| **Bàn giao** | Người phụ trách, nơi lưu được phép, next action và cách đo việc khắc phục |
+| **Identification** | Clear Incident ID, service, build/commit, JVM version, instance/PID/start time |
+| **Classification** | Distinguishes exception, fatal HotSpot crash, OOME, OS kill, or hang |
+| **Timeline** | Includes time window with timezone, trigger/crash/restart milestones |
+| **Raw facts** | Records evidence filenames/sources/commands; not just screenshots or hearsay |
+| **Integrity** | Files are complete; checksums/ownership/retention are managed |
+| **Analyzability** | `hs_err`/HPROF/JFR (if present) open/parse cleanly, or missing reason is documented |
+| **Reproducer** | Preconditions, trigger, oracle, build/run steps, trial counts, and control results |
+| **Safety** | Sensitive data classified, redacted/access-restricted, no secrets leaked |
+| **Boundaries** | Hypotheses separated from facts; evidence gaps and uncertainty noted |
+| **Handover** | Clear owner, authorized storage location, next actions, and remediation metrics |
 
-Nếu một điều kiện chưa pass, nói rõ **chưa đủ** chứ không bịa artifact hoặc rút ngắn quy trình thành kết luận vô căn cứ. Một gói thiếu core vì policy cấm có thể vẫn **đủ để định hướng** nếu đã có signature và kế hoạch thu/repro tiếp theo; gói tối thiểu không đồng nghĩa check tất cả file bất kể hoàn cảnh.
+If a criterion fails, explicitly state **insufficient** rather than fabricating artifacts or shortcutting to an unfounded conclusion. A bundle lacking a core due to policy restrictions can still be **sufficient to guide next steps** if it includes the signature and a follow-up collection/repro plan; a minimal bundle does not mean blindly checking off every possible file regardless of context.
 
-### Những dấu hiệu gói chưa đủ
+### Signs a bundle is insufficient
 
-- “Lỗi cách đây vài hôm” mà không có giờ, timezone hoặc process instance.
-- Chỉ lưu stack trace đã cắt mất exception message, `Caused by` hoặc thread context.
-- Có heap dump lớn nhưng không biết JDK build, `-Xmx` hoặc diễn biến trước OOME.
-- Có `hs_err` nhưng không ghi native libraries/build/symbols; không biết file còn nguyên vẹn không.
-- Chỉ có command “`java -jar app.jar`” nhưng JAR không có version/hash, input đã bị mất.
-- Tái hiện 1/1 lần nhưng ghi “luôn xảy ra”, bỏ qua 10 lần fail-to-reproduce trước đó.
-- Screenshot monitoring không có timestamp/timezone, trục đơn vị hoặc phạm vi filter.
-- Dùng một loạt env var chứa secret trong ticket công khai để “đảm bảo đầy đủ”.
-- Tệp `.jfr` chưa kiểm tra `jfr summary`, hoặc file chỉ chứa thời gian **sau** sự cố.
-- Copy `hs_err` ra đường chia sẻ nhưng không xác nhận quyền/retention.
+- “Failed a few days ago” with no time, timezone, or process instance.
+- Saving only a truncated stack trace missing the exception message, `Caused by`, or thread context.
+- Having a huge heap dump without knowing JDK build, `-Xmx`, or pre-OOME trends.
+- Having `hs_err` without native libraries/builds/symbols, or not knowing if the file is intact.
+- Providing only the command “`java -jar app.jar`” when the JAR has no version/hash and the input was lost.
+- Reproducing 1/1 time and claiming “always happens,” ignoring 10 earlier failed reproductions.
+- Monitoring screenshots lacking timestamps/timezones, axis units, or filter scope.
+- Dumping raw env vars containing secrets into a public ticket “to be thorough.”
+- `.jfr` files not checked with `jfr summary`, or containing only the period **after** the incident.
+- Copying `hs_err` to a shared folder without checking permissions or retention.
 
-## 16. Sai lầm thường gặp và cách khắc phục
+## 16. Common Mistakes and How to Fix Them
 
-1. **Tưởng mọi Java exception đều là JVM crash.** Java stack trace thường không tạo `hs_err`; phải phân loại trước.
-2. **Cố chạy `jcmd` sau khi process đã chết.** Không thể hỏi một JVM không tồn tại; tập trung vào file/OS evidence.
-3. **Để restart ghi đè hoặc xóa log.** Cần snapshot/copy trước khi cleanup nếu có thể, và ghi timeline restart.
-4. **Nhầm PID với identity bất biến.** PID có thể được dùng lại; cần process start time/instance ID.
-5. **Cho rằng thiếu `hs_err` chứng minh không có fatal error.** Path/permission/disk/kill có thể làm mất file.
-6. **Cho rằng `SIGKILL/137` chứng minh OOM.** Có nhiều nguyên nhân bị kill; cần OS/orchestrator evidence.
-7. **Cho rằng heap dump giải thích native memory.** HPROF chỉ một phần bức tranh.
-8. **Thu core/heap dump vô điều kiện.** Rủi ro pause/disk/security; cần câu hỏi điều tra và phê duyệt.
-9. **Không giữ JDK vendor/update/native library.** Không đủ để phân tích crash phụ thuộc binary.
-10. **Đưa secrets vào manifest.** Không lưu toàn bộ env/command line chưa xét quyền.
-11. **Chỉ nói “tái hiện được” mà không ghi trigger.** Đồng nghiệp không thể kiểm chứng.
-12. **Không giữ control case.** Khó phân biệt input/flag/traffic nào làm lỗi xuất hiện.
-13. **Bịa stdout/exit status hoặc tái hiện “3/3”.** Nếu chưa chạy, mô tả là dự kiến và ghi khoảng trống.
-14. **Ghép số liệu ở timezone khác nhau.** Timeline có thể tạo nhân quả giả.
-15. **Hash sau khi tự sửa file gốc.** Không còn bảo đảm nội dung phát sinh lúc sự cố.
-16. **Hash file đang được ghi.** Hash không đại diện artifact cuối cùng.
-17. **Dùng checksum như cơ chế bảo mật.** Hash không mã hóa hay hạn quyền.
-18. **Gửi file nhị phân nhạy cảm qua kênh tự do.** Core/heap có thể chứa token và dữ liệu khách hàng.
-19. **Gán root cause từ problematic frame.** Frame phát hiện lỗi khác nơi tạo lỗi.
-20. **Kết luận “fixed” sau một lần không lỗi.** Phải lặp lại theo tần suất và điều kiện tương đương.
+1. **Assuming every Java exception is a JVM crash.** Java stack traces usually do not create `hs_err`; classify first.
+2. **Trying to run `jcmd` after the process is dead.** You cannot query a nonexistent JVM; focus on files and OS evidence.
+3. **Letting restarts overwrite or delete logs.** Snapshot/copy before cleanup when possible, and log restart timestamps.
+4. **Confusing PID with immutable identity.** PIDs get reused; record process start time and instance ID.
+5. **Assuming missing `hs_err` proves no fatal error.** Paths, permissions, disk, or kills can prevent file creation.
+6. **Assuming `SIGKILL/137` proves OOM.** Many causes lead to kills; check OS/orchestrator evidence.
+7. **Assuming a heap dump explains native memory.** HPROF shows only part of the picture.
+8. **Collecting cores/heap dumps unconditionally.** Carries pause, disk, and security risks; require an investigative question and approval.
+9. **Omitting JDK vendor/update/native library versions.** Insufficient for binary-dependent crash analysis.
+10. **Putting secrets into the manifest.** Never store raw env/command lines without security review.
+11. **Saying “reproducible” without recording the trigger.** Colleagues cannot verify it.
+12. **Skipping a control case.** Hard to tell which input, flag, or traffic pattern caused the failure.
+13. **Fabricating stdout/exit status or “3/3” reproductions.** If unexecuted, mark as expected and note the gap.
+14. **Mixing metrics across timezones.** Timelines can create false causality.
+15. **Hashing after editing original files.** No longer verifies the exact incident-time bytes.
+16. **Hashing files still being written.** The hash will not match the final artifact.
+17. **Using checksums as a security mechanism.** Hashing neither encrypts nor restricts access.
+18. **Sending sensitive binary files over open channels.** Cores and heaps can contain tokens and customer data.
+19. **Assigning root cause straight from the problematic frame.** Where the fault surfaces differs from where corruption started.
+20. **Declaring “fixed” after a single clean run.** Repeat across equivalent frequencies and conditions.
 
-## 17. Bài tập thực hành và tự đánh giá
+## 17. Practice Exercises and Self-Assessment
 
-**Bài 1 — sự cố kiểu gì?** Ứng dụng in `Exception in thread "main" java.lang.IllegalArgumentException` rồi thoát nonzero; không có `hs_err`. Gói tối thiểu nên có gì?
+**Exercise 1 — what kind of incident?** The app prints `Exception in thread "main" java.lang.IllegalArgumentException` and exits nonzero; no `hs_err`. What should the minimal bundle contain?
 
-*Gợi ý:* Source/build, lệnh/input, Java stderr/stack, exit status, JVM version, expected/actual và reproducer. Không bắt buộc core hay fatal error log.
+*Hint:* Source/build, command/input, Java stderr/stack, exit status, JVM version, expected/actual, and reproducer. Core dump and fatal error log are not required.
 
-**Bài 2 — JVM fatal native:** Có `hs_err_pid12345.log` với problematic frame ở `libparser.so` nhưng không có core vì OS policy. Có thể kết luận thư viện đó là nguyên nhân chắc chắn?
+**Exercise 2 — fatal native JVM crash:** You have `hs_err_pid12345.log` with problematic frame in `libparser.so`, yet no core due to OS policy. Can you conclude that library is definitely the root cause?
 
-*Gợi ý:* Chưa. Giữ file fatal log, JDK/native build, flags, library version, OS, timeline và mô tả thiếu core. Tạo lab repro để kiểm tra giả thuyết, tránh gọi frame là root cause đã xác nhận.
+*Hint:* Not yet. Preserve the fatal log, JDK/native builds, flags, library version, OS, timeline, and note the missing core. Build a lab reproducer to test the hypothesis without calling the frame a confirmed root cause.
 
-**Bài 3 — OOMKilled:** Một container exit 137, không có heap dump. Có thể kết luận Java heap leak?
+**Exercise 3 — OOMKilled:** A container exits 137 with no heap dump. Can you conclude a Java heap leak?
 
-*Gợi ý:* Không. Đọc kernel/cgroup/orchestrator events và container limits; 137 có thể là SIGKILL do nguồn khác. Heap dump vắng mặt không loại trừ OOM kill hay native memory pressure.
+*Hint:* No. Read kernel/cgroup/orchestrator events and container limits; 137 could be `SIGKILL` from another source. Absence of a heap dump rules out neither an OOM kill nor native memory pressure.
 
-**Bài 4 — thời gian:** JFR báo GC pause lúc 09:20 UTC, app log báo request 16:20 GMT+7. Hai mốc có trùng thời gian thực không?
+**Exercise 4 — time:** JFR reports a GC pause at 09:20 UTC, and app logs show a request at 16:20 GMT+7. Do those two timestamps match in real time?
 
-*Gợi ý:* 09:20 UTC tương ứng 16:20 tại Việt Nam cùng ngày. Vẫn cần đối chiếu ngày, seconds và clock skew trước khi suy quan hệ nhân quả.
+*Hint:* 09:20 UTC equals 16:20 in Vietnam on the same date. Still verify exact date, seconds, and clock skew before inferring causality.
 
-**Bài 5 — tái hiện:** Run A lỗi 2/20 lần ở 100 requests/s; run B không lỗi 0/5 lần ở 10 requests/s. Có chứng minh tải là nguyên nhân?
+**Exercise 5 — reproduction:** Run A fails 2/20 times at 100 requests/s; run B has 0/5 failures at 10 requests/s. Does that prove load is the cause?
 
-*Gợi ý:* Chưa đủ; khác cả workload và sample size. Thiết kế nhiều lần thử với cùng build/input/limits, thay một biến mỗi vòng và ghi kết quả âm tính/dương tính.
+*Hint:* Not yet; both workload and sample size differ. Design more trials with identical build/input/limits, varying one variable per round and recording both negative and positive outcomes.
 
-**Bài 6 — chia sẻ:** Heap dump chứa session tokens và payload khách hàng. Có nên đính kèm trực tiếp vào issue tracker công khai?
+**Exercise 6 — sharing:** A heap dump contains session tokens and customer payloads. Should it be attached directly to a public issue tracker?
 
-*Gợi ý:* Không. Chỉ lưu ở nơi được phép có ACL, encryption và retention; ticket công khai chỉ cần signature, manifest và tham chiếu quyền hạn. Redacted copy được đánh hash riêng.
+*Hint:* No. Store only in an authorized location with ACLs, encryption, and retention; a public ticket only needs the signature, manifest, and restricted-access reference. Redacted copies get their own hashes.
 
-**Bài 7 — chạy ví dụ:** Biên dịch `IncidentReproDemo.java`, tạo `INC-LAB-001` bằng lệnh mục 12, so `stdout.log`/`stderr.log`/exit-code của `range-error` với `valid`, tính SHA-256. Viết `README` năm dòng mô tả phân loại, expected/actual, oracle, evidence còn thiếu và bước xác minh tiếp theo.
+**Exercise 7 — run the example:** Compile `IncidentReproDemo.java`, create `INC-LAB-001` using the commands in Section 12, compare `stdout.log`/`stderr.log`/exit-code of `range-error` against `valid`, and compute SHA-256. Write a five-line `README` describing classification, expected/actual, oracle, missing evidence, and the next verification step.
 
-## 18. Nguồn tham chiếu chính thức
+## 18. Official References
 
-- [Oracle JDK 21 — Prepare Java for Troubleshooting: bật flags trước và gather relevant data](https://docs.oracle.com/en/java/javase/21/troubleshoot/prepare-java-troubleshooting.html).
-- [Oracle JDK 21 — Fatal Error Log: vị trí, header, threads, process và system sections](https://docs.oracle.com/en/java/javase/21/troubleshoot/fatal-error-log.html).
-- [Oracle JDK 21 — `java` launcher: `-XX:ErrorFile`, `-XX:+HeapDumpOnOutOfMemoryError` và `-XX:HeapDumpPath`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html).
+- [Oracle JDK 21 — Prepare Java for Troubleshooting: enabling flags beforehand and gathering relevant data](https://docs.oracle.com/en/java/javase/21/troubleshoot/prepare-java-troubleshooting.html).
+- [Oracle JDK 21 — Fatal Error Log: locations, header, threads, process, and system sections](https://docs.oracle.com/en/java/javase/21/troubleshoot/fatal-error-log.html).
+- [Oracle JDK 21 — `java` launcher: `-XX:ErrorFile`, `-XX:+HeapDumpOnOutOfMemoryError`, and `-XX:HeapDumpPath`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html).
 - [Oracle JDK 21 — `jcmd`: `Thread.print`, `VM.version`, `VM.flags`, `JFR.dump`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html).
-- [Oracle JDK 21 — `jfr`: `summary`, `print` và kiểm tra file](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html).
-- [Oracle JDK 21 — Troubleshoot Memory Leaks: phân biệt `Java heap space` và các dạng OOME](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html).
+- [Oracle JDK 21 — `jfr`: `summary`, `print`, and inspecting files](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html).
+- [Oracle JDK 21 — Troubleshoot Memory Leaks: distinguishing `Java heap space` and other OOME forms](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html).
 
-**Kết luận thực hành:** Gói bằng chứng tốt giúp người khác **kiểm tra lại**, không buộc họ tin lời kể. Hãy bàn giao **triệu chứng + bối cảnh + timeline + artifact gốc có thể xác minh + công thức tái hiện + phạm vi bất định**. Chỉ báo nguyên nhân khi chứng cứ và phép thử đủ mạnh; đừng hy sinh bí mật dữ liệu hoặc ổn định production để có thêm một file.
+**Practical takeaway:** A solid evidence bundle lets others **verify for themselves**, rather than forcing them to take a story on faith. Hand over **symptoms + context + timeline + verifiable raw artifacts + reproduction recipe + uncertainty bounds**. State a root cause only when evidence and experiments are strong enough; never sacrifice data confidentiality or production stability just to add one more file.

@@ -1,135 +1,135 @@
-# 1.2 Quan hệ giữa ứng dụng, JVM, JDK, hệ điều hành và tài nguyên máy
+# 1.2 Relationship Between Application, JVM, JDK, Operating System, and Machine Resources
 
-Khi một dịch vụ Java chậm, treo, tiêu thụ nhiều bộ nhớ hoặc bị dừng đột ngột, dấu hiệu nhìn thấy ở ứng dụng có thể bắt nguồn từ một lớp khác. Muốn chẩn đoán đúng, cần hiểu ứng dụng đang chạy **bên trong một JVM**, JVM là thành phần thực thi của một **tiến trình hệ điều hành**, còn tiến trình đó cạnh tranh hoặc bị giới hạn bởi **CPU, bộ nhớ, đĩa, mạng và các giới hạn tài nguyên**. **JDK** cung cấp bộ công cụ để xây dựng, khởi chạy và quan sát hệ thống ấy.
+When a Java service is slow, hangs, consumes too much memory, or terminates unexpectedly, the sign visible in the application may originate from another layer. To diagnose accurately, you must understand that the application runs **inside a JVM**, the JVM is the execution component inside an **operating system process**, and that process competes for or is constrained by **CPU, memory, disk, network, and resource limits**. The **JDK** provides the toolset to build, launch, and observe that system.
 
-Mục tiêu của bài: phân biệt trách nhiệm từng lớp; lần theo đường đi từ mã Java đến tài nguyên máy; giải thích vì sao số liệu ở các lớp không nhất thiết bằng nhau; và biết phải kiểm tra lớp nào trước khi quy kết nguyên nhân sự cố.
+Lesson objectives: distinguish the responsibilities of each layer; trace the path from Java code to machine resources; explain why metrics across layers are not necessarily equal; and know which layer to inspect before attributing the cause of an incident.
 
-## 1. Mô hình các lớp và chiều phụ thuộc
+## 1. Layer Model and Dependency Direction
 
 ```text
-Yêu cầu bên ngoài / người dùng / hệ thống khác
+External requests / users / other systems
                   |
                   v
-ỨNG DỤNG JAVA: mã nghiệp vụ, framework, thư viện, pool, hàng đợi
+JAVA APPLICATION: business code, frameworks, libraries, pools, queues
                   |
-       chạy bên trong tiến trình chứa
+       runs inside a process containing
                   v
 JVM: class loading, interpreter/JIT, heap/GC,
-     runtime threads, JNI, quản lý vùng nhớ của JVM
+     runtime threads, JNI, JVM memory management
                   |
-         sử dụng dịch vụ hệ thống
+          uses system services
                   v
-HỆ ĐIỀU HÀNH: lập lịch CPU, virtual memory, threads,
-              files, sockets, I/O, quyền và giới hạn
+OPERATING SYSTEM: CPU scheduling, virtual memory, threads,
+                  files, sockets, I/O, permissions and limits
                   |
-      sử dụng hoặc phân phối tài nguyên
+      uses or allocates resources
                   v
-MÁY THẬT / MÁY ẢO / CONTAINER: CPU, RAM, lưu trữ, mạng,
-                               quota và tài nguyên chia sẻ
+PHYSICAL MACHINE / VM / CONTAINER: CPU, RAM, storage, network,
+                                   quotas and shared resources
 
 JDK: javac, java, jcmd, jfr, jstack, jmap, ...
-  ├─ chứa runtime cần để chạy ứng dụng (có JVM)
-  └─ cung cấp công cụ đứng ngoài tiến trình để biên dịch,
-     khởi chạy, thu thập và phân tích bằng chứng.
+  ├─ contains the runtime needed to run the application (including JVM)
+  └─ provides external tools out-of-process to compile,
+     launch, collect, and analyze evidence.
 ```
 
-Sơ đồ mô tả **phụ thuộc khi chạy**, không phải mỗi khối đều là một tiến trình riêng. Trong trường hợp phổ biến, lệnh `java` khởi tạo một tiến trình hệ điều hành chứa JVM và ứng dụng. JVM cũng có mã native và thư viện native chạy trong cùng tiến trình. Ứng dụng có thể tương tác với hệ điều hành qua Java API hoặc mã native/JNI. Phần lớn công cụ JDK như `jcmd` chạy dưới dạng **tiến trình công cụ riêng**, kết nối tới JVM đích nếu điều kiện quyền và khả năng attach cho phép.
+The diagram describes **runtime dependencies**, not that every block is a separate process. In the common case, the `java` command launches one operating system process containing the JVM and the application. The JVM also has native code and native libraries running inside the same process. The application can interact with the operating system through Java APIs or native/JNI code. Most JDK tools such as `jcmd` run as **separate tool processes**, connecting to the target JVM if permissions and attach capabilities allow.
 
-| Lớp | Sở hữu hoặc quyết định điều gì? | Bằng chứng chẩn đoán tiêu biểu |
+| Layer | What It Owns or Determines | Typical Diagnostic Evidence |
 | --- | --- | --- |
-| Ứng dụng | Luồng yêu cầu, thuật toán, kết nối DB, thread pool, cache, retry, timeout, khóa ứng dụng | Log/tracing, latency, error rate, số yêu cầu đang chờ, kích thước pool |
-| JVM | Nạp lớp, thực thi bytecode/mã JIT, heap, GC, metaspace, JIT code cache, nhiều loại thread | GC log, JFR, thread dump, thông số heap, JVM flags |
-| JDK/toolchain | Trình biên dịch, launcher, thư viện/runtime đi kèm, công cụ quan sát | `java -version`, `javac -version`, `jcmd`; phiên bản JDK chạy thực tế |
-| Hệ điều hành | Tiến trình/PID, lập lịch thread, bộ nhớ ảo, file descriptor, socket, filesystem, permission | CPU theo PID/TID, RSS, I/O, giới hạn mở file, kernel log |
-| Máy/VM/container | Số lõi và RAM thực khả dụng, tài nguyên chia sẻ, quota CPU, giới hạn bộ nhớ | CPU throttling, memory pressure, cgroup limits, I/O latency, host metrics |
+| Application | Request flow, algorithms, DB connections, thread pools, caches, retries, timeouts, application locks | Logs/tracing, latency, error rate, queued requests, pool sizes |
+| JVM | Class loading, bytecode/JIT execution, heap, GC, metaspace, JIT code cache, various thread types | GC logs, JFR, thread dumps, heap metrics, JVM flags |
+| JDK/toolchain | Compiler, launcher, bundled libraries/runtime, observation tools | `java -version`, `javac -version`, `jcmd`; actual running JDK version |
+| Operating system | Process/PID, thread scheduling, virtual memory, file descriptors, sockets, filesystem, permissions | CPU by PID/TID, RSS, I/O, open file limits, kernel logs |
+| Machine/VM/container | Available physical cores and RAM, shared resources, CPU quota, memory limits | CPU throttling, memory pressure, cgroup limits, I/O latency, host metrics |
 
-**Quy tắc suy luận:** chỉ nhìn thấy hiện tượng ở lớp A không đủ để kết luận nguyên nhân thuộc A. Ví dụ, HTTP timeout có thể do khóa ứng dụng, GC pause, CPU bị throttling, truy vấn DB chậm hoặc mạng mất kết nối.
+**Inference rule:** observing a phenomenon in layer A alone is not enough to conclude the cause belongs to A. For example, an HTTP timeout can be caused by an application lock, a GC pause, CPU throttling, a slow DB query, or a dropped network connection.
 
-## 2. Từ mã nguồn đến tiến trình đang chạy: JDK và JVM khác nhau thế nào?
+## 2. From Source Code to Running Process: How Do JDK and JVM Differ?
 
-Luồng thông thường:
+Typical flow:
 
-1. `javac` trong JDK biên dịch tệp `.java` thành bytecode `.class` (hoặc qua công cụ build tạo JAR).
-2. Lệnh `java` chọn runtime, tạo tiến trình và khởi động JVM; class loader nạp các class cần thiết.
-3. JVM xác minh, liên kết, khởi tạo lớp theo nhu cầu; thực thi bytecode bằng interpreter và có thể biên dịch các đoạn nóng thành mã máy qua JIT. Không phải mọi phương thức đều luôn được JIT.
-4. Khi chạy, JVM/ứng dụng yêu cầu hệ điều hành cấp CPU, trang nhớ, thread, file, socket và I/O. Hệ điều hành phân phối các yêu cầu đó trên phần cứng hoặc hạ tầng ảo hóa.
-5. JDK tools có thể giúp quan sát tiến trình đang chạy. Chúng không tự động sửa lỗi nghiệp vụ hay thay thế metric ứng dụng.
+1. `javac` in the JDK compiles `.java` files into `.class` bytecode (or builds a JAR via a build tool).
+2. The `java` command selects the runtime, creates a process, and starts the JVM; class loaders load the required classes.
+3. The JVM verifies, links, and initializes classes on demand; executes bytecode with the interpreter and may compile hot paths into machine code via JIT. Not every method is always JIT-compiled.
+4. At runtime, the JVM/application requests CPU, memory pages, threads, files, sockets, and I/O from the operating system. The operating system schedules and allocates those requests on hardware or virtualized infrastructure.
+5. JDK tools can help observe the running process. They do not automatically fix business bugs or replace application metrics.
 
-**Phân biệt quan trọng:**
+**Important distinctions:**
 
-- **JVM** là máy ảo thực thi Java bytecode; HotSpot là một triển khai thông dụng. JVM không đồng nghĩa toàn bộ JDK.
-- **JDK** là bộ phát triển chứa công cụ biên dịch và một runtime phù hợp để chạy chương trình. Không nhất thiết cần `javac` trên máy production; image runtime tối giản có thể không có `jcmd` hay `javac`.
-- **JRE** là cách gọi môi trường chạy Java; lịch sử có bản phân phối JRE độc lập, nhưng khi chẩn đoán hiện đại hãy kiểm tra **runtime/JDK thực tế mà tiến trình đang dùng**, không suy diễn từ tên thư mục hay `JAVA_HOME`.
-- Hai máy có cùng mã ứng dụng nhưng khác phiên bản JVM, cấu hình JVM, hệ điều hành hoặc quota tài nguyên có thể có hành vi hiệu năng khác nhau. Nếu bytecode được biên dịch cho phiên bản Java mới hơn runtime đích hỗ trợ, có thể gặp `UnsupportedClassVersionError` khi nạp class.
+- **JVM** is the virtual machine that executes Java bytecode; HotSpot is one common implementation. JVM is not synonymous with the entire JDK.
+- **JDK** is the development kit containing compilation tools and a suitable runtime to run programs. `javac` is not necessarily needed on production machines; minimal runtime images may omit `jcmd` or `javac`.
+- **JRE** is a term for a Java runtime environment; historically there were standalone JRE distributions, but in modern diagnostics always verify the **actual runtime/JDK that the process is using**, rather than inferring from directory names or `JAVA_HOME`.
+- Two machines with the same application code but different JVM versions, JVM configurations, operating systems, or resource quotas can exhibit different performance behavior. If bytecode was compiled for a newer Java version than the target runtime supports, `UnsupportedClassVersionError` may occur during class loading.
 
-Lệnh `java -version` trong shell cho biết **lệnh `java` mà shell tìm thấy**, có thể khác runtime của tiến trình dịch vụ đã khởi động trước đó. Khi điều tra, đối chiếu đường dẫn thực thi, command line, môi trường và PID cụ thể; không dùng kết quả một terminal làm bằng chứng chắc chắn cho mọi JVM trên máy.
+Running `java -version` in a shell reports the **`java` command found by that shell**, which may differ from the runtime of a service process started earlier. During an investigation, verify the executable path, command line, environment, and specific PID; do not use one terminal's output as definitive evidence for every JVM on the machine.
 
-## 3. Tài nguyên đi qua các lớp như thế nào?
+## 3. How Do Resources Flow Through the Layers?
 
-### 3.1 CPU: công việc của ứng dụng, thread JVM và lịch chạy của OS
+### 3.1 CPU: Application Work, JVM Threads, and OS Scheduling
 
-Ứng dụng tạo công việc; JVM thực thi mã Java, GC và JIT; hệ điều hành lên lịch các thread lên CPU. Vì thế CPU cao của tiến trình Java có thể đến từ:
+The application creates work; the JVM executes Java code, GC, and JIT; the operating system schedules threads onto CPUs. Therefore, high CPU in a Java process can come from:
 
-- Vòng lặp/tính toán nghiệp vụ, parsing/serialization, mã thư viện hoặc lock contention kèm spin.
-- GC hoặc JIT compiler của JVM, bên cạnh thread ứng dụng.
-- Số thread runnable cao trong khi CPU quota hoặc số CPU thực cấp thấp.
+- Business loops/computations, parsing/serialization, library code, or lock contention with spinning.
+- JVM GC or JIT compiler threads, alongside application threads.
+- A high number of runnable threads while CPU quota or allocated physical CPUs are low.
 
-**Platform thread** Java thường tương ứng với một native OS thread; bộ lập lịch OS quyết định khi nào thread đó được chạy. **Virtual thread** (Java 21+) không ánh xạ 1:1 tới OS thread: nhiều virtual thread được JVM lên lịch trên một tập carrier platform threads. Không suy ra số native threads từ số virtual threads.
+A Java **platform thread** typically maps to a native OS thread; the OS scheduler decides when that thread runs. **Virtual threads** (Java 21+) do not map 1:1 to OS threads: many virtual threads are scheduled by the JVM onto a pool of carrier platform threads. Do not infer the native thread count from the virtual thread count.
 
-`Runtime.getRuntime().availableProcessors()` phản ánh số bộ xử lý mà JVM coi là khả dụng cho tiến trình, có thể bị ảnh hưởng bởi CPU affinity, cgroup/container quota hoặc `-XX:ActiveProcessorCount`; không mặc nhiên bằng tổng số lõi của host. Công cụ báo “100% CPU” cũng cần ngữ cảnh: đó có thể là một lõi, một tiến trình hoặc phần trăm của quota tùy cách công cụ quy đổi.
+`Runtime.getRuntime().availableProcessors()` reflects the number of processors the JVM considers available to the process, which can be affected by CPU affinity, cgroup/container quotas, or `-XX:ActiveProcessorCount`; it does not automatically equal the host's total core count. Tools reporting "100% CPU" also require context: that could mean one core, one process, or a percentage of quota depending on how the tool normalizes it.
 
-Với latency tăng, cần xem đồng thời: CPU theo tiến trình/thread, số CPU được phép dùng, CPU throttling, GC/JIT activity và thời gian chờ I/O. Một thread ở trạng thái `RUNNABLE` trong thread dump Java không chứng minh nó đang chiếm trọn một lõi CPU ở đúng thời điểm lấy mẫu.
+When latency increases, inspect concurrently: CPU per process/thread, permitted CPU count, CPU throttling, GC/JIT activity, and I/O wait time. A thread in `RUNNABLE` state in a Java thread dump does not prove it is occupying an entire CPU core at the exact moment of sampling.
 
-### 3.2 Bộ nhớ: heap chỉ là một phần của tiến trình
+### 3.2 Memory: Heap Is Only One Part of the Process
 
-Không đồng nhất `-Xmx` với “RAM tối đa của ứng dụng”. Những vùng đáng chú ý gồm:
+Do not equate `-Xmx` with "maximum RAM of the application." Areas to watch include:
 
-| Khái niệm | Ý nghĩa | Cách hiểu khi chẩn đoán |
+| Concept | Meaning | How to Interpret in Diagnostics |
 | --- | --- | --- |
-| Java heap | Nơi lưu phần lớn object Java; chịu quản lý của GC | `-Xmx` là giới hạn heap tối đa, không phải tổng RAM tiến trình |
-| Metaspace | Metadata của lớp trong native memory | Có thể tăng do nạp lớp/class loader; không thuộc heap |
-| Code cache | Mã máy do JIT biên dịch và metadata liên quan | Có tiêu thụ bộ nhớ ngoài heap |
-| Thread stacks | Stack native cho platform threads, theo cấu hình/runtime | Nhiều platform threads có thể làm tăng nhu cầu native memory |
-| Direct/native memory | Ví dụ direct buffers, JNI/native libraries, native allocations | Có thể gây áp lực bộ nhớ dù heap còn chỗ |
-| RSS của tiến trình | Các trang bộ nhớ hiện đang cư trú trong RAM theo cách OS hạch toán | Không đồng nghĩa heap used, cũng không đồng nghĩa tổng bộ nhớ đã reserve |
-| Bộ nhớ container/host | Giới hạn/quota và phần bộ nhớ hệ thống hạch toán | Có thể gồm các thành phần như page cache; cách hạch toán tùy OS/cgroup |
+| Java heap | Where most Java objects live; managed by GC | `-Xmx` is the maximum heap limit, not total process RAM |
+| Metaspace | Class metadata in native memory | Can grow from class loading/class loaders; not part of the heap |
+| Code cache | Machine code compiled by JIT and related metadata | Consumes memory outside the heap |
+| Thread stacks | Native stacks for platform threads, per configuration/runtime | Many platform threads can increase native memory demand |
+| Direct/native memory | E.g., direct buffers, JNI/native libraries, native allocations | Can cause memory pressure even when the heap still has room |
+| Process RSS | Memory pages currently resident in RAM as accounted by the OS | Not synonymous with heap used, nor with total reserved memory |
+| Container/host memory | Limits/quotas and memory accounted by the system | May include components such as page cache; accounting depends on OS/cgroup |
 
-Các đại lượng dễ bị nhầm:
+Easily confused quantities:
 
-- **Used heap**: dung lượng đối tượng/không gian heap đang sử dụng theo cách metric JVM đo tại thời điểm lấy mẫu.
-- **Committed heap**: phần dung lượng heap JVM đã cam kết có thể dùng từ OS; có thể lớn hơn used.
-- **Max heap**: giới hạn tối đa JVM dự định cho heap; không phải lượng RAM đang chiếm thực tế.
-- **Reserved virtual address space**: không có nghĩa toàn bộ số byte đó đang ở RAM.
-- **RSS**: metric ở tầng OS cho các trang resident; có thể gồm vùng mapping/shared và không thể suy ra bằng phép cộng giản đơn mọi số trong JVM.
+- **Used heap**: amount of objects/heap space currently in use as measured by JVM metrics at sampling time.
+- **Committed heap**: amount of heap memory the JVM has committed from the OS; can be larger than used.
+- **Max heap**: maximum limit the JVM plans for the heap; not the amount of RAM currently occupied.
+- **Reserved virtual address space**: does not mean all of those bytes reside in RAM.
+- **RSS**: OS-level metric for resident pages; may include mapped/shared regions and cannot be derived by simply adding up every JVM number.
 
-Ví dụ: container giới hạn 512 MiB, JVM đặt `-Xmx400m`. Khi heap, metaspace, code cache, native buffers, thread stacks và bộ nhớ hệ thống cùng tăng, container **vẫn có thể vượt giới hạn** và tiến trình bị kill dù heap chưa dùng hết 400 MiB. Đây là lý do phải xem cả JVM heap **và** tổng memory usage / giới hạn container.
+For example: a container has a 512 MiB limit, and the JVM sets `-Xmx400m`. When heap, metaspace, code cache, native buffers, thread stacks, and system memory grow together, the container **can still exceed its limit** and the process can be killed even though the heap has not used all 400 MiB. This is why you must check both JVM heap **and** total memory usage / container limits.
 
-Cần tách ba trường hợp:
+Separate three cases:
 
-1. `OutOfMemoryError: Java heap space`: JVM không cấp được yêu cầu trên heap trong giới hạn/cơ chế GC hiện tại; điều tra object retention, allocation rate, heap sizing.
-2. Lỗi native resource (chẳng hạn `OutOfMemoryError: unable to create native thread` hoặc lỗi cấp phát direct buffer): điều tra native memory, thread count, giới hạn OS; không mặc định tăng `-Xmx`.
-3. Tiến trình bị OS/container kết thúc bằng `SIGKILL`: JVM có thể không kịp sinh Java exception hay heap dump. Exit code 137 trong nhiều môi trường thường biểu thị SIGKILL nhưng **không tự chứng minh OOM kill**; cần đối chiếu kernel/cgroup/container event.
+1. `OutOfMemoryError: Java heap space`: the JVM cannot satisfy a heap allocation within current limits/GC behavior; investigate object retention, allocation rate, and heap sizing.
+2. Native resource errors (such as `OutOfMemoryError: unable to create native thread` or direct buffer allocation failure): investigate native memory, thread count, and OS limits; do not blindly increase `-Xmx`.
+3. Process terminated by OS/container via `SIGKILL`: the JVM may not have time to emit a Java exception or heap dump. Exit code 137 in many environments commonly indicates SIGKILL, **but does not by itself prove an OOM kill**; check kernel/cgroup/container events.
 
-### 3.3 File, socket, network và I/O
+### 3.3 Files, Sockets, Network, and I/O
 
-Java `Files`, `Socket`, JDBC driver, NIO selector hoặc thư viện logging cuối cùng vẫn phụ thuộc tài nguyên OS và hệ thống bên ngoài. Mỗi kết nối hoặc tệp mở có thể tiêu thụ file descriptor/handle và buffer, trong khi độ trễ I/O chịu ảnh hưởng đĩa, filesystem, thiết bị mạng, DNS, server đích và quota.
+Java `Files`, `Socket`, JDBC drivers, NIO selectors, or logging libraries still ultimately depend on OS resources and external systems. Each open connection or file can consume a file descriptor/handle and buffers, while I/O latency is affected by disks, filesystems, network devices, DNS, target servers, and quotas.
 
-Khi gặp “Too many open files”, hãy kiểm tra số descriptor đang dùng so với soft/hard limit của **đúng tiến trình**, cùng lifecycle đóng resource. Khi kết nối DB cạn, phân biệt pool ứng dụng bị dùng hết với số socket OS, cổng mạng, độ trễ server DB và lỗi timeout. “Java treo” có thể chỉ là các thread đang đợi syscall hoặc phản hồi từ dịch vụ khác.
+When encountering "Too many open files," check the number of descriptors in use against the soft/hard limits of the **exact process**, along with resource-closing lifecycles. When DB connections are exhausted, distinguish an exhausted application pool from OS sockets, network ports, DB server latency, and timeouts. A "hung Java process" may simply be threads waiting on syscalls or responses from another service.
 
-### 3.4 Container và máy chủ: nhìn đúng phạm vi
+### 3.4 Containers and Hosts: Look at the Right Scope
 
-Container **chia sẻ kernel** với host nhưng có thể dùng namespace và cgroup để cô lập định danh tiến trình và giới hạn tài nguyên. Vì vậy:
+Containers **share the kernel** with the host but can use namespaces and cgroups to isolate process identifiers and resource limits. Therefore:
 
-- PID nhìn bên trong container có thể khác PID nhìn từ host. Luôn biết lệnh đo đang chạy ở namespace nào.
-- Chỉ số CPU/RAM của host và container không hoán đổi trực tiếp. Một host còn RAM không bảo đảm container chưa tới `memory.max`.
-- Trên Linux cgroup v2, `memory.max` biểu diễn memory limit (chuỗi `max` nghĩa là không đặt giới hạn ở tầng file đó), `memory.current` là mức sử dụng được hạch toán, `memory.events` cho biết một số sự kiện memory pressure/OOM; `cpu.max` mô tả quota/period. Đường dẫn và cơ chế có thể khác ở cgroup v1, runtime hoặc hệ điều hành khác.
-- Nhiều bản HotSpot hiện đại nhận biết giới hạn container, nhưng phải xác minh JVM version, flags và môi trường thực tế. Cấu hình cố định hoặc flags có thể làm kết quả khác dự tính.
+- A PID seen inside a container can differ from the PID seen from the host. Always know which namespace a measurement command runs in.
+- Host CPU/RAM metrics and container metrics are not directly interchangeable. A host having free RAM does not guarantee a container has not hit `memory.max`.
+- On Linux cgroup v2, `memory.max` represents the memory limit (the string `max` means no limit is set at that file level), `memory.current` is the accounted usage, `memory.events` reports certain memory pressure/OOM events; `cpu.max` describes quota/period. Paths and mechanisms can differ in cgroup v1, other runtimes, or other operating systems.
+- Many modern HotSpot builds are container-aware, but you must verify the actual JVM version, flags, and environment. Fixed configurations or flags can produce behavior different from expectations.
 
-Thứ tự kiểm tra hợp lý: **tiến trình cụ thể → container/VM của tiến trình → host → hệ thống phụ thuộc**. Không gán nguyên nhân cho host nếu chỉ thấy số liệu của container, và ngược lại.
+A sensible inspection order: **specific process → process's container/VM → host → dependent systems**. Do not blame the host if you only see container numbers, and vice versa.
 
-## 4. Thực hành quan sát trên một chương trình Java
+## 4. Hands-On Observation on a Java Program
 
-Ví dụ sau chạy độc lập với Java 17+, chỉ **đọc các chỉ số của JVM/tiến trình hiện tại**; không stress CPU hay cố tình gây tràn bộ nhớ. Lưu vào tệp `RuntimeLayersDemo.java`:
+The following standalone example works on Java 17+ and only **reads metrics of the current JVM/process**; it does not stress CPU or intentionally exhaust memory. Save to `RuntimeLayersDemo.java`:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -154,39 +154,39 @@ public class RuntimeLayersDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac RuntimeLayersDemo.java
 java -Xmx256m RuntimeLayersDemo
 ```
 
-Chương trình in ra tám dòng bắt đầu bằng `pid=`, `java.version=`, `os.name=`, `availableProcessors=`, `heap.used.bytes=`, `heap.committed.bytes=`, `heap.max.bytes=` và `live.java.threads=`. **Giá trị chính xác phụ thuộc máy và JVM**, nên không gán một stdout cố định. Với HotSpot thông thường, `heap.max.bytes` phản ánh heap max do JVM quyết định với tùy chọn `-Xmx256m`; giá trị có thể không bằng chính xác một con số thập phân “256 MB” mà người đọc tự giả định. Giá trị `heap.max.bytes` bằng `-1`, nếu xuất hiện với một implementation/kiểu pool tương ứng, nghĩa là maximum không được xác định.
+The program prints eight lines starting with `pid=`, `java.version=`, `os.name=`, `availableProcessors=`, `heap.used.bytes=`, `heap.committed.bytes=`, `heap.max.bytes=`, and `live.java.threads=`. **Exact values depend on the machine and JVM**, so do not assume a fixed stdout. On standard HotSpot, `heap.max.bytes` reflects the max heap decided by the JVM under `-Xmx256m`; the value may not equal a decimal "256 MB" number that a reader assumes. A `heap.max.bytes` value of `-1`, if seen with a corresponding implementation/pool type, means the maximum is undefined.
 
-Giải thích kết quả:
+Interpreting the results:
 
-- `pid` là định danh tiến trình theo cách runtime nhìn thấy. Trong container, đối chiếu namespace khi so với công cụ host.
-- `java.version` cho biết runtime **đang thực thi chính chương trình**, hữu ích hơn khi chỉ đọc phiên bản `java` của shell khác.
-- `availableProcessors` không là phép đo tải CPU thực tế; nó là thông tin JVM dùng để quyết định tài nguyên xử lý khả dụng.
-- Ba giá trị heap cung cấp góc nhìn JVM về heap; không đo tổng native memory hoặc RSS.
-- `ThreadMXBean.getThreadCount()` phản ánh số live Java platform threads được MXBean theo dõi; không thay thế phép đếm mọi OS thread hay số virtual thread.
+- `pid` is the process identifier as seen by the runtime. In containers, reconcile namespaces when comparing with host tools.
+- `java.version` identifies the runtime **actually executing the program**, which is more reliable than checking `java` version in another shell.
+- `availableProcessors` is not a measure of actual CPU load; it is information the JVM uses to determine available processing resources.
+- The three heap values give the JVM's view of the heap; they do not measure total native memory or RSS.
+- `ThreadMXBean.getThreadCount()` reflects the number of live Java platform threads tracked by the MXBean; it does not replace counting all OS threads or virtual threads.
 
-Để đối chiếu một JVM đang chạy lâu hơn, nên quan sát một service thật qua nhiều mẫu theo thời gian thay vì một lệnh chạy quá nhanh để attach công cụ. Mẫu số chỉ có ý nghĩa khi ghi kèm thời điểm, PID, phiên bản JVM và giới hạn tài nguyên tương ứng.
+To correlate a longer-running JVM, observe a real service across multiple samples over time rather than a short command that exits too quickly to attach tools. Sample numbers are meaningful only when recorded with timestamp, PID, JVM version, and corresponding resource limits.
 
-## 5. Công cụ của JDK và hệ điều hành bổ sung cho nhau
+## 5. JDK and Operating System Tools Complement Each Other
 
-Ví dụ trên Linux/HotSpot, thay `PID` bằng PID của **đúng tiến trình**; các lệnh phụ thuộc quyền, khả năng attach và môi trường. Không chạy tất cả lệnh như một “bài thuốc” khi chưa biết câu hỏi cần trả lời.
+Examples on Linux/HotSpot—replace `PID` with the PID of the **exact process**; commands depend on permissions, attachability, and environment. Do not run every command as a "recipe" before knowing which question needs an answer.
 
-| Câu hỏi | Công cụ JVM/JDK | Công cụ OS / container |
+| Question | JVM/JDK Tool | OS / Container Tool |
 | --- | --- | --- |
-| Đúng Java process và tham số khởi động? | `jcmd -l`; `jcmd PID VM.command_line`; `jcmd PID VM.flags` | `ps -p PID -o pid,ppid,args`; kiểm tra executable/container |
-| Heap đang ra sao? | `jcmd PID GC.heap_info`; JMX/MXBeans, GC log | RSS và memory limit để đối chiếu |
-| Thread nào chờ/chạy? | `jcmd PID Thread.print`; JFR | `top -H -p PID` hoặc `ps -L` để nhìn native thread |
-| Native memory chiếm ở đâu? | `jcmd PID VM.native_memory summary` **chỉ hữu dụng khi bật NMT từ khi khởi động** | `/proc/PID/status`, `/proc/PID/smaps_rollup` khi được phép |
-| CPU cao hay bị giới hạn? | JFR CPU samples, GC/JIT events | CPU theo PID/TID, cgroup `cpu.max` và throttling counters |
-| Thiếu file descriptor, I/O nghẽn? | Log ứng dụng, stack trace, pool metric | `/proc/PID/fd`, `lsof -p PID`, `ss`, disk/network metrics |
+| Right Java process and startup arguments? | `jcmd -l`; `jcmd PID VM.command_line`; `jcmd PID VM.flags` | `ps -p PID -o pid,ppid,args`; inspect executable/container |
+| What is the heap state? | `jcmd PID GC.heap_info`; JMX/MXBeans, GC logs | RSS and memory limit for comparison |
+| Which threads are waiting/running? | `jcmd PID Thread.print`; JFR | `top -H -p PID` or `ps -L` to inspect native threads |
+| Where is native memory used? | `jcmd PID VM.native_memory summary` **only useful when NMT is enabled at startup** | `/proc/PID/status`, `/proc/PID/smaps_rollup` when permitted |
+| High CPU or throttled? | JFR CPU samples, GC/JIT events | CPU per PID/TID, cgroup `cpu.max` and throttling counters |
+| Missing file descriptors, I/O bottleneck? | Application logs, stack traces, pool metrics | `/proc/PID/fd`, `lsof -p PID`, `ss`, disk/network metrics |
 
-Ví dụ lệnh điều tra ban đầu:
+Example initial investigation commands:
 
 ```bash
 java -version
@@ -198,52 +198,52 @@ jcmd PID Thread.print
 ps -p PID -o pid,ppid,%cpu,%mem,rss,nlwp,args
 ```
 
-**Giới hạn khi dùng công cụ:** `jcmd` thường cần phù hợp phiên bản/quyền OS user và cơ chế attach; runtime image tối giản hoặc tiến trình trong container khác có thể không có hoặc không cho attach. NMT (`-XX:NativeMemoryTracking=summary` hoặc `detail` với HotSpot hỗ trợ) tạo overhead và phải bật khi khởi động để nhận thống kê tương ứng. Đừng mô tả “NMT chưa bật” là “native memory bằng 0”. JFR có thể cho mẫu CPU, allocation, GC và thread scheduling theo khoảng thời gian, nhưng cần đọc đúng loại event và chi phí thu thập.
+**Tool limitations:** `jcmd` typically requires matching version/OS user permissions and attach mechanisms; minimal runtime images or processes in another container may lack it or disallow attach. NMT (`-XX:NativeMemoryTracking=summary` or `detail` where HotSpot supports it) adds overhead and must be enabled at startup to obtain its statistics. Do not describe "NMT not enabled" as "native memory equals 0." JFR can provide CPU, allocation, GC, and thread scheduling samples over a time window, but you must read the right event types and consider collection overhead.
 
-Trên Windows, thay lệnh `/proc`/`ps` bằng Task Manager, Resource Monitor, Performance Monitor hoặc PowerShell `Get-Process`; nguyên tắc vẫn là liên kết **cùng PID, cùng khoảng thời gian, cùng môi trường**. Không áp dụng lệnh Linux nguyên xi cho Windows.
+On Windows, replace `/proc`/`ps` commands with Task Manager, Resource Monitor, Performance Monitor, or PowerShell `Get-Process`; the principle remains linking **the same PID, the same time window, and the same environment**. Do not apply Linux commands verbatim on Windows.
 
-## 6. Chẩn đoán xuyên lớp: đi từ hiện tượng đến bằng chứng
+## 6. Cross-Layer Diagnostics: From Phenomenon to Evidence
 
-Một quy trình có thể lặp lại:
+A repeatable workflow:
 
-1. **Định danh:** ghi dịch vụ, bản build, runtime/JDK thực chạy, PID, host/container, command line, thời điểm và triệu chứng. Kiểm tra mã lỗi và phạm vi ảnh hưởng.
-2. **Đo phía ứng dụng:** latency p50/p95/p99, throughput, error rate, request queue, pool/DB connections, lock/wait và log/trace có correlation ID.
-3. **Đo JVM cùng khoảng thời gian:** heap used/committed/max, allocation/GC pause, GC CPU, số platform threads, thread dump/JFR khi có dấu hiệu phù hợp.
-4. **Đo OS/container/host:** CPU theo PID/TID, throttling, RSS và memory limit, số thread/FD, I/O wait, disk, network, OOM/kernel events. So sánh cùng đơn vị và cùng thời điểm.
-5. **Lập giả thuyết có thể kiểm chứng:** dấu hiệu nào ủng hộ, dấu hiệu nào bác bỏ; thay đổi tải, cấu hình hoặc code ở môi trường an toàn; quan sát hệ quả. Tránh tăng heap, thread pool hay retry một cách mù quáng.
+1. **Identify:** record service, build, actual running runtime/JDK, PID, host/container, command line, timestamp, and symptom. Check error codes and impact scope.
+2. **Measure at the application layer:** p50/p95/p99 latency, throughput, error rate, request queues, pools/DB connections, locks/waits, and logs/traces with correlation IDs.
+3. **Measure the JVM over the same window:** heap used/committed/max, allocation/GC pauses, GC CPU, platform thread count, thread dumps/JFR when signals warrant.
+4. **Measure OS/container/host:** CPU by PID/TID, throttling, RSS and memory limit, thread/FD counts, I/O wait, disk, network, OOM/kernel events. Compare using consistent units and timestamps.
+5. **Form a falsifiable hypothesis:** what evidence supports it, what refutes it; vary load, configuration, or code in a safe environment; observe consequences. Avoid blindly increasing heap, thread pools, or retries.
 
-Bảng suy luận nhanh:
+Quick reasoning table:
 
-| Triệu chứng | Những khả năng cần phân biệt | Bằng chứng để tách nguyên nhân |
+| Symptom | Possibilities to Distinguish | Evidence to Separate Causes |
 | --- | --- | --- |
-| API timeout, CPU thấp | Đang đợi DB/mạng, khóa hoặc pool cạn; không nhất thiết JVM “chậm” | Trace, pool queue, thread dump, socket/network và downstream latency |
-| API chậm, CPU tiến trình cao | Code nóng, GC, JIT, busy loop | CPU sample/JFR, GC events, thread CPU theo TID |
-| CPU host còn rảnh nhưng service chậm | CPU quota/throttling, I/O, lock, downstream | Cgroup CPU metrics, run queue, trace và thread states |
-| Heap used tăng sau nhiều đợt GC | Object giữ lâu/leak hoặc cache tăng có chủ đích | GC trend, heap dump khi phù hợp, object graph, traffic |
-| Container bị kill, không có Java OOME | Có thể vượt giới hạn cgroup hoặc bị SIGKILL vì lý do khác | Container termination reason, kernel/cgroup OOM events, memory.current/limit |
-| `Too many open files` | FD leak, quá nhiều kết nối hoặc limit quá thấp | FD count theo PID, `RLIMIT_NOFILE`, vòng đời resource |
+| API timeouts, low CPU | Waiting on DB/network, locks, or exhausted pool; not necessarily a "slow" JVM | Traces, pool queues, thread dumps, socket/network and downstream latency |
+| Slow API, high process CPU | Hot code, GC, JIT, busy loop | CPU samples/JFR, GC events, per-thread CPU by TID |
+| Host CPU idle but service slow | CPU quota/throttling, I/O, locks, downstream | Cgroup CPU metrics, run queue, traces, and thread states |
+| Heap used grows after multiple GCs | Long-lived retention/leak or intentional cache growth | GC trend, heap dump when appropriate, object graph, traffic |
+| Container killed, no Java OOME | May have exceeded cgroup limit or received SIGKILL for another reason | Container termination reason, kernel/cgroup OOM events, memory.current/limit |
+| `Too many open files` | FD leak, too many connections, or limit set too low | FD count by PID, `RLIMIT_NOFILE`, resource lifecycle |
 
-### Ví dụ: độ trễ tăng dù ứng dụng không sửa code
+### Example: Latency Increases Without Application Code Changes
 
-Giả sử deployment mới giữ nguyên ứng dụng, nhưng giảm CPU quota của container. Một số request bắt đầu timeout; host vẫn có CPU rảnh. Đừng kết luận “GC bị lỗi” từ timeout. Hãy kiểm tra: CPU quota và throttling có tăng không; `availableProcessors`/JVM ergonomics có thay đổi không; CPU time của GC và mã ứng dụng ra sao; request queue có tích lũy do throughput giảm không. Nếu metrics cho thấy throttling tăng cùng lúc latency xấu đi, đây là **bằng chứng mạnh cho giới hạn CPU**, cần xác nhận bằng thử nghiệm kiểm soát quota hoặc tải. Không được suy ra chỉ từ một chỉ số CPU.
+Suppose a new deployment keeps the application unchanged, but reduces the container's CPU quota. Some requests begin timing out; the host still has idle CPU. Do not conclude "GC is broken" from the timeouts. Check: have CPU quota and throttling increased; did `availableProcessors`/JVM ergonomics change; what are GC and application CPU times; is the request queue backing up due to lower throughput? If metrics show throttling rising alongside worsening latency, that is **strong evidence for CPU limits**, to be confirmed with controlled quota or load testing. Never infer from a single CPU metric alone.
 
-### Ví dụ: heap bình thường nhưng container OOM
+### Example: Normal Heap but Container OOM
 
-Giả sử heap used dao động 200–300 MiB và không cho thấy Java heap OOME, nhưng pod được báo `OOMKilled`. Điều tra cần kết hợp memory limit, peak memory, native allocations, metaspace, direct buffers, thread stacks, page cache và cgroup OOM events. Tăng `-Xmx` có thể khiến giới hạn container bị chạm sớm hơn; giảm heap chưa chắc giải quyết nếu nguồn tiêu thụ là native memory hoặc page cache. Quyết định cuối cùng phải dựa trên tổng ngân sách bộ nhớ và bằng chứng thực tế.
+Suppose heap used fluctuates between 200–300 MiB and shows no Java heap OOME, yet the pod reports `OOMKilled`. Investigation must combine memory limit, peak memory, native allocations, metaspace, direct buffers, thread stacks, page cache, and cgroup OOM events. Increasing `-Xmx` can cause the container limit to be hit sooner; shrinking heap may not solve it if consumption comes from native memory or page cache. The final decision must rely on the full memory budget and actual evidence.
 
-## 7. Sai lầm thường gặp khi định vị nguyên nhân
+## 7. Common Mistakes When Locating Causes
 
-- **“JDK, JVM và tiến trình Java là một.”** JDK là bộ công cụ + runtime; JVM là thành phần thực thi; tiến trình OS là đơn vị được OS lập lịch và hạch toán tài nguyên. Quan hệ gần gũi nhưng vai trò khác nhau.
-- **“`-Xmx` bằng tổng RAM Java dùng.”** JVM còn metadata, code cache, stacks, native allocations; container/OS có hạch toán riêng.
-- **“Heap còn trống nên không thể OOM.”** Native allocation, OS process limit, cgroup limit hoặc lỗi khác vẫn có thể xảy ra.
-- **“CPU 100% nghĩa là chiếm toàn bộ máy.”** Phải biết số core, cách công cụ tính phần trăm, CPU quota và CPU affinity.
-- **“Thread WAITING là deadlock.”** WAITING/TIMED_WAITING có thể là trạng thái bình thường của thread trong pool; phải xem lock graph, stack, thời gian chờ và tiến triển công việc.
-- **“Có cùng bytecode thì hiệu năng luôn giống nhau.”** JVM/JDK version, GC, flags, CPU architecture, kernel, container quota và tải hệ thống ảnh hưởng kết quả.
-- **“Exit 137 chắc chắn là OOM.”** Thường liên quan SIGKILL; cần sự kiện hệ thống/container để xác nhận nguyên nhân.
-- **“Một metric đủ xác định thủ phạm.”** Mọi metric đều có scope, đơn vị, thời gian lấy mẫu và giới hạn quan sát. Hãy liên kết ít nhất một dấu hiệu ứng dụng với bằng chứng JVM và OS phù hợp.
+- **"JDK, JVM, and Java process are the same thing."** JDK is tools + runtime; JVM is the execution component; the OS process is the unit scheduled and accounted by the OS. Closely related, yet distinct roles.
+- **"`-Xmx` equals total RAM used by Java."** The JVM also has metadata, code cache, stacks, and native allocations; containers/OS perform their own accounting.
+- **"Heap still has free space so OOM cannot happen."** Native allocation, OS process limits, cgroup limits, or other failures can still occur.
+- **"100% CPU means consuming the whole machine."** You must know the core count, how the tool computes percentages, CPU quota, and CPU affinity.
+- **"A WAITING thread is a deadlock."** WAITING/TIMED_WAITING can be a normal state for pool threads; examine lock graphs, stacks, wait duration, and work progress.
+- **"Same bytecode means identical performance."** JVM/JDK version, GC, flags, CPU architecture, kernel, container quotas, and system load all affect outcomes.
+- **"Exit 137 is definitely OOM."** Typically indicates SIGKILL; system/container events are required to confirm the reason.
+- **"One metric is enough to identify the culprit."** Every metric has scope, units, sampling intervals, and observation limits. Link at least one application symptom with matching JVM and OS evidence.
 
-## 8. Cách tự kiểm tra hiểu đúng mô hình
+## 8. How to Self-Check Understanding of the Model
 
-Với một Java service thực tế, hãy tự trả lời: (1) PID và runtime chính xác là gì? (2) bao nhiêu CPU/RAM được **cấp phép** cho tiến trình/container, so với host? (3) heap dùng bao nhiêu, còn các phần ngoài heap và RSS thế nào? (4) request đang tính toán, chờ JVM pause hay chờ I/O/downstream? (5) hai phép đo nào ở **hai lớp khác nhau** có thể xác nhận hoặc bác bỏ giả thuyết đang có?
+For a real Java service, ask yourself: (1) what are the exact PID and runtime? (2) how much CPU/RAM is **allocated/permitted** to the process/container versus the host? (3) how much heap is used, and what about non-heap areas and RSS? (4) are requests computing, waiting on JVM pauses, or waiting on I/O/downstream? (5) which two measurements from **two different layers** can confirm or refute the current hypothesis?
 
-**Ghi nhớ:** chẩn đoán Java có chất lượng bắt đầu từ việc nối chuỗi **ứng dụng → JVM trong tiến trình → hệ điều hành → tài nguyên thực/ảo**, đồng thời dùng **JDK như bộ công cụ quan sát**. Chỉ quy kết nguyên nhân sau khi bằng chứng tại các lớp liên quan nhất quán với nhau.
+**Remember:** high-quality Java diagnostics begins by connecting the chain **application → JVM inside process → operating system → physical/virtual resources**, while using the **JDK as an observation toolkit**. Attribute a cause only after evidence across the relevant layers is consistent.

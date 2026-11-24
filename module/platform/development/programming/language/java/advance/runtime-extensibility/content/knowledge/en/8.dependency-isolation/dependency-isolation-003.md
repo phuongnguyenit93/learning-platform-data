@@ -1,31 +1,31 @@
-# Cô lập hai phiên bản thư viện mà không nhân đôi kiểu hợp đồng
+# Isolating Two Library Versions Without Duplicating Contract Types
 
-Một ứng dụng Java có thể phải chạy đồng thời hai plugin, mỗi plugin được biên dịch với **một phiên bản khác nhau của cùng thư viện**. Nếu đưa cả hai phiên bản lên một classpath chung, các lớp trùng tên đầy đủ có thể xung đột: JVM chỉ dùng một định nghĩa lớp cho mỗi tên trong phạm vi một class loader. Một plugin có thể gặp `NoSuchMethodError`, `NoClassDefFoundError` hoặc nhận hành vi không đúng phiên bản.
+A Java application may need to run two plugins simultaneously, each compiled against a **different version of the same library**. If both versions are placed on a shared classpath, classes with identical fully qualified names can collide: the JVM uses only one class definition per name within the scope of a single class loader. A plugin may encounter `NoSuchMethodError`, `NoClassDefFoundError`, or observe behavior from the wrong version.
 
-Giải pháp ở ranh giới plugin là **cô lập implementation và thư viện phụ thuộc bằng các class loader khác nhau**, đồng thời giữ **một bản duy nhất của kiểu hợp đồng SPI/API trong class loader cha**. Hai plugin có thể nạp hai lớp cùng tên nhị phân nhưng vẫn được ứng dụng gọi qua cùng một interface.
+The solution at the plugin boundary is to **isolate implementations and dependent libraries using separate class loaders**, while keeping a **single copy of the SPI/API contract types in the parent class loader**. Two plugins can load two classes with the same binary name yet still be invoked by the application through the same interface.
 
-Bài này minh họa kiến trúc đó bằng Java 17, hai phiên bản `demo.lib.TextEngine` có API **khác nhau**, hai provider mang cùng tên đầy đủ `demo.plugin.TransformPlugin`, và một `demo.spi.TextPlugin` dùng chung. Ví dụ có lệnh biên dịch, đóng JAR, chạy và kết quả chính xác.
+This article illustrates that architecture using Java 17, two versions of `demo.lib.TextEngine` with **different** APIs, two providers bearing the same fully qualified name `demo.plugin.TransformPlugin`, and a shared `demo.spi.TextPlugin`. The example includes compile commands, JAR packaging, execution, and exact output.
 
-## 1. Vấn đề: trùng tên lớp trên một classpath
+## 1. The Problem: Duplicate Class Names on a Single Classpath
 
-Giả sử thư viện `text-lib` có hai phiên bản:
+Suppose the `text-lib` library has two versions:
 
-| Đặc điểm | `text-lib-v1.jar` | `text-lib-v2.jar` |
+| Characteristic | `text-lib-v1.jar` | `text-lib-v2.jar` |
 |---|---|---|
-| Tên class | `demo.lib.TextEngine` | `demo.lib.TextEngine` |
-| API công khai | `transform(String)` | `render(String)` |
-| Hành vi | Thêm `[v1]`, chuyển chữ thường | Thêm `[v2]`, chuyển chữ hoa |
-| Plugin phụ thuộc | Plugin cũ `legacy` | Plugin mới `modern` |
+| Class name | `demo.lib.TextEngine` | `demo.lib.TextEngine` |
+| Public API | `transform(String)` | `render(String)` |
+| Behavior | Prepends `[v1]`, converts to lowercase | Prepends `[v2]`, converts to uppercase |
+| Dependent plugin | Old plugin `legacy` | New plugin `modern` |
 
-Cả hai phiên bản có **cùng tên nhị phân** `demo.lib.TextEngine` nhưng không có cùng tập phương thức. Khi một class loader thông thường nạp tên `demo.lib.TextEngine` từ một classpath chứa cả hai JAR, class loader đó không tạo hai phiên bản `Class` độc lập chỉ vì có hai JAR. Phiên bản được tìm thấy theo cơ chế tra cứu classpath sẽ được dùng cho định danh lớp đó trong loader.
+Both versions share the **same binary name** `demo.lib.TextEngine` but do not have the same set of methods. When a standard class loader loads the name `demo.lib.TextEngine` from a classpath containing both JARs, that class loader does not create two independent `Class` versions merely because there are two JARs. Whichever version is found by the classpath lookup mechanism is used for that class identity in that loader.
 
-Ví dụ plugin mới đã được biên dịch gọi `TextEngine.render(String)`. Nếu lúc chạy tên `TextEngine` lại được liên kết tới bản v1 không có `render(String)`, lời gọi có thể thất bại với `NoSuchMethodError`. Đổi thứ tự hai JAR để sửa plugin mới có thể làm hỏng plugin cũ. Việc ép toàn bộ plugin lên một phiên bản cũng không luôn khả thi vì các API khác nhau.
+For example, the new plugin was compiled to call `TextEngine.render(String)`. If at runtime the name `TextEngine` gets linked to v1, which lacks `render(String)`, the call can fail with `NoSuchMethodError`. Swapping the order of the two JARs to fix the new plugin can break the old plugin. Forcing all plugins onto one version is also not always feasible because the APIs differ.
 
-**Mục tiêu của bài** không phải tải hai lớp cùng tên vào *một* loader; ta tạo **hai không gian nạp lớp** độc lập cho phần triển khai và vẫn dùng **một không gian chung** cho hợp đồng giao tiếp.
+**The goal of this article** is not to load two classes of the same name into *one* loader; we create **two independent class-loading spaces** for the implementations while keeping **one shared space** for the communication contract.
 
-## 2. Danh tính lớp trong JVM: tên chưa đủ
+## 2. Class Identity in the JVM: Name Alone Is Not Enough
 
-Trong JVM, danh tính kiểu lớp về mặt nạp lớp phụ thuộc vào **tên nhị phân và class loader định nghĩa lớp đó**. Hai class có cùng tên đầy đủ nhưng do hai loader khác nhau định nghĩa là **hai kiểu khác nhau**.
+In the JVM, class type identity with respect to class loading depends on the **binary name and the defining class loader**. Two classes with the same fully qualified name defined by two different loaders are **two distinct types**.
 
 ```text
 Class identity ≈ (binary class name, defining class loader)
@@ -34,45 +34,45 @@ Class identity ≈ (binary class name, defining class loader)
 ("demo.lib.TextEngine", loader-v2)
 ```
 
-Ký hiệu trên chỉ mô tả quy tắc danh tính kiểu, không phải cú pháp Java. Trong mã thực tế, có thể kiểm tra bằng phép so sánh hai đối tượng `Class<?>`:
+The notation above merely describes the type identity rule, not Java syntax. In real code, you can verify it by comparing two `Class<?>` objects:
 
 ```java
-// Minh họa biểu thức, được dùng đầy đủ trong Main.java ở dưới.
+// Illustrative expression, used in full in Main.java below.
 boolean sameType =
         loaderV1.loadClass("demo.lib.TextEngine")
         == loaderV2.loadClass("demo.lib.TextEngine");
 ```
 
-Kết quả cần đạt là `false`. Hai loader có thể nạp hai bản `TextEngine` độc lập, kể cả khi tên class giống hệt nhau.
+The desired result is `false`. Two loaders can load two independent copies of `TextEngine`, even when the class names are identical.
 
-Tuy nhiên, chính quy tắc này gây vấn đề khác nếu ta cũng nhân đôi hợp đồng `demo.spi.TextPlugin`:
+However, this exact rule causes another problem if we also duplicate the `demo.spi.TextPlugin` contract:
 
 ```text
-demo.spi.TextPlugin do parent định nghĩa
-            KHÁC
-demo.spi.TextPlugin do child định nghĩa
+demo.spi.TextPlugin defined by parent
+            DIFFERS FROM
+demo.spi.TextPlugin defined by child
 ```
 
-Nếu provider `implements` bản interface do child định nghĩa còn host kỳ vọng bản interface do parent định nghĩa, tên interface nhìn giống nhau nhưng **không cùng kiểu**. Có thể gặp lỗi provider “not a subtype”, `ClassCastException` hoặc các lỗi liên kết kiểu liên quan.
+If a provider `implements` the interface version defined by the child while the host expects the interface version defined by the parent, the interface names look identical yet are **not the same type**. You can hit a provider "not a subtype" error, `ClassCastException`, or related type linkage errors.
 
-Vì thế phải áp dụng đồng thời **hai ràng buộc**:
+Therefore, **two constraints** must be enforced simultaneously:
 
-1. **Private to child:** lớp implementation và thư viện riêng của mỗi plugin được định nghĩa trong loader của plugin đó.
-2. **Shared from parent:** interface SPI, các DTO và kiểu chung dùng trong chữ ký giao tiếp được lấy từ class loader cha. Các JAR plugin không tự đóng thêm bản sao của hợp đồng.
+1. **Private to child:** each plugin's implementation classes and private libraries are defined in that plugin's loader.
+2. **Shared from parent:** the SPI interface, DTOs, and shared types used in communication signatures are obtained from the parent class loader. Plugin JARs must not bundle an extra copy of the contract.
 
-Một class loader chỉ là cơ chế tải lớp; nó không tự sửa lỗi thiết kế khi chữ ký SPI đưa những kiểu chỉ tồn tại trong class loader con ra phía host.
+A class loader is only a class-loading mechanism; it does not automatically fix a design error when an SPI signature exposes types to the host that only exist inside a child class loader.
 
-## 3. Kiến trúc parent–child đúng ranh giới
+## 3. Parent–Child Architecture with Proper Boundaries
 
-Ta tổ chức như sau:
+We organize it as follows:
 
 ```text
-ỨNG DỤNG / PARENT CLASS LOADER
+APPLICATION / PARENT CLASS LOADER
   classpath:
     spi.jar
     host.jar
 
-  demo.spi.TextPlugin          <-- MỘT hợp đồng duy nhất
+  demo.spi.TextPlugin          <-- ONE single contract
   demo.host.Main
   demo.host.PluginClassLoader
                   |
@@ -80,7 +80,7 @@ Ta tổ chức như sau:
          |                 |
          v                 v
    PLUGIN LOADER V1   PLUGIN LOADER V2
-      URL riêng          URL riêng
+    separate URLs      separate URLs
    plugin-v1.jar      plugin-v2.jar
    lib-v1.jar         lib-v2.jar
 
@@ -92,27 +92,27 @@ Ta tổ chức như sau:
          |                 |
          +--------+--------+
                   |
-        Cả hai implements/gọi
-          demo.spi.TextPlugin
-           được parent nạp
+        Both implement/call
+         demo.spi.TextPlugin
+          loaded by parent
 ```
 
-Đường đi của một lần gọi:
+The path of an invocation:
 
-1. Host sử dụng **một** `TextPlugin.class` từ parent để yêu cầu các dịch vụ.
-2. Host tạo hai class loader khác nhau, mỗi loader chỉ biết JAR của một plugin và bản thư viện tương ứng.
-3. Mỗi loader tìm provider thông qua `ServiceLoader.load(TextPlugin.class, loader)`.
-4. Khi nạp tên `demo.plugin.TransformPlugin` hoặc `demo.lib.TextEngine`, loader con lấy class từ bộ JAR riêng của nó.
-5. Khi provider cần `demo.spi.TextPlugin`, nó ủy quyền về parent và nhận **chính interface host đang dùng**.
-6. Host chỉ giữ/thao tác các đối tượng qua `TextPlugin`, nên có thể gọi cả hai provider mà không cần import `TextEngine` của bất kỳ phiên bản nào.
+1. The host uses **one** `TextPlugin.class` from the parent to request the services.
+2. The host creates two distinct class loaders, each knowing only the JAR of one plugin and its corresponding library version.
+3. Each loader discovers its provider via `ServiceLoader.load(TextPlugin.class, loader)`.
+4. When loading `demo.plugin.TransformPlugin` or `demo.lib.TextEngine`, the child loader fetches the class from its own JAR set.
+5. When the provider needs `demo.spi.TextPlugin`, it delegates to the parent and receives the **exact interface the host is using**.
+6. The host holds/manipulates objects exclusively through `TextPlugin`, so it can invoke both providers without importing `TextEngine` from either version.
 
-**Ranh giới phụ thuộc:** `spi.jar` và `host.jar` nằm trên **application classpath**; các JAR `plugin-v1.jar`, `lib-v1.jar`, `plugin-v2.jar`, `lib-v2.jar` **không nằm trên application classpath**. Host mở chúng qua `URLClassLoader` riêng ở runtime.
+**Dependency boundary:** `spi.jar` and `host.jar` sit on the **application classpath**; `plugin-v1.jar`, `lib-v1.jar`, `plugin-v2.jar`, and `lib-v2.jar` are **not on the application classpath**. The host opens them via dedicated `URLClassLoader` instances at runtime.
 
-Nếu parent không có lớp `demo.lib.*` hoặc `demo.plugin.*`, hai `URLClassLoader` sử dụng ủy quyền parent-first mặc định cũng có thể nạp các lớp chỉ tồn tại trong từng child. Ví dụ bên dưới thêm quy tắc **child-first có giới hạn** cho đúng hai package riêng để việc nạp vẫn theo ý định nếu môi trường parent vô tình chứa tên lớp trùng. Hợp đồng SPI luôn theo đường parent-first.
+If the parent lacks `demo.lib.*` or `demo.plugin.*`, two `URLClassLoader` instances using default parent-first delegation can also load classes that exist only in each child. The example below adds a **scoped child-first** rule for just those two private packages so loading stays as intended even if the parent environment accidentally contains matching class names. The SPI contract always follows the parent-first path.
 
-## 4. Cấu trúc mã nguồn và JAR đầu ra
+## 4. Source Structure and Output JARs
 
-Tạo các thư mục/tệp:
+Create the directories/files:
 
 ```text
 isolation-demo/
@@ -134,7 +134,7 @@ isolation-demo/
         └── Main.java
 ```
 
-Sau khi biên dịch:
+After compilation:
 
 ```text
 dist/
@@ -146,11 +146,11 @@ dist/
 └── plugin-v2.jar
 ```
 
-Đây là **sáu JAR**, nhưng chỉ `spi.jar` và `host.jar` được truyền cho `java -cp` khi chạy `Main`. Bốn JAR còn lại do mã host mở bằng hai loader riêng.
+There are **six JARs**, yet only `spi.jar` and `host.jar` are passed to `java -cp` when running `Main`. The remaining four JARs are opened by host code using two separate loaders.
 
-## 5. Định nghĩa đúng một hợp đồng SPI
+## 5. Defining Exactly One SPI Contract
 
-Tệp `contract/src/demo/spi/TextPlugin.java`:
+File `contract/src/demo/spi/TextPlugin.java`:
 
 ```java
 package demo.spi;
@@ -162,17 +162,17 @@ public interface TextPlugin {
 }
 ```
 
-Hợp đồng này chỉ dùng kiểu JDK `String` và không nhắc đến `demo.lib.TextEngine`, tên lớp provider hay phiên bản thư viện. `id()` trả về định danh plugin ổn định; `transform()` là hành vi mà host được phép gọi. Những dữ liệu phức tạp hơn nên đi qua các kiểu API/DTO do parent sở hữu, hoặc kiểu chuẩn của JDK.
+This contract uses only the JDK type `String` and makes no mention of `demo.lib.TextEngine`, provider class names, or library versions. `id()` returns a stable plugin identifier; `transform()` is the behavior the host is permitted to invoke. More complex data should travel through parent-owned API/DTO types, or standard JDK types.
 
-**Không đặt `TextPlugin.class` vào các JAR plugin**. Khi biên dịch một plugin, `spi.jar` có mặt trên **compile classpath** để trình biên dịch kiểm tra `implements`. Khi đóng JAR plugin, chỉ đóng class của plugin và metadata của plugin; không copy class SPI vào đó.
+**Do not put `TextPlugin.class` into the plugin JARs**. When compiling a plugin, `spi.jar` is present on the **compile classpath** so the compiler can check `implements`. When packaging a plugin JAR, bundle only the plugin's classes and metadata; do not copy SPI classes into it.
 
-Trong ví dụ, v1 và v2 có thể thay đổi mọi chi tiết nội bộ mà không cần thay chữ ký `TextPlugin`.
+In this example, v1 and v2 can change every internal detail without altering the `TextPlugin` signature.
 
-## 6. Hai phiên bản thư viện có API khác nhau
+## 6. Two Library Versions with Different APIs
 
-### 6.1. Bản v1
+### 6.1. Version v1
 
-Tệp `lib-v1/src/demo/lib/TextEngine.java`:
+File `lib-v1/src/demo/lib/TextEngine.java`:
 
 ```java
 package demo.lib;
@@ -188,9 +188,9 @@ public final class TextEngine {
 }
 ```
 
-### 6.2. Bản v2
+### 6.2. Version v2
 
-Tệp `lib-v2/src/demo/lib/TextEngine.java`:
+File `lib-v2/src/demo/lib/TextEngine.java`:
 
 ```java
 package demo.lib;
@@ -206,15 +206,15 @@ public final class TextEngine {
 }
 ```
 
-Hai tệp cùng khai báo `package demo.lib` và `public final class TextEngine`, nhưng **v1 có `transform(String)` còn v2 có `render(String)`**. Đây là khác biệt API có chủ đích để minh họa xung đột phiên bản. Chúng **không được biên dịch chung vào cùng thư mục output**: làm vậy sẽ có hai định nghĩa của một class cùng tên.
+Both files declare `package demo.lib` and `public final class TextEngine`, but **v1 has `transform(String)` while v2 has `render(String)`**. This is an intentional API difference to illustrate a version conflict. They **must not be compiled together into the same output directory**: doing so would create two definitions of a class with the same name.
 
-`Locale.ROOT` giúp việc chuyển chữ thường/chữ hoa trong ví dụ không phụ thuộc locale mặc định của máy.
+`Locale.ROOT` ensures lowercase/uppercase conversion in the example does not depend on the machine's default locale.
 
-## 7. Hai provider cùng tên class, biên dịch với dependency riêng
+## 7. Two Providers with the Same Class Name, Compiled with Private Dependencies
 
 ### 7.1. Provider v1
 
-Tệp `plugin-v1/src/demo/plugin/TransformPlugin.java`:
+File `plugin-v1/src/demo/plugin/TransformPlugin.java`:
 
 ```java
 package demo.plugin;
@@ -235,11 +235,11 @@ public final class TransformPlugin implements TextPlugin {
 }
 ```
 
-Provider cũ gọi đúng API của `TextEngine` v1.
+The legacy provider calls the exact API of `TextEngine` v1.
 
 ### 7.2. Provider v2
 
-Tệp `plugin-v2/src/demo/plugin/TransformPlugin.java`:
+File `plugin-v2/src/demo/plugin/TransformPlugin.java`:
 
 ```java
 package demo.plugin;
@@ -260,48 +260,48 @@ public final class TransformPlugin implements TextPlugin {
 }
 ```
 
-Provider mới gọi đúng API của `TextEngine` v2. Chú ý hai provider cũng cùng tên `demo.plugin.TransformPlugin`, nhưng mã bytecode khác nhau và được đóng vào hai JAR khác nhau.
+The modern provider calls the exact API of `TextEngine` v2. Note that both providers also share the name `demo.plugin.TransformPlugin`, yet their bytecode differs and they are packaged into two separate JARs.
 
-Cả hai provider đều là class `public` và có constructor không tham số công khai do Java cấp khi không tự khai báo constructor. Điều này phù hợp với kiểu provider classpath mà `ServiceLoader` sẽ khởi tạo.
+Both providers are `public` classes and have a public no-argument constructor provided by Java when no constructor is declared. This fits the classpath provider style that `ServiceLoader` instantiates.
 
-Khi biên dịch, mỗi provider phải nhìn thấy:
+During compilation, each provider must see:
 
 ```text
 plugin-v1:  spi.jar + lib-v1.jar
 plugin-v2:  spi.jar + lib-v2.jar
 ```
 
-**Không** dùng cùng lúc cả `lib-v1.jar` và `lib-v2.jar` trên compile classpath của một provider. Mỗi provider phải liên kết đúng API phiên bản nó được thiết kế để sử dụng.
+**Do not** place both `lib-v1.jar` and `lib-v2.jar` on a single provider's compile classpath at the same time. Each provider must link against the exact API version it was designed to use.
 
-## 8. Đăng ký SPI cho từng provider JAR
+## 8. Registering the SPI for Each Provider JAR
 
-Trên classpath, `ServiceLoader` nhận diện provider thông qua tài nguyên:
+On the classpath, `ServiceLoader` identifies providers through the resource:
 
 ```text
 META-INF/services/demo.spi.TextPlugin
 ```
 
-Nội dung tệp `plugin-v1/resources/META-INF/services/demo.spi.TextPlugin`:
+Contents of `plugin-v1/resources/META-INF/services/demo.spi.TextPlugin`:
 
 ```text
 demo.plugin.TransformPlugin
 ```
 
-Nội dung tệp `plugin-v2/resources/META-INF/services/demo.spi.TextPlugin`:
+Contents of `plugin-v2/resources/META-INF/services/demo.spi.TextPlugin`:
 
 ```text
 demo.plugin.TransformPlugin
 ```
 
-Hai tệp có **cùng tên và cùng nội dung** vì hai JAR đều cung cấp class có cùng tên nhị phân. Tuy nhiên, mỗi tệp được đóng bên trong **JAR của chính provider đó**. `ServiceLoader.load(TextPlugin.class, loaderV1)` khám phá provider từ các tài nguyên mà `loaderV1` nhìn thấy, còn `loaderV2` làm tương tự trong phạm vi của nó.
+The two files have the **same name and the same contents** because both JARs supply a class with the same binary name. However, each file is packaged inside **that provider's own JAR**. `ServiceLoader.load(TextPlugin.class, loaderV1)` discovers providers from the resources visible to `loaderV1`, and `loaderV2` does the same within its own scope.
 
-Đây là chi tiết cần phân biệt với cấu hình thông thường: cùng một dòng `demo.plugin.TransformPlugin` **không tạo ra cùng một `Class`** nếu tên lớp đó được định nghĩa bởi hai class loader khác nhau.
+This is a detail to distinguish from ordinary setups: the exact same line `demo.plugin.TransformPlugin` **does not produce the same `Class`** if that class name is defined by two different class loaders.
 
-Không đặt tài nguyên đăng ký của các provider này vào `spi.jar` hoặc `host.jar`. Parent phải sở hữu hợp đồng, nhưng không nên vô tình công bố provider riêng của child trong chính classpath của host.
+Do not place these providers' registration resources in `spi.jar` or `host.jar`. The parent must own the contract, but should not accidentally advertise child-private providers on the host's own classpath.
 
-## 9. Class loader cô lập implementation nhưng ủy quyền SPI về parent
+## 9. Class Loader Isolating Implementations While Delegating SPI to Parent
 
-Tệp `host/src/demo/host/PluginClassLoader.java`:
+File `host/src/demo/host/PluginClassLoader.java`:
 
 ```java
 package demo.host;
@@ -338,23 +338,23 @@ public final class PluginClassLoader extends URLClassLoader {
 }
 ```
 
-Đây là phiên bản tối giản của một bộ nạp lớp dành cho cấu trúc package **đã biết trước**, không phải trình quản lý plugin đa năng.
+This is a minimal version of a class loader tailored for a **known** package layout, not a general-purpose plugin manager.
 
-Các điểm cần đọc kỹ:
+Points to read carefully:
 
-- `demo.plugin.*` và `demo.lib.*` là **package riêng của mỗi plugin**. `findClass(name)` buộc chúng được tìm trong URL của loader tương ứng, không lấy nhầm từ parent.
-- `demo.spi.*`, `demo.host.*`, `java.*` và các package không nằm trong danh sách private đi theo `super.loadClass(...)`, tức là sử dụng quy tắc ủy quyền mặc định. Nhờ vậy `demo.spi.TextPlugin` được parent nạp.
-- Không có `catch ClassNotFoundException` để tự rơi về parent khi class *thuộc package private* bị thiếu. Đây là chính sách **fail closed**: một plugin thiếu dependency riêng phải báo lỗi thay vì lặng lẽ dùng phiên bản khác từ host.
-- `findLoadedClass(name)` tránh định nghĩa trùng class trong cùng loader. Đồng bộ bằng `getClassLoadingLock(name)` bảo vệ đường nạp lớp và `resolveClass` xử lý bước liên kết khi được yêu cầu.
-- Tách loader riêng cho **mỗi nhóm plugin và dependency cần cô lập**. Nếu dùng chung một loader chứa hai phiên bản `TextEngine` trùng tên, xung đột lại xuất hiện trong chính loader chung đó.
+- `demo.plugin.*` and `demo.lib.*` are **each plugin's private packages**. `findClass(name)` forces them to be searched within that loader's URLs rather than mistakenly picked up from the parent.
+- `demo.spi.*`, `demo.host.*`, `java.*`, and packages outside the private list go through `super.loadClass(...)`, meaning they use default delegation rules. Thus `demo.spi.TextPlugin` is loaded by the parent.
+- There is no `catch ClassNotFoundException` to fall back to the parent when a class *in a private package* is missing. This is a **fail-closed** policy: a plugin missing its own dependency must report an error instead of silently picking up a different version from the host.
+- `findLoadedClass(name)` prevents defining the same class twice in the same loader. Synchronizing on `getClassLoadingLock(name)` protects the loading path, and `resolveClass` handles linking when requested.
+- Allocate a separate loader for **each plugin and dependency group needing isolation**. If one shared loader contains two same-named versions of `TextEngine`, the conflict reappears inside that shared loader.
 
-**Không áp dụng child-first cho mọi package.** Nếu child-first cả `demo.spi.*`, các bản SPI trong từng child có thể được định nghĩa khác parent, phá vỡ khả năng ép kiểu provider thành `TextPlugin`. Nhiều framework còn sở hữu API có quy tắc class loading riêng; danh sách private cần được giới hạn và kiểm thử.
+**Do not apply child-first to all packages.** If child-first were applied to `demo.spi.*` as well, SPI copies in each child could be defined differently from the parent, breaking the ability to cast providers to `TextPlugin`. Many frameworks also own APIs with special class-loading rules; the private package list must be restricted and tested.
 
-Với ứng dụng thực, nên có chính sách rõ ràng cho resource loading, package sealing, native library, signed JAR, dependency bắc cầu và logging. `URLClassLoader` không tự bảo đảm mọi dạng phụ thuộc đều có thể cô lập.
+For real applications, establish clear policies for resource loading, package sealing, native libraries, signed JARs, transitive dependencies, and logging. `URLClassLoader` does not automatically guarantee that every kind of dependency can be isolated.
 
-## 10. Host khám phá mỗi provider và kiểm tra danh tính kiểu
+## 10. Host Discovering Each Provider and Verifying Type Identity
 
-Tệp `host/src/demo/host/Main.java`:
+File `host/src/demo/host/Main.java`:
 
 ```java
 package demo.host;
@@ -430,15 +430,15 @@ public final class Main {
 }
 ```
 
-`Main` không có câu lệnh `import demo.plugin.TransformPlugin` hay `import demo.lib.TextEngine`. Host chỉ dùng `TextPlugin`, một kiểu được nạp bởi parent. Mỗi `ServiceLoader` được tạo **với class loader cụ thể**; nếu gọi overload không truyền loader, kết quả còn phụ thuộc context class loader của luồng và không bảo đảm mô hình cô lập đang mong muốn.
+`Main` has no `import demo.plugin.TransformPlugin` or `import demo.lib.TextEngine` statements. The host uses only `TextPlugin`, a type loaded by the parent. Each `ServiceLoader` is created **with a specific class loader**; calling the overload without a loader depends on the thread's context class loader and does not guarantee the intended isolation model.
 
-Phương thức `loadOnly()` kiểm tra có **đúng một provider trong từng phạm vi**. Đây là chính sách của ví dụ. Trong hệ thống nhiều provider, bạn có thể xây registry và chọn theo ID/capability/cấu hình, nhưng phải giữ việc khám phá tách biệt theo loader để tránh xung đột.
+The `loadOnly()` method checks that there is **exactly one provider in each scope**. This is the example's policy. In a multi-provider system, you can build a registry and select by ID/capability/configuration, while keeping discovery separated by loader to avoid collisions.
 
-`try-with-resources` gọi `close()` cho hai `URLClassLoader` khi kết thúc. Điều này đóng tài nguyên mở của loader, **không đồng nghĩa tất cả class lập tức được unload**; JVM chỉ có thể thu hồi class khi loader và những đối tượng/luồng/tài nguyên giữ tham chiếu liên quan không còn sống.
+`try-with-resources` calls `close()` on both `URLClassLoader` instances at the end. This closes open loader resources, **which does not mean all classes are immediately unloaded**; the JVM can reclaim classes only when the loader and any related objects/threads/resources holding references are no longer live.
 
-## 11. Biên dịch sáu JAR với Java 17+
+## 11. Compiling Six JARs with Java 17+
 
-Ví dụ được kiểm tra với mã tương thích Java 17 (`javac --release 17`). Đứng tại thư mục `isolation-demo` đã tạo đúng cây tệp trên. Các lệnh biên dịch sau **cố tình tách từng output directory** để hai class trùng tên không ghi đè nhau.
+The example is verified with Java 17-compatible code (`javac --release 17`). Run from the `isolation-demo` directory created with the exact file tree above. The compilation commands below **intentionally separate each output directory** so same-named classes do not overwrite each other.
 
 ### 11.1. Linux/macOS (Bash)
 
@@ -468,7 +468,7 @@ java -cp dist/spi.jar:dist/host.jar demo.host.Main
 
 ### 11.2. Windows PowerShell
 
-PowerShell và Windows Java classpath sử dụng dấu `;` để ngăn các JAR. Dùng dấu nháy quanh chuỗi classpath khi chứa `;`:
+PowerShell and Windows Java classpaths use `;` to separate JARs. Put quotes around the classpath string when it contains `;`:
 
 ```powershell
 New-Item -ItemType Directory -Force out/spi,out/lib-v1,out/lib-v2,out/plugin-v1,out/plugin-v2,out/host,dist | Out-Null
@@ -494,11 +494,11 @@ jar --create --file dist/host.jar -C out/host .
 java -cp 'dist/spi.jar;dist/host.jar' demo.host.Main
 ```
 
-**Kiểm tra classpath:** ở **lệnh `java` cuối**, chỉ có `spi.jar` và `host.jar`. Các JAR `lib-v1`, `lib-v2`, `plugin-v1`, `plugin-v2` được mở bởi mã Java từ `Path.of("dist")`; nếu bạn đang chạy tại thư mục khác, cần sửa đường dẫn thư mục `dist` trong chương trình hoặc chạy từ đúng thư mục gốc của demo.
+**Classpath check:** in the **final `java` command**, only `spi.jar` and `host.jar` are present. The `lib-v1`, `lib-v2`, `plugin-v1`, and `plugin-v2` JARs are opened by Java code from `Path.of("dist")`; if you are running from a different directory, update the `dist` directory path in the program or run from the exact demo root directory.
 
-### 11.3. Kết quả chuẩn
+### 11.3. Expected Output
 
-Stdout khi chạy thành công:
+Stdout on a successful run:
 
 ```text
 legacy => [v1] hello java
@@ -509,17 +509,17 @@ same library Class: false
 shared SPI Class: true
 ```
 
-Giải thích từng dòng:
+Line-by-line explanation:
 
-- `legacy` gọi đúng `TextEngine.transform` của v1, tạo `[v1] hello java`.
-- `modern` gọi đúng `TextEngine.render` của v2, tạo `[v2] HELLO JAVA`.
-- Tên nhị phân của hai provider **giống nhau**, nhưng hai đối tượng `Class` khác nhau vì chúng được định nghĩa trong hai loader riêng.
-- Hai bản `demo.lib.TextEngine` cũng là hai đối tượng `Class` khác nhau, nên API v1/v2 không va chạm.
-- Mỗi child khi yêu cầu `demo.spi.TextPlugin` đều nhận chính `TextPlugin.class` từ parent. Đây là điều kiện để host tương tác với cả hai qua cùng một interface.
+- `legacy` calls v1's `TextEngine.transform` properly, producing `[v1] hello java`.
+- `modern` calls v2's `TextEngine.render` properly, producing `[v2] HELLO JAVA`.
+- The binary names of the two providers are **identical**, yet the two `Class` objects are distinct because they were defined in two separate loaders.
+- The two `demo.lib.TextEngine` copies are also two distinct `Class` objects, so the v1/v2 APIs do not collide.
+- Each child, when requesting `demo.spi.TextPlugin`, receives the exact `TextPlugin.class` from the parent. This is the prerequisite for the host to interact with both through the same interface.
 
-## 12. Xác minh JAR thật sự đóng gói đúng ranh giới
+## 12. Verifying That the JARs Truly Package the Right Boundaries
 
-Dùng lệnh `jar --list` (giống nhau trên các hệ điều hành):
+Use the `jar --list` command (identical across operating systems):
 
 ```bash
 jar --list --file dist/spi.jar
@@ -529,109 +529,109 @@ jar --list --file dist/lib-v1.jar
 jar --list --file dist/lib-v2.jar
 ```
 
-Các điều kiện cần kiểm tra:
+Conditions to check:
 
-| Artifact | Phải có | Không nên có |
+| Artifact | Must contain | Must not contain |
 |---|---|---|
-| `spi.jar` | `demo/spi/TextPlugin.class` | `demo/lib/TextEngine.class`, lớp provider, file đăng ký provider |
-| `plugin-v1.jar` | `demo/plugin/TransformPlugin.class`, `META-INF/services/demo.spi.TextPlugin` | `demo/spi/TextPlugin.class`, `TextEngine.class` của bản khác |
-| `plugin-v2.jar` | `demo/plugin/TransformPlugin.class`, file đăng ký tương ứng | Bản sao SPI, lớp thư viện v1 |
-| `lib-v1.jar` | `demo/lib/TextEngine.class` bản v1 | Class contract, class plugin |
-| `lib-v2.jar` | `demo/lib/TextEngine.class` bản v2 | Class contract, class plugin |
-| `host.jar` | `demo/host/Main.class`, `demo/host/PluginClassLoader.class` | Class provider hoặc thư viện private |
+| `spi.jar` | `demo/spi/TextPlugin.class` | `demo/lib/TextEngine.class`, provider classes, provider registration files |
+| `plugin-v1.jar` | `demo/plugin/TransformPlugin.class`, `META-INF/services/demo.spi.TextPlugin` | `demo/spi/TextPlugin.class`, `TextEngine.class` of another version |
+| `plugin-v2.jar` | `demo/plugin/TransformPlugin.class`, corresponding registration file | SPI copy, v1 library classes |
+| `lib-v1.jar` | v1 `demo/lib/TextEngine.class` | Contract classes, plugin classes |
+| `lib-v2.jar` | v2 `demo/lib/TextEngine.class` | Contract classes, plugin classes |
+| `host.jar` | `demo/host/Main.class`, `demo/host/PluginClassLoader.class` | Provider classes or private libraries |
 
-Có thể thấy hai JAR plugin chứa class **cùng đường dẫn** `demo/plugin/TransformPlugin.class`; đó là chủ ý và chỉ an toàn vì mỗi plugin được mở từ **loader riêng**.
+You can see both plugin JARs contain a class at the **exact same path** `demo/plugin/TransformPlugin.class`; that is intentional and safe only because each plugin is opened from a **separate loader**.
 
-Nếu dùng Maven hoặc Gradle, điều tương đương là: `spi.jar` là dependency biên dịch chung, **không được shade/relocate bản sao SPI vào từng plugin**; phụ thuộc riêng được đóng trong vùng class loading riêng và không rò lên classpath của host. Các dependency chuyển tiếp cũng phải được rà soát, vì xung đột không chỉ xảy ra với thư viện trực tiếp.
+If using Maven or Gradle, the equivalent is: `spi.jar` is a shared compile dependency, **no copy of the SPI may be shaded/relocated into individual plugins**; private dependencies are packaged in their own class-loading scope and do not leak onto the host classpath. Transitive dependencies must also be audited, because conflicts do not happen only with direct libraries.
 
-## 13. Vì sao các cách tưởng như đơn giản có thể sai?
+## 13. Why Seemingly Simple Approaches Can Fail
 
-### 13.1. Đưa hai JAR trùng class vào classpath của host
+### 13.1. Putting Both JARs with Overlapping Classes on the Host Classpath
 
-Lệnh dưới đây minh họa **cấu hình sai**; không cần chạy để hiểu hậu quả:
+The command below illustrates an **incorrect configuration**; you do not need to run it to understand the consequence:
 
 ```bash
-# Minh họa cấu hình SAI khi muốn cô lập hai phiên bản
+# Illustrates an INCORRECT configuration when wanting to isolate two versions
 java -cp "dist/spi.jar:dist/host.jar:dist/lib-v1.jar:dist/lib-v2.jar:dist/plugin-v1.jar:dist/plugin-v2.jar" demo.host.Main
 ```
 
-Khi host đã thấy các class và tài nguyên provider, ranh giới discovery/parent delegation bị nhiễm: parent có thể tìm tài nguyên đăng ký provider của cả hai plugin, trong khi chính parent chỉ có một định nghĩa cho từng tên class. Kết quả phụ thuộc cấu hình và có thể làm `ServiceLoader` nhìn thấy provider ngoài ý muốn hoặc lỗi API. Đừng biến `-cp` của host thành một danh sách chung chứa mọi phiên bản plugin.
+Once the host already sees the provider classes and resources, the discovery/parent-delegation boundary is polluted: the parent can locate provider registration resources for both plugins, while the parent itself can hold only one definition per class name. The outcome depends on configuration and can cause `ServiceLoader` to see unintended providers or hit API errors. Do not turn the host's `-cp` into a catch-all list containing all plugin versions.
 
-### 13.2. Đặt `spi.jar` độc lập vào từng loader và nạp child-first cả SPI
+### 13.2. Placing `spi.jar` Independently in Each Loader and Child-First Loading the SPI Too
 
-Nếu mỗi child tự định nghĩa `demo.spi.TextPlugin`, thì dù provider bên trong child có `implements TextPlugin`, **đó không phải `TextPlugin.class` mà host đang giữ**. Thông báo phổ biến khi `ServiceLoader` khám phá provider không phải subtype có thể là `ServiceConfigurationError`; phép ép kiểu thủ công cũng có thể gây `ClassCastException`.
+If each child defines `demo.spi.TextPlugin` itself, then even though the provider inside the child `implements TextPlugin`, **it is not the `TextPlugin.class` held by the host**. A common message when `ServiceLoader` discovers a provider that is not a subtype can be `ServiceConfigurationError`; manual casting can also cause `ClassCastException`.
 
-Giải pháp là công bố hợp đồng trong parent và buộc các loader nhận SPI từ parent. Chỉ đưa các package implementation/dependency riêng vào danh sách child-first.
+The solution is to publish the contract in the parent and force loaders to obtain the SPI from the parent. Put only implementation and private dependency packages in the child-first list.
 
-### 13.3. Để kiểu thư viện private xuất hiện trong chữ ký SPI
+### 13.3. Letting Private Library Types Appear in SPI Signatures
 
-Hợp đồng sau **không phù hợp** với mục tiêu cô lập v1 và v2:
+The following contract is **unsuitable** for the goal of isolating v1 and v2:
 
 ```java
-// Minh họa thiết kế cần tránh, không phải ví dụ có thể chạy độc lập.
+// Illustrates a design to avoid, not a standalone runnable example.
 public interface BadPlugin {
     demo.lib.TextEngine getEngine();
 }
 ```
 
-Host sẽ phải hiểu kiểu `demo.lib.TextEngine` nào, trong khi v1/v2 là hai lớp khác nhau. Thay vào đó, trả về kiểu chung trong `spi.jar`, một DTO được parent định nghĩa, hoặc dữ liệu chuẩn như `String`, `byte[]`, `InputStream` với quy định sở hữu/vòng đời rõ ràng.
+Which `demo.lib.TextEngine` type would the host understand, when v1 and v2 are two distinct classes? Instead, return a shared type in `spi.jar`, a parent-defined DTO, or standard data like `String`, `byte[]`, or `InputStream` with clear ownership/lifecycle rules.
 
-Không chỉ return type: tham số, exception công khai, callback và interface cha cũng phải được đánh giá theo cùng nguyên tắc. Đừng trao đổi trực tiếp object của thư viện private qua hai vùng loader rồi ép kiểu ở phía host.
+Not only return types: parameters, public exceptions, callbacks, and superinterfaces must all be evaluated under the same principle. Do not exchange private library objects directly across two loader scopes and attempt to cast on the host side.
 
-### 13.4. Cứ `close()` loader là có thể nâng cấp nóng
+### 13.4. Assuming `close()` on a Loader Enables Hot Upgrades
 
-`URLClassLoader.close()` đóng các tài nguyên mà loader quản lý; class và instance có thể vẫn tồn tại nếu registry, thread, context class loader, callback, singleton hoặc static field ở nơi khác còn giữ tham chiếu. Thay plugin lúc JVM đang chạy đòi hỏi quy trình dừng sử dụng, đóng tài nguyên, gỡ đăng ký, giải phóng tham chiếu, tạo loader mới và kiểm tra tính an toàn của request đang chạy.
+`URLClassLoader.close()` closes the resources managed by the loader; classes and instances can still remain alive if registries, threads, context class loaders, callbacks, singletons, or static fields elsewhere still hold references. Replacing a plugin while the JVM is running requires a procedure to stop usage, close resources, unregister, drop references, create a new loader, and verify safety for in-flight requests.
 
-Không nên mô tả `ServiceLoader.reload()` như chức năng “thay JAR”. Nó chỉ xóa cache provider của đối tượng `ServiceLoader` tương ứng, không tự thay URL, phiên bản JAR, class loader hay các instance đã được host giữ.
+Do not describe `ServiceLoader.reload()` as a "swap JAR" feature. It only clears the provider cache of the corresponding `ServiceLoader` instance; it does not replace URLs, JAR versions, class loaders, or instances already held by the host.
 
-## 14. Lỗi điển hình và cách xác định nguyên nhân
+## 14. Typical Errors and Root-Cause Diagnosis
 
-| Dấu hiệu | Nguyên nhân khả dĩ | Hướng kiểm tra |
+| Symptom | Possible cause | What to check |
 |---|---|---|
-| `NoSuchMethodError` khi plugin gọi thư viện | Provider biên dịch với API v2 nhưng runtime liên kết tên class vào bản v1 (hoặc ngược lại) | Kiểm tra JAR trong từng loader và phương thức thực có trong class |
-| `ServiceConfigurationError: ... not a subtype` | Provider thực thi bản SPI khác loader với SPI host | Kiểm tra danh tính `TextPlugin.class`, chính sách parent-first và việc đóng SPI vào plugin |
-| `ClassCastException` dù tên class giống | Hai object `Class<?>` được định nghĩa bởi hai loader khác nhau | So sánh `Class.getClassLoader()` và `Class<?>` thay vì chỉ `getName()` |
-| `ClassNotFoundException` hoặc `NoClassDefFoundError` | Plugin thiếu JAR riêng hoặc phụ thuộc chuyển tiếp | Kiểm tra `oldJars`/`newJars`, nội dung JAR và đường dẫn thật |
-| `Expected 1 provider, found 0` | Không tìm thấy file `META-INF/services` hoặc JAR provider ngoài phạm vi loader | Kiểm tra file đăng ký và số provider mà loader phát hiện |
-| `Expected 1 provider, found 2` | Một loader thấy nhiều tài nguyên provider hoặc parent đã công bố provider | Rà soát host classpath, `getResources` và thành phần nào sở hữu metadata |
-| Chạy một plugin đúng, thêm plugin thứ hai thì lỗi | Hai bản của thư viện bị gộp vào một loader hoặc host classpath | Tách loader và bảo đảm host chỉ chứa contract/host |
-| Loader được đóng nhưng lớp chưa unload | Có tham chiếu sống tới class, instance, luồng hoặc loader | Kiểm tra registry, thread context loader, callback, cache và lifecycle |
-| Class nạp đúng nhưng dữ liệu trả về không ép kiểu được | Kiểu private của child rò qua chữ ký hoặc payload | Đưa kiểu giao tiếp vào SPI/API do parent sở hữu |
+| `NoSuchMethodError` when plugin calls library | Provider compiled against v2 API but runtime linked the class name to v1 (or vice versa) | Inspect JARs in each loader and actual methods present in the class |
+| `ServiceConfigurationError: ... not a subtype` | Provider implements an SPI copy from a different loader than the host's SPI | Check `TextPlugin.class` identity, parent-first policy, and whether SPI was bundled in the plugin |
+| `ClassCastException` despite identical class names | Two `Class<?>` objects were defined by two different loaders | Compare `Class.getClassLoader()` and `Class<?>` rather than only `getName()` |
+| `ClassNotFoundException` or `NoClassDefFoundError` | Plugin is missing a private JAR or transitive dependency | Check `oldJars`/`newJars`, JAR contents, and actual file paths |
+| `Expected 1 provider, found 0` | Missing `META-INF/services` file or provider JAR is outside loader scope | Check registration file and how many providers the loader detects |
+| `Expected 1 provider, found 2` | One loader sees multiple provider resources or the parent published providers | Audit host classpath, `getResources`, and which component owns metadata |
+| Running one plugin works, adding the second fails | Both versions of the library were combined into one loader or the host classpath | Separate loaders and ensure the host contains only contract/host |
+| Loader closed yet classes have not unloaded | Live references exist to classes, instances, threads, or the loader | Inspect registries, thread context loaders, callbacks, caches, and lifecycle |
+| Class loads properly yet returned data cannot be cast | Child-private type leaked through signature or payload | Move communication types into the parent-owned SPI/API |
 
-Các lỗi liên kết trong JVM có thể phát sinh **muộn**, ở lần đầu thực thi một đường mã cần đến method/class đó. Việc plugin khởi tạo thành công chưa chứng minh toàn bộ dependency đã tương thích. Nên chạy smoke test qua các chức năng quan trọng của mỗi provider.
+Linkage errors in the JVM can surface **lazily**, on the first execution of a code path needing that method/class. A plugin initializing successfully does not prove all dependencies are compatible. Run smoke tests across each provider's critical paths.
 
-## 15. Những giới hạn của cô lập bằng class loader
+## 15. Limitations of Class-Loader-Based Isolation
 
-Class loader giúp giải quyết xung đột **class namespace**, nhưng không tự cung cấp:
+Class loaders solve **class namespace** conflicts, but do not automatically provide:
 
-- **Cô lập tiến trình hoặc quyền:** provider chạy trong JVM của host và có thể truy cập tài nguyên tương ứng. Không coi class loader là sandbox để chạy mã không tin cậy.
-- **Cô lập trạng thái hệ thống:** system properties, environment, tiến trình, file, port, một số cache/JDK singleton và tài nguyên native có thể vẫn được chia sẻ.
-- **Tương thích tuyệt đối:** thư viện dùng JNI/native libraries, reflective access, context class loader, `ServiceLoader` lồng nhau hoặc callback phức tạp có thể yêu cầu cấu hình bổ sung.
-- **Tự động quản lý bản vá bảo mật:** mỗi phiên bản thư viện vẫn phải được quản lý SBOM, CVE, giấy phép và vòng đời phát hành riêng.
-- **Hot reload an toàn:** dừng plugin cũ và tạo loader mới là bài toán vòng đời, nhất là trong ứng dụng đa luồng.
+- **Process or permission isolation:** providers run inside the host's JVM and can access corresponding resources. Do not treat class loaders as a sandbox for running untrusted code.
+- **System state isolation:** system properties, environment, process state, files, ports, certain caches/JDK singletons, and native resources may still be shared.
+- **Universal compatibility:** libraries using JNI/native libraries, reflective access, context class loaders, nested `ServiceLoader` calls, or complex callbacks may require additional configuration.
+- **Automatic security patch management:** each library version still requires separate SBOM, CVE, license, and release lifecycle management.
+- **Safe hot reload:** stopping old plugins and creating new loaders is a lifecycle problem, especially in multithreaded applications.
 
-Trong môi trường lớn, có thể dùng framework plugin, module layer JPMS hoặc process isolation nếu yêu cầu phức tạp hơn. Java Platform Module System dùng khái niệm module/layer và khai báo `uses`/`provides`; ví dụ này **chủ ý chỉ dùng classpath và `URLClassLoader`** để tập trung vào ranh giới kiểu chung và dependency riêng.
+In large environments, you can use plugin frameworks, JPMS module layers, or process isolation when requirements are more complex. The Java Platform Module System uses module/layer concepts and `uses`/`provides` declarations; this example **intentionally uses only classpath and `URLClassLoader`** to focus on the boundary between shared types and private dependencies.
 
-## 16. Kiểm tra thiết kế trước khi đưa vào dự án
+## 16. Pre-Project Design Checks
 
-Hãy trả lời các câu hỏi sau cho mỗi kiến trúc plugin:
+Answer the following questions for every plugin architecture:
 
-1. **Ai sở hữu SPI?** Có đúng một class loader cha định nghĩa interface và các kiểu giao tiếp chung không?
-2. **Package nào private?** Loader con chỉ tự định nghĩa lớp implementation và dependency thật sự được cô lập, hay vô tình tạo thêm một bản API?
-3. **Mỗi plugin nhìn thấy phiên bản nào?** Compile classpath và runtime URL của nó có cùng phiên bản thư viện cần thiết không?
-4. **Provider discovery nằm ở đâu?** Có truyền đúng class loader vào `ServiceLoader` và đặt `META-INF/services` trong đúng plugin JAR không?
-5. **Kiểu nào vượt qua biên giới?** Có DTO, exception hoặc callback mang kiểu riêng của child gây khó ép kiểu ở host không?
-6. **Lỗi phát hiện khi nào?** Có kiểm tra provider, chạy smoke test và ghi log class loader/JAR để chẩn đoán liên kết sai không?
-7. **Vòng đời thế nào?** Ai đóng loader, hủy provider, dừng thread và giải phóng tài nguyên khi gỡ plugin?
-8. **Ranh giới an toàn?** Các plugin có đáng tin cậy, và có cần cô lập bằng tiến trình thay vì chỉ class loader không?
+1. **Who owns the SPI?** Is there exactly one parent class loader defining the interfaces and shared communication types?
+2. **Which packages are private?** Does the child loader define only implementation classes and truly isolated dependencies, or did it accidentally create an extra copy of the API?
+3. **Which version does each plugin see?** Do its compile classpath and runtime URLs match the exact library version required?
+4. **Where does provider discovery happen?** Is the right class loader passed to `ServiceLoader`, and is `META-INF/services` placed in the right plugin JAR?
+5. **Which types cross the boundary?** Are any DTOs, exceptions, or callbacks carrying child-private types that will fail to cast on the host?
+6. **When are errors caught?** Are providers verified, smoke tests run, and class loader/JAR info logged to diagnose mislinkage?
+7. **What is the lifecycle?** Who closes loaders, destroys providers, stops threads, and releases resources when unloading a plugin?
+8. **What is the safety boundary?** Are plugins trusted, and is process isolation needed instead of class loaders alone?
 
-## 17. Bài tập củng cố
+## 17. Reinforcement Exercises
 
-1. **Chứng minh phụ thuộc phiên bản:** đổi riêng phương thức của `lib-v2` từ `render(String)` sang `render(String, boolean)` nhưng chưa biên dịch lại provider v2. Dự đoán lỗi liên kết nào có thể xuất hiện khi gọi `modern` và giải thích vì sao `legacy` vẫn hoạt động trong loader riêng. Sau đó biên dịch lại provider v2 theo API mới.
-2. **Cố tình làm sai classpath:** thêm hai bản thư viện vào host classpath và quan sát vì sao kết quả khám phá có thể thay đổi. Trước khi thử, hãy lưu bản lệnh đúng để khôi phục môi trường demo.
-3. **Kiểm tra danh tính lớp:** in `oldPlugin.getClass().getClassLoader()` và `newPlugin.getClass().getClassLoader()`. Vì sao tên class giống nhau nhưng không thể kết luận chúng là cùng kiểu?
-4. **Đưa một DTO dùng chung:** thêm `demo.spi.TransformRequest` vào `spi.jar`, đổi hợp đồng thành `transform(TransformRequest)`. Kiểm tra cả hai plugin dùng đúng DTO từ parent.
-5. **Thêm provider thứ ba:** tạo một bản phụ thuộc v3 trong loader thứ ba. Host chỉ cần giữ các đối tượng qua interface chung. Thiết kế thêm định danh và quy tắc chọn provider, không phụ thuộc vào thứ tự discovery.
-6. **Giải phóng loader:** mô tả điều gì sẽ giữ một loader không thể được thu hồi nếu một thread của plugin tiếp tục chạy sau khi host đóng loader.
+1. **Demonstrate version dependency:** change only `lib-v2`'s method from `render(String)` to `render(String, boolean)` without recompiling provider v2. Predict which linkage error can occur when calling `modern` and explain why `legacy` still works in its own loader. Then recompile provider v2 against the new API.
+2. **Intentionally misconfigure the classpath:** add both library versions to the host classpath and observe why discovery results can change. Before trying, save the working commands to restore the demo environment.
+3. **Verify class identity:** print `oldPlugin.getClass().getClassLoader()` and `newPlugin.getClass().getClassLoader()`. Why are the class names identical yet you cannot conclude they are the same type?
+4. **Introduce a shared DTO:** add `demo.spi.TransformRequest` to `spi.jar` and change the contract to `transform(TransformRequest)`. Verify that both plugins use the exact DTO from the parent.
+5. **Add a third provider:** create a v3 dependency version in a third loader. The host should only hold objects through the shared interface. Design an identifier and provider selection rule that does not rely on discovery order.
+6. **Loader release:** describe what keeps a loader from being reclaimed if a plugin thread keeps running after the host closes the loader.
 
-**Nguyên tắc quyết định:** để chạy song song hai phiên bản thư viện có tên class trùng nhau, cần **loader riêng cho dependency riêng**; để host nói chuyện được với cả hai, cần **một lớp hợp đồng chung do parent định nghĩa**. Việc tổ chức JAR, classpath, cơ chế ủy quyền và kiểu dữ liệu vượt biên giới phải cùng tuân thủ nguyên tắc đó.
+**Decision principle:** to run two library versions with colliding class names in parallel, you need **separate loaders for private dependencies**; for the host to speak with both, you need **a shared contract class defined by the parent**. JAR organization, classpaths, delegation mechanisms, and cross-boundary data types must all adhere to that principle.

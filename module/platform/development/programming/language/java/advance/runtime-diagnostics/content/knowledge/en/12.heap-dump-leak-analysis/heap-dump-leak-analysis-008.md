@@ -1,35 +1,35 @@
-# 12.8 Phân biệt shallow size với retained size và vai trò của dominator
+# 12.8 Distinguishing Shallow Size from Retained Size and the Role of Dominators
 
-## 1. Vì sao hai con số này quyết định cách đọc heap dump?
+## 1. Why Do These Two Numbers Govern How You Read a Heap Dump?
 
-Khi mở một Java heap dump bằng Eclipse Memory Analyzer (MAT) hay một công cụ phân tích tương đương, bạn thường thấy hai cột **Shallow Heap / Shallow Size** và **Retained Heap / Retained Size**. Chúng trả lời hai câu hỏi khác nhau:
+When opening a Java heap dump in Eclipse Memory Analyzer (MAT) or an equivalent tool, you typically see two columns: **Shallow Heap / Shallow Size** and **Retained Heap / Retained Size**. They answer two distinct questions:
 
-- **Shallow size:** *Bản thân đối tượng này chiếm bao nhiêu byte trên Java heap?*
-- **Retained size:** *Đối tượng này đang giữ sống bao nhiêu byte trên heap, tính cả chính nó và những đối tượng sẽ không còn đường được giữ sống nếu nó không còn được tham chiếu?*
+- **Shallow size:** *How many bytes does this object itself occupy on the Java heap?*
+- **Retained size:** *How many heap bytes does this object keep alive—counting itself plus any objects that would lose all retention paths if it were no longer referenced?*
 
-Ví dụ: một đối tượng quản lý cache chỉ chiếm vài chục byte shallow, nhưng có thể giữ một đồ thị hàng trăm MB. Ngược lại, một đối tượng trỏ đến một mảng 100 MB **chưa chắc** có retained size thêm 100 MB nếu mảng ấy cũng được giữ sống từ một nhánh khác.
+For example, a cache manager object may take only a few dozen shallow bytes, yet retain a graph spanning hundreds of MB. Conversely, an object pointing to a 100 MB array **does not necessarily** gain 100 MB in retained size if that array is also kept alive by another branch.
 
-**Dominator tree** giúp tính và nhìn ra phần bộ nhớ do một đối tượng giữ sống **độc quyền** trong đồ thị tham chiếu tại thời điểm dump. Nếu không hiểu dominator, rất dễ cộng trùng bộ nhớ, nhầm “có tham chiếu” với “giữ sống độc quyền”, hoặc kết luận rò rỉ bộ nhớ chỉ vì thấy một giá trị retained lớn.
+The **dominator tree** computes and reveals the memory **exclusively** kept alive by an object within the reference graph at dump time. Without understanding dominators, it is easy to double-count memory, confuse "holds a reference" with "exclusively retains," or declare a memory leak solely from a large retained value.
 
-Bài này tập trung vào **Java heap**: kích thước các object, mảng, quan hệ tham chiếu và GC roots trong snapshot. Java heap dump không phải bản đo đầy đủ RSS của tiến trình, direct/native memory, metaspace hay vùng cấp phát ngoài heap.
+This lesson focuses on the **Java heap**: object sizes, arrays, reference relationships, and GC roots within a snapshot. A Java heap dump is not a complete measurement of process RSS, direct/native memory, Metaspace, or off-heap allocations.
 
-## 2. Ba khái niệm phải tách bạch
+## 2. Three Concepts to Keep Separate
 
-### 2.1. Shallow size — dung lượng của chính đối tượng
+### 2.1. Shallow size — the size of the object itself
 
-Một Java object cần bộ nhớ cho phần header, các field nằm trong chính object đó (giá trị nguyên thủy hoặc **ô lưu tham chiếu**), và padding/alignment nếu có. Shallow size **không cộng kích thước của đối tượng được field tham chiếu đến**.
+A Java object requires memory for its header, the fields stored directly inside that object (primitive values or **reference slots**), and padding/alignment if any. Shallow size **does not add the sizes of objects referenced by its fields**.
 
-Với mảng, phần tử nằm trong chính mảng, nên:
+For arrays, elements live inside the array object itself, so:
 
-- `byte[1_000_000]` có shallow size xấp xỉ 1.000.000 byte **cộng header và phần căn chỉnh**; không được khẳng định một con số chính xác nếu chưa biết JVM layout.
-- `int[1_000_000]` chứa khoảng 4.000.000 byte dữ liệu nguyên thủy, ngoài header/alignment.
-- `Object[1_000_000]` chứa một triệu **ô tham chiếu** trong shallow size của mảng. Nếu một ô trỏ đến đối tượng 5 MB thì **5 MB đó không tự động cộng** vào shallow của `Object[]`.
-- `ArrayList` là một object riêng; mảng backing `Object[]`, các phần tử và đồ thị phía sau là những object khác.
-- `String` là một object riêng; mảng lưu nội dung ký tự/byte, nếu có, là một object khác theo bố cục của JDK đó.
+- `byte[1_000_000]` has a shallow size of roughly 1,000,000 bytes **plus header and alignment**; never assert an exact byte figure without knowing the JVM layout.
+- `int[1_000_000]` holds roughly 4,000,000 bytes of primitive data, plus header/alignment.
+- `Object[1_000_000]` contains one million **reference slots** in its shallow size. If one slot points to a 5 MB object, **those 5 MB are not automatically added** to `Object[]`'s shallow size.
+- `ArrayList` is a separate object; its backing `Object[]`, its elements, and downstream graphs are separate objects.
+- `String` is a separate object; its backing character/byte array, where present, is a separate object according to that JDK's layout.
 
-Chi tiết header, kích thước reference, nén con trỏ (`UseCompressedOops` và các cài đặt liên quan), alignment, loại mảng, JVM/JDK và định dạng dump ảnh hưởng đến số shallow size thực tế. Một sơ đồ “object header luôn 12 byte, reference luôn 4 byte” **không phải chân lý cho mọi JVM**.
+Header details, reference sizes, pointer compression (`UseCompressedOops` and related settings), alignment, array type, JVM/JDK, and dump format all affect actual shallow sizes. A rule of thumb like "object header is always 12 bytes, reference is always 4 bytes" **is not true for every JVM**.
 
-Minh họa:
+Illustration:
 
 ```java
 final class Box {
@@ -37,65 +37,65 @@ final class Box {
 }
 ```
 
-Đây là **đoạn mã minh họa, không phải chương trình độc lập**. Đối tượng `Box` có shallow size nhỏ vì field `payload` chỉ lưu tham chiếu. Mảng `byte[]` mới chứa dữ liệu cỡ 1 MiB. Nếu mảng đó chỉ có một đường được giữ sống thông qua `Box` thì retained size của `Box` có thể lớn hơn shallow size rất nhiều; nếu mảng có đường giữ sống độc lập khác, kết quả khác.
+This is an **illustrative snippet, not a standalone program**. The `Box` object has a tiny shallow size because its `payload` field holds only a reference. The `byte[]` array holds the ~1 MiB payload. If that array has only a single retention path through `Box`, then `Box`'s retained size will be much larger than its shallow size; if the array has another independent retention path, the result differs.
 
-### 2.2. Reachable graph — mọi thứ có thể đi tới bằng tham chiếu
+### 2.2. Reachable graph — everything reachable via references
 
-Gọi `Reach(X)` là tập đối tượng có thể đi từ X qua các cạnh tham chiếu trong đồ thị. Đây là một khái niệm **đi theo hướng từ object tới các object nó tham chiếu**.
+Let `Reach(X)` denote the set of objects reachable from X along directed reference edges in the graph. This concept **follows references outward from an object to everything it points to**.
 
-Nhưng chỉ vì X trỏ tới Y **không có nghĩa Y sẽ bị thu gom nếu X biến mất**. Một đối tượng khác Z cũng có thể trỏ tới Y, hoặc Y có đường tham chiếu khác từ GC root. Vì vậy, **tổng shallow size của toàn bộ `Reach(X)` không phải retained size của X**.
+However, just because X points to Y **does not mean Y will be collected if X disappears**. Another object Z might also point to Y, or Y may have another path from a GC root. Therefore, **the sum of shallow sizes across all of `Reach(X)` is not X's retained size**.
 
-### 2.3. Retained size — phần heap được giữ sống độc quyền
+### 2.3. Retained size — the heap exclusively kept alive
 
-Về mặt đồ thị, với tập nút có thể truy cập từ GC roots và quy tắc reachability của công cụ đang dùng:
+In graph terms, given the set of nodes reachable from GC roots under the tool's reachability rules:
 
-- `RetainedSet(X)` gồm X và những đối tượng mà **mọi đường đi từ GC root đến chúng đều phải đi qua X**.
-- `RetainedSize(X) = Σ ShallowSize(Y)` với mọi `Y ∈ RetainedSet(X)`.
+- `RetainedSet(X)` consists of X and all objects for which **every path from a GC root to them passes through X**.
+- `RetainedSize(X) = Σ ShallowSize(Y)` for all `Y ∈ RetainedSet(X)`.
 
-Retained size là **tổng shallow size của một tập object**, không phải một kích thước đo độc lập của “đồ thị con vật lý”. Nó thường được diễn giải như lượng Java heap *có khả năng* được giải phóng khi **mọi đường giữ sống X bị loại bỏ**, các đường giữ sống khác không thay đổi và GC đủ điều kiện thu gom.
+Retained size is the **sum of shallow sizes of a specific object set**, not an independent measurement of a "physical subgraph." It is commonly interpreted as the Java heap space *potentially* freed if **all retention paths to X were removed**, while all other retention paths stayed intact and GC ran.
 
-Trong một snapshot, retained size của một object không nhỏ hơn shallow size của chính nó theo định nghĩa tập giữ lại có chứa X. Nhưng retained size có thể **thấp hơn rất nhiều** tổng kích thước của mọi object X trỏ tới do chia sẻ tham chiếu.
+Within a snapshot, an object's retained size is never less than its own shallow size because its retained set includes X by definition. Yet retained size can be **far lower** than the total size of all objects X points to due to shared references.
 
-| Thuộc tính | Shallow size | Retained size |
+| Property | Shallow size | Retained size |
 | --- | --- | --- |
-| Phạm vi | Chỉ object X, gồm header/field/array elements/padding | X và các object bị X **dominate** |
-| Câu hỏi | “Object này tự chiếm bao nhiêu?” | “Nhánh này độc quyền giữ sống bao nhiêu?” |
-| Có tính object tham chiếu tới? | Không | Có, **chỉ nếu không còn đường từ root đi vòng qua X** |
-| Dễ gặp ví dụ lớn | Mảng `byte[]`, `int[]`, `Object[]` dung lượng lớn | Cache manager, map root, session manager, classloader, thread holder |
-| Có bằng file `.hprof`, RSS, `-Xmx`? | Không | Không |
-| Có chứng minh memory leak? | Không | Không, cần so sánh với vòng đời nghiệp vụ và nhiều bằng chứng |
+| Scope | Object X alone: header, fields, array elements, padding | X and objects **dominated** by X |
+| Question answered | "How much does this object itself occupy?" | "How much does this branch exclusively keep alive?" |
+| Counts referenced objects? | No | Yes, **only if no path from a root bypasses X** |
+| Typical large examples | Large `byte[]`, `int[]`, `Object[]` arrays | Cache managers, root maps, session managers, class loaders, thread holders |
+| Equals `.hprof` file size, RSS, or `-Xmx`? | No | No |
+| Proves a memory leak? | No | No; must compare with business lifecycle and further evidence |
 
-## 3. GC roots và tại sao “ai giữ sống ai” quan trọng
+## 3. GC Roots and Why "Who Keeps Whom Alive" Matters
 
-Garbage collector nhìn vào những **GC roots**: các điểm gốc mà VM coi là đang được giữ sống, ví dụ tham chiếu từ thread stack, static fields của các lớp đang hoạt động, JNI handles và các cấu trúc runtime khác. Từ roots, nó lần theo các tham chiếu có hiệu lực để xác định object còn reachable.
+The garbage collector starts from **GC roots**: anchors the VM treats as live, such as references on thread stacks, static fields of active classes, JNI handles, and other runtime structures. From roots, it follows valid references to mark reachable objects.
 
-Trong heap dump, một object có thể có nhiều **incoming references** từ những nơi khác nhau. Đường `GC root → ... → object` giải thích vì sao object vẫn còn trên heap. Đừng nhầm:
+In a heap dump, an object may have many **incoming references** from different places. A path `GC root → ... → object` explains why the object remains on the heap. Do not confuse these terms:
 
-- **Outgoing reference:** X có field hoặc phần tử mảng trỏ tới Y.
-- **Incoming reference:** có object khác trỏ tới X.
-- **Path to GC roots:** một hoặc nhiều chuỗi đi ngược từ X đến root.
-- **Dominator:** nút nằm trên **mọi** đường đi từ root đến một nút khác; định nghĩa chặt hơn “có một reference”.
+- **Outgoing reference:** X has a field or array slot pointing to Y.
+- **Incoming reference:** another object points to X.
+- **Path to GC roots:** one or more chains walking backward from X to a root.
+- **Dominator:** a node sitting on **every** path from root to another node; a stricter condition than merely "having a reference."
 
-Công cụ có thể xử lý khác nhau đối với tham chiếu `WeakReference`, `SoftReference`, `PhantomReference` và đối tượng không reachable. Khi kiểm tra vì sao object bị giữ sống, chú ý lựa chọn loại trừ weak/soft reference paths và quy tắc reachability của snapshot; **một cạnh hiển thị trong dump không mặc nhiên là một strong reference ngăn GC thu hồi object**.
+Tools may handle `WeakReference`, `SoftReference`, `PhantomReference`, and unreachable objects differently. When verifying why an object stays alive, note options to exclude weak/soft paths and the snapshot's reachability rules; **an edge shown in a dump is not automatically a strong reference blocking GC**.
 
-## 4. Dominator: định nghĩa, immediate dominator và cây thống trị
+## 4. Dominators: Definition, Immediate Dominators, and the Dominator Tree
 
-Giả sử ta thêm một **super-root ảo** nối đến mọi GC root đang xét. Trong đồ thị có hướng từ super-root:
+Imagine adding a **virtual super-root** connected to every GC root under consideration. In the directed graph rooted at super-root:
 
-> Nút A **dominates** nút B khi **mọi đường đi** từ super-root đến B đều đi qua A.
+> Node A **dominates** node B when **every path** from super-root to B passes through A.
 
-Mỗi nút được coi là dominate chính nó. Nếu A khác B mà A dominates B thì A là **strict dominator** của B. **Immediate dominator** của B, ký hiệu `idom(B)`, là strict dominator gần B nhất. Mỗi object reachable (trừ super-root) có một immediate dominator trong cách dựng cây này.
+Every node is considered to dominate itself. If A ≠ B and A dominates B, A is a **strict dominator** of B. B's **immediate dominator**, written `idom(B)`, is the strict dominator closest to B. Every reachable object (except super-root) has a unique immediate dominator in this tree construction.
 
-**Dominator tree** nối mỗi nút B với `idom(B)`. Cây có các thuộc tính quan trọng:
+The **dominator tree** connects each node B to `idom(B)`. It has key properties:
 
-1. Các node nằm trong **subtree của A** chính là tập đối tượng bị A dominate, tức retained set của A.
-2. Cộng shallow size của các node trong subtree A cho ra retained size của A.
-3. **Cạnh trên dominator tree không nhất thiết là cạnh tham chiếu trực tiếp trong chương trình Java.** Nó biểu diễn quan hệ phụ thuộc để được giữ sống. Để xem field nào trỏ tới field nào, phải mở incoming/outgoing references hoặc path to GC roots trong **object graph gốc**.
-4. Hai nhánh sibling trên dominator tree không giữ trùng object; còn retained set của **cha và con thì chồng lấp**. Không cộng retained size của cha và con để tính tổng heap vì sẽ đếm trùng.
+1. Nodes in **A's subtree** are precisely the objects dominated by A—that is, A's retained set.
+2. Summing shallow sizes of nodes in A's subtree yields A's retained size.
+3. **An edge in the dominator tree is not necessarily a direct reference edge in the Java program.** It expresses a retention-dependency relationship. To see which fields point where, inspect incoming/outgoing references or paths to GC roots in the **original object graph**.
+4. Two sibling branches in the dominator tree have disjoint retained sets; by contrast, the retained sets of **parent and child overlap**. Never sum retained sizes of parent and child when totaling heap usage, or you will double-count.
 
-### 4.1. Ví dụ bằng đồ thị có object được chia sẻ
+### 4.1. Graph example with a shared object
 
-Giả sử có bảy object với shallow size **giả định** (đơn vị B chỉ dùng để tính tay, không phải header/layout có thật của JVM). Có hai đường gốc độc lập:
+Suppose seven objects have **hypothetical** shallow sizes (unit B is purely for hand calculation, not real JVM header/layout numbers). There are two independent root paths:
 
 ```text
 GC root R1 ──> A:Cache(40) ──> B:Map(64) ──> C:Entry(24) ──> D:Payload(1024)
@@ -111,9 +111,9 @@ GC root R2 ──> E:Service(48) ───────────────�
                     └────────────> F:Audit(256)
 ```
 
-Đường đến `S:Shared` có hai cách: `R1 → A → S` và `R2 → E → S`. Do đó A **không dominate** S, E cũng **không dominate** S. Ngược lại, mọi đường đến D đều qua A, B, C; A, B và C đều dominate D.
+There are two paths to `S:Shared`: `R1 → A → S` and `R2 → E → S`. Hence neither A **dominates** S nor E **dominates** S. Conversely, every path to D passes through A, B, and C; thus A, B, and C all dominate D.
 
-**Dominator tree suy ra:**
+**Resulting dominator tree:**
 
 ```text
 super-root
@@ -126,67 +126,67 @@ super-root
 └── S:Shared
 ```
 
-Lưu ý đường `super-root → S` là **cạnh thống trị trong cây**, không phải reference trực tiếp có trong chương trình. Một object có nhiều incoming references từ hai nhánh thường làm ta bất ngờ khi thấy nó xuất hiện ngoài subtree của từng nhánh ấy.
+Notice the edge `super-root → S` is a **dominance edge in the tree**, not a literal field reference in the program. An object with multiple incoming references from two branches often surprises analysts when it appears outside both branches' subtrees.
 
-### 4.2. Tính tay, không cộng trùng
+### 4.2. Hand calculation without double-counting
 
-| Object | Shallow giả định | Retained set | Retained size |
+| Object | Hypothetical shallow | Retained set | Retained size |
 | --- | ---: | --- | ---: |
-| D:Payload | 1.024 B | D | 1.024 B |
-| C:Entry | 24 B | C, D | 1.048 B |
-| B:Map | 64 B | B, C, D | 1.112 B |
-| A:Cache | 40 B | A, B, C, D | **1.152 B** |
+| D:Payload | 1,024 B | D | 1,024 B |
+| C:Entry | 24 B | C, D | 1,048 B |
+| B:Map | 64 B | B, C, D | 1,112 B |
+| A:Cache | 40 B | A, B, C, D | **1,152 B** |
 | F:Audit | 256 B | F | 256 B |
 | E:Service | 48 B | E, F | **304 B** |
 | S:Shared | 512 B | S | **512 B** |
 
-Tổng shallow của toàn bộ bảy object là `40 + 64 + 24 + 1024 + 48 + 256 + 512 = 1968 B`. Nhưng tập object **có thể đi tới từ A** gồm A, B, C, D, S và có tổng shallow `1664 B`. Retained size của A chỉ là `1152 B` vì S vẫn được E giữ sống khi A không còn được giữ sống.
+The total shallow size of all seven objects is `40 + 64 + 24 + 1024 + 48 + 256 + 512 = 1968 B`. Meanwhile, the set **reachable from A** consists of A, B, C, D, and S, totaling `1664 B`. Yet A's retained size is only `1152 B` because S remains kept alive by E even if A is no longer retained.
 
-Nếu chỉ bỏ đường root `R1 → A`, ta giải phóng về mặt lý thuyết **1.152 B**, còn S vẫn sống nhờ E. Nếu chỉ bỏ `R2 → E`, có thể giải phóng **304 B**. Nếu bỏ **cả hai** đường cùng lúc, S cũng không còn được giữ sống, nên cả bảy object (1.968 B) đều có thể được thu gom. Kết quả **không bằng phép cộng giản đơn** retained(A) + retained(E), vì nhóm hai object có retained set chung rộng hơn tổng hai retained set xét riêng.
+Removing only root path `R1 → A` theoretically frees **1,152 B**, while S stays alive via E. Removing only `R2 → E` can free **304 B**. Removing **both** paths simultaneously leaves S unretained too, allowing all seven objects (`1,968 B`) to be reclaimed. The combined result **does not equal simple addition** `retained(A) + retained(E)`, because the group of two objects has a shared retained set larger than the sum of their individual retained sets.
 
-Cũng không được cộng retained(A) + retained(B) vì B, C, D nằm trong **cả hai** retained set. Trong một cây, các giá trị retained của nút cha đã chứa giá trị retained của các nút con.
+Likewise, never add `retained(A) + retained(B)` because B, C, and D belong to **both** retained sets. In a tree, a parent node's retained value already includes its children's retained values.
 
-### 4.3. Hai phản ví dụ dễ nhầm
+### 4.3. Two misleading counterexamples
 
-**Có tham chiếu nhưng không dominate:** A trỏ đến S và E cũng trỏ đến S. A có outgoing reference đến S nhưng không giữ sống S độc quyền. Việc tìm thấy một field `A.shared` trỏ S không đủ để cộng S vào retained(A).
+**Holds a reference but does not dominate:** A points to S and E also points to S. A has an outgoing reference to S, yet does not exclusively retain S. Finding an `A.shared` field pointing to S is not enough to add S into `retained(A)`.
 
-**Có chu trình nhưng chưa chắc leak:** A trỏ B, B trỏ A. Nếu một GC root chỉ có đường đến A rồi đến B, A có thể dominate B; nếu **không còn đường từ GC roots đến cả hai**, GC có thể thu gom chu trình. Java GC không dựa thuần vào reference counting, nên chu trình tham chiếu tự nó không phải bằng chứng rò rỉ.
+**Has a cycle but is not necessarily a leak:** A points to B and B points to A. If a GC root reaches A and then B, A may dominate B; if **no path from GC roots reaches either**, GC can collect the cycle. Java GC does not rely purely on reference counting, so a reference cycle alone is not proof of a leak.
 
-## 5. Đọc retained size đúng trong Eclipse Memory Analyzer (MAT)
+## 5. Reading Retained Size Properly in Eclipse Memory Analyzer (MAT)
 
-### 5.1. Histogram trả lời “đang có nhiều object loại nào?”
+### 5.1. Histogram answers "which object types are numerous?"
 
-Mở heap dump, chọn **Histogram**; xem `Class Name`, `Objects`, `Shallow Heap`. Với nhóm object cùng class, shallow heap thông thường là tổng shallow của những instance thuộc nhóm. Ví dụ một triệu `byte[]` hoặc rất nhiều `HashMap$Node` có thể chiếm đáng kể, nhưng histogram chưa trả lời **ai giữ chúng sống**.
+Open the heap dump and select **Histogram**; inspect `Class Name`, `Objects`, and `Shallow Heap`. For objects of the same class, shallow heap is typically the sum of shallow sizes for that group's instances. For instance, a million `byte[]` or many `HashMap$Node` objects can occupy substantial space, yet a histogram cannot answer **who keeps them alive**.
 
-Cột retained ở cấp **tập object / class** có thể cần chạy lệnh tính riêng; MAT phân biệt tính **Minimum Retained Size** (ước lượng dưới nhanh hơn) với tính retained size đầy đủ cho một tập. **Không cộng retained size của từng instance hoặc từng class để ra tổng heap:** retained sets có thể giao nhau; cùng một object có thể bị dominate bởi nhiều ancestor ở các cấp khác nhau.
+The retained column at the **object-set / class** level may require running a separate calculation; MAT distinguishes computing **Minimum Retained Size** (a faster lower bound) from computing exact retained size for a set. **Never sum retained sizes of individual instances or classes to get total heap:** retained sets can overlap, and the same object can be dominated by multiple ancestors at different depths.
 
-### 5.2. Dominator Tree trả lời “đầu mối nào giữ phần heap lớn?”
+### 5.2. Dominator Tree answers "which anchor retains a large heap slice?"
 
-Chọn **Dominator Tree**, thường sắp theo **Retained Heap** giảm dần. Mở rộng các subtree lớn để xem cấu trúc giữ sống:
+Select **Dominator Tree**, typically sorted by **Retained Heap** descending. Expand large subtrees to examine retention structure:
 
-- Một manager/caching object **shallow nhỏ, retained rất lớn** có thể là nơi nắm references tới lượng dữ liệu lớn.
-- Một `byte[]` **shallow lớn** có thể cũng có retained lớn gần bằng shallow, nhưng muốn sửa vấn đề phải đi ngược tìm **đối tượng, collection hoặc root đang giữ mảng này sống**.
-- Một cache xuất hiện giữ sống nhiều đối tượng có thể là hành vi **hợp lệ** nếu cache có giới hạn và chính sách hết hạn. Retained lớn cho thấy **quy mô đang được giữ**, không chứng minh **giữ quá thời hạn nghiệp vụ**.
+- A manager/cache object with **tiny shallow size and huge retained size** may be holding references to large volumes of data.
+- A `byte[]` with **large shallow size** will also have retained size roughly equal to its shallow size, yet fixing the issue requires walking backward to find **the object, collection, or root keeping that array alive**.
+- A cache retaining many objects may be **legitimate** behavior if bounded with expiration policies. Large retained size shows **how much is currently kept**, not **retention past business expiration**.
 
-Trong Dominator Tree, nhấp vào object đáng ngờ, xem **outgoing references** để biết các thành phần nó trỏ tới; xem **incoming references / Path to GC Roots** để tìm lý do nó vẫn sống. **Dominator Tree là bản đồ phụ thuộc giữ sống, còn Path to GC Roots và references là bằng chứng về các cạnh tham chiếu thực.**
+In the Dominator Tree, click a suspect object and inspect **outgoing references** to see the components it points to; inspect **incoming references / Path to GC Roots** to see why it stays alive. **The Dominator Tree is a map of retention dependencies, whereas Path to GC Roots and references are evidence of actual reference edges.**
 
-### 5.3. Path to GC Roots: tìm đúng đường giữ sống
+### 5.3. Path to GC Roots: finding the true retention path
 
-Với object hoặc collection nghi ngờ:
+For a suspect object or collection:
 
-1. Chọn object trong MAT rồi mở **Path to GC Roots**; nếu cần, dùng biến thể **exclude weak/soft/phantom references** phù hợp trong công cụ để tập trung vào strong retaining paths.
-2. Tìm root có liên quan: static field, live thread, ThreadLocal chain, JNI global ref, loader, session/cache registry, listener, executor queue...
-3. Đọc từng field và container trong đường đi; xác định object nào **đáng lẽ phải hết vòng đời** nhưng vẫn còn được tham chiếu.
-4. Nếu có **nhiều đường từ các roots khác nhau**, việc cắt một đường có thể không giải phóng object. Điều này giải thích tại sao retained size của một nhánh nhỏ hơn tổng object nó có thể reach được.
-5. Gắn đường tham chiếu với luồng nghiệp vụ: lúc nào tạo entry, ai xóa, có TTL/size bound không, thread/loader có kết thúc không?
+1. Select the object in MAT and open **Path to GC Roots**; where appropriate, use the tool's **exclude weak/soft/phantom references** variant to focus on strong retaining paths.
+2. Identify the relevant root: static field, live thread, `ThreadLocal` chain, JNI global ref, class loader, session/cache registry, listener, executor queue, etc.
+3. Read each field and container along the path; determine which object **should have ended its lifecycle** yet remains referenced.
+4. If **multiple paths exist from different roots**, severing one path may not free the object. That explains why one branch's retained size can be smaller than the total objects it can reach.
+5. Map the reference path to business flow: when are entries added, who removes them, is there a TTL/size cap, and do threads/loaders terminate?
 
-**Ví dụ diễn giải đúng:** `static Map<Id,Session>` chứa 200.000 session, trong khi chỉ khoảng 10.000 session đang hoạt động. Nếu path to roots đi qua static map, retained của map rất lớn và dữ liệu theo thời gian tiếp tục tăng, giả thuyết thiếu eviction có cơ sở. Vẫn phải kiểm tra chính sách phiên, load và tuổi entry; một snapshot đơn lẻ không chứng minh leak.
+**Proper interpretation example:** a `static Map<Id,Session>` holds 200,000 sessions while only about 10,000 sessions are active. If path to roots runs through the static map, the map's retained size is huge, and counts climb over time, the missing-eviction hypothesis is well supported. Still verify session policy, traffic, and entry age; a single snapshot does not prove a leak.
 
-## 6. Thực hành với Java 17+ và một HPROF có object dùng chung
+## 6. Hands-On with Java 17+ and an HPROF Containing a Shared Object
 
-Ví dụ dưới đây tạo hai holder có **mảng riêng** và cùng trỏ đến **một mảng dùng chung**. Các field static giữ holder sống để có thể quan sát khi dump. Chương trình chạy độc lập trên JDK 17+; yêu cầu mở terminal tương tác để giữ tiến trình đang sống.
+The example below creates two holders, each with a **private array**, both pointing to **one shared array**. Static fields keep the holders alive so they can be observed in a dump. The program runs standalone on JDK 17+; an interactive terminal is needed to keep the process alive.
 
-Lưu thành file `RetainedSizeLab.java`:
+Save as `RetainedSizeLab.java`:
 
 ```java
 public final class RetainedSizeLab {
@@ -209,7 +209,7 @@ public final class RetainedSizeLab {
         cache = new Holder(new byte[1024 * 1024], common);
         service = new Holder(new byte[256 * 1024], common);
 
-        // Loại tham chiếu local dư thừa; hai holder vẫn cùng giữ common.
+        // Drop the extra local reference; both holders still retain common together.
         common = null;
 
         System.out.println("Heap graph ready");
@@ -219,169 +219,169 @@ public final class RetainedSizeLab {
 }
 ```
 
-Biên dịch và chạy ở **terminal thứ nhất**:
+Compile and run in the **first terminal**:
 
 ```bash
 javac RetainedSizeLab.java
 java -Xms128m -Xmx128m RetainedSizeLab
 ```
 
-Stdout trước khi nhấn Enter, **chính xác với chương trình này**:
+Stdout before pressing Enter, **exact for this program**:
 
 ```text
 Heap graph ready
 Press Enter to stop
 ```
 
-Giữ chương trình tại dòng chờ nhập. Mở **terminal thứ hai** và xác định PID ứng dụng:
+Keep the program paused at the prompt. Open a **second terminal** and find the application PID:
 
 ```bash
 jcmd -l
 jcmd 12345 GC.heap_dump retained-size.hprof
 ```
 
-Thay `12345` bằng PID thực từ `jcmd -l`. Lệnh `GC.heap_dump` tạo HPROF; với JDK 21, mặc định yêu cầu **full GC trước dump**, trừ khi chọn `-all`. Lệnh có ảnh hưởng lớn đến ứng dụng và có thể gây pause dài; chỉ chạy ở môi trường và thời điểm phù hợp. Đảm bảo đường dẫn dump có quyền ghi và đủ dung lượng. Nếu dùng tên file tương đối, lưu ý nó được giải quyết trong bối cảnh tiến trình JVM đích; dùng đường dẫn tuyệt đối để quản lý kết quả dễ hơn. Dump có thể chứa dữ liệu nhạy cảm nên cần kiểm soát quyền truy cập.
+Replace `12345` with the actual PID from `jcmd -l`. `GC.heap_dump` produces an HPROF file; on JDK 21, it requests a **full GC before dumping** by default unless `-all` is selected. This command has high impact and can cause a long pause; run only in an appropriate environment and window. Ensure the dump path is writable with adequate disk space. Relative filenames resolve in the target JVM's context; prefer absolute paths for easier artifact management. Dumps can contain sensitive data, so control access permissions.
 
-**Quan sát kỳ vọng trong MAT, không khẳng định byte số cố định:**
+**Expected observations in MAT, without asserting fixed byte figures:**
 
-- Có hai instance `RetainedSizeLab$Holder` được giữ qua hai field static `cache` và `service`.
-- Mảng unique của `cache` chứa **1.048.576 phần tử byte**, của `service` chứa **262.144 phần tử byte**; cả hai có shallow size lớn theo payload cộng header/alignment.
-- Mảng `common` có **524.288 phần tử byte** và có ít nhất hai đường tham chiếu từ hai holder. Khi xem object graph, cả `cache.shared` và `service.shared` đều dẫn đến cùng **một object `byte[]`**, không phải hai mảng khác nhau.
-- Trong dominator tree, mảng common **không nằm trong retained set độc quyền** của riêng holder cache hoặc service, do có đường giữ sống đi qua holder còn lại.
-- Holder có shallow size rất nhỏ so với retained size các mảng unique. **Giá trị retained cụ thể** còn chịu ảnh hưởng JVM layout, root/class metadata, thread stack tại thời điểm dump và cách MAT diễn giải snapshot; hãy xem số thực thay vì gán con số từ sơ đồ giả định ở mục 4.
+- Two `RetainedSizeLab$Holder` instances exist, retained via static fields `cache` and `service`.
+- `cache`'s unique array has **1,048,576 byte elements**, and `service`'s has **262,144 byte elements**; both have large shallow sizes matching payload plus header/alignment.
+- The `common` array has **524,288 byte elements** and has at least two reference paths from the two holders. In the object graph, both `cache.shared` and `service.shared` lead to the **same `byte[]` object**, not two distinct arrays.
+- In the dominator tree, `common` is **not inside the exclusive retained set** of either `cache` or `service`, because a retention path exists through the other holder.
+- Each `Holder` has a tiny shallow size compared to the retained size of its unique array. **Exact retained values** are also affected by JVM layout, root/class metadata, thread stacks at dump time, and how MAT interprets the snapshot; observe the real figures rather than plugging in numbers from the hypothetical diagram in Section 4.
 
-Để so sánh:
+To compare:
 
-1. Mở `retained-size.hprof` trong MAT và tìm `RetainedSizeLab$Holder` ở Histogram.
-2. Chuyển sang Dominator Tree, xem vị trí hai holder và mảng `byte[]` chúng giữ.
-3. Dùng outgoing references trên cả hai holder, đối chiếu object identity của `shared`.
-4. Trên mảng chung, dùng Path to GC Roots; quan sát nhiều đường giữ sống.
-5. Nếu thử sửa chương trình để chỉ còn **một holder** trỏ đến common, lấy **một dump mới** và so sánh: lúc đó common có thể chuyển vào retained set của holder còn lại. Cần kiểm tra root paths thực tế vì trạng thái stack, JIT và cách công cụ dựng GC roots cũng ảnh hưởng kết quả.
+1. Open `retained-size.hprof` in MAT and locate `RetainedSizeLab$Holder` in the Histogram.
+2. Switch to Dominator Tree and inspect where the two holders and their `byte[]` arrays appear.
+3. Inspect outgoing references on both holders and verify the object identity of `shared`.
+4. On the shared array, run Path to GC Roots and observe multiple retention paths.
+5. If you modify the program so only **one holder** points to `common`, take **a new dump** and compare: `common` can then move into that remaining holder's retained set. Inspect actual root paths, since stack state, JIT, and tool root-building also influence results.
 
-**Vì sao không lấy retained size bằng `Instrumentation.getObjectSize`?** Phương thức này chỉ cho kích thước lưu trữ của **object được truyền vào** theo JVM implementation; nó **không tự tính đệ quy đồ thị, reachability, GC roots hoặc dominators**. Kết quả đó không thay thế phân tích retained size bằng heap graph.
+**Why not measure retained size with `Instrumentation.getObjectSize`?** That method returns only the shallow storage size of the **passed object** under the JVM implementation; it **does not recursively compute graph traversal, reachability, GC roots, or dominators**. Its result is no substitute for heap-graph retained size analysis.
 
-## 7. Ba phép tính sai thường dẫn đến kết luận sai
+## 7. Three Calculation Mistakes That Lead to Wrong Conclusions
 
-### Sai lầm 1: “Tổng outgoing objects = retained size”
+### Mistake 1: "Sum of outgoing objects = retained size"
 
-Nếu X giữ reference tới Y và Z, bạn cộng shallow(X) + shallow(Y) + shallow(Z). Cách đó chỉ cộng một số node reachable, có thể vừa **bỏ sót** node sâu hơn, vừa **đếm nhầm** node được chia sẻ. Phải xác định những object thực sự **bị X dominate**.
+If X holds references to Y and Z, you add `shallow(X) + shallow(Y) + shallow(Z)`. That merely sums a subset of reachable nodes, potentially **missing** deeper nodes while **miscounting** shared nodes. You must identify which objects are genuinely **dominated by X**.
 
-### Sai lầm 2: “Cộng retained của mọi hàng lớn nhất ra tổng dùng heap”
+### Mistake 2: "Sum the retained sizes of the top rows to get total heap usage"
 
-Giả sử A dominate B và B dominate C. Khi đó:
+Suppose A dominates B and B dominates C. Then:
 
-- `retained(A)` **đã chứa** `shallow(B)`, `shallow(C)`.
-- `retained(B)` **đã chứa** `shallow(C)`.
-- Cộng `retained(A) + retained(B) + retained(C)` khiến C bị tính ba lần.
+- `retained(A)` **already includes** `shallow(B)` and `shallow(C)`.
+- `retained(B)` **already includes** `shallow(C)`.
+- Summing `retained(A) + retained(B) + retained(C)` counts C three times.
 
-Muốn tính tổng bộ nhớ của **một tập object**, cần xác định retained set của **cả tập** và lấy hợp tập không trùng, hoặc dùng các nhánh độc lập phù hợp. Trong MAT, tính retained của một nhóm object là một thao tác khác phép cộng đơn giản các cột.
+To measure the total memory of **a set of objects**, determine the retained set of **the whole set** and take the deduplicated union, or sum appropriate independent branches. In MAT, computing the retained size of a group of objects is a different operation from simply adding column rows.
 
-### Sai lầm 3: “Retained size lớn chứng minh memory leak”
+### Mistake 3: "Large retained size proves a memory leak"
 
-Một cache 2 GB có thể hoàn toàn đúng nếu giới hạn được thiết kế là 2 GB và vẫn có nhu cầu lưu. Một listener map 20 MB lại có thể là leak nếu giữ hàng chục nghìn listener đã bị unsubscribe về mặt nghiệp vụ. Retained size cho thấy **tác động lên heap nếu giữ object sống**, còn leak liên quan đến **vòng đời ngoài ý muốn**, cần thời gian, ngữ cảnh và bằng chứng phát sinh/giải phóng.
+A 2 GB cache can be completely valid if designed with a 2 GB cap and active demand. By contrast, a 20 MB listener map can be a leak if it retains tens of thousands of listeners already unsubscribed in business logic. Retained size shows **heap impact of keeping objects alive**, whereas a leak concerns **unintended lifetime**, requiring time, context, and evidence of growth/non-release.
 
-## 8. Các tình huống thực tế: suy luận đúng từ heap dump
+## 8. Practical Scenarios: Reasoning Correctly from a Heap Dump
 
-### 8.1. `HashMap`, `ArrayList`, cache và session store
+### 8.1. `HashMap`, `ArrayList`, caches, and session stores
 
-Một manager có thể giữ `Map`, các object entry, key/value, mảng bucket, chuỗi, payload. Shallow của manager rất nhỏ; retained có thể lớn nếu không ai khác giữ phần lớn entries. Khi điều tra:
+A manager may hold a `Map`, entry objects, keys/values, bucket arrays, strings, and payloads. The manager's shallow size is tiny; its retained size can be large if nothing else holds most of those entries. When investigating:
 
-- Đo count, capacity, tuổi record, tỷ lệ hit/miss hoặc số session còn thực sự hợp lệ.
-- Xem **dominator** để tìm manager/collection nắm dung lượng lớn.
-- Xem **Path to GC Roots** để biết ai giữ manager sống (singleton, static, thread, component/container).
-- Đọc chính sách eviction/TTL/size limit; một map lớn không mặc nhiên leak.
+- Check entry count, capacity, record age, hit/miss ratio, or genuinely active session count.
+- Inspect the **dominator** to locate the manager/collection holding major capacity.
+- Inspect **Path to GC Roots** to see what keeps the manager alive (singleton, static, thread, component/container).
+- Check eviction/TTL/size-limit policies; a large map is not automatically a leak.
 
-Đặc biệt, một **mảng backing có capacity lớn** có thể tốn shallow dù mới dùng ít phần tử. Đây là hướng tối ưu khác với leak do object không còn cần thiết.
+In particular, an **oversized backing array** can consume shallow memory even with few active elements. That calls for a different optimization than a leak of unneeded objects.
 
-### 8.2. `ThreadLocal` và thread pool
+### 8.2. `ThreadLocal` and thread pools
 
-Một worker thread có thể tồn tại lâu hơn request. Nếu dữ liệu request được gắn `ThreadLocal` rồi không xóa, path to roots có thể đi qua thread, `ThreadLocalMap` và value; retained có thể lớn dù request đã kết thúc. Khi hợp đồng vòng đời yêu cầu cleanup, dùng `try/finally` để `remove()`.
+A worker thread can outlive individual requests. If request data is attached to a `ThreadLocal` and never cleared, path to roots can go through the thread, `ThreadLocalMap`, and value; retained size can stay large even after the request finishes. When the lifecycle contract requires cleanup, use `try/finally` to call `remove()`.
 
-Không suy luận rằng chỉ cần xóa key `ThreadLocal` là toàn bộ value lập tức biến mất: quá trình dọn stale entries của `ThreadLocalMap` và các reference khác cần được xem trong ngữ cảnh. Phân tích **chuỗi giữ sống thực tế trong snapshot**.
+Do not assume that merely dropping the `ThreadLocal` key variable frees all values immediately: `ThreadLocalMap`'s stale-entry cleanup and other references must be evaluated in context. Analyze the **actual retention chain in the snapshot**.
 
-### 8.3. Listener, callback, executor queue và classloader
+### 8.3. Listeners, callbacks, executor queues, and class loaders
 
-- Listener còn trong một list sau khi màn hình/đối tượng đăng ký đã đóng có thể giữ nhiều view model/payload.
-- Task ở executor queue có thể giữ request context lớn trong thời gian chờ.
-- Classloader không unload có thể giữ class metadata liên quan và những static references của các lớp được tải. Khi điều tra redeploy/plugin leak, xem **classloader tree**, GC roots, thread context classloader và object được liên kết.
-- Nếu có shared references giữa nhiều manager, không quy toàn bộ shared subtree cho manager đầu tiên mình thấy.
+- Listeners remaining in a list after the registering screen or object has closed can retain large view models or payloads.
+- Tasks queued in an executor can retain large request contexts while waiting.
+- Class loaders that fail to unload can pin class metadata and static references of loaded classes. When investigating redeploy/plugin leaks, examine the **class loader tree**, GC roots, thread context class loaders, and linked objects.
+- When multiple managers share references, do not blame the entire shared subtree on the first manager you inspect.
 
-### 8.4. Một dump và nhiều dump
+### 8.4. One dump vs. multiple dumps
 
-Một heap dump chỉ là **ảnh chụp**. Nó cho thấy ai đang giữ object sống **lúc đó**; nó thường **không cho biết stack trace nơi object được tạo ra**. Để điều tra xu hướng:
+A heap dump is only a **snapshot**. It shows who holds objects alive **at that moment**; it generally **does not show the stack trace where an object was allocated**. To investigate trends:
 
-1. Chụp tại các mốc tương đương về workload, sau giai đoạn warm-up.
-2. So sánh class count, total shallow, retained roots/subtrees và phân bố tuổi dữ liệu.
-3. Đối chiếu GC logs, heap after-GC/live set, JFR allocation events, profiler, traffic, cache policy và throughput.
-4. Tìm nhóm object tăng liên tục mà không được giải phóng theo đúng vòng đời.
-5. Kiểm tra sau fix liệu retained set/root path bất thường đã biến mất và memory/latency có cải thiện không.
+1. Capture at comparable workload points after warm-up.
+2. Compare class counts, total shallow sizes, retained roots/subtrees, and data age distribution.
+3. Correlate with GC logs, post-GC heap / live set, JFR allocation events, profilers, traffic, cache policies, and throughput.
+4. Identify object groups climbing steadily without being freed according to lifecycle.
+5. Verify after a fix that the abnormal retained set/root path disappeared and memory/latency improved.
 
-Dữ liệu giữa các dump có thể biến đổi do thời điểm dump, GC trước dump, thread stack hoặc cách công cụ loại bỏ unreachable objects. **Không lấy chênh lệch hai retained sizes làm bằng chứng duy nhất về lượng memory leak**.
+Values between dumps can shift due to dump timing, pre-dump GC, thread stacks, or how tools strip unreachable objects. **Never treat the difference between two retained sizes as sole proof of the exact leak rate.**
 
-## 9. Đọc kết quả: một quy trình điều tra có thể lặp lại
+## 9. Reading Results: A Repeatable Investigation Workflow
 
-| Bước | Xem ở đâu | Câu hỏi cần trả lời | Tín hiệu chuyển bước |
+| Step | Where to look | Question to answer | Signal to advance |
 | --- | --- | --- | --- |
-| 1 | Overview, Histogram | Heap chứa object loại nào nhiều? Shallow lớn tập trung ở đâu? | Có nhóm class/array chiếm dung lượng đáng kể |
-| 2 | Dominator Tree | Object/manager nào giữ độc quyền subtree lớn nhất? | Có owner kỹ thuật cụ thể, retained lớn |
-| 3 | Outgoing References | Owner đang giữ những map, entry, arrays, payload nào? | Hiểu cấu trúc và dung lượng của subtree |
-| 4 | Incoming References, Path to GC Roots | Root nào khiến owner không được GC? Có nhiều đường độc lập? | Xác định reference chain thật |
-| 5 | Domain lifecycle | Object đó đáng lẽ còn sống không? TTL, close, unregister, remove đúng không? | Có giả thuyết giữ quá vòng đời |
-| 6 | Theo dõi thời gian, profiler/JFR | Tập object có tích tụ dưới cùng workload không, allocation ở đâu? | Có bằng chứng đủ mạnh để sửa nguyên nhân |
-| 7 | Sau khi sửa | Retained subtree, heap after-GC, CPU/latency có giảm? | Khẳng định hiệu quả bằng phép đo độc lập |
+| 1 | Overview, Histogram | Which object types fill the heap? Where is large shallow memory concentrated? | A class/array group occupies notable space |
+| 2 | Dominator Tree | Which object/manager exclusively retains the largest subtree? | Specific technical owner with high retained size |
+| 3 | Outgoing References | Which maps, entries, arrays, and payloads does the owner hold? | Understand subtree structure and footprint |
+| 4 | Incoming References, Path to GC Roots | Which root prevents GC of the owner? Are there multiple independent paths? | Identify the real reference chain |
+| 5 | Domain lifecycle | Should those objects still be alive? Are TTL, close, unregister, remove working? | Hypothesis of retention past lifecycle |
+| 6 | Time tracking, profiler/JFR | Does the set accumulate under constant load, and where is it allocated? | Strong enough evidence to fix root cause |
+| 7 | After fix | Did retained subtree, post-GC heap, and CPU/latency drop? | Confirm effectiveness with independent measurements |
 
-**Quyết định sửa ở đâu:** retained size chỉ giúp **ưu tiên khu vực chứa bộ nhớ**. Root path chỉ ra ai giữ reference; đoạn mã tạo object có thể nằm ở chỗ khác; nguyên nhân leak có thể là quên xóa khỏi map, quên unregister listener, cache không có TTL, thread không kết thúc hoặc xử lý dữ liệu quá mức. Phải nối cả ba: **retained subtree → root path → quy tắc vòng đời của ứng dụng**.
+**Deciding where to fix:** retained size only helps **prioritize where memory sits**. Root path shows who holds the reference; the allocation site may live elsewhere; the leak cause might be forgetting to remove from a map, forgetting to unregister a listener, missing cache TTL, non-terminating threads, or buffering excessive data. Connect all three: **retained subtree → root path → application lifecycle rules**.
 
-## 10. Giới hạn và lưu ý khi dùng số liệu
+## 10. Limitations and Caveats When Using Metrics
 
-- **Heap dump ≠ RSS:** dump tập trung vào Java object graph. Direct `ByteBuffer`, native allocations, thread stacks ngoài heap, code cache, metaspace và overhead của VM không được phản ánh đầy đủ như memory của OS.
-- **Snapshot ≠ thời gian:** muốn biết object được tạo khi nào và ở stack nào, kết hợp JFR/allocation profiler; retained size không tự mang allocation history.
-- **GC roots và reference types:** weak/soft/phantom references, JNI và thread stack có semantics riêng. Một số đối tượng trong dump có thể chưa reachable theo chế độ phân tích hoặc sẽ được GC sau đó.
-- **JVM layout không tuyệt đối:** so sánh shallow giữa hai JDK/config khác nhau cần xem compressed refs, object alignment, collector/build và cách parser diễn giải.
-- **Dump mặc định có thể ảnh hưởng hệ thống:** `jcmd GC.heap_dump` trên JDK 21 thường yêu cầu full GC và tiêu thụ CPU/I/O/disk; `-all` không phải “dump miễn phí” và còn bao gồm unreachable objects.
-- **Bảo mật:** heap dump có thể chứa token, chuỗi truy cập, dữ liệu khách hàng và object nhạy cảm. Chỉ lưu/chia sẻ theo phạm vi cho phép, xóa hoặc bảo vệ dump khi điều tra kết thúc.
-- **Kích thước file dump ≠ retained size:** HPROF có bảng lớp/metadata và encoding riêng; compressed hoặc uncompressed file không trực tiếp biểu diễn tổng shallow heap.
+- **Heap dump ≠ RSS:** dumps focus on the Java object graph. Direct `ByteBuffer`s, native allocations, off-heap thread stacks, code cache, Metaspace, and VM overhead are not fully reflected as OS memory.
+- **Snapshot ≠ timeline:** to learn when and on which stack objects were created, combine with JFR/allocation profilers; retained size carries no allocation history.
+- **GC roots and reference types:** weak/soft/phantom references, JNI, and thread stacks have distinct semantics. Some objects in a dump may be unreachable under analysis settings or collected right afterward.
+- **JVM layout is not absolute:** comparing shallow sizes across different JDKs/configs requires checking compressed oops, object alignment, collector/build, and parser interpretation.
+- **Default dumps impact the system:** `jcmd GC.heap_dump` on JDK 21 usually requests a full GC and consumes CPU/I/O/disk; `-all` is not a "free dump" and also includes unreachable objects.
+- **Security:** heap dumps can contain tokens, access strings, customer data, and sensitive objects. Store/share only within authorized boundaries, and delete or protect dumps once investigation concludes.
+- **Dump file size ≠ retained size:** HPROF includes class tables/metadata and its own encoding; compressed or uncompressed file size does not directly equal total shallow heap.
 
-## 11. Bài tự kiểm tra
+## 11. Self-Check Exercise
 
-**Câu 1.** A trỏ B, B trỏ C, nhưng root thứ hai cũng trỏ trực tiếp C. A có dominate C không?
+**Question 1.** A points to B, B points to C, but a second root also points directly to C. Does A dominate C?
 
-*Trả lời:* Không. Có đường từ root thứ hai đến C mà không qua A. A có thể reach C nhưng không giữ sống C độc quyền.
+*Answer:* No. There is a path from the second root to C that bypasses A. A can reach C, but does not exclusively keep C alive.
 
-**Câu 2.** Một object `Controller` có shallow 48 B, retained 250 MiB. Có thể kết luận controller tự chiếm 250 MiB không?
+**Question 2.** A `Controller` object has 48 B shallow size and 250 MiB retained size. Can we conclude the controller itself occupies 250 MiB?
 
-*Trả lời:* Không. 48 B là shallow của controller; 250 MiB là tổng shallow của controller và những object nó dominate trong snapshot. Phải mở subtree để biết những object nào chiếm phần lớn.
+*Answer:* No. 48 B is the controller's shallow size; 250 MiB is the sum of shallow sizes of the controller and all objects it dominates in the snapshot. Expand the subtree to see which objects occupy most of that space.
 
-**Câu 3.** A dominate B và retained(A) = 80 MiB, retained(B) = 60 MiB. Có thể nói hai object này “dùng 140 MiB” không?
+**Question 3.** A dominates B, with `retained(A) = 80 MiB` and `retained(B) = 60 MiB`. Can we say these two objects "use 140 MiB"?
 
-*Trả lời:* Không. 60 MiB của B nằm trong 80 MiB của A. Phép cộng đếm trùng.
+*Answer:* No. B's 60 MiB is already included inside A's 80 MiB. Adding them double-counts.
 
-**Câu 4.** Nếu một `HashMap` có retained 500 MiB, điều gì phải kiểm tra trước khi gọi đó là leak?
+**Question 4.** If a `HashMap` has 500 MiB retained size, what must be checked before calling it a leak?
 
-*Trả lời:* GC root/path giữ map sống, số lượng và loại entries, policy TTL/eviction, số entry hợp lệ theo nghiệp vụ, thay đổi qua nhiều snapshot, GC/live-set trend.
+*Answer:* The GC root/path keeping the map alive, entry count and types, TTL/eviction policy, legitimate business entry count, changes across multiple snapshots, and GC/live-set trends.
 
-**Câu 5.** Vì sao sau khi xóa một field tham chiếu, bộ nhớ RSS chưa chắc giảm ngay?
+**Question 5.** Why might process RSS not drop immediately after clearing a reference field?
 
-*Trả lời:* Object có thể còn đường giữ sống khác; GC chưa chạy/thu hồi hoặc heap vẫn committed; RSS còn gồm native/off-heap và phần heap được JVM giữ lại để tái sử dụng. Retained size dự đoán cấu trúc giữ sống trong snapshot, không bảo đảm RSS giảm tức thì.
+*Answer:* Other retention paths may exist; GC may not have run/reclaimed yet or heap stays committed; RSS also includes native/off-heap memory and heap regions the JVM retains for reuse. Retained size predicts retention structure in the snapshot, not immediate RSS reduction.
 
-## 12. Checklist dùng trong sự cố heap tăng
+## 12. Checklist for Heap-Growth Incidents
 
-- [ ] Đã phân biệt **shallow** của object/array với **retained** của subtree.
-- [ ] Đã biết retained được tính từ **dominator tree** và không cộng trùng retained của cha/con.
-- [ ] Đã xác minh **mọi đường tới object đều đi qua dominator**; lưu ý shared references.
-- [ ] Đã mở **Path to GC Roots** và xem field/reference chain thật.
-- [ ] Đã kiểm tra **weak/soft references**, stack/static/JNI roots và cấu hình parser có liên quan.
-- [ ] Đã đối chiếu số liệu với **vòng đời nghiệp vụ**: cache, session, listener, ThreadLocal, queue, classloader.
-- [ ] Đã tách **Java heap** khỏi direct/native/RSS và **snapshot** khỏi xu hướng theo thời gian.
-- [ ] Có bằng chứng **trước/sau** và kế hoạch đo lại sau thay đổi.
+- [ ] Distinguished object/array **shallow** size from subtree **retained** size.
+- [ ] Understood retained size comes from the **dominator tree** and never double-counted parent/child retained sizes.
+- [ ] Verified **every path to the object passes through the dominator**; checked for shared references.
+- [ ] Opened **Path to GC Roots** and inspected real fields/reference chains.
+- [ ] Checked **weak/soft references**, stack/static/JNI roots, and relevant parser settings.
+- [ ] Mapped numbers to **business lifecycle**: caches, sessions, listeners, `ThreadLocal`, queues, class loaders.
+- [ ] Separated **Java heap** from direct/native/RSS and **snapshots** from trends over time.
+- [ ] Recorded **before/after** evidence and a plan to re-measure after the change.
 
-**Điều cần nhớ:** *shallow size* đo dung lượng của **một object**; *retained size* đo phần Java heap mà object đó **giữ sống độc quyền** trong snapshot; **dominator** là điều kiện đồ thị giúp xác định chính xác quan hệ giữ sống ấy. Khi thấy retained lớn, hãy dùng **dominator tree** để định vị vùng nhớ, **path to GC roots** để tìm đường giữ sống và **vòng đời nghiệp vụ** để kết luận có leak hay không.
+**Key takeaway:** *shallow size* measures the footprint of **one object**; *retained size* measures the Java heap that object **exclusively keeps alive** in the snapshot; **dominator** is the graph condition that pinpoints that retention relationship. When seeing large retained sizes, use the **dominator tree** to locate memory regions, **path to GC roots** to find retention paths, and **business lifecycle** to judge whether a leak exists.
 
-## Tài liệu đối chiếu
+## Reference Documentation
 
 - Eclipse Memory Analyzer — [Shallow vs. Retained Heap](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/concepts/shallowretainedheap.html).
 - Eclipse Memory Analyzer — [Dominator Tree](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/concepts/dominatortree.html).
 - Eclipse Memory Analyzer — [Path to GC Roots](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/reference/inspections/path_to_gc_roots.html).
-- Eclipse Memory Analyzer — [Basic Tutorial / Histogram và Dominator Tree](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/gettingstarted/basictutorial.html).
+- Eclipse Memory Analyzer — [Basic Tutorial / Histogram and Dominator Tree](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/gettingstarted/basictutorial.html).
 - Eclipse Memory Analyzer — [Heap Dump](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/concepts/heapdump.html).
 - Oracle JDK 21 — [jcmd: GC.heap_dump](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html).

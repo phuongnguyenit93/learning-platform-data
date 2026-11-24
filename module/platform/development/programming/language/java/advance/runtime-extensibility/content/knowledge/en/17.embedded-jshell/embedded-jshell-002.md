@@ -1,49 +1,49 @@
-# Tạo JShell, cấu hình classpath, tùy chọn biên dịch và luồng vào ra
+# Creating JShell, Configuring Classpath, Compiler Options, and I/O Streams
 
-## 1. JShell nhúng là gì và cần cấu hình ở đâu?
+## 1. What Is Embedded JShell and Where Does Configuration Happen?
 
-`JShell` có thể được dùng như một công cụ dòng lệnh (`jshell`) hoặc **nhúng trong ứng dụng Java** qua API thuộc module `jdk.jshell`. Ở chế độ nhúng, host không phải mô phỏng terminal REPL: nó tạo một `JShell` state engine, gửi từng đoạn mã Java (*snippet*) qua `eval(String)`, đọc kết quả dưới dạng `SnippetEvent`, giữ trạng thái giữa các lần eval và đóng engine khi kết thúc.
+`JShell` can be used as a command-line tool (`jshell`) or **embedded inside a Java application** via the API in the `jdk.jshell` module. In embedded mode, the host does not need to emulate a terminal REPL: it creates a `JShell` state engine, submits Java code fragments (*snippets*) via `eval(String)`, reads results as `SnippetEvent`s, preserves state across evaluations, and closes the engine when finished.
 
-Một ứng dụng thực tế có thể cần:
+A real-world application may need to:
 
-- Đưa thư viện/API của host vào **classpath của snippet** để code được nhập có thể import và gọi.
-- Cấu hình các **compiler options** dùng khi JShell phân tích và biên dịch snippet.
-- Cấu hình **JVM options cho tiến trình thực thi snippet** (với execution engine dùng remote VM).
-- Tách luồng `System.in`, `System.out` và `System.err` của snippet khỏi luồng console của host, để nhận đầu vào, lưu log hoặc hiển thị trong UI.
-- Đọc **trạng thái, lỗi biên dịch và exception** của snippet qua API, thay vì chỉ dò chuỗi console.
-- Quản lý vòng đời, tránh chạy snippet đồng thời trên một `JShell` và xử lý rủi ro khi chạy Java code động.
+- Add host libraries/APIs to the **snippet classpath** so submitted code can import and call them.
+- Configure **compiler options** used when JShell parses and compiles snippets.
+- Configure **JVM options for the snippet execution process** (for execution engines that use a remote VM).
+- Separate snippet `System.in`, `System.out`, and `System.err` streams from the host console streams so the app can supply input, capture logs, or render output in a UI.
+- Read snippet **status, compile errors, and exceptions** through the API rather than just scraping console strings.
+- Manage the lifecycle, prevent concurrent snippet execution on a single `JShell` instance, and handle the risks of running dynamic Java code.
 
-**Đề bài này tập trung đúng giai đoạn khởi tạo và cấu hình JShell nhúng:** `JShell.create()` / `JShell.builder()`, `compilerOptions`, `remoteVMOptions`, `addToClasspath`, `in`, `out`, `err`. Các phần về evaluation và diagnostics được trình bày đủ để chứng minh cấu hình hoạt động.
+**This topic focuses specifically on initializing and configuring embedded JShell:** `JShell.create()` / `JShell.builder()`, `compilerOptions`, `remoteVMOptions`, `addToClasspath`, `in`, `out`, and `err`. Evaluation and diagnostics are covered just enough to verify that the configuration works.
 
-> **Ý chính:** Host JVM, trình biên dịch/phân tích snippet và môi trường **thực thi** snippet có thể có cấu hình khác nhau. Đừng coi `compilerOptions`, `remoteVMOptions` và `addToClasspath` là ba cách viết của cùng một cấu hình.
+> **Key point:** The host JVM, the snippet compiler/analyzer, and the snippet **execution** environment can each have separate configurations. Do not treat `compilerOptions`, `remoteVMOptions`, and `addToClasspath` as three ways of writing the same setting.
 
-## 2. Thành phần trong một ứng dụng JShell nhúng
+## 2. Components in an Embedded JShell Application
 
-Sơ đồ luồng dữ liệu thường gặp với execution engine mặc định:
+Typical data flow with the default execution engine:
 
 ~~~text
 Host JVM
   |
-  +-- Java code gọi JShell.builder() / JShell.eval()
+  +-- Java code calls JShell.builder() / JShell.eval()
   |       |
   |       +-- compiler / source analysis
   |       |      +-- compilerOptions(...)
-  |       |      +-- classpath cho snippet
+  |       |      +-- classpath for snippet
   |       |
   |       +-- SnippetEvent, Diag, status, exception
   |       |
-  |       +-- execution engine (mặc định: remote process)
+  |       +-- execution engine (default: remote process)
   |                +-- remoteVMOptions(...)
   |                +-- System.in  <-- Builder.in(...)
   |                +-- System.out --> Builder.out(...)
   |                +-- System.err --> Builder.err(...)
   |
-  +-- code host quyết định log, UI, lưu dữ liệu, timeout, close
+  +-- host code handles logging, UI, data persistence, timeout, close
 ~~~
 
-Ở cấu hình mặc định của Java 17, engine tạo **tiến trình thực thi từ xa** cho snippet và tài liệu yêu cầu đóng `JShell` để giải phóng tài nguyên. Nhưng API `JShell.Builder.executionEngine(...)` cho phép thay engine; do đó không nên mặc định mọi cấu hình tùy chỉnh đều tạo tiến trình remote giống mặc định.
+In Java 17's default configuration, the engine spawns a **remote execution process** for snippets, and the documentation requires closing `JShell` to release resources. However, the `JShell.Builder.executionEngine(...)` API lets you swap the engine; therefore, you should not assume every custom configuration creates a remote process just like the default.
 
-Để sử dụng API trong chương trình, các kiểu quan trọng bao gồm:
+To use the API in a program, the core types include:
 
 ~~~java
 import jdk.jshell.JShell;
@@ -52,7 +52,7 @@ import jdk.jshell.SnippetEvent;
 import jdk.jshell.Diag;
 ~~~
 
-Đây là các import minh họa (không phải chương trình độc lập). Module chứa các kiểu này là `jdk.jshell`, không phải `java.base`. Nếu dùng một **explicit named module** của host, cần khai báo dependency tới `jdk.jshell` trong `module-info.java`:
+These are illustrative imports (not a standalone program). The module containing these types is `jdk.jshell`, not `java.base`. If the host uses an **explicit named module**, it must declare a dependency on `jdk.jshell` in `module-info.java`:
 
 ~~~java
 module demo.host {
@@ -60,13 +60,13 @@ module demo.host {
 }
 ~~~
 
-Trong các ví dụ classpath/unnamed module bên dưới, ta biên dịch và chạy với `--add-modules jdk.jshell` để yêu cầu module công cụ này tham gia graph rõ ràng. Runtime image được đóng gói tối giản bằng `jlink` có thể không chứa `jdk.jshell`: cần kiểm tra module có sẵn thay vì mặc định mọi JRE thu gọn đều có API này.
+In the classpath/unnamed-module examples below, we compile and run with `--add-modules jdk.jshell` to explicitly bring this tool module into the module graph. Minimal runtime images packaged with `jlink` might not include `jdk.jshell`: verify module availability instead of assuming every slimmed-down JRE includes this API.
 
-## 3. Khởi tạo nhanh và khởi tạo có tùy chỉnh
+## 3. Quick Initialization and Customized Initialization
 
-### 3.1. Mặc định: `JShell.create()`
+### 3.1. Default: `JShell.create()`
 
-Nếu không có yêu cầu cấu hình đặc biệt:
+If no special configuration is needed:
 
 ~~~java
 try (JShell shell = JShell.create()) {
@@ -74,11 +74,11 @@ try (JShell shell = JShell.create()) {
 }
 ~~~
 
-Đoạn này cần import `jdk.jshell.JShell` và đặt bên trong một method. `JShell.create()` tương đương `JShell.builder().build()`. `JShell` implement `AutoCloseable` nên nên dùng `try-with-resources` để gọi `close()` kể cả khi có exception.
+This snippet requires importing `jdk.jshell.JShell` and placing it inside a method. `JShell.create()` is equivalent to `JShell.builder().build()`. `JShell` implements `AutoCloseable`, so use `try-with-resources` to ensure `close()` is called even when an exception occurs.
 
-Mặc định `JShell.Builder.out` và `err` dùng `System.out` / `System.err` của phía điều khiển; **đầu vào của snippet mặc định là stream rỗng** (không phải mặc định gắn với `System.in` của host). Vì vậy, snippet đọc `System.in` mà host không cấu hình input có thể gặp EOF hoặc thất bại khi chờ một dòng.
+By default, `JShell.Builder.out` and `err` use the controller's `System.out` / `System.err`; **the snippet input defaults to an empty stream** (it is not bound to the host's `System.in` by default). Consequently, a snippet reading `System.in` without host-configured input may hit EOF or fail while waiting for a line.
 
-### 3.2. Tùy chỉnh: `JShell.builder()`
+### 3.2. Customized: `JShell.builder()`
 
 ~~~java
 JShell shell = JShell.builder()
@@ -90,40 +90,40 @@ JShell shell = JShell.builder()
         .build();
 ~~~
 
-Đây là **đoạn API tích hợp**, không phải chương trình độc lập: `snippetInput` cần là `InputStream`, `snippetOutput` và `snippetError` là `PrintStream`. Tạo stream trước khi build, đóng engine và các stream theo vòng đời phù hợp.
+This is an **API integration snippet**, not a standalone program: `snippetInput` must be an `InputStream`, and `snippetOutput` and `snippetError` must be `PrintStream`s. Create streams before building, and close the engine and streams according to an appropriate lifecycle.
 
-Các phương thức cấu hình của `Builder` có thể chain; việc `build()` tạo JShell state engine là bước tách biệt với việc gửi snippet qua `eval`.
+`Builder` configuration methods can be chained; calling `build()` to instantiate the JShell state engine is separate from submitting snippets via `eval`.
 
-| Phương thức | Mục đích | Không nên nhầm với |
+| Method | Purpose | Do Not Confuse With |
 |---|---|---|
-| `JShell.create()` | Khởi tạo nhanh với mặc định | JShell CLI có prompt |
-| `JShell.builder().build()` | Tương đương `create()` khi không cấu hình gì | Tự động nạp thư viện ngoài |
-| `Builder.in(InputStream)` | Nguồn `System.in` cho code được eval | Chuỗi snippet gửi tới `eval(String)` |
-| `Builder.out(PrintStream)` | Nơi snippet ghi `System.out` | `SnippetEvent.value()` |
-| `Builder.err(PrintStream)` | Nơi snippet ghi `System.err` | Danh sách `Diag` của compiler |
-| `Builder.compilerOptions(String...)` | Tùy chọn bổ sung cho compiler khi parse/analyze/generate snippet | Tham số khởi động remote JVM |
-| `Builder.remoteVMOptions(String...)` | Tùy chọn VM cho engine khởi chạy remote JVM | Compiler flags hoặc tham số JVM host |
-| `JShell.addToClasspath(String)` | Bổ sung path vào cuối classpath mà `eval` sử dụng | Thêm JAR vào classpath của JVM host đang chạy |
-| `Builder.fileManager(...)` | Điều chỉnh Java file manager cho compilation/source analysis khi thật sự cần | Thêm JAR đơn giản bằng `addToClasspath` |
-| `Builder.executionEngine(...)` | Chọn hoặc cấu hình execution control engine | Một cách thay đổi compiler flags |
+| `JShell.create()` | Quick initialization with defaults | JShell CLI with a prompt |
+| `JShell.builder().build()` | Equivalent to `create()` with no configuration | Auto-loading external libraries |
+| `Builder.in(InputStream)` | `System.in` source for evaluated code | The snippet string passed to `eval(String)` |
+| `Builder.out(PrintStream)` | Destination where snippets write `System.out` | `SnippetEvent.value()` |
+| `Builder.err(PrintStream)` | Destination where snippets write `System.err` | Compiler `Diag` list |
+| `Builder.compilerOptions(String...)` | Extra compiler options when parsing/analyzing/generating snippets | Remote JVM startup arguments |
+| `Builder.remoteVMOptions(String...)` | VM options for the engine launching the remote JVM | Compiler flags or host JVM arguments |
+| `JShell.addToClasspath(String)` | Appends a path to the classpath used by `eval` | Adding a JAR to the running host JVM's classpath |
+| `Builder.fileManager(...)` | Customizes the Java file manager for compilation/source analysis when truly needed | Simply adding a JAR with `addToClasspath` |
+| `Builder.executionEngine(...)` | Selects or configures the execution control engine | A way to change compiler flags |
 
-Các API trên là **Java API thật**, không phải pseudo-configuration. Đừng sao chép cú pháp lệnh của JShell CLI như `/env` hoặc `/open` rồi coi đó là Java statement hợp lệ trong `eval(String)`.
+The APIs above are **real Java APIs**, not pseudo-configuration. Do not copy JShell CLI command syntax like `/env` or `/open` and expect them to be valid Java statements in `eval(String)`.
 
-## 4. Cấu hình classpath để snippet thấy thư viện
+## 4. Configuring Classpath So Snippets See Libraries
 
-### 4.1. Vì sao host thấy thư viện nhưng snippet không thấy?
+### 4.1. Why Can the Host See a Library While Snippets Cannot?
 
-Một ứng dụng có thể chạy trên host JVM với classpath riêng nhưng snippet được biên dịch và thực thi trong môi trường JShell. Bạn **không nên suy luận** rằng mọi class loader, module, JAR hoặc đường dẫn của host luôn được JShell nhìn thấy tự động.
+An application may run on the host JVM with its own classpath, while snippets are compiled and executed in JShell's environment. You **should not assume** that every class loader, module, JAR, or path of the host is automatically visible to JShell.
 
-API đúng khi cần đưa một thư viện vào classpath cho `eval` là:
+The right API when you need to add a library to the classpath for `eval` is:
 
 ~~~java
 shell.addToClasspath(pathToLibrary);
 ~~~
 
-Trong đó `pathToLibrary` là chuỗi đường dẫn phù hợp, ví dụ thư mục chứa các file `.class` đã compile hoặc đường dẫn JAR. API `addToClasspath(String)` **thêm path ở cuối classpath dùng cho `eval()`**. Nên gọi trước những snippet phụ thuộc path này để việc kiểm chứng thứ tự dễ hiểu và hạn chế trạng thái bị thay đổi giữa phiên.
+Where `pathToLibrary` is an appropriate path string, such as a directory of compiled `.class` files or a JAR path. The `addToClasspath(String)` API **appends the path to the end of the classpath used for `eval()`**. Call it before snippets that depend on the path so order-of-evaluation verification stays clear and mid-session state changes are minimized.
 
-Ví dụ mã tích hợp:
+Integration code example:
 
 ~~~java
 Path library = Path.of("lib", "example-api.jar").toAbsolutePath();
@@ -131,140 +131,140 @@ shell.addToClasspath(library.toString());
 shell.eval("import com.example.api.Greeting;");
 ~~~
 
-Đoạn trên cần có `java.nio.file.Path`, một `JShell shell` đang mở và JAR thực sự chứa package/class đó; mã chỉ minh họa, không phải một chương trình chạy được khi JAR chưa tồn tại.
+The snippet above requires `java.nio.file.Path`, an open `JShell shell`, and a real JAR containing that package/class; this code is illustrative only and will not work if the JAR does not exist.
 
-### 4.2. Đường dẫn thư mục và đường dẫn JAR
+### 4.2. Directory Paths vs. JAR Paths
 
-Có hai dạng thường gặp:
+Two common forms exist:
 
 ~~~text
 lib-classes/
   demo/lib/TextTools.class
 ~~~
 
-hoặc:
+or:
 
 ~~~text
 libs/example.jar
   demo/lib/TextTools.class
 ~~~
 
-Với thư mục chứa class, truyền **root của package tree** (ví dụ `lib-classes`, không phải `lib-classes/demo/lib`); với JAR, truyền path của JAR. Dùng `Path.toAbsolutePath()` để tránh nhầm working directory.
+For a class directory, pass the **root of the package tree** (e.g., `lib-classes`, not `lib-classes/demo/lib`); for a JAR, pass the path to the JAR file. Use `Path.toAbsolutePath()` to avoid working-directory ambiguity.
 
-Lưu ý: `JShell.addToClasspath` là **đường tìm class phục vụ evaluation**, không phải thao tác copy file và không tự biên dịch `.java`. Cần biên dịch thư viện thành `.class` hoặc đóng gói JAR từ trước. Nó không thay `--module-path`/module resolution khi ứng dụng dùng named modules; ví dụ chính bên dưới dùng classpath để tránh trộn lẫn bài toán JPMS.
+Note: `JShell.addToClasspath` is a **class lookup path for evaluation**, not a file-copy operation, and it does not compile `.java` files automatically. Libraries must be compiled to `.class` files or packaged as a JAR beforehand. It does not replace `--module-path`/module resolution when the application uses named modules; the main example below uses the classpath to avoid mixing in JPMS resolution issues.
 
-### 4.3. `addToClasspath` và `compilerOptions` không tương đương
+### 4.3. `addToClasspath` and `compilerOptions` Are Not Equivalent
 
-`compilerOptions` chuyển tùy chọn bổ sung vào các compiler invocations liên quan parse, analysis và code generation của JShell. Dù một số tùy chọn javac có liên hệ đến đường tìm class, **cách chuyên biệt và dễ kiểm soát** để bổ sung JAR/thư mục cho snippet là `addToClasspath`. Đặc tả cảnh báo các compiler option làm nhiễu hoạt động JShell là không được hỗ trợ và có tác động không xác định.
+`compilerOptions` passes extra flags to the compiler invocations involved in JShell's parsing, analysis, and code generation. Even though some `javac` flags relate to class lookup paths, **the dedicated and controllable way** to add JARs/directories for snippets is `addToClasspath`. The specification warns that compiler options interfering with JShell's operation are unsupported and have undefined effects.
 
-Đừng dùng `compilerOptions("-classpath", "...")` như một thao tác thay thế vô điều kiện cho `addToClasspath(...)`, hoặc nghĩ rằng `--class-path` của lệnh `java` khởi động host sẽ tự di chuyển toàn bộ classpath đến một remote engine.
+Do not use `compilerOptions("-classpath", "...")` as an unconditional substitute for `addToClasspath(...)`, or assume that `--class-path` on the host's `java` command will automatically carry the entire classpath over to a remote engine.
 
-### 4.4. Khi nào thêm classpath?
+### 4.4. When Should Classpath Be Added?
 
-Trong ví dụ chạy được, thứ tự là:
+In a runnable example, the sequence is:
 
 ~~~text
-1. Biên dịch TextTools.java → lib-classes/
-2. Khởi tạo JShell bằng Builder
+1. Compile TextTools.java → lib-classes/
+2. Initialize JShell via Builder
 3. shell.addToClasspath(lib-classes)
 4. shell.eval("import demo.lib.TextTools;")
 5. shell.eval("System.out.println(TextTools.transform(\"java\"));")
-6. Đọc events, captured stdout
+6. Read events, captured stdout
 7. close()
 ~~~
 
-Tách hai pha compile giúp minh bạch: **library** được javac biên dịch trước; **snippet** được JShell biên dịch khi `eval`. Nếu tên package hoặc thư mục class sai, lệnh import có thể bị từ chối; khi đó cần kiểm tra `Snippet.Status` và diagnostics chứ không chỉ nhìn console.
+Separating the two compilation phases keeps things transparent: the **library** is compiled by `javac` first; the **snippet** is compiled by JShell during `eval`. If the package name or class directory is wrong, the import statement may be rejected; check `Snippet.Status` and diagnostics rather than just watching the console.
 
-## 5. Compiler options: ảnh hưởng đến phân tích/biên dịch snippet
+## 5. Compiler Options: Affecting Snippet Analysis and Compilation
 
-`JShell.Builder.compilerOptions(String... options)` bổ sung các tùy chọn cho compiler mà JShell dùng để parse, phân tích và sinh code. Ví dụ được dùng trong chương trình đầy đủ:
+`JShell.Builder.compilerOptions(String... options)` adds options for the compiler that JShell uses to parse, analyze, and generate code. The option used in the full program below is:
 
 ~~~java
 .compilerOptions("-Xlint:deprecation")
 ~~~
 
-Đây là ví dụ một tùy chọn lint bổ sung tương thích JShell trong môi trường chạy đã kiểm tra. Nó **không** có nghĩa snippet hoặc host bắt buộc bật lint, và không tự khiến warning xuất hiện nếu mã không dùng API deprecated.
+This is an example of an extra lint option compatible with JShell in the tested runtime environment. It does **not** mean snippets or the host are required to enable lint, nor will warnings appear unless the code actually uses a deprecated API.
 
-Nguyên tắc:
+Guidelines:
 
-- Chỉ truyền những option mà Java compiler/JShell hỗ trợ trong bối cảnh đó.
-- Không nhét tùy chọn JVM như `-Xmx256m` hoặc `-Ddemo.mode=embedded` vào `compilerOptions`. Đây là VM options, không phải javac flags.
-- Không giả định mọi option của lệnh độc lập `javac` đều hợp lệ với compiler nhúng JShell. API Java 17 nói rõ **các tùy chọn gây nhiễu JShell có tác dụng không xác định**.
-- Khi muốn đổi chính sách source/target language, module accessibility hoặc annotation processing, cần kiểm tra thật trên JDK mục tiêu; đừng dùng các tổ hợp `--release`/`--module-path` như giải pháp tổng quát khi chưa xác minh.
-- `compilerOptions` thiết lập qua `Builder` trước `build()`. Khi chỉ cần bổ sung dependency classpath **sau** khi đã build, dùng `shell.addToClasspath(...)`.
+- Pass only options supported by the Java compiler/JShell in that context.
+- Do not put JVM options like `-Xmx256m` or `-Ddemo.mode=embedded` into `compilerOptions`. Those are VM options, not `javac` flags.
+- Do not assume every flag from the standalone `javac` command is valid for JShell's embedded compiler. The Java 17 API explicitly states that **options interfering with JShell have undefined effects**.
+- When changing source/target language policy, module accessibility, or annotation processing, test on the target JDK; do not treat `--release`/`--module-path` combinations as universal solutions without verification.
+- `compilerOptions` is configured via `Builder` before `build()`. When you only need to add classpath dependencies **after** building, use `shell.addToClasspath(...)`.
 
-Điểm này đặc biệt quan trọng vì chương trình ví dụ bên dưới có **hai giai đoạn compile** khác nhau: `javac --release 17` được dùng bên ngoài để biên dịch host/library, còn `compilerOptions("-Xlint:deprecation")` là option của **compiler bên trong JShell**.
+This distinction is especially important because the example program below has **two separate compilation phases**: `javac --release 17` is used externally to compile the host and library, while `compilerOptions("-Xlint:deprecation")` configures the **compiler inside JShell**.
 
-## 6. Remote VM options: ảnh hưởng tới nơi snippet thực thi
+## 6. Remote VM Options: Affecting Where Snippets Execute
 
-Với execution engine mặc định dùng remote process, `Builder.remoteVMOptions(String... options)` đặt các tùy chọn JVM bổ sung cho tiến trình thực thi snippet:
+With the default execution engine that uses a remote process, `Builder.remoteVMOptions(String... options)` sets extra JVM options for the snippet execution process:
 
 ~~~java
 .remoteVMOptions("-Ddemo.mode=embedded")
 ~~~
 
-Vì thế trong snippet:
+Therefore, inside a snippet:
 
 ~~~java
 System.out.println(System.getProperty("demo.mode"));
 ~~~
 
-có thể in ra:
+can print:
 
 ~~~text
 embedded
 ~~~
 
-Đây là một snippet Java chạy ở môi trường evaluation; khi gọi `System.getProperty` ở host JVM, kết quả có thể khác, vì **host và remote VM là hai môi trường riêng**. Đoạn in `embedded` chỉ đúng khi dùng Builder option trên cùng session và execution engine triển khai remote VM tương ứng.
+This is a Java snippet running in the evaluation environment; calling `System.getProperty` on the host JVM may return something different, because **the host and remote VM are two separate environments**. Printing `embedded` only holds when using that Builder option on the same session with an execution engine that launches a corresponding remote VM.
 
-So sánh:
+Comparison:
 
-| Nơi bạn đặt tùy chọn | Ví dụ | Đối tượng chịu tác động |
+| Where You Set the Option | Example | Target Affected |
 |---|---|---|
-| Lệnh khởi động host JVM | `java -Xmx512m -cp out EmbeddedShellDemo ...` | Host JVM |
-| `Builder.remoteVMOptions(...)` | `"-Ddemo.mode=embedded"` | Remote execution VM do engine tạo |
-| `Builder.compilerOptions(...)` | `"-Xlint:deprecation"` | Compiler xử lý snippet |
-| `shell.addToClasspath(...)` | Path tới `lib-classes` hoặc JAR | Classpath để evaluate snippet |
+| Host JVM launch command | `java -Xmx512m -cp out EmbeddedShellDemo ...` | Host JVM |
+| `Builder.remoteVMOptions(...)` | `"-Ddemo.mode=embedded"` | Remote execution VM launched by the engine |
+| `Builder.compilerOptions(...)` | `"-Xlint:deprecation"` | Compiler processing snippets |
+| `shell.addToClasspath(...)` | Path to `lib-classes` or JAR | Classpath for snippet evaluation |
 
-Không phải mọi execution engine tùy chỉnh đều khởi chạy remote VM: đặc tả `jdk.jshell.spi.ExecutionEnv` mô tả extra VM options là lời đề xuất cho engine; engine có thể không tạo remote process. Do đó không khẳng định `remoteVMOptions` sẽ tác động lên mọi engine theo cách giống nhau.
+Not every custom execution engine spawns a remote VM: the `jdk.jshell.spi.ExecutionEnv` specification describes extra VM options as suggestions to the engine; an engine might not create a remote process. Therefore, do not claim that `remoteVMOptions` affects all engines identically.
 
-Đối với cấu hình tài nguyên/memory, đặt giới hạn theo đúng tiến trình cần giới hạn. Một option `-Xmx` của **host** không đồng nghĩa giới hạn heap của **remote process** khi snippet thực thi.
+For memory/resource limits, apply them to the exact process being constrained. A `-Xmx` flag on the **host** does not automatically cap the heap of the **remote process** where snippets execute.
 
-## 7. Cấu hình `System.in` cho snippet
+## 7. Configuring `System.in` for Snippets
 
-### 7.1. Đầu vào dành cho code được eval, không phải source
+### 7.1. Input Is for Evaluated Code, Not Source Code
 
-`Builder.in(InputStream in)` ánh xạ một `InputStream` do host cung cấp thành `System.in` ở phía code được eval:
+`Builder.in(InputStream in)` maps a host-provided `InputStream` as `System.in` for the evaluated code:
 
 ~~~java
 .in(new ByteArrayInputStream(
         "Ada\n".getBytes(StandardCharsets.UTF_8)))
 ~~~
 
-Đây là đoạn Builder tích hợp; cần import `java.io.ByteArrayInputStream` và `java.nio.charset.StandardCharsets`. Một snippet sau đó có thể đọc:
+This is an integration Builder snippet; it requires importing `java.io.ByteArrayInputStream` and `java.nio.charset.StandardCharsets`. A snippet can then read:
 
 ~~~java
 System.out.println(
     "input=" + new java.util.Scanner(System.in).nextLine());
 ~~~
 
-Với stream chứa `Ada\n`, snippet in `input=Ada`. Ngược lại, chuỗi đầu vào của `JShell.eval(String source)` là **mã Java**, không phải dữ liệu được đẩy vào `System.in`.
+With a stream containing `Ada\n`, the snippet prints `input=Ada`. Conversely, the string passed to `JShell.eval(String source)` is **Java code**, not data pushed into `System.in`.
 
-### 7.2. Nếu không thiết lập `in`
+### 7.2. If `in` Is Not Configured
 
-Theo Javadoc Java 17, mặc định Builder cấp **input stream rỗng** cho evaluation. Nếu snippet gọi `Scanner.nextLine()` khi không có dòng nào, nó có thể ném `NoSuchElementException`; code dùng `BufferedReader.readLine()` có thể nhận `null`. Host nên cấu hình input khi ứng dụng thực sự cần tương tác.
+According to the Java 17 Javadoc, by default the Builder supplies an **empty input stream** for evaluation. If a snippet calls `Scanner.nextLine()` when no line is available, it may throw `NoSuchElementException`; code using `BufferedReader.readLine()` may receive `null`. The host should configure input whenever the application genuinely requires interactive input.
 
-Đừng cấp bừa `System.in` của host vào `Builder.in` trong một chương trình mà host đồng thời cũng đọc console: Javadoc cảnh báo việc cùng dùng `System.in` cho nhập snippet và nhập của ứng dụng có thể xung đột. Một UI/HTTP server thường dùng hàng đợi hoặc stream được quản lý riêng, có quy tắc cấp dữ liệu cho từng phiên.
+Do not carelessly pass the host's `System.in` into `Builder.in` in a program where the host simultaneously reads from the console: the Javadoc warns that sharing `System.in` between snippet input and application input can conflict. A UI or HTTP server typically uses a dedicated queue or managed stream with per-session data-feeding rules.
 
-### 7.3. Ngắt việc đọc input
+### 7.3. Interrupting Input Reads
 
-Javadoc cho phép phương thức `InputStream.read` ném `InterruptedIOException` để báo người dùng hủy input; snippet đang chạy có thể được dừng theo cơ chế JShell. Tuy vậy, **không** nên xem đây là đảm bảo timeout cứng hoặc dừng được mọi mã Java. Một snippet có vòng lặp lâu hoặc bị block ở thư viện khác có thể cần xử lý timeout ở cấp execution engine/process.
+The Javadoc allows `InputStream.read` to throw `InterruptedIOException` to signal that the user canceled input; the running snippet can then be stopped according to JShell's mechanism. However, do **not** treat this as a hard timeout guarantee or a way to stop arbitrary Java code. A snippet in a long loop or blocked in another library may require timeout enforcement at the execution engine or process level.
 
-## 8. Cấu hình `System.out` và `System.err`
+## 8. Configuring `System.out` and `System.err`
 
-`Builder.out(PrintStream)` và `Builder.err(PrintStream)` định tuyến output và error output **do code evaluation ghi**. Mặc định chúng dùng `System.out` và `System.err`, nhưng ứng dụng nhúng có thể ghi vào buffer, log file hoặc bridge tới UI.
+`Builder.out(PrintStream)` and `Builder.err(PrintStream)` route output and error output **written by evaluated code**. By default they use `System.out` and `System.err`, though an embedded application can write to buffers, log files, or a UI bridge.
 
-Đoạn tối giản:
+Minimal snippet:
 
 ~~~java
 ByteArrayOutputStream stdoutBytes = new ByteArrayOutputStream();
@@ -284,28 +284,28 @@ try (PrintStream jsOut = new PrintStream(
 }
 ~~~
 
-Đây là **đoạn Java tích hợp**, cần import `ByteArrayOutputStream`, `PrintStream`, `StandardCharsets` và `JShell`. Host đọc `stdoutBytes.toString(StandardCharsets.UTF_8)` và `stderrBytes...` sau khi eval/close.
+This is an **integration Java snippet**, requiring imports for `ByteArrayOutputStream`, `PrintStream`, `StandardCharsets`, and `JShell`. The host reads `stdoutBytes.toString(StandardCharsets.UTF_8)` and `stderrBytes...` after evaluation/closing.
 
-**Phân biệt ba loại kết quả:**
+**Distinguish three kinds of output:**
 
-1. **Standard output** từ `System.out.print*` trong snippet → `Builder.out`.
-2. **Error output** từ `System.err.print*` trong snippet → `Builder.err`.
-3. **Trạng thái, giá trị biểu thức, diagnostics và exception của JShell** → `SnippetEvent`, `JShell.diagnostics(Snippet)`, `SnippetEvent.value()`, `SnippetEvent.exception()`; **không mặc định** được JShell in như transcript REPL lên output stream.
+1. **Standard output** from `System.out.print*` inside a snippet → `Builder.out`.
+2. **Error output** from `System.err.print*` inside a snippet → `Builder.err`.
+3. **JShell status, expression values, diagnostics, and exceptions** → `SnippetEvent`, `JShell.diagnostics(Snippet)`, `SnippetEvent.value()`, `SnippetEvent.exception()`; these are **not automatically** printed by JShell as a REPL transcript to the output stream.
 
-Ví dụ khi gọi `jshell.eval("1 + 2")`, API có thể tạo sự kiện expression với `event.value()` bằng chuỗi `"3"`; đừng mặc định một dòng `3` tự xuất hiện trên `Builder.out` như console REPL. Nếu UI muốn hiển thị giá trị, host phải xây một phần trình bày dựa vào event.
+For example, when calling `jshell.eval("1 + 2")`, the API can emit an expression event whose `event.value()` is the string `"3"`; do not assume a line `3` automatically appears on `Builder.out` like a console REPL. If a UI wants to display values, the host must build a presentation layer around the events.
 
-Nên dùng encoding thống nhất, ví dụ UTF-8 ở cả `PrintStream` và `ByteArrayOutputStream.toString(StandardCharsets.UTF_8)`. Nếu hiển thị trong UI, không để một session dùng chung mutable output stream của nhiều user mà thiếu định tuyến và kiểm soát đồng thời.
+Use a consistent encoding, such as UTF-8 for both `PrintStream` and `ByteArrayOutputStream.toString(StandardCharsets.UTF_8)`. When rendering in a UI, never let multiple users share one mutable output stream within a session without routing and concurrency control.
 
-## 9. Ví dụ hoàn chỉnh Java 17+: thư viện riêng + JShell nhúng
+## 9. Complete Java 17+ Example: Separate Library + Embedded JShell
 
-Ví dụ kiểm tra bốn yêu cầu cùng lúc:
+This example verifies four requirements simultaneously:
 
-1. Biên dịch một thư viện `demo.lib.TextTools` **ngoài classpath của host** rồi đưa vào classpath của snippet bằng `addToClasspath`.
-2. Dùng `compilerOptions("-Xlint:deprecation")`.
-3. Đặt system property của remote VM bằng `remoteVMOptions("-Ddemo.mode=embedded")`.
-4. Chuyển `System.in`, `System.out`, `System.err` của snippet vào các stream do host quản lý và đọc events.
+1. Compile a `demo.lib.TextTools` library **outside the host classpath** and add it to the snippet classpath using `addToClasspath`.
+2. Use `compilerOptions("-Xlint:deprecation")`.
+3. Set a remote VM system property with `remoteVMOptions("-Ddemo.mode=embedded")`.
+4. Redirect snippet `System.in`, `System.out`, and `System.err` to host-managed streams and inspect events.
 
-### 9.1. Cấu trúc thư mục
+### 9.1. Directory Structure
 
 ~~~text
 embedded-jshell/
@@ -313,13 +313,13 @@ embedded-jshell/
     lib/
       TextTools.java
   EmbeddedShellDemo.java
-  lib-classes/     (do javac tạo)
-  out/             (do javac tạo)
+  lib-classes/     (created by javac)
+  out/             (created by javac)
 ~~~
 
-Hai file nguồn đều là Java 17 hợp lệ. Không dùng Maven/Gradle, reflection tùy chỉnh hoặc JAR ngoài.
+Both source files are valid Java 17. No Maven/Gradle, custom reflection, or external JARs are used.
 
-### 9.2. Thư viện: `demo/lib/TextTools.java`
+### 9.2. Library: `demo/lib/TextTools.java`
 
 ~~~java
 package demo.lib;
@@ -334,7 +334,7 @@ public final class TextTools {
 }
 ~~~
 
-`TextTools.transform("java")` sẽ trả về `lib:JAVA`. Host JVM sẽ được chạy với classpath chỉ chứa `out`, do đó thư viện này phải được đưa riêng vào môi trường evaluation của JShell. `Locale.ROOT` giúp phép upper-case ổn định bất kể locale mặc định của hệ điều hành.
+`TextTools.transform("java")` returns `lib:JAVA`. The host JVM will run with a classpath containing only `out`, so this library must be supplied separately to JShell's evaluation environment. `Locale.ROOT` keeps upper-casing deterministic regardless of the OS default locale.
 
 ### 9.3. Host: `EmbeddedShellDemo.java`
 
@@ -388,9 +388,9 @@ public final class EmbeddedShellDemo {
 }
 ~~~
 
-### 9.4. Biên dịch, chạy và kết quả kiểm chứng
+### 9.4. Compiling, Running, and Verified Output
 
-Đứng trong thư mục `embedded-jshell/`, dùng Bash (Linux, macOS hoặc Git Bash):
+From the `embedded-jshell/` directory, using Bash (Linux, macOS, or Git Bash):
 
 ~~~bash
 mkdir -p lib-classes out
@@ -401,14 +401,14 @@ javac --release 17 --add-modules jdk.jshell -d out EmbeddedShellDemo.java
 java --add-modules jdk.jshell -cp out EmbeddedShellDemo lib-classes
 ~~~
 
-Lưu ý:
+Notes:
 
-- `lib-classes` chỉ chứa thư viện; `out` chứa host. Khi chạy `java -cp out`, thư viện không có sẵn trên application classpath của host; đường dẫn `lib-classes` được truyền vào `main` làm tham số rồi đưa cho `shell.addToClasspath(...)`.
-- `javac --release 17` bảo đảm các API và cú pháp của source tương thích Java 17. Cờ `--add-modules jdk.jshell` xác định module chứa API nhúng khi compile/chạy ứng dụng trên classpath.
-- Tham số cuối `lib-classes` là **một đường dẫn**. Nếu thay bằng đường dẫn thư mục có khoảng trắng, bảo đảm quote argument theo shell.
-- Dùng JDK 17+ có module `jdk.jshell`; runtime image tối giản thiếu module này sẽ không chạy được.
+- `lib-classes` contains only the library; `out` contains the host. When running `java -cp out`, the library is absent from the host application's classpath; the `lib-classes` path is passed to `main` as an argument and then supplied to `shell.addToClasspath(...)`.
+- `javac --release 17` ensures the source APIs and syntax are Java 17-compatible. The `--add-modules jdk.jshell` flag resolves the module containing the embedded API when compiling/running on the classpath.
+- The final argument `lib-classes` is **a single path**. If replacing it with a directory path containing spaces, make sure to quote the argument per shell rules.
+- Use JDK 17+ that includes the `jdk.jshell` module; a minimal runtime image missing this module will fail to run.
 
-Đầu ra đã được kiểm tra thực tế khi biên dịch bằng `javac --release 17` và chạy trên JDK 24:
+Actual output verified when compiling with `javac --release 17` and running on JDK 24:
 
 ~~~text
 snippet stdout:
@@ -419,33 +419,33 @@ snippet stderr:
 snippet-warning
 ~~~
 
-Đầu ra trên cho thấy rõ:
+The output above clearly demonstrates:
 
-- `lib:JAVA`: snippet import thành công `TextTools` **chỉ sau khi `addToClasspath`**.
-- `mode=embedded`: JVM thực thi snippet nhận property từ `remoteVMOptions`.
-- `input=Ada`: `Scanner(System.in)` trong snippet đọc từ `ByteArrayInputStream` do Builder cung cấp.
-- `snippet-warning`: snippet ghi `System.err` vào buffer riêng, không trộn với stdout.
-- Các dòng `snippet stdout:` / `snippet stderr:` là **host tự in** sau khi JShell đóng, không phải prompt hay kết quả mặc định của giao diện JShell CLI.
+- `lib:JAVA`: the snippet successfully imports `TextTools` **only after `addToClasspath`**.
+- `mode=embedded`: the JVM executing the snippet receives the property from `remoteVMOptions`.
+- `input=Ada`: `Scanner(System.in)` in the snippet reads from the `ByteArrayInputStream` supplied by the Builder.
+- `snippet-warning`: the snippet writes `System.err` to a separate buffer without mixing into stdout.
+- The `snippet stdout:` / `snippet stderr:` lines are **printed by the host itself** after JShell closes, not prompts or default output from the JShell CLI.
 
-`check(shell, source)` xác thực mỗi snippet của ví dụ chỉ có trạng thái `VALID` và không có exception. Đây là helper **cố ý nghiêm ngặt** cho năm snippet rất đơn giản; một host REPL đầy đủ nên hỗ trợ nhiều kiểu event, các trạng thái như `RECOVERABLE_DEFINED` và thay đổi phụ thuộc, thay vì coi mọi event không-`VALID` là lỗi nghiêm trọng.
+`check(shell, source)` asserts that each example snippet only yields `VALID` status and no exception. This helper is **intentionally strict** for five very simple snippets; a full REPL host should support multiple event types, statuses like `RECOVERABLE_DEFINED`, and dependency updates rather than treating every non-`VALID` event as a fatal error.
 
-### 9.5. Vì sao dùng `try-with-resources`?
+### 9.5. Why Use `try-with-resources`?
 
-`JShell` implement `AutoCloseable`. Với execution engine mặc định, `build()` tạo remote process; đóng engine giúp giải phóng tài nguyên khi chương trình kết thúc hoặc có lỗi. Output streams cũng được đóng sau phiên; trong ví dụ byte buffer vẫn có thể đọc được sau khi đóng `PrintStream`.
+`JShell` implements `AutoCloseable`. With the default execution engine, `build()` creates a remote process; closing the engine releases resources when the program finishes or encounters an error. Output streams are also closed after the session; in this example the byte buffers remain readable after closing the `PrintStream`s.
 
-Khi tích hợp vào ứng dụng server, quản lý vòng đời theo session/user. Không mở JShell mới cho mọi ký tự nhập, không giữ remote process vô hạn, và không gọi `close()` khi còn snippet đang sử dụng session mà không có chính sách dừng/timeout rõ ràng.
+When integrating into a server application, manage lifecycles per session/user. Do not open a new JShell per keystroke, do not leave remote processes running indefinitely, and do not call `close()` while snippets are still using the session without a clear stop/timeout policy.
 
-## 10. Đọc sự kiện, diagnostics và exception thay vì đoán qua stdout
+## 10. Reading Events, Diagnostics, and Exceptions Instead of Guessing from Stdout
 
-`JShell.eval(String)` trả `List<SnippetEvent>`, không trả trực tiếp một chuỗi giống transcript của CLI. Một event có:
+`JShell.eval(String)` returns `List<SnippetEvent>`, rather than directly returning a CLI-like transcript string. Each event has:
 
-- `status()`: ví dụ `VALID`, `REJECTED`, `RECOVERABLE_DEFINED`, `OVERWRITTEN` (tùy ngữ cảnh).
-- `snippet()`: đối tượng snippet liên quan; dùng với `shell.diagnostics(snippet)`.
-- `value()`: biểu diễn chuỗi của một giá trị được đánh giá khi thích hợp; có thể `null` với những snippet không tạo giá trị.
-- `exception()`: exception từ runtime evaluation theo cơ chế API; có thể `null`.
-- `causeSnippet()` và các thông tin liên quan để phân biệt thay đổi trực tiếp và thay đổi do dependency.
+- `status()`: e.g., `VALID`, `REJECTED`, `RECOVERABLE_DEFINED`, `OVERWRITTEN` (depending on context).
+- `snippet()`: the associated snippet object; use with `shell.diagnostics(snippet)`.
+- `value()`: string representation of an evaluated value when applicable; can be `null` for snippets that produce no value.
+- `exception()`: exception from runtime evaluation per the API mechanism; can be `null`.
+- `causeSnippet()` and related details to distinguish direct changes from dependency-driven changes.
 
-Khi một import hoặc biểu thức không hợp lệ, host có thể đọc diagnostics như sau:
+When an import or expression is invalid, the host can inspect diagnostics as follows:
 
 ~~~java
 List<SnippetEvent> events = shell.eval("import missing.pkg.Type;");
@@ -457,143 +457,143 @@ for (SnippetEvent event : events) {
 }
 ~~~
 
-Đây là **đoạn minh họa bên trong method** có biến `JShell shell`, import `jdk.jshell.SnippetEvent` và `java.util.List`. Không nên coi văn bản lỗi compiler là output ổn định giữa các phiên bản JDK; khi xây UI, nên hiển thị status, diagnostic code, vị trí và message lấy từ chính API.
+This is an **illustrative snippet inside a method** with a `JShell shell` variable and imports for `jdk.jshell.SnippetEvent` and `java.util.List`. Do not treat compiler error text as stable output across JDK versions; when building a UI, display the status, diagnostic code, position, and message obtained directly from the API.
 
-### Nhiều snippet trong một input
+### Multiple Snippets in One Input
 
-Đặc tả `JShell.eval` yêu cầu input là **một snippet Java hoàn chỉnh** (declaration, expression, statement, import, v.v.). Nếu người dùng gửi một buffer chứa nhiều snippet, đừng ném toàn bộ chuỗi vào `eval` mà mặc định engine sẽ phân chia đúng. Dùng `JShell.sourceCodeAnalysis().analyzeCompletion(...)` để tách/căn cứ trạng thái hoàn chỉnh trước khi eval. Trường hợp này tách biệt với `Builder.in`: **input của eval là mã**, còn stream `in` là **dữ liệu runtime** mà đoạn mã ấy đọc.
+The `JShell.eval` specification expects the input to be **one complete Java snippet** (declaration, expression, statement, import, etc.). If a user submits a buffer containing multiple snippets, do not dump the whole string into `eval` assuming the engine will split it properly. Use `JShell.sourceCodeAnalysis().analyzeCompletion(...)` to split and check completeness before calling `eval`. This is distinct from `Builder.in`: **`eval` input is code**, whereas the `in` stream is **runtime data** read by that code.
 
-### Vì sao không chỉ đọc `Builder.err`?
+### Why Not Just Read `Builder.err`?
 
-Lỗi compile snippet và output người dùng ghi ra `System.err` là hai kênh khác nhau. Một snippet có thể bị `REJECTED` nhưng không có dòng nào được “in” vào `Builder.err`; ngược lại, một snippet `VALID` có thể cố ý gọi `System.err.println("warning")`. Kết hợp **events + diagnostics + output streams** mới là dữ liệu đủ để hiển thị một phiên JShell nhúng.
+Snippet compile errors and user code writing to `System.err` are two separate channels. A snippet can be `REJECTED` without a single line being "printed" to `Builder.err`; conversely, a `VALID` snippet can intentionally call `System.err.println("warning")`. Combining **events + diagnostics + output streams** provides the complete data needed to render an embedded JShell session.
 
-## 11. Tùy chọn nâng cao của Builder: chỉ dùng khi cần
+## 11. Advanced Builder Options: Use Only When Needed
 
-Ngoài các cấu hình chính, Java 17 có:
+Beyond the core settings, Java 17 provides:
 
 ### `fileManager(Function<StandardJavaFileManager, StandardJavaFileManager>)`
 
-Dùng để điều chỉnh Java file manager phục vụ compilation và source analysis; có ích khi ứng dụng có cơ chế file/directory/library đặc biệt và phải can thiệp vào cách compiler thấy nguồn hoặc output. Đối với nhu cầu thêm thư viện Java bình thường, **`addToClasspath` đơn giản hơn**.
+Used to customize the Java file manager for compilation and source analysis; useful when an application has special file/directory/library mechanisms and needs to intercept how the compiler sees sources or outputs. For adding ordinary Java libraries, **`addToClasspath` is simpler**.
 
-Ví dụ chữ ký API:
+API signature example:
 
 ~~~java
 JShell.Builder builder = JShell.builder()
         .fileManager(existing -> existing);
 ~~~
 
-Đây là đoạn minh họa sử dụng identity mapping, không thay đổi hành vi; không phải cơ chế thêm classpath. Viết custom file manager cần nắm `javax.tools.JavaFileManager` và quy tắc compiler của JShell.
+This is an illustrative snippet using an identity mapping that does not change behavior; it is not a classpath mechanism. Writing a custom file manager requires understanding `javax.tools.JavaFileManager` and JShell's compiler conventions.
 
 ### `executionEngine(...)`
 
-Dùng để chọn provider hoặc đặc tả execution control khi bạn chủ động cần engine khác mặc định. Chỉ nên đặt tối đa **một overload `executionEngine`** trên Builder. Khi thay engine, việc route I/O, remote VM options, cô lập process và dừng snippet phụ thuộc hợp đồng của engine ấy.
+Used to select a provider or execution control spec when you intentionally need an engine other than the default. Set at most **one `executionEngine` overload** on a Builder. When swapping engines, I/O routing, remote VM options, process isolation, and snippet stopping depend on that engine's contract.
 
-### `idGenerator(...)` và `tempVariableNameGenerator(...)`
+### `idGenerator(...)` and `tempVariableNameGenerator(...)`
 
-Các API này phục vụ việc đặt tên/id cho snippets/temporary variables. Chúng không phải cấu hình classpath, compiler flags hoặc I/O. Callback của generator có hạn chế truy cập `JShell` trong lúc trạng thái đang cập nhật; không nên tùy tiện gọi lại `eval` trong callback.
+These APIs control naming/IDs for snippets and temporary variables. They are not classpath, compiler flag, or I/O configurations. Generator callbacks have restrictions against accessing `JShell` while state is updating; do not arbitrarily call `eval` back inside a callback.
 
-Đối với ứng dụng vừa học cách nhúng JShell, hãy bắt đầu bằng `builder().in().out().err().compilerOptions().remoteVMOptions().build()` và `addToClasspath`; chỉ mở rộng Builder khi có yêu cầu kỹ thuật cụ thể.
+For applications just getting started with embedded JShell, start with `builder().in().out().err().compilerOptions().remoteVMOptions().build()` and `addToClasspath`; extend the Builder only when a specific technical requirement arises.
 
-## 12. Những lỗi phổ biến và hướng chẩn đoán
+## 12. Common Errors and Troubleshooting Guide
 
-| Triệu chứng | Nguyên nhân có thể | Hướng xử lý |
+| Symptom | Possible Cause | Resolution |
 |---|---|---|
-| `package jdk.jshell does not exist` hoặc không thấy API JShell | Compile trên runtime image/JDK thiếu `jdk.jshell` hoặc module không tham gia graph | Kiểm tra JDK 17+, `java --list-modules` và cấu hình `--add-modules jdk.jshell`/`requires jdk.jshell` |
-| `ToolProvider` hoạt động nhưng `JShell.build()` thất bại | Thiếu thành phần của JDK/engine hoặc môi trường không thể tạo execution environment | Đọc nguyên nhân `IllegalStateException`, kiểm tra runtime image và quyền tạo process |
-| `import com.example.X` bị `REJECTED` | Thư viện không trên snippet classpath hoặc package/class name sai | Biên dịch dependency, truyền root của package tree/JAR qua `addToClasspath`, xem diagnostics |
-| Host import được class nhưng snippet không thấy | Classpath/loader của host khác môi trường evaluation | Cấu hình classpath **của snippet**, không chỉ classpath của host |
-| Cấu hình `compilerOptions("-Dkey=value")` không cho hiệu ứng mong muốn | Trộn JVM option với compiler option | Chuyển sang `remoteVMOptions` khi property cần trong remote execution VM |
-| `remoteVMOptions("-D...")` nhưng host `System.getProperty` không đổi | Option đặt cho VM thực thi snippet, không phải host | Kiểm tra property bằng snippet; phân biệt hai JVM |
-| Snippet gọi `Scanner(System.in).nextLine()` bị EOF | `Builder.in` mặc định stream rỗng hoặc stream cung cấp đã hết dữ liệu | Cấp input riêng có nội dung đúng format và quản lý vị trí đọc |
-| Không thấy kết quả biểu thức dù `eval` trả về event | Giá trị nằm trong `SnippetEvent.value()`, không tự in trên stdout | Đọc events và xây transcript của host |
-| Không có compiler error trong `Builder.err` | Compiler diagnostics không phải `System.err` của snippet | Dùng `shell.diagnostics(event.snippet())` |
-| Output của hai user trộn nhau | Dùng chung buffer/stream/session không có điều phối | Cấp session stream riêng, serialize evaluation và áp dụng giới hạn |
-| Host treo khi snippet chạy lâu | `eval` đồng bộ chờ code thực thi hoặc code bị block ở input/I/O | Timeout có chính sách, giới hạn tài nguyên ở execution engine/process; `stop()` là best effort |
-| Remote VM không áp dụng `-D...` với custom engine | Engine không khởi tạo remote VM hoặc xử lý option khác | Đọc tài liệu `ExecutionControlProvider`/`ExecutionEnv` và kiểm chứng engine thực tế |
-| Đã `close` mà vẫn gọi `eval` | JShell đã đóng | Không tái sử dụng; tạo session mới nếu cần |
-| Classpath mới trỏ tới JAR đã thay nhưng còn thấy class cũ | Class đã nạp và state/loader còn lưu | Tạo session/loader mới; không kỳ vọng đổi bytecode class đã định nghĩa |
+| `package jdk.jshell does not exist` or JShell API not found | Compiled on a runtime image/JDK missing `jdk.jshell` or module not in the graph | Verify JDK 17+, `java --list-modules`, and `--add-modules jdk.jshell`/`requires jdk.jshell` |
+| `ToolProvider` works but `JShell.build()` fails | Missing JDK/engine components or environment cannot launch execution environment | Inspect `IllegalStateException` cause, check runtime image and process creation permissions |
+| `import com.example.X` is `REJECTED` | Library not on snippet classpath or wrong package/class name | Compile dependency, pass package tree root or JAR via `addToClasspath`, inspect diagnostics |
+| Host can import a class but snippets cannot see it | Host classpath/loader differs from the evaluation environment | Configure the **snippet's** classpath, not just the host classpath |
+| `compilerOptions("-Dkey=value")` has no expected effect | Mixing JVM options with compiler options | Move to `remoteVMOptions` when the property is needed in the remote execution VM |
+| `remoteVMOptions("-D...")` set, but host `System.getProperty` unchanged | Option targets the snippet execution VM, not the host | Inspect the property from a snippet; distinguish the two JVMs |
+| Snippet calling `Scanner(System.in).nextLine()` hits EOF | Default `Builder.in` is an empty stream or the provided stream is exhausted | Supply dedicated input with properly formatted data and manage read positions |
+| Expression result not visible even though `eval` returned events | Value is in `SnippetEvent.value()`, not printed automatically to stdout | Read events and build the host transcript |
+| No compiler errors in `Builder.err` | Compiler diagnostics are not snippet `System.err` | Use `shell.diagnostics(event.snippet())` |
+| Two users' outputs get mixed together | Shared buffer/stream/session without coordination | Allocate per-session streams, serialize evaluations, and apply limits |
+| Host hangs on a long-running snippet | Synchronous `eval` waits for execution or code is blocked on input/I/O | Enforce policy timeouts and engine/process resource limits; `stop()` is best-effort |
+| Remote VM ignores `-D...` with a custom engine | Engine does not spawn a remote VM or handles options differently | Consult `ExecutionControlProvider`/`ExecutionEnv` docs and verify the actual engine |
+| Calling `eval` after `close` | JShell is closed | Do not reuse; create a new session if needed |
+| Updated classpath points to a replaced JAR, yet old classes appear | Classes are already loaded and state/loader retains them | Create a new session/loader; do not expect already-defined class bytecode to swap |
 
-Cách debug hiệu quả là log **các thông tin tách biệt**: classpath thực tế đã đưa vào shell, các Builder option, `SnippetEvent.status`, diagnostics, exception, captured stdout/stderr và chính xác snippet đang chạy. Không dựa vào việc “không in gì” để suy ra compile failure.
+An effective debugging practice is to log **separate pieces of state**: the actual classpath added to the shell, Builder options, `SnippetEvent.status`, diagnostics, exceptions, captured stdout/stderr, and the exact snippet executed. Do not infer compilation failure just because "nothing was printed."
 
-## 13. Vòng đời, đa luồng và giới hạn an toàn
+## 13. Lifecycle, Multithreading, and Safety Boundaries
 
-### 13.1. `JShell` không thread-safe
+### 13.1. `JShell` Is Not Thread-Safe
 
-Javadoc chỉ ra `JShell` **không thread-safe**, trừ một số thao tác được ghi riêng. Một web server không nên cho nhiều request gọi `eval`, `drop`, `addToClasspath` trên cùng engine đồng thời. Dùng executor/queue cho mỗi session, đồng bộ hóa trên tầng host và bảo đảm output/diagnostics gắn đúng request. Nếu cần chạy nhiều user độc lập, thường nên dùng session riêng và quota rõ ràng.
+The Javadoc notes that `JShell` is **not thread-safe**, except for specific documented operations. A web server must not let multiple requests call `eval`, `drop`, or `addToClasspath` concurrently on the same engine. Use a per-session executor/queue, synchronize at the host layer, and ensure outputs/diagnostics are correlated to the right request. To serve multiple independent users, use separate sessions with clear quotas.
 
-### 13.2. Không coi JShell là sandbox
+### 13.2. Do Not Treat JShell as a Sandbox
 
-JShell cho phép thực thi Java code động; snippet có thể dùng các API để đọc file, gọi mạng, tạo thread hoặc tiêu thụ CPU/memory trong phạm vi quyền được cấp. Việc tạo process riêng bằng default engine **không tự đảm bảo an toàn**, bởi process đó vẫn có thể chạy với quyền hệ điều hành của host.
+JShell executes dynamic Java code; snippets can use APIs to read files, make network calls, spawn threads, or consume CPU/memory within granted permissions. Spawning a separate process via the default engine **does not guarantee safety on its own**, because that process may still run with the host's OS privileges.
 
-Với nội dung không tin cậy, dùng thêm các biện pháp hệ điều hành/container, tài khoản giới hạn, filesystem/network policy, CPU/memory/time quotas và quản lý process. `JShell.stop()` chỉ cố gắng dừng snippet đang chạy; Javadoc nói rõ có tình huống không thể dừng, ví dụ bị block ở I/O. Không dùng `stop()` như đảm bảo vô điều kiện.
+For untrusted content, add OS/container controls, restricted user accounts, filesystem/network policies, CPU/memory/time quotas, and process management. `JShell.stop()` only attempts to stop a running snippet; the Javadoc explicitly notes cases where it cannot stop execution, such as blocking on I/O. Do not rely on `stop()` as an unconditional guarantee.
 
-### 13.3. Quản lý stream và bộ nhớ
+### 13.3. Managing Streams and Memory
 
-`ByteArrayOutputStream` tiện cho ví dụ nhỏ nhưng nếu snippet in vô hạn, buffer có thể chiếm toàn bộ heap host. Production nên dùng stream có giới hạn, cơ chế backpressure hoặc append log có quota, kèm chiến lược giữ lại một phần đầu/cuối output. Đừng giữ mọi `SnippetEvent` và toàn bộ output không giới hạn.
+`ByteArrayOutputStream` is convenient for small demos, but if a snippet prints endlessly, the buffer can exhaust host heap memory. Production systems should use bounded streams, backpressure, or quota-enforced log appenders with strategies to retain head/tail output slices. Do not retain every `SnippetEvent` and all output unboundedly.
 
-Khi session kết thúc, `close()` `JShell` để giải phóng tài nguyên. Nếu UI hủy một evaluation, cần điều phối việc `stop`/đóng engine và xử lý trạng thái cuối, không vừa đóng vừa cho request khác tái sử dụng session.
+When a session ends, `close()` `JShell` to release resources. If a UI cancels an evaluation, coordinate stopping/closing the engine and handling the final state—do not close a session while allowing another request to reuse it.
 
-### 13.4. Phân biệt dữ liệu input với code input
+### 13.4. Distinguishing Data Input from Code Input
 
-- `shell.eval("...")`: **mã nguồn Java** được đánh giá.
-- `Builder.in(input)`: **byte stream runtime** để đoạn mã đó đọc qua `System.in`.
-- `Builder.out/err(stream)`: **byte/output channel runtime** của snippet.
-- `SnippetEvent` và `Diag`: **metadata và kết quả** do host lấy từ API.
+- `shell.eval("...")`: **Java source code** being evaluated.
+- `Builder.in(input)`: **runtime byte stream** read by that code via `System.in`.
+- `Builder.out/err(stream)`: **runtime byte/output channels** of the snippet.
+- `SnippetEvent` and `Diag`: **metadata and results** retrieved by the host via API.
 
-Đây là bốn kênh khác nhau. Định nghĩa hợp đồng cho từng kênh giúp tránh nhầm quyền, dấu xuống dòng, encoding và vòng đời stream.
+These are four distinct channels. Defining contracts for each channel avoids confusion over permissions, line endings, encodings, and stream lifecycles.
 
-## 14. Checklist khi triển khai JShell nhúng
+## 14. Embedded JShell Implementation Checklist
 
-1. Đã chọn JDK/runtime image có `jdk.jshell` chưa?
-2. Có sử dụng `JShell.builder()` khi cần I/O/compiler/remote VM options thay vì chỉ `create()`?
-3. Input/Output/Error stream do host cấp riêng và có vòng đời rõ ràng chưa?
-4. Đã xác định class/JAR nào **snippet cần nhìn thấy**, và dùng `addToClasspath` với path đúng?
-5. Có phân biệt `compilerOptions` với `remoteVMOptions` và JVM option của host?
-6. Nếu snippet cần đọc `System.in`, đã cấp stream có nội dung hay cơ chế cấp input động chưa?
-7. Có xử lý `SnippetEvent.status/value/exception` và `JShell.diagnostics`, thay vì chỉ in stdout/stderr?
-8. Có tách input thành các snippet hoàn chỉnh trước khi gọi `eval`?
-9. Có serialize các thao tác trên cùng `JShell` để tránh race condition?
-10. Có đóng JShell, stream và xử lý timeout/quota, nhất là với code bên ngoài gửi tới?
-11. Đã thử thực tế trên JDK/OS/execution engine sẽ triển khai chưa?
+1. Have you chosen a JDK/runtime image that includes `jdk.jshell`?
+2. Are you using `JShell.builder()` instead of just `create()` when I/O, compiler, or remote VM options are needed?
+3. Are host-provided input/output/error streams isolated with clear lifecycles?
+4. Have you identified which classes/JARs **snippets need to see** and passed the right paths via `addToClasspath`?
+5. Do you distinguish `compilerOptions` from `remoteVMOptions` and host JVM options?
+6. If snippets read `System.in`, have you supplied a non-empty stream or a dynamic input feeding mechanism?
+7. Are you handling `SnippetEvent.status/value/exception` and `JShell.diagnostics` rather than just printing stdout/stderr?
+8. Are you splitting input into complete snippets before calling `eval`?
+9. Are operations on the same `JShell` serialized to avoid race conditions?
+10. Do you close JShell and streams and enforce timeouts/quotas, especially for externally submitted code?
+11. Have you tested on the actual target JDK, OS, and execution engine?
 
-## 15. Tự kiểm tra nhanh
+## 15. Quick Self-Check
 
-**1. Tạo một JShell nhúng với thiết lập mặc định bằng câu lệnh nào?**  
-`JShell.create()` hoặc `JShell.builder().build()`.
+**1. Which call creates an embedded JShell with default settings?**  
+`JShell.create()` or `JShell.builder().build()`.
 
-**2. Đã có `libs/extra.jar` và muốn snippet `import` class bên trong. Dùng API nào?**  
-`shell.addToClasspath(pathToJar)`, rồi kiểm tra `SnippetEvent` và diagnostics của import.
+**2. You have `libs/extra.jar` and want snippets to `import` classes inside it. Which API do you use?**  
+`shell.addToClasspath(pathToJar)`, then inspect the `SnippetEvent` and diagnostics for the import.
 
-**3. `compilerOptions("-Xlint:deprecation")` có thay thế `remoteVMOptions("-Dapp.name=demo")` không?**  
-Không. Một bên cấu hình compiler cho snippet, bên kia cấu hình VM thực thi snippet.
+**3. Does `compilerOptions("-Xlint:deprecation")` replace `remoteVMOptions("-Dapp.name=demo")`?**  
+No. One configures the compiler for snippets; the other configures the VM executing snippets.
 
-**4. Input stream cho `Builder.in` chứa `Ada\n`, còn `eval` chứa `System.in.read()`. Hai chuỗi này giống nhau không?**  
-Không. `eval` nhận mã Java, `in` đưa dữ liệu cho code khi thực thi.
+**4. The input stream for `Builder.in` contains `Ada\n`, while `eval` receives `System.in.read()`. Are these two inputs the same?**  
+No. `eval` receives Java code; `in` feeds runtime data to that code when executed.
 
-**5. Không gọi `Builder.in`, snippet dùng `Scanner(System.in).nextLine()` có luôn đọc từ console host không?**  
-Không. Mặc định input stream cho evaluation là stream rỗng.
+**5. Without calling `Builder.in`, will a snippet using `Scanner(System.in).nextLine()` always read from the host console?**  
+No. The default input stream for evaluation is an empty stream.
 
-**6. `Builder.out` có tự in kết quả giá trị của mọi expression không?**  
-Không. `SnippetEvent.value()` cung cấp giá trị của expression khi thích hợp; host quyết định cách trình bày.
+**6. Does `Builder.out` automatically print the result value of every expression?**  
+No. `SnippetEvent.value()` provides the expression value when applicable; the host decides how to present it.
 
-**7. Khi snippet bị `REJECTED`, nên đọc log stderr hay diagnostics?**  
-`JShell.diagnostics(snippet)` và status của event là nguồn chính xác cho compile diagnostic.
+**7. When a snippet is `REJECTED`, should you read stderr logs or diagnostics?**  
+`JShell.diagnostics(snippet)` and the event status are the accurate sources for compile diagnostics.
 
-**8. `remoteVMOptions` có tác động lên host `System.getProperty` không?**  
-Không phải mặc định. Khi dùng remote engine, option hướng tới VM chạy snippet.
+**8. Does `remoteVMOptions` affect the host's `System.getProperty`?**  
+Not by default. With a remote engine, the options target the VM executing snippets.
 
-**9. Có nên cho nhiều request web cùng gọi `eval` trên một `JShell` không?**  
-Không tùy tiện; `JShell` không thread-safe. Cần serialize hoặc cấp session riêng.
+**9. Should multiple web requests call `eval` concurrently on a single `JShell`?**  
+Not arbitrarily; `JShell` is not thread-safe. Serialize access or allocate separate sessions.
 
-**10. Đóng JShell có quan trọng dù ứng dụng host vẫn chạy?**  
-Có. Execution engine mặc định tạo remote process và `close()` giải phóng tài nguyên session.
+**10. Is closing JShell important even if the host application keeps running?**  
+Yes. The default execution engine spawns a remote process, and `close()` releases session resources.
 
-**Ghi nhớ:** để nhúng JShell đúng cách, dùng `Builder` tạo engine với các stream và options phù hợp, thêm classpath **cho snippet** qua `addToClasspath`, đánh giá từng snippet hoàn chỉnh và lấy kết quả bằng **events + diagnostics + captured I/O**, rồi đóng session. Cấu hình compiler, JVM host và remote execution VM là ba phạm vi cần phân biệt.
+**Remember:** to embed JShell properly, use `Builder` to construct the engine with appropriate streams and options, add classpath entries **for snippets** via `addToClasspath`, evaluate complete snippets one by one, retrieve results using **events + diagnostics + captured I/O**, and then close the session. Compiler configuration, host JVM, and remote execution VM are three separate scopes to keep distinct.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — `JShell`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/JShell.html): `create`, `builder`, `eval`, `addToClasspath`, `diagnostics` và `close`.
-- [Java SE 17 — `JShell.Builder`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/JShell.Builder.html): `in`, `out`, `err`, `compilerOptions`, `remoteVMOptions`, `fileManager` và `executionEngine`.
-- [Java SE 17 — `SnippetEvent`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/SnippetEvent.html): status, value và exception theo event.
-- [Java SE 17 — `SourceCodeAnalysis`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/SourceCodeAnalysis.html): tách nguồn thành snippet hoàn chỉnh.
-- [Java SE 17 — `ExecutionEnv`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/spi/ExecutionEnv.html): luồng I/O và extra remote VM options cho execution engine.
+- [Java SE 17 — `JShell`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/JShell.html): `create`, `builder`, `eval`, `addToClasspath`, `diagnostics`, and `close`.
+- [Java SE 17 — `JShell.Builder`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/JShell.Builder.html): `in`, `out`, `err`, `compilerOptions`, `remoteVMOptions`, `fileManager`, and `executionEngine`.
+- [Java SE 17 — `SnippetEvent`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/SnippetEvent.html): status, value, and exception per event.
+- [Java SE 17 — `SourceCodeAnalysis`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/SourceCodeAnalysis.html): splitting source into complete snippets.
+- [Java SE 17 — `ExecutionEnv`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/spi/ExecutionEnv.html): I/O streams and extra remote VM options for the execution engine.

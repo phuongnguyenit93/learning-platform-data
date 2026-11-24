@@ -1,0 +1,419 @@
+menu:
+- level1: Bức tranh kiểm thử
+  level2:
+  - Kiểm thử là gì và bằng chứng mà một bài kiểm thử cung cấp
+  - Rủi ro cần kiểm chứng trong ứng dụng dùng Spring
+  - Vai trò của Spring Test bên cạnh JUnit và thư viện assertion
+  - Phân biệt kiểm thử đơn vị, tích hợp và toàn hệ thống
+  - Ranh giới giữa thành phần nghiệp vụ, container và hạ tầng ngoài
+  - Chi phí, tốc độ phản hồi và độ tin cậy của từng cấp kiểm thử
+  - Từ yêu cầu hành vi đến tình huống thành công và thất bại
+  - Quan hệ giữa khả năng kiểm thử và thiết kế Dependency Injection
+  - Luồng học từ đối tượng Java đến HTTP và tài nguyên thật
+  - Phạm vi Spring Framework Testing so với công cụ Spring Boot
+- level1: Thiết kế bài kiểm thử
+  level2:
+  - Chọn một hành vi có thể quan sát làm mục tiêu
+  - Cấu trúc chuẩn bị, thực thi và xác nhận
+  - Xác định điều kiện đầu vào và kết quả mong đợi
+  - Phân vùng tương đương, giá trị biên và dữ liệu không hợp lệ
+  - Kiểm tra kết quả, trạng thái và tác dụng phụ
+  - Dữ liệu chuẩn bị (fixture) tối thiểu và dễ đọc
+  - Đặt tên thể hiện điều kiện và hành vi
+  - Độc lập với thứ tự chạy và dữ liệu của bài khác
+  - Tránh sao chép thuật toán triển khai vào phép kiểm tra
+  - 'Chu trình TDD: thất bại có ý nghĩa, sửa và tái cấu trúc'
+- level1: JUnit Jupiter
+  level2:
+  - JUnit Platform, Jupiter và công cụ thực thi kiểm thử
+  - Thiết lập dependency kiểm thử và đồng bộ phiên bản JUnit với Spring Test
+  - Vòng đời @Test, @BeforeEach, @AfterEach, @BeforeAll và @AfterAll
+  - Vòng đời test instance và trạng thái chia sẻ
+  - Assertions cho giá trị, tập hợp và ngoại lệ
+  - assertAll và thông báo lỗi giúp chẩn đoán
+  - ParameterizedTest cho ma trận dữ liệu
+  - Nested test để nhóm các tình huống
+  - Tag và điều kiện bật hoặc tắt kiểm thử
+  - Timeout thông thường so với timeout đổi luồng
+  - Extension và cách SpringExtension tham gia vòng đời
+- level1: Kiểm thử đơn vị
+  level2:
+  - Tạo đối tượng nghiệp vụ trực tiếp bằng constructor
+  - Tiêm thành phần cộng tác mà không khởi động ApplicationContext
+  - Kiểm thử service qua hợp đồng công khai
+  - Kiểm thử quy tắc validation và chuyển đổi dữ liệu thuần
+  - Kiểm thử nhánh thành công, lỗi và ngoại lệ
+  - Thay đồng hồ, bộ sinh ID và dữ liệu ngẫu nhiên bằng phụ thuộc kiểm soát được
+  - Xác nhận tác dụng phụ qua một cổng giao tiếp
+  - Phân biệt lỗi nghiệp vụ với lỗi thành phần cộng tác
+  - Khi kiểm thử đơn vị không đủ để xác nhận cấu hình Spring
+  - Giữ bài kiểm thử nhanh và không phụ thuộc mạng
+- level1: Mock, Stub và Spy
+  level2:
+  - Phân biệt đối tượng thật, fake, stub, mock và spy
+  - Chọn thành phần cần thay thế ở ranh giới bài kiểm thử
+  - Tạo Mockito mock và khai báo dữ liệu trả về
+  - Thiết lập ngoại lệ từ thành phần được giả lập
+  - Argument matcher và dữ liệu đầu vào chính xác
+  - ArgumentCaptor để kiểm tra dữ liệu đã gửi
+  - verify số lần gọi và các tương tác quan trọng
+  - Spy gọi hành vi thật và nguy cơ tác dụng phụ khi thiết lập
+  - Reset trạng thái, strict stubbing và cấu hình thừa
+  - Tránh xác nhận mọi lời gọi nội bộ làm bài kiểm thử dễ vỡ
+- level1: Tiện ích Spring Test
+  level2:
+  - MockEnvironment và MockPropertySource
+  - MockHttpServletRequest, MockHttpServletResponse và MockHttpSession
+  - MockServletContext và đối tượng Servlet mô phỏng
+  - MockServerHttpRequest, MockServerHttpResponse và MockServerWebExchange
+  - ReflectionTestUtils và giới hạn phụ thuộc chi tiết riêng tư
+  - AopTestUtils để truy cập target khi cần kiểm tra mock sau proxy
+  - ModelAndViewAssert cho controller trả về view
+  - Các tiện ích so sánh JSON, XML và tài nguyên
+  - Khác biệt giữa mock đối tượng API và máy chủ HTTP thật
+  - Phụ thuộc Servlet, reactive và thư viện phụ trợ theo phiên bản Spring
+- level1: TestContext Framework
+  level2:
+  - Vấn đề nạp cấu hình và quản lý kiểm thử tích hợp
+  - Vai trò TestContext, TestContextManager và TestExecutionListener
+  - TestContextBootstrapper, ContextLoader và SmartContextLoader
+  - Vòng đời lớp, test instance và phương thức kiểm thử
+  - SpringExtension với JUnit Jupiter
+  - '@SpringJUnitConfig và cấu hình rút gọn'
+  - '@SpringJUnitWebConfig cho kiểm thử web'
+  - Danh sách listener mặc định và trách nhiệm của chúng
+  - Phân biệt vòng đời kiểm thử với vòng đời ApplicationContext
+  - Quan hệ với hỗ trợ JUnit 4 và TestNG trong mã cũ
+- level1: Cấu hình ApplicationContext
+  level2:
+  - '@ContextConfiguration với lớp cấu hình Java'
+  - Nạp cấu hình XML và tài nguyên classpath
+  - Nạp Groovy script trong các dự án dùng cấu hình Groovy
+  - Phát hiện cấu hình mặc định khi không chỉ định rõ
+  - Lớp cấu hình lồng và phạm vi bean được nạp
+  - Kết hợp component class, XML và @Import
+  - Kế thừa cấu hình từ lớp cha
+  - ContextInitializer để chuẩn bị trước khi refresh
+  - ContextCustomizer và tác động tới cấu hình kiểm thử
+  - '@ContextHierarchy cho quan hệ cha con'
+  - Tên tầng context và quy tắc hợp nhất hoặc ghi đè
+  - Chỉ nạp các thành phần cần cho rủi ro đang kiểm chứng
+  - Phân biệt đối tượng kiểm thử với bean do context quản lý
+- level1: Profile và thuộc tính
+  level2:
+  - '@ActiveProfiles và lựa chọn bean theo môi trường kiểm thử'
+  - Kế thừa profile và ActiveProfilesResolver
+  - '@TestPropertySource với tệp hoặc thuộc tính trực tiếp'
+  - Thứ tự ưu tiên của các nguồn cấu hình
+  - '@DynamicPropertySource cho địa chỉ và cổng cấp khi chạy'
+  - DynamicPropertyRegistry và giá trị được cung cấp động
+  - DynamicPropertyRegistrar theo phiên bản Spring hỗ trợ
+  - Giới hạn dữ liệu động khi context được dùng chung
+  - Không dùng cấu hình kiểm thử để che cấu hình sản xuất bị lỗi
+  - Tách bí mật, môi trường và dữ liệu của mỗi bộ kiểm thử
+- level1: Cache và vòng đời context
+  level2:
+  - Tại sao TestContext giữ lại ApplicationContext để dùng chung
+  - Các thành phần tạo khóa context cache
+  - Thuộc tính, profile, bean override và việc phân mảnh cache
+  - Phạm vi cache trong cùng JVM và ảnh hưởng của fork process
+  - Giới hạn kích thước cache và loại bỏ context ít dùng
+  - Đọc log thống kê context cache
+  - '@DirtiesContext khi kiểm thử làm hỏng trạng thái dùng chung'
+  - Thời điểm đóng context trước hoặc sau lớp hay phương thức
+  - Phạm vi hierarchyMode khi làm bẩn context phân cấp
+  - Context failure threshold và cách tìm nguyên nhân lỗi đầu tiên
+  - Đóng context, tác vụ nền và tài nguyên đang sử dụng
+  - Tránh khởi động lại context chỉ để dọn dữ liệu nghiệp vụ
+- level1: Tiêm phụ thuộc kiểm thử
+  level2:
+  - '@Autowired cho field, setter và constructor của test'
+  - '@TestConstructor và chế độ tự tiêm constructor'
+  - Tiêm tham số phương thức bằng SpringExtension
+  - '@Qualifier khi nhiều bean cùng kiểu'
+  - Tiêm ApplicationContext và Environment
+  - Kết hợp tham số Spring với ParameterResolver khác
+  - PER_CLASS, test instance và context được khởi tạo lại
+  - Tiêm phụ thuộc trong lớp kiểm thử lồng
+  - Tránh dùng Dependency Injection như bằng chứng duy nhất rằng nghiệp vụ đúng
+  - Nhận biết lỗi thiếu bean khác với lỗi assertion
+- level1: Thay bean trong kiểm thử
+  level2:
+  - Chọn bean thật, bean thử nghiệm hoặc Mockito mock
+  - '@TestBean và phương thức tạo đối tượng thay thế'
+  - '@MockitoBean và thay thế thành phần cộng tác trong context'
+  - '@MockitoSpyBean và quan sát hành vi của bean thật'
+  - Chọn bean theo kiểu, tên và qualifier
+  - REPLACE, REPLACE_OR_CREATE và WRAP
+  - Yêu cầu bean phải tồn tại và tránh tạo mock ngoài dự kiến
+  - Phạm vi singleton, FactoryBean và khác biệt theo phiên bản
+  - Tương tác giữa bean override với Spring AOP proxy
+  - Cách stubbing và verify khi spy nằm sau proxy
+  - Reset mock và an toàn khi chạy kiểm thử song song
+  - Phân biệt annotation của Spring Framework với @MockBean/@SpyBean của Spring Boot
+- level1: Annotation dùng lại
+  level2:
+  - Meta-annotation và annotation tổ hợp cho kiểm thử
+  - Đóng gói SpringExtension và cấu hình context chung
+  - '@AliasFor khi cần công khai thuộc tính cấu hình'
+  - Kế thừa annotation và ảnh hưởng của lớp lồng
+  - '@NestedTestConfiguration để kiểm soát kế thừa cấu hình'
+  - '@EnabledIf, @DisabledIf và điều kiện từ Spring'
+  - Giữ annotation tổ hợp đơn giản và dễ truy tìm
+  - Tránh lớp cha kiểm thử lớn che giấu nhiều phụ thuộc
+- level1: Giao dịch kiểm thử
+  level2:
+  - Test-managed transaction so với giao dịch do ứng dụng quản lý
+  - Điều kiện có PlatformTransactionManager và @Transactional
+  - Rollback mặc định sau một phương thức kiểm thử
+  - '@Commit và @Rollback để xác nhận hành vi lưu dữ liệu'
+  - Chọn transaction manager khi có nhiều nguồn dữ liệu
+  - Các thuộc tính @Transactional được hỗ trợ trong test-managed transaction
+  - '@BeforeEach và @AfterEach trong phạm vi giao dịch kiểm thử'
+  - '@BeforeTransaction và @AfterTransaction ngoài giao dịch'
+  - TestTransaction để kết thúc, bắt đầu và đánh dấu commit
+  - Propagation của mã được gọi và nguy cơ tạo giao dịch độc lập
+  - Timeout đổi luồng và dữ liệu không được rollback
+  - Giao dịch kiểm thử không tự bao phủ yêu cầu HTTP ở luồng máy chủ
+- level1: SQL và dữ liệu
+  level2:
+  - Chuẩn bị schema và dữ liệu kiểm thử có chủ đích
+  - '@Sql cho script hoặc câu lệnh SQL'
+  - Đường dẫn script và cơ chế tìm script mặc định
+  - ExecutionPhase để chạy trước hoặc sau kiểm thử
+  - '@SqlConfig: encoding, dấu phân cách và xử lý lỗi'
+  - Chọn DataSource và transaction manager cho script
+  - Chế độ giao dịch của script và phạm vi rollback
+  - '@SqlMergeMode khi kết hợp cấu hình lớp và phương thức'
+  - '@SqlGroup và nhiều bộ script'
+  - JdbcTestUtils để đếm, kiểm tra và dọn dữ liệu
+  - Giữ dữ liệu độc lập khi nhiều bài dùng cùng cơ sở dữ liệu
+- level1: Kiểm thử tầng dữ liệu
+  level2:
+  - Nạp cấu hình DataSource và repository cần thiết
+  - Chọn cơ sở dữ liệu nhúng hay cùng loại với môi trường thật
+  - Kiểm chứng truy vấn, ánh xạ, ràng buộc và ngoại lệ
+  - Khác biệt SQL dialect, kiểu dữ liệu và transaction isolation
+  - Flush ORM để phát hiện lỗi mà persistence context đang che
+  - Clear persistence context trước khi kiểm tra việc tải lại
+  - Kiểm tra callback vòng đời entity
+  - Đọc dữ liệu qua JDBC để tránh chỉ xác nhận bộ đệm ORM
+  - Kiểm chứng hành vi sau commit bằng giao dịch riêng
+  - Phân biệt kiểm thử repository thật với mock repository
+  - Migration và việc xác nhận schema khởi tạo được
+- level1: Sự kiện ứng dụng
+  level2:
+  - '@RecordApplicationEvents và ApplicationEvents'
+  - Ghi nhận loại sự kiện, payload và số lần xuất hiện
+  - Lọc sự kiện hạ tầng để tập trung vào hợp đồng nghiệp vụ
+  - Sự kiện đồng bộ so với xử lý trên executor
+  - Kiểm chứng listener có điều kiện và lỗi xử lý
+  - TransactionalEventListener và thời điểm commit hoặc rollback
+  - Test execution events khác với sự kiện nghiệp vụ
+  - Giới hạn phạm vi ghi nhận khi context hoặc luồng được dùng chung
+- level1: WebApplicationContext
+  level2:
+  - '@WebAppConfiguration và thư mục gốc tài nguyên web'
+  - Nạp cấu hình Spring MVC cho kiểm thử tích hợp
+  - MockServletContext và ranh giới container Servlet mô phỏng
+  - Tiêm WebApplicationContext và các đối tượng web mock
+  - Chuẩn bị request attributes cho bean phạm vi request
+  - Kiểm thử bean phạm vi session với MockHttpSession
+  - Scoped proxy và việc truy cập bean đúng ngữ cảnh
+  - Dọn RequestContextHolder để không rò trạng thái giữa bài
+  - Phân biệt kiểm thử context web với mở cổng máy chủ
+- level1: Thiết lập MockMvc
+  level2:
+  - MockMvc chạy chuỗi xử lý MVC qua request và response mô phỏng
+  - standaloneSetup với controller được chọn
+  - webAppContextSetup với cấu hình MVC thật
+  - Tiêu chí chọn thiết lập độc lập hoặc dựa trên context
+  - Đăng ký ControllerAdvice, converter và Validator
+  - Đăng ký Filter và thứ tự xử lý
+  - defaultRequest, alwaysExpect và tùy chỉnh chung
+  - MockMvcConfigurer cho tích hợp có phạm vi
+  - Chọn static import cho builder, matcher và handler
+  - Giới hạn mô phỏng so với container Servlet đang chạy
+- level1: Gửi yêu cầu MockMvc
+  level2:
+  - HTTP method, URI template và path variable
+  - Query parameter, form parameter và encoding
+  - Header, cookie và session attributes
+  - Body JSON, XML và nội dung nhị phân
+  - Content-Type và Accept trong content negotiation
+  - Multipart request với tệp và các phần dữ liệu
+  - Locale và kiểm thử thông báo được bản địa hóa
+  - Principal và ngữ cảnh xác thực của yêu cầu
+  - RequestPostProcessor cho dữ liệu bổ sung
+  - Đường dẫn context, servlet và thông tin yêu cầu
+  - Kiểm thử dữ liệu thiếu, sai kiểu và vượt giới hạn
+  - Giữ dữ liệu yêu cầu gần hợp đồng HTTP thực tế
+- level1: Xác nhận kết quả MVC
+  level2:
+  - Status code, header và cookie phản hồi
+  - Content type, charset và dữ liệu body
+  - JSONPath để xác nhận trường và tập hợp
+  - So sánh JSON có hoặc không yêu cầu thứ tự nghiêm ngặt
+  - XPath và nội dung XML
+  - DTO sau tuần tự hóa khác với đối tượng trong bộ nhớ
+  - Model, view name và ModelAndView
+  - Redirect, forward và flash attributes
+  - BindingResult, validation error và tên trường
+  - Handler được chọn và ngoại lệ được giải quyết
+  - ResultHandler, print và thông tin chẩn đoán khi thất bại
+  - Xác nhận hợp đồng thay vì chỉ kiểm tra mã 200
+- level1: MVC lỗi và bất đồng bộ
+  level2:
+  - ControllerAdvice và ánh xạ ngoại lệ thành HTTP
+  - Kiểm thử ProblemDetail hoặc cấu trúc lỗi riêng
+  - Lỗi chuyển đổi, thiếu tham số và validation
+  - Kiểm thử Filter chain và các nhánh từ chối yêu cầu
+  - Giới hạn xác nhận bảo mật khi chưa nạp Spring Security
+  - asyncStarted với Callable hoặc DeferredResult
+  - asyncDispatch để kiểm tra kết quả sau hoàn tất
+  - Thời gian chờ và ngoại lệ trong xử lý bất đồng bộ
+  - Streaming hoặc SSE và khi cần HTTP qua máy chủ thật
+  - HtmlUnit cho luồng biểu mẫu khi phù hợp phạm vi MVC
+- level1: MockMvcTester
+  level2:
+  - MockMvcTester và tích hợp AssertJ theo phiên bản Spring hỗ trợ
+  - Khởi tạo từ controller hoặc MockMvc có sẵn
+  - Tạo yêu cầu và kiểm tra kết quả bằng fluent assertion
+  - Phân biệt assertion của AssertJ với ResultMatcher truyền thống
+  - Xác nhận body JSON và chuyển thành kiểu dữ liệu
+  - Kiểm tra model, view và các chi tiết phía máy chủ
+  - Xác nhận lỗi hoặc kết quả bất đồng bộ
+  - Chọn một phong cách assertion nhất quán trong bộ kiểm thử
+- level1: Thiết lập WebTestClient
+  level2:
+  - Vai trò WebTestClient và quan hệ với WebClient
+  - bindToController cho controller WebFlux
+  - bindToRouterFunction cho endpoint chức năng
+  - bindToApplicationContext với cấu hình WebFlux
+  - bindToServer để kiểm thử HTTP qua mạng thật
+  - MockMvcWebTestClient để dùng cùng API kiểm thử cho MVC
+  - Chọn ranh giới kiểm thử mà mỗi chế độ thực sự bao phủ
+  - Base URL, default headers và cấu hình codec
+  - responseTimeout và giới hạn bộ đệm
+  - Tái sử dụng cấu hình client mà vẫn cô lập dữ liệu mỗi bài
+- level1: Xác nhận HTTP phản ứng
+  level2:
+  - exchange và chuỗi expectStatus, expectHeader, expectBody
+  - Body dưới dạng DTO, danh sách hoặc kiểu generic
+  - JSONPath, so sánh JSON và kiểm tra body trống
+  - expectAll để tổng hợp nhiều phép xác nhận
+  - returnResult để truy cập ExchangeResult
+  - FluxExchangeResult và dữ liệu streaming
+  - StepVerifier để xác nhận phần tử, hoàn tất, lỗi và hủy
+  - Đặt giới hạn chờ cho luồng không kết thúc
+  - Kiểm tra tác động của backpressure theo phạm vi bài
+  - Phân biệt lỗi giao thức HTTP với lỗi trong luồng Publisher
+  - Tiêu thụ hoặc giải phóng body và tài nguyên liên quan
+- level1: RestTestClient
+  level2:
+  - RestTestClient từ Spring Framework 7 và quan hệ với RestClient
+  - Kiểm thử HTTP đồng bộ bằng API dành cho assertion
+  - Bind tới controller, ApplicationContext hoặc router function MVC
+  - Bind tới máy chủ thật để kiểm tra từ đầu đến cuối
+  - Chuẩn bị URI, header và body trước exchange
+  - Xác nhận status, header, DTO và JSON
+  - Tích hợp assertion theo kiểu AssertJ
+  - Chọn RestTestClient, WebTestClient hay MockMvc theo phiên bản và mô hình
+- level1: Kiểm thử HTTP client
+  level2:
+  - Ranh giới cần kiểm chứng của RestClient, RestTemplate hoặc WebClient
+  - MockRestServiceServer và cơ chế thay request factory
+  - Gắn mock server vào đúng client hoặc builder được ứng dụng dùng
+  - Đặt kỳ vọng URI, method, header và body gửi ra
+  - Tạo phản hồi thành công, lỗi và dữ liệu không hợp lệ
+  - ExpectedCount, thứ tự yêu cầu và verify
+  - Reset kỳ vọng giữa các bài kiểm thử
+  - MockMvcClientHttpRequestFactory cho luồng client tới MVC trong tiến trình
+  - Mock web server để chạy cấu hình HTTP client thật
+  - Mô phỏng timeout, mất kết nối và giới hạn tầng truyền tải
+  - Kiểm tra tuần tự hóa, giải tuần tự hóa và ánh xạ lỗi
+  - Tránh giả lập chuỗi fluent của client quá sâu
+- level1: Bất đồng bộ và song song
+  level2:
+  - Kiểm soát executor và tác vụ nền trong kiểm thử
+  - Đợi điều kiện với giới hạn thay vì Thread.sleep cố định
+  - Latch, barrier và Future cho thứ tự có thể kiểm soát
+  - Đồng hồ thay thế và thời gian ảo cho mã hỗ trợ
+  - Tách kiểm thử tác vụ bất đồng bộ khỏi kiểm thử lịch kích hoạt
+  - Cấu hình chạy song song của công cụ thực thi
+  - Điều kiện TestContext phù hợp để chạy song song
+  - Tránh chạy song song khi dùng @DirtiesContext hoặc mock dùng chung không an toàn
+  - Cô lập database, thư mục, cổng và tài nguyên chia sẻ
+  - Ngữ cảnh giao dịch hoặc request không tự truyền sang luồng khác
+  - Thu hồi executor và xác nhận không còn tác vụ sau kiểm thử
+- level1: Hạ tầng kiểm thử
+  level2:
+  - Chọn tài nguyên thật, bản nhúng hoặc dịch vụ mô phỏng
+  - Container kiểm thử cho cơ sở dữ liệu và broker
+  - Vòng đời hạ tầng ngoài so với context cache
+  - Đăng ký địa chỉ động sau khi tài nguyên sẵn sàng
+  - Phân biệt container đã chạy với dịch vụ đã sẵn sàng
+  - Cổng ngẫu nhiên do máy chủ cấp thay vì tự đoán cổng trống
+  - Dữ liệu có tên hoặc khóa riêng cho từng bộ kiểm thử
+  - Khôi phục dữ liệu và đóng tài nguyên khi khởi tạo thất bại
+  - Không phụ thuộc dịch vụ sản xuất hoặc Internet công khai
+  - Kiểm chứng tương thích bằng cùng loại hạ tầng với môi trường chạy
+- level1: Công cụ và phạm vi
+  level2:
+  - Spring Test cung cấp cơ chế nào, thư viện assertion cung cấp gì
+  - '@SpringBootTest thuộc Spring Boot và phạm vi nạp ứng dụng'
+  - Test slice của Spring Boot khác với @ContextConfiguration
+  - Phân biệt @TestConfiguration với cấu hình Spring Framework thông thường
+  - Spring Security Test là tích hợp riêng khi cần xác nhận xác thực và phân quyền
+  - Reactor Test bổ sung kiểm chứng luồng phản ứng
+  - Testcontainers bổ sung quản lý hạ tầng thật
+  - Chọn công cụ bổ sung theo rủi ro thay vì dùng mọi công cụ cho mọi bài
+- level1: Mở rộng và AOT
+  level2:
+  - '@TestExecutionListeners và quy tắc merge với listener mặc định'
+  - Thứ tự listener và đối xứng callback trước hoặc sau
+  - Viết listener riêng để quản lý tài nguyên dùng chung
+  - TestContextBootstrapper khi cần thay cơ chế khởi tạo
+  - ContextCustomizerFactory và đóng góp vào khóa cache
+  - Annotation override bean riêng với hạ tầng BeanOverride
+  - AOT processing cho kiểm thử tích hợp Spring
+  - Giới hạn cấu hình động trong chế độ AOT hoặc native image
+  - '@DisabledInAotMode và điều kiện kiểm thử theo môi trường'
+  - Chỉ mở rộng hạ tầng khi cấu hình có sẵn không đáp ứng
+- level1: Chất lượng và CI
+  level2:
+  - Tách bài kiểm thử nhanh với bài cần hạ tầng
+  - Chạy nhất quán bằng IDE và công cụ build
+  - Đồng bộ JUnit, Spring Test, Mockito và phiên bản Java
+  - Bộ dữ liệu có thể tái tạo và hạt giống ngẫu nhiên được ghi nhận
+  - Giảm số context khác nhau mà không làm mất phạm vi xác nhận
+  - Lưu báo cáo, log và bằng chứng khi CI thất bại
+  - Phân biệt lỗi sản phẩm, lỗi kiểm thử và lỗi hạ tầng
+  - Điều tra kiểm thử chập chờn thay vì lặp lại để che lỗi
+  - Coverage dòng mã khác với kiểm chứng hành vi và rủi ro
+  - Rà soát chi phí bảo trì khi tái cấu trúc mã ứng dụng
+- level1: Chẩn đoán kiểm thử
+  level2:
+  - Failed to load ApplicationContext và nguyên nhân đầu tiên
+  - Thiếu bean, trùng bean hoặc thiếu dependency kiểm thử
+  - Profile và property không đúng thứ tự ưu tiên
+  - Context failure threshold là hệ quả của lần nạp thất bại trước
+  - Mock không được tiêm vào đối tượng thật sự được gọi
+  - Spy sau AOP proxy và verify nhầm đối tượng
+  - 404 do thiếu mapping khác với 404 do nghiệp vụ
+  - 415, 406 và lỗi message converter
+  - 401 hoặc 403 do cấu hình bảo mật và dữ liệu yêu cầu
+  - Giao dịch rollback che lỗi flush hoặc dữ liệu kiểm thử bị rò
+  - Bài chạy riêng đạt nhưng cả bộ thất bại do trạng thái dùng chung
+  - Timeout do tác vụ nền, khóa dữ liệu hoặc hạ tầng chưa sẵn sàng
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng ma trận rủi ro cho một luồng tạo tài nguyên
+  - Kiểm thử đơn vị dịch vụ bằng phụ thuộc được kiểm soát
+  - Kiểm thử cấu hình bean và một hành vi đi qua proxy
+  - Kiểm thử repository thật với SQL và ràng buộc dữ liệu
+  - Kiểm thử HTTP thành công, validation và ánh xạ lỗi
+  - Kiểm chứng client gọi dịch vụ ngoài bằng phản hồi có kiểm soát
+  - Bổ sung một tình huống bất đồng bộ và một lỗi hạ tầng
+  - So sánh kết quả mô phỏng với HTTP qua máy chủ thật
+  - Chạy cả bộ độc lập với thứ tự và tổng hợp bằng chứng

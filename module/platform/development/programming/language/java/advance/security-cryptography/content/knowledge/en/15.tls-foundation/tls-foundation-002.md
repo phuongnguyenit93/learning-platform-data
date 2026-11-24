@@ -1,36 +1,36 @@
-# 15.2. Luồng bắt tay, xác thực máy chủ và xác thực hai chiều mTLS
+# 15.2. Handshake Flow, Server Authentication, and Mutual TLS (mTLS)
 
-## Mục tiêu học tập
+## Learning objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-1. Mô tả **TLS (Transport Layer Security)** bảo vệ một kết nối bằng cách thỏa thuận tham số mã hóa, tạo khóa phiên, xác thực danh tính và bảo vệ dữ liệu trao đổi khỏi đọc trộm/chỉnh sửa.
-2. Đọc đúng thứ tự các thông điệp chính trong một **TLS 1.3 full handshake**, đặc biệt `ClientHello`, `ServerHello`, `EncryptedExtensions`, `Certificate`, `CertificateVerify`, `Finished` và `CertificateRequest` khi xác thực client.
-3. Phân biệt **one-way TLS** (client xác thực server) với **mutual TLS/mTLS** (cả hai phía xác thực chứng thư của nhau), kể cả vai trò **keystore**, **truststore** và CA riêng ở mỗi phía.
-4. Giải thích **xác minh chuỗi chứng thư X.509, hostname/SAN, KeyUsage/EKU, chứng minh sở hữu private key** và vì sao chỉ “kiểm chữ ký CA đúng” hoặc “có certificate” không đủ.
-5. Hiểu mối liên hệ giữa **(EC)DHE key exchange, HKDF, handshake transcript, Finished, AEAD record protection, forward secrecy** và những khác biệt quan trọng giữa TLS 1.3, TLS 1.2, resumption và 0-RTT.
-6. Dùng **Java 17+ JSSE** kết hợp `keytool` tạo lab CA/leaf certificates, chạy TLS server và client thực tế ở hai chế độ, **giữ hostname verification bật**, minh họa hành vi thiếu client certificate trong mTLS.
-7. Nhận diện các sai lầm vận hành: `trust-all`, `HostnameVerifier` luôn true, nhầm mTLS với authorization, nhầm serverAuth/clientAuth, không kiểm certificate expiry/revocation, chứng thư đúng nhưng endpoint sai.
+1. Describe how **TLS (Transport Layer Security)** protects a connection by negotiating cryptographic parameters, establishing session keys, authenticating identities, and protecting exchanged data from eavesdropping/tampering.
+2. Read the exact order of key messages in a **TLS 1.3 full handshake**, especially `ClientHello`, `ServerHello`, `EncryptedExtensions`, `Certificate`, `CertificateVerify`, `Finished`, and `CertificateRequest` for client authentication.
+3. Distinguish **one-way TLS** (client authenticates server) from **mutual TLS/mTLS** (both sides authenticate each other's certificates), including the roles of **keystore**, **truststore**, and separate CAs on each side.
+4. Explain **X.509 certificate chain verification, hostname/SAN, KeyUsage/EKU, proof of private-key possession**, and why merely "checking a valid CA signature" or "having a certificate" is not enough.
+5. Understand the relationship between **(EC)DHE key exchange, HKDF, handshake transcript, Finished, AEAD record protection, forward secrecy**, and key differences between TLS 1.3, TLS 1.2, resumption, and 0-RTT.
+6. Use **Java 17+ JSSE** together with `keytool` to create lab CA/leaf certificates, run a real TLS server and client in both modes, **keep hostname verification enabled**, and demonstrate behavior when a client certificate is missing in mTLS.
+7. Identify operational pitfalls: `trust-all`, always-true `HostnameVerifier`, confusing mTLS with authorization, confusing serverAuth/clientAuth, failing to check certificate expiry/revocation, and a valid certificate for the wrong endpoint.
 
-**Phạm vi:** Thuộc **Java Advance – security-cryptography / 15. Nền tảng TLS**. Bài tập trung vào **luồng bắt tay và hai hình thức xác thực**; các câu lệnh tạo CA/certificate và code socket dùng để học, không phải cấu hình PKI hay deployment production hoàn chỉnh.
+**Scope:** Part of **Java Advance – security-cryptography / 15. TLS Foundation**. This lesson focuses on **handshake flow and the two authentication modes**; the CA/certificate commands and socket code are for learning, not a complete PKI configuration or production deployment.
 
 ---
 
-## 1. TLS bảo vệ cái gì và tại sao phải “bắt tay”?
+## 1. What does TLS protect and why is a "handshake" needed?
 
-TCP cung cấp dòng byte hai chiều nhưng **không tự mã hóa dữ liệu, xác thực máy chủ hoặc chống thay đổi nội dung**. Một kẻ đứng giữa trên đường truyền có thể nghe, sửa hoặc giả mạo dữ liệu nếu ứng dụng không có lớp bảo vệ khác.
+TCP provides a bidirectional byte stream but **does not encrypt data, authenticate the server, or prevent content modification**. An on-path attacker can listen, modify, or spoof data if the application lacks another layer of protection.
 
-TLS đặt một giao thức mật mã lên transport phù hợp, phổ biến nhất là TCP cho HTTPS. **Handshake** tạo một bối cảnh bảo mật mà cả hai đầu thống nhất:
+TLS layers a cryptographic protocol over a suitable transport, most commonly TCP for HTTPS. The **handshake** creates a security context that both endpoints agree on:
 
-- **Phiên bản và tham số**: ví dụ TLS 1.3, bộ mã hóa AEAD/cipher suite và các thuật toán được phép.
-- **Key agreement**: bí mật chung từ trao đổi khóa tạm thời, thường (EC)DHE, được dẫn xuất thành khóa handshake và application traffic qua key schedule; hoặc dùng PSK/resumption theo giao thức.
-- **Server authentication**: client kiểm chain của chứng thư server đến trust anchor, đúng hostname/endpoint identity và thông điệp chứng minh private key hợp lệ.
-- **Client authentication (tùy chọn)**: server có thể yêu cầu client certificate và xác minh nó; đây là **mTLS** khi client cũng xác thực server.
-- **Handshake integrity**: những bản tóm lược handshake (transcript) được ràng buộc vào xác thực và `Finished`, phát hiện sửa đổi/giả mạo trao đổi.
-- **Record protection**: application data sau handshake được mã hóa và xác thực bằng AEAD; mỗi chiều dùng traffic keys/nonce và sequence tương ứng do giao thức quản lý.
+- **Version and parameters**: e.g., TLS 1.3, AEAD cipher suite, and allowed algorithms.
+- **Key agreement**: a shared secret from ephemeral key exchange, usually (EC)DHE, derived into handshake and application traffic keys via the key schedule; or using PSK/resumption per protocol.
+- **Server authentication**: the client verifies the server certificate's chain to a trust anchor, correct hostname/endpoint identity, and valid proof of private-key possession.
+- **Client authentication (optional)**: the server can request a client certificate and verify it; this is **mTLS** when the client also authenticates the server.
+- **Handshake integrity**: handshake summaries (transcript) are bound into authentication and `Finished`, detecting tampering or forgery during negotiation.
+- **Record protection**: post-handshake application data is encrypted and authenticated using AEAD; each direction uses its own traffic keys/nonce and sequence managed by the protocol.
 
 ```text
-Application: HTTP / gRPC / ứng dụng Java riêng
+Application: HTTP / gRPC / custom Java application
                    │
                    ▼
      TLS handshake → authenticated traffic keys
@@ -42,31 +42,31 @@ Application: HTTP / gRPC / ứng dụng Java riêng
              TCP connection
 ```
 
-**TLS không thay thế business authorization**: một client đã có TLS session hợp lệ không vì vậy được đọc mọi database record hoặc thực hiện mọi thao tác. TLS cũng **không đảm bảo dữ liệu an toàn sau khi đã giải mã trong ứng dụng**, không loại bỏ lỗi XSS/SQL injection và không che metadata như IP hoặc toàn bộ tính chất lưu lượng.
+**TLS does not replace business authorization**: a client with a valid TLS session is not automatically allowed to read any database record or perform any action. TLS also **does not guarantee data safety after decryption in the application**, does not eliminate XSS/SQL injection flaws, and does not hide metadata such as IP addresses or all traffic characteristics.
 
-### 1.1. Các thuật ngữ dễ nhầm
+### 1.1. Easily confused terms
 
-| Thuật ngữ | Ý nghĩa | Không đồng nghĩa với |
+| Term | Meaning | Not synonymous with |
 | --- | --- | --- |
-| **Handshake** | Trình tự thiết lập khóa, kiểm thông số, xác thực peer và hoàn tất kết nối bảo mật | HTTP request hoặc một lần mã hóa AES |
-| **TLS record** | Đơn vị vận chuyển dữ liệu được mã hóa/xác thực dưới traffic keys | X.509 certificate |
-| **Cipher suite (TLS 1.3)** | Định danh AEAD và hash dùng trong key schedule, ví dụ `TLS_AES_128_GCM_SHA256` | Gói đầy đủ key-exchange/authentication algorithms như cách đặt tên ở TLS 1.2 |
-| **Key share** | Public value cho key agreement tạm thời, thường ECDHE | Private key nằm trong server certificate |
-| **Certificate chain** | Leaf + intermediate(s) cần để xây đường đến trust anchor | Truststore đã tin sẵn mọi certificate do server gửi |
-| **Keystore** | Kho chứa private key/certificate chain của chính bên này | Truststore dùng tin các CA của bên kia |
-| **Truststore** | Cơ sở trust anchors/certificates được bên xác minh chấp thuận | Private key của server |
-| **Server authentication** | Client xác minh server identity và proof-of-possession trong handshake | Server xác thực client |
-| **Client authentication** | Server xác minh client identity và proof-of-possession | Quyền API của client |
-| **mTLS** | Cả hai chiều thực hiện xác thực TLS phù hợp | Hai lớp TLS lồng nhau hoặc gửi username/password hai lần |
-| **ALPN** | Thỏa thuận application protocol như `h2`/`http/1.1` | Bằng chứng danh tính của peer |
-| **SNI** | Tên server client chỉ ra để hỗ trợ server chọn certificate/virtual host | Cơ chế kiểm chứng hostname thay client |
-| **Session resumption** | Tái sử dụng trạng thái/PSK được TLS cho phép ở kết nối tiếp theo | Chắc chắn thực hiện lại đầy đủ certificate exchange như lần đầu |
+| **Handshake** | Sequence for establishing keys, validating parameters, authenticating peers, and finalizing a secure connection | An HTTP request or a single AES encryption call |
+| **TLS record** | Transport unit of data encrypted/authenticated under traffic keys | An X.509 certificate |
+| **Cipher suite (TLS 1.3)** | Identifier for AEAD and hash used in the key schedule, e.g., `TLS_AES_128_GCM_SHA256` | Full bundle of key-exchange/authentication algorithms as in TLS 1.2 naming |
+| **Key share** | Public value for ephemeral key agreement, typically ECDHE | The private key inside the server certificate |
+| **Certificate chain** | Leaf + intermediate(s) needed to build a path to a trust anchor | A truststore that already blindly trusts every certificate sent by the server |
+| **Keystore** | Store holding this side's own private key and certificate chain | A truststore used to trust the peer's CAs |
+| **Truststore** | Repository of trust anchors/certificates accepted by the verifying side | The server's private key |
+| **Server authentication** | Client verifies server identity and proof-of-possession during handshake | Server authenticating client |
+| **Client authentication** | Server verifies client identity and proof-of-possession | Client API permissions |
+| **mTLS** | Both directions perform appropriate TLS authentication | Two nested TLS layers or sending username/password twice |
+| **ALPN** | Application protocol negotiation such as `h2`/`http/1.1` | Proof of peer identity |
+| **SNI** | Server name indicated by client to help server select certificate/virtual host | Hostname verification mechanism on behalf of the client |
+| **Session resumption** | Reusing state/PSK permitted by TLS on a subsequent connection | Guaranteeing a full fresh certificate exchange like the first connection |
 
 ---
 
-## 2. One-way TLS: client xác thực server
+## 2. One-way TLS: client authenticates server
 
-Ở mô hình HTTPS thông thường, **server trình bày chứng thư**, còn client **không bắt buộc** trình bày client certificate. Đây là **server-authenticated TLS**, hay one-way TLS.
+In typical HTTPS, the **server presents a certificate**, while the client is **not required** to present a client certificate. This is **server-authenticated TLS**, or one-way TLS.
 
 ```text
 CLIENT                                  SERVER
@@ -87,26 +87,26 @@ CLIENT                                  SERVER
   |<======== protected app data =========>|
 ```
 
-Sơ đồ rút gọn là **full TLS 1.3 certificate-based handshake**. Nó bỏ qua alert, optional messages, HelloRetryRequest và chi tiết record/key schedule. Các message sau `ServerHello` trong TLS 1.3 được bảo vệ bằng handshake traffic keys thích hợp (với ngoại lệ/phần nhìn thấy được theo cấu trúc bản ghi, protocol details). Không dùng sơ đồ này như một packet capture chính xác ở mọi phiên bản.
+This simplified diagram shows a **full TLS 1.3 certificate-based handshake**. It omits alerts, optional messages, HelloRetryRequest, and record/key schedule details. Messages after `ServerHello` in TLS 1.3 are protected by appropriate handshake traffic keys (with protocol-level record structure details/visible fields). Do not treat this diagram as an exact packet capture for every version.
 
-### 2.1. Bước 1 – `ClientHello`
+### 2.1. Step 1 – `ClientHello`
 
-Client gửi các khả năng hỗ trợ, ví dụ:
+The client sends supported capabilities, such as:
 
-- Những phiên bản TLS được hỗ trợ qua extension `supported_versions`.
-- Các TLS 1.3 cipher suites có thể sử dụng.
-- `supported_groups` và `key_share` cho key agreement.
-- `signature_algorithms` để các phía biết loại signature scheme chấp nhận.
-- **SNI** cho tên server dự định và **ALPN** nếu ứng dụng cần thỏa thuận protocol.
-- Có thể có thông tin PSK/session resumption, tùy kiểu handshake.
+- Supported TLS versions via the `supported_versions` extension.
+- Usable TLS 1.3 cipher suites.
+- `supported_groups` and `key_share` for key agreement.
+- `signature_algorithms` so both sides know which signature schemes are accepted.
+- **SNI** for the intended server name and **ALPN** if the application needs protocol negotiation.
+- Possible PSK/session resumption information, depending on handshake mode.
 
-Client **không gửi raw secret key hoặc mật khẩu keystore** trong `ClientHello`. Một `key_share` chứa dữ liệu public của cơ chế thỏa thuận khóa; private ephemeral key vẫn được giữ cục bộ.
+The client **does not send raw secret keys or keystore passwords** in `ClientHello`. A `key_share` contains public data for the key agreement mechanism; the ephemeral private key remains local.
 
-**SNI không phải “kiểm server đáng tin”:** SNI chủ yếu giúp server chọn virtual host/certificate phù hợp; client vẫn phải xác thực certificate và tên dự định kết nối.
+**SNI is not "verifying a trusted server":** SNI mainly helps the server pick the right virtual host/certificate; the client must still authenticate the certificate and intended target name.
 
-### 2.2. Bước 2 – `ServerHello` và shared secret
+### 2.2. Step 2 – `ServerHello` and shared secret
 
-Server chọn phiên bản TLS/cipher suite và key share thích hợp. Hai phía dùng private key ephemeral của mình kết hợp public key share phía kia để có shared secret tương ứng, rồi cùng chạy **key schedule** của TLS 1.3 dựa trên HKDF để dẫn xuất các traffic secrets.
+The server chooses the TLS version, cipher suite, and appropriate key share. Both sides combine their own ephemeral private key with the peer's public key share to produce the corresponding shared secret, then run the HKDF-based TLS 1.3 **key schedule** to derive traffic secrets.
 
 ```text
 Client ephemeral secret + Server public key share ──┐
@@ -121,27 +121,27 @@ Server ephemeral secret + Client public key share ──┘
                        application traffic keys
 ```
 
-Đây là hình dung về key agreement; không phải phép nối byte/kDF mà ứng dụng nên tự lập trình. Trong TLS 1.3, RSA certificate có thể dùng **để ký xác thực**, không phải “RSA encrypt premaster secret” như một số handshake TLS 1.2 cũ. **(EC)DHE** tạo cơ sở cho **forward secrecy** khi ephemeral secrets được quản lý/xóa đúng: bị lộ server certificate private key về sau không tự cho phép giải mã các phiên TLS 1.3 đã ghi lại trước đó.
+This illustrates key agreement conceptually; it is not a byte concatenation or custom KDF that applications should implement themselves. In TLS 1.3, an RSA certificate can be used **for authentication signing**, not for "RSA encrypting a premaster secret" as in some legacy TLS 1.2 handshakes. **(EC)DHE** provides the basis for **forward secrecy** when ephemeral secrets are properly managed and discarded: later compromise of the server certificate's private key does not by itself allow decrypting previously recorded TLS 1.3 sessions.
 
-**Chú ý:** Forward secrecy không bảo vệ nếu attacker đã kiểm soát endpoint trong phiên, đọc traffic keys/endpoint plaintext, hoặc giả mạo được server lúc bắt tay. Resumption/PSK và các phương thức trao đổi khóa khác có tính chất riêng cần đánh giá đúng giao thức.
+**Note:** Forward secrecy does not protect you if an attacker already controls an endpoint during the session, reads live traffic keys or endpoint plaintext, or successfully impersonates the server during the handshake. Resumption/PSK and other key exchange methods have distinct properties requiring protocol-specific evaluation.
 
-### 2.3. Bước 3 – Server gửi chứng thư và chứng minh key possession
+### 2.3. Step 3 – Server sends certificate and proves key possession
 
-Server gửi `Certificate` với leaf certificate (và thường intermediate certificates). Những thành phần quan trọng:
+The server sends `Certificate` with the leaf certificate (and usually intermediate certificates). Important elements:
 
-1. **SubjectAlternativeName** (SAN) phải bao phủ endpoint identity mà client dự định kết nối, như `DNS:api.example.com` hoặc SAN IP phù hợp khi kết nối bằng IP literal.
-2. **Certificate chain** phải xây được path đến root/trust anchor được client chấp thuận, với ký số CA và những ràng buộc CA/BasicConstraints/name constraints, key usage và policy.
-3. **Validity/revocation** được đánh giá theo thời điểm và chính sách; certificate chưa hết hạn vẫn có thể bị thu hồi.
-4. **ExtendedKeyUsage** của server certificate thường cần `serverAuth` theo profile/policy; không coi clientAuth hoặc codeSigning là thay thế tùy tiện.
-5. **`CertificateVerify`** chứa chữ ký do server thực hiện bằng private key tương ứng với leaf, trên transcript/cấu trúc có domain separation theo TLS 1.3. Điều này chứng minh server đang nắm private key hợp lệ cho handshake, chứ không chỉ sao chép một PEM công khai.
+1. **SubjectAlternativeName** (SAN) must cover the endpoint identity the client intends to reach, such as `DNS:api.example.com` or an appropriate IP SAN when connecting by IP literal.
+2. **Certificate chain** must build a path to a root/trust anchor trusted by the client, with valid CA signatures and CA/BasicConstraints/name constraints, key usage, and policy checks.
+3. **Validity/revocation** are evaluated against current time and policy; an unexpired certificate can still be revoked.
+4. **ExtendedKeyUsage** on a server certificate normally requires `serverAuth` per profile/policy; do not arbitrarily treat `clientAuth` or `codeSigning` as substitutes.
+5. **`CertificateVerify`** contains a signature produced by the server using the leaf's private key over the transcript/structure with TLS 1.3 domain separation. This proves the server holds a valid private key for the handshake, rather than merely copying a public PEM.
 
 ```text
 CA trusted? ----yes----+
                        |
 Chain valid? ---yes----+
                        |
-Hostname SAN? --yes----+---> Có thể chấp nhận server identity
-                       |     nếu các kiểm tra TLS/policy khác đều đạt
+Hostname SAN? --yes----+---> Can accept server identity
+                       |     if all other TLS/policy checks pass
 Key usage? ----yes-----+
                        |
 CertificateVerify? yes-+
@@ -149,21 +149,21 @@ CertificateVerify? yes-+
 Finished? ----yes------+
 ```
 
-**Một leaf certificate chứa public key không đủ:** bất kỳ ai cũng có thể gửi bản sao certificate của `api.example.com`. Điều làm attacker khó giả làm server là họ còn phải tạo được `CertificateVerify` hợp lệ bằng **server private key** và đáp ứng toàn bộ trao đổi khóa/handshake.
+**A leaf certificate containing a public key is not enough:** anyone can send a copy of `api.example.com`'s certificate. What stops an attacker from impersonating the server is that they must also produce a valid `CertificateVerify` using the **server private key** and satisfy the entire key exchange and handshake.
 
-### 2.4. Bước 4 – `Finished` và application data
+### 2.4. Step 4 – `Finished` and application data
 
-`Finished` bảo vệ ranh giới hoàn tất handshake bằng MAC/verify data ràng buộc với transcript và các handshake secrets phù hợp. Client chỉ coi session là bảo mật sau các phép kiểm TLS/identity cần thiết.
+`Finished` protects the handshake completion boundary with a MAC/verify_data bound to the transcript and appropriate handshake secrets. The client treats the session as secure only after all required TLS/identity checks succeed.
 
-Sau khi handshake hoàn thành, **application data** (HTTP request/response hoặc bytes từ `SSLSocket`) được bảo vệ bằng record-layer AEAD. Mỗi chiều có traffic keys riêng theo key schedule và quản lý nonce/sequence nội bộ, **ứng dụng không tự lấy AES-GCM nonce cho TLS record**.
+After the handshake completes, **application data** (HTTP requests/responses or bytes from `SSLSocket`) is protected by record-layer AEAD. Each direction has separate traffic keys per the key schedule with internal nonce/sequence management; **applications do not manually pick AES-GCM nonces for TLS records**.
 
-**Không nhầm:** server authenticated TLS cho client biết đang giao tiếp với server được phép; nó **không tự cung cấp danh tính client**. Trong one-way TLS, phía server thường cần thêm bearer token, session cookie, OAuth/OIDC hoặc xác thực ứng dụng riêng để biết requester là ai.
+**Do not confuse:** server-authenticated TLS tells the client it is talking to an authorized server; it **does not automatically provide client identity**. In one-way TLS, the server typically still needs a bearer token, session cookie, OAuth/OIDC, or separate application authentication to know who the requester is.
 
 ---
 
-## 3. mTLS: server cũng xác thực client
+## 3. mTLS: the server also authenticates the client
 
-**mTLS – mutual TLS** dùng cùng nền tảng TLS nhưng bổ sung bước **server yêu cầu client certificate** và xác minh danh tính phía client. Client vẫn phải xác thực server như one-way TLS; không có ngoại lệ “vì server tin client nên client có thể bỏ hostname verification”.
+**mTLS – mutual TLS** uses the same TLS foundation while adding the step where the **server requests a client certificate** and verifies the client's identity. The client must still authenticate the server as in one-way TLS; there is no exception "because the server trusts the client, the client can skip hostname verification".
 
 ```text
 CLIENT                                          SERVER
@@ -188,48 +188,48 @@ CLIENT                                          SERVER
   |<============== protected app data ===========> |
 ```
 
-Đây là **luồng TLS 1.3 mTLS trong initial/full handshake**; thứ tự có thể thay theo phiên bản/kiểu handshake, và các trường hợp optional/resumption/post-handshake auth có quy tắc riêng. `CertificateRequest` là tín hiệu server yêu cầu client authentication; nếu không có certificate phù hợp client có thể gửi danh sách trống, nhưng server yêu cầu xác thực **bắt buộc** sẽ từ chối handshake.
+This is the **TLS 1.3 mTLS flow in an initial/full handshake**; ordering can vary by version/handshake type, and optional/resumption/post-handshake auth cases follow specific rules. `CertificateRequest` signals that the server requests client authentication; if no matching certificate is available the client may send an empty list, but a server requiring **mandatory** authentication will reject the handshake.
 
-### 3.1. Ai sở hữu khóa nào?
+### 3.1. Who owns which key?
 
-| Tài sản | Phía server | Phía client |
+| Asset | Server side | Client side |
 | --- | --- | --- |
-| Server private key | **Giữ bí mật** trong server keystore/HSM | Không được cấp |
-| Server leaf + chain | Trình bày trong handshake | Nhận để xác minh server |
-| Server-trust CA/root | Không cần làm tin cậy cho chính mình | **Client truststore** chứa trust anchor được chấp thuận |
-| Client private key | Không được cấp | **Giữ bí mật** trong client keystore/HSM |
-| Client leaf + chain | Nhận khi server yêu cầu | Trình bày trong handshake |
-| Client-trust CA/root | **Server truststore** chứa CA cấp cho clients được phép | Không mặc nhiên dùng làm server trust anchor |
-| Application authorization | **Enforce** identity → role/tenant/action | Chỉ gửi yêu cầu trong quyền được cấp |
+| Server private key | **Kept secret** in server keystore/HSM | Not issued |
+| Server leaf + chain | Presented in handshake | Received to verify server |
+| Server-trust CA/root | Not needed to trust itself | **Client truststore** holds approved trust anchors |
+| Client private key | Not issued | **Kept secret** in client keystore/HSM |
+| Client leaf + chain | Received when server requests | Presented in handshake |
+| Client-trust CA/root | **Server truststore** holds CAs issuing to allowed clients | Not implicitly used as server trust anchor |
+| Application authorization | **Enforce** identity → role/tenant/action | Only sends requests within granted permissions |
 
-Trong lab, root CA dùng chung để giảm thao tác; trong production **có thể và thường nên phân biệt CA/profile phục vụ serverAuth với CA/profile cho clientAuth** để giảm phạm vi tin cậy. Việc server có `server.p12` chưa đồng nghĩa server đã tin `client.p12`: server phải được cấu hình riêng trust anchors và yêu cầu client authentication.
+In a lab, a shared root CA reduces setup steps; in production, **you can and usually should separate the CA/profile for serverAuth from the CA/profile for clientAuth** to narrow trust scope. Having `server.p12` on the server does not mean the server trusts `client.p12`: the server must be separately configured with trust anchors and client authentication requirements.
 
-### 3.2. `CertificateRequest` và `CertificateVerify`
+### 3.2. `CertificateRequest` and `CertificateVerify`
 
-Khi server bật mTLS:
+When the server enables mTLS:
 
-1. Trong TLS 1.3 full handshake, server gửi `CertificateRequest`; yêu cầu có thể mang danh sách CA chấp nhận, signature algorithms và extensions.
-2. Client chọn một certificate chain/private key phù hợp; thuật toán lựa chọn phụ thuộc JSSE key manager, key type, CA hints và khả năng ký.
-3. Client gửi `Certificate` và `CertificateVerify` để chứng minh sở hữu private key trên transcript phù hợp.
-4. Server xác thực chain/client certificate theo trust anchors của **server**, kiểm mục đích `clientAuth` và những ràng buộc/identity policy.
-5. `Finished` hoàn tất handshake integrity. Server chỉ cho client dùng kênh khi handshake authentication đáp ứng chính sách.
+1. In a TLS 1.3 full handshake, the server sends `CertificateRequest`; the request may carry accepted CAs, signature algorithms, and extensions.
+2. The client selects a matching certificate chain/private key; selection logic depends on the JSSE key manager, key type, CA hints, and signing capabilities.
+3. The client sends `Certificate` and `CertificateVerify` to prove private-key possession over the appropriate transcript.
+4. The server validates the client certificate/chain against the **server's** trust anchors, checks `clientAuth` purpose, and enforces constraints/identity policy.
+5. `Finished` seals handshake integrity. The server lets the client use the channel only when handshake authentication satisfies policy.
 
-**Chỉ gửi một certificate công khai không đủ để xác thực mTLS.** Bất kỳ ai có bản PEM công khai đều có thể gửi nó, nhưng không thể hoàn thành proof-of-possession nếu không có private key tương ứng.
+**Sending just a public certificate is insufficient for mTLS authentication.** Anyone with a public PEM copy can transmit it, but cannot complete proof-of-possession without the corresponding private key.
 
-### 3.3. `needClientAuth` và `wantClientAuth`
+### 3.3. `needClientAuth` and `wantClientAuth`
 
-Trong JSSE server:
+In a JSSE server:
 
-- `SSLServerSocket.setNeedClientAuth(true)` hoặc `SSLEngine.setNeedClientAuth(true)`: client certificate là **bắt buộc**; nếu client không trình bày credential hợp lệ, handshake bị từ chối.
-- `setWantClientAuth(true)`: server **đề nghị** client certificate nhưng có thể chấp nhận client không có certificate. Ứng dụng phải tự quyết định đường xử lý identity rỗng.
-- Mặc định server thường không yêu cầu client certificate. Khi client không được yêu cầu, có sẵn `client.p12` cũng không có nghĩa client tự gửi cert.
-- Khi bật need/want, phải có trust manager và CA policy dành cho client identities, không được chỉ bật một boolean rồi tin mọi client certificate.
+- `SSLServerSocket.setNeedClientAuth(true)` or `SSLEngine.setNeedClientAuth(true)`: client certificate is **mandatory**; if the client fails to present a valid credential, the handshake is rejected.
+- `setWantClientAuth(true)`: the server **requests** a client certificate but may accept a client without one. The application must handle empty identity paths itself.
+- By default, servers do not require a client certificate. When the server does not ask for one, having `client.p12` loaded does not mean the client sends it unprompted.
+- When enabling need/want, you must configure a trust manager and CA policy for client identities—never flip a boolean and trust every client certificate.
 
-Đối với Spring Boot, Netty, gRPC, proxy/ingress/service mesh, các tên cấu hình có thể khác nhưng ý nghĩa **require client auth** và **trusted client roots** vẫn cần rõ. Cần biết mTLS **kết thúc ở đâu** (edge proxy, sidecar hay ứng dụng JVM).
+In Spring Boot, Netty, gRPC, proxies, ingress, or service meshes, configuration names differ, but the meaning of **require client auth** and **trusted client roots** must remain clear. Know **where mTLS terminates** (edge proxy, sidecar, or JVM application).
 
-### 3.4. mTLS xác thực danh tính, không tự phân quyền
+### 3.4. mTLS authenticates identity, not authorization
 
-Ví dụ một client có certificate:
+Suppose a client holds a certificate:
 
 ```text
 Subject: CN=payments-worker, O=Example
@@ -238,78 +238,78 @@ EKU: clientAuth
 Issuer: Internal Workload CA
 ```
 
-Khi handshake thành công, server có thể map identity được xác minh thành **service principal** như `payments-worker`, nhưng vẫn phải kiểm **service đó có được đọc tenant T hoặc gọi operation refund không**. Nếu mọi chứng thư được CA cấp đều được gán role admin, mTLS đã bị lạm dụng thành một chính sách authorization quá rộng.
+Once the handshake succeeds, the server can map the verified identity to a **service principal** like `payments-worker`, yet must still check **whether that service is allowed to read tenant T or invoke the refund operation**. If every certificate issued by the CA receives admin privileges, mTLS has been misused into an overly broad authorization policy.
 
-Không lấy một Subject DN, hostname hoặc header `X-Client-Cert` chưa được proxy tin cậy bảo vệ rồi cấp quyền. Với proxy termination, cần bảo đảm header identity được **xóa/tạo lại** bởi proxy tin cậy, không cho client Internet tự khai.
+Never accept a Subject DN, hostname, or `X-Client-Cert` header unprotected by a trusted proxy to grant permissions. With proxy termination, ensure identity headers are **stripped/re-created** by the trusted proxy rather than forged by Internet clients.
 
 ---
 
-## 4. TLS 1.3 và TLS 1.2 khác nhau ở chỗ nào?
+## 4. Where do TLS 1.3 and TLS 1.2 differ?
 
-| Khía cạnh | TLS 1.3 | TLS 1.2 |
+| Aspect | TLS 1.3 | TLS 1.2 |
 | --- | --- | --- |
-| Cơ chế key exchange | Thiết kế dùng cơ chế cho forward secrecy trong full handshake phổ biến như (EC)DHE, hoặc PSK/resumption theo chuẩn | Có thể dùng ECDHE; các suite cũ còn dùng static RSA key transport (nay không nên chọn) |
-| Cipher suite naming | AEAD + hash, ví dụ `TLS_AES_128_GCM_SHA256`; key exchange/signature được thỏa thuận độc lập | Tên suite có thể gồm key exchange, authentication, symmetric cipher, MAC/hash |
-| Sau `ServerHello` | Phần lớn handshake messages sau mốc này được bảo vệ bởi handshake traffic keys | Nhiều certificate/handshake messages truyền rõ theo quy trình TLS 1.2 cổ điển |
-| Server certificate proof | `CertificateVerify` trong full certificate authentication | Có chữ ký trong ServerKeyExchange ở ECDHE suites; exact flow khác, không ép công thức TLS 1.3 |
-| Server yêu cầu client certificate | `CertificateRequest` trong TLS 1.3 full handshake, thường sau EncryptedExtensions | `CertificateRequest` có vị trí/sequence theo TLS 1.2 |
-| Key derivation | HKDF-based TLS 1.3 key schedule | TLS 1.2 PRF/key expansion theo RFC 5246 |
-| 0-RTT | Có thể có early data trong PSK resumption với rủi ro replay, phụ thuộc hỗ trợ | Không phải tính năng handshake TLS 1.2 tiêu chuẩn tương tự |
-| Chuẩn nên dùng | Thường **ưu tiên TLS 1.3** khi client/server tương thích | Chỉ giữ khi cần interoperability với cấu hình mạnh và policy cho phép |
+| Key exchange mechanism | Designed to use mechanisms providing forward secrecy in common full handshakes such as (EC)DHE, or PSK/resumption per standard | Can use ECDHE; older suites still used static RSA key transport (should not be chosen today) |
+| Cipher suite naming | AEAD + hash, e.g., `TLS_AES_128_GCM_SHA256`; key exchange/signature negotiated independently | Suite name may embed key exchange, authentication, symmetric cipher, and MAC/hash |
+| After `ServerHello` | Most handshake messages past this point are protected by handshake traffic keys | Many certificate/handshake messages travel in cleartext per classic TLS 1.2 flow |
+| Server certificate proof | `CertificateVerify` in full certificate authentication | Signature in `ServerKeyExchange` for ECDHE suites; exact flow differs—do not force TLS 1.3 formulas |
+| Server requests client certificate | `CertificateRequest` in TLS 1.3 full handshake, typically after EncryptedExtensions | `CertificateRequest` has TLS 1.2 position/sequence |
+| Key derivation | HKDF-based TLS 1.3 key schedule | TLS 1.2 PRF/key expansion per RFC 5246 |
+| 0-RTT | Can support early data in PSK resumption with replay risk, depending on support | Not an equivalent standard TLS 1.2 handshake feature |
+| Recommended standard | Generally **prefer TLS 1.3** when client/server are compatible | Retain only when needed for interoperability with strong configs and permitted by policy |
 
-**Không áp mô tả “ClientKeyExchange / ChangeCipherSpec làm khóa như TLS 1.2” cho TLS 1.3.** Trong TLS 1.3, có record `ChangeCipherSpec` tương thích giữa một số triển khai, nhưng không có vai trò chuyển khóa theo cách của TLS 1.2; keys được kích hoạt qua state của handshake/key schedule.
+**Do not apply the description "ClientKeyExchange / ChangeCipherSpec activates keys like TLS 1.2" to TLS 1.3.** In TLS 1.3, a compatibility `ChangeCipherSpec` record exists across implementations, but it plays no key-switching role as in TLS 1.2; keys are activated by handshake/key schedule state.
 
-### 4.1. Session resumption có thể không gửi lại certificate
+### 4.1. Session resumption may not resend certificates
 
-Một kết nối TLS 1.3 mới có thể **resume session** bằng PSK/ticket từ kết nối trước. Trong luồng resumption, không nhất thiết có `Certificate`/`CertificateVerify` mới như full certificate handshake. Vì vậy packet capture chỉ có thể giải thích đúng nếu bạn biết đây là full handshake, PSK-only, hay kết hợp PSK với fresh key exchange.
+A new TLS 1.3 connection can **resume a session** using a PSK/ticket from an earlier connection. In a resumption flow, a new `Certificate`/`CertificateVerify` is not necessarily sent as in a full certificate handshake. Therefore, a packet capture can only be interpreted accurately if you know whether it is a full handshake, PSK-only, or PSK combined with a fresh key exchange.
 
-Đặc biệt với mTLS, nếu tổ chức đòi **kiểm danh tính client mới trên mọi request**, cần hiểu cách server, TLS stack, proxy và session resumption gắn identity vào session, và tác động của rotation/revocation. Không mặc nhiên “không thấy client Certificate trong capture = không có mTLS” hay “resumption luôn revalidate client certificate”.
+Specifically with mTLS, if your organization requires **re-checking client identity on every request**, understand how the server, TLS stack, proxy, and session resumption bind identity to sessions, and the impact of rotation/revocation. Do not assume "no client Certificate visible in capture = no mTLS" or "resumption always revalidates the client certificate".
 
-### 4.2. 0-RTT không thay thế xác thực client
+### 4.2. 0-RTT does not replace client authentication
 
-TLS 1.3 **0-RTT early data** là tùy chọn của resumption; early data có **rủi ro replay** ngay cả khi bản ghi được mã hóa. Không đặt những thao tác không idempotent hoặc chuyển tiền vào 0-RTT mà không có replay protections. Không nhầm 0-RTT với client-certificate authentication vừa được thực hiện đầy đủ trong cùng full handshake.
+TLS 1.3 **0-RTT early data** is a resumption option; early data carries **replay risk** even when records are encrypted. Never place non-idempotent operations or money transfers in 0-RTT without replay protections. Do not confuse 0-RTT with full client-certificate authentication freshly performed in the same full handshake.
 
-### 4.3. ALPN và SNI nằm ở tầng nào?
+### 4.3. Which layer do ALPN and SNI belong to?
 
-- **SNI**: gợi ý tên server mà client muốn kết nối để server/proxy chọn certificate/route. Cần tránh sai lệch giữa SNI, HTTP Host/:authority, certificate SAN và policy routing.
-- **ALPN**: ví dụ thỏa thuận `h2` cho HTTP/2 hoặc `http/1.1`. ALPN không cấp client identity; nó là protocol negotiation.
-- **SAN/hostname validation**: phép kiểm **riêng** mà client thực hiện cho danh tính endpoint mong muốn; không được bỏ chỉ vì SNI đã gửi.
-- **HTTP Authorization**: diễn ra ở tầng ứng dụng sau TLS; thường vẫn cần ngay cả khi mTLS xác thực service identity.
+- **SNI**: hints the server name the client wants to connect to so the server/proxy chooses the certificate/route. Avoid mismatches across SNI, HTTP Host/:authority, certificate SAN, and routing policy.
+- **ALPN**: negotiates e.g. `h2` for HTTP/2 or `http/1.1`. ALPN does not grant client identity; it is protocol negotiation.
+- **SAN/hostname validation**: a **separate** check the client runs for the expected endpoint identity; never skip it just because SNI was sent.
+- **HTTP Authorization**: happens at the application layer after TLS; usually still needed even when mTLS authenticates service identity.
 
 ---
 
-## 5. Tại sao X.509, CA, keystore và truststore quan trọng cho handshake?
+## 5. Why do X.509, CA, keystore, and truststore matter for the handshake?
 
-**Chứng thư X.509** là một cấu trúc có chữ ký CA liên kết public key với subject/SAN và các extensions theo chính sách. Trong TLS, chứng thư giúp client/server xác minh public key được trình bày thuộc danh tính được chấp nhận.
+An **X.509 certificate** is a CA-signed structure binding a public key to a subject/SAN and policy extensions. In TLS, certificates enable client/server to verify that the presented public key belongs to an acceptable identity.
 
-### 5.1. Server authentication cần những điều kiện nào?
+### 5.1. What conditions does server authentication require?
 
-Với `https://api.example.com`, client không chỉ làm một check:
+For `https://api.example.com`, the client does more than a single check:
 
-1. Certificate có cấu trúc X.509 hợp lệ và thuật toán/key strength được chính sách chấp nhận.
-2. Chain từ leaf qua intermediate(s) đến **trust anchor** mà client thực sự chấp thuận.
-3. Thời hạn `notBefore/notAfter` và revocation/status theo policy phù hợp.
-4. BasicConstraints/KeyUsage/EKU và path constraints, đặc biệt CA issuer phải có quyền `keyCertSign` phù hợp.
-5. Định danh đích `api.example.com` khớp **DNS Subject Alternative Name** thích hợp; kết nối bằng IP literal cần SAN **iPAddress** phù hợp.
-6. Chứng minh server đang sở hữu private key liên quan qua handshake signature/proof, không chỉ sở hữu bản sao leaf certificate.
-7. Kiểm transcript/`Finished` và các tham số TLS không bị thay đổi.
-8. Kiểm ứng dụng chọn đúng URL, trust configuration và các policy bảo mật liên quan.
+1. The certificate has valid X.509 structure and policy-approved algorithms/key strengths.
+2. A chain from leaf through intermediate(s) reaches a **trust anchor** actually trusted by the client.
+3. `notBefore/notAfter` validity and revocation/status match applicable policy.
+4. BasicConstraints/KeyUsage/EKU and path constraints, especially ensuring the issuing CA holds appropriate `keyCertSign` authority.
+5. Target identity `api.example.com` matches an appropriate **DNS Subject Alternative Name**; connecting via IP literal requires a matching **iPAddress** SAN.
+6. Proof that the server possesses the corresponding private key via handshake signature/proof, not merely possessing a copy of the leaf certificate.
+7. Verification of transcript/`Finished` and that TLS parameters were not tampered with.
+8. Checking that the application uses the right URL, trust configuration, and related security policies.
 
-`X509Certificate.verify(issuerPublicKey)` chỉ kiểm **chữ ký certificate với public key đã đưa vào**, không tự đảm bảo issuer trusted, hostname đúng hoặc peer đang sở hữu private key. Tương tự, `CertPathValidator("PKIX")` không tự biết hostname của URL nếu ứng dụng không kết hợp endpoint identity verification.
+`X509Certificate.verify(issuerPublicKey)` only checks **the certificate signature against the supplied public key**; it does not guarantee the issuer is trusted, the hostname is right, or the peer holds the private key. Likewise, `CertPathValidator("PKIX")` does not automatically know the URL's hostname unless the application pairs it with endpoint identity verification.
 
-**Không dùng `CN` thay SAN một cách tùy tiện.** TLS identity hiện đại dựa trên các dạng SAN theo quy tắc service identity; JSSE/HTTPS phải làm endpoint identification đúng.
+**Do not arbitrarily substitute `CN` for SAN.** Modern TLS identity relies on SAN entries per service identity rules; JSSE/HTTPS must enforce proper endpoint identification.
 
-### 5.2. Khi dùng mTLS, client certificate phải có purpose phù hợp
+### 5.2. With mTLS, the client certificate must have the proper purpose
 
-Trong mô hình TLS server nhận client certificate:
+In a TLS server accepting client certificates:
 
-- Server truststore có CA/trust anchors cho **client identities**, không chỉ CA dùng cấp server certificates.
-- Client leaf có ExtendedKeyUsage phù hợp, thường `clientAuth` (OID `1.3.6.1.5.5.7.3.2`), KeyUsage phù hợp với signature mechanism.
-- Server phải quyết định **có chấp nhận client identity này không**, không chỉ “bất kỳ chain dưới root đều được phép”.
-- Các profile nội bộ có thể dùng SAN URI, DNS, email hoặc Subject DN theo policy; phải xác định identity source rõ và tránh coi CN tự do là quyền truy cập.
-- Nếu certificate bị revoke, mất private key hoặc service không còn quyền, cần vòng đời key/trust/revocation và authorization cập nhật.
+- The server truststore holds CAs/trust anchors for **client identities**, not only the CA issuing server certificates.
+- The client leaf has an appropriate ExtendedKeyUsage, normally `clientAuth` (OID `1.3.6.1.5.5.7.3.2`), and KeyUsage matching the signature mechanism.
+- The server must decide **whether to accept this specific client identity**, not merely "any chain under the root is allowed".
+- Internal profiles may use URI, DNS, email SANs, or Subject DNs per policy; identify the identity source explicitly and avoid treating an arbitrary CN as an access grant.
+- If a certificate is revoked, its private key is lost, or a service loses authorization, you need key/trust/revocation lifecycle and authorization updates.
 
-### 5.3. Keystore và truststore
+### 5.3. Keystore and truststore
 
 ```text
 ONE-WAY TLS
@@ -318,7 +318,7 @@ Server:
   server.p12 = server private key + server leaf + chain
 Client:
   truststore.p12 = trusted server CA/root(s)
-  (không cần client private key)
+  (no client private key needed)
 
 mTLS
 ====
@@ -330,38 +330,38 @@ Client:
   truststore.p12 = trusted server CA/root(s)
 ```
 
-**Truststore không phải nơi copy private key của đối tác.** Một chứng thư CA công khai không nhất thiết bí mật, nhưng **truststore integrity** là an ninh quan trọng: attacker thay trust anchors có thể khiến ứng dụng tin certificate giả.
+**A truststore is not a place to copy the peer's private key.** Public CA certificates are not necessarily secret, yet **truststore integrity** is security-critical: an attacker altering trust anchors can make the application trust rogue certificates.
 
-**Keystore path đúng nhưng password sai** → JVM không load private key. **Truststore có cert riêng lẻ không được phép** → chain validation sai hoặc mở rộng trust quá rộng. **Certificate chain thiếu intermediate** → client có thể không xây được path đến root dù root đã trusted.
+**Right keystore path but wrong password** → the JVM cannot load the private key. **Unauthorized individual certificates in the truststore** → broken chain validation or overly broad trust. **Certificate chain missing an intermediate** → the client may fail to build a path to the root even when the root is already trusted.
 
 ---
 
-## 6. Java JSSE: API nào tương ứng với hoạt động nào?
+## 6. Java JSSE: which API corresponds to which operation?
 
-**JSSE** (*Java Secure Socket Extension*) là nền tảng Java cho TLS. Một số API nền tảng trên Java 17:
+**JSSE** (*Java Secure Socket Extension*) is Java's TLS foundation. Foundational APIs in Java 17:
 
-| API | Trách nhiệm chính | Lưu ý |
+| API | Primary responsibility | Notes |
 | --- | --- | --- |
-| `SSLContext` | Thiết lập các key managers, trust managers và TLS engine configuration | Cấu hình context sai có thể dẫn đến tin nhầm CA |
-| `KeyStore` | Nạp file `PKCS12` hoặc provider store chứa certificate/private-key entries | Có file/alias không tự tạo trust |
-| `KeyManagerFactory` / `X509KeyManager` | Chọn private key/certificate **của chính phía này** trình bày khi cần | mTLS client phải có client identity, server phải có server identity |
-| `TrustManagerFactory` / `X509TrustManager` | Xác minh certificate chain của **peer** với trust anchors/policy | Tuyệt đối không dùng custom trust-all manager |
-| `SSLSocketFactory` | Tạo client TLS sockets | Với raw `SSLSocket` phải cấu hình endpoint identification phù hợp |
-| `SSLServerSocketFactory` | Tạo server TLS listen socket | Server quyết định `setNeedClientAuth`/`setWantClientAuth` |
-| `SSLSocket` | TLS kết nối, `startHandshake`, ứng dụng đọc/ghi plaintext bytes | Dữ liệu trên wire được TLS record bảo vệ |
-| `SSLEngine` | TLS nonblocking/transport-agnostic theo framework | Phải quản lý handshake state, buffers và task callbacks đúng |
-| `SSLParameters` | Cấu hình endpoint identification, protocols, cipher suites, ALPN... | `setEndpointIdentificationAlgorithm("HTTPS")` giúp xác minh host ở raw client |
-| `SSLSession` | Thông tin protocol, peer certificates/principal, cipher suite | Thông tin peer không đồng nghĩa authorization |
-| `HttpsURLConnection` / `HttpClient` | HTTP(S) client trên TLS | Thường nên dùng stack HTTP chuẩn thay vì raw TLS socket |
-| `SSLHandshakeException` | Lỗi trong handshake, có thể do chain/hostname/client cert/protocol | Không tắt authentication để “chạy được” |
+| `SSLContext` | Sets up key managers, trust managers, and TLS engine configuration | Misconfiguring the context can trust the wrong CA |
+| `KeyStore` | Loads `PKCS12` files or provider stores containing certificate/private-key entries | Having a file/alias does not automatically establish trust |
+| `KeyManagerFactory` / `X509KeyManager` | Selects **this side's own** private key/certificate to present when requested | mTLS client needs client identity; server needs server identity |
+| `TrustManagerFactory` / `X509TrustManager` | Verifies the **peer's** certificate chain against trust anchors/policy | Never use a custom trust-all manager |
+| `SSLSocketFactory` | Creates client TLS sockets | Raw `SSLSocket` requires explicit endpoint identification config |
+| `SSLServerSocketFactory` | Creates server TLS listening sockets | Server decides `setNeedClientAuth`/`setWantClientAuth` |
+| `SSLSocket` | TLS connection, `startHandshake`, application reads/writes plaintext bytes | Data on the wire is protected by TLS records |
+| `SSLEngine` | Nonblocking/transport-agnostic TLS for frameworks | Must properly manage handshake state, buffers, and task callbacks |
+| `SSLParameters` | Configures endpoint identification, protocols, cipher suites, ALPN... | `setEndpointIdentificationAlgorithm("HTTPS")` enforces host check on raw clients |
+| `SSLSession` | Protocol info, peer certificates/principal, cipher suite | Peer identity does not equal authorization |
+| `HttpsURLConnection` / `HttpClient` | HTTP(S) clients over TLS | Normally prefer standard HTTP stack over raw TLS sockets |
+| `SSLHandshakeException` | Handshake failure, e.g., chain/hostname/client cert/protocol | Never disable authentication just to "make it work" |
 
-### 6.1. `setNeedClientAuth(true)` không phải là “cài TLS cho cả hai phía”
+### 6.1. `setNeedClientAuth(true)` does not mean "configure TLS for both sides"
 
-Bật `needClientAuth` chỉ là yêu cầu **client trình bày và xác thực certificate**. Server vẫn phải có keystore chứa **server private key/cert**, phải có truststore đúng CA cấp client, và application authorization phải được enforce. Nếu server bật needClientAuth nhưng client không có cert hoặc cert không tin cậy, handshake không hoàn thành.
+Enabling `needClientAuth` only requires the **client to present and authenticate a certificate**. The server must still have a keystore containing the **server private key/cert**, a truststore with the right client-issuing CA, and enforced application authorization. If the server enables `needClientAuth` while the client lacks a certificate or presents an untrusted one, the handshake will not complete.
 
-### 6.2. Raw `SSLSocket` cần endpoint identification rõ ràng
+### 6.2. Raw `SSLSocket` requires explicit endpoint identification
 
-Ví dụ sử dụng JSSE cho client:
+Example using JSSE on a client:
 
 ```java
 SSLSocket socket = (SSLSocket) context.getSocketFactory()
@@ -372,104 +372,104 @@ socket.setSSLParameters(params);
 socket.startHandshake();
 ```
 
-Đây là **đoạn minh họa không độc lập**: cần imports JSSE, `SSLContext context` đã init bằng truststore đúng, kiểm network/exception và giải phóng socket. Thuật toán `HTTPS` dùng quy tắc TLS endpoint identification của JSSE; không tự so hostname bằng `contains` hoặc disable hostname verification.
+This is a **non-standalone illustrative snippet**: it requires JSSE imports, an `SSLContext context` initialized with the right truststore, network/exception handling, and closing the socket. The `HTTPS` algorithm uses JSSE's TLS endpoint identification rules; never hand-roll hostname checks with `contains` or disable hostname verification.
 
-Raw `SSLSocket` **không nên được giả định tự kiểm hostname như một HTTPS client** nếu bạn chưa đặt cấu hình endpoint identification. Với Java `HttpClient`/`HttpsURLConnection`, hãy giữ xác minh TLS/hostname theo mặc định an toàn, tránh property/`HostnameVerifier` bypass.
+A raw `SSLSocket` **should not be assumed to automatically check hostnames like an HTTPS client** unless you configure endpoint identification. With Java `HttpClient`/`HttpsURLConnection`, preserve secure default TLS/hostname verification and avoid properties or `HostnameVerifier` bypasses.
 
-### 6.3. mTLS ở reverse proxy hoặc service mesh
+### 6.3. mTLS at a reverse proxy or service mesh
 
-Nhiều hệ thống chấm dứt TLS tại ingress/load balancer/Envoy/service mesh. Tại đó mTLS có thể xác thực **workload ngang hàng với proxy**, trong khi Java app nhận kết nối nội bộ từ proxy. Vì vậy:
+Many systems terminate TLS at an ingress, load balancer, Envoy, or service mesh. There, mTLS may authenticate a **peer workload to the proxy**, while the Java app receives internal connections from the proxy. Therefore:
 
-- Xác định rõ **TLS endpoint** nào kiểm client cert và truststore nằm ở đâu.
-- Nếu proxy forward `X-Client-Cert`/principal headers, phải chặn client Internet tự đặt header; proxy tin cậy phải strip/rewrite và kết nối proxy→app cần được bảo vệ tương ứng.
-- Không để Java app coi mọi HTTP request từ proxy là cùng identity rồi bỏ authorization theo tenant/action.
-- Kiểm rotation/expiry/revocation của workload certificates trong control plane, log identity và policy giữa các hops.
+- Clearly identify **which TLS endpoint** verifies the client certificate and where the truststore lives.
+- If the proxy forwards `X-Client-Cert`/principal headers, block Internet clients from injecting those headers; the trusted proxy must strip/rewrite them, and the proxy→app hop must be protected accordingly.
+- Never let the Java app treat every HTTP request from the proxy as one shared identity and skip per-tenant/per-action authorization.
+- Check rotation/expiry/revocation of workload certificates in the control plane, logging identity and policy across hops.
 
 ---
 
-## 7. Lab Java 17+: chuẩn bị root CA, server certificate và client certificate
+## 7. Java 17+ Lab: preparing root CA, server certificate, and client certificate
 
-Lab sau dùng **keytool có sẵn với JDK 17**. Mục tiêu là làm rõ mỗi bên sở hữu private key gì và tin CA nào. Ta dùng một **training root CA** ký trực tiếp cả server leaf và client leaf, với **ExtendedKeyUsage khác nhau**.
+The lab below uses **`keytool` bundled with JDK 17**. The goal is to clarify which private key each side owns and which CA it trusts. We use a **training root CA** directly signing both the server leaf and client leaf, with **different ExtendedKeyUsage values**.
 
-**Cảnh báo bảo mật:**
+**Security warning:**
 
-- Mật khẩu `changeit`, root CA và private keys tạo ở đây **chỉ dành cho môi trường học**. Không reuse trong production và không commit file `.p12` vào git.
-- Các lệnh đưa store password vào command-line để thao tác dễ; trong hệ thống thật, password trên process list/shell history có thể lộ. Hãy dùng secret manager/interactive prompt/provider bảo mật theo policy.
-- Chạy lệnh trong **thư mục lab trống** để không ghi đè keystore có sẵn. Không import CA demo vào `cacerts` toàn hệ thống.
-- Nếu muốn chạy ví dụ song song hai mode, kết thúc server phiên trước rồi khởi động server mới trên port 8443; chương trình chỉ xử lý một kết nối mỗi lần.
-- Dùng **`localhost`** làm hostname, vì chứng thư server sẽ có SAN `DNS:localhost`. Không thay bằng `127.0.0.1` mà giữ nguyên certificate, vì IP literal cần SAN dạng iPAddress.
+- The password `changeit`, root CA, and private keys created here are **for learning environments only**. Never reuse them in production and never commit `.p12` files to git.
+- Commands pass store passwords on the command line for convenience; in real systems, passwords in process lists or shell history can leak. Use a secret manager, interactive prompt, or secure provider per policy.
+- Run commands in an **empty lab directory** so you do not overwrite existing keystores. Do not import the demo CA into the system-wide `cacerts`.
+- To run both modes back-to-back, terminate the previous server process before starting a new server on port 8443; the program handles one connection per run.
+- Use **`localhost`** as the hostname, because the server certificate will have SAN `DNS:localhost`. Do not replace it with `127.0.0.1` while keeping the same certificate, since an IP literal requires an `iPAddress` SAN.
 
-### 7.1. Tạo training root CA
+### 7.1. Create a training root CA
 
-Lệnh sau sinh RSA CA key pair trong `root-ca.p12`, tự ký root certificate với `BasicConstraints CA:true` và `KeyUsage keyCertSign/cRLSign`:
+The following command generates an RSA CA key pair in `root-ca.p12`, self-signing the root certificate with `BasicConstraints CA:true` and `KeyUsage keyCertSign/cRLSign`:
 
 ```shell
 keytool -genkeypair -alias lab-ca -keyalg RSA -keysize 3072 -sigalg SHA256withRSA -dname "CN=Training TLS Root CA, O=Learning, C=VN" -validity 3650 -ext "BC:critical=ca:true,pathlen:0" -ext "KU:critical=keyCertSign,cRLSign" -keystore root-ca.p12 -storetype PKCS12 -storepass changeit -keypass changeit -noprompt
 ```
 
-Export **public** CA certificate:
+Export the **public** CA certificate:
 
 ```shell
 keytool -exportcert -alias lab-ca -keystore root-ca.p12 -storepass changeit -file root-ca.pem -rfc
 ```
 
-`root-ca.p12` chứa private key của CA và phải được bảo vệ. `root-ca.pem` là public certificate có thể dùng để thiết lập trust anchor. Self-signed root **không tự đáng tin**, cho đến khi relying party đưa nó vào truststore có chủ đích. `pathlen:0` phù hợp vì lab root ký leaf trực tiếp, không tạo intermediate CA.
+`root-ca.p12` contains the CA's private key and must be protected. `root-ca.pem` is the public certificate usable to establish a trust anchor. A self-signed root **is not automatically trusted** until the relying party intentionally places it in a truststore. `pathlen:0` is appropriate since the lab root signs leaves directly without intermediate CAs.
 
-### 7.2. Sinh server key pair và CSR
+### 7.2. Generate server key pair and CSR
 
 ```shell
 keytool -genkeypair -alias tls-server -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname "CN=localhost, O=Learning, C=VN" -validity 365 -keystore server.p12 -storetype PKCS12 -storepass changeit -keypass changeit -noprompt
 keytool -certreq -alias tls-server -keystore server.p12 -storepass changeit -file server.csr -ext "SAN=dns:localhost"
 ```
 
-CSR chứa server public key và đề nghị cấp SAN. CA phải kiểm đúng identity/policy; việc CSR đề nghị `SAN=dns:localhost` không có nghĩa CA thực luôn phải chấp nhận mọi DNS name tùy ý.
+The CSR contains the server public key and requests a SAN. The CA must verify identity/policy; a CSR requesting `SAN=dns:localhost` does not mean a real CA must accept arbitrary DNS names.
 
-### 7.3. CA ký server leaf với `serverAuth`
+### 7.3. CA signs server leaf with `serverAuth`
 
 ```shell
 keytool -gencert -alias lab-ca -keystore root-ca.p12 -storepass changeit -infile server.csr -outfile server.pem -rfc -validity 365 -ext "SAN=dns:localhost" -ext "KU:critical=digitalSignature" -ext "EKU=serverAuth" -ext "BC=ca:false"
 ```
 
-Nạp CA certificate rồi certificate reply vào `server.p12`:
+Import the CA certificate and then the certificate reply into `server.p12`:
 
 ```shell
 keytool -importcert -alias lab-ca -file root-ca.pem -keystore server.p12 -storepass changeit -noprompt
 keytool -importcert -alias tls-server -file server.pem -keystore server.p12 -storepass changeit -noprompt
 ```
 
-Alias `tls-server` là private-key entry cùng certificate chain để JSSE server xuất trình. `server.pem` chỉ là public certificate, không thay private key trong `server.p12`.
+Alias `tls-server` holds the private-key entry along with the certificate chain presented by the JSSE server. `server.pem` is only the public certificate and does not replace the private key inside `server.p12`.
 
-### 7.4. Sinh client key pair và CSR
+### 7.4. Generate client key pair and CSR
 
 ```shell
 keytool -genkeypair -alias tls-client -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname "CN=demo-client, O=Learning, C=VN" -validity 365 -keystore client.p12 -storetype PKCS12 -storepass changeit -keypass changeit -noprompt
 keytool -certreq -alias tls-client -keystore client.p12 -storepass changeit -file client.csr
 ```
 
-Dưới đây CA ký một leaf **dành cho client TLS**, không phải server:
+Below, the CA signs a leaf **intended for TLS client auth**, not a server:
 
 ```shell
 keytool -gencert -alias lab-ca -keystore root-ca.p12 -storepass changeit -infile client.csr -outfile client.pem -rfc -validity 365 -ext "KU:critical=digitalSignature" -ext "EKU=clientAuth" -ext "BC=ca:false"
 ```
 
-Nhập root trước khi nhập certificate reply vào client keystore:
+Import the root before importing the certificate reply into the client keystore:
 
 ```shell
 keytool -importcert -alias lab-ca -file root-ca.pem -keystore client.p12 -storepass changeit -noprompt
 keytool -importcert -alias tls-client -file client.pem -keystore client.p12 -storepass changeit -noprompt
 ```
 
-**So sánh:** `server.p12` chứa **server private key + server certificate (`serverAuth`)**. `client.p12` chứa **client private key + client certificate (`clientAuth`)**. Cả hai chain cùng về `lab-ca` chỉ để đơn giản lab, không có nghĩa production nên dùng một CA cấp mọi identity/purpose.
+**Comparison:** `server.p12` contains **server private key + server certificate (`serverAuth`)**. `client.p12` contains **client private key + client certificate (`clientAuth`)**. Both chains lead to `lab-ca` solely to simplify the lab; in production you should not assume one CA issues every identity/purpose.
 
-### 7.5. Tạo truststore riêng cho lab
+### 7.5. Create a dedicated truststore for the lab
 
 ```shell
 keytool -importcert -alias lab-ca -file root-ca.pem -keystore truststore.p12 -storetype PKCS12 -storepass changeit -noprompt
 ```
 
-Trong lab cả server và client đều được cấu hình tin root ở `truststore.p12`. Với one-way TLS, **client** dùng truststore này để kiểm server. Với mTLS, **server** cũng dùng để kiểm client. Truststore chứa **public root certificate**, không chứa private key của CA.
+In the lab, both server and client are configured to trust the root in `truststore.p12`. In one-way TLS, the **client** uses this truststore to verify the server. In mTLS, the **server** also uses it to verify the client. A truststore holds **public root certificates**, not the CA's private key.
 
-### 7.6. Kiểm nội dung chứng thư bằng keytool
+### 7.6. Inspect certificate contents with keytool
 
 ```shell
 keytool -printcert -file server.pem
@@ -479,30 +479,30 @@ keytool -list -v -keystore client.p12 -storetype PKCS12 -storepass changeit
 keytool -list -v -keystore truststore.p12 -storetype PKCS12 -storepass changeit
 ```
 
-Trong kết quả:
+In the output:
 
-- Server certificate: `SAN DNSName: localhost` và `ExtendedKeyUsages serverAuth`.
+- Server certificate: `SAN DNSName: localhost` and `ExtendedKeyUsages serverAuth`.
 - Client certificate: `ExtendedKeyUsages clientAuth`.
-- KeyStore cho mỗi identity có `PrivateKeyEntry` dưới alias tương ứng.
-- Truststore chứa `trustedCertEntry` cho `lab-ca`.
-- Issuer của leaf tương ứng root đã ký; root có CA constraints phù hợp.
+- KeyStore for each identity contains a `PrivateKeyEntry` under its alias.
+- Truststore contains a `trustedCertEntry` for `lab-ca`.
+- Each leaf's issuer matches the signing root; the root carries proper CA constraints.
 
-**Không có stdout cố định cho các lệnh keytool**, vì serial, fingerprints, public key, timestamps và dữ liệu ASN.1 thay đổi theo lần chạy. Hãy đối chiếu **thuộc tính có ý nghĩa** thay vì so nguyên văn output dài.
+**There is no fixed stdout for keytool commands**, because serial numbers, fingerprints, public keys, timestamps, and ASN.1 encodings vary per run. Compare **meaningful attributes** rather than matching long raw output verbatim.
 
 ---
 
-## 8. Java 17+ runnable: server-authenticated TLS và mTLS
+## 8. Java 17+ runnable: server-authenticated TLS and mTLS
 
-Tạo file **`TlsHandshakeLab.java`** trong cùng thư mục với `server.p12`, `client.p12` và `truststore.p12`. Đây là **một Java class chạy ở hai process riêng**: process server lắng nghe cổng 8443, sau đó process client kết nối đến `localhost:8443`.
+Create **`TlsHandshakeLab.java`** in the same directory as `server.p12`, `client.p12`, and `truststore.p12`. This is **one Java class run in two separate processes**: the server process listens on port 8443, and the client process connects to `localhost:8443`.
 
-Hai mode:
+Two modes:
 
-- `oneway`: server trình bày server certificate; client xác thực chain và SAN hostname. **Không trình bày client certificate**.
-- `mtls`: server bật `setNeedClientAuth(true)`; client nạp `client.p12` và trình bày client certificate khi được yêu cầu. Server kiểm client chain theo `truststore.p12`.
-- Cả hai mode đều dùng **TLS 1.3** và cùng bộ ký tự thử `P`/`K`. Traffic keys/record encryption do JSSE thực hiện, không phải do demo tự viết AES.
-- Code client raw `SSLSocket` **bật endpoint identification `"HTTPS"`** trước `startHandshake`, tránh một lỗi bảo mật rất phổ biến.
+- `oneway`: server presents the server certificate; client verifies the chain and SAN hostname. **No client certificate is presented**.
+- `mtls`: server enables `setNeedClientAuth(true)`; client loads `client.p12` and presents its client certificate when requested. Server verifies the client chain against `truststore.p12`.
+- Both modes use **TLS 1.3** and the same test bytes `P`/`K`. Traffic keys and record encryption are handled by JSSE, not custom AES in the demo.
+- The raw `SSLSocket` client code **enables `"HTTPS"` endpoint identification** before `startHandshake`, avoiding a very common security bug.
 
-**Lưu ý:** `changeit` được hard-code trong code chỉ để chạy lab khớp lệnh `keytool`; production phải dùng phương thức secret injection/keystore access được bảo vệ. Đây là **minimal TLS learning app**, không phải server HTTP, không có certificate revocation service, IAM, ACL, audit, timeout hay rate limit production.
+**Note:** `changeit` is hardcoded strictly so the lab matches the `keytool` commands; production must use protected secret injection/keystore access. This is a **minimal TLS learning app**, not an HTTP server, and lacks certificate revocation services, IAM, ACLs, auditing, timeouts, or production rate limits.
 
 ```java
 import java.io.IOException;
@@ -653,27 +653,27 @@ public class TlsHandshakeLab {
 }
 ```
 
-**Biên dịch** một lần:
+**Compile** once:
 
 ```shell
 javac TlsHandshakeLab.java
 ```
 
-### 8.1. Chạy one-way TLS
+### 8.1. Run one-way TLS
 
-Mở **terminal 1** tại thư mục lab:
+Open **terminal 1** in the lab directory:
 
 ```shell
 java TlsHandshakeLab server oneway
 ```
 
-Mở **terminal 2** cùng thư mục, sau khi server đã bind/lắng nghe:
+Open **terminal 2** in the same directory, after the server is bound and listening:
 
 ```shell
 java TlsHandshakeLab client oneway
 ```
 
-**Stdout kỳ vọng của terminal server:**
+**Expected stdout on the server terminal:**
 
 ```text
 mode=oneway
@@ -683,7 +683,7 @@ clientCertificateSeen=false
 received=P
 ```
 
-**Stdout kỳ vọng của terminal client:**
+**Expected stdout on the client terminal:**
 
 ```text
 mode=oneway
@@ -693,23 +693,23 @@ serverCertificateSeen=true
 reply=K
 ```
 
-**Diễn giải:** Client nhận server certificate, JSSE kiểm chain dựa trên root trong `truststore.p12` và endpoint hostname `localhost` nhờ `setEndpointIdentificationAlgorithm("HTTPS")`. Server **không yêu cầu** client certificate, và client không nạp private key; do đó `clientCertificateSeen=false`. Một kết nối one-way TLS vẫn mã hóa/xác thực traffic sau handshake, nhưng server **không có TLS-level client identity**.
+**Explanation:** The client receives the server certificate, JSSE verifies the chain against the root in `truststore.p12` and checks the `localhost` endpoint hostname thanks to `setEndpointIdentificationAlgorithm("HTTPS")`. The server **does not request** a client certificate, and the client loads no private key; hence `clientCertificateSeen=false`. A one-way TLS connection still encrypts and authenticates post-handshake traffic, yet the server has **no TLS-level client identity**.
 
-### 8.2. Chạy mTLS
+### 8.2. Run mTLS
 
-Đợi cả hai process ở lượt one-way kết thúc. Sau đó mở lại **terminal 1**:
+Wait for both processes from the one-way run to finish. Then reopen **terminal 1**:
 
 ```shell
 java TlsHandshakeLab server mtls
 ```
 
-Trong **terminal 2**:
+In **terminal 2**:
 
 ```shell
 java TlsHandshakeLab client mtls
 ```
 
-**Stdout kỳ vọng của terminal server:**
+**Expected stdout on the server terminal:**
 
 ```text
 mode=mtls
@@ -719,7 +719,7 @@ clientCertificateSeen=true
 received=P
 ```
 
-**Stdout kỳ vọng của terminal client:**
+**Expected stdout on the client terminal:**
 
 ```text
 mode=mtls
@@ -729,52 +729,52 @@ serverCertificateSeen=true
 reply=K
 ```
 
-**Diễn giải:** Server bật `setNeedClientAuth(true)` nên JSSE gửi yêu cầu client certificate. Client chọn key/cert trong `client.p12`, server kiểm chain về root trong `truststore.p12` và mục đích client authentication theo JSSE/provider. Client vẫn kiểm server hostname và chain. Mỗi bên chứng minh possession qua handshake phù hợp với TLS 1.3. Hai bên cùng giao tiếp trên record layer được xác thực/mã hóa.
+**Explanation:** The server enabled `setNeedClientAuth(true)` so JSSE sends a client certificate request. The client picks the key/cert from `client.p12`, and the server checks the chain back to the root in `truststore.p12` and client authentication purpose per JSSE/provider. The client still checks the server hostname and chain. Each side proves possession during the handshake per TLS 1.3. Both sides communicate over an authenticated and encrypted record layer.
 
-**Để không hiểu sai:** Dòng `clientCertificateSeen=true` chỉ là một cách **quan sát sau khi JSSE handshake thành công**; nó không phải business authorization. Production server cần lấy authenticated principal/certificate trong context được tin, map sang identity có cấu trúc và enforce ACL/IAM/tenant policy.
+**To avoid misinterpretation:** The line `clientCertificateSeen=true` is merely an **observation after the JSSE handshake succeeds**; it is not business authorization. A production server must retrieve the authenticated principal/certificate from a trusted context, map it to a structured identity, and enforce ACL/IAM/tenant policy.
 
-### 8.3. Thử các trường hợp thất bại quan trọng
+### 8.3. Try important failure cases
 
-**Thử 1 – Server bắt buộc mTLS nhưng client không có cert.**
+**Test 1 – Server requires mTLS, but client lacks a certificate.**
 
-Terminal server:
+Server terminal:
 
 ```shell
 java TlsHandshakeLab server mtls
 ```
 
-Terminal client:
+Client terminal:
 
 ```shell
 java TlsHandshakeLab client oneway
 ```
 
-Dự kiến: **không có cặp stdout success đầy đủ**. Server từ chối client thiếu chứng thư và ném exception handshake/protocol thích hợp; client cũng có thể thấy error trong handshake hoặc lần đọc/ghi sau đó. **Không cố định chuỗi exception** vì TLS 1.3 alert delivery, provider và thứ tự đóng kết nối có thể khác.
+Expected: **no matching pair of success stdout outputs**. The server rejects the certificate-less client and throws an appropriate handshake/protocol exception; the client may also observe an error during handshake or subsequent read/write. **Do not hardcode exact exception text** because TLS 1.3 alert delivery, providers, and socket close ordering can differ.
 
-**Thử 2 – Client tin một CA khác.** Thay truststore bằng một truststore an toàn nhưng không chứa root `lab-ca` trong môi trường test. JSSE client không thể xây trust path cho server leaf nên handshake thất bại (thường thấy lỗi `PKIX path building failed` hoặc thông tin tương đương). Không nên giải quyết bằng `TrustManager` nhận mọi chứng thư.
+**Test 2 – Client trusts a different CA.** Replace the truststore with another valid truststore that does not contain the `lab-ca` root in your test environment. The JSSE client cannot build a trust path for the server leaf, so the handshake fails (typically with `PKIX path building failed` or equivalent). Never fix this by installing a `TrustManager` that accepts all certificates.
 
-**Thử 3 – Hostname sai.** Tạm thay `createSocket("localhost", PORT)` thành `createSocket("127.0.0.1", PORT)` nhưng giữ server cert chỉ có SAN `DNS:localhost`. Với endpoint identification bật, client phải từ chối vì không có SAN loại `iPAddress` thích hợp cho `127.0.0.1`. **Không** chữa bằng cách tắt hostname verification; cấp lại certificate có SAN đúng theo nhu cầu thực tế.
+**Test 3 – Hostname mismatch.** Temporarily change `createSocket("localhost", PORT)` to `createSocket("127.0.0.1", PORT)` while keeping the server cert with only SAN `DNS:localhost`. With endpoint identification enabled, the client must reject the connection because there is no matching `iPAddress` SAN for `127.0.0.1`. **Do not** fix this by disabling hostname verification; reissue the certificate with the SAN matching actual needs.
 
-**Thử 4 – Client certificate `serverAuth` thay vì `clientAuth`.** Nếu server trust manager tuân theo purpose checks như JSSE chuẩn, chứng thư không phù hợp mục đích sẽ bị từ chối. Không dùng server certificate làm client identity chỉ để vượt lỗi config.
+**Test 4 – Client certificate with `serverAuth` instead of `clientAuth`.** If the server trust manager enforces purpose checks as standard JSSE does, a certificate with the wrong purpose will be rejected. Never reuse a server certificate as a client identity just to work around a config error.
 
-**Thử 5 – Certificate hết hạn/bị revoke.** Chứng thư hết hạn phải bị từ chối theo validity policy; kiểm trạng thái thu hồi phụ thuộc cấu hình OCSP/CRL/trust manager và cần thử riêng. Demo này **không kích hoạt kiểm revocation chính thức**. Một chứng thư chưa hết hạn không mặc nhiên được chấp nhận nếu có thông tin revoke đáng tin.
+**Test 5 – Expired or revoked certificate.** An expired certificate must be rejected per validity policy; revocation checking depends on OCSP/CRL/trust manager configuration and must be tested separately. This demo **does not enable formal revocation checking**. An unexpired certificate must not be accepted automatically when reliable revocation information exists.
 
-### 8.4. Demo cố ý không có những gì?
+### 8.4. What does the demo intentionally omit?
 
-- Chưa có nhiều concurrent connections, timeouts, size limits, request parsing hoặc HTTP server.
-- Không có KMS/HSM, secret manager, certificate enrollment/renewal, CA chain nhiều cấp, role-based authorization, audit logging hoặc policy revocation production.
-- Password store dùng trong code chỉ hợp lệ để học; không hard-code bất kỳ password/key vào JAR triển khai.
-- Client truststore và server truststore đang dùng chung root; production có thể tách trusted server CAs và trusted client CAs.
-- `TlsHandshakeLab` không tự chống replay của **HTTP/business action**. TLS record layer có bảo vệ integrity/ordering trong session, nhưng một HTTP request hợp lệ có thể bị gửi lại như yêu cầu mới nếu nghiệp vụ không có transaction id/idempotency controls.
-- Demo ép TLS 1.3 để luồng quan sát rõ. Với đối tác cũ phải có compatibility policy chứ không tắt bảo mật tùy tiện.
+- Multiple concurrent connections, timeouts, size limits, request parsing, or an HTTP server.
+- KMS/HSM, secret manager, certificate enrollment/renewal, multi-tier CA chains, role-based authorization, audit logging, or production revocation policy.
+- The hardcoded store password is valid only for learning; never hardcode any password or key into a deployed JAR.
+- Client truststore and server truststore share the same root here; production may separate trusted server CAs from trusted client CAs.
+- `TlsHandshakeLab` does not by itself prevent replay of **HTTP/business actions**. While the TLS record layer protects integrity and ordering within a session, a valid HTTP request can be re-sent as a new request if business logic lacks transaction IDs or idempotency controls.
+- The demo forces TLS 1.3 for clear handshake observation. Legacy peers require an explicit compatibility policy rather than arbitrarily disabling security.
 
 ---
 
-## 9. Từ handshake đến identity/authorization trong ứng dụng
+## 9. From handshake to identity and authorization in the application
 
-### 9.1. Ví dụ mTLS giữa hai microservices
+### 9.1. Example: mTLS between two microservices
 
-Giả sử service `billing-worker` gọi `payment-api`:
+Suppose service `billing-worker` calls `payment-api`:
 
 ```text
 billing-worker                      payment-api
@@ -799,111 +799,111 @@ client keystore                     server truststore
         |<--- authorized response ----------+
 ```
 
-Nếu server chỉ kiểm certificate chain mà không check role hoặc tenant, **mọi service** được cấp cert dưới workload CA có thể bị nhầm thành trusted admin. Mục tiêu của mTLS là làm mạnh danh tính kết nối; policy nghiệp vụ vẫn do server quyết định.
+If the server only checks the certificate chain without checking roles or tenants, **every service** issued a certificate under the workload CA could effectively act as a trusted admin. mTLS strengthens connection-level identity; business policy remains the server's decision.
 
-### 9.2. Certificate identity có thể là gì?
+### 9.2. What can certificate identity be?
 
-Tùy PKI profile:
+Depending on the PKI profile:
 
-- **DNS SAN**: hợp với server/hostname theo service identity rules.
-- **URI SAN**: dùng trong nhiều workload identity systems, ví dụ định danh SPIFFE; cần chuẩn xác thực URI và trust domain riêng.
-- **Subject DN**: có thể dùng cho tổ chức/người, nhưng không nên dựa vào CN tự do nếu PKI không enforce uniqueness/identity policy.
-- **OtherName/email/IP SAN**: có ngữ nghĩa theo loại; không được ép tất cả về một string `contains(...)`.
-- **Certificate fingerprint/public key pinning**: có thể ràng buộc một key cụ thể cho một hệ thống, nhưng rotation phức tạp và không thay authorization.
+- **DNS SAN**: appropriate for servers/hostnames per service identity rules.
+- **URI SAN**: used in many workload identity systems, such as SPIFFE IDs; requires proper URI validation and separate trust domain checks.
+- **Subject DN**: usable for organizations/people, though you should not rely on an unrestricted CN if the PKI does not enforce uniqueness/identity policy.
+- **OtherName/email/IP SAN**: carries type-specific semantics; never collapse everything into a string `contains(...)`.
+- **Certificate fingerprint/public key pinning**: can bind a specific key to a system, though rotation is complex and does not replace authorization.
 
-Identity mà code đọc qua `SSLSession.getPeerPrincipal()` phải được map theo chuẩn PKI của tổ chức, không cho client tự chọn DN bất kỳ rồi được cấp quyền.
+The identity read in code via `SSLSession.getPeerPrincipal()` must be mapped according to organizational PKI standards—never let a client pick an arbitrary DN and gain permissions.
 
-### 9.3. Tách các ranh giới bảo mật
+### 9.3. Separating security boundaries
 
-Một request API có thể đi qua:
+An API request may traverse:
 
-1. TLS termination ở public ingress (xác thực server).
-2. mTLS giữa ingress và internal service.
-3. mTLS giữa các sidecars trong mesh.
-4. Authentication token cho người dùng cuối.
-5. Authorization kiểm user/tenant/object/action.
+1. TLS termination at public ingress (server authentication).
+2. mTLS between ingress and internal services.
+3. mTLS between sidecars in a service mesh.
+4. End-user authentication tokens.
+5. Authorization checks on user/tenant/object/action.
 
-Mỗi hop có identity/trust policies riêng. **mTLS giữa proxy và app không tự xác thực người dùng cuối**, và một bearer token hợp lệ không thay việc ứng dụng xác thực đúng server TLS khi gọi đối tác.
+Each hop has distinct identity and trust policies. **mTLS between proxy and app does not authenticate the end user**, and a valid bearer token does not replace verifying the TLS server identity when calling a partner.
 
-### 9.4. Rotation và revocation mTLS
+### 9.4. mTLS rotation and revocation
 
-Các chứng thư workload thường có hạn ngắn và được tự động cấp lại:
+Workload certificates are typically short-lived and automatically reissued:
 
-- CA có **issuance policy** xác minh workload identity trước khi cấp cert.
-- Agent/proxy thay private key/cert có overlap hợp lý, reload SSLContext/keystore nếu framework cần.
-- Peers cập nhật trust bundle/CA rotation có kiểm soát; không xóa CA cũ trước khi các cert phụ thuộc đã hết hiệu lực hoặc được chuyển.
-- Kết nối TLS **đang tồn tại** có thể không lập tức bị kết thúc khi certificate bị revoke hoặc hết hạn sau handshake; server cần session lifecycle, reauthentication hoặc connection draining theo security policy.
-- Revocation qua CRL/OCSP có tính thực tiễn khác nhau với chứng thư workload sống rất ngắn; thiết kế phải hiểu khả năng kiểm tra của đúng TLS stack.
+- The CA enforces an **issuance policy** verifying workload identity before issuing a cert.
+- Agents/proxies rotate private keys/certs with safe overlap, reloading `SSLContext`/keystores if required by the framework.
+- Peers update trust bundles / CA rotations in a controlled manner; never remove an old CA before dependent certificates expire or migrate.
+- **Existing** TLS connections may not terminate immediately when a certificate is revoked or expires after the handshake; servers need session lifecycles, reauthentication, or connection draining per security policy.
+- Revocation via CRL/OCSP has varying practicality for very short-lived workload certs; system design must account for the capabilities of the exact TLS stack.
 
-**Rotate server certificate** không tự đóng mọi TLS sessions cũ; **rotate client certificate** không tự rút quyền của identity đã copy private key. Nếu private key bị lộ, đánh giá scope, thay identity/key material, trust policy, session invalidation và sự cố có thể đã xảy ra.
+**Rotating a server certificate** does not automatically close all old TLS sessions; **rotating a client certificate** does not automatically revoke access for an identity whose private key was copied. If a private key is compromised, assess scope, replace identity/key material, update trust policy, invalidate sessions, and investigate potential exposure.
 
 ---
 
-## 10. Bản đồ chẩn đoán lỗi TLS và mTLS trên Java
+## 10. Diagnostic map for TLS and mTLS errors in Java
 
-| Biểu hiện | Nguyên nhân thường gặp | Cách kiểm đúng |
+| Symptom | Common cause | Correct way to check |
 | --- | --- | --- |
-| `PKIX path building failed` / `unable to find valid certification path` | CA không trusted, thiếu intermediate, cấu hình truststore sai | Kiểm server chain, truststore client, CA phù hợp; không trust-all |
-| `No subject alternative names matching IP address` | Kết nối IP literal nhưng chỉ có DNS SAN hoặc thiếu IP SAN | Cấp đúng iPAddress SAN hoặc dùng tên DNS được chứng nhận |
-| `No name matching ... found` | Hostname endpoint không khớp SAN | Kiểm URL/SNI/host và SAN; không tắt hostname verification |
-| `bad_certificate` / `certificate_unknown` | Certificate lỗi hoặc không được peer chấp nhận | Kiểm chain, alias, EKU/KU, time, CA policy |
-| `certificate_required` | Server require client cert nhưng client không trình bày chứng thư phù hợp | Nạp client KeyManager và PKCS12 có private key+chain |
-| `Empty client certificate chain` | Client chưa có matching credential/không có key entry | Kiểm `client.p12`, alias, CA hints và key manager |
-| `handshake_failure` | Không có giao điểm TLS protocol/cipher/signature, cert/key không phù hợp hoặc lỗi auth | Kiểm `supported_versions`, schemes, provider, certificate policy |
-| `protocol_version` | Một bên không hỗ trợ phiên bản mà bên kia yêu cầu | Kiểm JDK, enabled protocols và compatibility policy |
-| `No appropriate protocol` | TLS 1.3 disabled hoặc policy/provider không hỗ trợ | Kiểm `jdk.tls.disabledAlgorithms` và cấu hình JSSE |
-| `UnrecoverableKeyException` | Password private-key entry sai/keystore hỏng | Kiểm password bảo mật, alias/entry type/provider |
-| `FileNotFoundException` khi load store | Path chạy Java khác thư mục tạo file | Kiểm cwd và tham chiếu file keystore |
-| `BindException: Address already in use` | Port 8443 đang dùng/server lab cũ chưa dừng | Dừng process trước rồi chạy một server lab |
-| `SSLPeerUnverifiedException` ở server one-way | Server không yêu cầu/chưa xác thực client cert | Đó là điều dự kiến với one-way; mTLS cần `needClientAuth` |
-| Client handshake success nhưng API `403` | TLS identity hợp lệ nhưng không có quyền nghiệp vụ | Kiểm role/tenant/resource policy |
-| TLS 1.3 resumption không thấy `Certificate` mới | PSK/session resumption thay full certificate handshake | Kiểm chế độ session, ticket/PSK và identity binding |
-| Certificate valid nhưng kết nối vẫn bị chặn | Revocation, policy, hostname, algorithm, KU/EKU hoặc app authorization | Kiểm tất cả lớp thay vì chỉ validity |
+| `PKIX path building failed` / `unable to find valid certification path` | Untrusted CA, missing intermediate, wrong truststore config | Check server chain, client truststore, right CA; never trust-all |
+| `No subject alternative names matching IP address` | Connecting via IP literal when cert only has DNS SAN or lacks IP SAN | Issue proper `iPAddress` SAN or connect using the certified DNS name |
+| `No name matching ... found` | Endpoint hostname does not match SAN | Check URL/SNI/host and SAN; do not disable hostname verification |
+| `bad_certificate` / `certificate_unknown` | Invalid certificate or rejected by peer | Check chain, alias, EKU/KU, validity times, CA policy |
+| `certificate_required` | Server requires client cert but client did not present an eligible certificate | Load client `KeyManager` and PKCS12 containing private key + chain |
+| `Empty client certificate chain` | Client has no matching credential or lacks a key entry | Check `client.p12`, alias, CA hints, and key manager |
+| `handshake_failure` | No intersection of TLS protocol/cipher/signature, mismatched cert/key, or auth error | Check `supported_versions`, schemes, provider, certificate policy |
+| `protocol_version` | One side does not support the version required by the other | Check JDK, enabled protocols, and compatibility policy |
+| `No appropriate protocol` | TLS 1.3 disabled or unsupported by policy/provider | Check `jdk.tls.disabledAlgorithms` and JSSE configuration |
+| `UnrecoverableKeyException` | Wrong private-key entry password or corrupted keystore | Check secure password, alias/entry type/provider |
+| `FileNotFoundException` loading store | Java working directory differs from where files were created | Check working directory and keystore file paths |
+| `BindException: Address already in use` | Port 8443 is busy or a previous lab server is still running | Stop the previous process and run only one lab server |
+| `SSLPeerUnverifiedException` on one-way server | Server did not request or verify a client cert | Expected for one-way; mTLS requires `needClientAuth` |
+| Client handshake succeeds, but API returns `403` | Valid TLS identity lacks business permission | Check role/tenant/resource policy |
+| TLS 1.3 resumption shows no new `Certificate` | PSK/session resumption replaced a full certificate handshake | Check session mode, ticket/PSK, and identity binding |
+| Valid certificate, yet connection is still blocked | Revocation, policy, hostname, algorithm, KU/EKU, or app authorization | Inspect every layer instead of checking only validity dates |
 
-### 10.1. Xem handshake debug logs
+### 10.1. Viewing handshake debug logs
 
-Java 17 có thể bật debug JSSE tại **môi trường lab**:
+Java 17 can enable JSSE debugging in a **lab environment**:
 
 ```shell
 java -Djavax.net.debug=ssl,handshake TlsHandshakeLab client mtls
 ```
 
-Kết quả là nhiều dòng debug phụ thuộc JDK/provider/config, **không có stdout cố định**. Có thể thấy TLS version, certificate request, selected signature algorithms, alerts và thông tin về certificate path. Tránh bật debug verbose trong production lâu dài vì logs có thể tiết lộ identity, endpoint, metadata và thông tin nhạy cảm khác.
+The output consists of many debug lines varying by JDK/provider/config, with **no fixed stdout**. You can observe TLS version, certificate requests, selected signature algorithms, alerts, and certificate path info. Avoid leaving verbose debugging enabled in production because logs can expose identities, endpoints, metadata, and other sensitive details.
 
-**Làm đúng thứ tự khi debug:**
+**Follow the right order when debugging:**
 
-1. Xem client đang gọi **đúng hostname và port** không.
-2. So chứng thư leaf/server SAN với hostname yêu cầu.
-3. Kiểm trusted CA roots và chain intermediates ở **bên verify**.
-4. Xem mục đích `serverAuth`/`clientAuth` và signature/key algorithms.
-5. Xem server có thực sự yêu cầu mTLS (`CertificateRequest`, need vs want) không.
-6. Kiểm client keystore có `PrivateKeyEntry` phù hợp và key manager chọn đúng alias.
-7. Kiểm TLS version/cipher suites/trust manager, sau đó mới xem business authorization.
+1. Verify the client is calling the **right hostname and port**.
+2. Compare the leaf/server certificate's SAN with the requested hostname.
+3. Check trusted CA roots and chain intermediates on the **verifying side**.
+4. Check `serverAuth`/`clientAuth` purposes and signature/key algorithms.
+5. Check whether the server actually requests mTLS (`CertificateRequest`, need vs. want).
+6. Check that the client keystore holds an eligible `PrivateKeyEntry` and the key manager selects the right alias.
+7. Check TLS versions/cipher suites/trust manager first, and only then examine business authorization.
 
-Không chẩn đoán bằng cách tắt hostname check, trust-all CA hoặc chấp nhận mọi client certificate chỉ để “thử cho chạy”.
+Never diagnose by turning off hostname checks, trusting all CAs, or accepting every client certificate just to "get it working".
 
-### 10.2. Lỗi có thể xuất hiện không đối xứng
+### 10.2. Errors can surface asymmetrically
 
-Khi server mTLS từ chối client thiếu cert, **server có thể nhận một TLS fatal alert và ném `SSLHandshakeException`**. Client, tùy lúc alert đến và cách TLS 1.3 buffering hoạt động, có thể quan sát lỗi khi `startHandshake`, khi ghi hoặc lúc đọc response. Do đó **không dựa vào một exception text cụ thể** để quyết định tính đúng của giao thức; log điều kiện an toàn và kiểm outcome thực tế của cả hai đầu.
+When an mTLS server rejects a client without a certificate, the **server may send a TLS fatal alert and throw `SSLHandshakeException`**. Depending on when the alert arrives and how TLS 1.3 buffering behaves, the client may observe the error during `startHandshake`, on write, or when reading the response. Therefore, **do not rely on a single exact exception string** to determine protocol correctness; log conditions safely and verify actual outcomes at both endpoints.
 
-### 10.3. TLS và dữ liệu application sau handshake
+### 10.3. TLS and application data after the handshake
 
-`startHandshake()` thành công chỉ nói rằng kênh TLS được thiết lập theo policy của JSSE. Tầng ứng dụng phải có:
+A successful `startHandshake()` only indicates that the TLS channel was established per JSSE policy. The application layer must still implement:
 
 - request size limits/timeouts, parser/schema validation;
-- authentication/authorization ở mức user/service;
-- replay controls/idempotency với thao tác có tác động;
-- kiểm permission theo tenant/object;
-- bảo vệ secret sau khi TLS decrypt và trước khi trả response;
-- monitoring và xử lý certificate/key compromise.
+- user/service-level authentication and authorization;
+- replay controls/idempotency for state-changing operations;
+- per-tenant/per-object permission checks;
+- protecting secrets after TLS decryption and before sending responses;
+- monitoring and response for certificate/key compromise.
 
 ---
 
-## 11. Các mẫu cấu hình cần tránh
+## 11. Configuration patterns to avoid
 
 ### 11.1. Trust-all certificate manager
 
-**Không sử dụng đoạn mã kiểu sau trong production, kể cả “chỉ tạm thời”:**
+**Never use code like this in production, even "just temporarily":**
 
 ```java
 // ANTI-PATTERN: rejects nothing and destroys peer authentication.
@@ -920,106 +920,106 @@ TrustManager[] trustAll = new TrustManager[]{
 };
 ```
 
-Đây là **đoạn cố ý không độc lập để nhận diện anti-pattern**, không phải code nên dùng. Không kiểm chain nghĩa là attacker có thể dùng chứng thư của họ mà cũng được tin. Hãy sửa truststore hoặc certificate chain, không thay trust manager bằng một implementation chấp nhận mọi peer.
+This is an **intentionally non-standalone snippet to recognize an anti-pattern**, not code to use. Skipping chain verification means an attacker can present their own certificate and still be trusted. Fix the truststore or certificate chain rather than replacing the trust manager with one that accepts every peer.
 
-### 11.2. Hostname verifier luôn true
+### 11.2. Always-true hostname verifier
 
 ```java
 // ANTI-PATTERN: do not use!
 HostnameVerifier unsafe = (host, session) -> true;
 ```
 
-Dùng lối tắt này sẽ bỏ xác minh host dự định, tạo cơ hội MITM ngay cả khi một CA nào đó đã ký certificate. Trong raw `SSLSocket` dùng `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`; trong HTTP client chuẩn giữ TLS/hostname verification bật.
+Using this shortcut skips verification of the intended host, opening the door to MITM attacks even when some CA signed the certificate. On raw `SSLSocket`, use `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`; in standard HTTP clients, keep TLS/hostname verification enabled.
 
-### 11.3. Gắn `clientAuth` certificate nhưng không enforce client identity
+### 11.3. Attaching a `clientAuth` certificate without enforcing client identity
 
-Một server có thể `setWantClientAuth(true)` và sau đó tin bất kỳ request nào đi qua TLS. Điều này không tạo mTLS bắt buộc; các client không có cert vẫn có thể được chấp nhận. Hãy dùng `needClientAuth`/policy tương đương khi chứng thư client là yêu cầu bắt buộc, và phải **kiểm identity→permission**.
+A server might call `setWantClientAuth(true)` and then trust any request passing over TLS. That does not enforce mandatory mTLS; clients without certificates are still accepted. Use `needClientAuth` or an equivalent policy when client certificates are mandatory, and **enforce identity→permission mapping**.
 
-### 11.4. Dùng một root CA làm toàn bộ authorization
+### 11.4. Using one root CA as the entire authorization model
 
-Một root được phép ký certificate cho nhiều service không có nghĩa mọi service được quyền gọi endpoint quản trị. Cần certificate profiles/purpose, trust-domain segmentation và authorization ở tầng ứng dụng. Ràng buộc một service identity ổn định, tránh chỉ dựa vào Subject CN có thể tự khai trong quy trình cấp phát yếu.
+A root authorized to sign certificates for multiple services does not mean every service is allowed to call admin endpoints. Use certificate profiles/purposes, trust-domain segmentation, and application-layer authorization. Bind to a stable service identity rather than relying solely on a Subject CN that could be arbitrarily claimed under a weak issuance process.
 
-### 11.5. Kiểm đúng certificate nhưng kiểm sai đối tượng
+### 11.5. Verifying the right certificate on the wrong target
 
-Nếu proxy kết nối đến `api.example.com` nhưng client HTTP muốn `payments.example.com`, không được tùy tiện lấy identity đã xác minh của một host để biện minh cho host khác. SAN, SNI, HTTP :authority, routing và service policy phải thống nhất theo giao thức.
+If a proxy connects to `api.example.com` while the HTTP client requested `payments.example.com`, do not arbitrarily treat the verified identity of one host as valid for the other. SAN, SNI, HTTP `:authority`, routing, and service policy must agree per protocol.
 
 ---
 
-## 12. Câu hỏi tự kiểm tra có đáp án
+## 12. Self-check questions with answers
 
-**1. Trong one-way TLS, client có bắt buộc gửi certificate không?**  
-Không. Mô hình thông thường là client xác thực server; client identity có thể được xác thực sau TLS bằng token/cookie. Server có thể không biết client TLS principal.
+**1. In one-way TLS, is the client required to send a certificate?**  
+No. The typical model is client authenticating the server; client identity may be authenticated after TLS using tokens/cookies. The server may have no client TLS principal.
 
-**2. Trong mTLS, client có được bỏ qua server certificate validation vì server đã yêu cầu client certificate không?**  
-Không. mTLS đòi **cả hai** xác thực đúng peer. Client vẫn phải tin đúng server CA và kiểm SAN/hostname.
+**2. In mTLS, can the client skip server certificate validation because the server already requested a client certificate?**  
+No. mTLS requires **both** sides to authenticate their peer properly. The client must still trust the right server CA and check SAN/hostname.
 
-**3. `ClientHello` có chứng minh client identity không?**  
-Không. `ClientHello` quảng bá capabilities/key shares/SNI...; client certificate authentication yêu cầu handshake messages thích hợp và proof-of-possession nếu server bật.
+**3. Does `ClientHello` prove client identity?**  
+No. `ClientHello` advertises capabilities/key shares/SNI, etc.; client certificate authentication requires the proper handshake messages and proof-of-possession when enabled by the server.
 
-**4. Vai trò `CertificateVerify` của TLS 1.3 là gì?**  
-Bên gửi dùng private key tương ứng certificate để ký cấu trúc transcript theo giao thức, chứng minh đang kiểm soát key hợp lệ cho handshake. Gửi certificate công khai một mình không đủ.
+**4. What is the role of `CertificateVerify` in TLS 1.3?**  
+The sender uses the private key corresponding to its certificate to sign a protocol-defined transcript structure, proving control of a valid key for the handshake. Sending a public certificate alone is not enough.
 
-**5. Vai trò `Finished` là gì?**  
-Ràng buộc và xác minh tính toàn vẹn transcript handshake với secrets/key schedule, phát hiện sửa đổi trái phép và hoàn tất xác thực handshake.
+**5. What is the role of `Finished`?**  
+It binds and verifies handshake transcript integrity against the derived secrets/key schedule, detecting unauthorized tampering and completing handshake authentication.
 
-**6. mTLS có chứng minh client có quyền refund không?**  
-Không. Nó giúp xác minh service identity; server phải map principal rồi kiểm ACL/IAM/tenant/amount.
+**6. Does mTLS prove the client is authorized to issue a refund?**  
+No. It verifies service identity; the server must map the principal and check ACL/IAM/tenant/amount rules.
 
-**7. Trong Java, `KeyManagerFactory` và `TrustManagerFactory` khác nhau thế nào?**  
-Key manager cung cấp private key/cert **của mình** khi cần; trust manager xác minh cert **của đối tác** theo trust anchors/policy.
+**7. In Java, how do `KeyManagerFactory` and `TrustManagerFactory` differ?**  
+Key manager supplies **your own** private key/cert when needed; trust manager verifies the **peer's** cert against trust anchors/policy.
 
-**8. Server bật `setNeedClientAuth(true)` nhưng không có client truststore. Điều gì có thể xảy ra?**  
-Server có thể không xác minh được chain client hoặc dùng trust configuration ngoài ý muốn; cần cấu hình đúng root CA cấp client và chính sách identity.
+**8. A server enables `setNeedClientAuth(true)` without configuring a client truststore. What can happen?**  
+The server may fail to verify the client chain or fall back to an unintended trust configuration; you must configure the right client-issuing root CA and identity policy.
 
-**9. Vì sao `SSLSocket` raw phải dùng `setEndpointIdentificationAlgorithm("HTTPS")`?**  
-Để JSSE kiểm server certificate khớp tên đích theo quy tắc endpoint identification. Chain valid mà hostname sai vẫn không đủ an toàn.
+**9. Why must a raw `SSLSocket` use `setEndpointIdentificationAlgorithm("HTTPS")`?**  
+So JSSE checks that the server certificate matches the target name per endpoint identification rules. A valid chain with the wrong hostname is still insecure.
 
-**10. Nếu server cert có SAN `DNS:localhost`, client kết nối bằng IP literal `127.0.0.1` có hợp lệ không?**  
-Không theo kiểm đúng IP identity nếu certificate thiếu SAN `iPAddress:127.0.0.1`. Đổi sang hostname đã được cấp hoặc cấp chứng thư đúng loại SAN.
+**10. If a server cert has SAN `DNS:localhost`, is a client connecting via IP literal `127.0.0.1` valid?**  
+No, under strict IP identity checks if the certificate lacks SAN `iPAddress:127.0.0.1`. Switch to the certified hostname or issue a certificate with the right SAN type.
 
-**11. Tại sao TLS 1.3 có forward secrecy trong full ECDHE handshake?**  
-Traffic secrets được dẫn xuất từ ephemeral key agreement; lộ private key ký certificate sau đó không tự tái tạo ephemeral shared secrets đã được xử lý/xóa thích hợp.
+**11. Why does TLS 1.3 provide forward secrecy in a full ECDHE handshake?**  
+Traffic secrets are derived from ephemeral key agreement; later compromise of the certificate signing private key does not recreate ephemeral shared secrets that were properly handled and erased.
 
-**12. `setWantClientAuth(true)` có giống `setNeedClientAuth(true)` không?**  
-Không. `want` là optional request; `need` bắt buộc xác thực client certificate phù hợp.
+**12. Is `setWantClientAuth(true)` the same as `setNeedClientAuth(true)`?**  
+No. `want` is an optional request; `need` mandates valid client certificate authentication.
 
-**13. Một client không gửi client certificate trong session resumption có tự động nghĩa là không có mTLS không?**  
-Không. Cần xem đó có phải resumption/PSK session đã liên kết identity từ phiên trước hay một full handshake. Kiểm chính sách reauthentication của stack.
+**13. Does a client not sending a client certificate during session resumption automatically mean mTLS is absent?**  
+No. Check whether it is a resumption/PSK session carrying identity bound from an earlier session or a full handshake. Verify your stack's reauthentication policy.
 
-**14. 0-RTT có an toàn cho mọi thao tác POST thay đổi tiền không?**  
-Không. Early data có replay risk; cần chính sách chống phát lại/idempotency và kiểm chặt nghiệp vụ.
+**14. Is 0-RTT safe for all money-transfer `POST` operations?**  
+No. Early data carries replay risk; replay protection/idempotency and strict business checks are required.
 
-**15. Chỉ có certificate PEM trong thư mục server có làm server bắt tay thành công không?**  
-Không. Server cần **private key tương ứng** và certificate chain/key manager phù hợp; client phải tin chain và identity của server.
+**15. Will placing only a PEM certificate in the server directory allow the server to complete handshakes?**  
+No. The server needs the **corresponding private key** and proper certificate chain/key manager; the client must trust the server's chain and identity.
 
-**16. mTLS ở reverse proxy có tự làm Java app xác thực danh tính client cuối không?**  
-Không. Cần đường truyền trusted principal từ proxy vào app và bảo vệ header/context; phân biệt mTLS workload identity với user identity.
+**16. Does mTLS at a reverse proxy automatically make the Java app authenticate the end user's identity?**  
+No. You need a trusted path passing the principal from proxy to app with protected headers/context; distinguish mTLS workload identity from user identity.
 
-## 13. Checklist triển khai TLS/mTLS an toàn trên Java
+## 13. Checklist for secure TLS/mTLS deployment in Java
 
-- [ ] **Protocol:** ưu tiên TLS 1.3 theo compatibility; loại bỏ các phiên bản/cipher suites yếu theo policy.
-- [ ] **Server key/cert:** private key và leaf chain hợp lệ; SAN đúng host; EKU `serverAuth`, KU/policy đúng; rotation và quyền file/KMS được quản lý.
-- [ ] **Client trust:** chỉ tin các CA/trust anchors được phép, giữ JSSE chain validation và HTTPS endpoint identity; không trust-all/hostname-bypass.
-- [ ] **Client identity (mTLS):** client có private key + leaf/chain `clientAuth` được chọn đúng alias; server yêu cầu cert (need vs want) và tin đúng client CA.
-- [ ] **Proof-of-possession:** xác thực handshake signature, `Finished` và traffic key derivation thông qua TLS stack chuẩn; không tự mô phỏng handshake bằng Java RSA/AES thủ công.
-- [ ] **Authorization:** map verified client identity → principal/role/tenant; kiểm từng API/resource/action; không chỉ tin rằng client cert tồn tại.
-- [ ] **Key lifecycle:** cấp phát, quản lý PKCS12/KMS/HSM, rotate, revoke, audit, quản lý client/server roots và reauthentication của các session hiện hành.
-- [ ] **Network/architecture:** xác định nơi TLS terminate; proxy headers được xác thực; ingress/backend/mesh hops được bảo vệ phù hợp.
-- [ ] **Session nuances:** hiểu full handshake vs resumption, chính sách client-auth khi resume và 0-RTT/replay.
-- [ ] **Logging:** ghi protocol/cipher/version/identity/outcome có kiểm soát; không log private keys, passwords hoặc decrypted payload nhạy cảm.
-- [ ] **Testing:** thành công one-way và mTLS; không có client cert, sai server hostname, CA không trusted, server/client EKU sai, hết hạn, revocation policy, giả identity và permission denied.
-- [ ] **Recovery:** có đường làm mới key/certificate, rollback có kiểm soát, handling CA compromise, không tắt verification khi sự cố certificate xảy ra.
+- [ ] **Protocol:** prefer TLS 1.3 per compatibility; remove weak versions/cipher suites per policy.
+- [ ] **Server key/cert:** valid private key and leaf chain; SAN matches host; `serverAuth` EKU, proper KU/policy; managed rotation and file/KMS permissions.
+- [ ] **Client trust:** trust only approved CAs/trust anchors, keep JSSE chain validation and HTTPS endpoint identity active; never trust-all or bypass hostnames.
+- [ ] **Client identity (mTLS):** client has `clientAuth` private key + leaf/chain selected by proper alias; server requires cert (need vs. want) and trusts the right client CA.
+- [ ] **Proof-of-possession:** verify handshake signatures, `Finished`, and traffic key derivation through a standard TLS stack; never simulate handshakes manually with Java RSA/AES.
+- [ ] **Authorization:** map verified client identity → principal/role/tenant; check every API/resource/action; never trust merely because a client cert exists.
+- [ ] **Key lifecycle:** provisioning, PKCS12/KMS/HSM management, rotation, revocation, auditing, managing client/server roots, and reauthenticating live sessions.
+- [ ] **Network/architecture:** define where TLS terminates; authenticate proxy headers; protect ingress/backend/mesh hops appropriately.
+- [ ] **Session nuances:** understand full handshake vs. resumption, client-auth policy on resume, and 0-RTT/replay.
+- [ ] **Logging:** log protocol/cipher/version/identity/outcome with controls; never log private keys, passwords, or sensitive decrypted payloads.
+- [ ] **Testing:** verify one-way and mTLS success; missing client cert, wrong server hostname, untrusted CA, wrong server/client EKU, expiration, revocation policy, spoofed identity, and permission denied.
+- [ ] **Recovery:** have paths for key/certificate renewal, controlled rollback, and CA compromise handling—never turn off verification during a certificate incident.
 
-**Kết luận:** Trong **one-way TLS**, client xác thực máy chủ; trong **mTLS**, server còn xác thực chứng thư và sở hữu khóa riêng của client. Dù bắt tay thành công, **application authorization**, vòng đời khóa/chứng thư, hostname identity và sự an toàn của dữ liệu sau giải mã vẫn là những trách nhiệm riêng.
+**Conclusion:** In **one-way TLS**, the client authenticates the server; in **mTLS**, the server also authenticates the client's certificate and private-key possession. Even after a successful handshake, **application authorization**, key/certificate lifecycle, hostname identity, and post-decryption data protection remain separate responsibilities.
 
-## 14. Tài liệu chính thống
+## 14. Authoritative references
 
-- [RFC 8446 – The Transport Layer Security (TLS) Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446): `ClientHello`/`ServerHello`, `CertificateRequest`, `CertificateVerify`, `Finished`, HKDF key schedule, record protection, resumption và early data.
-- [RFC 5246 – The Transport Layer Security (TLS) Protocol Version 1.2](https://www.rfc-editor.org/rfc/rfc5246): cấu trúc handshake TLS 1.2 và khác biệt key exchange/record protection.
-- [RFC 5280 – Internet X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): certificate path validation, CA constraints, SAN, KeyUsage, ExtendedKeyUsage và CRL.
-- [RFC 9525 – Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): quy tắc nhận diện máy chủ theo tên/identity khi dùng TLS.
-- [Java Secure Socket Extension (JSSE) Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): TLS/JSSE, `SSLContext`, key/trust managers, `SSLSocket`/`SSLEngine`, endpoint identification, debug.
-- [Java SE 17 – SSLServerSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLServerSocket.html), [SSLSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html) và [SSLParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): cấu hình bắt tay, clientAuth và hostname endpoint identification.
-- [Java SE 17 – KeyManagerFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/KeyManagerFactory.html), [TrustManagerFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/TrustManagerFactory.html) và [KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): local TLS identity vs peer trust configuration.
-- [JDK 17 keytool manual](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): lệnh tạo PKCS12 key pairs, CSR, certificate replies và trusted roots.
-- [OWASP Transport Layer Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html): cấu hình TLS, certificate verification và những anti-pattern vận hành.
+- [RFC 8446 – The Transport Layer Security (TLS) Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446): `ClientHello`/`ServerHello`, `CertificateRequest`, `CertificateVerify`, `Finished`, HKDF key schedule, record protection, resumption, and early data.
+- [RFC 5246 – The Transport Layer Security (TLS) Protocol Version 1.2](https://www.rfc-editor.org/rfc/rfc5246): TLS 1.2 handshake structure and key exchange/record protection differences.
+- [RFC 5280 – Internet X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): certificate path validation, CA constraints, SAN, KeyUsage, ExtendedKeyUsage, and CRL.
+- [RFC 9525 – Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): rules for verifying server/service identity by name in TLS.
+- [Java Secure Socket Extension (JSSE) Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): TLS/JSSE, `SSLContext`, key/trust managers, `SSLSocket`/`SSLEngine`, endpoint identification, and debugging.
+- [Java SE 17 – SSLServerSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLServerSocket.html), [SSLSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html), and [SSLParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): configuring handshakes, clientAuth, and hostname endpoint identification.
+- [Java SE 17 – KeyManagerFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/KeyManagerFactory.html), [TrustManagerFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/TrustManagerFactory.html), and [KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): local TLS identity vs. peer trust configuration.
+- [JDK 17 keytool manual](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): commands to generate PKCS12 key pairs, CSRs, certificate replies, and trusted roots.
+- [OWASP Transport Layer Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html): TLS configuration, certificate verification, and operational anti-patterns.

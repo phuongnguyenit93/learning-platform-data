@@ -1,0 +1,540 @@
+# Idempotency of Custom Writers
+
+In Spring Batch, a custom `ItemWriter` may be called again after a chunk rolls back, during a retry, or when a `Job` restarts from the most recent committed checkpoint. If the Writer inserts new records or triggers side effects every time it is invoked, the same item can produce duplicate data. Therefore, a Writer should be designed to be **idempotent**: repeating the same request creates no additional business effect.
+
+Spring Batch manages `Step` transactions and checkpoints, yet it cannot automatically ensure every side effect of a custom Writer executes only once. Reliable protection requires stable business keys, unique constraints in the destination store, repeatable write statements, and idempotency keys for external systems.
+
+## 1. What Does Idempotency Mean?
+
+An operation is idempotent if executing it multiple times with the same identifier and business data leaves the final state identical to executing it once.
+
+Examples:
+
+- Setting an order's status to `APPROVED` by `orderId` can be idempotent.
+- Inserting a new payment row on every request is normally not idempotent.
+- Adding 100 to a balance every time the Writer runs is not idempotent.
+- Upserting deterministic column values by order key can be idempotent when update rules are clear.
+
+| Operation | Can be idempotent? | Reason |
+|---|---|---|
+| `INSERT` without deduplication key | No | Each call can insert a new row. |
+| `UPDATE status = 'DONE' WHERE id = ?` | Yes | Sets the same deterministic value. |
+| `balance = balance + amount` | No | Re-invocation adds the amount again. |
+| Upsert by business key setting columns deterministically | Yes | Identical input yields identical target state. |
+| Sending an email on every Writer call | No | Recipients can receive multiple emails. |
+| Calling an API with server-supported idempotency keys | Yes (potentially) | Server recognizes and replays the prior response. |
+
+Idempotency does not mean ignoring every duplicate record. If the same key arrives with a different payload, the application must define explicitly whether to update, reject, or create a new version.
+
+## 2. Why Can a Custom ItemWriter Be Called Multiple Times?
+
+A chunk `Step` reads, processes, and writes items inside a transaction. If the Writer encounters an error or a later operation in the chunk fails, the transaction can roll back. Spring Batch may retry per policy or restart the `Step` after the `Job` fails.
+
+Example:
+
+```text
+Chunk attempt 1
+  Item A -> Writer writes
+  Item B -> Writer writes
+  Item C -> Writer throws exception
+       |
+       v
+  Transaction ROLLBACK
+       |
+       v
+Chunk retried / Job restarted
+  Item A -> Writer called again
+  Item B -> Writer called again
+  Item C -> reprocessed
+```
+
+If writes share the database transaction and rollback succeeds, changes from the first attempt are undone. Even so, the Writer can still be invoked again. Idempotent design keeps things safe when an operation's effects cannot be rolled back completely, or when multiple resources/workers are involved.
+
+Other reasons the same item can reappear:
+
+- `Job` restarts from the checkpoint of the last committed chunk.
+- A scheduler or API submits duplicate launch requests.
+- A partition is re-executed after a worker failure.
+- An operation retries after a timeout even though the target system already executed the request.
+- Operators reprocess the same input source.
+
+Never assume an item passes through the Writer only once across the entire business lifecycle.
+
+## 3. Choosing Stable Idempotency Keys
+
+A Writer needs a key that identifies the same business operation across all retries and restarts. Keys must derive from source or business identifiers, not from the timestamp when the Writer is invoked.
+
+Examples:
+
+| Data | Suitable key |
+|---|---|
+| ERP orders | `sourceSystem + sourceOrderId` |
+| Payment events | `paymentReference` or `eventId` |
+| Ledger transactions | `sourceTransactionId` |
+| Tenant-scoped records | `tenantId + sourceRecordId` |
+| Message broker events | `eventId` |
+| Versioned file imports | `fileVersion + sourceRecordId` |
+
+Never call `UUID.randomUUID()` inside `write()` to generate keys per invocation. The same item would receive a different UUID on retry, preventing the database from recognizing the already executed operation.
+
+If a source can resend the same ID with an amended payload, include a version or revision in the key if business rules treat that as a new event. Otherwise, keep the business key stable and define rules to update or reject mismatched payloads.
+
+## 4. Enforcing Uniqueness with Unique Constraints
+
+The most important line of defense is a database constraint. Checking with `SELECT` before `INSERT` is unsafe under concurrent workers: two transactions can both observe the key missing and then both insert.
+
+Example target table:
+
+```sql
+CREATE TABLE imported_order (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    source_system VARCHAR(40) NOT NULL,
+    source_order_id VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    amount DECIMAL(18, 2) NOT NULL,
+    CONSTRAINT uk_imported_order_source
+        UNIQUE (source_system, source_order_id)
+);
+```
+
+The unique constraint on `(source_system, source_order_id)` guarantees two rows cannot represent the same source order, even when two threads or application instances write simultaneously.
+
+An auto-increment primary key `id` remains useful for internal relationships, but it does not replace a business key. Relying solely on auto-increment IDs allows every retry to generate a new ID and duplicate business records.
+
+## 5. Choosing a Policy When a Key Already Exists
+
+When a Writer encounters an existing key, common policies include:
+
+| Policy | Behavior | When appropriate |
+|---|---|---|
+| Ignore duplicate | Keep existing data, skip creating a new row | Immutable event already processed earlier. |
+| Upsert | Update row to match new payload | Source holds current state and overwrites are permitted. |
+| Reject conflict | Stop or route item to a reject flow | Same key with differing payload violates data integrity. |
+| Versioned insert | Save a new version/revision | Every change is an event requiring audit history. |
+
+Never swallow every `DuplicateKeyException` without checking the key and payload. A duplicate could be a valid replay, or it could indicate a business bug or duplicate source IDs.
+
+If using `DO NOTHING`, consider verifying that the duplicate payload actually matches. If the same key arrives with a different payload and is silently ignored, target data becomes stale or wrong while the `Job` reports success.
+
+## 6. Example Idempotent Custom Writer with PostgreSQL
+
+The following example uses an immutable event table. `source_event_id` is the idempotency key; `payload_hash` is computed from a canonicalized payload before the Writer receives the item.
+
+Schema:
+
+```sql
+CREATE TABLE imported_event (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    source_system VARCHAR(40) NOT NULL,
+    source_event_id VARCHAR(120) NOT NULL,
+    payload_hash VARCHAR(64) NOT NULL,
+    payload_json JSONB NOT NULL,
+    CONSTRAINT uk_imported_event_source
+        UNIQUE (source_system, source_event_id)
+);
+```
+
+Custom Writer:
+
+```java
+import org.springframework.batch.item.Chunk;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+public class IdempotentEventWriter implements ItemWriter<ProcessedEvent> {
+
+    private static final String INSERT_SQL = """
+            INSERT INTO imported_event AS current_event
+                (source_system, source_event_id, payload_hash, payload_json)
+            VALUES (?, ?, ?, CAST(? AS jsonb))
+            ON CONFLICT (source_system, source_event_id)
+            DO UPDATE SET payload_hash = current_event.payload_hash
+            WHERE current_event.payload_hash = EXCLUDED.payload_hash
+            """;
+
+    private final JdbcTemplate jdbcTemplate;
+
+    public IdempotentEventWriter(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Override
+    public void write(Chunk<? extends ProcessedEvent> chunk) {
+        for (ProcessedEvent event : chunk.getItems()) {
+            int affected = jdbcTemplate.update(
+                    INSERT_SQL,
+                    event.sourceSystem(),
+                    event.sourceEventId(),
+                    event.payloadHash(),
+                    event.payloadJson());
+
+            if (affected == 0) {
+                throw new ConflictingEventPayloadException(
+                        "Event key already exists with a different payload: "
+                                + event.sourceEventId());
+            }
+        }
+    }
+}
+```
+
+This example uses PostgreSQL's `ON CONFLICT` and `JSONB` syntax; adapt it for other databases. For a new key, a row is inserted. For an existing key with the same hash, the statement performs a no-op update. If the key exists with a different hash, the `WHERE` clause does not match, zero rows are affected, and the Writer throws an exception signaling a conflict.
+
+`ProcessedEvent` is an application data type, such as a record:
+
+```java
+public record ProcessedEvent(
+        String sourceSystem,
+        String sourceEventId,
+        String payloadHash,
+        String payloadJson) {
+}
+```
+
+Hashes must be computed deterministically. If identical JSON content with different property ordering or number formatting could produce different hashes, canonicalize the payload before hashing. Never substitute a hash for a business key; hashes compare payloads for an already identified key.
+
+## 7. Upsert When the Source Represents Latest State
+
+For tables holding current order state, use an upsert that sets columns deterministically from the item:
+
+```sql
+INSERT INTO imported_order
+    (source_system, source_order_id, customer_id, amount)
+VALUES (?, ?, ?, ?)
+ON CONFLICT (source_system, source_order_id)
+DO UPDATE SET
+    customer_id = EXCLUDED.customer_id,
+    amount = EXCLUDED.amount;
+```
+
+Re-running the same item restores identical column values. This works well when payloads come from an authoritative source and latest values are allowed to overwrite.
+
+If records carry versions, update only when the incoming version is newer:
+
+```sql
+ON CONFLICT (source_system, source_order_id)
+DO UPDATE SET
+    customer_id = EXCLUDED.customer_id,
+    amount = EXCLUDED.amount,
+    source_version = EXCLUDED.source_version
+WHERE imported_order.source_version < EXCLUDED.source_version;
+```
+
+The version guard prevents a stale retry from overwriting newer state. Define version comparison rules and how to handle equal versions with differing payloads.
+
+## 8. Writing Processed Keys in the Same Transaction as Business Data
+
+Another design uses a `processed_item` table to track processed keys:
+
+```sql
+CREATE TABLE processed_item (
+    idempotency_key VARCHAR(180) PRIMARY KEY,
+    processed_at TIMESTAMP NOT NULL,
+    result_reference VARCHAR(180)
+);
+```
+
+The Writer performs two actions within the same transaction:
+
+1. Insert `idempotency_key` into the processed-item table.
+2. If the key is new, update business data.
+3. If the key already exists, apply the defined duplicate policy.
+
+```text
+BEGIN transaction
+   |
+   +--> INSERT processed_item(key)
+   |       |
+   |       +--> New key: proceed to write business data
+   |       |
+   |       +--> Key already exists: determine replay/duplicate conflict
+   |
+   +--> INSERT/UPDATE business table
+   |
+COMMIT
+```
+
+The marker and business data must commit or roll back together. If the marker commits before business data fails, subsequent runs see the key as processed and skip creating business data. If business data commits without the marker, subsequent runs may repeat the operation.
+
+Never check with `SELECT` and then insert a marker without a primary key or unique constraint. When multiple workers handle the same key, the database constraint must be the final arbiter.
+
+## 9. Ensuring JdbcTemplate Participates in the Step Transaction
+
+Custom Writers frequently use `JdbcTemplate`. For write statements to join the chunk transaction, `JdbcTemplate` must use the exact `DataSource` managed by the `Step`'s transaction manager.
+
+Configuration example:
+
+```java
+@Bean
+public JdbcTemplate targetJdbcTemplate(
+        @Qualifier("targetDataSource") DataSource targetDataSource) {
+    return new JdbcTemplate(targetDataSource);
+}
+
+@Bean
+public PlatformTransactionManager targetTransactionManager(
+        @Qualifier("targetDataSource") DataSource targetDataSource) {
+    return new DataSourceTransactionManager(targetDataSource);
+}
+```
+
+Step:
+
+```java
+return new StepBuilder("importEventsStep", jobRepository)
+        .<SourceEvent, ProcessedEvent>chunk(200, targetTransactionManager)
+        .reader(eventReader)
+        .processor(eventProcessor)
+        .writer(idempotentEventWriter)
+        .build();
+```
+
+Because `JdbcTemplate` and `DataSourceTransactionManager` share `targetDataSource`, JDBC operations join the active chunk transaction. If the Writer uses a different datasource or opens non-transactional connections manually, `Step` rollbacks will not undo its writes.
+
+Never call `connection.commit()` or manage transactions manually inside the Writer. Let Spring Batch and the transaction manager govern commits and rollbacks at chunk boundaries.
+
+## 10. Writers Should Not Keep Deduplication State Only in Memory
+
+A tempting shortcut is using a `Set<String>` inside the Writer to remember processed keys. This prevents duplicates only within the running object and falls short for real batch jobs:
+
+- The set vanishes on process restart.
+- Two application instances do not share the set.
+- Multiple partitions may instantiate separate Writers.
+- Adding a key to the set before transaction commit followed by a rollback can wrongly skip the retry.
+- Sharing a set across threads without synchronization introduces race conditions.
+
+Example to avoid:
+
+```java
+public class UnsafeWriter implements ItemWriter<Order> {
+
+    private final Set<String> processedIds = new HashSet<>();
+
+    @Override
+    public void write(Chunk<? extends Order> chunk) {
+        for (Order order : chunk.getItems()) {
+            if (processedIds.add(order.getOrderId())) {
+                // Write data.
+            }
+        }
+    }
+}
+```
+
+`processedIds` is neither durable nor aligned with commit state. Rely on database constraints or a durable idempotency store rather than in-memory collections as the source of truth.
+
+## 11. Stateful Custom Writers Must Implement ItemStream
+
+If a Writer needs to persist its own state for restarts, it can implement `ItemStreamWriter<T>` or `ItemStream` alongside `ItemWriter<T>`. Spring Batch invokes the lifecycle:
+
+- `open(ExecutionContext)`: restore state before processing.
+- `update(ExecutionContext)`: save state at checkpoints.
+- `close()`: release resources.
+
+Skeleton Writer tracking written record count:
+
+```java
+import org.springframework.batch.item.Chunk;
+import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.item.ItemStreamWriter;
+
+public class CountingWriter implements ItemStreamWriter<Order> {
+
+    private static final String COUNT_KEY = "countingWriter.count";
+    private long count;
+
+    @Override
+    public void open(ExecutionContext executionContext) {
+        count = executionContext.containsKey(COUNT_KEY)
+                ? executionContext.getLong(COUNT_KEY)
+                : 0L;
+    }
+
+    @Override
+    public void write(Chunk<? extends Order> chunk) {
+        // Write data idempotently.
+        count += chunk.size();
+    }
+
+    @Override
+    public void update(ExecutionContext executionContext) {
+        executionContext.putLong(COUNT_KEY, count);
+    }
+
+    @Override
+    public void close() {
+        // Release resources if any.
+    }
+}
+```
+
+This illustrates only the lifecycle; the counter in this example must be adjusted if the Writer faces retries or rollbacks. If `count` increments inside `write()` and the chunk rolls back, the in-memory value must also reset before the next attempt. Avoid using such a counter for business statistics without proper transaction semantics. Normally, `StepExecution` counts or querying durable tables is safer.
+
+If a custom Writer wraps a delegate `ItemStreamWriter`, the wrapper must forward `open`, `update`, and `close` or register the delegate via `.stream(delegate)` on the `Step`. Otherwise, the delegate's checkpoints may never be saved or restored.
+
+If a Writer uses only JDBC upserts and holds no private state, implementing `ItemStream` is usually unnecessary; database transactions and unique keys already govern idempotent state.
+
+## 12. Idempotency When Writers Call External APIs
+
+Custom Writers sometimes send data to REST APIs, message brokers, or payment gateways. These side effects do not roll back automatically when the chunk's database transaction rolls back.
+
+Example:
+
+```text
+Chunk transaction
+  |
+  +--> UPDATE local order table
+  +--> POST payment request (remote service succeeds)
+  +--> Next item causes an error
+  |
+  +--> Local database ROLLBACK
+  |
+  +--> Retry Writer
+          |
+          +--> POST payment request again
+```
+
+If the remote service lacks idempotency, the customer may be charged twice even though the local transaction rolled back.
+
+When the API supports idempotency keys, send the identical key on every attempt:
+
+```http
+POST /payments
+Idempotency-Key: payment:TX-2026-000123
+Content-Type: application/json
+```
+
+The receiving server must persist the key and processed outcome. Upon seeing the same key again, it returns the prior response instead of creating a new payment. Derive the key from a stable transaction ID, never generating a fresh one inside `write()`.
+
+If an API does not support idempotency, implement status lookups, confirmation protocols, or reconciliation workflows. A timeout does not prove the server never executed the request; clients cannot deduce execution outcome from a missing response.
+
+## 13. Transactional Outbox When Emitting Events
+
+When a Writer must both update a database and publish messages, a transactional outbox prevents losing events between committing data and sending messages.
+
+Within the same chunk transaction, the Writer writes both the business row and an outbox row:
+
+```sql
+CREATE TABLE outbox_event (
+    event_id VARCHAR(120) PRIMARY KEY,
+    event_type VARCHAR(80) NOT NULL,
+    payload JSONB NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL
+);
+```
+
+```text
+Chunk transaction
+   |
+   +--> UPDATE imported_order
+   +--> INSERT outbox_event(event_id, ...)
+   |
+COMMIT
+   |
+   v
+Outbox dispatcher
+   |
+   +--> Send event to broker/API
+   +--> Mark event as sent
+```
+
+If the chunk rolls back, both the business update and outbox insert roll back together. Once the chunk commits, the dispatcher sends the event afterward. The dispatcher might still re-send if the process stops after the broker receives the message but before marking it sent. Hence, consumers must also deduplicate by `event_id` or idempotency key.
+
+An outbox provides durable at-least-once event delivery; idempotent consumers complete duplicate protection on the receiving end.
+
+## 14. Concurrency and Partitioning
+
+When a `Step` runs multiple threads or partitions, multiple Writers can encounter the same business key concurrently. In-memory collections cannot protect the whole system. Database unique constraints serve as the final synchronization barrier.
+
+Principles:
+
+- Split inputs into non-overlapping partitions whenever possible.
+- Enforce unique constraints on business keys even when the partitioner is believed to prevent overlaps.
+- Use upserts or inserts with explicit conflict handling.
+- Avoid shared mutable state inside Writers without strict necessity and synchronization.
+- If a Writer is shared across threads, verify thread safety; `JdbcTemplate` is safe for concurrent use, yet any mutable Writer fields must still be examined.
+- For partition-scoped Writers, use `@StepScope` to create instances per `StepExecution` if partition-isolated state is needed.
+
+Unique constraints prevent duplicate rows, though they do not decide which payload wins when identical keys carry conflicting data. Define conflict policies and version ordering explicitly.
+
+## 15. Idempotency on Job Restart
+
+When a `Job` fails, Spring Batch restarts the same `JobInstance` using the original identifying `JobParameters`. Readers restore committed checkpoints, and uncommitted chunks can be reprocessed.
+
+```text
+JobExecution #1
+  Chunk 1 -> COMMIT
+  Chunk 2 -> COMMIT
+  Chunk 3 -> ROLLBACK
+       |
+       v
+Restart same JobInstance
+  Chunk 1, 2 -> not re-read in a normal restart
+  Chunk 3 -> re-read/reprocessed
+```
+
+Normally, committed chunks precede the checkpoint. However, external side effects or two non-atomic resources may have partially completed before metadata persisted. Idempotent Writers protect against such replays.
+
+For safe restarts:
+
+1. Reuse the exact identifying `JobParameters` on restart.
+2. Keep input data or source snapshots/versions immutable.
+3. Choose a stable business key per item.
+4. Define unique constraints in the destination database.
+5. Use upserts or a processed-item table within the proper transaction.
+6. Use idempotency keys/outboxes for non-database side effects.
+7. Never rely on Writer memory to remember written items.
+
+When intentional reprocessing is needed, clarify whether it represents the same business operation or a new version. Include `reprocessVersion` or `correctionId` in keys as required rather than creating unintended duplicates.
+
+## 16. Testing Idempotent Custom Writers
+
+Tests should verify that a Writer can receive the same chunk multiple times without multiplying target records. Beyond unit testing SQL statements, run integration tests with a real transaction manager and database.
+
+Key scenarios:
+
+1. **Initial write:** send a chunk and verify business keys persist.
+2. **Repeated write with identical payload:** invoke the Writer again with the same key/hash; row counts do not increase.
+3. **Same key, different payload:** verify the Writer rejects the conflict or applies the proper update/version rule.
+4. **Mid-chunk rollback:** Writer persists several items then throws; verify transaction rollback and that retries create no duplicates.
+5. **Job restart:** fail the `Job` after committing some chunks, restart the same `JobInstance`, and confirm each business key has only the expected outcome.
+6. **Concurrent duplicate:** run two workers with the same key; unique constraints protect data and the application handles conflicts cleanly.
+7. **Remote API retry:** submit the same idempotency key repeatedly and verify the server creates only one business effect.
+8. **Outbox replay:** dispatcher re-sends an event; consumer deduplicates by event ID.
+
+Example assertion:
+
+```java
+Integer count = jdbcTemplate.queryForObject(
+        "select count(*) from imported_event "
+                + "where source_system = ? and source_event_id = ?",
+        Integer.class,
+        "ERP",
+        "EVT-1001");
+
+assertEquals(1, count);
+```
+
+For transaction tests, confirm the Writer's `JdbcTemplate` uses the same datasource as the `Step`'s transaction manager. When using PostgreSQL-specific upserts, test against PostgreSQL (e.g., Testcontainers) rather than relying solely on H2 with differing dialect behavior.
+
+Do not assert only `Job` `COMPLETED`; verify row counts, business keys, payload hashes, outbox statuses, and actual remote effect counts.
+
+## 17. Common Mistakes
+
+| Mistake | Consequence | Fix |
+|---|---|---|
+| Plain `INSERT` without business key | Retries/restarts insert duplicate rows. | Unique constraints and idempotent upserts/inserts. |
+| Generating fresh UUIDs in `write()` | Same item gets a different key on every attempt. | Derive stable keys from source/business data. |
+| `SELECT`-only check before `INSERT` | Race conditions when concurrent workers check simultaneously. | Let unique constraints arbitrate races. |
+| Swallowing all `DuplicateKeyException`s | Masks bad source data or conflicting payloads. | Separate valid replays from keys with conflicting payloads. |
+| Writing markers in a separate transaction | Markers and business data drift out of sync. | Persist both in the same transaction when sharing a database. |
+| Using in-memory `Set` for deduplication | Lost on restart and not shared across instances. | Use databases or durable idempotency stores. |
+| Calling APIs without idempotency keys | Retries repeat side effects multiple times. | API keys, outboxes, or reconciliation. |
+| Incrementing amounts in upserts | Replays add amounts repeatedly. | Set deterministic values or deduplicate by event/version. |
+| Writer uses different datasource from transaction manager | Chunk rollbacks fail to undo Writer writes. | Share `DataSource` or design distributed consistency. |
+| Mutable non-thread-safe Writer | Multiple workers overwrite state or race. | Keep Writers stateless/thread-safe or scope per partition. |
+
+## Conclusion
+
+Idempotency in a custom Writer ensures the same item can be written again on retries, rollbacks, or restarts without duplicating business effects. Use stable business keys, unique constraints, and explicit duplicate policies; use upserts for current-state tables or processed-item keys for immutable events. `JdbcTemplate` must share the `Step`'s transaction manager if chunk rollbacks are to include Writer changes. For external APIs and messaging, use idempotency keys and transactional outboxes because database transactions cannot undo external side effects. Test replays, rollbacks, restarts, and concurrency against real databases to verify final data is never duplicated.

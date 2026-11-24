@@ -1,118 +1,118 @@
-# Quy định đầu vào, đầu ra, giá trị null và ngoại lệ qua ranh giới mở rộng trong Java
+# Specifying Inputs, Outputs, Nullability, and Exceptions Across Extension Boundaries in Java
 
-## 1. Hợp đồng mở rộng là gì?
+## 1. What Is an Extension Contract?
 
-Trong ứng dụng có khả năng mở rộng lúc chạy (runtime extensibility), **host** gọi mã của **extension/plugin/provider** thông qua một API hoặc SPI dùng chung. Ví dụ: host tìm implementation bằng ServiceLoader, chọn một processor trong registry, hoặc gọi adapter được nạp bằng class loader riêng. Host và plugin có thể do hai nhóm phát triển, nâng cấp độc lập; compiler chỉ kiểm tra một phần của thỏa thuận.
+In an application with runtime extensibility, the **host** invokes code from an **extension/plugin/provider** through a shared API or SPI. For example, the host discovers implementations with ServiceLoader, selects a processor from a registry, or invokes an adapter loaded by a separate class loader. Host and plugin may be developed and upgraded independently by separate teams; the compiler checks only part of the agreement.
 
-Xét chữ ký:
+Consider the signature:
 
 ~~~java
 Result process(Request request) throws ExtensionFailure;
 ~~~
 
-Chữ ký chưa trả lời: Request có được null không? Trường nào bắt buộc? Plugin có quyền sửa danh sách đầu vào không? Result có bao giờ null không? Khi không tìm thấy dữ liệu, plugin trả gì? Exception nào báo lỗi nghiệp vụ, exception nào báo lỗi hợp đồng? Nếu mỗi bên hiểu khác nhau, lỗi của một plugin có thể gây NullPointerException ở tầng khác hoặc bị che thành một kết quả "thành công".
+The signature alone does not answer: Can Request be null? Which fields are required? May the plugin mutate the input list? Can Result ever be null? When no data is found, what does the plugin return? Which exceptions signal business/task failures versus contract violations? If each side interprets these differently, a bug in one plugin can trigger a NullPointerException in another layer or be masked as a "successful" result.
 
-**Hợp đồng mở rộng** xác định tiền điều kiện, hậu điều kiện, nullability, loại thất bại, quyền sở hữu dữ liệu, vòng đời và yêu cầu tương thích. Đây là một phần của API ổn định, không phải chi tiết ngẫu nhiên của implementation.
+An **extension contract** specifies preconditions, postconditions, nullability, failure categories, data ownership, lifecycle, and compatibility requirements. It is part of the stable API, not an accidental detail of an implementation.
 
-## 2. Vai trò và trách nhiệm ở ranh giới
+## 2. Roles and Responsibilities at the Boundary
 
-| Vai trò | Cam kết |
+| Role | Commitment |
 | --- | --- |
-| Caller/host | Chuẩn bị input đúng tiền điều kiện; kiểm tra lỗi sử dụng API trước khi gọi plugin |
-| Extension | Không phá vỡ các bất biến đã hứa; trả output đúng hậu điều kiện hoặc ném lỗi được công bố |
-| Boundary adapter | Kiểm tra kết quả plugin, phân loại lỗi, giữ cause và áp dụng chính sách lỗi của host |
-| Bên tiêu thụ | Dựa trên API công khai và mã lỗi ổn định, không phụ thuộc class nội bộ hay nội dung message của plugin |
+| Caller/host | Prepare input satisfying preconditions; catch API usage errors before invoking the plugin |
+| Extension | Never break promised invariants; return output satisfying postconditions or throw declared failures |
+| Boundary adapter | Validate plugin output, classify errors, preserve causes, and apply the host's error policy |
+| Consumer | Rely on public APIs and stable error codes, not internal classes or plugin message strings |
 
-Một hợp đồng đủ dùng cần nêu rõ: kiểu và miền giá trị đầu vào; trường bắt buộc/tùy chọn; trạng thái "không có dữ liệu"; bất biến kết quả; exception được phép xuất hiện; timeout, hủy, tài nguyên, concurrency nếu có; chính sách xử lý khi plugin không tuân thủ.
+A practical contract should state: input types and value domains; required/optional fields; the "no data found" representation; result invariants; allowed exceptions; timeouts, cancellation, resources, and concurrency where applicable; and policy when a plugin does not comply.
 
-**Tiền điều kiện** là điều caller phải bảo đảm trước lời gọi; **hậu điều kiện** là điều provider phải bảo đảm khi trả về bình thường. **Thất bại dự kiến** phải tách khỏi **vi phạm hợp đồng hoặc bug**.
+**Preconditions** are what the caller must guarantee before the call; **postconditions** are what the provider must guarantee upon normal return. **Expected failures** must be separated from **contract violations or bugs**.
 
-## 3. Đầu vào: xác thực sớm và ranh giới sở hữu
+## 3. Inputs: Early Validation and Ownership Boundaries
 
-### 3.1. Kiểm tra hơn cả kiểu Java
+### 3.1. Checking More Than Java Types
 
-Reference type trong Java có thể chứa null. String đúng kiểu vẫn có thể rỗng hoặc chỉ có dấu cách; List đúng kiểu vẫn có thể chứa null, phần tử không hợp lệ hay object mutable. Chọn trước quy tắc cho từng trường: ví dụ operation phải non-null và non-blank; items phải non-null, không chứa null; kích thước phải trong giới hạn hợp đồng.
+Reference types in Java can hold null. A properly typed String can still be empty or whitespace-only; a properly typed List can still contain null, invalid elements, or mutable objects. Choose rules upfront for each field: for instance, operation must be non-null and non-blank; items must be non-null and contain no nulls; size must stay within contract limits.
 
-Áp dụng validation ở **host trước khi đi qua ranh giới** để lỗi do caller tạo không bị nhầm thành lỗi plugin. Những bất biến phụ thuộc logic của provider vẫn có thể được kiểm tra bên trong provider, nhưng không thể thay thế validation tại biên. Khi cần normalize dữ liệu (trim, chuyển case, chuẩn hóa đường dẫn), phải công bố quy tắc để không âm thầm đổi nghĩa yêu cầu.
+Apply validation in the **host before crossing the boundary** so caller mistakes are not misattributed as plugin bugs. Invariants depending on provider-specific logic can still be checked inside the provider, but cannot replace boundary validation. When normalizing data (trimming, case conversion, path normalization), publish the rules so request meaning is not silently altered.
 
-Objects.requireNonNull(value, "name") là biện pháp fail fast; kiểm tra rỗng, miền số hay tính nhất quán giữa trường cần điều kiện riêng. Một request không hợp lệ không nên được gửi xuống plugin rồi mới ném ngoại lệ mơ hồ từ một tầng sâu.
+Objects.requireNonNull(value, "name") provides fail-fast checking; emptiness, numeric ranges, or cross-field consistency require explicit checks. An invalid request should never be dispatched down to a plugin only to throw an obscure exception from a deep layer.
 
-### 3.2. Không vô tình đưa quyền sửa dữ liệu cho plugin
+### 3.2. Do Not Accidentally Grant Data Mutation Rights to Plugins
 
-Nếu host truyền trực tiếp ArrayList, plugin có thể sửa danh sách mà host còn giữ. Với List<String>, List.copyOf tạo một bản sao không thể sửa qua API List và từ chối phần tử null. Record và DTO bất biến giúp giữ tiền điều kiện sau khi đã validate.
+If the host passes an ArrayList directly, a plugin can mutate the list while the host still holds it. With List<String>, List.copyOf creates an unmodifiable copy through the List API and rejects null elements. Records and immutable DTOs help preserve preconditions after validation.
 
-Tuy nhiên, List.copyOf chỉ bảo vệ **container**, không sao chép sâu phần tử mutable. Với List<MutableItem>, phần tử vẫn có thể đổi. Chọn immutable DTO, defensive copy sâu hoặc một view có quyền hạn hạn chế theo đúng hợp đồng.
+However, List.copyOf protects only the **container**, not deep-copying mutable elements. With List<MutableItem>, elements themselves can still be mutated. Choose immutable DTOs, deep defensive copies, or restricted views according to the contract.
 
-Cũng phải quy định plugin có được giữ Request/callback sau khi phương thức trả về không; ai sở hữu transaction, connection, buffer và dữ liệu request-scoped. Không đưa state nội bộ hay tài nguyên của host vào API mở rộng nếu không có lý do thiết kế cụ thể.
+You must also specify whether a plugin may retain a Request or callback after the method returns; who owns transactions, connections, buffers, and request-scoped data. Do not expose internal host state or resources in the extension API without a concrete design reason.
 
-## 4. Đầu ra: trạng thái thành công, vắng mặt và thất bại
+## 4. Outputs: Success, Absence, and Failure States
 
-Ba trường hợp cần được phân biệt:
+Three cases must be distinguished:
 
-| Tình huống | Biểu diễn thích hợp | Ý nghĩa |
+| Situation | Appropriate representation | Meaning |
 | --- | --- | --- |
-| Thành công có dữ liệu | Result non-null, thỏa mãn bất biến | Caller có thể sử dụng an toàn |
-| Thành công nhưng không có dữ liệu | Optional.empty(), collection rỗng hoặc mã NOT_FOUND được công bố | Kết quả hợp lệ, không phải plugin crash |
-| Không hoàn thành tác vụ | Exception đã khai báo hoặc một kiểu kết quả lỗi rõ ràng | Caller áp dụng chính sách lỗi/retry |
+| Success with data | Non-null Result satisfying invariants | Caller can use it safely |
+| Success with no data | Optional.empty(), empty collection, or a published NOT_FOUND code | Valid outcome, not a plugin crash |
+| Task could not complete | Declared exception or an explicit failure result type | Caller applies error/retry policy |
 
-Mỗi API chỉ nên có **một cách biểu diễn** cho một ý nghĩa. Không để "không tìm thấy" lúc là null, lúc là exception, lúc là danh sách rỗng. Không trả list rỗng để che lỗi đọc nguồn dữ liệu.
+Each API should have **only one representation** for one meaning. Do not represent "not found" sometimes as null, sometimes as an exception, and sometimes as an empty list. Never return an empty list to hide a data-source read failure.
 
-Một Result cần nêu bất biến của từng trường: description non-null và có nội dung, count không âm, mã trạng thái phù hợp payload, v.v. Việc trả về bình thường chính là cam kết các bất biến đã đúng. Host nên kiểm tra hậu điều kiện quan trọng ngay sau khi nhận output từ plugin, trước khi chuyển dữ liệu đó cho phần còn lại của hệ thống.
+A Result must state the invariants of every field: description is non-null and non-blank, count is non-negative, status code matches payload, etc. Returning normally constitutes a commitment that all invariants hold. The host should validate critical postconditions right after receiving output from the plugin, before passing that data to the rest of the system.
 
-Nếu output là Stream, InputStream, AutoCloseable hoặc callback, quy định rõ **ai đóng, khi nào đóng và dữ liệu còn hợp lệ bao lâu**. Nếu Result chứa object mutable của plugin, việc giữ tham chiếu có thể gây lỗi khi plugin bị dỡ hoặc state của nó thay đổi; ưu tiên DTO độc lập ở API chung.
+If output is a Stream, InputStream, AutoCloseable, or callback, specify **who closes it, when to close it, and how long the data remains valid**. If Result holds a plugin's mutable object, keeping a reference can fail when the plugin is unloaded or its state changes; prefer independent DTOs in the shared API.
 
-## 5. Quy định null cho từng vị trí
+## 5. Nullability Rules for Each Position
 
-Java 17 không tự xem String, Request hay List là non-null. Cần viết và kiểm tra nullability tại từng ranh giới.
+Java 17 does not automatically treat String, Request, or List as non-null. Write and enforce nullability at every boundary.
 
-| Vị trí | Hợp đồng khuyến nghị | Nếu bị vi phạm |
+| Position | Recommended contract | If violated |
 | --- | --- | --- |
-| Extension instance | Không null | Host từ chối trước lời gọi |
-| Request gốc | Không null | Host từ chối trước lời gọi |
-| Trường bắt buộc | Non-null và đúng miền giá trị | Constructor/validator báo sai đầu vào |
-| Trường tùy chọn | Mô tả rõ null hoặc dùng một representation khác | Caller/provider không tự suy diễn |
-| Giá trị process trả về | Non-null khi hoàn thành bình thường | Adapter đánh dấu vi phạm hợp đồng |
-| Giá trị tra cứu có thể vắng mặt | Optional<Result> non-null hoặc trạng thái rõ ràng | Optional.empty() nghĩa là vắng mặt |
-| Phần tử List/Map | Non-null trừ khi API công bố khác | Validate khi tạo và khi nhận |
+| Extension instance | Non-null | Host rejects before call |
+| Root request | Non-null | Host rejects before call |
+| Required fields | Non-null and within valid domain | Constructor/validator reports invalid input |
+| Optional fields | Explicitly allow null or use an alternative representation | Neither caller nor provider guesses |
+| Return value of process | Non-null on normal completion | Adapter flags contract violation |
+| Lookup value that may be absent | Non-null Optional<Result> or explicit status | Optional.empty() means absent |
+| List/Map elements | Non-null unless API states otherwise | Validate on creation and receipt |
 
-Null khác chuỗi rỗng, số 0, false, collection rỗng và trạng thái NOT_FOUND. Những giá trị đó không được tự động thay thế nhau.
+Null is distinct from an empty string, zero, false, an empty collection, and NOT_FOUND status. Those values must never silently substitute for one another.
 
-Optional phù hợp cho **giá trị trả về có thể vắng mặt**, không phải mặc định cho mọi tham số hay mọi field của DTO. Phương thức trả Optional vẫn **không được trả null thay vì Optional.empty()**.
+Optional suits **return values that may be absent**, rather than defaulting every parameter or DTO field to Optional. A method returning Optional must still **never return null instead of Optional.empty()**.
 
-Annotation @Nullable/@NonNull có thể giúp IDE và công cụ phân tích khi dự án thống nhất annotation và checker. Compiler Java thông thường không kiểm tra đầy đủ hợp đồng nullability chỉ vì có annotation; validation runtime tại boundary vẫn có ý nghĩa.
+Annotations like @Nullable/@NonNull can help IDEs and static analysis tools when a project standardizes on annotations and a checker. Standard Java compilers do not fully enforce nullability contracts merely from annotations; runtime validation at the boundary remains valuable.
 
-## 6. Ngoại lệ: phân loại lỗi trước khi quyết định cách xử lý
+## 6. Exceptions: Classifying Errors Before Deciding How to Handle Them
 
-| Trường hợp | Cách biểu diễn ví dụ | Trách nhiệm/ứng xử |
+| Case | Example representation | Responsibility/handling |
 | --- | --- | --- |
-| Caller truyền tham số không hợp lệ | IllegalArgumentException hoặc NullPointerException trước lời gọi | Caller sửa input |
-| Plugin thất bại theo nghiệp vụ đã công bố | ExtensionFailure (checked, hoặc error result có kiểu) | Host có thể retry/fallback nếu an toàn |
-| Plugin trả null trái cam kết | ContractViolation | Host báo plugin vi phạm hậu điều kiện |
-| Plugin ném RuntimeException ngoài hợp đồng | ContractViolation với cause gốc | Host phân loại lỗi plugin và chẩn đoán |
-| Không tìm hoặc khởi tạo được provider | Lỗi discovery riêng; ServiceConfigurationError khi dùng ServiceLoader | Loader/registration xử lý |
-| JVM gặp lỗi nghiêm trọng | Error (ví dụ OutOfMemoryError) | Không che thành lỗi nghiệp vụ |
+| Caller passes invalid arguments | IllegalArgumentException or NullPointerException before call | Caller fixes input |
+| Plugin fails per published business rules | ExtensionFailure (checked, or typed error result) | Host may retry/fallback if safe |
+| Plugin returns null against contract | ContractViolation | Host reports plugin postcondition violation |
+| Plugin throws undeclared RuntimeException | ContractViolation with original cause | Host classifies plugin fault and diagnoses |
+| Provider cannot be found or instantiated | Dedicated discovery error; ServiceConfigurationError with ServiceLoader | Handled by loader/registration |
+| JVM encounters a serious error | Error (e.g. OutOfMemoryError) | Do not mask as a business error |
 
-**Checked exception** phù hợp khi caller có hành động cụ thể cho một loại thất bại dự kiến. **Unchecked exception** thường diễn đạt lỗi lập trình hoặc tiền điều kiện sai. Có thể chọn kiểu kết quả Success/Failure thay exception, nhưng phải nhất quán; không diễn giải ngẫu nhiên mọi RuntimeException là "không có dữ liệu".
+**Checked exceptions** fit when the caller has a specific recovery action for an expected failure. **Unchecked exceptions** typically express programming errors or invalid preconditions. You may choose a Success/Failure result type instead of exceptions, as long as it is consistent; never arbitrarily interpret every RuntimeException as "no data".
 
-Khi wrap exception, luôn giữ nguyên **cause**:
+When wrapping an exception, always preserve the **cause**:
 
 ~~~java
 throw new ContractViolation("extension failed unexpectedly", original);
 ~~~
 
-Không so khớp chuỗi exception message để quyết định retry; nếu cần máy xử lý ổn định, công bố error code. Log tên plugin, operation, correlation ID và error code, nhưng tránh phát tán secret, request nhạy cảm hoặc stack trace đến caller.
+Never match exception message strings to decide retries; if stable machine handling is needed, publish error codes. Log plugin name, operation, correlation ID, and error code, while avoiding leaking secrets, sensitive requests, or stack traces to callers.
 
-Không bắt Throwable tràn lan chỉ để tiếp tục chạy: Error có thể là lỗi nghiêm trọng của VM. Đối với InterruptedException, nếu phương thức có thể khai báo thì chuyển tiếp; nếu bắt mà không ném lại, khôi phục cờ interrupt bằng Thread.currentThread().interrupt() và xử lý cancellation. Không nuốt interrupt để giả vờ xử lý thành công.
+Do not catch Throwable indiscriminately just to keep running: an Error can indicate a critical VM failure. For InterruptedException, propagate it if the method signature allows; if caught without rethrowing, restore the interrupt flag via `Thread.currentThread().interrupt()` and handle cancellation. Never swallow interrupts to pretend work succeeded.
 
-Khi đóng resource bị lỗi trong lúc một lỗi khác đang xảy ra, try-with-resources giữ lỗi đóng dưới dạng **suppressed exception**. Cần đọc exception gốc, cause và suppressed để chẩn đoán đúng.
+When closing a resource fails while another error is already propagating, try-with-resources preserves the closing failure as a **suppressed exception**. Inspect the primary exception, its cause, and its suppressed exceptions for accurate diagnosis.
 
-Riêng ServiceLoader, việc load/dò provider có tính lazy; ServiceConfigurationError có thể xuất hiện khi duyệt hoặc tạo provider. Chính sách bỏ qua một provider hỏng hay fail toàn bộ startup phải nằm trong phần **discovery contract**; bắt lỗi tại vị trí đó khác với bắt toàn bộ Error khi thực thi plugin.
+Specifically for ServiceLoader, provider loading/lookup is lazy; ServiceConfigurationError can surface while iterating or instantiating providers. Whether to skip a broken provider or fail startup altogether belongs in the **discovery contract**; catching errors at that point differs from catching all Errors during plugin execution.
 
-## 7. Ví dụ Java 17 hoàn chỉnh: hợp đồng kiểm tra hai chiều
+## 7. Complete Java 17 Example: Two-Way Contract Enforcement
 
-Chương trình dưới đây minh họa một extension point đơn giản. Request và Result không được null; items không chứa null; count không âm. Lỗi xử lý dự kiến đi qua ExtensionFailure, còn kết quả null hoặc lỗi runtime không dự kiến được adapter biến thành ContractViolation.
+The program below illustrates a simple extension point. Request and Result cannot be null; items cannot contain nulls; count cannot be negative. Expected processing failures go through ExtensionFailure, while null returns or unexpected runtime exceptions are converted by the adapter into ContractViolation.
 
-Tạo tệp **ExtensionContractDemo.java**:
+Create the file **ExtensionContractDemo.java**:
 
 ~~~java
 import java.util.List;
@@ -209,14 +209,14 @@ public final class ExtensionContractDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 ExtensionContractDemo.java
 java ExtensionContractDemo
 ~~~
 
-Standard output chính xác:
+Exact standard output:
 
 ~~~text
 Result[description=count:2, count=2]
@@ -224,90 +224,90 @@ extension returned null
 failed: data source unavailable
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Record Request kiểm tra operation, sau đó copy items; List.copyOf từ chối danh sách có phần tử null. Sai input bị chặn trước khi plugin xử lý.
-2. Record Result kiểm tra description và count khi khởi tạo. Provider bình thường trả một output thỏa mãn hậu điều kiện.
-3. Provider trả null làm adapter ném ContractViolation đúng tại ranh giới; không chờ NullPointerException xảy ra xa hơn.
-4. Provider ném ExtensionFailure thể hiện lỗi tác vụ dự kiến. Host nhận đúng loại đó.
-5. Một RuntimeException bất ngờ sẽ được wrap với cause; Error không bị bắt. Đối với cancellation hay interruption, nếu API hỗ trợ thì bổ sung quy ước cụ thể thay vì mặc định coi chúng là lỗi runtime thông thường.
+1. The Request record checks operation and then copies items; List.copyOf rejects lists containing null elements. Invalid input is blocked before the plugin processes it.
+2. The Result record checks description and count upon construction. A healthy provider returns an output satisfying all postconditions.
+3. A provider returning null causes the adapter to throw ContractViolation right at the boundary, rather than letting NullPointerException occur further downstream.
+4. A provider throwing ExtensionFailure expresses an expected task failure. The host receives that exact type.
+5. An unexpected RuntimeException is wrapped with its cause; Errors are not caught. For cancellation or interruption, if the API supports them, add explicit conventions instead of treating them as ordinary runtime faults by default.
 
-Đây là chương trình độc lập chạy được, còn cơ chế ServiceLoader, lifecycle và sandbox cần thiết kế riêng theo hệ thống. Không nên coi việc bắt exception như khả năng hoàn tác side effect đã xảy ra trong plugin.
+This is a self-contained runnable program; ServiceLoader, lifecycle, and sandboxing must be designed according to your system. Catching an exception must not be mistaken for rolling back side effects that already occurred inside the plugin.
 
-## 8. Luồng kiểm soát tại boundary adapter
+## 8. Control Flow at the Boundary Adapter
 
 ~~~text
-Caller tạo Request
+Caller creates Request
     |
     v
-Host kiểm tra tiền điều kiện
-    |-- sai -> lỗi caller, không gọi plugin
+Host checks preconditions
+    |-- invalid -> caller error, do not call plugin
     v
 Extension.run(request)
-    |-- ExtensionFailure được công bố -> lỗi tác vụ dự kiến
-    |-- RuntimeException không dự kiến -> plugin failure, giữ cause
+    |-- declared ExtensionFailure -> expected task failure
+    |-- unexpected RuntimeException -> plugin failure, preserve cause
     v
-Return bình thường
+Normal return
     |
     v
-Host kiểm tra non-null và hậu điều kiện
-    |-- sai -> ContractViolation
+Host checks non-null and postconditions
+    |-- invalid -> ContractViolation
     v
-Trả Result đã xác thực cho caller
+Return validated Result to caller
 ~~~
 
-Validate đầu vào chưa đủ vì plugin có thể viết sai hợp đồng. Validate đầu ra không thể tự khôi phục side effect mà plugin đã gây ra trước khi thất bại. Nếu operation có side effect, cần thêm giao ước atomicity, idempotency, transaction hoặc compensation cho từng loại tác vụ.
+Validating input alone is not enough because a plugin can still violate the contract. Validating output cannot automatically undo side effects that the plugin already performed before failing. If an operation has side effects, add atomicity, idempotency, transaction, or compensation protocols per operation type.
 
-Với API bất đồng bộ, cần mô tả riêng CompletionStage/Future có thể null không, giá trị khi hoàn tất có thể null không, cancellation được biểu diễn thế nào và cause nằm trong CompletionException/ExecutionException ra sao. Timeout của Future chỉ giới hạn thời gian đợi; không bảo đảm một plugin phớt lờ interrupt đã thực sự dừng.
+For asynchronous APIs, separately specify whether the CompletionStage/Future itself may be null, whether the completed value may be null, how cancellation is represented, and how causes are unwrapped from CompletionException/ExecutionException. A Future timeout only bounds how long the caller waits; it does not guarantee that a plugin ignoring interrupts has actually stopped.
 
-## 9. API chung, class loader và tiến hóa hợp đồng
+## 9. Shared API, Class Loaders, and Contract Evolution
 
-Trong JVM, định danh lớp phụ thuộc vào **tên lớp và class loader định nghĩa lớp đó**. Hai bản của cùng một interface có tên giống nhau nhưng do hai loader khác nhau định nghĩa không nhất thiết ép kiểu cho nhau được. Host và plugin cần có cách chia sẻ API contract thống nhất; đừng cho mỗi plugin nhúng riêng một bản interface không tương thích rồi trông chờ cast sẽ thành công.
+In the JVM, class identity depends on **class name and defining class loader**. Two versions of the same interface with identical names defined by two different loaders are not necessarily castable to each other. Host and plugin need a unified way to share the API contract; never let each plugin bundle an incompatible copy of the interface and expect casts to succeed.
 
-Khi thay đổi phiên bản API:
+When changing an API version:
 
-- Không tự đổi ý nghĩa của null, Optional.empty(), danh sách rỗng hoặc exception. Đây có thể là breaking change về hành vi dù chữ ký Java không thay đổi.
-- Đặt interface, DTO và exception công khai ở API chung. Tránh trả object thuộc thư viện riêng của plugin hoặc lộ lớp chỉ được load trong plugin.
-- Công bố quy tắc trường bắt buộc/tùy chọn và fallback cho các version; kiểm tra tương thích nhị phân lẫn tương thích hành vi.
-- Không biến chuỗi message của exception thành protocol. Nếu host tích hợp nhiều plugin, dùng error code hoặc contract type ổn định.
-- Chính sách fallback/retry thuộc host; chỉ retry tác vụ có idempotency hoặc chống lặp phù hợp.
+- Never arbitrarily change the meaning of null, Optional.empty(), empty lists, or exceptions. That can be a behavioral breaking change even when Java signatures do not change.
+- Place public interfaces, DTOs, and exceptions in the shared API. Avoid returning objects from plugin-private libraries or exposing classes loaded only inside a plugin.
+- Publish required/optional field rules and version fallbacks; test both binary compatibility and behavioral compatibility.
+- Do not turn exception message strings into a protocol. If the host integrates multiple plugins, use stable error codes or contract types.
+- Fallback/retry policy belongs to the host; retry only idempotent operations or those with proper deduplication.
 
-## 10. Các cam kết đi kèm dữ liệu và lỗi
+## 10. Commitments Accompanying Data and Errors
 
-**Concurrency:** API phải nêu một extension instance có bị gọi đồng thời không, có reentrant không và ai sở hữu mutable state. Interface không tự làm implementation thread-safe.
+**Concurrency:** The API must state whether an extension instance can be called concurrently, whether it is reentrant, and who owns mutable state. An interface does not make implementations thread-safe on its own.
 
-**Lifecycle/tài nguyên:** API phải nêu ai đóng Closeable, bao giờ callback được gọi, thread nào có thể gọi và Request/Result được giữ tham chiếu bao lâu. Dùng try-with-resources ở phía có trách nhiệm đóng.
+**Lifecycle/resources:** The API must state who closes Closeables, when callbacks may be invoked, which thread may invoke them, and how long Request/Result references may be retained. Use try-with-resources on the side responsible for closing.
 
-**Cô lập lỗi:** Chuyển đổi exception giúp host thống nhất cách báo lỗi, nhưng không tạo sandbox. Plugin chạy cùng JVM vẫn có thể ảnh hưởng tài nguyên chung. Với mã không đáng tin, cân nhắc cách ly process/JVM và giao thức qua IPC thay vì chỉ dùng catch.
+**Fault isolation:** Exception translation helps the host report errors uniformly, but does not create a sandbox. Plugins running in the same JVM can still impact shared resources. For untrusted code, consider process/JVM isolation and an IPC protocol instead of relying solely on catch blocks.
 
-**Observability:** Log có cấu trúc gồm provider ID, operation, correlation ID, phân loại lỗi và cause; tránh log dữ liệu nhạy cảm. Tách thông điệp an toàn cho caller khỏi chẩn đoán kỹ thuật dành cho vận hành.
+**Observability:** Structured logs should include provider ID, operation, correlation ID, error classification, and cause; avoid logging sensitive data. Separate caller-safe messages from technical diagnostics meant for operations.
 
-## 11. Ma trận kiểm thử hợp đồng
+## 11. Contract Test Matrix
 
-| Ca kiểm thử | Kỳ vọng |
+| Test case | Expectation |
 | --- | --- |
-| Extension hoặc Request là null | Host từ chối trước lời gọi |
-| Trường bắt buộc null, blank hoặc vượt miền giá trị | Fail fast với lỗi input có chủ ý |
-| List chứa phần tử null | Bị từ chối nếu hợp đồng non-null |
-| Plugin sửa collection nhận được | Không làm thay đổi snapshot của host nếu API hứa bất biến |
-| Plugin trả kết quả hợp lệ | Host nhận Result và các bất biến còn đúng |
-| Không tìm thấy dữ liệu | Dùng chính xác representation vắng mặt được định nghĩa |
-| Plugin trả null trái hợp đồng | Adapter báo ContractViolation |
-| Plugin ném ExtensionFailure | Host nhận đúng loại thất bại dự kiến |
-| Plugin ném RuntimeException không dự kiến | Adapter giữ cause và phân loại plugin failure |
-| Provider không load hoặc instantiate được | Discovery trả đúng lỗi/sự kiện riêng |
-| Interruption, timeout, cancellation | Không nuốt interrupt và không giả định tác vụ đã dừng |
-| Gọi đồng thời hoặc khác phiên bản API | Tuân thủ chính sách thread-safety và tương thích |
+| Extension or Request is null | Host rejects before call |
+| Required field is null, blank, or out of range | Fails fast with intentional input error |
+| List contains a null element | Rejected when contract specifies non-null |
+| Plugin mutates received collection | Does not mutate host's snapshot when API promises immutability |
+| Plugin returns valid result | Host receives Result and invariants hold |
+| No data found | Uses exact defined absence representation |
+| Plugin returns null against contract | Adapter reports ContractViolation |
+| Plugin throws ExtensionFailure | Host receives expected failure type |
+| Plugin throws unexpected RuntimeException | Adapter preserves cause and classifies plugin failure |
+| Provider fails to load or instantiate | Discovery emits dedicated error/event |
+| Interruption, timeout, cancellation | Does not swallow interrupt and does not assume task has stopped |
+| Concurrent calls or differing API versions | Adheres to thread-safety and compatibility policies |
 
-Dùng **contract tests** chung cho từng provider; bổ sung fake provider cố tình trả null, output sai, ném checked/unchecked exception. Với runtime loading, chạy integration test qua class loader và version API thật vì unit test trên cùng classpath có thể bỏ sót lỗi type identity.
+Use shared **contract tests** for every provider; include fake providers that intentionally return null, produce invalid output, or throw checked/unchecked exceptions. With runtime loading, run integration tests across real class loaders and API versions because unit tests on a single classpath can miss type-identity errors.
 
-## 12. Checklist thiết kế extension point
+## 12. Extension Point Design Checklist
 
-- Đã mô tả rõ nullability, miền giá trị và quyền sửa/giữ tham chiếu của từng input.
-- Đã phân biệt thành công có dữ liệu, thành công vắng dữ liệu và thất bại; hậu điều kiện được kiểm tra.
-- Đã phân loại caller error, lỗi tác vụ được công bố, vi phạm hợp đồng plugin và lỗi discovery.
-- Khi wrap exception có giữ cause; chính sách logging, interruption, cancellation và retry được xác định.
-- DTO/interface/exception công khai có nguồn class loader và quy tắc versioning nhất quán.
-- Đã định nghĩa quyền sở hữu tài nguyên, lifecycle, concurrency và hợp đồng kiểm thử cho từng provider.
+- Nullability, value domains, and mutation/retention rules are explicitly documented for every input.
+- Success with data, success with absence, and failure are clearly distinguished; postconditions are validated.
+- Caller errors, declared task failures, plugin contract violations, and discovery errors are categorized.
+- Exception wrapping preserves causes; logging, interruption, cancellation, and retry policies are defined.
+- Public DTOs, interfaces, and exceptions have a consistent class-loader origin and versioning rules.
+- Resource ownership, lifecycle, concurrency, and a contract test suite are defined for every provider.
 
-**Nguyên tắc:** mọi giá trị và lỗi đi qua ranh giới extension phải có nghĩa đã thống nhất. Host bảo đảm input hợp lệ, plugin bảo đảm output hợp lệ hoặc thất bại được định nghĩa, và boundary adapter xác minh cả hai chiều.
+**Principle:** every value and error crossing an extension boundary must have an agreed-upon meaning. The host guarantees valid input, the plugin guarantees valid output or a declared failure, and the boundary adapter verifies both sides.

@@ -1,56 +1,56 @@
-# 9.2 Chu trình `Signature.initSign`, `update`, `sign` và `initVerify`, `verify`
+# 9.2 The Lifecycle of `Signature.initSign`, `update`, `sign` and `initVerify`, `verify`
 
-## Mục tiêu học tập
+## Learning objectives
 
-`java.security.Signature` là **engine API của Java Security Architecture (JCA)** để tạo và kiểm tra **chữ ký số**. Một đối tượng `Signature` vận hành theo chu trình có trạng thái: phải chọn thuật toán, khởi tạo đúng **khóa** và **chiều thao tác**, cung cấp đầy đủ các byte thông điệp, rồi gọi `sign()` hoặc `verify()`.
+`java.security.Signature` is the **Java Security Architecture (JCA) engine API** for creating and verifying **digital signatures**. A `Signature` object operates as a stateful lifecycle: you must select an algorithm, initialize the right **key** and **operation direction**, supply all message bytes, and then call `sign()` or `verify()`.
 
-Kết thúc bài, bạn có thể:
+By the end of this lesson, you can:
 
-- Phân biệt hai chu trình **ký bằng private key** và **xác minh bằng public key**.
-- Hiểu từng lệnh `getInstance`, `initSign`, `initVerify`, `update`, `sign` và `verify`, thứ tự hợp lệ và việc **reset trạng thái** sau thao tác.
-- Đưa một thông điệp vào `update()` theo **nhiều chunk** mà vẫn đảm bảo tất cả byte được ký và xác minh đúng thứ tự.
-- Thiết lập tham số của thuật toán chữ ký như `RSASSA-PSS` rõ ràng và thực hành trên **Java 17+**.
-- Phân biệt kết quả `verify() == false` với **exception**, và tránh các lỗi liên quan đến encoding, nhầm key, nội dung thiếu, provider hoặc xử lý dữ liệu chưa xác thực.
+- Distinguish the two lifecycles: **signing with a private key** and **verifying with a public key**.
+- Understand each call—`getInstance`, `initSign`, `initVerify`, `update`, `sign`, and `verify`—valid ordering, and **state reset** after an operation.
+- Feed a message into `update()` across **multiple chunks** while ensuring all bytes are signed and verified in the exact order.
+- Configure signature algorithm parameters such as `RSASSA-PSS` explicitly and practice on **Java 17+**.
+- Distinguish `verify() == false` from an **exception**, and avoid bugs involving encoding, wrong keys, missing content, providers, or processing unauthenticated data.
 
-> **Phạm vi:** Bài này hướng dẫn API `Signature` và chu trình thao tác chữ ký trong Java. Chữ ký số **không mã hóa dữ liệu**: người khác vẫn đọc được thông điệp nếu ứng dụng không mã hóa riêng. Việc xác thực chữ ký với một public key chỉ trở thành xác thực *danh tính người ký* khi public key được gắn đáng tin với danh tính ấy.
+> **Scope:** This lesson covers the `Signature` API and signature lifecycle in Java. Digital signatures **do not encrypt data**: others can still read the message unless the application encrypts it separately. Verifying a signature with a public key only becomes *signer identity* authentication when the public key is reliably bound to that identity.
 
-## 1. Bức tranh tổng thể: ai ký, ai xác minh?
+## 1. The big picture: who signs, who verifies?
 
-Giả sử Alice gửi thông điệp cho Bob:
+Suppose Alice sends a message to Bob:
 
 ```text
-ALICE (người ký)                            BOB (người kiểm tra)
+ALICE (signer)                             BOB (verifier)
 -----------------                          --------------------
-Message M (bytes)                          Nhận Message M + Signature S
+Message M (bytes)                          Receives Message M + Signature S
       |                                                |
-Private key của Alice                         Public key của Alice đã xác thực
+Alice's private key                        Alice's authenticated public key
       |                                                |
 Signature.initSign(private)                    Signature.initVerify(public)
       |                                                |
 Signature.update(M)                            Signature.update(M)
       |                                                |
-Signature.sign()  -> chữ ký S                   Signature.verify(S) -> true/false
+Signature.sign()  -> signature S               Signature.verify(S) -> true/false
       |                                                |
-Gửi M và S -------------------------------------------->|
+Send M and S ----------------------------------------->|
 ```
 
-- `initSign(privateKey)` yêu cầu **private key** có quyền ký, phù hợp với thuật toán đã chọn.
-- `initVerify(publicKey)` yêu cầu **public key** tương ứng với khóa mà người ký đã dùng; bên xác minh cần **tin cậy cách public key được cung cấp**.
-- `update(...)` cung cấp **message bytes** theo đúng thứ tự. Hai bên phải tạo ra **cùng chuỗi byte**: thay nội dung, thứ tự chunk, encoding hoặc metadata đã ký làm thay đổi đối tượng được xác minh.
-- `sign()` trả `byte[]` chứa chữ ký, **không** trả ciphertext của thông điệp.
-- `verify(signatureBytes)` thường trả `true` hoặc `false` nếu chữ ký được phân tích hợp lệ; ngoại lệ có thể xảy ra nếu trạng thái hoặc định dạng chữ ký không hợp lệ.
+- `initSign(privateKey)` requires a **private key** authorized for signing and compatible with the chosen algorithm.
+- `initVerify(publicKey)` requires the **public key** corresponding to the key the signer used; the verifier must **trust how the public key was obtained**.
+- `update(...)` supplies the **message bytes** in the exact order. Both sides must produce the **exact same byte sequence**: changing content, chunk order, encoding, or signed metadata alters what is verified.
+- `sign()` returns a `byte[]` containing the signature, **not** ciphertext of the message.
+- `verify(signatureBytes)` typically returns `true` or `false` if the signature parses validly; an exception may occur if the state or signature format is invalid.
 
-Đối với một tài liệu thực tế, bạn thường gửi/lưu **(message, signature, key identifier, algorithm ID / parameters)** trong một định dạng có phiên bản. Không truyền private key cùng chữ ký.
+For a real-world document, you usually transmit/store **(message, signature, key identifier, algorithm ID / parameters)** in a versioned format. Never transmit the private key with the signature.
 
-## 2. Signature là một state machine có ba giai đoạn
+## 2. Signature is a three-stage state machine
 
-Theo Java SE 17 API, đối tượng `Signature` có ba trạng thái khái niệm:
+According to the Java SE 17 API, a `Signature` object has three conceptual states:
 
-| Trạng thái | Được tạo khi nào? | Thao tác hợp lệ chính |
+| State | When entered? | Main valid operations |
 | --- | --- | --- |
-| **UNINITIALIZED** | Vừa `Signature.getInstance(...)`, chưa chỉ định key/operation | `initSign(...)` hoặc `initVerify(...)`; chưa được `update`, `sign`, `verify`. |
-| **SIGN** | Sau `initSign(privateKey)` | `update(...)` một hoặc nhiều lần rồi `sign()`. |
-| **VERIFY** | Sau `initVerify(publicKey)` / `initVerify(certificate)` | `update(...)` một hoặc nhiều lần rồi `verify(signature)`. |
+| **UNINITIALIZED** | Right after `Signature.getInstance(...)`, before key/operation is set | `initSign(...)` or `initVerify(...)`; `update`, `sign`, `verify` are not allowed yet. |
+| **SIGN** | After `initSign(privateKey)` | One or more `update(...)` calls followed by `sign()`. |
+| **VERIFY** | After `initVerify(publicKey)` / `initVerify(certificate)` | One or more `update(...)` calls followed by `verify(signature)`. |
 
 ```text
                        Signature.getInstance("RSASSA-PSS")
@@ -68,47 +68,47 @@ Theo Java SE 17 API, đối tượng `Signature` có ba trạng thái khái ni�
                              v               v
                           sign()          verify(S)
                              |               |
-                      sinh byte[] S       true / false
+                     outputs byte[] S     true / false
                              |               |
-             Reset về trạng thái SIGN    Reset về VERIFY
-                 (cùng key đã init)        (cùng key đã init)
+             Resets to SIGN state        Resets to VERIFY state
+               (same initialized key)      (same initialized key)
 ```
 
-**Reset sau khi hoàn thành:** Đặc tả API cho biết `sign()` đưa object về trạng thái như sau `initSign` thành công trước đó, còn `verify()` đưa object về trạng thái như sau `initVerify` thành công trước đó. Vì thế có thể gọi `update()` và `sign()`/`verify()` cho **thông điệp mới** mà không khởi tạo lại cùng key, miễn provider/algorithm cho phép theo API contract. Ví dụ ở phần 6 sẽ kiểm chứng điều này.
+**Reset upon completion:** The API specification states that `sign()` returns the object to the state it was in after the previous successful `initSign`, and `verify()` returns it to the state after the previous successful `initVerify`. Thus you can call `update()` and `sign()`/`verify()` for a **new message** without re-initializing the same key, provided the provider/algorithm honors the API contract. The example in section 6 verifies this behavior.
 
-**Reset không có nghĩa xóa key, không có nghĩa tự chuyển qua chiều còn lại.** Nếu cần đổi key, đổi từ ký sang xác minh, hoặc thay bộ tham số, phải thực hiện khởi tạo/cấu hình phù hợp. Trong server, cách dễ quản lý là **mỗi operation dùng một đối tượng riêng** và không chia sẻ mutable `Signature` giữa nhiều thread/request.
+**Resetting does not clear the key, nor does it automatically switch directions.** If you need to change keys, switch from signing to verifying, or change parameter sets, you must perform the appropriate initialization/configuration. On a server, the cleanest practice is **one dedicated instance per operation** and never sharing a mutable `Signature` across threads or requests.
 
-Không nên gọi `sign()` khi object đang ở `VERIFY`, hay `verify()` khi object đang ở `SIGN`. `SignatureException` thường báo trạng thái không phù hợp.
+Do not call `sign()` while in `VERIFY`, or `verify()` while in `SIGN`. A `SignatureException` typically signals an inappropriate state.
 
-## 3. Pha ký: `getInstance` → `initSign` → `update` → `sign`
+## 3. Signing phase: `getInstance` → `initSign` → `update` → `sign`
 
-### 3.1 `Signature.getInstance(algorithm)` chọn scheme chữ ký
+### 3.1 `Signature.getInstance(algorithm)` selects the signature scheme
 
 ```java
-// Minh họa đặt trong phương thức có xử lý GeneralSecurityException:
+// Illustration placed inside a method handling GeneralSecurityException:
 Signature signer = Signature.getInstance("SHA256withRSA");
 ```
 
-- `getInstance` chọn **scheme chữ ký** qua JCA provider registry, **chưa ký hoặc xác minh**. `Signature` **không có thuật toán mặc định**; tên phải được chỉ rõ.
-- `SHA256withRSA` là scheme chữ ký RSA với SHA-256 theo standard algorithm name (thường gắn với RSASSA-PKCS1-v1_5).
-- `RSASSA-PSS` là scheme chữ ký RSA-PSS có tham số digest/MGF1/salt length; `Ed25519` là scheme EdDSA có thuật toán khác. Không thay qua lại tên chỉ vì đều dùng public/private keys.
-- Java SE 17 **yêu cầu** các implementation có `SHA256withRSA` trong tập `Signature` tối thiểu; tên `RSASSA-PSS` hoặc `Ed25519` cần kiểm tra hỗ trợ JDK/provider đích theo yêu cầu triển khai.
+- `getInstance` selects the **signature scheme** via the JCA provider registry; it **does not sign or verify yet**. `Signature` **has no default algorithm**; the name must be explicitly specified.
+- `SHA256withRSA` is an RSA signature scheme with SHA-256 per standard algorithm names (typically tied to RSASSA-PKCS1-v1_5).
+- `RSASSA-PSS` is the RSA-PSS signature scheme with digest/MGF1/salt length parameters; `Ed25519` is an EdDSA scheme with a different algorithm. Do not swap names interchangeably just because they all use public/private keys.
+- Java SE 17 **requires** implementations to include `SHA256withRSA` in the minimum `Signature` set; names like `RSASSA-PSS` or `Ed25519` should be checked against the target JDK/provider per deployment requirements.
 
-Nếu cố định provider bằng `Signature.getInstance(name, "ProviderName")`, mã nguồn phụ thuộc vào provider đó được đăng ký và hỗ trợ scheme; chỉ định provider có chủ đích khi HSM/chính sách bắt buộc.
+If you pin a provider using `Signature.getInstance(name, "ProviderName")`, the code depends on that provider being registered and supporting the scheme; only specify a provider intentionally when an HSM or policy mandates it.
 
-### 3.2 `initSign(privateKey)` chọn chiều ký và khóa
+### 3.2 `initSign(privateKey)` sets the signing direction and key
 
 ```java
 signer.initSign(privateKey);
 ```
 
-`privateKey` phải thuộc thuật toán/scheme phù hợp; khóa RSA private không tự động dùng được để ký Ed25519. `initSign` có overload `initSign(privateKey, secureRandom)` nếu scheme cần randomness do ứng dụng cung cấp. Hầu hết ứng dụng nên dùng nguồn ngẫu nhiên mật mã an toàn từ provider/JDK; không truyền `java.util.Random`.
+`privateKey` must belong to a compatible algorithm/scheme; an RSA private key cannot automatically be used to sign with Ed25519. `initSign` has an overload `initSign(privateKey, secureRandom)` if the scheme needs application-supplied randomness. Most applications should use a cryptographically secure random source from the provider/JDK; never pass `java.util.Random`.
 
-**Không dùng public key để `initSign`.** Nếu khai báo nhầm khóa, code thường không biên dịch vì kiểu yêu cầu là `PrivateKey`; nếu khóa private sai loại/kích thước/quyền sử dụng, có thể nhận `InvalidKeyException`.
+**Do not pass a public key to `initSign`.** Passing the wrong key variable typically fails compilation because the required type is `PrivateKey`; if the private key has the wrong type, size, or usage permissions, an `InvalidKeyException` may be thrown.
 
-Khóa có thể được sinh bởi `KeyPairGenerator`, đọc từ keystore, KMS/HSM qua provider, hoặc được cung cấp theo cơ chế đáng tin. Trong ví dụ, tạo khóa RSA-2048 **mới trong bộ nhớ** để thao tác có thể chạy độc lập.
+Keys can be generated by `KeyPairGenerator`, loaded from a keystore, backed by KMS/HSM via a provider, or supplied through a trusted mechanism. In the demo, a fresh RSA-2048 key pair is generated **in memory** so it runs standalone.
 
-### 3.3 `update(...)` nạp byte thông điệp
+### 3.3 `update(...)` feeds the message bytes
 
 ```java
 signer.update(headerBytes);
@@ -116,102 +116,102 @@ signer.update(payloadBytes, 0, payloadBytes.length);
 byte[] signature = signer.sign();
 ```
 
-Mỗi lần `update` đóng góp byte vào **cùng một thông điệp logic**, theo **thứ tự các lệnh gọi**. Về mặt nội dung ký, các lệnh trên tương đương một lần `update()` với `headerBytes || payloadBytes`.
+Each `update` call contributes bytes to the **same logical message**, in the **order of the calls**. In terms of signed content, the calls above are equivalent to a single `update()` with `headerBytes || payloadBytes`.
 
-Các overload:
+The overloads:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `update(byte value)` | Cấp một byte. |
-| `update(byte[] data)` | Cấp toàn bộ mảng. |
-| `update(byte[] data, int off, int len)` | Cấp đúng `len` byte bắt đầu từ offset `off`; `len` là **số byte**, không phải chỉ số kết thúc. |
-| `update(ByteBuffer data)` | Cấp các byte trong vùng `remaining()`, từ `position()` tới `limit()`; khi trả về, `position` đến `limit`. |
+| `update(byte value)` | Supplies a single byte. |
+| `update(byte[] data)` | Supplies the entire array. |
+| `update(byte[] data, int off, int len)` | Supplies exactly `len` bytes starting at offset `off`; `len` is a **byte count**, not an ending index. |
+| `update(ByteBuffer data)` | Supplies the bytes in the `remaining()` region, from `position()` to `limit()`; upon return, `position` equals `limit`. |
 
-`update()` ở trạng thái chưa init sẽ ném `SignatureException`. Nó **không** trả chữ ký, không lấy message từ `String` tự động. Vì vậy phải chọn charset/encoding một cách tường minh, ví dụ `message.getBytes(StandardCharsets.UTF_8)`.
+Calling `update()` in an uninitialized state throws `SignatureException`. It **does not** return a signature and does not automatically extract bytes from a `String`. Always choose the charset/encoding explicitly, e.g., `message.getBytes(StandardCharsets.UTF_8)`.
 
-Với các scheme như `SHA256withRSA` hoặc RSA-PSS cấu hình SHA-256, engine thường thực hiện băm nội bộ. **Không tự băm message bằng `MessageDigest` rồi đưa digest thay message vào `Signature.update()`**, trừ khi giao thức/thuật toán được chọn yêu cầu đúng kiểu đó. Làm vậy thường dẫn đến ký trên **digest như một message mới**, gây sai phạm vi dữ liệu hoặc “double hashing”.
+For schemes like `SHA256withRSA` or RSA-PSS configured with SHA-256, the engine typically performs hashing internally. **Do not manually hash the message with `MessageDigest` and pass the digest instead of the message into `Signature.update()`**, unless the chosen protocol/algorithm explicitly specifies that contract. Doing so typically signs the **digest as if it were a new message**, causing wrong data scope or “double hashing.”
 
-### 3.4 `sign()` kết thúc và trả chữ ký
+### 3.4 `sign()` finishes and returns the signature
 
 ```java
 byte[] result = signer.sign();
 ```
 
-- Kết quả là **chữ ký nhị phân**, có thể mã hóa Base64 khi cần vận chuyển qua JSON/text nhưng Base64 **không cung cấp bảo mật**.
-- Độ dài/encoding phụ thuộc scheme và khóa. Với RSA modulus 2048 bit, chữ ký RSA-PSS dài **256 byte**, không phụ thuộc message ngắn/dài; nhiều scheme khác có định dạng/kích thước khác.
-- Một số scheme có randomness (như PSS) nên **ký lại cùng message/key có thể tạo chữ ký khác**, dù cả hai xác minh đúng. Không dùng so sánh raw signature bytes như bằng chứng hai message tương đương.
-- Sau khi `sign()`, engine trở về **SIGN initialized state**, dữ liệu vừa `update()` không tự trở thành message tiếp theo. Muốn ký message mới phải cấp lại byte của message đó.
-- Gọi `sign()` mà không `update()` có thể ký **thông điệp rỗng**, không phải bản sao message trước đó. Đây là lỗi logic khó phát hiện nếu ứng dụng mong “dùng lại dữ liệu cũ”.
+- The output is a **binary signature**, which may be Base64-encoded for transport over JSON/text, though Base64 **provides no security**.
+- Length and encoding depend on the scheme and key. For a 2048-bit RSA modulus, an RSA-PSS signature is **256 bytes** long regardless of whether the message is short or long; other schemes have different formats and sizes.
+- Some schemes use randomness (such as PSS), so **re-signing the same message and key can produce different signature bytes**, even though both verify cleanly. Never compare raw signature bytes as proof that two messages are equivalent.
+- After `sign()`, the engine returns to the **SIGN initialized state**, and the bytes just passed to `update()` do not automatically remain as the next message. To sign a new message, you must supply the new message's bytes.
+- Calling `sign()` without `update()` may sign an **empty message**, not a copy of the previous message. This is a subtle logic bug if an application expects to “reuse old data.”
 
-Overload `sign(outbuf, offset, len)` ghi vào một vùng của mảng output và trả số byte thực ghi; kiểm tra buffer size và phạm vi chính xác. Với đa số ví dụ, `byte[] sign()` rõ ràng hơn.
+The overload `sign(outbuf, offset, len)` writes into a slice of an output array and returns the actual number of bytes written; verify buffer size and bounds carefully. For most cases, `byte[] sign()` is clearer.
 
-## 4. Pha xác minh: `getInstance` → `initVerify` → `update` → `verify`
+## 4. Verification phase: `getInstance` → `initVerify` → `update` → `verify`
 
 ```java
-// Minh họa trong phương thức có xử lý GeneralSecurityException:
+// Illustration inside a method handling GeneralSecurityException:
 Signature verifier = Signature.getInstance("SHA256withRSA");
 verifier.initVerify(trustedPublicKey);
 verifier.update(receivedMessageBytes);
 boolean valid = verifier.verify(receivedSignatureBytes);
 ```
 
-### 4.1 `initVerify(publicKey)` khởi tạo bằng khóa công khai
+### 4.1 `initVerify(publicKey)` initializes with the public key
 
-Dùng **public key tương ứng người ký**, đã được xác thực qua hệ thống tin cậy của ứng dụng. Nếu bên gửi dùng `private_A`, bên nhận dùng `public_A`; `public_B` thuộc người khác sẽ không xác minh chữ ký A (với cặp khóa và scheme an toàn).
+Use the **signer's corresponding public key**, authenticated through the application's trust system. If the sender used `private_A`, the receiver uses `public_A`; `public_B` belonging to someone else will not verify A's signature (under secure key pairs and schemes).
 
-Có overload `initVerify(Certificate certificate)` đọc public key từ chứng chỉ. **Đừng hiểu rằng chỉ gọi `initVerify(certificate)` là đã xác thực chuỗi chứng chỉ, hostname, trạng thái thu hồi hoặc danh tính ứng dụng.** Việc xác minh độ tin cậy/path validation của X.509, subject identity và mục đích key usage phải được xử lý theo quy tắc của hệ thống; `Signature.verify` chỉ kiểm tra chữ ký dưới khóa cung cấp. `initVerify(certificate)` còn có thể từ chối khóa/chứng chỉ không phù hợp với mục đích ký.
+There is an overload `initVerify(Certificate certificate)` that reads the public key from a certificate. **Do not assume that merely calling `initVerify(certificate)` validates the certificate chain, hostname, revocation status, or application identity.** X.509 trust/path validation, subject identity, and key usage must be handled per system rules; `Signature.verify` only checks the signature under the supplied key. `initVerify(certificate)` may also reject keys/certificates unsuitable for signing purposes.
 
-### 4.2 `update` ở bên nhận cũng nạp *toàn bộ* message
+### 4.2 `update` on the receiver must also feed the *entire* message
 
-`verifier.update(...)` phải có **chính xác chuỗi byte đã được ký**, dù bên ký và bên nhận chia chunk khác nhau:
+`verifier.update(...)` must receive the **exact byte sequence that was signed**, even if the signer and verifier split chunks differently:
 
 ```text
-Bên ký:      update([A B]) ; update([C D E])    => A B C D E
-Bên kiểm tra: update([A]) ; update([B C D E])    => A B C D E
-                                              (tương đương)
+Signer:    update([A B]) ; update([C D E])    => A B C D E
+Verifier:  update([A]) ; update([B C D E])    => A B C D E
+                                              (equivalent)
 
-Bên kiểm tra: update([C D E]) ; update([A B])    => C D E A B
-                                              (khác message)
+Verifier:  update([C D E]) ; update([A B])    => C D E A B
+                                              (different message)
 ```
 
-Không cần cùng kích thước chunk; **cần cùng thứ tự và cùng byte**. Đừng chỉ ký phần body rồi tin header chưa được ký: dữ liệu quan trọng như version, message type, algorithm/key ID, tenant, user, amount, recipient, expiry hoặc context phải được đưa vào dữ liệu ký với encoding không mơ hồ.
+Chunk sizes do not need to match; **the order and exact bytes must match**. Do not sign only the body and then trust an unsigned header: critical data such as version, message type, algorithm/key ID, tenant, user, amount, recipient, expiry, or context must be included in the signed data with an unambiguous encoding.
 
-### 4.3 `verify(signature)` trả boolean, không trả dữ liệu
+### 4.3 `verify(signature)` returns a boolean, not the data
 
-`verify()` kiểm tra chữ ký với message đã `update` và public key đã `initVerify`:
+`verify()` checks the signature against the message fed via `update` and the public key set in `initVerify`:
 
-- **`true`:** chữ ký hợp lệ **đối với chính message bytes, scheme, params và public key đang sử dụng**.
-- **`false`:** chữ ký đã phân tích được nhưng không khớp với message/key/params; phải từ chối.
-- **`SignatureException`:** object chưa init đúng, chữ ký có format/loại không hợp lệ, hoặc provider không thể xử lý; cũng **phải từ chối**. Không nên giả định mọi input chữ ký sai đều trả `false`.
-- **Sau `verify()`:** engine reset về trạng thái **VERIFY đã init**; lần tiếp theo muốn kiểm tra message mới thì `update()` lại message mới và `verify()` trên chữ ký mới.
+- **`true`:** The signature is valid **for the exact message bytes, scheme, parameters, and public key in use**.
+- **`false`:** The signature parsed validly but does not match the message/key/parameters; it must be rejected.
+- **`SignatureException`:** The object was not properly initialized, the signature has an invalid format/type, or the provider could not process it; this must **also be rejected**. Never assume every bad signature input returns `false`.
+- **After `verify()`:** The engine resets to the **initialized VERIFY state**; to check another message next, call `update()` with the new message and `verify()` on the new signature.
 
-`verify()` **không giải mã** dữ liệu và **không tự đánh giá danh tính người ký**. Nếu public key do request tự cung cấp thì attacker có thể tự tạo key pair, ký message và đưa public key của mình để `verify == true`. Hệ thống cần ràng buộc public key với identity/quyền sử dụng trước khi xem chữ ký là bằng chứng từ một chủ thể cụ thể.
+`verify()` **does not decrypt** data and **does not evaluate the signer's identity by itself**. If the public key is supplied freely by the request, an attacker can generate a key pair, sign a message, and send their own public key to get `verify == true`. The system must bind the public key to an identity/authorization before treating a signature as evidence from a specific entity.
 
-## 5. Chu trình và lỗi trạng thái cần ghi nhớ
+## 5. Lifecycle and state errors to remember
 
-| Tình huống | Kết quả hoặc rủi ro | Cách dùng đúng |
+| Scenario | Outcome or risk | Proper usage |
 | --- | --- | --- |
-| `Signature.getInstance(...)` rồi `update(...)` ngay | Chưa init; thường `SignatureException` | Gọi `initSign(private)` hoặc `initVerify(public)` trước. |
-| `initSign(private)` rồi `verify(signature)` | Sai chiều thao tác | Gọi `sign()` ở chiều SIGN; hoặc `initVerify(public)` rồi nạp message và `verify()`. |
-| `initVerify(public)` rồi `sign()` | Sai chiều thao tác | Dùng chiều VERIFY. |
-| `initSign(private)` → `update(A)` → `sign()` → `update(B)` → `sign()` | Hai chữ ký cho **A** và **B**; message không cộng dồn qua lần `sign` | Đây là reset được tài liệu hóa; có thể `initSign` lại để tách operations rõ hơn. |
-| `initVerify(public)` → `update(A)` → `verify(SA)` → `update(B)` → `verify(SB)` | Hai lượt verify liên tiếp; object reset về VERIFY sau mỗi lượt | Dùng object riêng cho mỗi request nếu có concurrency. |
-| Bên ký update `A\|\|B`, bên nhận update `B\|\|A` | Chữ ký không hợp lệ vì byte khác | Chuẩn hóa layout, thứ tự, encoding. |
-| Bên nhận chỉ update body, bỏ header đã được ký | Verify sai; hoặc thiếu kiểm tra tính xác thực metadata nếu header vốn không được ký | Ký/xác minh **đủ byte của envelope đã định nghĩa**. |
-| Thay đổi params PSS giữa ký và verify | Có thể verify thất bại hoặc lỗi tham số | Quy định digest, MGF1, salt length và trailer field giống nhau. |
-| Dùng thuật toán ký không phù hợp public/private key | `InvalidKeyException` hoặc lỗi provider | Kiểm tra key algorithm, purpose, provider và scheme. |
-| Chia sẻ cùng instance `Signature` giữa các request/thread | Mutable state trộn bytes và khóa | Tạo object riêng theo operation; không cho nhiều thread `update` đồng thời. |
+| `Signature.getInstance(...)` then `update(...)` immediately | Uninitialized; usually `SignatureException` | Call `initSign(private)` or `initVerify(public)` first. |
+| `initSign(private)` then `verify(signature)` | Wrong operation direction | Call `sign()` in SIGN mode; or call `initVerify(public)`, feed message, and `verify()`. |
+| `initVerify(public)` then `sign()` | Wrong operation direction | Use VERIFY mode. |
+| `initSign(private)` → `update(A)` → `sign()` → `update(B)` → `sign()` | Two signatures for **A** and **B**; messages do not accumulate across `sign` calls | This is documented reset behavior; you may re-call `initSign` to separate operations more clearly. |
+| `initVerify(public)` → `update(A)` → `verify(SA)` → `update(B)` → `verify(SB)` | Two consecutive verifications; object resets to VERIFY after each | Use a separate instance per request under concurrency. |
+| Signer updates `A\|\|B`, receiver updates `B\|\|A` | Invalid signature due to different bytes | Standardize layout, order, and encoding. |
+| Receiver only updates body, omitting signed header | Verification fails; or missing metadata authenticity if header was unsigned | Sign/verify the **complete defined envelope bytes**. |
+| Mismatched PSS params between sign and verify | Verification may fail or throw a parameter error | Enforce identical digest, MGF1, salt length, and trailer field. |
+| Signing algorithm incompatible with public/private key | `InvalidKeyException` or provider error | Verify key algorithm, purpose, provider, and scheme. |
+| Sharing the same `Signature` instance across requests/threads | Mutable state mixes bytes and keys | Create a separate instance per operation; never let multiple threads call `update` concurrently. |
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: RSA-PSS, nhiều `update` và tái sử dụng đúng chu trình
+## 6. Complete Java 17+ example: RSA-PSS, multiple `update` calls, and proper lifecycle reuse
 
-Chương trình **`SignatureLifecycleDemo.java`** dưới đây:
+The program **`SignatureLifecycleDemo.java`** below:
 
-1. Sinh key pair RSA-2048; tạo engine `RSASSA-PSS` với tham số **SHA-256**, **MGF1(SHA-256)**, **salt dài 32 byte** và **trailer 1**.
-2. Ký `header || body` bằng hai lần `update`.
-3. Dùng public key cùng cặp và cùng parameters để `verify()`.
-4. Thử đổi body và đảo thứ tự chunk: đều không còn hợp lệ.
-5. Ký/xác minh thông điệp thứ hai trên cùng objects sau khi phương thức đầu đã reset state.
-6. Kiểm tra `update` khi object chưa init bị từ chối.
+1. Generates an RSA-2048 key pair; creates an `RSASSA-PSS` engine with **SHA-256**, **MGF1(SHA-256)**, **32-byte salt**, and **trailer 1**.
+2. Signs `header || body` using two `update` calls.
+3. Uses the matching public key and same parameters to `verify()`.
+4. Tests modifying the body and reordering chunks: both become invalid.
+5. Signs and verifies a second message on the same objects after the first calls reset their state.
+6. Verifies that `update` on an uninitialized object is rejected.
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -283,14 +283,14 @@ public final class SignatureLifecycleDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17+ có provider hỗ trợ **RSA-PSS**:
+Compile and run with JDK 17+ with a provider supporting **RSA-PSS**:
 
 ```bash
 javac --release 17 SignatureLifecycleDemo.java
 java SignatureLifecycleDemo
 ```
 
-Kết quả kỳ vọng khi chạy chương trình (chữ ký nhị phân bên trong là ngẫu nhiên nhưng stdout sau ổn định):
+Expected output when running the program (the internal binary signature is randomized, but the stdout below is deterministic):
 
 ```text
 First verification: true
@@ -301,26 +301,26 @@ Signature bytes: 256
 Uninitialized update rejected: true
 ```
 
-**Giải thích kết quả:**
+**Explanation of results:**
 
-- Hai lần `signer.update(header)` và `signer.update(body)` tạo message đúng bằng hai mảng byte nối theo thứ tự đó. `verifier.update` cấp cùng dữ liệu nên dòng đầu `true`.
-- `amount=101` khác `amount=100`, dù chỉ khác một byte; chữ ký cũ không khớp nên dòng thứ hai `false`.
-- Đảo thứ tự hai mảng byte làm thay message thành `body || header`; chữ ký cũ không hợp lệ.
-- `signer.sign()` **reset về trạng thái SIGN** và `verifier.verify()` **reset về VERIFY**, vì vậy ở thông điệp thứ hai có thể gọi `update` và kết thúc mà không init lại. **Không dùng lại cùng instance cho các request chạy đồng thời.**
-- Với RSA-2048, modulus dài 256 byte, chữ ký RSA-PSS cũng dài 256 byte; đó không phải bằng chứng “độ dài message = 256”.
-- `Signature` chưa init không thể nhận `update`; lỗi `SignatureException` được bắt và in `true` cho kiểm tra cuối.
-- RSA-PSS dùng salt nên byte signature có thể khác giữa các lần ký cùng message; cách đánh giá đúng là gọi `verify`, **không so sánh byte giữa hai chữ ký mới**.
-- Bài dùng `setParameter(PSS)` **trước init** và bộ tham số giống hệt hai phía. Các provider/HSM khác nhau có thể có yêu cầu về thời điểm set parameters hoặc khả năng PSS; cần đọc tài liệu provider đích và kiểm thử `getInstance → setParameter → initSign/initVerify → sign/verify`. Nếu không hỗ trợ, báo lỗi cấu hình; không tự hạ cấp scheme một cách âm thầm.
+- Two calls `signer.update(header)` and `signer.update(body)` produce the exact message formed by concatenating those two byte arrays in that order. `verifier.update` feeds the same data, so the first line is `true`.
+- `amount=101` differs from `amount=100`, even by a single byte; the old signature no longer matches, so the second line is `false`.
+- Reversing the two byte arrays changes the message to `body || header`; the old signature is invalid.
+- `signer.sign()` **resets to SIGN state** and `verifier.verify()` **resets to VERIFY state**, so for the second message you can call `update` and finish without re-initializing. **Never reuse the same instance across concurrent requests.**
+- With RSA-2048, the modulus is 256 bytes, so the RSA-PSS signature is also 256 bytes; that is not proof that “message length = 256.”
+- An uninitialized `Signature` cannot accept `update`; `SignatureException` is caught and prints `true` for the final check.
+- RSA-PSS uses a salt, so signature bytes may differ when re-signing the same message; the proper check is calling `verify`, **never comparing bytes between two fresh signatures**.
+- This lesson calls `setParameter(PSS)` **before init** with identical parameters on both sides. Different providers/HSMs may have requirements on when parameters are set or PSS capabilities; read the target provider's documentation and test `getInstance → setParameter → initSign/initVerify → sign/verify`. If unsupported, fail with a configuration error; never silently downgrade the scheme.
 
-**Giới hạn demo:** private key chỉ sống trong RAM; chạy lại chương trình sẽ sinh key pair mới nên chữ ký cũ không tự xác minh được bằng public key mới. Môi trường thực phải có private key được bảo vệ, public key/chứng chỉ đáng tin, key ID/version, policy kiểm tra và định dạng thông điệp nhất quán.
+**Demo limitations:** the private key lives only in RAM; re-running the program generates a new key pair, so old signatures cannot verify under the new public key. A real environment must have protected private keys, trusted public keys/certificates, key IDs/versions, verification policies, and consistent message formatting.
 
-## 7. Ký/xác minh dữ liệu lớn theo luồng với `update`
+## 7. Streaming large data for signing/verifying with `update`
 
-Với file nhiều megabyte, không cần `Files.readAllBytes()` chỉ để gọi `Signature.update()`. Có thể đưa byte từ stream theo chunk:
+For multi-megabyte files, there is no need to call `Files.readAllBytes()` just to pass data to `Signature.update()`. You can feed bytes from a stream in chunks:
 
 ```java
-// Đoạn minh họa trong phương thức có throws IOException, GeneralSecurityException;
-// signer đã được initSign(privateKey), path là Path đã chọn.
+// Illustrative snippet inside a method declaring throws IOException, GeneralSecurityException;
+// signer has already called initSign(privateKey), path is the chosen Path.
 try (java.io.InputStream input = java.nio.file.Files.newInputStream(path)) {
     byte[] buffer = new byte[8192];
     int count;
@@ -333,10 +333,10 @@ try (java.io.InputStream input = java.nio.file.Files.newInputStream(path)) {
 byte[] signature = signer.sign();
 ```
 
-Bên verify thực hiện cùng logic đọc **cùng byte file**, nhưng engine phải `initVerify(trustedPublicKey)` và kết thúc bằng `verify(signature)`:
+The verifier performs the same reading logic over the **exact same file bytes**, except the engine must call `initVerify(trustedPublicKey)` and end with `verify(signature)`:
 
 ```java
-// verifier đã initVerify(trustedPublicKey).
+// verifier has already called initVerify(trustedPublicKey).
 try (java.io.InputStream input = java.nio.file.Files.newInputStream(path)) {
     byte[] buffer = new byte[8192];
     int count;
@@ -349,24 +349,24 @@ try (java.io.InputStream input = java.nio.file.Files.newInputStream(path)) {
 boolean accepted = verifier.verify(signatureBytes);
 ```
 
-Hai đoạn này là **mảnh code tích hợp**, không phải chương trình standalone: `path`, các engine, key và chữ ký phải được cung cấp từ logic ứng dụng. `update(data, off, len)` phải dùng **số byte thực đọc `count`**, không dùng toàn bộ `buffer.length` cho chunk cuối, vì phần cuối buffer có thể chứa dữ liệu cũ.
+These two snippets are **integration code fragments**, not standalone programs: `path`, engines, keys, and signature must be supplied by application logic. `update(data, off, len)` must use the **actual byte count read `count`**, not the full `buffer.length` on the final chunk, since the tail of the buffer may hold leftover data.
 
-**Chi phí bộ nhớ:** cung cấp dữ liệu theo chunk giúp không phải giữ toàn bộ file trong `byte[]` ở lớp ứng dụng; không được khẳng định mọi provider đều xử lý nội bộ theo streaming với mức bộ nhớ tuyệt đối cố định. Nếu đọc dữ liệu từ file có thể thay đổi đồng thời, phải chốt một snapshot/nguồn bất biến hoặc kiểm tra dữ liệu cuối trước khi công nhận kết quả để tránh TOCTOU.
+**Memory cost:** feeding data in chunks avoids holding the whole file in a `byte[]` at the application layer; however, do not assume every provider processes internally in strict constant-memory streaming. If reading from a file that can change concurrently, lock down an immutable snapshot/source or validate the final data before trusting the result to avoid TOCTOU issues.
 
-Đối với `update(ByteBuffer)`, phương thức xử lý toàn bộ `remaining()` và dịch `position()` tới `limit()`. Nếu muốn dùng lại buffer cho mục đích khác, phải quản lý `flip`/`rewind`/`duplicate` đúng; không gọi `update(buffer)` hai lần với buffer đã hết `remaining()` rồi tưởng đã đưa cùng message hai lần.
+For `update(ByteBuffer)`, the method consumes the entire `remaining()` span and advances `position()` to `limit()`. If you want to reuse the buffer elsewhere, manage `flip`/`rewind`/`duplicate` properly; do not call `update(buffer)` twice on a buffer with zero `remaining()` and assume you fed the same message twice.
 
-## 8. Chính xác *byte nào* được ký? Encoding và phạm vi tin cậy
+## 8. Which exact *bytes* are signed? Encoding and trust scope
 
-Một chữ ký hợp lệ chỉ bảo đảm tính toàn vẹn của **chuỗi byte thực đã nạp**. Không bảo đảm nội dung hiển thị là “giống nhau” nếu encoding/normalization khác. Những lỗi dễ gặp:
+A valid signature only guarantees the integrity of the **actual byte sequence fed in**. It does not guarantee the displayed content “looks the same” if encoding or normalization differs. Common pitfalls:
 
-- Bên ký gọi `text.getBytes()` theo charset mặc định; bên verify dùng UTF-8: cùng ký tự có thể ra byte khác. Dùng `StandardCharsets.UTF_8` hoặc giao thức đã định.
-- Bên ký tạo JSON với một thứ tự field, bên nhận parse rồi serialize lại thứ tự khác: byte đã thay đổi dù object có nội dung giống nhau. Cần canonical serialization được quy định hoặc xác minh trên **raw signed bytes**.
-- Bên ký nối nhiều chuỗi không có length-prefix: `"ab" || "c"` trùng byte với `"a" || "bc"`. Nếu ý nghĩa field quan trọng, cần schema có version, tag/length, thứ tự cố định và context.
-- Bên ký chỉ đưa payload vào `update()` nhưng ứng dụng xác nhận cả `amount`, `recipient`, `tenant`, `expiry` nằm ở header chưa ký: attacker có thể đổi header mà verify vẫn đúng với payload cũ. **Ký đầy đủ dữ liệu tác động tới quyết định nghiệp vụ.**
-- Bên ký thực hiện normalization Unicode còn bên nhận thì không (hoặc ngược lại): khác byte. Chuẩn hóa và ký theo encoding được ghi trong protocol.
-- Nếu ký nội dung chứa `algorithmId`, `keyId` hoặc type/version, cần tránh trường chưa xác thực điều khiển lựa chọn thuật toán yếu; parser phải dùng allowlist và chính sách chữ ký phù hợp.
+- Signer calls `text.getBytes()` using the default charset; verifier uses UTF-8: the same characters can produce different bytes. Use `StandardCharsets.UTF_8` or the specified protocol encoding.
+- Signer creates JSON with one field order, receiver parses and re-serializes in another order: bytes changed even though the object has the same content. You need a defined canonical serialization or verification over the **raw signed bytes**.
+- Signer concatenates multiple strings without length prefixes: `"ab" || "c"` collides byte-for-byte with `"a" || "bc"`. When field semantics matter, use a versioned schema with tags/lengths, fixed order, and context.
+- Signer feeds only the payload to `update()` while the application trusts `amount`, `recipient`, `tenant`, and `expiry` in an unsigned header: an attacker can alter the header while `verify` still passes on the old payload. **Sign all data that affects business decisions.**
+- Signer applies Unicode normalization while receiver does not (or vice versa): bytes differ. Normalize and sign according to the protocol specification.
+- If the signed content includes `algorithmId`, `keyId`, or type/version, prevent unauthenticated fields from steering selection of a weak algorithm; the parser must enforce an allowlist and proper signature policy.
 
-Một cấu trúc message có thể được định nghĩa như:
+A message structure might be defined as:
 
 ```text
 signed_input = domain_separator
@@ -376,101 +376,101 @@ signed_input = domain_separator
             || context_length || context
 ```
 
-Chỉ là sơ đồ khái niệm: phải quy định cụ thể từng trường (bao nhiêu byte, unsigned/signed, endianness, byte encoding, max length). **Domain separator** như `invoice-signature-v1` giúp ngăn chữ ký có hiệu lực ở protocol này bị dùng sai sang protocol khác nếu cùng key và cùng byte payload.
+This is only a conceptual diagram: you must specify every field (byte count, unsigned/signed, endianness, byte encoding, max length). A **domain separator** such as `invoice-signature-v1` prevents a signature valid in one protocol from being misused in another protocol that shares the same key and payload bytes.
 
-Chữ ký không tự chống **replay**. Một thông điệp đã ký hợp lệ vẫn có thể bị phát lại nhiều lần. Nếu use case cần “chỉ dùng một lần”, phải kiểm tra transaction ID, nonce, sequence, expiration, recipient và duy trì trạng thái đã sử dụng; dữ liệu này cần nằm trong phần đã ký.
+Signatures do not automatically prevent **replay**. A validly signed message can be replayed multiple times. If the use case requires “use once,” you must verify transaction ID, nonce, sequence, expiration, and recipient, and maintain spent state; these fields must be part of the signed data.
 
-## 9. Thuật toán, provider và tham số trong chu trình `Signature`
+## 9. Algorithms, providers, and parameters in the `Signature` lifecycle
 
-| Scheme Java | Thuộc tính đáng lưu ý | Vai trò của `Signature` |
+| Java scheme | Notable properties | Role of `Signature` |
 | --- | --- | --- |
-| `SHA256withRSA` | Dùng SHA-256 cùng scheme chữ ký RSA kiểu PKCS#1 v1.5; thuộc mức yêu cầu tối thiểu của `Signature` trên Java SE 17 | `initSign(RSA private)`, `update(message)`, `sign()` và `initVerify(RSA public)`, `update(message)`, `verify(sig)`. |
-| `RSASSA-PSS` | RSA-PSS sử dụng salt, digest, MGF và trailer parameters; cần thống nhất cả phía ký và verify | Cùng lifecycle; đặt `PSSParameterSpec` rõ. |
-| `SHA256withECDSA` | ECDSA; chữ ký thường có định dạng ASN.1 DER trong Java khi dùng tên chuẩn, tùy scheme/biến thể | Lifecycle vẫn vậy nhưng loại key là EC, không phải RSA. |
-| `Ed25519` | EdDSA; không dùng PSS params; key và signature scheme khác RSA | `Signature.getInstance("Ed25519")` với private/public key Ed25519 khi provider hỗ trợ. |
+| `SHA256withRSA` | Uses SHA-256 with PKCS#1 v1.5-style RSA signature scheme; part of Java SE 17 minimum `Signature` requirements | `initSign(RSA private)`, `update(message)`, `sign()` and `initVerify(RSA public)`, `update(message)`, `verify(sig)`. |
+| `RSASSA-PSS` | RSA-PSS using salt, digest, MGF, and trailer parameters; must match on both signing and verifying sides | Same lifecycle; set `PSSParameterSpec` explicitly. |
+| `SHA256withECDSA` | ECDSA; signature is typically ASN.1 DER encoded in Java when using the standard name, depending on scheme/variant | Same lifecycle, except key type is EC rather than RSA. |
+| `Ed25519` | EdDSA; does not use PSS params; key and signature scheme differ from RSA | `Signature.getInstance("Ed25519")` with Ed25519 private/public keys when provider supports it. |
 
-Không tự đổi `SHA256withRSA` sang `RSASSA-PSS` chỉ bằng tên phía verify mà bỏ qua encoding/params; chữ ký v1.5 không phải chữ ký PSS. Phải có **algorithm/suite ID được phép**, parameters, key ID và version trong hệ thống lưu trữ/giao tiếp.
+Do not switch `SHA256withRSA` to `RSASSA-PSS` merely by name on the verifier while ignoring encoding/params; a v1.5 signature is not a PSS signature. You must store/communicate an **approved algorithm/suite ID**, parameters, key ID, and version.
 
-`Signature.getInstance()` chọn provider thực thi, nhưng **không phải giấy chứng nhận** rằng key, scheme, params và môi trường chạy đã an toàn. Có thể lỗi ở `initSign`, `setParameter`, `update`, `sign`, `initVerify` hoặc `verify`. Phải kiểm thử cả chu trình trên provider dự kiến, nhất là khi dùng khóa từ HSM/KMS hoặc runtime không phải JDK đã dùng phát triển.
+`Signature.getInstance()` selects an implementing provider, but **is not a certificate** that the key, scheme, params, and runtime environment are secure. Errors can surface at `initSign`, `setParameter`, `update`, `sign`, `initVerify`, or `verify`. Always test the entire lifecycle against the target provider, especially when using HSM/KMS keys or a runtime different from the development JDK.
 
-`Signature` dùng API `java.security` để ký/xác minh; các engine khác có mục tiêu khác:
+`Signature` is the `java.security` API for signing/verifying; other engines serve different goals:
 
-- `MessageDigest` chỉ băm dữ liệu, không có private key: không xác thực chủ thể.
-- `Mac` dùng khóa bí mật đối xứng chung: các bên nắm khóa cùng tạo/kiểm tra MAC, không tương đương public-key signature.
-- `Cipher` mã hóa/giải mã: bí mật không đồng nghĩa nguồn gốc được chứng thực.
-- `KeyAgreement` thỏa thuận shared secret: không tự tạo một chữ ký số.
+- `MessageDigest` only hashes data, with no private key: does not authenticate an entity.
+- `Mac` uses a shared symmetric secret key: parties holding the key can both create and verify MACs, not equivalent to a public-key signature.
+- `Cipher` encrypts/decrypts: confidentiality does not equal authenticated origin.
+- `KeyAgreement` establishes a shared secret: does not itself produce a digital signature.
 
-## 10. Ngoại lệ và cách xử lý an toàn
+## 10. Exceptions and safe error handling
 
-| Loại vấn đề | Khi nào xảy ra | Hướng xử lý |
+| Issue type | When it happens | How to handle |
 | --- | --- | --- |
-| `NoSuchAlgorithmException` | `Signature.getInstance("RSASSA-PSS")` khi runtime/provider không có scheme | Kiểm tra version/provider/thuật toán được yêu cầu; không tự fallback sang scheme khác không được giao thức phê duyệt. |
-| `InvalidKeyException` | `initSign(private)`/`initVerify(public)` dùng khóa sai loại, sai quyền hoặc không hợp lệ | Kiểm tra key algorithm, size, key usage, key storage/HSM và policy. |
-| `InvalidAlgorithmParameterException` | `setParameter(PSS)` không được provider chấp nhận | Kiểm tra digest/MGF1/salt/trailer, khả năng triển khai và cấu hình hai bên. |
-| `SignatureException` ở `update` | Chưa gọi init phù hợp, object sai state hoặc provider không xử lý được | Khởi tạo đúng chiều, tạo engine mới cho operation khi cần. |
-| `SignatureException` ở `sign`/`verify` | Trạng thái sai, signature encoding không phù hợp hoặc lỗi provider | Từ chối operation; bảo đảm lỗi được log an toàn và phân loại theo kiểm soát. |
-| `verify(...) == false` | Chữ ký không khớp thông điệp/public key/params được cung cấp | Từ chối; không tự “sửa” message hoặc bỏ qua metadata để thử lại. |
-| `verify(...) == true` nhưng sai danh tính | Public key chưa được xác thực hoặc bị attacker thay thế | Xác minh nguồn, chuỗi tin cậy, identity và key usage trước khi gán người ký. |
-| `verify(...) == true` nhưng thao tác bị phát lại | Chữ ký không chống replay tự động | Có expiry/id/sequence trong dữ liệu đã ký và policy/state kiểm tra replay. |
+| `NoSuchAlgorithmException` | `Signature.getInstance("RSASSA-PSS")` when runtime/provider lacks the scheme | Check required version/provider/algorithm; never silently fall back to an unapproved scheme. |
+| `InvalidKeyException` | `initSign(private)`/`initVerify(public)` uses wrong key type, disallowed usage, or invalid key | Check key algorithm, size, key usage, key storage/HSM, and policy. |
+| `InvalidAlgorithmParameterException` | `setParameter(PSS)` rejected by provider | Check digest/MGF1/salt/trailer, implementation support, and configuration on both sides. |
+| `SignatureException` in `update` | Init not called properly, wrong object state, or provider cannot process | Initialize in the proper direction, create a fresh engine per operation as needed. |
+| `SignatureException` in `sign`/`verify` | Invalid state, improper signature encoding, or provider error | Reject the operation; ensure errors are logged safely and categorized under controls. |
+| `verify(...) == false` | Signature does not match supplied message/public key/params | Reject; never “fix” the message or strip metadata to retry. |
+| `verify(...) == true` but wrong identity | Public key unauthenticated or substituted by attacker | Verify source, trust chain, identity, and key usage before attributing a signer. |
+| `verify(...) == true` but operation replayed | Signatures do not prevent replay automatically | Include expiry/id/sequence in signed data and enforce replay checks/state. |
 
-Không nên xử lý ngoại lệ bằng cách cho phép dữ liệu đi qua. Luồng an toàn là **fail closed**: nếu bước xác minh không thành công, không thực hiện giao dịch hoặc chấp nhận dữ liệu như đã xác thực.
+Do not handle exceptions by letting data pass through. The safe flow is **fail closed**: if verification does not succeed, do not execute the transaction or accept the data as authenticated.
 
-## 11. Kiểm thử chu trình và checklist review
+## 11. Testing the lifecycle and review checklist
 
-Bài kiểm thử nên bao gồm:
+Tests should cover:
 
-1. **Happy path:** cùng message bytes, đúng public key, cùng scheme/params → `verify == true`.
-2. **Dữ liệu bị sửa:** đổi một byte trong message đã ký → `verify == false`.
-3. **Sai thứ tự hoặc thiếu chunk:** ký `A||B`, verify `B||A` hay chỉ `A` → fail.
-4. **Sai public key:** dùng public key của cặp khác → không xác minh hợp lệ.
-5. **Tham số scheme sai:** PSS digest/MGF1/salt khác → fail hoặc lỗi params.
-6. **Không init:** `update`/`sign`/`verify` trước init → `SignatureException` thích hợp.
-7. **Sau `sign`/`verify`:** thử message mới với `update` lại, không dựa vào dữ liệu message trước.
-8. **Encoding và canonicalization:** ký và verify trên nhiều runtime/language bằng cùng test vectors, UTF-8, layout và key/params được đặc tả.
-9. **Metadata:** sửa `tenant`, `role`, `amount`, `expiry`, `audience` trong phần đã ký → fail; sửa metadata không nằm trong phần ký là điểm cần cải thiện protocol.
-10. **Replay và trust:** chữ ký hợp lệ nhưng đã hết hạn/ID đã dùng/public key chưa được phê duyệt → nghiệp vụ phải từ chối.
+1. **Happy path:** identical message bytes, right public key, matching scheme/params → `verify == true`.
+2. **Tampered data:** flip one byte in the signed message → `verify == false`.
+3. **Wrong order or missing chunk:** sign `A||B`, verify `B||A` or just `A` → fail.
+4. **Wrong public key:** use public key from another pair → does not verify as valid.
+5. **Wrong scheme parameters:** different PSS digest/MGF1/salt → fail or parameter error.
+6. **Uninitialized:** `update`/`sign`/`verify` before init → appropriate `SignatureException`.
+7. **After `sign`/`verify`:** test a new message with `update`, ensuring no leftover data from the prior message.
+8. **Encoding and canonicalization:** sign and verify across runtimes/languages with identical test vectors, UTF-8, layout, and specified keys/params.
+9. **Metadata:** alter `tenant`, `role`, `amount`, `expiry`, `audience` inside the signed part → fail; if altering metadata outside the signed part still passes, the protocol needs improvement.
+10. **Replay and trust:** valid signature that is expired/ID already used/public key unapproved → business layer must reject.
 
-Checklist khi review code:
+Code review checklist:
 
-- [ ] `getInstance` dùng **tên thuật toán chữ ký rõ ràng**, không lấy tùy ý từ dữ liệu chưa được xác thực.
-- [ ] `initSign` nhận **private key** đúng người ký/mục đích; `initVerify` dùng **public key đáng tin** đúng người ký.
-- [ ] Mọi byte quan trọng đều được `update` đúng thứ tự, đúng charset/schema; khi streaming, `len` là số byte thực đọc.
-- [ ] `sign()` và `verify()` chỉ chạy sau init/update hợp lệ; biết engine reset sau operation, không chia sẻ giữa các thread.
-- [ ] PSS và các params khác được chỉ định/tương thích; key length và provider đáp ứng chính sách.
-- [ ] Kết quả `verify` **phải được kiểm tra**; `false` và mọi exception liên quan đều dẫn tới từ chối.
-- [ ] Chứng chỉ, định danh và key usage được xác thực **ngoài** chữ ký; thông điệp ký không được mặc định là confidential hay chống replay.
-- [ ] Có test signature altered, content altered, wrong key, stale/replayed message, wrong params và cross-provider khi cần.
+- [ ] `getInstance` uses an **explicit signature algorithm name**, not taken arbitrarily from unauthenticated data.
+- [ ] `initSign` receives the right signer/purpose **private key**; `initVerify` uses a **trusted public key** for the expected signer.
+- [ ] All critical bytes are fed to `update` in the right order, charset, and schema; when streaming, `len` is the actual bytes read.
+- [ ] `sign()` and `verify()` only run after valid init/update; callers understand engine reset after an operation and do not share across threads.
+- [ ] PSS and other params are specified/compatible; key length and provider meet policy.
+- [ ] The `verify` result **must be checked**; `false` and all related exceptions lead to rejection.
+- [ ] Certificates, identity, and key usage are validated **outside** the signature check; signed messages are not assumed confidential or replay-proof.
+- [ ] Tests cover altered signature, altered content, wrong key, stale/replayed message, wrong params, and cross-provider checks where needed.
 
-## 12. Tự kiểm tra kiến thức
+## 12. Self-check questions
 
-**Câu 1:** `Signature.getInstance("SHA256withRSA")` rồi `update` được ngay không?  
-**Không.** Phải gọi `initSign(privateKey)` hoặc `initVerify(publicKey)` trước.
+**Question 1:** Can you call `Signature.getInstance("SHA256withRSA")` and immediately call `update`?  
+**No.** You must call `initSign(privateKey)` or `initVerify(publicKey)` first.
 
-**Câu 2:** Bên ký `update(A)` và `update(B)`, bên verify `update(A||B)` có được không?  
-**Có**, nếu byte nối chính xác cùng thứ tự và cùng scheme/params. Kích thước chunk không làm thay đổi message.
+**Question 2:** If the signer calls `update(A)` and `update(B)`, can the verifier call `update(A||B)`?  
+**Yes**, provided the concatenated bytes are in the exact same order with the same scheme/params. Chunk boundaries do not alter the message.
 
-**Câu 3:** `Signature.sign()` trả ciphertext hay signature?  
-**Signature bytes.** Message không được mã hóa bởi `Signature`.
+**Question 3:** Does `Signature.sign()` return ciphertext or a signature?  
+**Signature bytes.** The message is not encrypted by `Signature`.
 
-**Câu 4:** Vì sao thay `amount=100` thành `amount=101` làm `verify` thất bại?  
-Vì chữ ký đã ràng buộc với **byte message đã nạp**. Nội dung mới không còn khớp chữ ký cũ.
+**Question 4:** Why does changing `amount=100` to `amount=101` cause `verify` to fail?  
+Because the signature is bound to the **message bytes that were fed in**. The modified content no longer matches the old signature.
 
-**Câu 5:** Sau `verify()` có được nạp message khác không?  
-**Có** theo contract: đối tượng reset về initialized VERIFY state với key cũ; phải `update` lại message mới. Trong code concurrency nên dùng engine riêng cho mỗi operation.
+**Question 5:** After `verify()`, can you feed another message?  
+**Yes**, per the API contract: the object resets to the initialized VERIFY state with the same key; you must `update` the new message. In concurrent code, use a separate engine per operation.
 
-**Câu 6:** `verify() == true` đã đủ khẳng định “Alice ký” chưa?  
-**Chưa.** Cần xác thực public key thật sự thuộc Alice và được phép dùng ký; cần thêm kiểm tra expiry, replay và context theo ứng dụng.
+**Question 6:** Is `verify() == true` enough to conclude “Alice signed this”?  
+**Not yet.** You must verify that the public key truly belongs to Alice and is authorized for signing, plus check expiry, replay, and application context.
 
-**Câu 7:** RSA-PSS ký lại cùng message bằng cùng private key có bắt buộc ra đúng cùng byte chữ ký không?  
-**Không.** PSS dùng randomness (salt); kiểm chứng bằng `Signature.verify`, không dựa vào byte equality.
+**Question 7:** When re-signing the same message with RSA-PSS and the same private key, must it produce the exact same signature bytes?  
+**No.** PSS uses randomness (salt); validate with `Signature.verify`, never by byte equality.
 
-## Tài liệu gốc và đọc thêm
+## Primary sources and further reading
 
-- [Java SE 17 — `java.security.Signature`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html): tài liệu chính cho **ba giai đoạn**, state `UNINITIALIZED`/`SIGN`/`VERIFY`, `update`, `sign`, `verify` và reset sau khi hoàn thành.
+- [Java SE 17 — `java.security.Signature`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html): primary documentation for the **three stages**, `UNINITIALIZED`/`SIGN`/`VERIFY` states, `update`, `sign`, `verify`, and reset upon completion.
 - [Java SE 17 — `PSSParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/PSSParameterSpec.html): SHA-256, MGF1, salt length, trailer.
-- [Java SE 17 — `MGF1ParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/MGF1ParameterSpec.html): digest sử dụng bên trong MGF1.
-- [Java SE 17 — Java Cryptography Architecture Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): Signature engine, provider, service architecture và ví dụ sử dụng.
-- [Java SE 17 — Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): tên chuẩn và nhóm thuật toán `Signature` bắt buộc/khả dụng.
-- [RFC 8017 — PKCS #1 v2.2](https://www.rfc-editor.org/rfc/rfc8017): RSASSA-PSS, encoding, salt và mô hình xác minh.
+- [Java SE 17 — `MGF1ParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/MGF1ParameterSpec.html): digest used inside MGF1.
+- [Java SE 17 — Java Cryptography Architecture Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): `Signature` engine, providers, service architecture, and usage examples.
+- [Java SE 17 — Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): standard names and required/available `Signature` algorithms.
+- [RFC 8017 — PKCS #1 v2.2](https://www.rfc-editor.org/rfc/rfc8017): RSASSA-PSS, encoding, salt, and verification model.
 
-**Ghi nhớ:** `initSign(private) → update(message bytes) → sign()` tạo chữ ký; `initVerify(trustedPublic) → update(same message bytes) → verify(signature)` kiểm tra. Hai phía phải thống nhất **byte, thuật toán, tham số và danh tính khóa**. `Signature` quản lý tính toàn vẹn và chứng thực theo khóa, không cung cấp bảo mật bí mật hay chống replay một cách tự động.
+**Key takeaway:** `initSign(private) → update(message bytes) → sign()` creates a signature; `initVerify(trustedPublic) → update(same message bytes) → verify(signature)` checks it. Both sides must agree on **bytes, algorithm, parameters, and key identity**. `Signature` handles integrity and key-bound authentication; it does not automatically provide confidentiality or replay protection.

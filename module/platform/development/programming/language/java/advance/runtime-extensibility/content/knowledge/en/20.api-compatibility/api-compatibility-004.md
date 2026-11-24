@@ -1,13 +1,13 @@
-# Không để lộ kiểu phụ thuộc riêng, đối tượng nội bộ hoặc ngoại lệ của plugin qua API Java
+# Not Exposing Private Dependency Types, Internal Objects, or Plugin Exceptions Through a Java API
 
-## 1. Mục tiêu: ranh giới API ổn định giữa host và plugin
+## 1. Goal: a stable API boundary between host and plugin
 
-Hệ thống mở rộng Java cho phép **host** chọn và gọi **plugin** bằng một hợp đồng dùng chung. Plugin có thể chứa SDK của vendor, thư viện phiên bản riêng, class loader riêng hoặc module trong `ModuleLayer` khác. Nếu những chi tiết implementation vô tình đi qua API, host cũng bị buộc phải biết chúng. Mỗi lần đổi thư viện, đổi plugin hoặc nâng version, ta có nguy cơ làm hỏng mã của host và các plugin khác.
+A Java extensibility system allows a **host** to select and invoke a **plugin** through a shared contract. A plugin may contain vendor SDKs, its own library versions, its own class loader, or modules in another `ModuleLayer`. If those implementation details accidentally cross the API boundary, the host is forced to know about them too. Whenever a library is swapped, a plugin changes, or a version is upgraded, you risk breaking host code and other plugins.
 
-Phản ví dụ:
+Counterexample:
 
 ```java
-// Mã minh họa API xấu, không phải chương trình hoàn chỉnh.
+// Bad API illustrative snippet, not a complete program.
 import vendor.sdk.VendorRequest;
 import vendor.sdk.VendorResult;
 import vendor.sdk.VendorException;
@@ -18,13 +18,13 @@ public interface BadPlugin {
 }
 ```
 
-Hợp đồng trên gây ba vấn đề trực tiếp:
+That contract creates three direct problems:
 
-1. **Rò kiểu dependency riêng:** client phải biết `VendorRequest` và `VendorResult` mới compile/call được. Đổi SDK có thể buộc sửa cả host.
-2. **Rò object nội bộ:** `VendorResult` có thể mang cache, mutable model, session, callback hoặc reference tới class loader, khiến host vô tình giữ trạng thái mà plugin sở hữu.
-3. **Rò ngoại lệ:** host phải catch `VendorException`; message/cause/stack trace có thể chứa internal path, endpoint, dữ liệu nhạy cảm và khiến client phụ thuộc vào chi tiết vendor.
+1. **Private dependency type leakage:** clients must know `VendorRequest` and `VendorResult` just to compile/call. Changing SDKs can force rewriting the host.
+2. **Internal object leakage:** `VendorResult` may carry caches, mutable models, sessions, callbacks, or references to a class loader, causing the host to inadvertently retain plugin-owned state.
+3. **Exception leakage:** the host must catch `VendorException`; its message/cause/stack trace can contain internal paths, endpoints, or sensitive data, coupling clients to vendor details.
 
-**Nguyên tắc thiết kế:** public API do **host hoặc shared-api module** sở hữu, chỉ dùng **kiểu chung ổn định** và những kiểu JDK phù hợp. Plugin dùng một *adapter* để chuyển đổi giữa contract chung và implementation-specific SDK. Ngoại lệ vendor được xử lý trong adapter và chuyển thành **lỗi chung theo hợp đồng**.
+**Design principle:** the public API is owned by the **host or `shared-api` module**, using only **stable shared types** and appropriate JDK types. The plugin uses an *adapter* to translate between the shared contract and its implementation-specific SDK. Vendor exceptions are handled inside the adapter and mapped to **shared contract errors**.
 
 ```text
                      SHARED API BOUNDARY
@@ -35,19 +35,19 @@ Hợp đồng trên gây ba vấn đề trực tiếp:
                         ▲                          Private SDK / JAR
                         │                          - vendor request/model
                         │                          - vendor exception
-                        └── chỉ DTO, mã lỗi chung ────────┘
+                        └── only DTOs, shared error codes ─┘
 ```
 
-Dấu hiệu thành công: **host compile được chỉ với shared API và JDK, không cần vendor JAR**. Khi plugin thay vendor SDK nhưng giữ nguyên semantics của API, mã host không phải đổi theo.
+Sign of success: **the host compiles with only the shared API and JDK, without needing the vendor JAR**. When a plugin swaps vendor SDKs while preserving API semantics, host code does not have to change.
 
-## 2. Những vị trí thường xuyên rò kiểu phụ thuộc
+## 2. Places where dependency types commonly leak
 
 ### 2.1. Public/protected signatures
 
-Hãy kiểm tra toàn bộ bề mặt API, không chỉ kiểu trả về của một method:
+Audit the entire API surface, not just a method's return type:
 
 ```java
-// Tất cả là PHẢN VÍ DỤ; các kiểu Vendor* chỉ mang tính minh họa.
+// All are COUNTEREXAMPLES; Vendor* types are illustrative only.
 VendorResult process(VendorRequest input);
 
 List<VendorResult> processAll(List<VendorRequest> inputs);
@@ -63,18 +63,18 @@ Supplier<? extends VendorSession> newSessionFactory();
 <T extends VendorRecord> T map(T source);
 ```
 
-Những mẫu trên cũng leak qua **generic arguments và bounds**. Java type erasure không xóa việc compiler/source clients và nhiều API reflection cần nhìn thấy generic signatures. Vì vậy `List<VendorResult>` không tự trở thành contract ổn định chỉ vì runtime descriptor có thể là `List`.
+These patterns also leak through **generic arguments and bounds**. Java type erasure does not remove what the compiler, source clients, and reflection APIs see in generic signatures. Thus, `List<VendorResult>` does not automatically become a stable contract merely because its runtime descriptor is `List`.
 
-Các vị trí khác phải audit: public/protected constructors, fields, getters/setters, record components, annotation types, type parameters, interface default methods, factory return types, callback event types và phương thức public trong lớp API.
+Other places to audit: public/protected constructors, fields, getters/setters, record components, annotation types, type parameters, interface default methods, factory return types, callback event types, and public methods on API classes.
 
-**Quy tắc kiểm thử:** đặt một ứng dụng mẫu chỉ phụ thuộc vào `shared-api.jar` trên compile classpath; nếu compiler đòi `vendor.jar` để dùng interface/DTO thì đã rò dependency.
+**Verification rule:** create a sample application depending only on `shared-api.jar` on the compile classpath; if the compiler asks for `vendor.jar` to use an interface/DTO, a dependency has leaked.
 
-### 2.2. Trả `Object` không thật sự che object nội bộ
+### 2.2. Returning `Object` does not truly hide internal objects
 
-Phản ví dụ:
+Counterexample:
 
 ```java
-// Mã minh họa không độc lập.
+// Non-standalone illustrative code.
 Object execute(Object request);
 
 Map<String, Object> getMetadata();
@@ -82,23 +82,23 @@ Map<String, Object> getMetadata();
 Object getInternalSession();
 ```
 
-Nếu object thực sự là `vendor.sdk.VendorResult`, host cuối cùng vẫn phải cast, phản chiếu hoặc truyền tiếp object private. Khi đó còn xuất hiện rủi ro class loader, data ownership và lifetime mà compiler không phát hiện được.
+If the underlying object is actually `vendor.sdk.VendorResult`, the host eventually still has to cast, reflect on, or forward a private object. That also introduces class loader, data ownership, and lifetime risks that the compiler cannot detect.
 
-Cũng không nên đóng vendor object vào một DTO chung có field `Object details`; kiểu khai báo ngoài cùng không nói được nội dung thực. Phải kiểm tra **toàn bộ object graph** gồm elements trong collections, optional values, callback captures và async completion results.
+Nor should you wrap a vendor object inside a shared DTO with an `Object details` field; the declared outer type says nothing about the actual payload. You must audit the **entire object graph**, including elements inside collections, optional values, callback captures, and async completion results.
 
-`Map<String,String>` có thể phù hợp nếu cấu trúc dữ liệu thật sự là key-value đã có schema, nhưng không nên lạm dụng `Map<String,Object>` để tránh thiết kế typed DTO. API mạnh cần **ngữ nghĩa dữ liệu rõ ràng**, không chỉ tên kiểu chung chung.
+`Map<String,String>` may fit if the data structure is genuinely a schema-defined key-value map, yet avoid overusing `Map<String,Object>` as an excuse to skip designing typed DTOs. A strong API needs **explicit data semantics**, not vague generic types.
 
-### 2.3. Rò kiểu qua exception hoặc callback
+### 2.3. Leakage through exceptions or callbacks
 
-Ngay cả interface không khai báo `throws` vẫn có thể để lọt runtime exception của vendor. Callback kiểu `Consumer<Throwable>` cũng có thể gửi raw private exception sang host. `CompletionStage<Result>` có thể hoàn thành lỗi với `CompletionException` bọc vendor failure.
+Even an interface without a `throws` clause can let vendor runtime exceptions escape. Callbacks like `Consumer<Throwable>` can also send raw private exceptions to the host. `CompletionStage<Result>` can complete exceptionally with a `CompletionException` wrapping a vendor failure.
 
-Một số kiểu không nên trả qua boundary chỉ vì host có thể giữ lâu: `Class<?>` của plugin, `ClassLoader`, `MethodHandle`, `Throwable` có cause là private exception, stream/session sở hữu nội bộ, thread hoặc lambda callback gắn với plugin instance. Chúng vừa rò detail vừa có thể khiến class loader cũ không được garbage collection sau khi plugin dừng.
+Certain types should never cross the boundary simply because the host may retain them long-term: a plugin's `Class<?>`, `ClassLoader`, `MethodHandle`, `Throwable` whose cause is a private exception, internally owned streams/sessions, threads, or callback lambdas bound to a plugin instance. They both leak details and can prevent old class loaders from being garbage-collected after a plugin stops.
 
-## 3. Shared API thiết kế như thế nào?
+## 3. How should a shared API be designed?
 
-### 3.1. Chỉ chứa hợp đồng chung
+### 3.1. Contain only the shared contract
 
-Ví dụ interface sạch:
+Clean interface example:
 
 ```java
 package com.example.api;
@@ -109,10 +109,10 @@ public interface TextPlugin {
 }
 ```
 
-Các kiểu chung có thể là:
+Shared types can be:
 
 ```java
-// Minh họa: tách các public types ra từng file trong code thật.
+// Illustrative: split public types into separate files in real code.
 public record TextRequest(String requestId, String text) {}
 
 public record TextResult(String requestId, String text) {}
@@ -124,9 +124,9 @@ public enum FailureCode {
 }
 ```
 
-Hai snippet trên chỉ giúp đọc contract, không phải bộ file hoàn chỉnh. Mục 8 có **ví dụ chạy được Java 17+**, đúng package và đúng tên tệp.
+These two snippets only aid in reading the contract and are not a complete file set. Section 8 provides a **runnable Java 17+ example** with proper packages and filenames.
 
-**Đặc điểm cần có:** kiểu contract được sở hữu chung, semantics rõ, không đưa model vendor vào trường dữ liệu, không trả session/connection do plugin sở hữu. Khi plugin nâng version, host còn có thể kiểm chứng compatibility mà không biết vendor nào ở bên dưới.
+**Required characteristics:** contract types are jointly owned, semantics are clear, no vendor models appear in fields, and no plugin-owned sessions/connections are returned. When a plugin upgrades versions, the host can verify compatibility without knowing which vendor sits underneath.
 
 ### 3.2. Adapter/anti-corruption layer
 
@@ -149,29 +149,29 @@ Hai snippet trên chỉ giúp đọc contract, không phải bộ file hoàn ch�
   - map VendorException -> PluginFailure
          │
          ▼
- Host TextResult hoặc FailureCode
+ Host TextResult or FailureCode
 ```
 
-**Chuyển đổi dữ liệu** là một thao tác thật, không chỉ ép kiểu hoặc bọc object:
+**Data conversion** is a real translation step, not just casting or wrapping objects:
 
-- Lấy những field mà contract cần, loại dữ liệu implementation-specific.
-- Chuyển đơn vị, encoding, timezone, nullable fields theo định nghĩa chung.
-- Kiểm tra dải giá trị, kích thước dữ liệu và input/output schema.
-- Sao chép dữ liệu cần tách ownership, thay vì trả reference tới cache nội bộ.
-- Không giữ phụ thuộc vendor trong public exception, DTO hay event.
+- Extract only fields required by the contract, dropping implementation-specific data.
+- Convert units, encodings, timezones, and nullable fields per the shared definition.
+- Validate value ranges, data sizes, and input/output schemas.
+- Copy data needing ownership separation instead of returning references to internal caches.
+- Keep vendor dependencies out of public exceptions, DTOs, and events.
 
-Adapter đồng thời là chỗ lý tưởng cho version/capability compatibility: plugin có thể thay thuật toán hoặc vendor SDK nhưng giữ contract không đổi.
+The adapter is also the ideal place for version/capability compatibility: the plugin can swap algorithms or vendor SDKs while keeping the contract unchanged.
 
-### 3.3. Record, immutable DTO và ownership
+### 3.3. Records, immutable DTOs, and ownership
 
-Java record giúp mô tả dữ liệu ngắn gọn, nhưng **record chỉ bất biến nông** khi component tham chiếu mutable object.
+Java records describe data concisely, yet **a record is only shallowly immutable** when a component references a mutable object.
 
 ```java
-// Phản ví dụ: items có thể là list mutable của plugin.
+// Counterexample: items could be a mutable list owned by the plugin.
 public record BadResult(java.util.List<String> items) {}
 ```
 
-Thiết kế có defensive copy:
+Design with defensive copying:
 
 ```java
 import java.util.List;
@@ -183,29 +183,29 @@ public record GoodResult(List<String> items) {
 }
 ```
 
-Đây là mẫu code độc lập cho file `GoodResult.java`. `List.copyOf` cho một unmodifiable list và từ chối null elements, nhưng **không deep-copy** các phần tử mutable. Với `byte[]` cần copy; với `ByteBuffer`, read-only view không bảo đảm backing storage không bị alias khác chỉnh sửa.
+This is a standalone code sample for `GoodResult.java`. `List.copyOf` produces an unmodifiable list and rejects null elements, yet **does not deep-copy** mutable elements. Copy `byte[]` arrays; for `ByteBuffer`, a read-only view does not guarantee backing storage is not mutated through another alias.
 
-Nếu API bắt buộc hỗ trợ streaming/handle, phải định nghĩa rõ lifetime, ai đóng stream/handle, ai chịu trách nhiệm cancellation, liệu đối tượng còn hợp lệ sau khi plugin `stop` và cách ngăn client giữ class loader cũ. Tránh trả nguyên `Connection`, `VendorSession`, thread, listener hoặc vendor cache.
+If an API must support streaming/handles, explicitly define lifetime, who closes the stream/handle, who handles cancellation, whether the object stays valid after plugin `stop`, and how to prevent clients from pinning old class loaders. Avoid returning raw `Connection`, `VendorSession`, threads, listeners, or vendor caches.
 
-### 3.4. API kiểu trung lập vẫn cần semantics
+### 3.4. Neutral-typed APIs still need semantics
 
-| Loại public | Khả năng phù hợp | Điều phải xác định |
+| Public type | Suitability | Must be specified |
 | --- | --- | --- |
-| `String`, `int`, `boolean` | Thường tốt | Encoding, đơn vị, giới hạn, nullability |
-| Public record/class chung | Tốt | Versioning, schema, defensive copy |
-| `List<SharedDto>` | Tốt khi ownership rõ | Mutable element, null handling, size |
-| `Optional<SharedDto>` | Có thể dùng cho return | “Không có” khác “lỗi” |
-| `CompletionStage<SharedDto>` | Phù hợp API async | Cancellation, threading, error normalization |
-| `Map<String,String>` | Phù hợp metadata nhỏ có schema | Quy tắc key, validation, unknown keys |
-| `VendorType` | **Không** | Buộc host dùng private dependency |
-| `Object` chứa vendor object | **Không** | Mất typing, leak runtime identity/lifecycle |
-| Raw `Throwable`/`ClassLoader` | **Không nên** | Rò implementation và pin loader |
+| `String`, `int`, `boolean` | Usually good | Encoding, units, limits, nullability |
+| Shared public record/class | Good | Versioning, schema, defensive copy |
+| `List<SharedDto>` | Good when ownership is clear | Mutable elements, null handling, size |
+| `Optional<SharedDto>` | Usable for returns | "Absent" vs "error" |
+| `CompletionStage<SharedDto>` | Fits async APIs | Cancellation, threading, error normalization |
+| `Map<String,String>` | Fits small schema-backed metadata | Key rules, validation, unknown keys |
+| `VendorType` | **No** | Forces host to use private dependency |
+| `Object` holding a vendor object | **No** | Loses typing, leaks runtime identity/lifecycle |
+| Raw `Throwable`/`ClassLoader` | **Avoid** | Leaks implementation and pins loaders |
 
-Không cần ép mọi API thành primitive; DTO chung rõ ràng đôi khi tốt hơn nhiều tham số `String` với nghĩa không rõ.
+You do not need to force every API into primitives; clear shared DTOs are often far better than multiple `String` parameters with ambiguous meaning.
 
-## 4. Phụ thuộc API, phụ thuộc implementation và vấn đề class loader
+## 4. API dependencies, implementation dependencies, and class loader issues
 
-### 4.1. Dependency graph đúng hướng
+### 4.1. Dependency graph pointing the right direction
 
 ```text
              ┌─────────────────┐
@@ -217,39 +217,39 @@ Không cần ép mọi API thành primitive; DTO chung rõ ràng đôi khi tốt
                                               ▼
                                        vendor dependencies
 
-Không mong muốn:
+Undesired:
  shared-api.jar ─────────► vendor-private.jar
  Host source imports ────► vendor.internal.*
  Public method types ────► VendorRequest/VendorResponse/VendorException
 ```
 
-Host compile với API chung, plugin compile với API chung **và** vendor library. Khi chạy, private dependency **vẫn phải có** trong runtime/module/classloader phù hợp. “Không để lộ dependency” không có nghĩa “xóa dependency khỏi runtime”.
+The host compiles against the shared API; the plugin compiles against the shared API **and** the vendor library. At runtime, the private dependency **must still be present** in the appropriate runtime/module/classloader. "Do not expose the dependency" does not mean "delete the dependency from runtime."
 
-Gradle `implementation` hoặc Maven scope có thể giúp giữ dependency graph sạch, nhưng những keyword build **không bảo đảm** contract không trả object vendor. Hãy kiểm tra cả Java signatures và runtime object graph.
+Gradle `implementation` or Maven scopes help keep build dependency graphs clean, yet build keywords **do not guarantee** a contract does not return vendor objects. Inspect both Java signatures and the runtime object graph.
 
-### 4.2. Class identity: tên giống không đồng nghĩa cùng kiểu
+### 4.2. Class identity: same name does not mean same type
 
-Trong JVM, danh tính một class gồm **binary class name và defining class loader**.
+In the JVM, a class's identity consists of its **binary class name and its defining class loader**.
 
 ```text
 Host loader H  : com.example.api.TextPlugin
-Plugin loader P: com.example.api.TextPlugin (bản copy)
+Plugin loader P: com.example.api.TextPlugin (duplicate copy)
 ```
 
-Hai class cùng tên nhưng nạp bởi loader khác có thể không tương thích; provider có thể gặp `ServiceConfigurationError`, `ClassCastException` hoặc linkage error khi host dùng contract khác identity.
+Two classes with the same name loaded by different loaders can be incompatible; providers may hit `ServiceConfigurationError`, `ClassCastException`, or linkage errors when the host uses a contract with a different identity.
 
-Cách làm:
+Best practices:
 
-- Đặt shared API trong loader/`ModuleLayer` ổn định mà host và plugin cùng tham chiếu.
-- Không để plugin child-first class loader “shadow” `com.example.api.*` bằng một bản API riêng.
-- Vendor SDK có thể được cô lập theo từng plugin loader hoặc layer khi cần chạy nhiều version.
-- Luôn kiểm thử parent delegation và dependency resolution, không chỉ kiểm tra tên class/package.
+- Place the shared API in a stable loader/`ModuleLayer` referenced by both host and plugins.
+- Do not let a plugin's child-first class loader "shadow" `com.example.api.*` with its own copy of the API.
+- Vendor SDKs can be isolated per plugin loader or layer when multiple versions must coexist.
+- Always test parent delegation and dependency resolution, not just class/package names.
 
-**Lưu ý:** Nếu toàn bộ JAR đặt trên cùng classpath, những class vendor được khai báo `public` có thể vẫn truy cập được. Việc API không nhắc đến chúng là **ràng buộc kiến trúc**, chưa phải sandbox hoặc isolation bảo mật.
+**Note:** If all JARs are placed on the same classpath, `public` vendor classes may still be reachable. Omitting them from the API is an **architectural constraint**, not a security sandbox or isolation boundary.
 
 ### 4.3. JPMS `exports`, `opens`, `provides`
 
-Đối với named modules, có thể định nghĩa descriptor (mã minh họa):
+For named modules, descriptors can be defined as (illustrative code):
 
 ```java
 module com.example.api {
@@ -265,71 +265,71 @@ module com.example.plugin {
 }
 ```
 
-Host và plugin đọc cùng API module; plugin không cần `exports com.example.plugin` chỉ để dùng `provides` cho SPI. Vendor/implementation packages có thể không export. `opens` phục vụ reflective access sâu, không nên mở bừa mọi package để framework truy cập.
+Host and plugin read the same API module; the plugin does not need `exports com.example.plugin` solely to use `provides` for SPI. Vendor/implementation packages can stay unexported. `opens` enables deep reflective access and should not be applied indiscriminately to every package for framework access.
 
-JPMS bảo vệ **readability/accessibility** trong mô hình module, không thay thế sandbox quyền hệ điều hành. Một plugin không tin cậy chạy trong cùng JVM có thể gây hại dù package của nó không được exports.
+JPMS enforces **readability/accessibility** within the module model, not OS-level permission sandboxing. An untrusted plugin running inside the same JVM can still cause harm even if its packages are not exported.
 
-### 4.4. Vì sao giấu vendor khỏi API giúp upgrade?
+### 4.4. Why hiding vendors from the API helps upgrades
 
-Nếu public interface chỉ dùng `TextRequest`/`TextResult`/`PluginFailure`, plugin có thể đổi từ vendor A sang vendor B khi vẫn giữ nghĩa của dữ liệu và error codes. Host không phải chỉnh import/catch/cast. Dù vậy, **thay vendor vẫn phải test** behavior, performance, data format, concurrency và tương thích runtime.
+If the public interface uses only `TextRequest`/`TextResult`/`PluginFailure`, a plugin can switch from vendor A to vendor B while preserving data meanings and error codes. The host requires no import/catch/cast edits. Even so, **swapping vendors still requires testing** behavior, performance, data formats, concurrency, and runtime compatibility.
 
-Nếu public method đổi parameter hoặc return type vendor, Java descriptor có thể đổi và client cũ gặp `NoSuchMethodError`; nếu class phụ thuộc không còn, có thể gặp `NoClassDefFoundError`. Generic signature changes có thể ảnh hưởng source/reflection ngay cả khi erasure giống. Không được đánh đồng “biên dịch qua” với “tương thích nhị phân và hành vi”.
+If a public method changes a vendor parameter or return type, the Java descriptor may change and old clients hit `NoSuchMethodError`; if a dependent class vanishes, `NoClassDefFoundError` can occur. Generic signature changes can affect source/reflection even when erasure matches. Never equate "compiles cleanly" with "binary and behavioral compatibility."
 
-## 5. Ngoại lệ riêng phải dừng trong plugin
+## 5. Private exceptions must stop inside the plugin
 
-### 5.1. Checked exception trong chữ ký là coupling
+### 5.1. Checked exceptions in signatures are coupling
 
-Phản ví dụ:
+Counterexample:
 
 ```java
-// Mã minh họa không độc lập.
+// Non-standalone illustrative code.
 public interface BadPaymentPlugin {
     Receipt charge(Order order)
         throws vendor.payment.VendorServiceException;
 }
 ```
 
-Bên gọi phải có vendor exception type để compile xử lý catch. Đổi vendor SDK có thể buộc đổi API. Tốt hơn:
+Callers must have the vendor exception type on hand to compile `catch` blocks. Swapping vendor SDKs can force an API change. Better:
 
 ```java
-// Các type ở shared API; mã minh họa.
+// Types in shared API; illustrative code.
 public interface PaymentPlugin {
     PaymentResult charge(PaymentRequest request)
         throws PluginFailure;
 }
 ```
 
-`PluginFailure` là checked exception ổn định của contract, không kế thừa từ vendor exception. Nên kèm `FailureCode` để host/client phân loại theo ngữ nghĩa thay vì parse message.
+`PluginFailure` is a stable checked exception of the contract and does not inherit from any vendor exception. Include a `FailureCode` so hosts/clients classify semantically instead of parsing messages.
 
-### 5.2. Không chỉ checked exception mới lọt ra ngoài
+### 5.2. Checked exceptions are not the only ones that leak
 
-Những nguồn rò có thể xuất hiện dù signature không khai báo `throws`:
+Leakage sources can occur even when a signature declares no `throws`:
 
-- `VendorRuntimeException` hoặc `IllegalStateException` mang tên endpoint/table/key nội bộ.
-- `CompletionException`/`ExecutionException` bọc vendor exception trong future.
-- `InvocationTargetException` từ reflection.
-- `ServiceConfigurationError` trong bước khám phá SPI.
-- `NoClassDefFoundError`, `NoSuchMethodError`, `LinkageError` do runtime dependencies.
-- Message/stack trace chứa API token, username, path, SQL hoặc payload của request.
+- `VendorRuntimeException` or `IllegalStateException` carrying internal endpoint/table/key names.
+- `CompletionException`/`ExecutionException` wrapping a vendor exception inside a future.
+- `InvocationTargetException` from reflection.
+- `ServiceConfigurationError` during SPI discovery.
+- `NoClassDefFoundError`, `NoSuchMethodError`, `LinkageError` from runtime dependencies.
+- Messages/stack traces containing API tokens, usernames, paths, SQL, or request payloads.
 
-Boundary cần phân loại:
+Categorize at the boundary:
 
-1. **Lỗi theo hợp đồng:** adapter tạo shared `PluginFailure` với code rõ.
-2. **Runtime exception không mong đợi:** host xử lý tại ranh giới thích hợp, ghi telemetry nội bộ đã redaction, trả mã `INTERNAL_FAILURE`/message chung cho client.
-3. **Lỗi nặng thuộc `Error`:** không bắt mọi `Throwable` rồi giả vờ hệ thống vẫn khỏe; cần chính sách giám sát/cô lập cấp tiến trình.
+1. **Contract failures:** the adapter constructs a shared `PluginFailure` with an explicit code.
+2. **Unexpected runtime exceptions:** the host handles them at the right boundary, records redacted internal telemetry, and returns an `INTERNAL_FAILURE` code/generic message to clients.
+3. **Severe `Error`s:** do not catch every `Throwable` and pretend the system is healthy; have a process-level monitoring/isolation policy.
 
-Một `ServiceLoader` không tìm được provider trả `Optional.empty()` bình thường. Provider đăng ký hỏng/không thể tạo có thể ném `ServiceConfigurationError`; không được biến cả hai thành “không có plugin”.
+A `ServiceLoader` finding no providers normally returns `Optional.empty()`. A broken/uninstantiable registered provider can throw `ServiceConfigurationError`; do not collapse both into "no plugin found."
 
-### 5.3. Public error envelope và internal diagnostics
+### 5.3. Public error envelope and internal diagnostics
 
-Mô hình:
+Model:
 
 ```text
 VendorException("internal-db:443 token=...")
-            │ catch trong adapter
+            │ caught inside adapter
             ▼
 PluginFailure(code=DEPENDENCY_FAILURE, safe detail)
-            │ host chỉ dùng error code
+            │ host uses error code only
             ▼
 Public response:
   code=DEPENDENCY_FAILURE
@@ -338,28 +338,28 @@ Public response:
 
 Internal diagnostics:
   pluginId / instanceId / stage / requestId
-  exception gốc đã kiểm soát quyền truy cập và redaction
+  original exception under access control and redaction
 ```
 
-**Không trả nguyên `Throwable.getMessage()`, stack trace hoặc `getCause()` cho client.** Nếu giữ vendor exception làm cause của public exception, host có thể thấy raw private type qua `getCause()` và vô tình giữ loader cũ trong cache. Có thể giữ cause chỉ trong logging/telemetry nội bộ có quyền hạn; public response nên là DTO chứa error code, safe message và correlation ID.
+**Never return raw `Throwable.getMessage()`, stack traces, or `getCause()` to clients.** Keeping a vendor exception as the cause of a public exception lets the host see raw private types via `getCause()` and can accidentally retain old loaders in caches. Retain causes only in access-controlled, redacted internal logging/telemetry; public responses should be DTOs with an error code, safe message, and correlation ID.
 
-**Quan trọng:** Ngay cả `PluginFailure.getMessage()` do một plugin bên thứ ba tạo **không mặc nhiên an toàn**. Host nên map từ error code tin cậy sang thông điệp công khai, thay vì trả nguyên message do provider cung cấp.
+**Important:** Even `PluginFailure.getMessage()` produced by a third-party plugin **is not safe by default**. The host should map from a trusted error code to a public message instead of forwarding the provider-supplied message verbatim.
 
-### 5.4. Sync và async đều cần chuẩn hóa
+### 5.4. Both sync and async need normalization
 
-Với API:
+For an API:
 
 ```java
 CompletionStage<TextResult> convertAsync(TextRequest input);
 ```
 
-đây chỉ là đoạn minh họa. Nếu provider trả failed future chứa `VendorException`, lỗi vẫn rò qua API dù generic return là `TextResult`. Plugin phải hoàn tất lỗi theo model đã quy ước, ví dụ shared `PluginFailure` (và host unwrap đúng `CompletionException`) hoặc `CompletionStage<ResultOrFailure>` chứa DTO lỗi chung.
+this is an illustrative snippet only. If a provider returns a failed future holding a `VendorException`, the error still leaks through the API even though the generic return type is `TextResult`. The plugin must complete failures according to the agreed model—such as shared `PluginFailure` (with the host properly unwrapping `CompletionException`) or `CompletionStage<ResultOrFailure>` carrying a shared error DTO.
 
-Với callback, tránh `onError(Throwable rawVendorError)` ở boundary công khai. Một shared `PluginErrorEvent(code, requestId, safeMessage)` dễ nâng version và an toàn hơn.
+For callbacks, avoid `onError(Throwable rawVendorError)` on public boundaries. A shared `PluginErrorEvent(code, requestId, safeMessage)` is easier to version and safer.
 
 ### 5.5. Versioning error codes
 
-Enum chung như:
+A shared enum like:
 
 ```java
 public enum FailureCode {
@@ -369,48 +369,48 @@ public enum FailureCode {
 }
 ```
 
-giúp host không phải biết tên exception vendor. Tuy nhiên khi bổ sung enum constant, code có `switch` exhaustive được biên dịch từ version trước có thể cần nâng cấp; vì thế version policy phải nêu cách xử lý error code không biết. Nếu plugin ecosystem cần mã lỗi mở rộng theo từng plugin, có thể dùng mã chuỗi có namespace với registry/schema và default handling. Đừng tạo một error code public cho mỗi loại exception vendor.
+spares the host from knowing vendor exception names. However, when adding enum constants, code with exhaustive `switch` statements compiled against an earlier version may need upgrading; therefore, the version policy must specify how unknown error codes are handled. If a plugin ecosystem needs per-plugin extensible error codes, use namespaced string codes with a registry/schema and default handling. Do not create one public error code per vendor exception class.
 
-## 6. Đối tượng nội bộ, vòng đời và tương thích dữ liệu
+## 6. Internal objects, lifecycle, and data compatibility
 
-### 6.1. Ownership ngoài chữ ký Java
+### 6.1. Ownership beyond Java signatures
 
-Một API tưởng ổn khi trả `Result` nhưng implementation đặt trong result một `VendorSession`. Host có thể giữ result sau khi plugin dừng, khiến session, connection, class loader hoặc listener sống quá thời hạn.
+An API may look clean when returning `Result`, yet the implementation embeds a `VendorSession` inside the result. The host may keep the result after the plugin stops, keeping sessions, connections, class loaders, or listeners alive past their lifetime.
 
-Quy tắc:
+Rules:
 
-- Input/output của plugin nên là **snapshot** độc lập, immutable khi khả thi.
-- Không trả mutable cache/collection live view từ implementation.
-- Resource handles cần API chung và hợp đồng `close`/cancellation rõ nếu thật sự phải qua boundary.
-- Callback/lambda/stream/publisher phải có chính sách unsubscribe, backpressure, timeout và ngừng hoạt động khi plugin stop.
-- Không để registry host giữ plugin raw exception, implementation class, class loader, `ThreadLocal`, TCCL hoặc object callback sau hot reload.
+- Plugin inputs/outputs should be independent **snapshots**, immutable whenever feasible.
+- Do not return live views of mutable implementation caches/collections.
+- Resource handles require shared APIs and explicit `close`/cancellation contracts if they truly must cross the boundary.
+- Callbacks/lambdas/streams/publishers must define unsubscribe, backpressure, timeout, and shutdown behavior when the plugin stops.
+- Do not let host registries retain raw plugin exceptions, implementation classes, class loaders, `ThreadLocal`s, TCCLs, or callback objects after hot reload.
 
-### 6.2. Biên dịch được chưa đủ
+### 6.2. Compiling is not enough
 
-Có nhiều tầng compatibility:
+Compatibility spans multiple layers:
 
-| Tầng | Ví dụ rủi ro | Phương pháp kiểm tra |
+| Layer | Example risk | Verification method |
 | --- | --- | --- |
-| Source | Chữ ký mới đòi `VendorRequest` | Build host chỉ với API JAR |
-| Binary | Đổi return/parameter type hoặc xóa method | `javap -s`, binary compatibility CI |
-| Generic/reflection | Generic Signature nhắc vendor model | Audit generics, bounds và annotations |
-| Class loader | Hai bản API hoặc vendor class từ loaders khác nhau | Test SPI/cast/module runtime |
-| Behavioral | Đổi semantics field, units, nullability | Contract/integration tests |
-| Wire/data | Serialize vendor class name vào payload | Schema version, codec độc lập |
-| Lifecycle | Host giữ vendor handle sau plugin stop | Quiesce, close, leak checks |
-| Security | Raw exception chứa secret | Redaction/negative tests |
+| Source | New signature demands `VendorRequest` | Build host with API JAR only |
+| Binary | Changed return/parameter type or removed method | `javap -s`, binary compatibility CI |
+| Generic/reflection | Generic `Signature` mentions vendor model | Audit generics, bounds, and annotations |
+| Class loader | Two API copies or vendor classes from different loaders | Test SPI/cast/module runtime |
+| Behavioral | Changed field semantics, units, nullability | Contract/integration tests |
+| Wire/data | Serialized vendor class name in payload | Schema versioning, independent codecs |
+| Lifecycle | Host retains vendor handle after plugin stop | Quiesce, close, leak checks |
+| Security | Raw exception contains secret | Redaction/negative tests |
 
-`javap -public -s` hữu ích để nhìn public method descriptors. Tuy nhiên vì generics có thể nằm ở `Signature` metadata, đừng kết luận API hoàn toàn sạch chỉ bằng erased descriptors; cần kiểm tra signature/annotations và compile dependency graph.
+`javap -public -s` helps inspect public method descriptors. However, because generics may reside in `Signature` metadata, do not conclude an API is completely clean from erased descriptors alone; inspect signatures/annotations and the compile dependency graph.
 
-### 6.3. Thay dependency là một phép thử kiến trúc
+### 6.3. Swapping dependencies is an architectural test
 
-Hãy thử nâng plugin từ vendor implementation A sang B nhưng không sửa shared API và host. Nếu host vẫn compile, integration tests pass, không có cast vendor và error semantics ổn định, boundary đang hoạt động tốt. Nếu buộc host sửa imports, deserialize vendor object hoặc catch exception SDK mới, implementation detail đã lọt qua hợp đồng.
+Try upgrading a plugin from vendor implementation A to B without editing the shared API or host. If the host still compiles, integration tests pass, no vendor casts exist, and error semantics remain stable, the boundary is working well. If the host must change imports, deserialize vendor objects, or catch new SDK exceptions, implementation details have leaked across the contract.
 
-## 7. Kiến trúc đề xuất cho hệ plugin
+## 7. Recommended architecture for a plugin system
 
 ```text
 HOST
- ├─ shared-api.jar  (owner: host/team API)
+ ├─ shared-api.jar  (owner: host/API team)
  ├─ service registry / dispatcher
  ├─ error mapper + public messages
  └─ plugin lifecycle manager
@@ -424,15 +424,15 @@ HOST
              └─ vendor B private libraries
 ```
 
-Host quyết định version contract, policy lựa chọn plugin, readiness, timeout, retry, error envelope và quyền gọi. Plugin adapter quyết định cách làm việc với SDK của nó; client không cần biết vendor object. Nếu nhiều plugin dùng vendor versions khác nhau, loader isolation đúng cách có thể giúp tách binary classes, nhưng shared API phải thống nhất identity.
+The host decides contract versions, plugin selection policy, readiness, timeouts, retries, error envelopes, and invocation permissions. The plugin adapter decides how to interact with its SDK; clients never need to know vendor objects. If multiple plugins use different vendor versions, proper loader isolation can separate binary classes, while the shared API maintains a unified identity.
 
-Đừng ngộ nhận class loader/module layer là security sandbox. Với plugin không tin cậy, nên xét process isolation, OS permissions, resource limits và giao thức trung lập thay vì chạy toàn quyền trong JVM chính.
+Do not mistake a class loader/module layer for a security sandbox. For untrusted plugins, consider process isolation, OS permissions, resource limits, and neutral protocols rather than running full-privilege code inside the main JVM.
 
-## 8. Ví dụ Java 17+ chạy được: host không cần vendor library để compile
+## 8. Runnable Java 17+ example: host compiles without the vendor library
 
-Ví dụ dùng một vendor SDK **giả lập**, nên chỉ cần JDK 17+. Private vendor SDK có exception với thông điệp mô phỏng nội bộ. Plugin adapter giấu exception và kiểu vendor, chỉ trả shared `TextResult` hoặc shared `PluginFailure`. Host không import implementation hay vendor package.
+This example uses a **simulated** vendor SDK, so only JDK 17+ is required. The private vendor SDK throws an exception with a simulated internal message. The plugin adapter hides vendor exceptions and types, returning only shared `TextResult` or shared `PluginFailure`. The host never imports implementation or vendor packages.
 
-### 8.1. Cấu trúc file
+### 8.1. File layout
 
 ```text
 demo/
@@ -452,7 +452,7 @@ demo/
 │       └── UpperPlugin.java
 ├── resources/
 │   └── META-INF/services/com.example.api.TextPlugin
-└── build/                       (tạo khi biên dịch)
+└── build/                       (created on compile)
 ```
 
 ### 8.2. Shared contract
@@ -530,9 +530,9 @@ public interface TextPlugin {
 }
 ```
 
-Shared API chỉ dùng `String`, record, enum và exception của API chung. `TextRequest.text` có thể là blank để demo kiểm tra nghiệp vụ; implementation sẽ trả lỗi `INVALID_INPUT`. `PluginFailure.internalDetail` không phải văn bản dành cho client, host chỉ dùng `code()` để map public message.
+The shared API uses only `String`, records, an enum, and a shared API exception. `TextRequest.text` may be blank to demonstrate business validation; the implementation returns `INVALID_INPUT`. `PluginFailure.internalDetail` is not client-facing text; the host uses `code()` alone to map public messages.
 
-### 8.3. Thư viện vendor private giả lập
+### 8.3. Simulated private vendor library
 
 **`src/vendor/codec/VendorFormatException.java`**
 
@@ -565,9 +565,9 @@ public final class VendorCodec {
 }
 ```
 
-Chuỗi `FAKE_SECRET` chỉ dùng để kiểm tra không leak error message, **không phải credential thật**. `VendorCodec`/`VendorFormatException` public để plugin adapter ở package khác gọi được, nhưng không được đưa vào contract. Với classpath, public class vendor có thể nạp được từ host nếu cố ý truy cập; ví dụ chỉ chứng minh ranh giới **API**, không phải runtime security isolation.
+The string `FAKE_SECRET` is used solely to verify error messages do not leak, **not a real credential**. `VendorCodec`/`VendorFormatException` are public so the plugin adapter in another package can call them, yet they are kept out of the contract. On a flat classpath, public vendor classes can still be loaded by the host if deliberately accessed; this example demonstrates an **API boundary**, not runtime security isolation.
 
-### 8.4. Adapter plugin
+### 8.4. Plugin adapter
 
 **`src/plugin/upper/UpperPlugin.java`**
 
@@ -606,7 +606,7 @@ public final class UpperPlugin implements TextPlugin {
             String converted = codec.toUpper(request.text());
             return new TextResult(request.requestId(), converted);
         } catch (VendorFormatException vendorError) {
-            // Không trả vendorError, không nối raw message/cause.
+            // Do not return vendorError, do not attach raw message/cause.
             throw new PluginFailure(
                 FailureCode.DEPENDENCY_FAILURE,
                 "Vendor dependency is unavailable");
@@ -615,9 +615,9 @@ public final class UpperPlugin implements TextPlugin {
 }
 ```
 
-**Điểm quan trọng:** private field `VendorCodec` và exception `VendorFormatException` chỉ tồn tại trong plugin implementation. Public method do `TextPlugin` định nghĩa hoàn toàn dùng shared types. Host không cần catch vendor exception; nếu plugin thay SDK, adapter chịu trách nhiệm ánh xạ lỗi và DTO.
+**Key point:** the private `VendorCodec` field and `VendorFormatException` exist only inside the plugin implementation. Public methods defined by `TextPlugin` use shared types exclusively. The host does not need to catch vendor exceptions; if the plugin swaps SDKs, the adapter takes care of mapping errors and DTOs.
 
-### 8.5. Host gọi qua SPI và chuẩn hóa message
+### 8.5. Host calling via SPI and normalizing messages
 
 **`src/com/example/host/Main.java`**
 
@@ -664,11 +664,11 @@ public final class Main {
             System.out.println(
                 "OK " + result.requestId() + " " + result.text());
         } catch (PluginFailure error) {
-            // Không xuất error.getMessage() của plugin cho client.
+            // Do not output plugin's error.getMessage() to clients.
             System.out.println("ERROR " + error.code()
                 + " " + publicMessage(error.code()));
         } catch (RuntimeException unexpected) {
-            // Log nội bộ đã redaction trong ứng dụng production.
+            // Log redacted internal details in production apps.
             System.out.println(
                 "ERROR INTERNAL_FAILURE Plugin execution failed");
         }
@@ -676,7 +676,7 @@ public final class Main {
 }
 ```
 
-Host chỉ import `com.example.api.*` và `java.util.ServiceLoader`. Host không phụ thuộc vào `vendor.codec` ở source level, không cast object sang vendor type và không xuất raw exception detail. Trong hệ thống lớn hơn, lỗi tạo provider ở bước `ServiceLoader` cũng cần được xử lý riêng; không coi nó là `NO_PLUGIN` nếu SPI descriptor/class loading lỗi.
+The host imports only `com.example.api.*` and `java.util.ServiceLoader`. The host has no source-level dependency on `vendor.codec`, never casts objects to vendor types, and never outputs raw exception details. In larger systems, provider instantiation failures inside `ServiceLoader` must also be handled separately rather than treated as `NO_PLUGIN` when an SPI descriptor or class loading fails.
 
 ### 8.6. SPI descriptor
 
@@ -686,142 +686,142 @@ Host chỉ import `com.example.api.*` và `java.util.ServiceLoader`. Host không
 plugin.upper.UpperPlugin
 ```
 
-Tên tệp trùng fully qualified name của service interface; nội dung là provider class. Tệp phải nằm trong plugin JAR tại đúng `META-INF/services` để `ServiceLoader` phát hiện provider.
+The filename matches the fully qualified name of the service interface; its content is the provider class. The file must live inside the plugin JAR at `META-INF/services` for `ServiceLoader` to discover the provider.
 
-### 8.7. Biên dịch, đóng JAR và chạy bằng Windows PowerShell
+### 8.7. Compiling, packaging JARs, and running with Windows PowerShell
 
-Đứng trong thư mục `demo` với JDK 17+:
+Inside directory `demo` with JDK 17+:
 
 ```powershell
 New-Item -ItemType Directory -Force build/host, build/vendor, build/plugin | Out-Null
 
-# Host compile chỉ với shared API + JDK, KHÔNG cần vendor jar.
+# Host compiles with shared API + JDK only, WITHOUT vendor jar.
 javac -encoding UTF-8 -d build/host src/com/example/api/*.java src/com/example/host/Main.java
 
-# Vendor private library được compile/đóng gói riêng.
+# Vendor private library is compiled/packaged separately.
 javac -encoding UTF-8 -d build/vendor src/vendor/codec/VendorFormatException.java src/vendor/codec/VendorCodec.java
 jar --create --file build/vendor-private.jar -C build/vendor .
 
-# Provider adapter phụ thuộc cả API và vendor library.
+# Provider adapter depends on both API and vendor library.
 javac -encoding UTF-8 -cp 'build/host;build/vendor-private.jar' -d build/plugin src/plugin/upper/UpperPlugin.java
 
-# SPI descriptor được đóng trong plugin JAR.
+# SPI descriptor is packaged inside the plugin JAR.
 New-Item -ItemType Directory -Force build/plugin/META-INF/services | Out-Null
 Copy-Item resources/META-INF/services/com.example.api.TextPlugin build/plugin/META-INF/services/com.example.api.TextPlugin
 jar --create --file build/text-plugin.jar -C build/plugin .
 
-# Runtime có plugin và private dependency.
+# Runtime has both plugin and private dependency.
 java -cp 'build/host;build/text-plugin.jar;build/vendor-private.jar' com.example.host.Main
 java -cp 'build/host;build/text-plugin.jar;build/vendor-private.jar' com.example.host.Main '   '
 java -cp 'build/host;build/text-plugin.jar;build/vendor-private.jar' com.example.host.Main fail
 
-# Không có provider JAR -> không khám phá được plugin.
+# Without provider JAR -> no plugin discovered.
 java -cp build/host com.example.host.Main
 ```
 
-**PowerShell/Windows** dùng dấu chấm phẩy `;` giữa các classpath entries. **Linux/macOS** dùng dấu hai chấm `:` và thay lệnh tạo/copy file bằng `mkdir -p`/`cp` tương ứng; ví dụ runtime `java -cp 'build/host:build/text-plugin.jar:build/vendor-private.jar' com.example.host.Main`.
+**PowerShell/Windows** uses semicolons `;` between classpath entries. **Linux/macOS** uses colons `:` and replaces directory/copy commands with `mkdir -p`/`cp`; e.g., runtime `java -cp 'build/host:build/text-plugin.jar:build/vendor-private.jar' com.example.host.Main`.
 
-Lệnh compile host chạy **trước** khi build thư viện vendor; đây là kiểm chứng trực tiếp rằng host không cần private vendor dependency ở compile time.
+The host compile command runs **before** building the vendor library; this directly verifies that the host does not need the private vendor dependency at compile time.
 
-### 8.8. Stdout chính xác
+### 8.8. Exact stdout
 
-**Lệnh chạy mặc định** với input `"hello"`:
+**Default run** with input `"hello"`:
 
 ```text
 OK R1 HELLO
 ```
 
-**Input chỉ gồm khoảng trắng**:
+**Whitespace-only input**:
 
 ```text
 ERROR INVALID_INPUT Input text is required
 ```
 
-**Input `"fail"`**, vendor SDK ném exception riêng:
+**Input `"fail"`**, vendor SDK throws private exception:
 
 ```text
 ERROR DEPENDENCY_FAILURE Text service is temporarily unavailable
 ```
 
-**Không có plugin JAR**:
+**Without plugin JAR**:
 
 ```text
 NO_PLUGIN
 ```
 
-Không kết quả nào chứa `vendor.codec.VendorFormatException`, `private.local` hoặc `FAKE_SECRET`. Host ánh xạ mã lỗi sang public message do chính host quyết định. Nếu loại bỏ `vendor-private.jar` mà vẫn để plugin JAR, có thể gặp lỗi nạp/liên kết class; đây là **thiếu dependency**, không phải trường hợp `NO_PLUGIN` bình thường.
+None of the outputs contain `vendor.codec.VendorFormatException`, `private.local`, or `FAKE_SECRET`. The host maps error codes to public messages chosen by the host itself. If `vendor-private.jar` is removed while leaving the plugin JAR in place, class loading/linking fails; that is a **missing dependency**, not a normal `NO_PLUGIN` case.
 
-### 8.9. Điều ví dụ có và chưa có
+### 8.9. What the example demonstrates and what it omits
 
-Ví dụ chứng minh kiểu vendor không rò qua public API, object được chuyển sang shared DTO, exception vendor được giữ ở adapter và host không cần vendor để compile. Nó sử dụng classpath chung để đơn giản hóa việc chạy; **không** giả định isolation classloader, dependency graph hay hot reload.
+The example demonstrates that vendor types do not leak through the public API, objects are converted into shared DTOs, vendor exceptions stop at the adapter, and the host compiles without the vendor library. It uses a shared classpath to keep running simple; it does **not** assume classloader isolation, dependency graph isolation, or hot reload.
 
-Mã thử chạy tuần tự, chưa quản lý plugin lifecycle start/stop, timeout hoặc nhiều thread. Một plugin manager production cần kiểm soát provider selection, version compatibility, số phiên, cleanup/callback và giám sát. Không dùng class loader/module như sandbox cho mã không đáng tin cậy.
+The sample runs sequentially without managing plugin start/stop lifecycles, timeouts, or concurrency. A production plugin manager must control provider selection, version compatibility, session limits, callback cleanup, and monitoring. Never use class loaders/modules as a sandbox for untrusted code.
 
-## 9. Kiểm tra ranh giới API trong CI và runtime
+## 9. Verifying API boundaries in CI and runtime
 
-### 9.1. Kiểm tra source, bytecode, dependency
+### 9.1. Source, bytecode, and dependency checks
 
-- Build shared API và host **không có vendor-private.jar** trên compile classpath.
-- Dùng `javap -public -s` hoặc công cụ so API/ABI để phát hiện kiểu không mong muốn trong public method descriptors.
-- Audit cả generic `Signature`, bound, annotation, record component và exception types; JVM erasure không làm biến mất coupling ở source/reflection.
-- Có rule chặn API package import các namespace `vendor.*`, `plugin.internal.*`.
-- Build một fake plugin từ API chung, không cần vendor.
-- Thử nâng vendor version hoặc đổi vendor và xác nhận không cần sửa mã host.
+- Build the shared API and host **without `vendor-private.jar`** on the compile classpath.
+- Use `javap -public -s` or an API/ABI diff tool to catch unwanted types in public method descriptors.
+- Audit generic `Signature`s, bounds, annotations, record components, and exception types; JVM erasure does not eliminate source/reflection coupling.
+- Enforce rules blocking API packages from importing `vendor.*` or `plugin.internal.*` namespaces.
+- Build a fake plugin from the shared API alone, without vendor dependencies.
+- Test upgrading a vendor version or swapping vendors and confirm no host code edits are needed.
 
-### 9.2. Kiểm tra runtime và ownership
+### 9.2. Runtime and ownership checks
 
-- Chạy provider qua class loader hoặc module layer dự kiến; xác minh host/plugin dùng **cùng API type identity**.
-- Không có raw vendor object trong returned DTO, callback, future hoặc event.
-- Result list/buffer/array phải tuân thủ copy/immutability policy.
-- Sau plugin stop/hot reload, host không giữ raw `Throwable`, `Class<?>`, callback, thread hoặc handle của plugin làm pin loader cũ.
-- Với nhiều plugin dùng version vendor khác nhau, test classloader isolation và data interchange theo shared DTO.
-- Lỗi provider SPI/config không bị báo thành “không có provider” nếu thực tế có metadata sai hoặc runtime dependency bị lỗi.
+- Run providers through the intended class loader or module layer; verify host/plugin share the **exact same API type identity**.
+- Ensure no raw vendor objects appear inside returned DTOs, callbacks, futures, or events.
+- Result lists/buffers/arrays must obey copy/immutability policies.
+- After plugin stop/hot reload, ensure the host retains no raw `Throwable`, `Class<?>`, callbacks, threads, or plugin handles pinning the old loader.
+- When multiple plugins use different vendor versions, test classloader isolation and data exchange via shared DTOs.
+- SPI/config provider errors must not be reported as "no provider found" when metadata is actually invalid or runtime dependencies failed.
 
-### 9.3. Test không rò lỗi hoặc secrets
+### 9.3. Testing against error and secret leaks
 
-Tạo vendor failure giả với chuỗi như:
+Inject a synthetic vendor failure containing strings like:
 
 ```text
 endpoint=internal.example:443 token=FAKE_TOKEN
 ```
 
-Kiểm tra public response không chứa endpoint, token, tên class vendor, stack trace hoặc raw SQL; đồng thời hệ thống log nội bộ phải có request ID và quyền truy cập thích hợp. Test các nhánh: invalid input, vendor checked exception, unexpected runtime exception, async completion failure, callback error và provider initialization failure.
+Verify public responses contain no endpoint, token, vendor class name, stack trace, or raw SQL; meanwhile, internal logs must include a request ID and proper access controls. Test all branches: invalid input, vendor checked exception, unexpected runtime exception, async completion failure, callback error, and provider initialization failure.
 
-Tách riêng exception **được public contract quy định** khỏi lỗi vận hành chưa xác định. Không bắt mọi `Throwable` để “bảo đảm ổn định”; lỗi JVM nghiêm trọng có thể khiến tiếp tục xử lý trong cùng tiến trình là không an toàn.
+Separate exceptions **defined by the public contract** from unclassified operational failures. Do not catch every `Throwable` to "ensure stability"; severe JVM errors may render continuing in the same process unsafe.
 
-## 10. Sai lầm thường gặp và cách khắc phục
+## 10. Common mistakes and fixes
 
-| Sai lầm | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| `VendorResult method(VendorRequest)` | Host buộc biết SDK riêng | Shared DTO + adapter |
-| `throws VendorException` | Host compile/catch theo SDK | Shared `PluginFailure`/error code |
-| `Object getState()` trả raw vendor object | Leak implementation và class loader | Snapshot DTO, không trả private handles |
-| `List<VendorResult>` | Generic signatures còn coupling | `List<SharedResult>` |
-| `Map<String,Object>` chứa vendor values | Contract mơ hồ, cast runtime | Typed DTO/schema |
-| Trả `Throwable`/cause/stack trace | Lộ internal data, giữ loader | Error DTO + correlation ID, logging có redaction |
-| Host in `PluginFailure.getMessage()` | Plugin có thể cung cấp secret | Map error code sang safe message ở host |
-| Async future hoàn thành bằng vendor error | Exception leak gián tiếp | Normalize async failure |
-| API JAR được copy/nạp bằng plugin loader | Hai type identity khác nhau | Shared API loader/module |
-| Trả mutable cache hoặc vendor session | Sai ownership/lifetime, leak resource | Defensive copy hoặc common facade có close |
-| Tưởng private Gradle dependency đủ để bảo vệ API | Public signature vẫn có thể leak | Audit Java API và runtime object graph |
-| Tưởng JPMS/classloader là sandbox | Không chặn quyền process | Process isolation và OS policy khi cần |
+| `VendorResult method(VendorRequest)` | Host forced to know private SDK | Shared DTO + adapter |
+| `throws VendorException` | Host compiles/catches against SDK | Shared `PluginFailure`/error code |
+| `Object getState()` returning raw vendor object | Leaks implementation and class loader | Snapshot DTO, never return private handles |
+| `List<VendorResult>` | Generic signatures still coupled | `List<SharedResult>` |
+| `Map<String,Object>` containing vendor values | Ambiguous contract, runtime casts | Typed DTO/schema |
+| Returning `Throwable`/cause/stack trace | Exposes internal data, pins loader | Error DTO + correlation ID, redacted logging |
+| Host prints `PluginFailure.getMessage()` | Plugin might supply secrets | Host maps error code to safe message |
+| Async future fails with vendor error | Indirect exception leak | Normalize async failures |
+| API JAR copied/loaded by plugin loader | Two distinct type identities | Shared API loader/module |
+| Returning mutable cache or vendor session | Broken ownership/lifetime, resource leak | Defensive copy or shared closeable facade |
+| Assuming private Gradle dependency protects API | Public signatures can still leak | Audit Java API and runtime object graph |
+| Assuming JPMS/classloader is a sandbox | Does not restrict process privileges | Process isolation and OS policy when needed |
 
-## 11. Checklist phát hành plugin API
+## 11. Plugin API release checklist
 
-- [ ] API artifact/module do host sở hữu, version và semantics rõ ràng.
-- [ ] Không có kiểu vendor/private trong public/protected parameters, returns, generics, records, callbacks, annotations hoặc checked exceptions.
-- [ ] Host compile được chỉ với shared API + JDK.
-- [ ] Plugin adapter chuyển riêng sang shared DTO, không trả raw vendor objects dù ép thành `Object`.
-- [ ] Result/data ownership rõ; copy các giá trị mutable theo contract.
-- [ ] Không trả internal session/connection/classloader/Throwable vượt lifetime plugin.
-- [ ] Ngoại lệ vendor được map thành shared error code; client không thấy message/stack/cause nội bộ.
-- [ ] Host chọn public message theo code; có quy tắc unknown code/versioning.
-- [ ] Đồng bộ API type identity giữa host và provider loader/module layer.
-- [ ] Vendor runtime dependency được đóng gói/resolve đầy đủ, nhưng không nằm trong API public graph.
-- [ ] Có ABI/source compatibility checks, integration tests, leak tests, error-redaction tests.
-- [ ] Hot reload dọn callback, stream, thread, exception cache và provider references.
-- [ ] Không nhầm API encapsulation với bảo mật sandbox của plugin không tin cậy.
+- [ ] API artifact/module owned by host, with clear versioning and semantics.
+- [ ] No vendor/private types in public/protected parameters, returns, generics, records, callbacks, annotations, or checked exceptions.
+- [ ] Host compiles with shared API + JDK only.
+- [ ] Plugin adapter converts exclusively to shared DTOs, never returning raw vendor objects even cast as `Object`.
+- [ ] Result/data ownership is explicit; copy mutable values per contract.
+- [ ] No internal sessions/connections/classloaders/`Throwable`s returned past plugin lifetime.
+- [ ] Vendor exceptions mapped to shared error codes; clients never see internal messages/stacks/causes.
+- [ ] Host selects public messages by code; unknown code/versioning rules defined.
+- [ ] API type identity synchronized across host and provider loaders/module layers.
+- [ ] Vendor runtime dependencies packaged/resolved completely, yet absent from the public API graph.
+- [ ] ABI/source compatibility checks, integration tests, leak tests, and error-redaction tests in place.
+- [ ] Hot reload cleans up callbacks, streams, threads, exception caches, and provider references.
+- [ ] Do not confuse API encapsulation with security sandboxing of untrusted plugins.
 
-**Kết luận:** Giữ **API chỉ gồm shared types**, **dữ liệu trả về không mang object nội bộ** và **ngoại lệ vendor không vượt adapter** là nền tảng để nâng cấp plugin độc lập, giảm xung đột class loader và tránh lộ thông tin kỹ thuật. Sự tách biệt này phải được bảo vệ cả ở **source signatures, runtime object graph, error handling và lifecycle** — không chỉ ở tên package hay từ khóa `private`.
+**Conclusion:** Keeping the **API strictly composed of shared types**, **returned data free of internal objects**, and **vendor exceptions contained within adapters** is the foundation for upgrading plugins independently, reducing class loader conflicts, and preventing technical information leaks. This separation must be enforced across **source signatures, the runtime object graph, error handling, and lifecycle**—not merely by package names or the `private` keyword.
 
-**Tài liệu tham khảo Java SE 17:** [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), [`ClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html), [`Throwable`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Throwable.html), [`CompletionStage`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletionStage.html), [`List.copyOf`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html#copyOf(java.util.Collection)), [`Module`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html).
+**Java SE 17 references:** [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), [`ClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html), [`Throwable`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Throwable.html), [`CompletionStage`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletionStage.html), [`List.copyOf`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html#copyOf(java.util.Collection)), [`Module`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html).

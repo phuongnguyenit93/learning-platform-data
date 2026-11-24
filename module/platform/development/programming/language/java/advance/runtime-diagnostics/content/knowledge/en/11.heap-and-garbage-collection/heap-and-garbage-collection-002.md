@@ -1,127 +1,127 @@
-# 11.2. Đọc đồ thị heap theo thời gian và lượng dữ liệu còn sống sau chu kỳ thu gom
+# 11.2. Reading heap graphs over time and live data after collection cycles
 
-Trong Java, đồ thị heap theo thời gian giúp phân biệt hai hiện tượng rất khác nhau: **bộ nhớ tạm thời tăng vì ứng dụng liên tục cấp phát đối tượng** và **bộ nhớ vẫn bị giữ lại sau khi bộ thu gom rác (GC) đã có cơ hội thu hồi**. Giá trị có ý nghĩa chẩn đoán không chỉ là đỉnh `heap used`, mà còn là xu hướng của các mức sử dụng **sau những lần GC có thể so sánh được**.
+In Java, a heap graph over time helps distinguish two very different phenomena: **temporary memory growth because the application continuously allocates objects** and **memory still retained after the garbage collector (GC) has had an opportunity to reclaim it**. The diagnostically meaningful signal is not only the `heap used` peak, but also the trend of usage levels **after comparable GC events**.
 
-Bài này tập trung vào cách đọc đồ thị, tính toán từ các điểm trước/sau GC, nhận diện tín hiệu bất thường và kiểm chứng bằng quan sát JVM. Các con số và mẫu log bên dưới là ví dụ minh họa, không phải giá trị cố định của mọi JVM.
+This lesson focuses on how to read the graph, calculate from before/after GC points, recognize abnormal signals, and verify through JVM observation. The numbers and log snippets below are illustrative examples, not fixed values across all JVMs.
 
-## 1. Đọc đúng các đường và trục trên đồ thị
+## 1. Reading the lines and axes on the graph accurately
 
-Trục ngang thường là thời gian (giây, phút, giờ); trục dọc là dung lượng bộ nhớ (MiB/GiB hoặc byte). Trước khi kết luận, hãy xác định chính xác metric và phạm vi mà công cụ đang vẽ.
+The horizontal axis is typically time (seconds, minutes, hours); the vertical axis is memory capacity (MiB/GiB or bytes). Before drawing conclusions, identify the exact metric and scope the tool is plotting.
 
-| Khái niệm | Ý nghĩa | Cách sử dụng khi đọc đồ thị |
+| Concept | Meaning | How to use when reading the graph |
 | --- | --- | --- |
-| `heap used` | Lượng bộ nhớ heap JVM báo đang được sử dụng tại thời điểm lấy mẫu. | Quan sát đỉnh, đáy và biến động giữa các lần GC. |
-| `heap committed` | Lượng bộ nhớ heap JVM đã cam kết/cấp cho heap tại thời điểm đó. | Giải thích vì sao kích thước vùng heap có thể nới rộng hoặc co lại. |
-| `heap max` | Mức sử dụng heap tối đa JVM báo cho heap, thường liên quan giới hạn `-Xmx`. | Đánh giá giới hạn lý thuyết; có thể không xác định trong một số API/nhóm bộ nhớ. |
-| `used after GC` | Lượng heap được báo còn sử dụng ngay sau một sự kiện GC cụ thể. | Theo dõi đường đáy sau GC, nhưng cần biết loại GC đã chạy. |
-| `live set` | Tập đối tượng thực sự còn có thể truy cập từ GC roots tại một thời điểm theo mô hình reachability. | Khái niệm để suy luận lượng dữ liệu còn sống; không đồng nhất máy móc với mọi mẫu `used after GC`. |
-| `old generation / tenured used` | Bộ nhớ đang sử dụng ở vùng chứa đối tượng tồn tại lâu, nếu collector chia vùng phù hợp. | Hữu ích khi phân biệt churn ngắn hạn với tích lũy dài hạn. |
+| `heap used` | Amount of heap memory the JVM reports as currently in use at sampling time. | Observe peaks, troughs, and fluctuations between GC runs. |
+| `heap committed` | Amount of heap memory the JVM has committed/allocated to the heap at that time. | Explains why the heap region size can expand or shrink. |
+| `heap max` | Maximum heap usage the JVM reports for the heap, usually related to the `-Xmx` limit. | Assesses the theoretical limit; may be undefined in some APIs/memory pools. |
+| `used after GC` | Amount of heap reported still in use immediately after a specific GC event. | Tracks the post-GC baseline, though you need to know which GC type ran. |
+| `live set` | The set of objects actually reachable from GC roots at a point in time under the reachability model. | Conceptual model for reasoning about live data; not mechanically identical to every `used after GC` sample. |
+| `old generation / tenured used` | Memory in use in the region holding long-lived objects, if the collector partitions regions accordingly. | Useful for distinguishing short-term churn from long-term accumulation. |
 
-`used`, `committed` và `max` là ba đường khác nhau: `used ≤ committed`, và trong cấu hình thông thường `committed ≤ max`. Việc `committed` tăng không tự chứng minh rò rỉ: JVM có thể mở rộng heap để đáp ứng tải. Đồng thời, **RSS/bộ nhớ tiến trình của hệ điều hành không bằng heap used**: metaspace, code cache, stack của thread, direct buffer, thư viện native và các phần ngoài heap cũng tiêu thụ bộ nhớ.
+`used`, `committed`, and `max` are three distinct curves: `used ≤ committed`, and in typical configurations `committed ≤ max`. A rising `committed` curve alone does not prove a leak: the JVM may expand the heap to meet load. At the same time, **OS RSS/process memory does not equal heap used**: metaspace, code cache, thread stacks, direct buffers, native libraries, and other off-heap parts also consume memory.
 
-Kiểm tra đơn vị trước khi so sánh: 1 MiB = 1.048.576 byte; 1 GiB = 1.024 MiB. Không đối chiếu phần trăm sử dụng của các pool với số MiB tuyệt đối khi chưa quy đổi. Đồ thị tự động co giãn trục Y có thể khiến một thay đổi nhỏ trông rất lớn.
+Check units before comparing: 1 MiB = 1,048,576 bytes; 1 GiB = 1,024 MiB. Do not compare pool usage percentages with absolute MiB values without converting. Auto-scaled Y axes on graphs can make a small change look very large.
 
-## 2. Vì sao đồ thị thường có dạng răng cưa?
+## 2. Why does the graph often have a sawtooth shape?
 
-Trong ứng dụng tạo nhiều đối tượng ngắn hạn, bộ nhớ sử dụng thường tăng trong khoảng giữa hai sự kiện GC rồi giảm khi GC thu hồi được vùng nhớ. Nếu lặp lại, đường `heap used` trông giống răng cưa:
+In an application that creates many short-lived objects, memory usage typically climbs between two GC events and then drops when GC reclaims memory. When repeated, the `heap used` curve looks like a sawtooth:
 
-1. **Đoạn dốc đi lên:** ứng dụng cấp phát thêm đối tượng; một phần sớm trở thành garbage nhưng chưa được thu gom.
-2. **Đỉnh trước GC:** mức `used` ngay trước sự kiện thu gom, chịu ảnh hưởng của tốc độ cấp phát, kích thước heap, chính sách collector và tải.
-3. **Bước giảm sau GC:** một phần không gian được thu hồi; độ chênh trước/sau là thay đổi của số liệu `used` qua sự kiện đó.
-4. **Đáy sau GC:** mức `used` còn được báo sau thu gom. Nối các đáy **cùng loại sự kiện, trong điều kiện tải tương đương** để xem xu hướng giữ bộ nhớ.
+1. **Upward slope:** the application allocates more objects; some soon become garbage but have not yet been collected.
+2. **Pre-GC peak:** the `used` level right before the collection event, influenced by allocation rate, heap size, collector policy, and load.
+3. **Post-GC drop:** some space is reclaimed; the before/after difference is the change in the `used` metric across that event.
+4. **Post-GC trough:** the `used` level still reported after collection. Connect troughs from **the same event type, under equivalent load** to observe the memory retention trend.
 
-Không phải collector nào cũng tạo răng cưa rõ. GC đồng thời như ZGC hoặc Shenandoah thực hiện nhiều pha trong khi ứng dụng chạy; đồ thị được lấy mẫu thưa có thể nhìn mượt hoặc giảm theo nhiều bước. G1 có young GC, mixed GC và các pha concurrent với tác động khác nhau. Vì vậy **vị trí giảm mạnh trên đồ thị chỉ là dấu hiệu gợi ý, còn nhãn sự kiện GC và log mới xác định được chuyện gì xảy ra**.
+Not every collector produces a sharp sawtooth. Concurrent collectors such as ZGC or Shenandoah perform multiple phases while the application runs; sparsely sampled graphs may look smooth or drop in multiple steps. G1 has young GC, mixed GC, and concurrent phases with different effects. Therefore, **a sharp drop on the graph is only a suggestive clue; GC event labels and logs determine what actually happened**.
 
-Khoảng cách giữa hai đỉnh gần nhau có thể phản ánh tốc độ cấp phát, ngưỡng kích hoạt GC hoặc thay đổi kích thước heap. Không diễn giải tần suất GC một cách độc lập với lượng request, batch job, heap committed và thuật toán GC.
+The spacing between two consecutive peaks can reflect allocation rate, GC trigger thresholds, or changes in heap size. Do not interpret GC frequency independently of request rate, batch jobs, committed heap, and GC algorithm.
 
-## 3. “Còn sống sau GC” phải hiểu trong phạm vi sự kiện thu gom
+## 3. "Alive after GC" must be understood within the scope of the collection event
 
-Một đối tượng *live* là đối tượng còn reachable qua chuỗi tham chiếu bắt đầu từ các GC roots (ví dụ biến cục bộ đang hoạt động, tham chiếu tĩnh hoặc những root do JVM quản lý). Đối tượng không còn reachable là ứng viên có thể thu hồi, nhưng **thời điểm collector thực sự thu hồi** còn phụ thuộc thuật toán và phạm vi của chu kỳ.
+A *live* object is an object still reachable via a reference chain starting from GC roots (for example, active local variables, static references, or JVM-managed roots). An unreachable object is a candidate for reclamation, but **when the collector actually reclaims it** still depends on the algorithm and the scope of the cycle.
 
-- **Sau young GC:** các đối tượng còn tồn tại ở vùng young được giữ/chuyển vùng theo thuật toán, nhưng nhiều đối tượng không còn cần ở old generation có thể chưa được xem xét. `total heap used after young GC` vì vậy **không đo chính xác toàn bộ live set**.
-- **Sau mixed/old/full collection:** có thể phản ánh sự giữ lại dài hạn tốt hơn, nhưng phạm vi thu gom khác nhau giữa collector và từng sự kiện. Ngay cả sau full GC, số liệu còn bị ảnh hưởng bởi thời điểm đo, hoạt động ứng dụng và cách JVM ghi nhận vùng nhớ.
-- **Trong GC đồng thời:** ứng dụng vẫn có thể cấp phát/đổi tham chiếu trong khi collector làm việc. Một mẫu `used` ngay sau nhãn “cycle complete” không phải ảnh chụp nguyên tử tuyệt đối của toàn bộ object graph.
-- **`Retained size` trong heap dump:** dung lượng của các đối tượng sẽ có thể được giải phóng nếu một đối tượng/nhóm root tương ứng không còn giữ chúng (theo dominator analysis). Đây là phép phân tích mối quan hệ tham chiếu, **khác với** tổng `used after GC`.
+- **After a young GC:** surviving objects in the young region are retained/moved according to the algorithm, while many unneeded objects in the old generation may not have been examined yet. `total heap used after young GC` therefore **does not accurately measure the entire live set**.
+- **After a mixed/old/full collection:** may better reflect long-term retention, though collection scope varies across collectors and individual events. Even after a full GC, figures are still affected by measurement timing, application activity, and how the JVM accounts memory regions.
+- **In a concurrent GC:** the application can still allocate/mutate references while the collector works. A `used` sample right after a "cycle complete" label is not a strictly atomic snapshot of the entire object graph.
+- **`Retained size` in a heap dump:** the size of objects that could be freed if a corresponding object/group of roots no longer kept them alive (per dominator analysis). This is an analysis of reference relationships, **different from** total `used after GC`.
 
-Khi nói “đáy sau GC tăng”, cách phát biểu chính xác là: *lượng heap được báo còn sử dụng sau các sự kiện GC so sánh được đang tăng*. Chỉ sau khi loại trừ thay đổi workload, cache hợp lệ, chính sách thu gom và sampling mới có cơ sở nghi ngờ dữ liệu bị giữ lại ngoài dự kiến.
+When saying "the post-GC trough is rising," the accurate phrasing is: *reported heap usage remaining after comparable GC events is increasing*. Only after ruling out workload changes, legitimate caches, collection policy, and sampling effects do you have grounds to suspect unintended data retention.
 
-## 4. Quy trình đọc một đồ thị heap theo thời gian
+## 4. Step-by-step process for reading a heap graph over time
 
-### Bước 1 — Xác định đúng chỉ số và cấu hình
+### Step 1 — Identify the exact metric and configuration
 
-Ghi lại collector (G1, Parallel, ZGC, Shenandoah...), phiên bản JDK, `-Xms`, `-Xmx`, đơn vị, thời gian lấy mẫu và liệu đồ thị hiển thị toàn heap hay một memory pool. Kiểm tra xem mỗi điểm là giá trị tức thời, trung bình trong cửa sổ, `max` hay tổng hợp từ nhiều JVM. Chẳng hạn, đường trung bình 1 phút có thể che khuất những đỉnh rất ngắn.
+Record the collector (G1, Parallel, ZGC, Shenandoah...), JDK version, `-Xms`, `-Xmx`, units, sampling interval, and whether the graph shows the whole heap or a single memory pool. Check whether each data point is an instantaneous value, a windowed average, a `max`, or an aggregation across multiple JVMs. For instance, a 1-minute average curve can hide very short spikes.
 
-### Bước 2 — Đánh dấu các sự kiện GC thật
+### Step 2 — Mark real GC events
 
-Đồng bộ mốc thời gian đồ thị với GC log/JFR: thời điểm bắt đầu, kết thúc, loại sự kiện, giá trị trước/sau (nếu collector báo), thời gian pause và chu kỳ concurrent. Một đồ thị chỉ có `used` mà không có event GC vẫn hữu ích để quan sát xu hướng nhưng **không đủ** để gắn nhãn chính xác mọi đáy.
+Align the graph timeline with GC logs/JFR: start time, end time, event type, before/after values (if reported by the collector), pause duration, and concurrent cycles. A graph with only `used` and no GC events is still useful for watching trends, but **insufficient** for accurately labeling every trough.
 
-### Bước 3 — Đọc cả đỉnh và đáy
+### Step 3 — Read both peaks and troughs
 
-Với mỗi sự kiện có số liệu trước/sau, ghi:
+For each event with before/after figures, record:
 
-- `before`: heap used ngay trước GC.
-- `after`: heap used ngay sau GC.
-- `reclaimed_observed = before - after`: số MiB giảm được quan sát qua sự kiện, không đồng nghĩa tổng lượng garbage được tạo trong khoảng thời gian trước đó.
-- `after / committed` và `after / max`: hai tỷ lệ tham khảo khác nhau; cần giữ mẫu số nhất quán khi so sánh.
+- `before`: heap used right before GC.
+- `after`: heap used right after GC.
+- `reclaimed_observed = before - after`: the MiB reduction observed across the event, not synonymous with the total garbage created during the preceding interval.
+- `after / committed` and `after / max`: two different reference ratios; keep the denominator consistent when comparing.
 
-Ví dụ GC báo `760 MiB → 260 MiB (heap capacity 1.024 MiB)`: mức giảm quan sát là `500 MiB`; phần còn sử dụng sau GC chiếm `260 / 1.024 ≈ 25,4%` của capacity hiển thị. Nếu `-Xmx=1.536 MiB` thì mức sau GC bằng khoảng `16,9%` của giới hạn tối đa. Khoảng `1.536 - 260 = 1.276 MiB` chỉ là **headroom theo số liệu used so với max**, không phải bảo đảm mọi lần cấp phát tương lai đều thành công.
+For example, if GC reports `760 MiB → 260 MiB (heap capacity 1,024 MiB)`: the observed reduction is `500 MiB`; remaining usage after GC accounts for `260 / 1,024 ≈ 25.4%` of the displayed capacity. If `-Xmx=1,536 MiB`, the post-GC level is about `16.9%` of the maximum limit. The remaining `1,536 - 260 = 1,276 MiB` is only **headroom based on used vs. max**, not a guarantee that every future allocation will succeed.
 
-### Bước 4 — Nối các đáy tương đương để nhận diện xu hướng
+### Step 4 — Connect comparable troughs to identify trends
 
-Chọn các điểm sau **cùng nhóm GC**, cùng phiên bản/cấu hình và cùng pha workload. Với ba young GC, các mức `250 → 265 → 280 MiB` có thể phản ánh cache ấm dần, đối tượng chuyển sang old hoặc tải tăng; chưa thể gọi là leak. Nếu sau khi workload ổn định, một loạt **sự kiện thu gom bao phủ old generation** vẫn có đáy `300 → 450 → 610 MiB`, đây là tín hiệu cần điều tra đối tượng bị giữ lâu.
+Select points after **the same GC category**, same version/configuration, and same workload phase. For three young GCs, levels of `250 → 265 → 280 MiB` might reflect a warming cache, objects promoted to old, or increased load; it cannot yet be called a leak. If, after workload stabilizes, a series of **collection events covering the old generation** still shows troughs of `300 → 450 → 610 MiB`, that is a signal to investigate long-retained objects.
 
-Không so trực tiếp “đáy sau young GC” với “đáy sau full GC” để suy ra tăng/giảm live set; chúng không đo cùng phạm vi. Với GC concurrent, hãy chọn chỉ số/pha sau chu kỳ thích hợp, hoặc dùng quan sát theo cửa sổ đủ dài thay vì một điểm đơn lẻ.
+Do not directly compare "trough after young GC" with "trough after full GC" to infer live-set growth or shrinkage; they do not measure the same scope. With concurrent GCs, choose metrics/phases after an appropriate cycle, or use observations over a sufficiently long window rather than a single point.
 
-### Bước 5 — Đọc độ dốc và nhịp GC trong bối cảnh tải
+### Step 5 — Read slope and GC cadence in the context of load
 
-Giữa hai sự kiện GC rõ ràng, `Δused / Δt` là **tốc độ tăng mức heap used quan sát được**, không phải tốc độ cấp phát tổng: trong cùng khoảng thời gian có thể tồn tại garbage chưa thu hồi, object được giữ lại hoặc GC nền đang hoạt động. Để đo allocation rate thực sự, ưu tiên JFR/profiler/metric allocation phù hợp.
+Between two clear GC events, `Δused / Δt` is the **observed rate of heap used increase**, not total allocation rate: during the same interval there may be uncollected garbage, retained objects, or background GC activity. To measure true allocation rate, prefer JFR/profilers/appropriate allocation metrics.
 
-Khi đáy ổn định nhưng đỉnh tăng nhanh và GC xảy ra thường xuyên, ứng dụng có thể đang tạo nhiều đối tượng ngắn hạn. Khi cả đáy lẫn old usage tăng nhiều chu kỳ, cần điều tra khả năng giữ tham chiếu lâu hoặc quy mô dữ liệu hợp lệ đang lớn dần. Nhịp GC nhanh hơn thường làm tăng chi phí CPU/pause, nhưng không đủ bằng chứng rằng có leak.
+When troughs stay stable but peaks rise quickly and GCs happen frequently, the application may be creating many short-lived objects. When both troughs and old usage rise over many cycles, investigate long-held references or legitimately growing data volume. A faster GC cadence usually increases CPU/pause cost, but is not sufficient proof of a leak.
 
-### Bước 6 — Đối chiếu hiệu năng và sự kiện ứng dụng
+### Step 6 — Correlate with performance and application events
 
-Đặt lên cùng trục thời gian: request/s, batch job, số người dùng, hàng đợi, kích thước cache, latency p95/p99, GC pause, CPU và lỗi `OutOfMemoryError` (nếu có). Một spike trùng lúc tải tăng hoặc import hàng triệu bản ghi có ý nghĩa khác với đáy heap tăng suốt nhiều giờ trong điều kiện tải phẳng.
+Plot on the same timeline: requests/s, batch jobs, user count, queues, cache size, p95/p99 latency, GC pauses, CPU, and `OutOfMemoryError` errors (if any). A spike coinciding with a traffic surge or importing millions of records means something different from a heap trough climbing over many hours under flat load.
 
-## 5. Bài đọc số liệu mẫu
+## 5. Sample data reading exercise
 
-Giả sử một ứng dụng G1 có `-Xmx1536m`, dung lượng heap committed tại các thời điểm dưới đây khoảng 1.024 MiB. GC log cung cấp các cặp trước/sau; bảng được đơn giản hóa để học cách suy luận:
+Suppose a G1 application has `-Xmx1536m`, and committed heap capacity at the timestamps below is around 1,024 MiB. GC logs provide before/after pairs; the table is simplified to practice reasoning:
 
-| Thời điểm | Sự kiện | Heap trước GC | Heap sau GC | Mức giảm quan sát | Nhận xét |
+| Time | Event | Heap before GC | Heap after GC | Observed reduction | Note |
 | --- | --- | ---: | ---: | ---: | --- |
-| 09:00 | Young GC #41 | 710 MiB | 250 MiB | 460 MiB | Nhiều dữ liệu ngắn hạn được dọn. |
-| 09:05 | Young GC #42 | 760 MiB | 265 MiB | 495 MiB | Đáy tăng 15 MiB, chưa đủ kết luận. |
-| 09:10 | Young GC #43 | 790 MiB | 280 MiB | 510 MiB | Cần đối chiếu old usage và tải. |
-| 09:20 | Mixed GC #55 | 820 MiB | 230 MiB | 590 MiB | Phạm vi GC đã khác; không ghép vào chuỗi young GC như cùng một loại mẫu. |
+| 09:00 | Young GC #41 | 710 MiB | 250 MiB | 460 MiB | Plenty of short-lived data reclaimed. |
+| 09:05 | Young GC #42 | 760 MiB | 265 MiB | 495 MiB | Trough rose 15 MiB, not enough to conclude. |
+| 09:10 | Young GC #43 | 790 MiB | 280 MiB | 510 MiB | Need to cross-check old usage and load. |
+| 09:20 | Mixed GC #55 | 820 MiB | 230 MiB | 590 MiB | GC scope changed; do not mix into the young GC series as the same sample type. |
 
-Ở 09:05, phép trừ `760 - 265 = 495 MiB` cho thấy bao nhiêu heap used đã giảm trong sự kiện, **không** cho biết có chính xác 495 MiB đối tượng chết trong 5 phút trước đó. Ba đáy young GC `250, 265, 280 MiB` tăng 30 MiB trong 10 phút; chuỗi quá ngắn và chưa có kiểm soát workload để kết luận. Sau mixed GC, `230 MiB` thấp hơn mọi đáy young GC trước đó: điều này gợi ý đã thu hồi thêm vùng nhớ khác, nhưng cũng không có nghĩa rằng trước đó đã xảy ra leak.
+At 09:05, `760 - 265 = 495 MiB` shows how much heap used dropped during the event, **not** that exactly 495 MiB of objects died in the preceding 5 minutes. The three young GC troughs `250, 265, 280 MiB` rose by 30 MiB in 10 minutes; the series is too short and lacks workload control to draw a conclusion. After the mixed GC, `230 MiB` is lower than every prior young GC trough: this suggests additional memory regions were reclaimed, though it also does not mean a leak had occurred earlier.
 
-So sánh hai tình huống giả định trong một giai đoạn dài hơn với tải và cấu hình ổn định:
+Compare three hypothetical situations over a longer period with stable load and configuration:
 
-| Dữ liệu sau những sự kiện GC tương đương | Diễn giải hợp lý | Việc kiểm chứng |
+| Data after equivalent GC events | Reasonable interpretation | Verification step |
 | --- | --- | --- |
-| `280, 286, 279, 283 MiB` | Đáy dao động quanh một nền tương đối ổn định. | Kiểm tra GC pause, throughput; có thể là trạng thái bình thường. |
-| `280, 360, 440, 530 MiB` | Nền còn sử dụng đang tăng liên tục. | So khớp workload/cache/old usage, rồi kiểm tra class và đường giữ tham chiếu nếu xu hướng kéo dài. |
-| `280, 360, 440, 300 MiB` | Tăng rồi giảm; có thể là cache được dọn, workload kết thúc hoặc một chu kỳ GC khác đã thu hồi thêm. | Tìm đúng sự kiện/tác vụ tại điểm đảo chiều; tránh kết luận từ một đoạn. |
+| `280, 286, 279, 283 MiB` | Trough fluctuates around a relatively stable baseline. | Check GC pauses and throughput; may be normal operation. |
+| `280, 360, 440, 530 MiB` | Used baseline is steadily increasing. | Match against workload/cache/old usage, then inspect classes and reference retention paths if the trend continues. |
+| `280, 360, 440, 300 MiB` | Rises then drops; could be cache eviction, a finished workload, or another GC cycle reclaiming more. | Find the exact event/task at the inflection point; avoid concluding from a single segment. |
 
-## 6. Các hình dạng điển hình và cách đặt giả thuyết
+## 6. Typical shapes and how to form hypotheses
 
-| Hình dạng quan sát | Giả thuyết cần xem xét | Dấu hiệu để phân biệt |
+| Observed shape | Hypothesis to consider | Distinguishing signals |
 | --- | --- | --- |
-| Răng cưa lặp, đáy quanh một mức | Cấp phát thường xuyên, GC thu hồi đều. | Đáy ổn định trên nhiều chu kỳ; latency/CPU chấp nhận được. |
-| Đỉnh cao hơn nhưng đáy không tăng tương ứng | Tải hoặc tốc độ tạo đối tượng ngắn hạn tăng; heap committed có thể mở rộng. | So request/s, allocation rate, `committed` và GC pause. |
-| Đáy sau những lần GC tương đương tăng dần | Dữ liệu sống lớn dần: cache, queue, session, batch chưa xong hoặc giữ tham chiếu ngoài ý muốn. | Theo dõi old usage và tập đối tượng retained trong heap dump/JFR. |
-| Mật độ GC dày, heap gần giới hạn, sau GC vẫn cao | Áp lực bộ nhớ; nguy cơ GC overhead cao, pause tăng hoặc OOM nếu không còn chỗ cấp phát. | Xem `-Xmx`, GC cause, allocation pressure, pause và các lỗi cấp phát. |
-| Heap used gần như đi ngang nhưng RSS tăng | Bộ nhớ ngoài heap hoặc native; cũng có thể là heap committed cao nhưng used thấp. | So RSS với direct buffer, thread stack, metaspace, code cache, native memory tracking khi được bật. |
-| Đường giảm mạnh sau khi batch/traffic kết thúc | Đối tượng tạm thời đã được thu gom hoặc cache được giải phóng. | Đối chiếu thời điểm giảm với GC log, batch completion và chỉ số old usage. |
-| Không thấy bước giảm trong khoảng quan sát ngắn | Có thể chưa xảy ra GC, collector chạy đồng thời hoặc sampling bỏ lỡ sự kiện. | Kiểm tra event log và kéo dài cửa sổ/giảm interval lấy mẫu. |
+| Repeating sawtooth, trough around one level | Frequent allocation, steady GC reclamation. | Troughs stable over many cycles; acceptable latency/CPU. |
+| Higher peaks without corresponding trough rise | Higher load or short-lived object creation rate; committed heap may expand. | Compare requests/s, allocation rate, `committed`, and GC pauses. |
+| Troughs after equivalent GCs steadily climb | Growing live data: caches, queues, sessions, unfinished batches, or unintended reference retention. | Track old usage and retained objects in heap dumps/JFR. |
+| Dense GC cadence, heap near limit, high after GC | Memory pressure; risk of high GC overhead, longer pauses, or OOM if no room remains to allocate. | Check `-Xmx`, GC cause, allocation pressure, pauses, and allocation failures. |
+| Heap used nearly flat while RSS climbs | Off-heap or native memory; could also be high committed heap with low used. | Compare RSS with direct buffers, thread stacks, metaspace, code cache, and native memory tracking if enabled. |
+| Sharp drop after batch/traffic ends | Temporary objects collected or caches released. | Align the drop timestamp with GC logs, batch completion, and old usage metrics. |
+| No drop visible in a short observation window | No GC occurred yet, collector runs concurrently, or sampling missed the event. | Check event logs and lengthen the window / shorten the sampling interval. |
 
-Một cache có giới hạn dung lượng thường tăng trong giai đoạn warm-up rồi ổn định; một cache không giới hạn có thể giữ dữ liệu mãi. Cả hai có thể tạo đường đáy tăng ban đầu. **Đồ thị là bằng chứng về triệu chứng bộ nhớ, không phải phép chứng minh nguồn gốc tham chiếu.**
+A bounded cache typically grows during warm-up and then plateaus; an unbounded cache can retain data indefinitely. Both can produce an initially rising baseline. **The graph is evidence of memory symptoms, not proof of the source of references.**
 
-## 7. Thu thập dữ liệu từ JVM để xác nhận cách đọc
+## 7. Collecting data from the JVM to confirm your reading
 
 ### 7.1. Unified GC logging (Java 17+)
 
-Khi khởi chạy ứng dụng, bật GC logging ở mức phù hợp với môi trường:
+When launching the application, enable GC logging at a level suitable for the environment:
 
 ```bash
 java -Xms256m -Xmx1536m \
@@ -129,38 +129,38 @@ java -Xms256m -Xmx1536m \
   -jar app.jar
 ```
 
-Ví dụ một dòng GC log minh họa (cách diễn đạt thay đổi theo JDK/collector/cấu hình tag):
+Example of an illustrative GC log line (exact wording varies by JDK/collector/tag configuration):
 
 ```text
 [12.345s][info][gc] GC(41) Pause Young (Normal) (G1 Evacuation Pause) 760M->260M(1024M) 12.3ms
 ```
 
-Ở ví dụ này: `760M` là heap trước sự kiện; `260M` là heap sau sự kiện; `1024M` là heap capacity được báo trong dòng log; `12.3ms` là thời lượng pause được báo. **Đừng đọc `1024M` trong ngoặc là giá trị `-Xmx`**; chúng có thể khác nhau. Khi phân tích một collector khác, hãy dựa trên cấu trúc log thực tế thay vì giả định mọi dòng đều có mẫu tương tự.
+In this example: `760M` is heap before the event; `260M` is heap after the event; `1024M` is the heap capacity reported in the log line; `12.3ms` is the reported pause duration. **Do not read `1024M` in parentheses as the `-Xmx` value**; they can differ. When analyzing another collector, rely on the actual log structure rather than assuming every line shares the same template.
 
-Không tăng mức log quá rộng và quá lâu trên production nếu chưa đánh giá chi phí lưu trữ/I/O; đảm bảo log được xoay vòng và đồng bộ múi giờ/timestamp với monitoring.
+Do not turn log verbosity too wide for too long in production without evaluating storage/I/O cost; ensure log rotation is configured and timestamps/timezones are aligned with monitoring.
 
-### 7.2. Lệnh quan sát không cần sửa mã
+### 7.2. Observation commands without modifying code
 
 ```bash
-# Thông tin heap theo collector hiện tại, tại một thời điểm
+# Heap information for the current collector, at a point in time
 jcmd <pid> GC.heap_info
 
-# Mẫu mức sử dụng các pool và bộ đếm GC mỗi 1.000 ms, 10 mẫu
+# Sample pool utilization and GC counters every 1,000 ms, 10 samples
 jstat -gcutil <pid> 1000 10
 
-# Ghi một JFR ngắn để phân tích sự kiện GC, pause và workload
+# Record a short JFR to analyze GC events, pauses, and workload
 jcmd <pid> JFR.start name=heaptrend settings=profile duration=120s filename=heaptrend.jfr
 ```
 
-`jstat -gcutil` chủ yếu hiển thị **phần trăm sử dụng của các pool** và các bộ đếm/thời gian GC; không thể coi cột `O` là số MiB live set của toàn heap. `jcmd GC.heap_info` là snapshot chứ không cung cấp một đường thời gian đầy đủ. Với JFR, mở file bằng Java Mission Control (JMC), xem timeline GC, allocation, pause và số liệu được JDK/collector thực sự ghi; các loại event sẵn có không giống nhau ở mọi cấu hình.
+`jstat -gcutil` primarily displays **pool utilization percentages** and GC counters/times; you cannot treat the `O` column as the whole heap's live set in MiB. `jcmd GC.heap_info` is a snapshot rather than a full timeline. With JFR, open the file in Java Mission Control (JMC) to view GC timelines, allocations, pauses, and metrics actually recorded by the JDK/collector; available event types differ across configurations.
 
-Có thể dùng VisualVM, JConsole hoặc dashboard Micrometer/Prometheus để xem chuỗi thời gian `heap used`/`committed`/`max`. Với metric ứng dụng, kiểm tra nhãn `area=heap`, pool, instance, đơn vị và cách công cụ gộp series. Một “live data size” metric phụ thuộc collector và thời điểm cập nhật; không suy đoán nó được làm mới sau mọi young GC.
+You can use VisualVM, JConsole, or Micrometer/Prometheus dashboards to view `heap used`/`committed`/`max` time series. For application metrics, check the `area=heap` tag, pool, instance, units, and how the tool aggregates series. A "live data size" metric depends on the collector and update timing; do not assume it refreshes after every young GC.
 
-### 7.3. Tự lấy mẫu heap bằng Java 17+
+### 7.3. Sampling the heap yourself with Java 17+
 
-Ví dụ độc lập sau in trạng thái heap và tổng bộ đếm collection mỗi giây. Nó hữu ích để hiểu **giá trị được lấy mẫu**, nhưng bản thân nó không nhận diện chính xác mọi điểm “ngay sau GC”.
+The following standalone example prints heap state and total collection count every second. It is useful for understanding **sampled values**, though by itself it does not pinpoint every "immediately after GC" point.
 
-Tạo tệp `HeapTrend.java`:
+Create the file `HeapTrend.java`:
 
 ```java
 import java.lang.management.GarbageCollectorMXBean;
@@ -202,48 +202,48 @@ public class HeapTrend {
 }
 ```
 
-Biên dịch và chạy (cần JDK 17 trở lên):
+Compile and run (requires JDK 17 or later):
 
 ```bash
 javac HeapTrend.java
 java -Xms128m -Xmx512m HeapTrend
 ```
 
-Chương trình in **10 dòng**, mỗi dòng theo định dạng `<timestamp> used=<n>MiB committed=<n>MiB max=512MiB gcCount=<n>` trong cấu hình ví dụ (giá trị `used`, `committed`, thời gian và số lần GC tùy máy/lần chạy). Không đưa ra stdout số học cố định vì việc cấp phát, khởi tạo JVM và lịch GC không xác định. `gcCount` là tổng số collection mà các MXBean hỗ trợ báo cáo, không phải ID của sự kiện GC và cũng không đảm bảo tăng đúng một lần cho mỗi thay đổi heap. Muốn ghép chính xác before/after với sự kiện, dùng GC log/JFR thay cho suy luận từ hai mẫu cách nhau 1 giây.
+The program prints **10 lines**, each formatted as `<timestamp> used=<n>MiB committed=<n>MiB max=512MiB gcCount=<n>` in the example configuration (`used`, `committed`, timestamps, and GC counts vary by machine and run). No fixed numeric stdout is given because allocation, JVM startup, and GC scheduling are non-deterministic. `gcCount` is the sum of collection counts reported by supported MXBeans, not a GC event ID, and is not guaranteed to increment by exactly one for each heap change. To pair before/after figures accurately with events, use GC logs/JFR rather than inferring from two samples 1 second apart.
 
-## 8. Khi nào nghi ngờ giữ bộ nhớ ngoài dự kiến?
+## 8. When to suspect unintended memory retention
 
-Một quy trình điều tra có cơ sở là:
+A grounded investigation workflow is:
 
-1. **Dựng đường nền đủ dài:** lấy chuỗi sau những GC so sánh được trên nhiều chu kỳ, không chỉ 2–3 điểm; ghi lại tải và thay đổi cấu hình.
-2. **Tách growth hợp lệ:** loại trừ cache warm-up, session tăng, hàng đợi chưa xử lý, bulk import, lưu dữ liệu trong phạm vi batch và các thay đổi nghiệp vụ có chủ đích.
-3. **Kiểm tra vùng sống lâu:** so old usage, tỷ lệ promotion, GC old/mixed/full, `committed` và pause trong đúng giai đoạn. Với collector không chia vùng theo kiểu này, dùng metric phù hợp của nó.
-4. **Tìm ai đang giữ đối tượng:** nếu nền tiếp tục tăng ở tải ổn định, dùng JFR, class histogram hoặc heap dump và phân tích bằng Eclipse Memory Analyzer/VisualVM. Xem đối tượng chiếm nhiều bộ nhớ, dominator tree, retained size, GC roots và đường tham chiếu giữ đối tượng.
-5. **Kiểm chứng giả thuyết:** một `Map` tĩnh không dọn, listener không unregister, queue không tiêu thụ, ThreadLocal tồn tại quá lâu hoặc cache không giới hạn là *nghi phạm thường gặp*; chỉ kết luận khi tìm được đường giữ tham chiếu hoặc so sánh mẫu trước/sau sửa.
+1. **Build a sufficiently long baseline:** collect a series after comparable GCs across many cycles, not just 2–3 points; record load and configuration changes.
+2. **Separate legitimate growth:** rule out cache warm-up, growing sessions, unprocessed queues, bulk imports, batch-scoped data retention, and intentional business changes.
+3. **Inspect long-lived regions:** compare old usage, promotion rate, old/mixed/full GCs, `committed`, and pauses over the right phase. For collectors not partitioned this way, use their appropriate metrics.
+4. **Find what holds the objects:** if the baseline keeps rising under steady load, use JFR, class histograms, or heap dumps and analyze them with Eclipse Memory Analyzer/VisualVM. Inspect top memory consumers, dominator tree, retained size, GC roots, and reference retention paths.
+5. **Verify hypotheses:** an uncleaned static `Map`, unregistered listeners, unconsumed queues, overly long-lived `ThreadLocal`s, or unbounded caches are *common suspects*; only conclude once you find the reference retention path or compare before/after-fix samples.
 
-Heap dump có thể lớn, tạo tải CPU/I/O và khiến ứng dụng bị pause tùy công cụ/JVM; dump còn có thể chứa dữ liệu nhạy cảm. Chỉ thu thập trong điều kiện vận hành cho phép. Tránh gọi `System.gc()` để “ép chứng minh” leak: lời gọi là đề nghị GC, có thể bị vô hiệu hóa, gây pause và làm méo điều kiện đo. Không tăng `-Xmx` như phương pháp duy nhất xử lý retention growth; nó chỉ có thể trì hoãn thời điểm đầy heap.
+Heap dumps can be large, create CPU/I/O load, and pause the application depending on the tool/JVM; dumps may also contain sensitive data. Collect them only when operational conditions allow. Avoid calling `System.gc()` to "force proof" of a leak: the call is a GC hint that can be disabled, causes pauses, and distorts measurement conditions. Do not treat raising `-Xmx` as the sole remedy for retention growth; it may only delay when the heap fills up.
 
-## 9. Những nhầm lẫn cần tránh
+## 9. Common misconceptions to avoid
 
-- **“Heap used tăng nghĩa là memory leak.”** Sai: cấp phát và đợi GC là hành vi bình thường. Quan sát đáy sau GC tương đương và sự tiến triển của workload.
-- **“Đáy sau young GC chính là toàn bộ live set.”** Sai: các vùng chưa được thu gom có thể vẫn chứa garbage.
-- **“Sau GC vẫn còn 300 MiB tức 300 MiB bị leak.”** Sai: object còn sống có thể là trạng thái hợp lệ của ứng dụng và JVM; chỉ phần không còn cần nhưng vẫn bị giữ mới đáng điều tra.
-- **“Mức giảm `before-after` bằng toàn bộ object bị chết từ GC trước.”** Sai: hai điểm đo không đếm tổng allocation/garbage trong khoảng; các lần GC/ghi nhận khác và concurrent work có thể xen vào.
-- **“Đỉnh chạm `committed` là lập tức OOM.”** Sai: JVM có thể mở rộng heap khi còn headroom; OOM phụ thuộc giới hạn, phân mảnh, loại allocation và khả năng thu gom.
-- **“Full GC càng thường xuyên càng tốt vì đáy rõ.”** Sai: full GC thường có chi phí lớn; không chủ động gây ra chỉ để đồ thị dễ đọc.
-- **“RSS cao mà heap used thấp chứng minh GC lỗi.”** Sai: cần xem memory ngoài heap, native allocations và heap committed.
-- **“Đồ thị ít răng cưa nghĩa là không GC.”** Sai: collector concurrent và aggregation có thể làm mờ các bước giảm.
+- **"Rising heap used means a memory leak."** False: allocating and waiting for GC is normal behavior. Watch troughs after comparable GCs and workload progression.
+- **"The trough after young GC is the entire live set."** False: uncollected regions may still hold garbage.
+- **"300 MiB remaining after GC means 300 MiB is leaked."** False: live objects can be valid application and JVM state; only data that is no longer needed yet still retained warrants investigation.
+- **"The `before-after` reduction equals all objects that died since the previous GC."** False: two sample points do not count total allocations/garbage over the interval; other GCs/accounting and concurrent work can intervene.
+- **"A peak touching `committed` causes an immediate OOM."** False: the JVM can expand the heap when headroom remains; OOM depends on limits, fragmentation, allocation type, and reclaimability.
+- **"More frequent full GCs are better because troughs look clearer."** False: full GCs are usually expensive; do not trigger them intentionally just to make graphs easier to read.
+- **"High RSS with low heap used proves GC is broken."** False: check off-heap memory, native allocations, and committed heap.
+- **"A graph with little sawtooth means no GC is running."** False: concurrent collectors and aggregation can smooth out drops.
 
-## 10. Checklist thực hành khi xem dashboard
+## 10. Practical checklist when viewing a dashboard
 
-Trả lời đủ các câu hỏi sau trước khi đề xuất tuning hoặc sửa mã:
+Answer all of the following questions before proposing tuning or code changes:
 
-1. Tôi đang xem `heap used` của **JVM nào**, đơn vị nào, sample interval/aggregation gì?
-2. Các đường `committed` và `max` nằm ở đâu? Heap có tự mở rộng không?
-3. Các điểm giảm trùng **GC event nào**: young, mixed/old, full hay concurrent cycle?
-4. Sau những sự kiện **cùng loại, tải tương đương**, đáy ổn định, tăng, hay trở về mức cũ?
-5. Nếu đáy tăng, đó là sau warm-up/batch/cache hợp lệ hay tiếp tục tăng khi workload đã ổn định?
-6. Đỉnh, tần suất GC, CPU, pause, latency và lỗi cấp phát thay đổi cùng nhau thế nào?
-7. Nếu cần xác minh leak, đã tìm **loại đối tượng và đường tham chiếu giữ chúng** bằng bằng chứng phù hợp chưa?
+1. Which **JVM**'s `heap used` am I looking at, in what unit, and with what sampling interval/aggregation?
+2. Where are the `committed` and `max` curves? Is the heap expanding automatically?
+3. Which **GC events** do the drops correspond to: young, mixed/old, full, or concurrent cycles?
+4. After events of **the same kind and under equivalent load**, is the trough stable, rising, or returning to its prior level?
+5. If the trough is rising, is that due to warm-up/batch/legitimate caching, or does it continue climbing once workload stabilizes?
+6. How do peaks, GC frequency, CPU, pauses, latency, and allocation failures move together?
+7. If verifying a leak, have **the object types and reference paths retaining them** been identified with appropriate evidence?
 
-**Điểm cần nhớ:** đường răng cưa mô tả nhịp cấp phát và thu gom; **đáy sau các chu kỳ GC có thể so sánh** giúp ước lượng xu hướng bộ nhớ được giữ; còn kết luận có rò rỉ hay không phải dựa vào phạm vi GC, tải thực tế và bằng chứng về đối tượng được giữ lại.
+**Key takeaway:** the sawtooth curve describes the cadence of allocation and collection; **troughs after comparable GC cycles** help estimate the trend of retained memory; and concluding whether a leak exists requires accounting for GC scope, actual workload, and evidence of retained objects.

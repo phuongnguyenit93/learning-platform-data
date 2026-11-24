@@ -1,50 +1,50 @@
-# Đóng phiên JShell và phân biệt môi trường REPL với hợp đồng plugin ổn định
+# Closing a JShell Session and Distinguishing a REPL Environment from a Stable Plugin Contract
 
-**JShell nhúng** cho phép một chương trình Java tạo phiên Read–Eval–Print Loop (REPL) bằng API **jdk.jshell.JShell**, gửi vào các đoạn mã (snippet) và nhận kết quả/diagnostics theo từng lượt. Đây là công cụ rất hiệu quả để khám phá API, minh họa kiến thức, thử thuật toán hoặc xây dựng console tương tác. Tuy nhiên, vòng đời của một phiên JShell khác căn bản với vòng đời của một **plugin đã đóng gói và phát hành theo hợp đồng ổn định**.
+**Embedded JShell** lets a Java program create a Read–Eval–Print Loop (REPL) session using the **jdk.jshell.JShell** API, submit code fragments (snippets), and receive results and diagnostics per turn. It is a very effective tool for exploring APIs, demonstrating concepts, testing algorithms, or building an interactive console. However, the lifecycle of a JShell session is fundamentally different from the lifecycle of a **packaged and released plugin under a stable contract**.
 
-Bài này tập trung vào hai câu hỏi thực hành: **đóng một phiên JShell như thế nào để giải phóng tài nguyên đúng lúc?** và **tại sao không nên lấy trạng thái snippet đang hoạt động trong REPL làm giao diện plugin production?** Ta sẽ thực nghiệm trên Java 17+, xây một plugin JAR với interface SPI rõ ràng để so sánh, rồi xác định những ranh giới an toàn cho host.
+This article focuses on two practical questions: **how should a JShell session be closed to release resources on time?** and **why should live snippet state in a REPL not serve as a production plugin interface?** We will experiment on Java 17+, build a plugin JAR with an explicit SPI interface for comparison, and define safe boundaries for the host.
 
-## 1. JShell nhúng thực sự giữ những gì?
+## 1. What Does Embedded JShell Actually Hold?
 
-Khi gọi JShell.create() hoặc JShell.builder().build(), host tạo một **JShell state engine**. Mỗi phiên nắm giữ:
+When calling JShell.create() or JShell.builder().build(), the host creates a **JShell state engine**. Each session holds:
 
-- **Source state:** các khai báo import, biến, phương thức, kiểu dữ liệu và những snippet khác đã được đánh giá.
-- **Compilation state:** liên hệ giữa các snippet, trạng thái biên dịch/khả năng phân giải tên, diagnostics và sự thay thế khai báo.
-- **Execution state:** môi trường chạy biểu thức/statement và những giá trị hoặc side effect do mã đã thực thi tạo ra.
-- **Tài nguyên vận hành:** bộ máy JShell, cơ chế thực thi mã, đối tượng listener/subscription và những tham chiếu liên quan. Cấu hình thực thi mặc định thường dùng môi trường riêng cho mã snippet, nhưng không được suy thành sandbox bảo mật.
+- **Source state:** evaluated imports, variables, methods, types, and other snippets.
+- **Compilation state:** relationships between snippets, compilation/name-resolution status, diagnostics, and declaration replacements.
+- **Execution state:** the runtime environment for expressions/statements and the values or side effects created by executed code.
+- **Operational resources:** the JShell engine, code execution mechanism, listener/subscription objects, and associated references. The default execution configuration typically uses a separate environment for snippet code, though that must not be mistaken for a security sandbox.
 
-Một snippet **không giống một file .java hoàn chỉnh**, và một phiên JShell **không giống JAR plugin**. JShell cho phép từng expression, statement hoặc declaration được đánh giá qua eval(String). Một lời gọi eval nên chứa **một complete snippet**. Nếu nhận văn bản tùy ý gồm nhiều snippet, hãy dùng SourceCodeAnalysis.analyzeCompletion(...) để chia ranh giới một cách có chủ đích.
+A snippet is **not the same as a complete .java file**, and a JShell session is **not the same as a plugin JAR**. JShell allows individual expressions, statements, or declarations to be evaluated via eval(String). Each eval call should contain **one complete snippet**. When receiving arbitrary text containing multiple snippets, use SourceCodeAnalysis.analyzeCompletion(...) to split boundaries deliberately.
 
-Ví dụ, trong cùng một phiên:
+For example, within a single session:
 
 ~~~java
-// Các câu lệnh minh họa, giả định shell là một JShell đang mở:
+// Illustrative statements, assuming shell is an open JShell instance:
 shell.eval("int width = 6;");
 shell.eval("int area(int height) { return width * height; }");
 shell.eval("area(7)");
 ~~~
 
-Lượt gọi thứ ba dùng được width và area vì chúng đang thuộc cùng phiên. Nếu tạo **một JShell khác**, các khai báo này không tự xuất hiện ở phiên mới. Nếu khai báo width hoặc area bị ghi đè hoặc drop, các snippet phụ thuộc cũng có thể đổi trạng thái.
+The third call can use width and area because they belong to the same session. If you create **another JShell**, those declarations do not automatically appear in the new session. If the declaration of width or area is overwritten or dropped, dependent snippets may also change status.
 
-**REPL cho phép thử và sửa liên tục**; hợp đồng plugin ổn định cần biết rõ tên interface, kiểu tham số, kiểu trả về, phiên bản, quy tắc nạp và trách nhiệm tài nguyên ngay cả khi triển khai đã được thay bằng bản mới.
+**A REPL enables continuous experimentation and editing**; a stable plugin contract requires well-defined interface names, parameter types, return types, versioning, loading rules, and resource responsibilities even when an implementation is replaced with a newer release.
 
-## 2. Vòng đời đúng: create → eval/query → close
+## 2. The Proper Lifecycle: create → eval/query → close
 
-Trong Java 17, **JShell implements AutoCloseable**. API hướng dẫn gọi close() khi không còn cần state engine để giải phóng tài nguyên. Cách ưu tiên là dùng **try-with-resources**, thay vì trông chờ garbage collector:
+In Java 17, **JShell implements AutoCloseable**. The API instructs calling close() when the state engine is no longer needed to release resources. The preferred pattern is **try-with-resources**, rather than waiting on the garbage collector:
 
 ~~~java
 import jdk.jshell.JShell;
 
 try (JShell shell = JShell.create()) {
     shell.eval("int result = 2 + 3;");
-    // Đọc events hoặc diagnostics trong lúc phiên còn mở.
+    // Read events or diagnostics while the session is still open.
 }
-// close() được gọi khi ra khỏi block.
+// close() is called upon exiting the block.
 ~~~
 
-Đây là ví dụ cấu trúc; đoạn hoàn chỉnh có class và main ở phần 4.
+This is a structural example; a complete program with class and main is in section 4.
 
-Vòng đời nên được hiểu như sau:
+The lifecycle should be understood as follows:
 
 ~~~text
 NEW
@@ -53,53 +53,53 @@ NEW
  v
 OPEN SESSION
  |  eval(), drop(), status(), diagnostics()
- |  khai báo/biểu thức có thể làm thay đổi state
- |  snippet có thể bị REJECTED hoặc được ghi đè
+ |  declarations/expressions may mutate state
+ |  snippets may be REJECTED or overwritten
  |
- +---- close() / ra khỏi try-with-resources ----+
- |                                               |
- v                                               v
-CLOSED                                     release resources
+ +---- close() / exit try-with-resources ----+
+ |                                           |
+ v                                           v
+CLOSED                                 release resources
  |
- | eval() sau close()
+ | eval() after close()
  v
 IllegalStateException
 ~~~
 
-**close() không chỉ là xóa một biến Java**: nó kết thúc state engine và yêu cầu giải phóng tài nguyên. Một biến tham chiếu giữ giá trị Java của đối tượng đã đóng vẫn không khiến phiên có thể sử dụng trở lại. Ví dụ, eval(String) trên JShell đã đóng ném **IllegalStateException**.
+**close() is not merely clearing a Java variable**: it terminates the state engine and requests resource release. Keeping a Java reference variable holding the closed object does not make the session usable again. For example, calling eval(String) on a closed JShell throws **IllegalStateException**.
 
-Ngược lại, **drop(Snippet) không đóng phiên**. Nó chỉ làm một khai báo đang hoạt động không còn hoạt động và cập nhật những snippet phụ thuộc. JShell vẫn có thể nhận eval mới sau drop(). Việc đóng state engine không phải một "drop tất cả snippet rồi bắt đầu lại"; muốn có môi trường mới, hãy tạo một JShell instance mới và xây dựng lại state theo chính sách của host.
+Conversely, **drop(Snippet) does not close the session**. It only makes an active declaration inactive and updates dependent snippets. JShell can still accept new eval calls after drop(). Closing the state engine is not a "drop all snippets and start over"; to get a fresh environment, create a new JShell instance and rebuild state according to host policy.
 
-Trong thực tế, một phiên cũng có thể kết thúc **trước khi host chủ động gọi close**, chẳng hạn môi trường thực thi mã snippet từ xa bị kết thúc. Vì thế host phải xử lý trạng thái phiên bất thường, không chỉ happy path.
+In practice, a session can also terminate **before the host explicitly calls close**, such as when the remote snippet execution environment terminates. Therefore, the host must handle abnormal session states, not only the happy path.
 
-## 3. Những sự kiện và trạng thái không nên nhầm với plugin API
+## 3. Events and Statuses Not to Confuse with a Plugin API
 
-**JShell.eval(String)** trả về **List<SnippetEvent>**. Mỗi event mô tả thay đổi khi biên dịch/thực thi snippet hoặc do snippet khác phụ thuộc vào nó. Một lần eval có thể gây **nhiều event**, không nên viết code tổng quát luôn giả định list chỉ có một phần tử.
+**JShell.eval(String)** returns **List<SnippetEvent>**. Each event describes a change when compiling/executing the snippet or an indirect effect on another snippet depending on it. A single eval call can produce **multiple events**, so generic code should never assume the list always has a single element.
 
-Những khái niệm cần phân biệt:
+Concepts to keep distinct:
 
-| Thành phần | Điều nó biểu diễn | Lưu ý thiết kế |
+| Component | What It Represents | Design Note |
 | --- | --- | --- |
-| Snippet | Source snippet thuộc một JShell instance | Không phải hợp đồng Java SPI để chia sẻ giữa phiên |
-| Snippet.Status.VALID | Snippet hợp lệ, định nghĩa/kết quả đang có hiệu lực theo state | Có thể thay đổi sau lần eval/drop khác |
-| Snippet.Status.REJECTED | Snippet không được chấp nhận | Xem diagnostics, không coi là lỗi khởi động plugin |
-| Snippet.Status.RECOVERABLE_DEFINED / RECOVERABLE_NOT_DEFINED | Một khai báo có lỗi phụ thuộc chưa giải quyết và có thể được hồi phục theo điều kiện | Không có nghĩa plugin đã deploy thành công |
-| Snippet.Status.OVERWRITTEN | Khai báo cũ đã bị khai báo mới ghi đè | Cần tránh phụ thuộc ngầm vào định nghĩa cũ |
-| Snippet.Status.DROPPED | Khai báo bị loại khỏi source state | Không tương đương JShell.close() |
-| SnippetEvent.value() | Chuỗi hiển thị kết quả nếu event có giá trị | Có thể null; không phải DTO có kiểu và schema ổn định |
-| SnippetEvent.exception() | Ngoại lệ do mã snippet ném trong execution | Khác lỗi biên dịch, cần ghi nhận riêng |
-| shell.diagnostics(snippet) | Diagnostic của lần đánh giá snippet gần nhất | Không giống stdout/stderr của mã đã chạy |
-| shell.status(snippet) | Trạng thái hiện tại của snippet trong phiên | Khác status ghi lại ở một event cũ |
+| Snippet | A source snippet belonging to one JShell instance | Not a Java SPI contract to share across sessions |
+| Snippet.Status.VALID | Valid snippet whose definition/result is active in current state | Can change after another eval/drop call |
+| Snippet.Status.REJECTED | Snippet was not accepted | Inspect diagnostics; do not treat as plugin startup failure |
+| Snippet.Status.RECOVERABLE_DEFINED / RECOVERABLE_NOT_DEFINED | Declaration has unresolved dependency errors and may recover conditionally | Does not mean a plugin deployed successfully |
+| Snippet.Status.OVERWRITTEN | Old declaration was replaced by a new declaration | Avoid implicit reliance on old definitions |
+| Snippet.Status.DROPPED | Declaration was removed from source state | Not equivalent to JShell.close() |
+| SnippetEvent.value() | Display string of the result if the event has a value | May be null; not a typed DTO with a stable schema |
+| SnippetEvent.exception() | Exception thrown by snippet code during execution | Distinct from compile errors; must be recorded separately |
+| shell.diagnostics(snippet) | Diagnostics from the snippet's most recent evaluation | Not the same as stdout/stderr from executed code |
+| shell.status(snippet) | Current status of the snippet in the session | Distinct from the status recorded in an older event |
 
-Ví dụ một biến bị khai báo lại trong REPL có thể khiến snippet đầu mang trạng thái OVERWRITTEN, còn khai báo mới VALID. Một người dùng sửa kiểu trả về của một phương thức ngay trong phiên mà không tái phát hành interface JAR; đó là hành vi hỗ trợ **thử nghiệm**, chứ không phải cơ chế bảo đảm compatibility cho plugin consumer.
+For example, redeclaring a variable in a REPL can cause the first snippet to enter OVERWRITTEN while the new declaration is VALID. A user might change a method's return type right inside the session without re-releasing an interface JAR; that behavior supports **experimentation**, not a compatibility guarantee for plugin consumers.
 
-**Không truyền object Snippet hoặc SnippetEvent như một API ổn định cho plugin khác.** Chúng gắn với state engine cụ thể, chứa ngữ nghĩa của một phiên REPL, và không đại diện cho artifact có version/ABI rõ ràng.
+**Do not pass Snippet or SnippetEvent objects as a stable API to other plugins.** They are tied to a specific state engine, carry REPL session semantics, and do not represent a versioned artifact with an explicit ABI.
 
-## 4. Lab Java 17+: đóng phiên ngay cả khi có lỗi snippet
+## 4. Java 17+ Lab: Closing the Session Even When Snippet Errors Occur
 
-Chương trình sau dùng đúng một file Java, tạo JShell, gửi snippet đúng và sai, kiểm tra drop(), đóng phiên qua try-with-resources, xác nhận eval() bị từ chối sau close, rồi tạo phiên độc lập mới. Mục tiêu là quan sát vòng đời, **không thực thi mã Java không tin cậy**.
+The following program uses a single Java file, creates a JShell, submits valid and invalid snippets, tests drop(), closes the session via try-with-resources, confirms eval() is rejected after close, and creates a new independent session. The goal is observing the lifecycle, **not executing untrusted Java code**.
 
-Tạo file **EmbeddedJshellLifecycle.java**:
+Create **EmbeddedJshellLifecycle.java**:
 
 ~~~java
 import jdk.jshell.JShell;
@@ -109,7 +109,7 @@ public final class EmbeddedJshellLifecycle {
     public static void main(String[] args) {
         JShell shell = JShell.create();
 
-        // Java 9+ cho phép dùng biến effectively final trong try-with-resources.
+        // Java 9+ allows effectively final variables in try-with-resources.
         try (shell) {
             SnippetEvent defined = shell.eval("int factor = 7;").get(0);
             System.out.println("defined=" + defined.status());
@@ -122,7 +122,7 @@ public final class EmbeddedJshellLifecycle {
             System.out.println("diagnostic="
                     + (shell.diagnostics(bad.snippet()).count() > 0));
 
-            // Xóa một khai báo; không kết thúc toàn bộ phiên.
+            // Remove one declaration; does not terminate the entire session.
             shell.drop(defined.snippet());
             System.out.println("dropped="
                     + shell.status(defined.snippet()));
@@ -144,14 +144,14 @@ public final class EmbeddedJshellLifecycle {
 }
 ~~~
 
-Biên dịch và chạy bằng **JDK 17+**:
+Compile and run with **JDK 17+**:
 
 ~~~bash
 javac --add-modules jdk.jshell -encoding UTF-8 EmbeddedJshellLifecycle.java
 java --add-modules jdk.jshell EmbeddedJshellLifecycle
 ~~~
 
-**Stdout kỳ vọng** trong môi trường JDK 17 có thể khởi tạo JShell execution engine bình thường:
+**Expected stdout** in a JDK 17 environment capable of launching JShell's execution engine normally:
 
 ~~~text
 defined=VALID
@@ -163,56 +163,56 @@ closed-eval-error=true
 fresh-variables=0
 ~~~
 
-**Giải thích từng dòng:**
+**Line-by-line explanation:**
 
-1. Định nghĩa int factor = 7; hợp lệ nên event trả trạng thái VALID.
-2. Biểu thức factor * 6 dùng state phiên hiện hành và cho giá trị chuỗi **42**. Chuỗi này phục vụ hiển thị, không được coi là một object Integer đã đi qua hợp đồng plugin.
-3. int broken = ; không hợp lệ về cú pháp, bị REJECTED. Đọc diagnostics trong khi shell còn mở cho thấy ít nhất một diagnostic.
-4. drop(defined.snippet()) chuyển khai báo factor sang DROPPED trong phiên. Các snippet khác không nhất thiết bị xóa cùng lúc; trạng thái phụ thuộc sẽ được cập nhật theo quy tắc JShell.
-5. Khi ra khỏi block try (shell), close() chạy dù các thao tác bên trong trả bình thường hay ném ngoại lệ trong điều kiện Java thực thi finally/close thông thường.
-6. Thử eval sau close gặp IllegalStateException; chương trình bắt đúng loại lỗi này và in true.
-7. Phiên fresh mới không có biến active của phiên cũ. Việc tạo JShell khác không "mở lại" state đã đóng.
+1. The definition int factor = 7; is valid, so the event returns status VALID.
+2. The expression factor * 6 uses the current session state and produces the string value **42**. This string is for display and must not be treated as an Integer object passing through a plugin contract.
+3. int broken = ; is syntactically invalid and becomes REJECTED. Reading diagnostics while the shell is still open finds at least one diagnostic.
+4. drop(defined.snippet()) transitions the factor declaration to DROPPED in the session. Other snippets are not necessarily deleted simultaneously; dependent statuses update per JShell rules.
+5. Upon exiting the try (shell) block, close() runs whether the inner operations return normally or throw an exception under normal Java finally/close execution.
+6. Attempting eval after close hits IllegalStateException; the program catches this exact error type and prints true.
+7. The new fresh session has no active variables from the old session. Creating another JShell does not "reopen" closed state.
 
-**Điều kiện quan trọng:** nếu execution engine không khởi tạo được, process bị lỗi hoặc môi trường thực thi snippet bị kết thúc sớm, output có thể khác. Kịch bản trên là lab hợp lệ trên JDK 17 thông thường, không phải cam kết rằng mọi môi trường bị giới hạn quyền hoặc đang quá tải đều chạy được.
+**Important caveat:** if the execution engine fails to initialize, the process errors out, or the snippet execution environment terminates early, output may differ. The scenario above is a valid lab on a standard JDK 17, not a guarantee that every permission-restricted or overloaded environment will succeed.
 
-### 4.1. Vì sao phải đọc kết quả trước khi đóng?
+### 4.1. Why Must Results Be Read Before Closing?
 
-Một số thao tác như shell.status(snippet), shell.diagnostics(snippet), shell.varValue(...) và shell.eval(...) cần một state engine còn mở. Sau close, các truy vấn/đánh giá phụ thuộc state có thể báo IllegalStateException. Do đó flow thực tế nên:
+Operations like shell.status(snippet), shell.diagnostics(snippet), shell.varValue(...), and shell.eval(...) require an open state engine. After close, state-dependent queries and evaluations may throw IllegalStateException. Hence a practical flow should:
 
-1. Gửi snippet;
-2. Thu thập những SnippetEvent, diagnostics và giá trị cần lưu khi phiên còn mở;
-3. Chuẩn hóa kết quả thành DTO thuộc API của host;
-4. Đóng JShell;
-5. Trả DTO đã chuẩn hóa cho caller.
+1. Submit the snippet;
+2. Collect SnippetEvents, diagnostics, and values to retain while the session is still open;
+3. Normalize results into DTOs belonging to the host's API;
+4. Close JShell;
+5. Return the normalized DTO to the caller.
 
-Không dựa vào việc giữ Snippet object rồi khi client gọi API nhiều phút sau mới truy vấn JShell để diễn giải. Khi phiên đã đóng, hãy giữ dữ liệu kết quả cần thiết **bằng giá trị**, không giữ tham chiếu đến state engine.
+Do not rely on retaining a Snippet object and querying JShell minutes later when a client calls an API to interpret it. Once the session is closed, keep needed result data **by value**, without holding references to the state engine.
 
-### 4.2. Tách lỗi biên dịch với lỗi chạy mã
+### 4.2. Separating Compile Errors from Execution Errors
 
-Một snippet có thể là REJECTED do lỗi cú pháp/type-check, không ném exception từ code người dùng. Ngược lại, một snippet biên dịch hợp lệ nhưng thực thi ném ngoại lệ; khi ấy **SnippetEvent.exception()** có thể cho biết exception thuộc môi trường JShell. Việc JShell.eval(...) trả danh sách event thành công **không tự động có nghĩa mỗi snippet thực thi thành công**.
+A snippet can be REJECTED due to syntax or type-checking errors without throwing an exception from user code. Conversely, a snippet can compile validly yet throw an exception during execution; in that case **SnippetEvent.exception()** reports the exception from the JShell environment. Returning a list of events successfully from JShell.eval(...) **does not automatically mean every snippet executed cleanly**.
 
-Chương trình test production nên kiểm tra status, exception, diagnostics và kết quả một cách độc lập. Cũng phải xét nhiều event gián tiếp nếu khai báo mới ghi đè khai báo cũ.
+Production tests should check status, exceptions, diagnostics, and results independently. Also account for indirect events when a new declaration overwrites an old one.
 
-## 5. Quản lý close() trong mã nhúng thật
+## 5. Managing `close()` in Real Embedded Code
 
-### 5.1. try-with-resources được ưu tiên
+### 5.1. `try-with-resources` Is Preferred
 
-Đối với phiên dùng trong một request hoặc một thao tác ngắn:
+For a session scoped to a single request or short operation:
 
 ~~~java
-// Mã minh họa: không phải chương trình độc lập.
+// Illustrative snippet: not a standalone program.
 try (JShell session = JShell.create()) {
     var events = session.eval(sourceSnippet);
     return normalize(events, session);
 }
 ~~~
 
-Hàm normalize cần biến dữ liệu JShell thành loại dữ liệu do host kiểm soát khi session còn mở. Khi return diễn ra, try-with-resources vẫn gọi close trước khi kết quả được giao cho caller.
+The normalize function must convert JShell data into host-controlled types while the session is still open. When return executes, try-with-resources still calls close before the result is handed to the caller.
 
-Nếu framework không thể dùng try-with-resources vì phiên sống qua nhiều tương tác, host phải có owner rõ ràng và điểm kết thúc rõ ràng. Ví dụ:
+If a framework cannot use try-with-resources because a session spans multiple interactions, the host must enforce a clear owner and termination point. For example:
 
 ~~~java
-// Mã minh họa: sessionOwner có trách nhiệm đóng chính phiên này.
+// Illustrative snippet: sessionOwner is responsible for closing this session.
 JShell session = JShell.create();
 try {
     sessionOwner.register(session);
@@ -223,26 +223,26 @@ try {
 }
 ~~~
 
-Mẫu trên giả định register/serveUntilFinished/unregister đã được định nghĩa. Trong hệ thống thật, nếu unregister() ném lỗi, dòng session.close() ở cùng finally có thể không chạy; nên ưu tiên owner AutoCloseable và thiết kế cleanup nhiều resource có thứ tự, cô lập lỗi đúng cách.
+The pattern above assumes register/serveUntilFinished/unregister are defined. In a real system, if unregister() throws an exception, session.close() in the same finally block might not run; prefer an AutoCloseable owner and ordered multi-resource cleanup with proper error isolation.
 
-### 5.2. close() khác drop(), stop() và hủy request
+### 5.2. `close()` vs. `drop()`, `stop()`, and Request Cancellation
 
-- **drop(Snippet)**: thay đổi trạng thái khai báo, phục vụ phiên đang mở.
-- **stop()**: thử dừng việc thực thi đang diễn ra. Theo JDK API, đây là nỗ lực tốt nhất; có trường hợp thất bại, ví dụ mã bị chặn I/O hoặc xử lý cách ngắt.
-- **close()**: đóng state engine, giải phóng tài nguyên; nên là điểm kết thúc vòng đời khi không cần phiên.
-- **Future.cancel(true)** nếu host chạy eval trên worker thread: chủ yếu yêu cầu interrupt, không phải lệnh cưỡng chế dừng mọi execution engine.
-- **Hủy process/container do host sở hữu**: ranh giới mạnh hơn khi cần giới hạn thời gian hoặc memory cho mã không tin cậy; cũng cần thu dọn process tree, filesystem và IPC.
+- **drop(Snippet)**: mutates declaration state for an open session.
+- **stop()**: attempts to halt ongoing execution. Per the JDK API, this is best-effort; cases exist where it fails, such as code blocked in I/O or catching interrupts.
+- **close()**: closes the state engine and releases resources; should be the lifecycle endpoint when the session is no longer needed.
+- **Future.cancel(true)** if the host runs eval on a worker thread: primarily issues an interrupt request, not a forced kill across every execution engine.
+- **Terminating a host-owned process/container**: a stronger boundary when time or memory limits are needed for untrusted code; also requires cleaning up process trees, filesystems, and IPC.
 
-**Đừng chỉ gọi stop() hoặc drop() rồi xem như đã đóng phiên.** Đối với session pool, cần đánh dấu state không dùng lại, hủy callback/task còn hoạt động và đóng phiên thật trước khi giải phóng slot. Nếu có user code treo, một lệnh close/stop không thay thế chính sách isolation và watchdog thích hợp.
+**Never call only stop() or drop() and treat the session as closed.** For session pools, mark state non-reusable, cancel active callbacks/tasks, and genuinely close the session before releasing the slot. If user code hangs, a close/stop call does not replace proper isolation policies and watchdogs.
 
-### 5.3. Subscription và callback
+### 5.3. Subscriptions and Callbacks
 
-JShell cho phép đăng ký listener qua onSnippetEvent(...) và onShutdown(...). onShutdown báo khi một phiên chấm dứt, kể cả tình huống do execution environment kết thúc ngoài ý muốn. Các phương thức đăng ký trả về **JShell.Subscription**; host có thể unsubscribe(token) khi không cần quan sát nữa.
+JShell lets you register listeners via onSnippetEvent(...) and onShutdown(...). onShutdown notifies when a session terminates, including when the execution environment exits unexpectedly. Registration methods return a **JShell.Subscription**; the host can call unsubscribe(token) when observation is no longer needed.
 
-Mã minh họa:
+Illustrative code:
 
 ~~~java
-// Giả định shell đang mở và log là logger của host.
+// Assuming shell is open and log is the host's logger.
 JShell.Subscription subscription =
         shell.onSnippetEvent(event -> log(event.status()));
 try {
@@ -252,42 +252,42 @@ try {
 }
 ~~~
 
-Đây là mã có biến log giả định, không phải ví dụ độc lập. Đăng ký callback không đồng nghĩa bắt đầu một "plugin runtime" ổn định. Callback có thể giữ tham chiếu tới object của host; hủy subscription và kết thúc phiên theo ownership giúp giảm nguy cơ lưu giữ tham chiếu không cần thiết.
+This code assumes a hypothetical log variable and is not a standalone example. Registering a callback does not amount to starting a stable "plugin runtime." Callbacks can retain references to host objects; unsubscribing and closing sessions under clear ownership reduces the risk of retaining unnecessary references.
 
-### 5.4. Không chia sẻ phiên JShell giữa thread một cách tùy tiện
+### 5.4. Do Not Share a JShell Session Arbitrarily Across Threads
 
-Tài liệu JDK 17 nói **JShell không thread-safe**, trừ những phương thức được chỉ rõ ngoại lệ. Không để hai request đồng thời gọi eval/drop/close trên cùng session rồi mong thứ tự state có thể dự đoán. Một giải pháp là gán mỗi phiên cho một worker/serial queue duy nhất; lifecycle manager chịu trách nhiệm ngăn request mới khi phiên đang đóng.
+JDK 17 documentation states **JShell is not thread-safe**, except for explicitly documented methods. Do not let two requests concurrently call eval/drop/close on the same session and expect predictable state ordering. One solution is assigning each session to a dedicated single worker or serial queue; the lifecycle manager prevents new requests once closing begins.
 
-Nếu một job bất đồng bộ đang dùng session, đừng đóng nó ngay khi HTTP request timeout mà không phối hợp worker; cần có quy trình hủy, đánh dấu phiên không tái sử dụng, đợi hoặc loại bỏ worker cô lập rồi cleanup. Bộ nhớ, listener, streams và các reference của phiên phải được giải phóng theo một owner.
+If an async job is using a session, do not close it immediately upon an HTTP request timeout without coordinating with the worker; follow a cancellation protocol, mark the session non-reusable, wait for or terminate the isolated worker, and then clean up. Memory, listeners, streams, and session references must all be released under one owner.
 
-## 6. REPL và plugin: so sánh theo hợp đồng, không chỉ theo cách gọi mã
+## 6. REPL vs. Plugin: Comparing by Contract, Not Just How Code Is Invoked
 
-Hai cơ chế đều cho phép hành vi xuất hiện sau khi host khởi động, nhưng mục tiêu khác nhau:
+Both mechanisms let behavior appear after the host starts, yet their goals differ:
 
-| Khía cạnh | JShell/REPL nhúng | Plugin ổn định với SPI/JAR |
+| Aspect | Embedded JShell/REPL | Stable Plugin with SPI/JAR |
 | --- | --- | --- |
-| Đơn vị nguồn | Snippet (expression, statement, declaration) | Class/module và artifact đã build |
-| Thời điểm thay đổi | Trong phiên, eval/drop/ghi đè declaration | Qua phát hành artifact phiên bản mới |
-| Hợp đồng public | Thường là state và value được diễn giải | Interface/DTO, chữ ký method, phiên bản API |
-| Định danh | Snippet ID/state gắn với một JShell instance | Plugin ID/version + implementation class/module |
-| Kiểm tra tương thích | Compilation status trong phiên, dependency của snippets | Compile/runtime compatibility, API version, contract tests |
-| Kết quả | SnippetEvent.value() là biểu diễn String tùy trường hợp | Java object/DTO đã định kiểu và có semantics |
-| Vòng đời | create → eval/query → close | install → validate → start → serve → stop/unload |
-| Phụ thuộc | import, classpath/session setup, state thứ tự lượt | dependency graph và class loader/module layer được quản lý |
-| Phát hiện implementation | Gửi source theo thứ tự hoặc chọn snippet | SPI/ServiceLoader, registry hoặc manifest |
-| State isolation | State theo phiên, thực thi có thể có side effect | State theo plugin instance/lifecycle được định nghĩa |
-| Triển khai lại | Tạo session mới và phát lại source nếu cần | Nạp artifact mới, migrate state nếu hợp đồng yêu cầu |
-| Độ tin cậy | Rất tốt cho khám phá và nguyên mẫu | Phù hợp hệ thống tích hợp dài hạn khi contract được kiểm thử |
+| Source unit | Snippet (expression, statement, declaration) | Compiled classes/modules and built artifact |
+| When changes happen | Mid-session via eval/drop/redeclaration | By releasing a new versioned artifact |
+| Public contract | Usually session state and interpreted values | Interfaces/DTOs, method signatures, API versions |
+| Identity | Snippet ID/state bound to a JShell instance | Plugin ID/version + implementation class/module |
+| Compatibility checks | In-session compilation status and snippet dependencies | Compile/runtime compatibility, API versioning, contract tests |
+| Result | SnippetEvent.value() is a contextual String representation | Typed Java objects/DTOs with defined semantics |
+| Lifecycle | create → eval/query → close | install → validate → start → serve → stop/unload |
+| Dependencies | imports, classpath/session setup, turn-by-turn state | Managed dependency graph and class loader/module layer |
+| Implementation discovery | Submitting source in order or selecting snippets | SPI/ServiceLoader, registry, or manifest |
+| State isolation | Session-scoped state; execution may have side effects | State scoped to defined plugin instances/lifecycles |
+| Redeployment | Create a new session and replay source if needed | Load new artifact, migrate state if contract requires |
+| Reliability | Great for exploration and prototyping | Suited for long-lived integration when contracts are tested |
 
-**Nguyên tắc:** không dùng một loạt String có chứa tên biến/phương thức của JShell làm API plugin production chỉ vì "chạy được ở phiên hiện tại". Phiên phụ thuộc lịch sử eval, classpath và trạng thái runtime; caller khác hoặc phiên mới có thể không có cùng khai báo.
+**Principle:** do not use a bundle of strings naming JShell variables/methods as a production plugin API just because "it works in the current session." A session depends on eval history, classpath, and runtime state; another caller or a fresh session may lack those declarations.
 
-Một kết quả SnippetEvent.value() ví dụ "42" không mang thông tin kiểu/phiên bản cho việc trao đổi thông điệp giữa các thành phần. Nếu cần đưa kết quả ra ngoài, host phải biến thành DTO rõ schema, ví dụ **CompileResult(status, diagnostics, output)** hoặc **EvaluationResult(type, displayText, errors)**. Cần định nghĩa encoding, độ dài, lỗi và hợp đồng tương thích.
+A SnippetEvent.value() like "42" carries no type or version metadata for inter-component messaging. When exposing results externally, the host must convert them into an explicit-schema DTO, such as **CompileResult(status, diagnostics, output)** or **EvaluationResult(type, displayText, errors)**. Define encoding, length bounds, errors, and compatibility contracts.
 
-## 7. Lab đối chiếu: một plugin classpath có hợp đồng SPI cố định
+## 7. Comparison Lab: A Classpath Plugin with a Fixed SPI Contract
 
-Để thấy sự khác biệt, ta xây một plugin đơn giản với giao diện Java ổn định. Host không eval các chuỗi code tùy ý, mà gọi **interface MessagePlugin** đã được build trước; implementation và đăng ký service đóng trong một JAR riêng.
+To see the difference, let's build a simple plugin with a stable Java interface. Here the host does not eval arbitrary code strings, but invokes a pre-built **MessagePlugin interface**; the implementation and service registration are packaged in a separate JAR.
 
-### 7.1. Cây file
+### 7.1. File Tree
 
 ~~~text
 plugin-lab/
@@ -297,11 +297,11 @@ plugin-lab/
 │   └── host/demo/host/Host.java
 ├── resources/
 │   └── META-INF/services/demo.api.MessagePlugin
-├── build/                      (tạo khi biên dịch)
-└── dist/                       (tạo khi đóng JAR)
+├── build/                      (created during compilation)
+└── dist/                       (created when packaging JAR)
 ~~~
 
-### 7.2. Hợp đồng SPI mà host và plugin chia sẻ
+### 7.2. The SPI Contract Shared by Host and Plugin
 
 File **src/api/demo/api/MessagePlugin.java**:
 
@@ -314,9 +314,9 @@ public interface MessagePlugin {
 }
 ~~~
 
-Chữ ký của interface là **hợp đồng compile-time và runtime**. Caller biết trước id() và transform(String) và có thể viết test chuẩn. Thay kiểu tham số hoặc kiểu trả về tùy tiện không giống việc redefine một snippet; thay đổi chữ ký có thể phá **binary compatibility** của implementation cũ.
+The interface signature is the **compile-time and runtime contract**. Callers know id() and transform(String) upfront and can write standard tests. Changing parameter or return types arbitrarily is nothing like redefining a snippet; changing signatures can break **binary compatibility** for existing implementations.
 
-### 7.3. Implementation phát hành dưới dạng JAR
+### 7.3. Implementation Released as a JAR
 
 File **src/plugin/demo/plugins/UpperPlugin.java**:
 
@@ -341,15 +341,15 @@ public final class UpperPlugin implements MessagePlugin {
 }
 ~~~
 
-File **resources/META-INF/services/demo.api.MessagePlugin** không có phần mở rộng, chứa đúng một dòng:
+File **resources/META-INF/services/demo.api.MessagePlugin** has no extension and contains exactly one line:
 
 ~~~text
 demo.plugins.UpperPlugin
 ~~~
 
-Descriptor phải nằm ở gốc JAR. Tên file là **tên đầy đủ của interface dịch vụ**, tên trong file là class provider. Đây là ví dụ SPI trên **classpath**; module path với explicit named modules có thể dùng khai báo uses/provides trong module-info.java, là cơ chế cấu hình khác.
+The descriptor must sit at the root of the JAR. The filename is the **fully qualified name of the service interface**, and the file contents name the provider class. This is a **classpath** SPI example; module path setups with explicit named modules can use uses/provides declarations in module-info.java, which is a different configuration mechanism.
 
-### 7.4. Host tải plugin qua SPI và gọi giao diện ổn định
+### 7.4. Host Loads the Plugin via SPI and Calls the Stable Interface
 
 File **src/host/demo/host/Host.java**:
 
@@ -376,11 +376,11 @@ public final class Host {
 }
 ~~~
 
-Host không cần biết class UpperPlugin lúc biên dịch. Nó chỉ biết MessagePlugin, đồng thời công cụ phát hành đảm bảo implementation có thể được tải và tạo theo hợp đồng ServiceLoader classpath (provider public, có public constructor không tham số hợp lệ).
+The host does not need to know the UpperPlugin class at compile time. It knows only MessagePlugin, while packaging ensures the implementation can be loaded and instantiated under the classpath ServiceLoader contract (a public provider class with a valid public no-arg constructor).
 
-### 7.5. Build và chạy bằng JDK 17+
+### 7.5. Building and Running with JDK 17+
 
-Từ thư mục gốc **plugin-lab/** dùng shell bash/POSIX:
+From the **plugin-lab/** root directory using a bash/POSIX shell:
 
 ~~~bash
 mkdir -p build/api build/plugin build/host dist
@@ -395,7 +395,7 @@ javac --release 17 -encoding UTF-8 -cp dist/api.jar -d build/host src/host/demo/
 java -cp "build/host:dist/api.jar:dist/upper-plugin.jar" demo.host.Host
 ~~~
 
-Stdout **kỳ vọng chính xác** với đúng một descriptor/provider như trên:
+**Exact expected stdout** with one descriptor/provider as above:
 
 ~~~text
 plugin=upper
@@ -403,31 +403,31 @@ result=HELLO
 matched=1
 ~~~
 
-Trên Windows khi gọi Java trong PowerShell/CMD, dấu phân cách classpath là **;** thay cho **:**. Lệnh mkdir -p là cú pháp bash; có thể tạo thư mục trước bằng công cụ của shell Windows nếu không dùng bash.
+On Windows when invoking Java in PowerShell/CMD, the classpath separator is **;** instead of **:**. The mkdir -p command is bash syntax; create directories beforehand using Windows shell tools if not using bash.
 
-So sánh với ví dụ JShell ở phần 4: Host ở đây không có call eval(), không lưu SnippetEvent và không phụ thuộc lịch sử người dùng gõ khai báo. Một triển khai mới chỉ có thể thay thế an toàn nếu tuân thủ giao diện đã phát hành, tương thích API và chính sách phiên bản của host. **Runtime extensibility** vẫn có, nhưng được ràng buộc bằng artifact và contract.
+Compare this with the JShell example in section 4: here the host makes no eval() calls, stores no SnippetEvents, and does not depend on a user's declaration history. A new implementation can swap in safely only if it adheres to the published interface, API compatibility, and host versioning policy. **Runtime extensibility** is still achieved, but bounded by artifacts and contracts.
 
-**Kiểm tra artifact:** lệnh jar --list --file dist/upper-plugin.jar phải tìm thấy demo/plugins/UpperPlugin.class và META-INF/services/demo.api.MessagePlugin. Không đóng bản sao demo/api/MessagePlugin.class trong plugin JAR của lab; host và plugin dùng cùng API class identity qua classpath chung. Nếu đưa các bản SPI khác nhau vào loader khác nhau, hai type trùng tên chưa chắc tương thích.
+**Inspecting the artifact:** jar --list --file dist/upper-plugin.jar must find demo/plugins/UpperPlugin.class and META-INF/services/demo.api.MessagePlugin. Do not bundle a duplicate copy of demo/api/MessagePlugin.class inside this lab's plugin JAR; host and plugin share the same API class identity over the shared classpath. If separate copies of the SPI interface are loaded by different loaders, two identically named types may not be compatible.
 
-## 8. Đường ranh giới hợp lý: JShell để khám phá, plugin để vận hành
+## 8. The Sensible Boundary: JShell for Exploration, Plugins for Operation
 
-Một sản phẩm có thể kết hợp hai cơ chế nhưng không nên nhập nhằng vai trò:
+A product can combine both mechanisms without blurring their roles:
 
 ~~~text
-Nguồn mã thử nghiệm
+Experimental source code
       |
       v
 JShell sandboxed development environment
       |
-      | eval + diagnostics + test nhanh
+      | eval + diagnostics + quick test
       v
-Quyết định chức năng đã đạt yêu cầu
+Decide functionality meets requirements
       |
-      | chuyển thành mã nguồn .java/module-info + test
+      | convert to .java/module-info source + tests
       v
-Build/CI → contract tests → artifact versioned JAR
+Build/CI → contract tests → versioned JAR artifact
       |
-      | kiểm tra chữ ký/nguồn/phụ thuộc và compatibility
+      | verify signature/origin/dependencies and compatibility
       v
 Plugin manager / ServiceLoader / ModuleLayer
       |
@@ -436,85 +436,85 @@ Plugin manager / ServiceLoader / ModuleLayer
 Host production
 ~~~
 
-Trong sơ đồ, "sandboxed development environment" là **môi trường phát triển được cách ly bởi ứng dụng/OS**, không phải một đảm bảo bảo mật được JShell API tự cung cấp. Nếu JShell được nhúng vào hệ thống cho người dùng gửi mã không tin cậy, hãy dùng process/container riêng có quota và policy rõ ràng.
+In the diagram, "sandboxed development environment" refers to a **development environment isolated by the application/OS**, not a security guarantee provided by the JShell API itself. If JShell is embedded in a system where users submit untrusted code, use a dedicated process/container with explicit quotas and policies.
 
-Một cách tích hợp có kiểm soát:
+A controlled integration approach:
 
-1. Người dùng thử snippet trong một phiên JShell có **định danh phiên**, thời hạn sử dụng và ownership rõ ràng.
-2. Host giới hạn input, output, concurrency và thời gian; chuẩn hóa diagnostics/result, đóng phiên khi hết hạn hoặc hoàn tất.
-3. Khi prototype đã đủ ổn định, chuyển code thành source files có tên/class/package, compile và chạy test.
-4. Chỉ publish bản build có interface/DTO được định nghĩa rõ, semantic versioning và checksum/signature theo chính sách.
-5. Plugin manager xác minh artifact, tìm provider, kiểm tra version API rồi gọi qua contract.
-6. Khi gỡ plugin, hủy request/callback/thread và tài nguyên; **đóng JShell phiên thử nghiệm** nếu còn tồn tại và xử lý riêng vòng đời loader/plugin runtime.
+1. Users experiment with snippets in a JShell session with an explicit **session ID**, expiration time, and ownership.
+2. The host limits input, output, concurrency, and execution time; normalizes diagnostics/results; and closes the session upon expiration or completion.
+3. Once a prototype is stable enough, convert the code into named `.java` source files/classes/packages, compile, and run tests.
+4. Publish only builds with well-defined interfaces/DTOs, semantic versioning, and policy-compliant checksums/signatures.
+5. The plugin manager verifies the artifact, discovers providers, checks API versions, and invokes them through the contract.
+6. When unloading a plugin, stop active requests/callbacks/threads and resources; **close any experimental JShell session** if still open, and manage the plugin runtime loader/lifecycle separately.
 
-Nếu chỉ cần các biểu thức ngắn do ứng dụng tự kiểm soát, một JShell engine có lifecycle tốt có thể là công cụ nội bộ phù hợp. Nhưng nếu muốn mở rộng hệ thống dài hạn, nhận plugin độc lập theo phiên bản hoặc hỗ trợ upgrade/rollback, một hợp đồng Java SPI hoặc API được package là lựa chọn có tính kiểm chứng tốt hơn.
+If you only need short, host-controlled expressions, a well-managed JShell engine may be an appropriate internal tool. However, to extend a system long-term, accept independently versioned plugins, or support upgrades and rollbacks, a Java SPI contract or packaged API is a far more verifiable choice.
 
-## 9. Ranh giới bảo mật và tài nguyên: close() không phải sandbox
+## 9. Security and Resource Boundaries: `close()` Is Not a Sandbox
 
-Một hiểu nhầm nguy hiểm là: "JShell mặc định có execution engine riêng nên chạy mã bất kỳ là an toàn". Điều đó **không đúng**. JShell thực thi mã Java, và mã có thể có side effect, tải thư viện, truy cập file/network hoặc gây tiêu thụ tài nguyên trong phạm vi quyền được cấp. Hành vi execution engine và classpath được cấu hình có thể thay đổi. Việc close() giải phóng state engine **không đồng nghĩa thu hồi mọi side effect** đã gây ra.
+A dangerous misconception is: "JShell has a separate default execution engine, so running arbitrary code is safe." That is **false**. JShell executes Java code, and that code can cause side effects, load libraries, access files or the network, or consume resources within granted permissions. Execution engine behavior and classpath configuration can also vary. Calling close() releases the state engine, **which does not mean undoing every side effect** already caused.
 
-Trong môi trường sản xuất, cần tách các biện pháp:
+In production environments, separate the safeguards:
 
-| Mối lo | JShell API cung cấp | Host còn phải làm |
+| Concern | What JShell API Provides | What the Host Must Still Do |
 | --- | --- | --- |
-| Hết phiên hợp lệ | AutoCloseable, close() | Xác định owner, timeout, không dùng lại instance đóng |
-| Lỗi syntax/compile | SnippetEvent.status() và diagnostics | Chuẩn hóa lỗi, hạn chế kích thước kết quả, log |
-| Lỗi runtime snippet | SnippetEvent.exception() | Xác định trạng thái request và chính sách phục hồi |
-| Snippet chạy quá lâu | stop() cố gắng dừng | Isolation và watchdog, hard deadline ở process/container |
-| Giữ quá nhiều state | drop(), tạo phiên mới và close() | Quota source/snippet/output/heap, số phiên đồng thời |
-| Mã không tin cậy | Không có sandbox toàn diện chỉ nhờ JShell | Quyền OS, mạng, đĩa, tài nguyên, cô lập tiến trình |
-| Tích hợp plugin lâu dài | REPL không cung cấp hợp đồng plugin cố định | SPI/DTO/API version, contract tests và artifact management |
+| Valid session expiration | AutoCloseable, close() | Track owner, enforce timeout, never reuse closed instances |
+| Syntax/compile errors | SnippetEvent.status() and diagnostics | Normalize errors, cap result size, log |
+| Snippet runtime errors | SnippetEvent.exception() | Determine request status and recovery policy |
+| Long-running snippets | stop() best-effort halt | Isolation, watchdog, and hard deadlines at process/container level |
+| Excessive retained state | drop(), new session creation, close() | Quotas on source/snippets/output/heap and concurrent sessions |
+| Untrusted code | No full sandbox via JShell alone | OS, network, disk, and resource limits plus process isolation |
+| Long-term plugin integration | REPL does not provide a fixed plugin contract | SPI/DTO/API versioning, contract tests, and artifact management |
 
-Không gộp công việc đánh giá snippets của nhiều tenant vào một JShell chia sẻ chỉ vì muốn giảm chi phí khởi tạo: dữ liệu và khai báo sẽ thuộc cùng state engine, trong khi JShell không thread-safe. Với người dùng chưa tin cậy, nên chọn worker/process riêng theo ngữ cảnh cô lập, có giới hạn vòng đời rõ ràng.
+Do not merge snippet evaluations from multiple tenants into a single shared JShell just to save startup overhead: data and declarations would share the same state engine, and JShell is not thread-safe. For untrusted users, choose per-context isolated workers/processes with strict lifecycle limits.
 
-**Lưu ý Java 17:** API jdk.jshell nằm trong module JDK riêng; cần chạy trên JDK có module này. Bản Java runtime tối giản được tạo không chứa jdk.jshell sẽ không chạy được code phụ thuộc JShell API. Trong khi đó, plugin JAR chạy bằng API Java thông thường có yêu cầu module/classpath tùy hợp đồng riêng. Đây là một lý do không nên làm cho interface plugin production phụ thuộc trực tiếp vào JShell.Snippet.
+**Java 17 note:** The jdk.jshell API lives in a separate JDK module; execution requires a JDK containing this module. A minimal Java runtime image built without jdk.jshell cannot run code depending on the JShell API. Meanwhile, plugin JARs running against standard Java APIs have module/classpath requirements defined by their own contract. This is another reason production plugin interfaces should never depend directly on JShell.Snippet.
 
-## 10. Các lỗi thường gặp và chẩn đoán
+## 10. Common Errors and Diagnostics
 
-| Triệu chứng | Nguyên nhân cần kiểm tra | Hướng xử lý |
+| Symptom | Cause to Check | Resolution |
 | --- | --- | --- |
-| eval() ném IllegalStateException | JShell đã close hoặc execution state kết thúc | Không tái sử dụng instance; tạo phiên mới theo chính sách |
-| Không thấy biến của lần thử trước | Lượt gọi đang dùng JShell khác, hoặc khai báo bị drop/overwritten | Quản lý session ID, status và thứ tự eval |
-| Một lần eval có nhiều event ngoài dự kiến | Thay đổi snippet ảnh hưởng khai báo phụ thuộc | Duyệt toàn bộ List<SnippetEvent>, không cố định get(0) trong handler tổng quát |
-| status VALID nhưng value null | Snippet không có giá trị hiển thị, ví dụ import hoặc method declaration | Đọc status, kind, exception và value theo loại |
-| Chuỗi kết quả có dấu ngoặc kép hoặc biểu diễn khác mong đợi | SnippetEvent.value() là display string chứ không phải DTO | Chuẩn hóa schema cho caller, không parse như ABI |
-| Có diagnostic nhưng không có exception runtime | Lỗi biên dịch, không phải method của plugin ném exception | Xử lý diagnostic và REJECTED riêng |
-| Có exception từ snippet dù compile thành công | Mã đã được thực thi và ném lỗi | Xem SnippetEvent.exception(), xử lý ở ranh giới đánh giá |
-| Phiên đã hết nhưng worker/CPU còn hoạt động | stop/cancel/close không thay chính sách kết thúc tiến trình độc lập | Cô lập, watchdog và dọn vòng đời worker |
-| Plugin đã update nhưng host vẫn dùng bản cũ | Instance/class loader/JAR và registry còn giữ version cũ | Stop/unregister, tạo loader/version mới, kiểm tra compatibility |
-| Plugin được tìm nhưng không cast được sang API | SPI class được định nghĩa bởi loader khác | Chia sẻ API ổn định với class identity thống nhất |
-| Chạy trong JShell được nhưng build source thực lại lỗi | Snippet syntax, REPL state/import mặc định khác source project | Chuyển thành file/module hoàn chỉnh, compile/test bằng pipeline chính thức |
+| eval() throws IllegalStateException | JShell was already closed or execution state terminated | Do not reuse the instance; create a new session per policy |
+| Variable from an earlier turn is missing | Call went to a different JShell, or declaration was dropped/overwritten | Track session IDs, statuses, and eval ordering |
+| One eval produces unexpectedly many events | Snippet change affected dependent declarations | Iterate over the full List<SnippetEvent>; do not hard-code get(0) in generic handlers |
+| status is VALID yet value is null | Snippet has no display value, such as an import or method declaration | Inspect status, kind, exception, and value according to snippet kind |
+| Result string has quotes or unexpected formatting | SnippetEvent.value() is a display string, not a DTO | Normalize into a caller schema; do not parse as an ABI |
+| Diagnostics present but no runtime exception | Compile error, not a plugin method throwing an exception | Handle diagnostics and REJECTED separately |
+| Snippet threw an exception despite compiling cleanly | Code executed and threw at runtime | Check SnippetEvent.exception() and handle at the evaluation boundary |
+| Session expired yet worker/CPU stays busy | stop/cancel/close does not replace independent process termination | Enforce isolation, watchdogs, and worker lifecycle cleanup |
+| Plugin updated yet host runs old version | Old instance, class loader, JAR, or registry entry still retained | Stop/unregister, create new loader/version, verify compatibility |
+| Plugin discovered but cannot be cast to API | SPI class defined by a different loader | Share stable API with unified class identity |
+| Works in JShell but real source build fails | Snippet syntax and default REPL state/imports differ from project source | Convert to full files/modules and compile/test via the official pipeline |
 
-Khi điều tra "đã đóng phiên chưa?", đừng chỉ kiểm tra biến tham chiếu JShell có khác null. Hãy kiểm tra lifecycle state ở host và xác nhận close() đã được gọi tại đúng owner; đọc lại shell bằng eval() chỉ để thử xem nó còn mở là cách kiểm tra có side effect và không nên dùng như health check production.
+When checking "is the session closed?", do not merely check whether the JShell reference variable is non-null. Check lifecycle state in the host and verify close() was called by the proper owner; probing a shell with eval() just to see if it is open introduces side effects and must not be used as a production health check.
 
-Khi điều tra "plugin có ổn định không?", đừng dùng trạng thái một lần thử JShell thành công làm tiêu chí duy nhất. Cần kiểm tra hợp đồng API, dependency, JDK version, đường nạp, cấu hình, hành vi khi thất bại và các test qua nhiều phiên bản.
+When checking "is the plugin stable?", do not treat a single successful JShell evaluation as the sole criterion. Verify API contracts, dependencies, JDK version, loading paths, configuration, failure behavior, and tests across versions.
 
-## 11. Bài tập củng cố
+## 11. Reinforcement Exercises
 
-**Bài tập A — mô phỏng lỗi rồi đóng:** Trong lab phần 4, thay snippet invalid bằng khai báo hợp lệ mà thực thi ném RuntimeException. Quan sát SnippetEvent.exception(), xác nhận try-with-resources vẫn đóng phiên sau khi code host xử lý. Phân biệt exception của code snippet với IllegalStateException vì JShell đã đóng.
+**Exercise A — simulate an error then close:** In the section 4 lab, replace the invalid snippet with a valid declaration whose execution throws RuntimeException. Observe SnippetEvent.exception() and confirm try-with-resources still closes the session after host handling. Distinguish snippet runtime exceptions from IllegalStateException caused by a closed JShell.
 
-**Bài tập B — status và redefine:** Đánh giá int factor = 7; sau đó đánh giá int factor = 9; trong cùng phiên. Quan sát trạng thái của snippet cũ và mới qua shell.status(snippet). Thử tạo JShell mới và xác nhận nó không có khai báo factor trước đó.
+**Exercise B — status and redefinition:** Evaluate int factor = 7; then evaluate int factor = 9; in the same session. Observe the statuses of both old and new snippets via shell.status(snippet). Try creating a new JShell and verify it lacks the prior factor declaration.
 
-**Bài tập C — listener lifecycle:** Đăng ký onSnippetEvent, lưu Subscription, unsubscribe trước khi đóng. So sánh thu thập event trực tiếp từ eval() với callback. Không lưu JShell.Subscription làm API để client gọi về sau khi phiên đã kết thúc.
+**Exercise C — listener lifecycle:** Register onSnippetEvent, save the Subscription, and unsubscribe before closing. Compare collecting events directly from eval() versus via callback. Never store JShell.Subscription as an API for clients to invoke after the session ends.
 
-**Bài tập D — hợp đồng plugin:** Đổi transform(String) sang transform(Object) ở interface rồi thử biên dịch provider cũ. Giải thích vì sao đây là thay đổi API có thể phá tương thích, khác hoàn toàn redefine một method snippet trong REPL.
+**Exercise D — plugin contract:** Change transform(String) to transform(Object) on the interface and try compiling the old provider. Explain why this is a potentially breaking API change, fundamentally different from redefining a method snippet in a REPL.
 
-**Bài tập E — đóng gói SPI:** Xóa META-INF/services/demo.api.MessagePlugin khỏi plugin JAR, chạy host và quan sát matched=0. Plugin class vẫn tồn tại nhưng không được đăng ký ServiceLoader. Khắc phục bằng packaging, không phải bằng JShell.eval.
+**Exercise E — SPI packaging:** Remove META-INF/services/demo.api.MessagePlugin from the plugin JAR, run the host, and observe matched=0. The plugin class still exists, yet ServiceLoader no longer discovers it. Fix this via packaging, not via JShell.eval.
 
-**Bài tập F — shutdown và concurrency:** Mô phỏng hai request cùng dùng một JShell. Thay vì eval song song, xây một queue dùng riêng cho phiên và cơ chế chuyển OPEN → CLOSING → CLOSED ở session manager. Đảm bảo không task mới nào được nhận sau khi bắt đầu đóng.
+**Exercise F — shutdown and concurrency:** Simulate two requests sharing one JShell. Instead of concurrent eval calls, build a session-dedicated queue and an OPEN → CLOSING → CLOSED state machine in the session manager. Ensure no new tasks are accepted once closing begins.
 
-## 12. Checklist vận hành và tài liệu API
+## 12. Operational Checklist and API References
 
-Trước khi đưa mã JShell nhúng vào ứng dụng, kiểm tra:
+Before shipping embedded JShell code in an application, verify:
 
-- **Ownership:** Mỗi phiên có owner, session ID, điều kiện kết thúc và chính sách giới hạn số phiên; không chia sẻ JShell giữa nhiều thread mà không có cơ chế tuần tự hóa.
-- **Close:** Dùng try-with-resources khi phiên ngắn; phiên dài phải close trong cleanup/lifecycle được quản lý. Không coi drop/stop là close.
-- **State/results:** Đọc List<SnippetEvent> đầy đủ, tách compile status/diagnostics khỏi runtime exception, chuẩn hóa kết quả trước khi đóng.
-- **Failure:** Xử lý JShell đã closed, remote execution engine kết thúc, đánh giá bị timeout, thread/task còn sống và trường hợp close/cleanup gặp lỗi.
-- **Security:** Không chạy source không tin cậy trong JVM có quyền cao chỉ vì JShell thuận tiện; dùng process isolation, quota và hạn chế quyền khi cần.
-- **Plugin contract:** Interface/DTO và versions độc lập với JShell, API class identity thống nhất, artifact JAR/module có kiểm chứng, test startup và rollback.
-- **Clean unload:** Stop request/callback/thread, đóng phiên JShell thử nghiệm và quản lý riêng loader/lifecycle của plugin runtime; không giả định GC sẽ thu ngay mọi class loader.
+- **Ownership:** Every session has an owner, session ID, termination criteria, and session count limits; never share JShell across threads without serialization.
+- **Close:** Use try-with-resources for short sessions; long-lived sessions must call close within managed cleanup/lifecycle hooks. Never treat drop/stop as close.
+- **State/results:** Read the entire List<SnippetEvent>, separate compile status/diagnostics from runtime exceptions, and normalize results before closing.
+- **Failure:** Handle already-closed JShell, remote execution engine termination, evaluation timeouts, lingering threads/tasks, and errors during close/cleanup.
+- **Security:** Never execute untrusted source in a privileged JVM merely because JShell is convenient; use process isolation, quotas, and privilege restrictions as needed.
+- **Plugin contract:** Interfaces/DTOs and versions independent of JShell, unified API class identity, verified JAR/module artifacts, and startup/rollback tests.
+- **Clean unload:** Stop requests/callbacks/threads, close experimental JShell sessions, and manage plugin runtime loaders/lifecycles separately; never assume GC immediately reclaims all class loaders.
 
-Tài liệu chuẩn JDK 17: [JShell API](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/JShell.html), [package jdk.jshell](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/package-summary.html), [Snippet và trạng thái](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/Snippet.html), [Java Shell User's Guide](https://docs.oracle.com/en/java/javase/17/jshell/) và [ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html).
+JDK 17 standard documentation: [JShell API](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/JShell.html), [package jdk.jshell](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/package-summary.html), [Snippet and Status](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/Snippet.html), [Java Shell User's Guide](https://docs.oracle.com/en/java/javase/17/jshell/), and [ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html).
 
-**Kết luận:** hãy xem **JShell là một phiên thử nghiệm có state và thời hạn**: tạo, đánh giá, thu kết quả, rồi đóng để giải phóng tài nguyên. Khi chức năng đã trở thành thành phần có thể tích hợp lâu dài, hãy **chuyển nó sang hợp đồng plugin ổn định** (SPI/DTO có version và artifact đã build/test), thay vì phụ thuộc lịch sử snippet hoặc các chuỗi giá trị hiển thị của REPL.
+**Conclusion:** treat **JShell as a stateful, time-bounded experimentation session**: create, evaluate, collect results, and close to release resources. When a capability becomes a long-term integration component, **graduate it to a stable plugin contract** (versioned SPI/DTOs and built/tested artifacts) rather than relying on snippet history or REPL display strings.

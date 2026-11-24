@@ -1,97 +1,97 @@
-# Tìm tham chiếu giữ class loader từ cache, ThreadLocal, luồng và callback khi thay thế plugin
+# Finding References Retaining Class Loaders from Caches, ThreadLocals, Threads, and Callbacks During Plugin Replacement
 
-## 1. Bài toán: plugin đã dừng nhưng loader cũ vẫn còn
+## 1. The problem: the plugin stopped, yet the old loader remains
 
-Một Java host có thể nạp plugin phiên bản A bằng `URLClassLoader` riêng, rồi thay bằng phiên bản B với một loader mới. Đã gọi `close()` trên loader A, xóa file JAR cũ và không còn thấy chức năng của A trên giao diện, nhưng heap/metaspace vẫn tăng qua mỗi lần deploy. Vấn đề thường **không nằm ở việc JVM quên giải phóng class**: một hoặc nhiều tham chiếu từ đối tượng còn sống vẫn giữ loader A hoặc lớp/instance được nó định nghĩa.
+A Java host may load plugin version A with its own `URLClassLoader`, then replace it with version B using a new loader. Even after calling `close()` on loader A, deleting the old JAR file, and seeing no trace of A's features in the UI, heap/metaspace keeps growing with every deployment. Usually the issue is **not that the JVM forgot to free classes**: one or more references from live objects still retain loader A or classes/instances it defined.
 
-Ví dụ đường giữ tham chiếu (*retaining path*):
+Example of a *retaining path*:
 
 ```text
 GC Root
-  -> static field của host
+  -> host static field
   -> ConcurrentHashMap
   -> plugin callback instance
-  -> Class của callback
-  -> defining ClassLoader của plugin A
-  -> các class / metadata liên quan
+  -> callback Class
+  -> defining ClassLoader of plugin A
+  -> related classes / metadata
 ```
 
-Một nguồn giữ khác:
+Another retaining source:
 
 ```text
 GC Root
-  -> Java Thread đang sống trong executor pool
+  -> live Java Thread in executor pool
   -> contextClassLoader (TCCL)
   -> plugin ClassLoader A
 ```
 
-Hoặc:
+Or:
 
 ```text
 GC Root
-  -> Java Thread trong pool
+  -> Java Thread in pool
   -> ThreadLocalMap entry.value
-  -> object do plugin A định nghĩa
+  -> object defined by plugin A
   -> Class / defining loader A
 ```
 
-Các đường trên là **sơ đồ khái niệm**; tên field và hình dạng nút hiển thị trong heap analyzer phụ thuộc JVM và phiên bản. Bài học tập trung vào việc **tìm, giải thích và loại bỏ những đường tham chiếu có thật** từ cache, `ThreadLocal`, thread và callback, thay vì gọi `System.gc()` hoặc `URLClassLoader.close()` như một phép “force unload”.
+The paths above are **conceptual diagrams**; actual field names and node shapes displayed in a heap analyzer depend on the JVM and version. This lesson focuses on **finding, explaining, and eliminating real reference paths** from caches, `ThreadLocal`, threads, and callbacks, rather than calling `System.gc()` or `URLClassLoader.close()` as a magic “force unload.”
 
-**Kết quả mong đợi:** người học phân biệt được resource leak với class-loader retention, xác định ai sở hữu reference, tạo được thí nghiệm Java 17 tái hiện bốn nguồn giữ, biết dùng heap dump/GC roots để điều tra và lập quy trình thay thế plugin không để lại tham chiếu từ phiên cũ.
+**Expected outcomes:** you will distinguish resource leaks from class-loader retention, identify reference ownership, build a Java 17 experiment reproducing all four retaining sources, investigate using heap dumps/GC roots, and establish a plugin replacement workflow that leaves no references from old versions.
 
-## 2. Điều kiện cho class unloading: đóng loader chưa đủ
+## 2. Conditions for class unloading: closing the loader is not enough
 
-Trong JVM, danh tính runtime của một lớp phụ thuộc **binary name và defining class loader**. Một lớp `com.example.Plugin` thuộc loader A không phải cùng class với lớp trùng tên do loader B định nghĩa. Khi nâng cấp plugin, loader mới có thể tạo định nghĩa class mới trong khi loader cũ vẫn sống.
+In the JVM, a class's runtime identity depends on **its binary name and its defining class loader**. A `com.example.Plugin` class belonging to loader A is not the same class as an identically named class defined by loader B. When upgrading a plugin, the new loader can create new class definitions while the old loader stays alive.
 
-Điểm cần phân biệt:
+Points to distinguish:
 
-- **`URLClassLoader.close()`:** giải phóng các tài nguyên như JAR/file handle mà loader đã mở và ngăn việc sử dụng loader đã đóng để nạp lớp/resource mới theo hợp đồng API. Nó **không** hủy instance, static state, thread hay class đã được định nghĩa.
-- **Kết thúc plugin logic:** dừng nhận request, ngừng callback, hoàn tất/cancel công việc, tháo đăng ký với host. Đây là trách nhiệm của ứng dụng; `ClassLoader` không tự thực hiện.
-- **Class unloading:** JVM/GC có thể thu hồi metadata class khi không còn các reference giữ loader/class/instance ở trạng thái cần thiết. Không có API Java 17 an toàn kiểu `unloadClass("demo.plugin.X")` cho phép bắt buộc gỡ từng class.
-- **File JAR có thể đã đóng nhưng loader vẫn sống.** Một đối tượng `ClassLoader` được giữ trong `static Map` hoặc TCCL vẫn là đối tượng Java reachable ngay cả khi không còn handle hệ điều hành.
-- **Không thấy unload ngay không tự nó chứng minh leak.** GC, class unloading và thời điểm thu gom có thể diễn ra muộn; cần phân biệt *chưa GC*, *còn reference chủ đích*, *retention vô tình* và *leak tăng qua các generation*.
+- **`URLClassLoader.close()`:** releases resources such as JAR/file handles opened by the loader and prevents using the closed loader to load new classes/resources per the API contract. It does **not** destroy instances, static state, threads, or already-defined classes.
+- **Stopping plugin logic:** halting incoming requests, stopping callbacks, completing/cancelling work, and unregistering from the host. This is the application's responsibility; `ClassLoader` does not do it automatically.
+- **Class unloading:** the JVM/GC can reclaim class metadata once no references keep the loader/classes/instances alive. There is no safe Java 17 API like `unloadClass("demo.plugin.X")` to force-unload individual classes.
+- **The JAR file may be closed while the loader stays alive.** A `ClassLoader` object held in a `static Map` or TCCL remains a reachable Java object even with zero OS handles left.
+- **Not seeing immediate unloading does not by itself prove a leak.** GC, class unloading, and collection timing can lag; distinguish *not yet GC'd*, *intentional retention*, *unintentional retention*, and *a leak growing across generations*.
 
-Muốn chẩn đoán chính xác, phải đặt câu hỏi: **“Từ GC root nào vẫn đi đến object của loader cũ?”** chứ không chỉ hỏi “Tại sao `close()` không làm heap giảm ngay?”.
+To diagnose accurately, ask: **“From which GC root can an object of the old loader still be reached?”** rather than merely asking “Why didn't `close()` shrink heap right away?”.
 
-## 3. Phân loại bốn nguồn giữ thường gặp
+## 3. Classifying the four common retaining sources
 
-| Nguồn giữ | Chuỗi tham chiếu điển hình | Dấu hiệu trong ứng dụng | Cách giải phóng |
+| Retaining source | Typical reference chain | Symptom in application | How to release |
 |---|---|---|---|
-| Cache/registry của host | `static Map → plugin instance / Class / Method / ClassLoader` | Reload xong nhưng số entry hoặc thế hệ cũ vẫn tăng | Invalidate entry theo plugin ID + generation, clear reference có đúng owner |
-| `ThreadLocal` trên thread sống lâu | `Thread → threadLocals → entry.value → plugin object` | Pool đã qua nhiều request mà vẫn giữ class cũ | `remove()` trong **chính thread** đã gọi `set()`, tốt nhất trong `finally` |
-| Luồng/TCCL | `Thread → contextClassLoader → plugin loader`; hoặc `Thread → Runnable → plugin` | Worker vẫn chạy/chờ; TCCL hiện tên loader cũ | Restore TCCL; dừng/join worker sở hữu bởi plugin; drain pool/queue |
-| Callback/listener/subscription | `host event bus → listener list → plugin listener` | Event không còn cần thiết vẫn gọi hoặc registry còn subscription | `unsubscribe`/remove chính instance; hủy scheduled jobs, chờ callback in-flight |
+| Host cache/registry | `static Map → plugin instance / Class / Method / ClassLoader` | Reload completes yet entries or old generations keep growing | Invalidate entries by plugin ID + generation; clear references via proper owner |
+| `ThreadLocal` on long-lived thread | `Thread → threadLocals → entry.value → plugin object` | Pool has handled many requests yet still holds old classes | `remove()` on the **exact thread** that called `set()`, ideally in `finally` |
+| Thread/TCCL | `Thread → contextClassLoader → plugin loader`; or `Thread → Runnable → plugin` | Worker keeps running/waiting; TCCL shows old loader | Restore TCCL; stop/join plugin-owned workers; drain pools/queues |
+| Callbacks/listeners/subscriptions | `host event bus → listener list → plugin listener` | Obsolete events still fire or registry retains subscriptions | `unsubscribe`/remove exact instance; cancel scheduled jobs; await in-flight callbacks |
 
-Một loader có thể bị giữ qua **nhiều** đường đồng thời. Xóa một entry cache không đủ nếu thread pool còn TCCL, và dừng thread cũng không đủ nếu event bus vẫn giữ listener. Heap analyzer thường chỉ hiển thị một số đường ngắn nhất; khi sửa xong một đường có thể xuất hiện đường khác.
+One loader can be retained through **multiple** paths simultaneously. Clearing a cache entry is not enough if a thread pool still holds TCCL, and stopping threads is not enough if an event bus still retains a listener. Heap analyzers often show only a few shortest paths; once you fix one path, another may surface.
 
-Phân biệt **reference trực tiếp tới loader** với **reference tới object do loader định nghĩa**: giữ `Class<?>`, `Method`, `Constructor<?>`, lambda, proxy hoặc plugin instance cũng có thể khiến defining loader không được giải phóng. Không chỉ tìm những field khai báo kiểu `ClassLoader`.
+Distinguish **direct references to the loader** from **references to objects defined by the loader**: retaining `Class<?>`, `Method`, `Constructor<?>`, lambdas, proxies, or plugin instances can equally prevent the defining loader from being reclaimed. Do not search only for fields declared as `ClassLoader`.
 
-## 4. Cache và static registry: nơi dễ bỏ sót nhất
+## 4. Caches and static registries: the easiest place to overlook
 
-Host thường dùng cache để tra cứu plugin nhanh:
+Hosts often cache plugins for fast lookup:
 
 ```java
-// Ví dụ phản mẫu (không phải chương trình độc lập).
+// Anti-pattern example (not a standalone program).
 static final Map<String, Object> PLUGIN_CACHE = new HashMap<>();
 PLUGIN_CACHE.put("reporter", pluginInstance);
 ```
 
-Nếu `PLUGIN_CACHE` thuộc class được application/parent loader định nghĩa và tồn tại suốt vòng đời process, `pluginInstance` có thể giữ loader của plugin cũ. Đổi entry sang version mới chỉ an toàn khi **mọi** reference tới object cũ thực sự biến mất; không nên suy ra điều đó từ một thao tác cập nhật map.
+If `PLUGIN_CACHE` belongs to a class defined by the application/parent loader and lives for the process lifetime, `pluginInstance` can retain the old plugin's loader. Updating the entry to a new version is safe only when **every** reference to the old object truly disappears; do not infer that from a single map update.
 
-Những loại cache cần kiểm tra:
+Cache types to inspect:
 
-1. **Instance cache:** `Map<PluginId, Plugin>` hoặc `Map<String,Object>` giữ đối tượng trực tiếp.
-2. **Class/reflection cache:** `Class<?>`, `Method`, `Field`, `Constructor<?>`, `MethodHandle`, metadata JSON/DI hoặc annotation scanner trỏ tới class do plugin loader định nghĩa.
-3. **Factory/provider registry:** các factory hoặc `ServiceLoader.Provider<?>` có thể giữ provider class hoặc object.
-4. **Cache key cũng có thể giữ:** một `Map<Class<?>,Metadata>` giữ class ở khóa ngay cả khi value là cấu trúc của host; `Class<?>` có liên hệ với defining loader.
-5. **Value giữ key ngược lại:** thay cache thành `WeakHashMap` không phải giải pháp thần kỳ. Nếu value tham chiếu mạnh tới key hoặc class/loader, chuỗi reachability có thể vẫn tồn tại.
-6. **Cache trong thư viện:** serializer, dependency injection, logging, ORM, reflection, bean introspection, template engines hoặc framework event bus có cơ chế cache riêng. Phải kiểm tra API invalidation chính thức của từng thư viện, không đụng reflection vào nội bộ một cách tùy tiện.
+1. **Instance caches:** `Map<PluginId, Plugin>` or `Map<String,Object>` holding objects directly.
+2. **Class/reflection caches:** `Class<?>`, `Method`, `Field`, `Constructor<?>`, `MethodHandle`, JSON/DI metadata, or annotation scanners pointing to classes defined by the plugin loader.
+3. **Factory/provider registries:** factories or `ServiceLoader.Provider<?>` holding provider classes or objects.
+4. **Cache keys can retain too:** a `Map<Class<?>,Metadata>` holds the class in the key even if the value is a host structure; `Class<?>` links back to its defining loader.
+5. **Values retaining keys in reverse:** switching a cache to `WeakHashMap` is not a silver bullet. If the value strongly references the key or class/loader, the reachability chain can still persist.
+6. **Library caches:** serializers, dependency injection, logging, ORMs, reflection helpers, bean introspection, template engines, or framework event buses maintain internal caches. Check each library's official invalidation API instead of arbitrarily mutating internals via reflection.
 
-Một chiến lược đáng tin cậy là đặt cache theo **lifetime của plugin generation** và có phương thức `close()/clear()` do host gọi khi rút plugin. Còn cache toàn process thì entry cần được gắn tên plugin + generation, xóa chính xác khi teardown. Tránh `clear()` bừa toàn bộ cache dùng chung nếu đang có plugin khác hoạt động.
+A reliable strategy is scoping caches to **the plugin generation's lifetime** with a `close()/clear()` method invoked by the host when retiring the plugin. For process-wide caches, tag entries with plugin name + generation and delete them precisely on teardown. Avoid blindly calling `clear()` on a shared cache while other plugins are active.
 
-### Nhận diện trong heap dump
+### Identifying in a heap dump
 
-Đường như:
+A path like:
 
 ```text
 HostRegistry.class (GC root / static field)
@@ -102,56 +102,56 @@ HostRegistry.class (GC root / static field)
   -> URLClassLoader(version A)
 ```
 
-gợi ý rõ owner là **host registry**, không phải bộ gom rác hay Java class loader. Cần truy ra **ai đã đăng ký**, có đối tượng subscription/handle không và lifecycle nào đáng ra phải gỡ entry đó.
+clearly points to **the host registry** as owner, not the garbage collector or Java class loader. Trace **who registered it**, whether a subscription/handle object exists, and which lifecycle step should have removed that entry.
 
-## 5. ThreadLocal: phải dọn ở đúng thread sở hữu value
+## 5. ThreadLocal: must be cleaned on the exact thread owning the value
 
-`ThreadLocal<T>` cung cấp một value riêng cho mỗi thread. API `ThreadLocal.remove()` xóa value **của thread đang gọi**, không phải xóa tất cả giá trị từng được gán ở những thread khác. Đây là điểm quan trọng nhất trong hệ thống dùng executor pool.
+`ThreadLocal<T>` provides a separate value per thread. `ThreadLocal.remove()` clears the value **of the calling thread**, not values previously assigned on other threads. This is critical in systems using executor pools.
 
-Phản mẫu:
+Anti-pattern:
 
 ```java
-// Minh họa bên trong một Runnable thực thi trên pooled worker.
+// Illustrative inside a Runnable executing on a pooled worker.
 PLUGIN_CONTEXT.set(pluginRequest);
-handleRequest();                   // có thể ném exception
-// Thiếu PLUGIN_CONTEXT.remove(): worker sống tiếp, value còn giữ.
+handleRequest();                   // may throw an exception
+// Missing PLUGIN_CONTEXT.remove(): worker lives on, value stays retained.
 ```
 
-Mẫu đúng:
+Correct pattern:
 
 ```java
 PLUGIN_CONTEXT.set(pluginRequest);
 try {
     handleRequest();
 } finally {
-    PLUGIN_CONTEXT.remove();       // chạy trên cùng pooled worker
+    PLUGIN_CONTEXT.remove();       // runs on the same pooled worker
 }
 ```
 
-Hai đoạn trên là **minh họa**, giả sử `PLUGIN_CONTEXT` và `handleRequest` được khai báo trong host. Nếu thread pool tái sử dụng worker cho nhiều request, việc không gọi `remove()` có thể giữ plugin object lâu hơn nhiều so với vòng đời request.
+Both snippets are **illustrative**, assuming `PLUGIN_CONTEXT` and `handleRequest` are declared in the host. When a thread pool reuses workers across requests, failing to call `remove()` can retain plugin objects far longer than the request lifecycle.
 
-**Bẫy phổ biến:** Sau khi unload plugin, thread quản lý gọi `PLUGIN_CONTEXT.remove()`. Nếu trước đó chính pooled worker đã `set(pluginObject)`, lệnh `remove()` trên thread quản lý **không xóa value của pooled worker**. Phải thực hiện cleanup trên đúng worker, hoặc cho worker kết thúc sau khi hoàn tất công việc; với pool dùng chung, cần cơ chế decorator/cleanup gắn với từng task.
+**Common trap:** After unloading a plugin, the management thread calls `PLUGIN_CONTEXT.remove()`. If a pooled worker had previously called `set(pluginObject)`, calling `remove()` on the management thread **does not remove the pooled worker's value**. Cleanup must execute on that exact worker, or the worker must terminate after completing work; for shared pools, use a per-task decorator/cleanup wrapper.
 
-Ở những triển khai OpenJDK thông dụng, cấu trúc nội bộ `ThreadLocalMap` thường chứa key yếu (weak key) nhưng value có thể còn được giữ cho đến khi entry được dọn. Đừng hiểu việc garbage collect đối tượng `ThreadLocal` key là chắc chắn giải phóng value ngay. Đây là chi tiết implementation, không phải lời hứa để thiết kế API; lập trình viên vẫn nên chủ động `remove()`.
+In common OpenJDK implementations, the internal `ThreadLocalMap` uses weak keys, yet values can remain held until stale entries are expunged. Do not assume garbage-collecting a `ThreadLocal` key guarantees immediate value release. That is an implementation detail, not an API guarantee to build upon; always call `remove()` proactively.
 
-### InheritableThreadLocal cũng đáng kiểm tra
+### InheritableThreadLocal is also worth checking
 
-`InheritableThreadLocal` có thể truyền giá trị từ thread cha sang thread mới ở thời điểm tạo thread (theo chính sách child value). Nếu value là plugin instance hoặc object chứa loader, một thread do host tạo sau đó có thể bắt đầu với reference tới plugin A ngoài dự kiến. Kể cả khi thread cha đã dọn, thread con vẫn có bản value riêng cần được xử lý. Với thread pools, inheritance còn phụ thuộc thời điểm tạo worker, không phải mỗi request submit; tuyệt đối không dùng nó như request context an toàn mặc định.
+`InheritableThreadLocal` can propagate values from a parent thread to a newly spawned thread at thread-creation time (per child-value policy). If the value is a plugin instance or an object referencing the loader, a host thread created later may unexpectedly start with a reference to plugin A. Even after the parent thread cleans up, the child thread keeps its own value requiring cleanup. With thread pools, inheritance depends on when workers are created rather than per task submission; never rely on it as a safe default request context.
 
-## 6. Luồng, TCCL và tác vụ đang chạy
+## 6. Threads, TCCL, and running tasks
 
-Mỗi `Thread` có **thread context class loader (TCCL)**: đọc bằng `Thread.currentThread().getContextClassLoader()` và thay bằng `setContextClassLoader(...)`. Nhiều framework và `ServiceLoader.load(service)` dùng TCCL để tìm provider/resources. Một plugin có thể tạm gắn loader của mình vào thread để thực thi code trong bối cảnh plugin.
+Every `Thread` has a **thread context class loader (TCCL)**: read via `Thread.currentThread().getContextClassLoader()` and changed via `setContextClassLoader(...)`. Many frameworks and `ServiceLoader.load(service)` use TCCL to locate providers/resources. A plugin or host may temporarily attach the plugin's loader to a thread while running plugin-scoped code.
 
-Nếu code quên khôi phục TCCL, pooled worker tồn tại sau plugin unload vẫn có thể giữ loader A:
+If code forgets to restore TCCL, a pooled worker surviving past plugin unload can keep retaining loader A:
 
 ```text
-Host executor (sống xuyên nhiều plugin versions)
+Host executor (lives across multiple plugin versions)
   -> worker Thread
   -> contextClassLoader = URLClassLoader(A)
-  -> class loader A không thể được xem là đã hết references
+  -> class loader A cannot be considered free of references
 ```
 
-Mẫu đổi TCCL đúng (mã minh họa, `pluginLoader` và `runPluginTask` được cung cấp bởi caller):
+Correct TCCL swap pattern (illustrative code; `pluginLoader` and `runPluginTask` provided by caller):
 
 ```java
 Thread current = Thread.currentThread();
@@ -164,56 +164,56 @@ try {
 }
 ```
 
-Dùng `try/finally` để bảo đảm restoration khi plugin ném exception. Nếu phía host đã bắt đầu task với TCCL của plugin cũ do phiên trước quên restore, việc chụp `previous` lúc đó rồi “khôi phục” chỉ tái gắn loader cũ. Phải đặt quy tắc **baseline TCCL của worker thuộc host** ở điểm tạo worker hoặc khi quản lý executor.
+Use `try/finally` to guarantee restoration even if the plugin throws an exception. If the host itself started a task with an old plugin's TCCL left un-restored by an earlier run, capturing `previous` then and “restoring” it only reattaches the old loader. Enforce a **host baseline TCCL for workers** at worker creation or in executor management.
 
-Thread có thể giữ plugin mà **không cần TCCL**:
+A thread can retain a plugin **without TCCL**:
 
-- `Thread.target`/Runnable do plugin định nghĩa, thread giữ target trong lifecycle chạy.
-- Lambda/closure hoặc method reference capture instance/plugin class.
-- Thread đang thực thi method của plugin, stack frame và local variables còn tham chiếu tới plugin object/class.
-- `ExecutorService` queue chứa `Runnable`, `FutureTask`, `ScheduledFuture` hoặc `CompletableFuture` có closure giữ plugin.
-- Plugin tự tạo thread hoặc `Timer`, background poller, file watcher, scheduler mà không dừng khi unload.
-- Thread bị chặn lâu ở I/O/lock hoặc vòng lặp, nên shutdown flag chưa làm thread thoát.
+- A plugin-defined `Thread.target`/`Runnable` retained by the thread during its execution lifecycle.
+- Lambdas/closures or method references capturing plugin instances/classes.
+- A thread actively executing a plugin method, whose stack frames and local variables reference plugin objects/classes.
+- An `ExecutorService` queue holding `Runnable`, `FutureTask`, `ScheduledFuture`, or `CompletableFuture` instances with closures capturing the plugin.
+- Plugin-spawned threads or `Timer`s, background pollers, file watchers, or schedulers not stopped on unload.
+- Threads blocked indefinitely on I/O/locks or loops so shutdown flags fail to exit them.
 
-Thường phải dừng **nhận công việc mới**, cancel/drain task liên quan, signal shutdown, chờ finish/join theo timeout và có phương án quarantine nếu plugin không hợp tác. Không nên dùng `Thread.stop()` (deprecated, không an toàn) để cưỡng bức cleanup. Luôn dọn task-owned `ThreadLocal`/TCCL trên đúng worker và tách lifetime của plugin-owned thread khỏi host-owned executor.
+Usually you must stop **accepting new work**, cancel/drain relevant tasks, signal shutdown, wait/join up to a timeout, and have a quarantine strategy if the plugin is uncooperative. Never use `Thread.stop()` (deprecated, unsafe) to force cleanup. Always clear task-owned `ThreadLocal`/TCCL on the exact worker and separate plugin-owned thread lifetimes from host-owned executors.
 
-## 7. Callback, event bus và subscription: listener là strong reference
+## 7. Callbacks, event buses, and subscriptions: listeners are strong references
 
-Plugin có thể đăng ký callback với host:
+A plugin may register callbacks with the host:
 
 ```java
-// Phản mẫu minh họa, các biến do ứng dụng cung cấp:
+// Illustrative anti-pattern, variables supplied by application:
 eventBus.subscribe("ready", pluginCallback);
-// Khi thay plugin, không còn nhớ chính callback/registration đó.
+// When replacing the plugin, that exact callback/registration is forgotten.
 ```
 
-Nếu event bus nằm ở host và giữ listener trong danh sách mạnh, `pluginCallback` sẽ sống theo event bus. Một lambda do plugin tạo hoặc method reference như `instance::onEvent` cũng có thể capture plugin instance và giữ loader. Ngay cả khi callback chỉ được gọi rất ít, **việc còn đăng ký** vẫn đủ tạo reference.
+If the event bus lives in the host and stores listeners in a strong collection, `pluginCallback` stays alive as long as the event bus. A plugin-created lambda or method reference like `instance::onEvent` also captures the plugin instance and retains the loader. Even if the callback is invoked rarely, **simply staying registered** creates a retaining reference.
 
-Thiết kế hợp đồng đăng ký nên trả một **registration handle**:
+Registration contracts should return a **registration handle**:
 
 ```java
-// Mẫu API lý tưởng, không phải chương trình độc lập:
+// Ideal API pattern, not a standalone program:
 AutoCloseable registration = eventBus.subscribe("ready", pluginCallback);
 try {
-    // Plugin đang active.
+    // Plugin is active.
 } finally {
-    registration.close(); // tháo đúng đăng ký/instance cũ
+    registration.close(); // remove that exact old registration/instance
 }
 ```
 
-Trong ứng dụng thật phải bảo đảm `close()` của handle mang ngữ nghĩa unregister và không vô tình xóa subscriber của plugin B. Duy trì **danh sách toàn bộ registration handles theo plugin generation** để teardown có thể thực hiện hoàn chỉnh dù plugin đã mất kết nối với đường code đăng ký ban đầu.
+In real applications, ensure the handle's `close()` means unregistering without accidentally removing plugin B's subscribers. Maintain **a list of all registration handles per plugin generation** so teardown completes thoroughly even if the plugin loses track of original registration sites.
 
-Các nguồn giữ cùng nhóm callback: `PropertyChangeListener`, UI listener, `Flow.Subscription`, observer, MBean callback, JDBC driver registration, event hooks, scheduled timer task, shutdown hook, queue consumer, reactive stream subscription, HTTP/filter/interceptor registry và cron-like scheduler. Mỗi framework có API tháo đăng ký/hủy riêng.
+Retaining sources in the same callback family: `PropertyChangeListener`, UI listeners, `Flow.Subscription`, observers, MBean callbacks, JDBC driver registrations, event hooks, scheduled timer tasks, shutdown hooks, queue consumers, reactive stream subscriptions, HTTP/filter/interceptor registries, and cron-like schedulers. Each framework has its own unregister/cancel API.
 
-**Race khi teardown:** Remove listener không nhất thiết hủy một callback **đang thực thi**. Cần dừng ingress, chặn registration mới và chờ callback in-flight hoàn tất trước khi đóng loader/resource. Một exception trong callback cũng không được làm host bỏ qua các registration khác cần dọn.
+**Teardown race:** Removing a listener does not necessarily abort an **already-executing** callback. Stop ingress, block new registrations, and wait for in-flight callbacks to finish before closing the loader/resources. An exception in one callback must also not prevent the host from cleaning up remaining registrations.
 
-## 8. Chương trình Java 17 chạy độc lập: quan sát bốn đường giữ
+## 8. Standalone Java 17 program: observing all four retaining paths
 
-Ví dụ gồm **hai source file**. Plugin chứa một `Runnable`; host nạp nó bằng `URLClassLoader` riêng, rồi cố ý giữ callback trong cache, listener list và `ThreadLocal`/TCCL của một host worker. Sau đó host xóa từng reference và kiểm tra lại.
+The example consists of **two source files**. The plugin contains a `Runnable`; the host loads it with a dedicated `URLClassLoader`, then intentionally retains the callback in a cache, a listener list, and a host worker's `ThreadLocal`/TCCL. Afterwards, the host clears each reference and re-checks.
 
-**Điều cần hiểu trước:** chương trình **không** chứng minh GC đã thu gom loader. Trong method `main`, các local variables `pluginLoader`, `cls`, `callback` còn tồn tại trong scope; vì vậy ngay sau cleanup vẫn có thể còn strong references khác. Demo cố ý **chỉ kiểm tra bốn nguồn giữ đã tạo**. Phân tích GC thực tế ở mục 10–11.
+**What to understand upfront:** the program does **not** prove GC collected the loader. Inside `main`, local variables `pluginLoader`, `cls`, and `callback` remain in scope; thus right after cleanup other strong references may still exist. The demo intentionally **checks only the four created retaining sources**. Actual GC analysis is covered in Sections 10–11.
 
-### 8.1. Cấu trúc thư mục
+### 8.1. Directory layout
 
 ```text
 loader-roots-demo/
@@ -221,11 +221,11 @@ loader-roots-demo/
     plugin/demo/plugin/GreetingCallback.java
     host/demo/app/LeakRootsDemo.java
   build/
-    plugin/       (tạo bởi javac)
-    host/         (tạo bởi javac)
+    plugin/       (created by javac)
+    host/         (created by javac)
 ```
 
-**Tệp `src/plugin/demo/plugin/GreetingCallback.java`:**
+**File `src/plugin/demo/plugin/GreetingCallback.java`:**
 
 ```java
 package demo.plugin;
@@ -238,9 +238,9 @@ public final class GreetingCallback implements Runnable {
 }
 ```
 
-Plugin dùng interface `java.lang.Runnable` có sẵn từ Java platform. Host không cần bản SPI tùy biến ở đây, nhờ đó ví dụ cô lập trọng tâm reference retention.
+The plugin uses the built-in `java.lang.Runnable` interface from the Java platform. The host needs no custom SPI here, keeping the example focused on reference retention.
 
-**Tệp `src/host/demo/app/LeakRootsDemo.java`:**
+**File `src/host/demo/app/LeakRootsDemo.java`:**
 
 ```java
 package demo.app;
@@ -323,11 +323,11 @@ public final class LeakRootsDemo {
 }
 ```
 
-**Lưu ý:** chương trình được thiết kế để minh họa nhánh chạy thành công và in các trạng thái xác định. Việc remove cache/listener và reset TCCL/ThreadLocal ở đây không nằm trong một `finally` riêng khi một bước trước đó lỗi; mã teardown production phải bảo đảm cleanup trong `finally` ngay cả khi callback/task ném exception (xem mục 12). `worker.shutdownNow()` chỉ gửi interrupt để cố dừng những tác vụ còn lại, không phải bảo đảm rằng code plugin bất hợp tác sẽ thoát ngay.
+**Note:** the program is designed to illustrate the success path and print deterministic states. Removing cache/listeners and resetting TCCL/`ThreadLocal` here is not wrapped in separate `finally` blocks in case an earlier step fails; production teardown code must guarantee cleanup in `finally` even when callbacks/tasks throw exceptions (see Section 12). `worker.shutdownNow()` only sends interrupts to attempt stopping remaining tasks, with no guarantee that uncooperative plugin code exits immediately.
 
-### 8.2. Biên dịch/chạy trên Windows PowerShell
+### 8.2. Compiling/running on Windows PowerShell
 
-Đứng tại thư mục `loader-roots-demo/`, có JDK 17 trở lên:
+From `loader-roots-demo/`, with JDK 17 or newer:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path build/plugin,build/host | Out-Null
@@ -336,7 +336,7 @@ javac --release 17 -d build/host src/host/demo/app/LeakRootsDemo.java
 java -cp build/host demo.app.LeakRootsDemo
 ```
 
-### 8.3. Biên dịch/chạy trên Linux/macOS
+### 8.3. Compiling/running on Linux/macOS
 
 ```bash
 mkdir -p build/plugin build/host
@@ -345,9 +345,9 @@ javac --release 17 -d build/host src/host/demo/app/LeakRootsDemo.java
 java -cp build/host demo.app.LeakRootsDemo
 ```
 
-**Quan trọng:** không thêm `build/plugin` vào tham số `java -cp`. Nếu host application loader tìm thấy `demo.plugin.GreetingCallback` qua class path, `URLClassLoader` có thể delegate cho parent phù hợp và test defining-loader mất ý nghĩa. Ở đây parent được chỉ định là platform class loader, còn plugin class được nạp từ URL của child; `Runnable` là API chung do JDK cung cấp.
+**Important:** do not add `build/plugin` to `java -cp`. If the host application loader finds `demo.plugin.GreetingCallback` on the classpath, `URLClassLoader` may delegate to an eligible parent and invalidate the defining-loader test. Here the parent is explicitly the platform class loader, while the plugin class is loaded from the child's URL; `Runnable` is a shared API provided by the JDK.
 
-### 8.4. Stdout chính xác
+### 8.4. Exact stdout
 
 ```text
 plugin-owned=true
@@ -360,44 +360,44 @@ listeners-after=0
 worker-after=tl=false,tccl=false
 ```
 
-Mã đã được biên dịch thực tế với `javac --release 17` và chạy trong môi trường JDK tương thích; stdout khớp các dòng trên. Không dựa vào thời điểm GC hay thứ tự scheduling ngẫu nhiên: mọi thao tác worker cần thiết đều được chờ bằng `Future.get()`.
+The code was actually compiled with `javac --release 17` and run in a compatible JDK environment; stdout matches the lines above. It does not rely on GC timing or random scheduling order: every required worker operation is awaited via `Future.get()`.
 
-## 9. Giải thích ví dụ: reference nằm ở đâu?
+## 9. Explaining the example: where are the references?
 
-**Trước cleanup:**
+**Before cleanup:**
 
-1. `plugin-owned=true`: `cls.getClassLoader() == pluginLoader`, chứng minh plugin implementation được child loader định nghĩa.
-2. `CACHE.put("plugin", callback)` tạo đường `host static Map → plugin instance → Class → pluginLoader`. Dù static Map do host sở hữu, value là object của plugin.
-3. `LISTENERS.add(callback)` tạo một đường giữ độc lập từ listener list. Thao tác `LISTENERS.forEach(Runnable::run)` chứng minh callback vẫn được gọi.
-4. `REQUEST_CONTEXT.set(callback)` chạy **trên host worker**. Thread pool không kết thúc sau task, nên value có thể tiếp tục ở `ThreadLocalMap` của worker.
-5. `setContextClassLoader(pluginLoader)` tạo **đường trực tiếp** từ worker Thread tới loader. `workerHolders` chạy tiếp trên cùng single-thread executor để kiểm tra hai nguồn giữ này.
+1. `plugin-owned=true`: `cls.getClassLoader() == pluginLoader`, proving the plugin implementation was defined by the child loader.
+2. `CACHE.put("plugin", callback)` creates the path `host static Map → plugin instance → Class → pluginLoader`. Although the static Map is host-owned, the value is a plugin object.
+3. `LISTENERS.add(callback)` creates an independent retaining path from the listener list. `LISTENERS.forEach(Runnable::run)` proves the callback is still invoked.
+4. `REQUEST_CONTEXT.set(callback)` runs **on the host worker**. The thread pool does not terminate after the task, so the value can stay in the worker's `ThreadLocalMap`.
+5. `setContextClassLoader(pluginLoader)` creates a **direct path** from the worker `Thread` to the loader. `workerHolders` runs subsequently on the same single-thread executor to inspect these two retaining sources.
 
-**Khi cleanup:**
+**During cleanup:**
 
-1. `CACHE.remove("plugin")` xóa reference do cache giữ.
-2. `LISTENERS.remove(callback)` xóa đúng listener đã đăng ký.
-3. Submit task gọi `REQUEST_CONTEXT.remove()` trên **chính worker đã set value**.
-4. Khôi phục worker TCCL về `previousTccl` được ghi nhận **trước** khi gắn plugin loader.
-5. Đợi `Future.get()` rồi mới đo `worker-after=tl=false,tccl=false`.
-6. Ra khỏi `try-with-resources` để gọi `pluginLoader.close()`; shutdown executor ở `finally` ngoài cùng.
+1. `CACHE.remove("plugin")` deletes the reference held by the cache.
+2. `LISTENERS.remove(callback)` removes the exact registered listener.
+3. Submits a task calling `REQUEST_CONTEXT.remove()` on **the exact worker that set the value**.
+4. Restores the worker's TCCL to `previousTccl` recorded **before** attaching the plugin loader.
+5. Waits on `Future.get()` before measuring `worker-after=tl=false,tccl=false`.
+6. Exits `try-with-resources` to call `pluginLoader.close()`; shuts down the executor in the outermost `finally`.
 
-**Những gì không thể kết luận từ stdout:** class loader đã được GC thu gom, mọi class của loader đã unload, metaspace đã giảm hoặc heap đã sạch trong JVM thực. Trong demo, local variables và các closure sống trong thời gian nhất định vẫn có thể giữ object. Thêm nữa, VM có thể trì hoãn class unloading ngay cả sau khi bỏ hết reference; không viết assertion `weakRef.get() == null` ngay sau cleanup.
+**What cannot be concluded from stdout:** that the class loader was collected by GC, that all classes of the loader were unloaded, that metaspace shrank, or that the heap is clean in the real JVM. In the demo, local variables and closures alive for a period can still retain objects. Furthermore, the VM can defer class unloading even after all references are dropped; never write `weakRef.get() == null` assertions immediately after cleanup.
 
-## 10. Tìm đường giữ loader bằng heap dump và GC roots
+## 10. Finding loader-retaining paths via heap dumps and GC roots
 
-Trong một ứng dụng đang chạy lâu, cách hiệu quả nhất là phân tích **đường từ GC root tới object của plugin generation cũ**. Ưu tiên môi trường staging/incident được phê duyệt vì heap dump có thể lớn, gây pause và chứa dữ liệu nhạy cảm.
+In a long-running application, the most effective approach is analyzing **paths from GC roots to objects of the old plugin generation**. Prefer approved staging/incident environments since heap dumps can be large, cause pauses, and contain sensitive data.
 
-### 10.1. Chuẩn bị một phép thử tái hiện có kiểm soát
+### 10.1. Preparing a controlled reproduction test
 
-1. Chọn một plugin có generation rõ, ví dụ `reporting/v41`. Ghi thời gian install/uninstall và identity của loader, không chỉ tên class.
-2. Khởi động host với workload ổn định; tạo plugin A, gọi một số API để cache/callback/threadlocal thực sự được sử dụng.
-3. Thay bằng plugin B, gọi teardown của A, bảo đảm không còn request hợp lệ đang dùng A.
-4. Quan sát số lượng loader cũ, class count, metaspace và registry size qua nhiều lần reload; đừng dùng một snapshot đơn lẻ làm bằng chứng leak.
-5. Chụp heap dump ở những mốc có kiểm soát và phân tích reference tới **A**, tránh lẫn loader B hiện còn hoạt động đúng.
+1. Pick a plugin with a clear generation, e.g., `reporting/v41`. Record install/uninstall timestamps and loader identity, not just class names.
+2. Start the host with a stable workload; create plugin A and invoke APIs so caches/callbacks/threadlocals are actually populated.
+3. Replace with plugin B, invoke A's teardown, and ensure no valid requests are still using A.
+4. Track old loader counts, class counts, metaspace, and registry sizes across multiple reloads; do not use a single snapshot as proof of a leak.
+5. Capture heap dumps at controlled milestones and analyze references to **A**, avoiding confusion with currently active loader B.
 
-### 10.2. Các lệnh quan sát với JDK/HotSpot
+### 10.2. Observation commands with JDK/HotSpot
 
-Ví dụ cú pháp trong terminal (thay PID và đường dẫn cho phù hợp):
+Example terminal commands (substitute PID and paths appropriately):
 
 ```bash
 jcmd <pid> VM.classloader_stats
@@ -405,71 +405,71 @@ jcmd <pid> GC.class_histogram
 jcmd <pid> GC.heap_dump /path/to/plugin-retention.hprof
 ```
 
-- `VM.classloader_stats` hỗ trợ xem class loader và số class mà chúng gắn với loader data trong một số JVM HotSpot. Tên lệnh, chi tiết output và khả năng attach phụ thuộc vendor/JDK/policy.
-- `GC.class_histogram` giúp quan sát số object theo class; không thay thế retained-path analysis.
-- Heap dump cần đủ disk và quyền đọc; có thể làm ứng dụng tạm dừng, và có thể kích hoạt GC. Hãy tránh thu thập ở môi trường nhạy cảm nếu chưa có quy trình bảo vệ dữ liệu.
-- Đối với Java 17 HotSpot có Unified Logging, có thể khởi động test với:
+- `VM.classloader_stats` helps inspect class loaders and the number of classes attached to their loader data in some HotSpot JVMs. Command names, output details, and attach capability depend on vendor/JDK/policy.
+- `GC.class_histogram` helps observe object counts by class; it does not replace retained-path analysis.
+- Heap dumps require sufficient disk space and read permissions; they can pause the application and may trigger GC. Avoid collecting in sensitive environments without data-protection procedures.
+- For Java 17 HotSpot with Unified Logging, tests can be launched with:
 
 ```bash
 java -Xlog:class+load=info,class+unload=info -cp build/host demo.app.LeakRootsDemo
 ```
 
-Lệnh logging là ví dụ bổ sung cho demo; nó phát sinh nhiều log do JVM quyết định, **không có stdout cố định**. Sự xuất hiện sự kiện class unloading là tín hiệu dương; vắng sự kiện trong một khoảng thời gian ngắn chưa chứng minh loader bị leak.
+The logging command is a supplementary example for the demo; it generates JVM-determined log volume with **no fixed stdout**. Appearance of class unloading events is a positive signal; absence of events over a short interval does not prove a loader is leaked.
 
-### 10.3. Eclipse MAT hoặc công cụ heap analyzer tương đương
+### 10.3. Eclipse MAT or equivalent heap analyzer
 
-Trình tự điều tra khuyến nghị:
+Recommended investigation steps:
 
-1. Mở heap dump; tìm object type `java.net.URLClassLoader` hoặc custom `PluginClassLoader` và xác định instance thuộc generation A. Khi có nhiều loaders cùng class, kết hợp URL/path, identifier và reference để nhận đúng instance.
-2. Chọn **Path to GC Roots** / **Shortest Path to GC Roots** và loại các đường chỉ dựa trên weak/soft/phantom references nếu công cụ cung cấp tùy chọn phù hợp.
-3. Đọc đường đi từ root xuống loader hoặc class/instance do loader định nghĩa. Đừng dừng ở tên một `HashMap$Node`; cần lần lên field/registry/owner có thể sửa.
-4. Nếu thấy root là **static field**, điều tra chủ sở hữu cache và key/value cụ thể.
-5. Nếu thấy root là **Thread**, xem TCCL, `threadLocals`/`inheritableThreadLocals`, stack local, Runnable/target và task queue.
-6. Nếu thấy root là **event bus** hoặc subscriber registry, truy ra registration handle, listener list, callback active và cơ chế unsubscribe.
-7. Sau khi sửa một đường, chụp lại snapshot ở điều kiện tương tự; loader có thể còn đường giữ thứ hai chưa thấy ở lần đầu.
+1. Open the heap dump; find objects of type `java.net.URLClassLoader` or custom `PluginClassLoader` and identify the instance belonging to generation A. When multiple loaders share the same class, combine URLs/paths, identifiers, and references to identify the exact instance.
+2. Select **Path to GC Roots** / **Shortest Path to GC Roots** and exclude paths going solely through weak/soft/phantom references if the tool offers that option.
+3. Read the path from the root down to the loader or classes/instances defined by it. Do not stop at a `HashMap$Node` name; trace up to a modifiable field/registry/owner.
+4. If the root is a **static field**, investigate the cache owner and specific key/value.
+5. If the root is a **Thread**, inspect TCCL, `threadLocals`/`inheritableThreadLocals`, stack locals, `Runnable`/target, and task queues.
+6. If the root is an **event bus** or subscriber registry, trace registration handles, listener lists, active callbacks, and unsubscribe mechanisms.
+7. After fixing one path, capture another snapshot under similar conditions; the loader may have a second retaining path hidden during the first pass.
 
-**Không xem mọi “GC root” hiển thị là do ứng dụng đã tạo leak.** Đường từ host tới loader của **phiên đang hoạt động** là bình thường. Vấn đề là loader generation **đã retired** vẫn được giữ sau khi hoàn thành lifecycle và hết grace period.
+**Do not treat every visible “GC root” as an application-caused leak.** Paths from the host to the loader of **the active version** are normal. The problem is a **retired** loader generation still being retained after finishing its lifecycle and grace period.
 
-## 11. WeakReference dùng để quan sát, không dùng làm phép chứng minh tuyệt đối
+## 11. WeakReference for observation, not absolute proof
 
-Một cách giám sát việc liệu JVM *có thể* thu gom loader sau khi bỏ strong reference là giữ một weak reference:
+One way to monitor whether the JVM *can* collect a loader after dropping strong references is keeping a weak reference:
 
 ```java
-// Đoạn minh họa, không phải chương trình độc lập:
+// Illustrative snippet, not a standalone program:
 WeakReference<ClassLoader> monitor = new WeakReference<>(pluginLoader);
-// Xóa tất cả strong reference do host/plugin còn giữ.
-// Sau một hoặc nhiều lượt GC ở thời điểm phù hợp:
+// Clear all strong references still held by host/plugin.
+// After one or more GC cycles at an appropriate time:
 boolean wasCollected = (monitor.get() == null);
 ```
 
-Cần `import java.lang.ref.WeakReference;` trong chương trình dùng đoạn code này. **Không** đặt `pluginLoader` ở static field khác hay ở biến local sống quá lâu rồi chờ weak reference tự về null. Trong chính scope dùng biến `pluginLoader`, JIT có thể xem biến còn live theo tình huống; không nên suy ra hành vi GC từ một lần thử.
+`import java.lang.ref.WeakReference;` is required in programs using this snippet. **Do not** place `pluginLoader` in another static field or an overly long-lived local variable and wait for the weak reference to become null on its own. Even within the scope using `pluginLoader`, the JIT may treat the variable as live depending on circumstances; do not deduce GC behavior from a single trial.
 
-Lưu ý khi viết test:
+Notes when writing tests:
 
-- `monitor.get() != null` ngay sau cleanup **không chứng minh leak**: có thể chưa có GC hoặc loader chưa đủ điều kiện unload tại thời điểm đó.
-- `System.gc()` là một yêu cầu gợi ý với JVM, **không bảo đảm** chạy GC, dọn mọi reference hoặc class unload ngay. Không đặt test chính xác tuyệt đối dựa trên một lần gọi.
-- Nên test **nguồn giữ cụ thể** bằng kiểm tra registry, TCCL và ThreadLocal trên đúng worker; sau đó dùng heap dump để tìm retained paths ở generation đã retired.
-- Nếu cần quan sát theo thời gian, `ReferenceQueue` có thể nhận thông báo khi weak referent được clear/enqueue theo semantics phù hợp; vẫn không thay thế việc xác minh tất cả owner đã teardown.
-- Một test đo số class loader cũ sau 100 vòng redeploy có ích hơn test `sleep(100); assertNull(weak.get())`, nhưng cũng phải kiểm soát GC/warmup/workload và tránh kỳ vọng collection theo một deadline cứng.
+- `monitor.get() != null` immediately after cleanup **does not prove a leak**: GC may not have run yet or the loader may not yet be eligible for unloading at that instant.
+- `System.gc()` is a hint to the JVM, **not a guarantee** that GC runs, clears all references, or unloads classes immediately. Do not base strict pass/fail assertions on a single call.
+- Test **specific retaining sources** by checking registries, TCCL, and `ThreadLocal` on the exact workers; then use heap dumps to find retained paths in retired generations.
+- For time-based observation, `ReferenceQueue` can receive notifications when weak referents are cleared/enqueued under applicable semantics; it still does not replace verifying all owners tore down.
+- A test measuring old class loader counts after 100 redeploy cycles is more useful than `sleep(100); assertNull(weak.get())`, yet it must also control GC/warmup/workload and avoid expecting collection by a hard deadline.
 
-**Điểm phân biệt:** sử dụng weak reference làm *probe* không loại bỏ strong references ở cache/thread/callback. Nếu đồ thị còn một đường giữ mạnh, weak reference không buộc JVM bỏ qua đường đó.
+**Key distinction:** using a weak reference as a *probe* does not eliminate strong references in caches/threads/callbacks. If the graph still contains one strong retaining path, a weak reference will not force the JVM to ignore that path.
 
-## 12. Mẫu teardown exception-safe trong môi trường production
+## 12. Exception-safe teardown pattern in production
 
-Sau khi tìm được các nguồn giữ, runtime cần một trình tự teardown được **thực hiện kể cả khi một bước lỗi**. Không nên để lỗi callback A khiến host bỏ qua việc dọn timer, ThreadLocal hoặc cache của A.
+Once retaining sources are identified, the runtime needs a teardown sequence that **executes even when one step fails**. A failure in callback A must not cause the host to skip cleaning up A's timers, `ThreadLocal`, or caches.
 
-Một trình tự đề xuất:
+Recommended sequence:
 
-1. Đánh dấu plugin generation A là **DRAINING**; chặn request/registration mới đến A, chuyển request mới sang B.
-2. Cancel/dispose các subscription và scheduled tasks của A; ngăn callback mới được xếp hàng.
-3. Đợi callback/task in-flight kết thúc hoặc chấm dứt theo timeout và chính sách quarantine; không vội đóng JAR loader khi vẫn còn code cần lazy-load class/resource.
-4. Ở những worker đã chạy code A, bảo đảm `ThreadLocal.remove()` và restore baseline TCCL. Với host executor dùng chung, cleanup phải chạy ở đúng mỗi worker có state; submit một task duy nhất **không bảo đảm** nó sẽ đi đến tất cả worker nếu pool có nhiều threads.
-5. Xóa đúng cache/registry entries, listener handles, DI scopes, reflection metadata và những references mà **host** giữ đối với A.
-6. Dừng và join những threads **do A tạo và sở hữu**. Với thread bất hợp tác, phải có chính sách cô lập; không giả định `shutdownNow()` sẽ kill chắc chắn.
-7. Đóng file watcher/streams/timer/URLClassLoader của A, sau đó xóa strong references do plugin manager/monitoring giữ.
-8. Đo lại các đường từ GC roots, theo dõi class unloading và memory qua nhiều vòng thay thế.
+1. Mark plugin generation A as **DRAINING**; block new requests/registrations to A, routing new requests to B.
+2. Cancel/dispose A's subscriptions and scheduled tasks; prevent new callbacks from queuing.
+3. Wait for in-flight callbacks/tasks to finish or terminate per timeout and quarantine policy; do not rush to close the JAR loader while code still needs to lazy-load classes/resources.
+4. On workers that executed A's code, guarantee `ThreadLocal.remove()` and baseline TCCL restoration. With shared host executors, cleanup must run on each exact worker holding state; submitting a single task **does not guarantee** it reaches every worker in a multi-thread pool.
+5. Delete the exact cache/registry entries, listener handles, DI scopes, reflection metadata, and references that **the host** holds to A.
+6. Stop and join threads **created and owned by A**. For uncooperative threads, apply an isolation policy; do not assume `shutdownNow()` reliably kills them.
+7. Close A's file watchers/streams/timers/`URLClassLoader`, then drop strong references held by the plugin manager/monitoring.
+8. Re-measure paths from GC roots and monitor class unloading and memory across multiple replacement cycles.
 
-Với một task cụ thể, đây là mẫu restoration bất chấp exception (đoạn minh họa, các biến phụ thuộc context):
+For an individual task, here is an exception-resilient restoration pattern (illustrative snippet; variables depend on context):
 
 ```java
 ClassLoader previous = Thread.currentThread().getContextClassLoader();
@@ -486,134 +486,134 @@ try {
 }
 ```
 
-Khối `finally` lồng nhau giúp cố gắng restore TCCL dù cleanup ThreadLocal gặp ngoại lệ bất thường. Mã trên chỉ giải phóng thread-local value và TCCL **trên thread gọi**; nó **không** tự unregister `pluginCallback` khỏi registry. Registry registration phải có lifecycle riêng, thường dùng `AutoCloseable` hoặc hàm unsubscribe.
+Nested `finally` blocks ensure TCCL restoration is still attempted even if `ThreadLocal` cleanup throws an unexpected exception. The code above only clears the thread-local value and TCCL **on the calling thread**; it does **not** automatically unregister `pluginCallback` from registries. Registry registrations require their own lifecycle, typically via `AutoCloseable` or an unsubscribe method.
 
-Với toàn bộ plugin, teardown manager nên gom kết quả các bước cleanup, báo lỗi từng nguồn và vẫn cố dọn các bước độc lập còn lại. Đừng catch lỗi rồi tuyên bố unload thành công nếu thực tế còn callback/thread sống.
+For the plugin as a whole, the teardown manager should aggregate results across cleanup steps, report per-source errors, and still attempt remaining independent cleanup steps. Never catch an error and declare unloading successful if callbacks/threads actually remain alive.
 
-## 13. Đừng bỏ quên các nguồn giữ gián tiếp
+## 13. Do not overlook indirect retaining sources
 
-Bốn loại nguồn giữ chính thường có các biến thể:
+The four primary retaining sources often have variants:
 
-### Reflection, proxy và metadata
+### Reflection, proxies, and metadata
 
-- Cache chứa `Class<?>`, `Method`, `MethodHandle`, dynamic proxy class, annotation proxy hoặc record component của plugin.
-- Class key của metadata map do parent loader định nghĩa.
-- Lambda implementation, method reference hoặc `invokedynamic` call site có closure/call target liên quan tới plugin instance.
-- Logging/serializer/DI libraries giữ metadata hoặc factory toàn process.
+- Caches containing `Class<?>`, `Method`, `MethodHandle`, dynamic proxy classes, annotation proxies, or plugin record components.
+- Class keys in metadata maps defined by a parent loader.
+- Lambda implementations, method references, or `invokedynamic` call sites with closures/call targets tied to plugin instances.
+- Logging/serializer/DI libraries retaining metadata or process-wide factories.
 
-**Điều tra:** lọc các class do loader A định nghĩa và xem reverse references. Nếu root là thư viện, sử dụng API clear/close/unregister của thư viện, tránh xóa nội bộ bằng reflection không được hỗ trợ.
+**Investigation:** filter classes defined by loader A and inspect reverse references. If the root is a library, use the library's official clear/close/unregister API rather than poking into internals with unsupported reflection.
 
-### ServiceLoader và đăng ký dịch vụ
+### ServiceLoader and service registrations
 
-`ServiceLoader` có thể cache provider instance/type. Nếu host giữ `ServiceLoader` hoặc provider lâu hơn vòng đời plugin A, nó có thể tiếp tục giữ provider class/instance và loader. Gọi `ServiceLoader.reload()` có thể clear cache nội bộ để khám phá lại provider, nhưng không gỡ reference ở những registry/biến khác; không phải một API “unload toàn bộ plugin”. Khi thay plugin, hãy quản lý provider lifecycle và ownership rõ ràng.
+`ServiceLoader` can cache provider instances/types. If the host keeps a `ServiceLoader` or provider longer than plugin A's lifecycle, it can continue holding provider classes/instances and the loader. Calling `ServiceLoader.reload()` clears internal caches to rediscover providers, yet does not drop references in other registries/variables; it is not a “full plugin unload” API. When replacing plugins, manage provider lifecycles and ownership explicitly.
 
-### Driver, shutdown hooks, JMX, native code
+### Drivers, shutdown hooks, JMX, native code
 
-Một số thư viện/plugin đăng ký JDBC driver, shutdown hook, MBean, JNI/global native references hoặc event callback vào registries tồn tại suốt tiến trình. Những đăng ký đó có thể giữ instance hoặc class của loader A; cách teardown phụ thuộc API tương ứng. Không tự xóa toàn bộ entries của hệ thống nếu còn driver/plugin khác đang sử dụng.
+Some libraries/plugins register JDBC drivers, shutdown hooks, MBeans, JNI/global native references, or event callbacks in process-lifetime registries. Those registrations can retain instances or classes of loader A; teardown depends on the respective APIs. Do not wipe all system-wide entries if other drivers/plugins are still using them.
 
-### Thread stack và hoạt động chưa kết thúc
+### Thread stacks and unfinished activity
 
-Thread dump có thể cho thấy worker vẫn trong code của A; đó là bằng chứng có task đang chạy/chờ, khác với một ThreadLocal value tồn lưu sau khi task đã kết thúc. Dừng task hợp lệ trước; nếu có class file/resource lazy-load khi đang chạy, đóng loader sớm có thể tạo lỗi giả.
+A thread dump may show a worker still inside A's code; that is evidence of a running/waiting task, distinct from a stale `ThreadLocal` value left behind after a task ended. Stop legitimate tasks first; if class files/resources lazy-load during execution, closing the loader early can trigger spurious errors.
 
-### Caches mà plugin sở hữu
+### Plugin-owned caches
 
-Một static field nằm trong class **chỉ do plugin loader A định nghĩa** không nhất thiết tự tạo đường từ một GC root độc lập tới A nếu toàn bộ graph A đã cô lập và unreachable. Cần tìm **đường nối từ host/JVM root** tới graph đó. Ngược lại static field của host chứa plugin object là đường giữ trực tiếp. Phân biệt hai tình huống này khi đọc heap analyzer để không “sửa leak” chỉ bằng cách xóa static field của class đã không reachable.
+A static field inside a class **defined solely by plugin loader A** does not automatically create a path from an independent GC root to A if the entire A graph is isolated and unreachable. Look for **links from host/JVM roots** into that graph. Conversely, a host static field holding a plugin object is a direct retaining path. Distinguish these two cases when reading a heap analyzer so you do not try to “fix a leak” merely by clearing static fields of already-unreachable classes.
 
-## 14. Phân tích retained path theo từng loại root
+## 14. Analyzing retained paths by root type
 
-Khi heap analyzer trả một đường dẫn, đối chiếu với bảng:
+When a heap analyzer returns a path, cross-reference this table:
 
-| Root/đường nhìn thấy | Suy luận có căn cứ | Chỗ cần sửa |
+| Observed root/path | Grounded inference | Where to fix |
 |---|---|---|
-| `HostRegistry.staticCache → Map.Node.value → PluginHandler` | Registry host giữ instance | API invalidate theo plugin generation |
-| `HostCache.classCache → Class<PluginType>` | Host giữ metadata class | Cache eviction/clear scope |
-| `Thread → contextClassLoader → PluginLoader` | Worker còn TCCL plugin | Restore baseline trên đúng thread |
-| `Thread → threadLocals → entry.value → PluginContext` | Pooled worker giữ context | `remove()` trên worker, thường `finally` của task |
-| `Thread → target / stack / Runnable` | Code/plugin task còn sống hoặc queued | Stop/drain/cancel/join, inspect queue và futures |
-| `EventBus → listeners → PluginListener` | Chưa unregister listener | Giữ subscription handle, remove cụ thể |
-| `ScheduledThreadPoolExecutor → queue → plugin task` | Timer/task còn pending | Cancel scheduled task, purge khi phù hợp |
-| `ServiceLoader → provider instance/type` | Provider cache còn được giữ | Dọn owner của loader/provider; không chỉ gọi reload |
-| `Host static → WeakHashMap value → PluginClass/loader` | Weak key không phá được chuỗi giữ mạnh | Thiết kế lại cache/value hoặc lifecycle |
-| `Class<?> / Method / MethodHandle của A` | Metadata phản chiếu giữ class của A | Gỡ reflection cache và những callable còn giữ |
+| `HostRegistry.staticCache → Map.Node.value → PluginHandler` | Host registry retains instance | Invalidate API keyed by plugin generation |
+| `HostCache.classCache → Class<PluginType>` | Host retains class metadata | Cache eviction/clear scope |
+| `Thread → contextClassLoader → PluginLoader` | Worker retains plugin TCCL | Restore baseline on the exact thread |
+| `Thread → threadLocals → entry.value → PluginContext` | Pooled worker retains context | `remove()` on worker, typically in task `finally` |
+| `Thread → target / stack / Runnable` | Plugin code/task still alive or queued | Stop/drain/cancel/join; inspect queues and futures |
+| `EventBus → listeners → PluginListener` | Listener not unregistered | Keep subscription handle, remove specifically |
+| `ScheduledThreadPoolExecutor → queue → plugin task` | Timer/task still pending | Cancel scheduled task, purge where appropriate |
+| `ServiceLoader → provider instance/type` | Provider cache still held | Clean up owner of loader/provider; don't just call reload |
+| `Host static → WeakHashMap value → PluginClass/loader` | Weak key failed to break strong chain | Redesign cache/value or lifecycle |
+| `Class<?> / Method / MethodHandle of A` | Reflective metadata retains A's class | Clear reflection caches and retained callables |
 
-**Một đường ngắn nhất không có nghĩa là đường duy nhất.** Nếu xóa `HostRegistry.staticCache` mà loader vẫn sống, hãy chạy lại path-to-roots và kiểm tra thread/callback/metadata; thao tác dọn toàn bộ graph có thể phải thực hiện bởi nhiều component owners.
+**One shortest path does not mean it is the only path.** If removing `HostRegistry.staticCache` leaves the loader alive, re-run path-to-roots and check threads/callbacks/metadata; cleaning up the entire graph may require multiple component owners.
 
-## 15. Logging, instrumentation và chỉ số nên có
+## 15. Recommended logging, instrumentation, and metrics
 
-Ngay từ lúc load plugin, host nên gắn một identity riêng cho **mỗi generation**, không chỉ tên file JAR:
+From the moment a plugin loads, the host should assign a distinct identity to **each generation**, not just the JAR filename:
 
 ```text
 plugin-id=reporting
-generation=9f7a-...           (ID của bản triển khai)
+generation=9f7a-...           (deployment ID)
 loader-type=PluginClassLoader
 loader-identity=<identity hash + ID generation>
 artifact=plugins/reporting-v41.jar
 state=ACTIVE | DRAINING | RETIRED
 ```
 
-Phần trên là **ví dụ định dạng log**, không phải API Java. `System.identityHashCode(loader)` có ích để nhận diện trong một thời điểm, nhưng không phải ID bền vững toàn tiến trình hay UUID bảo đảm duy nhất; gắn thêm generation ID do host sinh ra.
+The above is an **example log format**, not a Java API. `System.identityHashCode(loader)` helps distinguish instances at a point in time, yet is neither a durable process-wide ID nor a guaranteed-unique UUID; attach a host-generated generation ID as well.
 
-Những chỉ số hữu ích:
+Useful metrics:
 
-- Số generation đang ACTIVE/DRAINING/RETIRED và thời gian từ lúc retire.
-- Số callbacks/listeners/timers/subscriptions còn đăng ký theo generation.
-- Số cache entries/chứa reference tới generation A, số futures/tác vụ chưa hoàn tất.
-- Tên và số worker có TCCL trỏ tới loader A; số worker/context có ThreadLocal value thuộc A (đo qua instrumentation do host kiểm soát, không dò bừa field private của JDK).
-- Metaspace usage, số class loader/class đã được nạp, class unloading events qua GC/JFR/Unified Logging khi được bật.
-- Heap dump retained-size/traces khi xảy ra leak, gắn kèm thời điểm, workload, generation ID.
+- Count of generations in `ACTIVE`/`DRAINING`/`RETIRED` and time since retirement.
+- Count of callbacks/listeners/timers/subscriptions still registered per generation.
+- Count of cache entries holding references to generation A, and unfinished futures/tasks.
+- Names and count of workers with TCCL pointing to loader A; count of workers/contexts holding `ThreadLocal` values belonging to A (measured via host-controlled instrumentation, not by probing JDK private fields).
+- Metaspace usage, loaded class loader/class counts, and class unloading events via GC/JFR/Unified Logging when enabled.
+- Heap dump retained sizes/traces when leaks occur, tagged with timestamp, workload, and generation ID.
 
-Cảnh báo khi tính “loader count”: không phải mọi class loader trong JVM là plugin loader; runtime, app server, frameworks hoặc tool agents có thể tạo loaders hợp lệ. Hãy lọc đúng plugin class/identity và theo dõi xu hướng qua **nhiều** lần replace giống nhau.
+Beware when computing “loader count”: not every class loader in the JVM is a plugin loader; the runtime, app servers, frameworks, or tool agents legitimately create loaders. Filter accurately by plugin class/identity and track trends across **multiple** identical replacement cycles.
 
-## 16. Kiểm thử hồi quy có giá trị
+## 16. Valuable regression tests
 
-Một bộ test nên tách **deterministic ownership assertions** khỏi **GC observations**:
+A test suite should separate **deterministic ownership assertions** from **GC observations**:
 
-| Tình huống | Assert có thể dự đoán | Phần chỉ quan sát |
+| Scenario | Predictable assertion | Observation-only part |
 |---|---|---|
-| Cache giữ plugin A | Cache chứa instance/class của A trước cleanup | Loader A vẫn có thể chưa GC |
-| Cache eviction | Entry A biến mất khỏi map đúng owner | Không ép metaspace giảm ngay |
-| Pooled ThreadLocal | Task trên đúng worker đọc ra value A trước, null sau `remove` | Không assert weak ref cleared tức thì |
-| TCCL | Worker TCCL bằng A trước, baseline sau | GC vẫn phụ thuộc các references khác |
-| Listener registration | Registry có A trước, không có A sau unsubscribe | Callback in-flight có thể còn đang chạy |
-| Plugin-owned thread | Thread A dừng/join trong deadline hợp lý | Class unload không có deadline chắc chắn |
-| Plugin A → B → C | A/B đã RETIRED không còn registration/caches | Xu hướng loader count và metaspace qua nhiều GC |
-| Fault injection | Callback hoặc cleanup ném lỗi nhưng các bước độc lập vẫn chạy | Heap analysis dùng để tìm path sót |
-| Parallel reload | New requests vào B; không task mới vào A; old tasks drained | Race phụ thuộc workload |
-| Weak reference probe | Không yêu cầu null trong thời điểm cố định | Quan sát sau các chu kỳ GC phù hợp |
+| Cache retains plugin A | Cache holds A's instance/class before cleanup | Loader A may still not be GC'd |
+| Cache eviction | Entry A disappears from the proper owner's map | Do not force metaspace to shrink immediately |
+| Pooled `ThreadLocal` | Task on that exact worker reads A's value before, null after `remove` | Do not assert weak ref cleared instantly |
+| TCCL | Worker TCCL equals A before, baseline afterwards | GC still depends on other references |
+| Listener registration | Registry contains A before, lacks A after unsubscribe | In-flight callbacks may still be running |
+| Plugin-owned thread | Thread A stops/joins within a reasonable deadline | Class unload has no deterministic deadline |
+| Plugin A → B → C | Retired A/B have zero registrations/caches | Loader count and metaspace trends across multiple GCs |
+| Fault injection | Callback or cleanup throws yet independent steps still execute | Heap analysis used to locate leftover paths |
+| Parallel reload | New requests hit B; no new tasks enter A; old tasks drain | Races depend on workload |
+| Weak reference probe | No assertion requiring null at a fixed timestamp | Observed after appropriate GC cycles |
 
-Đặc biệt nên có test “plugin A cố tình tạo đủ bốn roots → teardown A → từng root được tháo → plugin B vẫn hoạt động”. Sau đó kiểm tra **retaining path** trong staging nếu số loader cũ tăng tuyến tính qua nhiều vòng. Test này trực tiếp bắt đúng bug thay thế plugin hơn là một assertion mơ hồ dựa trên thời gian chờ GC.
+In particular, build a test where “plugin A intentionally creates all four roots → tear down A → each root is removed → plugin B continues operating.” Then inspect **retaining paths** in staging if old loader counts grow linearly across cycles. This test catches plugin replacement bugs far more directly than a vague assertion based on GC wait times.
 
-## 17. Những sai lầm thường gặp
+## 17. Common mistakes
 
-1. **“Đã `URLClassLoader.close()`, vậy class chắc chắn unload.”** Sai: close chỉ quản lý tài nguyên loader; còn GC roots quyết định reachability.
-2. **“Xóa plugin khỏi map tổng là đủ.”** Chưa chắc: callback registry, threadlocal, queue và TCCL là các đường giữ độc lập.
-3. **“Gọi `ThreadLocal.remove()` trên main sẽ dọn pool.”** Sai: remove chỉ ảnh hưởng thread đang gọi.
-4. **“ThreadLocal key đã thành weak thì value tự biến mất ngay.”** Không bảo đảm; stale entries trong implementation có thể giữ value lâu.
-5. **“Thread daemon không giữ loader.”** Thread daemon vẫn có context loader, stack, target và ThreadLocal; cờ daemon không tự loại references.
-6. **“Dừng scheduling là xong.”** Một callback/task đang chạy hoặc queued vẫn có thể giữ plugin.
-7. **“Vừa gọi unsubscribe là không ai đang gọi listener nữa.”** Cần xử lý in-flight callbacks và tính nhất quán của event bus.
-8. **“Để cache là WeakHashMap thì chắc chắn hết leak.”** Value có thể tham chiếu mạnh đến key hoặc plugin class.
-9. **“Thử `System.gc()` một lần rồi đếm loader là đủ.”** Timing GC không được bảo đảm, và snapshot không chỉ ra owner của retaining path.
-10. **“Cache bên trong class của plugin chắc chắn là nguyên nhân.”** Cần xem có đường từ GC root vào graph plugin hay không.
-11. **“Cho host ghi đè loader A bằng biến trỏ loader B là đủ.”** Còn thread/registrations/cache khác giữ A.
-12. **“Close loader ngay khi bắt đầu drain.”** Task cũ có thể cần lazy-load dependency; nên chờ đúng lifecycle.
-13. **“Xóa mọi callback của event bus để chắc chắn sạch.”** Nguy hiểm với plugin khác; phải remove theo registration/generation.
-14. **“Log tên class thôi là nhận diện được loader.”** Hai generation có thể có class trùng binary name nhưng defining loader khác.
-15. **“WeakReference.get()!=null chứng minh memory leak.”** Chưa chắc đã có GC; phải xem retaining path và lifecycle.
-16. **“Chỉ quan sát Metaspace là đủ.”** Heap callback/threadlocal values, file handles và native resources cũng cần được theo dõi.
+1. **“`URLClassLoader.close()` ran, so the classes are definitely unloaded.”** False: `close` only manages loader resources; GC roots govern reachability.
+2. **“Removing the plugin from the main map is enough.”** Not necessarily: callback registries, threadlocals, queues, and TCCL are independent retaining paths.
+3. **“Calling `ThreadLocal.remove()` on main cleans the pool.”** False: `remove` affects only the calling thread.
+4. **“Once the `ThreadLocal` key becomes weak, the value vanishes immediately.”** Not guaranteed; stale entries in the implementation can hold values for a long time.
+5. **“Daemon threads do not retain loaders.”** Daemon threads still have context loaders, stacks, targets, and `ThreadLocal`s; the daemon flag does not automatically drop references.
+6. **“Stopping scheduling is enough.”** An already-running or queued callback/task can still retain the plugin.
+7. **“Right after calling unsubscribe, nobody is invoking the listener anymore.”** In-flight callbacks and event bus consistency must be handled.
+8. **“Making the cache a `WeakHashMap` guarantees zero leaks.”** Values can strongly reference keys or plugin classes.
+9. **“Calling `System.gc()` once and counting loaders is enough.”** GC timing is not guaranteed, and a count snapshot does not identify the retaining path owner.
+10. **“Caches inside plugin classes are definitely the culprit.”** You must check whether a path exists from a GC root into the plugin's graph.
+11. **“Reassigning the host's `loader` variable from A to B is enough.”** Other threads/registrations/caches may still hold A.
+12. **“Close the loader as soon as draining starts.”** Old tasks may need to lazy-load dependencies; wait for the proper lifecycle stage.
+13. **“Clear every callback on the event bus to be safe.”** Dangerous for other plugins; remove strictly by registration/generation.
+14. **“Logging only class names identifies the loader.”** Two generations can have classes with identical binary names yet different defining loaders.
+15. **“`WeakReference.get() != null` proves a memory leak.”** GC may simply not have occurred yet; inspect retaining paths and lifecycle.
+16. **“Monitoring Metaspace alone is enough.”** Heap callbacks/threadlocal values, file handles, and native resources also need monitoring.
 
-## 18. Quy trình ngắn gọn để xử lý một sự cố thực tế
+## 18. Concise runbook for handling a real incident
 
-Khi phát hiện sau nhiều lần nâng cấp plugin mà memory không ổn định:
+When memory becomes unstable after multiple plugin upgrades:
 
-1. **Khoanh vùng** đúng plugin generation đã RETIRED và thu thập identity của class loader cũ.
-2. **Kiểm tra owner rõ ràng:** host cache, listener registry, scheduler/futures, `ThreadLocal`/TCCL của worker và plugin-owned threads. Assert theo generation.
-3. **Tạo snapshot có kiểm soát:** `jcmd VM.classloader_stats`, GC/class-unload logs và heap dump khi cần.
-4. **Đọc Path to GC Roots:** tìm reference mạnh từ root tới loader hoặc plugin class/instance; ghi lại root owner và vị trí đăng ký.
-5. **Sửa tại lifecycle owner:** evict đúng cache, unsubscribe đúng callback, `remove()` trên đúng worker, restore TCCL, dừng/join thread/task.
-6. **Lặp lại kiểm chứng:** các root cụ thể đều biến mất; không request nào vào generation cũ; theo dõi đường giữ và xu hướng classloader/metaspace qua các vòng A→B→C.
-7. **Đưa teardown vào hợp đồng plugin:** registration handles, managed worker scopes, generation-scoped caches và cleanup exception-safe để sự cố không lặp lại.
+1. **Isolate** the exact `RETIRED` plugin generation and collect the old class loader's identity.
+2. **Check obvious owners:** host caches, listener registries, schedulers/futures, worker `ThreadLocal`/TCCL, and plugin-owned threads. Assert by generation.
+3. **Capture controlled snapshots:** `jcmd VM.classloader_stats`, GC/class-unload logs, and heap dumps when needed.
+4. **Read Path to GC Roots:** find strong references from roots to the loader or plugin classes/instances; record the root owner and registration site.
+5. **Fix at the lifecycle owner:** evict the right cache, unsubscribe the right callback, `remove()` on the right worker, restore TCCL, stop/join threads/tasks.
+6. **Re-verify:** specific roots disappear; zero requests enter old generations; monitor retaining paths and classloader/metaspace trends across A→B→C cycles.
+7. **Codify teardown in the plugin contract:** registration handles, managed worker scopes, generation-scoped caches, and exception-safe cleanup so the incident does not recur.
 
-**Ghi nhớ:** class loader cũ không được giải phóng chỉ vì tên biến `pluginLoader` được gán sang phiên bản mới hoặc vì `URLClassLoader.close()` đã chạy. Phải cắt **mọi đường strong reference còn reachable từ GC roots** — nhất là cache của host, ThreadLocal trên worker sống lâu, TCCL/threads và callback registrations — rồi để JVM quyết định thời điểm class unloading. Chẩn đoán bằng **retaining paths**, sửa theo **ownership/lifecycle** và kiểm chứng bằng cả assert deterministic lẫn quan sát GC có kiểm soát.
+**Remember:** an old class loader is not released merely because a `pluginLoader` variable was reassigned to a new version or `URLClassLoader.close()` ran. You must sever **all strong reference paths still reachable from GC roots** — especially host caches, `ThreadLocal` on long-lived workers, TCCL/threads, and callback registrations — and then let the JVM decide when class unloading occurs. Diagnose via **retaining paths**, fix by **ownership/lifecycle**, and verify using both deterministic assertions and controlled GC observations.
 
-**Tài liệu chuẩn Java 17:** [ThreadLocal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ThreadLocal.html), [Thread](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html), [ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html), [URLClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html), [WeakReference](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ref/WeakReference.html), [Java 17 Troubleshooting Guide](https://docs.oracle.com/en/java/javase/17/troubleshoot/) và [Java Command / Unified Logging](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html).
+**Standard Java 17 documentation:** [ThreadLocal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ThreadLocal.html), [Thread](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html), [ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html), [URLClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html), [WeakReference](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ref/WeakReference.html), [Java 17 Troubleshooting Guide](https://docs.oracle.com/en/java/javase/17/troubleshoot/), and [Java Command / Unified Logging](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html).

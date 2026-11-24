@@ -1,0 +1,3 @@
+menuLevel1: '@KafkaListener'
+menuLevel2: Dùng property placeholder trong annotation
+status: WRITTEN

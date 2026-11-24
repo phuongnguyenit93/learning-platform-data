@@ -1,8 +1,8 @@
-# 4.1. Tính một chiều, tiền ảnh và va chạm của hàm băm mật mã
+# 4.1. One-Wayness, Preimages, and Collisions of Cryptographic Hash Functions
 
-Một hàm băm mật mã (cryptographic hash function) biến dữ liệu có độ dài bất kỳ thành một **giá trị băm (digest) có độ dài cố định**. Ta thường dùng SHA-256 để tính dấu vân tay cho một tệp, kiểm tra dữ liệu đã đổi hay chưa, hoặc làm thành phần bên trong chữ ký số và HMAC. Nhưng để hiểu vì sao một giá trị băm có thể dùng trong các cơ chế bảo mật, phải phân biệt ba thuộc tính: **kháng tiền ảnh**, **kháng tiền ảnh thứ hai** và **kháng va chạm**.
+A cryptographic hash function transforms data of arbitrary length into a **fixed-length hash value (digest)**. We commonly use SHA-256 to compute a fingerprint for a file, check whether data has changed, or serve as an internal building block in digital signatures and HMAC. However, to understand why a hash value can be used in security mechanisms, we must distinguish three properties: **preimage resistance**, **second-preimage resistance**, and **collision resistance**.
 
-Ví dụ, SHA-256 của chuỗi UTF-8 `abc` là:
+For example, the SHA-256 of the UTF-8 string `abc` is:
 
 ```text
 Input bytes (UTF-8): 61 62 63
@@ -10,18 +10,18 @@ SHA-256 (hex):
 ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
 ```
 
-Kết quả gồm 32 byte, thường được trình bày thành **64 chữ số hex**. Một chuỗi khác thường tạo digest khác, nhưng không thể khẳng định rằng *mọi* hai chuỗi khác nhau đều có hash khác nhau.
+The result consists of 32 bytes, commonly represented as **64 hex digits**. A different string usually produces a different digest, but we cannot claim that *every* pair of distinct strings has different hashes.
 
-Sau bài học, bạn cần:
-- Giải thích hàm băm “một chiều” có nghĩa là khó tìm đầu vào từ digest, không phải không thể về mặt toán học.
-- Phân biệt rõ bài toán tìm **preimage**, **second preimage** và **collision**, đặc biệt là những thông tin kẻ tấn công được cho trước.
-- Ước lượng chi phí tấn công lý tưởng với đầu ra `n` bit: cỡ `2^n` cho tiền ảnh/tiền ảnh thứ hai và `2^(n/2)` cho va chạm.
-- Hiểu nghịch lý sinh nhật (birthday bound), tác động của rút ngắn digest, và vì sao dữ liệu ít entropy vẫn có thể bị đoán dễ dàng.
-- Áp dụng SHA-256 bằng Java 17+, đọc kết quả dưới dạng byte/hex, và không nhầm hash thường với cơ chế xác thực hay lưu mật khẩu.
+After this lesson, you should be able to:
+- Explain that a "one-way" hash function means it is computationally hard to find an input from a digest, not mathematically impossible.
+- Clearly distinguish the problems of finding a **preimage**, a **second preimage**, and a **collision**, especially what information the attacker is given beforehand.
+- Estimate the ideal attack cost for an `n`-bit output: roughly `2^n` for preimage/second preimage and `2^(n/2)` for collision.
+- Understand the birthday bound, the impact of truncating a digest, and why low-entropy data can still be guessed easily.
+- Apply SHA-256 in Java 17+, read results as bytes/hex, and avoid confusing a plain hash with an authentication mechanism or password storage.
 
-## 1. Hàm băm mật mã là gì?
+## 1. What Is a Cryptographic Hash Function?
 
-Ký hiệu tổng quát:
+General notation:
 
 ```text
              H
@@ -29,157 +29,157 @@ Message M --------> Digest h = H(M)
 (any length)        (fixed n bits)
 ```
 
-Mô hình lý tưởng hóa:
+Idealized model:
 
 \[
 H:\{0,1\}^{*}\rightarrow\{0,1\}^{n}
 \]
 
-Trong đó:
-- `M` là một dãy **byte/bit**, không mặc nhiên là ký tự; cách mã hóa UTF-8, chuẩn hóa hay serialize JSON ảnh hưởng trực tiếp đến digest.
-- `n` là độ dài digest tính bằng bit. Với SHA-256, `n = 256`; với SHA-512, `n = 512`.
-- `H` là thuật toán công khai, xác định: cùng đúng một dãy byte thì cho cùng digest. Thuật toán SHA-256 không cần một bí mật riêng để hoạt động.
+Where:
+- `M` is a sequence of **bytes/bits**, not implicitly characters; UTF-8 encoding, normalization, or JSON serialization directly affects the digest.
+- `n` is the digest length in bits. For SHA-256, `n = 256`; for SHA-512, `n = 512`.
+- `H` is a public, deterministic algorithm: the exact same byte sequence produces the same digest. The SHA-256 algorithm does not require a separate secret to operate.
 
-Một hàm băm mật mã phù hợp thường được thiết kế để có các đặc điểm:
-1. **Tính xác định (deterministic):** `H(M)` luôn cho cùng kết quả nếu thuật toán và byte đầu vào không đổi.
-2. **Hiệu quả khi tính xuôi:** với thông điệp và thuật toán, tính digest có chi phí chấp nhận được.
-3. **Kháng tiền ảnh:** khi chỉ biết một digest mục tiêu, khó tìm một thông điệp băm ra giá trị đó.
-4. **Kháng tiền ảnh thứ hai:** khi biết một thông điệp cụ thể, khó tìm một thông điệp *khác* có cùng digest.
-5. **Kháng va chạm:** khó tự tìm *bất kỳ cặp* thông điệp khác nhau nào có cùng digest.
+A suitable cryptographic hash function is typically designed to have the following properties:
+1. **Determinism:** `H(M)` always produces the same output if the algorithm and input bytes do not change.
+2. **Forward efficiency:** given a message and algorithm, computing the digest has an acceptable cost.
+3. **Preimage resistance:** given only a target digest, it is hard to find a message that hashes to that value.
+4. **Second-preimage resistance:** given a specific message, it is hard to find a *different* message with the same digest.
+5. **Collision resistance:** it is hard to find *any pair* of distinct messages with the same digest on one's own.
 
-Các mục 3–5 là **mục tiêu an toàn trước đối thủ có tài nguyên tính toán hữu hạn**, không phải bảo đảm tồn tại duy nhất một thông điệp cho mỗi digest. Hiện tượng avalanche — đổi một ít bit đầu vào thường làm nhiều bit đầu ra đổi — là đặc tính mong muốn, nhưng chỉ nhìn thấy avalanche **không đủ chứng minh** ba mức kháng tấn công trên.
+Items 3–5 are **security goals against an adversary with bounded computational resources**, not a guarantee that a unique message exists for each digest. The avalanche effect—changing a few input bits usually changes many output bits—is a desirable property, but observing the avalanche effect alone **is not sufficient to prove** the three resistance levels above.
 
-### 1.1. Vì sao va chạm chắc chắn tồn tại?
+### 1.1. Why Do Collisions Necessarily Exist?
 
-Đầu vào có thể dài tùy ý, trong khi đầu ra chỉ có `2^n` giá trị khác nhau. Theo nguyên lý Dirichlet (pigeonhole principle), có nhiều thông điệp khác nhau chia sẻ cùng digest. Nói cách khác:
+Inputs can be arbitrarily long, whereas the output has only `2^n` distinct values. By the pigeonhole principle, many distinct messages share the same digest. In other words:
 
 \[
 \exists M_1 \neq M_2 : H(M_1) = H(M_2)
 \]
 
-**Va chạm tồn tại về mặt toán học**; câu hỏi bảo mật thực tế là đối thủ có thể **tìm được** một va chạm hữu ích với chi phí khả thi hay không.
+**Collisions exist mathematically**; the practical security question is whether an adversary can **find** a useful collision at a feasible cost.
 
-Đừng hiểu câu “xác suất va chạm thấp” thành “không tồn tại va chạm”, và cũng đừng hiểu “có va chạm” thành “hàm băm bị phá”. Một hàm băm 256 bit tốt vẫn có vô số cặp va chạm, nhưng việc chủ động tìm cặp bằng tấn công tổng quát dự kiến rất tốn kém.
+Do not interpret "low probability of collision" as "no collisions exist," and do not interpret "collisions exist" as "the hash function is broken." A good 256-bit hash function still has infinitely many colliding pairs, yet actively finding a pair via a generic attack is expected to be prohibitively expensive.
 
-## 2. Ba bài toán: preimage, second preimage và collision
+## 2. Three Problems: Preimage, Second Preimage, and Collision
 
-Hãy đặt tên cho digest mục tiêu là `h`, thông điệp gốc là `M` và thông điệp mới là `M'`.
+Let us denote the target digest as `h`, the original message as `M`, and a new message as `M'`.
 
-| Thuộc tính | Đối thủ được cho trước | Đối thủ muốn tìm | Điều kiện thành công |
+| Property | What the adversary is given | What the adversary wants to find | Success condition |
 | --- | --- | --- | --- |
-| **Kháng tiền ảnh (preimage resistance)** | Một digest `h` | Bất kỳ `M` | `H(M) = h` |
-| **Kháng tiền ảnh thứ hai (second-preimage resistance)** | Một thông điệp `M` cụ thể | Một `M'` khác `M` | `H(M') = H(M)` |
-| **Kháng va chạm (collision resistance)** | Hàm `H`, **không bị cố định trước M** | Hai thông điệp `M_1, M_2` khác nhau | `H(M_1) = H(M_2)` |
+| **Preimage resistance** | A digest `h` | Any `M` | `H(M) = h` |
+| **Second-preimage resistance** | A specific message `M` | An `M'` different from `M` | `H(M') = H(M)` |
+| **Collision resistance** | The function `H`, **with no fixed `M` given beforehand** | Two distinct messages `M_1, M_2` | `H(M_1) = H(M_2)` |
 
-Khác biệt quyết định nằm ở **mức tự do được chọn đầu vào**:
+The decisive difference lies in the **degree of freedom in choosing inputs**:
 
-- **Preimage:** digest đã được chọn; đối thủ cần tìm *một lời giải* cho giá trị đó.
-- **Second preimage:** thông điệp gốc đã cố định; đối thủ không được tùy ý chọn cả hai thông điệp.
-- **Collision:** đối thủ được tự chọn **cả hai** thông điệp, nên có thể thử rất nhiều ứng viên và tìm bất kỳ cặp trùng nhau nào.
+- **Preimage:** the digest is already chosen; the adversary needs to find *a solution* for that value.
+- **Second preimage:** the original message is fixed; the adversary cannot freely choose both messages.
+- **Collision:** the adversary is free to choose **both** messages, so they can test many candidates and look for any matching pair.
 
-### 2.1. Hình dung từng thách thức
+### 2.1. Visualizing Each Challenge
 
-**Thử thách A — tiền ảnh:** Người kiểm tra đưa digest `h = SHA-256(secretMessage)`, không tiết lộ secretMessage. Nhiệm vụ là tìm **bất cứ** dữ liệu `X` sao cho `SHA-256(X) = h`. `X` không nhất thiết đúng bằng secretMessage ban đầu.
+**Challenge A — Preimage:** The verifier gives a digest `h = SHA-256(secretMessage)` without revealing `secretMessage`. The task is to find **any** data `X` such that `SHA-256(X) = h`. `X` does not necessarily have to equal the original `secretMessage`.
 
-**Thử thách B — tiền ảnh thứ hai:** Người kiểm tra công khai một file hợp đồng `M` đã được chấp thuận. Đối thủ phải tạo một file `M' != M` sao cho `SHA-256(M') = SHA-256(M)`. Giữ nguyên digest của một thông điệp **cố định** là điều kiện quan trọng.
+**Challenge B — Second preimage:** The verifier publishes an approved contract file `M`. The adversary must craft a file `M' != M` such that `SHA-256(M') = SHA-256(M)`. Preserving the digest of a **fixed** message is the key constraint.
 
-**Thử thách C — va chạm:** Đối thủ tự tạo hai tệp `A` và `B` bất kỳ, miễn `A != B` nhưng có cùng digest. Nếu đối thủ còn điều khiển được ý nghĩa của hai tệp (ví dụ một tệp trông vô hại và một tệp độc hại), đây có thể là tiền đề cho một cuộc tấn công thay thế tài liệu trong giao thức ký hoặc phê duyệt thiết kế sai.
+**Challenge C — Collision:** The adversary creates any two files `A` and `B` themselves, as long as `A != B` yet they share the same digest. If the adversary also controls the meaning of both files (for example, one benign-looking file and one malicious file), this can lay the groundwork for a document substitution attack in a poorly designed signing or approval protocol.
 
-**Không nhầm:** có một collision `H(A)=H(B)` **không tự động** cho phép tìm second preimage của một tài liệu khác `M` đã được chọn từ trước. Kẻ tấn công sở hữu cặp `A,B` không được giả định rằng `A=M`.
+**Do not confuse:** having a collision `H(A)=H(B)` **does not automatically** enable finding a second preimage for another pre-selected document `M`. An attacker possessing the pair `A, B` cannot assume that `A = M`.
 
-### 2.2. Ba tính chất liên quan nhưng không đồng nhất
+### 2.2. Three Related but Distinct Properties
 
-Kháng va chạm là yêu cầu mạnh trong nhiều thiết kế ký/định danh nội dung vì đối thủ có thể tìm cặp dữ liệu trước khi một bên đáng tin xử lý một trong hai. Kháng tiền ảnh và tiền ảnh thứ hai bảo vệ các kịch bản **mục tiêu đã cố định**.
+Collision resistance is a strong requirement in many signing/content-addressing designs because the adversary can find a pair of data items before a trusted party processes either of them. Preimage and second-preimage resistance protect **fixed-target** scenarios.
 
-Không suy ra “hàm băm một chiều ⇒ chống va chạm” hoặc “dễ tìm va chạm ⇒ tìm được tiền ảnh bất kỳ”. Đây là các trò chơi an ninh khác nhau, có phương pháp tấn công và mô hình lựa chọn đầu vào khác nhau.
+Do not deduce "one-way hash function ⇒ collision resistant" or "easy to find collisions ⇒ can find an arbitrary preimage." These are different security games with different attack methods and input-choice models.
 
-## 3. Độ khó lý tưởng theo số bit
+## 3. Ideal Difficulty by Bit Length
 
-Với hàm băm `n` bit được mô hình như ánh xạ ngẫu nhiên đủ tốt, đầu vào/đầu ra được chọn trong điều kiện phù hợp và chưa có điểm yếu cấu trúc nào, độ khó tổng quát được ước lượng:
+For an `n`-bit hash function modeled as a sufficiently good random mapping, with inputs/outputs chosen under appropriate conditions and no structural weaknesses, the generic difficulty is estimated as:
 
-| Bài toán | Độ khó tổng quát điển hình | Nếu digest 256 bit |
+| Problem | Typical generic difficulty | If digest is 256 bits |
 | --- | --- | --- |
-| Tìm preimage của mục tiêu ngẫu nhiên | Xấp xỉ `2^n` lần thử | `2^256` |
-| Tìm second preimage của thông điệp đã cố định | Xấp xỉ `2^n` lần thử | `2^256` |
-| Tìm collision của hai thông điệp tùy chọn | Xấp xỉ `2^(n/2)` lần thử | `2^128` |
+| Finding a preimage of a random target | Approximately `2^n` trials | `2^256` |
+| Finding a second preimage of a fixed message | Approximately `2^n` trials | `2^256` |
+| Finding a collision of two freely chosen messages | Approximately `2^(n/2)` trials | `2^128` |
 
-Đây là **ước lượng trong mô hình lý tưởng**, không phải bằng chứng mọi hàm băm thực tế đạt đúng các mốc đó; nội dung dài đặc biệt, cấu trúc thuật toán, nhiều mục tiêu và các kiểu tấn công cụ thể có thể làm thay đổi công việc cần thiết. Ngoài ra, **mật khẩu hoặc mã PIN có ít khả năng** sẽ bị đoán theo không gian đầu vào nhỏ, chứ không phải đợi tới `2^256` thử.
+These are **estimates in an idealized model**, not proof that every real hash function achieves those exact bounds; unusually long inputs, algorithmic structure, multiple targets, and specific attack techniques can alter the work required. Furthermore, **passwords or PINs with few possibilities** will be guessed across their small input space rather than requiring `2^256` trials.
 
-### 3.1. Vì sao va chạm tìm nhanh hơn: birthday bound
+### 3.1. Why Collisions Are Faster to Find: The Birthday Bound
 
-Giả sử thử `q` đầu vào khác nhau và quan sát `q` digest `n` bit có phân phối đều. Có khoảng:
+Suppose we try `q` distinct inputs and observe `q` uniformly distributed `n`-bit digests. There are approximately:
 
 \[
 \frac{q(q-1)}{2}
 \]
 
-cặp digest có thể so sánh. Mỗi cặp có xác suất khoảng `1/2^n` để trùng nhau trong mô hình ngẫu nhiên. Khi `q` còn nhỏ so với không gian đầu ra, xác suất có ít nhất một collision xấp xỉ:
+pairs of digests that can be compared. Each pair has a probability of roughly `1/2^n` of matching in a random model. When `q` is small relative to the output space, the probability of at least one collision is approximately:
 
 \[
 P(\text{collision}) \approx 1 -
 \exp\left(-\frac{q(q-1)}{2^{n+1}}\right).
 \]
 
-Khi `q` đạt mức cùng bậc với `2^{n/2}`, xác suất va chạm trở nên đáng kể. Để đạt xấp xỉ **50%**, cần khoảng `1,177 \times 2^{n/2}` mẫu ngẫu nhiên; hệ số 1,177 không đổi bậc độ phức tạp.
+When `q` reaches the order of `2^{n/2}`, the collision probability becomes significant. To reach roughly **50%**, about `1.177 \times 2^{n/2}` random samples are needed; the constant factor 1.177 does not change the order of complexity.
 
-Ví dụ với digest chỉ **16 bit**: có `2^16 = 65.536` kết quả. Chỉ cần khoảng **301 mẫu** là xác suất thấy ít nhất một cặp trùng nhau đạt khoảng 50% trong mô hình đều. Đây là lý do phép thử Java ở phần sau dễ tìm collision ở **2 byte đầu** của SHA-256.
+For example, with only a **16-bit** digest: there are `2^16 = 65,536` possible outputs. Only about **301 samples** are needed for the probability of seeing at least one matching pair to reach roughly 50% in a uniform model. This is why the Java experiment later easily finds a collision in the **first 2 bytes** of SHA-256.
 
-Độ mạnh chống va chạm của hash `n` bit theo cách tính tổng quát thường chỉ ở mức khoảng **`n/2` bit an ninh**, trong khi độ mạnh preimage lý tưởng có thể khoảng **`n` bit**. Khi thiết kế ID chống đối thủ chủ động hoặc rút ngắn digest để lưu trữ, đừng nhầm “128-bit hash” với “128-bit chống collision”; digest 128 bit chỉ có birthday bound ở cỡ `2^64`.
+The generic collision resistance strength of an `n`-bit hash is typically only around **`n/2` bits of security**, whereas ideal preimage strength can be around **`n` bits**. When designing IDs resilient against active adversaries or truncating digests for storage, do not confuse a "128-bit hash" with "128-bit collision resistance"; a 128-bit digest only has a birthday bound around `2^64`.
 
-### 3.2. Tìm collision không đồng nghĩa với đoán được nội dung
+### 3.2. Finding a Collision Does Not Mean Guessing the Content
 
-Nếu biết `H(password)`, đối thủ thường thử các mật khẩu khả dĩ theo từ điển rồi băm và so sánh. Đây là một kiểu **đoán preimage trong tập đầu vào entropy thấp**, khác với thuật toán tìm collision tự do.
+If `H(password)` is known, an adversary typically tries plausible passwords from a dictionary, hashes them, and compares. This is a form of **preimage guessing over a low-entropy input set**, different from an algorithm that freely searches for collisions.
 
-Một PIN 4 chữ số có tối đa 10.000 ứng viên. Dù đem qua SHA-256, entropy của PIN **không tăng** lên 256 bit. Đối thủ có digest và khả năng kiểm tra ngoại tuyến có thể thử toàn bộ không gian nhỏ này rất nhanh nếu chỉ dùng SHA-256 trực tiếp.
+A 4-digit PIN has at most 10,000 candidates. Even when passed through SHA-256, the entropy of the PIN **does not increase** to 256 bits. An adversary with the digest and offline testing capability can exhaustively search this small space very quickly if plain SHA-256 is used directly.
 
-## 4. “Một chiều” là tính chất tính toán, không phải mã hóa
+## 4. "One-Way" Is a Computational Property, Not Encryption
 
-Khác biệt giữa hash và encryption:
+Differences between hashing and encryption:
 
-| Hàm băm | Mã hóa |
+| Hash Function | Encryption |
 | --- | --- |
-| Đưa dữ liệu tới digest có kích thước cố định | Biến plaintext thành ciphertext theo scheme và tham số |
-| Thông thường không cần khóa bí mật | Cần khóa để mã hóa/giải mã, tùy loại scheme |
-| Không có thuật toán “decrypt hash” đúng nghĩa để khôi phục bản gốc | Bên có quyền và khóa thích hợp có thể giải mã, kiểm tra tag nếu là AEAD |
-| Có thể nhiều đầu vào cùng digest | Scheme giải mã hợp lệ phải xác định được plaintext từ bản mã phù hợp |
-| Phù hợp làm thành phần cho dấu vân tay, chữ ký, MAC, KDF… | Phù hợp bảo vệ tính bí mật, AEAD còn có xác thực/toàn vẹn |
+| Maps data to a fixed-size digest | Transforms plaintext into ciphertext according to a scheme and parameters |
+| Typically requires no secret key | Requires a key to encrypt/decrypt, depending on the scheme |
+| No true "decrypt hash" algorithm exists to recover the original input | Authorized parties with the appropriate key can decrypt, and verify the tag if AEAD |
+| Multiple inputs can share the same digest | A valid decryption scheme must uniquely determine the plaintext from a valid ciphertext |
+| Suitable as a building block for fingerprints, signatures, MACs, KDFs, etc. | Suitable for protecting confidentiality; AEAD also provides authentication/integrity |
 
-Khi chỉ có một digest, việc “đảo ngược” thường phải dựa vào thử ứng viên, khai thác đầu vào đoán được hoặc tìm điểm yếu thuật toán. Website “reverse SHA-256” thường tra bảng digest của các giá trị phổ biến: đó **không phải** giải mã toán học SHA-256.
+When given only a digest, "reversing" it generally relies on testing candidates, exploiting predictable inputs, or finding algorithmic weaknesses. "Reverse SHA-256" websites typically look up digests in tables of common values: that is **not** mathematical decryption of SHA-256.
 
-Cần phân biệt:
-- **Một chiều theo định nghĩa bảo mật:** chưa biết phương pháp hiệu quả để tìm preimage trong mô hình đe dọa tương ứng.
-- **Không thể đảo ngược duy nhất:** từ một digest cố định không đủ thông tin để xác định một đầu vào ban đầu duy nhất vì có rất nhiều đầu vào cho cùng digest.
-- **Đầu vào khó đoán:** là điều kiện độc lập về entropy. Một hàm băm rất mạnh vẫn không thể làm một mật khẩu phổ biến thành bí mật khó đoán khi bị tấn công offline.
+It is important to distinguish:
+- **One-way in the security sense:** no efficient method is known to find a preimage in the relevant threat model.
+- **Not uniquely invertible:** from a fixed digest alone, there is insufficient information to determine a unique original input because many inputs produce the same digest.
+- **Unpredictable input:** an independent condition regarding entropy. Even a very strong hash function cannot turn a common password into an unguessable secret against an offline attack.
 
-## 5. Khi nào các thuộc tính được sử dụng?
+## 5. When Are These Properties Used?
 
-### 5.1. Kiểm tra toàn vẹn tệp
+### 5.1. File Integrity Verification
 
-Giả sử người tải file biết trước digest SHA-256 kỳ vọng thông qua **nguồn đáng tin**, rồi tính SHA-256 của file đã tải và so sánh. Nếu digest khác, file chắc chắn không trùng đúng byte với kỳ vọng (bỏ qua khả năng lỗi xử lý không thuộc mô hình); nếu digest giống, xác suất đối thủ cố ý đưa file khác có cùng digest được đánh giá theo an ninh của hash và mô hình tấn công.
+Suppose a downloader knows the expected SHA-256 digest beforehand from a **trusted source**, then computes the SHA-256 of the downloaded file and compares them. If the digests differ, the file certainly does not match the expected bytes (ignoring processing errors outside the model); if the digests match, the probability that an adversary intentionally supplied a different file with the same digest is evaluated according to the hash's security and the attack model.
 
-Nhưng nếu kẻ tấn công thay được **cả file lẫn dòng SHA-256 hiển thị trên cùng trang không đáng tin**, việc so sánh không xác thực tác giả hoặc nguồn tải. Muốn xác minh nguồn, cần nguồn digest đã được xác thực, chữ ký số hợp lệ với public key đáng tin, hoặc cơ chế xác thực tương đương.
+However, if an attacker can replace **both the file and the SHA-256 line displayed on the same untrusted page**, the comparison does not authenticate the author or download source. To verify origin, you need an authenticated digest source, a valid digital signature with a trusted public key, or an equivalent authentication mechanism.
 
-### 5.2. Chữ ký số và tài liệu đã ký
+### 5.2. Digital Signatures and Signed Documents
 
-Nhiều sơ đồ chữ ký xử lý digest hay chuỗi byte đã qua encoding/hash theo thuật toán ký. Nếu đối thủ có thể chế tạo hai tài liệu mang cùng digest trong bối cảnh ký thiếu ràng buộc, họ có thể cố gắng làm cho chữ ký trên tài liệu lành tính được chấp nhận cho tài liệu khác.
+Many signature schemes process a digest or an encoded/hashed byte sequence as specified by the signing algorithm. If an adversary can craft two documents carrying the same digest in an unconstrained signing context, they may try to get a signature on a benign document accepted for another document.
 
-Vì vậy, **kháng collision** đặc biệt quan trọng trong các giao thức mà bên tấn công có quyền chọn tài liệu được đưa ra để ký. Tuy nhiên, chỉ nêu `H(M)` chưa mô tả toàn bộ an ninh chữ ký: còn phải có thuật toán ký chuẩn, định dạng encode/verify phù hợp, kiểm soát domain/loại thông điệp, khóa ký được tin cậy và quyền ký.
+Therefore, **collision resistance** is especially critical in protocols where an attacker has the ability to choose documents submitted for signing. However, merely stating `H(M)` does not describe the entire security of a signature: you also need a standard signature algorithm, proper encoding/verification formatting, domain/message-type controls, trusted signing keys, and signing authorization.
 
-### 5.3. Định danh nội dung, cache và Merkle tree
+### 5.3. Content Addressing, Caching, and Merkle Trees
 
-Digest có thể dùng để tham chiếu một blob nội dung (content addressing) hoặc tổ chức Merkle tree. Với nguồn dữ liệu và quy tắc encoding đã định, cùng byte sinh cùng digest, giúp kiểm tra tái sử dụng/cập nhật.
+Digests can be used to reference a content blob (content addressing) or to organize a Merkle tree. Given a defined data source and encoding rules, identical bytes yield identical digests, making reuse/update checks straightforward.
 
-Nếu đầu vào do đối thủ kiểm soát, rủi ro collision và cách dùng hash làm **khóa định danh duy nhất** phải được xem xét. Ở cấu trúc cây, nên phân biệt rõ hash của leaf và hash của internal node bằng tag/domain separation để tránh nhập nhằng cấu trúc. Hash không tự chứng minh ai là người xuất bản nội dung.
+If inputs are controlled by an adversary, collision risks and the use of a hash as a **unique identifier key** must be evaluated. In tree structures, leaf hashes and internal node hashes should be clearly separated using tags/domain separation to prevent structural ambiguity. A hash alone does not prove who published the content.
 
-### 5.4. Lưu mật khẩu: yêu cầu khác hẳn
+### 5.4. Password Storage: Entirely Different Requirements
 
-**Không lưu `SHA-256(password)` trực tiếp** như password verifier. SHA-256 được thiết kế tính nhanh, trong khi mật khẩu do con người chọn thường dễ đoán. Hãy sử dụng password-hashing/KDF chuyên dụng có salt riêng và tham số chi phí được thiết lập hợp lý: Argon2id thường là lựa chọn ưu tiên trong hệ thống hỗ trợ; scrypt, bcrypt hoặc PBKDF2 có thể phù hợp theo ràng buộc triển khai, với thông số được thẩm định.
+**Do not store `SHA-256(password)` directly** as a password verifier. SHA-256 is designed to be fast, whereas human-chosen passwords are often predictable. Use a dedicated password-hashing/KDF function with a per-password salt and properly tuned cost parameters: Argon2id is typically the preferred choice where supported; scrypt, bcrypt, or PBKDF2 may be suitable depending on deployment constraints, with vetted parameters.
 
-**Salt không phải khóa bí mật**: có thể lưu kèm verifier; mục đích là làm các bản ghi có cùng password dùng đầu vào khác nhau, ngăn tái sử dụng bảng băm tính trước trên nhiều bản ghi. Salt không làm mật khẩu yếu tự tăng entropy; lựa chọn hàm cố ý tốn tài nguyên tính toán/bộ nhớ mới giúp tăng chi phí đoán offline.
+**A salt is not a secret key**: it can be stored alongside the verifier; its purpose is to ensure records with the same password use different inputs, preventing precomputed hash tables from being reused across multiple records. A salt does not increase the intrinsic entropy of a weak password; choosing a function that is intentionally expensive in computation/memory is what increases the cost of offline guessing.
 
-## 6. Bit, byte, hex và việc rút ngắn digest
+## 6. Bits, Bytes, Hex, and Digest Truncation
 
-Với SHA-256:
+For SHA-256:
 
 ```text
 256 bits = 32 bytes = 64 hexadecimal digits
@@ -189,23 +189,23 @@ SHA-256("abc"):
 ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
 ```
 
-Độ dài hex không phải độ mạnh an ninh độc lập: 64 chữ số hex mã hóa 256 bit đầu ra, trong khi chuỗi 64 ký tự *văn bản* nói chung không nhất thiết có 256 bit entropy.
+Hex length is not an independent security strength: 64 hex digits encode 256 bits of output, whereas a general 64-character *text* string does not necessarily carry 256 bits of entropy.
 
-### 6.1. Rút ngắn digest có thể làm giảm an ninh nhanh
+### 6.1. Truncating a Digest Can Rapidly Reduce Security
 
-Nếu chỉ giữ `t` bit đầu trong digest rồi xem như định danh:
+If only the first `t` bits of a digest are kept and treated as an identifier:
 
 \[
 H_t(M) = \operatorname{prefix}_t(H(M))
 \]
 
-thì trong mô hình đều, chống preimage mục tiêu ở mức cỡ `2^t`, còn chống collision chỉ ở mức cỡ `2^{t/2}`. Ví dụ giữ **16 bit đầu** của SHA-256 tạo ra một *hàm băm 16 bit mới* dễ có va chạm; phát hiện collision ở đó **không phải** phát hiện collision của toàn bộ SHA-256.
+then in a uniform model, target preimage resistance is on the order of `2^t`, while collision resistance is only on the order of `2^{t/2}`. For example, keeping the **first 16 bits** of SHA-256 creates a *new 16-bit hash function* prone to collisions; discovering a collision there is **not** discovering a collision in full SHA-256.
 
-Không tự rút ngắn digest trong giao thức ký/xác thực hoặc thiết kế chống va chạm nếu chưa xác định security level, số lượng dữ liệu và các yêu cầu của chuẩn liên quan. Với mục đích kiểm tra dữ liệu chống sửa đổi có chủ đích, nên giữ đầu ra đầy đủ của thuật toán chuẩn khi có thể.
+Do not arbitrarily truncate digests in signing/authentication protocols or collision-resistant designs without determining the security level, data volume, and relevant standard requirements. For detecting intentional tampering, keep the full output of the standard algorithm whenever possible.
 
-### 6.2. Khác biệt byte dẫn tới khác biệt digest
+### 6.2. Byte Differences Lead to Digest Differences
 
-So sánh:
+Compare:
 
 ```text
 "abc"      -> bytes 61 62 63
@@ -213,20 +213,20 @@ So sánh:
 "ABC"      -> bytes 41 42 43
 ```
 
-SHA-256 tính trên **byte thực tế**, không hiểu rằng hai chuỗi “trông tương đương”. Một tệp có CRLF khác LF có thể có digest khác; JSON có thứ tự thuộc tính hoặc khoảng trắng khác có thể có digest khác; văn bản Unicode có thể có nhiều cách mã hóa tổ hợp khác nhau.
+SHA-256 operates on **actual bytes**, unaware that two strings "look equivalent." A file with CRLF differs from LF and will have a different digest; JSON with different property ordering or whitespace can have a different digest; Unicode text can have multiple composite encodings.
 
-Khi một giao thức yêu cầu hai bên tính digest/chữ ký của “cùng thông điệp”, phải chỉ rõ:
-- Charset (ví dụ UTF-8), chuẩn hóa Unicode nếu có, cách mã hóa dòng/ký tự.
-- Canonical serialization của JSON/XML/đối tượng, độ dài và phân cách các trường, thứ tự trường.
-- Phiên bản format, domain/application context và những byte chính xác được bảo vệ.
+When a protocol requires two parties to compute the digest/signature of the "same message," it must specify:
+- Charset (e.g., UTF-8), Unicode normalization if applicable, and line/character encoding.
+- Canonical serialization of JSON/XML/objects, field lengths and delimiters, and field ordering.
+- Format version, domain/application context, and the exact bytes being protected.
 
-**Không tùy tiện trim, lowercase hay normalize sau khi đã ký**: thao tác như vậy có thể làm thay đổi nghĩa nghiệp vụ hoặc gây nhập nhằng. Cần thống nhất format trước khi tính hash.
+**Do not arbitrarily trim, lowercase, or normalize after signing**: such operations can alter business meaning or introduce ambiguity. Standardize the format before hashing.
 
-## 7. Java 17+: quan sát tính xác định và collision do cắt còn 16 bit
+## 7. Java 17+: Observing Determinism and a 16-Bit Truncated Collision
 
-Ví dụ dưới đây dùng `MessageDigest` trong Java Cryptography Architecture (JCA). Chương trình tính SHA-256 của `abc`, so sánh digest, sau đó **cố ý chỉ lấy 16 bit đầu** để tìm một collision dễ quan sát.
+The example below uses `MessageDigest` in the Java Cryptography Architecture (JCA). The program computes the SHA-256 of `abc`, compares digests, and then **deliberately takes only the first 16 bits** to find an easily observable collision.
 
-Tạo tệp `HashFundamentalsDemo.java`:
+Create the file `HashFundamentalsDemo.java`:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -274,14 +274,14 @@ public class HashFundamentalsDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac HashFundamentalsDemo.java
 java HashFundamentalsDemo
 ```
 
-Kết quả (đã kiểm tra với JDK; đầu vào và thứ tự duyệt cố định):
+Output (verified with the JDK; fixed inputs and iteration order):
 
 ```text
 SHA-256(abc): ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
@@ -292,20 +292,20 @@ Prefix (hex): 6620
 Full SHA-256 equal: false
 ```
 
-Giải thích chi tiết:
+Detailed explanation:
 
-1. `MessageDigest.getInstance("SHA-256")` tạo đối tượng tính SHA-256. `digest(byte[])` cho mảng **32 byte**, không phải chuỗi hex. `HexFormat.of().formatHex(...)` chỉ là cách hiển thị.
-2. Hai lần băm chính xác cùng byte `abc` trả digest giống nhau. Đây là **tính xác định**, không phải một bằng chứng về kháng collision.
-3. Băm `abc` và `abd` trả hai digest khác nhau; đây là **một quan sát** cho cặp cụ thể, không thể suy ra mọi cặp khác nhau đều có digest khác.
-4. `prefix16` lấy 2 byte đầu, tức chỉ có `65.536` giá trị có thể. Chương trình ghi nhớ các tiền tố đã thấy và dừng khi gặp cặp trùng.
-5. `message-126` và `message-133` cùng tiền tố `6620`, nhưng **toàn bộ SHA-256 khác nhau**. Đây là collision của hàm `H_16` do ta định nghĩa bằng cách cắt ngắn, không phải lỗ hổng SHA-256.
-6. `MessageDigest.isEqual(...)` so sánh byte digest theo API dành cho so sánh giá trị băm. Nó **không biến** SHA-256 không khóa thành MAC; không dùng kết quả so khớp digest tự công bố để xác thực bên gửi.
+1. `MessageDigest.getInstance("SHA-256")` creates an object to compute SHA-256. `digest(byte[])` returns a **32-byte** array, not a hex string. `HexFormat.of().formatHex(...)` is purely for display.
+2. Hashing the exact same bytes of `abc` twice returns identical digests. This is **determinism**, not a proof of collision resistance.
+3. Hashing `abc` and `abd` returns two different digests; this is **one observation** for a specific pair, from which one cannot deduce that every distinct pair has a different digest.
+4. `prefix16` takes the first 2 bytes, so there are only `65,536` possible values. The program records previously seen prefixes and stops when a duplicate pair is encountered.
+5. `message-126` and `message-133` share the prefix `6620`, yet their **full SHA-256 digests differ**. This is a collision of the function `H_16` that we defined via truncation, not a vulnerability in SHA-256.
+6. `MessageDigest.isEqual(...)` compares digest bytes using the API intended for comparing hash values. It **does not turn** unkeyed SHA-256 into a MAC; do not use a self-reported digest match to authenticate a sender.
 
-Từ ví dụ, có thể tự thay `prefix16` thành 8 bit hoặc 24 bit để quan sát thay đổi trong số lượng mẫu cần thử, nhưng không dùng một thí nghiệm nhỏ để khẳng định xác suất “chắc chắn” cho mọi tập dữ liệu. Birthday bound mô tả **xác suất** dưới giả định phân phối phù hợp.
+From this example, you can change `prefix16` to 8 bits or 24 bits to observe the change in the number of samples needed, but do not use a single small experiment to claim a "guaranteed" probability for every dataset. The birthday bound describes **probability** under appropriate distribution assumptions.
 
-### 7.1. Vì sao ví dụ không “phá SHA-256”?
+### 7.1. Why Does This Example Not "Break SHA-256"?
 
-Chương trình tìm hai chuỗi `A,B` sao cho:
+The program finds two strings `A, B` such that:
 
 \[
 \operatorname{prefix}_{16}(SHA256(A))
@@ -313,118 +313,118 @@ Chương trình tìm hai chuỗi `A,B` sao cho:
 \operatorname{prefix}_{16}(SHA256(B)).
 \]
 
-Nhưng nó đồng thời kiểm tra:
+Yet it simultaneously checks:
 
 \[
 SHA256(A) \neq SHA256(B).
 \]
 
-Muốn chứng minh collision của **SHA-256 gốc**, phải chỉ ra hai thông điệp khác nhau có **toàn bộ 256 bit** digest trùng khớp. Việc đoán trúng một vài byte đầu chỉ là collision trên hàm bị rút ngắn do ta tạo ra.
+To prove a collision in **full SHA-256**, one must exhibit two distinct messages whose **entire 256-bit** digests match. Matching a few leading bytes is merely a collision on the truncated function we created.
 
-### 7.2. Lưu ý dùng MessageDigest ngoài demo
+### 7.2. Notes on Using MessageDigest Beyond Demos
 
-- Chỉ định rõ `StandardCharsets.UTF_8` cho dữ liệu văn bản. Không lệ thuộc platform default charset.
-- Đối tượng `MessageDigest` là mutable; không mặc định chia sẻ một instance giữa nhiều thread. Tạo instance theo lần dùng hoặc quản lý concurrency đúng cách.
-- `digest(...)` xử lý mảng byte đầu vào; với file lớn nên đọc thành các khối và gọi `update(...)` nhiều lần, sau đó `digest()` để hoàn tất, thay vì buộc toàn bộ file vào RAM.
-- Đừng dùng `new String(digestBytes, UTF_8)` để biểu diễn digest: digest là bytes ngẫu nhiên về mặt biểu diễn và có thể không tạo UTF-8 hợp lệ. Dùng hex/base64 nếu cần văn bản.
-- Chỉ dựa vào digest so sánh với **giá trị kỳ vọng đáng tin** cho mục đích toàn vẹn; nếu phải xác thực đối tác, chọn HMAC/chữ ký hoặc giao thức xác thực thích hợp.
+- Explicitly specify `StandardCharsets.UTF_8` for text data. Do not rely on the platform default charset.
+- A `MessageDigest` object is mutable; do not share a single instance across multiple threads by default. Create an instance per use or manage concurrency properly.
+- `digest(...)` processes an input byte array; for large files, read in chunks and call `update(...)` repeatedly, then `digest()` to finalize, instead of forcing the entire file into RAM.
+- Do not use `new String(digestBytes, UTF_8)` to represent a digest: a digest consists of arbitrary-looking bytes that may not form valid UTF-8. Use hex/base64 when text representation is needed.
+- Rely on digest comparison against a **trusted expected value** only for integrity; if you must authenticate a counterparty, choose HMAC/signatures or an appropriate authentication protocol.
 
-## 8. Các lỗi phổ biến và giới hạn của hàm băm
+## 8. Common Mistakes and Limitations of Hash Functions
 
-| Ngộ nhận/thiết kế | Vấn đề | Cách hiểu hoặc xử lý đúng |
+| Misconception / Design Flaw | Issue | Correct Understanding or Handling |
 | --- | --- | --- |
-| “SHA-256 không thể có collision” | Đầu vào vô hạn, digest hữu hạn | Va chạm chắc chắn tồn tại; bảo mật dựa vào độ khó tìm |
-| “Preimage, second preimage và collision giống nhau” | Quên ràng buộc thông điệp/digest đã cố định | Xác định chính xác điều đối thủ được chọn |
-| “Hash 256 bit chống collision ở mức 256 bit” | Bỏ qua birthday bound | Độ khó collision tổng quát cỡ `2^128` |
-| “Có cặp collision bất kỳ là thay được file M đã ký” | Không phân biệt collision với second preimage | Kiểm tra liệu kẻ tấn công có kiểm soát tài liệu trước khi ký không |
-| “Lưu SHA-256(password) đã an toàn” | SHA-256 quá nhanh, mật khẩu entropy thấp | Dùng Argon2id/scrypt/bcrypt/PBKDF2 theo chính sách phù hợp cùng salt |
-| “Hash là mã hóa, có thể decrypt hash” | Digest không có phép giải mã giữ nguyên dữ liệu | Dùng encryption khi cần giữ bí mật và giải mã |
-| “Gửi SHA-256 cùng file chứng minh file từ server đúng” | Đối thủ có thể sửa cả hai | Digest/signature phải được xác thực qua trust source |
-| “Chỉ cần hash(req) là xác thực API” | Hash không có bí mật và không chứng minh tác giả | Dùng HMAC hoặc chữ ký với quản lý khóa và identity binding |
-| “Dùng `SHA-256(secret || message)` làm MAC” | Thiết kế tự chế có thể chịu length-extension/ambiguity | Dùng chuẩn HMAC-SHA256, không tự sáng tạo MAC |
-| “Thay đổi 1 bit làm digest đổi mạnh ⇒ hash đã an toàn” | Avalanche không chứng minh kháng tấn công | Cần phân tích thuật toán và bằng chứng mật mã |
-| “MD5/SHA-1 dùng cho chữ ký hiện đại vẫn đủ tốt” | Va chạm thực tế đã làm suy yếu các hàm này | Tránh MD5/SHA-1 cho an ninh collision; dùng thuật toán hiện đại được chấp nhận |
-| “Chỉ so hai chuỗi hex nên không cần thống nhất encoding” | UTF-8/JSON/newline/Unicode khác → bytes khác | Chuẩn hóa format rõ ràng trước khi băm |
-| “`String.hashCode()` và CRC32 cũng là hash nên có thể ký” | Không được thiết kế chống đối thủ tìm va chạm/giả mạo | Dùng hàm băm mật mã chuyên dụng |
+| "SHA-256 cannot have collisions" | Infinite inputs, finite digests | Collisions necessarily exist; security relies on the difficulty of finding them |
+| "Preimage, second preimage, and collision are the same" | Ignores constraints on fixed messages/digests | Precisely identify what the adversary is allowed to choose |
+| "A 256-bit hash has 256-bit collision resistance" | Ignores the birthday bound | Generic collision difficulty is around `2^128` |
+| "Having any collision pair lets you replace a signed file M" | Confuses collision with second preimage | Check whether the attacker controls the document before signing |
+| "Storing SHA-256(password) is already secure" | SHA-256 is too fast and passwords have low entropy | Use Argon2id/scrypt/bcrypt/PBKDF2 per appropriate policy with a salt |
+| "Hashing is encryption, so you can decrypt a hash" | A digest has no decryption operation that recovers the original data | Use encryption when confidentiality and decryption are required |
+| "Sending SHA-256 alongside a file proves the file came from the right server" | An adversary can modify both | The digest/signature must be verified through a trusted source |
+| "Just hash(req) is enough to authenticate an API" | A hash has no secret and does not prove authorship | Use HMAC or signatures with proper key management and identity binding |
+| "Using `SHA-256(secret || message)` as a MAC" | Homemade constructions can suffer from length-extension/ambiguity | Use standard HMAC-SHA256; do not invent your own MAC |
+| "Changing 1 bit drastically changes the digest ⇒ the hash is secure" | Avalanche does not prove attack resistance | Requires algorithmic analysis and cryptographic evidence |
+| "MD5/SHA-1 are still good enough for modern signatures" | Practical collisions have weakened these functions | Avoid MD5/SHA-1 for collision security; use accepted modern algorithms |
+| "Comparing two hex strings means encoding doesn't matter" | Different UTF-8/JSON/newlines/Unicode → different bytes | Standardize the format clearly before hashing |
+| "`String.hashCode()` and CRC32 are hashes too, so they can be used for signing" | Not designed to resist adversaries seeking collisions/forgeries | Use a dedicated cryptographic hash function |
 
-### 8.1. Cẩn thận với thuật toán cũ và phép xây dựng tự chế
+### 8.1. Beware of Legacy Algorithms and Homemade Constructions
 
-- **MD5** và **SHA-1** có các vấn đề va chạm đã được chứng minh thực tế, nên không phù hợp cho cơ chế an ninh đòi hỏi collision resistance hiện đại. Đừng đánh đồng việc một thuật toán vẫn tồn tại trong API tương thích với việc nó nên được chọn cho thiết kế mới.
-- **SHA-256**, **SHA-384/512** và họ **SHA-3** là những họ hàm băm tiêu chuẩn dùng theo yêu cầu an ninh và chính sách tương thích. Chọn hàm phải xét security strength, yêu cầu hiệu năng, trường hợp ứng dụng, thuật toán ký/MAC liên quan và quy định hiện hành.
-- Với SHA-256 kiểu Merkle–Damgård, biết `SHA-256(secret || message)` có thể tạo cơ hội cho **length-extension attack** khi một ứng dụng tự xây MAC bằng cách ghép secret vào trước message. Kháng preimage **không có nghĩa** ghép khóa vào SHA-256 đã trở thành MAC an toàn. Dùng HMAC theo chuẩn và phân định thông điệp/ngữ cảnh phù hợp.
+- **MD5** and **SHA-1** have practically demonstrated collision issues, making them unsuitable for security mechanisms requiring modern collision resistance. Do not equate an algorithm still existing in a legacy compatibility API with it being safe to choose for new designs.
+- **SHA-256**, **SHA-384/512**, and the **SHA-3** family are standard hash families used according to security requirements and compatibility policies. Selecting a function must account for security strength, performance requirements, the application use case, associated signature/MAC algorithms, and applicable regulations.
+- With Merkle–Damgård hashes like SHA-256, knowing `SHA-256(secret || message)` can open the door to a **length-extension attack** when an application builds a homemade MAC by prepending a secret before the message. Preimage resistance **does not mean** prepending a key to SHA-256 creates a secure MAC. Use standard HMAC and apply proper message/context separation.
 
-Không nên tự thiết kế thuật toán hash, giao thức ký hoặc MAC chỉ bằng cách ghép string và thêm digest; các lỗi encoding, domain separation và xử lý trust thường không lộ ra trong unit test “hash đúng”.
+Do not design your own hash algorithm, signature protocol, or MAC merely by concatenating strings and appending a digest; bugs in encoding, domain separation, and trust handling rarely surface in a "hash matches" unit test.
 
-## 9. Đọc tình huống theo đúng thuộc tính
+## 9. Analyzing Scenarios by the Right Property
 
-**Tình huống 1 — Tệp đã công bố có digest đáng tin.** Bên tấn công muốn thay bản tải về bằng *một tệp khác* mà vẫn khớp chính digest đã công bố. Tệp/digest mục tiêu đã cố định. Đây gần với bài toán **second preimage** của tệp mục tiêu, dưới giả định digest được công bố xác thực.
+**Scenario 1 — A published file has a trusted digest.** An attacker wants to replace the downloadable file with *a different file* that still matches the exact published digest. The target file/digest is fixed. This closely matches the **second-preimage** problem for the target file, assuming the published digest is authentic.
 
-**Tình huống 2 — Hai hợp đồng có cùng digest trước khi ký.** Bên tấn công tự làm hai hợp đồng, cho người dùng ký hợp đồng lành tính rồi chuyển chữ ký sang hợp đồng còn lại trong một giao thức không phân biệt thông điệp. Trọng tâm là khả năng tìm **collision**, đặc biệt là collision có tính chất mà tấn công yêu cầu.
+**Scenario 2 — Two contracts share the same digest before signing.** An attacker creates two contracts themselves, gets a user to sign the benign contract, and then transfers the signature to the other contract in a protocol that does not distinguish messages. The crux is the ability to find a **collision**, specifically a collision with properties required by the attack.
 
-**Tình huống 3 — Digest của một API token ngẫu nhiên.** Bên tấn công chỉ có digest và muốn tìm một giá trị bất kỳ có cùng digest. Đây là **preimage**; nếu token có entropy đủ cao thì khó về tổng quát. Nếu token chỉ là mã PIN 4 chữ số thì thử vét cạn theo tập giá trị khả dĩ có thể dễ.
+**Scenario 3 — Digest of a random API token.** An attacker only has the digest and wants to find any value with the same digest. This is a **preimage** problem; if the token has high enough entropy, it is generally hard. If the token is merely a 4-digit PIN, brute-forcing across the set of possible values can be easy.
 
-**Tình huống 4 — Hai tệp lớn trong kho lưu trữ có 2 byte đầu SHA-256 giống nhau.** Đây là collision của **digest 16 bit bị rút ngắn**, và chưa cho biết có collision của SHA-256 đầy đủ hay không.
+**Scenario 4 — Two large files in storage share the first 2 bytes of SHA-256.** This is a collision of a **truncated 16-bit digest**, and says nothing about whether a collision of full SHA-256 exists.
 
-**Tình huống 5 — Attacker đổi file tải và đổi SHA-256 trên cùng website đã bị chiếm.** Ở đây không cần tấn công hash; lỗ hổng là **nguồn digest không đáng tin**. Phải xác thực nguồn hoặc chữ ký, không chỉ chọn hash dài hơn.
+**Scenario 5 — An attacker replaces both the download file and its SHA-256 on the same compromised website.** Here, no attack on the hash is needed; the vulnerability is an **untrusted digest source**. You must authenticate the source or signature, not simply pick a longer hash.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-**Câu 1.** Với hàm băm 160 bit lý tưởng, độ khó tổng quát để tìm một cặp collision là cỡ bao nhiêu?
+**Question 1.** For an ideal 160-bit hash function, roughly what is the generic difficulty of finding a colliding pair?
 
-**Đáp án:** Cỡ `2^80` phép thử, khác với bài toán preimage mục tiêu cố định vốn cỡ `2^160` trong mô hình phù hợp.
+**Answer:** Roughly `2^80` trials, unlike the fixed-target preimage problem which is roughly `2^160` in the appropriate model.
 
-**Câu 2.** Người kiểm tra giao digest `h` mà không giao thông điệp gốc. Bạn phải tìm `M` bất kỳ sao cho `H(M)=h`. Đây là thuộc tính gì?
+**Question 2.** The verifier gives you a digest `h` without giving the original message. You must find any `M` such that `H(M)=h`. Which property is this?
 
-**Đáp án:** Kháng tiền ảnh (preimage resistance).
+**Answer:** Preimage resistance.
 
-**Câu 3.** Người kiểm tra đưa sẵn `M`; bạn cần `M' != M` nhưng `H(M')=H(M)`. Có được tự tạo hai thông điệp khác bất kỳ để tìm collision không?
+**Question 3.** The verifier gives you `M`; you need `M' != M` such that `H(M')=H(M)`. Are you allowed to freely craft any two distinct messages to find a collision?
 
-**Đáp án:** Không. Đây là second-preimage challenge; thông điệp gốc đã cố định.
+**Answer:** No. This is a second-preimage challenge; the original message is fixed.
 
-**Câu 4.** Một hàm băm `n=32` bit có `2^32` giá trị đầu ra. Khi thử vài chục nghìn đầu vào khác nhau, vì sao vẫn có thể xuất hiện collision sớm?
+**Question 4.** A `n=32`-bit hash function has `2^32` possible output values. When testing a few tens of thousands of distinct inputs, why can a collision still occur early?
 
-**Đáp án:** Vì số cặp giữa các mẫu tăng xấp xỉ theo bình phương số mẫu; birthday bound cho mức cỡ `2^16` mẫu thì collision đã có xác suất đáng kể, không cần thử hết `2^32` giá trị.
+**Answer:** Because the number of pairs among samples grows roughly as the square of the number of samples; the birthday bound indicates that around `2^16` samples, a collision already has significant probability, without needing to exhaust all `2^32` values.
 
-**Câu 5.** Vì sao `SHA-256("1234")` không làm mật khẩu “1234” có sức chống đoán tương đương khóa ngẫu nhiên 256 bit?
+**Question 5.** Why doesn't `SHA-256("1234")` give the password "1234" guessing resistance comparable to a random 256-bit key?
 
-**Đáp án:** Không gian mật khẩu vẫn nhỏ và dễ đoán. Đối thủ có thể tính SHA-256 của các ứng viên và so sánh; cần mật khẩu đủ mạnh cùng password-hashing chuyên dụng và chính sách kiểm soát xác thực.
+**Answer:** The password space remains small and predictable. An adversary can compute SHA-256 of candidates and compare; you need a sufficiently strong password together with dedicated password hashing and authentication controls.
 
-**Câu 6.** Bạn có thể xem hai SHA-256 digest của file được tính ở hai máy là “khác file” nếu một máy đã tự động chuyển CRLF thành LF không?
+**Question 6.** Can you treat two SHA-256 digests of a file computed on two machines as indicating "different files" if one machine automatically converted CRLF to LF?
 
-**Đáp án:** Có thể khác digest vì byte file khác, dù phần hiển thị trông gần giống. Cần thống nhất byte và quy tắc canonicalization khi bài toán yêu cầu cùng nội dung logic.
+**Answer:** The digests can differ because the file bytes differ, even if the rendered text looks nearly identical. You must standardize bytes and canonicalization rules when the task requires matching logical content.
 
-**Câu 7.** Tại sao hai thông điệp khác nhau cùng *4 ký tự hex đầu* của SHA-256 chưa chứng minh collision của SHA-256?
+**Question 7.** Why do two distinct messages sharing the *first 4 hex characters* of SHA-256 not prove a collision of SHA-256?
 
-**Đáp án:** 4 hex chỉ biểu diễn 16 bit đầu; 240 bit còn lại có thể khác. Va chạm đầy đủ đòi hỏi cả 256 bit trùng.
+**Answer:** 4 hex characters represent only the first 16 bits; the remaining 240 bits can differ. A full collision requires all 256 bits to match.
 
-## 11. Sơ đồ ghi nhớ
+## 11. Summary Diagram
 
 ```text
-               DỮ LIỆU BYTE M
+                BYTE DATA M
                       |
               Cryptographic hash H
                       |
-                Digest n bit
+                 n-bit digest
                       |
       +---------------+------------------+
       |               |                  |
   Preimage        Second preimage     Collision
-  Cho trước h     Cho trước M         Tự chọn M1, M2
-  Tìm M           Tìm M' != M         M1 != M2
+  Given h         Given M             Freely choose M1, M2
+  Find M          Find M' != M        M1 != M2
   H(M) = h        H(M') = H(M)        H(M1) = H(M2)
   ~2^n            ~2^n               ~2^(n/2)
                       |
-       Mốc độ khó trên là mô hình lý tưởng,
-       không phải bảo đảm tuyệt đối mọi trường hợp
+       The above difficulty bounds are an idealized model,
+       not an absolute guarantee in every case
 ```
 
-**Điểm cần nhớ:** *Một chiều* nói về sự khó khăn của việc tìm đầu vào cho digest cố định; *second preimage* yêu cầu thay thế một thông điệp đã biết mà giữ nguyên digest; *collision* cho phép chọn tự do cả hai thông điệp, vì thế chịu birthday bound. Tính chất mật mã của hash chỉ phát huy trong giao thức dùng đúng byte, đúng thuật toán, mức độ dài phù hợp và nguồn tin cậy được xác thực.
+**Key takeaway:** *One-wayness* refers to the difficulty of finding an input for a fixed digest; *second preimage* requires replacing a known message while preserving its digest; *collision* allows freely choosing both messages and is therefore subject to the birthday bound. The cryptographic properties of a hash only hold in a protocol that uses the right bytes, the right algorithm, an appropriate length, and an authenticated trusted source.
 
-### Tài liệu tham khảo
+### References
 
-- NIST FIPS 180-4, *Secure Hash Standard (SHS)* — định nghĩa SHA-256 và các thuật toán SHA-2: https://csrc.nist.gov/pubs/fips/180-4/upd1/final
-- NIST FIPS 202, *SHA-3 Standard* — họ SHA-3: https://csrc.nist.gov/pubs/fips/202/final
-- NIST SP 800-107 Rev. 1, *Recommendation for Applications Using Approved Hash Algorithms* — định nghĩa các mức an ninh của hash: https://csrc.nist.gov/pubs/sp/800/107/r1/final
+- NIST FIPS 180-4, *Secure Hash Standard (SHS)* — defines SHA-256 and SHA-2 algorithms: https://csrc.nist.gov/pubs/fips/180-4/upd1/final
+- NIST FIPS 202, *SHA-3 Standard* — the SHA-3 family: https://csrc.nist.gov/pubs/fips/202/final
+- NIST SP 800-107 Rev. 1, *Recommendation for Applications Using Approved Hash Algorithms* — defines hash security strengths: https://csrc.nist.gov/pubs/sp/800/107/r1/final
 - Java SE 17 API, `MessageDigest`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/MessageDigest.html
 - Java SE 17 API, `HexFormat`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HexFormat.html
-- OWASP, *Password Storage Cheat Sheet* — hướng dẫn lưu mật khẩu chuyên dụng: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+- OWASP, *Password Storage Cheat Sheet* — guidance on dedicated password storage: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html

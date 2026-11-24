@@ -1,90 +1,90 @@
-# 15.8. Phân tích khóa, trạng thái thread, thao tác file/socket và ngoại lệ bằng JFR
+# 15.8. Analyzing locks, thread states, file/socket I/O, and exceptions with JFR
 
-## Mục tiêu bài học
+## Lesson objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Đọc một file **Java Flight Recorder (JFR)** để tìm dấu hiệu **tranh chấp khóa**, chờ monitor, park/sleep, I/O file/socket và exception.
-2. Phân biệt đúng `jdk.JavaMonitorEnter`, `jdk.JavaMonitorWait`, `jdk.ThreadPark`, `jdk.ThreadSleep` và các trạng thái trong `java.lang.Thread.State`.
-3. Xác định sự kiện I/O đáng chú ý theo **thời điểm, duration, endpoint/path, số byte, event thread và stack trace**; không nhầm độ trễ chờ với mức CPU sử dụng.
-4. Hiểu `jdk.JavaExceptionThrow`, `jdk.JavaErrorThrow` và thống kê exception; biết vì sao exception được **throw** không đồng nghĩa với request thất bại hoặc tiến trình crash.
-5. Kết hợp nhiều nhóm event trên cùng **timeline**, kiểm tra event settings/threshold, rồi đưa ra giả thuyết có thể xác minh bằng log, metric, thread dump và thử nghiệm.
-6. Tự chạy chương trình Java 17+ để tạo một recording có các thao tác chờ có kiểm soát, rồi đọc sự kiện bằng `jfr` và `jdk.jfr.consumer`.
+1. Read a **Java Flight Recorder (JFR)** file to spot signs of **lock contention**, monitor waits, park/sleep, file/socket I/O, and exceptions.
+2. Properly distinguish `jdk.JavaMonitorEnter`, `jdk.JavaMonitorWait`, `jdk.ThreadPark`, `jdk.ThreadSleep`, and the states in `java.lang.Thread.State`.
+3. Identify notable I/O events by **timestamp, duration, endpoint/path, byte count, event thread, and stack trace**; avoid confusing wait latency with CPU usage.
+4. Understand `jdk.JavaExceptionThrow`, `jdk.JavaErrorThrow`, and exception statistics; know why an exception being **thrown** does not mean a failed request or process crash.
+5. Combine multiple event groups on the same **timeline**, verify event settings/thresholds, and form hypotheses testable with logs, metrics, thread dumps, and experiments.
+6. Run a Java 17+ program yourself to generate a recording with controlled wait operations, then read events using `jfr` and `jdk.jfr.consumer`.
 
-> **Giới hạn quan trọng:** JFR ghi **những event mà recording được cấu hình để thu**. Không có event trong file **không** chứng minh thao tác không xảy ra; event có duration dài **không** tự chứng minh deadlock, CPU nóng hay sự cố của server bên ngoài.
+> **Important limitation:** JFR records **the events the recording was configured to capture**. Absence of an event in the file does **not** prove the operation did not occur; a long-duration event does **not** by itself prove deadlock, hot CPU, or an external server outage.
 
-## 1. Cách tiếp cận: đi từ triệu chứng đến event và stack
+## 1. Approach: moving from symptom to events and stacks
 
-JFR ghi lại sự kiện có **event type**, **start time**, **duration** (với event có khoảng thời gian), **event thread**, **payload**, và có thể có **stack trace**. Một event thường chỉ trả lời một câu hỏi hẹp:
+JFR records events with an **event type**, **start time**, **duration** (for duration events), **event thread**, **payload**, and optionally a **stack trace**. A single event usually answers only one narrow question:
 
-- Một thread mất 240 ms để **vào monitor** (`jdk.JavaMonitorEnter`).
-- Một thread **chờ điều kiện** qua `Object.wait()` trong 500 ms (`jdk.JavaMonitorWait`).
-- Một thread **park** khi chờ task/lock/permit (`jdk.ThreadPark`).
-- Một lần **socket read** mất 800 ms và trả về một số byte nhất định (`jdk.SocketRead`).
-- Một exception đã được **throw** tại một stack (`jdk.JavaExceptionThrow`).
+- A thread spent 240 ms waiting to **enter a monitor** (`jdk.JavaMonitorEnter`).
+- A thread **waited on a condition** via `Object.wait()` for 500 ms (`jdk.JavaMonitorWait`).
+- A thread **parked** waiting for a task/lock/permit (`jdk.ThreadPark`).
+- A **socket read** took 800 ms and returned some number of bytes (`jdk.SocketRead`).
+- An exception was **thrown** at a stack (`jdk.JavaExceptionThrow`).
 
-Cần đặt các event trên trục thời gian và đối chiếu với dấu hiệu thật: request latency tăng, queue backlog, throughput giảm, CPU cao, timeout hoặc error rate.
+You must place events on a timeline and correlate them with real symptoms: rising request latency, queue backlogs, falling throughput, high CPU, timeouts, or error rates.
 
 ```text
-Triệu chứng: request p99 tăng
+Symptom: request p99 rises
         |
         v
-Ghi đúng khoảng thời gian trong .jfr
+Capture the right time window in .jfr
         |
-        +--> Lock/park/wait? ------> Ai phải chờ? Chờ bao lâu? Ở stack nào?
+        +--> Lock/park/wait? ------> Who waited? How long? On which stack?
         |
-        +--> File/socket I/O? -----> Endpoint/path nào? Duration, bytes, timeout?
+        +--> File/socket I/O? -----> Which endpoint/path? Duration, bytes, timeout?
         |
-        +--> Exception? -----------> Loại nào? Lặp bao nhiêu? Có được xử lý?
+        +--> Exceptions? ----------> Which type? How frequent? Handled?
         |
-        +--> Thread/CPU samples? --> Thread nào? Đang chờ hay đang được lấy mẫu chạy?
-        |
-        v
-Đối chiếu log/request ID, metrics, cấu hình, thread dump
+        +--> Thread/CPU samples? --> Which threads? Waiting or sampled running?
         |
         v
-Giả thuyết -> thử nghiệm -> xác nhận hoặc bác bỏ
+Cross-check logs/request IDs, metrics, config, thread dumps
+        |
+        v
+Hypothesis -> experiment -> confirm or refute
 ```
 
-**Điểm rất dễ sai:** các event duration có thể *chồng thời gian giữa nhiều thread*. Cộng 100 lần `SocketRead` mỗi lần 1 giây ra **100 giây tổng thời lượng event**, không có nghĩa **100 giây wall-clock** đã trôi qua hay một request dài 100 giây.
+**Very common pitfall:** duration events can *overlap in time across multiple threads*. Summing 100 `SocketRead` events of 1 second each yields **100 seconds of total event duration**, which does not mean **100 wall-clock seconds** elapsed or that one request took 100 seconds.
 
-## 2. Bảng event cần biết trước khi phân tích
+## 2. Event table to know before analyzing
 
-Tên dưới đây thuộc các JFR event type phổ biến của HotSpot/JDK 17–21+. Phiên bản, JVM implementation, `.jfc`, event threshold, stack setting và workload quyết định type nào có trong recording. Trước khi phân tích, **kiểm tra `jfr summary` và `jfr metadata` trên file thật**.
+The names below are standard JFR event types in HotSpot/JDK 17–21+. Version, JVM implementation, `.jfc`, event thresholds, stack settings, and workload determine which types appear in a recording. Before analyzing, **run `jfr summary` and `jfr metadata` on the actual file**.
 
-| Hiện tượng | JFR event | Ý nghĩa chính |
+| Phenomenon | JFR event | Primary meaning |
 | --- | --- | --- |
-| Tranh chấp `synchronized` | `jdk.JavaMonitorEnter` | Thời gian một thread bị chặn khi **chờ vào intrinsic monitor** rồi mới vào được. |
-| Gọi `Object.wait()` | `jdk.JavaMonitorWait` | Thời gian thread **đợi trên monitor sau `wait()`**, có thể do notify, timeout hoặc interrupt. |
-| Chờ qua `LockSupport` và nhiều abstraction concurrent | `jdk.ThreadPark` | Khoảng thời gian park, ví dụ một số thao tác đợi của `Lock`, `Future`, queue, executor. |
-| `Thread.sleep()` | `jdk.ThreadSleep` | Khoảng thời gian ngủ, không chứng tỏ lock contention. |
-| Vòng đời thread | `jdk.ThreadStart`, `jdk.ThreadEnd` | Mốc tạo/hoàn tất, không phải mọi lần thay đổi `Thread.State`. |
-| Đọc/ghi file | `jdk.FileRead`, `jdk.FileWrite` | Thời gian thao tác I/O được đo và dữ liệu path/bytes khi có. |
-| Đọc/ghi TCP socket | `jdk.SocketRead`, `jdk.SocketWrite` | Thời gian thao tác socket và endpoint/bytes khi có. |
-| Exception được ném | `jdk.JavaExceptionThrow` | Loại exception, message/stack nếu event được bật và dữ liệu có sẵn. |
-| Error được ném | `jdk.JavaErrorThrow` | Sự kiện liên quan `Error`; không đồng nghĩa JVM đã crash. |
-| Thống kê exception định kỳ | `jdk.ExceptionStatistics` | Một góc nhìn số lượng ngoại lệ, không phải log chi tiết mọi lần ném. |
-| Mẫu thực thi/CPU | `jdk.ExecutionSample`, `jdk.CPULoad`, `jdk.ThreadCPULoad` | Bổ trợ khi cần phân biệt đang tính toán với đang chờ. |
+| `synchronized` contention | `jdk.JavaMonitorEnter` | Time a thread was blocked **waiting to enter an intrinsic monitor** before acquiring it. |
+| Calling `Object.wait()` | `jdk.JavaMonitorWait` | Time a thread **waited on a monitor after `wait()`**, ending via notify, timeout, or interrupt. |
+| Waiting via `LockSupport` and concurrent utilities | `jdk.ThreadPark` | Park duration, e.g., some wait operations in `Lock`, `Future`, queues, executors. |
+| `Thread.sleep()` | `jdk.ThreadSleep` | Sleep duration; does not indicate lock contention. |
+| Thread lifecycle | `jdk.ThreadStart`, `jdk.ThreadEnd` | Creation/completion milestones, not every `Thread.State` transition. |
+| File reads/writes | `jdk.FileRead`, `jdk.FileWrite` | Measured I/O operation duration and path/bytes data when available. |
+| TCP socket reads/writes | `jdk.SocketRead`, `jdk.SocketWrite` | Socket operation duration and endpoint/bytes when available. |
+| Thrown exceptions | `jdk.JavaExceptionThrow` | Exception type, message/stack if the event is enabled and data is available. |
+| Thrown errors | `jdk.JavaErrorThrow` | Event related to `Error`; does not mean the JVM crashed. |
+| Periodic exception statistics | `jdk.ExceptionStatistics` | An aggregate view of exception counts, not a log of every throw. |
+| Execution/CPU samples | `jdk.ExecutionSample`, `jdk.CPULoad`, `jdk.ThreadCPULoad` | Complementary when separating active computation from waiting. |
 
-**Hai event rất hay bị nhầm:** `jdk.JavaMonitorEnter` liên quan **tranh chấp khi đi vào `synchronized`**; `jdk.JavaMonitorWait` liên quan **`Object.wait()` sau khi thread đã sở hữu monitor và tạm nhả nó**. Không gộp hai loại thành “blocked on lock”.
+**Two frequently confused events:** `jdk.JavaMonitorEnter` involves **contention entering `synchronized`**; `jdk.JavaMonitorWait` involves **`Object.wait()` after a thread already owned the monitor and temporarily released it**. Do not lump both together as "blocked on lock."
 
-### Đọc field theo ngữ nghĩa, không chỉ tên
+### Read fields by semantics, not just name
 
-| Field thường gặp | Cách dùng | Cẩn thận |
+| Common field | How to use | Caveats |
 | --- | --- | --- |
-| `startTime`, `duration` | Xếp các event theo thời gian và so độ trễ. | Duration thường là elapsed time, có thể bao gồm chờ/scheduling; không tự bằng CPU time. |
-| `eventThread` / `getThread()` | Xác định thread phát sinh event. | Thread name có thể trùng và được tái sử dụng; virtual thread và carrier không có quan hệ cố định. |
-| `stackTrace` | Xem call path tại điểm sự kiện được ghi/lấy mẫu. | Có thể thiếu hoặc bị giới hạn độ sâu; stack không phải lịch sử toàn duration. |
-| `monitorClass`, `previousOwner`, `address` | Điều tra monitor và người sở hữu trước đó khi JFR có ghi. | `address` là nhận dạng thấp cấp trong runtime, không dùng làm ID lâu dài giữa JVM/recording. |
-| `path`, `bytesRead`, `bytesWritten` | Tìm file/operation lớn hoặc chậm. | Không suy ra toàn bộ disk latency hoặc lượng disk I/O vật lý từ một sự kiện. |
-| `host`, `address`, `port` | Gom socket theo endpoint được ghi. | Một endpoint có thể phục vụ nhiều request; không thay thế request ID. |
-| `thrownClass`, `message` | Phân loại exception, phát hiện lặp lại. | Không nên dùng message chứa dữ liệu nhạy cảm làm key chính; throw chưa chắc uncaught. |
+| `startTime`, `duration` | Order events chronologically and compare latencies. | Duration is typically elapsed time and may include waiting/scheduling; not automatically CPU time. |
+| `eventThread` / `getThread()` | Identify the thread that emitted the event. | Thread names can collide and be reused; virtual threads and carriers have no fixed 1:1 pairing. |
+| `stackTrace` | Inspect the call path where the event was recorded/sampled. | May be missing or depth-limited; the stack is not a history of the entire duration. |
+| `monitorClass`, `previousOwner`, `address` | Investigate the monitor and previous owner when recorded by JFR. | `address` is a low-level runtime identifier, not a durable ID across JVMs/recordings. |
+| `path`, `bytesRead`, `bytesWritten` | Find large or slow files/operations. | Do not infer full disk latency or physical disk I/O volume from a single event. |
+| `host`, `address`, `port` | Group sockets by recorded endpoint. | One endpoint can serve many requests; does not replace a request ID. |
+| `thrownClass`, `message` | Classify exceptions and spot repeats. | Do not use messages containing sensitive data as public keys; thrown does not mean uncaught. |
 
-Tên field **có thể khác theo event type và JDK**, nên xem metadata thực, ví dụ `jfr metadata --events jdk.JavaMonitorEnter recording.jfr`.
+Field names **can vary by event type and JDK**, so check actual metadata, e.g., `jfr metadata --events jdk.JavaMonitorEnter recording.jfr`.
 
-## 3. Kiểm tra một file recording trước khi đưa ra kết luận
+## 3. Inspecting a recording file before drawing conclusions
 
-Giả sử đã có file `incident.jfr` từ một JVM có vấn đề. Dùng JDK 17+:
+Suppose you receive `incident.jfr` from a troubled JVM. Using JDK 17+:
 
 ```bash
 jfr summary incident.jfr
@@ -94,56 +94,56 @@ jfr print --events jdk.FileRead,jdk.FileWrite,jdk.SocketRead,jdk.SocketWrite --s
 jfr print --events jdk.JavaExceptionThrow,jdk.JavaErrorThrow,jdk.ExceptionStatistics --stack-depth 20 incident.jfr
 ```
 
-Các lệnh này **đọc file hiện có**, không chỉnh file `.jfr` hoặc chạy code bên trong ứng dụng.
+These commands **read the existing file** without modifying `.jfr` or running code inside the application.
 
-- **`jfr summary`** cho biết thời gian recording, số lượng và kích thước event theo type: đây là bước đầu tiên để tránh phân tích một type không được ghi.
-- **`jfr metadata`** cho biết schema/field của type được ghi (hoặc metadata có trong file); giúp xác định các field để lọc đúng khi dùng JSON/API.
-- **`jfr print --events ...`** chỉ in các event khớp tên type; có thể xuất hàng nghìn dòng nếu nhiều event.
-- **`--stack-depth 20`** tăng **số frame được hiển thị**, không khôi phục stack đã không được ghi do `stackTrace=false` hoặc giới hạn độ sâu lúc thu.
+- **`jfr summary`** shows recording duration, counts, and sizes by event type: the first step to avoid analyzing a type that was never recorded.
+- **`jfr metadata`** shows field schemas for recorded types (or metadata present in the file); helps identify fields for JSON/API filtering.
+- **`jfr print --events ...`** prints only events matching type names; can emit thousands of lines if many events exist.
+- **`--stack-depth 20`** increases the **number of frames displayed**, without recovering stacks never recorded due to `stackTrace=false` or capture depth limits.
 
-Có thể xuất JSON để công cụ khác phân tích:
+You can export JSON for external tooling:
 
 ```bash
 jfr print --json --events jdk.SocketRead,jdk.SocketWrite incident.jfr
 ```
 
-Không giả định mọi bản JDK đều có **một schema JSON y hệt**; đối chiếu `jfr metadata`, kiểm tra field có tồn tại trước khi truy vấn. Đừng gửi nguyên file chứa exception message, path hoặc endpoint nội bộ ra ngoài môi trường tin cậy.
+Do not assume every JDK version produces an **identical JSON schema**; cross-check `jfr metadata` and check field existence before querying. Do not send files containing internal exception messages, paths, or endpoints outside trusted environments.
 
-Nếu đang xem trong **Java Mission Control (JMC)**, mở recording, tìm các vùng xem về **Threads/Lock Instances**, **I/O**, **Exceptions**, lọc time range/thread, xem bảng event và stack. Bố cục/tên tab có thể khác theo phiên bản JMC. Mục tiêu là **đọc từng event cùng ngữ cảnh trên timeline**, không phụ thuộc một vị trí menu cố định.
+If viewing in **Java Mission Control (JMC)**, open the recording, locate views for **Threads/Lock Instances**, **I/O**, and **Exceptions**, filter by time range/thread, and inspect event tables and stacks. Tab layouts and names vary by JMC version. The goal is **reading each event with its timeline context**, not relying on one fixed menu path.
 
-## 4. Phân tích khóa: tranh chấp monitor khác với chờ điều kiện
+## 4. Lock analysis: monitor contention vs. condition waiting
 
-### 4.1. `jdk.JavaMonitorEnter`: khi thread bị chặn để vào `synchronized`
+### 4.1. `jdk.JavaMonitorEnter`: when a thread blocks entering `synchronized`
 
-Giả sử:
+Suppose:
 
 ```java
 private static final Object LOCK = new Object();
 
-// Thread A đang ở trong synchronized rất lâu:
+// Thread A stays inside synchronized for a long time:
 synchronized (LOCK) {
     processSlowly();
 }
 
-// Thread B đến sau và phải đợi A nhả LOCK:
+// Thread B arrives later and must wait for A to release LOCK:
 synchronized (LOCK) {
     updateSharedState();
 }
 ```
 
-Đây là **mã minh họa**, không phải chương trình hoàn chỉnh. Nếu thread B bị chặn khi vào monitor đủ lâu để vượt threshold JFR, ta có thể thấy `jdk.JavaMonitorEnter` của **thread B**. `duration` phản ánh khoảng chờ trước khi lấy được monitor; **không** phải thời lượng `updateSharedState()` chạy bên trong critical section.
+This is **illustrative code**, not a complete program. If thread B blocks entering the monitor long enough to exceed the JFR threshold, we may see `jdk.JavaMonitorEnter` for **thread B**. `duration` reflects the wait before acquiring the monitor—**not** how long `updateSharedState()` runs inside the critical section.
 
-Khi xem event:
+When inspecting the event:
 
-1. **Thread nào phải chờ?** Đọc event thread/ID; chú ý thread pool có thể đổi tên giữa các task.
-2. **Chờ ở đâu?** Stack trace gợi ý frame gọi `synchronized`, ví dụ handler, cache, formatter hay logger.
-3. **Monitor của kiểu nào?** `monitorClass`; nhiều instance cùng lớp có thể là các lock khác nhau.
-4. **Ai giữ trước đó?** `previousOwner` nếu field có dữ liệu; cần kiểm tra timeline/thread dump để tìm tác vụ của owner.
-5. **Chờ nhiều hay chờ lâu?** Đếm event và xem p95/p99/max, số thread cùng tranh chấp một monitor. So với thời gian ghi và workload.
+1. **Which thread waited?** Read event thread/ID; remember thread pools may rename threads between tasks.
+2. **Where did it wait?** Stack trace points to the frame invoking `synchronized`, e.g., handler, cache, formatter, or logger.
+3. **What monitor class?** `monitorClass`; multiple instances of the same class can be distinct locks.
+4. **Who held it previously?** `previousOwner` if populated; inspect the timeline/thread dumps to see what the owner was doing.
+5. **Frequent or long waits?** Count events and inspect p95/p99/max plus how many threads contend on one monitor. Compare against recording duration and workload.
 
-Một event 200 ms có thể chỉ là contention thoáng qua. Nếu nhiều request bị chặn nối tiếp ở cùng một lock và throughput giảm, **đây mới là dấu hiệu serialization/bottleneck đáng điều tra**.
+A single 200 ms event may just be transient contention. When many requests queue sequentially on the same lock and throughput drops, **that is a serialization/bottleneck signal worth investigating**.
 
-### 4.2. `jdk.JavaMonitorWait`: `Object.wait()` không phải đợi vào monitor
+### 4.2. `jdk.JavaMonitorWait`: `Object.wait()` is not monitor entry contention
 
 ```java
 synchronized (LOCK) {
@@ -153,177 +153,177 @@ synchronized (LOCK) {
 }
 ```
 
-Đây là **mã minh họa**. `wait()` **nhả monitor** trong lúc thread chờ notify/notifyAll, timeout hoặc interrupt; trước khi `wait()` trả về bình thường, thread phải lấy lại monitor. Event `jdk.JavaMonitorWait` phản ánh hoạt động **đợi điều kiện** qua monitor. Nó có thể cho biết monitor class, notifier, timeout hoặc `timedOut` khi được ghi, tùy phiên bản/schema.
+This is **illustrative code**. `wait()` **releases the monitor** while the thread waits for `notify`/`notifyAll`, timeout, or interrupt; before `wait()` returns normally, the thread must re-acquire the monitor. `jdk.JavaMonitorWait` reflects **condition waiting** via a monitor. It may report monitor class, notifier, timeout, or `timedOut` when recorded, depending on version/schema.
 
-Nếu stack dừng ở `Object.wait`, hãy hỏi:
+If stacks stop at `Object.wait`, ask:
 
-- Điều kiện `ready` do ai thay đổi? Có `notify`/`notifyAll` đúng chỗ và dưới cùng monitor không?
-- Đó là **idle worker** đang chờ công việc (bình thường) hay một request phải chờ dữ liệu lẽ ra đã có?
-- Có **lost notification**, timeout, guard condition bị sai hoặc backlog upstream không?
-- Một thread báo wait dài có thực sự thuộc critical path của request cần điều tra không?
+- Who updates the `ready` condition? Is `notify`/`notifyAll` called in the right place under the same monitor?
+- Is this an **idle worker** waiting for work (normal) or a request waiting for data that should already be available?
+- Is there a **lost notification**, timeout, wrong guard condition, or upstream backlog?
+- Is a thread reporting a long wait actually on the critical path of the request being investigated?
 
-Đừng kết luận `JavaMonitorWait` kéo dài là **monitor lock contention**; hai tình huống có cơ chế khác nhau.
+Do not conclude a long `JavaMonitorWait` is **monitor lock contention**; the two mechanisms are different.
 
-### 4.3. `jdk.ThreadPark`: `LockSupport`, `Lock`, queue và future
+### 4.3. `jdk.ThreadPark`: `LockSupport`, `Lock`, queues, and futures
 
-Nhiều abstraction trong `java.util.concurrent` dùng park/unpark. Ví dụ `ReentrantLock`, `CompletableFuture` hoặc `BlockingQueue` trong một số code path có thể gây `jdk.ThreadPark`, thay vì `jdk.JavaMonitorEnter`.
+Many abstractions in `java.util.concurrent` use park/unpark. For example, `ReentrantLock`, `CompletableFuture`, or `BlockingQueue` can emit `jdk.ThreadPark` in various code paths rather than `jdk.JavaMonitorEnter`.
 
 ```java
-LockSupport.parkNanos(100_000_000L); // minh họa park tối đa khoảng 100 ms
+LockSupport.parkNanos(100_000_000L); // illustrative park up to ~100 ms
 ```
 
-Trong `jdk.ThreadPark`, kiểm tra event thread, `duration`, stack, `parkedClass` và timeout/đối tượng nếu schema có. Stack đến `CompletableFuture.get()` hoặc `LinkedBlockingQueue.take()` có thể biểu thị **chờ đúng thiết kế**, còn stack đến một lock có contention có thể biểu thị nghẽn. Phải truy tìm **điều kiện đánh thức**: ai hoàn tất future, ai đưa dữ liệu vào queue, ai nhả lock.
+In `jdk.ThreadPark`, check event thread, `duration`, stack, `parkedClass`, and timeout/blocker if present in the schema. A stack leading to `CompletableFuture.get()` or `LinkedBlockingQueue.take()` may represent **waiting by design**, whereas a stack leading to a contended lock may represent a bottleneck. Always trace the **wake-up condition**: who completes the future, enqueues items, or releases the lock.
 
-Không đồng nhất mọi `ThreadPark` với deadlock. Thread park dài ở một executor đang rỗi rất thường gặp và có thể bình thường.
+Do not equate every `ThreadPark` with a deadlock. Long thread parks in an idle executor are very common and often normal.
 
-### 4.4. `jdk.ThreadSleep`: cố ý ngủ hoặc backoff
+### 4.4. `jdk.ThreadSleep`: intentional sleeping or backoff
 
-`Thread.sleep()` là chờ theo thời gian, thường dùng trong retry/backoff, scheduler hoặc demo. Nếu một request thật gọi sleep 500 ms trong critical path, latency sẽ tăng; nhưng đó **không** phải contention trừ khi còn bằng chứng lock khác. Nếu sleep ở maintenance thread không nằm trên đường request, không nên ưu tiên nó chỉ vì duration lớn.
+`Thread.sleep()` is timed waiting, commonly used in retry/backoff, schedulers, or demos. If a real request sleeps 500 ms on its critical path, latency increases; however, that is **not** lock contention unless other lock evidence exists. If a maintenance thread sleeps off the request path, do not prioritize it just because its duration is large.
 
-### 4.5. Checklist cho vấn đề khóa
+### 4.5. Checklist for lock issues
 
-| Dấu hiệu | Câu hỏi cần kiểm tra | Bằng chứng bổ sung |
+| Signal | Questions to check | Additional evidence |
 | --- | --- | --- |
-| `JavaMonitorEnter` nhiều và dài | Có critical section chứa I/O, logging, gọi service, work nặng không? | Stack owner/contender, thread dump, profile, mã đồng bộ. |
-| `JavaMonitorWait` dài | Đang đợi điều kiện nào? Ai có trách nhiệm notify? | Code guarded block, log trạng thái queue/condition. |
-| `ThreadPark` nhiều ở request thread | Chờ future/lock/queue nào? Có timeout không? | Stack, queue depth, executor saturation, task completion. |
-| `ThreadSleep` dài ở request thread | Có retry/backoff vô tình chặn request? | Retry policy, log timeout và các lần thử. |
-| Không thấy monitor event | Event bị tắt/ngưỡng cao, loại lock khác, contention ngắn hoặc không xảy ra. | Kiểm tra settings, `ThreadPark`, thread dump. |
+| Many long `JavaMonitorEnter` events | Does the critical section contain I/O, logging, service calls, or heavy work? | Owner/contender stacks, thread dumps, CPU profile, synchronization code. |
+| Long `JavaMonitorWait` | Which condition is awaited? Who is responsible for calling `notify`? | Guarded-block code, queue/condition state logs. |
+| Frequent `ThreadPark` on request threads | Which future/lock/queue is awaited? Is there a timeout? | Stacks, queue depth, executor saturation, task completion. |
+| Long `ThreadSleep` on request threads | Is retry/backoff inadvertently blocking requests? | Retry policy, timeout logs, and attempt counts. |
+| No monitor events visible | Event disabled / high threshold, a different lock type, brief contention, or none occurred. | Check settings, `ThreadPark`, and thread dumps. |
 
-> **Phân biệt deadlock:** vài event chờ lock dài **không** chứng minh deadlock. Cần bằng chứng về vòng chờ/owner/GC roots tương ứng, thread dump và quan sát tiến trình. Một hệ thống chậm vì lock contention vẫn có thể tiến triển.
+> **Distinguishing deadlock:** a few long lock-wait events do **not** prove deadlock. You need evidence of a wait cycle / owners, thread dumps, and progress observation. A system slowed by lock contention can still make forward progress.
 
-## 5. Trạng thái thread: không đồng nhất `Thread.State` với màu của timeline JFR
+## 5. Thread states: do not equate `Thread.State` with JFR timeline colors
 
-`java.lang.Thread.State` có các trạng thái **NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED**. JFR thường cho ta **mảnh quan sát** từ event lifecycle, chờ, I/O và sample; nó **không tự phát ra bản ghi đầy đủ cho mọi lần một thread chuyển giữa sáu trạng thái**.
+`java.lang.Thread.State` defines **NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED**. JFR typically gives **partial observations** from lifecycle, wait, I/O, and sampling events; it **does not automatically emit a complete log every time a thread transitions between the six states**.
 
-| Java state | Ý nghĩa ở mức API | Tín hiệu JFR có thể hỗ trợ | Điều không được suy ra |
+| Java state | API-level meaning | JFR signals that may support it | What must not be inferred |
 | --- | --- | --- | --- |
-| `NEW` | Thread chưa `start()`. | Có thể chưa thấy `ThreadStart`. | Không thể chứng minh chưa tồn tại chỉ từ thiếu event. |
-| `RUNNABLE` | Có thể đang chạy hoặc sẵn sàng chạy, đôi khi ở native I/O tùy VM. | `ExecutionSample`, thread CPU load. | `RUNNABLE` **không đồng nghĩa đang tiêu thụ CPU 100%**. |
-| `BLOCKED` | Chờ vào intrinsic monitor (`synchronized`). | `JavaMonitorEnter` khi contention được ghi. | Không bao gồm mọi loại chờ `Lock`/Future. |
-| `WAITING` | Chờ không thời hạn, như `Object.wait()` hay `park()`. | `JavaMonitorWait`, `ThreadPark` tùy hoạt động. | Chờ có chủ đích không phải tự động là bug. |
-| `TIMED_WAITING` | Chờ có timeout như `sleep`, `wait(timeout)`, `parkNanos`. | `ThreadSleep`, `JavaMonitorWait`, `ThreadPark`. | Event duration không phải timeout được cấu hình. |
-| `TERMINATED` | Thread đã kết thúc. | `ThreadEnd` nếu được thu. | Một event end không chỉ ra đầy đủ lý do kết thúc. |
+| `NEW` | Thread has not called `start()` yet. | `ThreadStart` may not have appeared yet. | Cannot prove non-existence solely from a missing event. |
+| `RUNNABLE` | Running or ready to run, sometimes in native I/O depending on VM. | `ExecutionSample`, thread CPU load. | `RUNNABLE` **does not mean consuming 100% CPU**. |
+| `BLOCKED` | Waiting to enter an intrinsic monitor (`synchronized`). | `JavaMonitorEnter` when contention is recorded. | Does not cover every `Lock`/Future wait. |
+| `WAITING` | Indefinite wait, such as `Object.wait()` or `park()`. | `JavaMonitorWait`, `ThreadPark` depending on activity. | Intentional waiting is not automatically a bug. |
+| `TIMED_WAITING` | Timed wait such as `sleep`, `wait(timeout)`, `parkNanos`. | `ThreadSleep`, `JavaMonitorWait`, `ThreadPark`. | Event duration is not the configured timeout. |
+| `TERMINATED` | Thread has finished. | `ThreadEnd` if collected. | A single end event does not explain full termination reasons. |
 
-**Vì sao không suy ra trạng thái từ mọi khoảng trống?** JFR có **threshold**, sampling và event filtering. Không có event trong một đoạn timeline có thể do thread đang chạy CPU, không có hoạt động được instrument, event dưới threshold, event bị tắt hoặc dữ liệu bị mất. Cần kiểm tra `jdk.DataLoss`/metadata và so cùng CPU samples, thread dump/log nếu cần.
+**Why not infer state from every gap?** JFR uses **thresholds**, sampling, and event filtering. An empty segment on a timeline might mean the thread was running CPU, performing uninstrumented work, executing operations below threshold, had the event disabled, or suffered data loss. Check `jdk.DataLoss`/metadata and cross-check CPU samples, thread dumps, or logs as needed.
 
-### Phân tích thread pool và virtual thread
+### Analyzing thread pools and virtual threads
 
-- Với **thread pool**, một platform thread phục vụ **nhiều task/request nối tiếp**. Không gán mọi event của cùng tên thread cho cùng request nếu không có request/correlation ID.
-- Với **virtual thread (Java 21+)**, một virtual thread có thể mount/unmount lên các **carrier platform thread khác nhau**. Không suy giả định cứng “virtual thread A luôn chạy trên carrier B”.
-- Khả năng ghi lifecycle và các event chuyên biệt cho virtual thread thay đổi theo bản JDK/JVM/recording. Nếu đang điều tra virtual thread, kiểm tra event như `jdk.VirtualThreadPinned` (khi được hỗ trợ và được bật), stack và các công cụ dump phù hợp, thay vì tưởng chỉ một thread ID platform đủ đại diện.
-- **Stack sampling** đo các stack được lấy mẫu theo tần suất/cấu hình, không đếm chính xác số lần gọi method.
+- With a **thread pool**, one platform thread serves **many tasks/requests sequentially**. Never attribute every event on the same thread name to one request without a request/correlation ID.
+- With **virtual threads (Java 21+)**, one virtual thread can mount/unmount across **different carrier platform threads**. Never assume "virtual thread A always runs on carrier B."
+- Lifecycle recording and specialized virtual thread events vary by JDK/JVM/recording. When investigating virtual threads, inspect events like `jdk.VirtualThreadPinned` (when supported and enabled), stacks, and appropriate dump tools instead of assuming a single platform thread ID suffices.
+- **Stack sampling** captures stacks according to period/configuration, not exact method call counts.
 
-Đối với lỗi “request treo”, ưu tiên lập chuỗi: **request đang đợi điều gì → thread/event nào cho biết điều đó → tác nhân nào giải phóng điều kiện → có xảy ra không?** Chỉ liệt kê trạng thái thread không đủ tìm nguyên nhân.
+For "hung request" bugs, prioritize building the chain: **what is the request waiting on → which thread/event shows it → which actor clears the condition → did that happen?** Listing thread states alone is not enough to find root cause.
 
-## 6. Phân tích file I/O (`jdk.FileRead`, `jdk.FileWrite`)
+## 6. File I/O analysis (`jdk.FileRead`, `jdk.FileWrite`)
 
-Các event I/O có thể chứa `path`, `bytesRead`/`bytesWritten`, `startTime`, `duration`, event thread và stack (nếu bật). Chúng giúp phân biệt loại công việc file nào khiến ứng dụng chậm.
+File I/O events can include `path`, `bytesRead`/`bytesWritten`, `startTime`, `duration`, event thread, and stack (if enabled). They help distinguish which file operations are slowing the application down.
 
-Ví dụ *minh họa* về một tập event:
+**Illustrative** example of an event set:
 
-| Path | Số event | Tổng duration event | Tổng byte | Gợi ý cần kiểm tra |
+| Path | Event count | Summed event duration | Total bytes | Suggested check |
 | --- | ---: | ---: | ---: | --- |
-| `/var/log/app.log` | 900 | 3.400 ms | 5 MiB | Ghi log đồng bộ trên critical path? |
-| `/data/cache.bin` | 22 | 1.800 ms | 300 MiB | Đọc/ghi file lớn, nhiều lần chờ I/O? |
-| `/tmp/export.csv` | 2 | 5.500 ms | 85 MiB | Một tác vụ export có thể tốn thời gian; có cần streaming? |
+| `/var/log/app.log` | 900 | 3,400 ms | 5 MiB | Synchronous logging on the critical path? |
+| `/data/cache.bin` | 22 | 1,800 ms | 300 MiB | Large file reads/writes, repeated I/O waits? |
+| `/tmp/export.csv` | 2 | 5,500 ms | 85 MiB | An export task may be slow; should it stream? |
 
-Đây **không phải output cố định** của JFR. Muốn ưu tiên điều tra:
+This is **not fixed output** from JFR. To prioritize investigation:
 
-1. Xem **duration cao nhất** và p95/p99 cho từng path hoặc call site; nhiều I/O nhỏ có thể ít tác động hơn một thao tác chậm ở critical path.
-2. Xem **số byte**, nhưng không dùng `bytes/duration` để suy ra tốc độ disk vật lý nếu có cache, buffer, nhiều thread hoặc native layer.
-3. Phân biệt **ứng dụng thật sự chờ** với I/O nền (log batching, file rotate, backup) bằng thread và stack.
-4. Xem file/network filesystem, contention OS, queue disk, latency storage và log hạ tầng; JFR event không tự biết “ổ đĩa hỏng”.
+1. Check **max duration** and p95/p99 per path or call site; many tiny I/Os may matter less than one slow operation on the critical path.
+2. Inspect **byte counts**, but do not divide `bytes/duration` to claim physical disk speed when caches, buffers, multiple threads, or native layers sit in between.
+3. Distinguish **application-blocking I/O** from background I/O (log batching, file rotation, backups) using threads and stacks.
+4. Check local/network filesystems, OS contention, disk queues, storage latency, and infra logs; JFR events do not diagnose a "failing disk" on their own.
 
-Một thao tác `FileWrite` 200 ms không chắc là 200 ms đĩa đang ghi vật lý, vì I/O Java có thể đi qua OS page cache, buffering, lớp mã hóa hoặc async mechanism. JFR cũng không nhất thiết ghi đầy đủ mọi loại file operation của thư viện native.
+A 200 ms `FileWrite` does not necessarily mean 200 ms of physical disk writing, since Java I/O can pass through the OS page cache, buffering, encryption layers, or async mechanisms. Nor does JFR necessarily record every file operation issued by native libraries.
 
-## 7. Phân tích socket I/O (`jdk.SocketRead`, `jdk.SocketWrite`)
+## 7. Socket I/O analysis (`jdk.SocketRead`, `jdk.SocketWrite`)
 
-Socket event cho biết thời điểm và elapsed duration của thao tác read/write mà JVM instrument, cùng thông tin endpoint khi có. Các field thường gặp gồm `host`, `address`, `port`, `bytesRead`, `bytesWritten`, `timeout`, `endOfStream` (tùy event và JDK).
+Socket events show timestamps and elapsed durations of JVM-instrumented read/write operations along with endpoint details when available. Common fields include `host`, `address`, `port`, `bytesRead`, `bytesWritten`, `timeout`, and `endOfStream` (depending on event and JDK).
 
-### Socket read chậm có thể có nhiều nguyên nhân
+### A slow socket read can have many causes
 
-Một `jdk.SocketRead` kéo dài **800 ms** có thể do:
+An **800 ms** `jdk.SocketRead` may be caused by:
 
-- Peer/server gửi dữ liệu muộn, xử lý request chậm.
-- Network latency, packet loss hoặc kết nối suy giảm.
-- Ứng dụng đọc khi chưa có dữ liệu vì giao thức/request sequencing.
-- Thread scheduling hoặc tranh chấp tài nguyên xung quanh operation.
-- Pool/retry/timeout/circuit breaker được cấu hình chưa phù hợp.
+- The peer/server sending data late or processing the request slowly.
+- Network latency, packet loss, or degraded connectivity.
+- The application reading before data is ready due to protocol/request sequencing.
+- Thread scheduling or resource contention around the operation.
+- Misconfigured pools, retries, timeouts, or circuit breakers.
 
-**Không nên kết luận:** “Socket read 800 ms = mạng bị lỗi”. JFR chỉ đo phía JVM đang quan sát; phải đối chiếu metrics ở peer/server, network, TCP retransmissions (nếu có), trace và log.
+**Avoid concluding:** "800 ms socket read = network outage." JFR only sees the observed JVM side; cross-check peer/server metrics, network stats, TCP retransmissions (if available), traces, and logs.
 
-### Socket write chậm cũng chưa đủ chứng minh mạng chậm
+### A slow socket write also does not prove a slow network
 
-`SocketWrite` duration dài có thể liên quan backpressure, send buffer đầy, peer đọc chậm, blocking I/O hoặc workload JVM. Phân tích **bytes, endpoint, stack, event thread, duration** và thời điểm request. Một thao tác ghi nhiều byte nhưng duration dài có thể bình thường nếu giới hạn băng thông đã biết.
+Long `SocketWrite` durations can stem from backpressure, full send buffers, a slow-reading peer, blocking I/O, or JVM workload. Inspect **bytes, endpoint, stack, event thread, duration**, and request timing. Writing a huge payload with a long duration may be completely normal under a known bandwidth cap.
 
-### Một quy trình lọc khả thi
+### A practical filtering workflow
 
 ```bash
 jfr print --events jdk.SocketRead,jdk.SocketWrite --stack-depth 20 incident.jfr
 jfr print --events jdk.FileRead,jdk.FileWrite --stack-depth 20 incident.jfr
 ```
 
-Lọc theo **endpoint/path** và gom theo time window trong JMC hoặc script. Khi xuất JSON, xem schema thực trước khi lọc. Đừng dùng riêng hostname hoặc IP làm chứng cứ một request cụ thể, vì kết nối có thể reuse và nhiều request chồng nhau.
+Filter by **endpoint/path** and aggregate by time window in JMC or a script. When exporting JSON, verify the actual schema before filtering. Never rely solely on hostname or IP as proof for a specific request, because connections can be pooled/reused and requests overlap.
 
-**Tính toán cần thận trọng:**
+**Compute cautiously:**
 
 ```text
-count             = số event được ghi
-totalEventTime    = tổng duration các event
-maxEventTime      = duration lớn nhất
-totalBytes        = tổng số byte được event cung cấp
+count             = number of recorded events
+totalEventTime    = sum of event durations
+maxEventTime      = largest duration
+totalBytes        = sum of bytes provided by events
 ```
 
-`totalEventTime` của các thread có thể **chồng nhau**; nó không bằng latency của cả hệ thống. Khi event dưới threshold bị loại, `count`, `totalEventTime` và phân bố mẫu **bị thiên lệch**. Không so hai recording có ngưỡng I/O khác nhau như cùng một thước đo.
+`totalEventTime` across threads can **overlap**; it does not equal system-wide latency. When events below threshold are omitted, `count`, `totalEventTime`, and sample distributions are **biased**. Do not compare two recordings with different I/O thresholds as if they share the same ruler.
 
-## 8. Phân tích exception: “được throw” khác với “thất bại”
+## 8. Exception analysis: "thrown" differs from "failed"
 
-### 8.1. `jdk.JavaExceptionThrow` và `jdk.JavaErrorThrow`
+### 8.1. `jdk.JavaExceptionThrow` and `jdk.JavaErrorThrow`
 
-Một exception có thể bị ném và **được catch/handle bình thường**, ví dụ:
+An exception can be thrown and **caught/handled normally**, for example:
 
 ```java
 try {
     Integer.parseInt("not-a-number");
 } catch (NumberFormatException expected) {
-    // Ứng dụng có thể xử lý input không hợp lệ theo thiết kế.
+    // The application may handle invalid input by design.
 }
 ```
 
-Đây là đoạn minh họa. Khi `jdk.JavaExceptionThrow` được bật, JFR có thể ghi type, thời điểm, `thrownClass`, `message` và stack. **Việc xuất hiện event không đồng nghĩa với HTTP 500, crash hoặc lỗi không được xử lý.**
+This is an illustrative snippet. When `jdk.JavaExceptionThrow` is enabled, JFR can record type, timestamp, `thrownClass`, `message`, and stack. **The presence of an event does not mean HTTP 500, a crash, or an unhandled error.**
 
-`jdk.JavaErrorThrow` phản ánh những lần ném `Error` mà JFR ghi được; **không được dùng như bằng chứng JVM chắc chắn sẽ chết**. Một số `Error` vẫn có thể bị bắt trong hệ thống, dù nhiều loại nghiêm trọng đòi hỏi xem xét ngay.
+`jdk.JavaErrorThrow` reflects thrown `Error` instances recorded by JFR; **do not treat it as proof the JVM is doomed to die**. Some `Error`s can still be caught within the system, though serious ones warrant immediate review.
 
-**`jdk.ExceptionStatistics`** có thể giúp nhìn xu hướng tổng quan ở những cấu hình có bật, nhưng không thay thế phân loại per-exception và correlation đến request. Số exception “thrown” có thể rất khác số exception “uncaught” hoặc số response lỗi.
+**`jdk.ExceptionStatistics`** can show high-level trends when enabled, but it does not replace per-exception classification and request correlation. The number of "thrown" exceptions can differ dramatically from "uncaught" exceptions or failed responses.
 
-### 8.2. Ưu tiên theo tác động và sự thay đổi
+### 8.2. Prioritizing by impact and change
 
-| Quan sát | Kiểm tra tiếp |
+| Observation | Check next |
 | --- | --- |
-| Exception mới xuất hiện sau deploy | So type/stack/phiên bản, log thay đổi, request path. |
-| Một loại exception tăng đột ngột | Có retry loop, input lỗi, parse, timeout hay fallback thay đổi không? |
-| Exception xuất hiện nhưng error rate vẫn ổn | Có thể là exception xử lý được; đo overhead và độ ồn trước khi gọi là incident. |
-| `IOException` cùng lúc socket timeout | Ghép với `SocketRead`/`SocketWrite`, endpoint và trace, tránh kết luận chỉ từ trùng timestamp. |
-| `Error` nghiêm trọng/OOME | Phối hợp heap/GC/native memory, stderr, health checks và OOME logs; JFR có thể chưa kịp flush đầy đủ. |
+| New exception appearing after a deploy | Compare type/stack/version, change logs, request paths. |
+| One exception type spiking abruptly | Is there a retry loop, malformed input, parsing issue, timeout, or altered fallback? |
+| Exceptions appearing while error rate is stable | Likely handled exceptions; measure overhead and noise before calling it an incident. |
+| `IOException` coinciding with socket timeouts | Pair with `SocketRead`/`SocketWrite`, endpoints, and traces rather than concluding from timestamp overlap alone. |
+| Severe `Error` / OOME | Combine with heap/GC/native memory, stderr, health checks, and OOME logs; JFR may not flush completely. |
 
-**Rủi ro khi bật throw event:** ứng dụng có thể tạo exception với tần suất rất cao (đặc biệt exception dùng cho control flow). Bật chi tiết stack/message có thể tăng overhead, dung lượng file và làm lộ dữ liệu nhạy cảm. Một số JDK áp dụng cơ chế throttle cho exception events; luôn kiểm tra settings và phiên bản đang chạy. Chọn recording ngắn có mục tiêu khi cần điều tra sâu.
+**Risk of enabling throw events:** applications can throw exceptions at very high rates (especially exceptions used for control flow). Enabling detailed stacks/messages can raise overhead, grow file size, and expose sensitive data. Some JDKs throttle exception events; always check settings and the running version. Prefer short, targeted recordings for deep investigation.
 
-### 8.3. Stack trace của exception
+### 8.3. Exception stack traces
 
-Stack gợi ý vị trí **throw**, nhưng không nói đầy đủ **catch ở đâu**, vì stack trace JFR ghi không tự bao gồm tất cả các bước xử lý tiếp theo. Để biết request có thất bại:
+The stack points to the **throw** site, not necessarily **where it was caught**, since the JFR stack trace does not include downstream catch-handling steps. To know whether requests failed:
 
-- Đối chiếu log với request ID, response status, retry/fallback.
-- Tìm cùng loại exception lặp nhiều trong một request hay nhiều request.
-- Kiểm tra lần throw này có thật sự làm thay đổi kết quả, throughput hoặc latency không.
+- Cross-check logs with request IDs, response statuses, and retries/fallbacks.
+- Look for the same exception repeating inside one request or across many requests.
+- Verify whether that throw actually altered outcomes, throughput, or latency.
 
-`message` có thể chứa path, host, parameter hoặc dữ liệu nhạy cảm; dùng class/type/stack + ngữ cảnh chuẩn hóa khi group thay vì log nguyên message công khai.
+`message` may contain paths, hosts, parameters, or sensitive data; group by class/type/stack + sanitized context instead of logging raw messages publicly.
 
-## 9. Thu recording mới khi file hiện có thiếu event
+## 9. Capturing a new recording when the existing file lacks events
 
-**Lưu ý:** phần này dùng khi bạn có thẩm quyền ghi JFR cho JVM đích. `jcmd` cần thấy đúng PID và có quyền attach (thường cùng effective user trên cùng máy/namespace). Trong container, PID và đường dẫn có thể khác host.
+**Note:** this section applies when you are authorized to record JFR on the target JVM. `jcmd` must see the right PID and have attach permissions (typically same effective user on the same host/namespace). Inside containers, PIDs and paths may differ from the host.
 
-Ví dụ trên JVM có PID thực là `12345`:
+Example on a JVM with actual PID `12345`:
 
 ```bash
 jcmd -l
@@ -332,37 +332,37 @@ jcmd 12345 JFR.start name=diagnostics settings=profile
 jcmd 12345 JFR.check
 ```
 
-Khi tái hiện triệu chứng, lấy file:
+Once the symptom reproduces, pull the file:
 
 ```bash
 jcmd 12345 JFR.dump name=diagnostics filename=/tmp/incident.jfr
 jcmd 12345 JFR.stop name=diagnostics
 ```
 
-`JFR.dump` ghi bản dump **trong khi recording có thể tiếp tục**; `JFR.stop` mới dừng. File `/tmp/incident.jfr` được **JVM đích** ghi trong filesystem mà JVM thấy, không nhất thiết là filesystem shell gọi `jcmd`.
+`JFR.dump` writes a dump **while the recording can keep running**; `JFR.stop` actually stops it. `/tmp/incident.jfr` is written by the **target JVM** in the filesystem seen by the JVM, not necessarily the shell where `jcmd` was invoked.
 
-Nếu muốn một recording tự dừng:
+If you want a self-stopping recording:
 
 ```bash
 jcmd 12345 JFR.start name=short-incident settings=profile duration=60s filename=/tmp/incident-60s.jfr
 ```
 
-File sẽ hoàn tất theo duration và trạng thái thực tế của recording; lệnh start trả về trước khi thu đủ 60 giây. Để chọn event và threshold cụ thể, dùng **JMC Flight Recorder configuration** hoặc tạo `.jfc` riêng trên cơ sở template `default`/`profile`; xác minh event setting thực bằng JFR metadata và cấu hình recording. Không chỉnh trực tiếp template chuẩn do JDK cung cấp.
+The file completes based on the duration and recording state; the `start` command returns before the 60 seconds finish. To tune specific events and thresholds, use **JMC Flight Recorder configuration** or build a custom `.jfc` based on `default`/`profile`; verify effective event settings via JFR metadata and recording config. Do not edit the JDK's bundled standard templates directly.
 
-### `default` và `profile` không đảm bảo mọi event đều được thu
+### `default` and `profile` do not guarantee every event is captured
 
-- `settings=default`: tối ưu overhead thấp, thường phù hợp ghi liên tục.
-- `settings=profile`: thường thu nhiều dữ liệu hơn, phù hợp điều tra ngắn với chi phí cao hơn.
-- Một số event có **threshold khoảng vài đến vài chục mili giây** (các ví dụ Oracle thường dùng 20 ms cho event I/O/monitor thông dụng), nhưng giá trị đúng phải **đọc từ `.jfc`/recording phiên bản đang chạy**.
-- Event dưới threshold bị bỏ qua; các event bị tắt, sample chưa được lấy, event bị throttle, thời điểm chưa được ghi, hoặc dữ liệu bị mất đều có thể tạo “khoảng trống”.
+- `settings=default`: optimized for low overhead, typically suited for continuous recording.
+- `settings=profile`: typically captures more data, suited for short investigations at higher cost.
+- Several events have **thresholds of a few to tens of milliseconds** (Oracle examples often use 20 ms for common I/O/monitor events), though exact values must be **read from the `.jfc`/recording of the running version**.
+- Events below threshold are omitted; disabled events, uncollected samples, throttled events, off-window timing, or data loss can all leave "gaps."
 
-**Chiến lược điều tra có kiểm soát:** trước tiên thu ngắn bằng `profile`; nếu loại event cần thiết bị thiếu, chỉ bật đúng nhóm liên quan và giảm threshold có giới hạn thời gian, đo thêm CPU/overhead/dung lượng recording. Tránh `threshold=0` cho mọi event trong sản xuất liên tục.
+**Controlled investigation strategy:** start with a short `profile` capture; if needed event types are missing, enable only the relevant group and lower thresholds for a bounded time while monitoring CPU/overhead/file size. Avoid `threshold=0` on all events continuously in production.
 
-## 10. Bài thực hành Java 17+: tạo những tín hiệu JFR có kiểm soát
+## 10. Java 17+ hands-on lab: generating controlled JFR signals
 
-Ví dụ này chủ động tạo **tranh chấp monitor**, `Object.wait()`, park, sleep, file I/O, socket I/O qua **loopback của chính máy**, và một exception được bắt. Nó ghi file để bạn tự phân tích; các event cụ thể và duration phụ thuộc scheduling, JDK, công cụ và hệ điều hành.
+This example intentionally creates **monitor contention**, `Object.wait()`, park, sleep, file I/O, socket I/O over **the machine's loopback**, and a caught exception. It writes a file for you to analyze; exact event counts and durations depend on scheduling, JDK, tools, and OS.
 
-Tạo file **`JfrSignalsDemo.java`**:
+Create **`JfrSignalsDemo.java`**:
 
 ```java
 import java.io.InputStream;
@@ -411,7 +411,7 @@ public class JfrSignalsDemo {
             try {
                 throw new IllegalArgumentException("demo-handled");
             } catch (IllegalArgumentException expected) {
-                // Đã xử lý lỗi: vẫn có thể được ghi dưới dạng throw event.
+                // Handled error: can still be recorded as a throw event.
             }
 
             recording.stop();
@@ -439,7 +439,7 @@ public class JfrSignalsDemo {
 
         Thread contender = new Thread(() -> {
             synchronized (MONITOR) {
-                // Chỉ vào monitor sau khi owner nhả khóa.
+                // Enters the monitor only after owner releases the lock.
             }
         }, "demo-monitor-contender");
 
@@ -492,31 +492,31 @@ public class JfrSignalsDemo {
 }
 ```
 
-Biên dịch và chạy (JDK 17+; cần được phép mở **localhost/loopback socket**):
+Compile and run (JDK 17+; requires permission to open a **localhost/loopback socket**):
 
 ```bash
 javac --release 17 JfrSignalsDemo.java
 java JfrSignalsDemo
 ```
 
-Nếu chương trình chạy thành công, dòng output cuối **chính xác** là:
+If the program succeeds, the final output line is **exact**:
 
 ```text
 recording=jfr-signals-demo.jfr
 ```
 
-Kết quả có thể khác về **số event, thứ tự, duration và field** do nội dung JDK, thời điểm được lấy mẫu và buffering. `Thread.sleep(160)` nhằm làm tranh chấp dễ quan sát hơn, nhưng scheduler vẫn có thể khiến contender không kịp chờ đủ lâu. File read/write thường rất nhanh; dù đặt threshold 0, việc một event có được sinh ra hay không vẫn phụ thuộc code path/JVM instrumentation.
+Results may differ in **event counts, ordering, durations, and fields** due to JDK internals, sampling timing, and buffering. `Thread.sleep(160)` aims to make contention easier to observe, though scheduling can still prevent the contender from waiting long enough. File reads/writes are usually very fast; even with threshold 0, whether an event is emitted depends on code paths and JVM instrumentation.
 
-**Giải thích những gì chương trình làm:**
+**Explanation of what the program does:**
 
-1. Bật các **duration event** với threshold 0 và stack trace để demo có cơ hội ghi thao tác ngắn. Đây là setting dành cho bài lab, không khuyến khích giữ trong production.
-2. Thread `demo-monitor-owner` giữ `MONITOR` rồi chờ latch. Thread `demo-monitor-contender` cố vào `synchronized`, tạo khả năng xuất hiện `jdk.JavaMonitorEnter`.
-3. `MONITOR.wait(70)` là chờ điều kiện trên monitor; `LockSupport.parkNanos` là park; `Thread.sleep` tạo sleep. Ba cách chờ **có ngữ nghĩa khác nhau**.
-4. `Files.write`/`Files.newInputStream` minh họa file I/O; `ServerSocket`/`Socket` giao tiếp **trong máy** và cố ý để peer gửi muộn để có socket read duration.
-5. Exception được ném rồi catch; nó thể hiện chính xác vì sao **throw event không đồng nghĩa unhandled error**.
-6. `recording.stop()` và `recording.dump(file)` lưu recording để đọc bằng tool.
+1. Enables **duration events** with threshold 0 and stack traces so the demo has a chance to capture short operations. This setting is for the lab and not recommended in production.
+2. Thread `demo-monitor-owner` holds `MONITOR` and waits on a latch. Thread `demo-monitor-contender` attempts to enter `synchronized`, creating the opportunity for `jdk.JavaMonitorEnter`.
+3. `MONITOR.wait(70)` is condition waiting on a monitor; `LockSupport.parkNanos` is parking; `Thread.sleep` causes sleeping. These three waits **have distinct semantics**.
+4. `Files.write`/`Files.newInputStream` demonstrate file I/O; `ServerSocket`/`Socket` communicate **locally** and intentionally delay the peer send to produce a socket read duration.
+5. An exception is thrown and caught; it demonstrates exactly why **a throw event does not mean an unhandled error**.
+6. `recording.stop()` and `recording.dump(file)` save the recording for inspection with tools.
 
-Kiểm tra loại event thực sự có mặt:
+Inspect which event types are actually present:
 
 ```bash
 jfr summary jfr-signals-demo.jfr
@@ -525,13 +525,13 @@ jfr print --events jdk.FileRead,jdk.FileWrite,jdk.SocketRead,jdk.SocketWrite --s
 jfr print --events jdk.JavaExceptionThrow --stack-depth 20 jfr-signals-demo.jfr
 ```
 
-**Bài tập:** tăng `Thread.sleep(160)` thành `400` ms và so hai lần recording. Bạn kỳ vọng độ chờ monitor lớn hơn nếu contender đã bắt đầu tranh chấp đúng lúc; nhưng nếu có event khác ảnh hưởng scheduling, cần đọc thời điểm trên JFR để xác minh, không chỉ nhìn con số tổng.
+**Exercise:** increase `Thread.sleep(160)` to `400` ms and compare the two recordings. You would expect longer monitor wait duration if the contender started waiting on time; however, if other events affect scheduling, check timestamps in JFR to verify rather than looking solely at totals.
 
-## 11. Đọc và nhóm event bằng API `jdk.jfr.consumer` (Java 17+)
+## 11. Reading and grouping events with `jdk.jfr.consumer` (Java 17+)
 
-Khi file có nhiều event, bạn có thể phân tích **loại, count, duration**, rồi xem vài mẫu có thread/stack. Đây là một chương trình độc lập, không cần dependency ngoài JDK.
+When a file contains many events, you can summarize **type, count, and duration**, then inspect a few samples with thread/stack info. This is a standalone program requiring no external dependencies outside the JDK.
 
-Tạo file **`JfrSignalSummary.java`**:
+Create **`JfrSignalSummary.java`**:
 
 ```java
 import java.nio.file.Path;
@@ -626,95 +626,95 @@ public class JfrSignalSummary {
 }
 ```
 
-Biên dịch và chạy sau khi đã tạo `jfr-signals-demo.jfr`:
+Compile and run after generating `jfr-signals-demo.jfr`:
 
 ```bash
 javac --release 17 JfrSignalSummary.java
 java JfrSignalSummary jfr-signals-demo.jfr
 ```
 
-Chương trình sẽ in một số event đầu tiên tìm được, rồi **đếm theo type** và tính **tổng duration các event thuộc type đó**. Không thể đưa số liệu stdout cố định vì JVM/scheduling/recording khác nhau. Hai tình huống đều hợp lệ:
+The program prints the first few matching events, then **counts by type** and computes **summed duration for events of that type**. Fixed numeric stdout cannot be given because JVMs, scheduling, and recordings vary. Both situations are valid:
 
-- Một event type không xuất hiện: chương trình **không có dòng tổng** của type đó.
-- Exception throw: thường có `duration=PT0S` hoặc duration bằng 0; không dùng tổng duration của exception để đo “thời gian xử lý lỗi”.
+- An event type never appears: the program **prints no summary line** for that type.
+- Exception throws: usually have `duration=PT0S` or zero duration; do not use summed exception duration to measure "error handling time."
 
-**Các giới hạn quan trọng của mẫu parser:**
+**Key limitations of this sample parser:**
 
-- `totalNanos` là **tổng duration của các event được ghi**, không phải elapsed time của hệ thống; có thể chồng lặp nhiều thread.
-- Chương trình **không** tính p95/p99, phân tách theo path/endpoint/monitor hay correlation ID; production analytics cần thêm grouping và chú ý sampling/threshold.
-- Dùng `e.hasField(...)` trước `getValue(...)` vì mỗi event type có schema khác nhau.
-- `getThread()` và `getStackTrace()` có thể là `null`. Top stack frame không nhất thiết là root cause.
-- `RecordingFile` duyệt theo stream và không giữ tất cả event trong RAM; phù hợp hơn `readAllEvents()` cho file lớn.
+- `totalNanos` is the **sum of recorded event durations**, not system elapsed time; durations across multiple threads can overlap.
+- The program does **not** compute p95/p99 or split by path/endpoint/monitor or correlation ID; production analytics need further grouping and attention to sampling/thresholds.
+- Call `e.hasField(...)` before `getValue(...)` because each event type has a different schema.
+- `getThread()` and `getStackTrace()` can be `null`. The top stack frame is not necessarily the root cause.
+- `RecordingFile` streams sequentially without holding all events in RAM; better than `readAllEvents()` for large files.
 
-## 12. Phân tích ca thực tế: p99 tăng sau một thay đổi
+## 12. Real-world case analysis: p99 rises after a change
 
-Giả sử trong 10 phút, request p99 tăng từ 150 ms lên 1.100 ms. JFR cho thấy kết quả **minh họa**:
+Suppose over 10 minutes, request p99 rises from 150 ms to 1,100 ms. JFR shows **illustrative** results:
 
-| Nhóm quan sát | Trước deploy | Sau deploy | Điều cần xác minh |
+| Observation group | Before deploy | After deploy | What to verify |
 | --- | --- | --- | --- |
-| `JavaMonitorEnter` tại `CacheStore.update()` | Hiếm, dưới 10 ms | Nhiều, 200–450 ms | Có giữ monitor trong lúc gọi I/O/serialize không? |
-| `SocketRead` đến backend API | 70–110 ms | 80–120 ms | Độ trễ mạng không tăng tương xứng; có thể không phải nghi phạm chính. |
-| `ThreadPark` ở worker | Chủ yếu lúc idle | Tăng cùng queue backlog | Queue nghẽn hậu quả của bottleneck hay nguyên nhân? |
-| `JavaExceptionThrow` `TimeoutException` | Thấp | Tăng | Timeout có thể là **hệ quả** của request chậm, chưa chắc nguyên nhân. |
+| `JavaMonitorEnter` in `CacheStore.update()` | Rare, under 10 ms | Frequent, 200–450 ms | Is the monitor held during I/O or serialization? |
+| `SocketRead` to backend API | 70–110 ms | 80–120 ms | Network latency did not rise proportionally; likely not the main suspect. |
+| `ThreadPark` on workers | Mostly while idle | Rises with queue backlog | Is queue congestion a consequence of a bottleneck or the cause? |
+| `JavaExceptionThrow` `TimeoutException` | Low | Rising | Timeouts may be a **consequence** of slow requests, not necessarily the cause. |
 
-Không được kết luận mọi thứ từ bảng này. Quy trình kiểm chứng:
+Do not conclude everything from this table alone. Verification workflow:
 
-1. **Đồng bộ thời gian** JFR, log, metrics (múi giờ, deploy timestamp, recording window).
-2. **Xác nhận event enabled/threshold** giống nhau giữa hai recording. Nếu không, số count không so trực tiếp được.
-3. Từ `JavaMonitorEnter`, xem stack và owner, đối chiếu mã sau deploy. Nếu có I/O chạy **bên trong `synchronized`**, đó là một giả thuyết mạnh.
-4. Xem thread dump / JFR thread/CPU khác để kiểm tra owner có thực sự giữ monitor lâu và các request bị xếp hàng.
-5. Thử bản sửa phù hợp (ví dụ đưa I/O ra ngoài critical section khi thread safety cho phép), đo lại p99 và lock wait.
-6. Nếu lock wait giảm mà p99 vẫn cao, tiếp tục điều tra socket, queue, GC và retry. **Không áp đặt nguyên nhân** trước khi số liệu trước/sau hỗ trợ.
+1. **Align timestamps** across JFR, logs, and metrics (timezones, deploy timestamp, recording window).
+2. **Confirm enabled events/thresholds** match between both recordings. Otherwise counts cannot be compared directly.
+3. From `JavaMonitorEnter`, inspect stacks and owners and compare against post-deploy code. If I/O runs **inside `synchronized`**, that is a strong hypothesis.
+4. Check thread dumps / other JFR thread/CPU views to confirm the owner really holds the monitor long and requests queue behind it.
+5. Test an appropriate fix (e.g., moving I/O outside the critical section where thread safety permits), then re-measure p99 and lock waits.
+6. If lock waits drop while p99 stays high, continue investigating sockets, queues, GC, and retries. **Do not force a root cause** before before/after numbers back it up.
 
-Ví dụ minh họa giúp thấy sự khác nhau giữa **nguyên nhân** (lock kéo dài), **triệu chứng** (p99 tăng/queue) và **hậu quả** (`TimeoutException`), nhưng trên một hệ thống thật cả ba vị trí có thể khác.
+This illustration highlights the difference between **cause** (prolonged lock hold), **symptom** (rising p99 / queues), and **consequence** (`TimeoutException`), though on a real system all three roles can shift.
 
-## 13. Những lỗi diễn giải phổ biến
+## 13. Common interpretation errors
 
-| Kết luận vội | Cách hiểu có cơ sở |
+| Hasty conclusion | Evidence-based understanding |
 | --- | --- |
-| “Thấy `JavaMonitorWait` dài nên bị tranh chấp `synchronized`.” | `JavaMonitorWait` gắn với `Object.wait`; điều tra điều kiện notify/timeout. Để tìm chờ **vào monitor**, xem `JavaMonitorEnter`. |
-| “Có `ThreadPark` nghĩa là deadlock.” | Park có thể là idle worker/chờ task/lock/future bình thường; cần biết ai có trách nhiệm unpark và workload. |
-| “RUNNABLE chắc chắn đang ăn CPU.” | RUNNABLE có thể chỉ sẵn sàng chạy; xem CPU samples/load và scheduling. |
-| “Không có event lock nên chắc chắn không có contention.” | Event có thể disabled, bị threshold lọc, hoặc lock dùng abstraction khác như `ReentrantLock`. |
-| “JFR timeline xanh/đoạn trống nghĩa thread đang chạy CPU.” | Khoảng trống có thể do thiếu event hoặc sampling; kết hợp CPU/event settings. |
-| “SocketRead lâu là network chậm.” | Có thể peer chưa gửi dữ liệu, app đọc sớm, scheduling, timeout; cần server log/trace/network metrics. |
-| “FileWrite 2 s nghĩa đĩa đang ghi 2 s.” | Có buffer, cache, filesystem, native I/O; event đo đoạn code được instrument, không phải phép đo disk vật lý. |
-| “`JavaExceptionThrow` là request fail.” | Nhiều throw được catch/handle; cần response/error rate và correlation. |
-| “Tổng duration event là thời gian JVM bị chặn.” | Duration nhiều thread chồng nhau; cộng thời gian event không bằng wall time. |
-| “`--stack-depth 100` sẽ hiện cả stack đã không ghi.” | Tham số chỉ điều khiển số frame **in ra**; không phục hồi dữ liệu chưa thu. |
-| “Không thấy event trong recording thì thao tác không có.” | Kiểm tra time window, enabled, threshold, throttle, sampling, JVM/JDK support, data loss. |
-| “Thread name đủ để nối tất cả event thành một request.” | Thread pool tái sử dụng thread, virtual thread có vòng đời riêng; cần request ID/tracing. |
+| “Long `JavaMonitorWait` means `synchronized` contention.” | `JavaMonitorWait` ties to `Object.wait`; check notify/timeout conditions. To look for **monitor entry** waits, check `JavaMonitorEnter`. |
+| “`ThreadPark` means deadlock.” | Parking can be normal idle workers or waiting on tasks/locks/futures; check who is responsible for unparking and the workload. |
+| “`RUNNABLE` definitely consumes CPU.” | `RUNNABLE` can simply mean ready to run; check CPU samples/load and scheduling. |
+| “No lock events means definitely no contention.” | Events may be disabled, filtered by threshold, or locks may use another abstraction like `ReentrantLock`. |
+| “Green/empty gaps in the JFR timeline mean the thread was burning CPU.” | Gaps may result from missing events or sampling; check CPU/event settings. |
+| “Long `SocketRead` means slow network.” | The peer may be slow to send, the app may read early, or scheduling/timeouts may contribute; check server logs, traces, and network metrics. |
+| “2 s `FileWrite` means the disk was physically writing for 2 s.” | Buffers, caches, filesystems, and native I/O sit in between; the event measures instrumented code, not physical disk hardware. |
+| “`JavaExceptionThrow` means a failed request.” | Many throws are caught and handled; check response/error rates and correlation. |
+| “Summed event duration is how long the JVM was blocked.” | Durations overlap across threads; summing event time does not equal wall time. |
+| “`--stack-depth 100` reveals unrecorded stacks.” | The flag only controls **printed** frames; it cannot recover uncaptured data. |
+| “If no event appears in the recording, the operation never happened.” | Check time window, enablement, thresholds, throttling, sampling, JVM/JDK support, and data loss. |
+| “Thread name is enough to link every event to one request.” | Thread pools reuse threads and virtual threads migrate carriers; use request IDs/tracing. |
 
-## 14. Checklist điều tra nhanh
+## 14. Quick investigation checklist
 
-- [ ] Xác định **PID/JVM**, JDK, recording window và thời điểm người dùng thấy lỗi.
-- [ ] Chạy **`jfr summary`**, xác minh event types, số lượng và settings.
-- [ ] Lọc **lock/park/wait/sleep** theo duration, thread, stack, owner và thời gian.
-- [ ] Lọc **file/socket** theo path/endpoint, bytes, duration, thread và stack; đối chiếu hạ tầng.
-- [ ] Lọc **exception/error** theo class, call site, xu hướng và xử lý thực tế của request.
-- [ ] Phân biệt **elapsed duration**, **CPU sample**, **thread state** và **wall-clock**.
-- [ ] Không suy leak/deadlock/network failure từ một event duy nhất.
-- [ ] Nếu thiếu dữ liệu, điều chỉnh **đúng event/threshold** trong recording ngắn và đo overhead.
-- [ ] Kiểm tra với log, metrics, request correlation, thread dump, tracing hoặc thử nghiệm trước/sau.
-- [ ] Lưu file `.jfr` theo quyền bảo mật vì stack/path/exception message có thể nhạy cảm.
+- [ ] Identify **PID/JVM**, JDK, recording window, and when users saw errors.
+- [ ] Run **`jfr summary`**, verify event types, counts, and settings.
+- [ ] Filter **lock/park/wait/sleep** by duration, thread, stack, owner, and time.
+- [ ] Filter **file/socket** by path/endpoint, bytes, duration, thread, and stack; cross-check infrastructure.
+- [ ] Filter **exceptions/errors** by class, call site, trend, and actual request handling.
+- [ ] Distinguish **elapsed duration**, **CPU sample**, **thread state**, and **wall-clock**.
+- [ ] Never infer a leak, deadlock, or network failure from a single event.
+- [ ] If data is missing, adjust **only the needed events/thresholds** in a short recording and measure overhead.
+- [ ] Corroborate with logs, metrics, request correlation, thread dumps, tracing, or before/after experiments.
+- [ ] Store `.jfr` files under security controls since stacks, paths, and exception messages can be sensitive.
 
-## 15. Câu hỏi tự kiểm tra
+## 15. Self-check questions
 
-1. **Khác nhau chính giữa `jdk.JavaMonitorEnter` và `jdk.JavaMonitorWait` là gì?** `JavaMonitorEnter` đo chờ để **vào intrinsic monitor** khi có contention; `JavaMonitorWait` liên quan `Object.wait()` trên monitor và chờ điều kiện.
-2. **Tại sao `ReentrantLock` có thể liên quan `ThreadPark` mà không có `JavaMonitorEnter`?** Nó dùng cơ chế đồng bộ/park của `java.util.concurrent`, không nhất thiết chờ vào Java intrinsic monitor.
-3. **Một `SocketRead` duration 900 ms có chứng minh mạng lỗi không?** Không; có thể là peer gửi chậm, ứng dụng đọc sớm, scheduling hoặc network. Cần đối chiếu endpoint/trace/metrics.
-4. **Một exception event có đồng nghĩa response lỗi không?** Không; exception có thể đã được catch và xử lý hợp lệ.
-5. **Vì sao không thấy `FileRead` không đủ kết luận không có file I/O?** Event có thể bị tắt, threshold, code path không được instrument, sampling hoặc recording không bao trùm lúc thao tác diễn ra.
-6. **Có thể cộng duration của mọi thread để suy elapsed time không?** Không. Nhiều event có thể chồng thời gian.
-7. **Điểm đầu tiên cần làm với file JFR lạ là gì?** `jfr summary` để biết recording thực sự có gì; tiếp theo `jfr metadata`/filter phù hợp.
-8. **Một thread ở `WAITING` có luôn là bug?** Không; idle worker, wait/park bình thường vẫn có thể là `WAITING`. Phải xem vai trò thread và điều kiện đánh thức.
+1. **What is the main difference between `jdk.JavaMonitorEnter` and `jdk.JavaMonitorWait`?** `JavaMonitorEnter` measures waiting to **enter an intrinsic monitor** under contention; `JavaMonitorWait` relates to `Object.wait()` on a monitor waiting for a condition.
+2. **Why can `ReentrantLock` involve `ThreadPark` without `JavaMonitorEnter`?** It uses `java.util.concurrent` synchronization/parking rather than waiting on a Java intrinsic monitor.
+3. **Does a 900 ms `SocketRead` duration prove the network failed?** No; it could be a slow peer response, early app read, scheduling, or network. Cross-check endpoints, traces, and metrics.
+4. **Does an exception event mean a failed response?** No; the exception may have been caught and handled legitimately.
+5. **Why is seeing zero `FileRead` events insufficient to conclude there was no file I/O?** The event may be disabled, filtered by threshold, uninstrumented, missed by sampling, or outside the recording window.
+6. **Can you sum durations across all threads to get elapsed time?** No. Multiple events can overlap in time.
+7. **What is the very first thing to do with an unfamiliar JFR file?** Run `jfr summary` to see what the recording actually contains; follow with `jfr metadata` and targeted filters.
+8. **Is a thread in `WAITING` always a bug?** No; idle workers and normal waits/parks can be `WAITING`. Inspect the thread's role and wake-up condition.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle Java 21 — The `jfr` Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): `summary`, `print`, `metadata`, lọc event, stack depth và JSON.
+- [Oracle Java 21 — The `jfr` Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): `summary`, `print`, `metadata`, event filters, stack depth, and JSON.
 - [Oracle Java 21 — The `jcmd` Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `JFR.start`, `JFR.check`, `JFR.dump`, `JFR.stop`.
-- [Oracle — Troubleshoot Performance Issues Using Flight Recorder](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshoot-performance-issues-using-jfr.html): lock, I/O, exception và cách đọc event chờ.
+- [Oracle — Troubleshoot Performance Issues Using Flight Recorder](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshoot-performance-issues-using-jfr.html): locks, I/O, exceptions, and reading wait events.
 - [Oracle Java 21 — JFR Event Settings](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html): `enabled`, `threshold`, `stackTrace`, `period`.
 - [Oracle Java 21 — `RecordedEvent`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedEvent.html): `getStartTime`, `getDuration`, `getThread`, `getStackTrace`.
-- [Oracle Java 21 — `RecordingFile` và đọc file JFR](https://docs.oracle.com/en/java/javase/21/jfapi/parsing-recording-file.html).
+- [Oracle Java 21 — `RecordingFile` and reading JFR files](https://docs.oracle.com/en/java/javase/21/jfapi/parsing-recording-file.html).
 - [Oracle Java 21 — `Recording` / `EventSettings`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html).

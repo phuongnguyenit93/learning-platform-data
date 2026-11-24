@@ -1,47 +1,47 @@
-# 11.3 Không đặt khóa bí mật trong mã nguồn, bản đóng gói hoặc nhật ký
+# 11.3 Do Not Put Secret Keys in Source Code, Packages, or Logs
 
-**Khóa bí mật không được xuất hiện dưới dạng giá trị có thể sử dụng trực tiếp trong source code, mã đã biên dịch, gói triển khai hay log.** Đây là nguyên tắc căn bản của **vòng đời khóa**: khóa phải được tạo, cấp phát, sử dụng, xoay vòng và thu hồi qua một kênh kiểm soát riêng với mã ứng dụng.
+**Secret keys must not appear as directly usable values in source code, compiled code, deployment packages, or logs.** This is a foundational principle of the **key lifecycle**: keys must be generated, provisioned, used, rotated, and revoked through a control channel separate from application code.
 
-Quy tắc này bao gồm khóa mã hóa đối xứng (AES, HMAC), private key của cặp khóa, khóa ký JWT, API token, mật khẩu database, credential của cloud, secret webhook, session key và các bí mật xác thực khác. Một giá trị có tên `password` hoặc `key` chưa chắc là bí mật; ngược lại, chuỗi vô danh có quyền truy cập production vẫn là secret dù được đặt tên `configValue`.
+This rule covers symmetric encryption keys (AES, HMAC), private keys of asymmetric key pairs, JWT signing keys, API tokens, database passwords, cloud credentials, webhook secrets, session keys, and other authentication secrets. A value named `password` or `key` is not necessarily a secret; conversely, an innocuous string granting production access is still a secret even if named `configValue`.
 
-Bài này tập trung vào ba nơi rò rỉ thường bị đánh giá thấp:
+This lesson focuses on three commonly underestimated leak surfaces:
 
-1. **Mã nguồn và lịch sử kiểm soát phiên bản:** hard-code literal, config, fixture và commit.
-2. **Bản đóng gói và đường ống build:** `.class`, JAR/WAR, resource, container image/layer, artifact CI/CD.
-3. **Nhật ký và hệ thống quan sát:** log, trace, dump, request/response, exception, metrics và công cụ hỗ trợ.
+1. **Source code and version control history:** hard-coded literals, configs, fixtures, and commits.
+2. **Packages and build pipelines:** `.class`, JAR/WAR, resources, container images/layers, CI/CD artifacts.
+3. **Logs and observability systems:** logs, traces, dumps, requests/responses, exceptions, metrics, and support tools.
 
-Đích đến không chỉ là “xóa một dòng chứa khóa” mà là **thiết kế để cùng một artifact có thể triển khai vào nhiều môi trường mà không chứa secret của môi trường nào**, đồng thời có thể thu hồi/rotate khóa khi cần.
+The goal is not merely “deleting a line containing a key,” but **designing so the exact same artifact can deploy to multiple environments without containing any environment's secrets**, while allowing keys to be revoked/rotated whenever needed.
 
-## 1. Khái niệm: secret khác key reference, public key và metadata
+## 1. Concepts: Secrets vs. Key References, Public Keys, and Metadata
 
-| Thành phần | Có thường là bí mật? | Xử lý khuyến nghị |
+| Item | Usually a Secret? | Recommended Handling |
 | --- | --- | --- |
-| **AES key / HMAC key / JWT signing secret** | **Có.** | Giữ trong KMS/HSM hoặc secret manager phù hợp; giới hạn quyền sử dụng; không serialize ra log. |
-| **Private key** | **Có.** | Ưu tiên private key không thể export nếu có HSM/KMS phù hợp; chỉ cấp quyền ký/giải mã cần thiết. |
-| **API key / bearer token / DB password** | **Có.** | Cấp phát động hoặc lấy từ secret store; scope hẹp, thời hạn ngắn, theo dõi và thu hồi được. |
-| **Password-hashing pepper** | **Có.** | Giữ ngoài database của password verifier, thường trong secret manager/HSM. |
-| **Public key / chứng chỉ công khai** | Thường **không**. | Có thể được phân phối công khai nhưng phải kiểm tra nguồn tin cậy, tính đúng đắn và vòng đời. |
-| **Salt của password hashing / AES-GCM IV** | Thường **không**. | Có thể lưu cùng dữ liệu tương ứng; vẫn phải tuân thủ quy tắc thuật toán (như nonce uniqueness). |
-| **Key ID / version / alias** | Thường **không**, nhưng có thể là metadata nhạy cảm theo nghiệp vụ. | Chỉ ghi vào log nếu chính sách cho phép; không nhầm ID với secret thực. |
-| **Đường dẫn đến secret đã mount** | Không phải nội dung secret, nhưng có thể tiết lộ cấu trúc hệ thống. | Giữ trong cấu hình triển khai, không đưa giá trị khóa vào đường dẫn hay tên file. |
+| **AES key / HMAC key / JWT signing secret** | **Yes.** | Keep in KMS/HSM or an appropriate secret manager; restrict usage permissions; never serialize to logs. |
+| **Private key** | **Yes.** | Prefer non-exportable private keys when an HSM/KMS supports it; grant only required sign/decrypt permissions. |
+| **API key / bearer token / DB password** | **Yes.** | Issue dynamically or fetch from a secret store; narrow scope, short lifetime, traceable and revocable. |
+| **Password-hashing pepper** | **Yes.** | Store outside the password-verifier database, typically in a secret manager/HSM. |
+| **Public key / public certificate** | Usually **no**. | Can be distributed publicly, but must verify trusted source, correctness, and lifecycle. |
+| **Password hashing salt / AES-GCM IV** | Usually **no**. | Can be stored alongside the corresponding data; must still obey algorithm rules (such as nonce uniqueness). |
+| **Key ID / version / alias** | Usually **no**, though it may be business-sensitive metadata. | Log only if policy allows; never confuse an ID with the actual secret. |
+| **Path to a mounted secret** | Not the secret's content, yet may reveal system layout. | Keep in deployment configuration; never embed key values into paths or filenames. |
 
-**Encoding không làm secret an toàn.** Base64, hex, URL encoding, nối chuỗi, đảo thứ tự ký tự hoặc XOR một hằng số rồi giải mã lúc runtime chỉ làm khó đọc qua mắt người. Nếu artifact chứa toàn bộ vật liệu cần để khôi phục khóa, bên có artifact cũng có thể khôi phục.
+**Encoding does not make a secret safe.** Base64, hex, URL encoding, string concatenation, character reversal, or XORing with a constant and decoding at runtime only obscures it from casual human reading. If an artifact contains all the material needed to reconstruct the key, anyone holding the artifact can reconstruct it too.
 
-**Hash của secret không tự động vô hại.** Với token ngẫu nhiên entropy cao, lưu digest có thể là một dạng verifier thích hợp. Với mật khẩu entropy thấp, hash nhanh không thay password KDF. Hash có thể làm lộ khả năng so sánh bản ghi, định danh hoặc hỗ trợ tấn công offline tùy ngữ cảnh. Không ghi hash/digest của bí mật vào log chỉ để “chứng minh đã che”.
+**A hash of a secret is not automatically harmless.** For high-entropy random tokens, storing a digest can be an appropriate verifier. For low-entropy passwords, a fast hash does not replace a password KDF. A hash can still enable record correlation, identification, or offline attacks depending on context. Never log a hash/digest of a secret just to “prove it was masked.”
 
-## 2. Mô hình đe dọa: ba nơi secret có thể bị sao chép
+## 2. Threat Model: Three Places Secrets Can Be Copied
 
 ~~~text
-Developer / hệ thống quản lý secret
+Developer / secret management system
           |
           +-- SOURCE REPO ---------------------+
           |   Java literals, YAML, .properties, .env,
-          |   test fixture, Git history, pull request,
-          |   forks, clones, code review, cache
+          |   test fixtures, Git history, pull requests,
+          |   forks, clones, code reviews, caches
           |
           +-- BUILD / PACKAGE -----------------+
           |   .class, JAR/WAR, resources, fat JAR,
-          |   Docker image/layers, build arguments,
+          |   Docker images/layers, build arguments,
           |   CI logs, artifacts, SBOM metadata
           |
           +-- RUNTIME / OBSERVABILITY ---------+
@@ -49,54 +49,54 @@ Developer / hệ thống quản lý secret
               APM spans, crash/heap dumps, traces,
               exception messages, request snapshots
 
-Các nơi sao chép có thể tồn tại rất lâu sau khi source đã được sửa.
+Copies in these places can persist long after source code is fixed.
 ~~~
 
-Đừng chỉ kiểm tra file `src/main/java` rồi kết luận ứng dụng an toàn. Rủi ro nằm ở **mọi nơi secret đã đi qua**, không chỉ nơi developer đang nhìn thấy.
+Do not inspect only `src/main/java` and conclude the application is safe. Risk lives in **every place the secret passed through**, not just where the developer is currently looking.
 
-### 2.1. Vì sao repository riêng tư vẫn không phải secret vault?
+### 2.1. Why Is a Private Repository Still Not a Secret Vault?
 
-Private repository giới hạn một số người truy cập, nhưng không thay thế quản lý secret vì:
+A private repository limits access to some people, yet does not replace secret management because:
 
-- Nhiều developer, CI runner, bot, công cụ kiểm tra, fork và bản sao local có thể đọc lịch sử.
-- Pull request, diff, notification hoặc review tool có thể lưu bản sao riêng.
-- Người được quyền đọc code **không nhất thiết** được quyền dùng API key production.
-- Khi secret bị commit, việc xóa nó ở commit mới **không xóa commit cũ**; lịch sử, tag, branch, clone và artifact có thể vẫn chứa nó.
-- Trường hợp repository từng công khai hoặc token bị gửi qua kênh ngoài, phải giả định secret có thể đã bị khai thác.
+- Many developers, CI runners, bots, analysis tools, forks, and local clones can read its history.
+- Pull requests, diffs, notifications, or review tools may retain separate copies.
+- Someone authorized to read code **is not necessarily** authorized to use production API keys.
+- Once a secret is committed, deleting it in a later commit **does not erase the earlier commit**; history, tags, branches, clones, and artifacts may still contain it.
+- If the repository was ever public or a token was sent over an external channel, assume the secret may have been exploited.
 
-Hãy coi việc secret thực xuất hiện trong Git là **sự cố lộ secret cần đánh giá và xoay vòng/thu hồi**, không chỉ là vấn đề style.
+Treat any real secret appearing in Git as a **secret exposure incident requiring assessment and rotation/revocation**, not merely a code-style issue.
 
-## 3. Không hard-code khóa vào mã nguồn Java
+## 3. Do Not Hard-Code Keys in Java Source Code
 
-### 3.1. Anti-pattern: literal bí mật trong code
+### 3.1. Anti-Pattern: Secret Literals in Code
 
-**Ví dụ sai — chỉ dùng chuỗi giả minh họa, không có credential thật:**
+**Bad example — using placeholder strings only, no real credentials:**
 
 ~~~java
-// ANTI-PATTERN: không triển khai kiểu này.
+// ANTI-PATTERN: do not implement like this.
 private static final String DB_PASSWORD = "DEMO_NOT_A_REAL_PASSWORD";
 private static final String API_TOKEN = "DEMO_NOT_A_REAL_TOKEN";
 
-// Không an toàn hơn: bí mật được ghép lại khi runtime.
+// No safer: secret assembled at runtime.
 String token = "DEMO_" + "NOT_A_REAL_TOKEN";
 ~~~
 
-Trong mã thực, một hằng như thế có thể tồn tại trong source, Git history và bytecode `.class`. Mức `private`, `static final` hoặc đóng gói vào thư viện nội bộ **không cung cấp bảo vệ mật mã**.
+In real code, such constants can live in source, Git history, and `.class` bytecode. Visibility `private`, `static final`, or packaging in an internal library **provides no cryptographic protection**.
 
-Những biến thể vẫn sai:
-- Lưu bí mật trong source bằng Base64 rồi `decode` lúc startup.
-- Chia secret thành nhiều fragment ở các lớp khác nhau rồi nối lại.
-- “Mã hóa” secret trong resource nhưng để **khóa giải mã** cùng artifact.
-- Giấu mật khẩu trong annotation, enum, unit test, test resource hoặc SQL migration.
-- Để fallback production secret trong code khi không lấy được từ secret store.
-- Commit một `application.properties` hoặc `application.yml` chứa khóa thật, kể cả file chỉ được dùng ở một môi trường.
-- Dùng biến môi trường nhưng **gán giá trị thật ngay trong Dockerfile, startup script được commit hoặc pipeline YAML**.
+Variants that remain wrong:
+- Storing secrets in source as Base64 and calling `decode` at startup.
+- Splitting a secret into fragments across classes and concatenating them.
+- “Encrypting” a secret inside resources while placing the **decryption key** in the same artifact.
+- Hiding passwords inside annotations, enums, unit tests, test resources, or SQL migrations.
+- Leaving a fallback production secret in code when the secret store is unreachable.
+- Committing an `application.properties` or `application.yml` containing real keys, even if used only in one environment.
+- Using environment variables while **assigning real values inside committed Dockerfiles, startup scripts, or pipeline YAML**.
 
-Một repo có thể chứa **tên cấu hình, key reference, mô hình cấu trúc và ví dụ giá trị giả**. Nó không nên chứa secret có hiệu lực.
+A repository may contain **configuration names, key references, structural schemas, and dummy example values**. It should not contain live secrets.
 
-### 3.2. Phân biệt cấu hình tham chiếu và giá trị bí mật
+### 3.2. Distinguishing Reference Configuration from Secret Values
 
-**Ví dụ cấu hình chỉ có định danh, không chứa secret:**
+**Example config containing identifiers only, no secrets:**
 
 ~~~yaml
 security:
@@ -105,31 +105,31 @@ security:
   key-policy: AES-GCM-128
 ~~~
 
-`payments/data-key/current` là **alias/reference giả lập** phục vụ minh họa. Trong hệ thống thật, ứng dụng dùng identity được cấp để gọi KMS/secret manager tương ứng, lấy secret tạm thời hoặc yêu cầu dịch vụ thực hiện thao tác mật mã mà **không xuất key raw**.
+`payments/data-key/current` is a **mock alias/reference** for illustration. In a real system, the application uses its granted identity to call the KMS/secret manager, obtain a short-lived secret, or request the service to execute cryptographic operations **without exporting raw keys**.
 
-Điểm khác biệt:
+The difference:
 
 ~~~text
-Sai:
-  application.yml chứa raw AES key hoặc API token
-  code đọc YAML rồi dùng raw secret
+Wrong:
+  application.yml contains raw AES key or API token
+  code reads YAML and uses raw secret
 
-Đúng hướng:
-  application.yml chứa reference, algorithm policy, key version
-  workload identity -> KMS/secret manager -> quyền sử dụng phù hợp
-  app chỉ nhận secret khi thật sự cần, không ghi lại giá trị
+Right direction:
+  application.yml contains reference, algorithm policy, key version
+  workload identity -> KMS/secret manager -> appropriate permissions
+  app receives secret only when genuinely required, never logs the value
 ~~~
 
-Không đưa **credentials để truy cập secret manager** vào cùng source; nếu làm vậy chỉ chuyển hard-code sang một lớp khác. Dùng workload identity, managed identity, service account được cấp quyền theo môi trường hoặc cơ chế trust/bootstrap đã được kiểm chứng.
+Do not put **credentials for accessing the secret manager** into the same source; doing so only shifts hard-coding down one layer. Use workload identity, managed identity, environment-scoped service accounts, or verified trust/bootstrap mechanisms.
 
-### 3.3. `.gitignore` không phải giải pháp cho secret đã commit
+### 3.3. `.gitignore` Is Not a Solution for Already-Committed Secrets
 
-`.gitignore` chỉ giúp Git **không tự đưa các file chưa được track** vào danh sách theo pattern, chứ không làm một file đã track tự biến mất khỏi lịch sử. Nó cũng không kiểm soát file copy vào JAR, ZIP hoặc Docker image.
+`.gitignore` only tells Git **not to automatically track untracked files** matching a pattern; it does not make an already-tracked file disappear from history. Nor does it control files copied into JARs, ZIPs, or Docker images.
 
-Một hướng dùng hợp lý:
+A sensible usage pattern:
 
 ~~~gitignore
-# Ví dụ chính sách bỏ qua local config có secret
+# Example policy to ignore local configs containing secrets
 .env
 .env.*
 !.env.example
@@ -137,73 +137,73 @@ local-secrets/
 *.local.properties
 ~~~
 
-Nhưng vẫn phải **kiểm tra cấu hình build**: một file nằm ngoài Git vẫn có thể bị task `processResources`, Docker `COPY . .` hoặc bước gom artifact khác đưa vào bản đóng gói. `.env.example` nên chứa **tên biến và mô tả**, không có secret hoạt động. Không đưa dữ liệu production thật làm test fixture.
+Still, you must **audit build configurations**: a file outside Git can still be swept into a package by `processResources`, Docker `COPY . .`, or other artifact assembly steps. `.env.example` should contain **variable names and descriptions**, never active secrets. Never use real production data as test fixtures.
 
-Các file cấu hình an toàn cần được code review/scan. Tránh dùng heuristic “nó nằm dưới `test/` nên không sao”; CI artifact và test report cũng có thể được tải xuống.
+Safe configuration files must go through code review/scanning. Avoid the heuristic “it is under `test/` so it is fine”; CI artifacts and test reports can also be downloaded.
 
-## 4. Bí mật có thể lộ trong `.class`, JAR/WAR và container image
+## 4. Secrets Can Leak in `.class`, JAR/WAR, and Container Images
 
-### 4.1. Java đã biên dịch vẫn có thể bị quan sát
+### 4.1. Compiled Java Remains Inspectable
 
-Khi code chứa một chuỗi literal, trình biên dịch có thể đưa chuỗi đó vào constant pool hoặc cấu trúc bytecode khác. Người có `.class`, JAR hoặc ứng dụng chạy được có thể dùng công cụ xem/decompile để khôi phục những giá trị không được bảo vệ.
+When code contains a string literal, the compiler may place that string in the constant pool or other bytecode structures. Anyone possessing the `.class`, JAR, or runnable app can use inspection/decompilation tools to recover unprotected values.
 
-- JAR/WAR là những định dạng đóng gói có thể mở và liệt kê resource.
-- `application.properties` trong `src/main/resources` thường trở thành resource trong artifact nếu build không loại trừ.
-- `static final` làm code bất biến ở mức Java, không phải trở thành nơi lưu bí mật chống phân tích.
-- Obfuscation, minification, shading hoặc đóng gói “fat JAR” không thay cho quản lý key.
-- Chữ ký JAR/code signing chứng minh tính toàn vẹn/nguồn phát hành theo cơ chế trust phù hợp, **không mã hóa** nội dung JAR.
+- JAR/WAR archives are packaged formats whose entries and resources can be listed and extracted.
+- `application.properties` in `src/main/resources` normally becomes an artifact resource unless excluded by the build.
+- `static final` makes a field immutable at the Java language level, not an analysis-resistant secret vault.
+- Obfuscation, minification, shading, or building a “fat JAR” is no substitute for key management.
+- JAR signing/code signing proves integrity/publisher origin under a trust model; it **does not encrypt** JAR contents.
 
-Các lệnh kiểm tra artifact có thể dùng trên **bản build do đội sở hữu**:
+Artifact inspection commands you can run on **builds owned by your team**:
 
 ~~~bash
 jar tf application.jar
 javap -verbose -classpath application.jar com.example.AppConfig
 ~~~
 
-`jar tf` liệt kê entry của JAR; `javap -verbose` giúp quan sát bytecode/constant pool trong class phù hợp. Chúng không thể khẳng định mọi secret đã/không xuất hiện: secret có thể ở resource, native library, image layer, artifact khác hoặc được xây dựng động. Dùng thêm hệ thống secret scanning phù hợp thay vì chỉ tìm chuỗi bằng mắt.
+`jar tf` lists JAR entries; `javap -verbose` inspects bytecode/constant pools in the target class. They cannot prove all secrets are absent: secrets can hide in resources, native libraries, image layers, other artifacts, or dynamic construction. Use proper secret scanning systems rather than manual visual checks alone.
 
-### 4.2. Lớp Docker image, Dockerfile và biến build
+### 4.2. Docker Image Layers, Dockerfiles, and Build Arguments
 
 **Anti-pattern:**
 
 ~~~dockerfile
-# SAI: không thay phần này bằng credential thật.
+# WRONG: do not replace these with real credentials.
 ARG APP_SECRET=DEMO_NOT_A_REAL_SECRET
 ENV APP_SECRET=DEMO_NOT_A_REAL_SECRET
 COPY local-secrets/ /app/secrets/
 ~~~
 
-Hệ quả: giá trị hoặc file có thể xuất hiện trong định nghĩa build, metadata/image configuration, filesystem layer hoặc cache. Xóa file ở một `RUN` hoặc layer sau **không đảm bảo** xóa bản cũ khỏi mọi layer, cache và registry.
+Consequence: the value or file may persist in build definitions, image configuration/metadata, filesystem layers, or build caches. Deleting a file in a later `RUN` instruction or layer **does not guarantee** removal from earlier layers, caches, or registries.
 
-Các biện pháp tốt hơn:
-1. Image được build **không chứa khóa của môi trường**.
-2. Chỉ mount/provision secret **ở runtime** qua platform secret store, volume bảo vệ hoặc SDK.
-3. Nếu build thật sự cần secret, sử dụng **secret mount dành cho build** (ví dụ BuildKit secret mounts) và xác nhận command không copy/log secret vào output layer, cache hay build artifacts.
-4. Không truyền secret qua Docker `ARG`/`ENV` trong image definition để tiện build.
-5. Kiểm tra cả image layers, base image, bản artifact được đẩy lên registry và pipeline logs.
-6. Giới hạn quyền đọc secret cho đúng workload; một secret mount vẫn có rủi ro nếu container/service bị chiếm quyền.
+Better practices:
+1. Built images **contain no environment secrets**.
+2. Mount/provision secrets **only at runtime** via platform secret stores, protected volumes, or SDKs.
+3. If a build genuinely requires a secret, use **dedicated build secret mounts** (e.g., BuildKit secret mounts) and verify the command does not copy or log the secret into output layers, caches, or build artifacts.
+4. Do not pass secrets via Docker `ARG`/`ENV` in image definitions for build convenience.
+5. Inspect image layers, base images, artifacts pushed to registries, and pipeline logs.
+6. Restrict secret read access to the exact workload; a mounted secret is still at risk if the container/service is compromised.
 
-**Đưa bí mật vào image được mã hóa** chỉ có ý nghĩa khi cơ chế giải mã/quản lý khóa được thiết kế đúng và khóa giải mã **không nằm cùng image**. Trong phần lớn ứng dụng, không cần đưa secret vào artifact ngay từ đầu.
+**Putting encrypted secrets into an image** only makes sense when decryption/key management is properly designed and the decryption key **does not reside in the same image**. For most applications, there is no reason to place secrets in artifacts at all.
 
-### 4.3. CI/CD và đường rò phụ
+### 4.3. CI/CD and Secondary Leak Channels
 
-- Pipeline YAML, script triển khai, command line và lịch sử shell có thể lưu secret. Truyền credential qua command argument như `-Ddb.password=...` có thể lộ trong process list/diagnostics/log; tránh nếu có cơ chế cung cấp an toàn hơn.
-- CI/CD logs có thể hiển thị output của `echo`, `set -x`, stack trace, thông báo lỗi của lệnh bên thứ ba hoặc dump môi trường.
-- Masking secret trong CI là **lớp phòng vệ phụ**: các bản biến đổi/encode/chia nhỏ secret, định dạng đa dòng và lỗi cấu hình có thể vượt qua masking.
-- Debug artifact, test report, screenshot, coverage upload, crash dump, build cache hay SBOM metadata đều có thể chứa thông tin không chủ định.
-- Workflow chạy từ PR/fork chưa tin cậy không được trao secret production nếu không có policy cô lập và phê duyệt thích hợp.
-- Không dùng cùng credential quyền cao cho mọi pipeline, môi trường dev/staging/prod hoặc tất cả microservice.
+- Pipeline YAML, deployment scripts, command lines, and shell histories can retain secrets. Passing credentials via command arguments such as `-Ddb.password=...` can expose them in process lists/diagnostics/logs; avoid whenever safer provisioning exists.
+- CI/CD logs can surface `echo`, `set -x`, stack traces, third-party command error messages, or environment dumps.
+- CI secret masking is a **secondary defense**: encoded/transformed/split secrets, multiline formats, and misconfigurations can bypass masking.
+- Debug artifacts, test reports, screenshots, coverage uploads, crash dumps, build caches, and SBOM metadata can all contain unintended data.
+- Workflows triggered from untrusted PRs/forks must never receive production secrets without strict isolation and approval policies.
+- Never share the same high-privilege credential across all pipelines, dev/staging/prod environments, or every microservice.
 
-Các secret được tạo bởi pipeline nên có **scope nhỏ, TTL ngắn**, chỉ có mặt ở job cần thiết, audit được và có khả năng thu hồi. Với tích hợp cloud, ưu tiên **federated workload identity/short-lived credentials** thay vì long-lived token hard-code trong CI khi hệ thống hỗ trợ.
+Secrets issued to pipelines should have **narrow scope, short TTL**, appear only in jobs that need them, be audited, and be revocable. For cloud integrations, prefer **federated workload identity / short-lived credentials** over hard-coded long-lived tokens in CI whenever supported.
 
-## 5. Không ghi khóa bí mật vào nhật ký hoặc hệ thống quan sát
+## 5. Do Not Log Secret Keys or Write Them to Observability Systems
 
-Log được nhân bản rất rộng: stdout container, tập trung log, agent shipper, SIEM, APM, service tracing, alert, ticket đính kèm và backup. Người có quyền xem log **không nhất thiết** được quyền đọc private key hoặc token production.
+Logs are replicated widely: container stdout, log aggregators, shipper agents, SIEM, APM, distributed tracing, alerts, attached tickets, and backups. People authorized to read logs **are not necessarily** authorized to read private keys or production tokens.
 
-### 5.1. Anti-pattern Java
+### 5.1. Java Anti-Patterns
 
 ~~~java
-// SAI: các ví dụ minh họa, đừng đưa vào production.
+// WRONG: illustrative examples only; never put in production.
 logger.info("apiToken={}", apiToken);
 logger.debug("AES key={}", Arrays.toString(keyBytes));
 logger.info("Auth header={}", request.getHeader("Authorization"));
@@ -211,39 +211,39 @@ logger.error("Connection string: {}", connectionUrlWithPassword);
 System.out.println(secretKey.getEncoded());
 ~~~
 
-Có cả rủi ro **gián tiếp**:
+There are also **indirect risks**:
 
-- `logger.debug("request={}", request)` nếu `toString()` của object bao gồm Authorization header, password hoặc body.
-- Ghi toàn bộ HTTP request/response trong filter/interceptor, reverse proxy, HTTP client wire debug.
-- Serializing object cấu hình thành JSON đưa vào log, trace span attributes hoặc MDC/ThreadContext.
-- Lấy `Throwable.getMessage()` hoặc stack trace của thư viện chứa URL có `user:password@host`, connection string hoặc giá trị token.
-- Ghi lỗi OAuth callback, URL reset password hoặc query string chứa credential.
-- `printStackTrace()`, crash dumps, heap dumps, profiler có thể chứa bản sao của secret trong bộ nhớ; giới hạn quyền truy cập, retention và nơi lưu.
-- Ghi một digest/partial secret theo cách cho phép liên kết thông tin nhạy cảm hoặc giúp người ngoài nhận biết credential đang dùng.
-- Ghi full HTTP body khi thấy validation error, kể cả request chứa password, OTP, bearer token.
+- `logger.debug("request={}", request)` when the object's `toString()` includes the Authorization header, password, or body.
+- Logging full HTTP requests/responses in filters/interceptors, reverse proxies, or HTTP client wire debugging.
+- Serializing config objects to JSON into logs, trace span attributes, or MDC/ThreadContext.
+- Logging `Throwable.getMessage()` or library stack traces containing `user:password@host` URLs, connection strings, or token values.
+- Logging failed OAuth callbacks, password reset URLs, or query strings carrying credentials.
+- `printStackTrace()`, crash dumps, heap dumps, and profilers can capture in-memory copies of secrets; restrict access, retention, and storage locations.
+- Logging a digest/partial secret in a way that enables linking sensitive data or lets outsiders identify which credential is in use.
+- Logging full HTTP request bodies on validation errors, including requests containing passwords, OTPs, or bearer tokens.
 
-Không in key raw cả khi “chỉ chạy local một lần”. Local console có thể được IDE, terminal logging, screen-sharing, CI và nhật ký hệ thống lưu lại.
+Never print raw keys even when “just running locally once.” Local consoles can be captured by IDEs, terminal logs, screen sharing, CI, and system logs.
 
-### 5.2. Thay logging giá trị bằng logging sự kiện có danh sách cho phép
+### 5.2. Replace Value Logging with Allowlisted Event Logging
 
-Một sự kiện hữu ích cho giám sát key lifecycle có thể chứa:
+A useful event for monitoring the key lifecycle might contain:
 
-| Trường nên cân nhắc | Mục đích | Lưu ý |
+| Field to Consider | Purpose | Notes |
 | --- | --- | --- |
-| `event=key_use` | Phân biệt truy cập secret, rotate, deny, revoke. | Không kèm key raw. |
-| `request_id` / correlation ID | Ghép vết ở các service. | ID phải sinh độc lập, không chứa token. |
-| `key_ref` hoặc key version được phê duyệt | Xác định alias/version có vấn đề. | Chỉ dùng nếu metadata này được policy cho phép. |
-| `operation=encrypt/decrypt/sign` | Quan sát loại thao tác. | Không log plaintext hay nội dung cần ký. |
-| `outcome=success/denied/error` | Phân tích lỗi và bất thường. | Không dựa trên việc in exception chứa secret. |
-| `error_code` đã chuẩn hóa | Chẩn đoán mà không lộ nội bộ. | Tránh free-form message từ thư viện chưa kiểm soát. |
+| `event=key_use` | Distinguish secret access, rotation, denial, revocation. | Do not include raw keys. |
+| `request_id` / correlation ID | Correlate traces across services. | Must be generated independently; never embed tokens. |
+| `key_ref` or approved key version | Identify which alias/version had issues. | Include only if permitted by metadata policy. |
+| `operation=encrypt/decrypt/sign` | Observe operation type. | Never log plaintext or content being signed. |
+| `outcome=success/denied/error` | Analyze failures and anomalies. | Do not rely on printing exceptions containing secrets. |
+| Standardized `error_code` | Diagnose without exposing internals. | Avoid uncontrolled free-form library messages. |
 
-Nguyên tắc: **chỉ log những trường đã được xét duyệt (allowlist)**, thay vì serialize toàn bộ object rồi cố xóa một vài trường nhạy cảm (denylist). Các định danh cũng cần kiểm tra/normalize để tránh log injection và tránh nhúng dữ liệu từ attacker.
+Rule: **log only pre-approved fields (allowlist)** instead of serializing whole objects and trying to strip sensitive fields (denylist). Identifiers must also be validated/normalized to prevent log injection and avoid embedding attacker-controlled data.
 
-**Không coi redaction là tuyệt đối.** Các secret có thể xuất hiện trong chuỗi đã encode, nested JSON, multiline message hoặc trường chưa từng được định nghĩa. Logging tối thiểu ngay từ nguồn đáng tin cậy hơn mask sau khi đã phát tán log.
+**Never treat redaction as absolute.** Secrets can appear inside encoded strings, nested JSON, multiline messages, or undefined fields. Minimal logging at the source is far more reliable than masking after logs have spread.
 
-### 5.3. Java 17+: audit an toàn, không in secret
+### 5.3. Java 17+: Safe Auditing Without Printing Secrets
 
-Tệp **`AllowlistAuditDemo.java`** sinh một mảng ngẫu nhiên **chỉ để minh họa secret trong bộ nhớ**. Chương trình xuất một event gồm các field được chọn, tuyệt đối không đưa mảng secret vào formatter. Đây không phải secret-manager SDK và không chứng minh quy trình authentication hoàn chỉnh.
+The file **`AllowlistAuditDemo.java`** generates a random byte array **solely to illustrate an in-memory secret**. The program outputs an event with selected fields and never passes the secret array into the formatter. This is not a secret-manager SDK and does not demonstrate a full authentication workflow.
 
 ~~~java
 import java.security.SecureRandom;
@@ -280,27 +280,27 @@ javac AllowlistAuditDemo.java
 java AllowlistAuditDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 event=key_use request_id=req-001 key_ref=demo-key-v1 outcome=success
 Buffer cleared: true
 ~~~
 
-**Giải thích:** `demo-key-v1` chỉ là reference giả và các field đã được chọn. Chương trình không in nội dung 32 byte; `Arrays.fill` chủ động ghi đè **mảng byte do ứng dụng kiểm soát**, không có nghĩa đã xóa mọi bản sao bí mật trong JVM, native memory, swap hoặc thư viện khác. Không có cơ chế Java tổng quát bảo đảm mọi secret đã được xóa khỏi mọi nơi lưu.
+**Explanation:** `demo-key-v1` is only a mock reference and the fields are explicitly allowlisted. The program never prints the 32-byte secret; `Arrays.fill` actively overwrites **the application-controlled byte array**, which does not mean every copy of a secret in the JVM, native memory, swap, or other libraries has been erased. There is no general Java mechanism guaranteeing every secret has been wiped from all memory locations.
 
-Một hệ thống thật nên kiểm tra độ dài, cấu trúc và tính an toàn của `requestId`, `keyReference`, `outcome` trước khi ghi log, để attacker không chèn newline hay thông tin nhạy cảm trong những trường này.
+A real system should validate the length, structure, and safety of `requestId`, `keyReference`, and `outcome` before logging so attackers cannot inject newlines or sensitive content into those fields.
 
-## 6. Kiến trúc cấp secret đúng: tách bản đóng gói khỏi môi trường
+## 6. Proper Secret Provisioning Architecture: Separate Packaging from Environment
 
-Mô hình thực hành khuyến nghị:
+Recommended practice model:
 
 ~~~text
 [Git repository]                  [CI/CD build]
   code, schema, key references ---> compile/test/package
-  không có raw secret                 |
+  no raw secrets                      |
                                       v
-                              [Image/JAR không chứa secret]
+                              [Secret-free Image/JAR]
                                       |
                                       v
                       [Runtime: workload identity/service account]
@@ -312,72 +312,72 @@ Mô hình thực hành khuyến nghị:
                          +------------+------------+
                          |                         |
            key handle / encrypt operation    runtime short-lived secret
-             private key không export             cấp khi thật cần
+             non-exportable private key       issued only when needed
                          |                         |
                          +------------+------------+
                                       |
-                                [Ứng dụng]
-                     chỉ thao tác được phép; không log secret
+                                [Application]
+                   only permitted operations; never log secrets
 ~~~
 
-Hệ thống không nhất thiết phải **đưa raw AES/private key vào JVM**. Với HSM/KMS, ứng dụng có thể sử dụng API **sign/decrypt/encrypt/wrap** mà private key/master key không rời phần cứng hoặc dịch vụ. Nếu hệ thống cần data key trong bộ nhớ cho mã hóa local, phải quản lý thời hạn, quyền cấp, nonce, bộ nhớ, rotation và xóa bản sao có thể xóa theo policy.
+A system does not necessarily have to **load raw AES/private keys into the JVM**. With an HSM/KMS, the application can call **sign/decrypt/encrypt/wrap** APIs so private/master keys never leave hardware or the service. If the system needs a data key in memory for local encryption, it must govern lifetime, issuance permissions, nonces, memory handling, rotation, and wiping erasable copies per policy.
 
-### 6.1. Các phương án cấp bí mật
+### 6.1. Secret Provisioning Options
 
-| Phương án | Ưu điểm | Giới hạn/rủi ro |
+| Option | Advantages | Limitations / Risks |
 | --- | --- | --- |
-| **KMS/HSM key handle** | Giới hạn việc export key, central audit và policy; ứng dụng dùng operation thay vì nhận raw key khi có hỗ trợ. | Phụ thuộc provider/latency/quota, cần IAM và quản lý key version/recovery. |
-| **Secret manager qua SDK** | Cấp secret theo identity, version, TTL và audit; có thể rotate/revoke tập trung. | Raw secret vẫn có thể vào process memory; cần bảo vệ cache, log, retry và exception. |
-| **Secret volume/file mount ở runtime** | Không cần đóng secret vào JAR/image; có thể dùng với nhiều framework. | Cần ACL, namespace, volume policy và xử lý rotation/mount updates. File vẫn có thể bị đọc nếu workload bị chiếm quyền. |
-| **Environment variable do runtime inject** | Dễ cấu hình trong nhiều platform, giảm hard-code source. | Giá trị có thể hiện trong process environment, diagnostics, dump, subprocess và log; không phải kênh mặc định an toàn nhất cho mọi secret. |
-| **External encrypted config** | Có thể hữu ích khi quản lý khóa giải mã và quyền tách biệt. | Nếu cùng artifact chứa ciphertext **và** khóa giải mã, bảo vệ gần như vô nghĩa. |
-| **Khóa sinh lúc startup chỉ để dùng tạm** | Phù hợp với session/ephemeral key không cần persist, giảm lưu khóa dài hạn. | Không phù hợp dữ liệu cần giải mã sau restart nếu không có cơ chế lưu/truy xuất khóa đúng. |
+| **KMS/HSM key handle** | Limits key export, centralizes audit and policy; app invokes operations rather than receiving raw keys when supported. | Provider/latency/quota dependency; requires IAM and key version/recovery management. |
+| **Secret manager via SDK** | Delivers secrets per identity, version, TTL, and audit; centralized rotate/revoke. | Raw secrets may still enter process memory; protect caches, logs, retries, and exceptions. |
+| **Runtime secret volume/file mount** | Avoids baking secrets into JARs/images; works across many frameworks. | Needs ACLs, namespaces, volume policies, and rotation/mount refresh handling. Files remain readable if the workload is compromised. |
+| **Runtime-injected environment variable** | Easy to configure across platforms; avoids hard-coding in source. | Values can appear in process environments, diagnostics, dumps, child processes, and logs; not the safest default channel for every secret. |
+| **External encrypted config** | Useful when decryption keys and permissions are managed separately. | If the same artifact contains ciphertext **and** the decryption key, protection is nearly meaningless. |
+| **Startup-generated ephemeral key** | Suitable for session/ephemeral keys needing no persistence; avoids long-term key storage. | Unsuitable for data that must be decrypted after restart without proper key storage/retrieval. |
 
-Chọn theo mô hình đe dọa và yêu cầu tuân thủ. **Biến môi trường tốt hơn hard-code trong source** ở khía cạnh tách cấu hình, nhưng không tự động tương đương secret manager/HSM; cân nhắc SDK/identity hoặc secret mount được kiểm soát khi có thể.
+Choose based on your threat model and compliance requirements. **Environment variables are better than hard-coding in source** for separating configuration from artifacts, yet they are not automatically equivalent to a secret manager/HSM; prefer SDK/workload identity or controlled secret mounts whenever possible.
 
-### 6.2. Không hard-code thông tin đăng nhập để lấy secret
+### 6.2. Do Not Hard-Code Credentials Used to Fetch Secrets
 
-Sai lầm bootstrap phổ biến:
+Common bootstrap mistake:
 
 ~~~text
-Ứng dụng muốn lấy DB password từ secret manager
-  -> hard-code SECRET_MANAGER_ADMIN_TOKEN trong source
-  -> gọi secret manager bằng token đó
+App wants to fetch DB password from secret manager
+  -> hard-code SECRET_MANAGER_ADMIN_TOKEN in source
+  -> call secret manager using that token
 
-Kết quả: secret production vẫn bị nhúng, chỉ chuyển sang lớp khác.
+Result: production secret is still embedded, merely moved to another layer.
 ~~~
 
-Cách đúng hướng là dùng **định danh workload** do môi trường phát hành và được xác minh bởi nền tảng. Quyền phải hạn chế theo tên secret, version, operation, môi trường và tenant khi phù hợp. Không dùng cùng quyền quản trị kho secret để chạy mọi service.
+The right approach is using a **workload identity** issued by the runtime environment and verified by the platform. Permissions must be restricted by secret name, version, operation, environment, and tenant where appropriate. Never reuse the same secret-store admin credential across every service.
 
-### 6.3. Secret rotation không phải chỉ restart ứng dụng
+### 6.3. Secret Rotation Is More Than Restarting the App
 
-- **Static secret** thường cần tạo version mới, cập nhật consumer và vô hiệu version cũ theo trình tự an toàn.
-- **Dynamic credential** có thể hết hạn theo lease; cần làm mới đúng thời điểm và tự dừng truy cập khi lease bị revoke.
-- Restart chỉ làm process lấy secret mới **nếu ứng dụng được thiết kế như vậy**; nó không vô hiệu khóa cũ đã lộ và không xóa mọi bản sao/cached artifact.
-- Với encryption key, cần quản lý **key ID/version**, cho phép dữ liệu cũ được decrypt trong giai đoạn chuyển đổi thích hợp, cân nhắc re-encryption và thời hạn giữ khóa cũ. Không xóa key cũ khi còn dữ liệu cần phục hồi nếu chưa có kế hoạch migration.
-- Với API token hoặc password đã lộ, thường phải **revoke/rotate càng sớm càng khả thi** và cập nhật hệ thống phụ thuộc theo quy trình sự cố.
+- **Static secrets** typically require creating a new version, updating consumers, and disabling the old version in a safe sequence.
+- **Dynamic credentials** expire by lease; refresh them on time and stop access automatically if a lease is revoked.
+- Restarting only makes a process pick up a new secret **if the app is designed to do so**; it does not invalidate an exposed old key or clear all copies/cached artifacts.
+- For encryption keys, manage **key ID/version**, allow legacy data to be decrypted during the transition window, plan re-encryption, and enforce retention of old keys. Never delete an old key while recoverable data still depends on it without a migration plan.
+- For exposed API tokens or passwords, generally **revoke/rotate as soon as feasible** and update dependent systems per incident procedure.
 
-## 7. Java 17: lấy secret từ runtime mà không đưa vào source
+## 7. Java 17: Obtaining Secrets at Runtime Without Putting Them in Source
 
-### 7.1. Không có API Java chung cho mọi secret manager
+### 7.1. No Universal Java API Exists for Every Secret Manager
 
-Java chuẩn cung cấp `KeyStore`, `KeyGenerator`, `Cipher`, `SecureRandom` và APIs liên quan, nhưng **không có một lệnh JDK duy nhất** để truy vấn mọi cloud secret manager. Ứng dụng dùng SDK/plugin của nhà cung cấp hoặc provider JCA/JCE/PKCS#11 đã cấu hình.
+Standard Java provides `KeyStore`, `KeyGenerator`, `Cipher`, `SecureRandom`, and related APIs, yet **no single JDK call** queries every cloud secret manager. Applications use vendor SDKs/plugins or configured JCA/JCE/PKCS#11 providers.
 
-Tư duy tích hợp:
+Integration mindset:
 
 ~~~text
-Cấu hình non-secret: keyRef, algorithm, tenant, policy
+Non-secret config: keyRef, algorithm, tenant, policy
       |
-Workload identity (không embedded API key)
+Workload identity (no embedded API key)
       |
-Secret manager / KMS / HSM SDK hoặc JCA provider
+Secret manager / KMS / HSM SDK or JCA provider
       |
-Secret lease / key handle / phép sign-encrypt được cho phép
+Secret lease / key handle / permitted sign-encrypt action
       |
 Use -> audit metadata -> release/expire
 ~~~
 
-**Pseudocode mô tả kiến trúc**, không phải class SDK có thật:
+**Architectural pseudocode**, not real SDK classes:
 
 ~~~text
 keyRef = config.getApprovedKeyReference()
@@ -385,21 +385,21 @@ identity = runtime.getWorkloadIdentity()
 handle = keyService.openKey(identity, keyRef, allowedOperation="encrypt")
 ciphertext = handle.encrypt(plaintext, authenticatedMetadata)
 audit(event="key_use", keyRef=keyRef, outcome="success")
-close handle/lease; không in raw key vào bất kỳ log nào
+close handle/lease; never print raw keys to any log
 ~~~
 
-Nếu dùng provider HSM để tạo `SecretKey`/`PrivateKey`, đối tượng khóa có thể là **opaque handle** và `getEncoded()` có thể trả `null`. Không cố gọi `getEncoded()` để log/serialize/clone key; một số provider bảo vệ khóa bằng chính việc không cho export.
+If using an HSM provider to create `SecretKey`/`PrivateKey`, the key object may be an **opaque handle** and `getEncoded()` may return `null`. Never force calling `getEncoded()` to log, serialize, or clone a key; some providers protect keys precisely by forbidding export.
 
-### 7.2. Khi bắt buộc nhận secret dưới dạng byte/char
+### 7.2. When Receiving Secrets as Bytes/Chars Is Unavoidable
 
-- Tránh chuyển secret sang `String` nếu API cho phép dùng `byte[]` hoặc `char[]` trong vòng đời ngắn. `String` là immutable và việc GC giải phóng không bảo đảm xóa bản sao trên bộ nhớ ngay lập tức.
-- Dùng `try/finally` hoặc `AutoCloseable` để có cơ hội xóa mảng tạm bằng `Arrays.fill` sau khi dùng; nhưng **không tuyên bố zeroization tuyệt đối** vì còn bản sao trong provider/native memory, dump và JVM.
-- Không dùng `new String(secretBytes)` chỉ để ghi log hoặc debug.
-- Không chuyển secret sang Base64 để lưu trong config hay stdout: Base64 là **encoding**, không phải encryption.
-- Với secret file runtime, chỉ cho principal phù hợp đọc; bảo vệ file permission/volume, giới hạn kích thước input và xử lý thiếu file bằng **fail-closed**, không fallback sang giá trị nhúng.
-- Không đính mật khẩu vào command-line parameter vì process list và shell history có thể lưu lại; tránh các bước truyền qua shell không an toàn.
+- Avoid converting secrets into `String` if the API supports short-lived `byte[]` or `char[]`. `String` is immutable and GC reclamation does not guarantee immediate memory clearing.
+- Use `try/finally` or `AutoCloseable` to overwrite temporary arrays with `Arrays.fill` after use; however, **do not claim absolute zeroization**, as copies can remain in providers, native memory, dumps, and the JVM.
+- Never call `new String(secretBytes)` just for logging or debugging.
+- Never convert secrets to Base64 to store in configs or stdout: Base64 is **encoding**, not encryption.
+- For runtime-mounted secret files, restrict read permissions to the intended principal; protect file/volume permissions, enforce input size bounds, and handle missing files by **failing closed**, never falling back to embedded values.
+- Never pass passwords in command-line parameters because process lists and shell histories can capture them; avoid unsafe shell passthroughs.
 
-Một phương pháp đọc file được cấp ở runtime có thể như sau; đây là **mảnh API tích hợp**, không phải chương trình độc lập và không thay authentication/authorization của secret manager:
+A method reading a runtime-provisioned file might look like this; it is an **integration snippet**, not a standalone program, and does not replace secret-manager authentication/authorization:
 
 ~~~java
 import java.io.IOException;
@@ -413,49 +413,49 @@ static void withMountedSecret(Path mountedFile) throws IOException {
         if (secret.length == 0) {
             throw new IllegalStateException("Required secret is empty");
         }
-        // Ứng dụng thực sử dụng secret trong SDK đã được cấu hình.
-        // Không in secret hoặc chuyển nó thành biến cấu hình toàn cục.
+        // Real application uses the secret inside its configured SDK.
+        // Do not print the secret or promote it to a global config variable.
     } finally {
         Arrays.fill(secret, (byte) 0);
     }
 }
 ~~~
 
-Mảnh này chỉ minh họa **điểm nhận secret và xóa buffer sau khi xử lý**; trước khi dùng production còn phải bổ sung giới hạn size, kiểm soát đường dẫn, ACL, kiểm tra định dạng và operation thật. Không tạo file chứa secret trong repo để “giả lập runtime mount”. Đường dẫn đến file nên được cấu hình riêng và không tự lấy từ input của user.
+This snippet only illustrates **receiving a secret and wiping the buffer afterward**; production usage must also add size limits, path validation, ACLs, format checks, and real operations. Never create secret files inside the repo to “simulate a runtime mount.” The file path should be configured separately and never taken directly from user input.
 
-### 7.3. Environment variable: giới hạn thực tế
+### 7.3. Environment Variables: Practical Limitations
 
 ~~~java
 String secret = System.getenv("SERVICE_API_TOKEN");
 if (secret == null || secret.isBlank()) {
     throw new IllegalStateException("Service credential is not configured");
 }
-// Dùng qua client đã cấu hình, không log, không trả về trong lỗi.
+// Use through configured client; never log, never return in errors.
 ~~~
 
-Đây là **mảnh minh họa**, không chứa secret hay client implementation. `System.getenv` trả `String`, tức là không thể chủ động xóa giá trị này khỏi mọi nơi trong JVM. Giá trị environment còn có thể bị lộ qua cấu hình platform, crash dump, process debugging hoặc thao tác log sai.
+This is an **illustrative snippet** containing no secrets or client implementation. `System.getenv` returns a `String`, meaning you cannot actively wipe its value from every JVM location. Environment values can also leak via platform config UIs, crash dumps, process debugging, or careless logging.
 
-Không cho phép:
+Do not allow:
 
 ~~~java
-// SAI: secret dự phòng được hard-code (chuỗi bên dưới chỉ là ví dụ giả).
+// WRONG: hard-coded fallback secret (string below is a mock placeholder).
 String token = System.getenv().getOrDefault(
         "SERVICE_API_TOKEN", "DEMO_NOT_A_REAL_TOKEN");
 ~~~
 
-Nếu nguồn secret bắt buộc không sẵn có, **từ chối khởi tạo hoặc từ chối thao tác** theo thiết kế; không fallback sang credential tĩnh.
+If a mandatory secret source is unavailable, **refuse startup or reject the operation** by design; never fall back to static credentials.
 
-### 7.4. `KeyStore` có giải quyết toàn bộ không?
+### 7.4. Does `KeyStore` Solve Everything?
 
-`KeyStore` giúp quản lý đối tượng khóa/chứng chỉ theo loại store và provider, nhưng **không tự biến một file chứa khóa và mật khẩu hard-code thành an toàn**. Nếu application JAR chứa cả keystore exportable và mật khẩu mở khóa, người sở hữu artifact vẫn có thể truy xuất bí mật.
+`KeyStore` helps manage key/certificate objects according to store type and provider, but **it does not make a file paired with a hard-coded password secure**. If an application JAR bundles both an exportable keystore and its unlock password, anyone holding the artifact can extract the secrets.
 
-Một HSM/PKCS#11 provider có thể đại diện khóa bằng handle không export; mức bảo vệ thực tế phụ thuộc cách key được tạo, key policy, PIN/session, hardware, provider và quyền của workload. Cần phân biệt `KeyStore` như API/abstraction với **hệ thống quản lý bí mật thực sự**.
+An HSM/PKCS#11 provider can represent keys via non-exportable handles; real protection depends on how keys are generated, key policy, PIN/session handling, hardware, provider, and workload permissions. Distinguish `KeyStore` as an API/abstraction from a **complete secret management system**.
 
-## 8. Java 17+: tạo khóa dùng tạm, không nhúng hoặc log giá trị khóa
+## 8. Java 17+: Generating Ephemeral Keys Without Embedding or Logging Key Values
 
-Ví dụ **`InMemoryKeyDemo.java`** minh họa một khóa AES được sinh ngẫu nhiên tại runtime chỉ để mã hóa/giải mã ngay trong tiến trình. Chương trình không dùng hard-coded key bytes, không gọi `key.getEncoded()` để in khóa, và chỉ in metadata không bí mật.
+The example **`InMemoryKeyDemo.java`** demonstrates an AES key randomly generated at runtime solely to encrypt/decrypt immediately within the process. The program uses no hard-coded key bytes, never calls `key.getEncoded()` to print the key, and logs only non-secret metadata.
 
-**Đây là khóa tạm thời để học.** Dữ liệu cần decrypt sau restart đòi hỏi kiến trúc quản lý/lưu key trong KMS/keystore hoặc key-wrapping thích hợp; không thay bằng cách hard-code key vào mã nguồn.
+**This is an ephemeral key for learning.** Data that must be decrypted after a restart requires proper key storage/management in a KMS/keystore or key wrapping; never substitute hard-coded keys in source code.
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -504,7 +504,7 @@ javac InMemoryKeyDemo.java
 java InMemoryKeyDemo
 ~~~
 
-Stdout kiểm chứng:
+Verified stdout:
 
 ~~~text
 Algorithm: AES
@@ -513,179 +513,179 @@ Ciphertext+tag bytes: 23
 Round-trip OK: true
 ~~~
 
-Giải thích:
-- `KeyGenerator.getInstance("AES")` tạo **key material mới từ CSPRNG**, không có literal AES key trong source.
-- `generator.init(128, random)` xác định khóa AES 128 bit; đó **không phải** kích thước IV.
-- `IV` có 12 byte và được sinh từ `SecureRandom`. Bài này chỉ thực hiện một lần encryption; trong hệ thống thực, AES-GCM **phải không lặp cặp (key, IV)** ở mọi lần encrypt với cùng khóa, kể cả giữa các node và restart.
-- `doFinal(message)` tạo 7 byte ciphertext + 16 byte authentication tag (tLen=128 bit), nên tổng là 23 byte; không in plaintext hoặc key thực ngoài chuỗi demo không nhạy cảm.
-- `key.getAlgorithm()` trả tên thuật toán (metadata); đây không phải phương pháp xác nhận quyền truy cập hay sự an toàn của kho khóa.
-- Chương trình **không persist key**, nên không thể dùng để giữ ciphertext giải mã được sau khi tiến trình kết thúc. Với key dài hạn, cấu hình đúng KMS/HSM/keystore và quản lý version/rotation là bắt buộc.
+Explanation:
+- `KeyGenerator.getInstance("AES")` creates **fresh key material from a CSPRNG**, with no literal AES key in source.
+- `generator.init(128, random)` specifies a 128-bit AES key; that is **not** the IV size.
+- `IV` is 12 bytes generated from `SecureRandom`. This lesson performs only one encryption; in real systems, AES-GCM **must never repeat a (key, IV) pair** across any encryptions under the same key, including across nodes and restarts.
+- `doFinal(message)` produces 7 bytes of ciphertext + 16 bytes of authentication tag (tLen=128 bits), totaling 23 bytes; no plaintext or actual key is printed beyond the non-sensitive demo string.
+- `key.getAlgorithm()` returns the algorithm name (metadata); this does not verify access rights or keystore security.
+- The program **does not persist the key**, so it cannot keep ciphertext decryptable after the process exits. For long-lived keys, proper KMS/HSM/keystore configuration and version/rotation management are mandatory.
 
-### Tại sao không ghi `SecretKey.getEncoded()`?
+### Why Not Log `SecretKey.getEncoded()`?
 
-Với key exportable, `getEncoded()` thường trả byte raw bí mật; `Base64.getEncoder().encodeToString(key.getEncoded())` rồi in ra console **tạo lộ khóa**. Với key không exportable, `getEncoded()` có thể trả `null`, nên ép lấy byte hoặc giả định khóa luôn exportable là sai. Không log `SecretKey` object tùy tiện vì provider có thể đưa metadata hoặc representation không mong muốn vào `toString()`.
+For exportable keys, `getEncoded()` typically returns raw secret bytes; printing `Base64.getEncoder().encodeToString(key.getEncoded())` to the console **exposes the key**. For non-exportable keys, `getEncoded()` may return `null`, so forcing byte extraction or assuming keys are always exportable is wrong. Never arbitrarily log `SecretKey` objects either, as a provider may include unwanted metadata or representations in `toString()`.
 
-## 9. Đọc, build, test, vận hành: kiểm soát nào ở mỗi giai đoạn?
+## 9. Development, Build, Test, Operations: Which Controls Apply at Each Stage?
 
-| Giai đoạn | Nguy cơ | Kiểm soát thích hợp |
+| Stage | Risk | Appropriate Controls |
 | --- | --- | --- |
-| **Thiết kế** | Secret dùng chung rộng, tuổi thọ quá dài, không có owner | Inventory owner/purpose/scope, least privilege, rotation/revocation policy. |
-| **Lập trình** | Hard-code credential trong Java/config/test/fixture | Secrets reference, dummy fixture vô hại, code review, linter + pre-commit scanning. |
-| **Git push / pull request** | Secret vào history và snapshot/fork | Server-side push protection/secret scanning, branch policy, bot không lộ credential. |
-| **CI build** | Pipeline in biến, artifact chứa secret, job có quyền cao | Identity ngắn hạn, cô lập runner, mask bổ sung, scan artifacts, tránh in command có secret. |
-| **Package/JAR** | Secret lọt vào `.class`, resource, manifest, fat JAR | Kiểm tra dependencies/resources, build reproducible không cần production secret, scan package. |
-| **Container image** | Dockerfile ENV/ARG, secret mount sai, layer/cache | Runtime injection, BuildKit secret mount nếu cần lúc build, kiểm tra layer/registry/cache. |
-| **Runtime** | Secret trong dump, process env, file đọc được | Workload identity, KMS/HSM, runtime mounts có ACL, hạn chế dump/debug và quyền process. |
-| **Observability** | In full request, Authorization header, SDK exception, traces | Allowlist logging, redaction, vô hiệu wire debug nhạy cảm, retention và ACL log. |
-| **Rotation** | Key cũ vẫn có hiệu lực, rollback dùng version cũ | Versioned secrets, TTL, revoke, migration plan, đo lường consumer đã đổi. |
-| **Incident** | Chỉ xóa secret khỏi code nhưng credential vẫn sống | Revoke/rotate, điều tra phạm vi, dọn bản sao/artefact có kiểm soát, audit & cảnh báo. |
+| **Design** | Broadly shared secrets, excessive lifetimes, no owner | Owner/purpose/scope inventory, least privilege, rotation/revocation policy. |
+| **Coding** | Hard-coded credentials in Java/config/tests/fixtures | Secret references, harmless dummy fixtures, code review, linters + pre-commit scanning. |
+| **Git push / pull request** | Secrets entering history and snapshots/forks | Server-side push protection/secret scanning, branch policy, bots that do not expose credentials. |
+| **CI build** | Pipeline printing variables, artifacts containing secrets, over-privileged jobs | Short-lived identities, runner isolation, additional masking, artifact scanning, avoiding secret-bearing commands. |
+| **Package/JAR** | Secrets slipping into `.class`, resources, manifests, fat JARs | Audit dependencies/resources, reproducible builds needing no prod secrets, package scanning. |
+| **Container image** | Dockerfile ENV/ARG, improper secret mounts, layers/caches | Runtime injection, dedicated BuildKit secret mounts if needed at build time, inspect layers/registries/caches. |
+| **Runtime** | Secrets in dumps, process env, world-readable files | Workload identity, KMS/HSM, ACL-protected runtime mounts, restricted dumps/debug and process permissions. |
+| **Observability** | Printing full requests, Authorization headers, SDK exceptions, traces | Allowlist logging, redaction, disabling sensitive wire debug, log retention and ACLs. |
+| **Rotation** | Old keys stay active, rollbacks use old versions | Versioned secrets, TTL, revocation, migration plans, tracking consumer adoption. |
+| **Incident** | Deleting secret from code only while credential remains valid | Revoke/rotate, scope investigation, controlled cleanup of copies/artifacts, audit & alerting. |
 
-### 9.1. Secret scanning có tác dụng và giới hạn nào?
+### 9.1. What Secret Scanning Can and Cannot Do
 
-Scanner có thể tìm pattern API key, private-key block, credential literal, entropy bất thường và tên file nhạy cảm. Dùng ở nhiều thời điểm: pre-commit, PR/CI, source history, artifact/image scanning và monitoring log khi chính sách cho phép.
+Scanners can detect API key patterns, private-key blocks, credential literals, anomalous entropy, and sensitive filenames. Run them at multiple points: pre-commit, PR/CI, source history, artifact/image scanning, and log monitoring where policy permits.
 
-Tuy nhiên:
-- **False negative**: secret được mã hóa Base64/hex, chia đoạn, tạo động, mang format tùy chỉnh hoặc nằm ở bản sao ngoài tầm quét.
-- **False positive**: chuỗi test/dummy hoặc dữ liệu entropy cao nhưng không phải secret.
-- Scanner phát hiện secret không tự **revoke** secret. Khi có hit thật cần mở incident workflow.
-- Đừng in nguyên secret phát hiện được vào **báo cáo của scanner** hoặc issue/ticket.
-- Chỉ tính toán/hiển thị fingerprint đã được thiết kế an toàn khi cần deduplicate, không mặc định hash nào cũng vô hại.
+However:
+- **False negatives**: Base64/hex-encoded secrets, split fragments, dynamically constructed values, custom formats, or copies outside scan scope.
+- **False positives**: test/dummy strings or high-entropy non-secret data.
+- A scanner finding a secret does not automatically **revoke** it. Real hits must trigger an incident workflow.
+- Never print the discovered raw secret into **scanner reports** or issues/tickets.
+- Compute/display only safely designed fingerprints when deduplication is needed; do not assume every hash is harmless.
 
-Quy trình hay dùng là **chặn trước merge/commit nếu phát hiện secret**, thêm scan định kỳ artifact và thiết lập owner chịu trách nhiệm từng loại credential.
+A common practice is **blocking merges/commits when secrets are detected**, adding periodic artifact scans, and assigning clear owners per credential class.
 
-### 9.2. Phân quyền và đa môi trường
+### 9.2. Access Control and Multi-Environment Isolation
 
-Không dùng một khóa production cho dev/staging, QA và CI. Một bản build trung lập có thể chạy ở mỗi môi trường nhờ được cấp **identity và secret reference riêng** ở runtime. Khi staging có lỗ hổng, sự cố không nên tự động cấp quyền tới production.
+Never share one production key across dev/staging, QA, and CI. A neutral build artifact can run in every environment by receiving **distinct runtime identities and secret references**. If staging has a vulnerability, that breach must not automatically grant access to production.
 
-Sử dụng least privilege: service chỉ được `read` secret đúng scope hoặc `encrypt/sign` bằng key handle được cấp; không mặc định có quyền `list/all`, `delete`, `rotate` hoặc `export` mọi key. Runner build cũng không cần quyền decrypt dữ liệu sản xuất chỉ vì nó đóng gói code.
+Apply least privilege: services should only `read` scoped secrets or `encrypt/sign` using assigned key handles; never grant `list/all`, `delete`, `rotate`, or `export` across all keys by default. Build runners also do not need permission to decrypt production data just because they package code.
 
-## 10. Nếu phát hiện khóa đã bị lộ: thứ tự xử lý
+## 10. If an Exposed Key Is Discovered: Order of Operations
 
-**Tình huống:** một developer từng commit một API token hoặc AES key, sau đó xóa dòng đó khỏi branch và tạo commit mới. Dòng đã xóa không bảo đảm secret chưa bị sao chép.
+**Scenario:** a developer once committed an API token or AES key, then deleted that line on the branch and made a new commit. The deleted line does not guarantee the secret was never copied.
 
-### Quy trình ứng cứu thực hành
+### Practical Incident Response Workflow
 
-1. **Phân loại và thông báo theo quy trình nội bộ.** Xác định secret gì, owner, phạm vi quyền, môi trường, ngày tạo, nơi có thể đã lộ (repo, artifact, log, CI cache, ticket, dump).
-2. **Cô lập/thu hồi hoặc rotate càng sớm càng khả thi.** Với token/API key, revoke/replace để secret cũ không thể dùng nữa. Với private/signing/encryption key, lập kế hoạch thay khóa, điều chỉnh trust/certificate, re-sign/re-encrypt dữ liệu nếu cần; chú ý mất khả năng giải mã dữ liệu cũ.
-3. **Kiểm tra access logs và usage history** để xác định có sử dụng trái phép không; không truy xuất/log lại secret gốc trong quá trình điều tra.
-4. **Cập nhật consumer có kiểm soát**, xác nhận tất cả service dùng version mới và không còn phụ thuộc credential cũ; tránh fallback bí mật sang khóa đã lộ.
-5. **Xử lý dấu vết rò rỉ** trên source history, PR, artifact, Docker registry/cache, logs, backup, các bản sao theo kế hoạch đã phê duyệt. Việc rewrite Git history có thể phá commit references và cần phối hợp với mọi clone; **không thay cho revoke**.
-6. **Giám sát sau sự cố**: cảnh báo việc dùng credential cũ, thất bại bất thường, truy cập key version cũ, dấu hiệu abuse tài nguyên hoặc bypass quyền.
-7. **Cải thiện cơ chế ngăn tái diễn**: bổ sung scanner/branch policy, bỏ secret khỏi build, audit logger, thu hẹp IAM, tăng TTL/rotation automation và tài liệu cho developer.
+1. **Triage and notify per internal procedure.** Identify what the secret is, owner, permission scope, environment, creation date, and all potential exposure surfaces (repo, artifacts, logs, CI caches, tickets, dumps).
+2. **Isolate/revoke or rotate as soon as feasible.** For tokens/API keys, revoke/replace so the old secret can no longer be used. For private/signing/encryption keys, plan key replacement, adjust trust/certificates, and re-sign/re-encrypt data if needed; watch out for losing ability to decrypt legacy data.
+3. **Inspect access logs and usage history** to determine if unauthorized use occurred; do not re-fetch or log the raw secret during investigation.
+4. **Update consumers in a controlled rollout**, confirming every service uses the new version and no longer depends on the old credential; prevent silent fallback to the exposed key.
+5. **Clean up leak traces** in source history, PRs, artifacts, Docker registries/caches, logs, backups, and copies according to an approved plan. Rewriting Git history can break commit references and requires coordinating all clones; **it does not replace revocation**.
+6. **Post-incident monitoring**: alert on attempts to use the old credential, unusual failures, old key version access, resource abuse, or authorization bypasses.
+7. **Prevent recurrence**: strengthen scanners/branch policies, remove secrets from builds, audit loggers, tighten IAM, shorten TTLs/automate rotation, and educate developers.
 
-Không tự ý xóa log/audit trước khi đáp ứng yêu cầu điều tra hoặc pháp lý; cần phối hợp security/incident response để cách ly, hạn chế truy cập và loại bỏ bản sao nhạy cảm mà vẫn giữ bằng chứng cần thiết.
+Do not unilaterally delete logs/audit records before satisfying investigative or legal requirements; coordinate with security/incident response to isolate, restrict access, and purge sensitive copies while preserving necessary evidence.
 
-### Khi nào rotate khác revoke?
+### When Does Rotate Differ from Revoke?
 
-- **Rotate**: cấp secret mới, chuyển consumer sang bản mới, sau đó hủy/hạn chế bản cũ theo chính sách.
-- **Revoke**: làm secret cũ mất quyền ngay hoặc theo thời gian kiểm soát của hệ thống. Trong tình huống lộ secret, revoke có thể cần được ưu tiên nếu có nguy cơ đang bị khai thác.
-- **Expire**: giá trị tự hết hạn theo TTL/lease, không đồng nghĩa sự cố đã được xử lý nếu secret vẫn còn hiệu lực.
-- **Re-encrypt/re-wrap**: khi key mã hóa bị lộ, chỉ thay API token không giải quyết dữ liệu đã được bảo vệ bằng key cũ; cần đánh giá phạm vi ảnh hưởng.
+- **Rotate**: issue a new secret, migrate consumers to the new version, then disable/restrict the old version per policy.
+- **Revoke**: invalidate the old secret immediately or within system propagation bounds. During an exposure incident, revocation may need priority if active exploitation is plausible.
+- **Expire**: a value automatically ends by TTL/lease; this does not mean an incident is resolved while the secret remains valid.
+- **Re-encrypt/re-wrap**: when an encryption key is compromised, simply replacing an API token does not protect data encrypted under the old key; assess the full blast radius.
 
-Đừng hứa “delete secret khỏi Git là an toàn 100%”: khi không thể kiểm soát mọi bản sao, **phải làm secret cũ không còn hữu dụng** và hạn chế rủi ro còn lại.
+Never promise “deleting a secret from Git makes it 100% safe”: when you cannot control every copy, **render the old secret useless** and mitigate remaining risks.
 
-## 11. Bảng đối chiếu: cách sai và cách sửa
+## 11. Comparison Table: Wrong Practices and Proper Replacements
 
-| Cách làm sai | Vấn đề bảo mật | Thay bằng |
+| Wrong Practice | Security Problem | Replace With |
 | --- | --- | --- |
-| `static final String AES_KEY = "...";` | Key được nhúng trong source/bytecode. | Cấp key qua KMS/HSM hoặc secret manager/runtime key handle. |
-| Lưu secret Base64 trong properties | Ai có properties đều decode được. | Không để secret trong artifact; runtime injection có kiểm soát. |
-| Đưa keystore + mật khẩu keystore vào cùng JAR | Artifact đủ vật liệu để giải mã khóa. | Keystore ngoài artifact, key-handle/HSM, mật khẩu/identity cấp riêng. |
-| `.gitignore` được thêm sau khi commit | Không xóa secret khỏi history/clone. | Revoke/rotate và xử lý bản sao theo incident plan; bổ sung ignore/scanning. |
-| Docker `ARG`/`ENV` chứa raw secret lúc build | Secret có thể nằm trong image metadata/layers/cache. | Build secrets chuyên dụng nếu buộc phải dùng và kiểm tra output; cấp tại runtime là ưu tiên. |
-| `logger.debug("config={}", config)` | Có thể serialize toàn bộ mật khẩu và token. | Log event với trường allowlist, không log object nhạy cảm. |
-| Bật HTTP wire logging trong production | Authorization header/body có thể bị phát tán. | Giữ logging tối thiểu, redaction và tắt log nhạy cảm. |
-| Bắt lỗi rồi in `exception.getMessage()` thẳng | Error message của SDK có thể chứa request/URL/secret. | Mã lỗi chuẩn, log có kiểm soát, trace ID và bảo vệ log. |
-| Đưa credential trong `-Dtoken=...` khi chạy JVM | Có thể lộ qua process list, shell history/diagnostics. | Cơ chế runtime injection an toàn hơn, file mount hoặc SDK. |
-| Dùng cùng secret cho dev và prod | Sự cố môi trường thấp lan sang prod. | Tách identity, secret scope, rotation và quyền từng môi trường. |
-| Khi KMS lỗi thì fallback về key nhúng | Fail-open, sử dụng key khó quản lý/lộ. | Fail-closed và cảnh báo; không có fallback secret trong code. |
-| Chỉ xóa dòng hard-code sau phát hiện | Secret cũ còn dùng được, vẫn có thể ở history/artifact/log. | Revoke/rotate, kiểm tra toàn bộ nơi rò và giám sát hậu sự cố. |
-| In một phần API key để debug | Có thể làm lộ thông tin hữu ích, tạo liên kết giữa log và secret. | Dùng key reference/version được policy cho phép hoặc correlation ID riêng. |
-| KeyStore có mật khẩu = “đã an toàn” | Mật khẩu/key vẫn có thể cùng artifact, quyền đọc rộng hoặc backup lộ. | Xem xét toàn bộ nơi lưu và nơi nhận key; HSM/KMS/ACL phù hợp. |
+| `static final String AES_KEY = "...";` | Key embedded in source/bytecode. | Provision keys via KMS/HSM or secret manager/runtime key handles. |
+| Storing Base64 secret in properties | Anyone reading properties can decode it. | Keep secrets out of artifacts; use controlled runtime injection. |
+| Bundling keystore + keystore password in same JAR | Artifact holds everything needed to unlock keys. | Keep keystore outside artifacts, use key-handle/HSM, separate password/identity. |
+| Adding `.gitignore` after committing | Does not remove secret from history/clones. | Revoke/rotate and handle copies per incident plan; add ignore/scanning. |
+| Docker `ARG`/`ENV` holding raw secrets at build time | Secrets may remain in image metadata/layers/caches. | Dedicated build secrets only if strictly required and verify output; prefer runtime injection. |
+| `logger.debug("config={}", config)` | May serialize full passwords and tokens. | Log allowlisted event fields; never log sensitive objects. |
+| Enabling HTTP wire logging in production | Authorization headers/bodies may be broadcast. | Keep logging minimal, redact, and disable sensitive wire logs. |
+| Catching errors and printing raw `exception.getMessage()` | SDK error messages may include requests/URLs/secrets. | Standardized error codes, controlled logging, trace IDs, log protection. |
+| Passing credentials via `-Dtoken=...` to JVM | Exposed via process lists, shell histories/diagnostics. | Safer runtime injection, file mounts, or SDKs. |
+| Sharing the same secret across dev and prod | Lower-environment breach spreads to prod. | Isolate identities, secret scopes, rotation, and permissions per environment. |
+| Falling back to embedded key when KMS fails | Fail-open using hard-to-manage/exposed keys. | Fail-closed with alerts; zero fallback secrets in code. |
+| Only deleting the hard-coded line after discovery | Old secret remains valid and may live in history/artifacts/logs. | Revoke/rotate, audit all leak surfaces, and monitor post-incident. |
+| Printing a partial API key for debugging | Can leak useful info and link logs to secrets. | Use policy-approved key references/versions or separate correlation IDs. |
+| Password-protected KeyStore = “already secure” | Password/key may sit in same artifact, overly broad read access, or exposed backups. | Audit all storage and consumption points; use proper HSM/KMS/ACLs. |
 
-## 12. Checklist PR/CI trước khi phát hành
+## 12. Pre-Release PR/CI Checklist
 
-### Kiểm tra cho lập trình viên
+### Developer Checks
 
-- [ ] Không có **secret có hiệu lực** trong Java source, Kotlin, properties, YAML, JSON, SQL migration, test fixtures hoặc README.
-- [ ] `.env` hay local secret config không được track, nhưng hiểu rằng ignore **không sửa history**.
-- [ ] Không có secret trong command line, Gradle/Maven task, Dockerfile `ARG`/`ENV` hoặc output của script.
-- [ ] Mọi secret production được cấp qua identity/secret manager/runtime injection, **không có fallback hard-code**.
-- [ ] Không có `println`/`logger`/`toString`/JSON serialization/exception message làm lộ key, password, Authorization header hoặc token.
-- [ ] Không log raw object `SecretKey`, `PrivateKey` hoặc `getEncoded()`.
-- [ ] Mọi test đều dùng **dummy credential vô hiệu**, dữ liệu test không được tái sử dụng ở production.
-- [ ] Xác định key alias/version, rotation, quyền đọc/operation và trách nhiệm sở hữu.
+- [ ] No **live secrets** in Java source, Kotlin, properties, YAML, JSON, SQL migrations, test fixtures, or READMEs.
+- [ ] `.env` and local secret configs are untracked, while understanding ignoring **does not fix history**.
+- [ ] No secrets in command lines, Gradle/Maven tasks, Dockerfile `ARG`/`ENV`, or script outputs.
+- [ ] All production secrets come from identity/secret manager/runtime injection, **with no hard-coded fallbacks**.
+- [ ] No `println`/`logger`/`toString`/JSON serialization/exception messages leaking keys, passwords, Authorization headers, or tokens.
+- [ ] Never log raw `SecretKey`, `PrivateKey` objects, or `getEncoded()`.
+- [ ] All tests use **invalid dummy credentials**; test data is never reused in production.
+- [ ] Key aliases/versions, rotation, read/operation permissions, and ownership are defined.
 
-### Kiểm tra cho build/security/ops
+### Build / Security / Ops Checks
 
-- [ ] Pre-commit/PR scanning và CI checks chặn credential lộ; những phát hiện được xử lý mà không tái phát tán nội dung secret.
-- [ ] JAR/WAR/resources/image layers/artifacts được kiểm tra và không chứa secret môi trường.
-- [ ] Pipeline có quyền tối thiểu; secret chỉ cấp cho job thực sự cần, không cấp cho PR/fork không tin cậy.
-- [ ] Dev/staging/prod dùng secret và identity tách biệt; có key inventory, owner, expiry và runbook rotation.
-- [ ] Audit của KMS/secret store bật đúng mức; log aggregation/tracing không giữ raw secret.
-- [ ] Runtime secret file có ACL, owner, rotation và bảo vệ backup/mount.
-- [ ] Có runbook khi lộ token/key, gồm revoke, chuyển consumer, kiểm tra history/artifact/log và điều tra.
-- [ ] Đã kiểm tra đường lỗi như KMS outage, secret hết hạn hoặc permission denied: hệ thống **không fallback sang credential tĩnh**.
+- [ ] Pre-commit/PR scanning and CI checks block exposed credentials; findings are triaged without re-broadcasting secret contents.
+- [ ] JAR/WAR/resources/image layers/artifacts are inspected and contain no environment secrets.
+- [ ] Pipelines have least-privilege access; secrets are issued only to jobs that genuinely need them, never to untrusted PRs/forks.
+- [ ] Dev/staging/prod use isolated secrets and identities; key inventory, owners, expiry, and rotation runbooks exist.
+- [ ] KMS/secret store auditing is properly enabled; log aggregation/tracing retains no raw secrets.
+- [ ] Runtime secret files have ACLs, owners, rotation, and backup/mount protection.
+- [ ] Runbooks exist for exposed tokens/keys covering revocation, consumer migration, history/artifact/log checks, and investigation.
+- [ ] Failure paths such as KMS outages, expired secrets, or permission denied are tested: the system **never falls back to static credentials**.
 
-## 13. Bài tập tình huống (kèm đáp án)
+## 13. Scenario Exercises (with Answers)
 
-**Câu 1.** Một class có `private static final String SERVICE_TOKEN = "..."`, code được đưa vào private repository. Có an toàn chưa?
+**Question 1.** A class has `private static final String SERVICE_TOKEN = "..."`, and the code is pushed to a private repository. Is it secure?
 
-**Đáp án:** Chưa. Token vẫn nằm trong source, history và có thể xuất hiện trong bytecode, artifact, clone. Không nên hard-code bất kể repo private hay public.
+**Answer:** No. The token remains in source and Git history and can appear in bytecode, artifacts, and clones. Never hard-code secrets regardless of whether the repo is private or public.
 
-**Câu 2.** Developer chuyển giá trị secret từ Java literal vào `src/main/resources/application.properties` rồi build fat JAR. Đã giải quyết chưa?
+**Question 2.** A developer moves the secret from a Java literal into `src/main/resources/application.properties` and builds a fat JAR. Is the problem solved?
 
-**Đáp án:** Chưa. Resources thường được đưa vào JAR, vẫn có thể trích xuất được. Cần tách secret khỏi artifact, cấp ở runtime.
+**Answer:** No. Resources are typically packaged into the JAR and can still be extracted. Separate secrets from artifacts and provision them at runtime.
 
-**Câu 3.** Đổi token thành Base64 và đặt hằng `BASE64_TOKEN` trong code có đủ bảo mật không?
+**Question 3.** Is converting the token to Base64 and storing `BASE64_TOKEN` in code secure enough?
 
-**Đáp án:** Không. Base64 chỉ đổi biểu diễn; ai có binary và logic giải mã có thể khôi phục. Obfuscation không tạo bí mật thực.
+**Answer:** No. Base64 only changes representation; anyone with the binary and decoding logic can recover it. Obfuscation does not create real secrecy.
 
-**Câu 4.** Một Dockerfile dùng `ARG API_TOKEN`, rồi xóa file chứa token trong layer sau. Có chắc image sạch không?
+**Question 4.** A Dockerfile uses `ARG API_TOKEN`, then deletes a file containing the token in a later layer. Is the image guaranteed clean?
 
-**Đáp án:** Không. Token có thể còn ở build metadata, history, layers hoặc cache, và script đã sử dụng token có thể log giá trị. Không truyền raw secret qua ARG/ENV; dùng secret mount chuyên dụng khi cần lúc build và xác minh không persist vào output.
+**Answer:** No. The token may persist in build metadata, history, layers, or caches, and scripts using the token may log it. Never pass raw secrets via ARG/ENV; use dedicated build secret mounts when needed and verify nothing persists in output.
 
-**Câu 5.** Mã Java gọi `logger.debug("headers={}", request.getHeaders())` nhưng log chỉ bật ở DEV. Có rủi ro không?
+**Question 5.** Java code calls `logger.debug("headers={}", request.getHeaders())`, but debug logging is enabled only in DEV. Is there risk?
 
-**Đáp án:** Có. Header có thể chứa Authorization/session token và log DEV/CI cũng có người đọc, backup, APM. Dùng allowlist field và chính sách log nhất quán giữa các môi trường.
+**Answer:** Yes. Headers can carry Authorization/session tokens, and DEV/CI logs still have readers, backups, and APM. Use allowlisted fields and consistent logging policies across environments.
 
-**Câu 6.** `System.getenv("DB_PASSWORD")` có tốt hơn hard-code không? Có phải an toàn hoàn toàn không?
+**Question 6.** Is `System.getenv("DB_PASSWORD")` better than hard-coding? Is it completely secure?
 
-**Đáp án:** Tốt hơn về **tách cấu hình khỏi artifact** nếu giá trị được runtime inject, nhưng environment có thể lộ trong process metadata, dump, child process, platform UI hoặc log. Ưu tiên identity/secret manager hoặc runtime mount phù hợp, giảm scope/TTL.
+**Answer:** It is better for **separating config from artifacts** if injected at runtime, yet environment variables can leak via process metadata, dumps, child processes, platform UIs, or logs. Prefer workload identity/secret managers or protected runtime mounts with minimal scope/TTL.
 
-**Câu 7.** Đã xóa secret khỏi nhánh hiện tại và thêm vào `.gitignore`. Có cần rotate không?
+**Question 7.** The secret was deleted from the current branch and added to `.gitignore`. Is rotation still required?
 
-**Đáp án:** Nếu secret thật có thể đã bị lộ, **cần đánh giá và thường phải revoke/rotate**. Lịch sử và bản sao không tự biến mất; ignore không thu hồi credential.
+**Answer:** If a real secret may have been exposed, **you must assess and usually revoke/rotate**. History and copies do not vanish on their own; ignoring a file does not revoke a credential.
 
-**Câu 8.** Một key KMS không thể export, nhưng app log `keyId`. Có vi phạm cùng mức với log raw AES key không?
+**Question 8.** A KMS key is non-exportable, yet the app logs `keyId`. Is that the same severity as logging a raw AES key?
 
-**Đáp án:** Không nhất thiết. `keyId` thường là metadata được phép audit, còn raw key là bí mật; tuy vậy keyId/alias vẫn phải được kiểm soát theo policy và không chứa thông tin nhạy cảm.
+**Answer:** Not necessarily. `keyId` is usually auditable metadata whereas a raw key is a secret; still, keyIds/aliases must comply with policy and never embed sensitive data.
 
-**Câu 9.** Khi secret manager lỗi, ứng dụng chuyển sang credential đã nhúng để luôn phục vụ request. Vì sao nguy hiểm?
+**Question 9.** When the secret manager fails, the app falls back to an embedded credential to keep serving requests. Why is this dangerous?
 
-**Đáp án:** Fallback làm secret khó quản lý tồn tại trong artifact, bypass quyền và rotation, có thể tiếp tục truy cập bằng khóa đã lộ. Cần fail-closed, alert và quy trình availability được thiết kế từ trước.
+**Answer:** Fallbacks keep hard-to-manage secrets inside artifacts, bypass access controls and rotation, and may keep using compromised keys. Fail closed, alert, and design availability properly upfront.
 
-**Câu 10.** Ghi `key.getEncoded()` sang log rồi mã hóa tập log sau đó có an toàn tương đương không ghi không?
+**Question 10.** Is logging `key.getEncoded()` and encrypting the log files afterward as safe as not logging it at all?
 
-**Đáp án:** Không. Secret đã đi qua nhiều điểm thu gom/agent/buffer và có thể bị đọc trước khi mã hóa, sao chép sang nơi khác hoặc giữ trong backup. Tốt nhất **không log raw key từ đầu**.
+**Answer:** No. The secret already traversed collectors, agents, and buffers and could be read before encryption, copied elsewhere, or retained in backups. Best practice is **never logging raw keys in the first place**.
 
-**Câu 11.** Một AES key bị lộ nhưng chỉ dữ liệu mới dùng key mới, dữ liệu cũ vẫn được mã hóa bằng key cũ. Đã xử lý xong chưa?
+**Question 11.** An AES key was exposed, so new data uses a new key while old data remains encrypted with the old key. Is remediation finished?
 
-**Đáp án:** Chưa chắc. Cần đánh giá nguy cơ đối với ciphertext cũ, key version còn dùng để decrypt, phương án re-encrypt/re-wrap, phạm vi và thời điểm thu hồi theo yêu cầu phục hồi dữ liệu. Rotation của khóa mã hóa có nhiều bước hơn thay một API token.
+**Answer:** Not necessarily. You must evaluate risk to old ciphertext, key versions still enabled for decryption, re-encryption/re-wrapping options, scope, and revocation timing based on data recovery needs. Encryption key rotation involves more steps than replacing an API token.
 
-**Câu 12.** Scanner không báo gì trong code; có thể khẳng định image và log không có secret không?
+**Question 12.** A code scanner reports zero findings; can you conclude the image and logs contain no secrets?
 
-**Đáp án:** Không. Scanner có false negative và chỉ nhìn phạm vi được cấu hình. Cần kiểm tra source history, package/resources, image layers, CI artifacts và logging path, đồng thời có giám sát runtime.
+**Answer:** No. Scanners have false negatives and only check configured scopes. Inspect source history, packages/resources, image layers, CI artifacts, and logging paths, alongside runtime monitoring.
 
-## 14. Tài liệu tham khảo
+## 14. References
 
-- [OWASP — Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html): quản lý tạo, phân quyền, lưu trữ, cấp phát, rotation, expiration, revocation và rủi ro của environment variables.
-- [OWASP — Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html): các loại thông tin cần loại trừ khỏi log, including access tokens, authentication passwords, connection strings và encryption keys.
-- [OWASP — CI/CD Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/CI_CD_Security_Cheat_Sheet.html): không hard-code trong pipeline, nguy cơ artifacts/container image và least privilege.
-- [MITRE CWE-798 — Use of Hard-coded Credentials](https://cwe.mitre.org/data/definitions/798): vấn đề credential được gắn cố định trong mã/đóng gói.
-- [MITRE CWE-532 — Insertion of Sensitive Information into Log File](https://cwe.mitre.org/data/definitions/532.html): rò rỉ bí mật qua log và hệ quả confidentiality.
-- [Java SE 17 — KeyGenerator API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html): sinh khóa đối xứng qua provider.
-- [Java SE 17 — SecretKey API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/SecretKey.html): giao diện khóa bí mật.
-- [Java SE 17 — Cipher API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): AES/GCM và cách làm việc với ciphertext/tag.
-- [Java SE 17 — SecureRandom API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): nguồn ngẫu nhiên dùng trong ứng dụng bảo mật.
-- [Java SE 17 — KeyStore API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): lưu trữ/đọc key và certificate theo keystore/provider.
+- [OWASP — Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html): managing generation, authorization, storage, provisioning, rotation, expiration, revocation, and risks of environment variables.
+- [OWASP — Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html): types of data to exclude from logs, including access tokens, authentication passwords, connection strings, and encryption keys.
+- [OWASP — CI/CD Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/CI_CD_Security_Cheat_Sheet.html): avoiding hard-coding in pipelines, artifact/container image risks, and least privilege.
+- [MITRE CWE-798 — Use of Hard-coded Credentials](https://cwe.mitre.org/data/definitions/798): issues with credentials fixed in code/packages.
+- [MITRE CWE-532 — Insertion of Sensitive Information into Log File](https://cwe.mitre.org/data/definitions/532.html): secret leakage through logs and confidentiality consequences.
+- [Java SE 17 — KeyGenerator API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html): generating symmetric keys via providers.
+- [Java SE 17 — SecretKey API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/SecretKey.html): secret key interface.
+- [Java SE 17 — Cipher API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): AES/GCM and working with ciphertext/tags.
+- [Java SE 17 — SecureRandom API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): randomness source for security applications.
+- [Java SE 17 — KeyStore API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): storing/loading keys and certificates by keystore/provider.

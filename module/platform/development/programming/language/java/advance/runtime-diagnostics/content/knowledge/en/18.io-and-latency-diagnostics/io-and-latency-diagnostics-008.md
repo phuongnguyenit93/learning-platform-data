@@ -1,25 +1,25 @@
-# 18.8 Phạm vi JVM quan sát được và bằng chứng cần lấy thêm từ hệ điều hành hoặc dịch vụ ngoài
+# 18.8 What the JVM Can Observe vs. Evidence Needed from the OS or External Services
 
-## Mục tiêu học tập
+## Learning objectives
 
-Một request Java chậm 800 ms chưa chắc JVM đã thực hiện 800 ms công việc. Một event jdk.SocketRead kéo dài 400 ms chưa chắc mạng truyền dữ liệu mất 400 ms. Một thao tác FileWrite trở về thành công chưa chứng minh dữ liệu đã được ghi bền vững xuống đĩa. Ngược lại, không thấy event I/O trong JFR cũng **không** chứng minh ứng dụng không chờ I/O.
+An 800 ms Java request does not mean the JVM performed 800 ms of work. A 400 ms `jdk.SocketRead` event does not mean the network spent 400 ms transmitting data. A `FileWrite` returning successfully does not prove data was durably persisted to disk. Conversely, seeing no I/O events in JFR **does not** prove the application is not waiting on I/O.
 
-Bài này xác lập **ranh giới quan sát (observability boundary)** giữa JVM, hệ điều hành, mạng/lưu trữ và dịch vụ bên ngoài. Mục tiêu là biết điều gì có thể kết luận trực tiếp từ dữ liệu của JVM, điều gì chỉ là giả thuyết và cần thu thêm bằng chứng ở đâu, đặc biệt trong các ca điều tra **I/O và độ trễ**.
+This lesson establishes **the observability boundary** between the JVM, the operating system, networks/storage, and external services. The goal is to know what can be concluded directly from JVM data, what remains a hypothesis, and where to gather additional evidence—especially during **I/O and latency** investigations.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt Java/JVM I/O events, application spans, OS/kernel counters, network measurements và server-side telemetry.
-2. Giải thích vì sao socket read/write duration, file I/O duration, thread states và CPU metrics không tương đương network RTT, disk latency hoặc thời gian xử lý của database.
-3. Nhận diện những điểm mù do NIO/asynchronous I/O, connection pool, DNS, TLS, proxy, retry, kernel buffers, storage cache, cgroup và JFR threshold.
-4. Thu thập bằng chứng từ Linux/containers và từ dịch vụ phụ thuộc một cách có mục tiêu, an toàn, có timestamp.
-5. Ghép timeline theo trace/request ID và kiểm tra giả thuyết cạnh tranh trước khi kết luận nguyên nhân.
-6. Viết hồ sơ điều tra có giới hạn quan sát rõ ràng thay vì chỉ nói chung “I/O chậm”.
+1. Distinguish Java/JVM I/O events, application spans, OS/kernel counters, network measurements, and server-side telemetry.
+2. Explain why socket read/write duration, file I/O duration, thread states, and CPU metrics do not equal network RTT, disk latency, or database execution time.
+3. Recognize blind spots caused by NIO/asynchronous I/O, connection pools, DNS, TLS, proxies, retries, kernel buffers, storage caches, cgroups, and JFR thresholds.
+4. Collect timestamped evidence from Linux/containers and dependent services in a targeted, safe manner.
+5. Align timelines by trace/request ID and evaluate competing hypotheses before concluding root cause.
+6. Write an investigation record with explicit observation boundaries instead of vaguely saying "I/O is slow."
 
-Phạm vi ví dụ: Java 17+ trên HotSpot/OpenJDK, Java Flight Recorder (JFR) và Java Mission Control (JMC), Linux/cgroup v2 cùng các hệ thống có HTTP/gRPC, database hoặc storage. Khả năng quan sát cụ thể phụ thuộc JVM vendor/version, hệ điều hành, container runtime, network stack, thư viện ứng dụng và event settings. Các lệnh Linux là **công cụ điều tra có điều kiện**, không phải mọi môi trường đều cài sẵn hay cho quyền chạy.
+Example scope: Java 17+ on HotSpot/OpenJDK, Java Flight Recorder (JFR) and Java Mission Control (JMC), Linux/cgroup v2, along with systems involving HTTP/gRPC, databases, or storage. Exact visibility depends on JVM vendor/version, OS, container runtime, network stack, application libraries, and event settings. Linux commands are **conditional investigative tools**—not every environment has them installed or grants permission to run them.
 
-## 1. Một request đi qua nhiều miền trách nhiệm
+## 1. A request crosses multiple responsibility domains
 
-Giả sử service Java nhận yêu cầu, lấy dữ liệu từ database rồi trả về HTTP response:
+Suppose a Java service receives a request, fetches data from a database, and returns an HTTP response:
 
 ~~~text
 Client
@@ -49,137 +49,137 @@ Java service
 Proxy / network / end user
 ~~~
 
-Có ít nhất **bốn góc nhìn**:
+There are at least **four vantage points**:
 
 - **Application/JVM:** method calls, Java thread stacks, Java-visible I/O operations, GC/JIT, heap, instrumented client/server spans.
-- **OS/kernel/container:** CPU scheduling, run queue, TCP state/retransmission/RTT estimates, socket buffers, file descriptors, process I/O counters, block-device queues, cgroup limits và pressure stalls.
-- **Hạ tầng trung gian:** DNS resolver, service mesh, load balancer, TLS termination, sidecar proxy, NAT, packet loss, rate limiting và network policy.
-- **Remote dependency:** connection queue, server thread pool, query execution/locks, storage IOPS, downstream retries, throttling và ứng dụng khác.
+- **OS/kernel/container:** CPU scheduling, run queues, TCP state/retransmissions/RTT estimates, socket buffers, file descriptors, process I/O counters, block-device queues, cgroup limits, and pressure stalls.
+- **Intermediate infrastructure:** DNS resolvers, service meshes, load balancers, TLS termination, sidecar proxies, NAT, packet loss, rate limiting, and network policies.
+- **Remote dependency:** connection queues, server thread pools, query execution/locks, storage IOPS, downstream retries, throttling, and competing tenants.
 
-Một hiện tượng thường **được quan sát từ nhiều miền**, nhưng chỉ một số nguồn đủ gần cơ chế để xác định tại sao nó xảy ra. JFR có thể phát hiện thread Java chờ ở socket; muốn biết đó là **đợi database chạy truy vấn**, **packet loss** hay **upstream queue**, cần số liệu của miền bên ngoài.
+One symptom is often **observed across multiple domains**, yet only certain sources sit close enough to the mechanism to explain why it happened. JFR can detect a Java thread waiting on a socket; knowing whether it is **waiting for the database to run a query**, **packet loss**, or **an upstream queue** requires data from external domains.
 
-**Nguyên tắc gốc:** “Nơi tôi quan sát thấy chờ” không tự động là “nơi đã tạo ra sự chậm trễ”.
+**Core principle:** "Where I observed the wait" is not automatically "what caused the delay."
 
-## 2. Những gì JVM có thể quan sát trực tiếp
+## 2. What the JVM can observe directly
 
-### 2.1. JFR events về socket và file I/O
+### 2.1. JFR socket and file I/O events
 
-Các tên event JFR thường dùng trên HotSpot:
+Common JFR event names on HotSpot:
 
-| Event | Nhìn thấy gì khi được bật/ghi | Không tự chứng minh điều gì |
+| Event | What it shows when enabled/recorded | What it does NOT prove by itself |
 | --- | --- | --- |
-| jdk.SocketRead | Thời lượng thao tác socket read được instrument, endpoint/address/port, bytes và thread/stack khi có | Network RTT, server processing time, mọi packet, mọi async read |
-| jdk.SocketWrite | Thời lượng thao tác socket write được instrument và số byte ghi theo semantics của event | Dữ liệu đã đến/được ACK ở phía đích, remote service đã xử lý |
-| jdk.FileRead | Thời lượng thao tác file read Java-visible, path/bytes khi có | Mỗi byte đều đọc đĩa vật lý, device service time chính xác |
-| jdk.FileWrite | Thời lượng thao tác file write Java-visible | Dữ liệu đã được fsync hoặc lưu bền vững, độ trễ flush thực trên thiết bị |
-| jdk.JavaMonitorEnter / jdk.ThreadPark | Một số tình huống monitor contention / park trong JVM nếu recording chứa event | Mọi hình thức queue, mọi thời gian chờ OS/scheduler hoặc network |
-| jdk.CPULoad / jdk.ThreadCPULoad | Tín hiệu sử dụng CPU theo JVM/thread trong các khoảng thu | CPU throttling, mọi nguyên nhân chờ I/O, packet loss |
-| jdk.GarbageCollection và GC phases | Hoạt động GC trong JVM, giúp đối chiếu pause/pressure với request | Mọi khoảng latency đều do GC hoặc mọi I/O event là lỗi network |
+| jdk.SocketRead | Duration of an instrumented socket read, endpoint/address/port, bytes, and thread/stack if present | Network RTT, server processing time, every packet, every async read |
+| jdk.SocketWrite | Duration of an instrumented socket write and bytes written per event semantics | That data arrived/was ACKed at destination, or remote service processed it |
+| jdk.FileRead | Duration of a Java-visible file read, path/bytes when present | That every byte hit physical disk, or exact device service time |
+| jdk.FileWrite | Duration of a Java-visible file write | That data was `fsync`ed or durably stored, or actual device flush latency |
+| jdk.JavaMonitorEnter / jdk.ThreadPark | Certain monitor contention / park situations in the JVM if captured | Every kind of queue, OS/scheduler wait time, or network wait |
+| jdk.CPULoad / jdk.ThreadCPULoad | JVM/thread CPU usage signals across capture intervals | CPU throttling, every I/O wait cause, packet loss |
+| jdk.GarbageCollection and GC phases | GC activity in the JVM to correlate pauses/pressure with requests | That every latency window is caused by GC or every I/O event is a network fault |
 
-**Các event phải được bật và vượt điều kiện ghi**: threshold, period, stackTrace, duration, recording window và dữ liệu còn giữ. Những event I/O ngắn có thể không xuất hiện nếu threshold khác 0. Mức threshold “mặc định” có thể khác cấu hình .jfc, JDK và view; **đọc cấu hình đang dùng**, đừng hard-code một ngưỡng cho mọi môi trường.
+**Events must be enabled and satisfy capture conditions**: thresholds, periods, `stackTrace`, durations, recording windows, and retained data. Short I/O events may not appear if thresholds are non-zero. "Default" thresholds can differ across `.jfc` configs, JDKs, and views; **inspect the active configuration** rather than hard-coding one threshold for all environments.
 
-Với SocketRead, một event dài có thể đại diện phần thời gian thread **đang chờ dữ liệu xuất hiện** ở phía nhận. Khoảng đó có thể bao gồm server xử lý truy vấn, thời gian truyền, wait trong kernel và scheduling; không đủ để tách từng thành phần.
+With `SocketRead`, a long event may represent the time a thread spent **waiting for data to arrive** on the receiving side. That span can combine server query execution, transit time, kernel waits, and scheduling—insufficient to split each component apart.
 
-Với SocketWrite, việc write trả về thường chỉ nói vùng dữ liệu đã được **chấp nhận ở tầng I/O tương ứng**; kernel có thể buffer, TLS/client library có thể xử lý thêm, network chưa chắc đã giao tới remote application. Một write nhanh không chứng minh response end-to-end nhanh.
+With `SocketWrite`, returning from write usually means only that the buffer was **accepted at the corresponding I/O layer**; the kernel can buffer it, TLS/client libraries may process further, and the network may not have delivered it to the remote application yet. A fast write does not prove a fast end-to-end response.
 
-### 2.2. Thread dump, stack và JVM runtime metrics
+### 2.2. Thread dumps, stacks, and JVM runtime metrics
 
-Dữ liệu JVM còn hỗ trợ:
-- Java thread state (RUNNABLE/BLOCKED/WAITING/TIMED_WAITING), stack traces và lock ownership theo mức JVM nhận biết.
-- GC logs, safepoints, heap/JFR, CPU sampling và classloading/JIT evidence.
-- Application-level timers, OpenTelemetry spans, JMX pool metrics, HTTP client metrics, logs với trace/request ID.
-- Counts và timing của executor/connection pool nếu thư viện xuất telemetry.
+JVM data also provides:
+- Java thread states (`RUNNABLE`/`BLOCKED`/`WAITING`/`TIMED_WAITING`), stack traces, and lock ownership as visible to the JVM.
+- GC logs, safepoints, heap/JFR, CPU sampling, and classloading/JIT evidence.
+- Application-level timers, OpenTelemetry spans, JMX pool metrics, HTTP client metrics, logs with trace/request IDs.
+- Executor/connection-pool counts and timings if the library exports telemetry.
 
-Nhưng Java Thread.State.RUNNABLE **không tương đương** OS thread đang chiếm CPU liên tục: một thread có thể nằm trong lời gọi native hay chờ I/O ở kernel. WAITING không chỉ ra nguyên nhân nguồn lực bên ngoài nếu không biết stack và pool. Thread dump là **ảnh chụp**, còn vấn đề tail latency thường cần chuỗi thời gian.
+Yet `java.lang.Thread.State.RUNNABLE` **does not equal** an OS thread continuously burning CPU: a thread may sit in a native call or wait on kernel I/O. `WAITING` does not pinpoint an external resource cause without stacks and pool context. A thread dump is a **snapshot**, whereas tail latency problems usually require time series.
 
-### 2.3. Phạm vi của JFR không đồng nhất với mọi API I/O
+### 2.3. JFR coverage is not uniform across all I/O APIs
 
-Một event name trong tài liệu không bảo đảm mọi đường đi I/O đều sinh ra event mong muốn. Các framework non-blocking, NIO selectors, native transports, asynchronous file channels, JNI, TLS libraries và RPC stacks có thể dùng kỹ thuật khác nhau. Với event ở tầng dưới, một lần logical HTTP request có thể ứng với nhiều socket reads/writes; ngược lại nhiều requests có thể dùng chung một connection HTTP/2.
+Seeing an event name in documentation does not guarantee every I/O path emits that event. Non-blocking frameworks, NIO selectors, native transports, asynchronous file channels, JNI, TLS libraries, and RPC stacks use different mechanisms. At lower layers, one logical HTTP request can map to many socket reads/writes; conversely, many requests can share one HTTP/2 connection.
 
-Ví dụ một client non-blocking có request span 900 ms nhưng không thấy jdk.SocketRead trên thread request. Điều này **không chứng minh không có network I/O**: request có thể đợi trong connection pool/queue hoặc được xử lý ở event loop khác, và bộ ghi JFR có thể không instrument đúng thao tác đó.
+For example, a non-blocking client shows a 900 ms request span yet no `jdk.SocketRead` appears on the request thread. This **does not prove there was no network I/O**: the request may have waited in a connection pool/queue or run on a different event-loop thread, and JFR may not instrument that exact operation.
 
-**Khi so JFR và application traces, phải đồng nhất level:** request → logical RPC → connection acquisition → write → server wait → read → deserialize. Không gán một socket event cho cả request khi chưa đối chiếu trace và connection reuse.
+**When comparing JFR and application traces, align levels:** request → logical RPC → connection acquisition → write → server wait → read → deserialize. Never pin a single socket event onto a whole request without correlating traces and connection reuse.
 
-## 3. Năm loại thời gian phải phân biệt
+## 3. Five types of time you must keep distinct
 
 ### 3.1. End-to-end latency
 
-Từ khi client bắt đầu request đến khi nhận đủ response. Nó có thể gồm DNS, TCP/TLS, proxy queue, Java service, remote dependency, truyền dữ liệu và client rendering. Một JFR file của Java service **không** quan sát trọn hai đầu.
+From when the client initiates a request until it receives the full response. It can include DNS, TCP/TLS, proxy queues, the Java service, remote dependencies, data transfer, and client rendering. A single JFR file from the Java service **cannot** observe both ends.
 
 ### 3.2. Application server span
 
-Đo ở service Java từ nhận request đến khi ghi/hoàn tất response theo định nghĩa instrumentation. Không nhất thiết bao gồm thời gian request xếp hàng ở load balancer hoặc dữ liệu chờ trong kernel accept queue trước khi handler bắt đầu. Với asynchronous response, cần xác định thời điểm span kết thúc.
+Measured inside the Java service from request receipt until writing/completing the response per instrumentation rules. Does not necessarily include load-balancer queuing or data sitting in the kernel accept queue before a handler starts. For async responses, verify when the span ends.
 
 ### 3.3. Client call span
 
-Đo một thao tác HttpClient/JDBC/gRPC client ở tầng ứng dụng. Nó có thể chứa: connection pool wait, DNS, proxy resolution, TCP connect, TLS handshake, write, server processing, read, retries/backoff và decoding. Nhìn thấy 400 ms trong client span **không đủ** nói 400 ms network transit.
+Measures an `HttpClient`/JDBC/gRPC client operation at the application layer. It can include: connection pool wait, DNS, proxy resolution, TCP connect, TLS handshake, write, server processing, read, retries/backoff, and decoding. Seeing 400 ms on a client span **is not enough** to call it 400 ms of network transit.
 
 ### 3.4. Java I/O event duration
 
-Đo một hoạt động FileRead/SocketRead cụ thể theo semantics của JVM/JFR. Nó không đo mọi giai đoạn của một logical request và có thể bị threshold/filter. Nếu một request có 10 socket read events, cũng không tự cộng durations để ra request latency: các events có thể trên threads khác nhau, overlap, thiếu các giai đoạn trước/sau hoặc chỉ là một phần của protocol.
+Measures a specific `FileRead`/`SocketRead` operation per JVM/JFR semantics. It does not cover every stage of a logical request and can be filtered by thresholds. If one request triggers 10 socket read events, you still cannot blindly sum their durations to get request latency: events may run on different threads, overlap, omit pre/post phases, or represent only part of the protocol.
 
 ### 3.5. Kernel/device/remote-service metrics
 
-- **TCP RTT estimate:** kernel ước lượng round-trip của TCP segments; không bằng thời gian DB query hay toàn bộ HTTP call.
-- **Block-device await:** latency trung bình của I/O requests ở một device trong khoảng đo; khác thời gian Java FileRead có cache/FS và khác p99 của từng request.
-- **Remote service duration:** thời gian được chính service bên kia đo theo ranh giới của nó; thường không bao gồm phần client pool wait hoặc hạ tầng phía trước.
-- **Trace spans:** thời gian của công việc có instrumentation, thường lồng nhau; cộng span cha + span con gây **double counting**, còn spans song song có thể chồng lấp.
+- **TCP RTT estimate:** kernel estimate of TCP segment round-trip time; not equal to DB query duration or an entire HTTP call.
+- **Block-device await:** average latency of I/O requests on a device over an interval; differs from cached/FS Java `FileRead` time and from per-request p99.
+- **Remote service duration:** measured by the peer service at its own boundaries; typically excludes client pool waits and upstream infrastructure.
+- **Trace spans:** instrumented work intervals, often nested; adding parent + child spans causes **double counting**, while parallel spans can overlap.
 
-Không phép trừ một cách cơ học giữa các số khác clock, khác sampling hoặc khác phạm vi để gọi phần dư là “thời gian mạng”. Chỉ phân rã khi đã xác lập các khoảng tương thích, đồng hồ đáng tin và không đếm trùng.
+Never mechanically subtract numbers from different clocks, sampling scopes, or layers and label the remainder "network time." Decompose only after establishing compatible intervals, reliable clocks, and zero double-counting.
 
-## 4. Câu hỏi “JVM biết được điều gì?” và “điều gì chưa biết?”
+## 4. "What does the JVM know?" vs. "What is still unknown?"
 
-| Câu hỏi | JVM/JFR có thể cung cấp | Bằng chứng cần thêm nếu muốn kết luận nguyên nhân |
+| Question | What JVM/JFR can provide | Additional evidence needed to conclude root cause |
 | --- | --- | --- |
-| Java thread đã chờ socket read bao lâu? | SocketRead event duration, thread, stack, endpoint nếu ghi được | Để biết chờ do đâu: tracing, TCP, proxy, remote logs |
-| TCP retransmissions tăng không? | Không có toàn bộ TCP stack counters trong JFR | ss/nstat/SNMP counters, network telemetry, packet trace có phép |
-| Mạng RTT tới dependency tăng không? | Application call/SocketRead chậm chỉ là tín hiệu | TCP RTT theo socket/path, network device và remote vantage point |
-| Database query chạy bao lâu? | JDBC span ở client (nếu instrument), SQL tags có thể có | DB server query duration, execution plan, lock/wait, pool queues |
-| Connection pool có nghẽn không? | Chỉ khi thư viện có metrics/spans riêng | Pool active/idle/pending, acquisition wait, connection lifecycle |
-| DNS resolution chậm không? | Application timer/JFR stack có thể gợi ý | Resolver metrics/logs, DNS query timing/cache miss, server DNS |
-| File read có chạm đĩa vật lý không? | FileRead timing/path và bytes theo API | Page cache, OS per-process I/O, block I/O trace/device counters |
-| Storage volume đang bị throttling? | JVM file ops chậm là triệu chứng | iostat, cgroup io.stat/io.pressure, cloud volume limits, storage metrics |
-| Container bị CPU throttling trong lúc I/O? | CPU/safepoint/thread metrics có thể gợi ý | cgroup cpu.stat, host scheduler metrics, run queue |
-| Remote API bị rate limit/retry? | Client status/retry spans nếu được instrument | API gateway/service response logs, rate-limit headers, retry counters |
-| JVM có GC pause trùng latency không? | JFR/GC logs, safepoints | APM request timeline và OS pressure để xác định tác động |
-| Người dùng nhận response chậm ở đâu? | Server span chỉ cho một đoạn | Client RUM/tracing, edge/ingress timing, network path |
-| TLS handshake/connection establishment tốn thời gian? | Client instrumentation, stack và một số JVM events khi có | Proxy TLS metrics, connect timing, socket state, certificate/DNS logs |
-| Remote object store đọc file chậm? | Client span và network I/O ở Java | Object storage server-side latency, status/throttling, retry, network path |
+| How long did a Java thread wait on socket read? | `SocketRead` event duration, thread, stack, endpoint if captured | To know why it waited: tracing, TCP, proxy, remote logs |
+| Are TCP retransmissions rising? | JFR lacks full TCP stack counters | `ss`/`nstat`/SNMP counters, network telemetry, authorized packet traces |
+| Did network RTT to the dependency rise? | Slow app calls/`SocketRead` are only hints | Per-socket/path TCP RTT, network devices, remote vantage point |
+| How long did the database query run? | Client-side JDBC spans (if instrumented), possibly SQL tags | DB server query duration, execution plan, locks/waits, pool queues |
+| Is the connection pool saturated? | Only if the library emits dedicated metrics/spans | Pool active/idle/pending, acquisition wait, connection lifecycle |
+| Is DNS resolution slow? | App timers/JFR stacks may hint at it | Resolver metrics/logs, DNS query timing/cache misses, DNS server |
+| Did file reads hit physical disk? | `FileRead` timing/path and bytes per API | Page cache stats, OS per-process I/O, block I/O traces/device counters |
+| Is the storage volume being throttled? | Slow JVM file ops are a symptom | `iostat`, cgroup `io.stat`/`io.pressure`, cloud volume limits, storage metrics |
+| Was the container CPU-throttled during I/O? | CPU/safepoint/thread metrics may hint at it | cgroup `cpu.stat`, host scheduler metrics, run queues |
+| Was the remote API rate-limited/retried? | Client status/retry spans if instrumented | API gateway/service response logs, rate-limit headers, retry counters |
+| Did a JVM GC pause overlap the latency? | JFR/GC logs, safepoints | APM request timeline and OS pressure to determine impact |
+| Where did the user experience slow responses? | Server spans show only one slice | Client RUM/tracing, edge/ingress timings, network path |
+| Did TLS handshake/connection setup cost time? | Client instrumentation, stacks, and some JVM events if present | Proxy TLS metrics, connect timings, socket states, cert/DNS logs |
+| Is the remote object store slow reading files? | Client spans and Java network I/O | Object-store server-side latency, status/throttling, retries, network path |
 
-**Ranh giới câu trả lời:** “JFR thấy SocketRead 350 ms” là quan sát. “Database mất 350 ms để thực hiện SQL” là suy luận; phải có DB-side bằng chứng hoặc trace cho cùng request để đủ mạnh.
+**Answer boundary:** "JFR observed a 350 ms `SocketRead`" is an observation. "The database spent 350 ms running SQL" is an inference; you need DB-side evidence or traces for the same request to substantiate it.
 
-## 5. Bẫy lớn: không có event không có nghĩa không có I/O
+## 5. Big trap: no events does not mean no I/O
 
-Trước khi kết luận điều gì **không xảy ra**, hãy kiểm tra:
+Before concluding something **did not happen**, verify:
 
-1. Recording có bao phủ đúng instance/PID và timestamp của incident không?
-2. jdk.SocketRead/jdk.SocketWrite/jdk.FileRead/jdk.FileWrite có được bật trong .jfc và có stackTrace không?
-3. Threshold là bao nhiêu? Các I/O ngắn có thể bị loại, trong khi tổng hàng nghìn thao tác ngắn vẫn lớn.
-4. Duration của event có đúng đối tượng cần đo không? Async/NIO/HTTP/2 có thể không khớp từng logical request.
-5. Có đủ dữ liệu sau rolling retention/maxsize không? Có restart hoặc JFR chỉ thu sau sự cố không?
-6. Event được thực thi trên thread khác? Đã lọc đúng thread/process chưa?
-7. Có bước chờ **trước** I/O, như connection pool, executor queue, rate limiter, DNS, token refresh hoặc circuit breaker?
-8. Đã kiểm tra library/native transport, kernel bypass, proxy/sidecar và version hỗ trợ event chưa?
-9. Event dài có thể bị chọn bởi threshold, gây **selection bias**: median event được ghi không bằng median của mọi I/O thực hiện.
-10. Dữ liệu JFR bị thiếu/gián đoạn do crash, disk full, instrumentation overhead hoặc file chỉ chứa một phần khoảng quan sát không?
+1. Did the recording cover the exact instance/PID and timestamp of the incident?
+2. Were `jdk.SocketRead`/`jdk.SocketWrite`/`jdk.FileRead`/`jdk.FileWrite` enabled in `.jfc` with `stackTrace`?
+3. What was the threshold? Short I/Os can be dropped even while thousands of short calls sum up big.
+4. Does the event duration match the target object? Async/NIO/HTTP/2 may not map 1-to-1 to logical requests.
+5. Did enough data survive rolling retention/`maxsize`? Were there restarts or was JFR started only after the incident?
+6. Did events run on different threads? Did you filter by the right thread/process?
+7. Were there waits **before** I/O, such as connection pools, executor queues, rate limiters, DNS, token refreshes, or circuit breakers?
+8. Did you check library/native transports, kernel bypass, proxies/sidecars, and JDK event support?
+9. Long events selected by thresholds introduce **selection bias**: the median of recorded events is not the median of all executed I/O.
+10. Was JFR data missing/gapped due to crashes, full disks, instrumentation overhead, or partial capture windows?
 
-Không nên đặt threshold cực thấp trên production mặc định để “ghi mọi event”: số lượng event/stack traces có thể tăng mạnh và làm thay đổi hiệu năng. Khi cần, thu profile ngắn có kiểm soát, đo overhead và lưu cấu hình.
+Avoid setting ultra-low thresholds by default in production to "catch every event": event/stack trace volumes can spike and alter performance. When needed, take a short controlled profile capture, measure overhead, and save the configuration.
 
-## 6. Thu bằng chứng trong JVM: quy trình tối thiểu
+## 6. Collecting evidence inside the JVM: minimal workflow
 
-Ví dụ lệnh JDK 21; thay PID và path bằng giá trị thật. jcmd cần quyền attach thích hợp; minimal container có thể không đóng gói JDK tools. Dùng đường dẫn có quyền ghi từ góc nhìn process Java.
+JDK 21 command examples; substitute real PID and paths. `jcmd` requires suitable attach permissions; minimal containers may omit JDK tools. Use a path writable from the Java process's perspective.
 
 ~~~bash
 java -version
 jcmd -l
-PID=12345                      # Ví dụ; phải xác minh PID thật
+PID=12345                      # Example; verify the real PID
 jcmd "$PID" VM.command_line
 jcmd "$PID" VM.flags
 jcmd "$PID" help JFR.start
 jcmd "$PID" JFR.check
 ~~~
 
-Nếu đã có một recording đang chạy, có thể dump dữ liệu theo chính sách vận hành mà **không dừng** recording. Nếu chưa có, cân nhắc ghi một phiên ngắn quanh workload tái hiện:
+If a recording is already running, dump data per operational policy **without stopping** it. If none is running, consider a short capture around a reproducing workload:
 
 ~~~bash
 jcmd "$PID" JFR.start name=io_probe \
@@ -187,9 +187,9 @@ jcmd "$PID" JFR.start name=io_probe \
   filename=/var/tmp/io-probe.jfr
 ~~~
 
-Lệnh là minh họa: profile không bảo đảm mọi event đã bật với threshold mong muốn. Khi cần I/O chi tiết hơn, kiểm tra .jfc hoặc dùng API/cấu hình JFR chính xác cho từng event; đừng khẳng định event absent nghĩa I/O absent. Đường dẫn file do JVM đích xử lý; chờ phiên hoàn tất/xác minh file trước khi phân tích. Recording có thể chứa dữ liệu nhạy cảm.
+These commands are illustrative: `profile` does not guarantee every event is enabled at your desired threshold. For detailed I/O, inspect `.jfc` or configure each event explicitly via API/settings; never claim missing events mean no I/O. The file path is resolved by the target JVM; wait for completion/verify the file before analyzing. Recordings can contain sensitive data.
 
-Khi file đã hoàn chỉnh:
+Once the file is complete:
 
 ~~~bash
 jfr summary /var/tmp/io-probe.jfr
@@ -202,20 +202,20 @@ jfr print --events jdk.ThreadPark,jdk.JavaMonitorEnter \
   /var/tmp/io-probe.jfr
 ~~~
 
-Lưu ý:
-- jfr summary cho biết event types và count ghi được, **không phải tổng số thao tác I/O thực tế**.
-- metadata mô tả schema/types và không chứng minh có event instance.
-- jfr print in events nếu file có chúng. Với file lớn, chỉ in phần được chọn hoặc phân tích bằng JMC; output có thể dài.
-- Nếu muốn stack, xem thuộc tính stackTrace của event và giới hạn stack-depth. Tăng độ sâu in không khôi phục các frame không được ghi.
-- Đối chiếu event startTime/duration với application trace ID/time. Socket event không mặc định mang trace ID của logical request; cần instrument/ghép bổ sung.
+Notes:
+- `jfr summary` shows recorded event types and counts, **not actual total I/O operations**.
+- `metadata` describes schemas/types and does not prove event instances exist.
+- `jfr print` outputs events if present. For large files, print selected events or analyze in JMC; output can be huge.
+- To inspect stacks, check the event's `stackTrace` property and `--stack-depth`. Increasing print depth cannot recover frames that were never recorded.
+- Align event `startTime`/`duration` with application trace IDs/timestamps. Socket events do not carry logical request trace IDs by default; correlate with additional instrumentation.
 
-**Cần chứng minh cái gì?** Với mỗi câu hỏi, hãy tạo một bảng gồm sự kiện, thread/stack, remote address hoặc file path, thời điểm, duration/bytes và mức độ coverage. Chỉ sau đó mới quyết định nguồn chứng cứ tiếp theo.
+**What needs proving?** For each question, build a table listing event, thread/stack, remote address or file path, timestamp, duration/bytes, and coverage level. Only then decide which evidence source to collect next.
 
-## 7. Dữ liệu OS/network: những thứ JVM không đo thay kernel
+## 7. OS/network data: what the JVM cannot measure for the kernel
 
-### 7.1. Linux socket state và TCP
+### 7.1. Linux socket states and TCP
 
-Trên đúng host **và network namespace** của process/container, các lệnh thường hữu ích:
+On the exact host **and network namespace** of the process/container, common useful commands include:
 
 ~~~bash
 ss -s
@@ -225,59 +225,59 @@ ip -s link
 nstat -az
 ~~~
 
-Giải thích:
-- ss -s: tóm tắt số socket theo trạng thái, phục vụ dấu hiệu tích tụ kết nối.
-- ss -tin: TCP sockets với thông tin nội bộ như RTT estimate, retransmission state, cwnd, send/receive queues tùy kernel.
-- ss -tinp: thêm process association khi có quyền; trong container có thể hạn chế PID/namespace.
-- ip -s link: bytes, packet drops/errors ở interface; số liệu thường **toàn interface**, không phải riêng Java app.
-- nstat -az: thống kê protocol/counters kernel, phụ thuộc iproute2/cấu hình. Các counters thường là cộng dồn; lấy chênh lệch theo cửa sổ và đánh giá quy mô, không đọc một con số tích lũy rồi kết luận vừa xảy ra packet loss.
+Explanation:
+- `ss -s`: summary of socket counts by state, signaling connection buildup.
+- `ss -tin`: TCP sockets with internal info such as RTT estimate, retransmission state, cwnd, and send/receive queues depending on kernel.
+- `ss -tinp`: adds process association when permitted; inside containers, PID/namespace isolation may restrict visibility.
+- `ip -s link`: interface bytes and packet drops/errors; stats are usually **interface-wide**, not isolated to the Java app.
+- `nstat -az`: kernel protocol statistics/counters, depending on `iproute2`/config. Counters are typically cumulative; take deltas over a window and check scale rather than reading one cumulative figure and concluding packet loss just occurred.
 
-**TCP RTT** trong ss là ước lượng của kernel cho socket TCP, không trực tiếp bằng DNS/TLS/setup, server app time hoặc client HTTP latency. Cwnd/retrans có ích để giả thuyết network congestion/loss, nhưng còn phải tương quan với đường kết nối đúng, cùng thời điểm và metrics ở remote/proxy side.
+**TCP RTT** in `ss` is the kernel's estimate for a TCP socket—not DNS/TLS setup, server app time, or client HTTP latency. Cwnd/retransmissions help test network congestion/loss hypotheses, yet still must be correlated with the right connection path, timestamp, and remote/proxy metrics.
 
-Không dùng ss -tin từ một namespace khác rồi bảo “không có connection”. Sidecar mesh có thể khiến Java chỉ kết nối localhost, còn upstream TCP connection nằm tại sidecar; phải kiểm tra network path và namespace thực.
+Never run `ss -tin` from a different namespace and say "there are no connections." Sidecar meshes can make Java connect only to localhost while upstream TCP connections live inside the sidecar; verify the real network path and namespace.
 
-### 7.2. Dữ liệu packet-level và eBPF
+### 7.2. Packet-level data and eBPF
 
-Khi nghi retransmissions, handshake timeout, reset, abnormal socket queues hoặc packet loss, có thể cần packet capture hay eBPF tracing tại node/sidecar.
+When suspecting retransmissions, handshake timeouts, resets, abnormal socket queues, or packet loss, packet captures or eBPF tracing on the node/sidecar may be needed.
 
-**Chỉ thực hiện khi có phê duyệt vận hành và bảo mật**, lọc hẹp theo host/port/duration, tránh ghi payload nhạy cảm và đánh giá overhead. TLS giúp bảo vệ payload trên wire nhưng metadata vẫn nhạy cảm; ở điểm termination có thể lộ nhiều hơn.
+**Execute only with operational and security approval**, tightly filtered by host/port/duration, avoiding sensitive payload capture and assessing overhead. TLS protects wire payloads, yet metadata remains sensitive; termination points expose more.
 
-Packet trace có thể giúp trả lời: SYN/SYN-ACK mất bao lâu, retransmission xảy ra không, TCP reset do phía nào quan sát, window/ACK patterns bất thường ra sao. Nó **không** tự nói database query chậm hay Java code lỗi nếu không gắn với request/trace.
+Packet traces can help answer: how long SYN/SYN-ACK took, whether retransmissions occurred, which side sent TCP resets, and how window/ACK patterns behaved. They do **not** by themselves show slow DB queries or Java bugs unless tied to requests/traces.
 
-**Tránh đo chủ động thiếu kiểm soát:** lệnh tạo tải/scan, tracer sâu hoặc capture toàn cluster có thể làm nặng sự cố; nên ưu tiên telemetry đã có và truy vấn nhỏ nhất.
+**Avoid uncontrolled active probing:** load-generating/scanning commands, heavy tracers, or cluster-wide captures can worsen an incident; prefer existing telemetry and minimal targeted queries.
 
-### 7.3. DNS, proxy, TLS và connection pooling
+### 7.3. DNS, proxies, TLS, and connection pooling
 
-Một lần client.send chậm có thể gồm:
+A slow `client.send` can consist of:
 - DNS lookup/cache miss;
-- connection pool pending do số connection hạn chế;
-- TCP connect hoặc TLS handshake;
-- proxy/sidecar queue/routing/retry;
-- chờ remote service nhận và xử lý;
+- connection pool pending due to limited connections;
+- TCP connect or TLS handshake;
+- proxy/sidecar queuing/routing/retries;
+- waiting for the remote service to receive and process;
 - response body transfer;
 - deserialization/application callbacks.
 
-JFR SocketRead/Write chỉ nhìn một phần; DNS/resolver, pool lease duration và TLS timing thường cần **client instrumentation** hoặc proxy/client library telemetry. Đo phases tách biệt, ít nhất: acquire → connect/TLS → send → first byte → last byte, nếu SDK hỗ trợ. HTTP/2 multiplexing làm nhiều requests dùng chung socket, nên không gắn một socket read với một HTTP request chỉ bằng địa chỉ IP/port.
+JFR `SocketRead`/`Write` sees only part of this; DNS/resolver timings, pool lease durations, and TLS handshakes generally require **client instrumentation** or proxy/client-library telemetry. Measure phases separately—at minimum: acquire → connect/TLS → send → first byte → last byte—if the SDK supports it. HTTP/2 multiplexing shares one socket across many requests, so never bind one socket read to one HTTP request solely by IP/port.
 
-## 8. Bằng chứng từ filesystem và block storage
+## 8. Evidence from filesystems and block storage
 
-### 8.1. FileRead/FileWrite là Java-visible operations
+### 8.1. `FileRead`/`FileWrite` are Java-visible operations
 
-Một Java FileRead nhanh có thể nhận dữ liệu từ page cache, không cần chạm thiết bị. Một Java FileWrite nhanh có thể ghi vào page cache/kernel buffers; không đồng nghĩa ổ cứng/volume đã commit dữ liệu ổn định. Đặc biệt, fsync/FileChannel.force, journal, filesystem metadata và remote network filesystems có cơ chế riêng.
+A fast Java `FileRead` may read from page cache without touching the physical device. A fast Java `FileWrite` may write into page cache/kernel buffers; it does not mean the disk/volume durably committed the data. Specifically, `fsync`/`FileChannel.force`, journals, filesystem metadata, and remote network filesystems follow distinct rules.
 
-Nếu request chậm tại FileRead, các nguyên nhân cạnh tranh:
-- device queue và IOPS/bandwidth limit;
-- storage network congestion đối với NFS/remote volume;
-- filesystem locks hoặc metadata contention;
-- page-cache misses, memory pressure, direct I/O tùy ứng dụng;
+If a request slows down in `FileRead`, competing causes include:
+- device queues and IOPS/bandwidth limits;
+- storage network congestion on NFS/remote volumes;
+- filesystem locks or metadata contention;
+- page-cache misses, memory pressure, or direct I/O depending on the app;
 - thread scheduling/CPU throttling;
-- ứng dụng đọc quá nhiều file nhỏ, random access, serialization sau read.
+- applications reading huge numbers of tiny files, random access, or post-read serialization.
 
-Vì thế JFR file path và duration là **điểm bắt đầu**. Nó không tự xác định phần chờ vật lý ở NVMe/volume hay cache.
+Therefore JFR file paths and durations are **a starting point**. They do not isolate physical wait on NVMe/volumes versus caching.
 
-### 8.2. Linux counters để đối chiếu
+### 8.2. Linux counters for correlation
 
-Các công cụ dưới đây cần package (sysstat) và quyền phù hợp:
+The tools below require packages (`sysstat`) and appropriate permissions:
 
 ~~~bash
 PID=12345
@@ -286,18 +286,18 @@ pidstat -d -p "$PID" 1 5
 iostat -xz 1 5
 ~~~
 
-Diễn giải:
-- /proc/PID/io có các counters như rchar/wchar, read_bytes/write_bytes, syscr/syscw; chúng **khác nghĩa**. rchar/wchar có thể gồm bytes qua syscalls không tương ứng bytes từ đĩa, còn read_bytes/write_bytes liên quan I/O thực ở mức OS theo định nghĩa kernel. Đây là **counter**, không phải latency mỗi thao tác.
-- pidstat -d cho per-process I/O throughput/đợi theo phiên bản/tool; cần kiểm tra đơn vị. Không đủ để kết luận p99 I/O.
-- iostat -xz cho block-device stats: await, r_await/w_await, queue/throughput, utilization tùy version. Đây là **tổng hợp ở device**, không phải một Java method; filesystem/RAID/cloud volume có thể làm số liệu không trùng logical I/O.
-- Lấy đúng device/volume đang phục vụ file path; host có nhiều volumes dễ khiến nhìn nhầm device khỏe khác.
-- Đọc theo **cùng khoảng** incident, chú ý lần báo cáo đầu tiên của một số tiện ích có thể là tích lũy từ boot, không đại diện cho cửa sổ vừa phát sinh.
+Interpretation:
+- `/proc/PID/io` holds counters like `rchar`/`wchar`, `read_bytes`/`write_bytes`, `syscr`/`syscw`; they have **distinct meanings**. `rchar`/`wchar` can include syscall bytes not hitting disk, while `read_bytes`/`write_bytes` relate to actual OS-level storage I/O per kernel definitions. These are **counters**, not per-operation latency.
+- `pidstat -d` gives per-process I/O throughput/waits depending on tool version; check units. Insufficient by itself for per-operation p99 I/O.
+- `iostat -xz` gives block-device stats: `await`, `r_await`/`w_await`, queues/throughput, and utilization depending on version. These are **device-wide aggregates**, not one Java method; filesystems/RAID/cloud volumes can decouple numbers from logical I/O.
+- Target the exact device/volume backing the file path; hosts with multiple volumes make it easy to inspect the wrong healthy device.
+- Read over **the exact incident interval**, noting that the first report from some utilities is cumulative since boot rather than the recent window.
 
-Nếu file nằm trên object store hoặc remote mount, block I/O counters của máy Java có thể không phản ánh latency phía server. Khi đó phải xem mount/client metrics, network và storage-provider metrics.
+If files reside on object stores or remote mounts, local block I/O counters on the Java host may miss server-side latency. Inspect mount/client metrics, network telemetry, and storage-provider metrics instead.
 
-### 8.3. Cgroup v2 I/O và pressure stall information
+### 8.3. Cgroup v2 I/O and pressure stall information
 
-Trong cgroup v2 phù hợp, có thể có:
+Inside an applicable cgroup v2 hierarchy, you may find:
 
 ~~~bash
 cat /sys/fs/cgroup/io.stat
@@ -307,198 +307,198 @@ cat /sys/fs/cgroup/cpu.stat
 cat /sys/fs/cgroup/memory.events
 ~~~
 
-**Không giả định** /sys/fs/cgroup ở mọi host/container là cgroup thật của ứng dụng. Xác định cgroup path của process, mount, version (v1 hay v2) và controller có sẵn trước khi đọc.
+**Never assume** `/sys/fs/cgroup` on every host/container is the application's actual cgroup. Verify the process's cgroup path, mount, version (v1 vs. v2), and enabled controllers before reading.
 
-- io.stat: read/write bytes và I/O counts theo thiết bị/cgroup, không tự có p95/p99 latency.
-- io.pressure: PSI, biểu diễn thời gian các tasks bị stall vì I/O theo cửa sổ/counters được kernel cung cấp. Không tương đương disk response time mỗi request.
-- io.max: cấu hình throttle bandwidth/IOPS nếu controller bật; đọc để biết **giới hạn**, không tự suy luận nó đã bị chạm.
-- cpu.stat: CPU usage, throttling counters nếu có; hỗ trợ phân biệt ứng dụng bị thiếu CPU với tình trạng “I/O chậm”.
-- memory.events: memory pressure/OOM-related events theo cgroup, giúp kiểm tra ảnh hưởng memory tới page cache và tiến trình.
+- `io.stat`: read/write bytes and I/O counts per device/cgroup; does not directly provide p95/p99 latency.
+- `io.pressure`: PSI, expressing time tasks stalled on I/O over kernel-provided windows/counters. Not equivalent to per-request disk response time.
+- `io.max`: bandwidth/IOPS throttle limits if the controller is active; read it to know **configured limits**, not to infer they were hit.
+- `cpu.stat`: CPU usage and throttling counters if present; helps separate CPU starvation from "slow I/O."
+- `memory.events`: cgroup memory pressure/OOM-related events, helping check memory pressure effects on page cache and the process.
 
-Với cloud volumes hoặc CSI, cần thêm provider-side throttle/IOPS/throughput/latency metrics; kernel view của node chưa phải mọi góc nhìn của storage backend.
+For cloud volumes or CSI drivers, add provider-side throttle/IOPS/throughput/latency metrics; the node's kernel view is not the entire storage backend.
 
-## 9. Bằng chứng từ các dịch vụ bên ngoài
+## 9. Evidence from external services
 
-### 9.1. HTTP/gRPC dependency và proxy
+### 9.1. HTTP/gRPC dependencies and proxies
 
-Lấy từ đúng dịch vụ/route/instance:
-- Server-side request duration theo route/method/status, request rate và p95/p99.
-- Concurrent requests, in-flight queue, worker threads, saturation và deadline/retry counts.
-- Proxy/ingress: upstream connect time, upstream response time, retries, queue/routing time, status, reset/timeout reasons và TLS handshake metrics (nếu sản phẩm hỗ trợ).
-- Trace spans dùng trace_id/span_id, parent relationships, request path; cân nhắc clock skew và sampling.
-- Network telemetry giữa Java app ↔ proxy ↔ remote service, không chỉ giữa client ↔ Java app.
+Collect from the exact service/route/instance:
+- Server-side request duration by route/method/status, request rate, and p95/p99.
+- Concurrent requests, in-flight queues, worker threads, saturation, and deadline/retry counts.
+- Proxy/ingress: upstream connect time, upstream response time, retries, queue/routing time, status, reset/timeout reasons, and TLS handshake metrics (if supported).
+- Trace spans with `trace_id`/`span_id`, parent relationships, and request paths; account for clock skew and sampling.
+- Network telemetry between Java app ↔ proxy ↔ remote service, not just client ↔ Java app.
 
-**Chú ý định nghĩa duration khác nhau:** Nginx/Envoy/ALB hoặc mesh có metrics tên giống nhau nhưng ranh giới bắt đầu/kết thúc không đồng nhất. Đọc tài liệu metric của sản phẩm đang dùng. “upstream_response_time” không nhất thiết bằng total client elapsed hoặc DB execution time.
+**Watch for differing duration definitions:** Nginx, Envoy, ALB, and meshes have similar-sounding metrics with different start/end boundaries. Read your product's metric docs. `upstream_response_time` does not necessarily equal total client elapsed time or DB execution time.
 
-### 9.2. Database
+### 9.2. Databases
 
-Một JDBC call chậm có thể vì:
-- Đợi connection pool trước khi bắt đầu query;
+A slow JDBC call can happen due to:
+- waiting on the connection pool before starting the query;
 - TCP connect/TLS/network;
-- Server queue, CPU, lock, deadlock/serialization conflict;
-- Query plan/index không phù hợp, scan nhiều rows, disk/cache misses;
-- Transaction giữ lock lâu;
-- Driver fetch/decoding hoặc đọc result set lớn;
-- Retries/timeouts do ứng dụng hoặc proxy.
+- server queuing, CPU, locks, or deadlocks/serialization conflicts;
+- poor query plans/indexes, scanning many rows, disk/cache misses;
+- transactions holding locks too long;
+- driver fetch/decoding or reading huge result sets;
+- retries/timeouts triggered by the app or proxy.
 
-Nên thu:
-- Pool acquisition time, active/idle/pending connections, timeout/eviction.
-- Query fingerprint/ID và execution time **trên DB server**, không chỉ JDBC elapsed phía client.
-- Locks/waits, active sessions, CPU, buffer cache, IOPS và slow query logs; execution plan khi có quyền và an toàn.
-- Rows returned/bytes, transaction boundaries, query count per request, statement timeout.
-- DB connection errors, failover/restart, replication lag hoặc quota/throttling nếu liên quan.
+Collect:
+- Pool acquisition time, active/idle/pending connections, timeouts/evictions.
+- Query fingerprint/ID and execution time **on the DB server**, not only client-side JDBC elapsed.
+- Locks/waits, active sessions, CPU, buffer cache, IOPS, and slow-query logs; execution plans when authorized and safe.
+- Rows returned/bytes, transaction boundaries, query count per request, statement timeouts.
+- DB connection errors, failovers/restarts, replication lag, or quotas/throttling if relevant.
 
-Ví dụ PostgreSQL có thể dùng pg_stat_activity, pg_stat_statements và EXPLAIN theo chính sách quyền và chi phí; chúng không tự gắn một câu SQL với JFR event nếu thiếu query ID/trace mapping. **Không chạy EXPLAIN ANALYZE trên truy vấn tốn kém trong production** khi chưa đánh giá tác động.
+For example, PostgreSQL offers `pg_stat_activity`, `pg_stat_statements`, and `EXPLAIN` subject to policy and cost; they do not automatically link a SQL statement to a JFR event without query ID/trace mapping. **Never run `EXPLAIN ANALYZE` on expensive queries in production** without assessing impact.
 
-### 9.3. Redis/cache, message broker, object store
+### 9.3. Redis/caches, message brokers, object stores
 
-- Cache/Redis: server latency, command duration, CPU/evictions, connection/queue, retry, cache hit/miss.
-- Kafka/RabbitMQ: broker request latency, producer batching, consumer lag, partition queue, replication/acks, throttling.
-- Object storage: request IDs, server-side latency/TTFB nếu có, retry/throttle/status codes, bandwidth, multipart/size.
-- DNS: resolver latency, lookup fail/timeout, cache hit/miss và authoritative/upstream issues.
+- Cache/Redis: server latency, command duration, CPU/evictions, connections/queues, retries, cache hits/misses.
+- Kafka/RabbitMQ: broker request latency, producer batching, consumer lag, partition queues, replication/acks, throttling.
+- Object storage: request IDs, server-side latency/TTFB if exposed, retries/throttling/status codes, bandwidth, multipart/sizes.
+- DNS: resolver latency, lookup failures/timeouts, cache hits/misses, authoritative/upstream issues.
 - Service mesh: xDS/routing, outlier ejection, circuit breaking, pending requests, connect failures, sidecar CPU/throttling.
 
-Tùy loại incident chỉ thu những nhóm **có liên quan đến lời gọi chậm thực tế**. Không yêu cầu “bật mọi debug log ở mọi service”; chi phí, rủi ro dữ liệu nhạy cảm và tính quá tải có thể làm suy giảm hệ thống.
+Depending on the incident, collect only groups **relevant to the actual slow calls**. Never demand "turn on full debug logs in every service"; overhead, sensitive-data exposure, and load can degrade the system further.
 
-## 10. Cách ghép evidence đúng một request
+## 10. Stitching evidence for a single request
 
-Một “bộ bằng chứng” mạnh có các lớp sau:
+A strong "evidence bundle" aligns these layers:
 
-| Lớp | ID gắn kết | Mốc thời gian cần |
+| Layer | Correlation key | Required timestamps |
 | --- | --- | --- |
 | Edge/ingress | request ID / trace ID | Receive, queue, upstream connect, first/last response |
 | Java service | trace ID / span ID, pod/PID | Handler start/end, route/status, application phases |
 | Client library | parent span, connection/request metadata | Acquire, connect/TLS, send, response headers/body, retries |
-| JFR | PID, thread ID/name, event/stack, endpoint | startTime/duration của SocketRead/FileRead, GC, ThreadPark |
-| OS/kernel | PID/TID, socket tuple, netns/cgroup/device | Time-series RTT/retrans/queue, I/O, CPU/PSI, limits |
-| Remote service | trace ID/request ID, server instance, query ID | Receive/queue/process/response; lock/CPU/storage |
-| User-facing metric | route/customer cohort, request ID khi có | End-to-end latency/p99/error/timeout SLO |
+| JFR | PID, thread ID/name, event/stack, endpoint | `startTime`/duration of `SocketRead`/`FileRead`, GC, `ThreadPark` |
+| OS/kernel | PID/TID, socket tuple, netns/cgroup/device | Time-series RTT/retrans/queues, I/O, CPU/PSI, limits |
+| Remote service | trace ID/request ID, server instance, query ID | Receive/queue/process/response; locks/CPU/storage |
+| User-facing metric | route/customer cohort, request ID if present | End-to-end latency/p99/error/timeout SLO |
 
-**Đồng hồ và scope:** Timezone phải rõ (nên UTC), theo dõi clock synchronization/skew giữa hosts. Monotonic clock dùng đo duration trong một process; wall-clock timestamp dùng tương quan cross-host và có thể bị điều chỉnh. Một event trên socket cần ghép cẩn thận với logical request, đặc biệt với keepalive, HTTP/2 multiplexing, TLS termination và connection reuse.
+**Clocks and scope:** State timezone explicitly (prefer UTC) and track clock sync/skew across hosts. Monotonic clocks measure durations within one process; wall-clock timestamps correlate across hosts and can jump. Socket events must be paired carefully with logical requests—especially with keepalive, HTTP/2 multiplexing, TLS termination, and connection reuse.
 
-### 10.1. Nested spans không được cộng tùy tiện
+### 10.1. Nested spans must not be summed arbitrarily
 
-Ví dụ:
-- Server span tổng 550 ms;
-- HTTP client span 430 ms nằm **bên trong** server span;
-- Database server span 370 ms nằm **bên trong** client/server chain tương ứng.
+Example:
+- Total server span: 550 ms;
+- HTTP client span **nested inside** the server span: 430 ms;
+- Database server span **nested inside** that client/server chain: 370 ms.
 
-Không được cộng 550 + 430 + 370 = 1.350 ms rồi gọi đó là request latency. Các khoảng **lồng nhau**. Cũng không được khẳng định 430 - 370 = 60 ms “là thời gian network” nếu client span có pool wait, retries, proxy, serialization và clocks thiếu đồng bộ.
+Never add `550 + 430 + 370 = 1,350 ms` and call it request latency. The intervals **nest**. Nor can you assert `430 - 370 = 60 ms` "is network time" when the client span includes pool wait, retries, proxies, serialization, and unsynchronized clocks.
 
-Muốn định lượng network/wait đúng, cần spans tách phases và measurement ở hai đầu, hoặc packet/kernel evidence. Thời gian “chưa giải thích” nên được ghi như **unattributed time** cho tới khi có nguồn đủ tốt.
+Quantifying network/wait accurately requires phase-split spans and measurements at both ends, or packet/kernel evidence. Record "unexplained" gaps as **unattributed time** until better telemetry is available.
 
-### 10.2. Sampling và dữ liệu không trùng request
+### 10.2. Sampling and non-matching request data
 
-JFR record tập sự kiện theo cấu hình, distributed trace thường được sample một phần, access logs có thể được sampling/lược bỏ. Không nên gán ngẫu nhiên SocketRead 400 ms cho một request có trace cùng phút nếu không có mapping connection/thread đủ rõ. Với latency ở mức p99, phải ưu tiên mẫu **đúng tail cohort**, không chỉ traffic trung bình.
+JFR captures events per config, distributed traces are often head- or tail-sampled, and access logs may be sampled/filtered. Never randomly attach a 400 ms `SocketRead` to a traced request from the same minute without clear connection/thread mapping. For p99 latency, prioritize samples **from the actual tail cohort**, not just average traffic.
 
-## 11. Runbook điều tra chậm I/O, từ rẻ tới sâu
+## 11. Cheap-to-deep I/O slowdown runbook
 
-### Bước 1 — Xác nhận triệu chứng và phạm vi
+### Step 1 — Confirm symptom and scope
 
-Ghi: thời điểm UTC, route/operation, p95/p99, errors/timeouts, throughput, bytes per request, instance/pod/PID, JDK/GC, deploy/change log, tỷ lệ bị ảnh hưởng. Sự cố toàn bộ service hay chỉ một dependency? Có trùng spike traffic không?
+Record: UTC window, route/operation, p95/p99, errors/timeouts, throughput, bytes per request, instance/pod/PID, JDK/GC, deploy/change log, and impacted share. Is the whole service affected or one dependency? Does it match a traffic spike?
 
-### Bước 2 — Xác nhận phần JVM nhìn thấy
+### Step 2 — Check what the JVM sees
 
-Mở JFR đúng process và incident window. Xem SocketRead/Write, FileRead/Write, ThreadPark/monitor, CPU, GC. Kiểm tra event settings/thresholds, stacks và timestamps. Nếu không có dữ liệu, **ghi rõ coverage gap**, không vội kết luận không có I/O.
+Open JFR for the exact process and incident window. Inspect `SocketRead`/`Write`, `FileRead`/`Write`, `ThreadPark`/monitors, CPU, and GC. Verify event settings/thresholds, stacks, and timestamps. If data is missing, **document the coverage gap** instead of jumping to "no I/O."
 
-### Bước 3 — Xem application-level spans và client pools
+### Step 3 — Inspect application-level spans and client pools
 
-Đặt các spans request handler, client call, connection acquisition, retry, timeout cạnh nhau. Một HTTP call chậm vì pool pending khác hoàn toàn một socket chậm do packet loss. Đừng đọc mọi thời gian chờ là time spent in network.
+Place request handler, client call, connection acquisition, retry, and timeout spans side by side. An HTTP call slowed by pending pool acquisition differs completely from a socket slowed by packet loss. Never read every wait as time spent on the network.
 
-### Bước 4 — Kiểm tra host/container cùng thời điểm
+### Step 4 — Check the host/container over the same window
 
-Nếu nghi network: socket RTT/retrans/queues, interface drops, node/sidecar CPU, netns.
-Nếu nghi disk: block-device await/queue, per-process I/O, io.pressure/io.stat, volume limits.
-Nếu nghi CPU/scheduler: cpu.stat throttling, CPU load, runnable queue, host saturation.
-Nếu nghi memory: page-cache pressure, swap/stall counters khi áp dụng; tránh nhầm heap used với toàn bộ memory của process.
+If network is suspected: socket RTT/retrans/queues, interface drops, node/sidecar CPU, netns.
+If disk is suspected: block-device await/queues, per-process I/O, `io.pressure`/`io.stat`, volume limits.
+If CPU/scheduling is suspected: `cpu.stat` throttling, CPU load, runnable queues, host saturation.
+If memory is suspected: page-cache pressure, swap/stall counters where applicable; do not confuse JVM heap used with total process memory.
 
-### Bước 5 — Kiểm tra proxy và remote service
+### Step 5 — Check proxies and remote services
 
-Thu server response time, queue/lock/CPU/storage, status/retry, query ID, trace ID; so khớp yêu cầu cụ thể với Java client span. Có remote service chứng minh chậm không? Nếu remote xử lý nhanh, phần nào xảy ra trước/sau remote span?
+Gather server response time, queues/locks/CPU/storage, status/retries, query IDs, trace IDs; match specific calls to Java client spans. Did the remote service prove slow? If remote processing was fast, what happened before/after the remote span?
 
-### Bước 6 — Đánh giá giả thuyết cạnh tranh
+### Step 6 — Evaluate competing hypotheses
 
-Ví dụ Java SocketRead dài:
-- A: DB query/lock lâu;
-- B: packet loss/retransmission;
-- C: proxy queue/retries;
-- D: Java thread bị deschedule/CPU throttled;
-- E: event không liên quan đúng request hoặc recording thiếu ngữ cảnh.
+For a long Java `SocketRead`, consider:
+- A: long DB query/lock;
+- B: packet loss/retransmissions;
+- C: proxy queues/retries;
+- D: Java thread descheduled/CPU-throttled;
+- E: event unrelated to the target request or recording lacks context.
 
-Với mỗi giả thuyết, viết **dữ liệu nào sẽ xác nhận hoặc bác bỏ**. Ưu tiên evidence từ miền chịu trách nhiệm trực tiếp; không chỉ tìm một chart ủng hộ giả thuyết ban đầu.
+For each hypothesis, write down **what data would confirm or falsify it**. Prioritize evidence from the directly responsible domain rather than hunting for one chart supporting an initial guess.
 
-### Bước 7 — Thử nghiệm nhỏ và xác minh
+### Step 7 — Small controlled experiment and verification
 
-Thay một biến có cơ sở (pool limit, query plan/index, batch size, retry policy, concurrency, storage capacity hoặc network path). Chạy cùng workload, so SLO, errors, throughput, resource usage và metrics của cả dependency. Có rollback. Không vội tăng timeout: có thể chỉ biến lỗi nhanh thành hàng đợi tồn đọng.
+Change one justified variable (pool limit, query plan/index, batch size, retry policy, concurrency, storage tier, or network path). Run the same workload and compare SLOs, errors, throughput, resource usage, and dependency metrics. Have a rollback plan. Do not blindly raise timeouts: that often turns fast failures into piled-up queues.
 
-## 12. Tình huống A — SocketRead lâu, nguyên nhân ở DB server
+## 12. Scenario A — Long SocketRead caused by the DB server
 
-Dữ liệu giả định:
-- Java/JFR: 60 SocketRead events kéo dài 300–600 ms trên connection hướng tới database, cùng đoạn checkout p99 tăng.
-- JDBC span: 500 ms; connection acquisition dưới 5 ms.
-- TCP ss: RTT estimate thấp và retrans không tăng rõ ở cùng socket/window.
-- DB tracing/query log: statement execution khoảng 440–480 ms với lock wait tăng; query ID trùng request.
+Hypothetical data:
+- Java/JFR: 60 `SocketRead` events lasting 300–600 ms on connections to the database during the checkout p99 spike.
+- JDBC span: 500 ms; connection acquisition under 5 ms.
+- TCP `ss`: low RTT estimate and no noticeable rise in retransmissions on that socket/window.
+- DB tracing/query log: statement execution ~440–480 ms with rising lock waits; query IDs match requests.
 
-**Kết luận có cơ sở hơn:** ứng dụng đã chờ response trong khi DB thực hiện query/chờ lock; cần xử lý cạnh tranh/SQL/transaction, không tối ưu socket read method.
+**Better-supported conclusion:** the application waited for responses while the DB executed queries/waited on locks; fix contention/SQL/transactions rather than micro-optimizing socket read methods.
 
-**Giới hạn:** RTT thấp và không thấy retrans không phủ định mọi lỗi mạng; nhưng kết hợp DB-side timing cho cùng query làm giả thuyết server wait mạnh hơn. Các con số là ví dụ, không phải một phép suy từ Java SocketRead ra DB execution.
+**Caveat:** low RTT and zero observed retransmissions do not rule out every network fault; however, combining them with DB-side timings for the exact queries makes the server-wait hypothesis far stronger. Numbers are illustrative, not a formula converting Java `SocketRead` into DB execution.
 
-Hành động: kiểm tra lock holders, transaction duration, index/query plan, connection behavior; xác nhận cải thiện cả DB execution time và checkout p99.
+Action: inspect lock holders, transaction durations, indexes/query plans, and connection behavior; verify improvements in both DB execution time and checkout p99.
 
-## 13. Tình huống B — Request chậm nhưng không có SocketRead event đáng kể
+## 13. Scenario B — Slow requests with no significant SocketRead events
 
-Dữ liệu giả định:
-- HTTP client span 1.100 ms; JFR chỉ ghi ít SocketRead event.
-- Connection pool: pending acquisition 900 ms và pending queue tăng.
-- Remote service: xử lý trung vị 40 ms; network RTT/packet drops ổn định.
-- App concurrency tăng từ 100 lên 1.000, pool chỉ cho 30 connections.
+Hypothetical data:
+- HTTP client span 1,100 ms; JFR records few `SocketRead` events.
+- Connection pool: pending acquisition 900 ms with growing pending queue.
+- Remote service: median processing 40 ms; network RTT/packet drops steady.
+- App concurrency jumped from 100 to 1,000 while the pool allows only 30 connections.
 
-**Diễn giải:** bottleneck chính có thể ở **pool acquisition/queue trước khi socket read**. Không có SocketRead event dài không phủ định RPC chậm. Việc tăng connect timeout, đổi GC hoặc truy tìm packet loss không phải bước đầu phù hợp.
+**Interpretation:** the main bottleneck is likely **pool acquisition/queuing before socket read ever starts**. Missing long `SocketRead` events does not disprove slow RPCs. Raising connect timeout, tuning GC, or chasing packet loss are wrong first moves.
 
-Hành động: đo peak inflight, pool checkout, connection reuse, retry storms, bounded concurrency và service capacity; cân nhắc pool size sau khi kiểm tra sức chịu tải phía remote. Tăng pool mù quáng có thể chỉ chuyển hàng đợi sang database.
+Action: measure peak in-flight, pool checkouts, connection reuse, retry storms, bounded concurrency, and service capacity; evaluate pool sizing only after checking remote capacity. Blindly enlarging the pool may simply shift the queue to the database.
 
-## 14. Tình huống C — FileWrite nhanh, nhưng dữ liệu không bền vững và volume bị nghẽn
+## 14. Scenario C — Fast FileWrite, yet non-durable data and saturated volume
 
-Dữ liệu giả định:
-- Java FileWrite events phần lớn dưới vài ms.
-- Một số giao dịch có bước flush/force lâu; latency end-to-end tăng theo batch.
-- OS/cloud volume metrics: write queue, await, throttling/IOPS gần giới hạn.
-- cgroup io.pressure và device stats tăng trong khoảng incident.
+Hypothetical data:
+- Java `FileWrite` events mostly under a few milliseconds.
+- Certain transactions have long flush/force steps; end-to-end latency climbs with batch size.
+- OS/cloud volume metrics: write queues, await, and throttling/IOPS near limits.
+- cgroup `io.pressure` and device stats spike during the incident.
 
-**Diễn giải:** write API nhanh có thể nhờ kernel buffering, còn bước yêu cầu durability hoặc thiết bị lưu trữ phía sau chậm. Nếu chỉ xem FileWrite histogram, có thể bỏ qua flush hoặc filesystem pressure. Chưa chắc toàn bộ latency do device nếu không ghép trace và host counters chính xác.
+**Interpretation:** the write API looks fast thanks to kernel buffering, while the durability step or backing storage device is slow. Looking only at `FileWrite` histograms misses flush and filesystem pressure. Not all latency belongs to the device unless traces and host counters align cleanly.
 
-Hành động: kiểm tra transaction/flush frequency, write batch policy, cloud volume limit, filesystem và durability requirements. Không được giảm fsync hay bỏ durability để “tăng hiệu suất” khi chưa xác nhận yêu cầu an toàn dữ liệu.
+Action: inspect transaction/flush frequency, write batching policy, cloud volume limits, filesystem, and durability requirements. Never disable `fsync` or drop durability to "boost performance" without validating data-safety requirements.
 
-## 15. Tình huống D — Network bị nghi oan vì CPU throttling
+## 15. Scenario D — Network wrongly blamed due to CPU throttling
 
-Dữ liệu giả định:
-- Java client span tăng từ 120 ms lên 500 ms trong giờ peak.
-- OS TCP RTT/retrans ít thay đổi.
-- cgroup cpu.stat cho thấy throttling counter/time tăng mạnh.
-- Request worker, event-loop threads hoặc sidecar CPU tiến gần quota; số queue pending tăng.
-- Remote API server-side processing ổn định.
+Hypothetical data:
+- Java client spans jump from 120 ms to 500 ms during peak hours.
+- OS TCP RTT/retransmissions barely move.
+- cgroup `cpu.stat` shows throttling counts/time spiking.
+- Request workers, event-loop threads, or sidecar CPU approach quota; pending queues grow.
+- Remote API server-side processing stays steady.
 
-**Diễn giải:** thiếu CPU/scheduling/queue trong container có thể làm thao tác I/O **được cảm nhận là chậm** dù network path và remote handler không phải cơ chế chính. JVM CPU load và thread states riêng lẻ có thể chưa mô tả đủ cgroup throttling.
+**Interpretation:** CPU/scheduling starvation and queuing inside the container can make I/O operations **appear slow** even when the network path and remote handler are healthy. JVM CPU load and thread states alone may fail to expose cgroup throttling.
 
-Hành động: xem CPU requests/limits, node contention, CPU-heavy serialization/TLS, traffic shaping và queue; thử workload/CPU quota có kiểm soát rồi đối chiếu p99.
+Action: inspect CPU requests/limits, node contention, CPU-heavy serialization/TLS, traffic shaping, and queues; adjust workload/CPU quota in a controlled test and re-check p99.
 
-## 16. Tình huống E — SocketWrite không chậm nhưng client timeout
+## 16. Scenario E — Fast SocketWrite, yet client timeouts
 
-Dữ liệu giả định:
-- Java server SocketWrite nhanh, handler duration nhỏ.
-- Ingress/proxy logs cho thấy downstream send/reset và queue/delivery khác thường.
-- Network/edge telemetry cho thấy retransmission hoặc một nhóm client connections có RTT cao.
-- Client end-to-end latency/timeout chỉ tăng ở một vùng mạng.
+Hypothetical data:
+- Java server `SocketWrite` is fast and handler duration is small.
+- Ingress/proxy logs show unusual downstream sends/resets and queuing/delivery delays.
+- Network/edge telemetry shows retransmissions or high RTT for one group of client connections.
+- Client end-to-end latency/timeouts spike in only one network region.
 
-**Diễn giải:** Java write kết thúc nhanh có thể nghĩa bytes đã tới buffer hoặc một tầng transport, không có nghĩa client cuối cùng đã nhận đủ HTTP body. Cần evidence từ proxy/edge và phía client, phân biệt server completion, network delivery, client read timeout.
+**Interpretation:** a fast Java write can mean bytes entered a buffer or transport layer, not that the end client received the full HTTP body. Proxy/edge and client-side evidence is needed to separate server completion, network delivery, and client read timeouts.
 
-Hành động: kiểm tra load balancer response-body timing, size, client locations, TCP path và retry/cancellation. Không khẳng định server hoàn toàn vô can chỉ vì method write nhanh, nhưng không nên quy mọi timeout cho code server.
+Action: inspect load-balancer response-body timings, payload sizes, client regions, TCP paths, and retries/cancellations. Never clear the server completely just because write returned fast, yet do not blame server code for every timeout either.
 
-## 17. Ví dụ Java 17+ — đọc giới hạn của một số đo
+## 17. Java 17+ example — reading the limits of a measurement
 
-Ví dụ sau là chương trình **độc lập và chạy được trên Java 17+**, dùng số liệu **giả định đã thu thập**. Nó minh họa lý do không được quy toàn bộ duration của một HTTP client span cho network, ngay cả khi chỉ số CPU của thread trong đoạn nhỏ.
+The following program is **standalone and runnable on Java 17+**, using **hypothetical collected numbers**. It illustrates why an entire HTTP client span duration cannot be blamed on the network even when the thread's CPU time during the span is small.
 
-Đặt tên file **LatencyBoundaryDemo.java**:
+Save as **`LatencyBoundaryDemo.java`**:
 
 ~~~java
 import java.util.Locale;
@@ -544,99 +544,99 @@ public class LatencyBoundaryDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac LatencyBoundaryDemo.java
 java LatencyBoundaryDemo
 ~~~
 
-Stdout **chính xác** với dữ liệu cố định:
+**Exact** stdout for the fixed inputs:
 
 ~~~text
 checkout: request=500ms, client-span=420ms (84.0%), client-thread-cpu=12ms, wall-minus-cpu=408ms
 report: request=500ms, client-span=50ms (10.0%), client-thread-cpu=10ms, wall-minus-cpu=40ms
 ~~~
 
-Cách hiểu **đúng**:
-- Trong mẫu checkout, client span chiếm 84% request wall time. Đây là vị trí cần điều tra trước.
-- wall-minus-cpu = 408 ms là **chênh lệch giữa wall time của span và CPU time của một thread theo dữ liệu giả định**; nó có thể gồm waiting, scheduling, pool wait, DNS, network, server execution hoặc công việc chạy ở thread khác. **Không được gọi 408 ms là network latency.**
-- Nếu client span có async tasks, CPU của nhiều threads không được cộng vào một chỉ số client-thread-cpu đơn giản; diễn giải càng hạn chế.
-- Các durations trong ví dụ đã giả định cùng request, cùng scope, không âm; code không kiểm tra sampling errors, clock skew hay coverage. Nó minh họa phép tính, **không đo I/O thật** và không suy luận nguyên nhân gốc.
+**Proper** interpretation:
+- In the `checkout` sample, the client span accounts for 84% of request wall time—making it the primary place to investigate first.
+- `wall-minus-cpu = 408 ms` is **the difference between span wall time and one thread's CPU time in the hypothetical sample**; it can include waiting, scheduling, pool waits, DNS, network, server execution, or work on other threads. **Never label 408 ms as network latency.**
+- If the client span involves async tasks, CPU across multiple threads is not captured in one simple `client-thread-cpu` number, narrowing interpretation even further.
+- Durations in the example assume same request, same scope, and non-negativity; the code does not check sampling errors, clock skew, or coverage. It illustrates arithmetic, **not real I/O measurement** or root-cause inference.
 
-### 17.1. Đo thật ở cấp ứng dụng cần gì?
+### 17.1. What does real application-level measurement need?
 
-Với instrumentation production, dùng **System.nanoTime()** cho duration trong cùng process, không dùng System.currentTimeMillis() làm stopwatch. Nếu cần current thread CPU time, ThreadMXBean có thể cung cấp khi JVM/OS hỗ trợ và tính năng được bật; nó không đếm CPU trên mọi thread async trong một span.
+In production instrumentation, use **`System.nanoTime()`** for same-process durations rather than using `System.currentTimeMillis()` as a stopwatch. If current-thread CPU time is needed, `ThreadMXBean` can supply it when supported by JVM/OS and enabled; it does not sum CPU across all async threads within a span.
 
-Một span tốt nên có:
+A good span should include:
 - service, route, request/trace ID, remote logical dependency;
 - operation start/end, success/error, timeout type, status;
 - request/response bytes, attempts/retries;
-- pool acquisition, connect/TLS, first byte, body read và decode nếu SDK hỗ trợ;
-- connection reuse và timeouts/deadlines;
-- event-level link tới JFR nếu có cách ghép đáng tin.
+- pool acquisition, connect/TLS, first byte, body read and decode if supported by the SDK;
+- connection reuse and timeouts/deadlines;
+- an event-level link to JFR if reliable correlation exists.
 
-Không log secret, token, mật khẩu, đầy đủ SQL parameters hay toàn bộ request/response payload chỉ để điều tra latency. Nếu gắn query/URL attributes, áp dụng chính sách redact/sampling.
+Never log secrets, tokens, passwords, full SQL parameters, or complete request/response payloads solely to investigate latency. When attaching query/URL attributes, enforce redaction/sampling policies.
 
-## 18. Bảng chọn nguồn bằng chứng theo triệu chứng
+## 18. Symptom-to-evidence selection table
 
-| Triệu chứng chính | Kiểm tra trong JVM trước | Nguồn bổ sung ưu tiên | Điều chưa được phép kết luận |
+| Primary symptom | Check inside JVM first | Priority external sources | What you must NOT conclude yet |
 | --- | --- | --- | --- |
-| SocketRead chậm | Event/stack/endpoint, JDBC/HTTP span, GC/CPU | Remote processing logs, TCP RTT/retrans, proxy tracing | “Mạng chậm” chỉ từ read duration |
-| Client RPC chậm, ít socket events | Pool metrics, ThreadPark, client span phases | Proxy/mesh queues, remote status, async transport | “Không phải I/O” vì thiếu event |
-| SocketWrite chậm | Event size/duration, thread, backpressure | Socket send queue, network drops, downstream read speed | “Server code ghi chậm” không cần nhìn kernel |
-| Client timeout nhưng server span nhanh | Handler/write span, cancellation/error logs | Edge/proxy/client RUM, transport errors | “Đã giao thành công tới client” |
-| JDBC call chậm | Connection acquisition, driver spans, stack | DB waits/locks/query ID, execution plan | “SQL execution chậm” nếu chỉ có JDBC time |
-| FileRead/FileWrite chậm | Path, duration, bytes, GC/CPU | iostat, process I/O, fs/cache, cloud volume | “Đĩa vật lý chậm” từ một FileRead |
-| JFR file I/O ít nhưng p99 cao | Threshold, recording coverage, async model | Traces, queue/pool, dependency metrics | “Không có bottleneck” |
-| p99 tăng dưới tải peak | RPS/route mix, GC, CPU, thread queues | cgroup throttle/PSI, proxy/server load | “JVM bug” trước khi xét capacity |
-| DNS/TLS/connect spike | Client phase timers, logs, errors | Resolver, TLS/sidecar/ingress metrics, socket connect | “SocketRead đã đo cả DNS” |
-| Chỉ một vùng địa lý bị lỗi | Server/trace by region/tenant | Edge/client/network path/CDN metrics | “Toàn JVM chậm” |
+| Slow `SocketRead` | Event/stack/endpoint, JDBC/HTTP spans, GC/CPU | Remote processing logs, TCP RTT/retrans, proxy traces | "Network is slow" from read duration alone |
+| Slow client RPC, few socket events | Pool metrics, `ThreadPark`, client span phases | Proxy/mesh queues, remote status, async transport | "Not I/O" because events are missing |
+| Slow `SocketWrite` | Event size/duration, thread, backpressure | Socket send queue, network drops, downstream read speed | "Server code writes slowly" without checking kernel |
+| Client timeouts while server spans look fast | Handler/write spans, cancellation/error logs | Edge/proxy/client RUM, transport errors | "Delivered successfully to client" |
+| Slow JDBC call | Connection acquisition, driver spans, stacks | DB waits/locks/query IDs, execution plans | "SQL execution is slow" from JDBC time alone |
+| Slow `FileRead`/`FileWrite` | Path, duration, bytes, GC/CPU | `iostat`, process I/O, fs/cache, cloud volume | "Physical disk is slow" from one `FileRead` |
+| Few JFR file I/O events yet high p99 | Thresholds, recording coverage, async model | Traces, queues/pools, dependency metrics | "No bottleneck" |
+| p99 spikes under peak load | RPS/route mix, GC, CPU, thread queues | cgroup throttling/PSI, proxy/server load | "JVM bug" before checking capacity |
+| DNS/TLS/connect spikes | Client phase timers, logs, errors | Resolver, TLS/sidecar/ingress metrics, socket connects | "`SocketRead` measured DNS too" |
+| Only one geographic region fails | Server/traces by region/tenant | Edge/client/network path/CDN metrics | "The whole JVM is slow" |
 
-## 19. Chất lượng dữ liệu, an toàn và những sai lầm thường gặp
+## 19. Data quality, safety, and common mistakes
 
-### 19.1. Tương quan không đồng nghĩa nhân quả
+### 19.1. Correlation does not equal causality
 
-Nếu JVM SocketRead duration tăng cùng lúc với TCP retransmissions, đây là bằng chứng ủng hộ khả năng network path có vấn đề, **nhưng vẫn cần** kiểm tra đúng socket/remote IP/namespace/route. Retrans toàn node có thể thuộc workload khác. Nếu DB query p99 cũng tăng, cả hai có thể cùng chịu load hoặc là hai vấn đề độc lập.
+If JVM `SocketRead` duration rises alongside TCP retransmissions, that supports a network-path issue, **yet you must still** verify matching sockets, remote IPs, namespaces, and routes. Node-wide retransmissions could belong to another workload. If DB query p99 also rises, both may share load or be independent faults.
 
-Kết luận nên nêu:
-1. **Quan sát trực tiếp:** nguồn nào, metric nào, timestamp nào;
-2. **Giả thuyết:** cơ chế khiến latency tăng;
-3. **Bằng chứng phân xử:** từ OS, proxy hoặc remote service;
-4. **Hạn chế:** missing telemetry, sampling/clock skew;
-5. **Thử nghiệm/khắc phục:** thay đổi nào và đo lại bằng gì.
+Conclusions should state:
+1. **Direct observations:** which source, metric, and timestamp;
+2. **Hypothesis:** mechanism increasing latency;
+3. **Discriminating evidence:** from OS, proxy, or remote service;
+4. **Limitations:** missing telemetry, sampling/clock skew;
+5. **Experiment/fix:** what changed and what will re-verify it.
 
-### 19.2. Sai lầm phải tránh
+### 19.2. Mistakes to avoid
 
-- **Đọc SocketRead duration là network RTT.** Nó có thể bao server think time, waiting và scheduling.
-- **Đọc SocketWrite success là client đã nhận dữ liệu.** Kernel buffering/ACK/application consumption là các tầng khác nhau.
-- **Đọc FileWrite duration là disk durable write time.** Có page cache, flush và filesystem semantics.
-- **Không thấy JFR event = không có I/O.** Event settings/threshold, async/native path và recording window có thể làm thiếu dữ liệu.
-- **Chỉ nhìn JVM CPU/heap để kết luận I/O.** Thiếu cgroup throttling, kernel/block-device và remote logs.
-- **Chỉ dùng số liệu host aggregate để kết luận một pod.** Phải biết netns/cgroup/device/socket/process mapping.
-- **Cộng các spans lồng nhau thành thời gian request.** Parent/child thường chồng lấp; async work càng dễ làm sai.
-- **So dữ liệu khác thời điểm/process.** PID mới sau restart hoặc snapshot sau spike không thay được lịch sử trước lỗi.
-- **Tăng timeout/pool/retry ngay.** Có thể phóng đại queue, connection load, retry storms và làm dependency sập.
-- **Bật debug trace/capture toàn hệ thống.** Có thể tạo overhead, rò dữ liệu nhạy cảm, làm méo phép đo.
-- **Tin threshold mặc định không đổi.** Kiểm tra .jfc/event settings và version chính xác.
-- **Sử dụng traceroute/ping bất kỳ để phủ định network issue.** Probe có thể đi path/protocol/priority khác traffic ứng dụng.
-- **Coi TCP RTT thấp là remote response nhanh.** DB có thể đang lock/query lâu.
-- **Coi high iostat await là nguyên nhân duy nhất.** Device aggregate có thể phản ánh job khác; cần liên hệ đúng volume và service.
-- **Tin log timestamp tuyệt đối của nhiều hosts luôn đồng bộ.** Cần clock skew/UTC và trace span boundaries.
-- **So count của các event threshold khác nhau.** Không cùng mẫu quan sát.
+- **Reading `SocketRead` duration as network RTT.** It can include server think time, waiting, and scheduling.
+- **Reading `SocketWrite` success as client receipt.** Kernel buffering/ACKs/application consumption are separate layers.
+- **Reading `FileWrite` duration as durable disk write time.** Page cache, flushing, and filesystem semantics sit in between.
+- **No JFR event = no I/O.** Event settings/thresholds, async/native paths, and recording windows can omit data.
+- **Concluding I/O causes solely from JVM CPU/heap.** Misses cgroup throttling, kernel/block devices, and remote logs.
+- **Using host-aggregate numbers to diagnose one pod.** Verify netns/cgroup/device/socket/process mappings.
+- **Summing nested spans into request time.** Parent/child spans overlap; async work makes errors even worse.
+- **Comparing data from different timestamps/processes.** A new PID after restart or post-spike snapshot cannot replace pre-failure history.
+- **Immediately raising timeouts/pools/retries.** Can amplify queues, connection load, retry storms, and crash dependencies.
+- **Enabling system-wide debug traces/captures.** Can add overhead, leak sensitive data, and distort measurements.
+- **Trusting default thresholds blindly.** Inspect exact `.jfc`/event settings and versions.
+- **Using arbitrary `traceroute`/`ping` to rule out network issues.** Probes can take different paths, protocols, or priorities than app traffic.
+- **Assuming low TCP RTT means fast remote responses.** The DB may still be locked or running slow queries.
+- **Treating high `iostat` `await` as the sole cause.** Device aggregates can reflect another job; match exact volumes and services.
+- **Assuming absolute log timestamps across hosts are synchronized.** Account for clock skew/UTC and trace span boundaries.
+- **Comparing event counts captured under different thresholds.** The observed sample sets differ.
 
-### 19.3. Bảo vệ dữ liệu và độ an toàn vận hành
+### 19.3. Protecting data and operational safety
 
-JFR, logs, traces, packet captures và database query samples có thể chứa path, class names, endpoints, IP, request IDs, SQL, file names, stack traces hoặc thông tin nhạy cảm. Chỉ thu phạm vi cần thiết, hạn chế quyền, redaction trước khi chia sẻ, retention rõ ràng và tránh công cụ làm tăng tải/treo production.
+JFR files, logs, traces, packet captures, and database query samples can expose paths, class names, endpoints, IPs, request IDs, SQL, filenames, stack traces, or sensitive fields. Capture only the minimum required scope, restrict permissions, redact before sharing, enforce retention, and avoid tools that overload or stall production.
 
-Nếu không có quyền truy cập OS/remote service, ghi rõ **blocker về evidence** và yêu cầu đúng nhóm phụ trách: SRE/network/storage/DB/platform. Không tự diễn giải “không thấy evidence” thành “không xảy ra”.
+When OS or remote-service access is unavailable, document the **evidence blocker** explicitly and engage the owning team: SRE, network, storage, DB, or platform. Never interpret "could not see evidence" as "did not happen."
 
-## 20. Mẫu báo cáo sự cố I/O theo ranh giới bằng chứng
+## 20. I/O incident report template with evidence boundaries
 
 ~~~text
 # I/O latency investigation
 
-Sự cố / mục tiêu SLO:
+Incident / SLO target:
 Service / build / JDK / PID / pod / namespace:
 Incident UTC start/end:
 RPS / request mix / payload / concurrency:
@@ -668,41 +668,41 @@ Smallest proposed experiment:
 Validation metrics and rollback:
 ~~~
 
-Mẫu này là **khung incident**, không phải file output của JFR. Một báo cáo tốt không cần mọi ô đều có số; nó cần nêu rõ chỗ nào **đã đo**, chỗ nào **chưa thể quan sát** và cách lấy evidence phù hợp.
+This template is an **incident framework**, not JFR tool output. A strong report does not need numbers in every blank; it must make clear what was **directly measured**, what **could not be observed**, and how to obtain the missing evidence.
 
-## 21. Checklist cuối cùng
+## 21. Final checklist
 
-- [ ] Tôi xác nhận đúng service, instance/PID, JVM version, recording và khoảng UTC của incident.
-- [ ] Tôi phân biệt end-to-end latency, server span, client call span, JFR I/O duration, kernel RTT và remote processing time.
-- [ ] Tôi không gán SocketRead cho toàn bộ network/server phase hoặc SocketWrite cho delivery thành công tới client.
-- [ ] Tôi kiểm tra JFR event settings, thresholds, stack coverage, recording retention và async/native transport.
-- [ ] Tôi có application-level metrics cho connection pool, executor queue, retries, deadline và error codes.
-- [ ] Tôi biết logical request nào tương ứng với service/connection/trace và hiểu HTTP/2 multiplexing.
-- [ ] Tôi lấy OS/network telemetry từ **đúng host, network namespace và khoảng thời gian**.
-- [ ] Nếu nghi disk, tôi có process/cgroup/device metrics và hiểu page cache/fsync/remote-volume khác Java FileWrite.
-- [ ] Nếu nghi CPU scheduling, tôi kiểm tra cgroup CPU throttling, host pressure và sidecar.
-- [ ] Tôi kiểm tra remote service/DB/proxy metrics và đối chiếu cùng query/request ID khi có thể.
-- [ ] Tôi không cộng spans nested hoặc aggregate từ nhiều threads thành request latency một cách mù quáng.
-- [ ] Tôi xem giả thuyết cạnh tranh và viết ra điều kiện bác bỏ từng giả thuyết.
-- [ ] Tôi không thay pool/timeout/heap/GC/storage/network mà chưa xác định bottleneck và guardrails.
-- [ ] Tôi đảm bảo telemetry/capture an toàn, có redaction, quyền truy cập và thời gian thu hợp lý.
-- [ ] Kết luận tách **quan sát trực tiếp**, **suy luận có điều kiện**, **chưa đủ dữ liệu** và **việc phải đo tiếp**.
+- [ ] Verified exact service, instance/PID, JVM version, recording, and UTC incident window.
+- [ ] Distinguished end-to-end latency, server span, client call span, JFR I/O duration, kernel RTT, and remote processing time.
+- [ ] Did not attribute `SocketRead` to the whole network/server phase or `SocketWrite` to confirmed client delivery.
+- [ ] Checked JFR event settings, thresholds, stack coverage, recording retention, and async/native transports.
+- [ ] Collected application-level metrics for connection pools, executor queues, retries, deadlines, and error codes.
+- [ ] Mapped which logical requests correspond to services/connections/traces and accounted for HTTP/2 multiplexing.
+- [ ] Gathered OS/network telemetry from the **exact host, network namespace, and time window**.
+- [ ] When suspecting disk, collected process/cgroup/device metrics and distinguished page cache/`fsync`/remote volumes from Java `FileWrite`.
+- [ ] When suspecting CPU scheduling, inspected cgroup CPU throttling, host pressure, and sidecars.
+- [ ] Inspected remote service/DB/proxy metrics and matched query/request IDs wherever possible.
+- [ ] Did not blindly sum nested spans or multi-thread aggregates into request latency.
+- [ ] Evaluated competing hypotheses and wrote falsification criteria for each.
+- [ ] Did not alter pools/timeouts/heap/GC/storage/network before identifying the bottleneck and guardrails.
+- [ ] Ensured telemetry/captures stayed safe, redacted, access-controlled, and bounded in duration.
+- [ ] Separated conclusions into **direct observations**, **conditional inferences**, **insufficient data**, and **next measurements**.
 
-## 22. Kết luận
+## 22. Conclusion
 
-**JVM rất tốt trong việc cho biết ứng dụng Java đã làm gì và bị chặn ở đâu theo góc nhìn runtime; JVM không phải hệ thống đo đầy đủ network, kernel, disk hoặc dịch vụ bên ngoài.**
+**The JVM excels at showing what the Java application did and where it blocked from the runtime's perspective; the JVM is not a complete measurement system for networks, kernels, disks, or external services.**
 
-Với I/O latency, trình tự đúng là:
+For I/O latency, the right sequence is:
 
-**Triệu chứng & SLO → xác minh JFR/trace coverage → xem Java I/O và thread evidence → kiểm tra OS/kernel/container đúng namespace → kiểm tra proxy/remote service đúng request → ghép timeline, loại trừ giả thuyết cạnh tranh → thử nghiệm và đo lại.**
+**Symptoms & SLO → verify JFR/trace coverage → inspect Java I/O and thread evidence → inspect OS/kernel/container in the right namespace → inspect proxies/remote services for the exact requests → align timelines, rule out competing hypotheses → experiment and re-measure.**
 
-Một kết luận hữu ích phải trả lời đồng thời: **“Tôi quan sát được gì từ JVM?”, “đó là phần nào trong end-to-end path?”, “phần còn lại cần nguồn nào chứng minh?”, “nếu giả thuyết đúng thì số liệu nào sẽ đổi?”**
+A useful conclusion answers all four at once: **"What did I observe from the JVM?", "Which portion of the end-to-end path is that?", "Which external source proves the rest?", and "If the hypothesis is true, which metrics will change?"**
 
-### Tài liệu tham khảo chính thức
+### Official references
 
 - Oracle JDK 21 — jfr command (summary, metadata, print): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html
-- Oracle Java 17 — Troubleshoot Performance Issues Using Flight Recorder, mục I/O Performance: https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html
-- Oracle JDK 21 — JFR API event settings và threshold: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html
+- Oracle Java 17 — Troubleshoot Performance Issues Using Flight Recorder, I/O Performance section: https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html
+- Oracle JDK 21 — JFR API event settings and thresholds: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html
 - Oracle JDK 21 — jcmd/JFR.start/JFR.check: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
 - Linux ss(8) manual: https://man7.org/linux/man-pages/man8/ss.8.html
 - Linux Kernel cgroup v2 (io.stat, io.max, io.pressure, cpu.stat): https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html

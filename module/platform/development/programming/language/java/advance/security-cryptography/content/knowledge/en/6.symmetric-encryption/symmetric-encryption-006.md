@@ -1,69 +1,69 @@
-# 6.6 AEAD, AES/GCM/NoPadding và vai trò của authentication tag
+# 6.6 AEAD, AES/GCM/NoPadding, and the Role of the Authentication Tag
 
-Mã hóa dữ liệu nhằm giữ bí mật là **chưa đủ** khi dữ liệu có thể bị kẻ tấn công thay đổi. Một bản mã vẫn có thể bị chỉnh sửa, tráo ngữ cảnh hoặc thay bằng bản mã khác; ứng dụng cần biết có nên **chấp nhận và xử lý** kết quả giải mã hay không. **AEAD (Authenticated Encryption with Associated Data)** kết hợp tính bí mật của mã hóa và phép kiểm tính toàn vẹn/xác thực dựa trên khóa trong một cơ chế được thiết kế thống nhất. Trong Java, biến thể thực tế phổ biến là **`AES/GCM/NoPadding`**.
+Encrypting data solely for secrecy is **not enough** when data can be altered by an attacker. Ciphertext can still be modified, transplanted across contexts, or swapped with another ciphertext; an application needs to know whether it should **accept and process** the decrypted result. **AEAD (Authenticated Encryption with Associated Data)** combines encryption confidentiality and key-based integrity/authenticity verification in a single unified design. In Java, the common practical variant is **`AES/GCM/NoPadding`**.
 
-Bài học giải thích AEAD, AES-GCM, **authentication tag** (thẻ xác thực), nonce/IV, AAD và các quy tắc dùng `Cipher` an toàn. Ví dụ Java 17+ ở phần 8 minh họa dữ liệu thật được khôi phục và các sửa đổi bị từ chối.
+This lesson explains AEAD, AES-GCM, the **authentication tag**, nonce/IV, AAD, and safe `Cipher` usage rules. The Java 17+ example in Section 8 demonstrates legitimate data recovery and rejection of tampered inputs.
 
-## 1. AEAD giải quyết vấn đề gì?
+## 1. What Problem Does AEAD Solve?
 
-### 1.1. Tính bí mật và tính toàn vẹn là hai yêu cầu khác nhau
+### 1.1. Confidentiality and Integrity Are Distinct Requirements
 
-Giả sử một ứng dụng gửi bản ghi chuyển khoản giữa các dịch vụ:
+Suppose an application sends a transfer record between services:
 
 ~~~text
-Bản rõ P = "amount=100;currency=VND"
-             |
-             v
-          Mã hóa
-             |
-             v
-Bản mã C được truyền qua mạng
+Plaintext P = "amount=100;currency=VND"
+                 |
+                 v
+              Encrypt
+                 |
+                 v
+Ciphertext C transmitted over the network
 ~~~
 
-Mã hóa cung cấp **confidentiality (tính bí mật)**: người không có khóa phù hợp không đọc được bản rõ. Tuy nhiên, **không phải mọi chế độ mã hóa đều tự xác thực bản mã**. Với một số cách mã hóa không có xác thực, kẻ tấn công có thể sửa byte, cắt ghép hoặc thay thông điệp và khiến bên nhận xử lý dữ liệu sai mà không có bằng chứng mật mã đáng tin rằng bản mã đã bị sửa.
+Encryption provides **confidentiality**: someone without the proper key cannot read the plaintext. However, **not every encryption mode authenticates the ciphertext on its own**. With unauthenticated encryption schemes, an attacker can flip bytes, splice blocks, or swap messages and cause the receiver to process forged data without reliable cryptographic evidence that the ciphertext was altered.
 
-AEAD thêm cơ chế **authentication tag**. Bên nhận chỉ được chấp nhận thông điệp khi xác minh tag thành công với **đúng khóa, nonce, ciphertext và AAD**.
+AEAD adds an **authentication tag**. The receiver must accept the message only when tag verification succeeds with the **matching key, nonce, ciphertext, and AAD**.
 
-| Thuộc tính | Ý nghĩa trong AEAD |
+| Property | Meaning in AEAD |
 | --- | --- |
-| **Confidentiality** | Giấu bản rõ trước người không có khóa giải mã. |
-| **Integrity** | Phát hiện sửa đổi trái phép đối với ciphertext và dữ liệu liên kết được xác thực. |
-| **Key-based authenticity** | Bên nhận có bằng chứng thông điệp/tag hợp lệ được tạo bởi bên có quyền dùng khóa bí mật chung (theo giả định khóa chưa lộ). |
-| **Associated-data integrity** | Dữ liệu công khai quan trọng vẫn được xác thực dù không mã hóa. |
-| **Không tự chống replay** | Kẻ tấn công có thể phát lại nguyên gói hợp lệ nếu giao thức không quản lý số thứ tự, nonce của thông điệp, phiên hoặc request ID. |
-| **Không tự chứng minh cá nhân cụ thể** | Nếu nhiều bên cùng biết khóa đối xứng, tag không chỉ ra bên nào đã tạo thông điệp. Không thay được chữ ký số/PKI hoặc xác thực danh tính. |
+| **Confidentiality** | Hides plaintext from anyone without the decryption key. |
+| **Integrity** | Detects unauthorized modification of ciphertext and authenticated associated data. |
+| **Key-based authenticity** | Gives the receiver evidence that a valid message/tag was produced by a party authorized to use the shared secret key (assuming the key is uncompromised). |
+| **Associated-data integrity** | Critical public metadata is still authenticated even though unencrypted. |
+| **Does not prevent replay on its own** | An attacker can replay a valid packet verbatim unless the protocol tracks sequence numbers, message nonces, sessions, or request IDs. |
+| **Does not prove individual identity** | If multiple parties share the symmetric key, the tag does not identify which party created the message. It does not replace digital signatures/PKI or identity authentication. |
 
-**Quan trọng:** “Authenticated” trong AEAD là **xác thực mật mã theo khóa**, không tự động có nghĩa “người dùng đã đăng nhập”, “đúng tenant”, “được phép chuyển tiền”, hay “chắc chắn do công ty X phát hành”. Ứng dụng vẫn phải xác thực danh tính, phân quyền và tin cậy nguồn khóa.
+**Important:** "Authenticated" in AEAD means **key-based cryptographic authentication**, not automatically "the user is logged in", "correct tenant", "authorized to transfer funds", or "definitely issued by company X". Applications must still enforce identity authentication, authorization, and key-source trust.
 
-### 1.2. Vì sao không chỉ dùng AES ở bất kỳ mode nào?
+### 1.2. Why Not Just Use AES in Any Mode?
 
-Tên `AES` chỉ là thuật toán mã khối; bảo mật ứng dụng còn phụ thuộc vào **mode**, cách dùng IV/nonce và cách xác minh tính toàn vẹn:
+`AES` is only the block cipher primitive; application security also depends on the **mode**, IV/nonce handling, and integrity verification:
 
-- **AES-ECB** không cung cấp bảo mật cần thiết cho các mẫu dữ liệu lặp; không nên dùng cho dữ liệu ứng dụng.
-- **AES-CBC** với padding chỉ cung cấp mã hóa nếu đứng riêng; cần một cơ chế xác thực đúng cách và xử lý lỗi cẩn thận. Tự ghép kiểm tra padding/giải mã vào giao thức dễ tạo lỗi bảo mật.
-- **AES-CTR** bảo vệ bí mật khi nonce đúng, nhưng ciphertext có tính sửa đổi có kiểm soát nếu không xác thực.
-- **AES-GCM** là một mode **AEAD**, kết hợp mã hóa kiểu counter với thẻ xác thực GCM; phù hợp cho nhiều nhu cầu mới khi quản lý khóa/nonce đúng.
-- **ChaCha20-Poly1305** cũng là AEAD; lựa chọn thuật toán phải theo thư viện, môi trường, tiêu chuẩn và giao thức cụ thể, không tự trộn cấu phần của hai thuật toán.
+- **AES-ECB** fails to protect repeating data patterns; it must not be used for application data.
+- **AES-CBC** with padding provides encryption only when used alone; it requires a proper authentication mechanism and careful error handling. Bolting padding/decryption checks onto a protocol ad hoc easily introduces vulnerabilities.
+- **AES-CTR** protects confidentiality when nonces are proper, yet ciphertext remains controllably malleable without authentication.
+- **AES-GCM** is an **AEAD** mode combining counter-style encryption with a GCM authentication tag; suitable for most new needs when keys and nonces are managed properly.
+- **ChaCha20-Poly1305** is also AEAD; algorithm selection must follow your specific library, environment, standards, and protocol rather than mixing components across algorithms.
 
-Nên ưu tiên **primitive AEAD có sẵn trong thư viện đáng tin**; đừng tự thiết kế bộ “AES + hash”, hoặc giả định `SHA-256(ciphertext)` đủ để ngăn giả mạo vì digest không có khóa.
+Prefer **standard AEAD primitives from trusted libraries**; never invent an "AES + hash" construction or assume `SHA-256(ciphertext)` prevents forgery, since an unkeyed digest has no secret key.
 
-## 2. Mô hình toán học của AES-GCM
+## 2. Mathematical Model of AES-GCM
 
-AES-GCM nhận các dữ liệu sau:
+AES-GCM takes the following inputs and outputs:
 
-| Ký hiệu | Tên | Cần bí mật? | Vai trò |
+| Symbol | Name | Must Be Secret? | Role |
 | --- | --- | --- | --- |
-| `K` | AES secret key | **Có** | Bí mật của các bên được phép mã hóa/giải mã. |
-| `N` | Nonce/IV | **Không**, nhưng phải duy nhất cho mỗi lần mã hóa dưới cùng khóa | Tạo trạng thái mã hóa GCM; sai quy tắc nonce có thể phá nghiêm trọng an toàn. |
-| `P` | Plaintext | Có, nếu ứng dụng cần giữ kín | Nội dung muốn mã hóa. |
-| `A` | AAD (Additional Authenticated Data) | **Không** cần giữ bí mật | Metadata phải được ràng buộc và xác thực cùng bản mã. |
-| `C` | Ciphertext | Không | Bản mã của `P`, dài bằng `P` trong AES-GCM. |
-| `T` | Authentication tag | Không | Thẻ xác thực của ciphertext và AAD trong ngữ cảnh khóa và nonce. |
+| `K` | AES secret key | **Yes** | Shared secret of parties permitted to encrypt/decrypt. |
+| `N` | Nonce/IV | **No**, but must be unique per encryption under the same key | Seeds GCM encryption state; violating nonce rules can catastrophically break security. |
+| `P` | Plaintext | Yes, if the application needs secrecy | Content to be encrypted. |
+| `A` | AAD (Additional Authenticated Data) | **No** need for secrecy | Metadata to be bound and authenticated alongside ciphertext. |
+| `C` | Ciphertext | No | Encrypted form of `P`, same length as `P` in AES-GCM. |
+| `T` | Authentication tag | No | Authentication tag over ciphertext and AAD in the context of key and nonce. |
 
-Mô hình khái quát:
+Conceptual model:
 
 ~~~text
-                    K (khóa bí mật)        N (nonce duy nhất theo K)
+                    K (secret key)         N (unique nonce per K)
                              \              /
                               \            /
 P (plaintext) ----------------> AES-GCM Encrypt <------- A (AAD)
@@ -75,168 +75,168 @@ K, N, A, C, T ----------------> AES-GCM Decrypt/Verify
                                       |
                             +---------+---------+
                             |                   |
-                       tag hợp lệ          tag không hợp lệ
+                       valid tag           invalid tag
                             |                   |
-                       trả P              báo lỗi/từ chối
+                        return P           error / reject
 ~~~
 
-Dưới dạng hàm:
+In functional notation:
 
 ~~~text
 (C, T) = AEAD_Encrypt(K, N, P, A)
-P      = AEAD_Decrypt(K, N, C, T, A), nếu tag hợp lệ
-ERROR  = AEAD_Decrypt(K, N, C, T, A), nếu tag không hợp lệ
+P      = AEAD_Decrypt(K, N, C, T, A), if tag is valid
+ERROR  = AEAD_Decrypt(K, N, C, T, A), if tag is invalid
 ~~~
 
-**Không có bước “giải mã thành công rồi kiểm tag tùy chọn”.** Việc chấp nhận dữ liệu phải phụ thuộc vào phép xác thực thành công. Khi dùng API streaming hoặc provider có thể tạo output trung gian, **không được sử dụng plaintext chưa xác thực** cho nghiệp vụ, ghi DB, phản hồi API hay gọi hệ thống khác trước khi xác minh xong.
+**There is no "decrypt succeeds then optionally check the tag" step.** Accepting data must depend on successful authentication. When using streaming APIs or providers that may emit intermediate output, **never use unauthenticated plaintext** for business logic, DB writes, API responses, or downstream calls before verification finishes.
 
-## 3. AES/GCM/NoPadding nghĩa là gì trong JCA/JCE?
+## 3. What Does `AES/GCM/NoPadding` Mean in JCA/JCE?
 
-Trong Java, gọi:
+In Java, calling:
 
 ~~~java
 Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
 ~~~
 
-Chuỗi transformation có ba thành phần:
+The transformation string has three components:
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 | --- | --- |
-| `AES` | Thuật toán mã khối đối xứng Advanced Encryption Standard; khóa thường 128/192/256 bit theo hệ thống. |
-| `GCM` | Galois/Counter Mode: mode AEAD cung cấp mã hóa và authentication tag. |
-| `NoPadding` | GCM không dùng kiểu padding như PKCS#5/PKCS#7 cho plaintext; dữ liệu không cần bù thành bội số của 16 byte. |
+| `AES` | Advanced Encryption Standard symmetric block cipher; keys are typically 128/192/256 bits per system policy. |
+| `GCM` | Galois/Counter Mode: an AEAD mode providing encryption and an authentication tag. |
+| `NoPadding` | GCM does not use PKCS#5/PKCS#7-style plaintext padding; data need not be padded to a 16-byte multiple. |
 
-GCM kết hợp cơ chế tạo keystream kiểu **CTR** để mã hóa với phép xác thực dựa trên phép toán trong trường hữu hạn, thường được mô tả qua **GHASH** và khối tag. Người viết Java **không cần tự tính GHASH, counter hoặc tag**; `Cipher` và provider thực hiện phần thuật toán. Tự viết lại để “tối ưu” là dễ mắc lỗi nghiêm trọng.
+GCM pairs **CTR-style** keystream generation for encryption with finite-field authentication, commonly described via **GHASH** and a tag block. Java developers **do not compute GHASH, counters, or tags manually**; `Cipher` and the provider handle the algorithm internals. Reimplementing them manually to "optimize" is prone to severe mistakes.
 
-Trong cách dùng tiêu chuẩn với provider JCE phổ biến:
+In standard usage with common JCE providers:
 
-- Đặt tag 128 bit bằng `new GCMParameterSpec(128, nonce)`.
-- Trên **mã hóa**, `Cipher.doFinal(plaintext)` trả **ciphertext nối với tag**; ví dụ bài này lưu chúng liền nhau dưới tên `ciphertextAndTag`.
-- Trên **giải mã**, đưa toàn bộ phần **ciphertext + tag** vào `doFinal(...)`; provider kiểm tag và chỉ trả plaintext khi xác thực thành công.
-- Vì GCM dùng `NoPadding`, khi plaintext dài `n` byte, phần ciphertext dài `n` byte; tổng `ciphertextAndTag` dài `n + 16` byte khi tag 128 bit.
-- **Tag không phải nonce**: nonce chọn cho một lần mã hóa, còn tag là kết quả phép tính xác thực gắn với nội dung và AAD.
-- **Tag không phải mã băm SHA-256**: không thể thay bằng `MessageDigest.digest(...)`, cắt vài byte hash rồi gọi là tag.
+- Configure a 128-bit tag via `new GCMParameterSpec(128, nonce)`.
+- On **encryption**, `Cipher.doFinal(plaintext)` returns **ciphertext followed by the tag**; this lesson's example stores them contiguously as `ciphertextAndTag`.
+- On **decryption**, pass the combined **ciphertext + tag** to `doFinal(...)`; the provider checks the tag and returns plaintext only if authentication succeeds.
+- Because GCM uses `NoPadding`, an `n`-byte plaintext yields an `n`-byte ciphertext; total `ciphertextAndTag` length is `n + 16` bytes for a 128-bit tag.
+- **A tag is not a nonce**: a nonce is chosen for one encryption invocation, whereas a tag is the authentication output bound to the content and AAD.
+- **A tag is not a SHA-256 hash**: you cannot replace it by calling `MessageDigest.digest(...)`, truncating a few hash bytes, and calling it a tag.
 
-### 3.1. Authentication tag bảo vệ điều gì?
+### 3.1. What Does the Authentication Tag Protect?
 
-Giả sử người nhận có đủ `K, N, A, C, T`. Khi một trong các dữ liệu cần xác thực bị thay đổi mà không có khóa đúng để tạo tag hợp lệ, xác minh GCM sẽ thất bại với xác suất rất cao theo giới hạn bảo mật của thuật toán.
+Suppose the receiver has `K, N, A, C, T`. If any authenticated input is altered without the right key to forge a valid tag, GCM verification fails with overwhelming probability per the algorithm's security bounds.
 
-Các tình huống minh họa:
+Illustrative scenarios:
 
-| Thay đổi ở phía nhận | Hành vi mong đợi |
+| Modification on Receiver Side | Expected Behavior |
 | --- | --- |
-| **Ciphertext `C` bị đổi một byte** | Tag không khớp; từ chối. |
-| **Tag `T` bị đổi một byte** | Tag không khớp; từ chối. |
-| **AAD `A` đổi** | Tag không khớp; từ chối; AAD mặc dù không mã hóa vẫn được xác thực. |
-| **Nonce `N` đổi** | Giải mã với nonce khác, xác thực không hợp lệ; từ chối. |
-| **Dùng sai khóa `K`** | Không thể xác minh tag hợp lệ; từ chối. |
-| **Gửi lại nguyên gói hợp lệ, đúng AAD và khóa** | Tag **vẫn hợp lệ**. AEAD không tự biết thông điệp đã dùng trước đó. |
+| **Ciphertext `C` altered by one byte** | Tag mismatch; rejected. |
+| **Tag `T` altered by one byte** | Tag mismatch; rejected. |
+| **AAD `A` altered** | Tag mismatch; rejected; unencrypted AAD is still authenticated. |
+| **Nonce `N` altered** | Decrypting under a different nonce fails authentication; rejected. |
+| **Wrong key `K` used** | Cannot verify valid tag; rejected. |
+| **Valid packet re-sent verbatim with matching AAD and key** | Tag **remains valid**. AEAD has no built-in memory of prior messages. |
 
-Với `Cipher` của Java, tag sai khi giải mã GCM thường dẫn tới **`AEADBadTagException`** (là loại `BadPaddingException`). Không catch rồi âm thầm tiếp tục dùng dữ liệu. Đừng tự so sánh tag bằng phép `==`, `Arrays.equals` hoặc tự tạo tag — **provider xác minh tag bên trong `doFinal`**.
+With Java `Cipher`, a bad tag on GCM decryption typically throws **`AEADBadTagException`** (a subclass of `BadPaddingException`). Never catch it and silently keep using the data. Never compare tags manually with `==`, `Arrays.equals`, or compute tags yourself—**the provider verifies the tag inside `doFinal`**.
 
-Tag 128 bit là lựa chọn thông dụng. Tag dài hơn làm việc giả mạo khó hơn trong mô hình thích hợp; không tùy tiện rút ngắn tag hoặc cho hai bên dùng độ dài tag khác nhau. **Tag có độ dài cố định không bảo đảm tuyệt đối không thể giả mạo**, mà cho xác suất/giới hạn an toàn khi tuân thủ các giả định như nonce duy nhất và giới hạn số lần sử dụng khóa.
+A 128-bit tag is the standard choice. Longer tags make forgery harder within the proper security model; never arbitrarily shorten the tag or let both sides disagree on tag length. **A fixed-length tag does not make forgery mathematically impossible**, rather providing bounded security guarantees when assumptions like unique nonces and key usage limits are respected.
 
-## 4. Nonce/IV: có thể công khai nhưng không được tái sử dụng với cùng khóa
+## 4. Nonce/IV: Can Be Public, Must Never Be Reused Under the Same Key
 
-### 4.1. Quy tắc then chốt
+### 4.1. Key Rule
 
-**Đối với AES-GCM, không bao giờ mã hóa hai thông điệp khác nhau với cùng cặp (key, nonce).** Tái sử dụng nonce dưới cùng khóa có thể làm lộ quan hệ giữa các plaintext và dẫn tới giả mạo tag; không thể “sửa” hậu quả chỉ bằng cách lưu tag dài hơn.
+**With AES-GCM, never encrypt two different messages with the same (key, nonce) pair.** Reusing a nonce under the same key can expose relationships between plaintexts and enable tag forgery; you cannot "fix" the damage merely by storing a longer tag.
 
-Thông thường Java dùng **nonce 96 bit = 12 byte** cho GCM. Nonce **không cần bí mật**, có thể đặt ngay đầu gói tin. Bên giải mã cần nonce giống hệt để xác minh thành công.
+Java typically uses a **96-bit = 12-byte nonce** for GCM. The nonce **does not need to be secret** and can be placed right at the front of the packet. The decryptor needs the exact same nonce to verify successfully.
 
 ~~~text
-Khóa K_A:   N_001, N_002, N_003, ...   (mỗi nonce chỉ dùng 1 lần để mã hóa)
-Khóa K_B:   có không gian nonce riêng
-LỖI:       Encrypt(K_A, N_001, P1) và Encrypt(K_A, N_001, P2)
+Key K_A:   N_001, N_002, N_003, ...   (each nonce used only once for encryption)
+Key K_B:   has its own nonce space
+BUG:       Encrypt(K_A, N_001, P1) and Encrypt(K_A, N_001, P2)
 ~~~
 
-**Hai chiến lược nonce phổ biến:**
+**Two common nonce strategies:**
 
-1. **Nonce ngẫu nhiên 96 bit:** sinh bằng `SecureRandom` trong bài demo. Mỗi lần có xác suất trùng rất nhỏ ở số lượng thao tác hợp lý, nhưng **không bảo đảm duy nhất tuyệt đối**. Với nhiều bản ghi/tốc độ cao, phải có hạn mức sử dụng khóa, giám sát rủi ro va chạm và xoay khóa theo chính sách.
-2. **Nonce đếm/định danh có cấu trúc:** thiết kế prefix định danh instance/partition cùng counter duy nhất, có cơ chế phối hợp và bền vững qua restart. Phải tránh hai process dùng chung khóa cùng cấp lại một nonce. Không tự chế khi chưa có quy tắc phân phối, lưu trạng thái, giới hạn số lượng và kiểm thử rõ ràng.
+1. **Random 96-bit nonce:** generated with `SecureRandom` in demo code. Each invocation has negligible collision probability at moderate volume, yet **does not guarantee absolute uniqueness**. At high record counts/rates, you need key usage limits, collision risk monitoring, and policy-driven key rotation.
+2. **Structured counter/identifier nonce:** design an instance/partition prefix paired with a unique counter, with coordination and persistence across restarts. You must prevent two processes sharing a key from issuing the same nonce. Do not invent one without explicit allocation rules, state persistence, volume limits, and thorough testing.
 
-**Không dùng** nonce cố định cho mọi request, nonce từ timestamp không đảm bảo duy nhất, chuỗi chỉ số ngẫu nhiên yếu hoặc `new Random()` để sinh nonce. Nếu một hệ thống có nhiều process cùng giữ khóa AES, cần giải quyết tính duy nhất nonce **toàn hệ thống**, không chỉ trong một process.
+**Never use** a constant nonce for all requests, a timestamp-derived nonce lacking uniqueness guarantees, weak random indices, or `new Random()` to generate nonces. If multiple processes share an AES key, nonce uniqueness must be solved **system-wide**, not just within a single process.
 
-**Không nhầm:** nonce GCM dùng cho yêu cầu **duy nhất khi mã hóa**; nonce/request ID dùng chống replay ở tầng giao thức là một bài toán khác dù có thể cùng tên. Tính duy nhất nonce AES-GCM **không tự ngăn phát lại** một ciphertext + tag hợp lệ.
+**Do not confuse:** a GCM nonce satisfies the **encryption uniqueness** requirement; a protocol-level nonce/request ID used for anti-replay is a separate concern despite sharing a name. AES-GCM nonce uniqueness **does not automatically prevent replay** of a valid ciphertext + tag.
 
-### 4.2. Vì sao mất nonce sẽ không giải mã được?
+### 4.2. Why Can't You Decrypt If the Nonce Is Lost?
 
-Nonce là tham số đầu vào của GCM; giải mã cần cả **khóa và nonce ban đầu**. Nếu chỉ lưu ciphertext + tag mà bỏ nonce, không thể tái tạo nonce ngẫu nhiên sau này. Do đó, định dạng lưu trữ thường đưa nonce vào record bên cạnh ciphertext/tag.
+The nonce is an input parameter to GCM; decryption requires both the **original key and original nonce**. If only ciphertext + tag are saved and the nonce is discarded, a random nonce cannot be reconstructed later. Therefore, storage formats typically include the nonce alongside ciphertext/tag in the record.
 
-Để phục vụ xoay khóa, record còn cần **key identifier** hoặc cách ánh xạ khóa an toàn. Key ID có thể công khai nhưng phải được xác thực/kiểm soát ngữ cảnh để tránh nhầm khóa hoặc downgrade. Không bao giờ xuất khóa AES cùng gói dữ liệu.
+To support key rotation, records also need a **key identifier** or secure key-lookup mechanism. Key IDs can be public, yet must be context-validated/authenticated to avoid key confusion or downgrade attacks. Never ship the AES key inside the data packet.
 
-## 5. AAD: metadata không cần mã hóa nhưng phải được bảo vệ khỏi sửa đổi
+## 5. AAD: Metadata Unencrypted Yet Protected Against Tampering
 
-**AAD (Additional Authenticated Data)** là dữ liệu byte được đưa vào phép tính tag nhưng **không nằm trong ciphertext**. Bên nhận phải tái tạo **chính xác cùng dãy byte AAD** khi giải mã.
+**AAD (Additional Authenticated Data)** consists of bytes fed into tag computation that are **not present in the ciphertext**. The receiver must reconstruct the **exact same AAD byte sequence** during decryption.
 
-Ví dụ bạn mã hóa giá trị một giao dịch:
+For example, when encrypting a transaction value:
 
 ~~~text
-P   = "amount=100;currency=VND"  // cần giữ bí mật
-AAD = "v1|tenant=blue|type=transfer"  // được phép công khai
+P   = "amount=100;currency=VND"  // must remain secret
+AAD = "v1|tenant=blue|type=transfer"  // allowed to be public
 
 Encrypt(K, N, P, AAD) → C + T
 
-Decrypt(K, N, C, T, "v1|tenant=red|type=transfer") → lỗi tag
+Decrypt(K, N, C, T, "v1|tenant=red|type=transfer") → tag error
 ~~~
 
-AAD giúp ràng buộc ciphertext vào **ngữ cảnh**. Nếu dữ liệu mã hóa của tenant A bị di chuyển sang tenant B nhưng bên B giải mã với AAD chứa tenant B từ **ngữ cảnh đáng tin**, tag sẽ không khớp. Tuy vậy, AAD không thể thay kiểm tra quyền tenant: nếu ứng dụng tùy tiện **tin giá trị tenant do kẻ tấn công tự gửi trong cùng gói**, việc xác minh tag không tự thực hiện phân quyền.
+AAD binds ciphertext to a **context**. If encrypted data from tenant A is moved to tenant B, and tenant B decrypts using AAD containing tenant B from a **trusted context**, the tag will mismatch. However, AAD cannot replace tenant authorization checks: if an application blindly **trusts a tenant value sent by an attacker inside the same packet**, tag verification alone does not enforce authorization.
 
-Các trường thường cân nhắc đưa vào AAD khi phù hợp với thiết kế:
+Fields commonly considered for AAD when appropriate to the design:
 
-- **Phiên bản định dạng/protocol** để ngăn nhầm định dạng hoặc thuật toán.
-- **Record ID, object ID, tenant ID** nếu phải buộc bản mã thuộc một đối tượng/ngữ cảnh xác định.
-- **Loại nội dung, endpoint, mục đích sử dụng khóa** nếu một khóa được dùng trong nhiều luồng cần tách ngữ cảnh.
-- **Thông tin định danh khác** cần xác thực nhưng không cần che giấu.
+- **Format/protocol version** to prevent format or algorithm confusion.
+- **Record ID, object ID, tenant ID** when ciphertext must be bound to a specific entity/context.
+- **Content type, endpoint, key purpose** if one key serves multiple flows requiring domain separation.
+- **Other identifying metadata** requiring integrity without secrecy.
 
-Chú ý:
+Notes:
 
-- AAD **không bí mật**: đừng để thông tin nhạy cảm vào AAD rồi tưởng đã được mã hóa.
-- **Khác một byte là khác AAD**: UTF-8/UTF-16, newline, thứ tự trường JSON, khoảng trắng, cách viết số và Unicode normalization đều quan trọng. Thiết kế một biểu diễn byte **canonical** rõ ràng.
-- Trong API Java, gọi `cipher.updateAAD(aad)` **sau `init` và trước khi đưa plaintext/ciphertext vào `update` hay `doFinal`**. Thứ tự gọi sai có thể gây lỗi API.
-- Nếu không có metadata cần ràng buộc, AAD có thể rỗng; không ép phải tạo AAD giả. Nhưng nếu giao thức yêu cầu xác thực metadata, quên `updateAAD` là lỗi thiết kế.
-- AAD dùng cho cả mã hóa và giải mã; **hai bên phải trùng byte 100%**. Không nên tùy ý chuyển cấu trúc từ string sang JSON mà không có giao ước phiên bản.
+- AAD **is not secret**: never place sensitive data in AAD thinking it is encrypted.
+- **One byte different means different AAD**: UTF-8/UTF-16, newlines, JSON field ordering, whitespace, number formatting, and Unicode normalization all matter. Design a clear **canonical** byte representation.
+- In the Java API, call `cipher.updateAAD(aad)` **after `init` and before feeding plaintext/ciphertext to `update` or `doFinal`**. Wrong call ordering triggers API errors.
+- If there is no metadata to bind, AAD can be empty; do not force dummy AAD. Yet if the protocol requires authenticating metadata, omitting `updateAAD` is a design flaw.
+- AAD is used for both encryption and decryption; **both sides must match 100% byte-for-byte**. Do not switch ad hoc from string to JSON without versioning.
 
-## 6. Định dạng truyền/lưu: nonce, ciphertext và tag nằm ở đâu?
+## 6. Wire/Storage Format: Where Do Nonce, Ciphertext, and Tag Live?
 
-Trong ví dụ Java, bản ghi nhị phân có dạng:
+In the Java example, the binary record has the layout:
 
 ~~~text
 +-------------------+--------------------------+----------------+
-| nonce (12 byte)   | ciphertext (n byte)      | tag (16 byte)  |
+| nonce (12 bytes)  | ciphertext (n bytes)     | tag (16 bytes) |
 +-------------------+--------------------------+----------------+
-<--------------------- packet = 12 + n + 16 byte ---------------->
+<--------------------- packet = 12 + n + 16 bytes --------------->
 ~~~
 
-Một phần `nonce + ciphertext + tag` có thể được **Base64-encode** để đặt trong JSON. Base64 chỉ là **biểu diễn**, không tự bảo mật dữ liệu. AAD trong ví dụ là chuỗi byte lấy từ **ngữ cảnh ứng dụng** và được truyền/tái tạo riêng, không nằm trong packet.
+The combined `nonce + ciphertext + tag` can be **Base64-encoded** to embed inside JSON. Base64 is strictly an **encoding**, providing no security on its own. AAD in the example is a byte string derived from **application context**, transmitted or reconstructed separately rather than placed inside the packet.
 
-Trong hệ thống có nhiều phiên bản và khóa, record thực tế thường cần thêm metadata, ví dụ:
+In systems with multiple versions and keys, real-world records typically need extra metadata, such as:
 
 ~~~text
 version | keyId | nonce | ciphertext | authenticationTag
              \                       /
-              metadata định dạng được quy định cách xác thực
+              format metadata with defined authentication rules
 ~~~
 
-Nếu `version` hoặc `keyId` quyết định cách giải mã, cần thiết kế gắn metadata đó vào **AAD và/hoặc hợp đồng kiểm tra tin cậy** để không cho attacker tráo ngữ cảnh. Đặc tả phải nói rõ kiểu/độ dài từng trường, thứ tự byte, giới hạn payload, chế độ cấp nonce và cách xác định khóa. **Đừng cố đoán** tag nằm ở byte nào nếu hệ thống khác có cách lưu tách tag khỏi ciphertext; đó là khác biệt của định dạng giao thức, không phải tự do bỏ tag.
+If `version` or `keyId` governs how decryption proceeds, bind that metadata into **AAD and/or a trusted verification contract** so attackers cannot swap contexts. Specifications must define exact field types/lengths, byte order, payload limits, nonce allocation mode, and key resolution rules. **Never guess** where the tag sits if another system stores the tag separately from ciphertext; that is a protocol format difference, not license to drop the tag.
 
-**Ví dụ kích thước:** Plaintext ASCII `"amount=100;currency=VND"` có 23 byte. Với AES-GCM tag 16 byte và nonce 12 byte, packet bài demo dài **51 byte** (`12 + 23 + 16`). Kích thước packet có thể khác nếu định dạng thêm header hoặc các trường khác.
+**Size example:** ASCII plaintext `"amount=100;currency=VND"` is 23 bytes. With a 16-byte AES-GCM tag and 12-byte nonce, the demo packet is **51 bytes** (`12 + 23 + 16`). Packet sizes vary if headers or extra fields are added.
 
-## 7. Chuẩn bị an toàn trước khi lập trình
+## 7. Security Preparation Before Coding
 
-1. **Khóa:** Tạo bằng `KeyGenerator.getInstance("AES")` với nguồn `SecureRandom`. AES-128 hoặc AES-256 có thể sử dụng theo yêu cầu và chính sách hệ thống; mẫu dưới dùng AES-128 để dễ chạy rộng rãi, **không lưu khóa trong mã nguồn**.
-2. **Nonce:** 12 byte mới cho mỗi lần mã hóa dưới cùng khóa; sinh bằng CSPRNG trong ví dụ. Đối với sản xuất nhiều tiến trình, thiết kế cấp nonce không trùng toàn hệ thống.
-3. **Tag:** Dùng 128 bit qua `GCMParameterSpec(128, nonce)` ở cả hai phía.
-4. **AAD:** Xác định byte ổn định bằng `StandardCharsets.UTF_8` và một quy ước định dạng thống nhất; lấy các thuộc tính nghiệp vụ quan trọng từ ngữ cảnh đã xác minh.
-5. **Cipher:** Tạo một `Cipher` riêng cho mỗi thao tác; các đối tượng `Cipher` có trạng thái, không dùng chung không đồng bộ giữa nhiều request/thread.
-6. **Lỗi:** Không trả plaintext nếu xác thực thất bại. Không cho phép client phân biệt quá chi tiết sai tag/sai khóa/sai AAD trong thông báo API; log chỉ metadata cần thiết, tránh log plaintext, secret, khóa hoặc các chi tiết nhạy cảm.
-7. **Giới hạn dữ liệu:** Kiểm tra độ dài packet trước khi cấp phát/giải mã; đặt giới hạn kích thước theo nghiệp vụ và chính sách GCM của hệ thống. Một lần `doFinal` trên cả payload phù hợp ví dụ ngắn; payload lớn cần cấu trúc record/chunk AEAD được thiết kế riêng để xác thực từng chunk và thứ tự của chúng.
+1. **Key:** generate via `KeyGenerator.getInstance("AES")` with `SecureRandom`. AES-128 or AES-256 can be chosen per requirements and system policy; the sample below uses AES-128 for broad compatibility—**never store keys in source code**.
+2. **Nonce:** fresh 12 bytes per encryption under the same key; generated by CSPRNG in the example. For multi-process production, design system-wide non-repeating nonce allocation.
+3. **Tag:** use 128 bits via `GCMParameterSpec(128, nonce)` on both sides.
+4. **AAD:** define deterministic bytes using `StandardCharsets.UTF_8` and a consistent format convention; derive critical business attributes from verified context.
+5. **Cipher:** instantiate a separate `Cipher` per operation; `Cipher` objects are stateful and must not be shared unsynchronized across requests/threads.
+6. **Errors:** never return plaintext if authentication fails. Do not let clients distinguish fine-grained tag/key/AAD failures in API responses; log only necessary metadata, avoiding plaintext, secrets, keys, or sensitive details.
+7. **Data limits:** validate packet length before allocating/decrypting; enforce size caps per business logic and system GCM limits. One `doFinal` over the whole payload fits short examples; large payloads require dedicated chunked/record AEAD framing authenticating each chunk and its ordering.
 
-## 8. Ví dụ Java 17+ hoàn chỉnh: mã hóa, giải mã và phát hiện sửa đổi
+## 8. Complete Java 17+ Example: Encrypt, Decrypt, and Detect Tampering
 
-Ví dụ chạy bằng **JDK chuẩn**, không cần dependency bên ngoài. Nó tạo key tạm, sinh nonce mới cho **một lần mã hóa**, gắn nonce trước `ciphertextAndTag`, rồi thử giải mã đúng và các bản bị sửa. Các dòng stdout dưới đây **không in khóa, nonce hay ciphertext ngẫu nhiên**, do đó có thể kiểm tra ổn định.
+The example runs with the **standard JDK** and zero external dependencies. It creates an ephemeral key, generates a fresh nonce for **one encryption**, prepends the nonce to `ciphertextAndTag`, then tests valid decryption and tampered variants. The stdout lines below **print no random keys, nonces, or ciphertexts**, making them deterministic to verify.
 
-Lưu với tên chính xác **`AeadGcmDemo.java`**:
+Save with the exact name **`AeadGcmDemo.java`**:
 
 ~~~java
 import java.nio.ByteBuffer;
@@ -265,7 +265,7 @@ public class AeadGcmDemo {
         cipher.updateAAD(aad);
         byte[] ciphertextAndTag = cipher.doFinal(plain);
 
-        // Định dạng ví dụ: 12 byte nonce || ciphertext || 16 byte tag.
+        // Example format: 12-byte nonce || ciphertext || 16-byte tag.
         return ByteBuffer.allocate(nonce.length + ciphertextAndTag.length)
                 .put(nonce)
                 .put(ciphertextAndTag)
@@ -289,7 +289,7 @@ public class AeadGcmDemo {
                 new GCMParameterSpec(TAG_BITS, nonce));
         cipher.updateAAD(aad);
 
-        // Thành công mới trả plaintext; sai tag ném AEADBadTagException.
+        // Returns plaintext only on success; invalid tag throws AEADBadTagException.
         return cipher.doFinal(ciphertextAndTag);
     }
 
@@ -344,14 +344,14 @@ public class AeadGcmDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac AeadGcmDemo.java
 java AeadGcmDemo
 ~~~
 
-Đầu ra kỳ vọng:
+Expected output:
 
 ~~~text
 Plain bytes     = 23
@@ -365,34 +365,34 @@ Changed AAD     = true
 Wrong key       = true
 ~~~
 
-**Giải thích chính xác:**
+**Accurate explanation:**
 
-1. `encrypt` sinh nonce 12 byte bằng `SecureRandom`, tạo `Cipher` với AES-GCM và tag 128 bit, đưa AAD vào trước khi mã hóa.
-2. `doFinal(plain)` tạo ciphertext nối tag 16 byte. Packet là **nonce + ciphertext + tag**; bản rõ 23 byte nên packet 51 byte.
-3. `decrypt` lấy nonce từ packet, thiết lập cùng độ dài tag và AAD, sau đó đưa `ciphertextAndTag` vào `doFinal`. Tag hợp lệ thì byte plaintext trả về đúng.
-4. Khi sửa byte đầu ciphertext, byte cuối tag, byte nonce, hoặc đổi tenant trong AAD, xác minh thất bại; `rejected` bắt `AEADBadTagException` nên các dòng `Changed ...` in `true` (nghĩa là **bị từ chối**, không phải xác thực thành công).
-5. Tạo một khóa AES khác khiến `Wrong key = true`; chứng minh không thể giải mã bằng key khác chỉ vì đã biết nonce/ciphertext/tag.
+1. `encrypt` generates a 12-byte nonce using `SecureRandom`, creates an AES-GCM `Cipher` with a 128-bit tag, and supplies AAD before encrypting.
+2. `doFinal(plain)` produces ciphertext concatenated with a 16-byte tag. The packet is **nonce + ciphertext + tag**; 23-byte plaintext yields a 51-byte packet.
+3. `decrypt` reads the nonce from the packet, sets the same tag length and AAD, and passes `ciphertextAndTag` into `doFinal`. With a valid tag, exact plaintext bytes are returned.
+4. Flipping the first ciphertext byte, last tag byte, a nonce byte, or changing the tenant in AAD causes verification failure; `rejected` catches `AEADBadTagException`, so the `Changed ...` lines print `true` (meaning **rejected**, not authenticated successfully).
+5. Generating a different AES key yields `Wrong key = true`, proving an attacker cannot decrypt with another key merely by knowing the nonce/ciphertext/tag.
 
-**Đây là ví dụ học tập:** Khóa sinh tạm mất sau khi chạy, nonce ngẫu nhiên chưa có cơ chế phối hợp cho nhiều instance và packet không chứa version/key ID. Trong hệ thống thật phải thêm quy tắc lưu khóa, cấp nonce, phiên bản schema, giới hạn payload và chống replay khi cần. Đoạn code minh họa nguyên tắc xác minh tag, không phải một thư viện lưu trữ ciphertext hoàn chỉnh.
+**This is a learning example:** the ephemeral key vanishes after execution, the random nonce has no cross-instance coordination, and the packet omits version/key ID. Real systems must add key storage rules, nonce allocation, schema versioning, payload limits, and replay protection where needed. The code demonstrates tag verification principles, not a complete ciphertext persistence library.
 
-## 9. Vai trò của tag so với MAC và chữ ký số
+## 9. Role of the Tag Compared to MAC and Digital Signatures
 
-AES-GCM là **AEAD**: bên có secret key có thể tạo ciphertext/tag; người có cùng key có thể giải mã và xác minh. Tag được tích hợp trong phép GCM, **không phải đối tượng chứng minh danh tính bên ký độc lập**.
+AES-GCM is **AEAD**: a party holding the secret key can create ciphertext/tag; anyone holding the same key can decrypt and verify. The tag is integrated into the GCM operation, **not a standalone object proving an individual signer's identity**.
 
-| Cơ chế | Giấu plaintext? | Xác thực/toàn vẹn? | Ai có thể kiểm tra? | Lưu ý |
+| Mechanism | Hides Plaintext? | Authenticity / Integrity? | Who Can Verify? | Notes |
 | --- | --- | --- | --- | --- |
-| **AES-GCM (AEAD)** | **Có**, nếu khóa bí mật và nonce đúng | **Có**, với ciphertext và AAD | Bên giữ secret key phù hợp | Tag gắn với mã hóa; nonce phải duy nhất theo key |
-| **AES-CTR không có MAC** | Có theo giả định mode/nonce đúng | **Không** | Không có bước kiểm tag | Ciphertext có thể bị chỉnh sửa có chủ đích |
-| **HMAC-SHA256** | **Không** | Có, theo khóa chia sẻ | Bên giữ HMAC secret | HMAC không giải mã, không tạo ciphertext |
-| **Chữ ký số (Ed25519, RSA-PSS...)** | **Không** | Có, theo khóa ký và message | Bất kỳ ai có public key đáng tin | Ký bằng private key; phục vụ xác minh công khai |
-| **SHA-256 không khóa** | Không | Tạo digest; không xác thực nguồn nếu đứng riêng | Ai cũng tính được | Không thay thế tag, HMAC hoặc chữ ký |
-| **Base64** | Không | Không | Ai cũng encode/decode | Chỉ biểu diễn packet trong text |
+| **AES-GCM (AEAD)** | **Yes**, if key is secret and nonce is proper | **Yes**, for ciphertext and AAD | Parties holding the matching secret key | Tag is bound to encryption; nonce must be unique per key |
+| **AES-CTR without MAC** | Yes assuming proper mode/nonce | **No** | No tag check step | Ciphertext can be deliberately modified |
+| **HMAC-SHA256** | **No** | Yes, under shared key | Parties holding the HMAC secret | HMAC does not decrypt or encrypt |
+| **Digital signatures (Ed25519, RSA-PSS...)** | **No** | Yes, bound to signing key and message | Anyone with the trusted public key | Signed with private key; meant for public verification |
+| **Unkeyed SHA-256** | No | Produces digest; does not authenticate origin alone | Anyone can compute it | Does not replace tag, HMAC, or signature |
+| **Base64** | No | No | Anyone can encode/decode | Text representation of packet only |
 
-**Không nên “nâng cấp” AES-GCM bằng cách tự nối thêm `SHA-256(ciphertext)`** rồi bỏ tag. Digest không có khóa không ngăn attacker thay bản mã và tạo digest mới. Ngược lại, cũng không cần tự ghép một HMAC riêng vào GCM chỉ để “bảo vệ tag tốt hơn” nếu không có giao thức đặc tả và đánh giá độc lập; dùng AEAD chuẩn đúng cách là đủ cho mục tiêu của nó.
+**Do not "upgrade" AES-GCM by appending `SHA-256(ciphertext)`** and discarding the tag. An unkeyed digest does not stop an attacker from modifying ciphertext and recomputing the digest. Conversely, there is no need to bolt a separate HMAC onto GCM just to "protect the tag better" without a formal protocol spec and independent review; properly using standard AEAD suffices for its purpose.
 
-## 10. Bốn tình huống ứng dụng điển hình
+## 10. Four Typical Application Scenarios
 
-### 10.1. Mã hóa một record trong cơ sở dữ liệu
+### 10.1. Encrypting a Database Record
 
 ~~~text
 DB row:
@@ -402,30 +402,30 @@ DB row:
   nonce = ...
   ciphertextAndTag = ...
 
-Giải mã:
+Decrypt:
   key = KMS.resolve(keyId)
-  aad = canonical("v1", tenant từ ngữ cảnh tin cậy, row id)
+  aad = canonical("v1", tenant from trusted context, row id)
   plaintext = AES-GCM-Decrypt(key, nonce, ciphertextAndTag, aad)
 ~~~
 
-Nếu ai đó tráo ciphertext giữa hai row mà ứng dụng lấy `row id`/tenant từ **row/ngữ cảnh đã kiểm chứng** vào AAD, việc tráo thường bị phát hiện bằng tag không hợp lệ. Cần thiết kế cách ràng buộc `keyId` và version, chống attacker điều khiển metadata đầu vào không tin cậy. Encryption không thay phân quyền đọc DB, mã hóa ở ổ đĩa hoặc chính sách truy cập.
+If someone swaps ciphertexts between two rows while the application populates `row id`/tenant from the **verified row/context** into AAD, swapping will fail with an invalid tag. You must bind `keyId` and version properly to prevent attackers from controlling untrusted input metadata. Encryption does not replace DB read permissions, disk encryption, or access policies.
 
-### 10.2. Nhận request API có thể bị phát lại
+### 10.2. Receiving Replayable API Requests
 
-Một gói AES-GCM hợp lệ **có thể được gửi lại** nếu vẫn dùng cùng key, nonce, ciphertext/tag và AAD. Tag không chứa lịch sử đã nhận. Với API có tác dụng tạo lệnh thanh toán hoặc sửa dữ liệu, ứng dụng nên ràng buộc request ID, timestamp/expiry hoặc sequence vào giao thức/AAD, **sau đó kiểm tra hiệu lực và chống dùng lại bằng trạng thái tin cậy**. Chỉ đưa timestamp vào AAD mà không kiểm thời gian/không ghi nhận ID đã dùng vẫn không chống replay đầy đủ.
+A valid AES-GCM packet **can be re-sent** using the same key, nonce, ciphertext/tag, and AAD. The tag contains no history of prior receipts. For APIs that trigger payments or mutate state, bind request IDs, timestamps/expiry, or sequence numbers into the protocol/AAD, **then validate freshness and prevent reuse via trusted state**. Merely placing a timestamp into AAD without checking time or recording seen IDs still fails to stop replay.
 
-### 10.3. Mã hóa file lớn hoặc dữ liệu streaming
+### 10.3. Encrypting Large Files or Streaming Data
 
-Không đọc file rất lớn vào RAM chỉ để dùng một `doFinal` nếu hệ thống không có bộ nhớ phù hợp. Có thể dùng API `update(...)`, `doFinal(...)` của `Cipher` theo đúng giao thức nhưng **không được tin/tiêu thụ plaintext trung gian trước khi tag hoàn tất**. Thiết kế record/chunk AEAD cho file lớn thường cần:
+Never load huge files into RAM just to make one `doFinal` call when system memory cannot support it. You can use `Cipher`'s `update(...)` and `doFinal(...)` APIs per protocol rules, **provided you never trust/consume intermediate plaintext before the tag completes**. Large-file AEAD chunk/record designs generally need:
 
-- Nonce duy nhất cho mỗi chunk, dưới cùng khóa;
-- Ràng buộc **file ID, chunk index, tổng số chunk, vị trí/thứ tự** qua AAD;
-- Xác minh **đủ các chunk và metadata toàn cục**, chống cắt bớt/đổi thứ tự/thay chunk;
-- Giới hạn dung lượng và quản lý quota khóa đúng chuẩn.
+- A unique nonce per chunk under the same key;
+- Binding **file ID, chunk index, total chunks, and position/order** via AAD;
+- Verifying **all chunks and global finality metadata** to prevent truncation, reordering, or chunk substitution;
+- Volume limits and proper key quota management.
 
-Không thể đơn giản coi “mỗi chunk decrypt được” là toàn bộ file chắc chắn hoàn chỉnh nếu kẻ tấn công có thể xóa hoặc hoán vị chunk.
+You cannot simply treat "each chunk decrypted" as proof the entire file is intact if an attacker can delete or permute chunks.
 
-### 10.4. Dữ liệu mã hóa rồi Base64 trong JSON
+### 10.4. Encrypted Data Base64-Encoded Inside JSON
 
 ~~~json
 {
@@ -435,74 +435,74 @@ Không thể đơn giản coi “mỗi chunk decrypt được” là toàn bộ 
 }
 ~~~
 
-Trong ví dụ minh họa, `payloadBase64` là Base64 của **nonce || ciphertext || tag**. API cần quy ước AAD và xác minh version/key ID theo hợp đồng. **Giải mã Base64 không phải giải mã AES-GCM**; còn cần khóa, nonce, ciphertext, tag và AAD khớp.
+In the illustrative example, `payloadBase64` is Base64 of **nonce || ciphertext || tag**. The API must define AAD rules and verify version/key ID per contract. **Base64 decoding is not AES-GCM decryption**; matching key, nonce, ciphertext, tag, and AAD are still required.
 
-## 11. Những lỗi bảo mật và lỗi API thường gặp
+## 11. Common Security and API Mistakes
 
-| Lỗi | Vì sao sai/nguy hiểm | Cách làm đúng |
+| Mistake | Why It Is Wrong / Dangerous | Proper Practice |
 | --- | --- | --- |
-| **Tái sử dụng cùng key + nonce khi encrypt** | Có thể phá cả tính bí mật và khả năng xác thực GCM. | Cấp nonce duy nhất theo key, giám sát quota, xoay khóa và thiết kế phối hợp nhiều process. |
-| **Dùng nonce 12 byte toàn số 0 cho mọi message** | Mỗi lần với cùng key đều dùng lại nonce. | Sinh/điều phối nonce mới cho mỗi lần mã hóa; nonce không cần giữ bí mật. |
-| **Tưởng nonce phải giấu** | Thiếu nonce khiến không giải mã được; giấu nonce không bù việc reuse. | Lưu/truyền nonce cùng ciphertext/tag, nhưng bảo đảm quy tắc duy nhất. |
-| **Bỏ 16 byte tag khi lưu ciphertext** | Không thể xác minh bản mã đã được chấp nhận; giải mã sẽ lỗi. | Giữ ciphertext **và** tag nguyên vẹn theo định dạng. |
-| **Tự so sánh tag bằng Java `==`/`equals`** | Xác thực GCM phải do primitive thực hiện với khóa và nonce; so sánh sai kiểu không có ý nghĩa. | Truyền nguyên ciphertext+tag vào `Cipher.doFinal` khi decrypt. |
-| **Catch `AEADBadTagException` rồi sử dụng dữ liệu đã có** | Dữ liệu chưa xác thực có thể dẫn đến tác động nghiệp vụ. | Từ chối toàn bộ thông điệp, không commit tác dụng phụ từ plaintext chưa xác thực. |
-| **Nhầm AAD thành ciphertext** | AAD không được mã hóa nên dữ liệu nhạy cảm có thể lộ. | Chỉ dùng AAD cho metadata cần xác thực và cho phép công khai; plaintext cần bí mật phải đưa vào encrypt. |
-| **Đổi AAD giữa hai phía** | Tag không hợp lệ, ví dụ khác encoding, thứ tự trường hoặc tenant. | Quy định canonical byte AAD, dùng UTF-8, cùng schema/version. |
-| **Gọi `updateAAD` sau khi xử lý input qua `update`** | Vi phạm trình tự API của AEAD. | `init` → `updateAAD` → `update/doFinal`. |
-| **Sử dụng AES/GCM/NoPadding nhưng tin rằng “NoPadding = không có tag”** | “NoPadding” chỉ là không có padding plaintext; GCM vẫn tạo tag. | Luôn xác minh tag đúng độ dài. |
-| **Dùng tag 128 bit lúc encrypt, khai báo 96 bit lúc decrypt** | Hai bên hiểu khác độ dài tag/định dạng; xác minh lỗi. | Cố định `GCMParameterSpec` theo giao thức. |
-| **Dùng chung một `Cipher` instance cho các thread/request** | Trạng thái Cipher và IV/tag bị trộn hoặc race. | Tạo/init riêng cho từng thao tác, không chia sẻ mutable Cipher giữa luồng. |
-| **Tưởng AES-GCM tự chống request phát lại** | Tag hợp lệ cho gói cũ vẫn hợp lệ. | Có protocol state chống replay, expiry/sequence/request ID được kiểm tra. |
-| **Dùng key hard-code hoặc ghi key vào log** | Lộ khóa làm mất an toàn nhiều bản ghi. | KMS/secret manager, phân quyền, rotation, audit; không log secret. |
-| **Không quản lý phiên bản và key ID** | Không giải mã được sau rotation, dễ nhập nhằng giao thức. | Record có schema version/key ID, metadata nhạy về ngữ cảnh được xác thực. |
-| **Đổ toàn bộ lỗi xác thực vào response chi tiết** | Tạo kênh rò rỉ về trạng thái khóa/dữ liệu hoặc hữu ích cho attacker. | Trả lỗi tổng quát an toàn; nội bộ log có kiểm soát và không chứa secrets. |
+| **Reusing same key + nonce on encrypt** | Can break both confidentiality and GCM authenticity. | Allocate unique nonces per key, monitor quotas, rotate keys, and coordinate across processes. |
+| **Using a 12-byte all-zero nonce for every message** | Reuses the exact same nonce under the same key on every run. | Generate/coordinate a fresh nonce per encryption; nonces need not be secret. |
+| **Thinking the nonce must be hidden** | Losing the nonce makes decryption impossible; hiding it does not excuse reuse. | Store/transmit nonce with ciphertext/tag while enforcing uniqueness. |
+| **Dropping the 16-byte tag when saving ciphertext** | Cannot verify ciphertext authenticity; decryption will fail. | Preserve ciphertext **and** tag intact per format. |
+| **Comparing tags manually with Java `==`/`equals`** | GCM authentication must be performed by the primitive with key and nonce; naive comparison is meaningless. | Pass full ciphertext+tag into `Cipher.doFinal` on decrypt. |
+| **Catching `AEADBadTagException` and using buffered output anyway** | Unauthenticated data can drive harmful business side effects. | Reject the entire message; never commit side effects from unauthenticated plaintext. |
+| **Confusing AAD with ciphertext** | AAD is unencrypted, exposing sensitive fields placed there. | Put only public metadata needing integrity in AAD; confidential plaintext goes into encrypt. |
+| **Mismatched AAD across sides** | Tag fails due to encoding, field order, or tenant mismatch. | Specify canonical AAD bytes, UTF-8, and matching schema/version. |
+| **Calling `updateAAD` after feeding input to `update`** | Violates AEAD API ordering. | `init` → `updateAAD` → `update/doFinal`. |
+| **Using `AES/GCM/NoPadding` while believing "NoPadding = no tag"** | "NoPadding" only means no plaintext padding; GCM still creates a tag. | Always verify the full-length tag. |
+| **Encrypting with 128-bit tag, decrypting with 96-bit tag** | Both sides disagree on tag length/format; verification fails. | Fix `GCMParameterSpec` in the protocol. |
+| **Sharing one `Cipher` instance across threads/requests** | Cipher state and IV/tag get corrupted or raced. | Create/init separately per operation; never share mutable `Cipher` across threads. |
+| **Assuming AES-GCM prevents replayed requests** | A valid tag for an old packet stays valid. | Use protocol state for replay defense with checked expiry/sequence/request IDs. |
+| **Hardcoding keys or logging keys** | Key compromise invalidates all protected records. | Use KMS/secret manager, access control, rotation, auditing; never log secrets. |
+| **Omitting version and key ID management** | Breaks decryption after rotation and invites protocol confusion. | Records carry schema version/key ID, with context-sensitive metadata authenticated. |
+| **Dumping full authentication error details in responses** | Creates information leaks about key/data state useful to attackers. | Return safe generic errors; maintain controlled internal logs free of secrets. |
 
-**Về xử lý lỗi:** `IllegalArgumentException` cho packet quá ngắn trong demo là kiểm tra **định dạng đầu vào**, khác với `AEADBadTagException` khi tag sai. Hệ thống thực tế nên chuẩn hóa cả hai thành lỗi yêu cầu không hợp lệ ở ranh giới không tin cậy, đồng thời giữ telemetry nội bộ phù hợp mà không lộ dữ liệu nhạy cảm.
+**On error handling:** `IllegalArgumentException` for a short packet in the demo is an **input-format check**, distinct from `AEADBadTagException` on tag mismatch. Production systems should normalize both into an invalid-request error at untrusted boundaries while keeping internal telemetry free of sensitive data.
 
-## 12. Câu hỏi tự kiểm tra (có đáp án)
+## 12. Self-Check Questions (with Answers)
 
-**Câu 1.** Một người chặn mạng nhìn thấy nonce 12 byte, ciphertext và tag 16 byte. Họ có thể giải mã ngay chỉ vì nonce không bí mật không?
+**Q1.** A network eavesdropper sees a 12-byte nonce, ciphertext, and 16-byte tag. Can they decrypt immediately just because the nonce is not secret?
 
-**Đáp án:** Không. Nonce là tham số công khai; cần khóa AES phù hợp để giải mã và xác minh tag. Bảo mật phụ thuộc khóa bí mật, nonce đúng cách và tính an toàn của thuật toán.
+**A:** No. The nonce is a public parameter; the matching AES key is needed to decrypt and verify the tag. Security depends on the secret key, proper nonce discipline, and algorithm strength.
 
-**Câu 2.** Dữ liệu AAD trong AES-GCM có được giữ bí mật không? Nếu AAD đổi từ `tenant=blue` thành `tenant=red` nhưng ciphertext/tag giữ nguyên thì sao?
+**Q2.** Is AAD kept secret in AES-GCM? What happens if AAD changes from `tenant=blue` to `tenant=red` while ciphertext/tag stay identical?
 
-**Đáp án:** AAD **không được mã hóa**. Thay byte AAD khiến xác minh tag thất bại khi decrypt dưới cùng key/nonce/ciphertext/tag. Ứng dụng phải lấy tenant từ ngữ cảnh đáng tin và kiểm tra quyền riêng.
+**A:** AAD **is not encrypted**. Changing AAD bytes causes tag verification to fail when decrypting under the same key/nonce/ciphertext/tag. Applications must take the tenant from a trusted context and check authorization separately.
 
-**Câu 3.** Với AES-GCM tag 128 bit, plaintext 23 byte và nonce 12 byte, packet `nonce || ciphertext || tag` dài bao nhiêu?
+**Q3.** With 128-bit-tag AES-GCM, 23-byte plaintext, and 12-byte nonce, how long is the `nonce || ciphertext || tag` packet?
 
-**Đáp án:** `12 + 23 + 16 = 51` byte. GCM là NoPadding nên ciphertext dài bằng plaintext trong định dạng ví dụ.
+**A:** `12 + 23 + 16 = 51` bytes. Since GCM uses `NoPadding`, ciphertext has the same length as plaintext in the example format.
 
-**Câu 4.** Một dịch vụ encrypt với cùng key và cùng nonce cho hai record khác nhau, nhưng mỗi record có AAD khác. Có an toàn không?
+**Q4.** A service encrypts two different records with the same key and same nonce, using a different AAD for each record. Is that secure?
 
-**Đáp án:** **Không.** AAD khác nhau không thay thế yêu cầu duy nhất của nonce dưới cùng khóa. Phải tránh mọi lần mã hóa lặp cặp key/nonce.
+**A:** **No.** Different AAD does not substitute for nonce uniqueness under the same key. Every encryption under a key must avoid repeating the `(key, nonce)` pair.
 
-**Câu 5.** `decrypt` ném `AEADBadTagException`. Có nên trả phần plaintext có thể đã được xử lý trước khi exception xảy ra không?
+**Q5.** `decrypt` throws `AEADBadTagException`. Should you return any plaintext that might have been processed before the exception occurred?
 
-**Đáp án:** Không. Bỏ toàn bộ dữ liệu chưa xác thực; không dùng plaintext trung gian trong tính toán nghiệp vụ, không commit transaction hay ghi ra nơi khác trước khi tag hợp lệ.
+**A:** No. Discard all unauthenticated data; never use intermediate plaintext in business calculations, commit transactions, or write it elsewhere before the tag succeeds.
 
-**Câu 6.** Một client gửi lại nguyên vẹn một gói thanh toán GCM hợp lệ mà server đã xử lý hôm qua. Tag có thất bại vì request cũ không?
+**Q6.** A client re-sends verbatim a valid GCM payment packet that the server processed yesterday. Will the tag fail because the request is old?
 
-**Đáp án:** Không. Nếu key/nonce/AAD/ciphertext/tag vẫn khớp, tag vẫn hợp lệ. Server cần quản lý chống replay bằng request ID/sequence và thời hạn hợp lệ.
+**A:** No. If key/nonce/AAD/ciphertext/tag still match, the tag remains valid. The server needs anti-replay tracking via request IDs/sequences and expiration windows.
 
-**Câu 7.** Có nên gửi thêm `SHA-256(ciphertext)` cùng AES-GCM tag để xác minh dữ liệu chưa bị sửa?
+**Q7.** Should you attach `SHA-256(ciphertext)` alongside the AES-GCM tag to verify data was not modified?
 
-**Đáp án:** Không cần cho mục tiêu này. SHA-256 không khóa không chống người thay ciphertext rồi băm lại. Tag AES-GCM đã là cơ chế xác thực tích hợp; hãy ưu tiên dùng đúng primitive và protocol chuẩn.
+**A:** Unnecessary for that goal. Unkeyed SHA-256 does not stop someone from modifying ciphertext and re-hashing it. The AES-GCM tag is already the built-in authentication mechanism; prefer standard primitives and protocols.
 
-**Câu 8.** Khi hệ thống có 20 worker cùng mã hóa với một khóa AES, mỗi worker dùng counter nonce bắt đầu từ 0. Có ổn không?
+**Q8.** When 20 workers encrypt with the same AES key and each worker uses a counter nonce starting at 0, is that safe?
 
-**Đáp án:** Không, vì các worker có thể tạo cùng nonce dưới một khóa. Cần cơ chế phân vùng nonce/điều phối counter/định danh instance đảm bảo không trùng kể cả restart, hoặc chiến lược sinh nonce đã được đánh giá và quota/key rotation phù hợp.
+**A:** No, because different workers will emit colliding nonces under the same key. You need nonce partitioning, coordinated counters, or instance prefixes guaranteed not to collide even across restarts—or an evaluated nonce generation strategy with appropriate quotas and key rotation.
 
-## 13. Checklist áp dụng AES-GCM trong Java
+## 13. Checklist for Applying AES-GCM in Java
 
-- **Đúng primitive:** `AES/GCM/NoPadding` qua `Cipher` chuẩn; 128-bit authentication tag bằng `GCMParameterSpec`, không thay tag bằng checksum/hash.
-- **Đúng secret:** Khóa AES có entropy và quyền truy cập phù hợp, không hard-code; có quản lý vòng đời/rotation.
-- **Đúng nonce:** 12 byte theo định dạng phổ biến; **duy nhất mỗi lần encrypt dưới cùng key**; phân phối trên toàn hệ thống.
-- **Đúng AAD:** Chỉ metadata công khai cần xác thực; xác định byte UTF-8/canonical, gắn ngữ cảnh đã tin cậy, gọi `updateAAD` trước dữ liệu.
-- **Đúng wire format:** Giữ nonce, ciphertext, tag và mọi thông tin version/key ID cần thiết; tránh nhầm Base64 với bảo mật.
-- **Đúng cách decrypt:** Đưa nguyên ciphertext+tag cho `doFinal`, chỉ dùng plaintext sau khi xác minh thành công; từ chối mọi lỗi tag.
-- **Đúng giao thức:** Thêm chống replay, giới hạn kích thước, phân quyền/định danh, xử lý lỗi và theo dõi hoạt động; AEAD không thay tất cả các tầng bảo mật khác.
-- **Đúng vận hành:** Nếu dữ liệu lớn, thiết kế chunk/record AEAD với thứ tự/index và điều kiện hoàn tất được xác thực; không xử lý plaintext streaming chưa kiểm tag.
+- **Right primitive:** `AES/GCM/NoPadding` via standard `Cipher`; 128-bit authentication tag via `GCMParameterSpec`, never replacing the tag with a checksum/hash.
+- **Right secret:** AES key with proper entropy and access control, never hardcoded; lifecycle/rotation managed.
+- **Right nonce:** 12 bytes in common format; **unique per encryption under the same key**; coordinated system-wide.
+- **Right AAD:** only public metadata requiring authentication; deterministic UTF-8/canonical bytes, bound to trusted context, `updateAAD` called before data.
+- **Right wire format:** preserve nonce, ciphertext, tag, and any needed version/key ID metadata; do not confuse Base64 with security.
+- **Right decryption:** pass full ciphertext+tag to `doFinal`, use plaintext only after verification succeeds; reject all tag failures.
+- **Right protocol:** add replay defense, size limits, authorization/identity checks, safe error handling, and monitoring; AEAD does not replace other security layers.
+- **Right operations:** for large data, design chunked/record AEAD with authenticated ordering/indices and completion checks; never consume streaming plaintext before tag verification.
 
-**Kết luận:** **AEAD = mã hóa có xác thực dữ liệu liên kết**. Với `AES/GCM/NoPadding`, **ciphertext** bảo vệ bí mật của plaintext, **authentication tag** giúp phát hiện sửa đổi của ciphertext và AAD, **nonce** là đầu vào công khai nhưng phải duy nhất dưới cùng khóa, còn **AAD** ràng buộc metadata quan trọng mà không che giấu metadata đó. Trong Java, kiểm tra tag nằm trong `Cipher.doFinal` khi giải mã: **tag không hợp lệ thì không có dữ liệu đáng tin để xử lý**.
+**Conclusion:** **AEAD = authenticated encryption with associated data**. With `AES/GCM/NoPadding`, **ciphertext** protects plaintext confidentiality, the **authentication tag** detects modifications to ciphertext and AAD, the **nonce** is a public input that must remain unique under the same key, and **AAD** binds critical metadata without hiding it. In Java, tag verification occurs inside `Cipher.doFinal` on decryption: **if the tag is invalid, there is no trustworthy data to process**.

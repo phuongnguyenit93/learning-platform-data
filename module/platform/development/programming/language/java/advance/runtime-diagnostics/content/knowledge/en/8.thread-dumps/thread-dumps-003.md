@@ -1,79 +1,79 @@
-# 8.3 Đọc tên thread, Java thread id, native id, trạng thái và các stack frame
+# 8.3 Reading thread names, Java thread IDs, native IDs, states, and stack frames
 
-**Thread dump** là ảnh chụp tại một thời điểm về các luồng và call stack mà JVM có thể quan sát. Khi một dịch vụ Java 17+ chậm, treo, tăng số thread hoặc có vẻ dùng CPU bất thường, thread dump giúp trả lời: thread nào đang làm gì; thread đang chờ monitor/condition/I/O hay đang chạy mã; luồng nào đang giữ khóa; và một stack frame cụ thể liên hệ tới đoạn mã nào.
+A **thread dump** is a point-in-time snapshot of the threads and call stacks observable by the JVM. When a Java 17+ service is slow, hangs, grows in thread count, or appears to use abnormal CPU, a thread dump helps answer: which threads are doing what; whether a thread is waiting on a monitor/condition/I/O or running code; which thread holds a lock; and which code segment a particular stack frame maps to.
 
-Đọc một dump đúng cách đòi hỏi phân biệt ít nhất **bốn loại thông tin**: **tên thread** (nhãn do chương trình/JVM đặt), **Java thread ID** (định danh trong JVM), **native thread ID** (định danh luồng ở hệ điều hành, nếu triển khai thể hiện), **trạng thái và stack frames**. Trên HotSpot, trường `tid` ở header là địa chỉ cấu trúc thread nội bộ — **không phải** Java thread ID và cũng **không phải** native thread ID. Một sự nhầm lẫn nhỏ ở đây có thể khiến bạn theo dõi nhầm thread trong `top -H` hoặc kết luận rằng Java thread bị treo dù nó chỉ đang đợi việc trong thread pool.
+Reading a dump correctly requires distinguishing at least **four kinds of information**: **thread name** (a label assigned by the program/JVM), **Java thread ID** (an identifier within the JVM), **native thread ID** (the operating-system thread identifier, if exposed by the implementation), and **state and stack frames**. On HotSpot, the `tid` field in the header is the address of an internal thread structure — **not** the Java thread ID and **not** the native thread ID. A small mix-up here can cause you to track the wrong thread in `top -H` or conclude that a Java thread is hung when it is simply waiting for work in a thread pool.
 
-Bài Knowledge này tập trung vào **đọc và diễn giải**, không mở rộng thành hướng dẫn toàn bộ các công cụ profiling. Các lệnh minh họa áp dụng cho HotSpot/OpenJDK 17 khi có đủ quyền. **Luôn xác nhận đúng PID, JVM start time và container namespace trước khi lấy dump**; dữ liệu có thể chứa đường dẫn nội bộ, tên task, endpoint, class name và thông tin nhạy cảm.
+This Knowledge lesson focuses on **reading and interpreting**, rather than expanding into a full guide to all profiling tools. The illustrated commands apply to HotSpot/OpenJDK 17 when sufficient permissions are present. **Always verify the exact PID, JVM start time, and container namespace before taking a dump**; the data may contain internal paths, task names, endpoints, class names, and sensitive information.
 
-## 1. Mục tiêu đọc thread dump
+## 1. Thread dump reading goals
 
-Sau bài học, bạn cần:
+After this lesson, you should be able to:
 
-- Tách header của một thread: tên, số thread kiểu `#n`, `daemon`, `prio`, `os_prio`, `tid`, `nid`, mô tả trạng thái, CPU/elapsed nếu có.
-- Giải thích Java `Thread.State`: `NEW`, `RUNNABLE`, `BLOCKED`, `WAITING`, `TIMED_WAITING`, `TERMINATED` và giới hạn khi so với trạng thái scheduler của OS.
-- Đọc các frame theo thứ tự **trên cùng là method gần hiện tại**, dưới là các caller; hiểu `Native Method`, `Unknown Source`, file/line number và frame từ Java library/framework.
-- Nhận diện các dòng đồng bộ như `- waiting to lock`, `- locked`, `- parking to wait for`, `Locked ownable synchronizers`.
-- Chuyển `nid` dạng hexadecimal sang native thread ID decimal trên Linux để đối chiếu `top -H` hoặc `ps -L`, đồng thời tránh nhầm `tid` và `Thread.getId()`.
-- Dùng `ThreadMXBean` trong Java 17 để đọc Java thread ID/name/state/frame và biết API chuẩn này không cung cấp `nid`.
-- Lấy nhiều dump có timestamp/instance identity, phân nhóm stack và kiểm chứng giả thuyết bằng metrics, JFR, GC log, OS counters thay vì chẩn đoán từ một dòng.
+- Parse a thread's header: name, thread number like `#n`, `daemon`, `prio`, `os_prio`, `tid`, `nid`, state description, and CPU/elapsed if present.
+- Explain Java `Thread.State`: `NEW`, `RUNNABLE`, `BLOCKED`, `WAITING`, `TIMED_WAITING`, `TERMINATED` and their limits compared to OS scheduler states.
+- Read frames in order where **the top is the most recent method**, and below are the callers; understand `Native Method`, `Unknown Source`, file/line numbers, and frames from Java libraries/frameworks.
+- Recognize synchronization lines such as `- waiting to lock`, `- locked`, `- parking to wait for`, and `Locked ownable synchronizers`.
+- Convert hexadecimal `nid` to a decimal native thread ID on Linux to correlate with `top -H` or `ps -L`, while avoiding confusion between `tid` and `Thread.getId()`.
+- Use `ThreadMXBean` in Java 17 to read Java thread ID/name/state/frames and know that this standard API does not provide `nid`.
+- Collect multiple dumps with timestamps/instance identities, group stacks, and verify hypotheses using metrics, JFR, GC logs, and OS counters instead of diagnosing from a single line.
 
-## 2. Thu được thread dump từ đâu?
+## 2. Where do thread dumps come from?
 
-### 2.1. Những cách phổ biến trên HotSpot/OpenJDK 17
+### 2.1. Common methods on HotSpot/OpenJDK 17
 
-Với PID ví dụ `12345` của đúng JVM cần điều tra:
+With an example PID `12345` of the exact JVM to investigate:
 
 ```bash
-# Liệt kê các JVM mà công cụ có thể nhìn thấy.
+# List JVMs visible to the tool.
 jcmd -l
 
-# In Java thread dump, có cả thông tin khóa java.util.concurrent.
+# Print Java thread dump, including java.util.concurrent lock info.
 jcmd 12345 Thread.print -l
 
-# Lệnh thay thế nếu JDK có jstack và thao tác được phê duyệt.
+# Alternative command if the JDK includes jstack and the action is approved.
 jstack -l 12345
 ```
 
-Lệnh `jcmd 12345 Thread.print -l` là lựa chọn thông dụng; tham số `-l` yêu cầu thêm thông tin về các khóa `java.util.concurrent`. Theo tài liệu JDK 17, `Thread.print` có **impact mức Medium**, phụ thuộc số lượng threads. Đây không phải một phép “đọc file” miễn phí: JVM cần thu thập thông tin stack/lock, có thể làm chậm ứng dụng trong khoảng ngắn, nhất là khi có rất nhiều thread.
+`jcmd 12345 Thread.print -l` is the common choice; the `-l` option requests additional information about `java.util.concurrent` locks. According to JDK 17 documentation, `Thread.print` has **Medium impact**, depending on the number of threads. It is not a free “file read”: the JVM must collect stack/lock information, which can briefly slow down the application, especially with very many threads.
 
-Một số hệ thống cho phép gửi tín hiệu `SIGQUIT` (Linux/Unix) để JVM in dump vào luồng output/log mà tiến trình quản lý. Ví dụ lệnh `kill -QUIT <pid>` có ý nghĩa đặc thù trên HotSpot/Linux; **chỉ dùng khi đã biết signal handling, nơi nhận output và quy trình vận hành**. Không xem `SIGQUIT` là thao tác portable trên mọi JVM/OS.
+Some systems allow sending the `SIGQUIT` signal (Linux/Unix) so the JVM prints a dump to the output/log stream managed by the process. For example, `kill -QUIT <pid>` has specific meaning on HotSpot/Linux; **only use it when you know the signal handling, output destination, and operational procedures**. Do not treat `SIGQUIT` as a portable operation across all JVMs/OSes.
 
-`jstack` có thể hữu ích nhưng tài liệu JDK 17 mô tả nó là công cụ experimental/unsupported. Đối với JVM đang chạy, ưu tiên `jcmd` và các khả năng management/JFR phù hợp với runtime thực. Không gọi dump liên tục trên toàn cluster.
+`jstack` can be useful, but JDK 17 documentation describes it as an experimental/unsupported tool. For a running JVM, prefer `jcmd` and management/JFR capabilities suitable for the actual runtime. Do not trigger dumps continuously across an entire cluster.
 
-### 2.2. Chụp đúng đối tượng và gắn mốc thời gian
+### 2.2. Targeting the right instance and attaching timestamps
 
-Trước khi đọc nội dung:
+Before reading the contents:
 
-1. Xác nhận service, hostname/node, pod/container ID, **PID đúng namespace**, JVM start/uptime, build version hoặc image digest.
-2. Ghi timestamp UTC của thời điểm bắt đầu thu và các mốc cần thiết khi quá trình thu kết thúc.
-3. Xác định command có được hỗ trợ bằng `jcmd <pid> help Thread.print` nếu môi trường có công cụ.
-4. Chọn số mẫu theo độ dài sự cố và tác động cho phép: ví dụ ba dump cách nhau vài giây **khi đã được phép**, thay vì poll liên tục.
-5. Lưu vào nơi có quyền hạn chế và có retention rõ ràng; đừng đẩy dump nguyên văn lên issue/chat công khai.
+1. Confirm service, hostname/node, pod/container ID, **PID in the right namespace**, JVM start/uptime, build version, or image digest.
+2. Record the UTC timestamp when collection starts and any necessary timestamps when collection finishes.
+3. Verify the command is supported via `jcmd <pid> help Thread.print` if the tool is available in the environment.
+4. Choose sample count based on incident duration and allowable impact: for example, three dumps a few seconds apart **when authorized**, rather than continuous polling.
+5. Save in a location with restricted permissions and clear retention; do not post raw dumps directly into public issues/chats.
 
-Ví dụ chuyển stdout của công cụ vào file **khi thư mục đích được cấp quyền an toàn trước đó**:
+Example of redirecting the tool's stdout to a file **when the destination directory has been granted secure permissions beforehand**:
 
 ```bash
 jcmd 12345 Thread.print -l > thread-20261029T081500Z.txt
 ```
 
-Tên file ở trên chỉ là minh họa. Thao tác này ghi output vào filesystem **của nơi chạy công cụ**, không tự tạo file trong JVM target. Output có thể khác về header, timestamp, số thread và frame giữa các JDK/vendor. Chỉ chụp đúng PID; trên container, `jcmd -l` không bảo đảm nhìn thấy JVM ở namespace khác.
+The filename above is illustrative only. This operation writes output to the filesystem **where the tool is running**, not automatically inside the target JVM. Output can differ in headers, timestamps, thread counts, and frames across JDKs/vendors. Only target the exact PID; in containers, `jcmd -l` is not guaranteed to see JVMs in other namespaces.
 
-### 2.3. Thread dump khác stack trace của một exception
+### 2.3. A thread dump differs from an exception stack trace
 
-| Nguồn | Phạm vi | Trả lời được gì? |
+| Source | Scope | What can it answer? |
 | --- | --- | --- |
-| Thread dump JVM | Nhiều thread đang sống tại lúc chụp, cộng dữ liệu JVM-specific | “Các thread đang ở đâu và chờ gì?” |
-| Exception stack trace | Đường gọi tại thời điểm exception được ném/ghi lại | “Exception xuất hiện tại đâu và đi qua lời gọi nào?” |
-| `Thread.currentThread().getStackTrace()` | Một thread đang gọi API | “Thread này hiện gọi đến đâu?” |
-| `ThreadMXBean.getThreadInfo(...)` | Thread được chọn, stack depth tùy yêu cầu | Chẩn đoán bằng API quản lý, Java ID/state/locks |
-| JFR/profiler | Chuỗi sự kiện hoặc samples theo thời gian | “CPU, lock, allocation và latency thay đổi ra sao?” |
+| JVM thread dump | Many live threads at capture time, plus JVM-specific data | “Where are the threads right now and what are they waiting on?” |
+| Exception stack trace | Call path at the moment the exception was thrown/recorded | “Where did the exception originate and through which calls did it pass?” |
+| `Thread.currentThread().getStackTrace()` | The single thread calling the API | “Where has this thread called into right now?” |
+| `ThreadMXBean.getThreadInfo(...)` | Selected threads, with requested stack depth | Programmatic management diagnostics, Java ID/state/locks |
+| JFR/profiler | Sequence of events or samples over time | “How did CPU, locks, allocations, and latency change?” |
 
-Một exception ở 08:10 và thread dump ở 08:20 **không** thể được coi là cùng stack nếu không có bằng chứng liên hệ. Thread dump là **snapshot**, không phải lịch sử toàn bộ lời gọi của luồng.
+An exception at 08:10 and a thread dump at 08:20 **cannot** be assumed to represent the same stack without correlating evidence. A thread dump is a **snapshot**, not the complete call history of a thread.
 
-## 3. Cấu trúc một mục thread dump HotSpot
+## 3. Structure of a HotSpot thread dump entry
 
-Một ví dụ **tổng hợp minh họa** (giá trị hex, đường dẫn và thời gian không lấy từ JVM thực):
+An **illustrative composite example** (hex values, paths, and timings are not from a real JVM):
 
 ```text
 "checkout-worker-7" #42 daemon prio=5 os_prio=0 cpu=220.12ms elapsed=31.01s
@@ -86,54 +86,54 @@ Một ví dụ **tổng hợp minh họa** (giá trị hex, đường dẫn và 
     at java.base/java.lang.Thread.run(Thread.java:833)
 ```
 
-Trong dump thật, header có thể nằm trên **một dòng** và có thứ tự/thuộc tính khác. Dòng `cpu=...`, `elapsed=...` hoặc mảng địa chỉ `[...]` phụ thuộc phiên bản và dạng đầu ra. **Không tạo parser production chỉ bằng một regex giả định mọi HotSpot/JDK đều in giống ví dụ**.
+In a real dump, the header may be on **a single line** and have a different attribute order. Fields like `cpu=...`, `elapsed=...`, or the address bracket `[...]` depend on version and output format. **Do not build a production parser using a single regex assuming every HotSpot/JDK prints identically to the example**.
 
-Đọc từ ngoài vào trong:
+Reading from the outside in:
 
-| Thành phần | Ví dụ | Diễn giải chính xác |
+| Component | Example | Accurate interpretation |
 | --- | --- | --- |
-| Tên | `"checkout-worker-7"` | Nhãn do Thread/Executor/JVM đặt; có thể trùng hoặc đổi |
-| `#42` | `#42` | Số/ID được HotSpot biểu diễn trong header; thường dùng để nhận diện Java thread; xác minh theo phiên bản, không nhầm `tid` |
-| `daemon` | `daemon` | Thread daemon; thiếu từ khóa thường nghĩa non-daemon trong format đó |
-| `prio=5` | `prio=5` | Mức ưu tiên Java thread được báo; không phải số %CPU |
-| `os_prio=0` | `os_prio=0` | Priority gắn với native/OS scheduling theo cách HotSpot báo |
-| `cpu=220.12ms` | `cpu=...` | CPU time tích lũy hoặc thông tin CPU do runtime in; không là %CPU tức thời |
-| `elapsed=31.01s` | `elapsed=...` | Thời gian tồn tại theo mốc runtime của thread, không phải duration request |
-| `tid=0x...` | `0x00007f1020032000` | **Địa chỉ native VM thread structure** theo HotSpot; không phải Linux TID |
-| `nid=0x2a3f` | `0x2a3f` | **Native thread ID**, thường là LWP/TID trên Linux, in dạng hex |
-| `waiting for monitor entry` | chữ mô tả ở header | Trạng thái nội bộ/OS-related được implementation in, khác enum Java phía dưới |
-| `java.lang.Thread.State: BLOCKED` | `BLOCKED` | Trạng thái ở mức Java VM, chờ vào `synchronized` monitor |
-| `at ... (File.java:118)` | frame Java | Method hiện tại/caller và vị trí trong source khi có line info |
-| `- waiting to lock <0x...>` | metadata monitor | Đang chờ khóa monitor của object có identity được in |
+| Name | `"checkout-worker-7"` | Label assigned by Thread/Executor/JVM; may duplicate or change |
+| `#42` | `#42` | Thread number/ID represented by HotSpot in the header; often used to identify the Java thread; verify by version, do not confuse with `tid` |
+| `daemon` | `daemon` | Daemon thread; omitting the keyword usually means non-daemon in that format |
+| `prio=5` | `prio=5` | Reported Java thread priority; not a CPU percentage |
+| `os_prio=0` | `os_prio=0` | Priority mapped to native/OS scheduling as reported by HotSpot |
+| `cpu=220.12ms` | `cpu=...` | Cumulative CPU time or CPU info printed by the runtime; not instantaneous %CPU |
+| `elapsed=31.01s` | `elapsed=...` | Lifetime duration according to the runtime's thread clock, not request duration |
+| `tid=0x...` | `0x00007f1020032000` | **Address of the native VM thread structure** in HotSpot; not the Linux TID |
+| `nid=0x2a3f` | `0x2a3f` | **Native thread ID**, typically LWP/TID on Linux, printed in hex |
+| `waiting for monitor entry` | header description text | Internal/OS-related state printed by the implementation, distinct from the Java enum below |
+| `java.lang.Thread.State: BLOCKED` | `BLOCKED` | Java VM-level state, waiting to enter a `synchronized` monitor |
+| `at ... (File.java:118)` | Java frame | Current method/caller and source location when line info is available |
+| `- waiting to lock <0x...>` | monitor metadata | Waiting to acquire the monitor of the object with the printed identity |
 
-**Điểm dễ sai nhất:** trong header HotSpot, `tid=0x...` **không** được đưa cho `top -H` để tìm một Linux thread. Để đối chiếu OS native thread, hãy dùng **`nid`**, chuyển từ hex sang decimal khi cần. `Java Thread.getId()` là một lớp định danh khác.
+**Most common pitfall:** in a HotSpot header, `tid=0x...` is **not** passed to `top -H` to look up a Linux thread. To correlate an OS native thread, use **`nid`**, converting from hex to decimal when needed. `Java Thread.getId()` is another identifier layer.
 
-## 4. Tên thread: hữu ích nhưng không phải khóa duy nhất
+## 4. Thread names: useful, but not a unique key
 
-### 4.1. Tên được đặt như thế nào?
+### 4.1. How are names assigned?
 
-Trong Java:
+In Java:
 
 ```java
 Thread current = Thread.currentThread();
 String name = current.getName();
-current.setName("checkout-worker-7"); // Chỉ minh họa, đổi tên thread hiện tại.
+current.setName("checkout-worker-7"); // Illustrative only, renames the current thread.
 ```
 
-Tên thường được tạo bởi `ThreadFactory` của pool, framework, container, executor hoặc mã ứng dụng. Những mẫu hay gặp:
+Names are typically created by a `ThreadFactory` in a pool, framework, container, executor, or application code. Common patterns:
 
-- `main`: thread chính khi Java launcher chạy `main`.
-- `pool-3-thread-1`: kiểu tên thread từ một số `Executors.defaultThreadFactory`.
-- `http-nio-8080-exec-12`: tên do một số servlet server đặt.
-- `ForkJoinPool.commonPool-worker-2`: worker của fork-join pool.
-- `Reference Handler`, `Finalizer`, `Common-Cleaner`: thread phục vụ JVM/Java runtime, tùy implementation và version.
-- `GC Thread#...` hoặc `VM Thread`: có thể là **JVM internal/native threads**, không nhất thiết có `java.lang.Thread` object với Java ID thông thường.
+- `main`: the main thread when the Java launcher executes `main`.
+- `pool-3-thread-1`: thread naming style from some `Executors.defaultThreadFactory` implementations.
+- `http-nio-8080-exec-12`: name assigned by certain servlet servers.
+- `ForkJoinPool.commonPool-worker-2`: worker of the fork-join pool.
+- `Reference Handler`, `Finalizer`, `Common-Cleaner`: JVM/Java runtime service threads, depending on implementation and version.
+- `GC Thread#...` or `VM Thread`: may be **JVM internal/native threads**, not necessarily having a `java.lang.Thread` object with a regular Java ID.
 
-Tên thread giúp khoanh vùng subsystem nhưng **không bảo đảm duy nhất**: một executor có thể tạo tên giống executor khác; nhiều đời JVM đều có thread `main`; thread name có thể được đổi. Khi tổng hợp nhiều dump, kết hợp **PID + JVM start + Java ID hoặc nid + timestamp**; với thread có thể kết thúc/tái tạo, các số ID có thể được reuse.
+Thread names help narrow down a subsystem, but **are not guaranteed to be unique**: one executor can generate the same names as another; multiple JVM generations all have a `main` thread; thread names can be changed. When aggregating across multiple dumps, combine **PID + JVM start + Java ID or nid + timestamp**; for threads that can terminate and be recreated, numeric IDs can be reused.
 
-### 4.2. Đặt tên thread để dễ chẩn đoán
+### 4.2. Naming threads for easier diagnostics
 
-Nếu tự tạo thread trong ứng dụng:
+If creating threads manually in an application:
 
 ```java
 java.util.concurrent.ThreadFactory factory = task -> {
@@ -143,116 +143,116 @@ java.util.concurrent.ThreadFactory factory = task -> {
 };
 ```
 
-Đoạn mã là snippet để tạo `ThreadFactory`, không phải chương trình đầy đủ. Cách dùng `Thread.getId()` trong tên chỉ là chiến lược tham khảo; Java 17 `getId()` trả Java thread ID, không phải `nid`. Khi framework có cơ chế đặt tên, ưu tiên cấu hình thread factory tập trung.
+This code is a snippet for creating a `ThreadFactory`, not a complete program. Using `Thread.getId()` in the name is only a reference strategy; Java 17 `getId()` returns the Java thread ID, not `nid`. When a framework provides a naming mechanism, prefer configuring a centralized thread factory.
 
-Không ghi secret, tenant identifier nhạy cảm hoặc payload người dùng vào tên thread: tên này có thể xuất hiện trong thread dump, JMX và log. Với thread pool, đừng đổi tên theo request rồi quên khôi phục; yêu cầu nối context nên được giải quyết bằng trace/request IDs và logging context thích hợp.
+Do not put secrets, sensitive tenant identifiers, or user payloads into thread names: these names can appear in thread dumps, JMX, and logs. For thread pools, do not rename threads per request and forget to restore them; request context linking should be solved with trace/request IDs and proper logging context.
 
-### 4.3. Thread “idle” có phải bất thường không?
+### 4.3. Are “idle” threads abnormal?
 
-Không. Một thread pool chờ queue sẽ có frame gần `ThreadPoolExecutor.getTask`, `LinkedBlockingQueue.take`, `LockSupport.park` và `WAITING`. Đó có thể là hành vi **bình thường**. Tên `http-nio-...` hoặc `pool-...` không cho biết request nào đang xử lý trừ khi call stack hoặc context bổ sung chứng minh được.
+No. A thread pool waiting on a queue will show frames near `ThreadPoolExecutor.getTask`, `LinkedBlockingQueue.take`, `LockSupport.park`, and `WAITING`. That can be **normal** behavior. Names like `http-nio-...` or `pool-...` do not tell you which request is being processed unless the call stack or additional context proves it.
 
-Đừng đánh đồng “có hàng trăm thread WAITING” với deadlock. Cần xem wait reason, lock ownership, queue length, request rate và liệu số lượng/stack có tăng bất thường theo thời gian hay không.
+Do not equate “hundreds of WAITING threads” with a deadlock. You must check wait reasons, lock ownership, queue length, request rate, and whether counts/stacks grow abnormally over time.
 
-## 5. Java thread ID, native ID và `tid`: ba định danh khác nhau
+## 5. Java thread ID, native ID, and `tid`: three different identifiers
 
 ### 5.1. Java thread ID
 
-Trên Java 17:
+On Java 17:
 
 ```java
 long javaThreadId = Thread.currentThread().getId();
 ```
 
-`Thread.getId()` trả một số dương kiểu `long`, được tạo trong JVM cho thread; có thể được tái sử dụng **sau khi thread chấm dứt**. `ThreadMXBean` dùng Java thread IDs để truy vấn `ThreadInfo`. Tên method `ThreadInfo.getThreadId()` cũng biểu diễn Java thread ID.
+`Thread.getId()` returns a positive `long` generated inside the JVM for the thread; it may be reused **after the thread terminates**. `ThreadMXBean` uses Java thread IDs to query `ThreadInfo`. The `ThreadInfo.getThreadId()` method also represents the Java thread ID.
 
-Ví dụ để tìm thread tên `checkout-worker-7` trong API quản lý, nên lấy `ThreadInfo.getThreadId()`, không nhập `nid` hex vào `ThreadMXBean.getThreadInfo(long)` và mong thấy đúng thread.
+For example, to look up a thread named `checkout-worker-7` in the management API, retrieve `ThreadInfo.getThreadId()`—do not pass the hex `nid` into `ThreadMXBean.getThreadInfo(long)` expecting to find the right thread.
 
-Một số HotSpot thread-dump formats hiển thị `#42` tương ứng với Java thread number; **định dạng header không phải contract ổn định của Java SE**, nên khi phân tích dump từ vendor/JDK khác hãy xác minh schema thực. Đặc biệt, đừng đồng nhất `#42` với `tid=0x00007f...` chỉ vì hai trường nằm trên cùng header.
+Some HotSpot thread-dump formats display `#42` corresponding to the Java thread number; **header formatting is not a stable Java SE contract**, so when analyzing dumps from another vendor/JDK, verify the actual schema. In particular, do not equate `#42` with `tid=0x00007f...` just because both fields sit on the same header.
 
 ### 5.2. Native thread ID (`nid`)
 
-Native ID là nhận diện của OS thread. Trong dump HotSpot trên Linux, `nid=0x2a3f` thường tương ứng TID/LWP **10815** ở dạng decimal. Mã kiểm tra phép đổi:
+The native ID is the OS thread's identifier. In a HotSpot dump on Linux, `nid=0x2a3f` typically corresponds to decimal TID/LWP **10815**. Verification math:
 
 ```text
 0x2a3f = 2*4096 + 10*256 + 3*16 + 15 = 10815
 ```
 
-Bash trên Linux có thể chuyển đổi:
+Bash on Linux can convert it:
 
 ```bash
 printf '%d\n' 0x2a3f
 ```
 
-Output chính xác:
+Exact output:
 
 ```text
 10815
 ```
 
-Trên Linux, khi PID JVM là `12345`, đối chiếu thread của **đúng process**:
+On Linux, when the JVM PID is `12345`, correlate threads of **the exact process**:
 
 ```bash
 top -H -p 12345
 ps -L -p 12345 -o pid,tid,stat,pcpu,comm
 ```
 
-`top -H` hoặc `ps -L` có thể hiển thị native TID decimal; đối chiếu với `nid` **của cùng thời điểm, cùng PID namespace**. TID có thể bị recycle sau khi native thread kết thúc. CPU% từ `top` là kết quả của **khoảng đo của công cụ**, không trùng mốc với dump tức thời nếu thu cách nhau lâu.
+`top -H` or `ps -L` can display decimal native TIDs; correlate with `nid` **from the same timestamp and the same PID namespace**. TIDs can be recycled after a native thread exits. CPU% from `top` is the result of **the tool's measurement interval**, and does not match an instantaneous dump if collected far apart in time.
 
-Trên Windows, OS-native thread ID và công cụ hiển thị khác Linux; câu lệnh `ps -L`/`top -H` không áp dụng. Trên macOS, cách ánh xạ và tool khác. Không gọi mọi native ID ở mọi OS là “Linux LWP”.
+On Windows, OS-native thread IDs and inspection tools differ from Linux; `ps -L`/`top -H` do not apply. On macOS, mappings and tools also differ. Do not call every native ID on every OS a “Linux LWP”.
 
-### 5.3. `tid=0x...` là gì?
+### 5.3. What is `tid=0x...`?
 
-Trong nhiều dump HotSpot, `tid` là con trỏ/địa chỉ tới cấu trúc nội bộ của JVM đại diện cho Java thread (giá trị ở dạng hexadecimal). Nó **không** phải:
+In many HotSpot dumps, `tid` is a pointer/address to the JVM's internal structure representing the Java thread (value in hexadecimal). It is **not**:
 
-- giá trị Java `Thread.getId()`;
-- native ID từ `nid`;
-- PID của JVM process;
-- chỉ số thread trong executor;
-- timestamp hay địa chỉ object monitor đang chờ.
+- the Java `Thread.getId()` value;
+- the native ID from `nid`;
+- the PID of the JVM process;
+- the thread index in an executor;
+- a timestamp or the address of a waited-on object monitor.
 
-Do đó không đổi `tid` hex sang decimal rồi tìm trong `top -H`, không xem `tid` lớn là “thread đang tốn nhiều bộ nhớ”. Công cụ/phân tích dump ở phiên bản khác có thể dùng ký hiệu khác; cần phân biệt ý nghĩa theo format thực.
+Therefore, do not convert hex `tid` to decimal to search in `top -H`, and do not treat a large `tid` as “a thread consuming lots of memory”. Analysis tools or dumps on different versions may use different notations; distinguish their meanings according to the actual format.
 
-### 5.4. Bảng so sánh định danh
+### 5.4. Identifier comparison table
 
-| Trường | Ví dụ | Phạm vi/nguồn | Dùng để nối với |
+| Field | Example | Scope/source | Used to join with |
 | --- | --- | --- | --- |
-| Thread name | `"checkout-worker-7"` | Do ứng dụng/JVM đặt, không unique | Nhóm chức năng khi đọc stack |
-| Java ID | `42` / `#42` trong một số dump | Java Thread / `ThreadMXBean` | `ThreadInfo.getThreadId()`, telemetry Java |
-| Native ID | `nid=0x2a3f` | OS thread; hex trong HotSpot dump | Linux LWP/TID decimal `10815` |
-| HotSpot `tid` | `0x00007f1020032000` | Địa chỉ cấu trúc thread HotSpot | Chỉ dùng trong ngữ cảnh VM/dump phù hợp |
-| Process PID | `12345` | OS process (có thể đổi theo namespace) | `jcmd <pid>`, container/host process identity |
-| Object monitor ID | `<0x0000000700a01234>` | Identity in cho Java object lock trong dump | Dòng `waiting to lock` / `locked` trong **cùng dump** |
+| Thread name | `"checkout-worker-7"` | Set by application/JVM, not unique | Functional grouping when reading stacks |
+| Java ID | `42` / `#42` in some dumps | Java Thread / `ThreadMXBean` | `ThreadInfo.getThreadId()`, Java telemetry |
+| Native ID | `nid=0x2a3f` | OS thread; hex in HotSpot dumps | Linux decimal LWP/TID `10815` |
+| HotSpot `tid` | `0x00007f1020032000` | Address of HotSpot thread structure | Only within the appropriate VM/dump context |
+| Process PID | `12345` | OS process (may vary by namespace) | `jcmd <pid>`, container/host process identity |
+| Object monitor ID | `<0x0000000700a01234>` | Printed identity for a Java object lock in the dump | `waiting to lock` / `locked` lines within **the same dump** |
 
-Một API Java SE 17 như `ThreadMXBean` **không có method chuẩn trả native thread ID**. Để nối Java ID với OS TID, dựa vào dump HotSpot chứa cả thông tin hoặc công cụ JVMTI/JFR/native được phép và có mapping thích hợp.
+A Java SE 17 API like `ThreadMXBean` **has no standard method returning the native thread ID**. To join a Java ID with an OS TID, rely on a HotSpot dump containing both or authorized JVMTI/JFR/native tools that provide proper mapping.
 
-### 5.5. Vì sao không nên dùng chỉ một ID qua nhiều dump?
+### 5.5. Why should you not rely on only one ID across multiple dumps?
 
-- JVM restart: Java thread IDs có thể bắt đầu lại; PID hệ điều hành có thể bị reuse.
-- Thread pool tăng/giảm: một worker cũ kết thúc, worker mới có tên giống hệt.
-- Container: PID/TID nhìn từ host và trong container có thể khác; cùng số “1” ở hai PID namespaces không cùng process.
-- Garbage collection/JVM internals: pointer và object identity in trong dump không phải global identifiers bất biến.
-- File dump có thể được collector gửi trễ, thứ tự nhận khác thứ tự thu.
+- JVM restart: Java thread IDs can start over; OS PIDs can be reused.
+- Thread pool scaling up/down: an old worker terminates, a new worker gets the exact same name.
+- Containers: PID/TID seen from the host and inside the container can differ; the same number “1” in two PID namespaces is not the same process.
+- Garbage collection/JVM internals: pointers and object identities printed in dumps are not immutable global identifiers.
+- Dump files may be shipped late by a collector, arriving in a different order than captured.
 
-Khi cần đối chiếu dài hạn, sử dụng **timestamp UTC + JVM start/uptime + service/node/container identity + các ID phù hợp**.
+For long-term correlation, use **UTC timestamp + JVM start/uptime + service/node/container identity + the appropriate IDs**.
 
-## 6. Đọc `java.lang.Thread.State` chính xác
+## 6. Reading `java.lang.Thread.State` accurately
 
-Java 17 định nghĩa sáu giá trị của enum `Thread.State`. Đây là **trạng thái VM**, không phải bảng trạng thái OS scheduler (Linux `R/S/D/T/Z`). Một thread chỉ có một enum state tại một thời điểm quan sát.
+Java 17 defines six values in the `Thread.State` enum. These are **VM states**, not the OS scheduler state table (Linux `R/S/D/T/Z`). A thread has only one enum state at a given point of observation.
 
-| Java state | Ý nghĩa | Frame/case thường thấy | Bẫy diễn giải |
+| Java state | Meaning | Common frames/cases | Interpretation trap |
 | --- | --- | --- | --- |
-| `NEW` | `Thread` đã tạo nhưng `start()` chưa gọi | Thread object trước khi chạy; thường không có trong dump live | Không kết luận “sắp chết” |
-| `RUNNABLE` | Đang có thể thực thi trong JVM / native call | CPU work, event loop, socket read, native poll | **Không đồng nghĩa** đang chiếm CPU thật |
-| `BLOCKED` | Đang chờ vào monitor của `synchronized` | `- waiting to lock`, entry vào synchronized method/block | Không bao hàm mọi dạng chờ lock |
-| `WAITING` | Chờ vô thời hạn cho hành động của thread khác | `Object.wait()`, `Thread.join()`, `LockSupport.park()` | Có thể là worker idle bình thường |
-| `TIMED_WAITING` | Chờ có timeout | `Thread.sleep`, timed `wait/join/park` | Không bảo đảm thread sẽ chạy ngay khi timeout |
-| `TERMINATED` | Thread đã kết thúc | Thread object còn được tham chiếu; không thường có trong dump live | Không nghĩa JVM đã crash |
+| `NEW` | `Thread` created but `start()` not yet called | Thread object before running; usually absent from live dumps | Do not conclude “about to die” |
+| `RUNNABLE` | Executable in the JVM / native call | CPU work, event loop, socket read, native poll | **Does not equate to** actually burning CPU |
+| `BLOCKED` | Waiting to enter a `synchronized` monitor | `- waiting to lock`, entering a synchronized method/block | Does not cover every kind of lock wait |
+| `WAITING` | Waiting indefinitely for another thread's action | `Object.wait()`, `Thread.join()`, `LockSupport.park()` | Can be a normal idle worker |
+| `TIMED_WAITING` | Waiting with a timeout | `Thread.sleep`, timed `wait/join/park` | Does not guarantee the thread will run immediately upon timeout |
+| `TERMINATED` | Thread has finished | Still-referenced Thread object; not normally in live dumps | Does not mean the JVM crashed |
 
-Trên thread dump JVM, dòng dạng `java.lang.Thread.State: ...` thể hiện enum Java; mô tả ở cuối header như `runnable`, `waiting on condition`, `in Object.wait()` hay `waiting for monitor entry` là mô tả implementation-specific. Không đối xử với chuỗi header đó như một enum Java thứ hai.
+In a JVM thread dump, a line like `java.lang.Thread.State: ...` shows the Java enum; descriptions at the end of the header such as `runnable`, `waiting on condition`, `in Object.wait()`, or `waiting for monitor entry` are implementation-specific descriptions. Do not treat that header string as a second Java enum.
 
-### 6.1. `RUNNABLE` không đồng nghĩa “đang dùng 100% CPU”
+### 6.1. `RUNNABLE` does not equate to “using 100% CPU”
 
-Ví dụ:
+Example:
 
 ```text
 "nio-worker" #26 ...
@@ -262,13 +262,13 @@ Ví dụ:
         at java.base/java.nio.channels.Selector.select(Selector.java:...)
 ```
 
-Đây là **mẫu minh họa đã lược bớt line number**, không phải output cố định của Java 17. Một thread có state RUNNABLE nhưng đang ở native poll, chờ I/O readiness, có thể tiêu thụ rất ít CPU. Muốn phát hiện CPU hotspot, cần **CPU time theo thread qua hai mẫu, OS `top -H`/`ps -L` hoặc JFR/profiler**, chứ không đếm các dòng RUNNABLE.
+This is an **illustrative sample with line numbers omitted**, not a fixed Java 17 output. A thread in state RUNNABLE that is inside a native poll, waiting for I/O readiness, can consume very little CPU. To detect CPU hotspots, you need **per-thread CPU time across two samples, OS `top -H`/`ps -L`, or JFR/profiler**, rather than counting RUNNABLE lines.
 
-Ngược lại, một thread CPU-bound chạy tính toán có thể hiển thị RUNNABLE với frame lặp lại ở mã tính toán. Nhưng **một** dump đặt frame đó ở top cũng chưa đủ kết luận CPU cao; quan sát mẫu liên tiếp và CPU metrics.
+Conversely, a CPU-bound thread running computation may show RUNNABLE with repeated frames in calculation code. Still, **one** dump placing that frame on top is not enough to conclude high CPU; observe consecutive samples and CPU metrics.
 
-### 6.2. `BLOCKED` chỉ chờ `synchronized` monitor
+### 6.2. `BLOCKED` only waits for a `synchronized` monitor
 
-Ví dụ:
+Example:
 
 ```text
 "request-17" #91 ...
@@ -278,13 +278,13 @@ Ví dụ:
         at com.example.Service.handle(Service.java:32)
 ```
 
-Thread đang chờ acquire một Java monitor để vào đoạn `synchronized`. Cần tìm thread **đang giữ cùng monitor** `<0x0000000700a00111>`, thường có dòng `- locked <0x0000000700a00111>` hoặc thông tin owner trong dump đầy đủ/`ThreadInfo`.
+The thread is waiting to acquire a Java monitor to enter a `synchronized` section. You need to find the thread **holding the same monitor** `<0x0000000700a00111>`, typically shown by a `- locked <0x0000000700a00111>` line or owner info in a full dump/`ThreadInfo`.
 
-Một `ReentrantLock.lock()` hoặc `Condition.await()` dùng `LockSupport.park` có thể hiện **WAITING** thay vì `BLOCKED`. Vì thế đếm số thread BLOCKED không đủ để phát hiện toàn bộ lock contention.
+A `ReentrantLock.lock()` or `Condition.await()` using `LockSupport.park` can appear as **WAITING** instead of `BLOCKED`. Thus counting BLOCKED threads alone is insufficient to detect all lock contention.
 
-### 6.3. `WAITING` có nhiều lý do
+### 6.3. `WAITING` has many reasons
 
-Các mẫu phổ biến:
+Common patterns:
 
 ```text
 java.lang.Thread.State: WAITING (on object monitor)
@@ -298,17 +298,17 @@ java.lang.Thread.State: WAITING
     at java.base/java.lang.Thread.join(Thread.java:...)
 ```
 
-Đây là các **mảnh stack minh họa**; file/line và frame cụ thể thay đổi theo JDK. Ngữ nghĩa:
+These are **illustrative stack snippets**; specific files/lines and frames vary by JDK. Semantics:
 
-- `Object.wait`: thread thường đã **nhả monitor** tương ứng khi bước vào wait và cần được thông báo/đánh thức rồi giành lại monitor để đi tiếp.
-- `LockSupport.park`: thread chờ permit hoặc một hành động từ cơ chế concurrency, thường ở queue/thread pool/lock.
-- `Thread.join`: chờ một thread khác kết thúc.
+- `Object.wait`: the thread normally **released** the corresponding monitor upon entering wait and must be notified/woken up and then reacquire the monitor to proceed.
+- `LockSupport.park`: the thread waits for a permit or an action from a concurrency mechanism, typically in a queue/thread pool/lock.
+- `Thread.join`: waits for another thread to finish.
 
-Một thread `WAITING` trong `LinkedBlockingQueue.take` có thể là worker pool đang rảnh. Nếu thread đó giữ một resource khác trong khi chờ, vẫn có nguy cơ gián tiếp; phải đọc cả stack, locks và workload.
+A thread `WAITING` in `LinkedBlockingQueue.take` may be an idle pool worker. If that thread is holding another resource while waiting, indirect risk still exists; you must read the entire stack, locks, and workload.
 
-### 6.4. `TIMED_WAITING` là chờ có hạn, không phải tự động lỗi
+### 6.4. `TIMED_WAITING` is a bounded wait, not automatically an error
 
-Ví dụ:
+Example:
 
 ```text
 java.lang.Thread.State: TIMED_WAITING (sleeping)
@@ -316,26 +316,26 @@ java.lang.Thread.State: TIMED_WAITING (sleeping)
     at com.example.RetryLoop.backoff(RetryLoop.java:47)
 ```
 
-Một retry thread sleep 500 ms là hành vi bình thường nếu đúng chính sách. Khi latency cao, xem có phải request thread vô tình sleep lâu, backoff lặp, timeout quá lớn hoặc hàng đợi bị tắc hay không. `sleep` **không nhả Java monitor đã giữ**; điều này khác `Object.wait()` và có thể gây lock contention nếu được gọi trong `synchronized`.
+A retry thread sleeping 500 ms is normal behavior if aligned with policy. When latency is high, check whether request threads are inadvertently sleeping too long, repeating backoff, using an oversized timeout, or stuck behind a congested queue. `sleep` **does not release any held Java monitors**; this differs from `Object.wait()` and can cause lock contention if called inside `synchronized`.
 
-### 6.5. `NEW` và `TERMINATED` hiếm khi thấy trong dump JVM live
+### 6.5. `NEW` and `TERMINATED` are rarely seen in live JVM dumps
 
-Java API `Thread.getState()` trên một Thread object có thể trả NEW trước `start`, hoặc TERMINATED sau khi chạy xong. Nhưng thread dump của **những thread đang sống/được JVM liệt kê** thường không hiển thị danh sách mọi Thread object chưa start hoặc đã chết. Đừng kết luận “JVM không có Thread.State.NEW” vì dump thiếu mục NEW.
+The Java API `Thread.getState()` on a Thread object can return NEW before `start`, or TERMINATED after finishing. However, a thread dump of **live/JVM-listed threads** usually does not list every unstarted or dead Thread object. Do not conclude “the JVM has no Thread.State.NEW” just because the dump lacks NEW entries.
 
-### 6.6. Java state khác OS state
+### 6.6. Java states differ from OS states
 
-Linux thread có thể là running/runnable `R`, sleeping `S`, uninterruptible sleep `D` hoặc các trạng thái khác. Java RUNNABLE có thể đi với OS sleeping ở native I/O; Java WAITING có thể đi với OS `S`. Để đối chiếu:
+A Linux thread can be running/runnable `R`, sleeping `S`, uninterruptible sleep `D`, or other states. Java RUNNABLE can correspond to OS sleeping in native I/O; Java WAITING can correspond to OS `S`. To correlate:
 
-1. Tìm `nid` (native TID) của **cùng thread** trong dump.
-2. Đổi hex → decimal theo đúng platform.
-3. Xem OS state/CPU trên đúng PID namespace và thời điểm.
-4. Không vội ánh xạ một-một giữa Java state và OS state.
+1. Find the `nid` (native TID) of **the same thread** in the dump.
+2. Convert hex → decimal for the right platform.
+3. Inspect OS state/CPU in the exact PID namespace and timestamp.
+4. Do not rush into a one-to-one mapping between Java state and OS state.
 
-## 7. Đọc stack frames: từ dòng trên đến chuỗi lời gọi
+## 7. Reading stack frames: from the top line to the call chain
 
-### 7.1. Thứ tự stack frames
+### 7.1. Order of stack frames
 
-Một ví dụ:
+An example:
 
 ```text
 "http-worker-12" #64 ...
@@ -347,27 +347,27 @@ Một ví dụ:
         at java.base/java.lang.Thread.run(Thread.java:833)
 ```
 
-Dòng gần đầu `Client.read` là **frame gần điểm thread đang thực thi/được chụp nhất**; các dòng sau là **caller** sâu hơn. Không đọc từ dưới lên rồi kết luận `Thread.run` là đoạn mã gây chậm. Với nhiều framework, stack có thể có hàng chục/hàng trăm frame trong proxy/reflection/netty/servlet; phần quan trọng thường là nhóm frame ở vùng business code và các blocking primitives.
+The line near the top, `Client.read`, is **the frame closest to where the thread is currently executing/captured**; subsequent lines below are deeper **callers**. Do not read from bottom to top and conclude `Thread.run` is the slow code. With many frameworks, a stack can have dozens or hundreds of frames in proxies/reflection/Netty/servlets; the important part is usually the group of frames in business code and blocking primitives.
 
-Ký hiệu chung:
+General notation:
 
 ```text
 at [module/]package.Class.method(File.java:line)
 ```
 
-- `package.Class.method`: tên class/method mà stack walker biết.
-- `module/`: tên Java module khi format in kèm.
-- `File.java:line`: dòng source nếu bytecode/build giữ line number metadata.
-- `Native Method`: frame method native; không có line Java tương ứng.
-- `Unknown Source`: không đủ thông tin file/line; không tự động là mã độc hay lỗi.
-- `...` hoặc truncated frames: output có thể bị rút gọn do độ sâu/policy.
-- `<init>`, `<clinit>`: constructor và static class initializer trong frame tương ứng.
+- `package.Class.method`: class/method name known to the stack walker.
+- `module/`: Java module name when printed by the format.
+- `File.java:line`: source line if bytecode/build retained line number metadata.
+- `Native Method`: native method frame; no corresponding Java line exists.
+- `Unknown Source`: insufficient file/line info; not automatically malicious or buggy.
+- `...` or truncated frames: output may be truncated due to depth/policy.
+- `<init>`, `<clinit>`: constructor and static class initializer in the respective frame.
 
-Không xem line number là vị trí chắc chắn của **bottleneck**: nó là nơi thực thi tại snapshot, có thể nằm trong phương thức chờ do API/JVM or JIT. Muốn chứng minh hotspot CPU cần nhiều samples và CPU attribution.
+Do not treat a line number as the guaranteed site of a **bottleneck**: it is merely the execution point at snapshot time, and may be inside a waiting method caused by an API/JVM or JIT. Proving a CPU hotspot requires multiple samples and CPU attribution.
 
-### 7.2. Cùng frame xuất hiện ở nhiều thread nghĩa là gì?
+### 7.2. What does the same frame appearing across many threads mean?
 
-Nếu 200 thread cùng hiện:
+If 200 threads all show:
 
 ```text
 at java.base/jdk.internal.misc.Unsafe.park(Native Method)
@@ -376,7 +376,7 @@ at java.base/java.util.concurrent.LinkedBlockingQueue.take(...)
 at java.base/java.util.concurrent.ThreadPoolExecutor.getTask(...)
 ```
 
-thì có thể chỉ là **thread pool idle**. Nếu 200 thread cùng hiện:
+then it may simply be an **idle thread pool**. If 200 threads all show:
 
 ```text
 at java.base/java.net.SocketInputStream.socketRead0(Native Method)
@@ -384,25 +384,25 @@ at com.example.client.InventoryClient.call(InventoryClient.java:88)
 at com.example.web.CheckoutController.submit(CheckoutController.java:59)
 ```
 
-thì có thể gợi ý **nhiều request cùng đợi downstream I/O**, cần kiểm tra timeout, connection pool, dependency latency, queue length và request metrics. Hai đoạn là mẫu cách đọc ý nghĩa, không nhất thiết là frame chính xác của mọi JDK17 (cơ chế socket implementation có thể khác).
+then it may suggest **many requests simultaneously waiting on downstream I/O**, warranting checks on timeouts, connection pools, dependency latency, queue lengths, and request metrics. Both snippets illustrate how to read meaning, and are not necessarily the exact frames of every JDK 17 runtime (socket implementation internals may differ).
 
-Vì vậy hãy phân nhóm **stack signature** như 3–8 frame liên quan thay vì chỉ đếm top frame `Unsafe.park` hoặc `Thread.run`. Khi có hàng ngàn thread, phân tích theo group/đường gọi có giá trị hơn đọc tuần tự từng dòng.
+Therefore, group by **stack signature** such as 3–8 relevant frames instead of counting only the top frame `Unsafe.park` or `Thread.run`. When thousands of threads exist, grouping by call path is far more valuable than reading line by line sequentially.
 
-### 7.3. Frame native và JIT
+### 7.3. Native frames and JIT
 
-Thread dump `Thread.print` chủ yếu cung cấp Java stack; một số thread ở native call thể hiện `Native Method` nhưng không đưa toàn bộ stack C/C++ của JNI/OS. Với crash ở native, cần `hs_err_pid*.log`, native stack/core dump hoặc profiler native được phép.
+A `Thread.print` thread dump primarily provides Java stacks; some threads in native calls show `Native Method` without showing the full C/C++ stack from JNI/OS. For crashes in native code, you need `hs_err_pid*.log`, native stacks/core dumps, or an authorized native profiler.
 
-Các tối ưu hóa JIT/inlining, `safepoint`, chạy trong JNI hoặc thiếu debug symbols có thể làm frame/line khác source gốc; không giả định JDK17 luôn thấy mọi frame chính xác như một lời gọi chưa tối ưu hóa. Dùng debug symbols/JFR/native tooling khi cần, không tự suy diễn từ `Unknown Source`.
+JIT/inlining optimizations, `safepoint` behavior, running in JNI, or missing debug symbols can make frames/lines differ from the original source; do not assume JDK 17 always reveals every frame exactly like an unoptimized call. Use debug symbols/JFR/native tooling when needed rather than guessing from `Unknown Source`.
 
-### 7.4. Thread dump không lưu giá trị biến cục bộ
+### 7.4. Thread dumps do not store local variable values
 
-Một frame `OrderService.get(OrderService.java:118)` **không** cho biết đối tượng order ID là gì, SQL query string hay giá trị local variable. Nó cũng không đủ chứng minh mã đã thực thi các nhánh phía trên trong quá khứ. Đừng suy ra dữ liệu nhạy cảm từ tên thread, địa chỉ monitor hoặc frame; muốn context request có thể dùng log/tracing đã thiết kế, nhưng không dump toàn bộ request payload để “ghép cho nhanh”.
+A frame `OrderService.get(OrderService.java:118)` does **not** tell you what the order ID object is, what the SQL query string is, or any local variable values. Nor does it suffice to prove which branches above it executed in the past. Do not infer sensitive data from thread names, monitor addresses, or frames; if you need request context, use properly designed logging/tracing rather than dumping full request payloads to “correlate quickly”.
 
-## 8. Dòng khóa và đồng bộ: `waiting to lock`, `locked`, `parking to wait for`
+## 8. Lock and synchronization lines: `waiting to lock`, `locked`, `parking to wait for`
 
-### 8.1. Monitor: chủ sở hữu và người chờ
+### 8.1. Monitors: owner and waiter
 
-Một nhóm thread minh họa:
+An illustrative thread group:
 
 ```text
 "lock-holder" #50 ...
@@ -417,60 +417,60 @@ Một nhóm thread minh họa:
         - waiting to lock <0x0000000700a01111> (a java.lang.Object)
 ```
 
-Đây là **mẫu tổng hợp**, line numbers và formatting thay đổi theo JDK. Cùng monitor identity `<0x0000000700a01111>` gợi ý `lock-holder` đang nắm monitor mà `lock-waiter` phải chờ. Dù holder đang TIMED_WAITING trong `Thread.sleep`, nó **vẫn có thể đang giữ monitor**, vì `Thread.sleep` không nhả lock. Đây là lỗi thiết kế dễ gây latency hàng loạt.
+This is a **composite sample**; line numbers and formatting vary by JDK. The shared monitor identity `<0x0000000700a01111>` suggests `lock-holder` is holding the monitor that `lock-waiter` must wait for. Even though the holder is TIMED_WAITING in `Thread.sleep`, it **can still be holding the monitor**, because `Thread.sleep` does not release locks. This is a design mistake that easily causes widespread latency.
 
-Hãy xem method của holder nằm trong đoạn `synchronized` nào và có gọi I/O, sleep hoặc xử lý quá lâu không. Không chỉ nhìn “waiter BLOCKED” rồi sửa lock ở thread đó; nguyên nhân thường nằm ở **holder** hoặc cách chia phạm vi critical section.
+Check which `synchronized` block the holder's method is inside and whether it calls I/O, sleeps, or processes for too long. Do not just look at “waiter BLOCKED” and try to fix locking on that thread; the cause usually lies with **the holder** or how the critical section is scoped.
 
-### 8.2. `Object.wait` khác `Thread.sleep`
+### 8.2. `Object.wait` vs. `Thread.sleep`
 
-| Hành vi | Liên quan monitor | Thread state thường thấy |
+| Behavior | Monitor relationship | Commonly seen thread state |
 | --- | --- | --- |
-| Vào `synchronized` khi monitor bị giữ | Đang chờ acquire monitor | `BLOCKED` |
-| `Object.wait()` khi sở hữu monitor | Nhả monitor được wait, chờ notify/interruption; sau đó cần reacquire | `WAITING` hoặc `TIMED_WAITING` |
-| `Thread.sleep(...)` bên trong synchronized | **Không** tự nhả monitor đang giữ | `TIMED_WAITING` |
-| `LockSupport.park(...)` | Chờ permit/đánh thức; không tự nhả mọi lock ứng dụng đang giữ | `WAITING` hoặc `TIMED_WAITING` |
-| `ReentrantLock.lock()` khi phải chờ | Đồng bộ qua `AbstractQueuedSynchronizer`, không phải Java monitor `BLOCKED` theo nghĩa hẹp | Thường `WAITING (parking)` |
+| Entering `synchronized` when monitor is held | Waiting to acquire monitor | `BLOCKED` |
+| `Object.wait()` while owning monitor | Releases the waited monitor, waits for notify/interruption; must reacquire afterward | `WAITING` or `TIMED_WAITING` |
+| `Thread.sleep(...)` inside synchronized | **Does not** automatically release held monitors | `TIMED_WAITING` |
+| `LockSupport.park(...)` | Waits for permit/unpark; does not automatically release any held application locks | `WAITING` or `TIMED_WAITING` |
+| `ReentrantLock.lock()` when forced to wait | Synchronizes via `AbstractQueuedSynchronizer`, not a Java monitor `BLOCKED` in the strict sense | Usually `WAITING (parking)` |
 
-Đây là mô hình thường gặp, không phải lời hứa mọi frame sẽ có đúng chuỗi chữ. Quy tắc quan trọng: **trạng thái WAITING không chứng minh thread không giữ lock nào**.
+This is a common model, not a guarantee that every frame will show the exact wording. Crucial rule: **state WAITING does not prove a thread holds no locks**.
 
 ### 8.3. “Locked ownable synchronizers”
 
-Tham số `-l` thường thêm một khu vực về locks từ `java.util.concurrent`, ví dụ các `ReentrantLock` hoặc ownable synchronizers, khi JVM hỗ trợ:
+The `-l` flag typically adds a section for locks from `java.util.concurrent`, such as `ReentrantLock` or ownable synchronizers, when supported by the JVM:
 
 ```text
 Locked ownable synchronizers:
     - <0x0000000700abc777> (a java.util.concurrent.locks.ReentrantLock$NonfairSync)
 ```
 
-Đây là ví dụ định dạng của một lock mà thread đang sở hữu, không phải tất cả locks trong ứng dụng. Với code sử dụng `ReadWriteLock`, `StampedLock`, asynchronous lock hay custom synchronization, khả năng hiển thị có thể khác. Một dòng `- parking to wait for <0x...>` và vùng “Locked ownable synchronizers” cần được đọc theo **ngữ cảnh cơ chế khóa**, không chỉ so hex ID mà không hiểu ownership.
+This is an example format of one lock owned by the thread, not all locks in the application. For code using `ReadWriteLock`, `StampedLock`, asynchronous locks, or custom synchronization, visibility may differ. A `- parking to wait for <0x...>` line and the “Locked ownable synchronizers” section must be read within **the lock mechanism's context**, not merely by matching hex IDs without understanding ownership.
 
-### 8.4. `ThreadInfo` có gì tương đương?
+### 8.4. What does `ThreadInfo` have as an equivalent?
 
-`java.lang.management.ThreadInfo` có:
+`java.lang.management.ThreadInfo` provides:
 
-- `getLockInfo()`, `getLockName()`: lock mà thread đang chờ;
-- `getLockOwnerId()`, `getLockOwnerName()`: Java thread sở hữu lock nếu biết;
-- `getLockedMonitors()`: Java monitors đang sở hữu;
-- `getLockedSynchronizers()`: ownable synchronizers đang sở hữu;
+- `getLockInfo()`, `getLockName()`: the lock the thread is waiting on;
+- `getLockOwnerId()`, `getLockOwnerName()`: the Java thread owning the lock if known;
+- `getLockedMonitors()`: Java monitors currently owned;
+- `getLockedSynchronizers()`: ownable synchronizers currently owned;
 - `getBlockedCount()`/`getWaitedCount()`;
-- `getBlockedTime()`/`getWaitedTime()` khi contention monitoring được hỗ trợ và bật.
+- `getBlockedTime()`/`getWaitedTime()` when contention monitoring is supported and enabled.
 
-`getLockOwnerId() == -1` có thể nghĩa không có owner được nhận diện; **không** chứng minh chương trình không hề chờ. `getBlockedTime() == -1` có thể do contention monitoring chưa bật. Khi gọi `ThreadMXBean.dumpAllThreads(true, true)`, phải xác minh hỗ trợ `isObjectMonitorUsageSupported()` và `isSynchronizerUsageSupported()` trước, đồng thời cân nhắc chi phí chụp tất cả threads.
+`getLockOwnerId() == -1` may mean no owner is identified; it does **not** prove the program is not waiting at all. `getBlockedTime() == -1` may occur because contention monitoring is not enabled. When calling `ThreadMXBean.dumpAllThreads(true, true)`, verify `isObjectMonitorUsageSupported()` and `isSynchronizerUsageSupported()` first, and consider the cost of capturing all threads.
 
-### 8.5. Deadlock cần chu trình chờ, không chỉ một thread BLOCKED
+### 8.5. Deadlock requires a wait cycle, not just one BLOCKED thread
 
-Một deadlock cổ điển: thread A giữ monitor L1 và chờ L2, thread B giữ L2 và chờ L1. Nếu chỉ có A BLOCKED chờ L2, ta chưa có bằng chứng deadlock; có thể B sẽ giải phóng L2 sau vài mili giây.
+A classic deadlock: thread A holds monitor L1 and waits for L2, thread B holds L2 and waits for L1. If only A is BLOCKED waiting for L2, we do not yet have proof of deadlock; B might release L2 in a few milliseconds.
 
-Trên HotSpot, full thread dump có thể in khu vực phát hiện “Java-level deadlock”. Trong Java:
+On HotSpot, a full thread dump may print a “Java-level deadlock” detection section. In Java:
 
-- `ThreadMXBean.findMonitorDeadlockedThreads()` tìm deadlock qua **object monitors**;
-- `ThreadMXBean.findDeadlockedThreads()` mở rộng tới **ownable synchronizers** theo mức hỗ trợ.
+- `ThreadMXBean.findMonitorDeadlockedThreads()` finds deadlocks across **object monitors**;
+- `ThreadMXBean.findDeadlockedThreads()` extends to **ownable synchronizers** depending on support.
 
-Các API này không tìm được mọi kiểu deadlock bên ngoài JVM như hai request chờ database/remote service hoặc ứng dụng bận chờ future vô hạn mà không tạo chu trình locks được JVM nhận diện. Một kết quả `null` **không** chứng minh không có starvation hoặc distributed deadlock.
+These APIs cannot find every type of deadlock outside the JVM, such as two requests waiting on a database/remote service or an application waiting indefinitely on a future without forming a JVM-detectable lock cycle. A `null` result does **not** prove there is no starvation or distributed deadlock.
 
-## 9. Chương trình Java 17+ có stdout xác định: tên, ID, state và stack
+## 9. Java 17+ program with deterministic stdout: name, ID, state, and stack
 
-Ví dụ chỉ dùng interface Java chuẩn và không attach JVM khác. Lưu file **`ThreadBasicsDemo.java`**:
+This example uses only standard Java interfaces and does not attach to another JVM. Save file **`ThreadBasicsDemo.java`**:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -501,14 +501,14 @@ public class ThreadBasicsDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17+:
+Compile/run with JDK 17+:
 
 ```bash
 javac ThreadBasicsDemo.java
 java ThreadBasicsDemo
 ```
 
-**Stdout chính xác** của ví dụ tiêu chuẩn:
+**Exact stdout** of the standard example:
 
 ```text
 current.name=diagnostic-main
@@ -519,13 +519,13 @@ new.name=sample-worker
 new.state=NEW
 ```
 
-Vì ví dụ tự đặt tên current thread, nó không phụ thuộc mặc định tên `main` của launcher. `getThreadInfo(current.getId(), 8)` chụp thread đang thực thi, nên trả Java ID/state và tối đa 8 stack frames. `notStarted` mới được tạo chứ chưa `start()`, nên là NEW; **nó không được kỳ vọng xuất hiện trong danh sách live threads của `ThreadMXBean.getAllThreadIds()`**.
+Because the example sets the current thread's name explicitly, it does not depend on the launcher's default `main` name. `getThreadInfo(current.getId(), 8)` snapshots the currently executing thread, returning its Java ID/state and up to 8 stack frames. `notStarted` has been created but not yet `start()`ed, so it is NEW; **it is not expected to appear in the live threads list of `ThreadMXBean.getAllThreadIds()`**.
 
-Bài học chính: `ThreadInfo.getThreadId()` cùng loại ID với `Thread.getId()`, còn không hề có `getNativeThreadId()` trong interface quản lý chuẩn Java 17. `getStackTrace()` được trả về theo thứ tự top frame ở index 0, các caller bên dưới.
+Key lesson: `ThreadInfo.getThreadId()` shares the same ID space as `Thread.getId()`, and there is no `getNativeThreadId()` in the standard Java 17 management interface. `getStackTrace()` is returned with the top frame at index 0 and callers below.
 
-## 10. Chương trình Java 17+ có stdout xác định: chuyển native ID hex
+## 10. Java 17+ program with deterministic stdout: converting hex native ID
 
-Lưu file **`NativeIdMathDemo.java`**:
+Save file **`NativeIdMathDemo.java`**:
 
 ```java
 public class NativeIdMathDemo {
@@ -545,14 +545,14 @@ public class NativeIdMathDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac NativeIdMathDemo.java
 java NativeIdMathDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 nid.hex=0x2a3f
@@ -561,11 +561,11 @@ java.id=42
 idsAreDifferent=true
 ```
 
-`illustrativeJavaThreadId` là một **số giả lập của ví dụ**, không phải ID thực của thread đang chạy chương trình. Mục đích: minh họa `nid` là native ID hex để so với OS, trong khi Java thread ID là một giá trị khác có nguồn khác. Khi parse dump thực, phải kiểm tra format input có `0x` hợp lệ và giới hạn số, không coi phép toán này là parser thread dump đầy đủ.
+`illustrativeJavaThreadId` is a **simulated number for the example**, not the actual ID of the thread running the program. Purpose: to illustrate that `nid` is a hex native ID for OS comparison, whereas the Java thread ID is a different value from a different source. When parsing real dumps, validate that the input format has a valid `0x` prefix and numeric bounds; do not treat this arithmetic as a full thread dump parser.
 
-## 11. Chương trình Java 17+: đọc nhiều thread bằng `ThreadMXBean`
+## 11. Java 17+ program: reading multiple threads with `ThreadMXBean`
 
-`ThreadMXBean` thuộc module `java.management`. Dùng nó khi muốn lấy dữ liệu Java thread theo cách lập trình thay vì parse toàn văn output HotSpot. Đoạn sau là snippet đặt trong một method:
+`ThreadMXBean` belongs to the `java.management` module. Use it when you want to retrieve Java thread data programmatically instead of parsing full HotSpot text output. The following is a snippet placed inside a method:
 
 ```java
 java.lang.management.ThreadMXBean mx =
@@ -577,7 +577,7 @@ for (long id : ids) {
     java.lang.management.ThreadInfo info =
             mx.getThreadInfo(id, 10);
     if (info == null) {
-        // Thread có thể đã kết thúc giữa hai lần đọc.
+        // The thread may have terminated between the two calls.
         continue;
     }
     System.out.println(info.getThreadId() + " "
@@ -586,9 +586,9 @@ for (long id : ids) {
 }
 ```
 
-**Lưu ý:** code cố tình không in toàn bộ frames để giảm dữ liệu và bảo mật. `getAllThreadIds()` phản ánh một tập live threads ở thời điểm gọi; giữa việc lấy IDs và đọc `getThreadInfo`, thread có thể chấm dứt, nên `info == null` là tình huống bình thường.
+**Note:** the code intentionally avoids printing full frames to reduce data volume and improve security. `getAllThreadIds()` reflects a set of live threads at the time of the call; between fetching IDs and reading `getThreadInfo`, a thread can terminate, so `info == null` is a normal condition.
 
-Để lấy thông tin locks (chỉ trên VM hỗ trợ):
+To retrieve lock information (only on supporting VMs):
 
 ```java
 boolean monitors = mx.isObjectMonitorUsageSupported();
@@ -598,42 +598,42 @@ java.lang.management.ThreadInfo[] snapshot =
         mx.dumpAllThreads(monitors, synchronizers);
 
 for (java.lang.management.ThreadInfo t : snapshot) {
-    // Chỉ chọn thread thực sự liên quan và redact dữ liệu nhạy cảm.
+    // Select only truly relevant threads and redact sensitive data.
     System.out.println(t.getThreadId() + " "
             + t.getThreadName() + " " + t.getThreadState());
 }
 ```
 
-Đây là snippet đặt trong method có `mx` được khai báo như trên. `dumpAllThreads` có thể tốn chi phí cao trên tiến trình có rất nhiều threads. Hãy đặt lịch/chọn phạm vi và chỉ ghi ra nguồn bảo mật. Nếu cần chặn stack quá sâu, Java 17 có overload `dumpAllThreads(boolean, boolean, int maxDepth)`; việc giới hạn depth giúp giảm thông tin nhưng có thể bỏ mất caller quyết định nguyên nhân.
+This is a snippet placed inside a method where `mx` is declared as above. `dumpAllThreads` can be expensive on processes with very many threads. Schedule/scope it appropriately and write only to secure destinations. If you need to cap excessively deep stacks, Java 17 provides the overload `dumpAllThreads(boolean, boolean, int maxDepth)`; limiting depth reduces data volume, though it may omit callers that explain the root cause.
 
-### 11.1. ThreadMXBean không thay thế native/thread-dump tools
+### 11.1. ThreadMXBean does not replace native/thread-dump tools
 
-- Nó dùng **Java thread ID**, không trả native `nid` chuẩn.
-- Nó trả Java stack traces, không mặc định đưa full C/C++ native frames.
-- Nó có thể trả `-1` cho blocked/waited time khi contention monitoring không bật hoặc không hỗ trợ.
-- Nó không bảo đảm lấy một ảnh chụp **hoàn toàn đồng thời** của mọi thread khi hệ thống chạy tiếp.
-- API có thể gây overhead; việc bật thread CPU time hoặc contention monitoring là **thay đổi trạng thái quản lý** cần cân nhắc.
+- It uses **Java thread IDs**, and does not return standard native `nid`.
+- It returns Java stack traces, and does not by default include full C/C++ native frames.
+- It can return `-1` for blocked/waited time when contention monitoring is disabled or unsupported.
+- It does not guarantee a **strictly simultaneous** snapshot of every thread while the system continues running.
+- The API can incur overhead; enabling thread CPU time or contention monitoring is a **management state change** that must be weighed carefully.
 
-Nếu cần matching với Linux TID, HotSpot `nid` hoặc các công cụ native/OS có thể cần thiết. Nếu mục tiêu là so trạng thái ở mức Java và lock owner, `ThreadInfo` là giao diện rõ contract hơn text parsing.
+If matching with Linux TIDs is needed, HotSpot `nid` or native/OS tools may be necessary. If the goal is comparing Java-level states and lock owners, `ThreadInfo` has a cleaner contract than text parsing.
 
-## 12. Đối chiếu thread dump với CPU và OS threads
+## 12. Correlating thread dumps with CPU and OS threads
 
-### 12.1. Nhận diện CPU hot thread từng bước
+### 12.1. Identifying a CPU-hot thread step by step
 
-Giả sử số liệu `top -H` của một process Linux cho thấy native TID `10815` dùng nhiều CPU. Để xác định Java stack:
+Suppose `top -H` output for a Linux process shows native TID `10815` using significant CPU. To identify the Java stack:
 
-1. Xác nhận PID process và namespace; lấy thời điểm `top` đo CPU.
-2. Đổi decimal TID `10815` sang hexadecimal: `0x2a3f`.
-3. Trong **thread dump của cùng JVM**, tìm header có `nid=0x2a3f`.
-4. Đọc Java state và các stack frames; ghi chú có phải application code, GC/JIT/native, hay I/O.
-5. Lấy một vài dump ở thời điểm gần nhau **nếu tác động cho phép** hoặc dùng JFR/profiler, so stack signature.
-6. Đối chiếu process CPU/time, request rate, GC pauses và container CPU quota.
+1. Confirm the process PID and namespace; note the timestamp when `top` measured CPU.
+2. Convert decimal TID `10815` to hexadecimal: `0x2a3f`.
+3. In the **thread dump of the same JVM**, search for the header containing `nid=0x2a3f`.
+4. Read the Java state and stack frames; note whether it is application code, GC/JIT/native, or I/O.
+5. Take a few closely spaced dumps **if impact allows** or use JFR/profiler, and compare stack signatures.
+6. Correlate process CPU/time, request rate, GC pauses, and container CPU quota.
 
-Đừng so một snapshot `top` lúc 08:00 với dump 08:20 vì native thread ID có thể đã được tái sử dụng hoặc workload khác. Nếu không thấy Java thread tương ứng, native thread có thể là JVM internal/native thread, JNI worker hoặc thread đã biến mất giữa hai lần đo.
+Do not compare a `top` snapshot at 08:00 with a dump at 08:20 because native thread IDs may have been reused or the workload may have changed. If no matching Java thread is found, the native thread may be a JVM internal/native thread, a JNI worker, or a thread that exited between measurements.
 
-### 12.2. CPU time là counter tích lũy, không phải tốc độ tức thời
+### 12.2. CPU time is a cumulative counter, not an instantaneous rate
 
-Một số HotSpot dumps có header `cpu=220.12ms elapsed=31.01s`. **Không** hiểu `cpu=220ms` là “thread sử dụng 220ms CPU trong 1 giây vừa qua” nếu format không nói vậy. Để tính tỉ lệ CPU theo thời gian, cần hai mẫu trong cùng đời thread với counter CPU time nhất quán:
+Some HotSpot dumps include headers like `cpu=220.12ms elapsed=31.01s`. **Do not** read `cpu=220ms` as “the thread used 220ms of CPU over the last 1 second” unless the format specifies so. To calculate CPU ratio over time, you need two samples within the same thread's lifetime using a consistent CPU time counter:
 
 ```text
 thread_cpu0_ns = 2_000_000_000
@@ -643,178 +643,178 @@ wall1_ns       = 11_000_000_000
 
 delta_thread_cpu_ns = 500_000_000
 delta_wall_ns       = 1_000_000_000
-one_core_fraction   = 0.50  (50% của một CPU core)
+one_core_fraction   = 0.50  (50% of one CPU core)
 ```
 
-Đây là số liệu mô phỏng. `ThreadMXBean.getThreadCpuTime(javaThreadId)` có thể cho CPU time theo thread khi VM hỗ trợ và đã bật. Trước khi dùng, kiểm tra `isThreadCpuTimeSupported()` và `isThreadCpuTimeEnabled()`. Giá trị `-1` có thể chỉ unsupported/unavailable/thread không sống; không biến thành zero và không cộng qua hai đời JVM.
+These are simulated numbers. `ThreadMXBean.getThreadCpuTime(javaThreadId)` can provide per-thread CPU time when supported and enabled by the VM. Before using it, check `isThreadCpuTimeSupported()` and `isThreadCpuTimeEnabled()`. A value of `-1` can indicate unsupported/unavailable/dead thread; do not convert it to zero and do not sum across two JVM lifetimes.
 
-### 12.3. Ghép với OS state
+### 12.3. Matching with OS states
 
-Một native thread có Java `RUNNABLE` nhưng Linux `S` có thể đang chờ trong syscall native. Một Java `BLOCKED` chờ monitor có thể xuất hiện như OS sleeping. Sự khác nhau này không nhất thiết là lỗi của công cụ: hai tầng mô tả **khác ngữ nghĩa** và các mẫu được lấy ở thời điểm khác nhau.
+A native thread with Java `RUNNABLE` but Linux `S` may be waiting inside a native syscall. A Java `BLOCKED` thread waiting on a monitor may appear as OS sleeping. This difference is not necessarily a tool bug: the two layers describe **different semantics** and samples are taken at different moments.
 
-Khi nghi CPU starvation hoặc throttling trên container, bổ sung cgroup `cpu.stat`, quota, scheduler run queue và host contention. Thread dump không hiển thị một bộ đếm “throttled CPU time” tiêu chuẩn cho mỗi Java thread.
+When suspecting CPU starvation or throttling in containers, add cgroup `cpu.stat`, quota, scheduler run queue, and host contention data. A thread dump does not display a standard “throttled CPU time” counter per Java thread.
 
-## 13. Phương pháp đọc nhiều dump để tìm vấn đề thực
+## 13. Method for reading multiple dumps to find real issues
 
-### 13.1. Không kết luận từ một snapshot
+### 13.1. Do not conclude from a single snapshot
 
-Một snapshot của thread `request-12` ở `Socket.read` chứng minh thread **đang chờ I/O tại lúc chụp**, không chứng minh dependency bị treo 30 giây. Nếu thread đó có mặt ở cùng stack sau 5 giây và 10 giây, đồng thời latency metrics tăng, giả thuyết I/O wait mới mạnh hơn.
+One snapshot of thread `request-12` in `Socket.read` proves the thread **was waiting on I/O at capture time**, not that the dependency hung for 30 seconds. If that thread appears with the same stack after 5 seconds and 10 seconds while latency metrics rise, the I/O wait hypothesis grows stronger.
 
-Mỗi dump có giá trị vì nó là **bằng chứng tức thời**, nhưng dữ liệu động (CPU, lock contention, pool starvation) thường đòi hỏi so sánh. Chỉ chụp mẫu bổ sung khi có quyền và overhead chấp nhận được.
+Each dump has value as **instantaneous evidence**, yet dynamic behavior (CPU, lock contention, pool starvation) usually requires comparison. Only collect additional samples when authorized and overhead is acceptable.
 
-### 13.2. Một quy trình nhất quán
+### 13.2. A consistent workflow
 
 ```text
-1. Chốt JVM identity (pid + start + container/node)
-2. Chốt khoảng sự cố và UTC timestamps
-3. Chụp dump t0 (+ lock info khi cần)
-4. Gắn snapshot CPU/latency/GC/threads gần t0
-5. Chờ khoảng quan sát phù hợp, chụp t1/t2 nếu được phép
-6. Chuẩn hóa header fields và nhóm stack signatures
-7. So thay đổi state, lock owner, top user frames
-8. Kiểm chứng bằng JFR/traces/OS metrics
-9. Viết kết luận mức độ chắc chắn + bước khắc phục nhỏ nhất
+1. Lock JVM identity (pid + start + container/node)
+2. Lock incident window and UTC timestamps
+3. Capture dump t0 (+ lock info if needed)
+4. Attach CPU/latency/GC/thread snapshots near t0
+5. Wait an appropriate observation interval, capture t1/t2 if permitted
+6. Normalize header fields and group stack signatures
+7. Compare changes in states, lock owners, and top user frames
+8. Verify with JFR/traces/OS metrics
+9. Write conclusion with confidence level + minimal remediation step
 ```
 
-Không so `tid`/`nid` giữa dump từ hai JVM khác nhau rồi coi là cùng thread. Nếu thấy PID giống nhưng JVM start thay đổi thì phải coi là một process generation mới.
+Do not compare `tid`/`nid` across dumps from two different JVMs and treat them as the same thread. If the PID is identical but JVM start time changed, you must treat it as a new process generation.
 
-### 13.3. Nhóm thread theo stack signature
+### 13.3. Grouping threads by stack signature
 
-Thay vì liệt kê từng thread, có thể nhóm:
+Instead of listing every thread individually, you can group them:
 
-| Nhóm | Dấu hiệu | Khả năng ban đầu | Bằng chứng tiếp theo |
+| Group | Sign | Initial possibility | Follow-up evidence |
 | --- | --- | --- | --- |
-| HTTP request blocked monitor | Nhiều `BLOCKED` cùng `waiting to lock <x>` | Lock holder/critical section quá lớn | Tìm owner và so nhiều dump |
-| HTTP request native read | Nhiều `RUNNABLE` ở socket native read | Downstream I/O chậm | Tracing/timeout/network metrics |
-| Pool workers WAITING | `LinkedBlockingQueue.take`/`park` | Idle pool, thường bình thường | Queue depth, active/idle counts |
-| Pool workers BUSY | Nhiều frame application code lặp | CPU work hoặc concurrency issue | CPU time/JFR, request rate |
-| Threads TIMED_WAITING sleep | `Thread.sleep` từ retry/backoff | Retry delay/periodic task | Retry count, deadline/timeout |
-| Threads WAITING on future | `CompletableFuture.join`/`FutureTask.get` | Async dependency chưa hoàn tất | Completion chain, pool starvation |
-| Multiple threads BLOCKED cyclically | Có vòng sở hữu/chờ monitor/synchronizer | Deadlock | Deadlock detector và owner chain |
-| Many threads in native code | JNI/VM internal frames | Native wait/CPU hoặc runtime work | Native profiler, crash logs |
+| HTTP request blocked monitor | Multiple `BLOCKED` with same `waiting to lock <x>` | Lock holder/oversized critical section | Find owner and compare multiple dumps |
+| HTTP request native read | Multiple `RUNNABLE` in socket native read | Slow downstream I/O | Tracing/timeouts/network metrics |
+| Pool workers WAITING | `LinkedBlockingQueue.take`/`park` | Idle pool, usually normal | Queue depth, active/idle counts |
+| Pool workers BUSY | Repeated application code frames | CPU work or concurrency issue | CPU time/JFR, request rate |
+| Threads TIMED_WAITING sleep | `Thread.sleep` from retry/backoff | Retry delay/periodic task | Retry count, deadline/timeout |
+| Threads WAITING on future | `CompletableFuture.join`/`FutureTask.get` | Unfinished async dependency | Completion chain, pool starvation |
+| Multiple threads BLOCKED cyclically | Ownership/wait cycle across monitors/synchronizers | Deadlock | Deadlock detector and owner chain |
+| Many threads in native code | JNI/VM internal frames | Native wait/CPU or runtime work | Native profiler, crash logs |
 
-Các nhóm trên là **giả thuyết**, không phải danh sách lỗi chắc chắn. Ví dụ `CompletableFuture.join` trong một worker có thể chỉ là việc được thiết kế; trở thành starvation khi pool tasks đang đợi công việc cũng cần pool đó để chạy.
+The groups above are **hypotheses**, not a guaranteed bug list. For example, `CompletableFuture.join` in a worker may be intended work; it becomes starvation when pool tasks are waiting for work that also needs that same pool to run.
 
-### 13.4. Phân tích thread “kẹt lâu”
+### 13.4. Analyzing “long-stuck” threads
 
-Một thread giống nhau theo Java ID/name/nid xuất hiện ở cùng frame tại t0, t1, t2 chưa đủ chứng minh *nó không chạy*: nó có thể lặp loop đến cùng phương thức rất nhiều lần. Cần xem cumulative CPU delta, application event counters, lock ownership, request/trace ID và operation progress.
+The same thread by Java ID/name/nid appearing at the same frame at t0, t1, t2 is not sufficient to prove *it is not running*: it may be looping rapidly through that same method many times. Check cumulative CPU deltas, application event counters, lock ownership, request/trace IDs, and operation progress.
 
-Ngược lại, nếu thread chờ một monitor và owner giữ lock suốt nhiều dump, trong khi request latency tăng, đây là bằng chứng mạnh hơn của lock contention kéo dài.
+Conversely, if a thread waits on a monitor and the owner holds the lock across multiple dumps while request latency climbs, that is stronger evidence of sustained lock contention.
 
-## 14. Ba tình huống thực hành
+## 14. Three hands-on scenarios
 
-### Case A — CPU cao: tìm đúng thread từ native ID
+### Case A — High CPU: finding the right thread from native ID
 
-**Bối cảnh:** JVM process Linux PID `12345`. `top -H` báo TID `10815` dùng CPU đáng kể.
+**Context:** Linux JVM process PID `12345`. `top -H` reports TID `10815` using substantial CPU.
 
-**Bước đọc:**
+**Reading steps:**
 
-1. Tính `10815` = `0x2a3f`.
-2. Trong dump cùng JVM và thời điểm gần đó, tìm `nid=0x2a3f`.
-3. Đọc Java state và stack; giả sử top frames là `calculateScore`, `applyRules` trong code ứng dụng.
-4. Thu thêm các sample theo thời gian hoặc JFR CPU profiling. Nếu cùng code frame liên tục và CPU time tăng, có cơ sở tìm hotspot/algorithmic complexity.
-5. Kiểm tra số requests, data size, thread pool size, GC/JIT load trước khi tối ưu.
+1. Compute `10815` = `0x2a3f`.
+2. In a dump of the same JVM near the same time, find `nid=0x2a3f`.
+3. Read the Java state and stack; suppose the top frames are `calculateScore`, `applyRules` in application code.
+4. Collect additional samples over time or JFR CPU profiling. If the same code frames persist and CPU time climbs, there is basis to investigate hotspots/algorithmic complexity.
+5. Check request counts, data sizes, thread pool sizes, and GC/JIT load before optimizing.
 
-**Lỗi thường gặp:** tìm `tid=0x2a3f` hoặc Java `#10815` thay vì `nid`; đọc `RUNNABLE` rồi khẳng định một thread chiếm 100% CPU.
+**Common mistake:** searching for `tid=0x2a3f` or Java `#10815` instead of `nid`; reading `RUNNABLE` and claiming one thread uses 100% CPU.
 
-### Case B — Latency tăng: BLOCKED chờ monitor
+### Case B — Rising latency: BLOCKED waiting on monitor
 
-**Bối cảnh:** 60 request threads có `java.lang.Thread.State: BLOCKED` và `- waiting to lock <0x0000000700a01111>`.
+**Context:** 60 request threads show `java.lang.Thread.State: BLOCKED` and `- waiting to lock <0x0000000700a01111>`.
 
-**Bước đọc:**
+**Reading steps:**
 
-1. Tìm **owner** của cùng monitor ID trong dump.
-2. Xem owner đang thực thi frame nào; giả sử nó đang sleep trong một method `synchronized`.
-3. Xác minh owner vẫn giữ monitor qua một số dump; kiểm tra thời điểm latency tăng.
-4. Kết luận vấn đề nằm ở critical section dài/giữ khóa khi sleep/I/O nếu stack và source hỗ trợ.
-5. Sửa bằng thu nhỏ phạm vi monitor hoặc bỏ blocking operation ra ngoài critical section, theo logic ứng dụng; kiểm thử concurrency sau thay đổi.
+1. Find the **owner** of the same monitor ID in the dump.
+2. Check which frame the owner is executing; suppose it is sleeping inside a `synchronized` method.
+3. Verify the owner still holds the monitor across several dumps; check when latency increased.
+4. Conclude the issue lies in a long critical section/holding a lock during sleep/I/O if stacks and source support it.
+5. Fix by shrinking the monitor scope or moving blocking operations outside the critical section according to application logic; test concurrency after the change.
 
-**Lỗi thường gặp:** chỉ đổi số request threads hay restart pod, làm tạm thời biến mất symptom nhưng không giải quyết lock contention.
+**Common mistake:** only changing the number of request threads or restarting the pod, temporarily hiding the symptom without resolving lock contention.
 
-### Case C — WAITING hàng loạt: pool idle hay starvation?
+### Case C — Mass WAITING: idle pool or starvation?
 
-**Bối cảnh:** 200 threads có state WAITING và stack gần `LockSupport.park`/`LinkedBlockingQueue.take`.
+**Context:** 200 threads have state WAITING and stacks near `LockSupport.park`/`LinkedBlockingQueue.take`.
 
-**Bước đọc:**
+**Reading steps:**
 
-1. Kiểm tra chúng là worker idle của pool nào, hay đang chờ future/lock?
-2. Đọc **caller frame**: `ThreadPoolExecutor.getTask` thường là lấy task; `CompletableFuture.join` trong request worker gợi ý chờ completion.
-3. Đối chiếu active tasks, queue size, submitted/completed counters và request latency.
-4. Với starvation, tìm xem tất cả worker có đang chờ kết quả của các tasks cũng cần chạy trong **chính pool bị chiếm hết** không.
-5. Không tự gọi “deadlock” nếu không có chu trình locks/logic được chứng minh.
+1. Check whether they are idle workers of a pool, or waiting on a future/lock.
+2. Read **caller frames**: `ThreadPoolExecutor.getTask` usually means fetching tasks; `CompletableFuture.join` inside a request worker suggests waiting for completion.
+3. Correlate active tasks, queue size, submitted/completed counters, and request latency.
+4. For starvation, check whether all workers are waiting on results of tasks that also need to run in **the very same exhausted pool**.
+5. Do not immediately call it “deadlock” without a proven lock/logic cycle.
 
-**Lỗi thường gặp:** đếm mọi WAITING là lỗi nghiêm trọng; tăng số thread vô hạn mà không phân tích dependency graph.
+**Common mistake:** counting every WAITING thread as a severe bug; increasing thread counts indefinitely without analyzing the dependency graph.
 
-## 15. Những lỗi diễn giải hay gặp
+## 15. Frequent interpretation mistakes
 
-1. **Nhầm `tid` với `nid`.** HotSpot `tid` là địa chỉ cấu trúc JVM; `nid` là native thread ID.
-2. **Dùng `nid` để gọi `ThreadMXBean.getThreadInfo`.** API này nhận Java thread ID.
-3. **Cho rằng thread name unique.** Tên có thể trùng, đổi và lặp qua các lần restart.
-4. **Cho rằng `RUNNABLE` = 100% CPU.** Thread có thể đang trong native I/O wait.
-5. **Cho rằng `WAITING` = deadlock.** Pool idle và `Object.wait` hợp lệ cũng WAITING.
-6. **Cho rằng `BLOCKED` bao gồm mọi loại lock.** `ReentrantLock` có thể hiện WAITING/parking.
-7. **Xem dòng đầu tiên trong stack là nguyên nhân gốc.** Nó chỉ là vị trí tại snapshot; cần caller/context.
-8. **Đọc stack theo thứ tự ngược.** `Thread.run` gần cuối là entry point, không phải nhất thiết dòng đang chạy.
-9. **Bỏ qua `- waiting to lock` và `- locked`.** Hai dòng này quan trọng khi tìm chủ sở hữu monitor.
-10. **Quên vùng `Locked ownable synchronizers`.** Có thể bỏ sót ReentrantLock/AQS.
-11. **Nhầm hex monitor ID với Java thread ID.** ID monitor đại diện object lock trong snapshot.
-12. **So Linux TID giữa host và container không kiểm tra namespace.** Dẫn đến mapping sai.
-13. **Kết luận từ một dump cách xa sự cố.** Thread có thể đã đổi công việc hoặc kết thúc.
-14. **Lấy quá nhiều dump trên JVM tải cao.** `Thread.print` có overhead và có thể làm tăng latency.
-15. **Giả định `jcmd -l` không thấy process nghĩa là process không chạy.** Có thể do namespace/permission.
-16. **Tin `cpu=...` trên header là CPU% một giây qua.** Đây không mặc định là rate.
-17. **Cộng CPU time nanoseconds với epoch milliseconds hoặc uptime.** Khác đơn vị và gốc đo.
-18. **Đọc `Unknown Source` như lỗi ứng dụng chắc chắn.** Có thể chỉ thiếu debug line metadata.
-19. **Bỏ qua JVM/GC/JIT/native internal threads.** Chúng cũng có thể tiêu thụ CPU/ảnh hưởng ứng dụng.
-20. **Không phân biệt exception stack trace với thread dump.** Một cái ở mốc lỗi, một cái ở mốc snapshot.
-21. **Dùng `Thread.dumpStack()` mong dump toàn bộ JVM.** Method đó in stack của thread hiện tại, không phải mọi thread.
-22. **Bật contention monitoring/CPU time theo thread không đánh giá chi phí.** Có thể làm thay đổi trạng thái quản lý.
-23. **Đăng nguyên dump chứa endpoint, token trong thread names hoặc file paths lên chat.** Có rủi ro tiết lộ thông tin.
-24. **Xem nhiều thread cùng một frame là chắc chắn bug.** Có thể là trạng thái steady-state của pool.
-25. **Không gắn JVM start/PID khi ghép dumps.** PID/Java ID có thể bị reuse, đặc biệt sau restart.
+1. **Confusing `tid` with `nid`.** HotSpot `tid` is a JVM structure address; `nid` is the native thread ID.
+2. **Passing `nid` to `ThreadMXBean.getThreadInfo`.** That API takes a Java thread ID.
+3. **Assuming thread names are unique.** Names can duplicate, change, and repeat across restarts.
+4. **Assuming `RUNNABLE` = 100% CPU.** The thread may be in a native I/O wait.
+5. **Assuming `WAITING` = deadlock.** Idle pools and legitimate `Object.wait` also show WAITING.
+6. **Assuming `BLOCKED` covers every kind of lock.** `ReentrantLock` can appear as WAITING/parking.
+7. **Treating the top stack line as the root cause.** It is only the snapshot location; callers and context are needed.
+8. **Reading stacks upside down.** `Thread.run` near the bottom is the entry point, not necessarily the active line.
+9. **Ignoring `- waiting to lock` and `- locked`.** These two lines are critical for finding monitor owners.
+10. **Forgetting the `Locked ownable synchronizers` section.** You may miss ReentrantLock/AQS locks.
+11. **Confusing hex monitor IDs with Java thread IDs.** Monitor IDs represent object locks in the snapshot.
+12. **Comparing Linux TIDs between host and container without checking namespaces.** Leads to wrong mappings.
+13. **Concluding from a single dump far removed from the incident.** Threads may have changed work or exited.
+14. **Taking too many dumps on a heavily loaded JVM.** `Thread.print` has overhead and can increase latency.
+15. **Assuming `jcmd -l` not showing a process means the process is not running.** It can be due to namespaces/permissions.
+16. **Believing `cpu=...` in the header is CPU% over the last second.** It is not by default a rate.
+17. **Adding CPU time nanoseconds to epoch milliseconds or uptime.** Different units and origins.
+18. **Reading `Unknown Source` as a guaranteed application bug.** It may simply lack debug line metadata.
+19. **Ignoring JVM/GC/JIT/native internal threads.** They can also consume CPU or affect the application.
+20. **Failing to distinguish an exception stack trace from a thread dump.** One is at error time, the other at snapshot time.
+21. **Using `Thread.dumpStack()` expecting to dump the whole JVM.** That method prints the current thread's stack, not all threads.
+22. **Enabling per-thread contention monitoring/CPU time without assessing cost.** It changes management state.
+23. **Posting raw dumps containing endpoints, tokens in thread names, or file paths in chat.** Carries information disclosure risk.
+24. **Treating multiple threads at the same frame as a guaranteed bug.** It can be steady-state pool behavior.
+25. **Failing to attach JVM start/PID when correlating dumps.** PIDs/Java IDs can be reused, especially after restarts.
 
-## 16. Checklist kiểm tra khi đọc một thread entry
+## 16. Checklist when reading a thread entry
 
-- [ ] Dump lấy từ đúng **JVM instance**, PID/container namespace, có timestamp UTC?
-- [ ] Tên thread có ý nghĩa gì và có thể trùng không?
-- [ ] Có phân biệt Java ID/`#n`, HotSpot `tid` và native `nid`?
-- [ ] Nếu nối với Linux `top -H`, đã đổi đúng `nid` hex sang decimal và kiểm tra thời điểm?
-- [ ] Có phân biệt **Java enum state** với mô tả header/OS state?
-- [ ] `RUNNABLE` có thể đang chờ native I/O, cần kiểm tra CPU time không?
-- [ ] `BLOCKED` đang chờ monitor nào? Có tìm được holder?
-- [ ] `WAITING`/`TIMED_WAITING` đến từ queue, lock, join, future, sleep hay request path?
-- [ ] Stack frames được đọc từ trên xuống dưới; đã thấy user-code frame/caller liên quan?
-- [ ] Có dòng `waiting to lock`, `locked`, `parking to wait for` hoặc ownable synchronizers?
-- [ ] Thông tin stack/line có thể thiếu, JIT/native có ảnh hưởng khả năng quan sát?
-- [ ] Có lý do cần dump thứ hai/thứ ba, JFR/metrics/GC logs để chứng minh giả thuyết?
-- [ ] Đã phân biệt monitor deadlock, lock contention, starvation và I/O wait?
-- [ ] Đã giới hạn quyền truy cập dump và tránh chia sẻ dữ liệu nhạy cảm?
-- [ ] Kết luận chỉ phát biểu điều được chứng minh bởi snapshot(s), không đoán nguyên nhân?
+- [ ] Was the dump taken from the right **JVM instance**, PID/container namespace, with a UTC timestamp?
+- [ ] What does the thread name mean and could it be duplicated?
+- [ ] Did you distinguish Java ID/`#n`, HotSpot `tid`, and native `nid`?
+- [ ] If joining with Linux `top -H`, did you convert hex `nid` to decimal properly and check timestamps?
+- [ ] Did you distinguish the **Java enum state** from header descriptions/OS states?
+- [ ] Could `RUNNABLE` be waiting on native I/O, requiring a CPU time check?
+- [ ] Which monitor is `BLOCKED` waiting on? Can the holder be found?
+- [ ] Does `WAITING`/`TIMED_WAITING` come from a queue, lock, join, future, sleep, or request path?
+- [ ] Were stack frames read top-to-bottom; were relevant user-code frames/callers identified?
+- [ ] Are there `waiting to lock`, `locked`, `parking to wait for`, or ownable synchronizers lines?
+- [ ] Could stack/line info be incomplete, or could JIT/native calls affect observability?
+- [ ] Is there reason to need a second/third dump, JFR/metrics/GC logs to verify hypotheses?
+- [ ] Were monitor deadlock, lock contention, starvation, and I/O wait distinguished?
+- [ ] Was dump access restricted and sharing of sensitive data avoided?
+- [ ] Do conclusions state only what is proven by the snapshot(s), without guessing causes?
 
-## 17. Bài tập tự kiểm tra
+## 17. Self-check exercises
 
-**Bài tập 1 — Header.** Trong một mục HotSpot có `"worker-2" #17 tid=0x00007f0000201000 nid=0x2a3f runnable`, hãy chỉ ra tên, Java thread number, native thread ID hex, ID decimal trên Linux, và giá trị nào là pointer nội bộ. Đáp án: tên `worker-2`; `#17` là thread number/Java ID theo dạng HotSpot minh họa; `nid=0x2a3f` tương ứng **10815**; `tid=0x00007f...` là địa chỉ cấu trúc VM, **không** đưa vào `top -H`. Cần đối chiếu format JDK thực khi xử lý production.
+**Exercise 1 — Header.** In a HotSpot entry with `"worker-2" #17 tid=0x00007f0000201000 nid=0x2a3f runnable`, identify the name, Java thread number, hex native thread ID, decimal ID on Linux, and which value is an internal pointer. Answer: name `worker-2`; `#17` is the thread number/Java ID in the illustrative HotSpot format; `nid=0x2a3f` corresponds to **10815**; `tid=0x00007f...` is the VM structure address, **not** passed to `top -H`. Verify against the actual JDK format in production.
 
-**Bài tập 2 — State.** Một thread `RUNNABLE` có top frame `EPoll.wait(Native Method)`. Có thể kết luận thread gây CPU 100% không? **Không**: có thể đang đợi I/O ở native syscall; cần CPU counters/JFR và nhiều mẫu.
+**Exercise 2 — State.** A `RUNNABLE` thread has top frame `EPoll.wait(Native Method)`. Can you conclude the thread is causing 100% CPU? **No**: it may be waiting on I/O in a native syscall; CPU counters/JFR and multiple samples are needed.
 
-**Bài tập 3 — Monitor.** Thread A hiện `- locked <0xAAA>` và sleep; thread B hiện `- waiting to lock <0xAAA>`. Ai nhiều khả năng đang giữ monitor, và bước xác minh tiếp? A giữ monitor; kiểm tra frame `synchronized` của A, thời lượng giữ lock và sự lặp qua các dump; không chỉ tăng số threads.
+**Exercise 3 — Monitor.** Thread A shows `- locked <0xAAA>` and is sleeping; thread B shows `- waiting to lock <0xAAA>`. Who is most likely holding the monitor, and what is the next verification step? A holds the monitor; inspect A's `synchronized` frame, lock hold duration, and persistence across dumps; do not simply increase thread counts.
 
-**Bài tập 4 — WAITING.** Một trăm threads ở `ThreadPoolExecutor.getTask`/`LinkedBlockingQueue.take` có phải deadlock không? **Không mặc định**. Nếu pool rảnh, đó là bình thường. Cần xem active tasks, queue depth, request latency và owner/lock cycles.
+**Exercise 4 — WAITING.** Are one hundred threads in `ThreadPoolExecutor.getTask`/`LinkedBlockingQueue.take` a deadlock? **Not by default**. If the pool is idle, that is normal. Check active tasks, queue depth, request latency, and owner/lock cycles.
 
-**Bài tập 5 — Thread MXBean.** `ThreadInfo.getThreadId()` có thể dùng làm Linux LWP ID không? **Không bảo đảm**. Java ID khác native ID; cần mapping từ `nid` hoặc native tooling phù hợp.
+**Exercise 5 — ThreadMXBean.** Can `ThreadInfo.getThreadId()` be used as a Linux LWP ID? **Not guaranteed**. Java IDs differ from native IDs; mapping from `nid` or appropriate native tooling is required.
 
-**Bài tập 6 — Đọc theo thời gian.** Một thread xuất hiện ở cùng frame `calculate()` trong ba dumps cách 5 giây. Có chắc nó bị kẹt không? **Chưa**; có thể chạy loop nhanh qua cùng function. Cần CPU delta, progress counters và trạng thái lock/request context.
+**Exercise 6 — Reading over time.** A thread appears at the same `calculate()` frame across three dumps 5 seconds apart. Is it definitely stuck? **Not yet**; it could be looping rapidly through the same function. You need CPU deltas, progress counters, and lock/request context.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle Java SE 17, [Diagnostic Tools](https://docs.oracle.com/en/java/javase/17/troubleshoot/diagnostic-tools.html): cấu trúc thread dump, header, `tid`, `nid`, `Thread.State` và ví dụ.
-- Oracle Java SE 17, [`jcmd` Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `Thread.print -l`, quyền, tác động và hỗ trợ theo JVM.
-- Oracle Java SE 17, [`jstack` Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jstack.html): stack trace và `-l`, giới hạn công cụ.
-- Oracle Java SE 17, [`Thread.State` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.State.html): sáu enum states của Java 17 và khác biệt với trạng thái OS.
+- Oracle Java SE 17, [Diagnostic Tools](https://docs.oracle.com/en/java/javase/17/troubleshoot/diagnostic-tools.html): thread dump structure, headers, `tid`, `nid`, `Thread.State`, and examples.
+- Oracle Java SE 17, [`jcmd` Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `Thread.print -l`, permissions, impact, and JVM support.
+- Oracle Java SE 17, [`jstack` Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jstack.html): stack traces and `-l`, tool limitations.
+- Oracle Java SE 17, [`Thread.State` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.State.html): the six enum states of Java 17 and differences from OS states.
 - Oracle Java SE 17, [`ThreadMXBean` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html): Java thread IDs, stack traces, locks, deadlocks, CPU/contended time.
-- Oracle Java SE 17, [`ThreadInfo` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadInfo.html): thread name, state, Java ID, lock owner, frame và đồng bộ.
-- Oracle Java SE 17, [`StackTraceElement` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StackTraceElement.html): tên class/method, source file/line, native method.
+- Oracle Java SE 17, [`ThreadInfo` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadInfo.html): thread name, state, Java ID, lock owner, frames, and synchronization.
+- Oracle Java SE 17, [`StackTraceElement` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StackTraceElement.html): class/method names, source file/line, native method.
 - Oracle Java SE 17, [`Thread` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html): `getName()`, `getId()`, `getState()`, `getStackTrace()`.
-- OpenJDK Java Operations, [How to Obtain a Thread Dump on Linux](https://ops.java/howto/articles/thread-dump-linux/): `jstack`, `jcmd` và `SIGQUIT`.
+- OpenJDK Java Operations, [How to Obtain a Thread Dump on Linux](https://ops.java/howto/articles/thread-dump-linux/): `jstack`, `jcmd`, and `SIGQUIT`.
 
-**Kết luận:** đọc thread dump đúng là kết nối **tên + Java ID + native ID + trạng thái + stack frames + locks** trong đúng vòng đời JVM. Một snapshot cho biết vị trí quan sát tại một thời điểm, không trực tiếp cho nguyên nhân, phần trăm CPU hay thời gian chờ. Chỉ sau khi đối chiếu nhiều ảnh chụp với CPU/GC/thread metrics, tracing và OS/container context, bạn mới có thể phân biệt worker đang rảnh, I/O wait, lock contention, starvation hoặc CPU hotspot một cách có căn cứ.
+**Conclusion:** reading a thread dump properly means connecting **name + Java ID + native ID + state + stack frames + locks** within the right JVM lifecycle. A snapshot tells you the observed position at one point in time, and does not directly give you root cause, CPU percentage, or wait duration. Only after correlating multiple snapshots with CPU/GC/thread metrics, tracing, and OS/container context can you distinguish idle workers, I/O waits, lock contention, starvation, or CPU hotspots with solid evidence.

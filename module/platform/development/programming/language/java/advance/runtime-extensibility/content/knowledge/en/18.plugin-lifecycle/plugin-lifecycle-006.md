@@ -1,60 +1,60 @@
-# Quy định số lượng đối tượng, trạng thái dùng chung và cơ chế đồng bộ trong vòng đời plugin Java
+# Specifying Instance Cardinality, Shared State, and Synchronization Mechanisms in the Java Plugin Lifecycle
 
-## 1. Vì sao vòng đời plugin phải quy định rõ số lượng instance?
+## 1. Why Must the Plugin Lifecycle Explicitly Define Instance Cardinality?
 
-Một host Java có thể khám phá và nạp một **plugin implementation** qua `ServiceLoader`, class loader riêng, `ModuleLayer` hoặc factory do plugin cung cấp. Nhưng việc tìm được lớp và tạo được đối tượng **không trả lời** ba câu hỏi vận hành quan trọng:
+A Java host can discover and load a **plugin implementation** via `ServiceLoader`, a dedicated class loader, a `ModuleLayer`, or a plugin-provided factory. Yet finding a class and instantiating an object **does not answer** three critical operational questions:
 
-1. **Một plugin có bao nhiêu instance?** Một instance cho toàn host, một instance cho mỗi phiên bản plugin, mỗi tenant, mỗi session, mỗi request, hay một pool có giới hạn?
-2. **Trạng thái nào được chia sẻ?** Counter, cache, kết nối, cấu hình, trạng thái người dùng, transaction context và dữ liệu của từng lần gọi thuộc instance hay host?
-3. **Những lời gọi đồng thời được xử lý ra sao?** Plugin có an toàn khi hai thread gọi cùng lúc? Host phải khóa, cấp instance riêng, giới hạn concurrency hay từ chối yêu cầu khi đang dừng?
+1. **How many instances does a plugin have?** One instance for the whole host, one instance per plugin generation, per tenant, per session, per request, or a bounded pool?
+2. **What state is shared?** Do counters, caches, connections, configuration, user state, transaction context, and per-call data belong to the instance or the host?
+3. **How are concurrent calls handled?** Is the plugin safe when two threads call it at once? Must the host lock, issue a separate instance, cap concurrency, or reject requests while stopping?
 
-Không làm rõ các câu hỏi trên sẽ dẫn đến kết quả khó đoán: mất cập nhật, sai dữ liệu giữa tenant, dùng object sau khi `close()`, rò rỉ class loader, deadlock khi callback, hoặc tạo quá nhiều đối tượng và tài nguyên.
+Failing to clarify these questions leads to unpredictable results: lost updates, cross-tenant data corruption, use-after-`close()`, class loader leaks, callback deadlocks, or excessive object and resource creation.
 
-Ví dụ host dùng một `Plugin` singleton chứa trường mutable `int requestCount` và hai thread cùng thực hiện `requestCount++`. Phép tăng này gồm đọc–cộng–ghi; nếu không có bảo đảm đồng bộ, nhiều cập nhật có thể bị mất. Ngược lại, nếu host tạo một instance cho mỗi request, race trên trường instance có thể ít đi nhưng chi phí khởi tạo database client, model hoặc interpreter lại tăng mạnh.
+For example, suppose a host uses a singleton `Plugin` containing a mutable `int requestCount` field and two threads execute `requestCount++` concurrently. That increment is read–add–write; without synchronization guarantees, updates can be lost. Conversely, if the host creates an instance per request, races on instance fields may disappear, but the cost of initializing a database client, model, or interpreter spikes sharply.
 
-**Nguyên tắc:** số instance, quy tắc sở hữu state và concurrency là **một phần của hợp đồng host–plugin**, phải được khai báo, kiểm tra và thực thi xuyên suốt `create → initialize → start → invoke → quiesce → stop/close → unload`. Đừng để mỗi plugin tự suy đoán.
+**Principle:** instance cardinality, state ownership rules, and concurrency are **part of the host–plugin contract**, and must be declared, verified, and enforced across `create → initialize → start → invoke → quiesce → stop/close → unload`. Do not leave each plugin to guess.
 
-### 1.1. Phân biệt ba đại lượng dễ nhầm
+### 1.1. Distinguishing Three Easily Confused Quantities
 
-- **Số instance đang tồn tại**: bao nhiêu đối tượng plugin đang được host giữ và có khả năng sử dụng.
-- **Số instance từng được tạo**: số tích lũy từ lúc bắt đầu generation. Với `PER_CALL`, con số này tăng theo yêu cầu, dù các instance cũ đã đóng và được GC.
-- **Số lời gọi đang thực thi (in-flight)**: bao nhiêu lời gọi chưa trả về. Một shared instance có thể xử lý nhiều in-flight nếu thread-safe; một pool 4 instance có thể cho tối đa 4 lượt dùng đồng thời nếu mỗi instance chỉ được cấp cho một borrower.
+- **Live instances**: how many plugin objects are currently held by the host and potentially usable.
+- **Total instances created**: cumulative count since the start of the generation. With `PER_CALL`, this number grows with requests even though older instances have closed and been GC'd.
+- **In-flight calls**: how many calls have not yet returned. One shared instance can handle multiple in-flight calls if thread-safe; a pool of 4 instances allows at most 4 concurrent uses if each instance is leased to only one borrower at a time.
 
-Các số này không bằng nhau. Vì vậy `maxInstances=4` không tự có nghĩa `maxConcurrentCalls=4`, và `singleton` cũng không tự có nghĩa `single-threaded`.
+These numbers are not equal. Therefore `maxInstances=4` does not automatically mean `maxConcurrentCalls=4`, and `singleton` does not automatically mean `single-threaded`.
 
-## 2. Những chính sách số lượng instance thường gặp
+## 2. Common Instance Cardinality Policies
 
-| Chính sách | Số instance điển hình | State được chia sẻ | Dùng khi | Cần cảnh giác |
+| Policy | Typical Instance Count | Shared State | Use When | Watch Out For |
 | --- | --- | --- | --- | --- |
-| **Singleton trong một host/generation** | 1 | Mọi lời gọi đến cùng object | Plugin rẻ, thread-safe hoặc cần registry chung | Race, state tenant rò rỉ, close ảnh hưởng mọi request |
-| **Một instance cho mỗi lần gọi (per-call)** | 1 mới cho mỗi invoke | Ít chia sẻ trên instance | Plugin có mutable state, xử lý ngắn | Chi phí tạo/đóng; tổng số instance tích lũy lớn |
-| **Per-session** | 1 mỗi session đang sống | State trong session | Workflow nhiều bước cần giữ ngữ cảnh | TTL, eviction, session concurrent requests |
-| **Per-tenant** | 1 hoặc một tập theo tenant | Chỉ trong một tenant | Cấu hình/cache theo tenant | Phân tách dữ liệu, quota từng tenant |
-| **Per-thread (thread-confined)** | Thường 1 mỗi thread liên quan | Trên thread đó | Thư viện thực sự có thread affinity | Thread pool tái sử dụng thread, `ThreadLocal` leak |
-| **Object pool** | Tối đa N object trong pool | Có thể tái sử dụng có kiểm soát | Khởi tạo tốn kém, không thread-safe | Borrow/return, reset state, hỏng instance, backpressure |
-| **Per-request scope + shared host service** | N plugin instance, ít host service | Chỉ service được host chia sẻ rõ ràng | Muốn isolation state nhưng giữ cache/connection chung | Quyền truy cập service, transaction và thread safety |
+| **Singleton within a host/generation** | 1 | All calls hit the same object | Plugin is cheap, thread-safe, or needs a shared registry | Races, tenant state leakage, close affecting all requests |
+| **One instance per call (per-call)** | 1 fresh instance per invoke | Little per-instance sharing | Plugin has mutable state, short processing | Creation/close overhead; large cumulative instance count |
+| **Per-session** | 1 per active session | State within the session | Multi-step workflows needing context | TTL, eviction, concurrent requests within a session |
+| **Per-tenant** | 1 or a set per tenant | Scoped to a single tenant | Per-tenant config/caches | Data isolation, per-tenant quotas |
+| **Per-thread (thread-confined)** | Usually 1 per involved thread | On that thread | Libraries with true thread affinity | Thread pools reusing threads, `ThreadLocal` leaks |
+| **Object pool** | At most N objects in the pool | Controlled reuse | Expensive initialization, not thread-safe | Borrow/return, state reset, broken instances, backpressure |
+| **Per-request scope + shared host service** | N plugin instances, few host services | Only services explicitly shared by the host | Want state isolation while keeping shared caches/connections | Service permissions, transactions, and thread safety |
 
-**Singleton trong host không phải singleton toàn JVM hay toàn cluster.** Khi plugin được nạp lại bởi class loader khác, class singleton hoặc static field trong loader mới có thể là một bản riêng. Nếu cần tính duy nhất **toàn cluster**, phải dùng một cơ chế bên ngoài như database lock, coordinator hoặc service được thiết kế cho phân tán; không thể dựa vào `static` hoặc `synchronized` trong một tiến trình.
+**A singleton in the host is not a JVM-wide or cluster-wide singleton.** When a plugin is reloaded by another class loader, a singleton class or static field in the new loader can be a separate copy. If **cluster-wide** uniqueness is required, you must use an external mechanism such as a database lock, coordinator, or a service designed for distribution; you cannot rely on `static` or `synchronized` inside one process.
 
-### 2.1. Chọn theo tính chất plugin, không theo thói quen framework
+### 2.1. Choose by Plugin Characteristics, Not Framework Habit
 
-Hãy đánh giá theo trục:
+Evaluate along these axes:
 
-- **Chi phí khởi tạo**: parser/cache lớn, kết nối, native resource, thread riêng?
-- **Khả năng tái sử dụng**: cùng instance xử lý request khác mà không mang theo dữ liệu cũ?
-- **Thread safety**: có thể gọi `process` đồng thời trên cùng instance không?
-- **Phạm vi state**: state toàn host, per tenant, per user, per transaction hay per invocation?
-- **Khả năng bị chặn**: I/O có thể lâu, lock có nguy cơ làm nghẽn những request không liên quan?
-- **Giới hạn tài nguyên**: memory, connection, file descriptor, thread, request backlog?
-- **Thay version**: instance/plugin loader cũ còn phải phục vụ request đang chạy trong lúc generation mới bắt đầu không?
+- **Initialization cost**: large parser/cache, connections, native resources, dedicated threads?
+- **Reusability**: can the same instance process another request without carrying over stale data?
+- **Thread safety**: can `process` be invoked concurrently on the same instance?
+- **State scope**: host-wide, per-tenant, per-user, per-transaction, or per-invocation?
+- **Blocking potential**: can I/O block for long periods, or can locks stall unrelated requests?
+- **Resource limits**: memory, connections, file descriptors, threads, request backlog?
+- **Version replacement**: must the old plugin instance/loader keep serving in-flight requests while a new generation starts?
 
-Ví dụ plugin xử lý một phép biến đổi thuần túy với cấu hình immutable thường phù hợp singleton. Một parser không thread-safe nhưng khởi tạo rẻ có thể per-call; parser không thread-safe và khởi tạo đắt có thể dùng pool kèm reset state. Cache riêng mỗi tenant không nên đặt trong singleton global mà không có partition key và kiểm soát quyền.
+For example, a plugin performing pure transformations with immutable configuration usually fits a singleton. A non-thread-safe parser that is cheap to construct can be per-call; one that is non-thread-safe and expensive to initialize can use a pool with state reset. A per-tenant cache should not sit inside a global singleton without partition keys and access controls.
 
-### 2.2. “Factory singleton” và “plugin singleton” là hai khái niệm khác nhau
+### 2.2. “Factory Singleton” and “Plugin Singleton” Are Different Concepts
 
-Một `PluginFactory` có thể là một object được giữ duy nhất trong registry, nhưng mỗi lần gọi `factory.create()` vẫn trả **plugin instance mới**. Ngược lại, factory có thể trả cùng một object cho mọi lời gọi. Host phải **quy định scope bằng contract**, không suy ra từ số factory.
+A `PluginFactory` may be held as a single object in the registry, yet each `factory.create()` call still returns a **new plugin instance**. Conversely, a factory may return the same object on every call. The host must **specify scope by contract**, not infer it from the number of factories.
 
-Hợp đồng có thể gồm metadata:
+The contract may include metadata:
 
 ```java
 enum Scope { SINGLETON, PER_CALL, PER_TENANT, POOLED }
@@ -75,38 +75,38 @@ record PluginPolicy(
 }
 ```
 
-Đây là **mô hình API độc lập dùng minh họa**, không phải `PluginPolicy` có sẵn trong JDK và không phải code của demo chạy ở phần 6. Registry cần kiểm tra policy được công bố có đúng với implementation, version và tài nguyên thật; “plugin nói THREAD_SAFE” chưa thể thay cho test.
+This is a **standalone illustrative API model**, not a `PluginPolicy` built into the JDK and not the code of the runnable demo in Section 6. The registry must verify that the declared policy matches the real implementation, version, and resources; “the plugin claims `THREAD_SAFE`” cannot substitute for testing.
 
-Một cách thiết kế tốt là host giữ quyền quyết định cuối cùng: một plugin chỉ hỗ trợ `SERIALIZED` không được bị host ép phục vụ nhiều lời gọi song song trên cùng instance. Nếu host cần throughput lớn hơn, có thể tạo nhiều instance độc lập hoặc dùng pool sau khi được plugin cho phép.
+A good design keeps the final decision with the host: a plugin that only supports `SERIALIZED` must not be forced by the host to serve parallel calls on the same instance. If the host needs higher throughput, it can create multiple independent instances or use a pool if permitted by the plugin.
 
-## 3. Phân loại trạng thái: cái gì được phép dùng chung?
+## 3. Classifying State: What Is Allowed to Be Shared?
 
-Thay vì coi mọi field trên plugin là state giống nhau, nên tách theo ownership và lifetime.
+Rather than treating every field on a plugin as identical state, separate them by ownership and lifetime.
 
-| Loại state | Ví dụ | Chủ sở hữu lý tưởng | Quy tắc |
+| State Category | Examples | Ideal Owner | Rules |
 | --- | --- | --- | --- |
-| Cấu hình immutable | Endpoint, feature flags, phiên bản API | Host/generation | Khởi tạo một lần, publish an toàn |
-| State riêng của lời gọi | Request ID, input, response builder | Invocation | Không lưu vào field singleton |
-| State riêng session | Workflow step, session token | Session | TTL, authorization, reset/cleanup |
-| State riêng tenant | Tenant cache, quota, mapping | Tenant/partition | Khóa tenant, không chia cross-tenant |
-| State chung có chủ đích | Metric counters, immutable lookup tables | Host hoặc shared plugin | Dùng atomic/lock/concurrent collections |
-| External state | DB transaction, message offset, distributed lease | Service/DB | Transaction/idempotency và phân tán |
-| Tài nguyên có vòng đời | Connection, executor, file handles | Host/factory/instance theo contract | Đóng đúng một lần, không đóng khi còn dùng |
-| Class-level static state | Static map/cache trong plugin JAR | Defining class loader | Không mặc nhiên dùng chung giữa các loader/generation |
+| Immutable configuration | Endpoints, feature flags, API version | Host/generation | Initialize once, publish safely |
+| Per-invocation state | Request ID, input, response builder | Invocation | Do not store in singleton fields |
+| Per-session state | Workflow step, session token | Session | TTL, authorization, reset/cleanup |
+| Per-tenant state | Tenant cache, quotas, mappings | Tenant/partition | Keyed by tenant, no cross-tenant sharing |
+| Intentional shared state | Metric counters, immutable lookup tables | Host or shared plugin | Use atomics/locks/concurrent collections |
+| External state | DB transactions, message offsets, distributed leases | Service/DB | Transactions/idempotency and distribution |
+| Lifecycle-managed resources | Connections, executors, file handles | Host/factory/instance per contract | Close exactly once; never close while in use |
+| Class-level static state | Static maps/caches inside plugin JAR | Defining class loader | Do not assume sharing across loaders/generations |
 
-### 3.1. Immutable configuration là điểm khởi đầu tốt
+### 3.1. Immutable Configuration Is a Good Starting Point
 
-Cấu hình nên được tạo thành object immutable (record hoặc final fields) và hoàn tất trước khi public plugin instance cho request thread. Việc xuất bản object phải có **happens-before** phù hợp: sử dụng constructor hoàn tất, final-field semantics và cơ chế registry/thread-safe publication; chỉ đặt field là `final` không sửa mọi data race nếu object tham chiếu tới collection mutable vẫn bị thay đổi.
+Configuration should be built as immutable objects (`record`s or `final` fields) and completed before publishing the plugin instance to request threads. Publishing the object must establish a proper **happens-before** relationship: complete construction, `final`-field semantics, and registry/thread-safe publication mechanisms; merely marking a field `final` does not fix data races if it references a mutable collection that keeps changing.
 
-Khi reload config, có thể thay cả immutable snapshot qua một reference `volatile` hoặc `AtomicReference<Config>`, nhưng phải quyết định một request đọc **một snapshot** xuyên suốt hay có thể thấy nhiều phiên bản giữa chừng.
+When reloading config, you can swap the entire immutable snapshot via a `volatile` reference or `AtomicReference<Config>`, while deciding whether a request reads **one snapshot** throughout or may observe multiple versions mid-flight.
 
-### 3.2. Không lưu request data vào field singleton
+### 3.2. Do Not Store Request Data in Singleton Fields
 
-Sai điển hình:
+Classic mistake:
 
 ```java
 class UnsafePlugin {
-    private String currentUser; // thay đổi bởi các request
+    private String currentUser; // mutated across requests
 
     String handle(String user) {
         currentUser = user;
@@ -115,9 +115,9 @@ class UnsafePlugin {
 }
 ```
 
-Đây là **mã cảnh báo**, không phải code production. Nếu thread A ghi `"alice"` rồi thread B ghi `"bob"` trước khi A đọc lại, A có thể trả tên của B. Thêm `volatile` chỉ cải thiện visibility, **không biến một field global thành state riêng từng request**.
+This is **warning code**, not production code. If thread A writes `"alice"` and then thread B writes `"bob"` before A reads it back, A can return B's name. Adding `volatile` only improves visibility; **it does not turn a global field into per-request state**.
 
-Cách đơn giản nhất là đặt dữ liệu vào biến local hoặc object context được truyền vào:
+The simplest fix is to put the data in local variables or a passed-in context object:
 
 ```java
 record Request(String user) {}
@@ -127,67 +127,67 @@ String handle(Request request) {
 }
 ```
 
-Đây là **đoạn minh họa tích hợp**; method cần nằm trong một class hợp lệ và `Request` cần được host và plugin thống nhất kiểu runtime nếu đi qua boundary. Với API plugin, đặt request/response DTO ở shared contract và không để nhiều tenant chia sẻ mutable request object.
+This is an **integration snippet**; the method must live inside a valid class and `Request` must share the same runtime type between host and plugin if crossing a boundary. In plugin APIs, put request/response DTOs in the shared contract and do not let multiple tenants share mutable request objects.
 
-### 3.3. “Shared” không đồng nghĩa “không đồng bộ”
+### 3.3. “Shared” Does Not Mean “Unsynchronized”
 
-Nếu nhiều thread cập nhật cùng counter, `AtomicInteger.incrementAndGet()` hoặc `LongAdder.increment()` phù hợp tùy yêu cầu (ví dụ `LongAdder` thường tốt cho metric contention cao nhưng `sum()` không phải snapshot nguyên tử của mọi cập nhật concurrent).
+If multiple threads update the same counter, `AtomicInteger.incrementAndGet()` or `LongAdder.increment()` fits depending on requirements (for example, `LongAdder` is often better for high-contention metrics, though `sum()` is not an atomic snapshot of all concurrent updates).
 
-Một `ConcurrentHashMap` hỗ trợ thao tác thread-safe trên map, nhưng không tự biến chuỗi lệnh “check → compute → put” nhiều bước thành transaction. Khi cập nhật dựa trên giá trị hiện có, dùng những thao tác nguyên tử thích hợp như `compute`/`merge`; cẩn trọng callback trong `compute` không nên chặn lâu, sửa map lồng nhau không phù hợp hoặc có side effect phức tạp.
+A `ConcurrentHashMap` supports thread-safe map operations, but does not automatically make a multi-step “check → compute → put” sequence transactional. When updating based on an existing value, use appropriate atomic operations such as `compute`/`merge`; be careful that callbacks inside `compute` do not block for long, mutate nested maps improperly, or carry complex side effects.
 
-Với invariant liên quan **nhiều field**, một atomic counter cho từng field có thể chưa đủ. Cần lock bảo vệ cả nhóm hoặc thay một immutable snapshot bằng `AtomicReference`/CAS. Quyết định theo tính đúng trước khi tối ưu throughput.
+For invariants spanning **multiple fields**, an atomic counter per field may not suffice. You need a lock protecting the whole group or to swap an immutable snapshot via `AtomicReference`/CAS. Prioritize correctness before optimizing throughput.
 
-### 3.4. ThreadLocal không phải per-request mặc định
+### 3.4. ThreadLocal Is Not Per-Request by Default
 
-`ThreadLocal` gắn giá trị với **thread**. Trong server dùng thread pool, thread hôm nay phục vụ request A có thể ngày mai phục vụ request B. Quên `remove()` có thể giữ dữ liệu request, tenant, class hoặc class loader của plugin cũ.
+`ThreadLocal` binds values to a **thread**. On servers using thread pools, a thread serving request A today can serve request B tomorrow. Forgetting `remove()` can retain request data, tenant data, classes, or an old plugin's class loader.
 
-Nếu một plugin buộc dùng `ThreadLocal`, hãy tạo/đọc/xóa trong `try/finally`, tuyệt đối không dựa vào thread identity như tenant identity. Với công việc asynchronous hoặc virtual threads, hãy thiết kế propagation của context có chủ đích; không giả định state thread-local tự chuyển đúng qua các executor.
+If a plugin must use `ThreadLocal`, create/read/clear it inside `try/finally`, and never rely on thread identity as tenant identity. For asynchronous work or virtual threads, design context propagation deliberately; do not assume thread-local state automatically propagates across executors.
 
-## 4. Những cơ chế đồng bộ phù hợp với từng kiểu dữ liệu
+## 4. Synchronization Mechanisms Suited to Each Data Kind
 
-| Công cụ Java | Tốt cho | Không thay thế |
+| Java Tool | Good For | Does Not Replace |
 | --- | --- | --- |
-| `final` + immutable objects | Cấu hình/state không thay đổi | Coordination của resource mutable |
-| `volatile` | Một reference/flag cần visibility | Atomicity của `counter++`, nhiều-field invariant |
-| `AtomicInteger` / `AtomicLong` | Counter, CAS trên một giá trị | Transaction nhiều state |
-| `LongAdder` | Metric đếm contention cao | Snapshot tuyến tính chính xác trong lúc ghi |
-| `ConcurrentHashMap` | Map nhiều reader/writer | Workflow nhiều bước không nguyên tử |
-| `synchronized` / `ReentrantLock` | Chặn truy cập đồng thời vào critical section | Cô lập dữ liệu tenant một cách tự động |
-| `ReentrantReadWriteLock` | Nhiều reader, một writer; lifecycle gate | Đảm bảo plugin thread-safe khi nhiều reader vào cùng object |
-| `Semaphore` | Giới hạn số lời gọi/borrower | Số instance đã được tạo hay thread safety tự thân |
-| `BlockingQueue` | Hàng đợi có giới hạn cho pool | Việc reset/validate instance trước tái sử dụng |
-| `CountDownLatch` / `Phaser` | Chờ điều kiện/phối hợp nhóm tác vụ | Cancel/quiescence policy đầy đủ |
-| `ExecutorService` | Chạy và quản lý task | Tự chặn request khi plugin đã stop |
+| `final` + immutable objects | Unchanging config/state | Coordination of mutable resources |
+| `volatile` | A single reference/flag needing visibility | Atomicity of `counter++`, multi-field invariants |
+| `AtomicInteger` / `AtomicLong` | Counters, single-value CAS | Multi-state transactions |
+| `LongAdder` | High-contention metric counters | Exact linearizable snapshots during writes |
+| `ConcurrentHashMap` | Multi-reader/writer maps | Non-atomic multi-step workflows |
+| `synchronized` / `ReentrantLock` | Preventing concurrent entry into critical sections | Automatic tenant data isolation |
+| `ReentrantReadWriteLock` | Multiple readers, one writer; lifecycle gate | Ensuring a plugin is thread-safe when multiple readers enter the same object |
+| `Semaphore` | Limiting concurrent calls/borrowers | Total created instance count or intrinsic thread safety |
+| `BlockingQueue` | Bounded queue for pools | Resetting/validating instances before reuse |
+| `CountDownLatch` / `Phaser` | Waiting on conditions/coordinating task groups | Full cancellation/quiescence policies |
+| `ExecutorService` | Running and managing tasks | Automatically rejecting requests when a plugin has stopped |
 
-### 4.1. Tránh oversynchronize và undersynchronize
+### 4.1. Avoiding Over-Synchronization and Under-Synchronization
 
-Nếu plugin singleton **thread-safe** và mỗi request chỉ đọc config immutable, host có thể cho concurrent calls. Nếu không thread-safe, có ba hướng: host **serialize** lời gọi; tạo instance riêng theo request; hoặc dùng pool instance được bảo đảm chỉ một borrower tại một thời điểm.
+If a singleton plugin is **thread-safe** and each request only reads immutable config, the host can allow concurrent calls. If it is not thread-safe, there are three options: the host **serializes** calls; instantiates per request; or uses an instance pool guaranteeing at most one borrower at a time.
 
-Serialize mọi lời gọi qua một lock chung có thể giảm throughput mạnh khi plugin làm I/O. Hơn nữa, lock bảo vệ state nội bộ của plugin không đồng nghĩa quản lý **vòng đời stop/unload**: host vẫn phải chặn yêu cầu mới và chờ các lời gọi đang chạy trước khi gọi `close()`.
+Serializing all calls behind a single coarse lock can sharply reduce throughput when the plugin does I/O. Moreover, a lock protecting internal plugin state is not the same as managing the **stop/unload lifecycle**: the host must still reject new requests and wait for in-flight calls before calling `close()`.
 
-### 4.2. Thứ tự khóa (lock order) phải được quy định
+### 4.2. Lock Ordering Must Be Defined
 
-Trong hệ có nhiều layer (registry → plugin host → plugin instance → callback), nếu luồng A giữ `registryLock` rồi chờ `pluginLock`, trong khi luồng B giữ `pluginLock` rồi callback vào registry, có thể xảy ra deadlock. Cần thống nhất thứ tự lấy lock, tránh gọi arbitrary plugin code khi đang giữ registry lock phạm vi lớn, và không nâng từ read lock lên write lock một cách ngây thơ.
+In multi-layered systems (registry → plugin host → plugin instance → callback), if thread A holds `registryLock` and waits for `pluginLock`, while thread B holds `pluginLock` and calls back into the registry, deadlock can occur. Establish a consistent lock acquisition order, avoid invoking arbitrary plugin code while holding a broad registry lock, and never naively upgrade a read lock to a write lock.
 
-`ReentrantReadWriteLock` **không hỗ trợ nâng khóa read → write** theo cách an toàn thông thường: cùng thread giữ read lock rồi gọi hàm stop cần write lock có thể tự chặn. API lifecycle nên tránh cho callback `process()` đóng chính host đang giữ read lock, hoặc thiết kế giao thức dừng riêng không yêu cầu upgrade.
+`ReentrantReadWriteLock` **does not support upgrading a read lock → write lock** in a standard safe way: a thread holding the read lock that invokes a stop method requiring the write lock will deadlock itself. Lifecycle APIs should prevent `process()` callbacks from closing the same host while holding the read lock, or design a separate stop protocol that does not require upgrading.
 
-### 4.3. Giới hạn concurrency và backpressure
+### 4.3. Concurrency Limits and Backpressure
 
-Nếu mỗi instance phục vụ tối đa một lời gọi, một pool kích thước N có thể giới hạn **số người mượn đồng thời** ở N. `Semaphore(N)` cũng có thể giới hạn N request đang chạy dù plugin thread-safe. Nhưng nếu host chỉ dùng semaphore mà mỗi khi có yêu cầu lại `new Plugin()`, tổng số instance từng được tạo vẫn có thể tăng vô hạn theo thời gian.
+If each instance serves at most one call, a pool of size N bounds **concurrent borrowers** at N. `Semaphore(N)` can also cap in-flight requests at N even when the plugin is thread-safe. However, if the host uses only a semaphore while calling `new Plugin()` on every request, the cumulative number of created instances can still grow unboundedly over time.
 
-Trong production, phân biệt:
+In production, distinguish:
 
-- `maxLiveInstances`: giới hạn object còn sống.
-- `maxConcurrentCalls`: giới hạn in-flight.
-- `maxQueuedCalls`: giới hạn request đang chờ.
-- `acquireTimeout` và **rejection/backpressure policy** khi quá tải.
-- Timeout của bản thân công việc, cancellation và cleanup khi client rời đi.
+- `maxLiveInstances`: cap on live objects.
+- `maxConcurrentCalls`: cap on in-flight calls.
+- `maxQueuedCalls`: cap on waiting requests.
+- `acquireTimeout` and **rejection/backpressure policy** under overload.
+- Task-level timeouts, cancellation, and cleanup when clients disconnect.
 
-Các giới hạn phải có telemetry và test dưới load. Không để hàng đợi không giới hạn chỉ vì pool giới hạn số thread.
+Limits must have telemetry and load tests. Do not leave queues unbounded merely because a pool limits threads.
 
-## 5. Giao thức dừng an toàn khi còn request đang chạy
+## 5. Safe Shutdown Protocol with In-Flight Requests
 
-Một vòng đời điển hình có thể mô tả như sau:
+A typical lifecycle can be described as:
 
 ```text
 DISCOVERED
@@ -207,11 +207,11 @@ CREATED -> INITIALIZING -> RUNNING
                          +--> FAILED if cleanup fails
 ```
 
-Các nhãn là **mô hình state machine gợi ý** của host, không phải enum có sẵn trong JVM. Quan trọng là quy định các transition hợp lệ, ai được quyền gọi, trạng thái quan sát được và xử lý idempotent.
+These labels are a **suggested host state machine model**, not a built-in JVM enum. What matters is specifying valid transitions, who is authorized to trigger them, observable states, and idempotent handling.
 
-### 5.1. In-flight và stop phải phối hợp
+### 5.1. In-Flight Calls and Stop Must Coordinate
 
-Race thường gặp:
+Common race:
 
 ```text
 Thread A: check running == true
@@ -219,38 +219,38 @@ Thread B: close(plugin)
 Thread A: plugin.process(request)   // use-after-close
 ```
 
-Chỉ thêm `volatile boolean running` là **chưa đủ**, vì check và bắt đầu công việc không tạo một thao tác admission nguyên tử với close. Có thể dùng **lifecycle gate**: read lock khi nhận/làm một invocation, write lock khi stop; hoặc active lease/reference count kết hợp condition để chờ số active về zero.
+Adding only `volatile boolean running` is **not sufficient**, because checking and starting work do not form an atomic admission step with `close`. You can use a **lifecycle gate**: a read lock while admitting/executing an invocation, and a write lock when stopping; or an active lease/reference count paired with a condition to wait for active count to reach zero.
 
-Trong ví dụ ở phần 6, host giữ **read lock** suốt thời gian gọi `process()`. `close()` cần **write lock**, vì vậy không thể đóng instance shared khi còn read-locked invocation. Sau khi write lock chuyển trạng thái `closed=true`, lần gọi tiếp theo lấy read lock sẽ kiểm tra và bị từ chối.
+In the example in Section 6, the host holds a **read lock** for the duration of `process()`. `close()` requires the **write lock**, so it cannot close the shared instance while any read-locked invocation remains inside. Once the write lock sets `closed=true`, subsequent calls acquiring the read lock check the flag and are rejected.
 
-Đây là mô hình dễ hiểu và chứng minh được thứ tự, nhưng **có trade-off**: nếu plugin chạy vô hạn hoặc gọi ngược vào thao tác cần write lock, shutdown có thể treo. Production thường cần timeout, cancellation hợp tác và giao thức lease/condition để tránh giữ lock qua đoạn code không tin cậy; tuyệt đối không cưỡng bức bỏ lock một cách sai.
+This model is easy to understand and prove ordered, but it **has a trade-off**: if a plugin hangs indefinitely or calls back into an operation needing the write lock, shutdown can hang. Production systems often need timeouts, cooperative cancellation, and lease/condition protocols to avoid holding locks across untrusted code; never forcibly break locks improperly.
 
-### 5.2. Đóng tài nguyên đúng owner
+### 5.2. Closing Resources by the Right Owner
 
-Plugin singleton có thể giữ connection/threads riêng và được đóng một lần khi host ngừng generation. Plugin per-call có thể đóng trong `finally` ngay sau invocation. Pool phải trả instance về pool, kiểm tra/reset state, và đóng tất cả instance khi pool shutdown.
+A singleton plugin may own private connections/threads and be closed once when the host shuts down that generation. A per-call plugin can be closed in `finally` right after the invocation. A pool must return instances to the pool, check/reset state, and close all instances when the pool shuts down.
 
-Nếu một `DataSource`/`ExecutorService` được **host inject và chia sẻ**, plugin không nên tự đóng resource đó trừ khi hợp đồng xác định quyền sở hữu thuộc plugin. Một plugin đóng nhầm host-managed executor có thể ảnh hưởng tất cả plugin khác.
+If a `DataSource`/`ExecutorService` is **injected and shared by the host**, the plugin should not close that resource on its own unless the contract assigns ownership to the plugin. A plugin accidentally closing a host-managed executor can break every other plugin.
 
-### 5.3. Idempotency và lỗi trong close
+### 5.3. Idempotency and Errors During Close
 
-`close()` nên idempotent hoặc host phải bảo đảm chỉ gọi một lần, có cleanup khi một phần initialization đã thành công. Nếu cleanup ném exception, vẫn phải cố đóng tài nguyên độc lập khác, ghi nhận lỗi và quyết định trạng thái cuối cùng. Không “nuốt” mọi lỗi rồi báo STOPPED hoàn hảo khi các thread/resources còn chạy.
+`close()` should be idempotent, or the host must guarantee it is called only once, including cleanup when initialization succeeded only partially. If cleanup throws an exception, still attempt to close independent resources, record the error, and determine the final state. Do not swallow all errors and report a clean `STOPPED` while threads/resources are still running.
 
-Với reload, tạo **generation mới** và chuyển routing trước/sau quiesce theo chiến lược rõ ràng. Không cố “thay bytecode” của class đang sống trong một class loader như thể đó là một instance có thể reset vô hạn.
+For reloads, create a **new generation** and shift routing before/after quiescing according to an explicit strategy. Do not try to “swap bytecode” of a live class in an existing class loader as if it were an infinitely resettable instance.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: shared instance, per-call instance và lifecycle lock
+## 6. Complete Java 17+ Example: Shared Instance, Per-Call Instance, and Lifecycle Lock
 
-Ví dụ sau chỉ dùng Java chuẩn. Host thực thi 8 lời gọi bằng thread pool trong chế độ **`SHARED`**, sau đó chuyển sang chế độ **`PER_CALL`** cho 2 lời gọi độc lập.
+The following example uses only standard Java. The host executes 8 calls via a thread pool in **`SHARED`** mode, then switches to **`PER_CALL`** mode for 2 independent calls.
 
-Các đặc điểm của demo:
+Key aspects of the demo:
 
-- `CountingPlugin` có counter `AtomicInteger` và cờ `AtomicBoolean`; do đó việc tăng counter an toàn khi nhiều thread gọi cùng một instance.
-- `PluginHost(SHARED)` tạo **đúng một** `CountingPlugin` trong constructor.
-- `PluginHost(PER_CALL)` chỉ tạo plugin khi có invocation, đóng plugin trong `finally` sau khi sử dụng.
-- `ReentrantReadWriteLock(true)` dùng như lifecycle gate: nhiều invocation có thể đồng thời giữ read lock; `close()` dùng write lock để chờ các lời gọi bên trong gate hoàn tất và ngăn lời gọi mới sau khi closed.
-- `AtomicInteger created` đếm **tổng instance từng tạo**, `AtomicInteger inFlight` đếm lời gọi đang chạy và `AtomicLong completed` đếm lượt thành công. Không dùng ba số đó thay cho nhau.
-- Sau stop, invocation mới ném `IllegalStateException` và host không tạo thêm plugin.
+- `CountingPlugin` has an `AtomicInteger` counter and an `AtomicBoolean` flag, so incrementing the counter is safe when multiple threads call the same instance.
+- `PluginHost(SHARED)` creates **exactly one** `CountingPlugin` in its constructor.
+- `PluginHost(PER_CALL)` creates a plugin only upon invocation, closing it in `finally` after use.
+- `ReentrantReadWriteLock(true)` serves as the lifecycle gate: multiple invocations can concurrently hold the read lock; `close()` acquires the write lock to wait for calls inside the gate to finish and block new calls once closed.
+- `AtomicInteger created` counts **total instances ever created**, `AtomicInteger inFlight` counts currently running calls, and `AtomicLong completed` counts successful completions. Do not conflate these three metrics.
+- After stop, new invocations throw `IllegalStateException` and the host creates no further plugins.
 
-Đặt toàn bộ source vào **`PluginLifecycleDemo.java`**:
+Put the entire source into **`PluginLifecycleDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -394,16 +394,16 @@ public final class PluginLifecycleDemo {
 }
 ```
 
-### 6.1. Biên dịch và chạy
+### 6.1. Compiling and Running
 
-Trên máy có JDK 17 hoặc mới hơn:
+On a machine with JDK 17 or newer:
 
 ```bash
 javac --release 17 PluginLifecycleDemo.java
 java PluginLifecycleDemo
 ```
 
-**Stdout chính xác**, đã được kiểm chứng bằng `javac --release 17` và `java`:
+**Exact stdout**, verified with `javac --release 17` and `java`:
 
 ```text
 shared sum: 72
@@ -416,54 +416,54 @@ per-call instances: 2
 per-call completed: 2
 ```
 
-### 6.2. Giải thích kết quả
+### 6.2. Explaining the Output
 
-1. **`shared sum: 72`**: tám input `1..8` đều được nhân đôi. Tổng là `2 × (1+2+...+8) = 72`. Thứ tự chạy task có thể khác nhau, nhưng phép cộng kết quả các future tạo ra tổng xác định.
-2. **`shared instances: 1`**: constructor của host tạo một plugin dùng cho cả tám lời gọi, không tạo plugin mới theo từng thread.
-3. **`shared calls: 8`**: một instance shared nhận tám lời gọi; `AtomicInteger.incrementAndGet()` bảo đảm không mất lần đếm do race.
-4. **`shared active: 0`**: các `Future` đã hoàn tất trước khi đo `inFlight`. Kết quả không khẳng định mọi thời điểm trước đó active=0.
-5. **`after close: rejected`**: sau `shared.close()`, host từ chối yêu cầu mới vì flag `closed` được bảo vệ bởi lifecycle lock.
-6. **`per-call values: 6,8`**: hai lời gọi sinh output riêng, không dùng lại cùng plugin.
-7. **`per-call instances: 2`**: tổng hai instance được tạo theo hai lời gọi. Chúng được đóng sau mỗi lần; số này là *cumulative*, không phải số live instance tại thời điểm in.
-8. **`per-call completed: 2`**: cả hai lần xử lý thành công. `completed` không tăng cho một execution ném exception trước lúc cập nhật.
+1. **`shared sum: 72`**: all eight inputs `1..8` are doubled. The sum is `2 × (1+2+...+8) = 72`. Task execution order can vary, but summing future results yields a deterministic total.
+2. **`shared instances: 1`**: the host constructor created one plugin used across all eight calls, without creating a new plugin per thread.
+3. **`shared calls: 8`**: one shared instance received eight calls; `AtomicInteger.incrementAndGet()` guarantees no counts are lost to races.
+4. **`shared active: 0`**: all `Future`s completed before measuring `inFlight`. The output does not assert `active=0` at earlier points in time.
+5. **`after close: rejected`**: after `shared.close()`, the host rejects new requests because the `closed` flag is guarded by the lifecycle lock.
+6. **`per-call values: 6,8`**: the two calls produced independent outputs without reusing the same plugin.
+7. **`per-call instances: 2`**: two total instances were created across the two calls. They were closed after each call; this number is *cumulative*, not the live instance count at print time.
+8. **`per-call completed: 2`**: both invocations succeeded. `completed` does not increment for an execution that throws an exception before updating it.
 
-### 6.3. Phân tích tính đúng của đoạn đồng bộ
+### 6.3. Correctness Analysis of the Synchronization
 
-`PluginHost.invoke` nắm **read lock** từ lúc xác thực `closed` đến lúc plugin xử lý xong, cleanup xong và giảm `inFlight`. `PluginHost.close` nắm **write lock** để cập nhật `closed` rồi đóng singleton. Điều đó duy trì invariant:
+`PluginHost.invoke` holds the **read lock** from validating `closed` until the plugin finishes processing, cleans up, and decrements `inFlight`. `PluginHost.close` holds the **write lock** to update `closed` and close the singleton. This preserves the invariant:
 
-> Không một `process()` hợp lệ nào trên shared plugin được bắt đầu **sau khi** `close()` của host đã chuyển sang trạng thái closed, và shared plugin không bị đóng khi một invocation đang còn nằm trong lifecycle gate.
+> No valid `process()` on the shared plugin begins **after** the host's `close()` has transitioned to the closed state, and the shared plugin is not closed while an invocation remains inside the lifecycle gate.
 
-Đây là invariant của **host**, không tự chứng minh mọi subclass `Plugin` đều thread-safe. Trong demo, `CountingPlugin` riêng nó dùng atomics, nên nhiều read-locked invocation có thể tăng count đồng thời. Nếu `CountingPlugin` dùng `HashMap` mutable hoặc `int counter++` không đồng bộ, chỉ có read lock **không sửa lỗi**, vì nhiều thread được giữ read lock cùng lúc.
+This is a **host** invariant; it does not automatically prove every `Plugin` subclass is thread-safe. In the demo, `CountingPlugin` uses atomics internally, so multiple read-locked invocations can increment the count concurrently. If `CountingPlugin` used a mutable `HashMap` or an unsynchronized `int counter++`, having only a read lock **would not fix the bug**, because multiple threads are allowed to hold the read lock simultaneously.
 
-Cần lưu ý:
+Keep in mind:
 
-- Fairness `true` giúp giảm nguy cơ writer bị các reader mới vượt mặt liên tục, nhưng **không bảo đảm** mọi task có deadline hoặc trình tự tuyệt đối.
-- Nếu `process()` bị treo, `close()` có thể chờ vô hạn; demo không cung cấp timeout/cancellation.
-- Nếu callback trong `process()` gọi `PluginHost.close()` trên cùng host và cùng thread, có nguy cơ deadlock do read → write lock upgrade.
-- Nếu `CountingPlugin.close()` ném exception, host cần quy trình ghi nhận cleanup failure và xử lý tài nguyên còn lại. Demo dùng atomic flag nên close nhẹ và idempotent.
-- Demo dùng chung API/implementation trong một chương trình để tập trung vào scope và đồng bộ; hệ plugin nạp động vẫn cần shared API/SPI type identity, class loader và lifecycle unload.
+- Fairness `true` reduces the risk of a writer being continuously starved by new readers, but **does not guarantee** deadlines or strict absolute ordering for every task.
+- If `process()` hangs, `close()` can wait indefinitely; the demo does not implement timeouts/cancellation.
+- If a callback inside `process()` calls `PluginHost.close()` on the same host and same thread, deadlock is possible due to read → write lock upgrade.
+- If `CountingPlugin.close()` throws an exception, the host needs a procedure to record cleanup failure and handle remaining resources. The demo uses an atomic flag, so `close` is lightweight and idempotent.
+- The demo keeps API and implementation in one program to focus on scope and synchronization; dynamically loaded plugin systems still need shared API/SPI type identity, class loaders, and unload lifecycles.
 
-## 7. Kết hợp mô hình instance với cơ chế đồng bộ
+## 7. Pairing Instance Models with Synchronization Mechanisms
 
-### 7.1. Singleton: thread-safe hoặc serialized
+### 7.1. Singleton: Thread-Safe or Serialized
 
-Một singleton nên có giao diện công khai phù hợp:
+A singleton should expose an appropriate public contract:
 
-- **Thread-safe**: có thể chạy `process` đồng thời; state mutable được bảo vệ bằng atomic/lock/immutable design.
-- **Serialized**: host hoặc plugin nắm một mutex trong suốt mỗi invocation; chỉ một invocation được chạy một lúc.
-- **Stateless**: lý tưởng cho singleton, nhưng nếu có shared cache/metric bên trong thì vẫn cần xét thread safety và cleanup.
+- **Thread-safe**: `process` can run concurrently; mutable state is guarded via atomics/locks/immutable design.
+- **Serialized**: the host or plugin holds a mutex for the duration of each invocation; only one invocation runs at a time.
+- **Stateless**: ideal for singletons, though if there is an internal shared cache/metric, thread safety and cleanup still apply.
 
-Với plugin không thread-safe, cách đơn giản ở host có thể là một **per-plugin mutex** bên trong lifecycle gate. Tuy nhiên không giữ khóa global registry trong khi gọi plugin; phạm vi khóa càng lớn, nguy cơ deadlock và độ trễ càng cao. Nếu plugin thao tác I/O dài, pool instance riêng có thể tốt hơn serialization.
+For non-thread-safe plugins, a simple host approach is a **per-plugin mutex** inside the lifecycle gate. However, do not hold a global registry lock while calling into the plugin; the wider the lock scope, the higher the risk of deadlocks and latency. If the plugin performs long I/O, a pool of separate instances may be better than serialization.
 
-### 7.2. Per-call: isolation tốt hơn nhưng không miễn nhiễm race
+### 7.2. Per-Call: Better Isolation, Not Immune to Races
 
-Mỗi invocation có instance riêng sẽ tránh race trên field của các instance khác nhau, **nếu instance không tham chiếu tới shared mutable state**. Một plugin per-call vẫn có thể truy cập static map, shared database, host-provided cache, executor hoặc singleton service. Vì vậy scope instance không thay thế giao thức transaction và đồng bộ external resource.
+Giving each invocation its own instance avoids races on fields across separate instances, **provided instances do not reference shared mutable state**. A per-call plugin can still access static maps, a shared database, host-provided caches, executors, or singleton services. Thus instance scope does not replace transaction protocols and external resource synchronization.
 
-Đừng coi per-call tự động an toàn về tài nguyên. Cần close trong `finally`, kiểm soát giới hạn số instance **đồng thời** và từ chối/backpressure khi quá tải. Với request đến hàng nghìn lượt/giây, khởi tạo heavy client trên mỗi request có thể gây CPU/memory pressure đáng kể.
+Do not assume per-call is automatically resource-safe. Close in `finally`, bound **concurrent** instances, and apply rejection/backpressure under overload. At thousands of requests per second, instantiating a heavy client per request can cause severe CPU/memory pressure.
 
-### 7.3. Pool: instance độc quyền cho từng borrower
+### 7.3. Pool: Exclusive Instance per Borrower
 
-Quy tắc pool cơ bản:
+Basic pool rules:
 
 ```text
 onRequest:
@@ -482,23 +482,23 @@ onRequest:
         release permit
 ```
 
-Đây là **pseudocode**, không phải class Java có sẵn. Pool phải sở hữu resource, reset state trước khi giao cho borrower khác, bảo vệ double-return và rò rỉ lease, chỉ đóng instance khi không ai đang dùng. Một instance **không thread-safe** chỉ được cấp cho **một** borrower tại một thời điểm; không chỉ trông cậy `ConcurrentLinkedQueue` sẽ đảm bảo điều đó nếu workflow borrow/return sai.
+This is **pseudocode**, not a built-in Java class. The pool must own resources, reset state before handing an instance to another borrower, guard against double-return and lease leaks, and close instances only when nobody is using them. A **non-thread-safe** instance may be lent to only **one** borrower at a time; do not rely solely on `ConcurrentLinkedQueue` to ensure that if the borrow/return workflow is flawed.
 
-Nếu instance bị lỗi giữa request, đừng trả lại pool như healthy object mà không kiểm tra. Khi pool shutdown, hãy ngừng phát lease, chờ hoặc hủy lease còn hiệu lực theo deadline, rồi đóng các object còn lại.
+If an instance fails mid-request, do not return it to the pool as a healthy object without checking. When the pool shuts down, stop issuing leases, wait for or cancel active leases per deadline, and then close remaining objects.
 
-### 7.4. Per-tenant: đảm bảo phân vùng dữ liệu
+### 7.4. Per-Tenant: Guaranteeing Data Partitioning
 
-Một registry per-tenant có thể map `TenantId → PluginSession`, nhưng phải xét:
+A per-tenant registry may map `TenantId → PluginSession`, while ensuring:
 
-- Tenant ID được xác thực từ host context, không đọc từ chuỗi script/plugin tự khai báo.
-- Áp quota theo tenant và quota tổng; không để tenant bất kỳ tạo vô hạn instance.
-- Nếu hai request của **cùng tenant** truy cập chung mutable state, vẫn cần đồng bộ.
-- Nếu plugin instance giữ secret/credential riêng tenant, phải reset/destroy đúng lifetime và không chuyển sang tenant khác.
-- Tenant eviction, idle TTL và unload phải phối hợp với in-flight calls để không đóng session đang xử lý.
+- Tenant ID is authenticated from the host context, not read from a self-declared script/plugin string.
+- Per-tenant and global quotas are enforced; never let any tenant spawn unbounded instances.
+- If two requests for the **same tenant** access shared mutable state, synchronization is still required.
+- If a plugin instance holds tenant-specific secrets/credentials, reset/destroy them at the end of its lifetime and never pass them to another tenant.
+- Tenant eviction, idle TTL, and unloading coordinate with in-flight calls so active sessions are not closed mid-request.
 
-## 8. ClassLoader, static fields và bản nâng cấp plugin
+## 8. ClassLoader, Static Fields, and Plugin Upgrades
 
-Trong Java, danh tính class gắn với binary name và **defining class loader**. Một class plugin có static singleton:
+In Java, class identity is tied to binary name and **defining class loader**. A plugin class with a static singleton:
 
 ```java
 public final class GlobalState {
@@ -511,15 +511,15 @@ public final class GlobalState {
 }
 ```
 
-Đây là một **đoạn class minh họa**, không phải contract được JDK cung cấp. Nếu `GlobalState` được định nghĩa bởi hai plugin class loaders khác nhau, mỗi class definition có **static field riêng**. Nếu class lại được parent loader định nghĩa (do delegation) thì nhiều plugin có thể vô tình chia sẻ chính một static state.
+This is an **illustrative class snippet**, not a contract provided by the JDK. If `GlobalState` is defined by two different plugin class loaders, each class definition has its **own separate static field**. If the class happens to be defined by the parent loader (due to delegation), multiple plugins may inadvertently share the very same static state.
 
-Do đó, không dùng static singleton làm “global shared state” mà không biết class loader ownership. Nếu muốn chia sẻ counters/cache giữa nhiều generation của plugin, đặt dịch vụ đó trong **host-owned API/service** và xác định lifecycle riêng; không truyền trực tiếp mutable object thiếu đồng bộ qua ranh giới.
+Therefore, do not use static singletons as “global shared state” without knowing class loader ownership. If you want to share counters/caches across plugin generations, place that service in a **host-owned API/service** with a separate lifecycle; do not pass unsynchronized mutable objects directly across the boundary.
 
-### 8.1. Hợp đồng chung qua boundary
+### 8.1. Shared Contract Across the Boundary
 
-Host có thể định nghĩa `Plugin`, `PluginFactory`, `PluginContext` trong loader cha. Plugin implementation ở loader con phải sử dụng **cùng định nghĩa type** để host có thể cast và gọi. Những DTO, callback và exception đi qua API cũng cần chính sách type identity nhất quán.
+The host can define `Plugin`, `PluginFactory`, and `PluginContext` in a parent loader. Plugin implementations in child loaders must use **the same type definitions** so the host can cast and invoke them. DTOs, callbacks, and exceptions crossing the API also require a consistent type-identity policy.
 
-Mô hình lý tưởng:
+Ideal model:
 
 ```text
 HostClassLoader
@@ -534,99 +534,99 @@ HostClassLoader
     |- private dependency v2
 ```
 
-Một plugin có thể có **1 instance trong generation 42**, nhưng khi triển khai generation 43, plugin loader và singleton mới là hai thực thể riêng. Host phải giữ ranh giới rõ: không để object riêng generation cũ đi vào registry mới ngoài mục đích đã kiểm soát, và không đóng nhầm resource dùng chung của host.
+A plugin may have **1 instance in generation 42**, but when deploying generation 43, the new plugin loader and new singleton are two separate entities. The host must keep the boundary clean: do not let objects specific to the old generation enter the new registry outside controlled purposes, and do not accidentally close shared host resources.
 
-### 8.2. ServiceLoader không quy định số instance tự động
+### 8.2. ServiceLoader Does Not Automatically Specify Instance Cardinality
 
-`ServiceLoader` tìm và khởi tạo provider theo cơ chế SPI. Nó **không phải một plugin lifecycle manager** có sẵn với chính sách per-tenant, pooling, concurrency và safe shutdown. Việc gọi `iterator()`, `stream()` hoặc `reload()` cần được hiểu theo khả năng cache/discovery của `ServiceLoader` cụ thể; không mặc định mỗi lookup tạo instance mới hoặc mọi instance sẽ tự đóng đúng lúc.
+`ServiceLoader` locates and instantiates providers under the SPI mechanism. It is **not a built-in plugin lifecycle manager** with per-tenant policies, pooling, concurrency, and safe shutdown. Calls to `iterator()`, `stream()`, or `reload()` must be understood in terms of a specific `ServiceLoader`'s caching/discovery behavior; do not assume every lookup creates a new instance or that instances automatically close at the right time.
 
-Nếu hệ thống cần `Scope` rõ ràng, cách phổ biến là coi provider là **factory/descriptor** rồi host quyết định khi nào tạo plugin implementation, khi nào đăng ký, và khi nào dispose. Đừng đưa shared state của host vào constructor provider tùy ý mà không có boundary API và ownership.
+If the system needs an explicit `Scope`, the common approach is to treat the provider as a **factory/descriptor** and let the host decide when to instantiate the plugin implementation, when to register it, and when to dispose of it. Do not pass shared host state arbitrarily into provider constructors without an API boundary and ownership model.
 
-## 9. Kiểm thử đồng thời và vòng đời
+## 9. Concurrency and Lifecycle Testing
 
-### 9.1. Các tình huống cần có test
+### 9.1. Scenarios That Need Tests
 
-| Tình huống | Bất biến mong muốn |
+| Scenario | Desired Invariant |
 | --- | --- |
-| 100 lời gọi concurrent vào singleton thread-safe | Số instance = 1; tất cả kết quả đúng; counter không mất |
-| Singleton không thread-safe | Host serialize hoặc từ chối cấu hình, không silent race |
-| Per-call với 100 request | 100 lần tạo (nếu không retry) và cleanup đúng; không rò instance |
-| Per-tenant nhiều tenant | State không lẫn; quota theo tenant đúng |
-| Pool size 4, 20 request | Không quá 4 lease đồng thời; borrower độc quyền |
-| Stop trong lúc có in-flight | Không đóng instance đang dùng; request mới bị reject hoặc được route generation mới |
-| Stop gọi lặp lại | Idempotent, không double close/double release |
-| Initialization thất bại giữa chừng | Resource đã tạo được cleanup theo ownership |
-| Update generation trong load cao | Không lỗi class identity, không phục vụ mới bằng instance đã stopped |
-| Plugin callback gọi registry/stop | Không deadlock do lock order hoặc read→write upgrade |
-| Request bị cancel/timeout | Counter in-flight và lease được thu hồi trong `finally` |
-| Static caches/ThreadLocal sau reload | Không giữ plugin loader cũ ngoài ý muốn |
+| 100 concurrent calls to a thread-safe singleton | Instance count = 1; all results correct; no lost counter increments |
+| Non-thread-safe singleton | Host serializes or rejects config; no silent races |
+| Per-call with 100 requests | 100 creations (assuming no retries) and proper cleanup; no leaked instances |
+| Per-tenant with multiple tenants | State never mixes; per-tenant quotas enforced |
+| Pool size 4, 20 requests | At most 4 concurrent leases; exclusive borrowers |
+| Stop while in-flight calls exist | Never closes an instance in use; new requests rejected or routed to new generation |
+| Repeated stop calls | Idempotent, no double close/double release |
+| Initialization fails midway | Already-created resources cleaned up per ownership |
+| Generation upgrade under heavy load | No class identity errors; never serves new calls with stopped instances |
+| Plugin callback invokes registry/stop | No deadlock from lock ordering or read→write upgrade |
+| Request canceled/timed out | In-flight counter and lease reclaimed in `finally` |
+| Static caches/ThreadLocal after reload | Old plugin loader not inadvertently retained |
 
-**Đừng chỉ test kết quả cuối cùng sau khi mọi thread đã xong.** Test race cần nhiều lượt chạy và đồng bộ start bằng `CountDownLatch`/`CyclicBarrier`, thử dừng giữa lúc đang chạy bằng latch có điều khiển, ghi nhận max concurrent calls, và xác nhận không có lời gọi bắt đầu **sau** cutover. `Thread.sleep(...)` với thời gian tùy ý thường làm test cạnh tranh chập chờn.
+**Do not test only the final result after all threads finish.** Race tests need repeated runs and synchronized starts via `CountDownLatch`/`CyclicBarrier`, controlled stops mid-execution using latches, recording max concurrent calls, and asserting no calls start **after** cutover. Arbitrary `Thread.sleep(...)` durations usually make concurrency tests flaky.
 
-### 9.2. Metrics tối thiểu
+### 9.2. Minimum Metrics
 
-Nên ghi metric có label plugin ID, generation, version và scope (có kiểm soát cardinality):
+Record metrics labeled with plugin ID, generation, version, and scope (with cardinality control):
 
-- `plugin_instances_live` và `plugin_instances_created_total`.
-- `plugin_invocations_in_flight` và `plugin_invocations_completed_total`.
-- `plugin_invocations_failed_total`, phân biệt lỗi do plugin và lỗi lifecycle.
+- `plugin_instances_live` and `plugin_instances_created_total`.
+- `plugin_invocations_in_flight` and `plugin_invocations_completed_total`.
+- `plugin_invocations_failed_total`, distinguishing plugin errors from lifecycle errors.
 - `plugin_queue_depth`, `plugin_rejected_total`, `plugin_wait_duration`.
-- `plugin_start_duration`, `plugin_stop_duration` và số generation còn giữ reference.
-- Pool borrow timeout, unhealthy/evicted instances, circuit-breaker state.
+- `plugin_start_duration`, `plugin_stop_duration`, and number of generations still retaining references.
+- Pool borrow timeouts, unhealthy/evicted instances, circuit-breaker state.
 
-Nếu plugin có dữ liệu tenant nhạy cảm, không tự động gắn toàn bộ tenant ID/request ID vào metrics label gây cardinality vô hạn hoặc lộ thông tin; có thể dùng tracing/log với chính sách truy cập phù hợp.
+If plugins carry sensitive tenant data, do not automatically attach every tenant ID/request ID to metric labels, which causes unbounded cardinality or information leaks; use tracing/logging with appropriate access policies instead.
 
-### 9.3. Log transition theo generation
+### 9.3. Logging Transitions by Generation
 
-Khi xảy ra race, log trình tự `CREATED → RUNNING → QUIESCING → STOPPED` của **generation cụ thể**, cùng số in-flight, số instance live và nguyên nhân stop. Nếu chỉ log tên plugin mà không ghi generation, hai lần deploy song song rất dễ bị nhầm cùng một instance.
+When races occur, log the `CREATED → RUNNING → QUIESCING → STOPPED` sequence for a **specific generation**, along with in-flight count, live instance count, and stop reason. Logging only the plugin name without generation makes two parallel deployments easy to mistake for a single instance.
 
-Đồng hồ và thứ tự sự kiện giữa nhiều thread có thể không thể suy luận chỉ bằng timestamp tường minh; nên dùng request/trace IDs, sequence numbers hoặc correlation hợp lệ khi cần dựng lại luồng.
+Wall-clock timestamps alone cannot reliably establish event ordering across threads; use request/trace IDs, sequence numbers, or proper correlation when reconstructing flows.
 
-## 10. Những sai lầm thường gặp
+## 10. Common Mistakes
 
-### 10.1. “Một instance” nghĩa là không có race?
+### 10.1. “One Instance” Means No Races?
 
-Sai. Một singleton có thể nhận hàng trăm lời gọi đồng thời. Số instance bằng 1 không giới hạn số thread gọi method. Nếu instance không thread-safe, phải serialize hoặc thay đổi scope.
+False. A singleton can receive hundreds of concurrent calls. Having an instance count of 1 does not limit how many threads invoke its methods. If the instance is not thread-safe, you must serialize or change scope.
 
-### 10.2. “Mỗi request một instance” nghĩa là không còn shared state?
+### 10.2. “One Instance per Request” Means No Shared State?
 
-Sai. Các instance vẫn có thể dùng static fields, host-injected cache, cùng database row, shared transaction hoặc native library. Phải liệt kê **tất cả shared mutable state**, không chỉ field trong plugin.
+False. Instances can still share static fields, host-injected caches, the same database rows, shared transactions, or native libraries. List **all shared mutable state**, not just fields inside the plugin class.
 
-### 10.3. “Có AtomicInteger là an toàn”?
+### 10.3. “Having an AtomicInteger Means It Is Safe”?
 
-Chỉ đúng đối với thao tác của chính giá trị đó. Nếu invariant yêu cầu `processed <= admitted` và hai biến được cập nhật riêng, reader có thể thấy snapshot không nhất quán. Cần thiết kế atomic state transition hoặc khóa phù hợp.
+Only for operations on that single value itself. If an invariant requires `processed <= admitted` and the two variables are updated separately, readers can see an inconsistent snapshot. Design atomic state transitions or appropriate locking.
 
-### 10.4. “volatile running” làm stop an toàn?
+### 10.4. “volatile running” Makes Stop Safe?
 
-Sai nếu check `running` và sử dụng plugin là hai thao tác tách biệt không được phối hợp với close. Cần admission gate, lease/quiescence hoặc một state machine có kiểm soát. `volatile` giúp visibility, không tự cung cấp phép “check-and-enter” nguyên tử.
+False if checking `running` and using the plugin are two separate operations not coordinated with `close`. You need an admission gate, lease/quiescence, or a controlled state machine. `volatile` provides visibility, not an atomic “check-and-enter” operation.
 
-### 10.5. “Synchronized ở plugin” giải quyết mọi deadlock?
+### 10.5. “Synchronized on the Plugin” Solves All Deadlocks?
 
-Không. Đồng bộ đúng trên nội bộ plugin chưa xử lý khóa registry, host callback, stop/cancel, I/O chờ vô hạn, thread pool starvation hay reentrant close. Phân tích lock graph và giới hạn phạm vi khóa là bắt buộc.
+No. Proper internal synchronization on the plugin does not address registry locks, host callbacks, stop/cancel, unbounded blocking I/O, thread pool starvation, or reentrant close. Lock-graph analysis and bounding lock scope are mandatory.
 
-### 10.6. “Đóng ClassLoader là unload ngay”
+### 10.6. “Closing the ClassLoader Unloads Immediately”
 
-Sai. Với `URLClassLoader`, `close()` giải phóng tài nguyên mà loader quản lý, nhưng class/instance vẫn có thể còn sống khi static cache, thread, TCCL, listener hoặc host registry giữ tham chiếu. JVM chỉ có thể thu hồi class/loader khi điều kiện GC phù hợp.
+False. With `URLClassLoader`, `close()` releases resources managed by the loader, yet classes/instances can stay alive if static caches, threads, TCCL, listeners, or host registries retain references. The JVM can reclaim classes/loaders only when GC conditions are satisfied.
 
-### 10.7. “ClassLoader riêng là sandbox”
+### 10.7. “A Dedicated ClassLoader Is a Sandbox”
 
-Sai. Phân tách class loader giúp namespace/version/lifecycle, không tự hạn chế plugin đọc file, mở mạng hay sử dụng những quyền runtime được cấp. Nếu plugin không tin cậy, cần boundary như tiến trình riêng, authorization, quotas và hạn chế hệ điều hành, ngoài chính sách concurrency.
+False. Class loader isolation separates namespaces/versions/lifecycles; it does not stop a plugin from reading files, opening network connections, or using granted runtime privileges. If plugins are untrusted, you need boundaries like separate processes, authorization, quotas, and OS restrictions in addition to concurrency policies.
 
-## 11. Checklist thiết kế trước khi chấp nhận một plugin
+## 11. Design Checklist Before Accepting a Plugin
 
-1. **Hợp đồng số lượng:** plugin dùng `SINGLETON`, `PER_CALL`, `PER_SESSION`, `PER_TENANT` hay `POOLED`? Định nghĩa “một” theo host, generation và tenant cho rõ.
-2. **Tài nguyên:** chi phí create/start/close? Ai sở hữu connection, executor, file, thread và cache? Khi cleanup fail xử lý thế nào?
-3. **Thread safety:** một instance có hỗ trợ concurrent invocations không? Host có bảo đảm serialize nếu không?
-4. **Shared state:** immutable config, state từng request, tenant, global, static và external state được phân loại rõ?
-5. **Concurrency limit:** max in-flight, max live instances, max queue, thời gian chờ và từ chối khi quá tải?
-6. **Lifecycle state machine:** transition hợp lệ, publish safely, quiesce, stop idempotent và tránh invocation sau close?
-7. **Synchronization:** chọn atomic, mutex, read/write gate, lease/condition đúng invariant; không dùng `volatile` để che race?
-8. **Lock order:** tránh callback giữ lock lớn, upgrade read→write và chờ vô hạn?
-9. **Failure/cancellation:** mọi path đều cleanup trong `finally`; metric và root cause không bị mất?
-10. **Tenant isolation:** identity được host xác thực, state/secret không leak và quota hợp lý?
-11. **Class identity:** API/SPI/DTO chung dùng parent loader, implementation private có loader/generation phù hợp?
-12. **Reload/unload:** tạo generation mới, route đúng, chờ bản cũ drain, bỏ mọi tham chiếu/thread/TCCL không còn dùng?
-13. **Test và giám sát:** có stress test, stop-under-load test, metrics instance live/created/in-flight, tracing theo generation?
-14. **Ranh giới bảo mật:** không xem scope hay class loader là cơ chế hạn chế code không tin cậy.
+1. **Cardinality contract:** does the plugin use `SINGLETON`, `PER_CALL`, `PER_SESSION`, `PER_TENANT`, or `POOLED`? Clearly define “one” per host, generation, and tenant.
+2. **Resources:** what is the cost of create/start/close? Who owns connections, executors, files, threads, and caches? How are cleanup failures handled?
+3. **Thread safety:** does a single instance support concurrent invocations? Does the host enforce serialization if not?
+4. **Shared state:** are immutable config, per-request state, tenant, global, static, and external state cleanly categorized?
+5. **Concurrency limits:** what are max in-flight, max live instances, max queue, wait timeouts, and overload rejection behavior?
+6. **Lifecycle state machine:** valid transitions, safe publication, quiesce, idempotent stop, and preventing invocation after close?
+7. **Synchronization:** right choice of atomics, mutexes, read/write gates, or leases/conditions matching invariants; never using `volatile` to paper over races?
+8. **Lock ordering:** avoiding holding broad locks during callbacks, read→write upgrades, and unbounded waits?
+9. **Failure/cancellation:** every path cleans up in `finally`; metrics and root causes are never lost?
+10. **Tenant isolation:** identity verified by host, no state/secret leakage, and sensible quotas?
+11. **Class identity:** shared API/SPI/DTOs in the parent loader, private implementations in appropriate loaders/generations?
+12. **Reload/unload:** new generation created, traffic routed properly, old version drained, all unused references/threads/TCCL cleared?
+13. **Testing and monitoring:** stress tests, stop-under-load tests, live/created/in-flight instance metrics, generation-scoped tracing?
+14. **Security boundary:** never treat scope or class loaders as a restriction mechanism for untrusted code.
 
-**Kết luận:** quản lý vòng đời plugin đáng tin cậy bắt đầu từ **hợp đồng số lượng đối tượng** (một hay nhiều, trong phạm vi nào), **sở hữu trạng thái** (ai được chia sẻ gì) và **cơ chế đồng bộ** (các thread, admission và stop được phối hợp ra sao). Host nên giữ quyền thực thi policy, đo lường những đại lượng khác nhau như instance live/created/in-flight, chặn request mới trước khi đóng plugin và tách API/SPI chung khỏi implementation theo generation. Khi ba trục này được thiết kế cùng nhau, việc chạy đồng thời và nâng cấp plugin mới có thể an toàn và kiểm chứng được.
+**Conclusion:** reliable plugin lifecycle management starts with an **instance cardinality contract** (one or many, and in what scope), **state ownership** (who is allowed to share what), and **synchronization mechanisms** (how threads, admission, and stop are coordinated). The host should retain policy enforcement, measure distinct quantities like live/created/in-flight instances, reject new requests before closing plugins, and separate shared API/SPI contracts from generation-specific implementations. When these three axes are designed together, concurrent execution and plugin upgrades become safe and verifiable.

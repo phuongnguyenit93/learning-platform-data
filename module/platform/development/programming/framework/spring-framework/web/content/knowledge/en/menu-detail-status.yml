@@ -1,0 +1,2296 @@
+menu:
+- slug: web-overview
+  title: Tổng quan web
+  childs:
+  - slug: web-overview-001
+    title: Vai trò của Spring Web trong ứng dụng Java và các loại ứng dụng web
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-overview-002
+    title: Phân biệt Spring Framework, Spring MVC, Spring WebFlux và Spring Boot
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-overview-003
+    title: Các mô-đun spring-web, spring-webmvc, spring-webflux và spring-websocket
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-overview-004
+    title: 'Kiến thức cần có: Java, IoC/DI, HTTP và xử lý đồng thời'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-overview-005
+    title: Chọn Servlet/MVC hoặc WebFlux theo chuỗi I/O và nhu cầu ứng dụng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-overview-006
+    title: Phiên bản Spring, Jakarta Servlet và khả năng tương thích của API
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-fundamentals
+  title: Nền tảng HTTP
+  childs:
+  - slug: http-fundamentals-001
+    title: Chu trình yêu cầu–phản hồi và cấu trúc một thông điệp HTTP
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-fundamentals-002
+    title: URI, đường dẫn, tham số truy vấn và quy tắc mã hóa
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-fundamentals-003
+    title: HTTP method, tính an toàn và tính lặp lại không đổi kết quả
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-fundamentals-004
+    title: Mã trạng thái và ý nghĩa của các nhóm 2xx, 3xx, 4xx, 5xx
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-fundamentals-005
+    title: Header, Content-Type, Accept và thương lượng nội dung
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-fundamentals-006
+    title: Cookie, phiên làm việc và giới hạn của trạng thái qua HTTP
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-fundamentals-007
+    title: HTTPS, reverse proxy, chuyển hướng và địa chỉ công khai
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-fundamentals-008
+    title: Phân biệt REST, trang HTML, HTTP streaming và WebSocket
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-bootstrap
+  title: Khởi tạo ứng dụng
+  childs:
+  - slug: application-bootstrap-001
+    title: Thiết lập phụ thuộc và cấu trúc ứng dụng Spring Web tối thiểu
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-002
+    title: Đăng ký DispatcherServlet bằng Java và nhận biết cấu hình web.xml
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-003
+    title: WebApplicationContext gốc, ngữ cảnh servlet và quan hệ cha–con
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-004
+    title: Ánh xạ servlet, context path và đường dẫn của ứng dụng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-005
+    title: '@EnableWebMvc, WebMvcConfigurer và cấu hình XML tương đương'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-006
+    title: Phân biệt cấu hình Spring MVC trực tiếp với tự động cấu hình của Spring Boot
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-bootstrap-007
+    title: Triển khai trên Servlet container và phân biệt WAR với máy chủ nhúng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mvc-request-lifecycle
+  title: Luồng xử lý MVC
+  childs:
+  - slug: mvc-request-lifecycle-001
+    title: Servlet container, Filter chain và điểm vào DispatcherServlet
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-request-lifecycle-002
+    title: 'HandlerMapping: tìm thành phần xử lý phù hợp với yêu cầu'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-request-lifecycle-003
+    title: 'HandlerAdapter: gọi thành phần xử lý và hỗ trợ chữ ký phương thức'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-request-lifecycle-004
+    title: Giải quyết tham số, thực thi controller và xử lý giá trị trả về
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-request-lifecycle-005
+    title: ModelAndView, ViewResolver và giai đoạn kết xuất giao diện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-request-lifecycle-006
+    title: HandlerExceptionResolver và luồng xử lý khi có ngoại lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-request-lifecycle-007
+    title: Các loại dispatch REQUEST, FORWARD, INCLUDE, ERROR và ASYNC
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-request-lifecycle-008
+    title: Vòng đời controller singleton và nguy cơ dùng trạng thái chia sẻ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: request-routing
+  title: Định tuyến yêu cầu
+  childs:
+  - slug: request-routing-001
+    title: '@Controller, @RestController và cơ chế phát hiện controller'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-routing-002
+    title: '@RequestMapping ở lớp và phương thức; các annotation @GetMapping, @PostMapping'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-routing-003
+    title: Điều kiện ánh xạ theo HTTP method, params, headers, consumes và produces
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-routing-004
+    title: Biến đường dẫn, biểu thức chính quy và đường dẫn có ký tự đại diện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-routing-005
+    title: PathPattern, quy tắc chọn ánh xạ cụ thể và lỗi ánh xạ trùng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-routing-006
+    title: Xử lý HEAD, OPTIONS và phân biệt lỗi 404, 405, 406, 415
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-routing-007
+    title: '@RequestMapping trên interface và cách tổ chức hợp đồng controller'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-routing-008
+    title: Kiểm soát dấu gạch chéo cuối đường dẫn và khác biệt cấu hình theo phiên bản
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: controller-inputs
+  title: Đầu vào controller
+  childs:
+  - slug: controller-inputs-001
+    title: '@PathVariable và @MatrixVariable trong đường dẫn'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controller-inputs-002
+    title: '@RequestParam: giá trị bắt buộc, mặc định, nhiều giá trị và Map'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controller-inputs-003
+    title: '@RequestHeader và @CookieValue'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controller-inputs-004
+    title: '@RequestBody, HttpEntity và đọc nội dung yêu cầu'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controller-inputs-005
+    title: '@ModelAttribute và liên kết dữ liệu biểu mẫu'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controller-inputs-006
+    title: '@RequestPart và tham số multipart'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controller-inputs-007
+    title: '@RequestAttribute, @SessionAttribute và dữ liệu có sẵn trong ngữ cảnh'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controller-inputs-008
+    title: HttpServletRequest, HttpServletResponse, Principal và Locale trong chữ ký phương thức
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controller-inputs-009
+    title: Giá trị null, Optional và phân biệt đầu vào thiếu với đầu vào rỗng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controller-inputs-010
+    title: Quy tắc chọn nơi lấy tham số và giới hạn đọc request body nhiều lần
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: binding-validation
+  title: Binding và validation
+  childs:
+  - slug: binding-validation-001
+    title: WebDataBinder và quá trình chuyển dữ liệu chuỗi thành đối tượng
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-validation-002
+    title: Constructor binding, property binding và thiết kế DTO đầu vào
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-validation-003
+    title: Converter, Formatter, ConversionService và định dạng ngày giờ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-validation-004
+    title: '@InitBinder: cấu hình cục bộ và dùng chung qua @ControllerAdvice'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-validation-005
+    title: Giới hạn trường được binding để tránh sửa thuộc tính ngoài hợp đồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-validation-006
+    title: Bean Validation với @Valid, @Validated và nhóm ràng buộc
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-validation-007
+    title: Errors, BindingResult và vị trí tham số nhận lỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-validation-008
+    title: Phân biệt lỗi chuyển đổi kiểu, lỗi binding và lỗi kiểm tra dữ liệu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binding-validation-009
+    title: Kiểm tra tham số phương thức và phân biệt các ngoại lệ validation theo phiên bản
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-message-bodies
+  title: Nội dung HTTP
+  childs:
+  - slug: http-message-bodies-001
+    title: HttpMessageConverter và quá trình đọc/ghi request–response body trong MVC
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-message-bodies-002
+    title: Chọn bộ chuyển đổi cho chuỗi, byte[], Resource, JSON và XML
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-message-bodies-003
+    title: 'Cấu hình bộ chuyển đổi: thay thế mặc định hay mở rộng danh sách'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-message-bodies-004
+    title: Tuần tự hóa JSON, DTO, kiểu generic và tham chiếu vòng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-message-bodies-005
+    title: Jackson và cấu hình ánh xạ dữ liệu phù hợp với phiên bản Spring
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-message-bodies-006
+    title: Thương lượng nội dung theo Accept và lựa chọn media type
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-message-bodies-007
+    title: Phân biệt lỗi JSON sai cú pháp, JSON sai kiểu và dữ liệu không hợp lệ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-message-bodies-008
+    title: RequestBodyAdvice, ResponseBodyAdvice và giới hạn biến đổi nội dung dùng chung
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-responses
+  title: Phản hồi REST
+  childs:
+  - slug: rest-responses-001
+    title: '@ResponseBody và khác biệt với tên view trả về từ @Controller'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-responses-002
+    title: 'ResponseEntity: điều khiển status, header và body'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-responses-003
+    title: '@ResponseStatus, phản hồi không có nội dung và trường hợp body null'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-responses-004
+    title: Tạo tài nguyên với 201 Created và header Location
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-responses-005
+    title: Thiết kế DTO phản hồi và tách mô hình HTTP khỏi đối tượng lưu trữ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-responses-006
+    title: Phân trang, sắp xếp, bộ lọc và hợp đồng danh sách kết quả
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-responses-007
+    title: Thiết kế cập nhật PUT/PATCH và quy tắc xử lý yêu cầu lặp lại
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-responses-008
+    title: Giữ hợp đồng API ổn định khi thay đổi cấu trúc dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-handling
+  title: Xử lý lỗi
+  childs:
+  - slug: error-handling-001
+    title: Phân loại lỗi đầu vào, lỗi nghiệp vụ và lỗi hệ thống
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-002
+    title: '@ExceptionHandler ở controller và quy tắc chọn phương thức xử lý'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-003
+    title: '@ControllerAdvice, @RestControllerAdvice và phạm vi áp dụng'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-004
+    title: HandlerExceptionResolver và ResponseEntityExceptionHandler
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-005
+    title: ProblemDetail, ErrorResponse và định dạng lỗi theo RFC 9457
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-006
+    title: Biểu diễn lỗi từng trường, thông tin mở rộng và mã lỗi ổn định
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-007
+    title: Phân biệt ngoại lệ trong controller với lỗi ở Filter hoặc Servlet container
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-handling-008
+    title: Ẩn thông tin nhạy cảm, gắn mã đối chiếu và tránh trả stack trace cho người dùng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: views-forms
+  title: View và biểu mẫu
+  childs:
+  - slug: views-forms-001
+    title: Model, ModelMap, ModelAndView và tên view logic
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-forms-002
+    title: ViewResolver, thứ tự phân giải và tích hợp template engine
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-forms-003
+    title: 'Thymeleaf, FreeMarker, JSP: vai trò và điều kiện sử dụng'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-forms-004
+    title: Truyền dữ liệu từ controller tới view bằng @ModelAttribute
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-forms-005
+    title: Liên kết biểu mẫu, hiển thị BindingResult và thông báo lỗi
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-forms-006
+    title: Redirect, forward và mẫu Post/Redirect/Get
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-forms-007
+    title: RedirectAttributes, flash attributes và vòng đời dữ liệu chuyển hướng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: views-forms-008
+    title: Giới hạn nội dung động, escape HTML và nguy cơ XSS khi kết xuất view
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: session-localization
+  title: Trạng thái và ngôn ngữ
+  childs:
+  - slug: session-localization-001
+    title: Request scope, session scope và dữ liệu dùng chung giữa các yêu cầu
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-localization-002
+    title: Cookie và cấu hình thời hạn, Secure, HttpOnly, SameSite
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-localization-003
+    title: HttpSession, tạo/hủy phiên và giới hạn khi triển khai nhiều máy chủ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-localization-004
+    title: '@SessionAttributes, SessionStatus và khác biệt với @SessionAttribute'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-localization-005
+    title: LocaleResolver, LocaleContextResolver và lựa chọn ngôn ngữ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-localization-006
+    title: MessageSource, thông báo validation và bản địa hóa giao diện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-localization-007
+    title: RequestContextHolder, LocaleContextHolder và giới hạn ThreadLocal
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-localization-008
+    title: Truyền ngữ cảnh khi chuyển sang xử lý bất đồng bộ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: filters-interceptors
+  title: Filter và interceptor
+  childs:
+  - slug: filters-interceptors-001
+    title: Phân biệt Servlet Filter, HandlerInterceptor, AOP và ControllerAdvice
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-interceptors-002
+    title: Filter chain, thứ tự đăng ký và các loại dispatch được áp dụng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-interceptors-003
+    title: OncePerRequestFilter và hành vi với async/error dispatch
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-interceptors-004
+    title: preHandle, postHandle, afterCompletion và điều kiện gọi lại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-interceptors-005
+    title: Đăng ký interceptor, phạm vi đường dẫn và AsyncHandlerInterceptor
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-interceptors-006
+    title: CharacterEncodingFilter, FormContentFilter và HiddenHttpMethodFilter
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-interceptors-007
+    title: Bọc request/response để đọc nội dung và giới hạn bộ nhớ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filters-interceptors-008
+    title: Chọn đúng điểm mở rộng cho ghi log, đo thời gian và truyền mã đối chiếu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-resources
+  title: Tệp và tài nguyên
+  childs:
+  - slug: file-resources-001
+    title: MultipartResolver và cấu hình multipart của Servlet container
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-resources-002
+    title: Nhận MultipartFile, Part và kết hợp tệp với dữ liệu JSON
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-resources-003
+    title: Giới hạn dung lượng, số tệp, kiểu tệp và tên tệp không tin cậy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-resources-004
+    title: StreamingResponseBody, Resource và Content-Disposition khi tải xuống
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-resources-005
+    title: Range request, ResourceRegion và phản hồi 206 Partial Content
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-resources-006
+    title: ResourceHandler, vị trí tài nguyên tĩnh và thứ tự ánh xạ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-resources-007
+    title: Resource chain, phiên bản tài nguyên và đường dẫn có dấu vân tay nội dung
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-resources-008
+    title: Ngăn path traversal và kiểm soát quyền truy cập tệp
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cors-web-security
+  title: CORS và an toàn web
+  childs:
+  - slug: cors-web-security-001
+    title: Same-origin policy, origin và điều kiện phát sinh CORS
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-web-security-002
+    title: Yêu cầu đơn giản, preflight OPTIONS và các header CORS
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-web-security-003
+    title: '@CrossOrigin, cấu hình toàn cục và cách kết hợp chính sách'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-web-security-004
+    title: CorsFilter, allowed origins, credentials và hạn chế ký tự đại diện
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-web-security-005
+    title: Phân biệt CORS, xác thực, phân quyền và CSRF
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-web-security-006
+    title: Ranh giới trách nhiệm của Spring Web và Spring Security
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-web-security-007
+    title: ForwardedHeaderFilter, header do proxy cung cấp và ranh giới tin cậy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cors-web-security-008
+    title: Kiểm soát chuyển hướng mở, nội dung tải lên và thông tin nhạy cảm trong log
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-caching
+  title: Cache HTTP
+  childs:
+  - slug: http-caching-001
+    title: Cache-Control, Expires và phân biệt cache trình duyệt với cache dùng chung
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-002
+    title: ETag, Last-Modified và yêu cầu có điều kiện
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-003
+    title: If-None-Match, If-Modified-Since và phản hồi 304
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-004
+    title: WebRequest.checkNotModified và cấu hình cache trên ResponseEntity
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-005
+    title: ShallowEtagHeaderFilter, chi phí tạo phản hồi và giới hạn tối ưu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-006
+    title: Vary, nội dung cá nhân hóa và tránh lưu nhầm dữ liệu riêng tư
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-caching-007
+    title: If-Match, precondition và kiểm soát cập nhật đồng thời
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: uri-api-versioning
+  title: URI và phiên bản API
+  childs:
+  - slug: uri-api-versioning-001
+    title: 'UriComponentsBuilder: ghép đường dẫn, tham số và URI template'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uri-api-versioning-002
+    title: Mã hóa URI đúng một lần và phân biệt dữ liệu với ký tự phân cách
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uri-api-versioning-003
+    title: ServletUriComponentsBuilder và xây URI từ yêu cầu hiện tại
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uri-api-versioning-004
+    title: MvcUriComponentsBuilder và tạo liên kết tới controller
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uri-api-versioning-005
+    title: Đường dẫn công khai khi ứng dụng nằm sau reverse proxy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uri-api-versioning-006
+    title: Chiến lược phiên bản API theo đường dẫn, header, tham số hoặc media type
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: uri-api-versioning-007
+    title: 'Hỗ trợ API versioning từ Spring 7: phân giải phiên bản, ánh xạ và thông báo ngừng hỗ trợ'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mvc-async-processing
+  title: Bất đồng bộ MVC
+  childs:
+  - slug: mvc-async-processing-001
+    title: Servlet async và khác biệt giữa giải phóng luồng yêu cầu với I/O không chặn
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-async-processing-002
+    title: Callable, DeferredResult, WebAsyncTask và lựa chọn mô hình hoàn thành
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-async-processing-003
+    title: Cấu hình TaskExecutor, timeout và giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-async-processing-004
+    title: Luồng dispatch ASYNC và xử lý kết quả hoặc ngoại lệ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-async-processing-005
+    title: ResponseBodyEmitter, SseEmitter và StreamingResponseBody
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-async-processing-006
+    title: Trả về kiểu reactive trong MVC và giới hạn khi ghi phản hồi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-async-processing-007
+    title: Phát hiện ngắt kết nối, dọn tài nguyên và xử lý lỗi sau khi đã gửi header
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-async-processing-008
+    title: Truyền ngữ cảnh, an toàn luồng và tránh sử dụng executor không giới hạn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mvc-functional-endpoints
+  title: Functional MVC
+  childs:
+  - slug: mvc-functional-endpoints-001
+    title: WebMvc.fn và khác biệt với controller dùng annotation
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-functional-endpoints-002
+    title: ServerRequest, ServerResponse và HandlerFunction
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-functional-endpoints-003
+    title: RouterFunction, RequestPredicate và khai báo tuyến lồng nhau
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-functional-endpoints-004
+    title: Đọc đầu vào, tạo phản hồi và sử dụng message converter
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-functional-endpoints-005
+    title: HandlerFilterFunction, xử lý lỗi và tổ chức các tuyến chức năng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mvc-functional-endpoints-006
+    title: Kết hợp functional endpoint với hạ tầng Spring MVC hiện có
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webflux-foundations
+  title: Nền tảng WebFlux
+  childs:
+  - slug: webflux-foundations-001
+    title: Reactive Streams và vai trò của Publisher, Subscriber, Subscription
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-foundations-002
+    title: Mono, Flux và ý nghĩa của không có, một hoặc nhiều giá trị
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-foundations-003
+    title: Tính trì hoãn, đăng ký thực thi và vòng đời một chuỗi reactive
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-foundations-004
+    title: Event loop, mô hình luồng và tác hại của thao tác chặn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-foundations-005
+    title: Backpressure, lượng yêu cầu dữ liệu và giới hạn khi đi qua giao thức HTTP
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-foundations-006
+    title: map, flatMap, kết hợp kết quả và lựa chọn mức đồng thời
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-foundations-007
+    title: Lỗi, hủy đăng ký, timeout và giải phóng tài nguyên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-foundations-008
+    title: Đánh giá WebFlux theo toàn bộ chuỗi I/O; không mặc định nhanh hơn MVC
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webflux-infrastructure
+  title: Hạ tầng WebFlux
+  childs:
+  - slug: webflux-infrastructure-001
+    title: HttpHandler, WebHandler và ServerWebExchange
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-infrastructure-002
+    title: DispatcherHandler, HandlerMapping, HandlerAdapter và HandlerResultHandler
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-infrastructure-003
+    title: WebFilter, WebFilterChain và WebExceptionHandler
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-infrastructure-004
+    title: ServerHttpRequest, ServerHttpResponse và dữ liệu request/response
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-infrastructure-005
+    title: Codec, HttpMessageReader, HttpMessageWriter và cấu hình giới hạn bộ nhớ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-infrastructure-006
+    title: '@EnableWebFlux, WebFluxConfigurer và cấu hình hạ tầng'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-infrastructure-007
+    title: WebSession, LocaleContext và Reactor Context
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-infrastructure-008
+    title: Máy chủ reactive, kết nối và khác biệt với mô hình Servlet
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webflux-controllers
+  title: Controller WebFlux
+  childs:
+  - slug: webflux-controllers-001
+    title: Ánh xạ controller bằng annotation và các điểm chung với MVC
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-controllers-002
+    title: Đọc tham số, header, cookie, Principal và dữ liệu trong ServerWebExchange
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-controllers-003
+    title: '@RequestBody với Mono/Flux và phản hồi reactive qua ResponseEntity'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-controllers-004
+    title: Binding, Bean Validation và nhận diện lỗi đầu vào trong WebFlux
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-controllers-005
+    title: Multipart, FilePart, PartEvent và xử lý tệp theo luồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-controllers-006
+    title: '@ExceptionHandler, @RestControllerAdvice và ProblemDetail trong WebFlux'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-controllers-007
+    title: Trả view, Model và tích hợp template engine reactive
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-controllers-008
+    title: Cấu hình CORS, tài nguyên tĩnh và HTTP caching trong WebFlux
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webflux-functional-endpoints
+  title: Functional WebFlux
+  childs:
+  - slug: webflux-functional-endpoints-001
+    title: WebFlux.fn, RouterFunction và HandlerFunction
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-functional-endpoints-002
+    title: ServerRequest, ServerResponse và hợp đồng bất đồng bộ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-functional-endpoints-003
+    title: Định tuyến theo đường dẫn, method, header và kiểu nội dung
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-functional-endpoints-004
+    title: Nesting, hợp thành router và tổ chức tuyến theo tính năng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-functional-endpoints-005
+    title: Đọc body bằng bodyToMono/bodyToFlux và kiểm tra dữ liệu
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-functional-endpoints-006
+    title: Filter cho router, xử lý lỗi và tạo phản hồi thống nhất
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-functional-endpoints-007
+    title: Tích hợp router bean với DispatcherHandler
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webflux-streaming
+  title: Streaming WebFlux
+  childs:
+  - slug: webflux-streaming-001
+    title: SSE với Flux và ServerSentEvent
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-streaming-002
+    title: JSON theo luồng, NDJSON và lựa chọn media type
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-streaming-003
+    title: DataBuffer, bộ nhớ đệm dùng pool và trách nhiệm giải phóng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-streaming-004
+    title: Giới hạn kích thước dữ liệu, tốc độ tiêu thụ và tránh gom toàn bộ stream
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-streaming-005
+    title: Cô lập tác vụ chặn với scheduler phù hợp và giới hạn đồng thời
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-streaming-006
+    title: Hủy đăng ký, client ngắt kết nối và dọn dẹp tài nguyên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-streaming-007
+    title: Truyền ngữ cảnh qua Reactor Context thay cho giả định về ThreadLocal
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-streaming-008
+    title: WebSocketHandler reactive và vòng đời luồng nhận/gửi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synchronous-http-clients
+  title: HTTP client đồng bộ
+  childs:
+  - slug: synchronous-http-clients-001
+    title: Chọn RestClient, RestTemplate, WebClient hoặc HTTP Service Client
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-clients-002
+    title: Tạo RestClient và cấu hình base URL, header, cookie mặc định
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-clients-003
+    title: Gửi yêu cầu với URI template, query, form và multipart
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-clients-004
+    title: retrieve, exchange và đọc status, header, body
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-clients-005
+    title: HttpMessageConverter, kiểu generic và ParameterizedTypeReference
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-clients-006
+    title: ClientHttpRequestFactory và lựa chọn thư viện HTTP nền
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-clients-007
+    title: Timeout, connection pool, TLS và vòng đời tài nguyên
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-clients-008
+    title: Interceptor, xử lý mã lỗi và thiết kế retry theo tính lặp lại của thao tác
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-http-clients-009
+    title: RestTemplate trong hệ thống sẵn có và chuyển sang RestClient; deprecated từ Spring 7
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-client
+  title: WebClient
+  childs:
+  - slug: web-client-001
+    title: WebClient.Builder, ClientHttpConnector và thư viện HTTP nền
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-002
+    title: Gửi yêu cầu reactive và thiết lập URI, header, cookie, body
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-003
+    title: retrieve, onStatus, exchangeToMono và exchangeToFlux
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-004
+    title: Đọc JSON, kiểu generic, dữ liệu theo luồng và multipart
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-005
+    title: ExchangeFilterFunction và cấu hình dùng chung
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-006
+    title: Timeout, connection pool, TLS và giới hạn bộ nhớ codec
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-007
+    title: Xử lý lỗi, retry có giới hạn và tránh lặp thao tác có tác dụng phụ
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-008
+    title: Tiêu thụ hoặc giải phóng response body để tái sử dụng kết nối
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-009
+    title: Dùng WebClient trong MVC; chọn vị trí block và tránh chặn event loop
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-client-010
+    title: Reactor Context, truyền mã đối chiếu và hủy yêu cầu đang chạy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-service-clients
+  title: HTTP Service Client
+  childs:
+  - slug: http-service-clients-001
+    title: '@HttpExchange và khai báo hợp đồng HTTP bằng interface'
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-service-clients-002
+    title: '@GetExchange, @PostExchange và ánh xạ tham số phương thức'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-service-clients-003
+    title: HttpServiceProxyFactory và adapter cho RestClient hoặc WebClient
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-service-clients-004
+    title: Kiểu trả về đồng bộ, reactive và phản hồi ResponseEntity
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-service-clients-005
+    title: Cấu hình header, URI, chuyển đổi dữ liệu và xử lý lỗi
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-service-clients-006
+    title: Quản lý nhiều dịch vụ, khả năng tương thích phiên bản và kiểm thử proxy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: websocket-stomp
+  title: WebSocket và STOMP
+  childs:
+  - slug: websocket-stomp-001
+    title: So sánh polling, SSE, WebSocket và chọn cơ chế cập nhật
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-stomp-002
+    title: WebSocket handshake, subprotocol và vòng đời kết nối
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-stomp-003
+    title: WebSocketHandler, TextWebSocketHandler và đăng ký endpoint Servlet
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-stomp-004
+    title: HandshakeInterceptor, kiểm tra origin và thông tin người dùng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-stomp-005
+    title: Giới hạn message, gửi đồng thời, timeout và ngắt kết nối
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-stomp-006
+    title: SockJS fallback và các ràng buộc khi đi qua proxy
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-stomp-007
+    title: STOMP, destination và luồng thông điệp qua các channel của Spring
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-stomp-008
+    title: '@MessageMapping, @SendTo, @SendToUser và SimpMessagingTemplate'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-stomp-009
+    title: Simple broker, broker relay và lựa chọn khi mở rộng hệ thống
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-stomp-010
+    title: Xác thực, phân quyền destination, heartbeat và phục hồi kết nối
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-stomp-011
+    title: Xử lý ngoại lệ, sự kiện kết nối, giám sát và kiểm thử WebSocket
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-testing
+  title: Kiểm thử web
+  childs:
+  - slug: web-testing-001
+    title: Phân biệt kiểm thử controller độc lập, kiểm thử hạ tầng và HTTP qua máy chủ thật
+    status: WRITTEN
+    difficult: BASIC
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-testing-002
+    title: 'MockMvc: standaloneSetup và webAppContextSetup'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-testing-003
+    title: Kiểm chứng mapping, tham số, header, status và nội dung JSON
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-testing-004
+    title: Kiểm thử binding, validation, ProblemDetail và ControllerAdvice
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-testing-005
+    title: Kiểm thử view, form, redirect, flash attributes và session
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-testing-006
+    title: Kiểm thử multipart, CORS và yêu cầu có điều kiện
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-testing-007
+    title: Kiểm thử MVC async, asyncDispatch và phản hồi streaming
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-testing-008
+    title: WebTestClient với controller, RouterFunction, ApplicationContext hoặc máy chủ thật
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-testing-009
+    title: Kiểm thử Flux, SSE, hủy đăng ký và giới hạn thời gian
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-testing-010
+    title: MockRestServiceServer cho client đồng bộ và máy chủ giả lập cho WebClient
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-testing-011
+    title: Kiểm thử HTTP Service Client và WebSocket/STOMP theo hợp đồng
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-practice
+  title: Vận hành và thực hành
+  childs:
+  - slug: operations-practice-001
+    title: Thiết kế lớp HTTP mỏng, ranh giới dịch vụ và hợp đồng dữ liệu rõ ràng
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-002
+    title: Quan sát yêu cầu/phản hồi bằng log, tracing và Micrometer Observation
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-003
+    title: Đọc lỗi 404, 405, 406, 415, validation và ngoại lệ bất đồng bộ
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-004
+    title: Chẩn đoán cạn luồng, nghẽn kết nối, thiếu bộ nhớ và tác vụ chặn event loop
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-005
+    title: 'Triển khai sau proxy: HTTPS, forwarded headers, streaming và WebSocket'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-006
+    title: Giới hạn tài nguyên, timeout, ngắt kết nối và dừng ứng dụng an toàn
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-007
+    title: 'Thực hành REST API: mapping, DTO, validation, lỗi và kiểm thử'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-008
+    title: 'Thực hành trang biểu mẫu: view, bản địa hóa, session và redirect'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-009
+    title: 'Thực hành gọi dịch vụ: HTTP client, timeout và xử lý lỗi'
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-010
+    title: 'Thực hành cập nhật thời gian thực: lựa chọn SSE hoặc WebSocket'
+    status: WRITTEN
+    difficult: INTERMEDIATE
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-011
+    title: Đối chiếu cùng một bài toán trên MVC và WebFlux bằng hành vi quan sát được
+    status: WRITTEN
+    difficult: ADVANCED
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

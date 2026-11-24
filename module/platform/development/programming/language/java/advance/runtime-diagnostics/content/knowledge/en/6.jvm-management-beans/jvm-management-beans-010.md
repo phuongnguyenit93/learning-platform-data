@@ -1,24 +1,24 @@
-# 6.10 HotSpotDiagnosticMXBean cho heap dump và VM option có thể quản lý
+# 6.10 HotSpotDiagnosticMXBean for heap dumps and manageable VM options
 
-## Mục tiêu học tập
+## Learning objectives
 
-Khi cần điều tra rò rỉ bộ nhớ, phân tích đối tượng đang được giữ lại hoặc xác nhận một JVM flag có thể thay đổi khi ứng dụng đang chạy, Java cung cấp một giao diện quản trị HotSpot chuyên biệt: `com.sun.management.HotSpotDiagnosticMXBean`.
+When investigating a memory leak, analyzing retained objects, or verifying whether a JVM flag can be changed while the application is running, Java provides a dedicated HotSpot management interface: `com.sun.management.HotSpotDiagnosticMXBean`.
 
-Điểm quan trọng nhất: **cùng là MXBean nhưng không phải mọi method đều chỉ quan sát**. `getDiagnosticOptions()` và `getVMOption(...)` giúp đọc trạng thái; `dumpHeap(...)` tạo một file heap dump có thể lớn và ảnh hưởng tiến trình; `setVMOption(...)` chủ động thay đổi một flag có thể điều chỉnh trong runtime. Một thao tác chẩn đoán thiếu kiểm soát có thể làm thay đổi chính hiện tượng đang được đo.
+The most important point: **even within the same MXBean, not every method is read-only observation**. `getDiagnosticOptions()` and `getVMOption(...)` inspect state; `dumpHeap(...)` writes a potentially large heap dump file that can impact the process; `setVMOption(...)` actively mutates a runtime-adjustable flag. An uncontrolled diagnostic action can alter the very phenomenon being measured.
 
-Học xong bài này, bạn sẽ có thể:
+After completing this lesson, you will be able to:
 
-- Hiểu vai trò, module, phạm vi HotSpot và tên JMX ObjectName của `HotSpotDiagnosticMXBean`.
-- Lấy MXBean từ `ManagementFactory`, tra `VMOption` và đọc `name`, `value`, `origin`, `isWriteable`.
-- Phân biệt **VM option có thể đổi động** với các cờ chỉ được xác định khi khởi động; biết khi nào `setVMOption` có thể bị từ chối.
-- Giải thích `dumpHeap(String outputFile, boolean live)`: `live=true/false`, định dạng `.hprof`, đường dẫn trên **máy chạy target JVM**, điều kiện lỗi và chi phí.
-- Thiết kế quy trình kiểm soát rủi ro khi chụp heap hoặc thay đổi flag: đúng tiến trình, dung lượng đĩa, dữ liệu nhạy cảm, baseline, thời điểm, phân quyền, xác minh và khôi phục.
-- Biên dịch/chạy ví dụ Java 17+ gồm chế độ **fixture xác định**, chế độ chỉ đọc MXBean thật và chế độ dump **chỉ khi chủ động xác nhận trong lab**.
-- Ghi kết luận chẩn đoán với phạm vi chứng cứ; không tự biến heap dump thành bằng chứng chắc chắn của memory leak hay coi mọi flag JVM đều thay đổi động.
+- Understand the role, module, HotSpot scope, and JMX ObjectName of `HotSpotDiagnosticMXBean`.
+- Obtain the MXBean from `ManagementFactory`, look up `VMOption`, and read `name`, `value`, `origin`, and `isWriteable`.
+- Distinguish **dynamically changeable VM options** from startup-only flags; know when `setVMOption` can be rejected.
+- Explain `dumpHeap(String outputFile, boolean live)`: `live=true/false`, `.hprof` format, path resolution on **the machine running the target JVM**, error conditions, and costs.
+- Design a risk-control workflow when capturing heap dumps or modifying flags: right process, disk headroom, sensitive data, baseline, timing, authorization, verification, and restoration.
+- Compile and run the Java 17+ example including a **deterministic fixture** mode, a read-only live MXBean mode, and a dump mode **only when explicitly confirmed in a lab**.
+- Write diagnostic conclusions with explicit evidence scope; never automatically treat a heap dump as proof of a memory leak or assume every JVM flag is dynamically tunable.
 
-## 1. HotSpotDiagnosticMXBean nằm ở đâu trong hệ sinh thái MXBeans?
+## 1. Where does HotSpotDiagnosticMXBean sit in the MXBean ecosystem?
 
-Các MXBean chuẩn trong `java.lang.management` như `MemoryMXBean` hoặc `ThreadMXBean` cung cấp thông tin quản lý chung. `HotSpotDiagnosticMXBean` nằm trong:
+Standard MXBeans in `java.lang.management` such as `MemoryMXBean` or `ThreadMXBean` provide general management information. `HotSpotDiagnosticMXBean` resides in:
 
 ```text
 Module:      jdk.management
@@ -27,17 +27,17 @@ Interface:   HotSpotDiagnosticMXBean
 JMX name:    com.sun.management:type=HotSpotDiagnostic
 ```
 
-Đây là giao diện chẩn đoán của **HotSpot VM**, không phải lời hứa rằng mọi triển khai Java VM đều cung cấp đúng interface hay từng option giống nhau. `com.sun.management` là gói mở rộng được JDK cung cấp cho HotSpot; khác với lời gọi Java SE thuần túy mà VM nào cũng phải hỗ trợ.
+This is a **HotSpot VM** diagnostic interface, not a guarantee that every Java VM implementation provides this exact interface or identical options. `com.sun.management` is an extension package supplied by the JDK for HotSpot, unlike pure Java SE calls that every VM must support.
 
-**Ba lớp cần phân biệt:**
+**Three layers to distinguish:**
 
-| Lớp | Thành phần | Có thể làm gì? |
+| Layer | Components | What can it do? |
 | --- | --- | --- |
-| API trong ứng dụng | `HotSpotDiagnosticMXBean`, `VMOption` | Đọc flag, ghi heap dump và điều chỉnh flag được phép |
-| JMX management | Platform MBeanServer, ObjectName `com.sun.management:type=HotSpotDiagnostic` | Client quản trị truy cập operation khi có kết nối/quyền |
-| Bên trong HotSpot | VM flags, memory manager, heap dump implementation | Thực hiện thay đổi hoặc thao tác nặng thực tế |
+| In-app API | `HotSpotDiagnosticMXBean`, `VMOption` | Read flags, write heap dumps, and adjust permitted flags |
+| JMX management | Platform MBeanServer, ObjectName `com.sun.management:type=HotSpotDiagnostic` | Management clients access operations when connected/authorized |
+| Inside HotSpot | VM flags, memory manager, heap dump implementation | Performs the actual state change or heavy operation |
 
-Để có interface trong Java 17, thường dùng:
+To obtain the interface in Java 17, commonly use:
 
 ```java
 import com.sun.management.HotSpotDiagnosticMXBean;
@@ -48,28 +48,28 @@ HotSpotDiagnosticMXBean bean =
                 HotSpotDiagnosticMXBean.class);
 ```
 
-Đây là đoạn mã tích hợp, không phải một chương trình độc lập; cách dùng đầy đủ có ở phần lab. Nếu môi trường không hỗ trợ HotSpot MXBean này, không cố suy từ một `null` hoặc lỗi startup rằng heap vẫn hoạt động sai. Cần ghi JVM vendor, phiên bản/patch và API thực sự khả dụng.
+This is an integrated snippet, not a standalone program; complete usage appears in the lab section. If the environment does not support this HotSpot MXBean, do not infer from `null` or a startup error that heap behavior itself is broken. Record the JVM vendor, version/patch, and actually available APIs.
 
-**JMX từ xa:** cùng một bean có thể xuất hiện trong platform MBeanServer. Người quản trị dùng JMX có thể đọc thuộc tính, gọi `dumpHeap` hoặc `setVMOption` nếu được phép. **Đọc từ xa không có nghĩa dump sẽ được tải về client**: dump được tạo trên filesystem mà **target JVM** nhìn thấy. Kết nối và việc phân quyền operation là hai vấn đề riêng cần kiểm soát.
+**Remote JMX:** the same bean can appear in the platform MBeanServer. Administrators using JMX can read attributes or invoke `dumpHeap` or `setVMOption` if permitted. **Remote invocation does not mean the dump is downloaded to the client**: the dump is written on the filesystem visible to the **target JVM**. Connection security and operation authorization are separate concerns that must be controlled.
 
-## 2. Phân loại bốn method chính theo tác dụng thực tế
+## 2. Classifying the four main methods by actual impact
 
-Java 17 cung cấp bốn method chính:
+Java 17 provides four main methods:
 
-| Method | Dạng thao tác | Kết quả/tác dụng | Lưu ý |
+| Method | Operation kind | Result / effect | Notes |
 | --- | --- | --- | --- |
-| `getDiagnosticOptions()` | Quan sát | Danh sách `VMOption` dùng cho chẩn đoán có thể điều chỉnh động | Không phải danh sách **mọi** JVM flag |
-| `getVMOption(name)` | Quan sát | Một `VMOption` theo tên nếu tồn tại | Có thể trả flag **không** writable; sai tên → exception |
-| `setVMOption(name,value)` | **Can thiệp** | Yêu cầu đổi giá trị option được JVM cho phép thay ở runtime | Kiểm tra `isWriteable`, valid value, quyền, side effect |
-| `dumpHeap(outputFile,live)` | **Can thiệp/thu artifact nặng** | Tạo file HPROF của heap | Pause/GC/I/O, disk, dữ liệu nhạy cảm, đường dẫn đích |
+| `getDiagnosticOptions()` | Observation | List of dynamically adjustable diagnostic `VMOption`s | Not a list of **all** JVM flags |
+| `getVMOption(name)` | Observation | One `VMOption` by name if it exists | May return a **non**-writable flag; unknown name → exception |
+| `setVMOption(name,value)` | **Intervention** | Requests changing an option allowed by the JVM at runtime | Check `isWriteable`, valid value, permissions, side effects |
+| `dumpHeap(outputFile,live)` | **Intervention / heavy artifact** | Creates an HPROF heap dump file | Pause/GC/I/O, disk, sensitive data, target path |
 
-Những method đọc vẫn có chi phí gọi management interface; tuy nhiên rủi ro chính nằm ở việc **dump dữ liệu heap lớn** và **đổi cờ có hiệu lực với tiến trình sống**.
+Read methods still carry management interface invocation cost; however, the main risks lie in **dumping large heaps** and **mutating flags on a live process**.
 
-Đừng gọi `setVMOption` chỉ để “thử xem flag tồn tại không”; `getVMOption` dùng cho kiểm tra đọc. Đừng gọi `dumpHeap` khi chỉ cần biết heap used/max; hãy bắt đầu bằng `MemoryMXBean`, GC logs, metrics hoặc công cụ đã bật sẵn.
+Never call `setVMOption` just to "test whether a flag exists"; use `getVMOption` for read checks. Never call `dumpHeap` when you only need heap used/max; start with `MemoryMXBean`, GC logs, metrics, or already-enabled tooling.
 
-## 3. VMOption: name, value, writeable và origin
+## 3. VMOption: name, value, writeable, and origin
 
-`com.sun.management.VMOption` mô tả một giá trị VM option tại thời điểm lấy snapshot.
+`com.sun.management.VMOption` describes a VM option value at snapshot time.
 
 ```java
 VMOption opt = bean.getVMOption("SomeOptionName");
@@ -80,149 +80,149 @@ boolean canChangeNow = opt.isWriteable();
 VMOption.Origin origin = opt.getOrigin();
 ```
 
-Đây là **mã minh họa tích hợp**. `SomeOptionName` là một tên tượng trưng để giải thích chữ ký API; đừng chạy nguyên chuỗi này trên production. Nên dùng tên đã được xác minh trên JVM mục tiêu.
+This is **integrated illustrative code**. `SomeOptionName` is a placeholder name to explain the API signature; never run that literal string in production. Use a flag name verified on the target JVM.
 
-### 3.1 Ý nghĩa từng trường
+### 3.1 Meaning of each field
 
-- `getName()`: tên option mà HotSpot nhận diện.
-- `getValue()`: **chuỗi giá trị tại thời điểm tạo đối tượng `VMOption`**, không phải một binding tự cập nhật khi flag thay đổi.
-- `isWriteable()`: JVM thông báo option **có thể được thiết lập động qua management interface**. Tên API dùng chính xác cách viết **`Writeable`**, không phải `Writable`.
-- `getOrigin()`: nguồn gốc giá trị tại thời điểm snapshot, giúp phân biệt cờ mặc định với cờ đến từ command line, cấu hình hoặc thay đổi management.
+- `getName()`: option name recognized by HotSpot.
+- `getValue()`: **string value at the moment the `VMOption` object was created**, not a live binding that updates when the flag changes.
+- `isWriteable()`: JVM indicates the option **can be dynamically set via the management interface**. The API spells it **`Writeable`**, not `Writable`.
+- `getOrigin()`: source of the value at snapshot time, distinguishing default flags from those coming from command line, config files, or management changes.
 
-Một `VMOption` trả về trước thay đổi không tự đổi `value` sau `setVMOption`; phải **gọi lại `getVMOption`** để lấy snapshot mới.
+A `VMOption` returned prior to a change does not automatically update its `value` after `setVMOption`; you must **call `getVMOption` again** for a fresh snapshot.
 
-### 3.2 Các giá trị `VMOption.Origin` trong Java 17
+### 3.2 `VMOption.Origin` values in Java 17
 
-| Origin | Ý nghĩa |
+| Origin | Meaning |
 | --- | --- |
-| `DEFAULT` | Option chưa được set, đang dùng default |
-| `VM_CREATION` | Được set lúc tạo VM (thường là launcher args/JNI invocation) |
-| `ENVIRON_VAR` | Được set qua environment variable |
-| `CONFIG_FILE` | Được set bằng configuration file |
-| `ERGONOMIC` | VM chọn qua cơ chế tự điều chỉnh/ergonomics |
-| `MANAGEMENT` | Được thay đổi qua management interface sau khi VM chạy |
-| `ATTACH_ON_DEMAND` | Được set qua attach framework |
-| `OTHER` | Đến từ cơ chế khác |
+| `DEFAULT` | Option has not been set; using default |
+| `VM_CREATION` | Set at VM creation (typically launcher args / JNI invocation) |
+| `ENVIRON_VAR` | Set via environment variable |
+| `CONFIG_FILE` | Set via configuration file |
+| `ERGONOMIC` | Chosen by the VM through ergonomic auto-tuning |
+| `MANAGEMENT` | Modified through the management interface after VM startup |
+| `ATTACH_ON_DEMAND` | Set via the attach framework |
+| `OTHER` | Came from another mechanism |
 
-Origin **không phải cơ chế kiểm chứng flag đó đúng về mặt vận hành**. Ví dụ `VM_CREATION` chỉ biết flag được set tại startup, không nói nó tối ưu. `MANAGEMENT` cho biết giá trị đến từ management interface, không đồng nghĩa thay đổi đã cải thiện triệu chứng.
+Origin **is not a check of whether a flag is operationally appropriate**. For example, `VM_CREATION` only tells you the flag was set at startup, not that it is optimal. `MANAGEMENT` shows the value came via a management interface, not that the change improved the symptom.
 
-### 3.3 `getDiagnosticOptions` không phải toàn bộ danh sách `-XX`
+### 3.3 `getDiagnosticOptions` is not the entire `-XX` list
 
-Theo Javadoc Java 17, “diagnostic option” ở API này là một **writeable VM option có thể được set động**, phục vụ chẩn đoán. Danh sách:
+Per Java 17 Javadoc, a "diagnostic option" in this API is a **writeable VM option that can be set dynamically** for diagnostic purposes. The list:
 
 ```java
 List<VMOption> manageable = bean.getDiagnosticOptions();
 ```
 
-chỉ thuộc nhóm API định nghĩa; không thay thế output toàn bộ effective VM flags của `jcmd VM.flags -all`, cũng không chứng minh một flag không xuất hiện trong list là không tồn tại.
+only covers that API-defined subset; it neither replaces the full effective VM flags output of `jcmd VM.flags -all` nor proves a flag absent from the list does not exist.
 
-`getVMOption(name)` cho phép tra một flag theo tên và đọc `isWriteable()`, kể cả khi flag đó không nằm trong danh sách diagnostic writeable. Nếu tên không tồn tại, `IllegalArgumentException` là tín hiệu “option không có trên VM đang chạy”, không có nghĩa cả Java application lỗi.
+`getVMOption(name)` lets you look up a flag by name and read `isWriteable()`, even when that flag is not in the writable diagnostic list. If the name does not exist, `IllegalArgumentException` simply means "option not present on the running VM", not that the entire Java application is broken.
 
-Khi làm công cụ tự động, **không hardcode danh sách flag writable của một phiên bản JDK** rồi áp lên tất cả. Các flag `-XX` có thể thay đổi hoặc bị bỏ qua qua JDK version, vendor, OS, collector hay lựa chọn runtime khác.
+When building automation tools, **never hard-code one JDK version's writable flag list** and apply it across all builds. `-XX` flags can change or disappear across JDK versions, vendors, OSes, collectors, or runtime options.
 
-## 4. Heap dump qua `dumpHeap(String outputFile, boolean live)`
+## 4. Heap dump via `dumpHeap(String outputFile, boolean live)`
 
-Phương thức:
+Method signature:
 
 ```java
 void dumpHeap(String outputFile, boolean live)
         throws IOException;
 ```
 
-Tạo file ở định dạng tương thích **HPROF heap dump**, chứa thông tin về các object/quan hệ tham chiếu trong Java heap. File này phục vụ phân tích object count, retained size, dominator tree và retaining path bằng các công cụ phù hợp.
+Creates a file in **HPROF heap dump** format, containing object/reference graph information in the Java heap. This file enables analyzing object counts, retained sizes, dominator trees, and retaining paths with suitable tools.
 
-### 4.1 `live=true` và `live=false`
+### 4.1 `live=true` vs. `live=false`
 
-| Giá trị | Tập object yêu cầu ghi | Phân tích thích hợp |
+| Value | Requested object set | Suitable analysis |
 | --- | --- | --- |
-| `live=true` | Các object đang **reachable** từ những root/đối tượng khác theo ngữ nghĩa của API | Phân tích object được giữ lại, memory retention |
-| `live=false` | Bao gồm **cả object không còn reachable** vào thời điểm thu theo khả năng của VM | Điều tra allocation/heap content rộng hơn, hiểu rõ rằng có thể có object rác chưa được thu |
+| `live=true` | Objects currently **reachable** from roots/other objects per API semantics | Analyzing retained objects, memory retention |
+| `live=false` | Includes **even unreachable objects** at capture time as supported by the VM | Broader allocation/heap content investigation, keeping in mind uncollected garbage may be included |
 
-Một object được gọi là “live” ở đây theo định nghĩa **reachable**, **không** đồng nghĩa “vừa được sử dụng bởi request trong một phút” hoặc “không bao giờ là leak”. Một leak trong Java thường là **object vẫn reachable không còn cần thiết về nghiệp vụ**.
+"Live" here means **reachable**, **not** "recently touched by a request within the last minute" or "never a leak". A leak in Java is typically **objects that remain reachable yet are no longer needed by the business logic**.
 
-**Chi tiết rất quan trọng:** để xác định tập object reachable và chụp snapshot nhất quán, việc tạo dump có thể làm JVM phải đồng bộ/pause và/hoặc thực hiện xử lý GC tùy collector/implementation. Với `live=true` trong HotSpot, người vận hành nên chuẩn bị cho khả năng có GC và ảnh hưởng latency. Không gọi một heap dump là “read-only không tác dụng phụ” chỉ vì method không sửa object trong code ứng dụng.
+**Critical detail:** to determine the reachable object set and capture a consistent snapshot, creating a dump can force the JVM to synchronize/pause and/or perform GC work depending on the collector/implementation. With `live=true` in HotSpot, operators should prepare for possible GC activity and latency impact. Never call a heap dump "side-effect-free read-only" just because the method does not mutate application objects.
 
-`live=false` **không** bảo đảm “không pause”, “không đồng bộ” hoặc “dump nhanh”; nó chỉ thay đổi yêu cầu về tập object được đưa vào artifact. Khi so sánh hai dump, phải ghi **cả giá trị `live` và thời điểm** vì tính chất dữ liệu có thể khác.
+`live=false` **does not** guarantee "no pause", "no synchronization", or "fast dump"; it only changes which objects are requested in the artifact. When comparing two dumps, record **both the `live` flag and timestamp** because data characteristics differ.
 
-### 4.2 File được ghi ở đâu?
+### 4.2 Where is the file written?
 
-Javadoc Java 17 quy định:
+Java 17 Javadoc specifies:
 
-- Nếu gọi **trực tiếp trong cùng process**, `outputFile` được hiểu theo filesystem mà process JVM đó nhìn thấy.
-- Nếu gọi **từ JMX client ở process/máy khác**, dump vẫn được ghi **trên máy target JVM**, không phải trên máy chạy client.
-- Nếu dùng **relative path**, nó được tính từ **working directory của target VM lúc khởi động**.
-- File dump phải có **suffix `.hprof`** và tên hợp lệ theo OS/VM.
+- When called **directly in-process**, `outputFile` is resolved on the filesystem visible to that JVM process.
+- When called **from a JMX client on another process/machine**, the dump is still written **on the target JVM's machine**, not on the client machine.
+- If a **relative path** is used, it resolves against **the target VM's startup working directory**.
+- The dump file must have the **`.hprof` suffix** and a valid filename for the OS/VM.
 
-Do đó trong container/Kubernetes, `/tmp/app-heap.hprof` có thể nằm trong filesystem của **container Java**, không phải `/tmp` của máy operator. Nếu target container bị restart, ephemeral artifact có thể mất; cần kế hoạch lấy file ra và giữ bảo mật. Một đường dẫn tồn tại trên máy giám sát **không** chứng minh đường dẫn đó ghi được trong container target.
+Hence in containers/Kubernetes, `/tmp/app-heap.hprof` lands inside the **Java container's** filesystem, not the operator's `/tmp`. If the target container restarts, ephemeral artifacts can vanish; plan extraction and security handling. A path existing on the monitoring host **does not** prove that path is writable inside the target container.
 
-**Quy tắc thực hành:** ưu tiên đường dẫn tuyệt đối, đã xác minh quyền/dung lượng ở **đúng filesystem target**, tên file độc nhất cho run/PID/timestamp và truy xuất theo quy trình bảo mật. Không đoán đường dẫn đích từ máy client.
+**Practical rule:** prefer an absolute path with verified permissions/headroom on **the exact target filesystem**, a unique filename carrying run/PID/timestamp, and secure retrieval procedures. Never guess target paths from the client machine.
 
-### 4.3 Lỗi cần nhận diện
+### 4.3 Errors to recognize
 
-Theo Javadoc Java 17:
+Per Java 17 Javadoc:
 
-| Điều kiện | Exception có thể gặp | Điều cần kiểm tra |
+| Condition | Possible exception | What to check |
 | --- | --- | --- |
-| File đích đã tồn tại hoặc không thể tạo/mở/ghi | `IOException` | Tên duy nhất, thư mục, quyền, disk/quota, mount, inode |
-| File không kết thúc bằng `.hprof` | `IllegalArgumentException` | Đặt hậu tố chính xác |
-| `outputFile == null` | `NullPointerException` | Không truyền `null` |
-| Operation không được hỗ trợ | `UnsupportedOperationException` | JVM/vendor/implementation và môi trường |
-| Quyền quản lý/ghi file bị từ chối trong cấu hình bảo vệ phù hợp | `SecurityException` | Quyền caller, chính sách quản trị, quyền filesystem |
+| Target file already exists or cannot be created/opened/written | `IOException` | Unique name, directory, permissions, disk/quota, mount, inodes |
+| Filename does not end with `.hprof` | `IllegalArgumentException` | Supply exact suffix |
+| `outputFile == null` | `NullPointerException` | Never pass `null` |
+| Unsupported operation | `UnsupportedOperationException` | JVM/vendor/implementation and environment |
+| Management/file write permission denied under appropriate security config | `SecurityException` | Caller permissions, management policy, filesystem permissions |
 
-Nếu không có đủ disk, nên **không gọi dump** thay vì thử rồi gây tràn ổ khi service đã suy giảm. Việc kiểm tra dung lượng trước chỉ là đánh giá rủi ro, không bảo đảm file cuối cùng sẽ vừa vì heap và dung lượng trống có thể biến động.
+If disk space is insufficient, **do not invoke the dump** rather than risking filling the disk while the service is already degraded. Checking free space beforehand is a risk check, not a guarantee the final file will fit, since heap and free space can fluctuate.
 
-Một dump có thể có kích thước gần hoặc vượt phần heap đang dùng tùy định dạng/nội dung object/metadata và phương pháp ghi. Không dùng công thức cứng kiểu “file = Xmx” như một cam kết dung lượng. Ngoài ra, disk pressure và I/O amplification có thể ảnh hưởng chính dịch vụ đang chạy.
+A dump's size can approach or exceed currently used heap depending on format/object contents/metadata and write mechanism. Do not rely on a rigid formula like "file = Xmx" as a capacity guarantee. Furthermore, disk pressure and I/O amplification can hurt the running service itself.
 
-### 4.4 HPROF có thể chứa dữ liệu nhạy cảm
+### 4.4 HPROF files can contain sensitive data
 
-Heap dump không giống log đã được lọc trường. Nó có thể chứa:
+A heap dump is not a field-redacted log. It can contain:
 
-- Dữ liệu từ request/response, customer/session identifiers, email, địa chỉ, dữ liệu nghiệp vụ.
-- Token, secrets, password/string còn nằm trong heap, tùy việc ứng dụng lưu giữ.
-- Buffer, cache, chuỗi kết nối/URI và dữ liệu nội bộ có tính bảo mật.
-- Object graph/quan hệ tham chiếu có thể bộc lộ kiến trúc bên trong.
+- Request/response payloads, customer/session identifiers, emails, addresses, and business records.
+- Tokens, secrets, and passwords/strings still residing on the heap depending on application handling.
+- Buffers, caches, connection strings/URIs, and confidential internal data.
+- Object graphs/reference structures that reveal internal architecture.
 
-Áp dụng phân quyền, encryption at rest/in transit nếu chuyển file, lifecycle/retention rõ, nơi lưu không public, hạn chế sao chép và dọn file sau thời hạn. Không đưa HPROF hoặc stack/metadata chứa dữ liệu thực vào chat công khai hay repository.
+Enforce access control, encryption at rest/in transit when transferring files, clear lifecycle/retention, non-public storage, minimal copying, and deletion after expiration. Never commit HPROF files or stacks/metadata containing real data to public chats or repositories.
 
-## 5. Phân biệt `dumpHeap` với `jcmd GC.heap_dump`
+## 5. Distinguishing `dumpHeap` from `jcmd GC.heap_dump`
 
-Cả hai thường phục vụ mục đích lấy heap dump từ HotSpot, nhưng chúng là **hai giao diện** khác nhau.
+Both typically serve to capture a heap dump from HotSpot, yet they are **two different interfaces**.
 
-| Góc nhìn | `HotSpotDiagnosticMXBean.dumpHeap` | `jcmd <PID> GC.heap_dump` |
+| Perspective | `HotSpotDiagnosticMXBean.dumpHeap` | `jcmd <PID> GC.heap_dump` |
 | --- | --- | --- |
-| Nơi gọi | Trong Java code hoặc qua JMX | CLI/attach diagnostic command |
-| Tham số đối tượng | `live=true/false` | Có option như `-all` theo JDK 17 |
-| Đích xuất | `outputFile` trên filesystem target JVM | File path được target JVM xử lý |
-| Hành vi | Snapshot có thể tác động GC/pause/I/O | Tài liệu JDK 17 nêu mặc định yêu cầu full GC nếu không có `-all` |
-| Quyền | Management permissions/JMX/OS tương ứng | Quyền attach vào target process |
-| Rủi ro | File HPROF lớn, privacy, đổi trạng thái quan sát | Rủi ro tương tự; phải đọc help/version cụ thể |
+| Invocation point | From Java code or over JMX | CLI / attach diagnostic command |
+| Object scope parameter | `live=true/false` | Options such as `-all` in JDK 17 |
+| Output target | `outputFile` on target JVM filesystem | File path handled by target JVM |
+| Behavior | Snapshot may affect GC/pause/I/O | JDK 17 docs note it requests a full GC by default unless `-all` is passed |
+| Permissions | Management/JMX/OS permissions | Attach permission on target process |
+| Risks | Large HPROF file, privacy, altering observed state | Similar risks; check exact help/version |
 
-Không nhầm rằng `live=false` hay `-all` là tùy chọn “miễn phí GC và pause”. Các cơ chế GC, đồng bộ và chi phí snapshot phụ thuộc bản VM, collector, heap size, workload. Phải dùng thông tin đúng JDK/và hoàn cảnh thật.
+Do not assume `live=false` or `-all` is a "zero-GC, zero-pause" option. GC mechanics, synchronization, and snapshot cost depend on VM build, collector, heap size, and workload. Rely on documentation for your exact JDK and actual context.
 
-Với nhu cầu **chỉ xem heap usage**, `MemoryMXBean.getHeapMemoryUsage()`, GC metrics/JFR hiện có thường ít xâm lấn hơn một heap dump. Chỉ thực hiện dump khi câu hỏi cần object graph/retaining paths mà metric tổng quan không trả lời được.
+When you **only need heap usage**, `MemoryMXBean.getHeapMemoryUsage()` and existing GC metrics/JFR are far less invasive than a heap dump. Only take a dump when the question requires object graphs/retaining paths that aggregate metrics cannot answer.
 
-## 6. `setVMOption`: đổi giá trị động chứ không phải đọc
+## 6. `setVMOption`: mutating dynamically, not reading
 
-Phương thức:
+Method signature:
 
 ```java
 void setVMOption(String name, String value);
 ```
 
-Yêu cầu JVM thay đổi một option có thể chỉnh tại runtime. Giá trị được truyền vào là **String**, kể cả khi option biểu diễn boolean, số nguyên, kích thước hay loại dữ liệu khác. Chỉ các giá trị mà VM chấp nhận mới hợp lệ.
+Requests the JVM to modify a runtime-tunable option. The value is passed as a **String**, even when the option represents a boolean, integer, size, or another type. Only values accepted by the VM are valid.
 
-**Trình tự tối thiểu trước khi thay:**
+**Minimum sequence before changing:**
 
-1. Xác nhận đúng **process/JVM/vendor/version/build/PID**.
-2. Đọc `getVMOption(name)` và lưu `value`, `origin`, `isWriteable`.
-3. Nếu `isWriteable()==false`, **không** thử set để “kiểm tra xem sao”.
-4. Xác định thay đổi này ảnh hưởng gì: logging, error handling, chẩn đoán, performance hoặc bảo mật.
-5. Chọn mục tiêu, giới hạn tác động, window, owner và phương án khôi phục.
-6. Chỉ sau khi được phép, gọi `setVMOption(name,newValue)` trong môi trường/phiên phù hợp.
-7. Gọi `getVMOption(name)` **lần nữa**, đối chiếu effective value và origin; kiểm tra metric/trạng thái thực.
-8. Nếu phải rollback, dùng chính sách cho flag đó, sau đó **đọc lại** và kiểm chứng tác dụng phụ (file/log/recording có thể không quay lại trạng thái cũ chỉ vì flag được đổi lại).
+1. Verify the exact **process/JVM/vendor/version/build/PID**.
+2. Read `getVMOption(name)` and record `value`, `origin`, and `isWriteable`.
+3. If `isWriteable()==false`, **do not** attempt setting it "just to see what happens".
+4. Identify what the change impacts: logging, error handling, diagnostics, performance, or security.
+5. Define scope, blast radius, window, owner, and rollback plan.
+6. Only after authorization, call `setVMOption(name,newValue)` in the right environment/session.
+7. Call `getVMOption(name)` **again**, verify effective value and origin, and monitor real metrics/state.
+8. If rollback is needed, follow the policy for that flag, then **re-read** and verify side effects (files/logs/recordings may not revert merely because the flag was reset).
 
-**Ví dụ mã tích hợp — không được gọi tự động trong bài lab:**
+**Integrated code example — not executed automatically in the lab:**
 
 ```java
 // Preconditions: owner approved the specific flag/change;
@@ -239,34 +239,34 @@ String originalValue = before.getValue();
 // VMOption after = bean.getVMOption(name); // Re-read if a change was approved.
 ```
 
-Đây là đoạn **minh họa tích hợp**, không độc lập và cố tình **không thực thi lệnh set**. Việc bỏ comment tại production đòi hỏi kiểm tra flag cụ thể và quyền vận hành. Lưu lại trạng thái ban đầu nhưng không mặc định rollback bằng `setVMOption(name,originalValue)` sẽ hoàn tác mọi tác động ngoài VM flag (ví dụ file đã ghi hoặc dữ liệu log đã bị thay đổi).
+This is an **integrated illustrative snippet**, not standalone, and intentionally **does not execute the set call**. Uncommenting it in production requires validating the specific flag and operational authorization. Saving the initial value is essential, yet do not assume rolling back via `setVMOption(name,originalValue)` undoes every side effect outside the VM flag (such as written files or altered log output).
 
-### 6.1 Flag “manageability” không đồng nghĩa mọi thứ đều chỉnh được
+### 6.1 Flag "manageability" does not mean everything is tunable
 
-- Một số flag chỉ có hiệu lực khi khởi động JVM, như nhiều thiết lập heap/collector cơ bản; không thể biến `-Xmx` thành thay đổi động chỉ vì dùng API management.
-- Các cờ `-XX` không có bảo đảm ổn định qua mọi major JDK/vendor.
-- `getDiagnosticOptions()` là một nguồn liệt kê các option hỗ trợ điều chỉnh động cho mục tiêu chẩn đoán; không dùng nó để khẳng định **toàn bộ** flag không có trong list đều không tồn tại.
-- `getVMOption` cho biết giá trị và writeability **tại thời điểm đọc**; điều kiện runtime có thể thay đổi sau đó.
+- Some flags apply only at JVM startup, like many core heap/collector settings; you cannot turn `-Xmx` into a dynamic change just via the management API.
+- `-XX` flags have no stability guarantee across every major JDK/vendor.
+- `getDiagnosticOptions()` lists options supporting dynamic diagnostic tuning; do not use it to assert that **any** flag missing from the list does not exist.
+- `getVMOption` reports value and writeability **at read time**; runtime conditions may change afterward.
 
-Nếu set vào option **không tồn tại**, **không writeable** hoặc giá trị **không hợp lệ**, Javadoc cho biết `IllegalArgumentException`. Nếu `name` hoặc `value` null thì `NullPointerException`; một môi trường có security manager/quyền bảo vệ phù hợp có thể sinh `SecurityException`.
+When setting an option that **does not exist**, is **non-writeable**, or has an **invalid value**, Javadoc specifies `IllegalArgumentException`. If `name` or `value` is null, `NullPointerException`; an environment with appropriate security/permission controls may throw `SecurityException`.
 
-### 6.2 Vì sao phải phân biệt `value` và `origin`?
+### 6.2 Why distinguish `value` and `origin`?
 
-Giả sử một option ở T1 có `value=false`, `origin=DEFAULT`, `writeable=true`. Sau thao tác điều chỉnh hợp lệ tại T2, một **đối tượng `VMOption` mới** có thể cho thấy `value=true`, `origin=MANAGEMENT`.
+Suppose an option at T1 has `value=false`, `origin=DEFAULT`, `writeable=true`. After a valid adjustment at T2, a **new `VMOption` object** may show `value=true`, `origin=MANAGEMENT`.
 
-**Không** kết luận object `before` tự cập nhật. Nó lưu snapshot trước đó theo Javadoc. Nếu cả app và monitoring tool đều lưu object cũ, dashboard có thể hiển thị thông tin stale; cần đặt timestamp cho mỗi mẫu.
+**Do not** expect the earlier `before` object to update itself. It holds the earlier snapshot per Javadoc. If an app or monitoring tool caches the old object, dashboards can display stale info; timestamp every sample.
 
-Origin cũng giúp điều tra sai khác giữa manifest/JVM args và trạng thái đang chạy: flag có thể đã được đổi sau startup qua management hoặc attach. Tuy nhiên cần đối chiếu event/audit log mới biết **ai** đổi và lý do; `Origin` không là hệ thống audit đầy đủ.
+Origin also helps investigate discrepancies between manifests/JVM args and running state: a flag may have been changed post-startup via management or attach. However, you need event/audit logs to know **who** changed it and why; `Origin` is not a complete audit trail.
 
-## 7. Java 17+: chương trình lab có chế độ an toàn mặc định
+## 7. Java 17+: lab program with safe-by-default modes
 
-Chương trình dưới đây thực hiện ba chức năng:
+The program below provides three modes:
 
-1. **`fixture`**: tạo hai `VMOption` mô phỏng bằng constructor chuẩn, phân biệt cờ writeable và non-writeable, in stdout cố định. Chế độ này **không đọc hay sửa flags của JVM đang chạy**.
-2. **`inspect`**: đọc HotSpot MXBean **của chính JVM lab**, in tên ObjectName và số diagnostic options; không ghi dump, không thay flag. Có thể truyền một tên flag để quan sát giá trị thực; output phụ thuộc JDK và flags thực.
-3. **`dump-lab`**: chỉ ghi heap dump **khi người học tự truyền đầy đủ đường dẫn và chuỗi xác nhận**, trên **JVM lab riêng**. Không có chế độ `setVMOption` tự động để tránh vô ý sửa runtime configuration.
+1. **`fixture`**: constructs two simulated `VMOption` instances via the standard constructor, distinguishing writeable and non-writeable flags, printing deterministic stdout. This mode **neither reads nor modifies flags on the running JVM**.
+2. **`inspect`**: reads the **lab JVM's** HotSpot MXBean, prints the ObjectName and diagnostic option count; writes no dump and mutates no flags. You may optionally pass a flag name to inspect its live value; output depends on the JDK and live flags.
+3. **`dump-lab`**: writes a heap dump **only when the learner explicitly passes a full path and confirmation string**, inside **a dedicated lab JVM**. There is no automated `setVMOption` mode to prevent accidental runtime configuration edits.
 
-Tạo file **`HotSpotDiagnosticLab.java`**:
+Create the file **`HotSpotDiagnosticLab.java`**:
 
 ```java
 import com.sun.management.HotSpotDiagnosticMXBean;
@@ -385,16 +385,16 @@ public class HotSpotDiagnosticLab {
 }
 ```
 
-### 7.1 Biên dịch/chạy chế độ xác định
+### 7.1 Compile/run deterministic mode
 
-Dùng **JDK 17 HotSpot** hoặc bản JDK 17 phù hợp có `jdk.management`:
+Use **JDK 17 HotSpot** or a compatible JDK 17 build with `jdk.management`:
 
 ```bash
 javac HotSpotDiagnosticLab.java
 java HotSpotDiagnosticLab fixture
 ```
 
-**Stdout chính xác** của `fixture`:
+**Exact stdout** of `fixture`:
 
 ```text
 ExampleFixed value=512m writeable=false origin=VM_CREATION
@@ -404,65 +404,65 @@ live=true: reachable objects only
 setVMOption: mutates a writeable VM option
 ```
 
-Giải thích:
+Explanation:
 
-- `ExampleFixed` và `ExampleDynamic` là **VMOption mô phỏng** do constructor tạo ra, **không** phải hai HotSpot flags đã tồn tại.
-- `isWriteable` và `Origin` được in theo chính giá trị truyền vào.
-- Không có thao tác `bean().dumpHeap` hoặc `bean().setVMOption` nào chạy trong chế độ `fixture`.
-- Vì không dựa vào heap/flag thực, stdout không phụ thuộc JVM arguments hay tải máy.
+- `ExampleFixed` and `ExampleDynamic` are **simulated VMOptions** built with the constructor, **not** two pre-existing HotSpot flags.
+- `isWriteable` and `Origin` print the exact values passed in.
+- No `bean().dumpHeap` or `bean().setVMOption` call runs in `fixture` mode.
+- Because it does not touch live heap or flags, stdout is independent of JVM arguments or machine load.
 
-### 7.2 Chế độ chỉ đọc JVM thực
+### 7.2 Read-only mode against the live JVM
 
 ```bash
 java HotSpotDiagnosticLab inspect
 ```
 
-Lệnh in ObjectName của bean, số lượng option chẩn đoán và tối đa năm **tên** option theo alphabet. Không có stdout cố định vì số lượng/tên flag phụ thuộc JDK/build và option availability.
+This prints the bean's ObjectName, diagnostic option count, and up to five option **names** alphabetically. There is no fixed stdout because option counts/names depend on the JDK/build and option availability.
 
-Nếu đã xác minh tên flag hiện diện trên JVM lab:
+If you have verified a flag name present on the lab JVM:
 
 ```bash
 java HotSpotDiagnosticLab inspect HeapDumpOnOutOfMemoryError
 ```
 
-Đây là **ví dụ tra cứu**, không khẳng định mọi HotSpot build đều phải cung cấp tên đó. Nếu flag không tồn tại, chương trình in `optionNotFound=...`. Nếu tồn tại, in cả `value`, `writeable`, `origin`. **Không đưa output có bí mật cấu hình ra kênh công khai**.
+This is a **lookup example**, not an assertion that every HotSpot build must expose that name. If the flag does not exist, the program prints `optionNotFound=...`. If it exists, it prints `value`, `writeable`, and `origin`. **Never send output containing configuration secrets to public channels**.
 
-**Lưu ý:** mỗi lệnh `java HotSpotDiagnosticLab ...` khởi động **một JVM mới**. Nó phản ánh settings của chính JVM lab, **không** phản ánh một service Java khác đang chạy dù trên cùng máy. Với service thật, cần JMX kết nối đúng target hoặc đường chẩn đoán khác có quyền phù hợp.
+**Note:** each `java HotSpotDiagnosticLab ...` invocation launches **a new JVM**. It reflects the lab JVM's own settings, **not** another running Java service even on the same machine. For a real service, you need a JMX connection to the right target or another authorized diagnostic channel.
 
-### 7.3 Chế độ tạo dump có chủ đích
+### 7.3 Intentional dump mode
 
-Chỉ chạy trong **môi trường lab có quyền**, sau khi kiểm tra dung lượng đĩa/thư mục/retention:
+Run only in an **authorized lab environment**, after checking disk space, target directory, and retention:
 
 ```bash
 java HotSpotDiagnosticLab dump-lab ./lab-heap.hprof I_UNDERSTAND_THE_RISK
 ```
 
-Lệnh này khởi động một JVM lab mới, tạo heap dump của **chính nó** với `live=true` rồi in đường dẫn đầy đủ. **Không thể dự đoán stdout chính xác** vì đường dẫn tuyệt đối, thao tác file và trạng thái VM phụ thuộc máy. Nếu file đã tồn tại, chương trình chủ động từ chối thay vì ghi đè. Chương trình vẫn phải chịu `IOException` hoặc các lỗi khác nếu filesystem không cho ghi.
+This command starts a new lab JVM, writes a heap dump of **itself** with `live=true`, and prints the full path. **Exact stdout cannot be predicted** because absolute paths, file operations, and VM state depend on the machine. If the file already exists, the program intentionally refuses instead of overwriting. The program is still subject to `IOException` or other errors if the filesystem disallows writing.
 
-Không chạy nó với dữ liệu production chỉ để làm bài tập: HPROF có thể chứa nội dung heap nhạy cảm và tạo file lớn. Chuỗi xác nhận chỉ giúp tránh gọi nhầm trong lab, **không thay thế quyền vận hành, policy bảo mật hoặc preflight tài nguyên**.
+Do not run this on production data just as an exercise: HPROF files can contain sensitive heap contents and grow large. The confirmation string only prevents accidental calls in the lab; **it does not replace operational authorization, security policy, or resource preflight checks**.
 
-### 7.4 Chạy trên JVM không có HotSpot bean
+### 7.4 Running on a JVM without the HotSpot bean
 
-Chế độ `fixture` chỉ dùng constructor `VMOption`. Chế độ `inspect` và `dump-lab` đòi HotSpotDiagnosticMXBean khả dụng. Nếu JDK runtime thiếu module `jdk.management` hoặc JVM không hỗ trợ interface, cần dùng công cụ tương ứng thay vì gọi API này và giả định lỗi của ứng dụng.
+`fixture` mode uses only the `VMOption` constructor. `inspect` and `dump-lab` require `HotSpotDiagnosticMXBean` to be available. If the JDK runtime lacks the `jdk.management` module or the JVM does not support the interface, use appropriate alternative tools rather than calling this API and blaming the application.
 
-## 8. Nếu cần gọi qua JMX: điểm khác biệt quan trọng
+## 8. When calling via JMX: critical differences
 
-ObjectName của HotSpotDiagnosticMXBean:
+ObjectName of HotSpotDiagnosticMXBean:
 
 ```text
 com.sun.management:type=HotSpotDiagnostic
 ```
 
-Trên JMX client phù hợp, có thể gọi operation `dumpHeap` hoặc `setVMOption` thông qua MBeanServerConnection. Nhưng **JMX remote management cần được bảo vệ nghiêm ngặt**:
+From a compatible JMX client, you can invoke `dumpHeap` or `setVMOption` over `MBeanServerConnection`. However, **remote JMX management must be strictly secured**:
 
-- Có xác thực, mã hóa kết nối, firewall/allowlist và quyền tối thiểu theo hệ thống triển khai.
-- Không mở remote JMX port ra Internet chỉ để chạy heap dump.
-- Chỉ kết nối đúng JVM instance; với container/pod restart, định danh target theo deployment, PID, start time.
-- Không đưa credential vào log hoặc command line có thể bị người khác đọc.
-- Hệ thống điều khiển có thể phải đi qua audit/change-management; một JMX client đọc cũng có thể gọi operation **mutating** nếu được cấp quyền quá rộng.
-- Tệp `dumpHeap` sẽ được tạo **trên target VM**, không tự xuất hiện trên máy remote operator. Cần thủ tục chuyển/cất giữ artifact an toàn.
+- Enforce authentication, encrypted transport, firewall/allowlists, and least privilege per deployment environment.
+- Never open a remote JMX port to the Internet just to run heap dumps.
+- Connect strictly to the right JVM instance; across container/pod restarts, identify targets by deployment, PID, and start time.
+- Never put credentials into logs or command lines readable by others.
+- Control systems may need audit/change-management gates; a "read" JMX client could also invoke **mutating** operations if granted overly broad permissions.
+- The `dumpHeap` file is created **on the target VM**, and does not automatically appear on the remote operator's machine. Plan secure artifact transfer/storage.
 
-Ví dụ khái niệm khi đã có `MBeanServerConnection connection` được thiết lập hợp lệ:
+Conceptual example given an already established, valid `MBeanServerConnection connection`:
 
 ```java
 HotSpotDiagnosticMXBean remote =
@@ -474,125 +474,125 @@ HotSpotDiagnosticMXBean remote =
 VMOption current = remote.getVMOption("SomeVerifiedFlag");
 ```
 
-Đoạn này là mã **tích hợp**, không độc lập: `connection` phải do JMX client đã xác thực tạo ra, `SomeVerifiedFlag` phải là flag hợp lệ. Vì đây là nền tảng quản trị từ xa, cần xử lý network timeout, kết nối ngắt, thay đổi pod/target, quyền và mọi lỗi giao tiếp.
+This snippet is **integrated** code, not standalone: `connection` must come from an authenticated JMX client, and `SomeVerifiedFlag` must be a valid flag. Because this is remote management, handle network timeouts, disconnects, pod/target shifts, permissions, and all communication failures.
 
-Không tạo remote JMX server trong bài tập chỉ để demo điều này: cấu hình không đúng có thể mở bề mặt tấn công.
+Do not spin up a remote JMX server in exercises just to demo this: misconfiguration can open an attack surface.
 
-## 9. Quy trình chọn phương pháp chẩn đoán ít xâm lấn nhất
+## 9. Workflow for choosing the least invasive diagnostic method
 
-Trước khi thao tác, hỏi: **Mình muốn quan sát cấu hình, đo heap pressure hay cần phân tích object graph?**
+Before acting, ask: **Do I want to inspect configuration, measure heap pressure, or analyze the object graph?**
 
-### 9.1 Khi chỉ cần xác nhận flags
+### 9.1 When you only need to verify flags
 
-- Thu JDK vendor/version, `VM.command_line`, runtime arguments và build.
-- Đọc `getVMOption(name)` cho tên đã biết, ghi `value/writeable/origin`.
-- Nếu cần danh sách những options quản lý được, đọc `getDiagnosticOptions()`.
-- Không đổi flag. Nếu nghi một flag đã bị chỉnh sau startup, so `origin` với audit/timeline quản trị.
+- Collect JDK vendor/version, `VM.command_line`, runtime arguments, and build.
+- Read `getVMOption(name)` for known names, recording `value/writeable/origin`.
+- If you need the list of manageable options, read `getDiagnosticOptions()`.
+- Do not change flags. If you suspect a flag changed post-startup, cross-check `origin` with management audit logs/timelines.
 
-Không cần heap dump để trả lời câu “`-Xmx` đang bao nhiêu?” hoặc “flag này có writable không?”.
+You do not need a heap dump to answer "What is `-Xmx` set to?" or "Is this flag writable?".
 
-### 9.2 Khi memory usage hoặc GC có dấu hiệu bất thường
+### 9.2 When memory usage or GC looks abnormal
 
-- Bắt đầu bằng `MemoryMXBean`, per-pool metrics, GC logs/JFR, container memory/RSS, allocation rate và sau-GC occupancy.
-- Xem hiện tượng ổn định hay chỉ GC sawtooth bình thường; tìm dependency/workload/memory pressure.
-- Chỉ nếu cần **object count, dominator hoặc retaining path**, lập kế hoạch heap dump ở thời điểm đại diện.
-- Ghi `live`, VM version, GC collector, workload, heap size và thời gian thu. Tránh dùng một snapshot duy nhất để khẳng định leak lâu dài.
+- Start with `MemoryMXBean`, per-pool metrics, GC logs/JFR, container memory/RSS, allocation rate, and post-GC occupancy.
+- Check whether behavior is steady or just normal GC sawtooth; look for dependency/workload/memory pressure.
+- Only if you need **object counts, dominators, or retaining paths**, schedule a heap dump at a representative moment.
+- Record `live`, VM version, GC collector, workload, heap size, and capture timestamp. Avoid using a single snapshot to assert a long-term leak.
 
-### 9.3 Khi muốn thử điều chỉnh VM option
+### 9.3 When testing a VM option adjustment
 
-- Xây dựng giả thuyết và metric/guardrails định trước.
-- Xác minh `isWriteable()` và semantics của flag ở phiên bản JDK hiện tại.
-- Có owner/phê duyệt, ranh giới áp dụng, canary/rollback nếu trên production.
-- Thu baseline, thực hiện **một thay đổi**, đọc lại flag và đo dưới cùng tải.
-- Ghi tác dụng phụ/tình trạng khôi phục. Không coi flag được set thành công là nguyên nhân đã được giải quyết.
+- Formulate a hypothesis along with predefined metrics and guardrails.
+- Verify `isWriteable()` and the flag's semantics on the current JDK version.
+- Secure owner/approval, scope boundaries, and canary/rollback plans if in production.
+- Capture a baseline, make **one change**, re-read the flag, and measure under equivalent load.
+- Record side effects and recovery status. Never equate a successful `setVMOption` call with having fixed the root cause.
 
-## 10. Một ví dụ điều tra heap tăng với quyết định có điều kiện
+## 10. Example investigation of rising heap with gated decisions
 
-Giả sử dịch vụ `checkout` chạy JVM HotSpot với `-Xmx2g`, heap used sau GC tăng từ 900 MiB lên 1,7 GiB trong vài giờ. Đây là **số liệu giả định** để học cách suy luận.
+Suppose service `checkout` runs a HotSpot JVM with `-Xmx2g`, and post-GC heap `used` climbs from 900 MiB to 1.7 GiB over several hours. These are **hypothetical numbers** for practicing reasoning.
 
-**Giai đoạn A — Quan sát chưa can thiệp**
+**Phase A — Non-intrusive observation**
 
-- Thu time series heap after GC, allocation rate, request mix, cache stats, transaction volume, container memory và GC pause.
-- Xác định ứng dụng có vừa tăng lượng dữ liệu giữ cache hoặc mở thêm session không.
-- Đọc flag cần thiết bằng `getVMOption`, không sửa giá trị.
-- Đối chiếu heap used với metaspace/direct/native/RSS; container OOM có thể xảy ra ngay cả khi heap chưa đạt `Xmx`.
+- Collect time series of post-GC heap, allocation rate, request mix, cache stats, transaction volume, container memory, and GC pauses.
+- Check whether the application recently grew cached data or active sessions.
+- Read necessary flags via `getVMOption` without mutating values.
+- Cross-check heap `used` against metaspace/direct/native/RSS; container OOM can occur even before heap reaches `Xmx`.
 
-**Giai đoạn B — Lập kế hoạch dump**
+**Phase B — Planning the dump**
 
-Nếu cần retaining paths, quyết định thời điểm, đường dẫn đích, `live=true` hay `false`, disk/quota headroom, quyền, rủi ro pause và sự tác động tới request latency.
+If retaining paths are needed, decide timing, target path, `live=true` vs. `false`, disk/quota headroom, permissions, pause risk, and request latency impact.
 
-**Giai đoạn C — Dump có kiểm soát**
+**Phase C — Controlled dump**
 
-Vào thời điểm được chấp thuận, gọi `dumpHeap` trên target VM và đánh dấu timestamp. Theo dõi GC/pause/I/O trước-sau. Không chạy đồng thời nhiều dump hoặc đổi nhiều cờ cùng lúc vì sẽ mất khả năng quy nguyên nhân.
+At the approved time, invoke `dumpHeap` on the target VM and record the timestamp. Watch GC/pauses/I/O before and after. Do not run multiple concurrent dumps or change multiple flags simultaneously, or attribution becomes impossible.
 
-**Giai đoạn D — Phân tích**
+**Phase D — Analysis**
 
-Dùng công cụ phân tích HPROF tìm objects retained lớn, dominator, đường giữ tham chiếu tới GC roots và xác minh **vòng đời nghiệp vụ**: object đó có còn đáng được giữ không? So với dump khác **cùng phương pháp**, workload và mốc sau GC để có bằng chứng về growth. Thấy một `HashMap` lớn chưa đủ khẳng định leak, vì cache có thể có chủ đích.
+Use an HPROF analyzer to inspect large retained objects, dominators, and reference paths to GC roots, and verify **business lifecycle**: should those objects still be held? Compare against another dump with the **same method**, workload, and post-GC checkpoint for growth evidence. Seeing one large `HashMap` is not enough to prove a leak, since a cache may be intentional.
 
-**Giai đoạn E — Kết luận đúng phạm vi**
+**Phase E — Scoped conclusion**
 
-Nên viết: “Tại T2, dump `live=true` cho thấy một tập object vẫn reachable và chiếm phần lớn heap; retaining path dẫn đến cache X. Dữ liệu nhiều mốc và vòng đời cache cần kiểm tra thêm để xác nhận có giữ không cần thiết.” Không nên viết: “Heap dump đã chứng minh tất cả memory pressure đều do bug X” nếu chưa đối chiếu native memory, workload và đối chứng.
+Write: "At T2, a `live=true` dump showed a set of objects still reachable and occupying most of the heap; retaining paths lead to cache X. Multi-point data and cache lifecycle checks are still needed to confirm unnecessary retention." Do not write: "The heap dump proved all memory pressure is caused by bug X" without cross-checking native memory, workload, and controls.
 
-## 11. Khi điều tra JVM option khác mong đợi
+## 11. Investigating a JVM option that differs from expectations
 
-Ví dụ: manifest khai báo một option ở startup nhưng `getVMOption` tại runtime cho thấy value khác.
+Example: the manifest declares an option at startup, yet `getVMOption` at runtime shows a different value.
 
-Quy trình:
+Workflow:
 
-1. Xác nhận **đúng process** và build; Kubernetes có thể đã tạo pod từ revision khác.
-2. Đọc `VMOption.getValue()` và `getOrigin()`; ghi timestamp.
-3. Đối chiếu command line, môi trường, cgroup/resource policy, JDK ergonomic flags và audit log của management/attach.
-4. Kiểm tra option có writeable không, có bị thay trong runtime không; `MANAGEMENT` hoặc `ATTACH_ON_DEMAND` là manh mối nhưng **không tự xác định ai làm**.
-5. Nếu nghi ảnh hưởng hiệu năng, chạy phép so sánh có kiểm soát, giữ workload/cấu hình khác tương đương và đo guardrails.
-6. Báo kết luận, owner, phương án làm bền thay đổi qua config/deployment nếu thật sự cần. Thay đổi một flag qua management **không tự sửa deployment manifest**; restart JVM có thể đưa nó về cấu hình khác.
+1. Verify the **exact process** and build; Kubernetes may have created the pod from a different revision.
+2. Read `VMOption.getValue()` and `getOrigin()`; record the timestamp.
+3. Cross-check command line, environment, cgroup/resource policies, JDK ergonomic flags, and management/attach audit logs.
+4. Check whether the option is writeable and whether it was altered at runtime; `MANAGEMENT` or `ATTACH_ON_DEMAND` is a clue, though **does not itself identify who made the change**.
+5. If performance impact is suspected, run a controlled comparison keeping workload/other settings equivalent and measuring guardrails.
+6. Report conclusions, owner, and a plan to persist the change via config/deployment if truly needed. Changing a flag through management **does not edit deployment manifests**; a JVM restart can revert it to another setting.
 
-Không tự suy mọi cờ runtime động là cấu hình được hỗ trợ lâu dài. Các flag chẩn đoán HotSpot có thể có tác dụng phụ, tính tương thích hoặc giới hạn theo phiên bản.
+Never assume every dynamic runtime flag is a long-term supported configuration. HotSpot diagnostic flags can carry side effects, compatibility caveats, or version-specific limits.
 
-## 12. Bảng kiểm soát rủi ro cho `dumpHeap` và `setVMOption`
+## 12. Risk-control matrix for `dumpHeap` and `setVMOption`
 
-| Kiểm tra | Trước `dumpHeap` | Trước `setVMOption` |
+| Check | Before `dumpHeap` | Before `setVMOption` |
 | --- | --- | --- |
-| Đúng mục tiêu | JVM/heap/container/PID, thời điểm cần snapshot | JVM/flag/version, giá trị ban đầu |
-| Nhu cầu thực | Cần object graph, chưa đủ từ metric nhẹ | Có giả thuyết/tiêu chí đo và thay đổi cần thiết |
-| Tài nguyên | Heap size, disk/quota, I/O, pause/GC headroom | CPU, latency, log volume, GC/other side effects |
-| Quyền | Ghi file trên target, quyền JMX/OS | Quyền đổi runtime flag, owner/change approval |
-| Tham số | Absolute `.hprof`, `live`, tên file duy nhất | `name/value`, `isWriteable`, valid value |
-| Dữ liệu nhạy cảm | HPROF may hold secrets, encrypted storage/access | Runtime config có thể làm lộ thông tin hoặc đổi cách ghi log |
-| Kiểm chứng | File tồn tại/đọc được, đúng timestamp, size, GC events | `getVMOption` snapshot mới, origin, metric guardrails |
-| Khôi phục | Dọn artifact có kiểm soát, lưu evidence cần thiết | Rollback có kiểm chứng; tránh giả định mọi side effect đảo ngược |
-| Báo cáo | Dump run ID/path/live/size/tác động | Before/after/owner/metric/giới hạn suy luận |
+| Right target | JVM/heap/container/PID, desired snapshot time | JVM/flag/version, baseline value |
+| Genuine need | Need object graph; lighter metrics insufficient | Clear hypothesis/success criteria and needed change |
+| Resources | Heap size, disk/quota, I/O, pause/GC headroom | CPU, latency, log volume, GC/other side effects |
+| Permissions | Target file write, JMX/OS permissions | Runtime flag change permission, owner/change approval |
+| Parameters | Absolute `.hprof`, `live`, unique filename | `name/value`, `isWriteable`, valid value |
+| Sensitive data | HPROF may hold secrets; encrypted storage/access | Runtime config may expose info or alter logging |
+| Verification | File exists/readable, right timestamp, size, GC events | Fresh `getVMOption` snapshot, origin, metric guardrails |
+| Recovery | Controlled artifact cleanup, keep needed evidence | Verified rollback; avoid assuming every side effect reverts |
+| Reporting | Dump run ID/path/live/size/impact | Before/after/owner/metrics/inference limits |
 
-**Một điểm dễ bỏ sót:** thao tác ghi dump không phải “sửa code” nhưng có thể làm mất baseline heap tự nhiên do GC hoặc pause. Một thay đổi flag không phải “deploy mới” nhưng đủ để làm kết quả profiling không còn tương đương với trước đó.
+**An easily overlooked detail:** writing a dump is not a "code change", yet it can alter natural heap baselines via GC or pauses. Changing a flag is not a "new deploy", yet it can make profiling results incomparable with earlier runs.
 
-## 13. Khi nào dùng những công cụ khác?
+## 13. When to use other tools?
 
-`HotSpotDiagnosticMXBean` là một mảnh trong bộ công cụ:
+`HotSpotDiagnosticMXBean` is one piece of the toolkit:
 
-| Nhu cầu | Phương tiện phù hợp | Hạn chế |
+| Need | Suitable tool | Limitations |
 | --- | --- | --- |
-| Heap used/committed/max định kỳ | `MemoryMXBean` và metrics | Không cho retaining path |
-| Cơ chế GC/paused time | GC logs, JFR, GC MXBeans | Cần cấu hình và hiểu collector |
-| Đường giữ object, dominator | HPROF qua MXBean/jcmd, phân tích bằng heap analyzer | Snapshot nặng, dữ liệu nhạy cảm |
-| Native memory | NMT qua `jcmd` khi đã bật | Không bao trùm toàn bộ native allocations |
-| Top threads và contention | `ThreadMXBean`, `jcmd Thread.print`, JFR | Chi phí snapshot và giới hạn số liệu |
-| Toàn bộ VM flags | `jcmd VM.flags -all`, output startup flags | Không nên coi là toàn bộ flag thay đổi động |
-| VM option cụ thể đang được quản lý | `HotSpotDiagnosticMXBean.getVMOption` | Có thể thiếu flag trên VM/JDK khác |
-| Thay VM option có thể quản lý | `HotSpotDiagnosticMXBean.setVMOption` | **Mutating**, kiểm soát như thay đổi cấu hình vận hành |
+| Periodic heap used/committed/max | `MemoryMXBean` and metrics | Gives no retaining paths |
+| GC behavior / pause times | GC logs, JFR, GC MXBeans | Requires setup and collector understanding |
+| Object retention paths, dominators | HPROF via MXBean/jcmd, analyzed with heap analyzer | Heavy snapshot, sensitive data |
+| Native memory | NMT via `jcmd` when enabled at startup | Does not cover all native allocations |
+| Top threads and contention | `ThreadMXBean`, `jcmd Thread.print`, JFR | Snapshot cost and metric limits |
+| Full VM flags | `jcmd VM.flags -all`, startup flag output | Should not be treated as all dynamically tunable flags |
+| Specific manageable VM option | `HotSpotDiagnosticMXBean.getVMOption` | Flag may be missing on other VMs/JDKs |
+| Changing a manageable VM option | `HotSpotDiagnosticMXBean.setVMOption` | **Mutating**; control like an operational config change |
 
-Không gọi `HotSpotDiagnosticMXBean` để tìm deadlock: cơ chế có mục đích khác như `ThreadMXBean.findDeadlockedThreads()`. Không dùng heap dump để đo CPU bottleneck. Chọn công cụ theo câu hỏi chẩn đoán.
+Do not call `HotSpotDiagnosticMXBean` to find deadlocks: dedicated APIs like `ThreadMXBean.findDeadlockedThreads()` serve that purpose. Do not use a heap dump to measure CPU bottlenecks. Match the tool to the diagnostic question.
 
-## 14. Mẫu báo cáo thao tác và bằng chứng
+## 14. Operation and evidence report template
 
 ```text
 CONTEXT
 - Service, environment, JVM vendor/version/patch, process ID:
 - Container/pod/node, deployment/build revision:
-- Symptom, request/workload, timezone và timestamp:
+- Symptom, request/workload, timezone, and timestamp:
 
 OBSERVATION BEFORE
 - Heap/GC trend, RSS/container memory, latency/errors:
 - Relevant VM option name/value/writeable/origin:
-- Reason the lighter diagnostics were insufficient:
+- Reason lighter diagnostics were insufficient:
 
 PROPOSED ACTION
 - Read-only getVMOption/getDiagnosticOptions OR
@@ -614,51 +614,51 @@ FOLLOW-UP
 - Next controlled test, owner, verification criteria:
 ```
 
-Không để giá trị `VMOption.getValue()` chứa bí mật hoặc đường dẫn file HPROF nhạy cảm vào hệ thống log không được bảo vệ. Báo cáo là một phần của quy trình chẩn đoán, không phải nơi thay thế chứng cứ gốc.
+Never let secret-bearing `VMOption.getValue()` strings or sensitive HPROF paths enter unprotected log pipelines. Reports are part of the diagnostic workflow, not a replacement for primary evidence.
 
-## 15. Những lỗi phổ biến
+## 15. Common mistakes
 
-1. **Gọi `dumpHeap` như đọc một counter nhẹ.** Đây là thao tác có thể rất nặng, ảnh hưởng GC/pause/I/O.
-2. **Nhầm `live=true` với “chỉ objects đang xử lý request”.** Định nghĩa là object reachable; cache giữ sai vẫn có thể reachable.
-3. **Cho rằng `live=false` nghĩa là dump không pause.** Nó thay đổi tập object được ghi, không bảo đảm overhead thấp.
-4. **Gọi heap dump từ JMX remote rồi tìm file trên máy client.** File được ghi trong filesystem của target VM.
-5. **Dùng đường dẫn tương đối mà không biết working directory của target.** Có thể lưu sai nơi hoặc gặp lỗi không ghi được.
-6. **Không dự trù disk/quota và lưu HPROF như log thường.** File lớn có thể đầy disk và chứa dữ liệu nhạy cảm.
-7. **Tin rằng dump luôn ghi đè file cũ.** Javadoc Java 17 nêu `IOException` khi outputFile đã tồn tại.
-8. **Dùng tên không có đuôi `.hprof`.** API yêu cầu hậu tố và có thể từ chối bằng `IllegalArgumentException`.
-9. **Lấy `getDiagnosticOptions()` làm danh sách mọi flag JVM.** API chỉ liệt kê nhóm diagnostic writeable.
-10. **Nhầm `VMOption.isWriteable()` với thuộc tính “flag có ích” hoặc “không có side effects”.** Writable chỉ nói tính thay đổi động.
-11. **Thử `setVMOption` trước khi đọc/ghi giá trị gốc.** Mất cơ sở rollback và có thể làm lệch phép đo.
-12. **Gọi `setVMOption` với flag non-writeable.** `IllegalArgumentException` không phải bug application.
-13. **Cho rằng object `VMOption` tự cập nhật sau khi set.** Giá trị là snapshot; phải gọi `getVMOption` lại.
-14. **Đọc `origin=MANAGEMENT` rồi khẳng định đã biết người thay đổi.** Origin không phải audit log.
-15. **Đổi nhiều flag và tạo dump trong cùng một cửa sổ mà không ghi timeline.** Không thể tách tác động của từng can thiệp.
-16. **Suy “không có memory leak” từ một snapshot heap nhỏ.** Có thể dump sai thời điểm, sau GC, dưới tải thấp hoặc thiếu đường retained growth.
-17. **Nhầm heap memory với toàn bộ process/container memory.** JNI/native, direct buffers, metaspace, thread stacks và page cache còn tiêu thụ tài nguyên.
-18. **Đưa remote JMX không xác thực ra mạng.** Các operation chẩn đoán có thể tạo file lớn hoặc đổi VM option.
-19. **Dùng số liệu JDK khác để suy semantics flag JVM hiện tại.** HotSpot flags có thể thay đổi giữa vendor/build/major version.
-20. **Xem một lần `setVMOption` thành công là fix.** Phải đo hiệu quả dưới tải, correctness, error rate, guardrails và khả năng duy trì sau restart.
+1. **Calling `dumpHeap` like reading a lightweight counter.** It can be a heavy operation impacting GC/pause/I/O.
+2. **Confusing `live=true` with "only objects currently handling requests".** The definition is reachable objects; a misbehaving cache keeps objects reachable.
+3. **Assuming `live=false` means a pause-free dump.** It changes which objects are written, without guaranteeing low overhead.
+4. **Invoking heap dump over remote JMX and looking for the file on the client machine.** The file is written on the target VM's filesystem.
+5. **Using a relative path without knowing the target's working directory.** It may land in the wrong place or fail to write.
+6. **Skipping disk/quota checks and treating HPROF like ordinary logs.** Large files can fill disks and contain sensitive data.
+7. **Assuming dump always overwrites an existing file.** Java 17 Javadoc specifies `IOException` when `outputFile` already exists.
+8. **Using a filename without `.hprof`.** The API requires the suffix and may reject it with `IllegalArgumentException`.
+9. **Treating `getDiagnosticOptions()` as the list of all JVM flags.** It lists only the writable diagnostic subset.
+10. **Confusing `VMOption.isWriteable()` with "useful flag" or "no side effects".** Writeable only indicates dynamic mutability.
+11. **Calling `setVMOption` before reading/recording the original value.** Loses the rollback baseline and can skew measurements.
+12. **Calling `setVMOption` on a non-writeable flag.** `IllegalArgumentException` is not an application bug.
+13. **Expecting a `VMOption` object to self-update after a set call.** Its value is a snapshot; call `getVMOption` again.
+14. **Seeing `origin=MANAGEMENT` and claiming you know who changed it.** Origin is not an audit log.
+15. **Changing multiple flags and taking dumps in the same window without a timeline.** Makes isolating each intervention's impact impossible.
+16. **Inferring "no memory leak" from one small heap snapshot.** The dump may have been taken at the wrong time, post-GC, under low load, or without comparing retained growth.
+17. **Confusing heap memory with total process/container memory.** JNI/native, direct buffers, metaspace, thread stacks, and page cache also consume resources.
+18. **Exposing unauthenticated remote JMX to the network.** Diagnostic operations can write huge files or mutate VM options.
+19. **Using figures from another JDK to infer flag semantics on the current JVM.** HotSpot flags can change across vendors/builds/major versions.
+20. **Treating a successful `setVMOption` call as a completed fix.** Verify effectiveness under load, correctness, error rate, guardrails, and persistence across restarts.
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-check questions
 
-1. `HotSpotDiagnosticMXBean` thuộc module/package nào, và ObjectName chính xác của nó trong JMX là gì?
-2. `getVMOption(name)` khác `getDiagnosticOptions()` ở phạm vi nào? Vì sao cả hai không thay thế toàn bộ output `jcmd VM.flags -all`?
-3. `VMOption.getValue()`, `isWriteable()`, `getOrigin()` cung cấp những thông tin khác nhau thế nào?
-4. Vì sao sau `setVMOption(name,newValue)` phải gọi `getVMOption(name)` lần nữa? Object `VMOption` cũ có đổi nội dung không?
-5. `dumpHeap(path,true)` và `dumpHeap(path,false)` yêu cầu tập object nào? Có thể dùng `false` để bảo đảm không xảy ra pause hay không?
-6. Khi JMX client chạy trên máy A, target JVM chạy trên máy B, file HPROF xuất hiện ở đâu?
-7. `dumpHeap` gặp file đã tồn tại hoặc filename thiếu `.hprof` thì có thể báo lỗi nào?
-8. Vì sao `isWriteable=true` vẫn không đủ để kết luận “nên chỉnh flag này ngay trên production”?
-9. Trong một container memory limit 1 GiB, Java heap used 600 MiB, có thể bị OOMKilled không? Những loại memory khác phải đo?
-10. Một heap dump cho thấy nhiều objects thuộc cùng một cache. Những bằng chứng nào cần thêm để xác nhận cache đang giữ đối tượng không còn cần thiết?
-11. Nếu `VMOption.getOrigin()==MANAGEMENT`, bạn đã biết ai thực hiện thay đổi chưa? Phải kiểm tra gì thêm?
-12. Hãy mô tả một quy trình **đọc trước → xác minh quyền/tài nguyên → thao tác có kiểm soát → đọc lại → đo guardrails → bàn giao và cleanup** cho tình huống cần heap dump.
+1. Which module/package does `HotSpotDiagnosticMXBean` belong to, and what is its exact JMX ObjectName?
+2. How does `getVMOption(name)` differ in scope from `getDiagnosticOptions()`? Why do neither replace the full output of `jcmd VM.flags -all`?
+3. What distinct information do `VMOption.getValue()`, `isWriteable()`, and `getOrigin()` provide?
+4. Why must you call `getVMOption(name)` again after `setVMOption(name,newValue)`? Does the old `VMOption` object change?
+5. What object sets do `dumpHeap(path,true)` and `dumpHeap(path,false)` request? Can `false` be used to guarantee no pause occurs?
+6. When a JMX client runs on machine A and the target JVM runs on machine B, where does the HPROF file appear?
+7. What errors can `dumpHeap` raise if the file already exists or the filename lacks `.hprof`?
+8. Why is `isWriteable=true` still insufficient to conclude "we should tweak this flag immediately in production"?
+9. In a container with a 1 GiB memory limit and 600 MiB Java heap used, can it still be OOMKilled? Which other memory areas must be measured?
+10. A heap dump shows many objects belonging to one cache. What additional evidence is needed to confirm the cache is retaining unneeded objects?
+11. If `VMOption.getOrigin()==MANAGEMENT`, do you already know who made the change? What else must be checked?
+12. Describe a **read first → verify permissions/resources → controlled action → re-read → measure guardrails → handoff and cleanup** workflow for a scenario requiring a heap dump.
 
-## Tài liệu tham khảo
+## References
 
 - Oracle Java SE 17 — `HotSpotDiagnosticMXBean`: https://docs.oracle.com/en/java/javase/17/docs/api/jdk.management/com/sun/management/HotSpotDiagnosticMXBean.html
 - Oracle Java SE 17 — `VMOption`: https://docs.oracle.com/en/java/javase/17/docs/api/jdk.management/com/sun/management/VMOption.html
 - Oracle Java SE 17 — `VMOption.Origin`: https://docs.oracle.com/en/java/javase/17/docs/api/jdk.management/com/sun/management/VMOption.Origin.html
 - Oracle Java SE 17 — `jcmd`: https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html
 
-**Ghi nhớ:** `HotSpotDiagnosticMXBean` cho phép **đọc các VM options**, **ghi HPROF của Java heap** và **thay đổi một số options có thể quản lý**. Phải phân biệt thao tác đọc với thao tác tạo artifact/đổi runtime state; hiểu `live`, `isWriteable` và `origin`; bảo vệ dữ liệu dump và kiểm soát can thiệp. Một kết quả API thành công chỉ là bằng chứng kỹ thuật ở phạm vi của nó, không tự động chứng minh nguyên nhân memory leak hoặc sự cố đã được khắc phục.
+**Remember:** `HotSpotDiagnosticMXBean` lets you **read VM options**, **write an HPROF of the Java heap**, and **modify certain manageable options**. Distinguish read operations from artifact-creating or runtime-mutating operations; understand `live`, `isWriteable`, and `origin`; protect dump data and control interventions. A successful API result is technical evidence within its scope—it does not automatically prove the cause of a memory leak or that an incident is resolved.

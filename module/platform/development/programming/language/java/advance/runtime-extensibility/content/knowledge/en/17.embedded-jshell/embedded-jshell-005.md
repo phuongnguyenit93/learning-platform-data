@@ -1,10 +1,10 @@
-# Quản lý phụ thuộc giữa các đoạn mã, khai báo lại và drop trong JShell nhúng
+# Managing Snippet Dependencies, Redeclarations, and Drops in Embedded JShell
 
-## 1. Vì sao snippet trong JShell không độc lập?
+## 1. Why Snippets in JShell Are Not Independent
 
-Khi nhúng JShell vào ứng dụng Java, bạn không chỉ thực thi từng chuỗi mã riêng lẻ. Một phiên \`jdk.jshell.JShell\` lưu trạng thái gồm các **snippet**: khai báo biến, phương thức, kiểu, import và biểu thức/lệnh. Snippet sau có thể dùng tên do snippet trước khai báo; khi một khai báo bị thay thế hoặc bị loại bỏ, các snippet phụ thuộc có thể đổi trạng thái.
+When embedding JShell in a Java application, you are not merely executing isolated code strings. A \`jdk.jshell.JShell\` session maintains state consisting of **snippets**: variable, method, type, and import declarations, as well as expressions/statements. A later snippet can reference names declared by an earlier snippet; when a declaration is replaced or removed, dependent snippets can change status.
 
-Ví dụ trong một phiên JShell:
+For example, within a JShell session:
 
 \`\`\`java
 int factor = 2;
@@ -12,21 +12,21 @@ int multiply(int x) { return x * factor; }
 multiply(3);
 \`\`\`
 
-Phương thức \`multiply\` phụ thuộc biến \`factor\`. Nếu bạn thay đổi hoặc \`drop\` khai báo \`factor\`, JShell phải đánh giá lại khả năng biên dịch/liên kết của các đoạn mã liên quan. Vì vậy, trong ứng dụng nhúng, việc quản lý snippet là **quản lý một đồ thị trạng thái và phụ thuộc**, không đơn thuần là gọi \`eval()\` rồi quên mã nguồn.
+The \`multiply\` method depends on the variable \`factor\`. If you modify or \`drop\` the declaration of \`factor\`, JShell must re-evaluate whether related snippets can still compile and link. Therefore, managing snippets in an embedded application means **managing a state and dependency graph**, not simply calling \`eval()\` and forgetting the source.
 
-JShell có API chuẩn ở module \`jdk.jshell\`, gồm:
+JShell provides a standard API in the \`jdk.jshell\` module, including:
 
-- \`JShell\`: phiên tương tác, \`eval(String)\`, \`drop(Snippet)\`, \`snippets()\`, \`variables()\`, \`methods()\`, \`types()\`, \`imports()\`, \`status(Snippet)\`.
-- \`Snippet\` và các subclass như \`VarSnippet\`, \`MethodSnippet\`, \`TypeDeclSnippet\`, \`ImportSnippet\`.
-- \`SnippetEvent\`: thông tin về thay đổi trạng thái sau \`eval\` hoặc \`drop\`.
-- \`Snippet.Status\`: trạng thái như \`VALID\`, \`RECOVERABLE_DEFINED\`, \`RECOVERABLE_NOT_DEFINED\`, \`REJECTED\`, \`DROPPED\`, \`OVERWRITTEN\`, \`NONEXISTENT\`.
-- \`Diag\`: chẩn đoán các lỗi compiler liên quan đến snippet.
+- \`JShell\`: interactive session, \`eval(String)\`, \`drop(Snippet)\`, \`snippets()\`, \`variables()\`, \`methods()\`, \`types()\`, \`imports()\`, \`status(Snippet)\`.
+- \`Snippet\` and subclasses such as \`VarSnippet\`, \`MethodSnippet\`, \`TypeDeclSnippet\`, \`ImportSnippet\`.
+- \`SnippetEvent\`: information about state transitions after \`eval\` or \`drop\`.
+- \`Snippet.Status\`: statuses such as \`VALID\`, \`RECOVERABLE_DEFINED\`, \`RECOVERABLE_NOT_DEFINED\`, \`REJECTED\`, \`DROPPED\`, \`OVERWRITTEN\`, \`NONEXISTENT\`.
+- \`Diag\`: compiler error diagnostics associated with a snippet.
 
-**Điểm quan trọng:** \`eval()\` trả **danh sách** sự kiện. Một lần khai báo lại có thể làm đổi trạng thái nhiều snippet, không chỉ snippet bạn vừa gửi.
+**Key point:** \`eval()\` returns a **list** of events. A single redeclaration can change the status of multiple snippets, not just the snippet you just submitted.
 
-## 2. Mô hình phụ thuộc và trạng thái
+## 2. The Dependency and State Model
 
-Ví dụ:
+Example:
 
 \`\`\`text
 VarSnippet: int base = 10
@@ -38,66 +38,66 @@ MethodSnippet: int addBase(int x) { return x + base; }
 Expression: addBase(5)
 \`\`\`
 
-Biểu thức cuối không phải một khai báo lâu dài theo cùng nghĩa với biến/phương thức, nhưng kết quả đánh giá của nó phụ thuộc vào trạng thái phiên tại thời điểm chạy.
+The final expression is not a long-lived declaration in the same sense as a variable or method, yet its evaluation result depends on the session state at runtime.
 
-Mỗi snippet có một **ID trong phiên**, \`source()\`, \`kind()\` và trạng thái. Một \`SnippetEvent\` có:
+Each snippet has a **session-scoped ID**, \`source()\`, \`kind()\`, and status. A \`SnippetEvent\` contains:
 
-| Thuộc tính | Ý nghĩa |
+| Property | Meaning |
 |---|---|
-| \`snippet()\` | Snippet chịu tác động |
-| \`previousStatus()\` | Trạng thái trước sự kiện; có thể \`null\` cho snippet mới |
-| \`status()\` | Trạng thái sau sự kiện |
-| \`isSignatureChange()\` | Có thay đổi chữ ký khai báo hay không |
-| \`causeSnippet()\` | Snippet khác gây tác động, nếu có |
-| \`value()\` | Giá trị chuỗi khi sự kiện có kết quả |
-| \`exception()\` | Lỗi thực thi nếu có |
+| \`snippet()\` | The affected snippet |
+| \`previousStatus()\` | Status before the event; may be \`null\` for a new snippet |
+| \`status()\` | Status after the event |
+| \`isSignatureChange()\` | Whether the declaration signature changed |
+| \`causeSnippet()\` | Another snippet that caused this change, if any |
+| \`value()\` | String value when the event produces a result |
+| \`exception()\` | Execution error if one occurred |
 
-Không nên thiết kế UI chỉ hiển thị “snippet vừa gửi thành công”. Cần xử lý **mọi sự kiện** và cập nhật status cho cả snippet cũ bị ảnh hưởng.
+Do not design a UI that only shows "the just-submitted snippet succeeded." You must handle **every event** and update the status of previously affected snippets as well.
 
-## 3. Các trạng thái cần hiểu
+## 3. Statuses You Need to Understand
 
-| Status | Diễn giải thực tế |
+| Status | Practical Interpretation |
 |---|---|
-| \`VALID\` | Snippet được chấp nhận và có thể sử dụng |
-| \`RECOVERABLE_DEFINED\` | Khai báo có lỗi phụ thuộc nhưng vẫn có định nghĩa để các khai báo khác có thể tham chiếu trong điều kiện nhất định |
-| \`RECOVERABLE_NOT_DEFINED\` | Snippet có thể trở nên hợp lệ khi dependency xuất hiện, nhưng hiện chưa được định nghĩa để thực thi |
-| \`REJECTED\` | Snippet bị từ chối; thường là lỗi cú pháp hoặc lỗi biên dịch không thể phục hồi theo cơ chế JShell |
-| \`OVERWRITTEN\` | Khai báo đã bị khai báo khác thay thế |
-| \`DROPPED\` | Snippet đã bị loại khỏi phiên bằng \`drop\` |
-| \`NONEXISTENT\` | Snippet không tồn tại trong phiên hoặc chưa được định nghĩa hợp lệ theo ngữ cảnh API |
+| \`VALID\` | The snippet was accepted and is usable |
+| \`RECOVERABLE_DEFINED\` | The declaration has dependency errors yet still has a definition that other declarations can reference under certain conditions |
+| \`RECOVERABLE_NOT_DEFINED\` | The snippet can become valid once missing dependencies appear, but is not currently defined for execution |
+| \`REJECTED\` | The snippet was rejected; typically syntax errors or compile errors not recoverable under JShell's rules |
+| \`OVERWRITTEN\` | The declaration was replaced by another declaration |
+| \`DROPPED\` | The snippet was removed from the session via \`drop\` |
+| \`NONEXISTENT\` | The snippet does not exist in the session or is not validly defined in that API context |
 
-Các trạng thái recoverable đặc biệt quan trọng khi người dùng soạn mã theo thứ tự chưa hoàn chỉnh. Ví dụ khai báo phương thức tham chiếu một type chưa có có thể được giữ ở trạng thái phục hồi; khi type được khai báo, JShell có thể tự cập nhật trạng thái.
+Recoverable statuses are especially important when users author code out of order. For example, declaring a method that references an as-yet-undeclared type can be held in a recoverable state; once that type is declared, JShell can automatically update its status.
 
-**Không đồng nhất trạng thái \`VALID\` với “đã chạy thành công mọi logic”**: một khai báo có thể hợp lệ nhưng việc gọi phương thức sau đó vẫn ném exception.
+**Do not equate \`VALID\` status with "all logic ran cleanly"**: a declaration can be valid while calling the method later still throws an exception.
 
-## 4. Khai báo lại: overwrite thay vì xóa mọi snippet
+## 4. Redeclaration: Overwriting Instead of Deleting Every Snippet
 
-Trong một phiên, bạn có thể nhập lại một biến, phương thức hoặc kiểu phù hợp với quy tắc khai báo lại của JShell:
+Within a session, you can re-enter a variable, method, or type following JShell's redeclaration rules:
 
 \`\`\`java
 int price = 10;
 int price = 20;
 \`\`\`
 
-Khai báo mới thay thế phiên bản trước. \`SnippetEvent\` có thể báo khai báo cũ chuyển sang \`OVERWRITTEN\` và khai báo mới trở thành \`VALID\`. Nếu thay đổi chữ ký phương thức hoặc kiểu, các đoạn mã phụ thuộc có thể cần được phân tích lại hoặc chuyển sang trạng thái recoverable.
+The new declaration replaces the prior version. \`SnippetEvent\` can report the old declaration transitioning to \`OVERWRITTEN\` and the new declaration becoming \`VALID\`. If a method signature or type changes, dependent code may need re-analysis or transition to a recoverable status.
 
-Hai tình huống khác nhau:
+Two distinct situations:
 
-- **Thay giá trị biến:** \`price = 20;\` là một lệnh gán, không phải khai báo lại biến.
-- **Khai báo lại biến:** \`int price = 20;\` tạo một phiên bản khai báo mới theo semantics JShell và có thể thay thế snippet cũ.
+- **Updating a variable's value:** \`price = 20;\` is an assignment statement, not a variable redeclaration.
+- **Redeclaring a variable:** \`int price = 20;\` creates a new declaration version under JShell semantics and can replace the old snippet.
 
-Với method, JShell cho phép khai báo lại cùng signature. Nếu method mới tham chiếu dependency bị thiếu, các method khác đang dùng nó có thể thay đổi trạng thái. API không bảo đảm giữ nguyên identity của snippet cũ sau overwrite.
+For methods, JShell allows redeclaring with the same signature. If the new method references a missing dependency, other methods calling it can change status. The API does not guarantee preserving the old snippet's identity after an overwrite.
 
-Trong ứng dụng nhúng, nên lưu **ID và đối tượng Snippet** đã nhận, thay vì chỉ tra cứu bằng tên. Tên có thể được tái sử dụng qua nhiều vòng khai báo/overwrite, còn các đối tượng snippet phản ánh lịch sử phiên.
+In embedded applications, store the **ID and `Snippet` object** you received rather than looking up solely by name. A name can be reused across multiple declaration/overwrite cycles, whereas snippet objects reflect session history.
 
-## 5. Drop: loại bỏ khai báo có kiểm soát
+## 5. Drop: Controlled Removal of Declarations
 
-\`JShell.drop(Snippet)\` yêu cầu xóa một snippet có thể drop trong phiên. Nó trả \`List<SnippetEvent>\` để thông báo cả snippet bị drop lẫn những snippet phụ thuộc bị ảnh hưởng.
+\`JShell.drop(Snippet)\` requests removing a droppable snippet from the session. It returns \`List<SnippetEvent>\` notifying both the dropped snippet and any affected dependent snippets.
 
-Ví dụ thao tác:
+Example usage:
 
 \`\`\`java
-// Đoạn tích hợp, giả định shell và savedVariable là snippet hợp lệ.
+// Integration snippet, assuming shell and savedVariable are valid snippets.
 List<SnippetEvent> events = shell.drop(savedVariable);
 for (SnippetEvent event : events) {
     System.out.printf("%s: %s -> %s%n",
@@ -107,13 +107,13 @@ for (SnippetEvent event : events) {
 }
 \`\`\`
 
-Không phải mọi loại snippet đều có cùng khả năng drop; nên lấy đối tượng từ \`shell.variables()\`, \`methods()\`, \`types()\`, \`imports()\` hoặc kết quả của \`eval\` và kiểm tra trạng thái trước khi drop. Nếu snippet đã \`OVERWRITTEN\` hay \`DROPPED\`, không nên giả định thao tác tiếp có cùng tác dụng như trên khai báo đang hoạt động.
+Not every snippet kind has the same drop capability; obtain objects from \`shell.variables()\`, \`methods()\`, \`types()\`, \`imports()\`, or \`eval\` results and inspect their status before dropping. If a snippet is already \`OVERWRITTEN\` or \`DROPPED\`, do not assume subsequent operations behave the same as on an active declaration.
 
-**Drop không xóa mọi side effect đã xảy ra.** Ví dụ đoạn mã đã ghi file, gửi HTTP request hoặc sửa một đối tượng Java ngoài phiên JShell thì drop khai báo chỉ thay đổi trạng thái JShell; nó không rollback các tác động bên ngoài.
+**Dropping does not undo side effects that have already happened.** For example, if code wrote a file, sent an HTTP request, or mutated a Java object outside the JShell session, dropping the declaration only updates JShell state; it does not roll back external effects.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: eval, overwrite và drop
+## 6. Complete Java 17+ Example: Eval, Overwrite, and Drop
 
-Tạo file **\`JShellDependencyDemo.java\`** với nội dung sau (đây là bản cần biên dịch):
+Create **\`JShellDependencyDemo.java\`** with the following contents (this is the version to compile):
 
 \`\`\`java
 import jdk.jshell.JShell;
@@ -165,29 +165,29 @@ public class JShellDependencyDemo {
 }
 \`\`\`
 
-Biên dịch và chạy trên JDK 17+:
+Compile and run on JDK 17+:
 
 \`\`\`bash
 javac --add-modules jdk.jshell JShellDependencyDemo.java
 java --add-modules jdk.jshell JShellDependencyDemo
 \`\`\`
 
-Các ID và chuỗi sự kiện phụ thuộc thứ tự tạo snippet và thay đổi trạng thái, vì vậy không nên kiểm thử bằng cách hard-code toàn bộ log; các khẳng định cốt lõi cần kiểm tra là:
+Exact IDs and event sequences depend on snippet creation order and state transitions, so do not write tests by hard-coding the entire log; the core assertions to verify are:
 
-- khai báo biến ban đầu có trạng thái \`VALID\`;
-- sau khi khai báo lại, snippet biến cũ chuyển sang \`OVERWRITTEN\`;
-- \`shell.variables()\` trả về khai báo \`base\` hiện còn hoạt động;
-- sau \`drop(current)\`, trạng thái biến hiện tại là \`DROPPED\`;
-- các khai báo phụ thuộc có thể bị đánh dấu không còn hợp lệ hoặc recoverable.
+- the initial variable declaration has status \`VALID\`;
+- after redeclaration, the old variable snippet transitions to \`OVERWRITTEN\`;
+- \`shell.variables()\` returns the currently active \`base\` declaration;
+- after \`drop(current)\`, the current variable's status is \`DROPPED\`;
+- dependent declarations may be marked no longer valid or recoverable.
 
-**Chú ý:** \`shell.methods()\` chỉ liệt kê các method snippet theo API và không tự lọc tất cả trạng thái giống nhau; khi cần chính xác, đọc \`shell.status(m)\` cho từng đối tượng.
+**Note:** \`shell.methods()\` lists method snippets per the API and does not automatically filter all to the same status; when accuracy is needed, read \`shell.status(m)\` for each item.
 
-## 7. Cách đọc SnippetEvent mà không làm mất tác động lan truyền
+## 7. Reading `SnippetEvent` Without Missing Cascading Effects
 
-Mọi lần \`eval\` hoặc \`drop\` nên xử lý toàn bộ danh sách sự kiện:
+Every \`eval\` or \`drop\` call should process the entire event list:
 
 \`\`\`java
-// Đoạn tích hợp.
+// Integration snippet.
 List<SnippetEvent> events = shell.eval(source);
 for (SnippetEvent event : events) {
     Snippet snippet = event.snippet();
@@ -199,23 +199,23 @@ for (SnippetEvent event : events) {
 }
 \`\`\`
 
-\`updateUi\` và \`recordDependencyImpact\` là hàm của ứng dụng, không phải API JShell. \`causeSnippet()\` chỉ ra nguyên nhân khi có; nó không cung cấp toàn bộ đồ thị dependency. Nếu ứng dụng cần đồ thị chính xác, cần thêm phân tích source, metadata hoặc cơ chế truy vết riêng.
+\`updateUi\` and \`recordDependencyImpact\` are application functions, not JShell APIs. \`causeSnippet()\` identifies the trigger when present; it does not provide a complete dependency graph. If the application needs an exact graph, add source analysis, metadata, or a dedicated tracking mechanism.
 
-Khi gặp \`REJECTED\` hoặc trạng thái không hợp lệ, có thể gọi \`shell.diagnostics(snippet)\` để đọc \`Diag\` có thông tin lỗi. Không dùng riêng \`event.exception()\` để phát hiện lỗi compile: exception phản ánh lỗi thực thi, còn compiler diagnostics có đường riêng.
+When encountering \`REJECTED\` or an invalid status, call \`shell.diagnostics(snippet)\` to read \`Diag\` entries with error details. Do not rely solely on \`event.exception()\` to detect compile errors: exceptions reflect execution errors, whereas compiler diagnostics have their own channel.
 
-Ví dụ:
+Example:
 
 \`\`\`java
-// Đoạn tích hợp; events đã được trả về từ eval/drop.
+// Integration snippet; events were returned from eval/drop.
 for (SnippetEvent event : events) {
     shell.diagnostics(event.snippet())
             .forEach(diag -> System.err.println(diag.getMessage(null)));
 }
 \`\`\`
 
-## 8. Quản lý phụ thuộc trong ứng dụng nhúng
+## 8. Managing Dependencies in an Embedded Application
 
-Một plugin host thường có nhiều đoạn script do người dùng cung cấp. Có thể tổ chức metadata như:
+A plugin host often manages multiple user-provided scripts. You can organize metadata like this:
 
 \`\`\`text
 ScriptUnit {
@@ -227,21 +227,21 @@ ScriptUnit {
 }
 \`\`\`
 
-Đây là cấu trúc khái niệm, không phải class có sẵn của JShell. Mỗi lần thay đổi một script:
+This is a conceptual structure, not a built-in JShell class. Whenever a script changes:
 
-1. Xác định phiên JShell cần thao tác; không trộn snippet giữa các phiên.
-2. Kiểm tra nguồn mới, quota và quyền người sửa.
-3. Thực hiện \`eval\`, thu thập toàn bộ \`SnippetEvent\`.
-4. Cập nhật registry snippet ID, name, status và revision.
-5. Kiểm tra các snippet phụ thuộc bị chuyển sang recoverable/rejected.
-6. Chỉ công bố script revision mới khi những entry point bắt buộc đều ở trạng thái chấp nhận được.
-7. Nếu cần rollback, cân nhắc dựng lại phiên từ **danh sách source đã được phê duyệt**; JShell không cung cấp rollback transaction chung cho mọi side effect.
+1. Identify the target JShell session; never mix snippets across sessions.
+2. Validate the new source, quotas, and editor permissions.
+3. Run \`eval\` and collect all \`SnippetEvent\`s.
+4. Update the registry of snippet IDs, names, statuses, and revisions.
+5. Check dependent snippets that transitioned to recoverable or rejected.
+6. Publish the new script revision only when all required entry points are in an acceptable status.
+7. If rollback is needed, consider rebuilding the session from the **approved source list**; JShell does not provide generic transactional rollback for side effects.
 
-Một nguyên tắc quan trọng là **không coi mỗi snippet như một artifact có thể tự khôi phục độc lập**. Trạng thái phụ thuộc thuộc về cả phiên.
+A crucial principle is **do not treat each snippet as an independently restorable artifact**. Dependency state belongs to the entire session.
 
-## 9. Reload và snapshot: cách quản lý thay đổi ổn định hơn
+## 9. Reload and Snapshots: Managing Changes More Safely
 
-Trong môi trường có yêu cầu reproducibility, thay vì sửa trực tiếp phiên đang phục vụ request, nên áp dụng một cơ chế kiểu staging:
+In environments requiring reproducibility, rather than mutating a live session serving requests, apply a staging pattern:
 
 \`\`\`text
 Active JShell (revision A)
@@ -251,61 +251,61 @@ Active JShell (revision A)
         v
 Staging JShell (revision B)
         |
-   eval theo thứ tự phụ thuộc
+   eval in dependency order
         |
-   kiểm tra diagnostics/status
+   check diagnostics/status
         |
       PASS?
       /   \
     no     yes
     |       |
-  hủy B   chuyển request mới sang B
+discard B   route new requests to B
             |
           drain A
             |
           close A
 \`\`\`
 
-\`JShell\` không cung cấp sẵn tính năng serialize toàn bộ phiên thành snapshot đáng tin. Host phải quản lý danh sách source, thứ tự replay, dependency và external state. Nếu một script đọc thời gian hiện tại, random, file hoặc network, replay không bảo đảm cùng side effect và kết quả.
+\`JShell\` does not offer built-in serialization of an entire session into a reliable snapshot. The host must manage the source list, replay order, dependencies, and external state. If a script reads the current time, randomness, files, or the network, replay is not guaranteed to produce identical side effects or results.
 
-Việc giữ hai phiên song song tăng tài nguyên nhưng giúp tách trạng thái kiểm thử khỏi trạng thái đang hoạt động. Khi ứng dụng có hot reload plugin hoặc class loader riêng, cần bảo đảm không để callback/tham chiếu từ phiên cũ tiếp tục sống vô hạn.
+Running two sessions side by side consumes more resources, but cleanly isolates validation state from active traffic. When an application uses hot-reloading plugins or custom class loaders, ensure callbacks or references from the old session do not stay alive indefinitely.
 
-## 10. Những giới hạn quan trọng
+## 10. Important Limitations
 
-**Định danh và trạng thái có phạm vi phiên.** Snippet từ JShell A không thể đem \`drop\` trong JShell B như thể chúng cùng lịch sử. IDs chỉ có ý nghĩa trong phiên đã tạo.
+**Identifiers and state are session-scoped.** A snippet from JShell A cannot be passed to \`drop\` in JShell B as if they shared history. IDs are meaningful only within the session that created them.
 
-**JShell không phải dependency manager cho JAR.** Các dependency của snippet là dependency giữa khai báo/mã Java; việc cung cấp classpath/module path tới phiên là một cơ chế khác, ví dụ thông qua configuration hoặc \`addToClasspath\` theo API tương ứng. Không nhầm lẫn hai lớp dependency.
+**JShell is not a JAR dependency manager.** Snippet dependencies are dependencies between Java declarations/code; supplying a classpath/module path to a session is a separate mechanism, such as via configuration or \`addToClasspath\` per the corresponding API. Do not conflate the two dependency layers.
 
-**Khai báo lại không dọn external state.** Nếu mã tạo thread, mở socket, ghi dữ liệu hoặc đăng ký callback, overwrite/drop không tự gọi \`close\` của các tài nguyên đó.
+**Redeclaration does not clean up external state.** If code spawns threads, opens sockets, writes data, or registers callbacks, overwriting or dropping does not automatically call \`close\` on those resources.
 
-**Không mặc định thread-safe.** Cần quản lý truy cập đồng thời tới một instance \`JShell\`, tránh nhiều request cùng \`eval\`/drop gây thứ tự bất định. Phân tách phiên theo tenant/user hoặc serialization thao tác tùy nhu cầu.
+**Not thread-safe by default.** Concurrent access to a single \`JShell\` instance must be coordinated so multiple requests calling \`eval\`/\`drop\` do not create non-deterministic ordering. Isolate sessions per tenant/user or serialize operations as needed.
 
-**JShell không phải sandbox.** Mã Java được thực thi qua JShell có thể gây tác động mạnh tùy môi trường. Với mã không tin cậy, cần cô lập tiến trình, hạn chế filesystem/network và resource quota phù hợp.
+**JShell is not a sandbox.** Java code executed via JShell can have broad impact depending on the environment. For untrusted code, enforce process isolation, filesystem/network restrictions, and appropriate resource quotas.
 
-## 11. Lỗi phổ biến và checklist
+## 11. Common Pitfalls and Checklist
 
-Các lỗi hay gặp:
+Common pitfalls:
 
-- Chỉ đọc \`events.get(0)\` sau \`eval\` và bỏ qua sự kiện tác động lên snippet khác.
-- Chỉ lưu tên biến/phương thức thay vì lưu ID và status của từng snippet.
-- Coi \`OVERWRITTEN\` như \`DROPPED\`; chúng phản ánh hai thao tác khác nhau.
-- Drop snippet đang hoạt động rồi kỳ vọng các phương thức phụ thuộc vẫn luôn \`VALID\`.
-- Nghĩ khai báo lại biến và gán biến là cùng một hành động.
-- Coi \`eval\` thành công về cú pháp là đảm bảo mọi method chạy không lỗi.
-- Nhầm \`SnippetEvent.exception()\` với diagnostics của compiler.
-- Coi drop/overwrite có khả năng undo tác dụng phụ bên ngoài.
-- Dùng một \`JShell\` chung cho mọi tenant không kiểm soát state và quyền.
-- Cố tái sử dụng snippet object từ phiên đã close hoặc phiên khác.
+- Reading only \`events.get(0)\` after \`eval\` and ignoring events affecting other snippets.
+- Storing only variable/method names instead of tracking the ID and status of each snippet.
+- Treating \`OVERWRITTEN\` like \`DROPPED\`; they reflect two distinct operations.
+- Dropping an active snippet and expecting dependent methods to always remain \`VALID\`.
+- Assuming variable redeclaration and variable assignment are the same action.
+- Treating syntactically successful \`eval\` as a guarantee that all methods run error-free.
+- Confusing \`SnippetEvent.exception()\` with compiler diagnostics.
+- Assuming drop/overwrite can undo external side effects.
+- Sharing a single \`JShell\` across all tenants without isolating state and permissions.
+- Trying to reuse snippet objects from a closed session or a different session.
 
-Checklist khi xây JShell nhúng:
+Checklist when building embedded JShell:
 
-1. Có registry ánh xạ source/revision → snippet IDs và status?
-2. Sau mỗi \`eval\`/\`drop\`, có xử lý **toàn bộ** \`SnippetEvent\`?
-3. Có dùng \`diagnostics\` để giải thích trạng thái rejected/recoverable?
-4. Có phân biệt khai báo lại, gán giá trị và \`drop\`?
-5. Có kiểm soát thứ tự replay và dependency khi dựng lại phiên?
-6. Có xử lý lifecycle, resource cleanup và class loader?
-7. Có cơ chế staging/rollback ở cấp phiên thay vì kỳ vọng rollback tự động?
-8. Có cô lập execution cho mã không đáng tin và đặt quota phù hợp?
+1. Is there a registry mapping source/revision → snippet IDs and statuses?
+2. After every \`eval\`/\`drop\`, are **all** \`SnippetEvent\`s processed?
+3. Are \`diagnostics\` used to explain rejected/recoverable statuses?
+4. Do you distinguish redeclaration, value assignment, and \`drop\`?
+5. Are replay order and dependencies controlled when rebuilding a session?
+6. Are lifecycle, resource cleanup, and class loaders handled properly?
+7. Is there a session-level staging/rollback strategy instead of expecting automatic rollback?
+8. Is execution isolated with appropriate quotas for untrusted code?
 
-**Ghi nhớ:** trong JShell nhúng, snippet là một phần của **trạng thái phiên có phụ thuộc**. \`eval\` và \`drop\` có thể làm thay đổi nhiều snippet; muốn quản lý đúng phải theo dõi \`SnippetEvent\`, \`Snippet.Status\`, version source và vòng đời cả phiên—không chỉ kết quả của một lần gọi.
+**Remember:** in embedded JShell, a snippet is part of a **dependent session state**. \`eval\` and \`drop\` can affect multiple snippets; managing them reliably requires tracking \`SnippetEvent\`, \`Snippet.Status\`, source versions, and full session lifecycles—not just the outcome of a single call.

@@ -1,32 +1,32 @@
-# Đọc ScriptException với tên tệp, dòng và cột khi engine cung cấp
+# Reading ScriptException with File Name, Line, and Column When Provided by the Engine
 
-## 1. Vai trò của ScriptException trong kịch bản nhúng
+## 1. Role of ScriptException in Embedded Scripting
 
-Java Scripting API (JSR 223, package `javax.script`) cho phép ứng dụng chủ gọi script engine bằng `ScriptEngine.eval(...)`. Khi parser hoặc quá trình đánh giá script báo lỗi theo cơ chế của engine, Java có thể nhận `javax.script.ScriptException`. Ngoài thông điệp, đối tượng lỗi có các thông tin vị trí **nếu engine cung cấp**:
+The Java Scripting API (JSR 223, package `javax.script`) lets a host application invoke a script engine via `ScriptEngine.eval(...)`. When the parser or script evaluation reports an error through the engine's mechanism, Java can receive `javax.script.ScriptException`. Beyond the error message, the exception object carries location metadata **if the engine supplies it**:
 
-- `getFileName()`: tên nguồn/script mà engine gán cho lỗi; có thể `null`.
-- `getLineNumber()`: số dòng lỗi; giá trị `-1` biểu thị không biết vị trí.
-- `getColumnNumber()`: số cột lỗi; giá trị `-1` biểu thị không biết vị trí.
-- `getMessage()`: mô tả lỗi; có thể đã chứa tên tệp, dòng và cột tùy constructor/engine.
-- `getCause()`: nguyên nhân gốc nếu exception được tạo với cause hoặc engine gắn cause.
+- `getFileName()`: name of the source/script attached to the error by the engine; may be `null`.
+- `getLineNumber()`: error line number; `-1` indicates unknown location.
+- `getColumnNumber()`: error column number; `-1` indicates unknown location.
+- `getMessage()`: error description; may already include filename, line, and column depending on the constructor/engine.
+- `getCause()`: root cause if the exception was constructed with a cause or attached by the engine.
 
-Không phải mọi engine hỗ trợ chính xác cả ba trường vị trí. Không được suy ra rằng `getLineNumber()` hay `getColumnNumber()` luôn dương, rằng engine luôn dùng cột tính theo ký tự Unicode như editor, hoặc rằng `getFileName()` luôn bằng path thật trên đĩa.
+Not every engine accurately populates all three location fields. Never assume `getLineNumber()` or `getColumnNumber()` is always positive, that an engine always counts columns by Unicode characters like your editor, or that `getFileName()` always equals a real path on disk.
 
-## 2. Phân biệt ba loại thông tin
+## 2. Distinguishing Three Types of Information
 
-| Thành phần | Ý nghĩa | Lưu ý |
+| Component | Meaning | Note |
 | --- | --- | --- |
-| Tên tệp / nguồn | Định danh script mà engine dùng khi báo lỗi | Có thể là tên logic như `rules/discount.js`, không nhất thiết là đường dẫn vật lý |
-| Dòng | Vị trí trong source theo engine | Nếu engine dùng `-1` thì không biết; các source được ghép/preprocess có thể làm lệch vị trí |
-| Cột | Vị trí trong dòng theo engine | `-1` là không biết; đơn vị cột, điểm bắt đầu và cách đếm phụ thuộc engine |
-| Thông điệp lỗi | Mô tả cú pháp/runtime failure | Không thay thế hoàn toàn metadata có cấu trúc |
-| Cause / stack trace | Lý do sâu hơn | Có thể không có; không nên mất stack trace khi wrap |
+| File name / source | Script identifier used by the engine when reporting errors | May be a logical name like `rules/discount.js`, not necessarily a physical path |
+| Line | Position in source according to the engine | `-1` means unknown; concatenated/preprocessed sources can shift line numbers |
+| Column | Position within the line according to the engine | `-1` means unknown; column unit, starting index, and counting rules depend on the engine |
+| Error message | Description of syntax/runtime failure | Does not fully replace structured metadata |
+| Cause / stack trace | Deeper underlying reason | May be absent; do not lose stack traces when wrapping |
 
-Trong nhiều engine, vị trí được báo theo 1-based line/column, nhưng API `ScriptException` **không đảm bảo mọi engine quy đổi vị trí tương ứng với cách hiển thị editor của bạn**. Khi tạo IDE hoặc hệ thống quy tắc có line mapping, cần kiểm thử với engine cụ thể, nhất là source có ký tự đa byte, tabs, CRLF hoặc Unicode supplementary characters.
+In many engines, locations are reported as 1-based line/column numbers, yet the `ScriptException` API **does not guarantee every engine aligns locations with how your editor displays them**. When building an IDE or rule system with line highlighting, test against the specific engine—especially for sources containing multi-byte characters, tabs, CRLF, or Unicode supplementary characters.
 
-## 3. Cách lấy và hiển thị metadata an toàn
+## 3. Safely Extracting and Displaying Metadata
 
-Ví dụ Java 17+ tối giản, không cần engine có sẵn: tạo một `ScriptException` và hiển thị các trường:
+Minimal Java 17+ example requiring no installed engine: constructing a `ScriptException` and displaying its fields:
 
 ```java
 import javax.script.ScriptException;
@@ -54,7 +54,7 @@ public class ScriptErrorReport {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 ScriptErrorReport.java
@@ -69,11 +69,11 @@ Message: Unexpected token in rules/example.dsl at line number 7 at column number
 <unknown source>:?:?
 ```
 
-`ScriptException(String message, String fileName, int line, int column)` có thể bổ sung vị trí vào `getMessage()`; vì vậy nếu tự ghép `location + message` để log thì tên nguồn/dòng/cột có thể bị lặp. Nên xác định format log thống nhất: metadata riêng để máy đọc, message để người dùng hiểu.
+`ScriptException(String message, String fileName, int line, int column)` can append location info to `getMessage()`; therefore, if you concatenate `location + message` when logging, the source name, line, and column may be duplicated. Define a consistent log format: separate structured metadata for machines and readable messages for humans.
 
-## 4. Lấy exception từ một script engine thực tế
+## 4. Catching Exceptions from a Real Script Engine
 
-API thông thường:
+Typical API usage:
 
 ```java
 ScriptEngineManager manager = new ScriptEngineManager();
@@ -91,11 +91,11 @@ try {
 }
 ```
 
-Đây là đoạn code minh họa trong method có `scriptText` và imports `javax.script.*`. JDK 17 **không kèm Nashorn mặc định**; `ScriptEngineManager` có thể không phát hiện engine nào nếu không cài thêm provider qua dependency/module path. Vì vậy không nên viết ví dụ mặc định gọi `getEngineByName("JavaScript")` rồi khẳng định luôn chạy được.
+This is an illustrative snippet inside a method with `scriptText` and `import javax.script.*`. JDK 17 **does not bundle Nashorn by default**; `ScriptEngineManager` may discover no engines if you do not install a provider via dependencies/module path. Do not write default examples calling `getEngineByName("JavaScript")` and claiming they always run out of the box.
 
-### Gắn định danh nguồn bằng ScriptEngine.FILENAME
+### Attaching a Source Identifier via ScriptEngine.FILENAME
 
-JSR 223 định nghĩa key `ScriptEngine.FILENAME` (tên đầy đủ thường là `javax.script.filename`). Một số engine dùng thuộc tính này làm tên script trong diagnostics:
+JSR 223 defines the key `ScriptEngine.FILENAME` (whose full name is typically `javax.script.filename`). Some engines use this attribute as the script name in diagnostics:
 
 ```java
 ScriptContext context = engine.getContext();
@@ -118,9 +118,9 @@ try {
 }
 ```
 
-Đây là đoạn minh họa, giả định `engine`, `scriptText` và `logScriptError` được khai báo. **Không engine nào bị bắt buộc phải đưa FILENAME vào mọi ScriptException**; nếu engine không hỗ trợ, `getFileName()` vẫn có thể là `null`. Ngoài ra `getContext()` có thể được chia sẻ giữa nhiều lần đánh giá: cập nhật context nên được đồng bộ hoặc tạo `SimpleScriptContext` riêng cho từng request để tránh rò rỉ tên script giữa các lần chạy.
+This is an illustrative snippet assuming `engine`, `scriptText`, and `logScriptError` are declared. **No engine is forced to populate FILENAME in every ScriptException**; if the engine does not support it, `getFileName()` may still be `null`. Additionally, `getContext()` may be shared across multiple evaluations: context updates should be synchronized, or create a separate `SimpleScriptContext` per request to avoid leaking script names across runs.
 
-Phương án cô lập context mỗi lần đánh giá:
+Context-isolation approach per evaluation:
 
 ```java
 ScriptContext context = new SimpleScriptContext();
@@ -129,11 +129,11 @@ context.setAttribute(ScriptEngine.FILENAME, "rules/tax-policy.dsl",
 engine.eval(scriptText, context);
 ```
 
-Đây là đoạn trong method có imports phù hợp. Nếu script cần bindings, readers/writers hoặc global scope, phải cấu hình context tương ứng; `SimpleScriptContext` mới không tự mang hết cấu hình từ context mặc định của engine.
+This snippet belongs inside a method with appropriate imports. If the script needs bindings, readers/writers, or global scope, configure that context accordingly; a fresh `SimpleScriptContext` does not automatically copy all settings from the engine's default context.
 
-## 5. Ví dụ engine giả lập để kiểm chứng đường xử lý lỗi
+## 5. Mock Engine Example to Verify Error-Handling Paths
 
-Khi unit-test logic báo lỗi, có thể tạo `ScriptException` theo dữ liệu đầu vào mà không phụ thuộc engine bên ngoài. Dưới đây là chương trình Java 17+ độc lập sử dụng một hàm `evaluate` giả lập để biểu diễn hai tình huống: parser cung cấp vị trí và runtime không cung cấp vị trí.
+When unit-testing error-reporting logic, you can construct `ScriptException` based on test inputs without depending on an external engine. Below is a standalone Java 17+ program using a mock `evaluate` function to represent two cases: a parser providing location and a runtime not providing location.
 
 ```java
 import javax.script.ScriptException;
@@ -170,7 +170,7 @@ public class ScriptExceptionCases {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 ScriptExceptionCases.java
@@ -184,28 +184,28 @@ source=workflow.dsl, line=3, column=8
 source=workflow.dsl, line=unknown, column=unknown
 ```
 
-Ví dụ này minh họa **xử lý** metadata và fallback; nó không tuyên bố có JavaScript engine hay parser thật. Trong ứng dụng thực, thay `evaluate` bằng engine cần hỗ trợ; unit tests cho formatter vẫn chạy ổn định không lệ thuộc môi trường.
+This example demonstrates **handling** metadata and fallbacks; it does not claim to include a JavaScript engine or real parser. In a real application, replace `evaluate` with the target engine; unit tests for error formatters still run deterministically without environmental dependencies.
 
-## 6. Vị trí nguồn có thể bị lệch như thế nào?
+## 6. How Can Source Locations Shift?
 
-Script engine báo vị trí dựa trên **source nó nhìn thấy**, không nhất thiết là văn bản mà người dùng mở trong editor. Các biến đổi sau dễ tạo sai lệch:
+Script engines report locations based on **the source they see**, not necessarily the text the user opened in an editor. The following transformations easily cause offsets to drift:
 
-- Chèn header/helper code trước khi eval: lỗi ở dòng 20 của chuỗi kết quả có thể tương ứng dòng 17 của file gốc.
-- Ghép nhiều file script thành một string: `getFileName()` có thể là file chung, line không chỉ đúng source gốc.
-- Preprocessor/macros: một token source gốc có thể sinh nhiều token ở chuỗi eval.
-- CRLF so với LF: engine có thể tính line/column khác công cụ hiển thị nếu normalize source.
-- Tab và Unicode: khái niệm cột không nhất thiết bằng số ô hiển thị trên editor.
+- Prepending header/helper code before eval: an error on line 20 of the combined string may correspond to line 17 of the original file.
+- Concatenating multiple script files into one string: `getFileName()` may point to the combined file, and line numbers will not map directly to the original source.
+- Preprocessors/macros: one token in the original source can expand into multiple tokens in the evaluated string.
+- CRLF vs. LF: an engine may count lines/columns differently from display tools if source is normalized.
+- Tabs and Unicode: the engine's column unit does not necessarily equal the visual column width in an editor.
 
-Muốn hiển thị underline chính xác, nên giữ **source map** hoặc bảng offset mapping từ chuỗi chạy đến nguồn gốc. Nếu không có mapping, báo vị trí theo văn bản engine thực sự nhận và nói rõ đây là generated source location. Đừng tự cộng/trừ số dòng mù khi hệ thống đã biến đổi nhiều bước.
+To render accurate underlines, maintain a **source map** or offset-mapping table from the evaluated string back to the original source. Without a mapping, report locations against the text the engine actually received and clarify that it is a generated source location. Never blindly add or subtract line numbers when the pipeline performs multi-step transformations.
 
-## 7. Truyền lỗi qua các lớp kiến trúc
+## 7. Propagating Errors Across Architectural Layers
 
-Một hệ thống chạy script thường có các lớp: API → script runner → JSR 223 engine. Nếu runner bắt `ScriptException` rồi ném `new RuntimeException(ex.getMessage())`, toàn bộ thông tin file/line/column và cause có thể bị mất. Có hai cách an toàn:
+A script-running system typically has layers: API → script runner → JSR 223 engine. If the runner catches `ScriptException` and throws `new RuntimeException(ex.getMessage())`, all file/line/column metadata and the cause are lost. There are two safe options:
 
-1. Giữ nguyên `ScriptException` và để tầng gọi xử lý.
-2. Wrap lỗi trong một exception nghiệp vụ có cause và metadata riêng (source name, line, column) để API/UI có thể hiển thị.
+1. Preserve `ScriptException` and let the calling layer handle it.
+2. Wrap the error in a domain exception that retains the cause and explicit metadata (source name, line, column) so the API/UI can display it.
 
-Ví dụ đoạn code trong method:
+Illustrative snippet inside a method:
 
 ```java
 try {
@@ -216,37 +216,37 @@ try {
 }
 ```
 
-`ScriptRunFailure` ở đây là một class lỗi nghiệp vụ **tự định nghĩa**, không phải Java API dựng sẵn. Đừng nuốt `getCause()` hoặc chỉ ghi mỗi chuỗi message nếu cần chẩn đoán.
+`ScriptRunFailure` here is a **custom-defined** domain exception class, not a built-in Java API. Never swallow `getCause()` or keep only the message string when diagnostics are needed.
 
-### Log an toàn
+### Safe Logging
 
-Với script do người dùng cung cấp, tránh log nguyên toàn bộ source hay secret trong bindings; log source ID đã chuẩn hóa, loại lỗi, line/column nếu biết, request correlation ID và stack trace ở mức được phép. Nếu `getFileName()` là path bên ngoài, cân nhắc không trả full filesystem path trong API response. UI nên escape message trước khi hiển thị để tránh script message chèn nội dung không an toàn vào HTML/log.
+For user-supplied scripts, avoid logging the entire raw source or secrets inside bindings; log the normalized source ID, error type, line/column if known, request correlation ID, and stack trace at the permitted level. If `getFileName()` is an external path, avoid returning full filesystem paths in API responses. The UI should escape error messages before rendering so script messages cannot inject unsafe content into HTML or logs.
 
-## 8. Lỗi thường gặp và cách khắc phục
+## 8. Common Issues and Fixes
 
-| Tình huống | Nguyên nhân | Cách xử lý |
+| Scenario | Cause | Resolution |
 | --- | --- | --- |
-| File name là `null` | Engine không có thông tin hoặc không dùng `FILENAME` | Dùng source ID của ứng dụng làm fallback |
-| Line/column là `-1` | Engine không báo vị trí | Hiển thị `unknown`, không ép thành 0 |
-| Cột không khớp editor | Tabs, Unicode, newline hoặc quy tắc engine | Kiểm tra unit/indexing, source map nếu có transform |
-| `getMessage()` lặp file/line | Constructor của ScriptException đã gắn metadata vào message | Định dạng log tránh nhân đôi |
-| `getEngineByName(...)` trả `null` | Chưa cài engine provider | Cài dependency thích hợp, kiểm tra classpath/module path |
-| Lỗi hiển thị sai file khi chạy đồng thời | Chia sẻ mutable `ScriptContext` | Tạo context riêng hoặc đồng bộ |
-| Wrap exception làm mất line/column | Chỉ giữ message string | Preserve `ScriptException` hoặc metadata + cause |
-| Đổi script source trước eval | Position báo theo generated text | Duy trì source map, ghi rõ mapping |
-| Runtime lỗi nhưng không có vị trí | Engine không cung cấp vị trí runtime | Báo rõ giới hạn; dùng stack trace/cause nếu có |
+| File name is `null` | Engine lacks info or ignores `FILENAME` | Fall back to the application's source ID |
+| Line/column is `-1` | Engine did not report location | Display `unknown`; do not coerce to 0 |
+| Column mismatches editor | Tabs, Unicode, newlines, or engine rules | Check units/indexing; use a source map if transformed |
+| `getMessage()` repeats file/line | `ScriptException` constructor embedded metadata in message | Format logs to avoid duplication |
+| `getEngineByName(...)` returns `null` | Engine provider not installed | Install proper dependency; inspect classpath/module path |
+| Errors show wrong file under concurrency | Shared mutable `ScriptContext` | Create separate contexts or synchronize |
+| Wrapping exception loses line/column | Kept only the message string | Preserve `ScriptException` or metadata + cause |
+| Script source modified before eval | Locations reflect generated text | Maintain a source map; document the mapping |
+| Runtime error lacks location | Engine does not supply runtime locations | Surface limitation clearly; use stack trace/cause if available |
 
-## 9. Checklist thực hành
+## 9. Practical Checklist
 
-- [ ] Kiểm tra `ScriptEngine` tồn tại trước khi eval.
-- [ ] Gắn source identifier hợp lệ qua `ScriptEngine.FILENAME` nếu engine hỗ trợ.
-- [ ] Đọc `getFileName()`, `getLineNumber()`, `getColumnNumber()` thay vì parse message.
-- [ ] Xử lý `null`/`-1` như trường hợp không biết vị trí.
-- [ ] Giữ cause và stack trace khi chuyển exception giữa các tầng.
-- [ ] Test syntax error, runtime error và engine không báo location.
-- [ ] Nếu có preprocess/ghép file, duy trì offset/line source mapping.
-- [ ] Không giả định JDK 17 có sẵn Nashorn/JavaScript engine.
-- [ ] Không tiết lộ đường dẫn hay source bí mật trong diagnostics gửi người dùng.
-- [ ] Đảm bảo formatter lỗi chạy được ngay cả khi không cài engine.
+- [ ] Verify `ScriptEngine` exists before calling eval.
+- [ ] Attach a valid source identifier via `ScriptEngine.FILENAME` if supported by the engine.
+- [ ] Read `getFileName()`, `getLineNumber()`, and `getColumnNumber()` instead of parsing the message string.
+- [ ] Treat `null`/`-1` as unknown location.
+- [ ] Preserve cause and stack trace when propagating exceptions across layers.
+- [ ] Test syntax errors, runtime errors, and engines that omit location metadata.
+- [ ] If preprocessing/concatenating files, maintain an offset/line source map.
+- [ ] Do not assume JDK 17 includes Nashorn/a JavaScript engine.
+- [ ] Do not expose host paths or secret sources in user-facing diagnostics.
+- [ ] Ensure error formatters run reliably even when no engine is installed.
 
-**Kết luận:** `ScriptException` cung cấp API có cấu trúc để đọc tên nguồn, dòng và cột, nhưng **độ đầy đủ của metadata phụ thuộc script engine**. Luôn đọc và kiểm tra trực tiếp các getter, dùng fallback phù hợp, bảo toàn cause và chỉ hiển thị vị trí khi đáng tin. Điều này giúp hệ thống kịch bản nhúng báo lỗi rõ ràng mà không phụ thuộc vào việc parse chuỗi thông báo.
+**Conclusion:** `ScriptException` offers a structured API for reading source name, line, and column, yet **how complete that metadata is depends on the script engine**. Always read and check the getters directly, apply sensible fallbacks, preserve the cause, and display locations only when reliable. This keeps error reporting in embedded scripting systems clear without fragile message-string parsing.

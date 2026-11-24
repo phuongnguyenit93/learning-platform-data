@@ -1,25 +1,25 @@
-# 7.8 Quản lý kết nối, tần suất truy vấn và giới hạn cardinality của dữ liệu giám sát
+# 7.8 Connection management, query frequency, and cardinality limits for monitoring data
 
-Một JVM có thể trả về hàng trăm thuộc tính JMX, nhiều `ObjectName` và các thông báo quản lý. Điều khó trong production không chỉ là gọi `getAttribute()`, mà còn là **quan sát lâu dài mà không làm quá tải JVM, không tạo bão kết nối và không khiến hệ thống time-series bùng nổ số lượng chuỗi dữ liệu**. Ba quyết định có liên hệ chặt chẽ:
+A single JVM can expose hundreds of JMX attributes, numerous `ObjectName`s, and management notifications. The challenge in production is not merely calling `getAttribute()`, but **observing continuously over time without overloading the JVM, causing connection storms, or exploding the number of series in the time-series backend**. Three closely linked decisions govern this:
 
-1. **Quản lý kết nối:** ai mở kết nối JMX, kết nối sống bao lâu, khi nào đóng, xử lý timeout/reconnect và phân quyền ra sao?
-2. **Tần suất truy vấn:** hỏi MBean nào, bao nhiêu lần mỗi giây, bao nhiêu request song song, có chồng lấn khi lượt trước chưa xong không?
-3. **Giới hạn cardinality:** khi chuyển attributes/ObjectNames thành metrics, có bao nhiêu tổ hợp nhãn duy nhất và chúng thay đổi nhanh đến mức nào?
+1. **Connection management:** who opens JMX connections, how long do they live, when are they closed, and how are timeouts, reconnects, and authorization handled?
+2. **Query frequency:** which MBeans are queried, how many times per second, with what concurrency, and do polls overlap when a prior cycle hasn't finished?
+3. **Cardinality limits:** when turning attributes and ObjectNames into metrics, how many unique label combinations exist and how fast do they churn?
 
-Ví dụ: mỗi 15 giây thu 20 attributes ở 100 JVM nghe có vẻ nhỏ, nhưng nếu mỗi thuộc tính yêu cầu một remote round-trip thì một lượt có thể gồm khoảng **2.000 lời gọi**. Nếu mỗi metric còn gắn `request_id` hoặc `user_id` động, hàng triệu chuỗi thời gian có thể xuất hiện; tăng CPU, memory, network, chi phí lưu trữ và làm cho dashboard/alert khó tin cậy. Một giải pháp tốt phải kiểm soát **chi phí ở cả phía JVM, collector và hệ thống metrics**.
+For example, scraping 20 attributes across 100 JVMs every 15 seconds sounds small—yet if each attribute requires a remote round trip, one cycle sends roughly **2,000 calls**. If every metric also attaches dynamic `request_id` or `user_id` labels, millions of time series can appear, driving up CPU, memory, network, and storage costs while degrading dashboard and alert reliability. A sound design controls **cost across the JVM, collector, and metrics backend**.
 
-Bài này xây dựng mô hình vận hành cho JMX trong Java 17+: vòng đời `JMXConnector` và `MBeanServerConnection`, timeout, backoff, giới hạn song song, polling cadence, khác biệt counter/gauge, chọn attributes bằng allowlist, tính cardinality và thiết kế nhãn an toàn. Mã thực hành Java 17+ chạy độc lập bằng platform MBeanServer **nội bộ**, không yêu cầu mở cổng JMX remote hay có dịch vụ bên ngoài.
+This lesson builds an operational model for JMX in Java 17+: `JMXConnector` and `MBeanServerConnection` lifecycles, timeouts, backoff, bounded concurrency, polling cadence, counter vs. gauge semantics, allowlist attribute selection, cardinality math, and safe label design. The Java 17+ practice code runs standalone using the **internal** platform MBeanServer, requiring no open remote JMX ports or external services.
 
-## 1. Mô hình một hệ thống giám sát JMX
+## 1. Model of a JMX monitoring system
 
-Một pipeline phổ biến:
+A common pipeline:
 
 ```text
  [JVM A]       [JVM B]       [JVM C]
     |             |             |
  MBeanServer   MBeanServer   MBeanServer
     |             |             |
- JMX connector/JMX access (nếu được cấu hình, phân quyền)
+ JMX connector / JMX access (if configured and authorized)
     \             |             /
      \            |            /
       +--- monitoring collector ---+
@@ -35,67 +35,67 @@ Một pipeline phổ biến:
              dashboards / alerts
 ```
 
-Các tầng có nhiệm vụ riêng:
+Each layer has distinct responsibilities:
 
-| Tầng | Nhiệm vụ | Rủi ro nếu thiết kế sai |
+| Layer | Responsibility | Risk if poorly designed |
 | --- | --- | --- |
-| JVM/MBean | Cung cấp các giá trị quản trị | Getter chậm/lock, đối tượng MBean quá nhiều, thông tin nhạy cảm |
-| Connector | Vận chuyển request/response và events | Mở quá nhiều kết nối, mất mạng, auth/TLS sai, timeout |
-| Collector | Chọn attributes, lịch polling, retry, transform | Thundering herd, overlapping polls, data missing bị biến thành 0 |
-| Exporter/mapper | Chuyển `ObjectName` và values thành metrics có labels | Dynamic labels, series churn, sai units và metric types |
-| Time-series backend | Lưu series, truy vấn/rate/alert | Bùng nổ active series, RAM/đĩa/query latency |
-| Người vận hành | Đọc dữ liệu và quyết định | Nhầm snapshot với lịch sử, nhầm reconnect với restart, alert nhiễu |
+| JVM/MBean | Exposes management values | Slow/locking getters, too many MBeans, sensitive data |
+| Connector | Transports requests/responses and events | Connection leaks, network drops, misconfigured auth/TLS, timeouts |
+| Collector | Selects attributes, schedules polls, retries, transforms | Thundering herds, overlapping polls, turning missing data into 0 |
+| Exporter/mapper | Converts `ObjectName` and values into labeled metrics | Dynamic labels, series churn, wrong units and metric types |
+| Time-series backend | Stores series, runs queries/rates/alerts | Active series explosion, RAM/disk/query latency spikes |
+| Operator | Reads data and makes decisions | Confusing snapshots with history, reconnects with restarts, noisy alerts |
 
-**JMX API là mô hình truy cập quản trị, không tự cung cấp retention, rate calculation hoặc cardinality guardrails.** Cần tự thiết kế các lớp trên hoặc dùng exporter đã được kiểm chứng cấu hình tương đương. Phân biệt rõ **remote connection** với **local MBeanServerConnection**: cùng các phương thức đọc, nhưng chi phí, lỗi mạng và vòng đời tài nguyên khác nhau.
+**The JMX API is a management access model—it does not provide retention, rate calculation, or cardinality guardrails.** You must build those layers or use a proven exporter configured equivalently. Clearly separate a **remote connection** from a **local `MBeanServerConnection`**: identical read methods, very different costs, network errors, and resource lifecycles.
 
-### 1.1 Đơn vị cần quản lý là “target JVM instance”, không phải chỉ hostname
+### 1.1 The managed unit is "target JVM instance," not just hostname
 
-Một host có thể chạy nhiều JVM. Một pod/container có thể restart và đổi PID. Một service có thể có nhiều replicas. Vì vậy identity nên gồm:
+One host can run multiple JVMs. A pod/container can restart and change PID. A service can have multiple replicas. Therefore target identity should include:
 
-- Workload/service đã được phép quan sát.
-- Environment/cluster/namespace theo chính sách; không phải tất cả phải làm metric labels.
-- Process/JVM instance ID hoặc startup time để nhận biết restart.
-- Endpoint và cơ chế kết nối (local JMX, secured remote JMX hay agent/exporter nội bộ).
-- MBean ObjectName và tên attribute cụ thể.
-- Timestamp lấy mẫu, trạng thái kết nối và chất lượng dữ liệu.
+- Authorized workload/service name.
+- Environment/cluster/namespace per policy; not everything needs to become a metric label.
+- Process/JVM instance ID or startup time to detect restarts.
+- Endpoint and connection mode (local JMX, secured remote JMX, or in-process agent/exporter).
+- Specific MBean `ObjectName` and attribute name.
+- Sample timestamp, connection status, and data quality.
 
-Không coi kết nối tới `host:port` là bằng chứng đúng JVM nếu endpoint routing, NAT, sidecar hay deployment đã thay đổi. `ObjectName` chỉ định danh trong **một MBeanServer**, có thể trùng ở nhiều JVM. `JMXConnector.getConnectionId()` định danh một kết nối **trong vòng đời kết nối**, không phải identity bền vững của service hay nhãn metric nên giữ mãi.
+Do not treat connecting to `host:port` as proof of the right JVM if routing, NAT, sidecars, or deployments changed. `ObjectName` identifies beans only within **one MBeanServer** and can repeat across JVMs. `JMXConnector.getConnectionId()` identifies a connection **for that connection's lifetime**, not a durable service identity or a persistent metric label.
 
-## 2. Quản lý vòng đời kết nối JMX
+## 2. Managing the JMX connection lifecycle
 
-### 2.1 Các API cốt lõi
+### 2.1 Core APIs
 
-Trong Java SE, các thành phần quan trọng:
+Key components in Java SE:
 
-| API | Công dụng | Lưu ý |
+| API | Purpose | Notes |
 | --- | --- | --- |
-| `JMXServiceURL` | Mô tả endpoint của JMX connector | Không có nghĩa endpoint an toàn hay luôn truy cập được |
-| `JMXConnectorFactory.connect(url, env)` | Tạo và thiết lập kết nối, trả `JMXConnector` đã connect | Có thể lỗi I/O, bảo mật, protocol/provider |
-| `JMXConnector.getMBeanServerConnection()` | Lấy đối tượng gọi các method JMX remote | Phương thức trên connection có thể tiếp tục lỗi sau handshake |
-| `MBeanServerConnection.getAttributes(...)` | Đọc nhiều attributes của một MBean | Một số thuộc tính không lấy được có thể bị bỏ qua |
-| `JMXConnector.close()` | Đóng kết nối client | Có thể throw `IOException` và bản thân close có thể chậm |
-| `addConnectionNotificationListener(...)` | Nghe trạng thái kết nối JMX | Không phải event lịch sử bền vững |
-| `JMXConnector.getConnectionId()` | ID được server cấp cho kết nối | Không dùng làm label per reconnect |
+| `JMXServiceURL` | Describes the JMX connector endpoint | Does not guarantee the endpoint is secure or always reachable |
+| `JMXConnectorFactory.connect(url, env)` | Establishes the connection, returns connected `JMXConnector` | Can fail with I/O, security, or protocol/provider errors |
+| `JMXConnector.getMBeanServerConnection()` | Obtains handle for remote JMX calls | Methods on the connection can still fail after handshake |
+| `MBeanServerConnection.getAttributes(...)` | Reads multiple attributes from one MBean | Unreadable/missing attributes may be omitted silently |
+| `JMXConnector.close()` | Closes client connection | Can throw `IOException` and `close()` itself can block/lag |
+| `addConnectionNotificationListener(...)` | Listens for JMX connection status | Not a durable historical event log |
+| `JMXConnector.getConnectionId()` | Server-assigned ID for the connection | Do not use as a label per reconnect |
 
-`MBeanServerConnection` đại diện cho đường truy cập tới MBeanServer **cục bộ hoặc từ xa**; `MBeanServer` cục bộ kế thừa giao diện đó. Ở remote, kết nối có thể thành công rồi sau đó mất mạng hoặc mất quyền; đừng coi successful handshake là bảo đảm mọi `getAttribute` tiếp theo sẽ thành công.
+`MBeanServerConnection` represents an access channel to a **local or remote** MBeanServer; local `MBeanServer` extends it. Over remote connections, a connection can succeed and later drop network or lose permissions; never assume a successful handshake guarantees every subsequent `getAttribute` will succeed.
 
-### 2.2 Connect once, reuse có điều kiện, close có kỷ luật
+### 2.2 Connect once, reuse conditionally, close with discipline
 
-Một collector thường nên **tái sử dụng kết nối đang khỏe** qua nhiều lượt polling thay vì liên tục connect/auth mỗi 1 giây, nhưng không có quy tắc “giữ kết nối bất tử”:
+A collector should generally **reuse healthy connections** across polling cycles rather than reconnecting and re-authenticating every second, yet there is no rule for "immortal connections":
 
-1. Chỉ mở kết nối tới target và endpoint được phê duyệt.
-2. Xác thực/TLS và kiểm tra identity server qua transport được cấu hình phù hợp.
-3. Thực hiện một probe nhẹ có bounded cost, xác nhận target đúng JVM.
-4. Tái sử dụng khi connector khỏe và chính sách transport cho phép.
-5. Khi gặp lỗi I/O/connection-failed, phân loại kết nối hỏng; không tiếp tục dùng `MBeanServerConnection` cũ như luôn hợp lệ.
-6. Reconnect có backoff/jitter, giới hạn số attempt và quản lý tài nguyên.
-7. Khi collector shutdown hoặc target bị bỏ khỏi inventory, tháo listener và `close()` trong lifecycle cleanup.
+1. Open connections only to approved targets and endpoints.
+2. Perform authentication/TLS and verify server identity via properly configured transport.
+3. Run a lightweight bounded-cost probe confirming the exact target JVM.
+4. Reuse the connector while healthy and permitted by transport policy.
+5. On I/O or connection failures, mark the connection unhealthy; never keep using a stale `MBeanServerConnection` as if valid.
+6. Reconnect with backoff/jitter, capped attempts, and strict resource cleanup.
+7. On collector shutdown or target removal, remove listeners and call `close()` during lifecycle cleanup.
 
-**Mỗi lần connect mới có chi phí**: bắt tay transport, authentication, tài nguyên thread/socket, kiểm tra MBeans. **Mỗi kết nối giữ quá lâu** cũng có thể gặp stale state, server redeploy và resource leak. Chọn lifetime theo provider, network policy, số target, failure rate và tải thực tế.
+**Every new connect carries cost**: transport handshake, authentication, socket/thread allocation, and MBean checks. **Connections held forever** also face stale state, server redeploys, and resource leaks. Choose lifetimes based on provider, network policy, target count, failure rate, and real load.
 
-### 2.3 Mẫu API để đóng kết nối bằng try-with-resources
+### 2.3 API pattern for closing connections with try-with-resources
 
-Đoạn Java sau là **một method minh họa**; caller phải cung cấp endpoint hợp lệ, môi trường xác thực và chỉ dùng trong mạng được cấp quyền:
+The Java snippet below is an **illustrative method**; callers must supply a valid endpoint and authenticated environment strictly on authorized networks:
 
 ```java
 import java.util.Map;
@@ -120,146 +120,146 @@ static AttributeList readOnce(
 }
 ```
 
-Đây **không phải tệp Java độc lập**: đoạn method cần đặt bên trong một class, và cấu hình bảo mật `approvedEnvironment` phải được chuẩn bị bởi deployment. Nếu muốn tránh kết nối lại mỗi scrape, lưu connector trong một **resource owner** chịu trách nhiệm health/reconnect/close, thay vì tạo nó ở mọi lần gọi hàm như mẫu ngắn. `AttributeList` được trả về sau khi đã đọc xong; không giữ `MBeanServerConnection` rồi dùng sau khi connector bị đóng.
+This **is not a standalone Java file**: the method belongs inside a class, and `approvedEnvironment` security config must come from deployment. To avoid reconnecting on every scrape, hold the connector in a **resource owner** responsible for health, reconnect, and closing rather than recreating it per call as in this brief snippet. `AttributeList` returns after reading completes; never retain `MBeanServerConnection` for use after the connector closes.
 
-**Quan trọng:** `JMXConnector.close()` trong JDK 21 có thể **chặn một khoảng thời gian đáng kể** khi server bị lỗi/không phản hồi. `try-with-resources` giúp đảm bảo gọi cleanup nhưng **không biến close thành non-blocking**. Nếu production yêu cầu time budget chặt, cần cơ chế quản lý transport và shutdown có kiểm soát, không mặc định `close()` luôn tức thì.
+**Important:** `JMXConnector.close()` in JDK 21 can **block for a noticeable duration** when a server fails or stops responding. `try-with-resources` guarantees cleanup is invoked, **not that `close()` is non-blocking**. If production enforces tight time budgets, implement controlled transport and shutdown management rather than assuming `close()` is instantaneous.
 
-### 2.4 Không tự chế tên timeout property như một chuẩn JMX chung
+### 2.4 Never invent timeout property names as a universal JMX standard
 
-JMX tiêu chuẩn xác định API connector; **timeout cho connect/read/idle/retry phụ thuộc provider, transport, JDK release và môi trường**. Không có một `-D...timeout` tùy ý có thể được khẳng định là mặc định áp dụng cho mọi connector.
+Standard JMX defines connector APIs; **connect/read/idle/retry timeouts depend on the provider, transport, JDK release, and environment**. No arbitrary `-D...timeout` flag can be claimed as universally effective across all connectors.
 
-Thiết kế timeout phải tách:
+Timeout design must separate:
 
-- **DNS/endpoint resolution**: tên host có phân giải đúng không?
-- **Connection establishment/TLS/auth**: thời gian bắt tay và xác thực.
-- **Remote request/read**: `getAttribute` bị chậm do mạng hay getter?
-- **Total scrape deadline**: toàn bộ lượt có còn kịp cadence không?
-- **Shutdown/close**: cleanup có thể chậm.
-- **Retry/reconnect budget**: tránh thử mãi một target chết.
+- **DNS/endpoint resolution**: does the hostname resolve properly?
+- **Connection establishment/TLS/auth**: handshake and authentication time.
+- **Remote request/read**: is `getAttribute` slow due to network or the getter?
+- **Total scrape deadline**: does the full cycle fit within cadence?
+- **Shutdown/close**: cleanup can lag.
+- **Retry/reconnect budget**: avoid hammering dead targets forever.
 
-Cấu hình timeouts cụ thể phải dựa trên tài liệu **đúng provider/phiên bản** và kiểm thử network failures. Chỉ đặt timeout bên ngoài bằng `Future.get(timeout)` cũng **không bảo đảm** kết thúc ngay lời gọi I/O bị block: `cancel(true)` là yêu cầu interrupt, không phải cơ chế đóng socket chắc chắn trong mọi RMI/provider. Không tạo unbounded threads khi lời gọi trước không chịu thoát.
+Exact timeout settings must follow **your specific provider/version documentation** and be verified under simulated network failures. Wrapping calls in `Future.get(timeout)` alone **does not guarantee** blocked I/O aborts immediately: `cancel(true)` requests an interrupt, not a guaranteed socket close across every RMI/provider implementation. Never spawn unbounded threads when prior calls refuse to exit.
 
-### 2.5 Phân biệt status kết nối, dữ liệu rỗng và target chết
+### 2.5 Distinguishing connection status, empty data, and dead targets
 
-| Hiện tượng | Có thể do | Phản ứng phù hợp |
+| Symptom | Possible cause | Appropriate response |
 | --- | --- | --- |
-| Kết nối thất bại từ đầu | Endpoint sai, auth/TLS, network, server chưa bật | Kiểm tra endpoint và security; backoff |
-| Kết nối đang dùng phát `FAILED` | Mạng/server hỏng, connector state thay đổi | Mark connector unhealthy; quản lý cleanup/reconnect |
-| `getAttributes` trả thiếu field | Attribute không tồn tại/không readable/permission hoặc getter lỗi | Kiểm tra danh sách nhận, không tự điền 0 |
-| `InstanceNotFoundException` | MBean biến mất/redeploy, sai ObjectName/JVM | Re-discover có giới hạn, xác minh instance |
-| Timeout từng request | Getter block, JVM quá tải, mạng/transport | Ghi timeout; giảm fan-out, kiểm tra tài nguyên |
-| Không có sample mới | Target/collector/export pipeline lỗi | Giữ missing/stale và scrape health; không tạo success giả |
-| `getConnectionId` thay đổi | Reconnect/connection instance khác | Dùng để chẩn đoán connection churn, không kết luận JVM restart |
+| Initial connection fails | Wrong endpoint, auth/TLS, network, server not listening | Check endpoint and security; apply backoff |
+| Active connection emits `FAILED` | Network/server drop, connector state changed | Mark connector unhealthy; clean up and reconnect |
+| `getAttributes` returns fewer fields | Missing/non-readable attribute, permission, or getter error | Inspect returned list; never fill in 0 |
+| `InstanceNotFoundException` | MBean vanished/redeployed, wrong ObjectName/JVM | Rediscover boundedly, verify instance |
+| Per-request timeout | Blocking getter, overloaded JVM, network/transport | Record timeout; cut fan-out, inspect resources |
+| No fresh samples | Target, collector, or export pipeline failure | Keep missing/stale status and scrape health; never fake success |
+| `getConnectionId` changes | Reconnect / new connection instance | Use to diagnose connection churn, not conclude JVM restart |
 
-Một số tình huống có nhiều nguyên nhân cùng lúc. Không suy “GC làm đứt JMX” chỉ từ một timeout.
+Multiple causes can occur together. Never conclude "GC broke JMX" from a single timeout.
 
-## 3. Connection notifications và health của collector
+## 3. Connection notifications and collector health
 
-`JMXConnector.addConnectionNotificationListener(...)` nhận các `JMXConnectionNotification` (khi provider phát theo contract) như:
+`JMXConnector.addConnectionNotificationListener(...)` receives `JMXConnectionNotification` events (when emitted by the provider per contract), such as:
 
-- `OPENED`: kết nối được mở.
-- `CLOSED`: kết nối đóng.
-- `FAILED`: kết nối thất bại bất thường.
-- `NOTIFS_LOST`: client có thể đã mất một số notifications từ remote.
+- `OPENED`: connection opened.
+- `CLOSED`: connection closed.
+- `FAILED`: connection failed abnormally.
+- `NOTIFS_LOST`: the client may have missed some remote notifications.
 
-Đây là **connection events**, khác với notification của một MBean về heap threshold hoặc hàng đợi ứng dụng. Một notification `NOTIFS_LOST` cảnh báo về tính đầy đủ dữ liệu event stream; nó không tự nói metric polling đã mất cùng số mẫu.
+These are **connection events**, distinct from MBean notifications about heap thresholds or application queues. A `NOTIFS_LOST` notification warns about event-stream completeness; it does not imply metric polling lost the same samples.
 
-Các nguyên tắc vận hành:
+Operational principles:
 
-1. Theo dõi connection health bằng status, số lần reconnect, thời gian connect và lỗi I/O, **không chỉ** dựa vào số TCP sockets.
-2. Đăng ký listener một lần theo connector lifecycle, tháo khi cleanup.
-3. Không thực hiện reconnect blocking hoặc truy vấn MBean nặng trực tiếp trong callback.
-4. Sau reconnect, xác minh MBean registry/target identity; resubscribe listeners khi cần.
-5. Không dựa vào `OPENED`/`CLOSED` như **lịch sử bền vững**; event stream có thể mất.
-6. Nếu monitoring dựa trên notification, dùng polling định kỳ để đối soát trạng thái và có cơ chế lưu event khi business yêu cầu.
+1. Track connection health via status, reconnect counts, connect latency, and I/O errors—**not** merely open TCP socket counts.
+2. Register the listener once per connector lifecycle and remove it on cleanup.
+3. Never perform blocking reconnects or heavy MBean queries directly inside the callback.
+4. After reconnecting, re-verify the MBean registry/target identity and resubscribe listeners if needed.
+5. Never treat `OPENED`/`CLOSED` as **durable history**; event streams can drop.
+6. If monitoring relies on notifications, run periodic polling to reconcile state and use durable event storage where business requirements demand it.
 
-**Tại sao không dùng connection ID làm label?** Vì ID có thể thay khi reconnect; label mới tạo một chuỗi time series khác. Nếu hàng trăm targets reconnect thường xuyên, số series tăng dù chỉ có một JVM mỗi target. Giữ connection ID ở **log chẩn đoán có hạn chế quyền** khi cần trace, còn metric nên dùng target identity ổn định hơn.
+**Why avoid using connection ID as a label?** Because the ID changes on every reconnect, creating a brand-new time series. If hundreds of targets reconnect often, series count climbs even with one JVM per target. Keep connection IDs in **access-restricted diagnostic logs** for tracing while using stable target identities for metrics.
 
-## 4. Tần suất truy vấn: cadence, cửa sổ đo và chi phí
+## 4. Query frequency: cadence, measurement windows, and cost
 
-### 4.1 Polling một attribute không bằng nhận một event
+### 4.1 Polling an attribute is not receiving an event
 
-Một MBean attribute thường là **snapshot hiện tại** hoặc **counter tích lũy**. Gọi `getAttribute` mỗi 30 giây không giúp nhìn những đỉnh ngắn đã xảy ra và biến mất giữa hai lần lấy mẫu.
+An MBean attribute is typically a **current snapshot** or **cumulative counter**. Calling `getAttribute` every 30 seconds cannot reveal brief peaks that rose and fell between two samples.
 
-Ví dụ một queue depth:
+Example queue depth:
 
 ```text
-T=00s: depth = 4   (poll được)
+T=00s: depth = 4   (polled)
 T=10s: depth = 250 (spike)
-T=20s: depth = 3   (hết spike)
-T=30s: depth = 4   (poll được)
+T=20s: depth = 3   (spike over)
+T=30s: depth = 4   (polled)
 ```
 
-Nếu chỉ poll mỗi 30 giây, dashboard có thể luôn hiện 4 và **bỏ sót spike 250**. Muốn ghi nhận peak/cause, cần event/histogram/high-watermark hoặc sampling nhanh hơn có kiểm soát, tùy mục đích. Poll nhanh hơn cũng không bảo đảm bắt được mọi spike nếu không có event capture.
+Polling only every 30 seconds shows 4 consistently and **misses the 250 spike**. Capturing peaks or causes requires events, histograms, high-watermarks, or controlled faster sampling depending on the goal. Even faster polling cannot guarantee catching every spike without event capture.
 
-### 4.2 Phân loại dữ liệu trước khi chọn interval
+### 4.2 Classify data before picking an interval
 
-| Loại quan sát | Ví dụ JMX | Cách tính/thói quen polling |
+| Observation kind | JMX example | Calculation / polling habit |
 | --- | --- | --- |
-| Gauge tức thời | ThreadCount, QueueDepth, HeapMemoryUsage.used | Lấy mẫu theo mục tiêu và độ biến động; không suy min/max giữa hai mẫu |
-| Counter tích lũy | GC collection count, completed tasks, request total | Tính delta/rate theo thời gian; nhận diện restart/reset |
-| Metadata/config ít đổi | JVM vendor, version, bean names, capacity cố định | Discover/cache theo lifecycle; không query mỗi giây |
-| Event/notification | Threshold crossing, MBean registered/unregistered | Subscribe nếu hỗ trợ; có cơ chế reconcile/mất event |
-| Expensive diagnostic | Heap dump, full thread dump, histograms nặng | Không đưa vào vòng polling phổ thông |
-| Per-request trace | Latency từng request, stack/context | Không biến mỗi request thành dynamic MBean/metric label |
+| Instantaneous gauge | `ThreadCount`, `QueueDepth`, `HeapMemoryUsage.used` | Sample per goal and volatility; do not infer min/max between samples |
+| Cumulative counter | GC collection count, completed tasks, request total | Compute delta/rate over time; detect restarts/resets |
+| Slowly changing metadata/config | JVM vendor, version, bean names, fixed capacity | Discover/cache per lifecycle; do not query every second |
+| Event/notification | Threshold crossing, MBean registered/unregistered | Subscribe if supported; reconcile against missed events |
+| Expensive diagnostic | Heap dump, full thread dump, heavy histograms | Keep out of routine polling loops |
+| Per-request trace | Individual request latency, stack/context | Never turn each request into a dynamic MBean/metric label |
 
-**Không có một cadence đúng cho mọi MBean.** Chọn dựa trên nhu cầu SLO, hành vi dữ liệu, chi phí getter/round-trip, số target, và khoảng thời gian phát hiện sự cố mong muốn. Ví dụ lấy mẫu 15–30 giây có thể phù hợp với dashboard tổng quan của một hệ thống, còn phát hiện spike vài mili giây cần nguồn sự kiện phù hợp — không đơn giản tăng poll lên hàng nghìn lần mỗi giây.
+**No single cadence fits all MBeans.** Choose based on SLO needs, data dynamics, getter/round-trip cost, target count, and desired detection latency. For instance, 15–30 second sampling may suit an overview dashboard, whereas catching millisecond spikes needs proper event sources—not cranking polling to thousands of calls per second.
 
-### 4.3 Mối liên hệ giữa interval và lượng truy vấn
+### 4.3 Relationship between interval and query volume
 
-Giả sử:
+Suppose:
 
-- `T` = số JVM targets.
-- `B` = số MBeans được hỏi trên mỗi target.
-- `A` = số attributes cần mỗi bean.
-- `P` = giây giữa hai lượt polling.
+- `T` = number of JVM targets.
+- `B` = MBeans queried per target.
+- `A` = attributes needed per bean.
+- `P` = seconds between polls.
 
-Nếu naïve client gọi từng attribute qua remote:
+If a naive client reads attributes individually over remote JMX:
 
 ```text
 attribute_reads_per_cycle = T × B × A
 attribute_reads_per_second_average ≈ (T × B × A) / P
 ```
 
-Ví dụ `T=60, B=4, A=3, P=15`:
+Example with `T=60, B=4, A=3, P=15`:
 
 ```text
 60 × 4 × 3 = 720 attribute values / cycle
-720 / 15 = 48 attribute values / second (trung bình)
+720 / 15 = 48 attribute values / second (average)
 720 × (3600 / 15) = 172800 values / hour
 ```
 
-Nếu dùng `getAttributes(name, String[])` theo bean để **giảm remote round trips**, số method calls về lý thuyết là `T × B = 240 calls/cycle`, tức khoảng **16 calls/giây**, nhưng **vẫn cần đọc 720 giá trị** ở phía JVM. Đây là tính toán sizing, **không phải benchmark đo thực tế**: getter cost/transport/overhead và số attributes mỗi bean không đều nhau.
+Using `getAttributes(name, String[])` per bean to **cut remote round trips** reduces theoretical method calls to `T × B = 240 calls/cycle`, or roughly **16 calls/second**, yet the JVM **still reads 720 values**. This is a sizing estimate, **not a measured benchmark**: getter cost, transport overhead, and attribute counts per bean vary.
 
-Một batch multi-attribute không phải snapshot nguyên tử toàn MBean/JVM; có thể thiếu một số field (API bỏ chúng khỏi `AttributeList`). **Không được xem 720 giá trị request tương đương 720 giá trị có đủ**.
+A multi-attribute batch is also not an atomic snapshot of the entire MBean/JVM; individual fields may be missing (the API drops them from `AttributeList`). **Never equate 720 requested values with 720 guaranteed returned values.**
 
-### 4.4 Chi phí có thể nằm trong getter chứ không ở mạng
+### 4.4 Cost may sit inside the getter rather than the network
 
-Một getter tốt có thể chỉ đọc atomic counter, trong khi getter khác có thể khóa một cấu trúc dữ liệu, scan collection lớn, tính histogram hoặc lấy thông tin hệ điều hành. Nếu hỏi MBean quá thường xuyên, chính hoạt động giám sát có thể gây CPU load, lock contention hoặc làm chậm request.
+A well-designed getter reads an atomic counter, while another getter might lock a data structure, scan a huge collection, compute a histogram, or query OS stats. Polling MBeans too frequently can make monitoring itself cause CPU load, lock contention, or request slowdowns.
 
-Một policy hợp lý:
+A sensible policy:
 
-1. Chỉ lấy những attributes thật sự cần, theo allowlist.
-2. Phân loại cheap/medium/expensive và thiết lập cadence riêng.
-3. Đo p50/p95/p99 của **scrape duration** và rate lỗi thu thập, không chỉ metric nghiệp vụ.
-4. Giới hạn thời gian/in-flight để getter chậm không tạo chuỗi yêu cầu chồng lấn.
-5. Với dữ liệu ít thay đổi, cache metadata/`MBeanInfo` có invalidation khi MBean đổi.
-6. Khi thấy latency ứng dụng tăng đồng thời monitoring load tăng, thử giảm cadence trong môi trường kiểm soát rồi đối chiếu.
+1. Fetch only genuinely required attributes via an allowlist.
+2. Classify cheap/medium/expensive attributes with separate cadences.
+3. Measure p50/p95/p99 of **scrape duration** and collection error rates, not just business metrics.
+4. Bound timeouts and in-flight work so slow getters do not pile up overlapping requests.
+5. For rarely changing metadata, cache `MBeanInfo` with invalidation when MBeans change.
+6. If application latency climbs alongside monitoring load, test lowering cadence in a controlled check and compare.
 
-Giảm round trips không thay thế việc **thiết kế getter rẻ** hoặc giới hạn total work mỗi scrape.
+Reducing round trips does not replace **designing cheap getters** or bounding total work per scrape.
 
-## 5. Lập lịch polling an toàn
+## 5. Safe polling scheduling
 
-### 5.1 fixed-rate, fixed-delay và overlapping jobs
+### 5.1 fixed-rate, fixed-delay, and overlapping jobs
 
-Với một target được poll mỗi 10 giây nhưng một scrape mất 18 giây:
+Suppose a target is polled every 10 seconds, yet one scrape takes 18 seconds:
 
-- Nếu scheduler cho phép overlap, có thể có **hai scrape cùng chạy** trên JVM, tạo áp lực tăng thêm và khó xác định timestamp.
-- Nếu có **một worker tuần tự** hoặc cơ chế single-flight, lượt tiếp theo không overlap; thời gian giữa hai mẫu dài hơn dự kiến. Đây là lựa chọn an toàn hơn cho nhiều workload.
-- `scheduleAtFixedRate` trên một `ScheduledThreadPoolExecutor` không thực thi **các lần chạy kế tiếp của cùng một periodic task** đồng thời theo contract, nhưng nhiều task riêng/instances khác nhau vẫn có thể làm trùng target; không suy rằng toàn bộ hệ thống được bảo vệ khỏi overlap.
-- `scheduleWithFixedDelay` tính khoảng nghỉ sau khi lượt trước hoàn tất, phù hợp khi muốn giảm overlap và tạo khoảng thở. Nhưng cadence thực tế sẽ là **thời gian job + delay**.
+- If the scheduler allows overlap, **two scrapes can run concurrently** against the JVM, compounding load and muddling timestamps.
+- With a **sequential single worker** or single-flight guard, the next cycle does not overlap; the gap between samples stretches beyond 10s. This is safer for most workloads.
+- `scheduleAtFixedRate` on a `ScheduledThreadPoolExecutor` does not run **successive executions of the same periodic task** concurrently per contract, yet separate tasks or separate collector instances can still hit the same target simultaneously; never assume the whole system is protected from overlap.
+- `scheduleWithFixedDelay` waits a fixed gap after the previous execution finishes, helping prevent overlap and give breathing room—though actual cadence becomes **job duration + delay**.
 
-Mô hình khuyến nghị cho collector phân tán:
+Recommended pattern for distributed collectors:
 
 ```text
 target JVM ──> one owner ──> at most one in-flight poll
@@ -271,11 +271,11 @@ target JVM ──> one owner ──> at most one in-flight poll
           next schedule + jitter/backoff
 ```
 
-Nếu cluster có nhiều collector replicas cùng poll một target, local mutex **không đủ**. Cần phân chia ownership theo shard/leader hoặc thống nhất một exporter per JVM rồi để backend scrape, tránh double-collect.
+If a cluster runs multiple collector replicas polling one target, a local mutex **is not enough**. Assign ownership by shard/leader or run one exporter per JVM scraped by the backend to avoid double collection.
 
-### 5.2 Jitter tránh thundering herd
+### 5.2 Jitter prevents thundering herds
 
-Nếu 1.000 JVM cùng được scrape chính xác lúc 00:00:00, 00:00:15, ... có thể tạo burst network/CPU. **Jitter nhỏ** phân tán lịch bắt đầu:
+If 1,000 JVMs are scraped simultaneously at `00:00:00`, `00:00:15`, ..., network and CPU bursts can occur. **Small jitter** spreads start times:
 
 ```text
 nominal_interval = 15 s
@@ -283,27 +283,27 @@ start_offset_per_target ∈ [0 s, 3 s]
 retry_delay = capped_exponential_backoff + bounded_jitter
 ```
 
-Các số chỉ là **mẫu thiết kế**, không phải mặc định của JMX. Jitter phải ổn định/tái lập đủ để tránh tất cả targets đổi giờ liên tục; có thể tính từ hash của target identity, nhưng cần tránh hash collision có ý nghĩa vận hành và phải đo phân bố tải thực.
+These numbers are **design examples**, not JMX defaults. Jitter should be stable/reproducible enough to keep target schedules steady; hashing target identity works if you watch for operational hash collisions and measure real load distribution.
 
-Với cửa sổ cố định 15 giây, nếu scrape bị chậm hãy ghi timestamp lúc lấy số liệu và khoảng cách mẫu thực tế; không tính rate bằng hằng số 15 khi elapsed thực là 23 giây.
+With a nominal 15-second window, if a scrape lags, record the actual sample timestamp and real elapsed interval; never compute rates dividing by constant 15 when 23 seconds actually elapsed.
 
-### 5.3 Bound concurrency ở nhiều mức
+### 5.3 Bound concurrency at multiple levels
 
-Nên đặt giới hạn:
+Enforce limits:
 
-- **Per target:** tối đa một scrape chủ động, tránh request chồng.
-- **Per collector:** tổng số kết nối và requests in-flight có giới hạn.
-- **Per host/pod/network:** không đổ cùng lúc nhiều task lên một JVM/node.
-- **Retry budget:** số lần reconnect và tốc độ retry được quản lý.
-- **Memory buffer/queue:** bounded; khi full, drop hoặc delay có chú giải, không tăng queue vô hạn.
+- **Per target:** at most one active scrape, preventing overlapping requests.
+- **Per collector:** bounded total connections and in-flight requests.
+- **Per host/pod/network:** avoid slamming one JVM/node with many concurrent tasks.
+- **Retry budget:** cap reconnect attempts and retry rates.
+- **Memory buffers/queues:** bounded; when full, drop or delay with explicit metrics rather than growing queues unboundedly.
 
-Nếu collector có 100 worker nhưng chỉ 20 JVM targets, số thread dư không tạo thông tin tốt hơn. Nếu có 10.000 targets, 1 worker có thể quá chậm; giải pháp không chỉ tăng worker vô hạn mà cần **sharding, prioritization, batching và capacity planning**.
+If a collector runs 100 workers for 20 JVM targets, idle threads add no better telemetry. If it serves 10,000 targets, 1 worker is far too slow; the fix is **sharding, prioritization, batching, and capacity planning**, not unbounded threads.
 
-## 6. Backoff, circuit breaker và cách diễn giải missing data
+## 6. Backoff, circuit breakers, and interpreting missing data
 
-### 6.1 Không retry liên tục khi endpoint chết
+### 6.1 Do not retry relentlessly when an endpoint is down
 
-Khi JVM restart hoặc mạng đứt, việc thử kết nối mỗi 10 ms từ nhiều collector có thể tạo **retry storm**. Một lịch backoff minh họa:
+When a JVM restarts or the network drops, retrying every 10 ms from many collectors creates a **retry storm**. Illustrative backoff schedule:
 
 ```text
 initial_delay = 15 s
@@ -312,42 +312,42 @@ after 2 failures = 60 s
 subsequent = 60 s capped + small jitter
 ```
 
-Khi kết nối thành công ổn định, reset failure counter. Có thể dùng circuit breaker để tạm dừng phần truy vấn nặng vào target lỗi, sau đó cho phép probe nhẹ khi hết cooldown. Phân biệt lỗi xác thực/certificate (thường cần cấu hình lại) với lỗi tạm thời (có thể retry có giới hạn). Không log password/token trong error context.
+Reset failure counters once connections stabilize. A circuit breaker can pause heavy queries to a failing target, allowing a light probe after cooldown. Separate auth/certificate errors (usually needing config fixes) from transient errors (eligible for bounded retries). Never log passwords or tokens in error context.
 
-### 6.2 Missing không phải zero
+### 6.2 Missing is not zero
 
-Giả sử đọc queue depth ở T0 = 50; T1 timeout; T2 = 80. Những cách sai:
+Suppose queue depth reads `T0 = 50`; `T1` times out; `T2 = 80`. Wrong approaches:
 
-- Ghi T1 = 0: tạo đỉnh sụt giả.
-- Ghi mãi T0 = 50 mà không đánh dấu stale: hiển thị “healthy” dù không có dữ liệu.
-- Tính delta 80 - 0 để báo queue tăng 80, trong khi T1 không đo được.
-- Lấy GC counter trước restart trừ counter sau restart rồi báo rate âm.
+- Recording `T1 = 0`: fabricates a false drop.
+- Keeping `T0 = 50` indefinitely without marking stale: looks "healthy" with no data.
+- Computing delta `80 - 0` to report an 80-item jump when `T1` was never measured.
+- Subtracting a pre-restart GC counter from a post-restart counter and reporting a negative rate.
 
-Hệ thống cần trạng thái collector riêng như `scrape_success` (1/0), thời gian scrape, thời điểm sample cuối và error category. **Missing data** là trạng thái đo; không được bị ép thành một giá trị nghiệp vụ “không có lỗi”.
+The system needs dedicated collector health signals like `scrape_success` (1/0), scrape duration, last sample timestamp, and error category. **Missing data** is a valid measurement state; never coerce it into a "zero errors" business value.
 
-### 6.3 Vì sao timeout đơn giản không luôn đủ?
+### 6.3 Why simple timeouts are not always enough
 
-Mỗi request remote có thể block bên dưới Java RMI hoặc một provider khác. Nếu tạo một thread mới cho mọi timeout và không bao giờ giải phóng thread bị kẹt, collector sẽ cạn worker/heap. `Future.cancel(true)` có thể yêu cầu interrupt nhưng không phải mọi transport I/O đều dừng tức thì. Giải pháp production gồm provider-supported transport timeout, giới hạn worker và connection lifecycle, cô lập tác vụ lỗi, giám sát thread leak và cách phục hồi connector an toàn.
+Remote requests can block inside Java RMI or another provider. Spawning a new thread for every timeout without ever freeing stuck threads exhausts collector workers and heap. `Future.cancel(true)` requests an interrupt, yet not all transport I/O aborts promptly. Production solutions combine provider-supported transport timeouts, bounded worker/connection lifecycles, isolation of failing tasks, thread-leak monitoring, and clean connector recovery.
 
-**Tuyệt đối không tự đặt một JMX timeout property chưa được tài liệu hóa** rồi khẳng định có hiệu lực cho mọi JVM/JDK.
+**Never invent an undocumented JMX timeout property** and claim it works across every JVM/JDK.
 
-## 7. Truy vấn đúng MBeans và giảm số lời gọi
+## 7. Querying the right MBeans and reducing calls
 
-### 7.1 Chỉ discover thường xuyên khi thật sự cần
+### 7.1 Discover frequently only when truly needed
 
-Không nên mỗi 5 giây chạy `queryNames(null,null)` để liệt kê **mọi MBean**, rồi đọc toàn bộ attributes từ mọi bean. Vấn đề:
+Avoid calling `queryNames(null,null)` every 5 seconds to enumerate **every MBean** and read every attribute on every bean. Problems:
 
-- Registry có thể chứa platform beans, application beans, thư viện, diagnostic beans.
-- Một số beans động được tạo/hủy theo workload.
-- Metadata và attribute values có thể chứa tên nội bộ/secret hoặc tốn nhiều chi phí.
-- Mỗi `ObjectName` động có thể trở thành một nhóm metric mới.
-- Trong môi trường nhiều người dùng, truy vấn quá rộng tạo gánh nặng quan sát không liên quan.
+- The registry holds platform beans, application beans, libraries, and diagnostic beans.
+- Dynamic beans may appear and vanish with workload.
+- Metadata and attribute values can expose internal names/secrets or incur high cost.
+- Every dynamic `ObjectName` can spawn a new metric group.
+- In multi-tenant environments, overly broad queries create unrelated observation overhead.
 
-Nên bắt đầu bằng **tập ObjectName/mẫu domain có giới hạn**, ví dụ `java.lang:type=Threading` hoặc `com.example.monitoring:type=Queue,name=Orders`, cùng danh sách attributes được cho phép. Cache discovery trong vòng đời JVM hoặc refresh thưa; khi `InstanceNotFoundException`/redeploy thì refresh có backoff.
+Start with a **bounded set of ObjectNames/domain patterns**, such as `java.lang:type=Threading` or `com.example.monitoring:type=Queue,name=Orders`, paired with an attribute allowlist. Cache discovery for the JVM's lifetime or refresh infrequently; on `InstanceNotFoundException`/redeploy, refresh with backoff.
 
-### 7.2 getAttributes thay cho N getAttribute, nhưng kiểm tra thiếu field
+### 7.2 getAttributes instead of N getAttribute calls, while checking missing fields
 
-`MBeanServerConnection.getAttributes(ObjectName,String[])` cho phép yêu cầu nhiều attributes của **một** MBean:
+`MBeanServerConnection.getAttributes(ObjectName,String[])` requests multiple attributes of **one** MBean:
 
 ```java
 AttributeList list = connection.getAttributes(
@@ -355,220 +355,220 @@ AttributeList list = connection.getAttributes(
         new String[] {"ThreadCount", "DaemonThreadCount"});
 ```
 
-Đây là **đoạn minh họa nằm trong method đã có** `connection`; nó không phải chương trình độc lập. API cho phép **bỏ các attributes không lấy được** khỏi `AttributeList`. Kết quả không được giả định có đủ hai giá trị hoặc theo thứ tự mảng yêu cầu; đối chiếu tên từng `Attribute`.
+This is an **illustrative snippet inside a method holding** `connection`; it is not a standalone program. The API may **omit unreadable/unavailable attributes** from `AttributeList`. Never assume the result contains both values or preserves request array order; inspect each `Attribute`'s name.
 
-Không gom hàng trăm attributes “cho tiện” nếu chúng đến từ nhiều MBeans; mỗi lời gọi chỉ định **một** ObjectName. Với dữ liệu đòi atomic snapshot của nhiều fields, JMX không tự cung cấp contract đó; ứng dụng có thể expose một composite snapshot read-only riêng, hoặc dashboard phải chấp nhận consistency window.
+Do not bundle hundreds of attributes "for convenience" across different MBeans; each call targets **one** ObjectName. For data requiring an atomic snapshot of multiple fields, JMX does not provide that guarantee automatically; the app can expose a dedicated read-only composite snapshot, or dashboards must accept a consistency window.
 
-### 7.3 Cache MBeanInfo nhưng không cache mù đời sống JVM
+### 7.3 Cache MBeanInfo, but not blindly across JVM lifetimes
 
-`getMBeanInfo` trả metadata attribute/operation của MBean. Thường chỉ cần lấy lúc discovery hoặc khi bean thay đổi, không cần lấy mọi scrape. Tuy nhiên:
+`getMBeanInfo` returns an MBean's attribute/operation metadata. Usually you fetch it once at discovery or when beans change, not on every scrape. However:
 
-- MBean có thể unregister/re-register với contract mới.
-- DynamicMBean có metadata phụ thuộc trạng thái.
-- Service redeploy/restart có thể đổi attribute names/types.
-- JMX endpoint có thể chuyển qua instance khác sau reconnect.
+- MBeans can unregister and re-register with a new contract.
+- `DynamicMBean` metadata can depend on runtime state.
+- Service redeploys/restarts can change attribute names or types.
+- A JMX endpoint can route to a different instance after reconnect.
 
-Vì thế cache cần key có **JVM instance + ObjectName**, TTL/invalidation hợp lý và xử lý lỗi khi contract khác. Không cho metadata cache tồn tại vĩnh viễn qua mọi restart.
+Therefore key metadata caches by **JVM instance + ObjectName**, apply sensible TTL/invalidation, and handle contract mismatches gracefully. Never keep metadata cached forever across restarts.
 
-### 7.4 Ràng buộc quyền truy cập và tính an toàn
+### 7.4 Restricting access rights and safety
 
-Collector nên dùng **read-only permissions** nếu chỉ giám sát. Không cho phép `setAttribute` hay `invoke` rộng quyền chỉ để lấy metrics. Một operation có thể flush cache, reset counters hoặc restart component. Bảo vệ remote connector bằng network boundary, authentication, TLS và least privilege; không mở JMX remote không xác thực trên Internet.
+Collectors should use **read-only permissions** when purely monitoring. Never grant broad `setAttribute` or `invoke` rights just to read metrics. Operations can flush caches, reset counters, or restart components. Protect remote connectors with network boundaries, authentication, TLS, and least privilege; never expose unauthenticated remote JMX on the Internet.
 
-Command line/URL credentials, session ID, ObjectName và notifications có thể mang dữ liệu nhạy cảm. Chỉ log connection ID/target alias khi cần chẩn đoán, không in password hoặc raw environment.
+Command lines, URL credentials, session IDs, ObjectNames, and notifications can carry sensitive data. Log only connection IDs/target aliases when diagnosing, never passwords or raw environment maps.
 
-## 8. Cardinality là gì, tại sao nó gây vấn đề?
+## 8. What is cardinality, and why does it cause problems?
 
-**Cardinality của một metric trong time-series backend** là số tổ hợp nhãn khác nhau mà backend phải lưu cho metric đó. Với mô hình Prometheus, mỗi kết hợp duy nhất của **metric name + label names/values** tạo một time series. Thay một giá trị label từ `instance=A` sang `instance=B` có thể tạo thêm một series. Các nhãn định danh biến thiên nhanh gây **series churn**: chuỗi cũ hết cập nhật nhưng vẫn chiếm tài nguyên lưu trữ/metadata trong một thời gian.
+**Metric cardinality in a time-series backend** is the number of distinct label combinations the backend must store for that metric. In Prometheus-style models, each unique combination of **metric name + label names/values** creates a time series. Changing a label from `instance=A` to `instance=B` creates another series. Rapidly changing identifier labels cause **series churn**: old series stop updating while still occupying storage/metadata index resources for a retention window.
 
-Cardinality khác với:
+Cardinality differs from:
 
-- **Số sample:** một series lấy 240 mẫu/giờ vẫn là một series (cho mỗi giá trị nhãn liên tục).
-- **Số metrics names:** một metric có thể có hàng triệu series vì labels.
-- **Số MBeans:** một MBean có nhiều attributes/series; một application có hàng nghìn MBeans động.
-- **Số JVM targets:** mỗi target có thể phát hàng trăm series.
-- **Dung lượng log text:** số series là bài toán metadata/index/query, không chỉ số byte raw samples.
+- **Sample count:** a single series sampled 240 times/hour is still one series (for a constant label set).
+- **Metric name count:** one metric can spawn millions of series due to labels.
+- **MBean count:** one MBean can have many attributes/series; an app can create thousands of dynamic MBeans.
+- **Target JVM count:** each target can emit hundreds of series.
+- **Log text volume:** series count is a metadata/index/query scaling problem, not just raw sample bytes.
 
-### 8.1 Công thức upper-bound tổ hợp
+### 8.1 Combinatorial upper-bound formula
 
-Nếu một metric có các nhãn độc lập với tối đa `n1, n2, ..., nk` giá trị, số chuỗi tiềm năng:
+If a metric has independent labels with at most `n1, n2, ..., nk` distinct values, potential series count is:
 
 ```text
 potential_series_per_metric ≤ n1 × n2 × ... × nk
 ```
 
-Dấu “≤” vì trong thực tế không nhất thiết mọi tổ hợp tồn tại. Tuy nhiên đây là phép **ước lượng upper bound** để kiểm soát rủi ro thiết kế khi không có dữ liệu phân bố thật.
+The `≤` sign reflects that not every combination necessarily occurs in practice. Still, this is an **upper-bound estimate** to control design risk before real distribution data exists.
 
-Ví dụ giả định:
+Hypothetical example:
 
-| Label | Số giá trị tối đa |
+| Label | Maximum values |
 | --- | ---: |
 | `service` | 3 |
 | `environment` | 2 |
-| `instance` (mỗi service/env) | 4 |
+| `instance` (per service/env) | 4 |
 | `collector` | 3 |
 | `status` | 2 |
 
-Upper bound: `3 × 2 × 4 × 3 × 2 = 144 series` cho một metric. Thêm `request_id` với 10.000 giá trị có thể tăng upper bound thành **1.440.000 series**. Hầu hết metrics JMX **không có lý do** gắn request ID ở cấp series; request tracing thuộc hệ thống logs/traces với retention, sampling và quyền phù hợp.
+Upper bound: `3 × 2 × 4 × 3 × 2 = 144 series` for one metric. Adding `request_id` with 10,000 values pushes the upper bound to **1,440,000 series**. Most JMX metrics have **zero reason** to attach request IDs at the series level; per-request tracing belongs in logs/traces with appropriate retention, sampling, and access control.
 
-**Chỉ một nhãn không giới hạn** có thể phá hủy budget dù các nhãn khác đều có vài giá trị.
+**Even a single unbounded label** can blow through the budget even when every other label has only a handful of values.
 
-### 8.2 Các nhãn tưởng vô hại nhưng thực chất rất động
+### 8.2 Labels that look harmless yet are highly dynamic
 
-| Nhãn được đề xuất | Rủi ro | Cách thay thế |
+| Proposed label | Risk | Alternative |
 | --- | --- | --- |
-| `request_id`, `trace_id` | Gần như mỗi request tạo series mới | Giữ trong trace/log, không làm metric label |
-| `user_id`, email, phone | Unbounded, dữ liệu riêng tư | Bỏ; aggregate theo nhóm được phép |
-| `session_id`, token | Unbounded, nhạy cảm | Không đưa vào metrics |
-| Full URL/path có ID | Mỗi path/query khác nhau tạo series | Route template như `/orders/{id}`, không in ID thật |
-| `exception_message` | Chuỗi tự do theo input, có thể chứa secret | Dùng exception class/category allowlist |
-| `sql_query` nguyên văn | Mỗi literal/query khác nhau, lộ dữ liệu | Query type/normalized operation |
-| `thread_name` động | Chứa số/ID/session; số giá trị có thể lớn | Nhóm thread pool hoặc role |
-| `ObjectName` đầy đủ | Có thể chứa ID động | Map sang stable MBean type/name subset |
-| `connection_id` | Mỗi reconnect tạo ID mới | Metric `reconnect_total` theo target ổn định |
-| `pid` | Thay qua restart, trùng container namespace | Dùng instance identity ở metadata/target label có vòng đời rõ |
-| Timestamp trong label | Mỗi lần scrape một series mới | Timestamp là **sample timestamp**, không là label |
+| `request_id`, `trace_id` | Nearly every request spawns a new series | Keep in traces/logs, never as metric labels |
+| `user_id`, email, phone | Unbounded, private data | Drop; aggregate by permitted groups |
+| `session_id`, token | Unbounded, sensitive | Never place in metrics |
+| Full URL/path with ID | Every distinct path/query spawns a series | Route template like `/orders/{id}`, never raw IDs |
+| `exception_message` | Free-form input text, may contain secrets | Exception class/category allowlist |
+| Raw `sql_query` | Distinct literals/queries, leaks data | Normalized query type/operation |
+| Dynamic `thread_name` | Embeds numbers/IDs/sessions; large domain | Thread pool name or role group |
+| Full `ObjectName` | May contain dynamic IDs | Map to stable MBean type/name subset |
+| `connection_id` | New ID on every reconnect | `reconnect_total` metric per stable target |
+| `pid` | Changes across restarts, collides across container namespaces | Use lifecycle-aware instance identity in target metadata |
+| Timestamp inside label | New series on every scrape | Timestamps belong on **sample timestamps**, not labels |
 
-Nhiều nhãn không chỉ tiêu tốn bộ nhớ mà còn gây **rò rỉ dữ liệu**: tên tài khoản, host/private endpoint, chuỗi SQL, credential, path cấu hình. Quy tắc “không gắn ID động” vừa là hiệu năng, vừa là quản trị dữ liệu.
+Many labels do not just waste RAM—they **leak sensitive data**: account names, internal hosts/endpoints, SQL strings, credentials, and config paths. The "no dynamic IDs" rule serves both performance and data governance.
 
-### 8.3 Giá trị cardinality thấp hay cao không cố định theo tên
+### 8.3 High vs. low cardinality is not fixed by label name
 
-`status` có thể có đúng ba giá trị `ok|warn|error`, nhưng nếu lấy raw error message làm status thì giá trị trở nên không giới hạn. `endpoint` có thể là năm route templates ổn định hoặc hàng triệu URL riêng lẻ. `instance` hữu ích cho phân tích một JVM, nhưng tự nó tăng theo số replica và đợt deploy.
+`status` might have three values `ok|warn|error`, yet stuffing raw error messages into `status` makes it unbounded. `endpoint` might be five stable route templates or millions of individual URLs. `instance` is valuable for inspecting one JVM, yet grows with replica count and deploys.
 
-Vì vậy cần kiểm tra **nguồn gốc của giá trị**, không chỉ tên label. Một danh sách label “trông ổn” có thể biến thành high cardinality nếu dữ liệu ứng dụng thay đổi.
+Always inspect the **source of values**, not just the label name. A "safe-looking" label list can turn into high cardinality if application behavior shifts.
 
-## 9. Từ ObjectName/attribute đến metric labels
+## 9. From ObjectName/attributes to metric labels
 
-JMX thường tổ chức tên như:
+JMX often structures names like:
 
 ```text
 com.example:type=Queue,name=Orders,tenant=ACME42
 ```
 
-Một exporter có thể lấy domain/type/name/tenant làm labels. Nếu `tenant` có hàng nghìn giá trị và mỗi MBean được tạo theo request, series sẽ tăng mạnh. Tốt hơn định nghĩa allowlist mapping **từ ObjectName đến metric schema**, có giới hạn số giá trị được chấp nhận.
+An exporter might turn domain/type/name/tenant into labels. If `tenant` has thousands of values and MBeans are spawned per request, series count explodes. Far better is an explicit allowlist mapping **from ObjectName to metric schema**, capping accepted values.
 
-### 9.1 Chọn metric contract trước khi mapping
+### 9.1 Pick the metric contract before mapping
 
-Ví dụ schema được **thiết kế**:
+Example **designed** schema:
 
 ```text
 java_app_queue_depth{service="orders",environment="prod",pool="primary"} 12
 java_app_queue_processing_total{service="orders",environment="prod",pool="primary"} 4210
 ```
 
-Hai dòng là **minh họa định dạng metrics**, không phải số liệu đo ở một hệ thống thực. Không mang `tenant_id`, `session_id` hoặc toàn bộ ObjectName vào labels. Nếu cần phân tích theo nhóm khách hàng, xem xét **aggregate có số nhóm hữu hạn** và chính sách riêng tư, không tự đưa ID thật vào time series.
+These two lines **illustrate metric format**, not measurements from a live system. Never carry `tenant_id`, `session_id`, or the full `ObjectName` into labels. If customer-tier breakdown is needed, evaluate **aggregation into finite buckets** under privacy rules rather than putting real IDs into time series.
 
-### 9.2 Kiểm soát giá trị labels bằng allowlist
+### 9.2 Enforce label values with an allowlist
 
-Quy trình:
+Process:
 
-1. Định nghĩa **metric name**, đơn vị, loại gauge/counter và ý nghĩa theo mỗi scrape.
-2. Chỉ định những label keys cố định được phép.
-3. Với mỗi label key, quyết định danh sách giá trị hợp lệ hoặc nguồn có thể giới hạn.
-4. Nếu giá trị không hợp lệ/quá nhiều, ưu tiên **bỏ dimension** hoặc nhóm vào bucket `other` theo một chính sách đã kiểm thử, không tạo series mới tự do.
-5. Không đổi tên label schema liên tục; schema changes cần version/review.
-6. Đo actual unique series và churn; so với budget/alerts của backend.
+1. Define **metric name**, unit, gauge/counter kind, and per-scrape semantics.
+2. Specify the exact permitted label keys.
+3. For each label key, define the valid value list or bounded source.
+4. If values are invalid or excessive, prefer **dropping the dimension** or bucketing into `other` per tested policy rather than minting arbitrary series.
+5. Never rename label schemas casually; schema changes require versioning/review.
+6. Measure actual unique series and churn against backend budgets and alerts.
 
-Một allowlist chỉ tên label **chưa đủ** nếu giá trị bị nhồi request ID vào trường `pool`; cần validate **cả nguồn và miền giá trị**.
+Allowlisting label keys alone **is not enough** if request IDs get stuffed into `pool`; validate **both value sources and domains**.
 
-### 9.3 Một số nhãn cần thiết nhưng phải có quản lý lifecycle
+### 9.3 Necessary labels that still require lifecycle management
 
-`instance`, `pod`, `container` hữu ích để điều tra restart và phân biệt JVM. Chúng tạo churn khi deployment thay instance. Đây là churn có lý do, cần:
+`instance`, `pod`, and `container` are essential for diagnosing restarts and distinguishing JVMs. They introduce churn whenever deployments replace instances. That is justified churn, requiring:
 
-- Tự động dừng export cho targets bị xóa/không còn hợp lệ.
-- Quy trình stale marker hoặc xóa series theo backend, không tự lấp giá trị giả.
-- Retention và scrape interval phù hợp.
-- Giới hạn replica/scrape targets trong monitoring budget.
-- Aggregate dashboard theo `service`/`environment` khi mục tiêu là SLO, dùng instance label khi drill-down.
+- Automatically stopping exports for deleted/stale targets.
+- Stale markers or series expiration per backend design, never filling fake values.
+- Appropriate retention and scrape intervals.
+- Bounding replicas/scrape targets within monitoring budgets.
+- Aggregating dashboards by `service`/`environment` for SLOs while keeping `instance` for drill-down.
 
-Không xóa mọi nhãn instance chỉ để giảm cardinality nếu sẽ làm ghép số của các JVM khác nhau và khiến counter reset bị diễn giải sai.
+Never strip all instance labels just to shrink cardinality if doing so merges separate JVMs and corrupts counter-reset detection.
 
-## 10. Series budget, churn budget và chi phí lưu trữ
+## 10. Series budget, churn budget, and storage cost
 
-### 10.1 Series budget không phải sample budget
+### 10.1 Series budget is not sample budget
 
-Với `S` series đang hoạt động và interval `P` giây:
+With `S` active series and interval `P` seconds:
 
 ```text
 samples_per_hour_approx ≈ S × (3600 / P)
 ```
 
-Ví dụ `S=144, P=15` thì khoảng `144 × 240 = 34.560 samples/giờ` cho những series này nếu mỗi scrape thành công. Nếu gắn request ID làm `S=1.440.000`, ta có khoảng **345.600.000 samples/giờ** theo giả định mọi series đều tồn tại ở mọi lần scrape. **Đây là upper-bound giả định** chứ không phải dự báo usage thực: request ID thực tế có thể chỉ tồn tại ở một scrape, gây high **series churn** thay vì liên tục nạp đủ 1,44 triệu series. Tuy vậy, churn này cũng gây chi phí metadata/index/retention.
+For `S=144, P=15`, that gives roughly `144 × 240 = 34,560 samples/hour` for those series if every scrape succeeds. Adding a request ID yielding `S=1,440,000` gives roughly **345,600,000 samples/hour** assuming every series stays active on every scrape. **This is a hypothetical upper bound**, not a real usage forecast: individual request IDs may exist for only one scrape, causing intense **series churn** rather than 1.44 million continuously active series. Even so, churn still heavily taxes metadata, indexes, and retention.
 
-Không lấy số “samples/giờ” rồi kết luận số byte disk bằng một phép nhân cố định nếu chưa biết encoding, replication, label set, histogram formats và retention.
+Never multiply "samples/hour" by a fixed byte constant to estimate disk usage without knowing encoding, replication, label sets, histogram formats, and retention.
 
-### 10.2 Hai loại giới hạn nên đo
+### 10.2 Two kinds of limits to measure
 
-- **Active series cardinality:** số series còn được coi active ở thời điểm/cửa sổ backend định nghĩa.
-- **Series churn:** số series mới xuất hiện hoặc biến mất trên một khoảng thời gian.
+- **Active series cardinality:** series considered active within the backend's current window.
+- **Series churn:** new series appearing or disappearing over a time interval.
 
-Một dịch vụ có 10.000 active series ổn định có thể dễ vận hành hơn một dịch vụ chỉ 2.000 active tại mỗi thời điểm nhưng sinh thêm hàng trăm nghìn series mới mỗi giờ. Mỗi lần reconnect, MBean dynamic creation hoặc deployment với tên chứa timestamp đều có thể gây churn.
+A service with 10,000 stable active series can be far easier to operate than one with only 2,000 active at any instant that spawns hundreds of thousands of new series per hour. Reconnects, dynamic MBean creation, or deployments embedding timestamps in names all cause churn.
 
-### 10.3 Đặt budget theo cấp
+### 10.3 Tiered budgeting
 
-Gợi ý chính sách **ví dụ, không phải chuẩn JMX**:
+**Illustrative** policy ideas (not a JMX standard):
 
-| Cấp | Ngưỡng/điều kiện có thể thiết kế | Cách phản ứng |
+| Tier | Designable threshold / condition | Response |
 | --- | --- | --- |
-| Một MBean | Số attributes/labels xuất có allowlist | Bỏ fields ngoài mục tiêu |
-| Một JVM target | Max exported series, max scrape duration | Giảm phạm vi/interval, báo sample loss |
-| Một collector | Max connections/in-flight requests, memory queue | Rate-limit/shard và backoff |
-| Một service | Max unique series/churn per hour | Review labels/object creation |
-| Toàn backend | Active series, ingest rate, storage/query budget | Capacity planning và alert |
-| Privacy | Không cho secret/PII ở label values | Loại trường trước khi xuất |
+| Single MBean | Allowlist of exported attributes/labels | Drop out-of-scope fields |
+| Single JVM target | Max exported series, max scrape duration | Narrow scope/interval, report sample loss |
+| Single collector | Max connections/in-flight requests, memory queue | Rate-limit/shard and back off |
+| Single service | Max unique series/churn per hour | Review labels and object creation |
+| Whole backend | Active series, ingest rate, storage/query budget | Capacity planning and alerts |
+| Privacy | Zero secrets/PII in label values | Strip fields before export |
 
-**Không lặng lẽ drop series rồi hiển thị biểu đồ như đầy đủ.** Nếu budget bị vượt, phát cảnh báo `exporter_series_dropped_total` hoặc trạng thái tương đương, cùng thông tin rõ về các metrics bị ảnh hưởng. Nhưng bản thân metric “dropped count” cũng phải dùng labels hữu hạn, không nhét tên request/user bị drop vào nó.
+**Never silently drop series and render charts as if complete.** When budgets are exceeded, emit `exporter_series_dropped_total` or equivalent status alongside clear info on affected metrics. Yet the "dropped count" metric itself must use bounded labels—never put the dropped request/user IDs onto it.
 
-## 11. Đúng loại metric: gauge, counter và histogram
+## 11. Right metric types: gauge, counter, and histogram
 
 ### 11.1 Gauge
 
-Gauge phản ánh trạng thái tại thời điểm mẫu, ví dụ `ThreadCount` hoặc `HeapMemoryUsage.used`. Giảm từ 50 xuống 40 là hợp lệ. Không dùng `rate` trên một gauge rồi suy số sự kiện hoàn tất, trừ khi có mô hình đạo hàm rõ ràng.
+A gauge reflects state at sample time, such as `ThreadCount` or `HeapMemoryUsage.used`. Dropping from 50 to 40 is normal. Never apply `rate` to a gauge to infer completed events unless an explicit derivative model applies.
 
 ### 11.2 Counter
 
-Counter tích lũy như `GarbageCollectorMXBean.getCollectionCount()` hoặc task total. Đọc một số cuối không cho biết rate hiện tại. Phải lấy delta qua hai mẫu **cùng JVM instance**, xử lý reset/restart, giá trị undefined (`-1` với một số MXBeans) và missing samples. Khi chuyển thời gian từ milliseconds sang seconds cho backend, đổi unit đúng và ghi vào metric name/metadata.
+Cumulative counters such as `GarbageCollectorMXBean.getCollectionCount()` or task totals. Reading one final number does not tell you current rate. Compute deltas between two samples on the **same JVM instance**, handling resets/restarts, undefined values (`-1` on some MXBeans), and missing samples. When converting milliseconds to seconds for a backend, convert units accurately and reflect them in metric names/metadata.
 
-Nếu count giảm do restart, không báo “số GC âm”; chia series theo instance/metadata hoặc dùng hàm counter-aware của hệ thống phù hợp. Không gọi một counter cumulative là histogram pause.
+If a count drops due to a restart, never report "negative GCs"; separate series by instance/metadata or use the backend's counter-aware rate functions. Never call a cumulative counter a pause histogram.
 
-### 11.3 Histogram và event data
+### 11.3 Histograms and event data
 
-Nếu cần p95/p99 latency, mỗi lần poll `getAttribute("AverageLatency")` không đủ để tái tạo phân bố. Cần histogram buckets/summary/event-level data được instrument đúng semantics và kiểm soát cardinality labels. Histogram với nhiều buckets **nhân số series**: giả sử mỗi label combination có 12 bucket series cộng count/sum, metric family có thể tạo nhiều series cho mỗi tổ hợp. Kiểm tra model của backend/exporter cụ thể trước khi dự toán.
+If p95/p99 latency is required, polling `getAttribute("AverageLatency")` cannot reconstruct the distribution. You need histogram buckets, summaries, or event-level data instrumented with proper semantics and bounded label cardinality. Histograms with many buckets **multiply series count**: if each label combination has 12 bucket series plus count/sum, one metric family creates many series per combination. Check your specific backend/exporter model before sizing.
 
-### 11.4 Type/units phải được chốt
+### 11.4 Lock down types and units
 
-Ví dụ:
+Examples:
 
-- `getCollectionTime()` theo Java API trả **milliseconds**, nhưng metrics convention của Prometheus thường ưu tiên **seconds**.
-- Heap dùng bytes; không đặt `_mb` nếu thực tế trả bytes.
-- Durations nên có suffix `_seconds` khi chuẩn metrics backend yêu cầu.
-- Counter thường dùng `_total` trong Prometheus naming; gauge không nên tùy tiện mang suffix này.
-- Java `System.nanoTime()` là clock đo elapsed, không dùng làm timestamp UTC.
+- `getCollectionTime()` in the Java API returns **milliseconds**, yet Prometheus conventions favor **seconds**.
+- Heap uses bytes; never name it `_mb` if values are bytes.
+- Durations should carry the `_seconds` suffix where backend conventions require it.
+- Counters typically use `_total` in Prometheus naming; gauges should not carry that suffix arbitrarily.
+- Java `System.nanoTime()` is an elapsed clock, never a UTC timestamp.
 
-Nhầm units có thể gây cảnh báo sai vài nghìn lần mà không liên quan đến kết nối.
+Unit mismatches can cause alerts to misfire by factors of thousands even when connections work fine.
 
-## 12. Notification không thay thế một lịch polling đáng tin
+## 12. Notifications do not replace reliable polling schedules
 
-Một MBean có thể phát `Notification` khi vượt threshold, nhưng:
+An MBean can emit a `Notification` when crossing a threshold, yet:
 
-- Nó có thể không hỗ trợ loại event bạn cần.
-- Có thể phát trước khi bạn subscribe.
-- Listener mất kết nối có thể bỏ lỡ event và JMX không bảo đảm replay.
-- `NOTIFS_LOST` ở connection layer chỉ cảnh báo có thể mất notifications, không cung cấp toàn bộ event bị mất.
-- Callback có thể bị quá tải nếu hàng nghìn events/s; listener cần bounded processing.
-- Notification message/userData có thể chứa thông tin nhạy cảm.
+- It may not support the exact event type you need.
+- It may fire before you subscribe.
+- Disconnected listeners miss events, and JMX guarantees no replay.
+- `NOTIFS_LOST` at the connection layer only warns of possible missed notifications; it does not deliver the lost events.
+- Callbacks can overload under thousands of events/s; listeners need bounded processing.
+- Notification messages/`userData` can carry sensitive data.
 
-Mô hình kết hợp: dùng notification làm **tín hiệu nhanh**, polling chậm để **reconcile trạng thái**, lưu events vào hệ thống được thiết kế cho lịch sử khi cần audit. Nếu event có sequenceNumber, xem đó là thứ tự trong nguồn phát, không phải global ordering cho nhiều JVM.
+Combined model: use notifications as a **fast signal**, slower polling to **reconcile state**, and dedicated persistent stores when auditing history. If an event carries `sequenceNumber`, treat it as per-source ordering, not global ordering across JVMs.
 
-Đừng biến notification type động hoặc event sequence number thành metric label. Có thể tăng counter `jmx_notifications_total{type="threshold"}` với danh sách type được duyệt; không xuất `sequence_number` dưới dạng label.
+Never turn dynamic notification types or event sequence numbers into metric labels. Incrementing `jmx_notifications_total{type="threshold"}` over an approved type allowlist is fine; never export `sequence_number` as a label.
 
-## 13. Bài thực hành Java 17+ độc lập: tính budget và đọc attributes cục bộ
+## 13. Standalone Java 17+ lab: budget math and local attribute reads
 
-Mã demo minh họa hai mục tiêu:
+The demo code illustrates two goals:
 
-1. **Chế độ mặc định, deterministic:** tính series upper bound, số scrapes/giờ, giới hạn label và backoff theo chính sách giả định. Không kết nối từ xa và không cần workload ngoài.
-2. **`--local`, nondeterministic data:** đọc hai attributes từ **platform MBeanServer của JVM demo** để thấy cách dùng `MBeanServerConnection.getAttributes` và phát hiện field bị thiếu. Nó không hỏi một JVM từ xa và không công bố số thread tuyệt đối cố định.
+1. **Default mode, deterministic:** computes upper-bound series, scrapes/hour, label allowlist checks, and backoff per an illustrative policy. Makes no remote connections and needs no external workload.
+2. **`--local`, non-deterministic data:** reads two attributes from the **demo JVM's platform MBeanServer** to show `MBeanServerConnection.getAttributes` and checking for missing fields. It queries no remote JVM and asserts no fixed thread count.
 
-Lưu tệp `JmxMonitoringBudgetDemo.java`:
+Save `JmxMonitoringBudgetDemo.java`:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -647,14 +647,14 @@ public class JmxMonitoringBudgetDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac JmxMonitoringBudgetDemo.java
 java JmxMonitoringBudgetDemo
 ```
 
-**Stdout chính xác của chế độ mặc định:**
+**Exact stdout of default mode:**
 
 ```text
 POLL_INTERVAL_SECONDS=15
@@ -668,31 +668,31 @@ BACKOFF_FAILURE_2_SECONDS=60
 BACKOFF_FAILURE_3_SECONDS=60
 ```
 
-Giải thích:
+Explanation:
 
-- 3600/15 = **240** lần lấy mẫu mỗi giờ theo lịch lý thuyết; bỏ qua lỗi, jitter và thời gian xử lý thực.
-- 3 services × 2 environments × 4 instances × 3 collectors × 2 states = **144** tổ hợp tối đa.
-- Thêm 10.000 request IDs: `144 × 10.000 = 1.440.000` upper bound, nêu rủi ro nếu dùng request ID làm label.
-- `ALLOWED_LABEL_KEYS` không chứa `request_id`, nên mã in `false`. Trong hệ thống thật còn cần kiểm soát **giá trị** của labels.
-- Backoff sau 0, 1, 2, 3 failures lần lượt 15, 30, 60, 60 giây; đây là mô hình chính sách giả định, **không tự kết nối, không thực hiện retry thật, chưa có jitter**.
+- `3600/15 = 240` scrapes per hour on a theoretical schedule, ignoring failures, jitter, and actual execution time.
+- 3 services × 2 environments × 4 instances × 3 collectors × 2 states = **144** maximum combinations.
+- Adding 10,000 request IDs: `144 × 10,000 = 1,440,000` upper bound, illustrating the risk of using request IDs as labels.
+- `ALLOWED_LABEL_KEYS` omits `request_id`, so the code prints `false`. Real systems must also validate label **values**.
+- Backoff after 0, 1, 2, 3 failures is 15, 30, 60, 60 seconds; this is a simulated policy model—**it makes no connections, executes no real retries, and omits jitter**.
 
-Để đọc JMX cục bộ:
+To read local JMX:
 
 ```bash
 java JmxMonitoringBudgetDemo --local
 ```
 
-Chương trình in thêm bốn dòng prefix `LOCAL_...`. Dữ liệu có thể phụ thuộc implementation, quyền và JVM; mã **không cố định** số lượng attributes thành công. `ThreadCount` và `DaemonThreadCount` là attributes tiêu chuẩn của `java.lang:type=Threading` trên HotSpot/JDK phù hợp, nhưng cách xử lý list vẫn kiểm tra hiện diện từng trường thay vì tin rằng request hai field sẽ trả đúng hai field.
+The program prints four additional `LOCAL_...` lines. Data may depend on implementation, permissions, and JVM; the code **does not hardcode** a fixed count of successful attributes. `ThreadCount` and `DaemonThreadCount` are standard attributes on `java.lang:type=Threading` on compatible HotSpot/JDKs, yet list handling still checks each field's presence rather than assuming requesting two fields always returns two fields.
 
-### 13.1 Học gì từ code và còn thiếu gì ở production?
+### 13.1 What does the code teach, and what is missing for production?
 
-Code minh họa **budget math, label allowlist và đọc dữ liệu theo tên attribute**, không phải một monitoring agent production. Nó chưa lập lịch, chưa có remote network, authentication/TLS, timeout provider, persistence, Prometheus exposition, reconnect hoặc alert. Cố tình không mở JMX port để bài có thể chạy an toàn trên máy học.
+The code demonstrates **budget math, label allowlisting, and attribute reads by name**—not a production monitoring agent. It lacks scheduling, remote networking, authentication/TLS, provider timeouts, persistence, Prometheus exposition, reconnects, and alerting. It intentionally opens no JMX port so it runs safely on any learning machine.
 
-Nếu phát triển thành collector thực, cần bổ sung resource owner quản lý `JMXConnector`, deadline/retries có giới hạn, scheduler không overlap, logging/scrape health, metric schema với đơn vị, test timeout/restart và full integration tests.
+To evolve into a real collector, add a resource owner managing `JMXConnector`, bounded deadlines/retries, non-overlapping scheduling, logging/scrape health, a unit-explicit metric schema, timeout/restart tests, and full integration tests.
 
-### 13.2 Snippet remote lifecycle để đối chiếu
+### 13.2 Remote lifecycle snippet for comparison
 
-Đoạn method **không phải tệp Java độc lập**; đây là cấu trúc API khi ứng dụng đã có một `JMXServiceURL` được phê duyệt và một `Map<String,?>` chứa cấu hình transport/auth hợp lệ:
+This method **is not a standalone Java file**; it illustrates the API shape once an application holds an approved `JMXServiceURL` and a `Map<String,?>` containing valid transport/auth configuration:
 
 ```java
 import java.util.Map;
@@ -708,17 +708,17 @@ static void withAuthorizedConnection(
                  JMXConnectorFactory.connect(endpoint, securedEnvironment)) {
         MBeanServerConnection connection =
                 connector.getMBeanServerConnection();
-        // Ở đây mới đọc các ObjectName/attributes được allowlist.
-        // Không ghi secret ra log, không gọi operation mutating.
+        // Only read allowlisted ObjectNames/attributes here.
+        // Never log secrets, never invoke mutating operations.
     }
 }
 ```
 
-Không khuyên gọi `connect` lại trên mọi vòng poll; với polling liên tục có thể giữ kết nối trong component có lifecycle rõ. Đoạn code cũng **không** tự cung cấp timeout phổ quát, TLS hay quyền: những điều này phải được cấu hình và kiểm thử cho connector provider thực tế. Không copy snippet rồi mở JMX RMI không xác thực.
+Reconnecting on every poll cycle is discouraged; for continuous polling, retain connections inside a component with an explicit lifecycle. Nor does this snippet provide universal timeouts, TLS, or authorization: those must be configured and tested for your actual connector provider. Never copy the snippet to expose unauthenticated JMX RMI.
 
-## 14. Ví dụ cấu hình chính sách vận hành (không phải cú pháp JMX tiêu chuẩn)
+## 14. Example operational policy config (not standard JMX syntax)
 
-Một file cấu hình cho monitoring service **có thể** có dạng:
+A configuration file for a monitoring service **might** look like:
 
 ```yaml
 jmx_monitoring:
@@ -754,136 +754,136 @@ jmx_monitoring:
     emit_last_sample_age: true
 ```
 
-**Đây là một manifest thiết kế giả định**, không phải configuration format có sẵn của JMX/JConsole/Prometheus/JMX Exporter. Những key và giá trị cụ thể phải được thực thi trong collector mình xây hoặc ánh xạ sang schema của sản phẩm đang sử dụng. Ví dụ `authenticated-tls-only` là **yêu cầu chính sách**, không phải một thiết lập Java có thể bật chỉ bằng dòng YAML.
+**This is a fictional design manifest**, not a built-in configuration format for JMX, JConsole, Prometheus, or JMX Exporter. Specific keys and values must be implemented in your own collector or mapped to your chosen tool's schema. For example, `authenticated-tls-only` is a **policy requirement**, not a Java setting toggled by a YAML line.
 
-**Điểm thiết kế đáng chú ý:**
+**Notable design points:**
 
-- Giới hạn targets/global in-flight để không tạo bão connection.
-- Mỗi target một lượt polling, tránh overlap.
-- Metadata refresh thưa hơn data sampling.
-- Chỉ hai ObjectNames với một vài attributes được phép.
-- Không cho labels động mang định danh người dùng/request.
-- Có metric health riêng và theo dõi series bị drop.
-- Không dùng generic “poll every MBean, every attribute”.
+- Bounds per-target and global in-flight work to prevent connection storms.
+- One poll at a time per target, preventing overlap.
+- Metadata refreshes far less often than data sampling.
+- Only two ObjectNames and a few allowlisted attributes.
+- Disallows dynamic labels carrying user/request identifiers.
+- Dedicated health metrics and tracking of dropped series.
+- Rejects generic "poll every MBean, every attribute."
 
-## 15. Các kịch bản vận hành để kiểm tra chính sách
+## 15. Operational scenarios to test your policy
 
-### 15.1 Một JVM không phản hồi, các JVM còn lại ổn định
+### 15.1 One JVM stops responding while others remain healthy
 
-**Bối cảnh:** một target có getter chậm, còn 49 targets khác phản hồi. Nếu collector dùng 50 threads mà mỗi target được retry không giới hạn, target lỗi có thể chiếm hết worker/sockets.
+**Context:** one target has a slow getter while 49 others respond normally. If a collector runs 50 threads with unlimited retries per target, the failing target can monopolize workers and sockets.
 
-**Cách xử lý:** budget per-target, timeout theo provider, circuit breaker/backoff, bounded queue và independent target ownership. Đánh dấu `scrape_success=0` cho target lỗi (nếu exporter contract định nghĩa như vậy), giữ dữ liệu nghiệp vụ thành missing/stale. Không thay queue depth thành 0.
+**Handling:** per-target budgets, provider timeouts, circuit breakers/backoff, bounded queues, and independent target ownership. Mark `scrape_success=0` for the failing target (per exporter contract) and leave business metrics missing/stale. Never turn queue depth into 0.
 
-### 15.2 Sau deploy, số active series tăng gấp 20
+### 15.2 Active series jump 20x after a deploy
 
-**Bối cảnh:** team thêm label `exception_message` chứa văn bản lỗi. Mỗi giá trị mới tạo series; số samples/giây ban đầu có thể chưa tăng tương ứng vì một lỗi chỉ tồn tại ngắn.
+**Context:** a team adds an `exception_message` label containing error text. Each distinct value creates a series; initial samples/sec may barely budge if each error occurs briefly.
 
-**Cách xử lý:** kiểm tra schema diff, top labels theo unique values, series churn, metric names mới. Bỏ field nhạy cảm/tự do khỏi labels và thay bằng exception class/category có miền giá trị hữu hạn. Đừng chỉ tăng memory backend để che vấn đề.
+**Handling:** inspect schema diffs, top labels by unique value count, series churn, and new metric names. Strip free-form/sensitive fields from labels and replace with a bounded exception class/category. Never throw extra RAM at the metrics backend just to mask the bug.
 
-### 15.3 Dashboard hiển thị GC counter giảm đột ngột
+### 15.3 Dashboard shows a sudden GC counter drop
 
-**Bối cảnh:** collector reconnect đúng lúc JVM restart; `GarbageCollectorMXBean.getCollectionCount()` từ 5.000 về 10. Nếu cùng một time series không có restart marker, dashboard có thể tính negative delta hoặc spike sai.
+**Context:** the collector reconnects right across a JVM restart; `GarbageCollectorMXBean.getCollectionCount()` drops from 5,000 to 10. Without restart markers on the series, dashboards may compute negative deltas or false spikes.
 
-**Cách xử lý:** theo dõi process/JVM instance, uptime/start time, counter reset và collector identity. Dùng hàm rate counter-aware của backend khi phù hợp; không trực tiếp trừ hai counters của **hai JVM instances** rồi coi kết quả là thật.
+**Handling:** track process/JVM instance, uptime/start time, counter resets, and collector identity. Use the backend's counter-aware rate functions; never subtract two counters from **two different JVM instances** as if continuous.
 
-### 15.4 Việc giám sát làm tăng CPU hoặc request latency
+### 15.4 Monitoring increases CPU or request latency
 
-**Bối cảnh:** remote collector query toàn bộ `queryNames(null,null)` mỗi giây, rồi đọc hàng nghìn attributes.
+**Context:** a remote collector runs `queryNames(null,null)` every second and reads thousands of attributes.
 
-**Cách xử lý:** xác định expensive getters, giảm discovery cadence, dùng allowlist, batch `getAttributes`, giới hạn concurrency và đo scrape latency. Nếu triệu chứng vẫn còn, profile/tối ưu getter hoặc đổi sang ứng dụng tự xuất metric cheap. **Không tự kết luận JMX API “luôn nặng”**: chi phí phụ thuộc vào bean, transport và tần suất.
+**Handling:** identify expensive getters, lower discovery cadence, use allowlists, batch `getAttributes`, bound concurrency, and measure scrape latency. If symptoms persist, profile/optimize getters or let the app emit cheap metrics directly. **Never conclude JMX APIs are "always slow"**: cost depends on the beans, transport, and polling rate.
 
-### 15.5 Notification giảm sau khi reconnect
+### 15.5 Notifications drop after reconnect
 
-**Bối cảnh:** JMX notifications không còn đầy đủ, connector từng phát `NOTIFS_LOST`.
+**Context:** JMX notifications are incomplete; the connector emitted `NOTIFS_LOST`.
 
-**Cách xử lý:** xác minh resubscribe, kiểm tra filter, target identity, bổ sung polling reconcile. Không coi việc không nhận notification mới là không có sự kiện. Nếu cần event completeness, lưu events vào một hệ thống bền vững chuyên dụng.
+**Handling:** verify resubscription, check filters and target identity, and add reconciliation polling. Never mistake absent notifications for zero events. If event completeness is required, store events in a dedicated durable system.
 
-### 15.6 Hai exporter cùng scrape một target
+### 15.6 Two exporters scrape the same target
 
-**Bối cảnh:** cùng một JVM có hai collectors trên cùng cluster, mỗi collector đều poll 200 attributes/10 giây. Dữ liệu có thể bị gửi lên backend hai lần hoặc tạo labels khác nhau.
+**Context:** two collectors in the same cluster both poll 200 attributes/10 seconds from the same JVM. Data may be double-sent or tagged with conflicting labels.
 
-**Cách xử lý:** xác định ownership per target/shard, thống nhất metric mapping/labels, deduplicate hợp lệ hoặc giảm số collectors. Đừng tự tin rằng chỉ dùng lock trong một process sẽ ngăn scraper ở process khác.
+**Handling:** assign target/shard ownership, standardize metric/label mappings, deduplicate properly, or reduce collector count. Never assume an in-process lock stops a scraper running in another process.
 
-### 15.7 MBean mỗi session sinh series không giới hạn
+### 15.7 Per-session MBeans spawn unbounded series
 
-**Bối cảnh:** ứng dụng đăng ký ObjectName `com.example:type=Session,id=<session-id>` cho mọi phiên, exporter thu tự động tất cả.
+**Context:** an app registers `com.example:type=Session,id=<session-id>` for every session, and an exporter scrapes all of them automatically.
 
-**Cách xử lý:** cân nhắc thay thiết kế MBean registry bằng aggregate metrics theo pool/service, hủy MBean khi session kết thúc, không xuất ID session ra label, và quan sát churn. Quản trị dữ liệu cá nhân cũng cần xử lý vì tên ObjectName có thể làm lộ định danh.
+**Handling:** replace per-session MBeans with aggregate metrics per pool/service, unregister MBeans on session end, exclude session IDs from labels, and monitor churn. Address PII governance too, since ObjectNames can expose identifiers.
 
-## 16. Checklist trước khi đưa JMX monitoring lên production
+## 16. Checklist before taking JMX monitoring to production
 
-- [ ] Đã xác minh đúng JVM instance, endpoint, ObjectName và các attributes cần đo.
-- [ ] Remote JMX chỉ mở trong phạm vi được phép, có TLS/authentication/authorization và phân tách read-only/mutating.
-- [ ] Connector có owner, lifecycle, cleanup/close và reconnect được thiết kế rõ.
-- [ ] Timeout của transport/provider được kiểm chứng, không dùng property chưa xác nhận.
-- [ ] Có giới hạn in-flight per target/global và không cho nhiều scrape chồng lấn.
-- [ ] Polling interval dựa trên mục tiêu quan sát, chi phí getter và độ dài sự kiện muốn phát hiện.
-- [ ] Có jitter/backoff và retry budget, tránh thundering herd.
-- [ ] Cho phép `getAttributes` batching khi hợp lý, nhưng kiểm tra field bị thiếu và consistency.
-- [ ] Discover `queryNames`/`MBeanInfo` có giới hạn phạm vi, tần suất, TTL và invalidation sau redeploy.
-- [ ] Metrics phân biệt gauge/counter/histogram; units và reset logic được ghi rõ.
-- [ ] Missing data không bị thay bằng 0; có scrape health và last sample age.
-- [ ] Đã tính upper-bound label combinations, actual active series và churn budget.
-- [ ] Không có `request_id`, `user_id`, email, token, URL có ID, dynamic ObjectName hoặc connection ID trong metric labels.
-- [ ] Labels được kiểm tra cả key **và miền giá trị**, không chỉ tên.
-- [ ] Có hành động rõ khi vượt cardinality limit và số liệu drop được công bố.
-- [ ] Không suy p99 từ attribute trung bình, không gọi GC collection time là CPU %.
-- [ ] JMX notifications có cơ chế resubscribe/reconciliation, không được xem là event store bền vững.
-- [ ] Đã thử các trường hợp target down, auth fail, timeout, restart, deploy, scale-out và exporter duplicated.
-- [ ] Có tài liệu vận hành để đánh giá collector overhead, số connection, worker queue, latency và lượng series.
-- [ ] Đầu ra JMX/metadata/labels được xử lý phù hợp quyền riêng tư và retention.
+- [ ] Verified exact target JVM instances, endpoints, ObjectNames, and required attributes.
+- [ ] Remote JMX opened strictly within permitted boundaries with TLS/authentication/authorization separating read-only from mutating access.
+- [ ] Connectors have clear ownership, lifecycles, cleanup/`close()`, and reconnect handling.
+- [ ] Transport/provider timeouts verified; no unverified property flags used.
+- [ ] Per-target and global in-flight limits enforced with no overlapping scrapes.
+- [ ] Polling intervals grounded in observation goals, getter cost, and target event duration.
+- [ ] Jitter, backoff, and retry budgets configured to prevent thundering herds.
+- [ ] `getAttributes` batching enabled where sensible, checking for missing fields and consistency.
+- [ ] `queryNames`/`MBeanInfo` discovery scoped, rate-limited, TTL-cached, and invalidated across redeploys.
+- [ ] Metrics distinguish gauge/counter/histogram with explicit units and reset logic.
+- [ ] Missing data never coerced to 0; scrape health and last sample age emitted.
+- [ ] Computed upper-bound label combinations, active series, and churn budgets.
+- [ ] No `request_id`, `user_id`, email, token, ID-containing URLs, dynamic ObjectNames, or connection IDs in metric labels.
+- [ ] Labels validated on both keys **and value domains**, not names alone.
+- [ ] Explicit action defined when cardinality caps trip, with dropped-series counts exposed.
+- [ ] Never infer p99 from average attributes or call GC collection time CPU %.
+- [ ] JMX notifications paired with resubscribe/reconciliation, not treated as durable event stores.
+- [ ] Tested target down, auth failure, timeout, restart, deploy, scale-out, and duplicate-exporter scenarios.
+- [ ] Operational runbook tracks collector overhead, connections, worker queues, latency, and series counts.
+- [ ] JMX outputs, metadata, and labels handled in compliance with privacy and retention policies.
 
-## 17. Bài tập tự kiểm tra
+## 17. Self-check exercises
 
-**Câu 1.** Một collector poll 60 JVM, mỗi JVM bốn MBeans, mỗi bean ba attributes, cứ 15 giây. Nếu gọi từng attribute riêng, lượng đọc trung bình bao nhiêu?
+**Question 1.** A collector polls 60 JVMs, 4 MBeans per JVM, 3 attributes per bean, every 15 seconds. If each attribute is read individually, what is the average read rate?
 
-**Đáp án:** 60 × 4 × 3 = 720 attribute reads/cycle, tương đương 48 reads/giây và 172.800 reads/giờ theo lịch lý thuyết. Nếu batch `getAttributes` theo từng bean, số remote calls có thể giảm về 240/cycle, nhưng JVM vẫn phải đọc các giá trị, và có thể có field thiếu.
+**Answer:** `60 × 4 × 3 = 720` attribute reads/cycle, or `48 reads/second` and `172,800 reads/hour` on a theoretical schedule. Batching `getAttributes` per bean drops remote calls to 240/cycle, though the JVM still reads all values and fields may be omitted.
 
-**Câu 2.** Tại sao không dùng `JMXConnector.getConnectionId()` làm metric label?
+**Question 2.** Why should you avoid using `JMXConnector.getConnectionId()` as a metric label?
 
-**Đáp án:** Connection ID thay qua reconnect, tạo series churn không phản ánh thay đổi service. Dùng target/JVM instance identity ổn định hơn; giữ connection ID trong log điều tra hạn chế quyền.
+**Answer:** Connection IDs change on reconnects, creating series churn unrelated to service changes. Use stable target/JVM instance identities for metrics and keep connection IDs in restricted diagnostic logs.
 
-**Câu 3.** `getAttributes` được yêu cầu năm fields nhưng trả bốn. Có thể coi field thứ năm là 0 không?
+**Question 3.** `getAttributes` requests five fields and returns four. Can you treat the fifth field as 0?
 
-**Đáp án:** Không. API có thể bỏ thuộc tính không lấy được. Phải đối chiếu tên field nhận, ghi missing và kiểm tra lỗi bằng `getAttribute` riêng nếu cần.
+**Answer:** No. The API can omit unavailable/unreadable attributes. Match returned names, record missing status, and call individual `getAttribute` if you need the exact error.
 
-**Câu 4.** Mỗi request mới tạo một `ObjectName` với `request_id`. Đây là rủi ro gì?
+**Question 4.** Every new request registers an `ObjectName` containing `request_id`. What risk does this create?
 
-**Đáp án:** Registry/MBean count tăng, MBean lifecycle phức tạp và nếu exporter biến request ID thành label sẽ gây cardinality/churn rất lớn. Nên dùng aggregate MBean và tracing riêng cho từng request.
+**Answer:** Registry/MBean counts grow, lifecycles get complex, and if an exporter promotes `request_id` to a label, cardinality and churn explode. Use aggregate MBeans and dedicated tracing per request.
 
-**Câu 5.** Một vòng poll mất 20 giây trong khi interval đặt 10 giây. Điều gì cần thay đổi?
+**Question 5.** One poll cycle takes 20 seconds while the interval is 10 seconds. What needs to change?
 
-**Đáp án:** Tránh overlap, đặt deadline/giới hạn concurrent work, xem expensive getter hoặc giảm tốc độ/đổi scope. Không mở vô hạn threads để giữ “đúng lịch”.
+**Answer:** Prevent overlap, enforce deadlines and bounded concurrency, inspect expensive getters, or slow cadence / narrow scope. Never spawn unlimited threads trying to stay "on schedule."
 
-**Câu 6.** Một metric có 3 services × 2 environments × 4 instances × 3 collector types × 2 states. Upper bound là bao nhiêu?
+**Question 6.** A metric has 3 services × 2 environments × 4 instances × 3 collector types × 2 states. What is the upper bound?
 
-**Đáp án:** 144 series cho metric đó. Thêm 10.000 request IDs có thể tạo upper bound 1.440.000; đây là rủi ro thiết kế, không nhất thiết mọi tổ hợp đều hiện hữu.
+**Answer:** 144 series for that metric. Adding 10,000 request IDs yields an upper bound of 1,440,000—a design risk even if not every combination occurs simultaneously.
 
-**Câu 7.** Khi JVM mất kết nối trong một lượt, biểu đồ queue depth có được ghi 0 không?
+**Question 7.** When a JVM loses connectivity for one cycle, should the queue depth chart record 0?
 
-**Đáp án:** Không, 0 biểu thị giá trị nghiệp vụ. Phải ghi missing/stale và trạng thái scrape failure riêng. Khi khôi phục, không tính delta giả từ 0.
+**Answer:** No—0 is a valid business value. Record missing/stale and separate scrape failure state. On recovery, never compute a false delta from 0.
 
-**Câu 8.** Vì sao `Future.cancel(true)` không là biện pháp timeout đủ cho mọi remote JMX request?
+**Question 8.** Why is `Future.cancel(true)` insufficient as a timeout mechanism for all remote JMX requests?
 
-**Đáp án:** Interrupt có thể không làm transport/provider blocking I/O dừng ngay. Cần timeout đúng provider, connection lifecycle có kiểm soát và bounded worker/thread resources.
+**Answer:** Interrupts may not abort blocking transport/provider I/O immediately. You need provider-level timeouts, controlled connection lifecycles, and bounded workers/threads.
 
-**Câu 9.** Đã có JMX notifications rồi có cần polling nữa không?
+**Question 9.** Once JMX notifications are enabled, is polling still needed?
 
-**Đáp án:** Tùy yêu cầu; notifications không bảo đảm persistence/replay và có thể mất khi reconnect. Polling đối soát trạng thái giúp phát hiện event miss, còn hệ thống lưu event phải dùng nếu cần lịch sử đầy đủ.
+**Answer:** Depending on requirements: notifications do not guarantee persistence/replay and can drop across reconnects. Reconciliation polling catches missed events, while durable event systems are needed for full history.
 
-**Câu 10.** Đặt poll interval 1 giây thay 15 giây có giải quyết được p99 request latency không?
+**Question 10.** Does lowering the poll interval from 15 seconds to 1 second solve p99 request latency?
 
-**Đáp án:** Không tự động. Một snapshot mỗi giây không tái tạo phân bố request latency và có thể tăng overhead. Cần histogram/event trace và chọn cadence theo câu hỏi chẩn đoán.
+**Answer:** Not automatically. One snapshot per second cannot reconstruct request latency distributions and increases overhead. Use histograms/event traces and match cadence to your diagnostic question.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — JMXConnector](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/remote/JMXConnector.html): kết nối, `close()`, listener và connection ID.
-- [Java SE 21 — JMXConnectorFactory](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/remote/JMXConnectorFactory.html): tạo connector, `connect`, provider/environment.
-- [Java SE 21 — MBeanServerConnection](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/MBeanServerConnection.html): `getAttribute`, `getAttributes`, query và các trường hợp bỏ field.
+- [Java SE 21 — JMXConnector](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/remote/JMXConnector.html): connections, `close()`, listeners, and connection IDs.
+- [Java SE 21 — JMXConnectorFactory](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/remote/JMXConnectorFactory.html): creating connectors, `connect`, providers/environments.
+- [Java SE 21 — MBeanServerConnection](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/MBeanServerConnection.html): `getAttribute`, `getAttributes`, queries, and omitted fields.
 - [Java SE 21 — JMXConnectionNotification](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/remote/JMXConnectionNotification.html): opened, closed, failed, notifications lost.
-- [Java SE 21 — ManagementFactory](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ManagementFactory.html): platform MBeanServer và MXBeans.
-- [Java SE 21 — ScheduledThreadPoolExecutor](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ScheduledThreadPoolExecutor.html): periodic tasks, scheduling và concurrency semantics.
-- [Prometheus — Metric and Label Naming](https://prometheus.io/docs/practices/naming/): một tập labels tạo một time series; không dùng unbounded identifiers.
-- [Prometheus — The Zen of Prometheus](https://prometheus.io/docs/practices/the_zen/): series cardinality, nhãn và metric instrumentation.
+- [Java SE 21 — ManagementFactory](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ManagementFactory.html): platform MBeanServer and MXBeans.
+- [Java SE 21 — ScheduledThreadPoolExecutor](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ScheduledThreadPoolExecutor.html): periodic tasks, scheduling, and concurrency semantics.
+- [Prometheus — Metric and Label Naming](https://prometheus.io/docs/practices/naming/): label sets define time series; avoid unbounded identifiers.
+- [Prometheus — The Zen of Prometheus](https://prometheus.io/docs/practices/the_zen/): series cardinality, labels, and metric instrumentation.
 
-**Ghi nhớ:** quản lý JMX monitoring là bài toán **hạn chế tài nguyên và bảo toàn ý nghĩa dữ liệu**. Tái sử dụng kết nối có lifecycle và security, timeout/retry đúng provider, không poll chồng, đo đúng elapsed window, chọn attributes bằng allowlist và giới hạn label cardinality ngay tại nguồn. Một hệ thống “thu được mọi số” nhưng làm JVM chậm, phát hàng triệu series hoặc thay missing thành 0 **không phải** hệ thống giám sát đáng tin.
+**Key takeaway:** managing JMX monitoring is a problem of **bounding resources and preserving data semantics**. Reuse connections with clear lifecycles and security, apply provider-supported timeouts/retries, avoid overlapping polls, measure true elapsed windows, allowlist attributes, and cap label cardinality at the source. A system that "collects every number" while slowing down the JVM, spawning millions of series, or turning missing data into 0 **is not** a trustworthy monitoring system.

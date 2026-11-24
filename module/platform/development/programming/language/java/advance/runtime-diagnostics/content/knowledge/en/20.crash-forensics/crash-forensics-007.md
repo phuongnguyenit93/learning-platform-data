@@ -1,76 +1,76 @@
-# 20.7 Vai trò của jhsdb jstack, jmap, jinfo và clhsdb đối với core hoặc JVM
+# 20.7 Roles of `jhsdb jstack`, `jmap`, `jinfo`, and `clhsdb` for Cores or JVMs
 
-## 1. Khi JVM đã crash, dùng công cụ nào để nhìn lại trạng thái?
+## 1. When the JVM Has Crashed, Which Tool Inspects Its State?
 
-Một dịch vụ Java bất ngờ dừng với `SIGSEGV`/`EXCEPTION_ACCESS_VIOLATION`, có thể còn file `hs_err_pid*.log` và một **core dump**. Lúc đó không còn PID đang chạy để hỏi bằng `jcmd`; file core chứa snapshot bộ nhớ và thread state tại thời điểm hệ điều hành tạo dump. Muốn đọc các cấu trúc HotSpot trong snapshot ấy, JDK cung cấp **`jhsdb`**, công cụ dùng **HotSpot Serviceability Agent (SA)**.
+A Java service abruptly dies with `SIGSEGV`/`EXCEPTION_ACCESS_VIOLATION`, possibly leaving an `hs_err_pid*.log` file and a **core dump**. At that point there is no running PID left to query with `jcmd`; the core file holds a snapshot of memory and thread state at the moment the OS took the dump. To read HotSpot structures inside that snapshot, the JDK provides **`jhsdb`**, a tool powered by the **HotSpot Serviceability Agent (SA)**.
 
-Một tình huống khác: tiến trình còn sống nhưng bị treo, `jcmd`/attach thông thường không phản hồi. `jhsdb` cũng có chế độ attach bằng `--pid`, nhưng **đây là lựa chọn can thiệp mạnh và rủi ro cao**, không nên coi như bản thay thế “an toàn hơn” cho lệnh `jstack`/`jcmd`. Tài liệu Oracle JDK 21 cảnh báo attach SA vào live process có thể làm tiến trình ngừng tiến triển và có khả năng crash khi detach.
+Another situation: the process is still alive yet hung, and normal `jcmd`/attach does not respond. `jhsdb` also offers a `--pid` attach mode, but **this is an intrusive, high-risk option** and must never be treated as a “safer replacement” for `jstack`/`jcmd`. Oracle JDK 21 documentation warns that attaching SA to a live process can cause the process to hang and may crash it when detaching.
 
-Bài này tập trung phân biệt rõ:
+This lesson focuses on clearly distinguishing:
 
-- **`jhsdb jstack`:** lấy stack và một số thông tin lock của Java threads, có thể xem mixed Java/native frames khi nền tảng cho phép.
-- **`jhsdb jmap`:** xem Java heap, object histogram, class loader statistics hoặc xuất HPROF từ snapshot.
-- **`jhsdb jinfo`:** lấy VM flags và Java system properties từ JVM/core.
-- **`jhsdb clhsdb`:** mở phiên dòng lệnh tương tác để đi sâu vào thread, object, heap, flags và cấu trúc VM.
-- **`--pid` so với cặp `--exe` + `--core`:** chọn đúng live JVM hoặc core offline; không nhầm executable với file `.jar`.
+- **`jhsdb jstack`:** retrieves Java thread stacks and some lock information, and can show mixed Java/native frames when the platform supports it.
+- **`jhsdb jmap`:** inspects the Java heap, object histogram, and class loader statistics, or exports an HPROF from the snapshot.
+- **`jhsdb jinfo`:** retrieves VM flags and Java system properties from the JVM/core.
+- **`jhsdb clhsdb`:** opens an interactive command-line session to drill down into threads, objects, heap, flags, and VM structures.
+- **`--pid` vs. `--exe` + `--core`:** choosing live JVM vs. offline core properly; never confusing the executable with a `.jar` file.
 
-Mục tiêu là **chọn ít rủi ro nhất nhưng đủ thông tin**, đọc đúng điều snapshot có thể chứng minh, và biết khi nào phải chuyển sang native debugger hoặc điều tra thêm.
+The goal is to **choose the lowest-risk option that gives sufficient information**, read accurately what a snapshot can prove, and know when to switch to a native debugger or further investigation.
 
-## 2. Serviceability Agent nhìn thấy gì?
+## 2. What Does the Serviceability Agent See?
 
-**Serviceability Agent (SA)** nằm trong JDK HotSpot tooling. Nó có hiểu biết về layout nội bộ của JVM (Java threads, Java heap, class metadata, code cache, VM structures), dùng thông tin của tiến trình hoặc core để diễn giải thành dữ liệu có nghĩa với Java.
+The **Serviceability Agent (SA)** resides in JDK HotSpot tooling. It understands the internal layout of the JVM (Java threads, Java heap, class metadata, code cache, VM structures) and uses process or core data to interpret them into Java-meaningful information.
 
-Hình dung ba tầng bằng chứng:
+Visualize the three layers of evidence:
 
 ~~~text
-Ứng dụng Java / HotSpot VM
+Java Application / HotSpot VM
           |
-          | Crash hoặc OS ghi snapshot
+          | Crash or OS writes snapshot
           v
-   Core dump (bộ nhớ + trạng thái thread/mappings)
+   Core dump (memory + thread states/mappings)
           |
-          | jhsdb + Serviceability Agent + đúng JVM binary/libs
+          | jhsdb + Serviceability Agent + matching JVM binary/libs
           v
    Java threads / heap / VM flags / class metadata
           |
           +--> jhsdb jstack
           +--> jhsdb jmap
           +--> jhsdb jinfo
-          +--> jhsdb clhsdb (tương tác)
+          +--> jhsdb clhsdb (interactive)
 ~~~
 
-SA khác với native debugger như `gdb`/`lldb`/WinDbg ở chỗ biết **cấu trúc HotSpot** để hiển thị Java stack/object/VM metadata; native debugger lại mạnh về instruction pointer, native registers, machine stack, shared library symbols và tín hiệu crash. Hai nhóm công cụ **bổ trợ nhau**, không thay thế nhau.
+SA differs from native debuggers like `gdb`/`lldb`/WinDbg in that it understands **HotSpot structures** to display Java stacks/objects/VM metadata; native debuggers excel at instruction pointers, native registers, machine stacks, shared library symbols, and crash signals. The two toolsets **complement each other** rather than replacing each other.
 
-**Giới hạn quan trọng:**
+**Important limitations:**
 
-1. `jhsdb` là công cụ riêng cho **HotSpot** và có những phần được tài liệu Oracle đánh dấu **experimental/unsupported**; hành vi phụ thuộc JDK version, OS, architecture, collector và mức độ toàn vẹn core.
-2. Nếu core **thiếu trang nhớ**, bị truncate hoặc không có đúng thư viện, một số truy vấn có thể không trả được thông tin, báo lỗi symbol hoặc chỉ thấy một phần.
-3. Core chỉ chứa **trạng thái tại thời điểm chụp**. Nó không có timeline GC, lock contention, request latency hay diễn biến heap trước đó trừ khi bằng chứng khác cũng đã được ghi.
-4. Object histogram từ core là **đếm object trong snapshot có thể đọc được**, không tự chứng minh memory leak hoặc object nào “làm JVM crash”.
-5. SA có thể ảnh hưởng nghiêm trọng tới một JVM **còn chạy** khi dùng `--pid`; phải có quyền, kế hoạch dừng/khôi phục và đánh giá tác động.
+1. `jhsdb` is specific to **HotSpot**, and parts of it are marked **experimental/unsupported** in Oracle documentation; behavior depends on JDK version, OS, architecture, collector, and core completeness.
+2. If the core **is missing memory pages**, truncated, or lacks matching libraries, some queries may return no data, report symbol errors, or show only partial results.
+3. A core contains only **state at capture time**. It has no GC timeline, lock contention history, request latency, or prior heap trends unless other evidence was also recorded.
+4. An object histogram from a core simply **counts objects in the readable snapshot**; it does not by itself prove a memory leak or which object “crashed the JVM.”
+5. SA can severely impact a **running** JVM when using `--pid`; you must have authorization, a stop/recovery plan, and an impact assessment.
 
-## 3. Phân biệt PID, core, HPROF và hs_err
+## 3. Distinguishing PID, Core, HPROF, and `hs_err`
 
-| Bằng chứng | Tồn tại khi nào? | Có thể làm gì? | Không nên nhầm |
+| Evidence | When does it exist? | What can you do? | What not to confuse |
 | --- | --- | --- | --- |
-| **Live PID** | JVM vẫn đang chạy; có process ID | Dùng `jcmd`/`jstack` thường; SA `--pid` chỉ khi thực sự cần và chấp nhận rủi ro | PID cũ sau crash có thể đã bị OS tái sử dụng |
-| **Core dump** | OS/collector tạo snapshot khi crash hoặc có yêu cầu tạo dump | `jhsdb --exe ... --core ...`, native debugger | Không phải Java heap dump; có thể gồm rất nhiều dữ liệu nhạy cảm |
-| **`hs_err_pid*.log`** | HotSpot fatal error handler có thể tạo khi VM gặp fatal error | Đọc crash signal, problematic frame, thread, native libs, VM flags, heap summary | Chỉ là file text, không thể thay `--core` của SA |
-| **`.hprof` heap dump** | JVM/tool đã xuất heap dump | MAT, VisualVM, heap dump parser để phân tích object graph/retained size | Không phải OS core; không đưa file HPROF vào `jhsdb --core` |
-| **`.jfr` recording** | JFR ghi trước crash hoặc được dump trước đó | JMC/JFR để phân tích events/timeline | Không có full address space như core |
-| **Native stack/symbol files** | Native debugger và build artifacts cung cấp | Đối chiếu machine frames, symbol, shared objects | Không tự thay thế metadata nội bộ JVM |
+| **Live PID** | JVM is still running; process ID exists | Use normal `jcmd`/`jstack`; SA `--pid` only when truly needed and risk is accepted | An old PID after a crash may have been reused by the OS |
+| **Core dump** | OS/collector captured a snapshot on crash or on dump request | `jhsdb --exe ... --core ...`, native debugger | Not a Java heap dump; can contain lots of sensitive data |
+| **`hs_err_pid*.log`** | HotSpot fatal error handler may create when VM hits a fatal error | Read crash signal, problematic frame, thread, native libs, VM flags, heap summary | Just a text file; cannot replace `--core` for SA |
+| **`.hprof` heap dump** | JVM/tool exported a heap dump | MAT, VisualVM, heap dump parsers for object graph / retained size | Not an OS core; do not pass an HPROF file to `jhsdb --core` |
+| **`.jfr` recording** | JFR recorded pre-crash or dumped earlier | JMC/JFR to analyze events/timeline | Does not hold full address space like a core |
+| **Native stack/symbol files** | Provided by native debugger and build artifacts | Correlate machine frames, symbols, shared objects | Does not replace internal JVM metadata |
 
-**Không phải cứ có `hs_err_pid` là có core**; chính sách kernel/OS, `ulimit`, `systemd-coredump`, container security và dung lượng đĩa quyết định có tạo/giữ core hay không. Ngược lại, core có thể được tạo khi JVM vẫn còn sống bằng một cơ chế OS phù hợp (chẳng hạn `gcore`), nhưng bản thân thao tác có ảnh hưởng tài nguyên và thường dừng/ngắt tiến trình trong lúc chụp; chỉ thực hiện theo quy trình incident được cho phép.
+**Having `hs_err_pid` does not mean a core exists**; kernel/OS policy, `ulimit`, `systemd-coredump`, container security, and disk space determine whether a core is created/retained. Conversely, a core can be generated while a JVM is still alive via an appropriate OS mechanism (such as `gcore`), though that operation itself consumes resources and typically pauses/interrupts the process during capture; perform it only under an authorized incident procedure.
 
-### Ba điều cần xác minh trước khi mở core
+### Three things to verify before opening a core
 
-- File đúng thuộc **PID, thời điểm, host/container và bản JDK** nào? Xem `hs_err`, core metadata và release metadata của deployment.
-- Có **đúng Java launcher executable và JDK runtime/shared libraries** tại thời điểm crash không? Nếu JVM được tạo qua JNI Invocation API, executable có thể là **launcher tùy biến**, không phải `$JAVA_HOME/bin/java`.
-- Core có đầy đủ và người phân tích có quyền truy cập nó không? Core có thể chứa **token, mật khẩu, khóa và dữ liệu người dùng trong memory**, phải hạn chế sao chép/chia sẻ, kiểm soát retention và xóa an toàn sau điều tra.
+- Which **PID, timestamp, host/container, and JDK build** does the file belong to? Check `hs_err`, core metadata, and deployment release metadata.
+- Do you have the **exact Java launcher executable and JDK runtime/shared libraries** from crash time? If the JVM was created via the JNI Invocation API, the executable may be a **custom launcher**, not `$JAVA_HOME/bin/java`.
+- Is the core complete and are you authorized to access it? A core can hold **tokens, passwords, keys, and user data in memory**, requiring restricted copying/sharing, controlled retention, and secure deletion after investigation.
 
-## 4. Cú pháp jhsdb: sống hay hậu kiểm là hai chế độ loại trừ nhau
+## 4. `jhsdb` Syntax: Live and Postmortem Are Mutually Exclusive Modes
 
-Xem lệnh được cài trên JDK hiện tại:
+View the commands installed on the current JDK:
 
 ~~~bash
 jhsdb --help
@@ -80,30 +80,30 @@ jhsdb jinfo --help
 jhsdb clhsdb --help
 ~~~
 
-Theo JDK 21 và bản HotSpot phù hợp, hai mẫu chính:
+Per JDK 21 and compatible HotSpot builds, the two main patterns are:
 
 ~~~bash
-# Core trên đĩa: phải có cả --exe và --core.
+# Core on disk: must supply both --exe and --core.
 jhsdb jstack --exe /opt/jdk/bin/java --core /var/crash/core.12345
 
-# Live process: CHỈ dùng khi được phép và chấp nhận rủi ro của SA.
+# Live process: ONLY use when authorized and SA risks are accepted.
 jhsdb jstack --pid 12345
 ~~~
 
-`--exe` và `--core` **đi thành cặp** trong postmortem mode; `--pid` không dùng chung với `--core`. `--exe` là **đường dẫn native executable đã tạo VM/core**, không phải `service.jar` hay class tên `Main`. `--core` là **OS core dump**, không phải `heap.hprof`.
+`--exe` and `--core` **come as a pair** in postmortem mode; `--pid` is not combined with `--core`. `--exe` is the **path to the native executable that created the VM/core**, not `service.jar` or a class named `Main`. `--core` is an **OS core dump**, not `heap.hprof`.
 
-Các chế độ `jstack`, `jmap`, `jinfo` là **subcommand của `jhsdb`**, khác với các executable truyền thống có tên trùng/na ná:
+The `jstack`, `jmap`, and `jinfo` modes are **subcommands of `jhsdb`**, distinct from traditional executables with identical/similar names:
 
-- `jstack <PID>` thường dùng attach/serviceability interface cho JVM sống.
-- `jhsdb jstack --core ... --exe ...` dùng SA đọc **offline core**, hữu ích khi process đã chết hoặc không có kênh attach bình thường.
-- `jmap -histo <PID>` và `jcmd <PID> GC.class_histogram` thuộc workflow live; **`jhsdb jmap --histo --core ... --exe ...`** là workflow postmortem có cú pháp khác.
-- `jinfo <PID>` truy xuất live VM; **`jhsdb jinfo --flags/--sysprops --core ... --exe ...`** truy xuất dữ liệu có trong snapshot.
+- `jstack <PID>` typically uses the attach/serviceability interface for a live JVM.
+- `jhsdb jstack --core ... --exe ...` uses SA to read an **offline core**, useful when the process is dead or normal attach channels are unavailable.
+- `jmap -histo <PID>` and `jcmd <PID> GC.class_histogram` belong to the live workflow; **`jhsdb jmap --histo --core ... --exe ...`** is a postmortem workflow with different syntax.
+- `jinfo <PID>` queries a live VM; **`jhsdb jinfo --flags/--sysprops --core ... --exe ...`** queries data inside the snapshot.
 
-Trên JDK 21, `jhsdb debugd` và `--connect` có thể hỗ trợ remote SA, nhưng **đường remote này đã bị đánh dấu deprecated** trong tài liệu và có thêm bề mặt tấn công/quản trị. Bài thực hành ưu tiên **phân tích core cục bộ trong môi trường cách ly**, không khuyên dựng debugd mở công khai.
+On JDK 21, `jhsdb debugd` and `--connect` can support remote SA, but **this remote path is marked deprecated** in documentation and adds attack/administration surface. This practice prioritizes **local core analysis in an isolated environment**, and does not recommend exposing `debugd` publicly.
 
-## 5. `jhsdb jstack` — thread state, Java frames và mixed stack
+## 5. `jhsdb jstack` — Thread States, Java Frames, and Mixed Stacks
 
-### Cách gọi trên core
+### Invoking on a core
 
 ~~~bash
 jhsdb jstack --exe /opt/jdk/bin/java --core /var/crash/core.12345
@@ -111,17 +111,17 @@ jhsdb jstack --locks --exe /opt/jdk/bin/java --core /var/crash/core.12345
 jhsdb jstack --mixed --exe /opt/jdk/bin/java --core /var/crash/core.12345
 ~~~
 
-- **Không có option bổ sung:** in stack của các Java threads mà SA đọc được tại thời điểm snapshot.
-- **`--locks`:** mở rộng thông tin một số `java.util.concurrent` locks/ownable synchronizers mà công cụ có thể suy ra.
-- **`--mixed`:** cố gắng kết hợp Java frames và native frames **nếu platform/debug information cho phép**. Không hứa luôn symbolicate đầy đủ C/C++ hoặc thấy cả native async stack.
+- **No extra options:** prints stacks of Java threads that SA can read at snapshot time.
+- **`--locks`:** expands details on certain `java.util.concurrent` locks / ownable synchronizers that the tool can deduce.
+- **`--mixed`:** attempts to combine Java frames and native frames **if the platform/debug info supports it**. Does not promise full C/C++ symbolication or seeing every native async stack.
 
-Đọc một stack trace theo ba chiều:
+Read a stack trace along three dimensions:
 
-1. **Thread nào?** Tên thread, Java state, native thread identifier (nếu hiển thị), và có phải thread crash nêu trong `hs_err` hay không.
-2. **Đang làm gì?** Java frame nào ở gần đỉnh, có block/wait/park, gọi JNI, GC/runtime hay một đoạn code nghiệp vụ?
-3. **Đang đợi ai?** Nếu monitor contention/deadlock, xem lock ownership và các threads liên quan. Một snapshot chỉ cho biết **trạng thái lúc chụp**, chưa cho biết chờ bao lâu hoặc luôn bị deadlock.
+1. **Which thread?** Thread name, Java state, native thread identifier (if shown), and whether it is the crashing thread noted in `hs_err`.
+2. **What is it doing?** Which Java frames are near the top; is it blocked/waiting/parking, calling JNI, in GC/runtime, or executing business code?
+3. **Who is it waiting on?** If there is monitor contention or deadlock, check lock ownership and involved threads. A single snapshot only shows **state at capture time**, not how long it waited or whether it is permanently deadlocked.
 
-Ví dụ **minh họa**, không phải stdout chuẩn của mọi HotSpot version:
+**Illustrative** example, not standard stdout across all HotSpot versions:
 
 ~~~text
 "sa-lock-contender" ... java.lang.Thread.State: BLOCKED (on object monitor)
@@ -132,29 +132,29 @@ Ví dụ **minh họa**, không phải stdout chuẩn của mọi HotSpot versio
     ...
 ~~~
 
-Thấy `BLOCKED` là **một dấu hiệu contention tại snapshot**; không tự kết luận deadlock hay thủ phạm crash. Trường hợp `hs_err` chỉ ra problematic frame nằm trong `libnative.so`, dùng thêm **native debugger với chính core và debug symbols** để thấy tín hiệu, registers và C stack; SA không thay tất cả thông tin đó.
+Seeing `BLOCKED` is **a sign of contention at snapshot time**; do not immediately conclude deadlock or the crash culprit. When `hs_err` points to a problematic frame in `libnative.so`, also use a **native debugger with the exact core and debug symbols** to inspect signals, registers, and C stacks; SA does not replace all of that information.
 
-### Lựa chọn an toàn hơn khi JVM còn sống
+### Safer options while the JVM is still alive
 
-Trước khi cân nhắc SA, có thể thử (với quyền attach và JVM phản hồi):
+Before considering SA, try (with attach permissions and a responsive JVM):
 
 ~~~bash
 jcmd <PID> Thread.print -l
 jstack -l <PID>
 ~~~
 
-Hai lệnh trên dùng workflow live quen thuộc; `jstack -l` không phải cùng cấu hình với `jhsdb jstack --locks` dù cùng mục đích xem locks. Nếu JVM không phản hồi, trước tiên kiểm tra trạng thái process bằng OS, quyền attach, PID namespace và mức độ ảnh hưởng tới production; **đừng chuyển máy móc sang `jhsdb --pid` trên service quan trọng**. Tài liệu Oracle cảnh báo SA attach live có thể khiến process bị treo và có thể crash khi detach. Nên phân tích **core/snapshot offline** khi đã có, hoặc chỉ thử `--pid` trên instance có thể hy sinh.
+These two commands follow the familiar live workflow; `jstack -l` does not share the exact options/implementation of `jhsdb jstack --locks` despite the similar goal of viewing locks. If the JVM is unresponsive, first inspect process status via the OS, attach permissions, PID namespace, and production impact; **do not reflexively switch to `jhsdb --pid` on a critical service**. Oracle documentation warns that live SA attach can hang the process and crash it on detach. Prefer **offline core/snapshot** analysis when available, or test `--pid` only on a disposable instance.
 
-## 6. `jhsdb jmap` — heap summary, object histogram và class loaders
+## 6. `jhsdb jmap` — Heap Summary, Object Histogram, and Class Loaders
 
-### Những câu hỏi cần trả lời
+### Questions to answer
 
-- Heap tại thời điểm crash dùng khoảng bao nhiêu, collector/region/cấu hình nào?
-- Loại object nào chiếm nhiều instances và shallow bytes?
-- Class loader nào còn tồn tại, có class loading/churn đáng nghi?
-- Có thể lấy một **HPROF** từ core để kiểm tra object graph/offline hay không?
+- Roughly how much heap was in use at crash time, and which collector/regions/configuration were active?
+- Which object types dominate instance counts and shallow bytes?
+- Which class loaders still exist, and is there suspicious class loading/churn?
+- Can an **HPROF** be extracted from the core for offline object-graph inspection?
 
-Các lệnh từ **core**:
+Commands from a **core**:
 
 ~~~bash
 jhsdb jmap --heap --exe /opt/jdk/bin/java --core /var/crash/core.12345
@@ -164,42 +164,42 @@ jhsdb jmap --binaryheap --dumpfile recovered.hprof \
   --exe /opt/jdk/bin/java --core /var/crash/core.12345
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-| Chế độ | Dữ liệu chính | Lưu ý |
+| Mode | Primary data | Notes |
 | --- | --- | --- |
-| `--heap` | Heap configuration/summary, usage theo collector/cấu trúc VM có thể đọc | Không đồng nghĩa heap dump chứa toàn bộ object graph |
-| `--histo` | Histogram các class/object: instance count và bytes | Thường là shallow size, không phải retained size; snapshot có thể không hoàn chỉnh |
-| `--clstats` | Class loader statistics/metadata | Dấu hiệu để tiếp tục điều tra class loader leak, không đủ kết luận |
-| `--binaryheap --dumpfile file.hprof` | Ghi heap dump HPROF từ snapshot, khi SA hỗ trợ | Rất tốn dung lượng, có dữ liệu nhạy cảm, có thể thất bại nếu core thiếu vùng |
+| `--heap` | Heap configuration/summary, usage per collector/VM structures readable | Does not equal a heap dump containing the full object graph |
+| `--histo` | Class/object histogram: instance counts and bytes | Usually shallow size, not retained size; snapshot may be incomplete |
+| `--clstats` | Class loader statistics/metadata | Clue for further class-loader leak investigation, not conclusive by itself |
+| `--binaryheap --dumpfile file.hprof` | Writes an HPROF heap dump from the snapshot, when supported by SA | Very storage-heavy, contains sensitive data, may fail if core lacks regions |
 
-**Không dùng `--dumpfile` đơn lẻ**: theo help của JDK, tùy chọn này chỉ hợp lệ với `--binaryheap`. Có thể có `--gz 1..9` để nén dump theo JDK hỗ trợ; không dùng khi chưa kiểm tra `jhsdb jmap --help`.
+**Do not use `--dumpfile` alone**: per JDK help, this option is only valid with `--binaryheap`. `--gz 1..9` may be available to compress the dump on supported JDKs; do not use it without checking `jhsdb jmap --help`.
 
-Một histogram hiển thị rất nhiều `byte[]` hoặc `String` **chưa** chứng minh Java memory leak. Cần so retained paths/GC roots qua HPROF (nếu xuất được) và xem workload; một snapshot tại crash có thể chứa nhiều dữ liệu đang sống hợp lệ. Nếu JVM crash giữa quá trình cập nhật heap/GC, một số dữ liệu có thể không thể decode; ghi rõ giới hạn đó thay vì “chữa” bằng cách đổi collector khi chưa đủ bằng chứng.
+A histogram showing lots of `byte[]` or `String` does **not** yet prove a Java memory leak. You must check retained paths / GC roots via HPROF (if exportable) and examine the workload; a crash-time snapshot can hold lots of legitimate live data. If the JVM crashed mid-way through updating heap/GC state, some structures may be unreadable; explicitly document that limitation rather than “fixing” it by switching collectors without evidence.
 
-Nếu chỉ cần thông tin heap của JVM **đang khỏe**, thường dùng `jcmd <PID> GC.heap_info` hoặc các công cụ live thích hợp trước; tạo `GC.heap_dump` có tác động CPU/memory/disk đáng kể, cần quyền và kế hoạch tải.
+If you only need heap info from a **healthy** JVM, prefer `jcmd <PID> GC.heap_info` or appropriate live tools first; generating `GC.heap_dump` incurs significant CPU/memory/disk cost and requires authorization and capacity planning.
 
-## 7. `jhsdb jinfo` — flags và system properties của VM tại crash
+## 7. `jhsdb jinfo` — VM Flags and System Properties at Crash Time
 
-Từ core:
+From a core:
 
 ~~~bash
 jhsdb jinfo --flags --exe /opt/jdk/bin/java --core /var/crash/core.12345
 jhsdb jinfo --sysprops --exe /opt/jdk/bin/java --core /var/crash/core.12345
-# Không có --flags/--sysprops: in cả hai loại theo JDK help.
+# Without --flags/--sysprops: prints both kinds per JDK help.
 jhsdb jinfo --exe /opt/jdk/bin/java --core /var/crash/core.12345
 ~~~
 
-**Dùng khi:** cần biết `-Xmx`/`-Xms`, collector, các `-XX` flags, system properties, runtime configuration hoặc dữ liệu classpath/property có liên quan tới crash. Đây là đầu mối để đối chiếu với `hs_err_pid*.log`, deployment manifest/container startup command và thay đổi cấu hình gần đây.
+**Use when:** you need `-Xmx`/`-Xms`, collector, `-XX` flags, system properties, runtime configuration, or classpath/property data relevant to the crash. This is the key link to cross-check with `hs_err_pid*.log`, deployment manifests/container startup commands, and recent configuration changes.
 
-**Không được suy diễn:**
+**Do not infer:**
 
-- System properties không giống toàn bộ **environment variables**, startup shell script, command line của OS hay configuration từ remote service.
-- Không phải mọi thuộc tính đọc từ core đều đầy đủ nếu VM crash ở trạng thái chưa ổn định/đọc core thiếu dữ liệu.
-- Có khả năng lộ secrets trong `-D...` hoặc properties; **lọc/redact** khi đưa log vào ticket và không gửi core cho bên không được phép.
-- `jhsdb jinfo` chủ yếu **đọc** trạng thái; đừng nhầm với việc đổi live flags bằng một số tiện ích `jinfo` truyền thống.
+- System properties are not the same as all **environment variables**, startup shell scripts, OS command line, or remote configuration services.
+- Not every property read from a core will be complete if the VM crashed in an unstable state or the core lacks data.
+- Secrets may be exposed in `-D...` or properties; **filter/redact** before pasting logs into tickets and never send cores to unauthorized parties.
+- `jhsdb jinfo` primarily **reads** state; do not confuse it with modifying live flags using certain traditional `jinfo` utilities.
 
-Khi JVM còn sống và có kênh attach an toàn, thường bắt đầu bằng:
+When the JVM is alive and has a safe attach channel, usually start with:
 
 ~~~bash
 jcmd <PID> VM.flags
@@ -207,19 +207,19 @@ jcmd <PID> VM.command_line
 jcmd <PID> VM.system_properties
 ~~~
 
-Các lệnh này phản ánh JVM **hiện thời**; `jhsdb jinfo --core` phản ánh VM ở **thời điểm snapshot**. Điều đó rất quan trọng nếu deployment đã restart sang cấu hình khác sau crash.
+These commands reflect the **current** JVM; `jhsdb jinfo --core` reflects the VM at **snapshot time**. That distinction is critical if the deployment restarted with a different configuration after the crash.
 
-## 8. `jhsdb clhsdb` — công cụ SA tương tác khi lệnh một lần chưa đủ
+## 8. `jhsdb clhsdb` — Interactive SA Tool When One-Shot Commands Are Not Enough
 
-`clhsdb` (command-line HotSpot debugger) mở môi trường tương tác để khám phá những cấu trúc SA biết. Nó **không phải shell của OS** và các lệnh bên trong (như `jstack`, `jhisto`) không phải executable độc lập bạn chạy trực tiếp bằng Bash.
+`clhsdb` (command-line HotSpot debugger) opens an interactive environment to explore structures known to SA. It is **not an OS shell**, and the commands inside (like `jstack`, `jhisto`) are not standalone executables you invoke directly from Bash.
 
-Mở **core offline**:
+Open an **offline core**:
 
 ~~~bash
 jhsdb clhsdb --exe /opt/jdk/bin/java --core /var/crash/core.12345
 ~~~
 
-Các lệnh thường dùng **sau khi đã vào prompt `clhsdb>`**, chỉ là phiên minh họa:
+Common commands **once inside the `clhsdb>` prompt** (illustrative session only):
 
 ~~~text
 clhsdb> help
@@ -233,68 +233,68 @@ clhsdb> pmap
 clhsdb> quit
 ~~~
 
-| Lệnh bên trong CLHSDB | Mục đích |
+| Command inside CLHSDB | Purpose |
 | --- | --- |
-| `help` / `help jstack` | Xem những lệnh thực sự hỗ trợ và tham số theo bản JDK |
-| `threads` | Liệt kê Java threads được SA nhận diện |
-| `jstack`, `where -a` | Xem Java stacks từ toàn bộ/một nhóm thread theo cú pháp CLI |
-| `pstack` (khi có) | Xem mixed native/Java stacks |
-| `jhisto` | Histogram object heap được SA đọc |
-| `flags`, `sysprops` | VM flags và Java system properties |
-| `pmap` | Tổng quan mappings tương tự kiểu `pmap` từ SA |
-| `inspect <address>`, `print <expression>` | Đọc object/VM structure khi có địa chỉ và đúng kiểu |
-| `quit` | Thoát session SA |
+| `help` / `help jstack` | View actually supported commands and arguments for that JDK build |
+| `threads` | List Java threads recognized by SA |
+| `jstack`, `where -a` | View Java stacks across all or selected threads per CLI syntax |
+| `pstack` (when available) | View mixed native/Java stacks |
+| `jhisto` | Heap object histogram read by SA |
+| `flags`, `sysprops` | VM flags and Java system properties |
+| `pmap` | `pmap`-style overview of mappings from SA |
+| `inspect <address>`, `print <expression>` | Read an object/VM structure given an address and exact type |
+| `quit` | Exit the SA session |
 
-**Lệnh CLHSDB có thể thay đổi theo JDK**, nhất là lệnh nội bộ/địa chỉ struct. Dùng `help` trước khi chạy truy vấn lạ; không copy nguyên kết quả pointer/address từ một build khác để giải mã. Khi muốn đi vào `inspect` hoặc `printas`, phải xác định pointer thuộc loại gì, bộ nhớ còn nguyên vẹn không; thao tác sai dễ gây lỗi công cụ, không chứng minh core “hỏng”.
+**CLHSDB commands can change across JDKs**, especially internal/struct-address commands. Run `help` before trying unfamiliar queries; never copy pointer/address formulas from a different build to decode memory. Before diving into `inspect` or `printas`, verify what type the pointer belongs to and whether memory is intact; wrong usage easily causes tool errors without proving the core is “corrupted.”
 
-### Khi nào chọn CLHSDB thay vì ba lệnh tách sẵn?
+### When to choose CLHSDB instead of the three separate commands?
 
-- Cần **đi theo một thread cụ thể**, sau đó truy vùng VM/object liên quan.
-- Muốn kiểm tra **một địa chỉ/metadata** trong hotspot internals do crash gợi ý.
-- Cần thử nhiều góc nhìn `threads → jstack → flags → jhisto` mà không chạy nhiều lệnh SA riêng.
-- Đang làm postmortem sâu cùng native debugger khi stack hoặc heap summary chưa đủ.
+- You need to **follow one specific thread**, then inspect related VM/object regions.
+- You want to inspect **a specific address/metadata item** in HotSpot internals hinted at by the crash.
+- You want to iterate across views `threads → jstack → flags → jhisto` without spawning separate SA invocations.
+- You are doing deep postmortem work alongside a native debugger when stacks or heap summaries are insufficient.
 
-Nếu chỉ cần stack/heap/flags đơn giản, ưu tiên lệnh riêng `jhsdb jstack`/`jmap`/`jinfo` và lưu output dễ review, thay vì bật CLHSDB không mục đích. Với core rất lớn, một số lệnh như `jhisto` hoặc `dumpheap` có thể quét dữ liệu lớn; cần cân nhắc RAM/đĩa.
+If you only need basic stacks, heap info, or flags, prefer the dedicated commands `jhsdb jstack`/`jmap`/`jinfo` and save reviewable output instead of launching CLHSDB unnecessarily. On very large cores, commands like `jhisto` or `dumpheap` can scan massive amounts of data; account for RAM and disk.
 
-## 9. Quy trình hậu kiểm chuẩn khi có core
+## 9. Standard Postmortem Workflow When You Have a Core
 
-Đây là **workflow xử lý chứng cứ**, không phải yêu cầu cố tình crash ứng dụng. Ví dụ dành cho Linux/HotSpot JDK 17+.
+This is an **evidence-handling workflow**, not an instruction to intentionally crash an application. Examples target Linux/HotSpot JDK 17+.
 
-### Bước 1 — Thu thập và bảo quản artifacts
+### Step 1 — Collect and preserve artifacts
 
-Lưu cùng incident (với quyền truy cập hạn chế):
+Store together with the incident (under restricted access):
 
-- Thời gian crash, PID/container ID, release/commit, OS/architecture, version chính xác của `java -version`.
-- `hs_err_pid*.log` nếu có, stderr, service logs, JFR recording còn lại và deployment flags.
-- **Core dump** hoặc thông tin từ trình quản lý dump OS; nếu dùng systemd, `coredumpctl list`/`coredumpctl info` có thể chỉ ra core bị lưu/rotate ở đâu.
-- Bản **JDK executable và shared libraries** tương thích bản JVM khi crash; có thể cần file debug symbols tương ứng.
+- Crash timestamp, PID/container ID, release/commit, OS/architecture, and exact `java -version` output.
+- `hs_err_pid*.log` if present, stderr, service logs, remaining JFR recordings, and deployment flags.
+- **Core dump** or metadata from the OS dump manager; if using systemd, `coredumpctl list`/`coredumpctl info` can show where the core is stored or rotated.
+- Compatible **JDK executable and shared libraries** matching the crashed JVM; matching debug symbol files may also be needed.
 
-Kiểm tra kích thước và giới hạn lưu trữ trước khi copy. Core và HPROF có thể lớn hàng GiB, chứa secrets và PII; nên để trong môi trường forensic cách ly. Không tự restart service chỉ để ép crash với `kill -ABRT` trong production; không dùng lab để tạo core khi không được phép.
+Check sizes and storage quotas before copying. Cores and HPROFs can be multiple GiB and contain secrets and PII; keep them in an isolated forensic environment. Never restart a service just to force a crash with `kill -ABRT` in production; never run a core-generating lab without authorization.
 
-### Bước 2 — Đọc `hs_err_pid*.log` trước
+### Step 2 — Read `hs_err_pid*.log` first
 
-Tìm:
+Look for:
 
-- Fatal signal / error, **problematic frame** (JVM compiler, GC, JNI/native library hay JIT code).
-- **Current thread** và frame tại thời điểm lỗi.
-- VM/GC flags, Java/OS version và loaded libraries.
-- Phần **native memory**/heap và trạng thái process nếu file còn ghi được.
+- Fatal signal / error, **problematic frame** (JVM compiler, GC, JNI/native library, or JIT code).
+- **Current thread** and frames at the time of failure.
+- VM/GC flags, Java/OS version, and loaded libraries.
+- **Native memory**/heap sections and process status if the file managed to write them.
 
-`hs_err` không đủ cho mọi phân tích nhưng giúp chọn hướng: native segfault cần native stack/library symbols; OOM/native memory cần OS/cgroup/NMT/JFR; deadlock/hang cần thread stacks và locks. Một số crash xảy ra trước khi tạo xong `hs_err` nên dữ liệu có thể thiếu.
+`hs_err` is not enough for every investigation, yet it guides the direction: native segfaults need native stacks/library symbols; OOM/native memory needs OS/cgroup/NMT/JFR; deadlocks/hangs need thread stacks and locks. Some crashes happen before `hs_err` finishes writing, leaving data incomplete.
 
-### Bước 3 — Dùng JDK/OS khớp với core
+### Step 3 — Match the JDK/OS to the core
 
-Trên máy phân tích, bảo đảm có executable **đúng bản đã tạo core** và các libraries liên quan. Tài liệu OpenJDK về “transported core dumps” nhấn mạnh nhiều core **không chứa code/text pages**, SA phải lấy chúng từ executable và shared objects. Vì vậy **đổi JDK khác phiên bản/build** hoặc thay OS libraries có thể gây lỗi symbol/layout, kết quả không đáng tin.
+On the analysis host, ensure you have the **exact executable that generated the core** and its related libraries. OpenJDK documentation on “transported core dumps” emphasizes that many cores **do not contain code/text pages**, so SA must read them from the executable and shared objects. Thus, **switching to a different JDK version/build** or different OS libraries can cause symbol/layout errors and untrustworthy results.
 
-Khi chuyển core từ container/host khác, kiểm tra:
+When transporting a core from a container or another host, verify:
 
-- CPU architecture (x86_64/aarch64), OS/distro/libc, pointer width và endianness tương thích.
-- JDK vendor/build, VM flavor (`server`), `libjvm.so` và hệ thư viện JNI.
-- Đường dẫn và nơi nạp libraries; cần chuẩn bị một **analysis image** tái tạo đúng môi trường thay vì giả định JDK mới nhất luôn mở được mọi core.
+- CPU architecture (`x86_64`/`aarch64`), OS/distro/libc, pointer width, and endianness match.
+- JDK vendor/build, VM flavor (`server`), `libjvm.so`, and JNI library stack match.
+- Library paths and load locations; build an **analysis image** reproducing the exact environment instead of assuming the newest JDK can open every core.
 
-Ví dụ đường dẫn trong các lệnh sau là minh họa, **không phải file có sẵn trên máy**.
+Paths in the example commands below are illustrative, **not pre-existing files on your machine**.
 
-### Bước 4 — Hỏi các câu rẻ trước, sâu sau
+### Step 4 — Ask cheap questions first, deeper ones later
 
 ~~~bash
 jhsdb jinfo --flags --exe /opt/jdk/bin/java --core /var/crash/core.12345
@@ -302,24 +302,24 @@ jhsdb jstack --exe /opt/jdk/bin/java --core /var/crash/core.12345
 jhsdb jmap --heap --exe /opt/jdk/bin/java --core /var/crash/core.12345
 ~~~
 
-Nếu có dấu hiệu:
+Depending on the clues:
 
-- **Crash trong JNI/native:** thử `jhsdb jstack --mixed`, đồng thời mở core bằng native debugger và matched symbols.
-- **Nghi Java heap pressure:** thử `jhsdb jmap --histo`, chỉ export HPROF khi cần object graph/retained references và core đủ bộ nhớ.
-- **Nghi classloader/metaspace:** dùng `jhsdb jmap --clstats` và CLHSDB để quan sát class metadata.
-- **Thread contention/deadlock:** dùng `jhsdb jstack --locks` hoặc CLHSDB `threads`/`where -a`, đối chiếu lock owner và `hs_err`.
+- **Crash in JNI/native:** try `jhsdb jstack --mixed`, while opening the core in a native debugger with matched symbols.
+- **Suspected Java heap pressure:** try `jhsdb jmap --histo`; export an HPROF only when object-graph/retained-reference analysis is needed and disk/memory suffice.
+- **Suspected classloader/metaspace issue:** use `jhsdb jmap --clstats` and CLHSDB to inspect class metadata.
+- **Thread contention/deadlock:** use `jhsdb jstack --locks` or CLHSDB `threads`/`where -a`, correlating lock owners and `hs_err`.
 
-### Bước 5 — Kiểm tra giả thuyết, tránh kết luận quá mức
+### Step 5 — Test hypotheses, avoid overclaiming
 
-Cụ thể hóa thành phát hiện có căn cứ: “core tại thời điểm X cho thấy thread T bị BLOCKED trên monitor M, owner O đang ở stack F” hoặc “core có rất nhiều instance class C, cần heap dump/retained path để đánh giá”. Không khẳng định “đây là nguyên nhân duy nhất của crash” khi chưa đối chiếu problematic frame, timeline, GC, OS và lỗi trước đó.
+State findings grounded in evidence: “the core at time X shows thread T BLOCKED on monitor M, with owner O at stack F” or “the core contains many instances of class C; a heap dump/retained path is needed to evaluate.” Do not assert “this is the sole root cause of the crash” without cross-checking the problematic frame, timeline, GC, OS, and preceding errors.
 
-Việc cần sửa phải gắn với **bằng chứng tại crash** và **thử nghiệm tái hiện**. Một core không cho biết tốc độ tăng leak, số request đã bị ảnh hưởng hay trạng thái tương lai của thread.
+Fixes must tie back to **crash-time evidence** and **reproduction tests**. A single core does not show leak growth rate, how many requests were affected, or future thread states.
 
-## 10. Lab Java 17+: tạo JVM có thread WAITING và BLOCKED để hiểu snapshot
+## 10. Java 17+ Lab: Creating a JVM with WAITING and BLOCKED Threads to Understand Snapshots
 
-Lab này **không tạo crash và không thu core**; nó tạo một JVM sống đủ lâu để người học thử **các công cụ live ít rủi ro** như `jcmd Thread.print`. Mục tiêu là biết stack nào sẽ xuất hiện trong một snapshot, rồi hiểu vì sao `jhsdb jstack` đọc core mang ý nghĩa **trạng thái tại thời điểm chụp**. **Không dùng `jhsdb --pid` vào lab** trừ khi cố tình thử SA attach trong môi trường cô lập và chấp nhận process có thể dừng/crash.
+This lab **does not trigger a crash and does not collect a core**; it starts a JVM that stays alive long enough for learners to practice **low-risk live tools** such as `jcmd Thread.print`. The goal is to observe which stacks appear in a snapshot, and thereby understand why `jhsdb jstack` on a core represents **state at capture time**. **Do not run `jhsdb --pid` against this lab** unless intentionally testing SA attach in an isolated environment and accepting that the process may hang or crash.
 
-Tạo file **`SaSnapshotLab.java`**:
+Create **`SaSnapshotLab.java`**:
 
 ~~~java
 import java.util.concurrent.CountDownLatch;
@@ -334,7 +334,7 @@ public final class SaSnapshotLab {
         synchronized (LOCK) {
             OWNER_READY.countDown();
             try {
-                RELEASE.await(); // WAITING khi vẫn giữ monitor LOCK.
+                RELEASE.await(); // WAITING while still holding the LOCK monitor.
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }
@@ -392,23 +392,23 @@ public final class SaSnapshotLab {
 }
 ~~~
 
-**Cơ chế code:** `sa-owner` giữ `LOCK` rồi chờ `CountDownLatch`, vì vậy đang **WAITING** nhưng vẫn sở hữu intrinsic monitor. `sa-contender` cố đi vào `synchronized (LOCK)` và rơi vào **BLOCKED**. Đây là **contention có chủ đích**, không phải deadlock: main sẽ gọi `RELEASE.countDown()`, owner nhả monitor và contender đi tiếp.
+**Code mechanics:** `sa-owner` holds `LOCK` and awaits `CountDownLatch`, so it is **WAITING** while still owning the intrinsic monitor. `sa-contender` attempts to enter `synchronized (LOCK)` and enters **BLOCKED**. This is **intentional contention**, not a deadlock: `main` calls `RELEASE.countDown()`, the owner releases the monitor, and the contender proceeds.
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -g SaSnapshotLab.java
 java SaSnapshotLab
 ~~~
 
-Output ban đầu có dạng:
+Initial output looks like:
 
 ~~~text
-PID=<PID-thuc-te>
+PID=<actual-PID>
 owner=WAITING contender=BLOCKED
 ~~~
 
-Cửa sổ quan sát mặc định **30 giây**; trong lúc process còn sống, **terminal thứ hai** thay `<PID>` bằng số được in ra:
+The default observation window is **30 seconds**; while the process is alive, in a **second terminal**, replace `<PID>` with the printed number:
 
 ~~~bash
 jcmd <PID> Thread.print -l
@@ -416,76 +416,76 @@ jcmd <PID> VM.flags
 jcmd <PID> GC.heap_info
 ~~~
 
-Trong thread dump, tìm `sa-owner` đang chờ latch và `sa-contender` đang đợi monitor. Nếu không tìm thấy thread do process đã kết thúc, chạy lại bằng `--seconds=60` để có thời gian xem. Sau khi cửa sổ quan sát đóng, chương trình in:
+In the thread dump, locate `sa-owner` awaiting the latch and `sa-contender` waiting on the monitor. If the threads are gone because the process already exited, re-run with `--seconds=60` for more observation time. Once the observation window closes, the program prints:
 
 ~~~text
 CONTENDER_ACQUIRED
 END
 ~~~
 
-Với `--seconds=1`, toàn bộ lab kết thúc nhanh và stdout dự kiến (ngoại trừ PID thay đổi) là:
+With `--seconds=1`, the whole lab finishes quickly and the expected stdout (aside from the varying PID) is:
 
 ~~~text
-PID=<PID-thuc-te>
+PID=<actual-PID>
 owner=WAITING contender=BLOCKED
 CONTENDER_ACQUIRED
 END
 ~~~
 
-Giải thích bằng chứng:
+Explaining the evidence:
 
-- Một **thread dump live** tại giây thứ 5 cho thấy contender BLOCKED, nhưng nếu lấy dump sau khi RELEASE thì contention đã hết.
-- Nếu một **core** được tạo đúng khi contender BLOCKED, SA có thể tìm lại trạng thái ấy dù JVM nguồn không còn chạy; nhưng **lab này không tự tạo core**, và chỉ nên tạo core theo chính sách OS/thử nghiệm đã được phê duyệt.
-- Không có một core thì **không thể** tự chạy lệnh mẫu `jhsdb ... --core ...`: `/var/crash/core.12345` chỉ là placeholder minh họa.
+- A **live thread dump** at second 5 shows `contender` as BLOCKED, whereas a dump taken after `RELEASE` shows the contention is gone.
+- If a **core** were captured right while `contender` was BLOCKED, SA could recover that state even after the source JVM stopped; however, **this lab does not create a core**, and cores should only be generated under approved OS/test policies.
+- Without a core, you **cannot** run the sample command `jhsdb ... --core ...`: `/var/crash/core.12345` is only an illustrative placeholder.
 
-## 11. Một ma trận chọn công cụ và tình huống
+## 11. Tool and Scenario Selection Matrix
 
-| Tình trạng | Công cụ ưu tiên | Tránh nhầm |
+| Situation | Priority tool | What to avoid confusing |
 | --- | --- | --- |
-| JVM sống và phản hồi, cần thread dump | `jcmd Thread.print -l`, `jstack -l` | Không vội SA attach `--pid` |
-| JVM sống, cần flags/properties | `jcmd VM.flags`, `VM.command_line`, `VM.system_properties` | `jhsdb jinfo` có thể dùng SA nhưng rủi ro quá lớn so nhu cầu |
-| JVM sống, cần heap summary/histogram | `jcmd GC.heap_info`, `GC.class_histogram` khi cần | Histogram/dump có chi phí và có thể phản ánh khác nhau theo trạng thái GC |
-| JVM đã chết và có core | `jhsdb jstack/jmap/jinfo --exe ... --core ...` | `jcmd` không attach được vào PID đã chết |
-| Có core, cần đi sâu HotSpot structures | `jhsdb clhsdb --exe ... --core ...` | CLHSDB không phải Bash; cần matched VM/build |
-| Có crash log nhưng không có core | `hs_err_pid` + logs/JFR/OS, tìm vì sao core không được lưu | Không thể dùng log text làm tham số `--core` |
-| Nghi native segfault | Native debugger + matched libs/symbols, kết hợp SA nếu core đầy đủ | Mixed Java/native stack không thay register/disassembly |
-| Live JVM treo, attach thường thất bại | Đánh giá OS signals/dump, cô lập bản sao hoặc SA `--pid` chỉ khi chấp nhận crash risk | Tài liệu Oracle cảnh báo SA có thể làm JVM treo/crash khi detach |
-| Có `heap.hprof` nhưng không có core | MAT/heap analyzer | `jhsdb --core` không đọc HPROF như OS core |
+| JVM alive and responsive, need thread dump | `jcmd Thread.print -l`, `jstack -l` | Do not rush to SA attach `--pid` |
+| JVM alive, need flags/properties | `jcmd VM.flags`, `VM.command_line`, `VM.system_properties` | `jhsdb jinfo` can use SA, which carries disproportionate risk here |
+| JVM alive, need heap summary/histogram | `jcmd GC.heap_info`, `GC.class_histogram` when needed | Histograms/dumps have overhead and vary by GC state |
+| JVM dead and core exists | `jhsdb jstack/jmap/jinfo --exe ... --core ...` | `jcmd` cannot attach to a dead PID |
+| Have core, need deep HotSpot structures | `jhsdb clhsdb --exe ... --core ...` | CLHSDB is not Bash; requires matching VM/build |
+| Have crash log but no core | `hs_err_pid` + logs/JFR/OS, investigate why core wasn't saved | Cannot pass a text log as `--core` |
+| Suspected native segfault | Native debugger + matched libs/symbols, plus SA if core is complete | Mixed Java/native stacks do not replace registers/disassembly |
+| Live JVM hung, normal attach fails | Evaluate OS signals/dump, isolate a replica, or SA `--pid` only if crash risk is accepted | Oracle docs warn SA can hang/crash the JVM on detach |
+| Have `heap.hprof` but no core | MAT / heap analyzer | `jhsdb --core` does not read HPROF as an OS core |
 
-### Lỗi thường gặp và cách chặn
+### Common mistakes and how to prevent them
 
-1. **Nhập `--exe service.jar`:** sai; cần **native executable** (thường `bin/java`) tương ứng với VM/core, hoặc launcher thực khi dùng JNI Invocation API.
-2. **Nhập mỗi `--core` mà không có `--exe`:** với chế độ core, hai tùy chọn phải đi thành cặp.
-3. **Dùng `jhsdb jmap --histo <PID>`:** sai kiểu option; phải là `--pid <PID>` cho SA live hoặc `--exe ... --core ...` cho core.
-4. **Dùng `jmap -dump...` truyền thống như cú pháp SA:** sai; `jhsdb jmap` có `--binaryheap --dumpfile`.
-5. **Core mở thất bại vì khác JVM/build:** chuẩn bị đúng executable, `libjvm`, shared libraries và OS/architecture tương thích trước khi suy luận core hỏng.
-6. **Thấy histogram lớn liền kết luận leak:** chưa có retained paths/lifecycle hoặc so sánh nhiều thời điểm.
-7. **Thấy thread BLOCKED liền kết luận deadlock:** BLOCKED là trạng thái snapshot; cần xem lock owner và có vòng chờ hay không.
-8. **Khi `jcmd` thất bại, chạy `jhsdb --pid` trên production ngay:** nguy hiểm; live SA attach có thể làm service ngừng tiến triển và crash khi detach.
-9. **Chỉ đọc Java stack khi crash là SIGSEGV trong JNI:** cần native stack/symbols và register state.
-10. **Copy core lên máy có JDK mới hơn rồi tin mọi kết quả:** HotSpot internals phụ thuộc version/build; khớp binary/runtime trước.
-11. **Đưa core hoặc `jinfo --sysprops` công khai vào ticket:** có thể lộ secrets; kiểm soát truy cập và redact.
-12. **Đọc “không có lỗi” từ snapshot:** core ghi đúng một thời điểm, có thể thiếu trang/đang giữa GC, không chứng minh không có vấn đề trước đó.
+1. **Passing `--exe service.jar`:** wrong; you need the **native executable** (typically `bin/java`) matching the VM/core, or the real launcher when using JNI Invocation API.
+2. **Passing only `--core` without `--exe`:** in core mode, the two options must be paired.
+3. **Running `jhsdb jmap --histo <PID>`:** wrong option syntax; it must be `--pid <PID>` for live SA or `--exe ... --core ...` for a core.
+4. **Using traditional `jmap -dump...` syntax with SA:** wrong; `jhsdb jmap` uses `--binaryheap --dumpfile`.
+5. **Core fails to open due to different JVM/build:** assemble the exact matching executable, `libjvm`, shared libraries, and OS/architecture before assuming the core is broken.
+6. **Seeing a big histogram and immediately declaring a leak:** you lack retained paths, lifecycles, or multi-point comparisons.
+7. **Seeing a BLOCKED thread and immediately declaring a deadlock:** BLOCKED is a snapshot state; check the lock owner and whether a wait cycle exists.
+8. **When `jcmd` fails, immediately running `jhsdb --pid` on production:** dangerous; live SA attach can freeze the service and crash it on detach.
+9. **Reading only Java stacks when the crash is a `SIGSEGV` in JNI:** you need native stacks/symbols and register state.
+10. **Copying the core to a machine with a newer JDK and trusting every result:** HotSpot internals depend on version/build; match the binary/runtime first.
+11. **Pasting cores or `jinfo --sysprops` into public tickets:** can expose secrets; enforce access control and redaction.
+12. **Reading “no errors” from a snapshot:** a core captures one instant, may miss pages or sit mid-GC, and does not prove nothing went wrong earlier.
 
-## 12. Checklist hậu kiểm có thể bàn giao
+## 12. Handover-Ready Postmortem Checklist
 
-- [ ] Đã xác nhận ứng dụng **đang sống** hay **đã chết**, có đúng core hay chỉ `hs_err`/HPROF/JFR.
-- [ ] Đã ghi PID, timestamp, Java/OS/CPU architecture, container namespace, JDK vendor/build và crash signal.
-- [ ] Nếu JVM sống, đã ưu tiên `jcmd`/công cụ live và cân nhắc tác động trước khi dùng SA.
-- [ ] Nếu dùng core, đã chuẩn bị **đúng `--exe` + `--core`**, không dùng file `.jar`/`.hprof` làm core.
-- [ ] Đã đối chiếu executable và shared libraries với build/runtime sinh ra core; có debug symbols khi cần native stack.
-- [ ] Đã dùng `jhsdb jstack` cho threads/locks, `jmap` cho heap/classes, `jinfo` cho flags/properties, `clhsdb` khi cần truy sâu.
-- [ ] Có diễn giải được Java frames, blocked/waiting và quan hệ lock ownership **mà không kết luận deadlock vội**.
-- [ ] Đã tách snapshot evidence khỏi giả thuyết về timeline/leak/causal crash.
-- [ ] Đã kiểm tra dữ liệu nhạy cảm trong core/HPROF/system properties và giới hạn người được truy cập.
-- [ ] Đã ghi lệnh, phiên bản công cụ, output đáng tin, phần thất bại do thiếu trang/symbol và việc cần làm tiếp.
-- [ ] Báo cáo có ba phần: **quan sát được gì, chưa biết gì, phép thử hay chứng cứ nào xác nhận giả thuyết**.
+- [ ] Confirmed whether the application is **alive** or **dead**, and whether an actual core exists or only `hs_err`/HPROF/JFR.
+- [ ] Recorded PID, timestamp, Java/OS/CPU architecture, container namespace, JDK vendor/build, and crash signal.
+- [ ] If the JVM is alive, prioritized `jcmd`/live tools and weighed impact before using SA.
+- [ ] If using a core, prepared the **exact `--exe` + `--core`**, without passing `.jar`/`.hprof` files as cores.
+- [ ] Matched the executable and shared libraries to the build/runtime that produced the core; included debug symbols when native stacks are needed.
+- [ ] Used `jhsdb jstack` for threads/locks, `jmap` for heap/classes, `jinfo` for flags/properties, and `clhsdb` when deeper inspection is needed.
+- [ ] Interpreted Java frames, blocked/waiting states, and lock ownership **without jumping to a deadlock conclusion**.
+- [ ] Separated snapshot evidence from hypotheses about timelines, leaks, or crash causation.
+- [ ] Audited core/HPROF/system properties for sensitive data and restricted access.
+- [ ] Documented exact commands, tool versions, reliable outputs, failures due to missing pages/symbols, and next steps.
+- [ ] Report contains three parts: **what was observed, what remains unknown, and which test or evidence would confirm the hypothesis**.
 
-### Nguồn tham khảo chính thức
+### Official references
 
-- Oracle JDK 21 — The `jhsdb` Command (cú pháp, subcommands, cảnh báo live attach): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jhsdb.html
-- Oracle JDK 21 — Diagnostic Tools (ưu tiên `jcmd` khi JVM đang sống và postmortem workflow): https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
+- Oracle JDK 21 — The `jhsdb` Command (syntax, subcommands, live attach warning): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jhsdb.html
+- Oracle JDK 21 — Diagnostic Tools (preferring `jcmd` on live JVMs and postmortem workflows): https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
 - OpenJDK — Command Line HSDB / CLHSDB commands: https://github.com/openjdk/jdk/blob/master/src/jdk.hotspot.agent/doc/clhsdb.html
-- OpenJDK — Debugging Transported Core Dumps, lưu ý thư viện và symbols: https://github.com/openjdk/jdk/blob/master/src/jdk.hotspot.agent/doc/transported_core.html
+- OpenJDK — Debugging Transported Core Dumps (notes on libraries and symbols): https://github.com/openjdk/jdk/blob/master/src/jdk.hotspot.agent/doc/transported_core.html
 
-**Kết luận:** `jhsdb jstack` đọc **thread/lock state**, `jmap` đọc **heap/class-related state**, `jinfo` đọc **VM flags/system properties**, còn `clhsdb` cho phép **đào sâu tương tác** vào cấu trúc HotSpot. Với **core offline**, dùng `--exe + --core` và binary/runtime phù hợp; với **JVM sống**, ưu tiên công cụ attach thông thường vì SA `--pid` có nguy cơ làm ngừng/crash tiến trình.
+**Conclusion:** `jhsdb jstack` reads **thread/lock state**, `jmap` reads **heap/class-related state**, `jinfo` reads **VM flags/system properties**, and `clhsdb` lets you **dig interactively** into HotSpot structures. For **offline cores**, use `--exe + --core` with matching binaries and runtime; for **live JVMs**, prefer standard attach tools because SA `--pid` risks hanging or crashing the process.

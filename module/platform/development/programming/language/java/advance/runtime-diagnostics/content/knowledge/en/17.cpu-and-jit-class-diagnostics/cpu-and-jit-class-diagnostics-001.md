@@ -1,62 +1,62 @@
-# 17.1. Phân biệt CPU cao của tiến trình, một thread, GC hoặc compiler
+# 17.1. Distinguishing High CPU of a Process, Single Thread, GC, or Compiler
 
-## Mục tiêu
+## Objectives
 
-Khi một ứng dụng Java dùng nhiều CPU, cần trả lời **CPU tăng ở cấp nào**, **luồng nào thật sự tiêu thụ**, và **công việc thuộc application code, garbage collector (GC) hay JIT compiler**. Một giá trị CPU process cao không đủ để kết luận có vòng lặp vô hạn; một thread `RUNNABLE` cũng không đủ chứng minh nó tiêu thụ CPU. Phân tích đúng cần nối **số đo OS theo khoảng thời gian** với **thread dump/JFR/GC log/biên dịch JIT**, đồng thời xét giới hạn CPU của host hoặc container.
+When a Java application uses high CPU, you need to answer **at what level CPU is increasing**, **which threads are actually consuming it**, and **whether the work belongs to application code, the garbage collector (GC), or the JIT compiler**. A high process CPU value alone is not enough to conclude there is an infinite loop; a `RUNNABLE` thread alone is also not enough to prove it is consuming CPU. Accurate analysis requires connecting **OS measurements over a time interval** with **thread dumps/JFR/GC logs/JIT compilation**, while also considering host or container CPU limits.
 
-Bài dùng ví dụ **HotSpot JDK 17+ trên Linux**; các công cụ OS khác (Windows/macOS), collector khác hoặc JDK mới hơn có thể đổi tên luồng, bộ đếm và cách hiển thị. Các con số ví dụ trong bài được gắn nhãn minh họa, không phải kết quả cố định của máy thật.
+This lesson uses **HotSpot JDK 17+ on Linux** for its examples; other OS tools (Windows/macOS), other collectors, or newer JDKs may change thread names, counters, and display formats. Example numbers in this lesson are labeled as illustrative, not fixed measurements from a real machine.
 
-Sau bài này, bạn sẽ biết:
+After this lesson, you will know how to:
 
-1. Phân biệt **CPU process**, **CPU từng native thread**, **CPU do GC workers**, và **CPU do C1/C2/JIT compiler threads**.
-2. Tính CPU usage từ **chênh lệch CPU time và wall time**, hiểu vì sao một process có thể hiển thị hơn 100%.
-3. Dùng `top -H`/`pidstat -t`/`ps -L` rồi ghép **OS TID** với `nid=0x...` trong HotSpot thread dump.
-4. Phân biệt GC **pause/elapsed time** với **CPU time của GC workers**, và JIT **compilation events** với **CPU thực sự dùng**.
-5. Thu thập JFR/GC log, đối chiếu thời điểm và quyết định hướng sửa phù hợp mà không tuning mò.
+1. Distinguish **process CPU**, **per-native-thread CPU**, **CPU from GC workers**, and **CPU from C1/C2/JIT compiler threads**.
+2. Calculate CPU usage from **the delta of CPU time and wall time**, and understand why a process can show more than 100%.
+3. Use `top -H`/`pidstat -t`/`ps -L` and then map **OS TID** to `nid=0x...` in a HotSpot thread dump.
+4. Distinguish GC **pause/elapsed time** from **GC worker CPU time**, and JIT **compilation events** from **actual CPU used**.
+5. Collect JFR/GC logs, correlate timestamps, and choose an appropriate fix without blind tuning.
 
-## 1. CPU time khác wall-clock time như thế nào?
+## 1. How Does CPU Time Differ from Wall-Clock Time?
 
-**Wall time** là thời gian đồng hồ đã trôi qua. **CPU time** là lượng thời gian CPU thực sự chạy các lệnh của một process/thread (thường gồm user time và system/kernel time), được tích lũy qua những lần được scheduler cấp CPU. Thread ngủ, chờ I/O hoặc chờ lock có thể làm thời gian request kéo dài nhưng ít tiêu thụ CPU.
+**Wall time** is elapsed clock time. **CPU time** is the amount of time a CPU actually spends executing instructions of a process/thread (typically including user time and system/kernel time), accumulated across the slices when the scheduler grants it CPU. A thread that is sleeping, waiting for I/O, or waiting on a lock can lengthen request duration while consuming little CPU.
 
-Với hai mẫu của **cùng process** cách nhau `Δwall` giây:
-
-```text
-CPU% theo một logical CPU = 100 × Δprocess_cpu_time / Δwall_time
-
-CPU% chuẩn hóa trên N logical CPUs = 100 × Δprocess_cpu_time / (N × Δwall_time)
-```
-
-Đơn vị CPU time và wall time phải thống nhất. Tương tự, với một thread:
+With two samples of the **same process** separated by `Δwall` seconds:
 
 ```text
-thread_CPU% theo một logical CPU = 100 × Δthread_cpu_time / Δwall_time
+CPU% per logical CPU = 100 × Δprocess_cpu_time / Δwall_time
+
+Normalized CPU% across N logical CPUs = 100 × Δprocess_cpu_time / (N × Δwall_time)
 ```
 
-Ví dụ **giả định** trong cửa sổ 10 giây:
+The units of CPU time and wall time must be consistent. Similarly, for a thread:
 
-- Process dùng 24 giây CPU time: **240% theo một core**; đó là tải trung bình tương đương 2,4 logical CPU.
-- Máy có 8 logical CPU: con số tương ứng **30% tổng năng lực 8 core** nếu tính mẫu đúng cửa sổ và không có quota.
-- Một thread dùng 8 giây CPU trong cùng cửa sổ: **80% một core**. Các thread khác cộng lại có thể dùng 16 giây CPU.
-- Process ở mức 240% **không có nghĩa một thread sử dụng 240% một core**; các luồng cùng chạy trên nhiều CPU.
+```text
+thread_CPU% per logical CPU = 100 × Δthread_cpu_time / Δwall_time
+```
 
-**Cảnh báo về công cụ:** `top` có chế độ chuẩn hóa theo từng core hoặc theo tổng CPU (Irix/Solaris mode), `ps %CPU` thường là tỷ lệ CPU time trên thời gian sống của process/thread thay vì một cửa sổ 1 giây, Task Manager và Kubernetes có mẫu số khác. Không so trực tiếp hai phần trăm từ những công cụ/mẫu số không tương thích.
+**Hypothetical** example over a 10-second window:
 
-**Tải cao ≠ CPU throttling:** container có quota 2 core trên host 32 core có thể bị giới hạn khi process cần 4 core. Nếu chỉ nhìn “12,5% host”, bạn sẽ bỏ sót việc container đã dùng hết quota. Kiểm tra `cpu.max`/`cpu.stat` (cgroup v2), request/limit Kubernetes và thời gian bị throttled.
+- The process uses 24 seconds of CPU time: **240% of one core**; that is an average load equivalent to 2.4 logical CPUs.
+- On a machine with 8 logical CPUs: the corresponding figure is **30% of total 8-core capacity** if sampled over the exact window and without a quota.
+- One thread uses 8 seconds of CPU in the same window: **80% of one core**. Other threads combined may use 16 seconds of CPU.
+- A process at 240% **does not mean one thread is using 240% of one core**; multiple threads run concurrently across multiple CPUs.
 
-## 2. Bốn tầng dễ bị đánh đồng
+**Tool caveat:** `top` has modes normalized per core or by total CPU (Irix/Solaris mode), `ps %CPU` is often the ratio of CPU time over the process/thread lifetime rather than a 1-second window, and Task Manager and Kubernetes use different denominators. Do not directly compare two percentages from incompatible tools or denominators.
 
-| Tầng quan sát | Đang đo cái gì? | Cách đọc đáng tin | Điều số liệu không tự chứng minh |
+**High load ≠ CPU throttling:** a container with a 2-core quota on a 32-core host can be throttled when the process needs 4 cores. If you only look at "12.5% of host", you will miss that the container has exhausted its quota. Check `cpu.max`/`cpu.stat` (cgroup v2), Kubernetes requests/limits, and throttled time.
+
+## 2. Four Layers Easily Conflated
+
+| Observation Layer | What Is Being Measured? | Reliable Ways to Read | What the Metric Does Not Prove on Its Own |
 | --- | --- | --- | --- |
-| **Process CPU** | Tổng CPU time của toàn tiến trình JVM: app threads + VM/GC/JIT/native hoạt động trong process | `top -p PID`, `pidstat -p PID`, JMX process CPU, JFR `jdk.CPULoad` | Không phân biệt thủ phạm là application, GC hay compiler. |
-| **Thread CPU** | CPU time của một OS thread cụ thể | `top -H -p PID`, `pidstat -t -p PID`, hoặc ThreadMXBean cho **Java platform threads** | Tên thread hoặc trạng thái `RUNNABLE` không đủ kết luận CPU của nó trong cả cửa sổ. |
-| **GC CPU** | CPU time do những GC/VM workers thực hiện công việc GC | GC logs có user/sys/real khi có, JFR GC, OS thread CPU, collector phase data | Tổng GC pause hoặc tổng wall time của GC không tự bằng CPU time tiêu thụ. |
-| **Compiler CPU** | CPU dùng để JIT compile/optimize Java methods, thường bởi C1/C2 compiler workers | OS per-thread CPU + tên/stack, JFR compilation, `jcmd Compiler.queue`, compilation logs | Một method được compile nhiều không tự nói được tổng CPU của compiler. |
+| **Process CPU** | Total CPU time of the entire JVM process: app threads + VM/GC/JIT/native activity in the process | `top -p PID`, `pidstat -p PID`, JMX process CPU, JFR `jdk.CPULoad` | Does not distinguish whether the culprit is application, GC, or compiler. |
+| **Thread CPU** | CPU time of a specific OS thread | `top -H -p PID`, `pidstat -t -p PID`, or ThreadMXBean for **Java platform threads** | Thread name or `RUNNABLE` state is not enough to conclude its CPU usage over the entire window. |
+| **GC CPU** | CPU time spent by GC/VM workers performing GC work | GC logs with user/sys/real when available, JFR GC, OS thread CPU, collector phase data | Total GC pause or total GC wall time does not automatically equal CPU time consumed. |
+| **Compiler CPU** | CPU used to JIT-compile/optimize Java methods, typically by C1/C2 compiler workers | OS per-thread CPU + name/stack, JFR compilation, `jcmd Compiler.queue`, compilation logs | A method being compiled many times does not by itself tell you total compiler CPU. |
 
-Các tầng không hoàn toàn tách rời: **GC và compiler đều nằm trong CPU process**; thread CPU là cách quy CPU process về từng thread nếu công cụ nhìn thấy đầy đủ. **Một thread application** cũng có thể dành thời gian chạy JDK library, native/JNI hoặc phần việc GC hỗ trợ, tùy collector và thời điểm. Không mặc định chỉ từ tên thread đã xác định chính xác mọi chu kỳ CPU.
+The layers are not completely separate: **GC and the compiler are both included in process CPU**; thread CPU is how process CPU is attributed to individual threads if the tool has full visibility. **An application thread** can also spend time running JDK library code, native/JNI code, or assisting GC work, depending on the collector and timing. Do not assume you can identify every CPU cycle accurately from thread names alone.
 
-## 3. Bước 1 — Xác định đúng JVM/PID và cửa sổ CPU
+## 3. Step 1 — Identify the Right JVM/PID and CPU Window
 
-Ví dụ dùng PID **`12345`** trên Linux:
+Example using PID **`12345`** on Linux:
 
 ```bash
 jcmd -l
@@ -64,18 +64,18 @@ top -p 12345
 pidstat -p 12345 1 5
 ```
 
-- `jcmd -l` liệt kê những JVM mà công cụ attach có thể phát hiện; trong Docker/namespace khác, JVM có thể không hiện. Dùng công cụ OS để lấy đúng PID nếu cần.
-- `top -p` dùng cho quan sát nhanh; `pidstat -p 12345 1 5` (gói `sysstat`) cho 5 mẫu cách khoảng 1 giây, thuận tiện xem CPU tăng có bền vững hay chỉ spike.
-- CPU **của JVM** cao nhưng **CPU toàn host** thấp có thể là một JVM dùng vài core trên máy lớn. Ngược lại host CPU cao nhưng JVM thấp thì cần xem các process khác.
-- Ghi **timestamp, PID, version Java, collector, workload và container quota**; không cộng dữ liệu trước/sau lần restart thành một cửa sổ.
+- `jcmd -l` lists JVMs that the attach tool can discover; inside Docker or another namespace, the JVM may not appear. Use OS tools to get the exact PID if needed.
+- `top -p` is useful for quick observation; `pidstat -p 12345 1 5` (`sysstat` package) provides 5 samples at 1-second intervals, convenient for seeing whether the CPU increase is sustained or just a spike.
+- High **JVM CPU** with low **host-wide CPU** may simply be one JVM using a few cores on a large machine. Conversely, if host CPU is high while JVM CPU is low, inspect other processes.
+- Record **timestamp, PID, Java version, collector, workload, and container quota**; do not combine data before and after a restart into a single window.
 
-Nếu `pidstat` không được cài, có thể lấy nhiều mẫu `top`/OS metrics tương ứng. Trên Windows, dùng Task Manager/Process Explorer/PerfMon; không dùng lệnh `/proc` của Linux.
+If `pidstat` is not installed, you can take multiple `top`/equivalent OS metric samples. On Windows, use Task Manager/Process Explorer/PerfMon; do not use Linux `/proc` commands.
 
-**Phân tích CPU phải có thời gian:** một snapshot `ps -p 12345 -o %cpu` chỉ là một dấu hiệu; không đủ để nói thread nào đã đốt CPU đúng lúc latency tăng.
+**CPU analysis must have a time dimension:** a single `ps -p 12345 -o %cpu` snapshot is only a clue; it is not enough to say which thread burned CPU right when latency rose.
 
-## 4. Bước 2 — Tìm native thread nào thật sự dùng CPU
+## 4. Step 2 — Find Which Native Thread Actually Uses CPU
 
-### 4.1. Đo theo OS thread ID (TID)
+### 4.1. Measure by OS Thread ID (TID)
 
 ```bash
 top -H -p 12345
@@ -83,16 +83,16 @@ pidstat -t -p 12345 1 5
 ps -L -p 12345 -o pid,tid,pcpu,stat,comm
 ```
 
-- `top -H` hiển thị các luồng của process, thường có cột `PID` nhưng trong thread mode giá trị đó thực chất là **TID** của mỗi thread.
-- `pidstat -t` cung cấp lịch sử CPU theo TID trong các khoảng đo, tránh chọn nhầm thread chỉ vì nó vừa chạy trong một snapshot.
-- `ps -L` hữu ích để xác minh PID/TID, trạng thái và tên, nhưng `pcpu` có cách tính theo lifetime nên không dùng nó như một mẫu CPU 1 giây nếu chưa xác minh semantics.
-- Một thread chạy gần **100% một core** trong nhiều mẫu có thể là hot loop hoặc task CPU-bound; nhiều thread mỗi thread 20–40% có thể tạo process CPU tổng rất cao.
+- `top -H` displays the threads of a process, often showing a `PID` column, though in thread mode that value is actually each thread's **TID**.
+- `pidstat -t` provides CPU history per TID across measurement intervals, avoiding misidentifying a thread just because it happened to be running during a single snapshot.
+- `ps -L` is useful for verifying PID/TID, state, and name, but `pcpu` uses a lifetime-based calculation, so do not use it as a 1-second CPU sample without verifying its semantics.
+- One thread running near **100% of one core** across multiple samples may be a hot loop or CPU-bound task; many threads at 20–40% each can produce very high total process CPU.
 
-Chọn **2–3 TID đứng đầu liên tiếp**, ghi lại phần trăm và thời điểm. Lưu ý TID có thể được tái sử dụng khi thread kết thúc; ghép dữ liệu của những khoảng xa nhau mà không kiểm tra lifetime là nguy hiểm.
+Pick the **top 2–3 consecutive TIDs**, and record their percentages and timestamps. Note that TIDs can be reused after a thread exits; matching data across distant intervals without checking thread lifetime is risky.
 
-### 4.2. Ghép OS TID decimal với `nid` hexadecimal
+### 4.2. Match Decimal OS TID to Hexadecimal `nid`
 
-HotSpot `Thread.print` có thể in Java thread như:
+HotSpot `Thread.print` may print a Java thread like:
 
 ```text
 "busy-worker" #35 prio=5 os_prio=0 cpu=5412.00ms elapsed=6.31s tid=0x00007f... nid=0x3039 runnable
@@ -100,66 +100,66 @@ HotSpot `Thread.print` có thể in Java thread như:
         at demo.Worker.compute(Worker.java:42)
 ```
 
-Đây là **mẫu minh họa**, tên/field/trình bày khác theo JDK và OS. `nid=0x3039` là **native thread ID ở hệ cơ số 16** tương ứng **12345** ở hệ thập phân. Ví dụ này chỉ giải thích chuyển đổi; PID JVM trong dòng lệnh `12345` ở phần trên có thể trùng số TID mẫu vì chọn số dễ nhớ, không phải quy tắc.
+This is an **illustrative example**; names, fields, and formatting vary by JDK and OS. `nid=0x3039` is the **native thread ID in base 16 (hexadecimal)** corresponding to **12345** in decimal. This example only illustrates the conversion; the JVM PID `12345` in the commands above happens to share the same digits as the sample TID because an easy-to-remember number was chosen, not as a rule.
 
-Đổi TID thập phân sang hex trên Bash:
+Convert a decimal TID to hex in Bash:
 
 ```bash
 printf '0x%x\n' 12345
 ```
 
-Kết quả lệnh `printf` cho đúng số mẫu:
+Output of the `printf` command for the exact sample number:
 
 ```text
 0x3039
 ```
 
-Hoặc trên PowerShell:
+Or in PowerShell:
 
 ```powershell
 '{0:x}' -f 12345
 ```
 
-Lấy thread dump:
+Take a thread dump:
 
 ```bash
 jcmd 12345 Thread.print -l
 ```
 
-**Phân biệt ba ID:**
+**Distinguish three IDs:**
 
-- **PID** là process ID JVM (theo namespace OS đang quan sát).
-- **Linux TID/LWP** là ID của native thread trong process, dùng để ghép với HotSpot **`nid`**.
-- **Java Thread.getId()/ThreadMXBean thread ID** là định danh của Java thread, **không phải TID của Linux**. Không dùng trực tiếp nó để tìm `nid` mà không có ánh xạ hợp lệ.
+- **PID** is the JVM process ID (in the observed OS namespace).
+- **Linux TID/LWP** is the native thread ID inside the process, used to match against HotSpot **`nid`**.
+- **Java Thread.getId()/ThreadMXBean thread ID** is the Java thread identifier, **not the Linux TID**. Do not use it directly to search for `nid` without a valid mapping.
 
-Nếu không thấy TID trong Java thread dump, có thể đó là VM/GC/JIT/native thread không được in như Java application thread, hoặc thread đã kết thúc, hoặc dump/OS lấy ở thời điểm hay PID namespace khác. OS threads là tín hiệu quan trọng ngay cả khi Java thread dump không hiện đủ worker nội bộ.
+If a TID does not appear in the Java thread dump, it may be a VM/GC/JIT/native thread that is not printed as a Java application thread, or the thread has already exited, or the dump and OS stats were taken at different times or in different PID namespaces. OS threads are an important signal even when the Java thread dump does not list all internal workers.
 
-### 4.3. Đừng lấy `RUNNABLE` làm phép đo CPU
+### 4.3. Do Not Use `RUNNABLE` as a CPU Measurement
 
-`RUNNABLE` trong Java thread dump có thể gồm thread đang chạy, sẵn sàng chạy hoặc thao tác native/I/O tùy nơi chặn. Thread `WAITING`/`TIMED_WAITING` thường không tiêu thụ nhiều CPU trong giai đoạn ngủ, nhưng trạng thái ở một thời điểm không nói lượng CPU của vài giây trước.
+`RUNNABLE` in a Java thread dump can include threads currently executing, ready to run, or performing native/I/O operations depending on where they block. A `WAITING`/`TIMED_WAITING` thread usually does not consume much CPU while sleeping, but its state at one instant does not tell you its CPU usage over the preceding few seconds.
 
-Cách liên hệ tốt hơn:
+A better way to correlate:
 
-1. OS đo **CPU time tăng** của TID trong đúng cửa sổ.
-2. Hai hoặc ba thread dump gần cửa sổ ấy cho biết stack ứng dụng/JVM nào liên quan.
-3. JFR/async-profiler hoặc sampled method profiles cho biết hàm nào thường xuất hiện khi chạy CPU.
-4. Ghép cả ba với workload/latency để tránh quy nhầm một thread nhất thời.
+1. OS measurements showing **increasing CPU time** for a TID in the exact window.
+2. Two or three thread dumps near that window showing which application/JVM stacks are involved.
+3. JFR/async-profiler or sampled method profiles showing which functions appear most frequently when running on CPU.
+4. Combine all three with workload/latency to avoid blaming a transient thread.
 
-Một stack xuất hiện `java.util.HashMap` không khẳng định `HashMap` có bug: nó chỉ là địa điểm đang chạy. Cần xem caller và tần suất/mẫu CPU.
+A stack showing `java.util.HashMap` does not prove `HashMap` has a bug: it is only where execution happened to be. You need to examine the callers and sample frequency/CPU.
 
-## 5. Bước 3 — Phân biệt GC CPU với GC pause
+## 5. Step 3 — Distinguish GC CPU from GC Pause
 
-GC có thể dùng CPU trong **stop-the-world (STW)** và/hoặc **pha concurrent**. STW pause là **thời gian ứng dụng bị dừng theo ranh giới đo của GC**, còn CPU time của GC là **tổng thời gian CPU mà các worker dùng**.
+GC can consume CPU during **stop-the-world (STW)** pauses and/or **concurrent phases**. An STW pause is **the time the application is paused according to GC measurement boundaries**, whereas GC CPU time is **the total CPU time consumed by the GC workers**.
 
-Ví dụ giả định:
+Hypothetical example:
 
-- Một pha STW dài 100 ms có **4 GC worker** cùng thực thi trung bình 80 ms CPU mỗi worker: tổng GC CPU time xấp xỉ **320 ms**, dù wall pause chỉ **100 ms**.
-- Một pha concurrent GC có thể dùng CPU khi ứng dụng vẫn chạy, tăng process CPU trong khi pause STW rất ngắn.
-- Không được suy **GC CPU% = tổng GC pause / thời gian cửa sổ**, cũng không cộng tất cả wall-time pha concurrent vào STW.
+- A 100 ms STW phase with **4 GC workers** executing an average of 80 ms of CPU each: total GC CPU time is approximately **320 ms**, even though wall pause is only **100 ms**.
+- A concurrent GC phase can consume CPU while the application continues running, increasing process CPU while STW pauses remain very short.
+- Do not infer **GC CPU% = total GC pause / window duration**, and do not add all concurrent phase wall-time into STW.
 
-### 5.1. Bật GC logging
+### 5.1. Enable GC Logging
 
-Với JVM mới khởi động, ví dụ HotSpot JDK 17:
+For a freshly started JVM, for example HotSpot JDK 17:
 
 ```bash
 java -Xms256m -Xmx512m \
@@ -167,45 +167,45 @@ java -Xms256m -Xmx512m \
   -jar app.jar
 ```
 
-Trong log, tìm **số lần/loại GC**, STW pause, các pha concurrent, heap before/after, và dòng **CPU times user/sys/real** nếu collector/JDK có phát ra.
+In the log, look for **GC frequency/types**, STW pauses, concurrent phases, heap before/after, and **CPU times user/sys/real** lines if emitted by the collector/JDK.
 
-- **`user`**: tổng CPU user time của các luồng liên quan trong phép hạch toán log.
-- **`sys`**: CPU kernel/system time.
-- **`real`**: thời gian wall-clock của pha/sự kiện đó.
-- **`user + sys` lớn hơn `real`** có thể hoàn toàn bình thường khi GC song song sử dụng nhiều worker. Không hiểu đây là lỗi log.
-- Với collector concurrent, các dòng thời gian riêng cũng không nhất thiết thể hiện *toàn bộ* CPU GC của process. Cần hiểu phạm vi từng pha, các worker và nguồn đo.
+- **`user`**: total user CPU time of the relevant threads under the log's accounting.
+- **`sys`**: kernel/system CPU time.
+- **`real`**: wall-clock duration of that phase/event.
+- **`user + sys` greater than `real`** can be completely normal when parallel GC uses multiple workers. Do not mistake this for a log bug.
+- With concurrent collectors, individual timing lines also do not necessarily represent *all* GC CPU of the process. You need to understand each phase's scope, workers, and measurement source.
 
-Không phải GC log nào cũng có đủ thông tin CPU, đặc biệt với các tag/level khác. Nếu chưa thấy `user/sys/real`, xem log configuration/JDK thay vì tự suy từ pause time.
+Not every GC log includes complete CPU information, especially with different tags/levels. If `user/sys/real` is missing, check the log configuration/JDK instead of guessing from pause times.
 
-### 5.2. Dùng JFR để đối chiếu GC
+### 5.2. Use JFR to Cross-Check GC
 
-Nếu recording đã thu thập đúng khoảng thời gian:
+If a recording was captured over the right interval:
 
 ```bash
 jfr summary diag.jfr
 jfr print --events "jdk.GarbageCollection,jdk.GCPhasePause" diag.jfr
 ```
 
-`jdk.GarbageCollection` mô tả GC event; `jdk.GCPhasePause` nêu duration của pause được ghi. Duration không đồng nghĩa tổng CPU GC. Để nhận diện hoạt động GC nền, kết hợp timeline/collector-specific events/OS TID CPU. Đừng mặc định mọi tên event đều bật trong recording; `summary` cho biết instance nào có thực.
+`jdk.GarbageCollection` describes the GC event; `jdk.GCPhasePause` reports the duration of recorded pauses. Duration does not equal total GC CPU. To identify background GC activity, combine timeline, collector-specific events, and OS TID CPU. Do not assume every event name is enabled in the recording; `summary` shows which event types actually exist.
 
-Khi **process CPU cao** và **GC log ghi các GC phases dày đặc**, thread OS có tên GC workers chiếm CPU, heap sau GC ít giảm hoặc allocation rate rất cao, đây là bằng chứng nghiêng về **GC overhead**. Ngược lại một pause dài nhưng CPU trung bình của process thấp không có nghĩa mọi thời gian pause là thời gian “đốt CPU”; vẫn phải xem safepoint, collector, scheduler và workload.
+When **process CPU is high** and **GC logs show dense GC phases**, OS threads named as GC workers consume CPU, post-GC heap drops very little, or the allocation rate is very high, the evidence points toward **GC overhead**. Conversely, a long pause with low average process CPU does not mean all pause time was spent "burning CPU"; you still must inspect safepoints, collector behavior, scheduler, and workload.
 
-### 5.3. Khi nào nên chỉnh GC?
+### 5.3. When Should You Tune GC?
 
-Chỉ sau khi có bằng chứng. Kiểm tra live set, allocation rate, premature promotion, bộ nhớ heap, memory pressure, GC collector flags và giới hạn CPU. Việc giảm allocation trong ứng dụng thường hữu ích hơn chỉnh collector mù quáng. Một số collector dùng thêm thread nền khi có CPU nhàn; cần cân bằng **throughput, tail latency và CPU headroom**.
+Only after you have evidence. Check live set, allocation rate, premature promotion, heap size, memory pressure, GC collector flags, and CPU limits. Reducing allocations in the application is often more effective than blindly tweaking collector flags. Some collectors use additional background threads when idle CPU is available; you need to balance **throughput, tail latency, and CPU headroom**.
 
-## 6. Bước 4 — Phân biệt CPU của JIT/compiler
+## 6. Step 4 — Distinguish JIT/Compiler CPU
 
-**Just-In-Time compiler (JIT)** chuyển/optimize các Java methods nóng thành mã máy. HotSpot có các compiler tiers; các luồng thường mang tên liên quan **`C1 CompilerThread`**, **`C2 CompilerThread`**, hoặc JVMCI tùy cấu hình/JDK. CPU compilation là **công việc nền của JVM**, vẫn được tính trong CPU process. Một số nguyên nhân:
+The **Just-In-Time compiler (JIT)** translates and optimizes hot Java methods into machine code. HotSpot has compiler tiers; threads typically have names related to **`C1 CompilerThread`**, **`C2 CompilerThread`**, or JVMCI depending on configuration/JDK. Compilation CPU is **JVM background work**, and is still counted in process CPU. Some causes include:
 
-- Ứng dụng vừa khởi động/warm-up hoặc deploy code mới; nhiều hot methods được biên dịch.
-- Nhiều class/method được tải và thực thi lần đầu, tiered compilation hoạt động.
-- Biên dịch lại, deoptimization hoặc code cache pressure khiến compiler tiếp tục làm việc.
-- Một workload làm phát sinh nhiều method specialization/hot spots; có thể kéo dài compilation hơn dự kiến.
+- The application has just started/warmed up or deployed new code; many hot methods are being compiled.
+- Many classes/methods are loaded and executed for the first time, with tiered compilation active.
+- Recompilation, deoptimization, or code cache pressure keeps the compiler working.
+- A workload generates heavy method specialization/hot spots, extending compilation longer than expected.
 
-**Không đồng nhất “JIT compile nhiều” với “JIT CPU là thủ phạm”**: cần thấy TID compiler thực sự tiêu thụ CPU cùng cửa sổ với compiler activity. Và **CPU dùng để chạy mã đã JIT-compile** vẫn thuộc thread ứng dụng, không phải CPU của compiler thread.
+**Do not equate "lots of JIT compilations" with "JIT CPU is the culprit"**: you must see compiler TIDs actually consuming CPU in the same window as compiler activity. Also, **CPU spent executing JIT-compiled code** belongs to application threads, not compiler threads.
 
-### 6.1. Lệnh chẩn đoán JIT
+### 6.1. JIT Diagnostic Commands
 
 ```bash
 jcmd 12345 Compiler.queue
@@ -213,40 +213,40 @@ jcmd 12345 Compiler.codecache
 jcmd 12345 VM.flags
 ```
 
-- `Compiler.queue` cho biết những method đang xếp hàng compile **tại thời điểm lấy mẫu**; queue trống ở một thời điểm không phủ nhận compilation trước đó.
-- `Compiler.codecache` mô tả vùng mã máy đã biên dịch. Code cache nhiều không tự chứng minh compiler đang sử dụng CPU nhiều.
-- `VM.flags` giúp xác định các tùy chọn/tình huống như tiered compilation, code cache, compiler thread settings; xem thêm `jcmd 12345 help Compiler.queue` để kiểm tra command được JVM đích hỗ trợ.
+- `Compiler.queue` shows methods queued for compilation **at the moment of sampling**; an empty queue at one instant does not rule out earlier compilation.
+- `Compiler.codecache` describes the compiled machine code area. High code cache usage alone does not prove the compiler is currently consuming heavy CPU.
+- `VM.flags` helps identify flags/conditions such as tiered compilation, code cache, and compiler thread settings; also check `jcmd 12345 help Compiler.queue` to verify commands supported by the target JVM.
 
-Có thể bật log compilation **khi khởi động** trong môi trường thử nghiệm:
+You can enable compilation logging **at startup** in a test environment:
 
 ```bash
 java -XX:+PrintCompilation -jar app.jar
 ```
 
-Log này cho biết thời điểm và những method được compile theo cách JVM ghi nhận. **Đây không phải dữ liệu CPU% của compiler workers.** Việc bật log có overhead, output có thể lớn và không nên suy trực tiếp lượng CPU từ số dòng log.
+This log shows when and which methods were compiled as recorded by the JVM. **It is not CPU% data for compiler workers.** Enabling logging adds overhead, output can be large, and you must not directly infer CPU usage from log line counts.
 
-### 6.2. JFR compiler events
+### 6.2. JFR Compiler Events
 
 ```bash
 jfr summary diag.jfr
 jfr print --events "jdk.Compilation,jdk.CompilerQueueUtilization" diag.jfr
 ```
 
-Các event này có thể giúp đối chiếu compilation duration và queue activity, tùy phiên bản/cấu hình ghi. Một **compilation duration** là thời gian thực hiện công việc biên dịch theo semantics của event; không được cộng tất cả duration rồi gọi chính xác là total compiler CPU nếu chưa xác minh có nhiều compiler workers, overlap và định nghĩa field.
+These events can help correlate compilation duration and queue activity, depending on JDK version and recording configuration. A **compilation duration** is the execution time of a compilation task per event semantics; do not sum all durations and call that the exact total compiler CPU without verifying multiple compiler workers, overlap, and field definitions.
 
-Khi OS TID cho thấy compiler workers chiếm CPU trong nhiều cửa sổ, compilation events/tiered compilation diễn ra dày, GC không đặc biệt nặng và application samples không chiếm phần lớn, khả năng cao nguồn tăng process CPU là JIT. Với warm-up hợp lệ, có thể chỉ cần đo ổn định sau khi warm-up; với CPU kéo dài ảnh hưởng SLA, xem startup/deploy patterns, code cache, profiling và đặc điểm workload trước khi thay đổi compiler flags.
+When OS TIDs show compiler workers consuming CPU across multiple windows, compilation events/tiered compilation are dense, GC is not especially heavy, and application samples do not dominate, JIT is likely driving the process CPU increase. For legitimate warm-up, you may just need to measure steady state after warm-up; for sustained CPU affecting SLAs, examine startup/deploy patterns, code cache, profiling, and workload characteristics before changing compiler flags.
 
-**Không vội tắt JIT hoặc tắt tiered compilation** để “giảm CPU”: giảm CPU biên dịch có thể làm mã ứng dụng chạy chậm hơn và tiêu thụ tổng CPU nhiều hơn. Phải benchmark cùng workload từ cold start và steady state.
+**Do not rush to disable JIT or tiered compilation** to "save CPU": reducing compilation CPU can make application code run much slower and consume more total CPU. Always benchmark with the same workload across both cold start and steady state.
 
-## 7. JFR kết hợp OS: nhìn timeline thay vì một screenshot
+## 7. JFR Combined with OS Metrics: Read a Timeline Instead of One Screenshot
 
-Với PID `12345`, ghi thử 60 giây (file sẽ được tạo sau khi recording hoàn thành):
+For PID `12345`, capture a 60-second recording (the file is written after the recording completes):
 
 ```bash
 jcmd 12345 JFR.start name=cpu-diag settings=profile duration=60s filename=cpu-diag.jfr
 ```
 
-Sau khi file đã được tạo:
+After the file has been created:
 
 ```bash
 jfr summary cpu-diag.jfr
@@ -255,36 +255,36 @@ jfr print --events "jdk.ExecutionSample" --stack-depth 24 cpu-diag.jfr
 jfr print --events "jdk.GarbageCollection,jdk.GCPhasePause,jdk.Compilation" cpu-diag.jfr
 ```
 
-- **`jdk.CPULoad`**: tín hiệu CPU của process/JVM so với máy theo recording (nếu bật và có instance).
-- **`jdk.ThreadCPULoad`**: tín hiệu CPU per-thread theo khả năng thu thập JFR; đối chiếu TID, thread lifetime, khoảng đo. Không xem số mẫu method thay thế trực tiếp cho CPU time.
-- **`jdk.ExecutionSample`**: lấy mẫu stack của Java code chạy, hữu ích tìm hot methods. **Số lượng sample chỉ ước lượng điểm nóng**, phụ thuộc tần suất sampling, event settings, thread có thể lấy mẫu và thống kê; không đồng nghĩa số ms CPU chính xác tuyệt đối.
-- **`jdk.GarbageCollection/jdk.GCPhasePause`**: thời gian/tình huống GC; không phải mọi pha được tính như STW.
-- **`jdk.Compilation`**: diễn biến biên dịch; cần đối chiếu CPU của compiler OS threads, vì duration của event không tự là CPU load.
+- **`jdk.CPULoad`**: process/JVM CPU signal relative to the machine over the recording (if enabled and present).
+- **`jdk.ThreadCPULoad`**: per-thread CPU signal per JFR collection capabilities; cross-check TID, thread lifetime, and measurement interval. Do not treat method sample counts as a direct substitute for CPU time.
+- **`jdk.ExecutionSample`**: stack samples of running Java code, useful for finding hot methods. **Sample counts only estimate hot spots**, depending on sampling frequency, event settings, sampleable threads, and statistics; they do not represent exact milliseconds of CPU.
+- **`jdk.GarbageCollection/jdk.GCPhasePause`**: GC timing/events; not every phase is counted as STW.
+- **`jdk.Compilation`**: compilation activity; correlate with compiler OS thread CPU, because event duration alone is not CPU load.
 
-Dùng `jfr summary` trước để biết event nào xuất hiện. Có thể mở cùng file bằng **JDK Mission Control (JMC)** để xem timeline, CPU, threads, GC, hot methods và compiler activity. **JFR của Java application không nhất thiết lấy mẫu đầy đủ mọi GC/JIT/native worker**; khi nghi CPU native, kết quả OS/perf profiler vẫn quan trọng.
+Run `jfr summary` first to see which events are present. You can open the same file in **JDK Mission Control (JMC)** to inspect timelines, CPU, threads, GC, hot methods, and compiler activity. **Java application JFR does not necessarily sample all GC/JIT/native workers completely**; when native CPU is suspected, OS/perf profiler results remain essential.
 
-Một cách đọc đúng:
+A proper reading flow:
 
 ```text
-CPU process tăng ở t = 14:32:10
+Process CPU rises at t = 14:32:10
          |
-         +-- OS TID worker-7 tăng CPU?
+         +-- OS TID worker-7 CPU up?
          |       +-- JFR ExecutionSample + thread dump -> application hot path
          |
-         +-- OS GC worker(s) tăng CPU?
-         |       +-- GC log + JFR GC events -> GC phase và allocation pressure
+         +-- OS GC worker(s) CPU up?
+         |       +-- GC log + JFR GC events -> GC phase and allocation pressure
          |
-         +-- OS C2 CompilerThread tăng CPU?
+         +-- OS C2 CompilerThread CPU up?
                  +-- Compiler.queue + JFR Compilation -> JIT work
 ```
 
-Luôn kiểm tra clocks: OS samples, GC log và JFR timestamps có thể dùng timezone/định dạng khác nhau. Không ghép sự kiện chỉ vì thứ tự output tình cờ giống nhau.
+Always check clocks: OS samples, GC logs, and JFR timestamps may use different timezones or formats. Do not correlate events just because their output order happens to align.
 
-## 8. Java 17+: ví dụ đo CPU của hai Java thread và CPU process
+## 8. Java 17+: Example Measuring CPU of Two Java Threads and Process CPU
 
-Chương trình sau tạo **một thread bận tính toán** và **một thread ngủ**, lấy hai mẫu CPU time và wall time. Nó **không ép gây GC/JIT CPU cao** vì mục tiêu là thấy khác biệt giữa CPU process và CPU từng Java thread. Nó cũng minh họa vì sao CPU process chứa thêm hoạt động JVM ngoài hai thread demo.
+The following program creates **one compute-busy thread** and **one sleeping thread**, taking two samples of CPU time and wall time. It **does not force high GC/JIT CPU** because the goal is to observe the difference between process CPU and individual Java thread CPU. It also illustrates why process CPU includes additional JVM activity beyond the two demo threads.
 
-Tạo file **`CpuAttributionDemo.java`**:
+Create **`CpuAttributionDemo.java`**:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -371,14 +371,14 @@ public class CpuAttributionDemo {
 }
 ```
 
-Biên dịch và chạy trên **HotSpot JDK 17+**:
+Compile and run on **HotSpot JDK 17+**:
 
 ```bash
 javac --release 17 CpuAttributionDemo.java
 java CpuAttributionDemo
 ```
 
-Các dòng do chương trình tự in có nội dung ổn định:
+Lines printed by the program itself have stable content:
 
 ```text
 Threads: demo-busy, demo-sleep
@@ -387,32 +387,32 @@ Threads: demo-busy, demo-sleep
 DONE
 ```
 
-Hai dòng có dấu ngoặc nhọn ở trên là **mô tả vị trí output thay đổi**, không phải văn bản output thật; số CPU phải được lấy từ máy chạy. Khi CPU metrics được hỗ trợ và bật, thường thấy `busyCpu` lớn hơn `sleepCpu` trong khoảng mẫu. Nhưng scheduler, container quota, CPU throttling, GC/JIT và điều kiện thử nghiệm có thể làm phần trăm khác đáng kể; không hứa “đúng 100%”.
+The two angle-bracket lines above are **placeholders describing variable output**, not literal output text; actual CPU numbers must come from the machine running the code. When CPU metrics are supported and enabled, `busyCpu` is typically greater than `sleepCpu` over the sampling interval. However, the scheduler, container quota, CPU throttling, GC/JIT, and test conditions can alter percentages significantly; "exact 100%" is not guaranteed.
 
-Giải thích thiết kế:
+Design notes:
 
-- `System.nanoTime()` đo **wall elapsed** giữa hai mẫu, không phải CPU time.
-- `com.sun.management.OperatingSystemMXBean.getProcessCpuTime()` (HotSpot/OpenJDK JDK management extension) đo **CPU time tích lũy của process**, gồm các thread bên trong JVM, không chỉ hai Java demo threads. Nó có thể trả `-1` khi không hỗ trợ.
-- `ThreadMXBean.getThreadCpuTime(id)` đo **CPU time tích lũy của Java platform thread** theo ID Java, có thể trả `-1` nếu unsupported/disabled hoặc thread không còn sống. Chụp cả hai mẫu **trong khi thread vẫn sống** rồi mới dừng/join.
-- Đo thread CPU của JVM có thể bị tắt; ví dụ kiểm tra trạng thái và **không tự bật** vì thay đổi cấu hình thu thập có thể có overhead.
-- `getId()` ở Java 17 là **Java thread ID**, không phải Linux TID hay HotSpot `nid`. Ví dụ này không cung cấp mapping sang OS thread ID.
-- `result` là `volatile` để giữ kết quả vòng tính không biến thành logic vô nghĩa đối với optimizer; `AtomicBoolean` cung cấp tín hiệu dừng có khả năng nhìn thấy xuyên threads.
-- Vòng bận chỉ chạy khoảng một giây; trong production không thực hiện thử nghiệm kiểu busy loop. Đây là chương trình học tập độc lập.
+- `System.nanoTime()` measures **elapsed wall time** between two samples, not CPU time.
+- `com.sun.management.OperatingSystemMXBean.getProcessCpuTime()` (HotSpot/OpenJDK JDK management extension) measures **cumulative process CPU time**, including internal JVM threads, not just the two demo Java threads. It may return `-1` when unsupported.
+- `ThreadMXBean.getThreadCpuTime(id)` measures **cumulative CPU time of a Java platform thread** by Java thread ID, and may return `-1` if unsupported/disabled or if the thread is no longer alive. Capture both samples **while the threads are still alive**, before stopping/joining them.
+- JVM thread CPU measurement can be disabled; the example checks status and **does not enable it automatically** because changing collection configuration can incur overhead.
+- `getId()` in Java 17 is the **Java thread ID**, not the Linux TID or HotSpot `nid`. This example does not provide a mapping to OS thread IDs.
+- `result` is `volatile` to prevent the optimizer from treating the computation loop as dead code; `AtomicBoolean` provides a stop signal visible across threads.
+- The busy loop runs for only about one second; do not run busy-loop experiments in production. This is a standalone educational program.
 
-**Giới hạn quan sát:** Tổng CPU của các **Java platform threads** mà `ThreadMXBean` thấy không luôn bằng toàn bộ CPU process, vì JVM có thể dùng VM/GC/compiler/native threads không hiện trong tập Java thread IDs, và vì các phép đo không chụp đồng thời tuyệt đối. Muốn quy chính xác CPU cho GC/JIT, phối hợp công cụ OS và JVM thay vì lấy hiệu số rồi tự gọi phần dư là “GC”.
+**Observation limit:** Total CPU across **Java platform threads** seen by `ThreadMXBean` does not always equal total process CPU, because the JVM may use VM/GC/compiler/native threads not listed in Java thread IDs, and because the measurements are not taken at the exact same instant. To accurately attribute CPU to GC/JIT, combine OS and JVM tools rather than subtracting and calling the remainder "GC".
 
-## 9. CPU cao nhưng ứng dụng không xử lý nhanh hơn: xét quota và contention
+## 9. High CPU Without Faster Throughput: Check Quota and Contention
 
-CPU tiêu thụ lớn có thể là công việc có ích hoặc chi phí không hiệu quả:
+High CPU consumption can be useful work or wasted overhead:
 
-- **CPU-bound hợp lệ:** service xử lý ảnh, nén, mã hóa, tính toán phức tạp; nhiều core bận và throughput tăng theo tải.
-- **Busy spin/polling:** loop kiểm tra trạng thái không sleep/backoff, retry quá nhanh hoặc regex/pathological algorithm; một thread duy trì gần một core dù throughput không tăng.
-- **Lock contention:** nhiều thread `BLOCKED` hay chờ I/O thường kéo dài wall time chứ không tự đốt CPU; nếu spin lock/active retry có thể đốt CPU. Cần đọc stack và CPU time thực.
-- **GC pressure:** allocation churn, live set cao hoặc collector activity kéo dài tiêu CPU để dọn bộ nhớ.
-- **JIT warm-up:** compiler threads đốt CPU trong một giai đoạn có thể chấp nhận được để tăng hiệu suất steady state.
-- **CPU throttling:** container đã cạn quota; application đang chờ scheduler, latency tăng dù process nhìn không đạt 100% tổng host.
+- **Legitimate CPU-bound work:** image processing, compression, encryption, complex computation; multiple cores are busy and throughput scales with load.
+- **Busy spin/polling:** status-checking loops without sleep/backoff, overly aggressive retries, or pathological regex/algorithms; one thread sustains near one core without increasing throughput.
+- **Lock contention:** many `BLOCKED` or I/O-waiting threads typically stretch wall time rather than burning CPU themselves; however, spin locks or active retries can burn CPU. Inspect stacks and actual CPU time.
+- **GC pressure:** allocation churn, high live set, or sustained collector activity spends CPU reclaiming memory.
+- **JIT warm-up:** compiler threads burn CPU during a phase that may be acceptable to improve steady-state performance.
+- **CPU throttling:** the container has exhausted its quota; the application waits on the scheduler and latency climbs even though the process does not appear to hit 100% of the host.
 
-Với Linux **cgroup v2**, kiểm tra đúng cgroup chứa JVM (đường dẫn chỉ minh họa root mặc định):
+On Linux **cgroup v2**, inspect the exact cgroup containing the JVM (the paths below only illustrate the default root):
 
 ```bash
 cat /proc/12345/cgroup
@@ -420,104 +420,104 @@ cat /sys/fs/cgroup/cpu.max
 cat /sys/fs/cgroup/cpu.stat
 ```
 
-- `cpu.max` chứa quota và period hoặc từ `max` nếu không đặt quota tại cgroup đó. Ví dụ `200000 100000` tương ứng khoảng **2 CPU** quota bình quân, không có nghĩa có đúng hai logical core được pin.
-- `cpu.stat` có các bộ đếm như `usage_usec` và `nr_throttled`/`throttled_usec` khi CPU controller cung cấp; **lấy hiệu giữa hai mẫu** mới biết CPU đã dùng và throttling trong cửa sổ.
-- Nếu JVM nằm ở cgroup con hoặc có giới hạn ở cgroup cha, phải xác định **đúng đường dẫn và ancestor quota**. Các đường dẫn `/sys/fs/cgroup` ở trên không đảm bảo trỏ tới đúng cgroup của JVM trong mọi máy/container.
-- Giá trị `throttled_usec` là thời gian hệ thống báo throttling theo semantics của cgroup, không tự tương đương độ trễ request. Cần ghép timestamp và latency.
+- `cpu.max` contains quota and period, or `max` if no quota is set at that cgroup level. For example, `200000 100000` corresponds to an average quota of about **2 CPUs**, not two pinned logical cores.
+- `cpu.stat` contains counters such as `usage_usec` and `nr_throttled`/`throttled_usec` when provided by the CPU controller; **take the delta between two samples** to know CPU used and throttling within a window.
+- If the JVM resides in a child cgroup or has limits on a parent cgroup, you must identify **the exact path and ancestor quotas**. The `/sys/fs/cgroup` paths above are not guaranteed to point to the JVM's exact cgroup on every host/container.
+- `throttled_usec` is the throttling duration reported by the system per cgroup semantics, not directly equal to request latency. Correlate timestamps and latency.
 
-**Khi host CPU thấp mà service vẫn chậm**, hãy kiểm tra cả quota/throttling, lock/I/O và scheduler. Không kết luận “CPU chưa cao nên CPU không phải vấn đề”.
+**When host CPU is low yet the service is slow**, check quota/throttling, locks/I/O, and the scheduler. Never conclude "CPU isn't high so CPU isn't the problem."
 
-## 10. Ma trận chẩn đoán nhanh
+## 10. Quick Diagnostic Matrix
 
-| Số liệu quan sát trong cùng cửa sổ | Nghi vấn ưu tiên | Cách xác nhận |
+| Metrics Observed in the Same Window | Primary Suspect | How to Confirm |
 | --- | --- | --- |
-| Process CPU cao; **một TID Java application** gần 100% một core; stack lặp lại logic app | Hot loop, thuật toán tốn CPU, retry/polling | `top -H` + TID→`nid` + nhiều thread dump + JFR ExecutionSample |
-| Process CPU cao; **nhiều application TIDs** 30–70% | Parallel workload, concurrency, contention/spin | Group OS TIDs, CPU profiles, queue depth/throughput, xem app methods |
-| Process CPU cao; **GC worker threads** có CPU lớn; GC log nhiều hoạt động | GC overhead hoặc allocation churn | GC logs, heap after-GC, JFR GC events, OS worker CPU |
-| Process CPU cao; **C1/C2 CompilerThread** chiếm CPU khi warm-up | JIT compilation | OS per-thread + JFR Compilation + Compiler.queue/codecache + deployment timing |
-| Process CPU cao; thread dump application không có thread nào chiếm CPU tương xứng | JVM internal/native/JNI threads hoặc giới hạn quan sát | OS TID + native profiler/JFR/NMT khi phù hợp; không suy phần dư là GC |
-| Process CPU vừa phải; host CPU cao | Process khác dùng CPU | `top`/Process Explorer toàn máy, cgroup/host metrics |
-| CPU% host thấp; cgroup `nr_throttled` tăng; latency cao | Container CPU quota pressure | `cpu.max`, `cpu.stat`, container usage/limits, p95/p99 latency |
-| Latency cao; process CPU thấp; nhiều thread WAITING/BLOCKED | I/O, lock contention, external dependency | Thread dump, traces, lock metrics; CPU không phải nguồn duy nhất |
-| GC pause tăng nhưng GC worker CPU chưa cao | STW/safepoint hoặc scheduling issue | GC phases, safepoint log, OS pressure; không đánh đồng pause với CPU |
-| Compiler queue có việc nhưng compiler TIDs CPU thấp | Queue tồn tại ở thời điểm chụp | Lấy mẫu TID nhiều lần trước khi quy CPU cho compiler |
+| High process CPU; **one Java application TID** near 100% of one core; stacks repeat app logic | Hot loop, CPU-heavy algorithm, retry/polling | `top -H` + TID→`nid` + multiple thread dumps + JFR ExecutionSample |
+| High process CPU; **multiple application TIDs** at 30–70% | Parallel workload, concurrency, contention/spin | Group OS TIDs, CPU profiles, queue depth/throughput, inspect app methods |
+| High process CPU; **GC worker threads** have high CPU; heavy GC log activity | GC overhead or allocation churn | GC logs, heap after-GC, JFR GC events, OS worker CPU |
+| High process CPU; **C1/C2 CompilerThread** consumes CPU during warm-up | JIT compilation | OS per-thread + JFR Compilation + Compiler.queue/codecache + deployment timing |
+| High process CPU; no application thread in thread dump shows matching CPU | JVM internal/native/JNI threads or visibility limits | OS TID + native profiler/JFR/NMT as appropriate; do not assume remainder is GC |
+| Moderate process CPU; high host CPU | Other processes using CPU | System-wide `top`/Process Explorer, cgroup/host metrics |
+| Low host CPU%; cgroup `nr_throttled` rising; high latency | Container CPU quota pressure | `cpu.max`, `cpu.stat`, container usage/limits, p95/p99 latency |
+| High latency; low process CPU; many threads WAITING/BLOCKED | I/O, lock contention, external dependency | Thread dumps, traces, lock metrics; CPU is not the only bottleneck |
+| GC pauses rising while GC worker CPU is not high | STW/safepoint or scheduling issue | GC phases, safepoint logs, OS pressure; do not equate pause with CPU |
+| Compiler queue has entries while compiler TIDs show low CPU | Queue existed at snapshot time | Sample TIDs multiple times before attributing CPU to the compiler |
 
-**Quy tắc:** Có **triệu chứng** → đo **process CPU** → tìm **TID và tỷ lệ CPU theo cửa sổ** → ghép **stack/sự kiện JVM** → đối chiếu **GC/JIT/container/ứng dụng** → sửa và đo lại. Một ảnh chụp từ `top` hoặc một thread dump đứng riêng không đủ để chứng minh quan hệ nhân quả.
+**Rule:** Start from **symptom** → measure **process CPU** → find **TIDs and CPU share over a window** → correlate **JVM stacks/events** → cross-check **GC/JIT/container/application** → fix and re-measure. A single `top` screenshot or a standalone thread dump cannot prove causality.
 
-## 11. Quy trình điều tra thực tế có thể lặp lại
+## 11. Repeatable Real-World Investigation Workflow
 
-### Trường hợp: JVM dùng 260% CPU lúc service p99 tăng
+### Case: JVM Uses 260% CPU While Service p99 Spikes
 
-Đây là **tình huống giả định**, không phải dữ liệu quan sát từ hệ thống cụ thể.
+This is a **hypothetical scenario**, not observed data from a specific system.
 
-1. **Khóa phạm vi:** xác nhận 260% là từ `top` ở chế độ theo core, tức khoảng **2,6 core**; ghi số core, container quota, PID, timestamp và tải.
-2. **Lấy 5 mẫu theo TID:** `pidstat -t -p PID 1 5`; giả sử thấy một application TID ~90%, hai GC workers tổng ~120%, compiler worker ~30%; các TID khác đóng góp phần còn lại.
-3. **Ghép HotSpot `nid`:** đổi từng TID decimal sang hex, lấy `jcmd PID Thread.print -l` gần thời gian đó. Application thread có thể đang chạy method nặng, GC/JIT workers có thể không nằm trong danh sách Java threads.
-4. **Đối chiếu GC/JFR:** nếu GC pause/concurrent work dày và heap after-GC lớn, GC overhead có cơ sở; nếu hoạt động GC thưa, không nên quy 120% chỉ từ tên `GC worker` khi chưa có timeline/pha.
-5. **Đối chiếu compiler:** có compilation events và compiler queue trong cùng cửa sổ không? Nếu đang warm-up sau deploy, JIT CPU có thể là ngắn hạn.
-6. **Phân tích application 90%:** lấy JFR ExecutionSample hoặc CPU profiler, xác định hot code; một method trên stack dump không phải bằng chứng hotspot nếu chỉ xuất hiện một lần.
-7. **Thực hiện thay đổi có mục tiêu:** giảm allocation/busy loop, sửa algorithm, điều chỉnh concurrency hoặc cấu hình GC sau khi đo; cân nhắc warm-up strategy nếu JIT đáng kể.
-8. **Đo lại cùng tải:** so sánh CPU process/core, per-thread, GC pause và GC CPU, compiler activity, throughput và p99. Đừng chỉ tối ưu cho một con số CPU rồi làm throughput giảm.
+1. **Lock down the scope:** confirm 260% comes from `top` in per-core mode, i.e., about **2.6 cores**; record core count, container quota, PID, timestamp, and load.
+2. **Collect 5 TID samples:** `pidstat -t -p PID 1 5`; suppose one application TID is ~90%, two GC workers total ~120%, and a compiler worker is ~30%; other TIDs contribute the rest.
+3. **Map HotSpot `nid`:** convert each decimal TID to hex and take `jcmd PID Thread.print -l` near that time. The application thread may be running a heavy method, while GC/JIT workers may not appear in the Java thread list.
+4. **Cross-check GC/JFR:** if GC pauses/concurrent work are dense and post-GC heap is large, GC overhead is well-supported; if GC activity is sparse, do not blame 120% solely on the `GC worker` name without timeline/phase evidence.
+5. **Cross-check compiler:** are there compilation events and compiler queue activity in the same window? If warming up after a deploy, JIT CPU may be transient.
+6. **Analyze the 90% application thread:** collect JFR ExecutionSample or CPU profiler data to identify hot code; a method appearing once on a stack dump is not proof of a hotspot.
+7. **Make a targeted change:** reduce allocations/busy loops, fix algorithms, adjust concurrency or GC configuration after measuring; consider warm-up strategy if JIT is significant.
+8. **Re-measure under the same load:** compare process/core CPU, per-thread CPU, GC pauses and GC CPU, compiler activity, throughput, and p99. Do not optimize for a single CPU number at the expense of throughput.
 
-### Cần ghi gì trong báo cáo sự cố?
+### What to Record in an Incident Report?
 
-Nên lưu **bảng thời gian cùng nguồn đo**:
+Keep a **timeline table with measurement sources**:
 
-| Thời điểm | Process CPU/core | Top TID và CPU | GC/JIT evidence | Latency/throughput |
+| Time | Process CPU/cores | Top TID and CPU | GC/JIT Evidence | Latency/Throughput |
 | --- | --- | --- | --- | --- |
-| Trước spike | Nền | Nền | Ít sự kiện đáng kể | Bình thường |
-| Trong spike | Cao | TID cụ thể | Log và JFR tương ứng | p99 cao |
-| Sau spike | Trở về nền? | TID nào giảm? | GC/JIT có kết thúc? | p99 phục hồi? |
+| Before spike | Baseline | Baseline | Few notable events | Normal |
+| During spike | High | Specific TID | Corresponding logs and JFR | High p99 |
+| After spike | Returned to baseline? | Which TID dropped? | Did GC/JIT finish? | Did p99 recover? |
 
-Điền **số liệu thật** từ công cụ, không lấy giá trị giả định của bài như kết quả quan sát. Khi logging/sampling tạo overhead, ghi nhận mức tác động của nó.
+Fill in **actual measurements** from tools; do not treat hypothetical values from this lesson as observed results. When logging/sampling adds overhead, note its impact level.
 
-## 12. Những sai lầm phổ biến
+## 12. Common Pitfalls
 
-1. **“Process 300% CPU nghĩa là một thread 300%.”** Sai trong cách đo theo một core: thường là nhiều luồng cùng dùng ~3 core CPU.
-2. **“Java thread `RUNNABLE` là thread đốt CPU.”** Sai: cần CPU time delta và sampling ở đúng cửa sổ.
-3. **“CPU process cao chắc do vòng lặp trong ứng dụng.”** Sai: GC workers, C1/C2 compiler, JVM/native threads và JNI đều nằm trong process.
-4. **“GC pause 200 ms nghĩa là GC dùng 200 ms CPU.”** Sai: pause là wall time của pha dừng; các worker có thể chạy song song hoặc GC concurrent.
-5. **“Nhiều GC events chứng minh GC chiếm CPU nhiều nhất.”** Chưa đủ: cần CPU time hoặc bằng chứng worker/TID/phase.
-6. **“Compiler queue còn việc nghĩa là compiler đang dùng 100% core.”** Chưa đủ: queue snapshot không phải CPU metric.
-7. **“Dòng `PrintCompilation` là 1 ms CPU của compiler.”** Sai: cần hiểu nội dung log cụ thể và CPU time thực tế.
-8. **“Tăng heap luôn chữa CPU cao.”** Sai: chỉ có ích trong một số tình huống allocation/GC; có thể tăng memory footprint và làm vấn đề khác.
-9. **“`ps %CPU` và `pidstat 1 5` là cùng một cửa sổ.”** Sai: `ps` có thể dùng lifetime average, còn `pidstat` báo khoảng lấy mẫu.
-10. **“`nid` là `Thread.getId()`.”** Sai: HotSpot `nid` liên hệ OS native TID; Java thread ID là khái niệm khác.
-11. **“Không thấy thread trong `Thread.print` thì nó không tồn tại.”** Sai: có VM/internal/native workers không hiện như Java thread; còn race thời điểm.
-12. **“JFR mẫu method cho biết chính xác mili giây CPU của mỗi hàm.”** Sai: sampling là ước lượng thống kê; cần đủ mẫu và hiểu sampling bias.
-13. **“CPU host thấp nên container không thể thiếu CPU.”** Sai: quota cgroup có thể đã chạm và throttled.
-14. **“CPU cao luôn xấu.”** Sai: CPU dùng hiệu quả có thể đi kèm throughput tốt; xét mục tiêu latency/throughput, cost và headroom.
-15. **“Chỉ cần một thread dump để tìm nguyên nhân spike.”** Sai: dump là snapshot của state/stack, cần ghép với CPU delta và timeline.
+1. **"Process at 300% CPU means one thread is at 300%."** False in per-core measurement mode: usually multiple threads are using ~3 CPU cores combined.
+2. **"A `RUNNABLE` Java thread is burning CPU."** False: you need CPU time deltas and sampling in the right window.
+3. **"High process CPU must be an infinite loop in the application."** False: GC workers, C1/C2 compilers, JVM/native threads, and JNI all live inside the process.
+4. **"A 200 ms GC pause means GC used 200 ms of CPU."** False: pause is the wall time of the stop phase; workers may run in parallel or GC may run concurrently.
+5. **"Many GC events prove GC uses the most CPU."** Insufficient: you need CPU time or worker/TID/phase evidence.
+6. **"Compiler queue has work means the compiler is using 100% of a core."** Insufficient: a queue snapshot is not a CPU metric.
+7. **"Each `PrintCompilation` line equals 1 ms of compiler CPU."** False: you must understand the specific log contents and actual CPU time.
+8. **"Increasing heap always fixes high CPU."** False: it only helps in certain allocation/GC scenarios; it can increase memory footprint and cause other problems.
+9. **"`ps %CPU` and `pidstat 1 5` cover the same window."** False: `ps` may report a lifetime average, whereas `pidstat` reports the sampling interval.
+10. **"`nid` is `Thread.getId()`."** False: HotSpot `nid` relates to the OS native TID; Java thread ID is a different concept.
+11. **"If a thread isn't in `Thread.print`, it doesn't exist."** False: VM/internal/native workers do not appear as Java threads, and timing races also occur.
+12. **"JFR method samples give exact milliseconds of CPU per function."** False: sampling is a statistical estimate; you need enough samples and awareness of sampling bias.
+13. **"Host CPU is low so the container can't be CPU-starved."** False: cgroup quota may already be hit and throttled.
+14. **"High CPU is always bad."** False: productive CPU use can accompany good throughput; evaluate latency/throughput targets, cost, and headroom.
+15. **"One thread dump is enough to find the root cause of a spike."** False: a dump is a snapshot of state/stack and must be paired with CPU deltas and a timeline.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-**Câu 1.** Trong 10 giây, JVM tăng 18 giây CPU time. CPU% theo một core là bao nhiêu?  
-**Đáp án:** 180%; tức trung bình 1,8 core. Nếu máy có 8 logical cores và không bị quota, đó xấp xỉ 22,5% tổng 8 core.
+**Question 1.** Over 10 seconds, the JVM accumulates 18 seconds of CPU time. What is the CPU% per core?  
+**Answer:** 180%; i.e., an average of 1.8 cores. If the machine has 8 logical cores and no quota, that is approximately 22.5% of total 8-core capacity.
 
-**Câu 2.** `top -H` thấy TID 4096 đứng đầu, còn `Thread.print` ghi `nid=0x1000`. Có thể liên hệ không?  
-**Đáp án:** Có, 0x1000 hex = 4096 decimal, nếu cùng OS namespace, cùng JVM và thread còn sống.
+**Question 2.** `top -H` shows TID 4096 at the top, while `Thread.print` lists `nid=0x1000`. Can they be related?  
+**Answer:** Yes, 0x1000 hex = 4096 decimal, provided they are in the same OS namespace, same JVM, and the thread is still alive.
 
-**Câu 3.** GC pause 50 ms, có 8 worker chạy cùng lúc. Có thể tổng CPU time của GC vượt 50 ms không?  
-**Đáp án:** Có. Song song nhiều worker có thể cộng ra CPU time lớn hơn wall pause; phải đo/đối chiếu phạm vi cụ thể.
+**Question 3.** A GC pause is 50 ms with 8 workers running simultaneously. Can total GC CPU time exceed 50 ms?  
+**Answer:** Yes. Multiple workers running in parallel can add up to more CPU time than the wall pause; you must measure/correlate the specific scope.
 
-**Câu 4.** Một `C2 CompilerThread` có CPU cao ngay sau deploy, nhưng method app CPU ít. Có thể quy về JIT ngay không?  
-**Đáp án:** Đây là giả thuyết mạnh nếu cùng cửa sổ có compilation events/queue activity; cần đối chiếu nhiều mẫu TID/JFR trước khi kết luận.
+**Question 4.** A `C2 CompilerThread` has high CPU right after deployment, while application method CPU is low. Can you attribute it to JIT immediately?  
+**Answer:** It is a strong hypothesis if compilation events/queue activity occur in the same window; cross-check multiple TID/JFR samples before concluding.
 
-**Câu 5.** `ThreadMXBean.getThreadCpuTime(7)` trả `-1`. Có nghĩa Java thread không dùng CPU?  
-**Đáp án:** Không. Có thể thread đã kết thúc, không tồn tại, CPU time bị tắt hoặc không hỗ trợ. Không được biến “không đo được” thành “0 CPU”.
+**Question 5.** `ThreadMXBean.getThreadCpuTime(7)` returns `-1`. Does that mean the Java thread used 0 CPU?  
+**Answer:** No. The thread may have terminated, may not exist, or CPU time measurement may be disabled or unsupported. Never turn "unmeasurable" into "0 CPU".
 
-**Câu 6.** Máy có 32 core, container quota 2 core, JVM báo khoảng 180% theo một core. Có thể bị throttling không?  
-**Đáp án:** Có. JVM có thể gần quota 2 core mặc dù chỉ dùng khoảng 5,6% năng lực 32 core của host. Phải kiểm tra `cpu.max`, `cpu.stat` và số liệu thực.
+**Question 6.** A machine has 32 cores, the container quota is 2 cores, and the JVM reports around 180% of one core. Could it be throttled?  
+**Answer:** Yes. The JVM may be near its 2-core quota even though it is only using about 5.6% of the host's 32-core capacity. Check `cpu.max`, `cpu.stat`, and actual metrics.
 
-**Câu 7.** Thread dump có stack `java.util.HashMap.get` ở một luồng `RUNNABLE`. Có nên tối ưu `HashMap` ngay?  
-**Đáp án:** Không. Cần CPU per-TID cùng cửa sổ, nhiều stack sample, hot path/caller và dữ liệu phân bố để xác định nguyên nhân.
+**Question 7.** A thread dump shows `java.util.HashMap.get` on a `RUNNABLE` thread. Should you optimize `HashMap` immediately?  
+**Answer:** No. You need per-TID CPU in the same window, multiple stack samples, hot path/callers, and distribution data to identify the root cause.
 
-## Tài liệu tra cứu
+## References
 
 - [Oracle JDK 17 — `jcmd`: `Thread.print`, `Compiler.queue`, `Compiler.codecache`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html)
-- [Oracle Java SE 17 — `ThreadMXBean` và `getThreadCpuTime()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html)
-- [Oracle JDK 17 — `java`, GC Unified Logging và `PrintCompilation`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html)
+- [Oracle Java SE 17 — `ThreadMXBean` and `getThreadCpuTime()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html)
+- [Oracle JDK 17 — `java`, GC Unified Logging and `PrintCompilation`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html)
 - [Oracle JDK 17 — Troubleshoot Performance Issues Using JFR: CPULoad, ThreadCPULoad, GC, hot methods](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html)
-- [Oracle JDK 17 — `jfr`: `print` và `summary`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html)
+- [Oracle JDK 17 — `jfr`: `print` and `summary`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html)
 - [Oracle Java SE 17 — `OperatingSystemMXBean` extension](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.management/com/sun/management/OperatingSystemMXBean.html)
 - [Linux kernel documentation — Control Group v2: CPU controller](https://docs.kernel.org/admin-guide/cgroup-v2.html)

@@ -1,133 +1,133 @@
-# 3.2 Base64, HexFormat và sự khác biệt giữa biểu diễn dữ liệu với bảo vệ bí mật
+# 3.2 Base64, HexFormat, and the Difference Between Data Representation and Secret Protection
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích **encoding (biểu diễn/mã hóa dữ liệu)** khác **encryption (mã hóa bảo mật)**, hashing, MAC và chữ ký số như thế nào.
-- Hiểu cơ chế chuyển byte thành Base64 và hexadecimal (hex), chi phí kích thước và tình huống dùng thích hợp.
-- Sử dụng đúng **java.util.Base64** và **java.util.HexFormat** (Java 17+) để mã hóa biểu diễn, giải mã và kiểm tra round-trip; phân biệt Base64 Basic, URL-safe và MIME.
-- Xử lý đúng byte, charset UTF-8, đầu vào không hợp lệ, dữ liệu nhị phân và nguy cơ canonicalization.
-- Nhận diện các sai lầm bảo mật: coi Base64/hex là bí mật, đưa secret đã encode vào log/URL, hiểu sai Basic Authentication, JWT hoặc chuỗi hash.
+- Explain how **encoding (data representation)** differs from **encryption**, hashing, MACs, and digital signatures.
+- Understand how bytes are converted to Base64 and hexadecimal (hex), size overhead, and appropriate use cases.
+- Properly use **java.util.Base64** and **java.util.HexFormat** (Java 17+) for representation encoding, decoding, and round-trip checks; distinguish Base64 Basic, URL-safe, and MIME.
+- Properly handle bytes, UTF-8 charset, invalid inputs, binary data, and canonicalization risks.
+- Recognize security mistakes: treating Base64/hex as secrecy, putting encoded secrets into logs/URLs, or misunderstanding Basic Authentication, JWTs, or hash strings.
 
-## 1. Bắt đầu từ byte, không bắt đầu từ chuỗi hiển thị
+## 1. Start from Bytes, Not Display Strings
 
-Máy tính lưu và truyền thông tin dưới dạng **byte**. Khi cần đưa byte vào môi trường thiên về văn bản (JSON, cấu hình, HTTP header, log chẩn đoán, QR code, tệp text, giao thức chỉ chấp nhận ký tự in được), ta dùng một cách **biểu diễn** byte thành chuỗi có thể đọc/truyền an toàn theo quy tắc cụ thể.
+Computers store and transmit information as **bytes**. When bytes need to enter text-oriented environments (JSON, config files, HTTP headers, diagnostic logs, QR codes, text files, protocols accepting only printable characters), we use a **representation** that turns bytes into safely readable/transmissible strings according to specific rules.
 
-Ví dụ, chuỗi ký tự **Java!** theo UTF-8 tạo năm byte:
+For example, the character string **Java!** in UTF-8 produces five bytes:
 
 ~~~text
 Text:                 Java!
 UTF-8 bytes (hex):    4a 61 76 61 21
-Base64 của các byte:  SmF2YSE=
-Hex của các byte:     4a61766121
+Base64 of bytes:      SmF2YSE=
+Hex of bytes:         4a61766121
 ~~~
 
-Cả **SmF2YSE=** và **4a61766121** đều biểu diễn **cùng năm byte gốc**. Người khác chỉ cần biết quy tắc Base64/hex là có thể khôi phục chính xác năm byte đó. Không cần mật khẩu hay khóa bí mật.
+Both **SmF2YSE=** and **4a61766121** represent **the same five original bytes**. Anyone who knows the Base64/hex rules can recover those exact five bytes. No password or secret key is needed.
 
-Cần phân biệt hai tầng chuyển đổi:
+Distinguish the two conversion layers:
 
 ~~~text
-Ký tự Unicode --[UTF-8 encode]--> byte[]
-                                  |
-                           +------+------+
-                           |             |
-                        [Base64]       [Hex]
-                           |             |
-                          text          text
-                           |             |
-                         decode        parse
-                           |             |
-                           +------v------+
-                                  |
-                                byte[]
-                        --[UTF-8 decode]--> Ký tự Unicode
+Unicode characters --[UTF-8 encode]--> byte[]
+                                        |
+                                 +------+------+
+                                 |             |
+                              [Base64]       [Hex]
+                                 |             |
+                                text          text
+                                 |             |
+                               decode        parse
+                                 |             |
+                                 +------v------+
+                                        |
+                                      byte[]
+                              --[UTF-8 decode]--> Unicode characters
 ~~~
 
-**UTF-8** là cách biến ký tự thành byte; **Base64/hex** biến byte thành ký tự từ bảng chữ cái giới hạn. Chúng giải quyết các vấn đề tương thích biểu diễn, không giải quyết việc giữ bí mật. Byte của dữ liệu nhị phân bất kỳ, chẳng hạn ảnh, chữ ký, nonce hoặc ciphertext, không nhất thiết là văn bản UTF-8 hợp lệ: đừng tùy tiện chuyển byte[] bất kỳ thành String để “đọc” nội dung.
+**UTF-8** is how characters become bytes; **Base64/hex** turn bytes into characters from a restricted alphabet. They solve representation compatibility problems, not secrecy. Bytes of arbitrary binary data—such as images, signatures, nonces, or ciphertexts—are not necessarily valid UTF-8 text: do not arbitrarily convert any `byte[]` into a String to "read" its contents.
 
-### 1.1 Bốn nhóm thao tác thường bị nhầm
+### 1.1 Four Commonly Confused Operation Groups
 
-| Thao tác | Mục tiêu | Đầu vào → đầu ra | Cần khóa bí mật? | Có khôi phục bản gốc không? |
+| Operation | Goal | Input → Output | Secret key required? | Recovers original? |
 | --- | --- | --- | --- | --- |
-| **Encoding** (Base64, hex, UTF-8) | Đổi cách biểu diễn cho lưu/truyền/hiển thị | Byte ↔ ký tự theo quy tắc | Không | Có, khi đúng định dạng/charset |
-| **Encryption** (ví dụ AES-GCM) | Giữ bí mật dữ liệu, thường có xác thực toàn vẹn | Plaintext → ciphertext | Có | Có, nếu có khóa và tham số hợp lệ |
-| **Hash** (ví dụ SHA-256) | Tạo dấu vân tay có độ dài cố định từ dữ liệu | Byte → digest | Không đối với hash thông thường | Không có phép giải mã ngược; dữ liệu yếu có thể bị đoán/brute-force |
-| **MAC/chữ ký số** (HMAC, Ed25519, v.v.) | Kiểm tra tính toàn vẹn/xác thực theo mô hình khóa | Dữ liệu + khóa → mã xác thực/chữ ký | Có khóa bí mật hoặc private key để tạo | Không dùng để khôi phục dữ liệu gốc |
+| **Encoding** (Base64, hex, UTF-8) | Change representation for storage/transmission/display | Bytes ↔ characters by rules | No | Yes, given the right format/charset |
+| **Encryption** (e.g., AES-GCM) | Keep data confidential, often with integrity authentication | Plaintext → ciphertext | Yes | Yes, with valid key and parameters |
+| **Hash** (e.g., SHA-256) | Create fixed-length fingerprint of data | Bytes → digest | No for standard hashes | No reverse decryption; weak data can be guessed/brute-forced |
+| **MAC/digital signature** (HMAC, Ed25519, etc.) | Verify integrity/authenticity under a key model | Data + key → auth tag/signature | Secret key or private key to create | Not used to recover original data |
 
-**Một chuỗi trông như ký tự ngẫu nhiên chưa chắc được bảo mật.** Mức độ khó đọc bằng mắt không phải thuộc tính an toàn.
+**A string that looks like random characters is not necessarily secure.** Visual unreadability is not a security property.
 
-## 2. Base64 hoạt động như thế nào?
+## 2. How Does Base64 Work?
 
-### 2.1 Cơ chế 6 bit và padding
+### 2.1 The 6-Bit Mechanism and Padding
 
-Base64 đọc luồng bit theo nhóm **6 bit**, mỗi nhóm ánh xạ vào một trong 64 ký tự. Ba byte chứa 24 bit được biểu diễn thành bốn ký tự Base64. Vì vậy:
+Base64 reads a bitstream in **6-bit** groups, mapping each group to one of 64 characters. Three bytes containing 24 bits are represented as four Base64 characters. Therefore:
 
-- Ba byte đầu vào → bốn ký tự.
-- Một byte đầu vào → hai ký tự dữ liệu và thường hai ký tự **==** làm padding.
-- Hai byte đầu vào → ba ký tự dữ liệu và thường một ký tự **=**.
-- Nếu đầu vào chia hết cho ba byte thì không cần padding.
+- Three input bytes → four characters.
+- One input byte → two data characters and typically two **==** padding characters.
+- Two input bytes → three data characters and typically one **=** character.
+- If the input is divisible by three bytes, no padding is needed.
 
-Với **Base64 Basic có padding**, độ dài đầu ra theo ký tự là **4 × ceil(số_byte / 3)**. Đây là mở rộng kích thước khoảng 33,3% với dữ liệu đủ lớn, cộng tác động của padding khi dữ liệu ngắn. Không được dùng độ dài String của một chuỗi Unicode thay cho số byte khi tính kích thước.
+With **Base64 Basic with padding**, the output character length is **4 × ceil(byte_count / 3)**. This is roughly a 33.3% size expansion for sufficiently large data, plus padding overhead when data is short. Never use the String length of a Unicode string instead of the byte count when computing size.
 
-**Padding không chứa bí mật**; nó làm rõ phần byte cuối của dữ liệu. Một số biến thể bỏ padding vì quy tắc giao thức đã cho phép bên nhận tự suy ra. Thêm/bớt padding không biến Base64 thành phương tiện mã hóa bảo mật.
+**Padding holds no secrecy**; it clarifies the trailing byte remainder of the data. Some variants omit padding because protocol rules allow the receiver to infer it. Adding or removing padding does not turn Base64 into a security encryption mechanism.
 
-### 2.2 Ba biến thể trong Java
+### 2.2 Three Variants in Java
 
-Java cung cấp ba cặp encoder/decoder chính ở **java.util.Base64**:
+Java provides three main encoder/decoder pairs in **java.util.Base64**:
 
-| Biến thể | Java API | Alphabet/đặc tính | Tình huống |
+| Variant | Java API | Alphabet/characteristics | Use case |
 | --- | --- | --- | --- |
-| **Basic** | Base64.getEncoder() / getDecoder() | A–Z, a–z, 0–9, **+** và **/**; padding **=** khi cần; không chèn xuống dòng | JSON, cấu hình, dữ liệu nhị phân trong text không hạn chế dấu + và / |
-| **URL-safe** | Base64.getUrlEncoder() / getUrlDecoder() | Dùng **-** thay **+**, **_** thay **/**; có thể bỏ padding bằng withoutPadding() | Thành phần URL, token định dạng Base64URL, tên/ID theo giao thức |
-| **MIME** | Base64.getMimeEncoder() / getMimeDecoder() | Có thể ngắt dòng (thông thường 76 ký tự, CRLF); decoder MIME chấp nhận một số ký tự ngoài alphabet và bỏ qua chúng | Nội dung MIME/email theo đặc tả phù hợp |
+| **Basic** | Base64.getEncoder() / getDecoder() | A–Z, a–z, 0–9, **+** and **/**; **=** padding when needed; no line breaks | JSON, configs, binary data in text without + and / restrictions |
+| **URL-safe** | Base64.getUrlEncoder() / getUrlDecoder() | Uses **-** instead of **+**, **_** instead of **/**; padding can be omitted via withoutPadding() | URL components, Base64URL-formatted tokens, protocol-defined names/IDs |
+| **MIME** | Base64.getMimeEncoder() / getMimeDecoder() | May wrap lines (typically 76 chars, CRLF); MIME decoder accepts and ignores certain non-alphabet characters | MIME/email content per matching specifications |
 
-**Không tráo biến thể một cách tùy tiện.** Base64 Basic có dấu **+** và **/**: dấu **+** có thể bị xử lý thành khoảng trắng trong một số dạng query/form encoding, còn **/** có ý nghĩa phân tách path. Base64URL thay hai ký tự đó, nhưng vẫn không tự đem lại tính bí mật, chống sửa đổi hay chống phát lại.
+**Do not swap variants arbitrarily.** Base64 Basic contains **+** and **/**: **+** can be interpreted as a space in some query/form encodings, while **/** acts as a path separator. Base64URL replaces those two characters, yet still does not provide confidentiality, tamper resistance, or replay protection.
 
-**MIME decoder không thích hợp làm bộ kiểm tra nghiêm ngặt cho token bảo mật**, vì quy tắc bỏ qua ký tự của nó rộng hơn Basic/URL. Chọn decoder theo giao thức; đặt giới hạn độ dài và kiểm tra nội dung hợp lệ trước khi sử dụng.
+**The MIME decoder is not suitable as a strict validator for security tokens**, because its character-ignoring rules are more permissive than Basic/URL. Choose the decoder according to the protocol; enforce length bounds and validate contents before use.
 
-### 2.3 Base64 không gắn với kiểu dữ liệu gốc
+### 2.3 Base64 Is Not Tied to the Original Data Type
 
-Base64 chỉ biết **byte[]**, không biết byte đó là ảnh PNG, JSON UTF-8, một khóa AES, một chữ ký số hay dữ liệu ngẫu nhiên. Muốn khôi phục ý nghĩa, ứng dụng phải biết từ **giao thức/metadata**:
+Base64 only knows **byte[]**; it does not know whether those bytes are a PNG image, UTF-8 JSON, an AES key, a digital signature, or random data. To recover meaning, the application must know from **protocol/metadata**:
 
-- Byte nào đang được biểu diễn?
-- Sau khi decode có được xem là UTF-8, protobuf, ảnh hay ciphertext?
-- Cần bản mã được giải mã bằng khóa nào, nonce nào, thuật toán nào?
-- Payload có được xác thực và kiểm tra quyền trước khi tin tưởng không?
+- Which bytes are being represented?
+- Once decoded, should they be treated as UTF-8, protobuf, an image, or ciphertext?
+- If ciphertext, which key, nonce, and algorithm decrypt it?
+- Is the payload authenticated and authorized before trusting it?
 
-Không dùng vẻ ngoài Base64 làm bằng chứng dữ liệu đã được mã hóa, ký hay kiểm tra toàn vẹn.
+Never use a Base64 appearance as proof that data has been encrypted, signed, or integrity-checked.
 
-## 3. Hexadecimal và Java 17 HexFormat
+## 3. Hexadecimal and Java 17 HexFormat
 
-**Hex** dùng hệ cơ số 16: mỗi **nibble 4 bit** biểu diễn bằng một chữ số từ 0–9, a–f. Một byte 8 bit tương ứng **hai chữ số hex**.
+**Hex** uses base 16: each **4-bit nibble** is represented by a digit from 0–9, a–f. One 8-bit byte corresponds to **two hex digits**.
 
-Ví dụ:
+Example:
 
 ~~~text
-Byte nhị phân:     1111 1011
-Hex:               FB
-Byte nhị phân:     0000 0000
-Hex:               00
-Ba byte:           FB FF 00
-Hex liền mạch:     fbff00
-Hex có dấu phân tách: FB:FF:00
+Binary byte:          1111 1011
+Hex:                  FB
+Binary byte:          0000 0000
+Hex:                  00
+Three bytes:          FB FF 00
+Contiguous hex:       fbff00
+Delimited hex:        FB:FF:00
 ~~~
 
-Hex thích hợp để đọc dump byte, in giá trị hash, định danh, fingerprint, nonce/IV và địa chỉ dưới dạng văn bản. Khi dùng hex nguyên bản không thêm separator, kích thước **đúng gấp đôi số byte**: 32 byte → 64 ký tự hex. Hex thường dài hơn Base64, đổi lại dễ đối chiếu byte và đọc bằng mắt.
+Hex is well suited for reading byte dumps, printing hash values, identifiers, fingerprints, nonces/IVs, and addresses in text form. Without separators, raw hex size is **exactly twice the byte count**: 32 bytes → 64 hex characters. Hex is usually longer than Base64, trading compactness for easy byte-by-byte inspection.
 
-Java 17 đưa vào **java.util.HexFormat**, tránh tự viết vòng lặp đổi byte sang hex hoặc phụ thuộc thư viện ngoài cho thao tác cơ bản.
+Java 17 introduced **java.util.HexFormat**, avoiding custom byte-to-hex loops or external dependencies for basic operations.
 
-- **HexFormat.of().formatHex(bytes):** tạo chuỗi hex liên tục, mặc định chữ thường.
-- **HexFormat.of().parseHex(text):** chuyển chuỗi hex hợp lệ về byte[], mặc định không có dấu phân tách.
-- **HexFormat.of().withUpperCase():** chọn A–F viết hoa khi format.
-- **HexFormat.ofDelimiter(":"):** dùng dấu **:** giữa các byte; parse và format cần thống nhất định dạng đã định.
-- **formatHex** không tự thêm ký hiệu **0x**, dấu cách hay các ký tự tùy ý; định dạng ấy phải được quy định và xử lý rõ ràng.
+- **HexFormat.of().formatHex(bytes):** produces a contiguous hex string, lowercase by default.
+- **HexFormat.of().parseHex(text):** converts a valid hex string back to byte[], expecting no delimiters by default.
+- **HexFormat.of().withUpperCase():** selects uppercase A–F when formatting.
+- **HexFormat.ofDelimiter(":"):** places **:** between bytes; parsing and formatting must agree on the defined format.
+- **formatHex** does not automatically add **0x** prefixes, spaces, or arbitrary characters; such formatting must be explicitly specified and handled.
 
-Đầu vào lẻ số chữ số, ký tự không thuộc hex hoặc dấu phân tách không phù hợp sẽ bị từ chối (ví dụ IllegalArgumentException). Đừng âm thầm bỏ các ký tự lỗi, cắt ngắn hoặc tự sửa đầu vào chưa rõ quy tắc.
+Inputs with an odd number of digits, non-hex characters, or mismatched delimiters are rejected (e.g., IllegalArgumentException). Do not silently drop invalid characters, truncate, or auto-repair inputs with unclear rules.
 
-## 4. Thực hành Java 17+: round-trip Base64, Base64URL và HexFormat
+## 4. Java 17+ Practice: Base64, Base64URL, and HexFormat Round-Trips
 
-Tạo tệp **RepresentationDemo.java** (lưu UTF-8):
+Create file **RepresentationDemo.java** (saved as UTF-8):
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -154,7 +154,7 @@ public class RepresentationDemo {
         System.out.println("Text round-trip: "
                 + new String(fromBase64, StandardCharsets.UTF_8));
 
-        // Các byte này có bit 1 cao, không phải text UTF-8 để đọc trực tiếp.
+        // These bytes have high 1 bits and are not directly readable UTF-8 text.
         byte[] binary = {(byte) 0xFB, (byte) 0xFF, 0x00};
 
         System.out.println("Basic binary: "
@@ -173,14 +173,14 @@ public class RepresentationDemo {
 }
 ~~~
 
-Biên dịch/chạy với JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 RepresentationDemo.java
 java RepresentationDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 Base64: SmF2YSE=
@@ -194,32 +194,32 @@ Hex binary: FB:FF:00
 Base64URL one byte: _w
 ~~~
 
-Giải thích:
+Explanation:
 
-1. **getBytes(StandardCharsets.UTF_8)** xác định rõ cách chuyển text thành byte. Khi khôi phục text cũng dùng UTF-8 tương ứng; không dựa vào default charset của môi trường.
-2. **encodeToString** tạo chuỗi biểu diễn từ byte; **decode** trả lại byte[]. Hai phép biến đổi là nghịch đảo nhau đối với dữ liệu hợp lệ.
-3. **formatHex/parseHex** thực hiện cặp biến đổi tương tự, nhưng dùng hai chữ số hex cho mỗi byte. Kết quả Arrays.equals cho thấy các byte giữ nguyên.
-4. Với byte **FB FF 00**, Base64 Basic là **+/wA**, Base64URL là **-_wA**; khác alphabet nhưng đều biểu diễn cùng ba byte.
-5. Một byte **FF** thành **_w** khi Base64URL bỏ padding; nếu dùng encoder có padding, kết quả là **_w==**. Padding không phải một cơ chế an toàn.
-6. **HexFormat.ofDelimiter(":").withUpperCase()** định dạng ba byte thành **FB:FF:00**; nếu cần parse dạng này, dùng HexFormat.ofDelimiter(":").parseHex(...) theo đúng quy tắc.
+1. **getBytes(StandardCharsets.UTF_8)** explicitly defines how text becomes bytes. Restoring text also uses matching UTF-8; do not rely on the environment's default charset.
+2. **encodeToString** creates a string representation from bytes; **decode** returns byte[]. The two operations are inverses for valid inputs.
+3. **formatHex/parseHex** perform the analogous pair of transforms, using two hex digits per byte. `Arrays.equals` confirms the bytes are preserved.
+4. For bytes **FB FF 00**, Base64 Basic is **+/wA** and Base64URL is **-_wA**; different alphabets, yet both represent the same three bytes.
+5. A single byte **FF** becomes **_w** when Base64URL omits padding; with a padded encoder, the result is **_w==**. Padding is not a security mechanism.
+6. **HexFormat.ofDelimiter(":").withUpperCase()** formats three bytes as **FB:FF:00**; to parse this format, use matching HexFormat.ofDelimiter(":").parseHex(...).
 
-**Lưu ý về bộ nhớ:** Base64/hex chuyển dữ liệu thành String sẽ tạo bản sao mới. Nếu dữ liệu gốc là secret thì bản sao cũng là secret. Không in secret thật ra log để “kiểm tra format”.
+**Memory note:** Converting data to Base64/hex Strings creates new copies. If the original data is a secret, the copy is also a secret. Do not print real secrets to logs just to "check formatting."
 
-## 5. Vì sao Base64/Hex không bảo vệ bí mật?
+## 5. Why Base64/Hex Do Not Protect Confidentiality
 
-**Encoding không có khóa.** Kẻ nhận hoặc đọc được chuỗi có thể giải mã bằng thuật toán công khai. Ví dụ một chuỗi cấu hình:
+**Encoding has no key.** Anyone who intercepts or reads the string can decode it using the public algorithm. For example, a config line:
 
 ~~~text
 apiKeyBase64: ZGVtby1zZWNyZXQ=
 ~~~
 
-Chỉ cần Base64 decode là nhận được văn bản **demo-secret**. Việc đặt tên biến **encryptedPassword**, thêm tiền tố bí hiểm hoặc mã hóa Base64 nhiều lần không làm xuất hiện tính bí mật.
+A simple Base64 decode recovers the text **demo-secret**. Naming a variable **encryptedPassword**, adding a cryptic prefix, or Base64-encoding multiple times does not create confidentiality.
 
-Một chuỗi hex của token, số thẻ, mật khẩu, private key hay dữ liệu cá nhân cũng **nhạy cảm ngang với byte gốc**. Chuỗi có thể dài và khó đọc nhưng vẫn khôi phục được nguyên vẹn. Không gửi vào log, analytics, URL, ticket hoặc nơi công khai chỉ vì “đã encode”.
+A hex string of a token, card number, password, private key, or personal data is **just as sensitive as the original bytes**. The string may be long and hard to read, yet it can still be recovered intact. Never send it to logs, analytics, URLs, tickets, or public places just because it is "encoded."
 
-### 5.1 Ví dụ Java 17+: encode có thể đảo ngược, digest chỉ được biểu diễn
+### 5.1 Java 17+ Example: Encoding Is Reversible, Digests Are Merely Represented
 
-Tạo **RepresentationVsProtectionDemo.java**:
+Create **RepresentationVsProtectionDemo.java**:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -229,7 +229,7 @@ import java.util.HexFormat;
 
 public class RepresentationVsProtectionDemo {
     public static void main(String[] args) throws Exception {
-        // Chỉ là chuỗi minh họa công khai, KHÔNG phải secret thật.
+        // Public illustrative string only, NOT a real secret.
         byte[] sample = "demo-secret".getBytes(StandardCharsets.UTF_8);
 
         String encoded = Base64.getEncoder().encodeToString(sample);
@@ -250,7 +250,7 @@ public class RepresentationVsProtectionDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 RepresentationVsProtectionDemo.java
@@ -266,13 +266,13 @@ Digest hex chars: 64
 Digest Base64 chars: 44
 ~~~
 
-Điều cần quan sát: mã Base64 có thể khôi phục **demo-secret** ngay lập tức. Ngược lại, **SHA-256** trả về digest 32 byte; hex hoặc Base64 chỉ là hai cách **hiển thị cùng digest**, hoàn toàn không thêm/bớt thuộc tính mật mã của hash.
+Key observation: Base64 recovers **demo-secret** immediately. Conversely, **SHA-256** returns a 32-byte digest; hex or Base64 are just two ways of **displaying the same digest**, adding or removing zero cryptographic properties of the hash.
 
-Hash không có hàm “decrypt” để phục hồi chuỗi đầu vào. Tuy vậy dữ liệu có không gian đoán nhỏ, như mật khẩu yếu, vẫn có thể bị dò bằng cách hash các ứng viên và so sánh. **Không dùng SHA-256 thuần để lưu mật khẩu**; dùng cơ chế password hashing có salt riêng và tham số chi phí, ví dụ Argon2id/scrypt/bcrypt/PBKDF2 theo yêu cầu hệ thống.
+A hash has no "decrypt" function to recover the input string. However, data with a small guessing space, such as weak passwords, can still be searched by hashing candidates and comparing. **Never use plain SHA-256 to store passwords**; use a password hashing scheme with unique salts and cost parameters, such as Argon2id/scrypt/bcrypt/PBKDF2 per system requirements.
 
-### 5.2 Thứ cần mã hóa bảo mật thực sự
+### 5.2 What Real Security Encryption Requires
 
-Nếu mục tiêu là **giữ bí mật**, hãy dùng **encryption** thích hợp như AES-GCM (AEAD) với khóa bí mật, nonce duy nhất trong phạm vi cùng khóa, xác thực tag và quản lý khóa đúng cách. Sau đó, khi một API chỉ cho phép văn bản, mới biểu diễn byte ciphertext bằng Base64 hoặc hex:
+If the goal is **confidentiality**, use proper **encryption** such as AES-GCM (AEAD) with a secret key, a unique nonce per key scope, tag verification, and proper key management. Only then, when an API accepts only text, represent the ciphertext bytes with Base64 or hex:
 
 ~~~text
 Plaintext bytes
@@ -281,9 +281,9 @@ Plaintext bytes
     |
 Ciphertext + authentication tag (binary bytes)
     |
-[Base64 / hex, chỉ để đóng gói văn bản]
+[Base64 / hex, text packaging only]
     |
-Text mang ciphertext qua JSON / cấu hình / giao thức
+Text carrying ciphertext over JSON / config / protocol
     |
 [Base64 / hex decode]
     |
@@ -294,133 +294,133 @@ Ciphertext + tag (binary bytes)
 Plaintext bytes
 ~~~
 
-Decoder Base64 **không** kiểm tra tag GCM, không xác thực người gửi và không tự giải mã plaintext. Khóa, nonce, AAD và phiên bản định dạng phải được xử lý ở tầng mật mã. Đừng nhầm **có thể decode** với **có quyền decrypt**.
+A Base64 decoder **does not** verify the GCM tag, authenticate the sender, or decrypt plaintext itself. Keys, nonces, AAD, and format versions must be handled at the cryptographic layer. Never confuse **can decode** with **authorized to decrypt**.
 
-Với xác thực nguồn gốc và toàn vẹn, dùng **MAC** như HMAC hoặc **chữ ký số** theo đúng giao thức. Chuỗi Base64 chứa một chữ ký không trở thành chữ ký chỉ nhờ Base64; phải có quy trình ký và kiểm tra chữ ký thật sự.
+For origin authentication and integrity, use a **MAC** such as HMAC or a **digital signature** per protocol. A Base64 string containing a signature does not become a signature because of Base64; there must be real signing and signature verification logic.
 
-## 6. Định dạng ở các ranh giới giao thức
+## 6. Formatting at Protocol Boundaries
 
 ### 6.1 HTTP Basic Authentication
 
-Header HTTP Basic Authentication về mặt định dạng có thể chứa:
+An HTTP Basic Authentication header format can contain:
 
 ~~~text
-Authorization: Basic <Base64 của user-id:password>
+Authorization: Basic <Base64 of user-id:password>
 ~~~
 
-Chuỗi **user-id:password** có thể được lấy lại bằng Base64 decode. Vì vậy Basic Authentication **phải dùng cùng kết nối TLS được xác thực hợp lệ**, không được xem Base64 là bảo vệ mật khẩu. Tránh sao chép header Authorization sang log, error tracker hoặc debug dump. Xác thực thông tin đăng nhập và giới hạn quyền vẫn do hệ thống xử lý, không do Base64.
+The **user-id:password** string can be recovered by Base64 decoding. Therefore, Basic Authentication **must only be used over a properly authenticated TLS connection**; never treat Base64 as password protection. Avoid copying the Authorization header into logs, error trackers, or debug dumps. Credential verification and authorization remain the system's responsibility, not Base64's.
 
-### 6.2 JWT/JWS/JWE và thông tin có thể nhìn thấy
+### 6.2 JWT/JWS/JWE and Visible Information
 
-Một **JWT dạng JWS compact** thường có ba đoạn Base64URL phân cách bằng dấu chấm: header.payload.signature. Payload có thể được decode và đọc mà không cần private key. **Chữ ký JWS giúp phát hiện sửa đổi và xác thực theo khóa**, nhưng không giữ bí mật payload. Nếu cần bí mật, dùng cơ chế mã hóa payload được thiết kế cho mục tiêu đó, ví dụ JWE hoặc mã hóa ở tầng ứng dụng phù hợp.
+A **compact JWS JWT** typically has three dot-separated Base64URL segments: header.payload.signature. The payload can be decoded and read without any private key. **The JWS signature detects tampering and authenticates under a key**, but does not keep the payload confidential. If confidentiality is needed, use a payload encryption mechanism designed for that purpose, such as JWE or appropriate application-layer encryption.
 
-Không đặt mật khẩu, private key hay dữ liệu cá nhân nhạy cảm vào payload JWT ký thông thường rồi giả định đã “ẩn” vì nó là Base64URL. Việc decode token không tương đương xác minh chữ ký, issuer, audience, expiration và các điều kiện sử dụng token.
+Do not place passwords, private keys, or sensitive personal data in a standard signed JWT payload assuming it is "hidden" because it is Base64URL. Decoding a token is not equivalent to verifying its signature, issuer, audience, expiration, and usage constraints.
 
-### 6.3 API JSON, byte[], key fingerprint và ciphertext
+### 6.3 JSON APIs, byte[], Key Fingerprints, and Ciphertexts
 
-- **Nhị phân trong JSON:** Base64 thường gọn hơn hex. Metadata phải mô tả content type và encoding. Không tự đoán từ ký tự trông giống Base64.
-- **Digest/fingerprint/debug:** hex thường trực quan khi đối chiếu từng byte. Các giá trị fingerprint có thể công khai hay nhạy cảm tùy ngữ cảnh.
-- **Ciphertext lưu trong DB dạng text:** Base64/hex hỗ trợ cột text; vẫn cần encryption thật và lưu đủ metadata (key ID/version, nonce, tag, AAD nếu giao thức yêu cầu).
-- **Raw binary:** nếu protocol/database hỗ trợ BLOB hoặc binary frame, có thể lưu/truyền byte trực tiếp, tránh overhead text encoding.
-- **Token ngẫu nhiên:** token có entropy đủ cao có thể được tạo bằng SecureRandom rồi biểu diễn bằng Base64URL. **Độ khó đoán đến từ entropy của byte ngẫu nhiên**, không đến từ Base64URL. Token vẫn là bearer secret nếu ai sở hữu nó đều có thể sử dụng.
+- **Binary in JSON:** Base64 is usually more compact than hex. Metadata should declare content type and encoding. Never guess from characters that merely look like Base64.
+- **Digests/fingerprints/debugging:** hex is intuitive for comparing byte-by-byte. Fingerprint values may be public or sensitive depending on context.
+- **Ciphertext stored in text DB columns:** Base64/hex supports text columns; real encryption and full metadata (key ID/version, nonce, tag, AAD if protocol requires) are still mandatory.
+- **Raw binary:** if the protocol/database supports BLOB or binary frames, you can store/transmit bytes directly, avoiding text encoding overhead.
+- **Random tokens:** high-entropy tokens can be generated with SecureRandom and represented in Base64URL. **Unpredictability comes from the entropy of the random bytes**, not from Base64URL. A token remains a bearer secret if anyone holding it can use it.
 
-## 7. Unicode, charset và tính chuẩn hóa dữ liệu
+## 7. Unicode, Charsets, and Data Normalization
 
-Encoding nhị phân không quyết định cách mã hóa ký tự. Nếu dữ liệu ban đầu là String, phải **thống nhất charset** ở hai đầu, thường là UTF-8:
+Binary encoding does not determine character encoding. If the initial data is a String, both sides must **agree on the charset**, typically UTF-8:
 
 ~~~java
 byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
 String restored = new String(bytes, StandardCharsets.UTF_8);
 ~~~
 
-Hai dòng trên minh họa một phần chương trình, cần biến text và import java.nio.charset.StandardCharsets khi sử dụng; đây không phải chương trình độc lập.
+These two lines illustrate part of a program, requiring a `text` variable and `import java.nio.charset.StandardCharsets` when used; this is not a standalone program.
 
-Lỗi kinh điển là dùng charset khác ở hai đầu, hoặc gọi **new String(rawBinaryBytes, UTF_8)** cho ciphertext/digest bất kỳ. Dữ liệu nhị phân có thể chứa chuỗi byte không phải UTF-8 hợp lệ, dẫn đến ký tự thay thế và mất khả năng round-trip. Với byte nhị phân, dùng Base64/hex trước rồi parse về byte.
+A classic bug is using different charsets at the two ends, or calling **new String(rawBinaryBytes, UTF_8)** on arbitrary ciphertext/digests. Binary data can contain invalid UTF-8 byte sequences, causing replacement characters and breaking round-trips. For binary bytes, use Base64/hex first and parse back to bytes.
 
-Ngay cả khi dùng cùng UTF-8, văn bản nhìn giống nhau chưa chắc có **cùng byte**. Ví dụ chữ **é** có thể ở dạng một code point U+00E9 (UTF-8: **c3a9**) hoặc ký tự **e** cộng dấu U+0301 (UTF-8: **65cc81**). Nếu hệ thống ký số/hash trên byte, hai dạng đó tạo đầu vào khác nhau. Chỉ áp dụng Unicode normalization khi giao thức đã quy định nhất quán trước phép hash/ký; không tùy tiện chuẩn hóa dữ liệu đã ký hoặc thay đổi bytes sau khi xác thực.
+Even with the same UTF-8 charset, visually identical text is not guaranteed to have the **same bytes**. For example, **é** can be a single code point U+00E9 (UTF-8: **c3a9**) or **e** plus combining mark U+0301 (UTF-8: **65cc81**). If a system signs/hashes bytes, those two forms yield different inputs. Apply Unicode normalization only when the protocol consistently specifies it prior to hashing/signing; never arbitrarily normalize already-signed data or alter bytes after verification.
 
-### 7.1 Không lẫn lộn canonicalization với decoding
+### 7.1 Do Not Confuse Canonicalization with Decoding
 
-Một decoder có thể chấp nhận nhiều cách viết cùng biểu diễn byte, tùy variant và padding. Ví dụ một số chuỗi Base64 có hoặc không có dấu **=** cuối vẫn decode được cùng byte. Đừng mặc định **so sánh chuỗi encoded** là tương đương so sánh byte hoặc tương đương xác minh nội dung an toàn.
+A decoder may accept multiple spellings representing the same bytes, depending on variant and padding. For instance, some Base64 strings with or without trailing **=** still decode to the same bytes. Never assume **comparing encoded strings** is equivalent to comparing bytes or safely verifying contents.
 
-Với token/chữ ký, luôn tuân thủ chính xác **dạng canonical và signing input mà giao thức quy định**. Có giao thức ký trên byte payload đã canonicalize; có giao thức như JWS ký trên chính các đoạn encoded. Tự bỏ padding, đổi hoa/thường hex, thêm newline hay đổi Base64 Basic ↔ URL-safe trước khi xác minh có thể khiến chữ ký sai hoặc tạo lỗ hổng xử lý không thống nhất.
+For tokens/signatures, always follow the exact **canonical form and signing input defined by the protocol**. Some protocols sign canonicalized payload bytes; others like JWS sign the encoded segments directly. Arbitrarily stripping padding, changing hex case, inserting newlines, or switching Base64 Basic ↔ URL-safe before verification can break signatures or create inconsistent-handling vulnerabilities.
 
-Nếu giao thức yêu cầu biểu diễn chuẩn, khi chấp nhận chuỗi ngoài hệ thống có thể thực hiện **decode rồi re-encode theo encoder canonical**, đối chiếu với đầu vào ban đầu và xử lý không khớp theo chính sách. Đây là bước kiểm tra định dạng, **không thay thế MAC/chữ ký số**.
+If a protocol mandates a canonical representation, when accepting external strings you can **decode and re-encode with the canonical encoder**, compare against the original input, and handle mismatches per policy. This is a format check, **not a replacement for a MAC/digital signature**.
 
-## 8. Thiết kế parser và xử lý lỗi khi nhận dữ liệu không tin cậy
+## 8. Designing Parsers and Handling Errors for Untrusted Data
 
-Hãy coi chuỗi Base64/hex nhận từ bên ngoài là **untrusted input** dù về mặt cú pháp nó đã hợp lệ. Quy trình khuyến nghị:
+Treat Base64/hex strings received from outside as **untrusted input**, even if syntactically valid. Recommended pipeline:
 
-1. **Giới hạn kích thước chuỗi** trước khi decode để tránh cấp phát byte[] quá lớn. Với upload lớn, cân nhắc stream và giới hạn kích thước dữ liệu gốc ở tầng transport.
-2. **Chọn đúng variant/định dạng**: Base64 Basic, URL-safe, MIME hoặc hex có delimiter. Ghi rõ trong hợp đồng API.
-3. **Reject dữ liệu sai**: bắt IllegalArgumentException của decoder/parser tại ranh giới input và trả lỗi có kiểm soát, không in payload/secret ra log.
-4. **Giới hạn kích thước sau decode** và kiểm tra cấu trúc: nonce, digest, key ID, độ dài field, media type, version.
-5. **Xác thực/kiểm tra toàn vẹn và quyền truy cập** theo mô hình ứng dụng. Dữ liệu có thể decode không có nghĩa dữ liệu là đáng tin.
-6. **Xử lý dữ liệu nhạy cảm thận trọng**: tránh lưu chuỗi mã hóa biểu diễn vào log, metric label, exception message, URL hoặc crash dump; giới hạn thời gian lưu trong bộ nhớ và bản sao không cần thiết.
+1. **Bound string size** before decoding to avoid oversized byte[] allocations. For large uploads, consider streaming and enforcing raw data size limits at the transport layer.
+2. **Choose the exact variant/format**: Base64 Basic, URL-safe, MIME, or delimited hex. Document clearly in the API contract.
+3. **Reject malformed data**: catch IllegalArgumentException from the decoder/parser at the input boundary and return a controlled error, without logging payloads/secrets.
+4. **Bound decoded size** and validate structure: nonce, digest, key ID, field lengths, media type, version.
+5. **Authenticate/verify integrity and authorization** per the application model. Decodable data does not mean trustworthy data.
+6. **Handle sensitive data carefully**: avoid storing encoded strings in logs, metric labels, exception messages, URLs, or crash dumps; limit memory lifetime and unnecessary copies.
 
-Một số trường hợp lỗi cần tách bạch:
+Error cases to separate clearly:
 
-| Đầu vào | Kết quả mong đợi |
+| Input | Expected outcome |
 | --- | --- |
-| Base64 Basic chứa ký tự không thuộc alphabet | Basic decoder báo lỗi; không lặng lẽ bỏ qua |
-| Base64URL chứa dấu **+** hoặc **/** thay vì **-** hoặc **_** | Dùng URL decoder đúng chuẩn, không tự tráo ký tự thiếu quy định |
-| Hex có số chữ số lẻ, ký tự ngoài 0–9/A–F/a–f | HexFormat.parseHex báo lỗi |
-| Hex có dấu **:** nhưng parser mặc định không có delimiter | Chọn HexFormat.ofDelimiter(":") hoặc reject theo API contract |
-| Decode thành byte[] nhưng loại nội dung không khớp (ví dụ cần 32 byte digest mà nhận 5 byte) | Reject sau kiểm tra ràng buộc kiểu/độ dài |
-| Base64 decode hợp lệ nhưng ciphertext bị sửa hoặc sai tag | Tầng AEAD xác thực thất bại; không được tin plaintext |
-| Token decode hợp lệ nhưng chữ ký sai hoặc token hết hạn | Tầng xác thực token phải reject |
+| Base64 Basic containing non-alphabet characters | Basic decoder fails; do not silently skip |
+| Base64URL containing **+** or **/** instead of **-** or **_** | Use proper URL decoder, do not arbitrarily swap characters without a rule |
+| Hex with odd digit count or characters outside 0–9/A–F/a–f | HexFormat.parseHex fails |
+| Hex with **:** when default parser expects no delimiter | Select HexFormat.ofDelimiter(":") or reject per API contract |
+| Decodes to byte[] but content shape mismatches (e.g., expected 32-byte digest, got 5 bytes) | Reject after type/length constraint checks |
+| Valid Base64 decode, but ciphertext is modified or wrong tag | AEAD verification fails; do not trust plaintext |
+| Valid token decode, but invalid signature or expired token | Token verification layer must reject |
 
-**Không** tự sửa dữ liệu bằng cách bỏ ký tự tùy ý, chuyển charset nhiều lần hoặc cắt chuỗi đến khi parser chấp nhận. Chính sách tolerant parsing chỉ nên áp dụng khi đặc tả giao thức yêu cầu và đã đánh giá hệ quả bảo mật.
+**Do not** auto-fix data by dropping arbitrary characters, retrying multiple charsets, or truncating until a parser accepts it. Tolerant parsing should only be applied when the protocol specification requires it and its security implications have been evaluated.
 
-## 9. So sánh để chọn nhanh
+## 9. Quick Comparison Guide
 
-| Tiêu chí | Base64 | Hex |
+| Criterion | Base64 | Hex |
 | --- | --- | --- |
-| Đơn vị biểu diễn | Nhóm 6 bit → một ký tự | 4 bit → một ký tự |
-| Kích thước text | Khoảng 4/3 số byte, có padding tùy variant | Đúng 2 lần số byte (không delimiter) |
-| Dễ đọc từng byte | Khó hơn | Rất thuận tiện, mỗi byte hai chữ số |
-| Ký tự đặc biệt | Basic có + / và =; URL-safe có - _ | Thường chỉ 0–9 a–f hoặc A–F |
+| Representation unit | 6-bit group → one character | 4 bits → one character |
+| Text size | ~4/3 of byte count, padding depends on variant | Exactly 2× byte count (no delimiter) |
+| Byte-by-byte readability | Harder | Very convenient, two digits per byte |
+| Special characters | Basic has + / and =; URL-safe has - _ | Usually only 0–9 a–f or A–F |
 | Java 17+ | java.util.Base64 | java.util.HexFormat |
-| Bảo mật bí mật/toàn vẹn | Không có | Không có |
-| Dùng phổ biến | JSON, binary-to-text, chuỗi token, ciphertext dạng text | Digest, fingerprint, log chẩn đoán an toàn, địa chỉ/buffer/debug |
+| Confidentiality/integrity security | None | None |
+| Common uses | JSON, binary-to-text, token strings, text-wrapped ciphertext | Digests, fingerprints, safe diagnostic logs, addresses/buffers/debugging |
 
-Ví dụ với 32 byte dữ liệu bất kỳ:
+Example with 32 bytes of arbitrary data:
 
-- Hex liên tục: **64 ký tự**.
-- Base64 Basic có padding: **44 ký tự** (có một dấu **=** cuối).
-- Base64URL bỏ padding: **43 ký tự**.
+- Contiguous hex: **64 characters**.
+- Padded Base64 Basic: **44 characters** (one trailing **=**).
+- Unpadded Base64URL: **43 characters**.
 
-**Lựa chọn dựa trên giao thức và khả năng đọc/chi phí kích thước**. Nếu dữ liệu cần giữ bí mật, hãy chọn và triển khai một cơ chế bảo vệ độc lập trước khi nghĩ đến định dạng biểu diễn.
+**Choose based on protocol requirements and readability/size overhead.** If data requires confidentiality, select and implement an independent protection mechanism before considering representation formats.
 
-## 10. Sai lầm phổ biến và cách sửa
+## 10. Common Pitfalls and Fixes
 
-1. **“Tôi đã Base64 encode mật khẩu/API key rồi nên có thể đưa lên Git.”** Sai: ai cũng decode được. Dùng secret manager/KMS, giữ bí mật và tránh commit; mật khẩu đăng nhập lưu bằng password hashing phù hợp.
-2. **“Đưa bí mật vào URL sau Base64URL thì không ai biết.”** Sai: Base64URL không che dữ liệu. URL có thể vào browser history, access log, referrer, monitoring. Dùng kênh và cơ chế xác thực phù hợp, không đặt long-lived secret vào URL.
-3. **“Chỉ cần HexFormat cho checksum là đủ chống giả mạo.”** Sai: hex là biểu diễn. Digest hash công khai không chứng minh người gửi; dùng HMAC/chữ ký số để chống sửa đổi có chủ đích.
-4. **“Base64URL không có dấu + / nên chắc là dữ liệu được mã hóa an toàn.”** Sai: URL-safe chỉ đổi alphabet để phù hợp cú pháp.
-5. **“Một JWT có ba đoạn Base64URL là nội dung không đọc được.”** Sai với JWS compact thông thường: header/payload đọc được sau decode, chữ ký xác thực chứ không giữ bí mật.
-6. **“Đã decode Base64 thành công thì nội dung đáng tin.”** Sai: parse hợp lệ chỉ nói chuỗi có đúng dạng; mọi xác thực, phân quyền, schema validation vẫn cần thiết.
-7. **“String.length() cho biết số byte cần mã hóa.”** Sai với Unicode/UTF-8; phải dùng độ dài của byte[] sau charset encode.
-8. **“Ciphertext có thể đưa thẳng vào new String(bytes, UTF_8).”** Sai: ciphertext là byte nhị phân tùy ý. Dùng Base64/hex hoặc binary transport.
-9. **“MIME decoder luôn là lựa chọn linh hoạt và an toàn nhất.”** Sai: nó có thể bỏ qua ký tự không thuộc alphabet; với token cần yêu cầu định dạng nghiêm ngặt.
-10. **“Encode hai hoặc ba lần là đủ an toàn.”** Sai: mọi lớp encoding công khai đều có thể tháo ngược; không tạo ra khóa bí mật hoặc authentication tag.
+1. **"I Base64-encoded the password/API key, so it's safe to commit to Git."** False: anyone can decode it. Use a secret manager/KMS, keep secrets private, and avoid committing them; store login passwords with proper password hashing.
+2. **"Putting secrets in a URL after Base64URL hides them."** False: Base64URL does not obscure data. URLs end up in browser history, access logs, referrers, and monitoring. Use proper channels and auth mechanisms, never put long-lived secrets in URLs.
+3. **"HexFormat on a checksum is enough against tampering."** False: hex is just representation. A public hash digest does not prove sender authenticity; use HMAC/digital signatures against intentional tampering.
+4. **"Base64URL has no + / so the data must be securely encrypted."** False: URL-safe only changes the alphabet for syntax compatibility.
+5. **"A JWT with three Base64URL segments is unreadable."** False for standard compact JWS: header/payload are readable after decoding; the signature authenticates rather than keeping them secret.
+6. **"Base64 decoded cleanly, so the contents are trustworthy."** False: valid parsing only confirms syntax; authentication, authorization, and schema validation are still required.
+7. **"String.length() tells me how many bytes to encode."** False for Unicode/UTF-8; use the length of byte[] after charset encoding.
+8. **"Ciphertext can go straight into new String(bytes, UTF_8)."** False: ciphertext is arbitrary binary bytes. Use Base64/hex or binary transport.
+9. **"MIME decoder is always the most flexible and safest choice."** False: it can skip non-alphabet characters; tokens require strict format enforcement.
+10. **"Encoding two or three times is secure enough."** False: every public encoding layer can be reversed; it creates neither a secret key nor an authentication tag.
 
-## 11. Tình huống luyện tập và câu hỏi tự kiểm tra
+## 11. Practice Scenarios and Self-Check Questions
 
-**Tình huống A – Lưu digest SHA-256:** một hệ thống có digest 32 byte muốn lưu trong cột text và dễ so sánh bằng mắt. Hex 64 ký tự là lựa chọn thuận tiện; Base64 44 ký tự gọn hơn. Cả hai biểu diễn cùng digest, nên độ an toàn của SHA-256 không đổi khi đổi format. Digest này không phải password hash được thiết kế cho mật khẩu.
+**Scenario A – Storing a SHA-256 digest:** a system has a 32-byte digest to store in a text column and inspect visually. 64-character hex is convenient; 44-character Base64 is more compact. Both represent the same digest, so SHA-256 security does not change with format. This digest is not a password hash designed for passwords.
 
-**Tình huống B – Token trong URL:** một hệ thống sinh 32 byte token bằng SecureRandom, rồi biểu diễn bằng Base64URL không padding, độ dài 43 ký tự. Khả năng khó đoán đến từ 32 byte ngẫu nhiên được sinh đúng cách; việc trình bày 43 ký tự không tạo thêm entropy. Token vẫn nhạy cảm và cần kiểm soát nơi truyền/lưu, hạn dùng và quyền sử dụng.
+**Scenario B – Token in a URL:** a system generates a 32-byte token using SecureRandom, then represents it as unpadded Base64URL, length 43 characters. Unpredictability comes from the 32 properly generated random bytes; the 43-character presentation adds no entropy. The token remains sensitive and requires controls on transport/storage, expiration, and authorization.
 
-**Tình huống C – API nhận ciphertext:** một field JSON là Base64 của ciphertext AES-GCM. Server phải Base64 decode, kiểm tra định dạng/version/nonce, xác thực tag bằng khóa đúng rồi mới dùng plaintext. Dữ liệu Base64 đúng cú pháp vẫn có thể là ciphertext giả mạo, bị hỏng hoặc đến từ bên không có quyền.
+**Scenario C – API receiving ciphertext:** a JSON field holds Base64 of AES-GCM ciphertext. The server must Base64-decode, validate format/version/nonce, verify the tag with the right key, and only then use plaintext. Syntactically valid Base64 can still carry forged, corrupted, or unauthorized ciphertext.
 
-**Tự kiểm tra:**
+**Self-check:**
 
-1. Chuỗi **SmF2YSE=** cần khóa nào để đọc lại? → Không cần khóa; đó là Base64 của năm byte UTF-8 cho **Java!**.
-2. 16 byte dữ liệu đổi thành bao nhiêu ký tự hex và Base64 Basic có padding? → **32** ký tự hex và **24** ký tự Base64.
-3. Vì sao Base64URL khác Base64 Basic? → Thay **+ / ** bằng **- _** để phù hợp hơn với URL; không thay đổi bí mật hay tính xác thực.
-4. HexFormat.of().formatHex(byte[]) khác gì HexFormat.of().parseHex(String)? → Một hàm byte[] → text hex, một hàm text hex hợp lệ → byte[].
-5. Một mật khẩu đã Base64 encode có thể lưu vào DB như password hash không? → Không. Base64 đảo ngược được; dùng password hashing có salt và chi phí phù hợp.
-6. Nếu một giá trị Base64 decode được và có 32 byte thì đã là SHA-256 hợp lệ chưa? → Chỉ biết độ dài phù hợp, chưa biết nguồn gốc, cách tính hoặc tính toàn vẹn của giá trị.
-7. Vì sao cần nêu charset khi đổi text sang byte[]? → Cùng ký tự nhưng charset hoặc chuẩn hóa Unicode khác có thể tạo byte khác, ảnh hưởng round-trip, digest và chữ ký.
+1. Which key is required to read **SmF2YSE=**? → No key; it is the Base64 of the five UTF-8 bytes for **Java!**.
+2. How many hex characters and padded Base64 Basic characters do 16 bytes become? → **32** hex characters and **24** Base64 characters.
+3. Why does Base64URL differ from Base64 Basic? → Replaces **+ / ** with **- _** for better URL compatibility; does not change secrecy or authenticity.
+4. How does HexFormat.of().formatHex(byte[]) differ from HexFormat.of().parseHex(String)? → One converts byte[] → hex text, the other converts valid hex text → byte[].
+5. Can a Base64-encoded password be stored in a DB as a password hash? → No. Base64 is reversible; use password hashing with salt and appropriate cost.
+6. If a Base64 value decodes cleanly and has 32 bytes, is it a valid SHA-256? → Only the length matches; you do not yet know the origin, calculation, or integrity of the value.
+7. Why specify charset when converting text to byte[]? → The same characters under a different charset or Unicode normalization can yield different bytes, affecting round-trips, digests, and signatures.
 
-**Nguyên tắc nhớ lâu:** **Base64 và HexFormat là cách viết dữ liệu dưới dạng text.** Chúng có thể bọc plaintext, ciphertext, hash, chữ ký hoặc token, nhưng bản thân chúng **không mã hóa bảo mật, không kiểm tra toàn vẹn, không xác thực và không cấp quyền truy cập**. Thiết kế bảo mật phải xác định yêu cầu bí mật/toàn vẹn/xác thực trước; encoding chỉ là lớp biểu diễn khi cần lưu, truyền hoặc hiển thị byte.
+**Lasting principle:** **Base64 and HexFormat are ways to write data as text.** They can wrap plaintext, ciphertext, hashes, signatures, or tokens, yet by themselves they **do not encrypt for secrecy, check integrity, authenticate, or grant access**. Security design must establish confidentiality/integrity/authentication requirements first; encoding is only the representation layer when bytes need to be stored, transmitted, or displayed.

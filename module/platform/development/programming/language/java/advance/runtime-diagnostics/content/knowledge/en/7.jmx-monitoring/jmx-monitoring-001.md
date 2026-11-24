@@ -1,17 +1,17 @@
-# 7.1 MBeanServer, ObjectName, attribute, operation và notification
+# 7.1 MBeanServer, ObjectName, attribute, operation, and notification
 
-Khi điều tra một tiến trình Java đang chạy, đôi khi chỉ biết “JVM còn sống” vẫn chưa đủ. Người vận hành muốn hỏi **heap đang dùng bao nhiêu**, **thread count hiện tại là gì**, **queue nội bộ có đang nghẽn**, hoặc muốn nhận một tín hiệu khi một ngưỡng quan trọng bị vượt. **Java Management Extensions (JMX)** cung cấp mô hình quản trị cho các câu hỏi đó: các đối tượng quản lý (MBean) được đăng ký vào **MBeanServer** bằng **ObjectName**; người quan sát có thể đọc/ghi **attribute**, gọi **operation** và đăng ký nghe **notification** nếu đối tượng hỗ trợ.
+When investigating a running Java process, sometimes just knowing "the JVM is alive" is not enough. Operators want to ask **how much heap is being used**, **what the current thread count is**, **whether an internal queue is backed up**, or want to receive a signal when a critical threshold is crossed. **Java Management Extensions (JMX)** provides the management model for those questions: managed objects (MBeans) are registered in an **MBeanServer** under an **ObjectName**; observers can read/write **attributes**, invoke **operations**, and subscribe to **notifications** if the object supports them.
 
-JMX không phải một công cụ đo mọi thứ tự động. Một MBean có thể chỉ chứa số tích lũy, một attribute có thể đắt để tính, một operation có thể thay đổi trạng thái sản xuất và một notification không phải hàng đợi sự kiện bền vững. Hiểu đúng năm khái niệm trên giúp đọc số liệu runtime mà không vô tình gây tác động lên ứng dụng hoặc suy diễn quá mức.
+JMX is not an automatic "measure everything" tool. An MBean might only hold cumulative numbers, an attribute might be expensive to compute, an operation might change production state, and a notification is not a durable event queue. Understanding these five concepts accurately helps you read runtime metrics without accidentally impacting the application or over-interpreting the data.
 
-Bài này tập trung vào **lớp mô hình JMX**: cách quản lý một MBean, cách đặt tên và tìm kiếm, cách phân biệt property/operation/event, đọc metadata, đăng ký notification, xử lý lỗi và giới hạn truy cập. Ví dụ Java 17+ chạy hoàn chỉnh trên một JVM, không cần thư viện ngoài; nó dựng một MBean mô phỏng độ sâu hàng đợi, kiểm chứng attribute, operation và notification bằng stdout ổn định.
+This lesson focuses on the **JMX model layer**: how an MBean is managed, how naming and lookup work, how to distinguish properties/operations/events, reading metadata, registering notifications, error handling, and access boundaries. The complete Java 17+ example runs on a single JVM with no external libraries; it builds a simulated queue depth MBean and verifies attributes, operations, and notifications with deterministic stdout.
 
-## 1. Bản đồ kiến trúc JMX
+## 1. JMX architecture map
 
-Một sơ đồ tư duy:
+A mental model:
 
 ```text
-  Ứng dụng Java / JVM
+  Java Application / JVM
   +------------------------------------------------------------+
   |  MBean: QueueMetrics            Platform MXBeans           |
   |  - QueueDepth [attribute]       - MemoryMXBean              |
@@ -26,33 +26,33 @@ Một sơ đồ tư duy:
                           |
                 MBeanServerConnection
                   /                \
-           local Java client       JMX connector (nếu được bật
-                                   và phân quyền an toàn)
+           local Java client       JMX connector (if enabled
+                                   and securely authorized)
                           |
-               JConsole / JMC / giám sát
+               JConsole / JMC / monitoring
 ```
 
-Các thành phần có vai trò khác nhau:
+The components have distinct roles:
 
-| Thành phần | Định nghĩa ngắn | Câu hỏi trả lời |
+| Component | Short definition | Question answered |
 | --- | --- | --- |
-| **MBean** | Java object cung cấp giao diện quản lý hợp lệ theo JMX | Đối tượng nào đang được quan sát/điều khiển? |
-| **MBeanServer** | Registry và cổng truy cập các MBean theo tên | MBean nào đã đăng ký, đọc/gọi chúng thế nào? |
-| **ObjectName** | Định danh có cấu trúc của MBean **trong một MBeanServer** | Đối tượng cần hỏi có tên gì? |
-| **Attribute** | Giá trị có thể đọc và/hoặc ghi theo contract của MBean | Trạng thái hiện tại hoặc cấu hình là gì? |
-| **Operation** | Hành động/phương thức management được công bố | Có thể yêu cầu đối tượng làm gì? |
-| **Notification** | Sự kiện do MBean phát khi được thiết kế để phát | Điều gì vừa xảy ra hoặc ngưỡng nào vừa vượt? |
-| **MBeanInfo** | Metadata mô tả attributes, operations, notifications, constructors | Client biết cách tương tác một cách kiểm chứng ra sao? |
+| **MBean** | A Java object exposing a valid JMX management interface | Which object is being observed/controlled? |
+| **MBeanServer** | Registry and access gateway for MBeans by name | Which MBeans are registered, and how are they read/invoked? |
+| **ObjectName** | Structured identifier of an MBean **within one MBeanServer** | What is the name of the object to query? |
+| **Attribute** | Value that can be read and/or written per the MBean's contract | What is the current state or configuration? |
+| **Operation** | Exposed management action/method | What can the object be asked to do? |
+| **Notification** | Event emitted by an MBean when designed to emit | What just happened or which threshold was crossed? |
+| **MBeanInfo** | Metadata describing attributes, operations, notifications, constructors | How can a client inspect how to interact safely? |
 
-**Luồng phổ biến**: lấy `MBeanServer` → xác định `ObjectName` → kiểm tra MBean đã đăng ký và metadata → đọc attribute hoặc gọi operation cần thiết → nếu có support, thêm `NotificationListener` rồi xử lý và tháo listener khi xong.
+**Typical flow**: obtain an `MBeanServer` → determine the `ObjectName` → verify the MBean is registered and inspect metadata → read attributes or invoke required operations → if supported, add a `NotificationListener`, handle events, and remove the listener when done.
 
-MBeanServer không nhất thiết tạo một process hoặc thread độc lập. MBean tồn tại **trong JVM**, có thể được đọc cục bộ; remote JMX là một lớp connector và cơ chế bảo mật riêng. Có MBean trong process **không đồng nghĩa cổng JMX remote đang mở**.
+An MBeanServer does not necessarily create a separate process or thread. MBeans exist **inside the JVM** and can be read locally; remote JMX is a separate connector layer and security mechanism. Having MBeans in a process **does not mean a remote JMX port is open**.
 
-## 2. MBeanServer: đăng ký, tìm kiếm và điều phối truy cập
+## 2. MBeanServer: registration, lookup, and access dispatch
 
-### 2.1 Lấy platform MBeanServer của JVM hiện tại
+### 2.1 Obtaining the current JVM's platform MBeanServer
 
-Trong ứng dụng Java:
+In a Java application:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -61,63 +61,63 @@ import javax.management.MBeanServer;
 MBeanServer server = ManagementFactory.getPlatformMBeanServer();
 ```
 
-Đây là **đoạn API minh họa** cần đặt bên trong method/class. `getPlatformMBeanServer()` trả MBeanServer nền tảng của JVM hiện tại, nơi có các platform management beans và có thể đăng ký MBean ứng dụng. Đối tượng được chia sẻ trong process; không gọi method đó để truy cập PID khác.
+This is an **illustrative API snippet** that needs to be placed inside a method/class. `getPlatformMBeanServer()` returns the current JVM's platform MBeanServer, where platform management beans reside and where application MBeans can be registered. The object is shared within the process; do not call this method expecting to access another PID.
 
-`MBeanServer` mở rộng `MBeanServerConnection`: các phương thức đọc/gọi/nhận metadata của hai interface có nhiều điểm chung; `MBeanServer` còn có đăng ký/hủy đăng ký MBean cục bộ. Với remote client, thường thao tác qua `MBeanServerConnection` lấy từ `JMXConnector`, **không có quyền trực tiếp gọi mọi thao tác nội bộ chỉ vì cùng API**.
+`MBeanServer` extends `MBeanServerConnection`: the read/invoke/metadata methods of both interfaces share many similarities; `MBeanServer` also includes local MBean registration/unregistration. A remote client typically interacts through an `MBeanServerConnection` obtained from a `JMXConnector`, **and does not automatically have permission to call every internal operation just because the API is shared**.
 
-### 2.2 MBeanServer không tự chứa logic nghiệp vụ
+### 2.2 MBeanServer does not contain business logic itself
 
-Ví dụ một lớp `QueueMetrics` lưu độ sâu hàng đợi, biết khi nào vượt ngưỡng. MBeanServer **không tự đo độ sâu**, chỉ giúp:
+Suppose a `QueueMetrics` class tracks queue depth and knows when a threshold is crossed. The MBeanServer **does not measure the depth itself**; it only helps:
 
-- Gán tên duy nhất cho MBean đã được đăng ký.
-- Truy vấn tên/metadata và chuyển lời gọi đọc/ghi attribute đến đối tượng.
-- Chuyển `invoke` đến operation được công bố.
-- Đăng ký/tháo listener để nhận notification khi MBean phát.
-- Ghi nhận hoạt động register/unregister thông qua notification của MBeanServerDelegate.
+- Assign a unique name to a registered MBean.
+- Query names/metadata and forward attribute read/write calls to the object.
+- Forward `invoke` calls to an exposed operation.
+- Register/remove listeners to receive notifications when the MBean emits them.
+- Record register/unregister activity via MBeanServerDelegate notifications.
 
-Nếu MBean trả số sai, collector/time window sai hoặc getter block, MBeanServer không tự sửa semantics. **Chất lượng diagnostic phụ thuộc cả implementation của MBean và phương pháp thu mẫu**.
+If an MBean returns inaccurate numbers, uses a faulty collector/time window, or blocks in a getter, the MBeanServer will not fix those semantics. **Diagnostic quality depends on both the MBean implementation and the sampling methodology**.
 
-### 2.3 Các API quản lý thường gặp
+### 2.3 Common management APIs
 
-| API | Ý nghĩa | Lưu ý |
+| API | Meaning | Notes |
 | --- | --- | --- |
-| `registerMBean(bean, name)` | Đăng ký một MBean đã tạo | Phải tuân thủ quy tắc MBean; tên đang dùng gây `InstanceAlreadyExistsException` |
-| `unregisterMBean(name)` | Hủy đăng ký MBean | Không đồng nghĩa destroy toàn bộ Java object |
-| `isRegistered(name)` | Kiểm tra có tên tại một thời điểm | Có race với register/unregister khác |
-| `getMBeanCount()` | Số MBean đã đăng ký | Không phải số thread/process/JVM |
-| `queryNames(pattern, query)` | Trả tập ObjectName khớp | Tập kết quả là snapshot; không mặc định thứ tự |
-| `queryMBeans(pattern, query)` | Trả ObjectInstance tương ứng | Metadata/object class không thay thế attribute value |
-| `getMBeanInfo(name)` | Trả mô tả attribute/operation/notification | Không bảo đảm một attribute có thể đọc bởi mọi caller |
-| `getAttribute(name, attr)` | Đọc một attribute | Getter có thể tính toán/lock/throw |
-| `setAttribute(name, attr)` | Ghi một attribute | Có thể thay đổi trạng thái thực |
-| `invoke(name, operation, params, signature)` | Gọi operation | Có thể có tác động đáng kể |
-| `addNotificationListener(...)` | Nhận event khi MBean phát | Không hỗ trợ cho mọi MBean |
+| `registerMBean(bean, name)` | Registers an already-created MBean | Must follow MBean rules; an existing name throws `InstanceAlreadyExistsException` |
+| `unregisterMBean(name)` | Unregisters an MBean | Does not destroy the underlying Java object entirely |
+| `isRegistered(name)` | Checks if a name is registered at a point in time | Subject to races with concurrent register/unregister calls |
+| `getMBeanCount()` | Number of registered MBeans | Not the thread, process, or JVM count |
+| `queryNames(pattern, query)` | Returns matching ObjectNames | The returned set is a snapshot; ordering is not guaranteed |
+| `queryMBeans(pattern, query)` | Returns corresponding ObjectInstances | Metadata/object class does not replace attribute values |
+| `getMBeanInfo(name)` | Returns attribute/operation/notification descriptors | Does not guarantee every caller can read every attribute |
+| `getAttribute(name, attr)` | Reads a single attribute | A getter may compute, lock, or throw |
+| `setAttribute(name, attr)` | Writes a single attribute | May mutate live state |
+| `invoke(name, operation, params, signature)` | Invokes an operation | May have significant side effects |
+| `addNotificationListener(...)` | Subscribes to events emitted by an MBean | Not supported by all MBeans |
 
-Một số code mẫu dễ nhầm `createMBean` và `registerMBean`. `createMBean` nhờ MBeanServer khởi tạo và đăng ký theo tên class/loader; `registerMBean` đưa **object đã tạo** vào registry. Với ứng dụng có dependency injection, phương án đăng ký object sẵn có thường dễ quản lý vòng đời hơn. Khi tạo/hủy phải chú ý ownership của MBean để không register trùng sau redeploy.
+Some sample code confuses `createMBean` and `registerMBean`. `createMBean` asks the MBeanServer to instantiate and register by class/loader name; `registerMBean` puts an **already-created object** into the registry. In applications using dependency injection, registering an existing object is usually easier to manage across its lifecycle. During creation/teardown, track MBean ownership carefully to avoid duplicate registration after a redeploy.
 
-### 2.4 Có nhiều MBeanServer được không?
+### 2.4 Can there be multiple MBeanServers?
 
-JMX cũng có `MBeanServerFactory.createMBeanServer(...)` và `newMBeanServer(...)`. Một process có thể có server riêng ngoài platform server. Vì vậy việc tìm một MBean trong platform server mà không thấy **không đủ** để kết luận process không có MBean ở server khác. Ngược lại, nhiều công cụ chỉ kết nối platform server mặc định. Cần thống nhất nơi đăng ký MBean và endpoint client thực sự truy cập.
+JMX also provides `MBeanServerFactory.createMBeanServer(...)` and `newMBeanServer(...)`. A single process may have custom servers in addition to the platform server. Therefore, failing to find an MBean in the platform server is **not enough** to conclude the process has no MBeans in another server. Conversely, many tools only connect to the default platform server. Be consistent about where MBeans are registered and which endpoint clients actually access.
 
-Dùng platform server là lựa chọn điển hình cho runtime diagnostics, nhưng việc đăng ký một application MBean không tự cho phép bất kỳ người dùng nào trên mạng gọi nó.
+Using the platform server is the typical choice for runtime diagnostics, though registering an application MBean does not automatically allow any network user to invoke it.
 
-## 3. ObjectName: định danh có domain và key properties
+## 3. ObjectName: identifier with domain and key properties
 
-Một `ObjectName` điển hình:
+A typical `ObjectName`:
 
 ```text
 learning.jmx:type=QueueMetrics,name=Orders
   domain   :   key=value, key=value
 ```
 
-- **Domain** đứng trước dấu `:`, thường là namespace logic của sản phẩm, library hoặc JVM.
-- **Key properties** là các cặp `key=value` sau dấu hai chấm, ngăn cách bằng dấu phẩy. Ví dụ `type`, `name`, `service`, `instance`.
-- Trong một MBeanServer, tên ObjectName hợp lệ phải xác định một đăng ký duy nhất. Hai MBeans không thể đăng ký đồng thời với **cùng một ObjectName**.
-- Java platform MBeans thường có domain `java.lang`, chẳng hạn `java.lang:type=Memory`. Không dùng lại namespace JDK đó cho đối tượng nghiệp vụ tùy tiện.
+- The **domain** precedes the `:` and is usually the logical namespace of the product, library, or JVM.
+- **Key properties** are `key=value` pairs after the colon, separated by commas—for example `type`, `name`, `service`, `instance`.
+- Within a single MBeanServer, a valid ObjectName identifies a unique registration. Two MBeans cannot be simultaneously registered under the **exact same ObjectName**.
+- Java platform MBeans typically use the `java.lang` domain, such as `java.lang:type=Memory`. Do not reuse that JDK namespace for arbitrary business objects.
 
-ObjectName là một **định danh quản lý**, không mặc định là URL, địa chỉ IP, class Java, PID hoặc tên file. Một application có thể có `QueueMetrics` Java class nhưng đăng ký dưới `learning.jmx:type=QueueMetrics,name=Orders`.
+An ObjectName is a **management identifier**, not by default a URL, IP address, Java class, PID, or file name. An application can have a `QueueMetrics` Java class registered under `learning.jmx:type=QueueMetrics,name=Orders`.
 
-### 3.1 Tạo ObjectName bằng Java
+### 3.1 Creating an ObjectName in Java
 
 ```java
 import javax.management.ObjectName;
@@ -126,9 +126,9 @@ ObjectName name =
         new ObjectName("learning.jmx:type=QueueMetrics,name=Orders");
 ```
 
-Đây là đoạn minh họa cần đặt trong method với handling `MalformedObjectNameException`; ví dụ Java độc lập đầy đủ ở phần 8 khai báo `throws Exception` cho mục đích học.
+This snippet needs to be inside a method that handles `MalformedObjectNameException`; the full standalone Java example in section 8 declares `throws Exception` for learning purposes.
 
-Nếu tên đến từ cấu hình/user input hoặc chứa dấu cách, dấu phẩy, dấu bằng, dấu hai chấm, ký tự `*`/`?`, nên dùng **`ObjectName.quote(value)`** cho phần giá trị thay vì nối chuỗi tùy tiện:
+If the name comes from configuration/user input or contains spaces, commas, equals signs, colons, or `*`/`?` characters, use **`ObjectName.quote(value)`** for the value portion instead of ad-hoc string concatenation:
 
 ```java
 String serviceName = "Order API";
@@ -137,11 +137,11 @@ ObjectName quoted = new ObjectName(
         + ObjectName.quote(serviceName));
 ```
 
-Kết quả biểu diễn name có dấu nháy phù hợp với cú pháp JMX. Không cần tự escape riêng từng ký tự bằng giải pháp ad hoc; dùng các API JMX sẵn có.
+The resulting name representation is quoted according to JMX syntax. There is no need to hand-roll custom character escaping; use the built-in JMX APIs.
 
-### 3.2 ObjectName matching và pattern
+### 3.2 ObjectName matching and patterns
 
-`ObjectName` còn được dùng để truy vấn nhiều MBean:
+`ObjectName` is also used to query multiple MBeans:
 
 ```java
 ObjectName pattern =
@@ -149,48 +149,48 @@ ObjectName pattern =
 var names = server.queryNames(pattern, null);
 ```
 
-`pattern` khớp các tên trong domain `learning.jmx` có property `type=QueueMetrics` cùng những key properties bổ sung phù hợp. `queryNames` trả một `Set<ObjectName>`, **không có thứ tự được bảo đảm**. Khi cần xuất báo cáo ổn định, sắp xếp tên một cách tường minh.
+`pattern` matches names in the `learning.jmx` domain that have `type=QueueMetrics` along with any matching additional key properties. `queryNames` returns a `Set<ObjectName>` with **no guaranteed order**. When generating stable reports, sort the names explicitly.
 
-Ví dụ pattern khác:
+Other pattern examples:
 
-| ObjectName | Ý nghĩa minh họa |
+| ObjectName | Illustrative meaning |
 | --- | --- |
-| `java.lang:type=Memory` | Tên xác định của platform Memory MXBean |
-| `java.lang:type=GarbageCollector,*` | Mẫu tìm các garbage collector MBeans |
-| `learning.jmx:type=QueueMetrics,name=Orders` | MBean đích xác định |
-| `learning.jmx:type=QueueMetrics,*` | Pattern tìm cùng type, bất kể key khác |
-| `learning.jmx:*` | Mọi key-property lists trong domain đó |
-| `*:type=QueueMetrics,*` | Tìm type tương ứng ở nhiều domains (rộng; cần cẩn thận) |
+| `java.lang:type=Memory` | Exact name of the platform Memory MXBean |
+| `java.lang:type=GarbageCollector,*` | Pattern matching garbage collector MBeans |
+| `learning.jmx:type=QueueMetrics,name=Orders` | Specific target MBean |
+| `learning.jmx:type=QueueMetrics,*` | Pattern matching the same type, regardless of other keys |
+| `learning.jmx:*` | All key-property lists within that domain |
+| `*:type=QueueMetrics,*` | Matches that type across multiple domains (broad; use carefully) |
 
-Phân biệt **tên xác định để `registerMBean`** và **pattern để `queryNames`**. Không đăng ký MBean dưới tên chứa wildcard pattern; thiết kế tên thật cụ thể. Dùng `ObjectName.isPattern()` để phát hiện tên có pattern khi cần validate input.
+Distinguish between a **concrete name for `registerMBean`** and a **pattern for `queryNames`**. Do not register an MBean under a name containing wildcard patterns; design concrete names. Use `ObjectName.isPattern()` to detect pattern names when validating input.
 
-### 3.3 canonical name, thứ tự key và danh tính
+### 3.3 Canonical name, key order, and identity
 
-Hai ObjectName có key properties giống nhau nhưng thứ tự chuỗi khác nhau được JMX hiểu như cùng tên về mặt identity:
+Two ObjectNames with the same key properties in different string orders are treated by JMX as identical in identity:
 
 ```text
 learning.jmx:type=QueueMetrics,name=Orders
 learning.jmx:name=Orders,type=QueueMetrics
 ```
 
-`getCanonicalName()` đưa ra biểu diễn canonical để so sánh/lưu. **Không so sánh tên bằng phép so chuỗi raw tùy ý** nếu caller có thể thay thứ tự key. Dùng chính `ObjectName.equals` hoặc canonical name.
+`getCanonicalName()` returns a canonical representation for comparison/storage. **Do not compare names using arbitrary raw string comparison** if callers might reorder keys. Use `ObjectName.equals` or the canonical name.
 
-### 3.4 Thiết kế namespace để tránh trùng và rò rỉ dữ liệu
+### 3.4 Designing namespaces to prevent collisions and data leaks
 
-Quy tắc thực tế:
+Practical rules:
 
-1. Dùng domain của ứng dụng/tổ chức, tránh ghi đè `java.lang`.
-2. Dùng các key ổn định như `type` và `name`, thống nhất quy ước chữ hoa/thường.
-3. Không đưa access token, password, email người dùng, customer ID hoặc request ID bí mật vào ObjectName. **Tên MBean có thể hiện trong danh sách query**.
-4. Tránh mỗi request tạo một MBean: cardinality quá cao gây phình registry và metrics labels.
-5. Trên redeploy/hot reload, hủy đăng ký đúng bean mình sở hữu để tránh `InstanceAlreadyExistsException` hoặc giữ tham chiếu class loader không mong muốn.
-6. Mỗi JVM có registry riêng; ObjectName trùng ở **hai JVM khác nhau** là bình thường. Remote monitoring cần thêm JVM instance/host/container identity.
+1. Use your application's/organization's domain and avoid overriding `java.lang`.
+2. Use stable keys such as `type` and `name`, with a consistent casing convention.
+3. Never put access tokens, passwords, user emails, customer IDs, or secret request IDs into an ObjectName. **MBean names can appear in query listings**.
+4. Avoid creating one MBean per request: excessive cardinality bloats the registry and metric labels.
+5. On redeploy/hot reload, unregister the exact beans you own to prevent `InstanceAlreadyExistsException` or unintended class loader retention.
+6. Each JVM has its own registry; identical ObjectNames across **two different JVMs** are normal. Remote monitoring must include JVM instance/host/container identity.
 
-## 4. MBean là gì? Standard MBean, MXBean và DynamicMBean
+## 4. What is an MBean? Standard MBean, MXBean, and DynamicMBean
 
 ### 4.1 Standard MBean
 
-Một **Standard MBean** tuân theo quy ước tên interface: class `QueueMetrics` công bố management interface `QueueMetricsMBean`, với getter/setter và các method làm operation.
+A **Standard MBean** follows an interface naming convention: class `QueueMetrics` exposes management interface `QueueMetricsMBean`, with getters/setters and methods acting as operations.
 
 ```java
 public interface QueueMetricsMBean {
@@ -201,43 +201,43 @@ public interface QueueMetricsMBean {
 }
 ```
 
-Trong ví dụ độc lập, đây là toàn bộ nội dung tệp `QueueMetricsMBean.java`. JMX tự nhận biết:
+In the standalone example, this is the entire content of `QueueMetricsMBean.java`. JMX automatically recognizes:
 
-- `getQueueDepth()` và `setQueueDepth(int)` tạo attribute `QueueDepth` đọc/ghi.
-- `getStatus()` tạo attribute `Status` chỉ đọc.
-- `reset()` là một **operation**, không phải attribute.
-- Những phương thức nội bộ khác của class triển khai **không tự công bố** nếu không nằm trong management interface.
+- `getQueueDepth()` and `setQueueDepth(int)` create a read/write attribute `QueueDepth`.
+- `getStatus()` creates a read-only attribute `Status`.
+- `reset()` is an **operation**, not an attribute.
+- Other internal methods on the implementation class are **not automatically exposed** unless declared on the management interface.
 
-Method boolean dạng `isEnabled()` cũng có thể được nhận diện là getter của attribute `Enabled` theo quy tắc JavaBeans/JMX. Đừng lẫn tên method `getQueueDepth` với tên attribute **`QueueDepth`** khi gọi `getAttribute`.
+A boolean method like `isEnabled()` can also be recognized as the getter for attribute `Enabled` under JavaBeans/JMX rules. Do not confuse the method name `getQueueDepth` with the attribute name **`QueueDepth`** when calling `getAttribute`.
 
-Standard MBean không phải tự động công bố **mọi** public method của object; contract là interface đáp ứng quy ước và các quy tắc của JMX.
+A Standard MBean does not automatically expose **every** public method of an object; the contract is the interface following JMX naming and compliance rules.
 
 ### 4.2 MXBean
 
-**MXBean** là một biến thể cung cấp quy ước ánh xạ kiểu dữ liệu quản lý (open types) để client từ xa có thể hiểu mà không cần cùng các class domain tùy biến. Những platform beans như `MemoryMXBean`, `ThreadMXBean` và `GarbageCollectorMXBean` là ví dụ thường gặp. Trong MBeanServer, các giá trị phức tạp của MXBean có thể được trình bày theo `CompositeData`/`TabularData` khi truy cập qua JMX.
+An **MXBean** is a variant providing management data-type mapping rules (open types) so remote clients can understand values without needing custom domain classes. Platform beans such as `MemoryMXBean`, `ThreadMXBean`, and `GarbageCollectorMXBean` are common examples. Inside the MBeanServer, complex MXBean values can be represented as `CompositeData`/`TabularData` when accessed over JMX.
 
-Đọc Java API trong cùng process và đọc qua một JMX connector **không luôn có cùng kiểu object bên ngoài**; không cast bừa tất cả attribute remote thành Java bean gốc. `MBeanInfo` và MXBean type mapping là nguồn để biết dữ liệu nào được công bố.
+Reading via Java APIs in the same process and reading through a JMX connector **do not always yield the same outer object type**; do not blindly cast every remote attribute back to the original Java bean class. `MBeanInfo` and MXBean type mapping are the authoritative sources for what data is exposed.
 
 ### 4.3 Dynamic MBean
 
-`DynamicMBean` cho phép một object tự mô tả attributes/operations bằng `getMBeanInfo()` và tự xử lý `getAttribute`/`setAttribute`/`invoke`. Hữu ích khi management contract cần dựng động, nhưng dễ phức tạp và lỗi hơn so Standard MBean với interface rõ ràng.
+`DynamicMBean` allows an object to describe its own attributes/operations via `getMBeanInfo()` and handle `getAttribute`/`setAttribute`/`invoke` itself. This is useful when the management contract must be built dynamically, though it is more complex and error-prone than a Standard MBean with an explicit interface.
 
-### 4.4 Chọn mô hình nào?
+### 4.4 Which model should you choose?
 
-| Tình huống | Lựa chọn thường hợp lý | Vì sao |
+| Scenario | Usually sensible choice | Why |
 | --- | --- | --- |
-| Quản trị một service Java đơn giản | Standard MBean | Interface rõ, dễ test |
-| API giám sát cần kiểu dữ liệu portable | MXBean | Open-type mapping phù hợp JMX |
-| Contract thay đổi động theo runtime | DynamicMBean | Tự định nghĩa metadata/xử lý |
-| Chỉ cần xem heap/thread/GC JVM | Platform MXBeans có sẵn | Không cần xây bean mới |
-| Cần histogram latency có labels/cardinality | Metrics framework/exporter có schema thích hợp | JMX alone không tự sinh histogram/rate |
-| Cần chuỗi events có lưu trữ, replay | Messaging/event store hoặc logs/JFR | Notification JMX không phải durable event bus |
+| Managing a simple Java service | Standard MBean | Clear interface, easy to test |
+| Monitoring API needing portable data types | MXBean | Open-type mapping fits JMX |
+| Contract changes dynamically at runtime | DynamicMBean | Self-defined metadata/handling |
+| Only inspecting JVM heap/threads/GC | Built-in Platform MXBeans | No need to build a new bean |
+| Needing latency histograms with labels/cardinality | Metrics framework/exporter with proper schema | JMX alone does not generate histograms/rates |
+| Needing stored, replayable event streams | Messaging/event store or logs/JFR | JMX notifications are not a durable event bus |
 
-## 5. Attribute: giá trị có thể đọc và/hoặc thay đổi
+## 5. Attribute: readable and/or writable values
 
-### 5.1 Getter và setter tạo attribute
+### 5.1 Getters and setters create attributes
 
-Với management interface ở trên, `QueueDepth` là attribute **read/write**, `Status` là attribute **read-only**. Qua server:
+With the management interface above, `QueueDepth` is a **read/write** attribute and `Status` is a **read-only** attribute. Via the server:
 
 ```java
 Object value = server.getAttribute(name, "QueueDepth");
@@ -245,104 +245,104 @@ server.setAttribute(name, new Attribute("QueueDepth", 5));
 Object status = server.getAttribute(name, "Status");
 ```
 
-Đoạn này minh họa API, giả sử `server` và `name` đã được tạo và MBean đã đăng ký. `getAttribute` trả `Object`: client cần biết kiểu được mô tả bởi metadata. Dữ liệu bất hợp lệ hoặc tên sai có thể gây `AttributeNotFoundException`; lỗi trong getter/setter có thể được bao trong exception của JMX.
+This snippet illustrates the API, assuming `server` and `name` have been created and the MBean is registered. `getAttribute` returns `Object`: clients must know the type described by metadata. Invalid data or a wrong name can trigger `AttributeNotFoundException`; errors inside a getter/setter may be wrapped in JMX exceptions.
 
-**Đọc attribute không luôn miễn phí**: getter có thể đi vào lock, tính toán, gọi API chậm hoặc query hệ thống. Thiết kế MBean tốt nên giữ getter nhẹ, bounded và không vô tình làm network I/O trên request path. Một attribute thay đổi liên tục cũng chỉ là **ảnh chụp** khi gọi, không tự cung cấp lịch sử.
+**Reading an attribute is not always free**: a getter might acquire locks, perform calculations, call a slow API, or query a subsystem. Good MBean design keeps getters lightweight, bounded, and free of accidental network I/O on request paths. A continuously changing attribute is also only a **snapshot** at call time and provides no history on its own.
 
-### 5.2 Đọc nhiều attributes: getAttributes
+### 5.2 Reading multiple attributes: getAttributes
 
-`MBeanServer.getAttributes(name, new String[]{"QueueDepth","Status"})` trả `AttributeList`. Có tình huống một hoặc nhiều field không lấy được; **API có thể bỏ field đó khỏi kết quả**, chứ không bảo đảm danh sách trả về đủ số lượng theo yêu cầu. Cần kiểm tra danh sách nhận và phân biệt các trường missing.
+`MBeanServer.getAttributes(name, new String[]{"QueueDepth","Status"})` returns an `AttributeList`. In cases where one or more fields cannot be retrieved, **the API may omit those fields from the result**, rather than guaranteeing the returned list contains all requested items. Check the returned list and account for missing fields.
 
-Không lấy số phần tử trả về ít hơn rồi tự gán value theo vị trí của mảng yêu cầu nếu chưa kiểm tra tên từng `Attribute`. Khi cần biết lỗi cụ thể của một trường, dùng `getAttribute` riêng để bắt exception.
+Do not take a shorter returned list and map values positionally against the requested array without checking each `Attribute`'s name. When you need the exact exception for a specific field, use individual `getAttribute` calls.
 
-### 5.3 Readable, writable và isIs
+### 5.3 Readable, writable, and isIs
 
-`MBeanAttributeInfo` (trong `MBeanInfo`) có metadata:
+`MBeanAttributeInfo` (inside `MBeanInfo`) provides metadata:
 
-- `isReadable()`: caller về mặt interface có thể đọc; quyền vẫn có thể giới hạn.
-- `isWritable()`: có setter/ghi theo contract; **không có nghĩa nên ghi trong production**.
-- `isIs()`: attribute dùng dạng boolean `isXxx`.
-- `getType()` và `getDescription()`: kiểu, mô tả nếu được định nghĩa.
+- `isReadable()`: callers can read per the interface; permissions may still restrict access.
+- `isWritable()`: a setter/write method exists per the contract; **this does not mean it should be written in production**.
+- `isIs()`: the attribute uses the boolean `isXxx` pattern.
+- `getType()` and `getDescription()`: type and description if defined.
 
-Không dựa vào việc JConsole vẽ một trường thành textbox để suy ra hành động vô hại. Nếu setter cập nhật queue limit, feature switch hoặc GC configuration, việc ghi là **hành động thay đổi runtime** cần quyền và quy trình.
+Do not assume an action is harmless just because JConsole renders a field as an editable textbox. If a setter updates a queue limit, feature flag, or GC configuration, writing it is a **runtime-mutating action** requiring authorization and procedure.
 
-### 5.4 Thao tác xem khác thao tác thay đổi
+### 5.4 Observation vs. mutation
 
-| Tác vụ | Ví dụ | Tính chất |
+| Action | Example | Nature |
 | --- | --- | --- |
-| Đọc | `getAttribute(name,"QueueDepth")` | Quan sát; getter vẫn có thể tốn chi phí |
-| Ghi | `setAttribute(name,new Attribute("QueueDepth",5))` | Mutating; có thể kích hoạt logic ứng dụng |
-| Đọc metadata | `getMBeanInfo(name)` | Kiểm tra khả năng được công bố |
-| Truy vấn registry | `queryNames(pattern,null)` | Discover MBeans, không nhất thiết đọc values |
-| Gọi operation | `invoke(name,"reset",...)` | Có thể là read-only hoặc mutating, phải xem contract |
-| Subscribe | `addNotificationListener(...)` | Đăng ký nhận event, cần tháo đúng vòng đời |
+| Read | `getAttribute(name,"QueueDepth")` | Observation; getters can still carry cost |
+| Write | `setAttribute(name,new Attribute("QueueDepth",5))` | Mutating; may trigger application logic |
+| Read metadata | `getMBeanInfo(name)` | Inspects exposed capabilities |
+| Query registry | `queryNames(pattern,null)` | Discovers MBeans, does not necessarily read values |
+| Invoke operation | `invoke(name,"reset",...)` | May be read-only or mutating; inspect the contract |
+| Subscribe | `addNotificationListener(...)` | Registers for events; must be removed on lifecycle end |
 
-**Attribute không phải luôn là metric counter.** Có attribute là số hiện tại (gauge), có attribute là cấu hình, có attribute là counter tích lũy. Muốn tính rate từ counter phải lấy hai mẫu cùng instance và xử lý reset; không lấy một snapshot làm percentile hay latency history.
+**An attribute is not always a counter metric.** Some attributes are current values (gauges), some are configuration, and some are cumulative counters. To calculate a rate from a counter, take two samples from the same instance and handle resets; never derive percentiles or latency history from a single snapshot.
 
-## 6. Operation: hành động do MBean công bố
+## 6. Operation: actions exposed by an MBean
 
-Một method quản lý không theo mẫu getter/setter thường là **operation**. Ví dụ `QueueMetricsMBean.reset()` sẽ đặt queue depth về 0 trong bài thực hành. Qua MBeanServer:
+A management method that does not follow the getter/setter pattern is typically an **operation**. For example, `QueueMetricsMBean.reset()` sets the queue depth to 0 in our exercise. Via MBeanServer:
 
 ```java
 server.invoke(name, "reset", new Object[0], new String[0]);
 ```
 
-Tham số:
+Parameters:
 
-1. `name`: ObjectName của bean đã đăng ký.
-2. `"reset"`: tên operation được công bố.
-3. `params`: đối số thực, trong trường hợp này mảng rỗng.
-4. `signature`: tên các kiểu Java của tham số theo đúng thứ tự; trong trường hợp này mảng rỗng.
+1. `name`: ObjectName of the registered bean.
+2. `"reset"`: name of the exposed operation.
+3. `params`: actual arguments—an empty array in this case.
+4. `signature`: Java type names of the parameters in exact order—an empty array in this case.
 
-Khi operation có tham số `int count`, signature có thể chứa `"int"`, **không phải** `"java.lang.Integer"` nếu management interface khai báo primitive int. Sự khác biệt signature rất quan trọng khi overload. Với remote MXBeans, còn phải xét mapping kiểu dữ liệu và class compatibility.
+When an operation takes an `int count` parameter, the signature contains `"int"`, **not** `"java.lang.Integer"` if the management interface declares primitive `int`. Signature differences matter greatly for overloaded operations. For remote MXBeans, data-type mapping and class compatibility also apply.
 
-### 6.1 Không đồng nhất operation với phép đọc
+### 6.1 Do not equate operations with reads
 
-Một số operations chỉ trả thông tin, nhưng số khác có thể:
+Some operations only return information, while others may:
 
-- Reset counter hoặc clear cache.
-- Thay cấu hình runtime, bật/tắt tính năng.
-- Bắt đầu/kết thúc một recording hoặc công việc nền.
-- Chạy health/diagnostic command có chi phí cao.
-- Flush, reload, reconnect, close resource.
-- Gây tạm dừng hoặc thay đổi chất lượng dịch vụ.
+- Reset counters or clear caches.
+- Change runtime configuration or toggle features.
+- Start/stop a recording or background job.
+- Run expensive health/diagnostic commands.
+- Flush, reload, reconnect, or close resources.
+- Cause pauses or degrade service quality.
 
-Do đó, một dashboard/operator cần **liệt kê và phân quyền operation** riêng với read-only attributes. Gọi `invoke` thành công không chứng minh an toàn hay kết quả nghiệp vụ đã hoàn tất nếu operation kích hoạt việc bất đồng bộ.
+Therefore, a dashboard/operator must **list and authorize operations** separately from read-only attributes. A successful `invoke` return does not prove safety or that business work completed if the operation triggered asynchronous work.
 
-### 6.2 Xác định operation qua metadata
+### 6.2 Identifying operations via metadata
 
-`MBeanOperationInfo` cho biết tên, mô tả, signature và impact metadata như `INFO`, `ACTION`, `ACTION_INFO`, `UNKNOWN` khi MBean triển khai metadata đó. Thông tin impact là mô tả về intent, **không thay thế đánh giá side effect của code**.
+`MBeanOperationInfo` provides the name, description, signature, and impact metadata such as `INFO`, `ACTION`, `ACTION_INFO`, or `UNKNOWN` when implemented by the MBean. Impact metadata expresses intent, **and does not replace evaluating the code's actual side effects**.
 
-Với Standard MBean, nếu muốn mô tả metadata phong phú có thể dùng `@DescriptorKey`, StandardMBean customizer hoặc các cơ chế mô tả JMX khác; không giả định mặc định mọi method đều có description rõ ràng.
+With Standard MBeans, richer metadata descriptions can be added via `@DescriptorKey`, a `StandardMBean` customizer, or other JMX descriptor mechanisms; do not assume every method has clear descriptions by default.
 
-### 6.3 Vì sao signature quan trọng
+### 6.3 Why signature matters
 
-Hai operations giả định:
+Suppose two operations exist:
 
 ```java
 void clear();
 void clear(String scope);
 ```
 
-Qua `invoke`, cần phân biệt `clear()` với `clear(java.lang.String)`. Chỉ dùng tên `clear` mà signature sai có thể gây `ReflectionException` hoặc lỗi khi invoke. Đọc `MBeanInfo.getOperations()` để xác nhận tên/parameter types thực tế trước khi gọi, nhất là khi công cụ client hiển thị nhiều overloads.
+Through `invoke`, you must distinguish `clear()` from `clear(java.lang.String)`. Passing the name `clear` with the wrong signature can cause a `ReflectionException` or invocation failure. Inspect `MBeanInfo.getOperations()` to confirm actual names and parameter types before invoking, especially when client tools show multiple overloads.
 
-## 7. Notification: sự kiện, listener và những giới hạn
+## 7. Notification: events, listeners, and limitations
 
-### 7.1 Notification khác polling một attribute
+### 7.1 Notifications differ from polling an attribute
 
-Polling `getAttribute("QueueDepth")` mỗi 10 giây cho bạn các **mẫu trạng thái**. Nếu queue tăng nhanh qua ngưỡng rồi giảm giữa hai lần poll, bạn có thể không nhìn thấy peak. Một MBean được thiết kế để phát notification có thể chủ động gửi event **khi vượt ngưỡng**.
+Polling `getAttribute("QueueDepth")` every 10 seconds gives you **state samples**. If the queue spikes past a threshold and drops between two polls, you can miss the peak. An MBean designed to emit notifications can proactively send an event **when the threshold is crossed**.
 
-JMX có các kiểu:
+JMX provides these types:
 
-- `Notification`: object chứa `type`, `source`, `sequenceNumber`, `timeStamp`, message và `userData` tùy trường hợp.
+- `Notification`: object containing `type`, `source`, `sequenceNumber`, `timeStamp`, message, and optional `userData`.
 - `NotificationListener`: callback `handleNotification(notification,handback)`.
-- `NotificationBroadcaster` / `NotificationEmitter`: contract cho MBean phát event.
-- `NotificationBroadcasterSupport`: helper triển khai listener registration và `sendNotification(...)`.
-- `MBeanNotificationInfo`: metadata cho client biết những notification types bean có thể phát.
+- `NotificationBroadcaster` / `NotificationEmitter`: contracts for event-emitting MBeans.
+- `NotificationBroadcasterSupport`: helper implementing listener registration and `sendNotification(...)`.
+- `MBeanNotificationInfo`: metadata telling clients which notification types the bean can emit.
 
-**Chỉ vì một MBean có attribute không có nghĩa nó tự phát notification khi attribute đổi.** Code của MBean phải chủ động phát hoặc sử dụng implementation đã hỗ trợ. Ví dụ demo có điều kiện “depth từ dưới 5 lên ít nhất 5”; những lần đổi depth khác không phát event.
+**Just because an MBean has an attribute does not mean it automatically emits a notification when that attribute changes.** The MBean's code must explicitly emit it or use an implementation that supports it. The demo example has the condition "depth goes from below 5 to at least 5"; other depth changes do not emit an event.
 
-### 7.2 Kết nối listener qua MBeanServer
+### 7.2 Connecting a listener via MBeanServer
 
 ```java
 NotificationListener listener = (notification, handback) -> {
@@ -351,46 +351,46 @@ NotificationListener listener = (notification, handback) -> {
 server.addNotificationListener(name, listener, null, null);
 ```
 
-Ở đây `null` filter nghĩa là không lọc notification trước khi chuyển cho listener; `null` handback là không kèm context. Trong chương trình thực tế có thể dùng `NotificationFilter` để chỉ xử lý type cụ thể, và handback để phân biệt registration.
+Here a `null` filter means no filtering before delivering to the listener; a `null` handback means no attached context object. In real programs, use a `NotificationFilter` to handle only specific types and a handback object to distinguish registrations.
 
-Sau khi xong:
+When finished:
 
 ```java
 server.removeNotificationListener(name, listener);
 ```
 
-Nhớ tháo listener đúng vòng đời. Đăng ký chồng nhiều listener hoặc quên remove có thể gây giữ tham chiếu, callback lặp, lỗi class loader sau redeploy hoặc tăng chi phí dispatch.
+Remember to remove listeners according to lifecycle. Stacking duplicate listeners or forgetting to remove them can retain references, trigger duplicate callbacks, cause class loader leaks after redeploy, or increase dispatch overhead.
 
-### 7.3 Có những notification nào?
+### 7.3 What kinds of notifications exist?
 
-Một số MBeans phát notification theo sự kiện runtime cụ thể (ví dụ memory threshold khi được JVM hỗ trợ và được cấu hình). MBeanServer còn có **MBeanServerDelegate**, phát sự kiện registration/unregistration kiểu `MBeanServerNotification`. Nghe các sự kiện registry thông qua ObjectName `JMImplementation:type=MBeanServerDelegate` — không nhầm với event do MBean ứng dụng phát.
+Some MBeans emit notifications for specific runtime events (for example memory thresholds when supported and configured on the JVM). The MBeanServer also has **MBeanServerDelegate**, which emits registration/unregistration events of type `MBeanServerNotification`. Listen for registry events via ObjectName `JMImplementation:type=MBeanServerDelegate` — do not confuse them with events emitted by application MBeans.
 
-Ví dụ:
+Examples:
 
-| Nguồn | Event | Điều cần nhớ |
+| Source | Event | What to remember |
 | --- | --- | --- |
-| Custom `QueueMetrics` | `learning.queue.threshold` | Chỉ phát khi logic của bean gọi `sendNotification` |
-| Memory MXBean (khi hỗ trợ/cấu hình) | Memory threshold | Phụ thuộc pool/threshold support, không tự phát mọi thay đổi heap |
-| MBeanServerDelegate | Register/unregister MBean | Event về registry, không phải GC/queue event |
-| GC notification extension (nếu hỗ trợ) | GC completion information | Phụ thuộc implementation, cần hiểu memory/duration semantics |
+| Custom `QueueMetrics` | `learning.queue.threshold` | Emitted only when the bean's logic calls `sendNotification` |
+| Memory MXBean (when supported/configured) | Memory threshold | Depends on pool/threshold support; does not fire on every heap change |
+| MBeanServerDelegate | Register/unregister MBean | Registry event, not a GC/queue event |
+| GC notification extension (if supported) | GC completion information | Implementation-dependent; requires understanding memory/duration semantics |
 
-### 7.4 Thông tin sự kiện không đảm bảo là dữ liệu lịch sử bền vững
+### 7.4 Event delivery does not guarantee durable historical data
 
-Với `NotificationBroadcasterSupport`, **dispatch mặc định là đồng bộ**: gọi `sendNotification` có thể chạy callback trong luồng gọi, trừ khi cấu hình Executor khác hoặc subclass thay đổi hành vi. Listener chậm có thể làm chậm đường phát event; listener tự ghi log/đụng shared lock có thể gây tác động phụ.
+With `NotificationBroadcasterSupport`, **dispatch is synchronous by default**: calling `sendNotification` can run callbacks on the calling thread unless a different `Executor` is configured or a subclass overrides the behavior. A slow listener can slow down the emitter path; a listener that logs or touches shared locks can introduce side effects.
 
-Thông báo JMX cũng không phải message queue có đảm bảo lưu trữ và replay. Khi một client kết nối sau sự kiện, không nên mong sẽ nhận các event đã qua. Với remote connector, mất mạng, reconnect, lag, filtering và thời gian sống client có thể ảnh hưởng việc nhận event. Nếu cần **audit toàn vẹn, persistence, ordering liên dịch vụ, dead-letter/replay**, hãy dùng event store/log hoặc hệ thống messaging phù hợp.
+JMX notifications are also not a message queue with guaranteed storage and replay. If a client connects after an event occurs, it should not expect to receive past events. Over remote connectors, network drops, reconnects, lag, filtering, and client lifetimes all affect event delivery. If you need **complete auditing, persistence, cross-service ordering, or dead-letter/replay**, use a proper event store/log or messaging system.
 
-`sequenceNumber` có ích để theo dõi thứ tự theo **nguồn phát**, nhưng không phải global sequence cho cả cluster. Cùng sequence ở hai JVM không biểu thị cùng event. Timestamp và source cũng phải gắn với instance/timezone khi phân tích.
+`sequenceNumber` helps track order per **emitter**, but it is not a cluster-wide global sequence. Identical sequence numbers across two JVMs do not denote the same event. Timestamps and sources must also be paired with instance/timezone metadata during analysis.
 
-### 7.5 Notification và quyền riêng tư
+### 7.5 Notifications and privacy
 
-`userData` và `message` có thể chứa chi tiết nội bộ hoặc dữ liệu người dùng nếu developer đặt vào. Không đưa token, password, request body, email/customer ID vào notification phát cho client không kiểm soát. Nên gửi type, severity, alias/ID vô hại và metric cần thiết; bảo vệ remote JMX như các kênh xuất dữ liệu khác.
+`userData` and `message` can contain internal details or user data if a developer puts them there. Do not include tokens, passwords, request bodies, or emails/customer IDs in notifications emitted to uncontrolled clients. Emit only type, severity, harmless aliases/IDs, and needed metrics; protect remote JMX like any other data export channel.
 
-## 8. Ví dụ Java 17+ hoàn chỉnh: MBeanServer, ObjectName, attribute, operation và notification
+## 8. Complete Java 17+ example: MBeanServer, ObjectName, attribute, operation, and notification
 
-Ví dụ gồm **ba tệp trong cùng một thư mục**, dùng JDK 17 trở lên, chỉ cần module tiêu chuẩn `java.management`. Nó không mở network port và không thao tác hệ thống bên ngoài. Dữ liệu hoàn toàn mô phỏng trong bộ nhớ; stdout do code tạo có thứ tự xác định.
+The example consists of **three files in the same directory**, uses JDK 17 or newer, and requires only the standard `java.management` module. It opens no network ports and touches no external systems. All data is simulated in memory; stdout produced by the code has a deterministic order.
 
-### 8.1 Tệp QueueMetricsMBean.java
+### 8.1 File QueueMetricsMBean.java
 
 ```java
 public interface QueueMetricsMBean {
@@ -401,9 +401,9 @@ public interface QueueMetricsMBean {
 }
 ```
 
-Interface public định nghĩa contract Standard MBean; tên **`QueueMetricsMBean`** khớp class triển khai **`QueueMetrics`**. `QueueDepth` sẽ là read/write attribute, `Status` là read-only attribute, `reset` là operation.
+This public interface defines the Standard MBean contract; the name **`QueueMetricsMBean`** matches the implementation class **`QueueMetrics`**. `QueueDepth` will be a read/write attribute, `Status` a read-only attribute, and `reset` an operation.
 
-### 8.2 Tệp QueueMetrics.java
+### 8.2 File QueueMetrics.java
 
 ```java
 import javax.management.MBeanNotificationInfo;
@@ -462,15 +462,15 @@ public class QueueMetrics extends NotificationBroadcasterSupport
 }
 ```
 
-Cần phân biệt rõ:
+Keep these distinctions clear:
 
-- `queueDepth` và `nextSequence` là trạng thái của **ứng dụng mô phỏng**, không đọc được độ sâu của hàng đợi sản xuất.
-- Khi depth thay đổi từ **dưới 5** lên **từ 5 trở lên**, setter chủ động phát một notification. Nếu depth vẫn trên ngưỡng và tiếp tục tăng, code **không** phát lại.
-- `reset()` gọi setter với 0, không phát notification threshold vì không phải crossing theo hướng đi lên.
-- `NotificationBroadcasterSupport` cung cấp dispatch; `getNotificationInfo()` mô tả type mà bean có thể phát. Nếu bỏ logic `sendNotification`, metadata **không tự tạo event**.
-- Phần triển khai đơn giản giữ synchronized lock khi phát notification; điều đó chấp nhận trong demo một luồng, **không phải mẫu hot-path tối ưu cho production**. Với workload thật nên cập nhật trạng thái dưới lock, phát event bên ngoài critical section hoặc dùng cơ chế async có giới hạn hàng đợi, đo callback latency và quản lý backpressure.
+- `queueDepth` and `nextSequence` are state of the **simulated application**, not readings from a production queue.
+- When depth changes from **below 5** to **5 or higher**, the setter proactively emits one notification. If depth stays above the threshold and keeps increasing, the code **does not** emit again.
+- `reset()` calls the setter with 0 and does not emit a threshold notification because it is not an upward crossing.
+- `NotificationBroadcasterSupport` provides dispatch; `getNotificationInfo()` describes the type the bean can emit. Without the `sendNotification` logic, metadata **does not generate events on its own**.
+- This simple implementation holds the `synchronized` lock while emitting the notification; that is acceptable in a single-threaded demo, **not an optimal hot-path pattern for production**. For real workloads, update state under the lock, emit events outside the critical section or via a bounded async mechanism, measure callback latency, and manage backpressure.
 
-### 8.3 Tệp JmxConceptDemo.java
+### 8.3 File JmxConceptDemo.java
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -530,14 +530,14 @@ public class JmxConceptDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa đủ ba file:
+Compile and run from the directory containing all three files:
 
 ```bash
 javac QueueMetricsMBean.java QueueMetrics.java JmxConceptDemo.java
 java JmxConceptDemo
 ```
 
-Stdout **chính xác do chương trình phát ra** trên JVM tương thích trong điều kiện bình thường:
+**Exact stdout produced by the program** on a compatible JVM under normal conditions:
 
 ```text
 REGISTERED=true
@@ -551,34 +551,34 @@ AFTER_RESET=0
 UNREGISTERED=true
 ```
 
-**Vì sao thứ tự này hợp lý?**
+**Why does this order make sense?**
 
-1. `registerMBean` đưa MBean vào platform registry, nên `isRegistered` trả `true`.
-2. Pattern `learning.jmx:type=QueueMetrics,*` bao gồm ObjectName xác định, nên `queryNames(...).contains(name)` là `true`.
-3. `getMBeanInfo` trả metadata của bean đã đăng ký, không trả `null` trong trường hợp bình thường.
-4. `getAttribute("QueueDepth")` gọi getter trả giá trị khởi tạo `0`.
-5. `setAttribute` gọi setter với 5. Setter phát notification khi vượt ngưỡng. `NotificationBroadcasterSupport` mặc định dispatch đồng bộ, nên listener in dòng `NOTIFICATION=...` **trước khi** lệnh `setAttribute` trả về.
-6. Đọc lại `QueueDepth` được 5 và `Status` là `BUSY`.
-7. `invoke("reset", [], [])` gọi operation, depth thành 0.
-8. `finally` tháo listener và hủy đăng ký; kiểm tra cuối nhận `UNREGISTERED=true`.
+1. `registerMBean` adds the MBean to the platform registry, so `isRegistered` returns `true`.
+2. Pattern `learning.jmx:type=QueueMetrics,*` encompasses the concrete ObjectName, so `queryNames(...).contains(name)` is `true`.
+3. `getMBeanInfo` returns the registered bean's metadata, never `null` in normal cases.
+4. `getAttribute("QueueDepth")` calls the getter, returning initial value `0`.
+5. `setAttribute` invokes the setter with 5. The setter emits a notification upon crossing the threshold. `NotificationBroadcasterSupport` dispatches synchronously by default, so the listener prints `NOTIFICATION=...` **before** `setAttribute` returns.
+6. Reading `QueueDepth` again returns 5, and `Status` is `BUSY`.
+7. `invoke("reset", [], [])` runs the operation, setting depth to 0.
+8. `finally` removes the listener and unregisters the bean; the final check prints `UNREGISTERED=true`.
 
-Code cố tình chỉ in loại notification, không in timestamp, process ID hoặc tên MBean tự sinh để stdout có thể kiểm chứng. Trong môi trường thật, callback order giữa nhiều threads/event sources **không được suy từ ví dụ đơn luồng**.
+The code intentionally prints only the notification type—no timestamps, process IDs, or generated MBean names—so stdout remains deterministic. In real environments, callback order across multiple threads/event sources **must not be inferred from a single-threaded example**.
 
-### 8.4 Nếu biên dịch hoặc đăng ký thất bại?
+### 8.4 What if compilation or registration fails?
 
-- Đảm bảo tên file public class/interface đúng: `QueueMetricsMBean.java`, `QueueMetrics.java` và `JmxConceptDemo.java`.
-- Các file cùng default package cho mục đích học; với dự án thực nên dùng package rõ ràng, bố trí source tree tương ứng.
-- Dùng Java 17+ và JDK có `javac`, không dùng chỉ JRE tối giản.
-- `QueueMetrics` phải implement **đúng tên interface** `QueueMetricsMBean` và có public methods cần thiết.
-- Nếu đã có bean cùng ObjectName trong **cùng MBeanServer**, `registerMBean` ném `InstanceAlreadyExistsException`; demo chạy một JVM mới cho mỗi lệnh nên không có đăng ký cũ từ lần trước.
-- Nếu không có interface hợp lệ, `NotCompliantMBeanException` có thể xuất hiện. Không sửa bằng cách tự ý đăng ký một object bất kỳ rồi bỏ qua contract.
-- Nếu notification không xuất hiện, kiểm tra bean có thực sự phát `sendNotification`, listener đã được add **trước** khi setter đổi state và type/filter được cấu hình đúng.
+- Ensure public class/interface file names match exactly: `QueueMetricsMBean.java`, `QueueMetrics.java`, and `JmxConceptDemo.java`.
+- The files share the default package for learning purposes; in real projects, use explicit packages and mirror the source tree structure.
+- Use Java 17+ and a JDK containing `javac`, not just a minimal JRE.
+- `QueueMetrics` must implement the **exact interface name** `QueueMetricsMBean` and declare the required public methods.
+- If a bean with the same ObjectName is already registered in the **same MBeanServer**, `registerMBean` throws `InstanceAlreadyExistsException`; the demo runs a fresh JVM per command so there is no leftover registration from a prior run.
+- Without a valid interface, `NotCompliantMBeanException` may occur. Do not work around this by registering an arbitrary object and ignoring the contract.
+- If no notification appears, verify the bean actually calls `sendNotification`, the listener was added **before** the setter changed state, and types/filters are configured properly.
 
-## 9. Tự khám phá contract bằng MBeanInfo trước khi đọc/gọi
+## 9. Self-discovering contracts with MBeanInfo before reading/invoking
 
-Một client không nên đoán rằng mọi bean có attribute tên `Value` hoặc operation `reset`. `MBeanInfo` cho phép xác minh metadata.
+A client should never guess that every bean has an attribute named `Value` or an operation named `reset`. `MBeanInfo` lets you verify metadata first.
 
-Ví dụ **đoạn code bổ sung** (không phải lớp độc lập):
+Example **supplementary snippet** (not a standalone class):
 
 ```java
 import javax.management.MBeanAttributeInfo;
@@ -605,237 +605,237 @@ for (MBeanNotificationInfo n : info.getNotifications()) {
 }
 ```
 
-Các `import`/biến `server`/`name` cần đặt trong file/method phù hợp. Metadata order **không được dùng** làm một output cụ thể nếu chưa sắp xếp; ví dụ độc lập không in danh sách để tránh khẳng định thứ tự/đếm mà implementation có thể trình bày khác.
+The `import` statements and `server`/`name` variables belong inside an appropriate file/method. Metadata ordering **must not be relied upon** as a fixed output unless sorted; the standalone example omits printing these lists to avoid asserting an order/count that implementations might present differently.
 
-### 9.1 Vì sao metadata vẫn chưa phải mọi sự thật?
+### 9.1 Why metadata is still not the whole truth
 
-- `isWritable()` nói contract có thể ghi, **không bảo đảm caller có quyền** hoặc giá trị mới hợp lệ.
-- `getNotifications()` cho biết loại event bean khai báo, **không bảo đảm** event sẽ phát, listener sẽ nhận hoặc dữ liệu có tính bền vững.
-- `getOperations()` cho biết operation có trong contract, **không nói chắc** thời gian thực hiện, tính idempotent hoặc side effect.
-- `getClassName()` là thông tin metadata về class, không phải sự chứng minh quy trình nghiệp vụ đang khỏe.
-- Một MBean có thể biến mất giữa `queryNames` và `getMBeanInfo`; caller phải xử lý `InstanceNotFoundException`.
+- `isWritable()` states the contract supports writing; it **does not guarantee the caller has permission** or that a new value is valid.
+- `getNotifications()` lists the event types the bean declares; it **does not guarantee** events will fire, listeners will receive them, or data is durable.
+- `getOperations()` shows the operation exists in the contract; it **does not tell you** execution time, idempotency, or side effects.
+- `getClassName()` is metadata about the class, not proof that a business process is healthy.
+- An MBean can disappear between `queryNames` and `getMBeanInfo`; callers must handle `InstanceNotFoundException`.
 
-Nếu thực hiện nhiều `getAttribute` nối tiếp, dữ liệu có thể phản ánh **những thời điểm khác nhau**. JMX không tự tạo atomic snapshot toàn bộ JVM. Khi làm latency/GC/rate, phải lưu window/timestamp/instance identity.
+If multiple `getAttribute` calls run sequentially, the data may reflect **different instants in time**. JMX does not take an atomic snapshot of the entire JVM. When tracking latency/GC/rates, record windows, timestamps, and instance identity.
 
-## 10. JMX local và JMX remote: cùng mô hình, khác ranh giới tin cậy
+## 10. Local JMX and remote JMX: same model, different trust boundaries
 
-### 10.1 Local JMX không đòi mở port cho mọi người
+### 10.1 Local JMX does not require opening ports to everyone
 
-Ví dụ `ManagementFactory.getPlatformMBeanServer()` diễn ra trong **chính JVM**. JConsole/JMC có thể attach cục bộ tùy công cụ, implementation, quyền và chính sách runtime. Một service có MBeanServer không đồng nghĩa remote management đã bật.
+Calling `ManagementFactory.getPlatformMBeanServer()` happens inside the **same JVM**. JConsole/JMC may attach locally depending on the tool, implementation, permissions, and runtime policy. A service having an MBeanServer does not mean remote management is enabled.
 
-### 10.2 Remote client dùng MBeanServerConnection
+### 10.2 Remote clients use MBeanServerConnection
 
-Một JMX connector được cấu hình/hạn chế quyền có thể cấp đối tượng `MBeanServerConnection` để client gọi `queryNames`, `getAttribute` hoặc `invoke` theo permissions của endpoint. Các bước liên quan tới transport, discovery, authentication, TLS, network/firewall và lifecycle của connector **nằm ngoài phần mô hình cơ bản**, nhưng cần nhớ:
+A properly configured and restricted JMX connector can provide an `MBeanServerConnection` so clients can invoke `queryNames`, `getAttribute`, or `invoke` according to endpoint permissions. Steps involving transport, discovery, authentication, TLS, network/firewalls, and connector lifecycle **lie outside the basic model**, though you must remember:
 
-- JMX remote **không tự an toàn** vì nằm trên mạng nội bộ.
-- Không bật endpoint không xác thực hoặc TLS yếu trên production để tiện xem một metric.
-- Một operation có thể restart/reconfigure ứng dụng; **read-only và write privileges phải phân tách**.
-- Remote JMX dựa trên kết nối có thể timeout/đứt, object có thể biến mất, attribute có thể không serialize/marshal được theo kiểu mong đợi.
-- Các cổng/địa chỉ do connector/RMI công bố có thể liên quan NAT, containers, firewalls; lỗi kết nối không chứng minh MBean không tồn tại.
-- Nếu kết nối qua JConsole/JMC, kiểm tra chính xác process/service, user, quyền, môi trường, Java version và kết nối được tin cậy.
+- Remote JMX is **not automatically safe** simply because it sits on an internal network.
+- Never enable unauthenticated endpoints or weak TLS in production just for convenient metric viewing.
+- An operation can restart/reconfigure an application; **read-only and write privileges must be separated**.
+- Connection-based remote JMX can timeout or drop, objects can vanish, and attributes may fail to serialize/marshal as expected.
+- Ports/addresses advertised by the connector/RMI can involve NAT, containers, and firewalls; a connection error does not prove the MBean does not exist.
+- When connecting via JConsole/JMC, verify the exact process/service, user, permissions, environment, Java version, and trusted connection.
 
-Đối với mục tiêu học cú pháp, **không cần triển khai JMX remote**. Chương trình `JmxConceptDemo` hoàn toàn cục bộ, giảm rủi ro cấp quyền quá rộng.
+For learning syntax, **there is no need to deploy remote JMX**. The `JmxConceptDemo` program runs entirely locally, avoiding overly broad permission risks.
 
-### 10.3 ObjectName không định danh JVM từ xa
+### 10.3 ObjectName does not identify a remote JVM
 
-Hai JVM khác nhau đều có thể đăng ký `learning.jmx:type=QueueMetrics,name=Orders`. Nếu hệ thống giám sát tổng hợp từ nhiều JVM, key hoàn chỉnh cần cả **endpoint/JVM instance identity + ObjectName + timestamp**. Nếu không, time series dễ nhập nhằng hoặc ghi đè lẫn nhau.
+Two different JVMs can both register `learning.jmx:type=QueueMetrics,name=Orders`. If a monitoring system aggregates across multiple JVMs, the complete key needs **endpoint/JVM instance identity + ObjectName + timestamp**. Otherwise, time series can become ambiguous or overwrite each other.
 
-PID chỉ hữu ích ở một phạm vi host/namespace và có thể tái sử dụng sau restart. Một monitor đáng tin ghi thêm process start time, container/pod identity, service/version và môi trường; tránh gắn giá trị bí mật vào labels.
+A PID is only meaningful within one host/namespace scope and can be reused after a restart. A reliable monitor also records process start time, container/pod identity, service/version, and environment; avoid attaching secrets as labels.
 
-## 11. So sánh attribute, operation và notification trong tình huống chẩn đoán
+## 11. Comparing attributes, operations, and notifications in diagnostic scenarios
 
-| Câu hỏi vận hành | Chọn khả năng JMX nào? | Giới hạn |
+| Operational question | Which JMX capability? | Limitations |
 | --- | --- | --- |
-| “Queue depth hiện tại bằng bao nhiêu?” | Đọc attribute `QueueDepth` | Snapshot, không cho biết peak giữa hai samples |
-| “Trạng thái BUSY hay NORMAL?” | Đọc attribute `Status` | Contract của ứng dụng, không phải health check toàn diện |
-| “Đặt ngưỡng queue mới?” | Ghi attribute có setter tương ứng **nếu được thiết kế và được phép** | Mutating, cần validate/rate-limit/audit |
-| “Xóa/reset queue statistics?” | Gọi operation `reset` **khi có phê duyệt** | Có thể làm mất số liệu chẩn đoán |
-| “Báo ngay khi depth vượt 5?” | Subscribe notification từ bean hỗ trợ | Không bền vững; callback có thể chậm/mất |
-| “Có những khả năng nào?” | `getMBeanInfo` | Metadata không phải lịch sử dữ liệu |
-| “MBean nào được đăng ký?” | `queryNames`, `isRegistered` | Snapshot; tên có thể đổi sau redeploy |
-| “GC pause p99 là bao nhiêu?” | Không suy từ một attribute counter đơn lẻ | Cần event-level/GC logs/JFR/histogram |
+| "What is the current queue depth?" | Read attribute `QueueDepth` | Snapshot; does not reveal peaks between samples |
+| "Is the status BUSY or NORMAL?" | Read attribute `Status` | Application contract, not a comprehensive health check |
+| "Set a new queue threshold?" | Write attribute with a setter **if designed and authorized** | Mutating; requires validation/rate-limiting/auditing |
+| "Clear/reset queue statistics?" | Invoke operation `reset` **with approval** | Can wipe diagnostic figures |
+| "Alert immediately when depth exceeds 5?" | Subscribe to notifications from a supporting bean | Not durable; callbacks can lag or drop |
+| "What capabilities exist?" | `getMBeanInfo` | Metadata, not historical data |
+| "Which MBeans are registered?" | `queryNames`, `isRegistered` | Snapshot; names can change after redeploy |
+| "What is the p99 GC pause?" | Cannot be derived from a single counter attribute | Needs event-level data / GC logs / JFR / histograms |
 
-Các khả năng có thể kết hợp. Ví dụ giám sát queue có thể dùng attribute cho **gauge**, notification cho **thời điểm vượt ngưỡng** và operation để **điều khiển có kiểm soát**. Tuy nhiên, nếu cần lưu lịch sử và alert có bảo đảm, nên đưa dữ liệu từ JMX vào pipeline metrics/events đúng semantics.
+These capabilities can be combined. For example, queue monitoring might use attributes for **gauges**, notifications for **threshold crossings**, and operations for **controlled administration**. However, if you need historical retention and guaranteed alerting, route JMX data into a metrics/events pipeline with proper semantics.
 
-## 12. Các lỗi JMX thường gặp và nguyên nhân
+## 12. Common JMX errors and their causes
 
 ### 12.1 InstanceAlreadyExistsException
 
-**Tình huống:** cùng một ObjectName đã được đăng ký. Nguyên nhân thường là register hai lần, component khởi tạo lại, class loader/redeploy không unregister hoặc đặt tên thiếu instance-specific key.
+**Scenario:** the same ObjectName is already registered. Common causes include double registration, component re-initialization, class loader/redeploy without unregistering, or naming lacking an instance-specific key.
 
-**Khắc phục:** quản lý lifecycle rõ, xác định owner; `isRegistered` có thể giúp kiểm tra trước nhưng không loại bỏ race. Với concurrent registration, xử lý exception; không tự hủy MBean không thuộc mình chỉ để lấy tên.
+**Fix:** manage lifecycle cleanly and define ownership; `isRegistered` helps pre-check but does not eliminate races. Handle exceptions on concurrent registration; never unregister an MBean you do not own just to claim the name.
 
 ### 12.2 NotCompliantMBeanException
 
-**Tình huống:** object không đáp ứng Standard MBean/MXBean/DynamicMBean contract. Có thể interface không tên đúng, không public, method signature không hợp lệ hoặc kiểu không được ánh xạ theo MXBean rules.
+**Scenario:** the object does not satisfy the Standard MBean/MXBean/DynamicMBean contract. The interface may be misnamed or non-public, a method signature may be invalid, or a type may violate MXBean mapping rules.
 
-**Khắc phục:** kiểm tra compliance bằng interface `YourClassMBean` public; dùng `StandardMBean` wrapper khi muốn định nghĩa interface khác tên theo contract hợp lệ; với MXBean kiểm tra open-type mapping. Không tự coi mọi POJO là một MBean có thể đăng ký.
+**Fix:** verify compliance with a public `YourClassMBean` interface; use a `StandardMBean` wrapper when you need an interface name that differs from the class name under a valid contract; check open-type mapping for MXBeans. Never assume any arbitrary POJO can be registered as an MBean.
 
 ### 12.3 MalformedObjectNameException
 
-**Tình huống:** tên ObjectName sai cú pháp do thiếu domain/key, dấu phẩy/colon trong value, wildcard dùng sai vị trí hoặc giá trị không được quote đúng.
+**Scenario:** invalid ObjectName syntax due to missing domain/keys, unescaped commas/colons in values, misplaced wildcards, or improperly quoted values.
 
-**Khắc phục:** tách domain/key rõ ràng, dùng `ObjectName.quote` cho value động, kiểm tra `isPattern()` khi phân biệt registration và discovery. Không nối trực tiếp input từ user vào ObjectName dùng làm quyền truy cập.
+**Fix:** separate domain and keys cleanly, use `ObjectName.quote` for dynamic values, and check `isPattern()` when distinguishing registration from discovery. Never concatenate raw user input directly into ObjectNames used for authorization checks.
 
 ### 12.4 InstanceNotFoundException
 
-**Tình huống:** MBean không được đăng ký trong server được kết nối, hoặc đã unregister giữa lúc query và đọc.
+**Scenario:** the MBean is not registered in the connected server, or was unregistered between querying and reading.
 
-**Khắc phục:** xác minh endpoint, JVM instance và ObjectName canonical; kiểm tra lại `isRegistered` và lifecycle. **Không suy ra JVM process đã chết** từ một MBean biến mất: bean có thể được unregister trong process còn sống.
+**Fix:** verify the endpoint, JVM instance, and canonical ObjectName; recheck `isRegistered` and lifecycle. **Do not conclude the JVM process died** just because an MBean vanished: a bean can be unregistered while the process stays alive.
 
 ### 12.5 AttributeNotFoundException / InvalidAttributeValueException
 
-**Tình huống:** attribute sai tên/chữ hoa-thường, không readable/writable theo metadata, value sai kiểu/range hoặc setter từ chối.
+**Scenario:** wrong attribute name/casing, not readable/writable per metadata, wrong value type/range, or rejected by the setter.
 
-**Khắc phục:** xem `MBeanInfo.getAttributes()` và contract thực tế; phân biệt tên `getQueueDepth` của method với attribute `QueueDepth`. Với thay đổi giá trị, xác minh quyền và điều kiện nghiệp vụ trước khi retry.
+**Fix:** inspect `MBeanInfo.getAttributes()` and the actual contract; distinguish method name `getQueueDepth` from attribute name `QueueDepth`. When changing values, verify authorization and business preconditions before retrying.
 
 ### 12.6 ReflectionException / MBeanException
 
-**Tình huống:** gọi operation không khớp tên/signature hoặc code của method được gọi phát sinh exception. JMX có thể bọc lỗi ở lớp reflection/management exception.
+**Scenario:** invoking an operation with a mismatched name/signature or the invoked method itself throws an exception. JMX may wrap errors inside reflection/management exceptions.
 
-**Khắc phục:** xem chính xác `getOperations()`, parameter type strings và root cause, phân biệt lỗi client invocation với lỗi logic của bean. Đừng retry operation gây side effect mà không biết nó đã chạy một phần hay chưa.
+**Fix:** inspect `getOperations()`, exact parameter type strings, and root causes to separate client invocation errors from bean logic errors. Never retry a side-effecting operation without knowing whether it partially executed.
 
-### 12.7 “Notification không đến”
+### 12.7 "Notifications are not arriving"
 
-**Giả thuyết cần kiểm tra:**
+**Hypotheses to check:**
 
-- Bean có thực sự implement broadcaster/emitter và **gọi `sendNotification`** không?
-- Listener đã được add trước event chưa; có bị remove/disconnect/GC/class loader cleanup?
-- Type có bị filter chặn không; client có subscribe đúng ObjectName/JVM instance?
-- Sự kiện phát trước lúc subscribe? Không có history/replay mặc định.
-- Callback xử lý chậm, ném lỗi hoặc remote connection bị gián đoạn?
-- Nếu nhìn thấy event từ MBeanServerDelegate, có đang nhầm với event của bean ứng dụng không?
+- Does the bean actually implement broadcaster/emitter and **call `sendNotification`**?
+- Was the listener added before the event, or was it removed/disconnected/GC'd/cleaned up on class loader unload?
+- Is a filter blocking the type, and is the client subscribed to the right ObjectName/JVM instance?
+- Was the event emitted before subscribing? There is no default history/replay.
+- Is the callback slow or throwing, or did the remote connection drop?
+- If you see events from `MBeanServerDelegate`, are you mistaking them for application bean events?
 
-Không giải quyết bằng cách tăng polling vô hạn mà không biết notification contract.
+Do not try to solve this by cranking up polling infinitely without knowing the notification contract.
 
-### 12.8 Remote JMX timeout / lỗi kết nối
+### 12.8 Remote JMX timeout / connection errors
 
-Có thể do mạng, authentication, certificate/TLS, RMI endpoint/port/NAT, JMX connector chưa bật, quyền user, firewall hoặc JVM/collector bận. Một timeout **không đủ** kết luận “MBean bị hỏng”. Kiểm tra layer kết nối trước, sau đó mới kiểm tra ObjectName và metadata; không bypass bảo mật chỉ để xác minh.
+Possible causes include network issues, authentication, certificates/TLS, RMI endpoint/port/NAT, JMX connector not enabled, user permissions, firewalls, or a busy JVM/collector. A timeout **is not enough** to conclude "the MBean is broken." Check the connection layer first, then inspect the ObjectName and metadata; never bypass security just to verify.
 
-## 13. Thiết kế JMX MBean an toàn cho production
+## 13. Designing JMX MBeans safely for production
 
-### 13.1 Giới hạn quyền và diện tích thao tác
+### 13.1 Limit permissions and operational surface area
 
-Một MBean công bố operation `shutdown` hoặc setter thay cấu hình có thể trở thành bề mặt điều khiển nhạy cảm khi qua remote JMX. Nguyên tắc thiết kế:
+An MBean exposing a `shutdown` operation or configuration-changing setter can become a sensitive control surface over remote JMX. Design principles:
 
-1. Chỉ công bố những attributes/operations thực sự có nhu cầu vận hành.
-2. Tách **read-only telemetry** khỏi **mutating control** khi có thể.
-3. Kiểm soát authorization của connector và operation; không chỉ dựa vào khó đoán ObjectName.
-4. Ghi audit cho thay đổi có tác động, không log credential.
-5. Kiểm tra input/range, timeout, idempotency và khả năng gọi lặp.
-6. Không cho phép một getter/do operation thực hiện công việc vô hạn hoặc block request threads.
-7. Không công bố secret qua attribute, notification message/userData hoặc ObjectName.
+1. Expose only attributes/operations with genuine operational need.
+2. Separate **read-only telemetry** from **mutating control** wherever possible.
+3. Enforce connector and operation authorization; never rely solely on hard-to-guess ObjectNames.
+4. Audit impactful changes, without logging credentials.
+5. Validate inputs/ranges, timeouts, idempotency, and repeated invocation safety.
+6. Never let a getter or operation run unbounded work or block request threads.
+7. Never expose secrets through attributes, notification messages/userData, or ObjectNames.
 
-### 13.2 Getter và notification phải có chi phí kiểm soát
+### 13.2 Getters and notifications must have bounded cost
 
-Nếu `getQueueDepth()` cần scan một hàng đợi khổng lồ hoặc gọi DB, scraper tần suất cao có thể tự gây nghẽn. Nên dùng cache/snapshot cheap hoặc counter/gauge được cập nhật trong đường vận hành với synchronization phù hợp. Getter phải có semantics rõ về thời điểm và tính nhất quán; không giả định các attributes đọc lần lượt là atomic.
+If `getQueueDepth()` scans a massive queue or queries a database, high-frequency scrapers can induce contention themselves. Use cheap caches/snapshots or counters/gauges updated along the operational path with appropriate synchronization. Getters must have clear point-in-time and consistency semantics; never assume sequentially read attributes are atomic.
 
-Với notification, không thực hiện I/O lâu hoặc logic nặng ngay trong `handleNotification`. `NotificationBroadcasterSupport` mặc định dispatch synchronous: một listener chậm có thể làm sender chậm. Nếu cấu hình Executor async, phải thiết kế giới hạn queue, xử lý backpressure/drop và thứ tự khi nhiều worker chạy; không tự hứa “async = không mất event”.
+For notifications, avoid long I/O or heavy work inside `handleNotification`. `NotificationBroadcasterSupport` dispatches synchronously by default: one slow listener slows down the sender. If you configure an async `Executor`, design queue bounds, backpressure/drop handling, and multi-worker ordering; never promise "async = zero lost events."
 
-### 13.3 Metadata và labels không nên quá nhiều
+### 13.3 Avoid excessive metadata and label cardinality
 
-Nếu đăng ký một MBean cho mỗi customer/session/request, số lượng beans, ObjectNames và metric labels có thể tăng cực lớn. Cần chọn đối tượng aggregate có vòng đời rõ; dữ liệu per-request nên đi qua traces/logs hoặc event pipeline được kiểm soát, không qua registry JMX tùy tiện.
+Registering one MBean per customer/session/request explodes the number of beans, ObjectNames, and metric labels. Pick aggregate objects with clear lifecycles; per-request data belongs in traces/logs or controlled event pipelines, not arbitrary JMX registry entries.
 
-### 13.4 Vòng đời và tài nguyên
+### 13.4 Lifecycle and resources
 
-- Register khi component sẵn sàng quản trị, unregister khi component kết thúc/undeploy.
-- Tháo listener khi subscriber dừng, nhất là sau reconnect.
-- Dùng tên ổn định theo component nhưng đủ phân biệt nhiều instance trong **cùng JVM**.
-- Tránh giữ class loader cũ khi hot reload vì MBeanServer còn tham chiếu bean/listener.
-- Với event/metric mang thời gian, ghi JVM start time/instance để tránh nối nhầm sau restart.
-- Dành quyền truy cập raw management data cho vai trò cần thiết; số liệu nội bộ không tự động là public.
+- Register when the component is ready for management; unregister when it stops/undeploys.
+- Remove listeners when subscribers stop, especially across reconnects.
+- Use component-stable names that still distinguish multiple instances within the **same JVM**.
+- Avoid retaining old class loaders across hot reloads via lingering MBeanServer bean/listener references.
+- For time-based events/metrics, record JVM start time/instance to prevent stitching series erroneously across restarts.
+- Restrict raw management data access to necessary roles; internal metrics are not automatically public.
 
-## 14. Ba tình huống thực tế để ứng dụng
+## 14. Three real-world application scenarios
 
-### 14.1 Chẩn đoán thread pool bị nghẽn
+### 14.1 Diagnosing a saturated thread pool
 
-**Đề bài:** API latency p95 tăng; ứng dụng expose custom MBean về thread pool.
+**Scenario:** API p95 latency spikes; the application exposes a custom thread pool MBean.
 
-Quy trình:
+Procedure:
 
-1. Tìm ObjectName đúng bằng `queryNames` dưới domain của service đã xác minh.
-2. Đọc `MBeanInfo` để xem có `ActiveThreads`, `QueueDepth`, `CompletedTaskCount` hay không.
-3. Lấy mẫu attribute cùng timestamp/instance và đối chiếu HTTP rate, CPU, GC và application metrics.
-4. Nếu MBean phát `threadpool.saturation` notification, subscribe để có dấu mốc crossing, nhưng không dùng nó thay histogram latency.
-5. **Không gọi operation `reset` hay `shutdown`** chỉ để “xem thử” khi chưa xác minh side effect.
+1. Find the exact ObjectName using `queryNames` under the verified service domain.
+2. Read `MBeanInfo` to check whether `ActiveThreads`, `QueueDepth`, and `CompletedTaskCount` exist.
+3. Sample attributes with timestamp/instance metadata and correlate with HTTP rate, CPU, GC, and application metrics.
+4. If the MBean emits a `threadpool.saturation` notification, subscribe for crossing markers, but do not use it in place of latency histograms.
+5. **Never invoke `reset` or `shutdown`** just to "see what happens" without verifying side effects.
 
-Kết luận cần dựa vào cả queue metrics, number of threads và traces; một QueueDepth lớn ở một snapshot không nhất thiết là nguyên nhân duy nhất của latency.
+Conclusions must combine queue metrics, thread counts, and traces; a high QueueDepth in one snapshot is not necessarily the sole cause of latency.
 
 ### 14.2 Memory threshold
 
-Platform `MemoryMXBean` có thể phát memory notifications trong các điều kiện được JVM hỗ trợ và cấu hình. Nhưng threshold support phụ thuộc `MemoryPoolMXBean` cụ thể; không phải mọi pool có usage threshold, và bật threshold ở pool khác có thể làm số liệu khác.
+The platform `MemoryMXBean` can emit memory notifications when supported and configured by the JVM. However, threshold support depends on the specific `MemoryPoolMXBean`; not every pool supports usage thresholds, and enabling thresholds on different pools yields different figures.
 
-Phân biệt:
+Distinguish:
 
-- Attribute `HeapMemoryUsage` là snapshot/usage, không phải event log.
-- Threshold notification là event logic riêng, không nhất thiết xuất ở mọi GC.
-- Heap high không tự động là OOM; container memory pressure/RSS còn nhiều nguồn ngoài Java heap.
-- Nếu cần lịch sử memory pressure, cần metrics time series và logs/JFR.
+- The `HeapMemoryUsage` attribute is a usage snapshot, not an event log.
+- A threshold notification is a separate logical event and does not necessarily fire on every GC.
+- High heap does not automatically mean OOM; container memory pressure/RSS includes many sources outside Java heap.
+- If you need memory pressure history, you need time-series metrics and logs/JFR.
 
-### 14.3 Operation vận hành: clear cache
+### 14.3 Operational action: clearing a cache
 
-Một MBean có `CacheSize` attribute và `clearCache()` operation. Xem cache size có thể ít rủi ro; gọi clear có thể gây cache miss storm, tăng tải database và làm chậm request. Dùng `getMBeanInfo` để nhận diện operation, đọc runbook của service, xác định quyền và thời điểm; không tự thử trên production. Sự phân biệt attribute và operation là phân biệt **quan sát** với **can thiệp**, không chỉ cú pháp.
+An MBean has a `CacheSize` attribute and a `clearCache()` operation. Viewing cache size is low-risk; invoking clear can trigger a cache-miss storm, spike database load, and slow down requests. Use `getMBeanInfo` to identify operations, read the service runbook, verify permissions and timing; never test blindly in production. Distinguishing attributes from operations is distinguishing **observation** from **intervention**, not mere syntax.
 
-## 15. Checklist kiểm tra contract trước khi dùng JMX
+## 15. Contract checklist before using JMX
 
-- [ ] Đã xác nhận JVM/instance và MBeanServer/connector đang truy cập.
-- [ ] Biết ObjectName xác định; nếu dùng pattern, hiểu phạm vi query và không giả định thứ tự `Set`.
-- [ ] ObjectName không chứa credential/định danh nhạy cảm; tên động được quote/validate đúng.
-- [ ] Đã kiểm tra `MBeanInfo` trước khi đọc/ghi/gọi operation chưa biết.
-- [ ] Attribute có readable/writable metadata đúng và giá trị/đơn vị/semantics được hiểu.
-- [ ] Ghi attribute hoặc gọi operation chỉ khi có quyền và đã xác minh side effect.
-- [ ] `invoke` dùng đúng operation name, param types và signature.
-- [ ] MBean có support notifications thật; listener được đăng ký trước event và được gỡ lúc cleanup.
-- [ ] Không coi notification là sự kiện bền vững hay bảo đảm replay.
-- [ ] Gắn timestamp/instance vào snapshots; không suy rate/p99 từ một getter duy nhất.
-- [ ] Đã giới hạn chi phí getters, event callbacks và số MBeans/labels.
-- [ ] Remote JMX có authentication/TLS/authorization và network boundaries phù hợp; không mở endpoint công khai chỉ để debug.
-- [ ] Có cách xử lý mất kết nối, InstanceNotFound, counter reset, redeploy và listener lifecycle.
-- [ ] Bằng chứng JMX được đối chiếu với logs, GC/JFR/CPU và application telemetry khi cần kết luận nguyên nhân.
-- [ ] Chỉ chia sẻ metadata/attribute/notifications sau khi đánh giá dữ liệu nhạy cảm.
+- [ ] Confirmed the exact JVM/instance and MBeanServer/connector being accessed.
+- [ ] Known concrete ObjectName; if using a pattern, understood query scope and avoided assuming `Set` ordering.
+- [ ] ObjectName contains no credentials or sensitive identifiers; dynamic values are properly quoted/validated.
+- [ ] Inspected `MBeanInfo` before reading/writing/invoking unfamiliar targets.
+- [ ] Attribute readable/writable metadata is correct and value/units/semantics are understood.
+- [ ] Attribute writes or operation invocations occur only with authorization and verified side effects.
+- [ ] `invoke` uses exact operation name, parameter types, and signature.
+- [ ] Confirmed the MBean actually supports notifications; listener is registered before events and removed during cleanup.
+- [ ] Notifications are not treated as durable events or guaranteed replayable.
+- [ ] Snapshots are tagged with timestamp/instance; rates/p99 are not inferred from a single getter.
+- [ ] Bounded cost of getters, event callbacks, and MBean/label cardinality.
+- [ ] Remote JMX has appropriate authentication/TLS/authorization and network boundaries; no public endpoints opened just to debug.
+- [ ] Handled disconnects, InstanceNotFound, counter resets, redeploys, and listener lifecycle.
+- [ ] JMX evidence is corroborated with logs, GC/JFR/CPU, and application telemetry before concluding root cause.
+- [ ] Metadata/attributes/notifications are shared only after sensitive-data review.
 
-## 16. Bài tập tự kiểm tra
+## 16. Self-check exercises
 
-**Bài 1 — Phân biệt tên với đối tượng.** Trong một MBeanServer có đăng ký `learning.jmx:type=QueueMetrics,name=Orders`. Client query `learning.jmx:type=QueueMetrics,*` được bao nhiêu MBean?
+**Exercise 1 — Distinguishing names from objects.** An MBeanServer has `learning.jmx:type=QueueMetrics,name=Orders` registered. A client queries `learning.jmx:type=QueueMetrics,*`. How many MBeans are returned?
 
-**Đáp án:** Pattern có thể khớp bean này và các bean khác cùng domain/type; không thể suy số lượng chỉ từ một ví dụ. Cần chạy `queryNames`. ObjectName cũng không chỉ định PID/JVM ở nơi khác.
+**Answer:** The pattern can match this bean plus any other beans sharing the same domain and type; you cannot infer the count from a single example. You must run `queryNames`. Nor does the ObjectName specify PIDs or JVMs elsewhere.
 
-**Bài 2 — Getter và setter.** Interface có `int getQueueDepth()` và `void setQueueDepth(int)`. JMX attribute tên gì, có thể đọc/ghi thế nào?
+**Exercise 2 — Getter and setter.** An interface defines `int getQueueDepth()` and `void setQueueDepth(int)`. What is the JMX attribute name, and how is it read/written?
 
-**Đáp án:** Attribute là `QueueDepth`, có getter/setter. Đọc `getAttribute(name,"QueueDepth")` và ghi `setAttribute(name,new Attribute("QueueDepth",n))` nếu được phép; setter có thể thay đổi trạng thái.
+**Answer:** The attribute is `QueueDepth`, with both getter and setter. Read with `getAttribute(name,"QueueDepth")` and write with `setAttribute(name,new Attribute("QueueDepth",n))` if permitted; the setter may mutate state.
 
-**Bài 3 — Operation không tham số.** `reset()` trên Standard MBean được gọi thế nào?
+**Exercise 3 — Zero-argument operation.** How is `reset()` invoked on the Standard MBean?
 
-**Đáp án:** `server.invoke(name,"reset",new Object[0],new String[0])`. Nó là operation mutating trong ví dụ, không phải một read-only attribute.
+**Answer:** `server.invoke(name,"reset",new Object[0],new String[0])`. In the example it is a mutating operation, not a read-only attribute.
 
-**Bài 4 — Thời điểm notification.** Demo có QueueDepth từ 0 lên 5 trước khi listener được add. Sau khi add listener, có nhận event cũ không?
+**Exercise 4 — Notification timing.** In the demo, QueueDepth changes from 0 to 5 before the listener is added. After adding the listener, will it receive the past event?
 
-**Đáp án:** Không được bảo đảm và với bean demo sẽ không nhận, vì notification được phát tại lúc setter chạy; `NotificationBroadcasterSupport` không lưu replay history theo mặc định.
+**Answer:** It is not guaranteed, and with the demo bean it will not receive it, because the notification is emitted when the setter runs; `NotificationBroadcasterSupport` does not retain replay history by default.
 
-**Bài 5 — Vì sao JMX query thấy bean nhưng đọc attribute thất bại?**
+**Exercise 5 — Why might a JMX query find a bean while reading an attribute fails?**
 
-**Đáp án:** Có thể tên attribute sai, attribute không readable, bean bị unregister giữa hai bước, getter ném exception hoặc caller thiếu quyền. `queryNames` chỉ chứng minh bean được liệt kê ở lúc query.
+**Answer:** The attribute name may be wrong, the attribute may not be readable, the bean may have been unregistered between the two steps, the getter may throw an exception, or the caller may lack permission. `queryNames` only proves the bean was listed at query time.
 
-**Bài 6 — MXBean khác Standard MBean ở điểm gì?**
+**Exercise 6 — How does an MXBean differ from a Standard MBean?**
 
-**Đáp án:** MXBean có quy ước open-type mapping cho dữ liệu phù hợp client JMX, trong khi Standard MBean dùng contract Java interface theo quy tắc đặt tên. Khi đọc từ xa, object phức tạp có thể được biểu diễn dưới dạng `CompositeData` thay vì class ứng dụng gốc.
+**Answer:** MXBeans define open-type mapping conventions for data so JMX clients can consume them portably, whereas Standard MBeans use a Java interface contract following naming rules. When read remotely, complex objects can appear as `CompositeData` instead of the original application class.
 
-**Bài 7 — Một listener chậm có thể ảnh hưởng service không?**
+**Exercise 7 — Can a slow listener impact the service?**
 
-**Đáp án:** Có. `NotificationBroadcasterSupport` mặc định phát đồng bộ trong thread gọi `sendNotification`; một callback chậm có thể gây delay. Nếu dùng dispatch async, vẫn phải kiểm soát queue/ordering/drop.
+**Answer:** Yes. `NotificationBroadcasterSupport` dispatches synchronously by default on the thread calling `sendNotification`; a slow callback can introduce delays. Even with async dispatch, queue bounds, ordering, and drops must be managed.
 
-**Bài 8 — Có nên in `MBeanInfo` rồi thử invoke tất cả operations?**
+**Exercise 8 — Should you print `MBeanInfo` and try invoking every operation?**
 
-**Đáp án:** Không. Metadata giúp phát hiện contract nhưng operations có thể mutate/restart/flush và mang chi phí cao. Chỉ gọi operation phù hợp mục đích, quyền và runbook đã được phê duyệt.
+**Answer:** No. Metadata helps discover the contract, but operations can mutate, restart, flush, or incur high cost. Only invoke operations appropriate to your goal, permissions, and an approved runbook.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — MBeanServer](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/MBeanServer.html): registration, access, invocation, query, listener và lỗi.
-- [Java SE 21 — ObjectName](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/ObjectName.html): domain, key properties, pattern, quoting và canonical name.
-- [Java SE 21 — javax.management package](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/package-summary.html): MBean types, Standard MBean convention và access methods.
-- [Java SE 21 — MBeanInfo](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/MBeanInfo.html): metadata về attributes/operations/notifications.
-- [Java SE 21 — NotificationBroadcasterSupport](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/NotificationBroadcasterSupport.html): dispatcher mặc định đồng bộ, filters/listeners và executor.
-- [Java SE 21 — ManagementFactory](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ManagementFactory.html): lấy platform MBeanServer và platform MXBeans.
-- [Oracle JMX Technology Tutorial](https://docs.oracle.com/javase/tutorial/jmx/index.html): ví dụ Standard MBeans, operations, notifications và clients (tài liệu tutorial của Java SE 8; đọc kèm Javadoc release đang dùng).
+- [Java SE 21 — MBeanServer](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/MBeanServer.html): registration, access, invocation, queries, listeners, and errors.
+- [Java SE 21 — ObjectName](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/ObjectName.html): domain, key properties, patterns, quoting, and canonical name.
+- [Java SE 21 — javax.management package](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/package-summary.html): MBean types, Standard MBean conventions, and access methods.
+- [Java SE 21 — MBeanInfo](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/MBeanInfo.html): metadata for attributes/operations/notifications.
+- [Java SE 21 — NotificationBroadcasterSupport](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/NotificationBroadcasterSupport.html): default synchronous dispatcher, filters/listeners, and executor.
+- [Java SE 21 — ManagementFactory](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ManagementFactory.html): obtaining the platform MBeanServer and platform MXBeans.
+- [Oracle JMX Technology Tutorial](https://docs.oracle.com/javase/tutorial/jmx/index.html): Standard MBeans, operations, notifications, and client examples (Java SE 8 tutorial; read alongside the Javadoc for your active release).
 
-**Ghi nhớ:** `MBeanServer` là registry/đầu mối thao tác; `ObjectName` chỉ đúng MBean trong một server; `attribute` là trạng thái/cấu hình được công bố; `operation` là hành động có thể gây tác động; `notification` là sự kiện được bean thiết kế phát, không phải log bền vững. Khi làm runtime diagnostics, **khám phá bằng metadata, đọc đúng trường, kiểm soát lệnh thay đổi, quản lý listener và bảo mật kết nối**, rồi ghép dữ liệu JMX với logs, metrics và events theo thời gian để kết luận.
+**Key takeaway:** `MBeanServer` is the registry and access point; `ObjectName` identifies the exact MBean within one server; `attribute` is exposed state/configuration; `operation` is an action that may have side effects; `notification` is an event a bean is designed to emit, not a durable log. In runtime diagnostics, **discover via metadata, read the right fields, control mutating commands, manage listeners, and secure connections**, then combine JMX data with logs, metrics, and time-correlated events to reach conclusions.

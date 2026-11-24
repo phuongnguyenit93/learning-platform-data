@@ -1,48 +1,48 @@
-# 6.1 Block cipher, stream cipher, mode và padding
+# 6.1 Block Ciphers, Stream Ciphers, Modes, and Padding
 
-## 1. Vì sao cần phân biệt bốn khái niệm?
+## 1. Why Do We Need to Distinguish These Four Concepts?
 
-**Mã hóa đối xứng** sử dụng khóa bí mật để mã hóa và giải mã. Tuy nhiên, **thuật toán nguyên thủy**, **mode**, **padding** và **xác thực** không phải một thứ. Chọn khóa AES dài 256 bit chưa quyết định cách ứng dụng xử lý một file nhiều megabyte hoặc biết ciphertext có bị sửa hay không.
+**Symmetric encryption** uses a secret key to encrypt and decrypt. However, the **primitive algorithm**, **mode**, **padding**, and **authentication** are not the same thing. Choosing a 256-bit AES key does not determine how an application processes a multi-megabyte file or knows whether the ciphertext has been modified.
 
-Bài này tạo nền tảng cho chương: nhận diện AES là block cipher, ChaCha20 là stream cipher, hiểu mode của AES và khi nào cần padding, rồi phân biệt mã hóa thuần với mã hóa có xác thực (AEAD). Những bài tiếp theo sẽ chuyên sâu vào transformation/provider, key management, chu trình Cipher, ECB/CBC/CTR, GCM và ChaCha20. Các ví dụ ở đây tập trung **hình thái dữ liệu và nguyên tắc lựa chọn** thay vì lặp lại triển khai chuyên sâu của từng mode.
+This lesson builds the foundation for the chapter: identifying AES as a block cipher and ChaCha20 as a stream cipher, understanding AES modes and when padding is needed, and distinguishing encryption-only schemes from authenticated encryption (AEAD). Subsequent lessons dive deeper into transformations/providers, key management, the Cipher lifecycle, ECB/CBC/CTR, GCM, and ChaCha20. The examples here focus on **data shapes and selection principles** rather than repeating deep implementations of each mode.
 
-Mục tiêu sau bài:
+Learning objectives after this lesson:
 
-1. Giải thích AES có block 128 bit dù key có thể là 128/192/256 bit.
-2. Mô tả stream cipher sinh keystream và XOR với dữ liệu, cùng hậu quả của việc tái sử dụng keystream.
-3. Nêu ý nghĩa và khác biệt của ECB, CBC, CTR, GCM trong cách dùng AES nhiều block.
-4. Tính đúng số byte padding CBC và phân biệt padding với authentication tag.
-5. Phân biệt key, IV/nonce, counter, AAD, tag và biết khi nào cần AEAD.
-6. Dự đoán kết quả demo Java 17+ cho block cipher với input không tròn block và stream cipher với input 17 byte.
+1. Explain why AES has a 128-bit block size even though the key can be 128/192/256 bits.
+2. Describe how a stream cipher generates a keystream and XORs it with data, along with the consequences of reusing a keystream.
+3. State the meaning and differences of ECB, CBC, CTR, and GCM when using AES across multiple blocks.
+4. Calculate the exact number of CBC padding bytes and distinguish padding from an authentication tag.
+5. Distinguish key, IV/nonce, counter, AAD, and tag, and know when AEAD is required.
+6. Predict the output of a Java 17+ demo for a block cipher with non-block-aligned input and a stream cipher with 17-byte input.
 
-## 2. Block cipher: mã hóa từng khối có kích thước cố định
+## 2. Block Ciphers: Encrypting Fixed-Size Blocks
 
-**Block cipher** biến đổi một khối plaintext có độ dài xác định thành một khối ciphertext cùng độ dài theo khóa bí mật:
+A **block cipher** transforms a plaintext block of a fixed length into a ciphertext block of the same length under a secret key:
 
 ```text
 EncryptBlock(K, P) -> C
 DecryptBlock(K, C) -> P
 ```
 
-**AES** có block size cố định **128 bit = 16 byte**. Ba biến thể thường dùng chỉ khác **kích thước khóa**:
+**AES** has a fixed block size of **128 bits = 16 bytes**. The three commonly used variants differ only in **key size**:
 
-| Tên AES | Khóa | Block AES |
+| AES Name | Key | AES Block |
 | --- | ---: | ---: |
 | AES-128 | 128 bit = 16 byte | 128 bit = 16 byte |
 | AES-192 | 192 bit = 24 byte | 128 bit = 16 byte |
 | AES-256 | 256 bit = 32 byte | 128 bit = 16 byte |
 
-Vì vậy “AES-256” **không** có nghĩa AES xử lý một block 32 byte. Nếu plaintext có 11 byte, phép mã hóa một block thô không tự biết thêm hoặc ghép dữ liệu ra sao. Nếu plaintext là file 1 GB, thuật toán block cơ sở cũng không tự định nghĩa thứ tự và quan hệ giữa các block.
+Therefore, "AES-256" does **not** mean AES processes a 32-byte block. If the plaintext is 11 bytes, a raw single-block encryption operation does not inherently know how to pad or combine data. If the plaintext is a 1 GB file, the underlying block algorithm also does not inherently define the ordering and relationship between blocks.
 
-Để xử lý thông điệp dài cần một **mode of operation**. Một số mode dùng IV/nonce, một số dùng padding; những quyết định này ảnh hưởng trực tiếp đến bảo mật.
+To process long messages, a **mode of operation** is required. Some modes use an IV/nonce, and some use padding; these decisions directly impact security.
 
-### Vì sao không mã hóa độc lập từng block?
+### Why Not Encrypt Each Block Independently?
 
-Nếu cùng khóa AES được dùng cho cùng block plaintext thì đầu ra của phép mã hóa block cơ sở giống nhau. Nếu toàn bộ thông điệp được chia thành các block rồi mã hóa độc lập theo ECB, hai block plaintext bằng nhau sẽ tạo hai block ciphertext bằng nhau. Kẻ quan sát có thể phát hiện mẫu lặp dù không đọc được byte plaintext. **Tăng độ dài khóa không loại bỏ lỗi lộ mẫu của ECB.**
+If the same AES key is used on the same plaintext block, the output of the underlying block encryption operation is identical. If the entire message is split into blocks and encrypted independently under ECB, two equal plaintext blocks produce two equal ciphertext blocks. An observer can detect repeating patterns even without reading plaintext bytes. **Increasing the key length does not eliminate ECB's pattern-leakage flaw.**
 
-## 3. Stream cipher: luồng khóa và phép XOR
+## 3. Stream Ciphers: Keystream and XOR
 
-**Stream cipher** sinh ra một chuỗi byte giả ngẫu nhiên mật mã (keystream) từ khóa và các tham số, rồi XOR với plaintext:
+A **stream cipher** generates a cryptographically pseudorandom byte sequence (keystream) from the key and parameters, then XORs it with the plaintext:
 
 ```text
 keystream = Stream(K, nonce, counter, ...)
@@ -50,11 +50,11 @@ C = P XOR keystream
 P = C XOR keystream
 ```
 
-Vì xử lý theo byte/luồng, plaintext 17 byte thường tạo 17 byte ciphertext, **không cần đệm cho đủ block AES 16 byte**.
+Because it operates on a byte/stream basis, a 17-byte plaintext typically produces 17 bytes of ciphertext, **without needing padding to fit a 16-byte AES block**.
 
-**ChaCha20** là một stream cipher hiện đại: biến thể IETF dùng **khóa 256 bit**, **nonce 96 bit** và bộ đếm block. ChaCha20 thuần chỉ mã hóa; **ChaCha20-Poly1305** thêm Poly1305 để có xác thực AEAD. Hai tên này không được sử dụng thay thế cho nhau.
+**ChaCha20** is a modern stream cipher: the IETF variant uses a **256-bit key**, a **96-bit nonce**, and a block counter. Plain ChaCha20 only encrypts; **ChaCha20-Poly1305** adds Poly1305 to provide AEAD authentication. These two names must not be used interchangeably.
 
-Nguy cơ nguy hiểm nhất ở mode dựa trên keystream là dùng lại cùng vùng keystream. Nếu hai plaintext khác nhau cùng XOR với `S`:
+The most dangerous risk in keystream-based modes is reusing the same keystream region. If two different plaintexts are XORed with the same `S`:
 
 ```text
 C1 = P1 XOR S
@@ -62,36 +62,36 @@ C2 = P2 XOR S
 => C1 XOR C2 = P1 XOR P2
 ```
 
-Kẻ quan sát có thể suy ra quan hệ giữa hai plaintext, và từ một phần plaintext đã biết có thể suy ra phần còn lại. Do đó, với stream cipher và AES-CTR, **nonce/counter phải được quản lý để không tái dùng vùng keystream dưới cùng khóa**. Không dùng IV/counter mặc định là toàn 0 lặp lại cho các message.
+An observer can deduce the relationship between the two plaintexts, and from a known portion of one plaintext can recover the corresponding portion of the other. Therefore, with stream ciphers and AES-CTR, **the nonce/counter must be managed so that keystream regions are never reused under the same key**. Do not use an all-zero default IV/counter repeatedly across messages.
 
-**Cảnh báo:** stream cipher có thể được giải mã thành công ngay cả khi ciphertext bị sửa một bit. Muốn chống sửa đổi, cần cơ chế xác thực như AEAD hoặc sơ đồ được thiết kế an toàn; không xem phép giải mã thành công là kiểm tra toàn vẹn.
+**Warning:** a stream cipher can still decrypt "successfully" even if a bit in the ciphertext has been flipped. To defend against modification, an authentication mechanism such as AEAD or a properly designed scheme is required; do not treat successful decryption as an integrity check.
 
-## 4. Mode: cách sử dụng AES cho một thông điệp
+## 4. Modes: How AES Is Used for a Message
 
-Một **mode** xác định cách phối hợp nhiều block và các tham số như IV/counter, chứ không làm thay đổi kích thước block AES. Bảng so sánh chỉ nêu đặc điểm nền tảng:
+A **mode** defines how multiple blocks and parameters like IV/counter are coordinated, without changing the AES block size. The comparison table below covers only foundational characteristics:
 
-| Mode | Cách xử lý | IV/nonce | Padding | Có authentication tag sẵn? |
+| Mode | How It Works | IV/nonce | Padding | Built-in Authentication Tag? |
 | --- | --- | --- | --- | --- |
-| ECB | Mỗi block độc lập | Không | Có nếu không tròn block | **Không** |
-| CBC | Chaining với ciphertext block trước | IV mới, khó dự đoán cho encryption | Thường dùng PKCS5Padding | **Không** |
-| CTR | Mã hóa counter block thành keystream rồi XOR | Counter block không trùng dưới cùng khóa | Không | **Không** |
-| GCM | Counter mode kết hợp cơ chế xác thực GCM | IV/nonce duy nhất mỗi lần encrypt theo khóa | Không | **Có** |
+| ECB | Each block independently | No | Yes if not block-aligned | **No** |
+| CBC | Chaining with previous ciphertext block | Fresh, unpredictable IV for encryption | Usually uses PKCS5Padding | **No** |
+| CTR | Encrypts counter blocks into a keystream, then XORs | Non-repeating counter blocks under the same key | No | **No** |
+| GCM | Counter mode combined with GCM authentication mechanism | Unique IV/nonce per encryption under a key | No | **Yes** |
 
-**ECB:** đơn giản để minh họa một phép mã hóa block nhưng làm lộ các block plaintext lặp. **Không chọn ECB để mã hóa dữ liệu ứng dụng.**
+**ECB:** simple for illustrating a single block encryption, but leaks repeating plaintext blocks. **Do not choose ECB for encrypting application data.**
 
-**CBC:** dùng IV (với AES thường là 16 byte) và nối trạng thái các block, khắc phục lộ mẫu theo cách của ECB khi IV phù hợp. Tuy nhiên, CBC thuần **không xác thực dữ liệu**. Sửa IV/ciphertext có thể tác động đến plaintext; lộ lỗi padding có thể tạo padding oracle. Nếu bắt buộc dùng CBC legacy, cần cơ chế xác thực đúng như Encrypt-then-MAC và kiểm MAC **trước** khi giải mã.
+**CBC:** uses an IV (typically 16 bytes for AES) and chains block states, mitigating ECB-style pattern leakage when the IV is chosen properly. However, plain CBC **does not authenticate data**. Modifying the IV/ciphertext can affect the plaintext; leaking padding errors can create a padding oracle. If legacy CBC must be used, a proper authentication mechanism such as Encrypt-then-MAC is required, verifying the MAC **before** decryption.
 
-**CTR:** lấy keystream từ các counter block; ciphertext dài bằng plaintext. Nếu counter block lặp dưới cùng khóa, keystream lặp và an toàn bị phá vỡ. CTR không tự phát hiện bit-flipping.
+**CTR:** derives a keystream from counter blocks; the ciphertext has the same length as the plaintext. If a counter block repeats under the same key, the keystream repeats and security is broken. CTR does not detect bit-flipping on its own.
 
-**GCM:** một chế độ **AEAD (Authenticated Encryption with Associated Data)**, bảo vệ bí mật và kiểm tra toàn vẹn/xác thực bằng **authentication tag**. Trong Java thường dùng `AES/GCM/NoPadding`, nonce 12 byte và tag 128 bit, với yêu cầu tuyệt đối **không lặp nonce khi mã hóa cùng khóa**. GCM không tự quản lý key, quyền nghiệp vụ hay chống phát lại một packet hợp lệ.
+**GCM:** an **AEAD (Authenticated Encryption with Associated Data)** mode that protects confidentiality and verifies integrity/authenticity via an **authentication tag**. In Java, `AES/GCM/NoPadding` is commonly used with a 12-byte nonce and a 128-bit tag, under the strict requirement of **never repeating a nonce when encrypting under the same key**. GCM does not handle key management, authorization rules, or replay protection for a valid packet on its own.
 
-Điểm phân định: ECB/CBC/CTR giúp hiểu cơ chế mode và rủi ro của **encryption-only**; AES-GCM minh họa lựa chọn AEAD thường phù hợp hơn cho dữ liệu mới. Phân tích tấn công CBC/CTR và HMAC Encrypt-then-MAC được học sâu ở bài 6.5.
+Distinction: ECB/CBC/CTR help illustrate mode mechanics and the risks of **encryption-only** schemes; AES-GCM illustrates an AEAD option that is generally better suited for new data. CBC/CTR attacks and HMAC Encrypt-then-MAC are studied in depth in lesson 6.5.
 
-## 5. Padding chỉ xử lý độ dài, không phải xác thực
+## 5. Padding Only Handles Length, Not Authentication
 
-Một số mode block như ECB/CBC cần plaintext có độ dài bội số 16 byte nếu dùng `NoPadding`. `PKCS5Padding` trong Java JCE dùng quy tắc đệm block kiểu PKCS#7 tương thích AES: thêm `n` byte, mỗi byte có giá trị `n`. Nếu plaintext đã tròn block, thêm **cả một block padding** để có cách bỏ padding không mơ hồ.
+Some block modes like ECB/CBC require plaintext whose length is a multiple of 16 bytes if `NoPadding` is used. `PKCS5Padding` in Java JCE applies PKCS#7-style block padding rules compatible with AES: append `n` bytes, each having value `n`. If the plaintext is already block-aligned, **a full block of padding** is appended so unpadding is unambiguous.
 
-| Plaintext | Padding thêm với AES/CBC/PKCS5Padding | Ciphertext |
+| Plaintext | Padding Added with AES/CBC/PKCS5Padding | Ciphertext |
 | ---: | ---: | ---: |
 | 0 byte | 16 byte | 16 byte |
 | 1 byte | 15 byte | 16 byte |
@@ -100,36 +100,36 @@ Một số mode block như ECB/CBC cần plaintext có độ dài bội số 16 
 | 16 byte | 16 byte | 32 byte |
 | 17 byte | 15 byte | 32 byte |
 
-Với 11 byte input, padding năm byte có giá trị hex `05 05 05 05 05`. Với 16 byte, thêm nguyên 16 byte có giá trị `10`. **Padding hợp lệ không chứng minh ciphertext chưa bị sửa**; người tấn công có thể tác động vào CBC ngay cả khi thao tác giải mã không báo exception.
+With an 11-byte input, five padding bytes are appended with hex value `05 05 05 05 05`. With 16 bytes, a full 16 bytes of value `10` are appended. **Valid padding does not prove the ciphertext has not been tampered with**; an attacker can manipulate CBC even when decryption throws no exception.
 
-**NoPadding có các nghĩa thực tế khác nhau:**
+**NoPadding has different practical meanings:**
 
-- `AES/ECB/NoPadding` và `AES/CBC/NoPadding` cần input bội số 16 byte; phần cuối không đủ block có thể ném `IllegalBlockSizeException`.
-- `AES/CTR/NoPadding` dùng keystream và mã hóa được plaintext 17 byte thành 17 byte.
-- `AES/GCM/NoPadding` không đệm block nhưng **vẫn tạo tag xác thực**; tag 128 bit thêm 16 byte vào output ciphertext.
-- ChaCha20/ChaCha20-Poly1305 không cần PKCS block padding; biến thể AEAD có tag riêng.
+- `AES/ECB/NoPadding` and `AES/CBC/NoPadding` require input to be a multiple of 16 bytes; a trailing incomplete block can throw `IllegalBlockSizeException`.
+- `AES/CTR/NoPadding` uses a keystream and can encrypt a 17-byte plaintext into 17 bytes.
+- `AES/GCM/NoPadding` performs no block padding, yet **still produces an authentication tag**; a 128-bit tag adds 16 bytes to the ciphertext output.
+- ChaCha20/ChaCha20-Poly1305 need no PKCS block padding; the AEAD variant has its own tag.
 
-**Padding, Base64 và tag là ba việc khác nhau.** Base64/hex chỉ là biểu diễn binary dưới dạng ký tự. Tag/MAC kiểm tính xác thực theo khóa, không phải ký tự được thêm để ciphertext có độ dài tròn block.
+**Padding, Base64, and tags are three different things.** Base64/hex is merely a character representation of binary bytes. A tag/MAC checks authenticity under a key, not characters added to make the ciphertext block-aligned.
 
-## 6. Key, IV/nonce, counter, AAD và tag
+## 6. Key, IV/Nonce, Counter, AAD, and Tag
 
-| Thành phần | Vai trò | Bí mật hay công khai? |
+| Component | Role | Secret or Public? |
 | --- | --- | --- |
-| **Key** | Bí mật chi phối mã hóa/giải mã, tag | Phải giữ bí mật; sinh từ CSPRNG/KeyGenerator hoặc KMS/keystore; có rotation |
-| **IV/nonce** | Tham số phân biệt lần mã hóa/trạng thái mode | Thường công khai; CBC cần IV mới khó đoán, GCM/ChaCha20 cần không lặp dưới cùng khóa |
-| **Counter** | Chọn khối keystream tiếp theo trong CTR/ChaCha20 | Không cần bí mật nhưng không được tái dùng cùng vùng dưới một khóa |
-| **AAD** | Metadata được xác thực nhưng không mã hóa | Có thể công khai; phía giải mã phải có **cùng byte** và đúng thứ tự |
-| **Tag** | Giá trị xác thực ciphertext và AAD | Có thể công khai; tag sai thì **không được chấp nhận plaintext** |
+| **Key** | Secret governing encryption/decryption and tag | Must be kept secret; generated from CSPRNG/KeyGenerator or KMS/keystore; supports rotation |
+| **IV/nonce** | Parameter differentiating encryption invocations/mode state | Usually public; CBC needs a fresh unpredictable IV, GCM/ChaCha20 require non-repeating under the same key |
+| **Counter** | Selects the next keystream block in CTR/ChaCha20 | Does not need to be secret, but must not reuse the same region under one key |
+| **AAD** | Metadata that is authenticated but not encrypted | Can be public; the decryptor must supply the **exact same bytes** in the exact same order |
+| **Tag** | Value authenticating ciphertext and AAD | Can be public; if the tag is invalid, **the plaintext must not be accepted** |
 
-Một bản ghi GCM có thể lưu `version || keyId || nonce || ciphertext || tag`; **không** lưu raw key cạnh ciphertext. Key ID chỉ giúp chọn khóa, không phải secret. Khi giải mã, cần đúng key/nonce/AAD/tag, và phải xác minh tag thành công trước khi sử dụng plaintext hoặc kích hoạt side effect.
+A GCM record may store `version || keyId || nonce || ciphertext || tag`; **do not** store the raw key next to the ciphertext. The Key ID only helps select the key and is not a secret. During decryption, the matching key/nonce/AAD/tag are required, and the tag must be verified successfully before using the plaintext or triggering any side effects.
 
-GCM tag hợp lệ **không tự chống replay**: nếu một thông điệp đã được xác thực bị phát lại nguyên vẹn, phép kiểm tra tag vẫn có thể thành công. Chống replay cần sequence/expiry/request ID cùng trạng thái nghiệp vụ riêng.
+A valid GCM tag **does not prevent replay on its own**: if an authenticated message is replayed intact, tag verification will still succeed. Replay protection requires sequence numbers/expiry/request IDs along with separate business state.
 
-## 7. Java 17+: kiểm tra sự khác nhau của block và stream
+## 7. Java 17+: Testing the Difference Between Block and Stream
 
-Ví dụ độc lập **chỉ minh họa kích thước**, **không dùng ECB làm cơ chế lưu dữ liệu thực tế**. Chương trình kiểm tra AES xử lý đúng một block 16 byte, từ chối plaintext 17 byte khi chọn NoPadding, và kiểm tra ChaCha20 mã hóa/giải mã 17 byte mà không cần padding.
+This standalone example **only demonstrates sizes**—**do not use ECB as a real data storage mechanism**. The program verifies that AES handles an exact 16-byte block, rejects a 17-byte plaintext when `NoPadding` is selected, and verifies that ChaCha20 encrypts/decrypts 17 bytes without padding.
 
-Lưu tệp **`BlockVsStreamDemo.java`**:
+Save the file **`BlockVsStreamDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -193,14 +193,14 @@ public class BlockVsStreamDemo {
 }
 ```
 
-Chạy bằng JDK 17+ có provider hỗ trợ AES và ChaCha20:
+Run with JDK 17+ that has a provider supporting AES and ChaCha20:
 
 ```bash
 javac --release 17 BlockVsStreamDemo.java
 java BlockVsStreamDemo
 ```
 
-Stdout kiểm chứng bằng các lệnh JDK tương đương:
+Stdout verified with equivalent JDK commands:
 
 ```text
 AES block bytes: 16
@@ -211,43 +211,43 @@ ChaCha20 ciphertext bytes: 17
 Stream round-trip: true
 ```
 
-**Đọc kết quả:** AES/ECB/NoPadding không nhận một thông điệp 17 byte chưa được xử lý độ dài, còn ChaCha20 thuần tạo một keystream có đúng 17 byte để XOR với message. Key và nonce được sinh ngẫu nhiên, vì vậy ciphertext thật thay đổi nhưng các dòng độ dài và round-trip ổn định. ChaCha20 thuần ở đây **không xác thực ciphertext**; không dùng demo như encryption scheme production. `Arrays.fill` chỉ xóa buffer gốc chứ không chắc xóa bản sao trong `SecretKeySpec` hay provider.
+**Reading the output:** `AES/ECB/NoPadding` rejects a 17-byte message without length handling, while plain ChaCha20 generates an exact 17-byte keystream to XOR with the message. The key and nonce are randomly generated, so the actual ciphertext bytes change, while the length and round-trip lines remain stable. Plain ChaCha20 here **does not authenticate the ciphertext**; do not use the demo as a production encryption scheme. `Arrays.fill` only clears the original buffer and does not guarantee clearing copies inside `SecretKeySpec` or the provider.
 
-## 8. Sơ đồ quyết định và lỗi thường gặp
+## 8. Decision Flow and Common Pitfalls
 
-**Nếu đang thiết kế tính năng mã hóa mới:** xác định trước cần chỉ bí mật hay cả toàn vẹn, phạm vi quản lý khóa, nonce và rủi ro sửa dữ liệu. Với nhiều ứng dụng, hãy chọn một AEAD chuẩn như AES-GCM hoặc ChaCha20-Poly1305, rồi xác định version/key ID/nonce/tag/AAD và kiểm thử tamper/round-trip. Không tự ghép mode và hash công khai để tạo cơ chế xác thực.
+**When designing a new encryption feature:** determine upfront whether only confidentiality or also integrity is needed, along with key management scope, nonce handling, and data tampering risks. For many applications, choose a standard AEAD such as AES-GCM or ChaCha20-Poly1305, then define version/key ID/nonce/tag/AAD and write tamper and round-trip tests. Do not roll your own authentication by combining a mode with a public hash.
 
-**Nếu đang đọc dữ liệu legacy:** kiểm tra chính xác mode/padding/IV/khóa/format đã dùng, không đoán provider mặc định từ `Cipher.getAlgorithm()`. Không thể chuyển ciphertext ECB/CBC cũ sang GCM bằng việc chỉ thay tên transformation ở reader. Cần chiến lược tương thích và migration có xác thực.
+**When reading legacy data:** verify the exact mode/padding/IV/key/format used; do not guess provider defaults from `Cipher.getAlgorithm()`. You cannot convert legacy ECB/CBC ciphertexts to GCM simply by changing the transformation name in the reader. A compatibility and authenticated migration strategy is required.
 
-Các sai lầm cần nhận diện:
+Misconceptions to recognize:
 
-1. AES-256 có block 256 bit: **sai**, block AES luôn 128 bit.
-2. ECB tự che mẫu dữ liệu khi dùng khóa mạnh: **sai**.
-3. CBC/CTR giải mã được nghĩa là bản mã không bị sửa: **sai**.
-4. NoPadding đồng nghĩa không có tag: **sai** với GCM.
-5. Dùng lại IV/nonce/counter dưới cùng key không nguy hiểm: **sai**, đặc biệt đối với GCM và stream cipher.
-6. AAD là dữ liệu đã được mã hóa: **sai**, AAD chỉ được xác thực.
-7. Tag hợp lệ đồng nghĩa người dùng có quyền: **sai**, authorization độc lập.
-8. Dùng `Cipher.getInstance("AES")` luôn cho GCM: **sai**, mode/padding mặc định phụ thuộc provider.
+1. AES-256 has a 256-bit block: **false**, an AES block is always 128 bits.
+2. ECB hides data patterns automatically when using a strong key: **false**.
+3. Successfully decrypting CBC/CTR means the ciphertext has not been modified: **false**.
+4. NoPadding means there is no tag: **false** for GCM.
+5. Reusing an IV/nonce/counter under the same key is harmless: **false**, especially for GCM and stream ciphers.
+6. AAD is encrypted data: **false**, AAD is only authenticated.
+7. A valid tag means the user is authorized: **false**, authorization is separate.
+8. Calling `Cipher.getInstance("AES")` always selects GCM: **false**, the default mode/padding depends on the provider.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-1. AES-256 có kích thước khóa và block lần lượt bao nhiêu byte; vì sao?
-2. Stream cipher xử lý 17 byte khác một phép AES block thô như thế nào?
-3. Vì sao ECB lộ mẫu lặp dù khóa dài hơn?
-4. Với CBC/PKCS5Padding, plaintext 16 byte vì sao tạo ciphertext 32 byte?
-5. Điều gì xảy ra khi CTR hoặc ChaCha20 tái sử dụng cùng vùng keystream?
-6. Vì sao GCM NoPadding vẫn có authentication tag, và tag sai phải dẫn tới hành vi gì?
-7. Key, nonce, AAD và tag khác nhau về tính bí mật và khả năng xác thực ra sao?
-8. Tại sao AEAD không tự chặn replay, phân quyền hoặc quản lý vòng đời khóa?
+1. How many bytes are the key and block size of AES-256, respectively, and why?
+2. How does a stream cipher handle 17 bytes differently from a raw AES block operation?
+3. Why does ECB leak repeating patterns even with a longer key?
+4. With CBC/PKCS5Padding, why does a 16-byte plaintext produce a 32-byte ciphertext?
+5. What happens when CTR or ChaCha20 reuses the same keystream region?
+6. Why does GCM NoPadding still have an authentication tag, and what must happen when the tag is invalid?
+7. How do key, nonce, AAD, and tag differ in secrecy requirements and authentication capability?
+8. Why does AEAD not automatically prevent replay, enforce authorization, or manage key lifecycles?
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): transformation, padding và AEAD.
+- [Java SE 17 — Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): transformations, padding, and AEAD.
 - [Java SE 17 — ChaCha20ParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/ChaCha20ParameterSpec.html): nonce/counter.
-- [Java SE 17 — Java Cryptography Architecture](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): thuật toán và provider.
+- [Java SE 17 — Java Cryptography Architecture](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): algorithms and providers.
 - [NIST SP 800-38A](https://csrc.nist.gov/pubs/sp/800/38/a/final): ECB, CBC, CTR.
-- [NIST SP 800-38D](https://csrc.nist.gov/pubs/sp/800/38/d/final): GCM và giới hạn nonce/tag.
-- [RFC 8439](https://www.rfc-editor.org/rfc/rfc8439.html): ChaCha20 và ChaCha20-Poly1305.
+- [NIST SP 800-38D](https://csrc.nist.gov/pubs/sp/800/38/d/final): GCM and nonce/tag limits.
+- [RFC 8439](https://www.rfc-editor.org/rfc/rfc8439.html): ChaCha20 and ChaCha20-Poly1305.
 
-**Kết luận:** block cipher mô tả primitive xử lý khối, stream cipher dùng keystream, mode định nghĩa cách mã hóa thông điệp, padding giải quyết độ dài ở những mode cần block. **Cần xác thực dữ liệu khi ciphertext có thể bị sửa**, không chỉ giải mã ra byte.
+**Conclusion:** a block cipher describes a block-processing primitive, a stream cipher uses a keystream, a mode defines how a message is encrypted, and padding resolves length in block-based modes. **Data authentication is required whenever ciphertext can be modified**, rather than merely decrypting to bytes.

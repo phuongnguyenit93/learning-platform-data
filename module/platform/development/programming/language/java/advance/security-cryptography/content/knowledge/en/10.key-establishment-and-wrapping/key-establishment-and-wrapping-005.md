@@ -1,30 +1,30 @@
-# 10.5. Xác thực đối tác để tránh đánh tráo khóa trong quá trình thỏa thuận
+# 10.5. Peer Authentication to Prevent Key Substitution During Agreement
 
-**Thỏa thuận khóa (key agreement)** cho phép hai phía tạo ra bí mật chung qua một kênh truyền có thể bị quan sát. Nhưng có một điều kiện rất dễ quên: **hai phía cần biết mình thực sự đang thỏa thuận với ai**. Nếu kẻ tấn công có thể thay khóa công khai được trao đổi trong quá trình bắt tay, Diffie–Hellman/ECDH/X25519 đơn thuần **không ngăn được tấn công người đứng giữa (Man-in-the-Middle, MITM)**.
+**Key agreement** lets two parties establish a shared secret over an observable channel. However, there is an easily forgotten condition: **both sides must know who they are actually agreeing with**. If an attacker can substitute the public keys exchanged during the handshake, Diffie–Hellman/ECDH/X25519 alone **does not prevent a Man-in-the-Middle (MITM) attack**.
 
-Một kẻ đứng giữa có thể tự tạo hai phiên thỏa thuận khóa: một phiên với Alice và một phiên với Bob. Alice tưởng đã tạo khóa với Bob; Bob tưởng đã tạo khóa với Alice; thực tế cả hai đang chia sẻ hai khóa riêng biệt với kẻ tấn công. Ngay cả khi mỗi phía dùng AES-GCM đúng chuẩn để bảo vệ dữ liệu, kẻ đứng giữa vẫn có thể giải mã rồi mã hóa lại, bởi hắn có khóa hợp lệ cho **hai phiên giả** đó.
+A man-in-the-middle can establish two separate key agreement sessions: one with Alice and one with Bob. Alice thinks she established a key with Bob; Bob thinks he established a key with Alice; in reality both share two separate keys with the attacker. Even when each side uses standard AES-GCM to protect data, the man-in-the-middle can decrypt and re-encrypt because the attacker holds valid keys for **both spoofed sessions**.
 
-**Giải pháp không phải là làm khóa DH dài hơn hoặc thêm hash cho khóa trao đổi.** Cần **xác thực khóa công khai và danh tính đối tác**, ràng buộc bằng chứng xác thực vào **đúng phiên bắt tay, đúng vai trò, đúng thuật toán và đúng các public key tạm thời**, rồi chỉ cho phép dùng khóa phiên sau khi việc xác minh đạt yêu cầu.
+**The solution is not making DH keys longer or hashing the exchanged keys.** You must **authenticate public keys and peer identity**, bind the authentication proof to **the exact handshake session, roles, algorithms, and ephemeral public keys**, and only allow using session keys after verification passes.
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Sau khi học xong, bạn có thể:
+After completing this lesson, you will be able to:
 
-- Mô tả vì sao DH/ECDH/X25519 không xác thực danh tính chỉ nhờ phép tính bí mật chung.
-- Phân biệt **agreement**, **authentication**, **authorization**, **key confirmation** và **key wrapping**.
-- Vẽ lại tấn công MITM thay thế public key, biết chính xác vì sao mỗi bên vẫn tính được một shared secret nhưng không có kênh an toàn Alice–Bob.
-- Xây dựng các bước xác thực đối tác bằng chữ ký số gắn với identity, certificate/PKI, public-key pinning hoặc khóa PSK đã phân phối an toàn.
-- Xác định những byte cần gắn vào **handshake transcript**: protocol version, cipher suite/KDF, role, identity, ephemeral public keys, nonce và context.
-- Viết và chạy một minh họa Java 17+ kết hợp **X25519 + Ed25519 + HKDF-SHA256** với khóa công khai danh tính được tin cậy từ trước.
-- Kiểm thử thay public key, giả mạo người ký, đổi tên đối tác và tái sử dụng chữ ký từ phiên cũ; hiểu giới hạn của demo so với TLS 1.3.
-- Nhận diện các sai sót liên quan đến certificate validation, TOFU, key substitution, replay, downgrade, UKS và xác minh quyền truy cập.
+- Explain why DH/ECDH/X25519 does not authenticate identity solely through computing a shared secret.
+- Distinguish **agreement**, **authentication**, **authorization**, **key confirmation**, and **key wrapping**.
+- Diagram a public-key-substitution MITM attack, knowing exactly why each side still computes a shared secret without having a secure Alice–Bob channel.
+- Build peer authentication steps using digital signatures bound to identity, certificates/PKI, public-key pinning, or securely distributed PSKs.
+- Identify which bytes must be bound into the **handshake transcript**: protocol version, cipher suite/KDF, roles, identities, ephemeral public keys, nonces, and context.
+- Write and run a Java 17+ demonstration combining **X25519 + Ed25519 + HKDF-SHA256** with pre-trusted identity public keys.
+- Test substituting public keys, forging signers, changing peer names, and replaying signatures from old sessions; understand the demo's limitations compared to TLS 1.3.
+- Identify defects related to certificate validation, TOFU, key substitution, replay, downgrade, UKS, and access authorization checks.
 
-## 2. Ba câu hỏi riêng biệt về khóa
+## 2. Three Separate Questions About Keys
 
-Trong thực tế, từ “xác thực khóa” đôi khi gom nhiều việc khác nhau. Nên tách thành ba câu:
+In practice, “key authentication” sometimes lumps together different tasks. Separate it into three questions:
 
-**Câu hỏi A — có tạo được cùng bí mật không?**  
-Nếu Alice giữ private key tạm thời `a` và Bob giữ private key tạm thời `b`, phép X25519 cho phép:
+**Question A — can the parties establish the same secret?**  
+If Alice holds ephemeral private key `a` and Bob holds ephemeral private key `b`, X25519 computes:
 
 \[
 Z_A = X25519(a, B_{\text{ephemeral}})
@@ -34,98 +34,98 @@ Z_A = X25519(a, B_{\text{ephemeral}})
 Z_B = X25519(b, A_{\text{ephemeral}})
 \]
 
-Với hai cặp khóa hợp lệ và các giá trị public key tương ứng được trao đổi nguyên vẹn, hai bí mật `Z_A` và `Z_B` bằng nhau. Đây là **khả năng thỏa thuận khóa**, chưa cho biết public key thật sự đến từ ai.
+With two valid key pairs and corresponding public keys exchanged intact, the two secrets `Z_A` and `Z_B` are equal. This is **key agreement capability**; it does not yet tell you who the public key actually came from.
 
-**Câu hỏi B — người đứng sau khóa công khai là ai?**  
-Alice cần biết `B_ephemeral` có thuộc **đúng phiên thỏa thuận với Bob** không. Để biết điều đó, Alice phải có một bằng chứng gắn `B_ephemeral` với **định danh Bob mà Alice đang kỳ vọng**, dựa trên một nền tảng tin cậy như khóa ký đã pin, certificate đã kiểm tra, PSK được cấp phát đúng chủ thể hoặc một quy trình xác thực out-of-band.
+**Question B — who is behind the public key?**  
+Alice needs to know whether `B_ephemeral` belongs to **the exact agreement session with Bob**. To know that, Alice must have proof binding `B_ephemeral` to **the Bob identity Alice expects**, grounded in a trust anchor such as a pinned signing key, verified certificate, properly provisioned PSK, or an out-of-band verification procedure.
 
-**Câu hỏi C — khóa được dùng cho mục đích nào?**  
-Sau khi hai phía tạo shared secret và xác thực transcript, thường cần KDF (ví dụ HKDF) để lấy key dùng cho ứng dụng và, khi cần, các key/nonce riêng theo hướng. Sau đó server vẫn phải kiểm tra **quyền truy cập** của principal, không chỉ kiểm tra rằng client biết một khóa.
+**Question C — what is the key authorized to be used for?**  
+After both sides compute the shared secret and authenticate the transcript, they typically need a KDF (e.g., HKDF) to derive application keys and, when needed, directional keys/nonces. Afterward, the server must still check the principal's **access permissions**, not merely that the client knows a key.
 
-Một phiên có thể qua A nhưng thất bại B (MITM), hoặc qua A và B nhưng thất bại C (khách hàng đã xác thực nhưng không được phép thao tác tài khoản khác).
+A session can pass A yet fail B (MITM), or pass A and B yet fail C (an authenticated client not permitted to operate on another account).
 
-## 3. Diffie–Hellman không xác thực: tấn công đánh tráo khóa
+## 3. Unauthenticated Diffie–Hellman: Key Substitution Attack
 
-Giả sử Alice và Bob muốn thiết lập kênh bảo mật qua mạng mà Mallory có thể đọc, chặn và sửa gói tin.
+Suppose Alice and Bob want to establish a secure channel over a network where Mallory can read, intercept, and modify packets.
 
-### 3.1. Trường hợp chỉ nghe lén, không sửa dữ liệu
+### 3.1. Passive eavesdropping only, no tampering
 
 ```text
 Alice                                             Bob
 ------                                            ------
-Sinh (aPriv, aPub)                               Sinh (bPriv, bPub)
+Generate (aPriv, aPub)                           Generate (bPriv, bPub)
         |                                             |
         +------------- aPub ------------------------->|
         |<------------ bPub --------------------------+
         |                                             |
 Z_A = X25519(aPriv, bPub)             Z_B = X25519(bPriv, aPub)
         |                                             |
-        +-------- HKDF -> session key -----------------+
+        +-------- HKDF -> session key ----------------+
 ```
 
-Nếu attacker chỉ **quan sát** hai public key mà không biết private key, X25519 được thiết kế để khiến việc tính shared secret trở nên khó. Đây là tính chất nền tảng của Diffie–Hellman.
+If an attacker only **observes** both public keys without knowing the private keys, X25519 is designed to make computing the shared secret intractable. This is the foundational property of Diffie–Hellman.
 
-**Nhưng Mallory không nhất thiết chỉ nghe lén.** Nếu đường truyền không xác thực, Mallory có thể thay cả hai public key.
+**However, Mallory does not have to stay passive.** If the channel is unauthenticated, Mallory can replace both public keys.
 
-### 3.2. Tấn công MITM bằng hai phiên DH
+### 3.2. MITM attack using two DH sessions
 
 ```text
   Alice                         Mallory                         Bob
   -----                         -------                         ---
-  aPub -----------> [chặn]       mPub1 ------------->         Bob
-  Alice <----------- mPub2       [chặn] <------------- bPub
+  aPub -----------> [intercept]  mPub1 ------------->         Bob
+  Alice <----------- mPub2       [intercept] <--------- bPub
 
- Alice tính:                        Mallory tính:
+ Alice computes:                    Mallory computes:
  X25519(aPriv, mPub2)               X25519(mPriv2, aPub)
                    -> Z_AM = Z_MA
 
-                                  Mallory tính:                 Bob tính:
+                                  Mallory computes:             Bob computes:
                                   X25519(mPriv1, bPub)          X25519(bPriv, mPub1)
                                          Z_MB = Z_BM <-
 ```
 
-Kết quả:
-- Alice có **một shared secret với Mallory**, không phải Bob.
-- Bob có **một shared secret khác với Mallory**, không phải Alice.
-- Mallory biết cả hai secrets, có thể tạo traffic keys cho cả hai chiều và làm trung gian decrypt/modify/reencrypt.
-- Không có phép toán X25519 nào tự cảnh báo rằng tên đối tác mà giao diện hiển thị không trùng với chủ thể tạo ra public key.
+Result:
+- Alice shares **one secret with Mallory**, not Bob.
+- Bob shares **a different secret with Mallory**, not Alice.
+- Mallory knows both secrets, can derive traffic keys for both sides, and sits in the middle to decrypt/modify/re-encrypt.
+- No X25519 operation warns that the peer name displayed in the UI does not match the subject that generated the public key.
 
-Đây là lý do phát biểu “dùng ECDH nên dữ liệu đã an toàn trước MITM” **không đúng nếu thiếu peer authentication**.
+This is why claiming “using ECDH already protects data against MITM” is **false without peer authentication**.
 
-### 3.3. Vì sao hash public key cũng chưa đủ?
+### 3.3. Why hashing the public key is also insufficient
 
-Ví dụ Alice nhận `bPub` rồi tính `SHA-256(bPub)` và thấy một fingerprint. Fingerprint chỉ tóm tắt các byte của key Alice **đã nhận**. Nếu attacker thay `bPub` bằng `mPub`, Alice cũng có thể tính một fingerprint hoàn toàn hợp lệ của `mPub`.
+Suppose Alice receives `bPub`, computes `SHA-256(bPub)`, and observes a fingerprint. A fingerprint only summarizes the bytes of the key Alice **received**. If an attacker replaces `bPub` with `mPub`, Alice can equally compute a completely valid fingerprint of `mPub`.
 
-Fingerprint chỉ giúp khi Alice **so sánh với một fingerprint đáng tin đã có từ trước**, nhận bằng kênh xác thực độc lập. Gửi public key và fingerprint của chính nó trong **cùng một gói không xác thực** không giải quyết việc đánh tráo.
+A fingerprint helps only when Alice **compares it against a pre-existing trusted fingerprint** obtained via an independent authenticated channel. Sending a public key and its own fingerprint inside the **same unauthenticated packet** does not stop substitution.
 
-Đổi X25519 sang curve khác, dùng RSA nhiều bit hơn hay chuyển SHA-256 sang SHA-512 cũng không sửa được gốc lỗi: **không có chứng cứ ràng buộc khóa vào đúng đối tác**.
+Switching X25519 to another curve, using more RSA bits, or switching SHA-256 to SHA-512 will not fix the root flaw: **there is no evidence binding the key to the intended peer**.
 
-## 4. Xác thực đối tác thực sự nghĩa là gì?
+## 4. What Does Peer Authentication Actually Mean?
 
-Đối với Alice muốn giao tiếp với Bob, có ít nhất bốn thành phần:
+For Alice wanting to communicate with Bob, there are at least four components:
 
-1. **Expected identity:** Alice biết trước mình muốn gặp ai, ví dụ `bob@example.internal`, một tên dịch vụ, tenant + service ID hoặc hostname `api.example.com`.
-2. **Trusted authentication key:** Alice có cách lấy **khóa xác minh danh tính Bob từ nguồn đáng tin**, không chỉ từ gói tin Mallory kiểm soát.
-3. **Proof of possession:** Bob tạo một bằng chứng mà chỉ chủ thể giữ private key/PSK được cấp phép mới tạo hợp lệ, như chữ ký số trên transcript bắt tay.
-4. **Session binding:** bằng chứng này gắn **đúng phiên** và các tham số liên quan, đặc biệt các ephemeral public keys, roles, nonce, protocol version và thuật toán đã chọn.
+1. **Expected identity:** Alice knows beforehand whom she expects to talk to, e.g., `bob@example.internal`, a service name, tenant + service ID, or hostname `api.example.com`.
+2. **Trusted authentication key:** Alice has a way to obtain **Bob's identity-verification key from a trusted source**, not solely from packets controlled by Mallory.
+3. **Proof of possession:** Bob produces proof that only the entity holding the authorized private key/PSK can validly generate, such as a digital signature over the handshake transcript.
+4. **Session binding:** this proof binds the **exact session** and relevant parameters, especially the ephemeral public keys, roles, nonces, protocol version, and chosen algorithm.
 
-Nếu chứng cứ chỉ là “Bob biết một private key nào đó”, vẫn thiếu việc chứng minh đó là **private key thuộc đúng Bob**. Nếu certificate hợp lệ cho một domain khác nhưng Alice không kiểm tra hostname, đối thủ có thể trình ra certificate của domain họ sở hữu và vẫn vượt qua kiểm tra chain. Nếu chữ ký chỉ ký một chuỗi tĩnh như `"I am Bob"`, attacker có thể phát lại chữ ký ở phiên khác.
+If the proof only shows “Bob knows some private key,” it still fails to prove it is **the private key belonging to Bob**. If a certificate is valid for another domain but Alice skips hostname checking, an adversary can present a certificate for a domain they own and pass chain validation. If the signature only signs a static string like `"I am Bob"`, an attacker can replay that signature in another session.
 
-**Định danh phải đến từ ý định của bên kiểm tra**, không được chấp nhận chỉ vì phía bên kia tự khai trong payload.
+**Identity must come from the verifier's expectation**, never accepted merely because the other side self-asserted it in the payload.
 
-### 4.1. Xác thực server và xác thực hai chiều
+### 4.1. Server authentication and mutual authentication
 
-- **Server authentication:** client xác minh server; server có thể chưa xác minh danh tính client ở handshake và sẽ dùng một bước khác (token, tài khoản, OAuth, client certificate...) sau đó.
-- **Mutual authentication:** cả hai phía đều chứng minh danh tính bằng cơ chế thích hợp, ví dụ mTLS hoặc hai chữ ký trên một authenticated handshake.
-- **Authorization:** sau khi danh tính đã được chứng minh, hệ thống xét chủ thể đó có được gọi API, xem resource, dùng tenant hoặc thực hiện operation cụ thể không.
+- **Server authentication:** the client verifies the server; the server may not verify the client's identity during the handshake and may use another step (token, account, OAuth, client certificate, etc.) afterward.
+- **Mutual authentication:** both sides prove their identities using an appropriate mechanism, such as mTLS or two signatures on an authenticated handshake.
+- **Authorization:** once identity is proven, the system checks whether that principal is allowed to call the API, access the resource, use the tenant, or perform the specific operation.
 
-Vì vậy, **authenticated key agreement không đồng nghĩa với cho phép truy cập mọi dữ liệu**.
+Therefore, **authenticated key agreement does not mean permission to access all data**.
 
-## 5. Một handshake cần ký hoặc MAC những byte nào?
+## 5. Which Bytes Must a Handshake Sign or MAC?
 
-Các protocol hoàn chỉnh thường xây dựng một **handshake transcript**: chuỗi byte biểu diễn có thứ tự các thông điệp và tham số đã trao đổi. Chữ ký/MAC/Finished được tính trên một digest hoặc cấu trúc rõ ràng liên quan đến transcript này.
+Complete protocols typically construct a **handshake transcript**: an ordered byte sequence representing the exchanged messages and parameters. The signature/MAC/Finished value is computed over a digest or explicit structure tied to this transcript.
 
-Một mô hình cho bài học:
+A model for this lesson:
 
 ```text
 transcript_v1 =
@@ -139,96 +139,96 @@ transcript_v1 =
     || bobX25519EphemeralPublic
 ```
 
-Các ký hiệu `||` chỉ **ghép theo định dạng đã quy định**. Phải có encoding không nhập nhằng, như length-prefix hoặc một chuẩn serialization xác định. Không đơn giản nối string tự do.
+The `||` symbols denote **concatenation according to a specified format**. There must be an unambiguous encoding, such as length prefixes or deterministic serialization. Never simply concatenate raw strings ad hoc.
 
-Bên Alice xác minh rằng Bob đã ký **chính xác transcript của phiên Alice đang tham gia** bằng khóa xác thực tin cậy của Bob. Tương tự, Bob xác minh bằng chứng Alice nếu cần mutual authentication.
+Alice verifies that Bob signed **the exact transcript of the session Alice is participating in** using Bob's trusted verification key. Likewise, Bob verifies Alice's proof if mutual authentication is required.
 
-### 5.1. Ý nghĩa của từng thành phần
+### 5.1. Meaning of each component
 
-| Thành phần | Nếu không ràng buộc thì sao? |
+| Component | What happens if not bound? |
 | --- | --- |
-| Protocol name/version | Chữ ký/khóa có thể bị đưa sang ngữ cảnh khác hoặc hiểu bằng parser khác |
-| Cipher suite và KDF | Có nguy cơ negotiation confusion hoặc downgrade xuống thuật toán yếu |
-| Initiator/responder roles | Có thể gây lỗi reflection/role confusion khi dùng cùng dữ liệu ở hai chiều |
-| Expected peer identity | Có thể gán cùng khóa phiên cho hai danh tính khác nhau (unknown key-share) |
-| Cả hai ephemeral public keys | Attacker thay một key mà chữ ký không phát hiện |
-| Nonce/challenge mới của phiên | Chữ ký/bản tin phiên trước có thể bị phát lại |
-| Cấu trúc thông điệp có độ dài rõ ràng | Cặp trường khác nhau có thể tạo cùng byte input |
-| Application context/tenant | Khóa phiên có thể bị dùng nhầm sang dịch vụ, tenant hoặc operation khác |
+| Protocol name/version | Signature/key may be transplanted to another context or parsed differently |
+| Cipher suite and KDF | Risk of negotiation confusion or downgrade to a weak algorithm |
+| Initiator/responder roles | Can cause reflection/role confusion when identical data is used in both directions |
+| Expected peer identity | Can associate the same session key with two different identities (unknown key-share) |
+| Both ephemeral public keys | Attacker swaps one key without breaking the signature |
+| Fresh session nonce/challenge | Signatures/messages from a previous session can be replayed |
+| Explicit length-framed message structure | Different field pairs could serialize to the same byte input |
+| Application context/tenant | Session key could be misapplied to another service, tenant, or operation |
 
-Cần phân biệt **điều hai bên ký/verify** với **điều hai bên hiển thị trên màn hình**. Nếu UI ghi `Bob` nhưng transcript và verifier đang dùng khóa của `Mallory`, việc ký đúng một transcript không đúng identity vẫn không đem lại peer authentication mong muốn.
+Distinguish **what both sides sign/verify** from **what both sides display on screen**. If the UI says `Bob` while the transcript and verifier use `Mallory`'s key, validly signing an incorrect-identity transcript still fails to deliver the desired peer authentication.
 
-### 5.2. Ký public key thôi có đủ không?
+### 5.2. Is signing only the public key enough?
 
-Ký mỗi `bEphemeralPublic` có thể chứng minh bên giữ private signing key nào đó đã từng ký public key ấy, **nhưng chưa đủ ràng buộc**:
-- Alice và nonce của Alice có thuộc phiên cụ thể không?
-- Chữ ký dành cho client/server role nào?
-- Bob có biết đang kết nối với Alice chứ không phải Mallory không?
-- Hai bên có cùng protocol version và thuật toán không?
+Signing just `bEphemeralPublic` may prove whoever holds some private signing key signed that public key at some time, **but lacks sufficient binding**:
+- Do Alice and Alice's nonce belong to this specific session?
+- Which client/server role is the signature for?
+- Does Bob know he is connecting to Alice rather than Mallory?
+- Do both sides share the same protocol version and algorithms?
 
-Thiết kế vững hơn là **ký transcript đã được xác định rõ**, hoặc dùng một protocol chuẩn có cách tạo và xác minh handshake authentication riêng. Không tự phát minh “ký một vài field là đủ” mà thiếu mô hình an ninh.
+A stronger design **signs a well-defined transcript**, or uses a standard protocol with its own built-in handshake authentication generation and verification. Never invent “signing a few fields is enough” without a security model.
 
-### 5.3. Freshness và replay
+### 5.3. Freshness and replay
 
-Một challenge/nonce mới được đưa vào transcript giúp chữ ký phiên cũ **không còn khớp transcript của phiên mới**, miễn cả hai bên thực sự kiểm tra đúng challenge vừa sinh. Nhưng việc có nonce trong bản tin không tự động cấm replay toàn bộ một request ở tầng ứng dụng.
+A fresh challenge/nonce included in the transcript prevents an old session's signature from **matching a new session's transcript**, provided both sides actually check the newly generated challenge. However, having a nonce in a handshake message does not automatically block replay of every application-layer request.
 
-Ứng dụng thực tế còn có thể cần:
-- Sequence numbers hoặc unique record nonces cho AEAD;
-- Replay cache, expiry và idempotency cho lệnh nhạy cảm;
-- Session identifiers gắn với principal, scope, deadline và resource;
-- Quy tắc chấp nhận lại handshake/resumption theo protocol cụ thể.
+Production applications may also need:
+- Sequence numbers or unique record nonces for AEAD;
+- Replay caches, expiration, and idempotency for sensitive commands;
+- Session identifiers bound to principal, scope, deadline, and resource;
+- Protocol-specific rules for handshake re-acceptance/resumption.
 
-Không suy ra “có signature hợp lệ” nghĩa là “giao dịch chắc chắn mới và chưa từng thực thi”.
+Never conclude “valid signature” means “the transaction is guaranteed fresh and never executed before.”
 
-## 6. Những cơ chế xác thực khóa công khai phổ biến
+## 6. Common Public-Key Authentication Mechanisms
 
-### 6.1. Certificate và PKI
+### 6.1. Certificates and PKI
 
-Bên gửi có thể trình một certificate chứa public key và subject/SAN; certificate này được một CA hoặc chuỗi trung gian ký. Bên nhận dùng trust anchors đã cấu hình để kiểm tra đường tin cậy.
+The sender can present a certificate containing a public key and subject/SAN; this certificate is signed by a CA or intermediate chain. The receiver uses configured trust anchors to verify the trust path.
 
-Với một kết nối HTTPS/TLS, phía client cần kiểm tra **ít nhất theo chính sách triển khai**:
-1. Certificate path có thể xây dựng tới trust anchor được phép.
-2. Các chữ ký, hiệu lực thời gian, algorithm/key strength và constraints phù hợp.
-3. **Danh tính server kỳ vọng khớp SAN/hostname** theo chuẩn ứng dụng; không lấy `CN` hay string từ server làm chứng cứ thay thế hostname validation.
-4. Key usage và extended key usage phù hợp với mục đích server authentication nếu được áp dụng.
-5. Chính sách revocation/CT/enterprise trust và các ràng buộc khác khi hệ thống yêu cầu.
-6. Bắt tay chứng minh server đang giữ khóa bí mật tương ứng và transcript không bị sửa, theo chính protocol.
+For an HTTPS/TLS connection, the client must check **at least per deployment policy**:
+1. A certificate path can be built to an allowed trust anchor.
+2. Signatures, validity periods, algorithm/key strengths, and constraints are valid.
+3. **The expected server identity matches SAN/hostname** per application standards; never accept a `CN` or server-supplied string as a substitute for hostname validation.
+4. Key usage and extended key usage match server authentication where enforced.
+5. Revocation/CT/enterprise trust policies and other constraints as required by the system.
+6. The handshake proves the server holds the corresponding private key and the transcript was not altered, per protocol.
 
-**Chain valid ≠ correct peer identity.** Một certificate hợp lệ của `attacker.example` không được chấp nhận khi client định kết nối `api.company.example`.
+**Valid chain ≠ correct peer identity.** A valid certificate for `attacker.example` must not be accepted when the client intends to connect to `api.company.example`.
 
-Đừng bật chế độ **trust-all certificates**, “insecure hostname verifier”, hoặc chấp nhận mọi self-signed certificate trong production để xử lý lỗi chứng thư.
+Never enable **trust-all certificates**, an “insecure hostname verifier,” or accept any self-signed certificate in production to work around certificate errors.
 
-### 6.2. Public-key pinning và khóa ký cấu hình trước
+### 6.2. Public-key pinning and pre-configured signing keys
 
-Nếu hai dịch vụ nội bộ đã phân phối khóa công khai xác thực qua kênh tin cậy, bên nhận có thể **pin** key hoặc fingerprint/SPKI hash theo chính sách.
+If two internal services have distributed authentication public keys over a trusted channel, the receiver can **pin** the key or fingerprint/SPKI hash per policy.
 
-Quy tắc:
-- Khóa tin cậy được lấy từ một cấu hình/chính sách đã xác thực, **không** từ chính bản tin bên kia đang muốn được xác minh.
-- Pin được so sánh trước khi chấp nhận chữ ký, theo identity và key usage đúng.
-- Cần chiến lược dự phòng/rotation và xử lý compromise; pin sai hoặc hết hạn có thể gây outage.
-- Với SPKI pin, phải thống nhất encoding/fingerprint format và chống nhầm lẫn với fingerprint của raw key encoding khác.
+Rules:
+- The trusted key comes from a verified configuration/policy, **not** from the peer's own message awaiting verification.
+- The pin is checked before accepting the signature, matching the right identity and key usage.
+- A backup/rotation and compromise-handling strategy is required; a wrong or expired pin can cause outages.
+- For SPKI pins, standardize the encoding/fingerprint format and avoid confusing it with fingerprints of raw key encodings.
 
-Pinning là lựa chọn phụ thuộc deployment, không mặc định tốt hơn PKI cho mọi hệ thống. Trên ứng dụng quy mô lớn, quản lý vòng đời pin sai có thể gây mất kết nối hàng loạt.
+Pinning is a deployment-dependent choice, not automatically superior to PKI for every system. In large-scale applications, poor pin lifecycle management can cause widespread connection failures.
 
 ### 6.3. Trust on First Use (TOFU)
 
-Mô hình TOFU ghi nhớ public key nhìn thấy ở **lần kết nối đầu tiên**, rồi cảnh báo nếu nó thay đổi. Nó có ích trong một số workflow như SSH khi người dùng/nhân viên xác minh fingerprint qua kênh phụ.
+The TOFU model remembers the public key seen on the **first connection** and warns if it later changes. It is useful in workflows like SSH where a user/operator verifies the fingerprint out-of-band.
 
-Giới hạn rất quan trọng: nếu attacker đang MITM **ngay lần đầu**, ứng dụng có thể pin nhầm khóa attacker. TOFU **không tương đương** với việc đã kiểm tra certificate/identity từ một nguồn tin cậy. Nếu public key thay đổi sau này, không tự chấp nhận key mới mà không có quy trình rotation/xác thực.
+Critical limitation: if an attacker is performing a MITM **on the very first connection**, the application may pin the attacker's key by mistake. TOFU is **not equivalent** to verifying a certificate/identity from a trusted source. If the public key later changes, never auto-accept the new key without a rotation/verification workflow.
 
-### 6.4. PSK, password-authenticated key exchange và kênh độc lập
+### 6.4. PSK, password-authenticated key exchange, and out-of-band channels
 
-Khi hai phía đã có **pre-shared key (PSK) đủ mạnh và được phân phối bí mật, đúng danh tính**, một protocol có thể dùng MAC/handshake binder để xác thực phiên. Phải ràng buộc PSK identity, transcript, cipher suite và quyền vào context; không lấy PSK từ dữ liệu do đối thủ tự khai.
+When two parties already share a **sufficiently strong pre-shared key (PSK) distributed secretly with proper identity**, a protocol can use a MAC/handshake binder to authenticate the session. You must bind PSK identity, transcript, cipher suite, and permissions into context; never accept a PSK claimed from adversary-controlled data.
 
-Với password do con người nhớ, **không tự biến nó thành PSK** bằng `SHA-256(password)` rồi dùng như MAC key trong một handshake tự chế: có thể mở cửa tấn công từ điển/offline. Khi cần xác thực dựa trên password trong trao đổi khóa, nên dùng một **PAKE** (ví dụ một giao thức đã chuẩn hóa và triển khai được thẩm định) thay vì DH + password hash tự ghép.
+For human-memorable passwords, **do not turn one into a PSK** via `SHA-256(password)` and use it as a MAC key in a custom handshake: this can expose offline/dictionary attacks. When password-based authentication is needed in key exchange, use a **PAKE** (e.g., a standardized protocol with a vetted implementation) instead of homegrown DH + password hashing.
 
-Với thiết bị hai bên có thể so sánh một số xác minh ngắn hoặc quét QR trực tiếp, cơ chế **out-of-band authenticated comparison** cũng có thể ràng buộc public keys, nếu giao thức thiết kế đúng và kênh so sánh thực sự đáng tin.
+For two devices that can compare a short verification code or scan a QR code directly, an **out-of-band authenticated comparison** mechanism can also bind public keys, provided the protocol is properly designed and the comparison channel is genuinely trustworthy.
 
-## 7. Khóa phiên phải được dẫn xuất từ shared secret và transcript
+## 7. Session Keys Must Be Derived from the Shared Secret and Transcript
 
-Sau khi xác thực đối tác và thống nhất ephemeral public keys, X25519 tạo một shared secret. Không dùng trực tiếp raw X25519 bytes làm **key AES-GCM và nonce** theo quy tắc tự nghĩ.
+After authenticating the peer and agreeing on ephemeral public keys, X25519 produces a shared secret. Never take raw X25519 bytes directly as an **AES-GCM key and nonce** using ad-hoc rules.
 
-Thường dùng KDF có context:
+Typically, use a context-bound KDF:
 
 \[
 Z = X25519(\text{own ephemeral private},\ \text{peer ephemeral public})
@@ -242,41 +242,41 @@ PRK = HKDF\text{-}Extract(\text{salt}, Z)
 K_{app} = HKDF\text{-}Expand(PRK,\ \text{info},\ L)
 \]
 
-- `salt` của HKDF là input **không bắt buộc bí mật**, có thể liên quan tới transcript hash theo thiết kế protocol.
-- `info` nên tách protocol/version, mục đích khóa và hướng dùng: ví dụ `client-to-server key` và `server-to-client key` là hai mục đích khác nhau.
-- `L` là số byte output cần lấy, ví dụ **32** cho AES-256 key.
-- Transcript hash giúp hai phía ràng buộc key derivation vào cùng handshake, nhưng **bản thân HKDF không chứng minh peer identity**: phải verify chữ ký/MAC và nguồn khóa xác thực trước khi sử dụng key.
+- HKDF `salt` is a **not-necessarily-secret** input that may relate to the transcript hash per protocol design.
+- `info` should separate protocol/version, key purpose, and direction: e.g., `client-to-server key` and `server-to-client key` are two distinct purposes.
+- `L` is the required output byte length, e.g., **32** for an AES-256 key.
+- The transcript hash binds key derivation to the same handshake, but **HKDF itself does not prove peer identity**: you must verify signatures/MACs and the trusted key source before using the keys.
 
-Trong bài minh họa Java ở dưới, ta dùng `salt = SHA-256(transcript)` và một chuỗi `info` cố định cho **một key demo**, nhằm dễ kiểm tra hai phía tính giống nhau. **Ứng dụng hai chiều thực tế** cần tách key/nonce/traffic secret cho từng hướng và quản lý sequence numbers chống nonce reuse.
+In the Java demo below, we use `salt = SHA-256(transcript)` and one fixed `info` string for a **single demo key**, to make checking that both sides compute the same key straightforward. **Real bidirectional applications** must separate keys/nonces/traffic secrets per direction and manage sequence numbers against nonce reuse.
 
-### 7.1. Key confirmation không đồng nghĩa identity proof
+### 7.1. Key confirmation does not equal identity proof
 
-Sau khi derive key, hai phía có thể trao đổi một **confirmation MAC/Finished** chứng minh đối tác giữ secret phù hợp với transcript và lịch trình key.
+After deriving keys, both sides can exchange a **confirmation MAC/Finished** proving the peer holds the secret matching the transcript and key schedule.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ```text
 confirmAlice = HMAC(K_confirm_A, "alice-finished" || transcriptHash)
 confirmBob   = HMAC(K_confirm_B, "bob-finished"   || transcriptHash)
 ```
 
-Bên nhận kiểm tra tag tương ứng trước khi cho ứng dụng gửi dữ liệu. Với protocol có xác thực tích hợp, một phần chứng cứ Finished/record integrity giúp phát hiện bất đồng secret hoặc transcript.
+The receiver checks the corresponding tag before allowing the application to send data. In protocols with built-in authentication, Finished/record integrity proofs help detect secret or transcript mismatches.
 
-Nhưng nếu Mallory đã tạo **hai phiên DH giả** mà không xác thực identity, hắn cũng biết khóa confirmation cho hai phiên và có thể tạo hai MAC hợp lệ. **Key confirmation chỉ có giá trị đúng khi được kết hợp với việc xác thực đối tác và context của phiên.**
+However, if Mallory created **two spoofed DH sessions** without identity authentication, Mallory also knows the confirmation keys for both sessions and can compute both valid MACs. **Key confirmation only carries full value when combined with peer authentication and session context binding.**
 
-Trong ví dụ Java, ta so sánh HMAC tính ở hai phía **trong cùng một process** để minh họa khả năng đồng nhất key. Đó chưa phải một **wire-level key confirmation exchange** đầy đủ.
+In the Java example, we compare the HMACs computed on both sides **inside the same process** to illustrate key agreement. That is not yet a complete **wire-level key confirmation exchange**.
 
-## 8. Java 17+: X25519 + Ed25519 + transcript binding
+## 8. Java 17+: X25519 + Ed25519 + Transcript Binding
 
-Dưới đây là một ví dụ **tự chạy được** bằng JDK 17+, có chủ đích phân biệt hai loại khóa:
+Below is a **self-contained runnable** JDK 17+ example that intentionally separates two key types:
 
-- **X25519 ephemeral key pairs:** dùng riêng cho key agreement từng phiên.
-- **Ed25519 identity key pairs:** dùng riêng để ký và xác minh transcript. Public keys dùng kiểm tra được giả lập **đã phân phối qua kênh xác thực/pin từ trước**.
-- **Transcript encoding:** ghi từng trường bằng 4-byte length prefix (big-endian), giữ thứ tự cố định, tránh nhập nhằng chuỗi.
-- **HKDF-SHA256:** minh họa bước Extract/Expand của RFC 5869 cho output 32 byte.
-- **Kiểm thử tấn công:** thay ephemeral public key, đổi expected identity, ký bằng khóa impostor, dùng lại chữ ký trên challenge mới.
+- **X25519 ephemeral key pairs:** used strictly for per-session key agreement.
+- **Ed25519 identity key pairs:** used strictly to sign and verify the transcript. Verification public keys are simulated as **pre-distributed via a trusted channel/pin**.
+- **Transcript encoding:** writes each field with a 4-byte length prefix (big-endian), keeping fixed ordering to avoid string ambiguity.
+- **HKDF-SHA256:** illustrates RFC 5869 Extract/Expand for a 32-byte output.
+- **Attack tests:** substituting an ephemeral public key, altering expected identity, signing with an impostor key, and replaying a signature onto a fresh challenge.
 
-Tệp đầy đủ: `AuthenticatedKexDemo.java`.
+Full file: `AuthenticatedKexDemo.java`.
 
 ```java
 import java.io.ByteArrayOutputStream;
@@ -480,14 +480,14 @@ public class AuthenticatedKexDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac AuthenticatedKexDemo.java
 java AuthenticatedKexDemo
 ```
 
-Kết quả stdout đã được kiểm tra với các API Java 17 tương thích:
+Verified stdout output with compatible Java 17 APIs:
 
 ```text
 Alice verifies Bob: true
@@ -500,50 +500,50 @@ Replayed old response accepted: false
 Key confirmation valid: true
 ```
 
-### 8.1. Vì sao thay X25519 public key bị phát hiện?
+### 8.1. Why is substituting the X25519 public key detected?
 
-Bob ký transcript `t` chứa **cả** `aPub` và `bPub`. Khi Mallory thay `bPub` bằng `mPub` trên đường gửi cho Alice, Alice tái tạo `substituted` từ key mình thấy và thử xác minh chữ ký cũ của Bob:
+Bob signs transcript `t`, which includes **both** `aPub` and `bPub`. When Mallory swaps `bPub` for `mPub` on its way to Alice, Alice reconstructs `substituted` from the key she sees and tries to verify Bob's original signature:
 
 ```java
 verify(pinnedBobKey, substituted, bobSignature)
 ```
 
-Kết quả là `false` vì bytes đã ký không còn giống transcript Alice đang xác minh. Mallory không có Ed25519 private signing key đã được gắn tin cậy với định danh Bob để tạo lại chữ ký hợp lệ cho transcript mới.
+The result is `false` because the signed bytes no longer match the transcript Alice is verifying. Mallory does not possess the Ed25519 private signing key trusted for Bob's identity to forge a valid signature for the new transcript.
 
-Nếu Mallory thay **aPub** ở chiều Alice → Bob, Bob cũng cần tạo/kiểm tra transcript từ đúng giá trị nhận được và Alice phải xác minh transcript của phiên mình đang tham gia. Khi transcript hai phía khác nhau, cơ chế ký/chứng thực và confirmation đúng thiết kế sẽ làm handshake thất bại.
+If Mallory swaps **aPub** on the Alice → Bob direction, Bob must likewise build/verify the transcript from the exact values received, and Alice must verify the transcript of the session she is participating in. When the two sides' transcripts differ, properly designed signing/verification and confirmation will fail the handshake.
 
-**Chú ý:** chữ ký hợp lệ có ý nghĩa chỉ vì `pinnedBobKey` đã được giả định tin cậy và ràng buộc vào identity Bob. Nếu chương trình nhận `pinnedBobKey` từ chính gói tin do Mallory gửi rồi không kiểm tra, Mallory chỉ việc thay luôn key và tự ký: vẫn MITM.
+**Note:** a valid signature is meaningful only because `pinnedBobKey` was assumed trusted and bound to Bob's identity. If the program grabbed `pinnedBobKey` from the very packet Mallory sent without checking, Mallory could simply swap the key too and self-sign: still MITM.
 
-### 8.2. Vì sao đổi peer identity bị phát hiện?
+### 8.2. Why is changing the peer identity detected?
 
-Transcript không chỉ chứa key, mà còn chứa chuỗi identity **theo đúng role**. Trong demo, Alice có ý định giao tiếp với `bob`, nên thử xác minh chữ ký Bob trên transcript ghi `mallory` ở vị trí responder phải bị từ chối.
+The transcript contains not only keys, but also identity strings **in their exact roles**. In the demo, Alice intends to talk to `bob`, so verifying Bob's signature against a transcript listing `mallory` as responder must be rejected.
 
-Trong production, identity phải được lấy từ **cấu hình hoặc kết quả resolve tin cậy của ứng dụng**, không được dùng trường `responder` do bên kia tự khai làm “expected identity”. Bảo đảm này quan trọng để tránh **unknown key-share (UKS)**: một phía tin rằng mình chia sẻ key với danh tính khác mặc dù các bí mật mật mã có thể khớp.
+In production, identity must come from **trusted application configuration or resolution**, never taking a `responder` field self-reported by the other side as the “expected identity.” This guarantee is critical to prevent **unknown key-share (UKS)**: one party believing it shares a key with a different identity even though the cryptographic secrets match.
 
-### 8.3. Vì sao chữ ký impostor bị từ chối?
+### 8.3. Why is an impostor signature rejected?
 
-Mallory có thể tạo Ed25519 key pair hợp lệ và ký transcript hợp lệ. Nhưng **bất kỳ key pair đúng thuật toán nào** không đồng nghĩa với key của Bob. Alice phải verify bằng `pinnedBobKey`, không verify bằng public key Mallory đính kèm trong cùng thông điệp.
+Mallory can generate a valid Ed25519 key pair and validly sign the transcript. However, **just any valid key pair of the algorithm** is not Bob's key. Alice must verify with `pinnedBobKey`, never with a public key Mallory attaches inside the same message.
 
-Đây là chỗ PKI hoặc pinning giải quyết vấn đề **thuộc tính khóa gắn với danh tính**, còn Ed25519 Signature giải quyết việc **người ký có giữ private key hay không**.
+This is where PKI or pinning solves **binding a key to an identity**, while Ed25519 signatures solve **whether the signer holds the private key**.
 
-### 8.4. Giới hạn của demo — không dùng như production handshake
+### 8.4. Demo limitations — do not use as a production handshake
 
-Ví dụ minh họa một số nguyên tắc cốt lõi, **không phải một wire protocol hoàn chỉnh đã được chứng minh an toàn**:
+The example illustrates core principles, **not a complete wire protocol proven secure**:
 
-- Tất cả key pairs được sinh và trao trong **một process**, nên không mô tả network framing, key distribution thực tế, trust anchor hay quá trình certificate validation.
-- `pinnedAliceKey` và `pinnedBobKey` chỉ được gán từ các key vừa tạo; demo **giả định** bước tin cậy đã xảy ra. Không dùng pattern này để “học khóa” từ network rồi xem là đã authenticated.
-- Không mô tả trạng thái handshake, retransmission, timeout, key update, retranscript negotiation hoặc xử lý cùng lúc nhiều phiên.
-- Chưa verify untrusted X25519 public key bytes sau parse từ network; cần cơ chế decode/validate theo provider và chuẩn curve, từ chối malformed/low-order/all-zero secret nếu ứng dụng/provider chưa xử lý đầy đủ.
-- Transcript demo dùng `getEncoded()` của Java public key; một implementation khác có thể dùng raw 32-byte X25519 keys. **Phải chỉ định một wire encoding duy nhất** và kiểm thử chéo, không ghép các encoding khác nhau.
-- Code không triển khai đầy đủ bảo vệ replay, bảo vệ identity trong hệ thống nhiều tenant, authorization hoặc certificate revocation.
-- Hai chiều traffic hiện dùng một output `app-key` demo. Protocol sản xuất phải dẫn xuất **khóa gửi/nhận tách biệt**, nonce/sequence numbers riêng, record framing, AEAD authentication và limits.
-- Local `confirmA`/`confirmB` chỉ so sánh hai kết quả trong cùng chương trình; muốn key confirmation qua mạng phải thực sự **gửi, xác minh MAC/Finished có role/ transcript đúng**, không chỉ in `true`.
-- Việc gọi `Arrays.fill(...)` làm giảm thời gian giữ các mảng tự sở hữu, nhưng không bảo đảm private key và mọi bản sao trung gian trong JVM/provider bị xóa ngay.
-- Không tự thiết kế protocol mã hóa lai/mTLS thay cho TLS 1.3 hoặc một protocol được kiểm toán khi chỉ cần một kênh giao tiếp thông thường.
+- All key pairs are generated and exchanged in **one process**, so it does not model network framing, real key distribution, trust anchors, or certificate validation.
+- `pinnedAliceKey` and `pinnedBobKey` are simply assigned from newly created keys; the demo **assumes** trust provisioning already occurred. Never use this pattern to “learn keys” from the network and treat them as authenticated.
+- It does not model handshake state machines, retransmissions, timeouts, key updates, transcript renegotiation, or concurrent sessions.
+- Untrusted X25519 public key bytes are not validated after network parsing; you need decoding/validation per provider and curve standard, rejecting malformed/low-order/all-zero secrets if the app/provider does not handle them fully.
+- The demo transcript uses `getEncoded()` from Java public keys; another implementation might use raw 32-byte X25519 keys. **Specify a single wire encoding** and cross-test it; never mix encodings.
+- The code does not implement full replay protection, multi-tenant identity isolation, authorization, or certificate revocation.
+- Both directions currently share one demo `app-key` output. Production protocols must derive **separate send/receive keys**, distinct nonces/sequence numbers, record framing, AEAD authentication, and usage limits.
+- Local `confirmA`/`confirmB` only compare two values in the same program; network key confirmation requires actually **sending and verifying Finished/MAC values with proper roles and transcripts**, not just printing `true`.
+- Calling `Arrays.fill(...)` shortens the lifetime of self-owned arrays, but does not guarantee private keys and intermediate copies inside the JVM/provider are wiped immediately.
+- Never design a custom hybrid/mTLS encryption protocol in place of TLS 1.3 or an audited protocol when you simply need a secure transport channel.
 
-## 9. TLS 1.3 là ví dụ thực tế của authenticated key agreement
+## 9. TLS 1.3 as a Real-World Example of Authenticated Key Agreement
 
-Đối với giao tiếp HTTPS hoặc dịch vụ nội bộ, **TLS 1.3** là lựa chọn chuẩn thay vì tự lắp X25519 + Ed25519 + HKDF rồi gửi dữ liệu. Một handshake TLS 1.3 ở chế độ xác thực server bằng certificate (mô tả khái niệm) gồm:
+For HTTPS or internal service-to-service communication, **TLS 1.3** is the standard choice instead of assembling X25519 + Ed25519 + HKDF yourself and sending data. A TLS 1.3 handshake in certificate-based server authentication mode (conceptual view) involves:
 
 ```text
 Client                                              Server
@@ -551,13 +551,13 @@ Client                                              Server
 ClientHello
   supported versions, cipher suites,
   key_share (ECDHE), random    --------------------->
-                                 <------------------ ServerHello
-                                                      selected suite, key_share
-                      [Hai bên dẫn xuất handshake traffic secrets]
-                                 <------------------ EncryptedExtensions
-                                 <------------------ Certificate
-                                 <------------------ CertificateVerify
-                                 <------------------ Finished
+                                  <------------------ ServerHello
+                                                       selected suite, key_share
+                      [Both sides derive handshake traffic secrets]
+                                  <------------------ EncryptedExtensions
+                                  <------------------ Certificate
+                                  <------------------ CertificateVerify
+                                  <------------------ Finished
 Client:
   validate certificate chain + expected DNS name
   verify CertificateVerify over TLS handshake transcript
@@ -567,234 +567,234 @@ Client:
 Client/Server exchange authenticated encrypted application records
 ```
 
-Điểm quan trọng:
-- **Key share ECDHE** tạo shared secret, **không** xác thực identity riêng nó.
-- **Certificate** cung cấp public key danh tính của server được ràng buộc theo PKI; client phải xác minh chain và **hostname đã kỳ vọng**.
-- **CertificateVerify** chứng minh private signing key phù hợp với certificate và ký một cấu trúc liên quan handshake transcript, với context do TLS 1.3 định nghĩa.
-- **Finished** là MAC xác thực transcript với khóa được dẫn xuất từ handshake secrets; phát hiện bất đồng/đổi handshake và bảo đảm key confirmation theo thiết kế TLS.
-- **HKDF** và key schedule tạo traffic secrets cho từng giai đoạn và chiều, không dùng raw DH secret trực tiếp làm một khóa AES duy nhất.
-- **mTLS** bổ sung xác thực certificate/client proof nếu ứng dụng yêu cầu; server authentication không có nghĩa client đã được cấp quyền API.
-- TLS 1.3 có thêm các chế độ PSK, resumption, HelloRetryRequest và nhiều quy tắc khác; sơ đồ trên chỉ minh họa **certificate-based full handshake** phổ biến, không thay thế RFC.
+Key takeaways:
+- **ECDHE key share** establishes the shared secret; it **does not** authenticate identity by itself.
+- **Certificate** provides the server's PKI-bound identity public key; the client must verify the chain and **expected hostname**.
+- **CertificateVerify** proves possession of the private signing key matching the certificate and signs a structure over the handshake transcript with a TLS 1.3-defined context.
+- **Finished** is a MAC authenticating the transcript with keys derived from handshake secrets; it detects handshake mismatches/tampering and provides key confirmation per TLS design.
+- **HKDF** and the key schedule derive traffic secrets per stage and direction, never using raw DH secrets directly as a single AES key.
+- **mTLS** adds client certificate/proof authentication when required by the application; server authentication does not mean the client is authorized for APIs.
+- TLS 1.3 also includes PSK modes, resumption, HelloRetryRequest, and many other rules; the diagram above only illustrates a common **certificate-based full handshake** and does not replace the RFC.
 
-### 9.1. Điều client thật phải kiểm tra
+### 9.1. What a real client must check
 
-Giả sử client kết nối `https://payments.example.com`. Một certificate CA-signed cho `files.example.com` không nên được chấp nhận chỉ vì cùng một tổ chức hoặc cùng CA. Client có một **expected reference identity** là `payments.example.com`, phải so sánh certificate identity theo quy tắc phù hợp.
+Suppose a client connects to `https://payments.example.com`. A CA-signed certificate for `files.example.com` must not be accepted simply because it belongs to the same organization or same CA. The client has an **expected reference identity** of `payments.example.com` and must match the certificate identity per standard rules.
 
-Trong Java, ưu tiên HTTP/TLS client chuẩn (như `java.net.http.HttpClient` hoặc cấu hình TLS provider đã kiểm tra) và các trust manager mặc định/được cấu hình đúng, thay vì tự cài:
+In Java, prefer standard HTTP/TLS clients (such as `java.net.http.HttpClient` or verified TLS provider configurations) and default/properly configured trust managers instead of installing:
 
 ```java
-// Anti-pattern (KHÔNG dùng):
+// Anti-pattern (DO NOT use):
 // TrustManager that accepts every certificate
 // HostnameVerifier that always returns true
 ```
 
-Không dùng các anti-pattern này để khắc phục lỗi môi trường development. Hãy thêm CA tin cậy đúng cách, bảo đảm server trình đúng certificate, hostname và certificate chain; không đánh đổi xác thực peer để “kết nối cho chạy”.
+Never use these anti-patterns to work around development environment errors. Properly add trusted CAs and ensure the server presents the right certificate, hostname, and chain; never sacrifice peer authentication just to “make it connect.”
 
-### 9.2. Server chỉ chứng minh khóa của mình, vậy client là ai?
+### 9.2. The server only proves its key, so who is the client?
 
-TLS server authentication chứng minh client đang kết nối tới một server có identity đúng theo PKI. Nó **không tự** chứng minh user hoặc client application có quyền gọi API. Sau handshake, ứng dụng vẫn cần xác thực token/session/client cert hoặc cơ chế khác, rồi áp authorization tới resource.
+TLS server authentication proves the client is connecting to a server with the right PKI identity. It **does not automatically** prove the user or client application is authorized to call an API. After the handshake, the application still needs token/session/client-cert authentication or another mechanism, then authorization checks on resources.
 
-Mô hình mTLS có thể giúp ràng buộc **workload identity** với certificate phía client, nhưng authorization vẫn phải xác minh certificate identity có quyền thực hiện đúng hành động/tenant. Đừng dùng một boolean “TLS connected” làm điều kiện đủ cho mọi quyền.
+mTLS can help bind **workload identity** to a client certificate, yet authorization must still check whether that certificate identity is permitted for the specific action/tenant. Never treat a “TLS connected” boolean as sufficient permission for everything.
 
-## 10. Ràng buộc identity và key tránh những tấn công nào?
+## 10. Which Attacks Does Binding Identity and Keys Prevent?
 
 ### 10.1. Key substitution / classic MITM
 
-Đối thủ thay ephemeral public key; nếu transcript được ký và verify với trusted identity key, thay thế đó bị phát hiện. Nếu không có authentication, hai phía tạo shared secrets với attacker.
+An adversary replaces an ephemeral public key; if the transcript is signed and verified with a trusted identity key, the substitution is detected. Without authentication, both sides establish shared secrets with the attacker.
 
 ### 10.2. Unknown key-share (UKS)
 
-Một cấu hình hoặc protocol có thể khiến Alice tin khóa phiên thuộc Bob trong khi Bob tin mình đang giao tiếp với Mallory; hoặc nhiều key được ánh xạ vào sai identity. Điều này nguy hiểm dù attacker không trực tiếp biết shared secret.
+A configuration or protocol flaw can lead Alice to believe a session key belongs to Bob while Bob believes he is talking to Mallory, or map keys to the wrong identity. This is dangerous even when the attacker does not directly know the shared secret.
 
-Phòng tránh bằng:
-- Ký/xác thực cả hai identities và roles;
-- Kiểm tra peer identity **được kỳ vọng** thay vì identity tự khai;
-- Ràng buộc transcript/traffic keys với protocol và endpoints;
-- Kiểm tra mapping key → principal/tenant và quyền.
+Prevent by:
+- Signing/authenticating both identities and roles;
+- Checking the **expected** peer identity rather than a self-claimed identity;
+- Binding transcript/traffic keys to protocol and endpoints;
+- Verifying key → principal/tenant mapping and authorization.
 
-### 10.3. Downgrade/cipher-suite confusion
+### 10.3. Downgrade / cipher-suite confusion
 
-Nếu thuật toán do đối thủ thay đổi ngoài phạm vi đã được xác thực, hai bên có thể rơi vào thuật toán yếu hoặc hiểu nhầm bản tin. Ký/bind selected suite, version, KDF, curve và cipher options; reject không nằm trong allowlist. Không tự thử “nhiều thuật toán tới khi một signature pass”.
+If algorithms are altered by an adversary outside authenticated coverage, both sides may fall back to weak algorithms or misinterpret messages. Sign/bind the selected suite, version, KDF, curve, and cipher options; reject anything outside the allowlist. Never try “multiple algorithms until one signature passes.”
 
-### 10.4. Replay và identity của phiên
+### 10.4. Replay and session identity
 
-Chữ ký trên một transcript cũ không còn hợp lệ khi một bên tạo nonce/ephemeral key mới và xây transcript mới. Nhưng không đủ để nói mọi tác vụ sẽ chống replay: ứng dụng vẫn cần anti-replay cho request và AEAD record nonces/sequence numbers theo giao thức.
+A signature over an old transcript becomes invalid once a party generates a fresh nonce/ephemeral key and builds a new transcript. Still, this alone does not make all operations replay-proof: applications need request anti-replay and protocol-level AEAD record nonces/sequence numbers.
 
 ### 10.5. Key compromise impersonation (KCI)
 
-Trong một số protocol, lộ long-term authentication key của Alice có thể ảnh hưởng tới nhiều tính chất khác nhau, không chỉ quyền giả làm Alice với người khác. Phân tích KCI đòi hỏi xét chính xác cấu trúc authenticated key exchange, ai bị lộ khóa và ai đang cố impersonate ai.
+In some protocols, compromising Alice's long-term authentication key can affect various properties beyond impersonating Alice to others. KCI analysis requires examining the exact authenticated key exchange structure, whose key leaked, and who is trying to impersonate whom.
 
-Không tự tuyên bố một mẫu “DH + chữ ký” là chống mọi dạng KCI hoặc chống tất cả lộ khóa; nên chọn giao thức có phân tích bảo mật phù hợp threat model.
+Never blindly claim a “DH + signature” pattern is immune to all forms of KCI or all key compromises; choose a protocol whose security analysis matches your threat model.
 
 ### 10.6. Forward secrecy
 
-Nếu mỗi phiên dùng **ephemeral X25519 key pairs mới** và các khóa tạm thời được xóa đúng lúc, lộ **long-term identity signing key** về sau không tự đưa attacker về các shared secrets cũ từ bản ghi công khai, theo giả định an ninh của scheme và protocol. Đây là một thành phần của **forward secrecy**.
+If every session uses **fresh ephemeral X25519 key pairs** and temporary keys are erased promptly, a later compromise of the **long-term identity signing key** does not automatically let an attacker recover old shared secrets from recorded public traffic, under the security assumptions of the scheme and protocol. This is one component of **forward secrecy**.
 
-Tuy nhiên, nếu một bản ghi session key, ephemeral private key hoặc plaintext từng bị lộ trước đó, chữ ký không thể làm dữ liệu ấy “chưa từng lộ”. Mô hình forward secrecy đầy đủ cần một protocol được thiết kế và chứng minh phù hợp; đừng suy ra chỉ từ việc mỗi lần gọi `KeyPairGenerator` đều tạo key mới.
+However, if a session key, ephemeral private key, or plaintext leaked earlier, signatures cannot “un-leak” that data. Full forward secrecy requires a properly designed and proven protocol; do not infer it merely from calling `KeyPairGenerator` each time.
 
 ### 10.7. Invalid curve / malformed public keys
 
-Khi nhận X25519 public key từ network, không mặc định mọi dãy byte đều là public key an toàn. Phải dùng decoder/provider và key agreement implementation phù hợp chuẩn, xử lý input malformed, kiểm tra kết quả shared secret không thuộc trường hợp cấm (ví dụ all-zero theo hướng dẫn X25519) và từ chối lỗi.
+When receiving X25519 public keys over the network, never assume every byte array is a safe public key. Use standards-compliant decoders/providers and key agreement implementations, handle malformed inputs, check that shared secret outputs do not hit disallowed cases (such as all-zero per X25519 guidance), and reject errors.
 
-**Không tự thiết kế** bước chuyển/giải mã public key hoặc bỏ qua ngoại lệ provider để “đồng ý khóa bằng mọi giá”.
+**Never design your own** public key conversion/decoding step or ignore provider exceptions just to “accept the key at all costs.”
 
-## 11. Liên hệ với key wrapping
+## 11. Connection to Key Wrapping
 
-Chủ đề cha của bài học là **thỏa thuận và bọc khóa**. Hai cơ chế liên quan nhưng không đồng nhất:
+The parent topic of this chapter is **key establishment and wrapping**. The two mechanisms are related but not identical:
 
-- **Key agreement:** hai phía đóng góp khóa tạm thời, cùng tính shared secret (X25519/ECDH), sau đó HKDF dẫn xuất traffic keys. Cần xác thực ephemeral keys/peer identity để chống MITM.
-- **Key wrapping/transport:** một bên tạo khóa đối xứng (CEK/DEK), rồi bảo vệ khóa đó để bên nhận khôi phục, ví dụ RSA-OAEP với public key người nhận hoặc KEM/AEAD key wrap phù hợp. Cần xác thực **khóa công khai người nhận** để tránh wrap CEK cho kẻ tấn công.
+- **Key agreement:** both sides contribute ephemeral keys and compute a shared secret (X25519/ECDH), then HKDF derives traffic keys. Ephemeral keys/peer identity must be authenticated against MITM.
+- **Key wrapping/transport:** one side generates a symmetric key (CEK/DEK) and protects it so the recipient can recover it—for example, RSA-OAEP with the recipient's public key or appropriate KEM/AEAD key wrap. The **recipient's public key** must be authenticated to avoid wrapping the CEK for an attacker.
 
-Nếu attacker thay public key của người nhận trong scheme wrap, sender có thể mã hóa CEK cho attacker; ở key agreement, attacker có thể tạo hai shared secrets giả. **Gốc vấn đề chung là thiếu authenticated binding giữa public key và đúng đối tác**.
+If an attacker swaps the recipient's public key in a wrapping scheme, the sender encrypts the CEK for the attacker; in key agreement, the attacker establishes two spoofed shared secrets. **The shared root problem is missing authenticated binding between the public key and the right peer.**
 
-Trong các framework như HPKE, đã có những cấu hình bảo mật và cách xác thực khác nhau (base/auth/PSK tùy profile). Không được gọi mọi hình thức mã hóa bằng public key là “đã xác thực đối tác”; hãy đọc đúng mode và mô hình chứng thực mà scheme cung cấp.
+Frameworks like HPKE define specific security configurations and authentication modes (base/auth/PSK depending on profile). Never call every form of public-key encryption “peer-authenticated”; read the exact mode and authentication guarantees the scheme provides.
 
-## 12. Các lỗi phổ biến và cách sửa
+## 12. Common Mistakes and Fixes
 
-| Lỗi/nhận định | Vì sao nguy hiểm | Cách làm đúng |
+| Mistake / claim | Why it is dangerous | Correct practice |
 | --- | --- | --- |
-| “X25519 cho cùng secret thì đã biết đó là Bob” | Attacker có thể tạo hai phiên với Alice/Bob | Verify trusted identity key và transcript |
-| “Public key có fingerprint, vậy đã an toàn” | Fingerprint của key attacker cũng hợp lệ | So sánh với fingerprint/key từ kênh tin cậy |
-| “Gửi certificate rồi không cần kiểm tra hostname” | Cert của host khác vẫn có chain hợp lệ | Kiểm tra expected DNS/application identity |
-| “Accept all certificates để không bị SSL lỗi” | Tắt peer authentication, mở MITM | Cấu hình CA/PKI đúng |
-| “Ký mỗi public key là đủ cho mọi handshake” | Không bind role, nonce, suite, partner | Ký/chứng thực toàn transcript theo spec |
-| “Chữ ký hợp lệ với key gửi kèm chứng minh key thuộc Bob” | Attacker tự sinh cả signing key và signature | Trusted key được provision độc lập |
-| “Nonce có thể giữ nguyên qua nhiều phiên” | Tạo cơ hội replay/nhầm phiên | Fresh nonce/ephemeral và kiểm tra state |
-| “HKDF(sharedSecret) tự chống MITM” | Mallory có hai DH secrets riêng | Xác thực trước và bind transcript/KDF |
-| “MAC Finished nghĩa là client là Alice” | MITM không xác thực cũng tính MAC cho phiên của hắn | Finished + identity authentication + binding |
-| “TLS encryption bật là đủ, hostname verification không quan trọng” | Kênh có thể kết thúc tại endpoint sai | Full TLS certificate & name validation |
-| “Sau khi handshake đúng thì mọi API đều được phép” | Authentication không thay authorization | Map identity tới quyền và resource |
-| “Đổi thuật toán tới khi verify được” | Downgrade, protocol confusion | Version/cipher allowlist, fail closed |
-| “TOFU là PKI đáng tin ngay từ lần đầu” | Lần đầu vẫn có thể bị MITM | Verify initial fingerprint out-of-band nếu cần |
-| “Private identity signing key lộ không sao vì có ECDHE” | Attacker có thể giả identity trong phiên tương lai | Bảo vệ/rotate/revoke signing key |
-| “Xóa Java byte[] là đủ để bảo đảm tất cả key đã biến mất” | JVM/provider có thể giữ bản copy | Memory hygiene, scope, KMS/HSM theo threat model |
-| “Ciphertext AEAD có tag nên cũng biết người gửi là Bob” | Ai biết khóa hoặc public key có thể tạo message hợp lệ tùy scheme | Kiểm tra principal/sender authentication riêng |
+| “X25519 gave the same secret, so it must be Bob” | An attacker can run two sessions with Alice and Bob | Verify trusted identity keys and transcript |
+| “The public key has a fingerprint, so it's safe” | An attacker's key also has a valid fingerprint | Compare against a fingerprint/key from a trusted channel |
+| “Sent a certificate, so hostname checking isn't needed” | Another host's cert still has a valid chain | Validate expected DNS/application identity |
+| “Accept all certificates to avoid SSL errors” | Disables peer authentication, invites MITM | Configure CA/PKI properly |
+| “Signing just the public key suffices for any handshake” | Fails to bind roles, nonces, suite, partner | Sign/authenticate full transcript per spec |
+| “Valid signature with the attached key proves it's Bob” | Attacker generated both signing key and signature | Provision trusted keys independently |
+| “Nonces can be reused across sessions” | Enables replay/session confusion | Use fresh nonces/ephemerals and track state |
+| “HKDF(sharedSecret) prevents MITM on its own” | Mallory holds two separate DH secrets | Authenticate first and bind transcript/KDF |
+| “Finished MAC proves the client is Alice” | An unauthenticated MITM computes MACs for his sessions | Combine Finished + identity authentication + binding |
+| “TLS encryption is on, hostname verification doesn't matter” | Channel may terminate at the wrong endpoint | Full TLS certificate & name validation |
+| “Once the handshake passes, every API is allowed” | Authentication does not replace authorization | Map identity to permissions and resources |
+| “Try algorithms until verification succeeds” | Downgrade, protocol confusion | Enforce version/cipher allowlist, fail closed |
+| “TOFU provides trusted PKI from the first connection” | First connection can still be MITM'd | Verify initial fingerprint out-of-band if needed |
+| “Leaked private identity signing key is fine because of ECDHE” | Attacker can impersonate identity in future sessions | Protect/rotate/revoke signing keys |
+| “Zeroing a Java byte[] guarantees all keys are gone” | JVM/provider may retain copies | Memory hygiene, scoping, KMS/HSM per threat model |
+| “AEAD ciphertext has a tag, so we know Bob sent it” | Anyone knowing the key or public key can produce valid messages depending on scheme | Verify principal/sender authentication separately |
 
-## 13. Các bước kiểm thử một authenticated handshake
+## 13. Steps to Test an Authenticated Handshake
 
 ### 13.1. Positive tests
 
-1. Alice mong gặp Bob; trusted Bob identity key đúng. Bob mong gặp Alice; trusted Alice key đúng.
-2. Hai phía ghi transcript theo cùng version, encoding, roles, identities, nonces và ephemeral public keys.
-3. Cả hai chứng cứ ký/MAC xác minh thành công với **keys được pin/cert validate đúng**.
-4. Shared secret và traffic keys dẫn xuất đúng; record AEAD với mỗi hướng có nonce/sequence hợp lệ.
-5. Application kiểm tra quyền của principal trước khi xử lý request.
+1. Alice expects Bob; Bob's trusted identity key matches. Bob expects Alice; Alice's trusted key matches.
+2. Both sides encode the transcript with identical version, encoding, roles, identities, nonces, and ephemeral public keys.
+3. Both signature/MAC proofs verify successfully against **properly pinned/cert-validated keys**.
+4. Shared secret and traffic keys derive identically; AEAD records in each direction use valid nonces/sequences.
+5. The application checks principal authorization before processing requests.
 
 ### 13.2. Negative tests
 
-| Ca thử | Điều kiện | Kỳ vọng |
+| Test case | Condition | Expected outcome |
 | --- | --- | --- |
-| Thay `bEphemeralPublic` | Mallory chèn một X25519 key khác | Chữ ký/transcript check fail |
-| Thay `aEphemeralPublic` | Mallory sửa key phía initiator | Phiên Alice/Bob không thể thống nhất authenticated transcript |
-| Sai trusted identity key | Verify bằng key Mallory thay vì Bob nhưng chính sách trông đợi Bob | Không chấp nhận identity Bob |
-| Chữ ký impostor | Mallory dùng Ed25519 private key của mình ký | Verify bằng trusted Bob key thất bại |
-| Sai tên đối tác | `bob` bị thay thành `mallory` | Identity/transcript binding thất bại |
-| Sai role | Initiator/responder bị đảo | Fail theo transcript/signature rule |
-| Sai version/suite | Chuyển X25519/HKDF profile sang thuật toán khác | Fail, không downgrade |
-| Chữ ký từ phiên cũ | Nonce/challenge mới với signature cũ | Fail |
-| Public key malformed/weak | Untrusted bytes, parser/curve input bất thường | Fail closed, không ra khóa phiên |
-| Cert hợp lệ nhưng sai SAN | Server cert thuộc host khác | Hostname verification fail |
-| Cert chain không được tin cậy | Self-signed unknown CA | Reject nếu không có trust policy phù hợp |
-| Cert hết hạn/bị thu hồi | Không đạt certificate policy | Reject theo validation policy |
-| Finished sai | Shared secrets hoặc transcript khác nhau | Reject trước app data |
-| Replayed business request | Handshake đã xác thực nhưng lệnh bị gửi lại | Replay/idempotency policy xử lý |
-| Unauthorized resource | Client đã xác thực nhưng không có quyền tenant/resource | Reject authorization |
+| Swap `bEphemeralPublic` | Mallory injects a different X25519 key | Signature/transcript check fails |
+| Swap `aEphemeralPublic` | Mallory alters the initiator's key | Alice and Bob cannot agree on an authenticated transcript |
+| Wrong trusted identity key | Verifying with Mallory's key instead of Bob's when policy expects Bob | Bob's identity rejected |
+| Impostor signature | Mallory signs with his own Ed25519 private key | Verification with trusted Bob key fails |
+| Wrong peer name | `bob` replaced with `mallory` | Identity/transcript binding fails |
+| Wrong role | Initiator/responder swapped | Fails per transcript/signature rules |
+| Wrong version/suite | Switching X25519/HKDF profile to another algorithm | Fails, no downgrade |
+| Signature from old session | Fresh nonce/challenge with old signature | Fails |
+| Malformed/weak public key | Untrusted bytes, anomalous parser/curve input | Fails closed, no session key produced |
+| Valid cert, wrong SAN | Server cert belongs to another host | Hostname verification fails |
+| Untrusted cert chain | Self-signed unknown CA | Rejected unless explicit trust policy allows |
+| Expired/revoked cert | Violates certificate policy | Rejected per validation policy |
+| Wrong Finished | Shared secrets or transcripts differ | Rejected before app data |
+| Replayed business request | Handshake authenticated, but command resent | Handled by replay/idempotency policy |
+| Unauthorized resource | Authenticated client lacks tenant/resource permission | Authorization rejected |
 
-Trong test automation, không chỉ assert “hai phía cùng derive một key” mà phải assert **đúng expected peer identity** và **các thay đổi attack-controlled bị từ chối**.
+In automated tests, do not merely assert “both sides derive the same key”—assert **the exact expected peer identity** and **that attack-controlled modifications are rejected**.
 
-### 13.3. Debug interop khi hai bên không thể xác thực
+### 13.3. Debugging interoperability when two sides fail authentication
 
-Trình tự kiểm tra hợp lý:
+Reasonable check sequence:
 
-1. Confirm protocol version, suite và handshake state tương đương.
-2. Confirm **expected peer identity** và nguồn cấp trusted identity public key/certificate.
-3. So sánh canonical transcript bytes hoặc transcript hash từ **fixture không nhạy cảm**; kiểm tra thứ tự trường, encoding public key, UTF-8, role, nonce và length prefix.
-4. Nếu transcript khớp mà verify signature fail, kiểm tra signature algorithm/key format, certificate identity key, byte encoding của signature và policy.
-5. Nếu chữ ký đúng mà session keys khác, kiểm tra đúng cặp ephemeral public/private keys, X25519 provider, HKDF extract salt/info và transcript hash.
-6. Nếu key bằng nhau nhưng record fail, kiểm tra AEAD AAD, sequence/nonce management và traffic-key direction.
-7. Nếu crypto pass nhưng API bị từ chối, kiểm tra policy authorization, principal mapping, tenant/resource và replay.
+1. Confirm protocol version, suite, and handshake state match.
+2. Confirm **expected peer identity** and the source of the trusted identity public key/certificate.
+3. Compare canonical transcript bytes or transcript hash using **non-sensitive test fixtures**; check field ordering, public key encoding, UTF-8, roles, nonces, and length prefixes.
+4. If the transcript matches yet signature verification fails, check signature algorithm/key format, certificate identity key, signature byte encoding, and policy.
+5. If signatures pass yet session keys differ, check matching ephemeral public/private pairs, X25519 provider, HKDF extract salt/info, and transcript hash.
+6. If keys match yet records fail, check AEAD AAD, sequence/nonce management, and traffic-key direction.
+7. If crypto passes yet API calls are rejected, check authorization policy, principal mapping, tenant/resource, and replay checks.
 
-**Không log private keys, raw shared secrets, traffic keys hoặc production plaintext** để debug. Nếu cần trace, ưu tiên IDs phiên, thuật toán, độ dài key, trạng thái policy và transcript hash được quản lý theo quy định dữ liệu nhạy cảm.
+**Never log private keys, raw shared secrets, traffic keys, or production plaintext** to debug. When tracing is needed, prefer session IDs, algorithm names, key lengths, policy status, and transcript hashes managed under sensitive-data rules.
 
-## 14. Checklist triển khai trước production
+## 14. Pre-Production Implementation Checklist
 
 ### Client/Initiator
 
-- [ ] Expected server identity được xác định bởi endpoint/application configuration đáng tin.
-- [ ] Trusted public key của server được xác thực bằng certificate/path/name validation hoặc pin đã provision đúng.
-- [ ] Server chứng minh private key tương ứng trên **đúng transcript** của phiên, bao gồm client nonce, server nonce, cả hai key shares, suite và roles.
-- [ ] Không chấp nhận đổi key/cert/hostname một cách im lặng hay “trust all” khi có lỗi.
-- [ ] Derive traffic keys từ authenticated handshake theo key schedule chuẩn và tách hướng.
-- [ ] Không gửi dữ liệu nhạy cảm trước khi hoàn thành các bước handshake được yêu cầu.
+- [ ] Expected server identity is determined by trusted endpoint/application configuration.
+- [ ] Server's trusted public key is authenticated via certificate/path/name validation or a properly provisioned pin.
+- [ ] Server proves possession of the corresponding private key over the **exact session transcript**, including client nonce, server nonce, both key shares, suite, and roles.
+- [ ] Never silently accept key/cert/hostname changes or “trust all” on errors.
+- [ ] Derive traffic keys from the authenticated handshake using a standard key schedule with direction separation.
+- [ ] Never send sensitive data before completing required handshake steps.
 
 ### Server/Responder
 
-- [ ] Key/certificate dùng xác thực server có vòng đời an toàn, lưu trong Keystore/KMS/HSM nếu phù hợp.
-- [ ] Key shares/identities client được parse và validate đúng tiêu chuẩn, giới hạn kích thước/DoS.
-- [ ] Nếu cần client authentication, xác minh client certificate/signature/PSK tương ứng với principal đã cấp.
-- [ ] Chỉ map client identity tới tenant/role/resource sau khi chứng thực và kiểm tra chính sách.
-- [ ] Chống replay và quản lý session/key update, sequence numbers và nonce theo protocol.
+- [ ] Server authentication keys/certificates have a secure lifecycle, stored in a Keystore/KMS/HSM where appropriate.
+- [ ] Client key shares/identities are parsed and validated per standards, with size/DoS limits.
+- [ ] If client authentication is required, verify client certificate/signature/PSK against provisioned principals.
+- [ ] Map client identity to tenant/role/resource only after authentication and policy checks.
+- [ ] Protect against replay and manage session/key updates, sequence numbers, and nonces per protocol.
 
-### Cả hai phía
+### Both sides
 
-- [ ] Không tự ghép DH+hash+AES rồi gọi là secure channel nếu chưa có formal authenticated key exchange design.
-- [ ] Protocol/version, suite, roles, identity, transcript và encoding được định nghĩa, kiểm thử chéo.
-- [ ] Có negative tests: MITM key replacement, wrong identity, wrong signer, replay, downgrade, malformed key, wrong Finished.
-- [ ] Có chính sách certificate/key rotation, revocation, compromise response và audit.
-- [ ] Có giới hạn số phiên, timeout, payload/key lengths, error behavior, resource consumption.
-- [ ] Đảm bảo authentication không bị nhầm với authorization hoặc end-to-end identity across proxies.
+- [ ] Never stitch DH+hash+AES and call it a secure channel without a formal authenticated key exchange design.
+- [ ] Protocol/version, suite, roles, identity, transcript, and encoding are defined and cross-tested.
+- [ ] Negative tests exist: MITM key replacement, wrong identity, wrong signer, replay, downgrade, malformed key, wrong Finished.
+- [ ] Policies exist for certificate/key rotation, revocation, compromise response, and auditing.
+- [ ] Limits exist for session counts, timeouts, payload/key lengths, error behavior, and resource consumption.
+- [ ] Ensure authentication is not confused with authorization or end-to-end identity across proxies.
 
-## 15. Bài tập tự kiểm tra
+## 15. Self-Check Exercises
 
-**Câu 1.** Alice và Bob chạy X25519 thành công, nhưng public key trao đổi qua HTTP không có xác thực. Kẻ tấn công có thể nghe lén dữ liệu sau khi cả hai bật AES-GCM không?
+**Q1.** Alice and Bob run X25519 successfully, but exchange public keys over unauthenticated HTTP. Can an attacker eavesdrop on data after both turn on AES-GCM?
 
-**Đáp án:** Có thể khi attacker chủ động MITM bằng cách thay public keys và tạo hai phiên khóa riêng. Hắn có keys cho cả hai phiên nên có thể giải mã và mã hóa lại mà không phá X25519/AES-GCM.
+**Answer:** Yes, if the attacker performs an active MITM by replacing public keys and establishing two separate key sessions. The attacker holds keys for both sessions and can decrypt and re-encrypt without breaking X25519 or AES-GCM.
 
-**Câu 2.** Bên gửi gửi `bPub` và `SHA-256(bPub)` trong cùng gói. Alice có chắc `bPub` thuộc Bob không?
+**Q2.** The sender transmits `bPub` and `SHA-256(bPub)` in the same packet. Can Alice be sure `bPub` belongs to Bob?
 
-**Đáp án:** Không. Kẻ tấn công thay cả hai. Fingerprint phải được so với giá trị tin cậy từ trước hoặc xác minh qua một kênh xác thực độc lập.
+**Answer:** No. An attacker can replace both. The fingerprint must be compared against a previously trusted value or verified over an independent authenticated channel.
 
-**Câu 3.** Bob ký `bPub` nhưng không đưa `aPub` và client nonce vào bằng chứng. Vấn đề tiềm ẩn?
+**Q3.** Bob signs `bPub` without including `aPub` and the client nonce in the proof. What is the potential issue?
 
-**Đáp án:** Bằng chứng không gắn đủ vào phiên cụ thể và public key của Alice, có thể gây replay/misbinding/unknown-key-share trong thiết kế thiếu ràng buộc. Nên ký transcript có cả hai key shares, identities, roles, suite và freshness.
+**Answer:** The proof is not sufficiently bound to the specific session and Alice's public key, which can allow replay/misbinding/unknown-key-share attacks in under-bound designs. Sign a transcript including both key shares, identities, roles, suite, and freshness.
 
-**Câu 4.** TLS server đưa certificate hợp lệ CA nhưng cho hostname khác. Client có nên tiếp tục?
+**Q4.** A TLS server presents a CA-valid certificate, but for a different hostname. Should the client proceed?
 
-**Đáp án:** Không; certificate chain valid chưa chứng minh **đúng expected hostname**. Cần kiểm tra SAN/reference identity cùng certificate policy.
+**Answer:** No; a valid certificate chain does not prove the **expected hostname**. Verify SAN/reference identity along with certificate policy.
 
-**Câu 5.** Nếu Mallory tự sinh Ed25519 key và ký đúng transcript của Bob thì có qua verify không?
+**Q5.** If Mallory generates his own Ed25519 key and signs Bob's exact transcript, will verification pass?
 
-**Đáp án:** Không khi Alice verify bằng **trusted Bob public key**. Nếu Alice lại dùng public key Mallory gửi kèm làm trust source, thiết kế đã sai và có thể bị MITM.
+**Answer:** No, provided Alice verifies using **Bob's trusted public key**. If Alice instead uses the public key Mallory attached as the trust source, the design is broken and vulnerable to MITM.
 
-**Câu 6.** Vì sao cùng một shared secret không chứng minh hai bên muốn giao tiếp với cùng identity?
+**Q6.** Why does having the same shared secret not prove both parties intend to communicate with the same identity?
 
-**Đáp án:** Secret chứng minh phép key agreement phù hợp, không chứng minh name/key binding. Phải ràng buộc expected identities và roles trong authenticated transcript và trusted-key mapping.
+**Answer:** The secret proves key agreement succeeded mathematically, not name/key binding. You must bind expected identities and roles in an authenticated transcript and trusted-key mapping.
 
-**Câu 7.** Key confirmation MAC đúng có chứng minh ngay rằng người đối diện là Bob không?
+**Q7.** Does a valid key confirmation MAC immediately prove the peer is Bob?
 
-**Đáp án:** Không nếu chưa có peer authentication. MITM có thể tính confirmation MAC cho hai phiên DH do hắn lập. Confirmation chỉ có ý nghĩa trong ngữ cảnh xác thực đúng.
+**Answer:** No, if there is no peer authentication. A MITM can compute valid confirmation MACs for the two DH sessions he established. Confirmation is meaningful only within proper authentication.
 
-**Câu 8.** Khóa ký Ed25519 dài hạn của Bob bị lộ hôm nay. Điều gì xảy ra với phiên mới và phiên cũ?
+**Q8.** Bob's long-term Ed25519 signing key is compromised today. What happens to new sessions and old sessions?
 
-**Đáp án:** Attacker có thể giả identity Bob trong handshake tương lai cho đến khi khóa được thu hồi/đổi; tính bí mật dữ liệu cũ phụ thuộc protocol, ephemeral private-key lifecycle, traffic keys và các secret có bị lộ hay không. Ephemeral DH đúng thiết kế có thể góp phần cho forward secrecy, nhưng không được hứa hẹn tuyệt đối chỉ dựa vào một chi tiết.
+**Answer:** An attacker can impersonate Bob in future handshakes until the key is revoked/rotated; confidentiality of past data depends on the protocol, ephemeral private-key lifecycle, traffic keys, and whether secrets leaked. Properly designed ephemeral DH can contribute to forward secrecy, though absolute guarantees never rest on a single detail alone.
 
-**Câu 9.** TOFU an toàn trước MITM ngay lần kết nối đầu tiên không?
+**Q9.** Is TOFU safe against MITM on the very first connection?
 
-**Đáp án:** Không. Nếu attacker xuất hiện lúc đầu, ứng dụng có thể lưu nhầm key attacker. Cần xác minh fingerprint qua kênh phụ khi mô hình an ninh yêu cầu.
+**Answer:** No. If an attacker is present initially, the application may store the attacker's key by mistake. Verify the initial fingerprint out-of-band when required by the security model.
 
-**Câu 10.** Trong Java 17, `KeyAgreement.getInstance("X25519")` tạo shared secret; còn `Signature.getInstance("Ed25519")` phục vụ gì?
+**Q10.** In Java 17, `KeyAgreement.getInstance("X25519")` produces the shared secret; what is `Signature.getInstance("Ed25519")` used for?
 
-**Đáp án:** X25519 tạo shared secret qua hai key shares; Ed25519 ký và xác minh transcript để ràng buộc handshake vào trusted identity signing key. Hai thuật toán có nhiệm vụ khác nhau, không thay thế nhau.
+**Answer:** X25519 derives the shared secret from two key shares; Ed25519 signs and verifies the transcript to bind the handshake to a trusted identity signing key. The two algorithms have different roles and do not replace each other.
 
-**Câu 11.** Có cần thêm authorization sau khi mTLS đã chứng minh client certificate không?
+**Q11.** Is authorization still needed after mTLS verifies the client certificate?
 
-**Đáp án:** Có. Chứng minh identity không cấp tự động mọi quyền; server vẫn phải map principal tới policy cho từng tenant/operation.
+**Answer:** Yes. Proving identity does not automatically grant all permissions; the server must still map the principal to policies for each tenant/operation.
 
-**Câu 12.** Khi cần bảo vệ CEK gửi cho Bob bằng RSA-OAEP thay vì key agreement, có cần xác thực public key Bob không?
+**Q12.** When protecting a CEK sent to Bob using RSA-OAEP instead of key agreement, do you still need to authenticate Bob's public key?
 
-**Đáp án:** Có. Nếu attacker thay public key Bob bằng key của mình, CEK có thể bị mã hóa cho attacker. Mô hình khác nhưng cùng vấn đề key–identity binding.
+**Answer:** Yes. If an attacker replaces Bob's public key with their own, the CEK gets encrypted for the attacker. Different model, same key–identity binding problem.
 
-## 16. Sơ đồ ghi nhớ
+## 16. Summary Diagram
 
 ```text
 KEY AGREEMENT ALONE:
@@ -829,9 +829,9 @@ AUTHENTICATED KEY AGREEMENT:
           Authenticate principal + authorize action
 ```
 
-**Điểm quan trọng nhất:** *Thỏa thuận được cùng một khóa không nói lên rằng khóa đó thuộc đúng đối tác*. Muốn chống đánh tráo public key, phía kiểm tra phải có một **gốc tin cậy về danh tính/khóa**, xác minh **bằng chứng trên đúng transcript phiên hiện tại**, rồi dẫn xuất/sử dụng khóa phiên theo protocol được chuẩn hóa. Với kết nối ứng dụng thực tế, ưu tiên **TLS 1.3/mTLS được cấu hình xác thực certificate và hostname đúng cách** thay cho một handshake tự chế.
+**Most important takeaway:** *Agreeing on the same key does not prove the key belongs to the right peer*. To prevent public-key substitution, the verifier must have a **trust anchor for identity/keys**, verify **proof over the exact current session transcript**, and then derive/use session keys according to a standardized protocol. For real-world application connections, prefer **TLS 1.3/mTLS properly configured for certificate and hostname validation** over a homegrown handshake.
 
-### Tài liệu tham khảo
+### References
 
 - RFC 7748 — *Elliptic Curves for Security* (X25519): https://www.rfc-editor.org/rfc/rfc7748
 - RFC 8032 — *Edwards-Curve Digital Signature Algorithm (EdDSA)* (Ed25519): https://www.rfc-editor.org/rfc/rfc8032

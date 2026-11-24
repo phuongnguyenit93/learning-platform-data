@@ -1,29 +1,29 @@
-# Giữ hợp đồng plugin nhỏ, tránh để lộ thư viện nội bộ của plugin
+# Keeping Plugin Contracts Small and Avoiding Exposure of Plugin-Internal Libraries
 
-Một hệ thống mở rộng lúc chạy (runtime extensibility) thường có hai bên được phát hành, cập nhật và nạp vào JVM theo nhịp khác nhau: **host** (ứng dụng cung cấp điểm mở rộng) và **plugin** (thành phần thực hiện khả năng mới). Điểm chung bắt buộc giữa hai bên là **hợp đồng mở rộng**: một tập nhỏ các kiểu, hành vi và quy tắc mà cả host lẫn plugin cùng hiểu. Nếu hợp đồng buộc host biết chi tiết thư viện JSON, HTTP, database hay engine của từng plugin, mỗi lần plugin đổi cách triển khai có thể kéo theo thay đổi ở host và các plugin khác.
+A runtime extensibility system typically involves two sides released, updated, and loaded into the JVM on different cadences: the **host** (the application providing extension points) and **plugins** (components implementing new capabilities). The mandatory common ground between them is the **extension contract**: a small set of types, behaviors, and rules understood by both host and plugins. If the contract forces the host to know details of each plugin's JSON, HTTP, database, or engine libraries, changing a plugin's implementation can ripple changes into the host and other plugins.
 
-Mục tiêu của bài này là thiết kế ranh giới đủ nhỏ, có kiểu dữ liệu rõ ràng, để host gọi plugin qua API ổn định; thư viện, cấu hình và cấu trúc triển khai của plugin được giữ phía sau ranh giới đó.
+The goal of this article is to design a boundary small enough, with clear data types, so the host invokes plugins through a stable API while each plugin's libraries, configuration, and implementation structure remain behind that boundary.
 
-## 1. Phân biệt hợp đồng với phần triển khai
+## 1. Separating the Contract from the Implementation
 
-Giả sử host muốn cung cấp chức năng biến đổi văn bản do nhiều plugin đăng ký.
+Suppose the host wants to provide text transformation powered by multiple registered plugins.
 
-| Phần | Thuộc hợp đồng dùng chung | Thuộc triển khai riêng |
+| Part | Belongs to shared contract | Belongs to private implementation |
 | --- | --- | --- |
-| Khả năng | Giao diện TextPlugin với thao tác transform | Thuật toán biến đổi, bộ đệm, cách gọi dịch vụ |
-| Dữ liệu | TextRequest, TextResult do module API định nghĩa | ObjectMapper, JsonNode, HTTP client, DTO của nhà cung cấp |
-| Khám phá | Tên service và quy tắc nạp provider | Tên lớp nội bộ, cấu trúc package và thư viện hỗ trợ |
-| Lỗi | Quy ước lỗi mà host có thể xử lý | Ngoại lệ chuyên biệt, stack trace, cơ chế retry bên trong |
-| Phiên bản | Mức tương thích API và khả năng được công bố | Phiên bản thư viện mà một plugin tự dùng |
+| Capability | TextPlugin interface with transform operation | Transformation algorithms, caching, service calls |
+| Data | TextRequest, TextResult defined by the API module | ObjectMapper, JsonNode, HTTP clients, vendor DTOs |
+| Discovery | Service name and provider loading rules | Internal class names, package layout, and helper libraries |
+| Errors | Error conventions the host can handle | Specialized exceptions, stack traces, internal retry logic |
+| Versioning | API compatibility level and declared capabilities | Library versions used privately by a plugin |
 
-**Hợp đồng nhỏ** nghĩa là ít trách nhiệm, ổn định và liên quan trực tiếp tới điểm mở rộng; không có nghĩa là thay mọi kiểu bằng Object hay Map<String, Object>. Những kiểu quá chung khiến việc kiểm tra, nâng cấp và hiểu lỗi khó hơn. Ngược lại, đẩy toàn bộ khả năng của một framework vào một interface cũng làm hợp đồng phình to.
+A **small contract** means focused responsibilities, stability, and direct relevance to the extension point; it does not mean replacing every type with Object or Map<String, Object>. Overly generic types make validation, upgrades, and error diagnosis harder. Conversely, stuffing every capability of a framework into one interface bloats the contract.
 
-### Ví dụ rò rỉ phụ thuộc cần tránh
+### Dependency Leakage Example to Avoid
 
-Đoạn sau **chỉ minh họa thiết kế sai**, không phải chương trình độc lập có thể biên dịch:
+The snippet below **illustrates a flawed design only**, not a standalone compilable program:
 
 ~~~java
-// API công khai của host: thiết kế KHÔNG nên dùng.
+// Host public API: design NOT recommended.
 public interface TextPlugin {
     com.fasterxml.jackson.databind.JsonNode transform(
             com.vendor.plugin.internal.EngineSession session,
@@ -31,13 +31,13 @@ public interface TextPlugin {
 }
 ~~~
 
-Ở đây, host và mọi plugin muốn dùng interface phải biết các kiểu thuộc Jackson và một thư viện nội bộ của plugin. Thay engine, đổi phiên bản JSON library hoặc nạp nhiều phiên bản thư viện trong các classloader khác nhau có thể làm API mất tương thích; bản thân lớp EngineSession cũng đã bị biến thành một phần cam kết công khai.
+Here, the host and every plugin wanting to use the interface must know types from Jackson and a plugin-internal library. Switching engines, upgrading the JSON library version, or loading multiple library versions in separate classloaders can break API compatibility; the EngineSession class itself has also been turned into part of the public commitment.
 
-Thiết kế tốt hơn chuyển đổi dữ liệu **tại ranh giới**: phía host truyền một request thuộc API chung; plugin tự dịch request đó thành đối tượng của thư viện mà nó chọn, sau đó dịch kết quả về response chung. Không đưa thư viện nội bộ vào tham số, kiểu trả về, generic, callback, sự kiện hoặc kiểu ngoại lệ công khai.
+A better design converts data **at the boundary**: the host passes a request belonging to the shared API; the plugin translates that request into objects of its chosen library, then translates the result back into the shared response. Never put internal libraries into public parameters, return types, generics, callbacks, events, or exception types.
 
-## 2. Thiết kế hợp đồng tối thiểu nhưng có ý nghĩa
+## 2. Designing a Minimal Yet Meaningful Contract
 
-Với ví dụ biến đổi văn bản, module độc lập **plugin-api** có thể chỉ cần ba kiểu:
+For the text-transformation example, a standalone **plugin-api** module may need only three types:
 
 ~~~java
 // src/api/example/ext/api/TextRequest.java
@@ -75,18 +75,18 @@ public interface TextPlugin {
 }
 ~~~
 
-Các record trên có dữ liệu rõ nghĩa, chỉ dùng Java chuẩn, không phụ thuộc framework của host hay plugin; kiểm tra null ở biên giúp phát hiện đầu vào sai sớm. Chúng bất biến đối với trường String. Nếu request mang List hoặc Map, cần quy định tính bất biến, sao chép phòng vệ khi cần và cách biểu diễn giá trị; record **không tự làm collection bên trong bất biến**.
+These records carry clear data, use only standard Java, and depend on neither the host framework nor plugin frameworks; checking null at the boundary catches invalid inputs early. They are immutable with respect to the String field. If a request carries a List or Map, specify immutability, perform defensive copying when needed, and document value representation; records **do not automatically make nested collections immutable**.
 
-Hai quyết định quan trọng:
+Two key decisions:
 
-1. Host sở hữu và phát hành module hợp đồng. Plugin biên dịch dựa trên **cùng phiên bản tương thích của hợp đồng**; không sao chép hoặc đóng gói một bản TextPlugin khác vào classloader riêng.
-2. Mỗi phương thức phản ánh một năng lực thực sự cần chia sẻ. Không cho plugin quyền truy cập nguyên ApplicationContext, DataSource, ClassLoader hoặc toàn bộ nội bộ host chỉ để làm một việc nhỏ. Nếu plugin cần dịch vụ từ host, cung cấp một interface capability hẹp, ví dụ Clock hoặc một cổng ghi log có giới hạn.
+1. The host owns and publishes the contract module. Plugins compile against **a compatible version of that contract**; never copy or bundle a separate copy of TextPlugin into an isolated classloader.
+2. Each method reflects a capability that genuinely needs to be shared. Do not hand plugins access to an entire ApplicationContext, DataSource, ClassLoader, or host internals just to perform one small job. If a plugin needs a service from the host, provide a narrow capability interface, such as Clock or a scoped logging port.
 
-Không nên đưa thao tác chỉ dành cho một plugin vào interface mà tất cả plugin bắt buộc triển khai. Có thể giới thiệu một **interface khả năng tùy chọn** và để host kiểm tra sự hỗ trợ, thay vì thêm dồn phương thức trừu tượng vào hợp đồng gốc.
+Do not add an operation needed by only one plugin into an interface that every plugin is forced to implement. Instead, introduce an **optional capability interface** and let the host check support, rather than piling abstract methods onto the base contract.
 
-## 3. Ví dụ chạy được trên Java 17: host chỉ biết API
+## 3. Runnable Java 17 Example: Host Knows Only the API
 
-Cấu trúc tệp của ví dụ:
+Example file layout:
 
 ~~~text
 src/
@@ -102,7 +102,7 @@ src/
     App.java
 ~~~
 
-Ba tệp API chính là mã ở mục 2. Plugin cung cấp implementation và một helper **private**. Trong dự án thật, helper này có thể dùng một thư viện bên thứ ba, nhưng kiểu của thư viện ấy không xuất hiện trong TextPlugin, TextRequest hoặc TextResult.
+The three core API files are the code from Section 2. The plugin provides an implementation and a **private** helper. In a real project, this helper could use a third-party library, yet none of that library's types appear in TextPlugin, TextRequest, or TextResult.
 
 ~~~java
 // src/plugin/example/ext/impl/UppercasePlugin.java
@@ -136,16 +136,16 @@ public final class UppercasePlugin implements TextPlugin {
 }
 ~~~
 
-Tệp service descriptor có **đúng một dòng tên lớp đầy đủ**, không phải Java:
+The service descriptor file contains **exactly one line with the fully qualified class name**, not Java code:
 
 ~~~text
 # src/plugin/META-INF/services/example.ext.api.TextPlugin
 example.ext.impl.UppercasePlugin
 ~~~
 
-Dòng bắt đầu bằng dấu # trong khối trên chỉ là chú giải để chỉ vị trí tệp; **nội dung thực tế của tệp chỉ là** example.ext.impl.UppercasePlugin và ký tự xuống dòng. Tên tệp descriptor phải trùng tên nhị phân đầy đủ của service interface.
+The line starting with `#` in the block above is only a note indicating the file path; **the actual file content is solely** example.ext.impl.UppercasePlugin followed by a newline. The descriptor filename must match the binary name of the service interface.
 
-Host tìm implementation qua ServiceLoader và chỉ làm việc với API:
+The host locates implementations via ServiceLoader and works only with the API:
 
 ~~~java
 // src/host/example/ext/host/App.java
@@ -174,7 +174,7 @@ public final class App {
 }
 ~~~
 
-Từ thư mục chứa src, chạy các lệnh sau trong shell kiểu Bash (cần JDK 17 trở lên):
+From the directory containing src, run the following commands in a Bash-like shell (requires JDK 17 or later):
 
 ~~~bash
 mkdir -p out/api out/plugin out/host
@@ -186,25 +186,25 @@ javac --release 17 -encoding UTF-8 -cp out/plugin-api.jar -d out/host src/host/e
 java -cp "out/host:out/plugin-api.jar:out/plugin.jar" example.ext.host.App
 ~~~
 
-Output khi chỉ có provider này:
+Output when only this provider is present:
 
 ~~~text
 upper -> HELLO PLUGIN
 ~~~
 
-Trên Windows, dấu phân cách classpath là dấu chấm phẩy thay vì dấu hai chấm. Ví dụ lệnh chạy tương ứng:
+On Windows, the classpath separator is a semicolon instead of a colon. Corresponding run command example:
 
 ~~~powershell
 java -cp "out/host;out/plugin-api.jar;out/plugin.jar" example.ext.host.App
 ~~~
 
-**Điều được chứng minh:** mã host chỉ import ba kiểu trong example.ext.api và ServiceLoader; host không cần import UppercasePlugin, UppercaseEngine hoặc thư viện xử lý nội bộ. Plugin có thể thay engine riêng mà giữ nguyên API và kết quả hợp đồng. Khi chỉ có một provider, output trên là xác định; nếu đăng ký nhiều provider, không nên phụ thuộc vào thứ tự duyệt mặc định của ServiceLoader.
+**What this proves:** the host code imports only the three types in example.ext.api and ServiceLoader; the host never imports UppercasePlugin, UppercaseEngine, or internal processing libraries. A plugin can swap its private engine while preserving the API and contract results. With a single provider, the output above is deterministic; if multiple providers are registered, do not rely on ServiceLoader's default iteration order.
 
-**Giới hạn của ví dụ:** các JAR đang cùng application classpath, vì vậy mã có thể vẫn nhìn thấy lớp public của nhau ở mức classpath. Việc không tham chiếu implementation là **kỷ luật kiến trúc**, chưa phải cơ chế cô lập vật lý hoặc sandbox bảo mật. Khi cần cô lập phiên bản thư viện, có thể dùng classloader riêng; khi cần đóng gói theo module, JPMS giúp chỉ xuất package API được chỉ định.
+**Limitations of the example:** the JARs share the application classpath, so code can still see each other's public classes at the classpath level. Avoiding references to implementations here is **architectural discipline**, not physical isolation or a security sandbox. When library version isolation is needed, custom classloaders can be used; when modular packaging is needed, JPMS ensures only designated API packages are exported.
 
-## 4. Phụ thuộc và classloader: giữ một danh tính API chung
+## 4. Dependencies and Classloaders: Keeping One Shared API Identity
 
-Một bố trí phụ thuộc hợp lý:
+A sound dependency layout:
 
 ~~~text
 host ───────────────> plugin-api
@@ -212,33 +212,33 @@ host ───────────────> plugin-api
                            |
 plugin-implementation -----+
         |
-        +----> thư viện bên thứ ba riêng của plugin
+        +----> plugin's own third-party library
 ~~~
 
-Host biên dịch với plugin-api, không với implementation hay thư viện bên thứ ba của plugin. Plugin biên dịch với plugin-api, nhưng triển khai thuật toán bằng phụ thuộc riêng. Với Gradle, chọn khai báo phụ thuộc theo vai trò: thư viện chỉ phục vụ implementation thuộc cấu hình implementation; hợp đồng dùng chung được cung cấp ở cả hai phía theo chính sách đóng gói, có thể là compileOnly đối với plugin nếu runtime đã cung cấp plugin-api. Dùng implementation thay vì api cho thư viện nội bộ **không tự sửa được một chữ ký public đã lỡ dùng kiểu của thư viện ấy**: phải sửa chính chữ ký.
+The host compiles against plugin-api, not against implementations or plugin third-party libraries. The plugin compiles against plugin-api, while implementing algorithms using its own dependencies. In Gradle, declare dependencies by role: libraries serving only the implementation belong in the `implementation` configuration; the shared contract is supplied to both sides per packaging policy, possibly `compileOnly` for plugins when the runtime provides plugin-api. Using `implementation` instead of `api` for an internal library **will not fix a public signature that accidentally exposed a type from that library**: the signature itself must be fixed.
 
-Trong JVM, danh tính lớp phụ thuộc vào **tên nhị phân và classloader định nghĩa lớp**. Hai lớp cùng tên example.ext.api.TextPlugin nhưng được hai classloader khác nhau định nghĩa không trở thành cùng một kiểu. Plugin đóng gói lại bản copy API hoặc nạp API bằng loader riêng có thể khiến ServiceLoader báo provider không phải subtype, hoặc gây lỗi ép kiểu/liên kết.
+In the JVM, class identity depends on **binary name and defining classloader**. Two classes with the same name example.ext.api.TextPlugin defined by two different classloaders are not the same type. A plugin that repackages a copy of the API or loads the API with its own loader can cause ServiceLoader to report the provider is not a subtype, or cause cast/linkage failures.
 
-Khi thiết kế hệ thống dùng loader riêng:
+When designing a system with custom loaders:
 
-- Chia sẻ **một định nghĩa API** mà host và plugin cùng nhìn thấy, thường từ parent loader; tránh shade/relocate các lớp hợp đồng vào JAR plugin.
-- Cho mỗi plugin sở hữu implementation và các thư viện hỗ trợ của chính nó khi cần cô lập phụ thuộc. Quy tắc parent-first/child-first phải được đặt có chủ đích; ưu tiên chia sẻ package API từ parent.
-- Xác định classloader dùng cho khám phá service và tài nguyên. ServiceLoader.load(service) theo mặc định dùng thread context classloader; nó phải nhìn thấy provider descriptor và các lớp provider tương ứng.
-- Quản lý vòng đời loader, thread, executor, static reference và tài nguyên do plugin tạo; nếu không giải phóng, việc unload/reload có thể giữ classloader cũ trong bộ nhớ.
+- Share **one API definition** visible to both host and plugins, usually from a parent loader; avoid shading/relocating contract classes into plugin JARs.
+- Give each plugin ownership of its implementation and supporting libraries when dependency isolation is needed. Parent-first/child-first rules must be chosen deliberately; prefer sharing API packages from the parent.
+- Specify the classloader used for service and resource discovery. `ServiceLoader.load(service)` uses the thread context classloader by default; it must be able to see provider descriptors and the corresponding provider classes.
+- Manage the lifecycle of loaders, threads, executors, static references, and resources created by plugins; if unreleased, unloading/reloading can retain old classloaders in memory.
 
-Cô lập classloader giúp quản lý phụ thuộc và vòng đời nhưng **không tạo ra ranh giới bảo mật đáng tin cậy cho mã không đáng tin** trong cùng JVM.
+Classloader isolation helps manage dependencies and lifecycle, but **does not create a reliable security boundary for untrusted code** within the same JVM.
 
-Với JPMS, module API chỉ exports các package hợp đồng; module plugin có thể provides service mà không exports package implementation. Ví dụ ý tưởng cấu hình (khác cơ chế classpath trong demo):
+With JPMS, the API module only `exports` contract packages; the plugin module can `provides` the service without `exports`ing implementation packages. Illustrative configuration snippet (different from the classpath mechanism in the demo):
 
 ~~~java
-// module-info.java của module API
+// module-info.java of the API module
 module example.plugin.api {
     exports example.ext.api;
 }
 ~~~
 
 ~~~java
-// module-info.java của module plugin
+// module-info.java of the plugin module
 module example.plugin.uppercase {
     requires example.plugin.api;
     provides example.ext.api.TextPlugin
@@ -247,43 +247,43 @@ module example.plugin.uppercase {
 ~~~
 
 ~~~java
-// module-info.java của module host
+// module-info.java of the host module
 module example.plugin.host {
     requires example.plugin.api;
     uses example.ext.api.TextPlugin;
 }
 ~~~
 
-Để chạy trong module path, phải biên dịch và đóng gói theo quy tắc JPMS và đưa module provider vào layer/module path phù hợp; ba đoạn module-info trên **không phải lệnh thay thế trực tiếp** cho demo classpath. Trong JPMS, exports/opens và ServiceLoader là các lựa chọn thiết kế cần xét riêng.
+To run on the module path, you must compile and package according to JPMS rules and place provider modules in an appropriate layer/module path; the three `module-info` snippets above are **not drop-in commands** for the classpath demo. In JPMS, `exports`/`opens` and `ServiceLoader` are separate design choices to evaluate.
 
-## 5. Tương thích hợp đồng qua nhiều lần phát hành
+## 5. Contract Compatibility Across Multiple Releases
 
-Một plugin có thể được biên dịch từ trước và chỉ được nạp sau khi host cập nhật. Vì vậy cần xét **tương thích nguồn, nhị phân và ngữ nghĩa**; không chỉ xem mã mới còn biên dịch được hay không.
+A plugin may have been compiled earlier and only loaded after the host is updated. Therefore consider **source, binary, and semantic compatibility**; do not check only whether new code still compiles.
 
-| Thay đổi | Rủi ro | Cách xử lý |
+| Change | Risk | How to handle |
 | --- | --- | --- |
-| Đổi tên, package, kiểu tham số/kiểu trả về của phương thức API | Có thể phá ABI, gây lỗi liên kết runtime | Giữ API cũ hoặc nâng major và có đường chuyển đổi |
-| Thêm phương thức abstract vào interface đã có provider cũ | Provider cũ có thể gặp AbstractMethodError khi host gọi | Ưu tiên interface khả năng mới; cân nhắc default method nếu ngữ nghĩa hợp lý |
-| Thêm thành phần vào public record | Thay đổi canonical constructor, có thể làm hỏng binary client cũ | Lập phiên bản DTO hoặc thiết kế luồng mở rộng có kiểm soát |
-| Thay kiểu ngoại lệ/giá trị trả về về mặt hành vi | Mã host có thể xử lý sai dù ABI không đổi | Ghi rõ quy tắc null, lỗi, timeout, retry và trường hợp biên |
-| Nâng version thư viện trong implementation | Thường không cần sửa API nếu không rò kiểu | Test lại hành vi và tính tương thích loader của plugin |
+| Renaming or changing package, parameter types, or return type of an API method | Can break ABI, causing runtime linkage errors | Keep old API or bump major version with a migration path |
+| Adding an abstract method to an interface with existing providers | Older providers may hit AbstractMethodError when invoked by host | Prefer a new capability interface; consider default methods if semantics fit |
+| Adding a component to a public record | Changes canonical constructor, potentially breaking old binary clients | Version the DTO or design a controlled extension path |
+| Changing behavior of exceptions or return values | Host code may mishandle results even though ABI is unchanged | Document null, error, timeout, retry, and edge-case rules explicitly |
+| Upgrading library versions inside an implementation | Usually requires no API edit if no types leaked | Re-test behavior and plugin loader compatibility |
 
-Nếu cần khả năng bổ sung, có thể định nghĩa interface khác trong plugin-api, ví dụ TextPluginMetrics, và để host dùng kiểm tra kiểu hoặc đăng ký capability tường minh. Điều đó cho phép plugin cũ tiếp tục cung cấp năng lực cơ bản. Các version/capability nên có chính sách rõ ràng: host chấp nhận dải phiên bản nào, từ chối khi nào, thông báo lỗi cho ai. SemVer hữu ích nhưng không thay thế kiểm thử nhị phân thực tế.
+If additional capabilities are needed, define another interface in plugin-api—such as TextPluginMetrics—and let the host use type checks or explicit capability registration. That allows older plugins to continue providing core functionality. Versions/capabilities should follow clear policies: which version ranges the host accepts, when it rejects, and whom it notifies. SemVer is helpful, but never replaces real binary testing.
 
-**Lỗi và tài nguyên cũng là một phần hợp đồng.** Không khai báo throws một kiểu exception thuộc SDK riêng của plugin, không bắt host đọc một exception nội bộ. Chọn kiểu lỗi chung hoặc chính sách chuyển đổi exception ở biên. Xác định plugin có được gọi đồng thời hay không, ai sở hữu đối tượng request/result, thời hạn gọi, quy tắc huỷ và đóng tài nguyên khi unload. Chỉ thêm các phương thức vòng đời khi nhiều plugin thực sự cần chung quy tắc đó.
+**Errors and resources are also part of the contract.** Never declare `throws` with an exception type from a plugin-private SDK, and never force the host to inspect an internal exception. Pick shared error types or a boundary exception-translation policy. Specify whether plugins may be invoked concurrently, who owns request/result objects, call deadlines, cancellation rules, and resource closing on unload. Add lifecycle methods only when multiple plugins genuinely need those shared rules.
 
-## 6. Kiểm tra ranh giới trước khi phát hành
+## 6. Checking the Boundary Before Release
 
-1. **Kiểm tra chữ ký công khai:** duyệt các public/protected method, constructor, field, generic, annotation và ngoại lệ của module plugin-api. Không cho xuất hiện package thuộc implementation, SDK, ORM, JSON, HTTP client hoặc lớp nội bộ host.
-2. **Kiểm tra đồ thị phụ thuộc:** host phải biên dịch khi chỉ có plugin-api, không có plugin implementation hoặc JAR nội bộ của plugin. Module plugin-api tự nó không kéo theo thư viện implementation. Có thể dùng jdeps --summary out/plugin-api.jar để rà soát phụ thuộc JAR.
-3. **Kiểm tra đăng ký provider:** tên file META-INF/services và tên lớp đầy đủ chính xác, provider có thể được khởi tạo, JAR và resource thực sự nằm trong runtime path. Với classpath ServiceLoader, provider cần lớp triển khai phù hợp và public constructor không tham số.
-4. **Kiểm tra tương thích:** chạy provider cũ với host mới trong phạm vi version hỗ trợ, provider mới với host cũ nếu tuyên bố tương thích; kiểm tra dữ liệu null, lỗi, timeout, gọi song song và thiếu provider.
-5. **Kiểm tra loader thực tế:** đảm bảo host và plugin dùng cùng class identity của API; thử hai plugin dùng các phiên bản thư viện implementation khác nhau; kiểm tra reload và giải phóng tài nguyên khi có hỗ trợ unload.
+1. **Inspect public signatures:** audit all public/protected methods, constructors, fields, generics, annotations, and exceptions in the plugin-api module. Ensure no packages from implementations, SDKs, ORMs, JSON, HTTP clients, or host internals appear.
+2. **Inspect the dependency graph:** the host must compile with only plugin-api, without plugin implementations or plugin-internal JARs. The plugin-api module itself must pull in no implementation libraries. You can run `jdeps --summary out/plugin-api.jar` to audit JAR dependencies.
+3. **Verify provider registration:** META-INF/services filename and fully qualified class name match exactly, the provider can be instantiated, and the JAR and resources are actually on the runtime path. For classpath ServiceLoader, the provider needs a suitable implementation class and a public no-arg constructor.
+4. **Verify compatibility:** run older providers against the new host within the supported version range, and newer providers against older hosts if compatibility is claimed; test null inputs, errors, timeouts, concurrent calls, and missing providers.
+5. **Test with real loaders:** ensure host and plugins share the same API class identity; test two plugins using different versions of an implementation library; test reloading and resource cleanup when unloading is supported.
 
-Một số dấu hiệu để điều tra: ServiceConfigurationError khi service descriptor/provider sai hoặc không nạp được; NoClassDefFoundError khi thiếu phụ thuộc runtime; ClassCastException hoặc lỗi service subtype khi chia cắt API qua loader; NoSuchMethodError/AbstractMethodError khi ABI của host và plugin lệch. Cần đọc nguyên nhân đầy đủ trong stack trace, không tự quy mọi trường hợp về một nguyên nhân.
+Diagnostic clues to investigate: ServiceConfigurationError when a service descriptor/provider is invalid or cannot load; NoClassDefFoundError when a runtime dependency is missing; ClassCastException or service-subtype errors when the API is split across loaders; NoSuchMethodError/AbstractMethodError when host and plugin ABIs diverge. Read the full cause chain in the stack trace rather than attributing every failure to a single cause.
 
-## 7. Quy tắc thiết kế có thể áp dụng ngay
+## 7. Design Rules You Can Apply Immediately
 
-Trước khi thêm một kiểu hoặc phương thức vào plugin-api, hỏi: **host thực sự cần biết điều này để sử dụng năng lực hay chỉ cần plugin tự biết để triển khai?** Nếu chỉ phần triển khai cần, giữ nó sau adapter và chuyển đổi request/result tại biên. Ưu tiên interface nhỏ theo capability, DTO ổn định không mang kiểu của thư viện riêng, version rõ ràng và một danh tính lớp API dùng chung. Chỉ mở rộng hợp đồng sau khi kiểm tra ảnh hưởng lên plugin đã phát hành.
+Before adding a type or method to plugin-api, ask: **does the host genuinely need to know this to use the capability, or does only the plugin need to know it to implement it?** If only the implementation needs it, keep it behind an adapter and translate requests/results at the boundary. Prefer small capability-focused interfaces, stable DTOs free of private-library types, clear versioning, and one shared API class identity. Expand the contract only after checking its impact on already-released plugins.
 
-Một hợp đồng tốt cho phép thay thư viện, thay thuật toán hoặc nạp thêm plugin mà host vẫn gọi cùng một giao diện đã công bố; từ đó giảm liên kết chéo và làm cho runtime extensibility có thể nâng cấp an toàn hơn.
+A well-designed contract lets you swap libraries, change algorithms, or load additional plugins while the host keeps calling the exact same published interface—reducing cross-coupling and making runtime extensibility safer to upgrade.

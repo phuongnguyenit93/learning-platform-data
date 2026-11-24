@@ -1,147 +1,147 @@
-# 5.1 MAC chứng minh điều gì khi hai bên cùng giữ một khóa bí mật
+# 5.1 What Does a MAC Prove When Two Parties Share a Secret Key?
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể giải thích chính xác ý nghĩa của một **Message Authentication Code (MAC)** trong hệ thống có hai bên cùng biết khóa bí mật; chỉ ra những giả định phải đúng trước khi tin kết quả xác thực; phân biệt xác thực thông điệp với chứng minh danh tính và chống chối bỏ; triển khai HMAC-SHA-256 trong Java 17+; đồng thời thiết kế quy trình kiểm tra MAC, bảo vệ khóa và chống phát lại ở mức giao thức.
+After this lesson, you can accurately explain the meaning of a **Message Authentication Code (MAC)** in a system where two parties share a secret key; identify the assumptions that must hold before trusting a verification result; distinguish message authentication from identity proof and non-repudiation; implement HMAC-SHA-256 in Java 17+; and design MAC verification, key protection, and replay protection at the protocol level.
 
-**Câu trả lời cốt lõi:** Khi Bob kiểm tra MAC của thông điệp M bằng khóa bí mật K mà Alice và Bob cùng giữ, kết quả hợp lệ cung cấp **bằng chứng mật mã, trong giới hạn giả định an toàn**, rằng M đã được xác thực bằng K và chưa bị sửa theo cách mà MAC không phát hiện. Bob có thể kết luận **một chủ thể biết K đã tạo tag hợp lệ** (hoặc đã có một sự giả mạo với xác suất rất nhỏ). Nhưng **Bob không thể dùng MAC để chứng minh cho người thứ ba chính Alice đã tạo tag**, vì Bob cũng có thể tự tạo đúng tag bằng cùng K.
+**Core answer:** When Bob verifies the MAC of a message M using a secret key K shared between Alice and Bob, a valid result provides **cryptographic evidence, within the security assumptions**, that M has been authenticated with K and has not been modified in a way the MAC fails to detect. Bob can conclude that **an entity knowing K created a valid tag** (or that a forgery occurred with very small probability). However, **Bob cannot use the MAC to prove to a third party that Alice specifically created the tag**, because Bob could also create the exact same tag using the same K.
 
-Điểm phân biệt đó quyết định cách dùng MAC trong API, webhook, giao tiếp dịch vụ và hệ thống cần truy vết trách nhiệm.
+That distinction determines how MACs are used in APIs, webhooks, service-to-service communication, and systems that require accountability tracking.
 
-## 1. MAC là gì, các bên chia sẻ điều gì?
+## 1. What Is a MAC, and What Do the Parties Share?
 
-Giả sử Alice là dịch vụ gửi yêu cầu và Bob là dịch vụ nhận yêu cầu. Hai bên đã nhận cùng một **khóa bí mật K** qua một quy trình phân phối khóa an toàn. K không được công khai cho người quan sát mạng.
+Suppose Alice is a service sending a request and Bob is a service receiving it. Both parties have received the same **secret key K** through a secure key distribution process. K is not exposed publicly to network observers.
 
-MAC có hai thao tác khái niệm:
+A MAC has two conceptual operations:
 
-- **Tạo tag:** T = MAC(K, M), từ khóa K và chuỗi byte thông điệp M tạo ra mã xác thực T.
-- **Xác minh tag:** Verify(K, M, T) trả hợp lệ hoặc không hợp lệ. Với HMAC, bên xác minh tính lại tag dự kiến từ K và M rồi so sánh an toàn với T nhận được.
+- **Tag generation:** T = MAC(K, M), producing an authentication tag T from key K and message byte sequence M.
+- **Tag verification:** Verify(K, M, T) returns valid or invalid. With HMAC, the verifier recomputes the expected tag from K and M and compares it safely against the received T.
 
-Luồng điển hình:
+Typical flow:
 
 ~~~text
 Alice                                          Bob
-Có cùng khóa K                           Có cùng khóa K
+Holds the same key K                     Holds the same key K
 
-M = dữ liệu yêu cầu
+M = request data
 T = MAC(K, M)
               M, T  --------------------->
                                          T' = MAC(K, M)
-                                         So sánh T' với T
-                                         Khớp -> MAC hợp lệ
-                                         Sai  -> Từ chối
+                                         Compare T' with T
+                                         Match -> MAC valid
+                                         Mismatch -> Reject
 ~~~
 
-**Thông điệp M không nhất thiết được mã hóa bí mật.** Trong sơ đồ này, người nghe lén có thể đọc M nếu không có TLS hay encryption. MAC bổ sung cơ chế kiểm tra tính toàn vẹn và tính xác thực dựa trên quyền sở hữu khóa, chứ không làm dữ liệu trở nên khó đọc.
+**The message M is not necessarily encrypted for confidentiality.** In this scheme, an eavesdropper can read M if there is no TLS or encryption. A MAC adds integrity checking and authentication based on key possession, rather than making the data unreadable.
 
-Một đặc điểm quan trọng: **cùng khóa và cùng chuỗi byte đầu vào** cho cùng tag trong các MAC tất định như HMAC. Nếu Bob tự chạy MAC(K, M), anh ấy sẽ tạo kết quả đúng như Alice, vì hệ thống không có khóa ký riêng của Alice.
+An important property: **the same key and the same input byte sequence** produce the same tag in deterministic MACs such as HMAC. If Bob runs MAC(K, M) himself, he produces the exact same result as Alice, because the system has no private signing key exclusive to Alice.
 
-## 2. MAC hợp lệ thực sự cho biết điều gì?
+## 2. What Does a Valid MAC Actually Tell You?
 
-### 2.1 Tính toàn vẹn của thông điệp (message integrity)
+### 2.1 Message integrity
 
-Nếu M bị sửa thành M' nhưng người sửa không biết K, tag T được tạo cho M thường sẽ **không xác thực được cho M'**. Vì vậy MAC giúp phát hiện sửa đổi trái phép đối với **những byte thực sự nằm trong phần đầu vào được MAC bảo vệ**.
+If M is modified to M' by someone who does not know K, the tag T generated for M will generally **fail to verify for M'**. Thus a MAC helps detect unauthorized modification of **the bytes actually included in the MAC-protected input**.
 
-Ví dụ: Alice gửi yêu cầu thanh toán có số tiền 100. Kẻ tấn công thay dữ liệu thành 900 nhưng giữ nguyên tag. Bob tính lại MAC cho thông điệp đã thay đổi; tag cũ không khớp và Bob từ chối.
+For example: Alice sends a payment request with amount 100. An attacker changes the data to 900 while keeping the original tag. Bob recomputes the MAC for the altered message; the old tag does not match and Bob rejects it.
 
-Tuy nhiên, MAC không tự hiểu các trường nghiệp vụ. Nếu Alice chỉ MAC trường amount nhưng bỏ qua currency, recipient hoặc operation, kẻ tấn công có thể sửa những trường **ngoài phạm vi MAC** mà kết quả kiểm tra vẫn hợp lệ. Việc chọn chính xác dữ liệu được ký xác thực là một phần bắt buộc của thiết kế giao thức.
+However, a MAC does not automatically understand business fields. If Alice only computes the MAC over the amount field while omitting currency, recipient, or operation, an attacker can modify the fields **outside the MAC scope** and verification will still pass. Selecting the exact data to authenticate is a mandatory part of protocol design.
 
-### 2.2 Tính xác thực dựa trên khóa chung (shared-key message authentication)
+### 2.2 Shared-key message authentication
 
-Với thuật toán MAC an toàn, K được giữ bí mật và không có lỗ hổng quy trình, đối thủ **không biết K** không thể tự tạo tag hợp lệ cho thông điệp mới với xác suất đáng kể, kể cả khi họ đã quan sát nhiều cặp thông điệp–tag hợp lệ.
+With a secure MAC algorithm, K kept secret, and no procedural flaws, an adversary **who does not know K** cannot forge a valid tag for a new message with non-negligible probability, even after observing many valid message–tag pairs.
 
-Vì vậy kết quả kiểm tra thành công là bằng chứng rằng tag **phù hợp với một bên biết K**, hoặc là kết quả của một sự giả mạo thành công rất khó xảy ra. Đó là ý nghĩa của **message authentication** trong mô hình khóa đối xứng.
+Therefore, a successful verification is evidence that the tag **is consistent with a party knowing K**, or is the result of a highly improbable successful forgery. That is what **message authentication** means in a symmetric-key model.
 
-Cần nói chính xác:
+To state this precisely:
 
-- Bob biết **K và byte thông điệp M khớp với tag T**.
-- Bob có cơ sở tin rằng **một chủ thể nắm K đã tạo hoặc có quyền tạo tag** trong mô hình đe dọa đã xác định.
-- Bob **không có bằng chứng mật mã độc lập** xác định chính xác chủ thể nào trong nhóm giữ K đã tạo tag.
+- Bob knows that **K and the message bytes M match the tag T**.
+- Bob has grounds to believe that **an entity holding K created or was authorized to create the tag** within the defined threat model.
+- Bob **has no independent cryptographic proof** identifying exactly which entity within the group holding K created the tag.
 
-Nếu chỉ Alice và Bob giữ K, Bob biết bản thân không tạo tag và K chưa lộ, Bob có thể **suy luận theo ngữ cảnh vận hành** rằng Alice đã gửi. Nhưng đây là suy luận dựa trên các giả định ngoài phép toán MAC; bằng chứng MAC một mình không phân biệt được Alice với Bob.
+If only Alice and Bob hold K, and Bob knows he did not create the tag and K has not leaked, Bob can **infer from operational context** that Alice sent it. But this is an inference based on assumptions outside the MAC computation; the MAC evidence alone does not distinguish Alice from Bob.
 
-### 2.3 MAC không tạo bằng chứng không thể chối bỏ (non-repudiation)
+### 2.3 A MAC does not provide non-repudiation
 
-Giả sử Bob đem thông điệp “Alice đồng ý chuyển tiền” và tag MAC ra trước một trọng tài. Alice có thể phản biện: “Bob cũng biết K, Bob có thể tự tạo cặp M, T đó”. Vì cả hai cùng có khả năng tính MAC(K, M), trọng tài **không thể chỉ dựa vào MAC mà kết luận Alice đã tạo tag**.
+Suppose Bob brings the message "Alice agrees to transfer funds" and a MAC tag before an arbitrator. Alice can counter: "Bob also knows K; Bob could have created that (M, T) pair himself." Because both have the ability to compute MAC(K, M), the arbitrator **cannot conclude solely from the MAC that Alice created the tag**.
 
-Đây là giới hạn cơ bản của **mật mã đối xứng với khóa chung**, không phải lỗi riêng của HMAC.
+This is a fundamental limitation of **symmetric cryptography with shared keys**, not a flaw specific to HMAC.
 
-Để cần bằng chứng có thể xác minh bằng khóa công khai và liên kết với một người ký, thường dùng **chữ ký số**: chỉ bên giữ private key ký; bên khác có public key để kiểm tra. Chữ ký số cho phép mô hình quy trách nhiệm mạnh hơn, nhưng tính chống chối bỏ thực tế còn phụ thuộc quyền kiểm soát khóa riêng, danh tính gắn với khóa, thời điểm, quy trình cấp chứng chỉ và xử lý sự cố. Không nên hứa rằng bất kỳ chữ ký số nào cũng tự động tạo giá trị pháp lý.
+When evidence is needed that can be verified with a public key and tied to a single signer, **digital signatures** are typically used: only the holder of the private key signs; others use the public key to verify. Digital signatures enable a stronger accountability model, though practical non-repudiation still depends on private key control, identity binding to the key, timestamps, certificate issuance processes, and incident handling. One should not promise that any digital signature automatically carries legal weight.
 
-## 3. Những điều MAC không chứng minh
+## 3. What a MAC Does Not Prove
 
-| Khẳng định thường gặp | Có được MAC chứng minh không? | Lý do |
+| Common Claim | Proven by a MAC? | Reason |
 | --- | --- | --- |
-| “Thông điệp này khớp với một tag hợp lệ theo khóa K.” | **Có, nếu kiểm tra chính xác.** | MAC kiểm tra sự ràng buộc giữa K, byte thông điệp và tag. |
-| “Dữ liệu được bảo vệ không bị thay đổi bởi người không biết K.” | **Có, trong giả định an toàn của MAC.** | Thay byte làm tag cũ không còn hợp lệ với xác suất áp đảo. |
-| “Chính Alice, chứ không phải Bob, đã tạo tag.” | **Không.** | Alice và Bob đều biết K, đều có thể tạo tag. |
-| “Alice không thể chối đã gửi thông điệp.” | **Không.** | Một bên cùng nắm K có thể tạo bằng chứng giả tương đương. |
-| “Nội dung được giữ bí mật.” | **Không.** | MAC không mã hóa plaintext; cần encryption/TLS khi cần bí mật. |
-| “Đây là yêu cầu mới, chưa từng gửi.” | **Không.** | Cặp M, T hợp lệ có thể bị phát lại nguyên vẹn. |
-| “Dữ liệu được gửi đúng thứ tự và đúng thời điểm.” | **Không.** | MAC không tự có đồng hồ, số thứ tự hoặc trạng thái giao thức. |
-| “Người gửi được phép thực hiện nghiệp vụ này.” | **Không.** | Xác thực thông điệp không thay thế authorization, policy và kiểm tra tài nguyên. |
-| “Nội dung là thật, đúng nghiệp vụ và không có lỗi.” | **Không.** | Một bên biết K vẫn có thể gửi dữ liệu sai hoặc gian lận. |
-| “Khóa chưa bao giờ bị lộ.” | **Không.** | MAC hợp lệ không nói trạng thái bảo mật của K; khóa lộ cho phép giả mạo. |
+| "This message matches a valid tag under key K." | **Yes, if verified correctly.** | A MAC verifies the binding between K, the message bytes, and the tag. |
+| "The protected data was not altered by someone without K." | **Yes, under the MAC's security assumptions.** | Changing bytes invalidates the old tag with overwhelming probability. |
+| "Alice specifically, not Bob, created the tag." | **No.** | Both Alice and Bob know K and both can produce the tag. |
+| "Alice cannot deny sending the message." | **No.** | Any party holding the same K can produce equivalent forged evidence. |
+| "The content is kept confidential." | **No.** | A MAC does not encrypt plaintext; encryption/TLS is needed for confidentiality. |
+| "This is a fresh request that was never sent before." | **No.** | A valid (M, T) pair can be replayed verbatim. |
+| "The data was sent in order and on time." | **No.** | A MAC has no built-in clock, sequence number, or protocol state. |
+| "The sender is authorized to perform this business action." | **No.** | Message authentication does not replace authorization, policy, and resource checks. |
+| "The content is truthful, business-valid, and error-free." | **No.** | A party knowing K can still send incorrect or fraudulent data. |
+| "The key has never been compromised." | **No.** | A valid MAC says nothing about K's secrecy status; a leaked key allows forgery. |
 
-**Vì vậy, hãy luôn gọi đúng tên bảo đảm:** MAC hỗ trợ toàn vẹn thông điệp và xác thực bên **sở hữu khóa chung**. Nó không tự chứng minh danh tính duy nhất của người tạo, sự mới mẻ của yêu cầu hay tính đúng đắn của nghiệp vụ.
+**Therefore, always name the guarantee accurately:** A MAC supports message integrity and authentication of a party **possessing a shared key**. It does not by itself prove the unique identity of the creator, the freshness of the request, or business correctness.
 
-## 4. Điều kiện tiên quyết để tin kết quả MAC
+## 4. Prerequisites for Trusting a MAC Result
 
-Không nên diễn giải Verify = true độc lập với hệ thống. Ít nhất các điều kiện sau phải được xác minh:
+Do not interpret Verify = true in isolation from the system. At minimum, the following conditions must be verified:
 
-1. **K thực sự bí mật và đủ mạnh.** Khóa cần được tạo từ nguồn ngẫu nhiên mật mã an toàn (hoặc KDF được thiết kế cho mục tiêu phù hợp), không hardcode vào source, không in trong log, không chia sẻ cho nhiều chủ thể vượt phạm vi tin cậy.
-2. **Thuật toán và tham số an toàn.** Chọn MAC được nghiên cứu, chẳng hạn HMAC-SHA-256, với tag đủ dài và thuật toán được cố định bởi giao thức; không tạo MAC bằng cách tự nối secret với thông điệp rồi hash.
-3. **Hai bên MAC cùng một chuỗi byte.** Charset, thứ tự trường, phép chuẩn hóa, header, đường dẫn, phương thức HTTP và body phải được xác định chính xác. Byte khác làm tag khác.
-4. **Đã bảo vệ mọi trường ảnh hưởng đến ý nghĩa yêu cầu.** Ví dụ operation, path, tenant, user, amount, currency, recipient, payload version, request ID và timestamp nếu cần.
-5. **Tag được kiểm tra trước khi thực hiện thao tác có tác dụng.** Xác minh thất bại phải từ chối xử lý. Không chấp nhận request rồi mới ghi lỗi MAC.
-6. **Đã có cơ chế chống phát lại khi nghiệp vụ yêu cầu.** Một MAC hợp lệ cũ vẫn có thể hợp lệ hôm nay nếu hệ thống không kiểm tra timestamp/nonce/sequence.
-7. **Kiểm tra quyền nghiệp vụ độc lập.** Bên sở hữu khóa K có thể được phép gọi API, nhưng vẫn có thể bị cấm chuyển tiền từ tài khoản cụ thể hoặc đọc dữ liệu của tenant khác.
-8. **Biết phạm vi các bên đang dùng K.** Nếu nhiều dịch vụ dùng chung một khóa, MAC chỉ chứng minh chủ thể thuộc **nhóm giữ K**, không quy về một dịch vụ riêng.
+1. **K is genuinely secret and sufficiently strong.** The key must be generated from a cryptographically secure random source (or a KDF designed for the appropriate purpose), not hardcoded in source code, not printed in logs, and not shared across entities beyond the trust boundary.
+2. **Secure algorithm and parameters.** Choose a well-studied MAC such as HMAC-SHA-256, with an adequate tag length and the algorithm fixed by the protocol; do not build a MAC by naively concatenating a secret with the message and hashing.
+3. **Both parties compute the MAC over the exact same byte sequence.** Charset, field ordering, canonicalization, headers, path, HTTP method, and body must be precisely specified. Different bytes produce a different tag.
+4. **All fields affecting the request's meaning are protected.** For example, operation, path, tenant, user, amount, currency, recipient, payload version, request ID, and timestamp if needed.
+5. **The tag is verified before performing any action with side effects.** Verification failure must reject processing. Do not accept the request first and only log the MAC error afterward.
+6. **Replay protection is in place when the business logic requires it.** An old valid MAC can still verify today if the system does not check timestamps/nonces/sequences.
+7. **Independent business authorization checks.** A party holding key K may be allowed to call the API, yet still be forbidden from transferring funds from a specific account or reading another tenant's data.
+8. **Clear knowledge of which parties share K.** If multiple services share one key, the MAC only proves the sender belongs to **the group holding K**, without attributing it to a single service.
 
-Trong mô hình bảo mật tiêu chuẩn, một MAC an toàn thường được kỳ vọng chống **giả mạo tag cho thông điệp mới ngay cả khi kẻ tấn công từng thấy các tag hợp lệ** (được gọi là unforgeability under chosen-message attack). Đây không phải lời hứa tuyệt đối với mọi hệ thống: dùng khóa yếu, xử lý sai byte đầu vào hoặc lộ khóa có thể phá toàn bộ mô hình.
+In the standard security model, a secure MAC is expected to resist **forging a tag for a new message even when an attacker has observed valid tags** (known as unforgeability under chosen-message attack). This is not an absolute guarantee for every system: weak keys, mishandled input bytes, or key leakage can break the entire model.
 
-## 5. HMAC-SHA-256: MAC thường dùng trong Java
+## 5. HMAC-SHA-256: The MAC Commonly Used in Java
 
-### 5.1 HMAC không phải SHA-256 thuần
+### 5.1 HMAC is not plain SHA-256
 
-**SHA-256** là hàm băm không có khóa: ai biết thông điệp đều có thể tự tính SHA-256(M). Vì vậy gắn một SHA-256 digest công khai vào request **không chứng minh nguồn gốc**; người sửa request chỉ việc tính digest mới.
+**SHA-256** is an unkeyed hash function: anyone with the message can compute SHA-256(M). Therefore, attaching a public SHA-256 digest to a request **does not prove origin**; someone modifying the request simply computes a new digest.
 
-**HMAC-SHA-256** dùng một **khóa bí mật K** kết hợp với SHA-256 theo cấu trúc HMAC chuyên dụng, nên chỉ các bên có K mới dự kiến tạo được tag hợp lệ cho thông điệp mới. Về trực giác:
+**HMAC-SHA-256** uses a **secret key K** combined with SHA-256 in a dedicated HMAC construction, so only parties holding K are expected to produce valid tags for new messages. Intuitively:
 
 ~~~text
-SHA-256(M)          : ai có M đều tính được.
-HMAC-SHA-256(K, M)  : cần có K để tính đúng tag.
+SHA-256(M)          : anyone with M can compute it.
+HMAC-SHA-256(K, M)  : K is required to compute the correct tag.
 ~~~
 
-Cấu trúc khái niệm của HMAC:
+Conceptual construction of HMAC:
 
 ~~~text
 HMAC(K, M) = H( (K' XOR opad) || H( (K' XOR ipad) || M ) )
 ~~~
 
-Trong đó H là hash bên dưới, K' là khóa được chuẩn bị theo kích thước block, ipad/opad là hai hằng theo định nghĩa HMAC và || là phép nối byte. **Không tự triển khai cấu trúc này** cho ứng dụng: Java đã có Mac của JCA/JCE.
+Where H is the underlying hash, K' is the key prepared to the block size, ipad/opad are two constants defined by the HMAC specification, and || is byte concatenation. **Do not implement this construction yourself** for applications: Java already provides Mac in JCA/JCE.
 
-Không thay HMAC bằng các mẫu tự chế như SHA256(K || M). Đặc biệt khi dùng hash cấu trúc Merkle–Damgård, cách nối khóa trước thông điệp có thể chịu tấn công length extension trong những thiết kế phổ biến. HMAC được xây dựng để tránh các sai lầm này.
+Do not replace HMAC with homegrown patterns such as SHA256(K || M). Especially with Merkle–Damgård hash constructions, prepending the key before the message can be vulnerable to length extension attacks in common designs. HMAC was designed to avoid these pitfalls.
 
-### 5.2 API Java 17+
+### 5.2 Java 17+ APIs
 
-Java cung cấp:
+Java provides:
 
-- **javax.crypto.Mac**: khởi tạo thuật toán, cấu hình khóa, nhận byte và tạo tag.
-- **javax.crypto.KeyGenerator**: sinh khóa cho thuật toán HMAC khi provider hỗ trợ.
-- **javax.crypto.SecretKey**: kiểu biểu diễn khóa đối xứng.
-- **javax.crypto.spec.SecretKeySpec**: bao bọc key bytes đã có nếu ứng dụng nhận khóa hợp lệ từ hệ thống quản lý khóa.
-- **java.security.MessageDigest.isEqual**: so sánh hai mảng byte digest/tag theo cơ chế tránh phụ thuộc vào nội dung, thích hợp hơn phép so sánh thông thường cho tag.
+- **javax.crypto.Mac**: initializes the algorithm, configures the key, processes bytes, and generates the tag.
+- **javax.crypto.KeyGenerator**: generates keys for HMAC algorithms when supported by the provider.
+- **javax.crypto.SecretKey**: represents a symmetric key.
+- **javax.crypto.spec.SecretKeySpec**: wraps existing key bytes when the application receives a valid key from a key management system.
+- **java.security.MessageDigest.isEqual**: compares two digest/tag byte arrays in a way that avoids content-dependent timing variations, making it more suitable than ordinary comparisons for tags.
 
-Tên thuật toán chuẩn thường dùng trong JCA là **HmacSHA256**; HMAC-SHA-256 cho tag đầy đủ **32 byte (256 bit)**. Khi truyền dưới dạng text, tag có thể được biểu diễn bằng Base64 hoặc hex. Việc đổi sang Base64/hex chỉ để tương thích giao thức; **khóa K không được xuất ra text hay gửi kèm thông điệp**.
+The standard algorithm name commonly used in JCA is **HmacSHA256**; HMAC-SHA-256 produces a full **32-byte (256-bit)** tag. When transmitted as text, the tag can be represented in Base64 or hex. Converting to Base64/hex is only for protocol compatibility; **the key K must never be exported as text or sent alongside the message**.
 
-Một đối tượng **Mac có trạng thái và không nên dùng chung đồng thời giữa các luồng** nếu không có cách đồng bộ/quản lý riêng. Mỗi thao tác có thể tạo một instance mới, hoặc dùng cơ chế quản lý instance an toàn cho mỗi thread/request.
+A **Mac instance is stateful and should not be shared concurrently across threads** without dedicated synchronization or management. Each operation can create a new instance, or use safe per-thread/per-request instance management.
 
-## 6. Ví dụ Java 17+: hai bên cùng có khóa, kiểm tra sửa đổi và phát lại
+## 6. Java 17+ Example: Two Parties Sharing a Key, Testing Tampering and Replay
 
-Ví dụ dùng **KeyGenerator** tạo khóa HMAC 256 bit cho một lần chạy; biến sharedKey tượng trưng cho khóa mà Alice và Bob đã trao đổi qua kênh an toàn từ trước. Trong hệ thống thật, cả hai tiến trình phải nhận **cùng khóa một cách an toàn** từ KMS/secret manager hoặc giao thức phân phối khóa; KeyGenerator chạy riêng trên hai tiến trình sẽ sinh **hai khóa khác nhau** và không thể xác thực lẫn nhau.
+The example uses **KeyGenerator** to generate a 256-bit HMAC key for a single run; the sharedKey variable represents the key that Alice and Bob exchanged beforehand over a secure channel. In a real system, both processes must receive **the same key securely** from a KMS/secret manager or key distribution protocol; running KeyGenerator separately in two processes will generate **two different keys** and they will not be able to authenticate each other.
 
-Tạo tệp **SharedKeyMacDemo.java** (UTF-8):
+Create the file **SharedKeyMacDemo.java** (UTF-8):
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -179,91 +179,91 @@ public class SharedKeyMacDemo {
         generator.init(256);
         SecretKey sharedKey = generator.generateKey();
 
-        // Trong ví dụ, cả Alice và Bob dùng cùng sharedKey.
+        // In this example, both Alice and Bob use the same sharedKey.
         byte[] original = "amount=100|currency=VND"
                 .getBytes(StandardCharsets.UTF_8);
         byte[] modified = "amount=900|currency=VND"
                 .getBytes(StandardCharsets.UTF_8);
 
-        // Alice tính tag và gửi original + aliceTag.
+        // Alice computes the tag and sends original + aliceTag.
         byte[] aliceTag = mac(sharedKey, original);
 
-        // Bob dùng cùng khóa để kiểm tra.
-        System.out.println("Bob kiểm tra bản gốc: "
+        // Bob uses the same key to verify.
+        System.out.println("Bob verifies original: "
                 + verify(sharedKey, original, aliceTag));
 
-        // Người trên mạng thay 100 bằng 900, nhưng không có khóa.
-        System.out.println("Bob kiểm tra bản sửa: "
+        // Someone on the network changes 100 to 900 without having the key.
+        System.out.println("Bob verifies modified: "
                 + verify(sharedKey, modified, aliceTag));
 
-        // Bob cũng có thể tự tạo đúng tag cho cùng byte thông điệp.
+        // Bob can also produce the exact same tag for the same message bytes.
         byte[] bobTag = mac(sharedKey, original);
-        System.out.println("Bob có thể tạo cùng tag: "
+        System.out.println("Bob can produce the same tag: "
                 + MessageDigest.isEqual(aliceTag, bobTag));
 
-        // MAC không lưu trạng thái: phát lại nguyên thông điệp vẫn hợp lệ.
-        System.out.println("Phát lại vẫn hợp lệ theo MAC: "
+        // A MAC is stateless: replaying the exact message still verifies.
+        System.out.println("Replay is still valid under MAC: "
                 + verify(sharedKey, original, aliceTag));
 
-        // Tag có thể đóng gói dạng text; không hề chứa khóa K.
+        // The tag can be encoded as text; it contains none of key K.
         String encodedTag = Base64.getEncoder().encodeToString(aliceTag);
-        System.out.println("Độ dài tag byte: " + aliceTag.length);
-        System.out.println("Độ dài Base64: " + encodedTag.length());
+        System.out.println("Tag length in bytes: " + aliceTag.length);
+        System.out.println("Base64 length: " + encodedTag.length());
     }
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 SharedKeyMacDemo.java
 java SharedKeyMacDemo
 ~~~
 
-Kết quả thông thường của Java 17+:
+Typical output on Java 17+:
 
 ~~~text
-Bob kiểm tra bản gốc: true
-Bob kiểm tra bản sửa: false
-Bob có thể tạo cùng tag: true
-Phát lại vẫn hợp lệ theo MAC: true
-Độ dài tag byte: 32
-Độ dài Base64: 44
+Bob verifies original: true
+Bob verifies modified: false
+Bob can produce the same tag: true
+Replay is still valid under MAC: true
+Tag length in bytes: 32
+Base64 length: 44
 ~~~
 
-Giải thích theo từng kết quả:
+Explanation of each result:
 
-1. **Bản gốc hợp lệ:** Bob tính lại HMAC(K, original) bằng cùng K nên tag khớp.
-2. **Bản sửa bị từ chối:** đổi một byte có thể làm tag khác; với HMAC-SHA-256 an toàn, xác suất một thông điệp sửa đổi vô tình có cùng tag là cực nhỏ.
-3. **Bob tạo được tag giống Alice:** đây chính là lý do **không thể suy ra ai là người tạo tag chỉ từ bằng chứng MAC**.
-4. **Phát lại hợp lệ về mặt MAC:** MAC tất định cho cùng K và M không có bộ nhớ về lần đã được sử dụng. Hệ thống cần quy tắc freshness/nonce/sequence bên ngoài.
-5. **32 byte và 44 ký tự:** đó là byte tag và cách biểu diễn Base64 có padding; Base64 không phải bằng chứng an toàn hay khóa bí mật.
+1. **Original is valid:** Bob recomputes HMAC(K, original) with the same K so the tags match.
+2. **Modified is rejected:** changing a byte changes the tag; with secure HMAC-SHA-256, the probability that a modified message accidentally produces the same tag is negligible.
+3. **Bob can produce the same tag as Alice:** this is why **you cannot deduce who created the tag from MAC evidence alone**.
+4. **Replay is valid as far as the MAC is concerned:** a deterministic MAC for the same K and M has no memory of previous uses. The system needs external freshness/nonce/sequence rules.
+5. **32 bytes and 44 characters:** those are the tag bytes and its padded Base64 representation; Base64 is not a security guarantee or a secret key.
 
-Ví dụ dùng payload văn bản đơn giản để dễ quan sát, **không phải định dạng request xác thực đủ an toàn cho sản xuất**: còn cần canonicalization, scope, thời gian, nonce, chống phát lại, quyền và chính sách lưu khóa. Chương trình không ghi hoặc hiển thị key bytes.
+The example uses a simple text payload for clarity, **not a production-ready authenticated request format**: canonicalization, scope, timestamps, nonces, replay protection, authorization, and key storage policies are still needed. The program does not log or display key bytes.
 
-**Về tính xác thực kết quả:** các dòng true/false dựa trên cùng khóa và byte hoặc byte đã sửa; một trường hợp HMAC va chạm với thông điệp sửa là cực kỳ khó xảy ra về mặt mật mã. Giá trị tag Base64 cụ thể thay đổi giữa các lần chạy vì khóa được tạo ngẫu nhiên, nên ví dụ chỉ in **độ dài** của tag, không khẳng định tag cụ thể.
+**Regarding output accuracy:** the true/false lines rely on using the same key and bytes or modified bytes; an HMAC collision on a modified message is cryptographically negligible. The specific Base64 tag value changes across runs because the key is randomly generated, so the example only prints the tag **length**, without asserting a specific tag value.
 
-## 7. HMAC kiểm tra byte, không kiểm tra “ý nghĩa”
+## 7. HMAC Checks Bytes, Not "Meaning"
 
-### 7.1 Vấn đề ghép trường nhập nhằng
+### 7.1 The ambiguous field concatenation problem
 
-Hãy xem hai bộ trường:
+Consider two sets of fields:
 
 ~~~text
-Bộ 1: user="ab", action="c"
-Bộ 2: user="a",  action="bc"
+Set 1: user="ab", action="c"
+Set 2: user="a",  action="bc"
 ~~~
 
-Nếu cả hai phía tạo message bằng phép nối thẳng **user + action**, thì hai bộ đều trở thành **abc**. MAC vẫn đúng với byte **abc**, nhưng không phân biệt được hai cách phân tách trường. Đây là lỗi **biểu diễn dữ liệu để xác thực**, không phải lỗi thuật toán HMAC.
+If both sides build the message by directly concatenating **user + action**, both sets become **abc**. The MAC is still valid for the bytes **abc**, but it cannot distinguish the two ways of splitting the fields. This is a **data representation for authentication** bug, not an HMAC algorithm bug.
 
-Cách phòng tránh:
+How to prevent it:
 
-- Dùng định dạng có **độ dài từng trường**, tag kiểu rõ ràng hoặc serializer có canonicalization và schema được thỏa thuận.
-- Khóa chặt **phiên bản giao thức** để hai bên dùng cùng cách diễn giải.
-- Bảo vệ **mọi trường có thể đổi ý nghĩa hoặc quyền**: method, path, query, body, tenant, user ID, amount, currency, recipient, timestamp, nonce và operation type khi phù hợp.
-- Phân biệt rõ các miền dùng khóa hoặc thông điệp, ví dụ yêu cầu và phản hồi. Khi chia sẻ khóa cho nhiều mục đích, nên dùng **khóa riêng** cho từng mục đích hoặc cơ chế phân tách miền (domain separation) được thiết kế rõ.
+- Use a format with **per-field lengths**, explicit type tags, or a serializer with canonicalization and an agreed schema.
+- Pin the **protocol version** so both sides apply the same interpretation.
+- Protect **every field that can alter meaning or authorization**: method, path, query, body, tenant, user ID, amount, currency, recipient, timestamp, nonce, and operation type as appropriate.
+- Clearly separate domains where keys or messages are used, such as requests and responses. When sharing a key across multiple purposes, use **separate keys** per purpose or a clearly designed domain separation mechanism.
 
-Ví dụ cấu trúc đầu vào MAC theo giao thức:
+Example of a protocol MAC input structure:
 
 ~~~text
 version = 1
@@ -280,29 +280,29 @@ MAC_input =
 tag = HMAC-SHA-256(K, MAC_input)
 ~~~
 
-Đây là **mô tả thuật toán đóng gói**, không phải mã Java độc lập và không phải tiêu chuẩn giao thức cụ thể. Hàm encodeWithLengths phải được **định nghĩa một cách duy nhất cho cả hai bên**. Cách lấy path/query, encode Unicode, header, body và timestamp phải được thỏa thuận trước, không tùy ý thay đổi sau khi triển khai.
+This is an **encapsulation algorithm description**, not standalone Java code and not a specific protocol standard. The encodeWithLengths function must be **uniquely defined for both parties**. How path/query, Unicode encoding, headers, body, and timestamp are extracted must be agreed upon beforehand, not changed ad hoc after deployment.
 
-Nếu MAC dựa trên raw HTTP body, verifier cần xác thực **chính các byte body mà bên gửi đã MAC**. Parse JSON rồi serialize lại tùy thư viện có thể đổi thứ tự key, khoảng trắng hoặc biểu diễn số và gây sai tag. Nếu muốn ký nội dung đã chuẩn hóa, chọn một **quy tắc canonical JSON có đặc tả** dùng nhất quán ở cả hai phía.
+If the MAC is based on the raw HTTP body, the verifier must authenticate **the exact body bytes over which the sender computed the MAC**. Parsing JSON and re-serializing it may, depending on the library, change key order, whitespace, or number formatting and cause a tag mismatch. If you want to sign canonicalized content, choose a **specified canonical JSON rule** used consistently on both sides.
 
-### 7.2 Thứ tự xác minh và kiểm soát đầu vào
+### 7.2 Verification order and input controls
 
-Một quy trình nhận request hợp lý:
+A sound request-handling pipeline:
 
-1. Giới hạn kích thước request và đọc các trường metadata tối thiểu cần thiết.
-2. Xác định key ID/thuật toán **chỉ từ danh sách được phép**; dữ liệu do client gửi không được ép server dùng thuật toán yếu hoặc khóa tùy ý.
-3. Tái tạo chính xác byte được bảo vệ theo phiên bản giao thức và thuật toán đã thống nhất.
-4. Tính tag kỳ vọng và so sánh với tag nhận được bằng cơ chế an toàn.
-5. Kiểm tra cửa sổ thời gian, nonce/sequence hoặc idempotency theo chính sách chống replay; làm bước ghi nhận nonce **nguyên tử** khi có nhiều instance.
-6. Kiểm tra danh tính phía gọi và **phân quyền tài nguyên/nghiệp vụ**.
-7. Chỉ sau khi các điều kiện cần thiết đạt mới tiến hành tác dụng nghiệp vụ.
+1. Limit the request size and read the minimum required metadata fields.
+2. Determine the key ID/algorithm **only from an allowlist**; client-supplied data must not force the server to use a weak algorithm or an arbitrary key.
+3. Reconstruct the exact protected bytes according to the agreed protocol version and algorithm.
+4. Compute the expected tag and compare it against the received tag using a safe mechanism.
+5. Check the time window, nonce/sequence, or idempotency per the replay-protection policy; make nonce recording **atomic** when running multiple instances.
+6. Verify the caller's identity and **resource/business authorization**.
+7. Only after the required conditions pass, proceed with business side effects.
 
-Cách sắp xếp bước 4–6 có thể phụ thuộc kiến trúc (ví dụ cần tra cứu khóa theo tenant trước khi xác minh), nhưng yêu cầu bất biến là **không thực thi tác dụng nhạy cảm trước khi các xác minh bắt buộc thành công**. Trả lỗi có kiểm soát; tránh đưa khóa, tag đầy đủ, thông điệp nhạy cảm hoặc payload gốc vào log.
+The ordering of steps 4–6 may depend on architecture (for example, looking up a tenant's key before verification), but the invariant requirement is **never execute sensitive side effects before mandatory verifications succeed**. Return controlled errors; avoid putting keys, full tags, sensitive messages, or raw payloads into logs.
 
-## 8. MAC hợp lệ vẫn có thể bị phát lại
+## 8. A Valid MAC Can Still Be Replayed
 
 ### 8.1 Replay attack
 
-Giả sử Alice gửi:
+Suppose Alice sends:
 
 ~~~text
 POST /transfer
@@ -311,162 +311,162 @@ requestId=R1
 tag=HMAC(K, protectedRequestBytes)
 ~~~
 
-Kẻ tấn công không sửa gì, chỉ **ghi lại rồi gửi lại nguyên request và tag**. Bob vẫn tính đúng tag. Nếu nghiệp vụ chuyển tiền chạy hai lần, MAC đã làm đúng công việc của nó nhưng **giao thức chưa có cơ chế nhận biết yêu cầu cũ**.
+An attacker modifies nothing, merely **captures and resends the exact request and tag**. Bob still computes the matching tag. If the transfer business logic executes twice, the MAC did its job properly, but **the protocol lacks a mechanism to recognize old requests**.
 
-Những biện pháp bổ sung thường phối hợp:
+Additional measures commonly combined:
 
-- **Timestamp được MAC bảo vệ:** giới hạn tuổi yêu cầu, ví dụ vài phút tùy môi trường và sai lệch đồng hồ cho phép. Timestamp chỉ hữu ích khi server **thực sự kiểm tra giới hạn thời gian**.
-- **Nonce hoặc request ID duy nhất được MAC bảo vệ:** server nhớ nonce đã xử lý trong cửa sổ chống replay và từ chối sử dụng lại. Việc ghi nhận phải an toàn giữa nhiều server, tránh hai request chạy song song cùng được chấp nhận.
-- **Sequence number:** phù hợp một phiên hoặc kênh có thứ tự; cần trạng thái và xử lý mất gói/khôi phục.
-- **Idempotency key và ràng buộc nghiệp vụ:** đặc biệt với thanh toán, lặp lại cùng request ID không được thực hiện giao dịch lần hai. Cần lưu kết quả/khóa idempotency theo chính sách.
+- **MAC-protected timestamp:** limits the age of a request, e.g., a few minutes depending on the environment and allowed clock skew. A timestamp is only useful when the server **actually enforces the time limit**.
+- **MAC-protected unique nonce or request ID:** the server remembers processed nonces within the replay window and rejects reuse. Recording must be safe across multiple servers so two concurrent requests are not both accepted.
+- **Sequence number:** suitable for a session or ordered channel; requires state and handling of packet loss/recovery.
+- **Idempotency key and business constraints:** especially for payments, repeating the same request ID must not execute the transaction a second time. Results/idempotency keys must be stored according to policy.
 
-**Chỉ đưa timestamp hoặc nonce vào chuỗi MAC mà không kiểm tra tính mới/trùng lặp vẫn chưa chống replay.** Tương tự, MAC thành công không cho biết thông điệp đã được xử lý trước đó hay chưa.
+**Merely putting a timestamp or nonce into the MAC string without checking freshness or duplicates still does not prevent replay.** Likewise, a successful MAC does not tell you whether the message was already processed earlier.
 
-### 8.2 Chống replay không thể thay quyền hạn
+### 8.2 Replay protection cannot replace authorization
 
-Một request mới, hợp lệ theo K và nonce, vẫn có thể yêu cầu truy cập tài khoản không thuộc về client. MAC bảo vệ nguyên vẹn yêu cầu đó, nhưng **authorization** phải từ chối. Trên API, không được xem “biết khóa” là quyền vô hạn với mọi tài nguyên.
+A fresh request, valid under K and nonce, can still request access to an account that does not belong to the client. The MAC protects that request's integrity, but **authorization** must reject it. On an API, "knowing a key" must never be treated as unlimited permission over all resources.
 
-## 9. Vì sao “ai giữ khóa” quyết định khả năng quy trách nhiệm?
+## 9. Why "Who Holds the Key" Determines Attribution?
 
-### 9.1 Chỉ Alice và Bob giữ K
+### 9.1 Only Alice and Bob hold K
 
-Bob nhận được tag hợp lệ: trong một quy trình mà Bob chắc chắn anh ấy không tạo request, K không bị lộ và không có bên thứ ba giữ K, Bob có thể dùng tag làm **cơ sở xác thực đối tác trong hệ thống**. Nhưng khi xảy ra tranh chấp, Bob không thể chứng minh cho người ngoài rằng chính Alice tạo tag vì Bob có cùng năng lực tạo bằng chứng.
+Bob receives a valid tag: in a workflow where Bob is certain he did not create the request, K has not leaked, and no third party holds K, Bob can use the tag as **a basis for authenticating the counterparty within the system**. But if a dispute arises, Bob cannot prove to an outsider that Alice specifically created the tag because Bob has the same capability to fabricate the evidence.
 
-**Đây là sự khác nhau giữa xác thực vận hành và chứng minh công khai.**
+**This is the difference between operational authentication and public proof.**
 
-### 9.2 Một nhóm dịch vụ cùng giữ K
+### 9.2 A group of services shares K
 
-Nếu các dịch vụ A, B, C và D cùng dùng K, mọi dịch vụ đều tạo được tag hợp lệ. Nhận một tag chỉ cho phép nói rằng **một người nắm K** đã tạo nó (trong giả định chưa lộ khóa). Không thể quy chính xác cho A mà chỉ dựa trên tag.
+If services A, B, C, and D all use K, every service can produce valid tags. Receiving a tag only allows saying that **someone holding K** created it (assuming no key compromise). You cannot attribute it specifically to A based on the tag alone.
 
-Thiết kế tốt hơn khi cần phân biệt dịch vụ: dùng **khóa riêng theo từng client/service hoặc cặp quan hệ tin cậy**, key ID gắn với danh tính và quyền rõ ràng; không cấp khóa của client này cho client khác. Tuy nhiên, máy chủ verifier giữ cùng khóa với một client vẫn có khả năng tạo tag của client đó: MAC hai chiều **vẫn không tạo chống chối bỏ trước bên thứ ba**.
+A better design when services need to be distinguished: use **per-client/per-service keys or pairwise trust keys**, with a key ID bound to clear identity and permissions; never issue one client's key to another client. However, a verifier server that shares the same key with a client still has the capability to generate that client's tags: a two-way MAC **still does not provide non-repudiation before a third party**.
 
-### 9.3 K bị đánh cắp hoặc người giữ khóa bị chiếm quyền
+### 9.3 K is stolen or a key holder is compromised
 
-Nếu K bị lộ, kẻ tấn công tạo được MAC hợp lệ và có thể mạo danh bất kỳ chủ thể nào được hệ thống đồng nhất với K. Verifier không phát hiện điều này chỉ bằng phép so sánh tag. Khi có nghi ngờ lộ khóa, cần thu hồi, luân chuyển khóa, hạn chế quyền, rà soát request và sự cố.
+If K leaks, an attacker can forge valid MACs and impersonate any entity that the system equates with K. The verifier cannot detect this through tag comparison alone. When key compromise is suspected, revoke and rotate the key, restrict permissions, and audit requests and the incident.
 
-Các bản ghi log và audit đáng tin có thể bổ sung điều tra (thời điểm, máy chủ, mTLS identity, request ID, luồng phân quyền), nhưng **log do cùng bên nắm khóa kiểm soát không tự biến MAC thành chứng cứ chống chối bỏ**.
+Reliable logs and audit trails can supplement an investigation (timestamps, host, mTLS identity, request ID, authorization flow), but **logs controlled by the same party holding the key do not by themselves turn a MAC into non-repudiation evidence**.
 
-## 10. MAC, hash, chữ ký số, AEAD và TLS: dùng đúng mục đích
+## 10. MAC, Hash, Digital Signature, AEAD, and TLS: Use Each for Its Purpose
 
-| Cơ chế | Khóa và bên kiểm tra | Điều cung cấp chính | Điều không tự cung cấp |
+| Mechanism | Key and Verifier | Primary Guarantee | What It Does Not Automatically Provide |
 | --- | --- | --- | --- |
-| **SHA-256 thuần** | Không có khóa; ai cũng tính được | Digest để kiểm tra trùng/đối chiếu theo ngữ cảnh | Không xác thực nguồn gốc trước đối thủ có thể sửa dữ liệu và tính lại hash |
-| **HMAC-SHA-256** | Các bên cùng giữ khóa bí mật | Toàn vẹn và xác thực thông điệp theo khóa chung | Không giữ bí mật, không phân biệt chính xác từng chủ thể giữ khóa, không chống replay |
-| **Chữ ký số** (ví dụ Ed25519, RSA-PSS) | Người ký giữ private key, người kiểm tra dùng public key | Xác thực theo private key được gắn với danh tính, xác minh công khai | Không tự giữ bí mật; cần quản lý trust/danh tính/khóa, kiểm tra freshness theo ứng dụng |
-| **AEAD** (ví dụ AES-GCM) | Bên mã hóa/giải mã dùng khóa đối xứng | Bí mật dữ liệu và xác thực toàn vẹn của ciphertext/AAD | Không chứng minh bên nào giữ khóa đã tạo bản mã; không tự chống replay |
-| **TLS** | Thỏa thuận khóa phiên, xác thực đầu cuối theo cấu hình | Bảo vệ lưu lượng trong từng kết nối TLS | Không bảo vệ tự động dữ liệu sau khi kết thúc TLS ở proxy, log, DB hoặc hệ thống downstream |
+| **Plain SHA-256** | No key; anyone can compute it | Digest for deduplication/comparison depending on context | Does not authenticate origin against an adversary who can alter data and recompute the hash |
+| **HMAC-SHA-256** | Parties share a secret key | Message integrity and authentication under the shared key | No confidentiality, does not uniquely distinguish individual key holders, no replay protection |
+| **Digital Signature** (e.g., Ed25519, RSA-PSS) | Signer holds private key, verifier uses public key | Authentication under a private key bound to an identity, public verification | No confidentiality by itself; requires trust/identity/key management and application-level freshness checks |
+| **AEAD** (e.g., AES-GCM) | Encryptor/decryptor use a symmetric key | Data confidentiality and integrity authentication of ciphertext/AAD | Does not prove which key holder created the ciphertext; no automatic replay protection |
+| **TLS** | Negotiates session keys, authenticates endpoints per configuration | Protects traffic within each TLS connection | Does not automatically protect data after TLS termination at proxies, logs, DBs, or downstream systems |
 
-Một request qua HTTPS có thể vẫn cần HMAC ứng dụng nếu hệ thống muốn xác thực **payload độc lập với kết nối** giữa các bên/qua nhiều trung gian. Ngược lại, HMAC ứng dụng **không thay thế TLS** khi payload hoặc credential cần giữ bí mật và cần xác thực kênh truyền.
+A request over HTTPS may still need an application-level HMAC if the system wants to authenticate **the payload independently of the transport connection** across parties or multiple intermediaries. Conversely, an application-level HMAC **does not replace TLS** when payloads or credentials must remain confidential and transport channel authentication is needed.
 
-Đối với dữ liệu cần vừa bí mật vừa toàn vẹn, ưu tiên **AEAD với giao thức được thiết kế đúng**. Không tự chế cơ chế phối hợp encryption và MAC tùy tiện hoặc dùng một key cho nhiều mục đích mà không đánh giá an toàn.
+For data requiring both confidentiality and integrity, prefer **AEAD with a properly designed protocol**. Do not invent ad-hoc combinations of encryption and MAC or reuse one key for multiple purposes without a security review.
 
-## 11. Quản lý khóa chung trong ứng dụng Java
+## 11. Shared Key Management in Java Applications
 
-### 11.1 Phân phối và giới hạn phạm vi khóa
+### 11.1 Key distribution and scoping
 
-Dùng **SecureRandom/KeyGenerator** hoặc hệ thống KMS/HSM phù hợp để tạo key bytes có entropy cao, với chính sách độ dài phù hợp. Cả hai bên cần nhận cùng K thông qua kênh bí mật có xác thực hoặc được cấp quyền sử dụng khóa qua dịch vụ quản lý khóa. Không đưa K vào URL, frontend, repository, artifact, image container, log, trace hay file cấu hình công khai.
+Use **SecureRandom/KeyGenerator** or an appropriate KMS/HSM system to generate high-entropy key bytes with an appropriate length policy. Both parties must receive the same K via an authenticated confidential channel or be granted key-usage permissions through a key management service. Never place K in URLs, frontend code, repositories, build artifacts, container images, logs, traces, or public configuration files.
 
-Dùng **khóa riêng theo môi trường**, client/service và mục đích. Không tái sử dụng cùng khóa HMAC cho tất cả tenant, tất cả hệ thống và mọi vai trò. Nếu cần dẫn xuất nhiều khóa từ một secret gốc, dùng KDF được thiết kế cho dẫn xuất và ngữ cảnh phân tách khóa, ví dụ HKDF theo kiến trúc phù hợp.
+Use **separate keys per environment**, client/service, and purpose. Do not reuse the same HMAC key across all tenants, all systems, and all roles. If multiple keys must be derived from one root secret, use a KDF designed for key derivation and context separation, such as HKDF in an appropriate architecture.
 
-**Key ID** (định danh khóa không bí mật) có thể đi cùng request để verifier chọn đúng khóa. Key ID phải nằm trong vùng kiểm soát của server, gắn với quyền/tenant và không trở thành cơ chế cho phép client tự yêu cầu khóa bất kỳ. Đưa những định danh ảnh hưởng ngữ nghĩa vào nội dung được xác thực khi giao thức yêu cầu để chống nhầm khóa hoặc nhầm ngữ cảnh.
+A **Key ID** (a non-secret key identifier) can accompany a request so the verifier selects the right key. The Key ID must stay under server control, bound to permissions/tenant, and never become a mechanism allowing a client to request an arbitrary key. Include identifiers that affect semantics in the authenticated content when the protocol requires it to prevent key or context confusion.
 
-### 11.2 Rotation, thời hạn và audit
+### 11.2 Rotation, lifetimes, and auditing
 
-- Định kỳ đổi khóa theo chính sách hoặc ngay khi nghi lộ; tránh dùng một khóa vô thời hạn.
-- Khi luân chuyển, xác định thời gian cho phép key cũ, liên kết key ID với key hiện hành và key hết hạn.
-- Tránh chấp nhận thuật toán yếu chỉ để tương thích ngược; danh sách thuật toán được server kiểm soát.
-- Giám sát nhiều lần xác minh thất bại, replay và dùng khóa không đúng quyền. Nhật ký nên chứa **metadata cần thiết, đã lọc dữ liệu nhạy cảm**, không chứa secret hoặc toàn bộ payload nếu không cần.
-- Thu hồi quyền của bên đã bị compromise; nếu nhiều bên dùng một K, sự cố của **một bên có thể buộc đổi khóa cho toàn nhóm**.
-- Quy trình phục hồi cần đảm bảo hai bên không vô tình dùng key ID giống nhau nhưng trỏ tới key bytes khác nhau.
+- Rotate keys periodically per policy or immediately upon suspected compromise; avoid using one key indefinitely.
+- During rotation, define a grace window for the old key, associating key IDs with the active key and expiring keys.
+- Avoid accepting weak algorithms solely for backward compatibility; the allowed algorithm list must be server-controlled.
+- Monitor repeated verification failures, replays, and unauthorized key usage. Logs should contain **necessary metadata with sensitive data filtered out**, never secrets or full payloads when unnecessary.
+- Revoke permissions of a compromised party; if multiple parties share one K, an incident at **one party may force key rotation for the entire group**.
+- Recovery procedures must ensure both parties do not accidentally map the same key ID to different key bytes.
 
-### 11.3 Thực hành JCA/JCE và so sánh tag
+### 11.3 JCA/JCE practices and tag comparison
 
-**MessageDigest.isEqual(expectedTag, receivedTag)** phù hợp hơn **Arrays.equals** khi so sánh tag vì không dừng sớm dựa trên vị trí byte đầu tiên sai. Vẫn cần:
+**MessageDigest.isEqual(expectedTag, receivedTag)** is preferable to **Arrays.equals** when comparing tags because it does not stop early based on the position of the first mismatching byte. Still required:
 
-1. Kiểm tra độ dài tag đúng chuẩn trước khi so sánh (ví dụ 32 byte nếu giao thức dùng HMAC-SHA-256 đầy đủ).
-2. Giới hạn độ dài đầu vào trước khi tính HMAC; việc đọc một payload cực lớn vẫn tiêu tốn CPU/bộ nhớ.
-3. Không log tag hoặc payload nhạy cảm trong thông báo lỗi. Tag có thể công khai về mặt thiết kế MAC nhưng request có thể chứa secret, PII và metadata nhạy cảm.
-4. Xử lý lỗi giải mã Base64/hex của tag đúng cách; reject chuỗi sai alphabet/độ dài và không tự cắt/sửa dữ liệu.
-5. Khởi tạo **Mac với key đúng cho từng request**; không chia sẻ instance mutable không đồng bộ giữa threads.
-6. Không chấp nhận các biến thể MAC/tag length tùy ý do client tự công bố nếu không được giao thức thiết kế và server cho phép.
+1. Validate the expected tag length before comparing (e.g., 32 bytes if the protocol uses full HMAC-SHA-256).
+2. Bound input length before computing HMAC; reading an enormous payload still consumes CPU/memory.
+3. Do not log tags or sensitive payloads in error messages. A tag may be public in the MAC threat model, but the request can contain secrets, PII, and sensitive metadata.
+4. Handle Base64/hex decoding errors for the tag properly; reject strings with invalid alphabet/length and do not silently truncate or fix up data.
+5. Initialize **Mac with the right key per request**; do not share unsynchronized mutable instances across threads.
+6. Do not accept arbitrary client-declared MAC variants or tag lengths unless explicitly designed into the protocol and permitted by the server.
 
-Độ dài tag có thể bị cắt ngắn theo một **giao thức được thiết kế và đánh giá rõ ràng**, nhưng việc tự rút tag thành vài byte hoặc chấp nhận mọi prefix sẽ làm tăng xác suất giả mạo. Với bài học này, ví dụ giữ nguyên 32 byte HMAC-SHA-256.
+Tag length may be truncated under an **explicitly designed and reviewed protocol**, but arbitrarily shortening a tag to a few bytes or accepting any prefix increases forgery probability. In this lesson, examples keep the full 32-byte HMAC-SHA-256 tag.
 
-## 12. Những lỗi phổ biến cần nhận ra
+## 12. Common Mistakes to Recognize
 
-1. **“Tag đúng, vậy chắc Alice tạo.”** Không đúng nếu Bob cũng giữ K; Bob tự tạo được tag.
-2. **“MAC là một loại chữ ký số chống chối bỏ.”** Không; MAC là xác thực với khóa bí mật đối xứng, còn chữ ký số có khóa ký riêng và khóa kiểm tra công khai.
-3. **“MAC che giấu thông tin.”** Không; muốn bí mật cần TLS/encryption thích hợp.
-4. **“MAC đúng nghĩa là không bị replay.”** Không; tag cũ vẫn đúng với byte thông điệp cũ.
-5. **“Đã ký amount, không cần ký currency/recipient.”** Sai: trường không được bảo vệ có thể bị sửa.
-6. **“Dùng SHA256(secret || message) là HMAC.”** Sai: đó là cấu trúc khác, có thể không an toàn; dùng JCA HmacSHA256.
-7. **“Đặt cùng khóa cho mọi service giúp dễ quản lý mà vẫn xác định người gửi.”** Sai: khả năng quy trách nhiệm giảm, vùng ảnh hưởng khi lộ khóa tăng.
-8. **“Tag là Base64 thì khó giả mạo vì khó đọc.”** Sai: Base64 chỉ đổi biểu diễn, sức mạnh đến từ HMAC và khóa bí mật.
-9. **“Hai bên hiểu JSON giống nhau thì byte MAC chắc chắn giống.”** Sai: thứ tự field, khoảng trắng, encoding, biểu diễn số và chuẩn hóa Unicode có thể khác.
-10. **“Dùng Arrays.equals là đủ cho mọi ứng dụng bảo mật.”** Không nên; so sánh tag bằng cơ chế chống phụ thuộc nội dung như MessageDigest.isEqual và kiểm tra độ dài cố định.
-11. **“MAC hợp lệ đồng nghĩa user được thực hiện mọi thao tác.”** Sai: authorization phải đánh giá quyền theo ngữ cảnh nghiệp vụ.
-12. **“Không cần đổi khóa dù một client dùng K đã bị xâm nhập.”** Sai: mọi chủ thể có K đều có khả năng tạo tag hợp lệ; sự cố phải dẫn đến đánh giá thu hồi/rotation và tác động hệ thống.
+1. **"The tag is valid, so Alice must have created it."** False if Bob also holds K; Bob can create the tag himself.
+2. **"A MAC is a type of non-repudiable digital signature."** No; a MAC authenticates with a symmetric secret key, whereas a digital signature has a private signing key and a public verification key.
+3. **"A MAC hides information."** No; confidentiality requires TLS or appropriate encryption.
+4. **"A valid MAC means it wasn't replayed."** No; an old tag still verifies against the old message bytes.
+5. **"We signed amount, so we don't need to sign currency/recipient."** Wrong: unprotected fields can be tampered with.
+6. **"Using SHA256(secret || message) is HMAC."** Wrong: that is a different construction and can be insecure; use JCA HmacSHA256.
+7. **"Giving every service the same key makes management easy while still identifying the sender."** Wrong: attribution is lost and the blast radius of a key leak grows.
+8. **"A Base64 tag is hard to forge because it's hard to read."** Wrong: Base64 only changes representation; strength comes from HMAC and the secret key.
+9. **"Both sides understand the same JSON, so the MAC bytes must be identical."** Wrong: field order, whitespace, encoding, number formatting, and Unicode normalization can differ.
+10. **"Arrays.equals is good enough for every security application."** Not recommended; compare tags using a content-independent mechanism like MessageDigest.isEqual and enforce fixed length.
+11. **"A valid MAC means the user is allowed to perform any operation."** Wrong: authorization must evaluate permissions in the business context.
+12. **"No need to rotate the key even though one client using K was compromised."** Wrong: every entity holding K can generate valid tags; an incident must trigger revocation/rotation and impact assessment.
 
-## 13. Tình huống phân tích
+## 13. Analysis Scenarios
 
-### Tình huống A — Hai bên tranh chấp người tạo yêu cầu
+### Scenario A — Two parties dispute who created a request
 
-Alice và Bob dùng K giống nhau. Bob đưa ra một request và tag hợp lệ rồi tuyên bố “Alice chắc chắn tạo request này”. Bằng chứng đó không đủ vì **Bob có thể tự tính MAC(K, request)**. Trong hệ thống nội bộ Bob vẫn có thể dùng MAC để lọc request giả từ người **không biết K**, nhưng không thể nâng nó thành chứng cứ độc lập rằng Alice là tác giả.
+Alice and Bob use the same K. Bob presents a request and a valid tag and claims "Alice definitely created this request." That evidence is insufficient because **Bob could have computed MAC(K, request) himself**. Within the internal system Bob can still use the MAC to filter out forged requests from someone **without K**, but he cannot elevate it into independent proof that Alice was the author.
 
-### Tình huống B — Webhook thanh toán
+### Scenario B — Payment webhook
 
-Nhà cung cấp gửi webhook kèm HMAC(K, canonicalRequest). Server xác minh thành công rồi xử lý thanh toán. Một kẻ khác ghi lại webhook thật và gửi lại. HMAC vẫn thành công vì cặp request/tag không đổi. Cách sửa là ràng buộc và **kiểm tra** event ID, thời gian, nonce/idempotency, đồng thời bảo vệ các trường này trong MAC input; server xử lý idempotently để tránh phát sinh giao dịch lặp.
+A provider sends a webhook with HMAC(K, canonicalRequest). The server verifies it successfully and processes the payment. Someone else captures the legitimate webhook and resends it. The MAC still succeeds because the request/tag pair is unchanged. The fix is to bind and **verify** event ID, timestamp, and nonce/idempotency, while protecting these fields in the MAC input; the server processes idempotently to avoid duplicate transactions.
 
-### Tình huống C — Hai tenant dùng chung một khóa
+### Scenario C — Two tenants sharing one key
 
-Tenant A và tenant B cùng được cấp K. Nếu tenant A tạo tag cho request với tenantId=B, phía nhận có thể thấy MAC hợp lệ. Nếu server không kiểm tra quyền tenant hoặc không có khóa riêng, MAC **không phân biệt được** A/B. Cần khóa theo tenant/client và kiểm tra authorization; ký MAC cả tenantId cũng **không đủ** nếu cả hai vẫn có cùng K và được phép lựa chọn tenantId tùy ý.
+Tenant A and tenant B are issued the same K. If tenant A generates a tag for a request with tenantId=B, the receiver may see a valid MAC. If the server does not check tenant authorization or does not use separate keys, the MAC **cannot distinguish** A from B. Per-tenant/per-client keys and authorization checks are needed; including tenantId in the MAC is **also insufficient** if both still share K and are allowed to choose any tenantId arbitrarily.
 
-### Tình huống D — Proxy biến đổi request
+### Scenario D — Proxy transforms the request
 
-Alice tính tag trên byte JSON gốc; proxy parse rồi xuất lại JSON với thứ tự thuộc tính khác. Bob tính HMAC trên byte mới và thấy sai tag, dù object JSON về mặt logic có thể tương đương. Hãy quy định ký raw bytes đầu vào hoặc một chuẩn canonical được cả hai phía đồng ý; tránh tự loại bỏ những trường hoặc ký tự ảnh hưởng tới ý nghĩa nghiệp vụ.
+Alice computes the tag over the original JSON bytes; a proxy parses and re-emits the JSON with a different property order. Bob computes the HMAC over the new bytes and sees a tag mismatch, even though the JSON objects may be logically equivalent. Specify signing the raw incoming bytes or a canonical standard agreed upon by both sides; avoid stripping fields or characters that affect business meaning.
 
-## 14. Tự kiểm tra kiến thức
+## 14. Knowledge Check
 
-**Câu 1.** Nếu Bob xác minh HMAC(K, M) thành công, điều gì được bảo đảm trong mô hình K bí mật?
+**Question 1.** If Bob successfully verifies HMAC(K, M), what is guaranteed under the secret-K model?
 
-**Trả lời:** tag đúng theo K và chính xác những byte M đã được bảo vệ; đối thủ không có K không dễ tạo tag cho dữ liệu mới. Không biết duy nhất người tạo khi nhiều bên có K.
+**Answer:** The tag matches K and the exact protected bytes M; an adversary without K cannot easily forge a tag for new data. It does not uniquely identify the creator when multiple parties hold K.
 
-**Câu 2.** Vì sao Bob không thể đem MAC làm bằng chứng pháp lý thuần túy rằng Alice đã ký một thông điệp?
+**Question 2.** Why can Bob not present a MAC as standalone legal proof that Alice signed a message?
 
-**Trả lời:** Bob cũng biết K nên có thể tạo thông điệp và tag tương tự. Bằng chứng MAC không có tính xác minh công khai phân biệt người tạo.
+**Answer:** Bob also knows K and could have created the same message and tag. MAC evidence lacks public verifiability that distinguishes the creator.
 
-**Câu 3.** Nếu kẻ tấn công sửa 100 thành 900 trong thông điệp, MAC có phát hiện không?
+**Question 3.** If an attacker changes 100 to 900 in the message, will the MAC detect it?
 
-**Trả lời:** Có, **nếu số tiền nằm trong byte được bảo vệ** và K không bị lộ; xác suất giả mạo thành công với HMAC an toàn là cực nhỏ.
+**Answer:** Yes, **if the amount is included in the protected bytes** and K has not leaked; the probability of a successful forgery with a secure HMAC is negligible.
 
-**Câu 4.** Nếu kẻ tấn công phát lại nguyên thông điệp và tag thì sao?
+**Question 4.** What happens if an attacker replays the exact message and tag?
 
-**Trả lời:** MAC vẫn hợp lệ. Muốn từ chối replay, hệ thống phải kiểm tra timestamp, nonce/sequence, idempotency hoặc trạng thái nghiệp vụ.
+**Answer:** The MAC still verifies. To reject replays, the system must check timestamps, nonces/sequences, idempotency, or business state.
 
-**Câu 5.** SHA-256(M) khác HMAC-SHA-256(K, M) thế nào?
+**Question 5.** How does SHA-256(M) differ from HMAC-SHA-256(K, M)?
 
-**Trả lời:** SHA-256 không cần khóa, ai có M cũng tính được; HMAC dùng K bí mật nên cung cấp xác thực theo khóa chung.
+**Answer:** SHA-256 requires no key and anyone with M can compute it; HMAC uses a secret key K and therefore provides shared-key authentication.
 
-**Câu 6.** Gửi tag dưới dạng Base64 có làm MAC an toàn hơn không?
+**Question 6.** Does sending the tag in Base64 make the MAC more secure?
 
-**Trả lời:** Không. Base64 chỉ biểu diễn tag dạng text; an toàn đến từ HMAC, key management, phạm vi dữ liệu được bảo vệ và verification đúng.
+**Answer:** No. Base64 only encodes the tag as text; security comes from HMAC, key management, protected data scope, and proper verification.
 
-**Câu 7.** Nếu Alice, Bob, Carol cùng chia sẻ K, Bob có thể biết chính Alice gửi tag không?
+**Question 7.** If Alice, Bob, and Carol all share K, can Bob know that Alice specifically sent a tag?
 
-**Trả lời:** Không thể từ MAC đơn lẻ. Tag chỉ phù hợp với việc một bên biết K đã tạo; cần chia khóa theo danh tính và bổ sung cơ chế định danh/xác thực phù hợp.
+**Answer:** Not from the MAC alone. The tag is only consistent with some party holding K having created it; keys should be separated by identity with appropriate identification/authentication mechanisms added.
 
-**Câu 8.** Tag hợp lệ có cho phép truy cập tài khoản của người khác không?
+**Question 8.** Does a valid tag grant access to another user's account?
 
-**Trả lời:** Không. Authorization độc lập phải xác minh quyền thao tác trên tài nguyên và ranh giới tenant.
+**Answer:** No. Independent authorization must verify permissions to act on the resource and enforce tenant boundaries.
 
-**Câu 9.** Vì sao phải MAC những byte đã chuẩn hóa theo một quy tắc rõ ràng?
+**Question 9.** Why must the MAC be computed over bytes canonicalized by a clear rule?
 
-**Trả lời:** HMAC chỉ biết byte. Dữ liệu logic giống nhau nhưng serialize khác cho tag khác; phép ghép nhập nhằng còn cho phép những tập field khác nhau dẫn đến cùng byte được ký.
+**Answer:** HMAC only sees bytes. Logically identical data serialized differently produces different tags; ambiguous concatenation also allows different field sets to yield the same signed bytes.
 
-**Câu 10.** Khi nào cân nhắc chữ ký số thay vì MAC?
+**Question 10.** When should you consider digital signatures instead of a MAC?
 
-**Trả lời:** Khi cần người kiểm tra **không giữ quyền tạo chữ ký** và có thể xác minh theo public key của người ký, phục vụ mô hình quy trách nhiệm mạnh hơn; vẫn phải quản lý danh tính và private key đúng cách.
+**Answer:** When the verifier **must not hold the ability to create signatures** and should verify using the signer's public key, supporting a stronger accountability model; identity and private key management must still be handled properly.
 
 ---
 
-**Ghi nhớ:** Trong hệ thống hai bên chia sẻ một khóa bí mật, MAC cho phép xác minh rằng **thông điệp được bảo vệ phù hợp với khóa đó** và làm cho kẻ không có khóa rất khó giả mạo thông điệp mới. Vì **cả bên gửi lẫn bên nhận đều có thể tự tạo cùng tag**, MAC không một mình chứng minh ai là tác giả và không cung cấp chống chối bỏ. Chống replay, bảo vệ bí mật, phân quyền và quản lý khóa phải được thiết kế bổ sung.
+**Takeaway:** In a system where two parties share a secret key, a MAC lets you verify that **the protected message is consistent with that key** and makes it very difficult for someone without the key to forge a new message. Because **both the sender and the receiver can create the same tag**, a MAC alone does not prove authorship and does not provide non-repudiation. Replay protection, confidentiality, authorization, and key management must be designed separately.

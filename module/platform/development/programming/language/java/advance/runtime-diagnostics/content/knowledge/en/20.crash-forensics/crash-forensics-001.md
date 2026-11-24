@@ -1,31 +1,31 @@
-# 20.1 Phân biệt exception Java, OutOfMemoryError, StackOverflowError và fatal VM error
+# 20.1 Distinguishing Java Exceptions, OutOfMemoryError, StackOverflowError, and Fatal VM Errors
 
-## 1. Mục tiêu: nhận diện đúng loại lỗi trước khi điều tra crash
+## 1. Goal: Identify the Right Failure Type Before Investigating a Crash
 
-Trong Java, dòng chữ **“error”**, stack trace trên `stderr` hay việc service biến mất **không đồng nghĩa** JVM đã crash. Bốn nhóm hiện tượng thường bị đánh đồng:
+In Java, the word **“error”**, a stack trace on `stderr`, or a service disappearing **does not automatically mean** the JVM crashed. Four groups of phenomena are often conflated:
 
-1. **Java exception**: ứng dụng/thư viện phát sinh một đối tượng `Throwable` thuộc nhánh `Exception`, ví dụ `IOException`, `SQLException`, `NullPointerException`, `IllegalArgumentException`. Nó có thể được xử lý, trả HTTP error, làm kết thúc một thread hoặc dẫn tới dừng ứng dụng tùy logic.
-2. **`java.lang.OutOfMemoryError` (OOME)**: JVM hoặc môi trường thực thi không đáp ứng được một yêu cầu về bộ nhớ/tài nguyên. Đây là **`Error`**, không phải `Exception`, và có nhiều nguyên nhân khác nhau: heap, metaspace, native thread, vùng native/direct memory, giới hạn array...
-3. **`java.lang.StackOverflowError` (SOE)**: một thread vượt giới hạn stack thực thi, thường vì đệ quy không có điểm dừng, đệ quy quá sâu hoặc chuỗi gọi hàm lặp. Nó cũng là **`Error`**, không phải exception thông thường.
-4. **Fatal VM error**: HotSpot gặp sự cố không thể tiếp tục, ví dụ lỗi truy cập bộ nhớ ở native/JNI/JIT/VM code hoặc một internal VM error. JVM thường **chấm dứt tiến trình**, cố tạo **`hs_err_pid...log`** và có thể sinh core/minidump. Đây **không phải** một `Throwable` Java mà `catch` có thể xử lý.
+1. **Java exception**: the application or a library throws a `Throwable` object under the `Exception` branch, such as `IOException`, `SQLException`, `NullPointerException`, or `IllegalArgumentException`. It may be handled, return an HTTP error, terminate a thread, or cause the application to stop depending on logic.
+2. **`java.lang.OutOfMemoryError` (OOME)**: the JVM or execution environment cannot satisfy a memory/resource request. This is an **`Error`**, not an `Exception`, and has many distinct causes: heap, metaspace, native thread, native/direct memory regions, array limits, etc.
+3. **`java.lang.StackOverflowError` (SOE)**: a thread exceeds its execution stack limit, usually due to unbounded recursion, overly deep recursion, or a cyclic call chain. It is also an **`Error`**, not an ordinary exception.
+4. **Fatal VM error**: HotSpot encounters a failure from which it cannot continue, such as a memory access fault in native/JNI/JIT/VM code or an internal VM error. The JVM usually **terminates the process**, attempts to create **`hs_err_pid...log`**, and may generate a core/minidump. This is **not** a Java `Throwable` that `catch` can handle.
 
-Còn một trường hợp thứ năm quan trọng: **tiến trình bị hệ điều hành/container giết**, chẳng hạn Linux OOM killer hoặc `SIGKILL`. Khi đó có thể **không** xuất hiện `OutOfMemoryError`, `hs_err_pid`, heap dump hay `finally`. Vì vậy phải kết hợp bằng chứng phía JVM **và** phía OS/orchestrator.
+There is also a crucial fifth case: **the process is killed by the OS/container**, such as the Linux OOM killer or `SIGKILL`. In that situation, there may be **no** `OutOfMemoryError`, `hs_err_pid`, heap dump, or `finally` execution. Therefore, you must combine evidence from both the JVM side **and** the OS/orchestrator side.
 
-Mục tiêu bài này là nhận diện bằng **hierarchy, dấu hiệu, artifact, scope ảnh hưởng, cơ chế phục hồi và quy trình postmortem**, không suy luận chỉ từ tên exception.
+The goal of this lesson is to identify failures by **hierarchy, symptoms, artifacts, impact scope, recovery mechanism, and postmortem workflow**, rather than inferring solely from the exception name.
 
-## 2. Sơ đồ phân cấp `Throwable`
+## 2. `Throwable` Hierarchy Diagram
 
-Trong Java SE, cây lớp liên quan là:
+In Java SE, the relevant class tree is:
 
 ```text
 java.lang.Object
   └── java.lang.Throwable
         ├── java.lang.Exception
-        │     ├── các checked exception, ví dụ IOException
+        │     ├── checked exceptions, e.g. IOException
         │     └── java.lang.RuntimeException
         │           ├── NullPointerException
         │           ├── IllegalArgumentException
-        │           └── nhiều runtime exception khác
+        │           └── many other runtime exceptions
         └── java.lang.Error
               ├── java.lang.VirtualMachineError
               │     ├── OutOfMemoryError
@@ -37,36 +37,36 @@ java.lang.Object
               └── ...
 ```
 
-**Lưu ý:** đây chỉ là nhánh rút gọn phục vụ bài học, không phải tất cả các subclass của `Throwable`.
+**Note:** this is only a simplified branch for the lesson, not all subclasses of `Throwable`.
 
-- **`Throwable`** là gốc có `message`, `cause`, `stackTrace` và `suppressed exceptions`. Một `Throwable` đã được tạo ra có thể được xử lý bởi `try/catch` nếu execution còn chạy bình thường.
-- **Checked exception**: subclass của `Exception` nhưng **không phải `RuntimeException`**. Java compiler yêu cầu catch hoặc khai báo `throws`; ví dụ `IOException`.
-- **Unchecked exception**: `RuntimeException` và subclass. Không bắt buộc khai báo `throws`; thường thể hiện lỗi logic, tham số, trạng thái hoặc vi phạm contract. Một số exception có thể phản ánh I/O/remote failure được wrap thành runtime exception.
-- **`Error`**: cũng là `Throwable` nhưng đại diện các vấn đề nghiêm trọng hoặc không nên xử lý như lỗi nghiệp vụ thông thường. Java không yêu cầu `catch` hoặc khai báo nó. `OutOfMemoryError`/`StackOverflowError` thuộc nhóm `VirtualMachineError`.
-- **Fatal VM error** (như native `SIGSEGV`) **không nằm trong cây `Throwable`**: không có Java object bắt buộc phải tồn tại, không phải là một `Error` Java được `throw` theo đường thông thường.
+- **`Throwable`** is the root with `message`, `cause`, `stackTrace`, and `suppressed exceptions`. A `Throwable` that has already been created can be handled by `try/catch` if execution is still running normally.
+- **Checked exception**: a subclass of `Exception` that is **not `RuntimeException`**. The Java compiler requires catching it or declaring `throws`; for example, `IOException`.
+- **Unchecked exception**: `RuntimeException` and its subclasses. Not required to be declared with `throws`; usually indicates a logic bug, invalid argument, invalid state, or contract violation. Some exceptions may reflect I/O or remote failures wrapped into a runtime exception.
+- **`Error`**: also a `Throwable`, but represents serious problems that should not be handled like normal business errors. Java does not require `catch` or declaring it. `OutOfMemoryError` and `StackOverflowError` belong to the `VirtualMachineError` group.
+- **Fatal VM error** (such as a native `SIGSEGV`) **is not in the `Throwable` hierarchy**: no Java object is guaranteed to exist, and it is not a Java `Error` thrown via the normal path.
 
-Do đó, nhận định “`OutOfMemoryError` là exception vì tên có chữ Error/stack trace” là sai về **type hierarchy**. Nhận định “mọi `Error` đều khiến VM crash lập tức” cũng sai: `AssertionError`, `StackOverflowError` hoặc `OutOfMemoryError` có thể được throw trong Java rồi ứng dụng tiếp tục chạy một phần, mặc dù tình trạng vẫn có thể nguy hiểm.
+Therefore, claiming that “`OutOfMemoryError` is an exception because its name has Error/stack trace” is wrong regarding **type hierarchy**. Claiming that “every `Error` crashes the VM immediately” is also wrong: `AssertionError`, `StackOverflowError`, or `OutOfMemoryError` can be thrown in Java and the application may continue partially running, even though the state may still be dangerous.
 
-## 3. Bảng phân biệt nhanh trước khi mở log
+## 3. Quick Comparison Table Before Opening Logs
 
-| Tiêu chí | Java exception | `OutOfMemoryError` | `StackOverflowError` | Fatal VM error |
+| Criterion | Java exception | `OutOfMemoryError` | `StackOverflowError` | Fatal VM error |
 | --- | --- | --- | --- | --- |
-| Kiểu sự cố | `Exception`/`RuntimeException` | `Error → VirtualMachineError` | `Error → VirtualMachineError` | Lỗi runtime/native **ngoài `Throwable`** |
-| Bằng chứng ban đầu | Exception class, message, stack trace, `Caused by` | `java.lang.OutOfMemoryError: <detail>`, GC/memory metrics | `java.lang.StackOverflowError`, frames lặp, depth lớn | `A fatal error has been detected...`, `SIGSEGV`/`EXCEPTION_ACCESS_VIOLATION`, `hs_err_pid` |
-| Dữ liệu quan trọng nhất | Root cause, stack, input/trace ID, ứng dụng context | **Detail message**, heap/non-heap/native/container metrics | Stack frames lặp và thuật toán đệ quy, call graph | Signal/exception, **problematic frame**, native stack, JVM build, core |
-| Có thể `catch` Java? | Có | Về mặt cú pháp có, nhưng khó bảo đảm phục hồi an toàn | Về mặt cú pháp có, nhưng không nên dựa vào phục hồi | **Không** bằng `try/catch` Java |
-| Có tự dừng toàn JVM? | Không nhất thiết | Không nhất thiết; chính sách JVM hoặc resource pressure có thể kết thúc JVM | Không nhất thiết; thread có thể kết thúc | Thường **kết thúc JVM/process** |
-| `hs_err_pid` mặc định? | Không | Thường **không** đối với Java OOME thuần; có ngoại lệ ở native/fatal failures | Thường **không** đối với SOE Java thuần | **Có thể được tạo** nếu fatal reporter còn hoạt động |
-| Heap dump khi bật `HeapDumpOnOutOfMemoryError`? | Không chỉ vì exception thường | Có thể, tùy nguyên nhân/build và khả năng ghi | Không chỉ vì SOE | Không thể coi đây là artifact mặc định |
-| Trọng tâm khắc phục | Bug/validation/retry/contract | Pool bộ nhớ cụ thể, allocation/retention, giới hạn OS/cgroup | Đệ quy, vòng gọi hàm, stack depth, cấu trúc giải thuật | Native/JNI/JIT/VM, build, library và môi trường |
+| Failure type | `Exception`/`RuntimeException` | `Error → VirtualMachineError` | `Error → VirtualMachineError` | Runtime/native error **outside `Throwable`** |
+| Initial evidence | Exception class, message, stack trace, `Caused by` | `java.lang.OutOfMemoryError: <detail>`, GC/memory metrics | `java.lang.StackOverflowError`, repeated frames, large depth | `A fatal error has been detected...`, `SIGSEGV`/`EXCEPTION_ACCESS_VIOLATION`, `hs_err_pid` |
+| Most important data | Root cause, stack, input/trace ID, application context | **Detail message**, heap/non-heap/native/container metrics | Repeated stack frames and recursive algorithm, call graph | Signal/exception, **problematic frame**, native stack, JVM build, core |
+| Can Java `catch` it? | Yes | Syntactically yes, but safe recovery is hard to guarantee | Syntactically yes, but recovery should not be relied upon | **No**, not with Java `try/catch` |
+| Stops the whole JVM automatically? | Not necessarily | Not necessarily; JVM policy or resource pressure may terminate the JVM | Not necessarily; the thread may terminate | Usually **terminates the JVM/process** |
+| `hs_err_pid` by default? | No | Usually **no** for pure Java OOME; exceptions exist for native/fatal failures | Usually **no** for pure Java SOE | **May be created** if the fatal reporter is still functional |
+| Heap dump when `HeapDumpOnOutOfMemoryError` is enabled? | Not just for ordinary exceptions | Possibly, depending on cause/build and ability to write | Not just for SOE | Cannot be treated as a default artifact |
+| Remediation focus | Bug/validation/retry/contract | Specific memory pool, allocation/retention, OS/cgroup limits | Recursion, call cycle, stack depth, algorithm structure | Native/JNI/JIT/VM, build, library, and environment |
 
-Các cột “có thể” là có chủ đích: hệ thống đang thiếu RAM, đĩa đầy, process bị kill hoặc VM đã hỏng có thể không kịp tạo artifact. **Không thấy `hs_err_pid` không chứng minh không có fatal error**; phải kiểm tra nơi lưu, quyền ghi và OS logs.
+The “possibly/may” columns are intentional: a system running out of RAM, a full disk, a killed process, or a corrupted VM may fail to write artifacts in time. **Not seeing `hs_err_pid` does not prove there was no fatal error**; you must check the output location, write permissions, and OS logs.
 
-## 4. Java exception: lỗi ở tầng ngôn ngữ/thư viện, không đồng nghĩa JVM crash
+## 4. Java Exception: Language/Library-Layer Error, Not Equivalent to a JVM Crash
 
 ### Checked exception
 
-Ví dụ `java.io.IOException` khi thao tác I/O, `java.sql.SQLException` khi xử lý JDBC. Code cần bắt hoặc khai báo:
+For example, `java.io.IOException` during I/O operations or `java.sql.SQLException` when handling JDBC. Code must catch or declare it:
 
 ```java
 import java.io.IOException;
@@ -87,88 +87,88 @@ public class CheckedExample {
 }
 ```
 
-Chạy `javac --release 17 CheckedExample.java` rồi `java CheckedExample`. Output do `System.out.println`:
+Run `javac --release 17 CheckedExample.java` then `java CheckedExample`. Output from `System.out.println`:
 
 ```text
 handled=IOException
 still_running
 ```
 
-Ví dụ có `catch` hợp lệ và tiến trình đi tiếp. **Không suy** cứ bắt được exception là dữ liệu nghiệp vụ an toàn; transaction đã commit một phần, file đã ghi dở hoặc remote operation có thể đã hoàn thành mặc dù client nhận lỗi. Cần rollback, idempotency và retry policy phù hợp.
+In this example there is a valid `catch` and the process continues. **Do not assume** that catching an exception guarantees business data is safe; a transaction may have partially committed, a file may have been partially written, or a remote operation may have completed even though the client received an error. Proper rollback, idempotency, and retry policies are required.
 
 ### Runtime exception
 
 ```java
 int port = Integer.parseInt("not-a-number");
-// java.lang.NumberFormatException (một RuntimeException)
+// java.lang.NumberFormatException (a RuntimeException)
 ```
 
-Đây là **mảnh minh họa**, không phải file Java độc lập. `NumberFormatException` không bắt buộc khai báo `throws`; nếu không xử lý, thread hiện tại có thể kết thúc và in stack trace. **Uncaught exception trong một worker thread không tự chứng minh toàn process đã chết**; thread khác còn sống, event loop hoặc supervisor có thể tiếp tục. Nếu main thread chết và không còn non-daemon threads, process có thể kết thúc.
+This is an **illustrative snippet**, not a standalone Java file. `NumberFormatException` does not require declaring `throws`; if unhandled, the current thread may terminate and print a stack trace. **An uncaught exception in a worker thread does not by itself prove the entire process died**; other threads may remain alive, and an event loop or supervisor may continue. If the main thread dies and no non-daemon threads remain, the process can exit.
 
-### Tại sao không bắt mọi lỗi bằng `catch (Throwable)`?
+### Why not catch every error with `catch (Throwable)`?
 
 ```java
 try {
     executeRequest();
 } catch (Throwable problem) {
-    // Không nên coi mọi Throwable đều là lỗi HTTP 500 có thể phục hồi.
+    // Do not treat every Throwable as a recoverable HTTP 500 error.
 }
 ```
 
-Đây là **mảnh minh họa thiếu định nghĩa `executeRequest()`**, không phải chương trình chạy hoàn chỉnh. Cách catch quá rộng nuốt cả `OutOfMemoryError`, `StackOverflowError` và các `Error` nghiêm trọng. Sau resource exhaustion, việc tạo response/log stack trace hoặc cấp phát buffer mới có thể tiếp tục thất bại. Handler ứng dụng thông thường nên phân biệt lỗi nghiệp vụ, I/O có thể retry và lỗi hệ thống nghiêm trọng; **đừng che mất trạng thái không lành mạnh của process**.
+This is an **illustrative snippet missing the definition of `executeRequest()`**, not a complete runnable program. Overly broad catching swallows `OutOfMemoryError`, `StackOverflowError`, and serious `Error`s. After resource exhaustion, creating a response, logging a stack trace, or allocating a new buffer may continue to fail. Normal application handlers should distinguish business errors, retryable I/O errors, and severe system errors; **do not hide an unhealthy process state**.
 
-## 5. `OutOfMemoryError`: một tên lớp, nhiều nguyên nhân khác nhau
+## 5. `OutOfMemoryError`: One Class Name, Many Different Causes
 
-**`java.lang.OutOfMemoryError`** thường cho biết một allocation hoặc resource request không thể thực hiện. Nhưng **điều kiện cạn tài nguyên có thể thuộc nhiều vùng**:
+**`java.lang.OutOfMemoryError`** usually indicates that an allocation or resource request could not be satisfied. However, **the resource exhaustion condition can belong to many regions**:
 
-| Detail message trên HotSpot/JDK điển hình | Nhóm tài nguyên/gợi ý | Hướng điều tra |
+| Typical HotSpot/JDK detail message | Resource group / hint | Investigation direction |
 | --- | --- | --- |
-| `Java heap space` | Không cấp phát được object/array trong Java heap | `-Xmx`, GC logs, heap usage/histogram/dump, retained objects, cache/list/map tăng |
-| `GC overhead limit exceeded` | JVM tốn phần lớn thời gian cho GC, rất ít bộ nhớ được giải phóng (khi cơ chế này áp dụng) | GC frequency, heap pressure, allocation rate, retained live set |
-| `Metaspace` | Class metadata vùng native/metaspace | Classloader retention, dynamic proxy/bytecode generation, `MaxMetaspaceSize` |
-| `Compressed class space` | Vùng compressed class pointers/class metadata (khi bật cơ chế liên quan) | Classloading, class metadata, `CompressedClassSpaceSize` |
-| `Requested array size exceeds VM limit` | Array request vượt giới hạn implementation | Input size/length calculation; **không phải** cứ tăng `-Xmx` là giải được |
-| `unable to create native thread` hoặc thông điệp tương tự | JVM/OS không tạo được native/platform thread | Process/thread count, `ulimit`, cgroup PIDs, native stack memory, memory pressure |
-| `Direct buffer memory` hoặc lỗi reserve direct buffer | Off-heap direct buffer limit / native reservation | Direct buffer usage, `MaxDirectMemorySize` nếu có, reference retention, RSS |
-| `request ... bytes for ... Out of swap space?` hoặc native allocation failure | Native memory/OS allocation, đôi khi có fatal VM handling | Native Memory Tracking, OS mapping, swap/cgroup, core/`hs_err_pid` nếu có |
+| `Java heap space` | Cannot allocate an object/array in the Java heap | `-Xmx`, GC logs, heap usage/histogram/dump, retained objects, growing cache/list/map |
+| `GC overhead limit exceeded` | JVM spends most of its time in GC with very little memory freed (when this mechanism applies) | GC frequency, heap pressure, allocation rate, retained live set |
+| `Metaspace` | Class metadata in native/metaspace region | Classloader retention, dynamic proxy/bytecode generation, `MaxMetaspaceSize` |
+| `Compressed class space` | Compressed class pointers/class metadata region (when the related feature is enabled) | Classloading, class metadata, `CompressedClassSpaceSize` |
+| `Requested array size exceeds VM limit` | Array request exceeds implementation limit | Input size/length calculation; **cannot** simply be solved by increasing `-Xmx` |
+| `unable to create native thread` or similar message | JVM/OS cannot create a native/platform thread | Process/thread count, `ulimit`, cgroup PIDs, native stack memory, memory pressure |
+| `Direct buffer memory` or direct buffer reserve failure | Off-heap direct buffer limit / native reservation | Direct buffer usage, `MaxDirectMemorySize` if set, reference retention, RSS |
+| `request ... bytes for ... Out of swap space?` or native allocation failure | Native memory/OS allocation, sometimes with fatal VM handling | Native Memory Tracking, OS mapping, swap/cgroup, core/`hs_err_pid` if present |
 
-**Detail string thay đổi theo JDK/vendor/nguồn cấp phát**; không dùng chính xác bảng này như enum API. Phải đọc **nguyên văn dòng lỗi** trước khi chỉnh flag.
+**Detail strings vary by JDK/vendor/allocation source**; do not treat this table strictly like an API enum. Always read the **exact error line** before changing flags.
 
-### 5.1 Heap đầy khác memory leak
+### 5.1 Full heap vs. memory leak
 
-`OutOfMemoryError: Java heap space` **không tự chứng minh leak**. Có ít nhất bốn khả năng:
+`OutOfMemoryError: Java heap space` **does not automatically prove a leak**. There are at least four possibilities:
 
-1. `-Xmx` đặt quá nhỏ so với live set hợp lệ;
-2. tải, payload hay concurrency tăng làm allocation/live data tăng theo nhu cầu;
-3. chương trình giữ tham chiếu không cần thiết (unbounded cache, static collection, listener, queue), tức leak logic;
-4. workload có một request tạo object/array rất lớn, hoặc allocation burst.
+1. `-Xmx` is set too small for a legitimate live set;
+2. increased load, payload size, or concurrency raises allocation/live data with demand;
+3. the program holds unnecessary references (unbounded cache, static collection, listener, queue), i.e., a logical leak;
+4. the workload has a request creating a very large object/array, or an allocation burst.
 
-Cách phân biệt: so sánh heap **sau GC**, allocation rate, request concurrency, tuổi object và dominator/retained size trong heap dump. Nếu heap sau các đợt GC cứ tăng mãi với cùng workload, leak khả nghi hơn; nếu tăng rồi ổn định, có thể là cache/working set bình thường. **Tăng `-Xmx` chỉ để che triệu chứng** có thể đẩy incident chậm hơn, không sửa retention leak.
+How to distinguish them: compare heap **after GC**, allocation rate, request concurrency, object age, and dominator/retained size in a heap dump. If post-GC heap keeps climbing under the same workload, a leak is more likely; if it rises and then stabilizes, it may be a normal cache/working set. **Increasing `-Xmx` merely to mask symptoms** may delay the incident slightly without fixing a retention leak.
 
-### 5.2 Metaspace và classloader
+### 5.2 Metaspace and classloaders
 
-Metaspace là bộ nhớ **native quản lý class metadata**, không phải Java object heap theo cách đếm thông thường. Nếu `Metaspace` tăng bền vững, điều tra số class loaded/unloaded, module hot-reload, agent, proxy factory, classloader còn được giữ. Có thể dùng `jcmd <PID> VM.classloader_stats`/`VM.metaspace` trên HotSpot hỗ trợ, phối hợp NMT. `ClassLoader` objects còn trong heap có thể giữ cả hệ sinh thái class metadata.
+Metaspace is **native memory managing class metadata**, not the Java object heap in the usual counting sense. If `Metaspace` grows steadily, investigate loaded/unloaded class counts, hot-reload modules, agents, proxy factories, and retained classloaders. You can use `jcmd <PID> VM.classloader_stats`/`VM.metaspace` on supported HotSpot builds together with NMT. `ClassLoader` objects remaining in the heap can keep entire ecosystems of class metadata alive.
 
-### 5.3 Native thread không tạo được
+### 5.3 Unable to create native thread
 
-Thông báo `unable to create native thread` có thể vì thiếu memory cho thread stacks, OS process/thread limit, container `pids.max` hoặc các resource constraints. **Đừng chỉ tăng Java heap**; tăng `-Xmx` đôi khi còn giảm không gian còn lại cho native memory. Xem số platform threads, executor creation, `-Xss` (nếu có áp dụng), RSS, OS ulimit và cgroup limits. Virtual threads (JDK 21+) không ánh xạ mỗi virtual thread thành một kernel thread cố định, nhưng **không loại bỏ** giới hạn carrier/platform threads và những tài nguyên native khác.
+The message `unable to create native thread` can occur due to insufficient memory for thread stacks, OS process/thread limits, container `pids.max`, or other resource constraints. **Do not just increase the Java heap**; raising `-Xmx` can sometimes shrink the remaining space for native memory. Check platform thread count, executor creation, `-Xss` (if applicable), RSS, OS ulimits, and cgroup limits. Virtual threads (JDK 21+) do not map each virtual thread 1-to-1 to a fixed kernel thread, but they **do not eliminate** carrier/platform thread limits or other native resources.
 
-### 5.4 Cạn memory không có nghĩa Java báo OOME
+### 5.4 Running out of memory does not mean Java reports an OOME
 
-Trên Linux/Kubernetes, khi cgroup vượt giới hạn, **OOM killer có thể gửi `SIGKILL`** cho process mà Java không kịp throw `OutOfMemoryError`. Khi đó JVM thường không ghi heap dump và không chạy shutdown hooks. Container có thể báo `reason=OOMKilled`, exit status điển hình 137, nhưng **137 tự nó chỉ cho biết termination liên quan SIGKILL**, không xác nhận nguyên nhân là cgroup OOM; cần đối chiếu container events/kernel logs.
+On Linux/Kubernetes, when a cgroup exceeds its limit, **the OOM killer may send `SIGKILL`** to the process before Java can throw `OutOfMemoryError`. In that case, the JVM usually does not write a heap dump and does not run shutdown hooks. The container may report `reason=OOMKilled` and a typical exit status of 137, but **137 by itself only indicates SIGKILL-related termination**, not confirmed cgroup OOM; you must cross-check container events and kernel logs.
 
-## 6. `StackOverflowError`: lỗi chiều sâu call stack, không phải heap leak
+## 6. `StackOverflowError`: Call Stack Depth Error, Not a Heap Leak
 
-**`java.lang.StackOverflowError`** xảy ra khi một thread vượt khả năng stack được cấp cho nó, thường do đệ quy quá sâu hoặc vòng gọi không có điểm dừng:
+**`java.lang.StackOverflowError`** occurs when a thread exceeds the stack capacity allocated to it, usually due to excessively deep recursion or an infinite call cycle:
 
 ```java
-// Mảnh code minh họa lỗi, KHÔNG chạy trực tiếp trên production.
+// Bug illustration snippet, DO NOT run directly in production.
 static void recurseForever() {
-    recurseForever(); // Không có base case.
+    recurseForever(); // No base case.
 }
 ```
 
-Với một stack trace điển hình, bạn sẽ thấy các frame phương thức lặp lại rất nhiều lần:
+In a typical stack trace, you will see the same method frames repeated many times:
 
 ```text
 java.lang.StackOverflowError
@@ -178,29 +178,29 @@ java.lang.StackOverflowError
     ...
 ```
 
-Đây là **output minh họa rút gọn**, không phải stdout cố định; JDK có thể giới hạn số frame trong stack trace. Cũng có lỗi do **mutual recursion** giữa hai/hơn hai phương thức hoặc tuần hoàn trong cấu trúc object, ví dụ `toString()` gọi sang nested object rồi quay lại, Jackson serialization trên graph có cycle, visitor đi cây quá sâu.
+This is a **truncated illustrative output**, not fixed stdout; the JDK may limit the number of frames printed in a stack trace. Failures also occur due to **mutual recursion** between two or more methods, or cycles in object structures—for example `toString()` calling a nested object and cycling back, Jackson serialization on a graph with cycles, or a visitor traversing an overly deep tree.
 
-### Cách sửa ưu tiên
+### Preferred fixes
 
-- Xác định **base case** và điều kiện tiến tới base case; phát hiện cycle bằng tập visited/identity khi duyệt graph.
-- Với input có thể sâu do người dùng điều khiển, áp **depth limit hợp lý**, báo lỗi validation khi vượt thay vì dùng stack như giới hạn nghiệp vụ.
-- Chuyển DFS/recursive traversal cực sâu sang **iterative algorithm** với `Deque` hoặc cơ chế stream/chunk phù hợp.
-- Với `equals()`, `hashCode()`, `toString()`, serializer/deserializer, kiểm tra quan hệ object hai chiều.
-- `-Xss` có thể thay đổi stack size của platform threads trên HotSpot, nhưng **chỉ là tham số thực thi**, không sửa thuật toán đệ quy vô hạn. Tăng `-Xss` cũng tăng chi phí reservation/stack của threads; cần benchmark và cân nhắc native memory.
+- Identify the **base case** and the condition progressing toward it; detect cycles using a visited/identity set when traversing graphs.
+- For user-controlled inputs that can be arbitrarily deep, enforce a **reasonable depth limit** and return a validation error when exceeded rather than using the stack as a business limit.
+- Convert extremely deep DFS/recursive traversals to an **iterative algorithm** using a `Deque` or an appropriate streaming/chunking mechanism.
+- For `equals()`, `hashCode()`, `toString()`, and serializers/deserializers, check bidirectional object relationships.
+- `-Xss` can change the stack size of platform threads on HotSpot, but it is **only an execution parameter** and does not fix infinite recursion. Increasing `-Xss` also raises per-thread stack/reservation cost; benchmark and account for native memory.
 
-Với **virtual threads**, cơ chế quản lý stack không giống platform thread (stack có thể lưu theo stack chunks trên heap); không áp một công thức cứng “mỗi virtual thread dùng `-Xss` bytes”. Tuy nhiên recursion quá sâu vẫn có thể gây lỗi nghiêm trọng, và ứng dụng vẫn phải bảo vệ algorithm/input.
+With **virtual threads**, stack management differs from platform threads (stacks may be stored as stack chunks on the heap); do not apply a rigid formula like “each virtual thread uses `-Xss` bytes.” Still, overly deep recursion can cause severe failures, and the application must still guard algorithms and inputs.
 
-### `StackOverflowError` có luôn làm JVM chết?
+### Does `StackOverflowError` always kill the JVM?
 
-**Không.** Nó là Java `Error` được throw trong một thread khi stack overflow. VM có thể vẫn chạy, nhưng thread/operation có thể thất bại; trạng thái application/transaction có thể đã dang dở. Dùng `catch (StackOverflowError)` để “tiếp tục logic như bình thường” không phải chiến lược phục hồi đáng tin. Ưu tiên sửa đệ quy/call graph và để supervisor khởi động lại workload đã hỏng khi cần.
+**No.** It is a Java `Error` thrown in a single thread when its stack overflows. The VM may keep running, though the thread or operation may fail and application/transaction state may be left incomplete. Using `catch (StackOverflowError)` to “continue logic as normal” is not a reliable recovery strategy. Prioritize fixing the recursion/call graph and letting a supervisor restart a corrupted workload when needed.
 
-### StackOverflowError khác native stack overflow gây fatal
+### StackOverflowError vs. native stack overflow causing a fatal crash
 
-Có tình huống lỗi stack trong JNI/native code hoặc VM runtime gây **fatal crash**, không chỉ `StackOverflowError` Java. Dấu hiệu là signal/`hs_err_pid` và native/problematic frame; đừng dùng tên nguyên nhân “stack overflow” để suy luôn loại throwable. **Artifact mới quyết định nhánh điều tra.**
+There are cases where a stack failure in JNI/native code or the VM runtime causes a **fatal crash**, not merely a Java `StackOverflowError`. Symptoms include a signal/`hs_err_pid` and native/problematic frames; do not use the phrase “stack overflow” to immediately assume the throwable type. **Artifacts determine the investigation branch.**
 
-## 7. Fatal VM error: khi HotSpot không thể tiếp tục
+## 7. Fatal VM Error: When HotSpot Cannot Continue
 
-HotSpot VM fatal error thường xuất hiện sau lỗi **native/JNI, JVM runtime, JIT compiled code, internal assertion hoặc không thể phục hồi tài nguyên native**. Trên Linux/macOS có thể có `SIGSEGV` (segmentation fault), `SIGBUS`, `SIGILL` hoặc `SIGABRT`; trên Windows có thể thấy `EXCEPTION_ACCESS_VIOLATION`. Dấu hiệu điển hình:
+A HotSpot VM fatal error usually appears after a failure in **native/JNI code, the JVM runtime, JIT-compiled code, an internal assertion, or unrecoverable native resource failure**. On Linux/macOS you may see `SIGSEGV` (segmentation fault), `SIGBUS`, `SIGILL`, or `SIGABRT`; on Windows you may see `EXCEPTION_ACCESS_VIOLATION`. Typical symptoms:
 
 ```text
 # A fatal error has been detected by the Java Runtime Environment:
@@ -216,35 +216,35 @@ HotSpot VM fatal error thường xuất hiện sau lỗi **native/JNI, JVM runti
 # /var/log/java/hs_err_pid12345.log
 ```
 
-Đây là **đoạn minh họa**, không phải kết quả từ một vụ crash thật; text, layout và frames thay đổi theo JDK/OS. Có thể xuất hiện Java compiled frame `J`, VM frame `V`/`v` hoặc native frame `C`. `Problematic frame` gợi ý điểm fault, **chưa chứng minh root cause cuối cùng**: memory corruption từ trước đó có thể chỉ biểu hiện khi một thư viện khác dereference pointer.
+This is an **illustrative snippet**, not output from a real crash; exact text, layout, and frames vary by JDK and OS. You may see Java compiled frames `J`, VM frames `V`/`v`, or native frames `C`. `Problematic frame` hints at the fault location, **not necessarily the final root cause**: earlier memory corruption may only manifest when another library dereferences a pointer.
 
-Fatal VM error:
+A fatal VM error:
 
-- thường khiến **process chấm dứt** và không thể được xử lý bằng `try/catch` Java;
-- có thể ghi file **`hs_err_pid<pid>.log`**, đôi khi core/minidump tùy cấu hình OS và dung lượng;
-- có thể xảy ra khi dùng JNI/JNA, FFM/native interop, agents/profilers, native drivers, JVM bugs, CPU instruction set/memory problems;
-- không luôn là “lỗi JVM của Oracle/OpenJDK”: phải xem địa chỉ/libraries/frames và xây dựng reproducer trước khi quy kết.
+- usually causes the **process to terminate** and cannot be handled by Java `try/catch`;
+- may write an **`hs_err_pid<pid>.log`** file, and sometimes a core/minidump depending on OS settings and disk space;
+- can occur when using JNI/JNA, FFM/native interop, agents/profilers, native drivers, JVM bugs, or CPU instruction set/memory issues;
+- is not always an “Oracle/OpenJDK JVM bug”: you must inspect addresses/libraries/frames and build a reproducer before attributing blame.
 
-**Không phải mọi native signal đều là fatal**; HotSpot sử dụng một số signal cho mục đích nội bộ. Kết luận phải dựa trên **fatal report/process termination** chứ không chỉ số lượng signal trong `strace`.
+**Not every native signal is fatal**; HotSpot uses certain signals for internal purposes. Conclusions must be based on a **fatal report or process termination**, not merely the count of signals in `strace`.
 
-## 8. `hs_err_pid` chứa gì và đọc theo thứ tự nào?
+## 8. What Does `hs_err_pid` Contain and in What Order Should You Read It?
 
-File fatal error của HotSpot thường có tên `hs_err_pid<PID>.log` ở working directory JVM hoặc địa điểm cấu hình bằng `-XX:ErrorFile=...`. Nếu ghi tại đó thất bại, JVM có thể tìm nơi fallback như OS temporary directory, **nhưng không có bảo đảm sẽ tạo file trong mọi crash**.
+HotSpot's fatal error file is typically named `hs_err_pid<PID>.log` in the JVM working directory or the path configured via `-XX:ErrorFile=...`. If writing there fails, the JVM may try a fallback location such as the OS temporary directory, **but file creation is not guaranteed in every crash**.
 
-Khi đã có `hs_err`, đọc:
+Once you have `hs_err`, read:
 
-1. **Header**: loại signal/exception, program counter (pc), PID/TID, JVM build và `Problematic frame`.
-2. **Current thread / thread state**: tên và trạng thái thread gặp lỗi; Java frames, native frames, compiled/interpreted modes.
-3. **Native stack và dynamic libraries**: tên `.so`/`.dll`/`.dylib`, offsets; so với phiên bản thư viện native/JNI/agent có trong deployment.
-4. **VM arguments / environment**: `-Xmx`, `-Xss`, GC, command line, `JAVA_HOME`, library paths, container/OS version, memory/cpu availability.
-5. **Heap/GC/metaspace, memory map và các threads khác**: có memory pressure hay vấn đề đồng thời hay không.
-6. **Error reporting warnings**: nếu log tự ghi “error occurred during error reporting” hoặc thiếu một phần, coi report **không đầy đủ**, không tự bịa frame còn thiếu.
+1. **Header**: signal/exception type, program counter (pc), PID/TID, JVM build, and `Problematic frame`.
+2. **Current thread / thread state**: name and state of the faulting thread; Java frames, native frames, compiled/interpreted modes.
+3. **Native stack and dynamic libraries**: `.so`/`.dll`/`.dylib` names and offsets; compare against the native/JNI/agent library versions in deployment.
+4. **VM arguments / environment**: `-Xmx`, `-Xss`, GC, command line, `JAVA_HOME`, library paths, container/OS version, memory/CPU availability.
+5. **Heap/GC/metaspace, memory map, and other threads**: whether there is memory pressure or concurrency issues.
+6. **Error reporting warnings**: if the log itself notes “error occurred during error reporting” or is missing a section, treat the report as **incomplete** and do not invent missing frames.
 
-Một `Problematic frame: C [libmyjni.so+...]` thường nên bắt đầu điều tra từ **native library/JNI**. Một frame `J` hay `V` cần xem thêm JIT/VM stack và crash reproducer; **không có nghĩa Java source ở frame là thủ phạm chắc chắn**. Địa chỉ native chỉ có giá trị khi đối chiếu đúng **binary build và debug symbols**.
+A `Problematic frame: C [libmyjni.so+...]` should usually start the investigation at the **native library/JNI**. A `J` or `V` frame requires looking further into the JIT/VM stack and a crash reproducer; **it does not mean the Java source at that frame is definitively the culprit**. Native addresses are only meaningful when matched against the exact **binary build and debug symbols**.
 
-## 9. Chuẩn bị thu bằng chứng trước khi incident xảy ra
+## 9. Preparing Evidence Collection Before an Incident Occurs
 
-Các JVM flags sau dành cho **HotSpot có hỗ trợ**, đặt trước `-jar` hoặc main class. Đây là ví dụ cấu hình **startup** của service, không phải thứ có thể thêm vào process đang chạy mà không restart.
+The following JVM flags are for **supported HotSpot builds**, placed before `-jar` or the main class. This is a **startup** configuration example for a service, not something you can add to a running process without restarting.
 
 ```bash
 java \
@@ -255,35 +255,35 @@ java \
   -jar application.jar
 ```
 
-Ví dụ dùng cú pháp tiếp dòng của shell Unix/Linux; trên PowerShell cần đặt options trên **một dòng** hoặc dùng ký tự tiếp dòng của PowerShell. Thư mục `/var/diagnostics` phải tồn tại, process Java có quyền ghi, đủ disk; trong container phải mount volume phù hợp nếu muốn giữ artifact sau restart.
+This example uses Unix/Linux shell line continuation syntax; on PowerShell, place the options on **one line** or use PowerShell's line-continuation character. The `/var/diagnostics` directory must exist, the Java process must have write permissions, and there must be sufficient disk space; in containers, mount an appropriate volume if you need to retain artifacts across restarts.
 
-### Phân biệt các option
+### Distinguishing the options
 
-| Option | Dùng khi nào | Không nên kỳ vọng |
+| Option | When to use | What not to expect |
 | --- | --- | --- |
-| `-XX:+HeapDumpOnOutOfMemoryError` | Cần heap snapshot khi HotSpot báo `OutOfMemoryError` và có thể ghi | Không bảo đảm trên mọi loại native OOM, container OOM kill hoặc fatal VM crash |
-| `-XX:HeapDumpPath=<path>` | Đặt file/đường dẫn tạo heap dump (HPROF) | Không tự kích hoạt heap dump khi thiếu flag trên |
-| `-XX:ErrorFile=<path>` | Đặt file fatal error report, hỗ trợ token `%p` là PID | Không tạo `hs_err` cho một Java exception thông thường |
-| `-Xlog:gc*...` | Theo dõi GC và heap pressure trước OOME | Không trực tiếp chỉ ra retained object graph |
-| `-XX:NativeMemoryTracking=summary` | Cần quan sát native memory JVM từ startup | Không bao phủ mọi native allocation của third-party libraries |
-| `-XX:+ExitOnOutOfMemoryError` | Chính sách vận hành muốn JVM thoát khi phát hiện OOME | Không thay thế việc phân tích nguyên nhân; phải có supervisor |
-| `-XX:+CrashOnOutOfMemoryError` | Chính sách đặc biệt muốn VM abort/crash khi OOME để có artifacts crash phù hợp | Có thể tạo core rất lớn, tăng downtime/disk; không nên bật vô điều kiện |
+| `-XX:+HeapDumpOnOutOfMemoryError` | Need a heap snapshot when HotSpot reports `OutOfMemoryError` and can write it | Not guaranteed for all native OOM types, container OOM kills, or fatal VM crashes |
+| `-XX:HeapDumpPath=<path>` | Set file/directory path for generating a heap dump (HPROF) | Does not trigger a heap dump by itself without the flag above |
+| `-XX:ErrorFile=<path>` | Set fatal error report file, supporting the `%p` PID token | Does not create `hs_err` for an ordinary Java exception |
+| `-Xlog:gc*...` | Track GC and heap pressure leading up to OOME | Does not directly show the retained object graph |
+| `-XX:NativeMemoryTracking=summary` | Need to observe JVM native memory from startup | Does not cover all native allocations from third-party libraries |
+| `-XX:+ExitOnOutOfMemoryError` | Operational policy wanting the JVM to exit upon detecting OOME | Does not replace root-cause analysis; requires a supervisor |
+| `-XX:+CrashOnOutOfMemoryError` | Special policy wanting the VM to abort/crash on OOME to produce crash artifacts | Can generate huge core files and increase downtime/disk usage; do not enable unconditionally |
 
-`ExitOnOutOfMemoryError` và `CrashOnOutOfMemoryError` là hai **chính sách phản ứng khác nhau**. Không bật bừa hoặc kết hợp chúng như một “bộ flags bắt buộc”; kiểm tra hành vi trên đúng JDK, staging và hệ orchestration. Nếu crash/exit quá nhanh, dump hoặc log có thể không kịp ghi hoàn chỉnh. **Quan trọng:** `HeapDumpOnOutOfMemoryError` phục vụ **Java heap evidence**, không phải native core dump; `ErrorFile` phục vụ **fatal VM report**, không phải file `.hprof`.
+`ExitOnOutOfMemoryError` and `CrashOnOutOfMemoryError` are two **different response policies**. Do not enable them blindly or combine them as a “mandatory flag bundle”; verify behavior on the exact JDK, staging environment, and orchestration system. If exit/crash happens too quickly, dumps or logs may not finish writing completely. **Important:** `HeapDumpOnOutOfMemoryError` is for **Java heap evidence**, not a native core dump; `ErrorFile` is for a **fatal VM report**, not an `.hprof` file.
 
-### JFR trước crash
+### JFR before a crash
 
-Nếu cần lịch sử những giây/phút trước sự cố, có thể bật **continuous JFR** từ startup:
+If you need history from the seconds or minutes preceding an incident, you can enable **continuous JFR** from startup:
 
 ```bash
 java -XX:StartFlightRecording=name=ring,settings=default,disk=true,maxage=1h,maxsize=256m -jar application.jar
 ```
 
-Khi process còn sống, dùng `jcmd <PID> JFR.dump name=ring filename=/var/diagnostics/before-incident.jfr`. Khi process bị kill/crash, **không mặc định** sẽ có file JFR hoàn chỉnh; có thể cần tìm repository chunks hoặc artifact đã được hệ quan sát lưu trước đó. Hãy bảo vệ dữ liệu quan trọng bằng cơ chế dump theo lịch hoặc trigger phù hợp nếu policy cho phép.
+While the process is alive, use `jcmd <PID> JFR.dump name=ring filename=/var/diagnostics/before-incident.jfr`. When the process is killed or crashes, you will **not by default** get a complete JFR file; you may need to check repository chunks or artifacts previously saved by an observability system. Protect critical data with scheduled dumps or appropriate triggers if policy permits.
 
-## 10. Bộ lệnh chẩn đoán khi process còn sống
+## 10. Diagnostic Command Set While the Process Is Still Alive
 
-Nếu service có dấu hiệu OOM/stack issue nhưng JVM chưa chết, xác định PID và đọc bằng chứng có kiểm soát:
+If the service shows signs of OOM/stack issues while the JVM is still alive, identify the PID and gather evidence in a controlled manner:
 
 ```bash
 jcmd -l
@@ -294,27 +294,27 @@ jcmd <PID> Thread.print -l
 jcmd <PID> JFR.check
 ```
 
-Với JVM đã bật NMT từ startup:
+For a JVM with NMT enabled from startup:
 
 ```bash
 jcmd <PID> VM.native_memory summary scale=MB
 ```
 
-Các command cần runtime HotSpot tương thích, quyền attach, PID namespace và JDK tools. `VM.native_memory` không thể tự tạo số liệu quá khứ nếu NMT chưa được bật. `jcmd <PID> Thread.print` trên JVM nhiều thread có thể in output rất lớn.
+These commands require a compatible HotSpot runtime, attach permissions, matching PID namespace, and JDK tools. `VM.native_memory` cannot reconstruct historical numbers if NMT was not enabled. `jcmd <PID> Thread.print` on a JVM with many threads can produce very large output.
 
-### Heap dump chủ động
+### Proactive heap dump
 
 ```bash
 jcmd <PID> GC.heap_dump /var/diagnostics/heap-before-restart.hprof
 ```
 
-Đây là **lệnh có chi phí/impact cao**; thường yêu cầu dừng tạm thời/safepoint hoặc công việc nặng và có thể tốn rất nhiều RAM/disk. Không tự chạy trên production đang cạn tài nguyên mà không cân nhắc rủi ro; chọn đúng thời điểm/có quyền và bảo đảm dung lượng. `.hprof` thường chứa object data nhạy cảm.
+This is a **high-cost / high-impact command**; it usually requires a pause/safepoint or heavy work and can consume substantial RAM and disk space. Do not run it casually on resource-starved production systems without weighing the risk; choose the right timing, obtain authorization, and ensure sufficient capacity. `.hprof` files often contain sensitive object data.
 
-**Không thể chạy các lệnh này sau khi process đã chết.** Khi JVM biến mất, ưu tiên log đã lưu, `hs_err`, core dump, `.hprof` đã tạo, orchestrator/container status và OS kernel logs.
+**You cannot run these commands after the process has died.** Once the JVM is gone, prioritize already-saved logs, `hs_err`, core dumps, generated `.hprof` files, orchestrator/container status, and OS kernel logs.
 
-## 11. Java 17+ runnable: kiểm tra hierarchy và cách exception được xử lý
+## 11. Runnable Java 17+: Checking Hierarchy and How Exceptions Are Handled
 
-Lưu chương trình sau thành **`FailureTaxonomyDemo.java`**:
+Save the following program as **`FailureTaxonomyDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -348,14 +348,14 @@ public class FailureTaxonomyDemo {
 }
 ```
 
-Biên dịch/chạy với Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac --release 17 FailureTaxonomyDemo.java
 java FailureTaxonomyDemo
 ```
 
-**Stdout chính xác của chương trình:**
+**Exact stdout of the program:**
 
 ```text
 runtime_exception=NumberFormatException
@@ -364,31 +364,31 @@ oome_is_error=true
 soe_is_vm_error=true
 ```
 
-Chương trình **không** tạo OOME, SOE hoặc fatal error. Nó kiểm tra quan hệ type system một cách an toàn:
+This program does **not** trigger an OOME, SOE, or fatal error. It safely verifies type-system relationships:
 
-- `NumberFormatException` là nhánh `RuntimeException`, có thể catch cụ thể.
-- `IOException` là checked exception, phương thức `failChecked()` khai báo `throws`, caller phải xử lý/khai báo.
-- `OutOfMemoryError` là subclass của `Error`; `StackOverflowError` là subclass của `VirtualMachineError`.
-- Hai dòng cuối **không nói** OOME/SOE “an toàn để tiếp tục” mà chỉ chứng minh inheritance.
+- `NumberFormatException` is under the `RuntimeException` branch and can be caught specifically.
+- `IOException` is a checked exception; `failChecked()` declares `throws`, and the caller must handle or declare it.
+- `OutOfMemoryError` is a subclass of `Error`; `StackOverflowError` is a subclass of `VirtualMachineError`.
+- The last two lines **do not say** OOME/SOE are “safe to continue from”; they only demonstrate inheritance.
 
-### Tại sao không tạo thật một JVM crash trong bài thực hành?
+### Why not trigger a real JVM crash in this exercise?
 
-Một demo cố tình cấp phát vô hạn, đệ quy vô hạn hoặc làm JVM `SIGSEGV` có thể gây thiếu RAM, làm chậm máy hoặc tạo dump rất lớn. **Không chạy những thử nghiệm đó trên production hoặc máy dùng chung**. Khi cần tái hiện, dùng môi trường cô lập, cgroup/memory/CPU/disk limits, timeouts, artifacts và quyền thích hợp. Không coi một bài test có OOME nhỏ trong sandbox là bằng chứng root cause cho OOME production khác.
+A demo that intentionally allocates infinitely, recurses infinitely, or triggers a JVM `SIGSEGV` can exhaust RAM, slow down the machine, or generate huge dumps. **Do not run such experiments on production or shared machines.** When reproduction is needed, use an isolated environment with cgroup/memory/CPU/disk limits, timeouts, artifact paths, and appropriate permissions. Do not treat a small sandbox OOME test as root-cause proof for a different production OOME.
 
-## 12. Quy trình postmortem: phân loại theo bằng chứng đầu tiên
+## 12. Postmortem Workflow: Classify by Initial Evidence
 
-### Bước 1 — tìm sự thật về lifecycle process
+### Step 1 — establish the facts of the process lifecycle
 
-Ghi timestamp tuyệt đối, timezone, PID/container ID, hostname, deployment SHA/JDK build, memory limits, exit code/reason và log cuối cùng. Phân biệt:
+Record absolute timestamps, timezone, PID/container ID, hostname, deployment SHA/JDK build, memory limits, exit code/reason, and final logs. Distinguish:
 
-- **Java stack trace có `Exception`/`Error`** nhưng process còn sống: bắt đầu từ throwable detail, request context, lỗi logic hoặc memory pool.
-- **Có `hs_err_pid` và header fatal signal/internal VM error**: bắt đầu từ fatal VM report, native frames, JVM/vendor/library versions.
-- **Không có Java stack trace, process bị `OOMKilled` hoặc `SIGKILL`**: bắt đầu từ OS/cgroup/kube events, memory graphs, RSS, page cache/native memory và container limits; đừng bịa ra `OutOfMemoryError`.
-- **Ứng dụng tự gọi `System.exit` hoặc supervisor gửi SIGTERM**: có thể là dừng có chủ đích hoặc health-policy, không phải lỗi memory. Kiểm tra application logs, deploy events và shutdown handler.
+- **Java stack trace with `Exception`/`Error`** while the process is still alive: start from throwable details, request context, logic bug, or memory pool.
+- **`hs_err_pid` present with fatal signal / internal VM error header**: start from the fatal VM report, native frames, and JVM/vendor/library versions.
+- **No Java stack trace, process was `OOMKilled` or `SIGKILL`ed**: start from OS/cgroup/kube events, memory graphs, RSS, page cache/native memory, and container limits; do not invent an `OutOfMemoryError`.
+- **Application called `System.exit` or supervisor sent SIGTERM**: may be intentional shutdown or health-policy action, not a memory error. Check application logs, deploy events, and shutdown handlers.
 
-### Bước 2 — đọc **thông báo đầy đủ**, không chỉ top-level summary
+### Step 2 — read the **full message**, not just the top-level summary
 
-Ví dụ các stack traces dạng rút gọn:
+Examples of abbreviated stack traces:
 
 ```text
 java.lang.NumberFormatException: For input string: "abc"
@@ -407,150 +407,150 @@ java.lang.StackOverflowError
     ...
 ```
 
-Đây là **mẫu minh họa**, không phải log thật. Java exception cần xem `Caused by:`, nested/suppressed exceptions và request ID. OOME cần **detail string** trước khi mở heap dump; SOE cần frames lặp, input gây recursion và JVM stack configuration. Fatal signal cần `hs_err`/core.
+These are **illustrative samples**, not real logs. A Java exception requires checking `Caused by:`, nested/suppressed exceptions, and request IDs. OOME requires the **detail string** before opening a heap dump; SOE requires repeated frames, recursion-triggering input, and JVM stack configuration. A fatal signal requires `hs_err`/core.
 
-### Bước 3 — gom đúng artifacts
+### Step 3 — collect the right artifacts
 
-| Nhóm nghi vấn | Artifact cần ưu tiên |
+| Suspect group | Priority artifacts |
 | --- | --- |
-| Checked/runtime exception | Application logs, trace ID, payload đã ẩn dữ liệu nhạy cảm, stack trace/cause, release, transaction status |
-| Heap OOME | `.hprof` nếu có, GC logs, heap metrics/trends, `-Xmx`, load/concurrency, class histogram |
+| Checked/runtime exception | Application logs, trace ID, sanitized payload with sensitive data masked, stack trace/cause, release, transaction status |
+| Heap OOME | `.hprof` if available, GC logs, heap metrics/trends, `-Xmx`, load/concurrency, class histogram |
 | Metaspace OOME | `VM.metaspace`, `VM.classloader_stats`, class counts, reload patterns, native memory metrics |
 | Native/thread/direct OOME | NMT, RSS/cgroup, PID/thread limits, direct buffer pools, OS maps, kernel/container events |
 | SOE | Stack trace depth/repeated methods, input graph, recursion base case, `-Xss`, code version |
-| Fatal VM error | `hs_err_pid`, core/minidump nếu có, problematic/native frames, native libraries, JDK/vendor/build, JVM flags, environment |
-| OOM kill/SIGKILL | Pod/container exit reason, kernel OOM logs/cgroup events, memory limit/usage, RSS graph; thường **không** có Java dump |
+| Fatal VM error | `hs_err_pid`, core/minidump if available, problematic/native frames, native libraries, JDK/vendor/build, JVM flags, environment |
+| OOM kill/SIGKILL | Pod/container exit reason, kernel OOM logs/cgroup events, memory limit/usage, RSS graph; usually **no** Java dump |
 
-### Bước 4 — ưu tiên an toàn và phục hồi dịch vụ
+### Step 4 — prioritize safety and service recovery
 
-Thu bằng chứng tự động hóa nếu đã cấu hình, nhưng **không trì hoãn khôi phục dịch vụ chỉ để chờ dump vô hạn**. Khi nghi trạng thái process đã bị hỏng sau `VirtualMachineError`, dùng chính sách health/restart phù hợp. Không bắt OOME và tiếp tục phục vụ request như bình thường chỉ vì code biên dịch được.
+Collect automated evidence if already configured, but **do not delay service recovery indefinitely waiting for a dump**. When you suspect process state is corrupted after a `VirtualMachineError`, apply an appropriate health/restart policy. Do not catch OOME and keep serving requests normally just because the code compiles.
 
-### Bước 5 — đối chiếu và kiểm chứng
+### Step 5 — cross-check and verify
 
-Một giả thuyết tốt phải khớp cả **error type + message + tài nguyên + thời gian + repro/điều kiện tải**. Sửa bằng chứng ở đúng tầng:
+A solid hypothesis must align **error type + message + resource + timing + repro/load conditions**. Fix at the right layer:
 
-- OOME heap → quản lý object lifetime/heap sizing/GC/concurrency;
-- OOME native → native allocations, thread/pid limits, off-heap usage, cgroup;
+- Heap OOME → manage object lifetime / heap sizing / GC / concurrency;
+- Native OOME → native allocations, thread/pid limits, off-heap usage, cgroup;
 - SOE → base case, cycle detection, iterative algorithm;
-- native fatal → điều tra JNI/library/JIT/VM và versions;
+- Native fatal → investigate JNI/library/JIT/VM and versions;
 - Java exception → input contract, exception handling, transactions/retries.
 
-Sau thay đổi, xác minh error rate, memory trend sau GC, RSS, thread counts, latency và khả năng phục hồi dưới tải tương đương.
+After the change, verify error rate, post-GC memory trend, RSS, thread counts, latency, and recovery under equivalent load.
 
-## 13. Bốn incident thực tế để luyện phân biệt
+## 13. Four Real-World Incidents to Practice Distinguishing
 
-### Tình huống A — API trả HTTP 500, service vẫn nhận request
+### Scenario A — API returns HTTP 500, service keeps accepting requests
 
-Log có `NullPointerException` ở mapper, cùng request ID, process PID vẫn nguyên. **Nhánh xử lý:** runtime exception (application bug). Xác định input thiếu dữ liệu hoặc object không được khởi tạo, kiểm tra stack/cause, validate hợp lệ, thêm test cho request tương ứng. **Không** tìm `hs_err_pid` như artifact chính, không bật heap dump OOME để giải quyết NPE.
+Logs show a `NullPointerException` in a mapper with a request ID, and the process PID remains unchanged. **Handling branch:** runtime exception (application bug). Identify missing input data or uninitialized object, inspect stack/cause, add proper validation, and add a test for that request. Do **not** hunt for `hs_err_pid` as the primary artifact or enable OOME heap dumps to solve an NPE.
 
-**Cần lưu ý:** một exception không được xử lý có thể khiến **thread** kết thúc. Process có tiếp tục hay không tùy thread lifecycle/framework; không phải “exception không bao giờ làm service chết”.
+**Note:** an unhandled exception can cause a **thread** to terminate. Whether the process continues depends on thread lifecycle and framework behavior; it is not true that “exceptions never kill a service.”
 
-### Tình huống B — Sau 8 giờ tải, `OutOfMemoryError: Java heap space`
+### Scenario B — After 8 hours under load, `OutOfMemoryError: Java heap space`
 
-Logs cho thấy heap after GC tăng dần, GC thường xuyên, `.hprof` tồn tại do bật flag. **Nhánh xử lý:** heap OOME. Phân tích dominator tree/histogram, static cache, retained collections, queue size và tác động release mới. `-Xmx` có thể tạm thay đổi để giảm áp lực nhưng phải chứng minh memory footprint phù hợp container limit, tránh OOM kill do tổng heap+native vượt cgroup.
+Logs show post-GC heap climbing steadily, frequent GC, and an `.hprof` file exists because the flag was enabled. **Handling branch:** heap OOME. Analyze the dominator tree/histogram, static caches, retained collections, queue sizes, and the impact of recent releases. `-Xmx` can be adjusted temporarily to ease pressure, but you must prove the memory footprint fits the container limit to avoid an OOM kill from heap + native exceeding the cgroup.
 
-**Không kết luận:** tên class nhiều nhất theo shallow bytes **không tự là leak owner**; xem retained references và allocation/lifecycle.
+**Do not conclude:** the class with the largest shallow bytes **is not automatically the leak owner**; examine retained references and allocation/lifecycle.
 
-### Tình huống C — Một batch job crash `StackOverflowError` ở cây dữ liệu
+### Scenario C — A batch job crashes with `StackOverflowError` on a data tree
 
-Stack trace lặp `Tree.visit` hàng nghìn frame, input có cycle hoặc độ sâu vượt thiết kế. **Nhánh xử lý:** SOE. Repro bằng dữ liệu đã ẩn danh, thêm visited set/depth guard hoặc chuyển sang iterative DFS/BFS; tránh tăng `-Xss` như “bản vá cuối cùng” cho recursion vô hạn. Nếu cùng lúc có `hs_err`/native SIGSEGV, kiểm tra liệu đang gặp **fatal native stack failure** thay vì chỉ SOE Java.
+The stack trace repeats `Tree.visit` for thousands of frames, and the input contains a cycle or exceeds the designed depth. **Handling branch:** SOE. Reproduce with anonymized data, add a visited set / depth guard or switch to iterative DFS/BFS; avoid increasing `-Xss` as a “final patch” for unbounded recursion. If `hs_err`/native `SIGSEGV` also appears at the same time, check whether you are hitting a **fatal native stack failure** rather than only a Java SOE.
 
-### Tình huống D — Container chết, không có Java throwable, exit 137
+### Scenario D — Container dies, no Java throwable, exit 137
 
-Orchestrator báo `OOMKilled`, RSS/cgroup memory usage tăng; không có `.hprof` và `hs_err`. **Nhánh xử lý:** kernel/container OOM kill. Điều tra memory limit, off-heap/direct/native buffers, thread stacks, process heap size, shared page cache và monitoring của cgroup. **Không** kết luận JVM đã throw `OutOfMemoryError`; kill có thể đến trước khi JVM nhận ra hoặc không đi qua code path OOME.
+The orchestrator reports `OOMKilled` and RSS/cgroup memory usage climbed; there is no `.hprof` and no `hs_err`. **Handling branch:** kernel/container OOM kill. Investigate memory limits, off-heap/direct/native buffers, thread stacks, process heap size, shared page cache, and cgroup monitoring. Do **not** conclude the JVM threw `OutOfMemoryError`; the kill may arrive before the JVM detects anything or without passing through the OOME code path.
 
-Nếu chỉ có exit 137 mà không có `OOMKilled` reason, kiểm tra ai gửi `SIGKILL`, timeout, deploy/operator actions và kernel logs trước khi kết luận cạn RAM.
+If you only see exit 137 without an `OOMKilled` reason, check who sent `SIGKILL`, timeouts, deploy/operator actions, and kernel logs before concluding RAM exhaustion.
 
-### Tình huống E — `SIGSEGV`, `hs_err_pid` có `Problematic frame: C [libnative.so...]`
+### Scenario E — `SIGSEGV`, `hs_err_pid` shows `Problematic frame: C [libnative.so...]`
 
-**Nhánh xử lý:** fatal VM/native crash. Kiểm tra đúng `libnative.so` build, JNI callsite, native memory safety, version JDK/OS, reproduction, core dump và thread involved. Một crash trong native frame **không tự chứng minh bug của chính thư viện tại frame đó**: memory corruption có thể bắt đầu từ chỗ khác; cần trace/coredump để kết luận.
+**Handling branch:** fatal VM/native crash. Verify the exact `libnative.so` build, JNI call site, native memory safety, JDK/OS versions, reproduction, core dump, and involved thread. A crash in a native frame **does not by itself prove a bug in that specific library**: memory corruption could have originated elsewhere; traces and core dumps are needed to conclude.
 
-## 14. Kỹ thuật đọc crash artifacts mà không tạo kết luận giả
+## 14. Reading Crash Artifacts Without Drawing False Conclusions
 
 ### `.hprof`
 
-Heap dump là snapshot object graph của Java heap. Dùng Eclipse MAT/VisualVM/JDK tools phù hợp để xem dominator tree, retained sizes, leak suspects. **Không phải native core**: heap dump không cho biết mọi `malloc` trong JNI, OS stack hay mọi địa chỉ cấp phát native. Dump có thể rất lớn, chứa mật khẩu/session/token/PII trong object graph, phải được mã hóa và giới hạn truy cập.
+A heap dump is a snapshot of the Java heap's object graph. Use Eclipse MAT, VisualVM, or appropriate JDK tools to inspect the dominator tree, retained sizes, and leak suspects. **Not a native core**: a heap dump does not show every `malloc` in JNI, OS stacks, or all native allocation addresses. Dumps can be huge and contain passwords, sessions, tokens, or PII in the object graph, so they must be encrypted and access-restricted.
 
 ### `hs_err_pid*.log`
 
-Là **fatal VM log** của HotSpot: signal, thread, native frames, VM arguments, memory map và trạng thái thu được lúc crash. Có thể không có vì disk/permission/OS kill hoặc reporting cũng gặp lỗi. Không nhầm file này với **Java application log** do Logback/Log4j/SLF4J ghi.
+This is HotSpot's **fatal VM log**: signal, thread, native frames, VM arguments, memory map, and state captured at crash time. It may be absent due to disk, permissions, OS kill, or an error during reporting itself. Do not confuse this file with **Java application logs** written by Logback/Log4j/SLF4J.
 
-### Core dump/minidump
+### Core dump / minidump
 
-Là artifact **OS-level** chứa trạng thái tiến trình phục vụ native debugger, có thể rất lớn và nhạy cảm. Khả năng thu phụ thuộc `ulimit -c`, `core_pattern`, `systemd-coredump`, Windows WER, container security và disk quota. Một `.core` không phải `.hprof` và không mở được như heap dump. Không chia sẻ công khai core dumps production.
+This is an **OS-level** artifact containing process state for a native debugger; it can be very large and sensitive. Whether it is collected depends on `ulimit -c`, `core_pattern`, `systemd-coredump`, Windows WER, container security settings, and disk quota. A `.core` is not an `.hprof` and cannot be opened as a heap dump. Never share production core dumps publicly.
 
 ### GC logs
 
-Cho biết heap occupancy/GC pauses trước khi OOME; giúp phân biệt allocation burst, live-set bền vững và collector pressure. **Không tự chỉ ra Java object nào giữ reference**; cần heap dump/tracing tương ứng.
+These show heap occupancy and GC pauses prior to OOME; they help distinguish allocation bursts, sustained live-set growth, and collector pressure. They **do not directly identify which Java object holds a reference**; use a corresponding heap dump or tracing for that.
 
-### NMT và OS metrics
+### NMT and OS metrics
 
-Native Memory Tracking dùng `-XX:NativeMemoryTracking=summary/detail` từ lúc startup; `jcmd VM.native_memory` cho số reserved/committed theo HotSpot categories. Không phải tổng RSS của process, không bao phủ hết third-party native libraries. Đối chiếu `RSS`/`cgroup memory`, direct buffer pool, OS mapping và thread count.
+Native Memory Tracking uses `-XX:NativeMemoryTracking=summary/detail` from startup; `jcmd VM.native_memory` reports reserved/committed memory by HotSpot category. It is not the total process RSS and does not cover all third-party native libraries. Cross-check against `RSS`/`cgroup memory`, direct buffer pools, OS mappings, and thread counts.
 
 ### JFR
 
-JFR giúp thấy trước crash: allocation, GC, thread scheduling, locking và application events. Nếu chỉ kích hoạt sau sự cố thì không thể hồi cứu; continuous recording cần retention và dump khi process còn sống. `.jfr` là artifact khác `.hprof`/`hs_err`; đừng kỳ vọng một loại thay thế hoàn toàn loại khác.
+JFR reveals what happened before a crash: allocations, GC, thread scheduling, locking, and application events. If enabled only after an incident, it cannot look back retroactively; continuous recording requires retention and dumping while the process is alive. A `.jfr` is a different artifact from `.hprof`/`hs_err`; do not expect one type to completely replace another.
 
-## 15. Những lỗi phổ biến khi chọn phương án sửa
+## 15. Common Mistakes When Choosing a Remediation
 
-| Ngộ nhận | Vì sao sai | Hướng đúng |
+| Misconception | Why it is wrong | Right approach |
 | --- | --- | --- |
-| “Bất kỳ stack trace nào cũng là JVM crash” | Java exception có thể được catch và service tiếp tục | Kiểm tra PID/process lifecycle, loại throwable |
-| “`Error` nghĩa là OS process đã chết” | `Error` là Java `Throwable`, không nhất thiết dừng cả JVM | Đọc thread/service state; xét policy restart |
-| “OOME luôn do Java heap” | Metaspace, native threads, direct/native allocations và limits khác | Phân biệt theo **detail message** + metrics |
-| “OOME luôn là leak” | Có thể do heap sizing, payload burst, concurrency | So sánh live set sau GC, retained size, workload |
-| “Tăng `-Xmx` chữa mọi memory issue” | Có thể giảm native headroom và gây cgroup OOM kill | Tính budget heap + non-heap + native + OS |
-| “Có exit 137 thì chắc Java OOME” | 137 thường do SIGKILL, không chứng minh `OutOfMemoryError` | Xem OOMKilled reason, kernel/event history |
-| “SOE = bộ nhớ heap đầy” | Là giới hạn stack/call depth, không đồng nhất heap | Kiểm tra recursive frames/cycles, code logic |
-| “Tăng `-Xss` là sửa SOE” | Recursion không base case vẫn vô hạn; tăng stack còn tốn native memory | Sửa thuật toán; nếu hợp lý mới tuning stack |
-| “`catch (Throwable)` là robust” | Nuốt lỗi VM nghiêm trọng, có thể tiếp tục trạng thái sai | Catch các loại có khả năng phục hồi, surface fatal signal |
-| “`finally` chắc chắn chạy trước mọi crash” | `SIGKILL` và fatal abort có thể chặn Java cleanup | Dùng external supervisor/durable logging |
-| “Không có `hs_err` thì không phải VM crash” | Reporter có thể không ghi được; OS có thể kill | Xem stderr, location, permission, OS diagnostics |
-| “Có `hs_err` là do một Java exception” | Fatal report thuộc VM/native layer, không phải Throwable thường | Phân tích header/problematic frame/native stack |
-| “Problematic frame = bug chắc chắn ở thư viện đó” | Memory corruption có thể xảy ra từ trước | Core, symbols, reproducer, native diagnostics |
-| “Heap dump thấy ít object nên không có native leak” | Heap dump không theo dõi mọi native allocations | NMT + RSS/cgroup + native profiling |
-| “Tự gây OOME ngay trên production để test flags” | Có thể ảnh hưởng cả host/pod và dữ liệu khác | Test có memory/disk/time limits trong sandbox |
-| “CrashOnOutOfMemoryError và ExitOnOutOfMemoryError là giống nhau” | Một hướng abort/crash, một hướng exit | Chọn policy có kiểm thử và artifact requirements |
+| “Any stack trace is a JVM crash” | A Java exception can be caught and the service can continue | Check PID/process lifecycle and throwable type |
+| “`Error` means the OS process is dead” | `Error` is a Java `Throwable` and does not necessarily stop the whole JVM | Inspect thread/service state; evaluate restart policy |
+| “OOME is always the Java heap” | Metaspace, native threads, direct/native allocations, and other limits exist | Distinguish by **detail message** + metrics |
+| “OOME is always a leak” | Could be heap sizing, payload burst, or concurrency | Compare post-GC live set, retained size, and workload |
+| “Increasing `-Xmx` fixes every memory issue” | Can reduce native headroom and trigger a cgroup OOM kill | Budget heap + non-heap + native + OS together |
+| “Exit 137 proves a Java OOME” | 137 usually reflects SIGKILL and does not prove `OutOfMemoryError` | Check `OOMKilled` reason and kernel/event history |
+| “SOE = heap memory is full” | It is a stack/call-depth limit, not the heap | Inspect recursive frames/cycles and code logic |
+| “Increasing `-Xss` fixes SOE” | Recursion without a base case stays infinite; larger stacks also consume native memory | Fix the algorithm; tune stack size only if justified |
+| “`catch (Throwable)` is robust” | Swallows serious VM errors and may continue in a broken state | Catch recoverable types and surface fatal signals |
+| “`finally` always runs before every crash” | `SIGKILL` and fatal aborts can prevent Java cleanup | Use an external supervisor and durable logging |
+| “No `hs_err` means it wasn't a VM crash” | The reporter may fail to write; the OS may kill the process | Check stderr, output location, permissions, and OS diagnostics |
+| “Having `hs_err` means a Java exception caused it” | Fatal reports belong to the VM/native layer, not ordinary Throwables | Analyze header/problematic frame/native stack |
+| “Problematic frame = bug definitely in that library” | Memory corruption may have happened earlier | Use core, symbols, reproducer, and native diagnostics |
+| “Heap dump shows few objects so there is no native leak” | Heap dumps do not track all native allocations | Use NMT + RSS/cgroup + native profiling |
+| “Trigger OOME directly in production to test flags” | Can impact the entire host/pod and other data | Test with memory/disk/time limits in a sandbox |
+| “CrashOnOutOfMemoryError and ExitOnOutOfMemoryError are the same” | One aborts/crashes, the other exits | Choose a policy with testing and artifact requirements |
 
-## 16. Quy tắc vận hành an toàn sau lỗi
+## 16. Safe Operating Rules After a Failure
 
-**Với Java exception có thể phục hồi:** kiểm tra transactional safety, idempotency, retry với exponential backoff/jitter, timeout và circuit breaker theo yêu cầu nghiệp vụ. Không retry mọi `RuntimeException`; một `NullPointerException` do bug logic thường không cải thiện sau retry.
+**For recoverable Java exceptions:** check transactional safety, idempotency, retry with exponential backoff/jitter, timeouts, and circuit breakers according to business requirements. Do not retry every `RuntimeException`; a `NullPointerException` from a logic bug usually will not improve on retry.
 
-**Với OOME:** cảnh báo khả năng JVM thiếu tài nguyên để logging, tạo thread hoặc response. Ghi bằng chứng từ trước và dùng policy fail-fast/restart có supervisor khi thích hợp. Tránh catch rồi tạo collection lớn, format stack trace không giới hạn hoặc cố nâng tải trong process vừa cạn tài nguyên.
+**For OOME:** keep in mind the JVM may lack resources to log, spawn threads, or build responses. Capture evidence proactively and use a fail-fast/restart policy with a supervisor when appropriate. Avoid catching OOME and then allocating large collections, formatting unbounded stack traces, or pushing more load into a resource-exhausted process.
 
-**Với SOE:** sửa logic recursion. Nếu hệ thống nhận input không tin cậy, kiểm soát depth và cycle ở biên; batch job có thể đánh dấu job failed và đưa vào retry queue **sau khi sửa dữ liệu/giới hạn**, không tiếp tục recursion cũ.
+**For SOE:** fix the recursion logic. If the system accepts untrusted input, enforce depth and cycle checks at the boundary; a batch job can mark the job failed and move it to a retry queue **after fixing the data/limits**, rather than repeating the same recursion.
 
-**Với fatal VM error:** coi tiến trình không còn đáng tin cậy; ưu tiên khôi phục qua orchestration, bảo toàn logs/core theo policy, tìm root cause bằng reproducer được cô lập. Không thể dựa vào Java exception handler để phục hồi native segmentation fault.
+**For fatal VM errors:** treat the process as no longer trustworthy; prioritize recovery via orchestration, preserve logs/cores per policy, and find the root cause with an isolated reproducer. You cannot rely on a Java exception handler to recover from a native segmentation fault.
 
-**Với OS kill:** triển khai các budget/cgroup/limit phù hợp, metrics dự phòng, pod restart và readiness/liveness theo nhu cầu; không mong chờ dump Java nếu kernel đã `SIGKILL`.
+**For OS kills:** configure appropriate budgets/cgroups/limits, headroom metrics, pod restarts, and readiness/liveness probes as needed; do not expect a Java dump if the kernel sent `SIGKILL`.
 
-## 17. Checklist phân loại trong 60 giây đầu của incident
+## 17. Triage Checklist in the First 60 Seconds of an Incident
 
-- [ ] Process còn sống hay đã chết? PID/container restart count có thay đổi?
-- [ ] Có **Java throwable stack trace**, `hs_err_pid` hay chỉ là exit event?
-- [ ] Nếu `OutOfMemoryError`: ghi **nguyên văn detail message**, không lược bỏ phần sau dấu `:`.
-- [ ] Nếu `StackOverflowError`: tìm methods lặp, input, cycle và call depth.
-- [ ] Nếu fatal VM: ghi signal/exception, problematic frame, JDK build và native library versions.
-- [ ] Nếu container exit `137`: kiểm tra `reason=OOMKilled` và kernel/cgroup events, không chỉ exit code.
-- [ ] Có GC logs, `.hprof`, JFR, NMT, memory/CPU/thread metrics trước lúc lỗi không?
-- [ ] Kiểm tra `-Xmx`/`-Xss`/`MaxMetaspaceSize`/`MaxDirectMemorySize` và container memory/PID limits trên process đích.
-- [ ] Đã bảo toàn artifact có timestamp, PID, release, host/container ID và directory đúng?
-- [ ] Đã kiểm tra filesystem đủ chỗ/permission cho fatal logs và heap/core dumps?
-- [ ] Đã chọn chính sách restart/fail-fast phù hợp thay vì nuốt mọi `Error`?
-- [ ] Sau khắc phục, đã đối chiếu error rate, memory trend, GC, RSS, throughput với cùng workload?
+- [ ] Is the process alive or dead? Did the PID or container restart count change?
+- [ ] Is there a **Java throwable stack trace**, an `hs_err_pid`, or only an exit event?
+- [ ] If `OutOfMemoryError`: record the **exact detail message**, without stripping what follows the `:`.
+- [ ] If `StackOverflowError`: locate repeated methods, input, cycles, and call depth.
+- [ ] If fatal VM: record signal/exception, problematic frame, JDK build, and native library versions.
+- [ ] If container exit `137`: check `reason=OOMKilled` and kernel/cgroup events, not just the exit code.
+- [ ] Are GC logs, `.hprof`, JFR, NMT, or memory/CPU/thread metrics from before the failure available?
+- [ ] Check `-Xmx`/`-Xss`/`MaxMetaspaceSize`/`MaxDirectMemorySize` and container memory/PID limits on the target process.
+- [ ] Have artifacts been preserved with timestamp, PID, release, host/container ID, and correct directory?
+- [ ] Have filesystem space and permissions been checked for fatal logs and heap/core dumps?
+- [ ] Has an appropriate restart/fail-fast policy been chosen instead of swallowing all `Error`s?
+- [ ] After remediation, have error rate, memory trend, GC, RSS, and throughput been compared under the same workload?
 
-## 18. Tài liệu chính thức nên đối chiếu
+## 18. Official References to Consult
 
-1. Java SE 21, `Throwable` — khái niệm exception/error, cause và stack trace: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Throwable.html
-2. Java SE 21, `Exception` và `Error` — quy tắc checked/unchecked và lỗi nghiêm trọng: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Exception.html và https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Error.html
-3. Java SE 21, `VirtualMachineError` — cha của `OutOfMemoryError` và `StackOverflowError`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/VirtualMachineError.html
+1. Java SE 21, `Throwable` — exception/error concepts, cause, and stack trace: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Throwable.html
+2. Java SE 21, `Exception` and `Error` — checked/unchecked rules and serious errors: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Exception.html and https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Error.html
+3. Java SE 21, `VirtualMachineError` — superclass of `OutOfMemoryError` and `StackOverflowError`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/VirtualMachineError.html
 4. Java SE 21, `OutOfMemoryError` — Javadoc: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/OutOfMemoryError.html
 5. Java SE 21, `StackOverflowError` — Javadoc: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StackOverflowError.html
-6. Oracle JDK 21 Troubleshooting Guide, *Troubleshoot Memory Leaks* — OOME detail messages và phân loại heap/native: https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html
-7. Oracle JDK 24, *Location of Fatal Error Log* — `hs_err_pid` và ý nghĩa header/problematic frame: https://docs.oracle.com/en/java/javase/24/troubleshoot/location-fatal-error-log.html
+6. Oracle JDK 21 Troubleshooting Guide, *Troubleshoot Memory Leaks* — OOME detail messages and heap/native classification: https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html
+7. Oracle JDK 24, *Location of Fatal Error Log* — `hs_err_pid` and meaning of header/problematic frame: https://docs.oracle.com/en/java/javase/24/troubleshoot/location-fatal-error-log.html
 8. Oracle JDK 22, *Troubleshoot System Crashes* — native/JNI/JIT/VM crash diagnosis: https://docs.oracle.com/en/java/javase/22/troubleshoot/troubleshoot-system-crashes.html
 9. Oracle JDK 21 `java` manual — `-XX:+HeapDumpOnOutOfMemoryError`, `-XX:HeapDumpPath`, `-XX:ErrorFile`: https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
-10. Oracle JDK 21, *Prepare Java for Troubleshooting* — thu core, fatal logs, GC/JFR và diagnostic artifacts: https://docs.oracle.com/en/java/javase/21/troubleshoot/prepare-java-troubleshooting.html
-11. Oracle JDK 21, *Diagnostic Tools* — `jcmd`, heap dump và postmortem options: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
+10. Oracle JDK 21, *Prepare Java for Troubleshooting* — collecting core, fatal logs, GC/JFR, and diagnostic artifacts: https://docs.oracle.com/en/java/javase/21/troubleshoot/prepare-java-troubleshooting.html
+11. Oracle JDK 21, *Diagnostic Tools* — `jcmd`, heap dump, and postmortem options: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
 
-**Kết luận:** đừng gom mọi sự cố thành “Java crash”. Java exception thường là **lỗi được biểu diễn bằng `Throwable`**; `OutOfMemoryError` là **cạn một loại tài nguyên, cần đọc detail**; `StackOverflowError` là **vượt stack/call depth**; fatal VM error là **đứt gãy ở JVM/native runtime** có thể để lại `hs_err_pid`/core; OS OOM kill lại là **tác động bên ngoài JVM**. Chọn đúng loại trước thì mới biết cần **stack trace, heap dump, GC/NMT, core dump hay container/kernel logs** để tìm nguyên nhân thực sự.
+**Conclusion:** do not lump every incident together as a “Java crash.” A Java exception is typically **an error represented as a `Throwable`**; `OutOfMemoryError` is **exhaustion of a specific resource, requiring you to read the detail**; `StackOverflowError` is **exceeding stack/call depth**; a fatal VM error is **a breakdown in the JVM/native runtime** that may leave `hs_err_pid`/core; and an OS OOM kill is **an external action outside the JVM**. Pick the right category first so you know whether you need **stack traces, a heap dump, GC/NMT, a core dump, or container/kernel logs** to find the real root cause.

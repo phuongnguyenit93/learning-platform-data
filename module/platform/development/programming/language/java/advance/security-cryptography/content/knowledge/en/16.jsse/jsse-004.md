@@ -1,37 +1,37 @@
-# 16.4 SSLSocket, SSLServerSocket và điều khiển thời điểm handshake
+# 16.4 SSLSocket, SSLServerSocket, and Controlling Handshake Timing
 
-## Mục tiêu và bối cảnh
+## Objectives and context
 
-Bài học thuộc **16. JSSE** của Java Advance – security-cryptography. Sau khi hoàn thành, bạn có thể:
+This lesson belongs to **16. JSSE** of Java Advance – security-cryptography. Upon completion, you will be able to:
 
-- Phân biệt `SSLContext`, `SSLSocketFactory`, `SSLServerSocketFactory`, `SSLServerSocket`, `SSLSocket`, `SSLParameters` và `SSLSession`.
-- Hiểu trình tự **TCP connect/accept → cấu hình TLS → handshake → xác thực danh tính → đọc/ghi application data → close**.
-- Giải thích sự khác nhau giữa **gọi `startHandshake()` tường minh** và **handshake tự động** khi sử dụng I/O của `SSLSocket`.
-- Chỉ ra API có thể **kích hoạt handshake ngoài ý muốn** (đặc biệt `getSession()`), và hiểu ý nghĩa/giới hạn của `getHandshakeSession()` và `HandshakeCompletedListener`.
-- Cấu hình phiên bản TLS, cipher suites, endpoint identification, mTLS, SNI/ALPN và timeout **trước khi handshake bắt đầu**.
-- Chạy ví dụ độc lập với **Java 17+**, `keytool` và hai `SSLContext`: server/client trên loopback `127.0.0.1`, có xác minh certificate bằng truststore; so sánh explicit handshake và implicit handshake với một lần trao đổi dữ liệu.
-- Chẩn đoán lỗi `SSLHandshakeException` ở đúng thời điểm, tránh tự tạo trust manager không kiểm tra certificate hoặc lặp `startHandshake()` để cố “renegotiate” TLS 1.3.
+- Distinguish `SSLContext`, `SSLSocketFactory`, `SSLServerSocketFactory`, `SSLServerSocket`, `SSLSocket`, `SSLParameters`, and `SSLSession`.
+- Understand the sequence **TCP connect/accept → TLS configuration → handshake → identity verification → read/write application data → close**.
+- Explain the difference between **explicitly calling `startHandshake()`** and **implicit handshaking** triggered by `SSLSocket` I/O.
+- Identify APIs that can **trigger an unintended handshake** (especially `getSession()`), and understand the meaning/limits of `getHandshakeSession()` and `HandshakeCompletedListener`.
+- Configure TLS versions, cipher suites, endpoint identification, mTLS, SNI/ALPN, and timeouts **before the handshake begins**.
+- Run a standalone example with **Java 17+**, `keytool`, and two `SSLContext` instances: server/client on loopback `127.0.0.1` with certificate verification via a truststore; compare explicit handshake and implicit handshake with a single data exchange.
+- Diagnose `SSLHandshakeException` errors at the right stage, avoiding custom trust managers that skip certificate checks or calling `startHandshake()` repeatedly to try to "renegotiate" TLS 1.3.
 
-**Thông điệp quan trọng:** Một kết nối TCP đã `connect()/accept()` **chưa đồng nghĩa** có kênh TLS được xác thực. Và `SSLServerSocket` là listener, **không phải** kênh ứng dụng của một client. Chỉ khi handshake thành công theo chính sách trust/identity, cộng thêm authorization ở tầng nghiệp vụ, ứng dụng mới nên xử lý request có quyền.
+**Key takeaway:** A TCP connection that has completed `connect()/accept()` **does not yet mean** an authenticated TLS channel exists. And `SSLServerSocket` is a listener, **not** an individual client's application channel. Only after the handshake succeeds per trust/identity policy, plus business-layer authorization, should the application process privileged requests.
 
-## 1. Các thành phần JSSE phối hợp với nhau
+## 1. How JSSE components work together
 
-JSSE (*Java Secure Socket Extension*) cung cấp TLS trong JVM. Các class sau không có cùng trách nhiệm:
+JSSE (*Java Secure Socket Extension*) provides TLS in the JVM. The following classes do not share the same responsibility:
 
-| Thành phần | Vai trò | Ví dụ API |
+| Component | Role | Example API |
 | --- | --- | --- |
-| `SSLContext` | Tập hợp key manager, trust manager và nguồn ngẫu nhiên; cung cấp socket factories | `SSLContext.getInstance("TLS")`, `init(...)` |
-| `KeyManagerFactory` | Chọn private key và certificate chain để **chứng minh danh tính phía mình** | `init(keyStore, keyPassword)` |
-| `TrustManagerFactory` | Tạo kiểm tra trust anchor/chain cho certificate từ **peer** | `init(trustStore)` |
-| `SSLSocketFactory` | Tạo kết nối TLS phía client hoặc bọc một socket đã connect | `createSocket(host, port)` |
-| `SSLServerSocketFactory` | Tạo listener TLS ở server | `createServerSocket(port, backlog, bindAddress)` |
-| `SSLServerSocket` | Bind/listen/accept; thiết lập TLS defaults cho các kết nối nhận | `accept`, `setEnabledProtocols`, `setNeedClientAuth` |
-| `SSLSocket` | Một kết nối TLS cụ thể; handshake, stream I/O và session | `startHandshake`, `getInputStream`, `getOutputStream` |
-| `SSLParameters` | Cấu hình SSL/TLS liên quan socket, như endpoint identification, ALPN và SNI | `setEndpointIdentificationAlgorithm`, `setApplicationProtocols` |
-| `SSLSession` | Thông tin phiên TLS, ví dụ protocol/cipher suite/peer cert | `getProtocol`, `getCipherSuite`, `getPeerCertificates` |
-| `HandshakeCompletedListener` | Nhận sự kiện hoàn tất handshake của `SSLSocket` | `addHandshakeCompletedListener` |
+| `SSLContext` | Aggregates key manager, trust manager, and randomness source; provides socket factories | `SSLContext.getInstance("TLS")`, `init(...)` |
+| `KeyManagerFactory` | Selects private key and certificate chain to **prove our own identity** | `init(keyStore, keyPassword)` |
+| `TrustManagerFactory` | Creates trust anchor/chain verification for certificates from the **peer** | `init(trustStore)` |
+| `SSLSocketFactory` | Creates client-side TLS connections or wraps an already-connected socket | `createSocket(host, port)` |
+| `SSLServerSocketFactory` | Creates a TLS listener on the server | `createServerSocket(port, backlog, bindAddress)` |
+| `SSLServerSocket` | Bind/listen/accept; sets TLS defaults for accepted connections | `accept`, `setEnabledProtocols`, `setNeedClientAuth` |
+| `SSLSocket` | A specific TLS connection; handshake, stream I/O, and session | `startHandshake`, `getInputStream`, `getOutputStream` |
+| `SSLParameters` | Socket-related SSL/TLS configuration such as endpoint identification, ALPN, and SNI | `setEndpointIdentificationAlgorithm`, `setApplicationProtocols` |
+| `SSLSession` | TLS session info, e.g., protocol/cipher suite/peer cert | `getProtocol`, `getCipherSuite`, `getPeerCertificates` |
+| `HandshakeCompletedListener` | Receives handshake completion events from `SSLSocket` | `addHandshakeCompletedListener` |
 
-**Sơ đồ:**
+**Diagram:**
 
 ```text
         CLIENT                                      SERVER
@@ -46,38 +46,38 @@ JSSE (*Java Secure Socket Extension*) cung cấp TLS trong JVM. Các class sau k
                     |                                      |
                     |                                 SSLSocket (peer)
                     |                                      |
-          cấu hình trước TLS                       cấu hình trước TLS
+          pre-TLS configuration                    pre-TLS configuration
                     +---------- TLS handshake -----------+
                     |                                      |
-             kiểm tra identity                      client-cert nếu mTLS
+              identity check                       client-cert if mTLS
                     |                                      |
                     +==== encrypted application bytes ====+
 ```
 
-Đầu client có thể chỉ cần **trust manager** để kiểm tra server certificate; server cần **key manager** chứa server private key và chain để trình diện. Với mTLS, client cũng phải có key manager/client certificate và server phải có trust manager để đánh giá client cert.
+The client side may need only a **trust manager** to check the server certificate; the server needs a **key manager** containing the server private key and chain to present itself. With mTLS, the client must also have a key manager/client certificate and the server must have a trust manager to evaluate the client cert.
 
-`SSLContext.init(...)` thành công **chưa làm một handshake nào**. `SSLServerSocket.accept()` nhận một kết nối tới listener và trả một `SSLSocket`; handshake TLS có thể chưa được thực hiện. `SSLSession` chỉ nên được dùng để quan sát session sau khi handshake thành công; việc gọi `getSession()` sớm tự nó có thể bắt đầu handshake.
+A successful `SSLContext.init(...)` **performs no handshake**. `SSLServerSocket.accept()` accepts a connection to the listener and returns an `SSLSocket`; the TLS handshake may not have occurred yet. `SSLSession` should only be used to inspect the session after a successful handshake; calling `getSession()` early can itself start the handshake.
 
-## 2. Phân biệt thời điểm TCP và TLS
+## 2. Distinguishing TCP timing from TLS timing
 
-| Giai đoạn | Điều chắc chắn | Điều chưa chắc chắn |
+| Stage | What is certain | What is not yet certain |
 | --- | --- | --- |
-| Tạo `SSLContext` | Có cấu hình cryptographic services được chọn | Chưa có peer/kết nối |
-| Tạo `SSLServerSocket` | Server lắng nghe trên port | Chưa có client TLS authenticated |
-| Client `SSLSocketFactory.createSocket(...)` | Socket được tạo, thông thường TCP đã connect | Chưa chắc handshake TLS đã xảy ra |
-| Server `SSLServerSocket.accept()` | Đã nhận TCP connection | Chưa chắc certificate/client identity được xác minh |
-| Cấu hình `setEnabledProtocols(...)` | Giới hạn TLS versions ứng dụng cho phép | Chưa biết negotiated version thực |
-| `startHandshake()` hoặc I/O kích hoạt handshake | JSSE thực thi negotiation, key establishment và xác thực phù hợp | Có thể thất bại ngay tại đây |
-| Handshake trả thành công | Có TLS channel được thiết lập theo chính sách JSSE đang dùng | Không tự cho client quyền truy cập API |
-| Đọc `SSLSession` sau handshake | Có thể biết negotiated protocol/cipher | Không tự chứng minh resource authorization |
+| Create `SSLContext` | Cryptographic services configuration is selected | No peer/connection yet |
+| Create `SSLServerSocket` | Server is listening on the port | No TLS-authenticated client yet |
+| Client `SSLSocketFactory.createSocket(...)` | Socket created; typically TCP connected | TLS handshake may not have occurred yet |
+| Server `SSLServerSocket.accept()` | TCP connection accepted | Certificate/client identity not yet verified |
+| Configure `setEnabledProtocols(...)` | Restricts TLS versions allowed by the app | Actual negotiated version unknown yet |
+| `startHandshake()` or I/O-triggered handshake | JSSE executes negotiation, key establishment, and appropriate validation | May fail right here |
+| Handshake returns successfully | TLS channel established per current JSSE policy | Does not automatically grant the client API access |
+| Read `SSLSession` after handshake | Can inspect negotiated protocol/cipher | Does not prove resource authorization on its own |
 
-Trong TLS server authentication thông thường, client kiểm tra chain của server tới **trust anchor** đã tin từ trước và **hostname/IP đích** phải khớp certificate SAN. **Không coi** certificate hợp lệ dưới một CA bất kỳ là đúng server nếu SAN không khớp. Phía server cũng không thể suy ra danh tính người dùng chỉ từ việc một TCP connection đã được accept.
+In standard TLS server authentication, the client checks the server's chain up to a pre-trusted **trust anchor**, and the **target hostname/IP** must match a certificate SAN. **Do not treat** a certificate valid under any CA as the right server if the SAN does not match. Similarly, the server cannot infer user identity merely because a TCP connection was accepted.
 
-TLS là một **byte stream được bảo vệ**, không phải một hệ thống auth/authorization đầy đủ. Tầng ứng dụng vẫn phải phân tích request, kiểm tra quyền theo resource/tenant/user, chống replay nếu protocol yêu cầu và quản lý lifecycle.
+TLS is a **protected byte stream**, not a complete auth/authorization system. The application layer must still parse requests, check permissions per resource/tenant/user, prevent replay if required by the protocol, and manage lifecycle.
 
-## 3. Explicit handshake với `SSLSocket.startHandshake()`
+## 3. Explicit handshake with `SSLSocket.startHandshake()`
 
-Có thể yêu cầu handshake ở một điểm rõ ràng sau khi tạo và cấu hình socket:
+You can request the handshake at an explicit point after creating and configuring the socket:
 
 ```java
 SSLSocket socket = (SSLSocket) sslFactory.createSocket(host, port);
@@ -85,67 +85,67 @@ socket.setEnabledProtocols(new String[] {"TLSv1.3"});
 SSLParameters params = socket.getSSLParameters();
 params.setEndpointIdentificationAlgorithm("HTTPS");
 socket.setSSLParameters(params);
-socket.startHandshake();  // TLS checkpoint: thành công hoặc báo lỗi.
+socket.startHandshake();  // TLS checkpoint: succeeds or throws.
 SSLSession session = socket.getSession();
 ```
 
-Đoạn trên **chỉ là snippet**, chưa phải chương trình độc lập: cần `sslFactory` được tạo từ `SSLContext` với trust manager đúng, `host/port`, imports `javax.net.ssl.*`, xử lý exceptions và đóng socket trong try-with-resources.
+The code above is **only a snippet**, not a standalone program: it requires `sslFactory` created from an `SSLContext` with the proper trust manager, `host/port`, `javax.net.ssl.*` imports, exception handling, and closing the socket in try-with-resources.
 
-**Lợi ích của `startHandshake()` tường minh:**
+**Benefits of explicit `startHandshake()`:**
 
-- Lỗi certificate/trust, TLS protocol mismatch hoặc cipher negotiation thường xuất hiện ở **chính `startHandshake()`**, thay vì ở lần `write/read` đầu tiên.
-- Ứng dụng có thể chỉ gửi dữ liệu nhạy cảm **sau khi** TLS đã được thiết lập và policy bổ sung được kiểm tra.
-- Rõ ràng về logging, telemetry và timeout cho giai đoạn TLS, tách khỏi application request.
-- Không vô tình làm thay đổi thứ tự handshake bằng việc gọi `getSession()` trước khi cấu hình endpoint identity.
+- Certificate/trust errors, TLS protocol mismatches, or cipher negotiation errors appear at **`startHandshake()` itself**, rather than on the first `write/read`.
+- The application can send sensitive data **only after** TLS is established and additional policies are checked.
+- Clearer logging, telemetry, and timeouts for the TLS phase, separated from the application request.
+- Avoids accidentally altering handshake ordering by calling `getSession()` before configuring endpoint identity.
 
-Tại server, nhận `SSLSocket` từ listener và chủ động handshake:
+On the server, obtain the `SSLSocket` from the listener and proactively initiate the handshake:
 
 ```java
 try (SSLSocket peer = (SSLSocket) serverSocket.accept()) {
     peer.setSoTimeout(10_000);
     peer.startHandshake();
-    // Chỉ bắt đầu xử lý yêu cầu sau khi handshake thành công.
+    // Begin processing requests only after the handshake succeeds.
 }
 ```
 
-Đây cũng là **snippet**, giả định `serverSocket` là `SSLServerSocket` đã cấu hình, và chỉ minh họa điểm checkpoint. `peer.startHandshake()` có thể block trong khi chờ client; server cần giới hạn thời gian và tài nguyên. Không thực hiện blocking handshake vô hạn trên thread nhận kết nối duy nhất của server production.
+This is also a **snippet**, assuming `serverSocket` is a configured `SSLServerSocket`, illustrating only the checkpoint. `peer.startHandshake()` can block while waiting for the client; the server must bound time and resources. Never perform unbounded blocking handshakes on a production server's single accept thread.
 
-**Lưu ý:** Một lời gọi `startHandshake()` chỉ “bắt đầu handshake” theo contract trên socket TLS; để xác thực đúng server, client vẫn phải có **truststore/trust manager và endpoint identification**. Nếu ứng dụng cấu hình “trust all” thì handshake có thể thành công mà không bảo đảm danh tính đúng.
+**Note:** A call to `startHandshake()` only "starts the handshake" per the TLS socket contract; to properly authenticate the server, the client still needs a **truststore/trust manager and endpoint identification**. If the app configures "trust all," the handshake may succeed without guaranteeing the right identity.
 
-## 4. Implicit handshake: lần I/O đầu tiên cũng có thể là handshake
+## 4. Implicit handshake: the first I/O operation can also be the handshake
 
-`SSLSocket` thực hiện **initial handshake tự động** khi một thao tác cần kết nối TLS có thể sử dụng. Ví dụ:
+`SSLSocket` automatically performs the **initial handshake** when an operation requires a usable TLS connection. For example:
 
 ```java
 try (SSLSocket socket = (SSLSocket) sslFactory.createSocket(host, port)) {
-    // Phải cấu hình protocol, hostname/trust, timeout từ trước.
-    socket.getOutputStream().write(requestBytes); // Handshake nếu cần.
+    // Must configure protocol, hostname/trust, and timeout beforehand.
+    socket.getOutputStream().write(requestBytes); // Handshakes if needed.
     socket.getOutputStream().flush();
     int firstResponseByte = socket.getInputStream().read();
 }
 ```
 
-Snippet trên chưa độc lập: `sslFactory`, `host/port`, `requestBytes` phải được cung cấp; thiếu cấu hình trust/endpoint là một lỗi bảo mật. Nếu chưa có handshake, thao tác `write`/`read` sẽ kích hoạt nó, vì **application bytes không thể được truyền dưới kênh TLS đúng khi chưa thiết lập khóa phiên**.
+The snippet above is not standalone: `sslFactory`, `host/port`, and `requestBytes` must be supplied; omitting trust/endpoint configuration is a security bug. If no handshake has occurred yet, `write`/`read` triggers it, because **application bytes cannot be transmitted over a proper TLS channel before session keys are established**.
 
-**Sự khác biệt quan trọng nhất là vị trí lỗi:**
+**The most important difference is where errors surface:**
 
-| Flow | Điểm bắt đầu TLS | Lỗi TLS có thể được thấy ở đâu? |
+| Flow | TLS start point | Where can TLS errors be observed? |
 | --- | --- | --- |
-| Explicit | `socket.startHandshake()` | Ngay tại `startHandshake()` |
-| Implicit | `getOutputStream().write(...)` hoặc `getInputStream().read()` | **Trong I/O** thay vì trong một lời gọi handshake rõ ràng |
-| Đọc session sớm | `socket.getSession()` | `getSession()` có thể tự kích hoạt initial handshake |
-| Server explicit | `peer.startHandshake()` sau `accept` | Trong handshake trên accepted socket |
-| Server implicit | `peer.getInputStream().read()` | Trong lần I/O trên accepted socket |
+| Explicit | `socket.startHandshake()` | Directly at `startHandshake()` |
+| Implicit | `getOutputStream().write(...)` or `getInputStream().read()` | **During I/O** instead of an explicit handshake call |
+| Early session read | `socket.getSession()` | `getSession()` can trigger the initial handshake itself |
+| Server explicit | `peer.startHandshake()` after `accept` | Inside the handshake on the accepted socket |
+| Server implicit | `peer.getInputStream().read()` | During the I/O call on the accepted socket |
 
-Lấy `getInputStream()`/`getOutputStream()` không nên bị coi là một checkpoint xác thực trong mọi provider; khi **thực sự đọc/ghi** thì JSSE phải bảo vệ dữ liệu ứng dụng và có thể khởi handshake. Nếu muốn một điểm rõ ràng trước request, **chủ động gọi `startHandshake()`**.
+Obtaining `getInputStream()`/`getOutputStream()` should not be relied upon as a validation checkpoint across all providers; when **actually reading/writing**, JSSE must protect application data and may initiate the handshake. If you want a clear boundary before requests, **call `startHandshake()` explicitly**.
 
-### Bẫy `getSession()` và `getHandshakeSession()`
+### The `getSession()` and `getHandshakeSession()` trap
 
-`SSLSocket.getSession()` có thể tự khởi tạo handshake nếu initial handshake chưa bắt đầu. **Không** dùng nó để “kiểm tra xem đã handshake chưa” trước khi thiết lập `SSLParameters`. Một getter có tác dụng phụ có thể khiến certificate được chấp nhận mà chưa bật endpoint identification đúng.
+`SSLSocket.getSession()` may automatically initiate a handshake if the initial handshake has not started. **Do not** use it to "check whether the handshake already happened" before setting `SSLParameters`. A getter with side effects can cause a certificate to be accepted before endpoint identification is properly enabled.
 
-`getHandshakeSession()` dùng trong một **handshake đang diễn ra** (khi có handshake session) và có thể trả `null` khi không có handshake đang hoạt động. Nhưng `null` **không chứng minh** socket chưa bao giờ handshake: sau khi handshake kết thúc, cũng có thể không còn handshake session.
+`getHandshakeSession()` is used during an **in-progress handshake** (when a handshake session exists) and may return `null` when no handshake is active. However, `null` **does not prove** the socket has never handshaken: after the handshake completes, there may also no longer be a handshake session.
 
-### Hai timeline
+### Two timelines
 
 ```text
 EXPLICIT                                  IMPLICIT
@@ -154,72 +154,72 @@ setEnabledProtocols(...)                  setEnabledProtocols(...)
 set SSLParameters (HTTPS identity)         set SSLParameters (HTTPS identity)
 startHandshake() ---------------- TLS     output.write(42) -------- TLS
   | success or SSLHandshakeException         | success or SSLHandshakeException
-output.write(42)                           app byte 42 đi sau handshake
+output.write(42)                           app byte 42 follows handshake
 input.read()                               input.read()
 getSession()                               getSession()
 ```
 
-Cả hai có thể đạt cùng negotiated TLS version và trust policy. **Không phải implicit kém bảo mật hơn chỉ vì không gọi `startHandshake()`**; rủi ro phát sinh khi code không biết điểm handshake thật và **không xử lý lỗi hoặc cấu hình quá muộn**.
+Both can achieve the same negotiated TLS version and trust policy. **Implicit is not inherently less secure just because `startHandshake()` is omitted**; risk arises when code does not realize where the actual handshake occurs and **fails to handle errors or configures parameters too late**.
 
-## 5. `SSLServerSocket`: điều khiển phía server
+## 5. `SSLServerSocket`: server-side control
 
-Các bước cho một server JSSE trực tiếp:
+Steps for a direct JSSE server:
 
-1. Tải keystore chứa private key và chain của server, khởi tạo `KeyManagerFactory` và `SSLContext`.
-2. Tạo listener bằng `SSLServerSocketFactory.createServerSocket(...)`, có địa chỉ/port và backlog thích hợp.
-3. Cài protocol/cipher allowlist, `SSLParameters` và chính sách client certificate **trên listener trước khi accept**.
-4. `accept()` để nhận một `SSLSocket` cho **từng kết nối riêng biệt**.
-5. Cài `setSoTimeout(...)` trên accepted socket, thêm listener/chỉnh policy cần thiết **trước handshake**.
-6. Gọi `startHandshake()` hoặc để I/O đầu tiên kích hoạt.
-7. Chỉ sau khi TLS thành công và ràng buộc danh tính/ủy quyền phù hợp mới xử lý application data.
-8. Đóng socket kết nối khi xong; listener có thể tiếp tục accept connection khác.
+1. Load the keystore containing the server's private key and chain; initialize `KeyManagerFactory` and `SSLContext`.
+2. Create the listener via `SSLServerSocketFactory.createServerSocket(...)` with appropriate address/port and backlog.
+3. Set protocol/cipher allowlists, `SSLParameters`, and client certificate policy **on the listener before `accept`**.
+4. Call `accept()` to obtain an `SSLSocket` for **each individual connection**.
+5. Set `setSoTimeout(...)` on the accepted socket, attach listeners/adjust needed policy **before the handshake**.
+6. Call `startHandshake()` or let the first I/O trigger it.
+7. Only after TLS succeeds and appropriate identity/authorization binding is performed should you process application data.
+8. Close the connection socket when done; the listener can continue accepting other connections.
 
-`SSLServerSocket` không phải stream của ứng dụng. Các method `getInputStream` và `getOutputStream` nằm trên **accepted `SSLSocket`**, không nằm trên listener.
+`SSLServerSocket` is not an application stream. `getInputStream` and `getOutputStream` belong to the **accepted `SSLSocket`**, not the listener.
 
-### mTLS: `setNeedClientAuth` và `setWantClientAuth`
+### mTLS: `setNeedClientAuth` and `setWantClientAuth`
 
-- `setNeedClientAuth(true)`: server **yêu cầu** client certificate. Client phải có certificate/private key thích hợp và server phải có trust manager xác minh certificate đó; nếu không thỏa, handshake không thành công.
-- `setWantClientAuth(true)`: server muốn nhận certificate nhưng có thể tiếp tục khi client không cung cấp; **không tự coi mọi client đã xác thực**.
-- Nếu client certificate có thật và được trust, **vẫn cần ánh xạ** certificate identity tới user/service/tenant/role và kiểm tra quyền nghiệp vụ.
+- `setNeedClientAuth(true)`: the server **requires** a client certificate. The client must have an appropriate certificate/private key and the server must have a trust manager verifying that certificate; otherwise, the handshake fails.
+- `setWantClientAuth(true)`: the server asks for a certificate but may proceed if the client supplies none; **do not treat all clients as authenticated**.
+- If a client certificate is present and trusted, you **must still map** the certificate identity to a user/service/tenant/role and check business permissions.
 
-Hãy thiết lập chính sách client-auth **trước khi handshake**. Không “bật mTLS” sau khi connection đã được thiết lập mà mong client lập tức cung cấp chứng chỉ như một lần đăng nhập mới.
+Set client-auth policy **before the handshake**. Never "turn on mTLS" after a connection is already established expecting the client to immediately supply a certificate as a fresh login.
 
-### TLS server không phải một thread duy nhất
+### A TLS server is not a single thread
 
-`accept()` có thể block, handshake cũng có thể block khi chờ peer. Production cần accept loop, concurrency giới hạn, timeout, rate limiting, quota và khả năng shutdown. Một client có thể gửi TCP SYN/connect nhưng cố tình trì hoãn TLS handshake. Không để hàng nghìn socket chờ vô hạn và tiêu hết file descriptors/threads.
+`accept()` can block, and handshakes can also block waiting on the peer. Production requires an accept loop, bounded concurrency, timeouts, rate limiting, quotas, and graceful shutdown. A client can send TCP SYN/connect and intentionally stall the TLS handshake. Never allow thousands of sockets to wait indefinitely and exhaust file descriptors/threads.
 
-## 6. Những cấu hình phải đặt trước khi bắt đầu TLS
+## 6. Settings that must be applied before starting TLS
 
-| Cấu hình | Thời điểm phù hợp | Ý nghĩa |
+| Setting | Right timing | Meaning |
 | --- | --- | --- |
-| `SSLContext.init(keyManagers, trustManagers, random)` | Trước khi lấy socket factory | Nguồn private key/certificate và trust anchors |
-| `SSLSocket.setUseClientMode(true/false)` | Trước handshake | Vai trò của đầu TLS; thay sau khi TLS bắt đầu có thể không hợp lệ |
-| `SSLServerSocket.setEnabledProtocols(...)` | Trước accept/handshake của các kết nối | Allowed versions của peer sockets |
-| `SSLSocket.setEnabledProtocols(...)` | Trước handshake trên socket | Allowed TLS versions; **không phải negotiated version** |
-| `setEnabledCipherSuites(...)` | Trước handshake | Cipher suites được phép; hỗ trợ tùy provider |
-| `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` | Client trước handshake | Yêu cầu kiểm tra hostname/IP đích dựa trên certificate |
-| `SSLParameters.setServerNames(...)` | Client trước handshake nếu cần | SNI giúp chọn virtual host/certificate |
-| `SSLParameters.setApplicationProtocols(...)` | Trước handshake nếu có ALPN | Danh sách application protocols được phép |
-| `setNeedClientAuth(...)`/`setWantClientAuth(...)` | Server trước handshake | Chính sách client certificate |
-| `addHandshakeCompletedListener(...)` | Trước handshake muốn quan sát | Callback khi handshake hoàn tất |
+| `SSLContext.init(keyManagers, trustManagers, random)` | Before obtaining socket factories | Source of private keys/certificates and trust anchors |
+| `SSLSocket.setUseClientMode(true/false)` | Before handshake | Role of the TLS endpoint; changing after TLS begins may be invalid |
+| `SSLServerSocket.setEnabledProtocols(...)` | Before `accept`/handshake of connections | Allowed versions for accepted peer sockets |
+| `SSLSocket.setEnabledProtocols(...)` | Before handshake on the socket | Allowed TLS versions; **not the negotiated version** |
+| `setEnabledCipherSuites(...)` | Before handshake | Allowed cipher suites; support depends on provider |
+| `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` | Client before handshake | Requires verifying target hostname/IP against certificate |
+| `SSLParameters.setServerNames(...)` | Client before handshake if needed | SNI helps select virtual host/certificate |
+| `SSLParameters.setApplicationProtocols(...)` | Before handshake if using ALPN | List of allowed application protocols |
+| `setNeedClientAuth(...)`/`setWantClientAuth(...)` | Server before handshake | Client certificate policy |
+| `addHandshakeCompletedListener(...)` | Before handshake to observe | Callback when handshake completes |
 
-Java 17 hỗ trợ TLS 1.3 trong provider chuẩn phù hợp. Dùng `SSLContext.getInstance("TLS")` có thể cho phép nhiều phiên bản tùy provider/policy, còn `setEnabledProtocols(new String[]{"TLSv1.3"})` giới hạn socket. **Phải kiểm tra phiên bản thực sự negotiated** sau handshake qua `SSLSession.getProtocol()`. Không bật TLS 1.0/1.1 hay cipher suites yếu chỉ để tránh lỗi interoperability.
+Java 17 supports TLS 1.3 in standard compliant providers. Using `SSLContext.getInstance("TLS")` may allow multiple versions depending on provider/policy, whereas `setEnabledProtocols(new String[]{"TLSv1.3"})` restricts the socket. **Always check the actual negotiated version** after the handshake via `SSLSession.getProtocol()`. Never enable TLS 1.0/1.1 or weak cipher suites just to avoid interoperability errors.
 
-### Endpoint identification là một phần khác trust chain
+### Endpoint identification is separate from the trust chain
 
-Client cần **cả** đường tin cậy tới trust anchor **và** kiểm tra danh tính endpoint. Ví dụ connect tới `127.0.0.1` thì certificate lab bên dưới có **IP SAN 127.0.0.1**. `CN=localhost` riêng lẻ không thay thế IP SAN khi host đích là IP literal.
+The client needs **both** a trust path to a trust anchor **and** endpoint identity verification. For example, when connecting to `127.0.0.1`, the lab certificate below includes **IP SAN 127.0.0.1**. `CN=localhost` alone does not substitute for an IP SAN when the target host is an IP literal.
 
-SNI có thể giúp server chọn certificate nhưng **không thay hostname verification**. Với IP literal trong lab, demo không dựa vào SNI; với DNS virtual hosts, chính sách SNI, SAN và trust manager phải phối hợp.
+SNI can help the server pick a certificate, but **does not replace hostname verification**. With an IP literal in the lab, the demo does not rely on SNI; with DNS virtual hosts, SNI, SAN, and trust manager policies must work together.
 
-## 7. Lab Java 17: hai chế độ handshake có chứng thư được trust
+## 7. Java 17 lab: two handshake modes with a trusted certificate
 
-Mục tiêu là tạo một ví dụ **thực sự chạy được** trên cùng máy, không truy cập Internet và không dùng trust-all.
+The goal is to build an example that **actually runs** on the same machine, with no internet access and no trust-all.
 
-### 7.1 Chuẩn bị keystore/truststore
+### 7.1 Preparing the keystore/truststore
 
-Tạo certificate **tự ký dành riêng cho test** có `SAN=dns:localhost,ip:127.0.0.1`. Import public certificate vào truststore của client. Đây là **trust được cấp phát chủ động ngoài kết nối mạng**, khác hoàn toàn việc tự tin bất kỳ certificate nào server gửi.
+Create a **test-only self-signed** certificate with `SAN=dns:localhost,ip:127.0.0.1`. Import the public certificate into the client's truststore. This is **explicitly provisioned out-of-band trust**, completely different from blindly trusting whatever certificate a server sends.
 
-Mở PowerShell có `java`, `javac` và `keytool.exe` từ JDK 17+ trên `PATH`. Chạy toàn bộ script dưới đây. Chỉ dùng thư mục `%TEMP%\jsse-handshake-lab`, **không sửa `cacerts` hoặc truststore hệ điều hành**:
+Open PowerShell with `java`, `javac`, and `keytool.exe` from JDK 17+ on `PATH`. Run the entire script below. Use only `%TEMP%\jsse-handshake-lab`, **never modify `cacerts` or the OS truststore**:
 
 ```powershell
 $ErrorActionPreference = 'Continue'
@@ -264,25 +264,25 @@ Run-Keytool @("-importcert","-alias","localhost",
 Write-Output "Local TLS lab stores ready"
 ```
 
-**Stdout cuối trên môi trường kiểm thử:**
+**Final stdout on the test environment:**
 
 ```text
 Local TLS lab stores ready
 ```
 
-Ba tệp:
+Three files:
 
-- `server.p12`: keystore có **private key + certificate của server**; chỉ phía server cần.
-- `server.pem`: **public certificate** đã export; có thể phân phối nhưng nguồn cần được xác thực khi dùng trong thực tế.
-- `trust.p12`: truststore phía client chứa certificate lab được **tin cậy có chủ đích**.
+- `server.p12`: keystore containing **server private key + certificate**; needed only on the server side.
+- `server.pem`: exported **public certificate**; can be distributed, though the source must be verified in real-world use.
+- `trust.p12`: client-side truststore containing the **deliberately trusted** lab certificate.
 
-`changeit` là mật khẩu cố định **chỉ dùng cho lab**. Không đưa `server.p12` vào git, không dùng certificate này trong production, không tự tin file public certificate do attacker cung cấp. Với production, dùng CA/KMS/HSM, chính sách phát hành, renew/revoke và secure secret storage phù hợp.
+`changeit` is a fixed password **for lab use only**. Never put `server.p12` into git, never use this certificate in production, and never blindly trust a public certificate file supplied by an attacker. For production, use proper CA/KMS/HSM, issuance policies, renew/revoke processes, and secure secret storage.
 
-**Ghi chú PowerShell:** Script chạy trong một thư mục **tạm riêng** và xóa các tệp `server.p12`/`trust.p12` trong chính thư mục lab khi tạo lại. Không đặt tệp cá nhân có cùng tên vào thư mục lab. Hãy giữ cú pháp PowerShell, không copy y nguyên vào Bash.
+**PowerShell note:** The script runs in an **isolated temporary** directory and deletes `server.p12`/`trust.p12` inside that lab directory when regenerating. Do not place personal files with the same names in the lab directory. Keep PowerShell syntax; do not copy verbatim into Bash.
 
-### 7.2 Chương trình `HandshakeTimingDemo.java`
+### 7.2 `HandshakeTimingDemo.java` program
 
-Lưu source dưới đây trong **cùng thư mục** với `server.p12` và `trust.p12`. Dùng đúng tên file `HandshakeTimingDemo.java`:
+Save the source below in the **same directory** as `server.p12` and `trust.p12`. Use the exact filename `HandshakeTimingDemo.java`:
 
 ```java
 import java.io.InputStream;
@@ -411,14 +411,14 @@ public final class HandshakeTimingDemo {
 }
 ```
 
-Biên dịch và chạy trong PowerShell (vẫn đứng trong `jsse-handshake-lab`):
+Compile and run in PowerShell (still inside `jsse-handshake-lab`):
 
 ```powershell
 javac --release 17 HandshakeTimingDemo.java
 java -cp . HandshakeTimingDemo
 ```
 
-**Stdout đã kiểm thử bằng JDK hỗ trợ TLSv1.3:**
+**Verified stdout on a JDK supporting TLSv1.3:**
 
 ```text
 EXPLICIT TLSv1.3: true
@@ -429,47 +429,47 @@ IMPLICIT handshake listeners: true
 IMPLICIT one-byte exchange: true
 ```
 
-**Lưu ý về thời gian:** Chương trình dùng `setSoTimeout(10000)`, chờ callback tối đa **2 giây** và chờ server worker qua `Future.get(15,...)`; những giá trị này nhằm tránh **lab treo vô hạn**, không phải cam kết của API JSSE. Nếu máy quá tải, một phép thử có thể bị timeout trước khi sự kiện callback được xử lý; đó chưa chắc là lỗi thuật toán TLS.
+**Timing note:** The program uses `setSoTimeout(10000)`, waits up to **2 seconds** for callbacks, and waits for the server worker via `Future.get(15,...)`; these values prevent the **lab from hanging indefinitely** and are not JSSE API guarantees. If the machine is overloaded, a run may time out before the callback event is processed; that is not necessarily a TLS algorithm error.
 
-### 7.3 Vì sao Java code thể hiện đúng hai mode?
+### 7.3 Why does the Java code accurately demonstrate both modes?
 
-**Server và client contexts khác nhau:** `serverContext` tải keystore, khởi tạo `KeyManagerFactory` để trình server certificate. `clientContext` tải truststore, khởi tạo `TrustManagerFactory` để xác minh certificate. Không sử dụng trust manager kiểu “return true”. Client bật `HTTPS endpoint identification` trước khi bắt đầu handshake, khớp với **IP SAN** của certificate lab.
+**Separate server and client contexts:** `serverContext` loads the keystore and initializes `KeyManagerFactory` to present the server certificate. `clientContext` loads the truststore and initializes `TrustManagerFactory` to verify the certificate. No "return true" trust manager is used. The client enables `HTTPS endpoint identification` before starting the handshake, matching the lab certificate's **IP SAN**.
 
-**Chỉ loopback:** Listener bind `InetAddress.getByName("127.0.0.1")`, port `0` do OS cấp. Không expose một server chưa có authorization ra mạng ngoài. Port không cố định nên nhiều lượt chạy ít xung đột.
+**Loopback only:** The listener binds to `InetAddress.getByName("127.0.0.1")`, OS-assigned port `0`. It does not expose a server lacking authorization to external networks. Using a dynamic port prevents collisions across repeated runs.
 
-**Tính đồng thời:** `ExecutorService` chạy phần `accept/read/write` phía server; main thread là client. Nếu không tách, client và server có thể block nhau. `accept()` không tự xử lý application bytes; code sử dụng **accepted `SSLSocket`** trong lambda.
+**Concurrency:** `ExecutorService` runs server-side `accept/read/write`; the main thread acts as client. Without separation, client and server would block each other. `accept()` does not handle application bytes directly; the code uses the **accepted `SSLSocket`** inside the lambda.
 
-**Explicit:** cả hai phía gọi `startHandshake()` trước I/O. Nếu client không tin certificate server, lỗi thường xuất hiện ở điểm này (peer bên kia nhận TLS alert/lỗi tương ứng). Sau khi TLS hoàn tất, client gửi byte `42`, server trả `43`.
+**Explicit:** both sides call `startHandshake()` before I/O. If the client does not trust the server certificate, the failure normally occurs right here (the peer receives the corresponding TLS alert/error). After TLS completes, the client sends byte `42` and the server replies `43`.
 
-**Implicit:** không có lời gọi `startHandshake()`. Client bắt đầu `OutputStream.write(42)`, server đang chờ `InputStream.read()`; JSSE tự khởi initial handshake và bảo vệ bytes truyền đi. Kết quả một byte vẫn là `42/43` nhưng **địa điểm lỗi TLS có thể nằm trong `write/read`**.
+**Implicit:** no `startHandshake()` call is made. The client starts `OutputStream.write(42)` while the server waits on `InputStream.read()`; JSSE automatically initiates the initial handshake and protects the transmitted bytes. The one-byte exchange is still `42/43`, but **the TLS failure location can be inside `write/read`**.
 
-**Listener:** `HandshakeCompletedListener` chỉ gọi `CountDownLatch.countDown()`. Callback có thể bất đồng bộ; code đợi event ngắn để kiểm thử. Đừng coi việc callback được kích hoạt là application authorization; cả hai đầu cần kiểm tra chính sách danh tính/role tùy use case.
+**Listener:** `HandshakeCompletedListener` simply calls `CountDownLatch.countDown()`. Callbacks may fire asynchronously; the code waits briefly on the event for verification. Never treat callback invocation as application authorization; both endpoints must check identity/role policies per use case.
 
-**Protocol:** `SSLSession.getProtocol()` được đọc **sau** handshake/I/O. Chỉ khi đó mới xác nhận negotiated `TLSv1.3`; `setEnabledProtocols` trước đó là allowlist, không phải bằng chứng negotiation.
+**Protocol:** `SSLSession.getProtocol()` is read **after** the handshake/I/O. Only then is negotiated `TLSv1.3` confirmed; `setEnabledProtocols` beforehand is an allowlist, not proof of negotiation.
 
-**Kiểm thử logic ứng dụng:** `answer == 43 && serverResult.received()` chứng tỏ hai đầu đã trao đổi byte mong đợi. Nó **không phải** một định dạng message production: TLS không cung cấp framing ứng dụng.
+**Application logic check:** `answer == 43 && serverResult.received()` proves both endpoints exchanged the expected bytes. It is **not** a production message format: TLS does not provide application framing.
 
-## 8. `startHandshake()` không phải công tắc renegotiation TLS 1.3
+## 8. `startHandshake()` is not a TLS 1.3 renegotiation switch
 
-Phân biệt:
+Distinguish:
 
-1. **Initial handshake** trên một `SSLSocket` mới.
-2. **Session resumption** trên một **kết nối TLS mới**, có thể dùng session ticket/cache theo protocol và policy; dù resume vẫn có handshake của connection mới.
-3. **Renegotiation** kiểu TLS cũ: **TLS 1.3 không hỗ trợ renegotiation theo kiểu TLS 1.2**. TLS 1.3 có những cơ chế khác như KeyUpdate, nhưng chúng không phải một lần `startHandshake()` để tự động đổi user/certificate hoặc làm lại full handshake.
+1. **Initial handshake** on a new `SSLSocket`.
+2. **Session resumption** on a **new TLS connection**, potentially using session tickets/caches per protocol and policy; even when resumed, the new connection still has a handshake.
+3. Legacy TLS **renegotiation**: **TLS 1.3 does not support TLS 1.2-style renegotiation**. TLS 1.3 has other mechanisms like KeyUpdate, but they are not repeated `startHandshake()` calls to automatically change users/certificates or redo a full handshake.
 
-**Không viết một workflow bảo mật dựa trên giả định gọi `startHandshake()` nhiều lần sẽ có phiên mới.** Hành vi lần gọi tiếp theo phụ thuộc TLS version/provider và có thể bị từ chối, không làm gì hoặc thực hiện một cơ chế khác. Nếu cần thiết lập một kết nối mới/identity mới, hãy thiết kế **kết nối TLS mới** và quy trình xác thực đúng.
+**Never build a security workflow assuming calling `startHandshake()` multiple times creates a new session.** Subsequent calls depend on TLS version/provider and may be rejected, do nothing, or perform a different mechanism. If you need a new connection/new identity, design a **new TLS connection** and a proper authentication workflow.
 
-`SSLSession.invalidate()` không chuyển một socket TLS đang hoạt động về trạng thái “chưa handshake”; nó liên quan khả năng reuse/cache của session. `getHandshakeSession()==null` cũng không là phép xác định “đã xác thực hay chưa”.
+`SSLSession.invalidate()` does not revert an active TLS socket to an "un-handshaken" state; it relates to session reuse/caching. `getHandshakeSession()==null` is likewise not a check for "whether authentication occurred."
 
-### TLS 1.3 early data và resumption
+### TLS 1.3 early data and resumption
 
-**0-RTT early data** trong TLS 1.3 có các điều kiện và nguy cơ replay riêng. Chương trình `SSLSocket` ở đây **không sử dụng 0-RTT**; không nhầm `OutputStream.write` trước một lời gọi `startHandshake()` với gửi 0-RTT. Với JSSE, gọi I/O có thể tự kích hoạt handshake thông thường trước khi truyền application data.
+**0-RTT early data** in TLS 1.3 has its own conditions and replay risks. The `SSLSocket` program here **does not use 0-RTT**; do not confuse `OutputStream.write` prior to calling `startHandshake()` with sending 0-RTT. In JSSE, calling I/O triggers a normal handshake before transmitting application data.
 
-Không lấy `SSLSession` object làm login session nghiệp vụ. Authorization và chống replay ở ứng dụng cần token/role/nonce/sequence theo giao thức; không thể thay bằng số lần handshake callback đã bắn.
+Never use the `SSLSession` object as a business login session. Application-layer authorization and anti-replay require tokens/roles/nonces/sequences per protocol; they cannot be replaced by counting how many times a handshake callback fired.
 
-## 9. `HandshakeCompletedListener` có dùng để cấp quyền không?
+## 9. Can `HandshakeCompletedListener` be used to grant permissions?
 
-**Không.** Listener chỉ thông báo về sự kiện handshake hoàn tất cho socket. Ví dụ tối giản (snippet):
+**No.** The listener only notifies of handshake completion events for the socket. Minimal example (snippet):
 
 ```java
 CountDownLatch latch = new CountDownLatch(1);
@@ -477,45 +477,45 @@ socket.addHandshakeCompletedListener(event -> latch.countDown());
 socket.startHandshake();
 ```
 
-Đây là snippet cần `socket` hợp lệ và `java.util.concurrent.CountDownLatch`; xử lý exceptions và thời hạn chờ trong code thật. **Không** giả định callback chạy đồng bộ trước dòng ngay sau `startHandshake()`, và đừng thực hiện network I/O, DB query hoặc blocking dài trong callback vì sẽ làm phức tạp concurrency/lifecycle.
+This snippet requires a valid `socket` and `java.util.concurrent.CountDownLatch`; handle exceptions and wait timeouts in real code. **Do not** assume the callback runs synchronously before the line right after `startHandshake()`, and never perform network I/O, DB queries, or long blocking work inside the callback, as it complicates concurrency/lifecycle.
 
-Nếu dùng listener cho metrics, gắn **connection ID**, protocol/cipher và thời gian sự kiện. Với mTLS, `HandshakeCompletedEvent.getPeerCertificates()` có thể cung cấp peer chain khi được xác thực nhưng vẫn phải map identity tới authorization. Trong TLS server thông thường **không có client certificate**, vì vậy listener không phải bằng chứng user đã đăng nhập.
+If using the listener for metrics, attach **connection ID**, protocol/cipher, and event timestamp. With mTLS, `HandshakeCompletedEvent.getPeerCertificates()` can provide the peer chain when authenticated, yet you must still map identity to authorization. In standard server TLS **there is no client certificate**, so the listener is not proof of a logged-in user.
 
-## 10. Khi handshake thất bại, exception xuất hiện ở đâu?
+## 10. When the handshake fails, where do exceptions appear?
 
-| Tình huống | Lớp lỗi/cách quan sát thường gặp | Điều tra |
+| Scenario | Common error class/symptom | Investigation |
 | --- | --- | --- |
-| Certificate server không nối tới trusted root | `SSLHandshakeException`, có thể có `CertPathValidatorException`/builder cause | Truststore, issuer, intermediates, key policy |
-| Kết nối tới IP nhưng certificate chỉ có DNS SAN khác | `SSLHandshakeException`/certificate mismatch | Cấp đúng SAN, kiểm tra endpoint identity |
-| Server yêu cầu client cert nhưng client không có | TLS alert/`SSLHandshakeException` ở một hoặc hai phía | `needClientAuth`, client key manager/cert, trust manager server |
-| Không có TLS version/cipher suite chung | TLS negotiation failure | Allowlist versions/cipher, JDK/provider/policy |
-| Client implicit và gửi request lần đầu | Exception TLS có thể phát sinh **tại `write` hoặc `read`** | Đừng chỉ catch quanh `startHandshake` |
-| Server implicit chờ read | Handshake error có thể phát sinh **tại `read`** | Peer certificate nếu mTLS, protocol/trust, slow client |
-| Peer không nói gì hoặc kết nối bị treo | `SocketTimeoutException`/timeout kết nối hoặc EOF tùy giai đoạn | Timeout/deadlines, firewall, load và resource quota |
-| `getPeerCertificates` khi peer không được xác thực bằng cert | `SSLPeerUnverifiedException` | Cấu hình mTLS và vai trò TLS đúng |
-| Handshake đã thành công, I/O về sau lỗi | `SSLException` hoặc IO exception khác | Không mặc định đó là lỗi initial TLS handshake |
+| Server certificate does not chain to a trusted root | `SSLHandshakeException`, possibly with `CertPathValidatorException`/builder cause | Truststore, issuer, intermediates, key policy |
+| Connecting to IP when certificate has only a different DNS SAN | `SSLHandshakeException`/certificate mismatch | Issue right SAN, check endpoint identity |
+| Server requires client cert but client has none | TLS alert/`SSLHandshakeException` on one or both sides | `needClientAuth`, client key manager/cert, server trust manager |
+| No common TLS version/cipher suite | TLS negotiation failure | Version/cipher allowlists, JDK/provider/policy |
+| Implicit client sends first request | TLS exception may be thrown **at `write` or `read`** | Do not catch only around `startHandshake` |
+| Implicit server waits on read | Handshake error may occur **at `read`** | Peer certificate if mTLS, protocol/trust, slow client |
+| Peer says nothing or connection hangs | `SocketTimeoutException`/connection timeout or EOF depending on phase | Timeouts/deadlines, firewall, load, and resource quotas |
+| `getPeerCertificates` when peer was not cert-authenticated | `SSLPeerUnverifiedException` | Proper mTLS configuration and TLS role |
+| Handshake succeeded, subsequent I/O fails | `SSLException` or other IO exception | Do not assume it is an initial TLS handshake error |
 
-`SSLHandshakeException` kế thừa `SSLException`. Lỗi TLS handshake có thể bị bọc trong error của thư viện HTTP/JDBC/network; xem `getCause()` một cách có kiểm soát. **Không tự sửa bằng cách đổi trust manager thành trust-all** hoặc tự import một root certificate chưa xác thực vào global `cacerts`.
+`SSLHandshakeException` extends `SSLException`. TLS handshake errors may be wrapped inside HTTP/JDBC/network library errors; inspect `getCause()` carefully. **Never fix this by changing the trust manager to trust-all** or importing an unverified root certificate into global `cacerts`.
 
-**Cũng không được suy rằng mọi `SSLException` đều là lỗi certificate**. Có thể là TLS protocol alert, close/truncation, network, unsupported cipher hoặc lỗi tầng record sau khi kết nối đã established.
+**Likewise, do not assume every `SSLException` is a certificate error.** It may be a TLS protocol alert, close/truncation, network issue, unsupported cipher, or record-layer error after the connection is established.
 
-### Đọc debug theo ngữ cảnh
+### Reading debug logs in context
 
-Có thể bật JSSE debug tạm ở môi trường test:
+Temporary JSSE debugging can be enabled in test environments:
 
 ```powershell
 java -Djavax.net.debug=ssl,handshake,trustmanager -cp . HandshakeTimingDemo
 ```
 
-Output debug không cố định và có thể dài; logging có thể chứa certificate/metadata/chi tiết giao thức nên chỉ sử dụng theo quyền, không bật tràn lan trên production. Các thông tin cần ghi: connection ID, TCP connect/accept duration, TLS handshake duration, negotiated version/cipher, truststore version, expected identity, exception category và correlation ID — không ghi private keys, keystore password hay payload nhạy cảm.
+Debug output is not fixed-format and can be verbose; logs may contain certificates/metadata/protocol details so restrict access and never enable broadly in production. Fields to record: connection ID, TCP connect/accept duration, TLS handshake duration, negotiated version/cipher, truststore version, expected identity, exception category, and correlation ID — never log private keys, keystore passwords, or sensitive payloads.
 
-## 11. Timeout, deadlock, I/O framing và quản lý tài nguyên
+## 11. Timeouts, deadlocks, I/O framing, and resource management
 
-### Timeout handshake không bằng timeout TCP connect
+### Handshake timeout is not TCP connect timeout
 
-`setSoTimeout(...)` đặt thời hạn cho **blocking read** trên socket và thường ảnh hưởng việc đọc TLS record trong handshake; nó không thay cho **TCP connect timeout** và không đảm bảo deadline tổng của request.
+`setSoTimeout(...)` sets the deadline for **blocking reads** on the socket and generally affects reading TLS records during the handshake; it does not replace **TCP connect timeout** and does not guarantee an overall request deadline.
 
-Ví dụ snippet khi cần connect deadline:
+Snippet example when a connect deadline is needed:
 
 ```java
 Socket raw = new Socket();
@@ -523,88 +523,88 @@ raw.connect(new InetSocketAddress(host, port), 3_000);
 SSLSocket tls = (SSLSocket)
         factory.createSocket(raw, host, port, true);
 tls.setSoTimeout(10_000);
-// Cấu hình SSLParameters/trust/endpoint identity trước khi handshake.
+// Configure SSLParameters/trust/endpoint identity before handshake.
 tls.startHandshake();
 ```
 
-Đây là snippet, cần import `java.net.Socket`/`InetSocketAddress`, `factory/host/port` và quản lý đóng socket. `autoClose=true` khiến wrapper đóng raw socket theo contract khi TLS socket đóng. Production còn cần overall deadline, connection limits, cancellation và handling rõ cho timeout/partial I/O.
+This is a snippet requiring `java.net.Socket`/`InetSocketAddress` imports, `factory/host/port`, and socket closing management. `autoClose=true` causes the wrapper to close the raw socket per contract when the TLS socket closes. Production also needs overall deadlines, connection limits, cancellation, and explicit handling of timeouts/partial I/O.
 
-### Đừng để hai phía cùng chờ byte ứng dụng
+### Do not let both sides wait for application bytes
 
-Hai bên cùng `read()` trước khi bên nào gửi application data có thể deadlock **dù TLS đã được thiết lập**:
+If both sides call `read()` before either sends application data, they can deadlock **even though TLS is established**:
 
 ```text
 CLIENT                         SERVER
 read()  -- waiting             read() -- waiting
-   (không ai gửi dữ liệu ứng dụng trước)
+   (nobody sends application data first)
 ```
 
-Với giao thức request/response, quy định rõ **bên nào gửi trước**, framing, timeout và cách xử lý EOF. Demo chọn client gửi `42`, server đọc rồi đáp `43`, tránh waiting cycle.
+For request/response protocols, explicitly define **who sends first**, framing, timeouts, and EOF handling. The demo chooses client sending `42`, server reading and replying `43`, avoiding a wait cycle.
 
-### TLS là byte stream, không là message queue
+### TLS is a byte stream, not a message queue
 
-Một `read` không được giả định trả đúng toàn bộ application message. Với message dài, cần xử lý partial reads, length prefix hoặc delimiter, giới hạn size, timeout, checksums nếu protocol yêu cầu và handling đóng kết nối. Không trộn raw `Socket.getInputStream` với stream của `SSLSocket` khi đã bọc TLS lên socket đó — raw reads có thể ăn vào byte handshake/encrypted records.
+A single `read` must not be assumed to return an entire application message. For multi-byte messages, handle partial reads, length prefixes or delimiters, size limits, timeouts, checksums if required by protocol, and connection close handling. Never mix raw `Socket.getInputStream` with the `SSLSocket` streams once TLS wraps that socket — raw reads can consume handshake bytes/encrypted records.
 
-## 12. ALPN, SNI và client authentication
+## 12. ALPN, SNI, and client authentication
 
-**SNI** giúp server chọn virtual host/certificate tương ứng DNS name mà client yêu cầu. Có thể cấu hình bằng `SSLParameters.setServerNames(...)` trước handshake, khi cần. SNI không chứng minh certificate đáng tin; client phải tiếp tục xác thực trust chain và SAN/hostname. Demo IP loopback không dựa vào SNI.
+**SNI** helps the server select the virtual host/certificate matching the DNS name requested by the client. It can be configured via `SSLParameters.setServerNames(...)` before the handshake when needed. SNI does not prove a certificate is trustworthy; the client must continue verifying the trust chain and SAN/hostname. The loopback IP demo does not rely on SNI.
 
-**ALPN** thương lượng **tên giao thức ứng dụng** như `h2` hay `http/1.1` trong TLS handshake. `SSLParameters.setApplicationProtocols(...)` đặt danh sách trước handshake và `SSLSocket.getApplicationProtocol()` đọc kết quả sau đó. Chọn `h2` không tự triển khai HTTP/2; ứng dụng cần stack framing/parser thực. Demo `42/43` không đặt ALPN vì không có HTTP.
+**ALPN** negotiates the **application protocol name** such as `h2` or `http/1.1` during the TLS handshake. `SSLParameters.setApplicationProtocols(...)` sets the list before the handshake and `SSLSocket.getApplicationProtocol()` reads the result afterward. Selecting `h2` does not implement HTTP/2 automatically; the application needs a real framing/parser stack. The `42/43` demo sets no ALPN since there is no HTTP.
 
-**mTLS** yêu cầu server xác thực certificate phía client và ánh xạ certificate identity tới service/role/tenant. Bật `setNeedClientAuth(true)` trước handshake và cấu hình đầy đủ trust manager, CA/client cert. `setWantClientAuth(true)` chỉ yêu cầu tùy chọn: một client không có certificate có thể vẫn có kết nối TLS thành công. Đừng coi tất cả client của server đều authenticated chỉ vì server sử dụng `SSLServerSocket`.
+**mTLS** requires the server to authenticate the client-side certificate and map the certificate identity to a service/role/tenant. Enable `setNeedClientAuth(true)` before the handshake and properly configure the trust manager and CA/client cert. `setWantClientAuth(true)` only requests optionally: a client without a certificate can still establish a TLS connection. Never assume all clients of a server are authenticated merely because the server uses `SSLServerSocket`.
 
-## 13. Checklist triển khai thực tế
+## 13. Practical deployment checklist
 
-**Trước handshake:**
+**Before handshake:**
 
-- [ ] Server có private key và certificate chain thích hợp qua `KeyManagerFactory`; client có trust manager với trust anchors đáng tin.
-- [ ] Client bật **endpoint identification** đúng hostname/IP; certificate có SAN phù hợp.
-- [ ] Protocol/cipher allowlist được đặt trước khi socket bắt đầu I/O/TLS; tránh cấu hình quá muộn.
-- [ ] Role client/server và mTLS/SNI/ALPN (nếu cần) được chuẩn bị từ trước.
-- [ ] Định nghĩa handshake timeouts, connect/read timeouts, deadline tổng và giới hạn connection/CPU.
+- [ ] Server has private key and proper certificate chain via `KeyManagerFactory`; client has a trust manager with trusted trust anchors.
+- [ ] Client enables **endpoint identification** matching hostname/IP; certificate has matching SAN.
+- [ ] Protocol/cipher allowlists are set before the socket begins I/O/TLS; avoid configuring too late.
+- [ ] Client/server roles and mTLS/SNI/ALPN (if needed) are prepared upfront.
+- [ ] Handshake timeouts, connect/read timeouts, overall deadlines, and connection/CPU limits are defined.
 
-**Tại handshake và I/O:**
+**During handshake and I/O:**
 
-- [ ] Biết code chọn explicit hay implicit; `getSession()` không được sử dụng như probe trạng thái không có side effect.
-- [ ] Nếu explicit: chỉ xử lý data sau `startHandshake()` thành công và policy checks.
-- [ ] Nếu implicit: `write/read` đầu tiên có thể ném lỗi handshake; không nuốt exception.
-- [ ] Sau handshake, kiểm tra negotiated `SSLSession.getProtocol/getCipherSuite` và role/identity theo policy.
-- [ ] `HandshakeCompletedListener` chỉ dùng để quan sát, không làm request handler hoặc quyết định quyền.
-- [ ] Quản lý EOF, close, record/stream boundaries, backpressure và concurrency đúng.
+- [ ] Know whether code uses explicit or implicit mode; `getSession()` is not used as a side-effect-free state probe.
+- [ ] If explicit: process data only after `startHandshake()` succeeds and policy checks pass.
+- [ ] If implicit: the first `write/read` can throw handshake errors; never swallow exceptions.
+- [ ] After handshake, inspect negotiated `SSLSession.getProtocol/getCipherSuite` and role/identity per policy.
+- [ ] `HandshakeCompletedListener` is used solely for observation, not as a request handler or authorization decision.
+- [ ] Properly manage EOF, close, record/stream boundaries, backpressure, and concurrency.
 
-**Vận hành và bảo mật:**
+**Operations and security:**
 
-- [ ] Không dùng trust-all, không bỏ qua hostname verification, không nhập root chưa đáng tin vào truststore.
-- [ ] Certificate rotation/renewal, truststore updates và root revocation có quy trình.
-- [ ] Nếu mTLS, map client certificate identity tới authorization; không chỉ dựa vào sự tồn tại của certificate.
-- [ ] Không giả định TLS 1.3 cho phép renegotiation cổ điển hoặc rằng `startHandshake()` gọi lặp sẽ re-authenticate.
-- [ ] Có test valid, untrusted server cert, SAN mismatch, protocol mismatch, mTLS thiếu client cert, slow peer và timeout.
-- [ ] Log có correlation/metrics theo quyền; không ghi private key, password, session secrets hay thông tin nhạy cảm.
+- [ ] Never use trust-all, skip hostname verification, or import untrusted roots into truststores.
+- [ ] Certificate rotation/renewal, truststore updates, and root revocation follow defined procedures.
+- [ ] For mTLS, map client certificate identity to authorization; never rely solely on certificate presence.
+- [ ] Do not assume TLS 1.3 allows classic renegotiation or that repeated `startHandshake()` calls re-authenticate.
+- [ ] Have tests for valid cases, untrusted server cert, SAN mismatch, protocol mismatch, mTLS missing client cert, slow peer, and timeouts.
+- [ ] Logs include authorized correlation/metrics; never log private keys, passwords, session secrets, or sensitive data.
 
-## 14. Bài tập
+## 14. Exercises
 
-1. Trên `HandshakeTimingDemo`, chỉ ra dòng nào tạo **listener**, dòng nào `accept()` và dòng nào kích hoạt explicit TLS handshake. `accept()` có đảm bảo client certificate đã được xác thực không?
-2. Đổi `explicit=true` sang `false`. Vì sao app byte `42` không được gửi “trần” dù không có `startHandshake()` trong branch này?
-3. Tạo truststore thứ hai **không chứa** certificate server. Chạy hai mode và ghi vị trí/cause của exception. Vì sao ở implicit lỗi có thể xuất hiện từ `OutputStream.write`?
-4. Cấp một certificate server chỉ có `DNS:localhost` và bỏ `IP:127.0.0.1`, giữ client kết nối `127.0.0.1` với endpoint identification `HTTPS`. Dự đoán kết quả; đề xuất cách sửa đúng không phải trust-all.
-5. Di chuyển `socket.getSession()` **lên trước** `setEndpointIdentificationAlgorithm("HTTPS")`. Phân tích vì sao gọi getter này để “xem session” có thể gây handshake quá sớm.
-6. In negotiated `getCipherSuite()`/`getProtocol()` sau TLS. Tại sao giá trị này khác bản chất với `getEnabledProtocols()` trước handshake?
-7. Bật `SSLServerSocket.setNeedClientAuth(true)` mà không thêm client cert/private key cho client trong lab. Ghi kết quả; cấu hình nào phải bổ sung để có mTLS thật?
-8. Cho client và server một danh sách TLS protocol không giao nhau. Khi explicit/implicit, exception phát sinh ở thao tác nào?
-9. Đổi client và server đều gọi `read()` chờ application byte trước khi write. Giải thích deadlock tầng ứng dụng và thiết kế framing/timeout đúng.
-10. Thiết kế vòng đời TLS connection của server production: accept queue, handshake timeout, quota, listener callback, peer identity, authorization, request parsing và close.
-11. So sánh initial handshake, TLS session resumption và renegotiation. Vì sao không thể dùng `startHandshake()` lặp lại trên TLS 1.3 như API xác thực user lần nữa?
-12. Ghi một checklist quan sát `SSLHandshakeException` có thể bị bọc từ `getCause()` trong ứng dụng HTTP; cách phân biệt truststore, SAN mismatch và protocol version mà không hạ bảo mật.
+1. In `HandshakeTimingDemo`, point out which line creates the **listener**, which line calls `accept()`, and which line triggers the explicit TLS handshake. Does `accept()` guarantee the client certificate has been authenticated?
+2. Change `explicit=true` to `false`. Why is application byte `42` not sent "in the clear" even without `startHandshake()` in that branch?
+3. Create a second truststore **without** the server certificate. Run both modes and record the exception location/cause. Why can the error appear at `OutputStream.write` in implicit mode?
+4. Issue a server certificate with only `DNS:localhost` and omit `IP:127.0.0.1`, keeping the client connecting to `127.0.0.1` with `HTTPS` endpoint identification. Predict the result; propose a proper fix that does not use trust-all.
+5. Move `socket.getSession()` **before** `setEndpointIdentificationAlgorithm("HTTPS")`. Analyze why calling this getter to "peek at the session" can trigger the handshake too early.
+6. Print the negotiated `getCipherSuite()`/`getProtocol()` after TLS. Why is this value fundamentally different from `getEnabledProtocols()` before the handshake?
+7. Enable `SSLServerSocket.setNeedClientAuth(true)` without adding a client cert/private key for the client in the lab. Record the result; what configuration must be added for real mTLS?
+8. Give the client and server disjoint TLS protocol lists. In explicit/implicit modes, at which operation is the exception thrown?
+9. Change both client and server to call `read()` waiting for an application byte before writing. Explain the application-layer deadlock and design proper framing/timeouts.
+10. Design the TLS connection lifecycle for a production server: accept queue, handshake timeout, quotas, listener callbacks, peer identity, authorization, request parsing, and close.
+11. Compare initial handshake, TLS session resumption, and renegotiation. Why can't repeated `startHandshake()` calls on TLS 1.3 serve as an API to re-authenticate a user?
+12. Write a checklist for inspecting `SSLHandshakeException` that may be wrapped in `getCause()` inside an HTTP application; how to distinguish truststore, SAN mismatch, and protocol version issues without lowering security.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — SSLSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html): `startHandshake`, `getSession`, `getHandshakeSession` và implicit handshake.
-- [Java SE 17 — SSLServerSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLServerSocket.html): listener, protocols và client authentication.
-- [Java SE 17 — SSLContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLContext.html): SSLContext init, key/trust managers và socket factories.
-- [Java SE 17 — SSLParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): endpoint identification, SNI, ALPN và SSL/TLS parameters.
-- [Java SE 17 — SSLSession](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSession.html): negotiated protocol/cipher và peer.
-- [Java SE 17 — HandshakeCompletedListener](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/HandshakeCompletedListener.html): callback khi TLS handshake hoàn tất.
-- [Java SE 17 — SSLSocketFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocketFactory.html) và [SSLServerSocketFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLServerSocketFactory.html): tạo client/server sockets.
-- [Java Secure Socket Extension (JSSE) Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): khởi tạo JSSE, debugging, TLS socket coding và trust.
-- [Java SE 17 — keytool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): thao tác với keystore và truststore.
-- [RFC 8446 — TLS 1.3](https://www.rfc-editor.org/rfc/rfc8446): initial handshake, session resumption, 0-RTT, key update và bảo mật.
+- [Java SE 17 — SSLSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html): `startHandshake`, `getSession`, `getHandshakeSession`, and implicit handshake.
+- [Java SE 17 — SSLServerSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLServerSocket.html): listener, protocols, and client authentication.
+- [Java SE 17 — SSLContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLContext.html): SSLContext init, key/trust managers, and socket factories.
+- [Java SE 17 — SSLParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): endpoint identification, SNI, ALPN, and SSL/TLS parameters.
+- [Java SE 17 — SSLSession](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSession.html): negotiated protocol/cipher and peer.
+- [Java SE 17 — HandshakeCompletedListener](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/HandshakeCompletedListener.html): callback when TLS handshake completes.
+- [Java SE 17 — SSLSocketFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocketFactory.html) and [SSLServerSocketFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLServerSocketFactory.html): creating client/server sockets.
+- [Java Secure Socket Extension (JSSE) Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): JSSE initialization, debugging, TLS socket coding, and trust.
+- [Java SE 17 — keytool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): working with keystores and truststores.
+- [RFC 8446 — TLS 1.3](https://www.rfc-editor.org/rfc/rfc8446): initial handshake, session resumption, 0-RTT, key update, and security.

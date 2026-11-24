@@ -1,136 +1,136 @@
-# 5.4 Sinh, bảo quản và tách khóa HMAC theo mục đích sử dụng
+# 5.4 Generating, Storing, and Separating HMAC Keys by Purpose
 
-**HMAC (Hash-based Message Authentication Code)** cho phép các bên cùng biết một **khóa bí mật** tạo và xác minh mã xác thực cho thông điệp. Với `HmacSHA256`, kết quả đầy đủ thường là **32 byte (256 bit)**, nhưng mức độ an toàn phụ thuộc rất lớn vào **cách sinh khóa**, **ai được giữ khóa**, **khóa được dùng cho việc gì**, và **cách xoay vòng, thu hồi khóa**. Tạo HMAC đúng thuật toán nhưng dùng chung một khóa cho webhook, session và API nội bộ có thể khiến một sự cố nhỏ lan rộng thành nhiều sự cố.
+**HMAC (Hash-based Message Authentication Code)** lets parties sharing a **secret key** create and verify authentication tags for messages. With `HmacSHA256`, the full output is typically **32 bytes (256 bits)**, yet security depends heavily on **how the key is generated**, **who holds the key**, **what the key is used for**, and **how keys are rotated and revoked**. Computing HMAC with the right algorithm while reusing a single key across webhooks, sessions, and internal APIs can turn one minor incident into many.
 
-Mục tiêu của bài: tạo khóa có entropy đủ mạnh; lưu và cấp phát khóa đúng ranh giới tin cậy; hiểu hai cách **tách khóa độc lập** hoặc **dẫn xuất khóa theo mục đích (key derivation/domain separation)**; và quản lý vòng đời từ phát hành đến thu hồi. Ví dụ dùng Java 17+ và JCA/JCE.
+Lesson goals: generate keys with sufficient entropy; store and provision keys within proper trust boundaries; understand the two approaches of **independent key separation** versus **purpose-based key derivation (key derivation/domain separation)**; and manage the lifecycle from issuance to revocation. Examples use Java 17+ and JCA/JCE.
 
-## 1. Nhận diện đúng vai trò của khóa HMAC
+## 1. Recognizing the Exact Role of an HMAC Key
 
-HMAC sử dụng hàm băm mật mã cùng một khóa bí mật. Với ký hiệu:
+HMAC uses a cryptographic hash function together with a secret key. With the notation:
 
 ```text
 tag = HMAC(key, message)
 valid = constant_time_compare(received_tag, HMAC(key, received_message))
 ```
 
-- **Người tạo tag** biết khóa bí mật; **người kiểm tra tag** cũng phải biết khóa bí mật, hoặc dùng dịch vụ mật mã được ủy quyền để kiểm tra.
-- Nếu thông điệp đổi mà tag giữ nguyên, phép xác minh sẽ thất bại với xác suất áp đảo khi HMAC được sử dụng đúng cách.
-- **HMAC không mã hóa**: thông điệp và các header được xác thực vẫn có thể đọc được. Khi cần bí mật trên đường truyền, sử dụng TLS; khi cần bảo vệ dữ liệu lưu trữ, dùng giải pháp mã hóa phù hợp.
-- **HMAC không tự chống replay**: một cặp `message + tag` hợp lệ bị gửi lại vẫn có thể hợp lệ. Giao thức cần timestamp, nonce, sequence, idempotency hoặc cơ chế từ chối phát lại nếu có yêu cầu.
-- **HMAC không chứng minh duy nhất một người đã ký**: tất cả bên cùng giữ khóa đều có khả năng tạo tag. Nó là xác thực dựa vào *shared secret*, không cung cấp tính không thể chối bỏ như chữ ký số trong mô hình khóa và danh tính được quản lý đúng.
-- HMAC không quyết định **phân quyền**; một webhook có tag hợp lệ vẫn cần được kiểm tra loại sự kiện, nguồn/tenant, quyền nghiệp vụ và trạng thái xử lý.
+- **The tag creator** knows the secret key; **the tag verifier** must also know the secret key, or invoke an authorized cryptographic service to verify.
+- If the message changes while the tag stays the same, verification will fail with overwhelming probability when HMAC is used properly.
+- **HMAC does not encrypt**: the authenticated message and headers remain readable. When transit confidentiality is needed, use TLS; when stored data needs protection, use an appropriate encryption solution.
+- **HMAC does not prevent replay on its own**: a valid `message + tag` pair resent later will still verify. The protocol needs timestamps, nonces, sequences, idempotency, or replay-rejection mechanisms where required.
+- **HMAC does not prove a single individual signed**: every party sharing the key has the capability to generate tags. It is authentication based on a *shared secret*, and does not provide non-repudiation like digital signatures under properly managed keys and identities.
+- HMAC does not determine **authorization**; a webhook with a valid tag still needs checks on event type, source/tenant, business permissions, and processing state.
 
-### 1.1. Key size khác MAC length
+### 1.1. Key size differs from MAC length
 
-Với `HmacSHA256`, tag đầy đủ có **256 bit = 32 byte**. Độ dài khóa là đại lượng riêng. Khóa có thể dài hơn hoặc ngắn hơn 32 byte tùy giao thức và nguồn entropy. Với **khóa bí mật tạo ngẫu nhiên**, **32 byte (256 bit)** là lựa chọn thực hành rõ ràng và thường phù hợp cho HmacSHA256; đây không phải quy tắc “HMAC-SHA256 bắt buộc khóa đúng 32 byte”.
+With `HmacSHA256`, the full tag is **256 bits = 32 bytes**. Key length is a separate quantity. The key may be longer or shorter than 32 bytes depending on the protocol and entropy source. For **randomly generated secret keys**, **32 bytes (256 bits)** is a clear and commonly appropriate practical choice for HmacSHA256; this is not a rule that "HMAC-SHA256 requires a key of exactly 32 bytes."
 
-Bên trong HMAC, khóa dài hơn block size của hash được xử lý theo cấu trúc HMAC, không làm tag SHA-256 dài hơn 32 byte. Không suy ra “khóa dài 512 bit thì MAC mạnh 512 bit”; giới hạn bảo mật còn phụ thuộc hàm băm, độ dài tag, mô hình tấn công, quản lý khóa và giao thức.
+Inside HMAC, a key longer than the hash's block size is processed per the HMAC construction and does not make the SHA-256 tag longer than 32 bytes. Do not conclude "a 512-bit key gives a 512-bit strong MAC"; the security bound still depends on the hash function, tag length, attack model, key management, and protocol.
 
-| Thành phần | Ví dụ | Có bí mật không? |
+| Component | Example | Is It Secret? |
 | --- | --- | --- |
-| **HMAC key** | 32 byte từ bộ sinh ngẫu nhiên mật mã | **Có**; ai có khóa có thể tạo tag |
-| **Message** | Body, path, timestamp, nonce | Thường không; phụ thuộc dữ liệu và TLS |
-| **MAC/tag** | 32 byte đầu ra HmacSHA256 | Không cần giữ bí mật, nhưng phải bảo đảm gắn đúng message/ngữ cảnh |
-| **Key ID (`kid`)** | `webhook-prod-v2` | Thường công khai; chỉ là định danh để tìm khóa, không phải bằng chứng tin cậy |
-| **Key version** | `v1`, `v2` | Metadata không bí mật; giúp xoay khóa |
-| **Purpose/context** | `session`, `webhook-inbound` | Không cần bí mật; dùng để ràng buộc và phân tách |
-| **HKDF salt** | Chuỗi byte ngẫu nhiên có thể lưu công khai | Không cần bí mật; phải khôi phục đúng khi dẫn xuất lại |
+| **HMAC key** | 32 bytes from a cryptographic RNG | **Yes**; anyone with the key can forge tags |
+| **Message** | Body, path, timestamp, nonce | Usually no; depends on the data and TLS |
+| **MAC/tag** | 32-byte HmacSHA256 output | Does not need secrecy, but must remain bound to the message/context |
+| **Key ID (`kid`)** | `webhook-prod-v2` | Usually public; only an identifier to look up the key, not proof of trust |
+| **Key version** | `v1`, `v2` | Non-secret metadata; assists key rotation |
+| **Purpose/context** | `session`, `webhook-inbound` | Does not need secrecy; used for binding and separation |
+| **HKDF salt** | Random byte sequence that can be stored publicly | Does not need secrecy; must be recovered identically on re-derivation |
 
-## 2. Sinh khóa HMAC an toàn
+## 2. Generating HMAC Keys Safely
 
-### 2.1. Sinh từ CSPRNG, không sinh từ dữ liệu dễ đoán
+### 2.1. Generate from a CSPRNG, not predictable data
 
-Khóa HMAC phải khó đoán với đối thủ, kể cả khi biết thuật toán, nhiều message và tag đã được công bố. Java có `SecureRandom` là giao diện sinh ngẫu nhiên mật mã; một khóa mới 32 byte có thể tạo như sau:
+An HMAC key must be unpredictable to an adversary, even when they know the algorithm and many published messages and tags. Java provides `SecureRandom` as its cryptographic random number generator interface; a new 32-byte key can be created as follows:
 
 ```java
 byte[] key = new byte[32];
 new java.security.SecureRandom().nextBytes(key);
 ```
 
-Đây là *đoạn minh họa* để nói rõ kích thước, chưa phải chương trình độc lập. Trong code thật cần đưa khóa vào kho an toàn ngay sau khi tạo, quản lý người giữ và bảo đảm có thể khôi phục khi còn phải xác minh các thông điệp đã phát hành.
+This is an *illustrative snippet* to make the size explicit, not a standalone program. In real code, store the key in a secure vault immediately after generation, manage who holds it, and ensure it can be retrieved while previously issued messages still need verification.
 
-Có thể dùng `KeyGenerator` của provider nếu hỗ trợ thuật toán khóa HMAC phù hợp; khi đó chú ý tham số kích thước khóa tính bằng **bit**, không phải byte. `SecretKeySpec(key, "HmacSHA256")` chỉ **đóng gói mảng byte có sẵn**, không tự tạo entropy hay biến password yếu thành khóa mạnh.
+You may use a provider's `KeyGenerator` if it supports the right HMAC key algorithm; pay attention that its size parameter is in **bits**, not bytes. `SecretKeySpec(key, "HmacSHA256")` only **wraps an existing byte array**; it does not create entropy or turn a weak password into a strong key.
 
-**Tránh các nguồn khóa sau:**
+**Avoid these key sources:**
 
-- `new Random()`, `Math.random()`, thời gian hệ thống, số thứ tự, tên người dùng hoặc định danh đoán được.
-- Một chuỗi người dùng tự nhập rồi gọi `getBytes(UTF_8)`. Số byte dài không bảo đảm entropy tương ứng.
-- Khóa hardcode trong Java, YAML, Docker image, biến CI được in ra log hoặc nằm trong lịch sử Git.
-- Khóa dùng chung được sao chép từ môi trường development sang staging/production.
-- Dùng kết quả `SHA-256(password)` trực tiếp làm khóa HMAC như thể password đã có entropy 256 bit.
+- `new Random()`, `Math.random()`, system time, sequence numbers, usernames, or guessable identifiers.
+- A user-entered string passed to `getBytes(UTF_8)`. Long byte length does not guarantee corresponding entropy.
+- Keys hardcoded in Java, YAML, Docker images, CI variables printed in logs, or present in Git history.
+- Shared keys copied from development into staging/production.
+- Using the output of `SHA-256(password)` directly as an HMAC key as if the password had 256 bits of entropy.
 
-Nếu buộc phải lấy bí mật từ mật khẩu con người, hãy xét thiết kế **password KDF** có salt và chi phí phù hợp (ví dụ Argon2id/scrypt/PBKDF2, tùy hệ sinh thái và chính sách), thay vì tạo khóa dài bằng cách thêm ký tự, hash nhanh hoặc dùng Base64. Trong hệ thống service-to-service, ưu tiên tạo và quản lý khóa **ngẫu nhiên thật**, không cần đi qua mật khẩu.
+If a secret must be derived from a human password, consider a salted, properly costed **password KDF** design (such as Argon2id/scrypt/PBKDF2, depending on ecosystem and policy), instead of padding characters, fast-hashing, or Base64-encoding. In service-to-service systems, prefer generating and managing **truly random** keys without involving passwords.
 
-### 2.2. Không nhầm entropy, encoding và chiều dài
+### 2.2. Do not confuse entropy, encoding, and length
 
-- 32 byte từ `SecureRandom` dùng đúng cách mang xấp xỉ **256 bit entropy**; 32 byte của chuỗi `"aaaaaaaa..."` có entropy rất thấp.
-- `Base64`, hex hoặc PEM chỉ **đổi biểu diễn byte**, không làm khóa an toàn hơn. 32 byte nhị phân có thể hiện thành 44 ký tự Base64 chuẩn, nhưng vẫn là một khóa 32 byte cần giữ bí mật.
-- Không in raw key hoặc chuỗi Base64 của key để kiểm thử. Chỉ cần log **key ID, thuật toán, version, trạng thái**, và các thông tin vận hành không chứa khóa.
-- Một khóa HMAC **khác** một nonce/IV hoặc salt; việc nonce/salt có thể công khai không cho phép công khai HMAC key.
+- 32 bytes from properly used `SecureRandom` carry approximately **256 bits of entropy**; 32 bytes of the string `"aaaaaaaa..."` have very low entropy.
+- `Base64`, hex, or PEM only **change byte representation**; they do not make a key more secure. 32 binary bytes can be represented as 44 standard Base64 characters, yet it remains a 32-byte key that must be kept secret.
+- Do not print raw keys or Base64 strings of keys for testing. Log only **key ID, algorithm, version, status**, and operational fields containing no key material.
+- An HMAC key is **different** from a nonce/IV or salt; the fact that a nonce/salt may be public never permits making an HMAC key public.
 
-### 2.3. Ai được tạo và cấp phát khóa?
+### 2.3. Who creates and provisions keys?
 
-Chọn rõ **chủ sở hữu khóa** và đường cấp phát:
+Clearly establish **the key owner** and provisioning path:
 
-1. Tốt nhất, hệ thống quản lý khóa/secret tạo hoặc nhập khóa bằng kênh có kiểm soát, cấp quyền theo service/tenant/purpose và audit sử dụng.
-2. Nếu chương trình phải tạo khóa, dùng CSPRNG, đưa khóa ngay vào cơ chế lưu an toàn, gắn metadata; không tự in ra terminal, gửi qua chat/email hay commit vào repo.
-3. Khi hai hệ thống cần **cùng** khóa để xác minh HMAC (ví dụ sender và webhook receiver), chia sẻ qua quy trình provision/secret manager có quyền truy cập tối thiểu. Coi **cả hai đầu** là bên có thể tạo MAC, nên không thể dùng HMAC để phân biệt ai đã tạo nếu không có ràng buộc bổ sung.
-4. Có thể dùng HSM/KMS có tính năng tạo/xác minh MAC để tránh đưa raw key vào tiến trình ứng dụng; cần kiểm tra API và thuật toán cụ thể của nhà cung cấp. **Không giả định mọi KMS đều hỗ trợ HMAC hoặc cùng một dạng `SecretKey`**.
+1. Ideally, a key/secret management system generates or imports keys through a controlled channel, grants permissions by service/tenant/purpose, and audits usage.
+2. If a program must generate keys, use a CSPRNG, place the key immediately into secure storage with metadata; never print to terminal, send via chat/email, or commit to a repo.
+3. When two systems need **the same** key to verify HMACs (e.g., sender and webhook receiver), share via a least-privilege provisioning/secret-manager workflow. Treat **both ends** as capable of creating MACs, so HMAC cannot tell them apart without additional constraints.
+4. An HSM/KMS with MAC generation/verification features can avoid bringing raw keys into application processes; verify the vendor's specific API and algorithms. **Do not assume every KMS supports HMAC or the same `SecretKey` form**.
 
-## 3. Bảo quản khóa: bảo vệ bí mật và phạm vi truy cập
+## 3. Key Storage: Protecting Secrecy and Access Scope
 
-Khóa HMAC là tài sản nhạy cảm. Người biết khóa có thể giả mạo thông điệp trong mọi ngữ cảnh dùng chung khóa đó.
+An HMAC key is a sensitive asset. Anyone who knows the key can forge messages across every context sharing that key.
 
-| Nơi/cách giữ | Đánh giá và lưu ý |
+| Storage / Delivery | Assessment and Notes |
 | --- | --- |
-| **Secret manager/KMS/HSM** | Ưu tiên theo yêu cầu hệ thống; IAM tách quyền đọc/ghi/ký/xác minh, audit, rotation và bảo vệ khóa. Nếu có MAC API không xuất khóa, ứng dụng có thể không cần thấy raw key. |
-| **Secret được ứng dụng nạp khi khởi động** | Chỉ cho workload identity cần thiết đọc; giới hạn file permissions/mount, tránh log, crash dump, thông báo lỗi và endpoint debug tiết lộ key. |
-| **Biến môi trường** | Có thể dùng trong môi trường hạn chế nhưng biến môi trường không phải kho bí mật mặc định; hãy xét khả năng bị lộ qua tiến trình con, công cụ debug, log hoặc cấu hình triển khai. |
-| **Cơ sở dữ liệu/bản sao lưu** | Nếu cần giữ key, mã hóa bằng khóa quản lý **riêng**, giới hạn truy cập và quản lý backup/restore; không lưu plaintext trong bản ghi dễ đọc. |
-| **Mã nguồn, Dockerfile, `application.yml` được commit, tài liệu, ticket, chat** | **Không lưu khóa thực**. Lịch sử commit và bản sao có thể tồn tại cả sau khi xóa dòng. |
+| **Secret manager/KMS/HSM** | Preferred per system requirements; IAM separates read/write/sign/verify permissions, audit, rotation, and key protection. If a non-exportable MAC API exists, the application may not need raw key access. |
+| **Secret loaded by the app at startup** | Allow only the necessary workload identity to read; restrict file permissions/mounts, avoid leaks via logs, crash dumps, error messages, and debug endpoints. |
+| **Environment variables** | Usable in constrained environments, but environment variables are not a default secret vault; consider exposure via child processes, debug tools, logs, or deployment manifests. |
+| **Databases / backups** | If keys must be stored there, encrypt with a **separate** managed key, restrict access, and govern backup/restore; never store plaintext in easily readable records. |
+| **Source code, Dockerfiles, committed `application.yml`, docs, tickets, chat** | **Never store real keys**. Commit history and copies can persist even after a line is deleted. |
 
-Các nguyên tắc chính:
+Core principles:
 
-- **Least privilege:** service chỉ cần xác minh MAC thì nên có quyền **verify** trên KMS nếu hạ tầng hỗ trợ tách quyền, thay vì mặc định được đọc raw key hoặc ký mọi message.
-- **Tách môi trường:** development, test, staging, production có khóa độc lập. Cần chia tách theo tenant, đối tác, protocol hoặc service khi ranh giới tin cậy yêu cầu.
-- **Kiểm soát vòng đời:** mỗi key có owner, purpose, algorithm, key ID, version, ngày kích hoạt/ngừng ký/ngừng xác minh, chính sách rotation/retention và quy trình thu hồi.
-- **Không log hoặc phản hồi lỗi chứa khóa:** tránh `Arrays.toString(key)`, `HexFormat.of().formatHex(key)`, `Base64.getEncoder().encodeToString(key)` trong log. Tag cũng có thể cần quản lý dữ liệu/ẩn thông tin tùy nghiệp vụ, nhưng tag **không phải khóa**.
-- **Chú ý bộ nhớ:** `Arrays.fill(key, (byte) 0)` có thể xóa một mảng byte tạm đang sở hữu, nhưng không bảo đảm xóa mọi bản sao trong `SecretKeySpec`, provider, heap dump, swap hoặc HSM. Không xem việc overwrite một mảng là cơ chế bảo vệ hoàn chỉnh.
-- **Không có key hợp lệ thì từ chối xác minh (fail closed)**; không dùng khóa mặc định `"secret"`, không vô hiệu kiểm tra MAC, không fallback sang thuật toán yếu.
+- **Least privilege:** a service that only verifies MACs should have **verify** permission on the KMS if the infrastructure supports split permissions, rather than reading raw keys or signing arbitrary messages by default.
+- **Environment isolation:** development, test, staging, and production use independent keys. Isolate by tenant, partner, protocol, or service when trust boundaries require it.
+- **Lifecycle control:** every key has an owner, purpose, algorithm, key ID, version, activation/stop-signing/stop-verifying dates, rotation/retention policies, and a revocation process.
+- **No keys in logs or error responses:** avoid `Arrays.toString(key)`, `HexFormat.of().formatHex(key)`, or `Base64.getEncoder().encodeToString(key)` in logs. Tags may also require data hygiene/redaction depending on business rules, though a tag **is not a key**.
+- **Memory considerations:** `Arrays.fill(key, (byte) 0)` can clear a temporary byte array you own, but does not guarantee wiping all copies in `SecretKeySpec`, providers, heap dumps, swap, or HSMs. Do not treat overwriting one array as complete protection.
+- **Fail closed without a valid key**; never fall back to a default `"secret"` key, disable MAC checks, or downgrade to a weak algorithm.
 
-### 3.1. Khóa không xuất được và Java JCA/JCE
+### 3.1. Non-exportable keys and Java JCA/JCE
 
-Trong Java, `SecretKey` là trừu tượng. Với khóa phần mềm, `getEncoded()` có thể trả byte; với khóa trong HSM/provider không xuất được, phương thức này có thể trả `null`. Một số provider yêu cầu chạy `Mac` qua provider tương ứng hoặc gọi MAC API riêng.
+In Java, `SecretKey` is an abstraction. For software keys, `getEncoded()` may return bytes; for non-exportable HSM/provider keys, this method may return `null`. Some providers require running `Mac` through that specific provider or calling a dedicated MAC API.
 
-Do vậy kiến trúc **không nên phụ thuộc vào việc dump khóa ra byte** để xác minh “đúng 32 byte” trong sản phẩm. Cấu hình key size và chính sách quản lý ở điểm tạo khóa; code gọi HMAC qua một interface có thể triển khai bằng JCA hoặc KMS tùy hệ thống.
+Therefore, architecture **should not rely on dumping a key to bytes** to verify "exact 32 bytes" in production. Configure key size and management policies at key creation time; application code calls HMAC through an interface implementable by JCA or KMS depending on the system.
 
-## 4. Tách khóa theo mục đích sử dụng (key separation)
+## 4. Separating Keys by Purpose (Key Separation)
 
-### 4.1. Vì sao một “super HMAC secret” là nguy hiểm?
+### 4.1. Why is one "super HMAC secret" dangerous?
 
-Giả sử một ứng dụng dùng một khóa cho:
+Suppose an application uses one key to:
 
-- Ký session cookie (xác thực phiên);
-- Xác minh webhook từ đối tác;
-- Ký URL tải file;
-- Xác minh tác vụ quản trị nội bộ.
+- Sign session cookies (session authentication);
+- Verify partner webhooks;
+- Sign file download URLs;
+- Verify internal administrative tasks.
 
-Nếu khóa webhook bị lộ từ bên tích hợp, kẻ tấn công có thể tính HMAC cho các loại message khác. **Biết khóa = có khả năng tạo MAC ở mọi giao thức dùng khóa đó.** Một parser coi thông điệp có tag hợp lệ là “được tin” mà không kiểm tra scope sẽ mở đường cho tấn công chuyển ngữ cảnh (*cross-protocol confusion*).
+If the webhook key leaks from the integration side, an attacker can compute HMACs for the other message types. **Knowing a key = being able to forge MACs in every protocol using that key.** A parser that treats any message with a valid tag as "trusted" without checking scope opens the door to *cross-protocol confusion* attacks.
 
-Thiết kế tốt phải tách bí mật **và** tách cách diễn giải message. Ví dụ ranh giới:
+Good design separates secrets **and** separates message interpretation. Example boundaries:
 
-| Mục đích | Định danh logic | Bên được phép sử dụng |
+| Purpose | Logical Identifier | Authorized Parties |
 | --- | --- | --- |
-| Session/cookie | `shop/prod/session/v3` | Service quản lý phiên |
-| Inbound partner webhook | `shop/prod/webhook/partner-A/v2` | Gateway nhận webhook và bên đối tác tương ứng |
-| URL có hạn | `shop/prod/download-link/v1` | Service phát và xác minh URL |
-| Yêu cầu nội bộ | `shop/prod/internal-job/v4` | Service phụ trách tác vụ |
+| Session/cookie | `shop/prod/session/v3` | Session management service |
+| Inbound partner webhook | `shop/prod/webhook/partner-A/v2` | Webhook gateway and the corresponding partner |
+| Expiring URL | `shop/prod/download-link/v1` | URL issuing and verifying service |
+| Internal request | `shop/prod/internal-job/v4` | Task-handling service |
 
-Không chỉ đổi **tên biến**; cần dùng **khóa khác** hoặc **khóa con được dẫn xuất độc lập**, chính sách cấp quyền theo mục đích và ràng buộc mục đích trong dữ liệu được MAC.
+Do not merely rename **variables**; use **different keys** or **independently derived subkeys**, purpose-scoped access policies, and purpose binding inside the MAC-protected data.
 
-### 4.2. Cách A: sinh khóa ngẫu nhiên độc lập cho từng mục đích
+### 4.2. Approach A: generate independent random keys per purpose
 
-Đơn giản nhất là sinh riêng:
+The simplest approach is separate generation:
 
 ```text
 K_session     <- SecureRandom(32 bytes)
@@ -139,13 +139,13 @@ K_download    <- SecureRandom(32 bytes)
 K_internal    <- SecureRandom(32 bytes)
 ```
 
-Mỗi khóa được lưu, đánh nhãn, cấp phát và rotate riêng. Nếu lộ khóa của đối tác webhook, khóa session vẫn không tự bị suy ra. **Đây thường là cách dễ kiểm toán, cô lập sự cố và xoay khóa độc lập nhất** khi có cơ sở hạ tầng quản lý secret.
+Each key is stored, labeled, provisioned, and rotated independently. If the webhook partner key leaks, the session key cannot be derived from it. **This is usually the easiest approach to audit, contain incidents, and rotate keys independently** when secret management infrastructure exists.
 
-Nhược điểm là số khóa, bản sao và quyền cấp phát tăng theo số mục đích/tenant. Cần có registry/secret manager rõ ràng; tránh chuyển sang một khóa chung chỉ vì thấy nhiều entry.
+The tradeoff is that the number of keys, copies, and provisioning permissions grows with the number of purposes/tenants. Maintain a clear registry/secret manager; avoid collapsing into one shared key simply to reduce entries.
 
-### 4.3. Cách B: dẫn xuất khóa con từ một root secret bằng HKDF
+### 4.3. Approach B: derive subkeys from a root secret using HKDF
 
-Khi phải quản lý nhiều khóa có quan hệ từ một **root key entropy cao**, có thể dùng **HKDF-SHA256** (RFC 5869) để dẫn xuất các khóa con theo từng mục đích:
+When managing many related keys from a **high-entropy root key**, **HKDF-SHA256** (RFC 5869) can derive subkeys per purpose:
 
 ```text
 root_secret  --HKDF-Extract(salt)--> PRK
@@ -154,97 +154,97 @@ PRK + info("shop|prod|webhook|v1") --> K_webhook (32 bytes)
 PRK + info("shop|prod|download|v1")-> K_download (32 bytes)
 ```
 
-Trong HKDF chuẩn:
+In standard HKDF:
 
-- **IKM (input keying material):** secret đầu vào có entropy phù hợp. Ở đây là root ngẫu nhiên mạnh, **không** phải password người dùng chưa qua password KDF.
-- **Salt:** giá trị thường ngẫu nhiên, có thể công khai, dùng trong pha `Extract` để tạo **PRK (pseudorandom key)**. Nếu muốn dẫn xuất lại cùng key sau restart, **giữ đúng salt** cùng metadata; đổi salt sẽ đổi khóa con. HKDF định nghĩa giá trị mặc định khi salt bị bỏ trống, nhưng nên thiết kế và ghi rõ lựa chọn.
-- **Info:** chuỗi byte mô tả ngữ cảnh, mục đích và version, dùng trong pha `Expand`. Khác `info` dẫn tới các khóa con khác nhau dưới giả định an toàn của HKDF.
-- **Length:** số **byte** đầu ra muốn tạo. Với HmacSHA256, một khóa con 32 byte tương ứng **256 bit**; HKDF Expand có giới hạn tổng độ dài không vượt **255 × HashLen** byte.
-- **Root key có quyền lực bao trùm:** kẻ lộ root có thể dẫn xuất **mọi khóa con**. Tách bằng HKDF làm giảm việc tái dùng cùng khóa, nhưng **không đạt mức cô lập rủi ro root giống nhiều khóa ngẫu nhiên hoàn toàn độc lập**.
+- **IKM (input keying material):** input secret with suitable entropy. Here it is a strong random root, **not** a raw user password that has not passed through a password KDF.
+- **Salt:** a typically random, optionally public value used in the `Extract` phase to produce **PRK (pseudorandom key)**. To re-derive the same key after a restart, **preserve the exact salt** alongside metadata; changing the salt changes the subkeys. HKDF defines a default when salt is omitted, though the choice should be explicitly designed and documented.
+- **Info:** a byte string describing context, purpose, and version, used in the `Expand` phase. Different `info` values yield distinct subkeys under HKDF's security assumptions.
+- **Length:** number of output **bytes** desired. With HmacSHA256, a 32-byte subkey corresponds to **256 bits**; HKDF Expand has a total output limit of at most **255 × HashLen** bytes.
+- **The root key has overarching power:** compromising the root allows deriving **all subkeys**. Separating via HKDF avoids key reuse, but **does not achieve the same root-risk isolation as completely independent random keys**.
 
-Thiết kế `info` nên ghi rõ **ứng dụng, môi trường, protocol, purpose, đối tác hoặc tenant nếu cần, thuật toán và version**. Các trường có thể do người dùng cung cấp phải được canonicalize và mã hóa không nhập nhằng, ví dụ TLV hoặc length-prefix; không ghép ngây thơ những chuỗi chứa delimiter để hai bộ tham số tạo cùng một `info`.
+`info` design should clearly encode **application, environment, protocol, purpose, partner or tenant if needed, algorithm, and version**. Any user-supplied fields must be canonicalized and unambiguously encoded, e.g., TLV or length-prefixing; never naively join delimiter-containing strings where two parameter sets can yield the same `info`.
 
-**Đừng tự “dẫn xuất khóa” bằng `SHA256(root || purpose)` hoặc bằng Base64 của root.** Hãy dùng một KDF đã được định nghĩa và kiểm chứng như HKDF theo đúng các bước và tham số của nó.
+**Never "derive keys" using `SHA256(root || purpose)` or Base64 of the root.** Use a defined and vetted KDF such as HKDF following its exact steps and parameters.
 
-### 4.4. Tách khóa khác với thêm nhãn vào message
+### 4.4. Key separation differs from tagging messages with labels
 
-Có hai lớp phòng vệ khác nhau:
+These are two distinct defense layers:
 
-1. **Key separation:** `K_session != K_webhook`. Kẻ có khóa webhook không tự tính được MAC dùng khóa session.
-2. **Domain separation của message:** ngay cả trong một phạm vi khóa, thêm dữ liệu có cấu trúc, không nhập nhằng như `protocol_version`, `purpose`, `tenant`, `operation` vào những byte được MAC, giúp ngăn tag của một loại thông điệp bị hiểu là loại khác.
+1. **Key separation:** `K_session != K_webhook`. Someone holding the webhook key cannot compute MACs under the session key.
+2. **Message domain separation:** even within one key scope, including structured, unambiguous fields such as `protocol_version`, `purpose`, `tenant`, and `operation` in the MACed bytes prevents a tag for one message type from being interpreted as another.
 
-Chỉ thêm `"session:"` vào trước message nhưng vẫn giữ **một shared secret chung có mặt ở mọi service** không cô lập được sự cố khi secret đó lộ. Ngược lại, dù dùng khóa độc lập, vẫn cần xác thực đầy đủ các trường có ý nghĩa nghiệp vụ.
+Merely prepending `"session:"` to a message while keeping **one shared secret distributed to every service** fails to contain blast radius if that secret leaks. Conversely, even with independent keys, all business-critical fields must still be authenticated.
 
-Ví dụ metadata `purpose`, `tenant`, `environment` và `key_id` chỉ là **thông tin tham chiếu**, không phải bằng chứng tự xác minh; **server phải áp chính sách ràng buộc chúng với khóa và request**.
+Metadata such as `purpose`, `tenant`, `environment`, and `key_id` are only **reference hints**, not self-verifying proof; **the server must enforce policies binding them to the key and request**.
 
-## 5. Thiết kế giao thức MAC và xác minh phù hợp
+## 5. Designing an Appropriate MAC and Verification Protocol
 
-Một giao thức có thể dùng cấu trúc:
+A protocol may use a structure like:
 
 ```text
 version: 2
 key_id: webhook-partner-A-v2
 timestamp: 2026-10-31T12:00:00Z
-nonce: 4f8b...     (giá trị ví dụ)
+nonce: 4f8b...     (example value)
 body: {"event":"payment.paid","id":"evt123"}
-mac: <HMAC-SHA256 của biểu diễn canonical đã xác định>
+mac: <HMAC-SHA256 of the defined canonical representation>
 ```
 
-Các giá trị trên chỉ là mô hình minh họa, **không phải một request có MAC tính sẵn**. Để dùng thật phải định nghĩa chính xác byte được ký (phương thức, path/query, timestamp, nonce, body, context) và quy tắc canonicalization. Nếu các byte có ý nghĩa bảo mật không được MAC thì kẻ tấn công có thể thay chúng mà tag không đổi.
+These values are only an illustrative model, **not a request with a precomputed MAC**. For real use, specify the exact signed bytes (method, path/query, timestamp, nonce, body, context) and canonicalization rules. If security-relevant bytes are omitted from the MAC, an attacker can alter them without changing the tag.
 
-Quy trình server hợp lý:
+A sound server pipeline:
 
-1. **Xác định giao thức và purpose tin cậy từ route/cấu hình**, không cho client tự khai purpose để được chọn một key scope có quyền rộng hơn.
-2. Giới hạn định dạng/độ dài của `key_id`; tra key trong registry **đúng tenant + purpose + environment + trạng thái**. `key_id` là selector do client gửi nên phải coi là dữ liệu không tin cậy, không phải đường dẫn file, URL hay chỉ thị tải secret tùy ý.
-3. Chỉ dùng **thuật toán do server quy định** (ví dụ HmacSHA256); không chấp nhận `alg=none` hay thuật toán khác dựa vào header không tin cậy.
-4. Kiểm tra timestamp trong cửa sổ hợp lệ, nonce/idempotency chưa dùng và những giới hạn phù hợp **nếu giao thức yêu cầu chống replay**.
-5. Tạo lại **chính xác các byte** đã ký, tính HMAC bằng khóa tương ứng, kiểm tra tag độ dài chuẩn và so sánh bằng phương pháp tránh tiết lộ thời gian phụ thuộc nội dung, ví dụ `MessageDigest.isEqual(byte[], byte[])` trong Java khi đã biết tag đúng độ dài.
-6. Chỉ sau khi MAC hợp lệ mới xử lý nghiệp vụ, nhưng còn phải kiểm tra authorization, tenant, loại sự kiện và điều kiện trạng thái. Cơ chế replay phải được cập nhật theo cách nguyên tử nếu cần chống nhận hai request đồng thời.
+1. **Determine the trusted protocol and purpose from the route/configuration**; never let the client self-declare a purpose to pick a broader-privilege key scope.
+2. Bound the format/length of `key_id`; look up the key in the registry **matching tenant + purpose + environment + status**. Since `key_id` is a client-supplied selector, treat it as untrusted input—never as a file path, URL, or arbitrary secret loader directive.
+3. Use **only the server-mandated algorithm** (e.g., HmacSHA256); never accept `alg=none` or another algorithm based on untrusted headers.
+4. Check timestamp within the allowed window, unused nonce/idempotency, and appropriate limits **if the protocol requires replay protection**.
+5. Reconstruct **the exact signed bytes**, compute HMAC with the corresponding key, check standard tag length, and compare using a method that avoids content-dependent timing leaks, such as `MessageDigest.isEqual(byte[], byte[])` in Java once length is verified.
+6. Only after a valid MAC, run business logic—still checking authorization, tenant, event type, and state preconditions. Replay tracking must update atomically if concurrent duplicate requests must be blocked.
 
-**Lưu ý canonicalization:** chữ hoa/thường trong header, thứ tự query parameter, encoding UTF-8, ký tự xuống dòng, khoảng trắng JSON, chuẩn hóa Unicode và raw body có thể dẫn đến hai byte stream khác nhau. Trong webhook, nếu đối tác ký **raw HTTP body**, receiver phải dùng đúng byte raw đã nhận theo đặc tả, **không parse rồi serialize JSON lại** trước khi tính HMAC.
+**Canonicalization note:** header casing, query parameter ordering, UTF-8 encoding, line endings, JSON whitespace, Unicode normalization, and raw body handling can produce two different byte streams. In webhooks, if the partner signs the **raw HTTP body**, the receiver must use the exact received raw bytes per the spec, **never parse and re-serialize JSON** before computing HMAC.
 
-**So sánh tag:** tag đầy đủ HmacSHA256 dài 32 byte. Nếu giao thức cho phép truncate tag, phải có thông số độ dài rõ ràng, giới hạn phù hợp, kiểm tra độ dài và tính đúng chuỗi byte. Không tự cắt tag tùy tiện để “tiết kiệm băng thông”.
+**Tag comparison:** a full HmacSHA256 tag is 32 bytes. If a protocol permits tag truncation, it must define exact length parameters, appropriate bounds, length validation, and compute over the exact byte sequence. Never truncate tags arbitrarily to "save bandwidth."
 
-## 6. Vòng đời khóa: tạo, dùng, rotate, thu hồi, hủy
+## 6. Key Lifecycle: Create, Use, Rotate, Revoke, Destroy
 
-Khóa HMAC thường tồn tại lâu hơn một instance Java. Muốn thay khóa không làm hỏng request còn hiệu lực, cần **key ring có version** và trạng thái riêng cho ký mới/xác minh cũ.
+HMAC keys typically outlive a single Java process instance. To replace keys without breaking in-flight valid requests, you need a **versioned key ring** with distinct states for new signing versus legacy verification.
 
-| Giai đoạn | Đối tượng thực hiện | Quy tắc |
+| Stage | Actor | Rules |
 | --- | --- | --- |
-| **Generate** | Quản lý khóa | Sinh khóa ngẫu nhiên mới, định danh, owner, purpose, thuật toán, thời gian; không tái sử dụng secret cũ |
-| **Store/provision** | Secret manager/KMS | Mã hóa/giữ trong HSM khi phù hợp; cấp quyền tối thiểu cho workload và đối tác |
-| **Active signing** | Bên tạo MAC | Chỉ **một version hiện hành cho việc ký mới** tại mỗi phạm vi cần thống nhất |
-| **Verify overlap** | Bên xác minh | Có thể nhận **key mới và key cũ** trong cửa sổ chuyển tiếp giới hạn, mỗi key chỉ dùng đúng purpose/scope |
-| **Retire** | Quản lý khóa | Ngừng ký bằng key cũ; ngừng verify khi message hợp lệ cũ đã hết hạn/được xử lý |
-| **Revoke/compromise** | Incident response | Nếu lộ khóa, thu hồi nhanh, đánh giá dữ liệu đã được ký giả, không chờ hết thời hạn rotation định kỳ |
-| **Destroy** | Quản lý khóa/backup | Xóa/crypto-shred theo chính sách, xét cả phiên bản trong backup và cache; ghi lại việc hủy mà không log secret |
+| **Generate** | Key management | Generate new random key, ID, owner, purpose, algorithm, timestamps; never reuse old secrets |
+| **Store/provision** | Secret manager/KMS | Encrypt/store in HSM where appropriate; grant least-privilege access to workloads and partners |
+| **Active signing** | MAC creator | Only **one active version for new signing** per scope needing consistency |
+| **Verify overlap** | Verifier | May accept **both new and old keys** during a bounded transition window, each restricted to its purpose/scope |
+| **Retire** | Key management | Stop signing with old key; stop verifying once old valid messages have expired/been processed |
+| **Revoke/compromise** | Incident response | If compromised, revoke rapidly, audit potentially forged data, do not wait for scheduled rotation |
+| **Destroy** | Key management/backup | Delete/crypto-shred per policy, including copies in backups and caches; audit destruction without logging the secret |
 
-### 6.1. Ví dụ rotation có `kid`
+### 6.1. Rotation example with `kid`
 
-Giả sử service đang dùng `key_id=webhook-v1` rồi phát hành `webhook-v2`:
+Suppose a service uses `key_id=webhook-v1` and issues `webhook-v2`:
 
-- **Chuẩn bị:** tạo secret v2 độc lập, cập nhật receiver để biết v2 trước khi sender chuyển sang ký v2.
-- **Chuyển đổi:** sender bắt đầu phát `kid=v2` và HMAC bằng key v2. Receiver kiểm tra v2; tạm tiếp tục kiểm tra v1 cho thông điệp phát hành trước hạn chót.
-- **Kết thúc:** sau cửa sổ hợp lệ và độ trễ phân phối, tắt verify v1, thu hồi quyền truy cập, dọn các cache/backup theo chính sách.
-- **Nếu bị lộ v1:** thay khóa và **thu hồi ngay theo quy trình xử lý sự cố**, không mặc định giữ “overlap” chỉ để tránh lỗi khách hàng. Có thể cần hủy các session/token đã ký bằng v1 và thông báo bên liên quan.
+- **Prepare:** generate an independent v2 secret, update the receiver so it knows v2 before the sender switches to signing with v2.
+- **Transition:** sender starts emitting `kid=v2` and HMAC with key v2. Receiver verifies v2; temporarily continues verifying v1 for messages issued before the cutoff.
+- **Finalize:** after the validity window and propagation delay, disable v1 verification, revoke access, and purge caches/backups per policy.
+- **If v1 is compromised:** replace the key and **revoke immediately per incident response**, do not keep an "overlap" by default just to avoid client errors. Sessions/tokens signed with v1 may need invalidation and stakeholders notified.
 
-**Không thử tất cả khóa, tất cả purpose và mọi tenant để “tìm MAC đúng”** khi request đã khai báo key ID rõ ràng. Điều đó làm rộng khả năng chấp nhận ngoài policy và khó kiểm soát thời hạn. Lookup đúng scope, kiểm tra trạng thái, rồi verify.
+**Do not try every key, every purpose, and every tenant to "find a matching MAC"** when the request specifies a key ID. That widens acceptance outside policy and obscures expiration boundaries. Look up the exact scope, check status, then verify.
 
-### 6.2. Vòng đời root key khi dùng HKDF
+### 6.2. Root key lifecycle with HKDF
 
-Rotation root tạo một tập khóa con mới (kể cả khi `info` giữ nguyên), do đó:
+Rotating the root produces a brand-new set of subkeys (even if `info` stays unchanged), so:
 
-- Lưu **root key version + salt + cấu trúc info + thuật toán KDF + output length** như một phần thông tin không thể thiếu cho việc dẫn xuất lại.
-- Thay root theo kế hoạch ở tầng quản lý khóa, phân phối dần khóa con mới; key ID phải cho phép xác định version thích hợp.
-- Một root bị lộ đồng nghĩa các khóa con dẫn xuất từ nó có thể bị lộ; cần lập kế hoạch thay **toàn bộ miền khóa con** bị ảnh hưởng.
-- Không chia sẻ raw root cho mọi microservice chỉ để chúng tự sinh subkey. Nếu có thể, chỉ phát subkey đúng scope hoặc cho gọi API derivation/MAC được giới hạn quyền.
-- Không dùng lại raw root để trực tiếp HMAC message nghiệp vụ: root chỉ dành cho KDF theo thiết kế đó.
+- Store **root key version + salt + info structure + KDF algorithm + output length** as essential information for re-derivation.
+- Replace the root on schedule at the key-management layer and roll out new subkeys gradually; key IDs must identify the right version.
+- A compromised root means all subkeys derived from it may be compromised; plan rotation for **the entire affected subkey domain**.
+- Do not distribute the raw root to every microservice just so they derive subkeys themselves. Whenever possible, provision only scoped subkeys or expose a permission-bounded derivation/MAC API.
+- Never reuse the raw root directly to HMAC business messages: the root is dedicated to the KDF under that design.
 
-## 7. Java 17+: tạo khóa HMAC độc lập và ràng buộc purpose
+## 7. Java 17+: Generating Independent HMAC Keys and Binding Purpose
 
-Chương trình độc lập dưới đây tạo **hai khóa 32 byte ngẫu nhiên độc lập** cho `session` và `webhook`. Phần prefix `demo:v1|purpose|` bổ sung domain separation trong bytes được MAC; demo chỉ dùng hai purpose cố định do code tin cậy chọn. Trong hệ thống thật cần encoding không nhập nhằng và chính sách xác định scope tại server.
+The standalone program below generates **two independent 32-byte random keys** for `session` and `webhook`. The prefix `demo:v1|purpose|` adds domain separation in the MACed bytes; the demo only uses two fixed purposes chosen by trusted code. Real systems need unambiguous encoding and server-side scope enforcement policies.
 
-Lưu đúng tên **HmacPurposeDemo.java**:
+Save with exact name **HmacPurposeDemo.java**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -297,14 +297,14 @@ public class HmacPurposeDemo {
 }
 ```
 
-Biên dịch, chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 HmacPurposeDemo.java
 java HmacPurposeDemo
 ```
 
-Stdout kỳ vọng (khóa ngẫu nhiên mỗi lần khác nhau nhưng các kết luận giữ nguyên trong thực hành):
+Expected stdout (random keys differ each run, but conclusions hold in practice):
 
 ```text
 session key bytes: 32
@@ -315,21 +315,21 @@ wrong key: false
 tampered payload: false
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `new SecureRandom().nextBytes(key)` tạo một mảng 32 byte khóa mới; chương trình không in raw key.
-- `tag()` dùng `Mac.getInstance("HmacSHA256")` và `SecretKeySpec`. Tạo instance `Mac` riêng cho phép tính; `Mac` có trạng thái và **không nên chia một instance mutable cho nhiều thread mà không có cơ chế điều phối**.
-- Kiểm tra `wrong purpose` dùng **cùng** session key nhưng dữ liệu purpose khác trong input của HMAC; `wrong key` dùng **khóa khác**; cả hai cho thấy hai lớp bảo vệ không nên lẫn lộn.
-- `MessageDigest.isEqual` so sánh hai byte array của tag sau khi đã xác minh độ dài dự kiến. Đừng dùng `new String(tag)` hoặc phép so sánh có hành vi phụ thuộc nội dung để xác minh tag.
-- `Arrays.fill` chỉ là dọn mảng tạm ở mức tốt nhất, **không bảo đảm xóa toàn bộ bản sao** mà provider/JVM có thể giữ. Code demo **không cất giữ key qua restart**, không quản lý rotation/key ID và không thực hiện xác thực session thực tế.
+- `new SecureRandom().nextBytes(key)` creates a new 32-byte key array; the program does not print the raw key.
+- `tag()` uses `Mac.getInstance("HmacSHA256")` and `SecretKeySpec`. It creates a separate `Mac` instance for the computation; `Mac` is stateful and **a mutable instance should not be shared across threads without coordination**.
+- The `wrong purpose` check uses **the same** session key with different purpose data in the HMAC input; `wrong key` uses **a different key**; both show two protection layers that should not be conflated.
+- `MessageDigest.isEqual` compares the two tag byte arrays after checking the expected length. Do not use `new String(tag)` or comparisons with content-dependent behavior to verify tags.
+- `Arrays.fill` is only best-effort temporary array cleanup and **does not guarantee clearing every copy** the provider/JVM may hold. The demo **does not persist keys across restarts**, manage rotation/key IDs, or perform real session authentication.
 
-Đối với ứng dụng lớn, `generateKey()` thường là trách nhiệm của hệ thống quản lý khóa, còn logic nghiệp vụ chỉ nhận quyền thao tác HMAC phù hợp.
+For larger applications, `generateKey()` is typically the key management system's responsibility, while business logic receives only the appropriate HMAC operation permissions.
 
-## 8. Java 17+: dẫn xuất khóa theo purpose bằng HKDF-SHA256
+## 8. Java 17+: Deriving Purpose-Scoped Keys with HKDF-SHA256
 
-Ví dụ sau triển khai đầy đủ **HKDF-Extract + HKDF-Expand** với HmacSHA256 theo RFC 5869 để minh họa. Đầu tiên kiểm tra **RFC 5869 test vector case 1** bằng giá trị công khai; sau đó tạo root và salt ngẫu nhiên, dẫn xuất hai khóa 32 byte từ hai `info` khác nhau. Ví dụ không in root, PRK hay subkey.
+The following example implements full **HKDF-Extract + HKDF-Expand** with HmacSHA256 per RFC 5869 for illustration. First it verifies **RFC 5869 test vector case 1** using public values; then it generates a random root and salt and derives two 32-byte keys from two distinct `info` values. The example prints neither root, PRK, nor subkeys.
 
-Lưu **HkdfPurposeDemo.java**:
+Save **`HkdfPurposeDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -417,7 +417,7 @@ public class HkdfPurposeDemo {
 }
 ```
 
-Biên dịch, chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 HkdfPurposeDemo.java
@@ -433,95 +433,95 @@ same purpose stable: true
 other purpose differs: true
 ```
 
-**Phân tích kết quả:**
+**Output analysis:**
 
-1. Test vector xác nhận rằng ví dụ dùng đúng thứ tự `HKDF-Extract(salt, IKM)` và `HKDF-Expand(PRK, info, L)`, trong đó mỗi khối Expand phụ thuộc khối trước, `info` và counter 1 byte. Giá trị kỳ vọng công khai từ RFC 5869 không phải khóa sản xuất.
-2. Khóa con cho `session` và `webhook` đều 32 byte nhưng khác nhau do `info` khác nhau. Nếu cùng root, salt, info và length, HKDF tất định: dẫn xuất lại cho cùng kết quả.
-3. Root và salt được tạo ngẫu nhiên khi chương trình chạy; một ứng dụng thật cần lưu/khôi phục **root và salt cùng version** theo thiết kế, nếu không các key sinh ra lần sau sẽ khác.
-4. Ví dụ chỉ cho purpose cố định do code chọn. Với hệ thống đa tenant/đối tác, phải chuẩn hóa và mã hóa `info` không nhập nhằng, kiểm tra nguồn tin cậy của từng thuộc tính và quyền truy cập. **Không dùng `purpose` hay `tenant` tự khai để mở quyền ký/xác minh.**
-5. Để dùng trong sản phẩm, ưu tiên thư viện hoặc dịch vụ mật mã đã kiểm định triển khai HKDF; ví dụ này nhằm giúp hiểu cấu trúc RFC và đo đúng kết quả. Việc xóa mảng tạm trong demo chỉ là best effort, không biến Java heap thành vùng bí mật được bảo đảm.
+1. The test vector confirms the example follows the exact order `HKDF-Extract(salt, IKM)` and `HKDF-Expand(PRK, info, L)`, where each Expand block depends on the previous block, `info`, and a 1-byte counter. The public expected value from RFC 5869 is not a production key.
+2. The subkeys for `session` and `webhook` are both 32 bytes yet differ because their `info` differs. Given identical root, salt, info, and length, HKDF is deterministic: re-deriving gives the exact same output.
+3. Root and salt are randomly generated at runtime; a real application must store/recover **root and salt together with version** by design, otherwise keys generated on subsequent runs will differ.
+4. The example only uses fixed code-chosen purposes. In multi-tenant/multi-partner systems, canonicalize and unambiguously encode `info`, and validate the trusted source of each attribute and access permissions. **Never allow self-declared `purpose` or `tenant` to grant signing/verifying rights.**
+5. For production use, prefer vetted cryptographic libraries or services implementing HKDF; this example clarifies the RFC structure and checks outputs accurately. Zeroing temporary arrays in the demo is best-effort only and does not turn the Java heap into guaranteed secure memory.
 
-## 9. Tình huống thiết kế thực tế
+## 9. Real-World Design Scenarios
 
-### 9.1. Webhook từ hai đối tác khác nhau
+### 9.1. Webhooks from two different partners
 
-Nếu Partner A và Partner B đều gửi `payment.paid`, tạo khóa `partner-A/prod/webhook/v1` và `partner-B/prod/webhook/v1` riêng biệt. Khi request đến, map đối tác qua endpoint/cấu hình và chọn key đúng scope. Một tag hợp lệ từ A **không** được dùng để xác thực message có tư cách B.
+If Partner A and Partner B both send `payment.paid`, create separate keys `partner-A/prod/webhook/v1` and `partner-B/prod/webhook/v1`. When a request arrives, map the partner via endpoint/configuration and pick the scoped key. A valid tag from A **must never** authenticate a message claiming to be B.
 
-Nếu đối tác kiểm tra HMAC chung với server, cả hai nắm secret. Khi cần xác nhận nguồn theo danh tính không chia sẻ, cân nhắc chữ ký số hoặc cơ chế xác thực dịch vụ phù hợp thay vì cho rằng HMAC tự cung cấp non-repudiation.
+If a partner shares an HMAC key with the server, both hold the secret. When origin attribution to a non-shared identity is required, consider digital signatures or an appropriate service authentication mechanism instead of assuming HMAC provides non-repudiation.
 
-### 9.2. Session và signed download URL
+### 9.2. Sessions and signed download URLs
 
-Một service ký cookie phiên, một service khác ký URL tải tài liệu. Hai purpose có chính sách khác nhau: cookie thuộc phiên đăng nhập; URL phải chứa hạn dùng, tài nguyên, hành động và có thể giới hạn người nhận. Dùng **khóa riêng** để không biến việc lộ khóa signed URL thành khả năng giả mạo session. Không cấp `K_session` cho service chỉ cần kiểm tra URL.
+One service signs session cookies; another signs document download URLs. The two purposes have different policies: cookies belong to login sessions; URLs must carry expiration, resource, action, and possibly recipient constraints. Use **separate keys** so leaking the signed-URL key does not enable forging sessions. Never grant `K_session` to a service that only needs to verify URLs.
 
-### 9.3. Nhiều tenant và microservice
+### 9.3. Multi-tenant and microservices
 
-Nếu mỗi tenant cần biên giới tin cậy riêng, cân nhắc **per-tenant keys** do secret manager giữ hoặc HKDF với context chuẩn hóa có tenant ID và purpose. Phải xét rõ ai có quyền root: tách theo HKDF **không** giảm ảnh hưởng của việc root bị chiếm toàn bộ. Khi yêu cầu cô lập chặt, dùng khóa độc lập và giới hạn IAM theo tenant.
+If each tenant requires a distinct trust boundary, consider **per-tenant keys** held by a secret manager, or HKDF with canonicalized context containing tenant ID and purpose. Clearly examine who holds the root: separation via HKDF **does not** reduce the impact of a full root compromise. When strict isolation is required, use independent keys and tenant-scoped IAM restrictions.
 
-### 9.4. Thay key v1 giữa lúc message còn hợp lệ
+### 9.4. Rotating v1 while messages are still valid
 
-Cho phép receiver giữ v1 ở chế độ **verify-only** trong thời hạn tối đa đã thiết kế; sender chỉ phát v2. Gắn `kid` vào envelope và xác minh nó trong scope. Sau hạn, xóa v1 khỏi danh sách cho phép. Nếu v1 đã bị lộ, phải đánh giá **thu hồi ngay** và vô hiệu hóa message còn hiệu lực thay vì ưu tiên tương thích.
+Allow the receiver to keep v1 in **verify-only** mode for the designed maximum lifetime; the sender emits only v2. Attach `kid` to the envelope and verify it within scope. After the window closes, remove v1 from the allowlist. If v1 was compromised, evaluate **immediate revocation** and invalidate active messages rather than prioritizing compatibility.
 
-### 9.5. Phát hiện khóa nằm trong Git hoặc log
+### 9.5. Discovering a key in Git or logs
 
-Không chỉ “xóa dòng” là đủ. Coi secret đã bị lộ: phát khóa mới, cập nhật bên sử dụng, thu hồi key cũ, điều tra phạm vi ký giả và lưu dấu audit. Dọn log/backup/history theo khả năng và chính sách, kiểm tra secret scanning/CI để ngăn tái diễn.
+Simply "deleting the line" is not enough. Treat the secret as compromised: issue a new key, update consumers, revoke the old key, investigate potential forged signing, and record an audit trail. Scrub logs/backups/history as feasible per policy, and review secret scanning/CI controls to prevent recurrence.
 
-## 10. Lỗi thường gặp và cách sửa
+## 10. Common Mistakes and Fixes
 
-| Lỗi | Rủi ro | Cách đúng |
+| Mistake | Risk | Correct Approach |
 | --- | --- | --- |
-| Hardcode `"changeit"` làm HMAC key | Người có mã nguồn có thể giả MAC | Sinh khóa ngẫu nhiên đủ mạnh và giữ trong hệ thống secret |
-| Dùng `Random`/timestamp/password làm khóa | Dễ đoán, entropy thấp | `SecureRandom`/KMS; nếu buộc dùng password, xử lý bằng password KDF phù hợp |
-| Dùng một key cho session, webhook, URL | Lộ một hệ thống ảnh hưởng nhiều mục đích | Khóa độc lập hoặc HKDF theo purpose, ranh giới IAM rõ |
-| Chỉ đổi tên biến `SESSION_KEY`/`WEBHOOK_KEY` nhưng bytes giống nhau | Chưa tách bí mật | Thực sự phát khóa khác hoặc dẫn xuất subkey với info khác |
-| Dùng hex/Base64 để “giấu” secret | Encoding có thể giải mã tức thì | Quản lý access, encryption at rest/secret manager, tránh log |
-| Đặt root HKDF trong tất cả microservice | Mỗi service có quyền suy ra mọi subkey | Chỉ phát key đúng scope, giữ root trong khu vực tin cậy |
-| `SHA256(root \|\| purpose)` tự chế | KDF không có thiết kế và kiểm định rõ | Dùng HKDF theo RFC, context không nhập nhằng |
-| Cho client chọn `alg`/`kid`/purpose tùy ý | Confusion/downgrade/secret lookup sai | Server cố định thuật toán, tra kid trong scope đáng tin và kiểm tra trạng thái |
-| Ký JSON đã serialize nhưng verify JSON serialize lại khác | HMAC không khớp dù cùng ý nghĩa | Đặc tả byte canonical; webhook raw body thì xác minh raw body |
-| Verify mọi version key vô thời hạn | Key cũ tiếp tục là điểm yếu | Cửa sổ overlap giới hạn, retire/revoke theo sự kiện |
-| Cho rằng HMAC chặn replay | Request cũ vẫn có tag hợp lệ | Timestamp, nonce/sequence, TTL và replay cache/logic nguyên tử |
-| `Arrays.fill` là đảm bảo không còn key ở RAM | JVM/provider có thể giữ bản sao | Giảm thời gian/phạm vi giữ key, hạn chế dump, ưu tiên non-exportable key |
-| In key để debug lỗi xác minh | Tiết lộ khóa thực | Log `kid`/version/correlation ID, không log secret |
-| Dùng cùng key giữa test và production | Rò môi trường thấp ảnh hưởng production | Mỗi môi trường có secret riêng, chính sách IAM riêng |
+| Hardcoding `"changeit"` as the HMAC key | Anyone with source access can forge MACs | Generate strong random keys and store them in a secret manager |
+| Using `Random`/timestamp/password as key | Guessable, low entropy | `SecureRandom`/KMS; if a password must be used, apply an appropriate password KDF |
+| Using one key for sessions, webhooks, URLs | Compromising one system affects all purposes | Independent keys or purpose-scoped HKDF, with clear IAM boundaries |
+| Only renaming `SESSION_KEY`/`WEBHOOK_KEY` variables with identical bytes | No actual secret separation | Issue distinct keys or derive subkeys with distinct `info` |
+| Using hex/Base64 to "hide" a secret | Encoding is trivially decoded | Access control, encryption at rest/secret manager, avoid logging |
+| Putting the HKDF root in all microservices | Every service can derive every subkey | Provision only scoped keys, keep the root in a restricted trust zone |
+| Homegrown `SHA256(root \|\| purpose)` | Unvetted KDF design without standard proofs | Use RFC-compliant HKDF with unambiguous context |
+| Letting the client freely choose `alg`/`kid`/purpose | Confusion/downgrade/wrong secret lookup | Server fixes algorithm, looks up `kid` within trusted scope, checks status |
+| Signing serialized JSON while verifying differently re-serialized JSON | HMAC mismatch despite identical meaning | Specify canonical bytes; for raw-body webhooks, verify raw body |
+| Verifying every key version indefinitely | Old keys remain lingering weak points | Bounded overlap windows; retire/revoke on schedule or incident |
+| Assuming HMAC stops replay | Old valid requests still carry valid tags | Timestamps, nonces/sequences, TTL, and atomic replay cache/logic |
+| Assuming `Arrays.fill` guarantees no key remains in RAM | JVM/provider may keep copies | Minimize key lifetime/scope, restrict dumps, prefer non-exportable keys |
+| Printing the key to debug verification failures | Exposes the real secret | Log `kid`/version/correlation ID; never log the secret |
+| Sharing the same key between test and production | Lower-environment leaks impact production | Separate secrets and separate IAM policies per environment |
 
-## 11. Checklist review trước khi triển khai HMAC
+## 11. Pre-Deployment HMAC Review Checklist
 
-1. **Tạo khóa:** khóa sinh bằng CSPRNG/KMS? Độ dài và entropy có phù hợp? Có dùng secret mẫu, password hoặc khóa hardcode không?
-2. **Ownership:** xác định service/đối tác/tenant, người quản trị và mục đích duy nhất của từng key chưa? Cấp quyền least privilege chưa?
-3. **Lưu trữ:** key được bảo quản/backup/restore an toàn, không lọt vào source control, log, heap dump hoặc diagnostic output ngoài ý muốn?
-4. **Tách miền:** dùng key độc lập hoặc HKDF theo context rõ ràng? Tránh chia sẻ root và tránh scope quá rộng?
-5. **Thông điệp:** quy tắc byte canonical rõ chưa? Có MAC đầy đủ các trường bảo mật và cố định thuật toán không?
-6. **Xác minh:** chọn key đúng purpose + tenant + version, kiểm tra tag dài đúng, so sánh an toàn, từ chối key không hợp lệ và xác minh thất bại?
-7. **Replay và quyền:** có chống replay và kiểm tra authorization nghiệp vụ độc lập với HMAC không?
-8. **Rotation:** có `kid`, keyring, lộ trình active/verify-only/retired, phương án khẩn cấp khi key bị lộ và thời điểm dọn v1 không?
-9. **Vận hành:** có secret scanning, log không lộ key, audit quyền và kiểm thử sai key/sai purpose/sai message/cũ hạn không?
+1. **Key generation:** is the key generated by a CSPRNG/KMS? Are length and entropy sufficient? Are sample secrets, passwords, or hardcoded keys avoided?
+2. **Ownership:** are the service/partner/tenant, owner, and single purpose of each key defined? Is least privilege enforced?
+3. **Storage:** is the key safely stored/backed up/restored, kept out of source control, logs, heap dumps, or unintended diagnostics?
+4. **Domain separation:** are independent keys or HKDF with explicit context used? Is sharing the root or overly broad scope avoided?
+5. **Message:** are canonical byte rules explicit? Are all security-relevant fields included in the MAC and is the algorithm pinned?
+6. **Verification:** is the key looked up by purpose + tenant + version, tag length validated, safely compared, and invalid keys/failed verifications rejected?
+7. **Replay and authorization:** are replay protection and business authorization enforced independently of HMAC?
+8. **Rotation:** are `kid`, keyring, active/verify-only/retired lifecycle, emergency compromise revocation, and v1 cleanup schedule in place?
+9. **Operations:** are secret scanning, key-free logs, permission audits, and tests for wrong key/wrong purpose/tampered message/expired timestamp active?
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-**Câu 1.** Hai hệ thống dùng cùng khóa 32 byte HmacSHA256 nhưng khác tên biến. Đã tách khóa chưa?  
-**Trả lời:** **Chưa.** Đổi tên không thay đổi vật liệu khóa; cần khóa bí mật độc lập hoặc derivation theo purpose khác nhau.
+**Question 1.** Two systems use the same 32-byte HmacSHA256 key under different variable names. Have the keys been separated?  
+**Answer:** **No.** Renaming variables does not change key material; independent secret keys or distinct purpose derivations are required.
 
-**Câu 2.** Key HmacSHA256 được sinh bằng `SecureRandom` dài 32 byte. Tag đầy đủ có nhất thiết dài 32 byte vì key dài 32 byte không?  
-**Trả lời:** Tag đầy đủ dài **32 byte do HmacSHA256**, không phải vì key tình cờ dài 32 byte.
+**Question 2.** An HmacSHA256 key generated with `SecureRandom` is 32 bytes long. Is the full tag 32 bytes long because the key happens to be 32 bytes long?  
+**Answer:** The full tag is **32 bytes because of HmacSHA256**, not because the key happens to be 32 bytes long.
 
-**Câu 3.** Client gửi `kid="admin-prod"`. Server có nên tự động đọc secret và kiểm tra bằng khóa admin?  
-**Trả lời:** **Không.** `kid` là dữ liệu không tin cậy; phải giới hạn lookup vào purpose, tenant, môi trường và key trạng thái hợp lệ do server xác định.
+**Question 3.** A client sends `kid="admin-prod"`. Should the server automatically read that secret and verify with the admin key?  
+**Answer:** **No.** `kid` is untrusted input; lookup must be constrained to the server-determined purpose, tenant, environment, and valid key state.
 
-**Câu 4.** Ứng dụng lưu riêng khóa dẫn xuất `K_webhook`, không có root. Có thể từ đó suy ra `K_session` nếu HKDF được dùng đúng không?  
-**Trả lời:** Trong mô hình mật mã dự kiến, **không thể thực tế suy ra** khóa khác từ một subkey. Nhưng **lộ root** cho phép dẫn xuất tất cả subkey, nên root cần mức bảo vệ cao hơn.
+**Question 4.** An application stores only the derived key `K_webhook`, without the root. Can `K_session` be derived from it if HKDF was used properly?  
+**Answer:** Under the expected cryptographic model, **it is infeasible to derive** another key from one subkey. However, **compromising the root** allows deriving all subkeys, so the root requires stronger protection.
 
-**Câu 5.** Một webhook có tag đúng nhưng timestamp cũ và nonce đã được xử lý. Nhận lại hay từ chối?  
-**Trả lời:** **Từ chối** theo chính sách chống replay; MAC hợp lệ không đủ để chấp nhận lại nghiệp vụ.
+**Question 5.** A webhook has a valid tag, but its timestamp is old and its nonce has already been processed. Accept or reject?  
+**Answer:** **Reject** per replay-protection policy; a valid MAC alone is not enough to re-accept business processing.
 
-**Câu 6.** Khi rotate root HKDF, giữ nguyên `info` nhưng dùng root mới. Các subkey có giống bản cũ không?  
-**Trả lời:** **Không**, HKDF cho kết quả phụ thuộc root/PRK, salt, info và length. Cần quản lý version và cửa sổ chuyển đổi.
+**Question 6.** When rotating the HKDF root, `info` stays the same while a new root is used. Will the subkeys match the old ones?  
+**Answer:** **No**, HKDF output depends on root/PRK, salt, info, and length. Versions and transition windows must be managed.
 
-**Câu 7.** Một secret 32 byte được in thành Base64 để đưa vào log. Có an toàn vì người đọc không thấy byte gốc không?  
-**Trả lời:** **Không.** Base64 có thể decode trực tiếp thành đúng 32 byte khóa. Log đã làm lộ secret.
+**Question 7.** A 32-byte secret is printed as Base64 into a log. Is that safe because readers cannot see the raw bytes?  
+**Answer:** **No.** Base64 decodes directly back to the exact 32 key bytes. The log has leaked the secret.
 
-**Câu 8.** HMAC hợp lệ từ Partner A chứng minh chắc chắn cá nhân Alice ở Partner A đã ký chưa?  
-**Trả lời:** **Không.** Mọi người/hệ thống biết shared key đều có thể tạo MAC; muốn gắn danh tính cụ thể cần cơ chế khóa và xác thực thích hợp.
+**Question 8.** Does a valid HMAC from Partner A prove with certainty that the individual Alice at Partner A signed it?  
+**Answer:** **No.** Any person or system knowing the shared key can create the MAC; attributing to a specific identity requires appropriate keys and authentication mechanisms.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Sinh khóa bằng nguồn ngẫu nhiên mật mã, giữ khóa trong phạm vi quyền tối thiểu, tách khóa thật sự theo mục đích, ràng buộc ngữ cảnh trong những byte được MAC, quản lý key ID và phiên bản, và có quy trình rotate/thu hồi.** HMAC-SHA256 là một primitive hữu ích; toàn bộ quy trình quản lý khóa và xác minh mới quyết định liệu ứng dụng có thực sự chống giả mạo thông điệp hay không.
+**Generate keys with a cryptographic random source, keep keys under least privilege, truly separate keys by purpose, bind context in the MACed bytes, manage key IDs and versions, and maintain rotation/revocation procedures.** HMAC-SHA256 is a useful primitive; the complete key management and verification workflow is what determines whether the application truly resists message forgery.

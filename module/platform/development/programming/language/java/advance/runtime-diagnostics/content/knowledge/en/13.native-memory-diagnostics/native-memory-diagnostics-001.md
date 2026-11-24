@@ -1,154 +1,154 @@
-# 13.1. Phân biệt không gian địa chỉ reserved, bộ nhớ committed và RSS
+# 13.1. Distinguishing Reserved Address Space, Committed Memory, and RSS
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn sẽ:
+After this lesson, you will:
 
-- Phân biệt **reserved virtual address space**, **committed memory** và **Resident Set Size (RSS)**.
-- Hiểu vì sao một JVM có `-Xmx` vài GiB vẫn có thể có RSS nhỏ và vì sao RSS có thể cao hơn số NMT committed.
-- Đọc đúng Native Memory Tracking (NMT), các số liệu heap, Linux `VmSize`/`VmRSS`/`smaps_rollup` và bộ nhớ container.
-- Kết hợp các chỉ số để điều tra native memory tăng, áp lực bộ nhớ hoặc OOM mà không nhầm “đã giữ địa chỉ”, “đã commit” với “đang nằm trong RAM”.
+- Distinguish **reserved virtual address space**, **committed memory**, and **Resident Set Size (RSS)**.
+- Understand why a JVM with a multi-GiB `-Xmx` can still have a small RSS, and why RSS can be higher than NMT committed.
+- Correctly read Native Memory Tracking (NMT), heap metrics, Linux `VmSize`/`VmRSS`/`smaps_rollup`, and container memory.
+- Combine metrics to investigate native memory growth, memory pressure, or OOM without confusing "address reserved", "committed", and "resident in RAM".
 
-Ví dụ Java chạy trên **Java 17+**. Các lệnh `/proc` và cgroup dành cho **Linux**; tên và ý nghĩa các chỉ số OS khác nhau theo nền tảng.
+Java examples run on **Java 17+**. The `/proc` and cgroup commands are for **Linux**; OS metric names and meanings vary by platform.
 
-## 1. Ba lớp đo bộ nhớ là ba câu hỏi khác nhau
+## 1. Three Memory Measurement Layers Are Three Different Questions
 
-### 1.1. Reserved: JVM đã giữ chỗ bao nhiêu địa chỉ ảo?
+### 1.1. Reserved: How Much Virtual Address Space Has the JVM Reserved?
 
-**Reserved** nghĩa là một khoảng trong **virtual address space** của tiến trình đã được dành cho một mục đích. Nó không tự chứng minh có đủ lượng RAM vật lý tương ứng đang sử dụng.
+**Reserved** means a range in the process's **virtual address space** has been set aside for a purpose. It does not by itself prove that a corresponding amount of physical RAM is in use.
 
-Ví dụ, với `-Xmx4g`, HotSpot thường **reserve** một vùng địa chỉ ảo gần 4 GiB cho Java heap tối đa. Nếu JVM mới chạy và heap chỉ cần vài trăm MiB, phần lớn vùng reserve chưa cần commit hoặc touch. Trên hệ 64-bit, không gian địa chỉ ảo lớn nên một reservation vài GiB có thể bình thường.
+For example, with `-Xmx4g`, HotSpot typically **reserves** a virtual address region near 4 GiB for the maximum Java heap. If the JVM has just started and the heap only needs a few hundred MiB, most of the reserved region does not need to be committed or touched yet. On 64-bit systems, the virtual address space is large, so a reservation of several GiB can be normal.
 
-Các vùng có thể reserve đáng kể gồm Java heap, compressed class space, code cache, stack của platform thread và các mapping phục vụ GC. Một vùng class space giữ trước 1 GiB **không** có nghĩa metadata lớp đang ăn 1 GiB RAM.
+Regions that can reserve significant address space include the Java heap, compressed class space, code cache, platform thread stacks, and GC-related mappings. A class space reserving 1 GiB up front does **not** mean class metadata is consuming 1 GiB of RAM.
 
-Reserved vẫn có chi phí/giới hạn về **địa chỉ ảo**. Tiến trình 32-bit, giới hạn virtual memory (`ulimit -v` trên Linux), chính sách memory overcommit, bố trí/fragmentation của address space hoặc mapping khác có thể khiến reserve thất bại, ngay cả khi máy còn RAM. Vì vậy “không tốn RAM ngay” không có nghĩa “không bao giờ có rủi ro”.
+Reserved still carries **virtual address** costs and limits. 32-bit processes, virtual memory limits (`ulimit -v` on Linux), memory overcommit policies, address space layout/fragmentation, or other mappings can cause a reservation to fail even when the machine still has free RAM. Thus, "not consuming RAM immediately" does not mean "never carries risk".
 
-### 1.2. Committed: phần JVM đã chuẩn bị để sử dụng
+### 1.2. Committed: The Portion the JVM Has Prepared for Use
 
-Trong **HotSpot Native Memory Tracking (NMT)**, `committed` phản ánh phần memory đã được JVM commit/cấp phát để có thể sử dụng. Với mapping, nó thường là phần đã được đưa vào trạng thái sử dụng từ vùng giữ chỗ; với cấp phát `malloc` mà NMT theo dõi, kích thước allocated thường được tính là cả reserved và committed.
+In **HotSpot Native Memory Tracking (NMT)**, `committed` reflects the memory that the JVM has committed/allocated so it can be used. For mappings, it is typically the portion brought into usable state from a reserved region; for `malloc` allocations tracked by NMT, the allocated size is typically counted as both reserved and committed.
 
-Điều quan trọng:
+Key points:
 
-- **Committed không đồng nghĩa resident**. Hệ điều hành có thể dùng *demand paging*: trang được hỗ trợ bằng RAM khi được truy cập (*first touch*), thay vì cấp đủ RAM ngay ở thời điểm JVM commit.
-- Trang đã được sử dụng có thể bị chuyển sang swap hoặc bị reclaim tùy OS/chính sách; committed vẫn không phải một ảnh chụp số byte RAM đang nằm trong tiến trình.
-- Với cùng một vùng NMT, thông thường `reserved >= committed`. Nhưng số committed này **không phải tổng RAM tiến trình**.
-- Từ “committed” có thể mang nghĩa khác ở hệ điều hành: **HotSpot NMT committed** không phải số giống hệt Windows *Commit Size* hay Linux `Committed_AS`.
+- **Committed does not mean resident.** The OS may use *demand paging*: pages are backed by RAM when accessed (*first touch*), rather than allocating full RAM immediately when the JVM commits them.
+- Pages that have been used can be moved to swap or reclaimed depending on the OS/policy; committed is still not a snapshot of bytes of RAM currently held by the process.
+- For the same NMT region, normally `reserved >= committed`. However, this committed figure is **not total process RAM**.
+- The term "committed" can mean different things at the OS level: **HotSpot NMT committed** is not the exact same number as Windows *Commit Size* or Linux `Committed_AS`.
 
-Đừng nhầm committed với **Java heap used**. Heap committed là phần JVM đã cấp cho heap; heap used là phần đang dùng cho đối tượng tại một thời điểm và thường thấp hơn. JVM có thể tiếp tục giữ heap committed sau khi garbage collection giải phóng đối tượng.
+Do not confuse committed with **Java heap used**. Heap committed is the portion the JVM has allocated for the heap; heap used is the portion currently holding objects at a given time and is usually lower. The JVM may continue holding committed heap after garbage collection frees objects.
 
-### 1.3. RSS: trang nào hiện đang ở RAM vật lý?
+### 1.3. RSS: Which Pages Are Currently in Physical RAM?
 
-**Resident Set Size (RSS)** là dung lượng các trang của tiến trình **đang hiện diện trong RAM vật lý** lúc đo.
+**Resident Set Size (RSS)** is the amount of a process's pages **currently present in physical RAM** at the time of measurement.
 
-Trên Linux, `VmRSS` được tạo từ ba nhóm:
+On Linux, `VmRSS` is composed of three groups:
 
 ```text
 VmRSS = RssAnon + RssFile + RssShmem
 ```
 
-- **RssAnon**: các trang resident dạng anonymous, chẳng hạn heap và stack.
-- **RssFile**: các trang resident của file mappings, như mã thư viện động và file được map.
-- **RssShmem**: các trang của shared memory đang resident.
+- **RssAnon**: anonymous resident pages, such as heap and stacks.
+- **RssFile**: resident pages of file mappings, such as shared library code and memory-mapped files.
+- **RssShmem**: resident pages of shared memory.
 
-RSS **bao gồm cả các trang shared** được map vào tiến trình, nên không có nghĩa toàn bộ đó là RAM riêng độc quyền. Nếu hai JVM cùng sử dụng một trang thư viện, nó có thể được tính vào RSS của cả hai. Khi cần chia sẻ phần dùng chung theo tỷ lệ, dùng **PSS (Proportional Set Size)** trong `smaps_rollup`.
+RSS **includes shared pages** mapped into the process, so not all of it represents exclusive private RAM. If two JVMs use the same library page, it may be counted in the RSS of both. When you need to apportion shared memory proportionally, use **PSS (Proportional Set Size)** in `smaps_rollup`.
 
-RSS không bao gồm các trang hiện bị swap ra khỏi RAM. Các trường `VmRSS` trong `/proc/<PID>/status` là số liệu nhanh và có thể không hoàn toàn chính xác khi đối chiếu ở mức trang; `/proc/<PID>/smaps_rollup` có breakdown hữu ích hơn khi cần phân tích kỹ.
+RSS does not include pages currently swapped out of RAM. The `VmRSS` fields in `/proc/<PID>/status` are quick figures and may not be completely exact when reconciled at the page level; `/proc/<PID>/smaps_rollup` provides a more useful breakdown for detailed analysis.
 
-## 2. Reserve, commit và resident liên hệ với nhau thế nào?
+## 2. How Reserve, Commit, and Resident Relate
 
-Với **một vùng mapping** theo mô hình đơn giản:
+For **a single mapping region** in a simplified model:
 
 ```text
 Reserve address range
     |
-    +--> JVM có một khoảng địa chỉ ảo dành cho vùng memory
+    +--> JVM has a virtual address range set aside for the memory region
             |
             v
          Commit
             |
-            +--> phần memory được JVM/OS cho phép sử dụng
+            +--> portion of memory made usable by JVM/OS
                     |
                     v
                 Access / first touch
                     |
-                    +--> hệ điều hành đưa các trang cần thiết vào RAM
-                          (về sau có thể reclaim/swap)
+                    +--> OS brings needed pages into RAM
+                          (later may be reclaimed/swapped)
 ```
 
-Đây là **mô hình tiến trình**, không phải công thức chuyển đổi trực tiếp giữa các bộ đếm. Hệ điều hành có thể cấp phát sớm, map file, dùng trang chia sẻ, thực hiện copy-on-write hoặc thay đổi trạng thái resident sau khi commit. Cần phân biệt:
+This is a **process flow model**, not a direct conversion formula between counters. The OS may preallocate, map files, use shared pages, perform copy-on-write, or change resident status after commit. Distinguish carefully:
 
-- **NMT reserved / committed:** báo cáo theo phạm vi bộ cấp phát mà **HotSpot NMT theo dõi**.
-- **Linux VmSize / VSZ / VIRT:** kích thước **toàn bộ không gian địa chỉ ảo** của tiến trình theo OS.
-- **Linux VmRSS / RSS:** các trang của **toàn tiến trình** hiện resident, gồm cả file mappings và shared pages.
+- **NMT reserved / committed:** reported within the scope of allocators tracked by **HotSpot NMT**.
+- **Linux VmSize / VSZ / VIRT:** size of the **entire virtual address space** of the process according to the OS.
+- **Linux VmRSS / RSS:** pages of the **entire process** currently resident, including file mappings and shared pages.
 
-NMT không bao phủ mọi cấp phát trong process (đặc biệt có thể bỏ sót thư viện native bên thứ ba/JNI và một số thành phần thư viện JDK). Vì thế **NMT reserved không bắt buộc bằng VmSize**, và **NMT committed không bắt buộc lớn hơn hoặc nhỏ hơn RSS**.
+NMT does not cover every allocation in the process (in particular, it can miss third-party/JNI native libraries and some JDK library components). Therefore, **NMT reserved does not have to equal VmSize**, and **NMT committed does not have to be larger or smaller than RSS**.
 
-### Một snapshot minh họa
+### An Illustrative Snapshot
 
-| Chỉ số | Số giả định | Có nghĩa là gì? |
+| Metric | Hypothetical Value | What Does It Mean? |
 |---|---:|---|
-| NMT Java Heap reserved | 4.096 MiB | Địa chỉ ảo giữ chỗ cho phần heap tối đa |
-| NMT Java Heap committed | 512 MiB | Phần heap đã commit |
-| NMT Total reserved | 5.400 MiB | Tổng vùng được NMT theo dõi đã reserve |
-| NMT Total committed | 760 MiB | Tổng vùng được NMT theo dõi đã commit |
-| Linux VmSize | 7.100 MiB | Tất cả mappings/địa chỉ ảo của tiến trình |
-| Linux VmRSS | 630 MiB | Các trang hiện resident theo OS |
+| NMT Java Heap reserved | 4,096 MiB | Virtual addresses reserved for maximum heap |
+| NMT Java Heap committed | 512 MiB | Portion of heap committed |
+| NMT Total reserved | 5,400 MiB | Total NMT-tracked regions reserved |
+| NMT Total committed | 760 MiB | Total NMT-tracked regions committed |
+| Linux VmSize | 7,100 MiB | All mappings/virtual addresses of the process |
+| Linux VmRSS | 630 MiB | Currently resident pages according to the OS |
 
-Những giá trị trên **hoàn toàn có thể cùng tồn tại**. Không được tính `5.400 - 630` MiB rồi gọi kết quả là “RAM đã giữ mà chưa sử dụng”. Cũng không được xem `760 - 630` MiB là “swap” hoặc bộ nhớ rò rỉ: chúng đo những phạm vi khác nhau.
+These values **can completely coexist**. Do not compute `5,400 - 630` MiB and call the result "reserved RAM not yet used". Likewise, do not treat `760 - 630` MiB as "swap" or leaked memory: they measure different scopes.
 
-Một số kịch bản:
+Several scenarios:
 
-- **Reserved tăng, RSS gần như giữ nguyên:** JVM mới giữ thêm address space, chưa nhất thiết sử dụng thêm RAM.
-- **Committed tăng, RSS chưa tăng tương ứng:** các trang được commit nhưng chưa được touch, hoặc OS còn thay đổi backing.
-- **RSS tăng, NMT committed không tăng:** trang đã commit trước đó vừa được touch; cũng có thể thư viện/native allocator/mmap bên ngoài phạm vi NMT tăng.
-- **RSS lớn hơn NMT committed:** file mappings, shared pages hoặc cấp phát của thành phần NMT không theo dõi có thể đóng góp vào RSS.
-- **RSS nhỏ hơn NMT committed:** phần committed chưa resident, đã bị swap/reclaim hoặc chịu cơ chế accounting khác.
+- **Reserved increases, RSS stays nearly flat:** the JVM just reserved more address space, without necessarily using more RAM.
+- **Committed increases, RSS has not increased correspondingly:** pages were committed but not yet touched, or the OS handles backing differently.
+- **RSS increases, NMT committed does not increase:** previously committed pages were just touched; or library/native allocator/mmap allocations outside NMT scope grew.
+- **RSS is larger than NMT committed:** file mappings, shared pages, or allocations from components not tracked by NMT may contribute to RSS.
+- **RSS is smaller than NMT committed:** committed portions are not yet resident, were swapped/reclaimed, or follow different accounting rules.
 
-## 3. Đặt cạnh các chỉ số Java heap
+## 3. Placing Next to Java Heap Metrics
 
-| Metric | Phạm vi | Không nên suy ra |
+| Metric | Scope | What Not to Infer |
 |---|---|---|
-| `-Xmx` / `Runtime.maxMemory()` | Giới hạn heap tối đa JVM có thể sử dụng | Không phải giới hạn RSS toàn process |
-| `-Xms` | Kích thước heap ban đầu được yêu cầu | Không đảm bảo RSS khởi tạo bằng đúng giá trị này |
-| `Runtime.totalMemory()` / heap `MemoryUsage.committed` | Phần Java heap đã được JVM cấp để sử dụng | Không phải mọi trang trong phần đó đã resident |
-| Heap `used` / `totalMemory() - freeMemory()` (xấp xỉ) | Bộ nhớ heap đang được dùng | Không gồm native memory của nhiều subsystem |
-| NMT `Total committed` | Các vùng HotSpot NMT theo dõi | Không phải OS RSS hay toàn bộ native allocations |
-| Process `RSS` | Trang RAM resident của toàn process | Không phải memory dùng riêng, không bao gồm swap |
+| `-Xmx` / `Runtime.maxMemory()` | Maximum heap limit the JVM can use | Not a whole-process RSS limit |
+| `-Xms` | Initial heap size requested | Does not guarantee startup RSS equals this value |
+| `Runtime.totalMemory()` / heap `MemoryUsage.committed` | Portion of Java heap allocated by the JVM for use | Not every page in that portion is resident |
+| Heap `used` / `totalMemory() - freeMemory()` (approx.) | Heap memory currently in use | Excludes native memory of many subsystems |
+| NMT `Total committed` | Regions tracked by HotSpot NMT | Not OS RSS or all native allocations |
+| Process `RSS` | Resident RAM pages of the whole process | Not private-only memory, excludes swap |
 
-Trong tình huống `-Xms256m -Xmx4g`, JVM có thể reserve heap gần 4 GiB nhưng commit ban đầu chỉ cỡ vài trăm MiB, tùy collector và cấu hình. Sau GC, **heap used** giảm nhưng **heap committed** có thể không giảm ngay vì JVM giữ vùng đó để cấp phát lại. Do vậy process RSS có thể tiếp tục cao.
+In a `-Xms256m -Xmx4g` setup, the JVM may reserve nearly 4 GiB for the heap while initially committing only a few hundred MiB, depending on collector and configuration. After GC, **heap used** drops, but **heap committed** may not drop immediately because the JVM retains that region for future allocations. Consequently, process RSS may remain high.
 
-Các thành phần ngoài Java heap bao gồm **metaspace**, code cache, GC structures, JIT compiler, native thread stacks, **DirectByteBuffer**, memory-mapped files, JNI/native libraries và allocator C/C++. Giới hạn `-Xmx` chỉ áp dụng cho heap, không phải tổng bộ nhớ JVM/process/container.
+Components outside the Java heap include **metaspace**, code cache, GC structures, JIT compiler, native thread stacks, **DirectByteBuffer**, memory-mapped files, JNI/native libraries, and C/C++ allocators. The `-Xmx` limit applies only to the heap, not to total JVM/process/container memory.
 
-Đối với thread, stack của **platform thread** có thể reserve một vùng ảo lớn hơn số trang thực dùng. Virtual thread không tương ứng một-một với OS stack; không được lấy số virtual thread nhân với kích thước stack platform thread để dự báo RSS.
+For threads, a **platform thread** stack may reserve a larger virtual region than the pages actually used. Virtual threads do not map one-to-one to OS stacks; do not multiply the number of virtual threads by platform thread stack size to predict RSS.
 
-## 4. Xem reserved và committed bằng HotSpot Native Memory Tracking
+## 4. Viewing Reserved and Committed with HotSpot Native Memory Tracking
 
-**Native Memory Tracking (NMT)** là chức năng chẩn đoán của HotSpot, gom thông tin cấp phát theo nhóm như `Java Heap`, `Class`, `Thread`, `Code`, `GC`, `Compiler`, `Internal`, `Other`. NMT bao gồm cả Java Heap trong `Total`; đừng hiểu “NMT Total” là “native **ngoài** Java heap”.
+**Native Memory Tracking (NMT)** is a HotSpot diagnostic feature that groups allocations into categories such as `Java Heap`, `Class`, `Thread`, `Code`, `GC`, `Compiler`, `Internal`, and `Other`. NMT includes Java Heap inside `Total`; do not misread "NMT Total" as "native **outside** Java heap".
 
-NMT **tắt mặc định** và phải bật khi khởi động JVM:
+NMT is **disabled by default** and must be enabled at JVM startup:
 
 ```bash
-# Chọn một trong hai chế độ:
+# Choose one of the two modes:
 java -XX:NativeMemoryTracking=summary -jar app.jar
 java -XX:NativeMemoryTracking=detail  -jar app.jar
 ```
 
-`summary` tổng hợp theo subsystem; `detail` bổ sung thông tin allocation site/vùng memory, có overhead cao hơn. Theo tài liệu Oracle, việc bật NMT có thể làm tăng chi phí thực thi khoảng **5–10%** tùy workload. NMT không thể bật lại bằng `jcmd` giữa vòng đời của một tiến trình vốn khởi động với NMT tắt.
+`summary` aggregates by subsystem; `detail` adds allocation site/memory region information and incurs higher overhead. According to Oracle documentation, enabling NMT can increase execution overhead by roughly **5–10%** depending on the workload. NMT cannot be enabled via `jcmd` mid-lifecycle for a process started with NMT disabled.
 
-Sau khi có PID (lấy bằng `jcmd -l` hoặc công cụ OS):
+Once you have the PID (obtained via `jcmd -l` or OS tools):
 
 ```bash
 jcmd -l
 jcmd <PID> VM.native_memory summary scale=MB
 jcmd <PID> VM.native_memory baseline
 
-# Sau khi chạy một workload và có khoảng quan sát:
+# After running a workload over an observation interval:
 jcmd <PID> VM.native_memory summary.diff scale=MB
 ```
 
-Thay `<PID>` bằng PID thật. Có thể dùng `detail`/`detail.diff` khi khởi động với mức `detail`. Nên lấy baseline **sau warm up** nếu mục đích là phát hiện native memory tăng bất thường.
+Replace `<PID>` with the actual PID. You can use `detail`/`detail.diff` when starting with `detail` level. Take the baseline **after warm-up** if the goal is to detect abnormal native memory growth.
 
-Một báo cáo có dạng khái quát như sau (**số chỉ minh họa**):
+A report has the following general structure (**numbers are illustrative only**):
 
 ```text
 Native Memory Tracking:
@@ -159,20 +159,20 @@ Total: reserved=5400MB, committed=760MB
 ...
 ```
 
-Cách đọc đúng:
+How to read it properly:
 
-1. `reserved` cao nhưng `committed` thấp ở `Java Heap` hoặc `Class` có thể chỉ là reservation được thiết kế trước.
-2. `mmap`, `malloc`, `arena` trong một category là **phân rã** của cấp phát, không mặc nhiên là các khoản cộng thêm vào `Total`. NMT `Total` cũng **đã gồm Java Heap**.
-3. `summary.diff` cho biết biến động mà **NMT nhìn thấy**, không bảo đảm bắt được native allocations do thư viện bên thứ ba/JNI, một số thư viện JDK hoặc toàn bộ phần class data sharing.
-4. NMT cung cấp evidence về JVM allocations, **không đo trực tiếp RSS của OS**. Muốn kết luận về RAM phải ghép thêm công cụ hệ điều hành.
+1. High `reserved` with low `committed` in `Java Heap` or `Class` may simply be pre-designed reservation.
+2. `mmap`, `malloc`, and `arena` inside a category are **breakdowns** of allocations, not amounts to add on top of `Total`. NMT `Total` also **already includes Java Heap**.
+3. `summary.diff` shows changes **visible to NMT**; it is not guaranteed to capture native allocations from third-party/JNI libraries, certain JDK libraries, or all class data sharing regions.
+4. NMT provides evidence about JVM allocations; **it does not directly measure OS RSS**. To draw conclusions about RAM, combine it with OS tools.
 
-Khi thấy NMT committed tăng, xác định **category nào tăng**. GC, JIT hoặc class loading có thể tăng trong warm up rồi ổn định. Growth qua nhiều vòng workload giống nhau, sau khi hệ thống đạt trạng thái ổn định, đáng điều tra hơn một lần tăng lúc khởi động.
+When you see NMT committed rising, identify **which category is growing**. GC, JIT, or class loading can grow during warm-up and then stabilize. Growth across multiple identical workload cycles, after the system has reached steady state, is more worth investigating than a one-time startup increase.
 
-## 5. Đo VmSize, RSS, PSS và Swap trên Linux
+## 5. Measuring VmSize, RSS, PSS, and Swap on Linux
 
-### 5.1. Đối chiếu số liệu process
+### 5.1. Cross-Checking Process Metrics
 
-Đặt PID thực vào biến Bash:
+Set the actual PID in a Bash variable:
 
 ```bash
 PID=12345
@@ -181,11 +181,11 @@ ps -p "$PID" -o pid,vsz,rss,comm
 grep -E '^(VmSize|VmRSS|RssAnon|RssFile|RssShmem|VmSwap):' "/proc/$PID/status"
 ```
 
-**Thay 12345 bằng PID JVM thật.** `VSZ`/`RSS` trong `ps` trên Linux thường tính bằng KiB. `VmSize`/`VmRSS` trong `status` cũng có đơn vị hiển thị. `VmRSS` là ước lượng kích thước resident; `VmSwap` phản ánh một phạm vi swap của tiến trình, không phải phần còn lại của `VmSize`.
+**Replace 12345 with the actual JVM PID.** `VSZ`/`RSS` in `ps` on Linux are typically reported in KiB. `VmSize`/`VmRSS` in `status` also display units. `VmRSS` is an estimate of resident size; `VmSwap` reflects a swapped scope of the process, not the remainder of `VmSize`.
 
-Đừng lấy `VSZ - RSS` và đặt tên là “RAM trống của JVM”. Đó chỉ là chênh giữa virtual address size và lượng resident theo OS; không nói trực tiếp được mức RAM còn có thể cấp phát.
+Do not compute `VSZ - RSS` and call it "free RAM of the JVM". That is merely the difference between virtual address size and OS-reported resident memory; it does not directly tell you how much RAM can still be allocated.
 
-### 5.2. Khi cần private/shared và PSS
+### 5.2. When You Need Private/Shared and PSS
 
 ```bash
 PID=12345
@@ -193,16 +193,16 @@ PID=12345
 grep -E '^(Rss|Pss|Private_Clean|Private_Dirty|Shared_Clean|Shared_Dirty|Swap):' "/proc/$PID/smaps_rollup"
 ```
 
-- `Rss`: tổng các trang resident của mappings.
-- `Pss`: memory resident được phân bổ theo tỷ lệ chia sẻ, hữu ích khi so nhiều process.
-- `Private_Clean`/`Private_Dirty`: trang thuộc riêng tiến trình; `Shared_Clean`/`Shared_Dirty`: trang chia sẻ.
-- `Swap`: các trang đã swap theo phạm vi bộ đếm.
+- `Rss`: total resident pages across mappings.
+- `Pss`: resident memory apportioned by sharing ratio, useful when comparing multiple processes.
+- `Private_Clean`/`Private_Dirty`: pages belonging exclusively to the process; `Shared_Clean`/`Shared_Dirty`: shared pages.
+- `Swap`: swapped pages within the counter's scope.
 
-`smaps_rollup` là cách đọc breakdown thuận tiện hơn `smaps` khi chỉ cần tổng; nhưng vẫn có chi phí truy vấn và có thể yêu cầu quyền truy cập phù hợp. Các số OS có thể thay đổi liên tục do workload và kernel, nên khi đối chiếu cần lấy mẫu gần cùng thời điểm.
+`smaps_rollup` is a more convenient way to read the breakdown than `smaps` when you only need totals; however, it still has query overhead and may require appropriate permissions. OS figures can change continuously due to workload and kernel activity, so sample near the same point in time when cross-referencing.
 
-### 5.3. Container memory không bằng Java RSS
+### 5.3. Container Memory Does Not Equal Java RSS
 
-Ở **cgroup v2**, `memory.current` đếm bộ nhớ đang được tính cho cgroup, có thể gồm anonymous memory, page cache, kernel structures và memory của **nhiều tiến trình**. Nó không phải RSS của riêng Java.
+In **cgroup v2**, `memory.current` counts memory charged to the cgroup, which can include anonymous memory, page cache, kernel structures, and memory of **multiple processes**. It is not Java's RSS alone.
 
 ```bash
 cat /sys/fs/cgroup/memory.current
@@ -210,15 +210,15 @@ cat /sys/fs/cgroup/memory.max
 cat /sys/fs/cgroup/memory.events
 ```
 
-Đường dẫn trên phổ biến trong container dùng cgroup v2; thực tế còn phụ thuộc vị trí cgroup và namespace. Nếu container bị OOM kill, cần xem **cgroup usage/limit/events**, heap, NMT, RSS/PSS, page cache và các tiến trình cùng cgroup. JVM có thể hết giới hạn container mặc dù heap `used` còn thấp.
+These paths are common in containers using cgroup v2; in practice they depend on cgroup location and namespaces. If a container is OOM-killed, examine **cgroup usage/limit/events**, heap, NMT, RSS/PSS, page cache, and other processes in the same cgroup. The JVM can hit the container limit even when heap `used` is still low.
 
-**Windows/macOS:** Các metric như *Virtual Size*, *Working Set* và *Commit Size/Private Bytes* có hợp đồng OS riêng. Windows *Commit Size* không phải HotSpot NMT `committed`; working set có thể có shared pages. Luôn ghi kèm tên hệ điều hành, công cụ và metric cụ thể khi so sánh giữa môi trường.
+**Windows/macOS:** Metrics like *Virtual Size*, *Working Set*, and *Commit Size/Private Bytes* have their own OS contracts. Windows *Commit Size* is not HotSpot NMT `committed`; working set can include shared pages. Always record the OS, tool, and exact metric name when comparing across environments.
 
-## 6. Thực nghiệm Java: Java heap và direct native buffer
+## 6. Java Experiment: Java Heap and Direct Native Buffer
 
-Ví dụ này in giới hạn/committed/used của **Java heap**, sau đó tạo một `DirectByteBuffer` 64 MiB ngoài heap. Chương trình ghi vào từng khoảng 4 KiB để truy cập các trang của buffer, rồi dừng cho phép đo NMT/RSS từ terminal khác.
+This example prints the limit/committed/used of the **Java heap**, then allocates a 64 MiB `DirectByteBuffer` outside the heap. The program writes at every 4 KiB interval to touch the buffer's pages, then pauses so you can measure NMT/RSS from another terminal.
 
-Tạo tệp **`NativeMemoryLayersDemo.java`**:
+Create **`NativeMemoryLayersDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -248,14 +248,14 @@ public class NativeMemoryLayersDemo {
 }
 ```
 
-Biên dịch/chạy Java 17+:
+Compile/run on Java 17+:
 
 ```bash
 javac NativeMemoryLayersDemo.java
 java -Xms64m -Xmx256m -XX:NativeMemoryTracking=summary NativeMemoryLayersDemo
 ```
 
-Ví dụ đã được biên dịch và thực thi với **OpenJDK 24**. PID, heap committed và heap used có thể khác theo lần chạy/JDK. Một lần kiểm tra nhận `Heap max MiB: 256` và `Heap committed MiB: 66`; các giá trị này **không phải stdout cố định**. Những dòng sau là ổn định:
+This example was compiled and run with **OpenJDK 24**. PID, heap committed, and heap used may vary across runs/JDKs. One test run printed `Heap max MiB: 256` and `Heap committed MiB: 66`; these values are **not fixed stdout**. The following lines are stable:
 
 ```text
 Direct buffer touched: 64 MiB
@@ -263,75 +263,75 @@ Press Enter to exit.
 First direct byte: 1
 ```
 
-Khi chương trình dừng ở dòng “Press Enter”, mở terminal khác và thay PID:
+While the program pauses at "Press Enter", open another terminal and substitute the PID:
 
 ```bash
 jcmd <PID> VM.native_memory summary scale=MB
 
-# Chỉ trên Linux:
+# Linux only:
 grep -E '^(VmSize|VmRSS|RssAnon|RssFile|RssShmem):' /proc/<PID>/status
 grep -E '^(Rss|Pss|Private_Dirty|Swap):' /proc/<PID>/smaps_rollup
 ```
 
-Trong những lệnh minh họa này, `<PID>` là **placeholder phải thay** bằng số PID; khi dùng Bash có thể viết `/proc/$PID/status` sau khi gán biến `PID` như mục 5.
+In these illustrative commands, `<PID>` is a **placeholder to replace** with the PID number; in Bash you can write `/proc/$PID/status` after assigning the `PID` variable as in section 5.
 
-Quan sát:
+Observations:
 
-- `Heap max` gần `-Xmx`, trong khi `Heap committed` có thể nhỏ hơn đáng kể.
-- Direct buffer nằm **ngoài Java heap**, vì thế heap `used` không tăng tương ứng 64 MiB.
-- Việc touch trang có thể làm resident memory tăng, nhưng **không cam kết RSS tăng đúng 64 MiB**: kết quả chịu page size, allocator, trạng thái trang trước đó, tính toán RSS và hoạt động JVM khác.
-- NMT có thể ghi nhận native allocation của một số đường cấp phát; **category cụ thể phụ thuộc JDK**, và không được coi NMT là bộ đếm đầy đủ mọi direct/JNI/native library allocation.
-- Biến `direct` vẫn được dùng sau lúc chờ, nên buffer còn reachable trong thời gian quan sát. Nhấn **Enter** để chương trình in `First direct byte: 1` rồi kết thúc.
+- `Heap max` is close to `-Xmx`, while `Heap committed` can be noticeably smaller.
+- The direct buffer lives **outside the Java heap**, so heap `used` does not increase by 64 MiB.
+- Touching pages can raise resident memory, but **does not guarantee RSS increases by exactly 64 MiB**: the outcome depends on page size, allocator, prior page state, RSS accounting, and other JVM activity.
+- NMT may record native allocations for certain allocation paths; the **specific category depends on the JDK**, and NMT must not be treated as a complete counter for every direct/JNI/native library allocation.
+- The `direct` variable is still used after the pause, so the buffer remains reachable during observation. Press **Enter** so the program prints `First direct byte: 1` and exits.
 
-Ví dụ cố tình touch toàn bộ buffer để minh họa paging. Trong ứng dụng thực, không nên tự ý touch mọi trang chỉ để đẩy RSS lên.
+This example intentionally touches the entire buffer to demonstrate paging. In real applications, do not arbitrarily touch every page just to push RSS up.
 
-## 7. Phân tích số đo theo triệu chứng
+## 7. Analyzing Measurements by Symptom
 
-| Quan sát | Hướng kiểm tra | Dữ liệu cần lấy |
+| Observation | Investigation Direction | Data to Collect |
 |---|---|---|
-| `VmSize`/`VSZ` rất lớn, RSS nhỏ | Có thể có heap/class-space/stack reservation lớn hoặc mapping đặc thù collector | NMT reserved/committed theo category, `/proc/<PID>/maps` |
-| Reserved tăng mạnh, committed ổn định | JVM mới reserve address space | NMT diff, giới hạn virtual address |
-| Committed tăng, RSS không đổi ngay | Chưa first touch hoặc có cơ chế paging khác | NMT diff, RSS/PSS theo thời gian, page faults |
-| RSS tăng, NMT committed ít thay đổi | Trang đã commit vừa được touch, mmap/native library ngoài NMT, allocator giữ cache | `smaps_rollup`, OS profiler, native allocation tracing |
-| Heap `used` giảm sau GC, RSS vẫn cao | Heap còn committed, native allocator giữ memory, direct/mapped memory khác | Heap committed, NMT category, RSS/PSS sau GC |
-| Java heap không lớn nhưng container OOM | Off-heap/native, page cache, kernel memory, tiến trình khác, cgroup limit | `memory.current`/`memory.stat`/`memory.events` và JVM metrics |
-| NMT category tăng qua nhiều vòng workload | Native growth hợp lệ hoặc leak | Baseline sau warm up, cùng tải, NMT detail/call sites |
-| NMT không tăng nhưng RSS liên tục tăng | Vùng NMT không theo dõi hoặc trang đã committed bắt đầu resident | OS maps/smaps, JNI/native profiler, shared/file mapping |
+| Very large `VmSize`/`VSZ`, small RSS | Possible large heap/class-space/stack reservation or collector-specific mappings | NMT reserved/committed by category, `/proc/<PID>/maps` |
+| Reserved jumps sharply, committed stable | JVM just reserved address space | NMT diff, virtual address limits |
+| Committed rises, RSS does not change immediately | Not yet first-touched or different paging behavior | NMT diff, RSS/PSS over time, page faults |
+| RSS rises, NMT committed barely changes | Previously committed pages just touched, mmap/native library outside NMT, allocator caching | `smaps_rollup`, OS profiler, native allocation tracing |
+| Heap `used` drops after GC, RSS stays high | Heap still committed, native allocator retaining memory, other direct/mapped memory | Heap committed, NMT categories, RSS/PSS after GC |
+| Java heap not large but container OOMs | Off-heap/native, page cache, kernel memory, other processes, cgroup limit | `memory.current`/`memory.stat`/`memory.events` and JVM metrics |
+| NMT category grows across multiple workload cycles | Legitimate native growth or leak | Post-warm-up baseline, identical load, NMT detail/call sites |
+| NMT flat while RSS climbs steadily | Untracked NMT regions or committed pages becoming resident | OS maps/smaps, JNI/native profiler, shared/file mappings |
 
-Để xác định leak, theo dõi **xu hướng sau warm up và qua nhiều vòng workload tương đương**. JIT compile, class loading, pool, cache và GC có thể làm memory tăng bình thường lúc đầu, rồi ổn định. Một snapshot cao chưa đủ kết luận.
+To identify a leak, track the **trend after warm-up across multiple equivalent workload cycles**. JIT compilation, class loading, pools, caches, and GC can legitimately raise memory at first and then plateau. A single high snapshot is not enough to conclude a leak.
 
-## 8. Tám sai lầm phổ biến
+## 8. Eight Common Misconceptions
 
-1. **“Reserved 8 GiB = đang chiếm 8 GiB RAM.”** Không đúng: reserved chủ yếu nói về address space.
-2. **“NMT committed 2 GiB thì RSS phải đúng 2 GiB.”** Không đúng: phạm vi NMT và OS resident khác nhau; trang committed có thể chưa resident, và RSS có thể gồm trang NMT không theo dõi.
-3. **“RSS là bộ nhớ riêng của một process.”** Không đúng: RSS có thể đếm trang shared của nhiều process; PSS và private breakdown hữu ích khi phân bổ.
-4. **“`-Xmx512m` nghĩa là JVM không thể dùng hơn 512 MiB trong container.”** Không đúng: ngoài heap còn metaspace, stack, GC, JIT, direct memory, JNI...
-5. **“GC xong, RSS bắt buộc giảm.”** Không đúng: heap/allocator có thể giữ vùng committed để tái sử dụng; OS cũng quyết định residency.
-6. **“NMT không tăng thì chắc chắn không có native leak.”** Không đúng: NMT không theo dõi đầy đủ thư viện native bên thứ ba và mọi cấp phát.
-7. **“`VmSize - VmRSS` là dung lượng RAM còn trống.”** Không đúng: phép trừ giữa virtual size và resident size không phải chỉ số RAM còn có thể sử dụng.
-8. **“Linux `Committed_AS` chính là NMT committed.”** Không đúng: `Committed_AS` là ước lượng commit charge toàn hệ thống theo cách kernel xét overcommit; NMT là accounting của một JVM.
+1. **"Reserved 8 GiB = occupying 8 GiB of RAM."** False: reserved primarily refers to address space.
+2. **"NMT committed is 2 GiB so RSS must be exactly 2 GiB."** False: NMT scope and OS resident scope differ; committed pages may not be resident, and RSS may include pages NMT does not track.
+3. **"RSS is private memory of a single process."** False: RSS can count shared pages across processes; PSS and private breakdowns help when apportioning.
+4. **"`-Xmx512m` means the JVM cannot use more than 512 MiB in a container."** False: beyond the heap there are metaspace, stacks, GC, JIT, direct memory, JNI, etc.
+5. **"After GC, RSS must drop."** False: the heap/allocator may keep committed regions for reuse; the OS also governs residency.
+6. **"If NMT is not growing, there is definitely no native leak."** False: NMT does not fully track third-party native libraries and every allocation.
+7. **"`VmSize - VmRSS` is free RAM remaining."** False: subtracting resident size from virtual size is not a measure of usable RAM left.
+8. **"Linux `Committed_AS` is the same as NMT committed."** False: `Committed_AS` is a system-wide commit charge estimate used by the kernel for overcommit accounting; NMT is per-JVM accounting.
 
-## 9. Checklist khi chẩn đoán memory
+## 9. Memory Diagnostics Checklist
 
-1. **Xác định phạm vi:** Java heap, HotSpot NMT, toàn process OS hay container/cgroup?
-2. **Đồng bộ thời điểm và đơn vị:** KiB/MiB/GiB; cùng PID, thời điểm, workload; snapshot hay diff.
-3. **Đặt đúng nhãn:** reserved (địa chỉ ảo), committed (mức cấp phát/commit), heap used, RSS/PSS (resident), swap.
-4. **Xem từng category NMT**; nhớ `Total` đã gồm `Java Heap` và các dòng con không được cộng trùng.
-5. **Khi process RSS/OOM bất thường:** đối chiếu heap, native allocator, mapped files, shared memory, cgroup và native code.
-6. **Để nhận diện leak:** baseline sau warm up, lặp workload, xem tăng trưởng còn tồn tại sau GC và sau khi hết tải.
+1. **Identify the scope:** Java heap, HotSpot NMT, entire OS process, or container/cgroup?
+2. **Align timing and units:** KiB/MiB/GiB; same PID, timestamp, workload; snapshot vs. diff.
+3. **Label accurately:** reserved (virtual addresses), committed (allocation/commit level), heap used, RSS/PSS (resident), swap.
+4. **Inspect each NMT category**; remember `Total` already includes `Java Heap` and sub-lines must not be double-counted.
+5. **When process RSS/OOM is abnormal:** cross-check heap, native allocators, mapped files, shared memory, cgroup, and native code.
+6. **To identify a leak:** take baseline after warm-up, repeat workload, check if growth persists after GC and after load stops.
 
-### Tự kiểm tra
+### Self-Check
 
-- Khi `-Xms256m -Xmx4g`, vì sao NMT Java Heap reserved có thể gần 4 GiB nhưng committed/RSS nhỏ?
-- Vì sao RSS có thể **cao hơn** NMT Total committed và cũng có thể **thấp hơn**?
-- Khi heap used giảm sau GC nhưng RSS đứng yên, cần xem thêm dữ liệu nào?
-- Vì sao cộng RSS của hai JVM chạy chung một thư viện không bằng tổng memory riêng của cả hai?
-- Nếu container bị OOM kill dù Java heap used thấp, cần khảo sát những vùng nào ngoài heap?
+- With `-Xms256m -Xmx4g`, why can NMT Java Heap reserved be near 4 GiB while committed/RSS are small?
+- Why can RSS be **higher** than NMT Total committed and also **lower**?
+- When heap used drops after GC but RSS stays flat, what additional data should you inspect?
+- Why does summing the RSS of two JVMs sharing a library not equal the sum of their private memory?
+- If a container is OOM-killed despite low Java heap used, which non-heap regions should you investigate?
 
-## Tài liệu chính thức
+## Official Documentation
 
-- [Oracle Java SE 21 — Native Memory Tracking](https://docs.oracle.com/en/java/javase/21/vm/native-memory-tracking.html): NMT summary/detail, phạm vi theo dõi, baseline và hạn chế.
+- [Oracle Java SE 21 — Native Memory Tracking](https://docs.oracle.com/en/java/javase/21/vm/native-memory-tracking.html): NMT summary/detail, tracking scope, baseline, and limitations.
 - [Oracle Java SE 21 — `jcmd`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `VM.native_memory`, `summary.diff`, `scale`.
-- [Oracle Java SE 21 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): các category trong NMT và cách điều tra.
-- [Linux kernel — `/proc` filesystem](https://www.kernel.org/doc/html/latest/filesystems/proc.html): `VmSize`, `VmRSS`, `RssAnon`, `RssFile`, `RssShmem`, `smaps_rollup` và PSS.
+- [Oracle Java SE 21 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): NMT categories and investigation methods.
+- [Linux kernel — `/proc` filesystem](https://www.kernel.org/doc/html/latest/filesystems/proc.html): `VmSize`, `VmRSS`, `RssAnon`, `RssFile`, `RssShmem`, `smaps_rollup`, and PSS.
 - [Linux kernel — cgroup v2](https://docs.kernel.org/admin-guide/cgroup-v2.html): `memory.current`, `memory.stat`, `memory.events`.

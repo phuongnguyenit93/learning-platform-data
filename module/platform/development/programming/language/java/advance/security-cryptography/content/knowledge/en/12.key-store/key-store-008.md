@@ -1,64 +1,64 @@
-# 12.8. Tạo, liệt kê, nhập, xuất và chuyển đổi kho bằng `keytool`
+# 12.8. Creating, Listing, Importing, Exporting, and Converting Stores with `keytool`
 
-## Mục tiêu
+## Objectives
 
-`keytool` là tiện ích dòng lệnh đi cùng JDK để **tạo và quản lý khóa, chứng chỉ X.509, certificate signing request (CSR) và Java KeyStore**. Trong thực tế, bạn dùng nó để tạo khóa cho môi trường thử nghiệm, xem loại entry/alias, xuất chứng chỉ **công khai**, nhập một chứng chỉ đáng tin, cập nhật certificate chain, hoặc chuyển kho cũ từ JKS sang PKCS12.
+`keytool` is the command-line utility bundled with the JDK to **create and manage keys, X.509 certificates, certificate signing requests (CSRs), and Java KeyStores**. In practice, you use it to generate keys for test environments, inspect entry types/aliases, export **public** certificates, import trusted certificates, update certificate chains, or migrate legacy stores from JKS to PKCS12.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt `PKCS12`, `JKS`, `PKCS11` và các loại entry `PrivateKeyEntry`, `SecretKeyEntry`, `trustedCertEntry`.
-2. Dùng `keytool -genkeypair` hoặc `-genseckey` để tạo kho phù hợp; `-list` để kiểm kê và `-printcert` để kiểm tra chứng chỉ.
-3. Dùng đúng `-exportcert`, `-importcert`, `-certreq` và `-importkeystore`; biết thao tác nào **không** đưa private key ra ngoài và thao tác nào có thể **sao chép private key**.
-4. Chuyển `JKS → PKCS12` và kiểm tra dữ liệu/alias/chứng chỉ sau chuyển; hiểu các vấn đề password, key password, định dạng, trust và automation.
-5. Áp dụng biện pháp an toàn tối thiểu: backup trước thao tác thay đổi, bảo vệ mật khẩu, xác thực fingerprint từ nguồn đáng tin và không chỉnh sửa truststore mặc định tùy tiện.
+1. Distinguish `PKCS12`, `JKS`, `PKCS11`, and the entry types `PrivateKeyEntry`, `SecretKeyEntry`, and `trustedCertEntry`.
+2. Use `keytool -genkeypair` or `-genseckey` to create the right store, `-list` for inventory, and `-printcert` to inspect certificates.
+3. Properly use `-exportcert`, `-importcert`, `-certreq`, and `-importkeystore`; know which operations **do not** export private keys and which can **copy private keys**.
+4. Convert `JKS → PKCS12` and verify data/aliases/certificates afterward; understand password, key-password, format, trust, and automation issues.
+5. Apply baseline safety practices: back up before modifying, protect passwords, verify fingerprints from trusted sources, and avoid arbitrary edits to the default truststore.
 
-Mọi ví dụ trong bài hướng đến **JDK 17+**; các lệnh đã được kiểm tra trên JDK có hỗ trợ những thuật toán được dùng. Các tập tin minh họa `*.p12`, `*.jks`, `*.pem` và `*.csr` là **dữ liệu học tập**, không nên coi chứng chỉ tự ký là chứng chỉ được CA công cộng tin cậy. Trong production, dùng CA/KMS/HSM và chính sách certificate/key lifecycle phù hợp.
+All examples target **JDK 17+**; commands were tested on a JDK supporting the algorithms used. The illustrative files `*.p12`, `*.jks`, `*.pem`, and `*.csr` are **study data**—never treat self-signed certificates as certificates trusted by public CAs. In production, use appropriate CAs/KMS/HSMs and certificate/key lifecycle policies.
 
-## 1. Nhận diện đúng mục tiêu trước khi gọi keytool
+## 1. Identify the Exact Target Before Invoking keytool
 
-`keytool` thao tác **alias và entry** của `KeyStore`, theo type/provider và quyền của người vận hành. Khi chạy CLI phải phân biệt ba loại dữ liệu được lưu:
+`keytool` operates on **`KeyStore` aliases and entries**, subject to type/provider and operator permissions. When running the CLI, distinguish the three kinds of stored data:
 
-- **PrivateKeyEntry**: private key và certificate chain; thường tạo bằng `-genkeypair`, dùng khi ký hoặc trình danh tính TLS.
-- **SecretKeyEntry**: secret key như AES; có thể tạo bằng `-genseckey` nếu store/provider hỗ trợ.
-- **trustedCertEntry**: một public certificate đã được quản trị viên **chủ động chấp thuận**; có thể tạo bằng `-importcert` dưới alias mới.
+- **PrivateKeyEntry**: private key and certificate chain; typically created via `-genkeypair`, used for signing or presenting TLS identity.
+- **SecretKeyEntry**: symmetric secret key such as AES; can be created via `-genseckey` if the store/provider supports it.
+- **trustedCertEntry**: a public certificate **intentionally approved** by an administrator; can be created via `-importcert` under a new alias.
 
-Các thao tác khác nhau về **tác động**: `-list` và `-printcert` đọc metadata; `-exportcert` chỉ xuất certificate công khai; còn `-importcert`, `-importkeystore`, `-changealias`, `-delete` hoặc lệnh tạo khóa **thay đổi kho, có thể thay cả trust policy hoặc sao chép private key**. Vì vậy cần kiểm tra alias, source certificate, password và backup trước khi dùng câu lệnh ghi. Đoạn tiếp theo tập trung thao tác CLI thực tế, không lặp bảng API quản lý entry.
+Operations differ in **impact**: `-list` and `-printcert` read metadata; `-exportcert` exports only public certificates; whereas `-importcert`, `-importkeystore`, `-changealias`, `-delete`, or key-generation commands **modify the store, and may alter trust policy or copy private keys**. Therefore, verify aliases, certificate provenance, passwords, and backups before running mutating commands. The sections below focus on practical CLI operations without repeating the entry-management API table.
 
-## 2. Các định dạng và lý do chỉ rõ `-storetype`
+## 2. Formats and Why `-storetype` Should Be Explicit
 
-| Loại kho | Mô tả | Lưu ý |
+| Store type | Description | Notes |
 | --- | --- | --- |
-| `PKCS12` | Định dạng cross-platform thường dùng cho private key, certificate và trong provider JDK hiện đại có thể chứa secret key | **Mặc định từ JDK 9** trong cấu hình OpenJDK/Oracle JDK thông thường; file thường mang đuôi `.p12` hoặc `.pfx` |
-| `JKS` | Định dạng kho Java lịch sử, riêng của Java | Gặp nhiều ở ứng dụng cũ; thường nên đánh giá migration sang PKCS12 |
-| `JCEKS` | Định dạng Java legacy hỗ trợ secret key | Tính tương thích và cơ chế bảo vệ khác PKCS12; không chọn chỉ vì tên quen thuộc |
-| `PKCS11` | API đến token/HSM thông qua provider, không mặc định là một file kho có thể copy | Có thể dùng `-storetype PKCS11 -keystore NONE` với provider/config đã được thiết lập; quyền và khả năng xuất key phụ thuộc thiết bị |
-| `Windows-MY`/provider khác | Keystore gắn với hệ điều hành/provider nếu được hỗ trợ | Không giả định mọi Java runtime/provider đều có |
+| `PKCS12` | Cross-platform format widely used for private keys, certificates, and on modern JDK providers can hold secret keys | **Default since JDK 9** in standard OpenJDK/Oracle JDK configs; files typically end in `.p12` or `.pfx` |
+| `JKS` | Historical Java-proprietary store format | Common in legacy apps; usually warrants planning migration to PKCS12 |
+| `JCEKS` | Legacy Java format supporting secret keys | Compatibility and protection mechanisms differ from PKCS12; do not pick merely out of familiarity |
+| `PKCS11` | API to tokens/HSMs via provider, not by default a copyable store file | Can use `-storetype PKCS11 -keystore NONE` with a configured provider/config; permissions and exportability depend on the device |
+| `Windows-MY`/other providers | OS/provider-tied keystores where supported | Never assume availability across all Java runtimes/providers |
 
-Java 17 thường có `KeyStore.getDefaultType()` là `pkcs12`. Tuy nhiên **đừng suy loại kho chỉ từ đuôi file**: đặt tên `legacy.jks` không tự biến nội dung thành JKS nếu `-storetype` để mặc định. Trong bài này mọi thao tác quan trọng đều ghi rõ `-storetype` để hạn chế mơ hồ.
+Java 17 typically reports `KeyStore.getDefaultType()` as `pkcs12`. However, **never infer store type solely from file extensions**: naming a file `legacy.jks` does not make its contents JKS if `-storetype` is left at default. Throughout this lesson, critical operations specify `-storetype` explicitly to eliminate ambiguity.
 
-Tên `PKCS12`/`JKS` có thể được nhận dạng không phân biệt hoa thường. Một số JDK/provider có khả năng tự phát hiện định dạng và đọc tương thích; điều đó **không** có nghĩa file được chuyển format. Việc chuyển format thực sự dùng `-importkeystore` và **xác minh kho đích** sau thao tác.
+Type names `PKCS12`/`JKS` can be matched case-insensitively. Some JDKs/providers auto-detect formats and read them compatibly; that **does not** mean the file was converted. Actual format conversion requires `-importkeystore` and **verifying the destination store** afterward.
 
-Các file `.crt`/`.cer`/`.pem` thường chứa **certificate công khai** hoặc chuỗi PEM, không phải kho private key chỉ nhờ tên đuôi. Còn file `.p12` là container có thể mang **private key**: đối xử như dữ liệu nhạy cảm ngay cả khi có mật khẩu.
+`.crt`/`.cer`/`.pem` files typically hold **public certificates** or PEM chains, not private key stores simply by extension. A `.p12` file is a container that may carry a **private key**: treat it as sensitive material even when password-protected.
 
-## 3. Danh sách lệnh cần biết
+## 3. Essential Commands to Know
 
-| Lệnh | Mục đích | Tác động điển hình |
+| Command | Purpose | Typical impact |
 | --- | --- | --- |
-| `keytool -genkeypair` | Tạo private/public key pair và self-signed certificate ban đầu | **Ghi** `PrivateKeyEntry` vào keystore |
-| `keytool -genseckey` | Tạo khóa bí mật đối xứng | **Ghi** `SecretKeyEntry` |
-| `keytool -list` / `-list -v` | Liệt kê alias, entry type, certificate chain và fingerprint | **Đọc** metadata |
-| `keytool -exportcert` | Xuất certificate của alias ra DER hoặc PEM (`-rfc`) | **Không xuất private key** |
-| `keytool -printcert` | Đọc thông tin certificate từ file/nguồn | **Đọc** certificate, không tự chứng minh trust |
-| `keytool -certreq` | Tạo CSR cho alias có private key | Tạo yêu cầu chứng chỉ; **chưa** phải certificate CA cấp |
-| `keytool -printcertreq` | Xem CSR | **Đọc** CSR |
-| `keytool -importcert` | Import trusted certificate hoặc CA reply | **Thay đổi truststore/certificate chain** theo alias |
-| `keytool -importkeystore` | Copy một hoặc nhiều entry sang kho đích; có thể chuyển type | **Có thể sao chép private/secret key**, cần xử lý như bí mật |
-| `keytool -changealias` | Đổi alias entry | Metadata có thể ảnh hưởng cấu hình ứng dụng |
-| `keytool -storepasswd` / `-keypasswd` | Đổi mật khẩu kho hoặc entry ở type/provider được hỗ trợ | Có thể làm ứng dụng không mở được kho nếu config chưa cập nhật |
-| `keytool -delete` | Xóa alias/entry | Có thể làm mất khả năng phục vụ/giải mã nếu chưa có backup |
-| `keytool -list -cacerts` | Xem truststore CA mặc định do JDK quản lý | Chỉ nên **đọc** khi điều tra |
+| `keytool -genkeypair` | Generate a private/public key pair and initial self-signed certificate | **Writes** `PrivateKeyEntry` to keystore |
+| `keytool -genseckey` | Generate a symmetric secret key | **Writes** `SecretKeyEntry` |
+| `keytool -list` / `-list -v` | List aliases, entry types, certificate chains, and fingerprints | **Reads** metadata |
+| `keytool -exportcert` | Export an alias's certificate in DER or PEM (`-rfc`) | **Does not export private keys** |
+| `keytool -printcert` | Display certificate details from a file/source | **Reads** certificate; does not prove trust |
+| `keytool -certreq` | Generate a CSR for an alias with a private key | Produces a certificate request; **not yet** a CA-issued certificate |
+| `keytool -printcertreq` | Inspect a CSR | **Reads** CSR |
+| `keytool -importcert` | Import a trusted certificate or CA reply | **Modifies truststore/certificate chain** by alias |
+| `keytool -importkeystore` | Copy one or more entries to a destination store; can convert type | **Can copy private/secret keys**, handle as sensitive |
+| `keytool -changealias` | Rename an entry alias | Metadata change that can affect app config |
+| `keytool -storepasswd` / `-keypasswd` | Change store or entry password on supported types/providers | Can prevent apps from opening the store if configs are not updated |
+| `keytool -delete` | Delete an alias/entry | Can cause loss of service or decryption capability if unbacked |
+| `keytool -list -cacerts` | Inspect the JDK-managed default CA truststore | Should only be **read** during investigation |
 
-Kiểm tra danh sách tùy JDK đang dùng:
+Check the command list on your active JDK:
 
 ```bash
 java -version
@@ -67,22 +67,22 @@ keytool -genkeypair -help
 keytool -importkeystore -help
 ```
 
-`keytool` từ JDK được chọn trên `PATH` có thể **khác phiên bản `java` chạy ứng dụng**. Hãy xác định `JAVA_HOME`/PATH và loại provider thực tế; khi cần chỉ rõ đường dẫn `$JAVA_HOME/bin/keytool` hoặc `%JAVA_HOME%\\bin\\keytool.exe` tương ứng hệ điều hành.
+The `keytool` on `PATH` may **differ in version from the `java` running your application**. Verify `JAVA_HOME`/PATH and actual providers; when necessary, invoke `$JAVA_HOME/bin/keytool` or `%JAVA_HOME%\\bin\\keytool.exe` explicitly for your OS.
 
-## 4. Chuẩn bị phòng thí nghiệm an toàn
+## 4. Setting Up a Safe Lab
 
-Thực hành trong một thư mục mới, **không dùng file keystore production**:
+Practice in a fresh directory, **never using production keystore files**:
 
 ```bash
 mkdir keytool-lab
 cd keytool-lab
 ```
 
-Mọi thao tác ở dưới giả định `keytool` đã có trên PATH, và người học có quyền tạo file trong thư mục này. Hãy chọn một mật khẩu riêng đủ dài cho lab; không dùng mật khẩu thật của cơ sở hạ tầng.
+Everything below assumes `keytool` is on `PATH` and you have write permissions in this directory. Choose a dedicated, sufficiently long password for the lab; never reuse real infrastructure passwords.
 
-### Nhập password mà không ghi trực tiếp vào command line
+### Supplying Passwords Without Writing Them Directly on the Command Line
 
-JDK 17 `keytool` hỗ trợ modifier **`:env`** hoặc **`:file`** sau các tùy chọn password:
+JDK 17 `keytool` supports the **`:env`** or **`:file`** modifiers on password options:
 
 ```text
 -storepass:env LAB_PASS
@@ -91,9 +91,9 @@ JDK 17 `keytool` hỗ trợ modifier **`:env`** hoặc **`:file`** sau các tùy
 -deststorepass:env LAB_PASS
 ```
 
-**`LAB_PASS` là tên biến môi trường**, không phải mật khẩu literal. Các ví dụ ở dưới giả định biến này đã được tạo. Nếu không muốn dùng env, có thể **bỏ hẳn** `-storepass:env LAB_PASS` ở nhiều lệnh để `keytool` hỏi password tương tác; việc này phù hợp hơn khi vận hành thủ công.
+**`LAB_PASS` is the environment variable name**, not a literal password. Examples below assume this variable is already set. If you prefer not to use env vars, you can **omit** `-storepass:env LAB_PASS` in many commands so `keytool` prompts interactively; this suits manual operations better.
 
-Một cách nhập password tạm **không hiển thị ký tự** trên PowerShell:
+One way to enter a temporary password **without echoing characters** in PowerShell:
 
 ```powershell
 $secret = Read-Host "Lab keystore password" -AsSecureString
@@ -104,62 +104,62 @@ try {
 } finally {
     [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer)
 }
-# Sau khi hoàn tất lab:
+# After completing the lab:
 # Remove-Item Env:LAB_PASS
 ```
 
-Hoặc trên **Bash** (không chạy block này trong PowerShell):
+Or in **Bash** (do not run this block in PowerShell):
 
 ```bash
 read -r -s -p "Lab keystore password: " LAB_PASS
 echo
 export LAB_PASS
-# Sau khi hoàn tất lab:
+# After completing the lab:
 # unset LAB_PASS
 ```
 
-**Lưu ý bảo mật:** biến môi trường vẫn có thể bị đọc trong một số bối cảnh (process inspection, crash dumps, child processes, môi trường CI). `:env` chỉ giúp tránh chèn password trực tiếp vào câu lệnh và shell history; **không phải secret vault**. Trong production, sử dụng cơ chế secret manager/credential provider phù hợp, đặt ACL cho file, kiểm soát thời gian sống của credential; không in env hoặc paste password vào log. Không chèn mật khẩu thật qua `-storepass plaintext` hoặc `-keypass plaintext` trong tài liệu/pipeline.
+**Security note:** environment variables can still be read in certain contexts (process inspection, crash dumps, child processes, CI environments). `:env` merely avoids embedding passwords directly in command arguments and shell history; **it is not a secret vault**. In production, use a secret manager/credential provider, apply file ACLs, bound credential lifetimes, and never print env vars or paste passwords into logs. Never embed real passwords via `-storepass plaintext` or `-keypass plaintext` in docs or pipelines.
 
-Với lab, chọn password ít nhất 6 ký tự theo yêu cầu của `keytool`; các môi trường thực nên đặt chính sách mạnh hơn, không dùng lại password nơi khác.
+For the lab, pick a password at least 6 characters long per `keytool`'s requirement; real environments should enforce stronger policies and never reuse passwords elsewhere.
 
-## 5. Tạo kho PKCS12 chứa private key và certificate
+## 5. Creating a PKCS12 Store with a Private Key and Certificate
 
-Lệnh tạo private/public RSA key pair, alias `service` và self-signed X.509 certificate 30 ngày dùng cho bài học:
+Command to generate an RSA private/public key pair, alias `service`, and a 30-day self-signed X.509 certificate for the lesson:
 
 ```bash
 keytool -genkeypair -alias service -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -validity 30 -dname "CN=demo.example.invalid, OU=Training, O=Example, C=VN" -keystore service.p12 -storetype PKCS12 -storepass:env LAB_PASS -keypass:env LAB_PASS
 ```
 
-**Giải thích từng tham số:**
+**Parameter breakdown:**
 
-- `-genkeypair`: tạo key pair và self-signed certificate ban đầu. Certificate tự ký **chưa tự động được tin cậy bởi browser/client**; chỉ là điểm bắt đầu học CSR hoặc kiểm tra API.
-- `-alias service`: tên entry; việc trùng alias trong cùng kho có thể gây lỗi hoặc cần xử lý theo loại thao tác. Dùng tên alias ổn định gắn với cấu hình ứng dụng.
-- `-keyalg RSA -keysize 2048`: chọn thuật toán/kích thước key cho lab. Hệ thống mới cần tuân theo policy bảo mật và hạn sử dụng key; RSA-2048 là thông số minh họa phù hợp cho nhiều test, không bảo đảm ứng dụng phù hợp mọi tiêu chuẩn/cryptoperiod.
-- `-sigalg SHA256withRSA`: thuật toán ký self-signed certificate trong lệnh này. Đừng nhầm với `RSASSA-PSS`; đây chỉ là cách ký chứng chỉ test.
-- `-validity 30`: số ngày hiệu lực của self-signed certificate lab, **không** đặt thời hạn bảo mật của private key hay chính sách key rotation.
-- `-dname ...`: subject distinguished name. `CN` không thay thế SAN và việc CA phát hành khi dùng TLS thật.
-- `-keystore service.p12 -storetype PKCS12`: tạo kho đúng type, không dựa vào extension.
-- `-storepass:env LAB_PASS -keypass:env LAB_PASS`: đọc password từ env. Dùng cùng password giúp tương thích phổ biến của PKCS12; không có nghĩa hai lớp bảo vệ hoàn toàn đồng nhất về chức năng.
+- `-genkeypair`: creates a key pair and initial self-signed certificate. A self-signed certificate **is not automatically trusted by browsers/clients**; it is only a starting point for learning CSRs or testing APIs.
+- `-alias service`: entry name; duplicate aliases in the same store can fail or require specific handling depending on the operation. Use stable alias names tied to application configuration.
+- `-keyalg RSA -keysize 2048`: algorithm/key size for the lab. New systems must follow security policies and key cryptoperiods; RSA-2048 is a common illustrative choice for tests, not a guarantee of compliance with every standard/cryptoperiod.
+- `-sigalg SHA256withRSA`: signature algorithm for the self-signed certificate in this command. Do not confuse with `RSASSA-PSS`; this is solely for signing the test certificate.
+- `-validity 30`: validity in days for the lab self-signed certificate, **not** the security lifetime of the private key or key rotation policy.
+- `-dname ...`: subject distinguished name. `CN` does not replace SANs or CA issuance for real TLS.
+- `-keystore service.p12 -storetype PKCS12`: creates the store with explicit type rather than relying on the extension.
+- `-storepass:env LAB_PASS -keypass:env LAB_PASS`: reads password from env. Using the same password matches common PKCS12 compatibility; it does not mean both protection layers are functionally identical.
 
-Kỳ vọng **không phụ thuộc nội dung key ngẫu nhiên**: file `service.p12` xuất hiện; entry `service` có loại **`PrivateKeyEntry`** và chứa một certificate chain ban đầu (thường là self-signed certificate duy nhất). Thời điểm tạo, serial/fingerprint và phần chi tiết public key khác nhau giữa các lần chạy; **không** sao chép fingerprint mẫu như hằng số.
+Expected outcome **independent of random key material**: `service.p12` is created; entry `service` has type **`PrivateKeyEntry`** and holds an initial certificate chain (typically the single self-signed certificate). Creation timestamps, serial/fingerprint, and public key details vary across runs; **never** hardcode sample fingerprints as constants.
 
-**Nếu muốn SAN trong chứng chỉ lab**, có thể tạo kho mới với `-ext "SAN=dns:demo.example.invalid"` trong lệnh `-genkeypair`. Đừng sửa trực tiếp `service.p12` đang tồn tại bằng cách lặp lại `-genkeypair` cùng alias nếu chưa hiểu tác động; hãy tạo test store mới hoặc backup có kiểm soát.
+**If you want a SAN in the lab certificate**, create a new store adding `-ext "SAN=dns:demo.example.invalid"` to `-genkeypair`. Never modify an existing `service.p12` by re-running `-genkeypair` with the same alias without understanding the impact; create a fresh test store or controlled backup.
 
-## 6. Liệt kê kho, alias và loại entry
+## 6. Listing Stores, Aliases, and Entry Types
 
-Liệt kê tổng quan:
+Overview listing:
 
 ```bash
 keytool -list -keystore service.p12 -storetype PKCS12 -storepass:env LAB_PASS
 ```
 
-Liệt kê chi tiết đúng alias:
+Verbose listing for a specific alias:
 
 ```bash
 keytool -list -v -alias service -keystore service.p12 -storetype PKCS12 -storepass:env LAB_PASS
 ```
 
-Trong kết quả chi tiết, chú ý các trường:
+In verbose output, note these fields:
 
 ```text
 Alias name: service
@@ -168,195 +168,195 @@ Certificate chain length: 1
 Owner: CN=demo.example.invalid, ...
 Issuer: CN=demo.example.invalid, ...
 ...
-SHA256: <fingerprint thay đổi theo certificate>
+SHA256: <fingerprint varies per certificate>
 ```
 
-Đây là **mẫu trường/nhãn tham khảo**, **không phải stdout chính xác**: nhãn có thể thay đổi theo locale/JDK, và chain/fingerprint phụ thuộc certificate thực tế.
+This is a **reference field/label template**, **not exact stdout**: labels may vary by locale/JDK, and chain/fingerprint depend on the actual certificate.
 
-- `PrivateKeyEntry`: có private key gắn với certificate chain; **`-list` không in private key**.
-- `trustedCertEntry`: chỉ certificate công khai được đặt làm trust anchor trong kho tương ứng.
-- `SecretKeyEntry`: một khóa đối xứng; không xuất raw key bytes khi liệt kê.
+- `PrivateKeyEntry`: holds a private key linked to a certificate chain; **`-list` never prints the private key**.
+- `trustedCertEntry`: holds only a public certificate placed as a trust anchor in that store.
+- `SecretKeyEntry`: a symmetric key; listing never exports raw key bytes.
 
-Có thể chạy `keytool -list -v -keystore service.p12 ...` không có `-alias` để xem tất cả entry. Khi có nhiều alias, `-alias` giúp xác định chính xác object đang điều tra. Không mặc định coi cùng alias trong hai file khác nhau là cùng key.
+You can run `keytool -list -v -keystore service.p12 ...` without `-alias` to view all entries. When multiple aliases exist, `-alias` pinpoints the exact object under investigation. Never assume the same alias across two different files refers to the same key.
 
-**Truy vấn không có password:** một số thao tác `-list` có thể cho phép hiển thị thông tin mà chưa xác minh integrity của keystore, đồng thời in cảnh báo. Đừng dùng dữ liệu từ một kho chưa được xác minh integrity như cơ sở ra quyết định trust/migration. Hãy cung cấp credential thích hợp khi cần xác minh.
+**Passwordless queries:** some `-list` invocations may display info without verifying keystore integrity while printing a warning. Never rely on data from an integrity-unverified store for trust or migration decisions. Supply proper credentials whenever verification is needed.
 
-## 7. Xuất certificate công khai bằng `-exportcert`
+## 7. Exporting Public Certificates with `-exportcert`
 
-Xuất certificate đang gắn với alias `service` sang file PEM:
+Export the certificate attached to alias `service` to a PEM file:
 
 ```bash
 keytool -exportcert -rfc -alias service -file service.pem -keystore service.p12 -storetype PKCS12 -storepass:env LAB_PASS
 ```
 
-- `-exportcert` **chỉ xuất X.509 certificate**, không xuất private key.
-- `-rfc` tạo bản mã hóa Base64 PEM dạng `-----BEGIN CERTIFICATE-----` ... `-----END CERTIFICATE-----`. Nếu không có `-rfc`, mặc định xuất dạng DER binary.
-- `-alias service` khi trỏ vào `PrivateKeyEntry` sẽ xuất certificate đầu của chain, tương ứng public key của private key đó. Để sao chép cả private key, `-exportcert` **không làm được**.
-- `-file service.pem` tạo file certificate công khai; dù PEM có thể chia sẻ theo quy tắc trust, **không nên** xem nội dung PEM tự động chứng minh identity.
+- `-exportcert` **exports only the X.509 certificate**, never the private key.
+- `-rfc` produces Base64 PEM encoding between `-----BEGIN CERTIFICATE-----` ... `-----END CERTIFICATE-----`. Without `-rfc`, the default output is binary DER.
+- `-alias service` pointing to a `PrivateKeyEntry` exports the first certificate in the chain, matching that private key's public key. `-exportcert` **cannot** copy the private key.
+- `-file service.pem` creates a public certificate file; although PEMs can be shared per trust procedures, **never** treat PEM contents as self-proving identity.
 
-In thông tin certificate:
+Print certificate details:
 
 ```bash
 keytool -printcert -file service.pem
 ```
 
-Thông tin cần xem trước khi dùng: Subject, Issuer, validity, serial, signature algorithm, public key algorithm/key size, SHA-256 fingerprint, SAN và các extension liên quan (nếu có). Certificate tự ký lab có `Issuer==Subject`; điều đó **không chứng minh** certificate đã được bên độc lập xác thực.
+Fields to inspect before use: Subject, Issuer, validity, serial, signature algorithm, public key algorithm/key size, SHA-256 fingerprint, SANs, and relevant extensions (if any). A lab self-signed certificate has `Issuer==Subject`; that **does not prove** independent verification.
 
-**Phân biệt PEM certificate với private key:** việc file có phần đuôi `.pem` không bảo đảm nó chỉ chứa certificate; nhiều công cụ cũng lưu private key ở PEM. Hãy xem nhãn BEGIN/END và kiểm soát dữ liệu trước khi chia sẻ. File `service.pem` ở quy trình này là certificate công khai vì do `keytool -exportcert` tạo.
+**Distinguishing PEM certificates from private keys:** a `.pem` extension does not guarantee a file contains only a certificate; many tools also save private keys in PEM format. Inspect BEGIN/END headers and validate contents before sharing. `service.pem` in this workflow is a public certificate because it was created by `keytool -exportcert`.
 
-## 8. Nhập trusted certificate vào kho tin cậy
+## 8. Importing a Trusted Certificate into a Truststore
 
-Một truststore mẫu mới, tách biệt với `service.p12`:
+Create a new sample truststore separate from `service.p12`:
 
 ```bash
 keytool -importcert -alias service-demo -file service.pem -keystore trust.p12 -storetype PKCS12 -storepass:env LAB_PASS
 ```
 
-Với alias **chưa tồn tại**, `-importcert` thêm một **`trustedCertEntry`**. Khi cần hỏi có tin certificate hay không, **không tự động bấm yes cho chứng chỉ chưa xác thực**. Trong lab, ta tự tạo certificate và có thể chủ động quan sát quy trình; trong thực tế, việc import phải đi sau **xác minh fingerprint qua một kênh độc lập đáng tin**, certificate chain và identity policy.
+For a **non-existent alias**, `-importcert` adds a **`trustedCertEntry`**. When prompted whether to trust the certificate, **never blindly answer yes for an unverified certificate**. In the lab, we generated the certificate ourselves and observe the prompt intentionally; in real deployments, importing must follow **fingerprint verification over an independent trusted channel**, certificate chain checks, and identity policies.
 
-Kiểm tra sau import:
+Verify after import:
 
 ```bash
 keytool -list -v -alias service-demo -keystore trust.p12 -storetype PKCS12 -storepass:env LAB_PASS
 ```
 
-Kết quả được kỳ vọng có **`Entry type: trustedCertEntry`**, không có private key. Nếu đang điều tra truststore, hãy kiểm chứng đúng fingerprint được đối tác/CA xác nhận bên ngoài, không chỉ so fingerprint của hai file **cùng nhận từ một nguồn không tin cậy**.
+Expected result includes **`Entry type: trustedCertEntry`**, with no private key. When auditing a truststore, verify against the fingerprint confirmed out-of-band by the partner/CA—never merely compare fingerprints of two files **received from the same untrusted source**.
 
-### Vì sao không dùng `-noprompt` tùy tiện?
+### Why Not Use `-noprompt` Arbitrarily?
 
-`-noprompt` có tác dụng bỏ qua tương tác ở một số lệnh, kể cả nhập trusted certificate. Trong automation có policy được kiểm chứng từ trước, nó có thể hữu ích; nhưng trên input không tin cậy, lệnh này có thể biến certificate attacker gửi thành trust anchor **mà không có bước xác nhận**. Trong bài học, cố ý **không gắn `-noprompt`** vào lệnh nhập truststore.
+`-noprompt` skips interactive prompts on certain commands, including importing trusted certificates. In automation backed by pre-validated policies it can be useful, yet on untrusted inputs it can turn an attacker-supplied certificate into a trust anchor **without confirmation**. In this lesson, **`-noprompt` is intentionally omitted** from the truststore import command.
 
-**Không thực hành trên `cacerts` hệ thống:** `keytool -list -cacerts` chỉ giúp xem các CA mặc định. Thêm hoặc xóa CA khỏi JDK-wide truststore ảnh hưởng nhiều ứng dụng cùng JDK, làm phát sinh drift khi nâng cấp JDK và có thể mở rộng trust quá mức. Dùng truststore riêng của ứng dụng khi thích hợp.
+**Do not practice on system `cacerts`:** `keytool -list -cacerts` is useful only for viewing default CAs. Adding or removing CAs in the JDK-wide truststore affects all apps sharing that JDK, causes drift across JDK upgrades, and can over-expand trust. Use a dedicated per-application truststore when appropriate.
 
-## 9. Tạo CSR và nhập certificate reply từ CA
+## 9. Generating a CSR and Importing a CA Certificate Reply
 
-Đối với private key đã có ở `service.p12`, tạo CSR:
+For the existing private key in `service.p12`, generate a CSR:
 
 ```bash
 keytool -certreq -alias service -file service.csr -keystore service.p12 -storetype PKCS12 -storepass:env LAB_PASS -keypass:env LAB_PASS -ext "SAN=dns:demo.example.invalid"
 ```
 
-Xem CSR:
+Inspect the CSR:
 
 ```bash
 keytool -printcertreq -file service.csr
 ```
 
-`service.csr` chứa thông tin và public key cần CA xét duyệt, **không phải certificate đã được CA cấp**. Không đưa private key vào CSR. CA sẽ kiểm tra thông tin/identity theo chính sách của CA rồi trả certificate hoặc chain tương ứng. Trong sản phẩm thật, SAN và EKU/KeyUsage cần theo giao thức (TLS server/client, code signing...), không chỉ nhìn subject CN.
+`service.csr` holds identity details and the public key for CA review; it is **not a CA-issued certificate**. Never put private keys into a CSR. The CA validates identity per its policy and returns a certificate or chain. In production, SANs and EKU/KeyUsage must match the protocol (TLS server/client, code signing, etc.), not merely the subject CN.
 
-Nếu CA trả certificate chain hợp lệ trong file ví dụ `signed-chain.pem` và đã kiểm chứng nguồn/chuỗi CA, **nhập certificate reply về đúng alias private key `service`**:
+Once the CA returns a valid certificate chain in, say, `signed-chain.pem` and you have verified CA provenance/chain, **import the certificate reply back into the exact private-key alias `service`**:
 
 ```bash
 keytool -importcert -alias service -file signed-chain.pem -keystore service.p12 -storetype PKCS12 -storepass:env LAB_PASS -keypass:env LAB_PASS
 ```
 
-**Lệnh nhập reply này chỉ chạy khi bạn thực sự đã nhận được `signed-chain.pem` hợp lệ từ CA**; nó không chạy trong lab tự ký mặc định vì file đó chưa có.
+**Run this reply import only when you genuinely have a valid `signed-chain.pem` from a CA**; it is not run in the default self-signed lab because that file does not exist yet.
 
-Cách `-importcert` hoạt động phụ thuộc alias:
+How `-importcert` behaves depends on the alias:
 
-- **Alias chưa tồn tại:** tạo trusted certificate entry, tức **thêm tin cậy**, không tạo private key.
-- **Alias đang là `PrivateKeyEntry`:** xử lý **certificate reply/chain**, kiểm tra public key khớp với private key tương ứng và cập nhật chain khi đủ điều kiện. Đây là thao tác khác hoàn toàn với thêm trust anchor.
-- Nếu certificate chain không tạo được đường tin cậy hoặc reply không tương ứng key, có thể thất bại. Kiểm tra CA roots/intermediates, chain order, file encoding và `-trustcacerts` **chỉ khi** chính sách tin cậy cho phép xem CA mặc định.
+- **Alias does not exist:** creates a trusted certificate entry—meaning **adding trust**, not creating a private key.
+- **Alias is an existing `PrivateKeyEntry`:** processes a **certificate reply/chain**, verifies the public key matches the corresponding private key, and updates the chain if valid. This is completely different from adding a trust anchor.
+- If the chain cannot reach a trusted root or the reply does not match the key, import fails. Check CA roots/intermediates, chain order, file encoding, and `-trustcacerts` **only when** trust policy permits consulting default CAs.
 
-**Tránh tạo thêm alias mới để “nhập” CA reply** nếu mục tiêu là thay self-signed certificate gắn với private key ở `service`: alias mới chỉ tạo trustedCertEntry, không đưa chain vào private key entry cũ. Sau nhập, dùng `-list -v -alias service` để xem lại chain length, subject, issuer, validity và fingerprint.
+**Avoid creating a new alias to "import" a CA reply** when your goal is replacing the self-signed certificate bound to `service`: a new alias only creates a `trustedCertEntry` without updating the private key entry's chain. Afterward, run `-list -v -alias service` to verify chain length, subject, issuer, validity, and fingerprint.
 
-## 10. Tạo khóa đối xứng trong kho với `-genseckey`
+## 10. Generating Symmetric Keys in a Store with `-genseckey`
 
-Một số ứng dụng cần `SecretKeyEntry` thay vì private/public key pair. Với JDK/provider hỗ trợ secret key trong PKCS12, có thể tạo AES key:
+Some applications require a `SecretKeyEntry` rather than a private/public key pair. On JDKs/providers supporting secret keys in PKCS12, you can generate an AES key:
 
 ```bash
 keytool -genseckey -alias aes-demo -keyalg AES -keysize 256 -keystore secrets.p12 -storetype PKCS12 -storepass:env LAB_PASS -keypass:env LAB_PASS
 ```
 
-Kiểm tra:
+Inspect:
 
 ```bash
 keytool -list -v -alias aes-demo -keystore secrets.p12 -storetype PKCS12 -storepass:env LAB_PASS
 ```
 
-Kỳ vọng entry **`SecretKeyEntry`**. `-genseckey` không tạo X.509 certificate chain, nên không thể dùng `-exportcert` trên alias secret key để “lấy public certificate AES”; **AES là thuật toán đối xứng và không có public key/certificate tương ứng**.
+Expect a **`SecretKeyEntry`**. `-genseckey` creates no X.509 certificate chain, so you cannot run `-exportcert` on a secret key alias to "get an AES public certificate"; **AES is a symmetric algorithm and has no public key or certificate**.
 
-**Bảo mật:** đây là ví dụ key dạng phần mềm và keystore file. Trong production, hệ thống yêu cầu non-exportable keys, policy wrap/unwrap, audit hoặc separation of duties có thể nên đặt key ở KMS/HSM. Đừng giả định PKCS12, JKS và PKCS11 hỗ trợ cùng một loại entry với cùng khả năng export. Việc `keytool -genseckey` thành công **không** đồng nghĩa ứng dụng đã gán quyền sử dụng key đúng mục đích.
+**Security:** this demonstrates software keys and file keystores. In production, systems requiring non-exportable keys, wrap/unwrap policies, auditing, or separation of duties should often keep keys in a KMS/HSM. Never assume PKCS12, JKS, and PKCS11 support the same entry types or exportability. `keytool -genseckey` succeeding **does not** mean the application has assigned proper key usage permissions.
 
-## 11. Chuyển kho JKS sang PKCS12 bằng `-importkeystore`
+## 11. Converting JKS to PKCS12 with `-importkeystore`
 
-Đây là thao tác **chuyển format sao chép entry**, khác việc chỉ đổi tên file. Trong lab, tạo **một kho JKS legacy riêng** để có nguồn an toàn:
+This is a **format conversion copying entries**, unlike merely renaming a file. In the lab, create **a separate legacy JKS store** as a safe source:
 
 ```bash
 keytool -genkeypair -alias legacy -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -validity 30 -dname "CN=legacy.example.invalid" -keystore legacy.jks -storetype JKS -storepass:env LAB_PASS -keypass:env LAB_PASS
 ```
 
-`JKS` ở đây dùng **chỉ để minh họa conversion**, không phải khuyến nghị tạo kho mới bằng JKS. Kiểm tra nguồn:
+`JKS` is used here **solely to demonstrate conversion**, not as a recommendation to create new JKS stores. Inspect the source:
 
 ```bash
 keytool -list -v -alias legacy -keystore legacy.jks -storetype JKS -storepass:env LAB_PASS
 ```
 
-Sao chép alias `legacy` vào kho PKCS12 mới, có thể đổi alias đích thành `migrated`:
+Copy alias `legacy` into a new PKCS12 store, optionally renaming the destination alias to `migrated`:
 
 ```bash
 keytool -importkeystore -srckeystore legacy.jks -srcstoretype JKS -srcstorepass:env LAB_PASS -srcalias legacy -srckeypass:env LAB_PASS -destkeystore migrated.p12 -deststoretype PKCS12 -deststorepass:env LAB_PASS -destalias migrated -destkeypass:env LAB_PASS
 ```
 
-Giải thích:
+Explanation:
 
-- `-srckeystore` và `-srcstoretype` chỉ **kho nguồn**; `-destkeystore` và `-deststoretype` chỉ **kho đích**.
-- `-srcalias legacy` nhập **một entry**; `-destalias migrated` đặt alias ở đích. Nếu **bỏ `-srcalias`**, lệnh sẽ cố nhập **toàn bộ các entry** từ nguồn; cần kiểm tra va chạm alias và entry type.
-- `-srcstorepass`, `-srckeypass` và các phiên bản `dest...` dùng để mở kho và key. Trong lab cùng `LAB_PASS`, nhưng production có thể khác. Khi chuyển sang PKCS12 cho công cụ thứ ba, nhiều phần mềm yêu cầu **key password = store password**; đặt `-destkeypass` phù hợp hoặc đối chiếu yêu cầu của công cụ đích.
-- Khi alias đích đã có, `keytool` có thể hỏi có ghi đè hoặc đổi tên; **không tự động chọn ghi đè** trên kho production. Không dùng `-noprompt` nếu chưa có thiết kế backup/collision handling, vì có thể overwrite entry.
-- `-importkeystore` **có thể mang cả private key hoặc secret key qua kho mới**. File đích `migrated.p12` phải được bảo vệ như một bản sao private key, khác hoàn toàn file certificate công khai `service.pem`.
-- Lệnh sao chép không đảm bảo mọi provider/entry/algorithm có thể nhập sang mọi storetype: trường hợp unsupported hoặc password sai có thể bị bỏ qua/nhắc tương tác/thất bại. Phải kiểm kê và đối chiếu từng entry.
+- `-srckeystore` and `-srcstoretype` specify the **source store**; `-destkeystore` and `-deststoretype` specify the **destination store**.
+- `-srcalias legacy` imports **one entry**; `-destalias migrated` sets its alias at the destination. If you **omit `-srcalias`**, the command attempts to import **all entries** from the source; check alias collisions and entry types carefully.
+- `-srcstorepass`, `-srckeypass`, and the `dest...` variants unlock the stores and keys. Both use `LAB_PASS` in the lab, though production may differ. When converting to PKCS12 for third-party tools, many require **key password = store password**; set `-destkeypass` accordingly or verify target tool requirements.
+- When the destination alias already exists, `keytool` may prompt to overwrite or rename; **never automatically choose overwrite** on production stores. Avoid `-noprompt` without backup/collision handling, as it can overwrite entries.
+- `-importkeystore` **can carry private keys or secret keys into the new store**. Protect `migrated.p12` as a private-key copy, completely unlike the public certificate file `service.pem`.
+- The copy command does not guarantee every provider/entry/algorithm can migrate into every storetype: unsupported entries or wrong passwords may be skipped, prompt interactively, or fail. Inventory and reconcile every entry.
 
-Kiểm tra đích:
+Inspect the destination:
 
 ```bash
 keytool -list -v -alias migrated -keystore migrated.p12 -storetype PKCS12 -storepass:env LAB_PASS
 ```
 
-Mong đợi `Entry type: PrivateKeyEntry`, certificate/public key metadata tương ứng với alias nguồn. Vì đây là **chuyển cùng key pair**, certificate fingerprint của nguồn và đích **phải khớp**, dù tên alias thay đổi. Nếu sau chuyển fingerprint/key type/chain length bất ngờ khác, không đưa kho mới vào production trước khi giải thích được.
+Expect `Entry type: PrivateKeyEntry` with certificate/public key metadata matching the source alias. Because this **transfers the same key pair**, source and destination certificate fingerprints **must match**, even if the alias name changed. If fingerprint/key type/chain length unexpectedly differs after conversion, do not promote the new store to production until explained.
 
-### Checklist migration không mất dữ liệu
+### Lossless Migration Checklist
 
-1. Lập inventory tất cả alias, entry type, certificate chain và những ứng dụng đang tham chiếu từng alias. Với nhiều alias, ghi lại số lượng entry trước/sau.
-2. **Backup kho nguồn** bằng cơ chế bảo mật được phê duyệt; xác minh backup có thể phục hồi và đặt quyền truy cập thích hợp. Không commit keystore/key vào Git.
-3. Chọn file **đích mới** để không đè kho nguồn, ghi rõ `-srcstoretype` và `-deststoretype`; xác định mật khẩu nguồn/entry/đích có thể mở.
-4. Chuyển bằng `-importkeystore`, xử lý từng lỗi/va chạm alias có kiểm soát. Không giả định exit code thành công là đã nhập đủ alias trong mọi tình huống nếu có warning/skip.
-5. Chạy `-list -v` ở cả hai kho, đối chiếu alias mapping, entry type, chain length, certificate fingerprint và khả năng truy xuất private key bằng ứng dụng thực tế.
-6. Kiểm thử hành vi end-to-end: TLS handshake/mTLS hoặc ký/verify, alias selection và mật khẩu runtime. Private key không được coi là hoạt động chỉ vì `-list` thấy tên alias.
-7. Chuyển cấu hình ứng dụng (đường dẫn, type, alias, password/secret reference), triển khai canary và có rollback đã thử.
-8. Chỉ retire kho cũ sau khi dữ liệu, backup, đường rollback, retention và dependent services đều đã được rà soát; bảo đảm không còn reader cũ.
+1. Inventory all aliases, entry types, certificate chains, and applications referencing each alias. For multiple aliases, record before/after entry counts.
+2. **Back up the source store** using an approved secure mechanism; verify restore works and apply proper permissions. Never commit keystores/keys to Git.
+3. Choose a **new destination** file to avoid overwriting the source, explicitly specifying `-srcstoretype` and `-deststoretype`; verify unlock passwords for source/entries/destination.
+4. Migrate with `-importkeystore`, handling errors/alias collisions under control. Never assume a zero exit code means all aliases migrated if warnings/skips occurred.
+5. Run `-list -v` on both stores and compare alias mappings, entry types, chain lengths, certificate fingerprints, and private key access in the real app.
+6. Test end-to-end behavior: TLS/mTLS handshake or sign/verify, alias selection, and runtime passwords. A private key is not proven operational just because `-list` prints its alias.
+7. Update application configs (path, type, alias, password/secret references), perform a canary rollout, and keep a tested rollback ready.
+8. Retire the legacy store only after data, backups, rollback paths, retention, and dependent services are verified and no legacy readers remain.
 
-### Chuyển toàn bộ entries khi cần
+### Migrating All Entries When Needed
 
-Nếu muốn copy tất cả entry (và đã xử lý va chạm/trust/cert policy), bỏ `-srcalias` và `-destalias`:
+To copy every entry (once collisions and trust/cert policies are addressed), omit `-srcalias` and `-destalias`:
 
 ```bash
 keytool -importkeystore -srckeystore legacy.jks -srcstoretype JKS -srcstorepass:env LAB_PASS -destkeystore migrated-all.p12 -deststoretype PKCS12 -deststorepass:env LAB_PASS
 ```
 
-Lệnh trên có thể **hỏi thêm mật khẩu từng entry** nếu không thể truy xuất key bằng source store password. Chạy có người giám sát trên lab; đừng vội thêm `-noprompt` để “khắc phục” prompt vì nó có thể khiến entry xung đột bị ghi đè hoặc entry lỗi bị bỏ qua. Đừng dùng nguyên lệnh này để chuyển toàn bộ keystore thật nếu chưa lập danh sách alias và test.
+This command may **prompt for individual entry passwords** if keys cannot be accessed with the source store password. Run supervised in the lab; never blindly add `-noprompt` to "silence" prompts, as it can overwrite colliding entries or skip failing ones. Never run this verbatim across a real keystore without an alias inventory and prior testing.
 
-## 12. Đừng nhầm `-exportcert` với “export private key”
+## 12. Never Confuse `-exportcert` with "Exporting a Private Key"
 
-Bảng này là trọng tâm khi thao tác với kho có dữ liệu nhạy cảm:
+This table is essential when working with stores holding sensitive material:
 
-| Nhu cầu | Thao tác phù hợp | Có xuất private/secret key? |
+| Need | Right operation | Exports private/secret key? |
 | --- | --- | --- |
-| Gửi certificate public key cho bên xác minh, CA hoặc đối tác | `-exportcert -rfc` | **Không** |
-| Xem certificate/fingerprint không cần key | `-printcert -file ...` | **Không** |
-| Đưa CA/trusted certificate vào truststore | `-importcert` dưới alias mới | **Không** |
-| Gắn CA certificate reply vào private key đã tạo | `-importcert` **cùng alias PrivateKeyEntry** | Private key **giữ trong kho**, không được xuất qua cert reply |
-| Copy private key entry từ JKS sang PKCS12 | `-importkeystore` | **Có thể**, vì entry đích chứa private key |
-| Tạo AES secret key trong kho | `-genseckey` | Sinh key material và lưu `SecretKeyEntry` |
-| Chuyển PKCS12 thành file certificate `.pem` bằng cách đổi đuôi | **Sai thao tác** | Không chuyển định dạng; có thể làm lộ kho |
+| Send public-key certificate to verifier, CA, or partner | `-exportcert -rfc` | **No** |
+| Inspect certificate/fingerprint without needing keys | `-printcert -file ...` | **No** |
+| Add a CA/trusted certificate to a truststore | `-importcert` under a new alias | **No** |
+| Attach a CA certificate reply to an existing private key | `-importcert` **on the same `PrivateKeyEntry` alias** | Private key **stays in the store**, not exported via cert reply |
+| Copy a private key entry from JKS to PKCS12 | `-importkeystore` | **Yes, possibly**, since the entry holds a private key |
+| Create an AES secret key in a store | `-genseckey` | Generates key material and stores `SecretKeyEntry` |
+| Turn PKCS12 into a `.pem` certificate by renaming extension | **Wrong operation** | Does not convert format; risks exposing the store |
 
-Nếu cần một `.p12` chứa private key cho phần mềm khác, `-importkeystore` là cách đưa **key entry** sang kho đích với credential bảo vệ phù hợp. File PKCS12 **chứa private key**, không an toàn để phát tán như public certificate. `keytool` không phải một công cụ chuyên dụng để xuất private key thô dưới dạng PEM không mã hóa; tránh bổ sung các bước xuất plaintext key trừ khi bài toán, chính sách và môi trường thực sự cho phép.
+If another system needs a `.p12` containing a private key, `-importkeystore` transfers the **key entry** to a destination store with appropriate protection credentials. A PKCS12 file **contains private keys** and is unsafe to distribute like a public certificate. `keytool` is not a dedicated tool for dumping raw unencrypted PEM private keys; avoid adding plaintext key-export steps unless requirements, policies, and environments explicitly permit them.
 
-**Với PKCS11/HSM**, private key có thể **không xuất được**. Việc `-importkeystore` hoặc `-exportcert` có thể xuất public certificate không có nghĩa HSM cho phép copy private key. Cần đọc provider/token policy và sử dụng key handle.
+**With PKCS11/HSM**, private keys may be **non-exportable**. Running `-importkeystore` or `-exportcert` might export public certificates without permitting HSM private-key copying. Consult provider/token policies and use key handles.
 
-## 13. Liên kết với Java `KeyStore` trong ứng dụng
+## 13. Connecting to Java `KeyStore` in Applications
 
-`keytool` tạo kho trên CLI; ứng dụng Java phải mở **đúng format/password/alias** và chọn đúng mục đích:
+`keytool` builds stores on the CLI; the Java application must open the **right format/password/alias** and select the right purpose:
 
 ```java
 KeyStore store = KeyStore.getInstance("PKCS12");
@@ -367,80 +367,80 @@ boolean signingEntry = store.isKeyEntry("service");
 Certificate certificate = store.getCertificate("service");
 ```
 
-Đây là **snippet minh họa**, không phải một chương trình độc lập. Cần import `java.security.KeyStore`, `java.security.cert.Certificate`, `java.io.InputStream`, `java.nio.file.Files` và `java.nio.file.Path`; `storePassword` phải là `char[]` có được qua secret manager/prompt, không hard-code. Java xử lý checked exceptions cho file, store integrity, provider và password.
+This is an **illustrative snippet**, not a standalone program. Import `java.security.KeyStore`, `java.security.cert.Certificate`, `java.io.InputStream`, `java.nio.file.Files`, and `java.nio.file.Path`; `storePassword` must be a `char[]` obtained from a secret manager/prompt, never hardcoded. Java handles checked exceptions for files, store integrity, providers, and passwords.
 
-Các API hữu ích:
+Useful APIs:
 
-- `KeyStore.getInstance("PKCS12")`: chọn type cụ thể.
-- `store.load(input, password)`: mở/kiểm chứng kho bằng credential cần thiết.
+- `KeyStore.getInstance("PKCS12")`: selects the explicit type.
+- `store.load(input, password)`: opens/verifies the store with the required credential.
 - `store.aliases()`, `store.containsAlias(alias)`, `store.size()`: inventory.
-- `store.isKeyEntry(alias)` và `store.isCertificateEntry(alias)`: phân loại key entry vs trusted cert entry. `isKeyEntry` đúng cho private/secret key, không nói chính xác loại key.
-- `store.getCertificate(alias)`: với `PrivateKeyEntry` trả certificate đầu chuỗi; với `trustedCertEntry` trả certificate; với `SecretKeyEntry` thường không có certificate.
-- `store.getCertificateChain(alias)`: dùng với alias có private key và chain.
-- `store.getEntry(alias, new KeyStore.PasswordProtection(entryPassword))` hoặc `getKey(alias, entryPassword)`: truy xuất key khi được phép; **không log raw key**.
-- Với provider đặc biệt (HSM/PKCS11), cách `load` và `getKey` có thể khác keystore file; cần theo provider API và đừng mặc định `getEncoded()` của key không null.
+- `store.isKeyEntry(alias)` and `store.isCertificateEntry(alias)`: separates key entries from trusted cert entries. `isKeyEntry` is true for both private and secret keys without specifying which.
+- `store.getCertificate(alias)`: for `PrivateKeyEntry` returns the first certificate in the chain; for `trustedCertEntry` returns the certificate; for `SecretKeyEntry` usually returns no certificate.
+- `store.getCertificateChain(alias)`: for aliases with a private key and chain.
+- `store.getEntry(alias, new KeyStore.PasswordProtection(entryPassword))` or `getKey(alias, entryPassword)`: retrieves keys when permitted; **never log raw keys**.
+- For special providers (HSM/PKCS11), `load` and `getKey` semantics can differ from file keystores; follow the provider API and never assume `key.getEncoded()` is non-null.
 
-Một chương trình có thể thấy entry trong `keytool -list` nhưng vẫn lỗi runtime do **chọn sai alias**, khác store type, password entry không khớp, thiếu permission đọc file, certificate chain không được client tin, hoặc thuật toán không được provider hỗ trợ.
+A program may see an entry in `keytool -list` yet fail at runtime due to **selecting the wrong alias**, mismatched store type, wrong entry password, missing file read permissions, an untrusted certificate chain, or an algorithm unsupported by the provider.
 
-## 14. Sự cố thường gặp khi dùng `keytool`
+## 14. Common `keytool` Troubleshooting
 
-| Triệu chứng/lỗi | Nguyên nhân có thể | Cách xử lý |
+| Symptom/Error | Possible causes | Remediation |
 | --- | --- | --- |
-| `keytool` không tìm thấy trên terminal | Chưa cài JDK hoặc PATH/JAVA_HOME sai | Kiểm tra `java -version`, `keytool -help` và đường dẫn JDK |
-| `Keystore was tampered with, or password was incorrect` hoặc lỗi mở kho | Mật khẩu sai; file/type/provider không đúng; file lỗi | Xác minh path, password và storetype từ nguồn đáng tin; không đổi đuôi để “chữa” |
-| `Alias <name> does not exist` | Alias không có trong kho hiện tại | `-list` đúng path/storetype, so chính xác alias và source/dest |
-| `alias already exists` khi tạo/import | Đã có entry tên đó | Kiểm kê trước; chọn alias mới hoặc quy trình thay có backup |
-| File `.jks` đọc được dù không khai `-storetype JKS` | JDK/provider có thể autodetect format | Đặt type rõ ràng; không suy file đã là PKCS12 |
-| `-exportcert` tạo file nhưng không có private key | Đây là hành vi **đúng** | Dùng `-importkeystore` cho entry migration có key, giữ file đích an toàn |
-| Import chứng chỉ CA vào alias mới nhưng TLS server vẫn dùng self-signed | Entry mới chỉ là `trustedCertEntry` | Nhập certificate reply vào **alias PrivateKeyEntry hiện có** nếu đúng workflow |
-| Certificate không được tin cậy dù `-importcert` thành công | Sai truststore runtime, fingerprint/chain không phù hợp, client khác JDK | Xác định đúng trust configuration, chain và hệ thống xác minh |
-| `-certreq` chạy xong nhưng chứng chỉ vẫn tự ký | CSR không tự trở thành CA-signed cert | Gửi CSR tới CA, nhận reply, kiểm chứng và import cùng alias |
-| `SecretKeyEntry` không tạo được trong type/provider | Không hỗ trợ secret key hoặc thuật toán/size đó | Kiểm tra `-genseckey -help` và provider; chọn storetype/key management phù hợp |
-| `-importkeystore` nhập thiếu entries | Entry type không hỗ trợ, keypass sai, alias collision, skip/warning | Kiểm tra toàn bộ log, inventory và từng entry, không tin chỉ vào exit code |
-| Sau conversion ứng dụng lỗi `UnrecoverableKeyException` | Key password và store password không phù hợp runtime | Xác minh credential cho từng entry; kiểm tra tương thích PKCS12 |
-| Dùng `-noprompt` trên certificate do người ngoài gửi | Bỏ qua trust verification | Kiểm tra fingerprint qua kênh độc lập; yêu cầu phê duyệt |
-| Sửa `cacerts` khiến nhiều ứng dụng thay đổi trust | Shared JDK truststore có phạm vi quá rộng | Sử dụng truststore riêng theo ứng dụng và rollout có kiểm soát |
-| Kết quả `-list` hiển thị certificate nhưng không có signing ability | Đó là trustedCertEntry, không phải private key | Kiểm tra `Entry type` và cách cấp private key |
-| Backup/copy `.p12` nhầm thành tài liệu công khai | File có thể mang private key | Bảo vệ như credential, giới hạn truy cập và mã hóa backup |
+| `keytool` not found in terminal | JDK not installed or wrong PATH/JAVA_HOME | Check `java -version`, `keytool -help`, and JDK path |
+| `Keystore was tampered with, or password was incorrect` or store open error | Wrong password; wrong file/type/provider; corrupted file | Verify path, password, and storetype from trusted sources; never rename extension to "fix" |
+| `Alias <name> does not exist` | Alias absent from the target store | Run `-list` with exact path/storetype; compare source/dest aliases carefully |
+| `alias already exists` during create/import | Entry with that name already exists | Inventory first; pick a new alias or follow backed-up replacement procedure |
+| `.jks` file opens even without `-storetype JKS` | JDK/provider may auto-detect format | Specify type explicitly; do not assume the file is PKCS12 |
+| `-exportcert` produces file with no private key | This is **expected** behavior | Use `-importkeystore` to migrate key entries, keeping destination file secure |
+| Imported CA cert under new alias yet TLS server still serves self-signed | New entry is just a `trustedCertEntry` | Import the certificate reply into the **existing `PrivateKeyEntry` alias** when following that workflow |
+| Certificate untrusted even though `-importcert` succeeded | Wrong runtime truststore, mismatched fingerprint/chain, client on different JDK | Verify active trust configuration, chain, and verifier |
+| `-certreq` finished yet certificate stays self-signed | A CSR does not automatically become a CA-signed cert | Submit CSR to CA, verify reply, and import under the same alias |
+| Cannot create `SecretKeyEntry` in chosen type/provider | Secret keys or that algorithm/size unsupported | Check `-genseckey -help` and provider; pick compatible storetype/key management |
+| `-importkeystore` imports fewer entries | Unsupported entry type, wrong keypass, alias collision, skip/warning | Inspect full logs, inventory, and every entry; do not rely solely on exit code |
+| After conversion app throws `UnrecoverableKeyException` | Key password and store password mismatch at runtime | Verify per-entry credentials; check PKCS12 compatibility |
+| Used `-noprompt` on externally supplied certificate | Skips trust verification | Verify fingerprint via independent channel; require approval |
+| Editing `cacerts` alters trust for multiple apps | Shared JDK truststore has overly broad scope | Use per-application truststores with controlled rollouts |
+| `-list` shows certificate yet lacks signing ability | It is a `trustedCertEntry`, not a private key | Check `Entry type` and private key provisioning |
+| `.p12` backup/copy mishandled as public doc | File can carry private keys | Protect like a credential, restrict access, and encrypt backups |
 
-**Không dùng `-delete` để “làm sạch” kho khi chưa hiểu alias**. Xóa `PrivateKeyEntry` có thể làm mất private key không thể khôi phục, xóa `trustedCertEntry` có thể làm ngừng các kết nối TLS/mTLS, và xóa `SecretKeyEntry` có thể khiến dữ liệu đã mã hóa không đọc lại được.
+**Never run `-delete` to "clean up" a store before understanding every alias.** Deleting a `PrivateKeyEntry` can permanently destroy an unrecoverable private key, deleting a `trustedCertEntry` can break TLS/mTLS connections, and deleting a `SecretKeyEntry` can render encrypted data unreadable.
 
-## 15. Quy trình production: bảo mật và trách nhiệm vận hành
+## 15. Production Workflow: Security and Operational Responsibility
 
-1. **Phân loại kho theo vai trò:** tách keystore giữ private key của service khỏi truststore chỉ chứa trusted certificates khi có ích cho least privilege. Không dùng một file chứa toàn bộ private keys của mọi tenant.
-2. **Bảo vệ vật lý và logic:** chỉ cấp quyền đọc file và mật khẩu cho đúng principal; đặt filesystem ACL, encryption-at-rest khi phù hợp, secret manager, backup/restore và audit. Không commit `*.p12`, `*.jks` hoặc file password vào source repo.
-3. **Dùng keytool đúng môi trường:** luôn xác nhận `java -version`, `keytool -help` và provider. Chọn `-storetype` rõ, tên alias ổn định và phân biệt key password với store password.
-4. **Quản lý certificate trust:** không tự import certificate chỉ vì nó có định dạng X.509. Kiểm tra subject/SAN, issuer, key usage, thời hạn, fingerprint/chain theo đúng yêu cầu protocol; xem nguồn trust anchor là gì.
-5. **Sao lưu trước khi ghi:** thao tác `-genkeypair`, `-genseckey`, `-importcert`, `-importkeystore`, `-changealias`, `-storepasswd` và `-delete` có thể thay kho. Backup có bảo vệ và phục hồi thử được quan trọng hơn chỉ copy file một lần.
-6. **Định nghĩa key lifecycle:** ngày hết hạn certificate không đồng nghĩa private key đã tự xoay; một PKCS12 conversion cũng không phải key rotation. Key rotation cần phát hành key mới, cập nhật certificate/peer trust và kiểm tra migration/rollback.
-7. **Hỗ trợ non-exportable keys:** với yêu cầu HSM/KMS/PKCS11, dùng cơ chế token/provider và policy thay vì lén chuyển key ra file PKCS12. Key extraction có thể bị cấm hoặc không hỗ trợ.
-8. **Kiểm soát kết quả/telemetry:** ghi alias, entry type, storetype, key ID/serial/fingerprint có kiểm soát và mã lỗi; không ghi storepass/keypass, private key, plaintext key hoặc secret dump.
-9. **Tách môi trường:** dev/test/prod dùng keys, CA, truststore, password và policy riêng. Chứng chỉ `CN=*.example.invalid` tự ký trong lab không được đưa làm CA/prod identity.
-10. **Tự động hóa an toàn:** tránh dùng `-noprompt` nếu không có bước kiểm tra trước; đặt secret source riêng, đảm bảo file đích mới/alias không xung đột, kiểm tra exit code + cảnh báo và xác minh entry inventory sau write.
+1. **Classify stores by role:** separate keystores holding service private keys from truststores holding only trusted certificates where it aids least privilege. Never dump every tenant's private keys into one shared file.
+2. **Physical and logical protection:** grant file read access and passwords only to the right principals; enforce filesystem ACLs, encryption at rest where appropriate, secret managers, backup/restore, and auditing. Never commit `*.p12`, `*.jks`, or password files to source repos.
+3. **Run keytool in the right environment:** always verify `java -version`, `keytool -help`, and providers. Specify `-storetype` explicitly, use stable aliases, and distinguish key passwords from store passwords.
+4. **Govern certificate trust:** never import a certificate merely because it is valid X.509. Check subject/SAN, issuer, key usage, validity, and fingerprint/chain against protocol requirements; verify trust anchor provenance.
+5. **Back up before mutating:** `-genkeypair`, `-genseckey`, `-importcert`, `-importkeystore`, `-changealias`, `-storepasswd`, and `-delete` all mutate stores. Protected backups tested with real restores matter far more than one-off file copies.
+6. **Define key lifecycles:** certificate expiration does not automatically rotate a private key, nor is PKCS12 conversion key rotation. Key rotation requires issuing new keys, updating certificates/peer trust, and testing migration/rollback.
+7. **Support non-exportable keys:** for HSM/KMS/PKCS11 requirements, use token/provider mechanisms and policies instead of sneaking keys out into PKCS12 files. Key extraction may be prohibited or unsupported.
+8. **Control outputs/telemetry:** log aliases, entry types, storetypes, controlled key IDs/serials/fingerprints, and error codes; never log storepass/keypass, private keys, plaintext keys, or secret dumps.
+9. **Isolate environments:** keep keys, CAs, truststores, passwords, and policies separate across dev/test/prod. Lab self-signed `CN=*.example.invalid` certificates must never become CA/prod identities.
+10. **Safe automation:** avoid `-noprompt` without prior verification steps; use isolated secret sources, guard against destination file/alias collisions, inspect exit codes + warnings, and reconcile entry inventories after writes.
 
-Các hệ thống TLS/mTLS thực tế còn cần runtime cấu hình đúng Java `javax.net.ssl.keyStore` / `trustStore` và password/type, hoặc cấu hình TLS của framework. **Không mặc định** việc file đã tồn tại là service sẽ tự nạp file đó; test handshake/cert chain/authorization trước khi phát hành.
+Real TLS/mTLS systems also require properly configuring Java's `javax.net.ssl.keyStore` / `trustStore` with matching passwords/types, or framework TLS settings. **Never assume** a file existing on disk means the service loaded it; test handshakes/cert chains/authorization before release.
 
-## 16. Bài tập thực hành có tiêu chí
+## 16. Criterion-Based Practice Exercises
 
-1. **Tạo kho:** chạy `-genkeypair` trong thư mục test, nêu khác biệt giữa file `service.p12`, alias `service`, private key và self-signed certificate. Xác minh `PrivateKeyEntry` bằng `-list -v`.
-2. **Xuất chứng chỉ:** chạy `-exportcert -rfc`, xem PEM bằng editor và `-printcert`. Giải thích vì sao có thể gửi file certificate nhưng **không được chia sẻ `service.p12`**.
-3. **Nhập truststore:** kiểm tra fingerprint của certificate lab rồi `-importcert` vào `trust.p12` dưới alias mới. Chứng minh entry đích là `trustedCertEntry`, không phải `PrivateKeyEntry`.
-4. **CSR:** chạy `-certreq` và `-printcertreq`. Chỉ ra public key/subject/extension trong CSR, giải thích vì sao chưa phải certificate CA-signed.
-5. **Secret key:** tạo `secrets.p12` với AES-256 bằng `-genseckey`. Kiểm tra `SecretKeyEntry`; thử `-exportcert` trên alias AES và giải thích vì sao không thể lấy X.509 certificate.
-6. **Chuyển format:** tạo `legacy.jks` rồi dùng `-importkeystore` sang `migrated.p12`. So sánh entry type, certificate fingerprint và khả năng truy cập alias. Tại sao đổi extension file không tương đương conversion?
-7. **Chuyển nhiều entries:** bổ sung một alias vào kho nguồn **lab**, sau đó chuyển toàn bộ sang kho đích mới. Đếm entries trước/sau, xử lý password prompt/alias collision mà không dùng `-noprompt` bừa bãi.
-8. **Phân biệt password:** tạo mô hình có source key password khác source store password (nếu JKS provider hỗ trợ), rồi giải thích công dụng của `-srcstorepass` và `-srckeypass` khi import. Kiểm tra chính sách dest keypass/storepass của ứng dụng đích.
-9. **Threat modeling:** một file `.p12` đã được đẩy lên repository và bị clone. Tại sao xóa commit hiện tại không đủ? Hãy liệt kê các bước xử lý private-key compromise, thu hồi/reissue và dọn lịch sử/phạm vi tác động theo quy trình bảo mật.
-10. **Trust mismatch:** bên gửi một certificate tự ký mới rồi yêu cầu import vào kho trust hệ thống. Những bước xác thực độc lập nào phải xảy ra trước khi chấp nhận?
-11. **Runtime:** một service báo lỗi “không tìm thấy alias” dù `keytool -list` từ máy vận hành thấy alias. Kiểm tra PATH/JDK, file path, container mount, storetype, alias case/entry password và quyền truy cập theo thứ tự.
-12. **Review migration:** xem xét một script chạy `-importkeystore -noprompt` lên kho đích đã chứa alias quan trọng. Xác định rủi ro overwrite/skip và đề xuất quy trình có backup + inventory + verify.
+1. **Create a store:** run `-genkeypair` in a test directory, explain the differences among `service.p12`, alias `service`, the private key, and the self-signed certificate. Verify `PrivateKeyEntry` with `-list -v`.
+2. **Export certificate:** run `-exportcert -rfc`, inspect the PEM in an editor and via `-printcert`. Explain why you can send the certificate file yet **must not share `service.p12`**.
+3. **Import into truststore:** verify the lab certificate's fingerprint, then `-importcert` into `trust.p12` under a new alias. Prove the destination entry is `trustedCertEntry`, not `PrivateKeyEntry`.
+4. **CSR:** run `-certreq` and `-printcertreq`. Point out the public key/subject/extensions in the CSR and explain why it is not yet a CA-signed certificate.
+5. **Secret key:** create `secrets.p12` with AES-256 via `-genseckey`. Verify `SecretKeyEntry`; try `-exportcert` on the AES alias and explain why no X.509 certificate can be exported.
+6. **Convert format:** create `legacy.jks` and use `-importkeystore` into `migrated.p12`. Compare entry types, certificate fingerprints, and alias accessibility. Why is renaming a file extension not conversion?
+7. **Migrate multiple entries:** add another alias to the **lab** source store, then migrate everything to a new destination store. Count entries before/after and handle password prompts/alias collisions without abusing `-noprompt`.
+8. **Distinguish passwords:** build a case with a source key password different from the source store password (where supported by JKS), then explain `-srcstorepass` and `-srckeypass` during import. Check destination keypass/storepass policies of the target app.
+9. **Threat modeling:** a `.p12` file was pushed to a repository and cloned. Why is deleting the latest commit insufficient? List steps for handling private-key compromise, revocation/reissuance, and history cleanup/blast-radius containment per security process.
+10. **Trust mismatch:** an external party sends a new self-signed certificate asking you to import it into the system truststore. Which independent verification steps must happen before accepting?
+11. **Runtime:** a service reports "alias not found" even though `keytool -list` on an operator workstation shows the alias. Check PATH/JDK, file path, container mounts, storetype, alias case/entry password, and permissions in order.
+12. **Migration review:** audit a script running `-importkeystore -noprompt` into a destination store that already holds critical aliases. Identify overwrite/skip risks and propose a workflow with backup + inventory + verification.
 
-**Tiêu chí hoàn thành:** tự tạo PKCS12 lab, nhận diện đúng cả ba loại entry, xuất certificate không lộ private key, nhập trusted certificate có xác minh, biết CSR/CA reply cùng alias, chuyển JKS sang PKCS12 mà không mất key/chain, và mô tả rõ những rủi ro password, trust, backup, alias collision và provider.
+**Completion criteria:** independently create a lab PKCS12 store, correctly identify all three entry types, export certificates without leaking private keys, import trusted certificates with verification, handle CSR/CA replies on the same alias, convert JKS to PKCS12 without losing keys/chains, and clearly articulate risks around passwords, trust, backups, alias collisions, and providers.
 
-## Tài liệu tham khảo chính thức
+## Official References
 
-- [Oracle Java SE 17 — The keytool Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): cú pháp, options, import/export/conversion, bảo vệ password `:env`/`:file`.
+- [Oracle Java SE 17 — The keytool Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): syntax, options, import/export/conversion, `:env`/`:file` password protection.
 - [Java SE 17 `KeyStore` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): `PrivateKeyEntry`, `SecretKeyEntry`, `TrustedCertificateEntry`, `load`, `getEntry`.
-- [Java SE 17 Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): `PKCS12`, `JKS`, thuật toán hỗ trợ và tên chuẩn.
-- [Dev.java — keytool: Managing Your Keystore](https://dev.java/learn/jvm/tool/security/keytool/): hướng dẫn chính thức về lệnh và nhập certificate.
-- [Oracle Java SE 17 `KeyStore.Builder`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.Builder.html): cách cấu hình tạo và mở `KeyStore` qua builder/provider.
+- [Java SE 17 Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): `PKCS12`, `JKS`, supported algorithms, and standard names.
+- [Dev.java — keytool: Managing Your Keystore](https://dev.java/learn/jvm/tool/security/keytool/): official guide on commands and importing certificates.
+- [Oracle Java SE 17 `KeyStore.Builder`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.Builder.html): configuring creation and opening of `KeyStore` via builder/provider.

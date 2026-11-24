@@ -1,18 +1,18 @@
-# Phân biệt tương thích mã nguồn, nhị phân và hành vi của hợp đồng API
+# Distinguishing Source, Binary, and Behavioral Compatibility of an API Contract
 
-## 1. Một thay đổi API có thể “tương thích” theo ba nghĩa khác nhau
+## 1. An API change can be “compatible” in three different senses
 
-Trong Java, thư viện hoặc plugin host thường có một **hợp đồng (contract)** giữa bên cung cấp API/SPI và bên sử dụng. Khi nâng phiên bản của hợp đồng, nói “thay đổi này backward compatible” là **chưa đủ chính xác**: phải nói rõ **loại tương thích**, **chiều thay thế phiên bản** và **những thành phần đã hoặc chưa được biên dịch lại**.
+In Java, a library or plugin host typically has a **contract** between the API/SPI provider and the consumer. When upgrading the contract version, saying “this change is backward compatible” is **not precise enough**: you must specify the **compatibility type**, the **version replacement direction**, and **which components have or have not been recompiled**.
 
-Ba mức quan trọng:
+Three key levels:
 
-1. **Tương thích mã nguồn (source compatibility):** mã nguồn của consumer/provider viết cho API cũ còn **biên dịch được** khi chuyển sang API mới trong một môi trường biên dịch xác định hay không?
-2. **Tương thích nhị phân (binary compatibility):** các file `.class` hoặc JAR **đã biên dịch từ trước** có liên kết và hoạt động với phiên bản API mới mà **không bắt buộc biên dịch lại** không, ít nhất với những tham chiếu cũ?
-3. **Tương thích hành vi (behavioral compatibility):** dù mã biên dịch và JVM liên kết thành công, kết quả, tác dụng phụ và cam kết nghiệp vụ có **giữ đúng kỳ vọng mà client cũ đang dựa vào** không?
+1. **Source compatibility:** can consumer/provider source code written for the old API still **compile** when switching to the new API in a defined compilation environment?
+2. **Binary compatibility:** do **precompiled** `.class` files or JARs link and run with the new API version **without requiring recompilation**, at least for existing references?
+3. **Behavioral compatibility:** even when code compiles and the JVM links successfully, do the results, side effects, and business guarantees still **match the expectations that old clients rely on**?
 
-Đây là ba câu hỏi độc lập. **Biên dịch thành công không chứng minh binary compatibility cho bytecode cũ; bytecode tải và liên kết thành công không chứng minh behavior compatibility.**
+These are three independent questions. **Successful compilation does not prove binary compatibility for old bytecode; successful bytecode loading and linking does not prove behavioral compatibility.**
 
-Ví dụ, một plugin host công bố:
+For example, a plugin host publishes:
 
 ~~~java
 public interface PricePolicy {
@@ -20,69 +20,69 @@ public interface PricePolicy {
 }
 ~~~
 
-Đây chỉ là **một chữ ký Java**, chưa mô tả hết hợp đồng: `fee(100)` phải trả bao nhiêu, tham số âm xử lý thế nào, có được đổi trạng thái không, có thể gọi đồng thời không, lỗi được báo bằng loại exception nào? Các quy tắc đó có thể nằm trong Javadoc, specification hoặc test contract; thay đổi chúng có thể phá vỡ client **dù interface vẫn giữ nguyên**.
+This is only **a Java signature**, not the full contract: how much should `fee(100)` return, how are negative arguments handled, may it mutate state, can it be called concurrently, and what exception type signals an error? Those rules may live in Javadoc, a specification, or contract tests; changing them can break clients **even though the interface stays identical**.
 
-## 2. Bảng so sánh: kiểm tra cái gì và phá vỡ như thế nào?
+## 2. Comparison table: what is tested and how does it break?
 
-| Khía cạnh | Câu hỏi kiểm tra | Phương pháp thử điển hình | Dấu hiệu không tương thích |
+| Dimension | Test question | Typical test method | Signs of incompatibility |
 |---|---|---|---|
-| **Source** | Mã nguồn cũ có build lại được với API mới? | `javac`/Maven/Gradle compile **source cũ** với API mới | Lỗi compiler: không có method, overload mơ hồ, type không khớp, method không được override |
-| **Binary** | JAR/class **đã biên dịch** có chạy với API mới? | Giữ nguyên bytecode client/provider cũ; chỉ thay runtime API JAR rồi chạy | `NoSuchMethodError`, `NoSuchFieldError`, `IllegalAccessError`, `IncompatibleClassChangeError`, `AbstractMethodError` hoặc lỗi linkage liên quan |
-| **Behavior** | Kết quả và các bảo đảm hợp đồng còn đúng? | Contract tests, integration tests, golden outputs, concurrency/error-path tests | Trả kết quả khác, thứ tự/exception khác, mất invariant, vi phạm thread-safety/idempotence/timeout đã cam kết |
+| **Source** | Does old source code still build against the new API? | Compile **old source** with the new API using `javac`/Maven/Gradle | Compiler errors: missing method, ambiguous overload, type mismatch, unimplemented/unoverridden method |
+| **Binary** | Do **precompiled** JARs/classes run with the new API? | Keep old client/provider bytecode unchanged; swap only the runtime API JAR and run | `NoSuchMethodError`, `NoSuchFieldError`, `IllegalAccessError`, `IncompatibleClassChangeError`, `AbstractMethodError`, or related linkage errors |
+| **Behavior** | Are results and contract guarantees still valid? | Contract tests, integration tests, golden outputs, concurrency/error-path tests | Different return value, different ordering/exception, broken invariant, violated thread-safety/idempotence/timeout commitment |
 
-**Quan hệ giữa ba loại không phải phép kéo theo một chiều:**
+**The relationship among the three types is not a one-way implication:**
 
-- Có thể **binary-compatible nhưng source-incompatible**: thêm overload có thể làm lệnh gọi `method(null)` mơ hồ khi build lại; bytecode cũ vẫn gọi đúng descriptor đã chọn.
-- Có thể **source-compatible cho client nhưng binary-incompatible**: đổi return type `int` sang `long`, client gán vào `long` vẫn biên dịch, nhưng bytecode cũ gọi descriptor `()I` có thể gặp `NoSuchMethodError`.
-- Có thể **source- và binary-compatible nhưng behavior-incompatible**: thay thuật toán tính phí từ 10% thành 20% trong khi chữ ký public giữ nguyên.
-- Có thể một thay đổi **giữ được hành vi hiện tại** nhưng phá source/binary compatibility (ví dụ đổi tên method rồi thêm migration code chỉ ở một phía). Vì vậy kiểm tra hành vi không thay thế kiểm tra build/linkage.
+- A change can be **binary-compatible but source-incompatible**: adding an overload can make a `method(null)` call ambiguous upon rebuild; old bytecode still calls the previously selected descriptor.
+- A change can be **source-compatible for a client but binary-incompatible**: changing the return type from `int` to `long` still compiles when the client assigns to `long`, but old bytecode calling the `()I` descriptor can hit `NoSuchMethodError`.
+- A change can be **source- and binary-compatible but behavior-incompatible**: changing a fee calculation algorithm from 10% to 20% while keeping the public signature unchanged.
+- A change can **preserve current behavior** yet break source/binary compatibility (for example, renaming a method and adding migration code on only one side). Therefore, behavioral testing does not replace build/linkage checks.
 
-### Cần xác định rõ “chiều” của phép thử
+### Clarifying the “direction” of the test
 
-Ký hiệu:
+Notation:
 
-- `API v1`: phiên bản cũ của hợp đồng.
-- `API v2`: phiên bản mới.
-- `Client v1.class`: bytecode đã biên dịch dựa trên API v1.
-- `Provider v1.class`: bytecode plugin đã implement SPI v1.
+- `API v1`: the old version of the contract.
+- `API v2`: the new version.
+- `Client v1.class`: bytecode compiled against API v1.
+- `Provider v1.class`: plugin bytecode implementing SPI v1.
 
-Hai kịch bản khác nhau:
+Two distinct scenarios:
 
 ~~~text
-Kiểm tra SOURCE:
-    client-v1.java + API v2  --> javac có thành công không?
+SOURCE check:
+    client-v1.java + API v2  --> does javac succeed?
 
-Kiểm tra BINARY:
-    client-v1.class + API v2 --> JVM có tìm được method/field/type cũ không?
+BINARY check:
+    client-v1.class + API v2 --> does the JVM find the old method/field/type?
 
-Kiểm tra BEHAVIOR:
-    client-v1.class + API v2 --> kết quả có còn đúng specification v1 không?
+BEHAVIOR check:
+    client-v1.class + API v2 --> does the result still match the v1 specification?
 ~~~
 
-Đối với plugin, phải thử **cả hai hướng** khi chính sách version của hệ thống yêu cầu: *host mới chạy plugin cũ* và *host cũ chạy plugin mới*. Hai hướng có thể cho kết quả khác nhau; “v2 tương thích với v1” không tự động là quan hệ hai chiều.
+For plugins, **both directions** must be tested when the system's version policy requires it: *new host running old plugin* and *old host running new plugin*. The two directions can yield different results; “v2 is compatible with v1” is not automatically a symmetric relation.
 
-## 3. Source compatibility: khi biên dịch lại code cũ
+## 3. Source compatibility: when recompiling old code
 
-Ở cấp source, compiler đánh giá toàn bộ cú pháp, overload resolution, access control, type inference, generics, annotation processors, module readability và nhiều quy tắc khác của Java tại **thời điểm build**.
+At the source level, the compiler evaluates all Java syntax, overload resolution, access control, type inference, generics, annotation processors, module readability, and many other rules at **build time**.
 
-Ví dụ source break dễ nhận biết:
+Common source breaks:
 
-- Xóa hoặc đổi tên public method mà mã nguồn client gọi.
-- Thêm một abstract method vào interface SPI khiến source của implementation cũ không còn implement đủ.
-- Đổi tên package hoặc class và không cung cấp lớp/adapter tương ứng.
-- Thêm overload tạo ra lựa chọn mơ hồ tại compile time.
-- Siết visibility/access của API mà client import.
-- Thay đổi generic bounds hoặc chữ ký làm source cũ không type-check.
-- Thêm checked exception vào `throws` khiến code client chưa catch/declare không còn build được; thay đổi `throws` cũng có thể ảnh hưởng mã nguồn bắt một checked exception không còn được khai báo.
-- Thay đổi module descriptor `exports`/`requires` khiến named module client không còn được đọc hoặc truy cập package.
+- Removing or renaming a public method that client source code calls.
+- Adding an abstract method to an SPI interface so old implementation source no longer implements every method.
+- Renaming a package or class without providing a corresponding class/adapter.
+- Adding an overload that creates an ambiguous choice at compile time.
+- Tightening visibility/access of an API imported by clients.
+- Changing generic bounds or signatures so old source no longer type-checks.
+- Adding a checked exception to `throws` so client code that does not catch/declare it fails to build; changing `throws` can also affect source code catching a checked exception that is no longer declared.
+- Changing module descriptor `exports`/`requires` so a named client module can no longer read or access a package.
 
-**Điểm tinh tế:** source compatibility không chỉ là “những method cũ còn tồn tại”. Thêm một overload **có thể làm client cũ không build được** vì compiler phải chọn lại giữa nhiều overload, trong khi bytecode cũ đã lưu lựa chọn từ lần compile trước.
+**Subtle point:** source compatibility is not merely “all old methods still exist.” Adding an overload **can prevent an old client from building** because the compiler must re-select among multiple overloads, whereas old bytecode already recorded the selection from the previous compilation.
 
-Ngoài ra, kết quả build phụ thuộc **classpath/module path, JDK release, compiler options, module graph**. Test “code v1 build trên máy mình” không đủ; cần test source thực tế với dependency và cấu hình sản xuất, ví dụ `javac --release 17` khi cam kết hỗ trợ Java 17.
+In addition, build outcomes depend on the **classpath/module path, JDK release, compiler options, and module graph**. Testing “v1 code builds on my machine” is insufficient; you need to test actual source with production dependencies and settings, such as `javac --release 17` when committing to Java 17 support.
 
-## 4. Binary compatibility: JVM liên kết theo tham chiếu đã biên dịch
+## 4. Binary compatibility: the JVM links via compiled references
 
-Java source được biên dịch thành bytecode chứa **symbolic references** tới các class, field và method, được giải quyết khi cần. Ở mức JVM, method descriptor bao gồm **kiểu tham số và kiểu trả về**. Ví dụ:
+Java source compiles into bytecode containing **symbolic references** to classes, fields, and methods, which are resolved when needed. At the JVM level, a method descriptor includes **parameter types and return type**. For example:
 
 ~~~text
 Java source                    JVM method descriptor
@@ -91,52 +91,52 @@ public static long max()       max:()J
 public String greet(String x)  greet:(Ljava/lang/String;)Ljava/lang/String;
 ~~~
 
-Vì `()I` và `()J` khác nhau, thay return type mà **không giữ method cũ** có thể phá client bytecode đã ghi tham chiếu `max:()I`. Trình biên dịch mã nguồn mới có thể tự chuyển từ `int` sang `long` ở assignment; nhưng JVM **không tự viết lại method reference trong class client cũ**.
+Because `()I` and `()J` differ, changing a return type **without keeping the old method** can break client bytecode that recorded a reference to `max:()I`. The source compiler for new code can automatically widen `int` to `long` at an assignment; however, the JVM **does not rewrite method references inside old client classes**.
 
-Một số dấu hiệu thông thường:
+Common symptoms:
 
-- `NoSuchMethodError`: bytecode gọi method descriptor không còn được tìm thấy trong class/interface theo cách JVM cần.
-- `NoSuchFieldError`: field mà bytecode tham chiếu không còn tồn tại theo tên/descriptor cũ.
-- `IllegalAccessError`: liên kết tới class/member từng truy cập được nhưng nay bị chặn.
-- `IncompatibleClassChangeError`: class/interface/static/instance shape không còn khớp cách bytecode cũ sử dụng.
-- `AbstractMethodError`: có call site hợp lệ nhưng implementation được dispatch tới không cung cấp phương thức cụ thể cần thiết.
-- `NoClassDefFoundError`: type mà mã đã biên dịch phụ thuộc không có sẵn hoặc không thể được định nghĩa/khởi tạo ở môi trường runtime; cần kiểm tra cause, không mặc định mọi trường hợp là API version.
+- `NoSuchMethodError`: bytecode invokes a method descriptor that is no longer found in the class/interface in the way the JVM requires.
+- `NoSuchFieldError`: a field referenced by bytecode no longer exists with the old name/descriptor.
+- `IllegalAccessError`: linking to a class/member that was previously accessible but is now denied.
+- `IncompatibleClassChangeError`: class/interface/static/instance shape no longer matches how old bytecode uses it.
+- `AbstractMethodError`: a valid call site exists, but the dispatched implementation does not provide the required concrete method.
+- `NoClassDefFoundError`: a type that compiled code depends on is unavailable or cannot be defined/initialized in the runtime environment; inspect the cause rather than assuming every case is an API version mismatch.
 
-Các lỗi này thuộc hệ `LinkageError` hoặc vấn đề tải/liên kết tương ứng, **khác** với compiler diagnostic và khác với exception nghiệp vụ từ implementation.
+These errors belong to the `LinkageError` family or related loading/linking failures, **distinct** from compiler diagnostics and distinct from business exceptions thrown by an implementation.
 
-### Binary compatibility không đồng nghĩa “mọi cách gọi mới đều chạy”
+### Binary compatibility does not mean “every new call works”
 
-Một số thay đổi được JLS coi là tương thích nhị phân với **các tham chiếu đã có**. Tuy nhiên nếu một host mới gọi một method **mới được thêm** vào interface trên plugin implementation cũ, có thể vẫn gặp `AbstractMethodError`. Vì vậy compatibility ở mức JLS không thay cho ma trận hỗ trợ “host-v2 ↔ provider-v1” trong vận hành.
+Some changes are considered by the JLS to be binary-compatible with **pre-existing references**. However, if a new host invokes a **newly added** method on an interface against an old plugin implementation, it can still hit `AbstractMethodError`. Thus, JLS-level compatibility does not replace an operational “host-v2 ↔ provider-v1” support matrix.
 
-### Bytecode và generic types
+### Bytecode and generic types
 
-Thông tin generics ở source không phải lúc nào cũng xuất hiện nguyên dạng trong method descriptor do **type erasure**. Một số thay đổi generic signature chỉ tác động source, nhưng thay bound/erasure, bridge methods hoặc các phương thức override có thể tác động binary dispatch. Không nên phân loại “đổi generic luôn binary-compatible” nếu chưa so descriptor thực tế và test compiled artifacts.
+Source-level generics information does not always appear verbatim in method descriptors due to **type erasure**. Some generic signature changes affect only source, but changing bounds/erasure, bridge methods, or overridden methods can affect binary dispatch. You should not classify “changing generics is always binary-compatible” without comparing actual descriptors and testing compiled artifacts.
 
-## 5. Behavioral compatibility: giữ đúng lời hứa của hợp đồng
+## 5. Behavioral compatibility: keeping the contract's promises
 
-Các loại tương thích trên chỉ nói mã có thể **biên dịch và liên kết**, không nói chương trình có còn đúng về nghiệp vụ.
+The compatibility types above only state whether code can **compile and link**, not whether the program remains functionally correct.
 
-Một hợp đồng hành vi có thể bao gồm:
+A behavioral contract may include:
 
-- **Preconditions:** đầu vào nào hợp lệ, `null` có được chấp nhận, phạm vi giá trị ra sao, khi nào throw exception.
-- **Postconditions:** đầu ra có ý nghĩa gì; tỷ lệ, đơn vị, rounding, chuỗi format, encoding, thứ tự kết quả.
-- **Invariants:** trạng thái không được vi phạm sau lời gọi, tính nhất quán giữa các phương thức.
-- **Side effects:** ghi file, gửi mạng, gọi callback, tạo transaction, cập nhật state hay phát event.
-- **Error semantics:** loại exception, điều kiện lỗi, retry behavior, mapping mã lỗi, có được bỏ qua lỗi hay không.
-- **Ordering và concurrency:** có bảo đảm thứ tự trả kết quả, tính thread-safe, visibility/happens-before, callback được gọi một hay nhiều lần.
-- **Idempotence và transaction semantics:** gọi lại cùng request có tạo thêm tác động hay không; rollback có thay đổi không.
-- **Performance/resource promises:** độ trễ, bộ nhớ, timeout, blocking/non-blocking, backpressure nếu những yếu tố này đã được cam kết như một phần API.
-- **Protocol/data compatibility:** định dạng JSON/serialization/schema và khả năng client cũ đọc dữ liệu mới.
+- **Preconditions:** which inputs are valid, whether `null` is accepted, value ranges, when exceptions are thrown.
+- **Postconditions:** what outputs mean; rates, units, rounding, string formatting, encoding, result ordering.
+- **Invariants:** state that must not be violated after a call, consistency across methods.
+- **Side effects:** writing files, sending network traffic, invoking callbacks, creating transactions, updating state, or emitting events.
+- **Error semantics:** exception types, failure conditions, retry behavior, error code mapping, whether errors may be ignored.
+- **Ordering and concurrency:** whether result order is guaranteed, thread-safety, visibility/happens-before, whether callbacks are invoked once or multiple times.
+- **Idempotence and transaction semantics:** whether re-invoking the same request causes additional effects; whether rollback changes.
+- **Performance/resource promises:** latency, memory, timeouts, blocking/non-blocking behavior, backpressure if promised as part of the API.
+- **Protocol/data compatibility:** JSON/serialization/schema formats and the ability of old clients to read new data.
 
-Ví dụ `int fee(int amount)` giữ nguyên source và JVM descriptor, nhưng thay từ 10% sang 20% sẽ phá ứng dụng đã dựa vào quy tắc 10%. Nếu đổi cách làm tròn, thứ tự plugin providers, lỗi khi input âm hoặc khả năng thread-safe, đó cũng có thể là behavior break — kể cả tất cả integration tests chỉ kiểm tra “không throw exception” đều pass.
+For example, `int fee(int amount)` keeps the same source and JVM descriptor, yet changing it from 10% to 20% breaks applications relying on the 10% rule. Changing rounding mode, plugin provider ordering, failure on negative input, or thread-safety can also be a behavioral break—even if all integration tests that only check “does not throw an exception” pass.
 
-Một **behavioral contract** nên được biểu đạt trong Javadoc, acceptance criteria và **contract tests có assertions**; nếu chỉ để trong đầu lập trình viên thì rất khó chứng minh backward compatibility.
+A **behavioral contract** should be expressed in Javadoc, acceptance criteria, and **contract tests with assertions**; if it lives only in a developer's head, backward compatibility is very hard to prove.
 
-## 6. Ví dụ A: thêm overload — binary vẫn chạy, source cũ không build lại
+## 6. Example A: adding an overload — binary still runs, old source fails to rebuild
 
-Tình huống thứ nhất minh họa một thay đổi *mở rộng API* nhưng vẫn gây source incompatibility.
+The first scenario illustrates a change that *expands the API* yet still causes source incompatibility.
 
-Giả sử dự án `case-a/` có ba vùng source. Các file Java sau đều hợp lệ trên Java 17.
+Suppose project `case-a/` has three source areas. The following Java files are all valid on Java 17.
 
 ### API v1 — `v1/src/demo/api/Selector.java`
 
@@ -170,9 +170,9 @@ public final class Selector {
 }
 ~~~
 
-Chữ ký `select(String)` **vẫn được giữ nguyên** ở v2. Nhưng compiler Java có hai overload không có quan hệ “cụ thể hơn” khi đối số là `null`: `String` và `Integer`.
+The `select(String)` signature **is still preserved** in v2. However, the Java compiler now has two overloads with no “more specific” relationship when the argument is `null`: `String` and `Integer`.
 
-### Client cũ — `client/src/demo/app/Client.java`
+### Old client — `client/src/demo/app/Client.java`
 
 ~~~java
 package demo.app;
@@ -186,7 +186,7 @@ public final class Client {
 }
 ~~~
 
-Từ thư mục `case-a/` dùng Bash:
+From directory `case-a/` using Bash:
 
 ~~~bash
 mkdir -p out/v1 out/v2 out/client-old out/client-new
@@ -194,44 +194,44 @@ mkdir -p out/v1 out/v2 out/client-old out/client-new
 javac --release 17 -d out/v1 v1/src/demo/api/Selector.java
 javac --release 17 -d out/v2 v2/src/demo/api/Selector.java
 
-# Biên dịch client cũ against API v1
+# Compile old client against API v1
 javac --release 17 -cp out/v1 -d out/client-old \
   client/src/demo/app/Client.java
 
-# Không biên dịch lại client: chạy với từng API runtime
+# Without recompiling client: run against each API runtime
 java -cp "out/v1:out/client-old" demo.app.Client
 java -cp "out/v2:out/client-old" demo.app.Client
 
-# Thử build lại đúng source cũ, nhưng với API v2
+# Try rebuilding the exact same old source, but against API v2
 javac --release 17 -cp out/v2 -d out/client-new \
   client/src/demo/app/Client.java
 ~~~
 
-Với Linux/macOS, `:` phân tách entries trong classpath; trên Windows đổi `:` thành `;`. Hai lệnh `java` có output giống nhau:
+On Linux/macOS, `:` separates classpath entries; on Windows, change `:` to `;`. The two `java` commands produce identical output:
 
 ~~~text
 selected=string
 selected=string
 ~~~
 
-Mỗi dòng là kết quả của **một lần chạy riêng**. Lệnh `javac` cuối **thất bại**, với diagnostic mang nội dung chính:
+Each line is the result of **a separate run**. The final `javac` command **fails**, with a diagnostic whose core message is:
 
 ~~~text
 reference to select is ambiguous
 both method select(String) and method select(Integer) match
 ~~~
 
-Dòng/đường dẫn chính xác trong diagnostic phụ thuộc file và compiler, nên không coi đây là stdout cố định của Java application.
+Exact line numbers/paths in the diagnostic depend on the file and compiler, so do not treat this as fixed Java application stdout.
 
-**Giải thích:** bytecode `Client.class` cũ đã chứa tham chiếu tới `Selector.select:(Ljava/lang/String;)Ljava/lang/String;`. API v2 vẫn cung cấp method này nên nó liên kết và chạy. Nhưng khi biên dịch lại `Selector.select(null)`, compiler phải phân giải lại overload và thấy hai ứng viên mơ hồ.
+**Explanation:** the old `Client.class` bytecode already contains a reference to `Selector.select:(Ljava/lang/String;)Ljava/lang/String;`. API v2 still provides this method, so it links and runs. However, when recompiling `Selector.select(null)`, the compiler must re-resolve the overload and finds two ambiguous candidates.
 
-**Bài học:** “chỉ thêm một overload” không mặc nhiên bảo đảm *source compatibility*. Cách tiến hóa an toàn hơn khi cần mở rộng API: đặt tên khác, dùng factory/option object, hoặc kiểm tra compile-time cả source client cũ trong CI.
+**Lesson:** “just adding an overload” does not automatically guarantee *source compatibility*. Safer ways to evolve an API when expansion is needed: choose a different name, use a factory/options object, or compile-test old client source in CI as well.
 
-## 7. Ví dụ B: đổi kiểu trả về — client source vẫn biên dịch, binary cũ hỏng
+## 7. Example B: changing return type — client source still compiles, old binary breaks
 
-Tình huống thứ hai cố ý đổi chữ ký **JVM** trong khi một client cụ thể vẫn build lại được từ source do Java cho phép widening từ `int` sang `long`.
+The second scenario intentionally changes the **JVM** signature while a specific client still rebuilds from source because Java allows widening from `int` to `long`.
 
-Cấu trúc độc lập `case-b/`:
+Independent layout `case-b/`:
 
 ### API v1 — `v1/src/demo/api/Quota.java`
 
@@ -280,9 +280,9 @@ public final class Client {
 }
 ~~~
 
-`catch` trong ví dụ **chỉ để minh họa lỗi linkage một cách ổn định**. Ở ứng dụng thực tế, không nên coi `NoSuchMethodError` như một exception nghiệp vụ và tiếp tục chạy bình thường; hãy sửa phối hợp phiên bản runtime API/implementation.
+The `catch` in this example is **only to demonstrate the linkage error deterministically**. In real applications, do not treat `NoSuchMethodError` as a business exception and continue running normally; fix the runtime API/implementation version coordination instead.
 
-Lệnh Bash tại `case-b/`:
+Bash commands in `case-b/`:
 
 ~~~bash
 mkdir -p out/v1 out/v2 out/client-old out/client-new
@@ -296,14 +296,14 @@ javac --release 17 -cp out/v1 -d out/client-old \
 java -cp "out/v1:out/client-old" demo.app.Client
 java -cp "out/v2:out/client-old" demo.app.Client
 
-# Recompile source cũ against v2
+# Recompile old source against v2
 javac --release 17 -cp out/v2 -d out/client-new \
   client/src/demo/app/Client.java
 
 java -cp "out/v2:out/client-new" demo.app.Client
 ~~~
 
-Kết quả tương ứng từng lệnh `java`:
+Output for each `java` command respectively:
 
 ~~~text
 quota=10
@@ -311,19 +311,19 @@ linkage=NoSuchMethodError
 quota=10
 ~~~
 
-Vì sao?
+Why?
 
-1. Với API v1, compiler ghi bytecode gọi `Quota.max:()I` rồi widening `int` sang `long` để lưu vào biến `q`.
-2. Khi thay **chỉ API runtime** bằng v2, method `Quota.max:()I` không còn; v2 chỉ có `Quota.max:()J`. Bytecode cũ không được viết lại → `NoSuchMethodError`.
-3. Khi **build lại client source** against v2, compiler sinh lời gọi `max:()J`; lệnh compile thành công và chương trình lại in `quota=10`.
+1. With API v1, the compiler emits bytecode calling `Quota.max:()I` and then widens `int` to `long` to store in variable `q`.
+2. When replacing **only the runtime API** with v2, method `Quota.max:()I` no longer exists; v2 has only `Quota.max:()J`. Old bytecode is not rewritten → `NoSuchMethodError`.
+3. When **rebuilding client source** against v2, the compiler emits a call to `max:()J`; compilation succeeds and the program prints `quota=10` again.
 
-**Kết luận cho thay đổi này:** source của client minh họa **tương thích** khi biên dịch lại; binary của client cũ **không tương thích** khi thay API runtime. Source compatibility phải được đánh giá theo từng tập source và ngữ cảnh, không suy rộng rằng mọi source khác đều tương thích.
+**Conclusion for this change:** the example client's source is **compatible** upon recompilation; the old client's binary is **incompatible** when swapping the runtime API. Source compatibility must be evaluated per source set and context, without generalizing that all other sources are compatible.
 
-Nếu thư viện bắt buộc phải nâng kiểu giá trị từ `int` lên `long` mà cần giữ binary cũ, một lộ trình thường là **giữ method cũ** và thêm method tên mới, ví dụ `maxLong()`, sau đó deprecate method cũ theo kỳ phát hành.
+If a library must widen a value type from `int` to `long` while preserving old binaries, a common path is to **keep the old method** and add a newly named method, such as `maxLong()`, then deprecate the old method over release cycles.
 
-## 8. Ví dụ C: source và binary không lỗi, nhưng hợp đồng hành vi bị phá
+## 8. Example C: no source or binary errors, but the behavioral contract is broken
 
-Giả sử specification v1 cam kết: **`fee(amount)` bằng 10% của `amount` khi amount là bội số 10 không âm**. Client có test dựa vào quy tắc này.
+Suppose specification v1 promises: **`fee(amount)` equals 10% of `amount` when amount is a non-negative multiple of 10**. The client has tests relying on this rule.
 
 ### API v1 — `v1/src/demo/api/Policy.java`
 
@@ -369,7 +369,7 @@ public final class Client {
 }
 ~~~
 
-Lệnh Bash tại `case-c/`:
+Bash commands in `case-c/`:
 
 ~~~bash
 mkdir -p out/v1 out/v2 out/client-old out/client-new
@@ -389,7 +389,7 @@ javac --release 17 -cp out/v2 -d out/client-new \
 java -cp "out/v2:out/client-new" demo.app.Client
 ~~~
 
-Kết quả từng lần chạy:
+Output for each run:
 
 ~~~text
 fee=10
@@ -400,15 +400,15 @@ fee=20
 rule-ok=false
 ~~~
 
-Không có compiler error hay `LinkageError`; method vẫn là `Policy.fee:(I)I`. Tuy nhiên, đầu ra `fee=20` **không đáp ứng specification cũ 10%**. Bất kể client có build lại hay không, hành vi vẫn thay đổi.
+There is no compiler error or `LinkageError`; the method is still `Policy.fee:(I)I`. However, the output `fee=20` **does not satisfy the old 10% specification**. Regardless of whether the client is rebuilt, the behavior has changed.
 
-Trong hệ thống thật, thay đổi như vậy có thể khiến hóa đơn, báo cáo, cache key hoặc quy trình thanh toán sai dù deployment/test khởi động đều xanh. Để tránh: tạo **contract test** thể hiện quy tắc không được phá; nếu phải đổi quy tắc thì phát hành chính sách/endpoint/version mới và có kế hoạch migration rõ ràng.
+In a real system, such a change can corrupt invoices, reports, cache keys, or payment workflows even while deployment and startup smoke tests stay green. To prevent this: write **contract tests** expressing rules that must not break; if a rule must change, publish a new policy/endpoint/version with a clear migration plan.
 
-> Đừng dùng “không gặp exception” làm tiêu chí duy nhất cho behavior compatibility. Một hệ thống trả **kết quả sai nhưng hợp lệ về type** có thể nguy hiểm hơn một lỗi linkage dễ phát hiện.
+> Do not use “no exception thrown” as the sole criterion for behavioral compatibility. A system returning **wrong results that are still type-valid** can be more dangerous than an easily detected linkage error.
 
-## 9. Ví dụ D: SPI interface thêm abstract method — plugin cũ gặp `AbstractMethodError`
+## 9. Example D: SPI interface adds an abstract method — old plugin hits `AbstractMethodError`
 
-Đây là tình huống quan trọng nhất khi thiết kế hệ thống **runtime extensibility**. Host và plugin được build riêng, cùng dùng một service interface. Người phát triển SPI v2 thêm method mới:
+This is the most critical scenario when designing a **runtime extensibility** system. Host and plugin are built separately and share a service interface. The SPI v2 author adds a new method:
 
 ### SPI v1 — `spi-v1/src/demo/spi/Plugin.java`
 
@@ -431,7 +431,7 @@ public interface Plugin {
 }
 ~~~
 
-### Provider cũ — `provider/src/demo/provider/OldPlugin.java`
+### Old provider — `provider/src/demo/provider/OldPlugin.java`
 
 ~~~java
 package demo.provider;
@@ -446,7 +446,7 @@ public final class OldPlugin implements Plugin {
 }
 ~~~
 
-### Host mới — `host/src/demo/host/Main.java`
+### New host — `host/src/demo/host/Main.java`
 
 ~~~java
 package demo.host;
@@ -467,7 +467,7 @@ public final class Main {
 }
 ~~~
 
-Các lệnh sau chạy từ thư mục chứa bốn cây source nêu trên; dùng Bash:
+The following commands run from the directory containing the four source trees above; using Bash:
 
 ~~~bash
 mkdir -p out/spi-v1 out/spi-v2 out/provider-old out/host
@@ -477,40 +477,40 @@ javac --release 17 -d out/spi-v1 \
 javac --release 17 -d out/spi-v2 \
   spi-v2/src/demo/spi/Plugin.java
 
-# Plugin đã được build theo interface v1
+# Plugin already built against interface v1
 javac --release 17 -cp out/spi-v1 -d out/provider-old \
   provider/src/demo/provider/OldPlugin.java
 
-# Host mới build với SPI v2 và bytecode plugin cũ
+# New host built with SPI v2 and old plugin bytecode
 javac --release 17 -cp "out/spi-v2:out/provider-old" -d out/host \
   host/src/demo/host/Main.java
 
 java -cp "out/spi-v2:out/provider-old:out/host" demo.host.Main
 
-# Thử biên dịch lại source provider cũ với SPI v2
+# Try recompiling old provider source against SPI v2
 javac --release 17 -cp out/spi-v2 -d out/provider-new \
   provider/src/demo/provider/OldPlugin.java
 ~~~
 
-Lệnh `java` in:
+The `java` command prints:
 
 ~~~text
 id=old
 failure=AbstractMethodError
 ~~~
 
-Lệnh `javac` cuối không thành công: `OldPlugin` không còn implement method trừu tượng `description()` được thêm ở interface v2.
+The final `javac` command fails: `OldPlugin` does not implement the abstract `description()` method added in interface v2.
 
-**Phân biệt hai hiện tượng:**
+**Distinguish the two phenomena:**
 
-- **Source compatibility cho implementation cũ:** bị phá vì class Java cụ thể phải implement đủ abstract methods khi build lại.
-- **Binary compatibility với các tham chiếu cũ:** việc thêm abstract method vào interface được JLS mô tả là binary-compatible theo nghĩa những tham chiếu cũ vẫn có thể liên kết; thực tế `id()` vẫn chạy với provider bytecode v1. **Nhưng host v2 bắt đầu gọi method mới** `description()` trên implementation v1 thì dispatch không có implementation → `AbstractMethodError`.
+- **Source compatibility for old implementations:** broken because a concrete Java class must implement all abstract methods when rebuilt.
+- **Binary compatibility with existing references:** adding an abstract method to an interface is described by the JLS as binary-compatible in the sense that existing references can still link; in fact, `id()` still runs with v1 provider bytecode. **However, once host v2 starts calling the new method** `description()` on a v1 implementation, dispatch finds no implementation → `AbstractMethodError`.
 
-Nói “thêm abstract method vào SPI là binary-compatible nên an toàn với mọi plugin cũ” sẽ dẫn tới sai lầm. Đối với rollout host/plugin, sự an toàn còn phụ thuộc **method nào được host mới gọi** và plugin cũ có đáp ứng được không.
+Saying “adding an abstract method to an SPI is binary-compatible, so it is safe for all old plugins” leads to mistakes. For host/plugin rollouts, safety also depends on **which methods the new host calls** and whether old plugins can satisfy them.
 
-### Dùng `default method` có thể giảm rủi ro — nhưng cần xét hành vi
+### Using a `default method` can reduce risk — but behavior must be evaluated
 
-Một cách tiến hóa interface là:
+One way to evolve the interface is:
 
 ~~~java
 package demo.spi;
@@ -524,14 +524,14 @@ public interface Plugin {
 }
 ~~~
 
-Khi không có override, implementation cũ có thể kế thừa default implementation, giúp tránh nhu cầu buộc plugin cũ triển khai method mới. Tuy nhiên:
+When not overridden, old implementations can inherit the default implementation, avoiding the need to force old plugins to implement the new method. However:
 
-- Default phải có **semantics hợp lệ** cho mọi provider cũ. `description()` trả `id()` có thể đủ hoặc không, tùy hợp đồng.
-- Thêm default method có thể gây **xung đột kế thừa** khi class đã implement nhiều interface có method trùng chữ ký, hoặc tương tác bất ngờ với hierarchy cũ. Cần test source và binary thực tế.
-- Default method không bảo đảm các provider cũ đáp ứng một tính năng hoàn toàn mới; method nên thiết kế fallback rõ (hoặc dùng capability interface tùy chọn).
-- Không dùng default chỉ để né `AbstractMethodError` nếu hành vi fallback là sai.
+- The default must have **valid semantics** for every old provider. `description()` returning `id()` may or may not be acceptable depending on the contract.
+- Adding a default method can cause **inheritance conflicts** when a class already implements multiple interfaces with matching method signatures, or interact unexpectedly with old hierarchies. Both source and binary must be tested.
+- A default method does not guarantee that old providers actually support a brand-new feature; the method should design an explicit fallback (or use an optional capability interface).
+- Do not use a default merely to dodge `AbstractMethodError` if the fallback behavior is wrong.
 
-Một phương án khác là thêm interface mở rộng:
+Another approach is to add an extension interface:
 
 ~~~java
 public interface PluginV2 extends Plugin {
@@ -539,44 +539,44 @@ public interface PluginV2 extends Plugin {
 }
 ~~~
 
-Đây là **đoạn minh họa**: khi triển khai phải đặt trong package/module phù hợp, giữ `Plugin` gốc không thay đổi, để host kiểm tra `instanceof PluginV2` trước khi sử dụng chức năng mới. Plugin cũ tiếp tục cung cấp contract cũ; plugin mới có thể tự chọn capability mới. Điều này giúp tránh ép mọi provider cũ áp dụng thay đổi cùng một lúc.
+This is an **illustrative snippet**: when implemented, place it in the appropriate package/module, keep the original `Plugin` unchanged, and have the host check `instanceof PluginV2` before using the new feature. Old plugins continue serving the old contract; new plugins can opt into the new capability. This avoids forcing all old providers to adopt changes at once.
 
-## 10. Áp dụng vào hợp đồng host–plugin và SPI thực tế
+## 10. Applying this to real-world host–plugin and SPI contracts
 
-Trong một hệ thống plugin Java, có thể tồn tại các bên độc lập:
+In a Java plugin system, independent parties may coexist:
 
 ~~~text
 Host v2
   |
   +-- public SPI/API artifact v2
   |
-  +-- Plugin A (JAR build against SPI v1)
-  +-- Plugin B (JAR build against SPI v2)
+  +-- Plugin A (JAR built against SPI v1)
+  +-- Plugin B (JAR built against SPI v2)
   |
-  +-- class loader hoặc module layer
+  +-- class loader or module layer
   |
   +-- ServiceLoader / factory / discovery registry
 ~~~
 
-Để plugin cũ hoạt động khi host được nâng cấp, cần xác minh:
+For old plugins to work when the host is upgraded, verify:
 
-1. **Type identity:** host và plugin chia sẻ đúng **một runtime class object** của interface SPI. Hai class có cùng binary name nhưng do hai defining class loaders khác nhau tạo ra **không phải một type**.
-2. **Binary signatures:** host v2 vẫn cung cấp những class/method/field descriptors mà plugin v1 được compile để gọi.
-3. **Instantiation:** constructor, provider factory, `ServiceLoader` service descriptor hoặc `module-info.java` `provides` vẫn tương thích.
-4. **Module readability/exports:** nếu dùng JPMS, package API còn được export đến các module plugin phù hợp; host/plugin modules đọc đúng dependency.
-5. **Provider capabilities:** host mới không yêu cầu plugin cũ có method bắt buộc mới nếu chưa có fallback hoặc version-gating.
-6. **Behavior contract:** các callback, thứ tự gọi, lifecycle, thread-safety, exception semantics và resource ownership mà provider v1 dựa vào vẫn được giữ hoặc có migration tường minh.
+1. **Type identity:** host and plugin share the exact **same runtime class object** of the SPI interface. Two classes with the same binary name defined by two different defining class loaders **are not the same type**.
+2. **Binary signatures:** host v2 still provides the class/method/field descriptors that plugin v1 was compiled to call.
+3. **Instantiation:** constructors, provider factories, `ServiceLoader` service descriptors, or `module-info.java` `provides` clauses remain compatible.
+4. **Module readability/exports:** if using JPMS, the API package is still exported to the appropriate plugin modules; host/plugin modules read the right dependencies.
+5. **Provider capabilities:** the new host does not require old plugins to have new mandatory methods without fallback or version-gating.
+6. **Behavior contract:** callbacks, invocation order, lifecycle, thread-safety, exception semantics, and resource ownership that provider v1 relies on are preserved or explicitly migrated.
 
-Đặc biệt, “thay class trong plugin directory mà không restart host” là một vấn đề **class loading/lifecycle**, tách biệt nhưng có thể che lỗi compatibility. JVM không tự cập nhật bytecode của class đã được một loader định nghĩa. Thường cần dừng plugin cũ, loại bỏ tham chiếu và tạo class loader/module layer mới cho phiên bản mới; nếu không, test có thể đang chạy trên class cũ.
+In particular, “replacing classes in the plugin directory without restarting the host” is a **class loading/lifecycle** issue—separate from, yet capable of masking, compatibility bugs. The JVM does not automatically update bytecode of a class already defined by a loader. You generally must stop the old plugin, drop references, and create a new class loader/module layer for the new version; otherwise, tests may still be running against old classes.
 
-### Source compatibility có thể khác nhau giữa consumer và provider
+### Source compatibility can differ between consumer and provider
 
-Một thay đổi SPI có thể không phá source client chỉ *gọi* `Plugin.id()`, nhưng lại phá source của provider cũ đang `implements Plugin`. Ngược lại, thêm một overload vào API host có thể phá code của consumer do overload resolution dù implementation plugin không đổi.
+An SPI change might not break the source of a client that only *calls* `Plugin.id()`, yet break the source of an old provider that `implements Plugin`. Conversely, adding an overload to a host API can break consumer code due to overload resolution even if plugin implementations are unchanged.
 
-Vì vậy báo cáo compatibility nên luôn ghi rõ:
+Therefore, compatibility reports should always state clearly:
 
 ~~~text
-Đối tượng kiểm tra:
+Check targets:
   host API consumer source
   plugin provider source
   old host bytecode
@@ -584,104 +584,104 @@ Vì vậy báo cáo compatibility nên luôn ghi rõ:
   module/ServiceLoader metadata
   runtime behavior contract
 
-Chiều thử:
+Check directions:
   host v2 + plugin v1
-  host v1 + plugin v2 (nếu được hỗ trợ)
+  host v1 + plugin v2 (if supported)
 ~~~
 
-Không nên gộp tất cả thành một nhãn boolean duy nhất.
+Do not collapse all of these into a single boolean label.
 
-## 11. Một số thay đổi API dễ bị đánh giá sai
+## 11. API changes commonly misjudged
 
-| Thay đổi | Source compatibility | Binary compatibility | Behavioral contract |
+| Change | Source compatibility | Binary compatibility | Behavioral contract |
 |---|---|---|---|
-| Thêm overload `select(Integer)` cạnh `select(String)` | **Có thể phá** source gọi `select(null)` do ambiguous | Các call sites cũ tới `select(String)` thường vẫn liên kết | Method cũ còn giữ có thể hành xử như cũ |
-| Đổi `int max()` → `long max()` | Một số source vẫn build do widening; source khác có thể hỏng | **Phá** method descriptor cũ `()I` | Kết quả số có thể giữ giá trị nhưng đó chưa đủ |
-| Đổi implementation của `int fee(int)` | Thường không đổi source | Thường không đổi ABI | Có thể phá quy tắc nghiệp vụ |
-| Thêm abstract method vào interface SPI | **Phá** source của concrete providers chưa implement | Việc thêm method có thể binary-compatible cho tham chiếu cũ; **call site mới** trên provider cũ có thể `AbstractMethodError` | Capability mới không được bảo đảm |
-| Thêm default method vào interface | Thường thuận lợi hơn nhưng có thể có xung đột source/override | Cần xem xét xung đột dispatch và hierarchy thực tế | Fallback phải đúng semantics |
-| Xóa public method/field đang được dùng | Source cũ thường hỏng | Bytecode cũ có thể `NoSuchMethodError`/`NoSuchFieldError` | Không đảm bảo |
-| Giảm quyền truy cập public → package-private/private | Source ngoài package/module hỏng | Bytecode cũ có thể `IllegalAccessError` | Không đảm bảo |
-| Thay static method bằng instance method (hoặc ngược lại) | Call syntax cũ có thể hỏng | Có thể `IncompatibleClassChangeError` | Không đảm bảo |
-| Thêm checked exception vào khai báo `throws` | Có thể buộc caller catch/declare, phá source | `throws` không nằm trong JVM method descriptor nên không trực tiếp phá linkage | Error behavior có thể đổi |
-| Thay `public static final` constant compile-time | Source thường còn hợp lệ | Old binary có thể vẫn dùng giá trị đã **inline** | Các client có thể thấy **giá trị khác nhau theo thời điểm compile** |
-| Thay generic type parameters/bounds | Có thể gây lỗi compile hoặc warning | Phụ thuộc erasure, bridge methods và descriptors cụ thể | Có thể phát sinh cast lỗi ở runtime |
-| Thay `exports` hoặc module dependency | Source của named modules có thể không truy cập được | Runtime access/linkage có thể hỏng do cấu hình module graph | Có thể đổi discovery/access |
-| Đổi tên package/class | Source import cũ hỏng | Old symbolic references tới tên cũ không resolve nếu không có compatibility shim | Không đảm bảo |
+| Add overload `select(Integer)` alongside `select(String)` | **May break** source calling `select(null)` due to ambiguity | Old call sites to `select(String)` usually still link | Preserved old method can behave as before |
+| Change `int max()` → `long max()` | Some source still builds via widening; other source may break | **Breaks** old method descriptor `()I` | Numeric value may stay the same, which is not enough |
+| Change implementation of `int fee(int)` | Usually unchanged at source | Usually unchanged at ABI | May break business rules |
+| Add abstract method to SPI interface | **Breaks** source of concrete providers that do not implement it | Adding the method can be binary-compatible for old references; **new call site** on old provider can throw `AbstractMethodError` | New capability is not guaranteed |
+| Add default method to interface | Usually friendlier, though source/override conflicts can happen | Must check dispatch conflicts and actual hierarchy | Fallback must have valid semantics |
+| Remove public method/field in use | Old source usually breaks | Old bytecode can throw `NoSuchMethodError`/`NoSuchFieldError` | Not guaranteed |
+| Reduce visibility public → package-private/private | Source outside package/module breaks | Old bytecode can throw `IllegalAccessError` | Not guaranteed |
+| Change static method to instance method (or vice versa) | Old call syntax may break | Can throw `IncompatibleClassChangeError` | Not guaranteed |
+| Add checked exception to `throws` declaration | Can force callers to catch/declare, breaking source | `throws` is not part of the JVM method descriptor, so it does not directly break linkage | Error behavior may change |
+| Change compile-time `public static final` constant | Source usually remains valid | Old binaries may still use the **inlined** value | Clients may observe **different values depending on compile time** |
+| Change generic type parameters/bounds | May cause compile errors or warnings | Depends on erasure, bridge methods, and specific descriptors | May cause runtime cast errors |
+| Change `exports` or module dependencies | Named-module source may lose access | Runtime access/linkage may break due to module graph configuration | May change discovery/access |
+| Rename package/class | Old source imports break | Old symbolic references to old names fail to resolve without a compatibility shim | Not guaranteed |
 
-Bảng có các từ **“thường”, “có thể”, “phụ thuộc”** có chủ đích: nhiều thay đổi có ngoại lệ theo JLS/JVMS, compiler và cách các client đang dùng API. Với public library cần chứng minh bằng **mã nguồn + bytecode thực tế + runtime tests**, không chỉ dựa vào heuristic “tên method giống nhau”.
+The words **“usually”, “may”, “depends”** in the table are intentional: many changes have exceptions under the JLS/JVMS, compiler behavior, and how clients use the API. For a public library, prove compatibility with **actual source + actual bytecode + runtime tests**, not just the heuristic “the method name is the same.”
 
-### Compile-time constants và hành vi quan sát được
+### Compile-time constants and observable behavior
 
-Ví dụ:
+For example:
 
 ~~~java
 public static final String VERSION = "v1";
 ~~~
 
-Nếu `VERSION` là *constant variable* được sử dụng trong constant expression, javac có thể nhúng trực tiếp `"v1"` vào bytecode client. Sau khi đổi field sang `"v2"`, client cũ **có thể vẫn in `"v1"`** dù runtime chứa API mới; client build lại mới dùng `"v2"`. Đây là tình huống “binary không ném lỗi nhưng behavior version skew xuất hiện”. Nếu giá trị là dữ liệu runtime cần cập nhật, cân nhắc cung cấp method accessor thay vì phụ thuộc constant inlining.
+If `VERSION` is a *constant variable* used in a constant expression, `javac` can embed `"v1"` directly into client bytecode. After changing the field to `"v2"`, an old client **may still print `"v1"`** even though the runtime contains the new API; only a rebuilt client uses `"v2"`. This is a case where “the binary throws no error, yet behavioral version skew appears.” If a value is runtime data that must update, consider providing an accessor method instead of relying on constant inlining.
 
-### Checked exceptions và binary descriptor
+### Checked exceptions and binary descriptors
 
-Thông tin checked `throws` không tham gia method descriptor `(parameterTypes)returnType` trong JVM. Vì vậy thay `throws IOException` ở source không giống đổi return type hoặc parameter type. Tuy nhiên source compiler vẫn kiểm tra checked exceptions; một client đã bắt riêng exception cũ hoặc chưa xử lý exception mới có thể không build lại. Runtime behavior về loại lỗi được ném cũng có thể thay đổi.
+Checked `throws` information does not participate in the JVM method descriptor `(parameterTypes)returnType`. Thus, changing `throws IOException` in source is not like changing a return type or parameter type. However, the source compiler still checks checked exceptions; a client that caught only the old exception or does not handle the new one may fail to rebuild. Runtime behavior regarding which error types are thrown can also change.
 
-## 12. Đặt tiêu chuẩn tương thích trong versioning và rollout
+## 12. Setting compatibility standards in versioning and rollouts
 
-Không có một phép kiểm duy nhất phù hợp cho mọi public API. Một kế hoạch phát hành cụ thể nên gồm:
+No single test fits every public API. A concrete release plan should include:
 
-### 12.1. Định nghĩa chính sách
+### 12.1. Policy definition
 
-Ví dụ chính sách tương thích cho một SPI:
+Example compatibility policy for an SPI:
 
-- Host v2 phải tiếp tục **chạy** plugin JAR đã build với SPI v1, không yêu cầu build lại.
-- Mã plugin v1 khi rebuild với API v2 phải biên dịch không lỗi (nếu cam kết source compatibility).
-- Các method đã được công bố ở v1 phải giữ các postconditions, exception semantics và lifecycle hooks quan trọng.
-- Các tính năng mới chỉ bật cho plugin khai báo capability/version tương ứng.
-- Những thay đổi cố ý phá hợp đồng phải có deprecation/migration guide và version boundary rõ.
+- Host v2 must continue **running** plugin JARs built against SPI v1 without requiring a rebuild.
+- Plugin v1 code rebuilt against API v2 must compile without errors (if source compatibility is promised).
+- Methods published in v1 must preserve key postconditions, exception semantics, and lifecycle hooks.
+- New features are enabled only for plugins declaring the corresponding capability/version.
+- Intentional contract-breaking changes must have a deprecation/migration guide and clear version boundaries.
 
-**Semantic Versioning** là một quy ước về version number và mức độ phá API, **không tự phát hiện** mọi source/binary/behavior break. Ngay cả tăng minor version, một thay đổi được coi là “bổ sung” vẫn có thể làm overload resolution mơ hồ hoặc gây xung đột default methods. Phải kiểm tra contract thực tế, không suy luận từ số version.
+**Semantic Versioning** is a convention about version numbers and API breakage levels; it **does not automatically detect** every source/binary/behavior break. Even in a minor version bump, a change considered “additive” can make overload resolution ambiguous or cause default method conflicts. Verify the actual contract rather than inferring from version numbers.
 
-### 12.2. Chiến lược tiến hóa an toàn hơn
+### 12.2. Safer evolution strategies
 
-- **Thêm method mới bằng tên mới** thay vì sửa descriptor public method đang được dùng; giữ shim method cũ nếu có thể.
-- **Deprecate trước khi remove**: cho client thời gian chuyển; deprecation không xóa method nên không tự làm hỏng binary.
-- **Dùng interface capability mở rộng** hoặc default method với fallback hợp lệ khi muốn bổ sung khả năng cho SPI.
-- **Dùng request/config object** để thêm tùy chọn thay vì thêm overload không kiểm soát; thiết kế object cũng cần versioning hợp lý.
-- **Version-gate theo capability thực tế** chứ không chỉ so chuỗi version; kiểm tra `instanceof`/feature negotiation khi thích hợp.
-- **Tách contract behavior khỏi implementation detail**: kiểm tra đầu ra, errors, state transitions và side effects được công bố, tránh kiểm tra những chi tiết không hứa hẹn.
-- **Thêm integration tests theo matrix** khi host/client/provider được triển khai hoặc nâng cấp độc lập.
-- **Giữ một bản SPI chung cho class loader**: nếu plugin đóng gói riêng bản API trùng binary name và child-first loader nạp nó, có thể gặp `ClassCastException`, không phải lỗi semver đơn thuần.
+- **Add a new method with a new name** instead of altering the descriptor of an in-use public method; keep the old shim method if possible.
+- **Deprecate before removing:** give clients time to migrate; deprecation does not delete the method, so it does not itself break binaries.
+- **Use an extension capability interface** or a default method with a valid fallback when adding capabilities to an SPI.
+- **Use a request/config object** to add options instead of adding uncontrolled overloads; design that object with sensible versioning as well.
+- **Version-gate by actual capability** rather than just comparing version strings; check `instanceof`/feature negotiation where appropriate.
+- **Separate contract behavior from implementation details:** test published outputs, errors, state transitions, and side effects, avoiding tests on unpromised details.
+- **Add matrix-based integration tests** when host/client/provider are deployed or upgraded independently.
+- **Keep one shared SPI copy per class loader:** if a plugin bundles its own copy of the API with the same binary name and a child-first loader loads it, `ClassCastException` can occur—this is not a simple semver bug.
 
-### 12.3. Ma trận kiểm thử tối thiểu
+### 12.3. Minimum test matrix
 
-| Tổ hợp | Mục tiêu |
+| Combination | Purpose |
 |---|---|
-| API v1 + source client/provider v1 | Baseline: mẫu cũ build được |
-| API v2 + **source** client/provider v1 | Đánh giá **source compatibility** |
-| API v2 runtime + **.class/JAR client/provider v1**, không rebuild | Đánh giá **binary compatibility** và khả năng nạp plugin cũ |
-| API v2 runtime + implementation mới | Xác nhận chức năng v2 |
-| Host v2 + plugin v1 | Tương thích ngược trong triển khai plugin |
-| Host v1 + plugin v2 (nếu chính sách cam kết) | Tương thích tiến về trước hoặc graceful rejection |
-| Contract tests chạy trên các tổ hợp được hỗ trợ | Đánh giá **behavior** với input/output, side effects, errors và concurrency |
+| API v1 + client/provider v1 source | Baseline: old sample builds |
+| API v2 + client/provider v1 **source** | Evaluate **source compatibility** |
+| API v2 runtime + **client/provider v1 `.class`/JAR**, no rebuild | Evaluate **binary compatibility** and ability to load old plugins |
+| API v2 runtime + new implementation | Confirm v2 functionality |
+| Host v2 + plugin v1 | Backward compatibility in plugin deployment |
+| Host v1 + plugin v2 (if policy promises it) | Forward compatibility or graceful rejection |
+| Contract tests run across supported combinations | Evaluate **behavior** for inputs/outputs, side effects, errors, and concurrency |
 
-**Không được vô tình recompile plugin cũ trong test binary.** Nếu build tool tự compile lại toàn bộ workspace theo API v2, bạn đã thử source compatibility và có thể không còn tái hiện `NoSuchMethodError`/`AbstractMethodError` của artifact thực tế đang chạy ở khách hàng.
+**Do not accidentally recompile old plugins in binary tests.** If your build tool automatically recompiles the entire workspace against API v2, you have tested source compatibility and may no longer reproduce `NoSuchMethodError`/`AbstractMethodError` from real artifacts running at customer sites.
 
-## 13. Công cụ Java 17+ giúp chứng minh thay đổi
+## 13. Java 17+ tools to verify changes
 
-### `javac`: thử source compatibility
+### `javac`: testing source compatibility
 
-Lấy **mã nguồn v1**, đổi compile classpath/module path sang API v2, rồi chạy:
+Take **v1 source code**, switch the compile classpath/module path to API v2, and run:
 
 ~~~bash
 javac --release 17 -cp path/to/api-v2.jar -d out/client-rebuild \
   client/src/demo/app/Client.java
 ~~~
 
-Hoặc áp dụng cùng logic trong Maven/Gradle CI. Với module source cần giữ module graph tương ứng; dùng `--module-path` và `--module`/`--module-source-path` đúng thiết kế, không ép hệ JPMS vào ví dụ classpath này.
+Or apply the same logic in Maven/Gradle CI. For modular source, preserve the corresponding module graph; use `--module-path` and `--module`/`--module-source-path` as designed rather than forcing a JPMS setup into this classpath example.
 
-### `javap`: xem bytecode signature và method descriptors
+### `javap`: inspecting bytecode signatures and method descriptors
 
-Giả sử đã biên dịch các class từ ví dụ B:
+Assuming the classes from Example B are compiled:
 
 ~~~bash
 javap -classpath out/v1 -s -public demo.api.Quota
@@ -689,19 +689,19 @@ javap -classpath out/v2 -s -public demo.api.Quota
 javap -classpath out/client-old -c -p demo.app.Client
 ~~~
 
-Điều cần tìm là `descriptor: ()I` ở API v1, `descriptor: ()J` ở v2 và lời gọi đã compile trong client cũ. `javap -s` xem JVM descriptors; `javap -c` xem lệnh bytecode; `-p` bao gồm cả member private của class đang được kiểm tra.
+Look for `descriptor: ()I` in API v1, `descriptor: ()J` in v2, and the compiled call in the old client. `javap -s` shows JVM descriptors; `javap -c` shows bytecode instructions; `-p` includes private members of the inspected class.
 
-Không chỉ so source diff: một thay đổi trông nhỏ ở Java có thể biến đổi JVM descriptor hoặc sinh/xóa bridge method. Đặc biệt với covariant return type, compiler có thể sinh synthetic **bridge methods** để hỗ trợ dispatch binary; phải kiểm tra artifact thực tế thay vì mặc định mọi đổi return type đều có tác động hệt nhau.
+Do not rely solely on source diffs: a seemingly small change in Java can alter a JVM descriptor or emit/remove a bridge method. Especially with covariant return types, the compiler may generate synthetic **bridge methods** to support binary dispatch; inspect the actual artifacts rather than assuming all return-type changes have identical impact.
 
-### `jdeps` và module metadata: kiểm tra dependency
+### `jdeps` and module metadata: checking dependencies
 
-`jdeps` phân tích các dependency cấp class/module của JAR, giúp phát hiện các class tham chiếu dependency không còn có mặt. Với JPMS, `java --describe-module` hoặc `jar --describe-module` cũng hữu ích để đối chiếu `requires`, `exports`, `uses` và `provides`.
+`jdeps` analyzes class/module-level dependencies of a JAR, helping spot classes referencing dependencies that are no longer present. With JPMS, `java --describe-module` or `jar --describe-module` is also useful to cross-check `requires`, `exports`, `uses`, and `provides`.
 
-Tuy nhiên, công cụ phân tích static dependency không chứng minh được các đường đi reflection, tên class dựng bằng string, `ServiceLoader` provider nằm ở layer runtime hoặc behavior contract. Phải kết hợp **runtime test**.
+However, static dependency analysis tools cannot prove reflection paths, class names constructed from strings, `ServiceLoader` providers in runtime layers, or behavioral contracts. They must be combined with **runtime tests**.
 
-### Contract tests và differential tests
+### Contract tests and differential tests
 
-Dùng cùng một tập test nghiệp vụ chạy với API v1/v2. Các assertions phải phản ánh specification, ví dụ:
+Run the same business test suite against API v1 and v2. Assertions must reflect the specification, for example:
 
 ~~~java
 int fee = Policy.fee(100);
@@ -710,64 +710,64 @@ if (fee != 10) {
 }
 ~~~
 
-Đây là **đoạn kiểm thử tích hợp**, giả định có import `demo.api.Policy` từ ví dụ C. Chạy test against v1 sẽ pass; với v2 trả `20` sẽ fail. Đây là tín hiệu behavior regression rõ ràng hơn so với việc test chỉ xác nhận method trả về một `int`.
+This is an **integration test snippet**, assuming `demo.api.Policy` is imported from Example C. Running the test against v1 passes; against v2 returning `20`, it fails. This is a clearer behavioral regression signal than a test that only checks that the method returns an `int`.
 
-Đối với API có concurrency, contract tests phải kiểm tra cả race conditions, ordering và resource ownership, không chỉ một lời gọi tuần tự.
+For APIs with concurrency, contract tests must also check race conditions, ordering, and resource ownership, not just a single sequential call.
 
-## 14. Hướng xử lý khi phát hiện lỗi ở môi trường sản xuất
+## 14. Troubleshooting guide when errors appear in production
 
-| Triệu chứng | Khía cạnh nghi vấn | Điều cần kiểm tra |
+| Symptom | Suspected dimension | What to inspect |
 |---|---|---|
-| Client build lại lỗi vì `method(null)` ambiguous | Source | Các overload mới và quá trình overload resolution; thử cùng JDK/compiler flags |
-| `NoSuchMethodError: ...()I` | Binary | Runtime JAR có còn method descriptor chính xác không; thứ tự classpath và class loader |
-| `NoSuchFieldError` | Binary | Field name/type/static-ness cũ có còn đúng không; compile-time constant có bị inline không |
+| Client rebuild fails because `method(null)` is ambiguous | Source | New overloads and overload resolution; test with exact JDK/compiler flags |
+| `NoSuchMethodError: ...()I` | Binary | Whether the runtime JAR still has the exact method descriptor; classpath order and class loaders |
+| `NoSuchFieldError` | Binary | Whether old field name/type/static-ness still matches; whether a compile-time constant was inlined |
 | `IncompatibleClassChangeError` | Binary | Class/interface shape, static/instance invocations, inherited defaults/dispatch |
-| `AbstractMethodError` khi host mới gọi plugin cũ | SPI evolution | Method mới có abstract không? Plugin cũ có implementation? Capability negotiation đúng chưa? |
-| `IllegalAccessError` trên module/class | Module access / binary | Public visibility, JPMS `exports`/`opens`, module graph, class loader |
-| `ClassCastException` dù class name giống nhau | Loader identity | Hai copies của SPI có bị loader khác nhau định nghĩa không? |
-| Plugin chạy được nhưng tính toán khác bản trước | Behavior | Contract tests, semantics, rounding/units/exceptions, feature flags và data |
-| Client cũ đọc hằng số cũ dù API đã đổi | Build-time constant | Hằng `static final` có bị inline lúc compile client không? |
-| Chỉ một số plugin fail | Mixed-version matrix | Plugin build bằng SPI nào, host/API runtime nào, loader nào và capability nào được gọi |
+| `AbstractMethodError` when new host calls old plugin | SPI evolution | Is the new method abstract? Does the old plugin have an implementation? Is capability negotiation right? |
+| `IllegalAccessError` on module/class | Module access / binary | Public visibility, JPMS `exports`/`opens`, module graph, class loader |
+| `ClassCastException` despite identical class names | Loader identity | Are two copies of the SPI defined by different loaders? |
+| Plugin runs but computes differently from previous version | Behavior | Contract tests, semantics, rounding/units/exceptions, feature flags, and data |
+| Old client reads old constant even though API changed | Build-time constant | Was the `static final` constant inlined when compiling the client? |
+| Only some plugins fail | Mixed-version matrix | Which SPI each plugin built against, which host/API runtime, which loader, and which capability was called |
 
-Khi debug, ghi **version artifact, class loader, nguồn JAR/module và JVM descriptor**. Nếu có thể, lưu lại chính **plugin JAR cũ** gây lỗi để tái hiện mà không compile lại. Một log chỉ chứa method name không đủ xác định loại binary break.
+When debugging, record the **artifact version, class loader, JAR/module source, and JVM descriptor**. If possible, preserve the exact **old plugin JAR** that triggered the error to reproduce without recompiling. A log containing only a method name is not enough to identify the binary break type.
 
-## 15. Checklist quyết định khi review thay đổi hợp đồng
+## 15. Decision checklist when reviewing a contract change
 
-Trước khi merge/release một thay đổi public API/SPI, trả lời:
+Before merging/releasing a public API/SPI change, answer:
 
-1. **Tập consumer nào đang sử dụng API?** Có source, bytecode hoặc plugin bên thứ ba được build độc lập không?
-2. **Cam kết hỗ trợ chiều nào?** Host mới + plugin cũ, host cũ + plugin mới, hay cả hai?
-3. **Source check:** source client/provider của phiên bản cũ có compile được với API mới trong đúng JDK/JPMS graph không?
-4. **Binary check:** giữ nguyên `.class`/JAR cũ, thay duy nhất API/runtime mới, chạy những call sites cũ có gặp `LinkageError` không?
-5. **Behavior check:** test đầu vào/đầu ra, side effects, exception, rounding, timing và concurrency có giữ cam kết không?
-6. **SPI check:** nếu thay interface, provider cũ có còn khởi tạo và xử lý mọi lời gọi mới có thể xảy ra không?
-7. **Reflection/ServiceLoader:** tên interface/provider, constructor/factory, `META-INF/services` hoặc `module-info.java` có phù hợp với lớp/loader mới không?
-8. **Versioning:** có cần default method, adapter, capability API mới, deprecation hay major version không?
-9. **Rollout:** có cách phát hiện plugin không tương thích và từ chối rõ ràng trước khi chạy nghiệp vụ không?
-10. **Rollback:** có thể quay lại API/host v1 mà không làm hỏng dữ liệu hoặc plugin đã được cập nhật không?
+1. **Which consumers use the API?** Are there sources, bytecodes, or independently built third-party plugins?
+2. **Which direction is promised?** New host + old plugin, old host + new plugin, or both?
+3. **Source check:** does old-version client/provider source compile against the new API in the exact JDK/JPMS graph?
+4. **Binary check:** keeping old `.class`/JAR files unchanged and swapping only the new API/runtime, do old call sites run without `LinkageError`?
+5. **Behavior check:** do tests for inputs/outputs, side effects, exceptions, rounding, timing, and concurrency preserve commitments?
+6. **SPI check:** if an interface changed, can old providers still instantiate and handle every new call that may occur?
+7. **Reflection/ServiceLoader:** do interface/provider names, constructors/factories, `META-INF/services`, or `module-info.java` match the new classes/loaders?
+8. **Versioning:** do we need a default method, adapter, new capability API, deprecation, or major version bump?
+9. **Rollout:** is there a way to detect incompatible plugins and reject them cleanly before running business logic?
+10. **Rollback:** can we revert to API/host v1 without corrupting data or already-updated plugins?
 
-Một release chỉ đạt mức “biên dịch được” **không** đồng nghĩa đã qua kiểm thử tương thích API. Khi môi trường hỗ trợ runtime extensibility, thử nghiệm phải giữ nguyên các artifacts cũ, vì nhiều lỗi chỉ xuất hiện ở thời điểm load/link/invoke.
+A release that merely “compiles” does **not** mean it passed API compatibility testing. When an environment supports runtime extensibility, testing must keep old artifacts intact, because many failures surface only at load/link/invoke time.
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-check questions
 
-1. **Thêm overload `select(Integer)` và giữ `select(String)` có chắc source-compatible không?** Không. `select(null)` có thể trở nên ambiguous khi biên dịch lại.
-2. **Vì sao bytecode client cũ vẫn gọi `select(String)` đúng sau khi API thêm overload?** Vì call site đã chứa method reference/descriptor tới overload cũ, không thực hiện overload resolution lại khi runtime.
-3. **`long q = Quota.max();` có thể compile với cả `int max()` và `long max()`, vậy binary cũ có luôn chạy được không?** Không. JVM descriptor có return type, `()I` khác `()J`.
-4. **Vì sao `Policy.fee(int)` có thể phá hợp đồng mà `javac`/JVM không báo lỗi?** Bởi chữ ký không đổi nhưng tính phí 10% thành 20% là thay đổi semantics.
-5. **Thêm abstract method vào interface SPI tác động thế nào đến plugin cũ?** Source provider cũ có thể không compile; bytecode cũ có thể vẫn chạy lời gọi cũ, nhưng host mới gọi method mới có thể gặp `AbstractMethodError`.
-6. **Default method có bảo đảm mọi plugin cũ hoàn toàn tương thích không?** Không. Cần kiểm tra fallback behavior, method conflicts và provider lifecycle.
-7. **`NoSuchMethodError` là lỗi source hay binary?** Lỗi linkage của bytecode ở runtime; source compatibility được thử bằng compile lại.
-8. **Nếu `public static final String VERSION` đổi giá trị, client cũ có tự thấy giá trị mới?** Không nhất thiết, vì compile-time constant có thể đã được inline vào class client.
-9. **Có thể dùng `jdeps` hoặc `javap` để chứng minh hợp đồng behavior không?** Không. Chúng chủ yếu giúp phân tích dependency/bytecode; cần contract tests chạy thực tế.
-10. **Với host v2 + plugin v1, một lần build lại plugin v1 against SPI v2 có đủ chứng minh binary compatibility không?** Không. Phải chạy **đúng artifact plugin v1 đã biên dịch** với runtime v2.
+1. **Is adding an overload `select(Integer)` while keeping `select(String)` guaranteed to be source-compatible?** No. `select(null)` can become ambiguous upon recompilation.
+2. **Why does old client bytecode still call `select(String)` properly after the API adds an overload?** Because the call site already contains the method reference/descriptor to the old overload and does not re-run overload resolution at runtime.
+3. **`long q = Quota.max();` compiles with both `int max()` and `long max()`, so will the old binary always run?** No. The JVM descriptor includes the return type; `()I` differs from `()J`.
+4. **Why can `Policy.fee(int)` break a contract without `javac` or the JVM reporting an error?** Because the signature is unchanged, yet changing the fee from 10% to 20% is a semantic change.
+5. **How does adding an abstract method to an SPI interface affect old plugins?** Old provider source may fail to compile; old bytecode may still run old calls, but a new host invoking the new method can hit `AbstractMethodError`.
+6. **Does a default method guarantee complete compatibility for all old plugins?** No. You must check fallback behavior, method conflicts, and provider lifecycle.
+7. **Is `NoSuchMethodError` a source or binary error?** A bytecode linkage error at runtime; source compatibility is tested by recompiling.
+8. **If `public static final String VERSION` changes value, do old clients automatically see the new value?** Not necessarily, because a compile-time constant may have been inlined into client classes.
+9. **Can `jdeps` or `javap` prove a behavioral contract?** No. They primarily help analyze dependencies/bytecode; actual contract tests must be executed.
+10. **For host v2 + plugin v1, is rebuilding plugin v1 against SPI v2 once enough to prove binary compatibility?** No. You must run the **exact compiled plugin v1 artifact** against the v2 runtime.
 
-**Ghi nhớ:** kiểm tra *source* bằng **biên dịch lại mã cũ**, kiểm tra *binary* bằng **chạy bytecode cũ không biên dịch lại** với API mới, và kiểm tra *behavior* bằng **assertions về ý nghĩa hợp đồng**. Cả ba cần ghi rõ chiều phiên bản và đối tượng host/consumer/provider. Đây là nền tảng để nâng cấp API/SPI mà không vô tình phá plugin đã phát hành.
+**Takeaway:** test *source* by **recompiling old code**, test *binary* by **running un-recompiled old bytecode** against the new API, and test *behavior* with **assertions on contract meaning**. All three must state the version direction and host/consumer/provider target. This is the foundation for upgrading APIs/SPIs without accidentally breaking released plugins.
 
-## Tài liệu tham khảo
+## References
 
-- [Java Language Specification 17 — Chapter 13: Binary Compatibility](https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html): quy tắc binary compatibility khi thay class, interface, method và field.
-- [Java Language Specification 17 — `15.12 Method Invocation Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.12): overload resolution và lý do thêm overload có thể gây source ambiguity.
-- [Java Virtual Machine Specification 17 — `4.3 Descriptors](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.3): field/method descriptors; method descriptor chứa kiểu trả về.
-- [Java SE 17 — `NoSuchMethodError`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/NoSuchMethodError.html) và [`AbstractMethodError`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AbstractMethodError.html): lỗi linkage khi API/implementation không tương thích.
-- [Java SE 17 — `ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html): discovery và provider contracts trong ứng dụng mở rộng runtime.
-- [JDK 17 — `javap`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html): xem bytecode/descriptors; [`jdeps`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jdeps.html): kiểm tra dependency.
+- [Java Language Specification 17 — Chapter 13: Binary Compatibility](https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html): binary compatibility rules when changing classes, interfaces, methods, and fields.
+- [Java Language Specification 17 — `15.12 Method Invocation Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.12): overload resolution and why adding an overload can cause source ambiguity.
+- [Java Virtual Machine Specification 17 — `4.3 Descriptors](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html#jvms-4.3): field/method descriptors; method descriptors include return types.
+- [Java SE 17 — `NoSuchMethodError`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/NoSuchMethodError.html) and [`AbstractMethodError`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AbstractMethodError.html): linkage errors when API/implementation are incompatible.
+- [Java SE 17 — `ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html): discovery and provider contracts in runtime-extensible applications.
+- [JDK 17 — `javap`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html): inspect bytecode/descriptors; [`jdeps`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jdeps.html): check dependencies.

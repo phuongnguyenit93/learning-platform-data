@@ -1,49 +1,49 @@
-# 8.1 Khóa công khai, khóa riêng và quan hệ với mã hóa hoặc chữ ký số
+# 8.1 Public Keys, Private Keys, and Their Relationship to Encryption or Digital Signatures
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Khi gặp một cặp khóa trong Java (`PublicKey` và `PrivateKey`), cần phân biệt được **ai sở hữu khóa, ai được biết khóa và khóa dùng cho phép toán gì**. Hai thao tác quan trọng nhưng phục vụ các mục tiêu khác nhau:
+When encountering a key pair in Java (`PublicKey` and `PrivateKey`), you need to distinguish **who owns the key, who is allowed to know it, and what operations the key is used for**. Two important operations serve different goals:
 
-- **Mã hóa khóa công khai (public-key encryption):** người gửi mã hóa bằng **khóa công khai của người nhận**; người nhận giải mã bằng **khóa riêng tương ứng**. Mục tiêu chính là **tính bí mật**.
-- **Chữ ký số (digital signature):** người ký tạo chữ ký bằng **khóa riêng của người ký**; người kiểm tra dùng **khóa công khai tương ứng** để xác minh. Mục tiêu là **tính toàn vẹn và xác thực nguồn gốc theo danh tính đã gắn với khóa**.
+- **Public-key encryption:** the sender encrypts using the **recipient's public key**; the recipient decrypts using the **corresponding private key**. The primary goal is **confidentiality**.
+- **Digital signature:** the signer creates a signature using the **signer's private key**; the verifier uses the **corresponding public key** to verify. The goal is **integrity and origin authentication tied to the identity bound to the key**.
 
-Dù đều dùng khóa bất đối xứng, **mã hóa không phải chữ ký**, còn **xác minh chữ ký không phải giải mã thông điệp**. Cụm từ “mã hóa bằng khóa riêng để ký” dễ gây hiểu nhầm và không mô tả đúng các scheme chữ ký hiện đại như RSA-PSS hoặc Ed25519.
+Although both use asymmetric keys, **encryption is not signing**, and **signature verification is not message decryption**. The phrase "encrypting with a private key to sign" is misleading and does not accurately describe modern signature schemes such as RSA-PSS or Ed25519.
 
-Bài học nằm trong chủ đề **Khóa công khai**, tập trung vào vai trò hai loại khóa, quan hệ với mã hóa/chữ ký và cách dùng Java Security API. Các ví dụ chạy trên Java 17+.
+This lesson belongs to the **Public-Key Cryptography** topic, focusing on the roles of the two key types, their relationship to encryption/signatures, and how to use the Java Security API. The examples run on Java 17+.
 
-## 1. Cặp khóa bất đối xứng thực chất là gì?
+## 1. What Is an Asymmetric Key Pair Really?
 
-**Mật mã đối xứng** như AES sử dụng cùng một khóa bí mật (hoặc khóa có quan hệ trực tiếp) cho mã hóa/giải mã. **Mật mã bất đối xứng** sử dụng một **key pair** gồm:
+**Symmetric cryptography** such as AES uses the same secret key (or directly related keys) for encryption/decryption. **Asymmetric cryptography** uses a **key pair** consisting of:
 
-- `public key`: được phép công bố, phân phối cho các bên cần mã hóa cho chủ sở hữu hoặc xác minh chữ ký của chủ sở hữu.
-- `private key`: phải được chủ sở hữu bảo vệ, dùng cho thao tác cần chứng minh quyền kiểm soát khóa hoặc lấy lại bí mật trong scheme tương ứng.
+- `public key`: may be published and distributed to parties that need to encrypt for the owner or verify the owner's signatures.
+- `private key`: must be protected by the owner, used for operations that require proving control of the key or recovering secrets in the corresponding scheme.
 
-Hai khóa được tạo cùng nhau và **liên hệ toán học**, nhưng trong một thuật toán an toàn với kích thước khóa phù hợp, việc biết public key **không đủ để tính private key trong thực tế**. “Khóa công khai” không có nghĩa có thể tin khóa đó thuộc về người bất kỳ tự xưng; **tính xác thực của liên kết giữa public key và danh tính** là một vấn đề riêng.
+The two keys are generated together and are **mathematically related**, yet in a secure algorithm with an appropriate key size, knowing the public key is **not sufficient to compute the private key in practice**. "Public key" does not mean you can trust that the key belongs to any arbitrary party claiming it; **the authenticity of the binding between a public key and an identity** is a separate problem.
 
-Ví dụ RSA dựa trên các tham số như modulus `n`, public exponent `e` và private exponent `d`; khó khăn tính toán liên quan đến cấu trúc RSA giúp bảo vệ private key. Với hệ mật dựa trên đường cong elliptic, cách xây dựng và phép toán khác RSA. Vì thế không nên tự áp dụng công thức hoặc thao tác RSA cho mọi cặp `PublicKey`/`PrivateKey`.
+For example, RSA is based on parameters such as modulus `n`, public exponent `e`, and private exponent `d`; computational hardness tied to the RSA structure helps protect the private key. For elliptic-curve cryptosystems, the construction and operations differ from RSA. Therefore, do not apply RSA formulas or operations to every `PublicKey`/`PrivateKey` pair.
 
-### 1.1 Khóa không tự nói lên mục đích
+### 1.1 Keys Do Not State Their Own Purpose
 
-`PublicKey` và `PrivateKey` là **interface** của Java, không có nghĩa mọi khóa dùng được cho mọi engine:
+`PublicKey` and `PrivateKey` are Java **interfaces**, which does not mean every key works with every engine:
 
-| Thuật toán/cặp khóa | Mục đích thường gặp | Dịch vụ Java liên quan |
+| Algorithm / key pair | Common purpose | Related Java service |
 | --- | --- | --- |
-| RSA | Mã hóa khóa/ngắn bằng RSA-OAEP; chữ ký với RSA-PSS hoặc scheme được cho phép | `Cipher`, `Signature` |
-| Ed25519 | **Chữ ký số** EdDSA | `Signature` (`Ed25519`) |
-| X25519 | **Thỏa thuận khóa** (key agreement), tạo bí mật chung rồi đưa qua KDF | `KeyAgreement` (`X25519`) |
-| EC với ECDSA | Chữ ký số bằng thuật toán phù hợp | `Signature` (ví dụ `SHA256withECDSA`) |
-| EC với ECDH | Thỏa thuận khóa, dùng khóa riêng bên mình và khóa công khai bên kia | `KeyAgreement` |
+| RSA | Key/short-data encryption with RSA-OAEP; signatures with RSA-PSS or an allowed scheme | `Cipher`, `Signature` |
+| Ed25519 | EdDSA **digital signature** | `Signature` (`Ed25519`) |
+| X25519 | **Key agreement**, producing a shared secret then passing it through a KDF | `KeyAgreement` (`X25519`) |
+| EC with ECDSA | Digital signature using an appropriate algorithm | `Signature` (e.g., `SHA256withECDSA`) |
+| EC with ECDH | Key agreement, using your own private key and the peer's public key | `KeyAgreement` |
 
-**Ed25519 không phải thuật toán mã hóa dữ liệu; X25519 không phải thuật toán chữ ký.** Đối với RSA, cùng kiểu khóa có thể hỗ trợ hai loại thao tác khi provider và chính sách cho phép, nhưng ứng dụng thực tế thường sử dụng **các cặp khóa riêng biệt cho mã hóa và ký** để quản lý mục đích, quyền và thời gian sống của khóa.
+**Ed25519 is not a data encryption algorithm; X25519 is not a signature algorithm.** For RSA, the same key type can support both operations when allowed by the provider and policy, but real-world applications typically use **separate key pairs for encryption and signing** to manage key purpose, permissions, and lifetime.
 
-## 2. Quan hệ giữa public/private key và mã hóa
+## 2. Relationship Between Public/Private Keys and Encryption
 
-Giả sử **Alice** muốn gửi bí mật cho **Bob**. Bob tạo cặp khóa `(Bob.public, Bob.private)` và cung cấp public key **đã được xác thực thuộc về Bob** cho Alice.
+Suppose **Alice** wants to send a secret to **Bob**. Bob generates a key pair `(Bob.public, Bob.private)` and provides a public key **authenticated as belonging to Bob** to Alice.
 
 ```text
-Alice (người gửi)                              Bob (người nhận)
------------------                              ----------------
-Thông điệp plaintext
+Alice (sender)                                 Bob (recipient)
+--------------                                 ---------------
+Plaintext message
         |
         | Encrypt(Bob.public, plaintext)
         v
@@ -55,126 +55,126 @@ Thông điệp plaintext
                                                    Plaintext
 ```
 
-Với scheme mã hóa khóa công khai đúng và tham số phù hợp:
+With a proper public-key encryption scheme and appropriate parameters:
 
-1. **Bên gửi không cần biết khóa riêng của Bob**; chỉ cần biết khóa công khai đúng của Bob.
-2. **Chỉ Bob (hoặc bên nào đang nắm được private key tương ứng) mới có thể giải mã** trong mô hình an toàn của scheme.
-3. Ai có được Bob.public cũng có thể tạo ciphertext gửi cho Bob. Vì vậy **mã hóa bằng khóa công khai của Bob không tự xác thực người gửi là Alice**.
-4. Nếu kẻ tấn công thay Bob.public bằng khóa của mình, Alice có thể mã hóa cho kẻ tấn công. Cần xác minh nguồn gốc public key qua chứng chỉ, fingerprint đã đối chiếu, registry đáng tin hoặc một giao thức phân phối khóa được xác thực.
+1. **The sender does not need to know Bob's private key**; only Bob's authentic public key is needed.
+2. **Only Bob (or whichever party holds the corresponding private key) can decrypt** under the scheme's security model.
+3. Anyone who obtains `Bob.public` can also create ciphertext to send to Bob. Therefore, **encrypting with Bob's public key does not by itself authenticate the sender as Alice**.
+4. If an attacker replaces `Bob.public` with their own key, Alice may encrypt for the attacker. You must verify the origin of the public key via certificates, verified fingerprints, a trusted registry, or an authenticated key distribution protocol.
 
-### 2.1 Mã hóa RSA phải dùng scheme an toàn
+### 2.1 RSA Encryption Must Use a Secure Scheme
 
-RSA là phép toán trên các số nguyên có cấu trúc toán học; **không dùng “raw RSA”**. Với JCA, ví dụ phổ biến là **RSAES-OAEP**:
+RSA operates on integers with mathematical structure; **never use "raw RSA"**. With JCA, a common example is **RSAES-OAEP**:
 
 ```java
-// Minh họa trong phương thức có xử lý ngoại lệ và tham số phù hợp:
+// Illustrated inside a method with proper exception handling and parameters:
 Cipher cipher = Cipher.getInstance(
         "RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
 ```
 
-Chữ `ECB` trong tên transformation RSA của JCE là quy ước cú pháp lịch sử của engine, **không có nghĩa RSA đang mã hóa các khối AES theo ECB**. Scheme phải nêu **OAEP hash, MGF1 hash và label/PSource** bằng tham số phù hợp để hai bên tương thích. Đặc biệt đừng đoán rằng `OAEPWithSHA-256AndMGF1Padding` tự đặt mọi MGF1 digest thành SHA-256 trên mọi provider; ví dụ runnable bên dưới truyền `OAEPParameterSpec` rõ ràng.
+The `ECB` in JCE's RSA transformation name is a historical syntax convention of the engine; **it does not mean RSA is encrypting AES blocks in ECB mode**. The scheme must specify the **OAEP hash, MGF1 hash, and label/PSource** with appropriate parameters so both sides interoperate. In particular, do not assume that `OAEPWithSHA-256AndMGF1Padding` automatically sets every MGF1 digest to SHA-256 across all providers; the runnable example below passes `OAEPParameterSpec` explicitly.
 
-**Giới hạn độ dài:** RSA-OAEP chỉ mã hóa plaintext ngắn. Với RSA modulus 2048 bit (`k = 256` byte) và OAEP dùng SHA-256 (`hLen = 32` byte), giới hạn thông điệp là:
+**Length limit:** RSA-OAEP only encrypts short plaintexts. With a 2048-bit RSA modulus (`k = 256` bytes) and OAEP using SHA-256 (`hLen = 32` bytes), the message limit is:
 
 \[
-mLen \leq k - 2hLen - 2 = 256 - 64 - 2 = 190\ \text{byte}.
+mLen \leq k - 2hLen - 2 = 256 - 64 - 2 = 190\ \text{bytes}.
 \]
 
-Không thể dùng lời gọi RSA-OAEP để mã hóa nguyên file lớn theo cách chia thành nhiều “block RSA” tùy tiện. Thiết kế thực tế thường dùng **hybrid encryption**: sinh khóa AES ngẫu nhiên, mã hóa dữ liệu bằng **AES-GCM**, rồi bảo vệ khóa AES bằng một cơ chế mã hóa/đóng gói khóa bất đối xứng phù hợp (ví dụ RSA-OAEP trong hệ thống áp dụng RSA). Phía nhận dùng private key lấy lại khóa AES để giải mã dữ liệu. Phải quy định format, nonce, tag, key ID và các metadata được xác thực.
+You cannot use RSA-OAEP calls to encrypt an entire large file by arbitrarily splitting it into multiple "RSA blocks". Practical designs typically use **hybrid encryption**: generate a random AES key, encrypt the data with **AES-GCM**, and protect the AES key using an appropriate asymmetric key-encryption/key-wrapping mechanism (such as RSA-OAEP in systems applying RSA). The recipient uses their private key to recover the AES key to decrypt the data. You must specify the format, nonce, tag, key ID, and authenticated metadata.
 
-### 2.2 Mã hóa cần gì để an toàn ngoài key pair?
+### 2.2 What Does Encryption Need to Be Secure Beyond the Key Pair?
 
-- Public key người nhận **phải đúng người nhận**; private key người nhận được bảo vệ.
-- Phải lựa chọn **scheme và tham số** an toàn thay vì `Cipher.getInstance("RSA")` rồi để provider quyết định padding.
-- Một bản mã của scheme mã hóa bất đối xứng **không đồng nghĩa bằng chứng ai đã gửi**; khi cần tính xác thực nguồn, phải thêm chữ ký/giao thức có xác thực.
-- Nếu dùng AES-GCM trong hybrid encryption, phải bảo đảm nonce duy nhất cho mỗi khóa AES, xử lý authentication tag và ràng buộc context/AAD cần thiết.
-- Encryption alone không cung cấp cơ chế **chống replay**: bản mã hợp lệ có thể bị gửi lại nếu protocol không theo dõi bản ghi/thứ tự/nonce ứng dụng.
+- The recipient's public key **must belong to the intended recipient**; the recipient's private key must be protected.
+- You must choose a secure **scheme and parameters** instead of `Cipher.getInstance("RSA")` and letting the provider decide the padding.
+- A ciphertext from an asymmetric encryption scheme **does not constitute proof of who sent it**; when origin authenticity is needed, you must add a signature or an authenticated protocol.
+- If using AES-GCM in hybrid encryption, you must ensure a unique nonce per AES key, handle the authentication tag, and bind the necessary context/AAD.
+- Encryption alone does not provide **replay protection**: a valid ciphertext can be replayed if the protocol does not track records, sequence numbers, or application nonces.
 
-## 3. Quan hệ giữa public/private key và chữ ký số
+## 3. Relationship Between Public/Private Keys and Digital Signatures
 
-Lần này Alice muốn Bob biết thông điệp đúng là do **người giữ Alice.private** ký và nội dung không bị thay đổi.
+This time Alice wants Bob to know that the message was indeed signed by **the holder of Alice.private** and that its content has not been altered.
 
 ```text
-Alice (người ký)                                  Bob (người kiểm tra)
----------------                                  ---------------------
-Thông điệp M
+Alice (signer)                                   Bob (verifier)
+--------------                                   --------------
+Message M
      |
      | Sign(Alice.private, M)
      v
-Chữ ký S và M ------------------------------------> M, S
-                                                     |
-                                          Verify(Alice.public, M, S)
-                                                     |
-                                               true / false
+Signature S and M ---------------------------------> M, S
+                                                      |
+                                           Verify(Alice.public, M, S)
+                                                      |
+                                                true / false
 ```
 
-Các bước quan trọng:
+Key steps:
 
-1. Alice sở hữu private key phù hợp với thuật toán chữ ký và tạo `signature` trên **dữ liệu chính xác** cần chứng thực.
-2. Bob đã biết public key **được gắn đáng tin với danh tính Alice**, nhận thông điệp và chữ ký, rồi gọi `verify(public, message, signature)`.
-3. Nếu kiểm tra thành công, chữ ký phù hợp với **public key được cung cấp** và các byte dữ liệu đã kiểm tra. Để kết luận “Alice đã ký”, Bob còn phải **xác thực public key thật sự thuộc Alice**.
-4. Thay đổi message, context quan trọng hoặc chữ ký sẽ làm verification thất bại (với scheme an toàn và triển khai đúng).
-5. Chữ ký số **không mã hóa thông điệp**. Bất cứ ai đọc được message vẫn đọc được nó, kể cả chữ ký hợp lệ.
+1. Alice holds the private key matching the signature algorithm and creates a `signature` over the **exact data** to be authenticated.
+2. Bob already knows the public key **trusted to be bound to Alice's identity**, receives the message and signature, and calls `verify(public, message, signature)`.
+3. If verification succeeds, the signature matches the **provided public key** and the verified data bytes. To conclude "Alice signed this," Bob must also **authenticate that the public key truly belongs to Alice**.
+4. Modifying the message, critical context, or signature causes verification to fail (with a secure scheme and proper implementation).
+5. A digital signature **does not encrypt the message**. Anyone who can read the message can still read it, even with a valid signature.
 
-Chữ ký cung cấp nền tảng cho **toàn vẹn**, **xác thực nguồn gốc**, và hỗ trợ **chống chối bỏ (non-repudiation)** khi quản trị khóa, định danh, chứng cứ và chính sách phù hợp. Nó **không tự** cung cấp tính bí mật, bảo đảm người ký là người nào ngoài danh tính đã xác thực, hay chống gửi lại thông điệp hợp lệ.
+Signatures provide a foundation for **integrity**, **origin authentication**, and support **non-repudiation** when key management, identity, evidence, and policies are appropriate. They do **not by themselves** provide confidentiality, guarantee who the signer is beyond the authenticated identity, or prevent replay of a valid message.
 
-### 3.1 Vì sao ký không phải “mã hóa bằng khóa riêng”?
+### 3.1 Why Is Signing Not "Encrypting with a Private Key"?
 
-Cách nói “lấy private key mã hóa, lấy public key giải mã” là hình ảnh đơn giản hóa từ một số phép toán RSA và **sai cho chữ ký số hiện đại**:
+Saying "encrypt with the private key, decrypt with the public key" is an oversimplified picture derived from certain RSA math and is **wrong for modern digital signatures**:
 
-- RSA-PSS là scheme **chữ ký**, có băm, encoding, salt và kiểm tra cấu trúc được xác định; API `Signature.sign()` tạo ra signature, `Signature.verify()` kiểm tra.
-- `Ed25519` ký và xác minh bằng phép toán trên đường cong; **không có thao tác “giải mã chữ ký thành thông điệp”**.
-- Phần lớn scheme chữ ký kiểm tra chữ ký dựa trên **message gốc hoặc digest được định nghĩa bởi scheme**; không dùng `Cipher` với `ENCRYPT_MODE` và private key thay cho `Signature`.
+- RSA-PSS is a **signature** scheme with defined hashing, encoding, salt, and structural verification; the `Signature.sign()` API produces a signature, and `Signature.verify()` checks it.
+- `Ed25519` signs and verifies using elliptic-curve operations; **there is no operation that "decrypts a signature into a message"**.
+- Most signature schemes verify a signature against the **original message or a scheme-defined digest**; do not use `Cipher` with `ENCRYPT_MODE` and a private key in place of `Signature`.
 
-Trong Java hãy sử dụng đúng engine `Signature`; với RSA-PSS nên thống nhất digest, MGF1, salt length và trailer field, tránh phụ thuộc tham số mặc định của provider.
+In Java, use the proper `Signature` engine; with RSA-PSS, agree on the digest, MGF1, salt length, and trailer field, avoiding reliance on provider defaults.
 
-### 3.2 Mã hóa và chữ ký có thể dùng đồng thời
+### 3.2 Encryption and Signatures Can Be Used Together
 
-Khi Alice gửi bí mật **và** muốn Bob xác minh Alice, giao thức phải có cả bảo vệ **bí mật** và **xác thực nguồn**:
+When Alice sends a secret **and** wants Bob to verify Alice, the protocol must provide both **confidentiality** and **origin authentication**:
 
 ```text
-Bí mật của Bob:        Encrypt(Bob.public, ...)
-Danh tính của Alice:   Sign(Alice.private, dữ liệu/ngữ cảnh quy định)
+Bob's secret:          Encrypt(Bob.public, ...)
+Alice's identity:      Sign(Alice.private, specified data/context)
 ```
 
-Một giao thức tổng hợp phải nêu rõ **ký dữ liệu nào** (plaintext, ciphertext hoặc envelope), xử lý danh tính và metadata thế nào, thứ tự hoạt động, các trường AAD/signature, chống replay và cách thông báo lỗi. Không tự tùy tiện nối hai primitive rồi khẳng định có mọi thuộc tính an toàn. Các chuẩn triển khai như CMS/JWE/JWS/TLS có mô hình và chi tiết bảo mật riêng; chọn chuẩn thích hợp cho bài toán thay vì tạo protocol từ phỏng đoán.
+A combined protocol must clearly specify **which data is signed** (plaintext, ciphertext, or envelope), how identity and metadata are handled, the order of operations, AAD/signature fields, replay protection, and how errors are reported. Do not arbitrarily chain two primitives together and claim all security properties. Deployment standards such as CMS/JWE/JWS/TLS have their own security models and details; choose an appropriate standard for the problem rather than inventing a protocol by guesswork.
 
-## 4. So sánh trực tiếp hai thao tác
+## 4. Direct Comparison of the Two Operations
 
-| Câu hỏi | Mã hóa bất đối xứng | Chữ ký số |
+| Question | Asymmetric encryption | Digital signature |
 | --- | --- | --- |
-| Mục tiêu | Giữ **bí mật** nội dung/khóa phiên | Chứng minh **tính toàn vẹn và nguồn gốc theo khóa đã xác thực** |
-| Ai dùng public key và để làm gì? | **Người gửi** dùng public key **của người nhận** để mã hóa | **Người kiểm tra** dùng public key **của người ký** để verify |
-| Ai dùng private key và để làm gì? | **Người nhận** dùng private key của mình để giải mã | **Người ký** dùng private key của mình để sign |
-| Đầu ra | Ciphertext (và metadata cần thiết) | Signature (thường gửi cùng message) |
-| Message có đọc được công khai? | Không, nếu scheme/khóa/format an toàn | Có, nếu message không được mã hóa riêng |
-| Bảo đảm danh tính người gửi? | Không, chỉ vì ai cũng dùng được public key người nhận | Chỉ khi public key verifier được **gắn đáng tin với danh tính người ký** |
-| Chống replay? | Không tự có | Không tự có |
-| Java API | `Cipher` với scheme mã hóa như RSA-OAEP | `Signature` với scheme ký như RSA-PSS/Ed25519 |
+| Goal | Keep content/session key **confidential** | Prove **integrity and origin tied to a verified key** |
+| Who uses the public key and for what? | **The sender** uses the **recipient's** public key to encrypt | **The verifier** uses the **signer's** public key to verify |
+| Who uses the private key and for what? | **The recipient** uses their own private key to decrypt | **The signer** uses their own private key to sign |
+| Output | Ciphertext (and required metadata) | Signature (usually sent alongside the message) |
+| Is the message publicly readable? | No, if the scheme/key/format is secure | Yes, unless the message is separately encrypted |
+| Guarantees sender identity? | No, simply because anyone can use the recipient's public key | Only when the verifier's public key is **trusted to be bound to the signer's identity** |
+| Replay protection? | Not built-in | Not built-in |
+| Java API | `Cipher` with an encryption scheme such as RSA-OAEP | `Signature` with a signature scheme such as RSA-PSS/Ed25519 |
 
-**Câu nhớ nhanh:** *Mã hóa cho Bob thì dùng public key của Bob; ký với tư cách Alice thì dùng private key của Alice.* Khi nhận, Bob dùng **private key của Bob** để giải mã và **public key của Alice** để kiểm tra chữ ký.
+**Quick mnemonic:** *To encrypt for Bob, use Bob's public key; to sign as Alice, use Alice's private key.* Upon receipt, Bob uses **Bob's private key** to decrypt and **Alice's public key** to verify the signature.
 
-## 5. Java 17: mô hình `KeyPair`, `PublicKey`, `PrivateKey`
+## 5. Java 17: The `KeyPair`, `PublicKey`, `PrivateKey` Model
 
-Các API liên quan nằm trong `java.security`, `java.security.spec` và `javax.crypto`:
+The relevant APIs are in `java.security`, `java.security.spec`, and `javax.crypto`:
 
-| API | Công dụng đúng |
+| API | Proper usage |
 | --- | --- |
-| `KeyPairGenerator` | Tạo cặp khóa mới theo thuật toán (ví dụ `RSA`, `Ed25519`, `X25519`). |
-| `KeyPair` | Giữ cặp khóa; `getPublic()` và `getPrivate()` trả các interface tương ứng. |
-| `PublicKey` / `PrivateKey` | Đối tượng khóa cho `Cipher`, `Signature`, `KeyAgreement` tùy loại thuật toán. |
-| `Cipher` | Mã hóa/giải mã theo transformation như `RSA/ECB/OAEPWithSHA-256AndMGF1Padding`. |
-| `Signature` | `initSign(private)`, `update`, `sign`; hoặc `initVerify(public)`, `update`, `verify`. |
-| `KeyAgreement` | Thỏa thuận bí mật chung, ví dụ với X25519 hoặc ECDH; **không giống encrypt/verify**. |
-| `KeyFactory` | Tái tạo đối tượng khóa từ `KeySpec` như X.509 public key hoặc PKCS#8 private key. |
-| `KeyStore` / KMS / HSM | Lưu trữ hoặc truy xuất khóa theo cơ chế đã được bảo vệ; có thể dùng private key **không xuất được**. |
+| `KeyPairGenerator` | Generates a new key pair for an algorithm (e.g., `RSA`, `Ed25519`, `X25519`). |
+| `KeyPair` | Holds a key pair; `getPublic()` and `getPrivate()` return the corresponding interfaces. |
+| `PublicKey` / `PrivateKey` | Key objects for `Cipher`, `Signature`, `KeyAgreement` depending on the algorithm type. |
+| `Cipher` | Encryption/decryption using a transformation such as `RSA/ECB/OAEPWithSHA-256AndMGF1Padding`. |
+| `Signature` | `initSign(private)`, `update`, `sign`; or `initVerify(public)`, `update`, `verify`. |
+| `KeyAgreement` | Shared secret agreement, e.g., with X25519 or ECDH; **not the same as encrypt/verify**. |
+| `KeyFactory` | Reconstructs key objects from a `KeySpec` such as X.509 public key or PKCS#8 private key. |
+| `KeyStore` / KMS / HSM | Stores or retrieves keys via a protected mechanism; may use **non-exportable** private keys. |
 
-`KeyPairGenerator.getInstance("RSA")` chỉ xác định thuật toán tạo cặp khóa. Muốn dùng cặp khóa ấy cho **mã hóa** thì gọi `Cipher` với RSA-OAEP; muốn dùng cho **chữ ký** thì gọi `Signature` với RSA-PSS. Không dùng `KeyPairGenerator` thay cho phép mã hóa/ký.
+`KeyPairGenerator.getInstance("RSA")` only specifies the algorithm for generating the key pair. To use that key pair for **encryption**, call `Cipher` with RSA-OAEP; to use it for **signatures**, call `Signature` with RSA-PSS. Do not use `KeyPairGenerator` as a substitute for encryption/signing.
 
-Có thể tạo một cặp RSA minh họa như sau:
+You can generate an illustrative RSA key pair as follows:
 
 ```java
-// Đoạn minh họa trong phương thức có xử lý checked exception:
+// Illustrative snippet inside a method handling checked exceptions:
 KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 generator.initialize(2048);
 KeyPair pair = generator.generateKeyPair();
@@ -182,16 +182,16 @@ PublicKey publicKey = pair.getPublic();
 PrivateKey privateKey = pair.getPrivate();
 ```
 
-Số bit RSA 2048 ở đây để bài thực hành nhanh và đầu ra dễ kiểm tra; hệ thống thực tế chọn kích thước khóa, vòng đời và bảo vệ khóa theo **chính sách bảo mật áp dụng** (chẳng hạn RSA 3072 khi yêu cầu độ an toàn dài hạn cao hơn). Không chỉ chọn bit length rồi bỏ qua scheme, provider và chu kỳ luân chuyển.
+2048-bit RSA is used here so the exercise runs quickly and output is easy to inspect; production systems select key size, lifecycle, and key protection according to the **applicable security policy** (for example, RSA 3072 when higher long-term security is required). Do not just pick a bit length while ignoring the scheme, provider, and rotation schedule.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: RSA-OAEP và RSA-PSS
+## 6. Complete Java 17+ Example: RSA-OAEP and RSA-PSS
 
-Chương trình sau dùng **hai cặp RSA riêng biệt** để làm rõ hai vai trò:
+The following program uses **two separate RSA key pairs** to clarify the two roles:
 
-- `recipient`: public key mã hóa, private key giải mã.
-- `signer`: private key ký, public key xác minh.
+- `recipient`: public key encrypts, private key decrypts.
+- `signer`: private key signs, public key verifies.
 
-Nó cũng thiết lập OAEP **SHA-256 + MGF1(SHA-256)** và PSS **SHA-256 + MGF1(SHA-256), salt 32 byte, trailer 1** một cách tường minh. Việc thiết lập tham số nhất quán giúp tránh sai khác do default của provider. Tạo file **`AsymmetricRolesDemo.java`**:
+It also configures OAEP **SHA-256 + MGF1(SHA-256)** and PSS **SHA-256 + MGF1(SHA-256), 32-byte salt, trailer 1** explicitly. Explicit parameter configuration avoids mismatches caused by provider defaults. Create the file **`AsymmetricRolesDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -284,14 +284,14 @@ public final class AsymmetricRolesDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+ có provider hỗ trợ OAEP/PSS với tham số đã dùng:
+Compile and run with JDK 17+ having a provider that supports OAEP/PSS with the parameters used:
 
 ```bash
 javac --release 17 AsymmetricRolesDemo.java
 java AsymmetricRolesDemo
 ```
 
-**Stdout** (các byte ciphertext và chữ ký thay đổi giữa các lần chạy vì có ngẫu nhiên, nhưng các dòng sau vẫn như nhau):
+**Stdout** (ciphertext and signature bytes change between runs due to randomness, while the following lines remain the same):
 
 ```text
 Decryption matches: true
@@ -301,38 +301,38 @@ RSA ciphertext bytes: 256
 RSA signature bytes: 256
 ```
 
-Giải thích chi tiết:
+Detailed explanation:
 
-1. `recipient.getPublic()` được truyền vào `Cipher.ENCRYPT_MODE`; **chỉ** `recipient.getPrivate()` tương ứng mới thực hiện được `Cipher.DECRYPT_MODE` của bản ghi trong demo.
-2. `signer.getPrivate()` được truyền vào `Signature.initSign`, còn `signer.getPublic()` vào `Signature.initVerify`. Code không dùng `Cipher` để ký.
-3. `Signature.update(message)` cung cấp **chính xác byte** của thông điệp cho scheme ký; PSS thực hiện hashing/encoding nội bộ theo bộ tham số đã chỉ định. Không cần tự băm thông điệp rồi đưa digest vào `update` như thể đó là message gốc.
-4. Đổi 1 byte thông điệp khiến `verify()` trả `false`; nếu dùng **public key của cặp khác** cũng không được xem là chữ ký hợp lệ.
-5. RSA-2048 có modulus dài 256 byte, nên RSA-OAEP tạo ciphertext **256 byte**, chữ ký RSA-PSS cũng dài **256 byte**. Kích thước này phụ thuộc modulus, **không** phụ thuộc độ dài message ngắn đã chọn.
-6. Hai key pair là **riêng biệt** dù đều có thuật toán RSA. Ở production cần ràng buộc mỗi khóa với identity, purpose, key usage và metadata; không mặc định mọi RSA key được phép dùng cho mọi mục đích.
-7. Tên `RSASSA-PSS` và transformation OAEP có thể yêu cầu provider phù hợp. Mã chạy được trên môi trường hỗ trợ các scheme/tham số đã yêu cầu; tên có trong danh mục chuẩn không có nghĩa mọi Java SE implementation hỗ trợ mọi tổ hợp. Hãy kiểm tra JDK/provider mục tiêu.
+1. `recipient.getPublic()` is passed to `Cipher.ENCRYPT_MODE`; **only** the matching `recipient.getPrivate()` can perform `Cipher.DECRYPT_MODE` on the record in the demo.
+2. `signer.getPrivate()` is passed to `Signature.initSign`, and `signer.getPublic()` to `Signature.initVerify`. The code does not use `Cipher` to sign.
+3. `Signature.update(message)` feeds the **exact bytes** of the message to the signature scheme; PSS performs internal hashing/encoding according to the specified parameter set. You do not need to hash the message yourself and pass the digest into `update` as if it were the original message.
+4. Changing 1 byte of the message makes `verify()` return `false`; using the **public key of another pair** will also not verify as a valid signature.
+5. RSA-2048 has a 256-byte modulus, so RSA-OAEP produces a **256-byte** ciphertext, and the RSA-PSS signature is also **256 bytes** long. This size depends on the modulus, **not** on the length of the short message chosen.
+6. The two key pairs are **separate** even though both use the RSA algorithm. In production, each key must be bound to an identity, purpose, key usage, and metadata; do not assume every RSA key is allowed for every purpose.
+7. The name `RSASSA-PSS` and the OAEP transformation may require a suitable provider. The code runs on environments supporting the requested schemes/parameters; being listed in standard names does not mean every Java SE implementation supports every combination. Check your target JDK/provider.
 
-Đây là demo **in-memory**: chương trình sinh khóa mới mỗi lần chạy và không có bên giao tiếp qua mạng. Để đưa vào dịch vụ thực, cần một cơ chế phân phối public key có xác thực, kho khóa riêng an toàn, định dạng message/signature/ciphertext có phiên bản, tham số và xử lý lỗi rõ ràng.
+This is an **in-memory** demo: the program generates fresh keys on each run and has no peers communicating over a network. To deploy in a real service, you need an authenticated public-key distribution mechanism, a secure private-key store, a versioned message/signature/ciphertext format, explicit parameters, and clear error handling.
 
-## 7. Lưu public key, bảo vệ private key và kiểm tra danh tính
+## 7. Storing Public Keys, Protecting Private Keys, and Verifying Identity
 
-### 7.1 Public key có thể công khai nhưng phải xác thực
+### 7.1 Public Keys Can Be Public, But Must Be Authenticated
 
-Một public key chỉ nói được rằng **khóa đó có quan hệ toán học với private key nào đó**, chưa tự chứng minh thuộc Alice hay Bob. Các cách xây dựng liên kết danh tính:
+A public key only indicates that **the key is mathematically related to some private key**, not that it belongs to Alice or Bob. Ways to establish identity binding:
 
-- **X.509 certificate**: chứng chỉ chứa public key và dữ liệu chủ thể, được issuer ký; bên kiểm tra phải xác thực chuỗi tin cậy, thời hạn, tên/định danh, key usage/extended key usage, thuật toán và chính sách thu hồi khi áp dụng.
-- **Fingerprint hoặc public key pinning**: đối chiếu trước qua kênh đáng tin, chú ý quy trình cập nhật khóa.
-- **Registry do ứng dụng quản lý đáng tin**: tra `key_id` cùng chủ sở hữu, trạng thái và purpose; không chọn khóa dựa trên ID do đầu vào chưa xác thực tự khai.
+- **X.509 certificate:** a certificate contains a public key and subject data, signed by an issuer; the verifier must validate the trust chain, validity period, name/identifier, key usage/extended key usage, algorithms, and revocation policy where applicable.
+- **Fingerprint or public key pinning:** pre-verified over a trusted channel, taking care to establish a key-update process.
+- **Application-managed trusted registry:** look up `key_id` along with owner, status, and purpose; do not choose a key based solely on a self-declared ID from unauthenticated input.
 
-**Xác minh chữ ký thành công với khóa do attacker cung cấp** không chứng minh attacker là Alice. **Mã hóa với public key của attacker bị tráo** không bảo đảm chỉ Bob đọc được dữ liệu.
+**Successfully verifying a signature with an attacker-supplied key** does not prove the attacker is Alice. **Encrypting with a swapped attacker public key** does not guarantee only Bob can read the data.
 
-### 7.2 Encoding/format của khóa trong Java
+### 7.2 Key Encoding/Formats in Java
 
-Khi public/private key có thể xuất ra dạng byte, Java thường dùng:
+When public/private keys can be exported as bytes, Java commonly uses:
 
-- **X.509 SubjectPublicKeyInfo (SPKI)** cho public key, thường là `PublicKey.getFormat() == "X.509"`.
-- **PKCS#8 PrivateKeyInfo** cho private key, thường là `PrivateKey.getFormat() == "PKCS#8"` nếu private key xuất được.
+- **X.509 SubjectPublicKeyInfo (SPKI)** for public keys, typically `PublicKey.getFormat() == "X.509"`.
+- **PKCS#8 PrivateKeyInfo** for private keys, typically `PrivateKey.getFormat() == "PKCS#8"` if the private key is exportable.
 
-Ví dụ minh họa **bên trong phương thức** sau khi đã có `pair`:
+Illustrative snippet **inside a method** after obtaining `pair`:
 
 ```java
 byte[] publicEncoded = pair.getPublic().getEncoded();
@@ -342,85 +342,85 @@ java.security.PublicKey publicAgain = factory.generatePublic(
         new java.security.spec.X509EncodedKeySpec(publicEncoded));
 ```
 
-Không bao giờ coi việc một byte array có định dạng đúng là đã được **chứng thực danh tính**. Chuỗi PEM chỉ là cách đóng gói Base64/text; public key thường chia sẻ được, **private key không được đưa vào log, source code, repository hoặc API công khai**. Khóa riêng thuộc HSM/KMS có thể **không xuất được** (`getEncoded()` trả `null`), dù object key vẫn dùng được với provider thích hợp.
+Never treat a well-formed byte array as having **authenticated identity**. PEM strings are merely a Base64/text packaging format; public keys can generally be shared, whereas **private keys must never be placed in logs, source code, repositories, or public APIs**. Private keys stored in an HSM/KMS may be **non-exportable** (`getEncoded()` returns `null`), even though the key object still works with the appropriate provider.
 
-### 7.3 Quản lý vòng đời khóa
+### 7.3 Key Lifecycle Management
 
-Thiết kế cần gồm: tạo khóa bằng RNG phù hợp, giới hạn quyền sử dụng private key, cách sao lưu/khôi phục an toàn, phân loại khóa ký và khóa giải mã, xoay khóa, lưu public key/chứng chỉ lịch sử để kiểm tra chữ ký cũ, thu hồi khóa khi có sự cố và ghi `key_id`/algorithm ID trong định dạng dữ liệu. Không hủy private key giải mã các ciphertext cũ khi vẫn cần đọc chúng; ngược lại, việc giữ private key cũ quá lâu cũng làm tăng rủi ro.
+A design needs to cover: generating keys with an appropriate RNG, restricting access to private keys, secure backup/recovery procedures, separating signing keys from decryption keys, key rotation, retaining historical public keys/certificates to verify old signatures, revoking keys upon compromise, and recording `key_id`/algorithm IDs in the data format. Do not destroy a private key used to decrypt old ciphertexts if you still need to read them; conversely, retaining old private keys for too long increases risk.
 
-Khi keypair dùng để ký bị lộ, kẻ tấn công có thể tạo chữ ký mới; không thể chỉ chạy `verify` rồi suy ra chữ ký nào được phát hành trước khi khóa bị lộ nếu thiếu timestamp, audit log, revocation và chính sách tin cậy.
+When a signing key pair is compromised, an attacker can forge new signatures; running `verify` alone cannot tell which signatures were issued before compromise without timestamps, audit logs, revocation, and trust policies.
 
-## 8. Kết nối với key agreement và hybrid encryption
+## 8. Connection to Key Agreement and Hybrid Encryption
 
-Một cặp `PrivateKey`/`PublicKey` còn có thể dùng cho **key agreement**, không thuộc trực tiếp hai thao tác trên. Ví dụ X25519:
+A `PrivateKey`/`PublicKey` pair can also be used for **key agreement**, which does not fall directly under the two operations above. For example, X25519:
 
 ```text
 Alice.private + Bob.public    ---> shared secret
-Bob.private   + Alice.public  ---> cùng shared secret
+Bob.private   + Alice.public  ---> same shared secret
 ```
 
-Kết quả thỏa thuận được đưa qua **KDF phù hợp** để sinh key cho AEAD. Không xem shared secret thô là AES key ngay khi chưa được đặc tả. Một phép thỏa thuận khóa không xác thực public key của peer có thể chịu **man-in-the-middle**; cần chữ ký/chứng chỉ hoặc giao thức xác thực thích hợp. Trong Java, engine liên quan là `KeyAgreement`, không phải `Signature.verify` hoặc `Cipher.decrypt`.
+The agreement result is passed through an **appropriate KDF** to derive keys for AEAD. Do not treat the raw shared secret as an AES key directly unless specified. Key agreement without authenticating the peer's public key is vulnerable to **man-in-the-middle** attacks; signatures/certificates or an appropriate authenticated protocol are required. In Java, the relevant engine is `KeyAgreement`, not `Signature.verify` or `Cipher.decrypt`.
 
-Ba pattern thường gặp:
+Three common patterns:
 
-| Bài toán | Primitive chủ đạo | Đầu ra cần dùng |
+| Problem | Primary primitive | Output needed |
 | --- | --- | --- |
-| Chỉ cần gửi một bí mật cho public key người nhận | Public-key encryption hoặc hybrid encryption có xác thực | Ciphertext người nhận giải mã được |
-| Cần ai cũng kiểm tra nguồn gốc tài liệu | Digital signature | Message + signature + public key/chứng chỉ đáng tin |
-| Hai bên lập kênh truyền bí mật | Authenticated key agreement + KDF + AEAD | Khóa phiên, ciphertext/tag và trạng thái giao thức |
+| Need to send a secret to a recipient's public key | Public-key encryption or authenticated hybrid encryption | Ciphertext the recipient can decrypt |
+| Need anyone to verify a document's origin | Digital signature | Message + signature + trusted public key/certificate |
+| Two parties establish a confidential channel | Authenticated key agreement + KDF + AEAD | Session key, ciphertext/tag, and protocol state |
 
-**Không tự chọn một phép toán “đối xứng” tưởng tượng giữa public/private key cho mọi mục tiêu.** Các thuật toán khác nhau có chức năng, định dạng, bảo đảm an toàn và engine Java riêng.
+**Do not invent an imaginary "symmetric" operation between public/private keys for every goal.** Different algorithms have distinct functions, formats, security guarantees, and Java engines.
 
-## 9. Sai lầm thường gặp và cách sửa
+## 9. Common Mistakes and How to Fix Them
 
-| Nhận định/sự cố | Vấn đề | Cách sửa |
+| Statement / issue | Problem | How to fix |
 | --- | --- | --- |
-| “Khóa công khai của Alice có thể dùng để giải mã mọi thứ Alice ký.” | Chữ ký số không phải ciphertext của message. | Dùng `Signature.verify(Alice.public, message, signature)`. |
-| “Mã hóa bằng Bob.public tức là Alice đã chứng minh mình gửi.” | Bất kỳ ai biết Bob.public cũng mã hóa được cho Bob. | Thêm xác thực nguồn bằng scheme/giao thức phù hợp. |
-| “Đã `verify` thành công thì message bí mật.” | Signature không bảo vệ confidentiality. | Mã hóa riêng nếu có dữ liệu cần giấu. |
-| “Public key nào ghi tên Alice cũng dùng được.” | Khóa không tự ràng buộc danh tính. | Xác thực chứng chỉ/pinning/trust registry và key usage. |
-| “Dùng `Cipher` với private key là đủ cho chữ ký RSA.” | Đã bỏ qua security scheme/padding và API chữ ký. | Dùng `Signature` với RSA-PSS hoặc scheme được phê duyệt. |
-| “`Cipher.getInstance("RSA")` là RSA an toàn.” | Provider có thể áp padding mặc định không như mong muốn. | Yêu cầu RSA-OAEP và tham số hash/MGF1 rõ ràng. |
-| “RSA mã hóa được dữ liệu dài bất kỳ.” | RSA-OAEP có giới hạn message phụ thuộc modulus/hash. | Dùng hybrid encryption để bảo vệ khóa AES, mã hóa payload bằng AEAD. |
-| “Cùng cặp khóa nên dùng cho cả ký và giải mã cho tiện.” | Trộn mục đích/chu kỳ rủi ro và quyền truy cập. | Tách key pair khi triển khai production. |
-| `InvalidKeyException` khi gọi `Cipher`/`Signature`. | Dùng sai loại public/private key, size hoặc key usage/provider. | Kiểm tra vai trò key, algorithm, chính sách key và tham số `init`. |
-| `Signature.verify()` trả `false` | Message, public key, signature hoặc PSS params không khớp. | Kiểm tra byte encoding, bộ tham số và khóa nguồn đáng tin. |
-| `BadPaddingException` khi giải mã OAEP | Ciphertext/key/OAEP params không hợp lệ. | Từ chối bản ghi; không thử lại bằng raw RSA hay padding yếu. |
-| “Chữ ký đúng nên không thể gửi lại thông điệp đó.” | Chữ ký không chống replay. | Thêm nonce/sequence/timestamp/expiry gắn trong dữ liệu đã ký và trạng thái kiểm tra. |
+| "Alice's public key can be used to decrypt everything Alice signs." | A digital signature is not a ciphertext of the message. | Use `Signature.verify(Alice.public, message, signature)`. |
+| "Encrypting with Bob.public means Alice proved she sent it." | Anyone who knows `Bob.public` can encrypt for Bob. | Add origin authentication using an appropriate scheme/protocol. |
+| "If `verify` succeeds, the message is confidential." | Signatures do not protect confidentiality. | Encrypt separately if data must be hidden. |
+| "Any public key labeled Alice can be used." | Keys do not bind identity on their own. | Verify certificates/pinning/trust registry and key usage. |
+| "Using `Cipher` with a private key is enough for RSA signatures." | Bypasses the signature security scheme/padding and API. | Use `Signature` with RSA-PSS or an approved scheme. |
+| "`Cipher.getInstance("RSA")` is secure RSA." | The provider may apply an unintended default padding. | Explicitly require RSA-OAEP and hash/MGF1 parameters. |
+| "RSA can encrypt data of arbitrary length." | RSA-OAEP has a message length limit depending on modulus/hash. | Use hybrid encryption to protect an AES key, encrypting payload with AEAD. |
+| "The same key pair should be used for both signing and decryption for convenience." | Mixes purposes, risk lifecycles, and access permissions. | Separate key pairs in production deployments. |
+| `InvalidKeyException` when calling `Cipher`/`Signature`. | Wrong key type (public/private), size, or key usage/provider. | Check key role, algorithm, key policy, and `init` parameters. |
+| `Signature.verify()` returns `false` | Mismatched message, public key, signature, or PSS params. | Check byte encoding, parameter set, and trusted source key. |
+| `BadPaddingException` during OAEP decryption | Invalid ciphertext/key/OAEP params. | Reject the record; do not retry with raw RSA or weak padding. |
+| "The signature is valid, so the message cannot be replayed." | Signatures do not prevent replay. | Add nonce/sequence/timestamp/expiry inside the signed data and stateful checks. |
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**1. Alice muốn Bob là người duy nhất đọc được thông điệp. Alice dùng khóa nào?**  
-Public key **đã xác thực của Bob** để mã hóa theo scheme phù hợp; Bob dùng private key của Bob để giải mã.
+**1. Alice wants Bob to be the only person who can read a message. Which key does Alice use?**  
+**Bob's authenticated public key** to encrypt under an appropriate scheme; Bob uses Bob's private key to decrypt.
 
-**2. Bob muốn xác minh thông điệp do Alice ký. Bob dùng khóa nào?**  
-Public key **đã xác thực của Alice** cùng message và signature. Alice dùng private key của Alice để ký.
+**2. Bob wants to verify a message signed by Alice. Which key does Bob use?**  
+**Alice's authenticated public key** along with the message and signature. Alice uses Alice's private key to sign.
 
-**3. Một signature hợp lệ có đảm bảo message không bị ai đọc được không?**  
-Không. Chữ ký kiểm tra tính toàn vẹn và nguồn gốc theo key; cần mã hóa để có confidentiality.
+**3. Does a valid signature guarantee that no one can read the message?**  
+No. A signature checks integrity and origin relative to the key; encryption is needed for confidentiality.
 
-**4. Có public key nhưng không biết chủ sở hữu thực thì có thể khẳng định người gửi là ai không?**  
-Không. Phải xác thực **liên kết key → identity** qua cơ chế đáng tin.
+**4. If you have a public key but do not know its real owner, can you assert who the sender is?**  
+No. You must verify the **key → identity binding** through a trusted mechanism.
 
-**5. Vì sao RSA-OAEP không nên mã hóa trực tiếp file dài?**  
-Giới hạn dữ liệu thấp (ví dụ RSA-2048 + OAEP SHA-256 tối đa **190 byte**). Sử dụng hybrid encryption/AEAD cho payload lớn.
+**5. Why shouldn't RSA-OAEP directly encrypt large files?**  
+The data limit is low (for example, RSA-2048 + OAEP SHA-256 allows at most **190 bytes**). Use hybrid encryption/AEAD for large payloads.
 
-**6. Ed25519 và X25519 có dùng thay nhau được không?**  
-Không. Ed25519 là scheme chữ ký, X25519 là key agreement; tên gần giống nhưng loại phép toán và mục tiêu khác nhau.
+**6. Can Ed25519 and X25519 be used interchangeably?**  
+No. Ed25519 is a signature scheme and X25519 is key agreement; their names look similar, but their operation types and goals differ.
 
-**7. Nếu có cả chữ ký và mã hóa, phải dùng một cặp khóa hay hai?**  
-Một giao thức có thể dùng nhiều thuật toán/khóa; thực hành quản lý khóa thường **tách key pair theo chức năng** và xác thực public key của cả bên gửi/bên nhận theo vai trò.
+**7. If both signatures and encryption are needed, must you use one key pair or two?**  
+A protocol may use multiple algorithms/keys; key management best practice typically **separates key pairs by function** and authenticates the public keys of both sender and recipient according to their roles.
 
-## Tài liệu chuẩn
+## Authoritative References
 
-- [Java SE 17 — `KeyPairGenerator`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyPairGenerator.html): tạo cặp khóa và tham số sinh khóa.
+- [Java SE 17 — `KeyPairGenerator`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyPairGenerator.html): key pair generation and key generation parameters.
 - [Java SE 17 — `Signature`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html): `initSign`, `initVerify`, `update`, `sign`, `verify`.
-- [Java SE 17 — `Cipher`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): mã hóa/giải mã, transformation và cách `init`.
-- [Java SE 17 — `OAEPParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/OAEPParameterSpec.html): OAEP hash, MGF1 và PSource; không dựa vào default SHA-1.
-- [Java SE 17 — `PSSParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/PSSParameterSpec.html): digest, MGF, salt length và trailer field.
-- [Java SE 17 — Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): tên `RSA`, `RSASSA-PSS`, `Ed25519`, `X25519` và phạm vi tên/triển khai.
-- [RFC 8017 — PKCS #1: RSA Cryptography Specifications v2.2](https://www.rfc-editor.org/rfc/rfc8017): RSAES-OAEP, RSASSA-PSS và giới hạn độ dài message.
-- [NIST — Glossary: Digital Signature](https://csrc.nist.gov/glossary/term/digital_signature): tính toàn vẹn/xác thực, hỗ trợ non-repudiation; không cung cấp confidentiality.
-- [NIST — Glossary: Public Key](https://csrc.nist.gov/glossary/term/public_key): public key dùng để xác minh chữ ký, mã hóa khóa hoặc tham gia key agreement tùy scheme.
+- [Java SE 17 — `Cipher`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): encryption/decryption, transformations, and `init` usage.
+- [Java SE 17 — `OAEPParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/OAEPParameterSpec.html): OAEP hash, MGF1, and PSource; do not rely on SHA-1 defaults.
+- [Java SE 17 — `PSSParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/PSSParameterSpec.html): digest, MGF, salt length, and trailer field.
+- [Java SE 17 — Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): `RSA`, `RSASSA-PSS`, `Ed25519`, `X25519` names and naming/implementation scope.
+- [RFC 8017 — PKCS #1: RSA Cryptography Specifications v2.2](https://www.rfc-editor.org/rfc/rfc8017): RSAES-OAEP, RSASSA-PSS, and message length limits.
+- [NIST — Glossary: Digital Signature](https://csrc.nist.gov/glossary/term/digital_signature): integrity/authentication, supports non-repudiation; does not provide confidentiality.
+- [NIST — Glossary: Public Key](https://csrc.nist.gov/glossary/term/public_key): public key used to verify signatures, encrypt keys, or participate in key agreement depending on the scheme.
 
-**Điều cần nhớ:** **Public key dùng cho thao tác mà người khác được phép thực hiện; private key dùng cho thao tác chỉ chủ sở hữu được quyền thực hiện.** Trong mã hóa là *encrypt với public key người nhận → decrypt với private key người nhận*; trong chữ ký là *sign với private key người ký → verify với public key người ký*. Hai quan hệ ấy phục vụ **mục tiêu bảo mật khác nhau**, nên phải đi kèm xác thực danh tính, scheme, tham số và quản lý khóa đúng.
+**Key takeaway:** **A public key is used for operations that others are permitted to perform; a private key is used for operations that only the owner is authorized to perform.** In encryption, it is *encrypt with recipient's public key → decrypt with recipient's private key*; in signatures, it is *sign with signer's private key → verify with signer's public key*. Those two relationships serve **different security goals**, so they must be accompanied by identity authentication, proper schemes, explicit parameters, and sound key management.

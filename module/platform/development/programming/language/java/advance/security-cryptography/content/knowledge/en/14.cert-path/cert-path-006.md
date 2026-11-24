@@ -1,114 +1,114 @@
-# 14.6. Thu hồi bằng CRL, OCSP và `PKIXRevocationChecker`
+# 14.6. Revocation with CRL, OCSP, and `PKIXRevocationChecker`
 
-## Mục tiêu và phạm vi
+## Objectives and Scope
 
-Khi kiểm tra một chứng chỉ X.509, việc thấy chữ ký của CA hợp lệ và `notBefore ≤ now ≤ notAfter` **chưa đủ**: CA có thể đã thu hồi chứng chỉ trước ngày hết hạn do private key bị lộ, cấp nhầm, thay đổi quyền sử dụng hoặc chấm dứt dịch vụ. Bài này tập trung vào **revocation checking trong đường dẫn tin cậy PKIX**, sử dụng **CRL**, **OCSP** và API `java.security.cert.PKIXRevocationChecker` của Java 17+.
+When verifying an X.509 certificate, seeing a valid CA signature and `notBefore ≤ now ≤ notAfter` is **not enough**: the CA may have revoked the certificate before its expiration date due to private key compromise, misissuance, usage changes, or service decommissioning. This lesson focuses on **revocation checking in PKIX trust paths**, using **CRL**, **OCSP**, and Java 17+'s `java.security.cert.PKIXRevocationChecker` API.
 
-Học xong, bạn có thể:
+After completing this lesson, you will be able to:
 
-1. Phân biệt **hết hạn**, **bị thu hồi**, **chưa xác định được trạng thái**, và **đường dẫn chứng chỉ không đáng tin**.
-2. Đọc CRL/X.509, hiểu CRL issuer, serial number, `thisUpdate`, `nextUpdate`, chữ ký, CRL Distribution Points (CDP) và các giới hạn của danh sách thu hồi.
-3. Hiểu OCSP `good/revoked/unknown`, responder URL qua AIA, kiểm tra chữ ký response và độ tươi của trạng thái, OCSP stapling và rủi ro mạng.
-4. Cấu hình `PKIXRevocationChecker` theo chính sách: `PREFER_CRLS`, `NO_FALLBACK`, `ONLY_END_ENTITY`, `SOFT_FAIL` và nguồn CRL từ `CertStore`.
-5. Dùng `CertPathValidator` để kiểm tra thực sự một certificate path trên **CRL sạch** và **CRL có chứng chỉ bị thu hồi**; không nhầm kiểm tra một serial trong CRL với kiểm tra PKIX hoàn chỉnh.
-6. Chọn chính sách xử lý lỗi **fail-closed/hard-fail** hay **soft-fail** một cách minh bạch, đo lường timeout và kiểm thử tích hợp TLS.
+1. Distinguish **expired**, **revoked**, **undetermined status**, and **untrusted certificate path**.
+2. Read X.509 CRLs, understanding CRL issuer, serial number, `thisUpdate`, `nextUpdate`, signature, CRL Distribution Points (CDP), and CRL limitations.
+3. Understand OCSP `good/revoked/unknown`, responder URLs via AIA, response signature and freshness checks, OCSP stapling, and network risks.
+4. Configure `PKIXRevocationChecker` per policy: `PREFER_CRLS`, `NO_FALLBACK`, `ONLY_END_ENTITY`, `SOFT_FAIL`, and CRL sources via `CertStore`.
+5. Use `CertPathValidator` to genuinely validate a certificate path against a **clean CRL** and a **revoked-certificate CRL**; avoid confusing a serial lookup in a CRL with full PKIX validation.
+6. Choose **fail-closed/hard-fail** vs **soft-fail** error-handling policies transparently, measure timeouts, and test TLS integration.
 
-**Giới hạn:** đây là bài về **thu hồi của chứng chỉ và đường dẫn PKIX**, không phải bài phát hành CA, TLS handshake hoàn chỉnh hay giao thức ứng dụng. Ví dụ dùng khóa/chứng chỉ **lab**, không bao giờ đưa CA tự tạo trong ví dụ vào truststore production. Java code dùng JDK 17+; hành vi mạng và các thiết lập hệ thống có thể khác giữa provider/JDK/ứng dụng.
+**Scope limits:** this lesson is about **certificate revocation and PKIX paths**, not CA issuance, full TLS handshakes, or application protocols. Examples use **lab** keys/certificates—never place self-created example CAs into a production truststore. Java code targets JDK 17+; network behavior and system settings may vary across providers/JDKs/applications.
 
-## 1. “Chứng chỉ hợp lệ” gồm nhiều điều kiện
+## 1. A “Valid Certificate” Requires Multiple Conditions
 
-Một chứng chỉ có thể thỏa chữ ký số của CA mà vẫn bị từ chối vì:
+A certificate can satisfy a CA's digital signature and still be rejected because:
 
-- Chưa đến ngày `notBefore` hoặc đã quá `notAfter` (validity period).
-- Không xây được đường dẫn từ chứng chỉ lá qua intermediate đến **trust anchor được tin cậy**.
-- Trật tự CA/basic constraints/key usage, thuật toán/key strength, certificate policies hoặc name constraints không đạt yêu cầu.
-- Tên máy chủ/SAN, Extended Key Usage hoặc mục đích sử dụng không phù hợp với ứng dụng, đặc biệt trong TLS.
-- **Bị CA thu hồi** trước khi hết hạn và có bằng chứng thu hồi hợp lệ.
-- **Không xác định được trạng thái thu hồi** vì không có CRL/OCSP response đáng tin, quá hạn hoặc không liên hệ được responder, tùy chính sách.
+- It is before `notBefore` or past `notAfter` (validity period).
+- No path can be built from the leaf certificate through intermediates to a **trusted trust anchor**.
+- CA ordering/basic constraints/key usage, algorithms/key strength, certificate policies, or name constraints fail requirements.
+- Hostname/SAN, Extended Key Usage, or usage purpose does not fit the application, especially in TLS.
+- It was **revoked by the CA** prior to expiration with valid revocation evidence.
+- **Revocation status cannot be determined** because no trusted CRL/OCSP response is available, data is stale, or the responder is unreachable, depending on policy.
 
-Ba trạng thái revocation cần hiểu rõ:
+Three revocation states to understand clearly:
 
-| Trạng thái | Ý nghĩa | Không được hiểu thành |
+| Status | Meaning | Must NOT be interpreted as |
 | --- | --- | --- |
-| **GOOD / không tìm thấy revocation trong nguồn hợp lệ** | Theo bằng chứng revocation hợp lệ cho đúng issuer/serial/phạm vi và thời điểm kiểm tra, cert chưa bị ghi nhận là thu hồi | “Chứng chỉ hoàn toàn hợp lệ cho mọi mục đích” |
-| **REVOKED** | CA/OCSP responder có thẩm quyền đã công bố thu hồi certificate | “Có thể bỏ qua do mạng chập chờn” |
-| **UNKNOWN / UNDETERMINED** | Chưa thể chứng minh trạng thái theo dữ liệu và policy hiện có | “Không bị thu hồi” |
+| **GOOD / not listed as revoked in a valid source** | Per valid revocation evidence for the right issuer/serial/scope at the evaluation time, the cert is not recorded as revoked | “The certificate is completely valid for every purpose” |
+| **REVOKED** | An authorized CA/OCSP responder published revocation of the certificate | “Can be ignored due to flaky networking” |
+| **UNKNOWN / UNDETERMINED** | Status could not be proven from available data and current policy | “Not revoked” |
 
-**Revocation không thay thế các bước PKIX và ứng dụng.** OCSP `good` chỉ nói về trạng thái thu hồi theo nguồn trả lời; không tự chứng minh domain/identity, certificate chain, thuật toán hoặc key usage hợp lệ. Một CRL không chứa serial cũng chưa chứng minh cert an toàn nếu CRL bị giả, sai issuer, hết hạn hoặc không bao phủ đúng đối tượng.
+**Revocation does not replace other PKIX and application steps.** OCSP `good` only speaks to revocation status per the responder; it does not prove domain/identity, certificate chain, algorithms, or key usage are valid. A CRL without a serial also does not prove a cert is safe if the CRL is forged, from the wrong issuer, expired, or out of scope.
 
-### Ví dụ một tình huống cụ thể
+### A Concrete Scenario
 
-CA cấp certificate `serial=0x42`, hạn 1 năm. Sau 1 tháng private key bị nghi lộ, CA thu hồi `serial=0x42`. Dù certificate còn 11 tháng hiệu lực và chữ ký CA không thay đổi, verifier phải từ chối nếu có bằng chứng thu hồi hợp lệ. Nếu OCSP server down, verifier cần **quyết định trạng thái chưa biết theo policy**, không lặng lẽ gắn nhãn GOOD.
+A CA issues certificate `serial=0x42` with a 1-year validity. After 1 month the private key is suspected compromised, so the CA revokes `serial=0x42`. Even though the certificate still has 11 months of validity left and the CA's signature hasn't changed, the verifier must reject it when valid revocation evidence exists. If the OCSP server is down, the verifier must **decide the unknown status per policy**, never silently label it GOOD.
 
-## 2. Vị trí kiểm tra thu hồi trong đường dẫn PKIX
+## 2. Where Revocation Checking Fits in a PKIX Path
 
-Giả sử:
+Suppose:
 
 ```text
-Trusted Root CA (TrustAnchor, đã được chọn qua policy tin cậy)
+Trusted Root CA (TrustAnchor, selected via trust policy)
     |
-    +-- Intermediate CA (cert được Root ký)
+    +-- Intermediate CA (cert signed by Root)
              |
              +-- Leaf certificate: api.example.invalid
                     |
                     v
-        Kiểm tra chữ ký / chain / thời hạn / purpose
+        Check signatures / chain / validity / purpose
                     |
                     v
              Revocation checks
-           (leaf và CA trung gian nếu policy yêu cầu)
+           (leaf and intermediate CAs if policy requires)
                     |
                     v
-            ACCEPT hoặc REJECT
+            ACCEPT or REJECT
 ```
 
-Trong Java, `CertPath` thông thường liệt kê **leaf → intermediate → ...**, **không chứa trust anchor** ở cuối. Trust anchor được truyền riêng qua `PKIXParameters`/`TrustAnchor`. Không được lấy root CA trực tiếp từ chain do peer gửi rồi tự thêm vào trust anchors: peer có thể tự phát hành CA giả. Nguồn trust anchor phải nằm trong cấu hình/KeyStore hoặc trust policy đáng tin.
+In Java, `CertPath` normally lists **leaf → intermediate → ...**, **excluding the trust anchor** at the end. The trust anchor is passed separately via `PKIXParameters`/`TrustAnchor`. Never take a root CA directly from a peer-sent chain and add it to trust anchors: a peer can issue a rogue CA. Trust anchor sources must come from trusted configuration/`KeyStore` or trust policy.
 
-**Phạm vi revocation:** thường quan tâm cả leaf và intermediate; nếu intermediate bị thu hồi, nhiều leaf do CA đó phát hành cũng mất đường tin cậy. `ONLY_END_ENTITY` làm giảm kiểm tra đối với CA certificates nên chỉ cân nhắc khi có chính sách/nguồn kiểm tra thay thế rõ ràng.
+**Revocation scope:** usually both leaf and intermediate matter; if an intermediate is revoked, many leaves issued by that CA lose their chain of trust. `ONLY_END_ENTITY` reduces checking on CA certificates, so consider it only when a clear alternative policy/source covers CAs.
 
-**Trust anchor** thường được tin trực tiếp và không được xử lý như một certificate path element bình thường; trạng thái root CA/trust anchor cần được quản lý bằng cập nhật truststore và chính sách tin cậy. Không nghĩ “PKIX check all certs” tức tự động phát hiện mọi CA gốc bị distrust ngoài cấu hình.
+**The trust anchor** is normally trusted directly and not processed like an ordinary certificate path element; root CA/trust anchor status must be managed via truststore updates and trust policy. Never assume “PKIX checks all certs” automatically detects every root CA distrusted outside configuration.
 
 ## 3. CRL — Certificate Revocation List
 
-**CRL** (RFC 5280) là một danh sách **được CA hoặc CRL issuer có thẩm quyền ký**, chứa thông tin về các serial number được thu hồi theo một phạm vi/phân phối cụ thể.
+A **CRL** (RFC 5280) is a list **signed by a CA or an authorized CRL issuer**, containing serial numbers revoked under a specific scope/distribution point.
 
-Các trường và khái niệm thường gặp:
+Common fields and concepts:
 
-| Trường | Ý nghĩa thực tế |
+| Field | Practical meaning |
 | --- | --- |
-| `issuer` | Danh tính issuer của CRL; thường CA cấp certificate, nhưng PKIX còn có trường hợp indirect CRL |
-| `thisUpdate` | Thời điểm trạng thái danh sách có hiệu lực/cập nhật |
-| `nextUpdate` | Thời điểm dự kiến phát hành CRL tiếp theo; dùng trong chính sách về độ tươi |
-| `revokedCertificates` | Danh sách serial number của các cert bị thu hồi, thường kèm thời điểm và lý do |
-| `signatureAlgorithm / signature` | Bằng chứng nội dung CRL do khóa được ủy quyền ký |
-| `CRL Number` | Extension giúp định danh và quản lý phiên bản CRL |
-| `Authority Key Identifier (AKI)` | Giúp xác định khóa dùng ký CRL trong bối cảnh có nhiều key/certificate |
-| `CRL Distribution Points (CDP)` | X.509 extension trong certificate chỉ nơi có thể tải CRL (HTTP/LDAP...) |
-| `Issuing Distribution Point` | Có thể thu hẹp phạm vi CRL, ví dụ chỉ cert end-entity hoặc chỉ một tập lý do |
-| `delta CRL` | Chỉ thay đổi so với base CRL; không tự xử lý như danh sách đầy đủ nếu policy cần base |
+| `issuer` | Identity of the CRL's issuer; usually the certificate's issuing CA, though PKIX also supports indirect CRLs |
+| `thisUpdate` | Timestamp when the list status took effect / was issued |
+| `nextUpdate` | Expected timestamp of the next CRL issuance; used in freshness policies |
+| `revokedCertificates` | List of serial numbers of revoked certs, typically with revocation date and reason |
+| `signatureAlgorithm / signature` | Proof the CRL content was signed by an authorized key |
+| `CRL Number` | Extension helping identify and version CRLs |
+| `Authority Key Identifier (AKI)` | Helps identify the key used to sign the CRL when multiple keys/certificates exist |
+| `CRL Distribution Points (CDP)` | X.509 extension in a certificate indicating where the CRL can be fetched (HTTP/LDAP...) |
+| `Issuing Distribution Point` | Can narrow a CRL's scope, e.g., end-entity certs only or a subset of reasons |
+| `delta CRL` | Contains only changes relative to a base CRL; not usable as a standalone full list if policy needs the base |
 
-Đường dẫn ví dụ:
+Example flow:
 
 ```text
-Certificate leaf -> CRL Distribution Points URI (nếu có)
-                  -> tải CRL từ điểm phân phối
-                  -> kiểm tra chữ ký và issuer/ủy quyền
-                  -> kiểm tra thisUpdate/nextUpdate và phạm vi
-                  -> đối chiếu serial number và reason
-                  -> kết luận revocation theo quy tắc PKIX
+Leaf certificate -> CRL Distribution Points URI (if present)
+                  -> fetch CRL from distribution point
+                  -> verify signature and issuer/authorization
+                  -> check thisUpdate/nextUpdate and scope
+                  -> match serial number and reason
+                  -> conclude revocation per PKIX rules
 ```
 
-Một số tính chất:
+Key properties:
 
-- CRL có thể **cache** và dùng offline sau khi nhận được bản còn hợp lệ. Ưu điểm là không cần kết nối OCSP cho từng lần kiểm tra, nhược điểm là độ lớn CRL và độ trễ cập nhật; thời điểm thu hồi thực tế có thể nằm sau thời điểm CRL gần nhất.
-- **Không có serial trong CRL không đủ để kết luận an toàn** nếu CRL không đúng issuer/scope hoặc không còn mới. Một CRL “sạch” có issuer khác cũng không làm certificate trở thành hợp lệ.
-- `X509CRL.isRevoked(cert)`/`getRevokedCertificate(serial)` là **kiểm tra membership** trên object CRL đã parse, không tự thay `CertPathValidator`: đừng chỉ gọi `isRevoked` rồi bỏ qua trust/freshness/signature/chain.
-- **Đừng tự tải URL từ certificate chưa đáng tin tùy tiện**: CDP từ input X.509 có thể trỏ tới mạng nội bộ hoặc địa chỉ không mong muốn. Cần egress/proxy/SSRF controls và timeout thích hợp; hành vi phụ thuộc provider.
-- CRL được một CA ký có thể bị phân vùng theo distribution point, reason hoặc issuer. Không lấy một CRL bất kỳ của CA đó rồi giả định luôn đầy đủ mọi chứng chỉ.
+- CRLs can be **cached** and used offline once a still-valid copy is obtained. The advantage is avoiding an OCSP connection per check; the drawback is CRL size and update latency—actual revocation may occur after the latest CRL timestamp.
+- **Absence of a serial in a CRL is insufficient to conclude safety** if the CRL has the wrong issuer/scope or is stale. A “clean” CRL from another issuer does not make a certificate valid either.
+- `X509CRL.isRevoked(cert)`/`getRevokedCertificate(serial)` is a **membership lookup** on a parsed CRL object, not a replacement for `CertPathValidator`: never just call `isRevoked` and skip trust/freshness/signature/chain checks.
+- **Never fetch URLs from untrusted certificates arbitrarily:** CDPs in X.509 input can point to internal networks or unintended addresses. Enforce egress/proxy/SSRF controls and appropriate timeouts; behavior depends on the provider.
+- CRLs signed by a CA may be partitioned by distribution point, reason, or issuer. Never grab an arbitrary CRL from that CA and assume it covers every certificate.
 
-### Java đọc CRL thủ công
+### Reading a CRL Manually in Java
 
-Snippet sau **chỉ minh họa parse và kiểm tra vài điều kiện riêng lẻ**, không phải validator độc lập:
+The snippet below **only illustrates parsing and checking a few isolated properties**, not a standalone validator:
 
 ```java
 CertificateFactory factory = CertificateFactory.getInstance("X.509");
@@ -122,71 +122,71 @@ System.out.println(crl.getNextUpdate());
 System.out.println(crl.getRevokedCertificates());
 ```
 
-Snippet cần `java.io.InputStream`, `java.nio.file.Files/Path` và `java.security.cert.CertificateFactory/X509CRL`, cùng xử lý checked exceptions. `getRevokedCertificates()` có thể trả `null` nếu không có entries; dữ liệu có thể chứa thông tin nhạy cảm vận hành nên đừng log toàn bộ serial của đối tác nếu không cần. **Chỉ parse thành công không tự chứng minh CRL trusted**.
+Requires `java.io.InputStream`, `java.nio.file.Files/Path`, and `java.security.cert.CertificateFactory/X509CRL`, plus handling checked exceptions. `getRevokedCertificates()` can return `null` when there are no entries; the data may contain operationally sensitive information, so avoid logging full partner serial lists unnecessarily. **Successful parsing alone does not prove a CRL is trusted**.
 
-Nếu đã có một CA certificate thực sự đáng tin, `crl.verify(issuerPublicKey)` giúp kiểm tra chữ ký CRL, nhưng còn phải xác minh issuer/khả năng ký CRL (`cRLSign`), thời hạn, phạm vi và đường dẫn tin cậy. API PKIX có trách nhiệm xử lý đầy đủ hơn; đừng tự ghép check rời rạc rồi gắn nhãn “đã validate”.
+If you already hold a genuinely trusted CA certificate, `crl.verify(issuerPublicKey)` checks the CRL signature, yet you must still verify issuer/CRL-signing authority (`cRLSign`), validity dates, scope, and trust path. The PKIX API is responsible for handling this more thoroughly; never stitch together piecemeal checks and label it “validated”.
 
 ## 4. OCSP — Online Certificate Status Protocol
 
-**OCSP** (RFC 6960, kế thừa RFC 2560) là cơ chế hỏi responder về tình trạng của **một certificate cụ thể**, thay vì tải toàn bộ CRL.
+**OCSP** (RFC 6960, superseding RFC 2560) is a mechanism for querying a responder about the status of **a specific certificate**, instead of downloading an entire CRL.
 
-Bản tin OCSP thường gắn với `CertID` gồm nhận diện issuer (hash của issuer name/key) và **serial** của certificate. Responder trả response có chữ ký, status, thời gian và thông tin responder; verifier phải kiểm tra **quyền ký OCSP response**, chữ ký, thời gian, association đúng cert/issuer và các quy tắc khác.
+An OCSP message typically carries a `CertID` containing issuer identifiers (hashes of issuer name/key) and the certificate's **serial**. The responder returns a signed response containing status, timestamps, and responder identity; the verifier must check **authority to sign OCSP responses**, signature, timestamps, exact cert/issuer association, and other rules.
 
-| Kết quả | Nội dung | Cách diễn giải |
+| Outcome | Content | Interpretation |
 | --- | --- | --- |
-| `good` | Responder không báo chứng chỉ bị thu hồi theo thông tin responder cung cấp | Không thay thế xác minh chữ ký certificate/chain/hostname |
-| `revoked` | Có bằng chứng bị thu hồi, có thể kèm revocationTime/reason | **REJECT** khi response hợp lệ |
-| `unknown` | Responder không có trạng thái đáng tin cho CertID yêu cầu | **Không mặc định coi GOOD** |
-| Response bị lỗi/timeout | Không nhận được bằng chứng sử dụng được | Xử lý **UNDETERMINED / policy fallback**, không coi là `good` |
-| Response có chữ ký sai/không được ủy quyền | Không có bằng chứng đáng tin | Từ chối hoặc áp dụng cơ chế kiểm tra khác theo policy, **không** coi là `good` |
+| `good` | Responder does not report the certificate as revoked per responder data | Does not replace certificate signature/chain/hostname verification |
+| `revoked` | Evidence of revocation exists, possibly with revocationTime/reason | **REJECT** when response is valid |
+| `unknown` | Responder has no reliable status for the requested CertID | **Never treat as GOOD by default** |
+| Response error/timeout | No usable evidence received | Handle as **UNDETERMINED / policy fallback**, never treat as `good` |
+| Response has invalid signature / unauthorized signer | No trustworthy evidence | Reject or apply another checking mechanism per policy, **never** treat as `good` |
 
-Trong chứng chỉ, extension **Authority Information Access (AIA)** có thể chứa OCSP responder URL. Một cấu hình ứng dụng cũng có thể dùng responder cố định (chẳng hạn CA nội bộ). Với `PKIXRevocationChecker.setOcspResponder(URI)`, URI cấu hình sẽ **ghi đè** URL OCSP từ AIA cho checker đó; chỉ dùng URL được phê duyệt cho trust boundary cụ thể.
+In a certificate, the **Authority Information Access (AIA)** extension can hold an OCSP responder URL. An application configuration can also specify a fixed responder (such as an internal CA). With `PKIXRevocationChecker.setOcspResponder(URI)`, the configured URI **overrides** the AIA OCSP URL for that checker; use only URLs approved for the specific trust boundary.
 
-**Tính mới và chống replay:** quan tâm `thisUpdate`, `nextUpdate`, `producedAt` và quy tắc allowed clock skew/cache TTL. OCSP nonce là extension tùy profile giúp liên kết request/response nhưng có yếu tố tương thích và hiệu năng; không tự thêm nonce mà chưa kiểm tra hỗ trợ responder/stapling/cache. OCSP response bị stale hoặc không đúng certificate không được coi là `good`.
+**Freshness and replay protection:** check `thisUpdate`, `nextUpdate`, `producedAt`, and allowed clock skew/cache TTL rules. An OCSP nonce is a profile-dependent extension binding request and response, with compatibility and performance trade-offs; never enable nonces blindly without checking responder/stapling/cache support. A stale OCSP response or one for the wrong certificate must not be treated as `good`.
 
-### OCSP stapling trong TLS
+### OCSP Stapling in TLS
 
-Thay vì client tự hỏi responder, server TLS có thể gửi kèm **OCSP response đã ký** trong handshake (stapling). Lợi ích có thể gồm giảm độ trễ/khả năng lộ thông tin client đến responder và giúp cache ở server. Tuy nhiên client vẫn phải **thực sự kiểm tra** chữ ký, thời gian, cert association và chính sách; không phải cứ server gửi bytes “stapled” là tin được.
+Instead of having the client query the responder itself, the TLS server can include a **signed OCSP response** in the handshake (stapling). Benefits can include lower latency, reduced exposure of client browsing to the responder, and server-side caching. However, the client must still **actually verify** the signature, timestamps, cert association, and policy; bytes sent as “stapled” by the server are not trustworthy merely by delivery.
 
-Một số chứng chỉ có extension về việc bắt buộc phải stapling (TLS Feature, thường gọi Must-Staple); khả năng hỗ trợ/enforcement khác nhau giữa client. **Không tự giả định Java JSSE của bạn đang kiểm tra revocation hoặc Must-Staple** nếu chưa cấu hình, kiểm thử và xác minh chính xác implementation.
+Some certificates carry an extension requiring stapling (TLS Feature, commonly called Must-Staple); support/enforcement varies across clients. **Never assume your Java JSSE stack checks revocation or Must-Staple** without configuring, testing, and verifying the exact implementation.
 
-## 5. So sánh CRL và OCSP khi vận hành
+## 5. Comparing CRL and OCSP in Operations
 
-| Tiêu chí | CRL | OCSP |
+| Criterion | CRL | OCSP |
 | --- | --- | --- |
-| Đơn vị truy vấn | Danh sách cho một issuer/phạm vi | Status của một certificate (hoặc nhóm CertID) |
-| Cập nhật | Theo chu kỳ CRL, có thể có delta | Theo response và thời hạn cache/responder |
-| Kích thước dữ liệu | Có thể lớn khi nhiều cert bị thu hồi | Response thường nhỏ, nhưng nhiều yêu cầu |
-| Hoạt động offline | Có thể dùng CRL cache hợp lệ đã tin cậy | Có thể dùng response cache/stapled còn hợp lệ |
-| Riêng tư | Người tải CRL không nhất thiết tiết lộ cert nào đang kiểm tra | Client hỏi responder có thể tiết lộ cert/timing; stapling giúp giảm |
-| Sự cố mạng | CRL fetch không được / CRL quá hạn -> unknown | OCSP timeout, `tryLater`, responder unreachable -> unknown |
-| Điều kiện tin cậy | Chữ ký CRL/issuer/ủy quyền/phạm vi/thời gian | Chữ ký response/responder authorization/CertID/thời gian |
-| Java PKIX | `CertStore` CRLs, CRLDP nếu provider hỗ trợ | `PKIXRevocationChecker`, AIA/responder, OCSP responses |
+| Query granularity | List for an issuer/scope | Status of a single certificate (or batch of CertIDs) |
+| Updates | Per CRL cycle, possibly with deltas | Per response and cache/responder validity window |
+| Data size | Can be large when many certs are revoked | Responses are typically small, though requests are frequent |
+| Offline operation | Can use a valid cached trusted CRL | Can use a still-valid cached/stapled response |
+| Privacy | Fetching a CRL does not necessarily reveal which cert is checked | Client querying a responder can leak cert/timing; stapling mitigates this |
+| Network failures | CRL fetch fails / CRL expired -> unknown | OCSP timeout, `tryLater`, responder unreachable -> unknown |
+| Trust conditions | CRL signature/issuer/authorization/scope/timestamps | Response signature/responder authorization/CertID/timestamps |
+| Java PKIX | `CertStore` CRLs, CRLDP if supported by provider | `PKIXRevocationChecker`, AIA/responder, OCSP responses |
 
-**Đừng chọn cơ chế duy nhất chỉ vì tốc độ một lần đo.** Đặt trước yêu cầu về freshness, cách xử lý mất mạng, CA ecosystem, egress, chứng chỉ trung gian, cache, khả năng đo lường và mô hình đe dọa. Một cơ chế fallback giúp khả dụng nhưng chỉ có ích khi **nguồn thay thế thật sự xác thực được** trạng thái, không phải bỏ qua lỗi.
+**Do not choose a single mechanism based on one benchmark.** Define requirements first for freshness, outage handling, CA ecosystem, egress, intermediate certificates, caching, observability, and threat model. A fallback mechanism helps availability, yet only when the **alternate source genuinely validates** status rather than masking errors.
 
-## 6. Các lớp Java tham gia revocation checking
+## 6. Java Classes Involved in Revocation Checking
 
-| API | Trách nhiệm |
+| API | Responsibility |
 | --- | --- |
-| `CertificateFactory.getInstance("X.509")` | Parse certificate, CRL và tạo `CertPath` |
-| `X509Certificate` | Đại diện chứng chỉ, issuer/serial/validity/extension |
-| `X509CRL` | Đại diện CRL, issuer, times, entries, kiểm tra signature riêng |
-| `TrustAnchor` | CA/public key được ứng dụng chọn là gốc tin cậy |
-| `CertPath` | Chuỗi chứng chỉ theo hướng leaf → intermediate, không kèm trust anchor |
-| `CertStore` + `CollectionCertStoreParameters` | Cung cấp CRL/certificate cho việc tìm và kiểm tra |
-| `PKIXParameters` | Trust anchors, ngày kiểm tra, CertStore, policy, checker |
-| `PKIXBuilderParameters` | Tương tự nhưng có target constraints để **xây** đường dẫn |
-| `CertPathValidator.getInstance("PKIX")` | Kiểm tra path đã có theo PKIX |
-| `CertPathBuilder.getInstance("PKIX")` | **Xây** path từ candidate certificates và trust anchors |
-| `PKIXRevocationChecker` | Chọn OCSP/CRL, fallback, soft-fail, responder và OCSP responses |
-| `CertPathValidatorException` | Cho biết lý do PKIX thất bại, certificate index, cause |
+| `CertificateFactory.getInstance("X.509")` | Parses certificates, CRLs, and constructs `CertPath` |
+| `X509Certificate` | Represents a certificate, issuer/serial/validity/extensions |
+| `X509CRL` | Represents a CRL, issuer, timestamps, entries, standalone signature check |
+| `TrustAnchor` | CA/public key chosen by the application as trusted root |
+| `CertPath` | Certificate chain in leaf → intermediate order, excluding trust anchor |
+| `CertStore` + `CollectionCertStoreParameters` | Supplies CRLs/certificates for discovery and checking |
+| `PKIXParameters` | Trust anchors, validation date, CertStore, policies, checkers |
+| `PKIXBuilderParameters` | Similar, plus target constraints to **build** a path |
+| `CertPathValidator.getInstance("PKIX")` | Validates an existing path per PKIX |
+| `CertPathBuilder.getInstance("PKIX")` | **Builds** a path from candidate certificates and trust anchors |
+| `PKIXRevocationChecker` | Configures OCSP/CRL preference, fallback, soft-fail, responder, and OCSP responses |
+| `CertPathValidatorException` | Reports PKIX failure reason, certificate index, and cause |
 
-Phân biệt **builder** và **validator**: `CertPathBuilder` tìm đường đi từ cert lá đến trust anchor qua các candidate certificates/`CertStore`; `CertPathValidator` kiểm tra một `CertPath` đã có. **Cả hai** có thể dùng `PKIXRevocationChecker` khi được thêm vào parameters phù hợp. Khi application đã có chain từ TLS handshake, không mặc nhiên coi nó là đường dẫn hợp lệ chỉ vì peer gửi đầy đủ.
+Distinguish **builder** and **validator**: `CertPathBuilder` finds a path from a leaf cert to a trust anchor through candidate certificates/`CertStore`; `CertPathValidator` checks an already-supplied `CertPath`. **Both** can use `PKIXRevocationChecker` when added to the appropriate parameters. When an application receives a chain from a TLS handshake, never assume it is a valid path just because the peer sent all certificates.
 
-## 7. `PKIXRevocationChecker`: cấu hình chính xác
+## 7. `PKIXRevocationChecker`: Configuring It Properly
 
-Checker không được tạo bằng `new PKIXRevocationChecker()` vì đây là lớp **abstract**. Lấy checker từ PKIX engine:
+The checker cannot be instantiated with `new PKIXRevocationChecker()` because it is an **abstract** class. Obtain it from a PKIX engine:
 
 ```java
 CertPathValidator validator = CertPathValidator.getInstance("PKIX");
@@ -194,43 +194,43 @@ PKIXRevocationChecker checker =
         (PKIXRevocationChecker) validator.getRevocationChecker();
 ```
 
-Các option chuẩn:
+Standard options:
 
-| Option | Ý nghĩa | Cảnh báo |
+| Option | Meaning | Warning |
 | --- | --- | --- |
-| `PREFER_CRLS` | Ưu tiên CRL thay vì OCSP | **Không** vô hiệu hóa OCSP fallback nếu chưa có `NO_FALLBACK` |
-| `NO_FALLBACK` | Tắt cơ chế dự phòng thứ hai | Chọn cùng `PREFER_CRLS` để chỉ ưu tiên CRL mà không chuyển OCSP |
-| `ONLY_END_ENTITY` | Chỉ kiểm tra thu hồi của chứng chỉ leaf | Bỏ phần kiểm tra revocation các CA intermediate, cân nhắc rủi ro |
-| `SOFT_FAIL` | Cho phép bỏ qua một số lỗi không xác định trạng thái từ mạng/OCSP `tryLater`/`internalError` theo Javadoc | **Không** biến `revoked` thành `good`; việc bỏ qua unknown có rủi ro |
+| `PREFER_CRLS` | Prefer CRLs over OCSP | Does **not** disable OCSP fallback unless `NO_FALLBACK` is also set |
+| `NO_FALLBACK` | Disables the secondary fallback mechanism | Combine with `PREFER_CRLS` to enforce CRL-only without falling back to OCSP |
+| `ONLY_END_ENTITY` | Checks revocation only on the leaf certificate | Skips intermediate CA revocation checks; weigh the risk carefully |
+| `SOFT_FAIL` | Allows ignoring certain undetermined-status errors from network/OCSP `tryLater`/`internalError` per Javadoc | Does **not** turn `revoked` into `good`; ignoring unknown carries risk |
 
-Theo Java SE 17 API, khi dùng checker cụ thể, **OCSP là cơ chế ưu tiên mặc định, CRL là fallback**; `PREFER_CRLS` đảo thứ tự, `NO_FALLBACK` tắt fallback. Đây là contract của **checker API**; phần **thu hồi mặc định do system/security properties** của Oracle/SUN provider lại có cấu hình legacy riêng ở mục 11, nên không được đánh đồng hai đường cấu hình.
+Per the Java SE 17 API, when using this checker explicitly, **OCSP is preferred by default and CRL is the fallback**; `PREFER_CRLS` swaps the order, and `NO_FALLBACK` disables fallback. This is the contract of the **checker API**; **default revocation driven by system/security properties** in the Oracle/SUN provider has separate legacy configuration covered in Section 11, so never conflate the two configuration paths.
 
-**Đặt options trước khi add vào parameters**. `PKIXParameters.addCertPathChecker(checker)` clone checker, nên sửa biến `checker` **sau** khi add sẽ không làm parameters đã tạo đổi theo. Nếu cần thay policy, tạo checker/parameters mới cho operation tương ứng.
+**Set options before adding to parameters.** `PKIXParameters.addCertPathChecker(checker)` clones the checker, so mutating `checker` **after** adding it will not update the already-created parameters. If policy changes, create a fresh checker/parameters for that operation.
 
-### `setRevocationEnabled(false)` có nghĩa gì?
+### What Does `setRevocationEnabled(false)` Mean?
 
-`PKIXParameters` mặc định `isRevocationEnabled()==true`. Nếu gọi `setRevocationEnabled(false)`, bạn tắt **default revocation checking mechanism** của provider. Nhưng khi **thêm một `PKIXRevocationChecker` rõ ràng** bằng `addCertPathChecker`, Javadoc quy định checker đó **vẫn được dùng** bất kể flag `RevocationEnabled`.
+`PKIXParameters` defaults to `isRevocationEnabled()==true`. Calling `setRevocationEnabled(false)` disables the provider's **default revocation checking mechanism**. However, when you **explicitly add a `PKIXRevocationChecker`** via `addCertPathChecker`, the Javadoc specifies that the checker **is still invoked** regardless of the `RevocationEnabled` flag.
 
-Điều này giải thích snippet trong demo offline:
+This explains the snippet in the offline demo:
 
 ```java
-params.setRevocationEnabled(false); // Tắt checker mặc định, KHÔNG tắt checker thêm sau.
-params.addCertPathChecker(checker);  // Checker này vẫn thực hiện kiểm tra.
+params.setRevocationEnabled(false); // Disables default checker, NOT explicitly added checkers.
+params.addCertPathChecker(checker);  // This checker still performs checking.
 ```
 
-Mục đích là tránh hai con đường kiểm tra trùng lặp, đồng thời chủ động kiểm soát nguồn CRL/options. **Không copy `setRevocationEnabled(false)` mà bỏ `addCertPathChecker`**: lúc đó bạn có thể vô tình **vô hiệu hóa mọi kiểm tra thu hồi** trong pipeline đó.
+The goal is to avoid duplicate checking paths while explicitly controlling the CRL source and options. **Never copy `setRevocationEnabled(false)` while omitting `addCertPathChecker`**: doing so can accidentally **disable all revocation checking** in that pipeline.
 
-### `SOFT_FAIL` không tương đương “tự động an toàn”
+### `SOFT_FAIL` Does Not Equal “Automatically Safe”
 
-Theo Java SE 17 API, `SOFT_FAIL` chỉ bỏ qua một số trường hợp **không thể lấy CRL/OCSP vì lỗi mạng** hoặc OCSP responder trả `internalError`/`tryLater`. Nếu cho phép fallback, thường cả hai cơ chế phải thất bại theo các điều kiện soft-fail tương ứng thì mới được cho qua theo option này. **Bằng chứng REVOKED hợp lệ không được bỏ qua.**
+Per the Java SE 17 API, `SOFT_FAIL` only ignores certain cases where **CRLs/OCSP cannot be retrieved due to network errors** or an OCSP responder returns `internalError`/`tryLater`. If fallback is permitted, typically both mechanisms must fail under applicable soft-fail conditions before validation proceeds under this option. **Valid `REVOKED` evidence is never ignored.**
 
-`checker.getSoftFailExceptions()` có thể liệt kê exception đã bị bỏ qua khi kiểm tra, nhưng lưu ý checker bị **clone** khi thêm vào `PKIXParameters`; đừng mặc định gọi getter trên **biến checker ban đầu** sau validate sẽ phản ánh internal instance mà provider đã dùng. Khi cần telemetry chính xác, thiết kế logging/instrumentation ở layer kiểm chứng, thử nghiệm provider và xác nhận số liệu trên môi trường thật.
+`checker.getSoftFailExceptions()` can list exceptions ignored during checking, yet note that the checker is **cloned** when added to `PKIXParameters`; do not assume calling the getter on **the original checker variable** after `validate` reflects the internal instance used by the provider. When accurate telemetry is needed, design logging/instrumentation at the validation layer, test the provider, and verify metrics in a real environment.
 
-Đối với high-assurance authentication, key signing/cấp quyền nhạy cảm, nên có chính sách **fail-closed** khi không thể xác minh revocation, kèm timeout/UX/retry có kiểm soát. Với một số hệ thống cần availability, soft-fail có thể là quyết định chấp nhận rủi ro, nhưng phải đo lường, giới hạn và phân biệt rõ trạng thái unknown. Không dùng soft-fail để “sửa” CA/CRL cấu hình sai.
+For high-assurance authentication, key signing, or sensitive authorization, enforce a **fail-closed** policy when revocation cannot be verified, with bounded timeouts/UX/retries. In availability-sensitive systems, soft-fail may be an accepted risk decision, but must be metered, scoped, and clearly distinguished from known-good status. Never use soft-fail to “fix” a misconfigured CA/CRL.
 
-## 8. Java 17: ví dụ không cần mạng để kiểm tra cấu hình checker
+## 8. Java 17: Network-Free Example Inspecting Checker Configuration
 
-**`RevocationCheckerOptionsDemo.java`** có thể chạy ngay trên JDK 17+ có PKIX provider. Nó chỉ lấy checker, đặt options và một responder URI minh họa `.invalid`; **không làm request OCSP hay xác minh certificate nào**.
+**`RevocationCheckerOptionsDemo.java`** runs immediately on JDK 17+ with a PKIX provider. It only retrieves a checker, sets options and an illustrative `.invalid` responder URI; it **makes no OCSP requests and validates no certificates**.
 
 ```java
 import java.net.URI;
@@ -267,7 +267,7 @@ javac -encoding UTF-8 RevocationCheckerOptionsDemo.java
 java RevocationCheckerOptionsDemo
 ```
 
-**Stdout đã kiểm tra:**
+**Verified stdout:**
 
 ```text
 prefersCRL=true
@@ -277,19 +277,19 @@ responderConfigured=true
 noNetworkRequestWasSent=true
 ```
 
-Bài học chính:
+Key takeaways:
 
-1. `getRevocationChecker()` phải được gọi từ PKIX validator tương thích.
-2. `EnumSet.of(PREFER_CRLS, NO_FALLBACK)` chọn **CRL-only** cho checker trong ví dụ; OCSP responder URI đã đặt nhưng **sẽ không được sử dụng** nếu checker chạy chỉ với CRL.
-3. `SOFT_FAIL` **không được bật**: nếu không xác định được trạng thái thì phương thức kiểm tra path sẽ không tự xem đó là thành công.
-4. Các getter chỉ xác minh cấu hình **chưa phải kết quả bảo mật**: chưa có `PKIXParameters`, `CertPath`, trust anchor, CRL hay response. Dòng `noNetworkRequestWasSent=true` là khẳng định do code chỉ gọi setter/getter, không chứng minh hệ thống OCSP endpoint hoạt động.
-5. Địa chỉ `example.invalid` **không phải** responder thật; khi demo lab `CRL-only`, không gửi network request đến URI đó.
+1. `getRevocationChecker()` must be called on a compatible PKIX validator.
+2. `EnumSet.of(PREFER_CRLS, NO_FALLBACK)` selects **CRL-only** for the checker in the example; the OCSP responder URI is set yet **will not be used** when the checker runs CRL-only.
+3. `SOFT_FAIL` is **not enabled**: if status cannot be determined, path validation will not treat it as success.
+4. Getters only verify configuration—**not security outcomes**: there are no `PKIXParameters`, `CertPath`, trust anchor, CRL, or response here. The `noNetworkRequestWasSent=true` line is an assertion because the code only called setters/getters, not proof that an OCSP endpoint works.
+5. `example.invalid` is **not** a real responder; in a `CRL-only` lab demo, no network request is sent to that URI.
 
-## 9. Java 17: xác minh đường dẫn thực sự với CRL sạch và CRL thu hồi
+## 9. Java 17: Actually Validating a Path with Clean and Revoked CRLs
 
-Ví dụ thứ hai **`OfflineCrlValidationDemo.java`** nhận bốn file **của CA lab do bạn quản lý**: `root.pem` (trust anchor), `leaf.pem` (chứng chỉ do root cấp), `clean.crl` (CRL do root ký không thu hồi leaf) và `revoked.crl` (CRL do root ký, chứa serial leaf).
+The second example, **`OfflineCrlValidationDemo.java`**, takes four files **from a lab CA you manage**: `root.pem` (trust anchor), `leaf.pem` (certificate issued by root), `clean.crl` (root-signed CRL not revoking leaf), and `revoked.crl` (root-signed CRL containing leaf's serial).
 
-**Điều kiện dữ liệu đầu vào:** CA phải có basicConstraints CA=true và quyền ký CRL theo KeyUsage khi những ràng buộc này được áp dụng. Leaf phải do root tương ứng ký; CRL phải đúng issuer, còn thời hạn và có chữ ký hợp lệ. Đây là **fixture kiểm thử offline**, không phải một hệ thống tin cậy ngoài đời; `root.pem` được ứng dụng test tự chọn là anchor.
+**Input requirements:** the CA must have `BasicConstraints CA=true` and CRL-signing permission in `KeyUsage` when those constraints apply. The leaf must be signed by the matching root; CRLs must have the right issuer, valid dates, and valid signatures. This is an **offline test fixture**, not a real-world trust system; the test app explicitly chooses `root.pem` as the anchor.
 
 ```java
 import java.io.InputStream;
@@ -378,14 +378,14 @@ public final class OfflineCrlValidationDemo {
 }
 ```
 
-Biên dịch và chạy khi đã có **bộ bốn file tương ứng**:
+Compile and run once you have **the matching set of four files**:
 
 ```bash
 javac -encoding UTF-8 OfflineCrlValidationDemo.java
 java OfflineCrlValidationDemo root.pem leaf.pem clean.crl revoked.crl
 ```
 
-**Stdout đã được kiểm tra trên bộ chứng chỉ/CRL lab sinh riêng cho ví dụ:**
+**Verified stdout on lab certificates/CRLs generated specifically for this example:**
 
 ```text
 issuerMatches=true
@@ -395,78 +395,78 @@ cleanPath=ACCEPT
 revokedPath=REVOKED
 ```
 
-**Đọc code theo đúng tầng kiểm tra:**
+**Reading the code by verification layer:**
 
-- `CertificateFactory` parse `root.pem`, `leaf.pem` và hai CRL từ file. Không mở kết nối CA hoặc OCSP.
-- `crl.getRevokedCertificate(serial)` minh họa **membership**: CRL sạch không chứa serial, CRL revoked có chứa. Đây chỉ là quan sát, không tự xác minh PKIX.
-- `list.verify(root.getPublicKey())` kiểm tra chữ ký CRL bằng khóa của root **đã được ứng dụng chọn làm trust anchor**. Nếu CRL do khóa khác ký không có ủy quyền, ví dụ ngắn này không phải mô hình cho mọi trường hợp CRL gián tiếp/ủy quyền; hãy dùng validation PKIX phù hợp với CA thật.
-- `CertPath` gồm đúng **leaf**, vì **root là `TrustAnchor` riêng**, không được đưa root vào danh sách chain.
-- `CollectionCertStoreParameters(List.of(list))` đưa CRL đã đọc vào PKIX validator, không phụ thuộc kết nối đến CDP. `PREFER_CRLS + NO_FALLBACK` bảo đảm checker dùng CRL thay vì OCSP.
-- `params.setRevocationEnabled(false)` tắt **default mechanism**, nhưng `params.addCertPathChecker(checker)` đăng ký checker explicit vẫn hoạt động theo Java API; cả **ACCEPT** và **REVOKED** thực sự được thử trên PKIX engine.
-- `validate` có thể ném `CertPathValidatorException`. Chỉ hai lý do đã được phân loại trong ví dụ: `REVOKED` và `UNDETERMINED_REVOCATION_STATUS`; các lỗi như chữ ký certificate, constraint hoặc thuật toán không hợp lệ được **ném lại**, không bị che thành “không thu hồi”.
-- `cleanPath=ACCEPT` chỉ có nghĩa **PKIX path với trust anchor/parameters của lab vượt qua kiểm tra**. Nó không chứng minh hostname/TLS identity, quyền truy cập hay một CA ngoài đời đã đáng tin.
+- `CertificateFactory` parses `root.pem`, `leaf.pem`, and the two CRLs from disk. No CA or OCSP connections are opened.
+- `crl.getRevokedCertificate(serial)` illustrates **membership**: the clean CRL omits the serial, the revoked CRL includes it. This is purely an observation, not PKIX verification.
+- `list.verify(root.getPublicKey())` verifies the CRL signature using the key of the root **selected by the application as its trust anchor**. If the CRL were signed by another unauthorized key, this short example is not a general model for indirect/delegated CRLs; use full PKIX validation for real CAs.
+- `CertPath` contains only **leaf**, because **root is a separate `TrustAnchor`** and must not be added to the chain list.
+- `CollectionCertStoreParameters(List.of(list))` supplies the parsed CRL to the PKIX validator without depending on connecting to a CDP. `PREFER_CRLS + NO_FALLBACK` ensures the checker uses CRLs rather than OCSP.
+- `params.setRevocationEnabled(false)` disables the **default mechanism**, yet `params.addCertPathChecker(checker)` registers the explicit checker which still runs per Java API; both **ACCEPT** and **REVOKED** are genuinely exercised on the PKIX engine.
+- `validate` can throw `CertPathValidatorException`. Only two reasons are classified in the example: `REVOKED` and `UNDETERMINED_REVOCATION_STATUS`; errors such as bad certificate signature, constraints, or invalid algorithms are **rethrown**, not disguised as “not revoked”.
+- `cleanPath=ACCEPT` means only that **the PKIX path with the lab's trust anchor and parameters passed validation**. It does not prove hostname/TLS identity, access permissions, or that an external real-world CA is trustworthy.
 
-### Nếu file CRL không hợp lệ thì sao?
+### What If the CRL File Is Invalid?
 
-Có thể gặp `CRLException`, `SignatureException`, `InvalidKeyException` hoặc `CertPathValidatorException` tùy lỗi và bước xảy ra. Không catch tổng quát `Exception` rồi trả `ACCEPT`. Khi CRL không dùng được, bảo đảm **fail theo policy**; không tự diễn giải “không đọc được CRL” thành “CRL sạch”.
+You may encounter `CRLException`, `SignatureException`, `InvalidKeyException`, or `CertPathValidatorException` depending on the flaw and step. Never catch broad `Exception` and return `ACCEPT`. When a CRL is unusable, ensure you **fail per policy**; never interpret “cannot read CRL” as “clean CRL”.
 
-## 10. Chuẩn bị fixture lab để thử CRL thu hồi
+## 10. Preparing Lab Fixtures to Test CRL Revocation
 
-Bài code offline cần bốn file. Một CA test do bạn tự tạo có thể sinh `root.pem`, cấp `leaf.pem`, tạo một CRL sạch và CRL chứa serial của leaf.
+The offline program needs four files. A self-created test CA can generate `root.pem`, issue `leaf.pem`, produce a clean CRL, and produce a CRL containing the leaf's serial.
 
-**Bước A — tạo CA và certificate leaf bằng lệnh `keytool` chuẩn** (giả định password lab đã được cấp an toàn dưới biến môi trường `LAB_PASS`):
+**Step A — create the CA and leaf certificate with standard `keytool` commands** (assuming the lab password is safely provided in the `LAB_PASS` environment variable):
 
 ```bash
-# Tạo key pair CA cho lab; KHÔNG đưa CA này vào truststore production.
+# Generate CA key pair for lab; DO NOT put this CA into a production truststore.
 keytool -genkeypair -alias ca -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname "CN=Test Root CA" -validity 30 -ext "BC:critical=ca:true" -ext "KU:critical=keyCertSign,cRLSign" -keystore ca.p12 -storetype PKCS12 -storepass:env LAB_PASS -keypass:env LAB_PASS
 
-# Xuất chứng chỉ công khai CA.
+# Export CA public certificate.
 keytool -exportcert -rfc -alias ca -file root.pem -keystore ca.p12 -storetype PKCS12 -storepass:env LAB_PASS
 
-# Tạo private key và CSR của chứng chỉ leaf lab.
+# Generate private key and CSR for the lab leaf certificate.
 keytool -genkeypair -alias leaf -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname "CN=leaf.example.invalid" -validity 30 -keystore leaf.p12 -storetype PKCS12 -storepass:env LAB_PASS -keypass:env LAB_PASS
 keytool -certreq -alias leaf -file leaf.csr -keystore leaf.p12 -storetype PKCS12 -storepass:env LAB_PASS -keypass:env LAB_PASS
 
-# CA lab ký CSR và xuất leaf.pem.
+# Lab CA signs the CSR and outputs leaf.pem.
 keytool -gencert -alias ca -infile leaf.csr -outfile leaf.pem -rfc -validity 30 -ext "KU:critical=digitalSignature" -ext "EKU=serverAuth" -keystore ca.p12 -storetype PKCS12 -storepass:env LAB_PASS -keypass:env LAB_PASS
 
-# Xem serial leaf và trường issuer.
+# Inspect leaf serial and issuer field.
 keytool -printcert -file leaf.pem
 ```
 
-Những lệnh này đã được chạy thành công trong môi trường lab của bài. Một certificate `leaf.pem` có thể chưa đáp ứng mọi đòi hỏi của một CA/TLS sản phẩm thực, ví dụ name/SAN, CRLDP/AIA, certificate policies và quy trình trust thực tế. Vì đây là bài **revocation offline**, `OfflineCrlValidationDemo` không thực hiện hostname check.
+These commands ran successfully in this lesson's lab environment. A generated `leaf.pem` may not satisfy every requirement of a real production CA/TLS profile, such as name/SAN, CRLDP/AIA, certificate policies, and real trust workflows. Because this is an **offline revocation** lesson, `OfflineCrlValidationDemo` performs no hostname check.
 
-**Bước B — có CRL do CA lab ký:**
+**Step B — produce CRLs signed by the lab CA:**
 
-- **Ưu tiên CA test tool của bạn** để phát hành một CRL mới không có revoked entry và một CRL có revoked entry của leaf, bảo đảm issuer/chữ ký/`thisUpdate`/`nextUpdate` hợp lệ. Với OpenSSL CA, tạo CRL theo cấu hình CA test và database revocation của nó; với CA enterprise, dùng chức năng quản lý revocation thử nghiệm.
-- **Tùy chọn chỉ cho môi trường JDK có lệnh `keytool -gencrl`**: một số bản JDK có tiện ích không được liệt kê trong mọi trang man page public; đã xác nhận trên môi trường JDK dùng thử. Có thể tạo `clean.crl` và `revoked.crl` với CA lab:
+- **Prefer your test CA tool** to issue a fresh CRL with no revoked entries and one containing the leaf's revoked entry, ensuring valid issuer/signature/`thisUpdate`/`nextUpdate`. With an OpenSSL CA, generate CRLs from the test CA config and its revocation database; with an enterprise CA, use its test revocation management function.
+- **Option only for JDKs supporting `keytool -gencrl`**: some JDK builds include this subcommand even if not listed in every public man page; verified in our test JDK environment. You can generate `clean.crl` and `revoked.crl` with the lab CA:
 
 ```bash
-# Chỉ khi "keytool -gencrl -help" trên JDK của bạn báo hỗ trợ.
+# Only when "keytool -gencrl -help" on your JDK reports support.
 keytool -gencrl -alias ca -file clean.crl -keystore ca.p12 -storetype PKCS12 -storepass:env LAB_PASS -keypass:env LAB_PASS
 
-# SERIAL_DEC là serial leaf trong hệ thập phân (KHÔNG phải chuỗi hex).
-# Thay SERIAL_DEC bằng giá trị tính từ Serial number của leaf.pem.
+# SERIAL_DEC is the leaf serial in decimal (NOT hex string).
+# Replace SERIAL_DEC with the value converted from leaf.pem's Serial number.
 keytool -gencrl -alias ca -id SERIAL_DEC:1 -file revoked.crl -keystore ca.p12 -storetype PKCS12 -storepass:env LAB_PASS -keypass:env LAB_PASS
 ```
 
-`keytool -printcert` thường hiển thị serial bằng **hexadecimal** (ví dụ `7d52...`), còn `-id` của tiện ích lab này nhận **số serial thập phân**. Khi dùng JDK hỗ trợ, chuyển hex sang decimal trước khi thay `SERIAL_DEC`. Ví dụ snippet trong JShell:
+`keytool -printcert` typically displays the serial in **hexadecimal** (e.g., `7d52...`), while `-id` in this lab utility accepts a **decimal serial number**. When using a supporting JDK, convert hex to decimal before substituting `SERIAL_DEC`. Example snippet in JShell:
 
 ```java
 import java.math.BigInteger;
 new BigInteger("7d52d72e6d72b894", 16).toString();
-// Ví dụ này in "9030516797235968148" cho serial hex trên.
+// This example prints "9030516797235968148" for the hex serial above.
 ```
 
-**Ví dụ serial trên chỉ là số minh họa**, mỗi chứng chỉ mới có serial khác. `:1` là revocation reason code của chức năng lab này. Vì `-gencrl` không nằm trong mọi tài liệu chính thức `keytool`, **không phụ thuộc vào lệnh này trong quy trình sản xuất** và không coi nó là một CA revocation management system. Nếu JDK không hỗ trợ, dùng công cụ CA chuẩn phát hành CRL.
+**The serial example above is purely illustrative**; every newly generated certificate has a different serial. `:1` is the revocation reason code in this lab utility. Because `-gencrl` is not in all official `keytool` documentation, **do not rely on this command in production workflows** and never treat it as a CA revocation management system. If your JDK lacks support, use a standard CA tool to issue CRLs.
 
-**Bước C — kiểm tra fixture:** dùng `keytool -printcrl -file clean.crl` và `-printcrl -file revoked.crl` để xem nội dung, sau đó chạy chương trình. Xác minh đúng CA issuer, serial của leaf trong CRL thứ hai và độ tươi trước khi dùng. Các file chỉ để test và phải được tạo/lưu ở **thư mục lab riêng**, mật khẩu lab không phải credential thật.
+**Step C — inspect the fixtures:** use `keytool -printcrl -file clean.crl` and `-printcrl -file revoked.crl` to inspect contents, then run the program. Verify the right CA issuer, the leaf's serial in the second CRL, and freshness before use. These files are strictly for testing and must be created/stored in a **dedicated lab directory**; lab passwords are not real credentials.
 
-## 11. Tích hợp với `PKIXParameters` và dữ liệu CRL/OCSP
+## 11. Integrating with `PKIXParameters` and CRL/OCSP Data
 
-### Truyền CRL vào checker qua `CertStore`
+### Supplying CRLs to the Checker via `CertStore`
 
-Một `CertStore` kiểu `Collection` là cách tiện dụng để kiểm thử offline (đã dùng ở mục 9). Với nhiều CRL và intermediate certificates, có thể thêm vào collection:
+A `Collection` `CertStore` is convenient for offline testing (used in Section 9). With multiple CRLs and intermediate certificates, add them to the collection:
 
 ```java
 CertStore store = CertStore.getInstance(
@@ -476,9 +476,9 @@ CertStore store = CertStore.getInstance(
 params.addCertStore(store);
 ```
 
-Đây là snippet giả định `intermediateCert`, `currentCrl` và `params` đã được khai báo đúng kiểu; cần import `java.security.cert.*` và `java.util.List`. `CertStore` giúp PKIX tìm certificate/CRL, không có nghĩa mọi object thêm vào collection đều được tin. PKIX vẫn phải kiểm tra issuer, signature, constraints và thời điểm theo thuật toán của provider.
+This snippet assumes `intermediateCert`, `currentCrl`, and `params` are already declared with the right types; import `java.security.cert.*` and `java.util.List`. `CertStore` helps PKIX locate certificates/CRLs; it does not make every object added to the collection trusted. PKIX must still verify issuer, signature, constraints, and timestamps per the provider's algorithm.
 
-### Cấu hình OCSP responder tường minh
+### Configuring an Explicit OCSP Responder
 
 ```java
 PKIXRevocationChecker checker =
@@ -490,51 +490,51 @@ checker.setOptions(EnumSet.noneOf(PKIXRevocationChecker.Option.class));
 params.addCertPathChecker(checker);
 ```
 
-Đây là snippet minh họa **không độc lập**, trong đó `params` là `PKIXParameters` đã có trust anchors và chain đang được validate; `example.org` là placeholder URL tài liệu **không phải service thật**. Với checker mặc định (không `PREFER_CRLS`), API ưu tiên OCSP, có thể dùng CRL fallback. Responder thực phải được CA/protocol phê duyệt; nếu cần delegated responder, sử dụng `setOcspResponderCert(X509Certificate)` và tin cậy responder theo quy tắc RFC/PKIX tương ứng.
+This is a **non-standalone** illustrative snippet where `params` is a `PKIXParameters` already holding trust anchors and the chain under validation; `example.org` is a documentation placeholder URL, **not a real service**. With a default checker (without `PREFER_CRLS`), the API prefers OCSP and can fall back to CRL. Real responders must be approved by the CA/protocol; if a delegated responder is needed, use `setOcspResponderCert(X509Certificate)` and trust the responder per applicable RFC/PKIX rules.
 
-Có thể đưa OCSP response đã nhận được (đã được hệ thống fetch/staple đúng cách) vào `checker.setOcspResponses(Map<X509Certificate, byte[]>)`. Đây là **DER-encoded OCSP response bytes theo certificate**, không phải mảng boolean `good`. Engine vẫn cần kiểm tra chữ ký, responder authority, CertID và time validity theo implementation. Không tự tạo `good` bằng cách đưa chuỗi “true” vào map.
+You can pass already-received OCSP responses (properly fetched/stapled by the system) into `checker.setOcspResponses(Map<X509Certificate, byte[]>)`. These are **DER-encoded OCSP response bytes keyed by certificate**, not a boolean `good` map. The engine still needs to check signature, responder authority, CertID, and time validity per the implementation. Never fake `good` by putting `"true"` bytes in the map.
 
-**Phân biệt:** `setOcspResponder(URI)` chỉ chọn endpoint, **không khẳng định request đã được gửi hoặc response đã được kiểm chứng**. Chỉ một lần `validator.validate(certPath,params)` thực hiện actual validation (với dữ liệu và cấu hình hợp lệ).
+**Distinction:** `setOcspResponder(URI)` only selects the endpoint—**it does not assert a request was sent or a response was verified**. Only calling `validator.validate(certPath,params)` performs actual validation (given valid data and configuration).
 
-### Sự khác nhau giữa explicit checker và security properties
+### Differences Between Explicit Checker and Security Properties
 
-Theo Java 17 PKI Programmer's Guide của Oracle/SUN implementation:
+Per Oracle's Java 17 PKI Programmer's Guide for the SUN implementation:
 
-- `PKIXParameters.setRevocationEnabled(true)` bật **default revocation mechanism** của provider (mặc định là true khi tạo `PKIXParameters`).
-- Một số cấu hình provider mặc định dùng security property `ocsp.enable` (trong `java.security` hoặc `Security.setProperty`): có thể khiến default mechanism dùng OCSP rồi CRL fallback khi đã bật revocation. Nếu property không bật, con đường mặc định có thể dùng CRL. 
-- `PKIXRevocationChecker` được lấy trực tiếp từ PKIX validator có **contract riêng**: mặc định ưu tiên OCSP và fallback CRL theo Javadoc, bất kể cách cấu hình legacy default mechanism.
+- `PKIXParameters.setRevocationEnabled(true)` enables the provider's **default revocation mechanism** (defaults to true when constructing `PKIXParameters`).
+- Some default provider configurations use the `ocsp.enable` security property (in `java.security` or `Security.setProperty`): when revocation is enabled, this can make the default mechanism try OCSP followed by CRL fallback. If the property is off, the default path may use CRLs.
+- A `PKIXRevocationChecker` obtained directly from a PKIX validator has **its own contract**: by default it prefers OCSP and falls back to CRL per Javadoc, regardless of how the legacy default mechanism is configured.
 
-Do đó không nói “OCSP mặc định luôn bật trong toàn bộ Java” hoặc “chỉ cần `ocsp.enable=true` là mọi TLS client đã check CRL/OCSP”. **Phải xác định API path và provider cụ thể**; cách cấu hình trong một framework có thể dùng trust manager/builder khác hẳn ví dụ manual `CertPathValidator`.
+Therefore, never claim “OCSP is always enabled across all of Java” or “setting `ocsp.enable=true` makes every TLS client check CRL/OCSP”. **Identify the exact API path and provider**; a framework's trust manager/builder configuration can behave very differently from a manual `CertPathValidator` example.
 
-### CRL Distribution Points và truy vấn mạng
+### CRL Distribution Points and Network Queries
 
-Oracle PKI Programmer's Guide mô tả system property `com.sun.security.enableCRLDP=true` để bật cách tự tìm CRL theo CDP trong SUN provider; một số cấu hình tắt mặc định để tương thích. Khi đã đưa CRL qua `CertStore` và dùng `PREFER_CRLS`, bài demo **không cần mạng**, điều này giúp test có kết quả ổn định.
+The Oracle PKI Programmer's Guide describes the `com.sun.security.enableCRLDP=true` system property to enable automatic CDP-based CRL fetching in the SUN provider; some configurations leave it off by default for compatibility. When supplying CRLs via `CertStore` with `PREFER_CRLS`, the demo **needs no network**, keeping test results deterministic.
 
-Tính năng tự fetch CDP/OCSP cần xem xét:
+Automatic CDP/OCSP fetching requires evaluating:
 
-- **Network egress** và proxy: responder có thể là host ngoài Internet.
-- **Timeout và retry**: thư viện có defaults riêng; `com.sun.security.crl.timeout` là ví dụ property được tài liệu Oracle nêu cho CRL, có tính chất provider-specific.
-- **SSRF và metadata leakage**: certificate có thể do peer gửi, URL có thể không an toàn. Bật tự động truy vấn URL từ chứng chỉ chưa tin cần có boundary egress.
-- **Cache và đồng hồ**: dữ liệu cached chỉ dùng khi phù hợp freshness/clock skew. Ngắt clock NTP có thể làm một response bị đánh giá không hợp lệ.
-- **Phạm vi check**: cert lá, intermediate và chain; không chỉ một certificate tiện xem đầu tiên.
+- **Network egress** and proxies: responders may be external Internet hosts.
+- **Timeouts and retries**: libraries have their own defaults; `com.sun.security.crl.timeout` is an example property documented by Oracle for CRLs, which is provider-specific.
+- **SSRF and metadata leakage**: certificates may be peer-supplied, and URLs may be unsafe. Enabling automatic fetches from untrusted certificate URLs requires egress boundaries.
+- **Caching and clocks**: cached data is usable only within freshness/clock-skew bounds. Broken NTP clocks can cause valid responses to fail evaluation.
+- **Check scope**: leaf cert, intermediates, and chain—not merely the first convenient certificate.
 
-Tránh chỉnh `java.security` global chỉ để làm một test nếu có thể cấu hình qua API riêng. Việc thay security property runtime có thể ảnh hưởng nhiều component và vẫn không có hiệu lực nếu implementation đã cache settings. Test bằng một process chuyên biệt trong lab, không bật vào cả cụm production trước khi có kế hoạch.
+Avoid mutating global `java.security` just for one test if you can configure via a dedicated API. Changing runtime security properties can affect unrelated components and may have no effect if an implementation already cached settings. Test in an isolated process in the lab before planning any production rollout.
 
-## 12. Phân loại lỗi `CertPathValidatorException`
+## 12. Classifying `CertPathValidatorException` Errors
 
-Đối với đường PKIX đã cấu hình revocation, `CertPathValidator.validate(...)` có thể ném `CertPathValidatorException`. Đọc `getReason()`, `getIndex()` và `getCause()` thay vì chỉ in message:
+For a PKIX path configured with revocation, `CertPathValidator.validate(...)` can throw `CertPathValidatorException`. Inspect `getReason()`, `getIndex()`, and `getCause()` instead of printing only the message:
 
-| Reason (ví dụ) | Ý nghĩa | Chính sách ứng dụng |
+| Reason (example) | Meaning | Application policy |
 | --- | --- | --- |
-| `BasicReason.REVOKED` | Chứng chỉ được xác nhận bị thu hồi | **Từ chối**; không fallback thành success |
-| `BasicReason.UNDETERMINED_REVOCATION_STATUS` | Thiếu bằng chứng xác định trạng thái thu hồi | Từ chối hoặc soft-fail **nếu policy cho phép và được đo lường** |
-| `BasicReason.EXPIRED` | Certificate hết hạn | Từ chối theo policy hiện hành; không phải “CRL lỗi” |
-| `BasicReason.NOT_YET_VALID` | Chứng chỉ chưa đến thời gian hợp lệ | Từ chối |
-| `BasicReason.INVALID_SIGNATURE` | Signature của certificate/path không phù hợp | Từ chối; không hạ cấp sang soft-fail |
-| `BasicReason.ALGORITHM_CONSTRAINED` | Algorithm/key vi phạm security constraints | Từ chối, sửa policy/certificate chứ không bỏ check |
-| `BasicReason.UNSPECIFIED` hoặc reason khác | Lỗi khác/cụ thể provider | Ghi nhận có kiểm soát và điều tra |
+| `BasicReason.REVOKED` | Certificate confirmed revoked | **Reject**; never fall back to success |
+| `BasicReason.UNDETERMINED_REVOCATION_STATUS` | Missing evidence to determine revocation status | Reject, or soft-fail **only if policy permits and it is metered** |
+| `BasicReason.EXPIRED` | Certificate expired | Reject per current policy; not a “CRL bug” |
+| `BasicReason.NOT_YET_VALID` | Certificate not yet within validity window | Reject |
+| `BasicReason.INVALID_SIGNATURE` | Certificate/path signature invalid | Reject; never downgrade to soft-fail |
+| `BasicReason.ALGORITHM_CONSTRAINED` | Algorithm/key violates security constraints | Reject, fix policy/certificate rather than skipping checks |
+| `BasicReason.UNSPECIFIED` or other reason | Other/provider-specific failure | Log safely and investigate |
 
-`getIndex()` là index certificate theo thứ tự `CertPath`, không phải row trong keystore. Giá trị `-1` có thể xảy ra khi lỗi không xác định được một chứng chỉ cụ thể. Không dùng `BasicReason.REVOKED` như cách phát hiện mọi trường hợp “invalid”; phạm vi của enum được phân biệt rõ.
+`getIndex()` is the certificate index in `CertPath` order, not a row in a keystore. `-1` can occur when the failure does not pinpoint a single certificate. Never treat `BasicReason.REVOKED` as the detector for all “invalid” cases; the enum values are distinct.
 
 **Code anti-pattern:**
 
@@ -543,56 +543,56 @@ try {
     validator.validate(path, params);
     return true;
 } catch (CertPathValidatorException error) {
-    return true; // SAI: bỏ qua mọi thất bại, gồm REVOKED!
+    return true; // WRONG: ignores all failures, including REVOKED!
 }
 ```
 
-Snippet minh họa lỗi, không phải code được khuyên dùng; `validator`, `path` và `params` giả định đã khai báo. Nếu chính sách yêu cầu fail-closed, một lỗi revocation không rõ phải ngăn accept. Nếu có soft-fail được phê duyệt, chỉ cho qua đúng phân loại lỗi được policy chấp nhận, giới hạn thời gian/trạng thái và ghi telemetry.
+This snippet illustrates a bug, not recommended code; `validator`, `path`, and `params` are assumed declared. If policy demands fail-closed, an unknown revocation error must prevent acceptance. If soft-fail is approved, permit only the exact policy-accepted failure categories, bound durations/states, and emit telemetry.
 
-## 13. Chính sách khi OCSP hoặc CRL unavailable
+## 13. Policy When OCSP or CRL Is Unavailable
 
 ### Fail-closed / hard-fail
 
-**Fail-closed** nghĩa là không cho phép hoạt động yêu cầu chứng chỉ tin cậy khi trạng thái thu hồi cần kiểm tra mà **không xác định được**. Lợi ích: không cho attacker vô hiệu hóa kiểm tra bằng cách chặn responder. Đánh đổi: một sự cố CA responder/egress có thể gây gián đoạn ứng dụng.
+**Fail-closed** means disallowing operations that require a trusted certificate whenever required revocation status **cannot be determined**. Benefit: prevents an attacker from bypassing checks by blocking the responder. Trade-off: a CA responder/egress outage can cause application downtime.
 
-Các bước giảm ảnh hưởng: cache hợp lệ theo policy, CRL/OCSP fallback có xác minh, egress dự phòng, timeout hữu hạn, capacity planning, liveness/health monitoring, xử lý thông báo lỗi rõ ràng và runbook phục hồi.
+Mitigations: policy-compliant caching, verified CRL/OCSP fallback, redundant egress, bounded timeouts, capacity planning, liveness/health monitoring, clear error messaging, and recovery runbooks.
 
-### Soft-fail có kiểm soát
+### Controlled soft-fail
 
-**Soft-fail** cho phép tiếp tục trong những tình huống đặc biệt **không xác định được** theo danh sách lỗi cho phép, nhưng chỉ khi đã chấp nhận rủi ro. Không phải `REVOKED`. Ví dụ một ứng dụng internet-facing có thể ưu tiên availability ở một số use case, nhưng hệ thống quản trị khóa, ký phát hành phần mềm hoặc internal mTLS nhạy cảm có thể đặt yêu cầu khác.
+**Soft-fail** permits proceeding under specific **undetermined** conditions matching an allowlisted set of errors, and only as an accepted risk—never for `REVOKED`. For example, an Internet-facing app might prioritize availability in certain use cases, whereas key-management systems, software release signing, or sensitive internal mTLS may impose stricter rules.
 
-Nếu áp dụng `SOFT_FAIL`:
+If applying `SOFT_FAIL`:
 
-- Ghi lại **đã soft-fail** chứ không báo người vận hành “OCSP GOOD”.
-- Đặt scope ứng dụng, endpoint/role và thời hạn policy rõ ràng.
-- Tăng monitoring cho thời gian dài responder/CRL unavailable.
-- Định nghĩa giới hạn cache TTL, retry/timeout và xử lý khi status thay đổi thành `REVOKED`.
-- Xem lại security implications nếu một attacker có thể chủ động làm gián đoạn kết nối responder.
+- Record that **soft-fail occurred** rather than telling operators “OCSP GOOD”.
+- Define explicit application scope, endpoints/roles, and policy lifetime.
+- Increase alerting for prolonged responder/CRL unavailability.
+- Define cache TTL bounds, retries/timeouts, and handling when status flips to `REVOKED`.
+- Re-evaluate security implications if an attacker can actively disrupt responder connectivity.
 
-### Không có một cấu hình đúng cho mọi giao thức
+### No Single Configuration Fits Every Protocol
 
-| Bối cảnh | Vấn đề cần quyết định |
+| Context | Decisions to make |
 | --- | --- |
-| mTLS nội bộ cho hệ thống quản trị/production key access | Tính toàn vẹn danh tính có thể ưu tiên hard-fail; bố trí revocation distribution nội bộ có sẵn cao |
-| TLS client của ứng dụng công cộng | Cân bằng UX, OCSP availability, hiệu ứng responder outages, client/provider behavior |
-| Ký số tài liệu/phần mềm dài hạn | Cần chứng cứ trạng thái tại **thời điểm ký**, timestamp/certification policy và lưu trữ OCSP/CRL evidence theo chuẩn áp dụng |
-| Offline signing verification | Cần dữ liệu revocation đã thu thập từ trước và xác minh freshness/validation time phù hợp |
-| Hệ thống không có kết nối mạng | Không thể “hỏi OCSP online” lúc verify; đưa CRL/OCSP evidence vào trust bundle hoặc thiết kế exception policy có phê duyệt |
+| Internal mTLS for admin/production key access | Identity integrity may favor hard-fail; deploy highly available internal revocation distribution |
+| Public application TLS client | Balance UX, OCSP availability, responder outage impact, and client/provider behavior |
+| Long-term document/software signing | Requires status evidence at **signing time**, timestamping/certification policy, and archiving OCSP/CRL evidence per applicable standards |
+| Offline signing verification | Requires pre-collected revocation data and verifying appropriate freshness/validation time |
+| Air-gapped systems | Cannot “query OCSP online” at verification time; bundle CRL/OCSP evidence into trust bundles or define an approved exception policy |
 
-Không vội nâng `SOFT_FAIL` thành mặc định trên toàn bộ máy chủ chỉ để giảm số lỗi log. Nếu revocation là yêu cầu bảo mật không thể nhượng bộ, Unknown phải được từ chối.
+Do not hastily make `SOFT_FAIL` the server-wide default just to reduce error logs. If revocation is a non-negotiable security requirement, Unknown must be rejected.
 
-## 14. Tích hợp trong TLS/JSSE: đừng nhầm manual PKIX validation với handshake
+## 14. Integrating in TLS/JSSE: Do Not Confuse Manual PKIX Validation with Handshakes
 
-Các ví dụ ở trên gọi `CertPathValidator` trực tiếp. Chúng **không tự thiết lập** cấu hình kiểm tra thu hồi cho:
+The examples above invoke `CertPathValidator` directly. They **do not automatically configure** revocation checking for:
 
-- `HttpsURLConnection` / `java.net.http.HttpClient` đang sử dụng `SSLContext` mặc định.
-- Server nhận mTLS qua `SSLServerSocket` hoặc framework.
-- Ứng dụng dùng `X509TrustManager` riêng/được tạo qua `TrustManagerFactory`.
-- Thư viện HTTP/TLS có trình xác minh riêng hoặc dùng native TLS stack.
+- `HttpsURLConnection` / `java.net.http.HttpClient` using the default `SSLContext`.
+- Servers accepting mTLS via `SSLServerSocket` or frameworks.
+- Applications using a custom `X509TrustManager` or one created via `TrustManagerFactory`.
+- HTTP/TLS libraries with their own verifiers or native TLS stacks.
 
-Nếu TLS của ứng dụng cần revocation checking, phải cấu hình đúng **trust manager / PKIXBuilderParameters / CertPath policy** mà TLS stack sử dụng, kèm trust anchors, hostname verification và revocation options. Một cách tiếp cận tùy provider là khởi tạo `TrustManagerFactory` với `CertPathTrustManagerParameters` chứa `PKIXBuilderParameters` đã cấu hình; cần kiểm tra hỗ trợ của algorithm/provider và hành vi thực tế trước khi sử dụng.
+If your application's TLS needs revocation checking, properly configure the **trust manager / PKIXBuilderParameters / CertPath policy** used by the TLS stack, alongside trust anchors, hostname verification, and revocation options. One provider-dependent approach initializes `TrustManagerFactory` with `CertPathTrustManagerParameters` wrapping configured `PKIXBuilderParameters`; verify algorithm/provider support and real behavior before using.
 
-Ví dụ khung cấu hình (snippet, không chạy độc lập):
+Configuration skeleton (snippet, not standalone runnable):
 
 ```java
 PKIXBuilderParameters params =
@@ -605,101 +605,101 @@ TrustManagerFactory tmf =
 tmf.init(new CertPathTrustManagerParameters(params));
 ```
 
-`trustAnchors`, `targetSelector`, `configuredRevocationChecker` là các đối tượng phải được tạo từ **nguồn tin cậy và policy đã phê duyệt**; ở một số provider, có thể phải cấu hình target constraints hoặc dùng các constructor khác. Không coi snippet là cách duy nhất cho mọi JSSE triển khai. Nếu dùng `SSLEngine` và custom trust manager, vẫn cần hostname verification/endpoint identification theo giao thức.
+`trustAnchors`, `targetSelector`, and `configuredRevocationChecker` must be constructed from **trusted sources and approved policies**; on some providers, you may need specific target constraints or different constructors. Never treat this snippet as the sole recipe for every JSSE implementation. When using `SSLEngine` and a custom trust manager, protocol-level hostname verification/endpoint identification is still required.
 
-**Quan trọng:** các property như `ocsp.enable`, `com.sun.security.enableCRLDP` hoặc `-D...` không chứng minh điều gì cho TLS client/server cho đến khi bạn test end-to-end với certificate chưa thu hồi, đã thu hồi, responder timeout và certificate chain thiếu intermediate. Test bằng chính framework và JVM/runtime đưa lên production.
+**Important:** properties like `ocsp.enable`, `com.sun.security.enableCRLDP`, or `-D...` prove nothing for TLS clients/servers until tested end-to-end with unrevoked certificates, revoked certificates, responder timeouts, and chains missing intermediates. Test using the exact framework and JVM/runtime headed to production.
 
-## 15. Kiểm thử và vận hành revocation checking
+## 15. Testing and Operating Revocation Checking
 
-### Bộ test tối thiểu
+### Minimum Test Matrix
 
-| Test | Điều kiện | Kết quả được kỳ vọng khi hard-fail |
+| Test | Condition | Expected result under hard-fail |
 | --- | --- | --- |
-| Happy path CRL | Leaf hợp lệ, CRL signed/fresh, không có serial | PKIX validate thành công |
-| Revoked leaf | CA đưa leaf serial vào CRL hợp lệ | `REVOKED` và reject |
-| Missing CRL + no OCSP | Không có nguồn xác định trạng thái | Không được accept trong hard-fail |
-| Expired/stale CRL | `nextUpdate` đã qua hoặc freshness không đạt | Không coi dữ liệu cũ là bằng chứng GOOD |
-| Wrong issuer CRL | CRL không do issuer được ủy quyền ký | Reject, không dùng membership |
-| Forged CRL signature | Byte CRL bị sửa, chữ ký không hợp lệ | Reject hoặc fail validation theo provider |
-| OCSP `good` hợp lệ | Đúng CertID, signature/responder trust, timestamp | Vượt qua **revocation layer**, tiếp tục các PKIX/TLS checks |
-| OCSP `revoked` | Responder có thẩm quyền báo revoked | Reject dù có đường CRL fallback |
-| OCSP `unknown` | Không có status đáng tin | Không coi unknown là good |
-| OCSP network failure | Timeout/`tryLater` | Fallback nếu được phép và nguồn thay thế hợp lệ; ngược lại hard-fail |
-| Chứng chỉ intermediate bị revoke | Intermediate nằm trong chain | Reject nếu policy kiểm tra CA cert |
-| Kiểm tra chỉ leaf | `ONLY_END_ENTITY` | Xác định rõ rủi ro bỏ kiểm tra intermediate và test policy |
-| Sai hostname/SAN | PKIX path có thể hợp lệ | TLS identity verifier vẫn phải reject |
-| Thay JDK/provider | Provider khác, options/fetch/timeouts khác | Chạy lại integration tests |
+| Happy path CRL | Valid leaf, signed/fresh CRL, serial absent | PKIX validation succeeds |
+| Revoked leaf | CA includes leaf serial in valid CRL | `REVOKED` and reject |
+| Missing CRL + no OCSP | No source to determine status | Must not accept under hard-fail |
+| Expired/stale CRL | `nextUpdate` passed or freshness unmet | Never treat stale data as GOOD evidence |
+| Wrong issuer CRL | CRL not signed by authorized issuer | Reject, do not use membership |
+| Forged CRL signature | Tampered CRL bytes, invalid signature | Reject or fail validation per provider |
+| Valid OCSP `good` | Matching CertID, signature/responder trust, timestamp | Passes **revocation layer**, continues remaining PKIX/TLS checks |
+| OCSP `revoked` | Authorized responder reports revoked | Reject even if CRL fallback exists |
+| OCSP `unknown` | No reliable status | Never treat unknown as good |
+| OCSP network failure | Timeout/`tryLater` | Fall back if permitted and valid alternate source exists; otherwise hard-fail |
+| Revoked intermediate cert | Intermediate is in chain | Reject if policy checks CA certs |
+| Leaf-only checking | `ONLY_END_ENTITY` | Explicitly document risk of skipping intermediates and test policy |
+| Hostname/SAN mismatch | PKIX path may validate | TLS identity verifier must still reject |
+| JDK/provider change | Different provider, options/fetch/timeouts | Re-run integration tests |
 
-Các test CRL/OCSP cần dữ liệu và responder **của môi trường lab**. Đừng tạo/chỉnh sửa CRL public CA hoặc sử dụng mTLS endpoint production làm đích thử tấn công; mục đích là tái tạo hành vi bảo mật trong môi trường bạn quản lý.
+CRL/OCSP tests must use **lab-environment** data and responders. Never craft/alter public CA CRLs or target production mTLS endpoints as test targets; the goal is reproducing security behavior in an environment you control.
 
-### Telemetry hữu ích, không lộ dữ liệu quá mức
+### Useful Telemetry Without Over-Exposing Data
 
-- `algorithm=PKIX`, provider/JDK version, profile checker/options, loại nguồn (CRL/OCSP/cache/stapled), thời gian kiểm tra, timeout.
-- Reason enum khi fail, certificate index, CA/trust anchor identifier theo policy, status responder (không log URL nhạy cảm nếu có rủi ro).
-- Phân biệt **REVOKED / UNDETERMINED / OTHER_INVALID**. Ghi rõ số lần fallback và soft-fail được chấp nhận.
-- Đo p50/p95/p99 latency và tỷ lệ lỗi mỗi issuer/responder để phát hiện sự cố nguồn thu hồi.
-- Giới hạn log có chứa subject/SAN/serial và response bytes để tránh thu thập thông tin cá nhân/khóa/metadata quá mức.
+- `algorithm=PKIX`, provider/JDK version, checker/options profile, source type (CRL/OCSP/cache/stapled), check duration, timeouts.
+- Failure reason enum, certificate index, CA/trust anchor identifier per policy, responder status (avoid logging sensitive URLs if risky).
+- Separate **REVOKED / UNDETERMINED / OTHER_INVALID**. Record fallback counts and accepted soft-fails.
+- Track p50/p95/p99 latency and error rates per issuer/responder to detect revocation source outages.
+- Restrict logs containing subject/SAN/serial and response bytes to avoid excessive collection of personal data/keys/metadata.
 
-Để debug trên Oracle/OpenJDK, có thể bật **chỉ trong môi trường kiểm soát**:
+To debug on Oracle/OpenJDK, you can enable **only in controlled environments**:
 
 ```bash
 java -Djava.security.debug=certpath YourApplication
 ```
 
-Đây là cơ chế debug của implementation; log có thể nhiều và chứa thông tin certificate/path. Không bật trên hệ thống thật trong thời gian dài khi chưa kiểm tra tác động logging/performance và dữ liệu nhạy cảm.
+This is an implementation debugging mechanism; logs can be verbose and contain certificate/path details. Never leave it enabled long-term in production without reviewing logging/performance impact and sensitive data exposure.
 
-## 16. Lỗi thường gặp và cách sửa
+## 16. Common Mistakes and How to Fix Them
 
-| Lỗi | Vì sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| Chỉ kiểm tra `checkValidity()` rồi kết luận certificate trusted | Không xét chain, trust anchor, revocation, purpose | Dùng PKIX validation và verification tầng ứng dụng |
-| `getRevokedCertificate(serial)==null` ⇒ GOOD ngay | CRL có thể stale, sai issuer, thiếu phạm vi hoặc giả mạo | Validate CRL/path và rule của RFC 5280 |
-| Tạo trust anchor từ root CA do peer gửi | Attacker có thể tự phát hành CA giả | Trust anchor phải từ config/truststore đã phê duyệt |
-| Đưa root vào `CertPath` rồi lại cấu hình như trust anchor | Hiểu sai path trust boundary | CertPath leaf/intermediates, anchor truyền riêng |
-| Bật `setRevocationEnabled(false)` rồi quên checker | Vô hiệu hóa revocation theo đường mặc định | Đặt checker explicit hoặc giữ cơ chế mặc định theo policy |
-| Set options sau `params.addCertPathChecker(checker)` | Parameters clone checker | Set đầy đủ trước khi add |
-| Dùng `PREFER_CRLS` và tưởng không bao giờ hỏi OCSP | Vẫn có fallback mặc định | Dùng `NO_FALLBACK` nếu yêu cầu CRL-only |
-| Dùng `SOFT_FAIL` và coi REVOKED được bỏ qua | Sai contract Java | REVOKED vẫn reject; soft-fail cho lỗi không xác định có giới hạn |
-| Chỉ test CRL sạch, không test CRL revoked | Không chứng minh revocation thực sự hoạt động | Test cả CRL clean và revoked, xác minh reason |
-| Dùng CRL từ issuer khác | Không đại diện trạng thái của cert | Match issuer/AKI/CRL scope và kiểm tra signature |
-| Trộn OCSP response của serial/issuer khác | Status không áp dụng cho cert cần kiểm tra | Kiểm tra CertID, responder authority, freshness |
-| Ký số OCSP response đúng nhưng responder không được ủy quyền | Signature đúng không đủ trust | Kiểm tra delegation/EKU, issuer và policy |
-| Nhầm `unknown` thành `good` khi OCSP server down | Attacker có thể khai thác outage | Thực thi fail policy minh bạch, có telemetry |
-| Bật CDP fetch không giới hạn egress | Rủi ro SSRF, latency, data leakage | Network policy, proxy, timeout, allowlist khi phù hợp |
-| Coi `PKIXRevocationChecker` của manual validator đã bật cho toàn JSSE | Pipeline TLS có thể khác | Kiểm thử trust-manager/framework thực |
-| Tin `getSoftFailExceptions` trên checker ban đầu luôn là checker đã dùng | `PKIXParameters` clone checker | Instrumentation/provider-aware diagnostics |
-| Không kiểm tra intermediate revocation | CA trung gian có thể đã bị thu hồi | Tránh `ONLY_END_ENTITY` trừ khi có lý do |
-| Không cập nhật chứng cứ revocation của chữ ký lưu dài hạn | Trạng thái hôm nay khác thời điểm ký lịch sử | Thiết kế timestamp/archival validation theo tiêu chuẩn phù hợp |
-| Hard-fail nhưng không có cache/timeout | Sự cố CA gây outage lớn | Cache có hạn, monitoring, fallback hợp lệ, budget |
-| Test với CA/CRL thật không được phép | Gây rủi ro vận hành | Sử dụng fixture và responder riêng trong môi trường lab |
+| Calling only `checkValidity()` and concluding certificate is trusted | Ignores chain, trust anchor, revocation, purpose | Use PKIX validation and application-layer verification |
+| `getRevokedCertificate(serial)==null` ⇒ immediately GOOD | CRL may be stale, wrong issuer, out of scope, or forged | Validate CRL/path and RFC 5280 rules |
+| Creating a trust anchor from a peer-sent root CA | Attackers can self-issue rogue CAs | Trust anchors must come from approved config/truststore |
+| Adding root to `CertPath` while also configuring it as trust anchor | Misunderstands path trust boundary | `CertPath` holds leaf/intermediates; anchor is passed separately |
+| Calling `setRevocationEnabled(false)` and forgetting a checker | Disables default revocation checking | Attach an explicit checker or keep default mechanism per policy |
+| Setting options after `params.addCertPathChecker(checker)` | Parameters clone the checker | Configure everything before adding |
+| Using `PREFER_CRLS` and assuming OCSP is never queried | Default fallback still exists | Add `NO_FALLBACK` if CRL-only is required |
+| Using `SOFT_FAIL` and expecting REVOKED to be ignored | Violates Java contract | REVOKED still rejects; soft-fail covers bounded undetermined errors |
+| Testing only clean CRLs, never revoked CRLs | Does not prove revocation works | Test both clean and revoked CRLs, verifying reason |
+| Using a CRL from a different issuer | Does not reflect the cert's status | Match issuer/AKI/CRL scope and verify signature |
+| Mixing an OCSP response from another serial/issuer | Status does not apply to the checked cert | Verify CertID, responder authority, and freshness |
+| Valid OCSP response signature yet unauthorized responder | Valid signature alone is not enough trust | Verify delegation/EKU, issuer, and policy |
+| Treating `unknown` as `good` when OCSP server is down | Attackers can exploit outages | Enforce explicit failure policy with telemetry |
+| Enabling CDP fetch with unrestricted egress | SSRF, latency, data leakage risks | Network policy, proxy, timeouts, allowlists as appropriate |
+| Assuming manual validator's `PKIXRevocationChecker` covers all JSSE | TLS pipeline may differ | Test the real trust-manager/framework |
+| Trusting `getSoftFailExceptions` on the original checker is always the used instance | `PKIXParameters` clones the checker | Use instrumentation/provider-aware diagnostics |
+| Skipping intermediate revocation checks | Intermediate CAs can be revoked | Avoid `ONLY_END_ENTITY` unless justified |
+| Not preserving revocation evidence for long-term signatures | Today's status differs from historical signing time | Design timestamping/archival validation per appropriate standards |
+| Hard-fail without caching or timeouts | CA outage causes widespread downtime | Bounded cache, monitoring, valid fallback, budgets |
+| Testing unauthorizedly against real CAs/CRLs | Causes operational risk | Use dedicated fixtures and responders in a lab environment |
 
-## 17. Bài tập tự đánh giá
+## 17. Self-Assessment Exercises
 
-1. **Phân biệt trạng thái:** một cert còn hạn nhưng có serial trong CRL hợp lệ. Kết quả phải là gì? Nếu không thể tải CRL và OCSP cũng timeout thì khác `REVOKED` thế nào?
-2. **Đọc CRL:** chỉ ra issuer, `thisUpdate`, `nextUpdate`, revoked serial và lý do trên CRL lab. Vì sao đọc `revokedCertificates` mà không xác minh CRL issuer/signature/freshness là không đủ?
-3. **Hiểu OCSP:** tại sao `good` khác “TLS hostname và chain hoàn toàn hợp lệ”? Những điều kiện nào phải kiểm tra đối với delegated responder?
-4. **So sánh:** thiết kế CRL distribution cho ứng dụng có hàng triệu client offline; sau đó đề xuất khi nào OCSP/stapling giúp hơn.
-5. **Thực hành API:** chạy `RevocationCheckerOptionsDemo` và đổi `PREFER_CRLS` thành chỉ `NO_FALLBACK`. Cơ chế nào trở thành ưu tiên? Tại sao chỉ đặt OCSP URI không đồng nghĩa request đã được gửi?
-6. **Thực hành PKIX:** với `OfflineCrlValidationDemo`, giải thích vì sao `root` là trust anchor, `leaf` ở `CertPath` và `params.setRevocationEnabled(false)` không tắt checker explicit.
-7. **Revoked test:** tạo CRL có serial leaf, xác nhận `revokedListsLeaf=true` và `revokedPath=REVOKED`. Nếu sửa một byte CRL, outcome phải là accept hay reject?
-8. **Policy:** đặt `SOFT_FAIL` trên một endpoint mTLS high-assurance có yêu cầu thu hồi nghiêm ngặt. Trình bày rủi ro và đề xuất runbook khác nếu responder unavailable.
-9. **Intermediates:** nếu intermediate CA bị thu hồi nhưng leaf chưa bị liệt kê, tại sao `ONLY_END_ENTITY` có thể nguy hiểm?
-10. **SSRF:** certificate leaf có URL CDP trỏ vào địa chỉ mạng nội bộ của server. Thiết kế egress policy và timeout khi ứng dụng dùng CRLDP auto-fetch.
-11. **JSSE:** đã chạy demo manual nhưng HTTPS client vẫn chấp nhận cert đã thu hồi. Có thể thiếu bước nào? Cần kiểm thử tầng trust manager và hostname verification ra sao?
-12. **Archival:** một tài liệu được ký 5 năm trước, certificate ký hiện nay đã hết hạn. Vì sao xác minh chữ ký lịch sử cần có validation time/timestamp và revocation evidence lưu trữ theo chuẩn riêng?
-13. **Phân tích exception:** phân biệt `BasicReason.REVOKED`, `UNDETERMINED_REVOCATION_STATUS`, `INVALID_SIGNATURE` và `ALGORITHM_CONSTRAINED`. Trường hợp nào không thể biến thành thành công bằng retry OCSP?
-14. **Đánh giá vận hành:** xác định metric về tỷ lệ revoked, unknown, soft-fail, fallback và latency theo responder. Những metric nào sẽ kích hoạt rollback cấu hình?
+1. **Distinguishing states:** an unexpired cert has its serial in a valid CRL. What must the outcome be? If the CRL cannot be fetched and OCSP times out, how does that differ from `REVOKED`?
+2. **Reading CRLs:** identify issuer, `thisUpdate`, `nextUpdate`, revoked serial, and reason on a lab CRL. Why is reading `revokedCertificates` without verifying CRL issuer/signature/freshness insufficient?
+3. **Understanding OCSP:** why does `good` differ from “TLS hostname and chain are completely valid”? What conditions must be checked for a delegated responder?
+4. **Comparison:** design CRL distribution for an app with millions of offline clients; then propose when OCSP/stapling helps more.
+5. **API practice:** run `RevocationCheckerOptionsDemo` and change `PREFER_CRLS` to only `NO_FALLBACK`. Which mechanism becomes preferred? Why does merely setting an OCSP URI not mean a request was sent?
+6. **PKIX practice:** in `OfflineCrlValidationDemo`, explain why `root` is the trust anchor, `leaf` is in `CertPath`, and `params.setRevocationEnabled(false)` does not disable the explicit checker.
+7. **Revoked test:** generate a CRL containing the leaf serial, verify `revokedListsLeaf=true` and `revokedPath=REVOKED`. If one byte of the CRL is modified, should the outcome be accept or reject?
+8. **Policy:** enable `SOFT_FAIL` on a high-assurance mTLS endpoint with strict revocation requirements. Explain the risk and propose an alternate runbook if the responder is unavailable.
+9. **Intermediates:** if an intermediate CA is revoked while the leaf is not yet listed, why can `ONLY_END_ENTITY` be dangerous?
+10. **SSRF:** a leaf certificate has a CDP URL pointing to a server's internal network address. Design an egress policy and timeout when an app uses CRLDP auto-fetch.
+11. **JSSE:** you ran the manual demo, yet the HTTPS client still accepts a revoked cert. What step might be missing? How should you test the trust manager and hostname verification layers?
+12. **Archival:** a document was signed 5 years ago, and the signing certificate is now expired. Why does historical signature verification require archived validation time/timestamps and revocation evidence per dedicated standards?
+13. **Exception analysis:** distinguish `BasicReason.REVOKED`, `UNDETERMINED_REVOCATION_STATUS`, `INVALID_SIGNATURE`, and `ALGORITHM_CONSTRAINED`. Which cases can never turn into success by retrying OCSP?
+14. **Operational review:** define metrics for revoked, unknown, soft-fail, fallback, and per-responder latency rates. Which metrics would trigger a configuration rollback?
 
-**Tiêu chí hoàn thành:** bạn giải thích đúng **revoked khác unknown**, biết CRL/OCSP phải được kiểm tra bằng nguồn tin cậy và độ tươi, tạo và cấu hình `PKIXRevocationChecker` theo options chính xác, xử lý path với trust anchor ngoài CertPath, kiểm thử được accept/revoked trên fixture, và hiểu rằng cần tích hợp/kiểm chứng riêng trên TLS stack production.
+**Completion criteria:** you accurately explain **revoked vs unknown**, know CRL/OCSP must be checked using trusted sources and freshness, construct and configure `PKIXRevocationChecker` with the right options, handle paths with the trust anchor outside `CertPath`, test accept/revoked against fixtures, and understand that production TLS stacks require separate integration and verification.
 
-## Tài liệu chính thức
+## Official References
 
-- [Java SE 17 — `PKIXRevocationChecker` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXRevocationChecker.html): lựa chọn OCSP/CRL, fallback, setOcspResponder và các checker methods.
+- [Java SE 17 — `PKIXRevocationChecker` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXRevocationChecker.html): OCSP/CRL preference, fallback, `setOcspResponder`, and checker methods.
 - [Java SE 17 — `PKIXRevocationChecker.Option`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXRevocationChecker.Option.html): `PREFER_CRLS`, `NO_FALLBACK`, `ONLY_END_ENTITY`, `SOFT_FAIL`.
-- [Java SE 17 — `PKIXParameters`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors, CertStore, revocation enabled và thêm custom checker.
-- [Java SE 17 — `CertPathValidatorException.BasicReason`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidatorException.BasicReason.html): `REVOKED`, `UNDETERMINED_REVOCATION_STATUS` và những lý do khác.
-- [Oracle Java 17 — PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-pki-programmers-guide.html): PKIX, CertStore, CRL Distribution Points và OCSP properties của SUN provider.
+- [Java SE 17 — `PKIXParameters`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors, CertStore, revocation enabled, and adding custom checkers.
+- [Java SE 17 — `CertPathValidatorException.BasicReason`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidatorException.BasicReason.html): `REVOKED`, `UNDETERMINED_REVOCATION_STATUS`, and other reasons.
+- [Oracle Java 17 — PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-pki-programmers-guide.html): PKIX, CertStore, CRL Distribution Points, and SUN provider OCSP properties.
 - [Java SE 17 — `X509CRL`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509CRL.html), [`CertificateFactory`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateFactory.html), [`CertStore`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertStore.html).
-- [RFC 5280 — X.509 Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280), đặc biệt thuật toán path/CRL processing.
-- [RFC 6960 — Online Certificate Status Protocol](https://www.rfc-editor.org/rfc/rfc6960), thay thế RFC 2560 và mô tả OCSP status/responses.
-- [Java SE 17 — `keytool`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): phát hành certificate lab và lệnh đọc CRL.
+- [RFC 5280 — X.509 Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280), especially path/CRL processing algorithms.
+- [RFC 6960 — Online Certificate Status Protocol](https://www.rfc-editor.org/rfc/rfc6960), superseding RFC 2560 and describing OCSP statuses/responses.
+- [Java SE 17 — `keytool`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): issuing lab certificates and CRL inspection commands.

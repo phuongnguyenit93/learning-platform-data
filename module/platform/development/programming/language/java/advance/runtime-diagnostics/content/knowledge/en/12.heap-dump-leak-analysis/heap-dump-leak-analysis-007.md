@@ -1,40 +1,40 @@
-# 12.7 GC root, chuỗi tham chiếu và cách đối tượng bị giữ lại
+# 12.7 GC Roots, Reference Chains, and How Objects Are Retained
 
-## Mục tiêu của bài
+## Lesson Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích **GC root** là gì và vì sao đường đi từ root tới một object khiến object đó chưa được thu hồi.
-2. Đọc một **chuỗi tham chiếu (reference chain)** từ class/static field, thread, biến cục bộ, JNI handle hoặc một object trung gian đến object nghi bị giữ lại.
-3. Phân biệt **reachable**, **strongly reachable**, các kiểu tham chiếu yếu và **eligible for GC**; hiểu vì sao object không còn hữu ích cho nghiệp vụ vẫn có thể đang sống.
-4. Dùng **Paths to GC Roots**, **Dominator Tree** và **retained size** trong Eclipse Memory Analyzer (MAT) để tìm đối tượng giữ bộ nhớ, tránh kết luận sai từ một đường đi ngắn nhất.
-5. Nhận diện các nguyên nhân phổ biến như cache không giới hạn, listener chưa hủy đăng ký, ThreadLocal không dọn, hàng đợi và class loader còn bị giữ.
+1. Explain what a **GC root** is and why a path from a root to an object prevents it from being reclaimed.
+2. Read a **reference chain** from a class/static field, thread, local variable, JNI handle, or intermediate object to a suspect retained object.
+3. Distinguish **reachable**, **strongly reachable**, weak reference types, and **eligible for GC**; understand why an object no longer useful to business logic can still remain alive.
+4. Use **Paths to GC Roots**, **Dominator Tree**, and **retained size** in Eclipse Memory Analyzer (MAT) to locate memory-retaining objects without jumping to false conclusions from a single shortest path.
+5. Recognize common culprits such as unbounded caches, unregistered listeners, uncleaned `ThreadLocal` values, backlogged queues, and pinned class loaders.
 
-Trọng tâm: **Java GC tự thu hồi object không còn reachable theo các quy tắc reachability; GC không thể tự biết một object tuy reachable nhưng đã hết giá trị nghiệp vụ.** Vì vậy memory leak trong Java thường là **logical leak**: vẫn có đường tham chiếu giữ object sống ngoài vòng đời mong muốn.
+Core takeaway: **Java GC automatically reclaims objects that are no longer reachable under reachability rules; GC cannot know on its own that a reachable object has lost its business value.** Thus, Java memory leaks are usually **logical leaks**: reference paths continue keeping objects alive beyond their intended lifecycle.
 
-## 1. GC root là gì?
+## 1. What Is a GC Root?
 
-Trong quá trình xác định object sống, bộ thu gom rác của JVM bắt đầu từ tập **GC roots**: các điểm xuất phát được runtime coi là đang sử dụng hoặc bắt buộc duy trì. Từ đó GC đi theo các quan hệ tham chiếu phù hợp để tìm các object reachable. Một object có đường tham chiếu **mạnh** từ root thường được giữ lại. Nếu không còn đường giữ sống tương ứng thì object đủ điều kiện để được thu hồi theo cơ chế GC.
+When identifying live objects, the JVM's garbage collector starts from a set of **GC roots**: entry points considered actively in use or mandatory to maintain by the runtime. From there, GC follows eligible reference edges to find reachable objects. An object with a **strong** reference path from a root is normally kept alive. If no qualifying retention path remains, the object becomes eligible for collection under GC mechanics.
 
-Các nguồn root thường gặp trong Java HotSpot và các công cụ heap-analysis:
+Common root categories in HotSpot Java and heap-analysis tools:
 
-| Nhóm root | Ngữ cảnh điển hình | Dấu vết có thể gặp khi phân tích |
+| Root group | Typical context | Traces commonly seen during analysis |
 | --- | --- | --- |
-| Thread/stack | Reference đang sống trong local variable, parameter hoặc frame đang chạy; thông tin về thread đang hoạt động | Thread, Java local, stack frame |
-| Class và static state | Lớp đang được giữ sống, các static field trỏ tới object; tính reachability chịu ảnh hưởng bởi vòng đời class/class loader | System Class, class object, static field |
-| JNI | Native code đang giữ **JNI global reference** hoặc một local reference còn hiệu lực | JNI Global, JNI Local |
-| Runtime-internal | Một số đối tượng đặc biệt JVM cần giữ trong lúc thực thi, ví dụ các tham chiếu gắn với thread hoặc cơ chế runtime | Root type phụ thuộc JVM, phiên bản và định dạng dump |
+| Thread/stack | Live references in local variables, parameters, or active frames; info about active threads | Thread, Java local, stack frame |
+| Class and static state | Live classes and static fields pointing to objects; reachability tied to class/class loader lifecycle | System Class, class object, static field |
+| JNI | Native code holding a **JNI global reference** or an active local reference | JNI Global, JNI Local |
+| Runtime-internal | Special objects the JVM must retain during execution, such as thread-associated or runtime structures | Root type depends on JVM, version, and dump format |
 
-**Không có danh sách nhãn GC root cố định cho mọi JVM, mọi bộ gom rác và mọi heap dump.** Tên root trong MAT là cách diễn giải metadata của bản dump. Đừng coi mọi chi tiết trong một công cụ là quy tắc áp dụng cho mọi VM.
+**There is no fixed, universal list of GC root labels across every JVM, collector, and heap dump.** Root labels in MAT reflect how it interprets dump metadata. Do not treat every tool-specific label as a universal rule across all VMs.
 
-Một static field **không tự nó là câu trả lời đầy đủ** cho vòng đời object: hãy kiểm tra class có còn được giữ sống, class loader có thể unload không, và có root nào giữ class loader đó không. Với ứng dụng chạy lâu, static cache thường sống trong suốt đời class loader; trong ứng dụng plugin/redeploy, một class loader cũ cũng có thể bị giữ lại bởi thread, ThreadLocal hoặc callback.
+A static field **is not by itself the complete answer** to object lifetime: check whether the class stays alive, whether its class loader can unload, and whether any root keeps that class loader pinned. In long-running apps, static caches typically live as long as their class loader; in plugin/redeploy architectures, an old class loader itself can be kept alive by a thread, `ThreadLocal`, or callback.
 
-## 2. Chuỗi tham chiếu: vì sao object vẫn reachable?
+## 2. Reference Chains: Why Does an Object Stay Reachable?
 
-Hãy hình dung các đối tượng Java là **đỉnh** trong đồ thị và mỗi trường tham chiếu/mục trong array là **cạnh có hướng**.
+Picture Java objects as **vertices** in a directed graph and each reference field or array slot as a **directed edge**.
 
 ~~~text
-GC ROOT (class còn được giữ sống)
+GC ROOT (live class)
     |
     | static CACHE
     v
@@ -44,36 +44,36 @@ CacheRegistry
     v
 HashMap
     |
-    | table / entry / value  (đường thực tế tùy JDK)
+    | table / entry / value  (actual path depends on JDK)
     v
 CachedResponse
     |
     | payload
     v
-byte[] (dữ liệu lớn)
+byte[] (large data)
 ~~~
 
-Đây là **đồ thị minh họa ý nghĩa**, không phải tên trường nội bộ bắt buộc của mọi bản JDK. Mỗi cạnh nói rằng object phía trước đang giữ tham chiếu đến object phía sau. Chỉ cần một đường giữ sống thích hợp từ GC root tới mảng byte, GC chưa thể thu hồi mảng như rác.
+This is a **conceptual illustration**, not mandatory internal field names across every JDK release. Each edge states that the preceding object holds a reference to the next. As long as one valid retention path exists from a GC root to the byte array, GC cannot reclaim the array as garbage.
 
-Đọc một đường từ dưới lên:
+Reading a path from bottom to top:
 
-- **Đối tượng đích**: mảng byte đang chiếm heap.
-- **Người giữ trực tiếp**: CachedResponse.payload.
-- **Vật chứa**: entry/value trong cache Map.
-- **Đầu mối sống lâu**: Registry được tham chiếu qua static field.
-- **GC root**: trạng thái class/class loader hoặc một runtime root tương ứng.
+- **Target object**: the byte array occupying heap space.
+- **Direct holder**: `CachedResponse.payload`.
+- **Container**: entry/value inside the cache `Map`.
+- **Long-lived anchor**: Registry referenced via a static field.
+- **GC root**: class/class loader state or a corresponding runtime root.
 
-Đường đi trả lời câu hỏi **“ai đang khiến object này còn reachable tại thời điểm chụp?”** Nó chưa trả lời được **“đây có phải memory leak không?”**. Một cache có giới hạn và chính sách hết hạn hợp lệ vẫn có thể là đường giữ sống hoàn toàn đúng thiết kế.
+A path answers **"what is keeping this object reachable at capture time?"** It does not yet answer **"is this a memory leak?"** A bounded cache with valid expiration policies can still show an entirely intentional retention path.
 
-### Có tham chiếu không đồng nghĩa với giữ sống mạnh
+### Having a reference does not always mean strong retention
 
-Không phải mọi cạnh có cùng ý nghĩa. Java cung cấp **strong, soft, weak, phantom references**. Khi nói “có đường từ GC root” trong điều tra leak thông thường, điều cần tìm nhất là **đường tham chiếu mạnh**, hoặc ít nhất hiểu rõ mức reachability theo loại tham chiếu. Một đường chỉ đi qua referent của WeakReference không có tác dụng ngăn GC thu hồi referent giống như một strong reference.
+Not all edges carry the same semantics. Java provides **strong, soft, weak, and phantom references**. When speaking of "a path from a GC root" in standard leak investigations, what matters most is a **strong reference path**, or at least understanding the reachability level per reference type. A path passing solely through the referent of a `WeakReference` does not block GC from reclaiming that referent the way a strong reference does.
 
-## 3. Các mức reachability và thời điểm object có thể được thu hồi
+## 3. Reachability Levels and When an Object Can Be Reclaimed
 
 ### Strong reference
 
-Phép gán thông thường, phần tử trong collection hoặc trường object thường tạo strong reference:
+Normal assignments, collection elements, or object fields typically create strong references:
 
 ~~~java
 byte[] payload = new byte[1024];
@@ -82,45 +82,45 @@ list.add(payload);
 payload = null;
 ~~~
 
-*Đây là đoạn minh họa đặt trong một method có import java.util.List và java.util.ArrayList, không phải chương trình độc lập.* Sau khi biến payload được gán null, **list vẫn giữ strong reference** đến mảng. Vì vậy việc xóa **một biến** không có nghĩa object đã không còn reachable.
+*This is an illustrative snippet inside a method with `java.util.List` and `java.util.ArrayList` imported, not a standalone program.* After `payload` is set to `null`, **`list` still holds a strong reference** to the array. Clearing **one variable** does not mean the object has become unreachable.
 
-Cũng cần chú ý: **biến local không giữ object sống trong suốt phạm vi cú pháp một cách máy móc**. JVM/JIT có thể xác định lần sử dụng cuối và tối ưu liveness; compiler có thể giữ hoặc loại một tham chiếu khỏi vị trí stack tại điểm GC. Khi dựa vào thread-stack roots từ heap dump, hãy xem đó là trạng thái thực tế VM ghi nhận lúc chụp, không suy ra chính xác chỉ bằng dấu ngoặc nhọn trong source.
+Also note: **local variables do not mechanically keep objects alive for their entire syntactic scope**. The JVM/JIT can determine last use and optimize liveness; the compiler may retain or clear a reference from a stack slot at a GC safepoint. When relying on thread-stack roots from a heap dump, treat them as the actual runtime state recorded at capture time rather than deducing liveness strictly from curly braces in source code.
 
 ### SoftReference
 
-Một object chỉ còn được tham chiếu qua **SoftReference** có thể được VM giữ tạm và thu hồi tùy chính sách/áp lực bộ nhớ. Soft reference có thể giúp tạo cache nhạy cảm với bộ nhớ, nhưng **không thay thế chính sách giới hạn dung lượng, TTL, eviction**. Thời điểm referent bị clear không mang tính tất định từ phía ứng dụng.
+An object reachable only via a **SoftReference** may be kept temporarily by the VM and reclaimed based on memory policy/pressure. Soft references can aid memory-sensitive caches, yet **they do not replace capacity bounds, TTL, or eviction policies**. When a referent gets cleared is non-deterministic from the application's perspective.
 
 ### WeakReference
 
-Khi object chỉ còn weakly reachable, GC có thể clear WeakReference và thu hồi referent; bản thân WeakReference có thể vẫn đang được giữ sống như một object độc lập. **WeakReference không biến một strong reference ở nơi khác thành weak**.
+When an object is only weakly reachable, GC can clear the `WeakReference` and reclaim its referent; the `WeakReference` instance itself may still remain alive as an independent object. **A `WeakReference` does not weaken a strong reference held elsewhere.**
 
 ~~~java
 WeakReference<Object> weak = new WeakReference<>(new Object());
-// Sau một lần GC phù hợp, weak.get() có thể là null.
-// Không được dùng System.gc() rồi mặc định chắc chắn weak.get() == null.
+// After an appropriate GC, weak.get() may become null.
+// Do not call System.gc() and assume weak.get() == null is guaranteed.
 ~~~
 
-*Đây là đoạn minh họa cần import java.lang.ref.WeakReference, không có bảo đảm về thời điểm GC.*
+*This illustrative snippet requires `java.lang.ref.WeakReference` and carries no guarantee on GC timing.*
 
 ### PhantomReference
 
-**PhantomReference** hỗ trợ cơ chế thông báo/hậu xử lý thông qua ReferenceQueue; phương thức get() luôn trả về null. Nó không được dùng như strong reference để đọc lại referent, và không bảo đảm thu hồi ngay. Với tài nguyên cần đóng đúng hạn, ưu tiên **try-with-resources/close** thay vì trông chờ GC.
+**PhantomReference** supports post-mortem notification/cleanup via a `ReferenceQueue`; its `get()` method always returns `null`. It cannot be used like a strong reference to retrieve the referent, nor does it guarantee immediate reclamation. For resources that must close promptly, prefer **`try-with-resources`/`close()`** instead of waiting for GC.
 
-### Bảng chẩn đoán
+### Diagnostic table
 
-| Tình trạng từ góc nhìn phân tích | Kết luận đúng |
+| State from an analysis perspective | Correct conclusion |
 | --- | --- |
-| Có ít nhất một đường **strong** từ root tới object | Object vẫn strongly reachable; GC chưa thể xem như rác |
-| Chỉ còn đường qua WeakReference referent | Có thể trở thành weakly reachable và được GC xử lý; cạnh weak không giữ sống như strong |
-| Chỉ còn tham chiếu soft | VM có thể giữ tạm hoặc clear tùy điều kiện; không được tự gán thời điểm thu hồi |
-| Không còn đường reachability có ý nghĩa | Object có thể đủ điều kiện thu hồi, nhưng không có bảo đảm nó đã được reclaim ngay lập tức |
-| Có nhiều đường strong độc lập | Bỏ một tham chiếu thường **chưa đủ** để thu hồi object |
+| At least one **strong** path from root to object | Object remains strongly reachable; GC cannot treat it as garbage |
+| Only paths passing through a `WeakReference` referent | Can become weakly reachable and processed by GC; weak edges do not retain like strong edges |
+| Only soft references remain | VM may keep temporarily or clear based on conditions; do not assume fixed collection timing |
+| No meaningful reachability path remains | Object may be eligible for reclamation, with no guarantee it has already been freed immediately |
+| Multiple independent strong paths exist | Dropping one reference is usually **not enough** to free the object |
 
-Tùy loại và thứ tự xử lý reference, **“không có strong path”** chưa phải đồng nghĩa với **“đã được giải phóng”**. Trong heap dump lấy với chế độ bao gồm cả unreachable object, bạn còn có thể thấy object đáng lẽ sẽ bị GC dọn ở lần xử lý thích hợp.
+Depending on reference types and processing order, **"no strong path"** is not always synonymous with **"already freed."** In a heap dump captured with unreachable objects included, you may still see objects awaiting cleanup on a later GC pass.
 
-## 4. Một object có thể bị nhiều đường giữ cùng lúc
+## 4. An Object Can Be Held by Multiple Paths Simultaneously
 
-Giả sử một Response được giữ bởi cả cache lẫn một tác vụ nền:
+Suppose a `Response` is held by both a cache and a background task:
 
 ~~~text
         GC Root: class                   GC Root: worker thread
@@ -137,9 +137,9 @@ Giả sử một Response được giữ bởi cả cache lẫn một tác vụ 
                                 byte[]
 ~~~
 
-Nếu chỉ **CACHE.remove(key)** mà worker vẫn giữ Response, byte[] vẫn reachable. Ngược lại, tác vụ kết thúc nhưng cache chưa evict thì object vẫn sống. Kết luận “đã sửa leak” yêu cầu kiểm tra **mọi đường giữ quan trọng** và vòng đời nghiệp vụ.
+If you only run **`CACHE.remove(key)`** while the worker still holds `Response`, the `byte[]` remains reachable. Conversely, if the task finishes but the cache never evicts, the object stays alive. Concluding "the leak is fixed" requires checking **all significant retention paths** and the business lifecycle.
 
-### Vòng tham chiếu không tự tạo leak
+### Reference cycles do not automatically cause leaks
 
 ~~~text
  A -> B
@@ -147,17 +147,17 @@ Nếu chỉ **CACHE.remove(key)** mà worker vẫn giữ Response, byte[] vẫn 
  |____|
 ~~~
 
-Nếu **không có GC root nào đi tới A hoặc B**, chu trình này vẫn có thể được tracing GC thu hồi. Garbage collector hiện đại không chỉ đếm số reference như một bộ đếm đơn giản. Vì vậy “có cycle” **không đủ** chứng minh leak; điều quyết định là **tính reachable từ roots** theo mô hình GC.
+If **no GC root reaches A or B**, this cycle can still be reclaimed by tracing GC. Modern garbage collectors do not rely solely on naive reference counting. Thus "there is a cycle" is **insufficient** to prove a leak; what matters is **reachability from roots** under the GC model.
 
-### Reachable khác với còn cần thiết
+### Reachable is different from still needed
 
-Ví dụ một người dùng đã đăng xuất, nhưng HttpSession cũ vẫn bị giữ trong Map không có expiration; object vẫn strongly reachable dù nghiệp vụ không cần. Vấn đề nằm ở **chính sách ownership/lifecycle**, không phải GC “quên” thu hồi.
+For instance, a user logs out, yet their old `HttpSession` remains inside a `Map` without expiration; the object stays strongly reachable even though business logic no longer needs it. The bug lies in **ownership/lifecycle policy**, not GC "forgetting" to collect.
 
-## 5. Paths to GC Roots và Dominator Tree là hai loại câu hỏi khác nhau
+## 5. Paths to GC Roots and Dominator Tree Answer Different Questions
 
-### Paths to GC Roots: ai đang giữ object?
+### Paths to GC Roots: who is keeping the object alive?
 
-Trong **Eclipse Memory Analyzer (MAT)**, chọn object nghi vấn rồi chạy **Path to GC Roots** hoặc **Path to GC Roots → exclude weak/soft references** tùy phiên bản giao diện. Công cụ đi **ngược** từ object lên các object chứa reference, cuối cùng tới root. Một đường cụ thể có thể giống:
+In **Eclipse Memory Analyzer (MAT)**, select a suspect object and run **Path to GC Roots** or **Path to GC Roots → exclude weak/soft references** depending on the UI version. The tool walks **backward** from the object up through referencing objects until reaching a root. A concrete path might look like:
 
 ~~~text
 byte[] payload
@@ -165,50 +165,50 @@ byte[] payload
  <- Map entry.value
  <- CacheRegistry.responses
  <- GcRootDemo.REGISTRY (static)
- <- class / root liên quan
+ <- associated class / root
 ~~~
 
-Tên các bước và số tầng thực tế có thể khác theo JVM, JDK, kiểu collection và đường đi được chọn.
+Actual step names and depth vary by JVM, JDK, collection implementation, and chosen path.
 
-- **Shortest path** là đường ngắn nhất theo số cạnh qua đồ thị đang phân tích; không có nghĩa đó là đường duy nhất hay nguyên nhân đáng sửa nhất.
-- **All paths** có thể rất nhiều và tốn tài nguyên. Nên lọc/giới hạn khi cần; nếu chỉ mở một đường, đừng kết luận các đường khác không tồn tại.
-- **Exclude weak/soft/phantom references** (tùy lựa chọn của MAT) giúp tập trung vào những quan hệ thường giữ sống mạnh. Cần hiểu cấu hình truy vấn, tránh diễn giải cạnh weak như vật giữ sống không thể GC.
-- Cần đọc **tên trường** trên từng cạnh. Một đường tới root qua List hoặc Map có thể hợp lệ hoặc bất thường tùy ai sở hữu dữ liệu và khi nào cần xóa.
+- **Shortest path** is the path with the fewest edges in the analyzed graph; it does not mean it is the only path or the primary root cause to fix.
+- **All paths** can be vast and expensive to compute. Filter or limit when needed; if you inspect only one path, never assume other paths do not exist.
+- **Exclude weak/soft/phantom references** (depending on MAT query options) focuses on typical strong retention relationships. Understand query settings so you never misread a weak edge as preventing GC.
+- Inspect the **field names** along each edge. A path to a root through a `List` or `Map` may be normal or buggy depending on who owns the data and when it ought to be removed.
 
-### Dominator Tree: object nào kiểm soát retained memory?
+### Dominator Tree: which object controls retained memory?
 
-MAT dùng một **đồ thị dominator** được suy ra từ đồ thị tham chiếu. Object **X dominates Y** nếu **mọi đường** từ (siêu)root của đồ thị đến Y đều đi qua X. Nếu bỏ X khỏi đồ thị giữ sống, Y không còn reachable theo mô hình đó.
+MAT builds a **dominator tree** derived from the reference graph. Object **X dominates Y** if **every path** from the graph's (super-)root to Y passes through X. Removing X from the retention graph makes Y unreachable under that model.
 
-**Retained set** của X gồm các object X dominates; **retained size** là tổng shallow size của tập này (theo cách công cụ tính). Đây là chỉ số giúp tìm đầu mối giữ nhiều dữ liệu nhất.
+X's **retained set** comprises all objects X dominates; **retained size** is the sum of their shallow sizes (as computed by the tool). This metric helps pinpoint anchors retaining the largest volumes of data.
 
-Một tình huống minh họa:
+An illustrative case:
 
 ~~~text
 Root -> CacheHolder -> Object A -> byte[]  (20 MB)
                   \-> Object B -> byte[]  (30 MB)
 ~~~
 
-Nếu **mọi đường** tới hai mảng đều đi qua CacheHolder, retained size của CacheHolder có thể gần 50 MB cộng overhead các object khác, dù **shallow size của CacheHolder rất nhỏ**.
+If **every path** to both arrays passes through `CacheHolder`, `CacheHolder`'s retained size can approach 50 MB plus object overhead, even if **`CacheHolder`'s shallow size is tiny**.
 
-Nếu một mảng còn đường khác từ root qua queue, CacheHolder có thể **không dominate mảng đó**, nên retained size của CacheHolder giảm, mặc dù cache **vẫn trực tiếp tham chiếu tới mảng**.
+If one array also has another root path through a queue, `CacheHolder` **no longer dominates that array**, so `CacheHolder`'s retained size drops—even though the cache **still directly references that array**.
 
-**Cạnh trong dominator tree không nhất thiết là cạnh reference thật trong Java.** Muốn biết field/collection nào tạo tham chiếu, quay lại **Paths to GC Roots** hoặc xem các incoming/outgoing references. Không nên diễn giải nhầm cạnh “immediate dominator” thành một field tồn tại trong source.
+**Edges in the dominator tree are not necessarily real Java reference fields.** To see which fields or collections form the references, return to **Paths to GC Roots** or inspect incoming/outgoing references. Do not mistake an "immediate dominator" edge for a literal field in source code.
 
-### So sánh hai thao tác
+### Comparing the two operations
 
-| Thao tác | Trả lời | Điểm dễ hiểu sai |
+| Operation | Answers | Common misconception |
 | --- | --- | --- |
-| Paths to GC Roots | Object còn sống qua đường root → ... → object nào? | Một đường không đại diện tất cả đường |
-| Merge Shortest Paths to GC Roots | Nhiều object nghi vấn cùng đi qua root/owner nào? | Đường ngắn nhất có thể bỏ sót đường khác |
-| Dominator Tree | Object nào giữ độc quyền các tập object lớn? | Cạnh dominator không nhất thiết là reference trực tiếp |
-| Histogram | Class nào có nhiều instance/shallow bytes? | Không chỉ ra owner/root và không đo retained size |
-| Leak Suspects | Nhóm object đáng xem trước theo heuristic | Là giả thuyết, cần xác minh vòng đời nghiệp vụ |
+| Paths to GC Roots | Through which root → ... → object chain is the object kept alive? | One path does not represent all paths |
+| Merge Shortest Paths to GC Roots | Which common root/owner do many suspect objects share? | Shortest path may overlook other paths |
+| Dominator Tree | Which object exclusively retains large object subgraphs? | Dominator edges are not necessarily direct references |
+| Histogram | Which classes have high instance counts / shallow bytes? | Does not reveal owners/roots or measure retained size |
+| Leak Suspects | Object groups worth inspecting first by heuristics | A hypothesis requiring business-lifecycle verification |
 
-## 6. Ví dụ chạy được: static listener registry giữ object sau khi biến local bị bỏ
+## 6. Runnable Example: Static Listener Registry Retaining Objects After Local Reference Is Cleared
 
-Chương trình bên dưới giữ một listener trong **static List**. Listener sở hữu một mảng byte 1 MiB. Biến local **listener** được gán null, nhưng object chưa thể thu hồi vì registry vẫn chứa nó. Một **WeakReference** được dùng để quan sát tính reachable ở thời điểm có strong reference, không làm tăng khả năng giữ sống của object.
+The program below stores a listener in a **static `List`**. The listener owns a 1 MiB byte array. The local variable **`listener`** is set to `null`, yet the object cannot be collected because the registry still holds it. A **`WeakReference`** observes reachability while a strong reference exists, without increasing retention.
 
-Lưu thành file **GcRootDemo.java**:
+Save as **GcRootDemo.java**:
 
 ~~~java
 import java.lang.ref.WeakReference;
@@ -238,7 +238,7 @@ public final class GcRootDemo {
         System.out.println("Registry size: " + REGISTRY.size());
         System.out.println("Weak referent present: " + (observation.get() != null));
 
-        // Giữ tiến trình chạy để có thời gian chụp heap.
+        // Keep the process running long enough to capture a heap dump.
         Thread.sleep(180_000L);
 
         REGISTRY.clear();
@@ -247,78 +247,78 @@ public final class GcRootDemo {
 }
 ~~~
 
-Lệnh chạy với JDK 17+:
+Run with JDK 17+:
 
 ~~~bash
 javac GcRootDemo.java
 java -Xmx128m GcRootDemo
 ~~~
 
-Đầu ra được bảo đảm trước khi ngủ:
+Guaranteed output before sleeping:
 
 ~~~text
 Registry size: 1
 Weak referent present: true
 ~~~
 
-Sau khoảng ba phút (nếu không dừng tiến trình), in tiếp:
+After about three minutes (if left running), it continues with:
 
 ~~~text
 Registry after clear: 0
 ~~~
 
-Tại thời điểm in dòng thứ hai, **REGISTRY.get(0)** vẫn là strong reference, vì thế WeakReference.get() chắc chắn không null. Đừng diễn giải đoạn code này như lời hứa rằng WeakReference.get() **sẽ** bằng null ngay sau REGISTRY.clear(); GC không chạy đúng một thời điểm dự đoán được, và các local/JIT roots khác có thể còn tồn tại.
+When the second line prints, **`REGISTRY.get(0)`** is still a strong reference, so `WeakReference.get()` is guaranteed non-null. Do not interpret this snippet as promising `WeakReference.get()` **will** immediately become `null` right after `REGISTRY.clear()`; GC does not run on a fixed schedule, and other local/JIT roots may remain.
 
-### Chụp heap và tìm đường root
+### Capture the heap and trace the root path
 
-Trong lúc chương trình đang ngủ, mở terminal thứ hai:
+While the program is sleeping, open a second terminal:
 
 ~~~bash
 jcmd -l
 jcmd <PID> GC.heap_dump heap-root-demo.hprof
 ~~~
 
-Thay **PID** bằng process ID từ lệnh đầu tiên; không gõ dấu ngoặc nhọn ví dụ. Với HotSpot, lệnh **GC.heap_dump** thông thường yêu cầu Full GC trước khi tạo file, trừ khi chọn **-all**. Đây là thao tác có chi phí cao, nên ví dụ chỉ nên chạy trên JVM thử nghiệm.
+Replace **PID** with the process ID from the first command; omit the angle brackets. On HotSpot, standard **GC.heap_dump** requests a Full GC before creating the file unless **-all** is used. This is an expensive operation, so run the example only on a test JVM.
 
-Mở **heap-root-demo.hprof** bằng MAT:
+Open **heap-root-demo.hprof** in MAT:
 
-1. Mở **Histogram** rồi lọc class **GcRootDemo$Listener** hoặc mảng byte liên quan.
-2. Chọn instance Listener, mở **Path to GC Roots**, ưu tiên tùy chọn loại weak/soft references khi điều tra giữ sống mạnh.
-3. Tìm một chuỗi tham chiếu đại ý: class **GcRootDemo** → static **REGISTRY** → ArrayList backing array → Listener → payload byte[]. Tên node thực tế có thể khác.
-4. Mở **Dominator Tree** và xem retained size của listener/registry hoặc chủ sở hữu liên quan. Kiểm tra có các đường tới mảng qua owner khác không.
-5. Đối chiếu với thiết kế: listener đáng lẽ phải đăng ký lâu dài hay phải **unregister** khi không dùng nữa?
+1. Open **Histogram** and filter for **GcRootDemo$Listener** or the associated byte array.
+2. Select the `Listener` instance and open **Path to GC Roots**, preferring the option to exclude weak/soft references when investigating strong retention.
+3. Locate a reference chain along the lines of: class **GcRootDemo** → static **REGISTRY** → `ArrayList` backing array → `Listener` → `payload` `byte[]`. Exact node names may differ.
+4. Open **Dominator Tree** and check the retained size of the listener/registry or related owner. Check whether paths to the array exist via any other owner.
+5. Compare with design intent: should the listener stay registered long-term, or should it **unregister** when no longer needed?
 
-**Bằng chứng có thể rút ra:** gán biến local bằng null **không loại bỏ** strong reference đang nằm trong collection. Khi ứng dụng xóa registry và không còn đường giữ mạnh nào khác, object trở thành ứng viên thu hồi; việc thu hồi thực tế phụ thuộc GC.
+**Takeaway evidence:** assigning `null` to a local variable **does not remove** a strong reference stored in a collection. Once the application clears the registry and no other strong path remains, the object becomes eligible for collection; actual reclamation depends on GC.
 
-> Cẩn thận với tên field trong các snapshot: nhiều collection và tối ưu JVM có cấu trúc nội bộ thay đổi giữa các phiên bản. Luôn kiểm tra cạnh reference được công cụ trình bày, không dựa vào giả định từ source để viết ra một path “chính xác tuyệt đối”.
+> Watch field names in snapshots carefully: many collections and JVM optimizations change internal structure across releases. Always inspect the reference edges reported by the tool rather than writing out an "exact" path from memory of source code.
 
-## 7. Năm kiểu giữ object ngoài ý muốn cần nhận diện
+## 7. Five Unintended Retention Patterns to Recognize
 
-### 7.1 Static cache không có giới hạn
+### 7.1 Unbounded static cache
 
 ~~~text
-GC root → class còn sống → static cache → Map entry → object đã hết hạn
+GC root → live class → static cache → Map entry → expired object
 ~~~
 
-Dấu hiệu: số entry và retained heap tăng theo lượng request, không giảm khi tải trở về bình thường. Cách xử lý: **bounded cache, TTL, eviction, invalidate theo lifecycle**; kiểm tra cả cached keys có giữ value hoặc context lớn không. Đừng chỉ gọi GC nhiều hơn.
+Symptoms: entry counts and retained heap grow with request volume and fail to drop when load returns to normal. Fix: **bounded cache, TTL, eviction, lifecycle-driven invalidation**; also check whether cached keys retain large values or contexts. Do not merely try to trigger GC more often.
 
-### 7.2 Listener/callback không unregister
+### 7.2 Unregistered listener/callback
 
 ~~~text
 Root → long-lived event bus → listeners → callback → captured service/context
 ~~~
 
-Dấu hiệu: component đã đóng nhưng listener vẫn trong event bus. Fix: quản lý **subscription/registration token** và hủy đăng ký khi component kết thúc. Lambda có thể capture object theo biến, khiến vòng đời owner kéo dài hơn dự kiến.
+Symptoms: a component is closed yet its listener remains in the event bus. Fix: track a **subscription/registration token** and unregister upon component teardown. Lambdas can capture enclosing variables, extending the owner's lifetime unexpectedly.
 
-### 7.3 ThreadLocal trên thread pool
+### 7.3 `ThreadLocal` on a thread pool
 
 ~~~text
-Root → worker thread sống lâu → ThreadLocalMap → value → request/session data
+Root → long-lived worker thread → ThreadLocalMap → value → request/session data
 ~~~
 
-Thread pool tái sử dụng thread, vì vậy value có thể sống qua nhiều request. Nếu một ThreadLocal key bị GC, **value cũ vẫn có thể tồn tại trong map một thời gian** cho tới khi các mục stale được dọn; không nên xem đây là cơ chế cleanup có thời hạn.
+Thread pools reuse threads, so values can outlive individual requests. Even if a `ThreadLocal` key is GC'd, **the old value can linger in the map** until stale entries are expunged; do not treat that as a deterministic cleanup mechanism.
 
-Mẫu sử dụng an toàn khi mỗi tác vụ có quyền sở hữu dữ liệu:
+Safe usage pattern when each task owns its data:
 
 ~~~java
 private static final ThreadLocal<byte[]> BUFFER = new ThreadLocal<>();
@@ -326,38 +326,38 @@ private static final ThreadLocal<byte[]> BUFFER = new ThreadLocal<>();
 static void doWork() {
     try {
         BUFFER.set(new byte[64 * 1024]);
-        // Xử lý tác vụ hiện tại.
+        // Process the current task.
     } finally {
         BUFFER.remove();
     }
 }
 ~~~
 
-*Đoạn minh họa là hai thành viên cần đặt trong một class; đây không phải chương trình Java độc lập.* Trong pool, **finally + remove** là điểm quan trọng. Việc xóa key từ biến của ứng dụng không bảo đảm value sẽ biến mất tức thì.
+*This illustrative snippet shows two members placed inside a class; it is not a standalone Java program.* In thread pools, **`finally` + `remove()`** is essential. Clearing the key reference from an application variable does not guarantee the value disappears immediately.
 
-### 7.4 Queue/executor tích đọng
+### 7.4 Backlogged queue/executor
 
 ~~~text
 Root → Executor / scheduler → queue → pending Runnable → captured payload
 ~~~
 
-Dấu hiệu: lượng job chờ tăng, queue giữ request buffer lớn. Các object này vẫn hợp lệ theo reference graph, nhưng có thể là tình trạng **backlog** hoặc thiết kế queue không có giới hạn. Cần backpressure, bounded queue, timeout, hủy công việc và giám sát số job chờ.
+Symptoms: queued job count rises and the queue holds large request buffers. These objects are valid in the reference graph, yet reflect a **backlog** or an unbounded queue design. Add backpressure, bounded queues, timeouts, task cancellation, and queue-depth monitoring.
 
-### 7.5 Class loader và JNI global reference
+### 7.5 Class loaders and JNI global references
 
-- **Class loader cũ** có thể bị thread, context class loader, static registry, listener hoặc ThreadLocal ở tầng cha giữ sống; khi đó class và dữ liệu gắn với loader khó được giải phóng sau redeploy. Đừng nghĩ “đã bỏ biến module” là đủ nếu loader vẫn có đường strong tới root.
-- **JNI global reference** từ native code là một cơ chế giữ Java object sống; native code cần **DeleteGlobalRef** đúng vòng đời. **JNI weak global reference** có ngữ nghĩa yếu hơn và không tương đương strong global reference.
-- Heap dump có thể chỉ cho thấy root kiểu JNI hoặc class loader mà không giải thích toàn bộ trách nhiệm phía native; cần đối chiếu mã native/JNI và runtime để kết luận.
+- **Old class loaders** can be pinned by threads, context class loaders, static registries, listeners, or parent-layer `ThreadLocal`s; classes and data tied to the loader cannot unload after redeploys. Do not assume "dropping the module reference" suffices if a strong root path still reaches the loader.
+- **JNI global references** from native code also keep Java objects alive; native code must call **`DeleteGlobalRef`** at the proper lifecycle point. **JNI weak global references** have weaker semantics and do not behave like strong global references.
+- A heap dump may only show a JNI or class loader root without explaining native-side ownership; correlate with native/JNI code and runtime behavior before concluding.
 
-## 8. Quy trình điều tra từng bước, tránh kết luận vội
+## 8. Step-by-Step Investigation Workflow to Avoid Hasty Conclusions
 
-### Bước 1. Xác định đúng biểu hiện
+### Step 1. Confirm the true symptom
 
-Quan sát **used heap sau các GC có thể so sánh**, mức tải, allocation rate và số object theo thời gian. Heap tăng giữa các lần GC là bình thường. Rò rỉ đáng ngờ khi dữ liệu sau GC hoặc retained sets tăng kéo dài dù vòng đời của chúng đáng lẽ đã kết thúc.
+Observe **post-GC used heap across comparable GCs**, load levels, allocation rate, and object counts over time. Heap rising between GCs is normal. A leak is suspect when post-GC data or retained sets climb persistently even after objects should have ended their lifecycle.
 
-### Bước 2. Chụp dữ liệu đủ điều kiện
+### Step 2. Capture qualifying data
 
-Với JDK HotSpot hỗ trợ jcmd:
+On HotSpot JDKs supporting `jcmd`:
 
 ~~~bash
 jcmd -l
@@ -365,77 +365,77 @@ jcmd <PID> GC.class_histogram
 jcmd <PID> GC.heap_dump /path/to/app.hprof
 ~~~
 
-- **Histogram** khoanh vùng class tăng bất thường.
-- **Heap dump HPROF** chứa đồ thị object tại một thời điểm để MAT phân tích root paths, dominators và retained size.
-- Lệnh **GC.heap_dump -all** có thể bao gồm các object không còn reachable và **không yêu cầu Full GC trước dump**. Không trộn kết quả dump -all với dump mặc định rồi kết luận khác biệt là leak.
-- Việc dump có thể gây pause, tốn tài nguyên, tốn đĩa và chứa dữ liệu nhạy cảm như token, payload hoặc chuỗi. Thu thập và chia sẻ theo quy định an toàn của môi trường thực tế.
+- **Histogram** narrows down abnormally growing classes.
+- **HPROF heap dump** captures the point-in-time object graph for MAT to analyze root paths, dominators, and retained size.
+- **`GC.heap_dump -all`** can include unreachable objects and **does not request a Full GC before dumping**. Never mix `-all` and default dumps and call the difference a leak.
+- Dumping can cause pauses, consume resources and disk, and contain sensitive data like tokens, payloads, or strings. Collect and share strictly under production security policies.
 
-### Bước 3. Chọn object nghi vấn đúng cách
+### Step 3. Select suspect objects properly
 
-Trong MAT, bắt đầu bằng **Overview → Histogram, Dominator Tree, Top Consumers hoặc Leak Suspects**. Chú ý class ứng dụng, retained size lớn, số lượng instance bất thường và owner sống lâu. Một object khổng lồ không nhất thiết là thủ phạm gốc nếu object đó đang được giữ hợp lệ.
+In MAT, start with **Overview → Histogram, Dominator Tree, Top Consumers, or Leak Suspects**. Look for application classes, high retained sizes, abnormal instance counts, and long-lived owners. One giant object is not necessarily the root culprit if it is legitimately retained.
 
-### Bước 4. Lần chuỗi tham chiếu lên GC roots
+### Step 4. Trace reference chains up to GC roots
 
-Đi từ **object đích** lên các owner trong **Paths to GC Roots**. Ghi lại:
-- Root type và vòng đời root (thread, class/static, JNI).
-- Các trường hoặc collection đang tạo **cạnh tham chiếu**.
-- Weak/soft/phantom edge có bị loại khi chạy truy vấn không.
-- Có bao nhiêu đường giữ mạnh độc lập; nếu một đường bị cắt, các đường khác còn không.
+Walk from the **target object** up through owners in **Paths to GC Roots**. Note:
+- Root type and root lifetime (thread, class/static, JNI).
+- Fields or collections forming the **reference edges**.
+- Whether weak/soft/phantom edges were excluded during the query.
+- How many independent strong retention paths exist; if one is cut, do others remain?
 
-Khi rất nhiều object cùng bị giữ, sử dụng **Merge Shortest Paths to GC Roots** để tìm owner/accumulation point chung, rồi xác thực qua incoming references. Không coi shortest path là tất cả đường có thể.
+When many objects are retained together, use **Merge Shortest Paths to GC Roots** to locate a common owner/accumulation point, then verify via incoming references. Do not assume the shortest path is the only path.
 
-### Bước 5. Kiểm tra dominator và kích thước giữ lại
+### Step 5. Check dominators and retained size
 
-Nếu một owner dominates nhiều object, retained size sẽ cho biết lượng heap có thể trở thành unreachable nếu owner đó bị loại khỏi đồ thị giữ sống. Ngược lại, một owner có ít retained size vẫn có thể tham chiếu tới nhiều object **chia sẻ** với owner khác.
+If an owner dominates many objects, retained size shows how much heap becomes unreachable if that owner is removed from the retention graph. Conversely, an owner with small retained size may still reference many objects **shared** with other owners.
 
-### Bước 6. Ghép với vòng đời nghiệp vụ
+### Step 6. Map back to business lifecycle
 
-Hỏi cụ thể:
+Ask specifically:
 
-- Object được tạo khi nào, hợp đồng sử dụng bao lâu?
-- Ai đăng ký/đưa object vào Map, List, queue hoặc ThreadLocal?
-- Bước nào có trách nhiệm remove, evict, unregister hoặc close?
-- Có key/value tồn tại vĩnh viễn do lỗi hủy tác vụ hoặc retry không?
-- Một request/job đã kết thúc nhưng object còn được giữ vì hoạt động hợp lệ khác không?
+- When is the object created, and how long is its contract?
+- Who registers or inserts it into the `Map`, `List`, queue, or `ThreadLocal`?
+- Which step is responsible for calling `remove`, `evict`, `unregister`, or `close`?
+- Could entries persist forever due to failed cancellation or retry paths?
+- Has a request/job ended while the object stays held for another legitimate activity?
 
-Sau sửa, đo lại bằng tải đại diện và các lần chụp tương đương. **Không kết luận từ một snapshot đơn lẻ** hoặc chỉ từ System.gc(); phải xác nhận retained graph và xu hướng biến đổi phù hợp.
+After fixing, re-measure under representative traffic and comparable captures. **Never conclude from a single snapshot** or solely from `System.gc()`; verify both the retained graph and growth trend.
 
-## 9. Những bẫy suy luận thường gặp
+## 9. Common Reasoning Traps
 
-1. **“Bỏ biến local bằng null thì object được giải phóng.”** Không đúng khi List, static field, thread, callback hoặc JNI vẫn có strong reference.
-2. **“Có reference cycle là có leak.”** Sai: cycle không reachable từ root vẫn có thể được tracing GC thu hồi.
-3. **“Path ngắn nhất là root gây leak duy nhất.”** Sai: object có thể được giữ bởi nhiều root/owner độc lập.
-4. **“Mọi cạnh xuất hiện trong dump đều là strong reference.”** Sai: weak, soft, phantom và một số liên kết đặc biệt cần diễn giải theo ngữ nghĩa reachability.
-5. **“Retained size là tổng shallow size của mọi object có thể đi tới từ owner.”** Sai nếu có những object còn được giữ bởi đường khác và owner không dominates chúng.
-6. **“Cạnh trên Dominator Tree là field tham chiếu trực tiếp.”** Sai: dominator tree là kết quả phân tích graph, không phải bản sao những trường object trong Java.
-7. **“Một static field luôn gây leak và không bao giờ được giải phóng.”** Sai: phải xét vòng đời class/class loader và nhu cầu dữ liệu; static không mặc nhiên là lỗi.
-8. **“Không thấy root path trong một dump nghĩa là object đã bị GC.”** Chưa chắc: bộ phân tích có thể có tùy chọn bỏ cạnh/giới hạn path, dump -all có unreachable object và thời điểm dump khác thời điểm reclaim.
-9. **“Chỉ cần thêm WeakReference để sửa mọi leak.”** Sai: nếu vẫn có strong path, WeakReference không thay đổi việc object được giữ; thay đổi kiểu reference còn phải phù hợp hợp đồng ứng dụng.
-10. **“Object reachable là object cần thiết.”** Sai: GC không biết TTL, nghiệp vụ hay việc listener đáng lẽ đã được unregister.
+1. **"Setting a local variable to `null` frees the object."** False when a `List`, static field, thread, callback, or JNI still holds a strong reference.
+2. **"A reference cycle means a leak."** False: cycles unreachable from roots can still be reclaimed by tracing GC.
+3. **"The shortest path is the only leak root."** False: an object can be retained by multiple independent roots/owners.
+4. **"Every edge shown in a dump is a strong reference."** False: weak, soft, phantom, and special links must be interpreted per reachability semantics.
+5. **"Retained size is the sum of shallow sizes of all objects reachable from an owner."** False when objects are also held via other paths and are not dominated by that owner.
+6. **"Edges in the Dominator Tree are direct reference fields."** False: the dominator tree is a graph-analysis construct, not a literal copy of Java object fields.
+7. **"A static field always leaks and is never freed."** False: examine class/class loader lifecycle and data need; static is not automatically a bug.
+8. **"No root path in a dump means the object was already GC'd."** Not necessarily: the analyzer may filter edges/limit paths, `-all` dumps contain unreachables, and dump time differs from collection time.
+9. **"Just wrap everything in `WeakReference` to fix leaks."** False: if a strong path still exists, `WeakReference` changes nothing about retention; changing reference types must also respect application contracts.
+10. **"A reachable object is a needed object."** False: GC knows nothing about TTL, business logic, or listeners that should have unregistered.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Tình huống 1:** một service giữ 200 MB dữ liệu qua static Map, đã gọi method kết thúc phiên làm việc nhưng không xóa Map entry. Vì sao GC không dọn?  
-**Đáp án:** class/static → Map → entry → dữ liệu vẫn là chuỗi tham chiếu mạnh từ root. Cần xóa/evict entry theo lifecycle rồi xác minh không có đường mạnh khác.
+**Scenario 1:** a service holds 200 MB of data in a static `Map`, calls the session-end method, yet omits removing the `Map` entry. Why doesn't GC clean it up?  
+**Answer:** class/static → `Map` → entry → data remains a strong reference chain from a root. Remove/evict entries per lifecycle and verify no other strong path remains.
 
-**Tình huống 2:** hai static Map độc lập cùng giữ một byte[] 30 MB. Xóa một Map có đủ không?  
-**Đáp án:** không; đường từ Map còn lại vẫn khiến object reachable. Dominator/retained size của từng Map có thể không tính toàn bộ mảng vì nó được chia sẻ.
+**Scenario 2:** two independent static `Map`s both hold the same 30 MB `byte[]`. Is clearing one `Map` enough?  
+**Answer:** no; the path from the remaining `Map` still keeps the object reachable. Dominator/retained size of either `Map` alone may exclude the array because it is shared.
 
-**Tình huống 3:** A trỏ B và B trỏ A, nhưng cả hai không còn reachable từ bất kỳ GC root nào. Chúng có leak chỉ vì cycle không?  
-**Đáp án:** không. Tracing GC có thể thu hồi cả chu trình.
+**Scenario 3:** A points to B and B points to A, but neither is reachable from any GC root. Do they leak just because of the cycle?  
+**Answer:** no. Tracing GC can reclaim the entire cycle.
 
-**Tình huống 4:** MAT chỉ hiển thị đường tới object thông qua WeakReference. Bạn có thể kết luận object sẽ mãi còn sống không?  
-**Đáp án:** không. Phải kiểm tra có strong path khác và hiểu chế độ loại weak references trong truy vấn; weak edge không giữ referent như strong edge.
+**Scenario 4:** MAT shows a path to an object only through a `WeakReference`. Can you conclude the object will stay alive forever?  
+**Answer:** no. Check for other strong paths and note whether weak references were excluded in the query; weak edges do not retain referents like strong edges.
 
-**Tình huống 5:** một owner có outgoing references tới 100 MB dữ liệu nhưng retained size chỉ 4 MB. Có mâu thuẫn không?  
-**Đáp án:** không. Nhiều object được tham chiếu có thể vẫn được giữ sống qua các owner khác; retained size đo phần bị dominate.
+**Scenario 5:** an owner has outgoing references to 100 MB of data, yet its retained size is only 4 MB. Is that a contradiction?  
+**Answer:** no. Many referenced objects may also be kept alive through other owners; retained size measures only what is dominated.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle Java SE 21 — java.lang.ref package: cấp độ reachability và Reference Objects](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ref/package-summary.html)
-- [Oracle JDK 21 — jcmd: GC.heap_dump, GC.class_histogram](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
-- [Oracle JDK 21 — Diagnostic Tools: thu thập heap dump và histogram](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html)
-- [Eclipse MAT — Basic Tutorial: Dominator Tree và Path to GC Roots](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/gettingstarted/basictutorial.html)
+- [Oracle Java SE 21 — `java.lang.ref` package: reachability levels and Reference Objects](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ref/package-summary.html)
+- [Oracle JDK 21 — `jcmd`: `GC.heap_dump`, `GC.class_histogram`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
+- [Oracle JDK 21 — Diagnostic Tools: collecting heap dumps and histograms](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html)
+- [Eclipse MAT — Basic Tutorial: Dominator Tree and Path to GC Roots](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/gettingstarted/basictutorial.html)
 - [Eclipse MAT — Path to GC Roots](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/reference/inspections/path_to_gc_roots.html)
 - [Eclipse MAT — Dominator Tree](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/concepts/dominatortree.html)
 - [Eclipse MAT — Merge Shortest Paths](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/reference/inspections/merge_shortest_paths.html)

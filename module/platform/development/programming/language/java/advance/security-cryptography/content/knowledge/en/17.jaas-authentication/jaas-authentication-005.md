@@ -1,25 +1,25 @@
-# 17.5. Vòng đời initialize, login, commit, abort và logout của LoginModule
+# 17.5. The LoginModule Lifecycle: initialize, login, commit, abort, and logout
 
-**JAAS** (Java Authentication and Authorization Service) cho phép ứng dụng Java thay đổi cơ chế xác thực mà không phải viết lại phần điều phối. Ứng dụng gọi `javax.security.auth.login.LoginContext`; một hoặc nhiều thành phần cung cấp xác thực triển khai `javax.security.auth.spi.LoginModule`.
+**JAAS** (Java Authentication and Authorization Service) allows a Java application to change its authentication mechanism without rewriting the orchestration logic. The application calls `javax.security.auth.login.LoginContext`; one or more authentication providers implement `javax.security.auth.spi.LoginModule`.
 
-Điểm mấu chốt của bài học: **JAAS xác thực theo hai pha**. Pha `login()` kiểm credential, lưu trạng thái thành công **tạm trong module**. Sau khi các module được đánh giá theo các control flags, `LoginContext` gọi **`commit()` nếu tổng thể thành công** hoặc **`abort()` nếu tổng thể thất bại**. `logout()` là một thao tác riêng khi ứng dụng muốn kết thúc phiên đã đăng nhập. `initialize()` truyền bối cảnh để module bắt đầu làm việc.
+The key takeaway of this lesson: **JAAS authenticates in two phases**. The `login()` phase verifies credentials and stores the success state **temporarily inside the module**. After the modules are evaluated according to their control flags, `LoginContext` calls **`commit()` if overall authentication succeeds** or **`abort()` if overall authentication fails**. `logout()` is a separate operation when the application wants to end an already authenticated session. `initialize()` passes the context so the module can begin working.
 
-Bài này thuộc **17. Xác thực JAAS**, tập trung vào vòng đời đủ năm phương thức, các đường đi khi thành công/thất bại, trách nhiệm cập nhật và dọn `Subject`, cách phối hợp nhiều modules, cùng ví dụ Java 21 có thể biên dịch và chạy.
+This lesson belongs to **17. JAAS Authentication**, focusing on the full five-method lifecycle, the execution paths on success and failure, the responsibility for updating and cleaning up `Subject`, coordinating multiple modules, and a compilable and runnable Java 21 example.
 
-## Mục tiêu học tập
+## Learning Objectives
 
-- Biết `LoginContext`, `LoginModule`, `Configuration`, `AppConfigurationEntry`, `CallbackHandler`, `Subject` và `Principal` đóng vai trò gì.
-- Giải thích đúng `initialize → login → commit/abort` và `logout`, kể cả trường hợp một module thành công nhưng module khác làm tổng thể thất bại.
-- Phân biệt `true`, `false` và `LoginException` từ `login/commit/abort/logout`; không dùng `false` để che giấu mật khẩu sai.
-- Hiểu các control flags `REQUIRED`, `REQUISITE`, `SUFFICIENT` và `OPTIONAL`.
-- Viết module chỉ thêm principal sau `commit`, chỉ xóa những gì module thật sự sở hữu khi `abort`/`logout`, và dọn password.
-- Chạy ba tình huống trong Java 21: đăng nhập đúng, password sai, module REQUIRED phía sau từ chối; diễn giải trace và số principal.
-- Thiết kế test xử lý partial failure, callback không hỗ trợ, Subject read-only, duplicate principal, retry/logout và bí mật.
-- Phân biệt JAAS authentication với session web, MFA, password hashing, authorization nghiệp vụ và rollback database.
+- Know the roles of `LoginContext`, `LoginModule`, `Configuration`, `AppConfigurationEntry`, `CallbackHandler`, `Subject`, and `Principal`.
+- Correctly explain `initialize → login → commit/abort` and `logout`, including the case where one module succeeds while another causes the overall login to fail.
+- Distinguish `true`, `false`, and `LoginException` from `login/commit/abort/logout`; never use `false` to mask a wrong password.
+- Understand the `REQUIRED`, `REQUISITE`, `SUFFICIENT`, and `OPTIONAL` control flags.
+- Write a module that adds principals only in `commit`, removes only what the module truly owns in `abort`/`logout`, and clears passwords.
+- Run three scenarios in Java 21: valid login, wrong password, and a subsequent `REQUIRED` module rejecting; interpret the trace and principal count.
+- Design tests for partial failure, unsupported callbacks, read-only `Subject`, duplicate principals, retry/logout, and secrets.
+- Distinguish JAAS authentication from web sessions, MFA, password hashing, business authorization, and database rollback.
 
-## 1. Kiến trúc JAAS trước khi nói về vòng đời
+## 1. JAAS Architecture Before Discussing the Lifecycle
 
-`LoginContext` là cổng của ứng dụng. Nó đọc `Configuration` theo tên ứng dụng, tạo các `LoginModule` và quyết định module nào phải thành công. Mỗi `LoginModule` tự xác thực theo cơ chế được cắm vào, không tự tuyên bố kết quả của toàn bộ hệ thống.
+`LoginContext` is the application's entry point. It reads `Configuration` by application name, instantiates the `LoginModule`s, and decides which modules must succeed. Each `LoginModule` authenticates using its plugged-in mechanism without unilaterally declaring the overall system result.
 
 ```text
 Application
@@ -28,36 +28,36 @@ Application
   |
   +--> LoginContext.login()
           |
-          +--> LoginModule A: kiểm username/password
-          +--> LoginModule B: kiểm điều kiện khác nếu cấu hình yêu cầu
+          +--> LoginModule A: checks username/password
+          +--> LoginModule B: checks other conditions if required by configuration
           |
-          +--> JAAS tổng hợp kết quả theo control flags
+          +--> JAAS aggregates results according to control flags
                    |
                    +--> SUCCESS: commit()
                    +--> FAILURE: abort()
   |
-  +--> LoginContext.getSubject() khi thành công
+  +--> LoginContext.getSubject() on success
   |
-  +--> LoginContext.logout() khi kết thúc phiên
+  +--> LoginContext.logout() when ending the session
 ```
 
-| Thành phần | Trách nhiệm |
+| Component | Responsibility |
 | --- | --- |
-| `LoginContext` | Quản lý luồng login, lựa chọn modules, điều phối commit/abort/logout và cung cấp Subject |
-| `LoginModule` | Thực hiện một phương pháp xác thực và giữ private state của nó |
-| `Configuration` | Xác định tên ứng dụng, danh sách module, control flags và options |
-| `AppConfigurationEntry` | Cấu hình một LoginModule với class, flag và map options |
-| `CallbackHandler` | Cung cấp callback để lấy input như `NameCallback` và `PasswordCallback` |
-| `Subject` | Đối tượng chứa các principals, public/private credentials của subject đã được xác thực |
-| `Principal` | Định danh, nhóm hoặc vai trò theo mô hình của ứng dụng; không phải quyền tuyệt đối |
-| `sharedState` | Map chia sẻ cho các modules trong cùng quá trình; phải có quy ước và cleanup |
-| `options` | Map cấu hình riêng của từng module; không phải kho password |
+| `LoginContext` | Manages the login flow, selects modules, coordinates commit/abort/logout, and provides the Subject |
+| `LoginModule` | Executes an authentication method and maintains its own private state |
+| `Configuration` | Defines the application name, module list, control flags, and options |
+| `AppConfigurationEntry` | Configures a LoginModule with its class, flag, and options map |
+| `CallbackHandler` | Supplies callbacks to gather input such as `NameCallback` and `PasswordCallback` |
+| `Subject` | Object holding the principals and public/private credentials of an authenticated subject |
+| `Principal` | Identifier, group, or role in the application's model; not an absolute permission |
+| `sharedState` | Shared map across modules during the same process; requires conventions and cleanup |
+| `options` | Per-module configuration map; not a password store |
 
-Một ứng dụng có thể gọi `LoginContext.login()` mà không biết bên dưới đang dùng Kerberos, password, smart card hay một module tùy biến. Mọi mô hình vẫn phải tuân theo **quy tắc state của JAAS**.
+An application can call `LoginContext.login()` without knowing whether Kerberos, passwords, smart cards, or a custom module is used underneath. Every model must still obey the **JAAS state rules**.
 
-## 2. Hợp đồng interface: năm methods không thể tráo vai trò
+## 2. The Interface Contract: Five Methods That Cannot Swap Roles
 
-Interface chuẩn `javax.security.auth.spi.LoginModule` (đã có trong JDK, **không viết lại**) có chữ ký:
+The standard interface `javax.security.auth.spi.LoginModule` (already built into the JDK—**do not rewrite it**) has the signature:
 
 ```java
 void initialize(Subject subject,
@@ -71,21 +71,21 @@ boolean abort() throws LoginException;
 boolean logout() throws LoginException;
 ```
 
-| Method | Pha | Điều nhận/đọc | Điều thực hiện |
+| Method | Phase | What it receives/reads | What it performs |
 | --- | --- | --- | --- |
-| `initialize` | Chuẩn bị | Subject, handler, shared state, options | Lưu context/cấu hình, chưa xác thực |
-| `login` | Pha 1 | Credential/identity từ callback hoặc provider | Xác thực và giữ trạng thái **tạm** |
-| `commit` | Pha 2, khi tổng thể chấp nhận | Kết quả `login` của module | Thêm Principal/Credential vào Subject, đánh dấu commit |
-| `abort` | Pha 2, khi tổng thể từ chối | State login/commit cần rollback | Dọn pending state và những gì module đã thêm nếu có |
-| `logout` | Sau khi đăng nhập được chấp nhận | State đã commit | Dọn Principal/Credential thuộc module và đóng phiên liên quan |
+| `initialize` | Preparation | Subject, handler, shared state, options | Stores context/configuration; does not authenticate yet |
+| `login` | Phase 1 | Credentials/identity from callbacks or provider | Authenticates and holds **temporary** state |
+| `commit` | Phase 2, on overall acceptance | The module's `login` result | Adds Principal/Credentials to Subject, marks committed |
+| `abort` | Phase 2, on overall rejection | Login/commit state needing rollback | Cleans pending state and anything the module added if applicable |
+| `logout` | After an accepted login | Committed state | Cleans Principal/Credentials owned by the module and closes related session state |
 
-**Không có `LoginContext.initialize()` công khai cho ứng dụng gọi để kích hoạt từng module.** Chính `LoginContext` khởi tạo và gọi `LoginModule.initialize(...)` khi module được xử lý. Tài liệu JAAS mô tả hai pha, nhưng thứ tự initialize của các module khác nhau có thể xen kẽ với login, không nhất thiết “initialize tất cả trước rồi mới login bất kỳ module nào”.
+**There is no public `LoginContext.initialize()` for applications to call to initialize individual modules.** `LoginContext` itself instantiates and calls `LoginModule.initialize(...)` as each module is processed. JAAS documentation describes two phases, but initialization of different modules can be interleaved with `login` rather than strictly "initializing all modules before calling `login` on any module."
 
-`LoginModule` cần public constructor không tham số để `LoginContext` khởi tạo qua reflection. Nếu đặt class lồng nhau, nó cần là `public static` và tên binary class phải được cấu hình đúng.
+A `LoginModule` needs a public no-argument constructor so `LoginContext` can instantiate it via reflection. If placed as a nested class, it must be `public static` and its binary class name must be configured properly.
 
-## 3. Pha 1: `initialize` và `login`
+## 3. Phase 1: `initialize` and `login`
 
-### 3.1 `initialize(...)` nhận context, không cấp quyền
+### 3.1 `initialize(...)` Receives Context, Grants No Authority
 
 ```java
 @Override
@@ -97,132 +97,132 @@ public void initialize(Subject subject, CallbackHandler handler,
 }
 ```
 
-Đây chỉ là **đoạn minh họa trong một class**, không phải chương trình chạy riêng. `initialize` trả `void`, không được thêm Principal hoặc public/private credential vào Subject như thể user đã được xác thực.
+This is only an **illustrative snippet inside a class**, not a standalone runnable program. `initialize` returns `void` and must not add Principals or public/private credentials to the Subject as though the user were already authenticated.
 
-- `subject` là đối tượng sẽ được cập nhật về sau, thường ở `commit`.
-- `handler` có thể là `null`. Nếu module cần input tương tác thì phải xử lý trường hợp này bằng lỗi có kiểm soát trong `login`.
-- `sharedState` có thể chứa dữ liệu do module khác chia sẻ; nếu chia sẻ secret, phải quy định ai sở hữu, ai xóa và tránh rò rỉ giữa các lần đăng nhập.
-- `options` lấy từ cấu hình của module như realm, debug flag, endpoint. Cần validate và không ghi log password/secret.
+- `subject` is the object to be updated later, typically in `commit`.
+- `handler` may be `null`. If the module needs interactive input, it must handle this case with a controlled failure in `login`.
+- `sharedState` may contain data shared by other modules; if secrets are shared, you must define who owns them, who clears them, and avoid leaks across login attempts.
+- `options` come from the module configuration such as realm, debug flag, or endpoint. Validate them and never log passwords/secrets.
 
-Không dùng field `static` làm nơi lưu `Subject` hoặc credentials của user: những phiên khác nhau có thể chạy đồng thời, gây rò rỉ danh tính.
+Never use `static` fields to store a user's `Subject` or credentials: different sessions may run concurrently, causing identity leakage.
 
-### 3.2 `login()` kiểm credentials và lưu private state
+### 3.2 `login()` Verifies Credentials and Stores Private State
 
 ```java
 boolean login() throws LoginException;
 ```
 
-Một thực hiện đúng thường sẽ gọi `CallbackHandler.handle(...)`, lấy username/password hoặc token, kiểm bằng cơ chế xác thực đã thiết kế, rồi đánh dấu `authenticated=true` và giữ `pendingPrincipal` sau khi thành công.
+A proper implementation typically calls `CallbackHandler.handle(...)`, retrieves a username/password or token, validates it with the designed authentication mechanism, then sets `authenticated=true` and retains `pendingPrincipal` upon success.
 
-**Không thêm principal vào Subject trong `login()`.** Nếu module A đã thành công nhưng module B `REQUIRED` thất bại, tổng thể cần `abort`; việc đã thêm principal quá sớm làm Subject chứa danh tính chưa được chấp nhận.
+**Do not add principals to the Subject in `login()`.** If module A succeeds while `REQUIRED` module B fails, the overall login must `abort`; adding principals too early leaves the Subject containing an unaccepted identity.
 
-Ba kết quả cần phân biệt:
+Three outcomes must be distinguished:
 
-| Kết quả | Ý nghĩa |
+| Outcome | Meaning |
 | --- | --- |
-| `return true` | Module đã xác thực thành công. Đây **chưa** bảo đảm toàn bộ LoginContext thành công. |
-| `return false` | Module chọn **được bỏ qua** hoặc không áp dụng trường hợp hiện tại. Không tự coi là lỗi mật khẩu. |
-| `throw FailedLoginException` hoặc `LoginException` | Xác thực thực sự thất bại hoặc không thể hoàn tất; LoginContext xử lý theo flag của module. |
+| `return true` | The module authenticated successfully. This does **not** guarantee the entire LoginContext will succeed. |
+| `return false` | The module chooses to **be ignored** or does not apply to the current case. Do not treat this as a wrong password. |
+| `throw FailedLoginException` or `LoginException` | Authentication genuinely failed or could not complete; LoginContext handles it according to the module's flag. |
 
-Nếu module đã nhận mật khẩu và xác định mật khẩu **không đúng**, đừng `return false` để lặng lẽ bỏ qua. Trong stack có `OPTIONAL`/`SUFFICIENT`, việc dùng sai return value có thể khiến một cách xác thực khác được chấp nhận khi chính sách thực tế đòi yếu tố vừa bị bỏ qua.
+If a module receives a password and determines the password is **incorrect**, do not `return false` to silently ignore it. In a stack with `OPTIONAL`/`SUFFICIENT`, returning the wrong value can allow another authentication method to succeed when policy actually required the factor that was skipped.
 
-`LoginModule.login()` không nên tự làm retry/backoff nhiều lần hay ngủ chờ. Theo hướng dẫn JAAS, retry thuộc caller/application và chính sách bảo vệ login; module phải báo thành công hoặc thất bại một cách rõ ràng.
+`LoginModule.login()` should not perform its own retry/backoff loops or sleep-waits. Per JAAS guidance, retries belong to the caller/application and login protection policies; the module should report success or failure clearly.
 
-### 3.3 Xóa dữ liệu từ `PasswordCallback`
+### 3.3 Clearing Data from `PasswordCallback`
 
-`PasswordCallback.getPassword()` trả `char[]`. Sau khi sử dụng, code nên xóa bản sao tự giữ (`Arrays.fill`), gọi `PasswordCallback.clearPassword()` trong `finally` và không đưa password vào log. Việc cleanup một mảng không xóa được mọi bản sao tiềm ẩn trong JVM/provider. Khi input ban đầu là `String` bất biến, đặc biệt với framework web, không thể hứa xóa toàn bộ bí mật khỏi heap.
+`PasswordCallback.getPassword()` returns `char[]`. After use, code should clear its own copy (`Arrays.fill`), call `PasswordCallback.clearPassword()` in a `finally` block, and never log the password. Clearing one array does not erase every possible copy inside the JVM/provider. When the original input is an immutable `String`—especially in web frameworks—you cannot guarantee erasing all secret copies from the heap.
 
-Một module production không được so sánh password với literal nằm trong source. Cần hệ thống lưu verifier an toàn (Argon2id hoặc PBKDF2 với salt/work factor theo policy), chống brute-force/rate limit và xác thực đa yếu tố nếu cần.
+A production module must never compare passwords against literals in source code. It needs a secure verifier store (Argon2id or PBKDF2 with salt and policy-configured work factor), brute-force/rate-limit protection, and multi-factor authentication where needed.
 
-## 4. Pha 2 thành công: `commit()`
+## 4. Phase 2 Success: `commit()`
 
 ```java
 boolean commit() throws LoginException;
 ```
 
-Khi `LoginContext` xác định **tổng thể đăng nhập** thành công theo control flags, pha commit được thực hiện trên những module liên quan. Một module có `login() == true` sẽ chuyển identity đã xác thực thành các `Principal` và/hoặc credentials trong `Subject`.
+When `LoginContext` determines that the **overall login** succeeded according to the control flags, the commit phase runs on the relevant modules. A module where `login() == true` converts the authenticated identity into `Principal`s and/or credentials inside the `Subject`.
 
-Mẫu tư duy:
+Mental model:
 
 ```text
 login() -> authenticated=true, pendingPrincipal=UserPrincipal("alice")
 overall LoginContext login succeeds
 commit() -> subject.getPrincipals().add(pendingPrincipal)
-           -> ghi nhớ phần đã thực sự thêm
-           -> xóa pending state/secret không còn cần
+           -> record what was actually added
+           -> clear pending state/secrets no longer needed
            -> return true
 ```
 
-Nếu module không có xác thực thành công hoặc đã được bỏ qua, `commit()` thường dọn state rồi `return false`. Nếu commit **cần thiết nhưng thất bại**, ví dụ Subject read-only hoặc provider không tạo được credential, hãy `throw LoginException`; không báo `true` khi Subject ở trạng thái không phù hợp.
+If a module did not authenticate successfully or was ignored, `commit()` typically clears state and `return false`. If commit is **required but fails**—for example, a read-only Subject or a provider failing to create a credential—`throw LoginException`; never return `true` when the Subject is left in an inconsistent state.
 
-### 4.1 Sở hữu principal rất quan trọng
+### 4.1 Principal Ownership Matters
 
-Ví dụ:
+For example:
 
 ```java
 boolean added = subject.getPrincipals().add(new UserPrincipal("alice"));
 ```
 
-Nếu Subject đã có một Principal bằng giá trị, set có thể trả `false`. Module **không được xóa** principal đó khi logout, vì nó không phải thứ module vừa thêm. Theo dõi object thuộc module như `ownedPrincipal`, và chỉ remove khi thực sự sở hữu. Cách này đặc biệt quan trọng khi nhiều LoginModule cùng bổ sung identities/roles.
+If the Subject already contains an equal Principal by value, the set may return `false`. The module **must not remove** that principal during logout, because it was not added by this module. Track the module's own object such as `ownedPrincipal`, and remove it only if truly owned. This is especially critical when multiple LoginModules add identities or roles.
 
-`commit` không phải một database transaction. Những side effects tới API, database, token store phải có ranh giới giao dịch hoặc compensating actions riêng; JAAS **không tự hoàn tác** một token đã phát hoặc một dòng dữ liệu đã ghi.
+`commit` is not a database transaction. Side effects against APIs, databases, or token stores must have their own transaction boundaries or compensating actions; JAAS **does not automatically roll back** an issued token or a written database row.
 
-## 5. Pha 2 thất bại: `abort()`
+## 5. Phase 2 Failure: `abort()`
 
 ```java
 boolean abort() throws LoginException;
 ```
 
-Khi **tổng thể** thất bại, `LoginContext` chuyển sang nhánh abort. Điều này xảy ra ngay cả khi **bản thân module A đã xác thực thành công** nhưng module `REQUIRED`/`REQUISITE` khác thất bại.
+When the **overall** login fails, `LoginContext` switches to the abort branch. This happens even if **module A itself authenticated successfully** but another `REQUIRED`/`REQUISITE` module failed.
 
-`abort()` phải:
+`abort()` must:
 
-1. Xóa pending identities, sensitive data và authentication state được tạo ở `login`.
-2. Nếu có state đã được commit một phần trước khi phát hiện lỗi, chỉ xóa những Principal/Credential **do module đó thêm**.
-3. Đóng resource/revoke tạm theo policy; không xóa contribution của module khác.
-4. Reset trạng thái nội bộ, không dùng lại kết quả login cũ cho lần khác.
-5. Trả `true` khi cleanup phần đã tham gia thành công, `false` khi module vốn được bỏ qua/chưa xác thực, hoặc ném `LoginException` nếu cleanup cần thiết thất bại.
+1. Clear pending identities, sensitive data, and authentication state created in `login`.
+2. If state was partially committed before a failure was detected, remove only the `Principal`/credentials **added by that module**.
+3. Close temporary resources/revoke temporary grants per policy; never remove contributions from other modules.
+4. Reset internal state so old login results cannot be reused on a subsequent attempt.
+5. Return `true` when cleanup of participated state succeeds, `false` when the module was ignored/never authenticated, or throw `LoginException` if required cleanup fails.
 
-Ngay cả module thất bại trong `login` cũng có thể nhận `abort()`. Bởi vậy hàm cleanup phải an toàn khi state gần như trống.
+Even a module that failed during `login` can receive `abort()`. Therefore cleanup methods must be safe when state is nearly empty.
 
-**Không nhầm abort với logout:** abort là kết thúc một **lần đăng nhập không được chấp nhận**; logout là kết thúc một **phiên đã thành công**.
+**Do not confuse abort with logout:** abort ends an **unaccepted login attempt**; logout ends an **already successful session**.
 
-## 6. `logout()`: dọn phần đã commit của chính module
+## 6. `logout()`: Cleaning Up Only This Module's Committed Contributions
 
 ```java
 boolean logout() throws LoginException;
 ```
 
-Khi ứng dụng gọi `LoginContext.logout()`, JAAS gọi logout trên modules theo cơ chế đã cấu hình. Module cần remove Principal và credential do chính nó thêm ở `commit`, destroy các secret do nó quản lý và reset state.
+When the application calls `LoginContext.logout()`, JAAS invokes `logout` on the modules according to the configuration. A module should remove the Principals and credentials it added in `commit`, destroy secrets it manages, and reset state.
 
-Điểm dễ sai:
+Common pitfalls:
 
-- **Không** gọi `subject.getPrincipals().clear()` vì có thể xóa identity từ module khác.
-- **Không** xóa principal chỉ dựa vào class/name nếu không biết module có thật sự thêm nó.
-- Với `Subject.isReadOnly() == true`, thao tác thay đổi set principals bị cấm; xử lý theo hợp đồng (destroy credentials có thể có quy tắc riêng), ném `LoginException` nếu không thể cleanup yêu cầu.
-- `logout()` không tự kết thúc HTTP session, xóa browser cookie hoặc revoke OAuth token nếu module/ứng dụng chưa triển khai riêng.
-- Nên kiểm thử cleanup nhiều lần và theo chính sách state thực tế, tránh double-release và rò secret.
+- **Do not** call `subject.getPrincipals().clear()` because that can wipe out identities from other modules.
+- **Do not** remove principals solely by class or name if you do not know whether this module actually added them.
+- When `Subject.isReadOnly() == true`, mutating the principals set is forbidden; handle according to contract (destroying credentials may have separate rules), and throw `LoginException` if required cleanup cannot be performed.
+- `logout()` does not automatically terminate an HTTP session, delete browser cookies, or revoke OAuth tokens unless the module/application explicitly implements that.
+- Test cleanup across repeated invocations and realistic state transitions to avoid double-release bugs and secret leaks.
 
-| Tình huống | Method cần tập trung | Trạng thái Subject |
+| Scenario | Method to focus on | Subject state |
 | --- | --- | --- |
-| Password đúng, toàn bộ modules đúng | `commit` | Có principals/credentials đã xác thực |
-| Password sai | `abort` | Không được có principal mới |
-| Module A đúng, module B REQUIRED fail | `abort` của A và B | Không được còn state của lần login thất bại |
-| Phiên thành công sau đó người dùng đăng xuất | `logout` | Contributions do module sở hữu được loại bỏ |
-| Subject read-only | `commit/abort/logout` có thể báo lỗi cleanup | Không tự lách chính sách immutability |
+| Valid password, all modules pass | `commit` | Contains authenticated principals/credentials |
+| Wrong password | `abort` | Must not contain any new principal |
+| Module A passes, REQUIRED module B fails | `abort` on A and B | Must retain no state from the failed login |
+| Successful session later logged out by user | `logout` | Contributions owned by the module are removed |
+| Read-only Subject | `commit/abort/logout` may report cleanup failure | Do not bypass immutability checks |
 
-## 7. Control flags quyết định đường đi tổng thể
+## 7. Control Flags Determine the Overall Path
 
-`AppConfigurationEntry.LoginModuleControlFlag` có bốn loại:
+`AppConfigurationEntry.LoginModuleControlFlag` has four types:
 
-| Flag | Khi thành công | Khi thất bại |
+| Flag | On success | On failure |
 | --- | --- | --- |
-| `REQUIRED` | Bắt buộc thành công, rồi tiếp tục xét module khác | Tổng thể sẽ thất bại, thường vẫn tiếp tục xét các module còn lại trước khi báo lỗi |
-| `REQUISITE` | Bắt buộc thành công, rồi tiếp tục | Dừng sớm khi thất bại; tổng thể thất bại |
-| `SUFFICIENT` | Có thể kết thúc sớm và thành công nếu không có lỗi REQUIRED/REQUISITE trước đó | Thất bại riêng không bắt buộc làm tổng thể thất bại |
-| `OPTIONAL` | Có thể góp phần vào thành công | Thất bại riêng không bắt buộc làm tổng thể thất bại; khi không có module bắt buộc, vẫn cần ít nhất một SUFFICIENT/OPTIONAL thành công |
+| `REQUIRED` | Required to succeed, then continues evaluating remaining modules | Overall login will fail; typically continues evaluating remaining modules before reporting failure |
+| `REQUISITE` | Required to succeed, then continues | Stops early on failure; overall login fails |
+| `SUFFICIENT` | May finish early with success if no prior `REQUIRED`/`REQUISITE` failure occurred | Individual failure does not necessarily cause overall failure |
+| `OPTIONAL` | May contribute to success | Individual failure does not necessarily cause overall failure; when no required module exists, at least one `SUFFICIENT`/`OPTIONAL` must still succeed |
 
-Chẳng hạn:
+For example:
 
 ```text
 PasswordModule REQUIRED  → login true
@@ -231,20 +231,20 @@ DenyModule     REQUIRED  → login throws FailedLoginException
 overall failure → PasswordModule.abort(), DenyModule.abort()
 ```
 
-Dù PasswordModule đã trả `true`, **không được commit Principal** do một REQUIRED khác thất bại. Đây là mục tiêu của cơ chế hai pha.
+Even though `PasswordModule` returned `true`, **no Principal may be committed** because another `REQUIRED` module failed. That is the purpose of the two-phase mechanism.
 
-`SUFFICIENT` có thể short-circuit; do đó **đừng giả định tất cả modules sẽ chắc chắn nhận mọi callback**. Thứ tự modules và flags thay đổi được control flow. `false` từ `login` nghĩa là module muốn được bỏ qua, khác với exception khi credential thật sự sai. Cấu hình flag là một phần chính sách bảo mật, cần integration tests, không chỉ unit test từng module.
+`SUFFICIENT` can short-circuit; therefore **do not assume every module will always receive every callback**. Module order and flags change control flow. Returning `false` from `login` means the module wishes to be ignored, which differs from throwing an exception when credentials are genuinely invalid. Flag configuration is part of security policy and needs integration tests, not only per-module unit tests.
 
-## 8. Chương trình Java 21 độc lập: ba nhánh lifecycle
+## 8. Standalone Java 21 Program: Three Lifecycle Branches
 
-Ví dụ có hai nested modules:
+The example includes two nested modules:
 
-- `PasswordModule` xác thực username `alice` cùng password **lab-only** `lab-secret`. Nó không thêm Principal trong `login`; chỉ thêm trong `commit`. `cleanup` chỉ xóa Principal do chính module sở hữu.
-- `DenyModule` ném `FailedLoginException` để mô phỏng một module `REQUIRED` thứ hai từ chối, qua đó kích hoạt `abort` của cả stack.
+- `PasswordModule` authenticates username `alice` with **lab-only** password `lab-secret`. It does not add a Principal in `login`; it adds it only in `commit`. `cleanup` removes only the Principal owned by the module itself.
+- `DenyModule` throws `FailedLoginException` to simulate a second `REQUIRED` module rejecting, thereby triggering `abort` across the stack.
 
-`Configuration` được tạo **trong chương trình**, không cần file `jaas.conf`. Password literal và phép so sánh `Arrays.equals` là **mã kiểm tra luồng JAAS**, không phải thuật toán kiểm password an toàn cho production. Không có callback UI hay database thật.
+`Configuration` is constructed **programmatically**, with no `jaas.conf` file required. The password literal and `Arrays.equals` comparison are **JAAS flow-testing code**, not a secure production password-checking algorithm. There is no real UI callback or real database.
 
-Tạo file **`JaasLifecycleDemo.java`**:
+Create the file **`JaasLifecycleDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -445,9 +445,9 @@ public final class JaasLifecycleDemo {
 }
 ```
 
-### 8.1 Biên dịch/chạy
+### 8.1 Compiling and Running
 
-Sử dụng JDK 21 hoặc compiler hỗ trợ `--release 21`:
+Use JDK 21 or a compiler supporting `--release 21`:
 
 ```text
 java -version
@@ -456,7 +456,7 @@ javac --release 21 -encoding UTF-8 JaasLifecycleDemo.java
 java JaasLifecycleDemo
 ```
 
-**Stdout đã kiểm thử chính xác:**
+**Verified exact stdout:**
 
 ```text
 -- success --
@@ -481,29 +481,29 @@ deny abort
 required module failure rejected: true
 ```
 
-Ba kết quả cần hiểu:
+Three results to understand:
 
-**Thành công:** `login` xác thực tạm, `commit` mới thêm một `UserPrincipal` vào Subject. `logout` xóa đúng Principal do module thêm nên count từ **1 xuống 0**.
+**Success:** `login` authenticates temporarily, and only `commit` adds a `UserPrincipal` to the Subject. `logout` removes the exact Principal added by the module, dropping the count from **1 to 0**.
 
-**Mật khẩu sai:** `FailedLoginException` được ném ngay trong `login`; `abort` dọn state, **không có dòng `password commit`**, caller nhận LoginException.
+**Wrong password:** `FailedLoginException` is thrown immediately inside `login`; `abort` cleans up state, **there is no `password commit` line**, and the caller receives a `LoginException`.
 
-**Module sau thất bại:** `PasswordModule.login` đã thành công, `DenyModule.login` từ chối khi flag REQUIRED, rồi `abort` được gọi trên cả hai; không module nào được commit. Trace còn chứng minh `deny initialize` có thể xảy ra **sau** `password login`, vì JAAS có thể khởi tạo từng module khi cần.
+**Later module fails:** `PasswordModule.login` succeeded, `DenyModule.login` rejected while flagged `REQUIRED`, and then `abort` was invoked on both; neither module was committed. The trace also demonstrates that `deny initialize` can occur **after** `password login`, because JAAS may initialize each module on demand.
 
-Chương trình có public nested modules với no-arg constructor; `AppConfigurationEntry` lấy binary class name từ `PasswordModule.class.getName()`, tránh lỗi tên khi nạp class lồng nhau. Kết quả này đã được biên dịch và chạy với `javac --release 21` trên JDK có JAAS chuẩn.
+The program uses public nested modules with a no-arg constructor; `AppConfigurationEntry` gets the binary class name from `PasswordModule.class.getName()`, avoiding naming mistakes when loading nested classes. These results were compiled and run with `javac --release 21` on a standard JDK with JAAS.
 
-### 8.2 Giải thích lựa chọn trạng thái trong code
+### 8.2 Explaining State Choices in the Code
 
-- `pending` chỉ có sau khi credential đúng, không tự làm Subject có principal.
-- `authenticated` lưu kết quả pha 1 trong instance, tránh truyền “thành công” qua shared static variable.
-- `owned` chỉ được gán nếu `subject.getPrincipals().add(pending)` trả `true`. Nếu Principal bằng giá trị đã tồn tại, module không nhận ownership và không xóa người khác ở logout.
-- `commit` kiểm `subject.isReadOnly()` trước khi sửa; nếu không thể commit thì ném LoginException.
-- `cleanup` xóa `owned`, đặt `pending` và các boolean về trạng thái sạch. `abort` gọi cleanup ngay cả khi `login` chưa thành công.
-- `DenyModule.abort` trả `false` bởi module không có successful state để commit; đây không phải một lần đăng nhập thành công bị đảo ngược.
-- `PasswordCallback.clearPassword()` và `Arrays.fill` dọn những mảng có thể dọn; String literal trong demo vẫn tồn tại theo semantics JVM, không phải kỹ thuật xử lý secret production.
+- `pending` is populated only after valid credentials and does not put a principal on the Subject by itself.
+- `authenticated` stores the Phase 1 result per instance, avoiding passing "success" through a shared static variable.
+- `owned` is assigned only if `subject.getPrincipals().add(pending)` returns `true`. If an equal Principal already exists, the module does not claim ownership and will not delete someone else's principal on logout.
+- `commit` checks `subject.isReadOnly()` before mutating; if unable to commit, it throws `LoginException`.
+- `cleanup` removes `owned` and resets `pending` and booleans to a clean state. `abort` invokes cleanup even when `login` did not succeed.
+- `DenyModule.abort` returns `false` because the module had no successful state to commit; this is not a successful login being rolled back.
+- `PasswordCallback.clearPassword()` and `Arrays.fill` wipe the arrays that can be wiped; the String literal in the demo remains subject to JVM semantics and is not a production secret-handling technique.
 
-## 9. Cấu hình ngoài bằng JAAS file và khác biệt với ví dụ
+## 9. External Configuration via a JAAS File and How It Differs from the Example
 
-Một cách phổ biến khác là dùng file cấu hình JAAS:
+Another common approach is using a JAAS configuration file:
 
 ```text
 demo {
@@ -512,82 +512,82 @@ demo {
 };
 ```
 
-Dấu `$` là một phần **binary class name** của nested class trong ví dụ. Trong dự án thật, một LoginModule thường là class top-level ở package được quản lý. Mỗi stanza gồm tên class, flag và options; file phải nằm ở nơi deployment có quyền đọc, không chứa mật khẩu dạng hardcoded.
+The `$` is part of the nested class's **binary class name** in the example. In a real project, a LoginModule is usually a top-level class in a managed package. Each stanza specifies the class name, flag, and options; the file must reside in a readable deployment location and must not contain hardcoded passwords.
 
-Khi dùng installed `Configuration` từ file, ứng dụng thường khởi tạo `new LoginContext("demo", callbackHandler)` hoặc tương đương. Có thể cấu hình location qua `java.security.auth.login.config` theo cơ chế JDK/triển khai. **Ví dụ Java ở phần 8 không sử dụng file này** vì truyền `Configuration` trong bộ nhớ trực tiếp vào constructor; đừng đặt file rồi kỳ vọng chương trình tự đọc nó.
+When using an installed `Configuration` loaded from a file, the application typically calls `new LoginContext("demo", callbackHandler)` or an equivalent. The location can be configured via `java.security.auth.login.config` according to the JDK/deployment mechanism. **The Java example in Section 8 does not use this file** because it passes an in-memory `Configuration` directly to the constructor; do not create the file expecting the program to read it automatically.
 
-Cấu hình `required` của file tương ứng `AppConfigurationEntry.LoginModuleControlFlag.REQUIRED`, nhưng phải kiểm thứ tự modules và các options. Không dùng quyền mặc định hoặc “other” entry mà chưa hiểu đối tượng được xác thực.
+The file's `required` corresponds to `AppConfigurationEntry.LoginModuleControlFlag.REQUIRED`, but you must verify module order and options. Never rely on default permissions or an `other` entry without understanding who is being authenticated.
 
-## 10. Trường hợp biên cần kiểm thử khi viết LoginModule
+## 10. Edge Cases to Test When Writing a LoginModule
 
-### 10.1 Một module thành công nhưng module khác fail
+### 10.1 One Module Succeeds While Another Fails
 
-Đây là kịch bản quan trọng để chứng minh **tính nhất quán của Subject**. Test phải xác nhận `commit` **không** được gọi trên module trước khi tổng thể chấp nhận, và sau `abort` không còn pending identities hoặc external tokens.
+This is a critical scenario for proving **Subject consistency**. Tests must verify that `commit` is **not** called on a module before overall acceptance, and that after `abort` no pending identities or external tokens remain.
 
-### 10.2 Commit thất bại sau khi đã tạo một phần state
+### 10.2 Commit Fails After Creating Partial State
 
-Ví dụ module đã thêm một group Principal rồi bước tạo credential thất bại. `commit` phải ném LoginException; cleanup/abort phải xóa group Principal **thuộc module đó**, đồng thời revoke resources ngoài hệ thống. JAAS không rollback database tự động. Hãy viết tests cho partial commit, không chỉ success/login fail.
+For example, a module adds a group Principal and then fails during credential creation. `commit` must throw `LoginException`; cleanup/abort must remove the group Principal **owned by that module**, while also revoking external resources. JAAS does not roll back databases automatically. Write tests for partial commit, not just success/login failure.
 
-### 10.3 Subject đã read-only
+### 10.3 Subject Is Already Read-Only
 
-`Subject.setReadOnly()` ngăn thay đổi các tập principals/credentials theo cách thông thường. Nếu module phải ghi Subject ở commit, cần xử lý bằng LoginException. Logout có thể không remove được một Principal thuộc module; cần tuân thủ semantics read-only và các credential hỗ trợ destroy; không ép truy cập bằng cách bỏ kiểm tra.
+`Subject.setReadOnly()` prevents normal modifications to the principals/credentials sets. If a module must write to the Subject in `commit`, it should fail with `LoginException`. `logout` may be unable to remove a Principal belonging to the module; adhere to read-only semantics and credential destruction support, and do not force access by bypassing checks.
 
-### 10.4 Duplicate Principal từ module khác
+### 10.4 Duplicate Principal from Another Module
 
-Nếu Subject có sẵn `UserPrincipal("alice")`, lệnh `add` theo set semantics có thể trả false. Nếu module A không thêm phần tử mới nhưng vẫn `logout` và xóa theo tên/class, module có thể xóa state của B. Theo dõi **ownership object** và xử lý duplicate đúng.
+If the Subject already contains `UserPrincipal("alice")`, `add` under set semantics may return `false`. If module A did not add a new element yet still runs `logout` and removes by name/class, it could erase module B's state. Track **object ownership** and handle duplicates properly.
 
-### 10.5 Shared state và nhiều lần đăng nhập
+### 10.5 Shared State and Multiple Logins
 
-`sharedState` là map chia sẻ giữa modules được cấu hình. Khi dùng để trao đổi tên user hoặc credential, phải giới hạn key, type, quyền đọc và xóa secret sau khi dùng. Không tái sử dụng module instance/`LoginContext` cho nhiều Subject; tài liệu `LoginContext` lưu ý không dùng một context để xác thực **nhiều Subject**.
+`sharedState` is a map shared among configured modules. When using it to exchange usernames or credentials, restrict keys, types, read access, and clear secrets after use. Do not reuse a module instance or `LoginContext` across multiple Subjects; `LoginContext` documentation warns against using a single context to authenticate **multiple Subjects**.
 
-Nếu ứng dụng retry, state của lần cũ phải được reset. Không giữ password hoặc pending principal khi lần đầu thất bại rồi lần hai bắt đầu, và không có static fields dùng chung cho mọi account.
+If an application retries, state from the previous attempt must be reset. Do not retain passwords or pending principals after an initial failure when a second attempt begins, and never use static fields shared across accounts.
 
-### 10.6 Không biến JAAS thành nơi lưu session
+### 10.6 Do Not Turn JAAS into a Session Store
 
-JAAS quản lý quá trình xác thực và cập nhật Subject. Token, cookie, SSO, expiration, revocation, timeout, authorization, audit và network/TLS còn thuộc các tầng liên quan khác. `LoginContext.logout` không tự thu hồi JWT đã phát nếu hệ thống chưa triển khai cơ chế thu hồi tương ứng.
+JAAS manages the authentication process and updates the Subject. Tokens, cookies, SSO, expiration, revocation, timeouts, authorization, auditing, and network/TLS belong to other layers. `LoginContext.logout` does not automatically revoke an issued JWT unless the system implements a corresponding revocation mechanism.
 
-## 11. Bảng lỗi thường gặp
+## 11. Common Pitfalls Table
 
-| Hiện tượng | Nguyên nhân | Hướng xử lý |
+| Symptom | Cause | Resolution |
 | --- | --- | --- |
-| Module `login` đúng nhưng app login vẫn fail | Module REQUIRED/REQUISITE khác thất bại | Kiểm cấu hình và trace từng module, xác nhận abort |
-| `Subject` có Principal sau khi tổng thể login fail | Module thêm quá sớm trong login, thiếu abort cleanup | Chỉ thêm trong commit; theo dõi ownership |
-| Không có `commit` dù PasswordModule đã true | Overall failure hoặc short-circuit theo flags | Kiểm `LoginContext` và control flags |
-| `CallbackHandler` bị null/NPE | Constructor/config không cung cấp handler | Check null, ném LoginException có kiểm soát |
-| `UnsupportedCallbackException` | Handler không hỗ trợ Name/Password callback | Kiểm hợp đồng callback, không log secret |
-| Mật khẩu sai nhưng vẫn đăng nhập được | Trả false thay vì FailedLoginException, cấu hình OPTIONAL/SUFFICIENT yếu | Kiểm phân biệt ignored/failure và policy |
-| `commit` ném lỗi read-only Subject | Set principal/credential bị khóa | Kiểm lifecycle setReadOnly và xử lý cleanup |
-| Logout xóa Principal của module khác | Xóa theo class/name thay vì ownership | Chỉ xóa contribution thực sự đã thêm |
-| Logout không dọn credential | Không implement cleanup hoặc thiếu destroy | Test Subject trước/sau, xử lý secret resources |
-| Retry dùng lại kết quả cũ | Không reset boolean/pending identity | Mỗi lần xử lý state rõ ràng; dùng LoginContext riêng |
-| `LoginModule` không được nạp | Sai binary name, JAR/classpath, no-arg constructor | Kiểm deployment và `Class.getName()` |
-| Trace để lộ password/token | In callbacks/exception details hoặc debug state | Chỉ log phase/result, ẩn secret và PII |
+| Module `login` succeeds yet app login still fails | Another `REQUIRED`/`REQUISITE` module failed | Check configuration and per-module trace; verify abort |
+| `Subject` contains a Principal after overall login fails | Module added too early in `login`, missing abort cleanup | Add only in `commit`; track ownership |
+| No `commit` even though `PasswordModule` returned `true` | Overall failure or flag-based short-circuit | Inspect `LoginContext` and control flags |
+| `CallbackHandler` is null / NPE | Constructor/config did not provide a handler | Check for null and throw a controlled `LoginException` |
+| `UnsupportedCallbackException` | Handler does not support Name/Password callbacks | Verify callback contract; do not log secrets |
+| Wrong password still logs in | Returned `false` instead of `FailedLoginException`, weak `OPTIONAL`/`SUFFICIENT` config | Distinguish ignored vs. failed and review policy |
+| `commit` throws read-only Subject error | Principal/credential set is locked | Check `setReadOnly` lifecycle and handle cleanup |
+| `logout` removes another module's Principal | Removed by class/name instead of ownership | Remove only contributions actually added |
+| `logout` fails to clean credentials | Missing cleanup implementation or missing destroy | Test Subject before/after; handle secret resources |
+| Retry reuses old results | Failed to reset booleans/pending identity | Reset state cleanly per attempt; use a separate `LoginContext` |
+| `LoginModule` fails to load | Wrong binary name, JAR/classpath, missing no-arg constructor | Check deployment and `Class.getName()` |
+| Trace leaks password/token | Printing callbacks/exception details or debug state | Log only phase/result; mask secrets and PII |
 
-**Không** tự thêm delay hoặc retry vòng lặp trong LoginModule để “chống brute force”. Đặt giới hạn tốc độ, MFA, kiểm soát lockout và giám sát ở những tầng được thiết kế; tránh làm module bị treo hoặc đưa thông tin sai về kết quả.
+**Never** add delays or retry loops inside `LoginModule` to "prevent brute force." Place rate limiting, MFA, lockout controls, and monitoring in the layers designed for them; avoid hanging the module or misreporting outcomes.
 
-## 12. Bài tập và checklist hoàn thành
+## 12. Exercises and Completion Checklist
 
-1. Chạy chương trình Java 21, vẽ ba luồng từ `initialize` đến `commit/abort/logout`. Vì sao không có `commit` khi mật khẩu sai?
-2. Dùng `DenyModule REQUIRED` để giải thích trường hợp một module đã `login true` nhưng **không có Principal** mới trong Subject.
-3. Thay `DenyModule` thành `OPTIONAL` rồi dự đoán kết quả tổng thể. Hãy lý giải cách flag thay đổi điều kiện success/failure.
-4. Thiết kế một `LoginModule` trả `false` khi không nhận loại credential phù hợp. Vì sao làm như vậy khác với ném `FailedLoginException` khi password sai?
-5. Thêm một `UserPrincipal("alice")` trước khi commit; xem `Set.add` trả true hay false. Khi logout, module có quyền xóa Principal đã tồn tại trước đó không?
-6. Viết unit test `abort` trên state trống: module đã bị từ chối ngay trong `login` vẫn phải dọn an toàn.
-7. Giả lập lỗi ở giữa `commit` sau khi thêm một role Principal. Xác định cách xóa role đó và bù trừ external side effect mà JAAS không tự thực hiện.
-8. Gọi `Subject.setReadOnly` trước commit. Phải xử lý thế nào để không báo đăng nhập thành công giả?
-9. Xây một `CallbackHandler` an toàn không dùng literal password; mô tả khi nào `clearPassword` và `Arrays.fill` được gọi.
-10. Nếu user đã đăng xuất nhưng web JWT vẫn dùng được, phần nào của hệ thống chịu trách nhiệm sửa? `LoginContext.logout` có tự revoke JWT không?
-11. Với `SUFFICIENT` thành công sớm, có được giả định mọi module sau đều được initialize/login không? Hãy giải thích ảnh hưởng của short-circuit.
-12. Thiết kế test concurrency cho hai Subject khác nhau. Vì sao một mutable static `Principal` hay password buffer là lỗi nghiêm trọng?
+1. Run the Java 21 program and trace the three flows from `initialize` to `commit/abort/logout`. Why is there no `commit` when the password is wrong?
+2. Use `DenyModule REQUIRED` to explain the case where a module's `login` returned `true` yet **no new Principal** appears in the Subject.
+3. Change `DenyModule` to `OPTIONAL` and predict the overall result. Explain how the flag changes the success/failure condition.
+4. Design a `LoginModule` that returns `false` when it does not recognize the credential type. Why is this different from throwing `FailedLoginException` on a wrong password?
+5. Add a `UserPrincipal("alice")` before `commit`; observe whether `Set.add` returns `true` or `false`. During `logout`, is the module allowed to remove the pre-existing Principal?
+6. Write a unit test for `abort` on empty state: a module rejected directly in `login` must still clean up safely.
+7. Simulate an error midway through `commit` after adding a role Principal. Determine how to remove that role and compensate for external side effects that JAAS does not handle automatically.
+8. Call `Subject.setReadOnly` before `commit`. How must it be handled so it does not falsely report a successful login?
+9. Build a safe `CallbackHandler` without password literals; describe when `clearPassword` and `Arrays.fill` are called.
+10. If a user has logged out yet a web JWT still works, which part of the system is responsible for fixing that? Does `LoginContext.logout` automatically revoke JWTs?
+11. When `SUFFICIENT` succeeds early, may you assume all subsequent modules were initialized and had `login` called? Explain the impact of short-circuiting.
+12. Design a concurrency test for two different Subjects. Why is a mutable static `Principal` or password buffer a critical bug?
 
-**Tiêu chí hoàn thành:** bạn xác định được **initialize = nhận context; login = xác thực và giữ state tạm; commit = ghi Subject khi cả stack được chấp nhận; abort = dọn khi thất bại; logout = dọn contribution của phiên đã thành công**, và không nhầm JAAS với password hashing, quản trị session hoặc authorization.
+**Completion criteria:** you can state clearly that **initialize = receive context; login = authenticate and hold temporary state; commit = write to Subject when the whole stack is accepted; abort = clean up on failure; logout = clean up contributions of an already successful session**, and you do not confuse JAAS with password hashing, session management, or authorization.
 
-## 13. Tài liệu tham khảo
+## 13. References
 
-- [Java SE 21 — `javax.security.auth.spi.LoginModule`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/spi/LoginModule.html): hợp đồng năm phương thức, two-phase login và kết quả boolean/exception.
-- [Java SE 21 — `javax.security.auth.login.LoginContext`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/login/LoginContext.html): điều phối modules, constructor, Subject và logout.
-- [Java SE 21 — `Configuration`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/login/Configuration.html) và [`AppConfigurationEntry`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/login/AppConfigurationEntry.html): module flags và configuration.
-- [Java SE 21 — `Subject`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/Subject.html): principal/credential sets và read-only.
-- [Java SE 21 — `CallbackHandler`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/callback/CallbackHandler.html) và [`PasswordCallback`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/callback/PasswordCallback.html): lấy và dọn input.
-- [Oracle Java 21 — JAAS LoginModule Developer's Guide](https://docs.oracle.com/en/java/javase/21/security/java-authentication-and-authorization-service-jaas-loginmodule-developers-guide1.html): hai pha, initialize/login/commit/abort/logout.
-- [Oracle Java 21 — JAAS Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-authentication-and-authorization-service-jaas-reference-guide.html): control flags, JAAS config và Subject.
+- [Java SE 21 — `javax.security.auth.spi.LoginModule`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/spi/LoginModule.html): five-method contract, two-phase login, and boolean/exception results.
+- [Java SE 21 — `javax.security.auth.login.LoginContext`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/login/LoginContext.html): module orchestration, constructors, Subject, and logout.
+- [Java SE 21 — `Configuration`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/login/Configuration.html) and [`AppConfigurationEntry`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/login/AppConfigurationEntry.html): module flags and configuration.
+- [Java SE 21 — `Subject`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/Subject.html): principal/credential sets and read-only mode.
+- [Java SE 21 — `CallbackHandler`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/callback/CallbackHandler.html) and [`PasswordCallback`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/callback/PasswordCallback.html): retrieving and clearing input.
+- [Oracle Java 21 — JAAS LoginModule Developer's Guide](https://docs.oracle.com/en/java/javase/21/security/java-authentication-and-authorization-service-jaas-loginmodule-developers-guide1.html): two phases, initialize/login/commit/abort/logout.
+- [Oracle Java 21 — JAAS Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-authentication-and-authorization-service-jaas-reference-guide.html): control flags, JAAS config, and Subject.

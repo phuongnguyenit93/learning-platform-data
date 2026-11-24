@@ -1,47 +1,47 @@
-# 17.4 CallbackHandler tách thu thập thông tin đăng nhập khỏi cơ chế xác thực
+# 17.4 CallbackHandler Decouples Credential Collection from Authentication Logic
 
-Trong Java Authentication and Authorization Service (**JAAS**), người lập trình thường muốn xác thực một người dùng nhưng **không muốn mô-đun xác thực phụ thuộc trực tiếp vào giao diện nhập liệu**. Một ứng dụng desktop có ô mật khẩu, một chương trình dòng lệnh có `Console`, một web service nhận request đã qua HTTPS, và một service có secrets từ vault có cách thu thập thông tin rất khác nhau. Nếu mô-đun xác thực tự gọi `System.in`, tự hiển thị dialog hoặc đọc HTTP request, logic kiểm credentials sẽ bị buộc cứng vào môi trường và khó kiểm thử/thay đổi.
+In Java Authentication and Authorization Service (**JAAS**), developers often want to authenticate a user **without coupling the authentication module directly to an input UI**. A desktop app has a password field, a CLI program has `Console`, a web service receives requests over HTTPS, and a headless service pulls secrets from a vault—each collects credentials very differently. If the authentication module itself calls `System.in`, displays a dialog, or reads an HTTP request, credential verification logic becomes hardwired to the environment and difficult to test or change.
 
-**`javax.security.auth.callback.CallbackHandler` là ranh giới tách việc *cung cấp thông tin theo yêu cầu* khỏi việc *kiểm chứng thông tin và quyết định đăng nhập*.** `LoginModule` mô tả nó cần dữ liệu nào bằng các `Callback` như `NameCallback`, `PasswordCallback`; `CallbackHandler` của ứng dụng điền dữ liệu vào các callback đó; còn mô-đun xác thực kiểm chứng với nguồn tin cậy rồi báo thành công/thất bại cho `LoginContext`. Sau khi JAAS hoàn tất bước `commit()`, kết quả danh tính được thể hiện dưới dạng `Subject` và `Principal`.
+**`javax.security.auth.callback.CallbackHandler` is the boundary separating *providing requested information* from *verifying credentials and deciding login*.** The `LoginModule` declares what data it needs using `Callback`s such as `NameCallback` and `PasswordCallback`; the application's `CallbackHandler` fills in those callbacks; and the authentication module verifies them against a trusted source before reporting success or failure to `LoginContext`. Once JAAS completes `commit()`, the resulting identity is represented as a `Subject` and `Principal`s.
 
-Điểm mấu chốt:
+Key takeaway:
 
-> **Handler thu thập hoặc cung cấp credentials; LoginModule kiểm chứng credentials. Handler không tự biến dữ liệu đầu vào thành danh tính đáng tin.**
+> **The handler collects or supplies credentials; the `LoginModule` verifies credentials. The handler does not turn input data into a trusted identity on its own.**
 
-Bài học giải thích hợp đồng API, luồng đăng nhập, cách quản lý mật khẩu kiểu `char[]`, các tình huống callback không hỗ trợ, quan hệ với `login/commit/abort/logout`, trường hợp interactive và headless, và một chương trình **Java 17+** biên dịch/chạy độc lập. Ví dụ sử dụng dữ liệu giả **chỉ cho lab**, không phải hướng dẫn hard-code mật khẩu sản xuất.
+This lesson explains the API contract, login flow, handling `char[]` passwords, unsupported callback scenarios, the relationship with `login`/`commit`/`abort`/`logout`, interactive and headless cases, and a standalone compilable/runnable **Java 17+** program. The example uses mock data **for lab use only**, never as guidance for hardcoding production passwords.
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Hoàn thành bài này, bạn có thể:
+After completing this lesson, you will be able to:
 
-1. Mô tả vai trò của `LoginContext`, `Configuration`, `LoginModule`, `CallbackHandler`, `Callback`, `Subject` và `Principal` trong JAAS.
-2. Giải thích vì sao `NameCallback` chứa tên đăng nhập và `PasswordCallback` chứa credential dạng `char[]` nhưng **không làm nhiệm vụ xác thực**.
-3. Triển khai `CallbackHandler.handle(Callback[])` hỗ trợ đúng các loại callback đã được thỏa thuận và ném `UnsupportedCallbackException` nếu gặp loại không hỗ trợ.
-4. Xử lý `IOException`, `UnsupportedCallbackException`, `FailedLoginException`, `LoginException` và trường hợp người dùng hủy nhập liệu mà không trả thông báo lộ thông tin đăng nhập.
-5. Giải thích `PasswordCallback.setPassword()` / `getPassword()` / `clearPassword()`, sự tồn tại của **nhiều bản sao char[]** và yêu cầu xóa từng bản sao theo quyền sở hữu.
-6. Xây luồng JAAS `initialize → login → commit` hoặc `abort` và `logout`, biết khi nào `Principal` được thêm/loại khỏi `Subject`.
-7. Thay đổi nguồn credentials từ CLI sang UI, request hoặc secret manager mà không sửa logic xác thực cốt lõi.
-8. Phân biệt demo so sánh password trong RAM với hệ production phải có password hashing/KDF, rate limiting, TLS, MFA/challenge, audit và authorization.
-9. Viết test cho đăng nhập đúng/sai, handler thiếu, callback lạ, cleanup, logout và khả năng tái sử dụng cơ chế xác thực với nhiều handler.
+1. Describe the roles of `LoginContext`, `Configuration`, `LoginModule`, `CallbackHandler`, `Callback`, `Subject`, and `Principal` in JAAS.
+2. Explain why `NameCallback` holds a username and `PasswordCallback` holds a `char[]` credential yet **neither performs authentication**.
+3. Implement `CallbackHandler.handle(Callback[])` supporting the agreed callback types and throwing `UnsupportedCallbackException` for unsupported types.
+4. Handle `IOException`, `UnsupportedCallbackException`, `FailedLoginException`, `LoginException`, and user cancellation without returning error messages that leak login details.
+5. Explain `PasswordCallback.setPassword()` / `getPassword()` / `clearPassword()`, the existence of **multiple `char[]` copies**, and the requirement to wipe each copy according to ownership.
+6. Build the JAAS flow `initialize → login → commit` or `abort` and `logout`, knowing when a `Principal` is added to or removed from `Subject`.
+7. Swap credential sources from CLI to UI, web requests, or a secret manager without modifying core authentication logic.
+8. Distinguish an in-memory demo password comparison from a production system requiring password hashing/KDF, rate limiting, TLS, MFA/challenges, auditing, and authorization.
+9. Write tests for valid/invalid logins, missing handlers, unknown callbacks, cleanup, logout, and reusing the same authentication mechanism with multiple handlers.
 
-## 2. Vị trí của CallbackHandler trong kiến trúc JAAS
+## 2. Where `CallbackHandler` Fits in JAAS Architecture
 
-Một sơ đồ luồng điển hình:
+A typical flow diagram:
 
 ```text
-                     ỨNG DỤNG
+                   APPLICATION
        (CLI / desktop / web / worker / secret provider)
                           |
-                          | tạo CallbackHandler thích hợp
+                          | creates appropriate CallbackHandler
                           v
                  JAAS LoginContext
                           |
-                          | load LoginModule từ Configuration
+                          | loads LoginModule from Configuration
                           | initialize(Subject, handler, sharedState, options)
                           v
                      LoginModule
                           |
-                          | "Tôi cần tên đăng nhập và mật khẩu"
+                          | "I need username and password"
                           v
               Callback[] {NameCallback,
                           PasswordCallback}
@@ -50,48 +50,48 @@ Một sơ đồ luồng điển hình:
                           v
                    CallbackHandler
                           |
-               thu thập / lấy dữ liệu đầu vào
+               collects / fetches input data
                           |
                           | setName(...), setPassword(...)
                           v
                      LoginModule
                           |
-                verify với nguồn tin cậy
+                verifies against trusted source
                           |
           +---------------+----------------+
           |                                |
-       thành công                        thất bại
+        success                           failure
           |                                |
          commit()                        abort()
           |                                |
           v                                v
-    Subject có Principal             Không cấp danh tính
+    Subject has Principal            No identity granted
           |
        logout()
           |
-    Dọn Principal/credentials theo chính sách
+    Clean up Principals/credentials per policy
 ```
 
-Luồng hoạt động ngược với cách lập trình UI trực tiếp: **mô-đun xác thực chủ động yêu cầu thông tin thông qua callback object, còn ứng dụng quyết định làm thế nào để lấy thông tin đó**. Nhờ vậy cùng một `LoginModule` có thể sử dụng nhiều `CallbackHandler` khác nhau.
+The control flow reverses direct UI programming: **the authentication module actively requests data through callback objects, while the application decides how to obtain that data**. Thus the same `LoginModule` can work with many different `CallbackHandler`s.
 
-### Ranh giới trách nhiệm
+### Responsibility Boundaries
 
-| Thành phần | Nhiệm vụ | Không nên làm |
+| Component | Responsibility | Should Not Do |
 | --- | --- | --- |
-| `LoginContext` | Điều phối các LoginModule theo JAAS Configuration; thực hiện `login()` và `logout()` | Không tự hiển thị form hay xác minh password hash |
-| `Configuration` | Liệt kê LoginModule, control flags, options cho ứng dụng login | Không dùng làm kho mật khẩu plaintext |
-| `LoginModule` | Yêu cầu callbacks, xác minh credentials, xác định kết quả, đóng góp Principal/credentials vào Subject | Không gọi trực tiếp Swing/console/HTTP nếu muốn dùng lại |
-| `CallbackHandler` | Điền dữ liệu cho callback types được hỗ trợ; giao tiếp UI/secret source của ứng dụng | Không tự cấp Principal “đã xác thực” chỉ vì được nhập tên |
-| `NameCallback` | Mang prompt/default name và nhận tên bằng `setName` | Không thực hiện lookup tài khoản đáng tin |
-| `PasswordCallback` | Mang prompt/echo setting và nhận mật khẩu kiểu `char[]` | Không kiểm password hash hay tự bảo vệ credential ở nguồn bên ngoài |
-| `Subject` | Chứa tập Principal và public/private credentials đã được mô-đun thêm theo lifecycle | Không mặc định mọi Principal do bất kỳ code thêm đều đã được xác thực |
-| `Principal` | Đại diện cho một danh tính/name theo loại cụ thể | Không đại diện cho mật khẩu; không bao hàm mọi quyền |
+| `LoginContext` | Coordinates `LoginModule`s per JAAS `Configuration`; runs `login()` and `logout()` | Do not render forms or verify password hashes itself |
+| `Configuration` | Lists `LoginModule`s, control flags, and options for an application login | Do not use as a plaintext password store |
+| `LoginModule` | Requests callbacks, verifies credentials, determines outcome, contributes Principals/credentials to `Subject` | Do not call Swing/console/HTTP directly if reusability is desired |
+| `CallbackHandler` | Populates supported callback types; talks to the application's UI/secret source | Do not grant an "authenticated" Principal just because a name was entered |
+| `NameCallback` | Carries prompt/default name and receives the name via `setName` | Do not perform trusted account lookup |
+| `PasswordCallback` | Carries prompt/echo setting and receives a `char[]` password | Do not check password hashes or protect credentials in external sources |
+| `Subject` | Holds Principal and public/private credential sets added by modules per lifecycle | Do not assume any Principal added by arbitrary code is authenticated |
+| `Principal` | Represents a typed identity/name | Do not represent passwords; does not imply all permissions |
 
-**Nguồn dữ liệu đầu vào chưa đáng tin:** Nếu một HTTP client gửi username và password, CallbackHandler có thể copy chúng vào callbacks; nhưng dữ liệu chỉ thành kết quả authentication sau khi `LoginModule` kiểm chứng dựa trên nguồn **server-side** có quyền và `LoginContext` hoàn tất theo control flags.
+**Untrusted input sources:** When an HTTP client sends a username and password, `CallbackHandler` may copy them into callbacks; however, that data becomes an authentication result only after `LoginModule` verifies it against an authoritative **server-side** source and `LoginContext` succeeds per control flags.
 
-## 3. Interface CallbackHandler và hợp đồng gọi
+## 3. The `CallbackHandler` Interface and Invocation Contract
 
-Java 17 định nghĩa giao diện trung tâm:
+Java 17 defines the core interface:
 
 ```java
 public interface CallbackHandler {
@@ -100,10 +100,10 @@ public interface CallbackHandler {
 }
 ```
 
-Đây là chữ ký API, không phải file Java độc lập. Mỗi phần tử trong `Callback[]` mô tả một nhu cầu dữ liệu hoặc tương tác. Một handler thường duyệt từng phần tử và xử lý theo kiểu:
+This is the API signature, not a standalone Java file. Each element in `Callback[]` describes a data request or interaction. A handler typically iterates through each element like this:
 
 ```java
-// Minh họa trong một method của CallbackHandler, có username/secret hợp lệ.
+// Illustrative snippet inside a CallbackHandler method with valid username/secret.
 for (Callback callback : callbacks) {
     if (callback instanceof NameCallback name) {
         name.setName(username);
@@ -115,31 +115,31 @@ for (Callback callback : callbacks) {
 }
 ```
 
-**Handler không return một object credentials riêng.** Nó cập nhật các `Callback` được truyền vào. `LoginModule` lấy dữ liệu từ `NameCallback.getName()` và `PasswordCallback.getPassword()` sau khi `handle` trả về. Đây là cách tách **nguồn của dữ liệu** khỏi **cơ chế kiểm chứng**.
+**The handler does not return a separate credentials object.** It updates the passed-in `Callback`s. `LoginModule` reads the data from `NameCallback.getName()` and `PasswordCallback.getPassword()` after `handle` returns. This separates **where data comes from** from **how it is verified**.
 
-### Vì sao `Callback[]` là một mảng?
+### Why Is `Callback[]` an Array?
 
-LoginModule có thể cần nhiều thông tin trong một lần xử lý:
+A `LoginModule` may need multiple pieces of information in one interaction:
 
-- Tên đăng nhập (NameCallback).
-- Mật khẩu hoặc một bí mật nhạy cảm (PasswordCallback).
-- Chọn một realm hoặc phương án xác thực (ChoiceCallback).
-- Nhập thêm thông tin ít nhạy cảm (TextInputCallback).
-- Hiển thị cảnh báo/hướng dẫn (TextOutputCallback).
-- Xác nhận tiếp tục/hủy bỏ (ConfirmationCallback).
-- Các callback chuyên biệt hoặc tùy biến theo provider.
+- Username (`NameCallback`).
+- Password or sensitive secret (`PasswordCallback`).
+- Selecting a realm or authentication option (`ChoiceCallback`).
+- Entering additional less-sensitive text (`TextInputCallback`).
+- Displaying warnings or instructions (`TextOutputCallback`).
+- Confirming proceed/cancel (`ConfirmationCallback`).
+- Provider-specific or custom callbacks.
 
-Gọi handler với nhiều callback giúp UI có thể **gom thành một form duy nhất**. Tuy nhiên mỗi `CallbackHandler` phải công khai tập callback types nó thực sự xử lý. Việc nhận một callback lạ và âm thầm bỏ qua có thể khiến LoginModule tưởng đã nhận dữ liệu đầy đủ trong khi thực tế chưa có.
+Invoking the handler with multiple callbacks lets a UI **bundle them into a single form**. However, each `CallbackHandler` must explicitly define which callback types it actually handles. Receiving an unknown callback and silently ignoring it can trick `LoginModule` into thinking all inputs were gathered when they were not.
 
-### Không làm gì khi callback không hỗ trợ?
+### What If a Callback Is Unsupported?
 
-Hợp đồng chuẩn cho callback không hỗ trợ là ném `UnsupportedCallbackException`, có thể kèm callback gây lỗi. LoginModule có thể bắt lỗi rồi chuyển thành một `LoginException` phù hợp. **Đừng** coi callback không hiểu là “đăng nhập thành công” hoặc lặng lẽ trả null cho phần tử quan trọng.
+The standard contract for an unsupported callback is throwing `UnsupportedCallbackException`, optionally referencing the offending callback. `LoginModule` can catch it and convert it into an appropriate `LoginException`. **Never** treat an unrecognized callback as "login succeeded" or silently return null for a critical field.
 
-Nếu handler không thể lấy dữ liệu vì I/O, người dùng đóng màn hình, stream bị lỗi hoặc secret manager không khả dụng, nó có thể ném `IOException` hoặc cơ chế báo lỗi phù hợp với contract; mô-đun xác thực nên **fail closed**, không fallback sang tài khoản mặc định.
+If the handler cannot acquire data due to I/O, the user closing the screen, a broken stream, or an unavailable secret manager, it should throw `IOException` or report failure per contract; the authentication module must **fail closed**, never falling back to a default account.
 
-## 4. NameCallback: tên định danh không phải bằng chứng xác thực
+## 4. `NameCallback`: An Identifier Name Is Not Authentication Proof
 
-`NameCallback` thường chứa prompt cho tên đăng nhập và có thể có default name. Các API:
+`NameCallback` typically carries a username prompt and optionally a default name. Its API:
 
 ```java
 NameCallback callback = new NameCallback("User: ");
@@ -147,20 +147,20 @@ callback.setName("alice");
 String submittedName = callback.getName();
 ```
 
-Đây là ví dụ biểu diễn dữ liệu, chưa có phép xác thực. Tên `"alice"` do client cung cấp **không đủ** để kết luận caller là Alice.
+This example only passes data around; no authentication has happened. The name `"alice"` supplied by a client is **never enough** to conclude the caller is Alice.
 
-Lưu ý:
+Notes:
 
-- `getPrompt()` dành cho người dùng hoặc hệ thống cung cấp credentials; không để prompt điều khiển việc truy cập nguồn dữ liệu không tin cậy.
-- `getDefaultName()` là gợi ý UI nếu constructor có default; không phải danh tính được chứng minh.
-- Username là `String`, thường không được xem là password secret, nhưng có thể là PII; vẫn cần log/retention policy.
-- Normalize/canonicalize tên đăng nhập theo chính sách danh tính (Unicode, case, realm, tenant) **ở phía verifier**, không tự trim/lowercase mọi username tùy tiện.
-- Nếu credential store hỗ trợ nhiều tenant, không để handler chỉ đặt một tên rồi vô tình lookup sang tenant khác mà không xác thực tenant scope.
-- Không gán `Subject.getPrincipals().add(new UserPrincipal(name))` từ UI handler trước khi credential được kiểm chứng.
+- `getPrompt()` is meant for users or credential providers; never let prompts drive access to untrusted data sources.
+- `getDefaultName()` is a UI hint if the constructor supplied a default; it is not a verified identity.
+- A username is a `String`—usually not a password secret—yet it may be PII; still apply logging and retention policies.
+- Normalize/canonicalize usernames according to identity policy (Unicode, case, realm, tenant) **on the verifier side**, rather than arbitrarily trimming/lowercasing everywhere.
+- If a credential store supports multiple tenants, do not let a handler supply just a bare name and accidentally query another tenant without verifying tenant scope.
+- Never call `Subject.getPrincipals().add(new UserPrincipal(name))` from a UI handler before credentials are verified.
 
-## 5. PasswordCallback: truyền mật khẩu bằng char[] và giới hạn thực tế
+## 5. `PasswordCallback`: Passing Passwords as `char[]` and Practical Limits
 
-`PasswordCallback` có constructor `PasswordCallback(String prompt, boolean echoOn)`. Cờ `echoOn` là chỉ dẫn giao diện về việc có hiển thị ký tự người dùng nhập hay không; nó **không phải cơ chế mã hóa** và không ép mọi GUI/terminal phải tuân tuyệt đối nếu handler bỏ qua. Với mật khẩu, thông thường dùng `false`.
+`PasswordCallback` has the constructor `PasswordCallback(String prompt, boolean echoOn)`. The `echoOn` flag is a UI hint on whether typed characters should be displayed; it is **not an encryption mechanism** and does not force every GUI/terminal to obey if a handler ignores it. For passwords, `false` is standard.
 
 ```java
 PasswordCallback callback = new PasswordCallback("Password: ", false);
@@ -169,7 +169,7 @@ try {
     callback.setPassword(secret);
     char[] provided = callback.getPassword();
     try {
-        // Chỉ giao cho verifier hợp lệ; không log, không chuyển thành String.
+        // Pass only to a valid verifier; never log, never convert to String.
     } finally {
         if (provided != null) Arrays.fill(provided, '\0');
     }
@@ -179,21 +179,21 @@ try {
 }
 ```
 
-Đoạn trên là mã minh họa, cần import `java.util.Arrays` và `javax.security.auth.callback.PasswordCallback`. Đây là **secret giả** trong bài học, không phải password mẫu dùng sản xuất.
+This is an illustrative snippet requiring imports for `java.util.Arrays` and `javax.security.auth.callback.PasswordCallback`. This is a **mock secret** for the lesson, not a production password example.
 
-### Sao chép và xóa mật khẩu: phải nắm rõ ownership
+### Copying and Clearing Passwords: Know Ownership
 
-Với implementation JDK thông dụng:
+With the standard JDK implementation:
 
-1. `PasswordCallback.setPassword(char[])` lưu một **bản sao** của mảng truyền vào, không chiếm ownership mảng gốc.
-2. `PasswordCallback.getPassword()` trả một **bản sao** để bên nhận xử lý; caller phải tự xóa mảng này.
-3. `PasswordCallback.clearPassword()` xóa/ghi đè nội dung mật khẩu đang được giữ trong callback.
-4. Việc gọi `clearPassword()` **không** xóa mảng ban đầu trong UI/handler hoặc những bản sao mà `getPassword()` đã trả.
-5. Trong JDK 17 được thử nghiệm, sau `clearPassword()`, `getPassword()` có thể trả một mảng đã bị ghi đè bằng ký tự trắng thay vì `null`. Do đó **không kiểm “đã xóa” bằng biểu thức `getPassword() == null`**.
-6. Java không hứa xóa mọi bản sao do GC/runtime/native/UI/encoding có thể tạo; sử dụng `char[]` là phương án **giảm thời gian tồn tại** của plaintext trong bộ nhớ, không phải cam kết memory erasure tuyệt đối.
-7. Không nên chuyển mật khẩu sang `String` để tiện log/compare vì `String` bất biến và khó xóa có chủ đích. Hệ thống nhập liệu, thư viện HTTP hoặc framework có thể đã tạo String; cần hiểu nguồn và giảm bản sao ở những ranh giới bạn kiểm soát được.
+1. `PasswordCallback.setPassword(char[])` stores a **copy** of the passed array, without taking ownership of the caller's array.
+2. `PasswordCallback.getPassword()` returns a **copy** for the recipient to process; the caller must wipe this array itself.
+3. `PasswordCallback.clearPassword()` clears/overwrites the password held inside the callback.
+4. Calling `clearPassword()` **does not** wipe the original array in the UI/handler or copies previously returned by `getPassword()`.
+5. In the tested JDK 17 implementation, after `clearPassword()`, `getPassword()` may return an array overwritten with spaces rather than `null`. Therefore **do not check "cleared" via `getPassword() == null`**.
+6. Java does not promise to erase every copy created by GC/runtime/native/UI/encoding layers; using `char[]` **reduces the lifetime** of plaintext in memory, rather than guaranteeing absolute memory erasure.
+7. Avoid converting passwords into `String` for convenient logging or comparison because `String` is immutable and hard to wipe deliberately. Input layers, HTTP libraries, or frameworks may have already created Strings; understand your sources and minimize copies at boundaries you control.
 
-### Trình tự cleanup đúng
+### Proper Cleanup Sequence
 
 ```text
 UI/source secret char[]   --clone--> Handler-owned char[]
@@ -209,23 +209,23 @@ UI/source secret char[]   --clone--> Handler-owned char[]
                                   v
                              verifier
 
-Sau xử lý:
+After processing:
   - LoginModule Arrays.fill(localCopy, '\0')
   - LoginModule PasswordCallback.clearPassword()
   - Handler.close() Arrays.fill(ownedCredential, '\0')
   - Application Arrays.fill(sourceSecret, '\0')
 ```
 
-Không log nội dung của `PasswordCallback` hoặc dùng `Arrays.toString(password)`. Không đặt password trong exception message, `Subject.Principal`, JAAS config file, JVM system property hoặc field lưu dài hạn của LoginModule.
+Never log `PasswordCallback` contents or call `Arrays.toString(password)`. Never place passwords in exception messages, `Subject.Principal`, JAAS config files, JVM system properties, or long-lived fields of a `LoginModule`.
 
-## 6. Sự khác nhau giữa handler và verifier
+## 6. Difference Between Handler and Verifier
 
-Xem hai cách viết.
+Compare two styles.
 
-**Thiết kế kết dính (không khuyến nghị):**
+**Tightly coupled design (not recommended):**
 
 ```java
-// Chỉ minh họa anti-pattern, không phải chương trình độc lập.
+// Illustrates an anti-pattern only, not a standalone program.
 boolean login() {
     String name = console.readLine("User: ");
     char[] password = console.readPassword("Password: ");
@@ -233,41 +233,41 @@ boolean login() {
 }
 ```
 
-Mô-đun xác thực ở đây phụ thuộc vào `console`. Khi ứng dụng chạy trong servlet không có console, một bài test không có terminal, hoặc worker dùng secret manager, bạn phải sửa code xác thực.
+Here the authentication module depends directly on `console`. When the app runs in a servlet without a console, a headless test, or a worker using a secret manager, you have to rewrite authentication code.
 
-**Thiết kế tách biệt với JAAS:**
+**Decoupled design with JAAS:**
 
 ```text
 LoginModule:
     NameCallback + PasswordCallback
         -> handler.handle(...)
         -> verifier.verify(name, password)
-        -> commit Principal nếu authentication thành công
+        -> commit Principal if authentication succeeds
 
 CLI CallbackHandler:
     console.readLine/readPassword
 
 GUI CallbackHandler:
-    input từ form hiển thị theo UI framework
+    input from form rendered by UI framework
 
 Web CallbackHandler:
-    dữ liệu từ request đã qua HTTPS và session/auth flow đúng
+    data from request over HTTPS with proper session/auth flow
 
 Service CallbackHandler:
-    lấy secret từ vault hoặc identity bootstrap theo chính sách
+    fetches secret from vault or identity bootstrap per policy
 ```
 
-Verifier được xây từ **credential store đáng tin**; không lấy expected password từ cùng request đầu vào của attacker. CallbackHandler có thể được thay mà không phải thay policy kiểm chứng. Đây là lợi ích về **separation of concerns**, testability, portability và quản trị trust boundary.
+The verifier is backed by a **trusted credential store**; never read expected passwords from the attacker-controlled request itself. `CallbackHandler` can be swapped without changing verification policy. This provides **separation of concerns**, testability, portability, and clear trust boundaries.
 
-## 7. LoginContext và Configuration điều phối ra sao?
+## 7. How Do `LoginContext` and `Configuration` Orchestrate?
 
-`LoginContext` điều phối một hoặc nhiều `LoginModule` dựa trên `Configuration`. Một entry thường chứa:
+`LoginContext` coordinates one or more `LoginModule`s based on `Configuration`. An entry typically includes:
 
-- Tên class của LoginModule.
-- Control flag: `REQUIRED`, `REQUISITE`, `SUFFICIENT` hoặc `OPTIONAL`.
-- Options của module, chẳng hạn tên realm hoặc identifier của credential service, nhưng **không phải mật khẩu plaintext**.
+- The `LoginModule` class name.
+- Control flag: `REQUIRED`, `REQUISITE`, `SUFFICIENT`, or `OPTIONAL`.
+- Module options, such as a realm name or credential service identifier, **never plaintext passwords**.
 
-Ví dụ pseudo-config:
+Pseudo-config example:
 
 ```text
 sample {
@@ -276,38 +276,38 @@ sample {
 };
 ```
 
-Đây là **cú pháp ý tưởng** cho JAAS config; class trên chỉ là tên minh họa, không phải class có sẵn trong JDK. Chương trình hoàn chỉnh ở mục 10 dùng `Configuration` tạo bằng Java để không cần file ngoài.
+This is **conceptual syntax** for a JAAS config; the class name above is illustrative, not a built-in JDK class. The complete program in Section 10 builds `Configuration` in Java so no external file is needed.
 
-Ví dụ khởi tạo:
+Initialization example:
 
 ```java
-// Minh họa, giả sử subject/handler/config đều có nguồn tin cậy.
+// Illustrative; assumes subject/handler/config come from trusted sources.
 LoginContext loginContext =
         new LoginContext("sample", subject, handler, config);
 
-loginContext.login();             // điều phối LoginModule.login + commit/abort
+loginContext.login();             // orchestrates LoginModule.login + commit/abort
 Subject authenticated = loginContext.getSubject();
-loginContext.logout();            // gọi logout các modules đã tham gia
+loginContext.logout();            // calls logout on participating modules
 ```
 
-### Control flags ảnh hưởng kết quả tổng thể
+### Control Flags Affect the Overall Outcome
 
-| Flag | Ý nghĩa tóm tắt | Rủi ro khi hiểu sai |
+| Flag | Summary meaning | Risk when misunderstood |
 | --- | --- | --- |
-| `REQUIRED` | Module phải thành công; dù fail, các module khác trong chuỗi có thể vẫn được thử trước khi báo failure | Tưởng login thành công do module sau pass dù module required fail |
-| `REQUISITE` | Module phải thành công; failure thường làm toàn login kết thúc ngay | Bỏ qua việc fail closed cho bước bắt buộc |
-| `SUFFICIENT` | Thành công có thể cho phép kết thúc sớm nếu chưa có required/requisite failure cần xét | Dùng sai để bypass bước xác thực/kiểm chính sách bắt buộc |
-| `OPTIONAL` | Đóng góp vào policy tổng thể theo quy tắc JAAS; không mặc nhiên bắt buộc | Tưởng optional module đảm bảo MFA hoặc policy bắt buộc |
+| `REQUIRED` | Module must succeed; even on failure, subsequent modules in the chain may still run before reporting failure | Assuming login succeeded because a later module passed despite a required module failing |
+| `REQUISITE` | Module must succeed; failure typically terminates the overall login immediately | Skipping fail-closed checks on mandatory steps |
+| `SUFFICIENT` | Success may allow early completion if no prior required/requisite failure occurred | Misusing to bypass mandatory authentication or policy checks |
+| `OPTIONAL` | Contributes to overall policy per JAAS rules; not inherently mandatory | Assuming an optional module enforces MFA or mandatory policy |
 
-Kết quả **của một LoginModule** không đồng nghĩa kết quả **toàn bộ LoginContext** khi có nhiều module. Đừng tự lắp nhiều bước password/OTP bằng các control flags mà không hiểu xử lý lỗi, thứ tự, short-circuit và `commit/abort`. Một mô hình MFA đúng cần protocol và binding giữa các bước, không chỉ có hai ô nhập.
+The outcome **of one `LoginModule`** is not the outcome of the **entire `LoginContext`** when multiple modules exist. Do not cobble together password + OTP steps with control flags without understanding error handling, ordering, short-circuiting, and `commit/abort`. Real MFA needs protocol binding between factors, not just two input boxes.
 
-### CallbackHandler có thể được truyền vào nhiều modules
+### A `CallbackHandler` May Be Passed to Multiple Modules
 
-`LoginContext` có thể sử dụng cùng handler cho các LoginModule trong cấu hình, nhưng callback types mà mỗi module yêu cầu có thể khác. Nếu module mới yêu cầu `TextInputCallback` mà handler chỉ hỗ trợ Name/Password, `handle` có thể ném `UnsupportedCallbackException`. Đây là tín hiệu tích hợp phải cập nhật hoặc cấu hình lại handler **có chủ đích**, không phải lý do âm thầm bỏ qua bước mới.
+`LoginContext` may pass the same handler to multiple `LoginModule`s in a configuration, yet each module may request different callback types. If a newly added module requests `TextInputCallback` while the handler only supports Name/Password, `handle` should throw `UnsupportedCallbackException`. That is an integration signal to **deliberately update or reconfigure** the handler, not a reason to silently skip the new step.
 
-## 8. LoginModule lifecycle: initialize, login, commit, abort, logout
+## 8. `LoginModule` Lifecycle: `initialize`, `login`, `commit`, `abort`, `logout`
 
-Đối với `javax.security.auth.spi.LoginModule`, những phương thức cốt lõi:
+For `javax.security.auth.spi.LoginModule`, the core methods are:
 
 ```java
 void initialize(Subject subject, CallbackHandler handler,
@@ -318,25 +318,25 @@ boolean abort() throws LoginException;
 boolean logout() throws LoginException;
 ```
 
-Ý nghĩa:
+Meaning:
 
-1. `initialize` nhận `Subject`, handler, sharedState và options. Không nên lập tức công bố Principal chưa xác thực.
-2. `login` yêu cầu callbacks, kiểm credentials và ghi trạng thái tạm của module. Thành công chưa nhất thiết đồng nghĩa nên thêm Principal ngay; LoginContext còn xử lý kết quả nhiều modules.
-3. `commit` được gọi khi JAAS quyết định đăng nhập tổng thể thành công, mô-đun có thể thêm `Principal` và credentials thích hợp vào `Subject`.
-4. `abort` được gọi khi đăng nhập tổng thể thất bại; mô-đun phải bỏ state tạm và rollback những thay đổi đã commit nếu áp dụng.
-5. `logout` dọn identity/credentials mà module **chính nó** đã đóng góp, và kết thúc session theo hợp đồng.
+1. `initialize` receives `Subject`, handler, `sharedState`, and `options`. It must not immediately publish unauthenticated Principals.
+2. `login` requests callbacks, verifies credentials, and records temporary module state. Local success does not mean adding Principals immediately; `LoginContext` still evaluates other modules.
+3. `commit` is invoked when JAAS determines overall login succeeded; the module may add appropriate `Principal`s and credentials to `Subject`.
+4. `abort` is invoked when overall login fails; the module must discard temporary state and roll back committed changes if applicable.
+5. `logout` removes identities/credentials that **this module itself** contributed and ends the session per contract.
 
-**Chỉ commit sau xác thực.** Một nguyên nhân phổ biến của lỗi an ninh là handler được nhập username rồi thêm ngay Principal vào Subject, trong khi password check sau đó fail. Tách callback collection khỏi authentication và commit giúp tránh trạng thái danh tính nửa vời.
+**Commit only after authentication.** A common security bug is adding a Principal to `Subject` as soon as the handler supplies a username, while the subsequent password check fails. Separating callback collection from verification and commit prevents half-baked identity states.
 
-### Subject và Principal không phải nơi lưu mật khẩu
+### `Subject` and `Principal` Are Not Password Stores
 
-`Subject` có tập `Principal`, public credentials và private credentials. Mô-đun chỉ thêm những gì cần theo policy và có nghĩa rõ ràng. Đừng đưa mật khẩu plaintext vào Principal name hoặc permanent credential set chỉ vì dễ dùng lại. Với session/token, phải có lifecycle, quyền đọc/xóa, expiration, refresh và logout phù hợp.
+`Subject` holds `Principal`, public credential, and private credential sets. A module should add only what policy requires with clear semantics. Never put plaintext passwords into a Principal name or permanent credential set merely for convenience. For sessions/tokens, enforce lifecycles, read/delete permissions, expiration, refresh, and logout.
 
-Trong Java, `Subject` có thể bị đánh dấu read-only, khi đó thay đổi các tập dữ liệu có thể thất bại. LoginModule nên xử lý việc commit vào Subject read-only như lỗi cấu hình/policy thay vì âm thầm coi commit thành công.
+In Java, a `Subject` can be marked read-only, causing set modifications to fail. `LoginModule` should treat failing to commit into a read-only `Subject` as a configuration/policy error rather than silently claiming commit succeeded.
 
-## 9. Kiến trúc mẫu cho một ứng dụng thực
+## 9. Reference Architecture for a Real Application
 
-Giả sử hệ thống có ba nguồn:
+Suppose a system has multiple entry sources:
 
 ```text
 +---------------------+   +---------------------+
@@ -364,44 +364,44 @@ Giả sử hệ thống có ba nguồn:
         Principal                   no Principal
 ```
 
-Bạn có thể thay `DirectoryLoginModule` bằng module khác nếu contract callbacks/verification khác, hoặc thay UI handler mà giữ nguyên module. Tuy nhiên, việc “dùng chung” không được làm nhòe trust boundary: web request là dữ liệu attacker-controlled, còn stored password hash/secret verifier là dữ liệu được bảo vệ riêng. Handler không nên chọn arbitrary credential database endpoint do user gửi.
+You can swap `DirectoryLoginModule` for another module if the callback/verification contract differs, or swap UI handlers while keeping the module unchanged. However, "reuse" must never blur trust boundaries: web requests are attacker-controlled data, whereas stored password hashes/secret verifiers are protected data. A handler must never let user input pick arbitrary credential database endpoints.
 
-### Các interface/phân tầng dễ kiểm thử
+### Testable Interfaces and Layering
 
 ```text
-CredentialsProvider (thuộc tầng application/UI)
-    -> cung cấp username + char[] theo scope request
+CredentialsProvider (application/UI layer)
+    -> supplies username + char[] scoped to the request
 
-CallbackHandler (adapter JAAS)
-    -> dịch yêu cầu callback thành dữ liệu
+CallbackHandler (JAAS adapter)
+    -> translates callback requests into data
 
 LoginModule (orchestration/JAAS integration)
-    -> chọn verifier, biến kết quả thành JAAS state
+    -> selects verifier, maps result to JAAS state
 
 CredentialVerifier (server-side policy)
     -> password hashing/KDF, account state, lockout/rate limits, MFA
 
 Subject/Principal (authenticated identity)
-    -> authorization layer kiểm quyền nghiệp vụ
+    -> authorization layer checks business permissions
 ```
 
-Không bắt buộc triển khai tất cả thành class riêng trong mọi ứng dụng nhỏ; đây là cách nghĩ giúp thay đổi UI và credential backend mà không kéo thay đổi mật mã vào presenter.
+Small applications do not have to split every layer into separate classes; this mental model lets you change UI and credential backends without dragging cryptography into presenters.
 
-## 10. Java 17+ — chương trình độc lập kiểm chứng CallbackHandler
+## 10. Java 17+ — Standalone Program Verifying `CallbackHandler`
 
-Ví dụ dùng hoàn toàn **JDK 17**, không cần database, JAAS config file hay thư viện ngoài. Nó gồm:
+The example uses pure **JDK 17**, requiring no database, JAAS config file, or external libraries. It includes:
 
-- `UserPrincipal` kiểu Java record chứa **tên**, không chứa password.
-- `LabLoginModule` thực hiện yêu cầu `NameCallback`/`PasswordCallback` và một kiểm tra **giả lập**.
-- `FixedHandler` nạp thông tin vào callbacks, giữ bản sao `char[]` và triển khai `AutoCloseable` để xóa bản sao.
-- `Configuration` tạo trực tiếp trong code với một module `REQUIRED`.
-- `LoginContext` cho trường hợp đúng và sai; kiểm số Principal sau commit/logout/failure.
-- Test `UnsupportedCallbackException` cho loại callback không được hỗ trợ.
-- Test `PasswordCallback.clearPassword()` loại bỏ giá trị cũ mà **không dựa vào `getPassword() == null`**.
+- `UserPrincipal` as a Java record holding a **name**, never a password.
+- `LabLoginModule` requesting `NameCallback`/`PasswordCallback` and performing a **mock** check.
+- `FixedHandler` populating callbacks, holding a `char[]` copy, and implementing `AutoCloseable` to wipe its copy.
+- `Configuration` constructed directly in code with one `REQUIRED` module.
+- `LoginContext` for valid and invalid cases; checking Principal counts after commit/logout/failure.
+- Test for `UnsupportedCallbackException` on an unsupported callback type.
+- Test that `PasswordCallback.clearPassword()` removes the old value **without relying on `getPassword() == null`**.
 
-**Cảnh báo về credential giả:** chương trình có một password demo gắn trong source **chỉ để test sự tách biệt callback và login**. `Arrays.equals` và password hard-code **không** là thiết kế kiểm mật khẩu production. Một hệ thống thật phải gọi credential verifier đáng tin với password hashing/KDF, salt, rate limiting và account/MFA policy. Không đưa demo này vào Internet-facing authentication service.
+**Warning on mock credentials:** the program contains a demo password in source **solely to test decoupling callbacks from login**. `Arrays.equals` and hardcoded passwords are **not** a production password-verification design. Real systems must call a trusted credential verifier with password hashing/KDF, salts, rate limiting, and account/MFA policies. Never expose this demo as an Internet-facing authentication service.
 
-Lưu file **`JaasCallbackDemo.java`**:
+Save as **`JaasCallbackDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -616,14 +616,14 @@ public final class JaasCallbackDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 JaasCallbackDemo.java
 java JaasCallbackDemo
 ```
 
-**Stdout chính xác đã kiểm chứng với JDK 17 trong môi trường thử nghiệm:**
+**Verified exact stdout on JDK 17 in the test environment:**
 
 ```text
 Valid login: true
@@ -636,26 +636,26 @@ Unsupported callback rejected: true
 Original callback password removed: true
 ```
 
-### Vì sao chương trình hoạt động như vậy?
+### Why Does the Program Work This Way?
 
-1. `FixedHandler` chỉ biết `username`/`credential` đầu vào và hai loại callback mà nó hỗ trợ. Không có logic “mật khẩu hợp lệ hay không” trong handler.
-2. `LabLoginModule.login()` tự tạo `NameCallback` và `PasswordCallback`, yêu cầu handler điền dữ liệu, rồi mới so sánh với mock verifier. Đây là điểm đổi sang credential service thật trong ứng dụng production.
-3. `NameCallback.setName` và `PasswordCallback.setPassword` đưa dữ liệu vào callback objects. Sau `handle`, module lấy `getName()`/`getPassword()`. Dù có password, `Subject` chưa có Principal cho đến `commit`.
-4. `char[] submitted` do `getPassword` trả về được ghi đè trong `finally`. Mật khẩu callback được xóa bằng `clearPassword`, mật khẩu mà handler copy được xóa ở `close`, còn password nguồn do `main` giữ được xóa bằng `Arrays.fill`.
-5. `expected` là mật khẩu giả được dựng cục bộ trong module và xóa trước khi trả. **Đây không phải mật khẩu lưu trong một secure credential store**, và dùng `Arrays.equals` không phải password-verification design thích hợp trên server sản xuất.
-6. `commit` thêm `UserPrincipal("alice")` sau khi đã có kết quả xác thực. `logout` gỡ principal do module tạo. Nếu có nhiều module hoặc nhiều principal trùng nhau, code production cần quản lý ownership/phạm vi xóa cẩn thận hơn.
-7. Trường hợp password sai ném `FailedLoginException` rồi LoginContext thất bại; `Subject` demo vẫn có **0 Principal**. Đây là kiểm thử không cấp quyền sau failed login.
-8. `TextInputCallback` không được handler demo hỗ trợ; `handle` ném `UnsupportedCallbackException` đúng hợp đồng. Một handler thực muốn hỗ trợ OTP/challenge cần chính sách riêng, không thể chỉ thêm một nhánh trả text rồi coi đó là MFA.
-9. `PasswordCallback.clearPassword` không được kiểm bằng `getPassword() == null`. Test tạo một bản sao trước khi clear và xác nhận giá trị cũ không còn trong callback sau clear; đồng thời xóa mọi bản sao được code nắm giữ.
-10. `Configuration` tạo trực tiếp bằng Java chỉ để ví dụ dễ chạy. Trong hệ thống triển khai, configuration provider, module discovery, options và classpath có thể do application server/container quản lý.
+1. `FixedHandler` only knows the input `username`/`credential` and the two callback types it supports. There is no "is password valid" logic in the handler.
+2. `LabLoginModule.login()` creates `NameCallback` and `PasswordCallback`, asks the handler to populate them, and only then compares against the mock verifier. This is the seam to swap in a real credential service in production.
+3. `NameCallback.setName` and `PasswordCallback.setPassword` populate the callback objects. After `handle`, the module reads `getName()`/`getPassword()`. Even with the password present, `Subject` receives no Principal until `commit`.
+4. `char[] submitted` returned by `getPassword` is overwritten in `finally`. The callback password is cleared via `clearPassword`, the handler's copy is cleared in `close`, and `main`'s source password is wiped with `Arrays.fill`.
+5. `expected` is a mock password constructed locally inside the module and wiped before returning. **This is not a password stored in a secure credential store**, and `Arrays.equals` is not an appropriate password-verification design on a production server.
+6. `commit` adds `UserPrincipal("alice")` once authentication succeeds. `logout` removes the principal created by the module. With multiple modules or duplicate principals, production code must manage ownership/removal scope more carefully.
+7. The wrong-password case throws `FailedLoginException`, causing `LoginContext` to fail; the demo `Subject` remains at **0 Principals**. This verifies no identity is granted after a failed login.
+8. `TextInputCallback` is unsupported by the demo handler; `handle` throws `UnsupportedCallbackException` per contract. A real handler supporting OTP/challenges needs dedicated policies, not merely a text branch treated as MFA.
+9. `PasswordCallback.clearPassword` is not checked via `getPassword() == null`. The test takes a copy before clearing and confirms the old value is no longer in the callback afterward, while wiping every copy held by the test code.
+10. `Configuration` is constructed in Java only for self-contained execution. In deployed systems, configuration providers, module discovery, options, and classpath may be managed by an application server/container.
 
-### Giới hạn của ví dụ
+### Limitations of the Example
 
-Ví dụ không mở console hoặc kết nối mạng, không nạp user directory, không gọi password hashing service, không kiểm rate limit/MFA, không có concurrent sessions, không có thực thi authorization ngoài Subject, và không chứng minh credential lifecycle trong một web framework. Nó **kiểm chứng cơ chế callback và JAAS login lifecycle**, không phải xác thực người dùng Internet theo chuẩn production.
+The example does not open a console or network connection, does not query a user directory, does not call a password-hashing service, does not enforce rate limits/MFA, has no concurrent sessions, performs no authorization outside `Subject`, and does not demonstrate credential lifecycles inside a web framework. It **verifies the callback mechanism and JAAS login lifecycle**, not production-grade Internet user authentication.
 
-## 11. CallbackHandler cho CLI: Console và điều kiện không có terminal
+## 11. `CallbackHandler` for CLI: `Console` and Non-Terminal Environments
 
-Với CLI interactive, một handler có thể dùng `System.console()` để hỏi username/password. Ví dụ **mã minh họa**, không độc lập:
+For an interactive CLI, a handler can use `System.console()` to prompt for username/password. **Illustrative code**, not standalone:
 
 ```java
 Console console = System.console();
@@ -672,23 +672,23 @@ try {
 }
 ```
 
-Cần import `java.io.Console`, `java.io.IOException`, `java.util.Arrays` và giả sử `nameCallback`/`passwordCallback` đúng kiểu đã được cung cấp. Đây là một đoạn **trong handler**, không phải logic verifier.
+Import `java.io.Console`, `java.io.IOException`, and `java.util.Arrays`, assuming `nameCallback`/`passwordCallback` of the right types are provided. This belongs **inside a handler**, not verifier logic.
 
-Các lưu ý:
+Notes:
 
-- `System.console()` có thể trả `null` khi chạy trong IDE, CI, Docker, daemon, redirected stdin hoặc môi trường không có console tương tác. Không fallback sang `Scanner.nextLine()` đọc mật khẩu hiển thị trần một cách vô tình.
-- `Console.readPassword` hỗ trợ đọc mật khẩu tránh echo trên terminal phù hợp, nhưng vẫn cần bảo vệ môi trường, quyền truy cập process và lịch sử shell.
-- Có người dùng hủy hoặc EOF; không truyền `null` vào verifier rồi coi là password rỗng hợp lệ.
-- Một CLI handler có thể được gọi trên thread khác tùy framework; nếu UI chỉ chạy một thread, xử lý luồng đồng bộ/khóa input an toàn.
-- Không lưu password trong `String`, environment variable hoặc command-line arguments khi có thể tránh; các nguồn này có thể lộ qua process inspection, logs và core dumps.
+- `System.console()` can return `null` inside IDEs, CI, Docker, daemons, redirected stdin, or non-interactive environments. Do not accidentally fall back to `Scanner.nextLine()`, which echoes passwords in plaintext.
+- `Console.readPassword` disables echo on supported terminals, yet you must still protect the environment, process permissions, and shell history.
+- Users can cancel or send EOF; never pass `null` to a verifier and treat it as a valid empty password.
+- A CLI handler might be called on another thread depending on the framework; if a UI is single-threaded, synchronize/dispatch input safely.
+- Avoid passing passwords in `String`s, environment variables, or command-line arguments whenever possible; those sources can leak via process inspection, logs, and core dumps.
 
-## 12. CallbackHandler cho web và headless services
+## 12. `CallbackHandler` for Web and Headless Services
 
-Trong ứng dụng web, thông tin đăng nhập có thể đến từ request đã qua HTTPS, browser challenge, reverse proxy hoặc một identity provider. **CallbackHandler không tự kiểm TLS**, không bảo đảm request chính chủ và không thay CSRF/anti-automation/rate limiting.
+In web apps, credentials may arrive from an HTTPS request, browser challenge, reverse proxy, or identity provider. **`CallbackHandler` does not verify TLS itself**, does not verify request authenticity, and does not replace CSRF/anti-automation/rate-limiting protections.
 
-### Request-scoped handler
+### Request-Scoped Handler
 
-Một handler nhận username/char[] cho **một login attempt** nên có lifetime hẹp:
+A handler receiving username/`char[]` for **one login attempt** should have a narrow lifetime:
 
 ```text
 HTTPS request -> input validation -> request-scoped CallbackHandler
@@ -698,275 +698,275 @@ HTTPS request -> input validation -> request-scoped CallbackHandler
       -> request cleanup / wipe char[] / close handler
 ```
 
-Không để singleton handler giữ `username`/`password` từ nhiều request; có thể gây **credential mix-up** giữa users. Nên tạo handler/`LoginContext` mới theo request/session context và không dùng ThreadLocal không kiểm soát với async execution hoặc thread pools.
+Never let a singleton handler hold `username`/`password` across multiple requests; that causes **credential mix-ups** between users. Create a fresh handler/`LoginContext` per request/session context and avoid uncontrolled `ThreadLocal` usage with async execution or thread pools.
 
-### Headless service với vault
+### Headless Service with a Vault
 
-Một service có thể cần đăng nhập tới một hệ thống khác bằng secret đã được cấp từ vault/KMS/secret manager. Handler có thể xin password/token từ provider theo identity của workload, điền callback rồi xóa bản sao. LoginModule vẫn chịu trách nhiệm đưa dữ liệu đó tới verifier của hệ đích và bảo vệ trạng thái xác thực.
+A service may need to log in to another system using a secret issued by a vault/KMS/secret manager. The handler can request the password/token from the provider under the workload's identity, populate the callback, and wipe its copy. `LoginModule` remains responsible for passing that data to the target system's verifier and protecting authentication state.
 
-Không coi việc secret manager trả credential là chứng minh caller hiện tại đã được authorization. Dùng IAM, workload identity, scoping theo environment/tenant và audit retrieval. Nếu secret retrieval thất bại, handler báo lỗi rõ ràng ở kênh nội bộ và login fail closed, không dùng mật khẩu rỗng hoặc default backup credential.
+Do not treat the secret manager returning a credential as proof that the current caller is authorized. Enforce IAM, workload identity, environment/tenant scoping, and retrieval auditing. If secret retrieval fails, the handler should report an internal error clearly and login must fail closed—never fall back to an empty password or default backup credential.
 
-### Sự khác biệt khi dùng modern authentication
+### Differences When Using Modern Authentication
 
-JAAS `CallbackHandler` thường xuất hiện trong JDK security providers, application servers, Kerberos/SASL hoặc cơ chế login module tùy biến. Với OIDC/OAuth2/SAML, phần xác thực có thể do protocol/framework chuyên trách xử lý; đừng tự lấy access token và ép nó thành “password” cho `PasswordCallback` nếu không có adapter/protocol design rõ ràng.
+JAAS `CallbackHandler` commonly appears in JDK security providers, application servers, Kerberos/SASL, or custom login modules. For OIDC/OAuth2/SAML, authentication is usually handled by dedicated protocol frameworks; do not take an access token and shoehorn it into `PasswordCallback` as a "password" without an explicit adapter/protocol design.
 
-Tách thu thập credentials khỏi verifier là một **nguyên tắc kiến trúc**, không phải yêu cầu mọi ứng dụng hiện đại phải dùng JAAS làm gateway cho tất cả identity protocols.
+Separating credential collection from verification is an **architectural principle**, not a mandate that every modern app must use JAAS as the gateway for all identity protocols.
 
-## 13. Callback chuyên biệt: OTP, lựa chọn phương thức và MFA
+## 13. Specialized Callbacks: OTP, Method Selection, and MFA
 
-Ngoài Name/Password, JAAS cung cấp những callback khác. Chúng có **semantics khác nhau** và không nên diễn giải mọi giá trị nhập thành mật khẩu.
+Beyond Name/Password, JAAS provides other callbacks. They have **different semantics**, and not every input should be treated as a password.
 
-| Callback | Dữ liệu/vai trò | Ví dụ sử dụng |
+| Callback | Data / Role | Example usage |
 | --- | --- | --- |
-| `NameCallback` | Username hoặc identifier | Chọn danh tính người dùng |
-| `PasswordCallback` | Secret dạng `char[]`, tùy policy yêu cầu echo off | Mật khẩu/challenge response bí mật |
-| `TextInputCallback` | Input text thường | Nhập tên realm/thuộc tính; **cẩn thận nếu chứa OTP/secret** |
-| `TextOutputCallback` | Trình bày thông tin/thông báo | Thông báo policy, hướng dẫn |
-| `ChoiceCallback` | Chọn một/nhiều phương án trong danh sách | Chọn realm/auth method |
-| `ConfirmationCallback` | Xác nhận/cancel | Người dùng đồng ý tiếp tục |
-| `LanguageCallback` | Locale muốn dùng | UI nội địa hóa |
-| Callback đặc thù provider | Dữ liệu không được chuẩn hóa cho mọi module | Hardware token, challenge, key handle |
+| `NameCallback` | Username or identifier | Selecting user identity |
+| `PasswordCallback` | `char[]` secret, policy-controlled echo off | Password or secret challenge response |
+| `TextInputCallback` | Plain text input | Entering realm/attribute name; **be careful if used for OTP/secrets** |
+| `TextOutputCallback` | Displaying information/messages | Policy notices, instructions |
+| `ChoiceCallback` | Choosing one or more options from a list | Choosing realm/auth method |
+| `ConfirmationCallback` | Confirm/cancel | User agrees to proceed |
+| `LanguageCallback` | Desired locale | UI localization |
+| Provider-specific callback | Data not standardized across all modules | Hardware token, challenge, key handle |
 
-Với OTP hoặc WebAuthn/FIDO2, không chỉ “thêm một ô nhập” là có MFA. Cần xác minh challenge nonce, thời hạn, binding với attempt/user/session, replay resistance, rate limiting và trust model của authenticator. Nếu thông tin OTP là secret nhạy cảm, dùng loại dữ liệu/handler phù hợp và cleanup theo threat model; `TextInputCallback` dùng `String` có thể làm tăng secret lifetime.
+For OTP or WebAuthn/FIDO2, merely "adding another input box" is not MFA. You must validate challenge nonces, expiration, binding to the attempt/user/session, replay resistance, rate limiting, and the authenticator's trust model. If an OTP value is sensitive, use an appropriate data type/handler and clean it up per threat model; `TextInputCallback` uses `String`, which can lengthen secret lifetime.
 
-### Khi UI không hỗ trợ callback mới
+### When the UI Does Not Support a New Callback
 
-Khi nâng cấp LoginModule để cần một callback bổ sung, handler cũ nên trả `UnsupportedCallbackException`. Hệ thống cần phát hiện mismatch trong integration tests và rollout handler/client tương ứng; không “mặc định OTP pass” hoặc bỏ qua optional-looking prompt. Nếu một module bắt buộc callback để xác thực mà không thể thu thập dữ liệu, **login phải thất bại**.
+When upgrading a `LoginModule` to require an additional callback, older handlers should throw `UnsupportedCallbackException`. Integration tests must catch this mismatch and roll out updated handlers/clients accordingly; never "default OTP to pass" or skip a prompt that merely looks optional. If a module requires a callback to authenticate and cannot collect it, **login must fail**.
 
-## 14. Ngoại lệ và xử lý lỗi an toàn
+## 14. Exceptions and Safe Error Handling
 
-`CallbackHandler.handle` khai báo hai checked exceptions:
+`CallbackHandler.handle` declares two checked exceptions:
 
-- `IOException`: nguồn nhập liệu I/O hoặc hoạt động thu thập thông tin không thể hoàn thành, chẳng hạn console/vault/network adapter lỗi.
-- `UnsupportedCallbackException`: handler không hỗ trợ loại callback được yêu cầu.
+- `IOException`: input I/O or collection failed, such as a console/vault/network adapter error.
+- `UnsupportedCallbackException`: the handler does not support a requested callback type.
 
-Trong `LoginModule.login()`, thường chuyển ngoại lệ phù hợp thành `LoginException` (giữ cause nội bộ) rồi để LoginContext điều phối failure/abort. Credentials sai theo chính sách xác thực có thể ném `FailedLoginException`.
+Inside `LoginModule.login()`, convert these appropriately into `LoginException` (preserving the internal cause) so `LoginContext` orchestrates failure/abort. Invalid credentials per authentication policy should throw `FailedLoginException`.
 
-### Phân biệt ba loại thất bại
+### Distinguishing Three Failure Types
 
-| Tình huống | Bản chất | Hành vi đúng |
+| Situation | Nature | Proper behavior |
 | --- | --- | --- |
-| Username/password sai | Authentication failed | Từ chối và áp rate limiting/lockout policy |
-| Handler không hỗ trợ callback | Integration/configuration failure | Từ chối, ghi dấu lỗi nội bộ, sửa handler/module |
-| Không đọc được secret source | Availability/I/O failure | Từ chối theo policy, không fallback thiếu kiểm soát |
+| Wrong username/password | Authentication failed | Reject and enforce rate limiting/lockout policy |
+| Handler does not support callback | Integration/configuration failure | Reject, log internal error marker, fix handler/module |
+| Cannot read secret source | Availability/I/O failure | Reject per policy; no uncontrolled fallback |
 
-Đối với client không tin cậy, tránh phản hồi chi tiết “username tồn tại nhưng password sai” hoặc “vault key cho tenant X tồn tại”. Thông báo bên ngoài nên nhất quán và không tiết lộ người dùng/secret inventory; log nội bộ có loại lỗi, correlation ID và metadata đã làm sạch.
+For untrusted clients, avoid detailed responses like "username exists but password is wrong" or "vault key for tenant X exists." External messages should be consistent and reveal neither user nor secret inventory; internal logs record error types, correlation IDs, and sanitized metadata.
 
-### Cleanup trong mọi nhánh
+### Cleanup on Every Branch
 
-Trong demo, `finally` luôn dọn `submitted` và `PasswordCallback`, kể cả khi `handle` ném `IOException` hoặc `UnsupportedCallbackException`. Khi login thất bại, `abort` phải dọn trạng thái module; handler vẫn phải `close` và xóa buffer nó sở hữu.
+In the demo, `finally` always wipes `submitted` and `PasswordCallback`, even when `handle` throws `IOException` or `UnsupportedCallbackException`. When login fails, `abort` must clear module state; the handler must still `close` and wipe buffers it owns.
 
-**Đừng chỉ xóa password khi login thành công.** Credential thất bại vẫn nhạy cảm, thậm chí có thể là mật khẩu đúng của người dùng nhưng nhập nhầm username.
+**Do not wipe passwords only when login succeeds.** Failed credentials are still sensitive—and might even be a user's real password typed under the wrong username.
 
-### Tránh bắt ngoại lệ quá rộng để tuyên bố thành công
+### Avoid Broadly Catching Exceptions to Claim Success
 
-Không làm kiểu:
+Never do this:
 
 ```java
-// Anti-pattern, không phải chương trình độc lập.
+// Anti-pattern, not a standalone program.
 try {
     loginContext.login();
 } catch (Exception ignored) {
-    session.setAuthenticated(true); // NGUY HIỂM.
+    session.setAuthenticated(true); // DANGEROUS.
 }
 ```
 
-Ngoại lệ bất kỳ trong login phải khiến kết quả auth thất bại theo policy. Nếu application cần thông tin kỹ thuật để khắc phục, ghi log server-side an toàn, không phơi exception chain có secret.
+Any exception during login must fail authentication per policy. If the application needs technical details for troubleshooting, log safely on the server without exposing secret-bearing exception chains.
 
-## 15. Thread safety, vòng đời và khả năng tái nhập
+## 15. Thread Safety, Lifecycle, and Reentrancy
 
-Không nên mặc định một `CallbackHandler` là thread-safe. Interface chỉ quy định `handle(Callback[])`; nó **không** cam kết:
+Never assume a `CallbackHandler` is thread-safe by default. The interface only defines `handle(Callback[])`; it **does not** promise:
 
-- Handler không bị gọi đồng thời từ nhiều login attempts.
-- Một callback chỉ được điền một lần.
-- UI luôn có interactive thread.
-- Handler có quyền tiếp tục đọc secret sau khi login attempt kết thúc.
-- `Callback[]` chỉ chứa NameCallback và PasswordCallback mãi mãi.
-- `LoginModule` có thể reuse an toàn giữa request khác nhau.
+- The handler will not be called concurrently across login attempts.
+- A callback will only be populated once.
+- A UI always has an interactive thread.
+- The handler may continue reading secrets after the login attempt ends.
+- `Callback[]` will forever contain only `NameCallback` and `PasswordCallback`.
+- A `LoginModule` can be safely reused across different requests.
 
-Một handler có field `username`/`credential` thường nên **request-scoped hoặc attempt-scoped**. Nếu cần global credential provider, nên truyền vào một service thread-safe có trust boundary rõ, nhưng giữ secret data ngắn hạn trong từng instance.
+A handler holding `username`/`credential` fields should typically be **request-scoped or attempt-scoped**. If a global credential provider is needed, inject a thread-safe service with clear trust boundaries while keeping secret data short-lived per instance.
 
-### Nguy cơ race conditions
+### Race Condition Risks
 
-Giả sử singleton handler có `currentUsername` và `currentPassword` dùng chung. Request A đặt Alice rồi bị scheduler tạm dừng; request B ghi Bob vào cùng fields; sau đó handler của A chạy và có thể trả username Bob/password Alice hoặc ngược lại. Đây không chỉ là lỗi logic mà có thể tạo sự cố xác thực/định danh nghiêm trọng. Giải pháp: **không giữ request credentials trong state toàn cục**, bảo đảm snapshot theo attempt và quản lý cleanup đúng scope.
+Suppose a singleton handler shares `currentUsername` and `currentPassword` fields. Request A sets Alice and is preempted; Request B writes Bob into the same fields; then A's handler resumes and supplies Bob's username with Alice's password or vice versa. That is not just a logic bug—it can cause severe authentication/identity mix-ups. Fix: **never store request credentials in global state**, snapshot per attempt, and scope cleanup properly.
 
-### Không truy cập UI thread sai cách
+### Do Not Access UI Threads Incorrectly
 
-Desktop UI frameworks như Swing/JavaFX có quy tắc thread riêng. Một JAAS LoginModule có thể gọi handler từ worker thread; handler muốn hiển thị dialog phải điều phối tới UI thread hợp lệ mà không deadlock/đóng băng giao diện. Không dùng `System.console()` trong server process chỉ vì interface yêu cầu password.
+Desktop UI frameworks like Swing/JavaFX have strict thread rules. A JAAS `LoginModule` may invoke a handler from a worker thread; a handler displaying a dialog must dispatch to the proper UI thread without deadlocking or freezing the UI. Never call `System.console()` in a server process merely because an interface asks for a password.
 
-## 16. Password verifier sản xuất: đừng đặt niềm tin vào UI
+## 16. Production Password Verifiers: Do Not Trust the UI
 
-Handler có thể lấy secret “đúng định dạng” nhưng **điều đó không xác thực credential**. LoginModule/verifier phải dựa vào nguồn được bảo vệ và chính sách mật khẩu, thường:
+A handler may deliver a secret in the "right format," yet **that does not verify the credential**. The `LoginModule`/verifier must rely on a protected source and password policy, typically:
 
-1. Lấy tài khoản từ directory/database đã xác định theo tenant/realm và bảo vệ chống user enumeration.
-2. Lấy salted password verifier/hash, không lưu plaintext.
-3. Dùng password hashing/KDF có thông số thích hợp, ví dụ Argon2id, scrypt, bcrypt hoặc PBKDF2 theo tiêu chuẩn và khả năng thư viện/tổ chức. Không dùng SHA-256 đơn lẻ của password làm verifier production.
-4. So sánh theo cơ chế phù hợp, tránh nhánh timing leak đáng kể; đánh giá rehash/migration khi chính sách thay đổi.
-5. Có rate limiting, backoff/lockout có kiểm soát, giám sát brute force/credential stuffing và MFA khi cần.
-6. Kiểm trạng thái tài khoản/credential expiry/revocation, chống replay/challenge reuse theo protocol.
-7. Khi thành công, tạo Principal/session với phạm vi danh tính và quyền cụ thể; session và authorization do tầng ứng dụng quyết định.
-8. Không giữ password sau khi hoàn tất; clear callback và các bản sao do app kiểm soát.
-9. Không ghi password, hash/raw challenge response hoặc token vào logs/traces/exception messages.
-10. Đánh giá nguồn credentials đã đi qua HTTPS/secure channel; browser/password manager/IdP flows cần CSRF/session controls phù hợp.
+1. Look up the account from a tenant/realm-scoped directory/database with user-enumeration protections.
+2. Fetch a salted password verifier/hash; never store plaintext.
+3. Use a properly parameterized password hashing/KDF algorithm such as Argon2id, scrypt, bcrypt, or PBKDF2 per standards and organizational/library support. Never use a bare SHA-256 hash of a password as a production verifier.
+4. Compare safely to avoid significant timing leaks; plan rehashing/migration when policies change.
+5. Enforce rate limiting, controlled backoff/lockout, brute-force/credential-stuffing monitoring, and MFA where needed.
+6. Check account status, credential expiry/revocation, and protocol replay/challenge-reuse defenses.
+7. Upon success, create a Principal/session with explicit identity and scope; application layers govern sessions and authorization.
+8. Do not retain passwords after completion; clear callbacks and app-controlled copies.
+9. Never write passwords, raw hashes/challenge responses, or tokens to logs, traces, or exception messages.
+10. Ensure credential transport uses HTTPS/secure channels; browser/password-manager/IdP flows need appropriate CSRF and session controls.
 
-`Arrays.equals(submitted, expected)` trong Java demo chỉ là thao tác so hai mảng **giả** dễ đọc để chứng minh CallbackHandler không verify. Nó **không** thay thế password verifier KDF an toàn và không phải constant-time password protocol.
+`Arrays.equals(submitted, expected)` in the Java demo is merely an easy-to-read **mock** comparison proving `CallbackHandler` does not verify. It is **not** a substitute for a secure KDF password verifier or constant-time password protocol.
 
-## 17. Test strategy: kiểm module và handler độc lập
+## 17. Testing Strategy: Test Module and Handler Independently
 
-Để tận dụng kiến trúc tách biệt, nên có **ba lớp kiểm thử**.
+To leverage the decoupled architecture, maintain **three layers of tests**.
 
-### 17.1 Test riêng Handler
+### 17.1 Unit-Testing the Handler Alone
 
-Dùng callbacks mẫu, kiểm handler:
+Pass sample callbacks and verify the handler:
 
-- Điền đúng `NameCallback`.
-- Điền `PasswordCallback` với dữ liệu của đúng login attempt.
-- Ném `UnsupportedCallbackException` nếu gặp callback ngoài support.
-- Fail closed nếu nguồn credential không có hoặc handler đã đóng.
-- Không trả password của request khác khi có concurrent attempts.
-- Không làm lộ dữ liệu trong log hoặc exception.
-- Xóa buffer nó sở hữu sau `close`, kể cả khi `handle` thất bại.
+- Populates `NameCallback` accurately.
+- Populates `PasswordCallback` with data for the right login attempt.
+- Throws `UnsupportedCallbackException` on unsupported callbacks.
+- Fails closed when the credential source is unavailable or the handler is closed.
+- Never returns another request's password under concurrent attempts.
+- Never leaks data in logs or exceptions.
+- Wipes owned buffers after `close`, even if `handle` failed.
 
-### 17.2 Test riêng LoginModule
+### 17.2 Unit-Testing the `LoginModule` Alone
 
-Cấp fake handler cho module và fake credential verifier (hoặc lab verifier). Kiểm:
+Supply a fake handler and fake (or lab) credential verifier. Verify:
 
-- Login đúng -> `login()` thành công; `commit()` mới thêm Principal.
-- Login sai -> `FailedLoginException`/`LoginException`, không có authenticated Principal.
-- `PasswordCallback.getPassword()` trả null/empty -> authentication failure theo policy.
-- Handler ném `IOException`/`UnsupportedCallbackException` -> LoginException và cleanup.
-- `abort()` dọn state tạm khi module khác trong cùng LoginContext thất bại.
-- `logout()` gỡ đúng Principal do module tạo và không xóa identity của module khác.
-- Subject read-only -> commit thất bại có kiểm soát.
-- Credential verifier bị outage -> fail closed; không fallback sang password mặc định.
-- Password cleanup không chỉ chạy trong success branch.
+- Valid login → `login()` succeeds; only `commit()` adds the Principal.
+- Invalid login → `FailedLoginException`/`LoginException`, no authenticated Principal.
+- `PasswordCallback.getPassword()` returns null/empty → authentication fails per policy.
+- Handler throws `IOException`/`UnsupportedCallbackException` → `LoginException` and cleanup.
+- `abort()` cleans temporary state when another module in the same `LoginContext` fails.
+- `logout()` removes only Principals created by this module and leaves other modules' identities intact.
+- Read-only `Subject` → controlled commit failure.
+- Credential verifier outage → fails closed; never falls back to a default password.
+- Password cleanup runs on failure branches as well as success.
 
-### 17.3 Integration test LoginContext
+### 17.3 Integration Testing `LoginContext`
 
-Chạy JAAS Configuration thực:
+Run with a real JAAS `Configuration`:
 
-| Tình huống | Kỳ vọng |
+| Scenario | Expected Outcome |
 | --- | --- |
-| Handler đúng username/secret, module REQUIRED | `LoginContext.login()` thành công; Subject có Principal |
-| Handler sai password | LoginException; không cấp Principal |
-| Handler trả username khác tenant | Server-side verifier từ chối hoặc xác định đúng namespace, không trộn session |
-| Handler không hỗ trợ callback cần thiết | Login thất bại, log tích hợp an toàn |
-| Handler bị đóng trước khi login | I/O/integration failure, không xác thực |
-| Login thành công rồi logout | Principal/credentials do module sở hữu được dọn |
-| Multiple modules REQUIRED | Một required fail -> kết quả tổng thể fail |
-| MFA module bắt buộc | Không có callback/response hợp lệ -> fail |
-| Nhiều request đồng thời | Không rò credentials giữa attempts |
-| PasswordCallback clear | Giá trị cũ không còn trong callback-owned storage; caller-owned copies cũng được xóa |
-| LoginModule verifier lỗi mạng | Không tạo Principal thành công giả |
-| UI password hiển thị | Echo policy được handler/UI tuân, không log |
-| Reusable UI | Cùng LoginModule dùng handler CLI và handler web hợp đồng giống nhau |
+| Handler supplies valid username/secret, `REQUIRED` module | `LoginContext.login()` succeeds; `Subject` has Principal |
+| Handler supplies wrong password | `LoginException`; no Principal granted |
+| Handler supplies username from another tenant | Server-side verifier rejects or scopes to right namespace; no session mix-up |
+| Handler does not support required callback | Login fails; safe integration log recorded |
+| Handler closed before login | I/O/integration failure; no authentication |
+| Successful login followed by logout | Module-owned Principals/credentials are cleaned up |
+| Multiple `REQUIRED` modules | One required failure → overall failure |
+| Mandatory MFA module | Missing valid callback/response → fails |
+| Concurrent requests | No credential leakage across attempts |
+| `PasswordCallback` clear | Old value gone from callback-owned storage; caller-owned copies wiped too |
+| `LoginModule` verifier network error | No bogus successful Principal created |
+| UI password masking | Echo policy honored by handler/UI; no logging |
+| Reusable UI | Same `LoginModule` works with CLI and web handlers under the same contract |
 
-**Điều quan trọng:** test thành công không chỉ là “handler đã điền tên/password”; phải quan sát authentication result qua LoginContext/Subject. Ngược lại, một Subject chứa Principal do ứng dụng tự tạo không chứng minh LoginContext đã verify nếu dữ liệu được thêm ở sai chỗ.
+**Crucial point:** a passing test is not merely "the handler filled name/password"; inspect the authentication result through `LoginContext`/`Subject`. Conversely, a `Subject` holding an app-constructed Principal does not prove `LoginContext` verified it if added in the wrong place.
 
-## 18. Lỗi thường gặp và hướng sửa
+## 18. Common Mistakes and How to Fix Them
 
-| Sai lầm | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| `LoginModule` tự đọc `System.in`/UI trực tiếp | Không test/headless được, gắn chặt môi trường | Yêu cầu callbacks và truyền handler |
-| CallbackHandler tự quyết định “password đúng” | Lẫn data collection với credential verification | Đưa xác minh vào LoginModule/verifier đáng tin |
-| Tự thêm Principal trong handler | Có thể cấp danh tính trước xác thực | Chỉ commit Principal sau authentication |
-| Không gọi `setSSLParameters`? | Không liên quan bài JAAS | Không pha lẫn network TLS configuration với JAAS callbacks |
-| Handler bỏ qua callback lạ | Bước authentication mới có thể bị bypass/thiếu dữ liệu | Ném `UnsupportedCallbackException` |
-| Chỉ xử lý NameCallback mà bỏ PasswordCallback | Login nhận null/empty secret hoặc lỗi không rõ | Handler hỗ trợ đúng contract hoặc fail |
-| Chuyển char[] password thành String | Khó cleanup secret trong RAM | Giữ char[] khi API cho phép |
-| Chỉ gọi `clearPassword` | Bản sao trong handler/module vẫn còn | Xóa mọi buffer theo ownership |
-| Nghĩ `clearPassword` luôn cho `getPassword()==null` | Kiểm cleanup sai trong JDK17 | Kiểm contract overwrite, không đòi null |
-| Dùng `Arrays.equals` làm password verifier production | Thiếu hash/KDF/mitigation và policy | Dùng trusted password verifier |
-| Đặt password trong JAAS options | Rò secret qua config/log | Dùng secret manager/credential store |
-| Dùng singleton handler chứa request credentials | Race/cross-user credential mix-up | Handler per attempt, no global secret state |
-| Console null thì đọc secret bằng `Scanner` có echo | Lộ password trong console/log | Fail closed hoặc dùng input an toàn |
-| Lộ lỗi “tài khoản X tồn tại” | User enumeration | Thông báo chung; log nội bộ đã làm sạch |
-| `login()` fail vẫn gọi application authenticated | Bypass auth | Chỉ cấp session khi LoginContext.login thành công |
-| Không triển khai `abort/logout` đúng | Principal/credential bị giữ sai lifecycle | Dọn state và chỉ gỡ identity mình đã thêm |
-| Cho module tùy ý được handler request key/vault scope | SSRF/secret enumeration/tenant isolation lỗi | Allowlist trust realm/key lookup server-side |
-| Coi JAAS login = authorization | Người dùng authenticated có thể làm quá quyền | RBAC/ABAC theo tenant/resource/action |
-| Trộn handler đa mục đích không kiểm callback | Bỏ sót MFA/challenge và dễ misuse | Explicit supported callback types + integration tests |
-| Reuse Subject mutable chung giữa request | Trộn principal/session | Isolation và Subject lifecycle per security context |
+| `LoginModule` reads `System.in`/UI directly | Untestable/headless-incompatible, environment-locked | Request callbacks and pass a handler |
+| `CallbackHandler` decides "password is valid" | Mixes data collection with credential verification | Move verification into `LoginModule`/trusted verifier |
+| Handler adds a `Principal` itself | Can grant identity before verification | Commit Principals only after authentication |
+| Not calling `setSSLParameters`? | Unrelated to JAAS callbacks | Do not mix network TLS configuration with JAAS callbacks |
+| Handler ignores unknown callbacks | New auth steps silently bypassed or missing data | Throw `UnsupportedCallbackException` |
+| Handling `NameCallback` while skipping `PasswordCallback` | Login gets null/empty secret or unclear failure | Support full contract or fail |
+| Converting `char[]` password to `String` | Hard to clear secret from RAM | Keep `char[]` wherever API allows |
+| Calling only `clearPassword` | Copies in handler/module remain | Wipe every buffer per ownership |
+| Assuming `clearPassword` always yields `getPassword()==null` | Broken cleanup check on JDK 17 | Verify overwrite per contract, not null |
+| Using `Arrays.equals` as production password verifier | Missing hash/KDF/mitigations and policy | Use a trusted password verifier |
+| Putting passwords in JAAS options | Secret leaks via config/logs | Use a secret manager/credential store |
+| Singleton handler holding request credentials | Race/cross-user credential mix-up | Handler per attempt; no global secret state |
+| Console is null so reading secret via `Scanner` with echo | Password exposed in console/logs | Fail closed or use secure input |
+| Exposing "account X exists" errors | User enumeration | Generic client message; sanitized internal logs |
+| `login()` fails yet app marks session authenticated | Auth bypass | Grant session only when `LoginContext.login` succeeds |
+| Broken `abort`/`logout` implementation | Principals/credentials retained past lifecycle | Clean state and remove only own identities |
+| Letting untrusted handlers choose arbitrary key/vault scopes | SSRF/secret enumeration/tenant isolation bug | Allowlist trusted realms/key lookups server-side |
+| Treating JAAS login = authorization | Authenticated user can exceed privileges | Enforce RBAC/ABAC by tenant/resource/action |
+| Reusing multi-purpose handler without checking callbacks | Missed MFA/challenges and easy misuse | Explicit supported callback types + integration tests |
+| Reusing shared mutable `Subject` across requests | Mixed principals/sessions | Isolate and scope `Subject` lifecycle per security context |
 
-Trong hàng “`setSSLParameters`”, điểm nhấn là **không trộn logic các mô-đun an ninh khác nhau**: `SSLParameters` thuộc cấu hình JSSE/TLS, không phải API thu thập mật khẩu JAAS. Nếu cần TLS cho transport, cấu hình/kiểm tra ở tầng network, còn `CallbackHandler` phục vụ data handoff cho authentication module.
+In the "`setSSLParameters`" row, the point is **never mixing distinct security modules**: `SSLParameters` belongs to JSSE/TLS configuration, not JAAS password collection. Configure/verify TLS at the network layer, while `CallbackHandler` handles data handoff to the authentication module.
 
-## 19. Checklist triển khai an toàn
+## 19. Secure Deployment Checklist
 
-Trước khi đưa adapter JAAS vào môi trường thật, hãy xác nhận:
+Before shipping a JAAS adapter to production, confirm:
 
-1. **Thành phần nào yêu cầu callbacks?** LoginModule/provider phải có hợp đồng callback types, thứ tự/ý nghĩa rõ ràng và cơ chế failure.
-2. **Ai tạo handler?** Ứng dụng tạo handler theo request/attempt và truyền vào LoginContext; handler không nên giữ secret global.
-3. **Nguồn credential ở đâu?** UI, HTTPS request, vault hoặc token provider; scope, quyền và thời hạn dữ liệu rõ.
-4. **Input validation ở đâu?** Giới hạn kích thước/encoding, normalization theo policy; không để prompt/username biến thành path/URL query tùy ý.
-5. **Verifier có đáng tin?** Server-side credential store/password hash, policy độ mạnh, rate limits, lockout, MFA và monitoring.
-6. **Password ownership ra sao?** Liệt kê mọi char[]/String/encoded copies ở nguồn, callback, module và provider; wipe phần kiểm soát được.
-7. **Callback không được hỗ trợ xử lý thế nào?** Ném đúng exception và không cho login pass.
-8. **Các LoginModule được cấu hình ra sao?** Control flags và required checks không tạo bypass.
-9. **Principal được commit khi nào?** Chỉ sau successful authentication, không từ handler hoặc unauthenticated request.
-10. **Abort/logout có idempotent và đúng ownership?** Không để lại Principal/credential khi login fail hoặc logout.
-11. **Logging có an toàn?** Không in password, token, hash, credential store responses; có correlation ID, audit và giới hạn retention.
-12. **Concurrent attempts có cách ly?** Không reuse mutable handler/Subject sai scope.
-13. **Transport có an toàn?** HTTPS/TLS peer identity và session security áp dụng độc lập với JAAS.
-14. **Test âm đã có?** Sai password, unknown user/tenant, unsupported callback, null handler, vault outage, cancellation và concurrency.
-15. **UI hỗ trợ người dùng?** Echo off, accessibility/localization, cancel/timeout và thông báo lỗi không tiết lộ secret.
-16. **Identity được cấp quyền đúng?** Sau JAAS authentication, ứng dụng vẫn kiểm authorization cho tenant/resource/action.
-17. **Secrets có rotate/revoke?** Password reset, account disable, token/key rotation và login sessions phản ánh policy thực.
-18. **Provider/JDK có đặc tính riêng?** Kiểm trên đúng Java 17+ build, app server/container và cách JAAS Configuration được nạp.
-19. **Observability đo đúng?** Đo login result/failure reasons đã làm sạch, latency và callback integration errors, không thu password content.
-20. **Không tự chế protocol MFA:** Nếu cần OIDC/WebAuthn/OTP, dùng implementation chuẩn được review và binding đầy đủ, không chỉ đọc một String làm OTP.
+1. **Which component requests callbacks?** `LoginModule`/provider has a clear callback-type contract, ordering/semantics, and failure handling.
+2. **Who creates the handler?** Application creates a request/attempt-scoped handler and passes it to `LoginContext`; the handler holds no global secrets.
+3. **Where do credentials originate?** UI, HTTPS request, vault, or token provider; scope, permissions, and lifetime are explicit.
+4. **Where is input validation?** Size/encoding bounds, policy-driven normalization; never let prompts/usernames become arbitrary paths/URL queries.
+5. **Is the verifier trustworthy?** Server-side credential store/password hashes, strength policy, rate limits, lockouts, MFA, and monitoring.
+6. **How is password ownership tracked?** Inventory all `char[]`/String/encoded copies across source, callback, module, and provider; wipe what you control.
+7. **How are unsupported callbacks handled?** Throw the proper exception and never let login pass.
+8. **How are `LoginModule`s configured?** Control flags and required checks introduce no bypasses.
+9. **When are Principals committed?** Only after successful authentication, never from handlers or unauthenticated requests.
+10. **Are `abort`/`logout` idempotent and ownership-safe?** Leave no Principals/credentials behind on failed login or logout.
+11. **Is logging safe?** Never log passwords, tokens, hashes, or credential-store responses; include correlation IDs, audit events, and retention limits.
+12. **Are concurrent attempts isolated?** Never share mutable handlers or `Subject`s across scopes.
+13. **Is transport secure?** HTTPS/TLS peer identity and session security apply independently of JAAS.
+14. **Are negative tests present?** Wrong password, unknown user/tenant, unsupported callback, null handler, vault outage, cancellation, and concurrency.
+15. **Does the UI support users safely?** Echo off, accessibility/localization, cancel/timeout, and error messages that leak no secrets.
+16. **Is identity properly authorized?** After JAAS authentication, the application still checks authorization for tenant/resource/action.
+17. **Are secrets rotated/revoked?** Password resets, account disabling, token/key rotation, and login sessions reflect actual policy.
+18. **Are provider/JDK quirks verified?** Tested on exact Java 17+ builds, app servers/containers, and JAAS `Configuration` loading mechanisms.
+19. **Is observability measuring the right things?** Measure sanitized login outcomes/failure reasons, latency, and callback integration errors without capturing passwords.
+20. **No homegrown MFA protocols:** If OIDC/WebAuthn/OTP is required, use a reviewed standard implementation with full binding rather than reading a single String as an OTP.
 
-## 20. Bài tập thực hành
+## 20. Hands-On Exercises
 
-### Bài 1 — Thay nguồn credentials mà giữ nguyên verifier
+### Exercise 1 — Swap Credential Source While Keeping the Verifier
 
-Giữ `LabLoginModule` từ bài lab, viết một `CallbackHandler` khác nhận username/password từ một cấu trúc request object giả thay vì `FixedHandler`. Không sửa code xác minh của LoginModule. Kiểm login đúng/sai và các bản sao char[] được xóa theo đúng ownership.
+Keep `LabLoginModule` from the lab and write another `CallbackHandler` reading username/password from a mock request object instead of `FixedHandler`. Do not edit `LabLoginModule`'s verification code. Verify valid/invalid logins and confirm `char[]` copies are wiped per ownership.
 
-### Bài 2 — Callback không hỗ trợ
+### Exercise 2 — Unsupported Callback
 
-Gọi handler với `NameCallback` + `TextInputCallback`. Yêu cầu xử lý rõ ràng `UnsupportedCallbackException`, không im lặng bỏ qua. Nêu cách một hệ thống có thêm OTP nên rollout handler mới và policy MFA mà không tạo bypass.
+Invoke a handler with `NameCallback` + `TextInputCallback`. Require explicit `UnsupportedCallbackException` handling instead of silent ignoring. Outline how a system adding OTP should roll out new handlers and MFA policy without creating bypasses.
 
-### Bài 3 — Console có thể không tồn tại
+### Exercise 3 — Console May Not Exist
 
-Triển khai handler tương tác bằng `System.console()` và `readPassword()` trong CLI lab. Chạy ở terminal và IDE/CI headless. Khi console trả null, handler phản ứng thế nào? Vì sao không tự động đọc mật khẩu bằng echo-on?
+Implement an interactive handler using `System.console()` and `readPassword()` in a CLI lab. Run it both in a real terminal and in headless IDE/CI. When `console` returns null, how does the handler react? Why must it never automatically read passwords with echo enabled?
 
-### Bài 4 — Kiểm password copies
+### Exercise 4 — Inspecting Password Copies
 
-Dùng `PasswordCallback` và nhiều `char[]` độc lập. Thử sửa mảng nguồn sau `setPassword` rồi xem callback có bị thay không; thử sửa mảng trả về từ `getPassword` rồi xem bản lưu trong callback; gọi `clearPassword` và giải thích vì sao phải wipe cả bản sao tự quản. Không dùng password thật trong test.
+Use `PasswordCallback` and multiple independent `char[]` arrays. Mutate the source array after `setPassword` to verify whether the callback copy changes; mutate the array returned by `getPassword` to observe the callback's stored copy; call `clearPassword` and explain why self-managed copies must also be wiped. Never use real passwords in tests.
 
-### Bài 5 — Lifecycle JAAS
+### Exercise 5 — JAAS Lifecycle
 
-Thêm một `LoginModule` thứ hai với control flag `REQUIRED` mà trả failure. Kiểm `abort` của module đầu tiên được gọi và Subject không chứa Principal được coi là authenticated. Thử logic `commit` và `logout` với nhiều Principal để bảo đảm mỗi module chỉ xóa thông tin do nó đóng góp.
+Add a second `LoginModule` with the `REQUIRED` control flag that returns failure. Verify `abort` is called on the first module and `Subject` holds no Principals treated as authenticated. Test `commit` and `logout` with multiple Principals to ensure each module removes only what it contributed.
 
-### Bài 6 — Thiết kế CredentialVerifier sản xuất
+### Exercise 6 — Designing a Production `CredentialVerifier`
 
-Thay demo so sánh mảng bằng một fake interface `CredentialVerifier.verify(username, char[])`, sau đó phác thảo adapter thật dùng salted password hash/KDF, account state và rate limiting. Giải thích vì sao không nên truyền expected password qua CallbackHandler hay JAAS options và cách giảm user enumeration.
+Replace the demo array comparison with a fake interface `CredentialVerifier.verify(username, char[])`, then sketch a real adapter using salted password hashes/KDF, account status, and rate limiting. Explain why expected passwords must never travel through `CallbackHandler` or JAAS options, and how to curb user enumeration.
 
-### Bài 7 — Cách ly multi-tenant/concurrency
+### Exercise 7 — Multi-Tenant / Concurrency Isolation
 
-Dựng hai login attempts Alice/tenant A và Bob/tenant B chạy song song. Chứng minh một singleton mutable handler có thể làm credential mix-up. Viết test dùng handler per-attempt và trusted tenant context để ngăn trộn danh tính.
+Run two concurrent login attempts for Alice/tenant A and Bob/tenant B. Demonstrate how a singleton mutable handler can cause credential mix-ups. Write a test using per-attempt handlers and trusted tenant context to prevent identity cross-talk.
 
-### Bài 8 — Web application integration
+### Exercise 8 — Web Application Integration
 
-Thiết kế luồng HTTPS request → input adapter → JAAS LoginContext → Subject → session principal → authorization cho API. Nêu cách dọn char[] sau request, xử lý LoginException an toàn, CSRF/session fixation/MFA khi cần và tại sao JAAS Subject không tự cấp quyền đọc dữ liệu nghiệp vụ.
+Design the flow: HTTPS request → input adapter → JAAS `LoginContext` → `Subject` → session principal → API authorization. Explain how `char[]` is wiped after the request, how `LoginException` is handled safely, CSRF/session fixation/MFA where needed, and why a JAAS `Subject` alone does not grant access to business data.
 
-### Bài 9 — CallbackHandler không đồng nghĩa authentication
+### Exercise 9 — `CallbackHandler` Does Not Equal Authentication
 
-Một attacker gửi `username="admin"` và một password bất kỳ; handler điền Name/Password callbacks hoàn hảo. Tại sao ứng dụng vẫn phải từ chối? Vạch rõ điểm cần verifier, điểm commit Principal và điểm kiểm authorization.
+An attacker sends `username="admin"` and an arbitrary password; the handler populates Name/Password callbacks cleanly. Why must the application still reject the login? Pinpoint where verification occurs, where Principals are committed, and where authorization is checked.
 
-**Điều kiện đạt:** bạn có thể tạo một LoginModule **không phụ thuộc terminal, UI hoặc HTTP**, triển khai nhiều handlers cho những nguồn credentials khác nhau, xử lý callback types/exception đúng hợp đồng, bảo vệ dữ liệu nhạy cảm bằng cleanup theo ownership, và chỉ đưa Principal vào Subject sau khi JAAS xác thực thành công theo chính sách.
+**Completion criteria:** you can build a `LoginModule` **independent of terminal, UI, or HTTP**, implement multiple handlers for different credential sources, handle callback types/exceptions per contract, protect sensitive data via ownership-based cleanup, and add Principals to `Subject` only after JAAS authentication succeeds per policy.
 
-## 21. Tài liệu tham khảo
+## 21. References
 
-- [Java SE 17 — CallbackHandler](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/CallbackHandler.html): `handle(Callback[])`, `IOException` và `UnsupportedCallbackException`.
-- [Java SE 17 — Callback](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/Callback.html): marker interface cho yêu cầu tương tác.
-- [Java SE 17 — NameCallback](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/NameCallback.html): prompt và tên đăng nhập.
-- [Java SE 17 — PasswordCallback](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/PasswordCallback.html): `setPassword`, `getPassword`, `clearPassword`, echoOn.
-- [Java SE 17 — UnsupportedCallbackException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/UnsupportedCallbackException.html): callback types không được hỗ trợ.
-- [Java SE 17 — LoginContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/LoginContext.html): đăng nhập, đăng xuất và điều phối JAAS.
-- [Java SE 17 — LoginModule](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/spi/LoginModule.html): lifecycle `initialize/login/commit/abort/logout`.
-- [Java SE 17 — Configuration](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/Configuration.html) và [AppConfigurationEntry](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/AppConfigurationEntry.html): khai báo modules/control flags.
-- [Java SE 17 — Subject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/Subject.html): Principal, credentials và danh tính JAAS.
-- [Java SE 17 — Principal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Principal.html): đối tượng danh tính.
-- [Java SE 17 — JAAS Authentication Tutorial](https://docs.oracle.com/en/java/javase/17/security/jaas-authentication-tutorial.html): quan hệ LoginContext, LoginModule và CallbackHandler.
-- [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html): xác thực ứng dụng, responses, logging, MFA và brute-force controls.
-- [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html): salted password hashing/KDF, rehash và bảo vệ verifier.
+- [Java SE 17 — CallbackHandler](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/CallbackHandler.html): `handle(Callback[])`, `IOException`, and `UnsupportedCallbackException`.
+- [Java SE 17 — Callback](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/Callback.html): marker interface for interactive requests.
+- [Java SE 17 — NameCallback](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/NameCallback.html): prompt and username.
+- [Java SE 17 — PasswordCallback](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/PasswordCallback.html): `setPassword`, `getPassword`, `clearPassword`, `echoOn`.
+- [Java SE 17 — UnsupportedCallbackException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/callback/UnsupportedCallbackException.html): unsupported callback types.
+- [Java SE 17 — LoginContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/LoginContext.html): login, logout, and JAAS orchestration.
+- [Java SE 17 — LoginModule](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/spi/LoginModule.html): `initialize/login/commit/abort/logout` lifecycle.
+- [Java SE 17 — Configuration](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/Configuration.html) and [AppConfigurationEntry](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/AppConfigurationEntry.html): declaring modules and control flags.
+- [Java SE 17 — Subject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/Subject.html): Principals, credentials, and JAAS identity.
+- [Java SE 17 — Principal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Principal.html): identity object.
+- [Java SE 17 — JAAS Authentication Tutorial](https://docs.oracle.com/en/java/javase/17/security/jaas-authentication-tutorial.html): relationship between `LoginContext`, `LoginModule`, and `CallbackHandler`.
+- [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html): application authentication, responses, logging, MFA, and brute-force controls.
+- [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html): salted password hashing/KDF, rehashing, and verifier protection.

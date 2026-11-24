@@ -1,14 +1,14 @@
-# Kiểm tra Compilable và tái sử dụng CompiledScript với engine tương ứng
+# Checking Compilable and Reusing CompiledScript with the Corresponding Engine
 
-## 1. Vấn đề: có phải ScriptEngine nào cũng biên dịch trước được?
+## 1. Problem: Can Every ScriptEngine Precompile?
 
-Trong JSR 223 (\`javax.script\`), mọi \`ScriptEngine\` cung cấp khả năng đánh giá script thông qua \`eval(...)\`, nhưng **không phải engine nào cũng hỗ trợ biên dịch trước**. Khả năng này được công bố bằng interface tùy chọn \`javax.script.Compilable\`.
+In JSR 223 (\`javax.script\`), every \`ScriptEngine\` provides script evaluation via \`eval(...)\`, but **not every engine supports precompilation**. This capability is advertised through the optional \`javax.script.Compilable\` interface.
 
-Khi một script được thực thi nhiều lần, chẳng hạn quy tắc định giá, chuyển đổi dữ liệu hoặc xử lý sự kiện của plugin, việc phân tích cú pháp hay chuẩn bị chương trình lặp đi lặp lại có thể tốn tài nguyên. Một engine hỗ trợ \`Compilable\` cho phép tạo đối tượng \`CompiledScript\` để thực thi lại theo các \`Bindings\` hoặc \`ScriptContext\` phù hợp.
+When a script is executed repeatedly—such as pricing rules, data transformations, or plugin event handlers—repeatedly parsing or preparing the program can waste resources. An engine supporting \`Compilable\` allows creating a \`CompiledScript\` object to re-execute with appropriate \`Bindings\` or \`ScriptContext\` instances.
 
-Tuy nhiên, **compile không đồng nghĩa với biên dịch Java thành class file**, và không phải engine nào cũng tạo machine code. Cụ thể, cách compile, cache, tối ưu hóa và thread safety đều do implementation quyết định.
+However, **compiling does not mean compiling Java into a class file**, and not every engine generates machine code. Specifically, how compilation, caching, optimization, and thread safety work is determined by the implementation.
 
-Hai hợp đồng chính:
+Two main contracts:
 
 \`\`\`java
 public interface Compilable {
@@ -26,11 +26,11 @@ public abstract class CompiledScript {
 }
 \`\`\`
 
-\`getEngine()\` cho biết engine đã tạo ra đối tượng compiled script. Đây là mối liên hệ quan trọng: **CompiledScript thuộc về engine đã compile nó**, không phải một định dạng bytecode chung để tùy ý chuyển sang engine khác.
+\`getEngine()\` identifies the engine that created the compiled script object. This is an important relationship: **CompiledScript belongs to the engine that compiled it**, not a universal bytecode format that can be freely moved to another engine.
 
-## 2. Kiểm tra capability trước khi ép kiểu
+## 2. Checking Capability Before Casting
 
-Cách kiểm tra đúng trên Java 17+:
+The right way to check on Java 17+:
 
 \`\`\`java
 ScriptEngine engine = manager.getEngineByName("some-language");
@@ -46,27 +46,27 @@ if (!(engine instanceof Compilable compilable)) {
 CompiledScript compiled = compilable.compile(scriptSource);
 \`\`\`
 
-Đoạn này là mã tích hợp; \`manager\`, \`scriptSource\` và engine tương thích phải có sẵn. Có hai nhánh lỗi khác nhau:
+This snippet is integration code; \`manager\`, \`scriptSource\`, and a compatible engine must be available. There are two distinct failure branches:
 
-- **Không có engine**: \`getEngineByName(...)\` trả \`null\`; cần kiểm tra dependency, alias, service registration và class loader.
-- **Có engine nhưng không hỗ trợ \`Compilable\`**: không được ép kiểu cưỡng bức; có thể dùng \`eval\` trực tiếp hoặc từ chối feature nếu compile là bắt buộc.
+- **No engine found**: \`getEngineByName(...)\` returns \`null\`; check dependencies, aliases, service registration, and class loaders.
+- **Engine exists but does not support \`Compilable\`**: do not force a cast; you can use \`eval\` directly or reject the feature if compilation is mandatory.
 
-Một engine triển khai \`Compilable\` vẫn có thể ném \`ScriptException\` khi mã nguồn sai cú pháp hoặc không được engine chấp nhận. Ngoài ra, các lỗi từ implementation hoặc class loading phải được ghi nhận riêng theo nguồn gốc thực tế.
+An engine implementing \`Compilable\` can still throw \`ScriptException\` when source code has syntax errors or is rejected by the engine. In addition, implementation or class-loading errors must be recorded separately according to their actual origin.
 
-## 3. Biên dịch một lần và chạy nhiều lần
+## 3. Compile Once and Run Many Times
 
-Chu trình cơ bản:
+Basic lifecycle:
 
 \`\`\`text
-Script source + engine đã xác thực
+Script source + validated engine
               |
               v
        instanceof Compilable?
           /         \
-       không         có
+         no         yes
         |             |
-  eval trực tiếp   compile(source)
-  hoặc từ chối        |
+  eval directly    compile(source)
+    or reject         |
                       v
                 CompiledScript
                    /   |   \
@@ -75,18 +75,18 @@ Script source + engine đã xác thực
              context A/B/C
 \`\`\`
 
-Cách này hữu ích khi một tập script tương đối ổn định được gọi nhiều lần. Tính khả thi phải được đo bằng benchmark trong engine thực tế: compile có thể nhanh hoặc chậm, object compiled có thể chứa trạng thái hoặc tài nguyên đáng kể, và một số engine đã có cache riêng khi gọi \`eval\`.
+This approach is useful when a relatively stable set of scripts is invoked repeatedly. Its benefit must be measured with benchmarks on the actual engine: compilation can be fast or slow, a compiled object may hold significant state or resources, and some engines already maintain an internal cache during \`eval\`.
 
-Sự tách biệt cần nhớ:
+Key distinctions to remember:
 
-- **Compile** chuẩn bị biểu diễn có thể tái thực thi của script.
-- **Eval** thực sự thực thi script và có thể tạo side effect.
-- **Bindings/ScriptContext** cung cấp đầu vào, state và I/O của lần thực thi.
-- **Engine** vẫn là môi trường/ngữ nghĩa cụ thể. Một compiled script không sống độc lập với engine chỉ vì host giữ reference tới nó.
+- **Compile** prepares a re-executable representation of the script.
+- **Eval** actually executes the script and may produce side effects.
+- **Bindings/ScriptContext** provides inputs, state, and I/O for a given execution.
+- **Engine** remains the specific environment and semantics. A compiled script does not live independently of its engine merely because the host holds a reference to it.
 
-## 4. Bindings và ScriptContext khi thực thi lại
+## 4. Bindings and ScriptContext on Re-execution
 
-JSR 223 cung cấp ba dạng thường dùng:
+JSR 223 provides three commonly used forms:
 
 \`\`\`java
 compiled.eval();
@@ -94,16 +94,16 @@ compiled.eval(bindings);
 compiled.eval(context);
 \`\`\`
 
-Ý nghĩa:
+Meaning:
 
-1. **\`eval()\`**: thực thi theo context mặc định của engine, vì vậy có nguy cơ sử dụng state đã được đặt từ lần trước nếu engine/context được chia sẻ.
-2. **\`eval(Bindings)\`**: cung cấp \`ENGINE_SCOPE\` bindings riêng cho một lần đánh giá theo hợp đồng \`CompiledScript\`. Phù hợp khi muốn truyền biến khác nhau qua các lần gọi.
-3. **\`eval(ScriptContext)\`**: truyền context với bindings theo scope, \`Reader\`, \`Writer\` và \`ErrorWriter\` cụ thể, giúp kiểm soát môi trường thực thi.
+1. **\`eval()\`**: executes against the engine's default context, which risks reusing state left behind from a previous run if the engine/context is shared.
+2. **\`eval(Bindings)\`**: supplies a dedicated \`ENGINE_SCOPE\` bindings for a single evaluation per the \`CompiledScript\` contract. Suitable when passing different variables across invocations.
+3. **\`eval(ScriptContext)\`**: passes a context with scoped bindings and specific \`Reader\`, \`Writer\`, and \`ErrorWriter\`, giving full control over the execution environment.
 
-Một mẫu tích hợp:
+An integration pattern:
 
 \`\`\`java
-// Đoạn tích hợp; compiled được tạo bởi engine phù hợp.
+// Integration snippet; compiled is created by a compatible engine.
 Bindings first = compiled.getEngine().createBindings();
 first.put("amount", 10);
 
@@ -114,15 +114,15 @@ Object a = compiled.eval(first);
 Object b = compiled.eval(second);
 \`\`\`
 
-Đoạn script phải thực sự sử dụng biến \`amount\` theo cú pháp của ngôn ngữ engine. Không có cú pháp biến hoặc phép tính chung cho mọi ngôn ngữ được tích hợp qua JSR 223.
+The script must actually use the variable \`amount\` according to the engine language's syntax. There is no universal variable syntax or operation across all languages integrated via JSR 223.
 
-**Bindings không tạo sandbox.** Khi đưa object Java vào bindings, script có thể truy cập các khả năng của object theo quy tắc interop và security policy của engine. Không dùng chung mutable bindings giữa nhiều request hoặc tenant nếu chưa kiểm soát concurrency và quyền truy cập.
+**Bindings do not create a sandbox.** When placing a Java object into bindings, the script can access that object's capabilities according to the engine's interop rules and security policy. Do not share mutable bindings across multiple requests or tenants without controlling concurrency and access rights.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh, không phụ thuộc engine bên ngoài
+## 5. Complete Java 17+ Example Without External Engine Dependencies
 
-JDK 17 trở lên không bắt buộc có JavaScript engine JSR 223. Để minh họa chính xác API compile và eval trên bất kỳ JDK 17+ thông thường nào có module \`java.scripting\`, chương trình dưới đây tạo một engine cực nhỏ **chỉ hỗ trợ phép cộng hai biến nguyên \`a + b\`**. Đây là engine học tập, không phải JavaScript engine hay parser tổng quát.
+JDK 17 and later do not require a bundled JSR 223 JavaScript engine. To demonstrate the exact compile and eval APIs on any standard JDK 17+ containing the \`java.scripting\` module, the program below creates a minimal engine that **only supports adding two integer variables \`a + b\`**. This is a learning engine, not a JavaScript engine or a general-purpose parser.
 
-Lưu thành **\`CompiledScriptDemo.java\`**:
+Save as **\`CompiledScriptDemo.java\`**:
 
 \`\`\`java
 import java.io.Reader;
@@ -165,7 +165,7 @@ public class CompiledScriptDemo {
 
         @Override
         public ScriptEngineFactory getFactory() {
-            return null; // Không đăng ký factory: chỉ là ví dụ nội bộ.
+            return null; // Do not register a factory: internal example only.
         }
 
         @Override
@@ -242,7 +242,7 @@ public class CompiledScriptDemo {
 }
 \`\`\`
 
-Chạy:
+Run:
 
 \`\`\`bash
 javac CompiledScriptDemo.java
@@ -257,139 +257,139 @@ first: 15
 second: 15
 \`\`\`
 
-Trong ví dụ này, \`compile("a + b")\` xác minh biểu thức một lần rồi trả object giữ reference tới đúng \`AddEngine\`. Hai lần \`eval(Bindings)\` sử dụng các bộ biến khác nhau nhưng cùng logic đã compile.
+In this example, \`compile("a + b")\` validates the expression once and returns an object holding a reference to the exact \`AddEngine\`. The two \`eval(Bindings)\` calls use different variable sets with the same compiled logic.
 
-Ví dụ chỉ minh họa hợp đồng API. \`getFactory()\` trả \`null\` vì không công bố engine qua \`ScriptEngineManager\`; một engine production cần \`ScriptEngineFactory\` đúng quy tắc, quản lý script language đầy đủ, validation, resource lifecycle và security.
+This example only demonstrates the API contract. \`getFactory()\` returns \`null\` because the engine is not published via \`ScriptEngineManager\`; a production engine needs a proper \`ScriptEngineFactory\`, full script language handling, validation, resource lifecycle management, and security.
 
-## 6. Có được dùng CompiledScript với engine khác không?
+## 6. Can a CompiledScript Be Used with Another Engine?
 
-**Không được xem \`CompiledScript\` là artifact trung lập.** API \`CompiledScript.getEngine()\` trả về engine đã compile script, và \`eval(...)\` là method trên chính compiled artifact này.
+**Do not treat \`CompiledScript\` as an engine-neutral artifact.** The \`CompiledScript.getEngine()\` API returns the engine that compiled the script, and \`eval(...)\` is a method on that compiled artifact itself.
 
-Ví dụ tư duy:
+Mental model:
 
 \`\`\`text
 Engine A --compile--> CompiledScript A --eval(context A)--> result
 Engine B --compile--> CompiledScript B --eval(context B)--> result
 \`\`\`
 
-Không có API chuẩn \`engineB.eval(compiledFromA)\`. Hai engine có thể có cú pháp, kiểu dữ liệu, namespace, host interop và biểu diễn nội bộ khác nhau. Ngay cả hai instance của **cùng một implementation** cũng không mặc nhiên chia sẻ compiled object: chúng có thể chứa runtime context, cache hoặc bytecode độc lập.
+There is no standard \`engineB.eval(compiledFromA)\` API. Two engines may have different syntax, data types, namespaces, host interop, and internal representations. Even two instances of **the same implementation** do not inherently share compiled objects: they may hold independent runtime contexts, caches, or bytecode.
 
-Tái sử dụng hợp lệ thường là:
+Valid reuse generally involves:
 
-- Cùng \`CompiledScript\` và engine tương ứng.
-- Các \`Bindings\`/\`ScriptContext\` mới được engine chấp nhận.
-- Bối cảnh phiên bản engine và ngôn ngữ không đổi.
-- Điều kiện thread safety được đảm bảo theo tài liệu engine.
-- Thời gian sống của compiled object không vượt quá vòng đời engine/plugin.
+- The same \`CompiledScript\` and its corresponding engine.
+- Fresh \`Bindings\`/\`ScriptContext\` objects accepted by the engine.
+- Unchanged engine and language version context.
+- Thread-safety guarantees satisfied per the engine's documentation.
+- A compiled object lifetime that does not outlive the engine/plugin lifecycle.
 
-Với hot reload, engine hoặc class loader mới cần **compile lại từ source** trong môi trường mới. Không cố ép reference của engine cũ sang runtime mới.
+With hot reload, a new engine or class loader must **recompile from source** in the new environment. Do not attempt to carry over references from the old engine into the new runtime.
 
-## 7. Caching compiled script an toàn
+## 7. Safe Compiled Script Caching
 
-Một cache thường cần khóa gồm nhiều thành phần:
+A cache typically requires a composite key:
 
 \`\`\`text
 (engine identity/version,
  language version,
  script id + source digest,
  compile options,
- tenant/security scope nếu ảnh hưởng compilation)
+ tenant/security scope if it affects compilation)
 \`\`\`
 
-Nếu chỉ dùng \`scriptId\`, cache có thể trả artifact từ engine phiên bản cũ khi host cập nhật plugin. Nếu source thay đổi mà ID không đổi, kết quả cũng sai. Với multi-tenant, một số script chỉ thuộc tenant nhất định; phải bảo đảm key và quyền truy cập được áp dụng trước khi trả compiled artifact.
+If you only use \`scriptId\`, the cache may return an artifact from an older engine version after the host updates a plugin. If the source changes without the ID changing, results will also be wrong. In multi-tenant systems, certain scripts belong only to specific tenants; keys and access permissions must be enforced before returning a compiled artifact.
 
-Các chính sách cần có:
+Necessary policies:
 
-1. **Compile on demand** hoặc warm-up cho script đã duyệt, tránh compile vô hạn khi người dùng gửi script tùy ý.
-2. **Bounded cache** theo số lượng, memory footprint, TTL hoặc quota phù hợp. Không giữ mọi compiled script mãi mãi.
-3. **Single-flight compile** nếu nhiều request cùng yêu cầu một script chưa cache, nhưng bảo đảm cơ chế này không gây deadlock.
-4. **Invalidate** khi source, engine version, compile options, security policy hay plugin layer thay đổi.
-5. **Cleanup** khi vô hiệu hóa engine; xóa reference tới \`CompiledScript\`, \`ScriptEngine\`, \`Bindings\` và loader để tránh giữ tài nguyên/hot-reload leak.
-6. **Metrics**: compile latency, eval latency, cache hit/miss, lỗi parse/runtime và memory usage.
+1. **Compile on demand** or warm up approved scripts, avoiding unbounded compilation when users submit arbitrary scripts.
+2. **Bounded cache** by entry count, memory footprint, TTL, or appropriate quota. Do not keep every compiled script forever.
+3. **Single-flight compile** when multiple requests concurrently ask for an uncached script, ensuring this mechanism cannot deadlock.
+4. **Invalidate** when source, engine version, compile options, security policy, or plugin layer changes.
+5. **Cleanup** when disabling an engine; clear references to \`CompiledScript\`, \`ScriptEngine\`, \`Bindings\`, and loaders to avoid resource/hot-reload leaks.
+6. **Metrics**: compile latency, eval latency, cache hit/miss, parse/runtime errors, and memory usage.
 
-**Không đồng nhất cache thread-safe với eval thread-safe.** Một \`ConcurrentHashMap\` có thể bảo vệ cấu trúc cache, nhưng object \`CompiledScript\`/engine lấy ra có thể không được phép đánh giá đồng thời. Cần tuân thủ concurrency contract của engine: đồng bộ hóa, tạo engine/context theo request hoặc giữ pool instance phù hợp.
+**Do not equate a thread-safe cache with thread-safe eval.** A \`ConcurrentHashMap\` can protect the cache structure, but the retrieved \`CompiledScript\`/engine object may not support concurrent evaluation. Follow the engine's concurrency contract: synchronize calls, create an engine/context per request, or maintain an appropriate instance pool.
 
-## 8. Trạng thái và vấn đề concurrency
+## 8. State and Concurrency Issues
 
-Không có bảo đảm chung rằng mọi \`ScriptEngine\` hoặc \`CompiledScript\` của mọi nhà cung cấp đều thread-safe. Một số implementation lưu biến, function, compiled state hoặc global object trong engine.
+There is no universal guarantee that every \`ScriptEngine\` or \`CompiledScript\` from every vendor is thread-safe. Some implementations store variables, functions, compiled state, or global objects inside the engine.
 
-JSR 223 cho phép engine công bố thông tin concurrency qua:
+JSR 223 allows an engine to advertise concurrency information via:
 
 \`\`\`java
 Object threading =
         engine.getFactory().getParameter("THREADING");
 \`\`\`
 
-Một số giá trị theo convention gồm \`MULTITHREADED\`, \`THREAD-ISOLATED\` và \`STATELESS\`. Nếu giá trị \`null\`, không thể mặc định engine hỗ trợ thực thi concurrent. Metadata này cần được đọc cùng tài liệu phiên bản thực tế; không thay thế kiểm thử race và state isolation.
+Conventional values include \`MULTITHREADED\`, \`THREAD-ISOLATED\`, and \`STATELESS\`. If the value is \`null\`, you cannot assume the engine supports concurrent execution. This metadata must be read alongside the actual version's documentation; it is not a substitute for race and state-isolation testing.
 
-Nếu cache một compiled script nhưng đồng thời chạy cho nhiều request:
+If caching a compiled script while running concurrently across multiple requests:
 
-- Tách \`Bindings\` giữa các request.
-- Không truyền mutable Java objects dùng chung nếu không có đồng bộ hóa.
-- Giới hạn số lần \`eval\` song song theo khả năng engine.
-- Không chia sẻ context tenant A cho tenant B.
-- Khôi phục thread-local/MDC/context class loader sau mỗi lời gọi plugin nếu có thay đổi.
-- Không để timeout/cancellation khiến request kết thúc nhưng engine tiếp tục giữ resource không được quản lý.
+- Isolate \`Bindings\` between requests.
+- Do not pass shared mutable Java objects without synchronization.
+- Bound the number of parallel \`eval\` calls according to engine capabilities.
+- Never share tenant A's context with tenant B.
+- Restore thread-local/MDC/context class loader after each plugin call if modified.
+- Do not allow timeout/cancellation to terminate a request while the engine continues holding unmanaged resources.
 
-## 9. Xử lý lỗi theo giai đoạn
+## 9. Stage-by-Stage Error Handling
 
-Tách rõ các loại lỗi:
+Clearly separate error categories:
 
-| Giai đoạn | Tình huống | Xử lý |
+| Stage | Scenario | Handling |
 |---|---|---|
-| Discovery | \`getEngineByName\` trả \`null\` | Kiểm tra engine đã cài, alias, class loader |
-| Capability | Engine không \`instanceof Compilable\` | \`eval\` trực tiếp hoặc từ chối feature |
-| Compilation | \`compile\` ném \`ScriptException\` | Báo lỗi source/line, không đưa vào cache |
-| Evaluation | \`compiled.eval\` lỗi | Ghi nhận execution failure, kiểm tra side effect |
-| Configuration | Bindings/context thiếu hoặc sai kiểu | Validate input trước khi eval |
-| Runtime lifecycle | Engine bị thay hoặc dừng | Không dùng compiled object cũ; compile lại |
+| Discovery | \`getEngineByName\` returns \`null\` | Check installed engine, aliases, class loader |
+| Capability | Engine is not \`instanceof Compilable\` | Call \`eval\` directly or reject the feature |
+| Compilation | \`compile\` throws \`ScriptException\` | Report source/line error; do not cache |
+| Evaluation | \`compiled.eval\` fails | Record execution failure; inspect side effects |
+| Configuration | Bindings/context missing or wrong type | Validate input before eval |
+| Runtime lifecycle | Engine replaced or stopped | Do not use old compiled objects; recompile |
 
-\`ScriptException\` có thể chứa thông tin file, line và column nếu engine cung cấp. Không nên log toàn bộ source có chứa dữ liệu nhạy cảm hoặc tiết lộ stack trace nội bộ cho người dùng cuối.
+\`ScriptException\` may contain file, line, and column information if provided by the engine. Avoid logging full source code that contains sensitive data or exposing internal stack traces to end users.
 
-Với mã script đã có side effect, không tự retry eval chỉ vì gặp exception: một phần công việc có thể đã xảy ra. Cần chính sách idempotency và transaction/compensation nếu phù hợp.
+For scripts that have side effects, do not blindly retry eval upon an exception: partial work may already have occurred. Apply idempotency and transaction/compensation policies as appropriate.
 
-## 10. Bảo mật và ranh giới plugin
+## 10. Security and Plugin Boundaries
 
-\`Compilable\` là khả năng chuẩn bị và chạy code, **không phải công cụ sandbox**. Script thiếu tin cậy vẫn có thể truy cập host objects và tài nguyên tùy engine.
+\`Compilable\` is a capability for preparing and running code, **not a sandboxing tool**. Untrusted scripts can still access host objects and resources depending on the engine.
 
-Các nguyên tắc quan trọng:
+Key principles:
 
-- Xác minh nguồn gốc, phiên bản và tính toàn vẹn của engine/plugin artifact.
-- Giới hạn quyền truy cập của script tới Java objects và hệ thống file/network/process theo cơ chế engine hoặc ranh giới hệ điều hành.
-- Không nhét credential, \`DataSource\`, database client hoặc internal service có quyền cao vào \`Bindings\` không tin cậy.
-- Giới hạn thời gian, tài nguyên và độ dài source; lưu ý một engine không nhất thiết hỗ trợ cancellation có thể dừng mã đang chạy.
-- Khi code không đáng tin, cân nhắc chạy trong process/container riêng với giao thức điều khiển/timeout rõ.
-- Không dùng riêng class loader hoặc module layer làm ranh giới bảo mật.
+- Verify the origin, version, and integrity of engine/plugin artifacts.
+- Restrict script access to Java objects and the file system/network/process via engine mechanisms or OS-level boundaries.
+- Never place credentials, \`DataSource\`, database clients, or high-privilege internal services into untrusted \`Bindings\`.
+- Limit execution time, resources, and source length; note that an engine does not necessarily support cancellation to stop running code.
+- For untrusted code, consider running in a separate process/container with explicit control protocols and timeouts.
+- Do not rely solely on a class loader or module layer as a security boundary.
 
-Trong plugin host, một script có thể giữ reference đến object/class loader của engine; cache và callbacks phải được giải phóng khi plugin ngừng hoạt động.
+In a plugin host, a script may hold references to engine objects or class loaders; caches and callbacks must be released when the plugin stops.
 
-## 11. Các lỗi phổ biến
+## 11. Common Pitfalls
 
-- Ép \`(Compilable) engine\` khi chưa kiểm tra capability.
-- Gọi method trên \`null\` vì không có engine JSR 223 tương ứng trong runtime.
-- Tin rằng compile sẽ tăng hiệu năng trong mọi trường hợp mà không đo.
-- Chia sẻ một \`CompiledScript\` giữa các engine hoặc phiên bản runtime khác nhau.
-- Dùng \`eval()\` trên context mặc định rồi vô tình dùng lại biến của request trước.
-- Tái dùng cùng \`Bindings\` mutable qua các luồng/tenant.
-- Cache theo script ID mà bỏ qua source hash và version engine.
-- Quên invalidation/cleanup khi hot reload plugin.
-- Tưởng \`CompiledScript\` là bytecode có thể serialize và chạy trên JVM khác.
-- Không tách lỗi compilation với lỗi execution và lỗi capability.
-- Coi engine implementation hoặc compiled script tự bảo đảm thread safety.
+- Casting \`(Compilable) engine\` without checking capability first.
+- Calling methods on \`null\` because no matching JSR 223 engine exists at runtime.
+- Assuming compilation improves performance in every case without benchmarking.
+- Sharing a \`CompiledScript\` across different engines or runtime versions.
+- Calling \`eval()\` on the default context and accidentally reusing variables from a previous request.
+- Reusing the same mutable \`Bindings\` across threads or tenants.
+- Caching by script ID while ignoring source hash and engine version.
+- Forgetting invalidation/cleanup during plugin hot reload.
+- Assuming \`CompiledScript\` is serialized bytecode that can run on another JVM.
+- Failing to distinguish compilation errors from execution errors and capability errors.
+- Assuming the engine implementation or compiled script automatically guarantees thread safety.
 
-## 12. Checklist áp dụng
+## 12. Adoption Checklist
 
-Trước khi chọn compiled-script path:
+Before choosing the compiled-script path:
 
-1. Đã tìm được engine JSR 223 tương ứng và kiểm tra \`engine != null\`?
-2. Engine thực sự triển khai \`Compilable\`?
-3. Source/cú pháp và dependency của script được kiểm tra ở compile-time?
-4. Biên dịch một lần có lợi về hiệu năng thực tế?
-5. Compiled object được giữ cùng engine đã tạo ra nó?
-6. \`Bindings\`/\`ScriptContext\` mỗi lần eval có đủ dữ liệu và không rò tenant?
-7. Engine và compiled script có hỗ trợ concurrency theo cách sử dụng?
-8. Cache có key, quota, invalidation và cleanup phù hợp?
-9. Có chính sách lỗi, timeout, resource và security khi thực thi script?
-10. Khi thay plugin/engine, có bỏ artifact cũ và compile lại source?
+1. Has the corresponding JSR 223 engine been located and checked for \`engine != null\`?
+2. Does the engine actually implement \`Compilable\`?
+3. Are script source/syntax and dependencies validated at compile time?
+4. Does compiling once deliver a measurable real-world performance benefit?
+5. Is the compiled object kept together with the engine that created it?
+6. Do the \`Bindings\`/\`ScriptContext\` per eval have sufficient data without tenant leakage?
+7. Do the engine and compiled script support concurrency for the intended usage?
+8. Does the cache have appropriate keys, quotas, invalidation, and cleanup?
+9. Are error handling, timeouts, resource limits, and security policies in place for script execution?
+10. When replacing a plugin/engine, are old artifacts discarded and sources recompiled?
 
-**Ghi nhớ:** kiểm tra \`engine instanceof Compilable\` trước khi compile; giữ \`CompiledScript\` gắn với **engine đã tạo ra nó**; tái sử dụng với bindings/context phù hợp và quản lý thread safety, cache, security cũng như vòng đời.
+**Remember:** check \`engine instanceof Compilable\` before compiling; keep \`CompiledScript\` tied to **the engine that created it**; reuse it with appropriate bindings/context and manage thread safety, caching, security, and lifecycle.

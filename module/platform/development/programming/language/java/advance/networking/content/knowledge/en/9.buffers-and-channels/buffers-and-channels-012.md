@@ -1,64 +1,64 @@
-# Đường dẫn socket cục bộ, quyền truy cập và việc dọn tệp sau khi đóng — Java NIO
+# Local socket paths, access permissions, and file cleanup after close — Java NIO
 
-**Unix-domain socket** (thường gọi là *local socket* hoặc `AF_UNIX` socket) cho phép **hai tiến trình trên cùng máy** trao đổi dòng byte mà không cần địa chỉ IP và cổng TCP. Với Java 17+, nó được biểu diễn bằng `UnixDomainSocketAddress` và các NIO channel như `ServerSocketChannel`, `SocketChannel`. Một server có thể bind tới **đường dẫn trong hệ thống tệp**, ví dụ `/run/myapp/service.sock`; client kết nối đến đường dẫn đó.
+A **Unix-domain socket** (often called a *local socket* or `AF_UNIX` socket) allows **two processes on the same machine** to exchange a byte stream without requiring an IP address and TCP port. In Java 17+, it is represented by `UnixDomainSocketAddress` and NIO channels such as `ServerSocketChannel` and `SocketChannel`. A server can bind to a **filesystem path**, for example `/run/myapp/service.sock`; the client connects to that path.
 
-Điểm dễ mắc lỗi nhất là **file socket có vòng đời khác với channel**:
+The most common mistake is that **the socket file has a different lifecycle from the channel**:
 
 ~~~text
 ServerSocketChannel.open(UNIX)
        |
        | bind(UnixDomainSocketAddress.of(socketPath))
        v
-Socket endpoint đang lắng nghe + node ở socketPath
+Listening socket endpoint + node at socketPath
        |
-       | accept() -> SocketChannel cho từng client
+       | accept() -> SocketChannel for each client
        |
-       | server.close() / hết try-with-resources
+       | server.close() / end of try-with-resources
        v
-Kernel socket đã đóng; file tại socketPath VẪN CÓ THỂ CÒN
+Kernel socket is closed; file at socketPath MAY STILL REMAIN
        |
-       | Files.deleteIfExists(socketPath) (đúng ownership/thời điểm)
+       | Files.deleteIfExists(socketPath) (proper ownership/timing)
        v
-Tên đường dẫn được giải phóng để bind lần sau
+Pathname is freed for the next bind
 ~~~
 
-Không nên lẫn **đóng kết nối**, **xóa tên socket trên filesystem**, và **quyền của người dùng truy cập socket**. Chúng là ba trách nhiệm khác nhau. Xóa file quá sớm có thể làm client mới không tìm được service; xóa bừa file có thể xóa socket của tiến trình khác; để file tồn tại sau khi đóng có thể khiến lần khởi động tiếp theo không bind được. Bài học tập trung vào ba vấn đề này trong module **Buffer và channel** của Java Networking.
+Do not confuse **closing the connection**, **deleting the socket name on the filesystem**, and **user permissions to access the socket**. They are three distinct responsibilities. Deleting the file too early can prevent new clients from finding the service; blindly deleting the file can delete another process's socket; leaving the file behind after closing can prevent the next startup from binding. This lesson focuses on these three issues in the **Buffers and channels** module of Java Networking.
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích `StandardProtocolFamily.UNIX`, `UnixDomainSocketAddress.of(Path)`, `ServerSocketChannel.bind()` và `SocketChannel.connect()`.
-- Phân biệt **đường dẫn làm tên endpoint IPC** với **file thường chứa dữ liệu**, địa chỉ IP/port và địa chỉ Unix-domain socket không có tên.
-- Chọn đường dẫn **ngắn, tuyệt đối, thuộc filesystem mặc định**, được kiểm soát quyền truy cập và có vòng đời rõ ràng.
-- Hiểu quyền trên **thư mục cha** và **socket node** ở Linux/POSIX, khác biệt Windows ACL và giới hạn portability.
-- Giải thích vì sao `close()` hoặc `try-with-resources` **không tự unlink** file socket đã bind, kể cả khi server dùng `bind(null)`.
-- Viết `try/finally` để đóng channel rồi dọn **đúng đường dẫn do tiến trình sở hữu**, không xóa bừa đường dẫn chưa kiểm chứng.
-- Nhận diện stale socket file sau crash, khởi động trùng, path length, `Address already in use`, `Access denied` và các rủi ro symlink/race.
-- Chạy chương trình Java 17+ độc lập minh họa kết nối local, trao đổi byte, quan sát file còn sau close, và dọn file an toàn trong thư mục tạm riêng.
+- Explain `StandardProtocolFamily.UNIX`, `UnixDomainSocketAddress.of(Path)`, `ServerSocketChannel.bind()`, and `SocketChannel.connect()`.
+- Distinguish a **path serving as an IPC endpoint name** from a **regular file containing data**, an IP/port address, and an unnamed Unix-domain socket address.
+- Choose paths that are **short, absolute, on the default filesystem**, access-controlled, and have a clear lifecycle.
+- Understand permissions on the **parent directory** and **socket node** in Linux/POSIX, Windows ACL differences, and portability limits.
+- Explain why `close()` or `try-with-resources` **does not automatically unlink** a bound socket file, even when the server uses `bind(null)`.
+- Write `try/finally` blocks to close channels and then clean up **only the path owned by the process**, without blindly deleting unverified paths.
+- Identify stale socket files after a crash, duplicate startups, path length limits, `Address already in use`, `Access denied`, and symlink/race risks.
+- Run a standalone Java 17+ program demonstrating local connection, byte exchange, observing that the file remains after close, and safely cleaning up the file in a dedicated temporary directory.
 
-## 2. So sánh Unix-domain socket với TCP loopback
+## 2. Comparing Unix-domain sockets with TCP loopback
 
-| Khía cạnh | TCP loopback | Unix-domain stream socket |
+| Aspect | TCP loopback | Unix-domain stream socket |
 | --- | --- | --- |
-| Endpoint | IP/hostname + port, ví dụ `127.0.0.1:8080` | Filesystem path, ví dụ `/run/myapp/service.sock` |
+| Endpoint | IP/hostname + port, e.g. `127.0.0.1:8080` | Filesystem path, e.g. `/run/myapp/service.sock` |
 | Protocol family | `INET`/`INET6` | `UNIX` |
-| Dùng trong Java NIO | `ServerSocketChannel` / `SocketChannel` | Cùng hai class, nhưng mở với `UNIX` |
-| Địa chỉ kết nối | `InetSocketAddress` | `UnixDomainSocketAddress` |
-| Giao tiếp | TCP/IP (qua loopback) | IPC stream nội bộ host, không dùng IP routing |
-| Bảo vệ | Firewall, bind address, hệ điều hành, giao thức | Parent-directory permissions, socket-node permissions/ACL, peer identity, giao thức |
-| Phạm vi | Tùy địa chỉ bind; loopback chỉ host hiện tại | Chỉ máy cục bộ có hỗ trợ AF_UNIX; một path có thể dùng qua shared filesystem namespace/container nếu OS cho phép |
-| Xử lý dữ liệu | Byte stream, phải tự framing | Cũng là byte stream, phải tự framing |
-| Đóng endpoint server | Giải phóng listener/socket qua API | Đóng channel **không tự xóa tên filesystem** |
-| Java support | Có từ lâu | NIO `UNIX` từ **Java 16** (JEP 380); dùng ổn với Java 17+ nếu OS hỗ trợ |
+| Usage in Java NIO | `ServerSocketChannel` / `SocketChannel` | Same two classes, but opened with `UNIX` |
+| Connection address | `InetSocketAddress` | `UnixDomainSocketAddress` |
+| Communication | TCP/IP (via loopback) | Host-internal IPC stream, no IP routing |
+| Protection | Firewall, bind address, OS, protocol | Parent-directory permissions, socket-node permissions/ACL, peer identity, protocol |
+| Scope | Depends on bind address; loopback is current host only | Local machine supporting AF_UNIX only; a path may work across a shared filesystem namespace/container if the OS allows |
+| Data handling | Byte stream, requires custom framing | Also a byte stream, requires custom framing |
+| Closing server endpoint | Releases listener/socket via API | Closing the channel **does not automatically delete the filesystem name** |
+| Java support | Available for a long time | NIO `UNIX` since **Java 16** (JEP 380); works reliably with Java 17+ if the OS supports it |
 
-Unix-domain socket có thể giảm overhead cho IPC nội bộ, nhưng không phải giải pháp thay thế tự động cho mọi giao tiếp qua TCP: hai tiến trình phải có cách nhìn thấy cùng đường dẫn trong **filesystem namespace** thích hợp, cần chính sách quyền và phiên bản Java/OS hỗ trợ.
+A Unix-domain socket can reduce overhead for internal IPC, but it is not an automatic drop-in replacement for all TCP communication: the two processes must have a way to see the same path in an appropriate **filesystem namespace**, and require permission policies as well as supporting Java/OS versions.
 
-**Giới hạn API quan trọng ở Java 17:** hỗ trợ Unix-domain **stream** qua `ServerSocketChannel` và `SocketChannel`; không dùng `new ServerSocket()` hoặc `new Socket()` thông thường để yêu cầu `UNIX`, và không nhầm với `DatagramChannel` Unix-domain datagrams. Nếu cần truyền datagram AF_UNIX hoặc Linux abstract namespace, phải đọc khả năng riêng của hệ thống/thư viện; JEP 380 không cung cấp những tính năng đó qua API chuẩn này.
+**Important API limitation in Java 17:** Unix-domain **streams** are supported via `ServerSocketChannel` and `SocketChannel`; do not use regular `new ServerSocket()` or `new Socket()` to request `UNIX`, and do not confuse them with `DatagramChannel` Unix-domain datagrams. If you need AF_UNIX datagrams or Linux abstract namespaces, you must check the specific capabilities of the system/library; JEP 380 does not provide those features through this standard API.
 
-## 3. Tạo Unix-domain socket bằng Java 17+
+## 3. Creating a Unix-domain socket with Java 17+
 
-### 3.1. Những API cốt lõi
+### 3.1. Core APIs
 
 ~~~java
 import java.net.StandardProtocolFamily;
@@ -74,23 +74,23 @@ try (ServerSocketChannel server =
         ServerSocketChannel.open(StandardProtocolFamily.UNIX)) {
     server.bind(address);
     try (SocketChannel accepted = server.accept()) {
-        // Đọc/ghi trên accepted channel.
+        // Read/write on the accepted channel.
     }
-} // ServerSocketChannel được đóng, nhưng path cần được dọn riêng.
+} // ServerSocketChannel is closed, but the path needs separate cleanup.
 ~~~
 
-Đây là **mảnh code minh họa trong method** (cần `throws IOException` hoặc `catch`); path `/run/myapp/service.sock` phải được tạo trong thư mục tồn tại và có quyền phù hợp. Không copy nguyên ví dụ này để chạy trên Windows vì dạng đường dẫn Unix không tương ứng với Windows. Chương trình hoàn chỉnh, tự tạo đường dẫn phù hợp hệ điều hành, nằm ở phần 9.
+This is an **illustrative code snippet inside a method** (requiring `throws IOException` or `catch`); the path `/run/myapp/service.sock` must be created in an existing directory with appropriate permissions. Do not copy this example verbatim to run on Windows because the Unix path format does not apply to Windows. A complete program that automatically creates an OS-appropriate path is in section 9.
 
-- `ServerSocketChannel.open(StandardProtocolFamily.UNIX)` tạo listener-channel cho **Unix-domain stream sockets**.
-- `UnixDomainSocketAddress.of(Path)` dùng một `Path` của **default file system** làm địa chỉ. Không phải mọi `Path` từ ZIP filesystem/provider bên thứ ba đều hợp lệ; JDK có thể từ chối.
-- `server.bind(address)` gắn tên filesystem với endpoint lắng nghe, **tạo một socket node ở đường dẫn đó**.
-- `server.accept()` trả về một `SocketChannel` **kết nối riêng** với client đã đến; server vẫn tiếp tục lắng nghe nếu không đóng.
-- `SocketChannel.open(StandardProtocolFamily.UNIX)` tạo client-channel; `client.connect(address)` kết nối đến path đã bind. `SocketChannel.open(address)` cũng có thể suy ra protocol family từ kiểu address.
-- `server.close()` dừng listener; `accepted.close()` kết thúc riêng kết nối đã accept; hai loại resource không có cùng vòng đời.
+- `ServerSocketChannel.open(StandardProtocolFamily.UNIX)` creates a listener channel for **Unix-domain stream sockets**.
+- `UnixDomainSocketAddress.of(Path)` uses a `Path` from the **default file system** as the address. Not every `Path` from a ZIP filesystem or third-party provider is valid; the JDK may reject it.
+- `server.bind(address)` associates the filesystem name with the listening endpoint, **creating a socket node at that path**.
+- `server.accept()` returns a **separate connected** `SocketChannel` for the incoming client; the server continues listening unless closed.
+- `SocketChannel.open(StandardProtocolFamily.UNIX)` creates a client channel; `client.connect(address)` connects to the bound path. `SocketChannel.open(address)` can also infer the protocol family from the address type.
+- `server.close()` stops the listener; `accepted.close()` terminates only the accepted connection; the two resources do not share the same lifecycle.
 
-Cú pháp `try-with-resources` đóng channel kể cả khi code ném exception, nhưng **nó chỉ gọi `close()` của channel**, không gọi `Files.delete(...)` cho đường dẫn.
+The `try-with-resources` construct closes the channel even if the code throws an exception, but **it only calls the channel's `close()`**, not `Files.delete(...)` on the path.
 
-### 3.2. Không có IP/port trên Unix-domain address
+### 3.2. No IP/port on a Unix-domain address
 
 ~~~java
 UnixDomainSocketAddress address =
@@ -98,74 +98,74 @@ UnixDomainSocketAddress address =
 Path path = address.getPath();
 ~~~
 
-`UnixDomainSocketAddress` kế thừa `SocketAddress` nhưng **không phải** `InetSocketAddress`. Không có `getHost()` hay `getPort()` để gọi. Địa chỉ của socket được xác định bằng tên trong filesystem namespace. Một file có đuôi `.sock` **chỉ là quy ước đặt tên**; tên `service.ipc` cũng được nếu hợp lệ, còn file thường đặt đuôi `.sock` **không tự biến thành socket**.
+`UnixDomainSocketAddress` extends `SocketAddress` but is **not** an `InetSocketAddress`. There is no `getHost()` or `getPort()` to call. The socket's address is identified by a name in the filesystem namespace. A file with a `.sock` extension is **just a naming convention**; `service.ipc` also works if valid, while a regular file named with `.sock` **does not automatically turn into a socket**.
 
-Cần tránh cách nghĩ “đã có `/tmp/app.sock` thì cứ mở bằng `Files.newInputStream()` để đọc message”. File socket **không phải file dữ liệu được ghi/đọc bằng Files I/O**. Nó là node đặc biệt phục vụ thao tác `bind/connect` qua OS; payload giao tiếp đi qua `SocketChannel.read()/write()`.
+Avoid thinking "since `/tmp/app.sock` exists, I can just open it with `Files.newInputStream()` to read messages." A socket file is **not a data file read/written via Files I/O**. It is a special node serving OS `bind/connect` operations; communication payloads flow through `SocketChannel.read()/write()`.
 
-### 3.3. Tên rỗng (unnamed) và `bind(null)`
+### 3.3. Empty name (unnamed) and `bind(null)`
 
-Với client dùng `SocketChannel.open(UNIX)` rồi `connect(address)` mà không `bind` trước, endpoint **cục bộ của client thường là unnamed**, có đường dẫn rỗng và **không có socket file riêng cần dọn**. Đó là hành vi khác server đã bind tới đường dẫn công khai.
+For a client using `SocketChannel.open(UNIX)` and then `connect(address)` without calling `bind` first, the **client's local endpoint is usually unnamed**, has an empty path, and has **no separate socket file to clean up**. That behavior differs from a server bound to a public path.
 
-Với server:
+For a server:
 
 ~~~java
 try (ServerSocketChannel server =
         ServerSocketChannel.open(StandardProtocolFamily.UNIX)) {
-    server.bind(null); // OS/JDK chọn tên tạm riêng cho server
+    server.bind(null); // OS/JDK chooses a dedicated temporary name for the server
     UnixDomainSocketAddress bound =
         (UnixDomainSocketAddress) server.getLocalAddress();
     Path autoPath = bound.getPath();
-    // Cung cấp autoPath cho client qua cơ chế IPC/discovery tin cậy.
-    // Đảm bảo dọn autoPath SAU khi server ngừng hoạt động.
+    // Provide autoPath to the client via a trusted IPC/discovery mechanism.
+    // Ensure autoPath is cleaned up AFTER the server stops.
 }
 ~~~
 
-Đây là **mảnh code**. Với `ServerSocketChannel.bind(null)` và family `UNIX`, JDK chọn **một đường dẫn tạm duy nhất** trong thư mục được cấu hình. **File tự động này cũng tồn tại sau khi server channel đóng**, nên vẫn cần cleanup. Đừng nhầm **bind(null) của server** với **implicit client bind**: chúng không cho cùng một pathname artifact.
+This is a **code snippet**. With `ServerSocketChannel.bind(null)` and the `UNIX` family, the JDK selects a **unique temporary path** in the configured directory. **This auto-generated file also persists after the server channel closes**, so cleanup is still required. Do not confuse a **server's `bind(null)`** with an **implicit client bind**: they do not produce the same pathname artifact.
 
-JDK có các tùy chọn `jdk.net.unixdomain.tmpdir` và `java.io.tmpdir`/môi trường OS để chọn nơi tạo đường dẫn tự động, tùy hệ điều hành. Việc tự động đặt tên làm giảm khả năng đụng tên nhưng **không tự thay thế chính sách quyền truy cập, discovery hay dọn file**.
+The JDK has options such as `jdk.net.unixdomain.tmpdir` and `java.io.tmpdir`/OS environment settings to choose where to create automatic paths, depending on the operating system. Automatic naming reduces the chance of name collisions, but **does not replace access permission policies, discovery, or file cleanup**.
 
-## 4. Đường dẫn socket: những quy tắc vận hành quan trọng
+## 4. Socket paths: important operational rules
 
-### 4.1. Thư mục phải tồn tại và đúng chủ sở hữu
+### 4.1. The directory must exist and have the right owner
 
-Giả sử sản phẩm dùng `/run/myapp/service.sock`:
+Suppose a product uses `/run/myapp/service.sock`:
 
 ~~~text
 /run/
-  myapp/             <-- thư mục cha (owner / mode / ACL)
-    service.sock      <-- node Unix-domain socket được bind tạo ra
+  myapp/             <-- parent directory (owner / mode / ACL)
+    service.sock      <-- Unix-domain socket node created by bind
 ~~~
 
-Một địa chỉ socket cần **đường dẫn hợp lệ trong OS**, và thư mục cha phải tồn tại. `bind` không tự tạo mọi thư mục cha còn thiếu. Khi service chạy dưới user ít quyền, không được mặc định user đó có thể tạo file ở `/run` hay `/var/run`. Cách triển khai hợp lý là để service manager hoặc bước cài đặt tạo thư mục runtime với owner/group và permission đúng.
+A socket address needs a **valid path in the OS**, and the parent directory must exist. `bind` does not automatically create missing parent directories. When a service runs under a low-privilege user, do not assume that user can create files in `/run` or `/var/run`. The proper approach is to have the service manager or installation step create the runtime directory with the right owner/group and permissions.
 
-Phân loại vị trí thường gặp:
+Classification of common locations:
 
-- `/run/<service>/...` trên Linux: thích hợp cho socket runtime của daemon, nếu đã có thư mục quản lý quyền thích hợp. Có thể không tồn tại hoặc không writable khi test cá nhân.
-- `/tmp/<service>.sock`: dễ thử nghiệm nhưng **nguy hiểm nếu tên cố định trong thư mục chia sẻ**; có thể bị tranh chấp/race hoặc bị xóa bởi cleanup ngoài ý muốn. Chỉ dùng khi biết rõ chính sách và có bảo vệ.
-- Thư mục tạm **riêng mới tạo**: tốt cho test; mã có thể tạo folder bằng `Files.createTempDirectory("uds-")`, đặt path bên trong và xóa folder khi test xong.
-- Trên Windows: sử dụng `Path` Windows và ACL tương ứng; không giả định POSIX mode, đường dẫn `/run/...` hay lệnh `chmod` hoạt động.
+- `/run/<service>/...` on Linux: suitable for a daemon's runtime socket, if a properly permissioned directory already exists. It may not exist or be writable during personal tests.
+- `/tmp/<service>.sock`: easy for quick experiments, but **dangerous if using a fixed name in a shared directory**; it is vulnerable to contention/races or accidental deletion by cleanup jobs. Only use it when policies are clearly understood and protections are in place.
+- A **newly created private** temp directory: good for tests; code can create a folder with `Files.createTempDirectory("uds-")`, place the path inside, and delete the folder when the test finishes.
+- On Windows: use Windows `Path`s and corresponding ACLs; do not assume POSIX modes, `/run/...` paths, or `chmod` commands work.
 
-**Khuyến nghị:** dùng đường dẫn tuyệt đối, ngắn, có namespace rõ ràng, thuộc thư mục mà tiến trình kiểm soát. Đường dẫn được ghi trong cấu hình nên xác định owner/rủi ro collision và quy trình restart; không tự “normalize rồi xóa mọi file” khi đầu vào chưa được xác thực.
+**Recommendation:** use a short, absolute path with a clear namespace, inside a directory controlled by the process. Paths specified in configuration should have a defined owner, collision risk assessment, and restart procedure; do not blindly "normalize and delete any file" on unvalidated input.
 
-### 4.2. Giới hạn độ dài path tính bằng byte
+### 4.2. Path length limit in bytes
 
-Unix-domain pathname được lưu trong buffer của cấu trúc socket address. Tên có giới hạn phụ thuộc OS/JDK; tài liệu Java mô tả **thường khoảng 100 byte**. Linux phổ biến có `sun_path[108]` trong `sockaddr_un`, với chi tiết null termination; hệ điều hành khác có thể ngắn hơn.
+A Unix-domain pathname is stored in a buffer inside the socket address structure. The name has an OS/JDK-dependent limit; Java documentation describes it as **typically around 100 bytes**. Linux commonly has `sun_path[108]` in `sockaddr_un`, with null-termination details; other operating systems may have shorter limits.
 
-Vì vậy:
+Therefore:
 
-- `/home/username/very/long/project/path/build/tmp/.../server.sock` dễ vượt giới hạn dù là một đường dẫn file bình thường hợp lệ.
-- Ký tự Unicode có thể chiếm **nhiều byte UTF-8**, nên “100 ký tự Unicode” không đồng nghĩa “100 byte tên socket”.
-- Thư mục tạm tự tạo từ `java.io.tmpdir` cũng có thể nằm ở path dài, đặc biệt trên Windows CI hoặc thư mục người dùng.
-- Khi `bind` hoặc `connect` thất bại với lỗi dạng “Unix domain path too long”, chuyển tới một **đường dẫn ngắn hơn do bạn sở hữu**. Không tự xóa file hay chỉnh permission vì nghĩ lỗi độ dài là permission.
-- Không giả định đường dẫn chuẩn hóa theo chuỗi là định danh tuyệt đối duy nhất khi filesystem có symlink, mount namespace hay case-folding.
+- `/home/username/very/long/project/path/build/tmp/.../server.sock` can easily exceed the limit even though it is a completely valid regular file path.
+- Unicode characters can occupy **multiple UTF-8 bytes**, so "100 Unicode characters" is not equivalent to "100 bytes for a socket name."
+- Temp directories generated from `java.io.tmpdir` can also sit under long paths, especially on Windows CI or user home directories.
+- When `bind` or `connect` fails with an error like "Unix domain path too long," switch to a **shorter path you own**. Do not delete files or tweak permissions thinking a length error is a permission error.
+- Do not assume a string-normalized path is an absolute unique identifier when the filesystem has symlinks, mount namespaces, or case-folding.
 
-Để kiểm tra gần đúng số byte trên OS dùng UTF-8, có thể dùng `socketPath.toString().getBytes(StandardCharsets.UTF_8).length`; đó **không** thay thế hợp đồng/bộ đếm native của mọi platform. Cách chắc chắn là giữ path ngắn và thử `bind` trên môi trường thực.
+To estimate the byte count on an OS using UTF-8, you can check `socketPath.toString().getBytes(StandardCharsets.UTF_8).length`; that does **not** replace the native contract/counter on every platform. The reliable approach is to keep the path short and test `bind` in the target environment.
 
-### 4.3. Relative path và filesystem provider
+### 4.3. Relative paths and filesystem providers
 
-`UnixDomainSocketAddress.of(Path)` yêu cầu `Path` từ **hệ thống tệp mặc định**. Một `Path` lấy từ `FileSystems.newFileSystem(zipPath)` không dùng làm Unix-domain socket address thông thường.
+`UnixDomainSocketAddress.of(Path)` requires a `Path` from the **default file system**. A `Path` obtained from `FileSystems.newFileSystem(zipPath)` cannot be used as a normal Unix-domain socket address.
 
-Đường dẫn tương đối khiến hành vi phụ thuộc working directory và cách API/OS chuyển đổi path. Nên chuẩn hóa cấu hình về một path tuyệt đối được kiểm soát, ví dụ:
+Relative paths make behavior depend on the working directory and how the API/OS resolves paths. Normalize configuration to a controlled absolute path, for example:
 
 ~~~java
 Path socketPath = configuredDirectory
@@ -174,36 +174,36 @@ Path socketPath = configuredDirectory
         .resolve("service.sock");
 ~~~
 
-Đoạn này là **mã trong phương thức**, với `configuredDirectory` là `Path` đã được cấp quyền/kiểm tra. `normalize()` chỉ xử lý cú pháp path; **không** ngăn symlink, không chứng minh path thuộc đúng thư mục và không thay permission checks. Nếu attacker kiểm soát thư mục cha, có thể xuất hiện race giữa kiểm tra path và `bind/delete`.
+This snippet is **code inside a method**, where `configuredDirectory` is an authorized/verified `Path`. `normalize()` only processes path syntax; it **does not** prevent symlinks, prove the path stays inside the intended directory, or replace permission checks. If an attacker controls the parent directory, a race can occur between checking the path and `bind/delete`.
 
-## 5. Quyền truy cập: thư mục cha quan trọng không kém socket node
+## 5. Access permissions: the parent directory is as important as the socket node
 
-Unix-domain path là một điểm truy cập trong filesystem, nên **OS identity/permissions** ảnh hưởng đến ai có thể tạo hoặc connect.
+A Unix-domain path is an access point in the filesystem, so **OS identity/permissions** govern who can create or connect to it.
 
-### 5.1. Trên Linux/POSIX
+### 5.1. On Linux/POSIX
 
-Theo Linux `unix(7)`:
+According to Linux `unix(7)`:
 
-- Để tạo node socket ở một thư mục, tiến trình cần quyền **write** và **search/execute** trên thư mục cha (và khả năng đi qua các thư mục tổ tiên theo quy tắc OS).
-- Trên Linux, kết nối đến pathname **stream socket** cần quyền **write** trên socket node; nhưng POSIX **không bảo đảm mọi OS áp dụng permission bits socket giống Linux**. Không thể dựa duy nhất vào mode của socket node cho một thiết kế bảo mật portable.
-- Mode của node có thể chịu ảnh hưởng bởi **umask** của tiến trình khi tạo. Nếu service chạy với umask quá rộng trong thư mục chung, node có thể dễ bị client không mong muốn truy cập.
-- Nếu thư mục cha chỉ cho owner đi qua, người dùng khác khó truy cập node ngay cả khi socket-node mode tương đối rộng.
-- Thông tin owner/group và ACL nên được kiểm tra bằng công cụ OS phù hợp, chẳng hạn `ls -ld` thư mục và `ls -l` socket trên Linux.
+- To create a socket node in a directory, the process needs **write** and **search/execute** permissions on the parent directory (and traversal across ancestor directories per OS rules).
+- On Linux, connecting to a pathname **stream socket** requires **write** permission on the socket node; however, POSIX **does not guarantee all OSes apply socket permission bits identically to Linux**. You cannot rely solely on the socket node's mode for a portable security design.
+- The node's mode can be affected by the process **umask** at creation time. If a service runs with an overly broad umask in a shared directory, the node may be exposed to unwanted clients.
+- If the parent directory only allows the owner to traverse it, other users cannot easily access the node even if the socket-node mode is relatively permissive.
+- Owner/group and ACL details should be inspected with appropriate OS tools, such as `ls -ld` on the directory and `ls -l` on the socket on Linux.
 
-Ví dụ triển khai Linux theo nguyên tắc tối thiểu:
+Example Linux deployment following the principle of least privilege:
 
 ~~~text
 /run/myapp/             owner=myapp, mode=0700
-/run/myapp/service.sock owner=myapp, mode được tạo theo umask / policy
+/run/myapp/service.sock owner=myapp, mode created according to umask / policy
 ~~~
 
-`0700` trên thư mục nghĩa là owner có quyền read/write/execute, user/group khác không có quyền theo mode bits; thư mục riêng ngăn việc khách lạ tạo, thay thế hoặc truy cập tên socket dễ dàng. Nếu muốn một nhóm dịch vụ khác kết nối, có thể dùng group/ACL được cấu hình rõ thay vì mở rộng thành `0777`.
+`0700` on the directory means the owner has read/write/execute permissions while other users/groups have none via mode bits; a private directory prevents strangers from easily creating, replacing, or accessing the socket name. If another service group needs to connect, use an explicitly configured group/ACL instead of opening up to `0777`.
 
-**Không khẳng định `chmod 600 service.sock` luôn là giải pháp đủ.** Trên Linux, nó có giá trị với permission của pathname socket, nhưng OS khác có thể xử lý khác; ngoài ra còn ACL, group, mount namespace, SELinux/AppArmor, process identity, service policy, và authentication của ứng dụng.
+**Do not claim `chmod 600 service.sock` is always sufficient.** On Linux, it applies to the pathname socket's permissions, but other OSes may handle it differently; in addition, there are ACLs, groups, mount namespaces, SELinux/AppArmor, process identity, service policies, and application-level authentication.
 
-### 5.2. Tạo thư mục private bằng Java NIO trên POSIX
+### 5.2. Creating a private directory with Java NIO on POSIX
 
-Trong một ứng dụng Linux/POSIX, có thể tạo thư mục mới với mode ban đầu được yêu cầu:
+In a Linux/POSIX application, you can create a new directory with the desired initial mode:
 
 ~~~java
 import java.nio.file.Files;
@@ -217,126 +217,126 @@ Path privateDir = Files.createTempDirectory(
         PosixFilePermissions.asFileAttribute("rwx------"));
 ~~~
 
-Đây là **mảnh code phụ thuộc POSIX**: `/run/myapp` phải có sẵn, writable cho service; filesystem/provider phải hỗ trợ POSIX attributes. Khi provider không hỗ trợ, operation có thể ném `UnsupportedOperationException`. Không thay thế việc cấu hình service manager và ownership/ACL cho thư mục cha, nhất là nếu folder dùng lại qua các lần restart.
+This is a **POSIX-dependent snippet**: `/run/myapp` must already exist and be writable by the service; the filesystem/provider must support POSIX attributes. When the provider does not support them, the operation can throw `UnsupportedOperationException`. It does not replace service manager configuration and parent directory ownership/ACLs, especially if the folder is reused across restarts.
 
-Nếu muốn thay quyền sau khi đã tạo:
+If you want to change permissions after creation:
 
 ~~~java
 Files.setPosixFilePermissions(privateDir,
         PosixFilePermissions.fromString("rwx------"));
 ~~~
 
-Đây cũng chỉ là mảnh code; trên Windows/provider không có POSIX view có thể không chạy. **Chỉnh permission sau khi file đã được tạo có thể để lộ một cửa sổ thời gian (race)**; để bảo vệ production, đặt quyền/umask phù hợp **trước khi bind**, và sử dụng parent directory riêng, không thể bị người không tin cậy thay đổi.
+This is also just a snippet; on Windows or providers without a POSIX view, it may not run. **Adjusting permissions after a file has already been created can expose a time window (race)**; for production protection, set appropriate permissions/umask **before binding**, and use a dedicated parent directory that cannot be modified by untrusted users.
 
-### 5.3. Trên Windows
+### 5.3. On Windows
 
-Windows có hỗ trợ Unix-domain sockets ở các phiên bản phù hợp, và Java NIO `UNIX` có thể chạy nếu OS/JDK hỗ trợ, nhưng:
+Windows supports Unix-domain sockets in compatible versions, and Java NIO `UNIX` can run if the OS/JDK supports it, but:
 
-- Quyền được quản lý theo **Windows security model/ACL**, không phải mode `0700`/`0600` của POSIX.
-- Không dùng `Files.setPosixFilePermissions(...)` làm cách cấp quyền portable.
-- Không giả định path `C:\...` có cùng giới hạn/tính năng với Linux hoặc rằng socket-node permission được áp dụng y hệt.
-- Chỉ làm việc với thư mục và đường dẫn do tiến trình/service sở hữu; xác minh ACL trên đúng hệ điều hành, thử kết nối bằng account không được phép trước khi tuyên bố isolation có hiệu lực.
+- Permissions are managed under the **Windows security model/ACL**, not POSIX `0700`/`0600` modes.
+- Do not use `Files.setPosixFilePermissions(...)` as a portable way to grant permissions.
+- Do not assume a `C:\...` path has the same limits/features as Linux or that socket-node permissions are enforced identically.
+- Only work with directories and paths owned by the process/service; verify ACLs on the actual OS, and test connecting from an unauthorized account before declaring isolation effective.
 
-Trên hệ thống container, còn cần nhìn vào **mount namespace**: hai container chỉ kết nối được qua path nếu path đến socket được expose/đặt trong volume chia sẻ phù hợp và chính sách cho phép. Có cùng chuỗi tên file nhưng không chung namespace chưa chắc là cùng endpoint.
+In container systems, you also need to check the **mount namespace**: two containers can only connect via a path if the socket path is exposed/placed in an appropriate shared volume and policy allows it. Having the same filename string without sharing a namespace does not guarantee the same endpoint.
 
-### 5.4. File permission không thay authentication
+### 5.4. File permissions do not replace authentication
 
-Unix-domain socket chỉ cho **local communication**, loại bỏ việc phơi cổng TCP ra remote network, nhưng **không tự chứng minh danh tính client**. Tùy môi trường:
+Unix-domain sockets only allow **local communication**, eliminating exposure of a TCP port to a remote network, but they **do not automatically prove client identity**. Depending on the environment:
 
-- Dùng user/group và quyền thư mục/socket theo nguyên tắc tối thiểu.
-- Kiểm tra peer credentials bằng khả năng **platform-specific** khi có và khi threat model yêu cầu. Một số hệ thống/JDK có option mở rộng; không tự giả định mọi platform hỗ trợ.
-- Đối với tác vụ nhạy cảm, application protocol vẫn cần kiểm soát quyền thao tác, validate input, giới hạn kích thước thông điệp, tránh DoS và logging bí mật.
-- Không dùng thư mục chia sẻ không kiểm soát để đặt một endpoint có quyền thực hiện thao tác quản trị hệ thống.
+- Apply least-privilege user/group and directory/socket permissions.
+- Check peer credentials using **platform-specific** capabilities when available and required by the threat model. Some systems/JDKs offer extended options; do not assume every platform supports them.
+- For sensitive operations, the application protocol still needs operation authorization, input validation, message size limits, DoS protection, and secret-safe logging.
+- Do not use an uncontrolled shared directory to host an endpoint privileged to perform system administration tasks.
 
-## 6. `close()` và `Files.deleteIfExists()` là hai bước độc lập
+## 6. `close()` and `Files.deleteIfExists()` are two independent steps
 
-### 6.1. Đóng channel không gỡ file khỏi filesystem
+### 6.1. Closing the channel does not remove the file from the filesystem
 
-Khi bind một Unix-domain server socket tới `/run/myapp/service.sock`, OS tạo một **socket node** trên filesystem. Sau khi đóng channel:
+When binding a Unix-domain server socket to `/run/myapp/service.sock`, the OS creates a **socket node** on the filesystem. After closing the channel:
 
 ~~~java
 server.close();
-// Không tự suy rằng Files.exists(socketPath) sẽ là false.
+// Do not assume Files.exists(socketPath) will be false.
 ~~~
 
-Tài liệu `ServerSocketChannel.bind` của JDK ghi rõ node socket **tồn tại sau khi channel bị đóng**, và cần xóa trước khi bind lại cùng pathname. Điều này cũng đúng với đường dẫn server được JDK tự cấp bằng `bind(null)`. Trên Linux, hành vi này liên quan đến việc unlink pathname; nó **khác** việc đóng file descriptor.
+The JDK's `ServerSocketChannel.bind` documentation explicitly states that the socket node **persists after the channel is closed**, and must be deleted before rebinding the same pathname. This also holds true for server paths automatically allocated by the JDK via `bind(null)`. On Linux, this behavior corresponds to unlinking the pathname; it is **distinct** from closing the file descriptor.
 
-Hệ quả:
+Consequences:
 
-- Một service **đã dừng** vẫn để lại `service.sock` trên đĩa (stale socket file).
-- Service khởi động lại dùng đúng path và `bind` có thể thất bại kiểu “Address already in use” hoặc tương đương.
-- Chỉ gọi `try (ServerSocketChannel ... )` chưa đủ để đảm bảo startup tiếp theo sạch.
-- Xóa file socket **không có nghĩa** kernel connection đã được đóng (nếu còn accepted channels); cũng không tự chờ client hoàn tất. Những bước đó thuộc phần lifecycle.
+- A **stopped** service still leaves `service.sock` on disk (a stale socket file).
+- When the service restarts using the same path, `bind` may fail with "Address already in use" or an equivalent error.
+- Simply using `try (ServerSocketChannel ... )` is not enough to ensure a clean next startup.
+- Deleting the socket file **does not mean** kernel connections have been closed (if accepted channels remain), nor does it wait for clients to finish. Those steps belong to lifecycle management.
 
-### 6.2. Vì sao không `Files.deleteIfExists(path)` trước mọi lần startup?
+### 6.2. Why not call `Files.deleteIfExists(path)` before every startup?
 
-Giả sử instance A đang chạy và sở hữu `/run/myapp/service.sock`. Instance B khởi động và thấy file tồn tại. Nếu B xóa path **không kiểm tra**, B có thể xóa tên endpoint đang hoạt động của A. Các client mới không kết nối được theo path đó dù các kết nối đã được thiết lập của A có thể còn sống; B có thể chiếm tên và tạo split-brain.
+Suppose instance A is running and owns `/run/myapp/service.sock`. Instance B starts up and sees the file exists. If B deletes the path **without checking**, B may delete A's active endpoint name. New clients can no longer connect via that path even though A's established connections may still be alive; B may take over the name and cause split-brain.
 
-Vì vậy **file tồn tại không đồng nghĩa file stale**. Trước khi dọn một path đã có, phải biết:
+Therefore, **an existing file is not synonymous with a stale file**. Before cleaning up an existing path, you must know:
 
-- Mình có phải **owner** của endpoint/path này hay không?
-- Instance cũ còn hoạt động không? Ai đang giữ lock hoặc service manager instance ownership?
-- Path có thuộc **thư mục riêng** không thể bị người khác thay thế không?
-- Có race giữa kiểm tra tồn tại/kiểm tra process/kiểm tra file type và thời điểm xóa không?
+- Am I the **owner** of this endpoint/path?
+- Is the old instance still running? Who holds the lock or service manager instance ownership?
+- Is the path inside a **private directory** that cannot be replaced by someone else?
+- Is there a race between checking existence/process/file type and the moment of deletion?
 
-Cách an toàn cho bài thực hành là tạo **một thư mục tạm độc quyền mới**, đặt socket ở trong đó, không cho tiến trình khác ghi vào folder, và chỉ dọn đường dẫn đã được chính chương trình tạo ra. Với production có path cố định, dùng service manager, singleton/lock và quy trình recovery, không gọi xóa vô điều kiện trong thư mục chia sẻ.
+A safe approach for practice exercises is to create **a new exclusive temporary directory**, place the socket inside it, prevent other processes from writing to the folder, and clean up only the path created by the program itself. In production with a fixed path, use a service manager, singleton/locking, and a recovery procedure—never call unconditional deletion in a shared directory.
 
-### 6.3. Dọn đúng thời điểm
+### 6.3. Cleaning up at the right time
 
-Vòng đời ưu tiên:
+Preferred lifecycle:
 
 ~~~text
-1. Chọn private directory và path socket chưa tồn tại.
-2. Mở ServerSocketChannel(UNIX), bind path.
-3. Chấp nhận/hoàn thành các request đang xử lý.
-4. Dừng nhận kết nối mới, đóng listener và accepted channels theo ownership.
-5. Sau khi chắc chắn instance này sở hữu path, xóa socket node.
-6. Xóa directory tạm do chính instance tạo ra (nếu rỗng).
+1. Choose a private directory and a socket path that does not yet exist.
+2. Open ServerSocketChannel(UNIX), bind the path.
+3. Accept/complete in-flight requests.
+4. Stop accepting new connections, close the listener and accepted channels according to ownership.
+5. Once sure this instance owns the path, delete the socket node.
+6. Delete the temporary directory created by this instance (if empty).
 ~~~
 
-Đối với một server thật:
+For a real server:
 
-- Để ngừng nhận client mới, đóng listener và bảo đảm accept loop dừng.
-- Các `SocketChannel` đã `accept()` là connection riêng; nếu cần graceful shutdown, có thể cho handler hoàn tất theo deadline hoặc đóng cưỡng bức theo chính sách.
-- Khi kết thúc, dọn pathname thuộc chính service. Đừng xóa path của service khác chỉ vì cùng tên.
-- Đảm bảo xử lý exception trong lúc đóng và xóa file; nếu cleanup lỗi, ghi nhận và báo vận hành thay vì im lặng.
+- To stop accepting new clients, close the listener and ensure the accept loop terminates.
+- Accepted `SocketChannel`s are separate connections; for graceful shutdown, you can allow handlers to finish within a deadline or forcibly close them according to policy.
+- Upon termination, clean up only the pathname belonging to the service itself. Do not delete another service's path just because it has the same name.
+- Make sure exceptions are handled when closing and deleting files; if cleanup fails, log and alert operations rather than silencing it.
 
-Trong Java, `Files.deleteIfExists(socketPath)` có thể ném `IOException` (quyền, file đang được dùng, hoặc vấn đề OS khác). Nếu biết chắc file thuộc mình, **đừng nuốt exception** mà giả vờ cleanup đã thành công. `Files.deleteIfExists` không tự xác minh owner hay loại file; đó là trách nhiệm của ứng dụng trước khi gọi.
+In Java, `Files.deleteIfExists(socketPath)` can throw `IOException` (permissions, file in use, or other OS issues). If you are certain the file belongs to you, **do not swallow exceptions** and pretend cleanup succeeded. `Files.deleteIfExists` does not automatically verify ownership or file type; that is the application's responsibility before calling it.
 
-### 6.4. Xử lý symlink và TOCTOU
+### 6.4. Handling symlinks and TOCTOU
 
-`Files.exists(path)` rồi `Files.deleteIfExists(path)` là **hai thao tác riêng**, không tạo ra transaction. Nếu một tiến trình khác có thể thay thế path giữa hai thao tác, ứng dụng có thể xóa nhầm. `LinkOption.NOFOLLOW_LINKS` giúp kiểm tra node thay vì theo symlink trong một lần query, **nhưng không tự loại bỏ race**.
+`Files.exists(path)` followed by `Files.deleteIfExists(path)` are **two separate operations**, not an atomic transaction. If another process can replace the path between the two operations, the application may delete the wrong target. `LinkOption.NOFOLLOW_LINKS` helps inspect the node itself rather than following a symlink in a single query, **but does not eliminate the race by itself**.
 
-Không nên “phòng thủ” bằng cách:
+Do not write "defensive" code like:
 
 ~~~java
-// Nguy hiểm trên đường dẫn không thuộc quyền kiểm soát:
+// Dangerous on a path not under your control:
 if (Files.exists(socketPath)) {
     Files.delete(socketPath);
 }
 listener.bind(UnixDomainSocketAddress.of(socketPath));
 ~~~
 
-Nếu path đang là socket live của instance khác hoặc file bị thay thế, code trên gây gián đoạn/không an toàn. Giải pháp vững hơn là quyền thư mục độc quyền, quản lý tên theo instance, socket/service ownership, kiểm tra lifecycle, và nếu cần dùng cơ chế lock/atomic coordination được thiết kế cho platform.
+If the path is currently a live socket of another instance or the file is replaced, the code above causes disruption/insecurity. A more robust solution uses exclusive directory permissions, per-instance naming, socket/service ownership, lifecycle checks, and platform-appropriate lock/atomic coordination mechanisms when needed.
 
-### 6.5. Xóa file không đồng nghĩa đóng listener
+### 6.5. Deleting the file does not close the listener
 
-Trên các OS kiểu Unix, unlink pathname trong khi socket vẫn mở **không nhất thiết đóng ngay các kết nối đã thiết lập**. Nhưng client mới có thể không tìm thấy endpoint cũ để kết nối theo tên. Vì vậy **xóa path không phải API để hủy kết nối hoặc dừng server một cách an toàn**.
+On Unix-like OSes, unlinking a pathname while the socket is open **does not necessarily close already established connections immediately**. However, new clients will not be able to find the old endpoint to connect by name. Therefore, **deleting the path is not an API for tearing down connections or safely stopping a server**.
 
-Trên Windows có thể có ràng buộc khác về xóa một socket node đang mở. Cách portable ở tầng Java: đóng các channel mình sở hữu trước; sau đó xóa path trong `finally` sau khi lifecycle đã dừng.
+On Windows, there may be different constraints on deleting an open socket node. The portable approach at the Java layer: close the channels you own first, then delete the path in `finally` after the lifecycle has stopped.
 
-## 7. Mối quan hệ với buffer và channel
+## 7. Relationship with buffers and channels
 
-Unix-domain socket qua `SocketChannel` vẫn là **stream-oriented**. Những kiến thức NIO buffer/channel vẫn áp dụng:
+A Unix-domain socket via `SocketChannel` is still **stream-oriented**. NIO buffer/channel fundamentals still apply:
 
-- `SocketChannel.read(ByteBuffer)` trả số byte thực đọc, **có thể ít hơn buffer còn trống**, và `-1` khi peer đã kết thúc chiều gửi; không cho rằng một `read` = một message.
-- `SocketChannel.write(ByteBuffer)` cũng có thể ghi **ít hơn** `buffer.remaining()`. Vòng lặp `while (buffer.hasRemaining())` thường cần trong blocking code để gửi đủ payload.
-- Khi dùng non-blocking channel, `read`/`write` có thể trả `0` vì chưa sẵn sàng; code non-blocking phải tích hợp `Selector`/readiness, không busy-spin.
-- `ByteBuffer.flip()` chuyển từ trạng thái ghi vào buffer sang trạng thái đọc; `clear()` hoặc `compact()` cho các vòng nhận tiếp theo.
-- Cần **framing** để biết message kết thúc: fixed-length, prefix length, delimiter hoặc protocol cụ thể. AF_UNIX **không** biến một byte stream thành datagram message boundaries.
-- Khi peer đóng, EOF là trạng thái của **stream**, không phải dấu hiệu mỗi request đều đã xử lý thành công.
+- `SocketChannel.read(ByteBuffer)` returns the actual number of bytes read, **which may be fewer than the remaining space in the buffer**, and `-1` when the peer has ended its send side; do not assume one `read` = one message.
+- `SocketChannel.write(ByteBuffer)` may also write **fewer** than `buffer.remaining()`. A `while (buffer.hasRemaining())` loop is usually needed in blocking code to send the full payload.
+- When using a non-blocking channel, `read`/`write` can return `0` because it is not ready; non-blocking code must integrate with `Selector`/readiness, not busy-spin.
+- `ByteBuffer.flip()` switches from writing into the buffer to reading from it; `clear()` or `compact()` prepares for subsequent receive cycles.
+- **Framing** is required to know where a message ends: fixed-length, length prefix, delimiter, or a specific protocol. AF_UNIX does **not** turn a byte stream into datagram message boundaries.
+- When the peer closes, EOF is a state of the **stream**, not a sign that every request was processed successfully.
 
-Đoạn minh họa hai hàm hỗ trợ gửi/nhận đúng **4 byte ASCII**:
+Snippet illustrating two helper methods to send/receive exactly **4 ASCII bytes**:
 
 ~~~java
 private static void writeText(SocketChannel ch, String text)
@@ -359,50 +359,50 @@ private static String readFour(SocketChannel ch) throws IOException {
 }
 ~~~
 
-Đây là **các method dùng trong class ví dụ hoàn chỉnh ở phần 9**, không phải chương trình standalone khi copy riêng. Mã giả định channel ở **blocking mode**; với non-blocking mode, phải xử lý `0`/readiness thay vì chỉ chạy vòng lặp không chờ.
+These are **methods used inside the complete example class in section 9**, not a standalone program if copied by themselves. The code assumes the channel is in **blocking mode**; in non-blocking mode, `0`/readiness must be handled instead of just spinning in a loop without waiting.
 
-### Accepted socket và listener có cùng path không?
+### Do the accepted socket and listener share the same path?
 
-Listener `ServerSocketChannel` gắn với path được bind. Mỗi `accept()` trả một `SocketChannel` riêng để trao đổi với client. Các accepted connections **không phải mỗi cái một file `service-1.sock`, `service-2.sock`...**. Path là tên **endpoint đang lắng nghe**, không phải file dữ liệu cho mỗi request. Client không bind tên riêng khi dùng implicit unnamed connection.
+The listener `ServerSocketChannel` is bound to the bound path. Each `accept()` returns a separate `SocketChannel` to communicate with that client. Accepted connections **do not each get a separate `service-1.sock`, `service-2.sock`, ... file**. The path is the name of the **listening endpoint**, not a per-request data file. A client does not bind its own name when using an implicit unnamed connection.
 
-Vì vậy khi cleanup:
+Therefore, during cleanup:
 
-- **Không** xóa socket path sau khi *mỗi request* kết thúc nếu listener vẫn cần nhận client khác.
-- **Không** gọi xóa path trong `try (SocketChannel accepted = ...)` của từng handler.
-- **Có** thể dọn path sau vòng đời **listener/instance server**, khi server thật sự dừng và endpoint thuộc quyền của mình.
+- Do **not** delete the socket path after *each request* finishes if the listener still needs to accept other clients.
+- Do **not** call path deletion inside `try (SocketChannel accepted = ...)` of each handler.
+- You **may** clean up the path after the **listener/server instance** lifecycle ends, when the server has truly stopped and the endpoint belongs to it.
 
-## 8. Ma trận API và vòng đời
+## 8. API and lifecycle matrix
 
-| Mục đích | API Java 17+ | Hành vi và lưu ý |
+| Purpose | Java 17+ API | Behavior and notes |
 | --- | --- | --- |
-| Tạo listener UDS | `ServerSocketChannel.open(StandardProtocolFamily.UNIX)` | Không bind ngay |
-| Tạo tên endpoint | `UnixDomainSocketAddress.of(Path)` | Path từ default file system; path length phụ thuộc platform |
-| Bind server | `server.bind(address)` | Tạo socket node; cần path/permissions hợp lệ, tên chưa bị chiếm |
-| Bind auto | `server.bind(null)` | Tạo tên tạm do JDK chọn; file vẫn cần dọn |
-| Lấy tên server đã bind | `(UnixDomainSocketAddress) server.getLocalAddress()` | Hữu ích khi bind(null) và cần discovery/cleanup |
-| Nhận client | `SocketChannel ch = server.accept()` | Mỗi lần tạo connected channel mới |
-| Tạo client UDS | `SocketChannel.open(StandardProtocolFamily.UNIX)` | Chưa connected |
-| Kết nối client | `client.connect(address)` | Client thường implicit unnamed, không tạo pathname riêng |
-| Gửi/nhận | `ch.write(ByteBuffer)` / `ch.read(ByteBuffer)` | Stream bytes; tự xử lý partial I/O/framing |
-| Đóng connected channel | `ch.close()` | Không đóng listener |
-| Đóng listener | `server.close()` | Dừng accept, **không unlink socket file** |
-| Kiểm tra node filesystem | `Files.exists(path, NOFOLLOW_LINKS)` | Chỉ quan sát, không khẳng định stale hay ownership |
-| Dọn node sở hữu | `Files.deleteIfExists(path)` | Chỉ sau khi đóng, tránh xóa nhầm/race |
-| Dọn thư mục tạm | `Files.deleteIfExists(dir)` | Chỉ folder mình tạo, phải rỗng |
+| Create UDS listener | `ServerSocketChannel.open(StandardProtocolFamily.UNIX)` | Does not bind immediately |
+| Create endpoint name | `UnixDomainSocketAddress.of(Path)` | Path from default file system; path length depends on platform |
+| Bind server | `server.bind(address)` | Creates socket node; requires valid path/permissions, unclaimed name |
+| Auto-bind | `server.bind(null)` | Creates a temp name chosen by JDK; file still needs cleanup |
+| Get bound server name | `(UnixDomainSocketAddress) server.getLocalAddress()` | Useful with bind(null) and when needing discovery/cleanup |
+| Accept client | `SocketChannel ch = server.accept()` | Creates a new connected channel each time |
+| Create UDS client | `SocketChannel.open(StandardProtocolFamily.UNIX)` | Not yet connected |
+| Connect client | `client.connect(address)` | Client is usually implicitly unnamed, creates no separate pathname |
+| Send/receive | `ch.write(ByteBuffer)` / `ch.read(ByteBuffer)` | Byte stream; handle partial I/O/framing manually |
+| Close connected channel | `ch.close()` | Does not close the listener |
+| Close listener | `server.close()` | Stops accepting, **does not unlink the socket file** |
+| Check filesystem node | `Files.exists(path, NOFOLLOW_LINKS)` | Observation only, does not prove staleness or ownership |
+| Clean up owned node | `Files.deleteIfExists(path)` | Only after closing, avoiding accidental deletion/races |
+| Clean up temp directory | `Files.deleteIfExists(dir)` | Only a folder you created, must be empty |
 
-## 9. Chương trình Java 17+ chạy hoàn chỉnh
+## 9. Complete runnable Java 17+ program
 
-Chương trình này minh họa đầy đủ:
+This program fully demonstrates:
 
-1. Dùng `Files.createTempDirectory("uds-")` để tạo thư mục riêng mới cho lần chạy, tránh tranh chấp một socket path cố định.
-2. Tạo `server.sock` trong folder đó; bind bằng `ServerSocketChannel.open(UNIX)`.
-3. Tạo một server worker chấp nhận client qua `accept()`; đọc `PING`, trả `PONG`.
-4. Client kết nối đến đúng `UnixDomainSocketAddress` và kiểm tra nội dung phản hồi.
-5. Đóng connected channels và listener bằng `try-with-resources`.
-6. **Kiểm tra file còn tồn tại sau khi listener đóng** bằng `Files.exists(..., NOFOLLOW_LINKS)`.
-7. **Dọn đúng path** trong `finally`, sau đó dọn thư mục riêng mới tạo.
+1. Using `Files.createTempDirectory("uds-")` to create a fresh private directory for the run, avoiding contention on a fixed socket path.
+2. Creating `server.sock` in that folder; binding with `ServerSocketChannel.open(UNIX)`.
+3. Creating a server worker that accepts a client via `accept()`, reads `PING`, and replies `PONG`.
+4. The client connecting to the exact `UnixDomainSocketAddress` and checking the response content.
+5. Closing the connected channels and listener with `try-with-resources`.
+6. **Verifying the file still exists after the listener closes** using `Files.exists(..., NOFOLLOW_LINKS)`.
+7. **Cleaning up the exact path** in `finally`, then deleting the newly created private directory.
 
-Tạo file **`UnixDomainPathDemo.java`**:
+Create the file **`UnixDomainPathDemo.java`**:
 
 ~~~java
 import java.io.EOFException;
@@ -479,14 +479,14 @@ public class UnixDomainPathDemo {
 }
 ~~~
 
-Cách biên dịch và chạy trên JDK 17+ với OS hỗ trợ pathname-based Unix-domain sockets:
+How to compile and run on JDK 17+ with an OS supporting pathname-based Unix-domain sockets:
 
 ~~~bash
 javac -encoding UTF-8 UnixDomainPathDemo.java
 java UnixDomainPathDemo
 ~~~
 
-**Stdout đã xác minh với OpenJDK 24 trên Windows có AF_UNIX:**
+**Verified stdout with OpenJDK 24 on Windows with AF_UNIX:**
 
 ~~~text
 Client received: PONG
@@ -495,28 +495,28 @@ Socket path remains after close: true
 Socket path deleted: true
 ~~~
 
-Cách đọc kết quả:
+How to read the output:
 
-1. Client và server gặp nhau thông qua **đường dẫn filesystem**, không dùng TCP/IP, DNS hoặc port.
-2. `writeText` và `readFour` dùng vòng lặp để không giả định một lần I/O xử lý hết bốn byte.
-3. Server worker đọc đúng `PING` rồi trả `PONG`; `Future.get(5, TimeUnit.SECONDS)` đợi task xong và chuyển lỗi worker về main.
-4. `try (SocketChannel accepted...)` đóng accepted connection, `try (SocketChannel client...)` đóng client, `try (ServerSocketChannel listener...)` đóng listener.
-5. Sau khi **listener đã đóng**, `Files.exists(path, NOFOLLOW_LINKS)` vẫn trả `true` vì socket node vẫn còn.
-6. `Files.deleteIfExists(path)` dọn đúng node trong thư mục **vừa được chương trình tạo riêng**; sau đó `Files.deleteIfExists(directory)` dọn folder rỗng. Vì thế dòng cuối xác nhận `true`.
+1. Client and server meet through a **filesystem path**, without using TCP/IP, DNS, or ports.
+2. `writeText` and `readFour` use loops so they do not assume a single I/O call handles all four bytes.
+3. The server worker reads `PING` and returns `PONG`; `Future.get(5, TimeUnit.SECONDS)` waits for the task to finish and propagates worker errors to main.
+4. `try (SocketChannel accepted...)` closes the accepted connection, `try (SocketChannel client...)` closes the client, and `try (ServerSocketChannel listener...)` closes the listener.
+5. After the **listener has closed**, `Files.exists(path, NOFOLLOW_LINKS)` still returns `true` because the socket node remains.
+6. `Files.deleteIfExists(path)` cleans up the exact node in the directory **just created exclusively by the program**; then `Files.deleteIfExists(directory)` cleans up the empty folder. Thus the final line confirms `true`.
 
-**Giới hạn và lưu ý về demo:**
+**Limitations and notes about the demo:**
 
-- Mặc dù `Files.createTempDirectory` giảm rủi ro đụng tên, deployment bảo mật cần chính sách ACL/mode **trước khi bind**. Không mặc định thư mục tạm của mọi OS đều thỏa yêu cầu bảo mật của một service nhạy cảm.
-- Một số OS/JDK không hỗ trợ `StandardProtocolFamily.UNIX` hoặc bị hạn chế tạo socket; khi đó có thể gặp `UnsupportedOperationException` hoặc lỗi I/O. Không nên đổi sang TCP ngầm mà không thiết kế lại mô hình quyền.
-- Nếu đường dẫn temp quá dài so với giới hạn Unix-domain socket của OS, bind có thể thất bại; hãy cấu hình thư mục runtime **ngắn và đáng tin** cho môi trường đó.
-- `ExecutorService.shutdownNow()` ở demo chỉ là cleanup task executor sau khi `Future.get` đã xác nhận happy path. Trong server dài hạn cần đóng listener, phối hợp worker hoàn tất/hủy, có timeout và quản lý accepted connections trước khi xóa path.
-- `readFour` chỉ đọc đúng bốn byte để demo; protocol thật phải định nghĩa frame, giới hạn dữ liệu và xử lý EOF/timeout hợp lệ. Unix-domain byte stream không tự framing message.
-- Nếu cleanup bị lỗi, `Files.deleteIfExists` ném exception; đây là tín hiệu cần xử lý, không tự ghi đè hay xóa cả cây thư mục ngoài phạm vi.
-- Kết quả `true` của `Files.exists` khi server đóng là hành vi được tài liệu Java mô tả cho pathname socket; không được viết code production phụ thuộc “tự dọn” theo mặc định.
+- Although `Files.createTempDirectory` reduces name-collision risk, a secure deployment needs an ACL/mode policy **before binding**. Do not assume every OS's default temp directory meets the security requirements of a sensitive service.
+- Some OS/JDK combinations do not support `StandardProtocolFamily.UNIX` or restrict socket creation; in that case you may encounter `UnsupportedOperationException` or I/O errors. Do not silently fall back to TCP without redesigning the permission model.
+- If the temp path is too long for the OS's Unix-domain socket limit, bind may fail; configure a **short, reliable** runtime directory for that environment.
+- `ExecutorService.shutdownNow()` in the demo only cleans up the task executor after `Future.get` has confirmed the happy path. In a long-running server, you must close the listener, coordinate worker completion/cancellation with timeouts, and manage accepted connections before deleting the path.
+- `readFour` only reads exactly four bytes for demo purposes; a real protocol must define framing, data limits, and proper EOF/timeout handling. A Unix-domain byte stream does not frame messages automatically.
+- If cleanup fails, `Files.deleteIfExists` throws an exception; this is a signal to handle, not to blindly overwrite or delete an entire directory tree out of scope.
+- `Files.exists` returning `true` when the server closes is the documented Java behavior for pathname sockets; do not write production code that depends on automatic cleanup by default.
 
-## 10. Biến thể: `bind(null)` vẫn cần dọn đường dẫn
+## 10. Variation: `bind(null)` still requires path cleanup
 
-Một số server không cần path cố định; muốn OS/JDK tự chọn tên duy nhất:
+Some servers do not need a fixed path and want the OS/JDK to choose a unique name automatically:
 
 ~~~java
 Path autoPath;
@@ -537,9 +537,9 @@ try {
 }
 ~~~
 
-**Đây là mảnh mã** đặt trong method `throws Exception`, cần imports `java.net.*`, `java.nio.channels.*`, `java.nio.file.*`. Đường dẫn do server tự bind phải được gửi cho client qua cơ chế discovery đáng tin. Đừng tự tìm file đầu tiên có tiền tố `socket_` trong thư mục tạm: điều đó có thể là file của process khác.
+**This is a code snippet** placed inside a `throws Exception` method, requiring imports `java.net.*`, `java.nio.channels.*`, `java.nio.file.*`. The path auto-bound by the server must be sent to the client via a reliable discovery mechanism. Do not scan the temp directory for the first file prefixed with `socket_`: that could be another process's file.
 
-Đoạn này đã được thử trên JDK hỗ trợ UDS với ba dòng:
+This snippet was tested on a UDS-capable JDK with three output lines:
 
 ~~~text
 Has named server address: true
@@ -547,50 +547,50 @@ Socket file while open: true
 Socket file after close: true
 ~~~
 
-Dòng thứ ba chứng minh **auto-named socket file vẫn tồn tại sau close**. Nếu muốn thử như chương trình độc lập, bọc đoạn trên trong class có `public static void main(String[] args) throws Exception` và imports hợp lệ. Dù server tự cấp tên, nguyên tắc dọn file thuộc chính mình không đổi.
+The third line proves that **an auto-named socket file still exists after close**. If you want to try it as a standalone program, wrap the snippet in a class with `public static void main(String[] args) throws Exception` and valid imports. Even when the server allocates the name automatically, the rule of cleaning up the file you own does not change.
 
-## 11. Triệu chứng thực tế và hướng chẩn đoán
+## 11. Real-world symptoms and diagnostic steps
 
-### 11.1. `Address already in use` hoặc bind thất bại
+### 11.1. `Address already in use` or bind failure
 
-Khả năng:
+Possibilities:
 
-- Path đã có socket node do instance **đang hoạt động** sở hữu.
-- Instance cũ chết nhưng để lại **stale socket file**.
-- Path là một file khác (regular file, symlink, directory) bị đặt trùng tên.
-- Một process khác vừa bind vào tên đó giữa hai bước kiểm tra.
-- Path vượt giới hạn OS hoặc filesystem không hỗ trợ Unix-domain node.
+- The path already has a socket node owned by an **active** instance.
+- A previous instance died and left behind a **stale socket file**.
+- The path is a different file (regular file, symlink, directory) with the same name.
+- Another process bound that name between two check steps.
+- The path exceeds the OS limit or the filesystem does not support Unix-domain nodes.
 
-Cách xử lý:
+How to handle:
 
-1. Quan sát path, owner, type và trạng thái process/server với công cụ OS trong phạm vi được phép.
-2. Kiểm tra service manager/lock, xem có instance thật đang chạy không.
-3. Nếu xác thực được path stale và thuộc đúng service, dọn dưới quyền của lifecycle manager; **không xóa bừa**.
-4. Ưu tiên thiết kế private runtime directory và một owner duy nhất, tránh split-brain.
-5. Thử bind lại sau khi vấn đề thực được giải quyết.
+1. Inspect the path, owner, type, and process/server status with OS tools within authorized scope.
+2. Check the service manager/lock to see whether a real instance is running.
+3. If the path is verified to be stale and owned by the same service, clean it up under the lifecycle manager's authority; **do not delete blindly**.
+4. Prefer a private runtime directory and single-owner design to avoid split-brain.
+5. Retry binding after the underlying issue is resolved.
 
-**Không đưa vào startup logic một câu lệnh `Files.deleteIfExists(socketPath)` vô điều kiện** trước khi bind. Mã có thể làm gián đoạn service cũ.
+**Do not put an unconditional `Files.deleteIfExists(socketPath)` in startup logic** before binding. That code can disrupt an existing running service.
 
 ### 11.2. `Access denied` / `Permission denied`
 
-Kiểm tra:
+Check:
 
-- Parent directory có tồn tại không? Service user có thể search/traverse và create node không?
-- File socket có owner/group/ACL đúng không? Trên Linux, client connect cần quyền write trên socket node.
-- Có ACL bổ sung, SELinux/AppArmor, policy container, mount namespace hoặc Windows ACL không?
-- Process có quyền trên thư mục temp do JDK chọn không? `bind(null)` vẫn cần ghi được ở directory mục tiêu.
-- Path có đi qua thư mục do người lạ kiểm soát hoặc symlink không?
+- Does the parent directory exist? Can the service user search/traverse it and create nodes?
+- Does the socket file have the right owner/group/ACL? On Linux, a connecting client needs write permission on the socket node.
+- Are there additional ACLs, SELinux/AppArmor, container policies, mount namespaces, or Windows ACLs?
+- Does the process have permission in the temp directory chosen by the JDK? `bind(null)` still needs write access in the target directory.
+- Does the path pass through a directory controlled by untrusted users or through a symlink?
 
-Đừng khắc phục bằng `chmod 777` toàn bộ thư mục, nhất là service có quyền nhạy cảm. Xác định **principal cần kết nối** và cấp quyền tối thiểu cho đúng principal, từ thư mục cha đến socket.
+Do not fix this by running `chmod 777` on the whole directory, especially for services with sensitive privileges. Identify the **principal that needs to connect** and grant least-privilege access to that principal, from the parent directory down to the socket.
 
 ### 11.3. `No such file or directory` / `Connection refused`
 
-- `No such file or directory`: pathname/server file có thể không tồn tại, sai mount namespace, path bị đổi hoặc thư mục cha thiếu.
-- `Connection refused` hoặc lỗi kết nối tương ứng: file/socket node có thể còn nhưng không có listener đang hoạt động, server đã close hoặc trạng thái không sẵn sàng.
-- Không kết luận chắc chắn chỉ từ một thông báo lỗi; wording và cách mapping native error sang `IOException` khác nhau giữa OS.
-- Một path tồn tại không chứng minh server còn sống. Cần kiểm tra service process và thực hiện connect/health protocol trong quyền cho phép.
+- `No such file or directory`: the pathname/server file may not exist, the mount namespace may be wrong, the path may have changed, or the parent directory may be missing.
+- `Connection refused` or equivalent connection error: the file/socket node may exist, but there is no active listener, the server has closed, or it is not ready.
+- Do not draw definitive conclusions from a single error message; wording and native error mapping to `IOException` differ across OSes.
+- An existing path does not prove the server is alive. Inspect the service process and run a connect/health protocol within authorized permissions.
 
-### 11.4. Linux tools thường hữu ích
+### 11.4. Commonly useful Linux tools
 
 ~~~bash
 ls -ld /run/myapp
@@ -599,132 +599,132 @@ stat /run/myapp/service.sock
 ss -xl
 ~~~
 
-Các lệnh trên chỉ minh họa cho Linux và nên chạy ở hệ thống bạn sở hữu hoặc được phép chẩn đoán. `ls -l` thường hiển thị type `s` với socket node; đó không phải file lưu payload. `ss -xl` giúp quan sát một số Unix-domain listening sockets; output phụ thuộc quyền, namespace và hệ điều hành. Không lấy số liệu từ những ví dụ lệnh này làm kết quả thật của chương trình Java.
+The commands above are Linux illustrations only and should be run on systems you own or are authorized to diagnose. `ls -l` typically shows type `s` for a socket node; it is not a file storing payloads. `ss -xl` helps observe some listening Unix-domain sockets; output depends on permissions, namespaces, and the OS. Do not treat figures from these command examples as actual output of the Java program.
 
-## 12. Các lỗi thiết kế cần tránh
+## 12. Design mistakes to avoid
 
-| Sai lầm | Vì sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| Dùng `new ServerSocket()` với `UnixDomainSocketAddress` | API TCP/IP legacy không phải cách chọn family `UNIX` | `ServerSocketChannel.open(UNIX)` |
-| Dùng `InetSocketAddress("localhost", port)` | Đó là TCP/IP, không phải pathname IPC | `UnixDomainSocketAddress.of(Path)` |
-| Nghĩ `.sock` là file payload bình thường | File socket là node đặc biệt cho connect/bind | Đọc/ghi qua `SocketChannel` |
-| Đóng channel rồi tin path tự mất | JDK không tự unlink bound pathname | Cleanup riêng sau khi đóng |
-| Đặt `Files.deleteIfExists(path)` trong handler của từng client | Client mới mất tên server đang lắng nghe | Cleanup ở lifecycle server/instance |
-| Khi thấy path có sẵn, xóa ngay | Có thể là endpoint của server khác đang chạy | Kiểm tra owner/instance/liveness và phối hợp shutdown |
-| Đặt socket cố định trong thư mục world-writable | Dễ collision, symlink/race, truy cập trái ý muốn | Private directory + ownership + permissions |
-| Chỉ kiểm tra `Files.exists` rồi xóa | Có time-of-check/time-of-use race | Bảo vệ thư mục, lock và quản trị instance |
-| Cố coi permission mode socket là portable | POSIX không bảo đảm cùng cơ chế mọi OS | Thư mục riêng, ACL và peer auth khi cần |
-| Dùng `setPosixFilePermissions` trên Windows | POSIX attribute view không có sẵn | Cấu hình Windows ACL phù hợp |
-| Dùng đường dẫn Unicode/rất dài | Native sockaddr path tính theo byte và có giới hạn | Path ngắn, thử trên OS mục tiêu |
-| Dùng Path từ ZIP filesystem | Không phải default filesystem Path | Dùng `Path.of(...)` hoặc default provider |
-| Tưởng `bind(null)` không tạo file | Server auto-bind tạo tên tạm và vẫn để lại node | Lấy `getLocalAddress().getPath()` và dọn |
-| Định danh client bằng port hoặc IP | Unix-domain socket không có TCP endpoint | Dùng policy local users/peers, application protocol |
-| Tưởng Unix-domain socket tự đóng mọi accepted connections khi listener close | Connection channels độc lập | Quản lý handler/accepted sockets riêng |
-| Đọc một lần vào buffer và coi là message hoàn chỉnh | Stream I/O có thể partial | Framing và vòng read/write đúng |
-| Thao tác unlink trong khi listener còn chạy | Client mới không tìm thấy endpoint, race khó debug | Dừng listener/handler rồi cleanup |
-| Xóa đệ quy cả thư mục runtime dùng chung | Có thể làm mất dữ liệu/socket khác | Chỉ delete node và directory mình tạo/sở hữu |
-| Bỏ qua lỗi cleanup | Restart sau dễ bind fail | Log/báo lỗi; xử lý stale file có kiểm soát |
+| Using `new ServerSocket()` with `UnixDomainSocketAddress` | Legacy TCP/IP API is not how you select the `UNIX` family | `ServerSocketChannel.open(UNIX)` |
+| Using `InetSocketAddress("localhost", port)` | That is TCP/IP, not pathname IPC | `UnixDomainSocketAddress.of(Path)` |
+| Thinking `.sock` is a normal payload file | A socket file is a special node for connect/bind | Read/write via `SocketChannel` |
+| Closing the channel and assuming the path disappears | The JDK does not automatically unlink bound pathnames | Separate cleanup after closing |
+| Putting `Files.deleteIfExists(path)` inside each client's handler | New clients lose the listening server's name | Cleanup at the server/instance lifecycle |
+| Immediately deleting an existing path when seen | It might be another running server's endpoint | Check owner/instance/liveness and coordinate shutdown |
+| Placing a fixed socket in a world-writable directory | Prone to collisions, symlink/race attacks, unwanted access | Private directory + ownership + permissions |
+| Only checking `Files.exists` and then deleting | Subject to time-of-check/time-of-use race | Protected directory, locking, and instance management |
+| Treating socket permission modes as portable | POSIX does not guarantee identical behavior across all OSes | Private directory, ACLs, and peer auth when needed |
+| Using `setPosixFilePermissions` on Windows | POSIX attribute view is not available | Configure appropriate Windows ACLs |
+| Using Unicode / very long paths | Native sockaddr path is measured in bytes and has a limit | Short paths, test on target OS |
+| Using a Path from a ZIP filesystem | Not a default filesystem Path | Use `Path.of(...)` or the default provider |
+| Thinking `bind(null)` creates no file | Auto-bind server creates a temporary name and still leaves a node | Retrieve `getLocalAddress().getPath()` and clean up |
+| Identifying clients by port or IP | Unix-domain sockets have no TCP endpoint | Use local user/peer policies and application protocols |
+| Thinking Unix-domain sockets auto-close all accepted connections when the listener closes | Connection channels are independent | Manage handlers/accepted sockets separately |
+| Reading once into a buffer and treating it as a complete message | Stream I/O can be partial | Proper framing and read/write loops |
+| Unlinking while the listener is still running | New clients cannot find the endpoint; hard-to-debug races | Stop listener/handlers, then clean up |
+| Recursively deleting a shared runtime directory | Can wipe out other data/sockets | Only delete the node and directory you created/own |
+| Ignoring cleanup errors | Subsequent restarts easily fail to bind | Log/report errors; handle stale files safely |
 
-## 13. Test cases nên có
+## 13. Recommended test cases
 
-| Tình huống | Kiểm tra |
+| Scenario | Check |
 | --- | --- |
-| Bind vào path mới thuộc private directory | Thành công và tạo socket node |
-| Client nối vào đúng path | Có thể trao đổi byte qua `SocketChannel` |
-| Đóng client nhưng listener vẫn mở | Server còn có thể accept client khác |
-| Đóng listener khi accepted channel đã tồn tại | Accepted connection không tự bị đóng chỉ bởi listener |
-| Đóng listener rồi kiểm tra path | File còn tồn tại theo hợp đồng Java |
-| Cleanup sau khi listener ngừng | Node bị xóa, directory rỗng có thể dọn |
-| Bind lại cùng path **khi file stale chưa xóa** | Có thể thất bại; không tự xóa trước khi xác minh ownership |
-| Bind lại path sau cleanup đúng | Có thể thành công nếu OS và quyền cho phép |
-| Path quá dài | Bind/connect ném lỗi đúng ngữ cảnh; giải pháp là ngắn path |
-| Quyền parent directory không đủ | Server bind bị từ chối theo OS policy |
-| Client không được phép connect | Bị từ chối theo policy thực tế của OS/ACL |
-| Symlink hoặc file khác tại path | Không ghi đè/xóa file không thuộc mình |
-| Hai instance cạnh tranh cùng tên | Chỉ một owner có quyền bind; instance thứ hai không unlink instance đầu |
-| Crash giữa bind và cleanup | Lần khởi động sau nhận diện stale an toàn, không xóa live socket |
-| Container có mount namespace khác | Không dựa vào tên giống nhau để kết luận là cùng endpoint |
-| Lỗi trong handler và cleanup | Accepted channel, listener và file được xử lý theo ownership; exception được báo |
+| Bind to a new path in a private directory | Succeeds and creates socket node |
+| Client connects to the exact path | Can exchange bytes via `SocketChannel` |
+| Close client while listener stays open | Server can still accept another client |
+| Close listener while an accepted channel exists | Accepted connection is not closed solely by the listener |
+| Close listener and then inspect path | File still exists per Java contract |
+| Cleanup after listener stops | Node is deleted, empty directory can be removed |
+| Rebind same path **while stale file is undeleted** | May fail; do not auto-delete before verifying ownership |
+| Rebind path after proper cleanup | Can succeed if OS and permissions allow |
+| Path too long | Bind/connect throws contextual error; solution is a shorter path |
+| Insufficient parent directory permissions | Server bind is rejected per OS policy |
+| Unauthorized client attempts to connect | Rejected per actual OS/ACL policy |
+| Symlink or other file at path | Does not overwrite/delete a file not owned by you |
+| Two instances compete for the same name | Only one owner can bind; second instance does not unlink the first |
+| Crash between bind and cleanup | Next startup detects stale file safely without deleting live socket |
+| Containers with different mount namespaces | Do not rely on identical names to assume the same endpoint |
+| Error in handler and cleanup | Accepted channel, listener, and file are handled by ownership; exceptions are reported |
 
-Không nhất thiết viết hết các test bằng một `main()`; các trường hợp quyền, race và crash cần môi trường kiểm thử có quản lý, đôi khi phải chạy nhiều process/OS accounts. Demo ở phần 9 chủ yếu chứng minh bản chất **channel close ≠ pathname delete**.
+You do not need to write all tests in a single `main()`; permission, race, and crash cases require a controlled test environment, sometimes running multiple processes/OS accounts. The demo in section 9 mainly proves the fundamental behavior **channel close != pathname delete**.
 
-## 14. Bài tập thực hành và đáp án
+## 14. Practice exercises and answers
 
-### Bài 1 — Tại sao restart thất bại?
+### Exercise 1 — Why did restart fail?
 
-Một server dùng `/run/myapp/service.sock`. Lần chạy trước đã thoát khỏi `try (ServerSocketChannel server = ...)` nhưng lần sau `bind` báo trùng tên. Vì sao?
+A server uses `/run/myapp/service.sock`. The previous run exited `try (ServerSocketChannel server = ...)`, yet the next `bind` reports the name is already in use. Why?
 
-**Đáp án:** Unix-domain socket đã bind tạo socket node; `close()` đóng channel nhưng **không tự unlink** pathname. File stale còn khiến bind lại cùng tên không thành công. Sau khi xác minh instance cũ không chạy và sở hữu path, dọn node theo quy trình an toàn, không xóa mù.
+**Answer:** A bound Unix-domain socket creates a socket node; `close()` closes the channel but **does not automatically unlink** the pathname. The remaining stale file prevents rebinding the same name. After verifying the old instance is not running and you own the path, clean up the node via a safe procedure rather than deleting blindly.
 
-### Bài 2 — Vai trò của chmod 0700
+### Exercise 2 — Role of chmod 0700
 
-Tại sao thư mục `/run/myapp` có mode `0700` do chính service sở hữu hữu ích hơn so với đặt socket vào `/tmp/service.sock` và chỉ chmod socket file?
+Why is a `/run/myapp` directory with mode `0700` owned by the service itself more useful than putting the socket in `/tmp/service.sock` and only running chmod on the socket file?
 
-**Đáp án:** Thư mục riêng giúp người không được phép **không traverse hoặc thay thế tên** endpoint; trên Linux client cần đi qua directory và có quyền thích hợp. Socket-node mode còn phụ thuộc OS và có thể bị thay đổi trong race sau bind. Khi cần một group user khác connect, dùng quyền/ACL được thiết kế, không tự mở toàn bộ thư mục.
+**Answer:** A private directory prevents unauthorized users from **traversing or replacing the name** of the endpoint; on Linux a client needs to traverse the directory and have appropriate permissions. Socket-node mode also depends on the OS and can be altered in a race after binding. When another user group needs to connect, use properly designed permissions/ACLs rather than opening the entire directory.
 
-### Bài 3 — Bind tự động
+### Exercise 3 — Automatic binding
 
-`ServerSocketChannel.open(UNIX).bind(null)` có tự giải phóng file sau khi `close()` không? Làm sao biết path để dọn?
+Does `ServerSocketChannel.open(UNIX).bind(null)` automatically release the file after `close()`? How do you know the path to clean up?
 
-**Đáp án:** Không. Lấy `(UnixDomainSocketAddress) server.getLocalAddress()` rồi `getPath()` sau bind, giữ path đó trong ownership của instance và dọn khi server đã dừng.
+**Answer:** No. Retrieve `(UnixDomainSocketAddress) server.getLocalAddress()` and call `getPath()` after binding, track that path under the instance's ownership, and clean it up once the server has stopped.
 
-### Bài 4 — Client có file riêng?
+### Exercise 4 — Does the client have its own file?
 
-Client tạo `SocketChannel.open(UNIX)`, gọi `connect(address)` mà không bind local address. Có cần xóa `client.sock` không?
+A client creates `SocketChannel.open(UNIX)` and calls `connect(address)` without binding a local address. Does `client.sock` need to be deleted?
 
-**Đáp án:** Không có pathname socket file riêng được tạo cho kiểu client **implicitly bound** đó; endpoint local được coi là unnamed. Chỉ dọn các path mà chương trình thực sự sở hữu/tạo ra.
+**Answer:** No separate pathname socket file is created for such an **implicitly bound** client; its local endpoint is considered unnamed. Only clean up paths that the program actually owns/created.
 
-### Bài 5 — Xóa path sớm
+### Exercise 5 — Deleting the path prematurely
 
-Instance A đang lắng nghe tại `/tmp/app.sock`. Instance B thấy path tồn tại và gọi `Files.deleteIfExists("/tmp/app.sock")` trước khi bind. Điều gì nguy hiểm?
+Instance A is listening at `/tmp/app.sock`. Instance B sees the path exists and calls `Files.deleteIfExists("/tmp/app.sock")` before binding. What is the danger?
 
-**Đáp án:** B có thể unlink tên endpoint đang hoạt động của A, làm client mới không connect được theo tên cũ và gây split-brain, trong khi những connection cũ có thể vẫn còn. Phải có owner/instance coordination, private directory và xác minh an toàn trước khi xử lý stale path.
+**Answer:** B can unlink A's active endpoint name, preventing new clients from connecting via the old name and causing split-brain while old connections may still remain. You must have owner/instance coordination, a private directory, and safe verification before handling a stale path.
 
-### Bài 6 — Partial read/write
+### Exercise 6 — Partial read/write
 
-Server gọi `SocketChannel.read(buffer)` một lần và coi rằng đã nhận trọn một request dài 200 byte. Vì sao có thể sai?
+A server calls `SocketChannel.read(buffer)` once and assumes it has received a full 200-byte request. Why can this be wrong?
 
-**Đáp án:** Unix-domain stream socket **không có message boundary**. Một lần read có thể chỉ trả một phần byte; phải định nghĩa framing, lặp tới khi nhận đủ và xử lý EOF/timeout.
+**Answer:** A Unix-domain stream socket **has no message boundaries**. A single read may return only part of the bytes; you must define framing, loop until all bytes are received, and handle EOF/timeouts.
 
-### Bài 7 — Phân biệt hệ điều hành
+### Exercise 7 — Operating system differences
 
-Một nhóm lập trình thấy Linux cho phép `chmod 600 service.sock` và kết luận Windows, macOS, BSD đều áp dụng cùng cách kiểm tra quyền trên socket node. Kết luận đúng không?
+A group of developers sees that Linux allows `chmod 600 service.sock` and concludes that Windows, macOS, and BSD all apply the same permission checks on socket nodes. Is that conclusion right?
 
-**Đáp án:** Không. POSIX không bắt buộc cùng semantics cho permission của pathname socket trên mọi OS; Windows dùng ACL và những chính sách riêng. Phải kiểm thử OS mục tiêu; bắt đầu bằng private directory, proper ownership và application authorization khi cần.
+**Answer:** No. POSIX does not mandate identical semantics for pathname socket permissions across every OS; Windows uses ACLs and its own policies. You must test on the target OS; start with a private directory, proper ownership, and application authorization when needed.
 
-### Bài 8 — Giới hạn đường dẫn
+### Exercise 8 — Path length limit
 
-Một đường dẫn dài 160 byte vẫn tạo được file văn bản trên filesystem. Nó có chắc bind được làm `UnixDomainSocketAddress` không?
+A 160-byte path can still create a text file on the filesystem. Is it guaranteed to bind as a `UnixDomainSocketAddress`?
 
-**Đáp án:** Không. Unix-domain sockaddr path có giới hạn native riêng (JDK mô tả thường ~100 byte). Chọn path ngắn hơn, không tự mặc định filesystem path hợp lệ thì socket address cũng hợp lệ.
+**Answer:** No. Unix-domain sockaddr paths have their own native limit (JDK describes it as typically ~100 bytes). Choose a shorter path and do not assume that a valid filesystem path is automatically valid as a socket address.
 
-## 15. Checklist trước khi deploy
+## 15. Pre-deployment checklist
 
-- [ ] Dùng `StandardProtocolFamily.UNIX` và `UnixDomainSocketAddress`, không nhầm với TCP loopback.
-- [ ] Path là **đường dẫn ngắn, tuyệt đối**, thuộc default filesystem, directory cha có sẵn.
-- [ ] Có quy tắc **owner**: server/service manager chịu trách nhiệm path, listener, accepted channels.
-- [ ] Directory cha có quyền phù hợp; trên Linux phân biệt directory execute/search và socket write; trên Windows kiểm tra ACL.
-- [ ] Không đặt socket nhạy cảm trong thư mục chia sẻ dễ bị đổi tên/symlink nếu chưa bảo vệ.
-- [ ] Có cơ chế ngăn hai server instance cùng chiếm một tên endpoint.
-- [ ] Không coi `Files.exists(path)` là bằng chứng endpoint stale hoặc client/server còn hoạt động.
-- [ ] Không xóa file đã có trước startup nếu chưa xác minh ownership và trạng thái instance cũ.
-- [ ] `try-with-resources` đóng channels; `finally` riêng dọn pathname **sau khi** ngừng listener/handler.
-- [ ] Với `bind(null)`, lưu path do `getLocalAddress()` trả về và dọn khi kết thúc.
-- [ ] Không quên dọn accepted sockets/worker/executor trong graceful shutdown.
-- [ ] Có framing và xử lý partial read/write, EOF, dữ liệu quá lớn, timeout và auth theo nhu cầu.
-- [ ] Triển khai và thử trên OS/JDK cụ thể, kể cả path length, permission, crash/restart.
-- [ ] Nếu cleanup thất bại, ghi lỗi vận hành; không xóa đệ quy thư mục không thuộc mình.
+- [ ] Use `StandardProtocolFamily.UNIX` and `UnixDomainSocketAddress`, not confusing them with TCP loopback.
+- [ ] The path is a **short, absolute path** on the default filesystem, with an existing parent directory.
+- [ ] There is an **owner** rule: the server/service manager is responsible for the path, listener, and accepted channels.
+- [ ] The parent directory has appropriate permissions; on Linux distinguish directory execute/search and socket write; on Windows verify ACLs.
+- [ ] Do not place sensitive sockets in a shared directory vulnerable to renaming/symlinks without protection.
+- [ ] Have a mechanism to prevent two server instances from claiming the same endpoint name.
+- [ ] Do not treat `Files.exists(path)` as proof that an endpoint is stale or that a client/server is alive.
+- [ ] Do not delete an existing file before startup without verifying ownership and the previous instance's state.
+- [ ] `try-with-resources` closes channels; a separate `finally` cleans up the pathname **after** stopping the listener/handlers.
+- [ ] With `bind(null)`, save the path returned by `getLocalAddress()` and clean it up upon exit.
+- [ ] Do not forget to clean up accepted sockets/workers/executors during graceful shutdown.
+- [ ] Implement framing and handle partial read/write, EOF, oversized data, timeouts, and auth as needed.
+- [ ] Deploy and test on the specific OS/JDK, including path length, permissions, and crash/restart.
+- [ ] If cleanup fails, log operational errors; never recursively delete directories you do not own.
 
-## 16. Tài liệu chính thức để đối chiếu
+## 16. Official references for verification
 
-- [Java SE 17 — UnixDomainSocketAddress](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/UnixDomainSocketAddress.html): `of(Path)`, `getPath()`, path từ default file system, unnamed address.
-- [Java SE 17 — ServerSocketChannel](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/ServerSocketChannel.html): `open(UNIX)`, `bind`, `accept`, và **quy định file socket vẫn còn sau close**.
+- [Java SE 17 — UnixDomainSocketAddress](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/UnixDomainSocketAddress.html): `of(Path)`, `getPath()`, paths from the default file system, unnamed addresses.
+- [Java SE 17 — ServerSocketChannel](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/ServerSocketChannel.html): `open(UNIX)`, `bind`, `accept`, and **the rule that the socket file remains after close**.
 - [Java SE 17 — SocketChannel](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/SocketChannel.html): client `connect`, stream I/O, implicit unnamed bind, channel lifecycle.
-- [Java SE 17 — NIO channel package](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/package-summary.html): protocol families và Unix-domain stream socket support.
-- [Java SE 17 — Networking Properties](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/doc-files/net-properties.html): `jdk.net.unixdomain.tmpdir` và đường dẫn socket do `bind(null)` cấp phát.
-- [Inside Java — JEP 380 Unix-domain socket channels](https://inside.java/2021/02/03/jep380-unix-domain-sockets-channels/): thiết kế API, sự khác biệt TCP vs local pathname, bảo mật và cleanup.
-- [Linux man-pages — unix(7)](https://man7.org/linux/man-pages/man7/unix.7.html): pathname sockets, độ dài `sun_path`, quyền parent directory/socket node và khác biệt portability.
-- [Java SE 17 — Files](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): `createTempDirectory`, `exists`, `deleteIfExists`, `LinkOption.NOFOLLOW_LINKS` và thao tác filesystem.
-- [Java SE 17 — PosixFilePermissions](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html): tạo/diễn giải permission POSIX, không phải API ACL portable.
+- [Java SE 17 — NIO channel package](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/package-summary.html): protocol families and Unix-domain stream socket support.
+- [Java SE 17 — Networking Properties](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/doc-files/net-properties.html): `jdk.net.unixdomain.tmpdir` and socket paths allocated by `bind(null)`.
+- [Inside Java — JEP 380 Unix-domain socket channels](https://inside.java/2021/02/03/jep380-unix-domain-sockets-channels/): API design, differences between TCP vs local pathnames, security, and cleanup.
+- [Linux man-pages — unix(7)](https://man7.org/linux/man-pages/man7/unix.7.html): pathname sockets, `sun_path` length, parent directory/socket node permissions, and portability differences.
+- [Java SE 17 — Files](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): `createTempDirectory`, `exists`, `deleteIfExists`, `LinkOption.NOFOLLOW_LINKS`, and filesystem operations.
+- [Java SE 17 — PosixFilePermissions](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html): creating/interpreting POSIX permissions, not a portable ACL API.
 
-**Điều cốt lõi:** Unix-domain socket dùng **pathname làm địa chỉ IPC**, nhưng pathname **không phải vòng đời của channel**. Hãy đặt đường dẫn trong thư mục được kiểm soát, cấp quyền đúng cho những process được phép, đóng listener/accepted channels đúng scope, và **chỉ xóa socket node sau khi chính instance sở hữu endpoint đã dừng**. Đó là chìa khóa tránh lỗi restart, rò file socket và xóa nhầm endpoint đang chạy.
+**Core takeaway:** A Unix-domain socket uses a **pathname as its IPC address**, but the pathname is **not the channel's lifecycle**. Place the path in a controlled directory, grant proper permissions to authorized processes, close the listener and accepted channels in their proper scopes, and **delete the socket node only after the instance owning the endpoint has stopped**. That is the key to avoiding restart failures, leaked socket files, and accidentally deleting a running endpoint.

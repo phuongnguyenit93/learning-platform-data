@@ -1,0 +1,3 @@
+menuLevel1: Exactly once
+menuLevel2: read-process-write exactly once
+status: WRITTEN

@@ -1,35 +1,35 @@
-# Phân biệt kiểm tra tính toàn vẹn, chữ ký và mức độ tin cậy của nhà phát hành
+# Distinguishing Integrity Checks, Signatures, and Publisher Trust
 
-Trong kiến trúc Java runtime-extensibility, plugin có thể được tải từ kho artifact, mirror, Internet hoặc thư mục do đối tác cung cấp. Việc một file **plugin.jar tải về thành công**, thậm chí một file **có chữ ký mật mã hợp lệ**, chưa đủ căn cứ để host nạp class và thực thi. Host cần phân biệt ba câu hỏi:
+In a Java runtime-extensibility architecture, plugins may be downloaded from artifact repositories, mirrors, the Internet, or partner-supplied directories. The fact that a **plugin.jar file downloaded successfully**, or even that a file **carries a valid cryptographic signature**, is not sufficient grounds for the host to load classes and execute them. The host must distinguish three questions:
 
-1. **Tính toàn vẹn (integrity):** Byte của JAR có trùng với artifact được phê duyệt, tính theo một nguồn đối chiếu độc lập và đáng tin, hay đã bị sửa?
-2. **Chữ ký số (digital signature):** File hoặc release metadata có chữ ký hợp lệ với khóa công khai xác định hay không? Khóa riêng tương ứng đã được dùng để ký dữ liệu trong phạm vi chữ ký chưa?
-3. **Mức độ tin cậy và quyền phát hành (publisher trust/authorization):** Khóa, chứng chỉ hoặc danh tính đã kiểm tra ấy có thực sự thuộc nhóm publisher được **host** cho phép phát hành đúng plugin này không?
+1. **Integrity:** Do the JAR's bytes match the approved artifact, verified against an independent and trusted reference source, or were they modified?
+2. **Digital signature:** Does the file or release metadata have a valid signature under a specific public key? Was the corresponding private key used to sign the data within the signature's scope?
+3. **Publisher trust / authorization:** Does that verified key, certificate, or identity actually belong to a publisher authorized by the **host** to release this exact plugin?
 
-**Một chữ ký hợp lệ với một khóa lạ vẫn là chữ ký hợp lệ, nhưng không tạo ra niềm tin đối với nhà phát hành.** Một SHA-256 khớp với giá trị vừa tải từ cùng nguồn không đáng tin có thể không giúp chống việc đánh tráo. Ngay cả artifact của vendor được phép, được ký đúng, vẫn có thể chứa lỗi hoặc mã có hành vi nguy hiểm; xác thực artifact **không phải sandbox thực thi**.
+**A valid signature made with an unknown key is still a valid signature, yet it establishes no trust in the publisher.** A SHA-256 hash that matches a value just downloaded from the same untrusted source may fail to prevent substitution. Even an artifact from an authorized vendor, properly signed, can contain bugs or dangerous code; artifact verification **is not an execution sandbox**.
 
-Bài học tập trung vào ranh giới tin cậy giữa Java host và plugin bên ngoài. Ta tìm hiểu SHA-256, Ed25519, pinning, X.509, cơ chế signed JAR bằng jarsigner, tải và kiểm tra trước ClassLoader/ServiceLoader, cùng một ví dụ Java 17+ chạy được.
+This lesson focuses on the trust boundary between a Java host and external plugins. We examine SHA-256, Ed25519, pinning, X.509, the signed JAR mechanism with `jarsigner`, loading and verifying before `ClassLoader`/`ServiceLoader`, and a runnable Java 17+ example.
 
-## 1. Mô hình ba tầng: integrity → signature → authorization
+## 1. The Three-Layer Model: integrity → signature → authorization
 
-| Tầng | Thao tác | Nếu thành công, có thể nói gì? | Chưa thể khẳng định |
+| Layer | Operation | If it succeeds, what can we say? | What we cannot yet claim |
 | --- | --- | --- | --- |
-| **Integrity** | Tính SHA-256 của artifact và đối chiếu với digest mong đợi đã được bảo vệ | Byte đang nhận khớp với bản đã định danh bằng digest | Bản đó do ai phát hành hoặc có an toàn không |
-| **Signature** | Kiểm tra chữ ký trên đúng dữ liệu bằng public key tương ứng | Dữ liệu chưa bị thay đổi trong phạm vi chữ ký và chữ ký hợp lệ với khóa kiểm tra | Public key có thuộc publisher đã được phép không |
-| **Publisher trust** | Kiểm tra trusted key/certificate, identity, phạm vi plugin ID/version và chính sách thu hồi | Chủ thể đã xác thực được quyền cung cấp release ấy theo policy của host | Code sẽ không gây hại sau khi chạy |
+| **Integrity** | Compute SHA-256 of the artifact and compare against a protected expected digest | The received bytes match the version identified by the digest | Who published that version or whether it is safe |
+| **Signature** | Verify the signature over the exact data using the corresponding public key | The data has not changed within the signature's scope and the signature is valid for the tested key | Whether the public key belongs to an authorized publisher |
+| **Publisher trust** | Check trusted key/certificate, identity, plugin ID/version scope, and revocation policy | An authenticated entity is authorized to supply that release under the host's policy | That the code will not cause harm once executed |
 
-Ví dụ:
+Examples:
 
-- File JAR bị thay sau khi được ký, còn signature cũ: chữ ký sẽ không khớp dữ liệu. Đây là **SIGNATURE_INVALID**.
-- Kẻ tấn công tự sinh keypair, ký JAR của họ và phát luôn public key: phép toán Signature.verify có thể trả true, nhưng **SIGNER_NOT_TRUSTED**.
-- Nhà phát hành A được phép ký plugin A nhưng cố phân phối plugin ID của B: danh tính A có thể xác thực hợp lệ, song **PUBLISHER_NOT_AUTHORIZED** cho plugin B.
-- Publisher được phép ký một bản có lỗ hổng: cả ba tầng có thể đạt, nhưng cần chính sách review, cập nhật, giới hạn quyền và thu hồi bản phát hành.
+- A JAR file is modified after signing while keeping the old signature: the signature will not match the data. This is **SIGNATURE_INVALID**.
+- An attacker generates their own keypair, signs their JAR, and distributes their public key alongside it: `Signature.verify` may return `true`, yet it is **SIGNER_NOT_TRUSTED**.
+- Publisher A is authorized to sign plugin A but attempts to distribute plugin B's ID: A's identity may authenticate cleanly, yet it is **PUBLISHER_NOT_AUTHORIZED** for plugin B.
+- An authorized publisher signs a release containing a vulnerability: all three layers may pass, so review, update, privilege-restriction, and release-revocation policies are still needed.
 
-Không nên dồn mọi kết quả vào một Boolean tên isValid không có giải thích. Một verifier thực tế thường cần phân biệt kết quả **hashMismatch**, **signatureInvalid**, **unknownSigner**, **certificateInvalid**, **releaseNotAllowed** và **verified**. Những tên này là ví dụ về thiết kế ứng dụng, không phải enum của JDK.
+Do not collapse every outcome into a single Boolean named `isValid` with no explanation. A real-world verifier typically needs to distinguish results such as **hashMismatch**, **signatureInvalid**, **unknownSigner**, **certificateInvalid**, **releaseNotAllowed**, and **verified**. These names are application-design examples, not JDK enums.
 
-## 2. Phân tích mối đe dọa ở biên plugin
+## 2. Threat Analysis at the Plugin Boundary
 
-Một luồng nạp plugin thường như sau:
+A typical plugin loading flow looks like this:
 
 ~~~text
 Publisher / repository / CDN
@@ -52,46 +52,46 @@ Publisher / repository / CDN
           Runtime plugin
 ~~~
 
-Những điểm tấn công khác nhau:
+Different attack points:
 
-1. **Sửa file trên đường truyền hoặc kho:** checksum đáng tin cậy và chữ ký phát hiện sự khác biệt với release được chấp nhận.
-2. **Thay cả file và checksum:** nếu hai thứ đều đến từ một nơi chưa được bảo vệ, kẻ tấn công có thể tạo checksum mới. Cần chuỗi tin cậy cho **giá trị checksum được kỳ vọng**.
-3. **Mạo danh publisher:** chữ ký với khóa tự tạo vẫn xác minh thành công. Cần trust anchor, khóa đã pin hoặc certificate chain cộng publisher policy.
-4. **Dùng chứng chỉ đúng nhưng sai phạm vi:** nhà phát hành có thể có quyền ký sản phẩm này, không có quyền ký plugin ID khác.
-5. **Thay file sau khi xác minh:** kẻ tấn công thay JAR ở đường dẫn cũ trước khi ClassLoader đọc, gây lỗi time-of-check/time-of-use.
-6. **Mã xấu vẫn được ký bởi khóa được tin:** key có thể bị lộ, vendor có thể sai sót hoặc cố tình phát hành mã nguy hiểm. Signature không hạn chế file, network, CPU, thread hoặc native library khi plugin chạy.
+1. **Modifying files in transit or in the repository:** trusted checksums and signatures detect differences from the accepted release.
+2. **Replacing both the file and the checksum:** if both come from an unprotected location, an attacker can generate a new checksum. A chain of trust is needed for the **expected checksum value**.
+3. **Impersonating a publisher:** a signature made with a self-generated key still verifies successfully. A trust anchor, pinned key, or certificate chain plus publisher policy is required.
+4. **Using a valid certificate outside its scope:** a publisher may be authorized to sign one product, not a different plugin ID.
+5. **Replacing the file after verification:** an attacker swaps the JAR at the old path before `ClassLoader` reads it, causing a time-of-check/time-of-use flaw.
+6. **Malicious code still signed by a trusted key:** keys can be stolen, and vendors can make mistakes or intentionally ship dangerous code. A signature does not restrict files, network, CPU, threads, or native libraries when the plugin runs.
 
-Điểm quyết định: **đừng dùng class initialization, constructor hoặc ServiceLoader provider instance để xác minh độ tin cậy của JAR chưa được kiểm tra**. Những bước này đã có thể thực thi mã. Đầu tiên nên xác thực artifact ở dạng byte, không thực thi.
+Key takeaway: **never use class initialization, constructors, or `ServiceLoader` provider instances to verify the trustworthiness of an unverified JAR**. Those steps can already execute code. Always validate the artifact as raw bytes first, without executing anything.
 
-## 3. Integrity: đối chiếu SHA-256 có nguồn tham chiếu tin cậy
+## 3. Integrity: Comparing SHA-256 Against a Trusted Reference Source
 
-SHA-256 chuyển byte thành một digest dài 256 bit. Để kiểm tra plugin tải về, host tính digest của **đúng byte file** và so với digest được hệ thống tin cậy. Nếu file khác, digest sẽ khác trừ những trường hợp va chạm mật mã cực kỳ khó xảy ra đối với SHA-256.
+SHA-256 maps bytes into a 256-bit digest. To check a downloaded plugin, the host computes the digest of the **exact file bytes** and compares it against a digest trusted by the system. If the file differs, the digest will differ barring cryptographic collisions, which are astronomically unlikely for SHA-256.
 
-### 3.1. Một checksum từ cùng nguồn không đủ làm bằng chứng
+### 3.1. A Checksum from the Same Source Is Insufficient Proof
 
-Giả sử endpoint không tin cậy trả về cùng lúc:
+Suppose an untrusted endpoint returns both at once:
 
 ~~~text
 analytics.jar
 analytics.jar.sha256
 ~~~
 
-Nếu endpoint bị kiểm soát, đối thủ có thể thay cả JAR và .sha256. Lệnh tính SHA-256 vẫn thấy “khớp”, nhưng **không có điểm neo tin cậy độc lập**. Giải pháp gồm: digest lấy từ signed release manifest đã xác minh, digest do quản trị viên phê duyệt, hoặc kho dữ liệu được bảo vệ bởi quy trình thay đổi riêng.
+If the endpoint is compromised, an adversary can replace both the JAR and `.sha256`. Computing SHA-256 will still show a "match", yet **there is no independent trust anchor**. Solutions include: digests obtained from a verified signed release manifest, digests approved by an administrator, or a datastore protected by a separate change-control process.
 
-Hash của một artifact do người gửi tự cung cấp vẫn hữu ích để phát hiện lỗi truyền tải, nhưng **không phải bằng chứng về danh tính nhà phát hành**.
+A hash supplied alongside an artifact by the sender is still useful for detecting transmission errors, but it is **not proof of publisher identity**.
 
-### 3.2. Cần hash đúng byte, không hash tên file
+### 3.2. Hash the Exact Bytes, Not the Filename
 
-Với SHA-256 trên JAR:
+For SHA-256 over a JAR:
 
-- Dùng byte nguyên bản của artifact. Không chuẩn hóa newline, giải nén rồi nén lại, sửa ZIP timestamp hoặc sắp xếp entry trước khi tính hash toàn file.
-- Hash phải ràng buộc đúng plugin ID/version/artifact mà host định dùng; đừng chấp nhận một digest hợp lệ của **release khác**.
-- Java cung cấp MessageDigest.getInstance("SHA-256") và MessageDigest.isEqual để đối chiếu digest dạng byte.
-- Với file lớn, nên đọc theo stream, giới hạn kích thước tải và chỉ đưa dữ liệu đã xác minh vào kho artifact bất biến.
-- ZIP CRC-32 giúp phát hiện hỏng dữ liệu ngẫu nhiên, nhưng **CRC-32 không được thiết kế để chống đối thủ chủ động**.
-- Nếu mismatch, fail closed; không tự đổi digest expected thành digest mới quan sát được.
+- Use the original raw bytes of the artifact. Do not normalize newlines, unpack and repack, alter ZIP timestamps, or reorder entries before computing the whole-file hash.
+- The hash must bind to the exact plugin ID/version/artifact the host intends to use; do not accept a valid digest belonging to **another release**.
+- Java provides `MessageDigest.getInstance("SHA-256")` and `MessageDigest.isEqual` for byte-level digest comparison.
+- For large files, read as a stream, enforce download size limits, and move only verified data into an immutable artifact store.
+- ZIP CRC-32 helps detect accidental data corruption, but **CRC-32 is not designed to resist an active adversary**.
+- On mismatch, fail closed; never automatically overwrite the expected digest with the newly observed digest.
 
-Đoạn minh họa đặt trong method có jarPath và trustedDigest (byte[]) đã tồn tại:
+Illustrative snippet placed inside a method where `jarPath` and `trustedDigest` (`byte[]`) already exist:
 
 ~~~java
 byte[] content = java.nio.file.Files.readAllBytes(jarPath);
@@ -101,17 +101,17 @@ boolean intact = java.security.MessageDigest.isEqual(
         trustedDigest, currentDigest);
 ~~~
 
-Đây **không phải class Java độc lập**; nó mô tả phép kiểm tra. Files.readAllBytes chỉ hợp lý với artifact đã được giới hạn kích thước. Trong production, có thể hash tuần tự theo stream để tránh đọc toàn JAR vào heap.
+This is **not a standalone Java class**; it illustrates the check. `Files.readAllBytes` is only reasonable for size-bounded artifacts. In production, you can hash sequentially from a stream to avoid loading the entire JAR onto the heap.
 
-### 3.3. SHA-256 không có thông tin người ký
+### 3.3. SHA-256 Contains No Signer Information
 
-SHA-256 chỉ cho một dấu vân tay dữ liệu, không chứa chứng chỉ, private key hay danh tính. Bất kỳ ai có file cũng có thể tính SHA-256 của nó. Khi digest được bảo vệ bằng chữ ký của trusted publisher, chính **chữ ký lên manifest** mới giúp gắn digest với nguồn phát hành, không phải bản thân hàm hash.
+SHA-256 only produces a data fingerprint; it contains no certificates, private keys, or identity. Anyone who possesses a file can compute its SHA-256. When a digest is protected by a trusted publisher's signature, it is the **signature on the manifest** that binds the digest to the publishing source, not the hash function itself.
 
-Đừng xem việc hai lần tải có cùng checksum là bằng chứng không có mã độc. Nếu cả hai lần đều nhận đúng một bản đã bị đưa vào kho từ trước, giá trị vẫn trùng.
+Do not treat two downloads having the same checksum as proof that there is no malware. If both downloads received the exact same compromised build already planted in the repository, the values will still match.
 
-## 4. Digital signature: xác minh phép ký, không tự cấp quyền cho signer
+## 4. Digital Signature: Verifying the Signing Operation, Not Automatically Granting Signer Authority
 
-Khi ký số, signer dùng **private key** để tạo chữ ký cho một byte sequence; verifier dùng **public key** để kiểm tra.
+When signing digitally, the signer uses a **private key** to create a signature over a byte sequence; the verifier uses a **public key** to check it.
 
 ~~~text
 Publisher:
@@ -121,56 +121,56 @@ Host:
   bytes(JAR) + signature + public key → verify → true / false
 ~~~
 
-Đối với Ed25519 (có trong API mật mã của JDK 17), Java dùng KeyPairGenerator.getInstance("Ed25519") và Signature.getInstance("Ed25519"). Nếu JAR đổi byte sau khi ký nhưng giữ signature cũ, phép verify phải từ chối.
+For Ed25519 (available in JDK 17's cryptographic APIs), Java uses `KeyPairGenerator.getInstance("Ed25519")` and `Signature.getInstance("Ed25519")`. If the JAR's bytes change after signing while keeping the old signature, verification must reject it.
 
-**Giới hạn của kết quả true:** verify chứng minh signature hợp lệ với public key đã dùng để kiểm tra, nhưng **không tự chứng minh public key là của vendor mà host cho phép**. Nếu host nhận cả public key và JAR từ một request chưa đáng tin, đối thủ hoàn toàn có thể tạo keypair của họ, ký file và đưa public key của họ. Verify vẫn true.
+**Limitation of a `true` result:** `verify` proves the signature is valid under the public key used for checking, but **it does not by itself prove that the public key belongs to a vendor authorized by the host**. If the host accepts both the public key and the JAR from an untrusted request, an adversary can simply generate their own keypair, sign the file, and supply their own public key. `verify` will still return `true`.
 
-Để tiến thêm một bước, cần xác thực public key bằng:
+To go a step further, the public key must be authenticated via:
 
-- **Key pinning:** host được cấp trước public key hoặc fingerprint của signer cho phép, từ cấu hình quản trị đáng tin cậy.
-- **X.509/certificate validation:** kiểm tra chuỗi chứng chỉ tới trust anchor được chấp nhận, thời gian hiệu lực, mục đích sử dụng, revocation và danh tính phù hợp.
-- **Signed release metadata:** một manifest được ký ràng buộc plugin ID, version, artifact digest và signer identity.
+- **Key pinning:** the host is pre-provisioned with the public key or fingerprint of an authorized signer from a trusted administrative configuration.
+- **X.509/certificate validation:** checking the certificate chain up to an accepted trust anchor, validity period, intended usage, revocation, and matching identity.
+- **Signed release metadata:** a signed manifest binding plugin ID, version, artifact digest, and signer identity.
 
-Không lấy “key trusted” từ metadata chưa xác minh trong **chính JAR đang được đánh giá**. Một trust anchor do đối thủ tự đề xuất không bảo đảm điều gì.
+Do not take a "trusted key" from unverified metadata inside **the very JAR being evaluated**. A trust anchor self-proposed by an adversary guarantees nothing.
 
-### 4.1. Ký cái gì thì bảo vệ cái đó
+### 4.1. What You Sign Is What You Protect
 
-Chữ ký chỉ bảo vệ **phạm vi dữ liệu đã ký**. Nếu signature bao phủ plugin.jar nhưng file plugin-permissions.json ở bên cạnh không được ký, host không thể suy ra permission metadata cũng không bị sửa.
+A signature only protects **the scope of data that was signed**. If a signature covers `plugin.jar` while a `plugin-permissions.json` file alongside it is unsigned, the host cannot infer that the permission metadata has not been modified.
 
-Hai mô hình phổ biến:
+Two common models:
 
-1. **Detached whole-artifact signature:** chữ ký tách rời bao phủ byte toàn bộ JAR; thay đổi bất kỳ byte nào trong archive sẽ làm chữ ký trên toàn file thất bại.
-2. **Signed release manifest:** chữ ký bao phủ manifest gồm digest của JAR, các dependency, config quan trọng và metadata. Host xác minh manifest rồi lần lượt xác minh digest của từng artifact.
+1. **Detached whole-artifact signature:** a separate signature covering every byte of the entire JAR; altering any byte anywhere in the archive causes the whole-file signature check to fail.
+2. **Signed release manifest:** a signature covering a manifest containing digests of the JAR, dependencies, critical configs, and metadata. The host verifies the manifest and then verifies the digest of each artifact in turn.
 
-Cơ chế **JAR signing tích hợp với jarsigner** khác hai mô hình trên ở chi tiết về manifest, signature file và các entry được ký. Không được nhầm việc ký những entry được liệt kê với ký nguyên byte container ZIP.
+Java's **built-in JAR signing mechanism with `jarsigner`** differs from those two models in details involving the manifest, signature files, and signed entries. Do not confuse signing listed entries with signing the raw bytes of the ZIP container.
 
-### 4.2. Key possession khác danh tính và sự an toàn
+### 4.2. Key Possession Is Different from Identity and Safety
 
-Một publisher lạ vẫn có thể tạo **chữ ký hợp lệ bằng khóa của chính họ**. Đây không phải “phá” mật mã. Ngược lại, một attacker đánh cắp private key của publisher tin cậy cũng có thể tạo chữ ký toán học hợp lệ. Vì vậy:
+An unknown publisher can still create **a valid signature using their own key**. This does not "break" cryptography. Conversely, an attacker who steals a trusted publisher's private key can also create mathematically valid signatures. Therefore:
 
-- Verification xác nhận đặc tính mật mã của byte sequence và khóa.
-- Publisher trust quyết định khóa/cert thuộc danh sách được chấp nhận.
-- Authorization quyết định signer đó được publish plugin ID/capability nào.
-- Security review, sandbox và giám sát xử lý các vấn đề **hành vi code**, nằm ngoài bản thân signature.
+- Verification confirms cryptographic properties of the byte sequence and key.
+- Publisher trust decides whether the key/cert belongs to the accepted list.
+- Authorization decides which plugin IDs/capabilities that signer may publish.
+- Security reviews, sandboxes, and monitoring address **code behavior** issues, which lie outside the signature itself.
 
-## 5. Publisher trust: từ khóa được nhận diện tới quyền phát hành
+## 5. Publisher Trust: From a Recognized Key to Publishing Authority
 
-Một host có thể có nhiều vendor. Nên duy trì policy tách rời artifact, ví dụ:
+A host may have multiple vendors. A policy should be maintained separately from the artifact, for example:
 
 ~~~text
 TrustedPublisherPolicy
   publisherId: vendor-alpha
-  publicKeyFingerprint: giá trị lấy từ quy trình cấp khóa đáng tin
+  publicKeyFingerprint: value obtained from a trusted key-provisioning process
   permittedPluginIds: com.example.analytics, com.example.reports
   permittedCapabilities: read:catalog
-  minimumAllowedVersion: phiên bản theo policy
-  revokedVersions: danh sách version bị thu hồi
+  minimumAllowedVersion: version per policy
+  revokedVersions: list of revoked versions
   enabled: true
 ~~~
 
-Khối trên là **sơ đồ policy**, không phải file cấu hình có thể chạy ngay. Trong triển khai thật, khóa/fingerprint và danh sách quyền phải được lấy từ hệ quản trị đã xác thực, không từ chính plugin tự khai.
+The block above is a **policy schema**, not a runnable configuration file. In a real implementation, keys/fingerprints and permission lists must come from an authenticated management system, never self-declared by the plugin itself.
 
-Chuỗi xác thực có thể là:
+The verification chain may look like:
 
 ~~~text
 received JAR + signature
@@ -191,35 +191,35 @@ all release artifacts and capabilities approved?
 may proceed to controlled loading
 ~~~
 
-Nếu một trong những bước bắt buộc thất bại, không nên tiếp tục class-load. Với certificate chain, “một CA đã ký certificate này” chỉ hỗ trợ xác thực chủ thể theo trust policy; nó **không** tự cấp quyền phát hành mọi plugin. Một chủ thể có chứng chỉ code-signing hợp lệ vẫn có thể không thuộc đối tác của hệ thống.
+If any mandatory step fails, class loading must not proceed. With certificate chains, "a CA signed this certificate" only assists in authenticating an entity under a trust policy; it does **not** automatically grant authority to publish every plugin. An entity holding a valid code-signing certificate may still not be a partner of the system.
 
-### 5.1. Bản đồ quyết định
+### 5.1. Decision Map
 
-| Tình huống | Hash theo nguồn đáng tin | Signature | Publisher policy | Quyết định |
+| Scenario | Hash against trusted source | Signature | Publisher policy | Decision |
 | --- | --- | --- | --- | --- |
-| Đúng release được phê duyệt | Khớp | Hợp lệ | Được phép | Cho phép chuyển sang bước nạp |
-| JAR bị sửa sau ký | Không khớp | Không hợp lệ với signature cũ | Không cần xét tiếp | Từ chối |
-| JAR do khóa lạ ký | Không nhất thiết có digest approved | Hợp lệ với khóa lạ | Không được phép | Từ chối |
-| Vendor A ký plugin ID của B | Có thể khớp metadata do A công bố | Hợp lệ với A | A không được phép phát hành B | Từ chối |
-| Release cũ có lỗ hổng, bị revoke | Có thể khớp | Có thể hợp lệ | Release bị từ chối | Từ chối |
-| Release hợp lệ nhưng plugin có bug | Khớp | Hợp lệ | Có thể được phép | Vẫn cần kiểm soát runtime |
+| Exact approved release | Match | Valid | Allowed | Allow proceeding to loading step |
+| JAR modified after signing | Mismatch | Invalid against old signature | No need to evaluate further | Reject |
+| JAR signed by unknown key | Not necessarily an approved digest | Valid under unknown key | Not allowed | Reject |
+| Vendor A signs B's plugin ID | May match metadata published by A | Valid for A | A is not authorized to publish B | Reject |
+| Old vulnerable release, revoked | May match | May be valid | Release rejected | Reject |
+| Valid release but plugin has a bug | Match | Valid | May be allowed | Runtime controls still required |
 
-Một policy tốt không chỉ lưu danh sách “khóa có chữ ký đúng”, mà còn có **phạm vi và thời điểm**: publisher nào, plugin ID nào, version nào, quyền nào, ngày hiệu lực và trạng thái thu hồi.
+A good policy does not merely store a list of "keys with valid signatures", but also includes **scope and timing**: which publisher, which plugin IDs, which versions, which permissions, effective dates, and revocation status.
 
-## 6. Ví dụ Java 17 chạy được: SHA-256, Ed25519 và pinned signer
+## 6. Runnable Java 17 Example: SHA-256, Ed25519, and Pinned Signer
 
-Ví dụ tự tạo **hai JAR dạng byte thật** bằng JarOutputStream, sinh **hai cặp khóa Ed25519**, ký và kiểm tra:
+This example creates **two real byte-level JARs** using `JarOutputStream`, generates **two Ed25519 keypairs**, signs, and verifies:
 
-- **original:** archive chứa plugin-v1, ký bằng trusted private key.
-- **modified:** archive chứa plugin-v2, khác byte bản đã được kiểm tra.
-- **unknown:** một bên không được chấp nhận tự ký archive modified bằng private key của mình. Chữ ký của họ vẫn hợp lệ nếu dùng chính public key của họ.
-- **approved:** phép kiểm tra giả lập của host yêu cầu **khóa signer khớp pinned public key** và signature hợp lệ trên byte JAR.
+- **original:** an archive containing `plugin-v1`, signed with the trusted private key.
+- **modified:** an archive containing `plugin-v2`, differing in bytes from the verified version.
+- **unknown:** an unaccepted party signs the `modified` archive with its own private key. Its signature is still valid when verified with its own public key.
+- **approved:** a simulated host check requiring **the signer's key to match the pinned public key** and the signature to be valid over the JAR bytes.
 
-Ví dụ **không ký JAR theo định dạng jarsigner**, mà dùng detached Ed25519 signature bao phủ byte của toàn JAR. Mục tiêu là minh bạch hóa ba loại kiểm tra, không phải thực hiện X.509/PKIX hoặc logic ký JAR entry.
+The example **does not sign the JAR in `jarsigner` format**, instead using a detached Ed25519 signature covering all bytes of the JAR. The goal is to clarify the three types of checks, not to implement X.509/PKIX or JAR entry-signing logic.
 
-**Quan trọng:** ví dụ sinh trusted keypair trong bộ nhớ để chạy độc lập, nên nó chỉ mô phỏng key pinning. Với sản phẩm thật, signer private key phải ở phía nhà phát hành; host nhận trusted public key trước đó qua provisioning độc lập và không tự tạo khóa “trusted” từ artifact lạ.
+**Important:** the example generates the trusted keypair in memory so it can run standalone, so it only simulates key pinning. In a real product, the signer private key stays on the publisher's side; the host receives the trusted public key beforehand through independent provisioning and never creates a "trusted" key from an unknown artifact.
 
-### 6.1. File PluginTrustDemo.java
+### 6.1. File `PluginTrustDemo.java`
 
 ~~~java
 import java.io.ByteArrayOutputStream;
@@ -311,20 +311,20 @@ public final class PluginTrustDemo {
 }
 ~~~
 
-Code dùng KeyPairGenerator, MessageDigest và Signature từ java.base của JDK 17, không cần dependency bên ngoài. JarOutputStream thực sự tạo archive; entry plugin.txt chứa dữ liệu mô phỏng, nên ta không nạp mã chưa được xác minh.
+The code uses `KeyPairGenerator`, `MessageDigest`, and `Signature` from JDK 17's `java.base`, requiring no external dependencies. `JarOutputStream` creates a real archive; the `plugin.txt` entry holds simulated data, so no unverified code is loaded.
 
-### 6.2. Biên dịch, chạy và stdout chính xác
+### 6.2. Compiling, Running, and Exact Stdout
 
-Trong thư mục có **PluginTrustDemo.java**, dùng JDK 17 hoặc mới hơn:
+In the directory containing **PluginTrustDemo.java**, using JDK 17 or newer:
 
 ~~~powershell
 javac --release 17 -encoding UTF-8 PluginTrustDemo.java
 java PluginTrustDemo
 ~~~
 
-Lệnh tương đương trên Linux/macOS khi có javac/java. Chương trình không ghi private key ra đĩa.
+Equivalent commands apply on Linux/macOS when `javac`/`java` are available. The program does not write private keys to disk.
 
-**Stdout được kiểm chứng bằng biên dịch/chạy thực tế:**
+**Stdout verified by actual compilation and execution:**
 
 ~~~text
 hash.original=true
@@ -338,105 +338,105 @@ policy.modified=false
 policy.unknown=false
 ~~~
 
-### 6.3. Phân tích từng kết quả
+### 6.3. Analyzing Each Result
 
-- **hash.original=true:** digest hiện tại của original trùng digest được tính trước từ original.
-- **hash.modified=false:** modified chứa plugin-v2, không còn khớp digest của plugin-v1.
-- **signature.original=true:** byte original khớp chữ ký tạo bởi trusted private key.
-- **signature.modified=false:** byte modified không tương ứng với chữ ký gốc.
-- **signature.unknownOwnKey=true:** một người lạ hoàn toàn có thể tạo chữ ký hợp lệ bằng khóa riêng của họ. **Không phải giả mạo chữ ký trusted**.
-- **publisher.unknownTrusted=false:** public key unknown không phải pinned key của host.
-- **policy.original=true:** pinned key trùng signer key và signature đúng.
-- **policy.modified=false:** chữ ký gốc không còn hợp lệ sau khi byte JAR bị thay.
-- **policy.unknown=false:** chữ ký của unknown đúng với key unknown, nhưng chưa đạt bước trust.
+- **hash.original=true:** the current digest of `original` matches the digest precomputed from `original`.
+- **hash.modified=false:** `modified` contains `plugin-v2` and no longer matches `plugin-v1`'s digest.
+- **signature.original=true:** the `original` bytes match the signature created by the trusted private key.
+- **signature.modified=false:** the `modified` bytes do not correspond to the original signature.
+- **signature.unknownOwnKey=true:** a stranger can easily create a valid signature using their own private key. **This is not forging a trusted signature**.
+- **publisher.unknownTrusted=false:** the `unknown` public key is not the host's pinned key.
+- **policy.original=true:** the pinned key matches the signer key and the signature is valid.
+- **policy.modified=false:** the original signature is no longer valid after the JAR bytes changed.
+- **policy.unknown=false:** `unknown`'s signature is valid for the `unknown` key, but fails the trust step.
 
-Code chỉ dùng hai khóa do ví dụ tự tạo và một pin giả lập. Trong hệ thống thật, approved còn phải ràng buộc đúng **plugin ID**, **publisher identity**, **release policy**, **dependency set**, thời gian/thu hồi chứng chỉ nếu dùng X.509 và snapshot artifact được nạp. Không xem hàm này là một product-ready verifier.
+The code uses only two example-generated keys and a simulated pin. In a real system, `approved` must also bind the exact **plugin ID**, **publisher identity**, **release policy**, **dependency set**, certificate validity/revocation if using X.509, and the loaded artifact snapshot. Do not treat this method as a production-ready verifier.
 
-## 7. Phân biệt detached signature với ký JAR bằng jarsigner
+## 7. Detached Signature vs. JAR Signing with `jarsigner`
 
-**Detached signature** như ở mục 6 ký một byte sequence rõ ràng, ví dụ toàn bộ file plugin.jar. Thay đổi bất kỳ byte nào trong phạm vi đã ký khiến signature không còn phù hợp.
+A **detached signature** as in section 6 signs an explicit byte sequence, such as the entire `plugin.jar` file. Changing any byte within the signed scope causes the signature to stop matching.
 
-Ngược lại, **signed JAR của Java** theo JAR File Specification dùng cấu trúc trong META-INF:
+By contrast, Java's **signed JAR** under the JAR File Specification uses a structure inside `META-INF`:
 
 ~~~text
 META-INF/MANIFEST.MF
 META-INF/<SIGNER>.SF
-META-INF/<SIGNER>.RSA hoặc block chữ ký tương ứng
+META-INF/<SIGNER>.RSA or corresponding signature block
 ~~~
 
-<SIGNER> ở đây chỉ là **ký hiệu tên file được công cụ tạo**, không phải tên thật. Tùy thuật toán/tooling, signature block có thể dùng các tên khác, như .DSA hoặc .EC.
+Here `<SIGNER>` is merely a **placeholder for the tool-generated filename**, not a real name. Depending on the algorithm/tooling, the signature block may use other extensions, such as `.DSA` or `.EC`.
 
-Theo mô hình JAR signing:
+Under the JAR signing model:
 
-1. MANIFEST.MF có digest của các JAR entry liên quan.
-2. File .SF chứa digest của manifest hoặc phần manifest liên quan.
-3. Signature block xác nhận chữ ký mật mã của file .SF.
-4. Verifier dùng chuỗi này để kiểm tra những **entry được ký** đã bị thay hay chưa.
+1. `MANIFEST.MF` holds digests of the relevant JAR entries.
+2. The `.SF` file holds digests of the manifest or relevant manifest sections.
+3. The signature block confirms the cryptographic signature of the `.SF` file.
+4. The verifier uses this chain to check whether the **signed entries** have been altered.
 
-Đây là xác minh theo **entry và metadata được ký**, không đơn giản là ký mọi byte ZIP theo một hàm Signature.update(allBytes). Nếu một entry mới được thêm vào sau khi ký mà nó không nằm trong tập entry được chữ ký ban đầu bao phủ, chữ ký trên các entry cũ có thể vẫn xác minh thành công. Vì thế, cần chính sách **unsigned entry** rõ ràng.
+This verifies **signed entries and metadata**, rather than simply signing every ZIP byte via a single `Signature.update(allBytes)` call. If a new entry is added after signing and is not included in the entry set covered by the original signature, the signature on the older entries may still verify successfully. Therefore, a clear **unsigned entry** policy is required.
 
-### 7.1. Lệnh jarsigner để kiểm tra
+### 7.1. `jarsigner` Command for Verification
 
-Khi đã có một JAR được ký thật, dùng:
+Once you have a genuinely signed JAR, run:
 
 ~~~powershell
 jarsigner -verify -verbose -certs -strict plugin.jar
 ~~~
 
-- **-verify** kiểm tra chữ ký.
-- **-verbose** liệt kê thêm trạng thái entry.
-- **-certs** hiển thị thông tin chứng chỉ.
-- **-strict** yêu cầu xử lý nghiêm các cảnh báo nặng, có thể làm exit code khác 0 khi chain không được xác thực, certificate self-signed, unsigned entry hoặc thuật toán bị từ chối.
+- **-verify** checks the signature.
+- **-verbose** lists additional entry status details.
+- **-certs** displays certificate information.
+- **-strict** enforces strict handling of severe warnings, which can yield a non-zero exit code when the chain cannot be validated, a certificate is self-signed, unsigned entries are present, or an algorithm is rejected.
 
-Không có stdout cố định cho lệnh này: kết quả phụ thuộc JAR, signer, truststore, certificate chain, timestamp và JDK đang chạy. **Chỉ thấy “jar verified” hoặc chỉ thấy file .SF không có nghĩa publisher đã được host chấp nhận.**
+There is no fixed stdout for this command: the output depends on the JAR, signer, truststore, certificate chain, timestamp, and running JDK. **Merely seeing "jar verified" or seeing a `.SF` file does not mean the publisher has been accepted by the host.**
 
-Lệnh jarsigner có thể kiểm tra chữ ký bằng certificate được mang bên trong JAR. Nếu certificate đó **tự ký** hoặc chain không được trust theo policy, việc ký hợp lệ về mặt mật mã không tự chứng minh nguồn tin cậy. Khi dùng keystore/truststore cụ thể, còn phải xác nhận alias/signer tương ứng với **đúng publisher được phép**.
+`jarsigner` can verify a signature using a certificate carried inside the JAR itself. If that certificate is **self-signed** or its chain is not trusted under policy, cryptographic validity alone does not prove a trusted source. Even when using a specific keystore/truststore, you must still confirm that the alias/signer matches **an authorized publisher**.
 
-### 7.2. Kiểm tra theo Java JarFile API
+### 7.2. Verification via the Java `JarFile` API
 
-JarFile có chế độ xác minh đối với JAR đã ký. Nhưng **mở JAR hoặc liệt kê entry không chứng minh đã xác minh nội dung tất cả entry**. Cơ chế xác minh digest thường diễn ra khi entry data thực sự được đọc; để đánh giá signer metadata cho entry, cần bảo đảm dữ liệu entry đã được tiêu thụ và kiểm tra.
+`JarFile` has a verification mode for signed JARs. However, **opening a JAR or listing entries does not prove that all entry contents were verified**. Digest verification typically occurs when entry data is actually read; to evaluate signer metadata for an entry, you must ensure the entry's data has been fully consumed and checked.
 
-Trước khi dùng signer của một entry làm quyết định, host cần phân biệt:
+Before using an entry's signer to make a decision, the host must distinguish:
 
-- Entry có CodeSigner/certificate tương ứng với chính sách.
-- Entry không có signer, dù JAR có một số entry khác đã ký.
-- Entry có signer hợp lệ nhưng signer đó không được host cấp quyền.
-- Entry hỏng hoặc digest mismatch trong lúc đọc.
-- Dependency hoặc file config nằm **ngoài JAR** không thuộc chữ ký của JAR.
+- An entry has a `CodeSigner`/certificate matching policy.
+- An entry has no signer, even though other entries in the JAR are signed.
+- An entry has a valid signer, but that signer is not authorized by the host.
+- An entry is corrupted or fails digest verification while being read.
+- Dependencies or config files **outside the JAR** are not covered by the JAR's signature.
 
-Việc đọc và xác minh entry không thay thế đường kiểm tra **PKIX trust**, whitelist hoặc plugin authorization riêng của host. Nếu hệ thống yêu cầu toàn bộ class/resource đều được ký, phải kiểm tra **coverage trên những entry được thực sự sử dụng**, không chỉ sự hiện diện của metadata chữ ký.
+Reading and verifying entries does not replace **PKIX trust** checks, allowlists, or the host's own plugin authorization. If the system requires all classes/resources to be signed, you must verify **coverage over every entry actually used**, not merely the presence of signature metadata.
 
-### 7.3. Không đánh đồng JAR signing với JAR có thể tin cậy tuyệt đối
+### 7.3. Do Not Equate JAR Signing with Unconditional JAR Trust
 
-Một JAR được signed đúng vẫn có thể do bất cứ cá nhân nào ký bằng keypair của họ. Một JAR có signer được công nhận vẫn có thể là bản phát hành chứa mã độc, backdoor hoặc bug. Một entry mới chưa được ký cũng không trở thành đáng tin chỉ vì JAR vẫn giữ signature block của entry cũ.
+A properly signed JAR can still be signed by any individual using their own keypair. A JAR with a recognized signer can still be a release containing malware, backdoors, or bugs. A newly added unsigned entry does not become trustworthy just because the JAR retains the signature block of older entries.
 
-Cách chính xác là xác minh **chữ ký** trước, xác thực **signer/trust anchor**, kiểm tra **phạm vi ký và release policy**, sau đó mới quyết định có cấp quyền nạp hay không.
+The right approach is to verify the **signature** first, authenticate the **signer/trust anchor**, check **signing coverage and release policy**, and only then decide whether to grant permission to load.
 
-## 8. X.509, PKIX và code-signing certificate: các bước khác chữ ký
+## 8. X.509, PKIX, and Code-Signing Certificates: Steps Beyond the Signature
 
-Nếu bên phát hành dùng chứng chỉ X.509, cần nhiều kiểm tra bổ sung so với Signature.verify:
+If the publisher uses X.509 certificates, many checks beyond `Signature.verify` are required:
 
-| Kiểm tra | Mục tiêu | Nếu thiếu |
+| Check | Goal | If omitted |
 | --- | --- | --- |
-| Chữ ký dữ liệu | Chữ ký thật sự hợp lệ trên dữ liệu được bảo vệ | Có thể chấp nhận file bị thay |
-| Chain validation | Certificate dẫn đến trust anchor được phép | Tin certificate tự ký từ người lạ |
-| Validity | Chứng chỉ hợp lệ theo chính sách thời gian | Chấp nhận chứng chỉ hết hạn hoặc chưa có hiệu lực |
-| Revocation | Chứng chỉ/khóa không bị thu hồi theo policy | Tin khóa đã bị vô hiệu hóa |
-| KeyUsage / ExtendedKeyUsage | Certificate phù hợp mục đích ký mã nếu policy yêu cầu | Dùng sai loại certificate |
-| Identity binding | Danh tính được xác nhận tương ứng đúng vendor | Đánh tráo Subject/CN tự khai |
-| Publisher authorization | Vendor được cấp quyền phát hành đúng plugin ID/capability | Một cert hợp lệ được dùng để ký mọi plugin |
+| Data signature | The signature is genuinely valid over the protected data | Altered files may be accepted |
+| Chain validation | The certificate chains up to an allowed trust anchor | Self-signed certificates from strangers are trusted |
+| Validity | The certificate is valid under the time policy | Expired or not-yet-valid certificates are accepted |
+| Revocation | The certificate/key has not been revoked under policy | Disabled/compromised keys are trusted |
+| KeyUsage / ExtendedKeyUsage | The certificate suits code signing if required by policy | Wrong type of certificate is used |
+| Identity binding | The verified identity corresponds to the right vendor | Self-declared Subject/CN spoofing |
+| Publisher authorization | The vendor is authorized to release that exact plugin ID/capability | One valid cert can be used to sign any plugin |
 
-**Tên Subject/CN trên certificate không đủ** để xác thực nhà phát hành. Xác minh chữ ký bằng public key lấy ra từ certificate cũng không đủ: phải kiểm tra certificate chain/trust anchor và chính sách danh tính.
+**The Subject/CN name on a certificate is not enough** to authenticate a publisher. Verifying the signature with the public key extracted from the certificate is also insufficient: you must validate the certificate chain/trust anchor and identity policy.
 
-Việc kiểm tra thu hồi có thể cần CRL, OCSP hoặc nguồn trạng thái khóa riêng; không phải mọi lời gọi verify đều tự làm điều đó. Khi thông tin revocation không thể lấy được, ứng dụng phải định nghĩa hành vi fail-closed/fail-open một cách có chủ ý, theo yêu cầu bảo mật.
+Revocation checking may require CRL, OCSP, or a dedicated key-status source; not every verify call performs this automatically. When revocation information cannot be fetched, the application must intentionally define fail-closed vs. fail-open behavior according to security requirements.
 
-**Trusted timestamp** có thể giúp xem xét thời điểm ký so với thời gian hiệu lực của chứng chỉ, nhưng timestamp không tự hợp thức hóa chữ ký sai hoặc một publisher không được phép. Timestamp authority và thông tin liên quan cũng cần được xác thực.
+A **trusted timestamp** can help evaluate signing time relative to a certificate's validity window, but a timestamp does not legitimize an invalid signature or an unauthorized publisher. The timestamp authority and related information must also be authenticated.
 
-**Truststore** không tương đương danh sách plugin publisher. Ngay cả một chứng chỉ có chain tin cậy theo PKIX cũng chưa chắc được cấp quyền phát hành com.example.analytics. Host vẫn phải liên hệ danh tính signer với **plugin ID**, version và quy tắc phát hành.
+A **truststore** is not equivalent to a plugin publisher list. Even a certificate with a trusted PKIX chain is not necessarily authorized to release `com.example.analytics`. The host must still map the signer identity to the **plugin ID**, version, and release rules.
 
-## 9. Bảo vệ metadata và dependency ngoài JAR
+## 9. Protecting Metadata and Dependencies Outside the JAR
 
-Một plugin package có thể có cấu trúc:
+A plugin package may have a structure like:
 
 ~~~text
 release/
@@ -448,19 +448,19 @@ release/
   config/plugin.properties
 ~~~
 
-Chỉ ký plugin.jar trong khi host tự động tải dependency từ một URL không kiểm soát sẽ để hở ranh giới. Một bản phát hành có thể ràng buộc:
+Signing only `plugin.jar` while the host automatically downloads dependencies from an uncontrolled URL leaves the boundary exposed. A release can bind:
 
-- Plugin ID và version.
-- Publisher identity, signing key ID/chain.
-- SHA-256 của plugin.jar.
-- SHA-256 của từng dependency JAR.
-- SHA-256 của resource/config ảnh hưởng đến cách plugin chạy.
-- Chính sách capability / minimum version / revoke.
-- Thời gian hoặc metadata build/provenance nếu cần.
+- Plugin ID and version.
+- Publisher identity and signing key ID/chain.
+- SHA-256 of `plugin.jar`.
+- SHA-256 of each dependency JAR.
+- SHA-256 of resources/configs that affect how the plugin runs.
+- Capability / minimum version / revocation policies.
+- Timestamps or build/provenance metadata if needed.
 
-Sau khi xác minh chữ ký của manifest từ publisher được phép, host tính SHA-256 của **từng file** rồi so sánh. Mọi file có thể thay đổi hành vi khi nạp hoặc kích hoạt đều cần được bao phủ bởi policy phù hợp.
+After verifying the manifest signature from an authorized publisher, the host computes the SHA-256 of **each file** and compares it. Any file that can alter behavior during loading or activation must be covered by an appropriate policy.
 
-Một cấu trúc manifest minh họa, **không phải artifact đã ký thật**:
+An illustrative manifest structure, **not a real signed artifact**:
 
 ~~~json
 {
@@ -474,34 +474,34 @@ Một cấu trúc manifest minh họa, **không phải artifact đã ký thật*
 }
 ~~~
 
-Ở đây không có giá trị digest thật, nên JSON chỉ thể hiện trường metadata cần thiết; **không dùng nó để xác minh production**. Manifest thật phải chứa digest hợp lệ, được ký trên biểu diễn byte đã được quy định rõ (đảm bảo nhất quán canonicalization), và host phải kiểm tra cả chữ ký của manifest lẫn từng artifact.
+There are no real digest values here, so the JSON only shows the required metadata fields; **do not use it for production verification**. A real manifest must contain valid digests, be signed over a clearly specified byte representation (ensuring consistent canonicalization), and the host must verify both the manifest signature and every individual artifact.
 
-Ngoài chữ ký/digest, việc giải nén ZIP/JAR cần kiểm soát traversal, symlink, entry trùng tên và các giới hạn kích thước. Chữ ký hợp lệ không tự biến thao tác extract thành an toàn.
+Beyond signatures/digests, extracting ZIP/JAR archives must guard against path traversal, symlinks, duplicate entry names, and size limits. A valid signature does not automatically make extraction safe.
 
-## 10. Thứ tự xác minh trước ClassLoader và ServiceLoader
+## 10. Verification Order Before `ClassLoader` and `ServiceLoader`
 
-Khuyến nghị cho plugin manager:
+Recommended sequence for a plugin manager:
 
-1. **Tải về staging:** chưa nạp class; chặn file quá lớn, tên/path không hợp lệ và trộn lẫn request.
-2. **Lấy release record từ nguồn đáng tin:** xác định plugin ID/version và danh tính publisher được kỳ vọng theo policy host.
-3. **Kiểm SHA-256:** đối chiếu đúng byte của artifact với digest được bảo vệ; thất bại thì dừng.
-4. **Xác minh chữ ký:** dùng đúng thuật toán, đúng dữ liệu và signer key đã được kiểm tra.
-5. **Kiểm signer trust:** pin, certificate chain, revocation/timestamp/validity theo môi trường.
-6. **Kiểm authorization:** publisher được phép ký đúng plugin ID/version/capability? Artifact/dependency nào bị thu hồi?
-7. **Cố định byte đã xác minh:** đưa snapshot vào vùng immutable hoặc content-addressed path.
-8. **Chỉ sau đó tạo loader/module layer và provider:** duyệt SPI, gọi constructor, prepare/activate theo vòng đời plugin.
-9. **Theo dõi trong runtime:** audit, giới hạn quyền và cơ chế vô hiệu hóa plugin khi có security advisory.
+1. **Download to staging:** do not load classes yet; block oversized files, invalid names/paths, and mixed requests.
+2. **Fetch release record from a trusted source:** determine the expected plugin ID/version and publisher identity under host policy.
+3. **Check SHA-256:** compare the exact bytes of the artifact against the protected digest; stop on failure.
+4. **Verify signature:** use the right algorithm, exact data, and checked signer key.
+5. **Check signer trust:** pin, certificate chain, and revocation/timestamp/validity per environment.
+6. **Check authorization:** is the publisher allowed to sign this exact plugin ID/version/capability? Are any artifacts/dependencies revoked?
+7. **Pin the verified bytes:** place the snapshot into an immutable area or content-addressed path.
+8. **Only then create loaders/module layers and providers:** scan SPI, invoke constructors, prepare/activate according to the plugin lifecycle.
+9. **Monitor at runtime:** audit, enforce permission limits, and provide a mechanism to disable the plugin on security advisories.
 
-Nếu không xác minh được một điều kiện bắt buộc, **fail closed** thay vì “thử nạp xem có chạy không”.
+If any mandatory condition cannot be verified, **fail closed** instead of "trying to load it to see if it runs".
 
-### 10.1. Tránh time-of-check/time-of-use (TOCTOU)
+### 10.1. Avoiding Time-of-Check/Time-of-Use (TOCTOU)
 
-Một thứ tự nguy hiểm:
+A dangerous sequence:
 
 ~~~text
 verify /tmp/plugin.jar
          |
-         | process khác ghi đè file
+         | another process overwrites the file
          v
 new URLClassLoader(/tmp/plugin.jar)
          |
@@ -509,129 +509,129 @@ new URLClassLoader(/tmp/plugin.jar)
 execute altered plugin
 ~~~
 
-Ngay cả khi phép verify ban đầu hoàn hảo, hệ thống có thể thực thi **file khác** nếu đường dẫn sau đó bị thay. Biện pháp giảm rủi ro:
+Even if the initial verification was flawless, the system may execute **a different file** if the path is altered afterward. Mitigations:
 
-- Staging directory có quyền truy cập chặt, không cho tác nhân chưa được phép ghi đè.
-- Snapshot byte được kiểm tra và xuất bản thành artifact bất biến.
-- Sử dụng content-addressed storage hoặc tên lưu gắn digest có bảo vệ chống thay đổi.
-- Tạo loader từ **chính artifact được xác minh** và kiểm tra dependency riêng.
-- Không tự động dùng lại một path có thể bị sửa giữa lượt kiểm tra và lượt load.
+- Staging directory with strict access permissions so unauthorized actors cannot overwrite files.
+- Snapshot the verified bytes and publish them as an immutable artifact.
+- Use content-addressed storage or digest-named files protected against modification.
+- Create the loader from **the exact verified artifact** and check dependencies separately.
+- Do not automatically reuse a path that could be modified between checking and loading.
 
-Đừng xem một **tên file giống hệt** là bằng chứng file đó vẫn chứa byte đã kiểm.
+Never treat an **identical filename** as proof that the file still contains the verified bytes.
 
-### 10.2. ClassLoader không là sandbox và có thể khởi chạy mã khi nạp
+### 10.2. `ClassLoader` Is Not a Sandbox and Can Trigger Code on Load
 
-Việc phân loader giúp tách namespace class/dependency, không tự giới hạn quyền file/network hoặc hoạt động của code. Constructor, class static initialization, provider factory hoặc ServiceLoader.Provider.get() có thể thực thi mã. Bởi vậy, không nên dựa trên **lời tự khai từ một instance plugin chưa tin cậy** để quyết định plugin đó có được tin hay không.
+Separating loaders isolates class/dependency namespaces; it does not restrict file/network privileges or code behavior. Constructors, class static initialization, provider factories, or `ServiceLoader.Provider.get()` can execute code. Therefore, never rely on **self-reported claims from an untrusted plugin instance** to decide whether that plugin is trusted.
 
-Sau khi artifact đã được chấp nhận, host vẫn phải quản lý quyền của plugin, tài nguyên, timeout, vòng đời stop/close và cách dỡ bỏ tham chiếu khi reload.
+Once an artifact has been accepted, the host must still manage the plugin's permissions, resources, timeouts, stop/close lifecycle, and reference cleanup during reload.
 
-## 11. HTTPS và provenance là các lớp hỗ trợ, không thay thế ba phép kiểm tra
+## 11. HTTPS and Provenance Are Supporting Layers, Not Replacements for the Three Checks
 
-HTTPS bảo vệ kết nối tới endpoint đang được xác thực, nhưng không giải quyết trường hợp chính kho artifact bị chiếm quyền, file bị upload nhầm hoặc quyền quản trị kho bị lạm dụng. Chữ ký release cho phép kiểm tra nguồn phát hành độc lập với đường truyền.
+HTTPS protects the connection to an authenticated endpoint, but does not address cases where the artifact repository itself is compromised, a file is uploaded by mistake, or repository admin privileges are abused. Release signatures enable authenticating the publishing origin independently of the transport channel.
 
-Một **SBOM** cho biết danh sách thành phần được khai báo; nó không tự xác thực danh tính publisher hay chứng minh các thành phần không có lỗ hổng. Một build provenance/attestation có chữ ký có thể làm rõ pipeline sản xuất artifact, nhưng signature của provenance cũng cần được xác minh với danh tính/niềm tin đúng và ràng buộc đúng byte artifact đang triển khai.
+An **SBOM** lists declared components; it does not authenticate publisher identity or prove that components have no vulnerabilities. A signed build provenance/attestation can clarify the artifact production pipeline, yet the provenance signature itself must also be verified with the proper identity/trust and bound to the exact deployed artifact bytes.
 
-Không quy các bằng chứng này thành “artifact an toàn tuyệt đối”. Chúng giúp kiểm soát chuỗi cung ứng, review và điều tra sự cố nhưng vẫn cần chính sách về runtime capability.
+Do not equate these pieces of evidence with an "absolutely safe artifact". They support supply-chain control, reviews, and incident investigation, while runtime capability policies remain necessary.
 
-## 12. Quản lý khóa, thu hồi và chống downgrade
+## 12. Key Management, Revocation, and Anti-Downgrade
 
-### 12.1. Key rotation
+### 12.1. Key Rotation
 
-Một thiết kế pinning tốt phải có quy trình đổi khóa:
+A solid pinning design must include a key-rotation procedure:
 
-1. Tạo khóa mới tại môi trường đáng tin, bảo vệ private key (KMS/HSM hoặc quy trình tương đương).
-2. Công bố public key mới qua kênh quản trị được xác thực; không tin key vừa đến từ JAR chưa kiểm tra.
-3. Quy định thời gian hiệu lực và phạm vi release được ký với khóa cũ/mới.
-4. Audit các thay đổi truststore/policy, tránh cập nhật pin âm thầm.
-5. Thu hồi khóa cũ khi hết hiệu lực hoặc có sự cố; không chấp nhận chữ ký cũ cho release bị cấm theo policy.
+1. Generate the new key in a trusted environment and protect the private key (KMS/HSM or equivalent process).
+2. Publish the new public key via an authenticated administrative channel; never trust a key arriving inside an unverified JAR.
+3. Define validity windows and release scopes signed with the old and new keys.
+4. Audit truststore/policy changes and avoid silent pin updates.
+5. Revoke old keys upon expiration or incident; do not accept old signatures for releases forbidden by policy.
 
-### 12.2. Chữ ký đúng không phát hiện private key bị đánh cắp
+### 12.2. Valid Signatures Do Not Detect Stolen Private Keys
 
-Nếu attacker có private key thực sự của vendor, họ có thể tạo chữ ký hợp lệ với **chính pinned public key**. Phép toán verify không thể phân biệt người ký hợp pháp với người dùng khóa bị đánh cắp. Khi có sự cố, phải có chính sách revocation/release approval độc lập, giám sát hệ thống ký, kiểm soát quyền phát hành, quy trình đóng băng và thu hồi plugin.
+If an attacker obtains a vendor's real private key, they can produce valid signatures matching **the pinned public key itself**. Mathematical verification cannot distinguish the legitimate signer from someone wielding a stolen key. In an incident, you need independent revocation/release-approval policies, signing-system monitoring, release-permission controls, and plugin freeze/revocation workflows.
 
-Chữ ký có timestamp đáng tin hỗ trợ đánh giá thời điểm ký theo policy, nhưng không tự loại bỏ yêu cầu phản ứng sự cố.
+A signature with a trusted timestamp helps evaluate signing time against policy, but does not eliminate the need for incident response.
 
-### 12.3. Rollback và version
+### 12.3. Rollback and Versioning
 
-Một bản cũ có thể vẫn được ký đúng nhưng chứa lỗ hổng. Hệ thống cần minimum accepted version, danh sách release bị thu hồi, hoặc sự phê duyệt rõ ràng cho rollback. Không dùng so sánh chuỗi thuần túy để quyết định thứ tự version nếu semantic version không được chuẩn hóa; nên dùng parser/version policy nhất quán.
+An older build may still be properly signed while containing vulnerabilities. The system needs a minimum accepted version, a list of revoked releases, or explicit approval for rollbacks. Do not use plain string comparisons to determine version ordering if semantic versions are unnormalized; use a consistent version parser/policy.
 
-Nếu một artifact bị thu hồi sau khi đã được nạp, hệ thống còn cần xử lý **đang chạy**: ngừng routing, dừng plugin, đóng tài nguyên, giải phóng loader khi có thể và cập nhật audit. Chỉ từ chối tải lần sau có thể chưa đủ.
+If an artifact is revoked after already being loaded, the system also needs to handle **running instances**: stop routing, shut down the plugin, close resources, release the loader where possible, and update audit logs. Merely blocking future loads may not be enough.
 
-## 13. Các ngộ nhận phổ biến
+## 13. Common Misconceptions
 
-| Ngộ nhận | Vì sao sai | Cách khắc phục |
+| Misconception | Why it is wrong | How to fix |
 | --- | --- | --- |
-| “SHA-256 khớp với .sha256 cùng URL, vậy chắc chắn an toàn.” | Kẻ tấn công có thể thay cả hai | Bảo vệ hash expected bằng signed manifest/kênh tin cậy |
-| “Chữ ký đúng nghĩa là nhà phát hành đáng tin.” | Người lạ cũng tự ký với khóa của họ được | Pin key hoặc xác thực certificate chain + policy |
-| “Subject/CN đúng tên vendor thì hợp lệ.” | Tên trong cert chưa đủ chứng minh chain/identity | PKIX validation, kiểm trust anchor và identity |
-| “jarsigner báo verified là đủ để nạp.” | Nó không tự biết publisher được cấp quyền cho plugin ID nào | Kiểm signer trust và release authorization |
-| “Có file META-INF/*.SF nghĩa là mọi entry đã được ký.” | Signature file có thể hỏng; một số entry có thể unsigned | Kiểm signature và signer coverage |
-| “Mọi signer có CA-trusted cert đều được publish plugin.” | Tin CA khác quyền phát hành trong hệ thống | Map identity → plugin ID/version/capability |
-| “Certificate chưa hết hạn thì chắc chưa bị thu hồi.” | Expiration và revocation là hai trạng thái riêng | Kiểm revocation theo policy |
-| “ClassLoader riêng làm mã không đáng tin trở nên an toàn.” | Plugin vẫn có thể dùng quyền của tiến trình host | Least privilege, process isolation khi cần |
-| “Kiểm xong rồi nạp lại cùng path là đúng byte.” | File có thể bị đổi sau kiểm tra | Immutable snapshot hoặc path bất biến |
-| “Artifact được ký nên không thể chứa lỗ hổng.” | Chữ ký không phân tích logic code | Review, scanning, monitoring và revocation |
+| "SHA-256 matches the `.sha256` at the same URL, so it must be safe." | An attacker can replace both | Protect expected hashes with a signed manifest or trusted channel |
+| "A valid signature means the publisher is trusted." | Anyone can sign with their own key | Pin keys or validate certificate chains + policy |
+| "Subject/CN matches the vendor name, so it is valid." | Names inside a cert do not prove the chain/identity | PKIX validation, trust anchor checks, and identity binding |
+| "`jarsigner` reporting verified is enough to load." | It does not know which plugin IDs the publisher is authorized for | Check signer trust and release authorization |
+| "Having `META-INF/*.SF` means every entry is signed." | The signature file may be malformed; some entries may be unsigned | Verify signatures and signer coverage |
+| "Any signer with a CA-trusted cert can publish plugins." | Trusting a CA differs from publishing authorization in the system | Map identity → plugin ID/version/capability |
+| "An unexpired certificate cannot be revoked." | Expiration and revocation are separate states | Check revocation per policy |
+| "A separate `ClassLoader` makes untrusted code safe." | The plugin can still use the host process's privileges | Least privilege, process isolation when needed |
+| "Verify first and reload the same path later uses the same bytes." | The file can change after verification | Immutable snapshots or immutable paths |
+| "Signed artifacts cannot contain vulnerabilities." | Signatures do not analyze code logic | Reviews, scanning, monitoring, and revocation |
 
-## 14. Test suite cho plugin verifier
+## 14. Test Suite for a Plugin Verifier
 
-Cần thử cả trường hợp đạt và không đạt:
+Both passing and failing cases must be tested:
 
-| Test | Kỳ vọng |
+| Test | Expectation |
 | --- | --- |
-| Artifact đúng, signer được phê duyệt, version hợp lệ | ACCEPT sau tất cả điều kiện |
-| Thay byte trong JAR, giữ chữ ký cũ | HASH_MISMATCH hoặc SIGNATURE_INVALID |
-| Thay signature bằng dữ liệu ngẫu nhiên | SIGNATURE_INVALID |
-| Ký JAR khác bằng một keypair mới | Signature có thể hợp lệ với key mới nhưng REJECT signer |
-| Cùng vendor ký nhầm plugin ID không được phép | PUBLISHER_NOT_AUTHORIZED |
-| Certificate self-signed không được pin | REJECT signer |
-| Certificate bị revoke/hết hạn theo policy | REJECT theo quy tắc hiệu lực |
-| Entry mới không được ký trong JAR có chữ ký entry cũ | REJECT nếu policy yêu cầu coverage đầy đủ |
-| Dependency JAR đổi byte so với signed release manifest | REJECT vì digest khác |
-| Release version cũ đã bị rút | REJECT ngay cả khi signature cũ còn hợp lệ |
-| File bị đổi giữa verify và load | Không được nạp nội dung mới |
-| Lỗi mạng, lỗi đọc, khóa không tìm thấy, thông tin trust không rõ | FAIL CLOSED khi điều kiện bắt buộc chưa thể xác minh |
-| Artifact có signature đúng nhưng yêu cầu capability vượt quyền | Từ chối cấp quyền hoặc nạp theo policy |
+| Valid artifact, approved signer, valid version | ACCEPT after all checks |
+| Modify bytes inside JAR, keep old signature | HASH_MISMATCH or SIGNATURE_INVALID |
+| Replace signature with random bytes | SIGNATURE_INVALID |
+| Sign another JAR with a new keypair | Signature may be valid for the new key, but REJECT signer |
+| Same vendor mistakenly signs an unauthorized plugin ID | PUBLISHER_NOT_AUTHORIZED |
+| Unpinned self-signed certificate | REJECT signer |
+| Certificate revoked/expired per policy | REJECT according to validity rules |
+| New unsigned entry added to a JAR with older signed entries | REJECT if policy requires full coverage |
+| Dependency JAR bytes differ from signed release manifest | REJECT due to digest mismatch |
+| Old release version that was withdrawn | REJECT even if old signature is still valid |
+| File modified between verify and load | Do not load the new contents |
+| Network error, read error, missing key, unknown trust info | FAIL CLOSED when mandatory conditions cannot be verified |
+| Artifact has valid signature but requests excessive capabilities | Deny capabilities or loading per policy |
 
-Thông tin hữu ích cho audit: plugin ID/version, expected signer identity, fingerprint, SHA-256 thực tế, thời điểm, kết quả kiểm tra từng tầng và quyết định cuối cùng. Không log private key hay nguyên văn các dữ liệu nhạy cảm của plugin.
+Useful audit details: plugin ID/version, expected signer identity, fingerprint, actual SHA-256, timestamp, per-layer check results, and final decision. Do not log private keys or verbatim sensitive plugin data.
 
-## 15. Checklist chấp nhận plugin trước khi thực thi
+## 15. Pre-Execution Plugin Acceptance Checklist
 
-1. **Integrity:** digest hiện tại có khớp bản được duyệt từ nguồn đáng tin không?
-2. **Signature:** có xác minh chữ ký trên đúng byte và phạm vi artifact cần bảo vệ không?
-3. **Signer identity:** key/certificate có được nhận diện qua pin hoặc chain đã kiểm chứng không?
-4. **Publisher authorization:** signer ấy có quyền ký đúng plugin ID, version và capability này không?
-5. **Certificate policy:** thời gian, revocation, key usage, timestamp và thuật toán có đạt không?
-6. **Release metadata:** dependency, cấu hình, resource thực thi có được bao phủ bởi signed manifest hoặc cơ chế tương đương không?
-7. **Anti-rollback:** release có bị cấm, thu hồi hoặc dưới minimum version không?
-8. **TOCTOU:** loader có dùng chính những byte đã xác minh không?
-9. **Lifecycle:** chỉ sau khi chấp nhận mới tạo/khởi tạo provider, prepare, activate và publish readiness?
-10. **Runtime defense:** có giới hạn tài nguyên/quyền, giám sát, dừng và thu hồi plugin khi cần không?
+1. **Integrity:** does the current digest match the approved release from a trusted source?
+2. **Signature:** was the signature verified over the exact bytes and scope of artifacts requiring protection?
+3. **Signer identity:** is the key/certificate recognized via a pin or validated chain?
+4. **Publisher authorization:** is that signer authorized to sign this exact plugin ID, version, and capabilities?
+5. **Certificate policy:** do validity, revocation, key usage, timestamp, and algorithms pass?
+6. **Release metadata:** are dependencies, configs, and executable resources covered by a signed manifest or equivalent mechanism?
+7. **Anti-rollback:** is the release banned, revoked, or below the minimum version?
+8. **TOCTOU:** does the loader use the exact verified bytes?
+9. **Lifecycle:** are providers created/initialized, prepared, activated, and published for readiness only after acceptance?
+10. **Runtime defense:** are resource/permission limits, monitoring, stopping, and plugin revocation in place when needed?
 
-Với các kết quả chưa xác minh, phải dùng trạng thái **UNKNOWN/NOT_CHECKED** thay vì mặc định xem là true. Một hàm chỉ trả isSignatureValid không thể đại diện cho toàn bộ verdict của plugin host.
+For unverified outcomes, use **UNKNOWN/NOT_CHECKED** status rather than defaulting to `true`. A function returning only `isSignatureValid` cannot represent the host's complete verdict.
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-Check Questions
 
-**Một file có hash SHA-256 giống checksum tải từ cùng một endpoint chưa đáng tin đã đủ chưa?** Chưa. Cần bảo vệ digest mong đợi bằng một nguồn tin cậy độc lập.
+**Is a file having the same SHA-256 hash as a checksum downloaded from the same untrusted endpoint sufficient?** No. The expected digest must be protected by an independent trusted source.
 
-**Tại sao chữ ký của attacker có thể trả true?** Vì họ ký bằng private key của chính họ và đưa đúng public key tương ứng. Verification là phép kiểm tra mật mã; publisher trust cần bước khác.
+**Why can an attacker's signature return `true`?** Because they sign with their own private key and supply the corresponding public key. Verification is a cryptographic check; publisher trust requires another step.
 
-**Cần xác thực điều gì sau khi biết cert signer có chain tin cậy?** Cần kiểm đúng danh tính, quyền publish plugin ID/capability, trạng thái thu hồi/version và phạm vi artifact được ký.
+**What must be verified after knowing a signer's cert has a trusted chain?** You must check exact identity, authority to publish the plugin ID/capabilities, revocation/version status, and the scope of signed artifacts.
 
-**Nếu signed JAR có một entry mới chưa ký thì sao?** Chữ ký của các entry cũ có thể vẫn hợp lệ; host phải có policy xử lý unsigned entry, không suy ra toàn archive đã được chứng thực.
+**What if a signed JAR contains a newly added unsigned entry?** Signatures of older entries may still be valid; the host must enforce a policy for unsigned entries rather than assuming the entire archive is authenticated.
 
-**Vì sao phải kiểm tra trước ServiceLoader.Provider.get()?** Vì lời gọi ấy có thể tạo instance và thực thi constructor/static initializer của provider.
+**Why must verification happen before `ServiceLoader.Provider.get()`?** Because that call can instantiate the provider and execute its constructor/static initializers.
 
-**Chữ ký hợp lệ có chứng minh plugin không thể truy cập network hay file host không?** Không. Điều đó thuộc policy/cô lập runtime, không thuộc chữ ký số.
+**Does a valid signature prove a plugin cannot access the network or host files?** No. That belongs to runtime policy and isolation, not digital signatures.
 
-### Tài liệu chuẩn
+### Official References
 
 - Oracle Java SE 17, **MessageDigest**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/MessageDigest.html
 - Oracle Java SE 17, **Signature**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/Signature.html
 - Oracle Java SE 17, **KeyPairGenerator**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyPairGenerator.html
-- Oracle Java SE 17, **JarFile** và verifying entries: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/jar/JarFile.html
+- Oracle Java SE 17, **JarFile** and verifying entries: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/jar/JarFile.html
 - Oracle, **JAR File Specification**: https://docs.oracle.com/en/java/javase/21/docs/specs/jar/jar.html
 - Oracle, **jarsigner Command**, verify/strict/certificates: https://docs.oracle.com/en/java/javase/22/docs/specs/man/jarsigner.html
 - Oracle Java SE 17, **CertPathValidator**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html
 - Oracle Java SE 17, **PKIXParameters**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html
 
-**Kết luận:** **Integrity** trả lời “đúng byte release đã chấp nhận chưa?”; **digital signature** trả lời “chữ ký có đúng với khóa ký trên dữ liệu đã ký không?”; **publisher trust** trả lời “khóa/danh tính đó có được host cho phép phát hành đúng plugin không?”. Cả ba phải kết nối thành một chuỗi tin cậy **trước khi plugin được nạp hoặc kích hoạt**. Sau khi chấp nhận vẫn cần kiểm soát quyền và vòng đời, vì chữ ký xác thực nguồn gốc chứ không bảo đảm hành vi code.
+**Conclusion:** **Integrity** answers "are these the exact bytes of the accepted release?"; **digital signature** answers "does the signature match the signing key over the signed data?"; **publisher trust** answers "is that key/identity authorized by the host to publish this exact plugin?". All three must form a connected chain of trust **before the plugin is loaded or activated**. Even after acceptance, permissions and lifecycle controls remain necessary, because a signature authenticates origin rather than guaranteeing code behavior.

@@ -1,22 +1,22 @@
-# Điều chỉnh reads, exports và opens bằng ModuleLayer.Controller trong phạm vi cho phép
+# Adjusting reads, exports, and opens Within Permitted Bounds Using ModuleLayer.Controller
 
-Khi Java chạy với **Java Platform Module System (JPMS)**, quan hệ giữa các module không chỉ phụ thuộc vào class path hoặc tên package. Ba thông tin quan trọng quyết định khả năng tương tác là:
+When Java runs with the **Java Platform Module System (JPMS)**, relationships between modules do not depend solely on the class path or package names. Three key pieces of information govern interoperability:
 
-- Module nào **đọc** (reads) module nào: một quan hệ trong module graph.
-- Package nào được **export** cho module khác: cho phép truy cập các kiểu và thành viên `public` theo cơ chế truy cập Java thông thường, khi các điều kiện truy cập khác thỏa mãn.
-- Package nào được **open** cho module khác: cho phép truy cập **phản chiếu sâu** bằng các API như `setAccessible(true)`, kể cả thành viên không `public`, nếu các điều kiện reflective access tương ứng được thỏa mãn.
+- Which module **reads** which module: an edge in the module graph.
+- Which packages are **exported** to another module: grants access to `public` types and members under standard Java access control, when other access conditions are met.
+- Which packages are **opened** to another module: grants **deep reflective access** via APIs such as `setAccessible(true)`, including non-`public` members, if the corresponding reflective access conditions are met.
 
-`ModuleLayer.Controller` là API từ Java 9 cho phép **bên tạo một module layer mới** bổ sung những quan hệ đó ở runtime đối với **module thuộc chính layer mà controller quản lý**. Nó hữu ích cho hệ thống plugin, ứng dụng tạo module layer riêng và các framework tin cậy cần cấp quyền truy cập có giới hạn.
+`ModuleLayer.Controller` is an API introduced in Java 9 that allows **the creator of a new module layer** to add those relationships at runtime for **modules belonging to the layer managed by that controller**. It is useful for plugin systems, applications creating custom module layers, and trusted frameworks needing limited access grants.
 
-Quy tắc trọng tâm:
+Core rule:
 
-> `Controller.addReads(source, target)`, `Controller.addExports(source, packageName, target)` và `Controller.addOpens(source, packageName, target)` chỉ có thể chỉnh quan hệ **đi ra từ module nguồn thuộc layer đang được điều khiển**. Controller không được dùng để sửa tùy ý module nguồn thuộc boot layer, parent layer hoặc một layer độc lập khác.
+> `Controller.addReads(source, target)`, `Controller.addExports(source, packageName, target)`, and `Controller.addOpens(source, packageName, target)` can only modify relationships **originating from a source module belonging to the controlled layer**. A controller cannot be used to arbitrarily modify source modules belonging to the boot layer, a parent layer, or another independent layer.
 
-Các thao tác này **bổ sung quyền ở runtime**, không viết lại `module-info.java`, không sửa `ModuleDescriptor` gốc và không cấp khả năng thu hồi quyền sau đó. Vì thế, controller phải được giữ trong code hạ tầng đáng tin cậy, không trao trực tiếp cho plugin không tin cậy.
+These operations **add permissions at runtime**; they do not rewrite `module-info.java`, do not mutate the original `ModuleDescriptor`, and do not provide a way to revoke permissions afterward. Therefore, the controller must be kept in trusted infrastructure code and never handed directly to untrusted plugins.
 
-## 1. Vì sao cần controller khi đã có module-info.java?
+## 1. Why Do We Need a Controller When module-info.java Already Exists?
 
-Trong một explicit named module, descriptor mô tả quan hệ bình thường:
+In an explicit named module, the descriptor specifies normal relationships:
 
 ~~~java
 module sample.consumer {
@@ -31,26 +31,26 @@ module sample.provider {
 }
 ~~~
 
-Đây là **hai đoạn `module-info.java` minh họa độc lập**, chưa phải cấu hình của ví dụ runnable phía dưới. `requires` quyết định readability khi tạo configuration; `exports` cho phép truy cập API công khai; `opens` cho phép framework được chỉ định truy cập sâu bằng reflection.
+These are **two independent illustrative `module-info.java` snippets**, not the configuration of the runnable example below. `requires` determines readability when building the configuration; `exports` permits public API access; `opens` permits designated frameworks to perform deep reflection.
 
-Nhưng nhiều hệ thống mở rộng không biết toàn bộ module đích khi xây dựng mã nguồn:
+However, many extensible systems do not know all target modules when building the source code:
 
-1. Host có thể nạp module plugin sau khi ứng dụng đã chạy, từ một thư mục do người dùng lựa chọn.
-2. Host có thể tạo `ModuleLayer` mới ở runtime và muốn cấp quyền riêng giữa các module trong layer đó.
-3. Framework được host kiểm soát có thể cần đọc package nội bộ của plugin qua reflection mà plugin không muốn `opens ...` cho mọi module.
-4. Ứng dụng có thể muốn bổ sung một cạnh readability cho một cặp module đã được resolve nhưng chưa có quan hệ `requires` tĩnh.
+1. The host may load plugin modules after the application is already running, from a user-selected directory.
+2. The host may create a new `ModuleLayer` at runtime and want to grant specific permissions between modules in that layer.
+3. A host-controlled framework may need to read a plugin's internal package via reflection when the plugin does not want to `opens ...` to every module.
+4. The application may want to add a readability edge for a pair of already-resolved modules that lack a static `requires` relationship.
 
-`ModuleLayer.Controller` phục vụ việc **cấu hình access graph của layer mới** dưới quyền bên tạo layer. Đây là công cụ điều phối có phạm vi giới hạn; nó không thay thế cách thiết kế `module-info.java` rõ ràng khi module dependencies là tĩnh và đã biết từ trước.
+`ModuleLayer.Controller` serves to **configure the access graph of a new layer** under the authority of the layer creator. It is a scoped coordination tool; it does not replace clean `module-info.java` design when module dependencies are static and known upfront.
 
-## 2. Ba thao tác và ý nghĩa chính xác
+## 2. The Three Operations and Their Exact Semantics
 
-| Phương thức | Thay đổi trên module nguồn | Điều nó cho phép | Điều nó không tự làm |
+| Method | Change on Source Module | What It Permits | What It Does Not Do Automatically |
 | --- | --- | --- | --- |
-| `addReads(source, target)` | Thêm quan hệ `source` đọc `target` | Kiểm tra `source.canRead(target)` có thể chuyển sang `true` | Không tự export package của `target`; không thêm class/module vào layer |
-| `addExports(source, "p.q", target)` | Export package `p.q` của `source` riêng cho `target` | `source.isExported("p.q", target)` thành `true`; hỗ trợ truy cập công khai theo các điều kiện khác | Không mặc nhiên cho phép reflection sâu vào private member; không tự tạo cạnh reads ngược chiều |
-| `addOpens(source, "p.q", target)` | Open package `p.q` của `source` riêng cho `target` | `source.isOpen("p.q", target)` thành `true`; hỗ trợ `setAccessible(true)` và reflection sâu phù hợp | Không mở package cho tất cả module; không tự tải/khởi tạo plugin hay cho phép tùy tiện truy cập module khác |
+| `addReads(source, target)` | Adds edge `source` reads `target` | Causes `source.canRead(target)` to become `true` | Does not export `target`'s packages; does not add classes/modules to the layer |
+| `addExports(source, "p.q", target)` | Exports package `p.q` of `source` specifically to `target` | Makes `source.isExported("p.q", target)` return `true`; supports public access per other conditions | Does not automatically permit deep reflection into private members; does not add a reverse reads edge |
+| `addOpens(source, "p.q", target)` | Opens package `p.q` of `source` specifically to `target` | Makes `source.isOpen("p.q", target)` return `true`; supports `setAccessible(true)` and appropriate deep reflection | Does not open the package to all modules; does not load/initialize plugins or grant arbitrary access to other modules |
 
-Ba lời gọi đều trả về chính `ModuleLayer.Controller` nên có thể nối chuỗi:
+All three calls return the `ModuleLayer.Controller` itself so they can be chained:
 
 ~~~java
 controller.addReads(consumer, provider)
@@ -58,29 +58,29 @@ controller.addReads(consumer, provider)
           .addOpens(provider, "sample.provider.internal", framework);
 ~~~
 
-Trong đoạn trên, **module nguồn của lời gọi thứ nhất là `consumer`**, còn nguồn của hai lời gọi sau là `provider`. Cả hai phải thuộc **layer do `controller` quản lý**. `framework` hoặc `consumer` ở vị trí **target** có thể là module khác tùy kịch bản, kể cả module thuộc parent layer hoặc unnamed module, nhưng việc mở/export phải áp dụng đúng package của module nguồn.
+In the snippet above, **the source module of the first call is `consumer`**, while the source of the next two calls is `provider`. Both must belong to **the layer managed by `controller`**. `framework` or `consumer` in the **target** position may be another module depending on the scenario—including a module in a parent layer or an unnamed module—yet exporting/opening must target an actual package of the source module.
 
-### 2.1. Readability không đồng nghĩa access vào mọi class
+### 2.1. Readability Does Not Mean Access to Every Class
 
-Chỉ thêm:
+Adding only:
 
 ~~~java
 controller.addReads(consumer, provider);
 ~~~
 
-cho phép `consumer` **đọc** `provider`, nhưng không tự làm một package chưa export trở nên truy cập công khai. Nếu `provider` chứa `sample.provider.api.PublicFeature` mà package đó chưa export, thông thường `consumer` vẫn chưa thể liên kết vào class public đó qua cơ chế truy cập thông thường.
+allows `consumer` to **read** `provider`, but does not automatically make an unexported package publicly accessible. If `provider` contains `sample.provider.api.PublicFeature` and that package is not exported, `consumer` still normally cannot link against that public class through standard access mechanisms.
 
-Ngược lại, `addExports(provider, "sample.provider.api", consumer)` mở quyền public access đến package theo hướng `provider → consumer`, nhưng cũng không tự thêm quan hệ `consumer → provider`. Để module consumer dùng public API bình thường, cần xét **cả readability và export**.
+Conversely, `addExports(provider, "sample.provider.api", consumer)` opens public access to the package in the direction `provider → consumer`, yet does not automatically add a `consumer → provider` reads edge. For a consumer module to use a public API normally, **both readability and export** must be satisfied.
 
-Thêm quan hệ reads ở runtime cũng không sửa lỗi compile-time khi một source file đang import kiểu từ module mà `javac` chưa cho phép đọc. Với code nguồn có dependency tĩnh, hãy khai báo `requires`, cấu hình compiler phù hợp hoặc thiết kế interface chung; controller hoạt động sau khi chương trình bắt đầu tạo layer.
+Adding a reads relationship at runtime also does not fix compile-time errors when a source file imports types from a module that `javac` has not been permitted to read. For source code with static dependencies, declare `requires`, configure the compiler properly, or design a shared interface; the controller operates after the program begins creating layers.
 
-### 2.2. Export khác open
+### 2.2. Export Differs from Open
 
-`exports p.q` được thiết kế cho **truy cập public API thông thường**. Nó không trao quyền cho một framework gọi `setAccessible(true)` để truy cập private field trong một package bị đóng.
+`exports p.q` is designed for **ordinary public API access**. It does not grant a framework permission to call `setAccessible(true)` to access private fields inside a closed package.
 
-`opens p.q` dành cho **phản chiếu sâu**, ví dụ dependency injection, serializer hoặc framework khởi tạo object. Với `addOpens`, chỉ **target module được chọn** nhận quyền mở package. Tránh suy diễn rằng mở cho một module sẽ mở cho toàn bộ JVM. Với reflection, các kiểm tra readability có quy ước riêng; điều kiện quan trọng đối với deep reflection của private member trong ví dụ là package được open cho module thực hiện lời gọi.
+`opens p.q` is meant for **deep reflection**, such as dependency injection, serializers, or object instantiation frameworks. With `addOpens`, only the **selected target module** receives open-package permission. Avoid assuming that opening to one module opens to the entire JVM. For reflection, readability checks have specific conventions; the key requirement for deep reflection of private members in our example is that the package is opened to the calling module.
 
-Ví dụ một package có class với private field:
+Example package containing a class with a private field:
 
 ~~~java
 package sample.provider.internal;
@@ -90,34 +90,34 @@ public final class Secrets {
 }
 ~~~
 
-Nếu host không được open package này, `Field.setAccessible(true)` có thể ném `InaccessibleObjectException`. Sau khi host được open package cho **đúng module của mình**, reflective access phù hợp có thể thành công.
+If the host has not been granted `opens` for this package, `Field.setAccessible(true)` can throw `InaccessibleObjectException`. Once the package is opened to **the host's own module**, appropriate reflective access can succeed.
 
-Không nên dùng `addOpens` như cách “sửa nhanh” mọi lỗi import hoặc classloading: đó là quyền truy cập sâu, có hậu quả về đóng gói và bảo mật thông tin nội bộ.
+Do not use `addOpens` as a “quick fix” for every import or classloading error: it is deep access with consequences for encapsulation and confidentiality of internal state.
 
-### 2.3. Các thao tác là bổ sung, không phải thay thế
+### 2.3. Operations Are Additive, Not Replacements
 
-Theo API Java 17:
+Per the Java 17 API:
 
-- `addReads` không làm gì nếu `source` đã đọc `target`.
-- `addExports` không làm gì nếu package đã được export ít nhất cho `target`.
-- `addOpens` không làm gì nếu package đã được open ít nhất cho `target`.
+- `addReads` is a no-op if `source` already reads `target`.
+- `addExports` is a no-op if the package is already exported at least to `target`.
+- `addOpens` is a no-op if the package is already open at least to `target`.
 
-Không có `removeReads`, `removeExports` hoặc `removeOpens` trong `ModuleLayer.Controller`. Sau khi bổ sung một quan hệ cho các `Module` đang hoạt động, không thể dùng controller để thu hồi đúng quyền đó. Nếu cần thay policy hoàn toàn, thường phải xây một thế hệ layer mới và ngừng sử dụng layer cũ khi an toàn; tạo layer mới cũng không cưỡng bức JVM hủy tham chiếu đến các module/class cũ.
+There is no `removeReads`, `removeExports`, or `removeOpens` in `ModuleLayer.Controller`. Once a relationship is added to active `Module` instances, the controller cannot be used to revoke that exact permission. If the policy must change completely, you typically have to build a new generation of layers and retire the old layer when safe; creating a new layer also does not force the JVM to drop references to old modules/classes.
 
-## 3. Controller được tạo như thế nào?
+## 3. How Is a Controller Obtained?
 
-Hai nhóm API trông khá giống nhau nhưng khác về kết quả:
+Two groups of APIs look very similar yet differ in return value:
 
-| Cách gọi | Giá trị trả về | Có controller để điều chỉnh thêm? |
+| Call | Return Value | Controller Returned for Further Adjustment? |
 | --- | --- | --- |
-| `parentLayer.defineModulesWithOneLoader(configuration, parentLoader)` | `ModuleLayer` | Không trả controller |
-| `parentLayer.defineModulesWithManyLoaders(configuration, parentLoader)` | `ModuleLayer` | Không trả controller |
-| `parentLayer.defineModules(configuration, loaderFunction)` | `ModuleLayer` | Không trả controller |
-| **`ModuleLayer.defineModulesWithOneLoader(configuration, parentLayers, parentLoader)`** | **`ModuleLayer.Controller`** | **Có** |
-| **`ModuleLayer.defineModulesWithManyLoaders(configuration, parentLayers, parentLoader)`** | **`ModuleLayer.Controller`** | **Có** |
-| **`ModuleLayer.defineModules(configuration, parentLayers, loaderFunction)`** | **`ModuleLayer.Controller`** | **Có** |
+| `parentLayer.defineModulesWithOneLoader(configuration, parentLoader)` | `ModuleLayer` | No controller returned |
+| `parentLayer.defineModulesWithManyLoaders(configuration, parentLoader)` | `ModuleLayer` | No controller returned |
+| `parentLayer.defineModules(configuration, loaderFunction)` | `ModuleLayer` | No controller returned |
+| **`ModuleLayer.defineModulesWithOneLoader(configuration, parentLayers, parentLoader)`** | **`ModuleLayer.Controller`** | **Yes** |
+| **`ModuleLayer.defineModulesWithManyLoaders(configuration, parentLayers, parentLoader)`** | **`ModuleLayer.Controller`** | **Yes** |
+| **`ModuleLayer.defineModules(configuration, parentLayers, loaderFunction)`** | **`ModuleLayer.Controller`** | **Yes** |
 
-Các overload **static** nhận danh sách parent layers là đường tạo layer trả controller. Sau đó lấy layer mới qua:
+The **static** overloads accepting a list of parent layers are the layer-creation entry points that return a controller. Afterward, obtain the new layer via:
 
 ~~~java
 ModuleLayer.Controller controller = ModuleLayer.defineModulesWithOneLoader(
@@ -128,20 +128,20 @@ ModuleLayer.Controller controller = ModuleLayer.defineModulesWithOneLoader(
 ModuleLayer layer = controller.layer();
 ~~~
 
-Đây là snippet minh họa; biến `configuration` phải được resolve đúng theo các parent configurations tương ứng. Không thể lấy một `ModuleLayer` tùy ý đã tạo từ trước rồi “xin lại controller” bằng một API chuẩn tương đương `getController()`.
+This is an illustrative snippet; the `configuration` variable must be properly resolved against the corresponding parent configurations. You cannot take an arbitrary previously created `ModuleLayer` and “ask for its controller again” through a standard API like `getController()`.
 
-### 3.1. Trình tự dựng module layer
+### 3.1. Sequence for Building a Module Layer
 
-Thông thường host thực hiện:
+Typically the host executes:
 
-1. Lựa chọn `ModuleFinder` tìm các module JAR/exploded modules.
-2. Resolve thành `Configuration` với parent configuration, danh sách root modules phù hợp và dependency được kiểm tra.
-3. Dùng **static** `ModuleLayer.defineModulesWith...` để tạo một layer kèm controller.
-4. Lấy những `Module` cụ thể từ `controller.layer().findModule(name)`; xác nhận đúng layer/module identity.
-5. Cấp quyền **nhỏ nhất cần thiết** với `addReads`, `addExports`, `addOpens`.
-6. Sau khi cấu hình xong mới cho các thành phần trong layer sử dụng API hoặc chạy code plugin.
+1. Choose a `ModuleFinder` to locate modular JARs/exploded modules.
+2. Resolve into a `Configuration` with parent configurations, the appropriate root modules list, and verified dependencies.
+3. Use **static** `ModuleLayer.defineModulesWith...` to create a layer together with its controller.
+4. Retrieve the specific `Module` objects from `controller.layer().findModule(name)`; confirm layer/module identity.
+5. Grant the **minimum required permissions** using `addReads`, `addExports`, and `addOpens`.
+6. Only after configuration is complete should components in the layer use APIs or execute plugin code.
 
-Ví dụ skeleton:
+Skeleton example:
 
 ~~~java
 ModuleLayer boot = ModuleLayer.boot();
@@ -154,23 +154,23 @@ ModuleLayer.Controller ctl = ModuleLayer.defineModulesWithOneLoader(
 ModuleLayer child = ctl.layer();
 ~~~
 
-Đây là **đoạn Java minh họa cần imports**, không phải chương trình độc lập; phần tiếp theo có một chương trình đầy đủ.
+This is an **illustrative Java snippet requiring imports**, not a standalone program; the next section provides a complete program.
 
-`defineModulesWithOneLoader` dùng một class loader mới cho các module được định nghĩa trong layer, còn `defineModulesWithManyLoaders` dùng loader riêng theo module. Hai lựa chọn ảnh hưởng đến cô lập code, package/loader constraints và khả năng tải lớp. Việc thêm reads/exports/opens **không** tự bổ sung URL/JAR, không sửa chiến lược classloading và không giải quyết lỗi `ClassNotFoundException` do thiếu artifact.
+`defineModulesWithOneLoader` uses one new class loader for the modules defined in the layer, whereas `defineModulesWithManyLoaders` uses a separate loader per module. The two choices affect code isolation, package/loader constraints, and class loadability. Adding reads/exports/opens **does not** add URLs/JARs, fix classloading strategies, or solve `ClassNotFoundException` caused by missing artifacts.
 
-## 4. Ví dụ Java 17 đầy đủ: điều chỉnh ba quyền trên layer mới
+## 4. Complete Java 17 Example: Adjusting All Three Permissions on a New Layer
 
-Ví dụ này cố ý đặt các module vào cùng một **child layer**, nhưng không khai báo `requires` hay `exports`/`opens` giữa chúng. Host nằm trên classpath (unnamed module), giữ controller và làm người gọi reflection.
+This example intentionally places the modules into the same **child layer**, without declaring `requires` or `exports`/`opens` between them. The host runs on the classpath (unnamed module), holds the controller, and acts as the reflection caller.
 
-Mục tiêu quan sát:
+Observed goals:
 
-- Ban đầu `consumer.canRead(provider)`, `provider.isExported(..., consumer)` và `provider.isOpen(..., host)` đều `false`.
-- Ban đầu host không thể dùng `setAccessible(true)` để đọc private field `TOKEN` của module provider.
-- Sau ba lời gọi controller, cả ba phép kiểm tra chuyển thành `true` và reflective access thành công.
-- Descriptor của module provider vẫn không có `exports`.
-- Thử sửa `java.base` của boot layer bằng controller của child layer hoặc export một package không tồn tại bị từ chối.
+- Initially, `consumer.canRead(provider)`, `provider.isExported(..., consumer)`, and `provider.isOpen(..., host)` are all `false`.
+- Initially, the host cannot use `setAccessible(true)` to read the private field `TOKEN` of the provider module.
+- After three controller calls, all three checks become `true` and reflective access succeeds.
+- The provider module's descriptor still has no `exports`.
+- Attempting to modify `java.base` of the boot layer with the child layer's controller or exporting a nonexistent package is rejected.
 
-### 4.1. Cấu trúc tệp
+### 4.1. File Layout
 
 ~~~text
 src/
@@ -186,15 +186,15 @@ host/
 └── LayerControllerDemo.java
 ~~~
 
-Tệp `src/sample.provider/module-info.java`:
+File `src/sample.provider/module-info.java`:
 
 ~~~java
 module sample.provider { }
 ~~~
 
-Descriptor không export hoặc open package nào. Hai package của module đều có class thực sự nên được compiler ghi nhận là các package thuộc module.
+The descriptor exports or opens no packages. Both packages of the module contain actual classes, so the compiler records them as packages belonging to the module.
 
-Tệp `src/sample.provider/sample/provider/api/Visible.java`:
+File `src/sample.provider/sample/provider/api/Visible.java`:
 
 ~~~java
 package sample.provider.api;
@@ -204,9 +204,9 @@ public final class Visible {
 }
 ~~~
 
-`Visible` là public class nhưng package `sample.provider.api` **chưa export**. Java không vì modifier `public` mà cho mọi named module khác truy cập class thuộc package không export.
+`Visible` is a public class, yet package `sample.provider.api` is **not exported**. Java does not grant all other named modules access to classes in an unexported package merely because of the `public` modifier.
 
-Tệp `src/sample.provider/sample/provider/internal/Secrets.java`:
+File `src/sample.provider/sample/provider/internal/Secrets.java`:
 
 ~~~java
 package sample.provider.internal;
@@ -216,17 +216,17 @@ public final class Secrets {
 }
 ~~~
 
-Private static field `TOKEN` được dùng để kiểm tra khả năng deep reflection khi package chưa mở và khi đã được open cho module host.
+The private static field `TOKEN` is used to test deep reflection capabilities before and after the package is opened to the host module.
 
-Tệp `src/sample.consumer/module-info.java`:
+File `src/sample.consumer/module-info.java`:
 
 ~~~java
 module sample.consumer { }
 ~~~
 
-Module consumer chưa `requires sample.provider;`. Mục đích của bài là **cấp readability bằng controller tại runtime**, chứ không tạo dependency tĩnh trong descriptor.
+The consumer module does not `requires sample.provider;`. The purpose of this exercise is to **grant readability via the controller at runtime**, rather than creating a static dependency in the descriptor.
 
-Tệp `src/sample.consumer/sample/consumer/Anchor.java`:
+File `src/sample.consumer/sample/consumer/Anchor.java`:
 
 ~~~java
 package sample.consumer;
@@ -234,11 +234,11 @@ package sample.consumer;
 public final class Anchor {}
 ~~~
 
-Class `Anchor` giúp ví dụ có class thực sự trong module consumer. Nó không cần import hay gọi `Visible`; host đang minh họa việc thay đổi module graph và kiểm tra metadata runtime.
+The `Anchor` class ensures the consumer module contains an actual class. It does not need to import or call `Visible`; the host is demonstrating mutating the module graph and checking runtime metadata.
 
-### 4.2. Chương trình host tạo layer và điều khiển quan hệ
+### 4.2. Host Program Creating the Layer and Controlling Relationships
 
-Tệp `host/LayerControllerDemo.java`:
+File `host/LayerControllerDemo.java`:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -310,19 +310,19 @@ public final class LayerControllerDemo {
 }
 ~~~
 
-Điểm kỹ thuật cần chú ý:
+Technical points to note:
 
-- `ModuleLayer.boot()` là parent layer; `ModuleFinder.of(Path.of("mods"))` chỉ tìm các module được biên dịch vào `mods`.
-- `parent.configuration().resolve(...)` đưa hai root modules vào một resolved configuration mới. Vì consumer không khai báo `requires sample.provider`, nó chưa có cạnh reads.
-- Static `ModuleLayer.defineModulesWithOneLoader(...)` trả **controller**, không chỉ trả layer.
-- `layer.findModule(...)` lấy đúng các `Module` thuộc child layer; `String.class.getModule()` là `java.base` thuộc **boot layer**, nên không phải source hợp lệ cho controller này.
-- `LayerControllerDemo.class.getModule()` là **unnamed module của host** trong lần chạy trên classpath. Nó là **target** được phép nhận opens; host không cần trở thành member của child layer.
-- `token.setAccessible(true)` ở lần đầu thất bại vì package chưa được open cho host. Sau `addOpens` đúng target, lời gọi tương tự có thể truy cập private field.
-- `provider.getDescriptor().exports().isEmpty()` vẫn `true` vì controller thay **động** trạng thái access runtime, không viết lại module descriptor.
+- `ModuleLayer.boot()` is the parent layer; `ModuleFinder.of(Path.of("mods"))` finds only the modules compiled into `mods`.
+- `parent.configuration().resolve(...)` puts both root modules into a new resolved configuration. Because consumer does not declare `requires sample.provider`, it does not yet have a reads edge.
+- Static `ModuleLayer.defineModulesWithOneLoader(...)` returns a **controller**, not just a layer.
+- `layer.findModule(...)` retrieves the exact `Module` objects belonging to the child layer; `String.class.getModule()` is `java.base` in the **boot layer**, so it is not a valid source for this controller.
+- `LayerControllerDemo.class.getModule()` is the **host's unnamed module** during this classpath run. It is a valid **target** to receive opens; the host does not need to become a member of the child layer.
+- `token.setAccessible(true)` fails the first time because the package has not been opened to the host. After `addOpens` with the right target, the same call can access the private field.
+- `provider.getDescriptor().exports().isEmpty()` remains `true` because the controller **dynamically** alters runtime access state without rewriting the module descriptor.
 
-### 4.3. Biên dịch và chạy
+### 4.3. Compiling and Running
 
-Tạo các thư mục/tệp đúng cây trên. Từ thư mục chứa `src` và `host`, chạy JDK 17 trở lên:
+Create the directories/files matching the tree above. From the directory containing `src` and `host`, run with JDK 17 or higher:
 
 ~~~bash
 javac --release 17 --module-source-path src -d mods -m sample.provider,sample.consumer
@@ -330,9 +330,9 @@ javac --release 17 -d out-host host/LayerControllerDemo.java
 java -cp out-host LayerControllerDemo
 ~~~
 
-Ở ví dụ này `mods` **không cần** đặt trên `--module-path` lúc khởi động, vì chính chương trình dùng `ModuleFinder.of(Path.of("mods"))` để tìm và resolve module vào child layer. Host sử dụng classpath, còn plugin modules được tải theo layer mới.
+In this example `mods` **does not need** to be placed on `--module-path` at startup, because the program itself uses `ModuleFinder.of(Path.of("mods"))` to find and resolve modules into the child layer. The host uses the classpath, while plugin modules are loaded in the new layer.
 
-Stdout đã kiểm chứng khi biên dịch với `--release 17` và chạy:
+Verified stdout when compiled with `--release 17` and run:
 
 ~~~text
 before reads=false
@@ -348,34 +348,34 @@ parent source rejected=true
 missing package rejected=true
 ~~~
 
-**Diễn giải theo từng bằng chứng:**
+**Interpretation of each piece of evidence:**
 
-1. Ba giá trị `false` ban đầu xác nhận quan hệ reads/exports/opens chưa tồn tại giữa các `Module` được nêu trong code.
-2. `deep reflection before=denied` phản ánh việc JPMS từ chối phá đóng gói private member của package chưa open.
-3. Các giá trị `true` sau khi gọi controller chứng minh ba quan hệ runtime được bổ sung.
-4. `token=layer-secret` xác nhận deep reflection hoạt động sau khi cấp quyền open chỉ cho module host.
-5. `descriptor exports unchanged=true` chứng minh metadata khai báo không bị thay đổi.
-6. `parent source rejected=true` là bằng chứng về ranh giới quản lý: controller của child layer không điều chỉnh được module nguồn `java.base` của parent layer.
-7. `missing package rejected=true` xác nhận không thể export tên package bất kỳ mà module nguồn không sở hữu.
+1. The three initial `false` values confirm that the reads/exports/opens relationships do not yet exist between the `Module` instances referenced in code.
+2. `deep reflection before=denied` reflects JPMS denying breaking encapsulation of a private member in an unopened package.
+3. The `true` values after calling the controller prove the three runtime relationships were added.
+4. `token=layer-secret` confirms deep reflection works after granting open permission solely to the host module.
+5. `descriptor exports unchanged=true` proves the declared metadata was not modified.
+6. `parent source rejected=true` is evidence of the management boundary: the child layer's controller cannot modify the parent layer's source module `java.base`.
+7. `missing package rejected=true` confirms an arbitrary package not owned by the source module cannot be exported.
 
-Ví dụ cố tình **không** biên dịch source trong `sample.consumer` có import trực tiếp `sample.provider.api.Visible`. Chương trình đang chứng minh **điều chỉnh runtime access graph**. Với compile-time import thông thường, `javac` cũng cần được cấu hình các quan hệ modules tương ứng; controller được tạo khi chạy không quay ngược thời gian để thay đổi kết quả biên dịch.
+The example intentionally **does not** compile source in `sample.consumer` directly importing `sample.provider.api.Visible`. The program is demonstrating **adjusting the runtime access graph**. For ordinary compile-time imports, `javac` must also be configured with the corresponding module relationships; a controller created at runtime cannot go back in time to change compilation results.
 
-## 5. Phạm vi chính xác mà controller được phép sửa
+## 5. Exact Scope That a Controller Is Allowed to Modify
 
-### 5.1. Source phải thuộc chính controlled layer
+### 5.1. Source Must Belong to the Controlled Layer Itself
 
-Ví dụ:
+Example:
 
 ~~~text
 boot layer
-    java.base                  <-- không thể dùng làm source cho controller bên dưới
+    java.base                  <-- cannot be used as source for the controller below
        |
        +---- child layer (controller.layer())
-                sample.consumer  <-- source hợp lệ cho addReads
-                sample.provider  <-- source hợp lệ cho addExports/addOpens
+                sample.consumer  <-- valid source for addReads
+                sample.provider  <-- valid source for addExports/addOpens
 ~~~
 
-Trong mỗi lời gọi:
+In each call:
 
 ~~~java
 controller.addReads(source, target);
@@ -383,76 +383,76 @@ controller.addExports(source, "some.package", target);
 controller.addOpens(source, "some.package", target);
 ~~~
 
-`source` phải là đối tượng `Module` thuộc `controller.layer()`. **Không** đủ nếu module chỉ có cùng tên chuỗi với một module thuộc layer đó. Hai layer khác nhau có thể chứa module trùng tên nhưng là các đối tượng `Module` và class khác nhau.
+`source` must be a `Module` object belonging to `controller.layer()`. It is **not** enough if a module merely has the same string name as a module in that layer. Two different layers can contain modules with the same name that are distinct `Module` objects and classes.
 
-Đối với `addExports`/`addOpens`, `some.package` phải là **package thuộc module nguồn**. Tên package phải khớp chính xác; xuất tên package cha không tự áp dụng cho package con. Ví dụ `sample.provider` không phải tên thay thế của `sample.provider.internal`.
+For `addExports`/`addOpens`, `some.package` must be a **package belonging to the source module**. The package name must match exactly; exporting a parent package name does not automatically apply to subpackages. For example, `sample.provider` is not a substitute for `sample.provider.internal`.
 
-### 5.2. Target không có cùng giới hạn membership như source
+### 5.2. Target Does Not Have the Same Membership Restriction as Source
 
-Target của ba phương thức là module nhận quan hệ mới; API không yêu cầu target nằm cùng layer với source. Ví dụ bài viết cấp `opens` từ module nguồn trong child layer sang **unnamed module của host**. Điều này hợp lệ, trong khi việc lấy `java.base` làm **source** để cập nhật từ controller child layer không hợp lệ.
+The target of the three methods is the module receiving the new relationship; the API does not require the target to reside in the same layer as the source. For example, this article grants `opens` from a source module in the child layer to the **host's unnamed module**. That is valid, whereas using `java.base` as the **source** to update from the child layer's controller is invalid.
 
-Điều kiện target tùy thao tác còn chịu các ràng buộc thông thường của module graph và API. Không nhầm “target có thể nằm bên ngoài layer” với “controller có quyền sửa bản thân target”: thêm `source.reads(target)` hoặc `source.exports(package, target)` **không** cấp cho host quyền cập nhật những exports/opens nội bộ của module target.
+Depending on the operation, the target is still subject to normal module graph and API constraints. Do not confuse “the target may reside outside the layer” with “the controller has authority to modify the target itself”: adding `source.reads(target)` or `source.exports(package, target)` **does not** grant the host permission to update the internal exports/opens of the target module.
 
-### 5.3. Quyền không chuyển tiếp tự động
+### 5.3. Permissions Are Not Automatically Transitive
 
-Nếu `A` đọc `B` và `B` đọc `C`, không thể kết luận mọi quan hệ đọc và truy cập public API đều được truyền tới `A`. JPMS có khái niệm đọc theo `requires transitive` trong descriptor và các quy tắc khi resolve; một cạnh `addReads` đơn lẻ không đồng nghĩa “toàn bộ phụ thuộc của B đều công khai cho A”.
+If `A` reads `B` and `B` reads `C`, you cannot conclude all read relationships and public API access propagate to `A`. JPMS has the concept of implied readability via `requires transitive` in descriptors and resolution rules; a single `addReads` edge does not mean “all dependencies of B are exposed to A”.
 
-Tương tự, export `p` từ module `B` sang `A` không đồng nghĩa export `p` cho mọi module mà `A` đọc, và open `p` cho framework `F` không mở package cho mọi module bị framework gọi.
+Similarly, exporting `p` from module `B` to `A` does not mean exporting `p` to every module that reads `A`, and opening `p` to framework `F` does not open the package to every module invoked by the framework.
 
-### 5.4. Không có API thu hồi trong Controller
+### 5.4. No Revocation API in Controller
 
-Controller giữ quyền bổ sung edge/permission trong vòng đời module. API không cung cấp thao tác inverse. Đừng thiết kế cơ chế “mở package trong 5 mili-giây rồi đóng lại” bằng `addOpens`: Java không cung cấp `removeOpens` tương ứng ở đây.
+The controller holds authority to add edges/permissions during the module lifecycle. The API provides no inverse operations. Do not design a mechanism to “open a package for 5 milliseconds and then close it” using `addOpens`: Java provides no corresponding `removeOpens` here.
 
-Nếu cần cô lập provider theo phiên hoặc tenant, tạo layer/loader riêng theo chính sách và quản lý reference/lifecycle. Tuy nhiên một layer mới không xóa các đối tượng `Module`, `Class` hoặc instance của layer cũ nếu host vẫn giữ tham chiếu.
+If providers need per-session or per-tenant isolation, create separate layers/loaders according to policy and manage references/lifecycle. However, a new layer does not delete `Module`, `Class`, or instance objects of an old layer if the host still holds references.
 
-## 6. So sánh với Module.addReads/addExports/addOpens
+## 6. Comparison with Module.addReads/addExports/addOpens
 
-Đối tượng `Module` cũng có các method như `Module.addReads`, `Module.addExports`, `Module.addOpens`, nhưng chúng có **ràng buộc với caller**: thông thường chỉ code trong module nguồn có thể tự cấp những quan hệ cho module của mình, nếu thỏa điều kiện API.
+A `Module` object also has methods such as `Module.addReads`, `Module.addExports`, and `Module.addOpens`, yet they are **caller-sensitive**: normally only code inside the source module can grant those relationships for its own module, provided API conditions are met.
 
-Controller là cơ chế mà **bên có quyền tạo layer mới** có thể dùng để điều chỉnh các module thuộc layer đó mà không cần code được thực thi từ chính từng module nguồn. Đó là khác biệt về **phạm vi quyền điều phối**, không phải tính năng vô hiệu hóa mọi giới hạn của JPMS.
+`Controller` is a mechanism that **the party authorized to create the new layer** can use to adjust modules in that layer without needing code executed from within each source module itself. That is a difference in **scope of orchestration authority**, not a feature that disables all JPMS restrictions.
 
-| Trường hợp | Công cụ phù hợp |
+| Case | Appropriate Tool |
 | --- | --- |
-| Module đã biết dependency public tại compile time | `requires` / `exports` trong `module-info.java` |
-| Module chủ động mở package cho framework đã biết | `opens p.q to framework.module;` trong descriptor |
-| Một module tự cấp quyền ở runtime theo hợp đồng của chính nó | `Module.addReads/addExports/addOpens`, khi caller hợp lệ |
-| Host vừa tạo child layer và cần bổ sung quan hệ trong phạm vi layer đó | `ModuleLayer.Controller` |
-| Điều chỉnh access cho source module thuộc boot/parent layer | Không thể dùng controller của child layer; xem lại kiến trúc/descriptor/cơ chế được chủ module hoặc launcher cho phép |
+| Module knows public dependencies at compile time | `requires` / `exports` in `module-info.java` |
+| Module proactively opens a package to a known framework | `opens p.q to framework.module;` in the descriptor |
+| A module grants permissions to itself at runtime per its own contract | `Module.addReads/addExports/addOpens`, when the caller is valid |
+| Host just created a child layer and needs to add relationships within that layer's scope | `ModuleLayer.Controller` |
+| Adjusting access for a source module in the boot/parent layer | Cannot use a child layer's controller; revisit architecture/descriptors/mechanisms permitted by the module owner or launcher |
 
-Tránh đồng nhất API `Controller` với tùy chọn JVM `--add-reads`, `--add-exports` và `--add-opens`. Các option launcher có phạm vi/lifecycle khác nhau và được cấu hình lúc khởi chạy; controller thao tác trên đối tượng `Module` của layer được tạo tại runtime.
+Avoid equating the `Controller` API with JVM options `--add-reads`, `--add-exports`, and `--add-opens`. Launcher options have different scope/lifecycle and are configured at startup; the controller operates on `Module` objects of a layer created at runtime.
 
-## 7. Khác biệt giữa quyền access và việc tìm/resolve/nạp lớp
+## 7. Difference Between Access Permissions and Finding/Resolving/Loading Classes
 
-Một quan hệ module được bổ sung không tự giải quyết tất cả vấn đề runtime:
+Adding a module relationship does not automatically solve every runtime issue:
 
-- **Resolve:** `Configuration.resolve` phải giải quyết được các module cần có trước khi tạo layer. `addReads` không làm một module chưa được resolve xuất hiện.
-- **Class loading:** `ModuleLayer` ánh xạ module đến class loader. Nếu artifact/JAR không có hoặc class loader không thể tìm bytecode, thêm readability không sửa được `ClassNotFoundException`.
-- **Readability:** module `A` cần read đúng module chứa `B` để truy cập kiểu qua liên kết thông thường.
-- **Exports:** package chứa kiểu public cần export cho module truy cập (trừ các cơ chế truy cập đặc biệt có điều kiện riêng).
-- **Opens/reflection:** private access qua reflection cần đúng package được open cho module của mã thực hiện thao tác reflective.
-- **Service use/provision:** `uses`, `provides` và cơ chế `ServiceLoader` có hợp đồng riêng; việc thêm reads/exports không tự đăng ký một service provider mới.
+- **Resolve:** `Configuration.resolve` must resolve the required modules before creating the layer. `addReads` does not make an unresolved module appear.
+- **Class loading:** `ModuleLayer` maps modules to class loaders. If the artifact/JAR is absent or the class loader cannot locate the bytecode, adding readability will not fix `ClassNotFoundException`.
+- **Readability:** module `A` must read the exact module containing `B` to access types through normal linkage.
+- **Exports:** the package containing a public type must be exported to the accessing module (aside from special conditional access mechanisms).
+- **Opens/reflection:** private access via reflection requires the right package to be opened to the module of the code performing the reflective operation.
+- **Service use/provision:** `uses`, `provides`, and `ServiceLoader` have their own contracts; adding reads/exports does not register a new service provider.
 
-Ví dụ lớp provider tồn tại nhưng không thể load do sai JAR vẫn không được giải quyết bằng cách gọi `addOpens`. Ngược lại, một class đã load được bằng loader vẫn có thể không được truy cập bởi code module khác vì module readability/package exports.
+For example, a provider class that exists yet cannot be loaded due to a wrong JAR will still not be resolved by calling `addOpens`. Conversely, a class already loaded by a loader may still be inaccessible to code in another module due to module readability/package exports.
 
-Thêm quyền động có thể phục vụ các lần liên kết và reflective access phù hợp từ thời điểm đó; không được suy ra nó đã “tái biên dịch” bytecode hoặc tự khôi phục những thao tác đã thất bại/khởi tạo dở trước khi thêm quyền.
+Dynamically adding permissions can serve subsequent valid linkage and reflective access from that point onward; do not infer that it “recompiled” bytecode or automatically recovered operations that already failed or partially initialized before permissions were added.
 
-## 8. Lỗi thường gặp và chính sách xử lý
+## 8. Common Errors and Handling Policy
 
-| Dấu hiệu | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common Cause | How to Handle |
 | --- | --- | --- |
-| `IllegalArgumentException` từ `addReads` | `source` không thuộc đúng layer do controller quản lý | Kiểm tra `source.getLayer() == controller.layer()` và cách lấy Module |
-| `IllegalArgumentException` từ `addExports`/`addOpens` | Source sai layer hoặc package không thuộc source | Kiểm tra đúng `Module` và tên package đầy đủ |
-| `InaccessibleObjectException` khi `setAccessible(true)` | Package chưa open cho module thực hiện reflection | Cấp qualified opens đúng target hoặc sửa descriptor |
-| `IllegalAccessException` lúc gọi reflection | Member/class không accessible theo chế độ hiện hành | Kiểm tra module của caller, exports/opens, và cách gọi reflection |
-| `ClassNotFoundException` | Loader không tìm được class/JAR | Kiểm tra `ModuleFinder`, layer loader, module artifact; không chỉ chỉnh reads |
-| `NoClassDefFoundError`/`LinkageError` | Thiếu dependency, classloader identity/loader constraints, hoặc lỗi khởi tạo trước | Kiểm tra causes, module graph, class loaders và thời điểm linkage |
-| `java.lang.SecurityException` khi tạo layer | Môi trường/security manager (nếu có) từ chối thao tác cần permission | Tuân theo chính sách môi trường; không coi controller là bypass |
-| `findModule(name)` trả empty | Module chưa được resolve vào layer/parents hoặc tên sai | Rà soát roots, finder, configuration |
-| Package đã open nhưng code vẫn không chạy | Vấn đề ở compile-time, class loading, loại access hoặc sai target module | Tách từng tầng đọc/export/open và xác nhận object Module thực tế |
+| `IllegalArgumentException` from `addReads` | `source` does not belong to the layer managed by the controller | Check `source.getLayer() == controller.layer()` and how the `Module` was obtained |
+| `IllegalArgumentException` from `addExports`/`addOpens` | Source in wrong layer or package does not belong to source | Verify exact `Module` and full package name |
+| `InaccessibleObjectException` on `setAccessible(true)` | Package not opened to the module performing reflection | Grant qualified opens to the right target or fix the descriptor |
+| `IllegalAccessException` during reflection call | Member/class not accessible under current mode | Check caller module, exports/opens, and how reflection is invoked |
+| `ClassNotFoundException` | Loader cannot find class/JAR | Check `ModuleFinder`, layer loader, module artifact; do not merely adjust reads |
+| `NoClassDefFoundError`/`LinkageError` | Missing dependency, classloader identity/loader constraints, or prior initialization error | Inspect causes, module graph, class loaders, and linkage timing |
+| `java.lang.SecurityException` when creating layer | Environment/security manager (if present) denies a privileged operation | Comply with environment policy; do not treat controller as a bypass |
+| `findModule(name)` returns empty | Module was not resolved into the layer/parents or wrong name | Review roots, finder, configuration |
+| Package is open yet code still fails | Issue at compile time, class loading, access kind, or wrong target module | Separate read/export/open layers and verify actual `Module` objects |
 
-Các phương thức controller theo Javadoc có thể trả `IllegalArgumentException` cho source không thuộc layer, và với export/open thêm trường hợp package không tồn tại trong source. Đối số `null` nói chung dẫn đến `NullPointerException` nếu tài liệu không quy định khác. Đừng che lỗi bằng cách thử một package bất kỳ cho đến khi “hết lỗi”: đó là tín hiệu metadata hoặc ownership của module bị sai.
+Per the Javadoc, controller methods may throw `IllegalArgumentException` for a source not in the layer, and for export/open also when the package does not exist in source. A `null` argument generally results in `NullPointerException` unless documented otherwise. Do not mask errors by probing arbitrary packages until errors “go away”: that signals faulty module metadata or ownership.
 
-### 8.1. Kiểm tra access graph bằng API, không chỉ dựa vào log
+### 8.1. Inspecting the Access Graph via API, Not Just Logs
 
 ~~~java
 boolean reads = source.canRead(target);
@@ -460,20 +460,20 @@ boolean exports = source.isExported("sample.provider.api", target);
 boolean opens = source.isOpen("sample.provider.internal", target);
 ~~~
 
-Đây là ba biểu thức được dùng với biến `source`, `target` đã có; chúng kiểm tra trạng thái quan hệ runtime. Đối với chương trình ví dụ chính, ba phương thức được gọi với **cặp module nguồn/đích khác nhau** đúng theo từng quyền.
+These are three expressions used with existing `source` and `target` variables; they inspect runtime relationship state. In the main example program, the three methods are called with **different source/target module pairs** matching each permission.
 
-Khi chẩn đoán, ghi thêm:
+When diagnosing, also log:
 
 ~~~java
 System.out.println("source=" + source.getName() + " layer=" + source.getLayer());
 System.out.println("target=" + target.getName() + " layer=" + target.getLayer());
 ~~~
 
-Đoạn này chỉ có ý nghĩa khi `source` và `target` là những đối tượng `Module` đã lấy được, không phải một chương trình độc lập. Nếu target là unnamed module, `getName()` có thể là `null` và `getLayer()` có thể không có layer theo nghĩa named modules; tuyệt đối không dùng tên chuỗi như khóa duy nhất thay cho module identity.
+This snippet only makes sense when `source` and `target` are already-obtained `Module` objects, not as a standalone program. If `target` is an unnamed module, `getName()` can be `null` and `getLayer()` may have no layer in the sense of named modules; never use string names as the sole key in place of module identity.
 
-### 8.2. Kiểm tra package có thực sự thuộc source không
+### 8.2. Checking Whether a Package Actually Belongs to Source
 
-Với một named module đã resolve, `source.getPackages()` trả các package mà module chứa. Có thể kiểm tra:
+For a resolved named module, `source.getPackages()` returns the packages contained in the module. You can check:
 
 ~~~java
 if (!source.getPackages().contains("sample.provider.internal")) {
@@ -481,51 +481,51 @@ if (!source.getPackages().contains("sample.provider.internal")) {
 }
 ~~~
 
-Điều này giúp phát hiện sai tên package trước khi gọi controller. Package trong `ModuleDescriptor`/`Module` là tên package thực tế; **không** có quy tắc “export cả namespace con” khi export package cha.
+This catches wrong package names before calling the controller. Packages in `ModuleDescriptor`/`Module` are concrete package names; there is **no** rule to “export an entire sub-namespace” when exporting a parent package.
 
-## 9. An toàn vận hành và giới hạn quyền
+## 9. Operational Safety and Privilege Boundaries
 
-**Không đưa controller cho code không tin cậy.** Đây là khuyến cáo trực tiếp từ Javadoc `ModuleLayer.Controller`: nắm controller nghĩa là có khả năng nới rộng module relationships của cả layer được điều khiển. Nếu một plugin giữ được controller, nó có thể làm suy giảm nguyên tắc encapsulation giữa các module trong layer.
+**Do not hand the controller to untrusted code.** This is a direct recommendation from the `ModuleLayer.Controller` Javadoc: holding the controller means having the ability to widen module relationships across the entire controlled layer. If a plugin obtains the controller, it can weaken encapsulation boundaries between modules in the layer.
 
-Đối với host quản lý plugin, nên:
+For a host managing plugins, you should:
 
-1. Giữ controller trong module hoặc thành phần hạ tầng tin cậy, không đưa vào extension context công khai.
-2. Xác thực **module source** bằng chính đối tượng `Module` và layer ownership, không chỉ tên module do plugin cung cấp.
-3. Xác định **target module** có chủ đích, cấp opens/exports theo package và target cụ thể, tránh mở rộng bề mặt truy cập không cần thiết.
-4. Hoàn tất cấu hình trước khi công bố provider vào registry hoặc chạy callback. Tránh để một request đang chạy quan sát trạng thái quyền nửa chừng nếu đó không phải thiết kế có chủ đích.
-5. Ghi log/audit những quan hệ mới với source, target, package, lý do và phiên bản plugin; ghi nhận mọi lỗi thay vì âm thầm tiếp tục.
-6. Không dựa vào việc đảo ngược quyền qua controller: muốn thay policy, hãy thiết kế thế hệ layer mới và quá trình chuyển tiếp được kiểm soát.
-7. Dọn loader, thread, service instance, listener, cache và context references khi ngừng plugin. Giữ `Module` hoặc `Class<?>` lâu dài có thể giữ layer/loader cũ không được thu gom.
-8. Hiểu giới hạn của JPMS: encapsulation module là cơ chế access control giữa các module, **không phải sandbox bảo mật toàn diện** để chạy mã độc ngay trong cùng tiến trình.
+1. Keep the controller in a trusted infrastructure module or component; do not expose it in public extension contexts.
+2. Validate the **source module** using the `Module` object itself and layer ownership, not merely a module name string supplied by a plugin.
+3. Choose the **target module** deliberately, granting opens/exports per specific package and target, avoiding unnecessarily broad access surfaces.
+4. Complete configuration before publishing providers into a registry or invoking callbacks. Avoid letting in-flight requests observe half-configured permission state unless intentionally designed.
+5. Log/audit new relationships with source, target, package, reason, and plugin version; record all errors rather than silently continuing.
+6. Do not rely on reversing permissions via the controller: to change policy, design a new layer generation and a controlled transition.
+7. Clean up loaders, threads, service instances, listeners, caches, and context references when stopping a plugin. Retaining a `Module` or `Class<?>` long-term can prevent the old layer/loader from being garbage collected.
+8. Understand the limits of JPMS: module encapsulation is an inter-module access control mechanism, **not a comprehensive security sandbox** for running malicious code in the same process.
 
-**Ghi chú về reachability:** Javadoc của `addReads` nêu rằng các read edge được thêm là **weak**, không tự giữ target module sống chỉ vì source còn strong reachable. Đừng dựa vào quan hệ reads để quản lý vòng đời đối tượng hoặc plugin; host phải giữ những tham chiếu cần thiết trong thời gian sử dụng.
+**Note on reachability:** The `addReads` Javadoc states that added read edges are **weak** and do not by themselves keep the target module alive merely because the source remains strongly reachable. Do not rely on read edges to manage object or plugin lifecycles; the host must retain needed references during active use.
 
-## 10. Tình huống áp dụng và lựa chọn thiết kế
+## 10. Usage Scenarios and Design Choices
 
-### Tình huống A: plugin consumer cần đọc API mới của provider
+### Scenario A: A Plugin Consumer Needs to Read a Provider's New API
 
-Consumer và provider đã nằm trong child layer, nhưng descriptor của consumer không khai báo dependency tĩnh; host muốn bổ sung quyền ở runtime:
+Consumer and provider are already in the child layer, yet the consumer's descriptor does not declare a static dependency; the host wants to add permissions at runtime:
 
 ~~~java
 controller.addReads(consumer, provider)
           .addExports(provider, "sample.provider.api", consumer);
 ~~~
 
-Điều này bổ sung readability và quyền truy cập public API của package. Nó hợp lý khi host **cố ý** nối các module runtime đã resolve. Nếu consumer cần import và dùng API ở thời điểm biên dịch, vẫn phải xử lý dependency compiler phù hợp.
+This adds readability and public API access for the package. It makes sense when the host **intentionally** wires already-resolved runtime modules. If the consumer needs to import and use the API at compile time, compiler dependencies still must be handled appropriately.
 
-### Tình huống B: framework cần truy cập private field để serialize
+### Scenario B: A Framework Needs Access to Private Fields for Serialization
 
-Host muốn framework module cụ thể đọc nội bộ model:
+The host wants a specific framework module to read internal model state:
 
 ~~~java
 controller.addOpens(provider, "sample.provider.internal", serializerModule);
 ~~~
 
-Chỉ cấp qualified open đến `serializerModule` khi thật sự cần reflective access. Nếu host chạy ở unnamed module, truyền đối tượng module của chính host như ví dụ. Không tự động truyền module của caller cuối cùng hoặc mở cho mọi plugin.
+Grant qualified `opens` only to `serializerModule` when reflective access is genuinely required. If the host runs in an unnamed module, pass the host's own module object as in the example. Do not automatically pass the ultimate caller's module or open to all plugins.
 
-### Tình huống C: plugin đã biết API tĩnh từ đầu
+### Scenario C: The Plugin Knows Its Static API Upfront
 
-Nếu toàn bộ quan hệ module đã cố định khi xây dựng, mô tả bằng `module-info.java` có thể dễ bảo trì và dễ kiểm chứng hơn:
+If all module relationships are fixed at build time, declaring them in `module-info.java` can be easier to maintain and verify:
 
 ~~~java
 module consumer.module {
@@ -533,28 +533,28 @@ module consumer.module {
 }
 ~~~
 
-Việc dùng controller trong trường hợp này chỉ bổ sung một điểm cấu hình động mà không nhất thiết tạo ra giá trị. Giữ dynamic access control cho trường hợp cần điều phối runtime thực sự.
+Using a controller in this case only adds a dynamic configuration point without necessarily adding value. Reserve dynamic access control for cases genuinely needing runtime orchestration.
 
-## 11. Bộ kiểm thử cần có
+## 11. Required Test Suite
 
-Khi triển khai host có `ModuleLayer.Controller`, nên kiểm chứng ít nhất:
+When implementing a host with `ModuleLayer.Controller`, verify at least:
 
-| Nhóm | Điều cần kiểm tra | Dấu hiệu đúng |
+| Group | What to Test | Expected Sign |
 | --- | --- | --- |
-| Layer creation | Configuration/parent layers đúng, static factory trả Controller | `controller.layer()` là layer mới với modules dự kiến |
-| Readability | Trước/sau `addReads` cho source/target xác định | `canRead` chuyển từ `false` sang `true` nếu trước đó chưa có cạnh |
-| Qualified exports | Package source tồn tại, đúng target module | `isExported(pn, target)` đúng, không nhầm target |
-| Qualified opens | Reflection sâu bị chặn trước và được cấp đúng target sau | `isOpen` thay đổi và `setAccessible(true)` chỉ thành công khi phù hợp |
-| Ownership/scope | Thử source thuộc boot/parent/another layer | `IllegalArgumentException`, không sửa module ngoài phạm vi |
-| Package validation | Thử package không có trong source | `IllegalArgumentException` |
-| Descriptor invariance | Kiểm tra `getDescriptor()` trước/sau | Descriptor không tự sinh thêm `requires`, `exports`, `opens` |
-| Module resolution | Bỏ một root/artifact khỏi finder | Lỗi resolution hoặc không tìm thấy module được phát hiện sớm |
-| Classloader | Cố ý dùng sai artifact/loader | Phân biệt lỗi loading với lỗi access |
-| Lifecycle | Reload nhiều thế hệ layer, đóng tài nguyên plugin | Không rò rỉ callback/thread/reference làm giữ loader cũ |
+| Layer creation | Matching configuration/parent layers, static factory returns `Controller` | `controller.layer()` is the new layer with expected modules |
+| Readability | Before/after `addReads` for a specific source/target | `canRead` transitions from `false` to `true` if no edge existed beforehand |
+| Qualified exports | Source package exists, right target module | `isExported(pn, target)` is accurate, without confusing targets |
+| Qualified opens | Deep reflection blocked before and permitted to the right target after | `isOpen` changes and `setAccessible(true)` succeeds only where appropriate |
+| Ownership/scope | Try a source in boot/parent/another layer | `IllegalArgumentException`, no out-of-scope module modified |
+| Package validation | Try a package absent from source | `IllegalArgumentException` |
+| Descriptor invariance | Inspect `getDescriptor()` before/after | Descriptor does not gain synthetic `requires`, `exports`, `opens` |
+| Module resolution | Omit a root/artifact from finder | Resolution or module-not-found error detected early |
+| Classloader | Intentionally use wrong artifact/loader | Loading errors distinguished from access errors |
+| Lifecycle | Reload multiple layer generations, close plugin resources | No leaked callbacks/threads/references retaining old loaders |
 
-Không dựa vào một lần thao tác reflection thành công để suy rằng mọi package đã được export hay mọi module đều được quyền đọc nhau. Kiểm tra **từng quan hệ chính xác theo source, package và target**.
+Do not rely on one successful reflection call to infer that all packages are exported or all modules can read each other. Verify **each exact relationship by source, package, and target**.
 
-## 12. Điểm cần ghi nhớ
+## 12. Key Points to Remember
 
 ~~~text
 static ModuleLayer.defineModulesWithOneLoader(...)
@@ -564,30 +564,30 @@ static ModuleLayer.defineModulesWithOneLoader(...)
                      +--> layer() : child ModuleLayer
                      |
                      +--> addReads(source, target)
-                     |         source thuộc child layer
+                     |         source belongs to child layer
                      |
                      +--> addExports(source, package, target)
-                     |         source thuộc child layer
-                     |         package thuộc source
+                     |         source belongs to child layer
+                     |         package belongs to source
                      |
                      +--> addOpens(source, package, target)
-                               source thuộc child layer
-                               package thuộc source
+                               source belongs to child layer
+                               package belongs to source
 
 Controller:
-  + bổ sung quan hệ ở runtime
-  + có qualified target
-  + không sửa module-info/ModuleDescriptor
-  + không gỡ lại quyền vừa thêm
-  + không điều khiển source ở parent/boot/another layer
+  + adds relationships at runtime
+  + supports qualified targets
+  + does not modify module-info/ModuleDescriptor
+  + does not revoke newly added permissions
+  + does not control sources in parent/boot/another layer
 ~~~
 
-**Quy tắc thực hành:** Đầu tiên xác định **module nguồn nào thuộc layer vừa tạo**, sau đó xác định chính xác **module đích và package cần cấp quyền**, rồi dùng controller để thêm quan hệ nhỏ nhất phục vụ nhu cầu runtime. Đối với một hệ thống plugin, phải xem controller là năng lực quản trị layer có giới hạn và chỉ để host đáng tin cậy nắm giữ.
+**Rule of practice:** First identify **which source modules belong to the newly created layer**, then identify the exact **target modules and packages requiring access**, and finally use the controller to add the minimal relationships needed at runtime. For a plugin system, treat the controller as a bounded layer-administration capability held exclusively by the trusted host.
 
-### Tài liệu tham khảo chuẩn
+### Standard References
 
-- [JDK 17 – ModuleLayer.Controller](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.Controller.html): mô tả controller, `addReads`, `addExports`, `addOpens`, phạm vi source và lỗi.
-- [JDK 17 – ModuleLayer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html): cách tạo layer bằng static hoặc instance factories, configuration và class loaders.
-- [JDK 17 – Module](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html): `canRead`, `isExported`, `isOpen` và các API module-level.
-- [JDK 17 – Configuration](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/Configuration.html): `resolve` module graph từ finder và parent configuration.
-- [JDK 17 – AccessibleObject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): các điều kiện của `setAccessible` và reflection access qua ranh giới module.
+- [JDK 17 – ModuleLayer.Controller](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.Controller.html): describes controller, `addReads`, `addExports`, `addOpens`, source scope, and exceptions.
+- [JDK 17 – ModuleLayer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html): creating layers via static or instance factories, configurations, and class loaders.
+- [JDK 17 – Module](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html): `canRead`, `isExported`, `isOpen`, and module-level APIs.
+- [JDK 17 – Configuration](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/Configuration.html): `resolve` module graphs from finders and parent configurations.
+- [JDK 17 – AccessibleObject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): conditions for `setAccessible` and reflective access across module boundaries.

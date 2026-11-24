@@ -1,108 +1,108 @@
-# Quy định quyền sở hữu tài nguyên, trạng thái và khả năng gọi đồng thời trong hợp đồng mở rộng Java
+# Specifying Resource Ownership, State, and Concurrency in Java Extension Contracts
 
-Trong kiến trúc mở rộng ở runtime (SPI, plugin, adapter, hook hoặc handler được nạp động), host gọi mã của extension nhưng hai bên có thể có vòng đời, luồng thực thi và tài nguyên khác nhau. Một interface chỉ khai báo phương thức là chưa đủ. Hợp đồng mở rộng phải trả lời rõ: **ai sở hữu tài nguyên**, **trạng thái tồn tại ở phạm vi nào**, và **host được gọi extension đồng thời theo cách nào**.
+In runtime extensibility architectures (dynamically loaded SPIs, plugins, adapters, hooks, or handlers), the host invokes extension code, yet both sides can have different lifecycles, execution threads, and resources. An interface declaring only method signatures is insufficient. An extension contract must explicitly answer: **who owns each resource**, **at what scope state exists**, and **how the host may invoke the extension concurrently**.
 
-Mục tiêu của bài là thiết kế hợp đồng đủ cụ thể để host có thể khởi tạo, dùng lại, dừng, nạp lại và kiểm thử extension mà không làm rò rỉ tài nguyên, mất dữ liệu hoặc phát sinh race condition.
+The goal of this article is to design a contract concrete enough that the host can initialize, reuse, stop, reload, and test extensions without leaking resources, corrupting data, or introducing race conditions.
 
-## 1. Phân biệt các chủ thể và phạm vi trách nhiệm
+## 1. Distinguishing Actors and Scopes of Responsibility
 
-- **Host (runtime/container):** ứng dụng điều phối việc tìm provider, tạo instance, cung cấp ngữ cảnh thực thi, phân phối request, áp dụng giới hạn tải và quyết định khi nào bắt đầu/dừng extension.
-- **Provider/extension:** phần triển khai được đăng ký hoặc nạp vào host; xử lý nghiệp vụ theo interface đã thống nhất và giải phóng những tài nguyên mà chính nó sở hữu.
-- **Caller:** mã yêu cầu host sử dụng extension. Caller có thể nằm ngoài host hoặc là một thành phần nội bộ; caller không nhất thiết nắm vòng đời instance của provider.
+- **Host (runtime/container):** the application coordinating provider discovery, instance creation, execution context provisioning, request dispatch, load limits, and deciding when to start/stop extensions.
+- **Provider/extension:** the implementation registered with or loaded into the host; executes business logic per the agreed interface and releases resources it owns.
+- **Caller:** code asking the host to use an extension. A caller may be external to the host or an internal component; the caller does not necessarily manage the provider instance lifecycle.
 
-Ví dụ: host dùng `ServiceLoader<Transformer>` để tìm một provider. `ServiceLoader` cung cấp cơ chế khám phá/khởi tạo provider; **nó không tự quy định provider có thread-safe hay không, không tự dừng tác vụ nền và không tự gọi `close()` cho provider**. Các trách nhiệm đó phải thuộc về hợp đồng giữa host và provider. Bản thân đối tượng `ServiceLoader` cũng không được thiết kế để nhiều luồng thao tác đồng thời một cách tùy ý; việc duyệt/nạp nên được host quản lý riêng với việc gọi các instance provider.
+For example, the host uses `ServiceLoader<Transformer>` to locate a provider. `ServiceLoader` supplies the provider discovery/instantiation mechanism; **it does not define whether the provider is thread-safe, does not stop background tasks, and does not call `close()` on the provider**. Those responsibilities belong to the contract between host and provider. `ServiceLoader` itself is also not designed for arbitrary concurrent manipulation by multiple threads; iteration/loading should be managed by the host separately from invoking provider instances.
 
-Một đặc tả tốt phải ghi rõ phạm vi áp dụng cho **mỗi instance** và cho **mỗi phiên hoạt động**. Đăng ký một provider một lần không đồng nghĩa chỉ có một instance: host có thể tạo một instance dùng chung, một instance cho từng tenant, hoặc một instance cho mỗi request.
+A solid specification must state rules per **instance** and per **active session**. Registering a provider once does not imply only one instance exists: the host may create one shared instance, one instance per tenant, or one instance per request.
 
-## 2. Quy định quyền sở hữu tài nguyên
+## 2. Specifying Resource Ownership
 
-**Quyền sở hữu** là trách nhiệm quản lý vòng đời của tài nguyên: tạo/cấp phát, sử dụng hợp lệ, ngừng sử dụng, đóng và xử lý lỗi khi đóng. Quyền được *mượn sử dụng* không tự động trao quyền *đóng hoặc thay cấu hình*.
+**Ownership** is the responsibility for managing a resource's lifecycle: creating/allocating, valid usage, stopping usage, closing, and handling errors during close. Permission to *borrow and use* does not automatically grant permission to *close or reconfigure*.
 
-| Tài nguyên | Chủ sở hữu điển hình | Trách nhiệm cần ghi trong hợp đồng |
+| Resource | Typical owner | Responsibility to state in the contract |
 | --- | --- | --- |
-| `ExecutorService`/scheduler do host truyền vào | Host | Extension chỉ gửi tác vụ theo quota; không `shutdown()` executor được mượn |
-| Connection pool, client HTTP dùng chung, registry metrics, cấu hình host | Host hoặc thành phần quản lý chung | Extension không đóng, không thay trạng thái toàn cục nếu API không cấp quyền |
-| File/socket/luồng nền/cache do chính provider mở và giữ | Provider | Provider đóng/hủy đúng lúc; hủy listener, job và tham chiếu khi unload |
-| Buffer, parser hoặc object tạo cho một lần gọi | Bên tạo hoặc bên nhận nếu có chuyển quyền rõ ràng | Đóng trong phạm vi lời gọi hoặc chuyển quyền bằng tài liệu/API tường minh |
-| `InputStream`/`Stream`/cursor trả ra từ API | Phải được hợp đồng chỉ đích danh | Ai đóng, khi nào đóng, có được đọc sau khi phương thức trả về hay không |
-| ClassLoader chuyên biệt dùng để nạp plugin | Bên tạo/quản lý loader, thường là host | Chỉ đóng loader sau khi extension ngừng hoạt động và các tham chiếu liên quan được giải phóng |
+| `ExecutorService`/scheduler passed by the host | Host | Extension only submits tasks within quota; never calls `shutdown()` on a borrowed executor |
+| Connection pools, shared HTTP clients, metrics registries, host config | Host or shared management component | Extension must not close or mutate global state unless explicitly permitted by the API |
+| Files/sockets/background threads/caches opened and held by the provider | Provider | Provider closes/cancels them on time; unregisters listeners, jobs, and references upon unload |
+| Buffers, parsers, or objects created for a single call | Creator, or receiver if ownership is explicitly transferred | Closed within call scope or transferred via explicit documentation/API |
+| `InputStream`/`Stream`/cursor returned from an API | Must be explicitly named by the contract | Who closes it, when, and whether it may be read after the method returns |
+| Dedicated `ClassLoader` used to load a plugin | Creator/manager of the loader, usually the host | Close the loader only after the extension stops and related references are released |
 
-### 2.1. Ba mô hình sở hữu phổ biến
+### 2.1. Three Common Ownership Models
 
-**Host-owned, provider-borrowed:** host truyền `Executor`, `Clock`, cấu hình, logger hoặc client dùng chung cho provider. Provider có thể dùng trong thời hạn được cho phép; tuyệt đối không đóng tài nguyên đó. Nếu provider cần lưu tham chiếu để thực hiện bất đồng bộ, hợp đồng phải cho phép và giới hạn thời gian giữ tham chiếu.
+**Host-owned, provider-borrowed:** the host passes an `Executor`, `Clock`, configuration, logger, or shared client to the provider. The provider may use them during the permitted window; it must never close those resources. If the provider must store a reference for asynchronous execution, the contract must permit and bound how long the reference may be held.
 
-**Provider-owned:** provider mở socket riêng, đăng ký listener hoặc tạo cache và thread riêng. Khi ngừng provider, nó phải ngắt nhận việc mới, xử lý hoặc hủy việc đang chạy, tháo đăng ký callback, đóng tài nguyên và xóa các tham chiếu lâu sống. Nếu khởi tạo thất bại giữa chừng, phần tài nguyên đã mở cũng phải được hoàn trả.
+**Provider-owned:** the provider opens its own sockets, registers listeners, or creates private caches and threads. When stopping the provider, it must stop accepting new work, complete or cancel in-flight work, unregister callbacks, close resources, and clear long-lived references. If initialization fails partway through, any already-opened resources must also be released.
 
-**Ownership transfer:** một phương thức trả về đối tượng có tài nguyên, ví dụ `InputStream`. Phải nói rõ bên nhận có trách nhiệm `close()`, thời hạn sử dụng và điều gì xảy ra nếu kết quả bị bỏ qua. Nếu không muốn truyền nghĩa vụ đóng cho caller, ưu tiên trả DTO hoặc giá trị đã được vật hóa.
+**Ownership transfer:** a method returns a resource-backed object, such as an `InputStream`. You must specify that the receiver is responsible for `close()`, its valid lifetime, and what happens if the result is ignored. If you prefer not to transfer closing obligations to the caller, return a DTO or materialized value instead.
 
-Hai bên cùng gọi `close()` có thể gây đóng sớm hoặc double-close; cả hai bên cùng chờ bên kia đóng sẽ gây leak. `AutoCloseable` tạo ra một điểm đóng chuẩn trong Java, nhưng **không mặc nhiên bảo đảm `close()` idempotent hoặc thread-safe**. Nếu muốn cho phép gọi đóng lặp lại, phải ghi và triển khai điều đó trong hợp đồng riêng.
+Both sides calling `close()` can cause premature closing or double-close; both sides waiting on the other causes leaks. `AutoCloseable` provides a standard close hook in Java, but **does not automatically guarantee `close()` is idempotent or thread-safe**. If repeated closing must be allowed, document and implement that explicitly in the contract.
 
-### 2.2. Bảng điều khoản tối thiểu
+### 2.2. Minimum Clause Checklist
 
-Với mỗi API mở rộng, nên công khai:
+For every extension API, publish:
 
-1. Bên nào tạo và sở hữu instance extension; một instance sống qua bao nhiêu request/tenant.
-2. Tài nguyên nào được host cho mượn, trong bao lâu; provider có được giữ sau khi phương thức trả về hay không.
-3. Tài nguyên nào provider phải tự đóng; thứ tự dừng task, hủy callback, đóng tài nguyên.
-4. Kết quả trả về có chuyển quyền sở hữu cho caller hay không.
-5. Hành vi khi khởi tạo thất bại, xử lý lỗi, timeout, hủy tác vụ và đóng lặp lại.
-6. Thời điểm host được tháo provider khỏi registry và giải phóng class loader.
+1. Who creates and owns extension instances; how many requests/tenants a single instance spans.
+2. Which resources are borrowed from the host, for how long; whether the provider may retain them after the method returns.
+3. Which resources the provider must close itself; the order of stopping tasks, unregistering callbacks, and closing resources.
+4. Whether returned results transfer ownership to the caller.
+5. Behavior on initialization failure, error handling, timeouts, task cancellation, and repeated closing.
+6. When the host may remove the provider from the registry and release its class loader.
 
-Không nên dựa vào tên phương thức như `getClient()` hoặc `open()` để suy đoán ownership: viết rõ trong Javadoc, tài liệu SPI và kiểm thử vòng đời.
+Do not rely on method names like `getClient()` or `open()` to guess ownership: document it explicitly in Javadoc, SPI specs, and lifecycle tests.
 
-## 3. Quy định trạng thái và phạm vi sống
+## 3. Specifying State and Lifetime Scope
 
-**Trạng thái** gồm dữ liệu cấu hình, cache, bộ đếm, phiên làm việc, bảng ánh xạ và các object có thể thay đổi qua các lần gọi. Trước khi tuyên bố một provider là “thread-safe”, phải xác định trạng thái nào được chia sẻ.
+**State** includes configuration data, caches, counters, sessions, lookup maps, and objects that can change across calls. Before declaring a provider "thread-safe", identify which state is shared.
 
-| Phạm vi | Ví dụ | Cách quản lý |
+| Scope | Example | How to manage |
 | --- | --- | --- |
-| Bất biến cho cả instance | Cấu hình đã kiểm tra, routing rules, `Clock` | Khởi tạo hoàn chỉnh rồi công bố an toàn; không sửa khi đang chạy |
-| Riêng từng lần gọi | Request DTO, buffer tạm, trace ID | Tạo trong lời gọi, không giữ trong trường instance nếu không cần |
-| Dùng chung trong một instance | Cache, bộ đếm, danh sách listener | Dùng cấu trúc đồng thời hoặc đồng bộ hóa và quy tắc đóng |
-| Riêng tenant/session | Credential, cache theo tenant, session state | Phân vùng theo định danh, có giới hạn dung lượng và chính sách dọn dẹp |
-| Toàn JVM/process | Registry `static`, thread, singleton toàn cục | Tránh mặc định; cần hợp đồng đa-tenant, classloader và cleanup cụ thể |
+| Immutable per instance | Validated config, routing rules, `Clock` | Initialize completely then safely publish; never mutate while running |
+| Per-call only | Request DTO, temporary buffer, trace ID | Create inside the call; do not store in instance fields unnecessarily |
+| Shared within one instance | Cache, counters, listener list | Use concurrent data structures or synchronization and close rules |
+| Per-tenant/session | Credentials, per-tenant cache, session state | Partition by identifier with capacity bounds and cleanup policies |
+| JVM/process-wide | `static` registries, threads, global singletons | Avoid by default; requires explicit multi-tenant, classloader, and cleanup contracts |
 
-**Ưu tiên thiết kế ít shared mutable state:** biến cấu hình không đổi, request/response không đổi, dữ liệu tạm nằm trong scope của lời gọi. `record` của Java giúp biểu diễn DTO, nhưng chỉ bất biến nông: một `record` chứa `List` có thể vẫn bị sửa nếu không sao chép hoặc đóng băng dữ liệu bên trong.
+**Prefer minimizing shared mutable state:** immutable configuration, immutable requests/responses, and temporary data scoped to the invocation. Java `record` helps model DTOs, but provides only shallow immutability: a `record` containing a `List` can still be mutated unless the inner data is copied or frozen.
 
-Nếu phải có trạng thái dùng chung, chọn primitive dựa trên thao tác cần bảo vệ:
+When shared state is unavoidable, choose primitives based on the invariant to protect:
 
-- `AtomicInteger`/`LongAdder` cho bộ đếm thích hợp; `LongAdder` thuận lợi khi cập nhật đồng thời lớn, nhưng tổng quan sát tức thời không phải snapshot tuyến tính hoàn hảo giữa các lần cập nhật.
-- `ConcurrentHashMap` cho truy cập map đồng thời theo hợp đồng của nó; thao tác ghép qua nhiều key vẫn có thể cần lock hoặc thiết kế transaction riêng.
-- `synchronized`/`Lock` khi nhiều trường phải thay đổi cùng một bất biến; hạn chế gọi callback của provider khác trong khi giữ lock.
-- `volatile` để công bố/đọc trạng thái đơn giản như cờ dừng, **không** biến `count++` thành thao tác nguyên tử. `count++` là đọc, cộng và ghi, nên có thể mất cập nhật dù `count` được khai báo `volatile`.
+- `AtomicInteger`/`LongAdder` for suitable counters; `LongAdder` performs well under high contention, though an instantaneous sum is not a strict linearizable snapshot across concurrent updates.
+- `ConcurrentHashMap` for concurrent map access per its contract; compound operations across multiple keys may still require locking or dedicated transaction design.
+- `synchronized`/`Lock` when multiple fields must change together to preserve one invariant; avoid invoking external provider callbacks while holding locks.
+- `volatile` to publish/read simple state like a stop flag—it does **not** make `count++` atomic. `count++` is read-add-write, so updates can be lost even if `count` is declared `volatile`.
 
-Trạng thái khởi tạo phải được **công bố an toàn**: không để `this` thoát khỏi constructor, dùng trường `final` phù hợp và chuyển instance vào registry sau khi khởi tạo xong. Không để task nền đọc cấu hình đang được xây dựng dở.
+Initial state must be **safely published**: never let `this` escape the constructor, use `final` fields appropriately, and register the instance only after construction completes. Never allow background tasks to read partially constructed configuration.
 
-**Cảnh báo khi hot reload:** `static` cache, `ThreadLocal`, listener, timer, thread và lambda được giữ ở singleton của host có thể giữ tham chiếu đến class hoặc class loader cũ, khiến plugin không thể được thu gom. Hủy đăng ký, giải phóng object và gọi `ThreadLocal.remove()` ở đúng luồng khi có thể; không dùng `ThreadLocal` như kho trạng thái request xuyên qua executor/asynchronous boundary nếu không có cơ chế truyền ngữ cảnh rõ ràng.
+**Hot-reload warning:** `static` caches, `ThreadLocal`, listeners, timers, threads, and lambdas retained by host singletons can pin old classes or class loaders, preventing the plugin from being garbage-collected. Unregister callbacks, release objects, and call `ThreadLocal.remove()` on the right threads whenever possible; do not use `ThreadLocal` as request state storage across executor/asynchronous boundaries without explicit context propagation.
 
-## 4. Quy định khả năng gọi đồng thời
+## 4. Specifying Concurrency Guarantees
 
-“Có thể gọi từ nhiều thread” có nhiều nghĩa. Hợp đồng cần chọn **một mô hình gọi cho từng instance** và tách biệt khả năng chạy đồng thời với reentrancy.
+"Callable from multiple threads" can mean several different things. The contract must pick **one invocation model per instance** and separate concurrency from reentrancy.
 
-| Mô hình | Host được làm gì? | Provider phải bảo đảm gì? |
+| Model | What may the host do? | What must the provider guarantee? |
 | --- | --- | --- |
-| **Concurrent shared instance** | Gọi nhiều `execute()` đồng thời trên cùng instance | Mọi dữ liệu dùng chung và side effect tuân theo tính nhất quán đã công bố |
-| **Serialized per instance** | Tối đa một lời gọi đang hoạt động trên mỗi instance | Provider có thể dùng trạng thái tuần tự; host chịu trách nhiệm xếp hàng/khóa theo instance |
-| **Thread-confined** | Chỉ gọi từ một thread/dispatcher được định danh | Host duy trì affinity; không đổi thread tùy ý giữa các callback |
-| **Per-call instance** | Tạo instance riêng cho mỗi request hoặc đơn vị công việc | Không chia sẻ mutable state giữa các instance, trừ khi có cấu trúc chung được thiết kế riêng |
+| **Concurrent shared instance** | Invoke `execute()` concurrently from multiple threads on the same instance | All shared data and side effects preserve published consistency guarantees |
+| **Serialized per instance** | At most one active call per instance at a time | Provider may use sequential state; host is responsible for queuing/locking per instance |
+| **Thread-confined** | Invoke only from a designated thread/dispatcher | Host maintains affinity; never switch threads arbitrarily across callbacks |
+| **Per-call instance** | Create a dedicated instance per request or unit of work | No shared mutable state across instances unless explicitly designed with concurrent structures |
 
-**Không nhầm “serialized” với “luôn cùng một thread”:** host có thể lần lượt chạy các lời gọi trên những thread khác nhau. Provider lệ thuộc `ThreadLocal` hoặc thread affinity phải yêu cầu mô hình thread-confined một cách minh bạch.
+**Do not confuse "serialized" with "always the same thread":** the host may execute sequential calls on different threads one after another. A provider relying on `ThreadLocal` or thread affinity must explicitly require the thread-confined model.
 
-**Không nhầm “thread-safe” với “reentrant”:** một provider có thể xử lý nhiều lời gọi độc lập đồng thời nhưng không chịu được việc một lời gọi gọi ngược vào chính provider trước khi lời gọi đầu kết thúc. Cần ghi rõ callback của host có thể xảy ra đồng bộ/bất đồng bộ, có thể lồng nhau hay không và có được giữ lock khi callback không. Khuyến nghị host tránh gọi mã extension khi đang giữ global lock để giảm nguy cơ deadlock và lock inversion.
+**Do not confuse "thread-safe" with "reentrant":** a provider may safely handle independent concurrent calls yet break if one call invokes back into the same provider before the first call completes. Specify whether host callbacks can happen synchronously/asynchronously, whether nesting is allowed, and whether locks may be held during callbacks. Hosts are advised to avoid calling extension code while holding global locks to reduce deadlock and lock-inversion risks.
 
-Đối với API bất đồng bộ, hợp đồng phải ghi thêm:
+For asynchronous APIs, the contract must additionally state:
 
-- Kết quả là `CompletionStage`, `Future`, callback hay publisher; ai quyết định executor thực thi phần tiếp theo.
-- Có bao nhiêu lời gọi đang chạy tối đa; chính sách queue/backpressure khi quá tải, tránh tạo thread và queue không giới hạn.
-- Timeout tính cho phần nào; khi hủy, provider có phải hợp tác kiểm tra interrupt/cancellation token không.
-- Request/result có thể bị sử dụng đồng thời và có được sửa sau khi gửi không.
-- Retry có thể chạy lại một lời gọi đã gây side effect; có cần idempotency key hay cơ chế deduplication không.
+- Whether results use `CompletionStage`, `Future`, callbacks, or publishers; who chooses the executor for continuation steps.
+- Maximum number of in-flight calls; queuing/backpressure policy under overload to avoid unbounded threads and queues.
+- What timeouts apply to; whether the provider must cooperate by checking interrupts/cancellation tokens upon cancellation.
+- Whether requests/results may be accessed concurrently or mutated after submission.
+- Whether retries may re-run a call that already had side effects; whether idempotency keys or deduplication are needed.
 
-Trong Java, `Thread.interrupt()` là tín hiệu hợp tác, không phải phương thức cưỡng bức dừng mọi I/O hoặc mọi tác vụ. Provider cần xử lý `InterruptedException` đúng nghĩa, tránh nuốt interrupt. Host không được đóng tài nguyên mà một task còn đang sử dụng chỉ vì đã yêu cầu hủy.
+In Java, `Thread.interrupt()` is a cooperative signal, not a forced kill for all I/O or tasks. Providers must handle `InterruptedException` properly and avoid swallowing interrupts. The host must not close resources still in use by a task solely because cancellation was requested.
 
-## 5. Vòng đời: khởi tạo, hoạt động, dừng và nạp lại
+## 5. Lifecycle: Initialize, Run, Stop, and Reload
 
-Một state machine đơn giản cho **mỗi instance**:
+A simple state machine **per instance**:
 
 ~~~text
 CREATED -> STARTED -> QUIESCING -> CLOSED
@@ -110,27 +110,27 @@ CREATED -> STARTED -> QUIESCING -> CLOSED
              +---- failure ----> QUIESCING -> CLOSED
 ~~~
 
-- **CREATED:** host xây dựng provider và truyền cấu hình/ngữ cảnh hợp lệ; provider chưa nhận request. Nếu constructor hoặc bước start thất bại, dọn các tài nguyên đã tạo một phần.
-- **STARTED:** instance đã sẵn sàng; host công bố instance vào registry và có thể gửi request đúng mô hình concurrency đã khai báo.
-- **QUIESCING:** host ngừng chấp nhận công việc mới cho instance, chờ hoặc hủy công việc đang chạy theo chính sách đã công bố, sau đó mới gọi cleanup.
-- **CLOSED:** tài nguyên thuộc provider đã giải phóng; host gỡ tham chiếu, listener, registry và cuối cùng xử lý class loader do host sở hữu nếu không còn dùng.
+- **CREATED:** host constructs the provider and passes valid config/context; provider does not receive requests yet. If construction or startup fails, clean up partially created resources.
+- **STARTED:** instance is ready; host publishes it in the registry and may dispatch requests per the declared concurrency model.
+- **QUIESCING:** host stops admitting new work to the instance, awaits or cancels in-flight work per published policy, and only then runs cleanup.
+- **CLOSED:** provider-owned resources are released; host drops references, listeners, registry entries, and finally disposes of a host-owned class loader once no longer used.
 
-Trình tự dừng an toàn thường là:
+A safe shutdown sequence typically follows:
 
-1. **Ngừng phân phối request mới** và đóng cổng callback vào instance cũ; thay thế registry một cách nguyên tử nếu có hot swap.
-2. **Theo dõi in-flight calls** và chờ hoàn tất, hoặc gửi cancellation rồi xác nhận chúng đã dừng. Nếu hết timeout nhưng task vẫn dùng tài nguyên, phải có chính sách giữ/quarantine instance hoặc cô lập process; không tùy tiện giải phóng tài nguyên đang dùng.
-3. **Cho provider đóng tài nguyên của mình**, tốt nhất theo thứ tự ngược với thứ tự mở. Ghi nhận lỗi đóng mà không bỏ qua việc đóng các tài nguyên còn lại.
-4. **Tháo đăng ký và xóa tham chiếu**, sau đó host mới giải phóng tài nguyên của mình khi không còn consumer.
+1. **Stop dispatching new requests** and close callback entry points into the old instance; swap registry entries atomically during hot swaps.
+2. **Track in-flight calls** and wait for completion, or issue cancellation and confirm they have stopped. If a timeout expires while tasks still use resources, apply a policy to retain/quarantine the instance or isolate the process; never arbitrarily free in-use resources.
+3. **Let the provider close its own resources**, ideally in reverse order of opening. Log close failures without skipping cleanup of remaining resources.
+4. **Unregister and drop references**, and only then let the host release its own resources once no consumers remain.
 
-Không gọi `close()` đồng thời với `execute()` trừ khi interface tuyên bố và triển khai rõ mô hình đó. Cờ `closed` chỉ giúp phát hiện yêu cầu sau khi đóng; **nó không thay thế cơ chế drain các lời gọi đang chạy**.
+Never invoke `close()` concurrently with `execute()` unless the interface explicitly declares and implements that model. A `closed` flag only catches requests arriving after close; **it does not replace draining in-flight calls**.
 
-Nếu module nạp lại thường xuyên, phiên bản mới có thể được tạo và kiểm tra trước, sau đó host chuyển routing sang phiên bản mới và drain phiên bản cũ. Không dùng lại trạng thái provider cũ nếu định dạng, class loader hay phiên bản không tương thích; việc chuyển trạng thái phải là hợp đồng độc lập.
+When modules reload frequently, the new version can be instantiated and validated first, after which the host switches routing to the new version and drains the old version. Do not reuse old provider state if formats, class loaders, or versions are incompatible; state transfer must be a separate explicit contract.
 
-## 6. Ví dụ Java 17 chạy được: host sở hữu pool và vòng đời provider
+## 6. Runnable Java 17 Example: Host Owning the Pool and Provider Lifecycle
 
-Ví dụ sau minh họa một extension xử lý nhiều request đồng thời. Host sở hữu `ExecutorService`, tạo và đóng instance extension; extension sở hữu bộ đếm `AtomicInteger` cùng cờ vòng đời. Hợp đồng của `apply()` cho phép gọi đồng thời **khi instance đang hoạt động**; `close()` chỉ được gọi sau khi host đã ngừng và đợi mọi task hoàn tất. Hai kết quả được đọc theo thứ tự gửi nên stdout xác định.
+The following example demonstrates an extension handling multiple concurrent requests. The host owns the `ExecutorService`, creates and closes the extension instance; the extension owns an `AtomicInteger` counter and lifecycle flag. The contract of `apply()` allows concurrent calls **while the instance is active**; `close()` is called only after the host has stopped submitting and awaited completion of all tasks. Both results are read in submission order, so stdout is deterministic.
 
-Lưu thành `ExtensionOwnershipDemo.java`:
+Save as `ExtensionOwnershipDemo.java`:
 
 ~~~java
 import java.util.List;
@@ -226,14 +226,14 @@ public class ExtensionOwnershipDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~text
 javac ExtensionOwnershipDemo.java
 java ExtensionOwnershipDemo
 ~~~
 
-Stdout của lệnh `java`:
+Stdout of the `java` command:
 
 ~~~text
 JAVA
@@ -242,60 +242,60 @@ calls=2
 closed=true
 ~~~
 
-**Điểm cần đọc từ ví dụ:**
+**Key takeaways from the example:**
 
-- `Request` chỉ chứa `String` bất biến; hai request độc lập nên không có tranh chấp bộ nhớ input.
-- `AtomicInteger` bảo vệ số lượt gọi khi `apply()` được thực thi từ nhiều thread; dùng `int calls` với `calls++` sẽ không bảo đảm kết quả đúng khi tăng đồng thời.
-- `AtomicBoolean` thể hiện trạng thái đã đóng và cho phép `close()` lặp lại trong **triển khai cụ thể này**. Nó không ngăn race giữa `apply()` và `close()` nếu host vi phạm thứ tự vòng đời.
-- Host giữ `Future`, ngừng executor, đợi termination rồi mới gọi `close()` của provider. Provider không tự `shutdown()` pool do host sở hữu.
-- Khi task không chịu dừng sau timeout, ví dụ **không đóng provider** vì còn nguy cơ task đang dùng nó; hệ thống thật cần bổ sung logging, quarantine hoặc cô lập tiến trình. Nếu thread gọi `main` bị interrupt khi đang chờ, ví dụ cũng cần một chính sách hủy/phục hồi interrupt thích hợp trước khi giải phóng tài nguyên; đó là nhánh phục hồi được lược khỏi tình huống chạy bình thường này.
+- `Request` holds only an immutable `String`; two independent requests have no input memory contention.
+- `AtomicInteger` protects the call count when `apply()` runs from multiple threads; using `int calls` with `calls++` would not guarantee accurate results under concurrent increments.
+- `AtomicBoolean` tracks closed state and makes `close()` idempotent in **this specific implementation**. It does not prevent a race between `apply()` and `close()` if the host violates lifecycle ordering.
+- The host keeps the `Future` handles, shuts down the executor, awaits termination, and only then invokes the provider's `close()`. The provider never calls `shutdown()` on a host-owned pool.
+- When tasks fail to stop after the timeout, the example **does not close the provider** because tasks may still be using it; a real system needs additional logging, quarantine, or process isolation. If the `main` thread is interrupted while waiting, a real system also needs an appropriate cancellation/interrupt-restoration policy before releasing resources; that recovery branch is omitted from this normal-execution scenario.
 
-Đây là ví dụ đồng bộ hóa vòng đời đơn giản, không phải một plugin framework hoàn chỉnh. Khi thêm `start()`, callback hoặc hot reload, phải mở rộng state machine và cơ chế theo dõi in-flight tương ứng.
+This is a simple lifecycle-synchronization example, not a complete plugin framework. When adding `start()`, callbacks, or hot reload, extend the state machine and in-flight tracking accordingly.
 
-## 7. Các lỗi thiết kế thường gặp
+## 7. Common Design Mistakes
 
-| Dấu hiệu | Vì sao sai | Cách sửa |
+| Symptom | Why it is wrong | How to fix |
 | --- | --- | --- |
-| Provider gọi `shutdown()` trên executor mà host truyền vào | Làm hỏng công việc của extension khác | Quy định borrowed resource: provider không có quyền đóng |
-| Provider lưu request vào field `currentRequest` của singleton | Lời gọi sau có thể ghi đè request trước | Dùng biến cục bộ hoặc state phân vùng theo request |
-| Dùng `volatile int count` rồi `count++` | Có visibility nhưng không có atomicity | Dùng `AtomicInteger` hoặc lock |
-| Gọi `close()` ngay khi thay registry, bỏ qua lời gọi đang chạy | Resource bị đóng khi task còn dùng | Chuyển sang QUIESCING, drain rồi close |
-| Dựa vào `ThreadLocal` để truyền context giữa các executor | Luồng mới không tự nhận context; thread pool giữ dữ liệu cũ | Truyền context tường minh và cleanup ở đúng luồng |
-| Đăng ký listener/scheduler ở `start()` nhưng không unregister | Leak instance/class loader sau reload | Cleanup đối xứng với đăng ký |
-| Mô tả “thread-safe” nhưng không nói về `close()` | Host có thể đóng khi đang xử lý | Ghi rõ quan hệ giữa execute, callback, cancel và close |
-| Retry mọi lỗi mà không xét side effect | Có thể tạo trùng ghi dữ liệu/thanh toán/gửi thông báo | Thiết kế idempotency hoặc phân loại thao tác không retry |
-| Provider giữ lock rồi gọi ngược host; host giữ lock khác rồi gọi provider | Dễ tạo deadlock do thứ tự lock không thống nhất | Giảm phạm vi lock, gọi callback ngoài critical section |
-| Gộp state nhiều tenant trong một `static HashMap` | Vừa có race vừa gây lẫn dữ liệu tenant/phiên | Phân vùng, bảo vệ truy cập và cleanup theo tenant |
+| Provider calls `shutdown()` on a host-supplied executor | Breaks work of other extensions | Specify borrowed resources: providers have no permission to close them |
+| Provider stores the request in a singleton `currentRequest` field | Later calls overwrite earlier requests | Use local variables or per-request partitioned state |
+| Using `volatile int count` then `count++` | Provides visibility but not atomicity | Use `AtomicInteger` or a lock |
+| Calling `close()` immediately upon registry swap, ignoring in-flight calls | Resources close while tasks still use them | Transition to QUIESCING, drain, then close |
+| Relying on `ThreadLocal` to pass context across executors | New threads do not inherit context; pooled threads retain stale data | Pass context explicitly and clean up on the right thread |
+| Registering listeners/schedulers in `start()` without unregistering | Leaks instances/class loaders after reload | Clean up symmetrically with registration |
+| Documenting "thread-safe" without mentioning `close()` | Host might close while processing is active | Explicitly document relationships among execute, callback, cancel, and close |
+| Retrying every failure without considering side effects | Can duplicate writes, payments, or notifications | Design idempotency or classify non-retryable operations |
+| Provider holds a lock and calls back into host; host holds another lock and calls provider | Easily causes deadlocks from inconsistent lock ordering | Shrink lock scope; invoke callbacks outside critical sections |
+| Mixing multi-tenant state in a `static HashMap` | Introduces both races and cross-tenant/session data leaks | Partition, synchronize access, and clean up per tenant |
 
-## 8. Mẫu câu cần có trong tài liệu SPI
+## 8. Template Clauses for SPI Documentation
 
-Với một extension point cụ thể, có thể ghi quy định theo mẫu sau, rồi thay các giá trị cho đúng thiết kế thực tế:
+For a specific extension point, you can document rules using the following template, adjusting values to match the actual design:
 
-| Thuộc tính | Ví dụ hợp đồng rõ ràng |
+| Attribute | Example clear contract |
 | --- | --- |
-| Instance scope | Host tạo **một instance cho mỗi tenant** và dùng lại cho nhiều request tenant đó |
-| Tài nguyên host cung cấp | `Executor` và `Clock` là borrowed; provider không đóng, không lưu sau `close()` |
-| Tài nguyên provider sở hữu | Cache cục bộ và listener; đăng ký khi `start()`, tháo đăng ký ở `close()` |
-| State | Cấu hình bất biến; cache concurrent và có giới hạn; request state chỉ ở biến cục bộ |
-| Concurrency | `execute()` có thể đồng thời trên cùng instance; callback có thể chạy trên thread khác |
-| Reentrancy | Không cho phép callback đồng bộ gọi lại `execute()` trên cùng instance, hoặc yêu cầu công bố hỗ trợ rõ ràng |
-| Blocking | `execute()` không giữ thread host quá thời hạn đã công bố; tác vụ lâu chuyển sang API async |
-| Cancel/timeout | Host đưa tín hiệu hủy; provider hợp tác ngừng, trả lỗi/cancellation theo quy ước |
-| Shutdown | Host chặn request mới, chờ hết in-flight, sau đó mới gọi `close()` đúng một lần |
-| Failure | Exception được phân loại; resource đã mở khi start thất bại phải được đóng |
-| Hot reload | Instance cũ drain và hủy callback trước khi host nhả class loader |
-| Kiểm thử | Concurrency, close khi có request, start thất bại, retry, timeout, tenant isolation và unload |
+| Instance scope | Host creates **one instance per tenant** and reuses it across that tenant's requests |
+| Host-provided resources | `Executor` and `Clock` are borrowed; provider must not close or retain them past `close()` |
+| Provider-owned resources | Local cache and listeners; registered in `start()`, unregistered in `close()` |
+| State | Immutable configuration; bounded concurrent cache; request state strictly in local variables |
+| Concurrency | `execute()` may run concurrently on the same instance; callbacks may run on different threads |
+| Reentrancy | Synchronous callbacks calling back into `execute()` on the same instance are disallowed, or support must be explicitly declared |
+| Blocking | `execute()` must not block host threads beyond the published budget; long work must use the async API |
+| Cancel/timeout | Host signals cancellation; provider cooperates to stop and returns errors/cancellation per convention |
+| Shutdown | Host blocks new requests, awaits all in-flight calls, and then invokes `close()` once |
+| Failure | Exceptions are categorized; resources opened during a failed start must be closed |
+| Hot reload | Old instance drains and unregisters callbacks before the host releases the class loader |
+| Testing | Concurrency, close under load, failed start, retry, timeout, tenant isolation, and unload |
 
-Mẫu này là **ví dụ để viết hợp đồng**, không phải quy định ngầm của mọi SPI trong Java. Mỗi extension point phải chọn mô hình phù hợp với mục đích và ghi rõ những điểm khác biệt.
+This template is an **example for writing contracts**, not an implicit rule of every Java SPI. Each extension point must select the model suited to its purpose and clearly note any differences.
 
-## 9. Kiểm thử hợp đồng trước khi cho phép plugin chạy
+## 9. Testing the Contract Before Admitting Plugins
 
-Một bộ kiểm thử tích hợp cần chứng minh được cả ba nhóm nghĩa vụ:
+An integration test suite should verify all three groups of obligations:
 
-1. **Ownership:** provider không đóng tài nguyên host-owned; mọi file/connection/listener/thread của provider được cleanup khi bình thường và khi khởi tạo lỗi; kiểm tra lặp nhiều vòng start/stop/reload không tăng số thread hoặc tài nguyên còn sống.
-2. **State:** cùng input cho kết quả đúng; state mỗi request/tenant không lẫn nhau; bộ đếm/cache có kết quả hợp lệ dưới tải; không có mutable state được công bố khi đang khởi tạo dở.
-3. **Concurrency:** gọi hàng trăm hoặc hàng nghìn request đồng thời theo mô hình đã khai báo; thử callback lồng nhau nếu được phép; thử timeout, interrupt, cancel, retry, drain và lỗi lúc close. Chạy lặp để phát hiện race; không coi một lần thành công là bằng chứng thread safety.
-4. **Lifecycle:** dừng tiếp nhận request mới trước khi close; không task nào truy cập resource sau close; reload không giữ class loader cũ qua listener, thread, cache hoặc `ThreadLocal`. Nếu dùng thread dump, heap dump hoặc metrics để xác minh, so sánh sau nhiều chu kỳ.
-5. **Compatibility:** thay provider bằng một triển khai khác cùng interface mà host vẫn tuân thủ scope, ownership và concurrency contract; không phụ thuộc ngẫu nhiên vào chi tiết triển khai của provider cũ.
+1. **Ownership:** providers never close host-owned resources; all provider files/connections/listeners/threads are cleaned up on normal shutdown and startup failure; repeated start/stop/reload cycles do not increase live thread or resource counts.
+2. **State:** identical inputs yield correct results; per-request/per-tenant state never leaks across boundaries; counters/caches remain valid under load; no mutable state is published during partial construction.
+3. **Concurrency:** issue hundreds or thousands of concurrent requests according to the declared model; test nested callbacks if allowed; test timeouts, interrupts, cancellations, retries, draining, and errors during close. Run repeatedly to catch races; never treat a single passing run as proof of thread safety.
+4. **Lifecycle:** stop accepting new requests before close; ensure no task accesses resources after close; ensure reloads do not pin old class loaders via listeners, threads, caches, or `ThreadLocal`. When using thread dumps, heap dumps, or metrics to verify, compare snapshots across multiple cycles.
+5. **Compatibility:** swap the provider for another implementation of the same interface while ensuring the host still honors scope, ownership, and concurrency contracts without accidentally relying on implementation details of the previous provider.
 
-Khi thiết kế extension point mới, hãy viết mô tả ownership, state scope, concurrency/reentrancy và shutdown **trước khi triển khai interface**. Một chữ ký Java hợp lệ chỉ bảo đảm tương thích kiểu; các quy tắc trên mới giúp extension vận hành an toàn trong runtime thực tế.
+When designing a new extension point, write down ownership, state scope, concurrency/reentrancy, and shutdown rules **before implementing the interface**. Valid Java signatures only guarantee type compatibility; these rules are what make extensions operate safely in a real runtime.

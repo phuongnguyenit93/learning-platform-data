@@ -1,79 +1,79 @@
-# Quy tắc đường dẫn tài nguyên và nguy cơ chọn nhầm bản trong loader cha
+# Resource Path Rules and the Risk of Picking the Wrong Copy from a Parent Loader
 
-Một ứng dụng Java có thể nạp thêm plugin, driver, codec hoặc bộ quy tắc cấu hình tại runtime. Mỗi thành phần thường đóng gói tài nguyên như `.properties`, `.yaml`, JSON, template, chứng chỉ hoặc file `META-INF/services`. Vấn đề dễ bị bỏ qua là **tên tài nguyên không bảo đảm nó đến từ đúng JAR hay đúng phiên bản plugin**.
+A Java application can load plugins, drivers, codecs, or configuration rule sets at runtime. Each component typically packages resources such as `.properties`, `.yaml`, JSON, templates, certificates, or `META-INF/services` files. An easily overlooked problem is that **the resource name does not guarantee it comes from the right JAR or the right plugin version**.
 
-Ví dụ, cả thư viện ứng dụng và plugin đều chứa `config/mode.txt`. Code gọi `pluginLoader.getResource("config/mode.txt")` có thể đọc **bản của loader cha**, dù lời gọi được thực hiện trên biến `pluginLoader`. Nguyên nhân nằm ở **quy tắc đặt tên đường dẫn và cơ chế ủy quyền tìm tài nguyên** của `ClassLoader`.
+For example, both the application library and a plugin contain `config/mode.txt`. Code calling `pluginLoader.getResource("config/mode.txt")` might read **the parent loader's copy**, even though the call is made on the `pluginLoader` variable. The root cause lies in **path naming rules and the resource lookup delegation mechanism** of `ClassLoader`.
 
-Bài này giải thích cách Java hiểu đường dẫn tài nguyên, sự khác biệt giữa `Class.getResource` và `ClassLoader.getResource`, thuật toán tìm ở parent/child loader, cách phát hiện bản trùng tên, tác động của thread context class loader và JPMS, cùng ví dụ Java 17 có thể chạy và đối chiếu kết quả.
+This article explains how Java interprets resource paths, the difference between `Class.getResource` and `ClassLoader.getResource`, the parent/child loader lookup algorithm, how to detect duplicate-named copies, the impact of the thread context class loader and JPMS, along with a runnable Java 17 example and verified output.
 
-## 1. Tài nguyên trên classpath được định danh như thế nào?
+## 1. How Are Resources on the Classpath Identified?
 
-Một **resource name** trong Java là chuỗi đường dẫn logic, các thành phần phân cách bằng dấu `/`. Nó **không nhất thiết là đường dẫn file trên máy**:
+A **resource name** in Java is a logical path string whose components are separated by `/`. It is **not necessarily a file path on disk**:
 
-- `config/app.properties`: tên tài nguyên bắt đầu từ **gốc classpath hoặc root được loader quản lý**.
-- `META-INF/services/com.example.spi.Codec`: metadata SPI theo quy ước.
-- `com/example/plugin/schema.json`: tài nguyên đặt cùng namespace/package của một plugin.
-- `images/icon.png`: tài nguyên có thể nằm trong thư mục build, JAR hoặc nguồn khác mà loader hiểu.
+- `config/app.properties`: resource name starting from the **classpath root or root managed by the loader**.
+- `META-INF/services/com.example.spi.Codec`: SPI metadata by convention.
+- `com/example/plugin/schema.json`: resource placed in the same namespace/package as a plugin.
+- `images/icon.png`: resource that may reside in a build directory, JAR, or another source understood by the loader.
 
-Nếu project có file `src/main/resources/config/app.properties`, khi build theo cấu trúc classpath thông thường, tên lookup là `config/app.properties`. Đừng truyền `src/main/resources/config/app.properties` vào `getResource` ở runtime: `src/main/resources` là cấu trúc nguồn của quá trình build, không phải prefix chuẩn của resource khi đóng gói.
+If a project has `src/main/resources/config/app.properties`, when built following standard classpath layout, the lookup name is `config/app.properties`. Do not pass `src/main/resources/config/app.properties` into `getResource` at runtime: `src/main/resources` is the source layout for the build process, not the standard prefix of the packaged resource.
 
-Các quy tắc quan trọng:
+Important rules:
 
-1. Sử dụng `/` trong resource name, kể cả khi chạy Windows; **không** xây resource name bằng `File.separator` hoặc ghép đường dẫn như file hệ điều hành.
-2. Viết đúng chữ hoa/chữ thường và từng thành phần đường dẫn. Trong JAR, tên entry được phân biệt chính xác; khi chạy từ thư mục exploded, filesystem có thể có quy tắc case khác nhau. Mã portable không nên dựa vào việc filesystem tự bỏ qua khác biệt hoa/thường.
-3. Dấu `/` ở **đầu chuỗi** có ý nghĩa riêng khi dùng `Class.getResource`, nhưng không phải cú pháp nên truyền cho `ClassLoader.getResource`. Phân biệt hai API ở phần tiếp theo.
-4. Nếu resource không tìm thấy, `getResource` trả `null`, `getResourceAsStream` cũng có thể trả `null`; cần báo lỗi có tên resource và loader đang dùng.
-5. URL trả về có thể dùng scheme `jar:`, `file:`, `jrt:` hoặc cơ chế loader khác. **Không mặc định biến URL tài nguyên thành `java.io.File`**; ưu tiên `URL.openStream()` hoặc `getResourceAsStream()`.
+1. Use `/` in resource names, even when running on Windows; do **not** construct resource names with `File.separator` or concatenate paths like OS files.
+2. Match exact uppercase/lowercase and every path segment. Inside a JAR, entry names are case-sensitive; when running from an exploded directory, the filesystem may have different case rules. Portable code should not rely on the filesystem ignoring case differences.
+3. A **leading `/`** has a special meaning when using `Class.getResource`, but is not syntax you should pass to `ClassLoader.getResource`. Distinguish the two APIs in the next section.
+4. If a resource is not found, `getResource` returns `null`, and `getResourceAsStream` may also return `null`; errors should report the resource name and the loader being used.
+5. The returned URL may use `jar:`, `file:`, `jrt:`, or another loader mechanism. **Do not assume a resource URL can be turned into a `java.io.File`**; prefer `URL.openStream()` or `getResourceAsStream()`.
 
 ```text
-Cấu trúc nguồn                         Tên tra cứu runtime
+Source layout                          Runtime lookup name
 src/main/resources/
     config/app.properties          --> config/app.properties
     com/acme/plugin/rules.json     --> com/acme/plugin/rules.json
     META-INF/services/x.y.Codec    --> META-INF/services/x.y.Codec
 ```
 
-Lưu ý: tài nguyên không đồng nhất với mã class. Việc class được tìm bởi một loader nào đó không có nghĩa resource trùng tên ở loader đó sẽ được ưu tiên nếu đường gọi tìm resource vẫn ủy quyền cho parent.
+Note: resources are not identical to class code. The fact that a class is found by a given loader does not mean a same-named resource in that loader will take precedence if the resource lookup path still delegates to the parent.
 
-## 2. Phân biệt Class.getResource và ClassLoader.getResource
+## 2. Distinguishing Class.getResource and ClassLoader.getResource
 
-Đây là nguồn lỗi rất thường gặp khi chuyển code giữa package hoặc chuyển từ một helper trong plugin sang code của host.
+This is a very common source of bugs when moving code between packages or moving from a plugin helper into host code.
 
 ### `ClassLoader.getResource(String name)`
 
-Tên tài nguyên được hiểu theo gốc namespace mà loader tìm kiếm; thông thường **không bắt đầu bằng dấu `/`**:
+The resource name is resolved from the root of the namespace searched by the loader; normally it **does not start with `/`**:
 
 ```java
 ClassLoader loader = MyPlugin.class.getClassLoader();
 URL url = loader.getResource("com/acme/plugin/rules.json");
 ```
 
-Đây là **đoạn minh họa**: `MyPlugin` phải là một class tồn tại, các import `ClassLoader`/`URL` và resource tương ứng phải có trong project. `getResource` trả về URL đầu tiên theo quy tắc của loader. `getResourceAsStream` chọn nguồn theo cùng quy tắc tra cứu resource đó.
+This is an **illustrative snippet**: `MyPlugin` must be an existing class, and the `ClassLoader`/`URL` imports along with the corresponding resource must exist in the project. `getResource` returns the first URL according to the loader's rules. `getResourceAsStream` selects the source using that same resource lookup rule.
 
 ### `Class.getResource(String name)`
 
-`Class` hỗ trợ hai cách diễn giải:
+`Class` supports two interpretations:
 
-- Nếu `name` **không có `/` ở đầu**, nó là tên **tương đối với package của class**.
-- Nếu `name` **bắt đầu bằng `/`**, dấu đầu bị bỏ và phần còn lại được hiểu là tên **tuyệt đối từ root resource namespace**.
+- If `name` **does not have a leading `/`**, it is a name **relative to the class's package**.
+- If `name` **starts with `/`**, the leading slash is stripped and the remainder is interpreted as an **absolute name from the root resource namespace**.
 
-Giả sử class `com.acme.plugin.MyPlugin`:
+Suppose the class is `com.acme.plugin.MyPlugin`:
 
-| Lời gọi | Resource name tuyệt đối được hình thành |
+| Call | Resulting Absolute Resource Name |
 | --- | --- |
 | `MyPlugin.class.getResource("rules.json")` | `com/acme/plugin/rules.json` |
 | `MyPlugin.class.getResource("config/rules.json")` | `com/acme/plugin/config/rules.json` |
 | `MyPlugin.class.getResource("/config/rules.json")` | `config/rules.json` |
 | `MyPlugin.class.getClassLoader().getResource("config/rules.json")` | `config/rules.json` |
-| `MyPlugin.class.getClassLoader().getResource("/config/rules.json")` | Không phải dạng đường dẫn chuẩn của ClassLoader; với `URLClassLoader` thông thường có thể không tìm thấy |
+| `MyPlugin.class.getClassLoader().getResource("/config/rules.json")` | Not the standard ClassLoader path form; with a standard `URLClassLoader` it may fail to find the resource |
 
-**Cẩn thận với suy luận “dùng Class.getResource sẽ chắc chắn chọn tài nguyên của plugin”.** Đối với class ở unnamed module, API này tạo resource name tuyệt đối rồi giao cho **loader định nghĩa class**; loader đó có thể tiếp tục ủy quyền tìm resource cho parent. Đối với class trong named module, Java có đường tìm resource gắn với module riêng và quy tắc đóng gói module; xem phần 7.
+**Be careful with the assumption that "using Class.getResource will definitely select the plugin's resource."** For classes in an unnamed module, this API constructs the absolute resource name and delegates to the **class's defining loader**; that loader may continue delegating resource lookup to its parent. For classes in a named module, Java has module-specific resource lookup paths and module encapsulation rules; see section 7.
 
-Khi thay đổi vị trí package, `MyPlugin.class.getResource("rules.json")` sẽ đổi resource name tương ứng. Vì vậy, dùng đường dẫn tương đối là thuận tiện cho tài nguyên thực sự gắn với class/package; dùng đường dẫn root rõ ràng cho tài nguyên có hợp đồng độc lập với package.
+When changing a class's package location, `MyPlugin.class.getResource("rules.json")` changes the corresponding resource name. Therefore, using a relative path is convenient for resources truly bound to a class/package; use an explicit root path for resources with a package-independent contract.
 
-### Lấy stream và đóng tài nguyên
+### Obtaining a Stream and Closing Resources
 
-Ví dụ dùng `ClassLoader` với URL:
+Example using `ClassLoader` with a URL:
 
 ```java
 ClassLoader loader = MyPlugin.class.getClassLoader();
@@ -83,21 +83,21 @@ if (url == null) {
 }
 try (InputStream in = url.openStream()) {
     byte[] bytes = in.readAllBytes();
-    // Decode/parse bytes theo hợp đồng của resource.
+    // Decode/parse bytes according to the resource's contract.
 }
 ```
 
-Đây cũng là snippet, cần import `URL`, `InputStream` và class `MyPlugin`. Đọc thành byte rồi chọn đúng charset (thường UTF-8 nếu contract quy định), đóng `InputStream` bằng try-with-resources. Với `getResourceAsStream` cũng phải kiểm tra `null` và đóng stream; nó tiện khi không cần biết URL, nhưng **URL hữu ích để chẩn đoán nguồn gốc của bản được chọn**.
+This is also a snippet, requiring `URL`, `InputStream`, and the `MyPlugin` class. Read into bytes and then choose the right charset (usually UTF-8 if the contract specifies it), closing the `InputStream` with try-with-resources. With `getResourceAsStream`, you must also check for `null` and close the stream; it is convenient when you don't need to know the URL, but **the URL is useful for diagnosing the origin of the selected copy**.
 
-## 3. Tại sao loader con có thể chọn nhầm bản từ loader cha?
+## 3. Why Can a Child Loader Pick the Wrong Copy from a Parent Loader?
 
-`ClassLoader` chuẩn dùng mô hình **delegation**. Đối với `getResource(name)`, implementation mặc định làm theo ý tưởng:
+Standard `ClassLoader` uses the **delegation** model. For `getResource(name)`, the default implementation works conceptually as follows:
 
-1. Hỏi **parent class loader** trước; nếu parent là `null` thì tìm trong nguồn của bootstrap loader.
-2. Nếu parent trả URL, lấy URL đó và kết thúc.
-3. Nếu parent không tìm thấy, gọi `findResource(name)` để tìm ở chính loader hiện tại.
+1. Ask the **parent class loader** first; if the parent is `null`, search the bootstrap loader's sources.
+2. If the parent returns a URL, take that URL and finish.
+3. If the parent does not find it, call `findResource(name)` to search in the current loader itself.
 
-Đối với `getResources(name)`, implementation mặc định liệt kê các kết quả từ **parent trước**, sau đó thêm các kết quả từ `findResources(name)` của loader con.
+For `getResources(name)`, the default implementation enumerates results from the **parent first**, then appends results from the child loader's `findResources(name)`.
 
 ```text
 ClassLoader parent
@@ -111,26 +111,26 @@ ClassLoader child
         config/mode.txt      (CHILD)
 
 child.getResource("config/mode.txt")
-    -> parent.getResource(...) -> PARENT được chọn
-    -> không cần tìm CHILD
+    -> parent.getResource(...) -> PARENT is selected
+    -> no need to search CHILD
 
 child.getResources("config/mode.txt")
-    -> [URL của PARENT, URL của CHILD]  (với URLClassLoader mặc định)
+    -> [URL of PARENT, URL of CHILD]  (with default URLClassLoader)
 ```
 
-Đây là quy tắc của **implementation mặc định của `ClassLoader` và `URLClassLoader` theo parent-first**, không phải bảo đảm tất cả class loader tùy biến hoạt động giống hệt. Một plugin host hoặc application server có thể override `getResource`/`getResources` hoặc dùng chính sách child-first cho một số namespace. Trong named modules, thứ tự tìm giữa các module cùng loader còn có những trường hợp không được đặc tả. **Không xây logic chọn phiên bản dựa trên giả định tùy tiện về thứ tự kết quả.**
+This is the rule of the **default parent-first `ClassLoader` and `URLClassLoader` implementations**, not a guarantee that all custom class loaders behave identically. A plugin host or application server may override `getResource`/`getResources` or apply a child-first policy for certain namespaces. In named modules, the search order across modules in the same loader even has unspecified cases. **Do not build version-selection logic based on arbitrary assumptions about result order.**
 
-### Một lỗi tích hợp có thật về mặt cơ chế
+### A Mechanically Real Integration Bug
 
-Host cung cấp `config/codec.properties` bản 1; plugin cũng có tên đó cho bản 2. Code plugin gọi `getClass().getClassLoader().getResourceAsStream("config/codec.properties")`. Nếu loader plugin đi qua parent-first, nội dung bản 1 của host có thể được chọn. Hệ thống vẫn chạy, nhưng cấu hình thuật toán, mapping, version hoặc feature flag có thể sai một cách âm thầm.
+The host provides `config/codec.properties` version 1; the plugin also has that same name for version 2. The plugin code calls `getClass().getClassLoader().getResourceAsStream("config/codec.properties")`. If the plugin loader goes through parent-first delegation, the host's version 1 content may be selected. The system keeps running, yet algorithm settings, mappings, versions, or feature flags can be silently wrong.
 
-Điểm nguy hiểm là **resource được tìm thấy** nên kiểm tra `null` không bắt được lỗi. Cần xác minh **provenance** (resource thuộc provider/artifact/version nào), và tốt nhất tránh xung đột tên ngay từ thiết kế.
+The dangerous part is that **a resource is found**, so `null` checks do not catch the bug. You need to verify **provenance** (which provider/artifact/version the resource belongs to), and ideally avoid name collisions by design.
 
-## 4. Ví dụ Java 17 độc lập: tái hiện parent-first và kiểm tra các bản trùng tên
+## 4. Standalone Java 17 Example: Reproducing Parent-First and Checking Duplicate-Named Copies
 
-Ví dụ dưới đây tự tạo hai thư mục tạm, mỗi thư mục có `config/mode.txt` nhưng nội dung khác nhau. Một `URLClassLoader` làm parent và một loader làm child; child nhận parent đó khi xây dựng. Cuối cùng thử loader biệt lập để thấy bản trong child. Chương trình không cần thư viện ngoài JDK.
+The example below creates two temporary directories, each containing `config/mode.txt` with different content. One `URLClassLoader` acts as the parent and another loader acts as the child; the child receives that parent upon construction. Finally, an isolated loader is tested to see the copy inside the child. The program requires no libraries outside the JDK.
 
-Tạo file `ParentFirstResources.java`:
+Create `ParentFirstResources.java`:
 
 ```java
 import java.io.IOException;
@@ -196,14 +196,14 @@ public class ParentFirstResources {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac --release 17 ParentFirstResources.java
 java ParentFirstResources
 ```
 
-Stdout đã đối chiếu bằng `javac --release 17` và `java`:
+Stdout verified with `javac --release 17` and `java`:
 
 ```text
 selected=PARENT
@@ -213,21 +213,21 @@ isolated=CHILD
 slashFound=false
 ```
 
-**Giải thích:**
+**Explanation:**
 
-1. `parentRoot` và `childRoot` cùng chứa đường dẫn logic `config/mode.txt`, khác nội dung để quan sát được nguồn được chọn.
-2. `parent` là `URLClassLoader` có parent `null`; `child` ủy quyền cho `parent`. Bởi parent-first, `child.getResource(name)` nhận nội dung `PARENT`.
-3. `child.getResources(name)` liệt kê cả hai bản và trong ví dụ này theo thứ tự `PARENT` rồi `CHILD`. Đây là hành vi của cặp loader mặc định được tạo trong ví dụ.
-4. `childOnly` không có `parent` cùng chứa resource, nên truy vấn chọn `CHILD`. **Đây là thử nghiệm minh họa isolation, không phải hướng dẫn luôn đặt parent bằng `null` cho plugin production**: class/plugin thực tế có thể cần các API chung từ host và các module của nền tảng.
-5. `slashFound=false` cho thấy với loader trong ví dụ, `ClassLoader.getResource("/config/mode.txt")` không tìm thấy. Đối với `Class.getResource("/config/mode.txt")`, dấu `/` đầu lại có ý nghĩa hợp lệ như phần 2.
+1. `parentRoot` and `childRoot` both contain the logical path `config/mode.txt`, with different content so we can observe which source gets selected.
+2. `parent` is a `URLClassLoader` with a `null` parent; `child` delegates to `parent`. Due to parent-first, `child.getResource(name)` receives the content `PARENT`.
+3. `child.getResources(name)` lists both copies and in this example in the order `PARENT` then `CHILD`. This is the behavior of the default loader pair created in the example.
+4. `childOnly` has no `parent` containing the resource, so the query selects `CHILD`. **This is an experiment demonstrating isolation, not a recommendation to always set parent to `null` for production plugins**: real classes/plugins may need shared APIs from the host and platform modules.
+5. `slashFound=false` shows that with the loader in the example, `ClassLoader.getResource("/config/mode.txt")` does not find it. For `Class.getResource("/config/mode.txt")`, the leading `/` has a valid meaning as shown in section 2.
 
-Không được kết luận rằng thay parent loader bằng `null` là giải pháp phổ quát. Nó có thể làm provider không nhìn thấy service interface, thư viện phụ thuộc, hoặc gây trùng class identity. Giải pháp phù hợp thường là **đặt namespace resource riêng**, kiểm tra collision và xây một chính sách lookup rõ ràng.
+Do not conclude that replacing the parent loader with `null` is a universal solution. It can prevent the provider from seeing service interfaces, dependent libraries, or cause duplicate class identities. The appropriate solution is usually **giving resources their own namespace**, checking for collisions, and building an explicit lookup policy.
 
-## 5. Khi có nhiều bản: phát hiện, chọn đúng và fail fast
+## 5. When Multiple Copies Exist: Detecting, Choosing Correctly, and Failing Fast
 
-### Dùng getResources để tìm collision
+### Using getResources to Find Collisions
 
-Nếu chỉ gọi `getResource` hoặc `getResourceAsStream`, ứng dụng biết “có tài nguyên”, nhưng có thể không biết “có thêm bản thứ hai”. Khi một resource **được yêu cầu phải duy nhất**, kiểm tra bằng `getResources`:
+If you only call `getResource` or `getResourceAsStream`, the application knows "a resource exists," but may not know "a second copy exists." When a resource **is required to be unique**, check with `getResources`:
 
 ```java
 static URL requireUniqueResource(ClassLoader loader, String name)
@@ -242,29 +242,29 @@ static URL requireUniqueResource(ClassLoader loader, String name)
 }
 ```
 
-Đây là helper snippet, cần import `URL`, `IOException` và được gọi từ một class đã khai báo. Nó kiểm tra **số lượng resource location nhìn thấy bởi loader tại thời điểm tra cứu**; không tự xác minh nội dung, chữ ký, quyền truy cập hoặc version. Đối với cấu hình bắt buộc duy nhất, báo lỗi sớm tốt hơn việc âm thầm lấy bản đầu tiên.
+This is a helper snippet, requiring imports for `URL` and `IOException` and to be called from a declared class. It checks the **number of resource locations visible to the loader at lookup time**; it does not automatically verify content, signatures, permissions, or versions. For configurations required to be unique, failing fast is better than silently taking the first copy.
 
-Còn những resource được thiết kế để có **nhiều bản** thì không nên fail fast chỉ vì `getResources` trả nhiều URL. Ví dụ `META-INF/services/<service-interface>` được `ServiceLoader` sử dụng để khám phá nhiều provider; `META-INF/services` cần được xử lý theo quy tắc SPI, không coi đó là một file config single-owner. Cũng có ứng dụng chủ động gộp nhiều phần metadata từ các JAR. Trong các trường hợp đó, phải xác định chính sách merge, trùng lặp và lỗi parse rõ ràng.
+On the other hand, resources designed to have **multiple copies** should not fail fast just because `getResources` returns multiple URLs. For example, `META-INF/services/<service-interface>` is used by `ServiceLoader` to discover multiple providers; `META-INF/services` should be processed per SPI rules, not treated as a single-owner config file. Some applications also intentionally merge multiple metadata fragments from JARs. In those cases, you must define clear policies for merging, duplicates, and parse errors.
 
-### Ba chính sách chọn nguồn hợp lệ
+### Three Valid Source-Selection Policies
 
-**A. Namespace riêng theo chủ sở hữu**
+**A. Owner-Specific Namespace**
 
-Dùng `META-INF/com.acme.plugin-x/config/rules.json` hoặc `com/acme/pluginx/rules.json` thay vì đặt mọi resource là `config.json`/`application.properties` ở root. Đây thường là biện pháp đơn giản và ít phụ thuộc vào thứ tự class loader nhất. Khi đổi version schema, khai báo version trong tên, metadata hoặc nội dung nếu hợp đồng cần phân biệt.
+Use `META-INF/com.acme.plugin-x/config/rules.json` or `com/acme/pluginx/rules.json` instead of placing every resource as `config.json`/`application.properties` at the root. This is usually the simplest measure and least dependent on class loader order. When changing schema versions, declare the version in the name, metadata, or content if the contract needs to distinguish them.
 
-**B. Một điểm tra cứu có chủ sở hữu rõ**
+**B. A Single Lookup Point with Clear Ownership**
 
-Một plugin registry có thể nắm `ClassLoader`, `Module` hoặc handle tới artifact đã được xác thực và cung cấp `openResource(pluginId, resourceName)`. Phần nghiệp vụ không tự ý gọi system loader hay TCCL. Tại điểm này registry có thể kiểm tra: ID plugin, version, đường dẫn trong namespace cho phép, ứng viên trùng lặp và nguồn gốc URL. Với JAR cụ thể, có thể đọc entry qua `JarFile`/`JarEntry` theo hợp đồng riêng thay vì dựa vào thuật toán tài nguyên của parent-first loader; cần quản lý vòng đời JAR/stream.
+A plugin registry can hold a `ClassLoader`, `Module`, or handle to a validated artifact and provide `openResource(pluginId, resourceName)`. Business logic does not arbitrarily call the system loader or TCCL. At this point, the registry can check: plugin ID, version, path within allowed namespaces, duplicate candidates, and URL provenance. For a specific JAR, entries can be read via `JarFile`/`JarEntry` according to an explicit contract rather than relying on a parent-first loader's resource algorithm; JAR/stream lifecycles must be managed.
 
-**C. Ưu tiên có chủ đích, được kiểm thử**
+**C. Intentional, Tested Precedence**
 
-Có những host thiết kế parent-first cho API chung và child-first cho tài nguyên riêng của plugin. Nếu hệ thống thật sự yêu cầu chính sách ấy, triển khai ở một loader/registry có mô tả rõ **namespace nào được ưu tiên**, fallback lúc nào, kết quả ra sao khi trùng tên, và có duy trì nhất quán với `getResources` không. Việc tùy tiện đảo mọi lookup thành child-first có thể gây lỗi class identity, ABI hoặc xung đột dependency.
+Some hosts design parent-first for shared APIs and child-first for plugin-private resources. If the system genuinely requires that policy, implement it in a loader/registry that clearly documents **which namespaces take precedence**, when fallback occurs, what happens on name collisions, and whether consistency with `getResources` is maintained. Arbitrarily flipping all lookups to child-first can cause class identity, ABI, or dependency conflict bugs.
 
-**Không dùng “URL thứ hai trong enumeration” làm hợp đồng.** Thứ tự cụ thể của cặp `URLClassLoader` trong ví dụ là có thể quan sát, nhưng nhiều loại custom loader và module configuration khác có thứ tự không ổn định/không được đặc tả.
+**Do not use "the second URL in the enumeration" as a contract.** The specific order of the `URLClassLoader` pair in the example is observable, but many custom loaders and module configurations have unstable or unspecified ordering.
 
-## 6. TCCL, loader hệ thống và class loader định nghĩa class
+## 6. TCCL, System Loader, and the Class's Defining Class Loader
 
-Ba lời gọi có thể dùng **ba loader khác nhau**:
+Three calls can use **three different loaders**:
 
 ```java
 ClassLoader defining = MyPlugin.class.getClassLoader();
@@ -272,33 +272,33 @@ ClassLoader context = Thread.currentThread().getContextClassLoader();
 ClassLoader system = ClassLoader.getSystemClassLoader();
 ```
 
-Đây là snippet; `MyPlugin` phải tồn tại. `defining` là loader định nghĩa class (có thể `null` với bootstrap class). `context` là **thread context class loader (TCCL)**, một thiết lập có thể khác theo thread và được dùng bởi nhiều framework để khám phá implementation/resources. `system` là system/application loader của JVM.
+This is a snippet; `MyPlugin` must exist. `defining` is the loader that defined the class (which may be `null` for bootstrap classes). `context` is the **thread context class loader (TCCL)**, a per-thread setting used by many frameworks to discover implementations/resources. `system` is the JVM's system/application loader.
 
-Ví dụ: request thread của host có TCCL trỏ tới loader của host, worker thread lại có TCCL khác; cùng `context.getResource("config/mode.txt")` có thể nhận hai kết quả khác nhau. Thread pool có thể giữ TCCL từ lúc tạo hoặc bị framework thay đổi. Không nên suy đoán TCCL luôn là loader của plugin đang xử lý request.
+For example, a host request thread has TCCL pointing to the host's loader, while a worker thread has a different TCCL; the same `context.getResource("config/mode.txt")` call can receive two different results. A thread pool might retain the TCCL from when it was created or have it altered by a framework. You should not assume the TCCL is always the loader of the plugin currently handling the request.
 
-Nếu một API chủ động dùng TCCL, cần xác định ai thiết lập, ai khôi phục và hoạt động đó có phù hợp với hợp đồng framework không. Khi tạm thay TCCL, phải phục hồi trong `finally` để tránh làm nhiễm bối cảnh của thread pool:
+If an API actively uses the TCCL, you must determine who sets it, who restores it, and whether that operation aligns with the framework contract. When temporarily changing the TCCL, restore it in `finally` to avoid polluting the thread pool's context:
 
 ```java
 Thread thread = Thread.currentThread();
 ClassLoader old = thread.getContextClassLoader();
 try {
     thread.setContextClassLoader(pluginLoader);
-    // Gọi framework API vốn được thiết kế để dùng TCCL.
+    // Call a framework API designed to use the TCCL.
 } finally {
     thread.setContextClassLoader(old);
 }
 ```
 
-Đoạn trên là minh họa cần biến `pluginLoader` đã được tạo và kiểm tra trước. **Đổi TCCL không thay đổi class loader đã định nghĩa class, cũng không tự loại bỏ parent-first delegation**. Nếu chỉ cần đọc một resource thuộc artifact xác định, ưu tiên API nhận explicit loader/module/artifact thay vì thay context toàn thread.
+The snippet above is illustrative and requires the `pluginLoader` variable to have been created and checked beforehand. **Changing the TCCL does not change the class loader that defined a class, nor does it automatically eliminate parent-first delegation.** If you only need to read a resource belonging to a known artifact, prefer an API that takes an explicit loader/module/artifact rather than mutating thread-wide context.
 
-## 7. Resource trong Java Platform Module System (JPMS)
+## 7. Resources in the Java Platform Module System (JPMS)
 
-Với **named modules**, quy tắc tìm resource có thêm lớp **encapsulation**. Hai điểm cần phân biệt:
+With **named modules**, resource lookup rules have an added layer of **encapsulation**. Two points to distinguish:
 
-1. `ClassLoader.getResource(name)` và `getResources(name)` áp dụng hạn chế đối với resource **không kết thúc bằng `.class`** trong package thuộc named module: chỉ có thể trả về resource đó qua các API này khi package được `opens` **vô điều kiện**. `exports` cho Java API public không tương đương `opens` cho resource/reflective access.
-2. `SomeClass.class.getResource(...)` (khi `SomeClass` thuộc named module) trước hết tìm trong module gắn với class và áp dụng điều kiện mở package cho module của caller. `Module.getResourceAsStream(name)` cũng nhắm vào module cụ thể, áp dụng quy tắc resource access của module đó.
+1. `ClassLoader.getResource(name)` and `getResources(name)` enforce restrictions on resources **not ending in `.class`** inside packages belonging to a named module: they can only return such a resource through these APIs when the package is **unconditionally** `opens`. `exports` for public Java APIs is not equivalent to `opens` for resource/reflective access.
+2. `SomeClass.class.getResource(...)` (when `SomeClass` belongs to a named module) first searches within the module associated with the class and applies package-opening conditions to the caller's module. `Module.getResourceAsStream(name)` also targets a specific module, applying that module's resource access rules.
 
-Nếu muốn đọc một resource gắn với module đã biết:
+If you want to read a resource associated with a known module:
 
 ```java
 Module owner = SomeProvider.class.getModule();
@@ -307,31 +307,31 @@ try (InputStream in = owner.getResourceAsStream(
     if (in == null) {
         throw new IllegalStateException("Resource unavailable in module");
     }
-    // Đọc theo charset/schema của plugin.
+    // Read according to the plugin's charset/schema.
 }
 ```
 
-Đây là snippet có class `SomeProvider` và import `InputStream` phù hợp; API có thể ném `IOException`. **Không có nghĩa** chỉ cần biết module là có quyền đọc mọi package resource: với named module, package chứa resource có thể cần `opens` cho caller. Resource không thuộc package của module và file `.class` có quy tắc đóng gói riêng.
+This is a snippet requiring the `SomeProvider` class and the appropriate `InputStream` import; the API can throw `IOException`. **It does not mean** that merely knowing the module grants permission to read every package resource: for a named module, the package containing the resource may need to be `opens` to the caller. Resources not belonging to a module's packages and `.class` files have separate encapsulation rules.
 
-Trong một module layer có nhiều module chứa cùng resource name, `ClassLoader.getResource` không bảo đảm thứ tự tìm giữa chúng. Muốn ràng buộc resource với đúng module/version, dùng tham chiếu module đã được registry chọn rồi kiểm tra quyền truy cập, thay vì chỉ tra một tên chung trên class loader.
+In a module layer with multiple modules containing the same resource name, `ClassLoader.getResource` does not guarantee a search order among them. To bind a resource to the exact module/version, use the module reference chosen by the registry and verify access rights, instead of looking up a generic name on the class loader.
 
-Tài liệu JDK 17 nêu rõ các quy tắc này trong `ClassLoader.getResource/getResources`, `Class.getResource` và `Module.getResourceAsStream`.
+The JDK 17 documentation clearly specifies these rules in `ClassLoader.getResource/getResources`, `Class.getResource`, and `Module.getResourceAsStream`.
 
-## 8. Chẩn đoán “đúng tên nhưng sai bản” theo thứ tự nào?
+## 8. In What Order Should You Diagnose "Right Name, Wrong Copy"?
 
-Khi plugin tải nhầm file cấu hình, mục tiêu là chứng minh **resource name, loader, URL và nội dung/version** nào thực sự được chọn, không chỉ xem tên file có tồn tại.
+When a plugin loads the wrong configuration file, the goal is to prove which **resource name, loader, URL, and content/version** was actually selected, not merely whether the filename exists.
 
-### Bước 1 — Xác định chính xác resource name
+### Step 1 — Identify the Exact Resource Name
 
-Ghi lại tên logic mà code truyền vào API, có dấu `/` đầu hay không, có phải đường dẫn tương đối với package hay không, có đúng chữ hoa/thường không. Đừng kiểm tra mỗi file trong thư mục `src/main/resources`; phải kiểm tra **artifact/runtime classpath** đang thực thi.
+Record the logical name the code passes to the API, whether it has a leading `/`, whether it is a package-relative path, and whether the casing is exact. Do not check only files in the `src/main/resources` directory; inspect the **artifact/runtime classpath** actually executing.
 
-### Bước 2 — Ghi nguồn loader và context
+### Step 2 — Record the Loader Source and Context
 
-Xác định API đã gọi: `SomeClass.class.getResource`, `someLoader.getResource` hay lấy loader từ TCCL. Quan sát class/identity của defining/context loader và parent chain nếu có thể. Tránh log ra nội dung cấu hình nhạy cảm; chỉ log metadata an toàn.
+Determine which API was called: `SomeClass.class.getResource`, `someLoader.getResource`, or a loader obtained from the TCCL. Observe the class/identity of the defining/context loader and parent chain if possible. Avoid logging sensitive configuration contents; log only safe metadata.
 
-### Bước 3 — Liệt kê candidates thay vì chỉ đọc first match
+### Step 3 — Enumerate Candidates Instead of Reading Only the First Match
 
-Ở môi trường có thể chẩn đoán an toàn:
+In an environment where safe diagnostics can run:
 
 ```java
 String name = "com/acme/pluginx/rules.json";
@@ -344,69 +344,69 @@ System.out.println("candidates=" + urls.size());
 urls.forEach(url -> System.out.println("candidateUrl=" + url));
 ```
 
-Đây là snippet: cần đối tượng `plugin`, `getResources` có thể ném `IOException`, và cần cân nhắc logging URL có thể chứa đường dẫn nội bộ. Nếu có hai URL, so sánh tên JAR, version và checksum trong môi trường kiểm thử; đừng chỉ chọn theo index của enumeration.
+This is a snippet: it requires a `plugin` object, `getResources` can throw `IOException`, and you should consider that logging URLs may expose internal paths. If there are two URLs, compare the JAR name, version, and checksum in a test environment; do not pick merely by enumeration index.
 
-### Bước 4 — Kiểm tra file thực sự được đóng gói
+### Step 4 — Verify What File Is Actually Packaged
 
-Xem danh sách entry trong JAR:
+List the entries inside the JAR:
 
 ```bash
 jar --list --file plugin.jar
 ```
 
-Tìm tên như `com/acme/pluginx/rules.json` hoặc `META-INF/services/...`. Nếu thiếu entry thì phải sửa build/packaging, không thể chữa bằng thay class loader. Nếu có hai bản ở host/plugin, kiểm tra JAR được dùng thực tế và thứ tự loader. Với JAR đã shading/assembly, cần kiểm tra việc merge/ghi đè metadata, đặc biệt `META-INF/services`.
+Look for names like `com/acme/pluginx/rules.json` or `META-INF/services/...`. If the entry is missing, you must fix the build/packaging; it cannot be cured by changing the class loader. If two copies exist in host/plugin, check the JARs actually used and the loader order. For shaded/assembled JARs, inspect how metadata is merged/overwritten, especially `META-INF/services`.
 
-### Bước 5 — Đặt test bảo vệ quy tắc chọn resource
+### Step 5 — Add Tests Guarding Resource Selection Rules
 
-Nên có test tích hợp dựng cả parent và child resource **trùng tên, khác nội dung**, như ví dụ phần 4. Kiểm thử loader cụ thể của production (kể cả app server/framework), kiểm tra URL được chọn; thêm test fail fast khi resource cần duy nhất nhưng có >1 candidate, và test không tìm thấy resource.
+You should have integration tests that set up both parent and child resources with **the same name and different contents**, as in section 4's example. Test the specific production loader (including app servers/frameworks) and verify the selected URL; add fail-fast tests when a resource must be unique but >1 candidate exists, as well as missing-resource tests.
 
-Tại đường production, nếu tài nguyên quyết định hành vi quan trọng (mapping, policy, trust store, serialization schema), có thể kiểm tra thêm version/schema/checksum hay chữ ký nguồn theo hợp đồng. Việc chọn nhầm một bản “có vẻ hợp lệ” có thể nguy hiểm hơn lỗi `null`.
+On production paths, if a resource governs critical behavior (mappings, policies, trust stores, serialization schemas), you can additionally verify version/schema/checksum or source signatures per contract. Silently picking a "plausible-looking" wrong copy can be more dangerous than a `null` error.
 
-## 9. Bảng lỗi thường gặp
+## 9. Common Errors Table
 
-| Hiện tượng | Nguyên nhân hay gặp | Cách xác minh và xử lý |
+| Symptom | Common Cause | How to Verify and Fix |
 | --- | --- | --- |
-| `getResource` trả `null` dù file có trong project | Truyền prefix `src/main/resources`, sai package, khác chữ hoa/thường, hoặc resource không được đóng gói | Kiểm tra resource name từ root, danh sách entry JAR và artifact thực tế |
-| `Class.getResource("x.json")` tìm sai vị trí | Method này hiểu `x.json` tương đối với package của class | Dùng đường dẫn tuyệt đối `"/config/x.json"` khi cần root; xác minh module/package |
-| `ClassLoader.getResource("/x.json")` không tìm thấy | Nhầm dấu `/` đầu theo quy tắc của `Class.getResource` | Truyền `"x.json"` cho `ClassLoader` |
-| Plugin đọc cấu hình của host | Parent-first chọn cùng resource name ở loader cha | Dùng `getResources` để tìm collision; namespace plugin riêng, registry rõ ownership |
-| Sau cập nhật JAR vẫn thấy nội dung cũ | Runtime vẫn dùng parent JAR/old loader, cache riêng của framework, hoặc chưa thay artifact trong process | Quan sát URL nguồn và deployment/version; refresh đúng lifecycle |
-| Máy này chạy đúng, máy khác sai | Khác packaging, classpath order, class loader policy hoặc môi trường filesystem | Kiểm thử trên artifact/container thực; bỏ phụ thuộc vào thứ tự ngầm |
-| `getResourceAsStream` có dữ liệu nhưng không đúng config | Không xác minh nguồn hoặc nhiều bản cùng tên | Tra URL bằng `getResources`, so version/schema, fail fast khi cần |
-| Resource trong named module không tìm thấy | Package không được `opens` phù hợp hoặc dùng sai API tìm theo module | Kiểm tra `module-info.java`, dùng `Class`/`Module` API phù hợp và đúng quyền |
-| `Paths.get(url.toURI())` lỗi với resource trong JAR | Không phải mọi resource URL đều tương ứng một file của default filesystem | Dùng `URL.openStream()`, hoặc API ZIP/JAR thích hợp khi cần |
-| Thay TCCL làm lỗi plugin khác ở thread pool | Không khôi phục context hoặc kỳ vọng TCCL đổi delegation | Dùng `try/finally`; ưu tiên explicit loader/module và test tải lại |
+| `getResource` returns `null` even though the file is in the project | Passing the `src/main/resources` prefix, wrong package, wrong case, or resource not packaged | Check the resource name from root, JAR entry list, and actual artifact |
+| `Class.getResource("x.json")` looks in the wrong place | This method treats `x.json` as relative to the class's package | Use the absolute path `"/config/x.json"` when root is needed; verify module/package |
+| `ClassLoader.getResource("/x.json")` fails to find it | Confusing the leading `/` rule from `Class.getResource` | Pass `"x.json"` to `ClassLoader` |
+| Plugin reads the host's configuration | Parent-first selects the same resource name from the parent loader | Use `getResources` to find collisions; give plugins distinct namespaces and clear registry ownership |
+| Old content still seen after updating JAR | Runtime still uses parent JAR/old loader, framework cache, or artifact not replaced in process | Inspect source URL and deployment/version; refresh according to lifecycle |
+| Works on one machine, fails on another | Different packaging, classpath order, class loader policy, or filesystem environment | Test against real artifact/container; remove reliance on implicit order |
+| `getResourceAsStream` returns data but wrong config | Not verifying provenance or multiple copies share the same name | Inspect URLs with `getResources`, compare version/schema, fail fast when needed |
+| Resource in named module not found | Package not properly `opens` or wrong module-lookup API used | Check `module-info.java`, use appropriate `Class`/`Module` API with proper permissions |
+| `Paths.get(url.toURI())` fails for a resource inside a JAR | Not every resource URL corresponds to a file in the default filesystem | Use `URL.openStream()`, or an appropriate ZIP/JAR API when needed |
+| Changing TCCL breaks other plugins in thread pool | Context not restored or expecting TCCL to change delegation | Use `try/finally`; prefer explicit loader/module and test reload paths |
 
-## 10. Quy tắc thiết kế tài nguyên cho module mở rộng
+## 10. Resource Design Rules for Extensible Modules
 
-**Đặt tên có chủ sở hữu.** Tránh các key chung như `config.json`, `settings.properties` ở root classpath nếu nhiều plugin có thể dùng. Định danh namespace theo tổ chức/plugin và giữ ổn định trong hợp đồng; đánh version schema khi cần.
+**Name with ownership.** Avoid generic keys like `config.json` or `settings.properties` at the classpath root if multiple plugins might use them. Namespace by organization/plugin and keep it stable in the contract; version schemas when needed.
 
-**Tách tên logic khỏi nguồn vật lý.** API phía core có thể dùng `pluginId + resourceName`, còn plugin registry chịu trách nhiệm định tuyến tới loader/module/JAR được phép. Một đoạn code nghiệp vụ không cần biết đường dẫn JAR trên ổ đĩa hay thứ tự loader.
+**Separate logical names from physical sources.** Core APIs can accept `pluginId + resourceName`, while the plugin registry routes to the permitted loader/module/JAR. Business code does not need to know the JAR path on disk or loader order.
 
-**Có quy tắc collision rõ ràng.** Một số resource hợp pháp phải duy nhất; số khác như metadata SPI có thể được tổng hợp. Xác định nhóm nào cần fail fast, nhóm nào được merge, và cách xử lý trùng provider/config.
+**Have clear collision rules.** Some resources legitimately must be unique; others like SPI metadata can be aggregated. Define which groups must fail fast, which may be merged, and how to handle duplicate providers/configs.
 
-**Không trộn đường dẫn resource với đường dẫn hệ điều hành.** Resource name dùng `/`, không phải đường dẫn tuyệt đối tới máy host. Không tin vào resource name do input chưa xác thực cung cấp; registry nên giới hạn namespace, loại path traversal và xác thực owner trước khi mở artifact.
+**Do not mix resource paths with OS paths.** Resource names use `/`, not absolute paths on the host machine. Do not trust resource names supplied by unvalidated input; the registry should restrict namespaces, block path traversal, and verify the owner before opening artifacts.
 
-**Quản lý lifecycle của loader và stream.** Đóng `InputStream` ngay sau khi đọc; nếu quản lý `URLClassLoader`, đóng nó khi kết thúc vòng đời plugin và không còn hoạt động cần tài nguyên. Việc đóng loader không lập tức unload class đã được định nghĩa; muốn dỡ phiên bản cũ phải giải phóng các tham chiếu liên quan.
+**Manage loader and stream lifecycles.** Close `InputStream` immediately after reading; if managing a `URLClassLoader`, close it when the plugin lifecycle ends and no active operations need the resources. Closing a loader does not immediately unload already-defined classes; to unload old versions, release all associated references.
 
-**Kiểm thử đúng môi trường triển khai.** Unit test chỉ dùng một classpath đơn giản không tái hiện được trường hợp trùng resource giữa parent và child. Thêm integration test dựng hierarchy giống production, xác minh đúng source/version và module access.
+**Test in the real deployment environment.** Unit tests using a single flat classpath cannot reproduce parent-child resource collisions. Add integration tests that build a production-like hierarchy, verifying the exact source/version and module access.
 
-### Checklist ngắn trước khi phát hành plugin
+### Short Pre-Release Checklist for Plugins
 
-- [ ] Resource name dùng `/` và được tính đúng root/package theo API gọi.
-- [ ] Không dựa vào `src/main/resources` hay đường dẫn file thật tại runtime.
-- [ ] Biết **class loader/module nào** sở hữu plugin và đường lookup có parent-first không.
-- [ ] Nếu tên có thể trùng, kiểm tra `getResources` và xử lý theo chính sách rõ ràng.
-- [ ] Không cho loader cha âm thầm quyết định cấu hình riêng của plugin khi yêu cầu chọn bản plugin.
-- [ ] TCCL được chỉ định/khôi phục đúng nếu framework cần; không dùng TCCL như lối tắt cho isolation.
-- [ ] Xác minh các giới hạn `opens`/JPMS khi đọc tài nguyên trong named module.
-- [ ] Stream được đóng, URL nguồn có thể kiểm tra, version/schema được validate.
-- [ ] Có test trùng resource parent/child và test artifact/JAR thực tế.
+- [ ] Resource names use `/` and are calculated accurately relative to root/package per the API called.
+- [ ] Does not rely on `src/main/resources` or real file paths at runtime.
+- [ ] Knows **which class loader/module** owns the plugin and whether the lookup path is parent-first.
+- [ ] If names can collide, checks `getResources` and handles them according to a clear policy.
+- [ ] Does not let the parent loader silently dictate plugin-specific config when the plugin copy is required.
+- [ ] TCCL is set/restored properly if required by a framework; never use TCCL as a shortcut for isolation.
+- [ ] Verified `opens`/JPMS restrictions when reading resources inside named modules.
+- [ ] Streams are closed, source URLs are inspectable, and versions/schemas are validated.
+- [ ] Includes parent/child resource collision tests and tests on real JAR artifacts.
 
-Tài liệu tham khảo JDK 17:
+JDK 17 References:
 
-- [`ClassLoader` và các phương thức `getResource`, `getResources`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html)
+- [`ClassLoader` and methods `getResource`, `getResources`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html)
 - [`Class.getResource`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getResource(java.lang.String))
 - [`Module.getResourceAsStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html#getResourceAsStream(java.lang.String))
 
-**Ghi nhớ:** đường dẫn đúng chỉ cho Java biết **tên cần tìm**; **loader, delegation order và module access** mới quyết định **bản nào thực sự được trả về**. Đối với plugin, phải thiết kế resource namespace, kiểm tra xung đột và buộc nguồn tài nguyên gắn với đúng chủ sở hữu/version thay vì tin rằng gọi trên loader con sẽ tự ưu tiên bản của nó.
+**Remember:** the right path only tells Java **what name to look for**; **the loader, delegation order, and module access** determine **which copy is actually returned**. For plugins, you must design resource namespaces, check for collisions, and bind resource sources to the proper owner/version instead of trusting that calling on a child loader will automatically prefer its own copy.

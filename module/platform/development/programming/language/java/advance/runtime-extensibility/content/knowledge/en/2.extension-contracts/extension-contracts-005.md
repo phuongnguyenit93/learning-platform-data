@@ -1,87 +1,87 @@
-# Truyền cấu hình và dịch vụ của ứng dụng chủ qua ngữ cảnh có giới hạn
+# Passing Host Configuration and Services Through a Scoped Context
 
-Trong kiến trúc mở rộng lúc chạy (runtime extensibility), ứng dụng chủ (host) có thể nạp các extension/plugin để bổ sung tính năng. Plugin thường cần biết một vài tham số cấu hình và gọi một số năng lực của host, chẳng hạn ghi sự kiện, truy vấn dữ liệu đã được phép hoặc đọc thời gian hệ thống. Nếu host đưa thẳng toàn bộ đối tượng ứng dụng, kho cấu hình, container DI hay kết nối cơ sở dữ liệu cho plugin, hợp đồng mở rộng trở nên khó kiểm soát: plugin phụ thuộc vào chi tiết nội bộ, dễ sử dụng quá quyền và khó tháo gỡ khi ngừng hoạt động.
+In a runtime extensibility architecture, the host application can load extensions/plugins to add features. Plugins often need to read a few configuration parameters and invoke certain host capabilities, such as emitting events, querying permitted data, or reading system time. If the host hands over the entire application object, configuration store, DI container, or database connection to a plugin, the extension contract becomes hard to control: the plugin couples to internal details, easily overreaches permissions, and is difficult to detach upon shutdown.
 
-Giải pháp là **ngữ cảnh có giới hạn (scoped/limited context)**: host tự tạo một đối tượng tuân theo API công khai, chứa cấu hình tối thiểu dành riêng cho một plugin và chỉ các dịch vụ mà plugin được phép gọi. Chính host quyết định danh tính, phạm vi, hạn mức, vòng đời và cách thực thi của từng dịch vụ; plugin nhận một hợp đồng sử dụng ổn định.
+The solution is a **scoped/limited context**: the host constructs an object conforming to a public API, containing minimal configuration tailored to a single plugin and only the services that plugin is authorized to call. The host itself controls identity, scope, quotas, lifecycle, and execution of each service; the plugin receives a stable usage contract.
 
-## 1. Phân biệt ba thành phần
+## 1. Distinguishing the Three Components
 
-- **Hợp đồng extension** định nghĩa điểm vào và vòng đời mà plugin phải thực hiện, ví dụ phương thức start(PluginContext) và stop(). Đây là API mà host và plugin cùng biên dịch.
-- **Cấu hình plugin** là dữ liệu cấu hình thuộc phạm vi plugin: cờ tính năng, giới hạn, tên tài nguyên được phép truy cập, chính sách xử lý… Host lọc, kiểm tra và chuyển thành kiểu dữ liệu được định nghĩa rõ.
-- **Dịch vụ host** là khả năng hành động do host kiểm soát, ví dụ EventPublisher, DocumentReader hoặc TaskScheduler. Plugin gọi qua một giao diện hẹp; triển khai thật, thông tin xác thực và kết nối hạ tầng nằm ở host.
+- **Extension contract** defines the entry points and lifecycle that a plugin must implement, such as `start(PluginContext)` and `stop()`. This is the API that both the host and plugins compile against.
+- **Plugin configuration** is configuration data scoped to the plugin: feature flags, limits, names of allowed resources, processing policies, etc. The host filters, validates, and converts it into a well-defined data type.
+- **Host services** are action capabilities controlled by the host, such as EventPublisher, DocumentReader, or TaskScheduler. The plugin calls them through a narrow interface; real implementations, credentials, and infrastructure connections remain in the host.
 
-Điểm mấu chốt là **ngữ cảnh không phải bản sao của toàn bộ host**. Hợp đồng chỉ công khai những gì cần cho tác vụ của plugin.
+The key point is that **the context is not a copy of the entire host**. The contract exposes only what is required for the plugin's task.
 
 ~~~text
-Host / cấu hình hệ thống / hạ tầng
+Host / system configuration / infrastructure
           |
           v
-  Xác định danh tính plugin
-  Xác thực chính sách, chọn phạm vi
+  Identify plugin identity
+  Validate policy, choose scope
           |
           v
-  Tạo PluginContext cho riêng plugin
-    - PluginConfig (đã lọc, kiểm tra)
-    - EventPublisher (có hạn mức)
-    - Clock/Time API (đã chọn)
+  Create per-plugin PluginContext
+    - PluginConfig (filtered, validated)
+    - EventPublisher (with quota)
+    - Clock/Time API (selected)
           |
           v
     Plugin.start(context)
           |
           v
-  Plugin dùng API -> Host kiểm tra -> Thực thi
+  Plugin calls API -> Host checks -> Executes
           |
           v
-    Host thu hồi khi plugin dừng
+    Host revokes when plugin stops
 ~~~
 
-Nếu hai plugin có vai trò khác nhau, host cần cấp **hai context khác nhau**, kể cả khi chúng dùng chung lớp giao diện. Plugin không được tự chọn hoặc tự nâng phạm vi.
+If two plugins have different roles, the host must issue **two distinct contexts**, even if they share the same interface class. A plugin must not self-select or escalate its own scope.
 
-## 2. Thiết kế cấu hình theo hợp đồng rõ ràng
+## 2. Designing Configuration Around a Clear Contract
 
-### Chỉ đưa dữ liệu tối thiểu
+### Provide Only Minimal Data
 
-Thay vì chuyển nguyên đối tượng ApplicationConfig, System.getenv(), Spring ApplicationContext hay một Map chứa mọi khóa, hãy xây một kiểu cấu hình chỉ gồm các giá trị cần thiết. Ví dụ plugin chào người dùng chỉ cần lời chào và hạn mức sự kiện, không cần URL nội bộ, mật khẩu cơ sở dữ liệu hay khóa ký token.
+Instead of passing the entire ApplicationConfig, System.getenv(), Spring ApplicationContext, or a Map containing every key, build a configuration type containing only the required values. For example, a greeting plugin only needs a greeting message and an event quota—not internal URLs, database passwords, or token signing keys.
 
-Một cấu hình tốt thường đáp ứng các thuộc tính sau:
+A well-designed configuration typically satisfies these properties:
 
-1. **Tường minh và có kiểu**: dùng record, enum hoặc interface được định nghĩa trước; tránh bắt plugin ép kiểu từ Map<String, Object> tùy ý.
-2. **Được host kiểm tra trước khi cấp**: xác thực giá trị thiếu, khoảng số, danh sách cho phép và quan hệ giữa các tham số. Không coi dữ liệu từ manifest/plugin là đáng tin mặc nhiên.
-3. **Bất biến theo hợp đồng**: record với String, số nguyên, enum thường thích hợp; nếu chứa List/Map phải sao chép phòng thủ và chú ý phần tử bên trong cũng có thể thay đổi.
-4. **Có phạm vi và nguồn gốc rõ ràng**: giá trị nào là mặc định của host, giá trị nào được người quản trị cấu hình, giá trị nào riêng cho từng plugin/tenant.
-5. **Có chính sách cập nhật**: snapshot cố định trong một phiên chạy, hoặc cơ chế cập nhật cấu hình tường minh (version/event) nếu hỗ trợ thay đổi động.
+1. **Explicit and typed**: use a record, enum, or predefined interface; avoid forcing plugins to cast from an arbitrary Map<String, Object>.
+2. **Validated by the host before issuance**: check for missing values, numeric ranges, allowlists, and cross-parameter invariants. Do not treat data from manifests/plugins as implicitly trustworthy.
+3. **Immutable by contract**: a record with String, integers, and enums is usually appropriate; if it contains List/Map, perform defensive copying and watch out for mutable elements inside.
+4. **Clear scope and provenance**: which values are host defaults, which are configured by an administrator, and which are per-plugin or per-tenant.
+5. **Clear update policy**: a fixed snapshot for the duration of a run, or an explicit configuration update mechanism (version/event) if dynamic updates are supported.
 
-Ví dụ, một record PluginConfig(String greeting, int maxEvents) có thể chặn lời chào rỗng và hạn mức ngoài khoảng hợp lệ ngay khi khởi tạo. Các kiểm tra này bảo vệ tính nhất quán của dữ liệu. Tuy nhiên, **giới hạn quyền và quota thực tế phải được host thực thi tại dịch vụ**, không chỉ dựa vào tham số mà plugin nhìn thấy.
+For instance, a record `PluginConfig(String greeting, int maxEvents)` can reject blank greetings and out-of-range quotas at construction time. These checks protect data consistency. However, **actual permissions and quotas must be enforced by the host inside the service**, not just trusted to parameters visible to the plugin.
 
-### Khi cấu hình thay đổi
+### When Configuration Changes
 
-Với context dạng snapshot, plugin tiếp tục thấy phiên bản đã nhận cho tới khi host tái cấu hình hoặc khởi tạo lại nó. Nếu ứng dụng phải hỗ trợ cập nhật ngay khi chạy, hãy thiết kế hợp đồng riêng, ví dụ một phương thức đọc snapshot có version, hoặc một callback về thay đổi. Quy định rõ tính nhất quán: bản cập nhật có hiệu lực cho lệnh gọi mới từ khi nào, lệnh đang chạy xử lý ra sao và trường hợp cấu hình mới không hợp lệ.
+With a snapshot context, the plugin continues seeing the version it received until the host reconfigures or reinitializes it. If the application must support live updates while running, design an explicit contract—such as a versioned snapshot reader or a change callback. Define consistency clearly: when updates take effect for new calls, how in-flight calls are handled, and what happens if the new configuration is invalid.
 
-Không nên để plugin tự giữ tham chiếu tới Map cấu hình nội bộ có thể bị sửa đồng thời, vì kết quả vừa khó dự đoán vừa dễ làm lộ dữ liệu ngoài phạm vi.
+Do not let a plugin hold a reference to an internal configuration Map that can be mutated concurrently, as results become unpredictable and out-of-scope data can leak.
 
-## 3. Cấp dịch vụ dưới dạng capability có giới hạn
+## 3. Providing Services as Scoped Capabilities
 
-Một **capability** ở đây là đối tượng cho phép thực hiện một nhóm hành động nhất định. Giao diện nên mô tả nghiệp vụ mà plugin được phép làm, thay vì trả về đối tượng hạ tầng đầy quyền.
+Here, a **capability** is an object permitting a specific set of actions. The interface should describe the business operation the plugin is allowed to perform rather than returning a full-privilege infrastructure object.
 
-| Nhu cầu của plugin | API nên cấp | Tránh cấp trực tiếp |
+| Plugin need | API to provide | Avoid passing directly |
 | --- | --- | --- |
-| Ghi sự kiện của plugin | EventPublisher.publish(message) có quota và định danh do host gắn | Message broker client đầy quyền |
-| Đọc tài liệu đã duyệt | DocumentReader.read(allowedId) với kiểm tra mỗi lần gọi | DataSource hoặc filesystem root |
-| Xem thời gian để xử lý | Clock hoặc phương thức now() | Toàn bộ đối tượng Runtime/host |
-| Ghi log gắn nguồn phát | PluginLogger tự gắn pluginId và lọc dữ liệu | Logger cấu hình tự do với mọi sink |
-| Gửi tác vụ nền | TaskScheduler giới hạn loại tác vụ, số lượng, thời gian | ExecutorService dùng chung không kiểm soát |
+| Emit plugin events | EventPublisher.publish(message) with host-attached quota and identity | Full-privilege message broker client |
+| Read approved documents | DocumentReader.read(allowedId) with per-call checks | DataSource or filesystem root |
+| Read time for processing | Clock or now() method | Entire Runtime/host object |
+| Write logs tagged with source | PluginLogger automatically attaching pluginId and filtering data | Unconstrained logger with arbitrary sinks |
+| Submit background tasks | TaskScheduler limiting task types, count, and duration | Shared unconstrained ExecutorService |
 
-Dịch vụ nên **ràng buộc danh tính và phạm vi tại lúc host tạo adapter**. Plugin không được tự truyền pluginId hay tenantId để mạo danh trong từng lệnh gọi. Kiểm tra quyền trên *mỗi lần gọi* là cần thiết, nhất là khi quyền có thể bị thu hồi trong lúc plugin đang chạy.
+Services should **bind identity and scope when the host constructs the adapter**. A plugin must not pass its own pluginId or tenantId on each call to spoof identity. Checking permissions on *every call* is essential, especially when permissions can be revoked while the plugin is running.
 
-Ở phía host, wrapper/adaptor có thể bổ sung giới hạn số lần gọi, kiểm soát kích thước payload, timeout, rate limit, audit, lọc dữ liệu đầu ra và chuyển lỗi hạ tầng sang kiểu lỗi trong hợp đồng. Những giới hạn này nên được kiểm tra tại ranh giới thật của dịch vụ; chỉ chú thích trong tài liệu API không đủ để ngăn gọi sai.
+On the host side, wrappers/adapters can add call-count limits, payload size checks, timeouts, rate limiting, auditing, output filtering, and translation of infrastructure errors into contract error types. These limits must be enforced at the actual service boundary; merely noting them in API docs does not prevent misuse.
 
-**Nguyên tắc chọn giao diện:** nếu một plugin chỉ cần gửi một sự kiện, API publish(event) phù hợp hơn việc trả về một đối tượng cho phép tạo topic, xóa queue, duyệt tất cả sự kiện và thay đổi cấu hình broker.
+**Interface selection principle:** if a plugin only needs to send an event, a `publish(event)` API is far better than returning an object that allows creating topics, deleting queues, browsing all events, and reconfiguring the broker.
 
-## 4. Ví dụ Java 17 chạy độc lập
+## 4. Self-Contained Java 17 Example
 
-Ví dụ dưới đây minh họa host tạo một context riêng cho extension chào người dùng. Cấu hình có kiểu và được xác thực; host cấp đúng một dịch vụ xuất thông điệp với hạn mức hai lần; nhãn pluginId được gắn bởi host; host có thể thu hồi dịch vụ sau khi extension dừng. Đồng hồ cố định giúp kiểm tra đầu ra chính xác.
+The example below shows the host creating a dedicated context for a greeting extension. The configuration is typed and validated; the host provides a single message-publishing service with a quota of two calls; the pluginId label is attached by the host; and the host can revoke the service after the extension stops. A fixed clock makes output verification deterministic.
 
-Lưu tệp **PluginContextDemo.java** (UTF-8):
+Save the file **PluginContextDemo.java** (UTF-8):
 
 ~~~java
 import java.time.Clock;
@@ -91,7 +91,7 @@ import java.util.Objects;
 
 public class PluginContextDemo {
     public static void main(String[] args) {
-        PluginConfig config = new PluginConfig("Xin chào", 2);
+        PluginConfig config = new PluginConfig("Hello", 2);
         ScopedPublisher publisher =
                 new ScopedPublisher("greeting", config.maxEvents());
         PluginContext context = new SimpleContext(
@@ -104,16 +104,16 @@ public class PluginContextDemo {
         Extension extension = new GreetingExtension();
         extension.start(context);
 
-        // Host thu hồi dịch vụ khi kết thúc vòng đời extension.
+        // Host revokes the service when the extension lifecycle ends.
         publisher.revoke();
         try {
-            context.events().publish("Thông điệp sau khi dừng");
+            context.events().publish("Message after stop");
         } catch (IllegalStateException ex) {
-            System.out.println("Từ chối: " + ex.getMessage());
+            System.out.println("Rejected: " + ex.getMessage());
         }
     }
 
-    // Hợp đồng công khai dùng chung giữa host và plugin.
+    // Public contract shared between host and plugin.
     public interface Extension {
         void start(PluginContext context);
     }
@@ -132,12 +132,12 @@ public class PluginContextDemo {
         public PluginConfig {
             Objects.requireNonNull(greeting, "greeting");
             if (greeting.isBlank() || maxEvents < 1 || maxEvents > 10) {
-                throw new IllegalArgumentException("Cấu hình không hợp lệ");
+                throw new IllegalArgumentException("Invalid configuration");
             }
         }
     }
 
-    // Các lớp triển khai thuộc host; không nằm trong API công khai.
+    // Implementation classes owned by the host; not part of the public API.
     private static final class SimpleContext implements PluginContext {
         private final PluginConfig config;
         private final EventPublisher events;
@@ -182,13 +182,13 @@ public class PluginContextDemo {
         public synchronized void publish(String message) {
             Objects.requireNonNull(message, "message");
             if (!active) {
-                throw new IllegalStateException("dịch vụ đã bị thu hồi");
+                throw new IllegalStateException("service has been revoked");
             }
             if (message.length() > 120) {
-                throw new IllegalArgumentException("thông điệp quá dài");
+                throw new IllegalArgumentException("message is too long");
             }
             if (sent >= quota) {
-                throw new IllegalStateException("vượt hạn mức sự kiện");
+                throw new IllegalStateException("event quota exceeded");
             }
 
             sent++;
@@ -211,118 +211,118 @@ public class PluginContextDemo {
             );
 
             try {
-                context.events().publish("Lượt thứ ba");
+                context.events().publish("Third attempt");
             } catch (IllegalStateException ex) {
-                System.out.println("Từ chối: " + ex.getMessage());
+                System.out.println("Rejected: " + ex.getMessage());
             }
         }
     }
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 PluginContextDemo.java
 java PluginContextDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-[greeting] Xin chào, Lan @ 2026-01-01T00:00:00Z
-[greeting] Xin chào, Minh @ 2026-01-01T00:00:00Z
-Từ chối: vượt hạn mức sự kiện
-Từ chối: dịch vụ đã bị thu hồi
+[greeting] Hello, Lan @ 2026-01-01T00:00:00Z
+[greeting] Hello, Minh @ 2026-01-01T00:00:00Z
+Rejected: event quota exceeded
+Rejected: service has been revoked
 ~~~
 
-**Diễn giải:**
+**Walkthrough:**
 
-- Host tạo PluginConfig và ScopedPublisher, rồi chỉ trao PluginContext cho extension. Extension không nhận được đối tượng cấu hình toàn cục hay tham chiếu tới broker thật.
-- Hai lần publish đầu tiên thành công. Lần thứ ba bị kiểm tra hạn mức trong ScopedPublisher từ chối, dù plugin vẫn gọi được phương thức trên interface.
-- Sau khi host gọi revoke(), ngay cả một tham chiếu EventPublisher còn được giữ lại cũng không thể dùng để xuất thêm thông điệp qua adapter này.
-- Phương thức now() đi qua hợp đồng và dùng Clock do host lựa chọn; thời gian trong ví dụ là cố định để kết quả tái lập.
-- synchronized làm thao tác kiểm tra hạn mức, tăng bộ đếm và thu hồi quyền nhất quán giữa nhiều thread trong phạm vi ví dụ. Trong sản phẩm thật, không nên giữ khóa nội bộ khi gọi ra dịch vụ chậm hoặc callback của plugin.
+- The host constructs PluginConfig and ScopedPublisher, then passes only PluginContext to the extension. The extension never receives the global configuration object or a reference to any real broker.
+- The first two publish calls succeed. The third call is rejected by the quota check inside ScopedPublisher, even though the plugin can still invoke the method on the interface.
+- After the host calls `revoke()`, even a retained EventPublisher reference cannot be used to emit further messages through this adapter.
+- The `now()` method goes through the contract and uses the Clock chosen by the host; time in this example is fixed for reproducible output.
+- `synchronized` makes quota checking, counter incrementing, and permission revocation consistent across multiple threads within this example's scope. In production systems, avoid holding internal locks across slow external service calls or plugin callbacks.
 
-Các kiểu công khai đang được lồng trong một tệp để ví dụ tự chạy. Trong dự án thực, hãy đưa Extension, PluginContext, PluginConfig và EventPublisher thành các kiểu public trong một **module/API JAR ổn định**; giữ SimpleContext và ScopedPublisher bên host. Đừng sao chép các lớp triển khai host sang plugin.
+Public types are nested inside one file so the example runs standalone. In a real project, place Extension, PluginContext, PluginConfig, and EventPublisher as public types in a **stable module/API JAR**; keep SimpleContext and ScopedPublisher on the host side. Never copy host implementation classes into plugins.
 
-## 5. Cấu trúc tích hợp trong hệ plugin thực tế
+## 5. Integration Structure in a Real Plugin System
 
-Một luồng khởi tạo thông thường:
+A typical initialization flow:
 
-1. **Khám phá extension** qua manifest, ServiceLoader hoặc cơ chế nạp plugin mà host hỗ trợ. Khám phá chỉ xác định ứng viên; chưa cấp quyền truy cập dịch vụ.
-2. **Xác định danh tính và chính sách từ phía host**, chẳng hạn pluginId đã được kiểm tra, phiên bản API tương thích, tập quyền mà người quản trị cho phép.
-3. **Đọc cấu hình rồi tạo bản nhìn riêng**: lọc khóa, áp mặc định, kiểm tra kiểu và khoảng hợp lệ; từ chối khởi động khi thiếu dữ liệu bắt buộc.
-4. **Tạo adapter dịch vụ riêng theo phạm vi**: gắn pluginId/tenantId do host chọn, chỉ cho phép thao tác đã duyệt, giới hạn tài nguyên và bổ sung audit.
-5. **Tạo context và gọi lifecycle**: start(context), sau đó phục vụ các lần gọi của plugin. Không cấp toàn bộ service registry chỉ vì plugin có phương thức start.
-6. **Dừng và dọn dẹp**: ngăn yêu cầu mới, hủy hoặc chờ công việc đang chạy theo chính sách, thu hồi capability, đóng tài nguyên liên quan và giải phóng tham chiếu để hỗ trợ unload.
+1. **Discover the extension** via manifest, ServiceLoader, or a host-supported plugin loader. Discovery only identifies candidates; it does not grant service access yet.
+2. **Determine identity and policy from the host side**, such as verified pluginId, compatible API version, and the permission set granted by an administrator.
+3. **Read configuration and construct a private view**: filter keys, apply defaults, validate types and ranges; refuse startup if required data is missing.
+4. **Create scoped service adapters**: bind host-selected pluginId/tenantId, permit only approved operations, apply resource limits, and add auditing.
+5. **Create the context and invoke lifecycle**: call `start(context)`, then serve plugin invocations. Do not hand over the entire service registry just because a plugin has a `start` method.
+6. **Stop and clean up**: block new requests, cancel or await in-flight work per policy, revoke capabilities, close associated resources, and release references to support unloading.
 
-Các trạng thái thường hữu ích là CREATED -> ACTIVE -> STOPPING -> CLOSED. Quy định rõ lệnh gọi trong STOPPING bị từ chối hay được hoàn thành, timeout của tác vụ đang chạy và hành vi khi stop được gọi nhiều lần. Context nên có vòng đời gắn với một phiên plugin, tránh tái sử dụng adapter cũ cho một phiên đã khởi động lại.
+Useful lifecycle states are typically `CREATED -> ACTIVE -> STOPPING -> CLOSED`. Specify clearly whether calls during `STOPPING` are rejected or allowed to finish, timeouts for in-flight tasks, and behavior when `stop` is called multiple times. A context should have a lifecycle bound to a single plugin session; avoid reusing an old adapter for a restarted session.
 
-Nếu hệ thống có nhiều tenant hoặc nhiều phiên chạy cho cùng plugin, phạm vi phải chứa cả tenant/session khi phù hợp. Không dùng một singleton adapter vô tình chia sẻ quyền, quota hoặc dữ liệu giữa các tenant.
+If the system supports multiple tenants or multiple concurrent sessions for the same plugin, scope must include tenant/session where appropriate. Never use a singleton adapter that accidentally shares permissions, quotas, or data across tenants.
 
-## 6. Các ranh giới cần làm rõ
+## 6. Boundaries to Clarify
 
-### Ranh giới quyền truy cập và an toàn dữ liệu
+### Access Control and Data Safety Boundaries
 
-- **Tối thiểu hóa dữ liệu**: plugin chỉ thấy phần cấu hình phục vụ chức năng được duyệt; tránh chuyển khóa bí mật, thông tin cá nhân không cần thiết hoặc đối tượng hạ tầng đang giữ credential.
-- **Không tin vào tham số do plugin tự khai**: kiểm tra quyền đối với tài nguyên và tenant trong host. Ví dụ, DocumentReader.read(id) phải xác định id thuộc tập cho phép; đừng chỉ kiểm tra khi tạo context rồi bỏ qua từng lần đọc.
-- **Không lộ phương thức mở rộng quyền**: một interface chỉ nên cấp nghiệp vụ cụ thể; không cung cấp getHost(), getApplicationContext(), getAllServices(), unwrap() hoặc quyền sửa danh sách cho phép.
-- **Theo dõi chi phí**: quota, timeout, kích thước payload, số tác vụ đồng thời và bộ nhớ phải phù hợp với tài nguyên host. Tránh một plugin chiếm toàn bộ pool xử lý chung.
-- **Giữ lỗi an toàn**: thông báo trả về plugin không cần chứa chuỗi kết nối, token, đường dẫn máy chủ hoặc stack trace hạ tầng. Host vẫn có thể lưu audit nội bộ với kiểm soát truy cập phù hợp.
+- **Data minimization**: a plugin sees only configuration needed for approved functionality; avoid passing secrets, unnecessary personal data, or infrastructure objects holding credentials.
+- **Never trust self-declared plugin parameters**: enforce resource and tenant authorization in the host. For instance, `DocumentReader.read(id)` must verify `id` belongs to the permitted set; do not check only at context creation and skip per-read checks.
+- **Do not expose privilege-escalation methods**: an interface should offer only concrete business operations; never provide `getHost()`, `getApplicationContext()`, `getAllServices()`, `unwrap()`, or mutation rights on allowlists.
+- **Track resource cost**: quotas, timeouts, payload sizes, concurrency limits, and memory budgets must align with host resources. Prevent one plugin from exhausting shared execution pools.
+- **Keep errors safe**: messages returned to plugins must not expose connection strings, tokens, server file paths, or infrastructure stack traces. The host can still record internal audits under proper access controls.
 
-Nếu plugin thực sự cần thao tác với dịch vụ có thông tin xác thực, ưu tiên host đứng ra thực hiện thay vì trao credential thô. Nếu bắt buộc dùng token được cấp riêng, cần quyền hạn hẹp, thời hạn ngắn, kế hoạch xoay vòng và ngăn ghi token vào log.
+If a plugin genuinely needs to interact with a credentialed service, prefer having the host perform the call rather than handing over raw credentials. If a dedicated token must be issued, enforce narrow permissions, short lifetimes, rotation plans, and prevent logging tokens.
 
-### Ranh giới kỹ thuật không đồng nghĩa sandbox bảo mật
+### Technical Boundaries Do Not Equal Security Sandboxing
 
-API có giới hạn giúp giảm mức phụ thuộc và quản trị đường truy cập **thông qua API đó**, nhưng **không phải sandbox an toàn cho mã Java bất kỳ**. Plugin chạy cùng JVM vẫn có thể tự gọi các API Java khác, mở kết nối mạng, truy cập tài nguyên theo quyền của tiến trình hoặc dùng reflection tùy môi trường. ClassLoader/module boundary hỗ trợ tổ chức và tương thích lớp; chúng không tự tạo tường ngăn bảo mật với mã không tin cậy. Không dựa vào Java Security Manager như cơ chế sandbox hiện đại.
+A constrained API reduces coupling and governs access paths **through that API**, but **is not a security sandbox for arbitrary Java code**. A plugin running in the same JVM can still call other Java APIs directly, open network sockets, access resources under the process's OS privileges, or use reflection depending on the environment. ClassLoader/module boundaries help organize code and class compatibility; they do not automatically erect a security wall against untrusted code. Do not rely on the Java Security Manager as a modern sandboxing mechanism.
 
-Đối với plugin do nguồn không tin cậy cung cấp, cần đánh giá chạy **khác process hoặc container** với quyền hệ điều hành, filesystem, mạng, tài nguyên và giao thức IPC được kiểm soát. Context trong trường hợp đó có thể được biểu diễn thành dữ liệu cấu hình cùng các RPC capability thay vì chuyển trực tiếp tham chiếu đối tượng Java.
+For plugins from untrusted sources, evaluate running them in a **separate process or container** with controlled OS permissions, filesystem, network, resource limits, and IPC protocols. In that setup, the context can be modeled as configuration data plus RPC capabilities instead of passing direct Java object references.
 
-## 7. Vòng đời, bất đồng bộ và khả năng mở rộng
+## 7. Lifecycle, Asynchrony, and Scalability
 
-Khi plugin giữ context để làm việc nền, host phải xác định rõ:
+When a plugin retains a context for background work, the host must clearly specify:
 
-- Adapter vẫn kiểm tra trạng thái ACTIVE và quyền tại **thời điểm gọi**, không chỉ ở start(). Thu hồi quyền là một chuyển trạng thái có hiệu lực cho những yêu cầu tiếp theo.
-- Tác vụ đang xử lý lúc stop được phép hoàn tất hay phải hủy; nếu dùng executor, cần có cơ chế cancellation, deadline và giới hạn công việc còn treo.
-- Cơ chế thread safety của quota và trạng thái. Ví dụ trên dùng synchronized để giữ đúng đếm số lần; hệ thống có I/O nên tách kiểm tra trạng thái, cập nhật quota và lời gọi mạng sao cho không khóa lâu.
-- Context không nên chứa tài nguyên có vòng đời ngắn hơn công việc đã cấp; các handle đã đóng phải trả lỗi rõ ràng, không lặng lẽ thực hiện ở phiên mới.
-- Nếu cập nhật policy lúc chạy, dịch vụ phải phản ánh việc thu hồi/mở quyền theo hợp đồng. Snapshot config bất biến không thay thế kiểm tra policy động tại dịch vụ.
+- Adapters continue checking `ACTIVE` state and permissions at **invocation time**, not solely in `start()`. Revoking access is a state transition that takes effect for subsequent requests.
+- Whether tasks already running during `stop` are allowed to finish or must be canceled; if using an executor, provide cancellation, deadlines, and bounds on pending work.
+- Thread-safety mechanics for quotas and state. The example above uses `synchronized` to keep counting accurate; systems doing I/O should separate state checks, quota updates, and network calls so locks are not held for long periods.
+- Contexts must not contain resources whose lifetime is shorter than granted work; closed handles must fail with clear errors rather than silently executing in a new session.
+- If policies are updated at runtime, services must reflect revocations/grants per contract. An immutable configuration snapshot does not replace dynamic policy checks inside services.
 
-Một plugin chậm, treo hoặc ném exception phải được xử lý bằng timeout, cô lập lỗi, thống kê và chính sách phục hồi ở biên host. Không để lỗi callback từ plugin phá hỏng đường xử lý chính của ứng dụng.
+A slow, hung, or throwing plugin must be handled via timeouts, fault isolation, metrics, and recovery policies at the host boundary. Never allow callback failures from a plugin to disrupt the application's primary execution path.
 
-## 8. Phiên bản hợp đồng và kiểm thử
+## 8. Contract Versioning and Testing
 
-Khi host và plugin có thể phát hành độc lập, các interface, record, enum, exception và ngữ nghĩa dịch vụ là một phần của API cần được quản lý tương thích. Nêu rõ phiên bản tối thiểu/tối đa mà plugin hỗ trợ, chính sách bổ sung phương thức, mặc định và xử lý khả năng chưa được cấp. Tăng phiên bản hợp đồng nếu thay đổi gây mất tương thích; tránh plugin truy cập nội bộ host để né hợp đồng.
+When host and plugins can be released independently, interfaces, records, enums, exceptions, and service semantics are all part of the API whose compatibility must be managed. Specify minimum/maximum supported versions, policies for adding methods, defaults, and handling ungranted capabilities. Bump the contract version for breaking changes; prevent plugins from reaching into host internals to bypass the contract.
 
-Các nhóm kiểm thử nên có:
+Test categories to include:
 
-| Trường hợp | Điều cần chứng minh |
+| Case | What to prove |
 | --- | --- |
-| Cấu hình đúng/thiếu/sai kiểu | Host kiểm tra và tạo context đúng hoặc từ chối khởi động có lý do |
-| Plugin không được cấp dịch vụ | Capability vắng mặt hoặc lệnh gọi bị từ chối có kiểm soát |
-| Plugin cố đọc tài nguyên khác tenant | Host chặn tại thao tác đọc/ghi thực tế |
-| Quota đã đạt ngưỡng | Các lần gọi tiếp theo bị từ chối, kể cả gọi đồng thời |
-| Plugin đã dừng | Handle cũ không tiếp tục thực hiện thao tác qua host adapter |
-| Reload cấu hình hoặc chính sách | Semantics snapshot/cập nhật/thu hồi đúng như hợp đồng |
-| Phiên bản plugin không tương thích | Host báo lỗi tại khâu nạp, không đợi lỗi runtime |
-| Plugin ném lỗi hoặc xử lý chậm | Host cô lập lỗi, tôn trọng timeout và dọn tài nguyên |
+| Valid/missing/mistyped configuration | Host validates and builds the context properly or rejects startup with clear reasons |
+| Plugin not granted a service | Capability is absent or calls are rejected in a controlled manner |
+| Plugin attempts to read another tenant's resource | Host blocks at the actual read/write operation |
+| Quota threshold reached | Subsequent calls are rejected, including concurrent calls |
+| Plugin stopped | Old handles cannot continue performing operations through the host adapter |
+| Configuration or policy reload | Snapshot/update/revocation semantics match the contract |
+| Incompatible plugin version | Host fails at load time rather than waiting for runtime errors |
+| Plugin throws exceptions or runs slowly | Host isolates faults, honors timeouts, and cleans up resources |
 
-Trong kiểm thử đơn vị plugin, có thể thay EventPublisher bằng fake và now() bằng đồng hồ cố định để kiểm tra logic mà không cần dựng hạ tầng thật. Trong kiểm thử tích hợp host, dùng adapter thật hoặc test double có thực thi **cùng chính sách**, đặc biệt với quyền, quota và trạng thái sau revoke().
+In plugin unit tests, EventPublisher can be replaced with a fake and `now()` with a fixed clock to test logic without spinning up real infrastructure. In host integration tests, use real adapters or test doubles that enforce **the same policies**, especially around permissions, quotas, and post-`revoke()` behavior.
 
-## 9. Những sai lầm thường gặp
+## 9. Common Mistakes
 
-1. **Chuyển nguyên DI container/ApplicationContext cho plugin**: plugin có thể tìm bean không thuộc hợp đồng, khó giữ tương thích và khó kiểm tra quyền. Hãy cấp facade/interface chuyên biệt.
-2. **Coi Map không sửa được là đã an toàn**: Map.copyOf chỉ khóa cấu trúc map, không làm bất biến một object mutable nằm trong value. Dùng kiểu giá trị bất biến hoặc defensive copy cho cả cấu trúc lồng nhau.
-3. **Giao plugin tự báo danh tính hay tenant trong mỗi lệnh gọi**: tạo nguy cơ giả mạo. Host gắn identity trong adapter và kiểm tra tài nguyên tại server side.
-4. **Chỉ kiểm tra quyền khi tạo context**: chính sách có thể đổi; cần kiểm tra tại biên thực thi và hỗ trợ thu hồi.
-5. **Lộ DataSource, ExecutorService hoặc HTTP client không giới hạn**: rất khó áp quota và audit đúng theo từng plugin. Bao bọc bằng dịch vụ hẹp có giới hạn rõ.
-6. **Không định nghĩa stop/unload**: tham chiếu dịch vụ cũ vẫn được gọi, thread bị rò rỉ hoặc task thực thi vào phiên mới. Cần trạng thái, revoke và cleanup.
-7. **Nhầm giới hạn API với cách ly mã độc**: interface không ngăn plugin gọi trực tiếp Java/OS API nếu chạy cùng quyền trong JVM; cần cách ly tiến trình khi mô hình đe dọa đòi hỏi.
-8. **Ràng buộc plugin với chi tiết triển khai host**: thay đổi nội bộ làm hỏng plugin. Giữ API JAR riêng, versioning và contract tests.
+1. **Passing the entire DI container/ApplicationContext to a plugin**: plugins can look up beans outside the contract, making compatibility and permission checks hard to preserve. Provide a dedicated facade/interface instead.
+2. **Assuming an unmodifiable Map is completely safe**: `Map.copyOf` only locks the map structure, not mutable objects held as values. Use immutable value types or deep defensive copies across nested structures.
+3. **Letting the plugin self-report its identity or tenant on each call**: creates spoofing risks. The host must bind identity inside the adapter and enforce resource checks server-side.
+4. **Checking permissions only when constructing the context**: policies can change; check at the execution boundary and support revocation.
+5. **Exposing unrestricted DataSource, ExecutorService, or HTTP client**: makes per-plugin quotas and auditing very hard to enforce. Wrap them in narrow services with explicit limits.
+6. **Failing to define stop/unload**: stale service references keep getting invoked, threads leak, or tasks run into new sessions. Require explicit states, revocation, and cleanup.
+7. **Confusing API constraints with malicious-code isolation**: interfaces do not stop a plugin from calling Java/OS APIs directly if running with the same privileges in the JVM; use process isolation when the threat model demands it.
+8. **Coupling plugins to host implementation details**: internal changes break plugins. Maintain a separate API JAR, versioning, and contract tests.
 
-## 10. Checklist thiết kế
+## 10. Design Checklist
 
-Trước khi công bố một PluginContext mới, trả lời rõ: plugin cần **giá trị cấu hình nào** và phải được kiểm tra thế nào; cần **hành động nào** qua dịch vụ; **ai cấp danh tính/phạm vi**; quyền và quota được kiểm tra **ở đâu và mỗi khi nào**; xử lý **cấu hình đổi, stop, timeout, concurrent call** ra sao; API có **tương thích phiên bản** với plugin đã phát hành không; và mức **cách ly an toàn** có phù hợp với độ tin cậy của mã plugin không.
+Before publishing a new PluginContext, clearly answer: which **configuration values** the plugin needs and how they must be validated; which **actions** it needs via services; **who supplies identity/scope**; **where and how often** permissions and quotas are checked; how **config updates, stop, timeouts, and concurrent calls** are handled; whether the API is **version-compatible** with released plugins; and whether the **isolation level** matches the trust level of the plugin code.
 
-Một ngữ cảnh tốt giúp extension làm đủ chức năng được giao qua hợp đồng nhỏ, dễ giả lập và dễ kiểm tra; host giữ trách nhiệm cấp quyền, áp chính sách, sở hữu hạ tầng và thu hồi khả năng sử dụng khi cần.
+A well-designed context lets an extension accomplish its assigned work through a small, mockable, testable contract, while the host retains responsibility for authorization, policy enforcement, infrastructure ownership, and revoking capabilities when needed.

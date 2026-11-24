@@ -1,24 +1,24 @@
-# Vòng đời phần mở rộng Java: khám phá, nạp mã, khởi tạo, gọi và dừng
+# Java Extension Lifecycle: Discovery, Code Loading, Initialization, Invocation, and Shutdown
 
-## 1. Bức tranh tổng thể
+## 1. The Big Picture
 
-Một ứng dụng Java có khả năng mở rộng lúc chạy (*runtime extensibility*) cho phép bổ sung hành vi bằng các thành phần được triển khai riêng (*plugin*, *extension* hoặc *service provider*). Ví dụ, một công cụ xử lý tài liệu có thể tìm JAR chứa bộ chuyển đổi định dạng, kiểm tra tính tương thích, nạp bộ chuyển đổi, gọi xử lý và dừng khi không dùng nữa.
+A Java application with *runtime extensibility* allows adding behavior through separately deployed components (*plugins*, *extensions*, or *service providers*). For example, a document-processing tool can locate a JAR containing a format converter, verify compatibility, load the converter, invoke processing, and stop it when no longer needed.
 
-Phân biệt ba trách nhiệm:
+Distinguish three responsibilities:
 
-- **Hợp đồng (API/contract):** các interface và kiểu dữ liệu mà host và plugin cùng hiểu, chẳng hạn `Extension`, `HostContext`, yêu cầu/kết quả và quy tắc xử lý lỗi.
-- **Artifact:** JAR hoặc Java module chứa code, tài nguyên và cách khai báo provider.
-- **Host/manager:** khám phá, lựa chọn, kiểm tra, nạp, tạo instance, khởi động, điều phối lời gọi, theo dõi, dừng và giải phóng tài nguyên.
+- **Contract (API/contract):** the interfaces and data types understood by both host and plugin, such as `Extension`, `HostContext`, request/response types, and error-handling rules.
+- **Artifact:** the JAR or Java module containing code, resources, and provider declarations.
+- **Host/manager:** discovers, selects, validates, loads, instantiates, starts, dispatches calls to, monitors, stops, and releases resources.
 
-**Phát hiện một JAR không có nghĩa code trong JAR đã được nạp. Nạp class không đồng nghĩa tạo instance; tạo instance không đồng nghĩa plugin đã sẵn sàng phục vụ. Gọi `stop()` không đồng nghĩa JVM đã unload class.** Đó là lý do phải mô hình hóa vòng đời riêng.
+**Discovering a JAR does not mean code in the JAR has been loaded. Loading a class does not mean creating an instance; creating an instance does not mean the plugin is ready to serve. Calling `stop()` does not mean the JVM has unloaded the classes.** That is why the lifecycle must be modeled explicitly.
 
-### Luồng trạng thái mẫu
+### Sample State Flow
 
 ```text
 Artifact + metadata
    │
    ▼
-DISCOVERED ──kiểm tra nguồn, version, dependencies──► VALIDATED
+DISCOVERED ──check source, version, dependencies──► VALIDATED
                                                       │
                                                       ▼
                                               LOADED (classes)
@@ -29,39 +29,39 @@ DISCOVERED ──kiểm tra nguồn, version, dependencies──► VALIDATED
                                                       ▼
                                            INITIALIZING / start()
                                                │            │
-                                          lỗi/rollback     thành công
+                                       error/rollback     success
                                                ▼            ▼
                                              FAILED       ACTIVE
                                                             │
                                                     execute()/invoke
                                                             │
                                                             ▼
-                                              QUIESCING (ngừng nhận việc)
+                                              QUIESCING (stop accepting work)
                                                             │
                                                             ▼
                                                STOPPED / close()
                                                             │
-                                                bỏ mọi tham chiếu
+                                                drop all references
                                                             ▼
                                              MAY BE UNLOADED (GC)
 ```
 
-Đây là state machine do **ứng dụng thiết kế**, không phải tên trạng thái JVM cung cấp sẵn. Trạng thái `STOPPED` chỉ mô tả vòng đời logic. Class unloading là khả năng phụ thuộc vào tính khả dụng để thu gom rác của class loader và các class liên quan.
+This is an **application-designed state machine**, not built-in JVM state names. The `STOPPED` state only describes the logical lifecycle. Class unloading is a possibility that depends on the eligibility for garbage collection of the class loader and its associated classes.
 
-| Mốc | Host làm gì? | Điều kiện chuyển tiếp |
+| Milestone | What does the host do? | Transition condition |
 | --- | --- | --- |
-| Discovery | Tìm artifact, manifest hoặc provider declaration | Có ứng viên để đánh giá |
-| Validation | Kiểm tra nguồn, phiên bản API/JDK, phụ thuộc, định danh, chính sách | Chỉ nhận artifact đủ điều kiện |
-| Loading | Chọn `ClassLoader`/`ModuleLayer`, nạp và liên kết class cần dùng | Không có lỗi thiếu lớp hoặc bất tương thích |
-| Creation | Tạo instance qua SPI/factory | Provider đúng contract |
-| Initialization | Truyền context, cấp tài nguyên, chạy readiness check | `start` hoàn tất |
-| Invocation | Dispatch request theo ID/capability, quản lý lỗi và đồng thời | Plugin vẫn `ACTIVE` |
-| Quiesce/stop | Chặn request mới, đợi request cũ, dọn tài nguyên | Plugin đã ngừng việc |
-| Cleanup | Gỡ registry/callback, đóng loader nếu sở hữu | Không giữ tham chiếu khiến leak |
+| Discovery | Locates artifacts, manifests, or provider declarations | Candidates exist to evaluate |
+| Validation | Checks source, API/JDK version, dependencies, identity, policy | Only accepts eligible artifacts |
+| Loading | Selects `ClassLoader`/`ModuleLayer`, loads and links required classes | No missing class or incompatibility errors |
+| Creation | Creates instance via SPI/factory | Provider matches the contract |
+| Initialization | Passes context, allocates resources, runs readiness checks | `start` completes |
+| Invocation | Dispatches requests by ID/capability, manages errors and concurrency | Plugin remains `ACTIVE` |
+| Quiesce/stop | Blocks new requests, waits for in-flight requests, cleans up resources | Plugin has stopped working |
+| Cleanup | Removes from registry/callbacks, closes loader if owned | Retains no references causing leaks |
 
-## 2. Thiết kế hợp đồng ổn định trước khi dùng runtime loading
+## 2. Designing a Stable Contract Before Using Runtime Loading
 
-Hợp đồng tối thiểu có thể là:
+A minimal contract might look like:
 
 ```java
 public interface Extension {
@@ -72,87 +72,87 @@ public interface Extension {
 }
 ```
 
-Đây là minh họa chưa độc lập; chương trình Java 17+ chạy được nằm ở mục 4. Khi xây contract thật cần quyết định:
+This is a non-standalone illustration; a runnable Java 17+ program is in section 4. When building a real contract, decide:
 
-1. **Danh tính và khả năng.** `id` phải duy nhất trong phạm vi host; nên có version, nhóm tác vụ/capabilities và chính sách khi hai plugin trùng ID. Đừng dựa vào thứ tự `ServiceLoader` để chọn plugin ưu tiên.
-2. **Trạng thái và idempotence.** Chỉ gọi `execute` sau khi `start` thành công, không gọi mới sau khi bắt đầu dừng; `stop` nên an toàn nếu gọi lại.
-3. **Sở hữu tài nguyên.** Plugin chịu trách nhiệm đóng thread, executor, socket, stream, watcher và listener do nó tạo. Host chịu trách nhiệm registry, điều phối và loader do chính host tạo.
-4. **Context có giới hạn.** Truyền interface nhỏ cho các dịch vụ được phép dùng (logger, cấu hình, dữ liệu cần thiết); đừng truyền toàn bộ đối tượng nội bộ host.
-5. **Tương thích binary/API.** Một bản cập nhật interface, method signature hay dependency có thể gây `LinkageError` hoặc `AbstractMethodError` dù tên class không đổi; định version và kiểm thử tương thích.
-6. **Lỗi và rollback.** Định nghĩa lỗi nào khiến provider bị vô hiệu, điều kiện retry, giới hạn thời gian khởi động/dừng và cách thu hồi tài nguyên khi `start` mới hoàn tất một phần.
+1. **Identity and capabilities.** `id` must be unique within the host scope; there should be a version, task group/capabilities, and a policy when two plugins share the same ID. Do not rely on `ServiceLoader` order to pick a priority plugin.
+2. **State and idempotence.** Only call `execute` after `start` succeeds, and make no new calls once stopping begins; `stop` should be safe if called again.
+3. **Resource ownership.** The plugin is responsible for closing threads, executors, sockets, streams, watchers, and listeners it creates. The host is responsible for the registry, dispatcher, and loaders it creates.
+4. **Scoped context.** Pass a small interface for permitted services (logger, configuration, necessary data); do not pass entire internal host objects.
+5. **Binary/API compatibility.** An update to an interface, method signature, or dependency can cause `LinkageError` or `AbstractMethodError` even when class names do not change; version and run compatibility tests.
+6. **Errors and rollback.** Define which errors disable a provider, retry conditions, startup/shutdown timeouts, and how to reclaim resources when `start` only partially completes.
 
-Host và plugin phải chia sẻ **cùng một định nghĩa** `Extension` và DTO dùng chung. Trong Java, danh tính kiểu phụ thuộc vào **fully qualified class name + defining class loader**. Hai class có cùng tên nhưng do hai loader khác nhau định nghĩa có thể không ép kiểu qua lại. API dùng chung thường được đặt trong artifact ổn định, do class loader của host hoặc parent sở hữu; không vô tình đóng thêm bản sao API vào từng JAR plugin.
+Host and plugin must share **the exact same definition** of `Extension` and shared DTOs. In Java, type identity depends on **fully qualified class name + defining class loader**. Two classes with the same name defined by two different loaders cannot be cast to one another. Shared APIs are typically placed in a stable artifact owned by the host's or a parent's class loader; avoid accidentally bundling an extra copy of the API into each plugin JAR.
 
-## 3. Các giai đoạn và cơ chế thực tế
+## 3. Stages and Practical Mechanisms
 
-### 3.1. Khám phá (*discovery*) — nhận diện ứng viên
+### 3.1. Discovery — Identifying Candidates
 
-Các cách khám phá phổ biến:
+Common discovery approaches:
 
-- **Registry/cấu hình:** host đọc danh sách ID, đường dẫn artifact, version và quyền bật/tắt.
-- **Thư mục JAR:** host liệt kê file trong thư mục được phép. Việc liệt kê và đọc manifest không cần chạy mã trong JAR.
-- **Java SPI trên classpath/unnamed module:** đặt tệp `META-INF/services/<fully-qualified-service-type>` trong JAR, mỗi dòng là tên lớp provider.
-- **JPMS named modules:** module cung cấp dùng `provides service.Type with impl.Provider;`; module tiêu thụ dùng `uses service.Type;`. `ServiceLoader.load(layer, ServiceType.class)` có thể tìm provider từ layer và các layer cha.
+- **Registry/configuration:** the host reads a list of IDs, artifact paths, versions, and enable/disable permissions.
+- **JAR directory:** the host lists files in an allowed directory. Listing files and reading manifests does not require executing code inside the JAR.
+- **Java SPI on classpath/unnamed module:** place `META-INF/services/<fully-qualified-service-type>` in the JAR, with one provider class name per line.
+- **JPMS named modules:** the providing module uses `provides service.Type with impl.Provider;`; the consuming module uses `uses service.Type;`. `ServiceLoader.load(layer, ServiceType.class)` can locate providers from the layer and its parent layers.
 
-Ví dụ file `META-INF/services/app.api.Extension`:
+Example `META-INF/services/app.api.Extension` file:
 
 ```text
 sample.HelloExtension
 ```
 
-Đừng quét mọi class rồi dùng reflection chỉ để xác định provider nếu đã có descriptor hoặc module declaration. `ServiceLoader` có tính **lazy**: tạo loader không đồng nghĩa đã tạo tất cả provider; việc duyệt `iterator()` hoặc `stream()` có thể khởi phát tìm và nạp provider. `ServiceLoader.stream()` và `Provider.type()` giúp xem loại provider trước khi gọi `get()` trong những trường hợp phù hợp, nhưng đây không phải cách xác thực an toàn mã bên thứ ba.
+Do not scan every class and use reflection just to identify providers when a descriptor or module declaration already exists. `ServiceLoader` is **lazy**: creating the loader does not mean all providers are instantiated; iterating `iterator()` or `stream()` can trigger provider lookup and loading. `ServiceLoader.stream()` and `Provider.type()` help inspect the provider type before calling `get()` in appropriate cases, though this is not a security validation mechanism for third-party code.
 
-Lỗi `ServiceConfigurationError` có thể xuất hiện khi duyệt do descriptor sai, provider thiếu/không hợp lệ, constructor lỗi hoặc provider không tạo được. Thứ tự mà provider được phát hiện không nên được coi là luật ưu tiên nghiệp vụ. `ServiceLoader.reload()` **chỉ xóa cache provider của đối tượng loader**, không tự dừng instance cũ và không định nghĩa lại class đã nạp.
+`ServiceConfigurationError` can occur during iteration due to a malformed descriptor, missing/invalid provider, constructor failure, or inability to instantiate the provider. The order in which providers are discovered must not be treated as a business priority rule. `ServiceLoader.reload()` **only clears the loader instance's provider cache**, does not automatically stop old instances, and does not redefine already-loaded classes.
 
-### 3.2. Nạp mã (*class loading*) — đúng ranh giới class loader
+### 3.2. Code Loading (*class loading*) — Getting Class Loader Boundaries Right
 
-| Cách | Phù hợp với | Điểm cần lưu ý |
+| Approach | Suited For | Points to Watch |
 | --- | --- | --- |
-| Provider trên classpath khi khởi động | Plugin cố định, được đóng gói cùng ứng dụng | Chung không gian classpath, khó thay JAR đã nạp |
-| `URLClassLoader` riêng | Nạp plugin JAR khi chương trình đang chạy | Quản lý parent delegation, phụ thuộc, cleanup và leak |
-| `ModuleLayer` | Plugin theo JPMS với cấu hình module tường minh | Readability/export, dependency resolution và lớp module phức tạp hơn |
+| Provider on classpath at startup | Fixed plugins packaged with the application | Shared classpath space, difficult to replace already-loaded JARs |
+| Dedicated `URLClassLoader` | Loading plugin JARs while the program is running | Managing parent delegation, dependencies, cleanup, and leaks |
+| `ModuleLayer` | JPMS plugins with explicit module configuration | Readability/exports, dependency resolution, and more complex module layering |
 
-`ClassLoader.loadClass(...)` tìm và nạp class theo cơ chế loader; **nó không tự gọi constructor hay method `start` do ứng dụng định nghĩa**. JVM còn thực hiện liên kết (*verification, preparation, resolution*) và khởi tạo class khi điều kiện khởi tạo xảy ra. Static initializer hoặc constructor có thể lỗi **trước** khi host bước vào `start`; vì vậy tránh đặt logic khởi động khó rollback trong static initializer.
+`ClassLoader.loadClass(...)` locates and loads a class via the loader mechanism; **it does not automatically invoke constructors or application-defined `start` methods**. The JVM also performs linking (*verification, preparation, resolution*) and class initialization when initialization triggers occur. Static initializers or constructors can fail **before** the host reaches `start`; therefore, avoid placing hard-to-rollback startup logic in static initializers.
 
-Với `URLClassLoader`, thông thường parent loader của host cung cấp contract `app.api.Extension`, còn child loader cung cấp `sample.HelloExtension` và các thư viện riêng. Quy tắc parent delegation không phải cách bảo mật plugin. Đặc biệt, một plugin chạy **trong cùng JVM** có thể sử dụng quyền của tiến trình; tách class loader chỉ chủ yếu giải quyết khả năng tìm class, cô lập dependency và quản lý vòng đời tương đối.
+With `URLClassLoader`, the host's parent loader typically supplies the `app.api.Extension` contract, while the child loader supplies `sample.HelloExtension` and private libraries. Parent delegation rules are not a plugin security mechanism. In particular, a plugin running **in the same JVM** can use the process's privileges; separating class loaders primarily addresses class lookup, dependency isolation, and relative lifecycle management.
 
-### 3.3. Tạo instance và khởi động (*instantiate/start*)
+### 3.3. Instantiation and Startup (*instantiate/start*)
 
-Provider có thể được tạo qua `ServiceLoader`, factory hoặc DI container. Khi dùng SPI classpath, lớp provider thông thường phải thỏa điều kiện của cơ chế ServiceLoader để khởi tạo (chẳng hạn constructor không tham số phù hợp). `start(context)` là **quy ước nghiệp vụ tự thiết kế**; Java hay `ServiceLoader` không tự gọi nó.
+Providers can be created via `ServiceLoader`, a factory, or a DI container. When using the classpath SPI, a normal provider class must meet `ServiceLoader`'s instantiation requirements (such as an appropriate no-argument constructor). `start(context)` is a **custom business convention**; neither Java nor `ServiceLoader` calls it automatically.
 
-Trong `start`, plugin có thể xác thực cấu hình, mở kết nối, nạp tài nguyên, đăng ký listener và tự kiểm tra sẵn sàng. Host chỉ thêm instance vào registry phục vụ request khi `start` thành công. Nếu giữa chừng thất bại, plugin phải dọn các tài nguyên đã mở; host ghi `FAILED`, không dispatch và có thể vô hiệu hóa ứng viên mà vẫn giữ ứng dụng chính hoạt động.
+Inside `start`, the plugin can validate configuration, open connections, load resources, register listeners, and run readiness self-checks. The host adds the instance to the request-serving registry only once `start` succeeds. If it fails partway through, the plugin must clean up opened resources; the host marks it `FAILED`, avoids dispatching to it, and can disable the candidate while keeping the main application running.
 
-Nếu có dependency giữa nhiều plugin, cần xác định thứ tự khởi động, phát hiện vòng phụ thuộc và dừng **theo thứ tự ngược** để plugin phụ thuộc được dừng trước plugin cung cấp dịch vụ.
+If dependencies exist among multiple plugins, determine startup order, detect dependency cycles, and stop **in reverse order** so dependent plugins stop before service-providing plugins.
 
-### 3.4. Gọi nghiệp vụ (*invoke*)
+### 3.4. Business Invocation (*invoke*)
 
-Host chọn provider qua registry dựa trên `id`, capability hoặc chính sách. Trước khi gọi phải kiểm tra trạng thái `ACTIVE` và hợp đồng đầu vào. Với production, cần định rõ:
+The host selects a provider through the registry based on `id`, capability, or policy. Before calling, verify the `ACTIVE` state and input contract. For production, clearly define:
 
-- **Concurrency:** một instance có thread-safe không? Host đồng bộ, tạo instance theo request hay cho phép nhiều thread gọi đồng thời? Đối tượng `ServiceLoader` không được thiết kế để dùng đồng thời tùy tiện trên nhiều luồng.
-- **Timeout:** host đặt deadline, giới hạn số yêu cầu đồng thời và backpressure. `Future.cancel(true)` chủ yếu yêu cầu interrupt; không bảo đảm kết thúc mã plugin không hợp tác.
-- **Failure isolation:** phân biệt lỗi nghiệp vụ có thể trả về với lỗi cấu hình/nạp class hoặc lỗi nghiêm trọng; ghi log plugin ID, version, stage, correlation ID; chỉ retry operation có tính an toàn phù hợp.
-- **TCCL:** một số thư viện dùng `Thread.currentThread().getContextClassLoader()` để tìm resource/service. Nếu host tạm đổi TCCL khi gọi plugin, phải khôi phục loader ban đầu trong `finally`.
-- **Observability:** đo thời gian `start`, thời gian gọi, request đang xử lý, lỗi, timeout, trạng thái và thời gian `stop` theo từng plugin.
+- **Concurrency:** is a single instance thread-safe? Does the host synchronize, create instances per request, or allow concurrent calls across threads? `ServiceLoader` instances are not designed for arbitrary concurrent use across multiple threads.
+- **Timeouts:** the host sets deadlines, concurrency limits, and backpressure. `Future.cancel(true)` primarily requests an interrupt; it does not guarantee terminating uncooperative plugin code.
+- **Failure isolation:** distinguish returnable business errors from configuration/class-loading errors or fatal errors; log plugin ID, version, stage, and correlation ID; only retry operations with appropriate idempotency/safety.
+- **TCCL:** some libraries use `Thread.currentThread().getContextClassLoader()` to locate resources/services. If the host temporarily swaps TCCL when calling a plugin, it must restore the original loader in `finally`.
+- **Observability:** measure `start` duration, invocation latency, in-flight requests, errors, timeouts, state, and `stop` duration per plugin.
 
-### 3.5. Ngừng nhận việc, dừng và giải phóng (*quiesce/stop/close*)
+### 3.5. Quiescing, Stopping, and Cleanup (*quiesce/stop/close*)
 
-Thứ tự nên thực hiện:
+Recommended sequence:
 
-1. Chuyển sang `QUIESCING`, gỡ khỏi bộ định tuyến để chặn request mới.
-2. Chờ các request đang chạy xong trong một deadline; giải quyết việc hủy/chuyển giao khi vượt hạn.
-3. Gọi `stop()` hoặc `close()`, hủy đăng ký listener/callback và đóng tất cả executor, thread, socket, stream, watcher hay native resource do plugin sở hữu.
-4. Xóa tham chiếu từ registry, cache, callback, `ThreadLocal`, thread context class loader, instance và các đối tượng reflection tới class của plugin.
-5. Đóng `URLClassLoader` nếu host là chủ sở hữu, ghi nhận trạng thái và mọi lỗi cleanup; không để một lỗi dọn dẹp che khuất các công việc dọn dẹp độc lập khác.
+1. Transition to `QUIESCING`, remove from the router to block new requests.
+2. Wait for in-flight requests to finish within a deadline; handle cancellation/handoff if the deadline is exceeded.
+3. Call `stop()` or `close()`, unregister listeners/callbacks, and close all executors, threads, sockets, streams, watchers, or native resources owned by the plugin.
+4. Remove references from registries, caches, callbacks, `ThreadLocal`, thread context class loaders, instances, and reflection objects pointing to plugin classes.
+5. Close the `URLClassLoader` if the host owns it, recording status and any cleanup errors; do not let one cleanup failure mask other independent cleanup tasks.
 
-`URLClassLoader.close()` giải phóng các file/JAR mà loader đã mở và khiến loader đó không còn nạp class/resource mới của chính nó; **class và object đã nạp vẫn có thể dùng được**. Việc đóng loader không tự dừng plugin, và **không bảo đảm unload class**. Class unloading chỉ có thể diễn ra sau khi không còn tham chiếu giữ class loader/các class của nó và GC quyết định thu gom. Nguồn leak thường là thread vẫn sống, `ThreadLocal`, TCCL, static cache, listener, scheduler hoặc lambda/callback mà host còn giữ.
+`URLClassLoader.close()` releases files/JARs opened by the loader and prevents that loader from loading new classes/resources of its own; **already-loaded classes and objects may still remain usable**. Closing the loader does not automatically stop the plugin, and **does not guarantee class unloading**. Class unloading can only happen after no references retain the class loader/its classes and GC decides to collect them. Common leak sources include still-running threads, `ThreadLocal`, TCCL, static caches, listeners, schedulers, or lambdas/callbacks still held by the host.
 
-**Hot reload** thường yêu cầu loader mới và instance mới: kiểm tra artifact → nạp/`start` mới → readiness → chuyển traffic sang mới → chờ request cũ → `stop` cũ → gỡ tham chiếu/đóng loader cũ. `ServiceLoader.reload()` không thay thế luồng này. Nếu cần chuyển state giữa hai version, nên dùng định dạng trung lập (JSON/record API ổn định) thay cho object triển khai thuộc loader cũ.
+**Hot reload** typically requires a new loader and a new instance: validate artifact → load/`start` new → readiness → shift traffic to new → drain old requests → `stop` old → drop references/close old loader. `ServiceLoader.reload()` does not replace this workflow. If state must transfer between versions, use a neutral format (JSON/stable API records) instead of implementation objects from the old loader.
 
-## 4. Ví dụ chạy được Java 17+: plugin JAR qua SPI
+## 4. Runnable Java 17+ Example: Plugin JAR via SPI
 
-Ví dụ tách **host/API** khỏi **JAR provider**. Host nạp JAR động bằng `URLClassLoader`, tìm provider bằng `ServiceLoader`, gọi `start → execute → stop` và đóng loader. Dùng JDK 17+; không cần Maven hoặc Gradle.
+The example separates **host/API** from the **provider JAR**. The host dynamically loads the JAR with `URLClassLoader`, locates the provider via `ServiceLoader`, invokes `start → execute → stop`, and closes the loader. Uses JDK 17+; no Maven or Gradle required.
 
-Cấu trúc:
+Structure:
 
 ```text
 demo/
@@ -220,13 +220,13 @@ public final class HelloExtension implements Extension {
         if (!active) {
             throw new IllegalStateException("Plugin is not active");
         }
-        return "Xin chào, " + request + "!";
+        return "Hello, " + request + "!";
     }
 
     @Override
     public void stop() {
         if (!active) {
-            return; // Gọi lặp an toàn
+            return; // Safe to call repeatedly
         }
         active = false;
         context.log("stopped " + id());
@@ -235,7 +235,7 @@ public final class HelloExtension implements Extension {
 }
 ```
 
-**`providers/META-INF/services/app.api.Extension`** (đúng một dòng provider):
+**`providers/META-INF/services/app.api.Extension`** (exactly one provider line):
 
 ```text
 sample.HelloExtension
@@ -286,7 +286,7 @@ public final class Main {
                     throw new IllegalStateException("No hello provider found");
                 }
             } finally {
-                // Dừng ngược thứ tự start kể cả khi execute ném lỗi.
+                // Stop in reverse start order even if execute throws an error.
                 for (int i = running.size() - 1; i >= 0; i--) {
                     try {
                         running.get(i).stop();
@@ -295,12 +295,12 @@ public final class Main {
                     }
                 }
             }
-        } // URLClassLoader.close() sau stop.
+        } // URLClassLoader.close() after stop.
     }
 }
 ```
 
-Từ thư mục `demo`, mở **PowerShell trên Windows**. Cần có `java`, `javac`, `jar` của JDK 17+ trong `PATH`:
+From the `demo` directory, open **PowerShell on Windows**. Ensure JDK 17+ `java`, `javac`, `jar` are in `PATH`:
 
 ```powershell
 New-Item -ItemType Directory -Force build/host, build/plugin | Out-Null
@@ -312,65 +312,65 @@ jar --create --file build/hello-plugin.jar -C build/plugin .
 java -cp build/host app.host.Main build/hello-plugin.jar
 ```
 
-**Stdout dự kiến, chính xác:**
+**Exact expected stdout:**
 
 ```text
 [host] started hello
-Xin chào, Java!
+Hello, Java!
 [host] stopped hello
 ```
 
-Tại sao chạy được?
+Why does this work?
 
-1. `build/host` có contract và host; `hello-plugin.jar` có `sample.HelloExtension` và descriptor `META-INF/services/...`, **không có bản sao** `app.api.Extension`.
-2. Parent của `pluginLoader` chính là loader đã nạp API host. Vì vậy `HelloExtension` thật sự implement đúng `Extension` mà host biết.
-3. `ServiceLoader.load(Extension.class, pluginLoader)` thiết lập cách tìm provider; vòng `for` thực hiện duyệt và tạo instance. `start` là lời gọi **tường minh của host**, không phải hành vi tự động của SPI.
-4. Sau `execute`, khối `finally` dừng mọi plugin đã được khởi động và khối `try-with-resources` đóng loader. Output không chứa thông báo của việc đóng loader vì `close()` không in ra stdout.
+1. `build/host` contains the contract and host; `hello-plugin.jar` contains `sample.HelloExtension` and the `META-INF/services/...` descriptor, **without a duplicate copy** of `app.api.Extension`.
+2. The parent of `pluginLoader` is the loader that loaded the host API. Thus `HelloExtension` genuinely implements the exact `Extension` known to the host.
+3. `ServiceLoader.load(Extension.class, pluginLoader)` sets up provider lookup; the `for` loop iterates and creates the instance. `start` is an **explicit host call**, not automatic SPI behavior.
+4. After `execute`, the `finally` block stops every started plugin and the `try-with-resources` block closes the loader. Output contains no message for closing the loader because `close()` does not print to stdout.
 
-Trên Linux/macOS thay `New-Item`/`Copy-Item` bằng `mkdir -p`/`cp`; các lệnh Java giữ nguyên. Mẫu này cố ý nhỏ: host production còn phải kiểm tra nguồn JAR, timeout, thread safety, readiness, rollback nếu `start` tạo tài nguyên rồi lỗi và quy tắc hot swap.
+On Linux/macOS replace `New-Item`/`Copy-Item` with `mkdir -p`/`cp`; the Java commands stay the same. This sample is intentionally minimal: a production host must also verify the JAR source, timeouts, thread safety, readiness, rollback if `start` allocates resources before failing, and hot-swap rules.
 
-## 5. Lỗi theo giai đoạn: chẩn đoán nguyên nhân đúng chỗ
+## 5. Errors by Stage: Diagnosing the Root Cause in the Right Place
 
-| Mốc | Triệu chứng | Kiểm tra |
+| Milestone | Symptoms | Checks |
 | --- | --- | --- |
-| Discovery | Không tìm thấy provider | File `META-INF/services/...` đúng tên API? descriptor nằm trong JAR? đúng `provides/uses` với module? |
-| Loading/linking | `ClassNotFoundException`, `NoClassDefFoundError`, `UnsupportedClassVersionError`, `LinkageError` | Thiếu thư viện, classpath/loader sai, bytecode cho JDK mới hơn, trùng lớp/API hoặc dependency |
-| Tạo instance | `ServiceConfigurationError`, lỗi constructor/static initialization | Provider triển khai đúng contract, có cách tạo instance hợp lệ, tránh tác dụng phụ trong static initializer |
-| `start` | Mở được một phần tài nguyên rồi ném lỗi | Rollback từng tài nguyên, không đưa plugin vào registry, ghi stage và nguyên nhân |
-| Gọi | Exception, kết quả sai, race hoặc treo | Input/output contract, thread safety, deadline, giới hạn đồng thời, log và retry policy |
-| `stop`/cleanup | Thread/file còn sống, loader không được GC | Chặn gọi mới, đợi inflight, đóng hết executor/stream/callback, gỡ cache/TCCL/reference |
+| Discovery | Provider not found | Does `META-INF/services/...` match the exact API name? Is the descriptor inside the JAR? Are `provides/uses` right for modules? |
+| Loading/linking | `ClassNotFoundException`, `NoClassDefFoundError`, `UnsupportedClassVersionError`, `LinkageError` | Missing library, wrong classpath/loader, bytecode for newer JDK, duplicate classes/API or dependencies |
+| Instantiation | `ServiceConfigurationError`, constructor/static initialization error | Provider implements contract properly, has valid instantiation mechanism, avoid side effects in static initializers |
+| `start` | Opens partial resources then throws error | Roll back each resource, do not insert plugin into registry, log stage and root cause |
+| Invocation | Exception, wrong result, race, or hang | Input/output contract, thread safety, deadline, concurrency limit, logging and retry policy |
+| `stop`/cleanup | Threads/files still alive, loader not GC'd | Block new calls, drain in-flight, close all executors/streams/callbacks, remove caches/TCCL/references |
 
-Các ngộ nhận cần tránh:
+Misconceptions to avoid:
 
-- **“Tìm JAR tức là đã chạy provider.”** Discovery có thể chỉ là đọc metadata, còn load/initialize/invoke là các bước riêng.
-- **“`ServiceLoader` sẽ gọi `start()` và `stop()`.”** Không: host/framework tự định nghĩa và gọi lifecycle API.
-- **“`reload()` sẽ thay code hiện tại.”** Không: nó xóa cache tìm provider; class definition/instance cũ không tự đổi.
-- **“Đóng class loader sẽ kill thread và unload class.”** Không: thread/object vẫn có thể tồn tại; unload không bảo đảm.
-- **“Cùng tên class tức cùng kiểu.”** Không nếu defining class loader khác nhau.
-- **“Loader riêng là sandbox cho mã không tin cậy.”** Không: để chạy mã không tin cậy cần ranh giới tiến trình, quyền OS bị giới hạn và giới hạn tài nguyên.
+- **"Finding the JAR means the provider has already run."** Discovery may only read metadata, while loading/initialization/invocation are separate steps.
+- **"`ServiceLoader` will call `start()` and `stop()`."** No: the host/framework defines and calls its own lifecycle API.
+- **"`reload()` will replace the currently running code."** No: it clears the provider lookup cache; old class definitions/instances do not change automatically.
+- **"Closing the class loader will kill threads and unload classes."** No: threads/objects may persist; unloading is not guaranteed.
+- **"Same class name means same type."** Not if the defining class loaders differ.
+- **"A separate loader is a sandbox for untrusted code."** No: running untrusted code requires process boundaries, restricted OS privileges, and resource limits.
 
-## 6. Vận hành và nâng cấp an toàn
+## 6. Safe Operations and Upgrades
 
-Để phát triển từ ví dụ thành plugin manager tin cậy, thường phải bổ sung:
+To evolve from this example into a reliable plugin manager, you typically need to add:
 
-- **Manifest/version compatibility:** plugin ID, version, API version, JDK tối thiểu, dependencies, checksum/chữ ký, nguồn cung cấp, capabilities; từ chối sớm trường hợp sai.
-- **State machine có đồng bộ:** chuyển trạng thái nguyên tử, registry chỉ xuất hiện sau readiness, chặn lời gọi mới khi `QUIESCING`.
-- **Dependency lifecycle:** thứ tự start theo dependency, thứ tự stop ngược; phát hiện chu trình và lỗi khởi động chuỗi.
-- **Resource ownership:** host quản lý loader; plugin quản lý tài nguyên riêng; dọn đủ khi chạy thành công, lỗi giữa chừng hay hot reload.
-- **Fault management:** timeout, quota, health check, circuit breaker/quarantine, xử lý request còn chạy và policy retry.
-- **Security:** chỉ chấp nhận artifact từ nguồn đã kiểm tra. Class loader không giới hạn quyền của plugin trong JVM; mã không tin cậy cần tách process.
-- **Observability và leak check:** đo init/stop latency, in-flight, error rate, số loader cũ còn sống sau nhiều lượt nâng cấp; tìm thread/TCCL/`ThreadLocal` giữ class loader.
+- **Manifest/version compatibility:** plugin ID, version, API version, minimum JDK, dependencies, checksum/signature, source provenance, capabilities; reject mismatches early.
+- **Synchronized state machine:** atomic state transitions, registry entry exposed only after readiness, reject new calls during `QUIESCING`.
+- **Dependency lifecycle:** startup order by dependencies, reverse shutdown order; detect cycles and cascading startup failures.
+- **Resource ownership:** host manages loaders; plugin manages its own resources; clean up thoroughly on success, mid-flight error, or hot reload.
+- **Fault management:** timeouts, quotas, health checks, circuit breakers/quarantine, in-flight request handling, and retry policies.
+- **Security:** accept artifacts only from verified sources. Class loaders do not restrict plugin privileges within the JVM; untrusted code requires separate processes.
+- **Observability and leak checks:** measure init/stop latency, in-flight counts, error rates, number of old loaders still alive across upgrades; hunt for threads/TCCL/`ThreadLocal` retaining class loaders.
 
-Quy trình hot upgrade thường là **kiểm tra artifact mới → tạo loader/instance mới → start và readiness → chuyển traffic → đợi request cũ → stop cũ → gỡ tham chiếu, đóng loader cũ**. Nếu phiên bản mới không sẵn sàng, giữ phiên bản cũ phục vụ và dọn phiên bản mới đã khởi động một phần. Không trao trực tiếp object đặc thù class loader cũ sang phiên bản mới; nên trao state qua dữ liệu/contract ổn định.
+A hot-upgrade workflow is typically **validate new artifact → create new loader/instance → start and readiness → shift traffic → drain old requests → stop old → drop references, close old loader**. If the new version fails to become ready, keep the old version serving and clean up the partially started new version. Do not pass objects specific to the old class loader directly to the new version; transfer state through stable data/contracts instead.
 
-### Checklist tự đánh giá
+### Self-Assessment Checklist
 
-- [ ] API chung được định version và chỉ có một định nghĩa được host/plugin cùng dùng.
-- [ ] Phân biệt rõ discovery, loading, class initialization, provider creation, business start, invocation và stop.
-- [ ] Kiểm tra nguồn JAR, metadata, dependency và compatibility trước khi kích hoạt.
-- [ ] Host chỉ dispatch đến plugin `ACTIVE`; định rõ concurrency, timeout, error policy.
-- [ ] Plugin khởi động thất bại biết rollback; shutdown chặn request mới trước khi cleanup.
-- [ ] Không còn callback/thread/cache/TCCL giữ loader cũ khi thay phiên bản.
-- [ ] Kiểm thử thực tế: nạp, xử lý, thất bại lúc start/gọi, dừng, nạp phiên bản mới và theo dõi leak.
+- [ ] Shared API is versioned and only a single definition is shared by host and plugins.
+- [ ] Discovery, loading, class initialization, provider creation, business start, invocation, and stop are clearly separated.
+- [ ] JAR source, metadata, dependencies, and compatibility are verified before activation.
+- [ ] Host dispatches only to `ACTIVE` plugins; concurrency, timeouts, and error policies are defined.
+- [ ] Plugins that fail to start roll back cleanly; shutdown blocks new requests before cleanup.
+- [ ] No callbacks/threads/caches/TCCL retain the old loader across version swaps.
+- [ ] Real testing covers: loading, processing, failures at start/invocation, stopping, loading a new version, and leak monitoring.
 
-**Tài liệu API chính thức (Java 17):** [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), [`URLClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html), [`ModuleLayer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html).
+**Official API Documentation (Java 17):** [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), [`URLClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html), [`ModuleLayer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html).

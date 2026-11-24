@@ -1,58 +1,58 @@
-# 10.4. Giới hạn ThreadMXBean và các công cụ chỉ quan sát platform thread
+# 10.4. Limitations of ThreadMXBean and Platform-Thread-Only Observability Tools
 
-## Mục tiêu học
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **platform thread**, **virtual thread** và **carrier thread** khi đọc số liệu quan sát JVM.
-- Giải thích vì sao `ThreadMXBean`, JMX và một số API/công cụ thread truyền thống không hiển thị toàn bộ virtual thread.
-- Tránh kết luận sai về số request, trạng thái treo, CPU hoặc deadlock từ những số liệu chỉ dành cho platform thread.
-- Chọn thread dump, JDK Flight Recorder (JFR), chỉ số ứng dụng và công cụ theo phiên bản JDK khi điều tra hệ thống sử dụng virtual thread.
+- Distinguish **platform threads**, **virtual threads**, and **carrier threads** when reading JVM observability metrics.
+- Explain why `ThreadMXBean`, JMX, and several traditional thread APIs/tools do not expose all virtual threads.
+- Avoid drawing wrong conclusions about request counts, hangs, CPU usage, or deadlocks from platform-thread-only metrics.
+- Select thread dumps, JDK Flight Recorder (JFR), application metrics, and tools according to JDK version when investigating systems using virtual threads.
 
-**Phạm vi phiên bản:** Virtual thread chính thức xuất hiện từ **Java 21**. Các API và ví dụ chính dưới đây chạy với Java 21+. Tiện ích chẩn đoán ra đời ở JDK mới hơn được đánh dấu riêng.
+**Version scope:** Virtual threads became permanent in **Java 21**. The primary APIs and examples below run on Java 21+. Diagnostic utilities introduced in newer JDKs are marked separately.
 
-## 1. Nguồn gốc giới hạn quan sát
+## 1. Origin of the Observability Limitation
 
-**Platform thread** thường ánh xạ một-một với luồng hệ điều hành (OS thread). **Virtual thread** vẫn là một đối tượng `java.lang.Thread`, có ID riêng, nhưng JVM lập lịch nó trên các platform thread gọi là **carrier**. Khi virtual thread thực hiện thao tác blocking tương thích, nó có thể tạm ngừng (*unmount*) để carrier phục vụ virtual thread khác, rồi tiếp tục (*mount*) trên một carrier khi sẵn sàng.
+A **platform thread** typically maps one-to-one to an operating system thread (OS thread). A **virtual thread** is still a `java.lang.Thread` object with its own ID, yet the JVM schedules it onto platform threads called **carriers**. When a virtual thread performs a compatible blocking operation, it can suspend (*unmount*) so the carrier can serve another virtual thread, then resume (*mount*) on a carrier when ready.
 
-Ba đại lượng khác nhau cần tách biệt:
+Three distinct quantities must be separated:
 
-1. **Số platform thread:** tập luồng hệ điều hành/JVM, bao gồm carrier và nhiều platform thread khác.
-2. **Số virtual thread đang sống:** các tác vụ logic đang thực thi hoặc đang chờ; con số này có thể rất lớn.
-3. **Số carrier đang bận:** các platform thread hiện được dùng để chạy virtual thread; không thể hiện mọi virtual thread đang unmount.
+1. **Platform thread count:** OS/JVM threads, including carriers and many other platform threads.
+2. **Live virtual thread count:** logical tasks currently running or waiting; this number can be very large.
+3. **Busy carrier count:** platform threads currently used to run virtual threads; this does not reflect every unmounted virtual thread.
 
-Ví dụ, một dịch vụ có hàng chục nghìn virtual thread đang chờ I/O nhưng `ThreadMXBean.getThreadCount()` chỉ trả vài chục. Điều này có thể hoàn toàn bình thường: phép đếm **chỉ gồm platform thread**. Không được kết luận dịch vụ chỉ có vài chục request đang hoạt động.
+For example, a service may have tens of thousands of virtual threads waiting on I/O while `ThreadMXBean.getThreadCount()` returns only a few dozen. This can be completely normal: the count **includes only platform threads**. Never conclude that the service has only a few dozen active requests.
 
-Virtual thread không giúp một phép tính CPU chạy nhanh hơn. Giá trị chủ yếu của nó là tăng khả năng xử lý đồng thời những tác vụ thường xuyên chờ I/O.
+Virtual threads do not make a CPU computation run faster. Their primary value is increasing concurrency for tasks that frequently wait on I/O.
 
-## 2. Hợp đồng thật sự của ThreadMXBean
+## 2. The Actual Contract of ThreadMXBean
 
-`java.lang.management.ThreadMXBean` được lấy qua `ManagementFactory.getThreadMXBean()` hoặc JMX ObjectName `java.lang:type=Threading`. Theo Javadoc Java 21, MXBean này chỉ hỗ trợ giám sát và quản lý **platform thread**; virtual thread không thuộc phạm vi của nó.
+`java.lang.management.ThreadMXBean` is obtained via `ManagementFactory.getThreadMXBean()` or the JMX ObjectName `java.lang:type=Threading`. According to the Java 21 Javadoc, this MXBean supports monitoring and management of **platform threads only**; virtual threads are outside its scope.
 
-| Nhóm phương thức | Dữ liệu phản ánh | Điều không được suy ra |
+| Method Group | What the Data Reflects | What Must Not Be Inferred |
 |---|---|---|
-| `getThreadCount()`, `getPeakThreadCount()`, `getDaemonThreadCount()` | Số platform thread hiện tại, mức đỉnh và số daemon | Không phải số virtual thread hoặc request |
-| `getTotalStartedThreadCount()` | Tổng platform thread đã được tạo và khởi động | Không phản ánh số virtual thread đã tạo |
-| `getAllThreadIds()` | ID của các platform thread còn sống | Không liệt kê ID virtual thread |
-| `getThreadInfo(id)`, `getThreadInfo(ids, ...)` | `ThreadInfo` của platform thread | Với ID virtual thread, trả `null`; thread đã chết hoặc không tồn tại cũng có thể cho `null` |
-| `dumpAllThreads(...)` | Stack và thông tin đồng bộ của platform thread | Tên “All” không có nghĩa chứa toàn bộ virtual thread |
-| `getThreadCpuTime(id)`, `getThreadUserTime(id)` | CPU của platform thread nếu được hỗ trợ/đã bật | Với ID virtual thread trả `-1`, không có nghĩa dùng 0 CPU |
-| `getCurrentThreadCpuTime()`, `getCurrentThreadUserTime()` | CPU của thread hiện tại nếu là platform thread | Gọi từ virtual thread không trả CPU của riêng virtual thread (thường `-1` nếu JVM hỗ trợ phép đo) |
-| `findMonitorDeadlockedThreads()`, `findDeadlockedThreads()` | Chu trình deadlock giữa các platform thread theo kiểu khóa API hỗ trợ | **Không phát hiện** chu trình có virtual thread |
+| `getThreadCount()`, `getPeakThreadCount()`, `getDaemonThreadCount()` | Current, peak, and daemon **platform thread** counts | Not virtual thread or request counts |
+| `getTotalStartedThreadCount()` | Total platform threads created and started | Does not reflect virtual threads created |
+| `getAllThreadIds()` | IDs of live platform threads | Does not list virtual thread IDs |
+| `getThreadInfo(id)`, `getThreadInfo(ids, ...)` | `ThreadInfo` for platform threads | Returns `null` for a virtual thread ID; dead or nonexistent threads can also yield `null` |
+| `dumpAllThreads(...)` | Stacks and synchronization info of platform threads | The word "All" does not mean it includes all virtual threads |
+| `getThreadCpuTime(id)`, `getThreadUserTime(id)` | CPU time of a platform thread if supported/enabled | Returns `-1` for a virtual thread ID, which does not mean 0 CPU used |
+| `getCurrentThreadCpuTime()`, `getCurrentThreadUserTime()` | CPU time of the current thread if it is a platform thread | Calling from a virtual thread does not return that virtual thread's own CPU time (typically `-1` if the JVM supports measurement) |
+| `findMonitorDeadlockedThreads()`, `findDeadlockedThreads()` | Deadlock cycles among platform threads for API-supported lock types | **Does not detect** cycles involving virtual threads |
 
-Cần hiểu các chi tiết:
+Important details to understand:
 
-- `ThreadInfo` là mô hình snapshot của `ThreadMXBean`, không phải bản ghi của mọi `Thread` Java.
-- `isThreadCpuTimeSupported()` và `isThreadCpuTimeEnabled()` chỉ mô tả khả năng/bật tắt đo CPU của **platform thread**. Bật tính năng không làm API hỗ trợ virtual thread.
-- Tùy JVM và phương thức, thiếu khả năng đo CPU có thể dẫn đến `UnsupportedOperationException`; dữ liệu không hợp lệ hoặc không áp dụng có thể trả `-1`. Kiểm tra cả khả năng hỗ trợ lẫn giá trị nhận được.
-- `findDeadlockedThreads() == null` chỉ là “không tìm thấy chu trình **trong phạm vi API**”, không chứng minh mọi virtual thread đều không kẹt.
-- Lấy CPU/stack của **carrier** không phải lấy CPU/stack lịch sử của virtual thread mà carrier từng chạy. Virtual thread có thể đổi carrier và có thể unmount khi đang chờ.
+- `ThreadInfo` is a `ThreadMXBean` snapshot model, not a record of every Java `Thread`.
+- `isThreadCpuTimeSupported()` and `isThreadCpuTimeEnabled()` describe CPU measurement capability/state for **platform threads** only. Enabling them does not add virtual thread support to the API.
+- Depending on the JVM and method, lack of CPU measurement support can throw `UnsupportedOperationException`; invalid or inapplicable data can return `-1`. Check both capability support and the returned value.
+- `findDeadlockedThreads() == null` means only "no cycle found **within the API's scope**," not proof that no virtual thread is stuck.
+- Reading a **carrier's** CPU or stack is not reading the historical CPU or stack of a specific virtual thread that the carrier once ran. A virtual thread can switch carriers and unmount while waiting.
 
-## 3. Ví dụ Java 21+: một virtual thread sống nhưng “vắng mặt” trong MXBean
+## 3. Java 21+ Example: A Live Virtual Thread "Absent" from the MXBean
 
-Ta tạo một platform thread và một virtual thread cùng chờ trên `CountDownLatch`. `ready` xác nhận hai tác vụ đã khởi động; `release` giữ chúng sống cho tới khi đo xong.
+We create one platform thread and one virtual thread, both waiting on a `CountDownLatch`. `ready` confirms both tasks have started; `release` keeps them alive until measurements complete.
 
-Tạo tệp **`ThreadMxBeanScopeDemo.java`**:
+Create the file **`ThreadMxBeanScopeDemo.java`**:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -103,14 +103,14 @@ public class ThreadMxBeanScopeDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 21 trở lên:
+Compile and run with JDK 21 or later:
 
 ```bash
 javac ThreadMxBeanScopeDemo.java
 java ThreadMxBeanScopeDemo
 ```
 
-Đầu ra chính xác của ví dụ:
+Exact output of the example:
 
 ```text
 platform.isVirtual=false
@@ -122,28 +122,28 @@ ThreadInfo(virtual) == null=true
 getAllStackTraces has virtual=false
 ```
 
-**Giải thích:** cả hai `Thread` đều đang sống. `ThreadMXBean` nhìn thấy platform thread, nhưng không liệt kê ID của virtual thread và không trả `ThreadInfo` cho virtual thread. Dòng cuối xác nhận `Thread.getAllStackTraces()` cũng chỉ liệt kê platform thread. “Không có trong danh sách” thể hiện **giới hạn API**, không phải thread chưa khởi động hay đã chết.
+**Explanation:** both `Thread` instances are alive. `ThreadMXBean` sees the platform thread, but does not list the virtual thread's ID and does not return a `ThreadInfo` for the virtual thread. The last line confirms `Thread.getAllStackTraces()` also lists only platform threads. "Absent from the list" reflects an **API limitation**, not an unstarted or dead thread.
 
-Nếu đã có tham chiếu đến một virtual thread cụ thể, `virtual.getStackTrace()` có thể giúp đọc stack khi nó còn hoạt động. Phương thức đó **không** cung cấp cách liệt kê toàn bộ virtual thread của JVM và kết quả là ảnh chụp tại một thời điểm.
+If you already hold a reference to a specific virtual thread, `virtual.getStackTrace()` can inspect its stack while it is alive. That method **does not** provide a way to enumerate all virtual threads in the JVM, and its result is a point-in-time snapshot.
 
-## 4. Công cụ nào chỉ nhìn platform thread, công cụ nào có hỗ trợ virtual thread?
+## 4. Which Tools See Only Platform Threads vs. Support Virtual Threads?
 
-| API / công cụ | Phạm vi quan sát | Sử dụng phù hợp |
+| API / Tool | Observation Scope | Appropriate Use |
 |---|---|---|
-| JMX `java.lang:type=Threading`, dashboard lấy số từ `ThreadMXBean` | Platform thread theo hợp đồng Java API | Đặt tên metric `platform_threads`, không gọi là tổng request hay tổng thread logic |
-| `Thread.getAllStackTraces()`, `Thread.activeCount()`, `Thread.enumerate()`, `ThreadGroup.activeCount()/enumerate()` | Cơ chế liệt kê truyền thống không bao gồm virtual thread | Dùng khi cần tìm platform thread, không dùng đếm virtual thread |
-| Công cụ OS như `top -H`, `ps -L` và native thread view | OS thread/carrier; không liệt kê từng virtual thread | Xem tải CPU và số OS thread, rồi đối chiếu dữ liệu JVM/ứng dụng |
-| Thread dump HotSpot truyền thống, `jstack`, `jcmd <PID> Thread.print` | Chủ yếu platform thread; tùy phiên bản có thể thấy một số virtual thread **đang mount**, nhưng không bao quát virtual thread đã unmount | Phân tích carrier, native frame, stack và lock của platform thread |
-| `jcmd <PID> Thread.dump_to_file` trên JDK hỗ trợ | Dump được thiết kế để quan sát virtual thread, xuất text/JSON | Ưu tiên khi cần stack virtual thread; kiểm tra mức bao phủ/chi tiết thực tế theo JDK |
-| JDK Flight Recorder (JFR), JDK Mission Control | Event liên quan vòng đời, pinning hoặc lỗi lập lịch virtual thread | Điều tra theo dòng thời gian, phối hợp với dump/metrics |
+| JMX `java.lang:type=Threading`, dashboards pulling from `ThreadMXBean` | Platform threads per the Java API contract | Name metrics `platform_threads`; do not label them total requests or total logical threads |
+| `Thread.getAllStackTraces()`, `Thread.activeCount()`, `Thread.enumerate()`, `ThreadGroup.activeCount()/enumerate()` | Legacy enumeration mechanisms that exclude virtual threads | Use to find platform threads, not to count virtual threads |
+| OS tools like `top -H`, `ps -L`, and native thread views | OS threads/carriers; do not list individual virtual threads | Inspect CPU load and OS thread counts, then correlate with JVM/application data |
+| Traditional HotSpot thread dumps, `jstack`, `jcmd <PID> Thread.print` | Primarily platform threads; depending on version may show some **mounted** virtual threads, but does not cover unmounted ones | Analyze carrier, native frames, platform stacks, and locks |
+| `jcmd <PID> Thread.dump_to_file` on supporting JDKs | Dump designed to observe virtual threads, outputting text/JSON | Prefer when virtual thread stacks are needed; verify actual coverage/detail per JDK |
+| JDK Flight Recorder (JFR), JDK Mission Control | Events for virtual thread lifecycle, pinning, or scheduling failures | Investigate along a timeline alongside dumps and metrics |
 
-**Lưu ý:** `Thread.dump_to_file` và dump HotSpot truyền thống không giống nhau. Tài liệu Java 21 mô tả `Thread.dump_to_file` có thể hiển thị virtual thread nhưng thiếu một số chi tiết địa chỉ, khóa, JNI và heap so với dump truyền thống. Các phiên bản JDK thay đổi cách trình bày/độ bao phủ dữ liệu, vì vậy không suy luận “không xuất hiện trong một file dump” thành “không tồn tại”. Kiểm tra `java -version` và `jcmd <PID> help` trước khi chẩn đoán.
+**Note:** `Thread.dump_to_file` and traditional HotSpot dumps are not identical. Java 21 documentation notes that `Thread.dump_to_file` can display virtual threads while omitting some object address, lock, JNI, and heap details compared to traditional dumps. JDK releases evolve presentation and coverage, so never infer "not in a dump file" as "does not exist." Check `java -version` and `jcmd <PID> help` before diagnosing.
 
-## 5. Chẩn đoán hệ thống dùng virtual thread
+## 5. Diagnosing a System Using Virtual Threads
 
-### 5.1. Tác vụ đang chờ/hang: lấy dump có hỗ trợ virtual thread
+### 5.1. Waiting/Hanging Tasks: Take a Virtual-Thread-Aware Dump
 
-Trên JDK 21+ hỗ trợ lệnh và với quyền truy cập JVM phù hợp:
+On JDK 21+ supporting the command and with proper JVM access permissions:
 
 ```bash
 jcmd -l
@@ -151,69 +151,69 @@ jcmd <PID> Thread.dump_to_file -format=text threads.txt
 jcmd <PID> Thread.dump_to_file -format=json threads.json
 ```
 
-Thay `<PID>` bằng PID thực. Hai lệnh dump là **hai định dạng lựa chọn**, không bắt buộc chạy cả hai. Text tiện đọc nhanh; JSON tiện công cụ phân tích. Tìm tên thread, trạng thái, stack tại chỗ chờ I/O, lock hoặc dependency. Nếu bản JDK không cung cấp đủ thông tin lock trong loại dump này, bổ sung dump truyền thống, JFR và dữ liệu ứng dụng.
+Replace `<PID>` with the real PID. The two dump commands represent **two format choices**; you do not have to run both. Text is quick to read; JSON suits analysis tools. Look for thread names, states, and stacks at I/O waits, locks, or dependencies. If your JDK version does not include sufficient lock details in this dump type, supplement it with traditional dumps, JFR, and application data.
 
-Tên virtual thread nên mang ý nghĩa loại công việc (chẳng hạn prefix `http-request-`), đồng thời log/trace cần correlation ID nghiệp vụ. Thread ID không thay thế được request/trace ID, nhất là khi task đi qua nhiều dịch vụ.
+Virtual thread names should reflect the type of work (e.g., an `http-request-` prefix), and logs/traces should include a business correlation ID. Thread IDs cannot replace request/trace IDs, especially when work spans multiple services.
 
-### 5.2. Vấn đề theo thời gian: JFR
+### 5.2. Time-Based Issues: JFR
 
-Những JFR event liên quan gồm:
+Relevant JFR events include:
 
-- `jdk.VirtualThreadStart` và `jdk.VirtualThreadEnd`: bắt đầu và kết thúc. Trên JDK 21 **tắt mặc định**; bật có chủ đích vì hệ thống có thể tạo rất nhiều virtual thread.
-- `jdk.VirtualThreadPinned`: báo pinning vượt ngưỡng cấu hình; trên JDK 21 ngưỡng mặc định **20 ms**. Cơ chế pinning thay đổi ở một số bản JDK mới, cần đối chiếu phiên bản.
-- `jdk.VirtualThreadSubmitFailed`: lỗi khởi động/đưa virtual thread trở lại lịch chạy, có thể liên quan tài nguyên.
+- `jdk.VirtualThreadStart` and `jdk.VirtualThreadEnd`: start and end events. **Disabled by default** on JDK 21; enable deliberately because systems can create vast numbers of virtual threads.
+- `jdk.VirtualThreadPinned`: reports pinning exceeding a configurable threshold; the JDK 21 default threshold is **20 ms**. Pinning mechanics change in some newer JDK releases, so check your version.
+- `jdk.VirtualThreadSubmitFailed`: failure to start or reschedule a virtual thread, potentially tied to resource exhaustion.
 
-Sau khi đã ghi được tệp `recording.jfr`, dùng:
+Once `recording.jfr` has been captured, run:
 
 ```bash
 jfr print --events jdk.VirtualThreadStart,jdk.VirtualThreadEnd,jdk.VirtualThreadPinned,jdk.VirtualThreadSubmitFailed recording.jfr
 ```
 
-Event chỉ có khi cấu hình recording thu thập nó; **không có event** chưa đủ chứng minh không có vấn đề. Cần ghép với latency, timeout, I/O, pool kết nối và lỗi từ downstream.
+An event only appears if the recording configuration captures it; **zero events** does not prove no problem exists. Correlate with latency, timeouts, I/O, connection pools, and downstream errors.
 
-### 5.3. Bổ sung metrics của tác vụ và scheduler
+### 5.3. Adding Task and Scheduler Metrics
 
-Khi ứng dụng xử lý request bằng virtual thread, các số nên đo từ **vòng đời tác vụ**: số request/task đang xử lý (tăng lúc bắt đầu, giảm trong `finally`), tốc độ bắt đầu/kết thúc, latency p95/p99, lỗi, timeout, mức chờ I/O và pool kết nối. Những số đó trả lời đúng câu hỏi “có bao nhiêu công việc” hơn `ThreadMXBean.getThreadCount()`.
+When an application handles requests with virtual threads, measure **task lifecycle** metrics: in-flight requests/tasks (incremented at start, decremented in `finally`), start/completion rates, p95/p99 latency, errors, timeouts, I/O wait levels, and connection pool usage. Those numbers answer "how much work is active" far better than `ThreadMXBean.getThreadCount()`.
 
-**Từ JDK 24:** `jdk.management.VirtualThreadSchedulerMXBean` và các lệnh `jcmd Thread.vthread_scheduler`, `Thread.vthread_pollers` được giới thiệu để quan sát scheduler và I/O poller. MXBean có các số **ước lượng** như virtual thread đang mount, đang đợi lên lịch, pool size và parallelism. Chúng **không phải** bộ đếm tổng virtual thread đang sống, và không có sẵn trong Java 21. Không đưa các API/lệnh này vào chương trình yêu cầu biên dịch với JDK 21.
+**Since JDK 24:** `jdk.management.VirtualThreadSchedulerMXBean` and the `jcmd Thread.vthread_scheduler` and `Thread.vthread_pollers` commands were introduced to inspect the scheduler and I/O pollers. The MXBean exposes **estimates** such as mounted virtual threads, queued virtual threads, pool size, and parallelism. They are **not** a total live virtual thread counter and are unavailable in Java 21. Do not put these APIs/commands into programs that must compile on JDK 21.
 
-## 6. Tình huống thực tế và cách suy luận
+## 6. Real-World Scenarios and How to Reason About Them
 
-**A. `threadCount = 45` nhưng có vài nghìn request đang chờ.**  
-Kết luận sai: “chỉ 45 request hoạt động”. `threadCount` chỉ gồm platform thread; đối chiếu metric in-flight request, I/O và dump/JFR virtual-thread-aware.
+**A. `threadCount = 45` yet several thousand requests are waiting.**  
+Wrong conclusion: "only 45 requests are active." `threadCount` includes only platform threads; cross-check in-flight request metrics, I/O, and virtual-thread-aware dumps/JFR.
 
 **B. `getThreadInfo(virtualId) == null`.**  
-Kết luận sai: “virtual thread đã chết”. API trả `null` cho ID virtual thread kể cả lúc thread còn sống. Khi có tham chiếu `Thread`, kiểm tra `isAlive()`/`getState()`; muốn điều tra toàn JVM, dùng công cụ hỗ trợ virtual thread.
+Wrong conclusion: "the virtual thread is dead." The API returns `null` for a virtual thread ID even while the thread is alive. If you hold a `Thread` reference, check `isAlive()`/`getState()`; to inspect the whole JVM, use virtual-thread-aware tools.
 
 **C. `getThreadCpuTime(virtualId) == -1`.**  
-Kết luận sai: “thread dùng 0 ns CPU”. `-1` là không có dữ liệu hợp lệ qua API này. Dùng CPU JVM/process hoặc profiler có khả năng quan sát virtual thread; không gán toàn bộ CPU một carrier cho một virtual thread.
+Wrong conclusion: "the thread used 0 ns of CPU." `-1` means valid data is unavailable through this API. Use JVM/process CPU or a virtual-thread-aware profiler; do not attribute an entire carrier's CPU to a single virtual thread.
 
-**D. `findDeadlockedThreads()` trả `null` nhưng dịch vụ vẫn treo.**  
-Kết luận sai: “chắc chắn không deadlock”. API bỏ qua chu trình có virtual thread. Điều tra dependency chéo, điểm chờ lock/I/O, timeout, JFR và dump; mức chi tiết khóa tùy phiên bản JDK.
+**D. `findDeadlockedThreads()` returns `null` yet the service is hung.**  
+Wrong conclusion: "definitely no deadlock." The API ignores cycles involving virtual threads. Investigate cross-dependencies, lock/I/O wait points, timeouts, JFR, and dumps; lock detail depends on the JDK version.
 
-**E. `jstack` không thấy một virtual thread đã unmount.**  
-Kết luận sai: “tác vụ không tồn tại”. Virtual thread đang chờ có thể không chiếm carrier. Sử dụng dump/JFR có hỗ trợ virtual thread, log và trace tương ứng.
+**E. `jstack` does not show an unmounted virtual thread.**  
+Wrong conclusion: "the task does not exist." A waiting virtual thread may not occupy any carrier. Use virtual-thread-aware dumps/JFR, logs, and corresponding traces.
 
-## 7. Checklist thiết kế monitoring
+## 7. Monitoring Design Checklist
 
-1. Ghi rõ **đối tượng được đếm**. Metric từ `ThreadMXBean` là platform-thread metric.
-2. Kiểm tra **phiên bản JDK** và năng lực của lệnh/API thực tế; nhất là scheduler MXBean từ JDK 24.
-3. Phân biệt **0**, **`-1` / `null`** và **nằm ngoài phạm vi API**.
-4. Theo dõi in-flight task, latency, timeout, lỗi và chờ downstream từ tầng ứng dụng.
-5. Kết hợp stack/CPU carrier với virtual-thread dump, JFR và correlation ID.
-6. Thu thập đủ để chẩn đoán nhưng cân nhắc overhead của dump lớn và JFR start/end event với số lượng tác vụ rất cao.
+1. Clearly label **what is being counted**. Metrics from `ThreadMXBean` are platform-thread metrics.
+2. Check the **JDK version** and actual command/API capabilities, especially the scheduler MXBean added in JDK 24.
+3. Distinguish **0**, **`-1` / `null`**, and **out of API scope**.
+4. Track in-flight tasks, latency, timeouts, errors, and downstream waits at the application layer.
+5. Combine carrier stacks/CPU with virtual-thread dumps, JFR, and correlation IDs.
+6. Collect enough data to diagnose, while weighing the overhead of large dumps and JFR start/end events at very high task rates.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-- Vì sao `getThreadCount()` có thể rất nhỏ so với số virtual thread đang chờ I/O?
-- Vì sao `getThreadInfo(virtualId) == null` không đủ để kết luận virtual thread đã kết thúc?
-- Vì sao `getThreadCpuTime(virtualId) == -1` không có nghĩa là 0 CPU?
-- Vì sao kết quả “không có deadlock” từ `ThreadMXBean` không loại trừ deadlock liên quan virtual thread?
-- Nếu thread dump truyền thống và dump hỗ trợ virtual thread khác nhau, bạn sẽ phối hợp chúng với những metric/JFR event nào?
+- Why can `getThreadCount()` be very small compared to the number of virtual threads waiting on I/O?
+- Why is `getThreadInfo(virtualId) == null` insufficient to conclude a virtual thread has terminated?
+- Why does `getThreadCpuTime(virtualId) == -1` not mean 0 CPU usage?
+- Why does a "no deadlocks" result from `ThreadMXBean` not rule out deadlocks involving virtual threads?
+- When traditional thread dumps and virtual-thread-aware dumps differ, what metrics/JFR events should you combine with them?
 
-## Tài liệu chính thức
+## Official Documentation
 
-- [Java SE 21 — ThreadMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): hợp đồng platform-thread-only.
+- [Java SE 21 — ThreadMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): platform-thread-only contract.
 - [Java SE 21 — Thread](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Thread.html): `isVirtual()`, `threadId()`, `getAllStackTraces()`.
-- [Java SE 21 — Virtual Threads](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html): carrier, JFR, thread dump.
-- [Java SE 24 — VirtualThreadSchedulerMXBean](https://docs.oracle.com/en/java/javase/24/docs/api/jdk.management/jdk/management/VirtualThreadSchedulerMXBean.html): chức năng scheduler từ Java 24.
+- [Java SE 21 — Virtual Threads](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html): carriers, JFR, thread dumps.
+- [Java SE 24 — VirtualThreadSchedulerMXBean](https://docs.oracle.com/en/java/javase/24/docs/api/jdk.management/jdk/management/VirtualThreadSchedulerMXBean.html): scheduler capabilities introduced in Java 24.

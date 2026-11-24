@@ -1,0 +1,3 @@
+menuLevel1: Hiệu năng và vận hành
+menuLevel2: Tránh N+1 khi PermissionEvaluator hoặc ACL kiểm tra nhiều đối tượng
+status: WRITTEN

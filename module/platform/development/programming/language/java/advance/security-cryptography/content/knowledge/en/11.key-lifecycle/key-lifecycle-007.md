@@ -1,90 +1,90 @@
-# 11.7 Khóa có thể xuất so với khóa chỉ được sử dụng thông qua provider
+# 11.7 Exportable Keys vs. Provider-Bound Keys
 
-## 1. Tại sao hai đối tượng `Key` giống giao diện nhưng có mức kiểm soát khác nhau?
+## 1. Why Do Two `Key` Objects Share the Same Interface Yet Have Different Control Levels?
 
-Trong Java Cryptography Architecture/Extension (JCA/JCE), các giao diện `java.security.Key`, `SecretKey`, `PublicKey`, `PrivateKey` chỉ mô tả một khóa và những thao tác có thể thực hiện thông qua provider. Chúng **không** bảo đảm material nằm trong JVM, file, hệ điều hành, token/HSM hay một dịch vụ KMS.
+In the Java Cryptography Architecture/Extension (JCA/JCE), the interfaces `java.security.Key`, `SecretKey`, `PublicKey`, and `PrivateKey` only describe a key and the operations executable through a provider. They **do not** guarantee whether the key material resides in the JVM, a file, the OS, a hardware token/HSM, or a KMS service.
 
-Hai khái niệm cần phân biệt:
+Two concepts must be distinguished:
 
-- **Khóa có thể xuất (exportable):** có một biểu diễn byte của secret/private key được phép lấy ra, thường qua `key.getEncoded()`; Java process có thể giữ, sao chép, lưu hoặc nhập lại bằng API thích hợp. Mỗi bản sao mở rộng bề mặt rủi ro: heap, core dump, debug, log, file, backup, network, dịch vụ downstream.
-- **Khóa chỉ được sử dụng qua provider (provider-bound/opaque):** Java giữ **handle** tham chiếu một key trong token/HSM/keystore đặc thù hoặc adapter. Backend sở hữu key material, có thể cấm việc lấy raw bytes nhưng vẫn cho phép gọi các phép `sign`, `decrypt`, `encrypt`, `MAC`, `derive` hoặc `wrap` theo policy. Mục đích là **sử dụng key mà không cần trao key material cho ứng dụng**.
+- **Exportable key:** has a byte representation of the secret/private key permitted to be extracted, usually via `key.getEncoded()`; the Java process can hold, copy, store, or re-import it using appropriate APIs. Every copy widens the exposure surface: heap, core dumps, debuggers, logs, files, backups, network, and downstream services.
+- **Provider-only key (provider-bound/opaque):** Java holds a **handle** referencing a key inside a token/HSM/specialized keystore or adapter. The backend owns the key material, can forbid retrieving raw bytes, yet still permits calling `sign`, `decrypt`, `encrypt`, `MAC`, `derive`, or `wrap` per policy. The goal is to **use the key without handing key material to the application**.
 
 ```text
-Ứng dụng Java
+Java Application
    |
    +---- exportable SecretKey/PrivateKey
    |          |
    |      getEncoded() -> byte[]
    |          |
-   |      có thể import/copy/lưu nếu được phép
+   |      can be imported/copied/stored if permitted
    |          |
-   |      Cipher/Signature trên provider tương thích
+   |      Cipher/Signature on a compatible provider
    |
    +---- opaque provider key handle
               |
-          getEncoded() -> thường null
+          getEncoded() -> typically null
               |
           Cipher/Signature/KeyAgreement
               |
           provider -> token/HSM/KMS adapter
                          |
-                    operation đã cho phép
+                    permitted operation
                          |
-                    trả kết quả, không trả raw key
+                    returns result, never raw key
 ```
 
-**Quan trọng:** `getEncoded()==null` chỉ chứng minh API Java không cung cấp encoding qua lời gọi đó. Nó **không đủ chứng minh khóa là non-extractable ở phần cứng** hoặc bất khả trích xuất bằng mọi API khác; cũng **không làm một key giả lập trở nên dùng được với provider**. Bảo đảm thực tế phụ thuộc key attributes, token policy, IAM, cơ chế import/generation, firmware và kiểm tra an ninh.
+**Important:** `getEncoded()==null` only proves that the Java API did not provide an encoding through that call. It **is not sufficient proof that a key is hardware non-extractable** or impossible to extract via every other API; nor does it **make a mocked key usable with a provider**. Real assurance depends on key attributes, token policies, IAM, import/generation mechanisms, firmware, and security audits.
 
-## 2. Hợp đồng của Key.getAlgorithm, getFormat và getEncoded
+## 2. Contract of `Key.getAlgorithm`, `getFormat`, and `getEncoded`
 
-| API | Có nghĩa gì? | Không có nghĩa gì? |
+| API | What Does It Mean? | What Does It Not Mean? |
 | --- | --- | --- |
-| `getAlgorithm()` | Tên thuật toán như `AES`, `RSA`, `EC` | Không nói key được tạo ở đâu, có đủ quyền sử dụng hay có thể export |
-| `getFormat()` | Format encoding nếu có: `RAW`, `X.509`, `PKCS#8`, hoặc `null` | Không phải cơ chế bảo vệ dữ liệu; `null` không xác minh HSM |
-| `getEncoded()` | Byte encoding nếu provider hỗ trợ, hoặc `null` | Không chứng minh danh tính chủ key; không cấp quyền bọc/xuất hay đảm bảo mọi bản sao được xóa |
+| `getAlgorithm()` | Algorithm name such as `AES`, `RSA`, `EC` | Does not state where the key was created, whether usage is authorized, or whether it is exportable |
+| `getFormat()` | Encoding format if available: `RAW`, `X.509`, `PKCS#8`, or `null` | Not a data protection mechanism; `null` does not verify HSM custody |
+| `getEncoded()` | Encoded bytes if the provider supports it, or `null` | Does not prove owner identity; does not authorize wrapping/export or ensure all copies are wiped |
 
-Trong Java 17+ với phần mềm provider thông dụng:
+In Java 17+ with standard software providers:
 
-- `KeyGenerator.getInstance("AES")` thường sinh `SecretKey` có `getFormat() == "RAW"`; `getEncoded()` trả 16, 24 hoặc 32 byte tùy AES-128/192/256.
-- Khóa công khai RSA từ `KeyPairGenerator` thường có `getFormat()=="X.509"` và bytes DER `SubjectPublicKeyInfo`. Có thể dựng lại qua `X509EncodedKeySpec` và `KeyFactory("RSA")`.
-- Khóa riêng RSA phần mềm thường có `getFormat()=="PKCS#8"` và DER `PrivateKeyInfo`. Có thể dựng lại qua `PKCS8EncodedKeySpec` và `KeyFactory("RSA")` nếu được phép.
-- Khóa phần cứng có thể cho phép xuất **public key** nhưng cấm xuất **private key** cùng cặp. Public key cần xác thực nguồn/định danh trước khi dùng trong giao thức; bản thân nó không phải bí mật.
+- `KeyGenerator.getInstance("AES")` normally generates a `SecretKey` with `getFormat() == "RAW"`; `getEncoded()` returns 16, 24, or 32 bytes for AES-128/192/256.
+- An RSA public key from `KeyPairGenerator` normally has `getFormat()=="X.509"` and DER `SubjectPublicKeyInfo` bytes. It can be reconstructed via `X509EncodedKeySpec` and `KeyFactory("RSA")`.
+- A software RSA private key normally has `getFormat()=="PKCS#8"` and DER `PrivateKeyInfo`. It can be reconstructed via `PKCS8EncodedKeySpec` and `KeyFactory("RSA")` when permitted.
+- A hardware key may allow exporting the **public key** while forbidding export of the matching **private key**. The public key still requires source/identity verification before protocol use; it itself is not a secret.
 
-### Key export khác Key usage
+### Key Export vs. Key Usage
 
-Có thể key exportable nhưng bị giới hạn bởi policy để chỉ ký; ngược lại opaque key có thể ký và giải mã trong backend mà không trả raw material. Những quyền `sign`, `verify`, `encrypt`, `decrypt`, `derive`, `wrap` và `unwrap` là các quyền/chức năng **tách biệt**. Trong token có thể có key chỉ được phép `CKA_SIGN` mà không có `CKA_DECRYPT`; ứng dụng không được suy đoán từ tên thuật toán rằng mọi operation đều hợp lệ.
+A key can be exportable yet restricted by policy to signing only; conversely, an opaque key may sign and decrypt inside the backend without ever returning raw material. The permissions `sign`, `verify`, `encrypt`, `decrypt`, `derive`, `wrap`, and `unwrap` are **separate** rights/capabilities. A token may hold a key allowing `CKA_SIGN` without `CKA_DECRYPT`; the application must never infer from the algorithm name that every operation is permitted.
 
-`getEncoded()` có thể trả `null` đối với key không hỗ trợ encoding. Không xử lý `null` bằng `new byte[0]`, không tự hash key ID thành raw key và không cố lấy private key từ serialized `toString()` hoặc các trường phản chiếu. Một handle khác raw key material.
+`getEncoded()` may return `null` for keys that do not support encoding. Never handle `null` by substituting `new byte[0]`, hashing a key ID into a raw key, or trying to extract a private key from serialized `toString()` or reflective fields. A handle is not raw key material.
 
-## 3. Khi được phép xuất key, phải hiểu đúng định dạng
+## 3. When Key Export Is Permitted, Understand the Formats Properly
 
-| Loại | `getFormat()` thường gặp | Bytes trả về | API dựng lại |
+| Type | Common `getFormat()` | Returned Bytes | Reconstruction API |
 | --- | --- | --- | --- |
-| AES/HMAC secret key phần mềm | `RAW` | Secret bytes có entropy thích hợp | `SecretKeySpec(raw,"AES")` hay tên algorithm tương ứng |
+| Software AES/HMAC secret key | `RAW` | Secret bytes with proper entropy | `SecretKeySpec(raw,"AES")` or matching algorithm name |
 | RSA public | `X.509` | DER SubjectPublicKeyInfo | `KeyFactory("RSA").generatePublic(new X509EncodedKeySpec(der))` |
 | RSA private | `PKCS#8` | DER PrivateKeyInfo | `KeyFactory("RSA").generatePrivate(new PKCS8EncodedKeySpec(der))` |
-| EC public/private phần mềm | `X.509` / `PKCS#8` | DER có thuật toán/đường cong | `KeyFactory("EC")` với spec đúng loại |
-| Khóa HSM không cho xuất | có thể `null` | `getEncoded()==null` | Dùng key handle qua provider, không nhập lại từ byte[] |
+| Software EC public/private | `X.509` / `PKCS#8` | DER containing algorithm/curve | `KeyFactory("EC")` with matching spec type |
+| Non-exportable HSM key | may be `null` | `getEncoded()==null` | Use key handle via provider; never re-import from `byte[]` |
 
-Độ dài đúng của AES chỉ là điều kiện cú pháp: 16/24/32 byte **không bảo đảm entropy**. `SecretKeySpec` không tạo randomness, không tự kiểm tra nguồn tin cậy và **không tạo key nằm trong HSM** từ một mảng thông thường. Dùng `KeyGenerator` và `SecureRandom` cho khóa mới, hoặc raw bytes đã được cung cấp an toàn.
+Having the right AES byte length is only a syntactic requirement: 16/24/32 bytes **does not guarantee entropy**. `SecretKeySpec` creates no randomness, does not check source trust, and **does not turn a plain byte array into an HSM-resident key**. Use `KeyGenerator` and `SecureRandom` for new keys, or securely provisioned raw bytes.
 
-Không nhầm **PEM** (Base64 text armor) với **DER** (mã hóa ASN.1 nhị phân): `PKCS8EncodedKeySpec` nhận DER, không nhận bytes ASCII của `-----BEGIN PRIVATE KEY-----`. Và `BEGIN PRIVATE KEY` là PKCS#8 **không mã hóa**; `BEGIN ENCRYPTED PRIVATE KEY` là container bảo vệ mật khẩu/thuật toán riêng, cần xử lý `EncryptedPrivateKeyInfo` trước. Base64/hex chỉ là encoding, không làm private key bí mật hơn.
+Do not confuse **PEM** (Base64 text armor) with **DER** (binary ASN.1 encoding): `PKCS8EncodedKeySpec` takes DER, not the ASCII bytes of `-----BEGIN PRIVATE KEY-----`. Moreover, `BEGIN PRIVATE KEY` is **unencrypted** PKCS#8; `BEGIN ENCRYPTED PRIVATE KEY` is a password/algorithm-protected container requiring `EncryptedPrivateKeyInfo` processing first. Base64/hex is only encoding; it does not make a private key more secret.
 
-### Rủi ro của việc export
+### Risks of Exporting
 
-Gọi `getEncoded()` trên private/secret key là **tạo thêm một bản sao dữ liệu nhạy cảm**. Tránh thực hiện chỉ để làm fingerprint, debug hay chuyển object giữa các module. Nếu phải export để backup hoặc migration: giới hạn người được phép, thiết lập kênh mã hóa, nguyên tắc least privilege, audit, key wrapping và xóa bản sao theo chính sách.
+Calling `getEncoded()` on a private/secret key **creates another copy of sensitive material**. Avoid doing it merely for fingerprinting, debugging, or passing objects across modules. If exporting is strictly needed for backup or migration: restrict authorized principals, establish an encrypted channel, apply least privilege, audit, wrap the key, and purge copies per policy.
 
-`Arrays.fill(bytes,(byte)0)` giúp giảm lifetime của mảng ứng dụng, nhưng không xóa bản sao key bên trong `SecretKeySpec`, provider, `Cipher`, JVM hoặc bản dump đã tạo. Chuyển private key thành `String` càng khó xóa vì immutable. Việc `getEncoded()==null` cũng không bảo đảm tất cả nội bộ JVM không chứa vật liệu nhạy cảm.
+`Arrays.fill(bytes,(byte)0)` reduces the lifetime of the application's byte array, yet does not wipe key copies inside `SecretKeySpec`, the provider, `Cipher`, the JVM, or prior memory dumps. Converting a private key into a `String` is even harder to erase because strings are immutable. Likewise, `getEncoded()==null` does not guarantee zero sensitive material inside JVM internals.
 
-## 4. Chương trình Java 17+: export AES/RSA và ví dụ key opaque giả lập
+## 4. Java 17+ Program: Exporting AES/RSA and a Simulated Opaque Key
 
-Lưu thành **`ExportabilityDemo.java`**. Chương trình đầy đủ sau đây:
+Save as **`ExportabilityDemo.java`**. This complete program:
 
-1. Sinh AES-256 bằng `KeyGenerator`, lấy encoding raw của software key.
-2. Dựng `SecretKeySpec` từ bytes, dùng AES-GCM mã hóa bằng key gốc và giải mã bằng key nhập lại.
-3. Xóa mảng bytes trả về từ `getEncoded()` rồi xác nhận key gốc **vẫn còn**.
-4. Định nghĩa một `SecretKey` giả không có encoding (trả `null`); provider phần mềm từ chối dùng nó. Đây **không phải HSM mock hợp lệ**, mà là bằng chứng rằng API method đơn lẻ không đủ.
-5. Export/import RSA private `PKCS#8` và RSA public `X.509`, ký một thông điệp và kiểm chứng chữ ký.
+1. Generates AES-256 via `KeyGenerator` and obtains the software key's raw encoding.
+2. Constructs `SecretKeySpec` from those bytes, encrypts via AES-GCM with the original key, and decrypts with the re-imported key.
+3. Clears the array returned by `getEncoded()` and confirms the original key **still persists**.
+4. Defines a mock `SecretKey` without an encoding (returning `null`); the software provider rejects it. This is **not a valid HSM mock**, but proof that a single API method return value is insufficient.
+5. Exports/imports an RSA `PKCS#8` private key and `X.509` public key, signs a message, and verifies the signature.
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -194,14 +194,14 @@ public final class ExportabilityDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 -encoding UTF-8 ExportabilityDemo.java
 java ExportabilityDemo
 ```
 
-Đầu ra trên JDK/SunJCE + RSA provider đã kiểm thử:
+Output tested on JDK/SunJCE + RSA provider:
 
 ```text
 aesFormat=RAW
@@ -215,29 +215,29 @@ rsaPrivateFormat=PKCS#8
 importedRsaSignatureValid=true
 ```
 
-Giải thích: `getEncoded()` cung cấp bytes mà ứng dụng có thể sao chép; việc làm sạch bản sao không hủy đối tượng `aes` đã sinh. `OpaqueLookingKey` cố ý **không có provider nào quản lý**: `mockEncodedNull=true` không đồng nghĩa key bảo mật, còn `mockRejectedByProvider=true` là kết quả cụ thể của provider AES trong phép thử.
+Explanation: `getEncoded()` hands out bytes the app can copy; wiping that copy does not destroy the generated `aes` key object. `OpaqueLookingKey` intentionally **has no managing provider**: `mockEncodedNull=true` does not mean the key is secure, and `mockRejectedByProvider=true` is the specific behavior of the AES provider in this test.
 
-**GCM nonce:** `nonce` 12 byte chỉ được dùng **một lần để mã hóa**, rồi dùng lại **đúng cho phép giải mã ciphertext đó**. Với lần **mã hóa mới** dưới cùng AES key, phải chọn nonce **khác**; cặp key+nonce không được lặp.
+**GCM nonce:** the 12-byte `nonce` is used **once for encryption**, then reused **for decrypting that exact ciphertext**. For any **new encryption** under the same AES key, choose a **different** nonce; never repeat a key+nonce pair.
 
-**Ký RSA:** `KeyFactory` được chọn theo `RSA`. Với public key dùng `X509EncodedKeySpec`, private key dùng `PKCS8EncodedKeySpec`. Chữ ký được xác thực nghĩa là import hoạt động đúng, nhưng không chứng minh việc export private key là chính sách an toàn cho sản phẩm.
+**RSA signing:** `KeyFactory` is instantiated for `RSA`. Use `X509EncodedKeySpec` for public keys and `PKCS8EncodedKeySpec` for private keys. Verified signatures show import worked properly, not that exporting private keys is a safe production policy.
 
-## 5. Java KeyStore có tự làm khóa non-exportable không?
+## 5. Does Java `KeyStore` Make Keys Non-Exportable on Its Own?
 
-**Không.** `java.security.KeyStore` là abstraction lưu và tìm `PrivateKeyEntry`, `SecretKeyEntry`, `TrustedCertificateEntry`. Khả năng raw export tùy **store type/provider, key attributes và nơi key material thực sự cư trú**.
+**No.** `java.security.KeyStore` is an abstraction for storing and retrieving `PrivateKeyEntry`, `SecretKeyEntry`, and `TrustedCertificateEntry`. Whether raw export is allowed depends on the **store type/provider, key attributes, and where the key material actually lives**.
 
-| Loại | Đặc điểm | Có thể export key? |
+| Type | Characteristics | Can Keys Be Exported? |
 | --- | --- | --- |
-| `PKCS12` software | Container/file bảo vệ bằng password; entry được lấy khi mở store | Có thể export; demo dưới đây chứng minh |
-| `JKS` truyền thống | Software keystore chủ yếu với private keys/certificates | Phụ thuộc entry/implementation; không phải HSM |
-| `PKCS11` trên token/HSM | Provider gọi native PKCS#11, handle có thuộc tính security | Có thể không export theo policy hardware |
-| Android Keystore | Key handle qua OS/backend hardware khi khả dụng | Nhiều private/secret keys không cho export; phụ thuộc API/device |
-| Cloud KMS | Key ID, IAM, audit, API/RPC tới dịch vụ | Nhiều key không xuất raw; SDK có thể không cung cấp JCA `Key` |
+| Software `PKCS12` | Password-protected container/file; entries are retrieved once unlocked | Exportable; the demo below proves this |
+| Legacy `JKS` | Software keystore primarily for private keys/certificates | Depends on entry/implementation; not an HSM |
+| `PKCS11` on token/HSM | Provider invokes native PKCS#11; handles carry security attributes | Can be non-exportable per hardware policy |
+| Android Keystore | Key handles backed by OS/hardware when available | Many private/secret keys forbid export; depends on API/device |
+| Cloud KMS | Key IDs, IAM, audit, service APIs/RPC | Many keys never export raw bytes; SDKs may not provide JCA `Key` |
 
-Password-protected PKCS12 bảo vệ **bản lưu ở trạng thái nghỉ**. Nhưng sau khi unlock, software key có thể vẫn cho `getEncoded()`; điều này **khác** key chưa từng rời HSM.
+Password-protected PKCS12 protects **the stored file at rest**. Once unlocked, a software key can still allow `getEncoded()`; this is **different** from a key that never leaves an HSM.
 
-### 5.1 Chương trình: PKCS12 có thể chứa AES SecretKeyEntry exportable
+### 5.1 Program: PKCS12 Can Hold an Exportable AES `SecretKeyEntry`
 
-Lưu thành **`Pkcs12ExportabilityDemo.java`**. Ví dụ chạy trong memory, không tạo file key trên disk. Nó lưu một AES-256 key trong PKCS12, nạp lại bằng đúng password rồi so sánh raw bytes. Password mẫu chỉ phục vụ demo, không được hardcode trong code sản phẩm.
+Save as **`Pkcs12ExportabilityDemo.java`**. This example runs in memory without creating a key file on disk. It stores an AES-256 key in PKCS12, reloads it with the matching password, and compares raw bytes. The sample passwords are for demo purposes only; never hard-code them in production code.
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -312,11 +312,11 @@ recoveredExportable=true
 sameRawMaterial=true
 ```
 
-**Diễn giải:** PKCS12 được mở và trích xuất `SecretKeyEntry` thành công; `recoveredExportable=true` chứng minh keystore **không tự tạo ràng buộc non-extractable**. Một provider khác có thể khác về hỗ trợ SecretKeyEntry/password; phải kiểm thử runtime thực tế. Mặc dù không ghi file key, `ByteArrayOutputStream` và các key objects vẫn giữ bản sao nhạy cảm trong heap, nên demo **không** chứng minh memory erasure an toàn.
+**Interpretation:** PKCS12 opens and extracts `SecretKeyEntry` successfully; `recoveredExportable=true` proves the keystore **does not automatically create a non-extractable constraint**. Another provider may differ in `SecretKeyEntry`/password support; always test in the target runtime. Even without writing a key file to disk, `ByteArrayOutputStream` and key objects hold sensitive copies on the heap, so the demo **does not** prove secure memory erasure.
 
-## 6. Opaque key thật cần provider biết handle và key policy
+## 6. True Opaque Keys Require a Provider That Understands Handles and Key Policies
 
-Một key trên HSM có thể được đại diện bằng một đối tượng `PrivateKey` mà `getEncoded() == null`. Khi đó:
+An HSM key may be represented as a `PrivateKey` object whose `getEncoded() == null`. In that setup:
 
 ```text
 Java KeyStore("PKCS11") --lookup alias--> HSM-backed PrivateKey handle
@@ -326,15 +326,15 @@ Signature.initSign(handle) -------+-- token provider -- HSM sign()
                                       signature bytes
 ```
 
-Ở đây **private key material nằm trong HSM**, nhưng Java có thể nhận chữ ký. Muốn thay đổi thao tác cần dùng cơ chế được thiết bị hỗ trợ: một key chỉ cho `sign` không mặc nhiên cho `decrypt` hay `derive`. Nếu key nằm trên KMS cloud, hoạt động có thể được cung cấp qua REST/gRPC SDK chứ **không** qua JCA `Signature` hay `KeyStore`; không mặc định KMS nào cũng cung cấp JCA adapter.
+Here **the private key material stays inside the HSM**, while Java receives the signature. Changing permitted operations requires device-supported mechanisms: a key marked only for `sign` does not automatically allow `decrypt` or `derive`. If the key lives in a cloud KMS, operations may be exposed via a REST/gRPC SDK rather than JCA `Signature` or `KeyStore`; never assume every KMS offers a JCA adapter.
 
-**Provider matching:** `Signature.getInstance("SHA256withRSA",tokenProvider)` chỉ hữu ích nếu provider và key handle hỗ trợ thuật toán đó. `Cipher.getInstance("AES/GCM/NoPadding")` không bảo đảm chọn đúng provider cho một key opaque; nếu rơi vào software provider không hiểu handle, `Cipher.init` có thể ném `InvalidKeyException`. Cần chọn engine đúng nhà cung cấp, đúng transformation và đúng key usage.
+**Provider matching:** `Signature.getInstance("SHA256withRSA",tokenProvider)` only works if that provider and key handle support that algorithm. `Cipher.getInstance("AES/GCM/NoPadding")` does not guarantee selecting the right provider for an opaque key; if it picks a software provider that cannot understand the handle, `Cipher.init` may throw `InvalidKeyException`. Choose the matching provider, transformation, and key usage explicitly.
 
-### Khung tích hợp SunPKCS11 (không chạy độc lập)
+### SunPKCS11 Integration Skeleton (Non-Standalone)
 
 ```java
-// CHỈ MINH HỌA: cần token/HSM, native PKCS#11 library, config,
-// key alias, quyền và PIN thật. Không hardcode PIN.
+// ILLUSTRATIVE ONLY: requires a real token/HSM, native PKCS#11 library, config,
+// key alias, permissions, and PIN. Never hard-code the PIN.
 java.security.Provider base =
         java.security.Security.getProvider("SunPKCS11");
 if (base == null) {
@@ -355,55 +355,55 @@ java.security.Signature signer =
                 "SHA256withRSA", tokenProvider);
 signer.initSign(privateKey);
 // signer.update(messageBytes); byte[] signature = signer.sign();
-// Token/session cleanup và audit theo vendor policy.
+// Token/session cleanup and auditing per vendor policy.
 ```
 
-`SunPKCS11` liên quan module `jdk.crypto.cryptoki` trong JDK có hỗ trợ. Có thể thiếu trên runtime tối giản; file cấu hình và native PKCS#11 library/slot/token phải được tạo chính xác. Token login/session và alias mapping có thể khác nhau. Đoạn này **không tạo được opaque key** nếu chưa có HSM và key generation policy thực; không dùng để giả vờ HSM hoạt động chỉ vì `getEncoded()==null`.
+`SunPKCS11` relies on the `jdk.crypto.cryptoki` module on JDKs that include it. Minimal runtimes may omit it; config files and the native PKCS#11 library/slot/token must be configured accurately. Token login/sessions and alias mapping vary across devices. This snippet **cannot create an opaque key** without a real HSM and key-generation policy; never use it to pretend an HSM is active merely because `getEncoded()==null`.
 
-### Key usage vẫn có thể nguy hiểm
+### Key Usage Can Still Be Dangerous
 
-Non-extractable key chỉ giúp hạn chế **lấy raw material**. Nếu attacker chiếm quyền service gọi `sign`, họ có thể tạo chữ ký không được phép; nếu có quyền gọi `decrypt`, họ có thể lấy plaintext trả về. **HSM/KMS không thay thế authorization**. Hạn chế payload được xử lý, key usage, IAM, rate limits, context/tenant, audit, session lifetime và dual control theo rủi ro.
+Non-extractable keys only restrict **extracting raw material**. If an attacker compromises a service permitted to call `sign`, they can produce unauthorized signatures; if permitted to call `decrypt`, they can obtain returned plaintext. **HSM/KMS does not replace authorization**. Restrict allowed payloads, key usage, IAM, rate limits, context/tenant, auditing, session lifetimes, and dual control according to risk.
 
-## 7. Các quyền và thuật ngữ phải phân biệt
+## 7. Permissions and Terms to Distinguish
 
-| Thuật ngữ | Câu hỏi thực sự | Hệ quả |
+| Term | Real Question | Consequence |
 | --- | --- | --- |
-| Exportable qua `getEncoded` | Có thể nhận raw/DER bytes qua Java API không? | Cho phép sao chép/nhập lại khi có quyền |
-| Non-extractable | Device có cấm trích xuất key bằng mọi mechanism được policy áp dụng không? | Phụ thuộc token/HSM và thuộc tính tạo key |
-| Sensitive | Device có che giấu private attributes không? | Không đồng nghĩa mọi phép toán đều bị cấm |
-| Sign/decrypt/derive permission | Key được thực hiện operation nào? | Từng quyền độc lập; không suy từ key type |
-| Wrappable | Cho phép xuất **dưới dạng được bọc bằng KEK** không? | Có thể có policy riêng cho wrapped export |
-| Migratable/backup | Có cơ chế backup giữa HSM/cluster hoặc restore không? | Không mặc định có ở key non-exportable |
-| Destroyable/deletable | Có thể revoke/hủy key trong backend không? | Xóa object reference Java không bằng hủy key thật |
+| Exportable via `getEncoded` | Can raw/DER bytes be retrieved via the Java API? | Enables copying/re-importing when permitted |
+| Non-extractable | Does the device forbid extracting the key via all policy-governed mechanisms? | Depends on token/HSM and key-creation attributes |
+| Sensitive | Does the device conceal private attributes? | Does not imply all operations are forbidden |
+| Sign/decrypt/derive permission | Which operations may the key execute? | Independent permissions; never infer from key type |
+| Wrappable | Is exporting **wrapped under a KEK** allowed? | May have dedicated policies for wrapped export |
+| Migratable/backup | Does a mechanism exist for HSM/cluster backup or restore? | Not automatically available on non-exportable keys |
+| Destroyable/deletable | Can the key be revoked/destroyed in the backend? | Deleting a Java object reference does not destroy the backend key |
 
-Trong PKCS#11, có các thuộc tính như `CKA_EXTRACTABLE`, `CKA_SENSITIVE`, `CKA_SIGN`, `CKA_DECRYPT`, `CKA_WRAP`, `CKA_UNWRAP`; **tập thuộc tính và ràng buộc** của token quyết định kết quả. Không khẳng định một flag duy nhất là đầy đủ nếu chưa xem standard/vendor policy và cơ chế wrap/trusted key.
+In PKCS#11, attributes include `CKA_EXTRACTABLE`, `CKA_SENSITIVE`, `CKA_SIGN`, `CKA_DECRYPT`, `CKA_WRAP`, and `CKA_UNWRAP`; the **full set of attributes and constraints** on the token determines behavior. Never claim a single flag suffices without reviewing standard/vendor policies and wrap/trusted-key rules.
 
-`Cipher.wrap(key)` thuộc JCE engine wrap mode. Nó không thể **vượt** chính sách non-extractable bằng phép màu; backend sẽ từ chối nếu key không được export theo cơ chế wrap tương ứng. Ngược lại, một số key chỉ cho wrapped migration tới KEK đáng tin: đó là **export dưới lớp bảo vệ có kiểm soát**, không phải raw export tự do.
+`Cipher.wrap(key)` belongs to JCE cipher wrap mode. It cannot magically **bypass** a non-extractable policy; the backend will reject it if wrapping export is disallowed. Conversely, some keys allow wrapped migration only to a trusted KEK: that is **controlled protected export**, not unrestricted raw export.
 
-## 8. Vòng đời key trong hai mô hình
+## 8. Key Lifecycle in the Two Models
 
-| Vòng đời | Software exportable | Provider-bound/non-extractable |
+| Lifecycle Stage | Software Exportable | Provider-Bound / Non-Extractable |
 | --- | --- | --- |
-| Tạo | `KeyGenerator`/`KeyPairGenerator` software hoặc raw material hợp lệ | Generate **trực tiếp trên token/HSM/KMS** với policy non-extractable từ đầu |
-| Nhập | `SecretKeySpec`, `KeyFactory` theo định dạng | Import qua API backend và thuộc tính key; không chỉ tạo `KeySpec` |
-| Lưu | PKCS12/wrapped bytes/secret storage, kiểm soát file/backup | Application lưu key ID/alias; backend giữ material |
-| Sử dụng | Software provider; raw key có thể đến heap | Engine/provider hoặc SDK làm operations theo key handle và quyền |
-| Backup/restore | Tạo bản sao/wrapped backup có bảo vệ | Cơ chế vendor HSM cluster/backup/HA, đôi khi không cho export |
-| Rotation | Tạo version mới, rewrap/re-encrypt và quản lý key cũ | Backend cấp version/alias mới; key cũ vẫn cần để đọc dữ liệu được phép |
-| Hủy | Xử lý tất cả raw copies, file, backup, phiên bản | Backend revoke/delete và session handling; GC không phải hủy vật liệu |
+| Creation | Software `KeyGenerator`/`KeyPairGenerator` or valid raw material | Generate **directly on token/HSM/KMS** with non-extractable policy from start |
+| Import | `SecretKeySpec`, `KeyFactory` per format | Import via backend APIs and key attributes; not just creating a `KeySpec` |
+| Storage | PKCS12/wrapped bytes/secret storage; protect files/backups | Application stores key ID/alias; backend holds material |
+| Usage | Software provider; raw keys can reach the heap | Engine/provider or SDK executes operations via key handle and permissions |
+| Backup/restore | Create protected copies/wrapped backups | Vendor HSM cluster/backup/HA mechanisms, sometimes disallowing export |
+| Rotation | Create new version, rewrap/re-encrypt, manage old keys | Backend issues new version/alias; old key still needed to read authorized legacy data |
+| Destruction | Purge all raw copies, files, backups, versions | Backend revoke/delete and session handling; GC does not destroy key material |
 
-**Nếu yêu cầu “private key không bao giờ ra khỏi HSM”:** phải sinh key **trên HSM** ngay từ đầu với policy phù hợp. Không thể khẳng định ràng buộc ấy sau khi sinh key bằng Java software rồi export/import vào thiết bị: raw material đã từng tồn tại bên ngoài.
+**If policy requires “the private key never leaves the HSM”:** generate the key **inside the HSM** from the outset with matching attributes. You cannot claim that property if you generated the key in Java software and later imported it: raw material already existed outside.
 
-**Backup là yêu cầu kiến trúc:** key non-exportable không có kế hoạch HA/backup có thể mất vĩnh viễn khi token hỏng, khiến ciphertext cũ không giải mã được. Đừng đặt ràng buộc không-export rồi quên phương án phục hồi hợp lệ. Hỗ trợ backup có thể đòi nhiều thiết bị và vendor mechanisms, không đồng nghĩa cho phép export raw.
+**Backups are an architectural requirement:** a non-exportable key with no HA/backup plan can be lost permanently when a token fails, leaving historical ciphertexts undecryptable. Never impose a non-exportable rule while forgetting a valid recovery plan. Supporting backups may require multiple hardware units and vendor mechanisms, which is not the same as allowing raw export.
 
-**Thay key:** mỗi ciphertext/signature nên có key ID/version hoặc metadata để xác định đúng key. Key mới không tự giải mã dữ liệu do key cũ mã hóa; phải giữ version cũ theo thời hạn hoặc thực hiện re-encryption/rewrapping có kiểm soát. Đừng xóa key cũ trước khi xác minh khối lượng dữ liệu đã migrate.
+**Replacing keys:** every ciphertext/signature should carry a key ID/version or metadata to locate the exact key. A new key does not automatically decrypt data encrypted under the old key; retain old versions for their retention window or execute controlled re-encryption/rewrapping. Never delete an old key before verifying migrated data volume.
 
-## 9. Thiết kế API không ép mọi key thành byte[]
+## 9. Designing APIs That Do Not Force Every Key into `byte[]`
 
-Một service thường nên yêu cầu **operation**, không yêu cầu raw key:
+A service should generally request an **operation**, not a raw key:
 
 ```java
-// API minh họa thiết kế, không phải chương trình độc lập.
+// Illustrative API design, not a standalone program.
 interface SigningGateway {
     byte[] sign(String keyId, byte[] message) throws Exception;
 }
@@ -414,87 +414,87 @@ interface DecryptionGateway {
 }
 ```
 
-Implementation có thể là phần mềm `Signature.initSign(privateKey)`, HSM provider với private key handle, hoặc cloud KMS SDK RPC. Caller không cần `privateKey.getEncoded()`. Khi cần fingerprint, hãy lấy **public key** hoặc key ID đáng tin; **không export private key chỉ để in hash/private fingerprint**.
+Implementations may use software `Signature.initSign(privateKey)`, an HSM provider with a private key handle, or a cloud KMS SDK RPC. Callers never need `privateKey.getEncoded()`. When a fingerprint is required, use the **public key** or a trusted key ID; **never export a private key just to print a hash/private fingerprint**.
 
-Lưu metadata phù hợp: provider/backend identifier, algorithm, key ID, key version, allowed purposes và thông tin rotation. Tránh lưu class name của handle làm định danh bền vững; token session có thể hết hạn, provider object có thể không portable qua restart. Sau restart, lookup lại theo alias/key ID và chính sách xác thực backend.
+Persist appropriate metadata: provider/backend identifier, algorithm, key ID, key version, allowed purposes, and rotation details. Avoid storing a handle's class name as a durable identifier; token sessions expire and provider objects may not survive restarts. After a restart, look up the key again by alias/key ID and backend authentication policy.
 
-`KeyStore` hay provider API không bắt buộc dùng chung một instance toàn hệ thống: cryptographic engines như `Cipher`, `Mac`, `Signature` có state riêng, không nên chia sẻ trạng thái giữa thread/request nếu không có hợp đồng thread-safety cụ thể. Khi provider timeout, xử lý retry/idempotency thích hợp cho từng operation và không âm thầm fallback ra software để lấy secret.
+`KeyStore` or provider APIs do not require sharing one global instance across the entire system: cryptographic engines like `Cipher`, `Mac`, and `Signature` hold mutable state and should not be shared across threads/requests without explicit thread-safety contracts. When a provider times out, apply operation-appropriate retry/idempotency handling and never silently fall back to software to extract secrets.
 
-## 10. So sánh trade-off và chọn mô hình
+## 10. Comparing Trade-Offs and Choosing a Model
 
-| Tiêu chí | Exportable software key | Provider-only key |
+| Criterion | Exportable Software Key | Provider-Only Key |
 | --- | --- | --- |
-| Khả năng di chuyển giữa provider | Thường cao nếu format raw/DER chuẩn | Phụ thuộc vendor, sessions, SDK và migration policy |
-| Kiểm soát trích xuất raw | Process có thể đọc/copy raw khi được phép | Backend có thể cấm raw extraction thực sự |
-| Sao lưu/phục hồi | Dễ copy nhưng nhiều bản sao cần bảo vệ | Backup có thể phức tạp, phải có HA/cluster phù hợp |
-| Tốc độ và độ trễ | Software local thường thuận lợi cho nhiều thao tác | Hardware/RPC có throughput/latency/quota riêng |
-| Số thuật toán hỗ trợ | Theo JDK/provider phần mềm | Theo firmware/token mechanisms/service API |
-| Khi process bị xâm nhập | Có thể bị đánh cắp key rồi dùng offline | Có thể lạm dụng sign/decrypt trong phạm vi quyền, khó lấy raw nếu policy đúng |
-| Độ phức tạp quản trị | Keystore/secret manager, filesystem, backup, key rotation | IAM, PIN, sessions, audit, availability, key ceremony, disaster recovery |
+| Portability across providers | Usually high with standard raw/DER formats | Depends on vendor, sessions, SDK, and migration policies |
+| Control over raw extraction | Process can read/copy raw bytes when allowed | Backend can genuinely forbid raw extraction |
+| Backup/recovery | Easy to copy, though many copies need protection | Backups can be complex; requires proper HA/clustering |
+| Speed and latency | Local software is usually fast for high volume | Hardware/RPC introduces throughput/latency/quota constraints |
+| Supported algorithms | Defined by JDK/software providers | Defined by firmware/token mechanisms/service APIs |
+| If process is compromised | Key can be stolen and used offline | Attacker can abuse permitted sign/decrypt calls, yet extracting raw keys is harder with proper policy |
+| Operational complexity | Keystore/secret manager, filesystem, backups, key rotation | IAM, PINs, sessions, audits, availability, key ceremonies, disaster recovery |
 
-**Không có lựa chọn tốt nhất cho mọi trường hợp.** Khóa ký của CA/gateway tài chính, master KEK hoặc root key quan trọng thường có yêu cầu kiểm soát mạnh hơn khóa phiên ngắn hạn trong một process cô lập. Chọn theo tài sản cần bảo vệ, threat model, vòng đời, latency, khả năng phục hồi và compliance.
+**No single option fits every scenario.** CA/payment-gateway signing keys, master KEKs, or critical root keys usually warrant stronger custody than a short-lived session key inside an isolated process. Choose based on the asset being protected, threat model, lifetime, latency, recoverability, and compliance.
 
-## 11. Sai lầm phổ biến và cách xử lý
+## 11. Common Mistakes and How to Handle Them
 
-| Biểu hiện | Nguyên nhân | Biện pháp |
+| Symptom | Cause | Remedy |
 | --- | --- | --- |
-| `NullPointerException` sau `getEncoded()` | Opaque key trả `null` hợp lệ | Kiểm tra `null`, chọn provider operation thay vì cố export |
-| `InvalidKeyException` tại `Cipher.init` hoặc `Signature.initSign` | Sai key type/provider, policy không cho operation | Dùng đúng provider/mechanism và key usage |
-| `UnrecoverableKeyException`, `KeyStoreException` | Sai alias, entry password/PIN, store type hay policy | Kiểm tra type, credentials và session |
-| `NoSuchAlgorithmException` / `NoSuchProviderException` | Algorithm/provider không được cấu hình/hỗ trợ | Kiểm tra runtime và capabilities |
-| `getFormat()==null` | Provider không cung cấp encoding portable | Không ép `KeyFactory` import từ dữ liệu không tồn tại |
-| Coi `PKCS12` là HSM | Nhầm password-protected file với token | Kiểm tra key location và backend policy |
-| Tự implement `SecretKey` trả `null` rồi mong sử dụng | Không có provider sở hữu handle | Cần API/provider thực sự |
-| Bọc khóa bằng `Cipher.wrap` nhưng bị từ chối | Key có restriction non-extractable/wrapping | Theo policy; không bypass bằng export |
-| Key mới không giải mã được ciphertext cũ | Không quản lý key ID/version hoặc xóa key cũ | Versioning/re-wrapping/re-encrypt có kế hoạch |
-| HSM private key bị lạm dụng dù không export | Service được phép ký/giải mã đầu vào attacker chọn | Authorization theo nghiệp vụ, audit và rate limits |
-| Xóa byte[] rồi nghĩ đã xóa key | Key object/provider vẫn giữ bản sao | Hạn chế export và quản lý lifecycle đúng backend |
-| Token/session restart làm handle không hợp lệ | Handle gắn session/backend | Lookup lại theo alias/key ID và tái xác thực |
-| KMS chỉ có RPC nhưng code ép vào `KeyStore` | Không có JCA bridge phù hợp | Dùng SDK/adapter chính thức |
-| Downgrade tự động sang software khi HSM lỗi | Fallback phá vỡ policy non-extractable | Fail closed, báo lỗi và theo escalation process |
+| `NullPointerException` after `getEncoded()` | Opaque key legitimately returns `null` | Check for `null`; invoke provider operations instead of forcing export |
+| `InvalidKeyException` at `Cipher.init` or `Signature.initSign` | Wrong key type/provider, or policy forbids the operation | Use the matching provider/mechanism and key usage |
+| `UnrecoverableKeyException`, `KeyStoreException` | Wrong alias, entry password/PIN, store type, or policy | Check store type, credentials, and session |
+| `NoSuchAlgorithmException` / `NoSuchProviderException` | Algorithm/provider not configured or unsupported | Verify runtime environment and capabilities |
+| `getFormat()==null` | Provider exposes no portable encoding | Never force `KeyFactory` to import non-existent bytes |
+| Treating `PKCS12` as an HSM | Confusing a password-protected file with a hardware token | Verify key custody location and backend policy |
+| Implementing a custom `SecretKey` returning `null` and expecting it to work | No provider backs that handle | Use a real backing API/provider |
+| Wrapping a key with `Cipher.wrap` and getting rejected | Key has non-extractable/wrapping restrictions | Follow policy; do not bypass via raw export |
+| New key cannot decrypt old ciphertext | Missing key ID/version management or deleted old key | Plan versioning, rewrapping, or re-encryption |
+| HSM private key abused despite being non-exportable | Service allowed to sign/decrypt attacker-chosen inputs | Enforce business authorization, auditing, and rate limits |
+| Wiping `byte[]` and assuming the key is gone | Key object/provider still holds copies | Restrict export and manage lifecycle through the backend |
+| Token/session restart invalidates handle | Handle bound to session/backend state | Re-resolve by alias/key ID and re-authenticate |
+| KMS only exposes RPC yet code forces `KeyStore` | No matching JCA bridge exists | Use the official SDK/adapter |
+| Auto-downgrading to software when HSM fails | Fallback breaks non-extractable policy | Fail closed, raise alerts, follow escalation procedures |
 
-### Checklist triển khai
+### Deployment Checklist
 
-- [ ] Chọn exportable hay non-exportable **trước khi sinh key**, dựa trên threat model và backup requirement.
-- [ ] Biết chính xác `KeyStore` type/provider/backend, không suy đoán từ tên API.
-- [ ] `getEncoded()==null` được xử lý có chủ đích; không tự tạo key rỗng hay xuất raw bằng đường vòng.
-- [ ] Không log/serialize raw private/secret key; hạn chế sao chép và xử lý memory.
-- [ ] Chọn provider tương thích với key handle và operation; kiểm tra usage policy.
-- [ ] Phân quyền ở mức key ID, tenant, thao tác và nội dung nghiệp vụ; có audit và rate limit.
-- [ ] Biết wrapped export khác raw export; không dùng `wrap` để vượt policy token.
-- [ ] Có key version, vòng đời, rotation, rollback, HA/backup và disaster-recovery test.
-- [ ] Đã thử key disabled, HSM unavailable, PIN sai, alias không tồn tại và provider mismatch.
-- [ ] Hủy/thu hồi theo backend, không đồng nhất xóa biến Java với hủy key trong thiết bị.
+- [ ] Choose exportable vs. non-exportable **before generating the key**, based on threat model and backup needs.
+- [ ] Know the exact `KeyStore` type/provider/backend rather than guessing from API names.
+- [ ] Handle `getEncoded()==null` intentionally; never fabricate empty keys or bypass with raw export.
+- [ ] Never log or serialize raw private/secret keys; minimize copies and memory exposure.
+- [ ] Select a provider compatible with the key handle and operation; verify usage policies.
+- [ ] Enforce authorization by key ID, tenant, operation, and business context, with audits and rate limits.
+- [ ] Understand wrapped export vs. raw export; never use `wrap` to circumvent token policies.
+- [ ] Maintain key versions, lifecycle states, rotation, rollback, HA/backups, and disaster-recovery drills.
+- [ ] Test disabled keys, HSM unavailability, wrong PINs, missing aliases, and provider mismatches.
+- [ ] Revoke/destroy keys at the backend; never equate clearing a Java variable with destroying a device key.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-1. **`getEncoded()==null` có chứng minh key nằm trong phần cứng không?** Không; chỉ có nghĩa method không cung cấp encoded bytes.
-2. **Một `SecretKey` giả trả `null` có được SunJCE dùng như HSM key không?** Không; nó thiếu key material/handle được provider nhận diện.
-3. **AES-256 software key `RAW` dài bao nhiêu byte?** 32 byte.
-4. **RSA public/private thường export theo định dạng gì?** Public `X.509` SPKI, private `PKCS#8` DER.
-5. **Xóa mảng lấy từ `getEncoded()` đã xóa đối tượng key gốc chưa?** Chưa; key gốc/provider giữ state riêng.
-6. **PKCS12 password-protected có đồng nghĩa non-extractable?** Không; key tải ra có thể `getEncoded()` như demo.
-7. **Một key chỉ `CKA_SIGN` có tự cho phép `decrypt` không?** Không; policy thao tác riêng.
-8. **`Cipher.wrap` có tự lấy được mọi opaque key không?** Không; phụ thuộc key extraction/wrap policy và engine mechanism.
-9. **Private key chưa từng rời HSM có nên tạo bằng software trước rồi import vào HSM không?** Không, trái điều kiện “chưa từng”.
-10. **Cloud KMS luôn trả `java.security.PrivateKey` dùng được với JCE không?** Không, có KMS chỉ cung cấp SDK/RPC.
-11. **Không xuất được raw key thì attacker không gây hại được nữa?** Sai; họ có thể lạm dụng `sign/decrypt` nếu có quyền gọi.
-12. **Nếu mất HSM chứa key non-exportable mà không có backup thì sao?** Có thể không phục hồi được dữ liệu mã hóa.
-13. **Vai trò của key ID/version khi rotation?** Tra đúng key cho bản ghi cũ hoặc xác định bản ghi cần migrate.
-14. **Làm sao biết key thật sự non-extractable?** Kiểm tra policy/backend/token và thử các thao tác được phép/không phép trong quy trình bảo mật, không chỉ dựa `getEncoded()`.
-15. **Khi cần thiết kế API tích hợp HSM/KMS, nên truyền raw bytes hay yêu cầu phép toán?** Ưu tiên interface operation dùng key ID/handle, hạn chế raw key tiếp xúc ứng dụng.
+1. **Does `getEncoded()==null` prove a key lives in hardware?** No; it only means that method provides no encoded bytes.
+2. **Will SunJCE accept a mock `SecretKey` returning `null` as an HSM key?** No; it lacks key material or a handle recognized by the provider.
+3. **How many bytes is a `RAW` software AES-256 key?** 32 bytes.
+4. **What formats are RSA public and private keys commonly exported in?** Public: `X.509` SPKI; private: `PKCS#8` DER.
+5. **Does wiping the array returned by `getEncoded()` destroy the original key object?** No; the original key/provider keeps its own state.
+6. **Does password-protected PKCS12 mean non-extractable?** No; loaded keys can still support `getEncoded()`, as shown in the demo.
+7. **Does a key with only `CKA_SIGN` automatically allow `decrypt`?** No; operation policies are independent.
+8. **Can `Cipher.wrap` extract any opaque key?** No; it depends on key extraction/wrapping policies and engine support.
+9. **Should a private key that “never leaves the HSM” be generated in software first and imported into the HSM?** No; that violates “never.”
+10. **Does a Cloud KMS always return a `java.security.PrivateKey` usable with JCE?** No; some KMS offerings provide only SDK/RPC APIs.
+11. **If raw keys cannot be exported, can an attacker cause no harm?** False; they can still abuse `sign/decrypt` if authorized to invoke those calls.
+12. **What happens if an HSM holding a non-exportable key is lost with no backup?** Encrypted data may become permanently unrecoverable.
+13. **What role do key ID/version play during rotation?** Resolving the right key for legacy records or identifying records needing migration.
+14. **How do you verify a key is truly non-extractable?** Check backend/token policy and test permitted/forbidden operations in security verification, not solely via `getEncoded()`.
+15. **When designing an HSM/KMS integration API, should you pass raw bytes or request operations?** Prefer operation interfaces taking a key ID/handle, minimizing raw key exposure in the application.
 
-## Tài liệu API chính thức (Java SE 21) và tham khảo
+## Official API Documentation (Java SE 21) and References
 
 - [Key: getAlgorithm, getFormat, getEncoded](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Key.html)
 - [SecretKey](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/SecretKey.html)
-- [PrivateKey và PublicKey](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/PrivateKey.html)
+- [PrivateKey and PublicKey](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/PrivateKey.html)
 - [KeyGenerator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KeyGenerator.html)
 - [SecretKeySpec](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/spec/SecretKeySpec.html)
 - [KeyFactory](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyFactory.html)
-- [KeyStore, SecretKeyEntry và PasswordProtection](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.html)
+- [KeyStore, SecretKeyEntry, and PasswordProtection](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.html)
 - [Provider](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Provider.html)
 - [Java PKCS#11 Reference Guide](https://docs.oracle.com/en/java/javase/21/security/pkcs11-reference-guide1.html)
-- [Cipher và wrap/unwrap](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html)
+- [Cipher and wrap/unwrap](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html)
 - [Signature](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Signature.html)
 - [Destroyable](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/security/auth/Destroyable.html)

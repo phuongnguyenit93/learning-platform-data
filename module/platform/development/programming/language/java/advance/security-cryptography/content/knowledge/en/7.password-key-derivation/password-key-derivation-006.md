@@ -1,120 +1,120 @@
-# 7.6. Hiệu chỉnh chi phí tính toán và nâng cấp tham số khi xác thực lại
+# 7.6. Calibrating Computational Cost and Upgrading Parameters on Re-authentication
 
-## Mục tiêu và bối cảnh
+## Objectives and context
 
-Trong hệ thống xác thực mật khẩu, `password hashing` hoặc **password-based key derivation function (KDF)** được dùng để biến mật khẩu thành giá trị kiểm tra có salt và chi phí tính toán đáng kể. Kẻ tấn công có bản sao cơ sở dữ liệu có thể thử đoán mật khẩu **ngoại tuyến**; làm mỗi lần đoán tốn CPU, RAM và thời gian sẽ tăng chi phí tấn công. Ngược lại, phía máy chủ phải đủ nhanh để đăng nhập hợp lệ không bị nghẽn và không biến KDF thành điểm dễ bị tấn công từ chối dịch vụ.
+In a password authentication system, `password hashing` or a **password-based key derivation function (KDF)** transforms a password into a verification value with a salt and significant computational cost. An attacker holding a copy of the database can try guessing passwords **offline**; making every guess consume CPU, RAM, and time raises the cost of an attack. Conversely, the server side must remain fast enough that legitimate logins do not bottleneck and the KDF does not become a denial-of-service vector.
 
-Chi phí tính toán cần được **đo, hiệu chỉnh và tăng theo thời gian** cùng sự phát triển phần cứng và bối cảnh đe dọa. NIST SP 800-63B khuyến nghị chọn chi phí cao nhất có thể mà vẫn phù hợp hiệu năng verifier và tăng dần khi năng lực tính toán thay đổi. OWASP khuyến nghị các thuật toán chuyên dụng như Argon2id, scrypt hoặc PBKDF2 tùy điều kiện.
+Computational cost must be **measured, calibrated, and increased over time** alongside hardware advances and threat changes. NIST SP 800-63B recommends choosing the highest cost compatible with verifier performance and increasing it as computing power evolves. OWASP recommends dedicated algorithms such as Argon2id, scrypt, or PBKDF2 depending on constraints.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt tham số chi phí của **Argon2id**, **scrypt**, **bcrypt** và **PBKDF2**, cũng như ảnh hưởng lên CPU/RAM/latency.
-2. Thiết kế bài **benchmark đo trên máy và tải thật**, dựa vào độ trễ p50/p95/p99, số xác thực đồng thời, bộ nhớ và giới hạn chống abuse.
-3. Lưu **algorithm, version, parameters, salt và hash** kèm từng tài khoản để hỗ trợ kiểm chứng bản ghi cũ.
-4. Thực hiện **verify bằng tham số cũ trước; rehash bằng tham số mới sau khi mật khẩu đúng**, với salt mới và cập nhật nguyên tử.
-5. Xử lý tài khoản không đăng nhập lâu, thay đổi thuật toán, đồng thời với đổi mật khẩu và sự cố triển khai.
+1. Distinguish the cost parameters of **Argon2id**, **scrypt**, **bcrypt**, and **PBKDF2**, as well as their effects on CPU/RAM/latency.
+2. Design a **benchmark on target hardware and realistic load**, using p50/p95/p99 latency, concurrent authentications, memory, and anti-abuse limits.
+3. Store **algorithm, version, parameters, salt, and hash** per account to support verifying legacy records.
+4. Execute **verify with old parameters first; rehash with new parameters after the password matches**, using a fresh salt and atomic update.
+5. Handle long-inactive accounts, algorithm migrations, concurrent password changes, and deployment incidents.
 
-Phần code dùng **Java 17+** với `PBKDF2WithHmacSHA256` thuộc JCA vì chạy trực tiếp trên JDK. Đây là cách học toàn bộ luồng hiệu chỉnh và nâng cấp; nếu chọn Argon2id cho production, dùng thư viện được duy trì và kiểm chứng, không tự cài đặt thuật toán mật mã.
+The code uses **Java 17+** with `PBKDF2WithHmacSHA256` from JCA so it runs directly on the JDK. This teaches the entire calibration and upgrade flow; if choosing Argon2id for production, use a maintained and vetted library rather than implementing cryptographic algorithms yourself.
 
-## 1. Vì sao không dùng một work factor cố định mãi mãi?
+## 1. Why not use a fixed work factor forever?
 
-Mật khẩu do con người chọn thường có entropy thấp hơn khóa ngẫu nhiên. Salt riêng ngăn việc dùng lại bảng hash tính trước cho mọi tài khoản nhưng **không** ngăn thử đoán từng mật khẩu sau khi database bị rò rỉ. KDF tăng chi phí mỗi lần đoán, đặc biệt với thuật toán dùng nhiều bộ nhớ.
+Human-chosen passwords typically have lower entropy than random keys. A unique salt prevents reusing precomputed hash tables across accounts, yet **does not** stop guessing individual passwords after a database leak. A KDF raises the cost of every guess, especially with memory-hard algorithms.
 
-Giả sử hôm nay một cấu hình cho thời gian xác thực chấp nhận được. Khi phần cứng tấn công nhanh hơn, cấu hình cũ trở nên rẻ hơn đối với kẻ tấn công; trong khi đó máy chủ có thể đã có thêm năng lực xử lý để tăng chi phí. Vì vậy cần lưu **tham số riêng cho từng hash** và có kế hoạch **nâng cấp khi người dùng đăng nhập thành công**, thay vì giả sử mọi bản ghi luôn dùng chính sách hiện tại.
+Suppose a configuration yields an acceptable authentication time today. As attacker hardware speeds up, that old configuration becomes cheaper for an attacker; meanwhile, your servers may have more capacity to raise cost. Therefore, store **per-hash parameters** and plan to **upgrade when users log in successfully**, rather than assuming every record always uses the current policy.
 
-Ba khái niệm cần phân biệt:
+Three concepts to distinguish:
 
-- **Password verification:** từ mật khẩu người dùng nhập, tính KDF theo **tham số và salt của bản ghi đang lưu**, so sánh với hash đã lưu.
-- **Cost calibration:** chạy thử các cấu hình trên môi trường mục tiêu để chọn tham số nằm trong ngân sách latency, CPU, memory và mức chống tấn công mong muốn.
-- **Rehash-on-login (opportunistic upgrade):** sau một lần **xác thực thành công bằng cấu hình cũ**, dùng chính mật khẩu vừa nhập để tính hash mới với salt mới và chính sách mới; lưu lại nếu bản ghi vẫn là bản ghi cũ.
+- **Password verification:** from the password entered by the user, compute the KDF using the **stored record's parameters and salt**, and compare against the stored hash.
+- **Cost calibration:** benchmark candidate configurations on the target environment to pick parameters within your latency, CPU, memory, and attack-resistance budgets.
+- **Rehash-on-login (opportunistic upgrade):** after a **successful authentication under an older configuration**, use the newly entered password to compute a new hash with a fresh salt and the new policy; save it only if the stored record is still the old one.
 
-**Không thể** đổi trực tiếp một hash PBKDF2/Argon2id đã lưu sang tham số mạnh hơn chỉ bằng cách sửa số vòng hoặc “hash lại hash cũ” rồi coi kết quả là hash chuẩn của mật khẩu. Quá trình xác thực cần biết mật khẩu gốc (hoặc một giao thức chuyển đổi đặc biệt có thiết kế riêng); sau một lần login thành công bạn mới có mật khẩu vừa nhập để rehash. Không lưu mật khẩu plaintext chờ migration.
+**You cannot** directly convert an existing PBKDF2/Argon2id hash to stronger parameters merely by editing the round count or “re-hashing the old hash” and treating the result as a standard password hash. Verification requires the original password (or a specially designed conversion protocol); only upon a successful login do you have the entered password available to rehash. Never store plaintext passwords waiting for migration.
 
-## 2. Hiểu đúng “chi phí” theo từng thuật toán
+## 2. Understanding “cost” per algorithm
 
-| Thuật toán | Tham số cốt lõi | Tài nguyên/đặc tính chính | Khi cân nhắc |
+| Algorithm | Core parameters | Primary resource / characteristics | When to consider |
 | --- | --- | --- | --- |
-| **Argon2id** | `m`: bộ nhớ tính bằng KiB; `t`: số pass; `p`: số lane/song song | **Memory-hard**, làm đoán hàng loạt tốn RAM và băng thông bộ nhớ; cân đối thời gian/bộ nhớ | Ưu tiên cho hệ thống mới nếu có thư viện đáng tin và yêu cầu tuân thủ cho phép. |
-| **scrypt** | `N`: CPU/memory cost; `r`: block size; `p`: parallelization | Dùng CPU và bộ nhớ; cần tính cả áp lực RAM khi nhiều request đồng thời | Phương án memory-hard khi không có Argon2id thích hợp. |
-| **bcrypt** | `cost` (logarithmic work factor) | Chủ yếu chi phí CPU; tăng cost một đơn vị thường tăng khoảng gấp đôi công việc | Hệ thống hiện hữu; chú ý giới hạn input (phổ biến 72 byte), mã hóa và migration. |
-| **PBKDF2-HMAC-SHA256** | `iterations`, số bit output, salt | Chủ yếu CPU, **không memory-hard** | Cần khả năng JCA sẵn có hoặc môi trường có yêu cầu FIPS phù hợp. |
+| **Argon2id** | `m`: memory in KiB; `t`: passes; `p`: lanes/parallelism | **Memory-hard**, makes mass guessing expensive in RAM and memory bandwidth; balances time/memory | Preferred for new systems if a trusted library is available and compliance permits. |
+| **scrypt** | `N`: CPU/memory cost; `r`: block size; `p`: parallelization | Uses CPU and memory; must account for RAM pressure under concurrent requests | Memory-hard option when suitable Argon2id is unavailable. |
+| **bcrypt** | `cost` (logarithmic work factor) | Primarily CPU-bound; raising cost by 1 roughly doubles work | Existing systems; watch input limits (commonly 72 bytes), encoding, and migration. |
+| **PBKDF2-HMAC-SHA256** | `iterations`, output bits, salt | Primarily CPU-bound, **not memory-hard** | Needed for built-in JCA availability or FIPS-compliant environments. |
 
-**Không so sánh số work factor giữa các thuật toán như cùng một đơn vị.** Ví dụ `600000` vòng PBKDF2 không tương đương `t=600000` của Argon2id. Với Argon2id, `m` là **tổng bộ nhớ cho một phép băm**, không nhân trực tiếp với `p`; `p` là mức song song nội bộ và không được hiểu là “số vòng lặp”. Công thức tài nguyên thực tế phụ thuộc thư viện và máy chạy.
+**Do not compare work-factor numbers across algorithms as if they share the same unit.** For example, `600000` PBKDF2 iterations is not equivalent to `t=600000` in Argon2id. In Argon2id, `m` is **total memory per hash operation**, not multiplied directly by `p`; `p` is internal parallelism and must not be interpreted as “iteration count.” Actual resource formulas depend on the library and runtime machine.
 
-Các mức khởi điểm hiện được OWASP nêu trong *Password Storage Cheat Sheet* (cần kiểm tra lại tài liệu tại thời điểm triển khai):
+Current starting baselines cited in OWASP's *Password Storage Cheat Sheet* (recheck current documentation at deployment time):
 
-- **Argon2id:** ví dụ `m=19456 KiB` (19 MiB), `t=2`, `p=1`; OWASP còn đưa các tổ hợp m/t khác có mức phòng thủ tương đương theo đánh giá của họ.
-- **PBKDF2-HMAC-SHA256:** khuyến nghị tham chiếu **600.000 iterations**; phù hợp để xem xét khi cần đường triển khai PBKDF2/FIPS.
-- **bcrypt:** tối thiểu cost 10 theo hướng dẫn hiện hành, nhưng cần xem đặc thù giới hạn mật khẩu và tình trạng ứng dụng.
-- **scrypt:** tham khảo cặp `N=2^17, r=8, p=1` hoặc các lựa chọn tương đương trong hướng dẫn.
+- **Argon2id:** e.g., `m=19456 KiB` (19 MiB), `t=2`, `p=1`; OWASP also lists alternative m/t combinations offering equivalent defense by their assessment.
+- **PBKDF2-HMAC-SHA256:** reference recommendation of **600,000 iterations**; worth considering when PBKDF2/FIPS deployment is needed.
+- **bcrypt:** minimum cost 10 under current guidance, while evaluating password length limits and application specifics.
+- **scrypt:** reference settings such as `N=2^17, r=8, p=1` or equivalent options in the guidance.
 
-**Đây không phải “cấu hình bảo đảm an toàn” chỉ bằng việc copy số.** Hãy kiểm tra phiên bản nguồn khuyến nghị, sức chịu tải thực tế, khả năng nâng cấp, FIPS của *implementation cụ thể*, và dữ liệu rủi ro. Java 17 có `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")`, nhưng **không có engine Argon2id tiêu chuẩn trong JCA core**; muốn dùng Argon2id cần thư viện/provider phù hợp.
+**These are not “guaranteed secure configurations” merely by copying numbers.** Check the current guidance version, real load capacity, upgradability, FIPS status of *your specific implementation*, and risk profile. Java 17 includes `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")`, yet **has no standard Argon2id engine in core JCA**; using Argon2id requires an appropriate library/provider.
 
-## 3. Mô hình bản ghi tự mô tả, có version
+## 3. Self-describing, versioned record model
 
-Một password record cần đủ metadata để xác thực ngay cả khi chính sách mặc định đã thay đổi:
+A password record needs enough metadata to verify even after default policy changes:
 
 ```text
 algorithm | formatVersion | parameters | salt | derivedHash | optionalPepperKeyId
 ```
 
-Ví dụ cấu trúc dạng chuỗi lưu trong database (chỉ là định dạng minh họa):
+Example string layout stored in a database (illustrative format only):
 
 ```text
 pbkdf2-sha256$v1$600000$<salt_base64url>$<hash_base64url>
 ```
 
-Trong code Java cuối bài, dấu `$` ngăn các trường và `v1` đánh dấu **phiên bản định dạng record**; nó không phải phiên bản thuật toán PBKDF2. Có thể dùng schema có cột riêng thay cho chuỗi; với Argon2id, ưu tiên định dạng chuẩn như **PHC string** nếu thư viện hỗ trợ. Không tự thay đổi thứ tự/ý nghĩa các trường ở bản ghi cũ.
+In the Java code at the end of this lesson, `$` separates fields and `v1` marks the **record format version**; it is not the PBKDF2 algorithm version. You may use separate table columns instead of a single string; for Argon2id, prefer a standard format such as **PHC string** if your library supports it. Never silently alter field ordering or meaning on legacy records.
 
-Lưu:
+Store:
 
-- **Algorithm/version:** giúp chọn đúng verifier, duy trì tương thích và chặn định dạng không hỗ trợ.
-- **Parameters per record:** đối với PBKDF2 là số `iterations` và độ dài kết quả; đối với Argon2id gồm `m,t,p`, phiên bản thuật toán và output length theo format.
-- **Salt ngẫu nhiên riêng cho mỗi lần tạo hash:** ví dụ **16 byte (128 bit)** từ `SecureRandom`, không cần giữ bí mật. Nâng cấp thì tạo **salt mới**; không dùng salt cố định chung các tài khoản.
-- **Derived hash:** lưu bytes dưới Base64/hex, **không** lưu mật khẩu, không log mật khẩu hoặc raw password-derived key.
-- **Pepper (nếu có):** là secret chung hoặc quản lý tập trung, **không** đặt giá trị secret cạnh database hash; chỉ có thể lưu ID/version của khóa, quản lý thực tế tại KMS/HSM và thiết kế quy trình xoay pepper riêng.
+- **Algorithm/version:** selects the right verifier, preserves compatibility, and rejects unsupported formats.
+- **Parameters per record:** for PBKDF2, `iterations` and output length; for Argon2id, `m, t, p`, algorithm version, and output length per format.
+- **Unique random salt per hash creation:** e.g., **16 bytes (128 bits)** from `SecureRandom`, not needing secrecy. Generate a **fresh salt** when upgrading; never share a static salt across accounts.
+- **Derived hash:** store bytes in Base64/hex; **never** store the password, and never log passwords or raw password-derived keys.
+- **Pepper (if used):** a shared or centrally managed secret—**never** place the secret value next to database hashes; store at most a key ID/version, manage the secret in KMS/HSM, and design a separate pepper rotation workflow.
 
-Việc có salt ngẫu nhiên **không** cho phép bỏ rate limiting. Rate limiting bảo vệ xác thực trực tuyến; KDF làm chậm kiểm thử ngoại tuyến sau lộ dữ liệu. Cả hai giải quyết hai bề mặt tấn công khác nhau.
+Having a random salt **does not** let you skip rate limiting. Rate limiting defends online authentication; the KDF slows offline testing after a data breach. They address two different attack surfaces.
 
-### Phải có giới hạn khi giải mã record
+### Bounds are mandatory when decoding records
 
-Các tham số trong database có thể bị hỏng hoặc không đáng tin (ví dụ account import lỗi hoặc database compromise). **Không bao giờ** đọc `iterations` hoặc `m` từ chuỗi rồi vô điều kiện cấp hàng GiB RAM/CPU hàng phút.
+Parameters in the database may be corrupted or untrusted (e.g., broken account imports or database compromise). **Never** parse `iterations` or `m` from a string and unconditionally allocate gigabytes of RAM or minutes of CPU.
 
-- Chỉ chấp nhận **danh sách algorithm và version** đã biết.
-- Kiểm tra format, độ dài chuỗi, Base64, salt, hash output length và ranh giới giá trị iterations/m/t/p trước khi chạy KDF.
-- Giới hạn input password hợp lý để giảm nguy cơ DoS, nhưng không cắt lặng lẽ mật khẩu; có chính sách nhập liệu và Unicode/encoding nhất quán.
-- Trong quá trình tăng chính sách, mở rộng **giới hạn xác thực hash hợp lệ** có kế hoạch, tránh làm người dùng hiện hữu không thể đăng nhập.
-- Record sai nên **fail closed**, ghi nhận lỗi theo cách không làm lộ thông tin nhạy cảm và đưa vào quy trình khắc phục/reset phù hợp.
+- Accept only a known **allowlist of algorithms and versions**.
+- Validate format, string length, Base64, salt, hash output length, and min/max bounds on iterations/`m`/`t`/`p` before running the KDF.
+- Enforce a reasonable password input length limit to reduce DoS risk without silently truncating passwords; maintain consistent input and Unicode/encoding policy.
+- When tightening policy, expand **valid hash verification bounds** deliberately so existing users are not locked out.
+- Corrupted records must **fail closed**, log errors without leaking sensitive data, and follow a proper recovery/reset flow.
 
-## 4. Xây ngân sách hiệu năng trước khi tăng chi phí
+## 4. Build a performance budget before raising cost
 
-Độ trễ một hash trên máy lập trình cá nhân không phản ánh trực tiếp hàng nghìn login đồng thời trên production. Quy trình hiệu chỉnh nên có các bước sau:
+Single-hash latency on a developer laptop does not directly reflect thousands of concurrent logins in production. A calibration process should follow these steps:
 
-1. **Xác định ngân sách của endpoint đăng nhập:** ví dụ mục tiêu p95 tổng latency, tỷ lệ request thành công, SLO riêng cho CPU/RAM và khả năng bảo vệ khi nhận lưu lượng bất thường. Đây là mục tiêu sản phẩm, **không phải** một con số cố định do Java áp đặt.
-2. **Đo baseline hiện tại**: tỷ lệ người dùng đang ở thuật toán/parameter version nào; p50/p95/p99 verify; CPU, RSS/memory, GC, queue time, throughput, số lần authentication đồng thời trên từng instance; phân biệt thời gian KDF thuần và toàn request.
-3. **Chọn tập ứng viên** dựa trên khuyến nghị bảo mật và giới hạn hạ tầng. Với Argon2id, phải xem **m × số phép KDF đồng thời** cộng overhead memory; với PBKDF2 tập trung CPU time và số worker/luồng.
-4. **Warm up trước khi lấy số**: chạy trên JDK/provider/library, container CPU quota, RAM limit, kiến trúc máy và cấu hình GC tương tự production. Đo nhiều lần, bỏ thời gian khởi động/JIT khỏi phép đo steady-state.
-5. **Test tải đồng thời** với tỉ lệ login đúng/sai, tenant đông, các đợt đột biến, signup/đổi mật khẩu và những tài khoản đang cần rehash. Kiểm tra khi resource bị giới hạn: có queue/backpressure và rate limit phù hợp, không làm nghẽn hệ thống.
-6. **Chọn cấu hình đủ mạnh nhưng còn dư tải** cho thời điểm cao điểm; đo thêm vòng cấp phát memory và chi phí khi thất bại. Đưa tham số/phiên bản chính sách vào config có version, thử nghiệm canary và quan sát trước rollout.
-7. **Định kỳ rà soát** khi thay hardware/JDK/provider, xuất hiện yêu cầu tuân thủ mới, throughput tăng hoặc có hướng dẫn bảo mật mới.
+1. **Define the login endpoint budget:** e.g., total p95 latency target, success rate, dedicated CPU/RAM SLOs, and behavior under traffic spikes. These are product targets, **not** fixed numbers dictated by Java.
+2. **Measure the current baseline:** user distribution across algorithms/parameter versions; verify p50/p95/p99; CPU, RSS/memory, GC, queue time, throughput, and concurrent authentications per instance; separate pure KDF time from full request time.
+3. **Select candidate configs** based on security guidance and infrastructure limits. For Argon2id, evaluate **`m` × concurrent KDFs** plus overhead memory; for PBKDF2, focus on CPU time and worker/thread counts.
+4. **Warm up before measuring:** run on the production-equivalent JDK/provider/library, container CPU quota, RAM limit, machine architecture, and GC configuration. Take multiple samples and exclude startup/JIT warmup from steady-state measurements.
+5. **Load test concurrently** with realistic valid/invalid login ratios, busy tenants, traffic bursts, signups/password changes, and accounts needing rehash. Test under resource constraints: verify queues/backpressure and rate limits prevent system collapse.
+6. **Pick a configuration strong enough with headroom** for peak traffic; measure allocation churn and failure overhead. Put policy parameters/versions in versioned config, run canary rollouts, and monitor before full deployment.
+7. **Review periodically** when hardware/JDK/providers change, new compliance rules arrive, throughput grows, or security guidance updates.
 
-Một phép tính kiểm tra áp lực bộ nhớ (minh họa): nếu một lần Argon2id cần khoảng **19 MiB**, hàng chục phép tính đồng thời có thể dùng hàng trăm MiB chỉ riêng vùng làm việc KDF, chưa gồm heap, native overhead và tác vụ khác. Việc tăng `p` không bảo đảm p95 sẽ tốt lên: nó có thể làm nhiều core cạnh tranh tài nguyên hơn. Phải đo trong cùng mô hình concurrency thực tế.
+Illustrative memory-pressure math: if one Argon2id call requires roughly **19 MiB**, dozens of concurrent computations can consume hundreds of MiB just for KDF working memory, excluding heap, native overhead, and other tasks. Increasing `p` does not guarantee better p95 latency: it can cause more cores to contend for resources. Measure under realistic concurrency.
 
-**Không lấy p95 của 11 lần hash một luồng làm p95 của dịch vụ dưới tải.** Microbenchmark là bộ lọc ứng viên; load test mới cho thấy queue, scheduling, contention, memory pressure và tác dụng của rate limiting.
+**Never take the p95 of 11 single-threaded hashes as your service's p95 under load.** Microbenchmarks filter candidates; load tests reveal queuing, scheduling, contention, memory pressure, and rate-limiting behavior.
 
-### Bảng ghi nhận kết quả calibration
+### Calibration results log table
 
-| Cấu hình ứng viên | p50 KDF | p95 KDF | p95 login end-to-end | CPU/RAM cao điểm | Throughput/queue | Kết luận |
+| Candidate config | p50 KDF | p95 KDF | p95 login end-to-end | Peak CPU/RAM | Throughput/queue | Decision |
 | --- | --- | --- | --- | --- | --- | --- |
-| Policy đang chạy | Đo | Đo | Đo | Đo | Đo | Baseline |
-| Cấu hình đề xuất A | Đo | Đo | Đo | Đo | Đo | Chọn/từ chối có lý do |
-| Cấu hình đề xuất B | Đo | Đo | Đo | Đo | Đo | Chọn/từ chối có lý do |
+| Active policy | Measure | Measure | Measure | Measure | Measure | Baseline |
+| Proposed config A | Measure | Measure | Measure | Measure | Measure | Accept/reject with rationale |
+| Proposed config B | Measure | Measure | Measure | Measure | Measure | Accept/reject with rationale |
 
-Bảng chỉ là mẫu ghi kết quả **phải tự đo**, không phải số liệu thực nghiệm giả định.
+This table is solely a template for recording **values you must measure yourself**, not fabricated experimental data.
 
-## 5. Java 17: microbenchmark một ứng viên PBKDF2
+## 5. Java 17: microbenchmarking a PBKDF2 candidate
 
-Lưu file **`Pbkdf2CostBench.java`**:
+Save **`Pbkdf2CostBench.java`**:
 
 ```java
 import java.security.SecureRandom;
@@ -176,7 +176,7 @@ public final class Pbkdf2CostBench {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 Pbkdf2CostBench.java
@@ -184,83 +184,83 @@ java Pbkdf2CostBench 10000
 java Pbkdf2CostBench 600000
 ```
 
-Định dạng output:
+Output format:
 
 ```text
-iterations=<so_vong> samples=11 p50Ms=<ms_do_duoc> p95Ms=<ms_do_duoc>
+iterations=<rounds> samples=11 p50Ms=<measured_ms> p95Ms=<measured_ms>
 ```
 
-Dòng trên là **mẫu định dạng**, không phải stdout số học cố định: thời gian phụ thuộc CPU, JDK, provider, JIT, tải, nhiệt độ và giới hạn container. `samples=11`, `p50Ms` và `p95Ms` lấy từ 11 mẫu đã sort (p95 theo nearest-rank). Chương trình có 3 lượt warmup và 11 phép đo đơn luồng; dùng để kiểm tra nhanh, **chưa đủ** để quyết định chính sách production.
+The line above is an **output template**, not fixed numerical stdout: timings depend on CPU, JDK, provider, JIT, load, thermals, and container limits. `samples=11`, `p50Ms`, and `p95Ms` come from 11 sorted samples (nearest-rank p95). The program runs 3 warmup rounds and 11 single-threaded measurements; it is a quick check, **not sufficient** by itself to decide production policy.
 
-**Giải thích code:** `SecretKeyFactory` cung cấp PBKDF2-HMAC-SHA256. `PBEKeySpec` chứa password, salt, iteration count và độ dài output **256 bit**; `clearPassword()` cố gắng xóa bản sao nội bộ sau khi dùng. Kết quả được xóa khỏi mảng tạm ngay sau phép đo để hạn chế dữ liệu nhạy cảm tồn tại trong heap. Mật khẩu demo là hằng số để tái lập phép thử; không dùng mật khẩu thật khi benchmark. Mức 10.000 vòng chỉ để chạy thử nhanh, **không phải policy lưu mật khẩu mới**.
+**Code explanation:** `SecretKeyFactory` provides PBKDF2-HMAC-SHA256. `PBEKeySpec` holds password, salt, iteration count, and **256-bit** output length; `clearPassword()` attempts to clear its internal copy after use. Results are wiped from the temporary array immediately after measurement to limit sensitive data lingering on the heap. The demo password is a constant for repeatable tests; never use real passwords when benchmarking. The 10,000-round test is only for a fast trial run, **not a policy for storing new passwords**.
 
-Khi đánh giá Argon2id/scrypt thực tế, giữ cùng phương pháp warmup và đo nhiều mẫu, nhưng benchmark luôn bằng **thư viện thuật toán được chọn thực sự**, với `m,t,p` và giới hạn native memory trên server. Đừng suy luận thời gian Argon2id từ thời gian PBKDF2.
+When evaluating real Argon2id/scrypt, keep the same warmup and multi-sample discipline, but always benchmark using **the actual chosen algorithm library**, with real `m, t, p` and server native memory limits. Never extrapolate Argon2id timings from PBKDF2 timings.
 
-## 6. Khi nào phải nâng cấp một hash?
+## 6. When must a hash be upgraded?
 
-Tách chính sách **tạo hash mới** và **xác thực hash cũ**:
+Separate **new hash creation policy** from **legacy hash verification**:
 
-- **Policy hiện tại** nêu thuật toán, version, cost tối thiểu, salt length, output length và các ràng buộc của *credential mới*.
-- **Verifier cũ** vẫn hiểu các format/thuật toán legacy còn được cho phép, dựa vào metadata **của bản ghi**, không tự ý dùng cost mới để verify hash cũ.
-- **needsRehash(record, policy)** trả true khi algorithm/version đã cũ hoặc tham số thấp hơn policy hiện tại theo đánh giá *cụ thể từng thuật toán*. Không chỉ so sánh một số cost tổng quát giữa bcrypt/PBKDF2/Argon2id.
-- Không tự động “hạ cấp” record có tham số mạnh hơn hiện tại; cần một chính sách migration cụ thể nếu thay thuật toán.
+- **Current policy** specifies algorithm, version, minimum cost, salt length, output length, and constraints for *new credentials*.
+- **Legacy verifier** still understands permitted legacy formats/algorithms using **the record's own metadata**, never arbitrarily applying new cost to verify an old hash.
+- **`needsRehash(record, policy)`** returns true when algorithm/version is outdated or parameters fall below current policy under *algorithm-specific evaluation*. Never compare a single generic cost number across bcrypt/PBKDF2/Argon2id.
+- Never automatically “downgrade” a record with stronger parameters than current policy; define an explicit migration policy when switching algorithms.
 
-Ví dụ trạng thái:
+State examples:
 
-| Bản ghi đang lưu | Password được nhập | Kết quả verify | Hành động |
+| Stored record | Entered password | Verify result | Action |
 | --- | --- | --- | --- |
-| PBKDF2 12.000 vòng | Đúng | PASS bằng 12.000 vòng | Tạo salt mới, hash lại theo policy mới, cập nhật có kiểm soát. |
-| PBKDF2 12.000 vòng | Sai | FAIL | Từ chối, **không rehash** hoặc đổi tham số. |
-| PBKDF2 600.000 vòng | Đúng | PASS | Đăng nhập; không rehash nếu đạt policy và algorithm không đổi. |
-| Record version không hỗ trợ | Bất kỳ | Không có verifier hợp lệ | Fail closed và xử lý khôi phục có xác thực; không đoán tham số. |
-| Hai phiên đăng nhập đồng thời | Đều đúng với snapshot ban đầu | PASS bước verify | Chỉ một cập nhật compare-and-set thắng; bên còn lại cần xác minh trạng thái mới. |
-| Password reset thắng trước cập nhật | Password cũ đã verify trên snapshot cũ | Có race | CAS thất bại; kiểm tra credential mới, không đè lại password reset. |
+| PBKDF2 12,000 rounds | Correct | PASS at 12,000 rounds | Generate fresh salt, rehash under new policy, update in controlled fashion. |
+| PBKDF2 12,000 rounds | Wrong | FAIL | Reject; **do not rehash** or alter parameters. |
+| PBKDF2 600,000 rounds | Correct | PASS | Log in; do not rehash if compliant and algorithm unchanged. |
+| Unsupported record version | Any | No valid verifier | Fail closed and handle via authenticated recovery; do not guess parameters. |
+| Two concurrent logins | Both match initial snapshot | Both PASS verify | Only one compare-and-set update wins; the other must check the new state. |
+| Password reset wins before update | Old password verified on stale snapshot | Race condition | CAS fails; verify against new credential, never overwrite the password reset. |
 
-Việc **nâng cấp sau khi xác thực lại** thường có thể làm minh bạch với người dùng: mật khẩu vẫn như cũ, salt/hash/cost thay đổi. Tuy nhiên, tính chi phí của **verify cũ + rehash mới** trong lần đăng nhập đó, vì có hai phép KDF. Nếu hệ thống có nhiều hash legacy, cần chuẩn bị tải và có giới hạn concurrency riêng.
+**Upgrading on re-authentication** is usually transparent to the user: the password stays the same while salt/hash/cost update. However, account for the cost of **old verify + new rehash** during that login, since two KDF runs execute. If many legacy hashes exist, plan capacity and apply dedicated concurrency limits.
 
-### Flow xác thực và nâng cấp
+### Authentication and upgrade flow
 
 ```text
-Nhận password qua kênh bảo vệ
+Receive password over protected channel
           |
           v
-Tải credential record + version
+Load credential record + version
           |
           v
-Kiểm tra format/algorithm/cost trong ranh giới cho phép
+Validate format/algorithm/cost within allowed bounds
           |
           v
-KDF(password, salt cũ, params cũ)
+KDF(password, old salt, old params)
           |
           v
-So sánh kết quả không làm rò rỉ timing theo byte
+Compare result without byte-level timing leaks
           |
-        Có khớp?
-       /        \
-     Không       Có
-      |           |
- Từ chối       needsRehash?
-                  /      \
-                Không     Có
-                 |         |
-               Login    Salt mới + KDF policy mới
-                           |
-                     Atomic CAS/UPDATE
-                           |
-               Nếu conflict: đọc lại record
-               và kiểm tra mật khẩu hiện hành
+        Match?
+       /      \
+     No        Yes
+      |         |
+   Reject    needsRehash?
+               /      \
+             No        Yes
+              |         |
+            Login    Fresh salt + new policy KDF
+                        |
+                   Atomic CAS/UPDATE
+                        |
+             On conflict: reload record
+             and verify against current credential
 ```
 
-Một lỗi thiết kế thường gặp là **hash mới bằng cách đổi cost mà giữ derived hash cũ**, hoặc **rehash mọi lần login, kể cả đã đạt policy**, gây tốn tài nguyên không cần thiết. Một lỗi khác là **rehash ngay trước khi verify**, đồng nghĩa tự ghi đè credential khi người dùng nhập sai.
+A common design bug is **creating a “new hash” by editing cost while keeping the old derived hash**, or **rehashing on every login even when already compliant**, wasting resources. Another bug is **rehashing before verifying**, which overwrites a user's credential on a wrong password attempt.
 
-## 7. Java 17: ví dụ đầy đủ verify rồi nâng cấp nguyên tử
+## 7. Java 17: complete verify-then-atomic-upgrade example
 
-`PasswordUpgradeDemo` lưu một chuỗi dạng `pbkdf2-sha256$v1$iterations$salt$hash` trong `AtomicReference` để mô phỏng **một hàng database**. Ví dụ có hai policy:
+`PasswordUpgradeDemo` stores a `pbkdf2-sha256$v1$iterations$salt$hash` string inside an `AtomicReference` to simulate **a single database row**. The example defines two policies:
 
-- `OLD_WORK = 12000`: mô phỏng **record legacy yếu**, cố ý chỉ dùng cho bài học, không phải khuyến nghị production.
-- `CURRENT_WORK = 600000`: policy mới minh họa theo mức PBKDF2-HMAC-SHA256 đang được OWASP tham khảo. Trong hệ thống thật, cần **benchmark và cấu hình hóa**, không hard-code vô thời hạn.
+- `OLD_WORK = 12000`: simulates a **weak legacy record**, intentionally used solely for learning, not a production recommendation.
+- `CURRENT_WORK = 600000`: illustrates a new policy aligned with current OWASP PBKDF2-HMAC-SHA256 reference levels. In real systems, **benchmark and externalize configuration** rather than hardcoding indefinitely.
 
-Lưu file **`PasswordUpgradeDemo.java`**:
+Save **`PasswordUpgradeDemo.java`**:
 
 ```java
 import java.security.GeneralSecurityException;
@@ -392,14 +392,14 @@ public final class PasswordUpgradeDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 PasswordUpgradeDemo.java
 java PasswordUpgradeDemo
 ```
 
-**Stdout chính xác trong trường hợp chạy thông thường:**
+**Exact stdout on a normal run:**
 
 ```text
 oldWork=12000
@@ -411,23 +411,23 @@ upgradeAgain=false
 wrongPasswordAccepted=false
 ```
 
-Mặc dù `SecureRandom` tạo salt khác mỗi lần, chương trình chỉ in **kết quả logic** nên stdout không phụ thuộc vào giá trị salt. Xác suất trùng salt ngẫu nhiên 16 byte cực kỳ nhỏ; demo dùng phép so sánh để cho thấy đã tạo salt mới, không coi đây là chứng minh toán học tuyệt đối của tính không trùng.
+Even though `SecureRandom` creates a different salt on each run, the program only prints **logical outcomes**, so stdout does not depend on the salt bytes. Collision probability for 16-byte random salts is tiny; the demo compares salts to show a fresh salt was created, not as a mathematical proof of zero collisions.
 
-### Điểm cần đọc kỹ trong code
+### Key points to study in the code
 
-1. **Tạo hash:** `encode` tạo **salt ngẫu nhiên 16 byte**, dẫn xuất output 256 bit bằng PBKDF2-HMAC-SHA256, rồi lưu algorithm/version/work/salt/hash theo thứ tự đã quy ước. Salt và hash được mã hóa Base64URL. `String.join` chỉ nối trường metadata, không chứa password.
-2. **Parse có kiểm tra:** `parse` chỉ nhận format/algorithm/version cho phép, giới hạn iterations, salt 16 byte và hash 32 byte. Giới hạn `MAX_ACCEPTED_WORK` nhằm chặn bản ghi bất thường làm cạn CPU; mọi lần thay policy thật phải cập nhật guardrail có kiểm soát. Trong hệ thống lớn có nhiều algorithm, dùng dispatch rõ ràng theo allowlist và verifier tương ứng.
-3. **Verify đúng tham số cũ:** `matches` gọi PBKDF2 bằng `stored.work()` và `stored.salt()`, tức **tham số của record đã lưu**, không dùng `CURRENT_WORK` để xác thực hash cũ. `MessageDigest.isEqual` so sánh byte array; không dùng `==` cho mảng.
-4. **Không nâng cấp khi sai:** `signIn` trả `authenticated=false, upgraded=false` ngay khi hash không khớp; không tạo salt/hash mới.
-5. **Nâng cấp đúng thời điểm:** chỉ nếu mật khẩu đúng và `work < CURRENT_WORK` thì `encode(password,CURRENT_WORK)` tạo **hash mới + salt mới**. Nếu work đã đạt/nhỉnh hơn policy, tránh hash lại lặp đi lặp lại.
-6. **Đảm bảo cập nhật không ghi đè tùy tiện:** `compareAndSet(observed,replacement)` chỉ thành công nếu record vẫn là snapshot vừa xác thực. Nếu có thay đổi đồng thời (gồm password reset), demo **đọc lại và verify mật khẩu hiện hành** trước khi cho phép đăng nhập. Đây là mô phỏng logic CAS, không phải một cơ chế transaction cho database.
-7. **Giảm thời gian giữ mật khẩu:** `PBEKeySpec.clearPassword()` xóa bản sao nội bộ; `Arrays.fill(password,'\0')` xóa mảng đầu vào demo sau cùng. Khi ứng dụng nhận password qua String/HTTP body, không thể đảm bảo mọi bản sao immutable bị xóa; hãy giảm log, sao chép và thời gian sống của secret.
+1. **Creating a hash:** `encode` generates a **16-byte random salt**, derives a 256-bit output with PBKDF2-HMAC-SHA256, and stores algorithm/version/work/salt/hash in the agreed order. Salt and hash are Base64URL-encoded. `String.join` only joins metadata fields and holds no password.
+2. **Validated parsing:** `parse` accepts only allowed format/algorithm/version, bounded iterations, 16-byte salt, and 32-byte hash. `MAX_ACCEPTED_WORK` blocks abnormal records from exhausting CPU; every real policy change must update guardrails deliberately. In larger systems with multiple algorithms, dispatch explicitly via an allowlist and matching verifier.
+3. **Verify with exact legacy parameters:** `matches` invokes PBKDF2 using `stored.work()` and `stored.salt()`—the **stored record's parameters**, never `CURRENT_WORK` for an old hash. `MessageDigest.isEqual` compares byte arrays; never use `==` on arrays.
+4. **Never upgrade on failure:** `signIn` immediately returns `authenticated=false, upgraded=false` on mismatch; no new salt/hash is created.
+5. **Upgrade at the right time:** only when the password is valid and `work < CURRENT_WORK` does `encode(password, CURRENT_WORK)` generate a **new hash + fresh salt**. If work already meets/exceeds policy, avoid pointless rehashing.
+6. **Prevent blind overwrites:** `compareAndSet(observed, replacement)` succeeds only if the record is still the snapshot just verified. If a concurrent change (including a password reset) occurred, the demo **re-reads and verifies against the current state** before permitting login. This simulates CAS logic, not a full database transaction mechanism.
+7. **Minimize password retention:** `PBEKeySpec.clearPassword()` clears the internal copy; `Arrays.fill(password, '\0')` clears the demo input array at the end. When applications receive passwords via `String`/HTTP bodies, not all immutable copies can be guaranteed erased; minimize logging, copying, and secret lifetime.
 
-**Về benchmark:** demo dùng 600.000 vòng có thể mất thời gian khác nhau trên từng máy. Dùng nó để hiểu luồng migration và kiểm tra API; đo tải thật bằng phương pháp mục 4–5 trước khi đưa production.
+**About benchmarking:** 600,000 rounds in the demo can take different durations across machines. Use it to understand the migration flow and verify APIs; measure real load using sections 4–5 before going to production.
 
-## 8. Đưa compare-and-set vào cơ sở dữ liệu và tránh race
+## 8. Bringing compare-and-set to the database and avoiding races
 
-`AtomicReference` chỉ mô phỏng dữ liệu một tài khoản trong một tiến trình. Hệ thống thực cần **cập nhật có điều kiện** ở database. Một mẫu SQL minh họa:
+`AtomicReference` only simulates one account in a single process. Real systems require **conditional updates** in the database. Illustrative SQL pattern:
 
 ```sql
 UPDATE accounts
@@ -438,93 +438,93 @@ WHERE id = :account_id
   AND password_record = :old_record;
 ```
 
-Chỉ khi **affected rows = 1** mới đánh dấu nâng cấp thành công. Nếu affected rows = 0, bản ghi đã bị đổi (do rehash từ login khác, đổi mật khẩu hoặc reset) hoặc đã bị xóa. **Không** chạy UPDATE vô điều kiện với password cũ; phải đọc lại và xử lý phù hợp. Một password reset thành công không được bị ghi đè bởi một luồng rehash đã bắt đầu trước đó.
+Mark the upgrade successful only when **affected rows = 1**. If affected rows = 0, the row was changed (by a rehash from another login, password change, or reset) or deleted. **Never** run an unconditional `UPDATE` using the old password; reload and handle appropriately. A successful password reset must never be overwritten by an earlier rehash flow.
 
-Lưu ý: chỉ so khớp string `password_record` có thể khó tối ưu hoặc không phù hợp một số schema; dùng **credential_version** và optimistic locking, transaction isolation được thiết kế cho hệ thống thật. Nếu một luồng vẫn cấp session dựa trên snapshot cũ đúng lúc password reset, chính sách **session revocation** và điều phối auth/credential write cần được định nghĩa riêng, ngoài ví dụ tối giản này.
+Note: matching the full `password_record` string may be suboptimal or awkward in some schemas; use **`credential_version`** and optimistic locking/transaction isolation designed for your real system. If one flow could still issue a session from an older snapshot right during a password reset, define **session revocation** and auth/credential write coordination separately outside this minimal example.
 
-Có hai chiến lược thời điểm nâng cấp:
+There are two upgrade timing strategies:
 
-- **Đồng bộ ngay trên login:** dễ hiểu, có kết quả migration chắc chắn trước khi response, nhưng lần login legacy có chi phí **verify cũ + hash mới**. Đặt budget/timeout thích hợp.
-- **Chuyển sang job nội bộ sau verify:** chỉ khi password vẫn sẵn trong phạm vi kiểm soát an toàn của operation; tránh lưu mật khẩu plaintext vào queue, log, event hoặc database. Trong nhiều hệ thống, không đưa password sang background queue là lựa chọn đơn giản và an toàn hơn.
+- **Synchronous during login:** straightforward, with guaranteed migration status before responding, though legacy logins pay **old verify + new hash**. Set appropriate budgets/timeouts.
+- **Offload to an internal job after verify:** only while the password stays within the operation's secure control boundary; avoid putting plaintext passwords into queues, logs, events, or databases. In many systems, not sending passwords to background queues is simpler and safer.
 
-Không bao giờ coi một bản ghi legacy là đã nâng cấp chỉ vì xác thực được. Cần **xác nhận UPDATE thành công**, đồng thời tiếp tục hỗ trợ verifier cũ cho bản ghi còn lại trong giai đoạn migration.
+Never treat a legacy record as upgraded merely because verification passed. **Confirm the `UPDATE` succeeded**, while continuing to support legacy verifiers for remaining records during migration.
 
-## 9. Triển khai nâng cấp toàn hệ thống
+## 9. Rolling out upgrades system-wide
 
-### Chính sách theo version và rollout
+### Versioned policy and rollout
 
-1. Tạo **bản ghi mới theo policy hiện tại** cho đăng ký và đổi mật khẩu kể từ thời điểm rollout.
-2. Tiếp tục **verify hash cũ theo đúng params cũ** cho tài khoản còn được phép đăng nhập.
-3. Sau lần verify thành công, nếu policy cho biết cần migration, **rehash với salt mới** và commit CAS.
-4. Theo dõi tỷ lệ hash thuộc từng algorithm/params/version và số lần nâng cấp thành công/thất bại **không log password/hash/salt**. Ghi thông số tổng hợp, latency, overload và lỗi parse định dạng.
-5. Nếu gặp CPU/memory pressure, giảm lưu lượng KDF bằng rate limit, admission control, queue có giới hạn, autoscaling có kiểm chứng; cân nhắc rollout từng phần hoặc hoãn migration không khẩn cấp theo policy. **Không** âm thầm giảm cost của credential mới để che lỗi tài nguyên.
-6. Khi tỷ lệ legacy đã thấp, quyết định mốc ngừng hỗ trợ theo rủi ro và quyền lợi người dùng; tài khoản chưa đăng nhập lâu cần **quy trình reset mật khẩu có xác thực**, không thể tự “tăng iterations” cho hash cũ khi không có plaintext.
-7. Đảm bảo rollback phiên bản ứng dụng vẫn **đọc được bản ghi mới**, nếu rollback là khả năng cần có; deploy verifier hỗ trợ version mới **trước** khi bắt đầu ghi hash mới.
+1. Create **new records under current policy** for registrations and password changes from rollout onward.
+2. Continue **verifying legacy hashes with their exact legacy parameters** for accounts still permitted to log in.
+3. After successful verification, if policy indicates migration is needed, **rehash with a fresh salt** and commit with CAS.
+4. Track the share of hashes per algorithm/params/version and upgrade success/failure counts **without logging passwords/hashes/salts**. Record aggregate metrics, latency, overload, and format parse errors.
+5. Under CPU/memory pressure, shed KDF load via rate limits, admission control, bounded queues, and verified autoscaling; consider staged rollouts or deferring non-urgent migrations per policy. **Never** silently lower new credential cost to mask resource bugs.
+6. Once the legacy share is low, decide a retirement cutoff balancing risk and user impact; accounts that have not logged in for long periods need an **authenticated password reset flow**, as old hashes cannot have iterations increased without plaintext.
+7. Ensure application rollbacks can still **read new records** if rollback is a realistic possibility; deploy verifiers supporting the new version **before** writing new hashes.
 
-### Chuyển thuật toán, không chỉ tăng iterations
+### Switching algorithms, not just raising iterations
 
-Chuyển từ PBKDF2 sang Argon2id là **algorithm migration**: verifier nhận diện record PBKDF2 và xác thực; khi thành công, library Argon2id tạo một record **PHC** mới với m/t/p và salt mới. Không so `iterations` của PBKDF2 với `t` của Argon2id như cùng thước đo. Một hệ thống có thể giữ nhiều verifier cho giai đoạn chuyển đổi, nhưng **chỉ một policy tạo hash mới**.
+Moving from PBKDF2 to Argon2id is an **algorithm migration**: the verifier recognizes PBKDF2 records and validates them; on success, the Argon2id library creates a new **PHC** record with `m`/`t`/`p` and a fresh salt. Never treat PBKDF2 `iterations` and Argon2id `t` as the same metric. A system may retain multiple verifiers during transition, while **only one policy creates new hashes**.
 
-Với hệ thống bcrypt legacy, chú ý **giới hạn 72 byte** và cách hệ thống cũ xử lý mật khẩu Unicode hoặc dữ liệu dài; thay encoding một cách tùy tiện có thể khiến mật khẩu hợp lệ trước đó bị từ chối. Khi migration thuật toán, phải kiểm thử case non-ASCII và mật khẩu dài theo verifier lịch sử.
+For legacy bcrypt systems, watch the **72-byte limit** and how the old system handled Unicode or long passwords; changing encoding arbitrarily can lock out previously valid passwords. When migrating algorithms, test non-ASCII and long passwords against legacy verifiers.
 
-### Khi có pepper
+### When a pepper is used
 
-Pepper giúp thêm một lớp bảo vệ khi database hash bị lộ nhưng secret bên ngoài vẫn an toàn; thay đổi pepper có thể đòi hỏi **verify bằng pepper key ID cũ rồi tạo record mới dùng pepper mới** hoặc quy trình reset. Đừng lưu plaintext pepper cạnh DB và đừng nghĩ thêm pepper là thay thế cho salt/work factor. Cần thiết kế các failure mode khi HSM/KMS không sẵn sàng, audit truy cập, rotation, key identifier và xử lý tài khoản chưa đăng nhập.
+A pepper adds a layer of defense when database hashes leak while external secrets stay safe; rotating a pepper may require **verifying with the old pepper key ID and creating a new record with the new pepper** or a reset flow. Never store plaintext peppers next to the DB and never treat adding a pepper as a substitute for salt/work factor. Design failure modes when HSM/KMS is unavailable, access auditing, rotation, key identifiers, and handling inactive accounts.
 
-## 10. Rủi ro từ abuse và dữ liệu không đáng tin
+## 10. Risks from abuse and untrusted data
 
-Càng tăng cost, một request đăng nhập hợp lệ càng tốn tài nguyên; kẻ tấn công có thể tận dụng endpoint này để gây **CPU/RAM exhaustion**. Cân nhắc các lớp bảo vệ:
+As cost rises, each valid login request consumes more resources; attackers can target this endpoint for **CPU/RAM exhaustion**. Consider layered defenses:
 
-- **Rate limit theo account và nguồn**, phát hiện credential stuffing, throttling phù hợp và bảo vệ endpoint khôi phục. Không tạo kênh thông báo cho phép liệt kê user bằng lỗi hoặc thời gian rõ rệt.
-- **Bounded concurrency**: chỉ cho số phép KDF đồng thời phù hợp RAM/CPU; hàng chờ phải có giới hạn và timeout. Với Argon2id, đo native memory cùng heap/container memory.
-- **Thông số từ record phải qua validate**: không cho account tự yêu cầu iterations cực lớn hoặc m=GiB, không cho attacker đặt algorithm tùy ý trong hệ thống nhận dữ liệu ngoài.
-- **Độ dài mật khẩu đầu vào**: cho phép passphrase dài theo chính sách, nhưng đặt trần hợp lý và kiểm thử các thực thi PBKDF2/long password để tránh trường hợp xử lý đầu vào gây chi phí bất thường. Không cắt mật khẩu không thông báo.
-- **Khi user không tồn tại**, tránh làm rò rỉ qua response và timing. Một phương án là verifier thực hiện dummy KDF với policy thích hợp trong luồng lỗi; phải tính chi phí vào năng lực chịu tải và kết hợp rate limit. Mục tiêu là hành vi quan sát được nhất quán, không hứa thời gian luôn đồng đều tuyệt đối.
-- **Đừng tối ưu bằng fast hash** như SHA-256/MD5 cho password storage. Hash nhanh có ích ở bài toán khác nhưng khiến thử đoán ngoại tuyến quá rẻ.
-- **Đầu vào sai, phiên bản không hỗ trợ, hỏng record** phải fail closed và có quy trình hỗ trợ người dùng, không fallback âm thầm sang thuật toán yếu.
+- **Per-account and per-source rate limiting**, credential-stuffing detection, appropriate throttling, and recovery endpoint protection. Avoid side channels that allow user enumeration via distinct errors or glaring timing differences.
+- **Bounded concurrency**: permit only as many concurrent KDF runs as RAM/CPU safely support; bound queues and timeouts. For Argon2id, measure native memory alongside heap/container memory.
+- **Parameters from records must be validated**: never allow an account row to request huge iterations or `m=GiB`, and never let attackers pick arbitrary algorithms in systems accepting external input.
+- **Password input length**: allow long passphrases per policy, yet set a reasonable ceiling and test PBKDF2/long-password behavior to prevent abnormal processing costs. Never silently truncate passwords.
+- **When a user does not exist**, avoid leaking existence via responses and timing. One option is running a dummy KDF under appropriate policy on the miss path; factor its cost into capacity planning and pair with rate limiting. The goal is consistent observable behavior, not promising mathematically flat timing.
+- **Do not optimize with fast hashes** like SHA-256/MD5 for password storage. Fast hashes fit other problems, yet make offline guessing trivial.
+- **Invalid inputs, unsupported versions, and corrupted records** must fail closed with user-support workflows, never silently falling back to weak algorithms.
 
-Lưu ý về chi phí **người dùng thất bại liên tiếp**: luôn phải kiểm chứng password bằng KDF đối với account có tồn tại và record hợp lệ, nhưng kết hợp rate limit/lockout được thiết kế tránh lợi dụng account DoS; không cho phép bypass KDF qua một đường xác thực “nhanh” riêng.
+Note on **repeated user failures**: always verify passwords with the KDF for existing accounts with valid records, paired with rate limits/lockouts designed to resist account-lockout DoS; never allow bypassing the KDF via a separate “fast” path.
 
-## 11. Những lỗi hay gặp và cách sửa
+## 11. Common mistakes and fixes
 
-| Lỗi | Vì sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Right approach |
 | --- | --- | --- |
-| Tăng iterations trong config rồi dùng số mới để verify tất cả hash cũ | Hash lưu được tính với iterations cũ; xác thực đúng sẽ thất bại | Verify theo metadata của **từng record**. |
-| Rehash hash cũ thay vì password | Kết quả không tương đương KDF(password, salt mới, params mới) | Chỉ rehash sau khi password đúng và vẫn sẵn trong request. |
-| Rehash trước kiểm tra mật khẩu | Ghi đè credential cho request sai | Verify thành công trước, rồi mới tạo record mới. |
-| Giữ salt cũ hoặc dùng salt chung | Làm suy yếu tính độc lập giữa bản ghi/lần hash | Salt ngẫu nhiên mới cho mỗi lần hash mới/upgrade. |
-| Không lưu algorithm/version/params | Không thể đọc hash cũ khi policy đổi | Định dạng tự mô tả, có migration path. |
-| Cho phép cost từ DB không giới hạn | CPU/RAM DoS khi record hỏng hoặc bị sửa | Guardrails và allowlist thuật toán, version. |
-| Dùng `Arrays.equals` cho hash và nghĩ nó là constant-time | Không có bảo đảm timing phù hợp | Dùng primitive verify của thư viện hoặc `MessageDigest.isEqual` khi chuẩn hóa độ dài. |
-| Cấp ủy quyền dựa trên snapshot cũ sau password reset cạnh tranh | Có thể cho người dùng dùng credential đã thay | CAS, re-check khi conflict, định nghĩa session revocation. |
-| UPDATE vô điều kiện sau login | Ghi đè password reset/concurrent migration | Optimistic lock theo credential version/record. |
-| Rehash mọi login | Gây CPU/RAM không cần thiết | Chỉ khi `needsRehash` thật, tránh downgrade. |
-| Thêm Argon2id mới mà tắt ngay verifier PBKDF2 | Tài khoản legacy không thể login | Deploy verifier đọc cả cũ và mới trước write. |
-| “Đo” bằng một request local | Bỏ qua p95/p99, queue, CPU quota, native memory | Warmup + nhiều mẫu + test tải production-like. |
-| Nâng cost quá cao mà không có rate limiting | Kẻ tấn công tạo hàng đợi KDF quá tải | Giới hạn concurrency, rate limit và capacity plan. |
-| Nghĩ PBKDF2 600k đủ vĩnh viễn | Hardware/khuyến nghị thay đổi | Định kỳ benchmark và xem lại tài liệu chuẩn. |
-| Hard-code một giá trị cho mọi thuật toán | Các cost parameter khác ngữ nghĩa | Policy phân loại theo algorithm. |
-| Log password hoặc hash để debug | Tăng nguy cơ lộ thông tin xác thực | Ghi log dạng metadata tổng hợp, không ghi secret. |
+| Raising iterations in config and using the new value to verify all old hashes | Stored hashes were computed with old iterations; valid logins fail | Verify using **each record's own metadata**. |
+| Rehashing the old hash instead of the password | Result does not equal `KDF(password, fresh salt, new params)` | Rehash only after verifying the right password while it is still in the request. |
+| Rehashing before checking the password | Overwrites credentials on wrong-password requests | Verify first, then create the new record. |
+| Reusing old salt or sharing one salt | Weakens independence across records/hashes | Fresh random salt for every new hash/upgrade. |
+| Omitting algorithm/version/params | Cannot read legacy hashes after policy changes | Self-describing format with a migration path. |
+| Accepting unbounded cost from DB | CPU/RAM DoS on corrupted or tampered records | Guardrails and allowlists for algorithms and versions. |
+| Using `Arrays.equals` on hashes and assuming constant-time | Lacks proper timing guarantees | Use library verify primitives or `MessageDigest.isEqual` with validated lengths. |
+| Granting authorization from an old snapshot after a concurrent password reset | May accept superseded credentials | CAS, re-check on conflict, and define session revocation. |
+| Unconditional `UPDATE` after login | Overwrites password resets / concurrent migrations | Optimistic locking on credential version/record. |
+| Rehashing every login | Wastes CPU/RAM unnecessarily | Only when `needsRehash` is true; avoid downgrades. |
+| Adding Argon2id and immediately disabling the PBKDF2 verifier | Legacy accounts cannot log in | Deploy verifiers supporting both old and new before writing new hashes. |
+| “Benchmarking” with one local request | Ignores p95/p99, queues, CPU quotas, native memory | Warmup + multiple samples + production-like load tests. |
+| Raising cost sky-high without rate limiting | Attackers overload the KDF queue | Concurrency caps, rate limiting, and capacity planning. |
+| Assuming PBKDF2 600k is enough forever | Hardware and guidance evolve | Benchmark periodically and review current standards. |
+| Hardcoding one numeric cost across all algorithms | Cost parameters have different semantics | Per-algorithm policy definitions. |
+| Logging passwords or hashes for debugging | Increases exposure of credential material | Log aggregate metadata only; never log secrets. |
 
-## 12. Bài tập tình huống
+## 12. Scenario exercises
 
-1. **Chọn policy:** bạn có hai server class với giới hạn CPU/RAM khác nhau. Lập bảng ứng viên Argon2id m/t/p hoặc PBKDF2 iterations và thiết kế thử nghiệm với tải 1, 10, 50 phép KDF đồng thời. Nêu rõ vì sao p95 đo đơn luồng không đủ.
-2. **Bắt buộc kiểm chứng đúng cost:** tạo PBKDF2 record với 12.000 vòng, thử xác thực bằng 600.000 vòng trên cùng salt/hash. Giải thích vì sao không khớp và cách verify đúng trước khi upgrade.
-3. **Thực hành Java:** chạy `PasswordUpgradeDemo`, giải thích lần đầu `upgraded=true`, lần sau `upgradeAgain=false` và vì sao salt thay đổi dù password giữ nguyên.
-4. **Đọc lỗi:** thay field iterations của record thành `999999999` hoặc format `v9`; vì sao parser phải từ chối **trước khi gọi KDF**?
-5. **Race condition:** hai login hợp lệ đọc cùng record legacy; một phiên cập nhật thành công. Phiên còn lại nên làm gì khi compare-and-set thất bại? Nếu đồng thời có password reset, điều gì thay đổi?
-6. **Tài khoản ngủ đông:** 5% người dùng không đăng nhập 2 năm. Không có password plaintext, vì sao không thể rehash trực tiếp? Hãy đề xuất reset hoặc chính sách sunset verifier cũ có kiểm soát.
-7. **Chi phí kép:** mỗi lần login legacy phải verify 1 lần với cost cũ và tạo hash 1 lần với cost mới. Dự đoán peak CPU/RAM trong giai đoạn rollout, đề xuất metric và rate-limit/bounded-concurrency phù hợp.
-8. **Algorithm migration:** thiết kế pseudo-code verify cả PBKDF2 và Argon2id nhưng **chỉ hash mới bằng Argon2id**. Không đồng nhất số iterations của PBKDF2 với `t` của Argon2id.
-9. **Bảo mật thực tế:** giải thích tác dụng riêng của salt, work factor, pepper, rate limit và TLS. Tại sao không thành phần nào thay thế hoàn toàn các thành phần còn lại?
+1. **Choosing policy:** you have two server classes with different CPU/RAM limits. Tabulate candidate Argon2id `m`/`t`/`p` or PBKDF2 iterations and design load tests at 1, 10, and 50 concurrent KDF calls. Explain why single-threaded p95 is insufficient.
+2. **Verifying with the right cost:** create a PBKDF2 record at 12,000 rounds, then attempt to verify it at 600,000 rounds using the same salt/hash. Explain why it fails to match and how to verify properly before upgrading.
+3. **Java practice:** run `PasswordUpgradeDemo`; explain why `upgraded=true` on the first login, `upgradeAgain=false` on the second, and why the salt changed even though the password stayed identical.
+4. **Error handling:** change the record's iterations field to `999999999` or format `v9`; why must the parser reject it **before calling the KDF**?
+5. **Race condition:** two valid logins read the same legacy record; one session updates successfully. What should the other session do when compare-and-set fails? What changes if a password reset occurred concurrently?
+6. **Dormant accounts:** 5% of users have not logged in for 2 years. Without plaintext passwords, why can't you rehash directly? Propose an authenticated reset or controlled legacy-verifier sunset policy.
+7. **Double cost:** each legacy login verifies once at old cost and hashes once at new cost. Estimate peak CPU/RAM during rollout, and propose metrics and appropriate rate-limit/bounded-concurrency settings.
+8. **Algorithm migration:** write pseudocode that verifies both PBKDF2 and Argon2id while **creating new hashes only with Argon2id**. Do not equate PBKDF2 `iterations` with Argon2id `t`.
+9. **Practical security:** explain the distinct roles of salt, work factor, pepper, rate limiting, and TLS. Why does no single control completely replace the others?
 
-**Tiêu chí nắm vững:** Bạn phân biệt được cost của từng KDF; đo trên hệ thống đại diện; lưu record có version/params/salt; xác thực bằng cost **đã lưu** trước khi upgrade; tạo hash mới bằng **password + salt mới + policy mới**, cập nhật nguyên tử và xử lý race; không gây downgrade hoặc làm cạn tài nguyên khi nhận dữ liệu record bất thường.
+**Mastery criteria:** you can distinguish each KDF's cost parameters; benchmark on representative infrastructure; store records with version/params/salt; verify with the **stored** cost before upgrading; generate new hashes from **password + fresh salt + new policy**, update atomically, and handle races; and prevent downgrades or resource exhaustion from malformed records.
 
-## Tài liệu tham khảo
+## References
 
-- [OWASP Password Storage Cheat Sheet — Work Factors, Argon2id, PBKDF2 và Upgrading the Work Factor](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
-- [NIST SP 800-63B (Revision 4) — Password Verifiers, salted hashes và cost factor](https://pages.nist.gov/800-63-4/sp800-63b.html)
-- [Java SE 17: `PBEKeySpec` và `clearPassword`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html)
+- [OWASP Password Storage Cheat Sheet — Work Factors, Argon2id, PBKDF2, and Upgrading the Work Factor](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+- [NIST SP 800-63B (Revision 4) — Password Verifiers, salted hashes, and cost factors](https://pages.nist.gov/800-63-4/sp800-63b.html)
+- [Java SE 17: `PBEKeySpec` and `clearPassword`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html)
 - [Java SE 17: `SecretKeyFactory`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/SecretKeyFactory.html)
 - [Java SE 17: `MessageDigest.isEqual`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/MessageDigest.html)
 - [RFC 9106 — Argon2 Memory-Hard Function for Password Hashing](https://www.rfc-editor.org/rfc/rfc9106)

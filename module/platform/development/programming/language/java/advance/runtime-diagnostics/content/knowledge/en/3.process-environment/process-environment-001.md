@@ -1,57 +1,57 @@
-# 3.1 — Nhận diện đúng JVM bằng PID, lệnh khởi chạy, thời điểm bắt đầu và người sở hữu
+# 3.1 — Identifying the Right JVM by PID, Launch Command, Start Time, and Owner
 
-## 1. Vấn đề cần giải quyết
+## 1. Problem to Solve
 
-Trên một máy chủ có thể đồng thời chạy nhiều Java Virtual Machine (JVM): API, batch job, công cụ build, chương trình thử nghiệm, agent giám sát hoặc hai phiên bản ứng dụng trong lúc triển khai. Chúng có thể cùng hiện tên tiến trình `java` hoặc cùng sử dụng một file `.jar`. Nếu chọn nhầm tiến trình để lấy thread dump, JFR, heap dump hoặc thực hiện thao tác quản trị, kết quả điều tra sẽ sai; một thao tác tốn tài nguyên còn có thể ảnh hưởng dịch vụ khác.
+On a single server, multiple Java Virtual Machines (JVMs) may run simultaneously: APIs, batch jobs, build tools, test programs, monitoring agents, or two versions of an application during deployment. They may all show up with the process name `java` or use the same `.jar` file. If you pick the wrong process to capture a thread dump, JFR, heap dump, or perform an administrative action, your investigation results will be wrong; a resource-intensive operation could even impact another service.
 
-**Mục tiêu của bài:** nhận diện **đúng phiên JVM đang chạy** và xác minh đồng thời bốn bằng chứng:
+**Goal of this lesson:** identify **the right running JVM instance** and simultaneously verify four pieces of evidence:
 
-1. **PID (Process ID):** số định danh của tiến trình trong **một không gian PID cụ thể**.
-2. **Lệnh khởi chạy:** executable Java, ứng dụng `-jar` hoặc main class, classpath và tham số liên quan.
-3. **Thời điểm bắt đầu:** mốc tiến trình được tạo để phân biệt những lần chạy/restart khác nhau.
-4. **Người sở hữu:** danh tính hệ điều hành đang sở hữu/vận hành tiến trình, dùng để kiểm tra đúng service và quyền chẩn đoán.
+1. **PID (Process ID):** the process identifier within **a specific PID namespace**.
+2. **Launch command:** the Java executable, `-jar` application or main class, classpath, and related arguments.
+3. **Start time:** the timestamp when the process was created, to distinguish between different runs/restarts.
+4. **Owner:** the operating system identity owning/operating the process, used to verify the right service and diagnostic permissions.
 
-Bối cảnh **host/container/pod**, instance và mốc thời gian là phần bổ sung cần thiết khi các ứng dụng chạy phân tán.
+The **host/container/pod**, instance, and timestamp context are essential additions when applications run in distributed environments.
 
-> **Quy tắc an toàn:** Không chọn mục tiêu chỉ vì “PID trông quen”, tên `java`, đường dẫn JAR hoặc dòng đầu tiên trong `jcmd -l`. Hãy đối chiếu ít nhất PID + launch command + start time + owner, rồi kiểm tra lại khi sắp thực hiện lệnh chẩn đoán.
+> **Safety rule:** Do not pick a target just because “the PID looks familiar”, the name `java`, a JAR path, or the first line in `jcmd -l`. Cross-check at least PID + launch command + start time + owner, then verify again right before executing a diagnostic command.
 
-## 2. PID là định danh tạm thời, không phải danh tính vĩnh viễn
+## 2. A PID Is a Temporary Identifier, Not a Permanent Identity
 
-Hệ điều hành cấp PID cho tiến trình sống trong một phạm vi nhất định. Khi tiến trình kết thúc, PID **có thể được tái sử dụng**. Vì vậy, “PID 18432” được ghi trong log lúc 09:00 chưa chắc vẫn là cùng JVM lúc 11:00.
+The operating system assigns a PID to a living process within a certain scope. Once a process terminates, the PID **can be reused**. Therefore, “PID 18432” recorded in a log at 09:00 is not guaranteed to be the same JVM at 11:00.
 
-Một bản ghi định danh hữu ích có dạng:
+A useful identification record looks like this:
 
-| Thuộc tính | Ví dụ minh họa | Giá trị trong điều tra |
+| Attribute | Illustrative example | Value in investigation |
 | --- | --- | --- |
-| Host / node | `node-03` | Tránh nhầm cùng PID trên hai máy |
-| Namespace / container / pod | `orders-api-7b6d...`, container `app` | Phân biệt PID nhìn từ host và từ container |
-| PID / PPID | `18432` / `1` | Chọn tiến trình và lần theo launcher/parent |
-| Start time (kèm timezone) | `2026-10-29T08:15:00Z` | Phân biệt phiên trước và sau restart |
-| Owner | `svc-orders` | Đối chiếu user vận hành và quyền attach |
-| Executable | `/opt/jdk-17/bin/java` | Kiểm tra tiến trình thực sự chạy Java nào |
-| Launch command | `java -jar /srv/orders/orders-api.jar` | Liên hệ đúng ứng dụng/build |
-| Service / deployment | `orders-api.service` / deployment `orders-api` | Ghép với giám sát và cấu hình triển khai |
+| Host / node | `node-03` | Avoids confusing the same PID on two machines |
+| Namespace / container / pod | `orders-api-7b6d...`, container `app` | Distinguishes PID seen from host vs. from container |
+| PID / PPID | `18432` / `1` | Selects the process and traces the launcher/parent |
+| Start time (with timezone) | `2026-10-29T08:15:00Z` | Distinguishes instances before and after a restart |
+| Owner | `svc-orders` | Matches the operating user and attach permissions |
+| Executable | `/opt/jdk-17/bin/java` | Verifies which Java binary the process is actually running |
+| Launch command | `java -jar /srv/orders/orders-api.jar` | Correlates with the right application/build |
+| Service / deployment | `orders-api.service` / deployment `orders-api` | Matches with monitoring and deployment configuration |
 
-**Bốn trường chính phải cùng khớp trong cùng một thời điểm.** Host và namespace xác định *PID được hiểu ở đâu*. Mốc bắt đầu xác định *phiên sống nào* của PID đó. Owner và command xác định *đúng tiến trình Java nào*. Khi hai JVM cùng chạy một JAR, cần thêm instance ID, cổng dịch vụ, service manager hoặc pod/container identity để phân biệt.
+**All four core fields must match at the same point in time.** Host and namespace define *where the PID is interpreted*. Start time defines *which lifetime* of that PID. Owner and command define *which exact Java process*. When two JVMs run the same JAR, you also need an instance ID, service port, service manager, or pod/container identity to distinguish them.
 
-Các khái niệm dễ nhầm:
+Commonly confused concepts:
 
-- **PID** là mã tiến trình hệ điều hành. **PPID** là PID của tiến trình cha; không phải mã JVM và không đảm bảo cha luôn còn sống.
-- **Thread ID (TID)** trong thread dump là thông tin luồng; không thay thế PID của JVM.
-- **Owner của tiến trình** là tài khoản hệ điều hành, khác với chủ sở hữu file `.jar`, tài khoản CI/CD hoặc người viết code.
-- **Start time** là lúc *tiến trình hiện tại* được tạo, khác với thời điểm deploy, build, máy khởi động hoặc service lần đầu được đăng ký.
+- **PID** is the OS process ID. **PPID** is the parent process ID; it is not a JVM ID and does not guarantee the parent is still alive.
+- **Thread ID (TID)** in a thread dump is thread information; it does not replace the JVM's PID.
+- **Process owner** is an operating system account, different from the `.jar` file owner, CI/CD account, or code author.
+- **Start time** is when *the current process* was created, different from deployment time, build time, machine boot time, or when the service was first registered.
 
-## 3. Trình tự điều tra: phát hiện → đối chiếu → xác nhận lại
+## 3. Investigation Sequence: Discover → Cross-Check → Re-verify
 
-Có thể dùng quy trình năm bước trên Linux, macOS hoặc Windows:
+You can use a five-step workflow on Linux, macOS, or Windows:
 
-1. **Khoanh đúng máy và dịch vụ.** Từ cảnh báo, ghi host/node, namespace/pod nếu có, tên dịch vụ, phiên bản và thời gian sự cố.
-2. **Lập danh sách JVM ứng viên.** Dùng công cụ JDK như `jcmd -l` hoặc danh sách process của hệ điều hành. Đây chỉ là bước *khám phá*.
-3. **Đọc thông tin hệ điều hành của từng ứng viên.** Đối chiếu PID, parent PID, user, start time, executable và command line. Không nhầm Java launcher với shell/service wrapper.
-4. **Xác nhận từ phía JVM khi có thể.** Dùng `jcmd <PID> VM.command_line`, `VM.version` và `VM.uptime` để kiểm tra Java command và phiên bản; ghi rõ nếu attach không được.
-5. **Preflight lại ngay trước tác vụ chẩn đoán.** Đọc lại PID, start time và owner; nếu tiến trình đã biến mất hoặc start time khác, phải định danh lại từ đầu. Một PID đã được tái sử dụng không còn trỏ đến JVM ban đầu.
+1. **Narrow down the machine and service.** From the alert, record host/node, namespace/pod if applicable, service name, version, and incident time.
+2. **List candidate JVMs.** Use JDK tools like `jcmd -l` or the OS process list. This is only the *discovery* step.
+3. **Read OS-level details for each candidate.** Cross-check PID, parent PID, user, start time, executable, and command line. Do not confuse the Java launcher with a shell/service wrapper.
+4. **Confirm from the JVM side when possible.** Use `jcmd <PID> VM.command_line`, `VM.version`, and `VM.uptime` to verify the Java command and version; explicitly note if attaching fails.
+5. **Run a preflight check right before the diagnostic action.** Re-read PID, start time, and owner; if the process has disappeared or the start time changed, re-identify from scratch. A reused PID no longer points to the original JVM.
 
-Ví dụ hồ sơ ghi nhận:
+Example identification record:
 
 ```text
 incident_utc:   2026-10-29T08:32:00Z
@@ -67,78 +67,78 @@ entrypoint:     -jar /srv/orders/orders-api.jar
 verification:   OS process details + jcmd VM.command_line
 ```
 
-Đây là **hồ sơ minh họa**, không phải output được sinh ra bởi một lệnh đơn lẻ. Với môi trường production, chỉ ghi/đính kèm launch arguments sau khi đã loại bỏ thông tin bí mật.
+This is an **illustrative record**, not output produced by a single command. In production environments, only record/attach launch arguments after redacting secrets.
 
-## 4. Linux: nhìn từ hệ điều hành trước khi attach
+## 4. Linux: Inspecting from the OS Before Attaching
 
-### 4.1. Tìm JVM ứng viên
+### 4.1. Finding Candidate JVMs
 
-Trong terminal trên **đúng host hoặc đúng PID namespace**, chạy:
+In a terminal on the **correct host or correct PID namespace**, run:
 
 ```bash
 jcmd -l
 ```
 
-Với JDK có `jps`, có thể đối chiếu:
+On JDKs that include `jps`, you can cross-check with:
 
 ```bash
 jps -lv
 ```
 
-`jcmd -l` thường hiển thị PID và thông tin main class/JAR của JVM mà công cụ có thể nhìn thấy. `jps -l` dùng tên đầy đủ của main class hoặc đường dẫn JAR; `-v` hiển thị JVM arguments. **Đừng cho rằng danh sách này đầy đủ**: quyền truy cập, container PID namespace, JDK vendor, cấu hình attach/performance counters và tình trạng tiến trình có thể làm một JVM không hiện ra. Một lệnh không thấy ứng dụng **không chứng minh** JVM không chạy.
+`jcmd -l` typically shows the PID and main class/JAR information of JVMs visible to the tool. `jps -l` outputs the full main class name or JAR path; `-v` shows JVM arguments. **Do not assume this list is complete**: permissions, container PID namespaces, JDK vendor, attach/performance counter configuration, and process state can prevent a JVM from appearing. A command not showing an application **does not prove** the JVM is not running.
 
-Có thể tìm từ process table ngay cả khi ứng dụng không hiện trong công cụ JDK:
+You can search the process table even when an application does not appear in JDK tools:
 
 ```bash
 ps -eo pid,ppid,user,lstart,etime,args
 ```
 
-Lệnh `ps` này chỉ là bước liệt kê; lọc bằng thông tin service, account hoặc executable khi cần. Nhiều tiến trình Java có tên hiển thị `java` hoặc `javaw`, nhưng wrapper, symlink và cách trình bày command line có thể khác nhau.
+This `ps` command is only a listing step; filter by service, account, or executable information as needed. Many Java processes display the name `java` or `javaw`, though wrappers, symlinks, and command-line presentation can vary.
 
-### 4.2. Ghi nhận chi tiết một PID cụ thể
+### 4.2. Recording Details of a Specific PID
 
-Giả sử ứng viên là PID `18432`. Với Linux dùng `procps`:
+Suppose the candidate is PID `18432`. On Linux with `procps`:
 
 ```bash
 ps -ww -p 18432 -o pid,ppid,user,ruser,lstart,etimes,args
 ```
 
-Ý nghĩa cột:
+Column meanings:
 
-- `pid`: PID đang được hệ điều hành nhìn thấy.
-- `ppid`: PID của parent, hỗ trợ tìm launcher hoặc service manager.
-- `user`: user hiệu lực (effective user) theo cách `ps` trình bày; `ruser` là real user. Hai giá trị có thể khác nhau ở một số tiến trình.
-- `lstart`: thời điểm bắt đầu tiến trình theo giờ địa phương của host; **phải ghi timezone** khi lưu chứng cứ.
-- `etimes`: số giây tiến trình đã chạy tại thời điểm đọc; hữu ích để kiểm tra chéo start time. Trường này thuộc `procps` trên Linux, không mặc định có trên mọi Unix.
-- `args`: command line nhìn từ OS. `-ww` yêu cầu hiển thị rộng, nhưng không đảm bảo mọi ký tự đều tồn tại/có quyền truy cập.
+- `pid`: PID as seen by the operating system.
+- `ppid`: parent PID, helping trace the launcher or service manager.
+- `user`: effective user as displayed by `ps`; `ruser` is the real user. These two values can differ for some processes.
+- `lstart`: process start time in the host's local time; **always record the timezone** when saving evidence.
+- `etimes`: elapsed seconds the process has been running at read time; useful for cross-checking start time. This field belongs to `procps` on Linux and is not available by default on all Unix systems.
+- `args`: command line as seen by the OS. `-ww` requests wide output, though it does not guarantee every character is present or accessible.
 
-Xem chính xác executable mà kernel liên kết với tiến trình:
+Check the exact executable the kernel associates with the process:
 
 ```bash
 readlink -f /proc/18432/exe
 ```
 
-Xem command-line arguments được kernel lưu với **ranh giới từng tham số** trên Linux:
+View command-line arguments stored by the kernel with **per-argument boundaries** on Linux:
 
 ```bash
 tr '\0' '\n' < /proc/18432/cmdline
 ```
 
-Trong `/proc/PID/cmdline`, các tham số được phân tách bằng byte NUL. Chuyển NUL thành newline giúp dễ nhận thấy từng argument (đặc biệt với đường dẫn có dấu cách); đây là dạng **hiển thị hỗ trợ phân tích**, không phải chuỗi shell có thể copy để chạy y nguyên. Tiến trình vẫn có thể thay đổi thông tin argv mà hệ điều hành hiển thị, và file có thể trống hoặc bị chặn quyền. Đừng xem argv là nguồn xác thực tuyệt đối.
+In `/proc/PID/cmdline`, arguments are separated by NUL bytes. Converting NUL to newline makes each argument easy to see (especially for paths with spaces); this is a **display format for analysis**, not a shell string you can copy and run verbatim. A process can still modify the argv information shown by the OS, and the file may be empty or permission-blocked. Do not treat argv as an absolute source of truth.
 
-Đọc thông tin tiến trình và UID trên Linux:
+Read process and UID details on Linux:
 
 ```bash
 grep -E '^(Name|Pid|PPid|Uid|NSpid):' /proc/18432/status
 ```
 
-`Uid` liệt kê lần lượt real, effective, saved-set và filesystem UID. `NSpid` có thể cho biết các PID tương ứng trong những namespace mà kernel hiển thị, hữu ích khi dùng container. Nếu `NSpid` chỉ có một số hoặc không có thông tin cần thiết, đừng tự suy đoán mapping.
+`Uid` lists real, effective, saved-set, and filesystem UID in order. `NSpid` can show the corresponding PIDs across namespaces exposed by the kernel, which is helpful when using containers. If `NSpid` has only one number or lacks the needed information, do not guess the mapping yourself.
 
-**Các giới hạn của `/proc`:** tiến trình có thể kết thúc giữa hai lệnh; chính sách `hidepid`, container isolation và quyền người dùng có thể ngăn đọc; `readlink -f /proc/PID/exe` có thể thất bại hoặc chỉ ra executable đã bị xóa/thay thế. Không tăng quyền chỉ để “đọc cho bằng được” nếu không có quyền vận hành tương ứng.
+**Limitations of `/proc`:** a process can terminate between two commands; `hidepid` policies, container isolation, and user permissions can block reading; `readlink -f /proc/PID/exe` can fail or point to a deleted/replaced executable. Do not escalate privileges just to “force a read” without the appropriate operational authorization.
 
-### 4.3. Kiểm tra Java command thực sự của JVM mục tiêu
+### 4.3. Checking the Target JVM's Actual Java Command
 
-Khi đã xác nhận ứng viên bằng OS:
+Once a candidate is confirmed via the OS:
 
 ```bash
 jcmd 18432 VM.command_line
@@ -146,23 +146,23 @@ jcmd 18432 VM.version
 jcmd 18432 VM.uptime
 ```
 
-- `VM.command_line` cho biết thông tin launch mà JVM ghi nhận, giúp đối chiếu `-jar`/main class và JVM flags. Một số cờ có thể đến từ môi trường hoặc cơ chế launcher, nên thông tin hiển thị có thể khác cách nhìn của `ps`.
-- `VM.version` xác nhận phiên bản/runtime JVM đang chạy, đáng tin hơn việc gọi `java -version` trong shell: Java trên `PATH` **có thể không phải Java của tiến trình đích**.
-- `VM.uptime` cho biết thời gian chạy của JVM; dùng để kiểm tra tính nhất quán với `lstart`/`etimes`, không thay thế mốc start time của OS.
+- `VM.command_line` shows the launch information recorded by the JVM, helping verify `-jar`/main class and JVM flags. Some flags may come from environment variables or launcher mechanisms, so what is shown can differ from `ps`.
+- `VM.version` confirms the running JVM version/runtime, which is more reliable than calling `java -version` in a shell: the `java` on `PATH` **may not be the target process's Java**.
+- `VM.uptime` reports how long the JVM has been running; use it to check consistency with `lstart`/`etimes`, not as a replacement for the OS start timestamp.
 
-Nếu chưa chắc command khả dụng ở JDK/vendor cụ thể, đọc:
+If you are unsure which commands are available on a specific JDK/vendor, run:
 
 ```bash
 jcmd 18432 help
 ```
 
-**Điều kiện attach:** `jcmd` cần nhìn thấy tiến trình mục tiêu và có quyền phù hợp (trên các hệ thống HotSpot thường cần cùng effective user/group), cùng các cơ chế attach mà JVM/OS cho phép. Container, quyền, cấu hình bảo mật hoặc `-XX:+DisableAttachMechanism` có thể khiến attach thất bại. **Attach thất bại không chứng minh PID sai**: quay lại đối chiếu bằng OS/service manager, ghi rõ lý do thất bại và nhờ người vận hành có quyền hợp lệ khi cần.
+**Attach prerequisites:** `jcmd` needs to see the target process and have appropriate permissions (on HotSpot systems this usually requires the same effective user/group), along with attach mechanisms permitted by the JVM/OS. Containers, permissions, security settings, or `-XX:+DisableAttachMechanism` can cause attach to fail. **A failed attach does not prove the PID is wrong**: fall back to OS/service manager verification, record the exact failure reason, and involve an operator with valid permissions when needed.
 
-**Tránh lệnh mở rộng mục tiêu ngoài ý muốn:** dùng PID cụ thể. Trong `jcmd`, PID `0` có ý nghĩa gửi lệnh đến tất cả Java processes có thể truy cập; không dùng nó cho một tác vụ kiểm tra đơn JVM.
+**Avoid commands that unintentionally broaden the target:** use a specific PID. In `jcmd`, PID `0` sends the command to all accessible Java processes; do not use it for a single-JVM check.
 
-## 5. Windows: PID, CreationDate, CommandLine và GetOwner
+## 5. Windows: PID, CreationDate, CommandLine, and GetOwner
 
-Trong Windows PowerShell có thể dùng Windows Management Instrumentation qua CIM. Ví dụ PID cần kiểm tra là `18432`:
+In Windows PowerShell, you can use Windows Management Instrumentation via CIM. For example, if the PID to inspect is `18432`:
 
 ```powershell
 $targetPid = 18432
@@ -179,76 +179,76 @@ Invoke-CimMethod -InputObject $proc -MethodName GetOwner |
     Select-Object Domain, User, ReturnValue
 ```
 
-Giải thích:
+Explanation:
 
-- `ProcessId` và `ParentProcessId` xác định process hiện tại và cha; có thể có nhiều Java khác nhau.
-- `CreationDate` là thời điểm tạo tiến trình; dòng `ToUniversalTime().ToString("o")` giúp lưu mốc ISO 8601 UTC thay vì một chuỗi phụ thuộc ngôn ngữ hiển thị.
-- `ExecutablePath` là đường dẫn executable nếu hệ thống cấp quyền đọc.
-- `CommandLine` là command line của tiến trình; có thể trả về `null` khi thiếu quyền.
-- `GetOwner` trả `Domain`/`User` và `ReturnValue`; kiểm tra mã trả về trước khi coi user là xác minh thành công (thông thường `0` chỉ thành công).
+- `ProcessId` and `ParentProcessId` identify the current process and its parent; there may be multiple different Java processes.
+- `CreationDate` is the process creation time; `ToUniversalTime().ToString("o")` saves an ISO 8601 UTC timestamp rather than a locale-dependent display string.
+- `ExecutablePath` is the executable path if the system grants read permission.
+- `CommandLine` is the process command line; it may return `null` when permissions are insufficient.
+- `GetOwner` returns `Domain`/`User` and `ReturnValue`; check the return code before treating the user as verified (typically `0` indicates success).
 
-Có thể lấy start time từ object process:
+You can also retrieve start time from the process object:
 
 ```powershell
 Get-Process -Id $targetPid |
     Select-Object Id, ProcessName, StartTime, Path
 ```
 
-Đôi khi `StartTime` hoặc `Path` không đọc được do quyền; dùng CIM để kiểm tra chéo. **Tránh dùng biến `$PID` để lưu PID mục tiêu**: trong PowerShell, `$PID` là biến tự động chứa PID của chính tiến trình PowerShell và không phải biến gán tùy ý. Dùng tên `$targetPid`.
+Sometimes `StartTime` or `Path` cannot be read due to permissions; use CIM to cross-check. **Avoid using the variable `$PID` to store the target PID**: in PowerShell, `$PID` is an automatic variable holding the PID of the PowerShell process itself and is not for arbitrary assignment. Use a name like `$targetPid`.
 
-Nếu JDK tool đã cài và khả dụng, chạy `jcmd -l` rồi `jcmd 18432 VM.command_line` giống Linux. Khi JVM thuộc Windows service, có thể đối chiếu tên service và account cấu hình, nhưng service có thể là wrapper hoặc host của nhiều process; vẫn kiểm tra ProcessId và CreationDate của JVM thực.
+If JDK tools are installed and available, run `jcmd -l` and then `jcmd 18432 VM.command_line` just like on Linux. When the JVM belongs to a Windows service, you can cross-check the service name and configured account, but a service may be a wrapper or host multiple processes; still check the actual JVM's `ProcessId` and `CreationDate`.
 
-## 6. macOS và các nền tảng Unix khác
+## 6. macOS and Other Unix Platforms
 
-Trên macOS, dùng `ps` để quan sát PID hiện tại:
+On macOS, use `ps` to inspect the current PID:
 
 ```bash
 ps -ww -p 18432 -o pid,ppid,user,lstart,etime,command
 ```
 
-Sau đó dùng `jcmd -l` và `jcmd 18432 VM.command_line` nếu JDK/vận hành cho phép. Tên trường và tùy chọn `ps` khác nhau giữa GNU/Linux, BSD/macOS và BusyBox; ví dụ trên Linux có `etimes` không nhất thiết chạy trên macOS. Nếu tùy chọn không được hỗ trợ, xem `man ps` của chính hệ thống. **Không dùng `/proc/PID/cmdline` theo hướng dẫn Linux trên macOS** vì macOS không cung cấp cùng giao diện `procfs` mặc định.
+Then use `jcmd -l` and `jcmd 18432 VM.command_line` if JDK/operations allow. Field names and `ps` options vary across GNU/Linux, BSD/macOS, and BusyBox; for instance, `etimes` on Linux does not necessarily work on macOS. If an option is unsupported, check `man ps` on that specific system. **Do not use Linux's `/proc/PID/cmdline` instructions on macOS** because macOS does not provide the same default `procfs` interface.
 
-## 7. Service manager, shell wrapper và ứng dụng có cùng tên
+## 7. Service Managers, Shell Wrappers, and Applications with the Same Name
 
 ### 7.1. Linux systemd
 
-Nếu hệ thống dùng systemd, lấy ngữ cảnh service:
+If the system uses systemd, retrieve the service context:
 
 ```bash
 systemctl show orders-api.service \
     -p MainPID -p User -p ExecStart -p ExecMainStartTimestamp
 ```
 
-Sau đó đối chiếu `MainPID` với PID Java từ `ps` hoặc `jcmd`, và đối chiếu thời gian khởi động. Không mặc định rằng `MainPID` luôn là JVM: một launcher `sh`, script, wrapper hoặc process supervisor có thể là main process còn Java là child. Cờ `Type=`, `ExecStart=`, việc fork và cấu hình service có thể ảnh hưởng cây process.
+Then compare `MainPID` with the Java PID from `ps` or `jcmd`, and compare start times. Do not assume `MainPID` is always the JVM: a `sh` launcher, script, wrapper, or process supervisor may be the main process while Java is a child. `Type=`, `ExecStart=`, forking behavior, and service configuration all affect the process tree.
 
-Nếu nghi ngờ wrapper:
+If you suspect a wrapper:
 
 ```bash
 pstree -aps 18432
 ```
 
-`pstree` chỉ có khi hệ thống cài công cụ tương ứng (thường từ gói `psmisc`). Kiểm tra parent chain để biết launcher nào sinh JVM. Một file unit có `User=svc-orders` là **cấu hình kỳ vọng**; `ps`/`Uid` vẫn cần xác nhận user thực tế của tiến trình.
+`pstree` is only available when the corresponding tool package is installed (usually from `psmisc`). Inspect the parent chain to see which launcher spawned the JVM. A unit file with `User=svc-orders` is the **expected configuration**; `ps`/`Uid` must still confirm the actual process user.
 
-### 7.2. Vì sao tên JAR hoặc tên main class chưa đủ?
+### 7.2. Why Is a JAR Name or Main Class Name Not Enough?
 
-Hai phiên JVM có thể cùng chạy:
+Two JVM instances can run simultaneously:
 
 ```text
 18432 svc-orders java -jar /srv/orders/orders-api.jar
 18597 svc-orders java -jar /srv/orders/orders-api.jar
 ```
 
-Cả hai đều khớp bằng tên JAR. Chỉ PID + tên file không cho biết instance nào nhận request đang chậm. Cần thêm start time, host/namespace, port, service identity, instance ID hoặc correlation với metrics. Không suy luận PID nhỏ hơn là bản cũ hay PID lớn hơn là bản mới: PID được hệ điều hành tái sử dụng và có thể wrap.
+Both match by JAR name. PID + filename alone cannot tell which instance is receiving the slow requests. You also need start time, host/namespace, port, service identity, instance ID, or correlation with metrics. Do not infer that a smaller PID is an older instance or a larger PID is a newer one: PIDs are reused by the OS and can wrap around.
 
-Tương tự, parent của JVM có thể là systemd, container init hoặc một process launcher đã thay đổi. `PPID=1` không chứng minh đây là ứng dụng duy nhất hay là JVM khởi động đầu tiên.
+Similarly, the JVM's parent may be systemd, container init, or a process launcher that has changed. `PPID=1` does not prove this is the only application or the first JVM started.
 
-## 8. Container và Kubernetes: cùng JVM, nhiều góc nhìn PID
+## 8. Containers and Kubernetes: Same JVM, Multiple PID Views
 
-Trong container, PID phụ thuộc **PID namespace**. Một Java process có thể hiện PID `1` khi nhìn từ bên trong container, nhưng mang PID `31842` trên host Linux. Hai container khác nhau đều có thể nhìn thấy tiến trình nội bộ của mình là PID `1`. Nếu operator ghi “PID 1” mà bỏ container identity, chứng cứ gần như không thể ghép lại.
+In containers, PIDs depend on the **PID namespace**. A Java process can show PID `1` when viewed from inside the container, while having PID `31842` on the Linux host. Two different containers can each see their own internal process as PID `1`. If an operator records “PID 1” without container identity, the evidence is nearly impossible to correlate.
 
-Cần ghi **node/host + pod UID + container name/ID + PID namespace + PID trong namespace tương ứng + start time + owner**. Không coi PID bên trong container là PID có thể dùng trực tiếp trên host.
+Record **node/host + pod UID + container name/ID + PID namespace + PID within that namespace + start time + owner**. Do not treat a PID inside a container as a PID directly usable on the host.
 
-Trên Kubernetes, ví dụ kiểm tra đúng pod/container:
+On Kubernetes, example commands to inspect the right pod/container:
 
 ```bash
 kubectl get pod -n commerce orders-api-abc -o wide
@@ -256,23 +256,23 @@ kubectl describe pod -n commerce orders-api-abc
 kubectl exec -n commerce orders-api-abc -c app -- jcmd -l
 ```
 
-Các tên `commerce`, `orders-api-abc` và `app` ở đây **chỉ là ví dụ**, phải thay bằng namespace/pod/container thực tế. Lệnh cuối chỉ chạy nếu trong container có JDK với `jcmd` và quyền tương ứng. Ảnh runtime tối giản có thể không có `ps`, `jcmd`, shell hay đủ quyền; khi đó dùng dữ liệu từ service orchestrator/host hoặc quy trình debug được vận hành phê duyệt, **không đoán** container PID.
+Here, `commerce`, `orders-api-abc`, and `app` **are examples only** and must be replaced with the actual namespace/pod/container. The last command only works if the container includes a JDK with `jcmd` and appropriate permissions. Minimal runtime images may lack `ps`, `jcmd`, a shell, or sufficient permissions; in that case use data from the orchestrator/host or an operationally approved debug workflow—**do not guess** the container PID.
 
-Thông tin cần phân biệt:
+Details to distinguish:
 
-- **Pod age / pod creation time:** tuổi của pod, **không phải** start time của JVM; container có thể đã restart trong cùng pod.
-- **Container restart count / container ID:** cho thấy lần khởi động container; dùng để đối chiếu với mốc JVM restart.
-- **PID trong container:** có thể là `1` nếu JVM là entrypoint, hoặc là child của shell/`tini`; xem process thực tế.
-- **PID trên node:** khác PID nhìn từ container nếu có PID namespace riêng; Linux `/proc/PID/status` có thể chứa `NSpid` để hỗ trợ ánh xạ, nhưng phải đọc từ góc nhìn namespace thích hợp.
-- **Container user:** UID được image/pod cấu hình có thể chịu user namespace mapping; đừng mặc định UID `0` trong container đồng nghĩa root không giới hạn trên host.
+- **Pod age / pod creation time:** age of the pod, **not** the JVM start time; a container may have restarted within the same pod.
+- **Container restart count / container ID:** shows the container incarnation; use it to correlate with JVM restart timestamps.
+- **PID inside container:** may be `1` if the JVM is the entrypoint, or a child of shell/`tini`; inspect the actual processes.
+- **PID on node:** differs from the container's view when using a separate PID namespace; Linux `/proc/PID/status` may contain `NSpid` to help with mapping, but it must be read from the appropriate namespace view.
+- **Container user:** the UID configured by the image/pod may undergo user namespace mapping; do not assume UID `0` inside a container equals unrestricted root on the host.
 
-Một output `jcmd -l` từ host không tìm thấy JVM trong container **chưa phải** bằng chứng JVM không tồn tại. Cần tìm từ **đúng nơi quan sát**, nhất là khi incident được báo theo pod.
+A `jcmd -l` output from the host that does not find a JVM inside a container **is not** proof the JVM does not exist. Look from **the right observation point**, especially when the incident is reported by pod.
 
-## 9. Tự nhận diện JVM trong Java 17+ bằng ProcessHandle
+## 9. Self-Identifying the JVM in Java 17+ with ProcessHandle
 
-Khi có quyền sửa ứng dụng hoặc tạo chương trình demo, Java cung cấp `ProcessHandle.current()` và `ProcessHandle.Info` từ Java 9. Đây là cách hữu ích để ghi PID và thời điểm bắt đầu **từ chính process đang chạy**, phục vụ đối chiếu với log/metrics và OS.
+When you have permission to modify the application or create a demo program, Java provides `ProcessHandle.current()` and `ProcessHandle.Info` since Java 9. This is a useful way to log the PID and start time **from the running process itself**, for cross-checking against logs/metrics and the OS.
 
-Tạo file **`JvmIdentityDemo.java`**:
+Create the file **`JvmIdentityDemo.java`**:
 
 ```java
 public class JvmIdentityDemo {
@@ -293,14 +293,14 @@ public class JvmIdentityDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac --release 17 JvmIdentityDemo.java
 java JvmIdentityDemo
 ```
 
-**Ví dụ hình thức stdout** (giá trị PID, start time, owner, executable là **biến thiên theo máy và lần chạy**, không phải chuỗi cố định):
+**Example stdout format** (PID, start time, owner, and executable values **vary by machine and run**, not fixed strings):
 
 ```text
 pid=18432
@@ -309,99 +309,99 @@ owner=svc-orders
 command=/opt/jdk-17/bin/java
 ```
 
-`startInstant()`, `user()` và `command()` trả về `Optional`; `<unavailable>` là kết quả hợp lệ khi hệ điều hành/JVM không cung cấp thông tin hoặc thiếu quyền. `Instant.toString()` hiển thị timestamp UTC với hậu tố `Z` nếu có. Chương trình cố ý **không** in toàn bộ arguments vì command line có thể chứa secrets.
+`startInstant()`, `user()`, and `command()` return `Optional`; `<unavailable>` is a valid result when the OS/JVM does not provide the information or permissions are lacking. `Instant.toString()` displays a UTC timestamp with a `Z` suffix when present. The program intentionally **does not** print all arguments because the command line may contain secrets.
 
-Để có thời gian nhìn thấy tiến trình từ terminal khác, chạy:
+To allow time to observe the process from another terminal, run:
 
 ```bash
 java JvmIdentityDemo --stay
 ```
 
-Lúc này chương trình in bốn dòng rồi chờ khoảng **60 giây**. Trong khoảng đó, lấy PID in ra (ví dụ `18432`) và dùng `ps`/`jcmd 18432 VM.command_line` trên đúng host/namespace. Khi process kết thúc, PID đó không còn là định danh hợp lệ cho phiên JVM demo vừa chạy.
+The program prints four lines and then waits for about **60 seconds**. During that window, take the printed PID (e.g., `18432`) and use `ps`/`jcmd 18432 VM.command_line` on the matching host/namespace. Once the process exits, that PID is no longer a valid identifier for the demo JVM session that just ran.
 
-**Giới hạn:** `ProcessHandle.Info` cho biết thông tin từ cơ chế OS hỗ trợ, không chứng thực rằng “PID này chính là deployment X”. Muốn xác minh service identity phải ghép với app config, container/pod, runtime command, logs và hệ thống triển khai. Thông tin process có thể không truy cập được ở môi trường cô lập.
+**Limitations:** `ProcessHandle.Info` reports information from OS-supported mechanisms; it does not certify that “this PID is deployment X”. Verifying service identity requires correlating with app config, container/pod, runtime command, logs, and the deployment system. Process information may be inaccessible in isolated environments.
 
-## 10. Chống nhầm PID sau restart: kiểm tra cùng một phiên sống
+## 10. Preventing PID Mix-ups After Restarts: Verifying the Same Living Instance
 
-Một quy trình điều tra điển hình:
+A typical investigation sequence:
 
-1. 08:31 — Cảnh báo heap tăng trên `orders-api` ở `node-03`.
-2. 08:32 — `jcmd -l` và `ps` phát hiện PID `18432`; xác nhận owner `svc-orders`, start `08:15Z`, lệnh khởi chạy đúng JAR.
-3. 08:34 — JVM bị supervisor restart. Tiến trình cũ kết thúc; JVM mới có thể nhận PID khác hoặc, về sau, PID cũ được tái sử dụng.
-4. 08:35 — Người điều tra định lấy heap dump theo PID đã lưu từ 08:32. **Không thực hiện ngay**: đọc lại process details. Nếu start time không còn khớp hoặc PID đã mất, phải tìm JVM phiên mới và ghi nhận thay đổi.
+1. 08:31 — Heap growth alert on `orders-api` at `node-03`.
+2. 08:32 — `jcmd -l` and `ps` find PID `18432`; confirmed owner `svc-orders`, start `08:15Z`, launch command matches the right JAR.
+3. 08:34 — The JVM is restarted by the supervisor. The old process terminates; the new JVM may receive a different PID or, later on, the old PID gets reused.
+4. 08:35 — The investigator is about to take a heap dump using the PID saved at 08:32. **Do not execute immediately**: re-read process details. If the start time no longer matches or the PID is gone, find the new JVM instance and note the change.
 
-**Khóa nhận diện thực tế** nên là tổ hợp *(host/node, PID namespace, PID, process start time)*. Có thể thêm container ID, pod UID, owner và command fingerprint để tăng độ tin cậy. PID tái sử dụng là lý do quan trọng phải lưu **start time ở mỗi lần lấy bằng chứng**.
+A **practical identity key** should be the tuple *(host/node, PID namespace, PID, process start time)*. Adding container ID, pod UID, owner, and command fingerprint increases confidence. PID reuse is the critical reason to record **start time every time evidence is captured**.
 
-Với systemd/Kubernetes, kiểm tra dấu hiệu restart từ manager, đồng thời đối chiếu log bắt đầu process và JVM uptime. Sau restart, **PID, heap, thread pool, trạng thái cache và JFR recording đều có thể không liên tục**; không ghép dump của hai phiên thành một snapshot duy nhất.
+With systemd/Kubernetes, check restart indicators from the manager, and cross-check process startup logs and JVM uptime. After a restart, **PID, heap, thread pools, cache state, and JFR recordings can all be discontinuous**; never merge dumps from two instances into a single snapshot.
 
-### Cách đối chiếu không làm thay đổi ứng dụng
+### How to Cross-Check Without Modifying the Application
 
 ```bash
-# Linux: chụp thông tin mục tiêu trước
+# Linux: capture target details before
 ps -ww -p 18432 -o pid,ppid,user,lstart,etimes,args
 
-# Thực hiện lệnh đọc thông tin JVM nếu quyền cho phép
+# Run the JVM info read command if permissions allow
 jcmd 18432 VM.command_line
 
-# Chụp lại: cùng PID nhưng start time thay đổi => không còn cùng phiên
+# Capture again: same PID but changed start time => no longer the same instance
 ps -ww -p 18432 -o pid,ppid,user,lstart,etimes,args
 ```
 
-Chuỗi này **giảm** nguy cơ nhầm PID, nhưng không loại bỏ hoàn toàn race giữa lúc kiểm tra và hành động; các lệnh không tạo một “khóa” nguyên tử trên process. Với tác vụ nặng hoặc nhạy cảm, ưu tiên quy trình chẩn đoán do đội vận hành kiểm soát và kiểm tra instance ID sát thời điểm thao tác.
+This sequence **reduces** the risk of targeting the wrong PID, though it does not completely eliminate races between check and action; commands do not create an atomic “lock” on the process. For heavy or sensitive actions, prefer an operations-controlled diagnostic workflow and verify the instance ID close to the moment of execution.
 
-## 11. Các lỗi chẩn đoán thường gặp
+## 11. Common Diagnostic Mistakes
 
-| Nhận định hoặc thao tác sai | Vì sao có thể sai | Cách làm đúng |
+| Wrong assumption or action | Why it can be wrong | Correct approach |
 | --- | --- | --- |
-| “`jcmd -l` chỉ có một dòng nên chắc chắn đúng service.” | JVM có thể nằm namespace khác, thiếu quyền hoặc tool không nhìn thấy. | Đối chiếu process table, host, owner và container. |
-| “Ứng dụng chạy `orders-api.jar` nên chọn PID bất kỳ có JAR đó.” | Có thể có nhiều replica/canary/startup trùng JAR. | Ghép PID, start, host/pod và instance. |
-| “PID trong alert hôm qua vẫn là PID hiện tại.” | PID có thể hết hiệu lực và được tái sử dụng. | Kiểm tra start time hiện tại trước thao tác. |
-| “`java -version` trong terminal cho biết JDK của service.” | `PATH` trong shell có thể trỏ đến JDK khác. | Kiểm tra `/proc/PID/exe` và `jcmd PID VM.version`. |
-| “Owner của file JAR là owner của JVM.” | User thực thi process không phụ thuộc owner của artifact. | Đọc effective/real UID hoặc Windows GetOwner. |
-| “Systemd `MainPID` chắc chắn là JVM.” | Launcher/wrapper có thể giữ MainPID. | Kiểm tra cây parent–child và executable thực. |
-| “Pod khởi chạy 3 giờ trước, JVM cũng chạy 3 giờ.” | Container/JVM có thể restart trong cùng pod. | Kiểm tra start time JVM, container ID và restart count. |
-| “Host PID giống container PID.” | PID namespaces có thể ánh xạ các số khác nhau. | Xác định góc nhìn và namespace trước khi đối chiếu. |
-| “Không attach được nghĩa là PID sai.” | Thiếu quyền, thiếu attach, vendor/JDK và isolation có thể gây lỗi. | Xác minh bằng OS trước; không tự nâng quyền. |
-| “`CommandLine` luôn đầy đủ và an toàn để chia sẻ.” | Có thể null/truncated/đã sửa, chứa secrets. | Kiểm tra thêm OS + JVM; che/redact dữ liệu nhạy cảm. |
+| “`jcmd -l` shows only one line, so it must be the right service.” | The JVM may be in another namespace, lack permissions, or be invisible to the tool. | Cross-check the process table, host, owner, and container. |
+| “The app runs `orders-api.jar`, so pick any PID with that JAR.” | Multiple replicas/canary/startup instances may share the same JAR. | Match PID, start time, host/pod, and instance. |
+| “The PID in yesterday's alert is still the current PID.” | A PID can expire and be reused. | Verify the current start time before acting. |
+| “`java -version` in the terminal tells me the service's JDK.” | `PATH` in the shell may point to a different JDK. | Check `/proc/PID/exe` and `jcmd PID VM.version`. |
+| “The JAR file's owner is the JVM's owner.” | The user executing the process does not depend on the artifact owner. | Read effective/real UID or Windows `GetOwner`. |
+| “Systemd `MainPID` is definitely the JVM.” | A launcher/wrapper may hold `MainPID`. | Check the parent–child tree and actual executable. |
+| “The pod started 3 hours ago, so the JVM has also been running 3 hours.” | The container/JVM can restart within the same pod. | Check JVM start time, container ID, and restart count. |
+| “Host PID equals container PID.” | PID namespaces can map different numbers. | Determine the observation point and namespace before matching. |
+| “Unable to attach means the PID is wrong.” | Permissions, disabled attach, vendor/JDK differences, and isolation can cause errors. | Verify via the OS first; do not escalate privileges arbitrarily. |
+| “`CommandLine` is always complete and safe to share.” | It may be null/truncated/modified and contain secrets. | Cross-check OS + JVM; mask/redact sensitive data. |
 
-## 12. Những chi tiết nâng cao cần biết khi điều tra khó
+## 12. Advanced Details to Know During Difficult Investigations
 
-### 12.1. Start time đến từ đâu?
+### 12.1. Where Does Start Time Come From?
 
-- Trên Linux, `ps -o lstart` hiển thị start time theo định dạng/giờ địa phương. Dữ liệu nền của Linux có thể lấy từ `/proc/PID/stat`: trường `starttime` (field 22) là số clock ticks từ lúc boot; việc chuyển đổi sang wall clock cần thông tin clock tick/boot time. **Không** tự tách chuỗi `/proc/PID/stat` bằng một phép `split(" ")` đơn giản, vì trường tên process trong ngoặc có thể chứa dấu cách hoặc dấu ngoặc.
-- Trên Windows, `Win32_Process.CreationDate` và `Get-Process.StartTime` phản ánh thời điểm process tạo nếu đọc được.
-- Từ Java, `ProcessHandle.Info.startInstant()` là nguồn hữu ích để đối chiếu, nhưng là `Optional` và không được đảm bảo trên mọi hệ điều hành.
+- On Linux, `ps -o lstart` displays start time in local format/timezone. Underlying Linux data can be read from `/proc/PID/stat`: the `starttime` field (field 22) is clock ticks since boot; converting to wall clock requires clock tick/boot time information. **Do not** parse `/proc/PID/stat` with a naive `split(" ")`, because the process name field in parentheses can contain spaces or parentheses.
+- On Windows, `Win32_Process.CreationDate` and `Get-Process.StartTime` reflect process creation time if readable.
+- From Java, `ProcessHandle.Info.startInstant()` is a useful source for cross-checking, though it is `Optional` and not guaranteed on every OS.
 
-Khi so timestamp, ghi timezone rõ ràng (ưu tiên UTC/ISO 8601), thời gian lấy snapshot và sai lệch đồng hồ giữa node. Hai thông tin “08:15” và “08:15Z” **không thể** coi là tương đương nếu chưa biết timezone.
+When comparing timestamps, state the timezone explicitly (prefer UTC/ISO 8601), the snapshot capture time, and clock skew between nodes. Two values “08:15” and “08:15Z” **cannot** be treated as equivalent if the timezone is unknown.
 
-### 12.2. “Lệnh khởi chạy” có nhiều lớp
+### 12.2. “Launch Command” Has Multiple Layers
 
-Một shell script hoặc service unit có thể thiết lập `JAVA_TOOL_OPTIONS`, `JDK_JAVA_OPTIONS`, system properties, classpath rồi mới gọi Java. JVM có thể chạy bằng `java -jar app.jar`, `java -cp ... com.example.Main` hoặc một launcher khác. Command line OS chỉ cho biết argv mà OS đang cung cấp, trong khi JVM command-line view có thể phản ánh những cấu hình được áp dụng tại startup.
+A shell script or service unit may set `JAVA_TOOL_OPTIONS`, `JDK_JAVA_OPTIONS`, system properties, and classpath before invoking Java. A JVM may be launched via `java -jar app.jar`, `java -cp ... com.example.Main`, or another launcher. The OS command line shows only the argv supplied by the OS, whereas the JVM command-line view reflects configurations applied at startup.
 
-Khi có mâu thuẫn, ghi lại **cả hai góc nhìn** (sau khi redaction) và kiểm tra cấu hình deploy/launcher. Không quyết định ứng dụng bằng cách tìm mỗi chuỗi `.jar` vì classpath nhiều file, module launch và wrapper có cách khởi động khác.
+When there is a discrepancy, record **both views** (after redaction) and inspect deployment/launcher configurations. Do not identify an application simply by searching for `.jar`, because multi-file classpaths, module launches, and wrappers start differently.
 
-### 12.3. Ai có quyền thấy process?
+### 12.3. Who Has Permission to See the Process?
 
-Khả năng xem command line, executable hoặc attach khác nhau theo account, OS policy và namespace. Người có quyền xem PID chưa chắc đọc được arguments hoặc sử dụng `jcmd`. Owner có thể cần được biểu diễn bằng UID thay vì tên nếu account database trong container khác host. Không suy luận “không có dữ liệu” là “không có tiến trình”.
+Visibility of command line, executable, or attach varies by account, OS policy, and namespace. A user who can see a PID may still be unable to read its arguments or run `jcmd`. The owner may need to be represented by UID rather than name if the container's account database differs from the host's. Do not infer “no data” as “no process”.
 
-Khi thu thập để chia sẻ, loại bỏ access token, mật khẩu, connection string hoặc tham số chứa dữ liệu người dùng từ `ps`, `/proc/PID/cmdline`, `jps` và `jcmd VM.command_line`. Chỉ chia sẻ danh tính đã tối thiểu hóa và timestamp cần thiết. Các lệnh nêu trong bài là lệnh quan sát; không cần dừng, kill hoặc thay đổi JVM để nhận diện.
+When collecting data to share, strip access tokens, passwords, connection strings, or arguments containing user data from `ps`, `/proc/PID/cmdline`, `jps`, and `jcmd VM.command_line`. Share only the minimized identity and necessary timestamps. The commands in this lesson are observation commands; you do not need to stop, kill, or modify a JVM to identify it.
 
-## 13. Checklist xác nhận mục tiêu trước thread dump, heap dump hoặc JFR
+## 13. Target Confirmation Checklist Before Thread Dump, Heap Dump, or JFR
 
-- [ ] Đã xác nhận **host/node** và **namespace/container/pod** tương ứng với cảnh báo.
-- [ ] Đã ghi **PID**, **PPID**, **start time có timezone**, **owner/UID** của JVM hiện tại.
-- [ ] Đã đối chiếu **executable path**, **command line** với tên service và deployment; nếu có wrapper, xác nhận cây process.
-- [ ] Đã đối chiếu từ phía JVM (`VM.command_line`/`VM.version`) khi attach được; nếu không, ghi nguyên nhân và chứng cứ OS thay thế.
-- [ ] Đã phân biệt **pod age**, **container restart**, **service start** và **JVM process start**.
-- [ ] Đã kiểm tra **PID + start time lần cuối** ngay trước lệnh chẩn đoán để tránh chọn phiên đã restart.
-- [ ] Đã loại bỏ secrets khỏi các bản ghi lệnh khởi chạy trước khi gửi hoặc lưu chung.
+- [ ] Confirmed the **host/node** and **namespace/container/pod** corresponding to the alert.
+- [ ] Recorded **PID**, **PPID**, **start time with timezone**, and **owner/UID** of the current JVM.
+- [ ] Cross-checked **executable path** and **command line** against service name and deployment; if wrapped, verified the process tree.
+- [ ] Cross-checked from the JVM side (`VM.command_line`/`VM.version`) when attachable; otherwise recorded the reason and fallback OS evidence.
+- [ ] Distinguished **pod age**, **container restart**, **service start**, and **JVM process start**.
+- [ ] Performed a **final PID + start time check** right before the diagnostic command to avoid targeting a restarted instance.
+- [ ] Removed secrets from launch command records before sending or storing in shared locations.
 
-**Tài liệu tham khảo:**
+**References:**
 
-- [Oracle Java SE 17 — `jcmd`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): tìm PID JVM và gửi lệnh chẩn đoán tới JVM cụ thể.
-- [Oracle Java SE 17 — `jps`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jps.html): liệt kê Java processes khả dụng và tham số.
-- [Java SE 17 API — `ProcessHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ProcessHandle.html): PID và `Info` (`startInstant`, `command`, `user`).
-- [Linux `/proc/PID/stat`](https://man7.org/linux/man-pages/man5/proc_pid_stat.5.html) và [`/proc/PID/cmdline`](https://man7.org/linux/man-pages/man5/proc_pid_cmdline.5.html): start time và argv từ kernel.
+- [Oracle Java SE 17 — `jcmd`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): finding JVM PIDs and sending diagnostic commands to a specific JVM.
+- [Oracle Java SE 17 — `jps`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jps.html): listing accessible Java processes and arguments.
+- [Java SE 17 API — `ProcessHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ProcessHandle.html): PID and `Info` (`startInstant`, `command`, `user`).
+- [Linux `/proc/PID/stat`](https://man7.org/linux/man-pages/man5/proc_pid_stat.5.html) and [`/proc/PID/cmdline`](https://man7.org/linux/man-pages/man5/proc_pid_cmdline.5.html): start time and argv from the kernel.
 - [Microsoft — `Win32_Process`](https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-process): `ProcessId`, `CreationDate`, `CommandLine`, `GetOwner`.
 
-**Ghi nhớ:** PID chỉ là một tọa độ đang sống trong một namespace. Nhận diện đúng JVM cần **PID + launch command + start time + owner**, gắn với đúng host/container và được kiểm tra lại sát thời điểm lấy bằng chứng.
+**Key takeaway:** A PID is merely a live coordinate within a namespace. Identifying the right JVM requires **PID + launch command + start time + owner**, tied to the right host/container and re-verified right before capturing evidence.

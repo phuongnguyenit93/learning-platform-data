@@ -1,20 +1,20 @@
-# Xây ứng dụng xử lý tài liệu với hợp đồng và hai provider SPI
+# Building a Document Processing Application with a Contract and Two SPI Providers
 
-## 1. Mục tiêu bài thực hành
+## 1. Exercise Objectives
 
-Bài tập xây dựng một ứng dụng Java xử lý tài liệu bằng **Service Provider Interface (SPI)**. Host không import hoặc khởi tạo trực tiếp implementation. Thay vào đó, host chỉ phụ thuộc **hợp đồng `DocumentProcessor`**, còn hai JAR provider đăng ký implementation qua `META-INF/services` và được `ServiceLoader` khám phá tại runtime.
+This exercise builds a Java document-processing application using the **Service Provider Interface (SPI)**. The host does not directly import or instantiate any implementation. Instead, the host depends only on the **`DocumentProcessor` contract**, while two provider JARs register their implementations via `META-INF/services` and are discovered by `ServiceLoader` at runtime.
 
-Sau bài thực hành, bạn có thể:
+After completing this exercise, you will be able to:
 
-- Thiết kế API ổn định để plugin trả về kết quả xử lý tài liệu.
-- Đóng gói **hai provider độc lập** với hai hành vi rõ ràng: đếm từ (`word-count`) và thống kê dòng (`line-count`).
-- Dùng `ServiceLoader` tìm provider, chọn theo `id()`, xử lý trùng ID, không tìm thấy provider và lỗi trong plugin.
-- Biên dịch, đóng gói và chạy project trên **Java 17+** bằng `javac`, `jar`, `java` mà không cần Maven/Gradle.
-- Chứng minh tính mở rộng: bỏ một provider JAR thì provider còn lại vẫn hoạt động; bổ sung JAR mới không cần biên dịch lại host.
+- Design a stable API so plugins can return document-processing results.
+- Package **two independent providers** with two distinct behaviors: word counting (`word-count`) and line counting (`line-count`).
+- Use `ServiceLoader` to discover providers, select one by `id()`, and handle duplicate IDs, missing providers, and plugin errors.
+- Compile, package, and run the project on **Java 17+** using `javac`, `jar`, and `java` without needing Maven/Gradle.
+- Demonstrate extensibility: removing one provider JAR leaves the other provider working; adding a new JAR requires no recompilation of the host.
 
-**Phạm vi:** Dữ liệu đầu vào là văn bản thuần UTF-8, không phải parser PDF/DOCX. Đếm từ và dòng dùng quy tắc minh bạch để kiểm thử được; khi cần định dạng tài liệu khác, có thể thêm provider mới tuân thủ cùng contract.
+**Scope:** The input data is plain UTF-8 text, not a PDF/DOCX parser. Word and line counting use transparent rules so they can be tested easily; when other document formats are needed, a new provider adhering to the same contract can be added.
 
-## 2. Kiến trúc: host ↔ contract ↔ providers
+## 2. Architecture: host ↔ contract ↔ providers
 
 ```text
                       +--------------------------+
@@ -37,9 +37,9 @@ Sau bài thực hành, bạn có thể:
        +----------------------+            +----------------------+
 ```
 
-**Nguyên tắc class identity:** `DocumentProcessor` phải được định nghĩa **một lần** và chia sẻ cho host và cả hai provider. Ví dụ này dùng class path: `api.jar` là một artifact chung; **không đóng gói bản sao contract class vào hai provider JAR**. Nếu contract bị định nghĩa bởi nhiều class loader khác nhau, provider có thể không assignable tới interface host đang dùng.
+**Class identity principle:** `DocumentProcessor` must be defined **once** and shared across the host and both providers. This example uses the class path: `api.jar` is a shared artifact; **do not package a copy of the contract class inside the two provider JARs**. If the contract is defined by multiple different class loaders, a provider may not be assignable to the interface used by the host.
 
-## 3. Cấu trúc thư mục
+## 3. Directory Structure
 
 ```text
 document-spi/
@@ -57,11 +57,11 @@ document-spi/
     └── resources/META-INF/services/demo.api.DocumentProcessor
 ```
 
-Các lệnh dưới đây chạy từ thư mục gốc `document-spi/`, dùng shell POSIX (Linux/macOS/Git Bash) và JDK 17+. Trên Windows PowerShell/cmd cần điều chỉnh dấu nối dòng và class path separator (`;` thay vì `:`).
+The commands below run from the root `document-spi/` directory, using a POSIX shell (Linux/macOS/Git Bash) and JDK 17+. On Windows PowerShell/cmd, adjust the line continuation character and class path separator (`;` instead of `:`).
 
-## 4. Thiết kế hợp đồng SPI
+## 4. Designing the SPI Contract
 
-Một hợp đồng tốt không nên phụ thuộc class của provider cụ thể. Dùng ID ổn định để chọn chức năng, method `process` nhận tài liệu dưới dạng `String`, kết quả được biểu diễn bởi `record` chỉ gồm các kiểu Java chuẩn.
+A good contract should not depend on any specific provider class. Use a stable ID to select a capability, have the `process` method accept the document as a `String`, and represent the result with a `record` composed solely of standard Java types.
 
 ### 4.1. Interface
 
@@ -71,15 +71,15 @@ File `api/src/demo/api/DocumentProcessor.java`:
 package demo.api;
 
 public interface DocumentProcessor {
-    /** ID duy nhất, ổn định của provider, ví dụ word-count. */
+    /** Unique, stable provider ID, e.g., word-count. */
     String id();
 
-    /** Xử lý nội dung văn bản, không ghi file và không in stdout. */
+    /** Processes text content without writing files or printing to stdout. */
     ProcessingResult process(String document);
 }
 ```
 
-### 4.2. Kiểu kết quả chung
+### 4.2. Shared Result Type
 
 File `api/src/demo/api/ProcessingResult.java`:
 
@@ -97,11 +97,11 @@ public record ProcessingResult(String processorId, String description, long valu
 }
 ```
 
-`record` sẵn có trên Java 17. Contract dùng kiểu kết quả thuần dữ liệu giúp host không phải cast sang implementation. Nếu đổi method signature hoặc record format sau này, cần versioning API và kiểm tra binary compatibility của các plugin JAR.
+`record` is built into Java 17. Having the contract use a pure-data result type keeps the host from having to cast to an implementation. If you change the method signature or record format later, you will need API versioning and binary compatibility checks for plugin JARs.
 
-## 5. Provider 1: đếm từ
+## 5. Provider 1: Word Count
 
-Quy ước: một **từ** là nhóm ký tự không phải whitespace theo regex Java `\S+`. Trên chuỗi rỗng hoặc toàn dấu cách, kết quả 0. Đây là quy tắc token hóa đơn giản, không phải word segmentation chuẩn cho mọi ngôn ngữ.
+Convention: a **word** is a group of non-whitespace characters according to the Java regex `\S+`. On an empty or whitespace-only string, the result is 0. This is a simple tokenization rule, not full word segmentation for all languages.
 
 File `provider-word/src/demo/word/WordCountProcessor.java`:
 
@@ -130,22 +130,22 @@ public final class WordCountProcessor implements DocumentProcessor {
         long count = 0;
         Matcher matcher = TOKEN.matcher(document);
         while (matcher.find()) count++;
-        return new ProcessingResult(id(), "Từ", count);
+        return new ProcessingResult(id(), "Words", count);
     }
 }
 ```
 
-File **`provider-word/resources/META-INF/services/demo.api.DocumentProcessor`** phải chứa đúng binary name của implementation:
+File **`provider-word/resources/META-INF/services/demo.api.DocumentProcessor`** must contain the exact binary name of the implementation:
 
 ```text
 demo.word.WordCountProcessor
 ```
 
-Đây là phần cấu hình bắt buộc của SPI class path. Tên file là **tên fully qualified của service interface**, không phải tên plugin ID hay tên JAR.
+This is a mandatory configuration file for class-path SPI. The file name is the **fully qualified name of the service interface**, not the plugin ID or JAR name.
 
-## 6. Provider 2: đếm dòng
+## 6. Provider 2: Line Count
 
-Quy ước: tài liệu rỗng có 0 dòng; chuỗi không rỗng có `1 + số ký tự '\n'`, nhưng nếu kết thúc bằng newline thì newline cuối chỉ là ký tự kết thúc dòng, không tạo thêm một dòng trống mới. Tức `"a\nb\n"` có 2 dòng, còn `"a\nb"` cũng có 2 dòng. `\r\n` được xem là một dòng mới bởi vì có `\n`.
+Convention: an empty document has 0 lines; a non-empty string has `1 + number of '\n' characters`, except if it ends with a newline, the trailing newline only terminates the line and does not create a new empty line. That is, `"a\nb\n"` has 2 lines, and `"a\nb"` also has 2 lines. `\r\n` is treated as a line break because it contains `\n`.
 
 File `provider-line/src/demo/line/LineCountProcessor.java`:
 
@@ -168,7 +168,7 @@ public final class LineCountProcessor implements DocumentProcessor {
     public ProcessingResult process(String document) {
         Objects.requireNonNull(document, "document");
         if (document.isEmpty()) {
-            return new ProcessingResult(id(), "Dòng", 0);
+            return new ProcessingResult(id(), "Lines", 0);
         }
 
         long count = 1;
@@ -176,7 +176,7 @@ public final class LineCountProcessor implements DocumentProcessor {
             if (document.charAt(i) == '\n') count++;
         }
         if (document.charAt(document.length() - 1) == '\n') count--;
-        return new ProcessingResult(id(), "Dòng", count);
+        return new ProcessingResult(id(), "Lines", count);
     }
 }
 ```
@@ -187,11 +187,11 @@ File **`provider-line/resources/META-INF/services/demo.api.DocumentProcessor`**:
 demo.line.LineCountProcessor
 ```
 
-Trong production, cần xác định cách xử lý `\r` đơn lẻ, Unicode line separator, dòng trống và encoding. Bài này dùng quy ước tối giản để thấy rõ cách provider triển khai logic độc lập với host.
+In production, you must define how to handle standalone `\r`, Unicode line separators, blank lines, and encoding. This exercise uses a minimal convention to clearly illustrate how a provider implements logic independently of the host.
 
-## 7. Host: khám phá và chọn provider
+## 7. Host: Discovering and Selecting Providers
 
-Host chỉ import `demo.api.*`, không tham chiếu hai class implementation. `ServiceLoader` tải danh sách provider qua SPI descriptors trên class path. Vì thứ tự discovery không nên được dùng làm nghiệp vụ, host đưa providers vào `TreeMap` để liệt kê ổn định theo ID.
+The host only imports `demo.api.*` and does not reference either implementation class. `ServiceLoader` loads the list of providers via SPI descriptors on the class path. Because discovery order should not be relied upon as business logic, the host stores providers in a `TreeMap` to list them deterministically by ID.
 
 File `host/src/demo/host/DocumentApp.java`:
 
@@ -220,11 +220,11 @@ public final class DocumentApp {
         }
 
         if (providers.isEmpty()) {
-            System.err.println("Không có provider SPI được tìm thấy");
+            System.err.println("No SPI provider found");
             System.exit(1);
         }
 
-        String document = "Xin chào Java\nSPI xử lý tài liệu\n";
+        String document = "Hello Java SPI\nDocument processing example in Java\n";
         System.out.println("Available providers: " + providers.keySet());
         for (DocumentProcessor processor : providers.values()) {
             ProcessingResult result = processor.process(document);
@@ -244,19 +244,19 @@ public final class DocumentApp {
 }
 ```
 
-**Vì sao `ServiceLoader` có thể nhìn thấy provider?** `java` khởi động với cả `provider-word.jar` và `provider-line.jar` trên class path, chứa đúng `META-INF/services/demo.api.DocumentProcessor`. Application class loader đọc service descriptor, nạp implementation, gọi public constructor không tham số, rồi trả các instance cho host.
+**Why can `ServiceLoader` see the providers?** `java` starts with both `provider-word.jar` and `provider-line.jar` on the class path, each containing the proper `META-INF/services/demo.api.DocumentProcessor`. The application class loader reads the service descriptors, loads the implementations, invokes their public no-arg constructors, and returns the instances to the host.
 
-Nếu provider constructor hoặc class loading lỗi, `ServiceLoader` có thể ném `ServiceConfigurationError` (một `Error`) trong lúc duyệt. Không nên `catch(Throwable)` để bỏ qua các lỗi nghiêm trọng. Production cần phân biệt provider invalid, fail to initialize và policy không chấp nhận.
+If a provider constructor or class loading fails, `ServiceLoader` can throw `ServiceConfigurationError` (an `Error`) during iteration. You should not `catch(Throwable)` to silently ignore serious errors. Production systems should distinguish between an invalid provider, an initialization failure, and a policy rejection.
 
-## 8. Biên dịch và đóng gói bằng JDK 17+
+## 8. Compiling and Packaging with JDK 17+
 
-### 8.1. Tạo thư mục build
+### 8.1. Create build directories
 
 ```bash
 mkdir -p build/api build/host build/word build/line dist
 ```
 
-### 8.2. Biên dịch contract
+### 8.2. Compile the contract
 
 ```bash
 javac -encoding UTF-8 -d build/api \
@@ -265,7 +265,7 @@ javac -encoding UTF-8 -d build/api \
 jar --create --file dist/document-api.jar -C build/api .
 ```
 
-### 8.3. Biên dịch hai providers
+### 8.3. Compile both providers
 
 ```bash
 javac -encoding UTF-8 -cp dist/document-api.jar -d build/word \
@@ -275,7 +275,7 @@ javac -encoding UTF-8 -cp dist/document-api.jar -d build/line \
   provider-line/src/demo/line/LineCountProcessor.java
 ```
 
-### 8.4. Đóng gói JAR và service descriptor
+### 8.4. Package JARs and service descriptors
 
 ```bash
 jar --create --file dist/provider-word.jar \
@@ -287,16 +287,16 @@ jar --create --file dist/provider-line.jar \
   -C provider-line/resources META-INF
 ```
 
-Kiểm tra nội dung:
+Inspect contents:
 
 ```bash
 jar --list --file dist/provider-word.jar
 jar --list --file dist/provider-line.jar
 ```
 
-Cả hai JAR phải chứa `META-INF/services/demo.api.DocumentProcessor` tương ứng. Không đóng gói `demo/api/DocumentProcessor.class` vào provider JAR.
+Both JARs must contain their corresponding `META-INF/services/demo.api.DocumentProcessor`. Do not package `demo/api/DocumentProcessor.class` inside either provider JAR.
 
-### 8.5. Biên dịch host
+### 8.5. Compile the host
 
 ```bash
 javac -encoding UTF-8 -cp dist/document-api.jar -d build/host \
@@ -304,43 +304,43 @@ javac -encoding UTF-8 -cp dist/document-api.jar -d build/host \
 jar --create --file dist/document-host.jar -C build/host .
 ```
 
-### 8.6. Chạy với cả hai providers
+### 8.6. Run with both providers
 
 ```bash
 java -cp 'dist/document-api.jar:dist/document-host.jar:dist/provider-word.jar:dist/provider-line.jar' \
   demo.host.DocumentApp
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 Available providers: [line-count, word-count]
-line-count => Dòng: 2
-word-count => Từ: 8
+line-count => Lines: 2
+word-count => Words: 8
 ```
 
-Giải thích phép đếm: tài liệu gồm `Xin chào Java` (3 token) và `SPI xử lý tài liệu` (5 token); có 2 dòng và newline cuối không tạo dòng thứ ba. Thứ tự provider ổn định theo `TreeMap` thay vì phụ thuộc thứ tự ServiceLoader discovery.
+Counting explanation: the document consists of `Hello Java SPI` (3 tokens) and `Document processing example in Java` (5 tokens); there are 2 lines and the trailing newline does not create a third line. Provider order is stabilized by `TreeMap` rather than depending on ServiceLoader discovery order.
 
-### 8.7. Chọn provider theo ID
+### 8.7. Select a provider by ID
 
 ```bash
 java -cp 'dist/document-api.jar:dist/document-host.jar:dist/provider-word.jar:dist/provider-line.jar' \
   demo.host.DocumentApp word-count
 ```
 
-Output thêm một dòng:
+Output adds one line:
 
 ```text
 Selected: word-count
 ```
 
-Host vẫn chạy cả hai provider trong phần demo rồi mới in lựa chọn. Trong ứng dụng thực, việc lọc provider có thể diễn ra trước xử lý, và nếu cần chọn **một** implementation thì chỉ gọi `process` trên provider được chọn.
+The host still runs both providers in the demo section before printing the selection. In a real application, filtering providers can occur before processing, and if **one** implementation needs to be chosen, only invoke `process` on the selected provider.
 
-## 9. Kiểm thử tính độc lập của các provider
+## 9. Testing Provider Independence
 
-### 9.1. Chỉ cài một provider
+### 9.1. Install only one provider
 
-Bỏ provider line khỏi class path:
+Remove the line provider from the class path:
 
 ```bash
 java -cp 'dist/document-api.jar:dist/document-host.jar:dist/provider-word.jar' \
@@ -351,35 +351,35 @@ Stdout:
 
 ```text
 Available providers: [word-count]
-word-count => Từ: 8
+word-count => Words: 8
 ```
 
-Điều này chứng minh host không cần liên kết trực tiếp với `LineCountProcessor` để hoạt động. Nếu bỏ cả hai provider JAR, host trả mã lỗi 1 với thông báo `Không có provider SPI được tìm thấy` trên stderr.
+This proves that the host does not need to link directly to `LineCountProcessor` to operate. If both provider JARs are omitted, the host returns exit code 1 with the message `No SPI provider found` on stderr.
 
-### 9.2. Provider ID không tồn tại
+### 9.2. Non-existent provider ID
 
-Chạy cả hai providers và truyền argument `missing`:
+Run with both providers and pass the argument `missing`:
 
 ```bash
 java -cp 'dist/document-api.jar:dist/document-host.jar:dist/provider-word.jar:dist/provider-line.jar' \
   demo.host.DocumentApp missing
 ```
 
-Host in hai kết quả rồi in `Unknown provider: missing` ra stderr, kết thúc với exit code 2. Đây là xử lý yêu cầu chọn plugin không tồn tại, khác với lỗi SPI discovery.
+The host prints both results and then prints `Unknown provider: missing` to stderr, exiting with exit code 2. This handles a request to select a non-existent plugin, which is distinct from an SPI discovery error.
 
-### 9.3. Trùng ID
+### 9.3. Duplicate ID
 
-Nếu một provider mới cũng trả `id() == "word-count"`, chương trình từ chối trong lúc tạo registry. Chính sách trùng ID phải được xác định trước: fail-fast là lựa chọn an toàn hơn thay vì chọn ngẫu nhiên provider đầu tiên.
+If a new provider also returns `id() == "word-count"`, the program rejects it when building the registry. Duplicate ID policy must be defined upfront: fail-fast is safer than arbitrarily picking the first provider.
 
-### 9.4. Provider ném lỗi khi xử lý
+### 9.4. Provider throws an error during processing
 
-Trong production, `process` có thể ném exception do nội dung tài liệu sai, thiếu dependency, I/O hoặc lỗi plugin. Host nên ghi lỗi theo provider ID và quyết định fallback có cho phép không. **Không mặc định chuyển dữ liệu sang provider khác** nếu semantics khác nhau (ví dụ từ đếm từ sang đếm dòng).
+In production, `process` may throw an exception due to malformed document content, missing dependencies, I/O, or a plugin bug. The host should log the error along with the provider ID and decide whether fallback is permitted. **Do not automatically route data to another provider by default** if their semantics differ (for example, from word counting to line counting).
 
-## 10. Mở rộng sang plugin nạp động
+## 10. Extending to Dynamically Loaded Plugins
 
-Ví dụ hiện tại dùng class path lúc khởi động. Trong hệ thống cần cài JAR khi JVM đang chạy, có thể dùng một `URLClassLoader` mới rồi tạo `ServiceLoader.load(DocumentProcessor.class, pluginLoader)`. Phải bảo đảm plugin loader nhìn thấy **cùng contract API class** mà host sử dụng.
+The current example uses the startup class path. In systems that need to install JARs while the JVM is running, you can use a new `URLClassLoader` and create `ServiceLoader.load(DocumentProcessor.class, pluginLoader)`. You must ensure the plugin loader sees the **same contract API class** that the host uses.
 
-Phác thảo API, **chưa phải chương trình độc lập**:
+API sketch, **not yet a standalone program**:
 
 ```java
 URL[] jars = { Path.of("plugins/provider-new.jar").toUri().toURL() };
@@ -393,31 +393,31 @@ for (DocumentProcessor processor : loader) {
 }
 ```
 
-Cần import `java.net.URL`, `java.net.URLClassLoader`, `java.nio.file.Path`, `java.util.ServiceLoader`. Khi không còn dùng, dừng provider, giải phóng resource, hủy registry/callback rồi đóng loader. `URLClassLoader.close()` không bảo đảm unloading class tức thì.
+You need to import `java.net.URL`, `java.net.URLClassLoader`, `java.nio.file.Path`, and `java.util.ServiceLoader`. When no longer needed, stop the provider, release resources, clear registries/callbacks, and then close the loader. `URLClassLoader.close()` does not guarantee immediate class unloading.
 
-Nếu chuyển sang JPMS named modules, contract có thể khai báo `module demo.api { exports demo.api; }`, host khai báo `uses demo.api.DocumentProcessor`, provider khai báo `provides demo.api.DocumentProcessor with ...`, và runtime cần module path/layer được resolve đúng. Đó là một biến thể triển khai khác với service descriptor class path đã xây ở bài này.
+If migrating to JPMS named modules, the contract can declare `module demo.api { exports demo.api; }`, the host can declare `uses demo.api.DocumentProcessor`, the providers can declare `provides demo.api.DocumentProcessor with ...`, and the runtime needs a properly resolved module path/layer. That is a different deployment variant from the class-path service descriptor approach built in this exercise.
 
-## 11. Thiết kế lifecycle, bảo mật và độ tin cậy
+## 11. Lifecycle, Security, and Reliability Design
 
-Trong thực tế, provider có thể không chỉ tính toán trên `String` mà còn truy cập file/DB/network. Cần thêm các điều kiện:
+In practice, providers may not only compute over a `String` but also access files, databases, or networks. Additional safeguards are needed:
 
-1. **Hợp đồng versioned:** có chính sách tương thích API và metadata capability để tránh plugin biên dịch theo bản contract không phù hợp.
-2. **Input validation:** giới hạn kích thước tài liệu, encoding, độ sâu cấu trúc, đường dẫn hoặc định dạng được phép.
-3. **Tài nguyên:** nếu provider có executor/connection, cần `start/stop` hoặc `AutoCloseable` và rollback đúng thứ tự khi startup lỗi.
-4. **Trust boundary:** chỉ nạp artifact đã kiểm tra nguồn gốc, chữ ký/hash và dependency; class loader không phải sandbox cho mã không tin cậy.
-5. **Observability:** log provider ID, version, thời gian xử lý, lỗi và tài nguyên; không log nội dung tài liệu nhạy cảm.
-6. **Concurrency:** contract phải xác định provider là singleton thread-safe, instance-per-request hay được đồng bộ bởi host.
-7. **Fallback:** chỉ tự chuyển provider khi chúng được xác nhận có cùng semantics và dữ liệu không bị xử lý trùng.
+1. **Versioned contract:** have an API compatibility policy and capability metadata to prevent plugins compiled against an incompatible contract version.
+2. **Input validation:** limit document size, encoding, structural depth, paths, or allowed formats.
+3. **Resources:** if a provider holds executors/connections, require `start/stop` or `AutoCloseable` and proper reverse-order rollback on startup failure.
+4. **Trust boundary:** only load artifacts whose origin, signature/hash, and dependencies have been verified; a class loader is not a sandbox for untrusted code.
+5. **Observability:** log provider ID, version, processing duration, errors, and resource usage; do not log sensitive document contents.
+6. **Concurrency:** the contract must specify whether a provider is a thread-safe singleton, instance-per-request, or synchronized by the host.
+7. **Fallback:** only switch providers automatically when they are confirmed to have the same semantics and data will not be processed twice.
 
-## 12. Checklist nghiệm thu
+## 12. Acceptance Checklist
 
-- [ ] Contract interface và result record nằm trong `document-api.jar` duy nhất.
-- [ ] Hai implementation không phụ thuộc nhau và mỗi JAR có descriptor SPI chính xác.
-- [ ] Host chỉ import package `demo.api`, không import `demo.word` hoặc `demo.line`.
-- [ ] Chạy được trên Java 17+ và stdout khớp phần hướng dẫn.
-- [ ] Khi bỏ provider-line JAR, provider-word vẫn được khám phá.
-- [ ] Khi thiếu cả hai provider, host báo lỗi và không chạy tiếp.
-- [ ] Khi trùng provider ID, host từ chối thay vì chọn tùy ý.
-- [ ] Có chính sách version, kiểm tra artifact và lifecycle nếu triển khai thực tế.
+- [ ] The contract interface and result record reside in a single `document-api.jar`.
+- [ ] Both implementations have no dependency on each other, and each JAR has the exact SPI descriptor.
+- [ ] The host only imports package `demo.api`, without importing `demo.word` or `demo.line`.
+- [ ] Runs on Java 17+ and stdout matches the guide.
+- [ ] When provider-line JAR is removed, provider-word is still discovered.
+- [ ] When both providers are missing, the host reports an error and does not continue.
+- [ ] When provider IDs collide, the host rejects the duplicate instead of choosing arbitrarily.
+- [ ] Version policies, artifact verification, and lifecycle management are planned for real-world deployment.
 
-**Kết luận:** Với Java SPI, host lập trình theo interface chứ không theo implementation. Hai provider độc lập được đóng gói và phát hiện bằng `ServiceLoader`, nên ứng dụng có thể mở rộng chức năng xử lý tài liệu mà không sửa code host. Khi tiến tới plugin nạp động hoặc JPMS, nguyên tắc quan trọng nhất vẫn là giữ contract chung ổn định, định nghĩa rõ capability và quản lý vòng đời provider.
+**Conclusion:** With Java SPI, the host programs against an interface rather than implementations. Two independent providers are packaged and discovered via `ServiceLoader`, allowing the application to extend document-processing functionality without modifying host code. When advancing to dynamically loaded plugins or JPMS, the most important principle remains keeping the shared contract stable, clearly defining capabilities, and managing provider lifecycles.

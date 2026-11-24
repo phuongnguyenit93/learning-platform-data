@@ -1,51 +1,51 @@
-# 11.6 Dùng GC.heap_info, MXBeans và jstat để đối chiếu tình trạng heap
+# 11.6 Using GC.heap_info, MXBeans, and jstat to cross-check heap status
 
-## 1. Mục tiêu và cách tiếp cận
+## 1. Goal and approach
 
-Khi một tiến trình Java dùng nhiều bộ nhớ, một con số “heap đang dùng” riêng lẻ không trả lời được các câu hỏi: heap đã cấp phát đến đâu, có đang tăng liên tục không, GC có thu hồi được bộ nhớ không, hay chúng ta đang nhầm heap với metaspace/bộ nhớ native? Bài này hướng dẫn **đối chiếu ba góc nhìn của cùng một JVM**:
+When a Java process uses a lot of memory, a single "heap in use" number cannot answer key questions: how far has the heap been allocated, is it climbing continuously, is GC reclaiming memory, or are we confusing the heap with metaspace/native memory? This lesson shows how to **cross-check three views of the same JVM**:
 
-1. `jcmd <PID> GC.heap_info`: ảnh chụp tức thời về heap theo cách trình bày của HotSpot/collector đang chạy.
-2. `MemoryMXBean` và `MemoryPoolMXBean`: các số đo bộ nhớ lấy ngay từ bên trong JVM hoặc qua JMX; thuận tiện để gắn mốc thời gian và theo dõi trong ứng dụng.
-3. `jstat`: các mẫu thống kê liên tiếp về vùng nhớ và số lần/thời gian GC; hữu ích để giải thích biến động giữa hai ảnh chụp.
+1. `jcmd <PID> GC.heap_info`: an instantaneous snapshot of the heap as presented by HotSpot and the active collector.
+2. `MemoryMXBean` and `MemoryPoolMXBean`: memory measurements obtained directly inside the JVM or via JMX; convenient for timestamping and monitoring within an application.
+3. `jstat`: consecutive statistical samples of memory regions and GC counts/times; useful for explaining changes between two snapshots.
 
-Phạm vi ví dụ là **HotSpot JDK 17 trở lên**, minh họa với G1 GC. Tên vùng nhớ, cấu trúc output và một số bộ đếm có thể khác ở collector, phiên bản JDK hoặc JVM khác. Không yêu cầu cả ba công cụ phải báo **cùng một số byte** tại các thời điểm khác nhau; mục tiêu là kiểm tra sự nhất quán về *ý nghĩa và xu hướng*.
+The example scope is **HotSpot JDK 17 or later**, illustrated with G1 GC. Region names, output layouts, and some counters may differ in other collectors, JDK versions, or JVMs. You should not require all three tools to report **the exact same byte count** at different instants; the goal is to verify consistency in *meaning and trend*.
 
-## 2. Hiểu đúng các đại lượng trước khi so sánh
+## 2. Understand the quantities accurately before comparing
 
-`MemoryUsage` trả về bốn giá trị tính bằng **byte**:
+`MemoryUsage` returns four values in **bytes**:
 
-| Thuộc tính | Ý nghĩa | Cách đọc đúng |
+| Property | Meaning | How to read properly |
 | --- | --- | --- |
-| `init` | Kích thước khởi tạo JVM yêu cầu, nếu xác định được | Liên hệ `-Xms`, nhưng đừng dùng làm “bộ nhớ đang chiếm”. |
-| `used` | Số byte hiện chứa đối tượng/dữ liệu được tính vào vùng nhớ | Với heap, gồm cả đối tượng chưa được GC thu hồi; **không đồng nghĩa dung lượng đối tượng còn sống**. |
-| `committed` | Số byte JVM đã cam kết sẵn sàng sử dụng cho vùng đó | Thường lớn hơn hoặc bằng `used`; có thể vẫn cao sau khi GC. |
-| `max` | Giới hạn tối đa mà vùng nhớ có thể dùng nếu được xác định | Có thể bằng `-1` khi không xác định; không phải RSS của tiến trình. |
+| `init` | Initial size requested by the JVM, if defined | Related to `-Xms`, but do not treat it as "memory currently occupied". |
+| `used` | Bytes currently containing objects/data accounted to the memory region | For heap, includes objects not yet reclaimed by GC; **not synonymous with live object volume**. |
+| `committed` | Bytes the JVM has committed and made ready for use by that region | Usually greater than or equal to `used`; can remain high after GC. |
+| `max` | Maximum limit the memory region can use if defined | May be `-1` when undefined; not process RSS. |
 
-Đổi đơn vị: `1 KiB = 1.024 byte`, `1 MiB = 1.048.576 byte`. `jstat -gc` báo dung lượng các space theo **KB (thực tế quy đổi theo 1.024 byte)**, trong khi MXBeans báo byte; `jstat -gcutil` báo **phần trăm dung lượng của từng space**. Thời gian `YGCT`, `FGCT`, `GCT` tính theo **giây**, còn `GarbageCollectorMXBean.getCollectionTime()` tính theo **mili giây**, nếu JVM hỗ trợ.
+Unit conversions: `1 KiB = 1,024 bytes`, `1 MiB = 1,048,576 bytes`. `jstat -gc` reports space sizes in **KB (effectively scaled by 1,024 bytes)**, whereas MXBeans report bytes; `jstat -gcutil` reports **percentage utilization of each space**. Times `YGCT`, `FGCT`, and `GCT` are in **seconds**, while `GarbageCollectorMXBean.getCollectionTime()` is in **milliseconds**, if supported by the JVM.
 
-Phân biệt ba tỷ lệ thường bị trộn lẫn:
+Distinguish three commonly mixed-up ratios:
 
-- **Mức dùng heap đã commit**: `heap.used / heap.committed`.
-- **Mức dùng trên giới hạn cấu hình**: `heap.used / heap.max`, chỉ tính khi `max > 0`.
-- **Mức dùng một space** (chẳng hạn cột `O` của `jstat -gcutil`): `old.used / old.capacity`. Cột `O` **không phải phần trăm sử dụng toàn heap**.
+- **Committed heap utilization**: `heap.used / heap.committed`.
+- **Utilization against configured limit**: `heap.used / heap.max`, computed only when `max > 0`.
+- **Single-space utilization** (such as the `O` column in `jstat -gcutil`): `old.used / old.capacity`. The `O` column **is not the utilization percentage of the entire heap**.
 
-Heap là nơi cấp phát các object/array Java thông thường. Metaspace, compressed class space, code cache và nhiều vùng khác thuộc **non-heap/native**. RAM thực tế của tiến trình (RSS/working set) còn có thread stacks, direct buffers, native allocations, mapped files... nên **không** được suy ra bằng cách lấy `heap.used` cộng `metaspace.used`.
+The heap is where ordinary Java objects and arrays are allocated. Metaspace, compressed class space, code cache, and many other regions belong to **non-heap/native**. Actual process RAM (RSS/working set) also includes thread stacks, direct buffers, native allocations, mapped files, and more, so it **must not** be derived by adding `heap.used` and `metaspace.used`.
 
-## 3. Mỗi công cụ trả lời câu hỏi gì?
+## 3. What question does each tool answer?
 
-| Nguồn | Nên quan sát | Câu hỏi nó giúp trả lời | Hạn chế |
+| Source | What to observe | Question it helps answer | Limitations |
 | --- | --- | --- | --- |
-| `GC.heap_info` | Heap total/used, region hoặc generation layout, và một số thông tin metaspace tùy GC | “Tại thời điểm này heap được tổ chức và dùng ra sao?” | Output phụ thuộc collector/JDK; một ảnh chụp không cho biết xu hướng; thao tác chẩn đoán có chi phí. |
-| `MemoryMXBean.getHeapMemoryUsage()` | `used`, `committed`, `max` của heap | “Ứng dụng thấy bao nhiêu byte heap đang dùng/cam kết/được phép tối đa?” | Số đo tức thời và có thể thay đổi khi ứng dụng chạy; `used` không đồng nghĩa live set sau GC. |
-| `MemoryPoolMXBean.getUsage()` | Usage của từng pool kiểu `HEAP` hoặc `NON_HEAP` | “Vùng nào đóng góp vào mức sử dụng?” | Danh sách pool phụ thuộc collector; `getUsage()` có thể trả `null` với pool không còn hợp lệ. |
-| `jstat -gc` | `EU`, `OU`, survivor usage/capacity, `YGC`, `FGC`, thời gian GC | “Các space và bộ đếm GC đang thay đổi thế nào?” | Cột/diễn giải phụ thuộc HotSpot và phiên bản; số liệu lấy mẫu, không đồng thời với MXBeans. |
-| `jstat -gcutil` | `E`, `O`, `S0`, `S1` theo %, cùng bộ đếm GC | “Công suất từng vùng tăng/giảm và có GC giữa các mẫu không?” | % riêng của từng vùng, không phải % heap; không nên parse output làm giao thức lâu dài. |
+| `GC.heap_info` | Heap total/used, region or generation layout, and some metaspace info depending on GC | "At this moment, how is the heap structured and used?" | Output depends on collector/JDK; a single snapshot shows no trend; diagnostic operations have cost. |
+| `MemoryMXBean.getHeapMemoryUsage()` | Heap `used`, `committed`, `max` | "How many bytes of heap does the application see as used/committed/max allowed?" | Instantaneous measurement that can change while running; `used` is not post-GC live set. |
+| `MemoryPoolMXBean.getUsage()` | Usage of each `HEAP` or `NON_HEAP` pool | "Which region contributes to usage?" | Pool list depends on collector; `getUsage()` may return `null` for pools no longer valid. |
+| `jstat -gc` | `EU`, `OU`, survivor usage/capacity, `YGC`, `FGC`, GC times | "How are spaces and GC counters changing?" | Columns/interpretation depend on HotSpot and version; sampled data, not simultaneous with MXBeans. |
+| `jstat -gcutil` | `E`, `O`, `S0`, `S1` as %, plus GC counters | "Is each region's utilization rising/falling and did GC run between samples?" | Per-region %, not % of heap; do not parse output as a long-term protocol. |
 
-**Quy tắc đối chiếu:** xác định **cùng PID, cùng JVM, cùng loại vùng nhớ, cùng đơn vị, cùng mốc thời gian** trước khi kết luận hai con số chênh lệch.
+**Cross-check rule:** confirm **same PID, same JVM, same memory region type, same unit, and same timestamp** before concluding that two numbers disagree.
 
-## 4. Tạo JVM để thực hành trên JDK 17+
+## 4. Creating a JVM to practice on JDK 17+
 
-Lưu mã sau thành đúng file `HeapDiagnosticsDemo.java`. Chương trình in PID, tạo nhiều object ngắn hạn và giữ một tập object nhỏ trong `RETAINED` để có thay đổi heap/GC đủ dễ quan sát. Các giá trị đo phụ thuộc máy và thời điểm chạy, nên không có stdout số học cố định.
+Save the following code as exact file `HeapDiagnosticsDemo.java`. The program prints its PID, allocates many short-lived objects, and keeps a small set of objects in `RETAINED` so heap/GC changes are easy to observe. Measured values depend on machine and runtime timing, so there is no fixed numeric stdout.
 
 ```java
 import java.lang.management.GarbageCollectorMXBean;
@@ -118,107 +118,107 @@ public final class HeapDiagnosticsDemo {
 }
 ```
 
-Biên dịch và chạy trong **terminal thứ nhất** (có JDK, không chỉ JRE):
+Compile and run in the **first terminal** (requires a JDK, not just a JRE):
 
 ```bash
 javac HeapDiagnosticsDemo.java
 java -Xms64m -Xmx128m -XX:+UseG1GC HeapDiagnosticsDemo
 ```
 
-Dòng đầu tiên có dạng `PID: 12345` (con số thực tế khác). Mỗi 10 giây, chương trình in dòng `--- t=10s ---`, `--- t=20s ---`, ... rồi các giá trị `Heap`, `Non-heap`, các heap pool và GC counters. `-Xms64m` đặt kích thước heap khởi tạo theo cấu hình, `-Xmx128m` đặt giới hạn heap trong thí nghiệm; chúng không cố định `used`. Vòng lặp chạy khoảng hai phút; việc tạo object có thể làm `YGC` tăng nhưng **số lần GC không được đảm bảo**.
+The first line looks like `PID: 12345` (the actual number will differ). Every 10 seconds, the program prints `--- t=10s ---`, `--- t=20s ---`, ... followed by `Heap`, `Non-heap`, heap pools, and GC counters. `-Xms64m` sets the configured initial heap size and `-Xmx128m` sets the heap limit for this experiment; they do not fix `used`. The loop runs for about two minutes; object creation can cause `YGC` to increase, though **the exact GC count is not guaranteed**.
 
-Trong **terminal thứ hai**, tìm tiến trình:
+In the **second terminal**, locate the process:
 
 ```bash
 jcmd -l
 ```
 
-Dùng PID mà ứng dụng in ra; các lệnh dưới đây dùng **12345 làm PID minh họa**, phải thay bằng PID thật. Chạy cùng máy/namespace chứa JVM và bằng tài khoản được phép truy cập tiến trình. Trong container, PID nhìn từ host và bên trong container có thể khác; `jps`/`jcmd -l` không phải lúc nào cũng thấy tiến trình ở namespace khác.
+Use the PID printed by the application; the commands below use **12345 as an illustrative PID**, which must be replaced with the real PID. Run on the same machine/namespace as the JVM under an account permitted to access the process. In containers, the PID seen from the host and inside the container may differ; `jps`/`jcmd -l` cannot always see processes in other namespaces.
 
-## 5. Góc nhìn 1 — ảnh chụp `GC.heap_info`
+## 5. View 1 — `GC.heap_info` snapshot
 
 ```bash
 jcmd 12345 GC.heap_info
 ```
 
-Trong HotSpot với G1, output thường có phần heap kiểu `garbage-first heap`, các giá trị `total`, `used`, region size và có thể có phần `Metaspace`. **Đọc nhãn thực sự của phiên bản đang chạy**; đừng gán cứng các dòng/đơn vị output vào parser. Với collector khác, tên/kết cấu dòng có thể khác.
+On HotSpot with G1, the output usually contains a heap section like `garbage-first heap`, with `total`, `used`, region size, and possibly a `Metaspace` section. **Read the actual labels of the running version**; do not hard-code output lines/units into a parser. With other collectors, line names and structures may differ.
 
-Cách đọc:
+How to read it:
 
-1. `total` thường giúp hình dung dung lượng heap đang được cấp cho JVM ở thời điểm chụp (liên hệ với `committed`, nhưng không mặc định byte-for-byte).
-2. `used` cho biết mức sử dụng tại ảnh chụp; heap có thể thay đổi ngay sau khi lệnh chạy.
-3. Nếu xuất hiện `Metaspace`, đây là thông tin **ngoài heap**; không cộng vào `heap.used`.
-4. Không có cơ sở kết luận leak chỉ vì `total` gần `-Xmx` hoặc một ảnh chụp `used` cao: cần xét tải và mức sử dụng **sau các kỳ GC**.
+1. `total` helps gauge the heap capacity currently allocated to the JVM at the time of the snapshot (related to `committed`, though not assumed byte-for-byte identical).
+2. `used` indicates utilization at the snapshot; the heap can change immediately after the command runs.
+3. If `Metaspace` appears, that is **off-heap** information; do not add it to `heap.used`.
+4. There is no basis to conclude a leak just because `total` is near `-Xmx` or a single snapshot has high `used`: consider workload and usage **after GC cycles**.
 
-`GC.heap_info` là lệnh chẩn đoán, tài liệu HotSpot xếp mức tác động **Medium**. Nó không phải lệnh yêu cầu Full GC. Không thay thế bằng `GC.run` để “làm số đo đẹp hơn”, vì ép GC sẽ làm thay đổi hiện tượng đang điều tra.
+`GC.heap_info` is a diagnostic command whose impact HotSpot documentation classifies as **Medium**. It is not a command requesting a Full GC. Do not substitute `GC.run` to "make numbers look cleaner", because forcing GC alters the phenomenon under investigation.
 
-Nếu cần biết JVM đã nhận flag nào, có thể xem thêm `jcmd 12345 VM.command_line`; flag và lựa chọn collector giúp giải thích sự khác biệt của pool/output.
+If you need to know which flags the JVM received, you can also run `jcmd 12345 VM.command_line`; flags and collector selection help explain differences in pools/output.
 
-## 6. Góc nhìn 2 — `MemoryMXBean` và `MemoryPoolMXBean`
+## 6. View 2 — `MemoryMXBean` and `MemoryPoolMXBean`
 
-Trong ví dụ, đoạn `snapshot()` lấy hai mức:
+In the example, `snapshot()` reads two levels:
 
-- **Toàn heap:** `ManagementFactory.getMemoryMXBean().getHeapMemoryUsage()`. Đây là thước đo ưu tiên khi muốn so sánh tổng `used/committed/max` bằng byte.
-- **Từng pool thuộc heap:** lọc `pool.getType() == MemoryType.HEAP`, sau đó `pool.getUsage()`. Tên như `G1 Eden Space`, `G1 Survivor Space`, `G1 Old Gen` là ví dụ của G1; không viết mã phụ thuộc vào việc luôn tồn tại các tên này.
+- **Whole heap:** `ManagementFactory.getMemoryMXBean().getHeapMemoryUsage()`. This is the preferred metric when comparing total `used/committed/max` in bytes.
+- **Individual heap pools:** filter `pool.getType() == MemoryType.HEAP`, then call `pool.getUsage()`. Names like `G1 Eden Space`, `G1 Survivor Space`, and `G1 Old Gen` are G1 examples; do not write code assuming those exact names always exist.
 
-Theo đặc tả `MemoryMXBean`, `used` và `committed` toàn heap là tổng các giá trị của các **heap pools**, còn `init` và `max` là cấu hình/giới hạn của toàn heap và **không nhất thiết bằng tổng init/max của pool**. Đừng cộng `Non-heap` vào tổng này. Một số pool có thể trả `null`; ví dụ đã kiểm tra trường hợp đó.
+Per the `MemoryMXBean` specification, whole-heap `used` and `committed` are the sum of the values from the **heap pools**, whereas `init` and `max` reflect whole-heap configuration/limits and **do not necessarily equal the sum of pool init/max**. Do not add `Non-heap` into this sum. Some pools may return `null`; the example checks for that case.
 
-Nếu cần tham khảo mức sau kỳ thu gom gần nhất, `MemoryPoolMXBean.getCollectionUsage()` (khi khác `null`) cung cấp số đo *sau lần thu gom có liên quan đến pool đó*; nó **không kích hoạt GC** và **không nhất thiết là ảnh chụp đồng thời** với `getUsage()`. Không coi nó là “live set chính xác” hay dùng khi JVM không hỗ trợ.
+If you need to inspect usage after the most recent collection, `MemoryPoolMXBean.getCollectionUsage()` (when non-`null`) provides measurements *after a collection affecting that pool*; it **does not trigger GC** and **is not necessarily a simultaneous snapshot** with `getUsage()`. Do not treat it as the "exact live set" or rely on it when unsupported by the JVM.
 
-Danh sách `GarbageCollectorMXBean` trong ví dụ báo tổng số lần thu gom và thời gian tích lũy do collector đó cung cấp. `-1` có nghĩa bộ đếm không xác định. Tên collector và cách gom sự kiện có thể khác `YGC/FGC` trong `jstat`; dùng các bộ đếm này để hỗ trợ xu hướng, không ghép số một cách máy móc.
+The `GarbageCollectorMXBean` list in the example reports total collection counts and cumulative times provided by each collector. `-1` means the counter is undefined. Collector names and event grouping can differ from `YGC/FGC` in `jstat`; use these counters to support trend analysis rather than matching numbers mechanically.
 
-Vì lời gọi MXBeans diễn ra tuần tự, ngay cả các dòng `Heap` và pool cùng lần in cũng có thể lệch nhẹ do allocation/GC ở giữa. Có thể lấy mẫu qua JMX từ bên ngoài JVM, nhưng nên giữ cùng chu kỳ mẫu và xác định rõ chi phí, bảo mật của kết nối JMX.
+Because MXBean calls execute sequentially, even the `Heap` and pool lines within the same printout can drift slightly due to allocations/GC in between. You can sample externally via JMX, but keep a consistent sampling cadence and consider connection cost and security.
 
-## 7. Góc nhìn 3 — lấy mẫu bằng `jstat`
+## 7. View 3 — sampling with `jstat`
 
-Trong lúc chương trình còn chạy, thực hiện:
+While the program is running, execute:
 
 ```bash
 jstat -gc 12345 1000 5
 jstat -gcutil -t 12345 1000 5
 ```
 
-`1000` là khoảng cách **1.000 ms**; `5` là số lần lấy mẫu. `-t` thêm cột `Timestamp` (số giây từ khi JVM khởi động, **không phải đồng hồ giờ-phút-giây**). Có thể dùng `jstat -gccapacity 12345 1000 5` để xem dung lượng generations/spaces, nếu collector hiển thị các đại lượng đó.
+`1000` is the interval of **1,000 ms**; `5` is the sample count. `-t` adds a `Timestamp` column (seconds since JVM startup, **not wall-clock hour-minute-second**). You can run `jstat -gccapacity 12345 1000 5` to view generation/space capacities, if the collector exposes those quantities.
 
-Các cột cần biết trong `-gc` trên HotSpot:
+Important columns in `-gc` on HotSpot:
 
-| Cột | Ý nghĩa | Đơn vị |
+| Column | Meaning | Unit |
 | --- | --- | --- |
-| `S0C`, `S1C`; `S0U`, `S1U` | Capacity và used của hai survivor spaces | KB |
-| `EC`, `EU` | Eden capacity và used | KB |
-| `OC`, `OU` | Old capacity và used | KB |
-| `MC`, `MU` | Metaspace committed và used | KB; **ngoài heap** |
-| `CCSC`, `CCSU` | Compressed class space committed và used | KB; **ngoài heap** |
-| `YGC`, `YGCT` | Số lần và tổng thời gian young GC | Lần; giây |
-| `FGC`, `FGCT` | Số lần và tổng thời gian full GC theo bộ đếm công cụ | Lần; giây |
-| `GCT` | Tổng thời gian GC được công cụ báo | Giây |
+| `S0C`, `S1C`; `S0U`, `S1U` | Capacity and used of the two survivor spaces | KB |
+| `EC`, `EU` | Eden capacity and used | KB |
+| `OC`, `OU` | Old capacity and used | KB |
+| `MC`, `MU` | Metaspace committed and used | KB; **off-heap** |
+| `CCSC`, `CCSU` | Compressed class space committed and used | KB; **off-heap** |
+| `YGC`, `YGCT` | Young GC count and total time | Count; seconds |
+| `FGC`, `FGCT` | Full GC count and total time per tool counters | Count; seconds |
+| `GCT` | Total GC time reported by the tool | Seconds |
 
-Trong `-gcutil`, các cột `S0`, `S1`, `E`, `O`, `M`, `CCS` là **% sử dụng của từng vùng riêng**; các cột GC counters giữ ý nghĩa tích lũy. Một số phiên bản/collector có thêm hoặc không có cột; **ưu tiên header mà lệnh thực tế in ra**. `jstat` được tài liệu JDK ghi là công cụ experimental/unsupported và định dạng có thể đổi, vì vậy **không xây pipeline giám sát lâu dài phụ thuộc vào việc parse bảng text cố định**.
+In `-gcutil`, columns `S0`, `S1`, `E`, `O`, `M`, and `CCS` are **utilization % of each individual region**; the GC counter columns keep their cumulative meanings. Some versions/collectors include or omit certain columns; **trust the header printed by the actual command**. `jstat` is documented by the JDK as an experimental/unsupported tool whose format may change, so **do not build long-term monitoring pipelines dependent on parsing a fixed text table**.
 
-### Đọc sự thay đổi, không chỉ một dòng
+### Reading changes, not just a single row
 
-Ví dụ minh họa về **hai mẫu giả định** (các số dưới đây không phải stdout cam kết của chương trình):
+Illustrative example of **two hypothetical samples** (these numbers are not guaranteed program stdout):
 
-| Mốc | `E` | `O` | `YGC` | `YGCT` | `FGC` |
+| Point | `E` | `O` | `YGC` | `YGCT` | `FGC` |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| t0 | 92% | 38% | 7 | 0,120 s | 0 |
-| t0 + 5 s | 14% | 41% | 9 | 0,145 s | 0 |
+| t0 | 92% | 38% | 7 | 0.120 s | 0 |
+| t0 + 5 s | 14% | 41% | 9 | 0.145 s | 0 |
 
-Trong 5 giây có `ΔYGC = 2` và `ΔYGCT = 0,025 s`; Eden giảm mạnh, Old tăng nhẹ. Đây là dấu hiệu phù hợp với allocation + young GC + một phần object được giữ/chuyển vùng. **Không** thể chỉ từ hai dòng chứng minh tất cả phần tăng ở Old đều do promotion, cũng không chứng minh có leak. `FGC = 0` không đồng nghĩa “chẳng có hoạt động GC nào”: các đợt GC khác và concurrent work có thể diễn ra tùy collector.
+In 5 seconds there is `ΔYGC = 2` and `ΔYGCT = 0.025 s`; Eden dropped sharply while Old edged up slightly. This pattern aligns with allocation + young GC + some objects being retained/promoted. From two rows alone you **cannot** prove that all growth in Old came from promotion, nor prove a leak. `FGC = 0` does not mean "zero GC activity": other collections and concurrent work can run depending on the collector.
 
-## 8. Quy trình đối chiếu ba nguồn theo cùng một vòng đo
+## 8. Workflow to cross-check all three sources in one measurement round
 
-### Bước 1 — chốt danh tính và cấu hình
+### Step 1 — lock identity and configuration
 
-Ghi PID, Java version, GC đang dùng, `-Xms/-Xmx` và thời điểm bắt đầu lấy mẫu. Không so output của một PID đã kết thúc với tiến trình mới tái sử dụng PID đó.
+Record the PID, Java version, active GC, `-Xms/-Xmx`, and sampling start time. Do not compare output from an exited PID with a new process that reused that PID.
 
-### Bước 2 — thiết lập đường cơ sở
+### Step 2 — establish a baseline
 
-Ghi `Heap used/committed/max` từ MXBean; chụp một `GC.heap_info`; bắt đầu `jstat -gc` và `-gcutil` trong cùng một cửa sổ thời gian, ví dụ 5–30 giây. Lưu timestamp ứng dụng cùng số liệu; nếu lệch nhiều, chụp lại gần nhau hơn.
+Record `Heap used/committed/max` from MXBean; take one `GC.heap_info` snapshot; run `jstat -gc` and `-gcutil` in the same time window, e.g. 5–30 seconds. Save application timestamps with metrics; if timestamps drift significantly, capture samples closer together.
 
-### Bước 3 — chuẩn hóa đơn vị và ý nghĩa
+### Step 3 — normalize units and meanings
 
-Với output `jstat -gc` có đủ các cột thế hệ truyền thống, có thể tính **ước lượng**:
+For `jstat -gc` output containing traditional generational columns, you can compute **estimates**:
 
 ```text
 heap_used_KiB      ≈ S0U + S1U + EU + OU
@@ -228,64 +228,64 @@ heap_capacity_MiB  ≈ heap_capacity_KiB / 1024
 heap_used_percent  = 100 × MXBean.heap.used / MXBean.heap.committed
 ```
 
-Đây là phép đối chiếu cho layout phù hợp, **không phải định luật áp dụng cho mọi collector**: G1 có vùng linh hoạt; collector không chia Eden/Survivor/Old theo cách truyền thống; một số số đo/capacity khác cách tính. Không đưa `MC/MU/CCSC/CCSU` vào `heap_used_KiB` vì đó là non-heap.
+This is a cross-check for compatible layouts, **not a universal law for every collector**: G1 uses flexible regions; non-generational collectors do not split Eden/Survivor/Old traditionally; some metrics/capacities calculate differently. Never include `MC/MU/CCSC/CCSU` in `heap_used_KiB` because those are non-heap.
 
-Ví dụ **giả định để kiểm tra số học**: `EU=14336 KB`, `S0U=0 KB`, `S1U=2048 KB`, `OU=32768 KB` ⇒ tổng `49152 KB = 48 MiB`. Nếu tổng capacity tương ứng là `98304 KB = 96 MiB`, mức dùng trên committed khoảng `50%`. Một MXBean trả `heap.used≈48 MiB` và `committed≈96 MiB`, cùng `GC.heap_info` ở gần thời điểm đó, là các quan sát *phù hợp*; không đòi bằng đúng byte.
+**Hypothetical arithmetic check example**: `EU=14336 KB`, `S0U=0 KB`, `S1U=2048 KB`, `OU=32768 KB` ⇒ total `49152 KB = 48 MiB`. If the corresponding total capacity is `98304 KB = 96 MiB`, committed utilization is about `50%`. An MXBean returning `heap.used≈48 MiB` and `committed≈96 MiB`, alongside `GC.heap_info` near that timestamp, represents *consistent* observations; do not demand exact byte equality.
 
-### Bước 4 — đo lại sau một hoặc nhiều chu kỳ GC tự nhiên
+### Step 4 — re-measure after one or more natural GC cycles
 
-Xem sự thay đổi `EU`, `OU`, `YGC`, `FGC`, `YGCT`, `GCT`; đồng thời so **mức nền sau GC** và lưu lượng request/khối lượng công việc. Ví dụ, `used` tăng khi load tăng rồi giảm sau collection là khác đáng kể với `used`/Old cứ tăng qua nhiều chu kỳ dù workload ổn định.
+Observe changes in `EU`, `OU`, `YGC`, `FGC`, `YGCT`, `GCT`; also compare **post-GC baseline** against request traffic/workload. For example, `used` climbing under higher load and falling after collection differs markedly from `used`/Old rising across many cycles while workload stays steady.
 
-### Bước 5 — ghi kết luận có điều kiện
+### Step 5 — write a qualified conclusion
 
-Mẫu kết luận tốt: “Trên HotSpot 21/G1, PID này có heap committed xấp xỉ 96 MiB, used khoảng 48–51 MiB ở ba phép đo gần nhau; trong 10 giây YGC tăng 3, Eden giảm sau các đợt young GC, Old giữ quanh 35–38 MiB; chưa thấy bằng chứng heap leak từ cửa sổ ngắn này.” Nhớ nêu collector, khoảng lấy mẫu, tải và bất định.
+Good conclusion template: "On HotSpot 21/G1, this PID has roughly 96 MiB committed heap and ~48–51 MiB used across three closely spaced measurements; over 10 seconds YGC increased by 3, Eden dropped after young GCs, and Old stayed around 35–38 MiB; no evidence of a heap leak is visible from this short window." Be sure to cite collector, sampling window, load, and uncertainty.
 
-## 9. Diễn giải các tình huống thường gặp
+## 9. Interpreting common combinations
 
-| Quan sát kết hợp | Diễn giải hợp lý | Kiểm tra tiếp |
+| Combined observation | Reasonable interpretation | Next check |
 | --- | --- | --- |
-| `EU` tăng nhanh rồi giảm, `YGC` tăng, `heap.used` dao động | Allocation ngắn hạn được GC thu hồi; có thể là bình thường | Xem thời gian GC, throughput, pause/latency; không vội tăng heap. |
-| `OU` và mức `used` sau GC tăng qua nhiều chu kỳ cùng tải | Có thể có object retention, cache tăng, hoặc leak | So thời gian dài hơn, tải thực tế và live-set; nếu cần dùng GC logs/heap dump với quy trình riêng. |
-| `heap.used` thấp nhưng `committed` vẫn cao | JVM vẫn giữ heap đã commit hoặc chịu ảnh hưởng `-Xms`/chính sách GC | Kiểm tra `max`, `committed` và cấu hình GC; không đồng nhất committed với leak. |
-| `jstat` cho `M`/`CCS` cao, heap ổn định | Áp lực class metadata/non-heap, không phải trực tiếp Java heap object | Xem non-heap MXBeans và class-loading; không cộng metaspace vào heap. |
-| RSS hệ điều hành cao, heap và metaspace thấp | Có thể tốn native memory, direct buffers, stacks, mapped pages hoặc thư viện native | Dùng công cụ OS và native diagnostics phù hợp; ba nguồn trong bài không đủ xác định thủ phạm. |
-| `FGC` tăng và `FGCT` tăng nhanh, cùng latency xấu | Full GC có thể gây áp lực hoặc pause đáng kể | Đối chiếu GC logs, allocation rate, old occupancy và mục tiêu latency. |
-| `GC.heap_info` khác MXBean vài MiB, `jstat` biến động mạnh | Các phép đo không đồng thời; các pool/đơn vị có cách biểu diễn riêng | Chụp mẫu sát nhau hơn, đổi về MiB, xác minh đúng PID/GC, không “sửa” số để ép khớp. |
+| `EU` climbs fast then drops, `YGC` rises, `heap.used` oscillates | Short-lived allocations reclaimed by GC; may be normal | Check GC time, throughput, pauses/latency; do not rush to raise heap. |
+| `OU` and post-GC `used` rise across many cycles at steady load | Possible object retention, growing cache, or leak | Compare over a longer window against actual load and live set; if needed use GC logs/heap dumps via a dedicated workflow. |
+| `heap.used` is low while `committed` stays high | JVM retains committed heap or is affected by `-Xms`/GC policy | Check `max`, `committed`, and GC configuration; do not equate committed with a leak. |
+| `jstat` shows high `M`/`CCS`, stable heap | Class metadata/non-heap pressure, not directly Java heap objects | Inspect non-heap MXBeans and class loading; do not add metaspace to heap. |
+| OS RSS is high while heap and metaspace are low | Likely native memory, direct buffers, stacks, mapped pages, or native libraries | Use OS tools and native diagnostics; the three sources here cannot pinpoint that culprit. |
+| `FGC` rises and `FGCT` grows fast alongside bad latency | Full GC may be causing significant pressure or pauses | Cross-check GC logs, allocation rate, old occupancy, and latency targets. |
+| `GC.heap_info` differs from MXBean by a few MiB while `jstat` fluctuates sharply | Measurements are not simultaneous; pools/units have distinct representations | Capture closer in time, convert to MiB, verify matching PID/GC, do not "fudge" numbers to force a match. |
 
-**Lưu ý về leak:** một lần `used` tăng hoặc một lần Full GC không chứng minh leak. Dấu hiệu đáng quan tâm là nền sử dụng sau nhiều chu kỳ thu gom tăng bền vững khi workload/caches đã ổn định. Muốn khẳng định object nào được giữ, cần bằng chứng từ heap dump, dominator/retained-size analysis hoặc công cụ chuyên sâu.
+**Note on leaks:** a single increase in `used` or one Full GC does not prove a leak. The meaningful signal is a sustained upward drift in the baseline after multiple collection cycles when workload/caches have stabilized. To prove which objects are retained, you need evidence from heap dumps, dominator/retained-size analysis, or specialized tools.
 
-## 10. Những sai lầm cần tránh
+## 10. Mistakes to avoid
 
-1. **So `max` với `total` như cùng đại lượng:** `max` là giới hạn; `total/committed` là dung lượng đang được cam kết tại thời điểm đo.
-2. **Lấy `O = 80%` thành “heap 80%”:** `O` chỉ là % old space; heap còn các vùng khác.
-3. **Cộng metaspace vào heap:** `MC/MU` và `CCS` không phải số byte object trên Java heap.
-4. **Quên đổi đơn vị:** `jstat -gc` theo KB, MXBeans theo byte, GC time có giây/mili giây khác nhau.
-5. **So ba số đo như một snapshot nguyên tử:** tiến trình vẫn cấp phát và chạy GC giữa các lệnh.
-6. **Coi `used` là live set:** trước GC, `used` có thể chứa cả object đã không còn reachable nhưng chưa được thu hồi.
-7. **Mặc định mọi JVM đều có Eden/Old/G1 pool giống nhau:** pool names và output phụ thuộc collector/JVM; các phép cộng theo space chỉ là ước lượng có điều kiện.
-8. **Suy luận “FGC không tăng nên GC không chạy”:** phải xem `YGC` và các chỉ báo phù hợp collector.
-9. **Ép `System.gc()` hoặc `jcmd ... GC.run` trước khi đo:** làm biến dạng trạng thái tự nhiên, có thể tạo pause.
-10. **Bỏ qua quyền truy cập:** `jcmd` cần cơ chế attach hoạt động và quyền phù hợp; một số JVM tắt attach. `jstat` cần performance instrumentation sẵn có; khác user/container/namespace có thể không đọc được. Môi trường runtime tối giản có thể không đóng gói `jcmd`/`jstat`.
-11. **Chỉ lấy một dòng `jstat`:** không thấy được ΔGC và xu hướng.
-12. **Viết parser phụ thuộc vị trí cột `jstat`:** tài liệu công cụ cảnh báo định dạng có thể thay đổi giữa các phiên bản.
+1. **Comparing `max` with `total` as the same quantity:** `max` is a limit; `total/committed` is capacity currently committed at measurement time.
+2. **Reading `O = 80%` as "heap 80%":** `O` is only old space %; the heap has other regions.
+3. **Adding metaspace into heap:** `MC/MU` and `CCS` are not Java heap object bytes.
+4. **Forgetting unit conversions:** `jstat -gc` uses KB, MXBeans use bytes, and GC times mix seconds/milliseconds.
+5. **Comparing three readings as an atomic snapshot:** the process continues allocating and running GC between commands.
+6. **Treating `used` as live set:** before GC, `used` can include unreachable objects not yet reclaimed.
+7. **Assuming every JVM has identical Eden/Old/G1 pools:** pool names and output depend on collector/JVM; summing spaces is only a conditional estimate.
+8. **Inferring "FGC didn't increase so GC isn't running":** check `YGC` and collector-appropriate indicators.
+9. **Forcing `System.gc()` or `jcmd ... GC.run` before measuring:** distorts natural state and can introduce pauses.
+10. **Ignoring access permissions:** `jcmd` requires active attach support and proper permissions; some JVMs disable attach. `jstat` requires available performance instrumentation; differing users/containers/namespaces may block access. Minimal runtimes may not bundle `jcmd`/`jstat`.
+11. **Taking only a single `jstat` line:** cannot reveal ΔGC or trends.
+12. **Writing parsers dependent on `jstat` column positions:** tool docs warn the format may change across versions.
 
-## 11. Bài thực hành tự kiểm chứng
+## 11. Self-verification practice exercise
 
-Với chương trình ở mục 4, quan sát trong ít nhất 30–60 giây ở hai terminal:
+Using the program in section 4, observe for at least 30–60 seconds in two terminals:
 
-1. Ghi `PID`, Java version, `-Xms`/`-Xmx`, collector đang dùng.
-2. Ghi hai lần `GC.heap_info` cách nhau khoảng 15 giây; lấy các giá trị tổng heap và phân biệt metaspace.
-3. Ghi 5–10 mẫu `jstat -gc` và `jstat -gcutil`; tính `ΔYGC`, `ΔYGCT`, `ΔFGC`. Quan sát `EU`/`OU` thay đổi thế nào.
-4. Chép hai mốc `Heap used/committed/max` và tên/usage các heap pools từ stdout MXBean; đổi `used` ra MiB.
-5. So các mốc gần nhau; lý giải khác biệt theo thời gian, đơn vị, collector và đối tượng đang bị giữ bởi `RETAINED`.
-6. Viết 3–5 câu kết luận có điều kiện: các con số **nào** đồng thuận, phần nào chênh lệch, `YGC/FGC` thay đổi ra sao, còn thiếu bằng chứng nào trước khi nói “leak”.
+1. Record `PID`, Java version, `-Xms`/`-Xmx`, and active collector.
+2. Capture `GC.heap_info` twice about 15 seconds apart; extract total heap figures and separate out metaspace.
+3. Record 5–10 samples of `jstat -gc` and `jstat -gcutil`; compute `ΔYGC`, `ΔYGCT`, `ΔFGC`. Observe how `EU`/`OU` change.
+4. Copy two snapshots of `Heap used/committed/max` and heap pool names/usage from MXBean stdout; convert `used` to MiB.
+5. Compare nearby timestamps; explain differences by timing, units, collector, and objects held by `RETAINED`.
+6. Write a 3–5 sentence qualified conclusion: **which** numbers agree, where they diverge, how `YGC/FGC` changed, and what evidence is still missing before claiming a "leak".
 
-**Tiêu chí đạt:** xác định đúng heap và non-heap; phân biệt `used/committed/max`; tính và giải thích được ΔGC; hiểu vì sao ba nguồn gần nhau nhưng không trùng tuyệt đối; không kết luận leak từ một snapshot.
+**Passing criteria:** accurately separate heap and non-heap; distinguish `used/committed/max`; compute and explain ΔGC; understand why the three sources align closely without matching identically; never conclude a leak from a single snapshot.
 
-## 12. Tài liệu tra cứu chính thức
+## 12. Official reference documentation
 
-- [JDK 21 — `jcmd`, lệnh `GC.heap_info`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html).
-- [JDK 21 — `jstat`, cú pháp, các cột và giới hạn công cụ](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jstat.html).
+- [JDK 21 — `jcmd`, `GC.heap_info` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html).
+- [JDK 21 — `jstat`, syntax, columns, and tool limitations](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jstat.html).
 - [Java 21 — `MemoryMXBean`](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryMXBean.html).
 - [Java 21 — `MemoryPoolMXBean`](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryPoolMXBean.html).
 - [Java 21 — `MemoryUsage`](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryUsage.html).

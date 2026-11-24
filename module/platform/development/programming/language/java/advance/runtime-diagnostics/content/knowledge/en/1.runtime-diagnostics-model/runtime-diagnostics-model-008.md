@@ -1,34 +1,34 @@
-# 1.8 Phạm vi API chuẩn Java 21, công cụ HotSpot và khả năng thay đổi theo phiên bản
+# 1.8 Java 21 Standard API Scope, HotSpot Tools, and Version Variability
 
-Trong **mô hình chẩn đoán JVM**, điều quan trọng đầu tiên là biết một phép đo hoặc lệnh chẩn đoán được bảo đảm bởi **Java SE 21**, được cung cấp bởi **một bản phân phối JDK**, hay phụ thuộc vào **VM HotSpot**. Ba lớp này có phạm vi tương thích, cách triển khai, chi phí vận hành và rủi ro khi nâng cấp khác nhau. Cùng chạy được trên Java 21 không có nghĩa là cùng được Java SE bảo đảm.
+In the **JVM diagnostics model**, the first crucial distinction is knowing whether a measurement or diagnostic command is guaranteed by **Java SE 21**, provided by **a JDK distribution**, or dependent on the **HotSpot VM**. These three layers differ in compatibility scope, implementation, operational cost, and upgrade risk. Running on Java 21 does not mean all of them share Java SE guarantees.
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
-- Phân loại API chẩn đoán theo hợp đồng Java SE, API JDK công khai và cơ chế riêng của HotSpot.
-- Chọn điểm quan sát đủ tính di động trước khi dùng công cụ đặc thù của VM.
-- Kiểm tra khả năng thực tế của **JDK 21 đang chạy ứng dụng**, thay vì suy luận từ tên phiên bản hoặc máy phát triển.
-- Dự báo những gì cần kiểm thử khi đổi bản vá JDK, nhà cung cấp JVM, image triển khai hoặc phiên bản Java.
+After this lesson, you will be able to:
+- Classify diagnostic APIs into Java SE contracts, public JDK APIs, and HotSpot-specific mechanisms.
+- Choose sufficiently portable observation points before relying on VM-specific tools.
+- Inspect the actual capabilities of the **JDK 21 running the application**, instead of inferring from version names or a developer laptop.
+- Anticipate what needs re-testing when changing JDK patch updates, JVM vendors, deployment images, or Java versions.
 
-## 1. Ba tầng của hợp đồng chẩn đoán
+## 1. Three Tiers of the Diagnostic Contract
 
-| Tầng | Ví dụ trong Java 21 | Mức bảo đảm và phạm vi sử dụng |
+| Tier | Java 21 Examples | Guarantee Level and Usage Scope |
 | --- | --- | --- |
-| **Java SE 21 (API chuẩn)** | **java.management** với JMX, **java.lang.management.ManagementFactory**, **ThreadMXBean**, **MemoryMXBean**; **java.instrument** với giao diện agent chuẩn | Các kiểu và hành vi được đặc tả bởi Java SE; có thể viết logic giám sát di động, nhưng từng khả năng đo đạc vẫn có thể là tùy chọn và phải được hỏi qua API. |
-| **API JDK công khai, không thuộc Java SE** | **jdk.jfr** với **Recording**; **jdk.attach** với **VirtualMachine**; **jdk.management** với **com.sun.management.HotSpotDiagnosticMXBean** | Được tài liệu JDK mô tả, hữu ích trên JDK hỗ trợ; không bắt buộc tồn tại trong mọi triển khai Java SE hoặc image runtime tùy biến. API công khai không đồng nghĩa với API chuẩn Java SE. |
-| **Công cụ/lệnh và tùy chọn VM** | **jcmd** với **Thread.print**, **GC.heap_info**, **JFR.start**; **jstat**, **jmap**, **jhsdb**; các cờ **-XX:** | Cú pháp, tập lệnh, định dạng đầu ra, quyền attach, chi phí và khả năng hiện diện phụ thuộc JDK, VM, nền tảng và bản phát hành. Phải kiểm tra trên tiến trình đích. |
+| **Java SE 21 (standard API)** | **java.management** with JMX, **java.lang.management.ManagementFactory**, **ThreadMXBean**, **MemoryMXBean**; **java.instrument** with standard agent interfaces | Types and behavior specified by Java SE; enables portable monitoring logic, yet individual measurement capabilities may still be optional and must be queried via API. |
+| **Public JDK API, outside Java SE** | **jdk.jfr** with **Recording**; **jdk.attach** with **VirtualMachine**; **jdk.management** with **com.sun.management.HotSpotDiagnosticMXBean** | Documented by the JDK and useful on supporting JDKs; not required to exist in every Java SE implementation or custom runtime image. Public API does not equal standard Java SE API. |
+| **VM tools/commands and options** | **jcmd** with **Thread.print**, **GC.heap_info**, **JFR.start**; **jstat**, **jmap**, **jhsdb**; **-XX:** flags | Syntax, command set, output format, attach permissions, cost, and presence depend on JDK, VM, platform, and release. Must be verified against the target process. |
 
-Theo tài liệu API Java 21, các module **java.*** là phần của Java SE, còn module **jdk.*** cung cấp API riêng của JDK. Tuy nhiên, **tên package không đủ để phân loại**: package **com.sun.management** là API JDK được công bố qua module **jdk.management**; ngược lại các **jdk.internal.*** không phải hợp đồng công khai để ứng dụng phụ thuộc. Không nên khắc phục bằng cách tùy tiện mở module nội bộ với **--add-exports** hoặc **--add-opens** chỉ để chẩn đoán.
+Per the Java 21 API specification, **java.*** modules are part of Java SE, while **jdk.*** modules provide JDK-specific APIs. However, **package names alone are not enough to classify**: package **com.sun.management** is a JDK API exported by module **jdk.management**; conversely, **jdk.internal.*** packages are not public contracts for applications to depend on. Do not work around this by arbitrarily opening internal modules with **--add-exports** or **--add-opens** solely for diagnostics.
 
-Cũng cần tách **giao diện chuẩn** khỏi **tính năng tùy chọn**. Ví dụ **ThreadMXBean** là API chuẩn, nhưng đo CPU time hoặc giám sát lock có thể không được VM hỗ trợ/đang bật. Kiểm tra các phương thức như **isThreadCpuTimeSupported()**, **isThreadCpuTimeEnabled()**, **isSynchronizerUsageSupported()** trước khi phụ thuộc vào phép đo. Một API tồn tại không bảo đảm mọi phép đo đều có dữ liệu.
+Also separate **standard interfaces** from **optional features**. For example, **ThreadMXBean** is a standard API, yet measuring CPU time or lock monitoring may not be supported/enabled by the VM. Check methods like **isThreadCpuTimeSupported()**, **isThreadCpuTimeEnabled()**, and **isSynchronizerUsageSupported()** before relying on the measurement. An API's existence does not guarantee every metric produces data.
 
-## 2. Điểm quan sát di động: Java SE 21
+## 2. Portable Observation Points: Java SE 21
 
-**JMX / ManagementFactory** phù hợp cho lớp thu thập dữ liệu cơ bản trong ứng dụng: danh tính JVM, thời gian hoạt động, thông tin bộ nhớ/GC, số platform thread, deadlock của platform thread, thông tin class loading và một số bộ đếm. Truy cập nội bộ qua MXBean không đòi hỏi attach vào tiến trình khác; truy cập JMX từ xa lại là một cấu hình vận hành khác, cần xác thực, mã hóa và giới hạn mạng.
+**JMX / ManagementFactory** fits the foundational in-app data-collection layer: JVM identity, uptime, memory/GC info, platform thread count, platform thread deadlocks, class loading info, and certain counters. Internal access via MXBeans requires no attach to another process; remote JMX access is a separate operational setup requiring authentication, encryption, and network restrictions.
 
-Ví dụ hoàn chỉnh dưới đây dùng API Java SE để lấy dữ liệu, và chỉ dùng **ModuleFinder** (cũng thuộc Java SE) để kiểm tra module JFR có nằm trong runtime image hay không.
+The complete example below uses Java SE APIs to collect data, and uses only **ModuleFinder** (also Java SE) to check whether the JFR module exists in the runtime image.
 
-**Tệp DiagnosticCapabilities.java**
+**File DiagnosticCapabilities.java**
 
 ~~~java
 import java.lang.management.ManagementFactory;
@@ -54,26 +54,26 @@ public class DiagnosticCapabilities {
 }
 ~~~
 
-Biên dịch và chạy bằng **JDK 21**:
+Compile and run with **JDK 21**:
 
 ~~~bash
 javac --release 21 DiagnosticCapabilities.java
 java DiagnosticCapabilities
 ~~~
 
-Các dòng nhãn luôn theo thứ tự như trong mã; **giá trị** VM, nhà cung cấp, PID, số thread và hai cờ boolean thay đổi theo môi trường. **--release 21** kiểm tra tập API chuẩn Java 21 của ví dụ này; nó không xác nhận sự sẵn có của lệnh **jcmd** hay các module JDK đặc thù. **ModuleFinder.ofSystem()** trả lời module **jdk.jfr** có trong image hay không, không chứng minh rằng recording sẽ khởi động thành công hoặc rằng attach từ ngoài được phép.
+Label lines always appear in the order coded; **values** for VM, vendor, PID, thread count, and the two boolean flags vary with the environment. **--release 21** checks this example's standard Java 21 API subset; it does not verify the availability of **jcmd** or JDK-specific modules. **ModuleFinder.ofSystem()** answers whether **jdk.jfr** is in the image, not that a recording will start successfully or that external attach is allowed.
 
-**Giới hạn rất dễ bỏ sót của Java 21:** **java.lang.management.ThreadMXBean** chỉ giám sát **platform threads**, không giám sát **virtual threads**. Vì vậy số lượng thread, thread ID, CPU time, stack snapshot và kết quả tìm deadlock từ MXBean này không đại diện cho toàn bộ virtual threads của ứng dụng. Với ứng dụng dùng virtual threads, cần kết hợp cơ chế chẩn đoán hỗ trợ chúng (chẳng hạn các event JFR tương ứng khi có và được bật) và kiểm tra phiên bản cụ thể.
+**An easily missed Java 21 limitation:** **java.lang.management.ThreadMXBean** only monitors **platform threads**, not **virtual threads**. Therefore thread counts, thread IDs, CPU times, stack snapshots, and deadlock results from this MXBean do not represent all virtual threads in an application. For applications using virtual threads, combine diagnostic mechanisms that support them (such as corresponding JFR events when available and enabled) and verify the specific version.
 
-**java.instrument** là API chuẩn để agent tương tác với lớp khi được cấp quyền; song cách **attach/load agent động** và những cảnh báo liên quan thuộc chính sách triển khai JDK/VM, không phải bảo đảm rằng mọi JVM đều cho phép gắn agent vào một tiến trình bất kỳ.
+**java.instrument** is the standard API for agents to interact with classes when permitted; however, how **dynamic agent attach/load** works and related warnings belong to JDK/VM deployment policy, not a guarantee that every JVM allows attaching an agent to any process.
 
-## 3. API JDK công khai: mạnh hơn nhưng có điều kiện
+## 3. Public JDK APIs: More Powerful, Yet Conditional
 
-**Java Flight Recorder (JFR)** là lựa chọn quan trọng khi cần chuỗi sự kiện theo thời gian: GC, cấp phát, I/O, lock, CPU, lớp, thread hoặc event của ứng dụng. Java 21 cung cấp API công khai **jdk.jfr.Recording**, **jdk.jfr.Event** và API đọc file trong **jdk.jfr.consumer**. Đây là API **JDK-specific**, khác với các module **java.management** chuẩn. Tập event, tên/thuộc tính event, cấu hình và overhead cần được kiểm chứng theo JDK thực tế.
+**Java Flight Recorder (JFR)** is a key choice when needing a time-ordered event stream: GC, allocations, I/O, locks, CPU, classes, threads, or custom application events. Java 21 provides the public APIs **jdk.jfr.Recording**, **jdk.jfr.Event**, and file-reading APIs in **jdk.jfr.consumer**. These are **JDK-specific** APIs, distinct from standard **java.management** modules. Event sets, event names/attributes, settings, and overhead must be verified on the actual JDK.
 
-Ví dụ độc lập dưới đây minh họa việc tạo một recording ngắn trên **JDK 21 có JFR**. Đây là chương trình chủ động ghi dữ liệu của chính nó, không attach vào JVM khác.
+The standalone example below demonstrates creating a short recording on **JDK 21 with JFR**. This program actively records its own data without attaching to another JVM.
 
-**Tệp JfrSample.java**
+**File JfrSample.java**
 
 ~~~java
 import java.nio.file.Path;
@@ -102,34 +102,34 @@ java --add-modules jdk.jfr JfrSample
 jfr summary sample.jfr
 ~~~
 
-Khi hai lệnh đầu thành công, chương trình in chính xác **Created sample.jfr** và tạo tệp **sample.jfr** tại thư mục chạy. Lệnh **jfr summary** sau đó in thống kê động, phụ thuộc những event được ghi và bản JDK. Tùy chọn **--add-modules jdk.jfr** nêu rõ phụ thuộc JDK; image thiếu module này sẽ không chạy được ví dụ. Đừng áp dụng máy móc **javac --release 21** cho mã dùng API ngoài tập Java SE mà không kiểm tra cách biên dịch của JDK và cấu hình module.
+When the first two commands succeed, the program prints exactly **Created sample.jfr** and creates **sample.jfr** in the working directory. The **jfr summary** command then prints dynamic statistics depending on recorded events and the JDK build. **--add-modules jdk.jfr** explicitly declares the JDK dependency; images lacking this module cannot run the example. Do not mechanically apply **javac --release 21** to code using non-Java-SE APIs without checking JDK compilation behavior and module configuration.
 
-Các ví dụ API JDK khác cần phân biệt:
-- **com.sun.management.OperatingSystemMXBean** mở rộng thông tin hệ điều hành/quá trình; phương thức và ý nghĩa các chỉ số phải đối chiếu Javadoc của JDK.
-- **com.sun.management.HotSpotDiagnosticMXBean** có thể hỗ trợ lấy heap dump và tùy chọn chẩn đoán khi VM hỗ trợ; đây không phải hợp đồng đa JVM.
-- **com.sun.tools.attach.VirtualMachine** trong **jdk.attach** cung cấp cơ chế attach; có class không bảo đảm tiến trình đích cho attach, có quyền tương ứng hoặc cho phép agent động.
+Other JDK API examples to distinguish:
+- **com.sun.management.OperatingSystemMXBean** extends OS/process info; check JDK Javadoc for methods and metric semantics.
+- **com.sun.management.HotSpotDiagnosticMXBean** can support taking heap dumps and diagnostic options where the VM supports it; this is not a cross-JVM contract.
+- **com.sun.tools.attach.VirtualMachine** in **jdk.attach** provides the attach mechanism; having the class does not guarantee the target process allows attach, has matching permissions, or permits dynamic agents.
 
-Không nên dùng API nội bộ phản chiếu, địa chỉ bộ nhớ VM hay parsing chuỗi output của công cụ như thể đó là định dạng ổn định. Khi cần phân tích máy móc, ưu tiên API có kiểu rõ ràng hoặc định dạng/đầu đọc được tài liệu hỗ trợ.
+Do not rely on internal reflective APIs, VM memory addresses, or parsing tool text output as though it were a stable format. When programmatic parsing is needed, prefer strongly typed APIs or documented supported formats/readers.
 
-## 4. Công cụ HotSpot/JDK: nhận diện trước, thực thi sau
+## 4. HotSpot/JDK Tools: Identify First, Execute Second
 
-**Lưu ý về thuật ngữ:** **HotSpot** là một triển khai JVM. **JDK** là bộ phân phối gồm runtime, công cụ và các module. Nhiều bản OpenJDK sử dụng HotSpot nhưng vẫn khác nhau về thành phần đóng gói và bản vá; JVM khác như OpenJ9 có công cụ/khả năng riêng. Có **Java 21** không đồng nghĩa với việc có mọi chương trình trong thư mục **bin**.
+**Terminology note:** **HotSpot** is a JVM implementation. **JDK** is the distribution comprising runtime, tools, and modules. Many OpenJDK builds use HotSpot yet differ in packaging and patches; other JVMs like OpenJ9 have their own tools/capabilities. Having **Java 21** does not guarantee every executable in the **bin** directory is present.
 
-| Công cụ hoặc cơ chế | Dùng để làm gì | Phạm vi và điều kiện quan trọng |
+| Tool or Mechanism | What It Is For | Scope and Important Conditions |
 | --- | --- | --- |
-| **java -version**, **java --list-modules** | Xem runtime đang gọi, module trong image | Chạy trên đúng máy/container; bản **java** ở PATH có thể khác JVM đang chạy ứng dụng. |
-| **jcmd -l**, **jcmd PID help** | Phát hiện JVM và danh sách lệnh khả dụng | Cần công cụ, cơ chế attach/quyền và khả năng nhìn thấy tiến trình; danh sách lệnh do JVM đích quyết định. |
-| **jcmd PID VM.version / VM.command_line** | Kiểm tra VM và tham số khởi động thực tế | Thường hữu ích trước khi diễn giải các số liệu; không nên suy ra cấu hình chỉ từ lệnh java của terminal. |
-| **jcmd PID Thread.print -l** | Snapshot stack/lock của các thread mà lệnh hỗ trợ | Có thể tốn thời gian khi rất nhiều thread; không mặc nhiên là dump đầy đủ mọi virtual thread. |
-| **jcmd PID GC.heap_info** | Thông tin tổng quát về heap/GC | Không thay được heap dump; vẫn có tác động lên tiến trình. |
-| **jcmd PID JFR.start / JFR.check / JFR.dump** | Thu thập, xem trạng thái và xuất recording | Yêu cầu target hỗ trợ JFR, quyền phù hợp, dung lượng lưu trữ; file được tạo trong hệ tệp mà JVM đích nhìn thấy. |
-| **jfr summary / jfr print** | Đọc và lọc file JFR | Cần công cụ đọc hỗ trợ định dạng recording; dữ liệu/event phụ thuộc cấu hình thu thập. |
-| **jstat**, **jmap**, **jstack**, **jhsdb** | Một số thao tác thống kê/heap/thread/Serviceability Agent | Công cụ và chế độ hỗ trợ khác nhau theo VM, OS, JDK. Một số thao tác làm dừng hoặc ảnh hưởng mạnh JVM; không dùng mù quáng trên production. |
-| **-XX:...**, Native Memory Tracking | Tùy chọn và thống kê riêng của HotSpot | Phụ thuộc JVM; NMT cần bật bằng tùy chọn tương ứng từ khi JVM khởi động, không thể suy ra rằng luôn có dữ liệu. |
+| **java -version**, **java --list-modules** | Inspect the invoked runtime and modules in the image | Run on the exact machine/container; **java** on PATH may differ from the JVM running the app. |
+| **jcmd -l**, **jcmd PID help** | Discover JVMs and list available commands | Requires the tool, attach mechanism/permissions, and process visibility; the command list is determined by the target JVM. |
+| **jcmd PID VM.version / VM.command_line** | Check the VM and actual startup arguments | Usually helpful before interpreting metrics; do not infer configuration solely from a terminal java command. |
+| **jcmd PID Thread.print -l** | Stack/lock snapshot of threads supported by the command | Can be slow with very many threads; not automatically a complete dump of all virtual threads. |
+| **jcmd PID GC.heap_info** | General overview of heap/GC | Cannot replace a heap dump; still has an impact on the process. |
+| **jcmd PID JFR.start / JFR.check / JFR.dump** | Collect, check status, and export recordings | Requires target JFR support, proper permissions, and disk space; files are created on the filesystem seen by the target JVM. |
+| **jfr summary / jfr print** | Read and filter JFR files | Requires a reader tool compatible with the recording format; data/events depend on collection settings. |
+| **jstat**, **jmap**, **jstack**, **jhsdb** | Various statistics/heap/thread/Serviceability Agent operations | Supported tools and modes vary by VM, OS, and JDK. Some operations pause or heavily impact the JVM; do not use blindly in production. |
+| **-XX:...**, Native Memory Tracking | HotSpot-specific options and statistics | VM-dependent; NMT must be enabled via its option at JVM startup—never assume data is always present. |
 
-### Quy trình nhận diện một tiến trình thực tế
+### Workflow to Identify a Real Process
 
-Ví dụ lệnh sau dùng **PID 12345 để minh họa**; thay bằng PID thật thu được từ công cụ quản lý tiến trình của môi trường đích.
+The example commands below use **PID 12345 as an illustration**; replace with the actual PID obtained from the target environment's process management tool.
 
 ~~~bash
 java -version
@@ -142,20 +142,20 @@ jcmd 12345 help
 jcmd 12345 help Thread.print
 ~~~
 
-Thứ tự có chủ đích: biết **tool đang gọi** trước, biết **VM đích** tiếp theo, rồi mới khám phá lệnh **đích hỗ trợ**. Nếu **jcmd -l** không liệt kê tiến trình, chưa thể kết luận ứng dụng không chạy: PID namespace/container, user chạy JVM, cơ chế attach, image runtime rút gọn và phân quyền đều có thể ảnh hưởng khả năng khám phá.
+The order is deliberate: know **which tool you are invoking** first, know the **target VM** next, and only then discover commands **the target supports**. If **jcmd -l** does not list the process, do not conclude the application is not running: PID namespaces/containers, JVM user, attach mechanisms, trimmed runtime images, and permissions can all affect discovery.
 
-**Không chạy công cụ JDK trên máy host rồi mặc định nó attach được vào JVM trong container.** Cần xét PID namespace, quyền hệ điều hành, filesystem dùng cho attach và chỗ tệp output xuất hiện. Image tạo bởi **jlink** hoặc image runtime tối giản có thể không mang theo **jcmd**, **jfr**, **jmap**, cũng có thể loại bỏ các module JDK không cần cho ứng dụng.
+**Do not run a JDK tool on the host and assume it can attach to a JVM inside a container.** Check PID namespaces, OS permissions, the filesystem used for attach, and where output files appear. Images built with **jlink** or minimal runtime images may exclude **jcmd**, **jfr**, **jmap**, and strip out JDK modules unnecessary for the application.
 
-## 5. Chọn công cụ theo bài toán và chi phí
+## 5. Selecting Tools by Problem and Cost
 
-Một lượt chẩn đoán có thể đi theo mức tác động tăng dần:
+A diagnostic pass can escalate in impact:
 
-1. **Xác nhận ngữ cảnh:** thời điểm sự cố, PID, VM name/vendor/version, uptime, cờ khởi động, container và tải ứng dụng. Việc chạy **java -version** ở shell chỉ là kiểm tra môi trường shell, không thay cho xác minh JVM đích.
-2. **Quan sát ít xâm lấn:** số liệu JMX/MXBean sẵn có, metrics của ứng dụng, log và các lệnh thông tin như **VM.version**; đối chiếu phép đo với thời gian và tải.
-3. **Thu thập có thời hạn:** JFR với cấu hình, thời lượng và file đích xác định; thread dump khi điều tra nghẽn hoặc deadlock. Đọc tài liệu impact của từng **jcmd** diagnostic command.
-4. **Đi sâu có kiểm soát:** class histogram, heap dump, agent động, debugger/Serviceability Agent hoặc thay đổi cờ VM chỉ khi dấu hiệu hiện có biện minh cho chi phí, ảnh hưởng latency, bộ nhớ, CPU và lưu trữ.
+1. **Confirm context:** incident time, PID, VM name/vendor/version, uptime, startup flags, container, and application load. Running **java -version** in a shell only checks the shell environment, not the target JVM.
+2. **Low-intrusion observation:** existing JMX/MXBean numbers, application metrics, logs, and informational commands like **VM.version**; align measurements with time and load.
+3. **Time-bounded collection:** JFR with defined settings, duration, and target file; thread dumps when investigating stalls or deadlocks. Read the impact documentation of each **jcmd** diagnostic command.
+4. **Controlled deep dive:** class histograms, heap dumps, dynamic agents, debuggers/Serviceability Agent, or VM flag changes only when current signals justify the cost and effects on latency, memory, CPU, and storage.
 
-Ví dụ xử lý giả định JVM **HotSpot/JDK 21** hỗ trợ đúng các lệnh sau:
+Example assuming a **HotSpot/JDK 21** JVM supports these exact commands:
 
 ~~~bash
 jcmd 12345 Thread.print -l
@@ -164,64 +164,64 @@ jcmd 12345 JFR.start name=triage settings=profile duration=60s filename=/tmp/tri
 jcmd 12345 JFR.check
 ~~~
 
-Sau khi recording kết thúc và file đã có, chạy **jfr summary /tmp/triage.jfr** ở nơi có thể truy cập file và có công cụ JFR tương thích. **/tmp/triage.jfr** là đường dẫn nhìn từ **JVM đích**; với container, bạn có thể phải sao chép file ra môi trường phân tích.
+Once the recording finishes and the file exists, run **jfr summary /tmp/triage.jfr** where the file is accessible and a compatible JFR tool is installed. **/tmp/triage.jfr** is a path from the **target JVM's** perspective; in containers, you may need to copy the file out to an analysis environment.
 
-**Không xem các lệnh trên là “zero overhead”.** Ngay cả **Thread.print** có mức tác động tùy số thread; **GC.heap_info** có tác động; **GC.class_histogram** và **GC.heap_dump** được tài liệu JDK 21 xếp vào nhóm tác động cao tùy kích thước/nội dung heap. Heap dump có thể lớn, làm tạm dừng ứng dụng, tiêu tốn đĩa và chứa dữ liệu nhạy cảm. JFR thường phù hợp cho quan sát có thời hạn nhưng mức overhead vẫn phụ thuộc event và cấu hình, nhất là profile/stack trace.
+**Do not treat these commands as "zero overhead."** Even **Thread.print** has impact scaling with thread count; **GC.heap_info** has impact; **GC.class_histogram** and **GC.heap_dump** are classified by JDK 21 documentation as high impact depending on heap size/contents. Heap dumps can be huge, pause the application, consume disk, and contain sensitive data. JFR is generally suitable for time-bounded observation, yet overhead still depends on events and settings, especially profile/stack traces.
 
-Nếu phải thu thập từ xa, cần phân biệt **JMX remote** (mở kênh giám sát có xác thực và bảo vệ truyền tải) với **local attach** của **jcmd**. Hai cơ chế có mô hình quyền và bề mặt vận hành khác nhau. Không bật public JMX port hoặc mở quyền attach chỉ để thử chẩn đoán.
+When remote collection is required, distinguish **remote JMX** (opening a monitoring channel with authentication and transport protection) from **jcmd local attach**. The two mechanisms have different permission models and operational surfaces. Never open public JMX ports or relax attach permissions just to try diagnostics.
 
-## 6. Những thay đổi quan trọng theo phiên bản
+## 6. Important Changes Across Versions
 
-Phân biệt ít nhất **bốn trục thay đổi**:
+Distinguish at least **four axes of change**:
 
-| Trục | Điều có thể thay đổi | Kiểm chứng trước khi dùng |
+| Axis | What Can Change | Verify Before Use |
 | --- | --- | --- |
-| **Java SE 21 so với Java SE phiên bản khác** | API, ngôn ngữ, giới hạn tính năng và quy tắc tương thích của bản nền tảng | Javadoc và thông số kỹ thuật **đúng feature release**; biên dịch phần Java SE bằng **--release 21** khi mục tiêu là Java 21. |
-| **JDK vendor, VM implementation** | Có/không JFR, attach provider, MXBean mở rộng, lệnh chẩn đoán, cấu hình mặc định | **VM.version**, module trong image, tài liệu vendor, kết quả kiểm tra khả năng trong tiến trình đích. |
-| **Bản cập nhật và cấu hình của cùng JDK 21** | Bản vá lỗi, quyền, tùy chọn, hành vi diagnostics/JFR, giới hạn tài nguyên | Ghi lại **full runtime version + vendor + flags**, không chỉ số **21**; thử lại quy trình sau update. |
-| **Môi trường triển khai** | Công cụ bị loại khỏi image, module bị bỏ, quyền container, filesystem, PID và chính sách bảo mật | Kiểm tra trong chính container/host chạy service; xác nhận module, executable, quyền và nơi ghi file. |
+| **Java SE 21 vs. other Java SE versions** | APIs, language, feature limits, and platform compatibility rules | Javadoc and specs for the **exact feature release**; compile Java SE parts with **--release 21** when targeting Java 21. |
+| **JDK vendor, VM implementation** | Presence/absence of JFR, attach providers, extended MXBeans, diagnostic commands, default settings | **VM.version**, modules in image, vendor docs, capability checks inside the target process. |
+| **Updates and configuration within JDK 21** | Bug fixes, permissions, options, diagnostics/JFR behavior, resource limits | Record **full runtime version + vendor + flags**, not just **21**; re-test procedures after updates. |
+| **Deployment environment** | Stripped tools in image, removed modules, container permissions, filesystem, PID, and security policy | Test inside the actual container/host running the service; verify modules, executables, permissions, and writable paths. |
 
-Đặc biệt với **JDK 21**, **JEP 451** đưa ra **cảnh báo khi agent được nạp động** để chuẩn bị cho chính sách chặt hơn trong các bản tương lai. Không đồng nhất cảnh báo JDK 21 với việc mọi dynamic agent đều đã bị chặn ở JDK 21. Nếu sản phẩm cần instrumentation, ưu tiên định nghĩa rõ agent được nạp lúc khởi động hay qua attach, kiểm tra chính sách JVM phiên bản đích và kiểm thử trước khi nâng cấp.
+Specifically in **JDK 21**, **JEP 451** introduces **warnings when agents are loaded dynamically** to prepare for stricter policies in future releases. Do not equate the JDK 21 warning with all dynamic agents already being blocked in JDK 21. If a product needs instrumentation, prefer explicitly specifying agents loaded at startup vs. via attach, check target JVM policies, and test before upgrading.
 
-Với **virtual threads** được chuẩn hóa trong Java 21, khả năng quan sát càng cần nhìn theo API và công cụ cụ thể: **ThreadMXBean** chuẩn chỉ thấy platform threads, trong khi JFR/những công cụ khác có thể cung cấp dữ liệu bổ sung theo khả năng của bản JDK. Không dùng tổng platform-thread count để tuyên bố số virtual threads đang hoạt động.
+With **virtual threads** standardized in Java 21, observability must be viewed per specific API and tool: standard **ThreadMXBean** sees only platform threads, whereas JFR/other tools can supply additional data according to the JDK build's capabilities. Do not use total platform-thread count to claim how many virtual threads are active.
 
-Cũng không coi **định dạng text** do **jcmd**, **jstack** hoặc **jmap** in ra là giao thức ổn định để tích hợp dài hạn. Nếu phải tự động hóa, lưu version được kiểm chứng, kiểm tra exit status, xử lý thiếu lệnh/thiếu cột và có nhánh fallback; tránh parser dựa vào vị trí dòng cố định.
+Also do not treat **text output formats** printed by **jcmd**, **jstack**, or **jmap** as a stable protocol for long-term automation. If automation is required, record tested versions, check exit status, handle missing commands/columns, and provide fallback branches; avoid parsers tied to fixed line positions.
 
-## 7. Mẫu chiến lược tương thích cho công cụ chẩn đoán
+## 7. Compatibility Strategy Pattern for Diagnostic Tooling
 
-Một thư viện hoặc quy trình vận hành có thể tách thành ba đường:
+A library or operational runbook can separate into three tiers:
 
-- **Baseline luôn ưu tiên Java SE:** đọc MXBean chuẩn, log có cấu trúc và metric ứng dụng; kiểm tra cờ hỗ trợ của từng phép đo.
-- **Nâng cấp khi có capability:** nếu module **jdk.jfr** hiện diện và thử recording thành công, bật JFR theo chính sách; nếu JVM đích cho phép và có **jcmd**, dùng những diagnostic command mà **jcmd PID help** thật sự liệt kê.
-- **Fallback tường minh:** khi thiếu module/tool/quyền hoặc VM khác HotSpot, tiếp tục quan sát bằng baseline; ghi rõ bằng chứng nào chưa lấy được thay vì xuất số 0 hoặc báo “không có sự cố”.
+- **Java SE baseline first:** read standard MXBeans, structured logs, and application metrics; check capability flags for each measurement.
+- **Upgrade when capability exists:** if **jdk.jfr** is present and a test recording succeeds, enable JFR per policy; if the target JVM permits it and **jcmd** exists, use diagnostic commands actually listed by **jcmd PID help**.
+- **Explicit fallback:** when modules/tools/permissions are missing or the VM is non-HotSpot, continue observing via the baseline; explicitly record which evidence could not be gathered instead of outputting 0 or reporting "no issues."
 
-Ví dụ: một service trên JDK 21 HotSpot chạy ở development có đủ **jcmd + jfr**, nhưng image production chỉ chứa runtime modules. Hai môi trường có thể có cùng bytecode ứng dụng và cùng Java feature version, song thao tác chẩn đoán từ shell sẽ khác. Giải pháp đúng là khai báo yêu cầu vận hành từ lúc đóng gói image, hoặc bố trí cách quan sát được hỗ trợ, không ràng buộc logic business vào sự tồn tại của executable ngoài ứng dụng.
+Example: a service on JDK 21 HotSpot in development has full **jcmd + jfr**, while the production image contains only runtime modules. Both environments may share identical application bytecode and Java feature version, yet shell-based diagnostics differ. The right solution is declaring operational requirements at image packaging time or provisioning supported observability, rather than coupling business logic to external executables.
 
-Đối với kết quả chẩn đoán, nên ghi kèm **timestamp, PID, Java feature/full version, VM name/vendor, source (API hay command), tập capability và cấu hình thu thập**. Nhờ đó dữ liệu có thể so sánh được sau nâng cấp và người đọc biết một ô trống là “không hỗ trợ/chưa thu thập” hay thực sự là giá trị không.
+For diagnostic outputs, record **timestamp, PID, Java feature/full version, VM name/vendor, source (API or command), capability set, and collection configuration**. That makes data comparable across upgrades and lets readers tell whether an empty field means "unsupported/not collected" or a true zero.
 
-## 8. Các lỗi nhận thức thường gặp
+## 8. Common Misconceptions
 
-1. **“API có trong JDK 21 nên là Java SE 21.”** Sai: **jdk.jfr**, **jdk.attach**, **jdk.management** là JDK-specific; cần phân biệt với **java.management** hoặc **java.instrument**.
-2. **“JVM là Java 21 nên chắc chắn có jcmd.”** Sai: lệnh là thành phần công cụ JDK, có thể bị bỏ trong image hoặc không dùng được với VM/quyền hiện tại.
-3. **“ThreadMXBean đếm tất cả thread.”** Sai trên Java 21: nó chỉ quản lý platform threads, không bao gồm virtual threads.
-4. **“Không có deadlock trong MXBean nên không thể có vấn đề đồng bộ.”** Sai: phạm vi API, loại lock và virtual threads quyết định những gì được phát hiện; thiếu tín hiệu không chứng minh hệ thống khỏe.
-5. **“Lệnh chạy được thì an toàn trên production.”** Sai: các lệnh dump/heap/agent có thể tạo pause, I/O lớn và dữ liệu nhạy cảm; phải đánh giá tác động.
-6. **“Bản vá hoặc đổi JVM không ảnh hưởng script.”** Sai: danh sách lệnh, flags, định dạng text, event và điều kiện attach cần được kiểm tra lại.
-7. **“Module hiện diện nghĩa là tính năng hoạt động.”** Sai: quyền, runtime flags, chính sách VM, cấu hình và filesystem vẫn có thể ngăn thao tác.
+1. **"An API is in JDK 21, so it is Java SE 21."** False: **jdk.jfr**, **jdk.attach**, and **jdk.management** are JDK-specific; distinguish them from **java.management** or **java.instrument**.
+2. **"The JVM is Java 21, so `jcmd` is definitely available."** False: commands are JDK tool components that may be omitted from images or unusable with the current VM/permissions.
+3. **"ThreadMXBean counts all threads."** False in Java 21: it manages only platform threads, excluding virtual threads.
+4. **"No deadlock in MXBean means no synchronization problem."** False: API scope, lock types, and virtual threads govern what is detected; lack of a signal does not prove system health.
+5. **"If a command runs, it is safe in production."** False: dump/heap/agent commands can induce pauses, heavy I/O, and sensitive data exposure; assess impact first.
+6. **"Patch updates or VM changes do not affect scripts."** False: command lists, flags, text formats, events, and attach conditions must be re-verified.
+7. **"Module present means the feature works."** False: permissions, runtime flags, VM policies, configs, and filesystems can still block execution.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-- Nếu muốn lấy số platform threads và bộ nhớ từ **nhiều JVM Java 21**, hãy bắt đầu với **java.management** và các kiểm tra capability. Nếu cần dòng thời gian sự kiện, cân nhắc **jdk.jfr** sau khi xác minh runtime.
-- Nếu có **jcmd** trên máy phát triển nhưng thiếu trong container production, kiểm tra loại image và công cụ ở container; không suy luận từ phiên bản Java hoặc PATH của máy phát triển.
-- Nếu một phép đo biến mất sau khi bật virtual threads hoặc thay VM, hãy hỏi **API đó đo đối tượng nào, có được hỗ trợ không, và dữ liệu được thu thập từ runtime nào** trước khi kết luận ứng dụng thay đổi hành vi.
+- If you want platform thread counts and memory from **multiple Java 21 JVMs**, start with **java.management** and capability checks. If an event timeline is needed, consider **jdk.jfr** after verifying the runtime.
+- If **jcmd** exists on your dev machine but is missing in the production container, inspect the image type and tools in the container; do not infer from the Java version or dev machine PATH.
+- If a metric disappears after enabling virtual threads or switching VMs, ask **what target that API measures, whether it is supported, and which runtime produced the data** before concluding application behavior changed.
 
-**Tiêu chí áp dụng được:** với mỗi số liệu/lệnh chẩn đoán, bạn nói rõ được **hợp đồng nào bảo đảm nó**, **nơi nào chạy được**, **điều kiện/quyền cần có**, **chi phí thu thập**, và **cách xử lý khi nó không tồn tại hoặc thay đổi**. Đây là ranh giới thiết yếu để thiết kế mô hình chẩn đoán JVM đáng tin cậy.
+**Applicability criterion:** for every diagnostic metric/command, you can clearly state **which contract guarantees it**, **where it can run**, **what conditions/permissions are required**, **collection overhead**, and **how to handle its absence or change**. This boundary is essential for designing a reliable JVM diagnostics model.
 
-## Tài liệu gốc để đối chiếu
+## Primary References
 
-- [Java SE 21 & JDK 21 API Specification — phân biệt module Java SE và JDK](https://docs.oracle.com/en/java/javase/21/docs/api/)
-- [ThreadMXBean, Java SE 21 — phạm vi platform threads và capability tùy chọn](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html)
-- [jcmd, JDK 21 — diagnostic commands và mức impact](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
-- [jfr, JDK 21 — đọc file JFR](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
-- [jlink, JDK 21 — runtime image tùy biến](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jlink.html)
-- [JEP 451 — cảnh báo nạp agent động trong JDK 21](https://openjdk.org/jeps/451)
+- [Java SE 21 & JDK 21 API Specification — distinguishing Java SE and JDK modules](https://docs.oracle.com/en/java/javase/21/docs/api/)
+- [ThreadMXBean, Java SE 21 — platform threads scope and optional capabilities](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html)
+- [jcmd, JDK 21 — diagnostic commands and impact levels](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
+- [jfr, JDK 21 — reading JFR files](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
+- [jlink, JDK 21 — custom runtime images](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jlink.html)
+- [JEP 451 — warnings for dynamic loading of agents in JDK 21](https://openjdk.org/jeps/451)

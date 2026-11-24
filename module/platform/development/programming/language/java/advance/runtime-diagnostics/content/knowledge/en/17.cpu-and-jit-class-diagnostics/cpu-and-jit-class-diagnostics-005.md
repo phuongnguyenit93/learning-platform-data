@@ -1,102 +1,102 @@
-# 17.5 Khởi động nóng, tiered compilation và ảnh hưởng tới kết quả profiling
+# 17.5 Warm-Up, Tiered Compilation, and Their Impact on Profiling Results
 
-## 1. Vì sao cùng một đoạn Java có thể chạy nhanh dần?
+## 1. Why Can the Same Java Code Run Progressively Faster?
 
-Trên HotSpot, **một phương thức Java không nhất thiết được thực thi bằng một dạng mã cố định trong suốt vòng đời JVM**. Lần đầu, JVM thường sử dụng interpreter; khi phương thức hoặc vòng lặp được gọi đủ nhiều, JIT (*Just-In-Time compiler*) có thể biên dịch thành machine code và tiếp tục tối ưu dựa trên dữ liệu hành vi thực tế. Cơ chế **tiered compilation** phối hợp các mức biên dịch nhanh và tối ưu sâu để cân bằng **thời gian khởi động, chi phí profiling nội bộ, hiệu năng ổn định và độ chính xác của giả định tối ưu**.
+On HotSpot, **a Java method is not necessarily executed using one fixed code form throughout the JVM's lifetime**. Initially, the JVM typically uses the interpreter; once a method or loop is invoked often enough, the JIT (*Just-In-Time compiler*) can compile it into machine code and optimize it further based on observed runtime behavior. **Tiered compilation** coordinates fast compilation levels with deep optimization to balance **startup time, internal profiling cost, steady-state performance, and optimization assumption accuracy**.
 
-Do đó, hai phép đo cùng chạy một logic có thể khác nhau vì:
+Consequently, two measurements running the same logic can differ because:
 
-- Lần đầu JVM còn phải load/verify/initialize class, tạo cấu trúc runtime, kích hoạt những đường mã chưa nóng.
-- Interpreter và mã do C1 tạo ra có thể có tốc độ, chi phí thu thập profile và hình dạng stack khác C2.
-- Các compiler thread có thể đang tiêu thụ CPU trong nền, cạnh tranh tài nguyên với application threads.
-- C2 có thể inline method, loại allocation tạm, hoán đổi vị trí phép tính hoặc tối ưu nhánh dựa trên type profile.
-- Một giả định tối ưu về type/nhánh bị phá vỡ có thể gây **deoptimization**, làm phương thức quay về đường thực thi an toàn rồi được biên dịch lại.
-- GC, class loading, cache, connection pools và OS còn tạo hiệu ứng warm-up riêng, **không được mặc định quy hết cho JIT**.
+- On the first run, the JVM still has to load/verify/initialize classes, build runtime structures, and touch cold code paths.
+- The interpreter and C1-generated code can differ in speed, profiling-instrumentation cost, and stack shape compared to C2.
+- Compiler threads may consume CPU in the background, competing for resources with application threads.
+- C2 can inline methods, eliminate temporary allocations, reorder computations, or specialize branches based on type profiles.
+- Breaking an optimization assumption about types/branches can trigger **deoptimization**, returning the method to a safe execution path and later recompiling it.
+- GC, class loading, caches, connection pools, and the OS also produce their own warm-up effects, **which must not all be blamed on the JIT by default**.
 
-**Mục tiêu bài học:** giải thích đúng các mức HotSpot, nhận ra trạng thái warm-up trong compilation log/JFR, tránh kết luận sai từ biểu đồ CPU/latency khi mã còn thay đổi, và thiết kế phép đo phân biệt **startup** với **steady-state**.
+**Lesson goal:** accurately explain HotSpot tiers, recognize warm-up state in compilation logs/JFR, avoid wrong conclusions from CPU/latency charts while code is still transitioning, and design measurements separating **startup** from **steady-state**.
 
-Phạm vi là HotSpot trên JDK 17+, minh họa theo JDK 21. JVM khác (chẳng hạn runtime sử dụng compiler khác, native image) có chính sách không giống toàn bộ mô tả C1/C2 dưới đây; cần xác minh JVM/version/flags thực tế.
+Scope is HotSpot on JDK 17+, illustrated with JDK 21. Other JVMs (such as runtimes using different compilers or native images) do not follow every C1/C2 detail below; always verify the actual JVM/version/flags.
 
-## 2. “Cold”, “warming up” và “hot” là trạng thái quan sát, không phải số giây cố định
+## 2. "Cold", "Warming Up", and "Hot" Are Observed States, Not a Fixed Number of Seconds
 
-| Giai đoạn | Điều thường diễn ra | Dấu hiệu có thể đo | Nhầm lẫn cần tránh |
+| Phase | What Typically Happens | Measurable Signals | Confusions to Avoid |
 | --- | --- | --- | --- |
-| **Cold start** | JVM khởi chạy; class loading, initialization; code lần đầu qua interpreter hoặc mã đã sẵn có | Startup time, số class load, compilation bắt đầu, latency request đầu | Gắn mọi độ trễ đầu tiên cho JIT |
-| **Warm-up** | Phương thức/vòng lặp thường dùng đạt ngưỡng “hot”; C1/C2 compile, thu thập type profile, cache/pool khởi tạo | Compilation events, code cache tăng, throughput/latency thay đổi theo vòng | Nghĩ ứng dụng đã warm chỉ vì trôi qua 30 giây |
-| **Tương đối ổn định** | Các đường mã chính đã được tối ưu phù hợp với workload hiện tại; một số cache đạt trần | Chỉ số theo các cửa sổ lặp gần nhau dưới tải tương đương | Tuyên bố toàn bộ JVM “hết JIT”; đường mã hiếm vẫn có thể nóng lên |
-| **Tái tối ưu** | Workload/type distribution đổi; deopt, class loading, recompilation, code cache pressure | Spike CPU/latency, sự kiện deopt hoặc compile mới | Cho rằng một lần ổn định là ổn định mãi mãi |
+| **Cold start** | JVM starts; class loading, initialization; code first runs via interpreter or pre-existing code | Startup time, classes loaded, compilation begins, first-request latency | Attributing all initial latency to JIT |
+| **Warm-up** | Frequently used methods/loops cross the "hot" threshold; C1/C2 compile, gather type profiles, caches/pools initialize | Compilation events, code cache growth, throughput/latency shifting across rounds | Assuming the app is warm merely because 30 seconds passed |
+| **Relatively steady** | Main code paths are optimized for the current workload; some caches reach steady size | Metrics across consecutive windows under comparable load stay close | Declaring the whole JVM "done with JIT"; rare paths can still warm up later |
+| **Re-optimization** | Workload/type distribution shifts; deopt, class loading, recompilation, code cache pressure | CPU/latency spikes, deopt or new compile events | Assuming once-stable means stable forever |
 
-Một service mở sẵn 2 giờ vẫn có thể **cold đối với một code path hiếm** mới được gọi lần đầu. Ngược lại, một job chạy vài giây có thể có vòng lặp rất nóng đủ để được OSR/JIT tối ưu ngay trong lần chạy đó.
+A service running for 2 hours can still be **cold for a rare code path** invoked for the first time. Conversely, a job running for a few seconds can have a loop hot enough to trigger OSR/JIT optimization within that very run.
 
-**Warm-up phải định nghĩa theo thứ bạn đo:** startup latency cần bao gồm phần cold hợp lệ; đo peak throughput cần ghi rõ cách loại hoặc báo riêng phần warm-up. Không âm thầm bỏ dữ liệu startup rồi gọi đó là hiệu năng tổng thể của sản phẩm.
+**Warm-up must be defined according to what you are measuring:** startup latency must include legitimate cold time; peak throughput measurements must explicitly state how warm-up was excluded or report it separately. Never quietly discard startup data and present the remainder as overall product performance.
 
-## 3. Tiered compilation trên HotSpot: Interpreter, C1 và C2
+## 3. Tiered Compilation in HotSpot: Interpreter, C1, and C2
 
-Trong HotSpot Server VM điển hình, tiered compilation thường được bật mặc định. Bảng dưới mô tả **các cấp thực thi**; con số là *compilation level* trong diagnostic output, không phải số lần method được gọi.
+In a typical HotSpot Server VM, tiered compilation is enabled by default. The table below describes **execution tiers**; the numbers are *compilation levels* in diagnostic output, not method invocation counts.
 
-| Level | Cơ chế | Dữ liệu profile | Mục tiêu |
+| Level | Mechanism | Profile Data | Purpose |
 | ---: | --- | --- | --- |
-| **0** | Interpreter | Có thể thu thập thông tin chạy để quyết định biên dịch | Bắt đầu thực thi nhanh về thời gian chuẩn bị |
-| **1** | C1, tối ưu cơ bản | Không gắn instrumentation profiling đầy đủ | Mã native tạo nhanh, phù hợp method đơn giản/đường đi nhất định |
-| **2** | C1, profiling hạn chế | Chủ yếu counter invocation/backedge | Giữ tốc độ trong khi theo dõi mức “hot” |
-| **3** | C1, profiling đầy đủ | Thu dữ liệu động phục vụ quyết định/tối ưu tiếp | Cân bằng tốc độ và chất lượng profile đầu vào cho C2 |
-| **4** | C2, tối ưu sâu | Sử dụng profile đã tích lũy, không nhất thiết tiếp tục tạo cùng loại profiling data | Hiệu năng dài hạn trên đường mã nóng |
+| **0** | Interpreter | Can collect runtime info to guide compilation decisions | Fast initial execution startup |
+| **1** | C1, basic optimizations | No full profiling instrumentation attached | Fast native code generation, suited for simple methods/specific paths |
+| **2** | C1, limited profiling | Primarily invocation/backedge counters | Preserve speed while tracking "hotness" |
+| **3** | C1, full profiling | Collects dynamic data for further decisions/optimization | Balance speed and profile quality fed to C2 |
+| **4** | C2, deep optimization | Uses accumulated profile; does not necessarily keep emitting the same profiling data | Long-term performance on hot code paths |
 
-Một diễn biến **thường gặp nhưng không bắt buộc**:
+A **common but non-mandatory** progression:
 
 ```text
-Method mới -> Level 0 (interpreter)
+New method -> Level 0 (interpreter)
                |
                +----> Level 3 (C1 + full profiling)
                            |
                            +----> Level 4 (C2 optimized)
                |
-               +----> Level 2 (C1, profile hạn chế khi tải compiler thay đổi)
+               +----> Level 2 (C1, limited profiling under changing compiler load)
                |
-               +----> Level 1 (C1 không profile, phù hợp method đơn giản)
+               +----> Level 1 (C1 without profiling, suited for simple methods)
 
-Compiled code --[giả định không còn đúng]--> deoptimization
+Compiled code --[assumption no longer holds]--> deoptimization
                   |
                   v
-          Interpreter / code phù hợp khác
+          Interpreter / other suitable code
                   |
-                  +----> compilation lại ở level thích hợp
+                  +----> recompilation at appropriate level
 ```
 
-Không phải mọi method đi đúng đường `0 → 3 → 4`. Chính sách còn xét invocation counter, số lần backedge của loop, compiler queues, kích thước method, thông tin type, khả năng compile, và các ngưỡng phụ thuộc VM/configuration. Một method hiếm có thể mãi ở interpreter; một method đơn giản có thể dừng ở level 1. Có thể có bước chuyển, thay thế hoặc loại bỏ compiled code trong quá trình chạy.
+Not every method follows `0 → 3 → 4`. Policy also considers invocation counters, loop backedge counts, compiler queues, method size, type info, compilability, and VM/configuration thresholds. A rare method may remain in the interpreter; a trivial method may stop at level 1. Transitions, replacements, or reclamation of compiled code can occur throughout execution.
 
-**C1** chủ yếu tối ưu nhanh với chi phí biên dịch thấp hơn; **C2** có thể cần nhiều CPU/thời gian hơn để tối ưu sâu như inlining và speculative optimizations. Điều này giải thích vì sao có thể **tốn thêm CPU cho compiler ở startup** trong khi các request về sau được xử lý nhanh hơn.
+**C1** prioritizes fast compilation with lower compile cost; **C2** can spend more CPU/time for deep optimizations such as inlining and speculative optimizations. This explains why **extra compiler CPU may be spent at startup** while subsequent requests run faster.
 
-### Tiered không có nghĩa “compile tất cả ngay lập tức”
+### Tiered Does Not Mean "Compile Everything Up Front"
 
-JIT thường biên dịch theo **nhu cầu quan sát được**, không phải chạy một bước compile toàn bộ bytecode trước khi service nhận request. Method có hotness cao mới có khả năng được đưa vào compile queue. Bởi vậy không thể đo “thời gian startup đã xong” rồi giả định tất cả endpoint, payload type, query path đã được tối ưu.
+JIT typically compiles based on **observed demand**, rather than running a full-bytecode compile pass before the service accepts requests. Only methods with sufficient hotness enter the compile queue. Thus you cannot measure "startup finished" and assume every endpoint, payload type, and query path is already optimized.
 
-### OSR: vòng lặp nóng lên trước khi method trả về
+### OSR: A Loop Warms Up Before the Method Returns
 
-**On-Stack Replacement (OSR)** cho phép chuyển một vòng lặp đang chạy lâu từ interpreted/mức cũ sang compiled code ở một vị trí an toàn khi điều kiện cho phép; không nhất thiết phải chờ method return rồi gọi lại.
+**On-Stack Replacement (OSR)** allows transitioning a long-running loop from interpreted/older code to compiled code at a safe point when conditions allow, without waiting for the method to return and be called again.
 
-Trong `-XX:+PrintCompilation`, ký hiệu `%` thường chỉ compilation cho OSR. Một method xuất hiện một lần trong request nhưng chứa loop hàng triệu iteration có thể đủ nóng để kích hoạt OSR. Khi đọc kết quả profiling, hãy xem có compilation giữa **chính một lần thực thi** hay không.
+In `-XX:+PrintCompilation`, the `%` symbol usually marks an OSR compilation. A method called once in a request yet containing a loop of millions of iterations can become hot enough to trigger OSR. When reading profiling results, check whether compilation occurred mid-execution of **a single call**.
 
-## 4. Hotness, type profile, inlining và deoptimization
+## 4. Hotness, Type Profiles, Inlining, and Deoptimization
 
-### 4.1. “Hot” được quyết định bằng hoạt động, không bằng tên method
+### 4.1. "Hot" Is Decided by Activity, Not Method Names
 
-Thường có hai nguồn quan trọng:
+Two primary sources matter:
 
-1. **Invocation count:** method được gọi bao nhiêu lần.
-2. **Backedge count:** execution quay lại đầu vòng lặp bao nhiêu lần.
+1. **Invocation count:** how many times a method is called.
+2. **Backedge count:** how many times execution branches back to the start of a loop.
 
-Mức tải và compiler queue có thể điều chỉnh ngưỡng thực tế. Không đưa một con số cố định kiểu “chính xác 10.000 lần gọi là C2” vào bài benchmark: ngưỡng HotSpot phụ thuộc policy, build, flags và hành vi runtime.
+Load and compiler queues can adjust effective thresholds. Never bake a rigid number like "exactly 10,000 calls means C2" into benchmarks: HotSpot thresholds depend on policy, build, flags, and runtime behavior.
 
-### 4.2. Profile dữ liệu động cho phép tối ưu theo thực tế
+### 4.2. Dynamic Data Profiles Enable Specialization to Reality
 
-Giả sử interface `Parser` có hai implementation `JsonParser` và `XmlParser`. Nếu phần lớn call site chỉ nhìn thấy `JsonParser` trong giai đoạn đầu, JIT có thể tối ưu theo type profile đó, inline đường gọi thường gặp và gắn kiểm tra bảo vệ. Khi workload bắt đầu có nhiều `XmlParser`, giả định trước có thể không còn có lợi hoặc bị vô hiệu; JVM có thể deopt và/hoặc compile lại để xử lý phân bố mới.
+Suppose an interface `Parser` has two implementations, `JsonParser` and `XmlParser`. If most call sites only see `JsonParser` initially, JIT can optimize for that type profile, inline the frequent call path, and insert guard checks. When the workload begins sending many `XmlParser` instances, the prior assumption may become unprofitable or invalid; the JVM may deopt and/or recompile to handle the new distribution.
 
-Đây là **một cơ chế có thể xảy ra**, không phải bảo đảm rằng bất kỳ interface call nào cũng deopt nếu xuất hiện subtype mới. Cần nhìn compilation/deoptimization evidence thực tế.
+This is a **possible mechanism**, not a guarantee that every interface call deopts whenever a new subtype appears. Always inspect actual compilation/deoptimization evidence.
 
-### 4.3. Inlining làm thay đổi hình dạng flame graph
+### 4.3. Inlining Changes Flame Graph Shapes
 
-Ví dụ hai method:
+Example with two methods:
 
 ```java
 static long process(long x) {
@@ -108,45 +108,45 @@ static long transform(long x) {
 }
 ```
 
-Đây là **đoạn minh họa**, không phải một chương trình độc lập. Sau tối ưu, compiler có thể inline `transform` vào `process`, giảm call overhead và thay đổi cách profiler gán frame/hotspot. Một method **ít xuất hiện hoặc biến mất** khỏi sample stack không chứng minh method không được chạy nữa; cần hiểu inlining, stack reconstruction và cách công cụ hiển thị *inlined frames*.
+This is an **illustrative snippet**, not a standalone program. After optimization, the compiler may inline `transform` into `process`, removing call overhead and changing how profilers attribute frames/hotspots. A method **appearing less or vanishing** from sample stacks does not prove it stopped running; you must understand inlining, stack reconstruction, and how tools display *inlined frames*.
 
-Không đánh đồng “40% sampled stacks” với “chính xác 40% số lời gọi hoặc 40% latency”. CPU sampling là quan sát theo thời điểm và có bias/độ phân giải hữu hạn.
+Do not equate "40% of sampled stacks" with "exactly 40% of invocations or 40% of latency." CPU sampling is point-in-time observation with finite resolution and bias.
 
-### 4.4. Deoptimization không tự động là lỗi
+### 4.4. Deoptimization Is Not Automatically a Bug
 
-**Deoptimization** là khả năng bảo đảm tính đúng đắn khi mã tối ưu dựa trên giả định không còn phù hợp hoặc VM cần quay về trạng thái an toàn. Có thể kèm compilation mới. Trong log, “`made not entrant`” có thể chỉ một phiên bản compiled code bị thay thế bằng phiên bản tier cao hơn hoặc không còn phù hợp; nó **không tự chứng minh** lỗi hay regression.
+**Deoptimization** is the mechanism ensuring correctness when optimized code relies on an assumption that no longer holds or when the VM must fall back to a safe state. It may be followed by new compilation. In logs, "`made not entrant`" may simply mean one compiled code version was superseded by a higher-tier version or invalidated; it **does not by itself prove** a bug or regression.
 
-Đọc deopt cùng **thời điểm**, **reason/action**, method/compile id, thay đổi workload và latency. Một deopt đơn lẻ lúc startup rất khác việc deopt/recompile lặp lại liên tục trong steady-state.
+Read deopt events alongside **timestamp**, **reason/action**, method/compile id, workload shifts, and latency. A single startup deopt is very different from continuous deopt/recompile loops in steady state.
 
-## 5. Vì sao profiling thay đổi theo giai đoạn
+## 5. Why Profiling Shifts Across Phases
 
-Khi profiler lấy mẫu từ startup tới steady-state, nó đang trộn **nhiều chế độ thực thi**. Mỗi kiểu đo bị ảnh hưởng khác nhau:
+When a profiler samples from startup into steady state, it mixes **multiple execution modes**. Each measurement is affected differently:
 
-| Số đo | Cold/warm-up có thể làm gì? | Cách đọc đúng |
+| Metric | What Can Cold/Warm-Up Do? | How to Read Correctly |
 | --- | --- | --- |
-| **Wall-clock latency** | Bao gồm class loading, initialization, interpreter, JIT, queueing, pool/cache khởi tạo | Tách first-hit/cold vs đã warm, không lẫn thời gian chờ vào “CPU method” |
-| **CPU profile / JFR execution samples** | Stack có thể ở interpreter/C1/C2; compiler threads hoạt động; inlining/OSR đổi attribution | Phân tích theo cửa sổ thời gian, thread, event setting, số mẫu |
-| **JFR compilation events** | Số compilation thường nhiều ở giai đoạn mới nóng; có thể có C1, C2, OSR | Xác minh event enabled và threshold; không thấy event ≠ không có compile |
-| **Code cache** | Native compiled code được thêm; có thể có sweeping/unloading hoặc pressure | Xem capacity/used và CodeCacheFull/Compiler queue khi cần |
-| **Allocation/GC profile** | Class initialization và cache fill làm allocation tăng; C2 có thể loại một số allocation | So theo workload/sau-GC; không quy mọi allocation delta cho JIT |
-| **Throughput** | Có thể tăng khi C2 hoàn tất, nhưng còn phụ thuộc GC, CPU frequency, load và I/O | Báo từng cửa sổ, điều kiện tải và phân bố |
-| **p99 latency** | Có thể spike vì compiler CPU, safepoint, GC, connection setup hoặc deopt | Không kết luận nguyên nhân chỉ từ timestamp JIT gần spike |
+| **Wall-clock latency** | Includes class loading, initialization, interpreter, JIT, queueing, pool/cache init | Separate first-hit/cold vs. warmed; do not mix wait time into "method CPU" |
+| **CPU profile / JFR execution samples** | Stacks may be in interpreter/C1/C2; compiler threads active; inlining/OSR shifts attribution | Analyze by time window, thread, event settings, and sample count |
+| **JFR compilation events** | Compilations often cluster as code warms; may include C1, C2, OSR | Verify event enabled and threshold; missing events ≠ no compilation |
+| **Code cache** | Native compiled code added; sweeping/unloading or pressure may occur | Check capacity/used and `CodeCacheFull`/compiler queue when needed |
+| **Allocation/GC profile** | Class init and cache fill raise allocation; C2 may eliminate some allocations | Compare by workload/post-GC; do not blame every allocation delta on JIT |
+| **Throughput** | Can rise as C2 completes, yet also depends on GC, CPU frequency, load, and I/O | Report per window, load conditions, and distribution |
+| **p99 latency** | Can spike from compiler CPU, safepoints, GC, connection setup, or deopt | Do not conclude causality solely from a JIT timestamp near a spike |
 
-**Vấn đề cốt lõi:** nếu lấy CPU profile suốt 60 giây gồm 10 giây cold và 50 giây warm, kết quả trung bình không đại diện hoàn toàn cho **10 giây đầu**, cũng không đại diện hoàn toàn cho **steady-state sau 5 phút**.
+**Core issue:** if you capture a 60-second CPU profile comprising 10 seconds cold and 50 seconds warm, the average represents neither **the first 10 seconds** nor **steady state after 5 minutes**.
 
-Nếu mục tiêu là tối ưu startup, hãy **giữ riêng** đoạn cold và phân tích classloading/compile/initialization; nếu mục tiêu là ổn định lâu dài, hãy đo sau warm-up theo tiêu chí có thể kiểm chứng. Hai cách đều đúng khi chúng trả lời hai câu hỏi khác nhau.
+If the goal is optimizing startup, **isolate** the cold window and analyze classloading/compilation/initialization; if the goal is long-term stability, measure after warm-up using verifiable criteria. Both are valid because they answer two different questions.
 
-## 6. Dùng compilation log để biết method đã chuyển tier khi nào
+## 6. Using Compilation Logs to See When Methods Change Tiers
 
-Trong môi trường thí nghiệm HotSpot, bật:
+In a HotSpot lab environment, enable:
 
 ```bash
 java -XX:+PrintCompilation TieredWarmupDemo
 ```
 
-Flag này in các hoạt động biên dịch method ra console, có thể xen giữa stdout ứng dụng. Nó làm tăng lượng log và có overhead, vì vậy **không dùng nó như một baseline “không quan sát”**. Có thể chuyển hướng stdout khi cần lưu file; kiểm tra cơ chế redirect của shell đang dùng.
+This flag prints method compilation activity to the console, possibly interleaved with application stdout. It increases log volume and incurs overhead, so **do not treat it as an "unobserved" baseline**. Redirect stdout when saving to a file; verify redirection behavior in your shell.
 
-Ví dụ **mang tính mô tả cấu trúc**, không phải output cam kết của demo:
+Example **illustrating structure only**, not guaranteed demo output:
 
 ```text
 [timestamp] [compileId] [flags] [level] [Class::method] [bytecodeSize]
@@ -156,36 +156,36 @@ Ví dụ **mang tính mô tả cấu trúc**, không phải output cam kết c�
 ...                                     made not entrant
 ```
 
-Khi đọc output thật, tập trung:
+When reading real output, focus on:
 
-- **Cột thời điểm:** thường tính bằng **mili giây từ lúc JVM bắt đầu**; không tự ghép với giờ UTC nếu chưa chuẩn hóa.
-- **Compilation ID:** dùng để ghép dấu vết một lần compile; không phải ID của object hay số lần gọi.
-- **Level:** `3` thường là C1 full profiling, `4` là C2. Không đồng nhất “level 4” với JFR sample.
-- **`%`:** compilation OSR cho code tại loop backedge.
-- **`made not entrant` / `made zombie`:** trạng thái compiled code; cần ngữ cảnh trước khi gọi là deoptimization gây chậm.
-- **Tên method và bytecode size:** gợi ý điều gì được biên dịch; một method còn có thể inlined vào caller khác.
+- **Timestamp column:** usually **milliseconds since JVM start**; do not match directly to UTC wall clock without normalizing.
+- **Compilation ID:** links trace lines for one compilation; not an object ID or call count.
+- **Level:** `3` is typically C1 full profiling, `4` is C2. Do not equate "level 4" with JFR samples.
+- **`%`:** OSR compilation for code at a loop backedge.
+- **`made not entrant` / `made zombie`:** compiled code states; need context before calling them slow deoptimizations.
+- **Method name and bytecode size:** indicates what was compiled; a method may also be inlined into another caller.
 
-Nhiều method của **JDK/framework** cũng được biên dịch, không chỉ method của ứng dụng. Một method xuất hiện nhiều lần có thể được biên dịch ở các cấp khác nhau, OSR, hoặc tối ưu lại. Không đo “chính xác số lần method chạy” bằng số dòng compile.
+Many **JDK/framework** methods are compiled too, not just application methods. One method appearing multiple times may be compiled at different tiers, via OSR, or re-optimized. Never measure "exact method call count" by counting compile lines.
 
-### Ghi compile log có cấu trúc hơn
+### Writing More Structured Compile Logs
 
 ```bash
 java -XX:+UnlockDiagnosticVMOptions -XX:+LogCompilation -XX:LogFile=hotspot-compile.xml TieredWarmupDemo
 ```
 
-`-XX:+LogCompilation` và `-XX:LogFile=...` là hướng ghi chi tiết phục vụ phân tích JIT, nhưng có overhead và tệp lớn; kiểm tra quyền ghi và tác động trước khi dùng trên service thật. Bản XML có thể có thông tin chi tiết hơn compilation console, song **không tự thay thế** đo hiệu năng request.
+`-XX:+LogCompilation` and `-XX:LogFile=...` provide detailed recording for JIT analysis, yet carry overhead and create large files; check write permissions and impact before using on a live service. The XML log contains richer detail than console compilation output, yet **does not replace** measuring request performance.
 
-Để khảo sát quyết định inlining trong lab:
+To inspect inlining decisions in a lab:
 
 ```bash
 java -XX:+UnlockDiagnosticVMOptions -XX:+PrintInlining -XX:+PrintCompilation TieredWarmupDemo
 ```
 
-Output có thể rất lớn; một lời báo “inline” cho biết quyết định của compiler trong ngữ cảnh đó, **không bảo đảm** method luôn inlined ở mọi call site hoặc mọi phiên bản compiled code.
+Output can be huge; an "inline" message indicates the compiler's decision in that context, and **does not guarantee** the method is inlined at every call site or in every compiled version.
 
-## 7. Quan sát compiler trên JVM đang chạy
+## 7. Observing the Compiler on a Running JVM
 
-Khi có PID của JVM và JDK tool cùng quyền attach:
+When you have the JVM PID, JDK tools, and attach permissions:
 
 ```bash
 jcmd -l
@@ -196,29 +196,29 @@ jcmd 12345 Compiler.codecache
 jcmd 12345 Compiler.codelist
 ```
 
-Thay `12345` bằng PID thật; không lấy PID của tiến trình đã kết thúc. Các lệnh có ý nghĩa khác nhau:
+Replace `12345` with the actual PID; do not use the PID of an exited process. Each command serves a different purpose:
 
-| Lệnh | Cung cấp gì? | Giới hạn |
+| Command | What It Provides | Limitations |
 | --- | --- | --- |
-| `VM.flags` | Cấu hình JVM thực tế, gồm những flag được thể hiện | Không thay thế toàn bộ lịch sử tối ưu từng method |
-| `Compiler.queue` | Việc biên dịch đang chờ ở thời điểm lấy snapshot | Queue rỗng lúc quan sát không chứng minh không có compilation trước đó |
-| `Compiler.codecache` | Dung lượng/sử dụng code cache và các vùng liên quan | Cache đầy có thể ảnh hưởng JIT; cache lớn một mình không phải leak |
-| `Compiler.codelist` | Danh sách các compiled methods còn sống trong code cache | Snapshot, output lớn, chi phí cao hơn queue/codecache |
-| `jcmd PID JFR.check verbose=true` | Recording JFR và event settings đang chạy | Không cho toàn bộ sự kiện đã rơi khỏi retention/không được ghi |
+| `VM.flags` | Actual JVM configuration, including effective flags | Does not replace per-method optimization history |
+| `Compiler.queue` | Compilation tasks waiting at snapshot time | An empty queue at one instant does not prove no prior compilation |
+| `Compiler.codecache` | Code cache capacity/usage and related segments | A full cache can impact JIT; a large cache alone is not a leak |
+| `Compiler.codelist` | List of live compiled methods in code cache | Snapshot, large output, higher cost than queue/codecache |
+| `jcmd PID JFR.check verbose=true` | Active JFR recordings and event settings | Does not show events already dropped from retention or unrecorded |
 
-Các lệnh attach cần user/namespace phù hợp. Ứng dụng chạy trong container có thể có PID khác nhìn từ host; JVM có thể tắt attach hoặc công cụ không được đóng gói trong image runtime tối giản. Không đi tìm bằng chứng bằng cách tự ý đổi namespace/permission trong production.
+Attach commands require matching user/namespace. Containerized apps can have a different PID when viewed from the host; the JVM may disable attach or tools may be absent in minimal runtime images. Do not hunt for evidence by arbitrarily altering production namespaces/permissions.
 
-## 8. JFR: xem thời gian compile, code cache và deoptimization
+## 8. JFR: Inspecting Compile Times, Code Cache, and Deoptimization
 
-Khi cần ghép JIT với CPU/latency/GC theo timeline, thu JFR từ **đầu quá trình** hoặc trước khi code path quan tâm trở nên hot. Ví dụ startup recording cho chương trình ở mục 9:
+When correlating JIT with CPU/latency/GC on a timeline, capture JFR from **the start** or before the code path of interest warms up. Example startup recording for the program in Section 9:
 
 ```bash
 java -XX:StartFlightRecording=name=jit_warmup,settings=profile,disk=true,dumponexit=true,filename=warmup.jfr,jdk.Compilation#threshold=0ms TieredWarmupDemo
 ```
 
-Tại đây `jdk.Compilation#threshold=0ms` là một **setting cụ thể** để tránh bỏ qua các compilation ngắn vì ngưỡng duration. Cấu hình `default.jfc` / `profile.jfc` của từng JDK có thể lọc những compilation chỉ tốn ít thời gian; **trống event không có nghĩa JVM không JIT**. Kiểm tra setting thực tế qua `JFR.check verbose=true` (khi JVM còn chạy) hoặc lưu config `.jfc`. Việc hạ threshold có thể tăng số event và overhead; dùng cho thí nghiệm cần độ chi tiết, cân nhắc khi áp dụng lâu dài.
+Here `jdk.Compilation#threshold=0ms` is a **specific setting** to avoid dropping short compilations due to duration thresholds. Each JDK's `default.jfc` / `profile.jfc` may filter out brief compilations; **zero events does not mean the JVM performed no JIT**. Check actual settings via `JFR.check verbose=true` (while the JVM is running) or inspect saved `.jfc` configs. Lowering thresholds increases event volume and overhead; use it for experiments needing detail and weigh carefully for long-term use.
 
-Sau khi JVM đã kết thúc bình thường, xác minh file:
+After the JVM exits normally, inspect the file:
 
 ```bash
 jfr summary warmup.jfr
@@ -226,22 +226,22 @@ jfr print --events jdk.Compilation,jdk.Deoptimization warmup.jfr
 jfr print --events jdk.CompilerStatistics,jdk.CodeCacheStatistics warmup.jfr
 ```
 
-Tên event phải được xác nhận có tồn tại trong **JDK thực tế** qua metadata/`jfr summary`, và phải được bật bằng recording settings. Các event gợi ý:
+Verify event names actually exist on **the target JDK** via metadata/`jfr summary`, and confirm they are enabled by recording settings. Useful events:
 
-- **`jdk.Compilation`:** thời lượng compile, compiler, level, method, compilation ID và có thể có chỉ báo OSR. Nó đo **công việc compiler**, không phải thời gian method đã chạy nhanh hơn bao nhiêu.
-- **`jdk.CompilerStatistics`:** trạng thái/hoạt động compiler theo các mốc thống kê khi có trong recording.
-- **`jdk.CodeCacheStatistics` / `jdk.CodeCacheFull`:** code cache và dấu hiệu áp lực lưu native code; một khoảng thiếu dữ liệu có thể do setting/period.
-- **`jdk.Deoptimization`:** thông tin khi VM phát hiện tình huống cần xem xét deopt; một event riêng lẻ không chứng minh regression.
-- **`jdk.ExecutionSample`:** mẫu stack của thread thực thi; so các cửa sổ trước/sau warm-up và cả số lượng mẫu hợp lệ.
-- **`jdk.GarbageCollection`, `jdk.CPULoad`, thread/lock events:** xem nguyên nhân khác diễn ra đồng thời.
+- **`jdk.Compilation`:** compile duration, compiler, level, method, compilation ID, and possibly an OSR indicator. It measures **compiler work**, not how much faster the method became.
+- **`jdk.CompilerStatistics`:** compiler state/activity at statistical intervals when present in the recording.
+- **`jdk.CodeCacheStatistics` / `jdk.CodeCacheFull`:** code cache state and signs of native-code storage pressure; gaps may reflect settings/period.
+- **`jdk.Deoptimization`:** details when the VM encounters a condition requiring deopt; a single event does not prove a regression.
+- **`jdk.ExecutionSample`:** stack samples of executing threads; compare windows before/after warm-up alongside valid sample counts.
+- **`jdk.GarbageCollection`, `jdk.CPULoad`, thread/lock events:** check concurrent competing causes.
 
-Trong **JDK Mission Control (JMC)**, chọn khoảng thời gian startup và ổn định riêng, lọc theo application threads và compiler threads; so JVM activity với latency/throughput từ hệ thống đo độc lập. Không tính “tỷ lệ CPU method X” chỉ dựa trên tổng số JFR event khác loại. Compilation events, periodic statistics và execution samples có **mẫu số khác nhau**.
+In **JDK Mission Control (JMC)**, select startup and steady-state ranges separately, filter by application threads vs. compiler threads, and compare JVM activity with independent latency/throughput metrics. Do not compute "CPU% of method X" from sums of disparate JFR events. Compilation events, periodic statistics, and execution samples have **different denominators**.
 
-**Giới hạn quan trọng:** JFR có thể bỏ sự kiện do threshold, disabled event, sampling, retention, chi phí/khả năng recorder; file ghi muộn không chứa lịch sử trước lúc recording bắt đầu. Cả `PrintCompilation` và JFR có overhead; **giữ nguyên công cụ và thiết lập khi so hai lần đo**.
+**Important limitations:** JFR can drop events due to thresholds, disabled events, sampling, retention, or recorder overhead/capacity; a recording started late lacks history from before it began. Both `PrintCompilation` and JFR add overhead; **keep tooling and settings identical when comparing two measurements**.
 
-## 9. Ví dụ Java 17+ tự chạy: latency theo từng vòng trong một JVM
+## 9. Self-Contained Java 17+ Example: Per-Round Latency in One JVM
 
-Lưu nguyên mã bên dưới vào **`TieredWarmupDemo.java`**. Chương trình gọi một method chứa nhiều phép tính phụ thuộc dữ liệu trong các vòng liên tiếp, đo `ns/op` *thô* trên cùng JVM, in checksum để kết quả có tác động quan sát được và nghỉ ngắn **bên ngoài vùng đo** giữa các vòng. Đây là ví dụ để **quan sát hiện tượng**, không phải microbenchmark chuẩn.
+Save the code below verbatim to **`TieredWarmupDemo.java`**. The program calls a method with data-dependent arithmetic across consecutive rounds, measures *raw* `ns/op` in the same JVM, prints a checksum so results remain observable, and sleeps briefly **outside the timed region** between rounds. This is an example to **observe the phenomenon**, not a rigorous microbenchmark.
 
 ```java
 import java.time.Instant;
@@ -296,232 +296,232 @@ public final class TieredWarmupDemo {
 }
 ```
 
-### Biên dịch và chạy chế độ thông thường
+### Compile and Run in Normal Mode
 
-Trong terminal có JDK 17+:
+In a terminal with JDK 17+:
 
 ```bash
 javac TieredWarmupDemo.java
 java TieredWarmupDemo
 ```
 
-Các dòng có **dạng**:
+Output lines follow this **pattern**:
 
 ```text
-PID=<PID của JVM>
+PID=<JVM PID>
 mode=single JVM; rounds=20
-round=01 end=<timestamp> ns/op=<số đo> checksum=<số nguyên>
+round=01 end=<timestamp> ns/op=<measured value> checksum=<integer>
 ...
-round=20 end=<timestamp> ns/op=<số đo> checksum=<số nguyên>
+round=20 end=<timestamp> ns/op=<measured value> checksum=<integer>
 ```
 
-Đây là **mẫu cấu trúc output**, các trường trong dấu góc là chú thích để thay bằng giá trị thực tế; chúng **không phải stdout literal**. Thời gian `ns/op`, timestamp, checksum tùy lần chạy; không bịa tốc độ hoặc mức tăng cố định. `checksum` phụ thuộc đầu vào/thuật toán và phải ổn định về mặt logic cho cùng `round` trên cùng chương trình; còn số đo hiệu năng thay đổi theo môi trường.
+This is an **output structure template**; bracketed fields are placeholders for actual runtime values, **not literal stdout**. `ns/op`, timestamps, and checksums vary across runs; never invent fixed speeds or speedup factors. `checksum` depends on inputs/algorithm and should be logically deterministic for the same `round` in the same program, whereas performance numbers vary by environment.
 
-Ở một số máy, vòng đầu chậm hơn rồi giảm khi interpreter/C1/C2 thay đổi; ở máy khác sự khác biệt nhỏ, dao động hoặc vòng sau còn chậm vì GC, CPU frequency, hệ điều hành, tài nguyên cạnh tranh hoặc optimization của compiler. **Không có yêu cầu** mỗi vòng phải nhanh hơn vòng trước. Một biểu đồ tăng/giảm đơn độc không xác nhận tier chuyển.
+On some machines, early rounds are slower and then drop as interpreter/C1/C2 transitions occur; on others, differences are small, noisy, or later rounds can even be slower due to GC, CPU frequency scaling, OS scheduling, resource contention, or compiler optimization effects. **There is no guarantee** every round gets faster than the previous one. A single rising/falling curve alone does not prove tier transitions.
 
-### Chạy lại với compilation log
+### Re-Run with Compilation Logging
 
 ```bash
 java -XX:+PrintCompilation TieredWarmupDemo
 ```
 
-Tìm `TieredWarmupDemo::mix` hoặc `TieredWarmupDemo::main` trong compile output. Đối chiếu thời điểm compile, level/OSR với sự thay đổi `ns/op`. Chỉ nói “phù hợp với thay đổi tier” nếu **có chứng cứ compile thật** và chưa loại trừ các yếu tố khác.
+Look for `TieredWarmupDemo::mix` or `TieredWarmupDemo::main` in the compile output. Correlate compile timestamps and levels/OSR with changes in `ns/op`. Only say "consistent with tier transition" if **real compile evidence exists** and other factors have not been ignored.
 
-### Thử hai chế độ đối chiếu trong lab
+### Try Two Comparison Modes in the Lab
 
 ```bash
 java -XX:TieredStopAtLevel=1 TieredWarmupDemo
 java -Xint TieredWarmupDemo
 ```
 
-- `TieredStopAtLevel=1` giới hạn tier tối ưu chủ yếu ở C1 level 1: hữu ích để minh họa ảnh hưởng của việc không đi tới C2. Không mặc định nó luôn chậm hơn ở mọi workload; runtime flags khác cũng ảnh hưởng startup.
-- `-Xint` chạy theo interpreter, **không dùng JIT machine code**. Nó thường chậm hơn đáng kể với compute-intensive loop, nhưng đây là phép so cơ chế, không phải con số speedup áp dụng mọi ứng dụng.
-- `-XX:-TieredCompilation` nếu thử riêng sẽ **tắt cơ chế tiered**, nhưng HotSpot vẫn có thể biên dịch bằng compiler khác/theo chính sách non-tiered; **không đồng nghĩa** `-Xint`.
+- `TieredStopAtLevel=1` caps optimization tiers primarily at C1 level 1: useful to illustrate the effect of not reaching C2. Do not assume it is always slower on every workload; other runtime flags also affect startup.
+- `-Xint` runs purely in the interpreter, **without JIT machine code**. It is usually significantly slower on compute-intensive loops, yet this is a mechanism comparison, not a universal speedup ratio for every application.
+- `-XX:-TieredCompilation`, if tested separately, **disables tiered compilation**, yet HotSpot can still compile using another compiler/non-tiered policy; it is **not equivalent** to `-Xint`.
 
-Các lần chạy riêng tạo JVM mới nên không thể lấy `round=20` của JVM trước làm “round tiếp theo” của JVM sau. Nên lặp nhiều lần, đổi thứ tự chạy để giảm ảnh hưởng OS/filesystem/cache; khi cần benchmark nghiêm túc dùng JMH và nhiều forks.
+Separate invocations create new JVMs, so you cannot treat `round=20` of one JVM as the "next round" of another JVM. Repeat runs and alternate run order to reduce OS/filesystem/cache bias; for serious benchmarking, use JMH with multiple forks.
 
-### Khi nào lệnh `jcmd` có tác dụng với demo?
+### When Does `jcmd` Work Against the Demo?
 
-Demo có thể kết thúc nhanh; `jcmd PID Compiler.queue` chỉ quan sát JVM **còn sống** ở thời điểm thực hiện. Có thể chạy với số vòng lớn hơn trong giới hạn program cho phép:
+The demo may finish quickly; `jcmd PID Compiler.queue` can only inspect a **living** JVM at execution time. You can run with a higher round count within the program's allowed limit:
 
 ```bash
 java TieredWarmupDemo 80
 ```
 
-Rồi ở terminal khác thay đúng PID được in. Nếu tiến trình đã thoát, đừng suy “JIT không chạy” từ việc attach thất bại. Với profiling dài hạn, thiết kế workload/lifetime riêng; không biến demo nhỏ thành dịch vụ vô hạn.
+Then in a second terminal, substitute the printed PID. If the process has already exited, do not infer "JIT didn't run" from a failed attach. For long-running profiling, design a dedicated workload/lifetime rather than turning a small demo into an infinite loop.
 
-## 10. Đọc kết quả demo mà không gán nhầm nguyên nhân
+## 10. Reading Demo Results Without Misattributing Causes
 
-Ghi một bảng cho **cùng JVM và cùng flags**:
+Record a table for **the same JVM and same flags**:
 
-| Round | ns/op đo được | Compilation gần cửa sổ này | GC / CPU / môi trường | Kết luận tạm |
+| Round | Measured ns/op | Compilation Near This Window | GC / CPU / Environment | Working Conclusion |
 | --- | ---: | --- | --- | --- |
-| 1–2 | Giá trị thực tế | Có/không, C1? | Class init? CPU boost? | Cold / warming; chưa đủ kết luận |
-| 3–7 | Giá trị thực tế | OSR/C1/C2? | GC? background compiler? | Chuyển trạng thái có thể diễn ra |
-| 8–15 | Giá trị thực tế | Ít compile hơn? | Mức tải tương đương? | Có thể gần ổn định |
-| 16–20 | Giá trị thực tế | Có deopt/recompile không? | Nhiễu ngoại lai? | Kiểm tra độ ổn định, không mặc định |
+| 1–2 | Actual value | Present/absent, C1? | Class init? CPU boost? | Cold / warming; insufficient to conclude |
+| 3–7 | Actual value | OSR/C1/C2? | GC? Background compiler? | Transitions may be occurring |
+| 8–15 | Actual value | Fewer compilations? | Comparable load? | Possibly approaching steady state |
+| 16–20 | Actual value | Any deopt/recompile? | External noise? | Verify stability; do not assume |
 
-**Cách đọc có điều kiện:**
+**Conditional interpretation:**
 
-- Nếu `mix` xuất hiện level 3 rồi level 4 và các cửa sổ sau giảm `ns/op` lặp lại, giả thuyết JIT giúp tăng tốc có cơ sở; cần kiểm soát thêm CPU/GC/overhead trước khi quy định lượng giảm là do C2.
-- Nếu `ns/op` giảm **trước** khi có level 4, có thể do C1, OSR, cache, CPU frequency hoặc những thay đổi khác.
-- Nếu có level 4 nhưng `ns/op` không giảm, phương thức có thể đã khá hiệu quả ở tier thấp, tốn thời gian ở code khác, hoặc workload quá đơn giản/nhiễu cao.
-- Nếu một round bỗng chậm rồi phục hồi, xem GC pause, OS scheduling, compiler queue, CPU throttling, deopt hoặc code cache pressure; không quy ngay cho “JIT bị lỗi”.
-- Nếu `-Xint` chậm hơn, điều đó cho thấy compiled execution hữu ích với workload này; **không** cho biết C2 đóng góp bao nhiêu so với C1 nếu chưa so đúng tier.
+- If `mix` appears at level 3 then level 4 and subsequent windows show a repeatable drop in `ns/op`, the hypothesis that JIT improved speed has support; still check CPU/GC/overhead before crediting the entire reduction to C2.
+- If `ns/op` drops **before** level 4 appears, it may be due to C1, OSR, caches, CPU frequency, or other changes.
+- If level 4 appears yet `ns/op` does not drop, the method may already be fast enough at a lower tier, time may be spent elsewhere, or the workload may be too simple/noisy.
+- If a round suddenly slows down and recovers, check GC pauses, OS scheduling, compiler queues, CPU throttling, deopts, or code cache pressure; do not immediately blame a "JIT bug."
+- If `-Xint` is slower, that shows compiled execution helps this workload; it **does not** tell you how much C2 contributes over C1 without comparing the proper tiers.
 
-**Vấn đề đơn vị:** `elapsed/OPERATIONS` ở demo đo **thời gian một lần gọi `mix` trung bình trong vòng ngoài**, gồm cả overhead vòng và checksum; không phải thời gian một request HTTP. Trước khi dùng số đó để báo cáo ứng dụng phải xác định thao tác đo, ổn định CPU, sample size, confidence và môi trường.
+**Unit note:** `elapsed/OPERATIONS` in the demo measures **the average time of one `mix` call inside the outer loop**, including loop and checksum overhead; it is not HTTP request latency. Before citing such a number in an application report, specify the measured operation, CPU stability, sample size, confidence, and environment.
 
-## 11. Sai lệch đặc trưng của CPU profiling trong warm-up
+## 11. Typical CPU Profiling Biases During Warm-Up
 
-### 11.1. Compiler thread có thể chiếm CPU
+### 11.1. Compiler Threads Can Consume CPU
 
-Trong startup, C1/C2 compilation tiêu thụ CPU **ngoài request thread**. Nếu CPU toàn process tăng, có thể một phần là compiler background; nhìn profile của một request thread có thể không phản ánh tải trên compiler threads. Ngược lại, một CPU flame graph chỉ nhìn application threads có thể bỏ sót compiler CPU.
+During startup, C1/C2 compilation consumes CPU **outside request threads**. If total process CPU spikes, part of it may be background compilation; viewing a single request thread's profile may not reflect compiler-thread load. Conversely, a CPU flame graph filtered to application threads alone misses compiler CPU.
 
-Giải pháp: kiểm tra JFR compiler statistics/events, thread CPU usage và OS CPU metrics; tách *compiler CPU* khỏi *application CPU* khi đưa ra giả thuyết.
+Solution: inspect JFR compiler statistics/events, per-thread CPU usage, and OS CPU metrics; separate *compiler CPU* from *application CPU* when forming hypotheses.
 
-### 11.2. Inlining và OSR làm thay đổi stack attribution
+### 11.2. Inlining and OSR Shift Stack Attribution
 
-Lúc interpreter, profiler có thể quan sát một chuỗi call frames rõ ràng. Khi C2 inline, một hoặc nhiều frame có thể được trình bày khác tùy cách profiler tái dựng logical stacks; không thể trừ số mẫu ở method A trước/sau và khẳng định logic A đã “biến mất”. OSR có thể thay trạng thái thực thi khi loop đang chạy, làm một khoảng đo có nhiều dạng mã.
+In the interpreter, profilers may observe a clear chain of call frames. Once C2 inlines methods, one or more frames may be presented differently depending on how the profiler reconstructs logical stacks; you cannot subtract sample counts for method A before/after and claim logic A "disappeared." OSR can change execution state mid-loop, mixing multiple code forms in one window.
 
-### 11.3. Độ dài cửa sổ lấy mẫu và mẫu số
+### 11.3. Sampling Window Length and Denominators
 
-Nếu baseline chỉ 20 execution samples nhưng steady có 2.000 samples, tỷ lệ hot method khác nhau có thể do **độ bất định và selection bias**, chưa chắc code thực sự đổi profile. So cùng cấu hình JFR, khoảng quan sát, workload và số sample đủ lớn; phân tích cả absolute event counts và **denominator đúng của loại event**.
+If baseline has only 20 execution samples while steady state has 2,000 samples, differing hot-method shares may simply reflect **uncertainty and selection bias**, not a real profile change. Compare identical JFR settings, observation durations, workloads, and sufficient sample counts; examine both absolute event counts and **the exact denominator of each event type**.
 
-### 11.4. CPU time khác latency
+### 11.4. CPU Time Differs from Latency
 
-Một method tốn nhiều CPU trong JIT profile không đồng nghĩa nó gây tương ứng phần lớn **wall-clock latency**. Request có thể chờ DB/network/lock, bị queue hoặc chịu GC/safepoint; phải đối chiếu traces, request latency và JVM activity ở cùng khoảng thời gian.
+A method consuming high CPU in a JIT profile does not automatically cause a proportional share of **wall-clock latency**. Requests may wait on DB/network/locks, sit in queues, or hit GC/safepoints; always align traces, request latency, and JVM activity over the same window.
 
-### 11.5. Profile thu muộn bỏ mất câu chuyện startup
+### 11.5. Late-Started Profiles Miss the Startup Story
 
-Nếu recording bắt đầu sau warm-up, dù JFR thấy code đang ở tier 4 vẫn **không** cho biết bao nhiêu thời gian cold start đã dùng để compile hay classload. Muốn phân tích startup phải bắt đầu thu từ JVM launch hoặc từ thời điểm đủ sớm trước event quan tâm, đồng thời kiểm tra retention/dump không xóa mất phần đầu.
+If recording begins after warm-up, seeing code at tier 4 in JFR **still does not** tell you how much cold-start time went into compilation or class loading. To analyze startup, start recording at JVM launch or early enough before the target events, and check retention/dump settings so the beginning is not overwritten.
 
-## 12. Thiết kế phép đo để phân biệt startup và steady-state
+## 12. Designing Measurements to Separate Startup and Steady-State
 
-### Mục tiêu A — ứng dụng phản hồi request đầu tiên nhanh đến đâu?
+### Goal A — How Fast Does the App Serve Its First Requests?
 
-Chỉ số nên đo:
+Metrics to measure:
 
-1. JVM process start → socket/service ready, nếu bạn thực sự quan tâm thời gian khởi động.
-2. First successful request latency của từng code path đại diện.
-3. p50/p95/p99 của **các request đầu** hoặc 30–60 giây đầu, với lưu lượng/payload đã định nghĩa.
-4. JIT compilation, class loading, GC, cache/connection pool initialization trùng giai đoạn.
-5. Số lỗi/timeout/retry do client nhìn thấy trong cold phase.
+1. JVM process start → socket/service ready, if startup time actually matters.
+2. First successful request latency for each representative code path.
+3. p50/p95/p99 of **the first requests** or first 30–60 seconds, with defined traffic/payloads.
+4. Concurrent JIT compilation, class loading, GC, and cache/connection-pool initialization.
+5. Client-visible errors/timeouts/retries during the cold phase.
 
-Không loại first-hit latency rồi công bố đó là startup performance. Khi cold startup là trải nghiệm quan trọng, warm-up phải được xem như **một phần của bài toán**, không phải nhiễu cần gạt đi.
+Do not discard first-hit latency and publish the rest as startup performance. When cold startup matters to user experience, warm-up must be treated as **part of the problem**, not noise to strip away.
 
-### Mục tiêu B — service chạy ổn định xử lý được bao nhiêu?
+### Goal B — How Much Can the Steady-State Service Handle?
 
-1. Định nghĩa workload, concurrency, dataset, JVM/GC flags, CPU/memory limits.
-2. Đợi **warm-up theo tiêu chí**: các cửa sổ throughput/latency dao động trong mức chấp nhận và không có hoạt động compile/deopt đột biến liên tục. Đây vẫn là tiêu chí thực nghiệm, không phải “JIT đã tắt”.
-3. Chỉ bắt đầu **measurement window** sau mốc đã định, ghi rõ thời gian chờ và số thao tác warm-up.
-4. Lấy nhiều cửa sổ dưới cùng mức tải, tính phân bố/độ bất định; đối chiếu GC, compiler, CPU throttling và I/O.
-5. Lặp lại từ **JVM mới (fork)** nhiều lần để thấy variance giữa các lần khởi chạy; kiểm soát thứ tự thử nghiệm nếu so hai biến thể.
-6. Báo cáo throughput, p50/p95/p99 và CPU/GC cùng điều kiện; không chốt bằng một giá trị ns/op duy nhất.
+1. Define workload, concurrency, dataset, JVM/GC flags, and CPU/memory limits.
+2. Wait for **criteria-based warm-up**: throughput/latency windows fluctuate within acceptable bounds with no continuous burst of compile/deopt activity. This remains an empirical criterion, not "JIT has stopped."
+3. Start the **measurement window** only after that threshold, documenting wait duration and warm-up operations.
+4. Capture multiple windows under identical load, computing distribution/variance; check GC, compiler, CPU throttling, and I/O.
+5. Repeat from **fresh JVMs (forks)** multiple times to capture run-to-run variance; control run order when comparing two variants.
+6. Report throughput, p50/p95/p99, and CPU/GC under identical conditions; never conclude from a single `ns/op` number.
 
-**Không có một số vòng warm-up cố định đúng cho mọi JVM.** Cần cùng workload và bằng chứng hành vi đủ ổn định; đôi khi cache/DB/network warm-up lâu hơn JIT. Với microbenchmark, dùng **JMH** vì nó hỗ trợ warm-up iterations, measurement iterations, forks, tránh nhiều lỗi tối ưu hóa và thiết kế benchmark sai. Demo ở mục 9 chỉ dùng để học hiện tượng.
+**No single warm-up iteration count fits every JVM.** You need matching workloads and evidence of sufficiently stable behavior; sometimes cache/DB/network warm-up takes longer than JIT. For microbenchmarks, use **JMH**, which handles warm-up iterations, measurement iterations, and forks while avoiding common optimization and benchmark-design pitfalls. The demo in Section 9 is only for learning the phenomenon.
 
-### Mục tiêu C — hiệu quả của một tối ưu code nhỏ
+### Goal C — Impact of a Small Code Optimization
 
-Khi muốn so **A vs B**:
+When comparing **A vs. B**:
 
-- Chạy hai bản cùng JDK/GC/flags, hardware/CPU quota, data và workload.
-- Định nghĩa cold hay steady **trước** khi đo; lưu riêng cả hai nếu sản phẩm cần.
-- Dùng nhiều JVM forks; không chạy A trước, warm JVM rồi B sau trong cùng process mà gọi đó là so sánh công bằng.
-- Tránh dead-code elimination bằng cách làm kết quả có thể quan sát, nhưng cũng tránh side-effect/blackhole sai làm méo tác vụ.
-- Chọn metric trực tiếp trả lời mục tiêu: CPU, throughput, tail latency, allocation hoặc startup.
-- So tổng chi phí vận hành và độ ổn định, không chỉ một lần đạt p50 tốt.
+- Run both with identical JDK/GC/flags, hardware/CPU quota, data, and workload.
+- Define cold vs. steady **before** measuring; capture both separately if the product cares about both.
+- Use multiple JVM forks; do not run A first, warm the JVM, then run B in the same process and call it a fair comparison.
+- Prevent dead-code elimination by keeping outputs observable, while avoiding flawed side effects/blackholes that distort the task.
+- Choose metrics directly answering the goal: CPU, throughput, tail latency, allocation, or startup.
+- Compare total operating cost and stability, not just one good p50 run.
 
-Nếu có JIT flag khác nhau, coi đó là **thay đổi runtime policy**, không phải chỉ thay một “công tắc đo” trung tính. Ghi flag trong báo cáo.
+If JIT flags differ, treat that as a **runtime policy change**, not a neutral "measurement switch." Document all flags in the report.
 
-## 13. Ví dụ phân tích số liệu theo hai cửa sổ
+## 13. Example Analysis Across Two Windows
 
-Giả sử dưới **cùng một tải giả định** và không có thay đổi deployment:
+Suppose under the **same hypothetical load** and with no deployment changes:
 
-| Khoảng | Requests/s | p95 latency | Compiler activity | GC |
+| Window | Requests/s | p95 Latency | Compiler Activity | GC |
 | --- | ---: | ---: | --- | --- |
-| Cold 0–30 s | 500 | 180 ms | C1/C2 tăng, class init | Có hoạt động |
-| Warm 30–90 s | 500 | 105 ms | Ít compile hơn, một số code lên level 4 | Có hoạt động |
-| Stable 90–180 s | 500 | 80 ms | Không thấy compile đột biến | Không có pause bất thường |
+| Cold 0–30 s | 500 | 180 ms | C1/C2 elevated, class init | Active |
+| Warm 30–90 s | 500 | 105 ms | Fewer compilations, some code reaches level 4 | Active |
+| Stable 90–180 s | 500 | 80 ms | No compilation bursts seen | No abnormal pauses |
 
-Những con số **hoàn toàn giả định** chỉ để minh họa phương pháp. Có thể phát biểu:
+These numbers are **purely hypothetical**, only illustrating the method. You may state:
 
-> “Trong 3 cửa sổ cùng workload, p95 giảm từ 180 xuống 80 ms, tức giảm khoảng 55,6%; đồng thời phần lớn compilation quan sát được tập trung ở giai đoạn đầu. Điều này **phù hợp** với hiệu ứng warm-up, nhưng chưa đủ chứng minh toàn bộ giảm là do JIT. Cần kiểm tra cache/pool/GC, compiler thread và thực hiện lại nhiều lần.”
+> "Across 3 windows with the same workload, p95 dropped from 180 to 80 ms, a reduction of about 55.6%; meanwhile most observed compilation clustered in the early phase. This is **consistent** with a warm-up effect, though not yet proof that JIT caused the entire drop. We still must check caches/pools/GC, compiler threads, and repeat across multiple runs."
 
-Không nên viết: “JIT chính xác giúp giảm 100 ms p95”. Phần giảm này còn có thể do warm connection pools, class init hoàn tất, DB cache hoặc biến động OS. Nếu muốn quy lượng đóng góp, cần thí nghiệm có kiểm soát, có thể dùng flag thực nghiệm hoặc đo thành phần riêng. Đừng lấy chênh lệch của hai percentile rồi gán cho một method.
+Do not write: "JIT saved exactly 100 ms of p95." That reduction could also stem from warmed connection pools, completed class init, DB caches, or OS variation. Attributing exact shares requires controlled experiments, potentially with experimental flags or isolated component measurements. Never subtract two percentiles and assign the delta to one mechanism.
 
-### Đối chiếu “tốc độ gấp đôi” cũng có giới hạn
+### "Double the Speed" Comparisons Have Limits Too
 
-Một vòng trong demo từ `100 ns/op` xuống `50 ns/op` có tỷ lệ `100/50 = 2` lần throughput lý tưởng trên cùng thao tác; đó là so sánh giả định cho **micro-operation** và **cùng môi trường**, không có nghĩa request end-to-end nhanh gấp đôi. Mô hình request gồm network/DB/GC và công việc khác; chỉ tối ưu một phần không thể biến toàn bộ latency theo cùng tỷ lệ.
+A demo loop dropping from `100 ns/op` to `50 ns/op` gives a `100/50 = 2x` ideal throughput ratio on that operation; that is a hypothetical comparison for a **micro-operation** in the **same environment**, and does not mean end-to-end requests run twice as fast. Request models include network/DB/GC and other work; optimizing one part cannot scale total latency by the same factor.
 
-## 14. Những tình huống thường gặp khi phân tích JIT
+## 14. Common Scenarios in JIT Analysis
 
-| Quan sát | Các cách giải thích còn mở | Hướng xác minh |
+| Observation | Open Explanations | Verification Direction |
 | --- | --- | --- |
-| First request rất chậm, sau 30 request tốt dần | Class init, cache/pool warm, interpreter→C1/C2, lazy configuration | JFR classloading/compilation, logs, request trace |
-| CPU cao lúc startup nhưng request throughput còn thấp | Compiler threads, class load, GC, DB warm-up, contention | Thread CPU + JFR compiler stats + metrics ngoài JVM |
-| `PrintCompilation` có level 4, latency vẫn cao | Request chủ yếu chờ I/O/lock, method khác bottleneck, chưa warm toàn bộ paths | Request spans, flame graph đúng cửa sổ, per-endpoint metrics |
-| Số sample ở method A giảm sau warm-up | Inlining, optimization, workload mix hoặc thay đổi sampler | JIT logs, stack reconstruction, per-thread sample count |
-| Có `made not entrant` sát spike | Phiên compiled code bị thay thế hoặc giả định đổi; trùng thời gian chưa đủ | JFR deopt, reason, repeated measurements, GC |
-| Mỗi lần deploy p99 xấu vài phút | JIT, cache/pool warm, traffic shifting và startup load | Đồng bộ ready/startup probes, classloading, workload |
-| Service chạy lâu đột nhiên chậm khi traffic type mới xuất hiện | Cold path, uncommon trap/deopt, cache miss, GC, external dependency | Tách traffic mix, compile/deopt events, traces |
-| Code cache chật, compiler queue tăng | Áp lực code cache/compilation, nhiều generated classes hoặc đổi workload | `Compiler.codecache`, `Compiler.queue`, JFR CodeCache events |
-| JFR không có compilation event nhưng có compiled methods | Recording bắt đầu muộn, threshold lọc, event disabled, retention gap | `PrintCompilation` trong lab, check settings, codelist |
-| `-XX:TieredStopAtLevel=1` tốt hơn trong startup nhỏ | C1 khởi động nhanh; C2 có chi phí compile chưa thu hồi lợi ích | So cả cold và steady qua nhiều forks |
+| First request very slow, improves after 30 requests | Class init, cache/pool warm, interpreter→C1/C2, lazy configuration | JFR classloading/compilation, logs, request traces |
+| High CPU at startup while request throughput is still low | Compiler threads, class loading, GC, DB warm-up, contention | Thread CPU + JFR compiler stats + non-JVM metrics |
+| `PrintCompilation` shows level 4, latency still high | Requests mostly wait on I/O/locks, another method is the bottleneck, not all paths warmed | Request spans, flame graph for exact window, per-endpoint metrics |
+| Samples in method A drop after warm-up | Inlining, optimization, workload mix, or sampler changes | JIT logs, stack reconstruction, per-thread sample counts |
+| `made not entrant` appears near spike | Compiled code version replaced or assumption shifted; time overlap alone is insufficient | JFR deopt, reason, repeated measurements, GC |
+| Every deploy causes bad p99 for a few minutes | JIT, cache/pool warm, traffic shifting, and startup load | Align ready/startup probes, classloading, workload |
+| Long-running service suddenly slows when new traffic type arrives | Cold paths, uncommon trap/deopt, cache misses, GC, external dependency | Split traffic mix, compile/deopt events, traces |
+| Code cache tight, compiler queue growing | Code cache/compilation pressure, many generated classes, or workload shift | `Compiler.codecache`, `Compiler.queue`, JFR CodeCache events |
+| JFR has no compilation events yet compiled methods exist | Recording started late, threshold filtering, disabled event, retention gap | `PrintCompilation` in lab, check settings, codelist |
+| `-XX:TieredStopAtLevel=1` wins on a short startup test | C1 starts fast; C2 compile cost not yet amortized | Compare both cold and steady across multiple forks |
 
-## 15. Mười bốn sai lầm nên tránh
+## 15. Fourteen Mistakes to Avoid
 
-1. **“Warm-up = sleep 30 giây”.** Không có workload phù hợp thì method quan trọng có thể vẫn cold.
-2. **“Đạt level 4 nghĩa toàn bộ service tối ưu xong”.** Chỉ một method/version được biên dịch; còn các paths khác.
-3. **“TieredStopAtLevel=1 tương đương -Xint”.** C1 vẫn tạo native code, interpreter-only là cơ chế khác.
-4. **“-TieredCompilation tức không có JIT”.** Non-tiered HotSpot vẫn có thể biên dịch; cần phân biệt với interpreter-only.
-5. **“Một dòng compile = một lần gọi method”.** Compilation là hoạt động của compiler, không phải method invocations.
-6. **“Nhiều `made not entrant` = JVM có lỗi”.** Có thể là việc thay thế code tier thấp hoặc trạng thái hợp lệ khác.
-7. **“Không có JFR compilation event = không có JIT”.** Event có thể bị lọc theo threshold, tắt, hoặc ngoài recording window.
-8. **“Sample stack ít method hơn = ít logic chạy hơn”.** Inlining/OSR và attribution thay đổi.
-9. **“CPU tăng khi warm-up chắc là app code nóng”.** Compiler threads và class initialization cũng dùng CPU.
-10. **“Đo round đầu của A với round cuối của B”.** Hai trạng thái không tương đương.
-11. **“Một JVM chạy ấm đã đủ thống kê”.** JIT/OS/GC variance cần nhiều forks/cửa sổ.
-12. **“Chèn println ở vòng đo không ảnh hưởng”.** I/O trong hot loop làm méo phép đo; demo in sau mỗi vòng.
-13. **“Không thấy deopt trong file là chắc chắn không có”.** Phải biết loại event có bật, mốc JFR và retention.
-14. **“p99 giảm đúng bằng hiệu quả của C2”.** Request latency gồm nhiều thành phần; tương quan cần kiểm tra cơ chế.
+1. **"Warm-up = sleep 30 seconds."** Without the right workload, critical methods may stay cold.
+2. **"Reaching level 4 means the whole service is optimized."** Only one method/version was compiled; other paths remain.
+3. **"`TieredStopAtLevel=1` equals `-Xint`."** C1 still generates native code; interpreter-only is a different mode.
+4. **"`-TieredCompilation` means no JIT."** Non-tiered HotSpot can still compile; distinguish it from interpreter-only.
+5. **"One compile line = one method call."** Compilation is compiler activity, not method invocations.
+6. **"Many `made not entrant` lines = JVM bug."** May simply be replacing lower-tier code or other normal transitions.
+7. **"No JFR compilation events = no JIT."** Events may be threshold-filtered, disabled, or outside the recording window.
+8. **"Fewer methods in sample stacks = less logic running."** Inlining/OSR and attribution change.
+9. **"CPU rise during warm-up must be hot app code."** Compiler threads and class initialization also consume CPU.
+10. **"Comparing round 1 of A with the last round of B."** Two non-equivalent states.
+11. **"One warm JVM run is statistically enough."** JIT/OS/GC variance requires multiple forks/windows.
+12. **"Putting `println` inside the timed loop doesn't matter."** I/O inside a hot loop distorts measurements; the demo prints after each round.
+13. **"Seeing no deopt in the file guarantees none occurred."** Verify enabled event types, JFR timestamps, and retention.
+14. **"The p99 drop equals C2's exact benefit."** Request latency has many components; correlation requires verifying mechanisms.
 
-## 16. Bài tập tự đánh giá
+## 16. Self-Assessment Exercises
 
-**Câu 1.** Một method xuất hiện level 3 và level 4 ở compilation log. Điều này cho biết gì?
+**Question 1.** A method appears at level 3 and level 4 in the compilation log. What does this indicate?
 
-*Gợi ý:* Có các lần biên dịch ở C1 full profiling và C2 cho method/code version; đây là bằng chứng tiered activity. Nó **không** cho biết số lời gọi hoặc mức cải thiện latency của endpoint.
+*Hint:* There were compilations in C1 full profiling and C2 for that method/code version; this is evidence of tiered activity. It **does not** tell you the call count or endpoint latency improvement.
 
-**Câu 2.** JFR ghi nhận ít event `jdk.Compilation` trong giai đoạn startup. Có kết luận là hầu hết code chưa JIT?
+**Question 2.** JFR records few `jdk.Compilation` events during startup. Can you conclude most code was not JIT-compiled?
 
-*Gợi ý:* Chưa. Kiểm tra recording start, `enabled`, `threshold`, tool/JDK và data retention; ở một số profile event compile ngắn bị lọc.
+*Hint:* Not yet. Check recording start, `enabled`, `threshold`, tool/JDK, and data retention; in some profiles short compilations are filtered out.
 
-**Câu 3.** Vòng loop chạy một lần rất lâu nhưng `PrintCompilation` có ký hiệu `%`. Ký hiệu đó liên quan điều gì?
+**Question 3.** A loop runs once for a very long time yet `PrintCompilation` shows `%`. What does that symbol relate to?
 
-*Gợi ý:* OSR compilation có thể xảy ra khi loop đã ở trên stack; không cần chờ method được gọi lại nhiều lần.
+*Hint:* OSR compilation can occur while the loop is already on the stack; no need to wait for the method to be called many times again.
 
-**Câu 4.** Code path A chỉ được gọi lần đầu sau khi service chạy 3 giờ. Có thể gọi nó “warm” vì process đã chạy lâu?
+**Question 4.** Code path A is invoked for the first time after a service has been running for 3 hours. Can we call it "warm" because the process has been up a long time?
 
-*Gợi ý:* Không. Process uptime khác với mức hotness và lịch sử profiling của **đúng code path đó**.
+*Hint:* No. Process uptime differs from the hotness and profiling history of **that specific code path**.
 
-**Câu 5.** Tại sao flame graph trước warm-up và sau warm-up có thể không hiển thị cùng khung method?
+**Question 5.** Why might flame graphs before and after warm-up not show the exact same method frames?
 
-*Gợi ý:* Inlining và OSR thay đổi cách code được thực thi; profiler có thể hiển thị/tái dựng frame khác. Đồng thời workload mix/threads và phương pháp lấy mẫu có thể đổi.
+*Hint:* Inlining and OSR alter how code executes; profilers may display/reconstruct frames differently. Workload mix/threads and sampling behavior may also shift.
 
-**Câu 6.** Khi `-XX:TieredStopAtLevel=1` cho startup tốt nhưng throughput sau 10 phút kém hơn default, cấu hình nào “tốt” hơn?
+**Question 6.** When `-XX:TieredStopAtLevel=1` gives better startup yet worse throughput after 10 minutes than default, which setting is "better"?
 
-*Gợi ý:* Phụ thuộc mục tiêu ứng dụng: job ngắn, FaaS hay service chạy dài. Phải báo **cả startup, steady-state, memory/CPU** và phân bố request dưới điều kiện tương đương; không chọn từ một số duy nhất.
+*Hint:* Depends on application goals: short jobs, FaaS, or long-running services. Report **both startup, steady-state, memory/CPU**, and request distributions under matching conditions; do not choose from one number alone.
 
-**Thực hành:** chạy `TieredWarmupDemo` ở chế độ mặc định, bật `PrintCompilation` và chạy `-Xint` trong những JVM riêng. Ghi thời điểm/level compile của `mix`, các round `ns/op`, đồng thời đánh dấu nhiễu GC/CPU nếu có. Sau đó thu JFR từ JVM startup, xem `jdk.Compilation` và `jdk.Deoptimization`; viết một nhận định phân biệt *bằng chứng quan sát* và *giả thuyết hiệu năng*. Không bắt buộc level 4 phải xuất hiện ở mỗi run.
+**Hands-on:** run `TieredWarmupDemo` in default mode, with `PrintCompilation`, and with `-Xint` in separate JVMs. Record compile times/levels of `mix`, per-round `ns/op`, and note any GC/CPU noise. Then capture JFR from JVM startup, inspect `jdk.Compilation` and `jdk.Deoptimization`, and write an assessment separating *observed evidence* from *performance hypotheses*. Level 4 is not required to appear on every single run.
 
-## 17. Tài liệu gốc để tra cứu
+## 17. Primary Sources for Reference
 
 - [Oracle JDK 21 — Java HotSpot VM Performance Enhancements: Tiered Compilation](https://docs.oracle.com/en/java/javase/21/vm/java-hotspot-virtual-machine-performance-enhancements.html).
-- [Oracle JDK 21 — `java` launcher: `PrintCompilation`, `LogCompilation`, `TieredCompilation` và JIT flags](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html).
+- [Oracle JDK 21 — `java` launcher: `PrintCompilation`, `LogCompilation`, `TieredCompilation`, and JIT flags](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html).
 - [Oracle JDK 21 — `jcmd`: `Compiler.queue`, `Compiler.codecache`, `Compiler.codelist`, `JFR.check`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html).
 - [Oracle JDK 21 — `jfr`: `summary`, `print`, `metadata`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html).
 - [Oracle Java 21 — `jdk.jfr`: event settings, `threshold`, `period`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html).
 - [Microsoft OpenJDK engineering — How Tiered Compilation Works in OpenJDK](https://devblogs.microsoft.com/java/how-tiered-compilation-works-in-openjdk/).
-- [OpenJDK — tiered compilation policy và các level/transition](https://github.com/openjdk/jdk/blob/master/src/hotspot/share/compiler/compilationPolicy.hpp).
-- [OpenJDK — `default.jfc` và compiler-related JFR event settings](https://github.com/openjdk/jdk/blob/master/src/jdk.jfr/share/conf/jfr/default.jfc).
+- [OpenJDK — tiered compilation policy and levels/transitions](https://github.com/openjdk/jdk/blob/master/src/hotspot/share/compiler/compilationPolicy.hpp).
+- [OpenJDK — `default.jfc` and compiler-related JFR event settings](https://github.com/openjdk/jdk/blob/master/src/jdk.jfr/share/conf/jfr/default.jfc).
 
-**Nguyên tắc áp dụng:** mỗi số CPU/latency được tạo ra trong một **trạng thái JVM và một cửa sổ workload cụ thể**. Hãy biết method còn ở interpreter/C1/C2, có compilation/deopt trong cửa sổ đo hay không, rồi mới so profile. Warm-up là một **quá trình có thể quan sát và kiểm chứng**, không phải một khoảng chờ cố định hoặc lý do để bỏ qua dữ liệu bất lợi.
+**Guiding principle:** every CPU/latency number is produced within a **specific JVM state and workload window**. Know whether methods are still in interpreter/C1/C2 and whether compilation/deopt occurred in the measurement window before comparing profiles. Warm-up is an **observable and verifiable process**, not a fixed waiting period or an excuse to ignore unfavorable data.

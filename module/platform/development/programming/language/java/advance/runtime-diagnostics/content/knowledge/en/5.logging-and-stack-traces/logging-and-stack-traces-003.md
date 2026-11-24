@@ -1,37 +1,37 @@
-# 5.3 java.util.logging: Logger, Handler, Formatter và cấu hình mức ghi
+# 5.3 java.util.logging: Logger, Handler, Formatter, and Log Level Configuration
 
-`java.util.logging` (thường viết tắt là **JUL**) là API logging có sẵn trong Java SE, thuộc module `java.logging`. Nó cho phép chương trình phát sinh bản ghi sự kiện mà không phụ thuộc trực tiếp vào đích xuất: cùng một lời gọi ghi log có thể được lọc theo mức độ, đưa tới console, file hoặc một `Handler` tùy biến, rồi định dạng theo cách thích hợp với người vận hành.
+`java.util.logging` (commonly abbreviated as **JUL**) is the built-in logging API in Java SE, belonging to the `java.logging` module. It lets a program emit event records without depending directly on the output destination: the same log call can be filtered by level, routed to the console, a file, or a custom `Handler`, and formatted appropriately for operators.
 
-Trong chẩn đoán JVM, điều quan trọng không chỉ là gọi `logger.info(...)`. Người điều tra phải trả lời được: **vì sao một dòng FINE không xuất hiện, vì sao một sự kiện được in hai lần, vì sao stack trace bị mất, chính xác cấu hình nào đang có hiệu lực và việc tăng độ chi tiết sẽ ảnh hưởng hệ thống ra sao?**
+In JVM diagnostics, calling `logger.info(...)` is not enough. An investigator must be able to answer: **why didn't a FINE line appear, why was an event printed twice, why was a stack trace lost, which exact configuration is in effect, and how will raising verbosity impact the system?**
 
-Bài này hướng dẫn cơ chế dữ liệu `Logger → LogRecord → Handler → Formatter`, hệ thống `Level` và kế thừa theo tên, cấu hình qua `logging.properties` và qua mã Java 17+, các lỗi phổ biến khi thu thập log, cùng quy trình bật/tắt mức ghi có kiểm soát khi xử lý sự cố.
+This lesson covers the `Logger → LogRecord → Handler → Formatter` data flow, the `Level` hierarchy and name-based inheritance, configuration via `logging.properties` and Java 17+ code, common pitfalls during log collection, and a controlled procedure for enabling/disabling log levels during incidents.
 
-## 1. Mô hình xử lý một bản ghi JUL
+## 1. Processing Model of a JUL Record
 
-Một lệnh như:
+A call such as:
 
 ```java
 private static final java.util.logging.Logger LOG =
         java.util.logging.Logger.getLogger("com.example.checkout");
 
-LOG.info("checkout started"); // Minh họa trong một method, không phải file độc lập.
+LOG.info("checkout started"); // Illustration inside a method, not a standalone file.
 ```
 
-đi qua nhiều lớp có chức năng khác nhau:
+travels through multiple layers with distinct responsibilities:
 
 ```text
                          Logger "com.example.checkout"
   log(Level, message)  ─────────────┐
                                     ▼
                           Effective Logger Level
-                          + Logger Filter (nếu có)
+                          + Logger Filter (if any)
                                     │
-                          cho qua → LogRecord
+                          passes → LogRecord
                                     │
                      ┌──────────────┴──────────────┐
                      ▼                             ▼
                Own Handlers              Parent Logger Handlers
-                     │                    (mặc định có chuyển tiếp)
+                     │                    (forwarded by default)
               Handler Level                        │
               + Handler Filter               Handler Level
                      │                       + Handler Filter
@@ -42,37 +42,37 @@ LOG.info("checkout started"); // Minh họa trong một method, không phải fi
                stdout/file/…                   stderr/file/…
 ```
 
-Phân chia trách nhiệm:
+Division of responsibilities:
 
-| Thành phần | Câu hỏi nó quyết định | Điều cần nhớ |
+| Component | Question it decides | Key point to remember |
 | --- | --- | --- |
-| `Logger` | Bản ghi từ thành phần nào, mức độ nào có được tạo ra? | Có tên phân cấp; có mức hiệu lực và có thể có `Filter` |
-| `Level` | Bản ghi đủ quan trọng để đi qua ngưỡng không? | Ngưỡng của Logger **khác** ngưỡng của Handler |
-| `LogRecord` | Sự kiện chứa thời điểm, level, message, tham số và lỗi nào? | Là dữ liệu được chuyển qua pipeline |
-| `Handler` | Gửi bản ghi tới đâu, có lọc tiếp không? | Mỗi Handler có mức và Filter riêng |
-| `Formatter` | Chuyển LogRecord thành text/XML hoặc định dạng khác thế nào? | Không tự quyết định bản ghi có được tạo ra |
-| `LogManager` | Quản lý namespace Logger và cấu hình tập trung ra sao? | Hỗ trợ file properties và thay đổi runtime |
+| `Logger` | Which component emitted the record, and at what level should it be created? | Has a hierarchical name; has an effective level and optionally a `Filter` |
+| `Level` | Is the record important enough to pass the threshold? | A Logger's threshold is **distinct** from a Handler's threshold |
+| `LogRecord` | Which timestamp, level, message, parameters, and error does the event carry? | The data object passed through the pipeline |
+| `Handler` | Where is the record sent, and is it filtered further? | Each Handler has its own level and Filter |
+| `Formatter` | How is the LogRecord turned into text/XML or another format? | Does not decide whether the record is created |
+| `LogManager` | How are the Logger namespace and centralized config managed? | Supports properties files and runtime updates |
 
-**Một dòng log xuất hiện hay không là kết quả của cả pipeline**, không chỉ của `Logger.getLevel()`. Nếu Logger cho phép `FINE` nhưng `ConsoleHandler` vẫn đặt `INFO`, bản ghi FINE không được ConsoleHandler xuất. Ngược lại, khi child Logger tạo được LogRecord, việc gửi lên các Handler của parent theo mặc định không có nghĩa gọi lại toàn bộ bước xét level của parent Logger.
+**Whether a log line appears is the outcome of the entire pipeline**, not just `Logger.getLevel()`. If a Logger allows `FINE` but `ConsoleHandler` is still set to `INFO`, the FINE record is not emitted by ConsoleHandler. Conversely, once a child Logger creates a LogRecord, forwarding to parent Handlers by default does not re-evaluate the parent Logger's level check.
 
-### 1.1. LogRecord chứa gì?
+### 1.1. What Does LogRecord Contain?
 
-`LogRecord` ghi thông tin như:
+`LogRecord` captures information such as:
 
-- `getLevel()`, `getLoggerName()` và message gốc;
-- `getInstant()`: thời điểm event dưới dạng `Instant` (Java 17);
-- `getParameters()`: tham số để Formatter xử lý message;
-- `getThrown()`: `Throwable` gốc, phục vụ stack trace;
-- tên class/method nguồn nếu được cung cấp hoặc được suy ra;
-- thread identity và metadata tùy API/phiên bản.
+- `getLevel()`, `getLoggerName()`, and the raw message;
+- `getInstant()`: event timestamp as an `Instant` (Java 17);
+- `getParameters()`: parameters for the Formatter to format the message;
+- `getThrown()`: the underlying `Throwable`, for stack trace output;
+- source class/method names if supplied or inferred;
+- thread identity and metadata depending on API/version.
 
-`LogRecord` không tự trở thành JSON có trace ID. JUL cơ bản **không có MDC/structured context giống một số framework khác**; nếu cần request/trace ID, hãy thiết kế cách truyền context, cách định dạng và sự tương thích với thread pool hoặc virtual threads riêng, tránh giả định context tự đi theo mọi tác vụ bất đồng bộ.
+`LogRecord` does not automatically become JSON with a trace ID. Basic JUL **does not have MDC/structured context like some other frameworks**; if you need request/trace IDs, design context propagation, formatting, and compatibility with thread pools or virtual threads separately, without assuming context automatically follows every async task.
 
-## 2. Logger: tên, phân cấp, mức hiệu lực và xử lý parent
+## 2. Logger: Naming, Hierarchy, Effective Level, and Parent Handling
 
-### 2.1. Tạo Logger và giữ tham chiếu
+### 2.1. Creating a Logger and Holding a Reference
 
-Quy ước phổ biến là đặt tên theo package/class:
+The standard convention is naming by package/class:
 
 ```java
 import java.util.logging.Logger;
@@ -87,9 +87,9 @@ public final class CheckoutService {
 }
 ```
 
-Đây là **class có thể biên dịch bằng JDK 17+**, nhưng không có `main` nên chỉ là thành phần ứng dụng. `Logger.getLogger(name)` tìm hoặc tạo Logger được quản lý bởi `LogManager`. Nên giữ tham chiếu mạnh, chẳng hạn một trường `static final`: LogManager có thể chỉ giữ tham chiếu yếu tới Logger trong namespace, vì thế các lời gọi lấy Logger thoáng qua không phải lúc nào cũng trỏ đến cùng một object nếu không còn tham chiếu mạnh.
+This is a **class compilable with JDK 17+**, though without `main` it is just an application component. `Logger.getLogger(name)` retrieves or creates a Logger managed by `LogManager`. Keep a strong reference, such as a `static final` field: LogManager may only hold weak references to Loggers in the namespace, so transient `getLogger` calls are not guaranteed to point to the same object if no strong reference remains.
 
-Dấu chấm trong tên Logger tạo quan hệ phân cấp, ví dụ:
+Dots in Logger names form a hierarchy, for example:
 
 ```text
 "" (root)
@@ -99,80 +99,80 @@ Dấu chấm trong tên Logger tạo quan hệ phân cấp, ví dụ:
             └── com.example.checkout.PaymentService
 ```
 
-Đây là **cây tên logic**; parent thực là Logger tổ tiên gần nhất **đang tồn tại**, không nhất thiết mọi nút trong sơ đồ đều đã được tạo. Root Logger có tên chuỗi rỗng `""`.
+This is a **logical name tree**; the actual parent is the nearest **existing** ancestor Logger—not every intermediate node in the diagram has necessarily been instantiated. The Root Logger has the empty string `""` as its name.
 
-### 2.2. Level được chỉ định và level hiệu lực
+### 2.2. Assigned Level vs. Effective Level
 
-`logger.getLevel()` trả level **đặt trực tiếp trên Logger**, có thể là `null`. Khi là `null`, Logger kế thừa level hiệu lực của parent gần nhất có mức xác định. Vì vậy:
+`logger.getLevel()` returns the level **set directly on the Logger**, which can be `null`. When `null`, the Logger inherits the effective level of the nearest parent with a defined level. Therefore:
 
-- `logger.setLevel(Level.FINE)`: ghi đè ngưỡng của Logger này thành FINE.
-- `logger.setLevel(null)`: bỏ ngưỡng riêng, lấy ngưỡng kế thừa.
-- `logger.isLoggable(Level.FINE)`: kiểm tra yêu cầu ở mức FINE có qua **ngưỡng hiệu lực của Logger** không.
-- `logger.getLevel() == null` **không** có nghĩa Logger đang tắt.
+- `logger.setLevel(Level.FINE)`: overrides this Logger's threshold to FINE.
+- `logger.setLevel(null)`: clears its own threshold, falling back to the inherited threshold.
+- `logger.isLoggable(Level.FINE)`: checks whether a FINE request passes the **Logger's effective threshold**.
+- `logger.getLevel() == null` does **not** mean the Logger is disabled.
 
-Thay đổi level của một parent có thể ảnh hưởng tới các child đang kế thừa. Child có level được đặt riêng tiếp tục dùng level riêng của mình.
+Changing a parent's level can affect children that inherit from it. A child with an explicitly set level continues using its own level.
 
-**Cảnh báo chẩn đoán:** `isLoggable(Level.FINE) == true` không bảo đảm dòng FINE tới file/console. Handler vẫn có thể bác bỏ bản ghi bằng level hoặc Filter; việc xuất có thể thất bại do I/O hoặc cấu hình output.
+**Diagnostic warning:** `isLoggable(Level.FINE) == true` does not guarantee the FINE line reaches a file/console. A Handler can still reject the record via its level or Filter; emission can also fail due to I/O or output configuration.
 
-### 2.3. Mức của Logger và Handler là hai cửa kiểm tra
+### 2.3. Logger Level and Handler Level Are Two Gates
 
-Ví dụ:
+Example:
 
-| Logger effective level | ConsoleHandler level | Event phát sinh | Kết quả tại ConsoleHandler |
+| Logger effective level | ConsoleHandler level | Emitted event | Result at ConsoleHandler |
 | --- | --- | --- | --- |
-| `INFO` | `INFO` | `FINE` | Không tạo bản ghi ở ngưỡng Logger |
-| `FINE` | `INFO` | `FINE` | Logger cho qua, Handler bỏ |
-| `INFO` | `FINE` | `FINE` | Logger bỏ; handler thấp hơn không giúp |
-| `FINE` | `FINE` | `FINE` | Có thể xuất nếu không bị Filter chặn |
-| `WARNING` | `INFO` | `SEVERE` | Có thể xuất |
-| `OFF` | `ALL` | `SEVERE` | Không tạo log vì Logger bị tắt |
+| `INFO` | `INFO` | `FINE` | Record not created at Logger threshold |
+| `FINE` | `INFO` | `FINE` | Logger passes, Handler drops |
+| `INFO` | `FINE` | `FINE` | Logger drops; lower handler threshold cannot help |
+| `FINE` | `FINE` | `FINE` | Emitted if not blocked by a Filter |
+| `WARNING` | `INFO` | `SEVERE` | Emitted |
+| `OFF` | `ALL` | `SEVERE` | No log created because Logger is disabled |
 
-Đây là ma trận cho **một Handler được kết nối**. Một Logger có thể gửi cùng LogRecord tới nhiều Handler; output cuối còn phụ thuộc parent handlers, filter, lỗi I/O và cài đặt của từng handler.
+This matrix applies to **one connected Handler**. A Logger can dispatch the same LogRecord to multiple Handlers; final output also depends on parent handlers, filters, I/O errors, and per-handler settings.
 
-### 2.4. Parent handlers và lỗi “log in hai lần”
+### 2.4. Parent Handlers and the "Log Printed Twice" Bug
 
-Mặc định `logger.getUseParentHandlers()` là `true`. Nếu một Handler được gắn vào Logger `com.example.checkout` và root cũng có ConsoleHandler, một LogRecord có thể được cả hai Handler in ra, trông như chương trình ghi hai lần.
+By default, `logger.getUseParentHandlers()` is `true`. If a Handler is attached to Logger `com.example.checkout` while root also has a ConsoleHandler, one LogRecord may be printed by both Handlers, making it look as if the program logged twice.
 
 ```java
 Logger log = Logger.getLogger("com.example.checkout");
 log.setUseParentHandlers(false);
 ```
 
-Đặt `false` chặn đường chuyển tiếp tới parent, **nhưng phải có Handler riêng hoặc cách xuất hợp lệ**; nếu không, log có thể biến mất. Nếu chủ đích là mọi service dùng root ConsoleHandler, cách đơn giản là không tự gắn thêm ConsoleHandler vào từng Logger. Khi phân tích trùng log, cũng kiểm tra log collector đọc cả stdout lẫn file, appender từ framework khác, bridge và pipeline gửi bản ghi nhiều lần.
+Setting `false` stops forwarding to the parent, **but you must attach a dedicated Handler or valid output path**; otherwise logs will vanish. If the intent is for all services to share the root ConsoleHandler, the simple approach is not attaching extra ConsoleHandlers to individual Loggers. When analyzing duplicate logs, also check whether the log collector reads both stdout and a file, uses appenders from another framework, bridges, or a pipeline delivering records multiple times.
 
-Một bẫy chuyên sâu: **parent Logger level/filter không được áp dụng lại như vòng kiểm tra độc lập cho LogRecord đã được child chấp nhận** trên đường chuyển tiếp; điều quyết định tại parent output thường là cấu hình **parent Handler**. Vì vậy để chặn FINE tại console chung, xem level của ConsoleHandler chứ không chỉ root `.level`.
+A subtle pitfall: **parent Logger level/filter is not re-applied as an independent gate to a LogRecord already accepted by a child** along the forwarding path; what governs parent output is usually the **parent Handler** configuration. Therefore, to suppress FINE on the shared console, inspect ConsoleHandler's level, not just root `.level`.
 
-## 3. Thứ tự mức ghi (Level) và chọn mức đúng mục đích
+## 3. Level Ordering and Choosing the Right Level
 
-Các mức JUL chuẩn, xếp từ ưu tiên cao xuống thấp:
+Standard JUL levels, ordered from highest priority to lowest:
 
-| Level | Giá trị số chuẩn | Cách dùng thường gặp |
+| Level | Standard numeric value | Common usage |
 | --- | ---: | --- |
-| `OFF` | `Integer.MAX_VALUE` | Tắt logging ở Logger/Handler tương ứng |
-| `SEVERE` | 1000 | Lỗi nghiêm trọng khiến chức năng không thể hoàn tất |
-| `WARNING` | 900 | Điều kiện bất thường có thể phục hồi hoặc cần chú ý |
-| `INFO` | 800 | Mốc vận hành quan trọng, trạng thái lifecycle |
-| `CONFIG` | 700 | Thông tin cấu hình, tùy use case |
-| `FINE` | 500 | Chi tiết debug khi điều tra |
-| `FINER` | 400 | Chi tiết sâu hơn, dễ phát sinh lượng log lớn |
-| `FINEST` | 300 | Truy vết rất chi tiết, chỉ bật có giới hạn |
-| `ALL` | `Integer.MIN_VALUE` | Cho phép mọi mức qua ngưỡng (trừ Filter khác) |
+| `OFF` | `Integer.MAX_VALUE` | Disables logging on the corresponding Logger/Handler |
+| `SEVERE` | 1000 | Severe error preventing a function from completing |
+| `WARNING` | 900 | Abnormal condition that is recoverable or needs attention |
+| `INFO` | 800 | Key operational milestones, lifecycle states |
+| `CONFIG` | 700 | Configuration information, depending on use case |
+| `FINE` | 500 | Debug details during investigation |
+| `FINER` | 400 | Deeper detail, easily generates large log volume |
+| `FINEST` | 300 | Very granular tracing, enable only with strict bounds |
+| `ALL` | `Integer.MIN_VALUE` | Allows all levels through the threshold (aside from other Filters) |
 
-`Level.SEVERE` cao hơn `Level.WARNING`, rồi `INFO`... Một ngưỡng `INFO` chấp nhận `INFO`, `WARNING`, `SEVERE`. Một ngưỡng `FINE` chấp nhận cả các mức từ FINE trở lên. `ALL` và `OFF` là hai giá trị đặc biệt; các thư viện cũng có thể định nghĩa mức tùy biến, vì vậy khi so sánh phải nhớ quy tắc giá trị số.
+`Level.SEVERE` is higher than `Level.WARNING`, then `INFO`... An `INFO` threshold accepts `INFO`, `WARNING`, and `SEVERE`. A `FINE` threshold accepts everything from FINE upward. `ALL` and `OFF` are two special values; libraries can also define custom levels, so keep the numeric-value rule in mind when comparing.
 
-**Gợi ý phân loại sự kiện:**
+**Event classification guidance:**
 
-- `SEVERE`: giao dịch không thể xử lý vì một lỗi nghiêm trọng; phải kèm nguyên nhân và ngữ cảnh an toàn.
-- `WARNING`: retry do dependency tạm thời, cấu hình không mong muốn, nhưng còn đường phục hồi.
-- `INFO`: startup/shutdown, version/port/profile đã lọc dữ liệu nhạy cảm, kết quả vận hành quan trọng.
-- `CONFIG`: thông tin chọn chiến lược cấu hình khi chẩn đoán; không được chứa secret.
-- `FINE`/`FINER`/`FINEST`: quyết định nội bộ, đường đi xử lý, snapshot chi tiết có giới hạn.
+- `SEVERE`: transaction cannot proceed due to a serious failure; must include cause and safe context.
+- `WARNING`: retry due to a transient dependency issue, unexpected configuration, yet a recovery path exists.
+- `INFO`: startup/shutdown, sanitized version/port/profile, important operational outcomes.
+- `CONFIG`: configuration strategy selection useful for diagnostics; must never contain secrets.
+- `FINE`/`FINER`/`FINEST`: internal decisions, execution branches, bounded detailed snapshots.
 
-Không coi INFO là nơi in toàn bộ payload request, không dùng SEVERE cho mọi exception được retry thành công, và không đặt FINEST làm mặc định cho production bận rộn.
+Do not treat INFO as a place to print full request payloads, do not use SEVERE for every exception that succeeds on retry, and do not leave FINEST as the default on busy production systems.
 
-## 4. API ghi log đúng cách
+## 4. Proper Logging API Usage
 
-### 4.1. Phương thức tiện ích và `log(...)`
+### 4.1. Convenience Methods and `log(...)`
 
 ```java
 Logger log = Logger.getLogger("com.example.checkout");
@@ -186,7 +186,7 @@ log.finer("validation detail");
 log.finest("per-field trace");
 ```
 
-Đây là snippet trong scope một method hoặc static initializer, không phải ứng dụng độc lập. Tùy ngưỡng, chỉ một số lời gọi được tạo thành LogRecord. Có thể dùng overload nhận `Level`:
+This is a snippet within a method or static initializer scope, not a standalone application. Depending on the threshold, only some calls produce a LogRecord. You can use overloads taking `Level`:
 
 ```java
 log.log(Level.WARNING, "attempt={0}", 2);
@@ -194,33 +194,33 @@ log.log(Level.INFO, "order={0}, status={1}",
         new Object[]{"A-12", "accepted"});
 ```
 
-Message ở đây dùng tham số dạng `{0}`, `{1}` theo phong cách `java.text.MessageFormat` khi Formatter gọi `formatMessage(record)`; **không phải** kiểu `%s` của `String.format` hay `{ }` của một số facade logging khác. Formatter tùy chỉnh không gọi `formatMessage` có thể để nguyên placeholders.
+Messages here use `{0}`, `{1}` parameters in `java.text.MessageFormat` style when the Formatter calls `formatMessage(record)`; **not** `%s` from `String.format` or `{}` from some other logging facades. A custom Formatter that does not call `formatMessage` may leave placeholders unexpanded.
 
-### 4.2. Ghi exception và stack trace đầy đủ
+### 4.2. Logging Exceptions and Full Stack Traces
 
-Dùng overload nhận `Throwable`:
+Use the overload taking `Throwable`:
 
 ```java
 try {
-    // Thao tác có thể ném lỗi.
+    // Operation that may throw an error.
 } catch (RuntimeException ex) {
     log.log(Level.SEVERE, "Cannot complete checkout", ex);
 }
 ```
 
-Đây là snippet minh họa trong method, không chạy độc lập. Tham số `ex` được đặt vào `LogRecord.getThrown()`. Các formatter chuẩn phù hợp có thể xuất stack trace; **custom Formatter phải tự xử lý Throwable** nếu muốn giữ stack trace. `log.severe(ex.getMessage())` chỉ ghi một chuỗi, có thể mất loại exception, cause chain, stack frames và ngữ cảnh.
+This is an illustrative snippet inside a method, not standalone runnable code. The `ex` argument is stored in `LogRecord.getThrown()`. Suitable standard formatters can output the stack trace; **custom Formatters must explicitly handle Throwable** to preserve the stack trace. `log.severe(ex.getMessage())` logs only a string, losing exception type, cause chain, stack frames, and context.
 
-Tránh vừa ghi SEVERE ở tầng thấp vừa ném lại rồi ghi thêm cùng exception ở tầng controller nếu không có mục đích riêng; điều này dễ khiến một lỗi bị tính thành nhiều incident.
+Avoid both logging SEVERE at a low layer and rethrowing to log the same exception again at the controller layer unless there is a specific reason; this easily causes one failure to be counted as multiple incidents.
 
-### 4.3. Sinh thông điệp theo nhu cầu để giảm chi phí
+### 4.3. Lazy Message Construction to Reduce Cost
 
-Với chuỗi tốn CPU/RAM để dựng:
+For strings that cost CPU/RAM to build:
 
 ```java
 log.fine(() -> "snapshot=" + buildExpensiveSnapshot());
 ```
 
-Đây là snippet; giả định method `buildExpensiveSnapshot()` tồn tại. `Supplier<String>` giúp hoãn dựng chuỗi nếu Logger không chấp nhận mức FINE. Cũng có thể dùng:
+This is a snippet assuming `buildExpensiveSnapshot()` exists. `Supplier<String>` defers string construction if the Logger rejects FINE. You can also use:
 
 ```java
 if (log.isLoggable(Level.FINE)) {
@@ -228,11 +228,11 @@ if (log.isLoggable(Level.FINE)) {
 }
 ```
 
-**Giới hạn:** `isLoggable` chỉ xét ngưỡng Logger, không biết Handler cuối có ghi thành công không. Dù dùng Supplier, log nhiều bản ghi, format stack trace, serialize đối tượng lớn, I/O đồng bộ và thu thập context vẫn có overhead. Không gửi trực tiếp toàn bộ object chứa password/token/PII vào `toString()` để “debug nhanh”.
+**Limitation:** `isLoggable` only checks the Logger's threshold, unaware of whether the final Handler will actually write it. Even with a Supplier, logging high volumes, formatting stack traces, serializing large objects, synchronous I/O, and context gathering still incur overhead. Never pass entire objects containing passwords/tokens/PII directly into `toString()` for "quick debugging".
 
-### 4.4. Filter dùng khi cần quy tắc tinh hơn level
+### 4.4. Using Filter for Rules Finer Than Level
 
-`Filter` có thể gắn vào Logger hoặc Handler:
+A `Filter` can be attached to a Logger or Handler:
 
 ```java
 import java.util.logging.Filter;
@@ -247,13 +247,13 @@ Filter onlyWarnings = new Filter() {
 };
 ```
 
-Đây là đoạn minh họa, có thể đặt trong một method; `onlyWarnings` cần gắn qua `logger.setFilter(...)` hoặc `handler.setFilter(...)` để có hiệu lực. Dùng Filter của Handler khi muốn chỉ thay đổi **một sink** (ví dụ file cảnh báo) mà không ảnh hưởng sink khác. Không dùng Filter sơ sài để xử lý an toàn dữ liệu; vì thông điệp có thể chứa parameters/exception/stack trace, việc redaction cần thiết kế rõ và kiểm thử.
+This is an illustrative snippet that can go inside a method; `onlyWarnings` must be attached via `logger.setFilter(...)` or `handler.setFilter(...)` to take effect. Use a Handler Filter when you want to alter **a single sink** (e.g., a warnings file) without affecting other sinks. Do not rely on a simplistic Filter for data security; because records can carry parameters/exceptions/stack traces, redaction must be explicitly designed and tested.
 
-## 5. Ví dụ Java 17+ chạy độc lập: Logger + Handler + Formatter
+## 5. Standalone Java 17+ Example: Logger + Handler + Formatter
 
-Ví dụ này cố ý dùng `StreamHandler` nối với `System.out` và `Formatter` tự định nghĩa để có **stdout xác định**, không phụ thuộc ngày/giờ hiện tại. Đây là một chương trình Java hoàn chỉnh giúp thấy hai mức lọc và vì sao cần `flush()`.
+This example intentionally uses `StreamHandler` wired to `System.out` and a custom `Formatter` to produce **deterministic stdout**, independent of the current date/time. It is a complete Java program demonstrating two-tier filtering and why `flush()` matters.
 
-Lưu tên file **`JulFlowDemo.java`**:
+Save as **`JulFlowDemo.java`**:
 
 ```java
 import java.util.logging.Formatter;
@@ -288,73 +288,73 @@ public class JulFlowDemo {
 
         handler.flush();
         logger.removeHandler(handler);
-        // Không close vì handler đang giữ System.out của demo.
+        // Do not close because the handler holds System.out for the demo.
     }
 }
 ```
 
-Biên dịch/chạy trong thư mục chứa file bằng **JDK 17+**:
+Compile/run in the file's directory using **JDK 17+**:
 
 ```bash
 javac JulFlowDemo.java
 java JulFlowDemo
 ```
 
-Stdout (nội dung từng dòng là cố định; ký tự xuống dòng phụ thuộc hệ điều hành):
+Stdout (the content of each line is fixed; line separators depend on OS):
 
 ```text
 FINE | cache miss
 WARNING | attempt=2
 ```
 
-Tại sao chỉ có hai dòng?
+Why are there only two lines?
 
-1. Logger `training.jul.flow` có ngưỡng `FINE` nên chấp nhận FINE và WARNING, nhưng bỏ FINEST ngay từ đầu.
-2. `StreamHandler` được đặt `FINE` nên chấp nhận cả hai `LogRecord` còn lại. Nếu handler đặt `INFO`, dòng FINE sẽ bị Handler bỏ.
-3. `formatter.formatMessage(record)` xử lý placeholder `{0}` để được `attempt=2`.
-4. `setUseParentHandlers(false)` ngăn các Handler của parent/root in trùng.
-5. `StreamHandler` có thể buffer output, nên ví dụ gọi `flush()` để bảo đảm quan sát hai dòng trước khi chương trình kết thúc. `close()` của StreamHandler sẽ đóng underlying stream; không nên tùy tiện đóng `System.out` khi ứng dụng vẫn tiếp tục dùng nó.
+1. Logger `training.jul.flow` has threshold `FINE`, so it accepts FINE and WARNING while dropping FINEST upfront.
+2. `StreamHandler` is set to `FINE`, so it accepts both remaining `LogRecord`s. If the handler were set to `INFO`, the FINE line would be dropped by the Handler.
+3. `formatter.formatMessage(record)` resolves placeholder `{0}` to produce `attempt=2`.
+4. `setUseParentHandlers(false)` prevents parent/root Handlers from printing duplicates.
+5. `StreamHandler` can buffer output, so the example calls `flush()` to ensure both lines are observed before the program exits. `StreamHandler.close()` closes the underlying stream; do not arbitrarily close `System.out` when the application continues using it.
 
-**Lưu ý khi đưa vào ứng dụng:** không đặt cấu hình Handler trong mỗi request; khởi tạo logging tập trung một lần, quản lý vòng đời Handler, và tránh race khi nhiều thread cùng sửa level/handler. Chương trình trên minh họa cơ chế, không phải cấu hình production hoàn chỉnh.
+**Note when bringing into an application:** do not configure Handlers on every request; initialize logging centrally once, manage Handler lifecycles, and avoid races where multiple threads mutate levels/handlers concurrently. The program above illustrates the mechanism, not a full production configuration.
 
-## 6. Cấu hình bên ngoài bằng `logging.properties`
+## 6. External Configuration via `logging.properties`
 
-### 6.1. File cấu hình được nạp ra sao?
+### 6.1. How Is the Configuration File Loaded?
 
-JUL dùng `LogManager` toàn cục. Cấu hình mặc định phụ thuộc runtime; có thể chỉ định file properties khi khởi động JVM:
+JUL uses a global `LogManager`. Default configuration depends on the runtime; you can specify a properties file at JVM startup:
 
 ```bash
 java -Djava.util.logging.config.file=logging.properties \
      -cp . JulConfigDemo
 ```
 
-`-Djava.util.logging.config.file=...` là **system property của JVM**, phải được truyền ở phần option trước tên main class. Nếu dùng đường dẫn tương đối, hãy chắc chắn working directory của service đúng như dự kiến. Trong deployment, đường dẫn tuyệt đối ổn định thường dễ kiểm toán hơn. `java.util.logging.config.class` là cơ chế khác để cung cấp lớp cấu hình; kiểm tra các startup flags thực khi file được chỉ định dường như không có hiệu lực.
+`-Djava.util.logging.config.file=...` is a **JVM system property** and must be passed in the options section before the main class name. If using a relative path, verify the service's working directory matches expectations. In deployments, stable absolute paths are usually easier to audit. `java.util.logging.config.class` is an alternative mechanism to supply a configuration class; inspect actual startup flags if a specified file appears to have no effect.
 
-Không nên nhầm `logging.properties` của JUL với `logback.xml`, `log4j2.xml` hoặc các property logging riêng của framework. Một ứng dụng có thể dùng facade hoặc bridge làm hành vi khác JUL thuần.
+Do not confuse JUL's `logging.properties` with `logback.xml`, `log4j2.xml`, or framework-specific logging properties. An application may use a facade or bridge that causes behavior different from pure JUL.
 
-### 6.2. Ví dụ properties nhỏ và chương trình tương ứng
+### 6.2. Small Properties Example and Corresponding Program
 
-Tạo file **`logging.properties`** với nội dung:
+Create **`logging.properties`** with:
 
 ```properties
-# Handler của root logger.
+# Handler for the root logger.
 handlers = java.util.logging.ConsoleHandler
 
-# Ngưỡng chung.
+# Global threshold.
 .level = INFO
 
-# Ngưỡng và định dạng của console; ConsoleHandler viết ra stderr.
+# Console threshold and formatter; ConsoleHandler writes to stderr.
 java.util.logging.ConsoleHandler.level = FINE
 java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
 
-# Định dạng rút gọn để demo, không in timestamp.
+# Compact format for demo, omitting timestamp.
 java.util.logging.SimpleFormatter.format = %4$s: %5$s%6$s%n
 
-# Chỉ tăng chi tiết cho logger mục tiêu.
+# Raise verbosity only for the target logger.
 training.jul.config.level = FINE
 ```
 
-Lưu file **`JulConfigDemo.java`**:
+Save **`JulConfigDemo.java`**:
 
 ```java
 import java.util.logging.Logger;
@@ -371,7 +371,7 @@ public class JulConfigDemo {
 }
 ```
 
-Biên dịch, chạy (Linux/macOS):
+Compile and run (Linux/macOS):
 
 ```bash
 javac JulConfigDemo.java
@@ -379,57 +379,57 @@ java -Djava.util.logging.config.file=logging.properties \
      -cp . JulConfigDemo
 ```
 
-Trong môi trường JDK 17 thuần, không có cấu hình logging khác ghi đè, **stderr** có các dòng:
+In a pure JDK 17 environment with no other logging configuration overriding it, **stderr** contains:
 
 ```text
 FINE: cache miss
 INFO: service started
 ```
 
-Không có dòng FINEST vì Logger mục tiêu ở FINE. Cả root handler và `ConsoleHandler` phải cho phép FINE để dòng chi tiết hiển thị; ví dụ đặt `.level=INFO` nhưng child có `training.jul.config.level=FINE` và handler có `ConsoleHandler.level=FINE`. Việc truyền tiếp đến root handler không xét lại root Logger level như một lần ghi độc lập.
+There is no FINEST line because the target Logger is at FINE. Both the root handler and `ConsoleHandler` must permit FINE for the detail line to appear; here `.level=INFO`, while the child has `training.jul.config.level=FINE` and the handler has `ConsoleHandler.level=FINE`. Forwarding to the root handler does not re-check the root Logger level as an independent log call.
 
-Các ký hiệu `%4$s` và `%5$s` trong `SimpleFormatter.format` lần lượt chọn Level và message đã định dạng; `%6$s` chọn biểu diễn exception nếu có; `%n` là ký tự xuống dòng. Đây là cú pháp `java.util.Formatter` cho **format của record**, khác `{0}` của tham số message. Trên môi trường có system property `java.util.logging.SimpleFormatter.format` đặt sẵn, giá trị system property có thể ưu tiên hơn giá trị trong config file; cần xem startup args nếu output khác dự kiến.
+The tokens `%4$s` and `%5$s` in `SimpleFormatter.format` select the Level and formatted message respectively; `%6$s` selects the exception representation if present; `%n` is the newline character. This is `java.util.Formatter` syntax for **record formatting**, distinct from `{0}` message arguments. In environments where the system property `java.util.logging.SimpleFormatter.format` is preset, the system property may take precedence over the config file value; inspect startup args if output differs from expectations.
 
-### 6.3. Các khóa cấu hình cốt lõi
+### 6.3. Core Configuration Keys
 
-| Khóa trong properties | Tác dụng | Sai lầm phổ biến |
+| Properties key | Effect | Common mistake |
 | --- | --- | --- |
-| `handlers=...` | Danh sách Handler gắn lên root Logger | Nhầm thành danh sách tất cả Logger |
-| `.level=INFO` | Level root logger | Nghĩ mức này luôn chặn record đã phát từ child có level thấp hơn |
-| `com.example.level=FINE` | Level logger theo tên `com.example` và quan hệ kế thừa | Đặt tên không trùng Logger trong code |
-| `com.example.handlers=...` | Handler riêng của logger được nêu | Quên kiểm tra `useParentHandlers`, dẫn tới trùng |
-| `com.example.useParentHandlers=false` | Không chuyển record lên các Handler của parent | Không gắn Handler riêng, khiến log biến mất |
-| `java.util.logging.ConsoleHandler.level=FINE` | Ngưỡng ConsoleHandler | Chỉ thay Logger level nên vẫn không thấy FINE |
-| `java.util.logging.ConsoleHandler.formatter=...` | Chọn class Formatter | Class không được load hoặc không có constructor phù hợp |
-| `java.util.logging.SimpleFormatter.format=...` | Điều khiển biểu diễn text của SimpleFormatter | Nhầm `%4$s` với placeholder message `{0}` |
-| `java.util.logging.FileHandler.pattern=...` | Chỉ định file pattern | Đặt path không có quyền hoặc thư mục chưa tồn tại |
+| `handlers=...` | List of Handlers attached to the root Logger | Mistaking it for a list of all Loggers |
+| `.level=INFO` | Root logger level | Thinking this always blocks records already emitted by a child with a lower level |
+| `com.example.level=FINE` | Level for logger named `com.example` and inheritance | Using a name that doesn't match the Logger in code |
+| `com.example.handlers=...` | Dedicated Handlers for the named logger | Forgetting to check `useParentHandlers`, causing duplicates |
+| `com.example.useParentHandlers=false` | Do not forward records to parent Handlers | Not attaching a dedicated Handler, causing logs to disappear |
+| `java.util.logging.ConsoleHandler.level=FINE` | ConsoleHandler threshold | Changing only the Logger level and still not seeing FINE |
+| `java.util.logging.ConsoleHandler.formatter=...` | Selects Formatter class | Class cannot be loaded or lacks an appropriate constructor |
+| `java.util.logging.SimpleFormatter.format=...` | Controls SimpleFormatter text representation | Confusing `%4$s` with message placeholder `{0}` |
+| `java.util.logging.FileHandler.pattern=...` | Specifies file pattern | Setting a path without permissions or missing directory |
 
-Các tên class Handler phải đúng và có thể được tạo bởi LogManager theo cách phù hợp. Mọi khóa, đường dẫn, level và handler class cần đọc trong **file đã deploy** chứ không chỉ trong bản local.
+Handler class names must be exact and instantiable by LogManager appropriately. Every key, path, level, and handler class should be verified in the **deployed file**, not only in a local copy.
 
-### 6.4. Vì sao cập nhật file không đổi ngay log của JVM đang chạy?
+### 6.4. Why Does Updating the File Not Immediately Change a Running JVM's Logs?
 
-JUL thường đọc cấu hình khi LogManager được khởi tạo; sửa file trên đĩa không mặc nhiên làm Logger đang chạy tự cập nhật. Có thể đổi chương trình qua `Logger.setLevel`/`Handler.setLevel`, hoặc cơ chế quản trị tương ứng. `LogManager.readConfiguration(...)` đọc lại cấu hình, có thể reset/recreate Handler và thay đổi global logging state; không nên gọi trong một request để “load lại nhanh” nếu chưa hiểu tác động lên toàn ứng dụng và framework.
+JUL typically reads configuration when LogManager initializes; editing the file on disk does not automatically reload running Loggers. Changes can be made programmatically via `Logger.setLevel`/`Handler.setLevel` or an appropriate management mechanism. `LogManager.readConfiguration(...)` re-reads configuration, which can reset/recreate Handlers and alter global logging state; do not invoke it inside a request for a "quick reload" without understanding its impact on the whole application and frameworks.
 
-JDK còn cung cấp `LogManager.updateConfiguration(...)` cho cập nhật có cơ chế gộp; hành vi chi tiết phụ thuộc API và các property, không tương đương thay một level đơn giản. Trong production hãy dùng cơ chế cấu hình đã có, giới hạn phạm vi và ghi lại cách trả về mức trước đó.
+The JDK also provides `LogManager.updateConfiguration(...)` for merge-based updates; exact behavior depends on the API and properties, and is not equivalent to changing a single level. In production, use established configuration mechanisms, bound the scope, and record how to revert to the previous level.
 
-## 7. Handler: nơi xuất bản ghi và quản lý vòng đời
+## 7. Handlers: Output Destinations and Lifecycle Management
 
-### 7.1. Các Handler có sẵn
+### 7.1. Built-in Handlers
 
-| Handler | Đích/đặc tính | Khi hữu ích |
+| Handler | Destination/characteristics | When useful |
 | --- | --- | --- |
-| `ConsoleHandler` | Xuất ra **`System.err`**, mặc định dùng `SimpleFormatter` và ngưỡng INFO | Ứng dụng container gom stdout/stderr và xử lý tập trung |
-| `FileHandler` | Viết file, hỗ trợ quay vòng theo kích thước/số lượng | Khi cần file độc lập, có quy trình rotation/retention |
-| `StreamHandler` | Viết ra `OutputStream`; cần chú ý flush/close | Test có output kiểm soát hoặc adapter |
-| `MemoryHandler` | Đệm một số bản ghi, đẩy khi đạt ngưỡng kích hoạt | Điều tra tình huống chỉ muốn giữ cửa sổ trước lỗi |
-| `SocketHandler` | Truyền records qua mạng theo định dạng cấu hình | Chỉ khi chi phí/kết nối/truyền dữ liệu được kiểm soát |
-| Custom `Handler` | Tùy biến đích, filtering/buffering | Khi chuẩn có sẵn không đáp ứng observability contract |
+| `ConsoleHandler` | Writes to **`System.err`**, defaults to `SimpleFormatter` and INFO threshold | Containerized apps collecting stdout/stderr centrally |
+| `FileHandler` | Writes files, supports rotation by size/count | When standalone files are needed with rotation/retention procedures |
+| `StreamHandler` | Writes to `OutputStream`; requires attention to flush/close | Tests with controlled output or adapters |
+| `MemoryHandler` | Buffers a number of records, pushes upon trigger threshold | Investigating cases where only a pre-error window is desired |
+| `SocketHandler` | Sends records over the network in configured format | Only when cost/connectivity/transmission are controlled |
+| Custom `Handler` | Custom destination, filtering/buffering | When built-ins do not meet the observability contract |
 
-Không phải mọi Handler đều bất đồng bộ; gọi log có thể đi qua formatting và I/O trên thread phát log. Thiết kế Handler chậm hoặc đích I/O lỗi có thể kéo dài latency hay gây mất dữ liệu. Cần hiểu buffering, flush, error reporting, các giới hạn của collector.
+Not every Handler is asynchronous; logging calls can execute formatting and I/O on the calling thread. A slow Handler or failing I/O destination can increase latency or cause data loss. Understand buffering, flushing, error reporting, and collector limits.
 
-### 7.2. FileHandler, rotation và tên file
+### 7.2. FileHandler, Rotation, and Filenames
 
-`FileHandler` có các property hay dùng:
+`FileHandler` commonly uses properties such as:
 
 ```properties
 handlers = java.util.logging.FileHandler
@@ -443,21 +443,21 @@ java.util.logging.FileHandler.count = 3
 java.util.logging.FileHandler.append = true
 ```
 
-`%t` là thư mục tạm hệ thống, `%u` là phần số giúp phân biệt khi có xung đột file, `%g` là generation để quay vòng. Ví dụ đặt giới hạn khoảng 1 MiB mỗi file và quay vòng 3 file; giới hạn là **xấp xỉ** theo thời điểm ghi. Đây là cấu hình học tập: thư mục tạm không mặc định là nơi lưu log bền vững hoặc bảo mật. Không giả định `count=3` là chính sách retention đủ cho production.
+`%t` is the system temp directory, `%u` is a uniqueness number to resolve file conflicts, and `%g` is the generation number for rotation. The example sets an approximate limit of 1 MiB per file and rotates across 3 files; the limit is **approximate** at write time. This is an educational setup: the temp directory is not by default a durable or secure log storage location. Do not assume `count=3` is a sufficient retention policy for production.
 
-Một vài điều quan trọng:
+Several important points:
 
-- `FileHandler` mặc định có thể dùng `XMLFormatter`; khi mong text dễ đọc phải chọn formatter cụ thể.
-- `append=false` có nguy cơ thay đổi/xóa nội dung file hiện có theo chính sách open/rotation; xem startup behavior.
-- Nếu nhiều JVM cùng ghi file hoặc chạy trên network filesystem, cơ chế `%u`/file locking không phải đảm bảo phối hợp ghi log hoàn chỉnh trong mọi môi trường.
-- Cần kiểm tra quyền ghi, quota disk, rotation do hệ điều hành/collector, container ephemeral storage và thời hạn giữ.
-- Lỗi không ghi được file có thể chỉ được báo bằng `ErrorManager` hoặc stderr tùy Handler; thiếu file không luôn có nghĩa ứng dụng chưa phát event.
+- `FileHandler` may default to `XMLFormatter`; when readable text is desired, specify a text formatter explicitly.
+- `append=false` risks overwriting/clearing existing file contents depending on open/rotation policy; check startup behavior.
+- If multiple JVMs write to the same file or run on a network filesystem, `%u`/file locking does not guarantee conflict-free coordination across all environments.
+- Check write permissions, disk quotas, OS/collector-driven rotation, container ephemeral storage, and retention periods.
+- File write failures may only be reported via `ErrorManager` or stderr depending on the Handler; a missing file does not always mean the application emitted no events.
 
-Trong container, thông lệ thường là **mỗi ứng dụng gửi log phù hợp ra stdout/stderr để collector thu**, thay vì tự tạo nhiều file trên filesystem tạm. Tuy nhiên lựa chọn cụ thể tùy hệ thống vận hành và yêu cầu bảo mật.
+In containers, the common practice is for **each application to send appropriate logs to stdout/stderr for collector scraping**, rather than creating multiple files on an ephemeral filesystem. However, the concrete choice depends on operational infrastructure and security requirements.
 
-### 7.3. Gắn và tháo Handler
+### 7.3. Attaching and Removing Handlers
 
-Các thao tác:
+Operations:
 
 ```java
 Logger logger = Logger.getLogger("com.example.checkout");
@@ -466,60 +466,60 @@ Handler[] ownHandlers = logger.getHandlers();
 for (Handler handler : ownHandlers) {
     logger.removeHandler(handler);
     handler.flush();
-    // handler.close() nếu đây là Handler ứng dụng sở hữu
-    // và được phép đóng theo lifecycle phù hợp.
+    // handler.close() if this Handler is owned by the application
+    // and permitted to close per appropriate lifecycle.
 }
 ```
 
-`getHandlers()` trả các Handler **gắn trực tiếp** vào Logger này, không nhất thiết gồm Handler được kế thừa qua parent. Đừng vội đóng Handler dùng chung nếu không biết ownership. Với `StreamHandler` giữ `System.out`, `close()` có thể đóng cả output stream; ngược lại, Handler file cần được close để giải phóng tài nguyên khi shutdown. Thay Handler lúc runtime có thể gây mất hoặc lặp records trong một khoảng chuyển đổi nếu không phối hợp đúng.
+`getHandlers()` returns Handlers **attached directly** to this Logger, not necessarily including Handlers inherited from parents. Do not hastily close a shared Handler without knowing ownership. With a `StreamHandler` holding `System.out`, `close()` can close the output stream itself; conversely, file Handlers need to be closed to release resources at shutdown. Swapping Handlers at runtime can drop or duplicate records during transition if not properly coordinated.
 
-## 8. Formatter và định dạng có ích cho chẩn đoán
+## 8. Formatters and Formats Useful for Diagnostics
 
-### 8.1. SimpleFormatter và XMLFormatter
+### 8.1. SimpleFormatter and XMLFormatter
 
-`SimpleFormatter` tạo chuỗi thân thiện với người đọc. Nó có thể chứa timestamp, caller, level, message và throwable; format mặc định không nên được hard-code như tiêu chuẩn bất biến giữa mọi cấu hình JDK.
+`SimpleFormatter` produces human-readable strings. It can include timestamp, caller, level, message, and throwable; the default format should not be hardcoded as an immutable standard across all JDK configurations.
 
-`XMLFormatter` tạo biểu diễn XML cho records; định dạng cấu trúc hữu ích khi phù hợp pipeline, nhưng không đương nhiên tối ưu cho hệ thống log aggregation hiện đại. Nếu muốn JSON/structured logs, phải có formatter/bridge/adapter đúng, kiểm chứng escaping và schema; JUL trong JDK 17 không cung cấp sẵn một JSONFormatter chuẩn tương đương chỉ bằng đổi một thuộc tính.
+`XMLFormatter` produces an XML representation of records; structured format is useful when matching a pipeline, though not automatically optimal for modern log aggregation systems. If JSON/structured logs are desired, you need an appropriate formatter/bridge/adapter with verified escaping and schema; JUL in JDK 17 does not include a built-in JSONFormatter simply by toggling a property.
 
-### 8.2. Timestamp cần mốc, múi giờ và timezone rõ ràng
+### 8.2. Timestamps Need Clear Anchor, Offset, and Timezone
 
-Trong Java 17, `LogRecord.getInstant()` cho thời điểm event. Formatter tùy chỉnh có thể xuất UTC:
+In Java 17, `LogRecord.getInstant()` gives the event instant. A custom Formatter can output UTC:
 
 ```java
-// Snippet bên trong một Formatter tùy chỉnh.
+// Snippet inside a custom Formatter.
 String timestampUtc =
         java.time.format.DateTimeFormatter.ISO_INSTANT
                 .format(record.getInstant());
 ```
 
-Cần đặt biến `record` là `LogRecord` trong method formatter, không chạy độc lập. Nếu dùng `SimpleFormatter` với `%1$...`, ngày/giờ được trình bày theo `ZoneId.systemDefault()` của JVM cho trường date. Hai pod có timezone khác nhau có thể hiển thị cùng instant thành chuỗi khác nhau. Dùng timestamp có offset/UTC và kèm instance/trace ID sẽ giúp ghép với GC/JFR/traces chính xác hơn.
+The `record` variable must be a `LogRecord` within the formatter method; this does not run standalone. If using `SimpleFormatter` with `%1$...`, date/time is formatted using the JVM's `ZoneId.systemDefault()` for the date field. Two pods with different timezones can render the same instant as different strings. Using timestamps with explicit offset/UTC alongside instance/trace IDs makes correlation with GC/JFR/traces much more accurate.
 
-**Precision khác accuracy:** in nanoseconds không bảo đảm clock node được đồng bộ nano giây. Khi so log từ nhiều host, đánh giá clock skew/ingestion delay, đặc biệt nếu suy luận thứ tự ở mức mili giây.
+**Precision differs from accuracy:** printing nanoseconds does not guarantee node clocks are synchronized to the nanosecond. When comparing logs across multiple hosts, account for clock skew and ingestion delay, especially when inferring sub-millisecond or millisecond ordering.
 
-### 8.3. Formatter tùy chỉnh phải xử lý Throwable, escaping và output
+### 8.3. Custom Formatters Must Handle Throwable, Escaping, and Output
 
-Nếu định dạng text đơn giản như ví dụ `JulFlowDemo` chỉ dùng `formatMessage(record)`, nó sẽ không tự in stack trace cho `LogRecord.getThrown()`. Với production, Formatter nên:
+If a simple text formatter like the `JulFlowDemo` example only calls `formatMessage(record)`, it will not automatically print the stack trace for `LogRecord.getThrown()`. For production, a Formatter should:
 
-- xử lý `record.getThrown()`, cause chain và stack trace theo chính sách;
-- escape newline, dấu phân cách, dữ liệu đầu vào để tránh log injection và lỗi parsing;
-- ghi timestamp UTC, level, logger, thread/request/trace ID khi thật sự có dữ liệu;
-- giới hạn payload và che dữ liệu nhạy cảm, không cắt bỏ ngẫu nhiên thông điệp lỗi cốt lõi;
-- tính đến định dạng thời gian và encoding (UTF-8 nếu pipeline yêu cầu);
-- đồng bộ hóa/hiệu năng phù hợp cách Handler gọi formatter.
+- handle `record.getThrown()`, cause chains, and stack traces per policy;
+- escape newlines, delimiters, and input data to prevent log injection and parsing failures;
+- record UTC timestamp, level, logger, and thread/request/trace ID when genuinely available;
+- bound payload sizes and redact sensitive data without randomly truncating core error messages;
+- account for time formatting and character encoding (UTF-8 if required by the pipeline);
+- handle synchronization/performance matching how the Handler invokes the formatter.
 
-Nếu có structured logging, nên tách fields metadata khỏi message text để downstream không phải parse từng chuỗi bằng regex mong manh.
+With structured logging, separate metadata fields from message text so downstream tools do not have to parse strings with fragile regexes.
 
-## 9. Quan sát và đổi mức ghi trên tiến trình đang chạy
+## 9. Observing and Changing Log Levels on a Running Process
 
-### 9.1. Xác định JUL có thực sự được dùng không
+### 9.1. Verify JUL Is Actually in Use
 
-Trước khi chỉnh `logging.properties`, xác minh log đang đi theo JUL hay qua SLF4J/Logback/Log4j2/container adapter. Một số ứng dụng có cầu nối JUL → SLF4J hoặc bridge khác; khi đó Handler và level cuối có thể chịu quản lý bởi framework đích. Không cài các bridge hai chiều tùy tiện vì có thể tạo loop, duplicate hoặc xung đột quản lý.
+Before editing `logging.properties`, verify whether logs go through JUL or through SLF4J/Logback/Log4j2/container adapters. Some applications install a JUL → SLF4J bridge or another bridge; in that case, final Handlers and levels may be managed by the target framework. Never install arbitrary bidirectional bridges, as they can cause loops, duplicates, or management conflicts.
 
-Đọc **launch args thật**, system property `java.util.logging.config.file` (nếu có), file config trong image/mount và các log framework đã deploy. `-Xlog:gc*` là **JVM Unified Logging** của HotSpot, độc lập với JUL `Logger` của code ứng dụng: thay JUL `FINE` không tự bật GC logs và ngược lại.
+Inspect **actual launch args**, the `java.util.logging.config.file` system property (if any), config files inside the image/mounts, and deployed logging frameworks. `-Xlog:gc*` is HotSpot's **JVM Unified Logging**, independent of application JUL `Logger`s: changing JUL to `FINE` does not enable GC logs and vice versa.
 
-### 9.2. Quan sát cấu hình trong code
+### 9.2. Inspecting Configuration in Code
 
-Một đoạn code chẩn đoán có thể in tên, level được đặt, useParentHandlers và Handler trực tiếp:
+A diagnostic snippet can print the name, configured level, useParentHandlers, and direct Handlers:
 
 ```java
 Logger log = Logger.getLogger("com.example.checkout");
@@ -535,137 +535,137 @@ for (java.util.logging.Handler h : log.getHandlers()) {
 }
 ```
 
-Đây là **snippet đặt trong method**, không phải file đầy đủ. Nó chỉ liệt kê Handler **own**, chưa gồm tất cả Handler ở parent; `getLevel()` có thể null nhưng effective level vẫn xác định. Nếu một Logger đã bị framework/bridge thay Handler sau startup, chỉ đọc file `logging.properties` ban đầu sẽ không phản ánh toàn bộ trạng thái runtime.
+This is a **snippet placed inside a method**, not a complete file. It lists only **own** Handlers, excluding parent Handlers; `getLevel()` may be null while the effective level is still defined. If a framework/bridge replaced Handlers after startup, reading the initial `logging.properties` file alone will not reflect the full runtime state.
 
-Trên Java 17, có thể dùng `java.lang.management.PlatformLoggingMXBean` qua Java Management API để xem hoặc thay level của JUL loggers theo quyền và khả năng kết nối. Nó không phải giao diện sửa mọi Handler/filter. API `java.util.logging.LoggingMXBean` cũ đã deprecated; ưu tiên interface platform phù hợp phiên bản JDK.
+On Java 17, `java.lang.management.PlatformLoggingMXBean` can be used via the Java Management API to inspect or change JUL logger levels depending on permissions and connectivity. It is not an interface to edit arbitrary Handlers/filters. The older `java.util.logging.LoggingMXBean` API is deprecated; prefer the platform interface appropriate to the JDK version.
 
-### 9.3. Quy trình tăng mức chẩn đoán an toàn
+### 9.3. Safe Procedure for Raising Diagnostic Verbosity
 
-1. **Chọn Logger hẹp** theo package/class có liên quan lỗi, ví dụ `com.example.checkout.PaymentGateway`; không nâng root toàn JVM nếu không cần.
-2. **Ghi baseline:** effective level đang có, parent chain, Handler levels, log rate/giây, latency và disk/network budget.
-3. **Xác định đích ghi thực:** ConsoleHandler, file, framework bridge hoặc collector; kiểm tra cả ngưỡng Handler, không chỉ Logger.
-4. **Tăng tạm thời** từ INFO lên FINE (chỉ khi cần), trong một cửa sổ đã định và với khả năng quay lại mức cũ.
-5. **Quan sát tín hiệu:** lượng logs tăng, CPU/GC, latency, I/O, disk quota, lỗi ghi logs; dừng nếu ảnh hưởng cao.
-6. **Thu bản ghi có context:** timestamp UTC, instance, request/trace ID, phiên bản ứng dụng, mốc lỗi.
-7. **Khôi phục và xác minh:** trả level/handler về baseline; xác nhận log rate và hiệu năng trở lại trạng thái thường.
-8. **Lưu kết luận:** event nào đã phân biệt giả thuyết; ai xem được logs; thời hạn giữ dữ liệu.
+1. **Pick a narrow Logger** by package/class related to the error, e.g., `com.example.checkout.PaymentGateway`; do not raise root for the entire JVM unnecessarily.
+2. **Record baseline:** current effective level, parent chain, Handler levels, log rate/sec, latency, and disk/network budget.
+3. **Identify actual destinations:** ConsoleHandler, file, framework bridge, or collector; check Handler thresholds too, not just the Logger.
+4. **Raise temporarily** from INFO to FINE (only if needed), for a bounded window and with a ready rollback path.
+5. **Monitor signals:** log volume surge, CPU/GC, latency, I/O, disk quota, log write errors; stop if impact is high.
+6. **Collect records with context:** UTC timestamp, instance, request/trace ID, app version, error milestones.
+7. **Restore and verify:** return logger/handler levels to baseline; confirm log rate and performance return to normal.
+8. **Document findings:** which event distinguished hypotheses; who can view the logs; data retention limits.
 
-Đừng bật `FINEST` trên toàn cluster vô thời hạn. Nếu lỗi chỉ xuất hiện rất hiếm, có thể chọn sampling/log theo request ID bằng cách ứng dụng cho phép, nhưng phải có thiết kế bảo mật và bảo đảm không bỏ lỡ bằng chứng quan trọng.
+Do not turn on `FINEST` cluster-wide indefinitely. If an error occurs very rarely, you can use sampling/request-ID-scoped logging as supported by the application, provided security is designed and critical evidence is not missed.
 
-### 9.4. Tác động của việc reload cấu hình
+### 9.4. Impact of Reloading Configuration
 
-Cập nhật live qua `Logger.setLevel` có phạm vi hẹp; đổi `Handler.setLevel` ảnh hưởng tất cả Logger cùng chia Handler đó. `LogManager.readConfiguration` có thể reset và đóng các Handler trước đó, phá cấu hình chương trình hoặc làm gián đoạn output nếu dùng tùy tiện. `LogManager.updateConfiguration` có hành vi merge/replace theo quy tắc API, cần kiểm thử với provider/handler cụ thể.
+Live updates via `Logger.setLevel` have narrow scope; changing `Handler.setLevel` affects every Logger sharing that Handler. `LogManager.readConfiguration` can reset and close prior Handlers, breaking programmatic configuration or disrupting output if used carelessly. `LogManager.updateConfiguration` has merge/replace semantics per API rules and must be tested with specific providers/handlers.
 
-Không đánh đồng “config file đã sửa” với “JVM đã nhận config”. Khi xảy ra mất log ngay sau deploy, kiểm tra điều gì nạp cấu hình, thời điểm khởi tạo LogManager và output của ứng dụng lúc startup.
+Do not equate "config file edited" with "JVM applied the config". When logs disappear right after a deploy, check what loads configuration, when LogManager initializes, and application startup output.
 
-## 10. Ma trận xử lý sự cố với JUL
+## 10. JUL Troubleshooting Matrix
 
-| Triệu chứng | Giả thuyết cần kiểm tra | Bằng chứng/việc kiểm tra |
+| Symptom | Hypothesis to check | Evidence / verification |
 | --- | --- | --- |
-| `logger.fine(...)` không hiện | Logger effective level cao hơn FINE | `getLevel()`, parent chain, `isLoggable(FINE)` |
-| `isLoggable(FINE)` true nhưng không có dòng FINE | Handler level/filter loại record; không có Handler tới sink | `getHandlers()`, Handler parent, `getUseParentHandlers()`, filter/collector |
-| Một event xuất hai lần | Own Handler và parent Handler cùng ghi; hoặc collector đọc 2 nguồn | Cấu hình handlers, `useParentHandlers`, log path và collector pipeline |
-| Không có log nào từ một package | Logger name khác property; `useParentHandlers=false` nhưng không có own Handler | So tên Logger trong code và file; inspect handler graph |
-| Level đổi nhưng không thấy tác dụng | Chỉ đổi file, chưa reload; framework bridge; handler level cao | Startup arguments và trạng thái runtime, bridge, Handler hiện tại |
-| INFO in stderr, không in stdout | `ConsoleHandler` viết `System.err` | Kiểm tra stdout/stderr collector, không giả định console = stdout |
-| Có exception message nhưng thiếu stack trace | Đã log bằng `ex.getMessage()` hoặc Formatter bỏ `getThrown()` | API overload `log(..., ex)`, Formatter source/schema |
-| FileHandler không tạo file | Path/permission/quota, directory chưa tồn tại, file locks | `pattern`, user/cwd, ErrorManager, filesystem |
-| File chuyển tên khi đầy | Rotation theo `limit/count/%g/%u` | FileHandler properties, actual file names, retention |
-| Timestamp lệch giờ khi ghép JFR/GC | Formatter dùng timezone host khác; ingest timestamp bị nhầm | `LogRecord.getInstant()`, timezone, event vs observed time |
-| Lỗi chậm hơn sau khi bật FINEST | Nhiều log, format tốn CPU hoặc I/O blocking | Log rate, latency, CPU/disk, Handler implementation |
-| Message có `{0}` chưa thay | Formatter không gọi `formatMessage`; record không có parameters | Cách gọi `log(...)`, Formatter method |
-| Log giữa nhiều request bị trộn context | Tự dùng ThreadLocal nhưng task chạy bất đồng bộ | Request/trace ID propagation, lifecycle context, thread pools |
-| JUL config không điều khiển log framework | Ứng dụng dùng Logback/Log4j2/bridge | Xác minh logging backend/bridges, configuration owner |
+| `logger.fine(...)` does not appear | Logger effective level is higher than FINE | `getLevel()`, parent chain, `isLoggable(FINE)` |
+| `isLoggable(FINE)` is true but no FINE line | Handler level/filter drops record; no Handler to sink | `getHandlers()`, parent Handlers, `getUseParentHandlers()`, filter/collector |
+| One event appears twice | Own Handler and parent Handler both write; or collector reads 2 sources | Handler config, `useParentHandlers`, log path, and collector pipeline |
+| No logs from a package | Logger name differs from property; `useParentHandlers=false` with no own Handler | Compare Logger name in code vs. file; inspect handler graph |
+| Level changed with no effect | Only edited file without reload; framework bridge; high handler level | Startup arguments and runtime state, bridge, current Handler |
+| INFO prints to stderr, not stdout | `ConsoleHandler` writes to `System.err` | Check stdout/stderr collector, do not assume console = stdout |
+| Exception message present without stack trace | Logged `ex.getMessage()` or Formatter ignores `getThrown()` | `log(..., ex)` API overload, Formatter source/schema |
+| FileHandler does not create file | Path/permissions/quota, missing directory, file locks | `pattern`, user/cwd, ErrorManager, filesystem |
+| Files rename when full | Rotation via `limit/count/%g/%u` | FileHandler properties, actual file names, retention |
+| Timestamps off by hours vs. JFR/GC | Formatter uses different host timezone; ingest time mistaken for event time | `LogRecord.getInstant()`, timezone, event vs. observed time |
+| Slower errors after enabling FINEST | High log volume, expensive formatting, or blocking I/O | Log rate, latency, CPU/disk, Handler implementation |
+| Message still has literal `{0}` | Formatter does not call `formatMessage`; record lacks parameters | How `log(...)` was called, Formatter implementation |
+| Context mixed across multiple requests | Custom ThreadLocal used with async task execution | Request/trace ID propagation, context lifecycle, thread pools |
+| JUL config does not control framework logs | App uses Logback/Log4j2/bridge | Verify actual logging backend/bridges, configuration owner |
 
-**Nguyên tắc chẩn đoán:** trước hết xác minh event có được tạo ở Logger không; sau đó lần theo *đường đi tới Handler cuối*; cuối cùng kiểm tra Formatter, I/O và collector. Cách này tránh việc liên tục hạ level mà không biết bản ghi đang bị loại ở đâu.
+**Diagnostic principle:** first verify whether the event is created at the Logger; next trace its *path to the final Handler*; finally check the Formatter, I/O, and collector. This avoids endlessly lowering levels without knowing where the record is being dropped.
 
-## 11. Chất lượng log cho điều tra sự cố JVM
+## 11. Log Quality for JVM Incident Investigation
 
-### 11.1. Ghi thông tin đủ để tái hiện diễn tiến
+### 11.1. Recording Enough Information to Reconstruct Events
 
-Một bản ghi hữu ích cho incident thường cần:
+A useful incident log record typically needs:
 
-- event timestamp có offset rõ (ưu tiên UTC), level, logger/service và instance;
-- operation hoặc event code ổn định, tình trạng thành công/thất bại;
-- request/trace/span ID khi có và được phép thu;
-- object identifier đã làm sạch, duration và đơn vị nếu cần;
-- exception type, cause, stack trace khi xảy ra lỗi thật;
-- build version, deployment revision, JVM instance/host khi ghép nhiều nguồn.
+- event timestamp with explicit offset (UTC preferred), level, logger/service, and instance;
+- stable operation or event code, success/failure status;
+- request/trace/span ID when available and permitted;
+- sanitized object identifier, duration, and units where needed;
+- exception type, cause, and stack trace on genuine failures;
+- build version, deployment revision, and JVM instance/host when merging sources.
 
-Không phải thông tin nào cũng in trực tiếp trong `message`; nếu có schema structured log, các trường nên tách riêng. `LogRecord` vốn có level/message/time/thrown nhưng application context bổ sung phải được lập trình và kiểm thử.
+Not everything must be printed inside `message`; with a structured log schema, fields should be separated. `LogRecord` natively carries level/message/time/thrown, whereas additional application context must be programmed and tested.
 
-### 11.2. Log level không thay thế metric hoặc tracing
+### 11.2. Log Levels Do Not Replace Metrics or Tracing
 
-- `INFO` giúp biết lifecycle và event quan trọng, nhưng không đo chính xác tỷ lệ lỗi hoặc p99.
-- `FINE` giúp thấy đường xử lý, nhưng để biết CPU hotspot có thể cần JFR/profiler và để biết GC pause có thể cần JFR/GC logs.
-- Nhiều dòng log có thể làm thêm I/O và làm nhiễu timing; không suy ra “thời điểm xảy ra” chỉ từ thứ tự collector nhận records.
-- Nếu cần đo lượng request, metric counter có cấu trúc và label cardinality được kiểm soát thường thích hợp hơn ghi từng request vào log chi tiết.
+- `INFO` shows lifecycle and major events, but cannot accurately measure error rates or p99.
+- `FINE` reveals execution paths, yet finding CPU hotspots may require JFR/profilers and finding GC pauses may require JFR/GC logs.
+- High log volume adds I/O and distorts timing; do not infer "when it happened" solely from the order the collector received records.
+- To measure request rates, structured metric counters with controlled label cardinality are usually preferable to logging every request in detail.
 
-### 11.3. Dữ liệu nhạy cảm, injection và retention
+### 11.3. Sensitive Data, Injection, and Retention
 
-Không log plaintext password, API key, access token, session cookie, số thẻ, payload nhạy cảm hoặc toàn bộ `System.getProperties()`. Đối với exception, stack trace có thể vô tình mang path/hostname/query/parameter: giới hạn truy cập log và chính sách retention tương ứng.
+Never log plaintext passwords, API keys, access tokens, session cookies, card numbers, sensitive payloads, or all of `System.getProperties()`. For exceptions, stack traces can inadvertently expose paths/hostnames/queries/parameters: restrict log access and enforce corresponding retention policies.
 
-Đầu vào người dùng chứa newline hoặc dấu phân cách có thể **giả mạo một dòng log khác** khi được nối thẳng vào plain text; Formatter/encoder phải escape phù hợp hoặc dùng structured fields. Kể cả khi chỉ bật FINE tạm thời, dữ liệu vẫn có thể được lưu lâu ở collector và backup.
+User input containing newlines or delimiters can **forge another log line** when concatenated directly into plain text; Formatters/encoders must escape properly or use structured fields. Even when FINE is enabled only temporarily, data can persist for a long time in collectors and backups.
 
-## 12. Bài thực hành chẩn đoán hai lớp level
+## 12. Two-Layer Level Diagnostic Practice
 
-Từ ví dụ `JulFlowDemo`, sửa lần lượt và dự đoán output:
+Starting from `JulFlowDemo`, modify step by step and predict the output:
 
-| Thay đổi | Dòng FINE có tới stdout? | Lý do |
+| Change | Does the FINE line reach stdout? | Reason |
 | --- | --- | --- |
-| Giữ Logger FINE, Handler FINE | Có | Cả hai ngưỡng cho qua |
-| Đổi Logger INFO, giữ Handler FINE | Không | Logger bỏ trước khi tạo LogRecord FINE |
-| Đổi Logger FINE, Handler INFO | Không | Handler bỏ sau khi Logger tạo LogRecord |
-| Đổi cả Logger và Handler FINEST | Có; thêm dòng FINEST | Cả hai đều nhận FINEST |
-| Gọi `setUseParentHandlers(true)` trong chương trình demo | Có thể thêm bản ghi ở Handler của parent | Phụ thuộc root config, có nguy cơ trùng output |
+| Keep Logger FINE, Handler FINE | Yes | Both thresholds allow it |
+| Change Logger to INFO, keep Handler FINE | No | Logger drops before creating the FINE LogRecord |
+| Change Logger to FINE, Handler to INFO | No | Handler drops after Logger creates the LogRecord |
+| Change both Logger and Handler to FINEST | Yes; plus the FINEST line | Both accept FINEST |
+| Call `setUseParentHandlers(true)` in the demo | May emit an extra record via parent Handler | Depends on root config; risk of duplicate output |
 
-Với một ứng dụng thực, nếu thấy `isLoggable(FINE)` là true nhưng console không hiện FINE, hãy kiểm tra Handler level **trước khi** đổi thêm cấp Logger. Nếu FINE vẫn không tới collector dù cả hai ngưỡng cho qua, kiểm tra Filter, Handler presence, stream direction, output errors và pipeline collector.
+In a real application, if `isLoggable(FINE)` is true yet the console does not show FINE, check the Handler level **before** tweaking more Logger settings. If FINE still fails to reach the collector even when both thresholds pass, check Filters, Handler presence, stream direction, output errors, and the collector pipeline.
 
-## 13. Các sai lầm thường gặp
+## 13. Common Mistakes
 
-1. **Chỉ sửa Logger level và quên Handler level.** ConsoleHandler mặc định INFO có thể bỏ FINE.
-2. **Hiểu `getLevel()==null` là không cấu hình.** Đó có thể là mức kế thừa từ parent.
-3. **Gắn ConsoleHandler cho mọi class.** Dễ tạo log trùng vì còn parent handlers.
-4. **Đặt `useParentHandlers=false` nhưng không gắn Handler riêng.** Dòng log có thể biến mất.
-5. **Dùng `System.out.println` thay logging có cấu trúc.** Mất level, logger name, cấu hình và routing (dù println có thể hữu ích trong debug ngắn).
-6. **Ghi exception chỉ bằng message.** Mất Throwable/stack trace và nguyên nhân sâu.
-7. **Đưa `String.format`/nối chuỗi đắt tiền vào lệnh FINE bị tắt.** Tạo overhead không cần thiết.
-8. **Cho rằng `ConsoleHandler` xuất stdout.** Nó xuất `System.err`.
-9. **Dùng `%s` trong message có tham số JUL mà mong Formatter thay như SLF4J.** JUL thường dùng `{0}` với `MessageFormat`.
-10. **Không biết cấu hình thực được nạp từ file nào.** File trong repo có thể không phải file được JVM dùng.
-11. **Nhầm JUL với JVM `-Xlog` hoặc backend logging khác.** Sửa nhầm hệ thống không có hiệu quả.
-12. **Bật FINEST mọi nơi khi có sự cố.** Có thể gây I/O, tăng log cardinality và thêm chi phí.
-13. **Không flush/close đúng vòng đời Handler.** Có thể mất dữ liệu cuối phiên hoặc rò file descriptor.
-14. **Custom Formatter bỏ Throwable và timestamp.** Khi incident xảy ra lại thiếu bằng chứng.
-15. **Log dữ liệu nhạy cảm và không có giới hạn retention.** Mức ghi “debug” không phải ngoại lệ của chính sách bảo vệ dữ liệu.
-16. **Không khôi phục mức cũ sau điều tra.** Log volume và rủi ro tăng lâu dài.
+1. **Changing only Logger level and forgetting Handler level.** ConsoleHandler defaulting to INFO can drop FINE.
+2. **Interpreting `getLevel()==null` as unconfigured.** It may mean the level is inherited from a parent.
+3. **Attaching a ConsoleHandler to every class.** Easily produces duplicate logs because parent handlers remain active.
+4. **Setting `useParentHandlers=false` without attaching a dedicated Handler.** Log lines vanish.
+5. **Using `System.out.println` instead of structured logging.** Loses level, logger name, configuration, and routing (even though println can be handy for brief local checks).
+6. **Logging exceptions using only the message.** Loses Throwable/stack trace and deeper cause.
+7. **Putting expensive `String.format`/concatenation into disabled FINE calls.** Creates unnecessary overhead.
+8. **Assuming `ConsoleHandler` writes to stdout.** It writes to `System.err`.
+9. **Using `%s` in parameterized JUL messages expecting SLF4J-style substitution.** JUL typically uses `{0}` with `MessageFormat`.
+10. **Not knowing which file actually loaded configuration.** The file in the repo may not be the file used by the JVM.
+11. **Confusing JUL with JVM `-Xlog` or another logging backend.** Adjusting the wrong system has no effect.
+12. **Enabling FINEST everywhere during an incident.** Can saturate I/O, bloat log cardinality, and drive up costs.
+13. **Not flushing/closing Handlers properly per lifecycle.** Risks losing trailing data or leaking file descriptors.
+14. **Custom Formatters dropping Throwable and timestamp.** When an incident occurs, evidence is missing.
+15. **Logging sensitive data without retention bounds.** "Debug" verbosity is not an exemption from data protection policy.
+16. **Forgetting to revert levels after investigation.** Log volume and risk remain elevated long-term.
 
-## 14. Checklist cấu hình trước production hoặc khi xử lý incident
+## 14. Configuration Checklist Before Production or During Incidents
 
-- [ ] Có Logger đặt tên nhất quán theo package/class và giữ tham chiếu mạnh?
-- [ ] Hiểu effective Logger level, level được chỉ định và quan hệ kế thừa?
-- [ ] Đã kiểm tra level + Filter của từng Handler cùng parent handlers?
-- [ ] Có chủ ý về `useParentHandlers`, tránh log trùng hoặc mất log?
-- [ ] Đã xác nhận nguồn `logging.properties`, JVM `-D` và backend logging thực tế?
-- [ ] Đã xác định destination `stderr`, stdout, file hay collector?
-- [ ] Formatter có UTC/offset phù hợp, level, logger name, message và Throwable?
-- [ ] Với FileHandler, đã dự trù path, rotation, quota, permission và retention?
-- [ ] Đã tránh log payload bí mật, xử lý injection/escaping và quyền đọc?
-- [ ] Có kế hoạch bật FINE/FINER/FINEST hẹp, có thời hạn và ngưỡng dừng?
-- [ ] Có cách khôi phục level/handler và xác minh khôi phục thành công?
-- [ ] Đã ghép log với metrics, JFR, GC log hoặc traces khi cần phân tích nguyên nhân?
+- [ ] Are Loggers named consistently by package/class and held with strong references?
+- [ ] Are effective Logger levels, explicitly assigned levels, and inheritance clear?
+- [ ] Have level + Filter of every Handler and parent handlers been checked?
+- [ ] Is `useParentHandlers` set intentionally to avoid duplicate or missing logs?
+- [ ] Have the `logging.properties` source, JVM `-D` flags, and actual logging backend been confirmed?
+- [ ] Are destinations (`stderr`, stdout, file, or collector) clearly identified?
+- [ ] Does the Formatter include proper UTC/offset timestamps, level, logger name, message, and Throwable?
+- [ ] For FileHandler, are path, rotation, quota, permissions, and retention planned?
+- [ ] Are secret payloads avoided, with injection/escaping and access controls handled?
+- [ ] Is there a plan for enabling FINE/FINER/FINEST narrowly, with time bounds and abort thresholds?
+- [ ] Is there a way to revert logger/handler levels and verify restoration?
+- [ ] Are logs correlated with metrics, JFR, GC logs, or traces when analyzing root causes?
 
-**Câu hỏi tự kiểm tra:** ứng dụng có Logger `com.example.checkout` đặt `FINE`, ConsoleHandler ở root đặt `INFO` và `useParentHandlers=true`. Tại sao `logger.isLoggable(Level.FINE)` trả `true` nhưng FINE không xuất? Có hai cách khắc phục nào chỉ ảnh hưởng phạm vi cần thiết? Hãy giải thích rõ đường đi của `LogRecord`, hệ quả nếu thêm Handler riêng và cách tránh trùng dòng.
+**Self-check question:** An application has Logger `com.example.checkout` set to `FINE`, root ConsoleHandler set to `INFO`, and `useParentHandlers=true`. Why does `logger.isLoggable(Level.FINE)` return `true` while FINE does not appear? What are two fixes that affect only the necessary scope? Explain the `LogRecord` path clearly, the consequence of adding a dedicated Handler, and how to avoid duplicate lines.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle Java SE 17, [`java.util.logging` package](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/package-summary.html): kiến trúc và các thành phần JUL.
-- Oracle Java SE 17, [`Logger` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Logger.html): mức hiệu lực, hierarchy, parent handlers, Supplier, parameters và Throwable.
-- Oracle Java SE 17, [`Level` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Level.html): thứ tự, giá trị và mức OFF/ALL.
-- Oracle Java SE 17, [`Handler` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Handler.html) và [`ConsoleHandler`](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/ConsoleHandler.html): ngưỡng, Filter và `System.err`.
-- Oracle Java SE 17, [`Formatter` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Formatter.html), [`SimpleFormatter`](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/SimpleFormatter.html): formatting và `formatMessage`.
-- Oracle Java SE 17, [`FileHandler` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/FileHandler.html): `pattern`, `limit`, `count`, `append`, `%u` và `%g`.
-- Oracle Java SE 17, [`LogManager` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/LogManager.html): `logging.properties`, cấu hình startup và cập nhật runtime.
-- Oracle Java SE 17, [`LogRecord` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/LogRecord.html): dữ liệu sự kiện, thời điểm và Throwable.
+- Oracle Java SE 17, [`java.util.logging` package](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/package-summary.html): JUL architecture and components.
+- Oracle Java SE 17, [`Logger` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Logger.html): effective levels, hierarchy, parent handlers, Supplier, parameters, and Throwable.
+- Oracle Java SE 17, [`Level` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Level.html): ordering, values, and OFF/ALL levels.
+- Oracle Java SE 17, [`Handler` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Handler.html) and [`ConsoleHandler`](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/ConsoleHandler.html): thresholds, Filters, and `System.err`.
+- Oracle Java SE 17, [`Formatter` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Formatter.html), [`SimpleFormatter`](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/SimpleFormatter.html): formatting and `formatMessage`.
+- Oracle Java SE 17, [`FileHandler` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/FileHandler.html): `pattern`, `limit`, `count`, `append`, `%u`, and `%g`.
+- Oracle Java SE 17, [`LogManager` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/LogManager.html): `logging.properties`, startup config, and runtime updates.
+- Oracle Java SE 17, [`LogRecord` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/LogRecord.html): event data, instant, and Throwable.
 
-Một cấu hình JUL đáng tin cậy cho chẩn đoán phải trả lời được **bản ghi sinh ở Logger nào → đi qua ngưỡng và Filter nào → tới Handler nào → được Formatter trình bày ra sao → collector có thực sự nhận được không**. Khi biết chính xác từng bước, bạn có thể tăng độ chi tiết đủ để tìm lỗi mà không làm nhiễu, làm mất hoặc nhân đôi bằng chứng.
+A diagnostics-ready JUL setup must answer: **which Logger created the record → which thresholds and Filters it passed → which Handler received it → how the Formatter rendered it → whether the collector actually ingested it**. Once you know each step precisely, you can raise verbosity just enough to find bugs without noisy, missing, or duplicated evidence.

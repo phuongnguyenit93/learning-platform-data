@@ -1,32 +1,32 @@
-# 16.5. Yêu cầu hoặc đề nghị chứng thư phía khách bằng needClientAuth và wantClientAuth
+# 16.5. Requiring or Requesting Client Certificates with needClientAuth and wantClientAuth
 
-## 1. Bài toán: server TLS có bắt buộc khách hàng trình chứng thư không?
+## 1. Problem: should a TLS server require clients to present a certificate?
 
-Trong HTTPS/TLS thông thường, **máy chủ (server)** trình chứng thư để phía **khách (client)** xác minh danh tính server. Client thường **không cần** chứng thư X.509; người dùng có thể đăng nhập ở lớp ứng dụng bằng session, OAuth 2.0, token hoặc cơ chế khác.
+In standard HTTPS/TLS, the **server** presents a certificate so the **client** verifies the server's identity. The client normally **does not need** an X.509 certificate; users can log in at the application layer via sessions, OAuth 2.0, tokens, or other mechanisms.
 
-Trong **mutual TLS (mTLS)**, server còn **yêu cầu hoặc đề nghị client cung cấp chứng thư**, và dùng cơ chế tin cậy tương ứng để xác minh client certificate. Java Secure Socket Extension (**JSSE**) cho phép cấu hình hai chế độ quan trọng:
+In **mutual TLS (mTLS)**, the server also **requires or requests the client to provide a certificate**, and uses a corresponding trust mechanism to verify the client certificate. Java Secure Socket Extension (**JSSE**) lets you configure two important modes:
 
-- `setNeedClientAuth(true)`: **bắt buộc** client authentication trong TLS handshake. Không có chứng thư/thông tin xác thực client phù hợp thì server **không chấp nhận kết nối TLS**.
-- `setWantClientAuth(true)`: server **đề nghị** client authentication. Nếu client không cung cấp chứng thư, handshake **vẫn có thể thành công**; nếu client trình chứng thư, chứng thư đó vẫn phải được kiểm tra theo trust policy.
+- `setNeedClientAuth(true)`: **mandatory** client authentication during the TLS handshake. Without a suitable client certificate/credentials, the server **rejects the TLS connection**.
+- `setWantClientAuth(true)`: the server **requests** client authentication. If the client does not supply a certificate, the handshake **can still succeed**; if the client presents a certificate, that certificate must still be checked against trust policy.
 
-**Cả hai là chính sách ở phía server**, không phải nút để client “bắt” server đưa chứng thư. Và **cả hai không tự cấp quyền nghiệp vụ** cho client: một certificate đáng tin về mặt mật mã chỉ tạo đầu vào để ứng dụng ánh xạ identity, role, tenant và scope.
+**Both are server-side policies**, not a toggle for the client to "force" the server to send a certificate. And **neither automatically grants business permissions** to the client: a cryptographically trusted certificate only provides input for the application to map identity, role, tenant, and scope.
 
-Bài này tập trung vào vòng đời các cờ `needClientAuth` và `wantClientAuth` trong JSSE, trường hợp không có/có/sai certificate, vai trò `KeyManager`–`TrustManager`, việc kiểm tra peer bằng `SSLSession`, các khác biệt có thể quan sát ở TLS 1.3, cùng một chương trình **Java 17+** có thể chạy với bốn phép thử TLS thật trên loopback.
+This lesson focuses on the lifecycle of the `needClientAuth` and `wantClientAuth` flags in JSSE, cases of absent/valid/invalid certificates, the roles of `KeyManager`–`TrustManager`, inspecting the peer via `SSLSession`, observable differences in TLS 1.3, plus a runnable **Java 17+** program executing four real TLS tests over loopback.
 
-### Kết quả mong đợi sau bài
+### Expected outcomes after this lesson
 
-1. Phân biệt **required**, **requested/optional** và **not requested**.
-2. Biết cấu hình trên `SSLServerSocket`, `SSLSocket` hoặc `SSLParameters` trước khi handshake.
-3. Hiểu vì sao `wantClientAuth` **không** có nghĩa “chấp nhận certificate nào cũng được”.
-4. Phân biệt **xác thực client TLS** với **authorization**.
-5. Tạo keystore/truststore thử nghiệm bằng `keytool`, kiểm thử bốn tình huống trên JDK 17+.
-6. Biết cách đọc `getPeerCertificates()`, xử lý client không xác thực và tránh những cấu hình bỏ qua trust validation.
+1. Distinguish **required**, **requested/optional**, and **not requested**.
+2. Know how to configure on `SSLServerSocket`, `SSLSocket`, or `SSLParameters` before the handshake.
+3. Understand why `wantClientAuth` **does not** mean "accept any certificate."
+4. Distinguish **TLS client authentication** from **authorization**.
+5. Create test keystores/truststores with `keytool` and test all four scenarios on JDK 17+.
+6. Know how to read `getPeerCertificates()`, handle unauthenticated clients, and avoid configurations that bypass trust validation.
 
-## 2. Phân biệt server authentication và client authentication
+## 2. Distinguishing server authentication and client authentication
 
-### 2.1. HTTPS một chiều
+### 2.1. One-way HTTPS
 
-Mô hình thường gặp:
+The common model:
 
 ```text
 HTTPS CLIENT                                   TLS SERVER
@@ -34,149 +34,149 @@ HTTPS CLIENT                                   TLS SERVER
     | ----- ClientHello -----------------------> |
     | <----- Server cert / handshake ----------- |
     |                                            |
-    | Client xác minh chuỗi CA, hostname/IP,     |
-    | thời hạn, EKU và chính sách TLS            |
+    | Client verifies CA chain, hostname/IP,     |
+    | validity, EKU, and TLS policy              |
     |                                            |
-    +---- Kênh TLS được thiết lập ---------------+
+    +---- TLS channel established ---------------+
     |                                            |
     | POST /login, bearer token, session... ---> |
 ```
 
-Server identity được xác minh qua chứng thư của **server**. Việc client có tài khoản hoặc token đăng nhập ở lớp ứng dụng là chuyện khác.
+Server identity is verified via the **server's** certificate. Whether the client has an application-layer account or login token is a separate matter.
 
-### 2.2. TLS hai chiều (mutual TLS)
+### 2.2. Mutual TLS (two-way TLS)
 
-Khi server có yêu cầu nhận dạng client bằng certificate:
+When the server asks to identify the client via a certificate:
 
 ```text
 TLS CLIENT                                      TLS SERVER
     |                                                |
     | --------- ClientHello ------------------------> |
     | <-------- Server Certificate / handshake ----- |
-    | <-------- CertificateRequest (nếu cấu hình) -- |
+    | <-------- CertificateRequest (if configured) - |
     |                                                |
-    | ---- Client Certificate (nếu có/phù hợp) -----> |
-    | ---- Bằng chứng sở hữu private key ----------> |
+    | ---- Client Certificate (if any/matching) ----> |
+    | ---- Proof of private key possession ---------> |
     |                                                |
-    |                                  TrustManager xác minh
+    |                                  TrustManager verifies
     |                                  cert chain / policy
     |                                                |
-    +----- TLS handshake thành công hoặc bị từ chối --+
+    +----- TLS handshake succeeds or is rejected ----+
 ```
 
-Đây là sơ đồ **logic**. Trình tự chính xác của thông điệp TLS khác nhau giữa **TLS 1.2 và TLS 1.3**. Trong TLS 1.3, client có thể gửi thông điệp `Certificate` rỗng khi không có certificate phù hợp; phía server sẽ áp dụng chính sách required/optional. Không nên suy từ thứ tự hình vẽ rằng mọi phiên TLS gửi certificate như nhau.
+This is a **logical** diagram. The exact sequence of TLS messages differs between **TLS 1.2 and TLS 1.3**. In TLS 1.3, the client can send an empty `Certificate` message when it has no matching certificate; the server then applies its required/optional policy. Do not infer from diagram ordering that all TLS versions transmit certificates identically.
 
-### 2.3. Client certificate là gì?
+### 2.3. What is a client certificate?
 
-Client certificate là chứng thư X.509 có public key; client phải có **private key tương ứng** để tham gia client-authentication handshake. Một file `client.cer` chỉ chứa **public certificate** không đủ làm identity để client trình chứng cứ sở hữu khóa riêng.
+A client certificate is an X.509 certificate carrying a public key; the client must possess the **corresponding private key** to participate in a client-authentication handshake. A `client.cer` file containing only the **public certificate** is insufficient as an identity for the client to prove private-key possession.
 
-Một cấu hình mTLS bình thường cần:
+A typical mTLS setup requires:
 
-- **Server:** private key + certificate chain của **server**, và **TrustManager** biết tin loại client certificates được cho phép.
-- **Client:** **TrustManager** xác minh server certificate; nếu được yêu cầu/đề nghị mTLS, **KeyManager** có private key và client certificate chain tương ứng.
-- **Cả hai phía:** cấu hình thuật toán/TLS version, trust anchors, policy sử dụng chứng thư và danh tính endpoint hợp lệ.
+- **Server:** the **server's** private key + certificate chain, and a **TrustManager** configured to trust allowed client certificates.
+- **Client:** a **TrustManager** to verify the server certificate; if mTLS is requested/required, a **KeyManager** holding the corresponding private key and client certificate chain.
+- **Both sides:** algorithm/TLS version configuration, trust anchors, certificate usage policies, and valid endpoint identities.
 
-## 3. Ba chế độ client authentication
+## 3. Three client authentication modes
 
-Với accepted `SSLSocket` hoạt động ở **server mode**, có ba trạng thái logic:
+For an accepted `SSLSocket` operating in **server mode**, there are three logical states:
 
-| Chế độ | Cấu hình | Khi client **không có** chứng thư | Khi client có chứng thư **được trust và phù hợp** | Khi client **trình** chứng thư nhưng không được trust |
+| Mode | Configuration | When the client **has no** certificate | When the client has a **trusted, matching** certificate | When the client **presents** an untrusted certificate |
 | --- | --- | --- | --- | --- |
-| **Không yêu cầu** | `setNeedClientAuth(false)` hoặc `setWantClientAuth(false)` theo trạng thái | Có thể handshake thành công | Server thường không chủ động yêu cầu client cert ở handshake này | Không nên suy diễn: nếu không yêu cầu, client có thể không gửi cert |
-| **Đề nghị / optional** | `setWantClientAuth(true)` | **Handshake có thể thành công** nhưng **không có identity mTLS** | Handshake thành công; server có peer certificate đã xác minh | Nếu certificate thật sự được gửi và validation fail, **handshake bị từ chối** |
-| **Bắt buộc / required** | `setNeedClientAuth(true)` | **Handshake bị từ chối** | Handshake thành công; client-authentication TLS được thực hiện | **Handshake bị từ chối** |
+| **Not requested** | `setNeedClientAuth(false)` or `setWantClientAuth(false)` depending on state | Handshake can succeed | Server normally does not request a client cert in this handshake | Do not extrapolate: if unrequested, the client may send no cert |
+| **Requested / optional** | `setWantClientAuth(true)` | **Handshake can succeed** but **has no mTLS identity** | Handshake succeeds; server has a verified peer certificate | If a certificate is actually sent and validation fails, **handshake is rejected** |
+| **Mandatory / required** | `setNeedClientAuth(true)` | **Handshake is rejected** | Handshake succeeds; TLS client authentication is performed | **Handshake is rejected** |
 
-Các kết quả “thành công” trong bảng còn phụ thuộc các điều kiện TLS khác: server certificate có tin cậy không, hostname có khớp không, version/cipher suite được phép không, và chứng thư client có phù hợp certificate policy không.
+The "succeed" outcomes in the table also depend on other TLS conditions: whether the server certificate is trusted, whether the hostname matches, whether the version/cipher suite is allowed, and whether the client certificate meets certificate policy.
 
-**Từ khóa cần nhớ:**
+**Keywords to remember:**
 
-- `need` = **MUST**: không có chứng thư client phù hợp thì không cho handshake server-side hoàn tất.
-- `want` = **ASK / OPTIONAL**: không có chứng thư client vẫn có thể cho TLS thành công.
-- `want` **không** = “chứng thư sai vẫn chấp nhận”. Nếu đã gửi chứng thư và `TrustManager` từ chối, kết nối phải thất bại theo chính sách an toàn.
-- Cờ client-auth không liên quan trực tiếp tới việc client xác minh **server hostname**; đừng bỏ quên kiểm tra HTTPS endpoint chỉ vì đang bật mTLS.
+- `need` = **MUST**: without a valid client certificate, do not allow the server-side handshake to complete.
+- `want` = **ASK / OPTIONAL**: without a client certificate, TLS can still succeed.
+- `want` **does NOT** = "bad certificate still accepted." If a certificate is sent and `TrustManager` rejects it, the connection must fail per security policy.
+- Client-auth flags are not directly tied to the client verifying the **server hostname**; never forget HTTPS endpoint checks just because mTLS is enabled.
 
-### 3.1. Optional client authentication có điểm nhạy cảm
+### 3.1. Sensitivity of optional client authentication
 
-Nếu server đặt `wantClientAuth(true)` và client không trình chứng thư, ứng dụng có thể vẫn nhận được một kết nối TLS hợp lệ về **mã hóa kênh**, nhưng **không có danh tính được xác thực bằng client certificate**.
+If the server sets `wantClientAuth(true)` and the client presents no certificate, the application can still receive a valid TLS connection in terms of **channel encryption**, yet **without a client-certificate-authenticated identity**.
 
-Ví dụ hệ thống cho phép cả người dùng thông thường và robot có chứng thư:
+For example, a system allowing both regular users and certificate-bearing robots:
 
 ```text
 TCP/TLS accepted with wantClientAuth=true
                   |
                   v
-Server kiểm tra: peer có client certificate đã xác minh?
-        | không                              | có
+Server checks: does peer have a verified client certificate?
+        | no                                 | yes
         v                                    v
-   Nhánh anonymous/                       Ánh xạ identity
-   xác thực khác                           từ cert đáng tin
+   Anonymous branch /                     Map identity
+   other authentication                   from trusted cert
         |                                    |
-   Chỉ cho API public                Kiểm role, tenant, scope
-   hoặc yêu cầu login                trước API được bảo vệ
+   Allow public APIs only             Check role, tenant, scope
+   or require login                   before protected APIs
 ```
 
-Nếu một API quản trị **bắt buộc mTLS**, chỉ đặt `wantClientAuth(true)` là **không đủ**. Phải từ chối phiên không có certificate ngay ở TLS bằng `needClientAuth(true)` (trên listener tương ứng), hoặc có rào chắn bắt buộc và được kiểm thử ở lớp ứng dụng/proxy trước khi thực thi, tùy kiến trúc. Không gắn nhãn “mTLS required” chỉ vì listener có `wantClientAuth`.
+If an admin API **mandates mTLS**, merely setting `wantClientAuth(true)` is **not enough**. You must reject sessions without a certificate right at TLS using `needClientAuth(true)` (on the corresponding listener), or enforce a tested mandatory gate at the application/proxy layer before execution, depending on architecture. Never label an API "mTLS required" merely because the listener has `wantClientAuth`.
 
-### 3.2. Required client authentication cũng chưa phải authorization
+### 3.2. Required client authentication is still not authorization
 
-`needClientAuth(true)` chứng minh server đã yêu cầu một chứng thư **được trust manager chấp nhận** trong handshake; nó **chưa chứng minh client đó được phép gọi tất cả chức năng**.
+`needClientAuth(true)` proves the server required a certificate **accepted by the trust manager** during the handshake; it **does not prove that client is allowed to call every function**.
 
-Nếu truststore chứa một CA nội bộ cấp chứng thư cho nhiều ứng dụng hoặc nhiều tenant, một certificate hợp lệ của ứng dụng A có thể vẫn thuộc trust domain đó dù đang truy cập API của ứng dụng B.
+If the truststore holds an internal CA that issues certificates for multiple applications or multiple tenants, a valid certificate from application A may still belong to that trust domain even when accessing application B's API.
 
-Sau handshake cần ánh xạ certificate identity (theo policy DNS SAN, URI SAN, subject, issuer, public-key binding...), kiểm tra mục đích clientAuth/EKU, thời hạn, trạng thái thu hồi và cấp quyền theo **danh tính thật sự được hệ thống tin**. Không sử dụng `CN` hoặc `SAN` thô mà không định nghĩa cách xác thực/định danh.
+After the handshake, map the certificate identity (per DNS SAN, URI SAN, subject, issuer, public-key binding policy...), check `clientAuth`/EKU purpose, validity, revocation status, and authorize according to the **actual system-trusted identity**. Never use raw `CN` or `SAN` without defining how identification/verification works.
 
-## 4. JSSE dùng API nào để đặt needClientAuth/wantClientAuth?
+## 4. Which JSSE APIs set needClientAuth/wantClientAuth?
 
-### 4.1. SSLServerSocket: áp dụng cho kết nối mới được accept
+### 4.1. SSLServerSocket: applies to newly accepted connections
 
-Ví dụ **đoạn mã minh họa**:
+**Illustrative snippet** example:
 
 ```java
 SSLServerSocket listener = (SSLServerSocket)
         serverContext.getServerSocketFactory().createServerSocket(8443);
 
-listener.setNeedClientAuth(true); // Client cert bắt buộc.
+listener.setNeedClientAuth(true); // Client cert required.
 System.out.println(listener.getNeedClientAuth()); // true
 System.out.println(listener.getWantClientAuth()); // false
 ```
 
-`SSLServerSocket` là **listening socket**; khi `accept()` tạo `SSLSocket` ở server mode, socket mới **kế thừa cấu hình ban đầu** của listener. Khi server gọi `setNeedClientAuth(true)`, client không cung cấp thông tin xác thực sẽ làm TLS negotiation dừng và kết nối bị ngắt theo Javadoc Java 17.
+`SSLServerSocket` is the **listening socket**; when `accept()` creates a server-mode `SSLSocket`, the new socket **inherits the initial configuration** of the listener. When the server calls `setNeedClientAuth(true)`, a client failing to provide authentication stops TLS negotiation and drops the connection per Java 17 Javadoc.
 
-Khi dùng:
+When using:
 
 ```java
 listener.setWantClientAuth(true);
 ```
 
-server chỉ **đề nghị** client authentication và cho phép client không trình chứng thư. Lời gọi đó **ghi đè** cấu hình `setNeedClientAuth` trước đó trên listener.
+the server only **requests** client authentication and allows a client not to present a certificate. That call **overrides** any prior `setNeedClientAuth` setting on the listener.
 
-**Cần tránh:** thay cờ trên listening socket rồi mong những kết nối **đã accept/đã handshake** tự nhận cấu hình mới. Thay listener chỉ ảnh hưởng cách khởi tạo các accepted sockets tiếp theo; với accepted socket, cấu hình cần được đặt **trước initial handshake**. Đối với những session đã thiết lập, không nên trông chờ đổi cờ có thể bắt client xuất trình chứng thư giữa phiên.
+**Avoid:** flipping flags on the listening socket expecting **already-accepted/handshaken** connections to pick up the new settings. Modifying the listener affects only how subsequent accepted sockets are initialized; on an accepted socket, settings must be placed **before the initial handshake**. For already-established sessions, do not expect flag changes to force the client to present a certificate mid-session.
 
-### 4.2. SSLSocket ở phía server
+### 4.2. SSLSocket on the server side
 
-Khi cần chính sách riêng từng kết nối:
+When per-connection policy is needed:
 
 ```java
 try (SSLSocket peer = (SSLSocket) listener.accept()) {
-    peer.setNeedClientAuth(true); // Trước khi bắt đầu handshake.
+    peer.setNeedClientAuth(true); // Before starting the handshake.
     peer.startHandshake();
-    // Peer auth/TLS handshake đã được kiểm tra theo cấu hình.
+    // Peer auth/TLS handshake has been checked per configuration.
 }
 ```
 
-Đoạn mã phụ thuộc `listener` và `serverContext` đã được tạo; **không phải chương trình độc lập**. Phương thức `SSLSocket.setNeedClientAuth` hoặc `setWantClientAuth` chỉ hữu ích khi socket hoạt động ở **server mode**.
+This snippet depends on an already-created `listener` and `serverContext`; it is **not a standalone program**. `SSLSocket.setNeedClientAuth` or `setWantClientAuth` is only meaningful when the socket operates in **server mode**.
 
-Phân biệt:
+Distinguish:
 
-- `SSLServerSocket.setNeedClientAuth`: cấu hình **ban đầu cho accepted sockets mới**.
-- `SSLSocket.setNeedClientAuth`: cấu hình **accepted socket cụ thể** trước handshake.
-- `SSLParameters.setNeedClientAuth`: lưu chính sách để áp vào socket/engine, thường bằng `setSSLParameters(...)`.
+- `SSLServerSocket.setNeedClientAuth`: **initial** configuration for newly accepted sockets.
+- `SSLSocket.setNeedClientAuth`: configuration for a **specific accepted socket** before handshake.
+- `SSLParameters.setNeedClientAuth`: stores policy to apply to a socket/engine, typically via `setSSLParameters(...)`.
 
-Khi phát triển server có nhiều nhóm endpoint, hãy cấu hình listener/port hoặc policy chuyên biệt đã được kiểm soát, không dựa vào việc thay cờ theo dữ liệu client chưa xác thực.
+When developing a server with multiple endpoint groups, configure controlled dedicated listeners/ports or policies; do not rely on flipping flags based on unauthenticated client data.
 
-### 4.3. SSLParameters: cần/want là trạng thái loại trừ nhau
+### 4.3. SSLParameters: need/want are mutually exclusive states
 
-Ví dụ:
+Example:
 
 ```java
 SSLParameters params = socket.getSSLParameters();
@@ -188,110 +188,110 @@ params.setWantClientAuth(true);
 System.out.println(params.getNeedClientAuth()); // false
 System.out.println(params.getWantClientAuth()); // true
 
-socket.setSSLParameters(params); // Áp vào socket trước handshake.
+socket.setSSLParameters(params); // Apply to socket before handshake.
 ```
 
-**Quy tắc theo Javadoc Java 17:**
+**Rule per Java 17 Javadoc:**
 
-- `SSLParameters.setNeedClientAuth(...)` **xóa cờ wantClientAuth**.
-- `SSLParameters.setWantClientAuth(...)` **xóa cờ needClientAuth**.
-- Hai cờ **không cộng dồn**. Nếu vô tình gọi cả hai với `true`, lời gọi sau thay đổi chính sách.
-- `SSLServerSocket` và `SSLSocket` cũng có cơ chế override các setting liên quan: gọi `setWantClientAuth(true)` sau `setNeedClientAuth(true)` khiến trạng thái cuối trở thành **want** chứ không còn **need**.
+- `SSLParameters.setNeedClientAuth(...)` **clears the wantClientAuth flag**.
+- `SSLParameters.setWantClientAuth(...)` **clears the needClientAuth flag**.
+- The two flags **do not stack**. If both are accidentally called with `true`, the later call changes the policy.
+- `SSLServerSocket` and `SSLSocket` also override the related setting: calling `setWantClientAuth(true)` after `setNeedClientAuth(true)` leaves the final state as **want**, no longer **need**.
 
-Nếu code cấu hình phân tán trong nhiều lớp (framework, adapter, method cấu hình bảo mật), cần đọc **trạng thái cuối cùng sau khi mọi setter đã chạy** bằng `getNeedClientAuth()` và `getWantClientAuth()`. Một thay đổi cấu hình nhỏ có thể vô tình hạ yêu cầu mTLS từ **required** xuống **optional**.
+If configuration code is spread across multiple layers (framework, adapters, security config methods), inspect the **final state after all setters have run** using `getNeedClientAuth()` and `getWantClientAuth()`. One small config change can inadvertently downgrade mTLS from **required** to **optional**.
 
 ### 4.4. SSLEngine
 
-Với NIO/Netty hoặc một transport tự quản lý bằng `SSLEngine`, có thể dùng:
+With NIO/Netty or a transport managed directly with `SSLEngine`, you can use:
 
 ```java
 SSLEngine engine = sslContext.createSSLEngine();
-engine.setUseClientMode(false); // Engine ở phía TLS server.
+engine.setUseClientMode(false); // Engine on the TLS server side.
 SSLParameters params = engine.getSSLParameters();
 params.setNeedClientAuth(true);
 engine.setSSLParameters(params);
 ```
 
-Đây là đoạn mã minh họa. Phần tạo `SSLEngine`, cấu hình TLS/hostname, buffer, tasks và bắt tay non-blocking cần được thực hiện đầy đủ theo JSSE/transport library. Điều cốt lõi vẫn là **đặt chế độ server và client-auth policy trước handshake**. Nếu dùng framework, phải biết option `clientAuth=REQUIRE/OPTIONAL/NONE` của framework được ánh xạ vào JSSE ở đâu.
+This is an illustrative snippet. Creating `SSLEngine`, TLS/hostname settings, buffers, tasks, and non-blocking handshakes must be fully implemented per JSSE/transport library. The core rule remains **setting server mode and client-auth policy before the handshake**. If using a framework, know where its `clientAuth=REQUIRE/OPTIONAL/NONE` option maps to JSSE.
 
-## 5. Chứng thư được chấp nhận bằng KeyManager và TrustManager như thế nào?
+## 5. How are certificates accepted by KeyManager and TrustManager?
 
-### 5.1. Hai vai trò dễ bị đảo ngược
+### 5.1. Two roles that are easily swapped
 
-Trong `SSLContext.init(KeyManager[], TrustManager[], SecureRandom)`:
+In `SSLContext.init(KeyManager[], TrustManager[], SecureRandom)`:
 
-- **`KeyManager`** chọn local private key + certificate chain để **chính bên này trình ra** khi giao thức cần.
-- **`TrustManager`** xác minh certificate của **peer** (bên kia) khi certificate được trình ra.
+- **`KeyManager`** selects the local private key + certificate chain for **this side to present** when required by the protocol.
+- **`TrustManager`** verifies the **peer's** (the other side's) certificate when presented.
 
-Với server mTLS:
+For an mTLS server:
 
-| Thành phần server | Cần có | Chức năng |
+| Server component | Required content | Function |
 | --- | --- | --- |
-| `KeyManagerFactory` khởi tạo từ `server.p12` | Server private key + certificate chain | Đưa danh tính server cho client; chứng minh sở hữu private key server. |
-| `TrustManagerFactory` khởi tạo từ `server-trust.p12` | Các CA/client cert được server tin theo policy | Xác minh chứng thư được client trình ra. |
-| `setNeedClientAuth(true)` hoặc `setWantClientAuth(true)` | Cờ policy của server-side socket | Quy định có bắt buộc client certificate trong handshake không. |
+| `KeyManagerFactory` initialized from `server.p12` | Server private key + certificate chain | Presents server identity to the client; proves possession of the server private key. |
+| `TrustManagerFactory` initialized from `server-trust.p12` | CAs/client certs trusted by the server per policy | Verifies the certificate presented by the client. |
+| `setNeedClientAuth(true)` or `setWantClientAuth(true)` | Server-side socket policy flag | Determines whether a client certificate is mandatory during the handshake. |
 
-Với client:
+For the client:
 
-| Thành phần client | Cần có | Chức năng |
+| Client component | Required content | Function |
 | --- | --- | --- |
-| `TrustManagerFactory` từ `client-trust.p12` | Certificate/CA của server được client tin | Xác minh server; **còn phải kiểm hostname/IP** nếu giao thức cần. |
-| `KeyManagerFactory` từ `client.p12` | Private key + certificate chain của client (khi có) | Có thể chọn và gửi chứng thư client khi server đề nghị/yêu cầu. |
-| `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` | Reference identity từ endpoint client định gọi | Kiểm tên server khi thực hiện HTTPS/TLS theo JSSE. |
+| `TrustManagerFactory` from `client-trust.p12` | Server certificates/CAs trusted by the client | Verifies the server; **must also check hostname/IP** if required by protocol. |
+| `KeyManagerFactory` from `client.p12` | Client private key + certificate chain (when present) | Can select and send the client certificate when requested/required by the server. |
+| `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` | Reference identity from the endpoint the client intends to call | Checks server name when performing HTTPS/TLS per JSSE. |
 
-**Lỗi phổ biến:** chỉ tạo `server.p12` cho server và bật `needClientAuth(true)`, nhưng không cấu hình truststore để server **tin issuer của client certificate**. Client có chứng thư vẫn có thể bị từ chối.
+**Common mistake:** creating `server.p12` for the server and enabling `needClientAuth(true)`, without configuring a truststore so the server **trusts the client certificate's issuer**. Even a client with a certificate will be rejected.
 
-Ngược lại, client có `client.p12` nhưng **không có** truststore tin server certificate thì client sẽ từ chối **server authentication**; lỗi này độc lập với cấu hình want/need trên server.
+Conversely, a client with `client.p12` but **no** truststore trusting the server certificate will reject **server authentication**; this failure is independent of the server's want/need setting.
 
-### 5.2. Client phải có private key phù hợp, không chỉ certificate công khai
+### 5.2. Client must have a matching private key, not just a public certificate
 
-`KeyManagerFactory` chọn certificate chain/private key theo các thuật toán và danh sách acceptable issuers mà server gửi. Nếu không có alias/chứng thư phù hợp, client có thể **không gửi certificate**, dù keystore có một entry khác.
+`KeyManagerFactory` selects a certificate chain/private key based on the algorithms and acceptable issuers list sent by the server. If no matching alias/certificate is found, the client may **send no certificate**, even if the keystore holds another entry.
 
-Với `wantClientAuth`, tình huống này có thể khiến handshake **thành công mà không có peer cert** — không có bằng chứng client đã xác thực bằng mTLS. Với `needClientAuth`, server sẽ **từ chối**.
+With `wantClientAuth`, this situation can let the handshake **succeed with no peer cert** — leaving no proof the client authenticated via mTLS. With `needClientAuth`, the server will **reject**.
 
-Điều đó khác với “client chắc chắn đã gửi một certificate không được tin cậy”: nếu certificate **được gửi** nhưng trust validation fail, handshake không được tự động cho qua chỉ vì want=optional.
+That differs from "the client definitely sent an untrusted certificate": if a certificate **was sent** and trust validation failed, the handshake must not pass automatically just because want=optional.
 
-### 5.3. Trust không tự đồng nghĩa “có quyền”
+### 5.3. Trust does not automatically mean "authorized"
 
-`TrustManagerFactory` theo PKIX/truststore có thể công nhận nhiều client certificates do cùng CA phát hành. Để cho phép một service cụ thể:
+`TrustManagerFactory` under PKIX/truststore can recognize many client certificates issued by the same CA. To authorize a specific service:
 
-- Chọn **identity attribute** và chuẩn ánh xạ ổn định, ví dụ URI SAN của workload theo profile service mesh, hoặc public-key identity được pin trong registry.
-- Xác minh issuer/trust anchor và các thuộc tính liên quan (EKU `clientAuth`, key usage, validity, revocation nếu policy áp dụng).
-- Ánh xạ certificate → principal ứng dụng → role/tenant/scope.
-- Không chỉ so chuỗi `CN` như tên tài khoản tùy ý hoặc cho mọi chứng thư của CA nội bộ quyền admin.
-- Cân nhắc certificate rotation: không gắn authorization vào serial number/subject dễ thay đổi nếu kiến trúc cần danh tính ổn định.
+- Choose an **identity attribute** and stable mapping standard, such as a workload URI SAN per service-mesh profile, or a registry-pinned public-key identity.
+- Verify the issuer/trust anchor and relevant attributes (`clientAuth` EKU, key usage, validity, revocation if policy requires).
+- Map certificate → application principal → role/tenant/scope.
+- Never just match `CN` strings as arbitrary usernames or grant admin access to every certificate from an internal CA.
+- Account for certificate rotation: do not bind authorization to mutable serial numbers/subjects if the architecture needs a stable identity.
 
-### 5.4. Bắt buộc client certificate vẫn không thay thế xác minh server
+### 5.4. Requiring a client certificate still does not replace verifying the server
 
-Client cần xác thực server trước khi gửi dữ liệu nhạy cảm hoặc credential; mTLS **không** cho phép client bỏ hostname verification. Nếu client kết nối theo URL `https://api.example.test`, server certificate phải có SAN phù hợp cho `api.example.test` và PKIX trust path phải được kiểm tra theo policy.
+The client must authenticate the server before sending sensitive data or credentials; mTLS **does not** permit the client to skip hostname verification. If the client connects to `https://api.example.test`, the server certificate must have a matching SAN for `api.example.test` and the PKIX trust path must be checked per policy.
 
-Trong lab dưới đây kết nối theo IP `127.0.0.1`, do đó chứng thư server thử nghiệm chứa **SAN:IP Address 127.0.0.1**. Client gọi `setEndpointIdentificationAlgorithm("HTTPS")` để minh họa kiểm tra endpoint ở lớp JSSE; không có trust-all manager.
+In the lab below, connections use IP `127.0.0.1`, so the test server certificate contains **SAN:IP Address 127.0.0.1**. The client calls `setEndpointIdentificationAlgorithm("HTTPS")` to demonstrate JSSE-layer endpoint checking; there is no trust-all manager.
 
-## 6. Java 17+ lab: bốn TLS 1.3 handshakes thực sự
+## 6. Java 17+ lab: four real TLS 1.3 handshakes
 
-Ví dụ này dùng các tiện ích có sẵn trong JDK (`keytool`, `javac`, `java`) và một file Java duy nhất. Chúng ta tạo **bốn PKCS#12 test stores**:
+This example uses tools built into the JDK (`keytool`, `javac`, `java`) and a single Java file. We create **four PKCS#12 test stores**:
 
 ```text
-server.p12         -- private key + cert của localhost
-client.p12         -- private key + cert của demo-client
-server-trust.p12   -- server tin client certificate thử nghiệm
-client-trust.p12   -- client tin server certificate thử nghiệm
+server.p12         -- private key + cert of localhost
+client.p12         -- private key + cert of demo-client
+server-trust.p12   -- server trusts the test client certificate
+client-trust.p12   -- client trusts the test server certificate
 
-Client không chứng thư:
+Client without certificate:
   SSLContext.init(null, clientTrustManagers, random)
 
-Client có chứng thư:
+Client with certificate:
   SSLContext.init(clientKeyManagers, clientTrustManagers, random)
 
-Server luôn có:
+Server always has:
   SSLContext.init(serverKeyManagers, serverTrustManagers, random)
 ```
 
-Ở đây chứng thư là **self-signed chỉ cho test**, nhưng mỗi bên **chủ động cài chứng thư bên kia vào truststore riêng**. Đây là cách cố tình tạo test anchors của lab, **không** phải mô hình đề xuất cho production. Trong môi trường thật, cần CA/PKI, provisioning và quản lý vòng đời chứng thư phù hợp.
+Here the certificates are **self-signed for testing only**, with each side **explicitly installing the other's certificate into its own truststore**. This is an intentional way to create test anchors for a lab, **not** a recommended production model. In real environments, use proper CA/PKI, provisioning, and certificate lifecycle management.
 
-### 6.1. Tạo chứng thư và truststores bằng keytool
+### 6.1. Creating certificates and truststores with keytool
 
-Tạo **thư mục lab mới** và chạy các lệnh sau tại thư mục đó. Các command `keytool` bên dưới viết trên từng dòng để dùng được cả trong shell thông thường lẫn PowerShell (khi đã có JDK trên PATH):
+Create a **new lab directory** and run the following commands inside it. The `keytool` commands below are single-line so they work in both standard shells and PowerShell (with the JDK on PATH):
 
 ```bash
 mkdir client-auth-lab
@@ -310,13 +310,13 @@ keytool -importcert -alias server -file server.cer -keystore client-trust.p12 -s
 keytool -importcert -alias client -file client.cer -keystore server-trust.p12 -storetype PKCS12 -storepass changeit -noprompt
 ```
 
-**Cảnh báo:** password `changeit`, self-signed certificates và khóa RSA thử nghiệm trong các lệnh này **chỉ để lab**. Không dùng cho môi trường thật, không commit `*.p12`, `*.jks`, `*.key` vào repository, không gửi private key vào chat/ticket, không dùng test CA làm trust anchor production. Sau lab, xóa thư mục thử nghiệm theo chính sách. Khóa test có thời hạn **365 ngày kể từ lúc sinh**, nên khi làm bài sau đó hãy sinh lại thay vì tái sử dụng keystore đã hết hạn.
+**Warning:** the password `changeit`, self-signed certificates, and test RSA keys in these commands are **for lab use only**. Never use them in real environments, never commit `*.p12`, `*.jks`, or `*.key` to repositories, never paste private keys into chats/tickets, and never use a test CA as a production trust anchor. After the lab, delete the test directory per policy. The test keys are valid for **365 days from generation**, so regenerate them later instead of reusing expired keystores.
 
-Các file `server.cer` và `client.cer` chỉ chứa **chứng thư công khai**, không có private key. Chúng được import vào truststores để phục vụ trust decision; khi client xác thực mình, private key nằm ở `client.p12`.
+The `server.cer` and `client.cer` files contain only **public certificates**, with no private keys. They are imported into truststores for trust decisions; when the client authenticates itself, the private key resides in `client.p12`.
 
-### 6.2. Chương trình ClientAuthDemo.java
+### 6.2. ClientAuthDemo.java program
 
-Tạo file `ClientAuthDemo.java` ngay trong thư mục có bốn `.p12`:
+Create `ClientAuthDemo.java` in the directory containing the four `.p12` files:
 
 ```java
 import java.io.IOException;
@@ -452,14 +452,14 @@ public final class ClientAuthDemo {
 }
 ```
 
-### 6.3. Chạy chương trình và stdout
+### 6.3. Running the program and stdout
 
 ```bash
 javac ClientAuthDemo.java
 java ClientAuthDemo
 ```
 
-Sau khi các lệnh `keytool` trên hoàn tất, Java program in chính xác:
+After completing the `keytool` commands above, the Java program prints exactly:
 
 ```text
 want + no cert: accepted=true, authenticated=false
@@ -468,64 +468,64 @@ want + trusted cert: accepted=true, authenticated=true
 need + trusted cert: accepted=true, authenticated=true
 ```
 
-**Giải thích bốn dòng:**
+**Explanation of the four lines:**
 
-1. `want + no cert: accepted=true, authenticated=false`: server yêu cầu mềm. Client không có `KeyManager` chứa client identity nên không trình chứng thư; TLS server-side handshake hoàn tất; `SSLSession.getPeerCertificates()` ném `SSLPeerUnverifiedException`, được chuyển thành cờ `authenticated=false`.
-2. `need + no cert: accepted=false, authenticated=false`: server yêu cầu cứng. Client không có chứng thư phù hợp, nên TLS server-side handshake bị từ chối; không có kết nối client-authentication để xử lý request.
-3. `want + trusted cert: accepted=true, authenticated=true`: server chỉ đề nghị, nhưng client có private key và cert được server trust, nên client có thể trình chứng thư và TLS server handshake chấp nhận.
-4. `need + trusted cert: accepted=true, authenticated=true`: server bắt buộc chứng thư, client có chứng thư được tin; handshake hoàn tất và server đọc được `peerCertificates` đã qua handshake validation.
+1. `want + no cert: accepted=true, authenticated=false`: server requests optionally. The client has no `KeyManager` containing a client identity, so it sends no certificate; the server-side TLS handshake completes; `SSLSession.getPeerCertificates()` throws `SSLPeerUnverifiedException`, which is mapped to `authenticated=false`.
+2. `need + no cert: accepted=false, authenticated=false`: server strictly requires it. The client has no matching certificate, so the server-side TLS handshake is rejected; there is no client-authenticated connection to process requests.
+3. `want + trusted cert: accepted=true, authenticated=true`: server only requests, yet the client has a private key and server-trusted cert, so the client can present its certificate and the TLS server handshake accepts it.
+4. `need + trusted cert: accepted=true, authenticated=true`: server requires a certificate, and the client has a trusted one; the handshake completes and the server reads `peerCertificates` verified by handshake validation.
 
-Đây là các **kết quả từ server**. Demo có một thread riêng xử lý `listener.accept()` và `peer.startHandshake()`, trong khi main thread tạo client connection. Trong TLS 1.3, một số lỗi ở server có thể xuất hiện **sau khi một phía nghĩ rằng bước startHandshake cục bộ của mình đã hoàn tất**; vì vậy code trả kết quả **sau khi nhận Future của server** thay vì coi riêng return của `client.startHandshake()` là bằng chứng server đã cho phép client.
+These are **server-side outcomes**. The demo uses a separate thread for `listener.accept()` and `peer.startHandshake()`, while the main thread creates the client connection. In TLS 1.3, some server errors can occur **after one side thinks its local `startHandshake` step has completed**; therefore the code returns the result **after retrieving the server's `Future`** rather than treating the return of `client.startHandshake()` alone as proof the server admitted the client.
 
-Cách bắt `IOException` và rút gọn thành boolean trong demo chỉ nhằm có stdout ổn định. **Production không nên bỏ qua nguyên nhân TLS failure**; cần ghi loại lỗi không nhạy cảm và có xử lý fail-closed. Thử nghiệm cũng dùng thời gian chờ 5–10 giây để tránh treo vô hạn trong môi trường lab; đó không phải timeout bắt buộc của JSSE.
+Catching `IOException` and condensing it to a boolean in the demo is solely to produce stable stdout. **Production must never ignore the cause of a TLS failure**; log non-sensitive error categories and fail closed. The test also uses 5–10 second timeouts to prevent hanging indefinitely in a lab environment; those are not mandatory JSSE timeouts.
 
-### 6.4. Những gì chương trình thực sự chứng minh
+### 6.4. What the program actually proves
 
-- Nó mở **kết nối TCP trên 127.0.0.1**, dùng **SSLServerSocket/SSLSocket thực**, không mô phỏng handshake bằng cờ booleans thuần túy.
-- Cả hai phía bật `TLSv1.3`; chương trình sẽ lỗi nếu JDK/provider đang dùng không hỗ trợ.
-- Server sử dụng `server.p12` để trình chứng thư cho client; client có truststore riêng.
-- Server dùng `server-trust.p12` để xác thực client certificate khi client gửi.
-- Client bật `setEndpointIdentificationAlgorithm("HTTPS")` và kết nối theo `127.0.0.1`, khớp SAN IP thử nghiệm.
-- Sau handshake, server kiểm tra `getPeerCertificates()` để biết peer có một certificate chain được xác minh trong chính phiên TLS hay không.
-- Khi client không có identity, `SSLContext` nhận mảng `KeyManager[]` là `null`: client vẫn **xác minh server** bằng `TrustManager[]`, nhưng không có private key để xác thực client.
+- It opens a **TCP connection on 127.0.0.1** using **real SSLServerSocket/SSLSocket**, not simulating a handshake with mere boolean flags.
+- Both sides enable `TLSv1.3`; the program will fail if the JDK/provider used does not support it.
+- The server uses `server.p12` to present its certificate to the client; the client has its own truststore.
+- The server uses `server-trust.p12` to authenticate the client certificate when sent by the client.
+- The client enables `setEndpointIdentificationAlgorithm("HTTPS")` and connects to `127.0.0.1`, matching the test IP SAN.
+- After the handshake, the server checks `getPeerCertificates()` to determine whether the peer has a certificate chain verified within that TLS session.
+- When the client has no identity, `SSLContext` receives `null` for `KeyManager[]`: the client still **verifies the server** using `TrustManager[]`, but has no private key for client authentication.
 
-### 6.5. Những gì chương trình không chứng minh
+### 6.5. What the program does not prove
 
-- Demo **không phải public PKI** và không có CA certificate chain đúng mô hình production; truststores chứa test leaf certificates được import trực tiếp.
-- Không có URL thật, không có DNS/public server, không có request HTTP, không có kiểm tra role/tenant/scope sau TLS.
-- Nó không tự chứng minh mọi certificate có cùng CA đều được phép; lab tin đúng một certificate ở mỗi hướng để thử hành vi.
-- Không kiểm tra thu hồi CRL/OCSP, HSM, certificate rotation, truststore updates hay phân tách credential production.
-- Không kiểm thử tình huống **client đã gửi chứng thư thực sự nhưng chain không được tin**: khi JSSE nhìn danh sách acceptable CAs mà không chọn được alias, client có thể **không gửi** chứng thư ngay từ đầu. Vì vậy cần test riêng loại lỗi “untrusted presented certificate” bằng cấu hình lab thích hợp.
-- Không bảo đảm rằng mọi phiên bản JDK/provider báo cùng thông điệp exception; kết quả logic required/optional là đặc điểm API, còn phần message/stack trace có thể khác.
+- The demo **is not a public PKI** and does not have a production-style CA certificate chain; the truststores hold directly imported test leaf certificates.
+- There is no real URL, no DNS/public server, no HTTP request, and no post-TLS role/tenant/scope check.
+- It does not automatically prove every certificate from the same CA is permitted; the lab trusts one specific certificate in each direction to test behavior.
+- It does not test CRL/OCSP revocation, HSMs, certificate rotation, truststore updates, or production credential separation.
+- It does not test the scenario where **the client actually sends a certificate whose chain is untrusted**: when JSSE inspects the acceptable CAs list and cannot pick an alias, the client may **send no certificate** at all. Therefore, testing "untrusted presented certificate" requires a dedicated lab setup.
+- It does not guarantee every JDK/provider version emits the same exception messages; the required/optional logic is an API property, while messages/stack traces may vary.
 
-## 7. SSLSession: xác định client đã xác thực bằng chứng thư chưa
+## 7. SSLSession: determining whether the client authenticated with a certificate
 
-Sau khi **server-side TLS handshake thành công**, có thể đọc certificate chain của peer:
+After the **server-side TLS handshake succeeds**, you can read the peer's certificate chain:
 
 ```java
 SSLSession session = peerSocket.getSession();
 try {
     Certificate[] chain = session.getPeerCertificates();
-    // Ở server mode: peer chính là client.
-    // Còn phải ánh xạ danh tính/authorization theo policy.
+    // In server mode: the peer is the client.
+    // Identity/authorization mapping per policy is still required.
 } catch (SSLPeerUnverifiedException noClientCertificate) {
-    // Có thể xảy ra với wantClientAuth; xử lý như chưa xác thực mTLS.
+    // Can happen with wantClientAuth; handle as unauthenticated by mTLS.
 }
 ```
 
-Đoạn mã minh họa trên cần imports `javax.net.ssl.SSLSession`, `javax.net.ssl.SSLPeerUnverifiedException` và `java.security.cert.Certificate`, đồng thời `peerSocket` là accepted `SSLSocket` của server đã thực hiện handshake thành công.
+The snippet above requires importing `javax.net.ssl.SSLSession`, `javax.net.ssl.SSLPeerUnverifiedException`, and `java.security.cert.Certificate`, with `peerSocket` being a server-accepted `SSLSocket` that has completed its handshake.
 
-**Chú ý:**
+**Notes:**
 
-- `SSLSession.getPeerCertificates()` có thể ném `SSLPeerUnverifiedException` nếu không có certificate-based peer authentication. Đừng gọi rồi giả định luôn có mảng khác rỗng.
-- Ở **server-side socket**, peer certificate là **client certificate**. Ở **client-side socket**, peer certificate là **server certificate**. Đừng nhầm ngữ cảnh.
-- Trong một TLS session được xác minh bằng trust manager đúng, chain đã được JSSE xem xét theo trust policy. Nhưng chain hiện diện **không thay thế** ánh xạ danh tính/authorization của ứng dụng.
-- `session.getPeerPrincipal()` có thể cho biết principal liên quan; tuy nhiên chỉ `CN` hoặc `X500Principal.toString()` thường không đủ làm chính sách định danh cho mọi mô hình mTLS.
-- `getLocalCertificates()` (nếu có) nói về chứng thư **của chính bên cục bộ**, khác với `getPeerCertificates()`. Dùng sai sẽ khiến code tưởng client đã xác thực trong khi mới chỉ thấy cert server.
+- `SSLSession.getPeerCertificates()` can throw `SSLPeerUnverifiedException` if no certificate-based peer authentication occurred. Never call it assuming a non-empty array is always returned.
+- On a **server-side socket**, the peer certificate is the **client certificate**. On a **client-side socket**, the peer certificate is the **server certificate**. Do not mix up the context.
+- In a TLS session verified by a proper trust manager, the chain was evaluated by JSSE per trust policy. Yet the presence of a chain **does not replace** application identity mapping/authorization.
+- `session.getPeerPrincipal()` can provide the associated principal; however, `CN` or `X500Principal.toString()` alone is usually insufficient as an identification policy across mTLS models.
+- `getLocalCertificates()` (if present) refers to **this local side's own** certificates, unlike `getPeerCertificates()`. Using the wrong one makes code think the client authenticated when it is only seeing the server's cert.
 
-### 7.1. Kiểm soát cả nhánh anonymous của wantClientAuth
+### 7.1. Controlling the anonymous branch of wantClientAuth
 
-Nếu muốn dùng optional mTLS cho hai nhóm API, phải có một quy tắc như:
+If you want optional mTLS for two API groups, enforce a rule such as:
 
 ```text
 if TLS handshake failed:
@@ -536,70 +536,70 @@ else:
     restrict to anonymous/public routes or require other authentication
 ```
 
-Đây là giả mã, không phải Java executable. Không cho phép logic kiểu `if (TLS session exists) allowAdmin()` vì **TLS session thành công với want/no-cert không có nghĩa mTLS identity tồn tại**.
+This is pseudocode, not executable Java. Never allow logic like `if (TLS session exists) allowAdmin()` because **a successful TLS session with want/no-cert does not mean an mTLS identity exists**.
 
-Nếu chỉ một số endpoint yêu cầu chứng thư, còn phần khác cho anonymous, cân nhắc tách listener/hostname có `needClientAuth` riêng để việc enforce chính sách rõ ràng. Thay cờ sau handshake theo URL path **không làm client tự thực hiện lại bước authentication ban đầu**, đặc biệt ở TLS 1.3.
+If only certain endpoints require a certificate while others allow anonymous access, consider separating listeners/hostnames with dedicated `needClientAuth` so policy enforcement is explicit. Flipping flags after the handshake based on URL path **does not make the client automatically re-run initial authentication**, especially in TLS 1.3.
 
-## 8. Tại sao wantClientAuth không có nghĩa chấp nhận mọi certificate?
+## 8. Why wantClientAuth does not mean accepting every certificate
 
-Cần tách hai loại thất bại:
+Separate two kinds of failure:
 
-### A. Không có client certificate
+### A. No client certificate
 
-Client có thể không sở hữu private key/client certificate hoặc KeyManager không tìm được alias phù hợp. Với `wantClientAuth`, TLS có thể thành công và ứng dụng nhận **unauthenticated client connection**.
+The client may lack a private key/client certificate, or `KeyManager` cannot find a matching alias. With `wantClientAuth`, TLS can succeed and the application receives an **unauthenticated client connection**.
 
-### B. Certificate được gửi nhưng không qua validation
+### B. A certificate is sent but fails validation
 
-Khi client thực sự trình một certificate chain, server cần kiểm tra thông qua `TrustManager` được cấu hình đúng; ví dụ:
+When the client actually presents a certificate chain, the server must verify it via a properly configured `TrustManager`; for instance:
 
-- Certificate không dẫn tới trust anchor mà server chấp nhận.
-- Certificate hết hạn, chưa hiệu lực hoặc bị thu hồi theo policy.
-- EKU/KeyUsage không phù hợp `clientAuth`.
-- Certificate chain hoặc chữ ký không hợp lệ, thuật toán không được phép.
-- Các hạn chế issuer/subject/name constraints hay các chính sách mTLS khác không đạt.
+- The certificate does not chain to a server-accepted trust anchor.
+- The certificate is expired, not yet valid, or revoked per policy.
+- EKU/KeyUsage does not match `clientAuth`.
+- Invalid certificate chain or signature, or disallowed algorithm.
+- Issuer/subject/name constraints or other mTLS policies fail.
 
-Nếu certificate đã được trình và bước xác minh chứng thư thất bại, server **không được** tiếp tục như client anonymous chỉ vì `wantClientAuth(true)`. Optional nghĩa là **có thể không có chứng thư**, không phải “một chứng thư sai cũng được”.
+If a certificate was presented and certificate verification fails, the server **must not** proceed as an anonymous client just because `wantClientAuth(true)` is set. Optional means **a certificate may be omitted**, not "an invalid certificate is acceptable."
 
-**Rủi ro khi kiểm thử:** JSSE KeyManager có thể không gửi một cert nếu acceptable issuers list không phù hợp. Khi server muốn cert nhưng client không gửi, optional mode có thể thành công. Kết quả đó **không chứng minh** server chấp nhận một cert không được tin. Muốn test “untrusted certificate was presented”, phải có bằng chứng từ handshake trace hoặc cấu hình KeyManager tùy biến test-only để đảm bảo cert thật sự được gửi.
+**Testing risk:** JSSE `KeyManager` might omit sending a cert if the acceptable issuers list does not match. When the server wants a cert and the client sends none, optional mode can succeed. That result **does not prove** the server accepts an untrusted cert. To test "untrusted certificate was presented," verify via handshake trace or a test-only custom `KeyManager` ensuring the cert is actually transmitted.
 
-Không tạo `X509TrustManager` “trust-all” để tránh lỗi client certificate. Việc đó làm mất ý nghĩa của cả need và want: một certificate tự ký từ attacker có thể bị xem là “đã xác thực”.
+Never create a "trust-all" `X509TrustManager` to avoid client certificate errors. Doing so defeats both need and want: an attacker's self-signed certificate could be treated as "authenticated."
 
-## 9. Need/want và TLS 1.2 so với TLS 1.3
+## 9. Need/want and TLS 1.2 vs. TLS 1.3
 
-### 9.1. Chính sách required/optional tồn tại ở cả hai
+### 9.1. Required/optional policy exists in both
 
-Ý nghĩa chức năng của `setNeedClientAuth` và `setWantClientAuth` không đổi ở cấp JSSE: server yêu cầu hay đề nghị client certificate. Thay đổi nằm ở **cơ chế và thời điểm thông điệp handshake**, alerts và session/resumption.
+The functional meaning of `setNeedClientAuth` and `setWantClientAuth` stays the same at the JSSE level: whether the server requires or requests a client certificate. What changes are the **handshake message mechanics and timing**, alerts, and session/resumption.
 
-Với TLS 1.3, server có thể gửi `CertificateRequest` trong initial handshake. Nếu client không gửi certificate khi server yêu cầu, server sẽ từ chối (ví dụ với cảnh báo `certificate_required` theo TLS 1.3). Một số stack có thể báo exception ở các thời điểm khác nhau giữa client và server. Đừng kiểm thử chỉ bằng việc `client.startHandshake()` có trả về hay không; phải kiểm tra **phía server có thực sự hoàn tất/cho phép phiên**.
+With TLS 1.3, the server can send `CertificateRequest` during the initial handshake. If the client sends no certificate when required by the server, the server rejects (e.g., with a `certificate_required` alert per TLS 1.3). Some stacks may surface exceptions at different moments between client and server. Never test solely by checking whether `client.startHandshake()` returns; verify **whether the server actually completed/admitted the session**.
 
-### 9.2. Không dựa vào TLS renegotiation để “nâng cấp” optional thành required
+### 9.2. Do not rely on TLS renegotiation to "upgrade" optional to required
 
-Một cách làm cũ từng tồn tại là: bắt đầu TLS không có client cert, rồi đến một HTTP route nhạy cảm mới bật required client auth và cố kích hoạt renegotiation. **Không nên thiết kế như vậy.** TLS 1.3 không có renegotiation theo kiểu TLS 1.2; post-handshake authentication có các điều kiện hỗ trợ riêng và **không tự xuất hiện** chỉ vì Java code gọi `setNeedClientAuth(true)` trên socket đã handshake.
+An older pattern once existed: start TLS without a client cert, then on a sensitive HTTP route enable required client auth and try to trigger renegotiation. **Do not design like this.** TLS 1.3 has no TLS 1.2-style renegotiation; post-handshake authentication has its own support conditions and **does not automatically occur** merely because Java code calls `setNeedClientAuth(true)` on an already-handshaken socket.
 
-Một thiết kế vững hơn:
+A stronger design:
 
-- Định rõ từ **initial handshake** listener nào bắt buộc mTLS.
-- Nếu ứng dụng muốn nâng cấp identity, dùng một kết nối mới có chính sách required hoặc giao thức có xác thực lại được thiết kế/kiểm toán.
-- Không cho thao tác nhạy cảm chạy trước khi identity mong muốn được thiết lập và kiểm tra.
-- Kiểm soát session resumption, TLS termination ở proxy và caching để không vô tình dùng lại trạng thái authentication không phù hợp.
+- Specify from the **initial handshake** which listeners mandate mTLS.
+- If the app needs to upgrade identity, use a new connection with required policy or a specifically designed/audited re-authentication protocol.
+- Never allow sensitive operations to execute before the desired identity is established and checked.
+- Control session resumption, proxy TLS termination, and caching so mismatched authentication states are never inadvertently reused.
 
-### 9.3. Cần hiểu đâu là server “thực sự” chấm chứng thư
+### 9.3. Know which server "actually" grades the certificate
 
-Trong hệ thống có load balancer, API gateway hoặc service mesh, TLS có thể được **terminate trước khi đến Java backend**. Lúc đó:
+In systems with a load balancer, API gateway, or service mesh, TLS may **terminate before reaching the Java backend**. In that case:
 
 ```text
-Internet client --(mTLS)--> Gateway --(HTTP hoặc TLS mới)--> Java backend
+Internet client --(mTLS)--> Gateway --(HTTP or new TLS)--> Java backend
                             |
-                            +-- gateway kiểm client cert
+                            +-- gateway checks client cert
 ```
 
-Backend Java không thể chỉ gọi `SSLSocket.getPeerCertificates()` rồi giả định nó đang nhìn certificate của Internet client nếu TLS ngoài đã kết thúc ở gateway. Một số proxy đưa identity qua header, nhưng header chỉ được tin khi đến từ gateway đã xác thực, được chặn spoofing, có bảo vệ hop-by-hop và policy authorization. Nếu không, attacker có thể tự gửi header giả.
+The Java backend cannot simply call `SSLSocket.getPeerCertificates()` and assume it is seeing the Internet client's certificate if outer TLS terminated at the gateway. Some proxies forward identity via headers, yet headers are trustworthy only when arriving from an authenticated gateway with spoofing blocked, hop-by-hop protection, and authorization policy. Otherwise, an attacker can send forged headers directly.
 
-Cũng không thể bật `needClientAuth` ở backend rồi coi đã ép chứng thư cho kết nối **client → gateway** nếu TLS ngoài do gateway quản lý; cần cấu hình đúng điểm TLS termination.
+Likewise, enabling `needClientAuth` on the backend will not enforce certificates for **client → gateway** connections if outer TLS is managed by the gateway; configure the exact TLS termination point.
 
-## 10. SSLParameters.setNeedClientAuth và setWantClientAuth: lỗi thứ tự thường gặp
+## 10. SSLParameters.setNeedClientAuth and setWantClientAuth: common ordering bugs
 
-### 10.1. Hai cờ không thể vừa true
+### 10.1. Both flags cannot be true at once
 
 ```java
 SSLParameters p = new SSLParameters();
@@ -612,212 +612,212 @@ System.out.println(p.getNeedClientAuth()); // false
 System.out.println(p.getWantClientAuth()); // true
 ```
 
-Nếu có một module cấu hình đặt required trước, rồi module khác đặt optional sau, **chính sách cuối cùng là optional**. Ngược lại cũng vậy.
+If one configuration module sets required first, and another sets optional later, **the final policy is optional**. And vice versa.
 
-Hãy kiểm trạng thái **sau khi kết thúc xây dựng cấu hình**, không chỉ grep source code để xem đã có `setNeedClientAuth(true)` ở đâu hay chưa. Ở framework cấp cao, cần kiểm mapping ra JSSE và test handshake negative.
+Inspect the state **after configuration assembly completes**, rather than merely grepping source code to see if `setNeedClientAuth(true)` appears somewhere. In high-level frameworks, verify the mapping down to JSSE and run negative handshake tests.
 
-### 10.2. Không phải mọi lớp trong ứng dụng đều tự nhiên ở server mode
+### 10.2. Not every class in an application is naturally in server mode
 
-Một `SSLSocket` được khởi tạo để gọi API bên ngoài thường là **client-mode**; đặt `setWantClientAuth(true)` trên nó **không** có nghĩa client đang bảo server gửi chứng thư. Server authentication được thực hiện bằng trust manager và endpoint identification của TLS client, còn client certificate (nếu server yêu cầu) được chọn bằng KeyManager.
+An `SSLSocket` created to call an external API is normally in **client-mode**; setting `setWantClientAuth(true)` on it **does not** mean the client is telling the server to send a certificate. Server authentication is handled by the TLS client's trust manager and endpoint identification, while the client certificate (if requested by the server) is chosen by `KeyManager`.
 
-Phía **server-mode SSLSocket** mới là nơi need/want có tác dụng theo Javadoc. Nếu dùng `SSLEngine`, cần xác định `setUseClientMode(false)` khi vai trò là TLS server.
+Only a **server-mode SSLSocket** gives effect to need/want per Javadoc. If using `SSLEngine`, be sure to call `setUseClientMode(false)` when acting as a TLS server.
 
-### 10.3. Không sửa trạng thái sau handshake như cách bắt buộc khách
+### 10.3. Do not mutate state post-handshake to force client auth
 
-Đặt client auth policy khi socket chưa bắt đầu handshake. Một khi có phiên đã xác lập, đổi cờ có thể không khiến peer cung cấp certificate ở cùng phiên và hành vi liên quan đến renegotiation không nên dựa vào cho thiết kế mới. Dùng listener/handshake mới có policy đúng.
+Set client-auth policy while the socket has not started its handshake. Once a session is established, flipping flags may not make the peer supply a certificate in the same session, and renegotiation-related behavior should not be relied upon in new designs. Use a listener/new handshake with the right policy.
 
-### 10.4. Không quên cấu hình TrustManager
+### 10.4. Do not forget to configure TrustManager
 
-`setNeedClientAuth(true)` **không** chỉ định CA nào được phép ký client certificates. Đó là trách nhiệm của trust management. Nếu không cấu hình đúng, server có thể từ chối client hợp lệ hoặc chấp nhận phạm vi rộng hơn mong muốn nếu dùng truststore quá rộng/manager sai.
+`setNeedClientAuth(true)` **does not** specify which CAs are permitted to sign client certificates. That is the responsibility of trust management. If misconfigured, the server may reject valid clients or accept a broader scope than intended if using an overly broad truststore/wrong manager.
 
-## 11. Thiết kế production với mTLS bắt buộc và optional
+## 11. Production design with mandatory and optional mTLS
 
-### 11.1. Khi nên dùng needClientAuth
+### 11.1. When to use needClientAuth
 
-- Kết nối service-to-service nội bộ mà policy yêu cầu mọi client phải có workload certificate.
-- API quản trị/đặc quyền chỉ truy cập từ máy hoặc service identity được cấp chứng thư.
-- Kênh nhận dữ liệu giữa đối tác có đăng ký client certificate và chính sách identity mapping rõ ràng.
-- Listener dành riêng cho robot/batch jobs với yêu cầu xác thực ở TLS handshake.
+- Internal service-to-service connections where policy requires every client to carry a workload certificate.
+- Admin/privileged APIs accessible only from machines or service identities issued a certificate.
+- Partner data-ingestion channels with registered client certificates and clear identity mapping policies.
+- Dedicated listeners for robots/batch jobs requiring authentication at the TLS handshake.
 
-Trong mỗi trường hợp, kiểm tra đủ: TLS client certificate **được tin** và **đúng client identity** cho service đó; sau đó gán quyền cụ thể. `needClientAuth` không thay thế phân quyền ứng dụng.
+In every case, verify thoroughly: the TLS client certificate is **trusted** and **the right client identity** for that service; then assign specific permissions. `needClientAuth` does not replace application authorization.
 
-### 11.2. Khi muốn dùng wantClientAuth
+### 11.2. When to use wantClientAuth
 
-- Một listener phục vụ cả client có mTLS identity và khách anonymous, với **phân tuyến/ủy quyền** rõ ràng sau handshake.
-- Giai đoạn chuyển tiếp client certificates, nếu các API nhạy cảm vẫn được **chặn server-side** khi không có identity, và có kế hoạch chuyển sang required.
-- Mô hình muốn lấy thêm tín hiệu nhận dạng máy/service bằng certificate nhưng **không mặc định** cho thêm quyền khi thiếu chứng thư.
+- A listener serving both mTLS-identified clients and anonymous visitors, with clear **routing/authorization** after the handshake.
+- Client certificate migration phases, provided sensitive APIs remain **blocked server-side** when no identity is present, with a plan to transition to required.
+- Models seeking an additional machine/service identification signal via certificates **without defaulting** to extra privileges when a certificate is absent.
 
-**Nguy cơ cao:** cấu hình want trong khi marketing/security policy tuyên bố “mọi API đều bắt buộc mTLS”. Bất kỳ client không có cert nào có thể thiết lập TLS; nếu application check thiếu một route, kết nối anonymous có thể đi qua.
+**High risk:** configuring want while marketing/security policy declares "all APIs enforce mTLS." Any client without a cert can complete TLS; if application checks miss a single route, anonymous connections can slip through.
 
-Nếu thật sự cần bắt buộc ở mọi đường xử lý, dùng `needClientAuth` hoặc lớp gateway enforcing client certificate tương đương, có negative tests.
+If mandatory enforcement across every handler path is truly needed, use `needClientAuth` or an equivalent client-certificate-enforcing gateway layer, backed by negative tests.
 
-### 11.3. Tránh truststore quá rộng
+### 11.3. Avoid overly broad truststores
 
-Tin một root CA công khai/bộ CA rộng để xác thực **client machine identity** có thể khiến server chấp nhận những chứng thư không được phát hành theo quy trình tổ chức bạn kỳ vọng. Để mTLS production an toàn, kiểm issuer/policy/OID/EKU, SAN identity, quyền cấp phát, trust rotation và revocation; có thể chọn một CA nội bộ giới hạn cho client certificates thay vì truststore mặc định dùng cho HTTPS server.
+Trusting a public root CA or broad CA bundle to authenticate **client machine identity** can cause the server to accept certificates not issued under your organization's expected process. For secure production mTLS, check issuer/policy/OID/EKU, SAN identity, issuance authority, trust rotation, and revocation; consider a dedicated internal CA scoped to client certificates rather than the default truststore used for HTTPS servers.
 
-### 11.4. Certificate lifecycle và revocation
+### 11.4. Certificate lifecycle and revocation
 
-- Client private key cần bảo vệ: KeyStore có password mạnh, OS secret manager, HSM/TPM nếu threat model yêu cầu; không hardcode credential test.
-- Certificate rotation phải tính trước việc cả hai phía cập nhật trust anchors, accepted issuers, identity mapping và overlap phù hợp.
-- Nếu private key client bị lộ, cần revoke/disable identity và thay certificate/keys; **want/need không tự biết khóa đã bị đánh cắp**.
-- PKIX validity/revocation/algorithm policy phải được cấu hình phù hợp môi trường; đừng tắt kiểm trust/thu hồi chỉ để demo pass.
-- Không lấy subject DN do client cung cấp ngoài TLS và tự coi đó là authenticated certificate identity.
+- Client private keys need protection: strong-password KeyStore, OS secret manager, or HSM/TPM if required by threat model; never hardcode test credentials.
+- Certificate rotation must plan ahead for both sides updating trust anchors, accepted issuers, identity mappings, and overlap windows.
+- If a client private key is compromised, revoke/disable the identity and rotate certificates/keys; **want/need does not automatically know a key was stolen**.
+- PKIX validity/revocation/algorithm policies must match the environment; never disable trust/revocation checks just to make a demo pass.
+- Never take a client-supplied subject DN outside TLS and treat it as an authenticated certificate identity.
 
-## 12. Các lỗi và biểu hiện khi vận hành
+## 12. Operational errors and symptoms
 
-| Hiện tượng | Nguyên nhân khả dĩ | Hướng khắc phục |
+| Symptom | Possible cause | Remediation |
 | --- | --- | --- |
-| `needClientAuth=true`, client không có cert, handshake fail | **Đúng thiết kế**: required nhưng không có chứng thư | Cấp client cert/private key hoặc điều chỉnh loại listener theo policy, không tắt trust. |
-| `wantClientAuth=true`, client không có cert, handshake thành công | **Đúng thiết kế**: optional | Ở ứng dụng, không cho quyền mTLS khi peer cert vắng mặt. |
-| Client có `client.p12` nhưng server vẫn thấy không có certificate | KeyManager không chọn được alias, issuer list/algorithm không phù hợp, private key không được load | Kiểm client key entry, certificate chain, acceptable issuers, handshake trace và KeyManager. |
-| Client cert được trình nhưng handshake fail | CA không được trust, expired, EKU/key usage không đúng, chain invalid | Cấu hình truststore và PKIX policy, phát hành lại cert hợp lệ. |
-| Server certificate được trình nhưng client từ chối | Client truststore không tin server hoặc SAN hostname/IP không khớp | Sửa server cert/truststore/reference identity, không bỏ hostname check. |
-| `SSLPeerUnverifiedException` khi gọi `getPeerCertificates()` trên server | Không có peer certificate-based authentication | Xử lý nhánh anonymous của optional mTLS; nếu bắt buộc thì xem lại listener/policy. |
-| `SSLHandshakeException` với `bad_certificate` hoặc alert khác | Trust/certificate/handshake policy fail; thông điệp tùy provider | Ghi nguyên nhân an toàn, kiểm thực tế handshake logs. |
-| Server vẫn cho anonymous dù đã gọi `setNeedClientAuth(true)` | Có nơi gọi `setWantClientAuth(true)` sau đó; cấu hình đúng ở sai socket; proxy terminate TLS | Kiểm trạng thái cuối, TLS termination point và negative handshake test. |
-| `needClientAuth` bật cho backend nhưng API gateway vẫn cho public clients | TLS client ngoài terminate ở gateway | Bật client-auth ở gateway hoặc bảo vệ backend hop đúng. |
-| Một số client authenticate, một số không với want | Chỉ một phần client có private key và certificate chain phù hợp | Thiết kế identity fallback/authorization rõ, không giả định tất cả đã mTLS. |
-| Certificate client hợp lệ nhưng bị từ chối API | TLS trust thành công nhưng authorization application thiếu role/scope | Xem mapping identity và policy, không hạ TLS. |
-| Nâng want lên need nhưng kết nối cũ còn hoạt động | Session/handshake đã tạo trước thay đổi | Cắt/đóng session cũ theo policy hoặc áp dụng quy trình chuyển tiếp an toàn. |
+| `needClientAuth=true`, client has no cert, handshake fails | **By design**: required yet no certificate | Provision client cert/private key or adjust listener type per policy; do not disable trust. |
+| `wantClientAuth=true`, client has no cert, handshake succeeds | **By design**: optional | In the app, deny mTLS privileges when the peer cert is absent. |
+| Client has `client.p12` yet server still sees no certificate | KeyManager could not match alias, issuer list/algorithm mismatch, private key not loaded | Check client key entry, certificate chain, acceptable issuers, handshake trace, and KeyManager. |
+| Client cert presented yet handshake fails | Untrusted CA, expired, wrong EKU/key usage, invalid chain | Fix truststore and PKIX policy; reissue valid cert. |
+| Server certificate presented yet client rejects | Client truststore does not trust server or SAN hostname/IP mismatch | Fix server cert/truststore/reference identity; never drop hostname checks. |
+| `SSLPeerUnverifiedException` when calling `getPeerCertificates()` on server | No certificate-based peer authentication | Handle the anonymous branch of optional mTLS; if mandatory, inspect listener/policy. |
+| `SSLHandshakeException` with `bad_certificate` or other alert | Trust/certificate/handshake policy failure; message varies by provider | Log cause safely; inspect actual handshake logs. |
+| Server still allows anonymous despite calling `setNeedClientAuth(true)` | `setWantClientAuth(true)` called afterward; set on wrong socket; proxy terminates TLS | Verify final state, TLS termination point, and negative handshake tests. |
+| `needClientAuth` enabled on backend yet API gateway admits public clients | External client TLS terminates at the gateway | Enable client-auth on the gateway or properly protect the backend hop. |
+| Some clients authenticate, some do not with want | Only some clients have matching private keys and certificate chains | Design explicit identity fallback/authorization; never assume all are mTLS. |
+| Valid client certificate yet rejected by API | TLS trust succeeded but application authorization lacks role/scope | Check identity mapping and policy; do not weaken TLS. |
+| Upgraded want to need yet old connections remain active | Sessions/handshakes created prior to the change | Terminate/close old sessions per policy or follow safe transition procedures. |
 
-### 12.1. Debug JSSE mà không làm yếu bảo mật
+### 12.1. Debugging JSSE without weakening security
 
-Trong lab, có thể bật chẩn đoán TLS handshake bằng JVM flag:
+In a lab, TLS handshake diagnostics can be enabled via JVM flag:
 
 ```bash
 java -Djavax.net.debug=ssl:handshake -cp . ClientAuthDemo
 ```
 
-Tùy hệ thống, output có thể rất dài và có chi tiết nhạy cảm (hostname, certificate chain, tên định danh, TLS metadata). Chỉ bật khi được phép, bảo vệ log và **không đưa private keys, passwords hay secrets** vào log. Chỉ dùng trên máy thử nghiệm, không mặc định mở trên production.
+Depending on the system, output can be verbose and contain sensitive details (hostnames, certificate chains, identifiers, TLS metadata). Enable only when authorized, protect logs, and **never put private keys, passwords, or secrets** into logs. Use only on test machines, never enabled by default in production.
 
-Cần phân biệt:
+Distinguish clearly:
 
-- **Client không trình certificate**: với want có thể tiếp tục; với need bị từ chối.
-- **Server không trust client certificate đã trình**: bị từ chối, không “rơi xuống anonymous” như một thiết kế an toàn.
-- **Client không trust server**: client từ chối, không liên quan directly need/want.
-- **Application không cấp quyền**: TLS handshake vẫn có thể thành công; HTTP API trả 401/403 theo policy — đây là lớp khác.
+- **Client sends no certificate**: with want, may proceed; with need, rejected.
+- **Server does not trust presented client certificate**: rejected, never "falls back to anonymous" as a safe design.
+- **Client does not trust server**: client rejects, unrelated directly to need/want.
+- **Application denies permission**: TLS handshake can still succeed; HTTP API returns 401/403 per policy — this is a separate layer.
 
-Không khuyên cấu hình `trustAll()` hoặc `HostnameVerifier((h,s)->true)` khi debug. Cách sửa đúng là sửa danh tính/chứng thư/truststore hoặc policy.
+Never recommend configuring `trustAll()` or `HostnameVerifier((h,s)->true)` while debugging. The right fix is fixing the identity/certificate/truststore or policy.
 
-## 13. Test matrix nên có trước khi phát hành
+## 13. Pre-release test matrix
 
-| Server mode | Client identity | Trình chứng thư? | Kết quả TLS server-side mong đợi | Identity trong ứng dụng |
+| Server mode | Client identity | Presents cert? | Expected server-side TLS result | Identity in application |
 | --- | --- | --- | --- | --- |
-| None | Không có | Không yêu cầu | TLS có thể thành công | Không có mTLS identity. |
-| Want | Không có keypair | Không | **Thành công** nếu các điều kiện khác đạt | Anonymous / xác thực khác, không mTLS identity. |
-| Need | Không có keypair | Không | **Thất bại** | Không xử lý request. |
-| Want | Có cert được trust | Có | **Thành công** | Có certificate identity, vẫn kiểm authorization. |
-| Need | Có cert được trust | Có | **Thành công** | Có certificate identity, vẫn kiểm authorization. |
-| Want | Có cert thật sự gửi nhưng không được trust | Có | **Thất bại** | Không xử lý request. |
-| Need | Có cert thật sự gửi nhưng không được trust | Có | **Thất bại** | Không xử lý request. |
-| Need | Có cert đúng CA nhưng sai role/tenant | Có | TLS có thể thành công | **Application phải từ chối** nếu không được phép. |
-| Want | Có cert nhưng KeyManager không chọn được alias | Không | TLS có thể thành công | Không có mTLS identity. |
-| Need | Client có cert nhưng client không trust server | Có thể chưa gửi | TLS thất bại do server identity/trust | Không xử lý request. |
+| None | None | Not requested | TLS can succeed | No mTLS identity. |
+| Want | No key pair | No | **Succeeds** if other conditions pass | Anonymous / other auth, no mTLS identity. |
+| Need | No key pair | No | **Fails** | Do not process request. |
+| Want | Trusted cert | Yes | **Succeeds** | Has certificate identity; still check authorization. |
+| Need | Trusted cert | Yes | **Succeeds** | Has certificate identity; still check authorization. |
+| Want | Cert actually sent but untrusted | Yes | **Fails** | Do not process request. |
+| Need | Cert actually sent but untrusted | Yes | **Fails** | Do not process request. |
+| Need | Cert from right CA but wrong role/tenant | Yes | TLS can succeed | **Application must reject** if unauthorized. |
+| Want | Has cert yet KeyManager selects no alias | No | TLS can succeed | No mTLS identity. |
+| Need | Client has cert yet does not trust server | May not even send | TLS fails on server identity/trust | Do not process request. |
 
-**Đừng chỉ test positive case** `need + valid cert`. Ca âm **need + no cert** bắt buộc phải bị chặn; ca **want + no cert** bắt buộc không bị gán mTLS identity. Khi policy cho một route yêu cầu mTLS, phải test request qua **mọi điểm TLS termination**, không chỉ test một class JSSE riêng lẻ.
+**Do not test only the positive case** `need + valid cert`. The negative case **need + no cert** must be blocked; **want + no cert** must never be assigned an mTLS identity. When policy for a route requires mTLS, test requests through **every TLS termination point**, not just a single isolated JSSE class.
 
-### 13.1. Assertions nên đưa vào integration test
+### 13.1. Assertions to include in integration tests
 
-1. `getNeedClientAuth()`/`getWantClientAuth()` phản ánh **trạng thái cuối cùng** của listener/engine.
-2. Không có client cert + required → server-side TLS handshake **không thành công**.
-3. Không có client cert + optional → server-side TLS handshake **có thể thành công**; `getPeerCertificates()` báo không có authenticated peer.
-4. Client cert hợp lệ và được tin → handshake thành công; server nhận được peer cert.
-5. Client cert sai hoặc bị thu hồi → handshake từ chối theo trust policy, kể cả optional khi cert thực sự được gửi.
-6. Client cert hợp lệ nhưng không có quyền của tenant → application trả từ chối, không xem chứng thư là quyền admin chung.
-7. Server cert có SAN sai → client handshake fail dù server yêu cầu client cert đúng.
-8. Rotation và cập nhật truststore không tạo cửa sổ chấp nhận alias/issuer không mong muốn.
-9. Proxy/gateway chặn header giả danh identity từ nguồn không đáng tin.
-10. TLS 1.3 session reuse/connection pooling không tái sử dụng authentication state sai cho protected routes.
+1. `getNeedClientAuth()`/`getWantClientAuth()` reflect the **final state** of the listener/engine.
+2. No client cert + required → server-side TLS handshake **fails**.
+3. No client cert + optional → server-side TLS handshake **can succeed**; `getPeerCertificates()` reports no authenticated peer.
+4. Valid and trusted client cert → handshake succeeds; server receives the peer cert.
+5. Invalid or revoked client cert → handshake rejected per trust policy, including optional mode when a cert is actually sent.
+6. Valid client cert lacking tenant permission → application returns rejection, never treating a cert as blanket admin access.
+7. Server cert with wrong SAN → client handshake fails even when the server requests a valid client cert.
+8. Rotation and truststore updates create no window accepting unwanted aliases/issuers.
+9. Proxy/gateway blocks spoofed identity headers from untrusted sources.
+10. TLS 1.3 session reuse/connection pooling never reuses the wrong authentication state for protected routes.
 
-## 14. FAQ và những hiểu lầm cần loại bỏ
+## 14. FAQ and misconceptions to eliminate
 
-**Hỏi: `wantClientAuth(true)` khác `needClientAuth(true)` đúng một chữ “không bắt buộc” thôi sao?**
+**Q: Does `wantClientAuth(true)` differ from `needClientAuth(true)` only by the word "optional"?**
 
-Khác nhau chính là **hành vi handshake khi client không cung cấp certificate**. Với want, server có thể chấp nhận kết nối không có chứng thư, nên **lớp ứng dụng bắt buộc phân biệt rõ anonymous**. Với need, server không nên cho handshake hoàn tất nếu client không thể xác thực bằng certificate phù hợp.
+The main difference is **handshake behavior when the client supplies no certificate**. With want, the server can accept a connection without a certificate, so the **application layer must explicitly distinguish anonymous traffic**. With need, the server must not let the handshake complete if the client cannot authenticate with a matching certificate.
 
-**Hỏi: Khi want=true, nếu client gửi certificate hết hạn hoặc không tin cậy, server có tiếp tục như anonymous không?**
+**Q: With want=true, if a client sends an expired or untrusted certificate, does the server proceed as anonymous?**
 
-Không nên. Khi **certificate đã được gửi và validation thất bại**, handshake phải thất bại. Optional nghĩa là không cần xuất trình chứng thư, chứ không phải được phép trình chứng thư sai. Tuy nhiên khi KeyManager không chọn được alias, client có thể **không gửi cert**, lúc đó muốn kết luận cần xem handshake trace.
+It should not. When **a certificate has been sent and validation fails**, the handshake must fail. Optional means omitting a certificate is allowed, not that presenting a bad certificate is allowed. However, when `KeyManager` cannot pick an alias, the client may **send no cert**, in which case inspect the handshake trace to be sure.
 
-**Hỏi: Khi need=true, tôi có thể bỏ KeyManager của server vì server chỉ kiểm client cert không?**
+**Q: With need=true, can I drop the server's KeyManager because the server only checks the client cert?**
 
-Không. Trong mô hình TLS server authentication tiêu chuẩn, server cũng cần local identity/private key để client xác minh server; mTLS thêm bước **client certificate**, không thay thế server certificate.
+No. In standard TLS server authentication, the server also needs a local identity/private key so the client verifies the server; mTLS adds the **client certificate** step rather than replacing the server certificate.
 
-**Hỏi: `serverTruststore` cần chứa những gì?**
+**Q: What should `serverTruststore` contain?**
 
-Những trust anchors hoặc certificates mà **server được phép tin để xác minh client** theo policy; có thể là CA nội bộ chuyên cấp client cert, không nhất thiết cùng store với truststore mà client dùng để tin server. Nhưng trust anchor rộng chưa đủ: cần identity/authorization mapping.
+Trust anchors or certificates that the **server is permitted to trust to verify clients** per policy; this may be an internal CA dedicated to issuing client certs, not necessarily the same store the client uses to trust the server. Yet a broad trust anchor is insufficient: identity/authorization mapping is needed.
 
-**Hỏi: Client có `client.cer` trong classpath thì đã được mTLS chưa?**
+**Q: If the client has `client.cer` on the classpath, is it ready for mTLS?**
 
-Chưa. Client phải có private key tương ứng và KeyManager có thể chọn credential phù hợp. Một public certificate file không tạo bằng chứng sở hữu khóa riêng.
+Not yet. The client must have the corresponding private key and a `KeyManager` able to select the right credential. A public certificate file provides no proof of private-key possession.
 
-**Hỏi: `getPeerCertificates()` cho biết điều gì?**
+**Q: What does `getPeerCertificates()` tell us?**
 
-Nó cho biết certificate chain của peer trong session được xác minh bằng certificate authentication (với trust manager phù hợp); có thể ném `SSLPeerUnverifiedException` nếu peer không được xác minh theo cách đó. Nó không tự đánh giá ứng dụng có nên cấp role hay không.
+It returns the peer's certificate chain in a session verified by certificate authentication (with an appropriate trust manager); it throws `SSLPeerUnverifiedException` if the peer was not verified that way. It does not evaluate whether the application should grant a role.
 
-**Hỏi: Có nên mở wantClientAuth ở mọi API trước, đến route admin mới đổi need không?**
+**Q: Should we enable wantClientAuth across all APIs first, and switch to need only on admin routes?**
 
-Không nên dựa vào đổi cờ giữa phiên TLS. Đặt chính sách required trên listener phù hợp **ngay từ handshake**, hoặc thiết kế xác thực/ủy quyền cấp ứng dụng và gateway thật chặt. TLS 1.3 không có renegotiation kiểu cũ để tự nâng cấp như vậy.
+Do not rely on changing flags mid-TLS-session. Set required policy on the appropriate listener **right from the handshake**, or design strict application-layer and gateway authentication/authorization. TLS 1.3 lacks legacy renegotiation to upgrade like that.
 
-**Hỏi: Nếu server TLS nằm sau load balancer, đặt needClientAuth trong Java có kiểm Internet client không?**
+**Q: If the TLS server sits behind a load balancer, does setting needClientAuth in Java check the Internet client?**
 
-Không chắc. Nếu TLS terminate ở gateway, Java chỉ thấy kết nối tiếp theo từ gateway (hoặc plain HTTP). Cần enforce client certificate **ở đúng điểm kết thúc TLS** và truyền identity đã xác thực qua boundary đáng tin, có chống spoofing.
+Not necessarily. If TLS terminates at the gateway, Java only sees the downstream connection from the gateway (or plain HTTP). Client certificates must be enforced **at the actual TLS termination point** and verified identity passed across a trusted, anti-spoofing boundary.
 
-**Hỏi: Nếu tôi bật needClientAuth thì server certificate có tự được xác minh DNS SAN không?**
+**Q: If I enable needClientAuth, is the server certificate automatically verified for DNS SAN?**
 
-Không. Việc **client kiểm server** là hướng khác. HTTPS client cần trust path và endpoint identification phù hợp, không liên quan trực tiếp đến cờ server yêu cầu client cert.
+No. Having the **client verify the server** is the opposite direction. The HTTPS client needs proper trust paths and endpoint identification, unrelated directly to the server's client-cert flag.
 
-## 15. Checklist triển khai
+## 15. Deployment checklist
 
-- [ ] Có quyết định rõ **NONE**, **WANT** hay **NEED** cho từng listener/port/route/proxy.
-- [ ] Với API cần mTLS cứng, server-side handshake phải **từ chối client không có cert**.
-- [ ] Đã kiểm tra trạng thái cuối của `getNeedClientAuth()` và `getWantClientAuth()`; không có cấu hình đè ngược ngoài ý muốn.
-- [ ] Server có KeyManager/certificate/private key hợp lệ; client có TrustManager tin server và hostname verification đúng.
-- [ ] Server có TrustManager tin đúng client issuers/certificates theo PKIX policy; không dùng accept-all.
-- [ ] Client có private key/cert chain nếu muốn hoặc bắt buộc xác thực bằng certificate.
-- [ ] Chứng thư client có EKU/KeyUsage, hiệu lực, policy/revocation phù hợp; root CA được phân phối qua kênh tin cậy.
-- [ ] Khi want/optional, ứng dụng xử lý **không có peer certificate** như anonymous hoặc yêu cầu xác thực khác.
-- [ ] Khi có peer cert, ứng dụng còn kiểm **identity mapping, authorization, role, tenant và scope**.
-- [ ] Không cố nâng cấp optional thành required sau khi handshake mà thiếu giao thức hỗ trợ rõ ràng.
-- [ ] Đã test bốn trường hợp căn bản và những ca client cert sai/hostname server sai.
-- [ ] Truststore/keystore/password demo không được copy vào production; private keys không nằm trong repo.
-- [ ] Đã xác định điểm TLS termination của gateway/proxy/service mesh; header identity không thể bị client giả.
-- [ ] Có giám sát và kế hoạch rotation/revocation các client certificates, session/connection pooling và fail-closed.
+- [ ] Explicit decision on **NONE**, **WANT**, or **NEED** per listener/port/route/proxy.
+- [ ] For APIs requiring strict mTLS, server-side handshake must **reject clients without a cert**.
+- [ ] Verified final state of `getNeedClientAuth()` and `getWantClientAuth()`; no unintended reverse overrides.
+- [ ] Server has valid KeyManager/certificate/private key; client has TrustManager trusting server and proper hostname verification.
+- [ ] Server has TrustManager trusting the right client issuers/certificates per PKIX policy; no accept-all.
+- [ ] Client has private key/cert chain when requesting or requiring certificate authentication.
+- [ ] Client certificates have proper EKU/KeyUsage, validity, policy/revocation; root CAs distributed via trusted channels.
+- [ ] Under want/optional, application handles **absent peer certificate** as anonymous or requires alternative auth.
+- [ ] When a peer cert is present, application also verifies **identity mapping, authorization, role, tenant, and scope**.
+- [ ] Never attempt to upgrade optional to required post-handshake without explicit protocol support.
+- [ ] Tested all four baseline cases plus bad client cert / wrong server hostname cases.
+- [ ] Demo truststores/keystores/passwords never copied to production; private keys never stored in repos.
+- [ ] Gateway/proxy/service-mesh TLS termination points identified; identity headers cannot be spoofed by clients.
+- [ ] Monitoring and plans in place for rotation/revocation of client certificates, session/connection pooling, and fail-closed behavior.
 
-## 16. Bài tập tự luyện
+## 16. Self-practice exercises
 
-1. Phân biệt chính xác `setNeedClientAuth(true)` và `setWantClientAuth(true)` trong trường hợp client không có chứng thư.
-2. Vì sao `wantClientAuth` **không** là cơ chế cho qua certificate bị TrustManager từ chối?
-3. Server có `needClientAuth=true` nhưng không có truststore phù hợp; client có certificate. Handshake có chắc thành công không?
-4. Trong `SSLContext.init(keyManagers, trustManagers, random)`, bên server dùng từng array để làm gì? Bên client thì sao?
-5. Nếu client chỉ có `client.cer` mà không có private key, nó có thể trình chứng cứ sở hữu khóa riêng không?
-6. Nếu `SSLParameters` gọi `setNeedClientAuth(true)` rồi `setWantClientAuth(true)`, trạng thái cuối là gì?
-7. Vì sao `SSLSession.getPeerCertificates()` có thể ném `SSLPeerUnverifiedException` khi want=true?
-8. Vì sao `needClientAuth=true` không cho biết role, tenant, scope hay quyền đọc database của client?
-9. Khi TLS terminate tại gateway, backend Java cần tin thông tin client identity từ đâu và chống giả mạo thế nào?
-10. TLS 1.3 có cho phép bạn chỉ đổi cờ trên socket đã handshake để buộc client trình cert ngay lập tức không? Vì sao không nên dựa vào điều đó?
-11. Nếu server chỉ xác minh client cert nhưng HTTPS client tắt hostname verification cho server, còn rủi ro gì?
-12. Bạn sẽ viết negative tests nào để chứng minh một API “mTLS required” thật sự không mở cho kết nối anonymous?
+1. Precisely distinguish `setNeedClientAuth(true)` and `setWantClientAuth(true)` when the client has no certificate.
+2. Why is `wantClientAuth` **not** a mechanism for letting through a certificate rejected by `TrustManager`?
+3. Server has `needClientAuth=true` without a matching truststore; client has a certificate. Is the handshake guaranteed to succeed?
+4. In `SSLContext.init(keyManagers, trustManagers, random)`, what does the server use each array for? What about the client?
+5. If a client has only `client.cer` without a private key, can it present proof of private-key possession?
+6. If `SSLParameters` calls `setNeedClientAuth(true)` and then `setWantClientAuth(true)`, what is the final state?
+7. Why can `SSLSession.getPeerCertificates()` throw `SSLPeerUnverifiedException` when want=true?
+8. Why does `needClientAuth=true` not tell you the client's role, tenant, scope, or database read permissions?
+9. When TLS terminates at a gateway, where should the Java backend trust client identity from and how is spoofing prevented?
+10. Does TLS 1.3 allow you to simply flip a flag on an already-handshaken socket to force the client to present a cert immediately? Why shouldn't you rely on that?
+11. If the server verifies the client cert, yet the HTTPS client disables hostname verification for the server, what risk remains?
+12. Which negative tests would you write to prove an "mTLS required" API truly refuses anonymous connections?
 
-**Bài tập A:** chạy `ClientAuthDemo` và ghi lại bốn dòng. Sau đó đổi code từ `listener.setWantClientAuth(true)` thành `listener.setNeedClientAuth(true)` trong mọi trường hợp; dự đoán kết quả khi client không có cert.
+**Exercise A:** run `ClientAuthDemo` and record all four lines. Then change the code from `listener.setWantClientAuth(true)` to `listener.setNeedClientAuth(true)` in all cases; predict the outcome when the client has no cert.
 
-**Bài tập B:** thay `server-trust.p12` bằng một truststore test không chứa issuer của `client.p12`. Kiểm handshake có thất bại hay client có thể chọn không gửi cert; dùng `javax.net.debug=ssl:handshake` trong môi trường test để phân biệt.
+**Exercise B:** replace `server-trust.p12` with a test truststore lacking the issuer of `client.p12`. Check whether the handshake fails or the client chooses not to send a cert; use `javax.net.debug=ssl:handshake` in a test environment to tell them apart.
 
-**Bài tập C:** thêm một local HTTP handler phía sau TLS với route `/public` và `/admin`. Khi listener ở want mode, đảm bảo `/public` cho phép client anonymous theo policy, còn `/admin` từ chối nếu session không có client certificate identity đáng tin và quyền admin. Sau đó so sánh với listener need mode.
+**Exercise C:** add a local HTTP handler behind TLS with `/public` and `/admin` routes. When the listener is in want mode, ensure `/public` allows anonymous clients per policy, while `/admin` rejects unless the session carries a trusted client certificate identity and admin permission. Then compare with need mode.
 
-**Bài tập D:** tạo một cert client thứ hai được cấp bởi cùng CA test nhưng ánh xạ sang tenant khác. Chứng minh `needClientAuth` có thể chấp nhận certificate theo trust policy nhưng authorization vẫn từ chối route của tenant không tương ứng.
+**Exercise D:** create a second client cert issued by the same test CA but mapped to a different tenant. Prove that `needClientAuth` can accept the certificate per trust policy while authorization still rejects routes for the wrong tenant.
 
-**Bài tập E:** giả lập một lần đổi cấu hình bất cẩn: gọi need=true ở lớp cấu hình bảo mật rồi want=true ở lớp framework. Viết assertion `getNeedClientAuth() == true` tại thời điểm listener sẵn sàng nhận kết nối để phát hiện regression.
+**Exercise E:** simulate an accidental config override: call need=true in a security config layer and then want=true in a framework layer. Write an assertion `getNeedClientAuth() == true` when the listener is ready to accept connections to catch the regression.
 
-## 17. Tài liệu API chính thức
+## 17. Official API documentation
 
-- [SSLServerSocket — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLServerSocket.html): `setNeedClientAuth`, `setWantClientAuth`, getter, trạng thái ba lựa chọn và ý nghĩa trên accepted sockets.
-- [SSLSocket — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html): cấu hình server-side socket, `startHandshake` và `getSSLParameters`.
-- [SSLParameters — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): `setNeedClientAuth` xóa want flag, `setWantClientAuth` xóa need flag, `setEndpointIdentificationAlgorithm`.
-- [SSLContext — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLContext.html): `init(KeyManager[], TrustManager[], SecureRandom)` và TLS socket factories.
-- [SSLSession — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSession.html): `getPeerCertificates()`, `getPeerPrincipal()` và `SSLPeerUnverifiedException`.
-- [KeyManagerFactory — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/KeyManagerFactory.html): sử dụng key stores/private keys để chọn local identity.
-- [TrustManagerFactory — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/TrustManagerFactory.html): tạo trust managers từ truststore.
-- [X509ExtendedTrustManager — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/X509ExtendedTrustManager.html): xác minh chứng thư theo TLS peer/socket/engine context.
-- [Java Secure Socket Extension (JSSE) Reference Guide — Java SE 17](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): mô hình key/trust managers, TLS 1.3 và lập trình SSL/TLS.
-- [RFC 8446 — The Transport Layer Security (TLS) Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446): CertificateRequest, client authentication, certificate_required alert và khác biệt TLS 1.3.
+- [SSLServerSocket — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLServerSocket.html): `setNeedClientAuth`, `setWantClientAuth`, getters, three-state behavior, and effect on accepted sockets.
+- [SSLSocket — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html): server-side socket configuration, `startHandshake`, and `getSSLParameters`.
+- [SSLParameters — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): `setNeedClientAuth` clears want flag, `setWantClientAuth` clears need flag, `setEndpointIdentificationAlgorithm`.
+- [SSLContext — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLContext.html): `init(KeyManager[], TrustManager[], SecureRandom)` and TLS socket factories.
+- [SSLSession — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSession.html): `getPeerCertificates()`, `getPeerPrincipal()`, and `SSLPeerUnverifiedException`.
+- [KeyManagerFactory — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/KeyManagerFactory.html): using key stores/private keys to select local identity.
+- [TrustManagerFactory — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/TrustManagerFactory.html): creating trust managers from a truststore.
+- [X509ExtendedTrustManager — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/X509ExtendedTrustManager.html): verifying certificates per TLS peer/socket/engine context.
+- [Java Secure Socket Extension (JSSE) Reference Guide — Java SE 17](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): key/trust manager model, TLS 1.3, and SSL/TLS programming.
+- [RFC 8446 — The Transport Layer Security (TLS) Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446): CertificateRequest, client authentication, `certificate_required` alert, and TLS 1.3 differences.

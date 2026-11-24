@@ -1,20 +1,20 @@
-# Khi nào dùng JShell cho đoạn mã Java tương tác thay vì JavaCompiler?
+# When to Use JShell for Interactive Java Snippets Instead of JavaCompiler?
 
-## 1. Câu hỏi kiến trúc cần giải quyết
+## 1. The Architectural Question to Solve
 
-Giả sử ứng dụng Java cho phép người dùng thử một biểu thức, định nghĩa biến, gọi thử method, thay đổi một vài dòng rồi xem kết quả ngay. Một lựa chọn là gọi `JavaCompiler` để sinh `.class`, tạo class loader mới và thực thi mỗi lần. Lựa chọn khác là nhúng API `jdk.jshell.JShell` để duy trì một phiên tương tác.
+Suppose a Java application lets users test an expression, define variables, call a method, tweak a few lines, and see the result immediately. One option is to invoke `JavaCompiler` to emit `.class` files, create a new class loader, and execute them each time. Another option is to embed the `jdk.jshell.JShell` API to maintain an interactive session.
 
-Hai API đều liên quan đến **biên dịch Java**, nhưng có hợp đồng sử dụng khác nhau:
+Both APIs involve **Java compilation**, but they have different usage contracts:
 
-- **`JShell`:** đánh giá từng *snippet* — biểu thức, câu lệnh, khai báo biến, method, class hoặc import — trong **một phiên có trạng thái**. Lần nhập sau có thể dùng khai báo của lần nhập trước. API trả về `SnippetEvent`, kết quả biểu thức và diagnostics để công cụ REPL/IDE hiển thị ngay.
-- **`JavaCompiler`:** biên dịch các *compilation unit* theo quy trình build rõ ràng, thường tạo bytecode thành tệp `.class`/JAR hoặc artifact trong bộ nhớ thông qua `JavaFileManager`. Việc nạp, tạo instance và thực thi artifact là **giai đoạn riêng** mà ứng dụng phải xây dựng.
-- **Cả hai không phải sandbox an toàn cho mã không tin cậy.** Chọn JShell vì trải nghiệm tương tác, không vì cho rằng nó vô hại khi nhận source từ người lạ.
+- **`JShell`:** evaluates each *snippet*—an expression, statement, variable declaration, method, class, or import—in **a stateful session**. Subsequent inputs can use declarations from previous inputs. The API returns `SnippetEvent` instances, expression results, and diagnostics so REPL/IDE tools can display them immediately.
+- **`JavaCompiler`:** compiles *compilation units* following an explicit build workflow, typically producing bytecode as `.class`/JAR files or in-memory artifacts via `JavaFileManager`. Loading, instantiating, and executing the artifact is a **separate phase** that the application must build.
+- **Neither is a secure sandbox for untrusted code.** Choose JShell for the interactive experience, not because you assume it is harmless when accepting source code from strangers.
 
-Đề bài không phải “API nào biên dịch nhanh hơn trong mọi trường hợp?”, mà là: **Ứng dụng cần một phiên thử mã từng bước hay cần một sản phẩm biên dịch ổn định, có thể lưu và triển khai?**
+The real question is not "Which API compiles faster in every scenario?", but rather: **Does the application need a step-by-step code experimentation session, or does it need a stable, storable, deployable compiled artifact?**
 
-## 2. Bản chất của JShell: REPL stateful, không chỉ là eval(String)
+## 2. The Nature of JShell: A Stateful REPL, Not Just `eval(String)`
 
-JShell được giới thiệu từ Java 9 và có mặt trong module `jdk.jshell`. API trung tâm là `jdk.jshell.JShell`:
+JShell was introduced in Java 9 and resides in the `jdk.jshell` module. The central API is `jdk.jshell.JShell`:
 
 ```java
 try (jdk.jshell.JShell shell = jdk.jshell.JShell.create()) {
@@ -25,21 +25,21 @@ try (jdk.jshell.JShell shell = jdk.jshell.JShell.create()) {
 }
 ```
 
-Đoạn trên là **minh họa API**; chương trình độc lập, xử lý `SnippetEvent` và stdout chính xác nằm ở mục 6.
+The snippet above is an **API illustration**; a standalone program with proper `SnippetEvent` and stdout handling is in section 6.
 
-Một phiên JShell lưu **trạng thái nguồn** (biến, method, kiểu, import và các khai báo đang active) cùng **trạng thái thực thi** của chúng. Vì thế `n` vẫn tồn tại khi đánh giá `n * 3`, và method `twice` còn dùng được trong lần nhập tiếp theo. Lập trình viên không phải tự tạo một class Java hoàn chỉnh cho mỗi biểu thức.
+A JShell session stores **source state** (variables, methods, types, imports, and active declarations) along with their **execution state**. That is why `n` still exists when evaluating `n * 3`, and the `twice` method remains usable in the next input. Developers do not have to manually wrap every expression in a complete Java class.
 
-Cần phân biệt:
+Several distinctions are important:
 
-1. **JShell cũng biên dịch source.** Nó dùng cơ sở hạ tầng Java compiler để xử lý snippet, nhưng che đi nhiều thao tác tạo class/wrapper và quản lý execution state. Không đúng khi nói “JShell chạy Java mà không biên dịch”.
-2. **JShell không phải `javax.script.ScriptEngine` chung cho mọi ngôn ngữ.** Nó chuyên cho Java snippets và API phân tích của `jdk.jshell`.
-3. **JShell CLI và Java API khác nhau.** Lệnh như `/vars`, `/methods`, `/reset` trong chương trình `jshell` tương tác không phải Java snippets để gửi trực tiếp cho `JShell.eval`. API có `variables()`, `methods()`, `drop(...)`, `close()` và các phương thức khác để triển khai thao tác tương đương.
-4. **Một lần `eval` nên nhận đúng một snippet hoàn chỉnh.** Muốn nhận nhiều dòng hoặc khối văn bản tùy ý từ một trình soạn thảo, ứng dụng nên dùng `SourceCodeAnalysis.analyzeCompletion(...)` để tách đầu vào và xác định khi nào đã đủ cú pháp, thay vì cắt theo dấu xuống dòng.
-5. **State chỉ thuộc phiên JShell cụ thể.** Tạo phiên mới không tự mang theo các biến đã khai báo ở phiên cũ. Dữ liệu mà ứng dụng muốn lưu cần có cơ chế snapshot/replay được kiểm soát.
+1. **JShell also compiles source code.** It uses the Java compiler infrastructure to process snippets, but hides the boilerplate of generating wrapper classes and managing execution state. It is incorrect to say "JShell runs Java without compiling."
+2. **JShell is not a generic `javax.script.ScriptEngine` for arbitrary languages.** It is dedicated to Java snippets and the analysis APIs of `jdk.jshell`.
+3. **The JShell CLI and the Java API are different.** Commands like `/vars`, `/methods`, and `/reset` in the interactive `jshell` program are not Java snippets to pass directly to `JShell.eval`. The API provides `variables()`, `methods()`, `drop(...)`, `close()`, and other methods to implement equivalent operations.
+4. **Each `eval` call should receive one complete snippet.** To accept arbitrary multi-line text blocks from an editor, the application should use `SourceCodeAnalysis.analyzeCompletion(...)` to split input and determine syntactic completeness rather than splitting on newlines.
+5. **State belongs strictly to a specific JShell session.** Creating a new session does not automatically carry over variables declared in an old session. Any data the application wants to persist requires a controlled snapshot/replay mechanism.
 
-## 3. JavaCompiler: compile artifact rồi mới load/execute
+## 3. JavaCompiler: Compile Artifacts First, Then Load and Execute
 
-API `javax.tools.JavaCompiler` thích hợp với pipeline sinh mã hoàn chỉnh, nơi source có thể là một hoặc nhiều file Java có package, dependency và cấu hình compiler:
+The `javax.tools.JavaCompiler` API fits complete code generation pipelines where the source may be one or more Java files with packages, dependencies, and compiler configuration:
 
 ```text
 Source .java / JavaFileObject
@@ -57,67 +57,67 @@ CompilationTask.call()  -> diagnostics / success / failure
 validate + publish artifact
        |
        v
-ClassLoader hoặc ModuleLayer
+ClassLoader or ModuleLayer
        |
        v
 instantiate/invoke/deploy/test
 ```
 
-JavaCompiler **không có khái niệm phiên REPL duy trì `n` sau một lời gọi** theo hợp đồng chung. Mỗi compilation task xử lý các nguồn và classpath/module path mà caller cung cấp. Muốn thực hiện nhiều lượt nhập liên tiếp, ứng dụng phải quản lý code sinh, tên class, output, version, class loader và vòng đời artifact.
+`JavaCompiler` **has no concept of a REPL session that retains `n` after a call** as part of its general contract. Each compilation task processes the sources and classpath/module path provided by the caller. To support multiple consecutive inputs, the application must manage generated code, class names, outputs, versions, class loaders, and artifact lifecycles itself.
 
-Ngược lại, JavaCompiler có những lợi thế quan trọng khi cần sản phẩm build:
+Conversely, `JavaCompiler` offers major advantages when a build artifact is needed:
 
-- Biên dịch source có cấu trúc chuẩn: package, named classes, nhiều compilation units, module descriptor, annotation processing và output paths.
-- Tạo artifact để **lưu lại, kiểm thử, đóng gói, ký, scan, cache hoặc triển khai**; không phụ thuộc vào một phiên JShell còn sống.
-- Tích hợp công cụ build/CI, classpath/module path và chính sách compilation phù hợp.
-- Phân biệt rành mạch kết quả compiler với việc thực thi; compile thành công không đồng nghĩa logic runtime thành công.
+- Compiles structured source code: packages, named classes, multiple compilation units, module descriptors, annotation processing, and output paths.
+- Produces artifacts that can be **stored, tested, packaged, signed, scanned, cached, or deployed**, independent of a live JShell session.
+- Integrates with build/CI tools, classpath/module path, and appropriate compilation policies.
+- Clearly separates compilation outcomes from execution; successful compilation does not mean runtime logic will succeed.
 
-JavaCompiler có thể được dùng với **source hoặc output trong bộ nhớ** thông qua `JavaFileObject`/`JavaFileManager` tùy biến. Khác biệt giữa hai API **không đơn giản là JShell dùng RAM, JavaCompiler bắt buộc ghi file**.
+`JavaCompiler` can be used with **in-memory sources or outputs** via a custom `JavaFileObject`/`JavaFileManager`. The difference between the two APIs is **not simply that JShell uses RAM while JavaCompiler must write files to disk**.
 
-## 4. Bảng quyết định: khi nào ưu tiên JShell?
+## 4. Decision Table: When to Prefer JShell?
 
-| Nhu cầu thực tế | Chọn ưu tiên | Lý do |
+| Practical Need | Preferred Choice | Reason |
 |---|---|---|
-| Người dùng nhập `1 + 2` và muốn thấy `3` ngay | JShell | Expression snippet có value, không cần tạo class hoàn chỉnh |
-| Tạo một biến rồi dùng lại ở nhiều lần nhập | JShell | State sống xuyên các lời gọi `eval` trong cùng phiên |
-| Học Java, playground, console nội bộ, REPL trong IDE | JShell | Có snippet status, error diagnostics, source completion |
-| Thử phương thức ngắn, import API rồi gọi ngay | JShell | Khai báo/method/import lưu trong phiên, dễ sửa và đánh giá lại |
-| Biên dịch hàng chục file Java thành JAR plugin phát hành | JavaCompiler | Cần compilation units, artifact, dependency/output management |
-| Sinh một implementation của SPI để host sử dụng lâu dài | Thường JavaCompiler | Kiểm soát binary name, bytecode, class loader và lifecycle |
-| Chạy build lặp lại có cache, reproducibility, test/CI | JavaCompiler | Có đường ra artifact tách biệt với phiên tương tác |
-| Cần module descriptor, annotation processing hay output chuẩn | JavaCompiler | Phù hợp mục tiêu build hơn so với mô hình snippet |
-| Người dùng vừa thử mã, vừa muốn lưu thành tính năng sản phẩm | JShell để prototype; JavaCompiler cho build cuối | Phải chuyển code thử thành source chuẩn, kiểm thử lại |
-| Nhận Java không tin cậy và muốn giới hạn file/network/CPU | Không chọn chỉ bằng hai API này | Cần ranh giới bảo mật tiến trình/OS/container riêng |
+| User types `1 + 2` and wants to see `3` immediately | JShell | Expression snippets yield a value without building a full class |
+| Create a variable and reuse it across multiple inputs | JShell | State persists across `eval` calls within the same session |
+| Learning Java, playgrounds, internal consoles, IDE REPLs | JShell | Provides snippet status, error diagnostics, and source completion |
+| Test a short method, import an API, and call it immediately | JShell | Declarations/methods/imports persist in session, easy to edit and re-evaluate |
+| Compile dozens of Java files into a releasable plugin JAR | JavaCompiler | Requires compilation units, artifacts, and dependency/output management |
+| Generate an SPI implementation for long-term host use | Usually JavaCompiler | Control over binary names, bytecode, class loaders, and lifecycle |
+| Run repeatable builds with caching, reproducibility, and test/CI | JavaCompiler | Output artifact is decoupled from an interactive session |
+| Need module descriptors, annotation processing, or standard outputs | JavaCompiler | Fits a build model better than a snippet model |
+| User wants to both experiment with code and save it as a product feature | JShell to prototype; JavaCompiler for final build | Experimental code must be converted to standard source and re-tested |
+| Accept untrusted Java and restrict file/network/CPU usage | Do not choose solely via these two APIs | Requires a dedicated process/OS/container security boundary |
 
-**Kết luận nhanh:** Nếu thao tác chính là **“nhập một đoạn → nhận phản hồi → sửa ngay trong cùng ngữ cảnh”**, JShell thường phù hợp. Nếu thao tác chính là **“nhận mã nguồn hoàn chỉnh → tạo artifact ổn định → kiểm thử/triển khai”**, JavaCompiler thường phù hợp.
+**Quick takeaway:** If the primary workflow is **"enter a snippet → get feedback → edit immediately in the same context"**, JShell is usually the right fit. If the primary workflow is **"take complete source code → produce a stable artifact → test/deploy"**, `JavaCompiler` is usually the right fit.
 
-## 5. Sự khác biệt quan trọng về input và output
+## 5. Key Differences in Input and Output
 
-### Input của JShell
+### JShell Input
 
-Một input có thể là:
+An input can be:
 
 ```java
 int score = 10;
 ```
 
-hoặc:
+or:
 
 ```java
 score * 2
 ```
 
-hoặc:
+or:
 
 ```java
 int bonus(int x) { return x + 5; }
 ```
 
-Đây là **các snippet riêng biệt**, không phải một source file đầy đủ. JShell lưu định nghĩa giữa các lần `eval`. Biểu thức `score * 2` có thể được gán một biến tạm do JShell tạo, không cần người dùng viết `class Main { ... }`.
+These are **individual snippets**, not a full source file. JShell retains definitions across `eval` calls. The expression `score * 2` can be assigned to a JShell-generated temporary variable without the user having to write `class Main { ... }`.
 
-### Input của JavaCompiler
+### JavaCompiler Input
 
-Một compilation unit có cấu trúc Java thông thường:
+A compilation unit has standard Java structure:
 
 ```java
 package demo;
@@ -129,23 +129,23 @@ public final class Discount {
 }
 ```
 
-Đây là source của file `demo/Discount.java`, **không phải chương trình có `main` độc lập**. JavaCompiler có thể chuyển source này thành `demo/Discount.class`. Việc gọi `Discount.apply(10)` là bước runtime khác.
+This is the source of `demo/Discount.java`, **not a standalone program with `main`**. `JavaCompiler` can turn this source into `demo/Discount.class`. Calling `Discount.apply(10)` is a separate runtime step.
 
-### Output khác nhau
+### Different Outputs
 
-- `JShell.eval(input)` trả `List<SnippetEvent>` — thay đổi trạng thái snippet, giá trị biểu thức (nếu có), exception và thông tin về sự kiện trực tiếp/gián tiếp.
-- `JShell.diagnostics(snippet)` trả thông báo lỗi/cảnh báo từ **lần đánh giá gần nhất** của snippet đó; `JShell.status(snippet)` trả trạng thái hiện tại.
-- `JavaCompiler.CompilationTask.call()` trả `Boolean` cho sự thành công của task; diagnostics đến từ listener/collector; output bytecode được quản lý qua file manager.
-- `SnippetEvent.value()` không phải lúc nào cũng có: khai báo method/import thường có `null` vì không sinh giá trị biểu thức để in.
-- `JavaCompiler` không tự invoke method của lớp vừa biên dịch. Caller phải load/execute tách biệt nếu đó là mục tiêu.
+- `JShell.eval(input)` returns `List<SnippetEvent>`—snippet status changes, expression values (if any), exceptions, and information about direct/indirect events.
+- `JShell.diagnostics(snippet)` returns error/warning messages from the **most recent evaluation** of that snippet; `JShell.status(snippet)` returns its current status.
+- `JavaCompiler.CompilationTask.call()` returns a `Boolean` indicating task success; diagnostics come from a listener/collector; output bytecode is managed via the file manager.
+- `SnippetEvent.value()` is not always present: method or import declarations typically have `null` because they do not produce an expression value to print.
+- `JavaCompiler` does not automatically invoke methods on the newly compiled class. The caller must load and execute it separately if that is the goal.
 
-Hai API vì vậy có **unit of work** khác nhau: JShell xử lý tương tác có trạng thái; JavaCompiler xử lý một nhiệm vụ biên dịch có đầu vào/đầu ra được chủ sở hữu xác định.
+The two APIs therefore have different **units of work**: JShell handles stateful interaction; `JavaCompiler` handles a compilation task with caller-defined inputs and outputs.
 
-## 6. Ví dụ Java 17 chạy độc lập với JShell API
+## 6. Standalone Java 17 Example with the JShell API
 
-Chương trình tạo một JShell session, khai báo biến, đánh giá biểu thức, khai báo method, sửa giá trị của biến và phát hiện snippet không hợp lệ. Nó chỉ in các dữ liệu ổn định, không in ID biến tạm hay thông báo lỗi compiler vốn có thể thay đổi.
+This program creates a JShell session, declares a variable, evaluates an expression, declares a method, updates the variable's value, and detects an invalid snippet. It only prints deterministic data, omitting temporary variable IDs or compiler error text that may vary.
 
-**Tệp `JshellChoiceDemo.java`:**
+**File `JshellChoiceDemo.java`:**
 
 ```java
 import java.util.List;
@@ -188,9 +188,9 @@ public final class JshellChoiceDemo {
 }
 ```
 
-### 6.1. Lệnh biên dịch/chạy
+### 6.1. Compile/Run Commands
 
-Trong terminal có JDK 17 hoặc mới hơn, đứng ở thư mục chứa file:
+In a terminal with JDK 17 or newer, from the directory containing the file:
 
 ```powershell
 # Windows PowerShell
@@ -204,9 +204,9 @@ javac --release 17 --add-modules jdk.jshell JshellChoiceDemo.java
 java --add-modules jdk.jshell -cp . JshellChoiceDemo
 ```
 
-`--add-modules jdk.jshell` bảo đảm module cung cấp API JShell được giải vào graph khi host class đang chạy ở classpath. Không sử dụng `java.compiler` như một thay thế cho `jdk.jshell`: hai module khác nhau. Một custom runtime image có thể không đóng gói module JShell, nên cần xác minh môi trường deployment.
+`--add-modules jdk.jshell` ensures the module providing the JShell API is resolved into the module graph when the host class runs on the classpath. Do not use `java.compiler` as a substitute for `jdk.jshell`: they are two different modules. A custom runtime image may not bundle the JShell module, so you should verify the deployment environment.
 
-### 6.2. Stdout đã kiểm chứng
+### 6.2. Verified Stdout
 
 ```text
 declare=7
@@ -219,23 +219,23 @@ invalid-rejected=true
 has-errors=true
 ```
 
-Kết quả đã được xác minh bằng `javac --release 17` và chạy Java. Phân tích:
+This output was verified using `javac --release 17` and running Java. Analysis:
 
-1. `int n = 7;` tạo biến trong JShell state; event hợp lệ có value `7`.
-2. `n * 3` dùng biến đã có và trả `21`, không cần biên dịch một source file mới từ đầu theo cách caller nhìn thấy.
-3. Khai báo method `twice` hợp lệ nhưng không phải một phép gọi cho ra giá trị; helper in `(no value)`.
-4. `twice(n)` trả `14`, chứng minh method dùng được qua nhiều lần `eval`.
-5. `n = 9;` cập nhật state, nên lần gọi tiếp theo trả `18`.
-6. `int broken = ;` bị đánh dấu `REJECTED` và sinh error diagnostic; chương trình vẫn có thể dùng các khai báo hợp lệ trong cùng phiên.
-7. `try-with-resources` đóng JShell sau khi sử dụng, thay vì giữ execution engine tồn tại vô hạn.
+1. `int n = 7;` creates a variable in JShell state; the valid event has value `7`.
+2. `n * 3` uses the existing variable and returns `21` without needing to compile a new source file from scratch from the caller's perspective.
+3. The `twice` method declaration is valid, but it is not a call that yields a value; the helper prints `(no value)`.
+4. `twice(n)` returns `14`, proving the method persists across multiple `eval` calls.
+5. `n = 9;` updates the state, so the subsequent call returns `18`.
+6. `int broken = ;` is marked `REJECTED` and produces an error diagnostic; the program can still use valid declarations in the same session.
+7. `try-with-resources` closes JShell after use instead of keeping the execution engine alive indefinitely.
 
-**Giới hạn của helper `evaluate`:** Nó chọn value đầu tiên của event có status `VALID`, đủ cho chương trình demo gửi **một snippet hoàn chỉnh cho mỗi lần gọi**. Công cụ REPL thực tế phải xử lý **toàn bộ** event, vì một lần đánh giá/định nghĩa lại có thể tạo thêm event cập nhật các snippet phụ thuộc. Đừng chỉ lấy `events.get(0)` rồi mặc định phần còn lại không quan trọng.
+**Limitation of the `evaluate` helper:** It picks the first value from an event with status `VALID`, which suffices for a demo program sending **one complete snippet per call**. A real REPL tool must process **all** events, because an evaluation or redefinition can emit additional events that update dependent snippets. Never just grab `events.get(0)` and assume the rest do not matter.
 
-## 7. Chương trình so sánh: JavaCompiler tạo artifact rõ ràng
+## 7. Comparison Program: JavaCompiler Produces Explicit Artifacts
 
-Nếu yêu cầu là tạo một class Java chuẩn có thể lưu hoặc triển khai, dùng `JavaCompiler`. Ví dụ Java 17 này viết source file vào thư mục tạm, biên dịch bằng file manager, đóng file manager và xác nhận tệp `.class` được sinh. Nó **không thực thi class vừa biên dịch**, vì đó là trách nhiệm của bước runtime riêng.
+If the requirement is to create a standard Java class that can be saved or deployed, use `JavaCompiler`. This Java 17 example writes a source file to a temporary directory, compiles it using a file manager, closes the file manager, and verifies that the `.class` file was generated. It **does not execute the compiled class**, because that is the responsibility of a separate runtime step.
 
-**Tệp `CompilerChoiceDemo.java`:**
+**File `CompilerChoiceDemo.java`:**
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -291,50 +291,50 @@ public final class CompilerChoiceDemo {
 }
 ```
 
-**Biên dịch và chạy trên Windows/Linux/macOS** (đứng ở thư mục chứa file):
+**Compile and run on Windows/Linux/macOS** (from the directory containing the file):
 
 ```bash
 javac --release 17 CompilerChoiceDemo.java
 java -cp . CompilerChoiceDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 compiled=true
 artifact=true
 ```
 
-Đây là kết quả đã được kiểm chứng bằng việc biên dịch/chạy. Tên thư mục tạm có thành phần ngẫu nhiên nhưng không xuất hiện trong stdout. Với ứng dụng thực, sau compile hãy kiểm tra diagnostics, source/artifact version, đóng file manager, đóng gói hoặc publish artifact. Sau đó mới quyết định có tạo `URLClassLoader`/`ModuleLayer` để chạy hay không.
+This result has been verified by compiling and running the code. The temporary directory name has a random component, which does not appear in stdout. In a real application, after compiling, inspect diagnostics and source/artifact versions, close the file manager, and package or publish the artifact. Only then decide whether to create a `URLClassLoader`/`ModuleLayer` to run it.
 
-**So sánh trực tiếp:** JShell demo ghi `n` rồi dùng lại trong cùng phiên; JavaCompiler demo tạo `demo.Generated.class` có tên nhị phân và đường dẫn xác định. Chọn mô hình nào phụ thuộc việc ứng dụng cần **state tương tác** hay **artifact phân phối**.
+**Direct comparison:** The JShell demo records `n` and reuses it within the same session; the `JavaCompiler` demo produces `demo.Generated.class` with a deterministic binary name and path. Which model you choose depends on whether the application needs **interactive state** or a **distributable artifact**.
 
-## 8. Dùng SnippetEvent, status và diagnostics đúng cách
+## 8. Using SnippetEvent, Status, and Diagnostics Properly
 
-Một công cụ nhúng JShell không nên hiểu `eval` trả về “chuỗi kết quả hoặc exception”. Thực tế nó trả danh sách `SnippetEvent`, và một event có:
+A tool embedding JShell should not assume `eval` returns "a result string or an exception." In reality it returns a list of `SnippetEvent`, and each event has:
 
-- `snippet()`: snippet liên quan, có thể kiểm tra `kind()` và `source()`.
-- `status()`: trạng thái của snippet sau thay đổi được event mô tả.
-- `previousStatus()`: trạng thái trước đó khi có thay đổi.
-- `value()`: chuỗi biểu diễn giá trị nếu lần đánh giá tạo giá trị; không nên giả định luôn khác `null`.
-- `exception()`: exception do snippet thực thi ném theo mô hình exception của JShell; có thể khác lỗi biên dịch.
-- `causeSnippet()`: có thể xác định event xảy ra gián tiếp vì snippet khác bị thêm/sửa/xóa.
+- `snippet()`: the associated snippet, allowing you to inspect `kind()` and `source()`.
+- `status()`: the status of the snippet after the transition described by the event.
+- `previousStatus()`: the prior status when a change occurred.
+- `value()`: string representation of the value if the evaluation produced one; never assume it is always non-`null`.
+- `exception()`: exception thrown by executing the snippet according to JShell's exception model; distinct from compile errors.
+- `causeSnippet()`: identifies whether the event occurred indirectly because another snippet was added, modified, or dropped.
 
-Một số status quan trọng:
+Key statuses:
 
-| Status | Ý nghĩa sử dụng |
+| Status | Practical Meaning |
 |---|---|
-| `VALID` | Snippet được định nghĩa/đánh giá hợp lệ tại trạng thái đang xét |
-| `REJECTED` | Snippet bị từ chối, thường do lỗi không thể trì hoãn |
-| `RECOVERABLE_DEFINED` | Khai báo có thể được định nghĩa, dù còn dependency chưa phân giải; chưa phải đảm bảo gọi sẽ thành công |
-| `RECOVERABLE_NOT_DEFINED` | Khai báo có thể được khôi phục nhưng chưa tạo được định nghĩa dùng được |
-| `OVERWRITTEN` | Khai báo cũ được thay bằng khai báo mới cùng định danh phù hợp |
-| `DROPPED` | Khai báo đã bị xóa khỏi trạng thái active |
-| `NONEXISTENT` | Trạng thái không tồn tại của snippet trong một số bước chuyển |
+| `VALID` | The snippet is validly defined/evaluated in the current state |
+| `REJECTED` | The snippet was rejected, usually due to errors that cannot be deferred |
+| `RECOVERABLE_DEFINED` | Declaration can be defined despite unresolved dependencies; calling it is not yet guaranteed to succeed |
+| `RECOVERABLE_NOT_DEFINED` | Declaration is recoverable, but a usable definition could not be created yet |
+| `OVERWRITTEN` | An old declaration was replaced by a new one with a matching signature/identifier |
+| `DROPPED` | The declaration was removed from active state |
+| `NONEXISTENT` | Non-existent snippet state during certain transitions |
 
-**Không gộp mọi status khác `REJECTED` thành “chạy thành công”.** Một method có unresolved dependency có thể ở trạng thái recoverable; khi gọi có thể thất bại và cần dùng `unresolvedDependencies(...)` để giải thích.
+**Do not lump every non-`REJECTED` status together as "succeeded."** A method with unresolved dependencies can be in a recoverable state; calling it may fail, and `unresolvedDependencies(...)` is needed to explain why.
 
-Để báo lỗi có ý nghĩa, dùng:
+To report errors meaningfully, use:
 
 ```java
 for (SnippetEvent event : shell.eval(input)) {
@@ -350,17 +350,17 @@ for (SnippetEvent event : shell.eval(input)) {
 }
 ```
 
-Đây là **đoạn minh họa cần đặt trong scope có `shell` và `input`**. Các thông báo diagnostics có thể khác nhau giữa phiên bản JDK/locale; đừng viết bài test dựa trên nguyên văn mọi thông điệp compiler. Ưu tiên assert status, kind, event value và sự tồn tại của error diagnostic.
+This is an **illustrative snippet meant to be placed inside a scope with `shell` and `input`**. Diagnostic messages can differ across JDK versions and locales; do not write tests asserting exact compiler wording. Prefer asserting status, kind, event value, and the presence of error diagnostics.
 
-### Lỗi lúc execute khác lỗi compile
+### Execution Errors vs. Compile Errors
 
-`shell.eval("1 / 0")` có thể được biên dịch thành snippet hợp lệ rồi thất bại khi thực thi, tạo `SnippetEvent.exception()` khác `null`. Lỗi cú pháp như `int broken = ;` lại có thể tạo `REJECTED` và diagnostics. REPL phải trình bày hai tình huống này khác nhau: người dùng sửa cú pháp so với người dùng debug exception khi chạy.
+`shell.eval("1 / 0")` can compile as a valid snippet and then fail during execution, producing a non-`null` `SnippetEvent.exception()`. A syntax error like `int broken = ;`, on the other hand, produces `REJECTED` and diagnostics. A REPL should present these two situations differently: the user fixing syntax versus debugging a runtime exception.
 
-Nếu default execution engine của JShell chạy ngoài tiến trình như JDK thường cấu hình, exception của mã người dùng được mô tả qua API JShell chứ không nhất thiết là đối tượng Throwable của cùng class loader trong host. Đừng tự cast `exception()` thành exception class của mã nguồn đánh giá.
+If JShell's default execution engine runs out-of-process as the JDK typically configures it, user-code exceptions are described through the JShell API rather than necessarily being `Throwable` instances from the same host class loader. Do not cast `exception()` directly to an exception class from the evaluated source code.
 
-## 9. Giao diện nhập nhiều dòng: SourceCodeAnalysis mới là bước phân tách
+## 9. Multi-Line Input UI: `SourceCodeAnalysis` Is the Splitting Step
 
-Một người dùng có thể nhập:
+A user might enter:
 
 ```java
 int total(int x) {
@@ -368,17 +368,17 @@ int total(int x) {
 }
 ```
 
-Đây là **một method snippet** trải nhiều dòng, không phải ba snippet. Nếu UI gửi mỗi dòng vào `shell.eval(...)` riêng, nội dung có thể bị từ chối dù method cuối cùng hợp lệ.
+This is **one method snippet** spanning multiple lines, not three separate snippets. If the UI passes each line individually to `shell.eval(...)`, the input may be rejected even though the final method is valid.
 
-API `shell.sourceCodeAnalysis()` cung cấp `SourceCodeAnalysis.analyzeCompletion(buffer)` để nhận biết mức độ hoàn chỉnh và phần source đã đủ điều kiện xử lý. Một cách tiếp cận:
+The `shell.sourceCodeAnalysis()` API provides `SourceCodeAnalysis.analyzeCompletion(buffer)` to determine completeness and identify the portion of source ready for processing. One approach:
 
-1. Thêm từng dòng người dùng nhập vào input buffer của **một phiên**.
-2. Dùng `analyzeCompletion(buffer)` để xác định đã có complete snippet hay cần thêm dấu đóng/braces/semicolon.
-3. Khi đủ một snippet, chuyển **exact source của snippet hoàn chỉnh** vào `eval`; giữ phần text dư (nếu có) để tiếp tục phân tích, không bỏ ký tự.
-4. Duyệt toàn bộ `SnippetEvent` và cập nhật UI: source, status, value, diagnostics, unresolved dependency và stdout/stderr.
-5. Giữ mã nguồn/history theo session ID nếu ứng dụng cần khôi phục hoặc audit.
+1. Append each line the user enters to a **session-specific** input buffer.
+2. Use `analyzeCompletion(buffer)` to determine whether a complete snippet is ready or more closing braces/semicolons are needed.
+3. Once a snippet is complete, pass the **exact source of the complete snippet** to `eval`; retain any remaining text for further analysis without dropping characters.
+4. Iterate over all `SnippetEvent`s and update the UI: source, status, value, diagnostics, unresolved dependencies, and stdout/stderr.
+5. Store source/history by session ID if the application needs recovery or auditing.
 
-Phác thảo API (không phải chương trình độc lập):
+API sketch (not a standalone program):
 
 ```java
 var analysis = shell.sourceCodeAnalysis();
@@ -390,227 +390,227 @@ if (completion.completeness().isComplete()) {
 }
 ```
 
-Một lệnh trong CLI như `/list` hay `/drop` không gửi qua `eval`; UI phải ánh xạ thành các lời gọi API tương ứng. JShell CLI còn có cơ chế history, prompt, command parser riêng. **Nhúng API không tự có một giao diện REPL hoàn chỉnh.**
+CLI commands like `/list` or `/drop` must not be sent through `eval`; the UI must map them to the corresponding API calls. The JShell CLI also has its own history, prompt, and command parser. **Embedding the API does not automatically give you a complete REPL UI.**
 
-## 10. State: sức mạnh lớn nhất đồng thời là rủi ro lớn nhất của JShell
+## 10. State: JShell's Greatest Strength and Greatest Risk
 
-Trong cùng một phiên, nhập:
+Within a single session, entering:
 
 ```java
 int discount = 5;
 ```
 
-rồi:
+then:
 
 ```java
 int price(int base) { return base - discount; }
 ```
 
-rồi:
+then:
 
 ```java
 discount = 7;
 ```
 
-có nghĩa method ở lần đánh giá sau có thể quan sát state mới. Điều này rất hữu ích khi dạy học, thử thuật toán hoặc xây console tương tác. Nhưng sản phẩm cần chú ý:
+means a method evaluated earlier observes the updated state. This is very useful for teaching, experimenting with algorithms, or building an interactive console. However, production systems must watch out for:
 
-- **Định nghĩa lại khai báo:** JShell cho phép thay một số khai báo cùng tên/chữ ký. Khi đó event có thể nói snippet cũ bị `OVERWRITTEN`; biến/method khác phụ thuộc vào nó có thể thay status hoặc hành vi.
-- **Xóa khai báo:** `shell.drop(snippet)` thay đổi source state, có thể ảnh hưởng nhiều snippet phụ thuộc. Không coi `drop` là “đảo ngược mọi side effect” của đoạn mã đã thực thi.
-- **Phần phụ thuộc chưa giải quyết:** khai báo có thể được chấp nhận có điều kiện. Gọi `shell.unresolvedDependencies(declarationSnippet)` khi cần hiển thị các tên chưa có, thay vì khẳng định người dùng đã chạy thành công.
-- **Side effects vẫn tồn tại:** ghi file, gửi HTTP request, mutate object, tạo thread hoặc cập nhật database không tự rollback chỉ vì người dùng drop/redefine snippet.
-- **Reset phiên:** muốn trở về ngữ cảnh hoàn toàn mới, cách đơn giản là `close()` phiên cũ và tạo `JShell.create()` mới. `close()` không khôi phục các hệ thống bên ngoài đã bị thay đổi.
-- **Phiên lâu sống:** nhiều snippet và class definitions có thể tăng memory, thời gian phân tích và chi phí điều phối engine. Cần giới hạn session lifetime, số snippet, dung lượng history và số phiên đang mở.
+- **Redefining declarations:** JShell lets you replace certain declarations with the same name/signature. Events may report the old snippet as `OVERWRITTEN`; other variables/methods depending on it can change status or behavior.
+- **Dropping declarations:** `shell.drop(snippet)` mutates source state and can affect many dependent snippets. Do not treat `drop` as "rolling back all side effects" of previously executed code.
+- **Unresolved dependencies:** A declaration can be accepted conditionally. Call `shell.unresolvedDependencies(declarationSnippet)` when you need to show missing names rather than claiming the user ran it successfully.
+- **Side effects persist:** Writing files, sending HTTP requests, mutating objects, spawning threads, or updating databases are not rolled back just because the user drops or redefines a snippet.
+- **Resetting a session:** To return to a completely clean context, the simplest approach is to `close()` the old session and call `JShell.create()` for a new one. `close()` does not restore external systems that were already modified.
+- **Long-lived sessions:** Accumulating many snippets and class definitions increases memory usage, analysis time, and engine coordination overhead. Enforce limits on session lifetime, snippet count, history size, and open session count.
 
-Đối với nhiều người dùng, không nên dùng **một singleton JShell dùng chung cho mọi request**: state sẽ rò qua người dùng, output và hành vi khó dự đoán. Dùng session ID gắn với chủ sở hữu và có lifecycle/timeout rõ ràng.
+For multi-user systems, do not use **one shared singleton JShell for all requests**: state will leak across users, and output/behavior will become unpredictable. Use a session ID bound to an owner with an explicit lifecycle and timeout.
 
-## 11. Lifecycle: JShell.close khác JavaFileManager.close
+## 11. Lifecycle: `JShell.close` vs. `JavaFileManager.close`
 
-JShell implement `AutoCloseable`. Với code host:
+`JShell` implements `AutoCloseable`. In host code:
 
 ```java
 try (JShell shell = JShell.create()) {
-    // Những lần eval, drop, đọc diagnostics của session này.
+    // Evaluations, drops, and diagnostics reads for this session.
 }
-// shell.close() đã được gọi.
+// shell.close() has been called.
 ```
 
-Đây là mẫu minh họa. `close()` giải phóng tài nguyên engine; một phiên đã đóng không được dùng tiếp như phiên active. Nếu cần một session mới, tạo instance khác.
+This is an illustrative pattern. `close()` releases engine resources; a closed session must not continue to be used as an active session. If a new session is needed, create a new instance.
 
-JavaCompiler thường có lifecycle:
+`JavaCompiler` typically follows this lifecycle:
 
 ```java
 JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 try (StandardJavaFileManager manager =
         compiler.getStandardFileManager(null, null, null)) {
-    // Tạo task, cấu hình classpath/output và gọi task.call().
+    // Create task, configure classpath/output, and call task.call().
 }
-// Manager được close, nhưng artifact .class có thể vẫn tồn tại.
+// Manager is closed, but the .class artifact may still exist.
 ```
 
-Đây cũng là đoạn minh họa, không phải chương trình độc lập. Ý nghĩa khác biệt:
+This is also an illustrative snippet, not a standalone program. Key differences:
 
 | JShell | JavaCompiler |
 |---|---|
-| Quản lý một phiên tương tác và execution state | Quản lý compilation task và artifact |
-| Đóng `JShell` khi session kết thúc | Đóng `JavaFileManager` sau tác vụ/phiên compile |
-| Có thể dùng `drop`, định nghĩa lại snippet trong cùng session | Không cung cấp state tương tác/overwrite semantics qua task |
-| Không nên lấy internal compiled class của JShell làm artifact triển khai mặc định | Artifact đầu ra là mục tiêu thiết kế trực tiếp |
-| Có thể còn side effects bên ngoài dù session đã close | Artifact/lớp đã load còn sống theo lifecycle ứng dụng, không theo manager |
+| Manages an interactive session and execution state | Manages compilation tasks and artifacts |
+| Close `JShell` when the session ends | Close `JavaFileManager` after the compilation task/phase |
+| Supports `drop` and snippet redefinition within the same session | Does not provide interactive state or overwrite semantics via tasks |
+| Internal compiled classes of JShell should not be taken as default deployment artifacts | The output artifact is the direct design goal |
+| External side effects may persist even after the session is closed | Loaded artifacts/classes remain alive with the application lifecycle, not the manager's |
 
-Trong cả hai trường hợp, **close tài nguyên API không đồng nghĩa hoàn tác mã Java đã chạy**. Với JavaCompiler, việc nạp/chạy class có thể chưa diễn ra. Với JShell, mỗi lần `eval` có thể đã thực thi side effects ngay.
+In both cases, **closing the API resource does not undo Java code that has already executed**. With `JavaCompiler`, class loading/execution might not have happened yet. With JShell, each `eval` call may have already executed side effects immediately.
 
-## 12. Classpath, module và ranh giới host–snippet
+## 12. Classpath, Modules, and the Host–Snippet Boundary
 
-Một JShell session chạy trong một execution environment. Nó không bảo đảm nhìn thấy mọi class hoặc object mà ứng dụng host nhìn thấy chỉ vì hai bên cùng là Java.
+A JShell session runs inside an execution environment. It is not guaranteed to see every class or object visible to the host application simply because both are Java.
 
-Các yếu tố quan trọng:
+Key factors:
 
-1. **Module `jdk.jshell`:** host cần có module này trong runtime image và trong module graph. `javac --add-modules jdk.jshell`/`java --add-modules jdk.jshell` trong ví dụ giúp rõ ràng.
-2. **Classpath cho snippet:** `shell.addToClasspath(pathString)` bổ sung một path vào classpath dùng bởi `eval`. Path phải có JAR/classes mà execution engine có thể đọc; việc cấu hình sai có thể dẫn tới diagnostics hoặc lỗi runtime.
-3. **Classpath cho host khác classpath snippet:** lớp host có thể đã được nạp từ application loader, nhưng class trong snippet chạy trong loader/engine khác. Đừng giả định một `Class<?>` hoặc object host tự truyền được qua Java source expression.
-4. **Default package:** các class được định nghĩa trong unnamed package của host không phải đường tích hợp ổn định cho snippet. API JShell nói rõ các class trong unnamed package không được truy cập từ package nơi code `eval` được đặt; API công khai nên có package và dependency cấu hình rõ.
-5. **Named modules và reflection:** JShell không tự giải quyết mọi cấu hình `requires/exports/opens` của ứng dụng. Nếu sản phẩm cần build named module chuẩn, JavaCompiler + module path/ModuleLayer thường hợp mô hình hơn.
-6. **Nhiều phiên:** mỗi phiên có state riêng; classloader và engine lifetime cần được quản lý tránh giữ class/plugin JAR cũ. Không cache bừa `Class<?>`, output hay object kỳ vọng dùng xuyên session.
+1. **The `jdk.jshell` module:** the host needs this module in the runtime image and in the module graph. `javac --add-modules jdk.jshell`/`java --add-modules jdk.jshell` in the example makes this explicit.
+2. **Classpath for snippets:** `shell.addToClasspath(pathString)` appends a path to the classpath used by `eval`. The path must contain JARs or classes readable by the execution engine; misconfiguration can lead to diagnostics or runtime errors.
+3. **Host classpath differs from snippet classpath:** host classes may be loaded by the application loader, whereas snippet classes run in another loader/engine. Do not assume a host `Class<?>` or object can be passed directly via a Java source expression.
+4. **Default package:** classes defined in the host's unnamed package are not a stable integration path for snippets. The JShell API explicitly notes that classes in the unnamed package cannot be accessed from the package where `eval` code is placed; public APIs should have explicit packages and configured dependencies.
+5. **Named modules and reflection:** JShell does not automatically resolve every `requires/exports/opens` configuration of your application. If the product needs to build standard named modules, `JavaCompiler` + module path/`ModuleLayer` is usually a better fit.
+6. **Multiple sessions:** each session has its own state; classloader and engine lifetimes must be managed to avoid retaining stale classes or plugin JARs. Do not indiscriminately cache `Class<?>`, outputs, or objects expecting them to work across sessions.
 
-Không thiết kế một API “chạy thử biểu thức trong JShell rồi lấy object thật trực tiếp từ heap của host” nếu chưa có cầu nối dữ liệu được hỗ trợ. Với workflow cần trao đổi giá trị, cân nhắc serialize qua JSON/string hoặc gọi API/IPC có hợp đồng; lưu ý JShell `SnippetEvent.value()` chỉ là **chuỗi hiển thị**, không phải một object Java sống có thể cast tùy ý.
+Do not design an API that "runs an expression in JShell and grabs the live object directly from the host heap" without a supported data bridge. For workflows that exchange values, consider serializing via JSON/strings or calling a contract-based API/IPC; note that JShell's `SnippetEvent.value()` is only a **display string**, not a live Java object you can cast arbitrarily.
 
-## 13. Tính song song, timeout và khả năng hủy
+## 13. Concurrency, Timeouts, and Cancellation
 
-Javadoc nêu `JShell` **không thread-safe** (ngoại trừ trường hợp được ghi rõ). Tránh hai request cùng gọi `eval` hoặc `drop` trên một instance trong lúc chưa có cơ chế xếp hàng/đồng bộ rõ ràng.
+The Javadoc states that `JShell` is **not thread-safe** (unless explicitly noted otherwise). Avoid having two requests call `eval` or `drop` concurrently on the same instance without explicit queuing or synchronization.
 
-Đối với một ứng dụng web có nhiều người dùng:
+For a multi-user web application:
 
-- Một session JShell nên có một **owner** và cơ chế tuần tự hóa các thao tác thay đổi state. Có thể dùng actor/queue một luồng cho từng session.
-- Giới hạn số phiên, độ dài snippet, độ sâu history và tổng tài nguyên. Session sống lâu cần cơ chế idle timeout và `close()`.
-- `shell.stop()` chỉ **cố gắng** dừng một snippet đang thực thi; Javadoc không bảo đảm lúc nào cũng dừng được, ví dụ code bắt ngoại lệ hoặc bị chặn trong một thao tác không hợp tác.
-- `Future.cancel(true)` trên thread host không đồng nghĩa chắc chắn chặn code đang chạy bên execution engine.
-- Nếu snippet có thể chạy vô hạn, sinh thread, ghi disk hoặc truy cập mạng, cần giới hạn thực sự ở **cấp process/OS/container**. Execution engine mặc định của JShell thường chạy ngoài tiến trình, nhưng không nên coi điều đó là một sandbox được bảo đảm.
-- Không thực hiện các thao tác gọi ngược `eval/drop` từ callback theo cách tạo reentrancy. Khi dùng `onSnippetEvent`, theo tài liệu API, callback được gọi trong lúc state đang biến đổi; phải tuân thủ hạn chế về gọi phương thức JShell trong callback.
+- A JShell session should have a single **owner** and serialize state-mutating operations. You can use a single-threaded actor/queue per session.
+- Cap the number of sessions, snippet length, history depth, and total resources. Long-lived sessions need an idle timeout and `close()`.
+- `shell.stop()` only **attempts** to stop a running snippet; the Javadoc does not guarantee it can always stop execution, for instance if code catches exceptions or blocks in an uncooperative operation.
+- `Future.cancel(true)` on a host thread does not guarantee stopping code running inside the execution engine.
+- If snippets can loop infinitely, spawn threads, write to disk, or access the network, real limits are needed at the **process/OS/container level**. JShell's default execution engine typically runs out-of-process, but that alone must not be treated as a guaranteed sandbox.
+- Do not invoke `eval/drop` back from callbacks in ways that cause reentrancy. When using `onSnippetEvent`, per the API docs, callbacks fire while state is mutating; adhere to restrictions on calling JShell methods inside callbacks.
 
-Với JavaCompiler, một compilation task cũng có thể lâu hoặc tốn tài nguyên, nhưng task không tự tạo một phiên REPL. Cần quản lý compile worker, timeouts, source limits và cleanup artifact, sau đó quản lý runtime worker **riêng biệt** nếu code sẽ được thực thi.
+With `JavaCompiler`, a compilation task can also be slow or resource-intensive, though it does not create a REPL session. You must manage compile workers, timeouts, source limits, and artifact cleanup, and then manage runtime workers **separately** if the compiled code is executed.
 
-## 14. Hiệu năng: tối ưu theo vòng đời chứ không mặc định API nào nhanh hơn
+## 14. Performance: Optimize by Lifecycle Rather Than Assuming One API Is Faster
 
-JShell được thiết kế để giảm **chi phí tương tác trong trải nghiệm người dùng**: mỗi lần nhập không yêu cầu caller tạo, biên dịch, nạp class source hoàn chỉnh. Nó phù hợp prototyping và feedback nhanh. Tuy vậy:
+JShell is designed to reduce **interactive UX overhead**: each input does not require the caller to generate, compile, and load a complete class source file manually. It excels at prototyping and rapid feedback. However:
 
-- Tạo một JShell session có thể có chi phí khởi tạo compiler/engine và tiến trình từ xa.
-- Giữ phiên sống cho nhiều lượt có thể tiết kiệm chi phí khởi tạo so với tạo phiên mới trên mỗi phím Enter, nhưng tăng memory, state history và tài nguyên.
-- Redefine nhiều lần có thể khiến nhiều snippets phụ thuộc cần được phân tích/cập nhật.
-- Thời gian `eval` bao gồm parsing, compilation và có thể cả việc chạy mã — không chỉ một phép tính.
-- JavaCompiler với nhiều nguồn/caching/file manager và build pipeline phù hợp có thể hiệu quả hơn khi sản phẩm cần biên dịch một tập source lớn hoặc artifact lâu dài.
-- Thử nghiệm hiệu năng phải tính cả **phân tích source, compile, class loading, execution, IO, warmup, process startup và cleanup**, không so một `eval("1+1")` với một build nhiều trăm class.
+- Creating a JShell session incurs startup costs for the compiler/engine and remote process.
+- Keeping a session alive across turns saves startup overhead compared to spawning a new session on every Enter keystroke, but increases memory, state history, and resource usage.
+- Frequent redefinitions can force many dependent snippets to be re-analyzed or updated.
+- `eval` time includes parsing, compilation, and potentially code execution—not just a bare computation.
+- `JavaCompiler` with batched sources, caching, a custom file manager, and a proper build pipeline can be more efficient when compiling a large source set or long-lived artifacts.
+- Benchmarks must measure **source analysis, compilation, class loading, execution, I/O, warmup, process startup, and cleanup**—not compare a single `eval("1+1")` against a build of hundreds of classes.
 
-Một số liệu như “JShell luôn nhanh hơn JavaCompiler” không có giá trị chung nếu chưa định nghĩa workload. Với runtime extensibility, quan trọng hơn là chọn đúng **độ hạt phiên (session)** và **độ hạt build/artifact**.
+A claim like "JShell is always faster than JavaCompiler" has no general validity without defining the workload. For runtime extensibility, it matters more to choose the right **session granularity** and **build/artifact granularity**.
 
-## 15. Security: không cho source không tin cậy chạy chỉ vì có JShell
+## 15. Security: Do Not Run Untrusted Source Just Because You Use JShell
 
-JShell rất thuận lợi để viết playground, nhưng việc eval source có thể dẫn tới **thực thi mã Java thật**. Mã đó có thể dùng filesystem, network, CPU, memory, threads hoặc thư viện trong môi trường được phép. Một snippet sai có thể gây lỗi, chiếm tài nguyên hoặc tạo side effects trước khi người dùng nhấn “reset”.
+JShell makes it convenient to build a playground, but evaluating source code can lead to **real Java code execution**. That code can access the filesystem, network, CPU, memory, threads, or libraries within the granted permissions. A bad snippet can throw errors, exhaust resources, or cause side effects before the user clicks "reset."
 
-Các kiểm soát có ý nghĩa nếu nguồn không tin cậy:
+Meaningful controls for untrusted sources include:
 
-1. Chạy mã trong **worker process/container tách biệt**, có OS identity/quyền file/network/resource limits và lifecycle độc lập.
-2. Giới hạn thời gian, CPU, RAM, thread/process, số snippet và số phiên; có cơ chế kill worker đáng tin cậy chứ không chỉ dựa `JShell.stop()`.
-3. Giới hạn classpath/module path, tránh mount tài liệu, secrets hoặc credentials của host vào môi trường chạy mã.
-4. Ghi log các phiên để audit, không in giá trị biến/diagnostics chứa thông tin nhạy cảm ra output công khai.
-5. Không tin vào `JavaCompiler` như “cơ chế an toàn hơn” nếu sau đó vẫn load/chạy artifact không tin cậy trong JVM host. Với compiler, annotation processing cũng cần chính sách riêng trong build pipeline.
-6. Không nhầm **lỗi compile** với **mã an toàn**: một snippet `VALID` chứng minh Java chấp nhận nó ở thời điểm xét, không chứng minh logic không độc hại.
+1. Run code in an **isolated worker process/container** with its own OS identity, filesystem/network permissions, resource limits, and independent lifecycle.
+2. Enforce limits on time, CPU, RAM, threads/processes, snippet count, and session count; have a reliable way to kill the worker rather than relying solely on `JShell.stop()`.
+3. Restrict the classpath/module path, and avoid mounting host documents, secrets, or credentials into the execution environment.
+4. Log sessions for auditing, and avoid exposing variable values or diagnostics containing sensitive data in public outputs.
+5. Do not treat `JavaCompiler` as a "safer mechanism" if you subsequently load and run untrusted artifacts inside the host JVM. With the compiler, annotation processing also needs its own policy in the build pipeline.
+6. Do not confuse **no compile errors** with **safe code**: a `VALID` snippet proves Java accepted it at evaluation time, not that its logic is benign.
 
-JShell default engine có thể dùng một JVM khác theo thiết kế JDK, nhưng nếu không kiểm soát OS permission và isolation thì một tiến trình khác không tự đủ để tạo boundary bảo mật phù hợp với yêu cầu mạnh.
+JShell's default engine may use a separate JVM by JDK design, but without OS permission controls and isolation, a separate process alone is insufficient to establish a strong security boundary.
 
-## 16. Một số kiến trúc áp dụng thực tế
+## 16. Practical Architecture Patterns
 
-### 16.1. IDE / môi trường học Java có ô nhập tương tác
+### 16.1. IDE / Java Learning Environment with an Interactive Prompt
 
 ```text
-User nhập câu lệnh
-  -> kiểm tra nguồn và số lượng ký tự
-  -> SourceCodeAnalysis: đủ một snippet?
-  -> session JShell riêng
+User enters statement
+  -> validate source and character limit
+  -> SourceCodeAnalysis: is it a complete snippet?
+  -> dedicated JShell session
   -> eval
   -> SnippetEvent/status/diagnostics/value
-  -> cập nhật UI/history
-  -> tiếp tục dùng state cho câu lệnh kế tiếp
+  -> update UI/history
+  -> continue using state for the next statement
 ```
 
-Đây là tình huống JShell phát huy ưu thế rõ nhất. UX có thể hiển thị biến hiện tại, method đã định nghĩa, code chưa hoàn chỉnh và chỗ lỗi. Cần chuẩn hóa session ownership và timeout.
+This is where JShell shines brightest. The UX can display current variables, defined methods, incomplete code, and error locations. Session ownership and timeouts must be standardized.
 
-### 16.2. Sinh plugin class từ template
+### 16.2. Generating Plugin Classes from Templates
 
 ```text
 Template/source generator
   -> JavaCompiler + JavaFileManager
-  -> .class hoặc JAR + metadata
+  -> .class or JAR + metadata
   -> validate, test, sign/publish
   -> ClassLoader / ModuleLayer
-  -> lifecycle plugin
+  -> plugin lifecycle
 ```
 
-JavaCompiler phù hợp hơn vì output cần tên lớp, artifact, dependency và rollout ổn định; không nên lấy state của JShell làm nguồn triển khai không được kiểm soát.
+`JavaCompiler` fits better because the output needs deterministic class names, artifacts, dependencies, and rollouts; JShell session state should not be used as an uncontrolled deployment source.
 
-### 16.3. Prototype trước, sản phẩm sau
+### 16.3. Prototype First, Production Later
 
 ```text
-Nhập biểu thức / thử API bằng JShell
-  -> chọn lời giải phù hợp
-  -> chuyển thành Java source/class/method chuẩn
-  -> JavaCompiler hoặc build tool
+Enter expression / test API with JShell
+  -> choose suitable solution
+  -> convert to standard Java source/class/method
+  -> JavaCompiler or build tool
   -> unit tests + integration tests
   -> publish artifact
 ```
 
-Đây là workflow lai hợp lý: JShell giảm chi phí khám phá ý tưởng, JavaCompiler tạo sản phẩm dùng lâu dài. Tuy nhiên, không giả định có thể copy nguyên chuỗi snippet rồi compile thành source file; các khai báo top-level, biến tạm `$1` và semantics của REPL phải được chuyển về cấu trúc Java chuẩn.
+This is a sensible hybrid workflow: JShell lowers the cost of exploring ideas, while `JavaCompiler` builds long-lived artifacts. However, do not assume you can copy raw snippet strings verbatim and compile them as a source file; top-level declarations, `$1` temporary variables, and REPL semantics must be converted into standard Java structure.
 
-### 16.4. Rule expression ngắn trong hệ thống nghiệp vụ
+### 16.4. Short Business Rules in Enterprise Systems
 
-Nếu rule do chuyên gia nội bộ tin cậy viết bằng Java và muốn thử ngay trong console, JShell có thể là công cụ **soạn và kiểm thử tương tác**. Nhưng nếu rule phải chạy hàng triệu lần trong production, versioning, audit, transaction, classloader isolation và kiểm thử phù hợp, nên cân nhắc biên dịch artifact Java chuẩn, rule DSL riêng hoặc cơ chế runtime có hợp đồng chặt hơn. Không lấy JShell session của admin để phục vụ mọi request sản xuất.
+If rules are written in Java by trusted internal specialists who want to test them immediately in a console, JShell can serve as an **interactive authoring and testing tool**. However, if rules must run millions of times in production with versioning, auditing, transactions, classloader isolation, and proper testing, consider compiling standard Java artifacts, a dedicated rule DSL, or a runtime mechanism with a stricter contract. Never use an admin's JShell session to serve all production requests.
 
-## 17. Bộ kiểm thử quyết định API và tính đúng của implementation
+## 17. Test Suite for API Choice and Implementation Correctness
 
-| Kiểm thử | Khi chọn JShell | Khi chọn JavaCompiler |
+| Test Case | With JShell | With JavaCompiler |
 |---|---|---|
-| Dùng biến ở hai lượt gọi | Lượt hai nhìn thấy state của session | Phải đưa source/dependency phù hợp vào task mới |
-| Biểu thức `n * 3` | Event trả value trực tiếp | Cần đặt biểu thức trong method/class hợp lệ |
-| Khai báo method rồi gọi | Method active trong session | Method tồn tại trong class output sau compile |
-| Source sai cú pháp | `REJECTED`/diagnostics, session còn hoạt động | Task thất bại/diagnostics, không publish artifact |
-| Code ném exception khi chạy | `SnippetEvent.exception()` | Exception ở runtime loader/invocation, không phải compiler result |
-| Trùng tên khai báo | Có `OVERWRITTEN` và cập nhật phụ thuộc theo REPL | Phụ thuộc input/version/artifact; không phải overwrite session |
-| Dừng/reset | Drop/close/recreate session; side effects không tự rollback | Kết thúc task, đóng file manager; artifact vẫn có thể tồn tại |
-| Nhiều người dùng | State phải tách per session; không chia sẻ JShell concurrent | Tách per build/output/class loader theo request/version |
-| Cần binary artifact để deploy | Không phải sản phẩm chính của API | Là use case trực tiếp |
-| Môi trường runtime rút gọn | Phải có `jdk.jshell` và engine thích hợp | Phải có compiler/toolchain thích hợp |
-| Source không tin cậy | Bắt buộc cô lập thực thi và giới hạn tài nguyên | Cũng phải cô lập compile/annotation processing và execution |
+| Using a variable across two calls | Second call sees the session's state | Appropriate source/dependencies must be fed into a new task |
+| Expression `n * 3` | Event returns value directly | Expression must be placed inside a valid method/class |
+| Declare a method and call it | Method is active in the session | Method exists in the compiled class output |
+| Syntax error in source | `REJECTED`/diagnostics, session stays alive | Task fails/diagnostics, no artifact published |
+| Code throws an exception at runtime | `SnippetEvent.exception()` | Exception at runtime loader/invocation, not a compiler result |
+| Duplicate declaration name | `OVERWRITTEN` and dependent updates per REPL rules | Depends on input/version/artifact; not session overwrite |
+| Stop/reset | Drop/close/recreate session; side effects do not auto-rollback | End task, close file manager; artifacts may still exist |
+| Multiple users | State isolated per session; no concurrent JShell sharing | Isolated per build/output/class loader per request/version |
+| Need a binary artifact to deploy | Not a primary product of the API | Direct use case |
+| Stripped-down runtime environment | Requires `jdk.jshell` and a suitable engine | Requires an appropriate compiler/toolchain |
+| Untrusted source | Must isolate execution and limit resources | Must also isolate compilation/annotation processing and execution |
 
-Một bộ test tích hợp hữu ích cho JShell là: tạo phiên A, khai báo `int n=7`, chạy biểu thức từ cùng phiên, xác minh output; tạo phiên B và xác minh B **không** nhìn thấy `n`; đóng cả hai. Với JavaCompiler, test compile hai phiên bản source thành hai artifact tách biệt và xác minh loader không nạp nhầm bytecode cũ.
+A useful integration test for JShell is: create session A, declare `int n=7`, evaluate an expression in the same session, verify the output; create session B and verify B **does not** see `n`; close both. For `JavaCompiler`, test compiling two source versions into two separate artifacts and verify the loader does not accidentally load stale bytecode.
 
-## 18. Lỗi thường gặp và cách tránh
+## 18. Common Pitfalls and How to Avoid Them
 
-- **Hiểu JShell như JavaCompiler mini không có state:** làm mất ưu thế tương tác và thiết kế sai ranh giới session.
-- **Đưa nhiều dòng Java rời rạc vào một `eval` mà không phân tích completeness:** dễ tạo `REJECTED` không cần thiết. Dùng `SourceCodeAnalysis` để tách snippet.
-- **Gửi lệnh CLI `/vars` vào `shell.eval("/vars")`:** sai tầng API; dùng `variables()` và render UI riêng.
-- **Chỉ đọc event đầu tiên:** bỏ lỡ status thay đổi của các khai báo phụ thuộc; duyệt mọi `SnippetEvent`.
-- **Xem `value()==null` là lỗi:** method, class, import hợp lệ thường không trả value.
-- **Xem `status()==VALID` là mã an toàn:** chưa nói gì về quyền file/network, side effects, hay infinite loop.
-- **Gộp error diagnostics với runtime exceptions:** dẫn tới thông điệp sai về nguyên nhân thất bại.
-- **Dùng một JShell singleton cho nhiều tenant hoặc nhiều thread:** rò state và tạo race; giới hạn ownership/concurrency.
-- **Tưởng snippet có thể trả trực tiếp object host:** value thường chỉ là chuỗi biểu diễn; engine/class loader có thể khác.
-- **Giữ phiên sống vô hạn hoặc quên `close()`:** có thể giữ compiler/engine process, class definitions và tài nguyên.
-- **Tưởng JavaCompiler chạy class sau khi compile:** caller cần load/execute phase riêng.
-- **Tưởng JavaCompiler chỉ làm việc trên disk:** custom JavaFileManager hỗ trợ compilation/output in-memory.
-- **Dùng JShell để phát hành JAR production:** thiếu workflow artifact/version/testing; dùng build/compiler pipeline.
-- **Dùng remote JShell engine như sandbox:** không có OS security boundary đầy đủ chỉ nhờ lựa chọn API.
+- **Treating JShell as a stateless mini-JavaCompiler:** throws away its interactive strengths and leads to flawed session boundaries.
+- **Feeding multiple disconnected Java lines into one `eval` without completeness analysis:** easily causes unnecessary `REJECTED` results. Use `SourceCodeAnalysis` to split snippets.
+- **Sending CLI commands like `/vars` to `shell.eval("/vars")`:** wrong API layer; use `variables()` and render your own UI.
+- **Reading only the first event:** misses status changes on dependent declarations; iterate through every `SnippetEvent`.
+- **Treating `value()==null` as an error:** valid methods, classes, and imports typically return no value.
+- **Treating `status()==VALID` as safe code:** says nothing about file/network access, side effects, or infinite loops.
+- **Conflating error diagnostics with runtime exceptions:** leads to misleading messages about the root cause of failure.
+- **Using a single JShell singleton across tenants or threads:** leaks state and causes race conditions; enforce ownership and concurrency limits.
+- **Assuming snippets can directly return host objects:** values are typically string representations; the engine and class loader may differ.
+- **Keeping sessions alive indefinitely or forgetting `close()`:** can leak compiler/engine processes, class definitions, and resources.
+- **Assuming `JavaCompiler` executes classes after compiling:** the caller needs a separate load/execute phase.
+- **Assuming `JavaCompiler` only works on disk:** custom `JavaFileManager` implementations support in-memory compilation and output.
+- **Using JShell to release production JARs:** lacks artifact/versioning/testing workflows; use a build/compiler pipeline.
+- **Using the remote JShell engine as a sandbox:** API selection alone does not provide a full OS security boundary.
 
-## 19. Checklist chọn giải pháp và kết luận
+## 19. Solution Selection Checklist and Conclusion
 
-Trước khi chọn, hãy trả lời theo thứ tự:
+Before choosing, answer these questions in order:
 
-1. **Input là một Java snippet tương tác hay một tập source file/class/module chuẩn?** Snippet có trạng thái gợi ý JShell; source build chuẩn gợi ý JavaCompiler.
-2. **Có cần giữ biến, method, import giữa các lần nhập không?** Nếu có, JShell cung cấp phiên stateful sẵn.
-3. **Kết quả cần là giá trị/diagnostics ngay hay artifact có thể lưu/deploy?** Giá trị ngay dùng JShell, artifact ổn định dùng JavaCompiler.
-4. **Code cần chạy trong cùng thời điểm nhập hay sau review/test/publish?** JShell phù hợp thử tương tác; JavaCompiler thuận lợi tách compile khỏi execute.
-5. **Ai sở hữu runtime state và tài nguyên?** JShell cần session lifecycle; JavaCompiler cần file manager + artifact + class loader lifecycle.
-6. **Nguồn mã có đáng tin cậy và có giới hạn OS/process không?** Nếu không, không dựa riêng vào bất kỳ API nào để đảm bảo an toàn.
-7. **Có cần chuyển prototype thành sản phẩm không?** Cân nhắc JShell cho giai đoạn thử và JavaCompiler/build tool cho bước đóng gói chính thức.
+1. **Is the input an interactive Java snippet or a set of standard source files/classes/modules?** Stateful snippets point to JShell; standard build sources point to `JavaCompiler`.
+2. **Do variables, methods, and imports need to persist across inputs?** If yes, JShell provides a stateful session out of the box.
+3. **Is the needed result an immediate value/diagnostic or a storable/deployable artifact?** Immediate values favor JShell; stable artifacts favor `JavaCompiler`.
+4. **Should code execute immediately as entered, or after review/testing/publishing?** JShell fits interactive testing; `JavaCompiler` cleanly separates compilation from execution.
+5. **Who owns runtime state and resources?** JShell requires session lifecycle management; `JavaCompiler` requires file manager + artifact + class loader lifecycles.
+6. **Is the source code trusted and isolated at the OS/process level?** If not, do not rely solely on either API for security.
+7. **Does a prototype need to become a production feature?** Consider JShell for exploration and `JavaCompiler`/build tools for official packaging.
 
-**Ghi nhớ:** *JShell là API để xây một phiên thử Java tương tác có trạng thái; JavaCompiler là API để xây pipeline biên dịch Java có artifact và trách nhiệm thực thi tách biệt.* JShell có thể dùng compiler ở bên trong, nên không nên hiểu chúng là hai cơ chế “interpreted Java” và “compiled Java”. Sự khác biệt nằm ở **hợp đồng sử dụng, mức độ tương tác, vòng đời trạng thái và loại kết quả mà hệ thống cần**.
+**Key takeaway:** *JShell is an API for building stateful, interactive Java experimentation sessions; JavaCompiler is an API for building Java compilation pipelines with artifacts and separate execution responsibilities.* JShell uses a compiler under the hood, so they should not be viewed as "interpreted Java" versus "compiled Java." The difference lies in the **usage contract, level of interactivity, state lifecycle, and type of output the system requires**.
 
-**Tài liệu chuẩn Java 17:** [jdk.jshell package](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/package-summary.html), [JShell](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/JShell.html), [SnippetEvent](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/SnippetEvent.html), [SourceCodeAnalysis](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/SourceCodeAnalysis.html), [JavaCompiler](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html) và [StandardJavaFileManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/StandardJavaFileManager.html).
+**Java 17 Standard Documentation:** [jdk.jshell package](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/package-summary.html), [JShell](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/JShell.html), [SnippetEvent](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/SnippetEvent.html), [SourceCodeAnalysis](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/SourceCodeAnalysis.html), [JavaCompiler](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html), and [StandardJavaFileManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/StandardJavaFileManager.html).

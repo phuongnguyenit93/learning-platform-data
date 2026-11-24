@@ -1,45 +1,45 @@
-# 7.7. Phân biệt password-based encryption với khóa sinh ngẫu nhiên
+# 7.7. Distinguishing Password-Based Encryption from Randomly Generated Keys
 
-## Mục tiêu học tập
+## Learning objectives
 
-Khi hoàn thành bài, bạn có thể:
+Upon completing this lesson, you will be able to:
 
-1. Giải thích vì sao **mật khẩu do con người chọn** và **khóa mật mã sinh ngẫu nhiên** có nguồn độ mạnh hoàn toàn khác nhau, ngay cả khi kết quả cuối đều là khóa AES-256 dài 32 byte.
-2. Mô tả chính xác quy trình **password-based encryption (PBE)**: mật khẩu → KDF với salt, work factor → khóa → mã hóa có xác thực; phân biệt **salt**, **nonce**, **khóa**, **authentication tag** và thông tin cấu hình phải lưu.
-3. Chọn khi nào nên **dẫn xuất khóa trực tiếp từ password**, khi nào nên **tạo data encryption key (DEK) ngẫu nhiên**, và khi nào cần **envelope encryption** với DEK được bọc bởi key encryption key (KEK) dẫn xuất từ password hoặc được quản lý bởi KMS/HSM.
-4. Hiểu chi phí đoán mật khẩu ngoại tuyến, thay đổi mật khẩu, khôi phục dữ liệu, xoay khóa và các rủi ro khi hệ thống mất password hoặc key.
-5. Thực hiện ví dụ **Java 17+** dùng `PBKDF2WithHmacSHA256`, `SecureRandom`, `KeyGenerator` và `AES/GCM/NoPadding`; kiểm tra mật khẩu sai và ciphertext bị sửa đều bị từ chối.
+1. Explain why **human-chosen passwords** and **randomly generated cryptographic keys** come from completely different strength sources, even when both end up as a 32-byte AES-256 key.
+2. Accurately describe the **password-based encryption (PBE)** workflow: password → KDF with salt and work factor → key → authenticated encryption; distinguish **salt**, **nonce**, **key**, **authentication tag**, and required stored metadata.
+3. Decide when to **derive a key directly from a password**, when to **generate a random data encryption key (DEK)**, and when to use **envelope encryption** with a DEK wrapped by a key encryption key (KEK) derived from a password or managed by a KMS/HSM.
+4. Understand offline password-guessing costs, password changes, data recovery, key rotation, and the risks when a system loses a password or key.
+5. Implement a **Java 17+** example using `PBKDF2WithHmacSHA256`, `SecureRandom`, `KeyGenerator`, and `AES/GCM/NoPadding`; verify that both wrong passwords and modified ciphertexts are rejected.
 
-**Phạm vi:** Đây là bài trong phần *Mật khẩu và dẫn xuất khóa* của Java Advance security-cryptography. Trọng tâm là **kiến trúc bảo vệ dữ liệu bằng mật khẩu so với khóa sinh ngẫu nhiên**, không phải cách lưu mật khẩu đăng nhập của người dùng hoặc tự thiết kế thuật toán mật mã mới.
+**Scope:** This lesson belongs to the *Passwords and Key Derivation* section of Java Advance security-cryptography. The focus is on **architectural protection of data with passwords vs. randomly generated keys**, not on storing user login passwords or designing custom cryptographic algorithms.
 
 ---
 
-## 1. Hai nguồn khóa dẫn đến hai mức bảo mật khác nhau
+## 1. Two key sources lead to two different security levels
 
-Một hệ thống có dữ liệu nhạy cảm cần mã hóa bằng AES-GCM. Nhà phát triển có hai lựa chọn ban đầu:
+A system has sensitive data that needs AES-GCM encryption. The developer faces two initial options:
 
-- Người dùng nhớ một **mật khẩu/passphrase** để sau này giải mã. Chương trình không thể sử dụng chuỗi ký tự trực tiếp làm khóa AES đúng chuẩn; nó phải **dẫn xuất** khóa từ password bằng thuật toán như PBKDF2, scrypt hoặc Argon2id với các tham số đã thống nhất.
-- Hệ thống dùng bộ sinh số ngẫu nhiên an toàn mật mã (**CSPRNG**) để tạo một **khóa AES ngẫu nhiên**. Khóa có thể được giữ trong KMS/HSM, keystore được bảo vệ hoặc được bọc bằng một khóa khác. Người dùng thường không cần nhớ khóa này.
+- The user remembers a **password/passphrase** to decrypt later. The program cannot directly use a character string as a proper AES key; it must **derive** the key from the password using an algorithm like PBKDF2, scrypt, or Argon2id with agreed parameters.
+- The system uses a cryptographically secure random number generator (**CSPRNG**) to generate a **random AES key**. The key may reside in a KMS/HSM, a protected keystore, or be wrapped by another key. Users typically do not need to memorize this key.
 
-Ví dụ một passphrase dễ đoán được đưa qua PBKDF2 để tạo ra 32 byte. Mặc dù đầu ra dài 256 bit và *trông* ngẫu nhiên, kẻ tấn công có thể thử danh sách mật khẩu, thực hiện lại KDF rồi kiểm chứng với ciphertext. **KDF tăng chi phí cho mỗi lần đoán; nó không biến mật khẩu có entropy thấp thành một bí mật 256 bit mạnh thực sự.**
+For example, suppose an easily guessable passphrase is fed through PBKDF2 to produce 32 bytes. Although the output is 256 bits long and *looks* random, an attacker can try a password list, rerun the KDF, and check against the ciphertext. **The KDF increases the cost per guess; it does not turn a low-entropy password into a truly strong 256-bit secret.**
 
-Ngược lại, 32 byte sinh ngẫu nhiên đúng cách từ `KeyGenerator`/`SecureRandom` có không gian khóa lớn không bị giới hạn bởi khả năng ghi nhớ của người dùng. Điểm khó của cách này là **phân phối và bảo quản khóa**: nếu mất key thì không thể giải mã, nếu key lộ thì ciphertext có thể bị giải mã.
+Conversely, 32 bytes properly generated at random from `KeyGenerator`/`SecureRandom` have a vast key space unconstrained by human memorability. The challenge of this approach is **key distribution and custody**: losing the key makes decryption impossible, while leaking the key exposes the ciphertext.
 
-### 1.1. Mô hình luồng dữ liệu
+### 1.1. Data flow models
 
-**PBE trực tiếp:**
+**Direct PBE:**
 
 ```text
-Password do người dùng nhập
+User-entered password
              │
-             ├── Salt ngẫu nhiên riêng cho mỗi lần thiết lập mã hóa
-             ├── KDF algorithm và work factor
+             ├── Unique random salt per encryption setup
+             ├── KDF algorithm and work factor
              ▼
-       Password KDF (chậm có chủ đích)
+       Password KDF (intentionally slow)
              │
              ▼
-        Khóa AES được dẫn xuất
-             │                 Nonce/IV mới
+        Derived AES key
+             │                 Fresh nonce/IV
              └────────────┬─────────┘
                           ▼
                     AES-GCM
@@ -47,91 +47,91 @@ Password do người dùng nhập
              Ciphertext + authentication tag
 ```
 
-**Khóa ngẫu nhiên:**
+**Random key:**
 
 ```text
 CSPRNG / KeyGenerator
            │
            ▼
-   Khóa AES ngẫu nhiên ───────────────┐
-           │                         │ lưu hoặc wrap an toàn
-           ▼                         ▼
-AES-GCM(data, nonce mới)        KMS / HSM / keystore
+   Random AES key ────────────────────┐
+           │                          │ store or wrap securely
+           ▼                          ▼
+AES-GCM(data, fresh nonce)        KMS / HSM / keystore
            │
 Ciphertext + authentication tag
 ```
 
-Có thể chọn cách thứ ba: **mã hóa dữ liệu bằng DEK ngẫu nhiên, rồi dùng KEK dẫn xuất từ password để bọc DEK**. Khi đổi password, trong một số kiến trúc chỉ cần bọc lại DEK; không cần mã hóa lại toàn bộ dữ liệu. Đây là **envelope encryption** sẽ được phân tích ở mục 6.
+You can also choose a third approach: **encrypt data with a random DEK, then use a password-derived KEK to wrap the DEK**. On a password change, some architectures only need to rewrap the DEK rather than re-encrypting all data. This is **envelope encryption**, analyzed in section 6.
 
-## 2. Bảng so sánh password-based encryption và khóa sinh ngẫu nhiên
+## 2. Comparison table: password-based encryption vs. randomly generated keys
 
-| Khía cạnh | PBE trực tiếp (password → KDF → key) | Khóa sinh ngẫu nhiên (CSPRNG → key) |
+| Aspect | Direct PBE (password → KDF → key) | Randomly generated key (CSPRNG → key) |
 | --- | --- | --- |
-| Nguồn bí mật | Password/passphrase do con người hoặc cơ chế nhập khác cung cấp | Bộ sinh ngẫu nhiên có chất lượng mật mã |
-| Độ mạnh thực tế | Bị giới hạn bởi entropy của password và chi phí tấn công KDF | Có thể đạt độ mạnh của khóa ngẫu nhiên và thuật toán khi generator đúng |
-| Muốn lấy khóa | Phải có **password đúng**, **salt**, **KDF/parameters** | Phải truy cập được khóa đã lưu hoặc giải bọc bằng cơ chế được phép |
-| Tốc độ thiết lập khóa | **Cố ý chậm** để gây khó cho brute force password | Thường nhanh hơn: tạo khóa bằng `KeyGenerator`, không cần KDF password chậm |
-| Salt | **Bắt buộc/thiết yếu** cho dẫn xuất password, nên mới và riêng | Không cần salt để tạo raw AES key từ CSPRNG |
-| Nonce AES-GCM | **Vẫn cần**, độc lập với salt | **Vẫn cần**, độc lập với việc khóa được sinh ngẫu nhiên |
-| Authentication tag | **Vẫn cần** để phát hiện sửa đổi/sai key | **Vẫn cần** để phát hiện sửa đổi/sai key |
-| Rủi ro đoán ngoại tuyến | Có: người giữ ciphertext+salt có thể thử password không cần liên hệ server | Không có “đoán password” nếu dữ liệu chỉ được bảo vệ bởi random key không phụ thuộc password |
-| Lưu secret | Không nhất thiết lưu password; lưu metadata PBE để có thể tái tạo key | Phải lưu/bao bọc DEK hoặc không thể giải mã về sau |
-| Đổi password | Thường phải giải mã và mã hóa lại nếu key dẫn xuất trực tiếp | Không bị ảnh hưởng nếu key độc lập với password |
-| Rotation / thu hồi | Đổi password/cost/salt làm đổi key; cần kế hoạch migration | Rotate/re-encrypt hoặc rewrap key qua KMS/KEK |
-| Khôi phục | Phụ thuộc khả năng nhớ/khôi phục password | Phụ thuộc backup/key escrow/KMS recovery controls |
-| Phù hợp | File/vault cá nhân, backup mà người dùng mở bằng passphrase, yêu cầu user-held secret | Dịch vụ backend, DB/application encryption, khối lượng dữ liệu lớn, key lifecycle tập trung |
-| Rủi ro điển hình | Password yếu, KDF quá nhanh, salt lặp, nhập password qua log, offline guessing | Hard-code key, lộ KMS credential, mất key/backup, dùng lại nonce hoặc chia sẻ key sai |
+| Source of secrecy | Password/passphrase supplied by a human or input flow | Cryptographic-quality random generator |
+| Practical strength | Bounded by password entropy and KDF attack cost | Can achieve full random-key and cipher strength when properly generated |
+| What is needed to get the key | **Correct password**, **salt**, **KDF/parameters** | Access to stored key or authorized unwrapping mechanism |
+| Key setup speed | **Intentionally slow** to hinder password brute force | Usually faster: generated via `KeyGenerator`, no slow password KDF |
+| Salt | **Mandatory/essential** for password derivation; should be fresh and unique | No salt needed to generate a raw AES key from a CSPRNG |
+| AES-GCM nonce | **Still required**, independent of salt | **Still required**, regardless of the key being randomly generated |
+| Authentication tag | **Still required** to detect tampering/wrong key | **Still required** to detect tampering/wrong key |
+| Offline guessing risk | Yes: anyone holding ciphertext+salt can test passwords without contacting a server | No “password guessing” if data is protected solely by a password-independent random key |
+| Secret storage | No need to store password; store PBE metadata to recreate the key | Must store/wrap the DEK or future decryption becomes impossible |
+| Password change | Typically must decrypt and re-encrypt if key is directly derived | Unaffected if the key is independent of passwords |
+| Rotation / revocation | Changing password/cost/salt changes the key; requires a migration plan | Rotate/re-encrypt or rewrap key via KMS/KEK |
+| Recovery | Depends on remembering or recovering the password | Depends on backups/key escrow/KMS recovery controls |
+| Best suited for | Personal files/vaults, passphrase-unlocked backups, user-held secret requirements | Backend services, DB/application encryption, large datasets, centralized key lifecycle |
+| Typical risks | Weak password, too-fast KDF, reused salt, password logged, offline guessing | Hardcoded key, leaked KMS credentials, lost key/backup, nonce reuse, improper key sharing |
 
-**Điểm giống nhau:** Cả hai cuối cùng đều có thể cho ra một `SecretKey` AES và dùng **cùng** `Cipher.getInstance("AES/GCM/NoPadding")`. Phân biệt PBE và random-key encryption chủ yếu ở **nguồn khóa, khả năng đoán, cách lấy lại khóa và quản trị vòng đời**, không phải ở việc “AES của PBE” là một thuật toán AES khác.
+**What they share:** Both ultimately produce an AES `SecretKey` and use **the exact same** `Cipher.getInstance("AES/GCM/NoPadding")`. Distinguishing PBE from random-key encryption is mainly about **key origin, guessability, key recovery, and lifecycle governance**, not that “PBE's AES” is a different AES algorithm.
 
-## 3. PBE là quy trình nhiều bước, không phải “AES(password)”
+## 3. PBE is a multi-step process, not “AES(password)”
 
-PBE cần hai thành phần tách biệt:
+PBE requires two distinct components:
 
-1. **Password-Based Key Derivation Function (KDF)** biến password thành vật liệu khóa, có salt và work factor.
-2. **Encryption scheme** dùng khóa đó để mã hóa dữ liệu, tốt nhất là AEAD có authentication tag.
+1. **Password-Based Key Derivation Function (KDF)** to convert a password into key material using a salt and work factor.
+2. **Encryption scheme** using that key to encrypt data, preferably an AEAD with an authentication tag.
 
-Ví dụ:
+Example:
 
 ```text
 password: char[]
-salt: 16 byte ngẫu nhiên
-KDF: PBKDF2-HMAC-SHA256, iterations = một tham số được cấu hình
-derivedKey: 32 byte
-nonce: 12 byte mới cho AES-GCM
-ciphertextAndTag: doFinal(plaintext) qua AES/GCM/NoPadding
+salt: 16 random bytes
+KDF: PBKDF2-HMAC-SHA256, iterations = configured parameter
+derivedKey: 32 bytes
+nonce: fresh 12 bytes for AES-GCM
+ciphertextAndTag: doFinal(plaintext) via AES/GCM/NoPadding
 ```
 
-Những thông số như **KDF algorithm, số vòng lặp, kích thước khóa, salt, thuật toán mã hóa, nonce, phiên bản và định dạng tag** phải được lưu cùng bản mã hoặc có một cơ chế truy xuất đáng tin cậy. Người nhận dùng cùng password và chính xác cùng metadata để tạo lại khóa và giải mã.
+Parameters such as **KDF algorithm, iteration count, key size, salt, encryption algorithm, nonce, version, and tag format** must be stored with the ciphertext or retrieved reliably. The recipient uses the same password and exact same metadata to recreate the key and decrypt.
 
-### 3.1. Tại sao cần KDF chậm?
+### 3.1. Why is a slow KDF needed?
 
-Password do con người chọn thường có mẫu dễ đoán. Nếu ứng dụng làm:
+Human-chosen passwords often contain predictable patterns. If an application does:
 
 ```java
-// Sai cho PBE: SHA-256 quá nhanh, không có work factor hay salt.
+// Wrong for PBE: SHA-256 is too fast, lacking work factor and salt.
 byte[] aesBytes = java.security.MessageDigest
         .getInstance("SHA-256")
         .digest(new String(password)
                 .getBytes(java.nio.charset.StandardCharsets.UTF_8));
 ```
 
-Đây là **đoạn minh họa mẫu sai**, không phải code sản xuất. SHA-256 chạy rất nhanh, giúp kẻ tấn công thử hàng triệu mật khẩu. Việc tạo đối tượng `String` từ password cũng để lại bản sao khó xóa sạch khỏi bộ nhớ.
+This is an **anti-pattern illustration**, not production code. SHA-256 runs very fast, letting attackers test millions of passwords. Creating a `String` from the password also leaves copies that are hard to purge from memory.
 
-KDF dành cho password được thiết kế để làm mỗi phép đoán tốn **CPU và/hoặc RAM**:
+Password KDFs are designed to make every guess consume **CPU and/or RAM**:
 
-- **PBKDF2-HMAC-SHA256:** có sẵn qua `SecretKeyFactory` trên các JDK 17 thông dụng; work factor là số lần lặp. Tiện cho ứng dụng thuần JDK và môi trường có yêu cầu chuẩn hóa/FIPS khi provider được chấp thuận.
-- **scrypt:** KDF tiêu tốn bộ nhớ và CPU, gây khó cho phần cứng thử password hàng loạt. Không coi nó là API chuẩn sẵn trong mọi Java SE 17; dùng thư viện đã được đánh giá.
-- **Argon2id:** KDF memory-hard thường được khuyến nghị cho nhiều ứng dụng hiện đại. Java SE 17 không có class chuẩn `Argon2id`; muốn dùng cần thư viện/provider phù hợp và kiểm soát tham số.
-- Các thuật toán **PBE cũ** như `PBEWithMD5AndDES`, DES hay cấu hình PBKDF yếu không nên được chọn cho thiết kế mới chỉ vì tên có chữ `PBE`.
+- **PBKDF2-HMAC-SHA256:** available via `SecretKeyFactory` across standard JDK 17 distributions; the work factor is the iteration count. Convenient for pure-JDK apps and environments requiring standardization/FIPS when using an approved provider.
+- **scrypt:** a memory- and CPU-intensive KDF that resists mass password-cracking hardware. Do not assume it is a built-in standard API in every Java SE 17 runtime; use an evaluated library.
+- **Argon2id:** a memory-hard KDF commonly recommended for modern applications. Java SE 17 has no standard `Argon2id` class; using it requires an appropriate library/provider and parameter controls.
+- **Legacy PBE algorithms** such as `PBEWithMD5AndDES`, DES, or weak PBKDF settings must never be chosen for new designs merely because their names contain `PBE`.
 
-Độ lớn iteration của PBKDF2 phải được cập nhật theo chính sách tổ chức và phần cứng. Ví dụ OWASP Password Storage Cheat Sheet khuyến nghị **PBKDF2-HMAC-SHA256 600.000 vòng hoặc hơn cho bài toán lưu mật khẩu** ở thời điểm tài liệu tham khảo; đó **không phải hằng số áp dụng mọi PBE file**, và không thay thế benchmarking theo latency, threat model, tài nguyên và rủi ro DoS. Mỗi bản mã nên ghi rõ work factor thực sự đã dùng để giải mã và hỗ trợ nâng cấp sau này.
+PBKDF2 iteration counts must stay updated with organizational policy and hardware. For instance, the OWASP Password Storage Cheat Sheet recommends **PBKDF2-HMAC-SHA256 with 600,000 iterations or more for password storage** at the time of reference; that is **not a universal constant for every PBE file**, nor a substitute for benchmarking against latency, threat model, resources, and DoS risks. Each ciphertext must record the actual work factor used so decryption and future upgrades work.
 
-### 3.2. Salt có vai trò gì?
+### 3.2. What role does the salt play?
 
-Một salt là byte ngẫu nhiên **không cần bí mật**, nên được tạo riêng cho mỗi lần thiết lập key từ password. Nếu người dùng dùng cùng password cho hai file nhưng mỗi file có salt riêng, KDF tạo ra hai khóa khác nhau với xác suất rất cao. Kẻ tấn công không thể dùng một kết quả hash/key derivation đã tính cho tất cả bản mã có salt khác nhau.
+A salt is random bytes that **do not need to be secret**, generated uniquely for each password-based key derivation setup. If a user uses the same password for two files with separate salts, the KDF generates two distinct keys with overwhelming probability. An attacker cannot reuse one precomputed hash/key-derivation result across ciphertexts with different salts.
 
-Trong Java:
+In Java:
 
 ```java
 SecureRandom rng = new SecureRandom();
@@ -139,69 +139,69 @@ byte[] salt = new byte[16];
 rng.nextBytes(salt);
 ```
 
-Đây là **đoạn mã dùng bên trong method**, cần `import java.security.SecureRandom;`. Salt 16 byte là một lựa chọn thông dụng. **Salt không thay thế password có entropy tốt và không loại bỏ tấn công đoán ngoại tuyến**.
+This is an **in-method snippet** requiring `import java.security.SecureRandom;`. A 16-byte salt is a common choice. **A salt does not substitute for a high-entropy password and does not eliminate offline guessing attacks.**
 
-Tránh: salt hard-code cho mọi dữ liệu, dùng địa chỉ email làm salt duy nhất cho tất cả phiên bản file, dùng timestamp thay random salt hoặc nghĩ salt phải được giấu như secret. Khi dẫn xuất lại khóa để giải mã, phải dùng **salt đã lưu đúng với bản mã**, không tạo salt mới tùy ý.
+Avoid: a hardcoded salt shared across all data, using an email address as the sole salt for all file versions, substituting timestamps for a random salt, or thinking the salt must be hidden like a secret. When re-deriving the key to decrypt, use **the exact salt stored with that ciphertext**, not a newly generated salt.
 
-### 3.3. Salt khác nonce/IV của AES-GCM
+### 3.3. Salt differs from the AES-GCM nonce/IV
 
-| Thuộc tính | Salt KDF | Nonce/IV AES-GCM |
+| Property | KDF Salt | AES-GCM Nonce/IV |
 | --- | --- | --- |
-| Dùng trong | `PBKDF2WithHmacSHA256` / KDF password | `AES/GCM/NoPadding` |
-| Mục đích | Làm mỗi lần dẫn xuất khóa khác nhau, chống tính toán sẵn/rộng trên nhiều bản mã | Bảo đảm các lần mã hóa với **cùng khóa** có đầu vào nonce không trùng |
-| Bí mật? | Không | Không |
-| Trong demo | 16 byte | 12 byte |
-| Có thể lưu kèm ciphertext? | Có, cần để tái tạo khóa | Có, cần để giải mã |
-| Có thể dùng cố định? | Không nên: mất tác dụng salt riêng | **Không được** tái sử dụng nonce khi mã hóa với cùng key |
-| Thay đổi khi giải mã? | Không, phải dùng lại salt gốc | Không, phải dùng lại nonce gốc |
+| Used in | `PBKDF2WithHmacSHA256` / password KDF | `AES/GCM/NoPadding` |
+| Purpose | Make each key derivation distinct; thwart precomputation across ciphertexts | Ensure encryptions under the **same key** never repeat a nonce |
+| Secret? | No | No |
+| In the demo | 16 bytes | 12 bytes |
+| Can store with ciphertext? | Yes, required to recreate the key | Yes, required to decrypt |
+| Can be static? | Should not be: loses per-derivation salt uniqueness | **Must never** reuse a nonce when encrypting under the same key |
+| Changes on decryption? | No, must reuse original salt | No, must reuse original nonce |
 
-Salt và nonce dù đều có thể được sinh bằng `SecureRandom` **là hai trường riêng của giao thức**; không tự suy ra có thể thay thế cho nhau. Với AES-GCM, tái sử dụng cặp *key + nonce* là lỗi nghiêm trọng có thể phá confidentiality và authentication. Ngay cả khi mỗi file có salt mới, vẫn cần quản lý nonce đúng với khóa dùng trong mỗi lần mã hóa.
+Even though both salt and nonce can be generated with `SecureRandom`, **they are two separate protocol fields**; never assume one can replace the other. With AES-GCM, reusing a *(key, nonce)* pair is a critical flaw that can break confidentiality and authentication. Even if every file has a fresh salt, you must still manage nonces properly per key for every encryption.
 
-### 3.4. Mật khẩu đúng chưa đủ: phải xác thực bản mã
+### 3.4. Having the right password is not enough: authenticate the ciphertext
 
-Mã hóa cần **confidentiality**, nhưng nếu không có integrity/authentication, dữ liệu đã mã hóa có thể bị sửa hoặc đánh tráo mà backend không phát hiện. Hãy ưu tiên **AEAD** như AES-GCM (hoặc cơ chế AEAD chuẩn phù hợp) khi xây PBE mới.
+Encryption provides **confidentiality**, yet without integrity/authentication, encrypted data can be altered or swapped undetected by the backend. Prefer **AEAD** such as AES-GCM (or another vetted standard AEAD) for new PBE designs.
 
-Một record khái niệm:
+A conceptual record:
 
 ```text
 version | kdf-id | iterations | salt | enc-id | nonce | ciphertext | tag
-             \_______________ authenticated metadata ______________/
+             \_______________ authenticated metadata _______________/
 ```
 
-Việc xác thực metadata chỉ có tác dụng khi **quy trình thực sự đưa những bytes đó vào AAD hoặc phần được MAC/tag bảo vệ**. Nếu version/iteration/salt bị thay đổi mà không có validation có kiểm soát, hệ thống có thể bị lỗi, đổi hành vi hoặc bị lợi dụng tiêu tốn tài nguyên. Với GCM, ciphertext kèm tag có thể lưu nối nhau; bên nhận phải kiểm xác thực thành công trước khi dùng plaintext.
+Authenticating metadata only works if **the workflow actually feeds those bytes into AAD or a MAC/tag-protected region**. If version/iterations/salt can be altered without controlled validation, the system can fail, misbehave, or suffer resource exhaustion. With GCM, ciphertext and tag can be stored concatenated; the receiver must confirm tag verification succeeds before using plaintext.
 
-**Không dùng CBC/ECB không xác thực** để làm PBE cho dữ liệu mới. Một transformation có tên như `PBEWithHmacSHA256AndAES_256` không tự chứng minh rằng mode bên trong là AEAD có tag. Cần đọc đặc tả/provider và thực hiện riêng kiểm integrity nếu thuật toán PBE không cung cấp xác thực.
+**Do not use unauthenticated CBC/ECB** for PBE on new data. A transformation named `PBEWithHmacSHA256AndAES_256` does not by itself guarantee the underlying mode is an AEAD with a tag. Inspect the specification/provider and add separate integrity verification if the PBE algorithm lacks authentication.
 
-## 4. Tấn công đoán mật khẩu ngoại tuyến: giới hạn căn bản của PBE
+## 4. Offline password guessing: the fundamental limit of PBE
 
-Giả sử attacker lấy được:
+Suppose an attacker obtains:
 
 ```text
 salt + iterations + nonce + ciphertext + authentication tag
 ```
 
-Đối thủ không cần gửi yêu cầu đến server để đoán password. Họ có thể:
+The adversary does not need to send any request to your server to guess the password. They can:
 
-1. Chọn một mật khẩu ứng viên trong dictionary hoặc từ quy tắc biến đổi mật khẩu đã biết.
-2. Chạy cùng `KDF(candidate, storedSalt, storedIterations)` để tạo khóa thử.
-3. Thử giải mã/xác thực bản mã; nếu authentication tag không hợp lệ thì loại ứng viên, thử ứng viên tiếp theo.
-4. Lặp nhiều lần trên GPU/CPU/thiết bị chuyên dụng tùy KDF cho phép.
+1. Pick a candidate password from a dictionary or known password-mutation rules.
+2. Run the same `KDF(candidate, storedSalt, storedIterations)` to generate a trial key.
+3. Attempt to decrypt/verify the ciphertext; if the authentication tag fails, discard the candidate and try the next.
+4. Repeat massively on GPUs/CPUs/specialized hardware as permitted by the KDF.
 
-Đây là **offline password guessing**. Rate limiting, captcha hoặc khóa tài khoản trên API **không ngăn được việc thử mật khẩu ngoại tuyến trên bản sao ciphertext bị đánh cắp**. Mỗi lần đoán có chi phí được làm tăng bởi KDF, song mật khẩu quá yếu vẫn có thể bị tìm ra.
+This is **offline password guessing**. Rate limiting, CAPTCHAs, or account lockouts on your API **cannot stop offline password trials against a stolen ciphertext copy**. Each guess has a cost raised by the KDF, yet an overly weak password can still be found.
 
-Điều này tạo khác biệt lớn với **khóa ngẫu nhiên thực sự được giữ trong KMS/HSM**: nếu đối thủ chỉ có ciphertext và không có quyền lấy key/unwrap DEK, họ không có một password có thể thử từ từ điển để tái tạo khóa. Họ cần phá cơ chế quản trị key, đánh cắp quyền truy cập, khai thác hệ thống hoặc tấn công primitive, là một threat model khác.
+This creates a sharp contrast with **a true random key held inside a KMS/HSM**: if an adversary only has ciphertext and lacks permission to fetch the key or unwrap the DEK, there is no human dictionary password they can test to recreate the key. They would have to compromise key governance, steal access credentials, exploit the system, or break the primitive—a fundamentally different threat model.
 
-**Kết luận kỹ thuật:** độ dài output của KDF **không đo trực tiếp entropy password**. Một khóa 256-bit dẫn xuất từ `"123456"` vẫn đối mặt với không gian đoán password rất nhỏ. KDF tốt + password đủ mạnh là điều kiện của PBE, không có đường tắt bằng hash hoặc Base64.
+**Technical conclusion:** KDF output length **does not directly measure password entropy**. A 256-bit key derived from `"123456"` still faces a tiny password-guessing space. A strong KDF plus a sufficiently strong password are mandatory for PBE; there are no shortcuts via hashing or Base64.
 
-### 4.1. Pepper có cứu mật khẩu yếu không?
+### 4.1. Can a pepper rescue a weak password?
 
-**Pepper** là một bí mật phía hệ thống (ví dụ được giữ trong KMS/HSM) có thể được kết hợp qua quy trình được thiết kế cẩn thận để tăng lớp phòng vệ. Pepper **khác salt**: salt công khai và riêng từng record; pepper phải bí mật. Nếu cả ciphertext, password yếu và pepper đều lộ, lớp này không còn lợi ích.
+A **pepper** is a system-side secret (e.g., kept in a KMS/HSM) that can be combined via a carefully designed workflow for defense in depth. Pepper **differs from salt**: salt is public and per-record; pepper must remain secret. If ciphertext, weak password, and pepper all leak, that layer no longer helps.
 
-Với **PBE offline mà người dùng phải tự giải mã khi không kết nối server**, pepper bắt buộc có từ dịch vụ bên ngoài có thể làm mất khả năng sử dụng offline. Nếu mục tiêu là user-held backup, hãy quyết định trade-off rõ ràng thay vì bổ sung pepper vô điều kiện.
+For **offline PBE where users must decrypt on their own without contacting a server**, requiring a pepper from an external service can break offline usability. If the goal is a user-held backup, weigh that trade-off explicitly rather than adding a pepper unconditionally.
 
-## 5. Khóa ngẫu nhiên: tại sao tránh được giới hạn entropy của password?
+## 5. Random keys: why do they avoid password entropy limits?
 
-Trong Java:
+In Java:
 
 ```java
 KeyGenerator generator = KeyGenerator.getInstance("AES");
@@ -209,86 +209,86 @@ generator.init(256, new SecureRandom());
 SecretKey dataKey = generator.generateKey();
 ```
 
-Đây là **đoạn Java minh họa**, cần `javax.crypto.KeyGenerator`, `javax.crypto.SecretKey`, `java.security.SecureRandom` và xử lý checked exception. Với provider JDK 17 phổ biến, đoạn này tạo AES key 256 bit từ CSPRNG thích hợp, không dẫn xuất từ password có thể đoán.
+This is an **illustrative Java snippet**, requiring `javax.crypto.KeyGenerator`, `javax.crypto.SecretKey`, `java.security.SecureRandom`, and checked-exception handling. On standard JDK 17 providers, this generates a 256-bit AES key from an appropriate CSPRNG rather than deriving from a guessable password.
 
-Nhưng **sinh ngẫu nhiên là một nửa câu chuyện**:
+Yet **random generation is only half the story**:
 
-- Khóa phải được lưu/giữ kín trong hệ thống thích hợp; tuyệt đối không hard-code key vào source, JSON config hay lộ qua log.
-- Xác định chính sách key ownership: user, tenant, service, object hay phiên bản dữ liệu?
-- Có backup/rotation, quản lý quyền đọc/unwrap và quy trình khôi phục hay không?
-- Có thể dùng KMS/HSM để giữ **KEK** hoặc tạo/unwrap **DEK**; khi mã hóa cục bộ, phải quản lý plaintext DEK trong bộ nhớ và xóa khi hợp lý.
-- Nếu mất key và không có bản backup/escrow phù hợp, dữ liệu **có thể không khôi phục được**, kể cả còn đủ ciphertext.
-- Mặc dù key ngẫu nhiên mạnh, mã hóa vẫn phải có IV/nonce không lặp, AEAD tag và schema/authorization đúng.
+- The key must be stored/protected in an appropriate system; never hardcode keys in source, JSON configs, or expose them in logs.
+- Define key ownership policy: user, tenant, service, object, or data version?
+- Do you have backup/rotation, read/unwrap access controls, and a recovery process?
+- You can use a KMS/HSM to hold a **KEK** or generate/unwrap a **DEK**; when encrypting locally, manage plaintext DEKs in memory and zero them appropriately.
+- If a key is lost with no proper backup/escrow, the data **may become permanently unrecoverable**, even with intact ciphertext.
+- Even with a strong random key, encryption still requires non-repeating IVs/nonces, AEAD tags, and proper schemas/authorization.
 
-Trong môi trường backend xử lý hàng triệu record, **khóa ngẫu nhiên và envelope encryption** thường cho phép quản lý rotation, access control, audit và lưu trữ theo dịch vụ tốt hơn việc lấy một password chung cho tất cả dữ liệu.
+In backend environments handling millions of records, **random keys and envelope encryption** typically make rotation, access control, auditing, and per-service storage far more manageable than relying on a shared password across all data.
 
-### 5.1. Có nên dùng `SecureRandom.nextBytes` thay cho `KeyGenerator`?
+### 5.1. Should you use `SecureRandom.nextBytes` instead of `KeyGenerator`?
 
-Có thể sinh byte bằng `SecureRandom` rồi tạo `SecretKeySpec` khi thuật toán cho phép và chiều dài/chất lượng được bảo đảm. Tuy nhiên, `KeyGenerator` thường làm rõ **ý định tạo khóa cho thuật toán cụ thể**, kiểm tra kích thước khóa và dễ tích hợp provider. Khi HSM/KMS tạo key không cho xuất `getEncoded()`, phương thức quản lý key khác với raw byte trong ví dụ.
+You can generate bytes with `SecureRandom` and construct a `SecretKeySpec` when the algorithm permits and length/quality are ensured. However, `KeyGenerator` clarifies **the intent to create a key for a specific algorithm**, validates key sizes, and integrates smoothly with providers. When an HSM/KMS creates non-exportable keys (`getEncoded()` unavailable), key management differs from raw bytes in this example.
 
-Không dùng `Random`, `ThreadLocalRandom`, `Math.random()` hoặc `UUID.toString()` một cách tùy tiện để tạo AES key. UUID v4 có cấu trúc/bit cố định, không thể coi bất kỳ chuỗi UUID nào là một khóa AES-256 đủ entropy. Đừng dùng secret lấy từ database ID hoặc timestamp như raw key.
+Never use `Random`, `ThreadLocalRandom`, `Math.random()`, or `UUID.toString()` casually to create AES keys. UUID v4 has fixed version/variant bits and cannot be treated as a full-entropy AES-256 key. Never use secrets derived from database IDs or timestamps as raw keys.
 
-## 6. Envelope encryption: phối hợp password và random key
+## 6. Envelope encryption: combining passwords and random keys
 
-**Envelope encryption** tách:
+**Envelope encryption** separates:
 
-- **DEK (Data Encryption Key):** khóa sinh ngẫu nhiên để mã hóa dữ liệu.
-- **KEK (Key Encryption Key):** khóa dùng để **wrap/bảo vệ DEK**. KEK có thể dẫn xuất từ password thông qua KDF hoặc được giữ bởi KMS/HSM.
+- **DEK (Data Encryption Key):** a randomly generated key that encrypts the data.
+- **KEK (Key Encryption Key):** a key used to **wrap/protect the DEK**. The KEK can be derived from a password via a KDF or held by a KMS/HSM.
 
-Luồng mẫu cho file người dùng bảo vệ bằng password:
+Sample flow for a password-protected user file:
 
 ```text
-                 User password
-                      │ + salt + KDF parameters
-                      ▼
+                  User password
+                       │ + salt + KDF parameters
+                       ▼
                       KEK
                        │
-Random DEK ────────────┼──> Wrap DEK bằng KEK ──> wrappedDEK
+Random DEK ────────────┼──> Wrap DEK with KEK ──> wrappedDEK
     │                  │
-    │                  └──── Bảo vệ metadata/version/policy tương ứng
+    │                  └──── Protect corresponding metadata/version/policy
     ▼
-AES-GCM mã hóa dữ liệu bằng DEK + dataNonce
+AES-GCM encrypt data with DEK + dataNonce
     │
 ciphertext + tag
 
-Lưu: file format/version | KDF params | salt
-     KEK wrapping nonce | wrappedDEK + wrap tag
-     data nonce | data ciphertext + data tag | AAD/context
+Store: file format/version | KDF params | salt
+       KEK wrapping nonce | wrappedDEK + wrap tag
+       data nonce | data ciphertext + data tag | AAD/context
 ```
 
-Ở đây, **wrap key** cần cơ chế có integrity chuẩn (ví dụ AES-KW hoặc AEAD đúng cách), nonce/key discipline và ràng buộc metadata; không chỉ XOR DEK với password hash. Nếu có hai lớp AEAD dùng cùng thuật toán, phải dùng khóa tương ứng độc lập và quản lý **nonce riêng cho từng khóa/lần mã hóa**.
+Here, **key wrapping** requires an integrity-protected mechanism (such as AES-KW or proper AEAD), nonce/key discipline, and metadata binding—never just XORing the DEK with a password hash. If two AEAD layers use the same cipher, use independent keys and manage **separate nonces per key/encryption**.
 
-### 6.1. Ưu điểm so với PBE trực tiếp
+### 6.1. Advantages over direct PBE
 
-| Thao tác | PBE trực tiếp | Random DEK + password-derived KEK |
+| Operation | Direct PBE | Random DEK + password-derived KEK |
 | --- | --- | --- |
-| Mã hóa file lớn | Mã hóa bằng khóa dẫn xuất từ password | Mã hóa file bằng random DEK |
-| Mở file | KDF password → key → decrypt data | KDF password → KEK → unwrap DEK → decrypt data |
-| Thay password | Cần có khả năng decrypt/re-encrypt toàn bộ file (hoặc thiết kế migration khác) | Có thể unwrap DEK bằng KEK cũ và **rewrap DEK** bằng KEK mới, giữ nguyên ciphertext dữ liệu |
-| Đổi work factor | Thường thay key dẫn xuất, cần tạo lại ciphertext | Có thể rewrap DEK với cost mới |
-| Dữ liệu nhiều GB | Mã hóa lại khi thay password có thể rất tốn I/O | Rewrap DEK thường xử lý vật liệu nhỏ hơn |
-| Thêm nhiều người được cấp quyền | Phức tạp nếu mọi người dùng chung password hoặc phải giữ nhiều bản mã | Có thể wrap cùng DEK cho mỗi recipient theo cơ chế/KEK khác nhau |
-| Rủi ro đoán password ngoại tuyến | Có | **Vẫn có** nếu wrappedDEK và salt bị lấy; tách DEK không biến password yếu thành mạnh |
+| Encrypt large file | Encrypt with password-derived key | Encrypt file with random DEK |
+| Open file | KDF password → key → decrypt data | KDF password → KEK → unwrap DEK → decrypt data |
+| Password change | Must decrypt/re-encrypt entire file (or use another migration design) | Unwrap DEK with old KEK and **rewrap DEK** with new KEK, leaving data ciphertext untouched |
+| Work factor upgrade | Typically changes derived key, requiring ciphertext regeneration | Can rewrap DEK at new cost |
+| Multi-GB data | Re-encrypting on password change can be very I/O heavy | Rewrapping DEK processes only small key material |
+| Granting access to multiple users | Awkward if everyone must share one password or store duplicate ciphertexts | Same DEK can be wrapped per recipient under distinct mechanisms/KEKs |
+| Offline password guessing risk | Yes | **Still yes** if wrappedDEK and salt are obtained; separating DEK does not strengthen a weak password |
 
-**Điểm quan trọng:** random DEK được wrap bằng KEK từ password **không loại bỏ offline dictionary attack trên password**, vì attacker có thể thử giải bọc DEK. Lợi ích chính của envelope ở trường hợp này là **tách khóa dữ liệu khỏi khóa truy cập**, đơn giản hóa đổi password, chia quyền và đổi cách bảo vệ KEK.
+**Crucial point:** a random DEK wrapped by a password-derived KEK **does not eliminate offline dictionary attacks on the password**, because an attacker can try unwrapping the DEK. The primary benefit of envelope encryption here is **separating the data key from the access key**, simplifying password changes, multi-party sharing, and changing how the KEK is protected.
 
-Nếu cần chống rủi ro đoán password với ciphertext bị đánh cắp, người dùng phải có password đủ mạnh và KDF đúng; hoặc hệ thống cần thêm bí mật độc lập được quản lý tập trung bằng KMS/HSM và kiểm soát truy cập.
+To resist password guessing against stolen ciphertexts, users must have sufficiently strong passwords and a proper KDF, or the system must incorporate an independent centrally managed KMS/HSM secret and access controls.
 
-### 6.2. Khi KEK ở KMS/HSM
+### 6.2. When the KEK resides in a KMS/HSM
 
-Một backend có thể dùng random DEK để mã hóa payload; chỉ lưu **wrapped DEK** cùng ciphertext. Khi được phép giải mã, dịch vụ gọi KMS để unwrap DEK trong phạm vi quyền xác định. Đây là **kiến trúc dịch vụ quản lý khóa**, khác với việc người dùng nhớ một password.
+A backend can use a random DEK to encrypt payloads and store only the **wrapped DEK** alongside ciphertext. When decryption is authorized, the service calls the KMS to unwrap the DEK within a defined permission scope. This is a **key-management-service architecture**, distinct from having a human memorize a password.
 
-Ưu điểm: kiểm soát IAM, policy, audit, khóa master, rotation/backup theo hệ thống. Giới hạn: phụ thuộc dịch vụ, network, availability, chi phí, quyền cấp cho ứng dụng và rủi ro key/credential trong RAM. **KMS không thay thế authorization của ứng dụng**: API vẫn phải kiểm tra tenant/record access trước khi yêu cầu unwrap.
+Pros: IAM controls, policies, auditing, master keys, and system-wide rotation/backup. Limits: service/network/availability dependencies, cost, application permission scope, and exposure of keys/credentials in RAM. **KMS does not replace application authorization**: your API must still verify tenant/record access before requesting an unwrap.
 
-### 6.3. Chú ý khi đổi password và rotate key
+### 6.3. Considerations when changing passwords and rotating keys
 
-Nếu password cũ bị lộ và attacker đã giữ **bản sao wrappedDEK cũ**, việc thay password và ghi đè header **không làm bản sao đã bị đánh cắp trở nên an toàn**. Tương tự, KMS rotation không tự thu hồi toàn bộ ciphertext/DEK cũ đã lộ trước đó. Cần phân tích dữ liệu nào bị ảnh hưởng, hủy quyền, thay DEK hoặc mã hóa lại khi threat model đòi hỏi.
+If an old password leaked and an attacker kept a **copy of the old `wrappedDEK`**, changing the password and overwriting the header **does not make the stolen copy safe**. Likewise, KMS key rotation does not automatically invalidate old ciphertexts/DEKs exposed earlier. Assess which data was exposed, revoke access, rotate DEKs, and re-encrypt when your threat model demands it.
 
-Có thể giữ DEK cũ để đọc dữ liệu cũ trong giai đoạn migration, nhưng phải có key-version và quy trình retire. Đừng chỉ tăng iteration count hoặc thay salt **trong metadata** mà không thực hiện derivation/rewrap/re-encrypt phù hợp: dữ liệu sẽ không còn giải mã được.
+You can retain an old DEK to read legacy data during migration, provided you have key versions and a retirement process. Never merely bump the iteration count or swap the salt **in metadata** without performing proper derivation/rewrapping/re-encryption: the data will become undecryptable.
 
-## 7. Định dạng dữ liệu phải lưu để giải mã được sau nhiều năm
+## 7. Data format that must be stored to decrypt years later
 
-Ví dụ PBE trực tiếp dùng PBKDF2-HMAC-SHA256 và AES-GCM:
+Direct PBE example using PBKDF2-HMAC-SHA256 and AES-GCM:
 
 ```text
 +----------+---------+------------+----------+----------+----------+----------------+
@@ -297,39 +297,39 @@ Ví dụ PBE trực tiếp dùng PBKDF2-HMAC-SHA256 và AES-GCM:
     1 byte    enum       int          16 B       12 B      AES-GCM     arbitrary
 ```
 
-Sơ đồ chỉ để mô tả; **không phải chuẩn byte layout chính thức**, và các định dạng thực tế cần field lengths, endian, AAD, versioning, maximum payload, authenticated parsing và bảo vệ chống downgrades.
+This diagram is descriptive only; **it is not an official wire byte layout**, and real formats require field lengths, endianness, AAD, versioning, payload caps, authenticated parsing, and downgrade protections.
 
-Trường metadata quan trọng:
+Essential metadata fields:
 
-| Trường | Có bí mật không? | Tại sao cần? |
+| Field | Secret? | Why is it needed? |
 | --- | --- | --- |
-| Phiên bản format | Không | Biết cách parse/migrate, từ chối phiên bản không hợp lệ |
-| Tên KDF và PRF | Không | Tạo lại đúng khóa từ password |
-| Số vòng lặp / memory cost / parallelism | Không | Tái hiện chính xác work factor đã dùng |
-| Salt | Không | Dẫn xuất cùng khóa từ password |
-| Cipher mode, key size, tag size | Không | Chọn đúng transformation và tham số |
-| Nonce/IV | Không | Giải mã đúng; khi mã hóa cần bảo đảm uniqueness dưới cùng key |
-| Ciphertext + authentication tag | Không cần giấu tag; **plaintext được bảo vệ** | Lưu dữ liệu và kiểm nguyên vẹn |
-| Key ID hoặc wrapped DEK (nếu envelope) | Không giống secret key raw; phải bảo vệ toàn vẹn | Giúp chọn key phù hợp và mở dữ liệu |
-| Secret password / raw random key / KEK plaintext | **Có** | **Không** đặt vào bản mã/header/log dưới dạng raw |
+| Format version | No | Know how to parse/migrate; reject invalid versions |
+| KDF name and PRF | No | Recreate the exact key from the password |
+| Iteration count / memory cost / parallelism | No | Reproduce the exact work factor used |
+| Salt | No | Derive the same key from the password |
+| Cipher mode, key size, tag size | No | Select the exact transformation and parameters |
+| Nonce/IV | No | Decrypt properly; during encryption, ensure uniqueness per key |
+| Ciphertext + authentication tag | Tag needs no secrecy; **plaintext is protected** | Store payload and verify integrity |
+| Key ID or wrapped DEK (if envelope) | Not raw secret keys; must protect integrity | Select the right key and unlock data |
+| Secret password / raw random key / plaintext KEK | **Yes** | **Never** place in ciphertext/headers/logs in raw form |
 
-Không giữ tất cả thông số PBE chỉ trong config “hiện tại” rồi thay đổi config sau vài tháng. Khi KDF cost nâng lên, file cũ cần **đọc bằng đúng tham số cũ**, sau đó migration/re-encrypt có kiểm soát. Nếu lưu KDF id trong header do attacker kiểm soát, cần **allowlist, giới hạn tài nguyên và authenticated metadata** để ngăn downgrade/DoS hoặc khai thác parser.
+Never keep PBE parameters solely in “current” application config that changes a few months later. When KDF cost rises, old files must be **read with their exact old parameters**, then migrated/re-encrypted in a controlled manner. If a KDF id is stored in an attacker-controlled header, enforce **allowlists, resource bounds, and authenticated metadata** to prevent downgrades, DoS, or parser exploits.
 
-### 7.1. AAD bảo vệ ngữ cảnh
+### 7.1. AAD protects context
 
-AEAD có **AAD (Additional Authenticated Data)**: metadata được **xác thực nhưng không mã hóa**. Ví dụ có thể đưa vào AAD: version, KDF parameters, salt/nonce nếu thiết kế, tenant ID, object ID, content type, quyền/ngữ cảnh ứng dụng. Bên decrypt phải cung cấp chính xác cùng AAD; mismatch sẽ làm tag check thất bại.
+AEAD supports **AAD (Additional Authenticated Data)**: metadata that is **authenticated but not encrypted**. Examples suitable for AAD include version, KDF parameters, salt/nonce if designed so, tenant ID, object ID, content type, and application permissions/context. Decryption must supply the exact same AAD; any mismatch fails tag verification.
 
-Đừng đặt secret vào AAD nếu kỳ vọng nó được mã hóa; AAD thường được lưu/truyền rõ. Không cho ứng dụng nhận plaintext trước khi xác thực GCM tag hoàn thành. Một ciphertext GCM hợp lệ vẫn có thể bị **phát lại** nguyên vẹn; chống replay phải dùng sequence/ID/trạng thái nghiệp vụ.
+Never put secrets into AAD expecting encryption; AAD is typically stored/transmitted in the clear. Never pass plaintext to the application before GCM tag verification completes. A valid GCM ciphertext can still be **replayed** intact; prevent replay with sequence numbers, IDs, or business state.
 
-## 8. Ví dụ Java 17+: PBE với PBKDF2 + AES-GCM so với khóa AES sinh ngẫu nhiên
+## 8. Java 17+ example: PBE with PBKDF2 + AES-GCM vs. randomly generated AES key
 
-Tạo file **`PasswordVsRandomKeyDemo.java`**. Chương trình Java 17+ độc lập gồm hai nhánh:
+Create **`PasswordVsRandomKeyDemo.java`**. This standalone Java 17+ program demonstrates two branches:
 
-- **PBE trực tiếp:** dẫn xuất AES-256 từ password, salt 16 byte ngẫu nhiên và PBKDF2-HMAC-SHA256; mã hóa AES-GCM với nonce 12 byte. Bản ghi chứa tham số KDF cần cho lần giải mã sau. Header version + iterations + salt + nonce được đưa vào AAD.
-- **Random key:** tạo AES-256 trực tiếp bằng `KeyGenerator` và mã hóa cùng plaintext với AES-GCM dùng nonce mới. Khóa chỉ tồn tại trong ví dụ, không có lưu trữ/recovery.
-- Thử password sai và sửa tag để chứng minh **không xuất plaintext khi authentication thất bại**. Stdout chỉ in boolean và độ dài, không tiết lộ password hoặc key.
+- **Direct PBE:** derives AES-256 from a password, a 16-byte random salt, and PBKDF2-HMAC-SHA256; encrypts with AES-GCM and a 12-byte nonce. The record stores KDF parameters needed for later decryption. Header version + iterations + salt + nonce are bound into AAD.
+- **Random key:** generates AES-256 directly via `KeyGenerator` and encrypts the same plaintext with AES-GCM using a fresh nonce. The key lives only inside this demo with no storage/recovery.
+- Tests a wrong password and a modified tag to prove **no plaintext is returned when authentication fails**. Stdout prints only booleans and lengths, never exposing passwords or keys.
 
-**Lưu ý trước khi chạy:** Password chuỗi cố định dưới đây **chỉ là dữ liệu demo, tuyệt đối không hard-code password trong ứng dụng thực tế**. Số vòng lặp là ví dụ được cố ý đặt rõ ràng và nên benchmark/tune theo chính sách hiện hành. Mã dùng `PBKDF2WithHmacSHA256` có sẵn trên các JDK 17 thông dụng; một provider đặc biệt có thể yêu cầu cấu hình khác. `record` là cú pháp Java 17 hợp lệ.
+**Note before running:** The fixed password string below **is demo data only—never hardcode passwords in real applications**. The iteration count is an explicit illustrative value and should be benchmarked/tuned per current policy. The code uses `PBKDF2WithHmacSHA256` available on common JDK 17 builds; specialized providers may require different setup. `record` is valid Java 17 syntax.
 
 ```java
 import java.nio.ByteBuffer;
@@ -349,14 +349,14 @@ import javax.crypto.spec.SecretKeySpec;
 public class PasswordVsRandomKeyDemo {
     private static final SecureRandom RNG = new SecureRandom();
 
-    private static final int ROUNDS = 600_000; // Demo; tune theo hệ thống.
+    private static final int ROUNDS = 600_000; // Demo; tune for your system.
     private static final int SALT_BYTES = 16;
     private static final int NONCE_BYTES = 12;
     private static final int TAG_BITS = 128;
     private static final int KEY_BITS = 256;
     private static final byte VERSION = 1;
 
-    // In-memory record: production cần serialization chuẩn và defensive copy.
+    // In-memory record: production requires proper serialization and defensive copies.
     private record PasswordEnvelope(
             int iterations, byte[] salt, byte[] nonce, byte[] ciphertextAndTag) {}
 
@@ -371,7 +371,7 @@ public class PasswordVsRandomKeyDemo {
             SecretKeyFactory kdf =
                     SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             material = kdf.generateSecret(spec).getEncoded();
-            // SecretKeySpec tạo bản sao key bytes trước khi xóa buffer tạm.
+            // SecretKeySpec copies the key bytes before zeroing the temporary buffer.
             return new SecretKeySpec(material, "AES");
         } finally {
             if (material != null) {
@@ -413,7 +413,7 @@ public class PasswordVsRandomKeyDemo {
             char[] password, PasswordEnvelope stored)
             throws GeneralSecurityException {
 
-        // Giới hạn tài nguyên và định dạng trước KDF.
+        // Enforce resource and format bounds before running the KDF.
         if (stored.iterations() < 100_000
                 || stored.iterations() > 2_000_000
                 || stored.salt().length != SALT_BYTES
@@ -457,7 +457,7 @@ public class PasswordVsRandomKeyDemo {
     }
 
     public static void main(String[] args) throws Exception {
-        // DEMO ONLY: production lấy password từ input bảo mật.
+        // DEMO ONLY: production reads password from secure input.
         char[] password = "classroom-demo-only".toCharArray();
         char[] wrong = "wrong-password".toCharArray();
         try {
@@ -505,14 +505,14 @@ public class PasswordVsRandomKeyDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17+ hỗ trợ các thuật toán được dùng:
+Compile and run with a JDK 17+ supporting these algorithms:
 
 ```shell
 javac PasswordVsRandomKeyDemo.java
 java PasswordVsRandomKeyDemo
 ```
 
-**Stdout kỳ vọng** (giá trị khóa, salt, nonce đều ngẫu nhiên nên code cố ý không in các giá trị đó):
+**Expected stdout** (key, salt, and nonce are random so the code intentionally omits printing them):
 
 ```text
 pbeRoundTrip=true
@@ -523,163 +523,163 @@ pbeNonceBytes=12
 randomKeyRoundTrip=true
 ```
 
-### 8.1. Đọc đúng từng kết quả
+### 8.1. Interpreting every output line
 
-- `pbeRoundTrip=true`: cùng password + salt + iterations tái tạo cùng AES key; đúng nonce và metadata AAD cho phép GCM xác thực và trả plaintext gốc.
-- `wrongPasswordRejected=true`: password khác tạo key khác; GCM authentication tag không hợp lệ, ném `AEADBadTagException`. Đây là cơ chế nhận biết giải mã thất bại, **không phải dịch vụ giới hạn số lượt thử password ngoại tuyến**.
-- `pbeTamperRejected=true`: thay đổi byte tag làm xác thực thất bại. Không được bắt `AEADBadTagException` rồi vẫn trả plaintext cũ/chưa kiểm chứng cho nghiệp vụ.
-- `saltBytes=16` và `pbeNonceBytes=12`: có **hai trường** khác chức năng, lưu kèm ciphertext khi cần giải mã.
-- `randomKeyRoundTrip=true`: cùng AES-GCM nhưng khóa được tạo ngẫu nhiên bởi `KeyGenerator`, không cần PBKDF2 hay password.
-- Chương trình **không chứng minh** rằng password demo có đủ entropy cho production; chính vì password hard-code công khai nên nó chỉ minh họa API và định dạng, tuyệt đối không dùng để bảo vệ dữ liệu thật.
+- `pbeRoundTrip=true`: identical password + salt + iterations recreate the same AES key; matching nonce and AAD metadata let GCM verify and return the original plaintext.
+- `wrongPasswordRejected=true`: a different password produces a different key; the GCM authentication tag is invalid and throws `AEADBadTagException`. This detects failed decryption—**it is not a rate-limiting service for offline password trials**.
+- `pbeTamperRejected=true`: flipping a tag byte fails authentication. Never catch `AEADBadTagException` and still pass unverified/stale plaintext to business logic.
+- `saltBytes=16` and `pbeNonceBytes=12`: there are **two distinct fields** with different roles, both stored with ciphertext when needed for decryption.
+- `randomKeyRoundTrip=true`: the same AES-GCM cipher, yet the key is randomly generated by `KeyGenerator`, requiring neither PBKDF2 nor a password.
+- The program **does not prove** the demo password has production-grade entropy; precisely because the password is hardcoded publicly, it only demonstrates APIs and formats—never use it to protect real data.
 
-### 8.2. Các giới hạn có chủ ý của chương trình
+### 8.2. Intentional limitations of the program
 
-Đây là ví dụ Java **chạy độc lập**, không phải thư viện sản xuất. Không có lưu file, backup/key escrow, key IDs, rotation, tenant isolation, chống replay, identity/authorization, UI nhập password hoặc logging/audit. `PasswordEnvelope` là record chứa các mảng có thể thay đổi, **chưa phải immutable serialized envelope**; production nên có defensive copies, parser/serializer chuẩn, maximum total ciphertext length và phiên bản/algorithm identifiers được kiểm chứng.
+This is a **standalone Java example**, not a production library. It lacks file persistence, backup/key escrow, key IDs, rotation, tenant isolation, replay defense, identity/authorization, password input UI, and logging/auditing. `PasswordEnvelope` is a record holding mutable arrays, **not an immutable serialized envelope**; production needs defensive copies, a standard parser/serializer, maximum ciphertext length limits, and validated version/algorithm identifiers.
 
-Lời gọi `PBEKeySpec.clearPassword()` xóa **bản sao** password bên trong spec. `Arrays.fill(password, '\0')` xóa mảng caller đang giữ; **không thể đảm bảo xóa mọi bản sao password trong JVM, heap dumps hay thư viện**. Trong code demo, literal string của password có thể còn trong memory; đó là lý do phải lấy input qua cơ chế bảo mật của hệ thống trong production.
+`PBEKeySpec.clearPassword()` clears **the copy** inside the spec. `Arrays.fill(password, '\0')` wipes the caller's array; **it cannot guarantee clearing every copy of the password across the JVM, heap dumps, or libraries**. In demo code, string literals may linger in memory; that is why production must obtain input through secure system mechanisms.
 
-Việc đưa header vào AAD bảo vệ byte version/iterations/salt/nonce khi xác thực. Tuy nhiên, trước khi chạy KDF tốn CPU, bên nhận vẫn phải parse header và **áp đặt allowlist/giới hạn chi phí**. Nếu nhận từ mạng, cần thêm input size/rate limits để giảm DoS. Không tự thay đổi AAD encoding giữa các phiên bản; ví dụ `ByteBuffer` dùng thứ tự byte mặc định big-endian và chỉ giới thiệu một layout nội bộ.
+Putting the header in AAD protects version/iterations/salt/nonce bytes upon authentication. Still, before running a CPU-heavy KDF, the receiver must parse the header and **enforce allowlists/cost caps**. When accepting network inputs, add size/rate limits to mitigate DoS. Never silently change AAD encoding across versions; for example, `ByteBuffer` uses big-endian byte order by default and illustrates just one internal layout.
 
-Chương trình tạo random key nhưng **không lưu key**; khi JVM kết thúc sẽ không có cách giải mã bản mã random-key đã tạo nếu không có quản lý key thật. Với PBE, key có thể tái tạo từ password+tham số; với random key, phải có nơi giữ/bao bọc an toàn.
+The program generates a random key without **persisting it**; once the JVM exits, there is no way to decrypt that random-key ciphertext without real key management. With PBE, the key can be recreated from password + parameters; with a random key, there must be a secure place to hold/wrap it.
 
-## 9. Khi nào chọn cách nào?
+## 9. When to choose which approach?
 
-### Tình huống A – người dùng khóa một file backup để tự mở offline
+### Scenario A – a user locks a backup file to open offline
 
-**PBE với password mạnh** hợp lý nếu người dùng phải tự giữ bí mật và không muốn phụ thuộc máy chủ key. Lưu salt, work factor, nonce, ciphertext/tag, version; có quy trình reset/recovery rõ ràng. Nếu quên password và không có key recovery, hệ thống không thể “tự khôi phục” chỉ từ salt/ciphertext.
+**PBE with a strong password** makes sense if the user must hold the secret themselves and avoid relying on a key server. Store salt, work factor, nonce, ciphertext/tag, and version; define clear reset/recovery expectations. If the password is forgotten and no recovery key exists, the system cannot “recover” it from salt/ciphertext alone.
 
-Với file lớn hoặc thay đổi password thường xuyên, cân nhắc **random DEK + password-derived KEK** để chỉ rewrap DEK thay vì mã hóa lại gigabyte. Mô hình này vẫn bị tấn công đoán password ngoại tuyến khi attacker lấy được wrapped DEK.
+For large files or frequent password changes, consider a **random DEK + password-derived KEK** so only the DEK is rewrapped instead of re-encrypting gigabytes. That model remains vulnerable to offline password guessing if an attacker obtains the wrapped DEK.
 
-### Tình huống B – backend mã hóa trường dữ liệu khách hàng
+### Scenario B – a backend encrypts customer data fields
 
-Ưu tiên **random DEK**, có thể qua envelope encryption với KMS/HSM. Service cấp quyền truy cập DEK theo tenant/record, ghi audit và hạn chế quyền tài khoản dịch vụ. Một password hard-code chung trong code/config để “dẫn xuất khóa” thường tạo single point of failure; khi leak password, toàn bộ ciphertext liên quan có thể bị giải mã.
+Prefer a **random DEK**, typically via envelope encryption with a KMS/HSM. Services grant DEK access by tenant/record, log audits, and restrict service-account permissions. A single shared password hardcoded in code/config to “derive keys” usually creates a single point of failure; if it leaks, all related ciphertexts can be decrypted.
 
-### Tình huống C – nhiều người có quyền mở cùng tài liệu
+### Scenario C – multiple people are authorized to open the same document
 
-Nếu mỗi người giữ password riêng, random DEK có thể được wrap cho từng recipient với KEK/key riêng. Thu hồi quyền cần quản lý phiên bản và điều kiện phân phối DEK; chỉ xóa một wrapped key **không thu hồi bản DEK đã được người cũ lấy về và lưu lại**. Dữ liệu nhạy cảm cần phân tích quyền truy cập và rotation DEK theo sự kiện thu hồi.
+If each user holds their own password, a random DEK can be wrapped separately for each recipient using their own KEK/key. Revoking access requires version management and DEK distribution rules; deleting one wrapped key **does not revoke a DEK that a former recipient already retrieved and saved**. Sensitive data requires access review and DEK rotation on revocation events.
 
-### Tình huống D – khóa mã hóa cho dữ liệu dài hạn
+### Scenario D – encryption keys for long-lived data
 
-Random key trong KMS với backup/rotation thường dễ tổ chức hơn một password phụ thuộc trí nhớ của cá nhân. Nhưng phụ thuộc availability của KMS, mạng và chính sách lưu bản sao. Quy trình khôi phục/escrow cần được kiểm thử thực tế; mất key có thể đồng nghĩa mất dữ liệu.
+Random keys in a KMS with backup/rotation are usually easier to organize than a password dependent on human memory. However, this introduces dependencies on KMS availability, networking, and backup policies. Test recovery/escrow workflows in practice; losing a key can mean losing data.
 
-### Tình huống E – ứng dụng quản lý mật khẩu đăng nhập
+### Scenario E – an application managing login passwords
 
-**Không dùng PBE để lưu password đăng nhập rồi giải mã để so sánh.** Với authentication, lưu password verifier bằng thuật toán password hashing/KDF chuyên dụng như Argon2id, scrypt, PBKDF2 theo chính sách, salt riêng, thông số cost và kiểm chứng an toàn. Không cần khôi phục plaintext password để login; chức năng “quên mật khẩu” nên đặt lại bằng quy trình xác thực riêng.
+**Never use PBE to store login passwords and decrypt them for comparison.** For authentication, store a password verifier using a dedicated password-hashing/KDF algorithm such as Argon2id, scrypt, or policy-compliant PBKDF2, with a unique salt, cost parameters, and safe verification. There is no need to recover plaintext passwords for login; “forgot password” flows should reset via separate authenticated verification.
 
-PBE phục vụ tình huống **cần lấy lại plaintext dữ liệu** từ một bí mật người dùng cung cấp; password hashing phục vụ tình huống **cần xác nhận password đúng mà không khôi phục password gốc**.
+PBE serves cases where **plaintext data must be recovered** from a user-supplied secret; password hashing serves cases where **a password must be verified without recovering the original password**.
 
-## 10. Đổi mật khẩu, đổi KDF cost và rotate khóa
+## 10. Changing passwords, changing KDF cost, and rotating keys
 
-### 10.1. Đổi password của PBE trực tiếp
+### 10.1. Changing the password in direct PBE
 
-Giả sử file đang dùng `keyOld = KDF(oldPassword, oldSalt, oldCost)`. Sau khi người dùng nhập đúng password cũ:
+Suppose a file currently uses `keyOld = KDF(oldPassword, oldSalt, oldCost)`. After the user enters the correct old password:
 
-1. Đọc metadata cũ; validate cấu hình/sizes.
-2. Dẫn xuất `keyOld`, xác thực GCM tag và giải mã dữ liệu.
-3. Tạo salt mới, cost/KDF version theo policy mới; dẫn xuất `keyNew` từ password mới.
-4. Tạo nonce mới và mã hóa lại dữ liệu bằng AEAD, với AAD/version mới.
-5. Ghi bản mới **theo cách atomic** và có recovery/backup phù hợp, xóa vật liệu nhạy cảm tạm trong khả năng.
-6. Chỉ khi xác minh migration thành công mới cập nhật active version/retire old key.
+1. Read old metadata; validate configuration and sizes.
+2. Derive `keyOld`, verify the GCM tag, and decrypt the data.
+3. Generate a fresh salt and cost/KDF version per new policy; derive `keyNew` from the new password.
+4. Generate a fresh nonce and re-encrypt the data with AEAD under the new AAD/version.
+5. Persist the new version **atomically** with proper recovery/backup handling, clearing temporary sensitive material as feasible.
+6. Update active version / retire old material only after confirming migration succeeded.
 
-Không thể chỉ đổi chuỗi password lưu trong UI rồi “giữ nguyên ciphertext PBE” vì key thay đổi.
+You cannot just update a password in the UI and “keep the PBE ciphertext as-is,” because the derived key changes.
 
-### 10.2. Rewrap DEK của envelope encryption
+### 10.2. Rewrapping the DEK in envelope encryption
 
-Với `dataCiphertext = Encrypt(DEK, plaintext)` và `wrappedDEK = Wrap(KEK, DEK)`:
+With `dataCiphertext = Encrypt(DEK, plaintext)` and `wrappedDEK = Wrap(KEK, DEK)`:
 
-1. Xác thực/truy xuất DEK bằng password/KEK cũ.
-2. Sinh salt mới và KEK mới từ password mới (hoặc chuyển sang KMS key theo chính sách).
-3. Wrap cùng DEK bằng KEK mới, nonce/key-wrap format mới và tag hợp lệ.
-4. Ghi metadata mới và wrapped DEK an toàn, bảo đảm chính sách rollback/backup.
+1. Authenticate/recover the DEK using the old password/KEK.
+2. Generate a fresh salt and new KEK from the new password (or transition to a KMS key per policy).
+3. Wrap the same DEK using the new KEK, fresh nonce/key-wrap format, and valid tag.
+4. Persist new metadata and wrapped DEK safely, honoring rollback/backup policies.
 
-Dữ liệu chính có thể không cần mã hóa lại khi chỉ thay cơ chế bảo vệ DEK. Nếu **DEK đã lộ**, rewrap không giải quyết được; cần rotate DEK và mã hóa lại dữ liệu được bảo vệ.
+The main data payload does not need re-encryption when only the DEK protection changes. If **the DEK itself leaked**, rewrapping does not help; rotate the DEK and re-encrypt the protected data.
 
-### 10.3. Nâng cấp PBKDF2/scrypt/Argon2id
+### 10.3. Upgrading PBKDF2/scrypt/Argon2id
 
-Khi workload/phần cứng thay đổi, work factor cũ có thể không còn phù hợp. Thiết kế version giúp giải mã record cũ đúng tham số rồi re-encrypt hoặc rewrap bằng cấu hình mới. Nếu chọn Argon2id/scrypt ngoài JDK, phải kiểm version, thuật toán và tham số để các hệ thống tương thích. Không xem thay số iterations trong metadata là một upgrade hoàn tất.
+As workloads and hardware evolve, old work factors become inadequate. Versioning lets you decrypt old records with their exact parameters and then re-encrypt or rewrap under new settings. When using Argon2id/scrypt outside the JDK, verify versions, algorithms, and parameters for system compatibility. Never treat merely editing the iteration count in metadata as a complete upgrade.
 
-## 11. Vận hành, performance và những lỗi thường gặp
+## 11. Operations, performance, and common mistakes
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| `new SecretKeySpec(password.getBytes(), "AES")` | Password không đúng kích thước AES, hoặc đủ dài nhưng entropy yếu | Dùng KDF chuyên dụng cho password |
-| `SHA-256(password)` làm AES key | KDF quá nhanh, cho phép offline guessing quy mô lớn | Dùng PBKDF2/scrypt/Argon2id theo policy |
-| Salt cố định cho mọi user/file | Trùng key nếu password giống nhau, thuận lợi tính toán sẵn | Salt riêng và sinh bằng CSPRNG |
-| Giấu salt như secret chính | Phân tích sai threat model, quên giữ true secret | Salt công khai; bảo vệ password/key |
-| Không lưu KDF params | Sau khi đổi config, file cũ không giải mã được | Versioned, self-describing envelope |
-| Dùng `Random` cho salt/key/nonce | Nguồn có thể dự đoán, nguy cơ lặp/weak key | `SecureRandom` hoặc engine mật mã chuẩn |
-| Tái sử dụng AES-GCM nonce cùng key | Có thể phá confidentiality và authentication | Nonce unique dưới từng key, giới hạn số lần dùng khóa |
-| Dùng AES-CBC không MAC | Không bảo vệ integrity, padding oracle | AEAD, hoặc Encrypt-then-MAC đúng chuẩn trong legacy |
-| Chỉ kiểm “decrypt không exception” | Có thể chấp nhận dữ liệu bị thay đổi trong mode không xác thực | Dùng AEAD tag/MAC, không xử lý dữ liệu chưa auth |
-| Đặt cost quá nhỏ | Attacker thử rất nhiều candidate/giây | Benchmark và cập nhật policy KDF |
-| Tin rằng cost cực lớn luôn tốt | Tự gây latency/CPU DoS, nhất là service mở nhiều file | Giới hạn iterations/memory, kiểm resource policy trước KDF |
-| Hard-code password hoặc key trong JAR | Ai có artifact/source có thể đọc bí mật | Secure input, secret manager/KMS/keystore |
-| Log password, raw key, decrypted data | Mất bí mật dù thuật toán đúng | Redact log, hạn chế debug dumps và access |
-| Dùng password mạnh rồi lưu plaintext cạnh ciphertext | Password bị lộ từ nơi lưu, PBE mất bảo vệ | Bảo vệ đường nhập và vòng đời secret |
-| Dùng random DEK rồi quên lưu/backup | Mất khả năng giải mã mãi mãi | KMS/wrapped DEK, key escrow/recovery |
-| Rewrap DEK nhưng không xét bản sao cũ đã lộ | Đối thủ giữ wrapped key hoặc DEK cũ vẫn truy cập | Threat-model rotation/re-encryption và backup |
-| Dùng key truy cập để thay authorization | Người giữ ciphertext hoặc ID không đương nhiên có quyền nghiệp vụ | IAM, tenant policy, quyền đọc/unwrap độc lập |
+| `new SecretKeySpec(password.getBytes(), "AES")` | Password does not match AES key size, or is long yet low-entropy | Use a dedicated password KDF |
+| `SHA-256(password)` as an AES key | KDF is too fast, enabling large-scale offline guessing | Use PBKDF2/scrypt/Argon2id per policy |
+| Static salt across all users/files | Identical passwords yield identical keys, aiding precomputation | Unique salt generated via CSPRNG |
+| Hiding salt as the primary secret | Misguided threat model, neglecting real secrets | Salts are public; protect passwords/keys |
+| Omitting KDF parameters | After config changes, old files become undecryptable | Versioned, self-describing envelope |
+| Using `Random` for salt/key/nonce | Predictable source, risk of collisions/weak keys | `SecureRandom` or standard crypto engine |
+| Reusing AES-GCM nonces under the same key | Can break confidentiality and authentication | Unique nonces per key, bound key usage counts |
+| Using AES-CBC without MAC | No integrity protection, padding oracle risk | AEAD, or proper Encrypt-then-MAC in legacy systems |
+| Only checking “decrypt threw no exception” | Can accept tampered data in unauthenticated modes | Use AEAD tag/MAC; never process unauthenticated data |
+| Setting cost too low | Attackers test huge candidate rates per second | Benchmark and update KDF policy |
+| Assuming extreme cost is always better | Self-inflicted latency/CPU DoS, especially in file-opening services | Bound iterations/memory; validate resource policy before KDF |
+| Hardcoding passwords or keys in a JAR | Anyone with the artifact/source can extract secrets | Secure input, secret manager/KMS/keystore |
+| Logging passwords, raw keys, or decrypted data | Leaks secrets despite sound algorithms | Redact logs, restrict debug dumps and access |
+| Using a strong password then storing plaintext beside ciphertext | Password leaks from storage, nullifying PBE | Protect input paths and secret lifecycle |
+| Using a random DEK and forgetting to save/backup it | Permanent loss of decryption capability | KMS/wrapped DEK, key escrow/recovery |
+| Rewrapping DEK without accounting for leaked old copies | Adversary holding old wrapped key or DEK retains access | Threat-model rotation/re-encryption and backups |
+| Treating key possession as authorization | Holder of ciphertext or ID does not automatically hold business rights | Enforce IAM, tenant policies, and read/unwrap permissions independently |
 
-### 11.1. Cẩn thận với thời gian và lỗi
+### 11.1. Be careful with timing and errors
 
-KDF chậm có chủ đích; trong API có nhiều người dùng, không cho phép một client đẩy iterations lên hàng tỷ hoặc cung cấp ciphertext không giới hạn rồi yêu cầu backend tự xử lý. Áp đặt size limits, allowlist KDF, dải cost có thể chấp nhận, rate limiting, timeout/resource budget. Với GCM, lỗi key/nonce/AAD/tag cần được xử lý bằng **từ chối bản mã**, không trả plaintext hoặc tiết lộ nội dung. Đừng biến khác biệt `wrong password` và `bad ciphertext` thành thông báo phân biệt dựa trên các chi tiết mật mã ngoài luồng phù hợp.
+KDFs are intentionally slow; in multi-user APIs, never let a client push iterations into the billions or submit unbounded ciphertexts for backend processing. Enforce size limits, KDF allowlists, acceptable cost ranges, rate limiting, and timeouts/resource budgets. With GCM, handle key/nonce/AAD/tag failures by **rejecting the ciphertext**, never returning plaintext or leaking contents. Never turn `wrong password` vs. `bad ciphertext` into oracle messages exposing cryptographic details outside valid flows.
 
-KDF có thể tiêu tốn CPU đáng kể; nếu hệ thống cần mã hóa rất nhiều record, **không dẫn xuất khóa bằng password mới cho từng row/request** nếu kiến trúc này không cần thiết. Có thể dẫn xuất KEK khi mở vault rồi dùng random DEK cho các record, tùy threat model/session lifecycle. Nhưng caching plaintext key kéo dài cũng làm tăng rủi ro khi memory bị truy cập; phải cân nhắc cả hiệu năng và an ninh.
+KDFs can consume substantial CPU; if a system must encrypt huge numbers of records, **do not derive a fresh password key for every row/request** when the architecture does not require it. You may derive a KEK when unlocking a vault and use random DEKs for records, depending on your threat model and session lifecycle. Still, caching plaintext keys long-term increases memory-access risk; balance performance and security carefully.
 
-### 11.2. Java API cần nhớ
+### 11.2. Java APIs to remember
 
-| API | Mục đích | Ghi chú |
+| API | Purpose | Notes |
 | --- | --- | --- |
-| `PBEKeySpec` | Giữ password dạng `char[]` + salt + iterations + key length | Có `clearPassword()` cho bản sao trong spec |
-| `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` | Dẫn xuất key từ password | Không phải AES cipher hay memory-hard KDF |
-| `SecretKeySpec` | Bao raw derived bytes thành key cho AES | Xóa buffer trung gian khi thích hợp; đừng log |
-| `KeyGenerator.getInstance("AES")` | Sinh key AES ngẫu nhiên theo provider | Phân biệt với password derivation |
-| `SecureRandom` | Sinh salt/nonce/key material an toàn | Không dùng `Random` cho secret |
-| `Cipher.getInstance("AES/GCM/NoPadding")` | AEAD encryption/decryption | Nonce unique với cùng key, tag được kiểm khi giải mã |
-| `GCMParameterSpec(128, nonce)` | Tag length và nonce cho AES-GCM | Nonce 12 byte phổ biến; tag 128 bit |
-| `Cipher.updateAAD(...)` | Xác thực metadata ngoài plaintext | AAD phải cung cấp trước dữ liệu ciphertext |
-| `AEADBadTagException` | Dấu hiệu giải mã AEAD không xác thực được | Từ chối toàn bộ bản mã, không dùng plaintext |
+| `PBEKeySpec` | Holds password `char[]` + salt + iterations + key length | Has `clearPassword()` for the spec's internal copy |
+| `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")` | Derives key from password | Not an AES cipher or a memory-hard KDF |
+| `SecretKeySpec` | Wraps raw derived bytes as an AES key | Clear intermediate buffers appropriately; never log |
+| `KeyGenerator.getInstance("AES")` | Generates random AES key via provider | Distinct from password derivation |
+| `SecureRandom` | Safely generates salt/nonce/key material | Never use `Random` for secrets |
+| `Cipher.getInstance("AES/GCM/NoPadding")` | AEAD encryption/decryption | Nonce unique per key; tag verified on decryption |
+| `GCMParameterSpec(128, nonce)` | Tag length and nonce for AES-GCM | 12-byte nonce is standard; 128-bit tag |
+| `Cipher.updateAAD(...)` | Authenticates metadata outside plaintext | Must provide AAD before ciphertext data |
+| `AEADBadTagException` | Signals AEAD decryption authentication failure | Reject entire ciphertext; never use plaintext |
 
-**Lưu ý interoperability password:** `char[]` trong `PBEKeySpec` không tự chứng minh toàn bộ hệ thống dùng cùng chuẩn hóa Unicode/encoding. Khi cần tương tác Java với thư viện/ngôn ngữ khác, phải xác định cách biến password thành byte string, Unicode normalization, KDF variant và test vector. Một password tiếng Việt có dấu có thể tạo key khác nếu hai hệ thống tiền xử lý Unicode khác nhau. Không tự chuyển password thành String nhiều bản sao chỉ để “dễ encode”.
+**Password interoperability note:** `char[]` in `PBEKeySpec` does not guarantee all systems share the same Unicode normalization/encoding. When interoperating between Java and other libraries/languages, explicitly specify password-to-byte conversion, Unicode normalization, KDF variant, and test vectors. A Vietnamese password with diacritics can derive a different key if two systems preprocess Unicode differently. Never convert passwords into extra `String` copies just to “encode easily.”
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**1. PBKDF2 xuất 256 bit có làm một password 6 chữ số thành khóa mạnh như random AES-256 không?**  
-Không. Output dài 256 bit nhưng không gian password có thể bị duyệt ngoại tuyến. Work factor khiến mỗi lần đoán chậm hơn, không tạo thêm entropy cho mật khẩu.
+**1. Does PBKDF2 producing 256 bits make a 6-digit password as strong as a random AES-256 key?**  
+No. The output is 256 bits, yet the password search space can still be enumerated offline. Work factors slow each guess; they add no entropy to the password.
 
-**2. Nếu không lưu salt thì có giải mã PBE được không?**  
-Thông thường không thể dẫn xuất lại đúng key nếu thiếu salt gốc, trừ khi còn bản key/metadata khác. Phải lưu salt kèm format/version/cost và ciphertext.
+**2. Can PBE be decrypted if the salt is not stored?**  
+Normally you cannot re-derive the exact key without the original salt, unless another key/metadata copy exists. Store the salt alongside format/version/cost and ciphertext.
 
-**3. Salt và nonce có giống nhau không?**  
-Không. Salt đi vào KDF; nonce đi vào AES-GCM. Cả hai thường không bí mật nhưng có quy tắc riêng; đặc biệt GCM nonce không được lặp khi encrypt bằng cùng key.
+**3. Are salt and nonce the same thing?**  
+No. Salt goes into the KDF; nonce goes into AES-GCM. Both are typically non-secret, yet follow separate rules—in particular, a GCM nonce must never repeat when encrypting under the same key.
 
-**4. Khóa AES sinh ngẫu nhiên có cần PBKDF2 nữa không?**  
-Không cần PBKDF2 để *tạo* raw random key. Nếu muốn **bọc** DEK bằng password thì có thể dùng KDF tạo KEK ở tầng riêng.
+**4. Does a randomly generated AES key still need PBKDF2?**  
+No PBKDF2 is needed to *generate* a raw random key. If you want to **wrap** a DEK with a password, a KDF can derive a KEK at a separate layer.
 
-**5. Vì sao PBE phải dùng AEAD?**  
-Để không chỉ giấu plaintext mà còn phát hiện dữ liệu bị thay đổi. Mật khẩu đúng mà ciphertext bị sửa vẫn phải bị từ chối.
+**5. Why must PBE use AEAD?**  
+Not only to hide plaintext, but also to detect tampered data. Even with the right password, modified ciphertext must be rejected.
 
-**6. Dữ liệu có được bảo vệ trước đoán password ngoại tuyến chỉ vì server giới hạn 5 lần login không?**  
-Không. Người giữ ciphertext có thể thử candidate offline; cần password mạnh và KDF được cấu hình đúng.
+**6. Is data safe from offline password guessing just because the server limits logins to 5 attempts?**  
+No. Anyone holding the ciphertext can test candidates offline; you still need a strong password and properly configured KDF.
 
-**7. Envelope encryption có loại bỏ việc phải tin password mạnh không?**  
-Không khi KEK dẫn xuất từ password. Nó chủ yếu giúp tách DEK khỏi KEK, dễ rewrap/rotate và chia sẻ quyền.
+**7. Does envelope encryption eliminate the need to trust a strong password?**  
+Not when the KEK is derived from a password. It primarily separates the DEK from the KEK, easing rewrapping/rotation and access sharing.
 
-**8. Nếu thay password trong envelope, ciphertext dữ liệu có luôn cần re-encrypt không?**  
-Không, có thể rewrap DEK. Nhưng nếu DEK hoặc wrappedDEK cũ đã lộ, cần đánh giá rotate/re-encrypt theo mức độ compromise.
+**8. When changing the password in an envelope, must the data ciphertext always be re-encrypted?**  
+No, you can rewrap the DEK. However, if the old DEK or `wrappedDEK` leaked, assess rotation/re-encryption according to the compromise scope.
 
-**9. Với hệ thống backend tự mã hóa dữ liệu, nên giữ key như thế nào?**  
-Thường dùng random DEK với wrapped key/KMS hoặc HSM và IAM/audit/recovery; không hard-code một password chung trong source.
+**9. For a backend system encrypting its own data, how should keys be held?**  
+Usually via random DEKs with wrapped keys/KMS or HSM plus IAM/auditing/recovery—never a shared password hardcoded in source.
 
-**10. PBE có phải là cách lưu mật khẩu đăng nhập tốt nhất?**  
-Không. Password login nên lưu verifier băm bằng thuật toán password hashing phù hợp, không mã hóa đảo ngược chỉ để so sánh password.
+**10. Is PBE the best way to store login passwords?**  
+No. Login passwords should store a hashed verifier via an appropriate password-hashing algorithm, never reversible encryption solely for password comparison.
 
-## Tài liệu tham khảo
+## References
 
-- [NIST SP 800-132 – Recommendation for Password-Based Key Derivation: Storage Applications](https://csrc.nist.gov/pubs/sp/800/132/final): nền tảng password-derived master key, salt và iteration.
-- [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html): lựa chọn Argon2id/scrypt/PBKDF2, chi phí đoán mật khẩu và khác biệt hashing/encryption.
-- [Java SE 17 – PBEKeySpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html): mô hình password `char[]`, salt, iteration, key length và `clearPassword()`.
-- [Java SE 17 – SecretKeyFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/SecretKeyFactory.html): tạo `SecretKey` từ `KeySpec`.
-- [Java SE 17 – Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): PBKDF2, AES, PBE schemes và các tên thuật toán Java.
-- [Java SE 17 – Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): `AES/GCM/NoPadding`, `updateAAD`, authentication tag và nonce uniqueness.
-- [Java SE 17 – KeyGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html) và [SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): tạo khóa ngẫu nhiên và nguồn entropy theo provider.
+- [NIST SP 800-132 – Recommendation for Password-Based Key Derivation: Storage Applications](https://csrc.nist.gov/pubs/sp/800/132/final): foundations of password-derived master keys, salts, and iteration counts.
+- [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html): choosing Argon2id/scrypt/PBKDF2, password guessing costs, and hashing vs. encryption differences.
+- [Java SE 17 – PBEKeySpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html): `char[]` password model, salt, iterations, key length, and `clearPassword()`.
+- [Java SE 17 – SecretKeyFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/SecretKeyFactory.html): creating a `SecretKey` from a `KeySpec`.
+- [Java SE 17 – Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): PBKDF2, AES, PBE schemes, and Java algorithm names.
+- [Java SE 17 – Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): `AES/GCM/NoPadding`, `updateAAD`, authentication tags, and nonce uniqueness.
+- [Java SE 17 – KeyGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html) and [SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): generating random keys and provider entropy sources.

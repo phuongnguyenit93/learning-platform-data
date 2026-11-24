@@ -1,156 +1,156 @@
-# 2.4 Chỉ số tức thời, bộ đếm tích lũy, tốc độ thay đổi và phân bố độ trễ
+# 2.4 Gauges, Counters, Rates, and Latency Distributions
 
-> **Java Advance – runtime-diagnostics** · **2. Phương pháp đo**
+> **Java Advance – runtime-diagnostics** · **2. Measurement Methodology**
 
-## 1. Mục tiêu và bản đồ khái niệm
+## 1. Objectives and Concept Map
 
-Khi quan sát một ứng dụng Java, dashboard có thể hiển thị *heap used = 900 MiB*, *requests completed = 2.000.000*, *throughput = 120 request/s* và *p99 latency = 800 ms*. Cả bốn là con số, nhưng biểu diễn bốn loại thông tin khác nhau. Đánh đồng chúng dễ dẫn tới chẩn đoán nhầm: nhìn counter như số request đang chạy, nhìn gauge như throughput, lấy trung bình các p99, hoặc gọi mọi spike là nguyên nhân gốc.
+When observing a Java application, a dashboard might show *heap used = 900 MiB*, *requests completed = 2,000,000*, *throughput = 120 requests/s*, and *p99 latency = 800 ms*. All four are numbers, yet they represent four different types of information. Conflating them easily leads to misdiagnosis: reading a counter as active requests, reading a gauge as throughput, averaging p99s, or calling every spike a root cause.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **chỉ số tức thời (gauge)**, **bộ đếm tích lũy (counter)**, **tốc độ thay đổi (rate)** và **phân bố độ trễ (latency distribution)**.
-- Chọn phép đo phù hợp cho heap, threads, queues, request, exception, GC, CPU, I/O và timeout trong Java runtime.
-- Tính delta/rate/increase, nhận diện counter reset, thiếu mẫu, sai đơn vị và cửa sổ đo không phù hợp.
-- Đọc mean, median, p95, p99, histogram cộng dồn, tỷ lệ request dưới ngưỡng SLO và giới hạn của phép tổng hợp.
-- Kết hợp nhiều metric thành một giả thuyết chẩn đoán có thể kiểm chứng thay vì suy diễn nguyên nhân từ một biểu đồ.
+- Distinguish **gauges**, **counters**, **rates**, and **latency distributions**.
+- Choose suitable metrics for heap, threads, queues, requests, exceptions, GC, CPU, I/O, and timeouts in the Java runtime.
+- Calculate delta/rate/increase, and recognize counter resets, missing samples, mismatched units, and unsuitable measurement windows.
+- Read mean, median, p95, p99, cumulative histograms, fraction under an SLO threshold, and limits of aggregation.
+- Combine multiple metrics into a testable diagnostic hypothesis rather than inferring root cause from a single chart.
 
-| Kiểu | Câu hỏi | Ví dụ | Phép tính nên dùng |
+| Type | Question | Examples | Calculations to Use |
 | --- | --- | --- | --- |
-| Gauge | **Hiện đang có bao nhiêu?** | Heap bytes used, số request đang xử lý, số connection đang mượn, queue depth | Giá trị tại thời điểm, min/max, xu hướng; không tự suy ra số sự kiện |
-| Counter | **Đã xảy ra/tích lũy bao nhiêu?** | Requests completed, exceptions, GC collections, bytes sent, CPU time seconds | Hiệu số trong một đoạn không reset; rate/increase có xét reset |
-| Rate | **Mỗi đơn vị thời gian xảy ra bao nhiêu?** | Request/s, error/s, bytes/s, GC/s, CPU seconds/s | Mức thay đổi counter chia thời gian; chọn cửa sổ có đủ mẫu |
-| Distribution | **Các request mất bao lâu, đuôi chậm thế nào?** | Latency buckets, p50/p95/p99, duration sum/count | Histogram, percentile, fraction dưới SLO, mean có trọng số |
+| Gauge | **How much is there right now?** | Heap bytes used, active requests, borrowed connections, queue depth | Value at point in time, min/max, trend; do not infer event count directly |
+| Counter | **How much has happened/accumulated?** | Requests completed, exceptions, GC collections, bytes sent, CPU time seconds | Difference over a reset-free interval; rate/increase accounting for resets |
+| Rate | **How much happens per unit time?** | Requests/s, errors/s, bytes/s, GC/s, CPU seconds/s | Counter change divided by time; pick a window with enough samples |
+| Distribution | **How long do requests take, how heavy is the slow tail?** | Latency buckets, p50/p95/p99, duration sum/count | Histograms, percentiles, fraction under SLO, weighted mean |
 
-Một điểm mấu chốt: **rate thường được tính từ counter**, nhưng bản thân rate là phép biến đổi dữ liệu theo thời gian; **percentile được tính từ phân bố**, không phải từ rate request. Tên metric cần đi kèm đơn vị, đối tượng đo, thời điểm và phạm vi như route/instance/version.
+A key point: **rate is usually derived from a counter**, yet rate itself is a time-based transformation; **percentiles are computed from a distribution**, not from a request rate. Metric names must accompany unit, measured subject, timestamp, and scope such as route/instance/version.
 
-## 2. Gauge – ảnh chụp trạng thái tại một thời điểm
+## 2. Gauge – Point-in-Time State Snapshot
 
-Gauge \(G(t)\) biểu diễn một trạng thái ở thời điểm \(t\); nó có thể tăng, giảm, về 0 hoặc giữ nguyên.
+A gauge \(G(t)\) represents a state at time \(t\); it can go up, go down, return to 0, or stay flat.
 
-Ví dụ trong Java/JVM:
+Examples in Java/JVM:
 
-- *jvm_memory_used_bytes*: số byte đang sử dụng ở vùng nhớ được đo.
-- *jvm_threads_live_threads*: số thread đang tồn tại; khác số thread đang bận thực thi request.
-- *active_connections*, *idle_connections*, *pending_connections*: trạng thái pool tại thời điểm lấy mẫu.
-- *in_flight_requests*: số request đã vào phạm vi đo nhưng chưa kết thúc.
-- *queue_depth*: số phần tử đang nằm trong hàng đợi.
+- *jvm_memory_used_bytes*: bytes currently in use in the measured memory region.
+- *jvm_threads_live_threads*: number of live threads; distinct from threads actively executing requests.
+- *active_connections*, *idle_connections*, *pending_connections*: pool state at sampling time.
+- *in_flight_requests*: requests that entered the measured scope and have not yet finished.
+- *queue_depth*: items currently sitting in the queue.
 
-Giả sử gauge in-flight có các mẫu:
+Suppose an in-flight gauge has these samples:
 
-| Thời điểm | In-flight requests |
+| Timestamp | In-flight requests |
 | --- | ---: |
 | 10:00:00 | 5 |
 | 10:00:15 | 18 |
 | 10:00:30 | 40 |
 | 10:00:45 | 9 |
 
-Ở 10:00:30 có **40 request chưa hoàn tất**. Không thể nói “có 40 request mới trong 15 giây” hoặc “throughput 40 request/s”. In-flight có thể tăng vì traffic đến nhiều hơn, request chạy lâu hơn, retry tăng, executor nghẽn hoặc downstream chậm. Muốn phân biệt, cần **arrival rate**, **completion rate**, **timeout count** và **latency** trong cùng khoảng thời gian.
+At 10:00:30 there are **40 unfinished requests**. You cannot say "there were 40 new requests in 15 seconds" or "throughput is 40 requests/s". In-flight can rise because incoming traffic increased, requests run longer, retries surged, an executor stalled, or downstream slowed down. To distinguish them, you need **arrival rate**, **completion rate**, **timeout count**, and **latency** over the same interval.
 
-**Tại sao gauge có thể đánh lừa?** Nếu scrape mỗi 15 giây, một đỉnh queue depth 300 phần tử chỉ tồn tại 2 giây giữa hai lần scrape có thể bị bỏ lỡ. Một biểu đồ lấy giá trị cuối cùng trong cửa sổ cũng không giống biểu đồ lấy giá trị lớn nhất trong cửa sổ. Cần biết panel hiển thị *last*, *avg*, *max*, min hay nội suy; nếu sự cố ngắn, kết hợp log/trace hoặc số đo max theo cửa sổ phù hợp.
+**Why can gauges mislead?** If scraped every 15 seconds, a 300-item queue depth spike lasting 2 seconds between scrapes can be missed completely. A panel plotting the last value in a window is also different from one plotting the maximum value in the window. Know whether a panel shows *last*, *avg*, *max*, min, or interpolated values; for brief incidents, combine with logs/traces or max over an appropriate window.
 
-Gauge là trạng thái, không phải lượng công việc hoàn tất. Queue depth giảm 40 → 10 có thể do xử lý thành công, timeout, hủy, chuyển hàng đợi hoặc xóa; chỉ nhìn gauge không biết chính xác đã xử lý được 30 request.
+A gauge is state, not completed work. Queue depth dropping 40 → 10 could be due to successful processing, timeouts, cancellations, queue transfers, or eviction; looking at the gauge alone cannot tell you that 30 requests were successfully processed.
 
-**Lưu ý về bộ nhớ:** heap used tăng trong một khoảng ngắn không đủ để kết luận leak. Nhiều object mới được cấp phát rồi GC thu hồi vẫn có thể tạo đường cong răng cưa. Cần xem xu hướng sau những chu kỳ thu gom bình thường, allocation rate, heap committed, RSS và điều kiện tải. Metric heap used là **gauge**, còn số byte được cấp phát tích lũy (nếu có) là **counter**.
+**Note on memory:** heap used rising over a short period is not enough to conclude a leak. Many newly allocated objects reclaimed by GC still create a sawtooth curve. Inspect the post-GC trend across normal collection cycles, allocation rate, committed heap, RSS, and load conditions. Heap used is a **gauge**, whereas cumulative allocated bytes (if tracked) is a **counter**.
 
-## 3. Counter – tổng tích lũy theo vòng đời của metric
+## 3. Counter – Cumulative Total Over the Metric's Lifecycle
 
-Counter \(C(t)\) đếm số lần sự kiện xảy ra hoặc lượng công việc đã tiêu thụ. Trong một đoạn liên tục không reset, bộ đếm thường **không giảm**:
+A counter \(C(t)\) counts how many times an event occurred or how much work was consumed. Over a continuous reset-free interval, a counter normally **never decreases**:
 
 \[
-C(t_2) \ge C(t_1)\quad \text{khi }t_2 \ge t_1.
+C(t_2) \ge C(t_1)\quad \text{when }t_2 \ge t_1.
 \]
 
-Các counter phổ biến: request hoàn tất, exception, retry, cache miss, bytes gửi, số lần GC, tổng thời gian CPU. Counter chứa **tổng từ thời điểm bắt đầu đếm**, không phải tổng của cửa sổ mà dashboard đang hiển thị.
+Common counters: completed requests, exceptions, retries, cache misses, bytes sent, GC count, total CPU time. A counter holds the **total since counting started**, not the total for the window currently displayed on the dashboard.
 
-Ví dụ tại cùng một JVM:
+Example on the same JVM:
 
-| Thời điểm | completed_requests_total |
+| Timestamp | completed_requests_total |
 | --- | ---: |
-| 10:00:00 | 1.200 |
-| 10:01:00 | 1.380 |
+| 10:00:00 | 1,200 |
+| 10:01:00 | 1,380 |
 
-Trong đoạn 60 giây có **180 request hoàn tất** nếu counter không reset và cùng định nghĩa hoàn tất. Số 1.380 không nói rằng JVM có 1.380 request đang chạy đồng thời.
+Over the 60-second interval there were **180 completed requests** assuming no reset and consistent completion definition. The number 1,380 does not say the JVM has 1,380 concurrent requests running.
 
-### Counter reset và việc đổi instance
+### Counter Resets and Instance Replacement
 
-JVM/process restart có thể làm counter quay về 0. Giả sử 10:01 counter = 1.380, 10:02 = 12 do restart. Hiệu số thô \(12-1380=-1368\) **không phải** âm 1.368 request; đây là một mốc reset. Nhiều hệ time series cung cấp hàm rate/increase có xử lý reset cho counter, nhưng độ chính xác vẫn phụ thuộc số mẫu và thời điểm thực tế của restart. Phần sự kiện phát sinh giữa hai scrape có thể không khôi phục chính xác được.
+A JVM/process restart can reset a counter to 0. Suppose at 10:01 counter = 1,380, and at 10:02 it is 12 due to a restart. The raw difference \(12-1380=-1368\) is **not** minus 1,368 requests; it is a reset boundary. Many time-series systems provide rate/increase functions that handle counter resets, yet accuracy still depends on sample count and the exact restart timing. Events occurring between two scrapes may not be exactly recoverable.
 
-Khi có nhiều pod/JVM, **tính rate theo từng counter series trước khi cộng**. Tổng counter raw giữa các pod có thể giảm chỉ vì pod cũ biến mất, khiến phép trừ/tính rate sai. Cùng một nhãn service không đồng nghĩa cùng một lifecycle counter.
+When multiple pods/JVMs exist, **compute rate per individual counter series before summing**. Summing raw counters across pods can drop simply because an old pod disappeared, breaking subtraction/rate calculations. Sharing the same service label does not mean sharing the same counter lifecycle.
 
-Một số counter không đếm **số sự kiện** mà cộng **thời lượng** hoặc **byte**. Ví dụ tổng CPU seconds tăng 120 trong 60 giây thực nghĩa là tốc độ CPU-time trung bình khoảng 2 CPU-seconds/second, tương ứng sử dụng trung bình thời gian của hai core trước khi xét hệ thống quota và cách dashboard quy đổi. Không được đọc trực tiếp tổng CPU seconds như phần trăm CPU tức thời.
+Some counters accumulate **duration** or **bytes** instead of **event counts**. For instance, total CPU seconds increasing by 120 in 60 wall seconds means an average CPU-time rate of roughly 2 CPU-seconds/second, corresponding to average time usage of two cores before factoring in quotas and dashboard conversions. Never read total CPU seconds directly as instantaneous CPU percentage.
 
-Counter cũng có thể overflow hoặc bị tái khởi tạo theo lifecycle của bộ đo. Với phép tính cần độ chính xác, hãy kiểm tra hợp đồng instrument, timestamp và process start time.
+Counters can also overflow or be reinitialized by the instrumentation lifecycle. For calculations needing high precision, check the instrumentation contract, timestamps, and process start time.
 
-## 4. Delta, increase và rate – lượng thay đổi trong một khoảng thời gian
+## 4. Delta, Increase, and Rate – Change Over a Time Interval
 
-Với một counter **không reset**, rate trung bình trên khoảng \([t_1,t_2]\) là:
+For a **non-resetting** counter, the average rate over \([t_1,t_2]\) is:
 
 \[
 r=\frac{C(t_2)-C(t_1)}{t_2-t_1}.
 \]
 
-Nếu \(C\) có đơn vị request và \(t\) tính bằng giây, rate có đơn vị request/s. Với 1.200 → 1.380 request trong 60 giây:
+If \(C\) is in requests and \(t\) is in seconds, rate has units of requests/s. Going from 1,200 → 1,380 requests in 60 seconds:
 
 \[
-\Delta C=180\ \text{request};\qquad r=180/60=3\ \text{request/s}.
+\Delta C=180\ \text{requests};\qquad r=180/60=3\ \text{requests/s}.
 \]
 
-| Cách đọc | Câu hỏi | Đơn vị |
+| Reading | Question | Unit |
 | --- | --- | --- |
-| Counter hiện tại | Từ lúc process bắt đầu, tổng đã hoàn tất? | request |
-| Increase trong 5 phút | Có bao nhiêu request phát sinh trong 5 phút? | request |
-| Rate 5 phút | Mỗi giây trung bình hoàn tất bao nhiêu request trong cửa sổ này? | request/s |
-| Gauge in-flight | Ngay lúc lấy mẫu có bao nhiêu request đang xử lý? | request |
-| Độ dốc gauge | Số lượng đang hiện diện thay đổi bao nhiêu mỗi giây? | request/s, nhưng **không phải throughput** |
+| Current counter | Total completed since process started? | requests |
+| 5-minute increase | How many requests occurred in 5 minutes? | requests |
+| 5-minute rate | Average requests completed per second in this window? | requests/s |
+| In-flight gauge | How many requests are currently active at sample time? | requests |
+| Gauge slope | How fast is the active count changing per second? | requests/s, yet **not throughput** |
 
-Cách tính của hệ quan sát có thể phức tạp hơn hiệu hai điểm: hàm *rate* trong Prometheus dùng các mẫu của cửa sổ, xử lý counter reset và có ngoại suy đến ranh giới cửa sổ. Công thức hai điểm ở trên nhằm giải thích đơn vị và ý nghĩa, **không giả định thay thế hoàn toàn cho mọi time-series engine**.
+An observability engine's calculation can be more complex than a two-point difference: Prometheus *rate* uses samples within the window, handles counter resets, and extrapolates to window boundaries. The two-point formula above explains units and meaning, and **does not claim to replace every time-series engine verbatim**.
 
-### Error rate và error ratio là hai thứ khác nhau
+### Error Rate and Error Ratio Are Two Different Things
 
-Trong 60 giây, có 300 request hoàn tất, 12 request lỗi:
+In 60 seconds, with 300 completed requests and 12 failed requests:
 
-- **Request rate:** \(300/60=5\) request/s.
-- **Error rate theo số sự kiện:** \(12/60=0{,}2\) lỗi/s.
-- **Error ratio:** \(12/300=0{,}04=4\%\) request lỗi.
+- **Request rate:** \(300/60=5\) requests/s.
+- **Event error rate:** \(12/60=0.2\) errors/s.
+- **Error ratio:** \(12/300=0.04=4\%\) failed requests.
 
-Trong giao tiếp, có nơi gọi 4% là “error rate”; khi viết dashboard hãy ghi rõ **errors/s** hay **error ratio (%)** cùng mẫu số. Khi không có request nào trong cửa sổ, biểu thức 0/0 **không xác định**; không tự báo 0% như hệ thống khỏe mạnh.
+In everyday speech, some people call 4% an "error rate"; on dashboards, explicitly label **errors/s** vs. **error ratio (%)** along with the denominator. When there are zero requests in the window, `0/0` is **undefined**; do not automatically report 0% as if the system were healthy.
 
-Không trộn retry attempt với logical request: nếu một request của người dùng retry ba lần, counter network attempts có thể tăng 3 trong khi counter logical requests tăng 1. Hai đại lượng đều hữu ích nhưng phải đặt tên và điểm đo riêng.
+Do not mix retry attempts with logical requests: if a single user request retries three times, the network-attempts counter may increment by 3 while the logical-requests counter increments by 1. Both quantities are useful, yet must have separate names and measurement points.
 
-### Cửa sổ ngắn, cửa sổ dài và số mẫu
+### Short Windows, Long Windows, and Sample Counts
 
-- Rate 30 giây phản ứng nhanh với spike, nhưng dễ nhiễu khi scrape thưa.
-- Rate 5 phút thường ổn định hơn, nhưng có thể che một nghẽn kéo dài 20 giây.
-- Rate 1 giờ hợp với bức tranh tải tổng quát, không thay thế điều tra timeline ngắn.
-- Mất scrape không có nghĩa metric về 0. Nếu chỉ có một mẫu, không đủ cơ sở để tính rate đáng tin.
-- Dùng timestamp thực tế khi so hai điểm; scrape trễ 8 giây khiến phép chia cứng cho 15 giây sai.
-- Với counter reset, cần hàm có ngữ nghĩa counter hoặc chia các đoạn không reset; không dùng hiệu âm làm tốc độ.
+- A 30-second rate reacts fast to spikes, yet is noisy under sparse scraping.
+- A 5-minute rate is smoother, yet can mask a 20-second bottleneck.
+- A 1-hour rate suits broad traffic patterns, not short timeline investigations.
+- A missed scrape does not mean the metric dropped to 0. With only one sample, there is not enough basis to compute a reliable rate.
+- Use actual timestamps when comparing two points; an 8-second scrape delay makes blindly dividing by 15 seconds wrong.
+- With counter resets, use counter-aware functions or split reset-free segments; never treat negative differences as rates.
 
-**Đặc biệt với gauge:** \((G(t_2)-G(t_1))/\Delta t\) đo độ dốc trạng thái, không phải số sự kiện đến. Queue depth tăng 20 phần tử/phút có thể do arrival − departure = 20/phút, còn arrival rate thật có thể lớn hơn nhiều.
+**Specifically for gauges:** \((G(t_2)-G(t_1))/\Delta t\) measures the slope of state, not incoming events. Queue depth rising by 20 items/minute only says arrival − departure = 20/minute, while the true arrival rate can be much higher.
 
-## 5. Latency là một phân bố, không phải một con số
+## 5. Latency Is a Distribution, Not a Single Number
 
-Độ trễ \(L_i\) phải được định nghĩa bởi **điểm bắt đầu và kết thúc** cụ thể. Thời gian client nhìn thấy có thể bao gồm network, proxy, retry, kết nối và chờ trước khi ứng dụng xử lý; server handler latency có thể không bao gồm các phần này. Không so trực tiếp hai metric không cùng phạm vi rồi suy ra nguyên nhân bằng hiệu số.
+Latency \(L_i\) must be defined by concrete **start and end points**. Client-observed time may include network, proxy, retries, connection setup, and queuing before application handling; server handler latency may exclude those. Never directly compare two metrics with different scopes and infer cause by subtracting them.
 
-Xét 10 request giả định với thời lượng đã sắp xếp (ms):
+Consider 10 hypothetical requests with sorted durations (ms):
 
 \[
 20,\ 30,\ 35,\ 40,\ 45,\ 50,\ 70,\ 100,\ 300,\ 900.
 \]
 
-Tổng = **1.590 ms**; mean = \(1590/10=159\) ms. Tuy nhiên phần lớn request chỉ mất 20–100 ms, còn một request mất 900 ms. Mean **không cho biết hình dạng đuôi chậm**.
+Sum = **1,590 ms**; mean = \(1590/10=159\) ms. Yet most requests took only 20–100 ms, while one request took 900 ms. Mean **does not reveal the shape of the slow tail**.
 
-### Mean, median, p95 và p99
+### Mean, Median, p95, and p99
 
-- **Mean:** tổng latency chia số request. Hữu ích cho tổng thời gian xử lý và ước lượng khối lượng công việc; rất nhạy với outlier.
-- **p50/median:** mốc mà xấp xỉ 50% quan sát không vượt quá.
-- **p95:** mốc mà xấp xỉ 95% quan sát không vượt quá; quan tâm đến 5% đuôi chậm.
-- **p99:** mốc mà xấp xỉ 99% quan sát không vượt quá; quan trọng khi SLO nhạy với tail.
-- **Max:** quan sát lớn nhất trong một cửa sổ, nhạy với một request bất thường.
+- **Mean:** total latency divided by request count. Useful for total processing time and workload estimation; very sensitive to outliers.
+- **p50/median:** threshold that roughly 50% of observations do not exceed.
+- **p95:** threshold that roughly 95% of observations do not exceed; focuses on the slowest 5% tail.
+- **p99:** threshold that roughly 99% of observations do not exceed; critical when SLOs are tail-sensitive.
+- **Max:** largest observation in a window, sensitive to a single anomalous request.
 
-Quantile của mẫu hữu hạn có nhiều quy ước. Với cách **nearest-rank**, sau khi sắp xếp \(n\) quan sát, phân vị \(p\) là phần tử ở vị trí \(\lceil p\cdot n\rceil\), đánh số từ 1. Trong 10 request ví dụ:
+Finite-sample quantiles follow various conventions. With **nearest-rank**, after sorting \(n\) observations, quantile \(p\) is the element at 1-based position \(\lceil p\cdot n\rceil\). In the 10-request example:
 
-| Chỉ số | Kết quả |
+| Metric | Result |
 | --- | ---: |
 | Min / Max | 20 ms / 900 ms |
 | Mean | 159 ms |
@@ -159,72 +159,72 @@ Quantile của mẫu hữu hạn có nhiều quy ước. Với cách **nearest-r
 | p95 | 900 ms |
 | p99 | 900 ms |
 
-p95 và p99 cùng bằng 900 ms vì **chỉ có 10 mẫu**; đây không phải bằng chứng các percentile ấy “ổn định” ở 900 ms. Thư viện dùng phép nội suy khác có thể đưa ra con số khác. Đối chiếu dashboard phải biết phương pháp tính và cửa sổ đo.
+p95 and p99 both equal 900 ms because there are **only 10 samples**; this is not evidence that those percentiles are "stable" at 900 ms. Libraries using different interpolation methods may produce different numbers. Comparing dashboards requires knowing the calculation method and measurement window.
 
-Nếu route chỉ nhận 20 request trong một phút, p99 gần như do một request lớn nhất quyết định; không nên kết luận xu hướng tail latency với độ chính xác quá cao. Theo dõi **số request**, tỷ lệ timeout, p50/p95/p99 và phân bố để đọc đúng câu chuyện.
+If a route receives only 20 requests in a minute, p99 is nearly determined by the single slowest request; do not assert tail-latency trends with false precision. Track **request count**, timeout rate, p50/p95/p99, and distribution together to read the true story.
 
-### Vì sao timeout có thể làm p99 đẹp giả tạo?
+### Why Can Timeouts Make p99 Look Artificially Good?
 
-Một timer chỉ được ghi khi request **thành công** có thể bỏ qua những request bị timeout, reject hoặc hủy. Khi hệ thống tệ đi, request chậm nhất biến mất khỏi tập mẫu, khiến p99 của *successful requests* giảm! Vì vậy cần nhìn song song *arrival*, *completed*, *errors*, *timeouts*, *drops*, in-flight và độ trễ theo outcome. Định nghĩa metric là một phần của bằng chứng.
+A timer recorded only when a request **succeeds** omits requests that timed out, were rejected, or were cancelled. As the system degrades, the slowest requests disappear from the sample set, causing *successful-request* p99 to drop! Therefore look concurrently at *arrival*, *completed*, *errors*, *timeouts*, *drops*, in-flight, and latency by outcome. Metric definition is part of the evidence.
 
-## 6. Histogram – lưu phân bố dưới dạng các bucket
+## 6. Histograms – Storing Distributions as Buckets
 
-Histogram đếm số quan sát theo ngưỡng. Với **classic cumulative histogram**, bucket “≤100 ms” chứa cả các request ở bucket “≤50 ms”. Tức bucket được **cộng dồn theo ranh giới**.
+A histogram counts observations by threshold. In a **classic cumulative histogram**, the "≤100 ms" bucket also includes requests in the "≤50 ms" bucket. That is, buckets are **cumulative across boundaries**.
 
-Áp dụng 10 request ở trên:
+Applying the 10 requests above:
 
-| Bucket cộng dồn | Số request |
+| Cumulative bucket | Request count |
 | --- | ---: |
 | ≤50 ms | 6 |
 | ≤100 ms | 8 |
 | ≤500 ms | 9 |
 | +Inf | 10 |
 
-Những phép suy ra đúng:
+Valid deductions:
 
-- Số request trong khoảng (50,100] ms là \(8-6=2\).
-- Trong khoảng (100,500] ms là \(9-8=1\).
-- Trên 500 ms là \(10-9=1\).
-- Tỷ lệ request ≤100 ms là \(8/10=80\%\).
+- Requests in the interval (50,100] ms: \(8-6=2\).
+- In the interval (100,500] ms: \(9-8=1\).
+- Above 500 ms: \(10-9=1\).
+- Fraction of requests ≤100 ms: \(8/10=80\%\).
 
-**Không cộng 6 + 8 + 9 + 10 để nói có 33 request.** Các bucket đều chứa những request ở ngưỡng nhỏ hơn. Bucket **+Inf** chứa toàn bộ phép đo hợp lệ.
+**Do not sum 6 + 8 + 9 + 10 to say there were 33 requests.** Each bucket includes requests from smaller thresholds. The **+Inf** bucket contains all valid observations.
 
-Một classic duration histogram thường xuất:
+A classic duration histogram typically exposes:
 
-- **_bucket{le="..."}**: bộ đếm tích lũy theo ngưỡng \(le\) (*less than or equal*).
-- **_count**: tổng số phép đo đã ghi.
-- **_sum**: tổng duration đã đo, cùng đơn vị với metric.
+- **_bucket{le="..."}**: cumulative counter per threshold \(le\) (*less than or equal*).
+- **_count**: total number of recorded observations.
+- **_sum**: sum of measured durations, in the metric's unit.
 
-Đối với duration **không âm**, các đại lượng trên có ngữ nghĩa counter. Mean latency trong một cửa sổ có thể tính bằng:
+For **non-negative** durations, these quantities have counter semantics. Mean latency over a window can be computed as:
 
 \[
 \overline{L}_{\text{window}} =
 \frac{\Delta\text{duration\_sum}}{\Delta\text{duration\_count}}.
 \]
 
-Các hệ metrics có thể dùng native histogram hoặc summary/quantile sketches thay vì classic buckets; hãy kiểm tra loại metric và cách tổng hợp cụ thể. Đừng mặc định mọi histogram đều xuất một series *_bucket*.
+Metrics systems may use native histograms or summary/quantile sketches instead of classic buckets; check the exact metric type and aggregation semantics. Do not assume every histogram exports a `*_bucket` series.
 
-### Percentile từ histogram chỉ là ước lượng
+### Percentiles from Histograms Are Only Estimates
 
-Từ bucket ≤500 ms có 9 request và +Inf có 10, không thể biết request cuối là **501 ms, 900 ms hay 30 s**. Histogram bucket chỉ lưu thông tin ngưỡng, không lưu mọi thời lượng chính xác. Ước lượng p95/p99 phải dựa trên ranh giới và quy tắc nội suy; bucket quá rộng sẽ làm ước lượng thô.
+Knowing bucket ≤500 ms has 9 requests and +Inf has 10 does not tell you whether the last request was **501 ms, 900 ms, or 30 s**. Histogram buckets store threshold counts, not exact durations. Estimating p95/p99 relies on bucket boundaries and interpolation rules; overly wide buckets make estimates coarse.
 
-Thiết kế bucket gần ngưỡng SLO: nếu mục tiêu là **95% request ≤300 ms**, có ngưỡng **0.3 s** giúp tính trực tiếp tỷ lệ đạt SLO. Bucket quá dày trên nhiều nhãn làm chi phí metric tăng, bucket quá thưa làm mất thông tin ở đuôi. Với nhiều pod, bucket cần ranh giới và đơn vị **tương thích** trước khi cộng.
+Design buckets near SLO thresholds: if the target is **95% of requests ≤300 ms**, having a **0.3 s** boundary lets you compute SLO compliance directly. Too many buckets across high-cardinality labels increase metric cost, while too few buckets lose tail detail. Across multiple pods, buckets need **compatible** boundaries and units before summing.
 
-### Không lấy trung bình p99 của các instance
+### Do Not Average p99 Across Instances
 
-p99 không có tính kết hợp: nếu JVM A có p99=100 ms, JVM B có p99=900 ms, **500 ms không phải p99 toàn dịch vụ**. Để tính percentile toàn hệ, cần gộp dữ liệu phân bố (histogram buckets tương thích hoặc cấu trúc thống kê có khả năng merge), rồi mới ước lượng. Summary client-side với quantile xuất sẵn thường không cho phép suy ra global p99 bằng phép cộng/trung bình đơn giản.
+p99 is not associative: if JVM A has p99 = 100 ms and JVM B has p99 = 900 ms, **500 ms is not the service-wide p99**. To calculate a system-wide percentile, merge distribution data (compatible histogram buckets or mergeable statistical sketches), then estimate. Client-side summaries with precomputed quantiles usually cannot be summed or averaged into a global p99.
 
-Mean cũng có bẫy trọng số: instance A xử lý **1** request với mean 900 ms, B xử lý **99** request với mean 100 ms. Mean toàn hệ = \((1\cdot900+99\cdot100)/100=108\) ms, **không phải** trung bình thô \((900+100)/2=500\) ms. Hãy gộp **duration sum** và **duration count** rồi chia.
+Mean also has a weighting trap: instance A processes **1** request with mean 900 ms, B processes **99** requests with mean 100 ms. System-wide mean = \((1\cdot900+99\cdot100)/100=108\) ms, **not** the unweighted average \((900+100)/2=500\) ms. Sum **duration sum** and **duration count** separately, then divide.
 
-## 7. Thiết kế phép đo trong Java: đồng hồ, lifecycle và đa luồng
+## 7. Designing Measurements in Java: Clocks, Lifecycle, and Concurrency
 
-### Dùng đồng hồ thích hợp
+### Use the Right Clock
 
-- Dùng **System.nanoTime()** lấy chênh lệch elapsed time trong cùng tiến trình. Giá trị tuyệt đối của nanoTime không phải timestamp lịch và không để so trực tiếp giữa các JVM.
-- Dùng **Instant.now()** hoặc timestamp có timezone khi cần gắn sự kiện vào timeline; wall clock có thể bị điều chỉnh.
-- Chọn điểm bắt đầu/kết thúc theo câu hỏi: từ lúc HTTP request vào server, từ lúc handler chạy, từ lúc lấy connection hay từ lúc gọi dependency?
+- Use **System.nanoTime()** for elapsed-time differences inside the same process. Absolute values of `nanoTime` are not calendar timestamps and cannot be compared across JVMs.
+- Use **Instant.now()** or timezone-aware timestamps when placing events on a timeline; wall clock can be adjusted.
+- Pick start/end points matching the question: when the HTTP request enters the server, when the handler starts, when acquiring a connection, or when calling a dependency?
 
-Ví dụ **minh họa, không phải chương trình độc lập**: trong handler có một tác vụ *work.run()* được truyền vào, đo:
+**Illustrative snippet, not a standalone program**: inside a handler receiving a passed-in task *work.run()*, measure:
 
 ~~~java
 long startedNanos = System.nanoTime();
@@ -232,29 +232,29 @@ try {
     work.run();
 } finally {
     long elapsedNanos = System.nanoTime() - startedNanos;
-    // Ghi elapsedNanos vào duration recorder/histogram ở đây.
+    // Record elapsedNanos into a duration recorder/histogram here.
 }
 ~~~
 
-Không quên ghi metric trong nhánh lỗi hoặc timeout theo định nghĩa quan sát. Đổi nano giây sang mili giây/giây **nhất quán** và không làm tròn sớm. Với in-flight gauge, tăng khi request bắt đầu và giảm trong *finally* để lỗi không làm số đo bị “rò rỉ”.
+Do not forget to record metrics in error or timeout branches according to your observation contract. Convert nanoseconds to milliseconds/seconds **consistently** without premature rounding. For an in-flight gauge, increment when the request starts and decrement in *finally* so exceptions do not "leak" the count.
 
-### Instrument counter và histogram đa luồng
+### Instrumenting Multi-Threaded Counters and Histograms
 
-Để mỗi request chỉ tính một lần, đặt đúng điểm đếm:
+To count each request once, place instrumentation at exact lifecycle points:
 
-- *started_total* tăng tại điểm chấp nhận request.
-- *completed_total* tăng tại điểm kết thúc được định nghĩa; status chỉ biết sau khi xử lý.
-- *in_flight* tăng ở đầu, giảm ở cuối dù exception.
-- *duration* được quan sát đúng một lần cho mỗi request hoàn tất hoặc kết thúc theo chính sách đo.
-- Retry attempt và logical request phải có metric riêng nếu cả hai cùng được theo dõi.
+- *started_total* increments when accepting the request.
+- *completed_total* increments at the defined termination point; status is only known after processing.
+- *in_flight* increments on entry, decrements on exit regardless of exceptions.
+- *duration* is observed exactly once per completed or terminated request per measurement policy.
+- Retry attempts and logical requests must have separate metrics if both are tracked.
 
-Trong Java, các biến dùng chung cần thao tác an toàn đồng thời như **AtomicInteger** hoặc **LongAdder**, hoặc thư viện metrics. Nhưng việc **mỗi biến cập nhật an toàn không bảo đảm một snapshot xuyên qua count/sum/buckets là nguyên tử**; một lần scrape đang chạy giữa các bước cập nhật có thể thấy sai khác nhỏ. Đây là lý do nên chọn thư viện observability phù hợp, hiểu độ trễ cập nhật và không dùng các snapshot tức thời để chứng minh bất biến tuyệt đối.
+In Java, shared variables need concurrency-safe operations like **AtomicInteger** or **LongAdder**, or a metrics library. However, **thread-safe updates to individual variables do not make a cross-metric snapshot across count/sum/buckets atomic**; a scrape occurring mid-update can see slight discrepancies. This is why you should pick an appropriate observability library, understand update lag, and avoid using instantaneous snapshots to prove strict invariants.
 
-Một ứng dụng có lưu lượng cao không nên giữ vô hạn mọi giá trị latency chỉ để tính percentile; dùng histogram, summary hoặc quantile sketch có hợp đồng rõ ràng và chi phí được kiểm soát.
+High-throughput applications should not retain every individual latency value unboundedly just to calculate percentiles; use histograms, summaries, or quantile sketches with explicit contracts and bounded cost.
 
-## 8. Ví dụ Java 17+ chạy được: từ gauge đến phân bố latency
+## 8. Runnable Java 17+ Example: From Gauge to Latency Distribution
 
-Chương trình dưới đây dùng **JDK thuần**, không cần thư viện ngoài. Để có kết quả lặp lại, các duration được định sẵn: đây là **mô phỏng phép đo**, không phải benchmark tốc độ thật. Tạo file **MetricsDemo.java**.
+The program below uses **plain JDK** with no external libraries. For repeatable results, durations are predefined: this is a **measurement simulation**, not a real speed benchmark. Create **MetricsDemo.java**.
 
 ~~~java
 import java.util.Arrays;
@@ -297,7 +297,7 @@ public class MetricsDemo {
             m.beginRequest();
             m.endRequest(ms);
         }
-        // Có ba request mới còn đang xử lý tại lúc đọc gauge.
+        // Three new requests are still in progress when reading the gauge.
         for (int i = 0; i < 3; i++) m.beginRequest();
 
         System.out.println("in_flight=" + m.inFlight.get());
@@ -317,7 +317,7 @@ public class MetricsDemo {
         System.out.println("p95_ms=" + nearestRank(sorted, 0.95));
         System.out.println("p99_ms=" + nearestRank(sorted, 0.99));
 
-        // Hai snapshot của một counter khác, cách nhau 60 giây.
+        // Two snapshots of another counter, 60 seconds apart.
         long counterBefore = 1200, counterAfter = 1380;
         System.out.printf(Locale.ROOT, "rate_per_second=%.1f%n",
             (counterAfter - counterBefore) / 60.0);
@@ -325,7 +325,7 @@ public class MetricsDemo {
 }
 ~~~
 
-Lệnh:
+Commands:
 
 ~~~bash
 javac MetricsDemo.java
@@ -349,34 +349,34 @@ p99_ms=900
 rate_per_second=3.0
 ~~~
 
-Diễn giải:
+Interpretation:
 
-- **in_flight=3** là gauge, biểu thị ba yêu cầu đang mở.
-- **completed_total=10** là counter, đã hoàn tất mười yêu cầu.
-- **duration_le_100_ms_total=8** là một bucket cộng dồn; **8/10** request hoàn tất trong 100 ms.
-- **duration_sum_ms=1590** dùng với count 10 để tạo mean 159 ms.
-- Quantile trong ví dụ tính **từ mảng dữ liệu gốc đã sắp xếp** theo nearest-rank, không suy ra từ bucket.
-- **rate_per_second=3.0** tính từ hai snapshot counter giả định 1.200 và 1.380 **khác** counter mười request của demo; tách chúng để minh họa phép tính rate có đúng đơn vị.
+- **in_flight=3** is a gauge representing three open requests.
+- **completed_total=10** is a counter: ten completed requests.
+- **duration_le_100_ms_total=8** is a cumulative bucket; **8/10** requests completed within 100 ms.
+- **duration_sum_ms=1590** is used with count 10 to produce mean 159 ms.
+- Quantiles in the example are computed **from the sorted raw array** via nearest-rank, not inferred from buckets.
+- **rate_per_second=3.0** is calculated from two hypothetical counter snapshots 1,200 and 1,380 **separate** from the ten-request demo counter; separated to illustrate a rate calculation with proper units.
 
-Chương trình là mẫu học tập chạy đơn luồng về logic ghi nhận phép đo; không có thư viện scrape, không ghi metric theo route/status và không mô phỏng concurrency thực. Với ứng dụng sản xuất, cần timer/gauge/counter thread-safe của thư viện phù hợp, metric có phạm vi và lifecycle rõ, cùng một định nghĩa request hoàn tất, và kiểm tra sai lệch khi đọc nhiều counter đồng thời.
+This program is a single-threaded educational pattern of recording logic; it has no scraping library, does not tag metrics by route/status, and does not simulate real concurrency. In production applications, use thread-safe timers/gauges/counters from an appropriate library, metrics with clear scope and lifecycle, a consistent completion definition, and check for skew when reading multiple counters concurrently.
 
-## 9. Ví dụ truy vấn khi dùng Prometheus classic histogram
+## 9. Query Examples Using Prometheus Classic Histograms
 
-Các tên metric dưới đây là **giả định minh họa**. Chỉ áp dụng nếu hệ thống thực sự export những metric và label đó; với native histogram hoặc backend khác, API truy vấn có thể khác.
+The metric names below are **illustrative hypotheses**. Apply them only if your system actually exports those metrics and labels; for native histograms or other backends, query APIs may differ.
 
-**Throughput toàn dịch vụ**, request/s:
+**Service-wide throughput**, requests/s:
 
 ~~~promql
 sum(rate(http_requests_total[5m]))
 ~~~
 
-**Tốc độ lỗi 5xx**, errors/s:
+**5xx error rate**, errors/s:
 
 ~~~promql
 sum(rate(http_requests_total{status=~"5.."}[5m]))
 ~~~
 
-**Error ratio** (0–1), với điều kiện có request và cùng điểm đếm:
+**Error ratio** (0–1), provided requests exist and share the same counting point:
 
 ~~~promql
 sum(rate(http_requests_total{status=~"5.."}[5m]))
@@ -384,9 +384,9 @@ sum(rate(http_requests_total{status=~"5.."}[5m]))
 sum(rate(http_requests_total[5m]))
 ~~~
 
-Nếu mẫu số là 0/không có series, cần xử lý **no traffic/no data** đúng nghĩa, không tùy tiện gán thành 0% lỗi.
+If the denominator is 0 or no series exists, handle **no traffic/no data** properly—never arbitrarily treat it as 0% errors.
 
-**Ước lượng p95 mỗi route từ classic cumulative buckets**, đơn vị giây:
+**Per-route p95 estimate from classic cumulative buckets**, in seconds:
 
 ~~~promql
 histogram_quantile(
@@ -397,7 +397,7 @@ histogram_quantile(
 )
 ~~~
 
-**Mean latency toàn hệ** trong cửa sổ 5 phút:
+**System-wide mean latency** over a 5-minute window:
 
 ~~~promql
 sum(rate(http_request_duration_seconds_sum[5m]))
@@ -405,7 +405,7 @@ sum(rate(http_request_duration_seconds_sum[5m]))
 sum(rate(http_request_duration_seconds_count[5m]))
 ~~~
 
-**Fraction hoàn tất trong tối đa 300 ms**, chỉ khi bucket 0,3 giây thật sự tồn tại:
+**Fraction completed in at most 300 ms**, only if a 0.3-second bucket actually exists:
 
 ~~~promql
 sum(rate(http_request_duration_seconds_bucket{le="0.3"}[5m]))
@@ -413,149 +413,149 @@ sum(rate(http_request_duration_seconds_bucket{le="0.3"}[5m]))
 sum(rate(http_request_duration_seconds_count[5m]))
 ~~~
 
-Điểm cần kiểm tra:
+Checklist items:
 
-1. Hậu tố *_seconds* cho biết đơn vị **giây**; 0,3 s = 300 ms, không nhập 300 vào ngưỡng theo giây.
-2. Nhãn **le** phải được giữ khi tổng hợp buckets classic cho *histogram_quantile*.
-3. Tính **rate theo từng counter series rồi mới sum** để xử lý reset/membership có ngữ nghĩa.
-4. Khi group theo *route*, chỉ gộp những instance có cùng ranh giới bucket và cách ghi latency.
-5. Bucket lớn hơn ngưỡng SLO không thể suy ra chính xác fraction dưới SLO nhỏ hơn nếu không có ranh giới tương ứng.
-6. Quantile từ bucket **là ước lượng**, phụ thuộc độ rộng bucket và lượng mẫu.
+1. The `*_seconds` suffix indicates units of **seconds**; 0.3 s = 300 ms, do not enter 300 into a second-denominated threshold.
+2. The **le** label must be preserved when summing classic buckets for *histogram_quantile*.
+3. Compute **rate per counter series before summing** so resets and membership changes work semantically.
+4. When grouping by *route*, aggregate only instances sharing the same bucket boundaries and latency recording semantics.
+5. A bucket larger than the SLO threshold cannot accurately deduce the fraction under a smaller SLO without a matching boundary.
+6. Quantiles from buckets **are estimates**, dependent on bucket width and sample count.
 
-Không dùng raw request ID, user ID, order ID hoặc URL chứa ID động làm metric label: cardinality tăng gần theo **tích** số giá trị các nhãn, dễ làm đầy bộ lưu trữ metrics và lộ dữ liệu nhạy cảm. Dùng route template như */orders/{id}*, còn ID chi tiết đặt ở trace/log được kiểm soát.
+Do not use raw request IDs, user IDs, order IDs, or URLs containing dynamic IDs as metric labels: cardinality grows roughly by the **product** of label values, easily exhausting metric storage and leaking sensitive data. Use route templates like `/orders/{id}`, and place detailed IDs in controlled traces/logs.
 
-## 10. Nhiều JVM, nhiều route và traffic mix
+## 10. Multiple JVMs, Multiple Routes, and Traffic Mix
 
-Khi aggregate hệ thống phân tán, câu hỏi đầu tiên là: các series có **cùng đơn vị, cùng cửa sổ, cùng điểm đếm, cùng định nghĩa outcome** không? Những phép kết hợp hợp lệ thường là:
+When aggregating across a distributed system, the first question is: do the series share **the same unit, same window, same counting point, and same outcome definition**? Typically valid combinations:
 
-- Cộng rate mỗi JVM để ra total request/s.
-- Cộng in-flight gauge nếu request chỉ bị đếm một lần trong phạm vi mong muốn.
-- Cộng duration sum và count, sau đó chia để có mean có trọng số.
-- Cộng histogram bucket rates có cùng ranh giới, sau đó ước lượng percentile.
-- Tính tỷ lệ lỗi bằng tổng error rate chia tổng request rate, thay vì trung bình ratio của pod ít và nhiều traffic như nhau.
+- Sum per-JVM rates to get total requests/s.
+- Sum in-flight gauges if requests are counted once within the intended scope.
+- Sum duration sums and counts, then divide to get weighted mean.
+- Sum histogram bucket rates sharing identical boundaries, then estimate percentiles.
+- Compute error ratio as total error rate divided by total request rate, rather than averaging ratios across low-traffic and high-traffic pods equally.
 
-Các phép kết hợp dễ sai:
+Error-prone combinations:
 
-- Trung bình p99 của các pod như global p99.
-- Trung bình mean của các pod mà không theo số request.
-- Cộng absolute counter của pod mới và cũ rồi lấy hiệu khi membership thay đổi.
-- Gộp latency của route rất nhanh và rất chậm mà không nhìn theo route; traffic mix thay đổi có thể làm p99 toàn hệ tốt hơn dù một route đang regression.
+- Averaging per-pod p99s as global p99.
+- Averaging per-pod means without weighting by request count.
+- Summing raw absolute counters of new and old pods and taking differences across membership changes.
+- Aggregating latencies of very fast and very slow routes without splitting by route; shifting traffic mix can make global p99 look better even while one route regresses.
 
-Ví dụ: route A có 9.900 request nhanh, route B có 100 request rất chậm. Global p99 có thể che nhiều thông tin về B. Vì vậy dashboard nên giữ cả **view tổng** (ảnh hưởng toàn bộ) và **view theo route/status/version/instance** (khoanh vùng), với nhãn hữu hạn để không bùng nổ cardinality.
+Example: route A has 9,900 fast requests, route B has 100 very slow requests. Global p99 can mask much of what happens on B. Dashboards should therefore keep both an **aggregate view** (overall impact) and **views by route/status/version/instance** (localization), using bounded labels to avoid cardinality explosion.
 
-Các dashboard có thể thay đổi công thức hiển thị theo resolution: một panel trả percentile từ raw samples, panel khác từ histogram trên 5 phút. Hai giá trị ấy không nhất thiết giống hệt; cần kiểm tra nguồn và phép tổng hợp trước khi so sánh.
+Dashboards may alter formulas by resolution: one panel renders percentiles from raw samples, another from 5-minute histograms. Those two values need not match identically; inspect sources and aggregation formulas before comparing.
 
-## 11. Sampling, mất mẫu và bẫy khi đo tail latency
+## 11. Sampling, Dropped Samples, and Tail Latency Traps
 
-### Số mẫu và độ ổn định thống kê
+### Sample Count and Statistical Stability
 
-p99 ở cửa sổ chỉ có 10–20 request gần như bị chi phối bởi một quan sát chậm nhất. Với 100 request, vùng 1% cũng chỉ tương ứng khoảng một request. Khi phân tích low-traffic routes, báo kèm số request hoặc kéo dài cửa sổ một cách có giải thích, không tuyên bố p99 từng phút như một sự thật ổn định.
+p99 in a window with only 10–20 requests is virtually dominated by the single slowest observation. With 100 requests, the 1% region still corresponds to roughly one request. When analyzing low-traffic routes, report request count alongside or widen the window with justification—do not proclaim minute-by-minute p99 as a stable truth.
 
-### Missing data khác giá trị 0
+### Missing Data Is Not Zero
 
-Một JVM vừa restart, một scraper không tiếp cận được endpoint hoặc time series bị bỏ nhãn có thể tạo lỗ dữ liệu. Đừng tự nội suy thành 0 request/s hoặc 0 heap used mà không xác minh. Khi nối timeline từ dashboard và log/JFR, đối chiếu timezone, timestamp, clock skew và độ trễ xử lý của pipeline.
+A recently restarted JVM, an unreachable scrape target, or a dropped series label creates data gaps. Never interpolate missing data as 0 requests/s or 0 heap used without verifying. When stitching timelines from dashboards and logs/JFR, verify timezones, timestamps, clock skew, and pipeline ingestion delay.
 
-### Trace sampling khác metrics
+### Trace Sampling Differs from Metrics
 
-Trace có thể chỉ lấy mẫu 1% request, hoặc cố tình giữ lại các trace chậm/lỗi. Mẫu đó rất tốt để tìm stack/cơ chế, nhưng **không tự đại diện cho phân bố latency toàn bộ traffic**. Nếu histogram ghi mọi request còn tracing có sampling, không được tính p99 “toàn hệ” trực tiếp từ một tập trace ưu tiên lỗi mà thiếu trọng số và phương pháp lấy mẫu.
+Tracing might sample only 1% of requests, or deliberately retain slow/error traces. That sample is great for finding stacks/mechanisms, yet **does not represent the latency distribution of all traffic**. When histograms record every request while tracing is sampled, never compute "system-wide" p99 directly from an error-biased trace set without weights and sampling corrections.
 
-### Timeout và coordinated omission
+### Timeouts and Coordinated Omission
 
-Nếu bộ phát tải chỉ gửi request mới khi request cũ hoàn tất, lúc server nghẽn, arrival rate đo được có thể giảm theo server. Điều này có thể ẩn độ trễ mà người dùng ở tốc độ đến cố định sẽ chịu (**coordinated omission**). Khi benchmark, cần nêu arrival schedule, timeout, reject và cách ghi request chưa hoàn tất.
+If a load generator only sends a new request when the previous one finishes, when the server stalls, measured arrival rate drops along with the server. This hides latency that users arriving at a fixed rate would experience (**coordinated omission**). In benchmarks, specify arrival schedule, timeouts, rejections, and how unfinished requests are recorded.
 
-Cũng vậy, một histogram latency chỉ tính những request xử lý thành công có thể loại bỏ các request bị timeout/drop; p99 giảm nhưng trải nghiệm thực tệ đi. Đọc **p99 + request volume + timeout/drop/reject + error ratio** cùng nhau.
+Similarly, a latency histogram recording only successful requests drops timed-out/dropped requests; p99 falls while real user experience worsens. Read **p99 + request volume + timeouts/drops/rejections + error ratio** together.
 
-## 12. Tình huống thực hành: tìm vì sao p99 API tăng
+## 12. Practice Scenario: Finding Why API p99 Spiked
 
-*Tình huống giả định: số liệu minh họa phương pháp chẩn đoán, không phải kết quả benchmark.*
+*Hypothetical scenario: numbers illustrate diagnostic methodology, not benchmark results.*
 
-Sau một bản deploy, API /orders có p99 tăng từ 180 ms lên 1,4 s trong 10 phút. Dashboard cho thấy:
+After a deployment, `/orders` p99 jumps from 180 ms to 1.4 s for 10 minutes. The dashboard shows:
 
-| Dữ liệu | Trước | Trong sự cố | Kiểu |
+| Data | Before | During Incident | Type |
 | --- | ---: | ---: | --- |
 | Completed request rate | 120/s | 115/s | Counter → rate |
 | In-flight | 12 | 90 | Gauge |
 | Pending DB pool | 0 | 35 | Gauge |
-| Timeout rate | 0,05/s | 5/s | Counter → rate |
-| p99 server latency | 180 ms | 1,4 s | Distribution |
+| Timeout rate | 0.05/s | 5/s | Counter → rate |
+| p99 server latency | 180 ms | 1.4 s | Distribution |
 | Mean latency | 90 ms | 240 ms | Sum/count |
 | Heap used | 620 MiB | 670 MiB | Gauge |
 | GC pause p99 | 10 ms | 12 ms | Distribution |
 
-**Điều có thể nói ngay:** in-flight và pending connection tăng trong khi completion rate không tăng, p99 và timeout rate tăng. Các dấu vết phù hợp với giả thuyết request đang **chờ tài nguyên** hoặc dependency trả lời chậm, nhưng chưa đủ để kết luận “DB pool config sai”.
+**What can be stated immediately:** in-flight and pending connections rose while completion rate did not increase, and both p99 and timeout rate spiked. Signs align with requests **waiting on a resource** or slow downstream responses, yet are insufficient to conclude "DB pool config is wrong".
 
-**Giả thuyết H1 – DB pool cạn do giữ connection lâu:** nếu đúng, cần thấy thời gian acquire connection hoặc thời gian query tăng, nhiều request chờ pool, có stack/trace chỉ ra đường gọi.
+**Hypothesis H1 – DB pool exhausted due to holding connections too long:** if true, we should see connection acquire time or query duration increase, many requests waiting on the pool, and stacks/traces pointing to the call path.
 
-**Giả thuyết H2 – traffic hoặc retry vượt công suất:** nếu đúng, arrival rate/attempt rate có thể tăng mạnh hơn completion rate; queue và in-flight tích tụ, retry từ gateway/client có thể khuếch đại vấn đề.
+**Hypothesis H2 – traffic or retries exceeded capacity:** if true, arrival/attempt rate should rise more sharply than completion rate; queues and in-flight accumulate, and gateway/client retries may amplify the load.
 
-**Giả thuyết H3 – GC pauses:** với p99 GC pause 12 ms nhưng request p99 1,4 s, H3 ít được ủng hộ hơn nếu các mốc pause không trùng độ trễ. Tuy nhiên cần kiểm tra đúng cửa sổ, instance và các stop-the-world event khác trước khi loại trừ hoàn toàn.
+**Hypothesis H3 – GC pauses:** with GC pause p99 at 12 ms versus request p99 at 1.4 s, H3 is less supported if pause timestamps do not coincide with latency spikes. Still, verify the exact window, instances, and other stop-the-world events before ruling it out completely.
 
-**Bước điều tra:** so trace chậm với connection-acquire spans và DB latency; xem metrics pool/queue và thread states; đối chiếu arrival/completion/timeout rate, bản deploy, các instance đối chứng. Nếu giải pháp thử giảm thời gian giữ connection làm pending giảm và p99 ổn định trong tải tương đương, có thêm bằng chứng về cơ chế. Không tăng pool size ngay nếu DB đã bão hòa: tăng concurrency có thể khiến upstream và DB cùng suy giảm.
+**Investigation steps:** correlate slow traces with connection-acquire spans and DB latency; inspect pool/queue metrics and thread states; compare arrival/completion/timeout rates, deploy diffs, and healthy control instances. If a test fix reducing connection hold time drops pending counts and stabilizes p99 under equivalent load, you gain evidence for the mechanism. Do not immediately raise pool size if the DB is already saturated: increasing concurrency can degrade both upstream and the DB together.
 
-Một báo cáo chính xác cần nêu **tương quan**, **dấu vết ủng hộ/bác bỏ**, **cơ chế có thể kiểm**, **điều kiện tái hiện**, **biện pháp sửa** và **đo trước/sau**. Một metric riêng lẻ không chứng minh quan hệ nhân quả.
+An accurate report states **correlations**, **supporting/refuting evidence**, **testable mechanisms**, **reproduction conditions**, **fixes**, and **before/after measurements**. A single metric never proves causality.
 
-## 13. Lỗi thường gặp khi tạo hoặc đọc dashboard
+## 13. Common Mistakes When Building or Reading Dashboards
 
-| Sai lầm | Vì sao sai | Cách sửa |
+| Mistake | Why It Is Wrong | How to Fix |
 | --- | --- | --- |
-| Đọc raw request counter là throughput | Counter là tổng từ mốc khởi đầu | Tính rate trên cửa sổ, xét reset |
-| Coi in-flight là request/s | In-flight đếm request tồn tại, không đếm sự kiện hoàn tất | Xem arrival/completion rate và latency |
-| Tính rate từ hai mẫu nhưng dùng khoảng cách scrape lý tưởng | Timestamp thực tế có thể khác, có missing sample | Dùng timestamp thật/hàm rate của hệ đo |
-| Tính rate âm sau JVM restart | Counter đã reset | Nhận diện reset, tính theo series |
-| Lấy trung bình p99 của pod | Quantile không tổng hợp tuyến tính | Merge histogram hoặc phân bố rồi tính |
-| Lấy trung bình mean pod không theo traffic | Pod xử lý số request khác nhau | Sum(duration_sum)/sum(duration_count) |
-| Cộng các cumulative buckets | Một request bị đếm ở nhiều bucket | Tổng dùng count/+Inf; khoảng dùng hiệu bucket |
-| Dùng bucket 1 s để khẳng định SLO 300 ms | Không có số request chính xác trong 300 ms | Tạo ranh giới 0,3 s ở instrument |
-| So latency ms với metric *_seconds* không quy đổi | Sai 1.000 lần | Công bố đơn vị, quy đổi đúng |
-| Chỉ nhìn p99 khi traffic thấp | Tail sample quá ít | Báo count và cửa sổ/phương pháp |
-| p99 success giảm ⇒ chất lượng tăng | Timeout bị loại khỏi mẫu có thể tăng | Xem timeout/drop và mọi outcome |
-| Heap used tăng ⇒ memory leak | Heap là gauge, có thể biến động theo GC/tải | Xem retained trend, allocation rate, RSS |
-| Không phân biệt logical request và retry attempt | Double-count và sai error ratio | Tách metric theo điểm đếm |
-| Metric label chứa ID động | Cardinality/chi phí và rủi ro thông tin | Dùng route template và nhãn hữu hạn |
+| Reading raw request counter as throughput | Counter is total since process start | Compute rate over window, handle resets |
+| Treating in-flight as requests/s | In-flight counts active requests, not completions | Check arrival/completion rates and latency |
+| Computing rate from two points assuming ideal scrape interval | Actual timestamps may drift, samples may drop | Use real timestamps / engine rate functions |
+| Computing negative rate after JVM restart | Counter reset to zero | Detect resets, compute per series |
+| Averaging per-pod p99s | Quantiles do not aggregate linearly | Merge histograms or distributions first |
+| Averaging per-pod means without traffic weighting | Pods handle different request counts | Sum(duration_sum)/sum(duration_count) |
+| Summing cumulative buckets | Same request is counted in multiple buckets | Total uses count/+Inf; intervals use bucket deltas |
+| Using a 1 s bucket to assert a 300 ms SLO | Exact count within 300 ms is unknown | Instrument an explicit 0.3 s boundary |
+| Comparing ms latency against `*_seconds` metrics without conversion | Off by 1,000× | State units explicitly, convert properly |
+| Looking only at p99 under low traffic | Tail samples are too sparse | Report count and window/methodology |
+| Success p99 dropped ⇒ quality improved | Timed-out requests dropped out of sample | Inspect timeouts/drops and all outcomes |
+| Heap used rose ⇒ memory leak | Heap is a gauge and fluctuates with GC/load | Inspect retained trend, allocation rate, RSS |
+| Mixing logical requests and retry attempts | Double-counts and skews error ratio | Separate metrics by counting point |
+| Metric labels contain dynamic IDs | Cardinality/cost explosion and data exposure | Use route templates and bounded labels |
 
-## 14. Checklist đo và diễn giải trong runtime diagnostics
+## 14. Measurement and Interpretation Checklist in Runtime Diagnostics
 
-Trước khi kết luận, trả lời đủ các câu hỏi:
+Before concluding, answer all of these questions:
 
-1. **Số này đo cái gì?** Gauge/counter/rate/histogram/summary? Đơn vị gì?
-2. **Điểm đo ở đâu?** Client, gateway, handler, queue, pool, database, JVM hay OS?
-3. **Thời điểm/cửa sổ nào?** Scrape interval, event timestamp, timezone, restart/missing sample?
-4. **Mẫu số là gì?** Có bao nhiêu request thực sự được ghi? Có bỏ timeout, failed, dropped không?
-5. **Tổng hợp ra sao?** Per-route, per-instance hay toàn dịch vụ? Bucket tương thích? Có lấy trung bình percentile sai?
-6. **Số liệu có biến dạng do tải không?** Traffic mix, autoscaling, retry, sampling, queue, GC, heap và CPU quota?
-7. **Giả thuyết nào có thể bị bác bỏ?** Metric nào hoặc trace/stack/JFR nào sẽ xác nhận/cải thiện mức tin cậy?
-8. **Sau sửa có đo lại không?** So cùng điều kiện, theo dõi latency distribution, rate, errors, in-flight và chi phí tài nguyên.
+1. **What does this number measure?** Gauge/counter/rate/histogram/summary? Which unit?
+2. **Where is the measurement point?** Client, gateway, handler, queue, pool, database, JVM, or OS?
+3. **Which time/window?** Scrape interval, event timestamps, timezone, restarts/missing samples?
+4. **What is the denominator?** How many requests were actually recorded? Are timeouts, failures, or drops excluded?
+5. **How is it aggregated?** Per-route, per-instance, or service-wide? Compatible buckets? Any invalid percentile averaging?
+6. **Is the metric distorted by load?** Traffic mix, autoscaling, retries, sampling, queues, GC, heap, and CPU quota?
+7. **Which hypotheses can be refuted?** Which metrics or traces/stacks/JFR data will confirm or raise confidence?
+8. **Was it re-measured after the fix?** Compare under equal conditions, monitoring latency distribution, rates, errors, in-flight, and resource cost.
 
-## 15. Bài tập có đáp án
+## 15. Practice Exercises with Answers
 
-**A.** Counter request hoàn tất từ 2.400 lên 2.760 trong đúng 2 phút, không reset. Có bao nhiêu request và bao nhiêu request/s?
+**A.** A completed-request counter goes from 2,400 to 2,760 in exactly 2 minutes, with no resets. How many requests occurred and how many requests/s?
 
-**Đáp án:** 360 request, \(360/120=3\) request/s.
+**Answer:** 360 requests, \(360/120=3\) requests/s.
 
-**B.** Queue depth tăng 15 → 35 sau một phút. Có thể kết luận arrival rate là 20 request/phút không?
+**B.** Queue depth increases 15 → 35 after one minute. Can you conclude the arrival rate is 20 requests/minute?
 
-**Đáp án:** Không. Đây là tăng ròng 20 phần tử; cần số lần enqueue, dequeue, timeout/drop để biết arrival và completion.
+**Answer:** No. That is a net increase of 20 items; you need enqueue, dequeue, and timeout/drop counts to know arrival and completion rates.
 
-**C.** Trong một phút có 240 request hoàn tất, 18 lỗi. Request rate, error rate theo số sự kiện và error ratio?
+**C.** In one minute there are 240 completed requests and 18 errors. What are the request rate, event error rate, and error ratio?
 
-**Đáp án:** 4 request/s, 0,3 lỗi/s và 7,5%.
+**Answer:** 4 requests/s, 0.3 errors/s, and 7.5%.
 
-**D.** Classic histogram có ≤100 ms: 80, ≤300 ms: 95, +Inf: 100. Bao nhiêu request trong (100,300] ms và bao nhiêu request >300 ms?
+**D.** A classic histogram has ≤100 ms: 80, ≤300 ms: 95, +Inf: 100. How many requests fell in (100,300] ms and how many >300 ms?
 
-**Đáp án:** 95−80=15 request trong (100,300] ms; 100−95=5 request trên 300 ms.
+**Answer:** 95−80=15 requests in (100,300] ms; 100−95=5 requests over 300 ms.
 
-**E.** Pod A có 1 request mean 900 ms, pod B có 99 request mean 100 ms. Mean toàn dịch vụ?
+**E.** Pod A has 1 request with mean 900 ms, pod B has 99 requests with mean 100 ms. What is the service-wide mean?
 
-**Đáp án:** 108 ms, bằng tổng duration chia tổng count. Không lấy trung bình thô 500 ms.
+**Answer:** 108 ms, equal to total duration divided by total count. Do not take the unweighted average of 500 ms.
 
-**F.** Hai pod có p99 lần lượt 100 ms và 900 ms. Global p99 có bằng 500 ms không?
+**F.** Two pods have p99 of 100 ms and 900 ms respectively. Is the global p99 equal to 500 ms?
 
-**Đáp án:** Không thể suy ra như thế; cần dữ liệu phân bố/histogram tương thích và lượng request.
+**Answer:** You cannot deduce that; you need compatible distributions/histograms and request volumes.
 
-**G.** Sau deploy, p99 của request thành công giảm nhưng timeout/s và in-flight đều tăng. Có thể báo hệ thống đã nhanh hơn không?
+**G.** After a deploy, successful-request p99 drops, while timeouts/s and in-flight both increase. Can you report that the system got faster?
 
-**Đáp án:** Chưa. Slow requests có thể đã timeout và biến mất khỏi phân bố success; kiểm tra mọi outcome, arrival/completion, pending queue và trace.
+**Answer:** Not yet. Slow requests may be timing out and disappearing from the success distribution; inspect all outcomes, arrival/completion rates, pending queues, and traces.
 
-## Ghi nhớ
+## Key Takeaways
 
-**Gauge = hiện đang có**, **counter = đã tích lũy**, **rate = tốc độ thay đổi theo thời gian**, **distribution = latency trải ra như thế nào**. Đơn vị, cửa sổ, reset và số mẫu quyết định giá trị chẩn đoán. Mean không thay thế p99; p99 của các pod không thể lấy trung bình để thành global p99. Hãy kết hợp throughput, gauges về tình trạng chờ, histogram/quantiles, lỗi/timeout, metric JVM và trace trên cùng timeline để đi từ triệu chứng đến giả thuyết có thể kiểm chứng.
+**Gauge = current state**, **counter = accumulated total**, **rate = rate of change over time**, **distribution = how latency is spread**. Units, windows, resets, and sample counts govern diagnostic value. Mean does not replace p99; per-pod p99s cannot be averaged into a global p99. Combine throughput, waiting-state gauges, histograms/quantiles, errors/timeouts, JVM metrics, and traces on the same timeline to move from symptoms to testable hypotheses.

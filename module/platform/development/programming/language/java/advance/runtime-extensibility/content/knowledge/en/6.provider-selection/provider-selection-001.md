@@ -1,107 +1,107 @@
-# Chọn provider theo định danh, khả năng hỗ trợ và cấu hình tường minh
+# Selecting Providers by Identifier, Capability Support, and Explicit Configuration
 
-Khi ứng dụng Java có nhiều provider cho cùng một dịch vụ, **phát hiện được provider chưa có nghĩa là chọn đúng provider**. `ServiceLoader` giúp tìm các implementation được đăng ký, nhưng không thay ứng dụng quyết định provider nào phù hợp với yêu cầu hiện tại. Việc lựa chọn nên dựa trên một chính sách rõ ràng: **định danh**, **khả năng hỗ trợ**, và **cấu hình tường minh**.
+When a Java application has multiple providers for the same service, **discovering a provider does not mean selecting the right provider**. `ServiceLoader` helps find registered implementations, but it does not decide on the application's behalf which provider fits the current request. Selection should be based on a clear policy: **identifier**, **capability support**, and **explicit configuration**.
 
-Bài này đi từ yêu cầu thiết kế đến một chương trình Java 17 chạy được: có hai provider lời chào, một bộ chọn provider và ba chế độ kiểm chứng. Đặc biệt, hai provider đều hỗ trợ tiếng Việt, nên đây là ví dụ thực tế của tình huống **nhiều provider cùng phù hợp**.
+This lesson walks from design requirements to a runnable Java 17 program: it has two greeting providers, a provider resolver, and three verification modes. Notably, both providers support Vietnamese, making this a practical example of the **multiple matching providers** scenario.
 
-## 1. Từ khám phá đến lựa chọn: hai bước khác nhau
+## 1. From Discovery to Selection: Two Distinct Steps
 
-Xét một ứng dụng cho phép cài nhiều implementation của `GreetingProvider`:
+Consider an application that allows installing multiple implementations of `GreetingProvider`:
 
 ```text
                      Runtime classpath
          +----------------+----------------+
          |                |                |
-  CasualProvider    FormalProvider    Provider khác...
+  CasualProvider    FormalProvider   Other providers...
          |                |
          +--------+-------+
                   |
     ServiceLoader<GreetingProvider>
                   |
                   v
-       Danh sách provider có mặt
+       List of available providers
                   |
                   v
           ProviderResolver
          /        |         \
-     định danh  supports()  cấu hình
+  identifier  supports()  configuration
          \        |         /
                   v
-        Provider được lựa chọn
+         Selected provider
                   |
                   v
           greet(request)
 ```
 
-Cần phân biệt:
+We need to distinguish:
 
-- **Discovery (khám phá):** nhận diện các provider hiện diện và được đăng ký hợp lệ. Trên classpath, `ServiceLoader` dùng tài nguyên `META-INF/services/<tên-đầy-đủ-của-SPI>`.
-- **Selection (lựa chọn):** xác định provider nào nên xử lý **một yêu cầu cụ thể**. Việc này thuộc chính sách của ứng dụng, không được `ServiceLoader` tự giải quyết.
-- **Invocation (gọi thực thi):** sau khi đã chọn, dùng provider đã chọn để xử lý; lỗi nghiệp vụ của provider phải được xử lý theo hợp đồng, không tùy tiện chuyển qua provider khác.
+- **Discovery:** identifying present and validly registered providers. On the classpath, `ServiceLoader` uses the `META-INF/services/<fully-qualified-SPI-name>` resource.
+- **Selection:** determining which provider should handle **a specific request**. This belongs to the application's policy and is not resolved automatically by `ServiceLoader`.
+- **Invocation:** once selected, using the chosen provider to process the request; business errors from the provider must be handled according to the contract rather than arbitrarily failing over to another provider.
 
-Nếu viết `ServiceLoader.load(SPI.class).iterator().next()` để lấy “provider tốt nhất”, bạn đang vô tình đồng nhất thứ tự khám phá với thứ tự ưu tiên. **Không có bảo đảm chung rằng provider đầu tiên là provider mong muốn.** Khi JAR, class loader hoặc cách đóng gói thay đổi, hành vi có thể thay đổi theo.
+If you write `ServiceLoader.load(SPI.class).iterator().next()` to grab the “best provider”, you are inadvertently equating discovery order with priority order. **There is no general guarantee that the first provider is the desired provider.** When JARs, class loaders, or packaging change, behavior may change accordingly.
 
-## 2. Ba tiêu chí lựa chọn
+## 2. Three Selection Criteria
 
-### 2.1. Theo định danh ổn định (`providerId`)
+### 2.1. By Stable Identifier (`providerId`)
 
-Mỗi provider công bố một định danh duy nhất, ví dụ `casual`, `formal`, `postgres`, `s3` hoặc `local`. Ứng dụng lưu định danh trong cấu hình, sau đó tra đúng provider tương ứng.
+Each provider publishes a unique identifier, such as `casual`, `formal`, `postgres`, `s3`, or `local`. The application stores the identifier in configuration and then looks up the matching provider.
 
-Một định danh tốt cần:
+A good identifier should be:
 
-- Đủ ổn định để không bị thay đổi tùy hứng giữa các lần phát hành.
-- Phân biệt với tên class và vị trí JAR, vì các chi tiết triển khai có thể đổi.
-- Có quy tắc duy nhất trong **phạm vi registry đang được dùng**; phát hiện trùng phải báo lỗi hoặc có cơ chế giải quyết xung đột được tài liệu hóa.
-- Có quy ước tên rõ ràng (ví dụ chữ thường, không khoảng trắng). Ví dụ bên dưới dùng `casual` và `formal`.
+- Stable enough not to change arbitrarily between releases.
+- Distinct from class names and JAR locations, since implementation details can change.
+- Subject to a uniqueness rule within **the scope of the registry in use**; duplicate detection must report an error or have a documented conflict-resolution mechanism.
+- Following a clear naming convention (for example, lowercase without spaces). The example below uses `casual` and `formal`.
 
-**Khi nào dùng?** Khi người vận hành hoặc cấu hình ứng dụng yêu cầu đúng một provider, chẳng hạn yêu cầu phải dùng driver/adapter cụ thể. Với cấu hình chọn chính xác, **thiếu provider hoặc provider không hỗ trợ yêu cầu phải báo lỗi**; chuyển âm thầm sang provider khác có thể làm sai hành vi hoặc vi phạm yêu cầu vận hành.
+**When to use?** When operators or application configuration require a specific provider, such as requiring a particular driver/adapter. With an exact-selection configuration, **a missing provider or a provider that does not support the request must fail with an error**; silently switching to another provider can alter behavior or violate operational requirements.
 
-### 2.2. Theo khả năng hỗ trợ (`supports(request)`)
+### 2.2. By Capability Support (`supports(request)`)
 
-Một provider có thể hỗ trợ một tập trường hợp thay vì mọi yêu cầu. Hợp đồng có thể công bố tập capability cố định như MIME type, version, thuật toán, giao thức, hoặc dùng một predicate:
+A provider may support a subset of cases rather than every request. The contract can advertise a fixed set of capabilities such as MIME types, versions, algorithms, or protocols, or use a predicate:
 
 ```java
 boolean supports(GreetingRequest request);
 ```
 
-Điều này giúp hệ thống lọc các provider không đáp ứng yêu cầu. Ví dụ, một provider hỗ trợ `en` và `vi`, provider khác chỉ hỗ trợ `vi`.
+This allows the system to filter out providers that do not satisfy the request. For example, one provider supports `en` and `vi`, while another supports only `vi`.
 
-Nhưng **lọc không đồng nghĩa chọn duy nhất**:
+However, **filtering does not equate to unique selection**:
 
-| Số provider hỗ trợ | Chính sách hợp lý |
+| Supporting providers | Reasonable policy |
 |---:|---|
-| 0 | Báo không có provider phù hợp; chỉ fallback nếu sản phẩm định nghĩa rõ |
-| 1 | Chọn provider duy nhất |
-| 2 trở lên | Dùng cấu hình ưu tiên, quy tắc được công bố hoặc báo mơ hồ |
- 
-Một `supports` tốt nên nhanh, ít tác dụng phụ, nhất quán với khả năng thực sự khi gọi xử lý. Nếu capability phụ thuộc trạng thái ngoài (máy chủ, license, quota), kết quả kiểm tra tại thời điểm chọn có thể đã lỗi thời khi thực thi; cần xử lý lỗi runtime riêng.
+| 0 | Report no matching provider; fall back only if explicitly defined by the product |
+| 1 | Select the single provider |
+| 2 or more | Apply priority configuration, a published rule, or report ambiguity |
 
-### 2.3. Theo cấu hình tường minh
+A good `supports` method should be fast, have minimal side effects, and be consistent with actual capability when invoked to process the request. If capability depends on external state (servers, licenses, quotas), a check result at selection time may already be stale at execution time; runtime errors must be handled separately.
 
-Cấu hình có thể đến từ tham số JVM, file `.properties`, biến môi trường hoặc hệ thống cấu hình của framework. Hai ý nghĩa cần tách bạch:
+### 2.3. By Explicit Configuration
 
-- **Chỉ định bắt buộc (hard pin):** `app.provider=formal` nghĩa là phải dùng `formal`. Không thấy hoặc không tương thích thì thất bại.
-- **Ưu tiên khi có nhiều lựa chọn (tie-break preference):** `app.prefer=formal` nghĩa là khi nhiều provider cùng hỗ trợ yêu cầu, ưu tiên `formal` nếu nó nằm trong tập phù hợp. Nếu chỉ một provider phù hợp, dùng provider đó. Nếu nhiều provider mà cấu hình ưu tiên không khớp, ví dụ này báo lỗi rõ ràng.
+Configuration can come from JVM arguments, `.properties` files, environment variables, or a framework's configuration system. Two meanings must be kept separate:
 
-Đây là **chính sách được thiết kế cho ví dụ**; Java không mặc định diễn giải hai thuộc tính này. Ứng dụng thật có thể đặt tên khác, nhưng phải công bố thứ tự ưu tiên và tính bắt buộc của từng lựa chọn.
+- **Mandatory assignment (hard pin):** `app.provider=formal` means `formal` must be used. If missing or incompatible, fail.
+- **Preference when multiple choices exist (tie-break preference):** `app.prefer=formal` means when multiple providers support the request, prefer `formal` if it is in the matching set. If only one provider matches, use that provider. If multiple providers match and the preference configuration does not match, this example reports a clear error.
 
-## 3. Chính sách giải quyết xung đột trước khi viết mã
+This is **a policy designed for the example**; Java does not interpret these two properties by default. A real application may choose different names, but it must document the precedence order and whether each option is mandatory.
 
-Ta dùng các quy tắc theo đúng thứ tự:
+## 3. Conflict-Resolution Policy Before Writing Code
 
-1. Tải danh sách provider; kiểm tra ID rỗng hoặc trùng. Nếu không có provider thì báo lỗi.
-2. Nếu `app.provider` khác `auto`, chỉ tra cứu **đúng ID được chỉ định** rồi kiểm tra `supports(request)`. Nếu sai, báo lỗi; không fallback.
-3. Nếu `app.provider=auto`, lọc các provider trả `true` từ `supports(request)`.
-4. Nếu không có provider phù hợp thì báo lỗi.
-5. Nếu chỉ có một provider phù hợp thì chọn nó.
-6. Nếu có nhiều provider, dùng `app.prefer` để giải quyết. Không có cấu hình hoặc ưu tiên không phù hợp thì báo lỗi mơ hồ/không hợp lệ.
-7. Khi `app.provider` đã chỉ định chính xác, **cấm đồng thời** khai báo `app.prefer` để tránh cấu hình tự mâu thuẫn.
+We apply the rules in exact order:
 
-Quy tắc này cố ý không chọn mặc định theo tên class, vị trí JAR, hoặc thứ tự `ServiceLoader`. Nếu một sản phẩm thực sự muốn ưu tiên theo điểm số/chi phí/độ tin cậy, hãy thiết kế tiêu chí chấm điểm và quy tắc xử lý hòa; đừng dùng thứ tự khám phá như một độ ưu tiên ngầm.
+1. Load the provider list; check for blank or duplicate IDs. If there are no providers, report an error.
+2. If `app.provider` is not `auto`, look up **only the exact specified ID** and then check `supports(request)`. If either fails, report an error; do not fall back.
+3. If `app.provider=auto`, filter providers that return `true` from `supports(request)`.
+4. If no provider matches, report an error.
+5. If only one provider matches, select it.
+6. If multiple providers match, use `app.prefer` to resolve. If there is no configuration or the preference does not match, report an ambiguity/invalid-preference error.
+7. When `app.provider` already specifies an exact provider, **forbid also** declaring `app.prefer` to prevent self-contradictory configuration.
 
-## 4. Ví dụ Java 17: SPI và hai provider có capability chồng lấp
+This policy intentionally does not default to class name, JAR location, or `ServiceLoader` order. If a product truly wants to prioritize by score/cost/reliability, design scoring criteria and tie-breaking rules; do not use discovery order as an implicit priority.
 
-Thư mục mẫu:
+## 4. Java 17 Example: SPI and Two Providers with Overlapping Capabilities
+
+Sample directory:
 
 ```text
 provider-selection-demo/
@@ -119,11 +119,11 @@ provider-selection-demo/
             └── demo.GreetingProvider
 ```
 
-Mẫu chạy trên **classpath**, không dùng `module-info.java`. Hai provider được đặt chung một thư mục nguồn để dễ tái hiện; khi triển khai thật, có thể đóng mỗi provider thành một JAR độc lập. Bộ chọn và consumer vẫn chỉ phụ thuộc vào SPI.
+The sample runs on the **classpath** without using `module-info.java`. Both providers are placed in the same source directory for easy reproduction; in a real deployment, each provider can be packaged into an independent JAR. The resolver and consumer still depend only on the SPI.
 
-### 4.1. Kiểu yêu cầu
+### 4.1. Request Type
 
-Tệp `src/demo/GreetingRequest.java`:
+File `src/demo/GreetingRequest.java`:
 
 ```java
 package demo;
@@ -140,11 +140,11 @@ public record GreetingRequest(String language, String name) {
 }
 ```
 
-`record` (Java 16+) làm rõ dữ liệu đầu vào. Ví dụ chỉ chấp nhận các mã ngôn ngữ đơn giản `en`, `vi`; trong sản phẩm đa ngôn ngữ thật, hãy thống nhất chính sách chuẩn hóa mã ngôn ngữ (ví dụ `vi-VN`) trước khi lọc capability.
+`record` (Java 16+) makes input data explicit. The example only accepts simple language codes `en` and `vi`; in a real multilingual product, agree on a language-code normalization policy (for example `vi-VN`) before capability filtering.
 
-### 4.2. Hợp đồng SPI
+### 4.2. SPI Contract
 
-Tệp `src/demo/GreetingProvider.java`:
+File `src/demo/GreetingProvider.java`:
 
 ```java
 package demo;
@@ -158,13 +158,13 @@ public interface GreetingProvider {
 }
 ```
 
-`id()` cung cấp định danh lựa chọn. `supports()` kiểm tra khả năng xử lý yêu cầu. `greet()` là hành vi mà consumer cuối cùng cần.
+`id()` provides the selection identifier. `supports()` checks request-handling capability. `greet()` is the behavior the end consumer needs.
 
-Hợp đồng ngữ nghĩa cho ví dụ: `id()` khác `null` và không rỗng; `supports()` không gây tác dụng phụ và trả kết quả phù hợp với việc `greet()` có thể thực thi; `greet()` chỉ được gọi khi request được hỗ trợ. Java không tự bảo đảm ngữ nghĩa này; nó phải được kiểm thử và quy định cho tác giả provider.
+Semantic contract for the example: `id()` is non-`null` and non-blank; `supports()` causes no side effects and returns a result consistent with whether `greet()` can execute; `greet()` is only called when the request is supported. Java does not automatically enforce these semantics; they must be tested and specified for provider authors.
 
-### 4.3. Provider dùng văn phong thân mật
+### 4.3. Casual-Tone Provider
 
-Tệp `src/demo/CasualProvider.java`:
+File `src/demo/CasualProvider.java`:
 
 ```java
 package demo;
@@ -195,11 +195,11 @@ public final class CasualProvider implements GreetingProvider {
 }
 ```
 
-`CasualProvider` hỗ trợ `en` và `vi`.
+`CasualProvider` supports `en` and `vi`.
 
-### 4.4. Provider dùng văn phong trang trọng
+### 4.4. Formal-Tone Provider
 
-Tệp `src/demo/FormalProvider.java`:
+File `src/demo/FormalProvider.java`:
 
 ```java
 package demo;
@@ -225,32 +225,32 @@ public final class FormalProvider implements GreetingProvider {
 }
 ```
 
-`FormalProvider` chỉ hỗ trợ `vi`. Cả hai lớp `public` đều có constructor không tham số công khai mặc định, đúng yêu cầu khởi tạo provider theo cách đăng ký trên classpath được dùng trong ví dụ.
+`FormalProvider` supports only `vi`. Both `public` classes have the default public no-argument constructor, matching the provider instantiation requirement for classpath registration used in the example.
 
-Như vậy:
+Thus:
 
-| Ngôn ngữ yêu cầu | Provider hỗ trợ | Ý nghĩa |
+| Request language | Supporting providers | Meaning |
 |---|---|---|
-| `en` | `casual` | Chỉ một ứng viên |
-| `vi` | `casual`, `formal` | Hai ứng viên, cần quyết định |
-| `fr` | Không có | Không thể tự chọn hợp lệ |
+| `en` | `casual` | Only one candidate |
+| `vi` | `casual`, `formal` | Two candidates, decision required |
+| `fr` | None | Cannot validly auto-select |
 
-### 4.5. Đăng ký provider cho `ServiceLoader`
+### 4.5. Registering Providers for `ServiceLoader`
 
-Nội dung tệp `resources/META-INF/services/demo.GreetingProvider`:
+Contents of `resources/META-INF/services/demo.GreetingProvider`:
 
 ```text
 demo.CasualProvider
 demo.FormalProvider
 ```
 
-Tên tệp là tên đầy đủ của **service type**. Mỗi dòng là tên đầy đủ của **một provider class**; đây là cách đăng ký nhiều provider trong cùng một tài nguyên. Tệp phải được đưa vào `out/META-INF/services/demo.GreetingProvider` khi chạy classpath.
+The file name is the fully qualified name of the **service type**. Each line is the fully qualified name of **one provider class**; this is how multiple providers are registered in the same resource. The file must be placed in `out/META-INF/services/demo.GreetingProvider` when running on the classpath.
 
-Nếu đóng gói nhiều JAR, mỗi provider JAR có thể chứa riêng tệp cùng tên nhưng liệt kê provider do JAR đó cung cấp. `ServiceLoader` có thể khám phá nhiều tài nguyên dịch vụ cùng tên từ các phần tử classpath nhìn thấy được; không cần viết một danh sách provider duy nhất vào consumer.
+When packaging multiple JARs, each provider JAR can contain its own file of the same name listing only the providers supplied by that JAR. `ServiceLoader` can discover multiple service resources of the same name from visible classpath elements; there is no need to write a single provider list into the consumer.
 
-## 5. Viết bộ chọn có chính sách quyết định rõ ràng
+## 5. Writing a Resolver with an Explicit Decision Policy
 
-Tệp `src/demo/ProviderResolver.java`:
+File `src/demo/ProviderResolver.java`:
 
 ```java
 package demo;
@@ -338,20 +338,20 @@ public final class ProviderResolver {
 }
 ```
 
-Điểm quan trọng của bộ chọn:
+Key points of the resolver:
 
-- Registry `TreeMap` lưu theo định danh nên có **thứ tự ổn định để trình bày lỗi**. Ta không dựa vào thứ tự `ServiceLoader` trả về.
-- `putIfAbsent` làm **trùng ID trở thành lỗi cấu hình rõ ràng**, thay vì cho provider đăng ký sau ghi đè provider trước.
-- Nhánh chỉ định ID kiểm tra `supports()`; việc biết đúng ID chưa đủ để kết luận provider xử lý được một yêu cầu bất kỳ.
-- Nhánh `auto` kiểm tra mọi provider, nên không bỏ sót candidate chỉ vì đứng sau một provider khác trong thứ tự khám phá.
-- Khi hai provider hỗ trợ cùng một request, việc không có quy tắc phân định được xem là **mơ hồ**, không phải cơ hội để lấy provider đầu tiên.
-- `preferredId` chỉ là **quy tắc phá hòa (tie-breaker)** trong ví dụ này: nó chỉ được xét khi có trên một provider phù hợp. Nếu chỉ có một provider phù hợp, bộ chọn dùng provider duy nhất, dù có đặt `app.prefer` cho provider khác. Nếu muốn ưu tiên có tính bắt buộc, hãy dùng `app.provider`.
+- The `TreeMap` registry stores entries by identifier so it has **a stable order for presenting errors**. We do not rely on the order returned by `ServiceLoader`.
+- `putIfAbsent` turns **duplicate IDs into an explicit configuration error**, instead of letting a later-registered provider silently override an earlier one.
+- The explicit-ID branch checks `supports()`; knowing the right ID is not enough to conclude that the provider can handle an arbitrary request.
+- The `auto` branch inspects every provider, so no candidate is missed just because it appears after another provider in discovery order.
+- When two providers support the same request, lacking a tie-breaking rule is treated as **ambiguous**, not an opportunity to pick the first provider.
+- `preferredId` is only a **tie-breaker rule** in this example: it is only considered when more than one provider matches. If only one provider matches, the resolver uses that single provider, even if `app.prefer` is set to a different provider. If you want mandatory selection, use `app.provider`.
 
-Trong hệ thống thật, việc gọi `id()` và `supports()` có thể ném ngoại lệ hoặc rất tốn chi phí. Nếu yêu cầu sản phẩm cần xử lý provider lỗi riêng lẻ, hãy thiết kế chính sách lỗi có log/metrics và phân loại lỗi rõ ràng; không nên `catch (Exception)` rồi loại bỏ âm thầm một provider để có kết quả tưởng như hợp lệ.
+In a real system, calling `id()` and `supports()` may throw exceptions or be very expensive. If product requirements need handling individual faulty providers, design an error policy with logging/metrics and clear error categorization; do not `catch (Exception)` and silently drop a provider to produce an apparently valid result.
 
-## 6. Consumer nhận cấu hình tường minh từ JVM
+## 6. Consumer Receiving Explicit Configuration from the JVM
 
-Tệp `src/demo/Main.java`:
+File `src/demo/Main.java`:
 
 ```java
 package demo;
@@ -382,19 +382,19 @@ public final class Main {
 }
 ```
 
-`Main` không import hay khởi tạo `CasualProvider` hoặc `FormalProvider`. Khi chạy, ứng dụng có thể truyền các JVM system properties:
+`Main` neither imports nor instantiates `CasualProvider` or `FormalProvider`. When running, the application can pass JVM system properties:
 
-- `-Dapp.language=en|vi`: yêu cầu ngôn ngữ. Mặc định `en`.
-- `-Dapp.provider=<id>`: chỉ định provider bắt buộc. Mặc định `auto`, tức là chọn theo capability.
-- `-Dapp.prefer=<id>`: ưu tiên khi có nhiều provider phù hợp. Mặc định rỗng.
+- `-Dapp.language=en|vi`: requested language. Default `en`.
+- `-Dapp.provider=<id>`: mandatory provider assignment. Default `auto`, meaning select by capability.
+- `-Dapp.prefer=<id>`: preference when multiple providers match. Default empty.
 
-**Cú pháp `-D...` phải nằm trước tên class `demo.Main`** để JVM nhận thuộc tính. Thông số này được cung cấp khi **khởi động tiến trình**; thay đổi một file cấu hình ngoài hệ thống không tự làm bộ chọn đang giữ trong bộ nhớ chạy lại.
+**The `-D...` syntax must appear before the `demo.Main` class name** so the JVM picks up the properties. These parameters are provided at **process startup**; modifying an external configuration file does not automatically reload the resolver held in memory.
 
-Nếu dùng file cấu hình hoặc biến môi trường, tầng khởi động nên chuẩn hóa giá trị về cùng bộ ba `language/providerId/preferredId`, xác định nguồn nào ưu tiên cao hơn và ghi lại cấu hình có hiệu lực. Ví dụ này dùng system properties để dễ tái hiện, không mặc định đọc file hay biến môi trường.
+If using configuration files or environment variables, the startup layer should normalize values into the same `language/providerId/preferredId` trio, determine which source takes higher precedence, and log the effective configuration. This example uses system properties for easy reproduction and does not read files or environment variables by default.
 
-## 7. Biên dịch và chạy được trên Java 17+
+## 7. Compiling and Running on Java 17+
 
-Đứng trong thư mục `provider-selection-demo` chứa hai thư mục `src`, `resources`. Cần JDK 17+ và terminal hỗ trợ Unicode để hiển thị tiếng Việt đúng.
+Stand inside the `provider-selection-demo` directory containing the two directories `src` and `resources`. JDK 17+ and a Unicode-capable terminal are required to display Vietnamese text properly.
 
 ### Windows PowerShell
 
@@ -408,7 +408,7 @@ Copy-Item resources/META-INF/services/demo.GreetingProvider out/META-INF/service
 java -cp out demo.Main
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 Selected: casual
@@ -427,22 +427,22 @@ cp resources/META-INF/services/demo.GreetingProvider out/META-INF/services/demo.
 java -cp out demo.Main
 ```
 
-Kết quả stdout cũng là:
+Stdout output is also:
 
 ```text
 Selected: casual
 Hello, Linh!
 ```
 
-Vì `language=en`, chỉ `CasualProvider` hỗ trợ, nên chọn tự động không cần cấu hình ưu tiên.
+Since `language=en`, only `CasualProvider` supports it, so automatic selection succeeds without a preference configuration.
 
-**Lưu ý kiểm tra classpath:** chỉ biên dịch lớp `.class` là chưa đủ. Nếu quên copy `resources/META-INF/services/demo.GreetingProvider` vào `out`, `ServiceLoader` không khám phá được provider từ ví dụ này và constructor của `ProviderResolver` ném `IllegalStateException: No providers registered` trên stderr (cùng stack trace). Nếu chạy trong JAR, tài nguyên đăng ký phải nằm trong JAR provider và các JAR cần thiết phải nhìn thấy từ class loader đang dùng.
+**Classpath verification note:** compiling only `.class` files is not enough. If you forget to copy `resources/META-INF/services/demo.GreetingProvider` into `out`, `ServiceLoader` will not discover any providers from this example and `ProviderResolver`'s constructor will throw `IllegalStateException: No providers registered` on stderr (along with a stack trace). When running in JARs, the registration resource must reside inside the provider JAR and the necessary JARs must be visible from the active class loader.
 
-## 8. Kiểm chứng từng chiến lược lựa chọn
+## 8. Verifying Each Selection Strategy
 
-Các lệnh sau giữ nguyên mã đã biên dịch. Lệnh `java -cp out` chạy trên cả Windows, Linux và macOS vì classpath chỉ có một phần tử `out`.
+The following commands reuse the already compiled code. The `java -cp out` command runs on Windows, Linux, and macOS because the classpath has only one element `out`.
 
-### Trường hợp A: chọn theo định danh bắt buộc
+### Case A: selecting by mandatory identifier
 
 ```bash
 java -Dapp.language=vi -Dapp.provider=casual -cp out demo.Main
@@ -455,9 +455,9 @@ Selected: casual
 Chào Linh!
 ```
 
-Dù `FormalProvider` cũng hỗ trợ `vi`, cấu hình **chỉ định** `casual`, nên bộ chọn chọn đúng định danh. Không dùng thứ tự nạp.
+Even though `FormalProvider` also supports `vi`, the configuration **pins** `casual`, so the resolver selects the exact identifier. Load order is not used.
 
-### Trường hợp B: chọn theo capability duy nhất
+### Case B: selecting by single capability
 
 ```bash
 java -Dapp.language=en -cp out demo.Main
@@ -470,9 +470,9 @@ Selected: casual
 Hello, Linh!
 ```
 
-Bộ chọn lọc theo `supports()`; `FormalProvider` không hỗ trợ `en`, nên chỉ còn `casual`.
+The resolver filters by `supports()`; `FormalProvider` does not support `en`, so only `casual` remains.
 
-### Trường hợp C: capability bị chồng lấp và có cấu hình ưu tiên
+### Case C: overlapping capabilities with preference configuration
 
 ```bash
 java -Dapp.language=vi -Dapp.prefer=formal -cp out demo.Main
@@ -485,178 +485,178 @@ Selected: formal
 Kính chào Linh.
 ```
 
-Cả hai provider hỗ trợ `vi`; `app.prefer=formal` là quy tắc phá hòa có chủ đích, nên kết quả xác định.
+Both providers support `vi`; `app.prefer=formal` is an intentional tie-breaker rule, so the result is deterministic.
 
-### Trường hợp D: capability bị chồng lấp nhưng thiếu chính sách ưu tiên
+### Case D: overlapping capabilities without a preference policy
 
 ```bash
 java -Dapp.language=vi -cp out demo.Main
 ```
 
-Chương trình thất bại với `IllegalStateException`. Phần thông báo của ngoại lệ trên stderr là:
+The program fails with `IllegalStateException`. The exception message on stderr is:
 
 ```text
 Ambiguous providers for language vi: casual, formal
 ```
 
-Thứ tự hai ID trong thông báo ổn định vì registry là `TreeMap`. Dòng trên **không phải stdout**: chương trình không đến hai lệnh `println` trong `Main`; Java còn in stack trace trên stderr.
+The order of the two IDs in the message is stable because the registry is a `TreeMap`. The line above **is not stdout**: the program does not reach the two `println` calls in `Main`; Java also prints the stack trace on stderr.
 
-### Trường hợp E: chỉ định provider không hỗ trợ yêu cầu
+### Case E: specifying a provider that does not support the request
 
 ```bash
 java -Dapp.language=en -Dapp.provider=formal -cp out demo.Main
 ```
 
-Phần thông báo ngoại lệ `IllegalArgumentException`:
+Exception message of `IllegalArgumentException`:
 
 ```text
 Provider formal does not support en
 ```
 
-Không tự chuyển sang `casual`. Với lựa chọn bắt buộc, fallback ngầm làm mất ý nghĩa cấu hình.
+It does not automatically switch to `casual`. With mandatory selection, silent fallback defeats the purpose of the configuration.
 
-### Trường hợp F: không provider nào hỗ trợ yêu cầu
+### Case F: no provider supports the request
 
 ```bash
 java -Dapp.language=fr -cp out demo.Main
 ```
 
-Phần thông báo ngoại lệ `IllegalStateException`:
+Exception message of `IllegalStateException`:
 
 ```text
 No provider supports language: fr
 ```
 
-Đây là kết quả của bộ lọc capability; nó **khác** trường hợp không tìm thấy provider nào đã đăng ký.
+This is the result of the capability filter; it **differs from** the case where no registered providers are found.
 
-### Trường hợp G: ID cấu hình không tồn tại
+### Case G: configured ID does not exist
 
 ```bash
 java -Dapp.language=vi -Dapp.provider=missing -cp out demo.Main
 ```
 
-Phần thông báo ngoại lệ `IllegalArgumentException`:
+Exception message of `IllegalArgumentException`:
 
 ```text
 Unknown provider: missing
 ```
 
-Bộ chọn không nên biến lỗi đánh máy trong cấu hình thành một kết quả ngẫu nhiên.
+The resolver should not turn a typo in configuration into a random result.
 
-### Trường hợp H: cấu hình mâu thuẫn
+### Case H: contradictory configuration
 
 ```bash
 java -Dapp.language=vi -Dapp.provider=casual -Dapp.prefer=formal -cp out demo.Main
 ```
 
-Phần thông báo ngoại lệ `IllegalArgumentException`:
+Exception message of `IllegalArgumentException`:
 
 ```text
 Use either app.provider or app.prefer
 ```
 
-Việc báo lỗi ngay ở tầng cấu hình giúp tránh trường hợp mỗi người hiểu khác nhau về độ ưu tiên của hai tùy chọn.
+Failing immediately at the configuration layer prevents cases where different people interpret the precedence of the two options differently.
 
-## 9. Chọn cấu hình trong sản phẩm thực tế
+## 9. Selecting Configuration in Production Systems
 
-Một quy trình lựa chọn dễ kiểm soát có thể được diễn đạt:
+A controllable selection flow can be expressed as:
 
 ```text
-Đọc và kiểm tra cấu hình
+Read and validate configuration
         |
         v
-Có providerId bắt buộc?
-   | Có                     | Không (auto)
-   v                         v
-Tra ID trong registry     Lọc bằng supports(request)
-   |                         |
-   +--> Không thấy? Lỗi      +--> 0 ứng viên? Lỗi
-   |                         +--> 1 ứng viên? Chọn
-   +--> Không hỗ trợ? Lỗi    +--> N ứng viên? Xét ưu tiên
-   |                                   |
-   v                                   +--> Ưu tiên hợp lệ? Chọn
-Chọn chính xác                        +--> Không? Lỗi mơ hồ
+Mandatory providerId present?
+   | Yes                    | No (auto)
+   v                        v
+Look up ID in registry    Filter with supports(request)
+   |                        |
+   +--> Not found? Error    +--> 0 candidates? Error
+   |                        +--> 1 candidate? Select
+   +--> Unsupported? Error  +--> N candidates? Check preference
+   |                                  |
+   v                                  +--> Valid preference? Select
+Select exact match                    +--> No? Ambiguity error
 ```
 
-Khi ánh xạ vào cấu hình ngoài ứng dụng, nên phân biệt:
+When mapping to external application configuration, distinguish:
 
-| Tình huống vận hành | Cách thể hiện | Cách ứng xử mong muốn |
+| Operational scenario | Representation | Desired behavior |
 |---|---|---|
-| Chính sách bắt buộc nhà cung cấp cụ thể | `providerId = "formal"` | Không thấy/không hỗ trợ thì fail fast |
-| Chọn tự động vì chỉ có một implementation hỗ trợ | `providerId = "auto"` | Chỉ chọn khi lọc ra đúng một ứng viên |
-| Nhiều implementation cùng hỗ trợ | `providerId = "auto"`, `preferredId = "formal"` | Chọn ứng viên ưu tiên nếu nó hỗ trợ |
-| Không chấp nhận kết quả mơ hồ | `providerId = "auto"` và không ưu tiên | Báo lỗi thay vì phụ thuộc thứ tự |
-| Cho phép chuyển sang phương án dự phòng | Cấu hình fallback **riêng** | Chỉ thử fallback khi loại lỗi phù hợp và có quy tắc được công bố |
+| Policy requiring a specific provider | `providerId = "formal"` | Fail fast if missing or unsupported |
+| Automatic selection because only one implementation supports it | `providerId = "auto"` | Select only when filtering yields a single candidate |
+| Multiple implementations support it | `providerId = "auto"`, `preferredId = "formal"` | Select the preferred candidate if it supports the request |
+| Ambiguous results unacceptable | `providerId = "auto"` and no preference | Report an error instead of depending on order |
+| Fallback to alternative allowed | **Separate** fallback configuration | Attempt fallback only when the error type qualifies and a published rule exists |
 
-Các hệ thống có nhiều môi trường (local, staging, production) cần ghi rõ **cấu hình có hiệu lực** và định danh provider đã được chọn. Có thể log các ID, số lượng ứng viên và lý do lựa chọn, nhưng không ghi bí mật như token, mật khẩu hoặc toàn bộ payload nhạy cảm.
+Systems with multiple environments (local, staging, production) must clearly log the **effective configuration** and the selected provider identifier. You may log IDs, candidate counts, and selection reasons, but do not log secrets such as tokens, passwords, or full sensitive payloads.
 
-Nếu dùng dependency injection (ví dụ một framework IoC), framework có thể cung cấp cơ chế đặt tên, qualifier hoặc ưu tiên bean khác. Dù cơ chế khác, vấn đề lõi vẫn giống nhau: kiểm tra tính hợp lệ của ứng viên, cách phân xử nhiều implementation và bảo đảm cấu hình tường minh được tôn trọng.
+If using dependency injection (for example, an IoC framework), the framework may provide different mechanisms for naming, qualifiers, or bean priority. Even though the mechanism differs, the core problem remains the same: validating candidate eligibility, arbitrating among multiple implementations, and ensuring explicit configuration is respected.
 
-## 10. Những điểm khó trong hệ thống lớn
+## 10. Hard Parts in Large Systems
 
-### 10.1. Định danh trùng không đồng nghĩa capability trùng
+### 10.1. Duplicate Identifiers Do Not Equal Overlapping Capabilities
 
-Hai provider có cùng `id()` là **xung đột định danh**: registry không thể biết cấu hình `provider=formal` muốn chỉ đến lớp nào. Hai provider cùng `supports(request)=true` chỉ là **chồng lấp khả năng**: có thể hợp lệ và được giải quyết bằng chính sách chọn.
+Two providers with the same `id()` represent an **identifier conflict**: the registry cannot know which class the `provider=formal` configuration is meant to point to. Two providers both returning `supports(request)=true` are simply **overlapping capabilities**: this can be valid and resolved by the selection policy.
 
-Đừng gộp hai loại xung đột. Bộ chọn ở ví dụ báo lỗi sớm khi trùng ID, nhưng chỉ báo mơ hồ khi có nhiều ứng viên sau bước lọc capability.
+Do not conflate the two kinds of conflict. The resolver in the example fails early on duplicate IDs, but only reports ambiguity when multiple candidates remain after the capability-filtering step.
 
-### 10.2. Khi nào dùng điểm số hoặc mức ưu tiên?
+### 10.2. When to Use Scores or Priority Levels?
 
-Một sản phẩm có thể muốn cân nhắc chi phí, độ trễ, khả năng truy cập, phiên bản, khu vực triển khai hoặc thứ tự ưu tiên. Khi đó có thể mở rộng SPI để trả metadata hoặc viết bộ đánh giá ứng viên.
+A product may want to consider cost, latency, reachability, version, deployment region, or priority order. In that case, the SPI can be extended to return metadata or a candidate evaluator can be written.
 
-Tuy nhiên phải quyết định **từ trước**:
+However, it must be decided **upfront**:
 
-- Những tiêu chí nào là điều kiện cứng (provider không thỏa phải bị loại)?
-- Những tiêu chí nào dùng xếp hạng và thứ tự so sánh ra sao?
-- Khi bằng điểm sẽ chọn thế nào? Dùng ID có được phép làm quy tắc thứ cấp hay phải báo mơ hồ?
-- Điểm số có thay đổi theo thời gian không; cache lựa chọn trong bao lâu?
+- Which criteria are hard constraints (providers that fail them must be excluded)?
+- Which criteria are used for ranking and in what comparison order?
+- How are ties broken? Is using ID allowed as a secondary rule or must ambiguity be reported?
+- Do scores change over time; how long should selections be cached?
 
-Không nên thay bằng `findFirst()` rồi gọi đó là “ưu tiên cao nhất”. Thứ tự khám phá của `ServiceLoader` không phải trọng số chất lượng.
+Do not replace this with `findFirst()` and call it “highest priority”. `ServiceLoader`'s discovery order is not a quality weight.
 
-### 10.3. Bảo đảm hợp đồng `supports()` và thực thi
+### 10.3. Guaranteeing the Contract Between `supports()` and Execution
 
-`supports()` chỉ là một kiểm tra mà provider tự khai báo, **không chứng minh** yêu cầu chắc chắn xử lý thành công. Thực thi vẫn có thể thất bại do mạng, file, quota, quyền truy cập hoặc thay đổi trạng thái. Hãy quy định ngoại lệ, retry và fallback theo loại lỗi.
+`supports()` is only a self-declared check by the provider and **does not prove** the request will certainly succeed. Execution can still fail due to network, files, quotas, permissions, or state changes. Specify exceptions, retries, and fallbacks by error type.
 
-Fallback đặc biệt nguy hiểm khi hành động có tác dụng phụ: nếu provider đầu tiên đã gửi một thông báo nhưng trả lỗi muộn, thử provider thứ hai có thể gửi trùng. Cơ chế idempotency hoặc xác nhận kết quả cần được thiết kế ở mức nghiệp vụ, không giao mặc định cho SPI.
+Fallback is particularly dangerous when an action has side effects: if the first provider already sent a notification but returned a late error, trying a second provider can send a duplicate. Idempotency or outcome confirmation mechanisms must be designed at the business level, not delegated by default to the SPI.
 
-### 10.4. Phiên bản SPI và phụ thuộc class loader
+### 10.4. SPI Versioning and Class Loader Dependencies
 
-Nếu một provider được biên dịch với phiên bản SPI mới nhưng ứng dụng chạy với SPI cũ, có thể gặp lỗi nạp lớp, `AbstractMethodError`, hoặc vi phạm ngữ nghĩa. Ngoài ra, hai class loader khác nhau có thể nạp hai bản của cùng tên interface, khiến một class không còn được xem là subtype của service type đang dùng.
+If a provider is compiled against a new SPI version while the application runs with an old SPI, you may encounter class-loading errors, `AbstractMethodError`, or semantic violations. Additionally, two different class loaders can load two copies of the same interface name, causing a class to no longer be considered a subtype of the active service type.
 
-Cần thống nhất phiên bản hợp đồng và class loader của phạm vi dịch vụ; xác thực metadata provider khi khởi động. Không tự coi việc có mặt trên classpath là bảo đảm tương thích.
+You must align the contract version and class loader of the service scope; validate provider metadata at startup. Do not assume that mere presence on the classpath guarantees compatibility.
 
-### 10.5. Thời điểm khám phá và vòng đời lựa chọn
+### 10.5. Discovery Timing and Selection Lifecycle
 
-`ServiceLoader.load(...)` tạo bộ khám phá có bộ nhớ đệm provider đã được duyệt. Nó thường tải/khởi tạo lười khi duyệt. `reload()` chỉ làm mới cache của instance `ServiceLoader` đó; **không tự bổ sung JAR mới vào classpath, không hủy instance đang được consumer giữ, không cập nhật nóng class**.
+`ServiceLoader.load(...)` creates a discoverer with a cache of already-iterated providers. It typically loads/instantiates lazily during iteration. `reload()` only refreshes that `ServiceLoader` instance's cache; **it does not automatically add new JARs to the classpath, destroy instances already held by consumers, or hot-swap classes**.
 
-Một registry tạo lúc khởi động như `ProviderResolver` trong ví dụ là **snapshot của các provider nó đã khám phá**. Nếu hệ thống cần plugin động hoặc hot reload, phải thiết kế riêng class loader/module layer, vòng đời instance, cập nhật registry an toàn và xử lý request đang chạy. `ServiceLoader` không tự giải quyết trọn quy trình này.
+A registry created at startup like `ProviderResolver` in the example is a **snapshot of the providers it discovered**. If the system needs dynamic plugins or hot reload, you must design a dedicated class loader/module layer, instance lifecycle, safe registry updates, and in-flight request handling. `ServiceLoader` does not automatically handle this entire process.
 
-`ServiceLoader` cũng không được bảo đảm thread-safe khi chia sẻ và thao tác trực tiếp từ nhiều luồng. Với ứng dụng đa luồng, có thể khởi tạo registry một lần, công bố nó theo cách an toàn và bảo đảm provider được chọn đáp ứng hợp đồng đồng thời.
+`ServiceLoader` is also not guaranteed to be thread-safe when shared and manipulated directly from multiple threads. For multithreaded applications, you can initialize the registry once, publish it safely, and ensure selected providers satisfy concurrency contracts.
 
-### 10.6. Bảo mật provider và cấu hình
+### 10.6. Provider and Configuration Security
 
-Provider thường chạy với quyền của ứng dụng Java. SPI là ranh giới thiết kế mã, **không phải sandbox**. Cần kiểm soát nguồn JAR/provider, dependency và quyền thực thi; không cho phép người dùng không tin cậy tự chọn một provider nguy hiểm chỉ bằng tham số cấu hình.
+Providers typically run with the privileges of the Java application. SPI is a code design boundary, **not a sandbox**. You must control JAR/provider sources, dependencies, and execution permissions; do not allow untrusted users to pick a dangerous provider merely through configuration parameters.
 
-## 11. Lỗi phổ biến và cách tránh
+## 11. Common Mistakes and How to Avoid Them
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Solution |
 |---|---|---|
-| Chọn `iterator().next()` | Phụ thuộc thứ tự khám phá không được định nghĩa làm chính sách | Dùng ID, lọc capability, hoặc cấu hình rõ ràng |
-| Cho provider tự gán ID không kiểm tra trùng | Có thể chọn nhầm implementation | Dựng registry có kiểm tra ID duy nhất |
-| Chỉ kiểm tra ID mà bỏ qua `supports` | Gọi provider không xử lý được request | Kiểm tra capability cả khi chỉ định ID |
-| Tự fallback khi cấu hình bắt buộc sai | Lệch yêu cầu vận hành, khó quan sát | Báo lỗi và nêu ID/capability cần thiết |
-| Mọi provider đều hỗ trợ một request nhưng chọn provider đầu tiên | Tính mơ hồ bị giấu | Có quy tắc ưu tiên hoặc báo lỗi |
-| Không đăng ký `META-INF/services` | `ServiceLoader` không tìm ra lớp provider | Kiểm tra tài nguyên trong classpath/JAR |
-| Thay classpath khi JVM đang chạy rồi gọi `reload()` | Không có provider mới như kỳ vọng | Thiết kế cơ chế nạp động riêng hoặc khởi động lại |
-| `supports()` làm thay đổi trạng thái | Kết quả lọc khó dự đoán | Predicate có ngữ nghĩa ổn định, ít tác dụng phụ |
-| Catch mọi lỗi provider rồi bỏ qua | Che lỗi cấu hình và lỗi phần mềm | Phân loại lỗi, log và chính sách xử lý minh bạch |
+| Choosing `iterator().next()` | Depends on undefined discovery order as policy | Use IDs, capability filtering, or explicit configuration |
+| Letting providers assign IDs without duplicate checks | May select the wrong implementation | Build a registry that checks ID uniqueness |
+| Checking only ID while skipping `supports` | Calls a provider that cannot handle the request | Check capability even when ID is specified |
+| Automatically falling back when mandatory config is wrong | Diverges from operational requirements, hard to observe | Fail and state the required ID/capability |
+| All providers support a request, yet picking the first one | Ambiguity is hidden | Have a priority rule or report an error |
+| Failing to register `META-INF/services` | `ServiceLoader` fails to find provider classes | Verify resources in the classpath/JAR |
+| Changing classpath while JVM runs then calling `reload()` | New providers do not appear as expected | Design a separate dynamic loading mechanism or restart |
+| `supports()` mutates state | Filtering results become unpredictable | Use a predicate with stable semantics and minimal side effects |
+| Catching all provider errors and ignoring them | Hides configuration and software bugs | Categorize errors, log, and enforce a transparent handling policy |
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-1. **Thêm provider ID `neutral`** hỗ trợ `en` và `fr`. Xác định đầu ra hoặc lỗi của các lệnh dùng `app.language=en`, `fr` trước và sau khi có cấu hình `app.prefer=neutral`.
-2. **Tạo trùng ID:** sửa `FormalProvider.id()` thành `"casual"`. Quan sát constructor `ProviderResolver` dừng với lỗi nào. Tại sao không nên chờ đến khi một request cụ thể xảy ra mới phát hiện?
-3. **Kiểm tra phân biệt hard pin/preference:** giải thích khác nhau giữa `-Dapp.language=en -Dapp.provider=formal` và `-Dapp.language=en -Dapp.prefer=formal` trong chính sách hiện tại. Một lệnh báo lỗi, một lệnh chọn ứng viên duy nhất; điều này có phù hợp ý nghĩa đã công bố không?
-4. **Giảm sai sót cấu hình:** bổ sung bước in danh sách ID và capability được công bố khi khởi động, rồi kiểm tra việc in thông tin có lộ bí mật cấu hình hay không.
-5. **Thiết kế fallback riêng:** giả sử provider đã chọn gọi API ngoài và bị timeout. Xây chính sách retry/fallback chỉ cho tác vụ đọc, đồng thời giải thích rủi ro thao tác ghi lặp lại.
+1. **Add a provider with ID `neutral`** supporting `en` and `fr`. Determine the output or error for commands using `app.language=en` and `fr` before and after configuring `app.prefer=neutral`.
+2. **Create a duplicate ID:** change `FormalProvider.id()` to `"casual"`. Observe which error `ProviderResolver`'s constructor fails with. Why shouldn't you wait until a specific request occurs to detect this?
+3. **Verify hard pin vs. preference distinction:** explain the difference between `-Dapp.language=en -Dapp.provider=formal` and `-Dapp.language=en -Dapp.prefer=formal` under the current policy. One command errors while the other selects the single candidate; does this match the documented semantics?
+4. **Reduce configuration mistakes:** add a step to print the list of IDs and advertised capabilities at startup, then check whether printing that information exposes any configuration secrets.
+5. **Design a separate fallback:** suppose the selected provider calls an external API and times out. Build a retry/fallback policy solely for read operations, while explaining the risks of repeating write operations.
 
-Khi triển khai một điểm mở rộng Java, hãy giữ ranh giới rõ ràng: **`ServiceLoader` khám phá provider; ứng dụng định nghĩa chính sách lựa chọn; provider thực hiện hợp đồng**. Chọn theo ID khi cần bắt buộc một implementation; lọc theo capability khi yêu cầu thay đổi theo từng request; dùng cấu hình ưu tiên hoặc báo lỗi có chủ đích khi nhiều provider cùng phù hợp.
+When implementing a Java extension point, keep the boundary clear: **`ServiceLoader` discovers providers; the application defines the selection policy; providers fulfill the contract**. Select by ID when a specific implementation is mandatory; filter by capability when requests vary per call; use preference configuration or fail intentionally when multiple providers match.

@@ -1,51 +1,51 @@
-# Tách constructor nhẹ khỏi thao tác mở tài nguyên và kích hoạt
+# Separating Lightweight Constructors from Resource Opening and Activation
 
-Trong hệ thống Java có khả năng mở rộng tại runtime, một plugin có thể được **khám phá**, **tạo instance**, **chuẩn bị tài nguyên**, **kích hoạt để nhận công việc**, rồi **ngừng hoạt động và giải phóng tài nguyên**. Nếu nhồi tất cả bước này vào constructor, chỉ một thao tác như gọi new, ServiceLoader.Provider.get() hoặc tạo đối tượng bằng dependency injection đã có thể mở socket, khởi chạy thread, đăng ký callback, sửa file hay bắt đầu nhận request. Lúc đó host khó kiểm soát thứ tự khởi động, khó xử lý lỗi giữa chừng và khó bảo đảm plugin chưa sẵn sàng sẽ không nhận công việc.
+In a Java system with runtime extensibility, a plugin may be **discovered**, **instantiated**, **prepared with resources**, **activated to accept work**, and finally **deactivated and have its resources released**. If all of these steps are crammed into the constructor, a simple operation like calling `new`, `ServiceLoader.Provider.get()`, or instantiating via dependency injection can already open sockets, start threads, register callbacks, modify files, or begin accepting requests. At that point, the host struggles to control startup order, handle mid-way failures, and ensure an unready plugin will not receive work.
 
-Nguyên tắc thiết kế: **constructor chỉ thiết lập danh tính và cấu hình tối thiểu; phương thức prepare()/initialize() mới kiểm tra và mở tài nguyên; phương thức activate()/start() mới chuyển plugin sang trạng thái phục vụ**. Host sở hữu trình tự này và luôn có cơ chế close()/stop() để hoàn tác khi một bước thất bại.
+Design principle: **the constructor only sets up identity and minimal configuration; `prepare()`/`initialize()` checks and opens resources; `activate()`/`start()` transitions the plugin into the serving state**. The host owns this sequence and always has a `close()`/`stop()` mechanism to roll back when a step fails.
 
-Bài này tập trung vào **vòng đời plugin** trong Java 17+: tại sao cần tách ba trách nhiệm, xây dựng state machine hợp lệ, xử lý rollback khi khởi tạo lỗi, điều phối nhiều plugin, kiểm tra bằng code chạy được và tránh những rò rỉ tài nguyên phổ biến.
+This article focuses on the **plugin lifecycle** in Java 17+: why these three responsibilities must be separated, building a valid state machine, handling rollback on initialization failure, orchestrating multiple plugins, verifying with runnable code, and avoiding common resource leaks.
 
-## 1. Phân biệt ba hành động có ý nghĩa khác nhau
+## 1. Distinguishing Three Actions with Different Meanings
 
-Hãy tưởng tượng plugin phân tích dữ liệu cần một đường dẫn log, cấu hình kết nối và một callback đăng ký với host:
+Imagine a data-analysis plugin that needs a log file path, connection config, and a callback registered with the host:
 
-| Giai đoạn | Việc nên làm | Việc không nên làm |
+| Phase | What It Should Do | What It Should Not Do |
 | --- | --- | --- |
-| **Construction** – constructor | Nhận cấu hình bất biến, kiểm tra null và dạng dữ liệu rẻ, gán field, tạo đối tượng trạng thái ban đầu | Mở socket/file, tạo thread, kết nối DB, đăng ký listener hoặc tự công bố readiness |
-| **Preparation** – prepare/init | Kiểm tra tài nguyên thực tế, mở file/socket/connection theo quyền đã cấp, nạp metadata, kiểm tra dependency, tạo thành phần vận hành nhưng chưa nhận traffic | Công khai plugin cho request khi chưa chuẩn bị xong; làm rơi tài nguyên khi prepare lỗi |
-| **Activation** – activate/start | Bật scheduler/consumer, đăng ký endpoint hoặc callback phục vụ, công bố readiness khi mọi điều kiện đạt, chuyển sang ACTIVE | Tiếp tục phục vụ nếu một bước kích hoạt đã thất bại |
-| **Deactivation/close** | Ngừng nhận việc, drain/cancel công việc còn chạy, hủy đăng ký, đóng tài nguyên theo thứ tự và xóa tham chiếu | Đóng file/scheduler trong lúc handler vẫn được phép sử dụng; coi close là tương đương JVM class unloading |
+| **Construction** – constructor | Accept immutable config, perform cheap null and format checks, assign fields, create initial state object | Open sockets/files, spawn threads, connect to DBs, register listeners, or self-announce readiness |
+| **Preparation** – prepare/init | Verify actual resources, open files/sockets/connections under granted permissions, load metadata, check dependencies, create operational components without taking traffic yet | Expose the plugin to requests before preparation completes; leak resources if prepare fails |
+| **Activation** – activate/start | Start schedulers/consumers, register serving endpoints or callbacks, publish readiness once all conditions are met, transition to ACTIVE | Keep serving if an activation step has failed |
+| **Deactivation/close** | Stop accepting work, drain/cancel in-flight work, unregister, close resources in order, and clear references | Close files/schedulers while handlers are still permitted to use them; treat close as equivalent to JVM class unloading |
 
-**Constructor nhẹ** không có nghĩa không làm gì. Nó có thể validate tên plugin, chuẩn hóa giá trị đơn giản, sao chép cấu hình bất biến và thiết lập state NEW. Điều cần tránh là những **side effect khó đảo ngược hoặc có thể chặn lâu**. Việc gọi new không nên làm dịch vụ ngoài chịu tải hoặc thay đổi trạng thái toàn cục.
+A **lightweight constructor** does not mean doing nothing. It can validate the plugin name, normalize simple values, copy immutable configuration, and set state NEW. What must be avoided are **side effects that are hard to reverse or can block for a long time**. Calling `new` should not put load on external services or mutate global state.
 
-**Prepare** là giai đoạn tài nguyên đã được cấp phát nhưng plugin **chưa sẵn sàng phục vụ**. Ví dụ một TCP connection đã mở hoặc file đã có writer; host vẫn chưa phát request đến plugin.
+**Prepare** is the phase where resources have been allocated, yet the plugin is **not ready to serve**. For example, a TCP connection is open or a file already has a writer; the host is still not routing requests to the plugin.
 
-**Activate** mới là điểm cam kết vận hành. Một hệ thống cần readiness rõ ràng không nên cho traffic vào chỉ vì constructor đã trả về một instance.
+**Activate** is the point of operational commitment. A system requiring explicit readiness should not send traffic just because the constructor returned an instance.
 
-## 2. Ví dụ thiết kế sai: constructor tự mở và tự kích hoạt
+## 2. Bad Design Example: Constructor Opens and Self-Activates
 
-Mẫu dưới đây là **đoạn minh họa anti-pattern**, không phải class hoàn chỉnh:
+The sample below is an **anti-pattern illustration**, not a complete class:
 
 ~~~java
 final class RiskyPlugin {
     private final java.net.Socket connection;
 
     RiskyPlugin(String host, int port) throws java.io.IOException {
-        connection = new java.net.Socket(host, port); // I/O trong constructor
-        HostCallbacks.register(this);                 // công bố instance quá sớm
+        connection = new java.net.Socket(host, port); // I/O in constructor
+        HostCallbacks.register(this);                 // publishes instance prematurely
     }
 }
 ~~~
 
-Trong đoạn minh họa này, HostCallbacks chỉ là một giả định về API host, không được định nghĩa nên đoạn này **không biên dịch độc lập**. Nó cho thấy hai rủi ro khác nhau:
+In this illustration, `HostCallbacks` is just an assumed host API and is not defined, so this snippet **does not compile standalone**. It demonstrates two distinct risks:
 
-1. **I/O trong constructor:** tạo một instance chỉ để khám phá metadata đã có thể timeout, ném IOException hoặc giữ socket. Nếu bước tiếp theo thất bại, caller có thể không có instance hoàn chỉnh để gọi close().
-2. **Để this thoát khỏi constructor:** registry có thể gọi callback khi object còn đang xây dựng; field hoặc cấu trúc nội bộ có thể chưa thiết lập xong. Đây là lỗi về publication và thứ tự khởi tạo, không chỉ là vấn đề hiệu năng.
+1. **I/O in the constructor:** instantiating an object merely to inspect metadata can already time out, throw `IOException`, or hold open a socket. If a subsequent step fails, the caller might not have a complete instance on which to call `close()`.
+2. **Letting `this` escape from the constructor:** the registry may invoke callbacks while the object is still being constructed; fields or internal structures may not be initialized yet. This is a publication and initialization-order bug, not merely a performance issue.
 
-Tình huống thực tế thường khó hơn: constructor gọi một thư viện bên thứ ba, thư viện ấy tạo executor/thread hoặc đăng ký JDBC driver bên dưới. Nếu việc cấp phát không có điểm tập trung và không ghi lại ownership, host khó biết tài nguyên nào cần đóng sau lỗi.
+Real-world situations are often harder: a constructor calls a third-party library, which creates an executor/thread or registers a JDBC driver underneath. If allocation has no central point and ownership is not recorded, the host struggles to know which resources need closing after a failure.
 
-Thay vào đó, constructor chỉ nên nhận những tham số cần thiết:
+Instead, the constructor should only accept the required parameters:
 
 ~~~java
 final class PluginConfig {
@@ -59,128 +59,128 @@ final class PluginConfig {
 }
 ~~~
 
-Đây là class độc lập đơn giản có thể đặt trong file PluginConfig.java; nó chưa mở file và cũng chưa kích hoạt dịch vụ. Có thể dùng record trong Java 17 khi dữ liệu cấu hình thích hợp; lưu ý đối tượng Path là một tham chiếu đường dẫn, **không phải bằng chứng file đã tồn tại hoặc truy cập được**. Kiểm tra I/O thật nên nằm trong prepare.
+This is a simple standalone class that can be placed in `PluginConfig.java`; it has not opened any file and has not activated any service. A Java 17 `record` can be used when the configuration data fits; note that a `Path` object is a path reference, **not proof that the file exists or is accessible**. Real I/O checks belong in `prepare`.
 
-## 3. Mô hình trạng thái cho vòng đời plugin
+## 3. State Model for the Plugin Lifecycle
 
-Một mô hình điển hình:
+A typical model:
 
 ~~~text
-                  tạo instance
+                 create instance
                        |
                        v
-                     NEW
+                      NEW
                        |
-                  prepare OK
+                   prepare OK
                        v
                    PREPARED
                        |
                   activate OK
                        v
-                    ACTIVE
+                     ACTIVE
                        |
-               ngừng nhận request
+              stop accepting requests
                        v
-                   STOPPING
+                    STOPPING
                        |
                  close resources
                        v
-                    CLOSED
+                     CLOSED
 ~~~
 
-Ở bất kỳ giai đoạn nào phát sinh lỗi, host cần hủy những phần đã cấp phát và đi đến trạng thái dừng/đóng. Có thể biểu diễn lỗi và cleanup:
+If an error occurs at any phase, the host needs to tear down already-allocated parts and move to a stopped/closed state. Failure and cleanup can be represented as:
 
 ~~~text
-NEW ── prepare lỗi ──────────────┐
-PREPARED ── activate lỗi ────────┼──> cleanup/close ──> CLOSED
-ACTIVE ── handler/stop lỗi ──────┘
+NEW ── prepare error ────────────┐
+PREPARED ── activate error ──────┼──> cleanup/close ──> CLOSED
+ACTIVE ── handler/stop error ────┘
 ~~~
 
-Đây là **sơ đồ khái niệm**, không ép mọi implementation phải có đúng các tên trạng thái. Ví dụ chạy được ở mục 6 dùng bốn trạng thái **NEW, PREPARED, ACTIVE, CLOSED** để tránh làm rối bài; STOPPING/FAILED là những trạng thái bổ sung thường cần cho runtime có thread và tác vụ dài.
+This is a **conceptual diagram**, not forcing every implementation to use the exact same state names. The runnable example in Section 6 uses four states—**NEW, PREPARED, ACTIVE, CLOSED**—to keep the article uncluttered; `STOPPING`/`FAILED` are additional states commonly needed for runtimes with threads and long-running tasks.
 
-### Bất biến (invariants) cần bảo vệ
+### Invariants to Protect
 
-- **NEW:** chỉ có cấu hình, chưa sở hữu tài nguyên vận hành của plugin.
-- **PREPARED:** những tài nguyên cần thiết đã mở thành công, nhưng plugin chưa được công bố là sẵn sàng.
-- **ACTIVE:** điều kiện phục vụ đã đạt và host có thể điều phối lời gọi tới plugin.
-- **CLOSED:** plugin không nhận việc mới; những tài nguyên mà nó sở hữu đã được yêu cầu giải phóng.
-- **Transition hợp lệ:** start/activate không được gọi trước prepare; handle không chạy khi NEW/PREPARED/CLOSED; tránh gọi prepare nhiều lần trừ khi API thiết kế hỗ trợ.
-- **Rollback:** nếu prepare/activate thất bại, phải thu hồi cả những tài nguyên đã cấp phát trước điểm lỗi.
-- **Idempotent close:** gọi close lần hai nên an toàn và không khởi động lại tài nguyên; nếu một close trước đó đã lỗi, cần cơ chế theo dõi cleanup chưa hoàn tất.
+- **NEW:** holds only configuration; does not yet own operational plugin resources.
+- **PREPARED:** required resources have been opened successfully, but the plugin has not been published as ready.
+- **ACTIVE:** serving conditions are met and the host may dispatch calls to the plugin.
+- **CLOSED:** the plugin accepts no new work; resources it owns have been requested to be released.
+- **Valid transitions:** `start`/`activate` must not be called before `prepare`; `handle` must not run when `NEW`/`PREPARED`/`CLOSED`; avoid calling `prepare` multiple times unless the API is explicitly designed to support it.
+- **Rollback:** if `prepare`/`activate` fails, resources allocated prior to the failure point must also be reclaimed.
+- **Idempotent close:** calling `close` a second time should be safe and must not re-open resources; if an earlier `close` failed, a mechanism is needed to track incomplete cleanup.
 
-Các bất biến trên bảo vệ **hành vi điều phối**, không phải bảo mật trước plugin không đáng tin. Một plugin ác ý vẫn có thể tự tạo thread hoặc mở socket trong constructor dù quy ước nói không được.
+These invariants protect **orchestration behavior**, not security against untrusted plugins. A malicious plugin can still spawn threads or open sockets in its constructor despite any convention saying otherwise.
 
-## 4. Giao diện vòng đời: host kiểm soát, plugin thực thi
+## 4. Lifecycle Interface: Host Controls, Plugin Executes
 
-Một contract có thể tách rõ:
+A contract can draw a clear separation:
 
 ~~~java
 public interface ManagedPlugin extends AutoCloseable {
-    String id();                    // metadata nhẹ
-    void prepare() throws Exception;  // mở và kiểm tra tài nguyên
-    void activate() throws Exception; // kích hoạt phục vụ
+    String id();                    // lightweight metadata
+    void prepare() throws Exception;  // open and verify resources
+    void activate() throws Exception; // activate serving
     String handle(String input) throws Exception;
     @Override
     void close() throws Exception;    // cleanup
 }
 ~~~
 
-Đây là **ví dụ giao diện**, có thể lưu trong ManagedPlugin.java. Hệ thống thật nên định nghĩa kiểu exception cụ thể thay cho throws Exception nếu cần phân biệt lỗi cấu hình, lỗi I/O, lỗi phụ thuộc hay lỗi kích hoạt. **Java AutoCloseable** phù hợp với try-with-resources hoặc finally, nhưng bản thân nó không xác định các trạng thái NEW/PREPARED/ACTIVE; host và plugin phải đồng thuận contract.
+This is an **interface example** that can be saved in `ManagedPlugin.java`. Real systems should define specific exception types instead of `throws Exception` if you need to distinguish configuration errors, I/O errors, dependency errors, or activation errors. **Java `AutoCloseable`** fits `try-with-resources` or `finally`, but by itself it does not define `NEW`/`PREPARED`/`ACTIVE` states; host and plugin must agree on the contract.
 
-Trách nhiệm hai phía:
+Two-sided responsibilities:
 
 **Host/plugin manager:**
-- Chỉ chọn hoặc tạo plugin dựa trên metadata, version và compatibility.
-- Quyết định lúc nào prepare/activate, timeout và giới hạn tài nguyên.
-- Không công bố instance vào registry đang phục vụ trước khi activate thành công.
-- Bắt lỗi và đóng các tài nguyên đã cấp phát, ghi lại trạng thái.
-- Khi dừng: ngừng chuyển request, chờ tác vụ cũ kết thúc, close plugin và giải phóng loader.
+- Selects or instantiates plugins only based on metadata, version, and compatibility.
+- Decides when to `prepare`/`activate`, along with timeouts and resource limits.
+- Does not publish the instance into the serving registry before `activate` succeeds.
+- Catches errors, closes allocated resources, and records state.
+- On shutdown: stops routing requests, waits for in-flight tasks to finish, closes the plugin, and releases the loader.
 
 **Plugin implementation:**
-- Giữ constructor rẻ, không tự đăng ký bên ngoài.
-- Prepare có tính toàn vẹn: nếu lỗi, không để resource mở mà không được quản lý.
-- Activate không báo thành công trước khi thật sự có khả năng phục vụ.
-- Handle chỉ chạy trong trạng thái ACTIVE.
-- Close được gọi được từ cả trường hợp prepare/activate chưa hoàn tất và trường hợp đang hoạt động.
+- Keeps constructor cheap; does not self-register externally.
+- Makes `prepare` atomic in cleanup: on failure, does not leave resources open unmanaged.
+- In `activate`, does not report success before truly being capable of serving.
+- Executes `handle` only in the `ACTIVE` state.
+- Allows `close` to be called both when `prepare`/`activate` are incomplete and when active.
 
-Điểm quan trọng là **host quản lý readiness**, không chỉ hỏi plugin đã tồn tại hay chưa. Một Java object đã được new thành công không phải bằng chứng plugin hoặc dependency của nó đã sẵn sàng.
+The key point is that **the host manages readiness**, rather than merely asking whether a plugin exists. A Java object successfully constructed with `new` is not proof that the plugin or its dependencies are ready.
 
-## 5. Vì sao việc tách pha đặc biệt quan trọng với ServiceLoader và class loader riêng
+## 5. Why Phase Separation Matters Especially with ServiceLoader and Dedicated Class Loaders
 
-Trong mô hình mở rộng kiểu SPI, host có thể gọi:
+In an SPI-style extension model, the host may call:
 
 ~~~java
 ServiceLoader<ManagedPlugin> loader =
         ServiceLoader.load(ManagedPlugin.class, pluginClassLoader);
 for (ManagedPlugin plugin : loader) {
-    // Duyệt provider có thể làm provider được tạo instance.
+    // Iterating providers may instantiate the provider.
 }
 ~~~
 
-Đây là đoạn minh họa **đặt trong method đã có pluginClassLoader hợp lệ và interface ManagedPlugin nằm ở loader chung**; cần import java.util.ServiceLoader, không phải một chương trình chạy độc lập. Với cơ chế provider thông thường, việc gọi iterator.next() hoặc ServiceLoader.Provider.get() có thể **khởi tạo provider**. Nếu constructor tự kết nối DB hoặc khởi động thread, một thao tác discovery đơn giản đã biến thành activation không kiểm soát.
+This is an illustrative snippet **placed inside a method that already has a valid `pluginClassLoader` and `ManagedPlugin` interface in a shared loader**; it requires importing `java.util.ServiceLoader` and is not a standalone runnable program. With the standard provider mechanism, calling `iterator.next()` or `ServiceLoader.Provider.get()` can **instantiate the provider**. If the constructor opens DB connections or starts threads on its own, a simple discovery operation turns into uncontrolled activation.
 
-Với constructor nhẹ:
+With a lightweight constructor:
 
-1. Host khám phá danh sách provider và kiểm tra metadata/capability.
-2. Host quyết định plugin nào được phép chạy, tài nguyên nào được cấp.
-3. Host khởi tạo provider mà chưa mở tài nguyên đắt tiền.
-4. Host gọi prepare() theo thứ tự phụ thuộc cần thiết.
-5. Host gọi activate() khi điều kiện sẵn sàng đã đạt.
-6. Host mới đưa plugin vào registry để client sử dụng.
+1. The host discovers the list of providers and inspects metadata/capabilities.
+2. The host decides which plugins are permitted to run and which resources to grant.
+3. The host instantiates the provider without opening expensive resources yet.
+4. The host calls `prepare()` in the required dependency order.
+5. The host calls `activate()` once readiness conditions are satisfied.
+6. Only then does the host place the plugin into the registry for clients to use.
 
-Trong hệ thống dùng **mỗi plugin một ClassLoader**, constructor có thể chạy khi một JAR vừa được nạp. Nếu nó tạo thread giữ context class loader, tải thêm class nội bộ hay giữ static reference ở host, việc unload/reload về sau sẽ khó. Constructor nhẹ giúp **giảm** cửa sổ xảy ra tác dụng phụ, nhưng **không bảo đảm class initialization không chạy**: static initializer hoặc logic của provider factory vẫn có thể có side effect. Cần kiểm tra cả static block và đường đi factory, không chỉ thân constructor.
+In systems using **one ClassLoader per plugin**, constructors may run right after a JAR is loaded. If a constructor starts threads holding the context class loader, loads extra internal classes, or holds static references in the host, later unloading/reloading becomes difficult. A lightweight constructor **reduces** the window for side effects, but **does not guarantee class initialization won't run**: static initializers or provider factory logic can still have side effects. You must inspect static blocks and factory paths too, not just the constructor body.
 
-Cũng cần phân biệt **load class** với **initialize class** và **instantiate object**: chúng là những sự kiện liên quan nhưng không đồng nhất. Tính lazy của ServiceLoader không biến constructor đã viết nặng thành an toàn; nó chỉ trì hoãn thời điểm tác dụng phụ xảy ra.
+Also distinguish **loading a class** from **initializing a class** and **instantiating an object**: they are related events, not identical ones. `ServiceLoader`'s laziness does not make a heavy constructor safe; it merely delays when the side effect occurs.
 
-## 6. Ví dụ Java 17+ chạy được: constructor không mở file, prepare mở, activate quyết định readiness
+## 6. Runnable Java 17+ Example: Constructor Opens No Files, Prepare Opens, Activate Decides Readiness
 
-Ví dụ dưới đây minh họa **hai instance plugin** có cấu hình file log độc lập. Plugin thứ nhất chuẩn bị và kích hoạt thành công. Plugin thứ hai được chuẩn bị nhưng cố ý thất bại ở activate(). Cả hai đều được đóng bởi finally. File output được mở bằng BufferedWriter để kiểm chứng rằng thao tác cấp tài nguyên nằm ở **prepare**, không nằm trong constructor.
+The example below illustrates **two plugin instances** with independent log file configurations. The first plugin prepares and activates successfully. The second plugin prepares, then intentionally fails in `activate()`. Both are closed via `finally`. The output file is opened using `BufferedWriter` to verify that resource allocation happens in **prepare**, not in the constructor.
 
-Không dùng thư viện ngoài JDK và không cần kết nối mạng. Code thực thi trên JDK 17+; file log tạm được xóa khi main hoàn tất.
+No external libraries outside the JDK and no network connections are required. The code runs on JDK 17+; temporary log files are deleted when `main` finishes.
 
-### 6.1. Mã nguồn đầy đủ
+### 6.1. Complete Source Code
 
-Tạo một file **PluginLifecycleDemo.java** với nội dung:
+Create a file **`PluginLifecycleDemo.java`** with the following content:
 
 ~~~java
 import java.io.BufferedWriter;
@@ -319,20 +319,20 @@ public final class PluginLifecycleDemo {
 }
 ~~~
 
-FilePlugin mô hình hóa vòng đời một resource-backed plugin. Constructor chỉ lưu id, Path và cờ mô phỏng lỗi; **không gọi Files.newBufferedWriter**, không mở socket, không tạo file và không tự công bố instance. Java class này nằm trong cùng file để bài dễ copy và chạy; trong dự án thực, interface, plugin implementation và host có thể ở những artifact/module khác nhau.
+`FilePlugin` models the lifecycle of a resource-backed plugin. The constructor only stores `id`, `Path`, and a failure-simulation flag; it **does not call `Files.newBufferedWriter`**, open sockets, create files, or self-publish the instance. These Java classes live in the same file so the article is easy to copy and run; in real projects, the interface, plugin implementation, and host can reside in different artifacts/modules.
 
-### 6.2. Biên dịch và chạy
+### 6.2. Compiling and Running
 
-Đứng tại thư mục chứa PluginLifecycleDemo.java, dùng **JDK 17 trở lên**:
+From the directory containing `PluginLifecycleDemo.java`, using **JDK 17 or later**:
 
 ~~~powershell
 javac --release 17 -encoding UTF-8 PluginLifecycleDemo.java
 java PluginLifecycleDemo
 ~~~
 
-Hai lệnh cũng áp dụng cho terminal Linux/macOS có cài javac và java. Chương trình tạo thư mục tạm theo hệ điều hành, không phụ thuộc vào đường dẫn Windows cố định. Những file tạo trong thư mục tạm được dọn bằng finally của main; trong bài học, file log được đọc trước khi xóa.
+The same two commands also apply on Linux/macOS terminals with `javac` and `java` installed. The program creates an OS temporary directory without depending on fixed Windows paths. Files created in the temporary directory are cleaned up by `main`'s `finally` block; in this lesson, the log files are read before deletion.
 
-**Stdout chính xác khi chạy:**
+**Exact stdout when executed:**
 
 ~~~text
 constructorFiles=false,false
@@ -345,22 +345,22 @@ goodLog=prepared good|activated good|processed good:HELLO
 badLog=prepared bad
 ~~~
 
-Đây là kết quả đã được kiểm chứng bằng lệnh javac --release 17 và thực thi Java thực tế.
+This output has been verified with `javac --release 17` and actual Java execution.
 
-### 6.3. Đọc ý nghĩa từng dòng stdout
+### 6.3. Reading the Meaning of Each Stdout Line
 
-- **constructorFiles=false,false:** sau khi tạo cả hai plugin, chưa có file good.log và bad.log. Điều này kiểm chứng **constructor không tạo hai file tài nguyên**; thư mục tạm đã được host tạo trước đó.
-- **preparedExists=true:** good.prepare() mở file log bằng Files.newBufferedWriter và ghi dòng prepared good. Đây là giai đoạn mở tài nguyên.
-- **result=good:HELLO:** chỉ sau activate() thành công, lời gọi handle("hello") mới được phép thực hiện.
-- **goodState=CLOSED:** finally bảo đảm gọi close sau pha phục vụ; trạng thái chuyển về CLOSED.
-- **badError=activation rejected:** bad.prepare() đã thành công nhưng activate() cố ý ném IllegalStateException. Lỗi được host bắt và vẫn gọi close trong finally.
-- **badState=CLOSED:** lỗi khởi động **không để lại một plugin ở trạng thái phục vụ**; close đã yêu cầu giải phóng tài nguyên.
-- **goodLog=prepared good|activated good|processed good:HELLO:** tài nguyên được dùng lần lượt trong pha chuẩn bị, kích hoạt và xử lý; ký hiệu | là dấu nối các dòng khi in để dễ quan sát.
-- **badLog=prepared bad:** plugin lỗi chỉ kịp ghi dữ liệu lúc prepare, không ghi "activated" hay "processed". File được giữ đủ lâu để xem kết quả, rồi host xóa khi kết thúc.
+- **constructorFiles=false,false:** after creating both plugins, neither `good.log` nor `bad.log` exists yet. This verifies that **the constructor did not create the two resource files**; only the temporary directory had been created earlier by the host.
+- **preparedExists=true:** `good.prepare()` opened the log file via `Files.newBufferedWriter` and wrote the line `prepared good`. This is the resource-opening phase.
+- **result=good:HELLO:** only after `activate()` succeeds is the `handle("hello")` call permitted to execute.
+- **goodState=CLOSED:** `finally` guarantees `close` is called after the serving phase; state transitions to `CLOSED`.
+- **badError=activation rejected:** `bad.prepare()` succeeded, but `activate()` intentionally threw `IllegalStateException`. The error is caught by the host while `close` is still called in `finally`.
+- **badState=CLOSED:** the startup failure **does not leave a plugin in a serving state**; `close` has requested releasing the resource.
+- **goodLog=prepared good|activated good|processed good:HELLO:** the resource was used sequentially during preparation, activation, and handling; the `|` symbol joins lines when printing for readability.
+- **badLog=prepared bad:** the failing plugin only wrote data during `prepare`, never writing `"activated"` or `"processed"`. The file is kept just long enough to inspect the result, then the host deletes it on exit.
 
-### 6.4. Tại sao prepare giữ resource trong biến candidate?
+### 6.4. Why Does prepare Hold the Resource in a candidate Variable?
 
-Code sử dụng biến cục bộ candidate trước khi gán vào field writer:
+The code uses a local variable `candidate` before assigning to the `writer` field:
 
 ~~~java
 BufferedWriter candidate = Files.newBufferedWriter(
@@ -381,23 +381,23 @@ try {
 }
 ~~~
 
-**Đây là đoạn trích có thể tìm trong phương thức prepare của ví dụ**, không phải một file độc lập. Ý nghĩa: tài nguyên mới mở được xem như tài nguyên **tạm thời** cho đến khi bước chuẩn bị thành công. Nếu ghi hoặc flush bị lỗi, code đóng candidate trước khi ném lỗi ra ngoài. Nếu close cũng lỗi, lỗi cleanup được gắn làm suppressed exception thay vì vô tình che khuất nguyên nhân ban đầu.
+**This is an excerpt found in the `prepare` method of the example**, not a standalone file. Its meaning: the newly opened resource is treated as **provisional** until preparation succeeds. If writing or flushing fails, the code closes `candidate` before rethrowing. If `close` also fails, the cleanup error is attached as a suppressed exception rather than accidentally masking the original cause.
 
-Điều đó **không bảo đảm file được xóa** sau lỗi. CREATE_NEW đã có thể tạo file ngay trước khi việc ghi thất bại. Việc dọn artifact còn sót trên filesystem là trách nhiệm khác, có thể thuộc host/workspace manager. Hãy phân biệt **giải phóng handle** với **rollback mọi side effect bền vững**.
+That **does not guarantee the file is deleted** after an error. `CREATE_NEW` may already have created the file right before writing failed. Cleaning up leftover artifacts on the filesystem is a separate responsibility that may belong to the host/workspace manager. Distinguish **releasing a handle** from **rolling back every durable side effect**.
 
-### 6.5. Vì sao activate không được tự giả định prepare đã chạy?
+### 6.5. Why Must activate Not Assume prepare Has Already Run?
 
-Phương thức require(State.PREPARED) bảo đảm chỉ được kích hoạt từ trạng thái hợp lệ. Nếu host gọi activate ngay sau new, chương trình báo IllegalStateException thay vì phát sinh lỗi ngẫu nhiên như NullPointerException khi writer vẫn null.
+The `require(State.PREPARED)` method ensures activation happens only from a valid state. If the host calls `activate` right after `new`, the program reports `IllegalStateException` instead of raising an incidental error like `NullPointerException` when `writer` is still `null`.
 
-Tương tự, handle() gọi require(State.ACTIVE) để ngăn nhận việc khi plugin chưa được kích hoạt hoặc đã đóng. Kiểm tra trạng thái ở biên API giúp phát hiện lỗi điều phối sớm.
+Similarly, `handle()` calls `require(State.ACTIVE)` to prevent accepting work when the plugin is not yet activated or has already closed. Checking state at API boundaries helps catch orchestration bugs early.
 
-Từ góc độ khả năng kiểm thử, việc có **ba điểm riêng** constructor → prepare → activate giúp viết test xác định phạm vi lỗi. Không phải tạo đối tượng đồng nghĩa đã kích hoạt một dịch vụ ngoài.
+From a testability perspective, having **three distinct points**—constructor → prepare → activate—makes it easier to write tests that pinpoint failure scope. Constructing an object does not mean an external service has been activated.
 
-## 7. Quy tắc rollback khi một pha khởi động thất bại
+## 7. Rollback Rules When a Startup Phase Fails
 
-Giả sử một plugin cần ba tài nguyên: file log, kết nối DB và consumer đăng ký với message broker. Prepare có thể mở file rồi tạo connection, activate mới subscribe consumer. Nếu bước thứ hai hoặc thứ ba lỗi, những resource đã có **vẫn phải được thu hồi**.
+Suppose a plugin needs three resources: a log file, a DB connection, and a consumer subscribed to a message broker. `prepare` might open the file and create the connection, while `activate` subscribes the consumer. If the second or third step fails, the resources already acquired **must still be reclaimed**.
 
-Một trình tự an toàn có dạng:
+A safe sequence looks like:
 
 ~~~text
 new plugin
@@ -408,21 +408,21 @@ prepare()
    |-- create connection
    |-- validate readiness
    |      |
-   |      +-- nếu lỗi: đóng những gì đã mở; báo thất bại
+   |      +-- if error: close what was opened; report failure
    v
 activate()
    |-- register consumer / publish capability
    |      |
-   |      +-- nếu lỗi: hủy đăng ký một phần, đóng connection/file
+   |      +-- if error: undo partial registration, close connection/file
    v
 ACTIVE / publish to host registry
 ~~~
 
-Lỗi ở prepare/activate có thể là checked exception, runtime exception, timeout hoặc ngắt thread. Không nên chỉ dọn tài nguyên khi đúng một loại IOException xảy ra.
+Failures in `prepare`/`activate` may be checked exceptions, runtime exceptions, timeouts, or thread interruptions. Do not clean up resources only when a single specific `IOException` occurs.
 
-### 7.1. Host dùng finally/try-with-resources đúng thời điểm
+### 7.1. Host Uses finally/try-with-resources at the Right Time
 
-Một sơ đồ điều phối tối giản:
+A minimal orchestration pattern:
 
 ~~~java
 ManagedPlugin plugin = createPlugin();
@@ -432,7 +432,7 @@ try {
     plugin.activate();
     registry.publish(plugin.id(), plugin);
     published = true;
-    // Plugin đã ACTIVE và thuộc quyền quản lý của registry.
+    // Plugin is now ACTIVE and managed by the registry.
 } catch (Exception startupFailure) {
     if (published) {
         registry.unpublish(plugin.id());
@@ -446,49 +446,49 @@ try {
 }
 ~~~
 
-Đây là **mã minh họa thuật toán**, không phải đoạn Java biên dịch độc lập: createPlugin, registry và chính sách publish/unpublish cần được định nghĩa; phải đặt trong method khai báo throws Exception thích hợp. Host thật cần bảo đảm registry.publish là **atomic**, hoặc rollback publication nếu publication có thể thực hiện một phần trước khi ném exception. Không được hiểu biến boolean published là giải pháp giao dịch tổng quát cho mọi registry.
+This is **algorithmic illustrative code**, not a standalone compilable Java snippet: `createPlugin`, `registry`, and the publish/unpublish policy must be defined, and it must sit in a method declaring appropriate `throws Exception`. A real host must ensure `registry.publish` is **atomic**, or roll back publication if publication can happen partially before throwing an exception. Do not treat a `published` boolean as a universal transactional solution for every registry.
 
-Điểm thiết kế chính là: **host chỉ công bố plugin sau khi prepare và activate thành công**; nếu bất kỳ bước khởi động nào thất bại, host phải close instance và xử lý mọi tài nguyên/callback đã đăng ký một phần.
+The key design point is: **the host publishes the plugin only after `prepare` and `activate` succeed**; if any startup step fails, the host must close the instance and clean up any partially registered resources/callbacks.
 
-Khi dùng try-with-resources để quản lý một plugin chỉ sống trong phạm vi method, Java sẽ tự close khi rời block. Nhưng với plugin cần sống lâu để nhận request, không thể bao nó trong try-with-resources rồi **return plugin hoặc đăng ký vào runtime registry** mà không chuyển rõ quyền sở hữu vòng đời; block kết thúc thì plugin đã bị close. Khi chuyển ownership sang manager, manager mới là nơi gọi close lúc shutdown.
+When using `try-with-resources` to manage a plugin whose lifetime is scoped to a single method, Java automatically closes it upon leaving the block. However, for a long-lived plugin serving requests, you cannot wrap it in `try-with-resources` and then **return the plugin or register it in a runtime registry** without explicitly transferring lifecycle ownership; once the block exits, the plugin is already closed. When ownership is transferred to the manager, the manager is where `close` is called at shutdown.
 
-### 7.2. Nếu bản thân cleanup ném lỗi
+### 7.2. If Cleanup Itself Throws an Error
 
-Một lỗi thường gặp:
+A common mistake:
 
 ~~~java
 catch (Exception original) {
-    plugin.close();  // có thể ném exception khác và che lỗi gốc
+    plugin.close();  // may throw another exception and mask the original error
     throw original;
 }
 ~~~
 
-Đây là **anti-pattern minh họa**. Nếu close ném IOException, lỗi khởi động ban đầu có thể bị mất khỏi đường điều khiển quan sát được. Hãy giữ lỗi khởi động làm lỗi chính, gắn lỗi đóng tài nguyên làm suppressed, hoặc dùng cấu trúc try-with-resources phù hợp.
+This is an **illustrative anti-pattern**. If `close` throws `IOException`, the initial startup failure can be lost from the observable control path. Keep the startup error as the primary exception, attach resource-closing errors as suppressed, or use an appropriate `try-with-resources` structure.
 
-Nếu một tài nguyên A phụ thuộc tài nguyên B, thường cần đóng **ngược thứ tự mở** (sau khi đã ngừng nhận việc). Đảm bảo close cố gắng giải phóng các tài nguyên độc lập kể cả khi một lần close đầu tiên thất bại, đồng thời tổng hợp lỗi để chẩn đoán.
+If resource A depends on resource B, they usually need to be closed in **reverse order of opening** (after stopping incoming work). Ensure `close` attempts to release independent resources even if the first close call fails, while aggregating errors for diagnostics.
 
-**Lưu ý giới hạn của ví dụ runnable:** FilePlugin chỉ sở hữu một BufferedWriter, nên close có thể đơn giản. Trong hệ thống có nhiều resource, close nên dùng nhiều khối try/catch/finally theo thứ tự; cần cẩn thận với InterruptedException, timeout và trạng thái không xác định của mạng.
+**Limitation note on the runnable example:** `FilePlugin` owns only a single `BufferedWriter`, so `close` can be simple. In systems with multiple resources, `close` should use multiple ordered `try`/`catch`/`finally` blocks; take care with `InterruptedException`, timeouts, and indeterminate network states.
 
-## 8. Tránh kích hoạt ngầm trong DI container, framework và factory
+## 8. Avoiding Implicit Activation in DI Containers, Frameworks, and Factories
 
-Không chỉ ServiceLoader mới tạo plugin. Instance có thể xuất hiện do:
+`ServiceLoader` is not the only thing that instantiates plugins. Instances can appear because:
 
-- Dependency injection container tạo object.
-- Factory method hoặc Builder.create() trả về implementation.
-- Reflection gọi constructor bằng Constructor.newInstance().
-- SPI provider factory hoặc ServiceLoader.Provider.get().
-- Test fixture tạo instance để kiểm tra metadata/config.
-- Công cụ phân tích classpath hoặc cơ chế reload nạp lại plugin.
+- A dependency injection container creates objects.
+- A factory method or `Builder.create()` returns an implementation.
+- Reflection invokes a constructor via `Constructor.newInstance()`.
+- An SPI provider factory or `ServiceLoader.Provider.get()` runs.
+- A test fixture creates an instance to inspect metadata/config.
+- A classpath scanner or reload mechanism instantiates plugins.
 
-Nếu constructor mở resource, **mọi đường tạo instance** đều cần chuẩn bị đầy đủ môi trường và cleanup. Một framework gọi constructor để introspect thông tin, hoặc test chỉ muốn tạo mock object, đã có thể mở DB ngoài ý muốn.
+If the constructor opens resources, **every instantiation path** must have full environment setup and cleanup ready. A framework calling a constructor to introspect metadata, or a test merely trying to create a mock object, could unintentionally open a DB connection.
 
-Một số framework hỗ trợ hook khởi tạo như phương thức được đánh dấu @PostConstruct hoặc callback startup. Những hook này **cũng có thể được framework gọi sớm**, nên cần hiểu đúng thời điểm chúng được thực thi. Nếu host yêu cầu tách prepare khỏi activate, không nên chuyển toàn bộ tác dụng phụ của constructor sang @PostConstruct rồi gọi đó là giải pháp hoàn chỉnh.
+Some frameworks support initialization hooks such as methods annotated with `@PostConstruct` or startup callbacks. Those hooks **can also be invoked early by the framework**, so understand exactly when they execute. If the host requires separating `prepare` from `activate`, do not simply move all constructor side effects into `@PostConstruct` and call that a complete solution.
 
-Cách mạnh hơn là cung cấp **lifecycle contract tường minh** và để host/plugin manager điều phối. DI framework có thể tạo instance trước, nhưng plugin chỉ phục vụ sau khi manager xác nhận ACTIVE.
+A stronger approach is to provide an **explicit lifecycle contract** and let the host/plugin manager orchestrate it. The DI framework can instantiate the object first, while the plugin only serves once the manager confirms `ACTIVE`.
 
-### Quy ước về cấu hình
+### Configuration Convention
 
-Constructor có thể nhận một cấu hình bất biến như:
+The constructor can accept an immutable configuration such as:
 
 ~~~java
 record PluginSettings(String id, Path outputPath) {
@@ -502,19 +502,19 @@ record PluginSettings(String id, Path outputPath) {
 }
 ~~~
 
-Đây là đoạn minh họa Java 17 độc lập **cần import java.nio.file.Path và java.util.Objects**, có thể đặt trong PluginSettings.java khi record được khai báo public hoặc dùng record package-private với tên file phù hợp. Cách này kiểm tra giá trị thuần trong constructor; nó không gọi Files.exists(), không truy vấn DB và không kết nối mạng. Các kiểm tra yêu cầu môi trường I/O phải dời sang prepare vì môi trường có thể đổi giữa lúc tạo instance và lúc khởi động.
+This is a standalone Java 17 illustration **requiring imports for `java.nio.file.Path` and `java.util.Objects`**, which can be placed in `PluginSettings.java` when the record is declared `public` or as a package-private record with an appropriate filename. This validates pure values in the constructor; it does not call `Files.exists()`, query a DB, or connect to the network. Checks requiring an I/O environment must be deferred to `prepare` because the environment can change between instantiation time and startup time.
 
-## 9. Sẵn sàng phục vụ là trách nhiệm của activation, không phải construction
+## 9. Readiness to Serve Is Activation's Responsibility, Not Construction's
 
-Trong một plugin hệ thống thật, activation có thể gồm:
+In a real system plugin, activation may include:
 
-1. Bắt đầu nhận message từ queue.
-2. Đăng ký callback vào event bus.
-3. Công bố endpoint/capability trong registry.
-4. Bật scheduler hoặc background worker.
-5. Cho health/readiness chuyển sang trạng thái ready.
+1. Starting to consume messages from a queue.
+2. Registering callbacks on an event bus.
+3. Publishing endpoints/capabilities in a registry.
+4. Starting a scheduler or background worker.
+5. Transitioning health/readiness to ready.
 
-Điểm công bố trạng thái **ACTIVE** phải xảy ra sau những bước cần thiết. Nếu callback có thể chạy ngay khi vừa đăng ký, hãy chuẩn bị toàn bộ nội bộ cần thiết **trước khi công bố callback**. Không nên thực hiện:
+The point of publishing the **ACTIVE** state must occur after the necessary steps complete. If a callback can fire immediately upon registration, prepare all required internal state **before publishing the callback**. Do not do:
 
 ~~~text
 publish plugin to registry
@@ -526,9 +526,9 @@ initialize connection
 subscribe background worker
 ~~~
 
-Theo trình tự sai này, request có thể đến trong lúc connection chưa có. Nếu bước initialize connection bị lỗi, client đã nhìn thấy một plugin không khả dụng.
+Under this flawed sequence, requests can arrive while the connection does not yet exist. If `initialize connection` fails, clients have already seen an unavailable plugin.
 
-Trình tự hợp lý hơn:
+A sounder sequence:
 
 ~~~text
 construct (no externally visible side effect)
@@ -543,22 +543,22 @@ activate internal capability
 publish readiness / open routing
 ~~~
 
-**Chú ý ranh giới giữa activate và publish:** Trong một số hệ thống, đăng ký listener chính là thao tác kích hoạt, bởi event có thể đến ngay lúc register. Khi ấy cần một cơ chế chặn xử lý cho đến khi ACTIVE, hoặc thiết kế đăng ký theo dạng atomic staging/enable. Không thể chỉ đảo thứ tự các lời gọi mà bảo đảm an toàn nếu framework tự phát callback đồng thời.
+**Note the boundary between activate and publish:** In some systems, registering a listener *is* the activation action, because events can arrive the instant it is registered. In that case, you need a mechanism blocking processing until `ACTIVE`, or design registration as atomic staging/enable. Simply reordering calls does not guarantee safety if the framework dispatches callbacks concurrently.
 
-Nếu activation có side effect bên ngoài không thể hoàn tác hoàn toàn (ví dụ gửi lệnh thanh toán, phát một event có hiệu lực), hãy tách **chuẩn bị tài nguyên** khỏi **cam kết tác vụ nghiệp vụ** và áp dụng idempotency key, transactional outbox hoặc giao thức phục hồi phù hợp. Lifecycle method không tự tạo giao dịch phân tán.
+If activation has external side effects that cannot be completely rolled back (e.g., sending a payment command or emitting a durable event), separate **resource preparation** from **committing business tasks** and apply idempotency keys, a transactional outbox, or an appropriate recovery protocol. Lifecycle methods do not automatically create distributed transactions.
 
-## 10. Đồng thời: không được close khi request còn chạy
+## 10. Concurrency: Do Not Close While Requests Are Still Running
 
-Bài toán runtime plugin thường có nhiều thread: host đang shutdown trong khi worker đang thực hiện handle(), hoặc plugin mới đang activate khi hệ thống nhận request. Khi đó enum State và một vài phép kiểm tra chưa chắc đủ.
+Plugin runtime problems often involve multiple threads: the host is shutting down while a worker is executing `handle()`, or a new plugin is activating while the system receives requests. In those cases, a `State` enum and a few checks are unlikely to be enough.
 
-Ví dụ runnable ở mục 6 dùng **synchronized** cho prepare, activate, handle, state và close. Điều này tuần tự hóa các lời gọi trong **cùng instance**, phù hợp để dạy bất biến cơ bản. Nó không giải quyết mọi vấn đề production:
+The runnable example in Section 6 uses **`synchronized`** on `prepare`, `activate`, `handle`, `state`, and `close`. This serializes calls on **the same instance**, which works well for teaching the basic invariants. It does not solve every production issue:
 
-- Nếu handle() làm I/O lâu, close() chờ khóa và có thể không kịp shutdown deadline.
-- Nếu callback do thread riêng của plugin tạo mà không gọi synchronized method, chúng có thể tiếp tục chạy sau close.
-- Nếu một plugin khác vẫn giữ tham chiếu tới instance cũ, registry ngừng cấp request mới vẫn chưa đủ.
-- Nếu resource được dùng bởi đối tượng khác không đi qua khóa của FilePlugin, close có thể xảy ra khi resource vẫn đang sử dụng.
+- If `handle()` performs long I/O, `close()` blocks waiting on the lock and may miss the shutdown deadline.
+- If callbacks spawned by the plugin's own threads do not call synchronized methods, they can continue running after `close`.
+- If another plugin still holds a reference to the old instance, having the registry stop routing new requests is not enough.
+- If a resource is used by another object without going through `FilePlugin`'s lock, `close` may happen while the resource is still in use.
 
-Một lộ trình dừng đầy đủ:
+A complete shutdown path:
 
 ~~~text
 ACTIVE
@@ -578,9 +578,9 @@ CLOSING
 CLOSED
 ~~~
 
-Nên phân biệt **quiesce** (ngừng nhận việc mới), **drain** (chờ việc cũ), và **close** (giải phóng tài nguyên). Nếu plugin dùng ExecutorService, phải thiết kế chính sách shutdown()/awaitTermination()/shutdownNow() theo loại task, không chỉ close socket ngay khi service bắt đầu dừng.
+Distinguish **quiesce** (stop accepting new work), **drain** (wait for existing work), and **close** (release resources). If a plugin uses an `ExecutorService`, design a `shutdown()`/`awaitTermination()`/`shutdownNow()` policy suited to the task types, rather than just closing sockets the instant the service begins stopping.
 
-Trạng thái lifecycle phải có cơ chế quan sát đồng bộ phù hợp: synchronized, volatile, lock, AtomicReference hay state machine thread-safe. Mọi transition cần tránh tình huống check-then-act không nguyên tử. Ví dụ:
+Lifecycle state must have proper synchronized visibility: `synchronized`, `volatile`, locks, `AtomicReference`, or a thread-safe state machine. All transitions must avoid non-atomic check-then-act patterns. For example:
 
 ~~~java
 if (plugin.isActive()) {
@@ -588,100 +588,100 @@ if (plugin.isActive()) {
 }
 ~~~
 
-Đây là **đoạn minh họa rủi ro** nếu isActive và handle không được điều phối cùng một cơ chế đồng bộ: plugin có thể chuyển CLOSED ở giữa. Trong hệ thật, registry nên cấp lease/in-flight permit hoặc sử dụng một API handle có kiểm tra trạng thái và kiểm soát vòng đời trong cùng đường gọi.
+This is an **illustration of a race risk** if `isActive` and `handle` are not coordinated under the same synchronization mechanism: the plugin can transition to `CLOSED` in between. In a real system, the registry should issue a lease/in-flight permit or expose a `handle` API that checks state and controls lifecycle along the same call path.
 
-## 11. Reload và ownership của ClassLoader
+## 11. Reload and ClassLoader Ownership
 
-Java ClassLoader là đơn vị quản lý namespace lớp; đối với plugin chạy trong JVM, một loader riêng thường giữ các class implementation và dependency của chính plugin đó. Constructor nhẹ không đủ để làm hot reload an toàn. Khi thay một phiên bản plugin, cần:
+A Java `ClassLoader` is the unit of class namespace management; for plugins running in the JVM, a dedicated loader typically holds that plugin's implementation classes and private dependencies. A lightweight constructor alone is not enough for safe hot reload. When replacing a plugin version, you must:
 
-1. Ngừng điều phối request tới plugin cũ.
-2. Drain hoặc hủy tác vụ đang chạy theo deadline.
-3. Gọi stop/close để ngắt callback, executor, thread, socket, file, timer.
-4. Hủy đăng ký khỏi registry và bỏ những tham chiếu còn giữ instance/class của plugin cũ.
-5. Nếu loader có Closeable contract như URLClassLoader, đóng loader và tài nguyên JAR của nó.
-6. Mới sau đó coi loader cũ là **đủ điều kiện** được GC/unload, nếu không còn tham chiếu; không bảo đảm unload tức thì.
+1. Stop dispatching requests to the old plugin.
+2. Drain or cancel in-flight tasks according to a deadline.
+3. Call `stop`/`close` to terminate callbacks, executors, threads, sockets, files, and timers.
+4. Unregister from the registry and drop references still holding instances/classes of the old plugin.
+5. If the loader implements a `Closeable` contract like `URLClassLoader`, close the loader and its JAR resources.
+6. Only then consider the old loader **eligible** for GC/unloading, provided no references remain; immediate unloading is not guaranteed.
 
-Các nguồn rò rỉ thường gặp:
+Common sources of leaks:
 
-- Thread sống lâu giữ **Thread Context ClassLoader** của plugin.
-- ThreadLocal hoặc callback còn được lưu trong thread pool của host.
-- Global registry giữ instance, Method, Class hoặc ClassLoader của plugin.
-- JDBC driver, logging adapter, shutdown hook, metrics listener không unregister.
-- Lambda hoặc scheduled task bị giữ trong executor của host.
-- Static singleton của thư viện dùng chung có tham chiếu ngược vào class plugin.
+- Long-lived threads retaining the plugin's **Thread Context ClassLoader**.
+- `ThreadLocal`s or callbacks still stored in a host thread pool.
+- Global registries holding plugin instances, `Method`s, `Class`es, or `ClassLoader`s.
+- Unregistered JDBC drivers, logging adapters, shutdown hooks, or metrics listeners.
+- Lambdas or scheduled tasks retained inside a host executor.
+- Static singletons in shared libraries holding back-references to plugin classes.
 
-Nếu plugin tự khởi động thread trong constructor, một lỗi khởi tạo rất sớm đã có thể giữ ClassLoader sống dai. Tách construction và activation giúp host kiểm soát khi nào thread được tạo, khi nào được đăng ký và khi nào phải dừng.
+If a plugin starts threads in its constructor, a very early initialization failure can keep the `ClassLoader` alive indefinitely. Separating construction from activation lets the host control when threads are created, when they are registered, and when they must stop.
 
-**Bảo mật:** một class loader riêng tách dependency/namespace, không phải sandbox. Plugin chưa được tin cậy có thể bỏ qua mọi quy ước lifecycle. Muốn chạy code không đáng tin, phải xét cô lập tiến trình, quyền file/network, CPU/bộ nhớ và cơ chế IPC phù hợp.
+**Security:** a dedicated class loader isolates dependencies/namespaces, not security privileges. Untrusted plugins can bypass any lifecycle convention. To run untrusted code, you must consider process isolation, file/network permissions, CPU/memory limits, and appropriate IPC mechanisms.
 
-## 12. Test đúng hành vi lifecycle, không chỉ test constructor
+## 12. Test Lifecycle Behavior Properly, Not Just the Constructor
 
-Các test hữu ích cho plugin manager:
+Useful tests for a plugin manager:
 
-| Test | Kỳ vọng |
+| Test | Expectation |
 | --- | --- |
-| Chỉ gọi constructor | Không mở file/socket hoặc đăng ký callback; state NEW |
-| Prepare thành công | Resource cần thiết đã mở, state PREPARED, chưa nhận request |
-| Gọi handle trước activate | Từ chối với lỗi trạng thái rõ ràng |
-| Activate thành công | State ACTIVE; host có thể công bố readiness |
-| Prepare lỗi giữa chừng | Resource đã mở trước lỗi được đóng; không publish |
-| Activate lỗi sau prepare | Host cleanup resource, không đưa plugin vào routing |
-| Close sau prepare nhưng trước activate | Đóng được, không cần giả lập đã ACTIVE |
-| Close sau activate | Ngừng phục vụ trước khi close resource |
-| Close hai lần | Không mở lại tài nguyên và không gây side effect thừa |
-| Nhiều request đồng thời với stop | Không có request mới sau quiesce; in-flight được xử lý theo policy |
-| Reload nhiều lần | Không tăng số thread/file handle/classloader bị giữ ngoài dự kiến |
+| Call constructor only | No files/sockets opened or callbacks registered; state NEW |
+| Prepare succeeds | Required resources opened, state PREPARED, not accepting requests yet |
+| Call handle before activate | Rejected with a clear state error |
+| Activate succeeds | State ACTIVE; host can publish readiness |
+| Prepare fails midway | Resources opened before the failure are closed; not published |
+| Activate fails after prepare | Host cleans up resources, does not put plugin in routing |
+| Close after prepare but before activate | Closes cleanly without pretending it was ACTIVE |
+| Close after activate | Stops serving before closing resources |
+| Close twice | Does not reopen resources or cause redundant side effects |
+| Concurrent requests with stop | No new requests after quiesce; in-flight handled per policy |
+| Repeated reloads | No unexpected growth in retained threads/file handles/classloaders |
 
-Ví dụ mã ở mục 6 minh họa trực tiếp bốn test: constructor không tạo file log, prepare tạo file, activate thành công mới xử lý được, và lỗi activate vẫn close. Trong production, nên dùng test giả lập connection/file failure có thể lặp lại thay vì gây lỗi ngoài hệ thống thật.
+The code example in Section 6 directly demonstrates four tests: constructor does not create log files, `prepare` creates the file, only successful `activate` handles work, and activation errors still trigger `close`. In production, use reproducible simulated connection/file failures rather than inducing faults in real external systems.
 
-### Test prepare thất bại ngay khi mở file
+### Testing Prepare Failing Right When Opening a File
 
-Trong ví dụ FilePlugin, prepare dùng StandardOpenOption.CREATE_NEW. Nếu file mục tiêu đã tồn tại, Files.newBufferedWriter có thể ném FileAlreadyExistsException. Khi đó writer vẫn null và state vẫn NEW; nếu host bắt lỗi, nó phải gọi close để chuyển instance sang CLOSED, rồi quyết định chính sách xử lý file tồn tại.
+In the `FilePlugin` example, `prepare` uses `StandardOpenOption.CREATE_NEW`. If the target file already exists, `Files.newBufferedWriter` can throw `FileAlreadyExistsException`. In that case `writer` remains `null` and state remains `NEW`; if the host catches the error, it should call `close` to transition the instance to `CLOSED`, and then apply its policy for existing files.
 
-Bài toán này hữu ích vì chứng minh **không được xử lý lỗi prepare bằng cách tiếp tục activate**. Nếu file tồn tại là trường hợp bình thường, hãy thay đổi chính sách mở file một cách chủ động (CREATE/APPEND/TRUNCATE_EXISTING), không tự động đổi từ CREATE_NEW thành ghi đè trong lúc xử lý exception.
+This scenario is helpful because it proves **you must not handle a prepare failure by proceeding to activate**. If an existing file is a normal case, proactively adjust the file-opening policy (`CREATE`/`APPEND`/`TRUNCATE_EXISTING`), rather than silently switching from `CREATE_NEW` to overwriting inside an exception handler.
 
-### Test lỗi sau khi mở tài nguyên
+### Testing Errors After Opening a Resource
 
-Nếu việc ghi hoặc flush dữ liệu prepared bị lỗi sau khi writer đã được mở, nhánh catch trong prepare cố close candidate và gắn cleanup failure làm suppressed khi cần. Đây là phạm vi bảo đảm **đóng handle trong code minh họa**. File có thể còn trên đĩa và cần bước cleanup ngoài plugin. Với nhiều resource, phải xây dựng rollback cho từng resource đã được cấp.
+If writing or flushing the prepared data fails after `writer` was opened, the `catch` block in `prepare` attempts to close `candidate` and attaches any cleanup failure as suppressed when needed. This is the guarantee scope of **closing the handle in the illustrative code**. The file may still remain on disk and require cleanup outside the plugin. With multiple resources, rollback must be built for every allocated resource.
 
-## 13. Những lỗi thiết kế thường gặp và cách sửa
+## 13. Common Design Mistakes and How to Fix Them
 
-| Dấu hiệu | Nguyên nhân | Cách khắc phục |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| Discovery SPI tự mở kết nối DB | Constructor/factory làm I/O | Để constructor nhận config, dời I/O sang prepare |
-| Plugin xuất hiện trong registry trước khi sẵn sàng | Publish trong constructor hoặc trước activate | Chỉ publish sau activation/health check |
-| Startup lỗi làm lộ file descriptor/thread | Không rollback resource mở giữa chừng | Ghi ownership và close trong catch/finally |
-| Constructor bị chặn lâu khi DB/network trục trặc | Đồng bộ chờ I/O trong new | Dời vào prepare với timeout/cancellation |
-| Activate sau prepare lỗi gây NullPointerException | Thiếu state transition guard | Yêu cầu PREPARED trước activate |
-| Request vẫn tới sau close | Registry chưa quiesce, callback chưa unsubscribe | Ngừng routing, drain, sau đó close |
-| Close làm che nguyên nhân khởi động | Cleanup ném lỗi mới | Giữ lỗi gốc, gắn suppressed hoặc tổng hợp lỗi |
-| Reload rò ClassLoader | Thread/TCCL/cache/registry còn tham chiếu | Cleanup lifecycle và bỏ reference đúng thứ tự |
-| Stop gây treo | Handler chặn, giữ lock hoặc không hỗ trợ cancellation | Deadline, drain, interrupt/cooperative stop và giám sát |
-| Khởi động lại object CLOSED nhưng tài nguyên không hợp lệ | Restart không có contract rõ | Dùng instance và loader mới; chỉ cho restart nếu state machine được thiết kế riêng |
+| SPI discovery opens DB connections on its own | Constructor/factory performs I/O | Have constructor accept config; move I/O to `prepare` |
+| Plugin appears in registry before it is ready | Published in constructor or before `activate` | Publish only after activation/health check |
+| Startup failure leaks file descriptors/threads | No rollback of mid-way opened resources | Track ownership and close in `catch`/`finally` |
+| Constructor blocks for a long time on DB/network trouble | Synchronous blocking I/O inside `new` | Move to `prepare` with timeout/cancellation |
+| Activating after a failed prepare causes NullPointerException | Missing state transition guards | Require `PREPARED` before `activate` |
+| Requests still arrive after close | Registry not quiesced, callbacks not unsubscribed | Stop routing, drain, then close |
+| Close masks the original startup cause | Cleanup throws a new error | Preserve original error, attach suppressed or aggregate errors |
+| Reload leaks ClassLoader | Threads/TCCL/caches/registries still hold references | Clean up lifecycle and drop references in the right order |
+| Stop hangs | Handler blocks, holds locks, or ignores cancellation | Deadlines, drain, interrupt/cooperative stop, and monitoring |
+| Restarting a CLOSED object leaves invalid resources | Restart lacks an explicit contract | Use a new instance and loader; allow restart only if the state machine is designed for it |
 
-Một mẫu sai đáng chú ý là **"constructor bắt lỗi nhưng nuốt lỗi"**: trong constructor, code mở tài nguyên, bắt IOException và chỉ log, rồi để instance được tạo thành công dù tài nguyên không có. Host có thể tưởng plugin đã sẵn sàng. Nếu constructor chỉ nhận cấu hình, vấn đề này phần lớn không xuất hiện; prepare trả lỗi rõ ràng và host có thể chuyển plugin sang FAILED.
+A noteworthy anti-pattern is **“constructor catches and swallows errors”**: in the constructor, code opens a resource, catches `IOException`, only logs it, and lets the instance be constructed successfully despite the missing resource. The host may think the plugin is ready. If the constructor only accepts configuration, this problem largely disappears; `prepare` returns a clear error and the host can transition the plugin to `FAILED`.
 
-## 14. Checklist quyết định cho một plugin mới
+## 14. Decision Checklist for a New Plugin
 
-Trước khi chấp nhận plugin vào hệ thống, hãy trả lời các câu hỏi:
+Before accepting a plugin into the system, answer these questions:
 
-1. **Constructor có side effect không?** Có mở file, socket, tạo thread, đăng ký event, gọi API ngoài, tạo transaction hay thay global state không?
-2. **Ai sở hữu tài nguyên?** File/socket/executor được tạo ở đâu, được close bởi method nào, đóng theo thứ tự nào?
-3. **Prepare có bảo đảm nguyên tử ở mức ownership không?** Nếu thất bại ở bước thứ ba thì hai resource đã mở có được giải phóng không?
-4. **Điểm sẵn sàng phục vụ nằm ở đâu?** Plugin có bị registry lộ ra trước khi activate xong không?
-5. **Có lời gọi handle khi chưa ACTIVE không?** API phải fail fast rõ ràng, không dựa vào NullPointerException.
-6. **Nếu activate thất bại thì sao?** Đã có quy trình cleanup và không còn routing chưa?
-7. **Nếu close thất bại thì sao?** Có giữ lỗi gốc, ghi log đầy đủ và báo resource leak cần can thiệp không?
-8. **Có chạy đồng thời không?** State, in-flight requests, callback, scheduler và close được điều phối ra sao?
-9. **Có hot reload không?** ClassLoader, TCCL, listener, static reference và thread có được dọn đúng cách không?
-10. **Tính năng nào cần test thực tế?** Constructor nhẹ, prepare, activate, failure rollback, stop, double-close và reload.
+1. **Does the constructor have side effects?** Does it open files, sockets, spawn threads, register events, call external APIs, start transactions, or mutate global state?
+2. **Who owns the resources?** Where are files/sockets/executors created, which method closes them, and in what order?
+3. **Does `prepare` guarantee atomic cleanup at the ownership level?** If it fails on the third step, are the two already-opened resources released?
+4. **Where is the readiness-to-serve boundary?** Could the plugin be exposed by the registry before `activate` finishes?
+5. **Can `handle` be called before `ACTIVE`?** The API must fail fast clearly, not rely on `NullPointerException`.
+6. **What happens if `activate` fails?** Is there a cleanup workflow and is routing guaranteed to be removed?
+7. **What happens if `close` fails?** Is the original error preserved, logged thoroughly, and any resource leak flagged for intervention?
+8. **Does it run concurrently?** How are state, in-flight requests, callbacks, schedulers, and `close` coordinated?
+9. **Is hot reload supported?** Are `ClassLoader`, TCCL, listeners, static references, and threads cleaned up properly?
+10. **What must actually be tested?** Lightweight constructor, `prepare`, `activate`, failure rollback, `stop`, double-close, and reload.
 
-## 15. Tài liệu chuẩn
+## 15. Reference Documentation
 
-- Java SE 17, **AutoCloseable** và close: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AutoCloseable.html
+- Java SE 17, **AutoCloseable** and close: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AutoCloseable.html
 - Java SE 17, **Files.newBufferedWriter**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html#newBufferedWriter(java.nio.file.Path,java.nio.charset.Charset,java.nio.file.OpenOption...)
-- Java SE 17, **ServiceLoader** và thời điểm khởi tạo provider: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+- Java SE 17, **ServiceLoader** and provider instantiation timing: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 - Java SE 17, **URLClassLoader.close**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html#close()
-- Java SE 17, **ExecutorService** và shutdown: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html
+- Java SE 17, **ExecutorService** and shutdown: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html
 
-**Kết luận:** constructor nhẹ giúp **tạo đối tượng mà không đồng thời khởi chạy plugin**. Prepare chịu trách nhiệm **mở và xác minh tài nguyên**. Activate xác định **thời điểm được phép nhận công việc**. Stop/close quản lý **thu hồi tài nguyên kể cả khi startup thất bại**. Tách ba giai đoạn giúp plugin host có startup có thể kiểm thử, trạng thái quan sát được, rollback đáng tin và vòng đời rõ ràng khi reload hoặc shutdown.
+**Conclusion:** a lightweight constructor lets you **create an object without simultaneously starting the plugin**. `Prepare` is responsible for **opening and verifying resources**. `Activate` defines **when the plugin is permitted to accept work**. `Stop`/`close` manages **reclaiming resources even when startup fails**. Separating these three phases gives the plugin host testable startup, observable state, reliable rollback, and a clear lifecycle during reload or shutdown.

@@ -1,63 +1,63 @@
-# Đóng luồng đọc và tránh lưu tài nguyên hoặc context vượt vòng đời plugin
+# Closing Streams and Avoiding Retaining Resources or Context Beyond Plugin Lifecycle
 
-## 1. Bài toán trong hệ thống mở rộng runtime
+## 1. The Problem in a Runtime-Extensible System
 
-Ứng dụng chủ (host) có thể nạp plugin từ JAR, để plugin đọc resource, sử dụng một đối tượng context của host, rồi dừng plugin khi cấu hình hoặc phiên bản thay đổi. Mỗi lần như vậy đều tạo ra những tài nguyên có **vòng đời**: luồng đọc file, handle tới JAR, socket, executor, listener, classloader, đối tượng ngữ cảnh và những tham chiếu gián tiếp từ thread.
+A host application can load a plugin from a JAR, let the plugin read resources, use a host-provided context object, and then stop the plugin when configuration or versions change. Every such cycle creates **lifecycle-bound** resources: file streams, JAR handles, sockets, executors, listeners, classloaders, context objects, and indirect references from threads.
 
-Nếu plugin mở `InputStream` nhưng không đóng, vẫn giữ context của một request đã kết thúc hoặc để một thread còn trỏ tới classloader cũ, host có thể gặp file descriptor leak, không thay được JAR trên một số hệ điều hành, tiêu tốn bộ nhớ, dùng nhầm cấu hình cũ, tiếp tục gọi code của plugin đã dừng hoặc giữ classloader cũ không thể thu hồi.
+If a plugin opens an `InputStream` without closing it, retains the context of a finished request, or leaves a thread pointing to an old classloader, the host can suffer file descriptor leaks, inability to replace JARs on certain operating systems, memory bloat, stale configuration usage, continued execution of stopped plugin code, or uncollectable old classloaders.
 
-Mục tiêu của bài là quản lý **đúng thời điểm** chứ không chỉ nhớ gọi một hàm `close()`:
+The goal of this lesson is managing **the right timing**, not merely remembering to call a `close()` method:
 
-- **Vòng đời thao tác:** resource chỉ phục vụ một lần đọc/ghi. Mở trong một phạm vi hẹp và đóng ngay sau khi tiêu thụ, dù thao tác ném lỗi.
-- **Vòng đời plugin:** các thành phần do plugin sở hữu sống qua nhiều lời gọi, chẳng hạn executor, scheduler, listener, socket hoặc registration. Dừng và giải phóng chúng trước khi bỏ plugin.
-- **Vòng đời context:** dữ liệu/capability do host cấp có thể chỉ hợp lệ trong một request hoặc phiên plugin. Plugin không được tùy tiện lưu nó vào `static` field, cache hoặc tác vụ nền.
-- **Vòng đời classloader:** host có thể dùng loader riêng để nạp plugin JAR. Đóng loader sau khi dừng công việc liên quan và loại bỏ các tham chiếu giữ nó; `close()` không tự unload lớp đang được sử dụng.
+- **Operation lifecycle:** resources serving a single read/write. Open within a narrow scope and close immediately after consumption, even if the operation throws an exception.
+- **Plugin lifecycle:** plugin-owned components that live across multiple calls, such as executors, schedulers, listeners, sockets, or registrations. Stop and release them before discarding the plugin.
+- **Context lifecycle:** data/capabilities granted by the host may only be valid for a single request or plugin session. The plugin must not arbitrarily store them in `static` fields, caches, or background tasks.
+- **Classloader lifecycle:** the host may use a dedicated loader to load the plugin JAR. Close the loader after stopping related work and clear references holding it; `close()` does not automatically unload classes still in use.
 
-Ở đây “context” có hai nghĩa cần phân biệt: **PluginContext** (đối tượng host cấp, ví dụ ID thao tác và dịch vụ được phép) và **thread context classloader** (TCCL, giá trị trên `Thread` hỗ trợ tìm lớp/resource/service). Mỗi loại có quy tắc dọn dẹp riêng.
+Here "context" has two meanings to distinguish: **PluginContext** (the host-provided object, e.g., operation ID and permitted services) and the **thread context classloader** (TCCL, the value on `Thread` assisting class/resource/service lookup). Each has its own cleanup rules.
 
-## 2. Ownership: ai mở, ai đóng và ai được giữ?
+## 2. Ownership: Who Opens, Who Closes, and Who May Retain?
 
-Quy tắc thực hành: **bên tạo và sở hữu tài nguyên đóng nó; bên chỉ mượn không được đóng tài nguyên dùng chung khi hợp đồng chưa chuyển quyền sở hữu**.
+Practical rule: **the party that creates and owns a resource closes it; a party that only borrows it must not close a shared resource unless the contract transfers ownership**.
 
-| Tài nguyên | Chủ sở hữu thường gặp | Thời điểm kết thúc | Cần tránh |
+| Resource | Typical Owner | When to Terminate | What to Avoid |
 | --- | --- | --- | --- |
-| `InputStream` lấy từ `getResourceAsStream` để đọc config | Bên gọi phương thức mở resource, thường là plugin | Kết thúc thao tác đọc | Giữ trong field hoặc quên đóng ở nhánh lỗi |
-| `Reader`, `BufferedReader`, `JarFile`, `ZipFile` | Bên mở reader/file | Khi đã tiêu thụ xong | Trả lazy stream ra ngoài sau khi đã đóng nguồn |
-| `URLClassLoader` do plugin manager tạo | Host/plugin manager | Sau khi plugin quiesce, stop và dừng task | Nghĩ `close()` sẽ hủy mọi đối tượng/lớp đang sống |
-| Executor/timer/socket do plugin tạo | Plugin | `stop()`/`close()` của plugin | Để task nền dùng plugin sau khi unload |
-| Listener/callback do plugin đăng ký vào host | Chủ thể đăng ký hoặc plugin manager theo contract | Khi plugin ngừng hoạt động | Registry của host tiếp tục giữ plugin instance |
-| PluginContext do host truyền theo request | Host sở hữu, plugin được mượn | Kết thúc lời gọi hoặc thời hạn cấp | Cache nguyên context, dùng sau khi request hết hiệu lực |
-| TCCL trên thread do host tạm thay | Đoạn code thay đổi trên thread đó | Cuối khối gọi, trong `finally` | Thread pool tiếp tục trỏ vào loader plugin cũ |
-| Logger, client hay executor do host quản lý và chia sẻ | Host | Theo vòng đời của host | Plugin tự đóng service của host khiến plugin khác hỏng |
+| `InputStream` from `getResourceAsStream` to read config | Caller opening the resource, usually the plugin | End of read operation | Storing in a field or forgetting to close on error paths |
+| `Reader`, `BufferedReader`, `JarFile`, `ZipFile` | Party opening the reader/file | Once consumed | Returning a lazy stream outside after closing the source |
+| `URLClassLoader` created by plugin manager | Host/plugin manager | After plugin quiesces, stops, and halts tasks | Assuming `close()` destroys all live objects/classes |
+| Executor/timer/socket created by plugin | Plugin | Plugin's `stop()`/`close()` | Letting background tasks use plugin after unload |
+| Listener/callback registered by plugin with host | Registering party or plugin manager per contract | When plugin stops | Host registry continuing to hold the plugin instance |
+| `PluginContext` passed by host per request | Host owns, plugin borrows | End of call or granted lease | Caching the whole context, using after request expires |
+| TCCL on thread temporarily swapped by host | Code swapping it on that thread | End of call block, inside `finally` | Thread pool continuing to point to old plugin loader |
+| Logger, client, or executor managed and shared by host | Host | Per host lifecycle | Plugin closing a host service and breaking other plugins |
 
-Ví dụ: một plugin được phép nhận `InputStream` từ factory với hợp đồng **caller owns stream** thì plugin đóng stream. Nhưng nếu host đưa một `DataSource` chung để plugin gọi query, plugin không được tự đóng `DataSource` khi ngừng request. Quyền truy cập và quyền đóng là hai quyền khác nhau.
+For example: if a plugin is permitted to receive an `InputStream` from a factory under a **caller owns stream** contract, the plugin closes the stream. But if the host passes a shared `DataSource` for the plugin to run queries, the plugin must not close the `DataSource` when finishing a request. Access rights and closing rights are two distinct permissions.
 
-Khi thiết kế API plugin, ghi rõ: context có thể giữ lâu hay chỉ dùng ngay, các đối tượng trả về có còn dùng được sau `execute()` không, `close()` có idempotent không, host xử lý lời gọi đang chạy khi stop như thế nào.
+When designing a plugin API, explicitly document: whether context may be retained long-term or used only immediately, whether returned objects remain valid after `execute()`, whether `close()` is idempotent, and how the host handles in-flight calls during shutdown.
 
-## 3. Đọc resource trong JAR đúng classloader và đóng đúng phạm vi
+## 3. Reading JAR Resources with the Right Classloader and Scope
 
-Hai API phổ biến:
+Two common APIs:
 
 ~~~java
-// Đoạn minh họa đặt bên trong một lớp implementation của plugin.
+// Illustrative snippet placed inside a plugin implementation class.
 InputStream first = getClass().getResourceAsStream("/demo/plugin/message.txt");
 InputStream second = getClass().getClassLoader()
         .getResourceAsStream("demo/plugin/message.txt");
 ~~~
 
-Đây là **mã minh họa**, nếu sử dụng phải bao cả hai stream trong try-with-resources hoặc đóng phù hợp. Quy tắc tên:
+This is **illustrative code**; if used, both streams must be wrapped in try-with-resources or closed properly. Naming rules:
 
-- `Class.getResourceAsStream("/demo/plugin/message.txt")`: dấu gạch chéo đầu là resource path tuyệt đối từ gốc classpath/module.
-- `Class.getResourceAsStream("message.txt")`: tên tương đối với package của class.
-- `ClassLoader.getResourceAsStream("demo/plugin/message.txt")`: tên resource được truyền thường không có dấu gạch chéo đầu.
-- Các lời gọi có thể trả về `null` nếu không tìm thấy; phải kiểm tra thiếu resource và báo lỗi rõ nguyên nhân.
+- `Class.getResourceAsStream("/demo/plugin/message.txt")`: leading slash is an absolute resource path from the classpath/module root.
+- `Class.getResourceAsStream("message.txt")`: name relative to the class's package.
+- `ClassLoader.getResourceAsStream("demo/plugin/message.txt")`: passed resource name normally has no leading slash.
+- Calls may return `null` if not found; check for missing resources and report a clear cause.
 
-Khi plugin có classloader riêng, dùng `getClass().getClassLoader()` giúp gắn việc tìm resource với loader định nghĩa lớp plugin. Dùng nhầm system loader hoặc TCCL có thể không nhìn thấy JAR plugin. Dù vậy, delegation parent-first vẫn có thể tìm một resource trùng tên ở parent; tránh tên chung và ưu tiên namespace riêng, chẳng hạn `demo/plugin/message.txt`.
+When a plugin has its own classloader, using `getClass().getClassLoader()` ties resource lookup to the loader that defined the plugin class. Mistakenly using the system loader or TCCL may fail to see the plugin JAR. Even so, parent-first delegation can still find a same-named resource in a parent; avoid generic names and prefer dedicated namespaces, such as `demo/plugin/message.txt`.
 
-Mẫu đọc an toàn cho resource nhỏ:
+Safe read pattern for small resources:
 
 ~~~java
-// Phương thức minh họa; cần import java.io.* và java.nio.charset.StandardCharsets.
+// Illustrative method; requires imports java.io.* and java.nio.charset.StandardCharsets.
 String readText(ClassLoader loader, String path) {
     try (InputStream in = loader.getResourceAsStream(path)) {
         if (in == null) {
@@ -70,17 +70,17 @@ String readText(ClassLoader loader, String path) {
 }
 ~~~
 
-`try-with-resources` gọi `close()` khi kết thúc khối, kể cả nhánh exception. Nếu `in` là null, Java bỏ qua gọi `close()` và nhánh kiểm tra ném lỗi. Khi đọc thất bại và đóng cũng thất bại, lỗi đóng thường xuất hiện trong danh sách suppressed exceptions của lỗi chính (`Throwable.getSuppressed()`). Vì vậy không nên thay đoạn trên bằng chuỗi `open → read → close` thủ công thiếu `finally`.
+`try-with-resources` invokes `close()` when exiting the block, including on exception paths. If `in` is `null`, Java skips calling `close()` and the check branch throws the error. When both reading and closing fail, the close exception appears in the primary exception's suppressed exceptions list (`Throwable.getSuppressed()`). Therefore, do not replace the above with a manual `open → read → close` sequence lacking `finally`.
 
-`InputStream.readAllBytes()` dùng được cho file nhỏ, tin cậy; nếu nguồn lớn hoặc do bên ngoài cung cấp, phải giới hạn byte đọc, dùng buffer và áp dụng giới hạn tài nguyên. Không trả `InputStream` hay `Stream<String>` đọc lazy từ một khối đã đóng. Nếu thật sự cần streaming qua ranh giới, contract phải chuyển ownership của stream cho bên nhận và yêu cầu bên nhận gọi `close()`; với dữ liệu cấu hình nhỏ, trả về `String` hoặc dữ liệu đã materialize thường đơn giản hơn.
+`InputStream.readAllBytes()` works for small, trusted files; if the source is large or externally supplied, cap the bytes read, use buffering, and enforce resource limits. Do not return an `InputStream` or lazily read `Stream<String>` from a closed block. If streaming across boundaries is genuinely required, the contract must transfer stream ownership to the receiver and require the receiver to call `close()`; for small configuration data, returning a `String` or materialized data is usually simpler.
 
-Những resource khác cũng cần tuân theo phạm vi đóng: `Files.lines(path)`, `Files.list(path)` và `Files.walk(path)` trả một `Stream` có thể giữ resource I/O, nên dùng trong try-with-resources; `JarFile`/`ZipFile` cũng phải được đóng. Đừng giữ handle đến JAR trong cache nếu plugin không cần dùng xuyên các lần gọi.
+Other resources must also follow scoped closing: `Files.lines(path)`, `Files.list(path)`, and `Files.walk(path)` return a `Stream` that can hold I/O resources, so use them in try-with-resources; `JarFile`/`ZipFile` must also be closed. Do not hold open JAR handles in caches if the plugin does not need them across calls.
 
-## 4. Chương trình Java 17 chạy được: plugin JAR và resource
+## 4. Runnable Java 17 Program: Plugin JAR and Resource
 
-Ví dụ gồm **API dùng chung**, **plugin JAR độc lập** có tài nguyên văn bản và **host** tự nạp plugin. Nó minh họa việc đọc xong/đóng stream trong mỗi lượt, dùng context trong phạm vi `execute`, gọi `plugin.close()`, khôi phục TCCL và đóng `URLClassLoader`.
+The example consists of a **shared API**, a **standalone plugin JAR** containing a text resource, and a **host** that loads the plugin itself. It demonstrates reading and closing the stream in each invocation, using context within the `execute` scope, calling `plugin.close()`, restoring the TCCL, and closing the `URLClassLoader`.
 
-### 4.1. Cấu trúc thư mục
+### 4.1. Directory Structure
 
 ~~~text
 plugin-resource-example/
@@ -90,12 +90,12 @@ plugin-resource-example/
     plugin/demo/plugin/GreetingPlugin.java
     plugin-resources/demo/plugin/message.txt
     host/demo/host/HostApp.java
-  build/                     (được tạo khi biên dịch)
+  build/                     (created during compilation)
 ~~~
 
-API chỉ định nghĩa hợp đồng; host **không** import `GreetingPlugin`. Plugin JAR không kèm bản sao `demo.api.Plugin` để tránh hai định nghĩa khác nhau của cùng interface giữa host và loader plugin.
+The API defines only the contract; the host **does not** import `GreetingPlugin`. The plugin JAR does not include a copy of `demo.api.Plugin` to prevent two distinct definitions of the same interface between the host and plugin loader.
 
-### 4.2. API chung do host sở hữu
+### 4.2. Shared Host-Owned API
 
 **`src/api/demo/api/Plugin.java`**
 
@@ -124,9 +124,9 @@ public record PluginContext(String invocationId) {
 }
 ~~~
 
-`PluginContext` chứa một ID của một lần gọi và dùng Java 17 record. Plugin chỉ được sử dụng khi xử lý lời gọi. Nếu thực tế context mang service hoặc callback của host, contract phải ghi rõ thời hạn hiệu lực; record chỉ bảo đảm trường `String` là bất biến, không tự làm mọi đối tượng chứa trong record bất biến.
+`PluginContext` holds an ID for a single invocation and uses a Java 17 record. The plugin may only use it while handling the invocation. If in practice the context carries host services or callbacks, the contract must specify the validity window; a `record` only guarantees that the `String` field reference is immutable, not that every object contained in a record is automatically immutable.
 
-### 4.3. Implementation đọc resource của chính JAR
+### 4.3. Implementation Reading Its Own JAR's Resource
 
 **`src/plugin/demo/plugin/GreetingPlugin.java`**
 
@@ -184,11 +184,11 @@ public final class GreetingPlugin implements Plugin {
 Xin chào từ JAR
 ~~~
 
-Luồng đọc được mở trong `execute()` rồi đóng ngay khi kết thúc, không lưu vào field. Chuỗi kết quả đã độc lập với stream. Tệp có thể có newline cuối; `strip()` bỏ newline để output ổn định. Plugin chỉ đọc `context.invocationId()` khi đang xử lý, không lưu context sang phiên khác.
+The stream is opened inside `execute()` and closed immediately when done, never stored in a field. The resulting string is decoupled from the stream. The file may have a trailing newline; `strip()` removes it for stable output. The plugin reads `context.invocationId()` only during processing and does not retain the context across sessions.
 
-Trường `closed` là ví dụ đơn luồng. Nếu host cho phép gọi `execute()` và `close()` đồng thời, cần đồng bộ và quản lý số lời gọi đang chạy; một `boolean` đơn giản không đủ an toàn trong bối cảnh nhiều thread. `close()` ở đây chỉ in thông báo vì plugin không sở hữu resource dài hạn; trong sản phẩm thật phải thêm cleanup đúng với executor, listener, connection mà plugin thực sự tạo.
+The `closed` field is a single-threaded example. If the host allows `execute()` and `close()` concurrently, you need synchronization and tracking of in-flight calls; a plain `boolean` is not safe enough in a multi-threaded setting. `close()` here merely prints a message because the plugin owns no long-lived resources; in real products, add proper cleanup for any executors, listeners, or connections the plugin actually creates.
 
-### 4.4. Host khôi phục context và đóng loader
+### 4.4. Host Restores Context and Closes Loader
 
 **`src/host/demo/host/HostApp.java`**
 
@@ -246,21 +246,21 @@ public final class HostApp {
 }
 ~~~
 
-Ở đây host tạo loader chỉ chứa plugin JAR với parent là application classloader. Host và plugin chia sẻ `demo.api.Plugin` từ parent. Lệnh `Class.forName(..., true, pluginLoader)` chọn loader và khởi tạo class; reflection tạo instance theo public constructor.
+Here the host creates a loader containing only the plugin JAR with the application classloader as its parent. Host and plugin share `demo.api.Plugin` from the parent. `Class.forName(..., true, pluginLoader)` selects the loader and initializes the class; reflection creates the instance via the public constructor.
 
-Chuỗi cleanup khi xử lý thành công:
+Cleanup sequence on a successful run:
 
-1. `plugin.execute` mở và đóng luồng đọc trong nội bộ.
-2. `try (plugin)` gọi `plugin.close()` trước khi rời phạm vi plugin.
-3. `finally` phục hồi TCCL **trên thread vừa thay đổi nó**.
-4. Try-with-resources ngoài gọi `pluginLoader.close()` khi plugin đã xong.
-5. Host in thông tin xác nhận TCCL trở lại cùng đối tượng loader ban đầu.
+1. `plugin.execute` opens and closes the read stream internally.
+2. `try (plugin)` calls `plugin.close()` before leaving the plugin scope.
+3. `finally` restores the TCCL **on the very thread that changed it**.
+4. The outer try-with-resources calls `pluginLoader.close()` once the plugin is finished.
+5. The host prints confirmation that the TCCL returned to the original loader object.
 
-Nếu `execute()` hoặc `close()` ném exception, các khối `finally`/try-with-resources vẫn được thực hiện. Lệnh cuối in thành công chỉ chạy nếu chương trình không để exception lan ra khỏi `main`. Không nên nuốt exception cleanup rồi báo thành công giả.
+If `execute()` or `close()` throws an exception, the `finally`/try-with-resources blocks still execute. The final success lines only run if the program does not let an exception escape `main`. Never swallow cleanup exceptions and falsely report success.
 
-### 4.5. Biên dịch và chạy
+### 4.5. Compiling and Running
 
-Tại thư mục `plugin-resource-example`, sau khi tạo đúng năm tệp ở trên, dùng JDK 17+ với Bash:
+In the `plugin-resource-example` directory, after creating the five files above, use JDK 17+ with Bash:
 
 ~~~bash
 mkdir -p build/api build/plugin build/host
@@ -283,7 +283,7 @@ javac --release 17 -encoding UTF-8 \
 java -cp "build/host:build/plugin-api.jar" demo.host.HostApp
 ~~~
 
-**Stdout chính xác khi đầy đủ JAR/resource:**
+**Exact stdout when JAR/resource are complete:**
 
 ~~~text
 host started
@@ -293,36 +293,36 @@ tccl restored=true
 host finished
 ~~~
 
-Lệnh chạy Windows PowerShell dùng dấu chấm phẩy để phân tách classpath:
+Windows PowerShell command uses semicolons to separate classpath entries:
 
 ~~~powershell
 java -cp "build/host;build/plugin-api.jar" demo.host.HostApp
 ~~~
 
-Các lệnh `javac`/`jar` nhiều dòng trên sử dụng dấu gạch chéo ngược để nối dòng theo cú pháp Bash; trên PowerShell có thể gộp mỗi lệnh thành một dòng. Host không đưa `build/greeting-plugin.jar` vào compile classpath hay application classpath; host nạp JAR đó qua `URLClassLoader`.
+The multi-line `javac`/`jar` commands above use backslashes for line continuation per Bash syntax; in PowerShell you can put each command on a single line. The host does not place `build/greeting-plugin.jar` on the compile classpath or application classpath; the host loads that JAR via `URLClassLoader`.
 
-Để kiểm tra đóng gói:
+To verify packaging:
 
 ~~~bash
 jar --list --file build/greeting-plugin.jar
 ~~~
 
-Cần tìm thấy `demo/plugin/GreetingPlugin.class` và `demo/plugin/message.txt`. Nếu quên đưa resource vào JAR, nhánh thiếu file sẽ báo `Missing message.txt`; `plugin.close()` và khôi phục TCCL vẫn diễn ra trước khi lỗi thoát lên `main`. Đoạn code minh họa luồng điều khiển đóng, nhưng **không chứng minh classloader đã được garbage collect/unload**.
+You should find `demo/plugin/GreetingPlugin.class` and `demo/plugin/message.txt`. If you forget to include the resource in the JAR, the missing-file branch will report `Missing message.txt`; `plugin.close()` and TCCL restoration still happen before the error escapes `main`. This code demonstrates the closing control flow, yet **does not prove the classloader has been garbage-collected/unloaded**.
 
-## 5. Context sống lâu hơn plugin nguy hiểm thế nào?
+## 5. How Is Context Outliving the Plugin Dangerous?
 
-### 5.1. Thread context classloader (TCCL)
+### 5.1. Thread Context Classloader (TCCL)
 
-TCCL là trường tham chiếu của `Thread`, thường được thư viện/framework sử dụng để tìm resource, class hoặc service. Khi host tạm thay TCCL cho plugin rồi trả thread lại pool mà không khôi phục, thread sống lâu có thể tiếp tục giữ loader plugin và truy cập nhầm thư viện cũ.
+The TCCL is a reference field on `Thread`, often used by libraries/frameworks to find resources, classes, or services. When a host temporarily swaps the TCCL for a plugin and returns the thread to a pool without restoring it, a long-lived thread can keep holding the plugin loader and mistakenly access stale libraries.
 
-**Đoạn minh họa sai** (giả sử đã có `pluginLoader`, `plugin` và `context`):
+**Incorrect snippet** (assuming `pluginLoader`, `plugin`, and `context` exist):
 
 ~~~java
 Thread.currentThread().setContextClassLoader(pluginLoader);
-plugin.execute(context);  // Nếu ném lỗi, TCCL vẫn trỏ vào pluginLoader.
+plugin.execute(context);  // If this throws, TCCL still points to pluginLoader.
 ~~~
 
-Đúng hơn:
+Better:
 
 ~~~java
 ClassLoader old = Thread.currentThread().getContextClassLoader();
@@ -334,16 +334,16 @@ try {
 }
 ~~~
 
-Khôi phục phải thực hiện trên **chính thread** đã thay TCCL. Một thread khác không thể giải phóng TCCL của worker chỉ bằng cách thay TCCL của chính nó. `URLClassLoader.close()` cũng không tự xóa TCCL đang trỏ đến loader cũ.
+Restoration must happen on the **same thread** that changed the TCCL. Another thread cannot clear a worker's TCCL simply by changing its own TCCL. `URLClassLoader.close()` also does not automatically clear a TCCL still pointing to the old loader.
 
-### 5.2. ThreadLocal và dữ liệu của từng request
+### 5.2. ThreadLocal and Per-Request Data
 
-Thread pool của host thường tái sử dụng cùng thread cho các request khác nhau. `ThreadLocal` gắn giá trị với thread, không gắn tự động với vòng đời request; nếu giữ context, token, callback hoặc đối tượng plugin, nó có thể gây rò rỉ hay dùng dữ liệu cũ.
+Host thread pools commonly reuse the same thread for different requests. `ThreadLocal` binds values to the thread, not automatically to the request lifecycle; if it retains context, tokens, callbacks, or plugin objects, it can leak data or use stale values.
 
-Khi thực sự cần ThreadLocal, đặt và dọn trong cùng phạm vi:
+When `ThreadLocal` is truly needed, set and clean up within the same scope:
 
 ~~~java
-// Minh họa; CONTEXT và processRequest() do ứng dụng định nghĩa.
+// Illustrative; CONTEXT and processRequest() are defined by the application.
 CONTEXT.set(context);
 try {
     processRequest();
@@ -352,92 +352,92 @@ try {
 }
 ~~~
 
-Ưu tiên truyền context tường minh qua tham số khi có thể. `remove()` phải chạy trên **thread đã set**; việc xóa từ thread điều phối không xóa giá trị nằm trong các worker thread khác. Một object `PluginContext` mượn từ host không nên bị plugin lưu vào `static` field hoặc closure của future sống lâu.
+Prefer passing context explicitly via parameters whenever possible. `remove()` must run on the **thread that called `set`**; removing from a coordinator thread does not clear values residing in other worker threads. A `PluginContext` object borrowed from the host must not be stored by the plugin in a `static` field or a long-lived future's closure.
 
-### 5.3. Executor, thread và scheduled task
+### 5.3. Executors, Threads, and Scheduled Tasks
 
-Thread mới tạo có thể kế thừa TCCL của thread tạo. Nếu plugin khởi tạo executor khi thread hiện tại đang trỏ đến loader plugin, worker thread có thể giữ loader ấy trong suốt thời gian executor sống. Lambda/Runnable trong hàng đợi cũng có thể bắt giữ instance plugin hoặc request context.
+Newly created threads can inherit the creating thread's TCCL. If a plugin starts an executor while the current thread points to the plugin loader, worker threads may retain that loader for the lifetime of the executor. Lambdas/Runnables in queues can also capture plugin instances or request contexts.
 
-Với executor do plugin sở hữu, `close()`/`stop()` cần chặn công việc mới, cancel các lịch lặp, gọi `shutdown()`, đợi `awaitTermination` trong thời gian đã định, sau đó áp dụng chính sách nếu task còn chạy. `shutdownNow()` chỉ cố ngắt thread, không bảo đảm task đang bỏ qua interrupt sẽ dừng ngay. Trước khi đóng loader phải chắc rằng không còn tác vụ sử dụng class hoặc resource của plugin.
+For plugin-owned executors, `close()`/`stop()` must block new work, cancel recurring schedules, call `shutdown()`, wait for `awaitTermination` with a defined timeout, and then apply a policy if tasks are still running. `shutdownNow()` only attempts to interrupt threads and does not guarantee tasks that ignore interrupts will stop immediately. Before closing the loader, ensure no tasks remain using plugin classes or resources.
 
-Nếu executor do **host** cấp, plugin không được tùy tiện shutdown executor chung; host phải có API hủy các task **thuộc plugin này**. Mọi task cần tự dọn TCCL và ThreadLocal của thread thực thi trong `finally`.
+If the executor is **host**-provided, a plugin must not arbitrarily shut down the shared executor; the host must provide an API to cancel tasks **belonging to this plugin**. Every task must clean up its executing thread's TCCL and `ThreadLocal` in `finally`.
 
-### 5.4. Listener, callback, registry và cache
+### 5.4. Listeners, Callbacks, Registries, and Caches
 
-Một event bus singleton của host giữ callback đăng ký bởi plugin sẽ giữ plugin instance. Tương tự, `Map<Class<?>, ...>`, `Method`, `ServiceLoader`, list các provider hay cache trả về từ reflection có thể giữ những lớp và defining classloader mà plugin manager tưởng đã bỏ.
+A singleton host event bus holding a callback registered by a plugin keeps the plugin instance alive. Similarly, `Map<Class<?>, ...>`, `Method`, `ServiceLoader`, provider lists, or reflection result caches can retain classes and defining classloaders that the plugin manager thought were discarded.
 
-Khi dừng plugin, hủy đăng ký listener, đóng registration handle hoặc để host gỡ toàn bộ mục theo plugin ID. `ServiceLoader.reload()` xóa cache provider của **ServiceLoader instance đó**, nhưng không xóa reference mà host đã lưu ở list, registry hay callback khác.
+When stopping a plugin, unregister listeners, close registration handles, or let the host remove all entries by plugin ID. `ServiceLoader.reload()` clears the provider cache of **that `ServiceLoader` instance**, yet does not clear references the host saved in other lists, registries, or callbacks.
 
-Classloader thường chỉ có thể được thu hồi khi không còn tham chiếu sống cần đến lớp/loader liên quan. Vì vậy `URLClassLoader.close()` cần thiết đối với loader sở hữu, nhưng **chưa đủ** để đảm bảo việc unload; không có lời hứa GC xảy ra tức thì.
+A classloader can normally only be garbage-collected when no live references remain to the associated classes/loader. Thus `URLClassLoader.close()` is necessary for owned loaders, but **not sufficient** to guarantee unloading; there is no guarantee GC happens immediately.
 
-### 5.5. PluginContext là capability có thời hạn
+### 5.5. PluginContext Is a Time-Limited Capability
 
-Context thực tế có thể mang cấu hình, request ID, principal, logger, service proxy, transaction hoặc callback do host cấp. Nếu plugin giữ context sau khi `execute()` trả về, dữ liệu/quyền truy cập có thể hết hiệu lực và chuỗi tham chiếu có thể giữ cả request/host.
+Real-world contexts may carry configuration, request ID, principal, logger, service proxies, transactions, or host-supplied callbacks. If a plugin retains the context after `execute()` returns, data/access permissions may expire and reference chains can pin the whole request/host.
 
-Một quy tắc hợp đồng phù hợp:
+An appropriate contract rule:
 
-> Context của một lần gọi chỉ hợp lệ cho lần gọi ấy. Plugin được đọc và sử dụng trong phạm vi cấp. Khi cần tác vụ bất đồng bộ, chỉ chuyển một snapshot nhỏ, bất biến và được phép giữ, hoặc dùng API async mà host hỗ trợ lifecycle và cơ chế thu hồi tường minh.
+> An invocation's context is valid only for that invocation. The plugin may read and use it within the granted scope. When asynchronous work is needed, pass only a small, immutable, retention-safe snapshot, or use an async API whose lifecycle and explicit revocation are managed by the host.
 
-Không tự đóng service chung có trong context, không đẩy nguyên context vào global cache, không giữ callback sau khi plugin đã bị ngừng. Nếu host thực sự cấp một capability sống dài, phải có scope, cơ chế revoke và owner rõ ràng.
+Do not close shared services contained in the context, do not push the entire context into a global cache, and do not keep callbacks active after the plugin has been stopped. If the host genuinely grants a long-lived capability, it must have an explicit scope, revocation mechanism, and owner.
 
-## 6. Thiết kế vòng đời plugin từ start đến unload
+## 6. Designing Plugin Lifecycle from Start to Unload
 
-Một luồng lifecycle gợi ý:
+A suggested lifecycle flow:
 
 ~~~text
 NEW -> STARTING -> ACTIVE -> QUIESCING -> STOPPED -> RELEASED
                        \-> FAILED -> CLEANUP
 ~~~
 
-Đây là **mô hình kiến trúc**, không phải state machine tự có của JVM. Trách nhiệm:
+This is an **architectural model**, not a built-in JVM state machine. Responsibilities:
 
-1. **STARTING:** tạo loader và plugin instance, kiểm tra API/version, mở tài nguyên cần thiết. Nếu lỗi một phần, cleanup các thứ đã tạo thành công.
-2. **ACTIVE:** cấp context đúng phạm vi, đếm lời gọi đang chạy, đóng stream từng thao tác, theo dõi task và registration do plugin sở hữu.
-3. **QUIESCING:** ngăn lời gọi mới, hủy entry point/listener, chờ in-flight call kết thúc hoặc hủy theo hợp đồng. Không đóng classloader khi task còn sử dụng nó.
-4. **STOPPED:** gọi hook `close()`/`stop()` của plugin, shutdown executor riêng, giải phóng socket, watcher, timer, ThreadLocal và context trên các thread đã dùng.
-5. **RELEASED:** loại reference khỏi registry/cache, đóng loader nếu host sở hữu, ghi lại lỗi cleanup và không còn thao tác nào nhắm vào plugin cũ.
+1. **STARTING:** create the loader and plugin instance, check API/version, open required resources. On partial failure, clean up everything created so far.
+2. **ACTIVE:** issue properly scoped contexts, track active invocation counts, close per-operation streams, track plugin-owned tasks and registrations.
+3. **QUIESCING:** reject new calls, detach entry points/listeners, wait for in-flight calls to finish or cancel them per contract. Do not close the classloader while tasks are still using it.
+4. **STOPPED:** invoke the plugin's `close()`/`stop()` hook, shut down private executors, release sockets, watchers, timers, `ThreadLocal`s, and contexts on used threads.
+5. **RELEASED:** remove references from registries/caches, close the loader if host-owned, log cleanup errors, and ensure no further operations target the old plugin.
 
-Khi các tài nguyên phụ thuộc nhau, nên đóng theo thứ tự **ngược với thứ tự nhận/acquire**, tương tự try-with-resources. Đối tượng plugin thường phải dừng trước loader vì nó còn có thể cần đọc resource trong bước shutdown.
+When resources depend on each other, close them in **reverse order of acquisition**, similar to try-with-resources. The plugin object typically must stop before the loader because it may still need to read resources during shutdown.
 
-**Trạng thái an toàn khi stop cạnh tranh với execute:** chặn call mới, theo dõi call đang chạy, kết thúc/cancel theo policy, sau đó mới cho phép close. Một biến boolean `closed` bình thường không đủ nếu nhiều thread đọc/ghi đồng thời. Cần đồng bộ, reference counting/phạm vi invoke hoặc công cụ quản lý lifecycle thích hợp. Không được bắt mọi `Throwable` rồi tuyên bố plugin đã dừng nếu thread/registration vẫn hoạt động.
+**Safe state when `stop` races with `execute`:** block new calls, track in-flight calls, drain/cancel per policy, and only then allow closing. A plain boolean `closed` flag is insufficient if multiple threads read/write concurrently. Use synchronization, reference counting/invocation scopes, or proper lifecycle management tools. Never catch all `Throwable`s and declare the plugin stopped while threads/registrations remain active.
 
-## 7. Những lỗi phổ biến và hướng kiểm tra
+## 7. Common Errors and How to Check
 
-| Hiện tượng | Nguồn gốc có thể | Hướng xử lý |
+| Symptom | Possible Root Cause | How to Address |
 | --- | --- | --- |
-| Không thể thay JAR cũ ổn định, số handle tăng | InputStream/JarFile còn mở hoặc URLClassLoader chưa close | Dùng try-with-resources, kiểm tra open file handles và thứ tự stop |
-| Plugin báo thiếu resource | Resource không được đóng gói, sai path, dùng sai loader | `jar --list --file`, kiểm tra dấu `/` và classloader |
-| Lúc reload thỉnh thoảng lỗi | Task cũ vẫn chạy khi loader bị đóng hoặc registry đổi | Quiesce và chờ in-flight task trước khi close |
-| Heap/metaspace tăng sau nhiều vòng | TCCL, ThreadLocal, listener, cache Class/Method/provider còn giữ loader | Xem thread dump, heap dominators, classloader identity |
-| Request mới thấy context cũ | ThreadLocal không remove ở thread pool | Try/finally set/use/remove trên đúng worker thread |
-| Host khác bị ngắt kết nối | Plugin đóng client/executor do host chia sẻ | Phân quyền ownership, chỉ đóng tài nguyên riêng |
-| Plugin đã dừng nhưng callback vẫn chạy | Event bus, timer, future giữ callback/instance | Hủy registration, cancel lịch, chặn call mới |
-| GC chưa unload lớp dù đã `close` | Reference vẫn sống hoặc GC chưa tiến hành | Đo retained reference qua nhiều vòng, không suy luận từ một lần GC |
+| Cannot reliably replace old JAR; handle count rises | `InputStream`/`JarFile` left open or `URLClassLoader` unclosed | Use try-with-resources; inspect open file handles and stop order |
+| Plugin reports missing resource | Resource not packaged, wrong path, wrong loader used | `jar --list --file`; verify `/` and classloader |
+| Intermittent errors during reload | Old tasks still running when loader closes or registry changes | Quiesce and await in-flight tasks before closing |
+| Heap/metaspace grows after multiple cycles | TCCL, `ThreadLocal`, listeners, or `Class`/`Method`/provider caches retain loader | Inspect thread dumps, heap dominators, classloader identity |
+| New request sees old context | `ThreadLocal` not removed on thread pool | `try/finally` set/use/remove on the actual worker thread |
+| Other host components get disconnected | Plugin closed a client/executor shared by the host | Separate ownership; close only self-owned resources |
+| Plugin stopped yet callbacks still fire | Event bus, timer, or future still holds callback/instance | Unregister, cancel schedules, block new calls |
+| GC has not unloaded classes despite `close` | References still alive or GC has not run yet | Measure retained references across multiple cycles; never infer from a single GC |
 
-Khi kiểm thử rò rỉ, không nên chỉ nhìn tổng heap một thời điểm. JVM có thể giữ vùng nhớ để dùng lại. Cần quan sát **số thread, file descriptor, classloader còn sống, chuỗi tham chiếu trong heap và trạng thái tác vụ** qua nhiều chu kỳ start/stop, cả nhánh lỗi.
+When testing for leaks, do not look only at total heap at a single point in time. The JVM may keep memory regions reserved for reuse. Observe **thread counts, file descriptors, live classloaders, heap reference chains, and task states** across multiple start/stop cycles, including failure branches.
 
-## 8. Kiểm tra để bảo đảm cleanup
+## 8. Checks to Ensure Proper Cleanup
 
-- **Luồng đọc thành công:** chạy ví dụ ở mục 4, đối chiếu đúng năm dòng stdout; đảm bảo resource đóng ngay khi `execute` kết thúc.
-- **Thiếu resource:** đóng gói plugin JAR không kèm `message.txt` và xác nhận thông báo lỗi có ngữ cảnh; `close()` và `finally` vẫn chạy. Tình huống lỗi không dùng stdout thành công làm kết quả kỳ vọng.
-- **Lỗi I/O:** dùng mock/fake InputStream ném `IOException` khi đọc và xác nhận `close()` vẫn được gọi, lỗi chính không bị mất vì lỗi đóng.
-- **Context/TCCL:** gọi plugin trên thread pool, kể cả trường hợp ném exception, rồi xác nhận TCCL phục hồi và ThreadLocal không còn giá trị request cũ.
-- **Stop khi có call:** cho một thao tác chậm chạy, yêu cầu stop song song, xác nhận không đóng loader sớm và không nhận thêm lời gọi sau khi quiesce.
-- **Lặp chu kỳ:** start/execute/stop nhiều lần, kiểm tra không còn task nền hay callback, giảm reference tới loader cũ và không tăng số handle.
-- **Quyền sở hữu:** plugin đóng đúng resource nó tạo; không đóng executor/service của host được chia sẻ cho nhiều plugin.
-- **Metadata JAR:** kiểm tra `jar --list` để chắc resource được đóng gói đúng; kiểm tra mã host chỉ phụ thuộc API chung.
+- **Successful read path:** run the example in section 4 and verify the exact five stdout lines; ensure the resource closes as soon as `execute` finishes.
+- **Missing resource:** package the plugin JAR without `message.txt` and verify a contextual error message; `close()` and `finally` still execute. Error scenarios must not expect the success stdout.
+- **I/O error:** use a mock/fake `InputStream` that throws `IOException` on read and verify `close()` is still invoked and the primary error is not lost due to a close error.
+- **Context/TCCL:** invoke the plugin on a thread pool, including exception cases, then verify TCCL is restored and `ThreadLocal` holds no previous request values.
+- **Stop under active call:** run a slow operation, trigger `stop` concurrently, verify the loader is not closed prematurely and no new calls are accepted after quiescing.
+- **Repeated cycles:** start/execute/stop multiple times, verify no lingering background tasks or callbacks remain, references to old loaders drop, and handle counts do not grow.
+- **Ownership:** plugin closes exactly the resources it created; does not close host executors/services shared across plugins.
+- **JAR metadata:** run `jar --list` to verify resources are packaged properly; verify host code depends only on the shared API.
 
-## 9. Checklist vận hành
+## 9. Operational Checklist
 
-- [ ] Mọi `InputStream`, `Reader` và JAR handle có owner và điểm đóng rõ ràng.
-- [ ] Try-with-resources bao trọn thao tác có thể ném exception; stream lazy không vượt phạm vi nguồn đã đóng.
-- [ ] Resource được tìm bằng loader phù hợp và tên tương đối/tuyệt đối chính xác.
-- [ ] PluginContext không lưu qua request hoặc phiên được cấp; không giữ host service/callback quá thời hạn.
-- [ ] TCCL được khôi phục trong finally trên cùng thread, ThreadLocal được remove.
-- [ ] Executor/timer/scheduler của plugin có stop, hủy lịch và đợi hoàn tất theo timeout.
-- [ ] Listener, registration, cache và ServiceLoader provider của plugin được host bỏ tham chiếu khi dừng.
-- [ ] Host ngăn lời gọi mới và xử lý in-flight calls trước khi đóng plugin/loader.
-- [ ] Không nhầm `URLClassLoader.close()` với unload lớp tức thì.
-- [ ] Kiểm thử cả đường lỗi và nhiều vòng reload, quan sát file handle, thread và reference thực tế.
+- [ ] Every `InputStream`, `Reader`, and JAR handle has a clear owner and closing point.
+- [ ] `try-with-resources` encloses operations that can throw; lazy streams never outlive closed sources.
+- [ ] Resources are looked up with the appropriate loader and exact relative/absolute names.
+- [ ] `PluginContext` is not retained past the granted request or session; host services/callbacks are not held past expiration.
+- [ ] TCCL is restored in `finally` on the same thread; `ThreadLocal` is removed.
+- [ ] Plugin executors/timers/schedulers support stopping, canceling schedules, and awaiting completion with timeouts.
+- [ ] Plugin listeners, registrations, caches, and `ServiceLoader` providers have references dropped by the host on stop.
+- [ ] Host blocks new calls and drains/cancels in-flight calls before closing the plugin/loader.
+- [ ] Do not confuse `URLClassLoader.close()` with immediate class unloading.
+- [ ] Test both failure paths and multiple reload cycles, observing actual file handles, threads, and references.
 
-**Kết luận:** Đọc đúng resource mới chỉ giải quyết một phần của runtime extensibility. Sự an toàn khi dừng hoặc thay plugin phụ thuộc vào việc đóng các luồng ngắn hạn, chấm dứt các tài nguyên dài hạn, khôi phục ngữ cảnh trên đúng thread và hủy những tham chiếu từ host tới plugin. Hợp đồng ownership/lifecycle rõ ràng giúp host thay plugin mà không giữ lại một phiên cũ ngoài ý muốn.
+**Conclusion:** Reading resources properly solves only part of runtime extensibility. Safety when stopping or replacing plugins depends on closing short-lived streams, terminating long-lived resources, restoring context on the right thread, and dropping host-to-plugin references. Explicit ownership and lifecycle contracts allow the host to swap plugins without unintentionally pinning an older version.

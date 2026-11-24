@@ -1,29 +1,29 @@
-# 5.2. Ghi mức log, thread, thời gian và mã tương quan đủ để lần theo một thao tác
+# 5.2. Logging Level, Thread, Timestamp, and Correlation ID Sufficient to Trace an Operation
 
-Một lỗi kiểu “đơn hàng không hoàn thành” thường đi qua nhiều lớp: HTTP gateway → ứng dụng Java → executor → dịch vụ kho → cơ sở dữ liệu → callback xử lý kết quả. Nếu nhật ký chỉ có những dòng như “start”, “processing”, “failed”, việc tìm **dòng nào thuộc cùng một thao tác** rất khó. Cần thiết kế mỗi bản ghi có bối cảnh đủ để trả lời: **chuyện gì xảy ra, khi nào, mức độ nào, trên thread nào và thuộc request/trace nào**.
+An error like "order did not complete" typically traverses multiple layers: HTTP gateway → Java application → executor → inventory service → database → result callback. If logs only contain lines like "start", "processing", "failed", finding **which lines belong to the same operation** is very difficult. Each log record must be designed with enough context to answer: **what happened, when, at what severity, on which thread, and for which request/trace**.
 
-Bài này thuộc nhóm **5. Nhật ký và stack trace**. Trọng tâm là lựa chọn **log level**, **timestamp**, **thread identity** và **correlation ID**; thực hành ghi một chuỗi sự kiện có thể ghép lại, kể cả khi công việc chuyển thread hoặc đi qua nhiều service. Java 17+ được dùng để minh họa cách tạo log có cấu trúc; SLF4J/MDC và trace context được giải thích riêng vì các thư viện này không thuộc JDK chuẩn.
+This lesson belongs to group **5. Logging and Stack Traces**. The focus is choosing **log level**, **timestamp**, **thread identity**, and **correlation ID**; practicing emitting a sequence of events that can be stitched together even when work hops across threads or multiple services. Java 17+ is used to illustrate structured log generation; SLF4J/MDC and trace context are explained separately since those libraries are not part of the standard JDK.
 
-## 1. Mô hình một sự kiện log có thể tìm và liên kết
+## 1. Model of a Searchable and Correlatable Log Event
 
-Một bản ghi hữu ích không phải chỉ là câu văn. Nên có **trường ổn định** và giá trị có ý nghĩa:
+A useful record is not just a prose sentence. It should have **stable fields** and meaningful values:
 
-| Trường | Mục đích | Ví dụ | Lưu ý |
+| Field | Purpose | Example | Notes |
 | --- | --- | --- | --- |
-| `timestamp` | Biết sự kiện xảy ra khi nào, sắp xếp gần đúng theo thời gian | `2026-10-29T08:15:30.123Z` | Ưu tiên UTC ISO-8601, ghi rõ timezone |
-| `level` | Độ nghiêm trọng/ý nghĩa vận hành | `INFO`, `WARN`, `ERROR` | Mức phải phản ánh sự kiện, không theo cảm xúc người viết |
-| `service` / `instance` / `version` | Biết dòng thuộc ứng dụng, pod và bản build nào | `order-api`, `pod-a`, `1.8.2` | Đặc biệt quan trọng trong hệ thống nhiều replica |
-| `thread` | Thread JVM phát sinh bản ghi | `http-nio-8080-exec-7` | Thread tái sử dụng; **không phải request ID** |
-| `correlationId` / `requestId` | Liên kết mọi sự kiện thuộc một thao tác/request nghiệp vụ | `req-7c41` | Cần được tạo/nhận ở ingress và truyền qua boundary |
-| `traceId` / `spanId` | Liên kết logs với distributed trace và đoạn công việc | Mã theo trace context | Chỉ ghi khi có tracing/context hợp lệ |
-| `event` / `operation` | Loại sự kiện ổn định để tìm kiếm, phân nhóm | `order.reserve.started` | Tên ổn định tốt hơn văn bản thay đổi tùy ý |
-| `message` | Diễn giải ngắn gọn điều đã xảy ra | `inventory reservation failed` | Không chép nguyên dữ liệu nhạy cảm |
-| `outcome` / `errorCode` / `durationMs` | Kết quả và tác động | `FAILED`, `INV_TIMEOUT`, `832` | Dùng đơn vị rõ ràng, log tại ranh giới công việc |
-| `exception` / `stackTrace` | Bằng chứng đường gọi khi có lỗi | Loại exception và stack | Ghi đối tượng Throwable ở logging framework, tránh chỉ lưu message |
+| `timestamp` | Know when the event occurred, roughly order chronologically | `2026-10-29T08:15:30.123Z` | Prefer UTC ISO-8601, explicitly include timezone |
+| `level` | Severity/operational significance | `INFO`, `WARN`, `ERROR` | Level must reflect the event, not the author's mood |
+| `service` / `instance` / `version` | Identify the application, pod, and build the line belongs to | `order-api`, `pod-a`, `1.8.2` | Especially critical in multi-replica systems |
+| `thread` | JVM thread that emitted the record | `http-nio-8080-exec-7` | Threads are reused; **not a request ID** |
+| `correlationId` / `requestId` | Link all events belonging to one business operation/request | `req-7c41` | Must be generated/accepted at ingress and propagated across boundaries |
+| `traceId` / `spanId` | Link logs with distributed traces and work segments | ID per trace context | Only emit when valid tracing/context exists |
+| `event` / `operation` | Stable event type for searching and grouping | `order.reserve.started` | Stable names are better than arbitrary changing prose |
+| `message` | Concise explanation of what happened | `inventory reservation failed` | Do not copy raw sensitive data |
+| `outcome` / `errorCode` / `durationMs` | Result and impact | `FAILED`, `INV_TIMEOUT`, `832` | Use explicit units, log at work boundaries |
+| `exception` / `stackTrace` | Call-path evidence on error | Exception type and stack | Pass the Throwable object to the logging framework, avoid logging only message |
 
-**Tập tối thiểu** cho log ứng dụng phục vụ chẩn đoán: `timestamp + level + service + event + thread + correlationId + message`. Thêm `traceId/spanId` khi đã có distributed tracing; thêm `durationMs` và `outcome` cho sự kiện kết thúc; thêm exception đúng cách cho lỗi. Các trường như `instance` và `version` có thể được gắn bởi collector/resource metadata thay vì lặp lại trong từng lời gọi log.
+**Minimal set** for diagnostic application logs: `timestamp + level + service + event + thread + correlationId + message`. Add `traceId/spanId` when distributed tracing is present; add `durationMs` and `outcome` for completion events; add exceptions properly for errors. Fields like `instance` and `version` can be attached by collector/resource metadata instead of repeated on every log call.
 
-Ví dụ **JSON Lines minh họa** (mỗi dòng là một JSON object, không phải stdout cố định của chương trình bên dưới):
+Illustrative **JSON Lines example** (each line is a JSON object, not the fixed stdout of the program below):
 
 ~~~json
 {"timestamp":"2026-10-29T08:15:30.120Z","level":"INFO","service":"order-api","thread":"http-worker-4","correlationId":"req-7c41","event":"order.accepted","orderRef":"ORD-42"}
@@ -32,123 +32,123 @@ Ví dụ **JSON Lines minh họa** (mỗi dòng là một JSON object, không ph
 {"timestamp":"2026-10-29T08:15:30.958Z","level":"ERROR","service":"order-api","thread":"http-worker-4","correlationId":"req-7c41","event":"order.failed","outcome":"FAILED","durationMs":838,"errorCode":"INV_TIMEOUT"}
 ~~~
 
-Bốn dòng cho thấy **cùng correlation ID** nhưng có **hai thread**. Nếu chỉ lọc theo tên thread, ta có thể bỏ sót một nửa thao tác hoặc trộn thêm request khác xử lý trên thread đó. Các timestamp cũng cho biết khoảng thời gian, nhưng quan hệ nhân quả chính xác nên được xác định thêm bằng event, parent-child span/trace hoặc business workflow, không suy từ thứ tự timestamp một mình.
+The four lines show the **same correlation ID** across **two threads**. If you only filter by thread name, you may miss half of the operation or mix in another request processed on that thread. Timestamps also indicate the time window, but exact causal relationships should be further established via events, parent-child spans/traces, or business workflow rather than inferred from timestamp order alone.
 
-## 2. Log level: ghi đủ tín hiệu và tránh nhiễu
+## 2. Log Level: Capturing Signal Without Noise
 
-Các framework dùng các tên level khác nhau. SLF4J/Logback/Log4j thường có `ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`; Java Util Logging (JUL) dùng `SEVERE`, `WARNING`, `INFO`, `CONFIG`, `FINE`, `FINER`, `FINEST`. Đây là **hai thang đặt tên khác nhau**, không giả định có mapping một-một tuyệt đối cho mọi cấu hình bridge.
+Frameworks use different level names. SLF4J/Logback/Log4j typically have `ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`; Java Util Logging (JUL) uses `SEVERE`, `WARNING`, `INFO`, `CONFIG`, `FINE`, `FINER`, `FINEST`. These are **two different naming scales**; do not assume a strict one-to-one mapping across every bridge configuration.
 
-| Mức thường dùng ở SLF4J | Nên ghi gì | Ví dụ sự kiện |
+| Common SLF4J level | What should be logged | Example events |
 | --- | --- | --- |
-| **ERROR** | Thao tác đã thất bại hoặc hệ thống không thể hoàn thành trách nhiệm của nó, cần điều tra/xử lý | Không thể ghi đơn hàng sau khi hết retry có giới hạn |
-| **WARN** | Tình trạng bất thường, vẫn có thể hồi phục/fallback, nguy cơ suy giảm nhưng chưa phải lỗi kết thúc | Dependency timeout ở lần thử đầu, fallback đang được dùng |
-| **INFO** | Cột mốc nghiệp vụ/vòng đời quan trọng, ít biến động, hữu ích ở production | Nhận request, hoàn tất giao dịch, thay đổi trạng thái quan trọng |
-| **DEBUG** | Chi tiết để tìm nguyên nhân trong một flow; có thể bật có chọn lọc | Chọn nhánh xử lý, cache miss, quyết định retry |
-| **TRACE** | Thao tác rất chi tiết, có tần suất cao, chỉ bật khi thật sự cần | Các bước nội bộ nhỏ, từng nhánh xử lý |
+| **ERROR** | Operation failed or the system could not fulfill its responsibility, requiring investigation/action | Unable to persist order after bounded retries exhausted |
+| **WARN** | Abnormal condition, still recoverable/fallback possible, risk of degradation but not a terminal failure | Dependency timeout on first attempt, fallback activated |
+| **INFO** | Important business/lifecycle milestones, low churn, useful in production | Request received, transaction completed, major state change |
+| **DEBUG** | Details to find root causes within a flow; can be selectively enabled | Processing branch selected, cache miss, retry decision |
+| **TRACE** | Very fine-grained, high-frequency operations, enabled only when truly needed | Small internal steps, individual branch evaluations |
 
-**Nguyên tắc thực tế:**
-- **Không log ERROR cho lỗi dự kiến** đã được xử lý đúng hợp đồng, chẳng hạn request không hợp lệ dẫn tới 400 như thiết kế. Có thể thống kê/lưu INFO/WARN tùy yêu cầu.
-- **WARN** cho tình huống bất thường có thể hồi phục; nếu mỗi request bình thường đều phát WARN, cảnh báo sẽ trở nên vô nghĩa.
-- **INFO** là dấu mốc tạo khả năng theo dõi ở mức vận hành, không phải in mọi vòng lặp.
-- **DEBUG/TRACE** phải được kiểm soát về lưu lượng và thông tin nhạy cảm. Đặc biệt tránh log toàn bộ request/response body, token, cookie, credential hoặc thông tin cá nhân.
-- **Một lỗi nên có một điểm ghi nhận chính** tại tầng sở hữu kết quả. Ném exception qua nhiều lớp mà lớp nào cũng log ERROR với stack trace sẽ tạo bản sao và nhiễu cảnh báo.
+**Practical principles:**
+- **Do not log ERROR for expected failures** handled per contract, such as invalid requests resulting in 400 as designed. Count or log at INFO/WARN depending on requirements.
+- **WARN** is for recoverable anomalies; if every normal request emits a WARN, alerts become meaningless.
+- **INFO** marks operational observability milestones, not printing inside every loop.
+- **DEBUG/TRACE** must be controlled for volume and sensitive data. Especially avoid logging full request/response bodies, tokens, cookies, credentials, or personal information.
+- **One error should have one primary logging point** at the layer owning the outcome. Throwing an exception up through multiple layers where every layer logs ERROR with a stack trace creates duplicates and alert noise.
 
-**Lọc theo level:** logger, handler/appender, filter và collector có thể có ngưỡng khác nhau. Việc gọi `logger.debug(...)` không đảm bảo có log được ghi ra khi DEBUG chưa bật. Khi thiếu dòng, kiểm tra cả ngưỡng tại logger lẫn output/collector, cấu hình sampling và việc drop khi pipeline quá tải.
+**Filtering by level:** logger, handler/appender, filter, and collector may have different thresholds. Calling `logger.debug(...)` does not guarantee output when DEBUG is not enabled. When lines are missing, check thresholds at both the logger and output/collector, sampling settings, and pipeline drops under overload.
 
-**Lưu ý về stack trace:** nếu xảy ra lỗi thật, truyền **Throwable object** cho logging API để backend hiển thị exception class, message và stack/cause chain; chỉ gọi `exception.getMessage()` sẽ mất đường gọi. Cần liên kết stack trace với `correlationId`/`traceId` và event lỗi, đồng thời giới hạn dữ liệu nhạy cảm trong message.
+**Note on stack traces:** when a real error occurs, pass the **Throwable object** to the logging API so the backend renders the exception class, message, and stack/cause chain; calling only `exception.getMessage()` loses the call path. Correlate stack traces with `correlationId`/`traceId` and error events while limiting sensitive data in messages.
 
-## 3. Thời gian: timestamp sự kiện khác thời lượng
+## 3. Time: Event Timestamp vs. Duration
 
-**Timestamp** dùng để đối chiếu log giữa máy, truy vấn theo cửa sổ thời gian và xây dựng timeline. Ưu tiên:
-- Dạng ISO-8601 UTC, ví dụ `2026-10-29T08:15:30.123Z`; giữ timezone/offset rõ ràng.
-- Mức chính xác phù hợp hệ thống, thường milliseconds hoặc microseconds nếu công cụ hỗ trợ; đừng nhầm có nhiều chữ số với độ chính xác thật.
-- Khi có collector, phân biệt **event timestamp** (lúc app phát sinh) và **ingestion timestamp** (lúc pipeline nhận) vì batching/network làm hai thời điểm khác nhau.
-- Đồng bộ đồng hồ host/container bằng cơ chế hạ tầng. Clock skew giữa các máy có thể làm event ở downstream trông như xảy ra trước upstream.
+**Timestamps** are used to correlate logs across machines, query by time window, and construct timelines. Preferences:
+- ISO-8601 UTC format, e.g. `2026-10-29T08:15:30.123Z`; keep timezone/offset explicit.
+- Precision appropriate to the system, usually milliseconds or microseconds if supported by tools; do not confuse many digits with true accuracy.
+- When a collector is present, distinguish **event timestamp** (when the app emitted it) from **ingestion timestamp** (when the pipeline received it), as batching/network makes them differ.
+- Synchronize host/container clocks via infrastructure mechanisms. Clock skew between machines can make a downstream event look like it occurred before upstream.
 
-**Duration** là độ dài khoảng đo. Với Java trong cùng JVM, đo duration bằng hiệu `System.nanoTime()` (đồng hồ đo khoảng thời gian) rồi chuyển đơn vị; không dùng hiệu `System.currentTimeMillis()` để benchmark ngắn vì wall clock có thể được điều chỉnh.
+**Duration** is the length of a measured interval. In Java within the same JVM, measure duration using the difference of `System.nanoTime()` (elapsed time clock) and convert units; do not use `System.currentTimeMillis()` differences for short measurements because the wall clock can be adjusted.
 
 ~~~java
 long startNanos = System.nanoTime();
-// Thao tác thực tế được bao trong khoảng đo.
+// Actual operation enclosed in the measurement interval.
 long durationMs = java.util.concurrent.TimeUnit.NANOSECONDS
         .toMillis(System.nanoTime() - startNanos);
 ~~~
 
-Đây là **đoạn mã minh họa cách đo**, không phải chương trình chạy độc lập. Đưa `durationMs` vào log kết thúc và phải nói rõ là **thời gian của đoạn nào**: end-to-end request, một lời gọi DB hay chờ lấy connection. Đừng cộng durations của các nhánh chạy song song như thể chúng tuần tự; dùng trace/span critical path khi cần.
+This is an **illustrative measurement snippet**, not a standalone runnable program. Include `durationMs` in completion logs and clearly state **which segment's time** it measures: end-to-end request, a DB call, or waiting for a connection. Do not add durations of parallel branches as if they were sequential; use trace/span critical paths when needed.
 
-Ví dụ:
-- Request A vào lúc `08:00:00.000Z`, hoàn tất lúc `08:00:00.500Z`: elapsed khoảng 500 ms nếu đồng hồ tin cậy.
-- Span gọi DB tốn 300 ms, span gọi cache 250 ms **có thể chạy song song**: không thể kết luận tổng request bằng 550 ms chỉ bằng phép cộng.
-- Timestamp theo UTC giúp nối log đa vùng thời gian; duration trong một process vẫn nên lấy monotonic measurement.
+Examples:
+- Request A enters at `08:00:00.000Z`, finishes at `08:00:00.500Z`: elapsed is about 500 ms if the clock is reliable.
+- A DB call span takes 300 ms and a cache call span takes 250 ms **which may run in parallel**: you cannot conclude total request time equals 550 ms simply by adding them.
+- UTC timestamps help join multi-timezone logs; durations within a single process should still use monotonic measurement.
 
-## 4. Thread name là bối cảnh thực thi, không là mã tương quan
+## 4. Thread Name Is Execution Context, Not a Correlation ID
 
-`Thread.currentThread().getName()` (Java 17+) cho biết tên thread hiện tại. Tên giúp kiểm tra:
-- Tác vụ chạy trên HTTP worker, executor pool, scheduled task hay thread đặc biệt.
-- Một thread có bị kẹt trong stack trace, lock contention hoặc queue không.
-- Một thao tác có chuyển giữa các executor khác nhau không, qua nhiều event.
+`Thread.currentThread().getName()` (Java 17+) reports the current thread's name. The name helps check:
+- Whether the task ran on an HTTP worker, executor pool, scheduled task, or special thread.
+- Whether a thread is stuck in a stack trace, lock contention, or queue.
+- Whether an operation hopped across different executors across multiple events.
 
-Nhưng **thread có thể phục vụ nhiều request liên tiếp** và một request có thể **chạy trên nhiều thread**. Với bất đồng bộ, callback, `CompletableFuture` hoặc reactive pipeline, thread ở sự kiện bắt đầu có thể khác thread ở sự kiện kết thúc. Vì vậy:
-- Không tạo correlation ID bằng thread name/thread ID.
-- Không lọc toàn bộ vấn đề theo thread name rồi tự cho rằng tất cả log thuộc một request.
-- Nếu muốn liên hệ thread dump, lưu tên thread/identifier với timestamp và process identity, sau đó đối chiếu với event log.
+However, **a thread can serve many requests sequentially** and a single request can **execute across multiple threads**. With async work, callbacks, `CompletableFuture`, or reactive pipelines, the thread on the start event may differ from the thread on the completion event. Therefore:
+- Do not construct a correlation ID from thread name/thread ID.
+- Do not filter the entire issue by thread name and assume all those logs belong to one request.
+- To correlate with thread dumps, store thread name/identifier alongside timestamp and process identity, then match against event logs.
 
-Có thể tùy chỉnh tên thread theo cách có nghĩa cho vận hành, ví dụ `inventory-worker-2`, nhưng không nên nhúng mã request trực tiếp vào tên thread pool tái sử dụng: dễ bỏ sót cleanup và làm sai quan sát.
+Thread names can be customized in operationally meaningful ways, such as `inventory-worker-2`, but you should not embed request IDs directly into pooled thread names: cleanup is easily missed and observations become misleading.
 
-## 5. Correlation ID, request ID, trace ID và span ID
+## 5. Correlation ID, Request ID, Trace ID, and Span ID
 
-Các định danh này liên quan nhưng **không đồng nghĩa**:
+These identifiers are related but **not synonymous**:
 
-| Định danh | Phạm vi | Tác dụng |
+| Identifier | Scope | Purpose |
 | --- | --- | --- |
-| **correlationId** | Một thao tác/workflow được quy ước theo hệ thống | Tìm mọi log liên quan, có thể nối nhiều request/message |
-| **requestId** | Một lần yêu cầu vào service/gateway | Phân biệt từng request, kể cả retry |
-| **traceId** | Một distributed trace trải qua nhiều service và span | Liên kết logs với distributed tracing |
-| **spanId** | Một công việc/đoạn trong trace | Gắn log vào đoạn xử lý cụ thể |
-| **business reference** | Đơn hàng, giao dịch, message nghiệp vụ | Tra cứu theo đối tượng; không nhất thiết duy nhất cho mỗi lần thực thi |
+| **correlationId** | A system-defined operation/workflow | Find all related logs, potentially linking multiple requests/messages |
+| **requestId** | A single request entering a service/gateway | Distinguish individual requests, including retries |
+| **traceId** | A distributed trace spanning multiple services and spans | Link logs with distributed tracing |
+| **spanId** | A unit/segment of work within a trace | Attach logs to a specific processing segment |
+| **business reference** | Order, transaction, business message | Look up by domain entity; not necessarily unique per execution |
 
-Tùy kiến trúc, có thể dùng một `correlationId` bằng request ID ở ingress; nếu workflow có nhiều lần retry/request nối tiếp, cần thiết kế cách phân biệt từng attempt với correlation ID chung. Không thay thế correlation ID bằng userId, email hay số điện thoại: vừa có rủi ro bảo mật, vừa không duy nhất cho một thao tác.
+Depending on architecture, `correlationId` may equal request ID at ingress; if a workflow spans multiple retries/sequential requests, design a way to distinguish individual attempts alongside the shared correlation ID. Do not substitute `userId`, email, or phone number for correlation ID: it introduces security risks and is not unique per operation.
 
-**Trace context:** tiêu chuẩn W3C Trace Context định nghĩa header `traceparent` để mang trace ID/span parent ID và trace flags qua network; OpenTelemetry có thể gắn `TraceId` và `SpanId` trong log records. **TraceId** thường được biểu diễn 32 ký tự hex, **SpanId** 16 ký tự hex trong W3C format. Không tự điền một chuỗi ngẫu nhiên vào `traceId` nếu hệ thống thực tế chưa có span/context hợp lệ.
+**Trace context:** the W3C Trace Context standard defines the `traceparent` header to carry trace ID/parent span ID and trace flags over the network; OpenTelemetry can attach `TraceId` and `SpanId` in log records. **TraceId** is typically represented as 32 hex characters, **SpanId** as 16 hex characters in W3C format. Do not fabricate a random string into `traceId` if the system does not actually have a valid span/context.
 
-Ở biên hệ thống:
-1. Nếu đã có correlation ID hợp lệ từ gateway/parent, tiếp tục sử dụng theo chính sách hệ thống; **validate độ dài và ký tự**, tránh log injection và chiếm tài nguyên.
-2. Nếu không có ID hoặc giá trị không đáng tin, tạo ID mới bằng cơ chế phù hợp, chẳng hạn UUID cho correlation ID nội bộ.
-3. Đưa ID vào context của request/job, thêm vào outgoing HTTP headers hoặc message metadata khi các thành phần cần tương quan.
-4. Ở downstream, đọc/validate và nối theo chính sách trust boundary; gắn ID vào log cho các event liên quan.
-5. Khi retry, có thể giữ correlation ID **chung**, đồng thời thêm `attempt` hoặc `requestId` riêng để phân biệt từng lần thử.
+At system boundaries:
+1. If a valid correlation ID already exists from the gateway/parent, continue using it per system policy; **validate length and characters** to prevent log injection and resource abuse.
+2. If no ID exists or the value is untrusted, generate a new ID via a suitable mechanism, such as a UUID for internal correlation IDs.
+3. Place the ID into the request/job context, and add it to outgoing HTTP headers or message metadata when components need correlation.
+4. Downstream, read/validate and propagate per trust boundary policy; attach the ID to logs for relevant events.
+5. On retry, you can keep a **shared** correlation ID while adding `attempt` or a separate `requestId` to distinguish each attempt.
 
-Không chấp nhận tùy tiện header client giả mạo làm dữ liệu xác thực/ủy quyền. ID chỉ phục vụ **quan sát và liên kết**, không được dùng làm bằng chứng danh tính hoặc quyền truy cập.
+Do not blindly trust forged client headers as authentication/authorization data. IDs serve **observability and correlation only**, never as proof of identity or access rights.
 
-## 6. Chọn những điểm ghi log để lần theo một thao tác
+## 6. Choosing Log Points to Trace an Operation
 
-Một flow điển hình:
-1. **Ingress/accepted:** request/job được nhận; log INFO với ID, loại tác vụ, endpoint hoặc event nghiệp vụ, source.
-2. **Dispatch/start:** ghi nhận bắt đầu xử lý, có thể gồm queue wait nếu đo được.
-3. **Boundary quan trọng:** trước/sau gọi dependency, lấy connection, bắt đầu retry, fallback, publish message; nếu ghi thường xuyên, cân nhắc DEBUG với số liệu metric/tracing tương ứng.
-4. **Failure:** WARN cho lỗi có thể hồi phục; ERROR cho kết quả thất bại. Ghi `errorCode` ổn định, Throwable hợp lệ và thông tin dependency liên quan.
-5. **Completion:** INFO cho kết quả chính, `outcome`, `durationMs` của toàn flow, correlation ID; không log thừa mỗi bước nhỏ.
+A typical flow:
+1. **Ingress/accepted:** request/job is received; log INFO with ID, task type, endpoint or business event, source.
+2. **Dispatch/start:** record start of processing, optionally including queue wait if measurable.
+3. **Key boundaries:** before/after dependency calls, connection acquisition, retry start, fallback, message publish; if emitted frequently, consider DEBUG paired with metrics/tracing.
+4. **Failure:** WARN for recoverable failures; ERROR for failed outcomes. Log a stable `errorCode`, valid Throwable, and relevant dependency details.
+5. **Completion:** INFO for the main outcome, `outcome`, end-to-end `durationMs`, correlation ID; do not over-log every tiny step.
 
-**Nguyên tắc cân bằng:** không phải ứng dụng nào cũng cần log INFO ở mọi request nếu traffic rất lớn. Có thể dùng access logs có cấu trúc, tracing và metrics để giữ tín hiệu cần thiết mà tránh log quá nhiều; chỉ tăng DEBUG/TRACE có mục tiêu khi điều tra.
+**Balancing principle:** not every application needs INFO logs on every request if traffic is massive. You can use structured access logs, tracing, and metrics to preserve needed signal without excessive log volume; raise DEBUG/TRACE selectively when investigating.
 
-### Quy ước tên event và trạng thái
+### Event and Status Naming Conventions
 
-Nên chọn những tên event ổn định, có nghĩa, ví dụ:
+Choose stable, meaningful event names, for example:
 - `order.received`
 - `order.inventory.reserve.start`
 - `order.inventory.reserve.retry`
 - `order.inventory.reserve.failure`
 - `order.completed`
 
-Tránh chỉ dùng một câu `message` tự do như “doing something” hoặc “failed again”. Nếu đổi câu chữ hoặc ngôn ngữ, trường `event` ổn định vẫn hỗ trợ query và dashboard. Phân biệt `outcome=SUCCESS/FAILED/CANCELLED` và `errorCode=...` là dữ liệu có cấu trúc, không phải văn bản phải regex để trích xuất.
+Avoid relying solely on a free-form `message` sentence like "doing something" or "failed again". If wording or language changes, a stable `event` field still supports queries and dashboards. Separate `outcome=SUCCESS/FAILED/CANCELLED` and `errorCode=...` as structured data rather than text requiring regex extraction.
 
-## 7. Ví dụ Java 17 chạy độc lập, không cần thư viện ngoài
+## 7. Standalone Java 17 Example Requiring No External Libraries
 
-Java chuẩn có `java.util.logging` (JUL): `Logger`, `Level`, `LogRecord`, `Handler` và `Formatter`. Đoạn sau tạo **logger**, lưu metadata ở `LogRecord.parameters`, dùng `StreamHandler` để ghi ra stdout và một `Formatter` tường minh để trình bày bốn thông tin bắt buộc: **timestamp, level, thread, correlation ID**, cùng loại sự kiện và message.
+Standard Java provides `java.util.logging` (JUL): `Logger`, `Level`, `LogRecord`, `Handler`, and `Formatter`. The snippet below creates a **logger**, stores metadata in `LogRecord.parameters`, uses `StreamHandler` to write to stdout, and uses an explicit `Formatter` to output four required pieces of information: **timestamp, level, thread, correlation ID**, along with event type and message.
 
-Để stdout có thể tái hiện chính xác trong bài học, ví dụ dùng **`Clock.fixed`** với thời điểm cố định; production phải dùng đồng hồ thực như `Clock.systemUTC()` hoặc nguồn timestamp do logging framework quản lý. Đây là **minh họa giáo dục**; trong production nên dùng structured JSON encoder của framework để escape nội dung và gắn metadata chuẩn.
+To make stdout reproducibly exact in this lesson, the example uses **`Clock.fixed`** with a fixed instant; production must use a real clock like `Clock.systemUTC()` or the timestamp source managed by the logging framework. This is an **educational illustration**; in production, use the framework's structured JSON encoder to escape content and attach standard metadata.
 
-Tạo tệp **CorrelatedLoggingDemo.java**:
+Create the file **CorrelatedLoggingDemo.java**:
 
 ~~~java
 import java.time.Clock;
@@ -213,14 +213,14 @@ public final class CorrelatedLoggingDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa tệp bằng **JDK 17+**:
+Compile and run from the file's directory using **JDK 17+**:
 
 ~~~bash
 javac CorrelatedLoggingDemo.java
 java CorrelatedLoggingDemo
 ~~~
 
-**Stdout chính xác** (ba log có cùng correlation ID, thread là `main`, clock được cố định trong ví dụ):
+**Exact stdout** (three logs sharing the correlation ID, thread is `main`, clock is fixed in the example):
 
 ~~~text
 2026-10-29T08:00:00Z level=INFO thread=main correlationId=req-42 event=order.received message="begin"
@@ -228,25 +228,25 @@ java CorrelatedLoggingDemo
 2026-10-29T08:00:00Z level=INFO thread=main correlationId=req-42 event=order.completed message="success"
 ~~~
 
-**Đọc kết quả:**
-- Dù thông điệp khác nhau, cả ba sự kiện cùng `correlationId=req-42`, nên có thể nhóm thành một flow.
-- `level=WARNING` là cách đặt tên **của JUL**; nhiều framework khác dùng `WARN`.
-- `thread=main` đúng vì ví dụ chạy đồng bộ trong main thread; các ví dụ async có thể đổi thread nhưng vẫn phải giữ correlation ID.
-- Timestamp giống nhau do `Clock.fixed` **chỉ phục vụ kiểm tra có thể tái lập**, không đại diện thời gian thực của production.
-- `LogRecord.parameters` được dùng để mang metadata trong bài học; trong sản xuất, backend JSON encoder hoặc typed key-value API phù hợp sẽ an toàn hơn cách ghép chuỗi thủ công.
+**Reading the output:**
+- Although the messages differ, all three events share `correlationId=req-42`, so they can be grouped into one flow.
+- `level=WARNING` is **JUL's** naming convention; many other frameworks use `WARN`.
+- `thread=main` is expected since the example runs synchronously on the main thread; async examples may switch threads while still keeping the correlation ID.
+- Identical timestamps come from `Clock.fixed` **solely for reproducible verification**, not representing real production timing.
+- `LogRecord.parameters` carries metadata in this lesson; in production, a backend JSON encoder or typed key-value API is safer than manual string formatting.
 
-**Điều chưa được ví dụ này làm:** truyền context qua thread/service, lưu exception stack trace, khử dữ liệu nhạy cảm, logging bất đồng bộ, sampling, hoặc tự động ghi trace ID. Các tác vụ đó cần logging framework, tracing instrumentation và chính sách hệ thống tương ứng, sẽ được áp dụng ở các mục tiếp.
+**What this example does not yet do:** propagate context across threads/services, record exception stack traces, redact sensitive data, async logging, sampling, or automatically record trace IDs. Those tasks require logging frameworks, tracing instrumentation, and corresponding system policies, covered in the following sections.
 
-## 8. MDC với SLF4J/Logback: gắn ID vào mọi log của một luồng
+## 8. MDC with SLF4J/Logback: Attaching IDs to Every Log on a Flow
 
-Trong ứng dụng Java thường dùng `org.slf4j.MDC` (Mapped Diagnostic Context) để đặt metadata theo context thực thi. Framework/encoder phù hợp có thể đọc MDC và thêm vào log mà không cần truyền `correlationId` vào từng lời gọi.
+Java applications commonly use `org.slf4j.MDC` (Mapped Diagnostic Context) to store metadata per execution context. A compatible framework/encoder can read MDC and include it in logs without passing `correlationId` into every log call.
 
-Đoạn mã **minh họa cách dùng SLF4J**, **không chạy độc lập** vì cần dependency SLF4J, backend hỗ trợ như Logback và biến `log`/`correlationId` trong ứng dụng:
+The snippet **illustrates SLF4J usage** and **does not run standalone** because it requires the SLF4J dependency, a supported backend such as Logback, and application variables `log`/`correlationId`:
 
 ~~~java
 import org.slf4j.MDC;
 
-// Đầu vào giả định đã được xác minh và chuẩn hóa.
+// Input assumed already validated and normalized.
 String previous = MDC.get("correlationId");
 MDC.put("correlationId", correlationId);
 try {
@@ -265,15 +265,15 @@ try {
 }
 ~~~
 
-**Vì sao phải dùng `finally`?** Thread pool tái sử dụng thread cho request sau. Nếu không xóa hoặc khôi phục MDC, request tiếp theo có thể bị gắn nhầm ID của request trước, làm timeline sai và rò bối cảnh giữa các người dùng. Đoạn trên giữ lại giá trị MDC cũ trong trường hợp nested call; với một request boundary hoàn toàn độc lập, nhiều hệ thống chọn clear toàn bộ context ở đầu/cuối theo quy ước thống nhất.
+**Why is `finally` mandatory?** Thread pools reuse threads for subsequent requests. Without clearing or restoring MDC, the next request can be stamped with the previous request's ID, corrupting timelines and leaking context across users. The snippet preserves any prior MDC value for nested calls; at a completely independent request boundary, many systems choose to clear the entire context at the start/end by a consistent convention.
 
-**Lưu ý thiết yếu:** chỉ gọi `MDC.put(...)` chưa đảm bảo ID xuất hiện trong output. Pattern/JSON encoder của backend phải được cấu hình thêm trường MDC, ví dụ khái niệm `correlationId` trong Logback pattern là `%X{correlationId}`. Nếu encoder/collector bỏ trường hoặc đặt tên khác, log vẫn thiếu ID dù MDC đã được gán.
+**Essential note:** merely calling `MDC.put(...)` does not ensure the ID appears in the output. The backend's pattern/JSON encoder must be configured to include the MDC field—for example, conceptually `correlationId` in a Logback pattern is `%X{correlationId}`. If the encoder/collector omits the field or uses a different name, logs still lack the ID even though MDC was set.
 
-### Khi công việc chuyển sang thread khác
+### When Work Moves to Another Thread
 
-MDC thường gắn với thread context, không mặc định tự theo qua `ExecutorService`, `CompletableFuture` hoặc mọi reactive pipeline. Cần capture và khôi phục context một cách có chủ đích hoặc dùng integration của framework/observability agent.
+MDC is usually bound to the thread context and does not automatically carry across `ExecutorService`, `CompletableFuture`, or all reactive pipelines by default. You must intentionally capture and restore context or use framework/observability agent integration.
 
-Đoạn sau **minh họa tại một call site**, giả định đã có `ExecutorService executor`, `org.slf4j.MDC` và logger `log`:
+The snippet below **illustrates a single call site**, assuming `ExecutorService executor`, `org.slf4j.MDC`, and logger `log` already exist:
 
 ~~~java
 import java.util.Map;
@@ -290,7 +290,7 @@ executor.submit(() -> {
             MDC.setContextMap(captured);
         }
         log.info("inventory.reserve.started");
-        // Xử lý công việc của thao tác hiện tại.
+        // Process work for the current operation.
     } finally {
         if (previous == null) {
             MDC.clear();
@@ -301,36 +301,36 @@ executor.submit(() -> {
 });
 ~~~
 
-Ở đây **snapshot của parent** được chuyển vào worker, rồi **context cũ của worker** được khôi phục khi thoát. Có thể có context khác ngoài MDC (ví dụ OpenTelemetry Context, security context) cần cơ chế propagation riêng; chỉ sao chép MDC **không đủ** để duy trì active trace span. Nếu framework đã cung cấp task decorator/instrumentation, nên dùng cơ chế được hỗ trợ của framework để tránh quên ở một nhánh async.
+Here the **parent's snapshot** is transferred to the worker, and the **worker's previous context** is restored upon exit. Other contexts besides MDC (e.g., OpenTelemetry Context, security context) may need separate propagation mechanisms; copying MDC alone is **not enough** to maintain an active trace span. If the framework already provides a supported task decorator/instrumentation, prefer that mechanism to avoid missing an async branch.
 
-Với reactive pipelines hoặc virtual threads (JDK 21+), đừng mặc định `ThreadLocal`/MDC truyền đúng qua các lần đổi executor. Truyền ngữ cảnh theo mô hình context của framework, dùng integration có kiểm chứng và kiểm tra log ở từng async boundary.
+With reactive pipelines or virtual threads (JDK 21+), do not assume `ThreadLocal`/MDC propagates properly across executor switches. Propagate context according to the framework's context model, use verified integrations, and test logs across every async boundary.
 
-## 9. Distributed tracing: liên kết log qua nhiều service
+## 9. Distributed Tracing: Linking Logs Across Multiple Services
 
-Một correlation ID riêng của ứng dụng có thể đủ để tìm tất cả bản ghi theo một workflow. Khi có tracing, nên liên kết thêm:
-- **`traceId`** giữ nguyên trong toàn distributed trace.
-- **`spanId`** thay đổi theo từng đoạn công việc/operation.
-- **`service.name`** xác định service sở hữu log.
-- **`correlationId`** có thể tồn tại song song, đặc biệt khi nghiệp vụ kéo dài qua nhiều message hoặc trace riêng biệt.
+An application-specific correlation ID may suffice to find all records for one workflow. When tracing is present, also link:
+- **`traceId`** stays constant across the entire distributed trace.
+- **`spanId`** changes per unit of work/operation.
+- **`service.name`** identifies the service owning the log.
+- **`correlationId`** may exist alongside, especially when business workflows span multiple messages or separate traces.
 
-OpenTelemetry định nghĩa **log correlation** qua thời gian, execution context và resource attributes; log records có thể mang `TraceId`/`SpanId` để nhảy từ log sang trace tương ứng. Điều kiện là **trace context được truyền đúng** qua function/thread và HTTP/message boundaries, và logging backend/exporter thực sự gắn các trường đó.
+OpenTelemetry defines **log correlation** via time, execution context, and resource attributes; log records can carry `TraceId`/`SpanId` to jump from logs to the corresponding trace. The condition is that **trace context is properly propagated** across functions/threads and HTTP/message boundaries, and the logging backend/exporter actually attaches those fields.
 
-### Minh họa một thao tác đi qua hai service
+### Illustrating an Operation Crossing Two Services
 
 ~~~text
 Request POST /orders
   |
   | correlationId=req-42
-  | traceId=4f... (cùng trace)
+  | traceId=4f... (same trace)
   v
 order-api
   |  event=order.received
-  |  spanId=aa... (span order)
+  |  spanId=aa... (order span)
   |
-  +---- gọi inventory-api (HTTP context propagation) ---->
+  +---- calls inventory-api (HTTP context propagation) ---->
             event=inventory.reserve.started
-            traceId=4f... (cùng trace)
-            spanId=bb... (span inventory)
+            traceId=4f... (same trace)
+            spanId=bb... (inventory span)
             |
             +---- event=inventory.reserve.completed
   |
@@ -339,77 +339,77 @@ order-api
   event=order.completed
 ~~~
 
-Các ID bị rút gọn trong sơ đồ **chỉ minh họa**, không phải định dạng W3C hợp lệ để truyền trên mạng. Cần lấy ID thật từ active tracing context, không tự dựng lại span ID bằng thread name. Nếu mất `traceparent` hoặc context ở async boundary, logs downstream có thể không chứa trace ID hoặc thuộc trace khác; correlation ID riêng có thể giúp điều tra nhưng không thay cho propagation chính xác.
+The shortened IDs in the diagram are **illustrative only**, not valid W3C formats for network transmission. Obtain real IDs from the active tracing context rather than reconstructing span IDs from thread names. If `traceparent` or context is lost at an async boundary, downstream logs may lack trace IDs or belong to a different trace; an application correlation ID can still aid investigation, though it does not replace proper propagation.
 
-**Không dùng correlation ID làm nhãn metric có cardinality cao** cho từng request; log field có thể phục vụ truy vấn chi tiết, còn metrics thường dùng nhãn có tập giá trị nhỏ như route, outcome, status class.
+**Do not use correlation ID as a high-cardinality metric label** per request; log fields serve detailed queries, whereas metrics generally use low-cardinality labels like route, outcome, and status class.
 
-## 10. Giữ log có cấu trúc, an toàn và chi phí hợp lý
+## 10. Keeping Logs Structured, Safe, and Cost-Effective
 
-**Cấu trúc:** mỗi sự kiện một object JSON hợp lệ (JSON Lines) là lựa chọn thông dụng khi có hệ thống tìm kiếm log. Khai báo tên trường, kiểu dữ liệu và đơn vị nhất quán: `durationMs` là số, `level` là enum/chuỗi, `timestamp` là ISO timestamp, `event` là tên ổn định. Không để người viết tự ghép JSON không escape từ user input.
+**Structure:** one valid JSON object per event (JSON Lines) is a common choice with log search systems. Declare consistent field names, data types, and units: `durationMs` as a number, `level` as an enum/string, `timestamp` as an ISO timestamp, `event` as a stable name. Never manually concatenate unescaped JSON from user input.
 
-**Mã tương quan:** tạo ID không trùng theo phạm vi hệ thống; nếu nhận qua header cần giới hạn ký tự/độ dài và chống newline/control character. Chỉ đưa ID sang downstream theo hợp đồng. Không biến ID thành quyền truy cập hoặc identifier chứa thông tin cá nhân.
+**Correlation IDs:** generate unique IDs within system scope; when received via headers, enforce character/length limits and guard against newline/control characters. Forward IDs downstream only per contract. Do not turn IDs into access credentials or identifiers containing personal data.
 
-**Bảo mật và dữ liệu nhạy cảm:** không log access token, password, session cookie, private key, full payment card, raw authentication headers hoặc request body nhạy cảm. Chỉ log các business fields tối thiểu đã cho phép, có masking/redaction và giới hạn quyền xem. Stack trace có thể chứa path, user input, query text hoặc context nhạy cảm; đánh giá trước khi export/chia sẻ.
+**Security and sensitive data:** never log access tokens, passwords, session cookies, private keys, full payment cards, raw authentication headers, or sensitive request bodies. Log only minimal approved business fields, with masking/redaction and access controls. Stack traces may contain paths, user inputs, query text, or sensitive context; review before exporting/sharing.
 
-**Log injection:** dữ liệu do client gửi có thể chứa newline hoặc ký tự điều khiển làm giả dòng log khi output text thuần. Dùng structured logger/encoder escape đúng chuẩn; tránh đưa nguyên chuỗi user input vào `message`.
+**Log injection:** client-supplied data can contain newlines or control characters that forge log lines in plain-text output. Use a structured logger/encoder that escapes properly; avoid interpolating raw user input into `message`.
 
-**Tần suất và hiệu năng:** log DEBUG/TRACE trong vòng lặp hot path gây CPU, allocation và I/O; log pipeline async có thể drop khi queue đầy. Nên dựa vào metrics để theo dõi tỷ lệ, logs để giải thích sự kiện, trace để nối critical path. Khi điều tra, tăng mức log có chọn lọc và hạ lại sau khi thu đủ bằng chứng.
+**Frequency and performance:** logging DEBUG/TRACE inside hot-path loops causes CPU, allocation, and I/O overhead; async log pipelines can drop entries when queues fill. Rely on metrics to track rates, logs to explain events, and traces to connect critical paths. During an investigation, raise log levels selectively and revert once sufficient evidence is gathered.
 
-**Không ghi trùng exception:** nếu tầng thấp chỉ ném exception và tầng trên chịu trách nhiệm quyết định outcome, hãy cân nhắc log ERROR ở tầng quyết định, đồng thời giữ cause chain. Nếu tầng thấp cần ghi WARN để mô tả retry, event và errorCode riêng sẽ giúp tránh hiểu hai log là hai sự cố độc lập.
+**Do not duplicate exception logs:** if a lower layer merely throws an exception and an upper layer decides the outcome, prefer logging ERROR at the deciding layer while preserving the cause chain. If a lower layer needs to log WARN for a retry, a distinct event and errorCode prevent mistaking two logs for two independent incidents.
 
-## 11. Quy trình lần theo một thao tác từ log
+## 11. Procedure to Trace an Operation from Logs
 
-Giả sử người dùng nói “Đơn hàng ORD-42 báo lỗi lúc 15:15”. Quy trình chẩn đoán:
+Suppose a user says "Order ORD-42 errored around 15:15". Diagnostic procedure:
 
-1. **Chốt phạm vi:** timezone, khoảng thời gian, môi trường, service, version, endpoint, business reference hoặc correlation ID từ response/gateway. Đừng lấy thời gian mơ hồ “khoảng chiều” làm mốc duy nhất.
-2. **Tìm request/correlation ID:** query log ingress theo business reference đã cho phép; nếu có ID từ response header, tra trực tiếp. Không tìm theo thread name trước.
-3. **Nhóm theo ID:** gom log across services, instance và worker thread, sắp xếp theo event timestamp. Dùng trace/span parent-child để xác định thứ tự nhân quả khi clocks lệch hoặc events chạy song song.
-4. **Tìm mốc start, boundary, error và end:** event nào thiếu? Request đã xếp hàng, gửi tới dependency, có retry/fallback, hay bị timeout ở đâu?
-5. **So duration và outcome:** duration tổng của request, queue wait, dependency call, timeout, attempt count. Không cộng các span chồng lấn để suy tổng latency.
-6. **Đọc stack trace đúng event:** kiểm tra exception type/cause chain, nơi ném và sự kiện đầu tiên có ý nghĩa; không mặc định dòng ERROR cuối cùng là nguyên nhân gốc.
-7. **Đối chiếu nguồn khác:** metrics, distributed trace, thread dump, GC log, dependency/server logs và deployment timeline khi cần.
-8. **Kết luận có căn cứ:** viết “request req-42 timeout khi gọi inventory sau 832 ms, order-api trả lỗi ở 838 ms” nếu log/trace chứng minh; tránh “DB bị lỗi” khi chưa có bằng chứng.
+1. **Lock down scope:** timezone, time range, environment, service, version, endpoint, business reference, or correlation ID from response/gateway. Do not rely on vague times like "sometime in the afternoon" as the sole anchor.
+2. **Find the request/correlation ID:** query ingress logs by the permitted business reference; if an ID came from a response header, look it up directly. Do not search by thread name first.
+3. **Group by ID:** gather logs across services, instances, and worker threads, sorted by event timestamp. Use trace/span parent-child links to determine causality when clocks skew or events run concurrently.
+4. **Locate start, boundary, error, and end markers:** which event is missing? Was the request queued, sent to a dependency, retried/fallen back, or timed out where?
+5. **Compare durations and outcomes:** total request duration, queue wait, dependency call, timeout, attempt count. Do not add overlapping spans to deduce total latency.
+6. **Read the stack trace on the right event:** inspect exception type/cause chain, throw site, and the first meaningful failure event; do not assume the final ERROR line is the root cause.
+7. **Cross-check other sources:** metrics, distributed traces, thread dumps, GC logs, dependency/server logs, and deployment timelines as needed.
+8. **Write an evidence-backed conclusion:** state "request req-42 timed out calling inventory after 832 ms, order-api returned an error at 838 ms" if proven by logs/traces; avoid stating "DB failed" without evidence.
 
-**Ví dụ phân biệt:**
-- Log `order.received` ở thread `http-4`, `inventory.reserve.started` ở `pool-2-thread-1` và `order.failed` ở `http-4` vẫn cùng một workflow nếu ID trùng và được propagate đúng.
-- Hai request khác nhau chạy liên tiếp trên `http-4` không phải cùng thao tác dù thread name bằng nhau.
-- Một `ERROR` ở tầng dưới có thể được retry thành công ở tầng trên; outcome cuối cần xác nhận từ completion log, không dừng ở lỗi đầu.
+**Examples of distinction:**
+- Logs `order.received` on thread `http-4`, `inventory.reserve.started` on `pool-2-thread-1`, and `order.failed` on `http-4` still belong to the same workflow if the ID matches and was propagated properly.
+- Two different requests running sequentially on `http-4` are not the same operation even though the thread name is identical.
+- A lower-layer `ERROR` may be retried successfully at a higher layer; confirm the final outcome from the completion log rather than stopping at the first error.
 
-## 12. Các lỗi phổ biến và cách xử lý
+## 12. Common Mistakes and Fixes
 
-| Biểu hiện | Nguyên nhân thường gặp | Cách cải thiện |
+| Symptom | Common cause | How to improve |
 | --- | --- | --- |
-| Log chỉ có message, không có ID | Không có contract trường log hoặc formatter thiếu | Gắn ID tại ingress; thêm vào encoder và log boundary |
-| ID biến mất khi qua executor | MDC/trace context không được propagate | Dùng task decorator/context wrapper/instrumentation; kiểm thử async boundary |
-| Request mới mang ID request cũ | Quên cleanup ThreadLocal/MDC trong thread pool | `try/finally` khôi phục hoặc clear theo contract |
-| Cùng ID mà timestamp “đi ngược” | Clock skew, async batching, ingestion delay | Dùng UTC/event timestamp, span relationships và monotonic durations |
-| Có quá nhiều ERROR cho một exception | Mỗi tầng catch lại log rồi rethrow | Chỉ log outcome tại tầng chịu trách nhiệm; phân biệt WARN retry |
-| Thiếu log DEBUG | Ngưỡng logger/appender, filter/sampling hoặc pipeline drop | Kiểm tra effective level và toàn đường xuất log |
-| Không có stack trace trong log ERROR | Chỉ log `e.getMessage()` thay cho Throwable | Truyền Throwable object cho framework |
-| Chỉ lọc thread, bỏ sót nửa flow | Request async chuyển thread | Nhóm theo correlation/trace ID, thread chỉ là phụ trợ |
-| JSON parse fail hoặc log bị tách dòng | Gắn user input bằng string concatenation | Dùng encoder escape đúng và hạn chế raw input |
-| Truy vấn log quá tốn kém | Volume lớn, giữ quá lâu, field không nhất quán | Giảm log tần suất cao, chuẩn hóa schema, retention/sampling có mục đích |
-| Log chứa password/token | Ghi nguyên request/headers hoặc exception context | Redaction, allowlist fields, kiểm tra quyền/retention |
-| Không khớp giữa log và trace | trace context không được truyền hoặc không inject vào logger | Kiểm tra `traceparent` và integration, thêm traceId/spanId hợp lệ |
+| Logs only have messages, no IDs | No log field contract or missing formatter setup | Attach ID at ingress; add to encoder and log boundaries |
+| ID vanishes across an executor | MDC/trace context was not propagated | Use task decorator/context wrapper/instrumentation; test async boundaries |
+| New request carries old request's ID | Forgot ThreadLocal/MDC cleanup in thread pool | Use `try/finally` to restore or clear per contract |
+| Same ID yet timestamps go "backward" | Clock skew, async batching, ingestion delay | Use UTC/event timestamps, span relationships, and monotonic durations |
+| Too many ERRORs for one exception | Every layer catches, logs, then rethrows | Log outcome only at the responsible layer; distinguish retry WARNs |
+| Missing DEBUG logs | Logger/appender threshold, filter/sampling, or pipeline drop | Check effective level and entire log emission path |
+| No stack trace in ERROR log | Logged `e.getMessage()` instead of Throwable | Pass Throwable object to the framework |
+| Filtered by thread only, missed half the flow | Async request switched threads | Group by correlation/trace ID; thread is auxiliary context |
+| JSON parse failure or split log lines | Appended user input via string concatenation | Use proper escaping encoder and restrict raw input |
+| Log queries too expensive | High volume, overly long retention, inconsistent fields | Reduce high-frequency logs, standardize schema, targeted retention/sampling |
+| Logs contain passwords/tokens | Logged raw requests/headers or exception context | Redaction, field allowlists, check access/retention |
+| Mismatch between logs and traces | Trace context not propagated or not injected into logger | Check `traceparent` and integration, include valid traceId/spanId |
 
-## 13. Checklist kiểm thử khả năng tương quan
+## 13. Correlation Testing Checklist
 
-Trước khi coi logging của một service là đủ dùng cho chẩn đoán, thử một request có mã tương quan đã biết và xác minh:
+Before considering a service's logging sufficient for diagnostics, test a request with a known correlation ID and verify:
 
-1. **Level:** INFO cho các mốc chính; WARN/ERROR đúng mức; DEBUG chỉ xuất hiện khi được bật.
-2. **Timestamp:** UTC có offset, đủ độ phân giải; bản ghi có event time và duration đo đúng đơn vị.
-3. **Thread:** log thể hiện thread phát sinh; flow đổi executor vẫn giữ cùng correlation ID.
-4. **Correlation ID:** tạo tại ingress khi thiếu; validate khi nhận; mọi boundary liên quan đều gắn đúng; request khác không bị dính ID cũ.
-5. **Trace:** nếu có instrumentation, `traceId` nối qua services và `spanId` phản ánh span thực tế.
-6. **Lifecycle:** tìm được event accepted/started, dependency/retry, failure hoặc completed và thời gian xử lý.
-7. **Exception:** lỗi kết thúc có `errorCode` ổn định và Throwable stack/cause chain khi cần.
-8. **Structured output:** parser/collector đọc được fields; dữ liệu người dùng được escape, secrets đã được loại bỏ.
-9. **Tải:** kiểm tra tỷ lệ drop khi log volume cao; không biến DEBUG thành bottleneck.
-10. **Truy vấn thực tế:** từ một correlation ID có thể tìm đủ event qua nhiều thread và nhiều service, rồi viết kết luận có timestamp và bằng chứng.
+1. **Level:** INFO for major milestones; WARN/ERROR at appropriate severities; DEBUG appears only when enabled.
+2. **Timestamp:** UTC with offset, adequate resolution; records include event time and duration in proper units.
+3. **Thread:** logs show the emitting thread; flows switching executors preserve the same correlation ID.
+4. **Correlation ID:** generated at ingress if absent; validated on receipt; attached at every relevant boundary; distinct requests never bleed old IDs.
+5. **Trace:** if instrumented, `traceId` links across services and `spanId` reflects the actual span.
+6. **Lifecycle:** accepted/started, dependency/retry, failure or completed events and processing duration are all discoverable.
+7. **Exception:** terminal errors have a stable `errorCode` and Throwable stack/cause chain when needed.
+8. **Structured output:** parser/collector parses all fields; user data is escaped, secrets are stripped.
+9. **Load:** check drop rates under high log volume; ensure DEBUG does not become a bottleneck.
+10. **Real queries:** from one correlation ID, you can retrieve all events across multiple threads and services and write an evidence-backed conclusion with timestamps.
 
-**Ghi nhớ:** **timestamp** trả lời *khi nào*; **level** trả lời *cần chú ý đến mức nào*; **thread** trả lời *ở đâu trong JVM thực thi*; **correlationId/traceId** trả lời *thuộc thao tác nào*. Để lần theo một thao tác đầy đủ, hãy gắn cùng ID vào các mốc quan trọng từ ingress đến completion, truyền context qua mọi boundary và luôn ghi outcome, duration và exception đúng cách. Không một trường đơn lẻ nào thay thế được toàn bộ bối cảnh.
+**Key takeaway:** **timestamp** answers *when*; **level** answers *how urgent*; **thread** answers *where in the JVM it ran*; **correlationId/traceId** answers *which operation it belonged to*. To trace an operation end to end, attach the same ID at key milestones from ingress to completion, propagate context across every boundary, and always record outcome, duration, and exceptions properly. No single field replaces the full context.
 
-### Tài liệu tham khảo
+### References
 
 - Java SE 17, `java.util.logging` API: https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/package-summary.html
 - Java SE 17, `StreamHandler` API: https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/StreamHandler.html
@@ -417,4 +417,4 @@ Trước khi coi logging của một service là đủ dùng cho chẩn đoán, 
 - OpenTelemetry Logs Specification, Log Correlation: https://opentelemetry.io/docs/specs/otel/logs/
 - W3C Trace Context: https://www.w3.org/TR/trace-context/
 
-Các ví dụ định dạng, event và ID trong bài mang tính minh họa; khi triển khai cần dùng logging backend, tracing integration và chính sách bảo vệ dữ liệu phù hợp với hệ thống thực.
+Format, event, and ID examples in this lesson are illustrative; in implementation, use a logging backend, tracing integration, and data protection policy suitable for the real system.

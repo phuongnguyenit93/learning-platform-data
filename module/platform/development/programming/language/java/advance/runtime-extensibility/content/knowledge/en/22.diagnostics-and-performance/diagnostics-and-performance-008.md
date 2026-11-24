@@ -1,73 +1,73 @@
-# Chọn phạm vi cache và phát hiện bộ nhớ tăng sau nhiều lần thay plugin trong Java
+# Choosing Cache Scope and Detecting Memory Growth Across Repeated Plugin Replacements in Java
 
-## 1. Bài toán: cache tối ưu lần gọi nhưng giữ lại phiên plugin đã thay thế
+## 1. The Problem: Caches Speed Up Calls While Retaining Replaced Plugin Versions
 
-Một Java runtime hỗ trợ plugin có thể dùng một class loader riêng cho mỗi phiên bản (*generation*): nạp phiên bản A, chuyển sang B rồi tiếp tục với C mà không khởi động lại JVM. Cache giúp giảm chi phí reflection, tra cứu class, tạo serializer, đọc cấu hình hoặc khởi tạo provider. Nhưng nếu **cache sống lâu hơn plugin generation** và giữ một đối tượng do loader cũ định nghĩa, các class của generation cũ có thể không được giải phóng.
+A plugin-capable Java runtime may use a separate class loader per version (*generation*): loading version A, switching to B, and continuing to C without restarting the JVM. Caches cut the cost of reflection, class lookups, serializer construction, config parsing, or provider initialization. However, if a **cache outlives a plugin generation** and retains an object defined by the old loader, classes from the old generation may never be reclaimed.
 
-Hai câu hỏi phải được giải **cùng lúc**:
+Two questions must be solved **together**:
 
-1. **Phạm vi cache:** dữ liệu này nên sống theo một request, một plugin generation, một tenant, một class hay toàn bộ host? Khóa cache có chứa *generation identity* không? Ai thực hiện invalidation khi plugin bị thay thế?
-2. **Chẩn đoán bộ nhớ:** sau 10, 100 hoặc 1.000 lần thay plugin, có thật sự còn tham chiếu giữ loader cũ, hay chỉ là các đỉnh nhớ tạm thời, GC chưa chạy, JIT warmup, JAR cache hoặc chỉ số Metaspace chưa phản ánh class unloading ngay?
+1. **Cache scope:** should this data live per request, per plugin generation, per tenant, per class, or host-wide? Does the cache key include *generation identity*? Who performs invalidation when a plugin is replaced?
+2. **Memory diagnosis:** after 10, 100, or 1,000 plugin replacements, are references genuinely retaining old loaders, or are you seeing temporary allocation peaks, unrun GC, JIT warmup, JAR caches, or Metaspace metrics that have not yet reflected class unloading?
 
-Không được kết luận “memory leak” chỉ bằng một đồ thị RSS tăng sau vài lần redeploy. Ngược lại, nếu host giữ `Class<?>` hoặc plugin instance của mọi generation trong một `static Map`, đó là **đường tham chiếu mạnh có thể chứng minh** mà không cần phỏng đoán hành vi GC.
+Do not conclude "memory leak" solely from an upward RSS graph after a few redeploys. Conversely, if the host stores `Class<?>` or plugin instances for every generation inside a `static Map`, that is a **provable strong reference chain** requiring no guesswork about GC behavior.
 
-**Mục tiêu:** chọn cache scope theo ownership/lifecycle, nhận diện cache giữ loader qua cả key lẫn value, tái hiện sự khác nhau giữa cache được dọn và cache tích lũy trong Java 17, xây phép đo nhiều vòng thay plugin có baseline nhất quán, rồi sử dụng heap dump và thống kê class loader để tìm nguyên nhân.
+**Goal:** choose cache scope by ownership and lifecycle, spot caches retaining loaders through either keys or values, reproduce the difference between cleaned and accumulating caches in Java 17, design multi-round plugin-replacement benchmarks with a consistent baseline, and use heap dumps plus class-loader stats to pinpoint root causes.
 
-## 2. Vì sao một cache nhỏ cũng có thể giữ cả class loader?
+## 2. Why Can Even a Small Cache Retain an Entire Class Loader?
 
-Giả sử plugin có `demo.plugin.UpperRule` được định nghĩa bởi `URLClassLoader` A. Host lưu đối tượng của class này:
+Suppose a plugin contains `demo.plugin.UpperRule` defined by `URLClassLoader` A. The host stores an instance of that class:
 
 ```text
 GC Root
-  -> static field của HostRegistry (được host loader định nghĩa)
+  -> HostRegistry static field (defined by host loader)
   -> Map / cache
   -> UpperRule instance (generation A)
   -> Class<UpperRule>
   -> defining ClassLoader A
-  -> các class / metadata mà A sở hữu
+  -> classes / metadata owned by A
 ```
 
-Cache cũng có thể giữ **trực tiếp** class hoặc loader:
+A cache can also retain a class or loader **directly**:
 
 ```text
-GC Root -> static Map<Class<?>, Handler> -> Class do A định nghĩa
+GC Root -> static Map<Class<?>, Handler> -> Class defined by A
 GC Root -> static Map<PluginId, ClassLoader> -> URLClassLoader A
-GC Root -> host serializer cache -> Method / Constructor của A
+GC Root -> host serializer cache -> Method / Constructor of A
 ```
 
-Điểm mấu chốt:
+Key takeaways:
 
-- **Đối tượng cache của host là một GC-root-reachable holder** nếu cache được giữ bởi một static field/registry còn sống. Nó có thể giữ plugin loader mà chính plugin không hề dùng cache.
-- **Giữ class cũng có thể giữ loader:** `Class<?>`, reflection metadata, method handles, lambda, callback, proxy, provider hoặc plugin instance đều cần được xét, không chỉ những field có kiểu `ClassLoader`.
-- **Static field của một lớp chỉ thuộc plugin A không tự nó đủ chứng minh leak.** Nếu cả graph loader A đã mất mọi đường từ GC roots, một chu trình nội bộ chỉ gồm class/object của A có thể được GC thu hồi. Phải tìm đường giữ từ *bên ngoài graph* vào A.
-- **`URLClassLoader.close()` không ép unload class.** Nó kết thúc việc dùng tài nguyên loader như JAR handles; tính reachable của class/loader vẫn tùy tham chiếu còn sống và điều kiện GC.
-- **Class identity có cả defining loader.** Hai class cùng binary name từ loader A và B không phải cùng đối tượng `Class<?>`. Dùng tên class làm khóa duy nhất có thể gây cache collision giữa các generation, ngoài vấn đề giữ reference cũ.
+- **A host cache object is a GC-root-reachable holder** if the cache is held by a live static field or registry. It can retain a plugin loader even when the plugin itself uses no cache.
+- **Holding a class can also retain the loader:** `Class<?>`, reflection metadata, method handles, lambdas, callbacks, proxies, providers, or plugin instances must all be audited—not only fields typed as `ClassLoader`.
+- **A static field on a class belonging solely to plugin A does not prove a leak by itself.** If the entire loader A graph has lost all paths from GC roots, an internal cycle of A's own classes and objects can be reclaimed by GC. Look for paths holding A *from outside its graph*.
+- **`URLClassLoader.close()` does not force class unloading.** It closes loader-managed resources such as JAR handles; class/loader reachability still depends on live references and GC conditions.
+- **Class identity includes the defining loader.** Two classes with the same binary name from loaders A and B are not the same `Class<?>` object. Using class name as the sole key can cause cache collisions across generations in addition to retaining old references.
 
-Cache quản lý sai thường tạo hai lỗi cùng lúc: **stale behavior** (lấy implementation/metadata của A khi B đang active) và **retained memory** (A không còn cần nhưng vẫn được cache giữ).
+Mismanaged caches commonly cause two bugs at once: **stale behavior** (returning A's implementation or metadata while B is active) and **retained memory** (A is no longer needed yet remains pinned by the cache).
 
-## 3. Chọn cache scope theo owner, dữ liệu và vòng đời
+## 3. Choosing Cache Scope by Owner, Data, and Lifecycle
 
-Một cache chỉ an toàn khi có **owner cụ thể** và **sự kiện kết thúc** rõ ràng. Bảng sau đưa ra phạm vi khuyến nghị:
+A cache is only safe when it has an **explicit owner** and a clear **termination event**. The table below lists recommended scopes:
 
-| Đối tượng cần cache | Phạm vi thường phù hợp | Khóa và invalidation |
+| Cached Item | Typical Appropriate Scope | Key and Invalidation |
 |---|---|---|
-| Kết quả parse request/validation tạm | Request/task | Xóa khi request kết thúc, không đưa plugin object vào global state |
-| Provider instance, reflective method, generated adapter của plugin | **Plugin generation** | Gắn theo `pluginId + generation`; dọn khi generation retired |
-| Metadata riêng của `Class<?>` | Theo class hoặc generation | Cân nhắc `ClassValue` / cache nằm trong scope; tránh global `Map<Class<?>, ...>` không giới hạn |
-| Serializer/DI factory dùng schema plugin | Plugin generation, đôi khi tenant + generation | Xóa đúng version; đóng object có resource khi retire |
-| Dữ liệu immutable thuần Java platform, không chứa class/loader/plugin object | Host-wide **nếu thật sự độc lập version** | Bounded capacity/TTL; key có schema/config version nếu semantics thay đổi |
-| Cấu hình theo tenant có thể đổi | Tenant + plugin generation | Khóa gồm tenant, plugin ID, generation/config version; cleanup tenant + gen |
-| Cache kết quả tính toán theo input nhưng gọi plugin code | Thường generation + input key | Invalidate khi code/schema thay đổi, tránh trả kết quả của A cho B |
-| Kết quả khám phá provider/resource theo loader | Loader/generation | Không giữ `ServiceLoader`, `Provider`, `Class<?>` cũ trong host-global cache |
-| File/JAR/index được nhiều plugin thật sự chia sẻ | Host-wide có ref-count/lease rõ | Đóng khi không còn owner; kiểm tra quyền và version |
+| Temporary request parse/validation results | Request / task | Discard when request finishes; never put plugin objects into global state |
+| Provider instances, reflective methods, plugin-generated adapters | **Plugin generation** | Bind to `pluginId + generation`; clear when generation is retired |
+| Per-`Class<?>` metadata | Per class or generation | Consider `ClassValue` / scoped caches; avoid unbounded global `Map<Class<?>, ...>` |
+| Serializers / DI factories using plugin schemas | Plugin generation, sometimes tenant + generation | Remove by exact version; close resource-owning objects on retire |
+| Pure Java-platform immutable data without class/loader/plugin objects | Host-wide **if genuinely version-independent** | Bounded capacity/TTL; include schema/config version in key if semantics change |
+| Mutable per-tenant configuration | Tenant + plugin generation | Key includes tenant, plugin ID, generation/config version; clean up on tenant + gen |
+| Computed results keyed by input yet produced by plugin code | Usually generation + input key | Invalidate when code/schema changes to avoid serving A's results to B |
+| Per-loader provider/resource discovery results | Loader / generation | Never store old `ServiceLoader`, `Provider`, or `Class<?>` in a host-global cache |
+| Files/JARs/indexes genuinely shared across plugins | Host-wide with explicit ref-count/lease | Close when no owners remain; verify permissions and versions |
 
-**Quy tắc ra quyết định:** hỏi “Một giá trị trong cache có thể tiếp tục đúng và không giữ plugin loader khi plugin này bị retire không?” Nếu câu trả lời **không**, đừng để giá trị sống trong cache toàn host không có generation key và đường eviction.
+**Decision rule:** ask "Can a cached value remain valid and avoid retaining the plugin loader after this plugin is retired?" If the answer is **no**, do not let that value live in a host-global cache without a generation key and an eviction path.
 
-Không chọn phạm vi chỉ dựa vào “dữ liệu ít” hoặc “cần tối ưu nhanh”. Một cache chỉ có vài entry nhưng giữ `Class<?>` của các plugin cũ cũng đủ ngăn class unloading. Ngược lại, cache host-wide chứa chuỗi immutable, số học hoặc template không có reference tới plugin có thể hợp lý nếu có bounded size và semantics không đổi qua version.
+Do not pick scope simply because "the data is small" or "we need a quick optimization". A cache with just a handful of entries holding `Class<?>` objects of old plugins is enough to block class unloading. Conversely, a host-wide cache holding immutable strings, numbers, or templates with zero plugin references can be reasonable if bounded and semantically stable across versions.
 
-## 4. Generation identity: tên plugin chưa đủ làm khóa
+## 4. Generation Identity: Plugin Name Alone Is Insufficient as a Key
 
-Một deployment có thể có:
+A deployment may have:
 
 ```text
 pluginId = "pricing"
@@ -76,101 +76,101 @@ generation = 42   -> loader B, code B
 generation = 43   -> loader C, code C
 ```
 
-Khóa chỉ là `"pricing"` không phân biệt đối tượng thuộc A, B hay C. Khóa chỉ là `"com.acme.pricing.Rule"` còn thiếu defining loader. Kể cả hai generation biên dịch ra class cùng tên, runtime class identity vẫn khác nhau khi được định nghĩa bởi loader khác.
+A key of only `"pricing"` cannot distinguish objects belonging to A, B, or C. A key of only `"com.acme.pricing.Rule"` still lacks the defining loader. Even if two generations compile a class with the exact same name, runtime class identity differs when defined by different loaders.
 
-**Khóa cache phụ thuộc code nên bao gồm generation identity**, ví dụ:
+**Code-dependent cache keys should include generation identity**, for example:
 
 ```java
 record CacheKey(String pluginId, long generation, String resourceName) {}
 ```
 
-Đây là **đoạn minh họa**, không phải chương trình độc lập. Generation ID nên được host cấp và bất biến cho một lần cài đặt; không dùng `System.identityHashCode(loader)` như một ID vĩnh viễn vì có thể trùng và không mang ý nghĩa business/version.
+This is an **illustrative snippet**, not a standalone program. The generation ID should be host-assigned and immutable for a given installation; never use `System.identityHashCode(loader)` as a permanent ID because it can collide and carries no business/version meaning.
 
-Hai lựa chọn hợp lệ:
+Two valid designs:
 
-1. **Một cache riêng bên trong đối tượng `PluginScope`/`PluginGeneration`.** Mỗi scope giữ đúng loader và resource của mình; khi retire thì `close()/clear()` scope và gỡ scope khỏi registry host. Trong cache nội bộ có thể dùng khóa đơn giản như `"entry"` vì generation đã được biểu diễn bằng owner.
-2. **Một cache chung bắt buộc chia sẻ giữa generation:** key cần mang cả `pluginId`, `generation` và những biến thể như tenant/config/schema nếu ảnh hưởng kết quả. Eviction phải lọc đúng generation, không xóa entry của bản B khi tháo A.
+1. **A dedicated cache inside a `PluginScope`/`PluginGeneration` object.** Each scope owns its loader and resources; on retire, call `close()/clear()` on the scope and remove the scope from the host registry. Inside the scope-local cache, simple keys like `"entry"` are safe because generation is represented by the owner.
+2. **A shared cache required across generations:** keys must include `pluginId`, `generation`, and any dimensions like tenant/config/schema that affect results. Eviction must filter by the exact generation so retiring A does not delete B's entries.
 
-**Đừng suy ra cache đã “update” thành B chỉ vì cập nhật một biến `currentPlugin = B`.** Mọi key/value khác trong map, callback, futures, ThreadLocal và reflection metadata vẫn có thể giữ A.
+**Do not assume a cache has "updated" to B merely because a `currentPlugin = B` variable was reassigned.** Every other map entry, callback, future, `ThreadLocal`, and reflection metadata structure can still retain A.
 
-## 5. Chu kỳ thay plugin và thời điểm hủy cache
+## 5. Plugin Replacement Cycle and When to Clear Caches
 
-Một runtime thay thế plugin nên có state machine tường minh:
+A runtime that swaps plugins should have an explicit state machine:
 
 ```text
 DISCOVERED -> LOADING -> ACTIVE -> DRAINING -> RETIRED -> CLOSED
                              |
-                             +--- generation B có thể ACTIVE
-                                  trong khi A đang DRAINING
+                             +--- generation B may become ACTIVE
+                                  while A is DRAINING
 ```
 
-Đây là mô hình ứng dụng đề xuất, **không phải enum của Java**.
+This is a suggested application model, **not a Java enum**.
 
-Trình tự hợp lý khi chuyển A sang B:
+A sensible sequence when transitioning from A to B:
 
-1. Chuẩn bị loader B và **cache của B** riêng; validate code/API/config trước khi publish.
-2. Chuyển hướng request mới sang B bằng cơ chế swap nguyên tử phù hợp (chẳng hạn update một generation pointer/registry).
-3. Đánh dấu A `DRAINING`, không tạo cache entry/task/subscription mới cho A sau thời điểm này.
-4. Chờ hoặc hủy có kiểm soát các request/callback A còn chạy. Một request A đang hoạt động có thể cần sử dụng đúng cache của A cho đến khi hoàn tất.
-5. Unregister listeners, dừng scheduler/jobs, xóa ThreadLocal/TCCL của worker theo ownership.
-6. **Evict cache generation A** và release các tài nguyên cache value sở hữu (stream, handles, watchers, providers có lifecycle).
-7. Gỡ scope A khỏi host registry, đóng loader và bỏ strong references khi mọi consumer hợp lệ đã kết thúc.
-8. Theo dõi loader A ở trạng thái retired bằng weak probe/metrics nếu cần, tránh chính hệ thống monitoring giữ A bằng strong reference.
+1. Prepare loader B and **B's own cache** separately; validate code/API/config before publishing.
+2. Route new requests to B using an appropriate atomic swap mechanism (such as updating a generation pointer/registry).
+3. Mark A as `DRAINING`; reject creating new cache entries/tasks/subscriptions for A from this point on.
+4. Wait for or cancel in-flight requests/callbacks on A in a controlled manner. An active request on A may still need A's own cache until it finishes.
+5. Unregister listeners, stop schedulers/jobs, and clear worker `ThreadLocal`/TCCL per ownership rules.
+6. **Evict generation A's cache** and release resources held by cached values (streams, handles, watchers, lifecycle-bound providers).
+7. Remove scope A from the host registry, close its loader, and drop strong references once all valid consumers have finished.
+8. Monitor retired loader A using weak probes/metrics if needed, ensuring the monitoring system itself does not hold a strong reference to A.
 
-Không nên xóa cache A quá sớm khi các request in-flight còn đang chạy; họ có thể gặp lỗi hoặc tái tạo entry A sau khi evict. Mặt khác, không được giữ cache A vô thời hạn chỉ vì không biết còn request hay không. Production có thể dùng **lease/ref-count**, trạng thái draining và deadline để xác định lúc safe cleanup.
+Do not wipe A's cache too early while in-flight requests are still executing; they may fail or repopulate entries for A after eviction. On the other hand, do not retain A's cache indefinitely merely out of uncertainty over whether requests remain. Production hosts can use **leases/ref-counts**, draining state, and deadlines to determine safe cleanup.
 
-Một lỗi race hay gặp:
+A common race bug:
 
 ```text
-Thread 1: bắt đầu clear cache A
-Thread 2: request cũ đang chạy, gọi computeIfAbsent(A, ...)
-Thread 1: thấy map trống và báo "unloaded"
-Thread 2: tạo lại value A trong host cache -> giữ loader A
+Thread 1: begins clearing cache A
+Thread 2: in-flight old request calls computeIfAbsent(A, ...)
+Thread 1: sees empty map and reports "unloaded"
+Thread 2: recreates value A in host cache -> retains loader A
 ```
 
-Muốn tránh, phải chặn write vào scope A trước, rồi drain consumers và mới clear. Chỉ gọi `Map.clear()` không đủ tạo một giao thức retire an toàn dưới concurrency.
+To prevent this, block writes to scope A first, then drain consumers, and only then clear. Simply calling `Map.clear()` does not form a concurrency-safe retirement protocol.
 
-## 6. Phản mẫu: cache toàn host giữ class và instance của mọi bản cũ
+## 6. Anti-Pattern: Host-Global Cache Retaining Classes and Instances of All Old Versions
 
-Đoạn **minh họa sai** sau không phải chương trình độc lập:
+The following **bad example** is not a standalone program:
 
 ```java
-// Class HostRegistry do application class loader định nghĩa.
+// Class HostRegistry defined by the application class loader.
 static final Map<String, Class<?>> COMPILED_TYPES = new HashMap<>();
 
-// Mỗi lần plugin được nạp, host lại lưu Class<?> của generation đó.
+// Every time a plugin is loaded, the host stores that generation's Class<?>.
 COMPILED_TYPES.put(pluginId + "#" + generation, implementationClass);
 
-// Khi generation retired, code quên remove key đó.
+// When the generation is retired, the code forgets to remove that key.
 ```
 
-Kết quả: `HostRegistry` sống theo tiến trình, nên từng `Class<?>` của A/B/C được giữ thông qua map. Dù đã `URLClassLoader.close()` từng loader cũ, JVM vẫn có strong references tới các class của chúng.
+Result: `HostRegistry` lives for the lifetime of the process, so every `Class<?>` of A, B, and C stays pinned in the map. Even if you call `URLClassLoader.close()` on each old loader, the JVM still holds strong references to their classes.
 
-Các biến thể cũng nguy hiểm:
+Equally dangerous variants:
 
-- `Map<Class<?>, Serializer>`: cả **key** lẫn **value** có thể giữ plugin loader.
-- `Map<String, MethodHandle>`: value có thể giữ method/class của plugin.
-- `Map<String, Supplier<?>>`: lambda capture plugin instance mà log không hiện tên class rõ.
-- `LoadingCache` với unlimited size: TTL hoặc maximum size bị cấu hình thiếu hoặc không được đánh giá ở thời điểm retire.
-- `Map<PluginId, List<Callback>>`: callback còn đăng ký trong host registry sau khi switch generation.
-- `WeakHashMap<ClassLoader, Scope>`: nếu value `Scope` giữ chính loader dùng làm key, tham chiếu mạnh từ map tới value tới key có thể làm weak key không đủ để giải phóng loader.
-- Cache service provider: `ServiceLoader`, `Provider<?>`, listener hoặc DI objects có thể giữ provider class và defining loader.
+- `Map<Class<?>, Serializer>`: both **keys** and **values** can retain plugin loaders.
+- `Map<String, MethodHandle>`: values can retain plugin methods and classes.
+- `Map<String, Supplier<?>>`: lambdas capture plugin instances without obvious class names in logs.
+- `LoadingCache` with unbounded size: missing TTL or max size, or never evicted at retire time.
+- `Map<PluginId, List<Callback>>`: callbacks left registered in host registries after switching generations.
+- `WeakHashMap<ClassLoader, Scope>`: if the `Scope` value holds the loader used as the key, a strong path from map → value → key prevents the weak key from ever releasing the loader.
+- Service provider caches: `ServiceLoader`, `Provider<?>`, listeners, or DI objects retaining provider classes and defining loaders.
 
-Dấu hiệu quan trọng trong heap dump là **đường từ root do host sở hữu đến class/instance của generation retired**, không phải mọi cache trong hệ thống đều đáng xóa.
+The critical clue in a heap dump is a **path from a host-owned root to a retired generation's class/instance**—not every cache in the system should be wiped indiscriminately.
 
-## 7. Ví dụ Java 17 chạy được: cache theo generation so với giữ history
+## 7. Runnable Java 17 Example: Generation-Scoped Cache vs. Retaining History
 
-Ví dụ tạo một interface ở host, một implementation ở plugin và một host manager. Mỗi lần “thay plugin” host tạo **URLClassLoader mới cho cùng bytecode** để tái hiện vòng đời class/loader. Thực tế production sẽ dùng các JAR phiên bản khác nhau; trong demo dùng cùng class file để cô lập yếu tố *cache scope*.
+The example creates a host interface, a plugin implementation, and a host manager. On each "plugin swap", the host creates a **new `URLClassLoader` for the same bytecode** to reproduce class/loader lifecycles. Production systems use distinct versioned JARs; the demo reuses the same class file to isolate the *cache scope* factor.
 
-Có hai chế độ:
+There are two modes:
 
-- **`clean`:** retire generation trước khi giữ generation mới; map host luôn chỉ giữ một scope active.
-- **`leak`:** cố ý không retire generation trước ngay trong vòng lặp; host registry tích lũy 1 → 2 → 3 scopes. Dù cùng implementation name, mỗi scope sở hữu một loader mới.
-- Cả hai chế độ đều dọn các scopes còn lại trong `finally` trước khi process kết thúc. Như vậy `leak` là **mô phỏng retention trong lúc chương trình đang chạy**, không phải cố tình bỏ rò tài nguyên sau khi process kết thúc.
+- **`clean`:** retires the prior generation before keeping the new generation; the host map always holds only one active scope.
+- **`leak`:** intentionally omits retiring the prior generation inside the loop; the host registry accumulates 1 → 2 → 3 scopes. Despite sharing the implementation name, each scope owns a fresh loader.
+- Both modes clean up remaining scopes in `finally` before the process exits. Thus `leak` **simulates in-flight runtime retention**, rather than intentionally leaving leaked resources after exit.
 
-Đây là demo **đo deterministic entry count**, không phải kiểm thử thời điểm JVM thực sự unload class.
+This demo **measures deterministic entry counts**, not the exact moment the JVM unloads classes.
 
-### 7.1. Cấu trúc thư mục
+### 7.1. Directory Structure
 
 ```text
 cache-scope-demo/
@@ -184,7 +184,7 @@ cache-scope-demo/
     host/
 ```
 
-**Tệp `src/api/demo/api/Rule.java`:**
+**File `src/api/demo/api/Rule.java`:**
 
 ```java
 package demo.api;
@@ -194,7 +194,7 @@ public interface Rule {
 }
 ```
 
-**Tệp `src/plugin/demo/plugin/UpperRule.java`:**
+**File `src/plugin/demo/plugin/UpperRule.java`:**
 
 ```java
 package demo.plugin;
@@ -210,7 +210,7 @@ public final class UpperRule implements Rule {
 }
 ```
 
-**Tệp `src/host/demo/app/CacheScopeDemo.java`:**
+**File `src/host/demo/app/CacheScopeDemo.java`:**
 
 ```java
 package demo.app;
@@ -313,20 +313,20 @@ public final class CacheScopeDemo {
 }
 ```
 
-**Cơ chế đáng chú ý:**
+**Key mechanisms to note:**
 
-1. `Rule` được biên dịch/đưa lên classpath của host; child loader lấy chính interface đó qua parent, tránh class identity mismatch giữa host và plugin.
-2. `pluginDirectory` **không** nằm trong runtime host classpath. Nếu bỏ nhầm `build/plugin` vào `-cp`, plugin implementation có thể được application loader tìm thấy qua delegation và làm test không còn đúng ranh giới child.
-3. Mỗi `new Scope(pluginDirectory)` tạo một `URLClassLoader` mới, cho phép cùng tên class được định nghĩa riêng theo generation. `scope.ownsRule(rule)` kiểm tra điều đó.
-4. `Scope.cache` chứa instance implementation, nên scope là owner rõ ràng. `SCOPES` của host chỉ được phép giữ những scope còn active/draining.
-5. Ở chế độ `clean`, `retire(prior)` gỡ scope cũ khỏi host map và xóa cache trước khi đóng loader.
-6. Ở chế độ `leak`, host map tích lũy các scope cũ; đây là retained reference đủ để **ngăn đồ thị loader cũ trở thành unreachable trong giai đoạn mô phỏng**.
-7. Khối `finally` dọn hết map vào cuối demo, kể cả khi lỗi xuất hiện trong vòng lặp. Trong production, teardown phải xử lý exception của từng scope độc lập để lỗi đóng một loader không khiến các scope khác không được dọn.
-8. `LinkedHashMap`/`HashMap` ở đây cố ý **không thread-safe** để demo dễ hiểu. Host thực chạy đồng thời phải có lease, khóa và trạng thái DRAINING/RETIRED rõ ràng; không sao chép code này nguyên xi cho hệ thống concurrent.
+1. `Rule` is compiled onto the host's classpath; child loaders inherit that exact interface via the parent, avoiding class identity mismatches between host and plugin.
+2. `pluginDirectory` is **not** on the runtime host classpath. Accidentally adding `build/plugin` to `-cp` would let the application loader find the plugin implementation via delegation, breaking the child boundary test.
+3. Each `new Scope(pluginDirectory)` creates a new `URLClassLoader`, allowing the same class name to be defined separately per generation. `scope.ownsRule(rule)` verifies this.
+4. `Scope.cache` holds implementation instances, giving the scope clear ownership. Host `SCOPES` may retain only active/draining scopes.
+5. In `clean` mode, `retire(prior)` removes the old scope from the host map and clears its cache before closing the loader.
+6. In `leak` mode, the host map accumulates old scopes; this is a retained reference strong enough to **prevent old loader graphs from becoming unreachable during the simulated run**.
+7. The `finally` block cleans up the map at the end of the demo even if an error occurs in the loop. In production, teardown must handle each scope's exceptions independently so a close failure on one loader does not block cleaning up other scopes.
+8. `LinkedHashMap`/`HashMap` here are intentionally **not thread-safe** to keep the demo easy to read. Real concurrent hosts need explicit leases, locks, and `DRAINING`/`RETIRED` states; do not copy this code verbatim into a concurrent system.
 
-### 7.2. Biên dịch và chạy trên Windows PowerShell
+### 7.2. Compile and Run on Windows PowerShell
 
-Đứng trong `cache-scope-demo/`, dùng JDK 17 trở lên:
+From inside `cache-scope-demo/`, using JDK 17 or newer:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path build/api,build/plugin,build/host | Out-Null
@@ -337,7 +337,7 @@ java -cp "build/api;build/host" demo.app.CacheScopeDemo clean
 java -cp "build/api;build/host" demo.app.CacheScopeDemo leak
 ```
 
-### 7.3. Biên dịch và chạy trên Linux/macOS
+### 7.3. Compile and Run on Linux/macOS
 
 ```bash
 mkdir -p build/api build/plugin build/host
@@ -348,7 +348,7 @@ java -cp "build/api:build/host" demo.app.CacheScopeDemo clean
 java -cp "build/api:build/host" demo.app.CacheScopeDemo leak
 ```
 
-### 7.4. Stdout chính xác, chế độ clean
+### 7.4. Exact Stdout, Clean Mode
 
 ```text
 mode=clean
@@ -359,7 +359,7 @@ retired-left=0
 after-close=0
 ```
 
-### 7.5. Stdout chính xác, chế độ leak
+### 7.5. Exact Stdout, Leak Mode
 
 ```text
 mode=leak
@@ -370,13 +370,13 @@ retired-left=2
 after-close=0
 ```
 
-Hai kết quả đã được kiểm tra bằng việc biên dịch với `javac --release 17` và chạy cả hai chế độ. Kết quả chứng minh **registry/caches đang giữ bao nhiêu scope** và implementation đến từ child loader trong lúc chạy, **không chứng minh số class đã được GC unload**.
+Both outputs were verified by compiling with `javac --release 17` and running both modes. The results prove **how many scopes the registry/caches retain** and that implementations come from child loaders at runtime; they **do not prove how many classes GC unloaded**.
 
-Đặc biệt, `after-close=0` chỉ xác nhận map host đã được dọn trong demo; còn local variables trên stack/JIT, GC timing và những references từ component khác có thể ảnh hưởng class unloading. Không viết unit test “`close()` thì Metaspace lập tức giảm” dựa trên ví dụ này.
+In particular, `after-close=0` only confirms the host map was cleared in the demo; stack/JIT local variables, GC timing, and references from other components can still influence class unloading. Do not write a unit test asserting "`close()` makes Metaspace drop immediately" based on this example.
 
-## 8. Cách đọc thí nghiệm: retention, eviction và memory leak là ba điều khác nhau
+## 8. Reading the Experiment: Retention, Eviction, and Memory Leaks Are Three Different Things
 
-Ở chế độ `clean`, registry luôn có đúng một scope khi in số liệu; ở chế độ `leak`, registry chứa 3 scope và 3 entry ở vòng 3. Đường giữ là:
+In `clean` mode, the registry always holds exactly one scope when printing metrics; in `leak` mode, the registry holds 3 scopes and 3 entries by round 3. The retention chain is:
 
 ```text
 CacheScopeDemo.class
@@ -388,44 +388,44 @@ CacheScopeDemo.class
   -> UpperRule instance of generation 1
 ```
 
-Cấu trúc tương tự có ở generation 2. Đây là **các strong references còn reachable từ host**, không cần chạy GC để biết đối tượng còn được tham chiếu.
+An identical structure exists for generation 2. These are **strong references still reachable from the host**—you do not need to run GC to know the objects remain referenced.
 
-Tuy nhiên:
+However:
 
-- **Retention có chủ đích:** hai generation cũ có thể còn đang DRAINING vì request in-flight, nên giữ cache một lúc là đúng. Cần định nghĩa grace period/lease trước khi gọi đó là leak.
-- **Eviction đúng:** khi không consumer nào dùng generation cũ nữa, retire xóa map entry, clear cache, đóng tài nguyên. Đây là hành vi deterministic có thể assert.
-- **Leak thực sự:** sau khi generation đã RETIRED/CLOSED và hết thời gian cho phép, host vẫn giữ entry/loader qua một hoặc nhiều nguồn; xu hướng này tiếp tục qua nhiều lần replace.
-- **Chưa GC không phải leak:** dù registry đã sạch, JVM có thể chưa unload classes hoặc chưa trả Metaspace/native pages về OS ngay.
-- **GC đã dọn loader không có nghĩa ứng dụng dùng đúng cache:** vẫn có thể có stale cache value thuần `String`/DTO được trả cho generation mới. Cần kiểm thử correctness riêng với resource ownership.
+- **Intentional retention:** an old generation may legitimately be `DRAINING` due to in-flight requests, so keeping its cache briefly is correct. Define a grace period/lease before calling it a leak.
+- **Proper eviction:** once no consumer uses the old generation, `retire` removes map entries, clears caches, and closes resources. This is deterministic behavior you can assert.
+- **True leak:** after a generation is `RETIRED`/`CLOSED` and its grace window has elapsed, the host still retains entries/loaders via one or more paths, and that accumulation grows across repeated replacements.
+- **Not yet GC'd is not a leak:** even with a clean registry, the JVM may not have unloaded classes or returned Metaspace/native pages to the OS yet.
+- **GC collecting a loader does not guarantee the app uses the right cache:** stale pure-`String`/DTO cache values can still be served to a new generation. Write separate correctness tests for resource ownership.
 
-**Đo hai thứ khác nhau:** (1) các reference và cache entries có đúng lifecycle không; (2) heap/Metaspace/native memory có xu hướng bất thường sau nhiều lần thay và các cơ hội GC tương đương không.
+**Measure two separate things:** (1) whether references and cache entries obey lifecycle rules; (2) whether heap/Metaspace/native memory shows abnormal growth across many swaps and comparable GC opportunities.
 
-## 9. TTL, LRU, WeakHashMap, ClassValue: chọn kỹ thuật nào?
+## 9. TTL, LRU, WeakHashMap, ClassValue: Which Technique to Pick?
 
-### 9.1. Cache giới hạn dung lượng và thời gian
+### 9.1. Capacity- and Time-Bounded Caches
 
-LRU/maximum size hoặc TTL có ích để tránh tăng không giới hạn với kết quả request hoặc dữ liệu thuần. Nhưng **TTL không thay thế việc retire**: một callback/class của plugin A còn trong cache thêm 30 phút có thể giữ loader A suốt 30 phút, trong khi chính sách cho phép chỉ 1 phút. TTL có thể chỉ được quét theo truy cập hoặc lịch dọn riêng tùy implementation.
+LRU/maximum size or TTL is helpful to prevent unbounded growth for request results or plain data. Yet **TTL does not replace retirement**: a callback/class from plugin A sitting in a cache for 30 minutes can pin loader A for all 30 minutes even when policy expects 1 minute. TTL expiration may also run lazily on access or via a separate sweep depending on implementation.
 
-Với cache chứa đối tượng plugin, ưu tiên **eviction chủ động theo generation**, rồi dùng size/TTL làm phòng tuyến bổ sung. Nếu cache value sở hữu tài nguyên (stream, scheduled task, closeable adapter), eviction còn phải thực thi hàm close/dispose tương ứng, không chỉ xóa map entry.
+For caches storing plugin objects, prioritize **explicit per-generation eviction**, using size/TTL as a secondary defense. If cached values own resources (streams, scheduled tasks, closeable adapters), eviction must also invoke their close/dispose methods rather than merely deleting the map entry.
 
-### 9.2. Weak key không phải giải pháp mặc định
+### 9.2. Weak Keys Are Not a Default Fix
 
-Xem ví dụ phản mẫu:
+Look at this anti-pattern:
 
 ```java
-// Chỉ minh họa rủi ro, không phải đoạn code độc lập.
+// Illustrates the risk only, not a standalone code snippet.
 WeakHashMap<ClassLoader, PluginScope> registry = new WeakHashMap<>();
 registry.put(pluginLoader, new PluginScope(pluginLoader));
 ```
 
-Nếu value của `PluginScope` giữ strong reference tới `pluginLoader`, có đường `registry → value → key` nên weak key không bảo đảm tự hết hiệu lực. Dù key/value yếu có thể giúp một số use case, chúng **không** thực thi cleanup resource/registrations, không tạo deadline GC và không thay thế owner-defined `close()`.
+If the `PluginScope` value holds a strong reference to `pluginLoader`, there is a `registry → value → key` chain, so weak keys cannot auto-expire. Even when weak keys/values fit a narrow use case, they **do not** run resource/registration cleanup, impose no GC deadline, and never replace owner-defined `close()`.
 
-### 9.3. ClassValue cho metadata đúng theo Class
+### 9.3. `ClassValue` for Per-Class Metadata
 
-Java 17 có `ClassValue<T>` để liên kết giá trị tính toán với từng `Class<?>`. Với metadata chỉ phụ thuộc type:
+Java 17 provides `ClassValue<T>` to associate computed values with each `Class<?>`. For metadata depending solely on a type:
 
 ```java
-// Minh họa: giá trị gắn với type chứ không dùng host-global Map<Class<?>,...>.
+// Illustrative: values are bound to the type instead of a host-global Map<Class<?>,...>.
 private static final ClassValue<String> BINARY_NAMES = new ClassValue<>() {
     @Override
     protected String computeValue(Class<?> type) {
@@ -434,11 +434,11 @@ private static final ClassValue<String> BINARY_NAMES = new ClassValue<>() {
 };
 ```
 
-Đoạn code này cần đặt trong class. Nó chỉ cache `String` tên lớp; một hệ thống thật có thể lưu cấu trúc plan có owner rõ ràng. `ClassValue` giúp tránh nhiều lỗi từ map khóa class do host tự quản, nhưng không có nghĩa cứ dùng `ClassValue` là chắc chắn unload được loader. Các reference khác, value có resource/closure, static registry, ThreadLocal và callback vẫn cần được dọn. `ClassValue.remove(type)` xóa một association cụ thể, không “gỡ class khỏi JVM”.
+This snippet must sit inside a class. It caches only a `String` class name; a real system may store a plan structure with clear ownership. `ClassValue` avoids many bugs from hand-rolled host maps keyed by `Class<?>`, yet using `ClassValue` does not guarantee a loader will unload. Other references, resource/closure-holding values, static registries, `ThreadLocal`s, and callbacks still require cleanup. `ClassValue.remove(type)` removes one association; it does not "unload a class from the JVM".
 
-### 9.4. Cache nằm trong plugin scope
+### 9.4. Caches Inside the Plugin Scope
 
-Đây là mặc định tốt cho factory/reflection/provider có lifetime cùng generation:
+This is the best default for factories/reflection/providers sharing the generation's lifetime:
 
 ```text
 Host plugin registry
@@ -453,65 +453,65 @@ retire(42):
   -> close resources -> remove PluginScope42 from host registry
 ```
 
-Khi owner và scope cùng lifetime, việc audit trở nên dễ hơn. Nếu cache được dùng bởi nhiều plugin thì cần policy chia sẻ riêng, không tự động kéo theo lifetime của generation dài nhất.
+When the owner and scope share the same lifetime, auditing becomes straightforward. If a cache is shared across multiple plugins, define an explicit sharing policy so it does not automatically inherit the lifetime of the longest-lived generation.
 
-## 10. Chọn phạm vi còn phụ thuộc tenant, request và schema
+## 10. Scope Selection Also Depends on Tenant, Request, and Schema
 
-Bốn cấp dễ bị trộn lẫn:
+Four levels are commonly conflated:
 
-1. **Request scoped:** object tạm, transaction, request context. Không giữ trong static cache sau khi request kết thúc. Nếu request được thực hiện bởi plugin A, phải thả lease A khi task xong.
-2. **Tenant scoped:** cùng plugin code nhưng cấu hình, quyền truy cập, schema hoặc dữ liệu của tenant khác nhau. Khóa `pluginId + generation` chưa đủ nếu value phụ thuộc tenant. Cache không phân vùng có thể gây **lộ dữ liệu** chứ không chỉ memory leak.
-3. **Plugin-generation scoped:** class, method handle, provider, adapter, compiled rule, serialization plan. Lấy code identity từ generation, không chỉ binary class name.
-4. **Host-wide:** dữ liệu thực sự chung và không giữ class/loader/plugin instance. Cache global vẫn cần limit/metrics/expiration vì input cardinality có thể vô hạn.
+1. **Request-scoped:** temporary objects, transactions, request contexts. Never retain them in static caches after the request completes. If a request executes on plugin A, release A's lease when the task finishes.
+2. **Tenant-scoped:** same plugin code, yet tenant configuration, permissions, schema, or data differ. Keying by `pluginId + generation` is insufficient if values depend on the tenant. Unpartitioned caches risk **data leaks**, not only memory leaks.
+3. **Plugin-generation-scoped:** classes, method handles, providers, adapters, compiled rules, serialization plans. Derive code identity from generation, not only binary class name.
+4. **Host-wide:** genuinely shared data holding no class/loader/plugin instances. Global caches still need bounds/metrics/expiration because input cardinality can be unbounded.
 
-Một mẫu khóa có thể là:
+A sample key might be:
 
 ```java
 record Key(String tenantId, String pluginId,
            long generation, String schemaVersion, String item) {}
 ```
 
-Đây là **đoạn minh họa**. Không dùng một key nhiều trường cho mọi cache nếu trường đó không liên quan; mục tiêu là biểu đạt đúng **những yếu tố làm thay đổi semantics/value**, đồng thời tránh giữ mạnh `ClassLoader` hoặc `Class<?>` làm key ngoài phạm vi owner cần thiết.
+This is an **illustrative snippet**. Do not force a multi-field key onto every cache when fields are irrelevant; the goal is to express **the exact factors that alter semantics/values** while avoiding holding strong `ClassLoader` or `Class<?>` keys outside the required owner scope.
 
-Khi plugin B thay thế A nhưng contract vẫn giống, host có thể **chủ động chuyển một cache dữ liệu thuần** sang B sau kiểm tra tương thích. Tuy nhiên, không chuyển theo mặc định các runtime objects, `Class<?>`, method handles, classloader-bound proxies hoặc provider instances của A.
+When plugin B replaces A under an identical contract, the host may **explicitly migrate a pure-data cache** to B after compatibility checks. Never migrate A's runtime objects, `Class<?>`, method handles, classloader-bound proxies, or provider instances by default.
 
-## 11. Đo bộ nhớ qua nhiều vòng thay plugin: đo cùng điều kiện
+## 11. Measuring Memory Across Many Plugin Replacements Under Matching Conditions
 
-Để biết hệ thống có tăng bộ nhớ thực sự sau reload, hãy làm phép thử có kiểm soát thay vì quan sát ngẫu nhiên:
+To determine whether memory truly grows across reloads, run controlled tests instead of casual observation:
 
-**Chuẩn bị:** một JVM test với workload ổn định, JDK/GC flags cố định, các plugin generations có ID, số request đồng thời/queue như nhau, output logs định danh loader. Warm up runtime trước khi lấy baseline để giảm nhiễu từ class loading của framework và JIT.
+**Preparation:** a test JVM with a steady workload, fixed JDK/GC flags, identified plugin generations, identical concurrency/queue depth, and logs identifying loaders. Warm up the runtime before recording the baseline to reduce noise from framework class loading and JIT.
 
-**Mỗi vòng thử** (ví dụ A→B, B→C, ...):
+**On each test cycle** (e.g., A→B, B→C, ...):
 
-1. Tạo generation mới; đo các cache entries và classes/loader phát sinh.
-2. Chuyển new traffic sang generation mới.
-3. Dừng traffic mới tới generation cũ, đợi in-flight consumers kết thúc.
-4. Retire generation cũ: unregister callbacks, cancel tasks, dọn TCCL/ThreadLocal, clear generation-scoped caches, đóng loader và gỡ registry entry.
-5. Sau một **cửa sổ ổn định tương đương** giữa các vòng, lấy snapshot số scope còn active/draining/retired, cache entries, loader counts và bộ nhớ. Nếu quy trình cho phép GC trong staging, ghi rõ lúc thực hiện; không dựa vào một lần `System.gc()` như sự bảo đảm.
-6. Lặp nhiều vòng đủ để nhìn xu hướng, ghi cả peak và **post-collection baseline** khi dữ liệu GC thực tế có sẵn.
+1. Create the new generation; measure newly created cache entries and classes/loaders.
+2. Shift new traffic to the new generation.
+3. Stop new traffic to the old generation and wait for in-flight consumers to finish.
+4. Retire the old generation: unregister callbacks, cancel tasks, clean up TCCL/`ThreadLocal`, clear generation-scoped caches, close the loader, and remove the registry entry.
+5. After an **equivalent stabilization window** between rounds, snapshot remaining active/draining/retired scopes, cache entries, loader counts, and memory. If your staging procedure triggers GC, record exactly when; never rely on a single `System.gc()` as a guarantee.
+6. Repeat enough rounds to see a trend, recording both peaks and **post-collection baselines** when actual GC data is available.
 
-So sánh các đại lượng:
+Metrics to compare:
 
-| Metric | Giải thích | Điều cần phân biệt |
+| Metric | Explanation | What to Distinguish |
 |---|---|---|
-| Active generation count | Số phiên plugin hợp lệ đang phục vụ | Có thể lớn hơn 1 khi rolling replacement |
-| Retired generation references | Những scope/cache/registrations còn giữ phiên đã retire | Sau grace period nên về 0 theo thiết kế |
-| Cache entries/weight per generation | Quy mô cache còn reachable | Bounded-size/TTL không thay thế eviction khi retire |
-| Current loaded class count | Số class hiện đang loaded trong JVM | Tăng vì framework/JIT/feature mới chưa chắc leak |
-| Total loaded / total unloaded classes | Cumulative counters từ JVM | Total loaded tăng theo định nghĩa; không được yêu cầu giảm |
-| Heap used sau các cơ hội GC tương đương | Object payload và registries | Allocation peak khác retained heap floor |
-| Metaspace used/committed | Metadata class và cấu trúc liên quan | Used/committed/reserved khác nhau; không luôn trả ngay về OS |
-| RSS / native memory | Bộ nhớ tiến trình ngoài heap và phần heap resident | Có thể tăng bởi direct buffer, code cache, threads/JNI |
-| Class unload events | JVM có thông báo class được unload hay không | Vắng event trong khoảng ngắn chưa chứng minh leak |
+| Active generation count | Valid plugin versions currently serving | May exceed 1 during rolling replacement |
+| Retired generation references | Scopes/caches/registrations still holding retired versions | Should drop to 0 after the grace period by design |
+| Cache entries/weight per generation | Size of caches still reachable | Bounded size/TTL does not replace eviction on retire |
+| Current loaded class count | Classes currently loaded in the JVM | Growth from frameworks/JIT/new features is not automatically a leak |
+| Total loaded / total unloaded classes | Cumulative JVM counters | Total loaded rises monotonically by definition; never expect it to fall |
+| Heap used after comparable GC opportunities | Object payloads and registries | Allocation peaks differ from retained heap floors |
+| Metaspace used/committed | Class metadata and related structures | Used, committed, and reserved differ; not always returned immediately to OS |
+| RSS / native memory | Process memory beyond heap plus resident heap | Can grow from direct buffers, code cache, threads/JNI |
+| Class unload events | Whether the JVM reports classes being unloaded | Absence of events in a short window does not prove a leak |
 
-**Mẫu suy luận:** nếu sau 100 vòng, app luôn có 1 generation active nhưng cache/loader registry vẫn giữ 100 generation và Metaspace tăng dần, đó là bằng chứng cần điều tra. Nếu registry đúng 1 scope, loaded class count ổn định theo thời gian nhưng RSS vẫn tăng, hãy kiểm tra heap/native allocations/fragmentation thay vì kết luận ngay là class-loader leak.
+**Inference pattern:** if after 100 cycles the app always has 1 active generation yet the cache/loader registry still retains 100 generations and Metaspace climbs steadily, that is solid evidence to investigate. If the registry holds only 1 scope and loaded class count stays flat over time while RSS still rises, inspect heap/native allocations and fragmentation rather than jumping straight to a class-loader leak conclusion.
 
-## 12. Theo dõi bằng JMX/MXBeans từ Java
+## 12. Monitoring via JMX/MXBeans from Java
 
-Java 17 cung cấp `ClassLoadingMXBean` và `MemoryPoolMXBean` qua `ManagementFactory`. Trong application có thể định kỳ ghi nhận:
+Java 17 provides `ClassLoadingMXBean` and `MemoryPoolMXBean` via `ManagementFactory`. An application can periodically record:
 
 ```java
-// Đoạn minh họa đặt trong một class và gọi tại điểm lấy snapshot.
+// Illustrative snippet placed in a class and invoked at snapshot time.
 var classStats = java.lang.management.ManagementFactory
         .getClassLoadingMXBean();
 int currentLoaded = classStats.getLoadedClassCount();
@@ -532,71 +532,71 @@ for (var pool : java.lang.management.ManagementFactory
 }
 ```
 
-Đây là **mã minh họa**, không phải chương trình độc lập và không in stdout cố định. Tên pool phụ thuộc JVM/vendor; đoạn code chọn pool có tên chứa `Metaspace` trên HotSpot điển hình, có thể không có ở JVM khác. Ghi rõ metadata như Java version, collector, process ID và cấu hình test.
+This is **illustrative code**, not a standalone program and prints no fixed stdout. Pool names depend on the JVM/vendor; this snippet picks a pool containing `Metaspace` on typical HotSpot builds, which may not exist identically on other JVMs. Record metadata such as Java version, collector, process ID, and test configuration.
 
-Các phép so sánh hợp lệ:
+Valid comparisons:
 
-- `getLoadedClassCount()` là **số hiện tại**, không phải số class thuộc plugin. Muốn phân biệt plugin A/B cần instrument registry hoặc phân tích classloader-specific data.
-- `getTotalLoadedClassCount()` và `getUnloadedClassCount()` là **tổng tích lũy từ khi JVM khởi động**; đừng coi tổng loaded tăng là leak.
-- Một pool `Metaspace` có `used` và `committed` khác nhau; phần memory trả về OS còn phụ thuộc runtime/GC, không nhất thiết trùng biến động này.
-- Gắn samples với **thời điểm sau retire** và các sự kiện GC để so được nhiều vòng. Một sample ở peak allocation không đại diện cho steady state.
-- Không cố ép một ngưỡng kiểu “sau 3 lần thay thì heap phải bằng baseline tuyệt đối”. JIT, class initialization, framework caches và asynchronous cleanup tạo biến thiên hợp lệ.
+- `getLoadedClassCount()` is the **current count**, not the count of plugin-owned classes. Distinguishing plugin A vs. B requires instrumenting the registry or inspecting classloader-specific data.
+- `getTotalLoadedClassCount()` and `getUnloadedClassCount()` are **cumulative totals since JVM startup**; do not treat rising total loaded counts as a leak.
+- A `Metaspace` pool has distinct `used` and `committed` figures; memory returned to the OS also depends on the runtime/GC and may not mirror every fluctuation.
+- Tie samples to **post-retire timestamps** and GC events to compare across rounds. A sample taken at an allocation peak does not represent steady state.
+- Do not enforce rigid thresholds like "after 3 swaps heap must equal the exact baseline byte-for-byte". JIT, class initialization, framework caches, and async cleanup create legitimate variance.
 
-Lưu ý bảo mật/chi phí: metrics ít nhạy cảm hơn heap dump nhưng vẫn có thể làm lộ tên plugin, class, tenant hoặc đường dẫn nội bộ. Nên log generation ID đã được phép chia sẻ và giới hạn cardinality của metrics labels.
+Security/cost note: metrics are less sensitive than heap dumps yet can still expose plugin names, classes, tenants, or internal paths. Log approved generation IDs and bound metric label cardinality.
 
-## 13. Điều tra sâu với jcmd, GC logs và Native Memory Tracking
+## 13. Deep Investigation with `jcmd`, GC Logs, and Native Memory Tracking
 
-Trên HotSpot/JDK 17 trong môi trường cho phép attach, có thể dùng `jcmd` để so với counters trong host:
+On HotSpot/JDK 17 in attach-permitted environments, `jcmd` complements in-host counters:
 
 ```bash
-# Thay <pid> bằng PID tiến trình Java cần kiểm tra.
+# Replace <pid> with the PID of the Java process to inspect.
 jcmd <pid> VM.classloader_stats
 jcmd <pid> GC.class_histogram
 jcmd <pid> GC.heap_info
 jcmd <pid> GC.heap_dump /path/to/plugin-retention.hprof
 ```
 
-- `VM.classloader_stats` giúp quan sát thống kê class loader/class-loader data; không tự động nói loader nào bị giữ bởi cache nào.
-- `GC.class_histogram` cho thống kê object trên heap, có thể gây tác động cao theo tài liệu công cụ. Không chạy liên tục trên production nếu chưa cân nhắc.
-- `GC.heap_dump` tạo HPROF, có thể tiêu tốn disk, gây pause và theo cấu hình mặc định có thể yêu cầu full GC. Heap dump có thể chứa credentials, dữ liệu khách hàng và thông tin nhạy cảm: phải có quy trình phê duyệt, mã hóa/lưu trữ an toàn và xóa sau phân tích.
-- `GC.heap_info` là bức tranh heap, không bao gồm toàn bộ native/JNI allocations.
-- Với test khởi động JVM bằng logging tương thích, có thể quan sát class unloading:
+- `VM.classloader_stats` reports class loader / class-loader data statistics; it does not automatically tell you which cache retains which loader.
+- `GC.class_histogram` reports heap object statistics and can have high impact per tool docs. Do not run it continuously in production without consideration.
+- `GC.heap_dump` writes an HPROF file, which can consume disk, cause pauses, and by default request a full GC. Heap dumps may contain credentials, customer data, and sensitive payloads: enforce approval, encryption/secure storage, and post-analysis deletion.
+- `GC.heap_info` shows the heap picture and excludes full native/JNI allocations.
+- In tests launching a JVM with matching logging, you can observe class unloading:
 
 ```bash
 java -Xlog:class+unload=info -cp "build/api:build/host" demo.app.CacheScopeDemo clean
 ```
 
-Lệnh này minh họa cho Linux/macOS và có thể tạo log khác nhau tùy GC/timing; nó **không có stdout cố định**. Trên Windows thay dấu phân cách classpath bằng `;`. Không nhìn thấy log unload trong demo ngắn không chứng minh cache vẫn còn giữ loader.
+This command illustrates Linux/macOS usage and produces output that varies with GC and timing; it has **no fixed stdout**. On Windows, replace the classpath separator with `;`. Seeing no unload logs in a short demo does not prove a cache still pins the loader.
 
 ### Native Memory Tracking (NMT)
 
-Khi RSS tăng nhưng heap/Metaspace metrics không giải thích được, NMT có thể giúp phân loại phần JVM-native. Với HotSpot, NMT cần bật từ khi khởi động:
+When RSS rises while heap/Metaspace metrics do not explain it, NMT helps categorize JVM-native allocations. On HotSpot, NMT must be enabled at startup:
 
 ```bash
 java -XX:NativeMemoryTracking=summary -cp "build/api:build/host" demo.app.CacheScopeDemo clean
 ```
 
-Khi tiến trình test thực sự còn sống (demo trên kết thúc nhanh), các lệnh sau có thể dùng trong **quy trình kiểm thử dài hạn khác**:
+While a test process is actually alive (the demo above exits quickly), the following commands apply in a **separate long-lived test workflow**:
 
 ```bash
 jcmd <pid> VM.native_memory baseline
 jcmd <pid> VM.native_memory summary.diff
 ```
 
-NMT có overhead và không phải bộ đo toàn bộ native memory của các thư viện bên thứ ba/JNI. Trình tự trên **không** nhằm chạy attach vào demo đã kết thúc; cần một host process đang hoạt động với NMT đã bật. `summary.diff` so với NMT baseline, không phải “memory sau GC của Java heap”. Dữ liệu cần được so sánh với metrics host, GC/JFR và profiler để tránh quy kết nhầm cho plugin loader.
+NMT incurs overhead and does not track all third-party/JNI native allocations. The sequence above is **not** meant to attach to an already exited demo; it requires an active host process started with NMT enabled. `summary.diff` compares against the NMT baseline, not "post-GC Java heap memory". Cross-check NMT data with host metrics, GC/JFR, and profilers to avoid misattributing growth to plugin loaders.
 
-## 14. Dùng heap dump để tìm Path to GC Roots
+## 14. Using Heap Dumps to Find Path to GC Roots
 
-Khi metric cho thấy những generation RETIRED vẫn còn class loader, bước chẩn đoán quyết định là **reference path**:
+When metrics show `RETIRED` generations still have live class loaders, the decisive diagnostic step is the **reference path**:
 
-1. Chọn đúng plugin ID/generation đã retire; không nhầm loader mới đang active với loader cũ.
-2. Trong Eclipse Memory Analyzer (MAT) hoặc profiler tương đương, tìm `java.net.URLClassLoader`/custom `PluginClassLoader` hoặc một `Class<?>` do loader đó định nghĩa.
-3. Dùng chức năng **Path to GC Roots** và ưu tiên xem strong references; tùy công cụ, lọc những đường chỉ có weak/soft/phantom refs để nhìn owner giữ mạnh.
-4. Lần theo từng edge tới class host, field static, cache key/value, thread, executor queue, listener hoặc DI container. Đừng dừng ở lớp nội bộ `HashMap$Node` mà chưa xác định registry nào sở hữu nó.
-5. Nếu thấy `HostRegistry → Map → Class<PluginType>`, sửa eviction ở owner của map. Nếu thấy `Thread → ThreadLocalMap.value → PluginContext`, dọn context trên đúng worker. Nếu thấy `EventBus → listeners → callback`, unregister subscription đúng generation.
-6. Sau sửa, lặp lại quá trình thay plugin và so sánh retained paths ở cùng tình huống. Một loader có thể còn **nhiều đường mạnh độc lập**; xóa một đường chỉ làm lộ đường khác.
+1. Pick the exact retired plugin ID/generation; do not confuse a newly active loader with an old one.
+2. In Eclipse Memory Analyzer (MAT) or an equivalent profiler, locate `java.net.URLClassLoader`/custom `PluginClassLoader` or a `Class<?>` defined by that loader.
+3. Run **Path to GC Roots** and inspect strong references first; depending on the tool, filter out weak/soft/phantom-only paths to see strong owners.
+4. Trace each edge back to host classes, static fields, cache keys/values, threads, executor queues, listeners, or DI containers. Never stop at an internal `HashMap$Node` without identifying which registry owns it.
+5. If you see `HostRegistry → Map → Class<PluginType>`, fix eviction in the map's owner. If you see `Thread → ThreadLocalMap.value → PluginContext`, clean up context on that worker. If you see `EventBus → listeners → callback`, unregister the generation's subscriptions.
+6. After fixing, repeat the plugin replacement sequence and compare retained paths under the same scenario. A loader may have **multiple independent strong paths**; removing one path only reveals the next.
 
-Ví dụ retained path của cache:
+Example cache retained path:
 
 ```text
 GC Root: HostCache.class
@@ -608,117 +608,117 @@ GC Root: HostCache.class
   -> Class<PluginSerializer> defined by Loader12
 ```
 
-Thông điệp sửa lỗi không phải “GC không hoạt động”, mà là: **HostCache vẫn giữ generation 12 sau trạng thái RETIRED**. Xác định nơi `retire(12)` đáng ra được gọi, kiểm tra exceptions/races và bổ sung regression test.
+The actionable fix message is not "GC stopped working", but: **HostCache still retains generation 12 after `RETIRED`**. Locate where `retire(12)` should have run, inspect exceptions/races, and add a regression test.
 
-Nếu heap analyzer cho thấy loader được giữ bởi **thread stack** của một request A còn đang chạy, có thể là retention tạm thời hợp lệ. Muốn kết luận leak cần biết SLA drain, trạng thái task và liệu đường đó còn tồn tại sau deadline hợp lý.
+If the heap analyzer shows the loader is held by a **thread stack** of a still-running request A, that can be valid temporary retention. Concluding a leak requires knowing drain SLAs, task state, and whether that path persists beyond a reasonable deadline.
 
-## 15. WeakReference để theo dõi loader cũ, không ép GC
+## 15. `WeakReference` to Observe Old Loaders Without Forcing GC
 
-Host có thể giữ *probe* bằng `WeakReference<ClassLoader>` của loader A khi release strong references:
+The host can keep a `WeakReference<ClassLoader>` *probe* for loader A when releasing strong references:
 
 ```java
-// Mẫu minh họa, không phải chương trình độc lập.
+// Illustrative pattern, not a standalone program.
 java.lang.ref.WeakReference<ClassLoader> probe =
         new java.lang.ref.WeakReference<>(loaderA);
-// Sau khi retire: không được giữ loaderA trong các static registries,
-// callback, task, class metadata caches hay một monitor strong reference.
-// probe.get() == null có thể xuất hiện khi JVM thực sự thu gom referent.
+// After retiring: must not retain loaderA in static registries,
+// callbacks, tasks, class metadata caches, or a monitor strong reference.
+// probe.get() == null may appear once the JVM actually collects the referent.
 ```
 
-**Không** xem `probe.get() != null` ngay sau `close()` là lỗi chắc chắn: JVM có thể chưa GC, JIT/stack locals còn sống, hoặc runtime đang giữ loader hợp lệ. `System.gc()` chỉ là đề nghị và không tạo deadline bắt buộc cho collection. Mặt khác, `probe.get() == null` là tín hiệu hữu ích về referent đã được thu gom tại thời điểm quan sát, nhưng **không** chứng minh mọi native resource/file handle/plugin callback đã được đóng đúng.
+**Do not** treat `probe.get() != null` immediately after `close()` as proof of a bug: the JVM may not have run GC, JIT/stack locals may remain live, or the runtime may legitimately hold the loader briefly. `System.gc()` is only a hint and creates no mandatory collection deadline. On the other hand, `probe.get() == null` is a useful signal that the referent was collected at the observation point, though it **does not** prove every native resource, file handle, or plugin callback was closed cleanly.
 
-Khi theo dõi hàng trăm generation, giữ danh sách **weak references và metadata thuần** (pluginId, generation, thời điểm retire), không giữ `Class<?>` hoặc loader mạnh trong metrics registry. Một “leak detector” lưu `Map<GenerationId, ClassLoader>` để kiểm tra lại về sau có thể tự tạo ra leak mà nó định chẩn đoán.
+When tracking hundreds of generations, keep a list of **weak references and plain metadata** (`pluginId`, `generation`, retirement timestamp)—never store strong `Class<?>` or loader references in a metrics registry. A "leak detector" storing `Map<GenerationId, ClassLoader>` to check later can itself cause the very leak it aims to diagnose.
 
-Có thể dùng `ReferenceQueue` để nhận thông báo khi referent trở nên eligible/cleared theo cơ chế references, nhưng thời điểm vẫn phụ thuộc GC; không lấy một số giây cố định làm tiêu chí chính. Assert mạnh hơn nằm ở **owner map trống, callback unsubscribed, TCCL restored và loader no longer registered**.
+You can use a `ReferenceQueue` to receive notifications when referents become eligible/cleared per reference semantics, though timing still depends on GC; never use a fixed number of seconds as the primary criterion. Stronger assertions check **empty owner maps, unsubscribed callbacks, restored TCCL, and loader no longer registered**.
 
-## 16. Khi đã dọn cache mà memory vẫn tăng
+## 16. When Caches Are Cleaned Up Yet Memory Still Grows
 
-Không phải mọi trường hợp tăng bộ nhớ sau reload đều do cache. Phải mở rộng phạm vi điều tra theo tín hiệu:
+Not all post-reload memory growth comes from caches. Expand the investigation based on the observed signal:
 
-| Triệu chứng sau nhiều vòng | Nguồn cần điều tra | Cách kiểm tra |
+| Symptom After Many Cycles | Source to Investigate | How to Verify |
 |---|---|---|
-| Retired scope count tăng theo generation | Registry/cache lifetime sai | Đếm scope/entry theo generation, xem owner map |
-| Heap floor tăng, retained path từ host static → plugin object | Cache/DI/callback giữ strong reference | MAT Path to GC Roots, sửa eviction/unregister |
-| Heap floor tăng, root từ thread | ThreadLocal, TCCL, pending tasks, thread target | Dump thread + heap, dọn trên đúng worker |
-| Metaspace và loaded classes tăng, retired loader vẫn reachable | Class metadata/loader retention | Classloader stats, heap paths, class unload events |
-| RSS tăng nhưng Java heap ổn | Native/direct buffers, code cache, thread stacks, mmap/JAR/JNI | NMT khi phù hợp, OS metrics, buffer pool metrics |
-| Class unload có xảy ra nhưng RSS không giảm ngay | Native allocator/committed vs resident | Phân biệt used/committed/RSS, theo dõi dài hạn |
-| Memory tăng theo workload nhưng không theo số lần reload | Cache request/tenant, queue, traffic | So sánh cùng workload và cache hit/eviction |
-| Chỉ xuất hiện khi chạy song song | Race giữa generation drain và computeIfAbsent | Repro đồng thời, bảo vệ state và write gate |
-| File JAR không xóa được trên Windows | Loader/JAR stream còn mở | Đóng đúng resource, kiểm tra file handles |
-| CPU/latency tăng sau mỗi lần reload | Cache thrashing, nhiều listener/task cũ còn chạy | Event counts, worker/task queues, allocation profiles |
+| Retired scope count grows with generations | Broken registry/cache lifetime | Count scopes/entries per generation; inspect owner maps |
+| Heap floor rises, retained path from host static → plugin object | Cache/DI/callback holding strong reference | MAT Path to GC Roots; fix eviction/unregistration |
+| Heap floor rises, root from thread | `ThreadLocal`, TCCL, pending tasks, target threads | Thread dump + heap dump; clean up on the exact workers |
+| Metaspace and loaded classes rise, retired loaders stay reachable | Class metadata / loader retention | Classloader stats, heap paths, class unload events |
+| RSS rises while Java heap stays flat | Native/direct buffers, code cache, thread stacks, mmap/JAR/JNI | NMT where applicable, OS metrics, buffer pool metrics |
+| Class unloading occurs yet RSS does not drop immediately | Native allocator / committed vs. resident | Distinguish used/committed/RSS; monitor over longer windows |
+| Memory scales with workload, not reload count | Request/tenant caches, queues, traffic | Compare equal workloads and cache hit/eviction rates |
+| Appears only under concurrency | Race between generation drain and `computeIfAbsent` | Concurrent repro; guard state and write gates |
+| JAR files cannot be deleted on Windows | Loader / JAR streams still open | Close resources properly; inspect open file handles |
+| CPU/latency climbs after each reload | Cache thrashing, lingering old listeners/tasks running | Event counts, worker/task queues, allocation profiles |
 
-**Một phân tích đúng cần xác định loại memory nào đang tăng:** object heap, metaspace/class metadata, memory manager/JVM-native, direct buffers, code cache hay thread stacks. Từ đó mới chọn công cụ chẩn đoán phù hợp. “Đồ thị Task Manager tăng” không chỉ ra đường tham chiếu cụ thể.
+**Proper analysis identifies which memory pool is growing:** object heap, metaspace/class metadata, JVM-native allocator, direct buffers, code cache, or thread stacks. Only then can you pick the right diagnostic tool. "Task Manager graph going up" does not point to a specific reference path.
 
-## 17. Regression test: deterministic ownership trước, GC trend sau
+## 17. Regression Testing: Deterministic Ownership First, GC Trends Second
 
-Một bộ test hữu ích nên có hai tầng.
+A solid test suite should have two layers.
 
-### 17.1. Unit/integration tests có thể assert chắc chắn
+### 17.1. Unit/Integration Tests with Deterministic Assertions
 
-- Sau `install(A)`, cache scope A tồn tại và mọi value/class đúng generation A.
-- Sau `install(B)` + `retire(A)`, registry host không còn key A; cache A được clear và các `AutoCloseable` value đóng đúng một lần.
-- B vẫn hoạt động bình thường; eviction A không xóa B.
-- Không request A mới được nhận sau DRAINING; task in-flight hoàn tất hoặc được cancel theo contract.
-- Hai class trùng binary name từ loader A/B không bị cache key `String className` làm lẫn.
-- Các cache có tenant dimension không trả value của tenant khác.
-- Callback, timer, listener, executor task, TCCL và ThreadLocal được dọn theo generation.
-- Inject exception vào một cleanup step; những bước độc lập còn lại vẫn được cố thực hiện, không tuyên bố retire thành công giả.
-- Thử concurrency giữa `retire(A)` và `cache.get(A,key)`; không cho phép tái tạo cache A sau khi scope đóng.
+- After `install(A)`, cache scope A exists and all values/classes belong to generation A.
+- After `install(B)` + `retire(A)`, the host registry no longer contains key A; cache A is cleared and `AutoCloseable` values are closed exactly once.
+- B continues working normally; evicting A does not remove B.
+- No new A requests are accepted after `DRAINING`; in-flight tasks complete or are canceled per contract.
+- Two classes with the same binary name from loaders A and B are never conflated by a `String className` cache key.
+- Tenant-dimensioned caches never return another tenant's values.
+- Callbacks, timers, listeners, executor tasks, TCCL, and `ThreadLocal`s are cleaned up per generation.
+- Inject an exception into one cleanup step; remaining independent steps still execute rather than falsely claiming retirement succeeded.
+- Test concurrency between `retire(A)` and `cache.get(A, key)`; disallow recreating cache A once the scope is closing.
 
-Mã demo mục 7 là một bài test cấp đầu: chế độ `clean` có `retired-left=0`, chế độ `leak` có `retired-left=2` sau ba lần install. Những assertion này **không phụ thuộc vào GC**.
+The section 7 demo code is an entry-level test: `clean` mode yields `retired-left=0`, while `leak` mode yields `retired-left=2` after three installs. These assertions **do not depend on GC**.
 
-### 17.2. Soak test nhiều vòng thay plugin
+### 17.2. Multi-Round Plugin Replacement Soak Tests
 
-Trong môi trường staging:
+In staging:
 
-1. Warm up host, ghi baseline sau khi ứng dụng ổn định.
-2. Lặp 50–200 vòng install/retire với workload gần thực tế; mỗi vòng ghi active/retired scope count, cache size/weight, process memory, classloader/class counters và GC events.
-3. Sau mỗi nhóm vòng, xác nhận owner maps sạch; lấy snapshot bộ nhớ ở **những thời điểm có điều kiện đo tương tự**, tránh đối chiếu peak với post-GC.
-4. Ghi xu hướng retained loader/class counts sau nhiều cơ hội GC phù hợp, không đòi `WeakReference.get()==null` đúng ở một deadline nhỏ.
-5. Nếu thấy xu hướng tăng, chụp heap dump, xác định đường từ GC root, sửa cache owner rồi chạy lại cùng test.
-6. Đo latency/cache hit rate sau khi thêm eviction để bảo đảm không vô tình chuyển thành việc khởi tạo lại plugin quá thường xuyên.
+1. Warm up the host and record a baseline once the application stabilizes.
+2. Run 50–200 install/retire cycles under realistic workload; on each cycle record active/retired scope counts, cache size/weight, process memory, classloader/class counters, and GC events.
+3. After each batch of cycles, verify owner maps are clean; take memory snapshots at **points with comparable measurement conditions**, avoiding comparing allocation peaks with post-GC lows.
+4. Track trends of retained loader/class counts across multiple suitable GC opportunities rather than demanding `WeakReference.get()==null` by a tight deadline.
+5. If an upward trend appears, capture a heap dump, trace the path from GC roots, fix the cache owner, and rerun the exact test.
+6. Measure latency and cache hit rates after adding eviction to confirm you have not accidentally forced overly frequent plugin re-initialization.
 
-**Không tự động kết luận leak chỉ từ “Metaspace chưa về đúng baseline byte-for-byte”.** GC/class unloading có thể không diễn ra ngay; một số classes mới thuộc host/framework được load một lần rồi giữ hợp lệ. Điều quan trọng là *retired generation count/retaining paths* và xu hướng memory sau các pha tương đương.
+**Never automatically declare a leak just because "Metaspace did not return to the exact baseline byte-for-byte".** GC/class unloading may lag; some new host/framework classes are loaded once and validly retained. What matters are *retired generation counts/retaining paths* and memory trends across equivalent phases.
 
-## 18. Một số lỗi thiết kế dễ mắc
+## 18. Common Design Mistakes
 
-1. **Cache toàn process chỉ khóa theo tên class.** Hai generation trùng tên nhưng khác class identity/semantics.
-2. **Không gắn generation vào owner và metrics.** Không phân biệt cache của bản A đã retire và bản B đang active.
-3. **Dùng TTL thay teardown.** Loader A còn bị giữ suốt TTL, hoặc cache không được quét khi idle.
-4. **Dùng weak key và nghĩ đã hết leak.** Value có thể tham chiếu ngược tới key/loader.
-5. **Cho cache value chứa plugin instance nhưng owner là host singleton.** Root của host giữ loader cũ dù đã close.
-6. **Chỉ đo tổng loaded classes.** Đây là counter tích lũy, không phải retained current classes.
-7. **Nhìn RSS/Metaspace peak như retained memory.** Phải phân biệt peak, used, committed, post-GC và OS accounting.
-8. **Đánh giá sau một lần reload.** Cần nhiều vòng và workload ổn định.
-9. **Tạo strong reference trong chính leak detector.** Metrics/registry có thể biến thành thủ phạm.
-10. **Đóng class loader trước khi drain task.** Task A còn dùng lazy class/resource có thể thất bại.
-11. **Clear cache rồi cho task cũ computeIfAbsent lại.** Cache A có thể tái xuất hiện sau teardown.
-12. **Dọn mọi cache toàn host khi retire A.** Làm hỏng B và tạo cache stampede; evict đúng owner.
-13. **Đo trên một JDK/collector rồi suy ra chính xác mọi JVM.** GC/NMT/MemoryPool names và tuning phụ thuộc runtime.
-14. **Chụp heap dump production mà không kiểm soát dữ liệu nhạy cảm.** HPROF có thể chứa toàn bộ objects/secrets.
-15. **Coi `URLClassLoader.close()` là `unloadClass()`.** API không hứa điều đó.
-16. **Dùng ClassValue rồi không dọn thread/callback.** Một loại cache đúng không loại bỏ đường giữ khác.
-17. **Vừa đổi current generation vừa bỏ qua rollback.** Nếu B không hợp lệ, A có thể cần duy trì một thời gian, nhưng phải ghi rõ trạng thái ACTIVE/ROLLBACK và deadline giải phóng.
-18. **Giải thích tăng native memory bằng heap dump mà không kiểm tra JNI/direct buffers.** Các lớp memory khác nhau cần công cụ khác nhau.
+1. **Process-wide cache keyed only by class name.** Two generations share a name yet have distinct class identities and semantics.
+2. **Omitting generation from owners and metrics.** Cannot tell retired version A's cache apart from active version B's.
+3. **Using TTL instead of teardown.** Loader A stays pinned for the entire TTL, or caches are never swept while idle.
+4. **Using weak keys and assuming leaks are solved.** Values can point back to keys or loaders.
+5. **Storing plugin instances in cache values owned by a host singleton.** Host roots pin old loaders even after `close()`.
+6. **Tracking only total loaded classes.** That is a cumulative counter, not currently retained classes.
+7. **Reading RSS/Metaspace peaks as retained memory.** Distinguish peak, used, committed, post-GC, and OS accounting.
+8. **Evaluating after a single reload.** Multiple cycles and a steady workload are needed.
+9. **Creating strong references inside the leak detector itself.** Metrics/registries can become the culprit.
+10. **Closing the class loader before draining tasks.** Tasks from A still needing lazy classes or resources can fail.
+11. **Clearing the cache while letting old tasks call `computeIfAbsent` again.** Cache A can reappear after teardown.
+12. **Wiping all host-wide caches when retiring A.** Breaks B and causes cache stampedes; evict only the right owner.
+13. **Measuring on one JDK/collector and extrapolating identically to every JVM.** GC, NMT, `MemoryPool` names, and tuning are runtime-dependent.
+14. **Taking production heap dumps without controlling sensitive data.** HPROF files can contain all live objects and secrets.
+15. **Treating `URLClassLoader.close()` as `unloadClass()`.** The API makes no such promise.
+16. **Using `ClassValue` while forgetting to clean up threads/callbacks.** Fixing one cache type does not eliminate other retention paths.
+17. **Swapping the current generation while ignoring rollback.** If B proves invalid, A may need to stay briefly, yet `ACTIVE`/`ROLLBACK` state and release deadlines must be explicit.
+18. **Explaining native memory growth with a heap dump without checking JNI/direct buffers.** Different memory pools require different tools.
 
-## 19. Checklist kiến trúc và kết luận
+## 19. Architecture Checklist and Conclusion
 
-Trước khi phát hành runtime extensibility, hãy đi qua checklist:
+Before shipping runtime extensibility, walk through this checklist:
 
-- [ ] Mỗi lần cài đặt plugin có `pluginId` và `generationId` bất biến; defining loader được định danh trong log.
-- [ ] Cache chứa class/provider/serializer/metadata của plugin có scope thuộc generation, hoặc global key + eviction contract tương đương.
-- [ ] Host-global cache chỉ giữ dữ liệu thật sự độc lập code/loader hoặc được partition đúng tenant/version.
-- [ ] Đã định nghĩa ACTIVE → DRAINING → RETIRED; chặn cache write mới khi generation cũ bắt đầu retire.
-- [ ] Dừng/đợi callback và request in-flight trước khi dọn cache/đóng loader.
-- [ ] Owner clear entry, close cache values/resources và gỡ registration handles, ThreadLocal, TCCL/threads đúng nơi.
-- [ ] Có metrics **cache entries/weight và retired generation count** chứ không chỉ memory MB.
-- [ ] JMX/GC/NMT/profiler được cấu hình theo môi trường và quyền hạn; so sánh memory ở các thời điểm tương đương.
-- [ ] Heap analyzer có quy trình tìm **Path to GC Roots** khi loader retired còn reachable.
-- [ ] Soak test nhiều lần replace + fault injection + race tests không dựa vào một lần `System.gc()`.
-- [ ] Các chỉ số leak detector chỉ giữ metadata/weak probes, không giữ mạnh loader cũ.
-- [ ] Đã kiểm tra hiệu năng sau eviction: cache hit rate, recomputation cost và latency của generation mới.
+- [ ] Every plugin installation has immutable `pluginId` and `generationId`; defining loaders are identified in logs.
+- [ ] Caches holding plugin classes, providers, serializers, or metadata are generation-scoped, or use global keys + equivalent eviction contracts.
+- [ ] Host-global caches hold only genuinely code/loader-independent data, or are properly partitioned by tenant/version.
+- [ ] `ACTIVE` → `DRAINING` → `RETIRED` is defined; new cache writes are blocked once an old generation begins retiring.
+- [ ] Callbacks and in-flight requests are stopped/drained before clearing caches and closing loaders.
+- [ ] Owners clear entries, close cached values/resources, and remove registration handles, `ThreadLocal`s, and TCCL/threads cleanly.
+- [ ] Metrics track **cache entries/weight and retired generation counts**, not only memory MB.
+- [ ] JMX/GC/NMT/profilers are configured per environment and permissions; memory is compared at equivalent lifecycle points.
+- [ ] A heap analyzer runbook exists to trace **Path to GC Roots** when retired loaders stay reachable.
+- [ ] Multi-cycle replacement soak tests + fault injection + race tests do not rely on a single `System.gc()`.
+- [ ] Leak-detector metrics hold only plain metadata and weak probes, never strong references to old loaders.
+- [ ] Post-eviction performance—cache hit rate, recomputation cost, and new-generation latency—has been verified.
 
-**Ghi nhớ:** *Phạm vi cache là quyết định về ownership và lifecycle, không chỉ là lựa chọn cấu trúc dữ liệu.* Cache lưu `Class<?>`/plugin instance phải gắn với **plugin generation** và được dọn khi generation retired. Để phát hiện memory tăng sau nhiều lần thay plugin, kết hợp **deterministic reference counts/eviction assertions**, **xu hướng heap/Metaspace/classloader qua nhiều vòng**, và **retaining paths từ GC roots**. Không dùng `URLClassLoader.close()`, weak references hoặc một lần gọi GC làm bằng chứng duy nhất.
+**Key takeaway:** *Cache scope is an ownership and lifecycle decision, not merely a data-structure choice.* Caches holding `Class<?>` or plugin instances must be bound to a **plugin generation** and cleared when that generation retires. To detect memory growth across repeated plugin swaps, combine **deterministic reference counts and eviction assertions**, **multi-round trends of heap/Metaspace/classloaders**, and **retaining paths from GC roots**. Never rely on `URLClassLoader.close()`, weak references, or a single GC call as sole proof.
 
-**Tài liệu chính thức Java 17:** [ClassLoadingMXBean](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ClassLoadingMXBean.html), [MemoryPoolMXBean](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/MemoryPoolMXBean.html), [ClassValue](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassValue.html), [URLClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html), [jcmd](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html), [java launcher / NMT options](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html), [Java 17 Troubleshooting Guide](https://docs.oracle.com/en/java/javase/17/troubleshoot/).
+**Official Java 17 Documentation:** [ClassLoadingMXBean](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ClassLoadingMXBean.html), [MemoryPoolMXBean](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/MemoryPoolMXBean.html), [ClassValue](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassValue.html), [URLClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html), [jcmd](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html), [java launcher / NMT options](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html), [Java 17 Troubleshooting Guide](https://docs.oracle.com/en/java/javase/17/troubleshoot/).

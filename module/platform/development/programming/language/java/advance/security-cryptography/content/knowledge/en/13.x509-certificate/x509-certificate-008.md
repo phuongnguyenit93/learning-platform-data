@@ -1,78 +1,78 @@
-# 13.8 CSR PKCS#10, phản hồi CA và chuỗi chứng thư trong quy trình keytool
+# 13.8 PKCS#10 CSRs, CA Replies, and Certificate Chains in the keytool Workflow
 
-Một ứng dụng Java muốn dùng chứng thư X.509 thật cho TLS, mTLS hoặc ký số thường không thể dừng ở bước `keytool -genkeypair`. Lệnh đó có thể tạo **private key + chứng thư tự ký ban đầu** trong KeyStore, nhưng chứng thư được một tổ chức khác tin cậy phải đi qua **yêu cầu cấp chứng thư CSR (PKCS#10)**, quá trình **CA thẩm định và ký**, nhận **certificate reply**, rồi cài lại đúng **certificate chain** vào alias chứa private key ban đầu.
+A Java application needing a real X.509 certificate for TLS, mTLS, or digital signing typically cannot stop at `keytool -genkeypair`. That command can create an initial **private key + self-signed certificate** in a KeyStore, yet a certificate trusted by another party must go through a **Certificate Signing Request (CSR, PKCS#10)**, **CA vetting and signing**, receiving a **certificate reply**, and installing the proper **certificate chain** back into the alias holding the original private key.
 
-Bài này trình bày luồng hoàn chỉnh từ **khóa trong PKCS#12 → CSR PKCS#10 → CA ký → trust anchor → nhập phản hồi vào cùng alias → kiểm chain bằng Java 17+**, đồng thời giải thích chain có intermediate CA, SAN, key usage, truststore, xử lý lỗi và quản trị production. Ví dụ sử dụng **CA tự tạo chỉ trong phòng thực hành**, không giả làm chứng thư công khai được mọi trình duyệt tin cậy.
+This lesson walks through the complete workflow from **key in PKCS#12 → PKCS#10 CSR → CA signing → trust anchor → importing the reply into the same alias → verifying the chain with Java 17+**, while explaining chains with intermediate CAs, SANs, key usage, truststores, error handling, and production governance. The example uses a **lab-only self-created CA**, never masquerading as a public certificate trusted by browsers.
 
-## 1. Kết quả cần đạt
+## 1. Learning Outcomes
 
-Sau khi học, bạn có thể:
+After this lesson, you can:
 
-1. Giải thích **CSR PKCS#10** gồm những gì, không gồm những gì, và vì sao CSR có chữ ký nhưng **chưa phải certificate đã được CA ký**.
-2. Phân biệt private key, public key, CSR, **CA-issued leaf certificate**, intermediate certificates, root trust anchor và chuỗi chứng thư.
-3. Dùng `keytool` để tạo một PKCS#12 identity, xuất CSR, xem nội dung CSR, tạo certificate reply từ CA demo, import root và install reply vào **đúng alias**.
-4. Hiểu vì sao alias chứa `PrivateKeyEntry` phải được giữ nguyên khi thay self-signed certificate bằng certificate đã được cấp.
-5. Dùng Java 17+ đọc lại `KeyStore`, xác minh alias/chain, SAN, quan hệ issuer, public/private key và validate path bằng **PKIX**.
-6. Nhận ra giới hạn của ví dụ: CA demo, password dòng lệnh, PKIX revocation bị tắt **chỉ để demo**, và một bài kiểm SAN không thay TLS hostname verifier.
-7. Khắc phục các lỗi phổ biến `Failed to establish chain from reply`, `Public keys in reply and keystore don't match`, nhập reply nhầm alias, thiếu intermediate hoặc tin sai CA.
+1. Explain what a **PKCS#10 CSR** contains, what it does not contain, and why a CSR has a signature yet is **not yet a CA-signed certificate**.
+2. Distinguish private key, public key, CSR, **CA-issued leaf certificate**, intermediate certificates, root trust anchor, and certificate chain.
+3. Use `keytool` to create a PKCS#12 identity, export a CSR, inspect CSR contents, generate a certificate reply from a demo CA, import the root, and install the reply into the **exact alias**.
+4. Understand why the alias holding the `PrivateKeyEntry` must be preserved when replacing the self-signed certificate with the issued certificate.
+5. Use Java 17+ to reload the `KeyStore`, verify the alias/chain, SAN, issuer relationship, public/private key match, and validate the path with **PKIX**.
+6. Recognize the limitations of the example: demo CA, command-line passwords, PKIX revocation disabled **for demo only**, and a SAN check that does not replace a TLS hostname verifier.
+7. Troubleshoot common errors: `Failed to establish chain from reply`, `Public keys in reply and keystore don't match`, importing the reply into the wrong alias, missing intermediates, or trusting the wrong CA.
 
-## 2. Các đối tượng trong một quy trình cấp chứng thư
+## 2. Objects in a Certificate Issuance Workflow
 
-| Đối tượng | Nội dung cốt lõi | Độ nhạy / nơi thường nằm |
+| Object | Core content | Sensitivity / typical location |
 | --- | --- | --- |
-| **Private key** | Khóa riêng RSA/EC/... để tạo chữ ký hoặc thực hiện thao tác private key theo thuật toán | **Bí mật**, nằm trong KeyStore/HSM/KMS; không gửi cho CA |
-| **Public key** | Khóa công khai tương ứng với private key | Nằm trong CSR và leaf certificate |
-| **CSR PKCS#10** | Subject, SubjectPublicKeyInfo, các attributes/extension requests và **chữ ký của bên yêu cầu** | Thường có thể gửi CA; không mang private key |
-| **CA-issued certificate** | Chứng thư X.509 chứa thông tin subject, public key, issuer, serial, validity, extensions và **chữ ký của CA** | Công khai; chỉ đáng tin sau khi kiểm đường dẫn và chính sách |
-| **Intermediate certificate** | Chứng thư của CA trung gian do CA cấp trên ký, thường có quyền CA theo constraints | Công khai; cần cho việc dựng đường dẫn |
-| **Root CA / trust anchor** | Chứng thư hoặc public-key trust anchor được cấu hình tin cậy ngoài băng | Public, nhưng việc **chọn tin** phải được bảo vệ bằng chính sách |
-| **Certificate reply** | Chứng thư leaf do CA cấp, có thể kèm các intermediate/chain dưới nhiều định dạng | Công khai; dùng để **thay chain ở alias private key** |
-| **Identity keystore** | Kho lưu private key cùng chain phục vụ chứng minh danh tính | Bảo vệ cẩn thận |
-| **Truststore** | Kho trust anchors hoặc CA/peer cert đã được chấp nhận theo chính sách | Chỉ chứa cert công khai trong mô hình thông dụng; kiểm nguồn import |
+| **Private key** | RSA/EC/... private key for signing or private-key operations per algorithm | **Secret**, stored in KeyStore/HSM/KMS; never sent to the CA |
+| **Public key** | Public key corresponding to the private key | Included in CSR and leaf certificate |
+| **PKCS#10 CSR** | Subject, SubjectPublicKeyInfo, attributes/extension requests, and **requester's signature** | Typically safe to send to CA; carries no private key |
+| **CA-issued certificate** | X.509 certificate with subject info, public key, issuer, serial, validity, extensions, and **CA signature** | Public; trusted only after path and policy validation |
+| **Intermediate certificate** | Subordinate CA certificate signed by an upper CA, usually with CA rights per constraints | Public; needed for path building |
+| **Root CA / trust anchor** | Certificate or public-key trust anchor configured as trusted out-of-band | Public, yet **trust selection** must be policy-protected |
+| **Certificate reply** | CA-issued leaf certificate, possibly bundled with intermediates/chain in various formats | Public; used to **replace the chain on the private-key alias** |
+| **Identity keystore** | Store holding the private key together with its chain for proving identity | Protect carefully |
+| **Truststore** | Store of trust anchors or policy-accepted CA/peer certs | Holds only public certs in typical models; control import sources |
 
-**Ba thông điệp phải nhớ:** (1) CSR không chứa private key; (2) CA có thể ký chứng thư chỉ khi quyết định **cho phép subject/định danh** theo chính sách của mình; (3) nhận được file certificate **không tự khiến nó được trust**.
+**Three messages to remember:** (1) a CSR does not contain the private key; (2) the CA only signs a certificate after deciding to **authorize the subject/identifiers** per its policy; (3) receiving a certificate file **does not automatically make it trusted**.
 
-### 2.1. Sơ đồ tổng thể
+### 2.1. Overall Diagram
 
 ~~~text
-                         MÁY CHỦ / NGƯỜI XIN CẤP
+                         SERVER / APPLICANT
    +-----------------------------------------------------------+
    | KeyStore "app.p12"                                         |
    | alias "app-server": PrivateKeyEntry                         |
-   |     private key  [GIỮ BÍ MẬT]                              |
-   |     self-signed cert tạm thời                              |
+   |     private key  [KEEP SECRET]                             |
+   |     temporary self-signed cert                             |
    +-----------------------------------------------------------+
-               | keytool -certreq  (dùng private key ký CSR)
+               | keytool -certreq  (signs CSR with private key)
                v
-          CSR PKCS#10 ----- gửi CSR, không gửi private key -----> CA
+          PKCS#10 CSR ----- send CSR, never private key --------> CA
                                                                |
-                                          kiểm tên/domain/chính sách
-                                          thẩm định CSR + ký leaf X.509
+                                          check name/domain/policy
+                                          vet CSR + sign X.509 leaf
                                                                |
-               <---------- phản hồi leaf + chain (khi có) ------+
+               <---------- leaf + chain reply (when present) ---+
                |
-               | nhập CA certificate từ nguồn ĐÃ XÁC THỰC
-               | nhập signed leaf vào cùng alias "app-server"
+               | import CA certificate from an AUTHENTICATED source
+               | import signed leaf into the same alias "app-server"
                v
    +-----------------------------------------------------------+
    | KeyStore "app.p12"                                         |
    | alias "app-server": PrivateKeyEntry                         |
-   |     cùng private key                                       |
+   |     same private key                                       |
    |     chain[0] = CA-issued leaf                              |
-   |     chain[1] = CA trung gian hoặc root (tùy đường dẫn)      |
+   |     chain[1] = intermediate CA or root (depending on path) |
    |     ...                                                     |
-   | alias "demo-ca": TrustedCertificateEntry (CA demo)         |
+   | alias "demo-ca": TrustedCertificateEntry (demo CA)         |
    +-----------------------------------------------------------+
                |
                v
-        Java load + kiểm PKIX/chain; JSSE khi dùng TLS
+        Java loads + checks PKIX/chain; JSSE when using TLS
 ~~~
 
-Sơ đồ là trường hợp mô phỏng. Ở production, CA, identity store và truststore thường có các vai trò/quyền truy cập khác nhau; private key có thể **không xuất được** khỏi HSM. Root trust anchor thường được cấu hình ở phía **bên kiểm chứng (relying party)** chứ không phải chỉ cần nhập vào keystore của server rồi mọi client sẽ tin.
+This diagram illustrates a simulated case. In production, the CA, identity store, and truststore typically have separate roles and access controls; the private key may be **non-exportable** from an HSM. The root trust anchor is usually configured on the **verifier (relying party)** side—merely importing it into the server's keystore does not make clients trust it.
 
-## 3. CSR PKCS#10 chính xác là gì?
+## 3. What Exactly Is a PKCS#10 CSR?
 
-**PKCS#10** (RFC 2986) quy định cấu trúc **CertificationRequest**. Nói đơn giản, CSR chứa:
+**PKCS#10** (RFC 2986) defines the **CertificationRequest** structure. Simply put, a CSR contains:
 
 ~~~text
 CertificationRequest
@@ -80,257 +80,257 @@ CertificationRequest
     version
     subject (X.500 Distinguished Name)
     subjectPublicKeyInfo (public key + algorithm)
-    attributes (có thể chứa extensionRequest)
+    attributes (may contain extensionRequest)
   signatureAlgorithm
-  signature (chữ ký bằng private key tương ứng public key trên CSR)
+  signature (signed with the private key matching the CSR's public key)
 ~~~
 
-Chữ ký ở CSR là **bằng chứng bên xin cấp đang sở hữu private key tương ứng** khi tạo yêu cầu (proof of possession trong phạm vi kỹ thuật chữ ký); nó **không xác nhận** người đó có quyền sở hữu hostname/domain, tổ chức hoặc tài sản được khai báo. Thẩm định danh tính/domain/IP và áp chính sách issuance thuộc trách nhiệm **CA**.
+The signature on a CSR is **proof that the requester possesses the corresponding private key** when creating the request (proof of possession in the signature sense); it **does not prove** the requester owns the claimed hostname/domain, organization, or assets. Vetting identity/domain/IP and enforcing issuance policy are the **CA**'s responsibility.
 
-Một số sự thật quan trọng:
+Key facts:
 
-- CSR **không chứa private key**. Không gửi `.p12`, file key, password hoặc token/HSM secret cho CA chỉ vì CA yêu cầu CSR.
-- CSR **không phải certificate X.509 đã có issuer tin cậy**. Chữ ký bên xin cấp trong CSR khác chữ ký CA trên chứng thư được phát hành.
-- Các trường `Subject DN` và attributes như `extensionRequest` có thể gồm **requested SAN, KeyUsage, ExtendedKeyUsage**; CA có thể chấp nhận, sửa, từ chối hoặc bỏ qua theo chính sách.
-- Với HTTPS hiện đại, **DNS name/IP phải có trong Subject Alternative Name (SAN)** của leaf theo quy tắc client/chuẩn liên quan. Chỉ đặt `CN` đẹp mà không có SAN phù hợp không đủ.
-- CSR thường là **DER (nhị phân ASN.1)** hoặc **PEM** có nhãn `-----BEGIN CERTIFICATE REQUEST-----` (text Base64 bọc DER). PEM chỉ là **cách biểu diễn**, không phải một loại yêu cầu mật mã khác.
-- Một CSR ứng với một public key nhất định. Nếu muốn CA response gắn với **private key ở alias cũ**, public key trong reply phải khớp public key của khóa đó.
+- A CSR **contains no private key**. Never send `.p12`, key files, passwords, or token/HSM secrets to a CA just because it asks for a CSR.
+- A CSR **is not an X.509 certificate with a trusted issuer**. The applicant's signature in a CSR differs from the CA's signature on the issued certificate.
+- `Subject DN` and attributes such as `extensionRequest` can include **requested SAN, KeyUsage, and ExtendedKeyUsage**; the CA can accept, modify, reject, or omit them per policy.
+- For modern HTTPS, **DNS names/IPs must be in the leaf's Subject Alternative Name (SAN)** per client/standard rules. Setting a nice `CN` without an appropriate SAN is insufficient.
+- CSRs are typically **DER (binary ASN.1)** or **PEM** labeled `-----BEGIN CERTIFICATE REQUEST-----` (Base64 text wrapping DER). PEM is only a **representation**, not a different cryptographic request type.
+- A CSR corresponds to one specific public key. To attach the CA response to **the private key in the existing alias**, the public key in the reply must match that key's public key.
 
-### 3.1. CSR khác certificate như thế nào?
+### 3.1. How Does a CSR Differ from a Certificate?
 
-| Điểm so sánh | CSR PKCS#10 | Chứng thư X.509 đã cấp |
+| Comparison point | PKCS#10 CSR | Issued X.509 Certificate |
 | --- | --- | --- |
-| Người ký | Người sở hữu **private key yêu cầu** | **CA issuer** |
-| Mục đích | Yêu cầu CA cấp certificate cho public key + subject | Ràng buộc public key với identity theo chính sách CA |
-| Có serial và validity do CA cấp | Chưa | Có |
-| Có issuer của CA | Không theo nghĩa certificate đã phát hành | Có issuer DN và chữ ký CA |
-| SAN/usage | Có thể là **yêu cầu extension** | Extension thực tế mà CA **quyết định phát hành** |
-| Dùng ngay làm TLS server certificate | **Không** | Có thể, sau khi đủ chain, policy, key, thời hạn, hostname và trust validation |
-| Có private key | **Không** | **Không**; private key giữ ngoài cả hai artifact |
+| Signer | Holder of the **requesting private key** | **CA issuer** |
+| Purpose | Requests a CA to issue a certificate for public key + subject | Binds public key to identity per CA policy |
+| Has CA-assigned serial and validity | Not yet | Yes |
+| Has CA issuer | Not in the sense of an issued certificate | Has issuer DN and CA signature |
+| SAN/usage | Can be **extension requests** | Actual extensions the CA **decided to issue** |
+| Usable immediately as TLS server cert | **No** | Possible, after chain, policy, key, validity, hostname, and trust validation |
+| Contains private key | **No** | **No**; private key stays outside both artifacts |
 
-Đừng suy luận rằng file có chữ `CERTIFICATE` trong tên đồng nghĩa chứa private key. Thông thường `.crt`/`.cer` mang certificate công khai; `.csr` mang yêu cầu; `.p12` có thể chứa private key, certificate chain và các entry khác tùy cách đóng gói. **Không kiểm nguồn chỉ bằng phần mở rộng file.**
+Never assume a file with `CERTIFICATE` in its name contains a private key. Typically `.crt`/`.cer` carry public certificates; `.csr` carries a request; `.p12` may carry a private key, certificate chain, and other entries depending on how it was packaged. **Never determine origin solely by file extension.**
 
-## 4. Chain of trust: leaf, intermediate CA, root
+## 4. Chain of Trust: Leaf, Intermediate CA, Root
 
-Trong PKI phân cấp điển hình:
+In a typical hierarchical PKI:
 
 ~~~text
-Root CA (trust anchor do bên xác minh cấu hình)
+Root CA (trust anchor configured by the verifier)
     |
-    | ký
+    | signs
     v
 Intermediate CA (basicConstraints CA=true, keyCertSign)
     |
-    | ký
+    | signs
     v
-Leaf certificate (app.example.test, SAN DNS, EKU serverAuth)
+Leaf certificate (app.example.test, DNS SAN, EKU serverAuth)
     |
-    | public key của leaf phải khớp private key trong app.p12
+    | leaf's public key must match the private key in app.p12
     v
-TLS server/ứng dụng dùng private key để chứng minh sở hữu
+TLS server/application uses private key to prove possession
 ~~~
 
-Một certificate path hợp lệ thường cần:
+A valid certificate path generally requires:
 
-1. Chữ ký leaf được xác minh bằng public key của intermediate CA (hoặc root nếu không có intermediate).
-2. Chữ ký intermediate (và các CA tiếp theo) dẫn về một **trust anchor đã được chọn từ trước**.
-3. Kiểm hạn hiệu lực, thuật toán/cỡ khóa theo chính sách, `basicConstraints`, `keyUsage`, `pathLenConstraint` và những constraint liên quan.
-4. Kiểm **mục đích sử dụng**: ví dụ TLS server cần `ExtendedKeyUsage serverAuth` khi EKU được khai báo; leaf có SAN khớp hostname mà client thực sự kết nối.
-5. Kiểm trạng thái thu hồi/chính sách (CRL/OCSP hoặc cơ chế của hệ thống) khi được yêu cầu; không mặc định rằng mọi CA hoặc ứng dụng đều xử lý như nhau.
+1. The leaf signature verifies using the intermediate CA's public key (or root if there is no intermediate).
+2. Intermediate signatures (and any higher CAs) lead to a **pre-selected trust anchor**.
+3. Validity period, policy-compliant algorithms/key sizes, `basicConstraints`, `keyUsage`, `pathLenConstraint`, and related constraints pass.
+4. **Intended usage** checks pass: e.g., a TLS server requires `ExtendedKeyUsage serverAuth` when EKU is present; the leaf has a SAN matching the hostname the client actually connects to.
+5. Revocation status/policy (CRL/OCSP or system mechanism) passes when required; never assume all CAs or applications handle this identically.
 
-**Trust anchor không được “tự chứng minh là trusted” nhờ self-signature.** Root có thể tự ký, nhưng thứ làm nó đáng tin là việc public key/certificate được đặt vào tập trust anchors bằng **quy trình phân phối đáng tin và chính sách**. Kẻ tấn công cũng có thể tự ký certificate của họ.
+**A trust anchor does not “prove itself trusted” via self-signature.** A root may be self-signed, yet what makes it trusted is placing its public key/certificate into the trust anchors set via a **trusted distribution process and policy**. An attacker can self-sign certificates too.
 
-### 4.1. Thứ tự trong certificate chain
+### 4.1. Order in a Certificate Chain
 
-Trong `KeyStore.PrivateKeyEntry`, chain thường được xem như:
+In `KeyStore.PrivateKeyEntry`, the chain is typically structured as:
 
 ~~~text
-chain[0] = End-entity / leaf certificate của private key
-chain[1] = Issuing intermediate CA (nếu có), hoặc root (nếu root ký trực tiếp)
-chain[2] = CA cấp trên, nếu có ...
+chain[0] = End-entity / leaf certificate for the private key
+chain[1] = Issuing intermediate CA (if any), or root (if root signed directly)
+chain[2] = Upper CA, if any ...
 ~~~
 
-**Không đặt root ở `chain[0]`** và không nhầm alias trust anchor với alias private key. Đối với TLS, server thường gửi **leaf và intermediate(s)**; root thường **không cần gửi** vì client đã có root trong truststore, tùy giao thức/triển khai. Nếu server chỉ gửi leaf mà không có intermediate và client không thể tự lấy intermediate, việc dựng đường dẫn có thể thất bại.
+**Never put the root at `chain[0]`** and never confuse a trust anchor alias with a private-key alias. For TLS, the server typically sends **leaf and intermediate(s)**; the root usually **need not be sent** since the client already has the root in its truststore, depending on protocol/implementation. If the server sends only the leaf without intermediates and the client cannot fetch intermediates, path building may fail.
 
-**Ví dụ của bài:** Root demo ký leaf trực tiếp → chain có 2 phần tử ở KeyStore: **leaf → root**. Production thường có thêm intermediate, số lượng có thể là 3 hoặc nhiều hơn.
+**In this lesson's example:** the demo root signs the leaf directly → the chain in the KeyStore has 2 elements: **leaf → root**. Production usually includes intermediates, making the count 3 or more.
 
-### 4.2. Chain được tin từ đâu?
+### 4.2. Where Does Chain Trust Come From?
 
-`keytool -importcert` có thể **xây certificate chain dựa trên các CA certificates đã biết** hoặc dựa trên chain được gửi trong reply. Tuy nhiên, việc import thành công và certificate reply có chữ ký CA chưa nói rằng certificate này sẽ được **mọi client công cộng tin**. Bên dựa vào chứng thư phải tự có trust anchor phù hợp trong truststore/chính sách của họ.
+`keytool -importcert` can **build a certificate chain from known CA certificates** or from a chain included in the reply. However, successful import and a CA-signed reply do not mean the certificate will be trusted by **every public client**. Each relying party must have the appropriate trust anchor in its own truststore/policy.
 
-Không nhập “CA root” từ email hoặc cùng kênh mạng chưa được xác minh rồi coi đó là chứng cứ độc lập: attacker có thể gửi **root giả và reply giả phù hợp với nhau**. Trong ví dụ local lab, bạn tự tạo CA nên biết nguồn của nó; production phải đối chiếu certificate fingerprint, công cụ CA và quy trình tin cậy độc lập.
+Never import a “CA root” from an email or unverified network channel and treat it as independent evidence: an attacker can send a **matching fake root and fake reply**. In the local lab example, you created the CA yourself so you know its origin; production must verify certificate fingerprints, CA tools, and independent trust processes.
 
-## 5. KeyStore và alias trong luồng CSR → reply
+## 5. KeyStore and Aliases in the CSR → Reply Flow
 
-Đối với JDK, lệnh tạo key pair ban đầu thường tạo một **`PrivateKeyEntry`** trong PKCS#12:
+In the JDK, the initial key-pair generation command creates a **`PrivateKeyEntry`** in PKCS#12:
 
 ~~~text
 app.p12:
   alias = app-server
   PrivateKeyEntry
     private key = RSA private key
-    certificate chain = self-signed placeholder (lúc mới tạo)
+    certificate chain = self-signed placeholder (when newly created)
 ~~~
 
-Sau khi CSR được ký, thao tác đúng là **cài reply trên alias `app-server` đang chứa private key**, thay **certificate chain** nhưng **giữ khóa riêng cũ**. Không tạo key pair mới chỉ để import reply, nếu không bạn sẽ có public/private key không khớp.
+Once the CSR is signed, the right step is to **install the reply on the `app-server` alias that holds the private key**, replacing **the certificate chain** while **keeping the original private key**. Never generate a new key pair just to import the reply, or you will have a public/private key mismatch.
 
-| Alias/lệnh | Điều xảy ra |
+| Alias / command | What happens |
 | --- | --- |
-| `-genkeypair -alias app-server` | Tạo PrivateKeyEntry với private key và certificate tự ký ban đầu |
-| `-certreq -alias app-server` | Tạo CSR ký bởi private key của **cùng alias** |
-| `-importcert -alias demo-ca -file ca.crt` | Với alias CA mới, thêm `TrustedCertificateEntry` chứa CA cert (demo) |
-| `-importcert -alias app-server -file app-issued.crt` | Vì `app-server` đã là key entry, lệnh xử lý file như **certificate reply**, xác minh khớp khóa và thay chain |
-| `-list -v -alias app-server` | Kiểm entry type, chain length, leaf subject, issuer, SAN |
-| `-list -v -alias demo-ca` | Kiểm trusted certificate entry; không có private key |
+| `-genkeypair -alias app-server` | Creates a `PrivateKeyEntry` with private key and initial self-signed certificate |
+| `-certreq -alias app-server` | Creates a CSR signed by the private key of **the same alias** |
+| `-importcert -alias demo-ca -file ca.crt` | On a new CA alias, adds a `TrustedCertificateEntry` holding the CA cert (demo) |
+| `-importcert -alias app-server -file app-issued.crt` | Because `app-server` is already a key entry, treats the file as a **certificate reply**, verifies key match, and replaces the chain |
+| `-list -v -alias app-server` | Inspects entry type, chain length, leaf subject, issuer, SAN |
+| `-list -v -alias demo-ca` | Inspects the trusted certificate entry; holds no private key |
 
-**Lưu ý:** Nếu import certificate leaf vào một alias hoàn toàn **mới** thay vì alias có private key, công cụ có thể tạo `TrustedCertificateEntry` chứ **không cài leaf vào PrivateKeyEntry**. Khi TLS server cần private key và chain, đó là lỗi thiết kế.
+**Note:** If you import the leaf certificate into a brand **new** alias instead of the alias holding the private key, the tool creates a `TrustedCertificateEntry` rather than **installing the leaf onto the `PrivateKeyEntry`**. When a TLS server needs both the private key and chain, that is a configuration bug.
 
-### 5.1. Store password và key password
+### 5.1. Store Password and Key Password
 
-- `-storepass`: password khi mở/lưu KeyStore theo provider.
-- `-keypass`: password bảo vệ private key entry khi provider/type hỗ trợ.
-- Một số triển khai PKCS12 yêu cầu key password **khớp store password**; demo dùng cùng giá trị `changeit-demo`.
-- Lỗi password có thể biểu hiện khi `-certreq` đọc private key hoặc `-importcert` sửa chain, không chỉ lúc `-list`.
+- `-storepass`: password for opening/saving the KeyStore per provider.
+- `-keypass`: password protecting the private key entry when supported by the provider/store type.
+- Some PKCS12 implementations require the key password to **match the store password**; the demo uses the same value `changeit-demo`.
+- Password errors can surface when `-certreq` reads the private key or `-importcert` updates the chain, not just on `-list`.
 
-Trong production, **đừng đưa password vào terminal history, process listing, CI logs hoặc source**. Bài lab cố tình dùng literal để có thể chạy lặp trong thư mục thử nghiệm tách biệt. Hệ thống thật dùng secret manager/callback, quyền truy cập file/HSM và chính sách rotation phù hợp.
+In production, **never put passwords into terminal history, process listings, CI logs, or source code**. This lab intentionally uses a literal so it can be run repeatedly in an isolated test directory. Real systems use secret managers/callbacks, file/HSM permissions, and proper rotation policies.
 
-## 6. Thực hành end-to-end với `keytool`: tạo CA demo và cấp CSR
+## 6. End-to-End Practice with `keytool`: Creating a Demo CA and Issuing a CSR
 
-Tất cả lệnh sau đã được thử với **JDK 17+ trên thư mục tạm rỗng**. Chạy từng lệnh trong một **thư mục thực hành mới**; không chạy trong thư mục có keystore production, vì tên file được dùng lại.
+All commands below were tested on **JDK 17+ in an empty temporary directory**. Run each command in a **fresh practice directory**; never run in a directory containing production keystores, as filenames are reused.
 
-Kịch bản: Tạo CA `demo-ca`, tạo identity server `app-server` cho DNS `app.example.test`, xuất CSR và nhận leaf cert do CA demo ký, import CA và reply. Đây là **phòng thực hành**, không phải hệ thống CA có quy trình thẩm định domain thực tế.
+Scenario: Create CA `demo-ca`, create server identity `app-server` for DNS `app.example.test`, export a CSR and obtain a leaf cert signed by the demo CA, import the CA and reply. This is a **practice lab**, not a CA system with real domain-vetting procedures.
 
-### Bước 1 — Tạo root CA tự ký cho lab
+### Step 1 — Create a Self-Signed Root CA for the Lab
 
 ~~~bash
 keytool -genkeypair -alias demo-ca -keyalg RSA -keysize 2048 -dname "CN=Training Demo Root,O=Learning,C=VN" -validity 365 -ext "bc=ca:true" -ext "ku=keyCertSign,cRLSign" -keystore ca.p12 -storetype PKCS12 -storepass changeit-demo -keypass changeit-demo -noprompt
 ~~~
 
-- `-genkeypair` tạo private/public key pair và certificate tự ký ban đầu.
-- `-ext "bc=ca:true"` khai báo `BasicConstraints CA=true`, điều cần có với vai trò CA.
-- `-ext "ku=keyCertSign,cRLSign"` dành `KeyUsage` cho việc ký certificate và CRL.
-- `-dname` là Subject DN của **CA**, không phải server.
-- Key RSA 2048 và thời gian 365 ngày chỉ dùng để demo; CA production phải tuân thủ tiêu chuẩn, chính sách, cách giữ khóa riêng, bảo vệ online/offline và thời hạn riêng.
+- `-genkeypair` generates a private/public key pair and an initial self-signed certificate.
+- `-ext "bc=ca:true"` declares `BasicConstraints CA=true`, required for the CA role.
+- `-ext "ku=keyCertSign,cRLSign"` allocates `KeyUsage` for signing certificates and CRLs.
+- `-dname` is the Subject DN of **the CA**, not the server.
+- A 2048-bit RSA key and 365-day validity are for demo only; production CAs must follow dedicated standards, policies, private-key custody, online/offline protection, and lifetimes.
 
-**Không dùng `ca.p12` demo làm CA production**: private key CA thử nghiệm chỉ được bảo vệ bằng password mẫu; CA thật cần chính sách issuance, audit, phân quyền, backups và thường HSM.
+**Never use the demo `ca.p12` as a production CA**: the test CA private key is protected only by a sample password; a real CA needs issuance policies, audits, role separation, backups, and typically an HSM.
 
-### Bước 2 — Xuất certificate công khai của CA
+### Step 2 — Export the CA's Public Certificate
 
 ~~~bash
 keytool -exportcert -alias demo-ca -keystore ca.p12 -storepass changeit-demo -rfc -file ca.crt
 ~~~
 
-File `ca.crt` là **certificate public**, không có private key. `-rfc` xuất dạng PEM, dễ truyền và xem. Kiểm thông tin certificate nếu cần:
+The file `ca.crt` is a **public certificate** without a private key. `-rfc` exports PEM format, easy to transfer and inspect. Check certificate details if needed:
 
 ~~~bash
 keytool -printcert -file ca.crt
 ~~~
 
-Trong production, **phải so fingerprint SHA-256/nguồn phân phối CA qua kênh đã xác thực** trước khi tin certificate, chứ không tự đặt tin cậy vì file tên `ca.crt`.
+In production, **you must verify the SHA-256 fingerprint / CA distribution source via an authenticated channel** before trusting a certificate, rather than trusting it simply because a file is named `ca.crt`.
 
-### Bước 3 — Tạo identity PKCS12 và self-signed placeholder
+### Step 3 — Create a PKCS12 Identity and Self-Signed Placeholder
 
 ~~~bash
 keytool -genkeypair -alias app-server -keyalg RSA -keysize 2048 -dname "CN=app.example.test,O=Learning,C=VN" -validity 30 -ext "san=dns:app.example.test" -keystore app.p12 -storetype PKCS12 -storepass changeit-demo -keypass changeit-demo -noprompt
 ~~~
 
-Lúc này alias `app-server` chứa **PrivateKeyEntry** và chain self-signed tạm. Certificate tạm **không phải leaf đã được CA demo ký**; nó chỉ cho phép `keytool` lưu identity/khóa ban đầu. `CN` đặt tên cho mẫu; HTTPS/JSSE thực tế phải kiểm **SAN DNS** theo chuẩn và chính sách TLS.
+At this point alias `app-server` holds a **`PrivateKeyEntry`** and a temporary self-signed chain. That temporary certificate **is not the leaf signed by the demo CA**; it merely lets `keytool` store the initial identity/key. `CN` gives a sample name; real HTTPS/JSSE must verify **DNS SAN** per TLS standards and policies.
 
-Nếu bạn chạy lại `-genkeypair` trên cùng alias khi đã tồn tại, `keytool` có thể từ chối hoặc dẫn đến yêu cầu xử lý alias; đừng xóa private key hiện hữu và sinh key mới khi đang chờ reply từ CSR cũ.
+If you re-run `-genkeypair` on the same alias when it already exists, `keytool` may reject it or require alias handling; never delete an existing private key and generate a new one while waiting for a reply to an old CSR.
 
-### Bước 4 — Tạo CSR PKCS#10 từ đúng alias
+### Step 4 — Generate a PKCS#10 CSR from the Right Alias
 
 ~~~bash
 keytool -certreq -alias app-server -file app.csr -rfc -keystore app.p12 -storepass changeit-demo -ext "san=dns:app.example.test" -ext "ku=digitalSignature,keyEncipherment" -ext "eku=serverAuth"
 ~~~
 
-- `-certreq` ký CSR bằng private key trong `app.p12` của alias `app-server`.
-- `-file app.csr -rfc` tạo CSR dạng PEM. Đừng nhầm file này với certificate issuer trả về.
-- `-ext san=dns:app.example.test` yêu cầu SAN dạng DNS.
-- `ku` là yêu cầu **KeyUsage**, `eku=serverAuth` là yêu cầu **ExtendedKeyUsage** cho TLS server. CA phải quyết định cuối cùng theo chính sách; không được cấp quyền chỉ vì CSR đề xuất.
-- Với TLS 1.3, `digitalSignature` là usage quan trọng cho certificate key ký handshake; `keyEncipherment` được đưa vào lab cho ví dụ RSA rộng hơn, không có nghĩa TLS 1.3 sử dụng RSA key transport.
+- `-certreq` signs the CSR with the private key in `app.p12` for alias `app-server`.
+- `-file app.csr -rfc` writes the CSR in PEM format. Never confuse this file with the issuer-returned certificate.
+- `-ext san=dns:app.example.test` requests a DNS SAN.
+- `ku` requests **KeyUsage**, and `eku=serverAuth` requests **ExtendedKeyUsage** for a TLS server. The CA makes the final policy decision; permissions must never be granted just because the CSR asked for them.
+- For TLS 1.3, `digitalSignature` is the key usage for the certificate key signing the handshake; `keyEncipherment` is included in the lab for broader RSA compatibility, which does not mean TLS 1.3 uses RSA key transport.
 
-Xem CSR:
+Inspect the CSR:
 
 ~~~bash
 keytool -printcertreq -file app.csr -v
 ~~~
 
-Bạn có thể thấy Subject, algorithm, public key, signature và extension requests. Nội dung cụ thể phụ thuộc JDK/provid­er và thông tin bạn khai báo; đừng hard-code fingerprint động vào test.
+You will see the Subject, algorithm, public key, signature, and extension requests. Exact output depends on the JDK/provider and declared info; do not hard-code dynamic fingerprints in tests.
 
-**An toàn:** Có thể gửi CSR cho CA vì nó không có private key. Tuy nhiên, CSR vẫn chứa danh tính/tên máy/chi tiết tổ chức, nên chia sẻ qua đúng kênh của CA và không đưa thông tin nhạy cảm không cần thiết.
+**Safety:** You can send the CSR to the CA because it contains no private key. However, the CSR still contains identity/hostname/organization details, so share it over the proper CA channel and avoid including unnecessary sensitive data.
 
-### Bước 5 — CA demo thẩm định (mô phỏng) và ký leaf certificate
+### Step 5 — Demo CA Vets (Simulated) and Signs the Leaf Certificate
 
 ~~~bash
 keytool -gencert -alias demo-ca -infile app.csr -outfile app-issued.crt -rfc -keystore ca.p12 -storepass changeit-demo -validity 30 -ext "san=dns:app.example.test" -ext "ku=digitalSignature,keyEncipherment" -ext "eku=serverAuth"
 ~~~
 
-Lệnh dùng private key của **demo CA** để ký certificate cho public key trong CSR.
+This command uses the **demo CA**'s private key to sign a certificate for the public key in the CSR.
 
-**Điểm quyết định:** Ở demo ta cho CA cấp SAN một cách tường minh qua `-ext`. **CA production không được chỉ lấy SAN/Subject tự khai trong CSR rồi ký vô điều kiện.** CA phải kiểm quyền đối với domain/tổ chức, lựa chọn certificate profile, validate yêu cầu, đặt serial, thời hạn, extensions và ghi dấu audit theo tiêu chuẩn/policy.
+**Decision point:** In the demo we explicitly have the CA issue the SAN via `-ext`. **A production CA must never blindly take self-declared SAN/Subject values from a CSR and sign unconditionally.** The CA must verify authorization for the domain/organization, select a certificate profile, validate the request, set serial, validity, and extensions, and record an audit trail per standards/policy.
 
-`app-issued.crt` là **CA-issued leaf certificate**, không phải private key. Trong demo root CA ký trực tiếp leaf, nên chưa có intermediate. Với CA thật, phản hồi có thể là leaf đơn lẻ, **PKCS#7 chain** hoặc certificate bundle có intermediate(s).
+`app-issued.crt` is the **CA-issued leaf certificate**, not a private key. In the demo the root CA signs the leaf directly, so there is no intermediate. With a real CA, the reply may be a standalone leaf, a **PKCS#7 chain**, or a certificate bundle with intermediate(s).
 
-### Bước 6 — Import root CA demo thành trusted certificate entry
+### Step 6 — Import the Demo Root CA as a Trusted Certificate Entry
 
 ~~~bash
 keytool -importcert -alias demo-ca -file ca.crt -keystore app.p12 -storepass changeit-demo -noprompt
 ~~~
 
-- `demo-ca` là alias **mới**, không phải `app-server`.
-- Lúc này `app.p12` có thể lưu `TrustedCertificateEntry` cho root demo. Vì root được tạo **ngay trong lab**, ta có thể chủ động đặt nó làm trust anchor demo.
-- `-noprompt` bỏ xác nhận tương tác; **không dùng để tự động tin CA chưa được xác minh** trong production.
-- Trước khi nhập một CA certificate thực, phải đối chiếu fingerprint/nguồn cung cấp CA bằng kênh đáng tin, đặt quyền đọc/ghi hợp lý.
+- `demo-ca` is a **new** alias, not `app-server`.
+- Now `app.p12` stores a `TrustedCertificateEntry` for the demo root. Since the root was created **right inside the lab**, we can explicitly place it as the demo trust anchor.
+- `-noprompt` skips interactive confirmation; **never use it to auto-trust unverified CAs** in production.
+- Before importing a real CA certificate, verify its fingerprint/source over a trusted channel and set proper read/write permissions.
 
-Tại sao nhập CA trước reply? `keytool` cần đủ thông tin về issuer chain và trust để dựng/kiểm đường dẫn certificate reply. Trong lab chỉ có root→leaf nên root đủ cho chain 2 phần tử. Với intermediate, có thể phải import certificate của intermediate hoặc cung cấp toàn bộ chain đúng format; phải kiểm chain sau khi cài.
+Why import the CA before the reply? `keytool` needs issuer chain and trust information to build/verify the certificate reply's path. In the lab we only have root→leaf, so the root suffices for a 2-element chain. With intermediates, you may need to import intermediate certificates or supply the full chain in a supported format; verify the chain after installation.
 
-### Bước 7 — Cài certificate reply vào **cùng alias private key**
+### Step 7 — Install the Certificate Reply into **the Same Private-Key Alias**
 
 ~~~bash
 keytool -importcert -alias app-server -file app-issued.crt -keystore app.p12 -storepass changeit-demo -noprompt
 ~~~
 
-Đây là bước quan trọng nhất:
+This is the most critical step:
 
-1. `keytool` tìm **PrivateKeyEntry** có alias `app-server`.
-2. Nó kiểm tra public key trong certificate reply có khớp private key hiện có theo provider/khả năng kiểm tra.
-3. Nó kiểm đường dẫn/chứng chỉ issuer cần thiết cho việc cài reply, rồi thay certificate chain của **đúng private-key entry**.
-4. **Private key vẫn ở alias `app-server`**, không phải một trusted certificate alias mới.
+1. `keytool` looks up the **`PrivateKeyEntry`** with alias `app-server`.
+2. It verifies that the public key in the certificate reply matches the existing private key per provider capabilities.
+3. It checks the issuer path/certificates needed to install the reply, then replaces the certificate chain of **that exact private-key entry**.
+4. **The private key remains under alias `app-server`**, not a new trusted certificate alias.
 
-Sau khi thành công, output lab của `keytool` cho biết certificate reply đã được cài vào KeyStore.
+On success, `keytool`'s lab output states that the certificate reply was installed in the KeyStore.
 
-**Không làm sai:**
+**Do not make this mistake:**
 
 ~~~bash
-# SAI VỀ MỤC ĐÍCH: alias mới không nối vào private key "app-server".
+# WRONG FOR THE PURPOSE: a new alias does not attach to the "app-server" private key.
 keytool -importcert -alias issued-copy -file app-issued.crt -keystore app.p12 -storepass changeit-demo -noprompt
 ~~~
 
-Đây chỉ là **lệnh đối chiếu minh họa lỗi logic**, không chạy nó trong bài thực hành. Alias `issued-copy` không có private key nên không thay chain của `app-server`; có thể tạo certificate-only entry hoặc dẫn tới các hành vi provider khác nhau, nhưng không tạo identity đúng.
+This is solely a **comparison command illustrating a logic bug**; do not run it in the lab. Alias `issued-copy` has no private key, so it does not update `app-server`'s chain; it may create a certificate-only entry or produce provider-specific behavior without forming a valid identity.
 
-### Bước 8 — Xem KeyStore sau khi nhập reply
+### Step 8 — Inspect the KeyStore After Importing the Reply
 
 ~~~bash
 keytool -list -v -alias app-server -keystore app.p12 -storetype PKCS12 -storepass changeit-demo
 keytool -list -v -alias demo-ca -keystore app.p12 -storetype PKCS12 -storepass changeit-demo
 ~~~
 
-Đối với lab vừa tạo:
+For the lab you just created:
 
-- `app-server` phải là **PrivateKeyEntry**, certificate chain length **2**.
-- `chain[0]` là leaf cấp cho `app.example.test` với SAN `DNSName: app.example.test`.
-- `chain[1]` là root CA demo `Training Demo Root`.
-- `demo-ca` là trusted certificate entry, chỉ có certificate; không chứa private key CA vì đó là **CA certificate công khai được export**.
-- Private key của **demo CA** vẫn chỉ ở **`ca.p12`**, không được copy sang `app.p12`.
+- `app-server` must be a **`PrivateKeyEntry`**, certificate chain length **2**.
+- `chain[0]` is the leaf issued for `app.example.test` with SAN `DNSName: app.example.test`.
+- `chain[1]` is the demo root CA `Training Demo Root`.
+- `demo-ca` is a trusted certificate entry holding only the certificate; it contains no CA private key because it was the **exported public CA certificate**.
+- The **demo CA**'s private key remains solely in **`ca.p12`**, never copied into `app.p12`.
 
-Nếu giá trị thực không giống, đừng bỏ qua. Kiểm file đúng, alias đúng, issuer, SAN, chain và private/public key trước khi đưa vào ứng dụng.
+If actual values differ, do not ignore them. Verify the right files, aliases, issuer, SAN, chain, and private/public keys before deploying to an application.
 
-## 7. Java 17+: đọc lại chain, kiểm SAN, chữ ký và PKIX
+## 7. Java 17+: Reloading the Chain and Checking SAN, Signature, and PKIX
 
-Đoạn sau là **chương trình Java 17+ độc lập**, chạy sau **tám bước `keytool` ở phần 6** trong cùng thư mục có `app.p12`. Không cần thư viện ngoài JDK. Nó thực hiện những phép kiểm minh họa có ích mà không in private key hay password.
+The following is a **standalone Java 17+ program**, run after **the eight `keytool` steps in Section 6** in the same directory containing `app.p12`. No external libraries beyond the JDK are needed. It runs useful illustrative checks without printing private keys or passwords.
 
-Lưu đúng tên **`CsrChainDemo.java`**:
+Save with the exact name **`CsrChainDemo.java`**:
 
 ~~~java
 import java.io.InputStream;
@@ -353,7 +353,7 @@ import java.util.Set;
 
 public class CsrChainDemo {
     public static void main(String[] args) throws Exception {
-        // Mật khẩu mẫu CHỈ cho lab. Production lấy từ secret manager.
+        // Sample password ONLY for the lab. Production loads from a secret manager.
         char[] password = "changeit-demo".toCharArray();
         try {
             KeyStore store = KeyStore.getInstance("PKCS12");
@@ -387,8 +387,8 @@ public class CsrChainDemo {
                             field.get(0).equals(2)
                             && "app.example.test".equals(field.get(1)));
 
-            // Chứng minh private key trong entry khớp public key
-            // của certificate leaf bằng cách sign/verify dữ liệu giả.
+            // Prove the private key in the entry matches the leaf certificate's
+            // public key by signing and verifying dummy data.
             byte[] message =
                     "csr-chain-proof".getBytes(StandardCharsets.UTF_8);
             Signature signer = Signature.getInstance("SHA256withRSA");
@@ -403,13 +403,13 @@ public class CsrChainDemo {
             leaf.checkValidity();
             root.checkValidity();
 
-            // CertPath không đưa trust anchor vào list chứng thư cần
-            // kiểm. Lab root ký leaf trực tiếp => path chỉ có leaf.
+            // CertPath excludes the trust anchor from the list of certs to check.
+            // Here the lab root signs the leaf directly => path has only the leaf.
             CertPath path = CertificateFactory.getInstance("X.509")
                     .generateCertPath(List.of(leaf));
             PKIXParameters parameters = new PKIXParameters(
                     Set.of(new TrustAnchor(root, null)));
-            parameters.setRevocationEnabled(false); // CHỈ DEMO!
+            parameters.setRevocationEnabled(false); // DEMO ONLY!
             CertPathValidator.getInstance("PKIX")
                     .validate(path, parameters);
 
@@ -429,14 +429,14 @@ public class CsrChainDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac CsrChainDemo.java
 java CsrChainDemo
 ~~~
 
-**Đầu ra đã kiểm chứng** sau khi thực hiện đầy đủ chuỗi lệnh `keytool` (trên PKCS12 mới):
+**Verified output** after running the complete `keytool` sequence (on a fresh PKCS12):
 
 ~~~text
 KeyStore type        = PKCS12
@@ -450,72 +450,72 @@ Private matches cert = true
 PKIX path valid      = true
 ~~~
 
-### 7.1. Giải thích chính xác từng phép kiểm
+### 7.1. Exact Explanation of Each Check
 
-- **`PrivateKeyEntry = true`:** Alias `app-server` giữ private key và certificate chain; reply không bị import thành một trusted certificate-only alias.
-- **`Trusted CA entry = true`:** Alias `demo-ca` chứa certificate được import như một trust entry; nó **không đưa private key của CA** từ `ca.p12` vào `app.p12`.
-- **`Chain length = 2`:** Demo có root ký leaf trực tiếp; production có intermediate thường dài hơn. Phép kiểm này là **kỳ vọng cố định riêng cho lab**.
-- **`Issuer matches CA = true`:** Subject của root trùng Issuer DN của leaf; đây chỉ là so sánh **tên DN**, **không thay kiểm chữ ký**. Bất kỳ attacker nào cũng có thể tự tạo certificate mang cùng DN.
-- **`Chain order correct = true`:** Byte của certificate `chain[1]` trùng với root certificate được lấy từ alias `demo-ca` trong lab.
-- **`Leaf SAN DNS correct = true`:** Kiểm X.509 SAN có DNS name đúng mẫu. Một phép tìm chuỗi trong SAN **không thay đầy đủ thuật toán hostname verification của HTTPS**, vốn còn quy định wildcard, IDNA, IP, chuẩn so khớp và cách lấy host kết nối.
-- **`Private matches cert = true`:** Dùng private key trong `app-server` để ký một thông điệp test, public key trong leaf để xác minh. Đây là phép kiểm có ý nghĩa hơn việc so alias hoặc so Subject DN.
-- **`PKIX path valid = true`:** `CertPathValidator("PKIX")` kiểm path leaf → **trust anchor root được chọn tường minh** trong cấu hình demo. Ví dụ không tự động chọn mọi CA trên máy, không chứng minh hostname client và **đã cố ý tắt revocation** chỉ cho lab.
+- **`PrivateKeyEntry = true`:** Alias `app-server` holds the private key and certificate chain; the reply was not imported into a trusted certificate-only alias.
+- **`Trusted CA entry = true`:** Alias `demo-ca` holds the certificate imported as a trust entry; it **did not import the CA's private key** from `ca.p12` into `app.p12`.
+- **`Chain length = 2`:** The demo has the root signing the leaf directly; production chains with intermediates are typically longer. This check is **a fixed expectation specific to this lab**.
+- **`Issuer matches CA = true`:** The root's Subject matches the leaf's Issuer DN; this is only a **DN name** comparison, **not a substitute for signature verification**. Any attacker can generate a certificate with the same DN.
+- **`Chain order correct = true`:** The bytes of `chain[1]` match the root certificate retrieved from alias `demo-ca` in the lab.
+- **`Leaf SAN DNS correct = true`:** Checks that the X.509 SAN contains the sample DNS name. A string lookup in SAN **does not replace a full HTTPS hostname verification algorithm**, which also governs wildcards, IDNA, IPs, matching standards, and deriving the target host.
+- **`Private matches cert = true`:** Uses the private key in `app-server` to sign a test message and the leaf's public key to verify it. This is a more meaningful check than comparing aliases or Subject DNs.
+- **`PKIX path valid = true`:** `CertPathValidator("PKIX")` validates the leaf path → **the demo root explicitly selected as the trust anchor**. The example does not auto-trust every CA on the machine, does not verify client hostnames, and **intentionally disabled revocation** for the lab only.
 
-**Không biến code lab thành TLS trust manager production**: Chuỗi chứng thư tin cậy thật cần policy, hostname verification của client, kiểm thu hồi khi bắt buộc, certificate transparency/pinning theo threat model, bảo vệ danh tính CA và lựa chọn trust anchor tin cậy. Chương trình demo không mở HTTPS, không làm mTLS handshake và không chứng minh CA này được các trình duyệt công cộng công nhận.
+**Never turn lab code into a production TLS trust manager**: a real trusted certificate chain requires policies, client-side hostname verification, revocation checking when mandated, certificate transparency/pinning per threat model, CA identity protection, and trustworthy anchor selection. The demo program does not open HTTPS, perform an mTLS handshake, or prove this CA is recognized by public browsers.
 
-### 7.2. Vì sao PKIX CertPath chỉ chứa leaf ở demo?
+### 7.2. Why Does the PKIX CertPath Contain Only the Leaf in the Demo?
 
-Trong `PKIXParameters`, `TrustAnchor` đại diện cho **điểm tin cậy ngoài path**. Root đã được nêu là trust anchor, nên khi root ký leaf trực tiếp, list certificate cần validate là `List.of(leaf)`, không thêm root vào list.
+In `PKIXParameters`, `TrustAnchor` represents **the out-of-path trust point**. Since the root is already specified as the trust anchor, when the root signs the leaf directly, the certificate list to validate is `List.of(leaf)`, without adding the root to the list.
 
-Khi có intermediate:
+When there is an intermediate:
 
 ~~~java
-// Mảnh ghép minh họa; intermediate phải được lấy/kiểm nguồn
-// và root phải là TrustAnchor được phép tin.
+// Illustrative snippet; intermediate must be obtained/verified from a trusted source
+// and root must be an authorized TrustAnchor.
 CertPath path = CertificateFactory.getInstance("X.509")
         .generateCertPath(List.of(leaf, intermediate));
 ~~~
 
-Thứ tự path **leaf → intermediate**, còn root nằm trong tập `TrustAnchor`. Đoạn này không phải chương trình độc lập vì `leaf` và `intermediate` cần được nạp. Việc path validator thành công phụ thuộc extensions, chữ ký, basic constraints, trust anchor, thời hạn và policy.
+The path order is **leaf → intermediate**, while the root sits in the `TrustAnchor` set. This snippet is not a standalone program because `leaf` and `intermediate` must be loaded first. Whether the path validator succeeds depends on extensions, signatures, basic constraints, trust anchor, validity, and policy.
 
-## 8. Nếu có intermediate CA: chain dài hơn và cách import
+## 8. With Intermediate CAs: Longer Chains and How to Import
 
-Trong production, root private key thường không ký leaf trực tiếp. CA tổ chức phân tầng:
+In production, the root private key typically does not sign leaves directly. CAs organize a hierarchy:
 
 ~~~text
-Trust anchor: Example Root CA   [trusted ở client/truststore]
+Trust anchor: Example Root CA   [trusted on client/truststore]
       |
       v
-Issuing Intermediate CA        [CA=true, keyCertSign; root ký]
+Issuing Intermediate CA        [CA=true, keyCertSign; signed by root]
       |
       v
-app.example.test leaf          [CA=false, SAN, serverAuth; intermediate ký]
+app.example.test leaf          [CA=false, SAN, serverAuth; signed by intermediate]
 ~~~
 
-**Điểm khác so với lab** là **CA ký CSR leaf** thường là intermediate, không phải root. Để import đúng:
+**The difference from the lab** is that **the CA signing the leaf CSR** is usually an intermediate, not the root. To import properly:
 
-1. Xác định identity alias đã tạo CSR (ví dụ `app-server`) và kiểm public key của leaf reply **khớp private key đang có**.
-2. Nhận **leaf certificate** và toàn bộ **intermediate chain** do CA cung cấp qua kênh đúng.
-3. Xác minh root trust anchor bằng nguồn đáng tin; lưu trong truststore phù hợp và/hoặc import vào nơi `keytool` cần để dựng chain theo provider.
-4. Cài intermediate certificates theo quy tắc và định dạng mà `keytool`/provider hỗ trợ (hoặc cung cấp certificate reply dạng chain/PKCS#7 được nhận diện); **đừng giả định leaf-only file luôn đủ**.
-5. Import phản hồi vào **alias private key gốc**. Sau đó kiểm chain length và thứ tự leaf → intermediate → ... root (nếu root được lưu trong chain).
-6. Kiểm issuer/subject linking, chữ ký, basic constraints CA, key usage, key path length, SAN/EKU leaf và path đến trust anchor. Đừng chỉ đếm chain length.
+1. Identify the identity alias that generated the CSR (e.g., `app-server`) and verify that the leaf reply's public key **matches the existing private key**.
+2. Obtain the **leaf certificate** and the full **intermediate chain** provided by the CA via the proper channel.
+3. Verify the root trust anchor from a trusted source; store it in the appropriate truststore and/or import it where `keytool` needs it to build the chain per provider.
+4. Install intermediate certificates according to the rules and formats supported by `keytool`/the provider (or supply a recognized chain/PKCS#7 reply); **do not assume a leaf-only file is always enough**.
+5. Import the reply into **the original private-key alias**. Then verify chain length and order: leaf → intermediate → ... root (if root is stored in the chain).
+6. Verify issuer/subject linkage, signatures, CA basic constraints, key usage, path length, leaf SAN/EKU, and path to a trust anchor. Never merely count chain length.
 
-**Quan trọng:** `KeyStore.getCertificateChain` có thể chứa root hoặc chỉ các issuer certificates tùy provider/cách cài. TLS server **thường không cần gửi root**; việc client tìm được root là do truststore, không phải do root nằm trong reply. Không viết logic production chỉ dựa vào `chain.length == 3` mà bỏ kiểm chữ ký và trust anchor.
+**Important:** `KeyStore.getCertificateChain` may contain the root or only the issuing certificates depending on provider/installation method. A TLS server **usually does not need to send the root**; the client finds the root via its truststore, not because the root was in the reply. Never write production logic that checks only `chain.length == 3` while skipping signature and trust anchor verification.
 
-### 8.1. CA bundle và PKCS#7
+### 8.1. CA Bundles and PKCS#7
 
-Một CA có thể trả:
+A CA may return:
 
-| File | Nội dung thường gặp | Cần xử lý |
+| File | Typical content | Required handling |
 | --- | --- | --- |
-| `app-issued.crt` / `.cer` | Một X.509 leaf, PEM hoặc DER | Cài vào alias private key sau khi issuer chain có thể dựng |
-| `intermediate.crt` | X.509 của CA trung gian | Đưa vào chain building/trust workflow như yêu cầu, **không tự coi mọi intermediate là root trusted** |
-| `root.crt` | Root public certificate | Chỉ đặt làm trust anchor sau xác minh ngoài băng |
-| `.p7b` / PKCS#7 | Tập certificate hoặc signed-data certificate chain, thường **không** mang private key | Có thể được `keytool -importcert` dùng làm reply tùy content/provider |
-| `.p12` / PKCS#12 | Có thể chứa private key và chain hoặc chỉ certificates, tùy được export như thế nào | **Không mặc định import đè identity** nếu đang giữ private key gốc; kiểm contents/type trước |
+| `app-issued.crt` / `.cer` | A single X.509 leaf, PEM or DER | Install into the private-key alias once the issuer chain can be built |
+| `intermediate.crt` | Intermediate CA X.509 cert | Feed into chain building/trust workflow as required; **do not blindly treat intermediates as trusted roots** |
+| `root.crt` | Root public certificate | Set as a trust anchor only after out-of-band verification |
+| `.p7b` / PKCS#7 | Certificate set or signed-data certificate chain, typically **no** private key | May be used as a reply by `keytool -importcert` depending on content/provider |
+| `.p12` / PKCS#12 | May contain private key and chain or only certificates, depending on export | **Do not blindly import over an identity** if keeping the original private key; inspect contents/type first |
 
-PEM có dạng:
+PEM has the form:
 
 ~~~text
 -----BEGIN CERTIFICATE-----
@@ -523,7 +523,7 @@ PEM có dạng:
 -----END CERTIFICATE-----
 ~~~
 
-CSR PEM có nhãn khác:
+A PEM CSR has a different label:
 
 ~~~text
 -----BEGIN CERTIFICATE REQUEST-----
@@ -531,249 +531,249 @@ CSR PEM có nhãn khác:
 -----END CERTIFICATE REQUEST-----
 ~~~
 
-**Không gửi PKCS12 chứa private key cho CA nếu quy trình chỉ yêu cầu CSR.** Không tự ý gộp certificates sai thứ tự rồi nghĩ file mới đã có chain hợp lệ. Các công cụ hỗ trợ nhập bundle khác nhau; kiểm đáp ứng của `keytool -list -v` và thực hiện validation thực tế.
+**Never send a PKCS12 containing a private key to a CA when the workflow only asks for a CSR.** Never concatenate certificates in the wrong order and assume the new file has a valid chain. Tools vary in bundle import support; verify `keytool -list -v` output and run real validation.
 
-### 8.2. Intermediate không phải luôn là trust anchor
+### 8.2. An Intermediate Is Not Always a Trust Anchor
 
-Một intermediate certificate có `CA=true` và có chữ ký của root nhưng **không tự động được tin** chỉ vì được server gửi. Nó là chứng cứ để xây **certificate path**, còn trust anchor cuối phải nằm trong chính sách trust của bên xác minh. Nếu ứng dụng tùy ý thêm mọi intermediate nhận được vào root truststore, có thể vô tình mở rộng phạm vi tin cậy.
+An intermediate certificate with `CA=true` and a root signature **is not automatically trusted** merely because the server sent it. It is evidence for building a **certificate path**, while the final trust anchor must reside in the verifier's trust policy. If an application blindly adds every received intermediate to its root truststore, it can unintentionally widen trust scope.
 
-Trường `BasicConstraints CA=true` chỉ nói một certificate **được tuyên bố có vai trò CA**; quyền lực chứng thực phải đến từ **chuỗi chữ ký hợp lệ và trust anchor được chấp nhận**. Không đánh đồng bit CA=true với “CA được tất cả máy tin”.
+`BasicConstraints CA=true` only states that a certificate **is declared to have a CA role**; certifying authority must come from **a valid signature chain and an accepted trust anchor**. Never equate `CA=true` with “a CA trusted by every machine”.
 
-## 9. Các extension X.509 trong CSR và certificate reply
+## 9. X.509 Extensions in CSRs and Certificate Replies
 
-CSR có thể **đề xuất**, CA **phê duyệt/phát hành**. Mỗi extension có ý nghĩa mật mã/vận hành riêng:
+A CSR can **request**; the CA **approves/issues**. Each extension has distinct cryptographic and operational semantics:
 
-| Extension | Trên leaf TLS server | Trên CA root/intermediate |
+| Extension | On a TLS server leaf | On a root/intermediate CA |
 | --- | --- | --- |
-| **Subject Alternative Name (SAN)** | DNS/IP của endpoint; bên client thực hiện matching theo chính sách | Có thể liên quan name constraints, không phải nơi tự cấp hostname cho leaf |
-| **BasicConstraints** | Thường CA=false hoặc không phải CA | Phải CA=true để chứng nhận CA và đáp ứng path constraints |
-| **KeyUsage** | Ví dụ digitalSignature cho TLS dùng chữ ký; keyEncipherment chỉ khi profile/giao thức cần | keyCertSign cho ký certificate, cRLSign nếu ký CRL |
-| **ExtendedKeyUsage (EKU)** | serverAuth cho TLS server, clientAuth cho mTLS client tùy mục đích | Thường khác leaf, phụ thuộc policy và path validation |
-| **Subject Key Identifier / Authority Key Identifier** | Hỗ trợ nhận diện khóa/issuer khi xây chain | Hỗ trợ nối issuer/subject key, không thay kiểm chữ ký |
-| **Certificate Policies / NameConstraints** | Tùy CA/profile | Có thể hạn chế không gian cấp chứng thư hoặc mục đích CA |
-| **CRL Distribution Points / AIA** | Gợi ý nơi tra thu hồi/CA issuer | Hỗ trợ chain building và kiểm thu hồi theo thực thi |
+| **Subject Alternative Name (SAN)** | Endpoint DNS/IP; client performs matching per policy | May involve name constraints; not for assigning leaf hostnames |
+| **BasicConstraints** | Usually `CA=false` or not a CA | Must be `CA=true` to certify CAs and satisfy path constraints |
+| **KeyUsage** | E.g., `digitalSignature` for signature-based TLS; `keyEncipherment` only when profile/protocol needs it | `keyCertSign` for signing certificates, `cRLSign` if signing CRLs |
+| **ExtendedKeyUsage (EKU)** | `serverAuth` for TLS server, `clientAuth` for mTLS client per purpose | Usually differs from leaf; depends on policy and path validation |
+| **Subject Key Identifier / Authority Key Identifier** | Assists key/issuer lookup when building chains | Assists linking issuer/subject keys; does not replace signature checks |
+| **Certificate Policies / NameConstraints** | Per CA/profile | Can restrict issued certificate namespaces or CA purposes |
+| **CRL Distribution Points / AIA** | Hints where to check revocation/CA issuer | Assists chain building and revocation checks per implementation |
 
-**Đừng chỉ nhìn CN:** Tên chứng thư server phải được kiểm theo **SAN** phù hợp với hostname kết nối, xử lý DNS/IP, wildcard và IDNA theo giao thức. `CN=app.example.test` trong demo không phải nguồn duy nhất/đủ dùng cho hostname validation.
+**Do not look only at CN:** Server certificate names must be verified via **SAN** matching the connected hostname, handling DNS/IP, wildcards, and IDNA per protocol. `CN=app.example.test` in the demo is neither the sole source nor sufficient for hostname validation.
 
-**Đừng dựa vào `-ext` trong CSR để khẳng định certificate đã có extension đó.** Sau CA ký, kiểm **certificate leaf thực tế** bằng:
+**Do not rely on `-ext` in the CSR to assume the certificate got that extension.** After the CA signs, inspect **the actual issued leaf certificate** using:
 
 ~~~bash
 keytool -printcert -file app-issued.crt -v
 ~~~
 
-CA có thể bỏ, chỉnh hoặc thay đổi các requested extensions. Đó là một phần của CA policy chứ không phải bug của PKCS#10.
+The CA may drop, edit, or override requested extensions. That is part of CA policy, not a PKCS#10 bug.
 
-## 10. CA response có được “tin” ngay khi nhận không?
+## 10. Is a CA Response “Trusted” Immediately Upon Receipt?
 
-**Không.** Certificate reply là đầu ra của CA, nhưng bên triển khai phải xác minh nhiều lớp:
+**No.** A certificate reply is the CA's output, yet the deploying party must verify multiple layers:
 
-1. **Đúng yêu cầu:** Public key trong leaf tương ứng private key sinh CSR; alias private-key entry đúng, không đổi key pair giữa chừng.
-2. **Đúng identity:** SAN/subject và mục đích sử dụng được cấp đúng hồ sơ đã duyệt.
-3. **Đúng issuer:** Leaf do CA dự kiến cấp, chữ ký và chain hợp lệ tới trust anchor được chọn.
-4. **Đúng thời gian/constraints:** Validity, basic constraints, key usages, EKU, signature algorithm, key size, policies.
-5. **Đúng nguồn và luồng:** CA account, giao thức issuance, fingerprint/serial/chi tiết giao dịch được đối chiếu phù hợp.
-6. **Đúng nơi sử dụng:** Không dùng cert serverAuth như cert clientAuth nếu profile không cho phép; không coi root demo là public CA.
-7. **Đúng vận hành:** KeyStore file và private key được bảo vệ, backup/rotation/rollback có kiểm soát.
+1. **Matches the request:** Public key in the leaf matches the private key that generated the CSR; private-key entry alias is right, no accidental key-pair swap.
+2. **Right identity:** SAN/subject and usage purposes match the approved profile.
+3. **Right issuer:** Leaf was issued by the expected CA; signature and chain validate to the chosen trust anchor.
+4. **Right validity/constraints:** Validity period, basic constraints, key usages, EKU, signature algorithm, key size, policies.
+5. **Right source and flow:** CA account, issuance protocol, fingerprint/serial/transaction details match appropriately.
+6. **Right usage context:** Never use a `serverAuth` cert as a `clientAuth` cert if disallowed by policy; never treat a demo root as a public CA.
+7. **Right operations:** KeyStore file and private key are protected, with controlled backup/rotation/rollback.
 
-Việc `keytool -importcert` báo `Certificate reply was installed in keystore` chứng tỏ **cài reply** thành công theo kiểm tra của công cụ và provider, **không phải tuyên bố rằng mọi peer sẽ tin CA** hay TLS hostname chắc chắn hợp lệ.
+Seeing `keytool -importcert` report `Certificate reply was installed in keystore` proves **reply installation** succeeded per the tool and provider checks; it is **not a claim that every peer will trust the CA** or that TLS hostnames are valid.
 
-**Ví dụ tấn công:** Attacker có thể gửi một `ca.crt` do chính họ tự ký và một `app-issued.crt` do họ ký; nếu bạn import cả hai mà không xác thực nguồn và cho client dùng truststore đó, path có thể hợp lệ **đối với trust anchor giả vừa import**. Đây là lý do root trust phải được phân phối/kiểm bằng kênh độc lập.
+**Attack example:** An attacker can send a self-signed `ca.crt` of their own and an `app-issued.crt` signed by them; if you import both without authenticating the source and have clients use that truststore, the path will validate **against the newly imported fake trust anchor**. That is why root trust must be distributed and verified over an independent channel.
 
-## 11. Phân biệt certificate reply, import cert và import keystore
+## 11. Distinguishing Certificate Reply, Import Cert, and Import Keystore
 
-Trong `keytool`, cùng lệnh `-importcert` có thể có ngữ nghĩa khác do **alias đã tồn tại hay chưa**:
+In `keytool`, the exact same `-importcert` command has different semantics depending on **whether the alias already exists**:
 
 ~~~text
-Alias chưa tồn tại + certificate
-  → thường tạo TrustedCertificateEntry
+Alias does not yet exist + certificate
+  → typically creates a TrustedCertificateEntry
 
-Alias đã là PrivateKeyEntry + certificate reply
-  → xử lý reply, cài/đổi certificate chain cho private key ấy
+Alias is already a PrivateKeyEntry + certificate reply
+  → processes reply, installs/replaces the certificate chain for that private key
 ~~~
 
-Lệnh `-importkeystore` lại là thao tác nhập **key entries hoặc certificates từ một keystore khác**; nó **không phải** bước bắt buộc khi bạn đã giữ private key gốc trong `app.p12` và chỉ nhận certificate reply từ CA.
+Meanwhile, `-importkeystore` imports **key entries or certificates from another keystore**; it is **not** a required step when you already hold the original private key in `app.p12` and only received a certificate reply from the CA.
 
-**Không dùng `-importkeystore` một cách mù quáng** để “cài CSR reply”. Nếu file nguồn chứa private key khác, có thể ghi đè identity, thay alias hoặc làm lệch key/cert chain. Hãy đọc alias/type của cả nguồn và đích, kiểm SHA-256 public key/certificate, kế hoạch backup và password policy trước khi migration.
+**Never use `-importkeystore` blindly** to “install a CSR reply”. If the source file holds a different private key, you can overwrite the identity, change aliases, or misalign keys and chains. Inspect aliases/types on both source and destination, verify SHA-256 of public keys/certificates, and prepare backups and password policies before migrating.
 
-### 11.1. Certificate chain trong file khác chain trong đường dẫn xác minh
+### 11.1. Certificate Chain in a File vs. Chain in a Verification Path
 
-- `getCertificateChain(alias)` là danh sách certificates **đang lưu** trong `PrivateKeyEntry`.
-- PKIX `CertPath` là danh sách certificates cần **validator kiểm tra**, thường kết thúc **trước** trust anchor do bạn cấu hình.
-- TLS peer có thể nhận chain server gửi nhưng vẫn cần trust anchor riêng và hostname validation; server không thể “gửi trust” chỉ bằng cách đưa thêm root vào chain.
-- CA-issued certificate có thể là leaf hợp lệ nhưng hệ thống thiếu intermediate/trust anchor làm build path thất bại; điều đó không chứng tỏ private key bị hỏng.
+- `getCertificateChain(alias)` is the list of certificates **stored** in the `PrivateKeyEntry`.
+- A PKIX `CertPath` is the list of certificates for **the validator to check**, typically ending **before** your configured trust anchor.
+- A TLS peer may receive the chain sent by the server, yet still requires its own trust anchor and hostname validation; a server cannot “send trust” merely by appending a root to the chain.
+- A CA-issued certificate can be a valid leaf, yet missing intermediates/trust anchors on the system cause path building to fail; that does not mean the private key is corrupted.
 
-## 12. Chẩn đoán lỗi `keytool` theo từng giai đoạn
+## 12. Diagnosing `keytool` Errors by Stage
 
-| Triệu chứng | Nguyên nhân khả dĩ | Cách kiểm/khắc phục |
+| Symptom | Possible cause | Check / resolution |
 | --- | --- | --- |
-| `-certreq` báo không thấy alias/private key | Alias sai hoặc chỉ có TrustedCertificateEntry | `keytool -list -v -alias ...`, bảo đảm PrivateKeyEntry tồn tại |
-| `-certreq` không mở được private key | Sai key/store password hoặc provider | Xác định đúng type/entry protection, không log password |
-| CSR thiếu SAN | Không đặt requested extension hoặc lệnh/CA profile khác | `-printcertreq -v` rồi kiểm leaf sau khi CA ký |
-| `Public keys in reply and keystore don't match` | Reply thuộc CSR/key pair khác, hoặc private key bị thay | So key pair/public key, đúng file và alias, không gen lại key trong khi chờ |
-| `Failed to establish chain from reply` | Thiếu CA issuer/intermediate, chain sai, CA chưa được tin hoặc input format sai | Kiểm certificates CA từ nguồn tin cậy, import/đưa chain đúng format, kiểm issuer signature |
-| Certificate reply được nhập nhưng alias `app-server` vẫn self-signed | Import nhầm alias hoặc file không đúng | Kiểm `-list -v -alias app-server`, import lại đúng reply vào đúng alias nếu an toàn |
-| `-importcert` tạo TrustedCertificateEntry thay vì identity | Alias dùng chưa có PrivateKeyEntry | Dùng alias sinh CSR ban đầu; không xóa private key |
-| Chain order sai hoặc chain dài 1 sau reply | Thiếu CA chain / response chỉ chứa leaf | Dựng chain, bổ sung intermediate, kiểm provider |
-| Peer TLS báo certificate unknown | Trust anchor không có trong peer truststore hoặc chain không dựng được | Cung cấp intermediate, cấu hình truststore của peer, không ép trust-all |
-| TLS báo hostname mismatch | SAN không chứa DNS/IP cần kiểm | CA cấp lại đúng SAN đã thẩm định; không tắt hostname verification |
-| Certificate expired/not yet valid | Validity window sai, clock sai hoặc chưa renew | Kiểm `-printcert -v`, thời gian UTC và lịch gia hạn |
-| `basicConstraints`/`keyCertSign` fail ở issuer | Intermediate không được cấp quyền CA hoặc constraints sai | CA phải phát hành đúng CA profile; không “sửa cert” sau khi ký |
-| Key algorithm/signature không được chấp nhận | Policy TLS/PKIX hoặc provider không hỗ trợ | Kiểm algorithm suite, key size, JDK provider, issuance policy |
-| PKCS12 không load được | Sai password, type, file hỏng hoặc incompatibility | Kiểm file/type/password, backup và provider; không thay extension để “chuyển format” |
-| Chứng thư hoạt động với một client nhưng không với client khác | Truststore/certificate policy/thu hồi và intermediate khác nhau | Kiểm chain và trust mỗi client, không suy ra từ một lượt kiểm |
-| Mọi lệnh thành công nhưng chain vẫn chưa tin cậy | Root CA demo chưa được bên dựa vào cài/kiểm | Phân biệt import cục bộ với trust policy của client |
+| `-certreq` reports alias/private key not found | Wrong alias or only a `TrustedCertificateEntry` exists | Run `keytool -list -v -alias ...`; ensure a `PrivateKeyEntry` exists |
+| `-certreq` cannot unlock private key | Wrong key/store password or provider issue | Identify proper type/entry protection; never log passwords |
+| CSR lacks SAN | Requested extension omitted or different command/CA profile | Check `-printcertreq -v`, then inspect the leaf after CA signing |
+| `Public keys in reply and keystore don't match` | Reply belongs to a different CSR/key pair, or private key was replaced | Compare key pairs/public keys, right file and alias; never regenerate keys while waiting |
+| `Failed to establish chain from reply` | Missing CA issuer/intermediate, wrong chain, untrusted CA, or wrong input format | Verify CA certs from trusted source, import/supply chain in right format, check issuer signature |
+| Reply imported yet `app-server` alias remains self-signed | Imported into wrong alias or wrong file | Check `-list -v -alias app-server`; re-import right reply into right alias if safe |
+| `-importcert` created `TrustedCertificateEntry` instead of identity | Target alias had no `PrivateKeyEntry` | Use the original CSR-generating alias; never delete the private key |
+| Wrong chain order or chain length 1 after reply | Missing CA chain / response had leaf only | Build chain, add intermediate, check provider |
+| TLS peer reports certificate unknown | Trust anchor absent from peer's truststore or chain cannot be built | Supply intermediates, configure peer's truststore; never force trust-all |
+| TLS reports hostname mismatch | SAN lacks the checked DNS/IP | Have CA re-issue with vetted SAN; never disable hostname verification |
+| Certificate expired / not yet valid | Wrong validity window, clock skew, or unrenewed | Check `-printcert -v`, UTC time, and renewal schedule |
+| `basicConstraints`/`keyCertSign` fails on issuer | Intermediate lacks CA authority or has wrong constraints | CA must issue with proper CA profile; never “edit certs” after signing |
+| Key algorithm/signature rejected | TLS/PKIX policy or unsupported provider | Check algorithm suite, key size, JDK provider, issuance policy |
+| PKCS12 fails to load | Wrong password, type, corrupt file, or incompatibility | Check file/type/password, backup, and provider; never rename extension to “convert format” |
+| Cert works with one client but fails with another | Differing truststores/cert policies/revocation and intermediates | Check chain and trust per client; never extrapolate from one test |
+| All commands succeed yet chain remains untrusted | Demo root CA not installed/checked by relying party | Distinguish local import from client trust policy |
 
-**Cách điều tra an toàn:** Ghi alias, type, certificate fingerprint, issuer, SAN, chain length, các mã lỗi và **thời điểm/phiên bản JDK**, nhưng **không ghi password/private key/token**. Kiểm cả phản hồi CA thực tế, không chỉ CSR. Hạn chế hiển thị certificate Subject nếu chúng chứa thông tin nhạy cảm ngoài mục đích logging.
+**Safe investigation:** log alias, type, certificate fingerprint, issuer, SAN, chain length, error codes, and **timestamp/JDK version**, while **never logging passwords/private keys/tokens**. Inspect the actual CA response, not just the CSR. Limit printing certificate Subjects if they contain sensitive info outside logging scope.
 
-## 13. Trách nhiệm của CA và của bên sử dụng chứng thư
+## 13. Responsibilities of the CA and Certificate Users
 
-**CA issuance** gồm nhiều bước nằm ngoài `keytool`:
+**CA issuance** involves steps outside `keytool`:
 
-- **Xác minh quyền sở hữu/tác quyền đối với định danh** theo chính sách: DNS/domain, organization, device identity hoặc application principal.
-- Áp profile phát hành: subject, SAN, validity, serial, key algorithm, BasicConstraints, KU/EKU, extensions khác.
-- Bảo vệ private key CA và signing service, phân quyền phê duyệt, audit và log issuance.
-- Thiết kế thời hạn, renewal, revocation, CRL/OCSP, incident response.
-- Cung cấp **đầy đủ intermediate certificates** để bên triển khai không tự thu thập từ nguồn thiếu tin cậy.
+- **Verify ownership/authorization for identifiers** per policy: DNS/domain, organization, device identity, or application principal.
+- Apply issuance profile: subject, SAN, validity, serial, key algorithm, BasicConstraints, KU/EKU, and other extensions.
+- Protect the CA private key and signing service, enforce approval separation, auditing, and issuance logging.
+- Plan lifetimes, renewal, revocation, CRL/OCSP, and incident response.
+- Provide **complete intermediate certificates** so deployers do not fetch them from untrusted sources.
 
-**Bên xin cấp/chủ ứng dụng** chịu trách nhiệm:
+**The applicant / application owner** is responsible for:
 
-- Tạo private key đúng nơi và bảo vệ nó; khi có HSM/KMS phải giữ non-exportable nếu yêu cầu.
-- Sinh CSR từ đúng key pair, đối chiếu nội dung yêu cầu.
-- Dùng CA và các thông tin trả về qua kênh chính thức; xác minh certificate được cấp khớp mục đích.
-- Import reply vào **private key alias gốc**, giữ chain và cấu hình TLS đúng.
-- Giới hạn quyền đọc keystore; không chia sẻ password/file cho người không cần.
-- Theo dõi expiry/rotation và khả năng reload không ngắt dịch vụ.
+- Generating the private key in the right place and protecting it; keeping it non-exportable in HSM/KMS when required.
+- Generating the CSR from the right key pair and verifying requested contents.
+- Using official CA channels and verifying issued certificates match intended purpose.
+- Importing the reply into the **original private-key alias**, maintaining the chain and proper TLS config.
+- Restricting keystore read permissions; never sharing passwords/files unnecessarily.
+- Tracking expiration/rotation and zero-downtime reload capabilities.
 
-**Bên kiểm chứng (client/peer)** chịu trách nhiệm:
+**The verifier (client/peer)** is responsible for:
 
-- Tin đúng root/trust anchors theo policy; không tự tin mọi certificate server gửi.
-- Xác minh PKIX path, định danh hostname/subject phù hợp, KU/EKU, thời hạn, revocation/các chính sách bắt buộc.
-- Không dùng `TrustManager` “accept all” hoặc tắt hostname verification để chữa lỗi nhập chain.
+- Trusting only proper roots/trust anchors per policy; never auto-trusting every server-sent certificate.
+- Validating the PKIX path, appropriate hostname/subject identity, KU/EKU, validity, and required revocation/policies.
+- Never using an “accept all” `TrustManager` or disabling hostname verification to work around chain import bugs.
 
-Một chuỗi chứng thư đúng chỉ trả lời câu hỏi **public key này được những CA nào chứng nhận theo trust policy**, không tự động chứng minh ứng dụng có quyền truy cập tài nguyên. Authentication và authorization là hai tầng khác nhau.
+A valid certificate chain only answers **which CAs certified this public key under trust policy**; it does not automatically prove the application is authorized to access resources. Authentication and authorization are two separate layers.
 
-## 14. Bảo mật quy trình issuance và vòng đời khóa
+## 14. Securing the Issuance Workflow and Key Lifecycle
 
-### 14.1. Không làm lộ private key khi tạo CSR
+### 14.1. Never Expose the Private Key When Creating a CSR
 
-CSR và certificate reply đều có thể lưu/chuyển như artifact công khai theo policy, nhưng **private key không**. Khi dùng `-certreq`, `keytool` đọc private key tại chỗ để ký CSR. Không export `.p12` cho CA, không dán khóa vào ticket/chat, không ghi password vào audit log.
+Both CSRs and certificate replies can be stored/transferred as public artifacts per policy, whereas **the private key must not**. With `-certreq`, `keytool` reads the private key locally to sign the CSR. Never export `.p12` to the CA, never paste keys into tickets/chat, and never write passwords into audit logs.
 
-Thư mục thực hành trong bài có **ca.p12** (private key CA demo) và **app.p12** (private key server demo). Hai file phải được xem là **secret-bearing** dù file có password. Xóa bản sao lab đúng quy trình khi xong; đừng commit vào Git hoặc nộp lên hệ thống công cộng.
+This lesson's practice directory holds **`ca.p12`** (demo CA private key) and **`app.p12`** (demo server private key). Both files must be treated as **secret-bearing** even though password-protected. Delete lab copies properly when done; never commit them to Git or submit them to public systems.
 
-### 14.2. Không tự thay certificate mà mất private key
+### 14.2. Never Swap Certificates and Lose the Private Key
 
-Nếu bạn đã tạo CSR từ khóa A và nhận leaf cho public key A, nhưng deploy lại sinh khóa B rồi import leaf A, kết nối ký bằng private B không tương ứng với certificate A. Giải pháp không phải bỏ kiểm khớp key; phải khôi phục private A an toàn hoặc tạo CSR mới cho B và yêu cầu CA cấp certificate mới.
+If you generated a CSR from key A and received a leaf for public key A, yet during deployment you generated key B and imported leaf A, connections signed with private B will not match certificate A. The fix is not skipping key-match checks; restore private A safely or generate a new CSR for B and request a new certificate from the CA.
 
-Trong kế hoạch certificate rotation, có thể dùng **alias phiên bản mới** và triển khai blue/green trước khi xóa cũ. Với key rotation, tạo key pair mới + CSR mới, cập nhật certificate chain, kiểm TLS handshake, thông báo các peer pinning nếu có. Nếu chỉ renew cùng key pair, đánh giá chính sách reuse và vòng đời khóa.
+In certificate rotation plans, you can use a **new versioned alias** and deploy blue/green before deleting the old one. For key rotation, generate a new key pair + new CSR, update the certificate chain, test the TLS handshake, and notify any pinning peers. If renewing with the same key pair, evaluate key reuse policies and key lifetimes.
 
-### 14.3. Certificate revocation và thời gian
+### 14.3. Certificate Revocation and Time
 
-Certificate có thể còn hạn nhưng đã bị thu hồi vì lộ key hoặc thay đổi tổ chức. `checkValidity()` chỉ kiểm NotBefore/NotAfter, **không kiểm thu hồi**. `CertPathValidator` có các cơ chế cấu hình policy revocation; demo đặt `setRevocationEnabled(false)` để tránh phụ thuộc CA demo không có CRL/OCSP. **Trong production không sao chép giá trị false như một quyết định bảo mật mặc định.**
+A certificate may still be unexpired yet already revoked due to key compromise or organizational changes. `checkValidity()` checks only `NotBefore`/`NotAfter`, **not revocation**. `CertPathValidator` supports configurable revocation policies; the demo sets `setRevocationEnabled(false)` to avoid depending on a demo CA without CRL/OCSP. **In production, never copy `false` as a default security setting.**
 
-Khi TLS client cần kiểm certificate revocation, hãy xác định cơ chế, chính sách hard/soft-fail và nguồn CRL/OCSP theo tiêu chuẩn/điều kiện vận hành. Không suy luận rằng có `PKIX path valid = true` trong demo đồng nghĩa đã kiểm revocation, hostname, TLS chain negotiation và mọi chính sách doanh nghiệp.
+When a TLS client must check certificate revocation, define the mechanism, hard/soft-fail policy, and CRL/OCSP sources per operational standards. Never assume `PKIX path valid = true` in the demo implies revocation, hostname, TLS chain negotiation, and all enterprise policies were checked.
 
-### 14.4. SAN và quyết định trust có thể thay đổi qua thời gian
+### 14.4. SANs and Trust Decisions Can Change Over Time
 
-Một hostname mới hoặc chuyển sang mTLS có thể cần certificate mới với SAN/EKU khác; không sửa file leaf đã ký bằng cách thay text trong PEM. Chữ ký CA bảo vệ dữ liệu certificate, nên **mọi thay đổi trường phải được CA cấp lại**.
+Adding a new hostname or switching to mTLS may require a new certificate with different SANs/EKUs; never edit a signed leaf file by modifying PEM text. The CA's signature protects the certificate data, so **any field change requires re-issuance by the CA**.
 
-Certificate truststore của bên kiểm chứng cũng thay đổi khi CA root được thêm, gỡ, rollover hoặc cập nhật. Phải có release/rollback plan cho cả **server identity certificate** lẫn **client truststore**, chứ không chỉ chạy lại lệnh `-importcert`.
+The verifier's truststore also changes when root CAs are added, removed, rolled over, or updated. Maintain release/rollback plans for both **the server identity certificate** and **the client truststore**, rather than just re-running `-importcert`.
 
-## 15. Tình huống thực tế
+## 15. Real-World Scenarios
 
-### 15.1. Spring Boot HTTPS muốn chứng thư CA cấp
+### 15.1. Spring Boot HTTPS Needing a CA-Issued Certificate
 
-Nhóm phát triển có `app.p12`, alias `app-server` chứa private key. Sau CSR và CA reply, cần import đúng alias, kiểm chain và cấu hình `server.ssl.key-store`, `server.ssl.key-store-type`, password và alias theo môi trường/framework được hỗ trợ. Nếu private key/certificate chain không tương ứng, HTTPS handshake có thể thất bại dù file `.p12` “mở được”.
+A dev team has `app.p12` with alias `app-server` holding the private key. After CSR and CA reply, import into the right alias, verify the chain, and configure `server.ssl.key-store`, `server.ssl.key-store-type`, password, and alias per the supported environment/framework. If the private key and certificate chain mismatch, the HTTPS handshake will fail even though the `.p12` file “opens”.
 
-**Chú ý:** cấu hình cụ thể của Spring Boot thay đổi theo version; bài này mô tả khái niệm KeyStore/PKI, không áp đặt thuộc tính cấu hình cho mọi version.
+**Note:** specific Spring Boot properties vary by version; this lesson describes KeyStore/PKI concepts rather than prescribing property names for all versions.
 
-### 15.2. mTLS giữa hai dịch vụ Java
+### 15.2. mTLS Between Two Java Services
 
-Service A vừa cần **identity PrivateKeyEntry** của chính mình để xuất trình cho B, vừa cần **truststore** chứa CA được phép ký certificate của B. Service B có cấu hình tương tự nhưng identity/CA authorization riêng. CSR tạo để xin certificate với **EKU clientAuth hoặc serverAuth** theo vai trò; không dùng certificate chỉ được cấp serverAuth cho mọi luồng mTLS mà không kiểm chính sách.
+Service A needs both its own **identity `PrivateKeyEntry`** to present to B and a **truststore** holding the CA authorized to sign B's certificate. Service B has a symmetric setup with its own identity/CA authorization. Generate CSRs requesting **EKU `clientAuth` or `serverAuth`** per role; never reuse a `serverAuth`-only certificate across all mTLS flows without checking policy.
 
-### 15.3. CA gửi intermediate bundle còn server chỉ import leaf
+### 15.3. CA Sends an Intermediate Bundle, Server Imports Only the Leaf
 
-Server vẫn có private key đúng nhưng thiếu intermediate trong chain gửi cho client. Một số client có thể tìm intermediate qua cache/AIA, số khác thất bại. Cần cài **đúng intermediate chain** và xác minh từ client có trust anchor thích hợp, không ép client tắt verification.
+The server still has the right private key, yet lacks the intermediate in the chain sent to clients. Some clients might find the intermediate via cache/AIA while others fail. Install the **proper intermediate chain** and test from a client with the appropriate trust anchor, rather than forcing clients to disable verification.
 
-### 15.4. Nhập root mới sửa lỗi nhưng lại tạo rủi ro trust
+### 15.4. Importing a New Root Silences an Error Yet Creates Trust Risk
 
-Một người nhận `ca.crt` qua một kênh chưa kiểm chứng, thêm vào truststore với `-noprompt` rồi thấy certificate path valid. Điều này có thể là **tin CA của attacker**. Cần xác minh fingerprint/nguồn qua kênh độc lập và giới hạn trust anchors theo chính sách.
+Someone receives `ca.crt` over an unverified channel, adds it to the truststore with `-noprompt`, and sees the certificate path validate. This could mean **trusting an attacker's CA**. Verify fingerprint/source over an independent channel and restrict trust anchors by policy.
 
-### 15.5. Trùng Subject DN nhưng leaf ký bởi CA khác
+### 15.5. Matching Subject DN, Yet Leaf Signed by a Different CA
 
-`CN=Training Demo Root` hoặc `Issuer DN` trông giống không đủ. Hai CA có thể dùng cùng tên DN nhưng public keys khác nhau. Bên xác minh phải kiểm **chữ ký và chain đến đúng trust anchor**, không chỉ so string tên trong certificate.
+Having an identical-looking `CN=Training Demo Root` or `Issuer DN` is not enough. Two CAs can share the same DN string while holding different public keys. The verifier must verify **signatures and the chain to the exact trust anchor**, not just compare name strings in certificates.
 
-### 15.6. Hệ thống dùng HSM/PKCS11 thay vì file PKCS12
+### 15.6. Using HSM/PKCS11 Instead of a PKCS12 File
 
-Thay vì `app.p12` chứa private key, khóa riêng nằm trong token/HSM provider và có thể không export được. CSR vẫn được ký bằng private key trong token; certificate reply phải được liên kết với **key object/alias đúng** theo cơ chế provider. Các lệnh `keytool`, cách login/token PIN và import chain có thể khác, nhưng nguyên tắc **CSR cùng public key với private key, đúng trust chain và đúng identity** vẫn giữ nguyên.
+Instead of storing the private key in `app.p12`, the private key resides in a token/HSM provider and may be non-exportable. The CSR is still signed by the private key inside the token; the certificate reply must be bound to the **exact key object/alias** per provider mechanics. `keytool` flags, token login/PINs, and chain import steps may differ, while the principles—**CSR sharing the public key with the private key, proper trust chain, and proper identity**—remain unchanged.
 
-## 16. Câu hỏi tự kiểm tra (có đáp án)
+## 16. Self-Check Questions (with Answers)
 
-**Câu 1.** `keytool -certreq` có gửi private key ra file CSR không?
+**Question 1.** Does `keytool -certreq` write the private key into the CSR file?
 
-**Đáp án:** Không. CSR chứa public key, subject, attributes/extension requests và chữ ký được tạo bằng private key; private key vẫn được bảo vệ trong KeyStore/HSM.
+**Answer:** No. The CSR contains the public key, subject, attributes/extension requests, and a signature created with the private key; the private key stays protected inside the KeyStore/HSM.
 
-**Câu 2.** CSR đã có chữ ký hợp lệ, vậy có thể dùng ngay làm certificate TLS server không?
+**Question 2.** A CSR has a valid signature; can it be used directly as a TLS server certificate?
 
-**Đáp án:** Không. Chữ ký CSR chứng minh khả năng ký bằng key của applicant nhưng **không phải chữ ký CA** và không xác nhận quyền với hostname. Cần CA-issued X.509 leaf + chain và xác minh trust/hostname phù hợp.
+**Answer:** No. The CSR signature proves the applicant's ability to sign with their key, **not a CA signature** and not authorization for a hostname. You need a CA-issued X.509 leaf + chain and proper trust/hostname verification.
 
-**Câu 3.** Vì sao CA có quyền từ chối hoặc sửa SAN được xin trong CSR?
+**Question 3.** Why does a CA have the right to reject or modify SANs requested in a CSR?
 
-**Đáp án:** SAN chỉ là **yêu cầu**. CA phải thẩm định quyền đối với định danh và tuân thủ issuance policy; nếu không sẽ cho phép xin certificate cho domain không sở hữu.
+**Answer:** SANs in a CSR are only **requests**. The CA must vet rights to the identifier and comply with issuance policy; otherwise anyone could request certificates for domains they do not own.
 
-**Câu 4.** Khi CA trả `app-issued.crt` cho CSR tạo bởi alias `app-server`, nên import reply vào alias nào?
+**Question 4.** When the CA returns `app-issued.crt` for a CSR generated from alias `app-server`, which alias should receive the reply?
 
-**Đáp án:** **`app-server`**, tức alias PrivateKeyEntry gốc. Import vào alias mới có thể tạo certificate-only entry chứ không kết nối certificate được cấp với private key.
+**Answer:** **`app-server`**, the original `PrivateKeyEntry` alias. Importing into a new alias creates a certificate-only entry instead of pairing the issued certificate with the private key.
 
-**Câu 5.** Chain demo có hai phần tử. Chúng là gì và thứ tự nào?
+**Question 5.** The demo chain has two elements. What are they and in what order?
 
-**Đáp án:** `chain[0]` là leaf `app.example.test`; `chain[1]` là root `demo-ca` ký trực tiếp leaf. Với intermediate, chain có thể thêm phần tử giữa leaf và root.
+**Answer:** `chain[0]` is the leaf `app.example.test`; `chain[1]` is the root `demo-ca` that signed the leaf directly. With intermediates, the chain includes elements between the leaf and root.
 
-**Câu 6.** Root CA demo là self-signed. Điều gì khiến Java PKIX example chấp nhận nó?
+**Question 6.** The demo root CA is self-signed. What makes the Java PKIX example accept it?
 
-**Đáp án:** Chương trình **chủ động chọn root làm TrustAnchor** trong `PKIXParameters`. Self-signature hay tên root không đủ khiến nó được hệ điều hành/trình duyệt khác tin cậy.
+**Answer:** The program **explicitly selects the root as the `TrustAnchor`** in `PKIXParameters`. Self-signing or the root's name is not enough for operating systems or browsers to trust it.
 
-**Câu 7.** `-importcert` báo `Public keys in reply and keystore don't match`. Nên bỏ kiểm và import ép không?
+**Question 7.** `-importcert` reports `Public keys in reply and keystore don't match`. Should you bypass the check and force-import?
 
-**Đáp án:** Không. Phải kiểm reply có thuộc CSR đúng không, private key có bị tái sinh/đổi alias không. Dùng lại private key đúng hoặc tạo CSR mới từ key pair đang giữ rồi yêu cầu CA cấp lại.
+**Answer:** No. Check whether the reply matches the right CSR and whether the private key was regenerated or the alias changed. Restore the right private key or generate a new CSR from the held key pair and ask the CA to re-issue.
 
-**Câu 8.** Khi server gửi leaf và intermediate, vì sao client vẫn có thể báo “untrusted certificate”?
+**Question 8.** When a server sends leaf and intermediate, why might a client still report “untrusted certificate”?
 
-**Đáp án:** Client chưa có/không cho phép trust anchor phù hợp, hoặc certificate path/policy không đạt. Các certificate server gửi **không tự trao quyền tin cậy** cho client.
+**Answer:** The client lacks or disallows the corresponding trust anchor, or the certificate path/policy fails. Certificates sent by the server **do not grant trust to the client on their own**.
 
-**Câu 9.** `checkValidity()` và `Issuer DN khớp` có đủ bảo đảm chứng thư an toàn cho HTTPS?
+**Question 9.** Are `checkValidity()` and `Issuer DN matches` enough to guarantee a certificate is safe for HTTPS?
 
-**Đáp án:** Không. Cần chữ ký/path PKIX, trust anchor, key usage/EKU, SAN hostname matching, revocation policy và các yêu cầu TLS khác. Subject/issuer DN không thay kiểm chữ ký.
+**Answer:** No. You need signatures/PKIX path, trust anchor, key usage/EKU, SAN hostname matching, revocation policy, and other TLS requirements. Subject/issuer DNs do not replace signature verification.
 
-**Câu 10.** Một CA trả file `.p7b` và một file `.p12`. Có thể coi cả hai chỉ là leaf cert mà import bừa không?
+**Question 10.** A CA returns a `.p7b` file and a `.p12` file. Can both be treated as simple leaf certs and imported blindly?
 
-**Đáp án:** Không. PKCS#7 thường đóng gói tập certificate/chain, không mang private key; PKCS12 có thể chứa private key và entry khác. Phải kiểm contents/type, giữ private key gốc và dùng quy trình import đúng.
+**Answer:** No. PKCS#7 typically packages a certificate set/chain with no private key; PKCS12 may contain private keys and other entries. Inspect contents/types, preserve the original private key, and follow the proper import procedure.
 
-**Câu 11.** Code Java demo in `PKIX path valid = true`, liệu điều đó đã kiểm server hostname và revocation chưa?
+**Question 11.** The demo Java code prints `PKIX path valid = true`; did that verify the server hostname and revocation?
 
-**Đáp án:** Chưa. Demo kiểm SAN mẫu riêng và tắt revocation để dễ chạy; việc hostname verification thực sự do HTTPS/TLS verifier đảm nhiệm theo chính sách. Production phải cấu hình revocation/hostname phù hợp.
+**Answer:** Not yet. The demo checked a sample SAN separately and disabled revocation to run easily; actual hostname verification is handled by the HTTPS/TLS verifier per policy. Production must configure proper revocation and hostname checks.
 
-**Câu 12.** Tại sao không đặt root certificate được tải qua mạng chưa xác minh vào `TrustManagerFactory` chỉ để hết lỗi TLS?
+**Question 12.** Why must you never put a root certificate downloaded over an unverified network into `TrustManagerFactory` just to silence TLS errors?
 
-**Đáp án:** Vì đó có thể là root của attacker. Trust anchor phải được chọn qua kênh/chuỗi phân phối đáng tin, có xác minh fingerprint và kiểm soát thay đổi; “hết lỗi” không chứng minh đối tác là đúng.
+**Answer:** Because it could be an attacker's root. Trust anchors must be chosen via a trusted channel/distribution chain with fingerprint verification and change control; “errors gone” does not prove you are talking to the right peer.
 
-## 17. Checklist trước khi cài certificate reply
+## 17. Pre-Install Checklist for Certificate Replies
 
-- [ ] CSR sinh từ **đúng private key alias**, public key/subject/extension request được xem lại.
-- [ ] Private key **không** gửi cho CA; file `.p12` và password được bảo vệ, không commit vào source.
-- [ ] CA thật đã thẩm định domain/identity; SAN, KU/EKU, validity, signature/profile được kiểm trong **leaf đã phát hành**.
-- [ ] Đã lấy đầy đủ intermediate chain và kiểm đúng issuer/chữ ký/basicConstraints/keyCertSign.
-- [ ] Root trust anchor được phân phối từ **nguồn đã xác thực**, không import CA lạ bằng `-noprompt`.
-- [ ] Reply cài vào **PrivateKeyEntry alias gốc**; không nhầm với TrustedCertificateEntry alias mới.
-- [ ] `keytool -list -v` xác nhận alias, leaf/chain order/length, issuer/SAN và loại entry.
-- [ ] Nếu dùng Java, `KeyStore.getEntry` trả private key + chain; kiểm public/private key và path theo chính sách.
-- [ ] Truststore của **bên xác minh** chứa CA được phép tin, không suy ra từ certificate server gửi.
-- [ ] HTTPS/mTLS vẫn kiểm hostname/identity, expiry, KU/EKU, revocation và policy; không dùng trust-all manager.
-- [ ] Quy trình có backup/rollback, lịch certificate renewal, rotation và reload; không làm mất key đang được sử dụng.
-- [ ] Không dùng password demo, CA demo hoặc `setRevocationEnabled(false)` như mẫu production mặc định.
-- [ ] Dùng thư mục thử nghiệm riêng, tránh chạy lại lệnh `-genkeypair`/`-importcert` trên keystore thật không kiểm soát.
+- [ ] CSR generated from **the exact private-key alias**; public key/subject/extension requests reviewed.
+- [ ] Private key **never** sent to the CA; `.p12` file and passwords protected and never committed to source.
+- [ ] Real CA vetted domain/identity; SAN, KU/EKU, validity, signature/profile verified in the **issued leaf**.
+- [ ] Full intermediate chain obtained and checked for issuer/signature/`basicConstraints`/`keyCertSign`.
+- [ ] Root trust anchor distributed from an **authenticated source**; never import unknown CAs with `-noprompt`.
+- [ ] Reply installed into **the original `PrivateKeyEntry` alias**; not confused with a new `TrustedCertificateEntry` alias.
+- [ ] `keytool -list -v` confirms alias, leaf/chain order/length, issuer/SAN, and entry type.
+- [ ] If using Java, `KeyStore.getEntry` returns private key + chain; verify public/private key match and path per policy.
+- [ ] The **verifier's** truststore contains authorized CAs, not inferred from server-sent certificates.
+- [ ] HTTPS/mTLS still enforces hostname/identity, expiration, KU/EKU, revocation, and policies; no trust-all manager.
+- [ ] Workflow has backup/rollback, certificate renewal schedule, rotation, and reload; never loses active keys.
+- [ ] Never use demo passwords, demo CAs, or `setRevocationEnabled(false)` as production defaults.
+- [ ] Use an isolated test directory; avoid re-running `-genkeypair`/`-importcert` uncontrollably on real keystores.
 
-## 18. Tổng kết
+## 18. Summary
 
-**CSR PKCS#10** là **yêu cầu có chữ ký từ private key của applicant**, chứa public key, identity và extensions được đề nghị; **không chứa private key và không phải chứng thư CA đã cấp**. Sau thẩm định, **CA** ký X.509 leaf (và cung cấp intermediate chain khi cần). Trong `keytool`, phải đưa certificate reply vào **chính alias PrivateKeyEntry từng tạo CSR**, để giữ private key và thay chain self-signed bằng chain đã cấp. Root trust anchor được xác minh từ nguồn đáng tin, không mặc nhiên được trust vì là self-signed hoặc vì vừa được server gửi. Java 17+ có thể kiểm chain, public/private key và PKIX path; song **PKIX demo không thay HTTPS hostname verification và revocation policy**. Đó là ranh giới giữa quy trình cài certificate thành công và việc kết nối được xác thực thực sự.
+A **PKCS#10 CSR** is a **request signed by the applicant's private key**, containing the public key, identity, and proposed extensions; **it holds no private key and is not a CA-issued certificate**. After vetting, the **CA** signs the X.509 leaf (and supplies the intermediate chain when needed). In `keytool`, the certificate reply must be installed into **the exact `PrivateKeyEntry` alias that created the CSR**, preserving the private key and replacing the self-signed chain with the issued chain. Root trust anchors are verified from trusted sources, never auto-trusted because they are self-signed or sent by a server. Java 17+ can verify the chain, public/private key match, and PKIX path; yet **the PKIX demo does not replace HTTPS hostname verification and revocation policy**. That is the boundary between successfully installing a certificate and genuinely authenticating a connection.
 
-**Tài liệu nền tảng:** PKCS#10 CSR: [RFC 2986](https://www.rfc-editor.org/rfc/rfc2986); X.509 PKIX certificate/path validation: [RFC 5280](https://www.rfc-editor.org/rfc/rfc5280); `keytool` JDK: [Oracle keytool documentation](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html).
+**Foundational references:** PKCS#10 CSR: [RFC 2986](https://www.rfc-editor.org/rfc/rfc2986); X.509 PKIX certificate/path validation: [RFC 5280](https://www.rfc-editor.org/rfc/rfc5280); JDK `keytool`: [Oracle keytool documentation](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html).

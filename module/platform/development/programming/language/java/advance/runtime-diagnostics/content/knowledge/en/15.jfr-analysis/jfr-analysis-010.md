@@ -1,165 +1,165 @@
-# 15.10 Giới hạn của lấy mẫu và ngưỡng event; tương quan thời gian không tự chứng minh quan hệ nhân quả
+# 15.10 Limitations of sampling and event thresholds; temporal correlation does not prove causation
 
-## 1. Mục tiêu: biết JFR đã quan sát gì trước khi suy luận vì sao
+## 1. Objective: know what JFR observed before inferring why
 
-**Java Flight Recorder (JFR)** cho phép quan sát CPU, allocation, GC, lock, I/O, thread và sự kiện riêng của ứng dụng. Tuy nhiên, một tệp `.jfr` **không phải bản ghi đầy đủ mọi thao tác đã xảy ra**. Một số loại event được phát ra theo lần xảy ra, một số chỉ xuất hiện sau khi vượt **ngưỡng thời lượng** (`threshold`), một số được **lấy mẫu** (`sampling`), và một số xuất hiện theo **chu kỳ** (`period`). Chưa kể event có thể bị tắt, thiếu stack trace, nằm ngoài cửa sổ ghi hoặc bị mất trong điều kiện tài nguyên bất lợi.
+**Java Flight Recorder (JFR)** lets you observe CPU, allocations, GC, locks, I/O, threads, and custom application events. However, a `.jfr` file is **not a complete log of every operation that occurred**. Some event types are emitted per occurrence, some appear only after exceeding a **duration threshold** (`threshold`), some are **sampled** (`sampling`), and some are emitted on a **period** (`period`). Moreover, events can be disabled, lack stack traces, fall outside the recording window, or be dropped under resource pressure.
 
-Khi thấy biểu đồ JFR ghi “GC pause tăng cùng lúc latency tăng” hoặc “method X chiếm 40% mẫu”, cần tách ba cấp độ kết luận:
+When a JFR chart shows "GC pauses rose at the same time latency rose" or "method X took 40% of samples," separate three levels of conclusion:
 
-1. **Quan sát:** dữ liệu có gì? Loại event nào, mẫu nào, thời điểm nào, cấu hình ra sao?
-2. **Giả thuyết cơ chế:** có phải một đường thực thi, một nguồn tải hay một sự kiện khác cùng gây ra hai hiện tượng?
-3. **Quan hệ nhân quả:** thay đổi nguyên nhân được giả định, trong điều kiện kiểm soát hợp lý, có thực sự làm thay đổi kết quả và lặp lại được không?
+1. **Observation:** what is in the data? Which event types, which samples, which timestamps, and under what configuration?
+2. **Mechanistic hypothesis:** did a shared execution path, load source, or third factor drive both phenomena?
+3. **Causation:** when the suspected cause is changed under reasonable controls, does the outcome actually change reproducibly?
 
-Mục tiêu bài này là đọc đúng độ tin cậy của JFR: phân biệt mẫu với số lần gọi, nhận diện sai lệch do ngưỡng event, ghép sự kiện theo thời gian mà không “kết án” từ trùng timestamp, và thiết kế phép kiểm chứng có phản chứng.
+This lesson aims to read JFR reliability accurately: distinguishing samples from call counts, spotting selection bias from event thresholds, aligning events in time without "convicting" from timestamp overlap alone, and designing falsifiable verification tests.
 
-Phạm vi kỹ thuật: Java 17+ trên HotSpot, minh họa bằng JDK 21. Tên loại event và cấu hình mẫu có thể thay đổi theo bản JDK/JVM và file `.jfc`; xác nhận cấu hình **thực tế** trước khi phân tích.
+Technical scope: Java 17+ on HotSpot, illustrated with JDK 21. Event type names and sample settings may vary by JDK/JVM release and `.jfc` file; verify the **actual** configuration before analyzing.
 
-## 2. Bốn kiểu quan sát dễ bị đánh đồng
+## 2. Four observation modes easily conflated
 
-| Cách thu thập | Ví dụ JFR | Event xuất hiện khi nào? | Không được suy ra |
+| Collection mode | JFR examples | When does an event appear? | What must not be inferred |
 | --- | --- | --- | --- |
-| **Event theo lần xảy ra** | `jdk.ThreadStart`, event do ứng dụng `commit()` | Khi event được bật và việc ghi thành công | Mọi action trong hệ thống đều có một event tương ứng. |
-| **Duration event có threshold** | `jdk.JavaMonitorEnter`, `jdk.ThreadSleep`, custom event có `begin()/end()` | Event có thời lượng thỏa ngưỡng cấu hình | Các thao tác vắng mặt không xảy ra. |
-| **Sampling/profiling event** | `jdk.ExecutionSample`, `jdk.NativeMethodSample`, `jdk.ObjectAllocationSample` | Công cụ ghi một quan sát được lấy mẫu từ hoạt động, theo chính sách của loại event | Số sample bằng số lời gọi, số allocation hoặc tổng thời gian CPU chính xác. |
-| **Periodic event** | Một số thống kê thread/CPU/JVM định kỳ | Mỗi lần điểm thu thập định kỳ đến hạn | Có một event cho mỗi lần biến động, mọi biến động giữa các điểm đều được nhìn thấy. |
+| **Per-occurrence event** | `jdk.ThreadStart`, application `commit()` events | When the event is enabled and recording succeeds | That every action in the system has a matching event. |
+| **Thresholded duration event** | `jdk.JavaMonitorEnter`, `jdk.ThreadSleep`, custom events with `begin()/end()` | Event duration meets the configured threshold | That absent operations never occurred. |
+| **Sampling/profiling event** | `jdk.ExecutionSample`, `jdk.NativeMethodSample`, `jdk.ObjectAllocationSample` | The tool records a sampled observation of activity per the event type's policy | That sample count equals call count, allocation count, or exact total CPU time. |
+| **Periodic event** | Various periodic thread/CPU/JVM statistics | Whenever a periodic collection tick comes due | That one event exists per fluctuation, or every fluctuation between ticks was seen. |
 
-Các event dạng instant, duration, periodic, sampling khác nhau về **mẫu số**. Nếu một bảng của JDK Mission Control (JMC) trộn nhiều event, phải đọc tên event và setting trước khi lấy tần suất hay quy tỷ lệ.
+Instant, duration, periodic, and sampling events have different **denominators**. If a JDK Mission Control (JMC) table mixes multiple event types, read the event names and settings before computing frequencies or ratios.
 
-Ví dụ:
+Examples:
 
-- 500 `jdk.ExecutionSample`: khoảng 500 quan sát thực thi trong điều kiện recorder thu được mẫu, **không phải** 500 lần method được gọi.
-- 20 `jdk.JavaMonitorEnter` với `threshold=20 ms`: 20 lần chờ monitor **được ghi** và thỏa ngưỡng. Không chứng minh cả ứng dụng chỉ xảy ra 20 lần lock contention.
-- 30 event kiểu periodic ở khoảng 1 giây: 30 mốc thống kê; không có nghĩa chỉ xảy ra 30 thay đổi trong JVM.
-- 0 event một loại có thể đơn giản vì `enabled=false` hoặc threshold cao; không đủ để kết luận hoạt động tương ứng bằng 0.
+- 500 `jdk.ExecutionSample` events: roughly 500 execution observations captured by the recorder, **not** 500 method invocations.
+- 20 `jdk.JavaMonitorEnter` events with `threshold=20 ms`: 20 **recorded** monitor waits meeting the threshold. It does not prove the entire application experienced only 20 lock contentions.
+- 30 periodic events at a 1-second interval: 30 statistical ticks; it does not mean only 30 changes occurred inside the JVM.
+- 0 events of a type may simply mean `enabled=false` or a high threshold; insufficient to conclude the activity was zero.
 
-## 3. Kiểm tra cấu hình event trước khi đọc kết quả
+## 3. Check event settings before reading results
 
-JFR có các setting cơ bản được định nghĩa trong API `jdk.jfr`:
+JFR has core settings defined in the `jdk.jfr` API:
 
-| Setting | Ý nghĩa | Câu hỏi nên hỏi |
+| Setting | Meaning | Question to ask |
 | --- | --- | --- |
-| `enabled` | Có thu event này hay không | Event có được bật trong recording đang phân tích? |
-| `threshold` | Duration thấp hơn ngưỡng sẽ không được ghi với event hỗ trợ threshold | Có bao nhiêu hoạt động ngắn bị lọc? |
-| `period` | Tần suất hoặc thời điểm dự kiến cho periodic/sampled event phù hợp | Khoảng lấy mẫu có đủ để nhìn hiện tượng ngắn? |
-| `stackTrace` | Có thu stack trace cho event hay không | Thiếu stack trace là do cấu hình hay do không lấy được? |
+| `enabled` | Whether to collect this event | Was the event enabled in the recording being analyzed? |
+| `threshold` | Durations below the cutoff are not recorded for threshold-capable events | How many short operations were filtered out? |
+| `period` | Expected interval or cadence for periodic/sampled events | Is the sampling interval fine enough to catch brief phenomena? |
+| `stackTrace` | Whether to capture stack traces for the event | Are missing stack traces due to config or capture failure? |
 
-Không phải event nào cũng dùng đủ bốn setting. Chẳng hạn `jdk.ExecutionSample` dùng chính sách lấy mẫu; cố đặt `threshold` cho event này không biến nó thành bộ đo thời lượng của **mọi** method. Với duration event, `threshold` có ý nghĩa; với event instant, nó không tự tạo thông tin thời lượng.
+Not every event uses all four settings. For instance, `jdk.ExecutionSample` uses a sampling policy; forcing a `threshold` on it does not turn it into a duration timer for **every** method. For duration events, `threshold` is meaningful; for instant events, it does not conjure duration data.
 
-Tài liệu `jdk.jfr` mô tả mặc định *theo cơ chế setting*, nhưng **giá trị đang dùng được quyết định bởi file cấu hình và các ghi đè**. Không nên ghi trong báo cáo “threshold mặc định của event là 0” nếu file `default.jfc` hoặc `profile.jfc` đã đặt 20 ms. Trên JDK 21, các profile đi kèm thường đặt ngưỡng cho những event như `jdk.JavaMonitorEnter` hoặc `jdk.ThreadSleep` và period cho `jdk.ExecutionSample`; các giá trị này là **cấu hình**, không phải định luật của JVM.
+The `jdk.jfr` docs describe defaults *as a setting mechanism*, while **active values are determined by configuration files and overrides**. Never write in a report "the default event threshold is 0" when `default.jfc` or `profile.jfc` sets 20 ms. On JDK 21, bundled profiles typically set thresholds on events such as `jdk.JavaMonitorEnter` or `jdk.ThreadSleep` and periods on `jdk.ExecutionSample`; these values are **configuration**, not laws of the JVM.
 
-Cách xem trên JVM đang chạy, dùng PID thực tế thay `12345`:
+How to inspect on a running JVM, replacing `12345` with the actual PID:
 
 ```bash
 jcmd -l
 jcmd 12345 JFR.check verbose=true
 ```
 
-`JFR.check verbose=true` giúp xem setting của recording hiện có. Sau khi có tệp kết quả, kiểm tra loại event:
+`JFR.check verbose=true` shows settings for active recordings. Once you have the output file, inspect event types:
 
 ```bash
 jfr summary incident.jfr
 jfr metadata incident.jfr
 ```
 
-`jfr summary` cho số event và phạm vi thời gian trong file; `jfr metadata` cho thông tin về kiểu event/trường dữ liệu. Chúng không tự thay thế việc biết cấu hình `.jfc` đã áp dụng. Lưu lại `default`, `profile` hay đường dẫn custom `.jfc`, cùng mọi ghi đè qua `JFR.start`, `-XX:StartFlightRecording` hoặc API `Recording`.
+`jfr summary` gives event counts and time span in the file; `jfr metadata` gives event types and field definitions. Neither replaces knowing which `.jfc` configuration was applied. Record whether `default`, `profile`, or a custom `.jfc` path was used, plus any overrides via `JFR.start`, `-XX:StartFlightRecording`, or the `Recording` API.
 
-## 4. Threshold: bộ lọc thời lượng, không phải sự thật về toàn bộ request
+## 4. Threshold: a duration filter, not the truth about all requests
 
-Giả sử có năm thao tác thực tế với thời lượng **đã đo độc lập**:
+Suppose five real operations had **independently measured** durations:
 
-| Lần | Thời lượng | `threshold=0 ms` | `threshold=20 ms` | `threshold=50 ms` |
+| Run | Duration | `threshold=0 ms` | `threshold=20 ms` | `threshold=50 ms` |
 | --- | ---: | --- | --- | --- |
-| A | 3 ms | Đủ điều kiện | Bị lọc | Bị lọc |
-| B | 9 ms | Đủ điều kiện | Bị lọc | Bị lọc |
-| C | 25 ms | Đủ điều kiện | Đủ điều kiện | Bị lọc |
-| D | 32 ms | Đủ điều kiện | Đủ điều kiện | Bị lọc |
-| E | 70 ms | Đủ điều kiện | Đủ điều kiện | Đủ điều kiện |
+| A | 3 ms | Qualified | Filtered out | Filtered out |
+| B | 9 ms | Qualified | Filtered out | Filtered out |
+| C | 25 ms | Qualified | Qualified | Filtered out |
+| D | 32 ms | Qualified | Qualified | Filtered out |
+| E | 70 ms | Qualified | Qualified | Qualified |
 
-Với threshold 20 ms, JFR chỉ có cơ hội ghi **ba event chậm** của ví dụ. Số lần gọi thực tế vẫn là **năm**. Dữ liệu thu được bị **selection bias**: tập quan sát thiên về những thao tác lâu hơn.
+At a 20 ms threshold, JFR can record only the **three slow events** in this example. Actual invocations remain **five**. The captured data suffers from **selection bias**: observations skew toward longer operations.
 
-Nếu tính trung bình từ ba event còn lại:
+If you compute an average from the three surviving events:
 
 ```text
-Trung bình THỰC TẾ của 5 thao tác = (3 + 9 + 25 + 32 + 70) / 5 = 27.8 ms
-Trung bình 3 event qua ngưỡng 20 ms = (25 + 32 + 70) / 3 ≈ 42.3 ms
+TRUE average of 5 operations = (3 + 9 + 25 + 32 + 70) / 5 = 27.8 ms
+Average of 3 events >= 20 ms = (25 + 32 + 70) / 3 ≈ 42.3 ms
 ```
 
-Con số `42,3 ms` là trung bình **có điều kiện trên tập event được ghi**, không thể được dùng làm latency trung bình mọi request. Ngược lại, đếm “ba event chậm” không chứng minh chỉ ba request xảy ra hoặc toàn bộ service đã xử lý ba request.
+The `42.3 ms` figure is a **conditional average over recorded events**, and must never be reported as average latency across all requests. Conversely, counting "three slow events" does not prove only three requests occurred or that the service handled three requests in total.
 
-**Hệ quả quan trọng:**
+**Key consequences:**
 
-- `threshold=20ms` hữu ích khi mục tiêu là **chẩn đoán các lần chậm bất thường**, không phù hợp để đo toàn bộ latency distribution.
-- Không lấy số event chậm chia cho tổng số event JFR để gọi là “tỷ lệ request chậm”: mẫu số phải là **tổng request thực tế** từ metric/đếm độc lập phù hợp.
-- Nếu thay threshold từ 50 ms xuống 10 ms, số event tăng ngay cả khi ứng dụng **không hề chậm đi**.
-- Với event stack trace, giảm threshold quá sâu có thể làm tăng chi phí ghi/dung lượng dữ liệu. Chọn ngưỡng theo câu hỏi và kiểm thử overhead.
-- Event phải kết thúc và được ghi trong cửa sổ recording phù hợp; một công việc còn dang dở khi file đã kết thúc có thể chưa tạo event hoàn chỉnh để phân tích.
+- `threshold=20ms` is useful when your goal is **diagnosing abnormally slow calls**, not measuring the full latency distribution.
+- Never divide slow event count by total JFR event count and call it "slow request rate": the denominator must be **actual total requests** from an appropriate independent metric/counter.
+- Lowering a threshold from 50 ms to 10 ms increases event counts even when the application **did not slow down at all**.
+- With stack traces enabled, lowering thresholds too aggressively increases write cost and data volume. Choose thresholds per question and benchmark overhead.
+- An event must finish and be written within the recording window; work still in flight when the file closes may not yield a complete event for analysis.
 
-Điểm bằng ngưỡng và cách biểu diễn thời lượng ở ranh giới nhỏ có thể chịu ảnh hưởng độ phân giải/timestamp. Không diễn giải sự khác biệt vài microgiây thành một thay đổi hành vi lớn khi hệ thống có scheduler/GC jitter.
+Boundary values right at the threshold and small duration formatting can be affected by timestamp resolution. Do not interpret a few microseconds' difference as a major behavioral shift amid scheduler/GC jitter.
 
-## 5. Sampling: ảnh chụp theo thời điểm không phải kiểm kê mọi lời gọi
+## 5. Sampling: point-in-time snapshots are not a call inventory
 
-Với **execution sampling**, recorder quan sát một số trạng thái thread/stack trong khoảng thời gian để thấy **hot paths**. Một lời gọi chạy rất nhanh có thể không xuất hiện trong bất cứ sample nào. Một method giữ CPU lâu có thể xuất hiện trong nhiều sample dù nó chỉ được gọi một lần.
+With **execution sampling**, the recorder inspects thread/stack states periodically to uncover **hot paths**. A very fast call may never appear in any sample. A method holding CPU for a long time may appear in many samples even if called only once.
 
-### Ví dụ tư duy
+### Thought experiment
 
-Một thread chạy tuần tự:
+A thread runs sequentially:
 
 ```text
 0 ms        2 ms                  20 ms
 | method A |------- method B -------|
            ^                       ^
-        A rất ngắn             B tương đối dài
+        A very short            B relatively long
 
-Các thời điểm sample dự kiến: 0, 20, 40, 60 ms, ...
+Expected sample times: 0, 20, 40, 60 ms, ...
 ```
 
-Tùy vị trí tương đối của các điểm sample và tiến trình, method A dài 2 ms dễ bị bỏ qua, còn method B dài 18 ms có khả năng xuất hiện hơn. Điều đó **không có nghĩa** A ít được gọi hơn B. Nếu A được gọi rất thường xuyên nhưng mỗi lần cực ngắn, số lần gọi và sample percentage vẫn có thể khác nhau rất xa.
+Depending on where sample ticks fall relative to progress, 2 ms method A is easily missed, while 18 ms method B is much more likely to be caught. That **does not mean** A is called less often than B. If A is invoked very frequently for tiny durations each time, call counts and sample percentages can diverge wildly.
 
-Theo mô hình **giả định đơn giản** có thời điểm sample phân bố đều ngẫu nhiên trên khoảng `T` và một hoạt động không chồng lấn kéo dài `d<T`, xác suất bắt trúng một lần có thể xấp xỉ `d/T`. Ví dụ `d=2 ms`, `T=20 ms` ⇒ khoảng 10%. Đây là **mô hình trực giác**, không phải công thức hiệu chuẩn chính xác cho sampler của HotSpot: scheduling, collector, safepoint, trạng thái thread, stack availability, bias và mất mẫu đều có thể làm khác.
+Under a **simplified hypothetical model** where sample times fall uniformly at random over interval `T` and a non-overlapping operation lasts `d<T`, the probability of hitting it once is roughly `d/T`. For example, `d=2 ms`, `T=20 ms` ⇒ roughly 10%. This is an **intuitive model**, not a calibrated formula for HotSpot's sampler: scheduling, collectors, safepoints, thread states, stack availability, bias, and dropped samples all shift reality.
 
-### Những sai lệch điển hình
+### Typical biases
 
-1. **Short-lived operation:** đoạn thực thi vài microgiây có thể vắng mặt dù tổng số lần gọi rất nhiều.
-2. **Sampling bias:** thread/state dễ được quan sát có thể xuất hiện nhiều; thời gian mẫu không nhất thiết đồng nhất với CPU time trên mọi JVM/cấu hình.
-3. **Aliasing:** nếu chu kỳ sample trùng nhịp với workload định kỳ, có thể thấy quá nhiều hoặc quá ít một pha của ứng dụng.
-4. **Thời gian ngắn:** chỉ 10 mẫu trong một phút không đủ kết luận phân bố các method hiếm.
-5. **Chi phí/khả năng lấy stack:** stack trace có thể thiếu, bị giới hạn độ sâu, bị truncated hoặc việc lấy mẫu thất bại.
-6. **Chế độ recording:** `default`, `profile`, custom settings có thể bật/tắt và đổi period của sampler; kết quả không so được trực tiếp khi cấu hình thay đổi.
-7. **Thread khác nhau:** hotspot theo số mẫu có thể do một thread chi phối; cần nhìn thread/group và workload khi kết luận cho cả service.
-8. **Tỷ lệ mẫu:** “40% samples ở method X” là tỷ lệ trong **các mẫu có được**, không chứng minh X chiếm chính xác 40% wall-clock time, request time hoặc toàn bộ CPU ở mọi thread.
+1. **Short-lived operations:** code running for a few microseconds may be absent despite huge invocation counts.
+2. **Sampling bias:** threads/states easier to observe may appear more often; sample time does not always match CPU time across every JVM and config.
+3. **Aliasing:** if the sampling period aligns with periodic workload cycles, one phase of the application may be over- or under-represented.
+4. **Short duration:** just 10 samples in a minute is too few to judge the distribution of rare methods.
+5. **Stack capture cost/capability:** stack traces may be missing, depth-limited, truncated, or fail to unwind.
+6. **Recording mode:** `default`, `profile`, and custom settings toggle samplers and change periods; results are not directly comparable across config changes.
+7. **Different threads:** a sample hotspot can be dominated by a single thread; inspect thread groupings and workload before generalizing to the whole service.
+8. **Sample share:** "40% of samples in method X" is a share of **captured samples**, not proof that X consumes exactly 40% of wall-clock time, request time, or total CPU across all threads.
 
-`jdk.ObjectAllocationSample` cũng là **mẫu allocation**, không phải danh sách đầy đủ mọi lần `new`. Một event có thể mang trọng số/ước lượng để suy ra áp lực allocation; cần đọc rõ cách công cụ/JMC tổng hợp, đừng coi từng sample bằng đúng một object mới hoặc một byte cấp phát.
+`jdk.ObjectAllocationSample` is likewise **allocation sampling**, not a complete list of every `new`. An event may carry a weight/estimate to infer allocation pressure; check how the tool/JMC aggregates it instead of treating each sample as one new object or one allocated byte.
 
-## 6. Period không tương đương threshold
+## 6. Period is not equivalent to threshold
 
-`period` đặt khoảng/tần suất dự kiến đối với event có cơ chế định kỳ hoặc lấy mẫu; `threshold` lọc **theo thời lượng của event**. Đổi period 20 ms thành 10 ms có thể tăng số điểm quan sát, nhưng không làm một duration event 5 ms tự xuất hiện nếu threshold của nó vẫn là 20 ms.
+`period` sets the expected interval/cadence for periodic or sampled events; `threshold` filters **by event duration**. Changing period from 20 ms to 10 ms may increase observation points, yet it will not make a 5 ms duration event appear if its threshold stays 20 ms.
 
-| Tình huống | Điều bị thay đổi | Điều **không** thể tự suy ra |
+| Situation | What changed | What **cannot** be inferred |
 | --- | --- | --- |
-| `jdk.ExecutionSample#period=20ms` → `10ms` | Mật độ thời điểm lấy mẫu mong muốn | Số sample tăng đúng 2 lần hoặc kết quả CPU chính xác hơn gấp đôi |
-| `jdk.JavaMonitorEnter#threshold=20ms` → `5ms` | Chấp nhận thêm các lần monitor enter ngắn hơn | Lock contention đã tăng |
-| `jdk.ThreadSleep#enabled=false` → `true` | Bắt đầu thu sleep event phù hợp | Ngủ nhiều hơn so với trước |
-| `stackTrace=false` → `true` | Bổ sung attribution cho event | Sự kiện hoặc thời lượng đã tăng |
-| `settings=default` → `profile` | Gói event và chính sách thu khác nhau | Ứng dụng chậm đi chỉ vì lượng event nhiều hơn |
+| `jdk.ExecutionSample#period=20ms` → `10ms` | Desired sampling density | Sample count doubled or CPU accuracy doubled |
+| `jdk.JavaMonitorEnter#threshold=20ms` → `5ms` | Admits shorter monitor entries | Lock contention increased |
+| `jdk.ThreadSleep#enabled=false` → `true` | Starts collecting matching sleep events | Threads started sleeping more than before |
+| `stackTrace=false` → `true` | Adds attribution to events | Event count or durations increased |
+| `settings=default` → `profile` | Different event bundle and capture policy | Application slowed down solely because more events appeared |
 
-Một periodic event xuất ra mỗi 5 giây không tái dựng được những đỉnh cao kéo dài 100 ms giữa hai lần ghi. Đây là **giới hạn độ phân giải theo thời gian**, không phải lỗi vẽ biểu đồ.
+A periodic event emitted every 5 seconds cannot reconstruct 100 ms spikes occurring between ticks. That is a **temporal resolution limit**, not a charting bug.
 
-## 7. Kiểm tra chất lượng dữ liệu JFR trước khi tính toán
+## 7. Check JFR data quality before computing
 
-Đừng bắt đầu từ biểu đồ nóng nhất. Trước tiên xác nhận “khung quan sát”:
+Do not start from the hottest chart. Verify the "observation frame" first:
 
-| Cần ghi | Cách kiểm tra | Hậu quả nếu thiếu |
+| What to record | How to check | Consequence if missing |
 | --- | --- | --- |
-| Java/JDK/JVM, PID, recording name | `java -version`, `jcmd -l`, metadata file | Có thể nhầm tiến trình hoặc phiên bản cấu hình |
-| Bắt đầu/kết thúc, timezone, duration | `jfr summary`; thống nhất UTC/offset | Trộn sự kiện ở thời điểm khác nhau |
-| `.jfc`, event enabled/threshold/period/stackTrace | `JFR.check verbose=true` khi recording chạy; lưu config | Sai lệch do thay đổi cách thu |
-| Event count theo loại | `jfr summary` | “Không thấy event” có thể là event bị tắt hoặc lọc |
-| Thread, stack depth, event start/duration | `jfr print` và JMC | Không biết event xảy ra ở luồng nào hoặc kéo dài bao lâu |
-| Repository retention/recording coverage | Thời gian recording, `maxage/maxsize`, dump thực tế | Mất phần đầu/cuối; nhầm vùng dữ liệu thiếu là 0 sự kiện |
-| Throughput, active requests, queue size, GC counters | Metric/log/trace độc lập | Không phân biệt chung nguyên nhân từ workload |
-| Overhead/ảnh hưởng của recording | So baseline cùng tải, xem volume/CPU/latency | Công cụ quan sát có thể thay đổi đối tượng đo |
+| Java/JDK/JVM, PID, recording name | `java -version`, `jcmd -l`, file metadata | May mix up processes or config versions |
+| Start/end, timezone, duration | `jfr summary`; standardize UTC/offset | Mixing events from different times |
+| `.jfc`, event `enabled`/`threshold`/`period`/`stackTrace` | `JFR.check verbose=true` while recording runs; save config | Distortion from capture changes |
+| Event counts by type | `jfr summary` | "No events seen" may mean disabled or filtered |
+| Thread, stack depth, event start/duration | `jfr print` and JMC | Unknown which thread ran it or how long it lasted |
+| Repository retention / recording coverage | Recording window, `maxage/maxsize`, actual dump | Missing head/tail; mistaking missing data for 0 events |
+| Throughput, active requests, queue size, GC counters | Independent metrics/logs/traces | Cannot separate workload effects from causes |
+| Overhead / recording impact | Compare baseline under equal load, check volume/CPU/latency | The observer may perturb what is measured |
 
-Ví dụ lệnh kiểm tra tệp đã export:
+Example commands to inspect an exported file:
 
 ```bash
 jfr summary incident.jfr
@@ -167,48 +167,48 @@ jfr print --events jdk.ExecutionSample --stack-depth 16 incident.jfr
 jfr print --events jdk.JavaMonitorEnter incident.jfr
 ```
 
-Lệnh `jfr print` chỉ hiển thị event có mặt trong tệp, không đảm bảo một event chưa thấy là chưa xảy ra. File có nhiều event thì stdout có thể lớn; dùng JMC hoặc công cụ phân tích phù hợp để lọc theo thread/cửa sổ thời gian.
+`jfr print` only shows events present in the file, and does not guarantee an unseen event never happened. For large files stdout can be huge; use JMC or suitable analysis tools to filter by thread and time window.
 
-Khi cần đối chiếu với application log, ưu tiên ghi timestamp **có timezone**, PID/instance ID, request hoặc trace ID, và cùng định nghĩa “latency” (end-to-end, server handling, waiting, database round-trip). Không dùng mỗi vị trí trên trục X để kết luận hai event có quan hệ nhân quả.
+When correlating with application logs, prefer timestamps **with timezone**, PID/instance ID, request or trace ID, and consistent definitions of "latency" (end-to-end, server handling, waiting, database round-trip). Never use X-axis proximity alone to claim two events are causally linked.
 
-## 8. Cách lấy recording phục vụ phân tích có kiểm soát
+## 8. Capturing recordings for controlled analysis
 
-Trên HotSpot JDK 21+, có thể khởi động một recording ngắn để phân tích:
+On HotSpot JDK 21+, you can start a short diagnostic recording:
 
 ```bash
 jcmd 12345 JFR.start name=triage settings=profile duration=60s filename=triage.jfr
 jcmd 12345 JFR.check name=triage verbose=true
 ```
 
-Phải thay PID `12345`. Lệnh đầu chỉ chạy thành công khi attach được vào **đúng JVM** và có quyền phù hợp. `settings=profile` có thể bật nhiều event/thu mẫu dày hơn `default`; đừng so raw counts với recording `default` khác rồi kết luận workload thay đổi.
+Replace PID `12345`. The first command succeeds only if it can attach to the **right JVM** with sufficient permissions. `settings=profile` enables more events and samples more densely than `default`; never compare raw counts against a `default` recording and conclude the workload changed.
 
-Muốn ghi minh bạch cấu hình của hai loại event cụ thể:
+To explicitly record the configuration of two specific event types:
 
 ```bash
 jcmd 12345 JFR.start name=sample20 settings=profile duration=60s filename=sample20.jfr jdk.ExecutionSample#period=20ms
 ```
 
-Và một thí nghiệm khác:
+And a separate experiment:
 
 ```bash
 jcmd 12345 JFR.start name=monitor20 settings=profile duration=60s filename=monitor20.jfr jdk.JavaMonitorEnter#enabled=true jdk.JavaMonitorEnter#threshold=20ms
 ```
 
-Hai lệnh là **hai cấu hình minh họa**, nên chạy theo phiên tách biệt hoặc với ý thức rằng nhiều recording cùng lúc sẽ có tải/setting tương tác. Tập kết quả chỉ có thể so khi cùng workload, cùng thời lượng quan sát, cùng version, và đã biết các event cần phân tích thật sự có mặt.
+These two commands are **two illustrative configurations**; run them in separate sessions or stay aware that concurrent recordings interact in load and settings. Results can be compared only under identical workload, identical observation length, identical version, and confirmed presence of the target events.
 
-Các event setting của `JFR.start` dùng mẫu `<event-name>#<setting-name>=<value>`; file `.jfc` có thể ghi đè bằng setting dòng lệnh, tùy precedence của JDK. Hãy đọc lại `JFR.check verbose=true` thay vì giả định câu lệnh đã tạo đúng nội dung mong muốn.
+`JFR.start` event settings follow `<event-name>#<setting-name>=<value>`; `.jfc` files can be overridden via command-line settings depending on JDK precedence. Re-run `JFR.check verbose=true` instead of assuming the command produced what you intended.
 
-**Đọc kết quả:**
+**Reading the results:**
 
-- `jfr summary` cho biết file chứa bao nhiêu event kiểu `jdk.ExecutionSample` và `jdk.JavaMonitorEnter`.
-- Trong JMC, nhóm biểu đồ CPU/method profiling sử dụng **sampled stacks**; bảng monitor contention dựa trên **duration events** đã qua threshold.
-- Một recording 60 giây có `0` mẫu cho một method nhỏ là bình thường nếu sampler không bắt trúng; một recording có `0` JavaMonitorEnter vượt 20 ms chỉ nói không thấy event thỏa điều kiện và cấu hình tương ứng trong cửa sổ đã ghi.
+- `jfr summary` shows how many `jdk.ExecutionSample` and `jdk.JavaMonitorEnter` events the file contains.
+- In JMC, CPU/method profiling charts use **sampled stacks**; monitor contention tables rely on **duration events** that cleared the threshold.
+- A 60-second recording with `0` samples for a small method is normal if the sampler never caught it; `0` `JavaMonitorEnter` events over 20 ms only means none met the condition and settings within the captured window.
 
-## 9. Ví dụ Java 17+ chạy được: cùng thao tác, kết quả đếm event khác nhau
+## 9. Runnable Java 17+ example: same operations, different event counts
 
-Ví dụ này tạo **custom duration event**; nó không cố mô phỏng thuật toán sampling CPU của HotSpot. Mục tiêu là nhìn tận mắt tác động của `threshold` lên số event: chương trình thực hiện cùng **8 thao tác** ở hai lần chạy, nhưng điều kiện ghi thay đổi.
+This example creates a **custom duration event**; it does not attempt to mimic HotSpot's CPU sampling algorithm. The goal is seeing firsthand how `threshold` affects event counts: the program executes the exact same **8 operations** across two runs while changing the recording cutoff.
 
-Lưu file **`JfrThresholdDemo.java`**:
+Save **`JfrThresholdDemo.java`**:
 
 ```java
 import java.nio.file.Path;
@@ -288,7 +288,7 @@ public final class JfrThresholdDemo {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 17+**, ở thư mục có quyền ghi tệp `.jfr`:
+Compile and run with **JDK 17+** in a directory with write permissions for `.jfr` files:
 
 ```bash
 javac JfrThresholdDemo.java
@@ -299,200 +299,200 @@ jfr summary threshold-20ms.jfr
 jfr print --events demo.WorkInterval threshold-20ms.jfr
 ```
 
-Hai lần chạy tạo hai tệp `threshold-0ms.jfr` và `threshold-20ms.jfr`. Dòng `attempted=8` là **kết quả xác định từ mã** ở cả hai lần chạy. Dòng `recorded=...` là **số event thực sự đọc được** và phải lấy từ output thật, không bịa một số cố định:
+The two runs create `threshold-0ms.jfr` and `threshold-20ms.jfr`. The `attempted=8` line is a **deterministic result from the code** in both runs. The `recorded=...` line is the **actual number of events read back** and must come from real output rather than an invented fixed number:
 
-- Khi `threshold=0`, cả tám thao tác có cơ hội xuất hiện; trong thí nghiệm đủ tài nguyên thông thường mong đợi đếm gần **8**.
-- Khi `threshold=20 ms`, bốn lần ngủ kế hoạch 40/80 ms có xu hướng đạt ngưỡng, bốn lần 5 ms thường bị lọc. Tuy nhiên `Thread.sleep` có thể bị kéo dài bởi scheduling, GC hoặc CPU contention; do đó một thao tác “5 ms” cũng có thể vượt 20 ms và được ghi.
-- Nếu `recorded` khác dự kiến, xem **duration thực** trong từng event bằng `jfr print`; không mặc định demo hỏng. Trọng tâm là số **attempted** không đổi trong khi tập **recorded** phụ thuộc filter/điều kiện ghi.
+- At `threshold=0`, all eight operations have the chance to appear; in a normal run with adequate resources, expect a count near **8**.
+- At `threshold=20 ms`, the four planned 40/80 ms sleeps tend to pass the threshold while the four 5 ms sleeps are typically filtered out. However, `Thread.sleep` can be stretched by scheduling, GC, or CPU contention, so even a planned "5 ms" operation can exceed 20 ms and be recorded.
+- If `recorded` differs from expectations, inspect **actual duration** in each event via `jfr print` instead of assuming the demo broke. The key point is that **attempted** stays constant while **recorded** depends on filters and capture conditions.
 
-Chương trình minh họa ba việc: `event.begin()` đánh dấu bắt đầu, `event.end()` kết thúc đo, `event.commit()` đề nghị ghi, nhưng **JFR áp dụng setting của recording** trước khi xuất thành event quan sát được. Đây là một ví dụ duration event. Đừng suy từ đó rằng `jdk.ExecutionSample` cũng được tạo ra mỗi lần method gọi rồi mới lọc theo threshold; đó là **cơ chế lấy mẫu khác**.
+This program demonstrates three things: `event.begin()` marks the start, `event.end()` stops timing, and `event.commit()` submits the event, yet **JFR applies recording settings** before emitting an observable event. This is a duration-event example. Do not infer from it that `jdk.ExecutionSample` is generated on every method call and then filtered by threshold; that uses a **different sampling mechanism**.
 
-### Vì sao nên dùng metric ứng dụng song song?
+### Why use application metrics in parallel?
 
-Chỉ `attempts` trong code mới cho mẫu số thật của phép đếm ở thí nghiệm này. Trong production, có thể cần đồng bộ `http.server.requests`, số task dequeued, số retry hoặc request ID từ tracing để xác nhận “bao nhiêu lần thao tác đã xảy ra”. JFR cung cấp chi tiết quan sát hoạt động JVM; thống kê nghiệp vụ cung cấp **mẫu số** và điều kiện tải.
+Only `attempts` in code gives the true denominator for counting in this experiment. In production, you may need `http.server.requests`, dequeued task counts, retry counts, or request IDs from tracing to confirm "how many times the operation occurred." JFR provides visibility into JVM behavior; business metrics provide the **denominator** and load conditions.
 
-## 10. Tương quan thời gian không chứng minh nhân quả
+## 10. Temporal correlation does not prove causation
 
-Giả sử dashboard có ba đợt:
+Suppose a dashboard shows three bursts:
 
-- `10:00:00–10:00:15`: request latency tăng.
-- Cũng khoảng đó, JFR cho thấy nhiều allocation samples và một số GC pause.
-- CPU sampling bắt được stack ở method `parsePayload` thường xuyên hơn.
+- `10:00:00–10:00:15`: request latency spikes.
+- Around the same time, JFR shows many allocation samples and several GC pauses.
+- CPU sampling catches stacks in `parsePayload` more frequently.
 
-Một kết luận hấp tấp là “`parsePayload` gây GC, và GC là nguyên nhân duy nhất làm chậm request”. Nhưng có ít nhất bốn cơ chế khác nhau phù hợp với timeline:
+A hasty conclusion is "`parsePayload` caused GC, and GC was the sole cause slowing requests." Yet at least four distinct mechanisms fit this timeline:
 
-1. **Tải chung làm cả hai cùng tăng:** burst requests → parse nhiều → allocation nhiều → GC; đồng thời DB/queue cũng chậm. GC có thể chỉ là một phần.
-2. **Phụ thuộc ngược chiều:** request bị giữ lâu do upstream timeout → buffer/scope sống lâu → heap pressure tăng; GC diễn ra **sau** khi latency bắt đầu xấu.
-3. **Một nút nghẽn thứ ba:** CPU throttling, lock contention hoặc I/O chậm làm sampling/GC scheduling và latency thay đổi cùng lúc.
-4. **Sai lệch do cách đo:** JFR `threshold` khác, sample density khác, ghi cuối cửa sổ hoặc lệch timestamp làm hai đường đồ thị trông đồng pha dù chúng không cùng nguyên nhân.
+1. **Shared load drives both up:** burst of requests → more parsing → more allocation → GC; simultaneously DB/queues slow down too. GC may only be one piece.
+2. **Reverse dependency:** requests stay open longer due to upstream timeouts → buffers/scopes stay alive longer → heap pressure rises; GC occurs **after** latency started degrading.
+3. **A third bottleneck:** CPU throttling, lock contention, or slow I/O perturbs sampling/GC scheduling and latency simultaneously.
+4. **Measurement artifact:** differing JFR `threshold`, sample density, end-of-window flushing, or timestamp skew make two curves look in phase when they do not share a cause.
 
-Có thể phác họa quan hệ giả định:
+We can sketch the hypothetical relationships:
 
 ```text
-Load tăng ──> allocation tăng ──> GC hoạt động nhiều
+Load rises ──> allocation rises ──> heavy GC activity
     │
-    ├───────> queue/backlog tăng ──> latency tăng
+    ├────────> queue/backlog grows ──> latency rises
     │
-    └───────> DB/CPU contention ──> latency tăng
+    └────────> DB/CPU contention ────> latency rises
 
-GC pause có thể góp phần vào latency,
-nhưng đồ thị đồng thời chưa tách được mức đóng góp.
+GC pauses may contribute to latency,
+but overlapping charts alone do not isolate how much.
 ```
 
-Để chứng minh GC *góp phần trực tiếp*, cần thêm bằng chứng về **request cụ thể bị dừng**, thời điểm pause phủ lên đoạn xử lý của request, thời lượng pause phù hợp độ trễ tăng thêm, lặp lại ở nhiều đợt và kiểm soát các nguyên nhân khác. Ngay cả bằng chứng một pause trùng request cũng chưa nói nó là **nguyên nhân duy nhất**.
+To prove GC *contributed directly*, you need evidence of **specific requests being halted**, pause timestamps overlapping request processing, pause lengths matching the added delay, repetition across bursts, and control over competing causes. Even proof that a pause hit a request does not make it the **sole cause**.
 
-## 11. Cách ghép timeline không tự gây ngộ nhận
+## 11. Aligning timelines without misleading yourself
 
-### 11.1. Phân biệt timestamp của event
+### 11.1. Distinguish event timestamps
 
-Các event JFR có thời điểm bắt đầu và, với duration event, có thời lượng; event chỉ có thể được hoàn tất/commit sau thao tác đo. Khi vẽ chart gộp theo **start time**, **end time** hay bucket 1 giây, thứ tự nhìn thấy có thể khác.
+JFR events have a start time and, for duration events, a duration; an event can only be completed/committed after the measured operation. When plotting buckets by **start time**, **end time**, or 1-second intervals, the visible ordering can shift.
 
-Ví dụ, một operation bắt đầu `12:00:00.100`, mất 900 ms và kết thúc `12:00:01.000`. Nếu bảng được nhóm theo thời điểm kết thúc, nó nằm ở bucket 12:00:01; một GC pause lúc `12:00:00.500` nằm giữa duration của operation, nhưng nhìn hai cột aggregate có thể tưởng operation xảy ra sau GC.
+For example, an operation starts at `12:00:00.100`, takes 900 ms, and ends at `12:00:01.000`. If a table buckets by end time, it lands in bucket `12:00:01`; a GC pause at `12:00:00.500` sits in the middle of the operation's duration, yet two aggregate columns might make it look like the operation ran after GC.
 
-### 11.2. Đồng bộ đồng hồ và độ phân giải
+### 11.2. Clock synchronization and resolution
 
-- JFR timestamp trong một JVM dễ tương quan nội bộ hơn so với hệ thống phân tán; cần xử lý UTC/timezone khi ghép application logs, trace, OS metrics, APM.
-- Đồng hồ giữa server/container khác nhau có thể có clock skew; cùng “12:00:00” trên hai hệ thống không nhất thiết là cùng thời điểm vật lý.
-- Bucket theo phút che mất sự kiện 20 ms; bucket quá nhỏ làm tín hiệu nhiễu khi sample hiếm.
-- Event có duration 50 ms là một khoảng **[start, end]**, không chỉ một chấm trên đồ thị.
-- Recording chỉ phủ T0–T1, repository đã discard dữ liệu cũ hoặc mất mẫu thì chart trống không đồng nghĩa hệ thống yên ổn.
+- JFR timestamps within one JVM correlate internally more reliably than across a distributed system; handle UTC/timezones carefully when joining application logs, traces, OS metrics, and APM.
+- Clocks across servers/containers can exhibit clock skew; "12:00:00" on two machines is not guaranteed to be the same physical instant.
+- Minute buckets hide 20 ms events; overly tiny buckets get noisy when samples are sparse.
+- A 50 ms duration event is an interval **[start, end]**, not a single dot on a chart.
+- If a recording only covers T0–T1, the repository evicted old data, or samples were dropped, an empty chart does not mean the system was quiet.
 
-### 11.3. Tìm độ trễ và chuỗi cơ chế, không chỉ đồng thời
+### 11.3. Look for lag and mechanistic chains, not mere coincidence
 
-Nếu giả thuyết “GC pause gây tăng tail latency”, hãy kiểm tra request start/end, pause start/end, duration pause và hiệu ứng trước–trong–sau pause. Nếu latency tăng **trước** GC trong nhiều đợt, giả thuyết đơn giản đó yếu đi, nhưng GC vẫn có thể là yếu tố bổ sung. Một mối quan hệ lặp lại dưới các điều kiện tương đương mạnh hơn một lần trùng timestamp.
+If the hypothesis is "GC pauses drove up tail latency," inspect request start/end, pause start/end, pause duration, and pre–during–post pause behavior. If latency climbs **before** GC across multiple bursts, the simple hypothesis weakens, though GC can still be an aggravating factor. A repeatable relationship under equivalent conditions is far stronger than one timestamp coincidence.
 
-## 12. Chuyển từ biểu đồ sang một giả thuyết kiểm chứng được
+## 12. Moving from charts to a testable hypothesis
 
-Quy trình điều tra thực dụng:
+Pragmatic investigation workflow:
 
-1. **Định nghĩa triệu chứng độc lập:** ví dụ p99 server latency tăng từ 80 ms lên 400 ms ở cùng API khi RPS ~500/s. Đo số đó từ request metrics/traces, không từ count JFR duration events đã qua threshold.
-2. **Ghi chính xác cấu hình quan sát:** JDK/GC, recording profile, enabled, threshold, period, stackTrace, mốc thu, số mẫu/events, file có đầy đủ cửa sổ hay không.
-3. **Tạo cửa sổ baseline và incident cùng định nghĩa:** chọn giai đoạn tải, traffic mix, số request đồng thời, dataset, JVM warm-up và trạng thái cache tương đương; ghi những khác biệt còn lại.
-4. **Phát biểu cơ chế và dự báo:** “Nếu lock L làm request chờ, những request chậm sẽ có đoạn wait phù hợp, event `jdk.JavaMonitorEnter` vượt ngưỡng trên đường code này, và giảm tranh chấp L sẽ giảm tail latency.” Dự báo phải phân biệt được với giả thuyết khác.
-5. **Thu bằng chứng độc lập:** request span, queue depth, DB latency, CPU throttling, GC log/pause, monitor event, mẫu thread và chỉ số ứng dụng.
-6. **Kiểm tra chiều thời gian và đối tượng:** event có nằm trên thread/request/correlation ID của request chậm không? Hay chỉ xuất hiện đồng thời ở thread khác?
-7. **Thử thay đổi một nhân tố khi có thể:** giảm concurrency, giảm critical section, tăng/giảm payload, thay chính sách cache hoặc xử lý queue. Lặp lại dưới cùng điều kiện, so latency/GC/lock cùng lúc.
-8. **Tìm phản chứng:** nếu contention giảm mà latency không thay đổi, hoặc latency cao khi không có contention, cần xem xét cơ chế khác.
-9. **Báo kết luận có giới hạn:** nêu “phù hợp với”, “có bằng chứng trực tiếp của”, hay “đã được xác nhận qua thí nghiệm” dựa trên mức chắc chắn thực tế.
+1. **Define the symptom independently:** e.g., server p99 latency rose from 80 ms to 400 ms on the same API at ~500 RPS. Measure from request metrics/traces, not from thresholded JFR duration event counts.
+2. **Record exact observation config:** JDK/GC, recording profile, `enabled`, `threshold`, `period`, `stackTrace`, capture timestamps, sample/event counts, and whether the file covers the whole window.
+3. **Construct baseline and incident windows with identical definitions:** pick periods with matching load, traffic mix, concurrency, dataset, JVM warm-up, and cache state; document remaining differences.
+4. **State mechanism and predictions:** "If lock L stalls requests, slow requests will show matching wait intervals, `jdk.JavaMonitorEnter` events exceeding the threshold will appear on this code path, and reducing contention on L will lower tail latency." Predictions must distinguish this from alternative hypotheses.
+5. **Gather independent evidence:** request spans, queue depth, DB latency, CPU throttling, GC logs/pauses, monitor events, thread samples, and application metrics.
+6. **Check temporal direction and target:** are events on the thread/request/correlation ID of slow requests, or merely occurring concurrently on unrelated threads?
+7. **Vary one factor when feasible:** adjust concurrency, shorten the critical section, change payload size, or adjust cache/queue handling. Repeat under identical conditions and compare latency/GC/locks together.
+8. **Seek falsification:** if contention drops while latency stays flat, or latency spikes with zero contention, look for another mechanism.
+9. **Report scoped conclusions:** label statements "consistent with," "direct evidence of," or "confirmed experimentally" matching actual certainty.
 
-Trong production không nên thay đổi cấu hình tùy tiện chỉ để “chứng minh”. Có thể làm controlled load test trên staging hoặc thử canary khi có quy trình phù hợp. Bước kiểm soát và lặp lại giúp giảm confounding; nó không phải phép màu loại bỏ mọi biến ngoại lai.
+In production, never change configs arbitrarily just to "prove" a theory. Run controlled load tests on staging or canary experiments under proper procedures. Controls and repetition reduce confounding; they are not magic that eliminates every external variable.
 
-## 13. Số mẫu và sai số: đừng suy từ tỷ lệ nhỏ thành chân lý
+## 13. Sample size and variance: do not treat small ratios as gospel
 
-Giả sử cùng một khoảng ghi, phương pháp JMC cho thấy:
+Suppose over one recording window, JMC method stats show:
 
-| Method | Số execution samples | Tỷ lệ trong 100 sample hợp lệ |
+| Method | Execution samples | Share of 100 valid samples |
 | --- | ---: | ---: |
 | A | 20 | 20% |
 | B | 50 | 50% |
-| C và các method khác | 30 | 30% |
+| C and other methods | 30 | 30% |
 
-Điều có thể nói: “Trong **100 mẫu quan sát được** theo bộ lọc hiện tại, A có mặt ở 20 mẫu.” Điều không thể nói ngay: “A gây đúng 20% tổng CPU” hoặc “A được gọi ít hơn B 2,5 lần”.
+What you can say: "Out of **100 observed samples** under the current filter, A appears in 20 samples." What you cannot immediately claim: "A caused exactly 20% of total CPU" or "A was called 2.5x less often than B."
 
-Về trực giác thống kê, nếu 100 quan sát là **độc lập, đại diện và giống phép thử Bernoulli** với `p=0,2`, standard error ước tính sẽ là:
+For statistical intuition, if 100 observations were **independent, representative, Bernoulli-like trials** with `p=0.2`, the estimated standard error would be:
 
 ```text
 SE ≈ sqrt(p × (1 - p) / n)
    = sqrt(0.2 × 0.8 / 100)
-   = 0.04 = 4 điểm phần trăm
+   = 0.04 = 4 percentage points
 ```
 
-Khoảng 95% rất thô kiểu `p ± 2 SE` là khoảng 12–28%. **Không lấy khoảng này làm confidence interval chuẩn cho JFR**: các execution samples trong cùng thread/workload thường tương quan, thời điểm sample có bias và mẫu không nhất thiết ngẫu nhiên độc lập. Đây chỉ là minh họa vì sao một tỷ lệ tính từ ít sample vốn đã nhiều bất định *ngay cả trong điều kiện thống kê đẹp*.
+A very rough 95% interval like `p ± 2 SE` spans about 12–28%. **Do not treat this interval as a formal confidence interval for JFR**: execution samples within a thread/workload are typically correlated, sample timing has bias, and samples are not strictly independent random draws. This only illustrates why a ratio from few samples already carries substantial uncertainty *even under ideal statistical assumptions*.
 
-Khi số mẫu ít hoặc đường chạy hiếm, tăng cửa sổ quan sát, dùng điều kiện tái hiện và đối chiếu với metrics/tracing khác hữu ích hơn việc lấy tỷ lệ 3 chữ số thập phân trên một chart.
+When sample counts are low or paths are rare, extending the observation window, using reproducible conditions, and cross-checking other metrics/tracing helps far more than quoting three decimal places off a chart.
 
-## 14. Phân tích threshold theo “sensitivity analysis”
+## 14. Threshold "sensitivity analysis"
 
-Giả sử một event loại wait được ghi dưới hai cấu hình; số liệu sau hoàn toàn **giả định**:
+Suppose a wait-type event is recorded under two configurations; the following numbers are purely **hypothetical**:
 
-| Mốc chạy | Workload | Threshold | Số wait event trong 1 phút | p99 request latency |
+| Run | Workload | Threshold | Wait events in 1 minute | p99 request latency |
 | --- | --- | --- | ---: | ---: |
 | Run A | 500 req/s | 20 ms | 120 | 240 ms |
-| Run B | 500 req/s | 5 ms | 2.400 | 245 ms |
+| Run B | 500 req/s | 5 ms | 2,400 | 245 ms |
 
-Tăng từ 120 lên 2.400 event là điều **có thể dự kiến** khi ngưỡng hạ xuống: thêm các wait 5–20 ms được ghi. Việc số event tăng **không chứng minh contention xấu đi 20 lần**. p99 gần tương đương cũng không nói event 5–20 ms “không có ảnh hưởng”: cần biết chờ xảy ra trên đường xử lý request nào, phân bố, độ đồng thời, overhead đo và ảnh hưởng tới p99.
+Jumping from 120 to 2,400 events is **expected** when the threshold is lowered: additional 5–20 ms waits now get recorded. The higher count **does not prove contention got 20x worse**. Similar p99 also does not prove 5–20 ms waits "have no impact": check which request paths waited, their distribution, concurrency, measurement overhead, and p99 sensitivity.
 
-Ngược lại, nếu cả threshold và sampling period **giữ nguyên**, workload tương đương, mà tỷ lệ event chậm và p99 cùng tăng ở nhiều mốc, đó là bằng chứng **mạnh hơn cho một bất thường**, nhưng vẫn chưa cho nguyên nhân.
+Conversely, when both threshold and sampling period **stay fixed** under comparable workload and both slow event rate and p99 rise across multiple intervals, that is **stronger evidence of an anomaly**, though still not proof of root cause.
 
-Ghi rõ cấu hình của từng run trong mọi bảng so sánh. Tránh phép trừ thẳng hai số event nếu khoảng thời gian khác; tối thiểu quy về `events / phút ghi hợp lệ`, sau đó tiếp tục chuẩn hóa theo workload và chế độ thu. **Normalization không sửa được selection bias** do threshold hay sampler khác nhau.
+Document every run's configuration in comparison tables. Avoid raw subtraction of event counts across unequal durations; normalize at least to `events / valid recording minute`, then normalize further by workload and collection mode. **Normalization cannot fix selection bias** introduced by differing thresholds or samplers.
 
-## 15. Các giả thuyết sai và cách kiểm tra
+## 15. False hypotheses and how to test them
 
-| Kết luận vội | Vì sao sai | Cách kiểm tra |
+| Hasty conclusion | Why it is wrong | How to verify |
 | --- | --- | --- |
-| “Không có event lock nên không có lock contention” | Event có thể tắt, threshold cao hoặc recording không phủ đúng cửa sổ | `JFR.check verbose`, kiểm tra threshold, log/thread dump, metric chờ |
-| “Method X hiện 30% mẫu nên gây 30% request latency” | CPU sample ≠ thời gian request chờ; pool/thread/workload có thể khác | Ghép với request traces và thread state; đo CPU trực tiếp |
-| “Allocation sample tăng 2 lần = tạo đúng 2 lần object” | Allocation là sample và cách ước lượng có thể dùng trọng số | So allocation rate/heap/GC, cùng cấu hình lấy mẫu |
-| “Latency và GC trùng nhau, vậy GC là thủ phạm duy nhất” | Tải/CPU/DB/queue cũng có thể cùng tác động | Pause interval, request spans, workload và controlled test |
-| “Event count tăng sau khi bật `profile` = ứng dụng tệ đi” | Gói event và độ nhạy thu khác nhau | Giữ cấu hình cố định khi so hoặc chỉ so metric có cùng định nghĩa |
-| “Có một sample stack ở method Y = Y luôn chạy chậm” | Một sample không đại diện cho phân bố lần gọi | Lấy thêm mẫu, phân nhóm thread, direct timing |
-| “Event bắt đầu trước metric nên chắc chắn là nguyên nhân” | Có thể cùng chịu tác động bởi biến thứ ba hoặc sai lệch timestamp | Kiểm tra cơ chế, chiều thời gian trên cùng request và phản chứng |
-| “Nhiều lần lặp lại tương quan là đủ chứng minh” | Confounder có thể lặp lại cùng tải; causal pathway chưa kiểm chứng | Thay một nhân tố, so dưới điều kiện kiểm soát, đo chuỗi trung gian |
+| "No lock events means no lock contention" | Event may be disabled, threshold high, or recording missed the window | `JFR.check verbose`, check thresholds, logs/thread dumps, wait metrics |
+| "Method X has 30% of samples so it causes 30% of request latency" | CPU samples ≠ request wait time; pools/threads/workload may differ | Join with request traces and thread states; measure CPU directly |
+| "Allocation samples doubled = exactly 2x objects created" | Allocation is sampled and estimates may use weights | Compare allocation rate/heap/GC under identical sampling settings |
+| "Latency and GC overlap, so GC is the only culprit" | Load/CPU/DB/queues may also act simultaneously | Pause intervals, request spans, workload, and controlled tests |
+| "Event count rose after enabling `profile` = app degraded" | Event bundle and capture sensitivity changed | Hold config constant when comparing or only compare identically defined metrics |
+| "One stack sample in method Y = Y is always slow" | One sample does not represent the call distribution | Gather more samples, group by thread, time directly |
+| "Event started before metric, so it is definitely the cause" | Both may respond to a third variable or timestamp skew | Check mechanism, temporal order on the same request, and falsification |
+| "Repeated correlation is enough proof" | A confounder may repeat with load; causal pathway untested | Vary one factor, compare under controlled conditions, measure intermediate chain |
 
-## 16. Checklist trước khi viết báo cáo sự cố
+## 16. Checklist before writing an incident report
 
-**Về dữ liệu JFR:**
+**On JFR data:**
 
-- Đúng **PID/JVM/build**, cùng version/GC/recording settings ở các mốc so sánh?
-- Biết event này là **sample, periodic, duration hay instant**?
-- Biết `enabled`, `threshold`, `period`, `stackTrace` thực tế?
-- Kiểm tra file chỉ phủ đúng khoảng nào, có rơi/chưa có mẫu hoặc retention gap không?
-- Count/tỷ lệ có mẫu số phù hợp và có nhãn điều kiện quan sát không?
-- Mỗi duration event có được xem như **một khoảng thời gian**, không chỉ một timestamp?
+- Correct **PID/JVM/build**, matching version/GC/recording settings across compared points?
+- Known whether each event is **sampled, periodic, duration, or instant**?
+- Known actual `enabled`, `threshold`, `period`, `stackTrace`?
+- Checked exact time span covered by the file, any dropped/missing samples, or retention gaps?
+- Do counts/ratios have an appropriate denominator and documented observation conditions?
+- Was each duration event treated as a **time interval**, not just a single timestamp?
 
-**Về nguyên nhân:**
+**On causation:**
 
-- Có metric nghiệp vụ độc lập xác nhận triệu chứng không?
-- Có **cơ chế cụ thể** kết nối event tới request/latency/throughput không?
-- Đã xem tải, CPU, DB, I/O, GC, lock, queue và các nguồn confounding khả dĩ?
-- Có đối chứng trước/sau cùng điều kiện và nhiều đợt tương tự?
-- Có tìm được **phản chứng** hoặc thử thay đổi để đánh giá giả thuyết?
-- Câu kết luận đã phân biệt **quan sát**, **nghi vấn** và **điều đã xác nhận**?
+- Do independent business metrics confirm the symptom?
+- Is there a **concrete mechanism** connecting the events to requests/latency/throughput?
+- Were load, CPU, DB, I/O, GC, locks, queues, and potential confounders checked?
+- Are there before/after controls under matched conditions and multiple comparable bursts?
+- Did you look for **falsifying evidence** or run a change to test the hypothesis?
+- Does the conclusion clearly separate **observations**, **suspicions**, and **confirmed facts**?
 
-## 17. Mẫu báo cáo có giới hạn chứng cứ
+## 17. Evidence-bounded report template
 
-**Cách viết phù hợp:**
+**Appropriate phrasing:**
 
-> Trong recording HotSpot JDK 21, cấu hình `profile`, `jdk.JavaMonitorEnter#threshold=20ms` và `jdk.ExecutionSample#period=20ms`, vùng 10:00–10:02 ghi nhận số event monitor enter vượt 20 ms tăng cùng lúc p99 của API tăng từ 90 lên 350 ms. Đây là tương quan đáng điều tra. Các event dưới 20 ms không được đưa vào count và số execution sample không phải số lần method được gọi. Hiện chưa xác minh những event chờ monitor đó thuộc request chậm nào hoặc tải/DB có thay đổi hay không. Bước tiếp theo là ghép request spans với stack/thread ở JFR, kiểm soát workload, rồi kiểm tra giả thuyết contention qua một thí nghiệm có đối chứng.
+> In a HotSpot JDK 21 recording using `profile`, `jdk.JavaMonitorEnter#threshold=20ms`, and `jdk.ExecutionSample#period=20ms`, the 10:00–10:02 window recorded a rise in monitor-enter events exceeding 20 ms alongside API p99 rising from 90 to 350 ms. This is a correlation worth investigating. Events under 20 ms are excluded from the count and execution sample counts are not method invocation counts. It is not yet verified which slow requests own those monitor waits or whether load/DB changed. Next steps are joining request spans with JFR stacks/threads, controlling for workload, and testing the contention hypothesis with a controlled experiment.
 
-**Cách viết quá mức:**
+**Overstated phrasing:**
 
-> Trong cùng phút, lock event và p99 cùng tăng. Vì vậy lock chắc chắn là nguyên nhân duy nhất; method có 40% sample chiếm đúng 40% CPU.
+> In the same minute, lock events and p99 rose together. Therefore locks are definitely the sole cause; the method with 40% of samples took exactly 40% of CPU.
 
-Mẫu thứ hai không chứng minh được từ dữ liệu: nó thiếu cơ chế, mẫu số, cấu hình sampling, kiểm soát confounder và phép kiểm chứng.
+The second example cannot be substantiated from the data: it lacks mechanism, denominators, sampling config, confounder control, and verification testing.
 
-## 18. Bài tập tự đánh giá
+## 18. Self-assessment exercises
 
-**Bài 1 — threshold.** Một service xử lý 1.000 request/phút. JFR ghi 80 event `jdk.JavaMonitorEnter` với `threshold=20ms` trong phút đó. Có thể nói “8% request bị lock contention” không?
+**Exercise 1 — threshold.** A service processes 1,000 requests/minute. JFR records 80 `jdk.JavaMonitorEnter` events with `threshold=20ms` in that minute. Can we say "8% of requests experienced lock contention"?
 
-**Gợi ý:** Không. 80 là số event monitor enter thỏa ngưỡng; một request có thể có nhiều event hoặc không event; không có mapping event→request và chưa biết event coverage. Muốn tỷ lệ request bị ảnh hưởng cần request ID/trace và điều kiện đo phù hợp.
+**Hint:** No. 80 is the number of monitor-enter events meeting the threshold; one request can trigger multiple events or zero; there is no event→request mapping and event coverage is unknown. To find the fraction of affected requests, you need request IDs/traces and proper measurement conditions.
 
-**Bài 2 — sampling.** Một method xuất hiện ở 1 trong 200 execution samples. Có thể nói nó chỉ được gọi một lần?
+**Exercise 2 — sampling.** A method appears in 1 out of 200 execution samples. Can we say it was called only once?
 
-**Gợi ý:** Không. Có thể bị gọi hàng nghìn lần nhưng mỗi lần ngắn. Sample count là quan sát theo thời điểm.
+**Hint:** No. It could be called thousands of times briefly each time. Sample count is a point-in-time observation.
 
-**Bài 3 — cấu hình.** Run A dùng `JavaMonitorEnter#threshold=20ms` và Run B dùng `5ms`. Số event B lớn gấp 5 lần. Đã chứng minh lock contention tăng 5 lần?
+**Exercise 3 — configuration.** Run A uses `JavaMonitorEnter#threshold=20ms` and Run B uses `5ms`. Run B has 5x more events. Does that prove lock contention grew 5x?
 
-**Gợi ý:** Chưa. Thay đổi threshold làm nhiều event ngắn hơn đủ điều kiện xuất hiện. Cần so dưới cùng cấu hình.
+**Hint:** No. Lowering the threshold lets shorter events qualify. Compare under identical settings.
 
-**Bài 4 — causality.** Gặp GC pause 150 ms cùng khoảng request 300 ms. Có thể khẳng định toàn bộ 300 ms do GC?
+**Exercise 4 — causality.** A 150 ms GC pause overlaps a 300 ms request. Can you claim all 300 ms came from GC?
 
-**Gợi ý:** Không. Kiểm tra thời điểm pause tương đối với xử lý của request, phần latency trước/sau pause, DB, queuing, CPU; pause tối đa chỉ giải thích một phần phù hợp về mặt thời gian trong trường hợp request thực sự bị ảnh hưởng.
+**Hint:** No. Check pause timing relative to request execution, latency before/after the pause, DB, queuing, and CPU; at most the pause explains a temporally overlapping portion if the request was actually halted.
 
-**Bài 5 — làm thí nghiệm.** Chạy `JfrThresholdDemo` với threshold 0 và 20 ms. Ghi dòng `attempted`, `recorded` và duration các event thật trong hai tệp. Vì sao số `recorded` có thể thay đổi dù danh sách `waits` giống hệt?
+**Exercise 5 — experiment.** Run `JfrThresholdDemo` with thresholds 0 and 20 ms. Record `attempted`, `recorded`, and actual event durations in both files. Why can `recorded` vary even with an identical `waits` array?
 
-**Gợi ý:** Threshold lọc theo **thời lượng thực tế**; scheduler/GC làm actual duration thay đổi và trạng thái recorder có giới hạn thực tế. Đếm từ output/file thật, không suy số event từ planned sleeps.
+**Hint:** Threshold filters by **actual measured duration**; scheduling/GC alters actual durations and recorder state has practical limits. Count from actual output/files rather than predicting event counts from planned sleeps.
 
-**Thực hành cuối bài:** Chọn một recording JFR có `jdk.ExecutionSample` và một loại duration event. Lập bảng cho mỗi event: setting, cơ chế thu, cửa sổ thời gian, số quan sát, mẫu số phù hợp, điều được suy ra và điều chưa thể suy ra. Đặt hai giả thuyết có khả năng tạo cùng timeline; đề xuất phép đo hoặc thí nghiệm phân biệt chúng.
+**End-of-lesson practice:** Pick a JFR recording containing `jdk.ExecutionSample` and one duration event type. Build a table for each event: setting, collection mechanism, time window, observation count, valid denominator, what can be inferred, and what cannot. Formulate two hypotheses capable of producing the same timeline, and propose a measurement or experiment to tell them apart.
 
-## 19. Nguồn chính thức để đối chiếu
+## 19. Official sources to cross-check
 
-- [Oracle Java 21 — `jdk.jfr`: định nghĩa `enabled`, `threshold`, `period`, `stackTrace`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html).
-- [Oracle Java 21 — `EventSettings`: `withThreshold`, `withPeriod` và stack trace](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html).
-- [Oracle Java 21 — `Recording`: vòng đời, cấu hình, `stop` và `dump`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html).
-- [Oracle Java 21 — `RecordingFile`: đọc lại event thực sự được ghi](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html).
-- [Oracle JDK 21 — `jcmd`: `JFR.start`, override event settings, `JFR.check`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html).
+- [Oracle Java 21 — `jdk.jfr`: definitions of `enabled`, `threshold`, `period`, `stackTrace`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html).
+- [Oracle Java 21 — `EventSettings`: `withThreshold`, `withPeriod`, and stack traces](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html).
+- [Oracle Java 21 — `Recording`: lifecycle, configuration, `stop`, and `dump`](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html).
+- [Oracle Java 21 — `RecordingFile`: reading back actually recorded events](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html).
+- [Oracle JDK 21 — `jcmd`: `JFR.start`, overriding event settings, `JFR.check`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html).
 - [Oracle JDK 21 — `jfr`: `summary`, `metadata`, `print`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html).
 - [dev.java — Configuring the JDK Flight Recorder](https://dev.java/learn/jvm/jfr/configure/).
 
-**Nguyên tắc cuối:** `threshold` trả lời “event nào vượt ngưỡng và đã được ghi”; `sampling` trả lời “sampler đã thấy trạng thái nào tại các điểm lấy mẫu”; biểu đồ thời gian trả lời “các quan sát diễn ra gần nhau ra sao”. Để trả lời “*vì sao*” cần cơ chế hợp lý, dữ liệu độc lập, kiểm soát biến gây nhiễu và bằng chứng có thể lặp lại.
+**Final principle:** `threshold` answers "which events exceeded the cutoff and were recorded"; `sampling` answers "which states did the sampler see at sample ticks"; timelines answer "how closely in time did observations occur." Answering "*why*" requires a sound mechanism, independent data, control of confounders, and reproducible evidence.

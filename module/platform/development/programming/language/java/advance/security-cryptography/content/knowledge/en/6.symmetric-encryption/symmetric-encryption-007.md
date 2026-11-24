@@ -1,172 +1,172 @@
-# 6.7 GCMParameterSpec, độ dài tag và yêu cầu không lặp IV dưới cùng một khóa
+# 6.7 `GCMParameterSpec`, Tag Length, and the Non-Repeating IV Requirement Under the Same Key
 
-Trong Java, khi dùng `Cipher.getInstance("AES/GCM/NoPadding")`, ta cần nắm vững hai tham số mà `GCMParameterSpec` biểu diễn: **IV/nonce** dùng cho lần mã hóa và **độ dài authentication tag** dùng để kiểm tra tính toàn vẹn/xác thực của kết quả. Một lời gọi API đúng cú pháp vẫn có thể tạo ra hệ thống không an toàn nếu **tái sử dụng IV với cùng một khóa AES**.
+In Java, when using `Cipher.getInstance("AES/GCM/NoPadding")`, you must understand the two parameters represented by `GCMParameterSpec`: the **IV/nonce** for the encryption invocation and the **authentication tag length** used to verify result integrity/authenticity. A syntactically valid API call can still produce an insecure system if **an IV is reused with the same AES key**.
 
-Sau bài này, bạn có thể:
-- Giải thích cơ chế AES-GCM và vai trò của IV/nonce, tag, AAD.
-- Phân biệt **tag length tính bằng bit** với **IV length tính bằng byte** trong `GCMParameterSpec`.
-- Chọn độ dài tag phù hợp, hiểu giới hạn của chuẩn NIST và provider Java.
-- Sinh, lưu và khôi phục IV cho từng bản mã; duy trì quy tắc **không lặp cặp (key, IV)** ở quy mô nhiều lần mã hóa, nhiều tiến trình và nhiều node.
-- Viết Java 17+ encrypt/decrypt với `GCMParameterSpec`, xử lý `AEADBadTagException` và đối chiếu kết quả với test vector.
+After this lesson, you will be able to:
+- Explain the AES-GCM mechanism and the roles of IV/nonce, tag, and AAD.
+- Distinguish **tag length in bits** from **IV length in bytes** in `GCMParameterSpec`.
+- Choose an appropriate tag length, understanding NIST standard bounds and Java provider constraints.
+- Generate, store, and recover an IV for each ciphertext; enforce the **never repeat `(key, IV)`** rule across multiple encryptions, processes, and nodes.
+- Write Java 17+ encryption/decryption with `GCMParameterSpec`, handle `AEADBadTagException`, and verify results against a test vector.
 
-## 1. GCM là gì và bốn dữ liệu cần phân biệt
+## 1. What Is GCM and the Four Data Items to Distinguish
 
-**GCM (Galois/Counter Mode)** là chế độ mã hóa đối xứng có xác thực (**AEAD**, Authenticated Encryption with Associated Data). Kết quả gồm phần dữ liệu đã mã hóa (**ciphertext**) và **authentication tag**. Khi giải mã, tag được kiểm tra để phát hiện việc ciphertext, AAD hoặc thông số mật mã không khớp. Không chấp nhận plaintext nếu xác thực thất bại.
+**GCM (Galois/Counter Mode)** is an authenticated symmetric encryption mode (**AEAD**, Authenticated Encryption with Associated Data). The output consists of the encrypted data (**ciphertext**) and an **authentication tag**. On decryption, the tag is verified to detect modifications to ciphertext, AAD, or mismatched cryptographic parameters. Never accept plaintext if verification fails.
 
-| Thành phần | Vai trò | Có cần giữ bí mật? | Khi giải mã |
+| Component | Role | Must Be Kept Secret? | On Decryption |
 | --- | --- | --- | --- |
-| **AES key** (`SecretKey`) | Khóa bí mật được dùng để mã hóa và tính tag. | **Có.** | Phải sử dụng đúng khóa. Quản lý trong keystore/KMS hoặc hệ thống quản lý bí mật phù hợp. |
-| **IV/nonce** | Xác định một lần mã hóa với khóa cụ thể; tham gia tính trạng thái GCM. | **Không** với AES-GCM thông thường. | Phải có **đúng IV** đã dùng khi mã hóa. |
-| **Plaintext / ciphertext** | Dữ liệu cần giữ kín và bản mã. | Plaintext cần bảo vệ; ciphertext có thể lưu/truyền. | Chỉ dùng plaintext sau khi xác thực hoàn tất. |
-| **Authentication tag** (`T`) | Giá trị kiểm tra tính toàn vẹn/xác thực, thường gắn ở cuối ciphertext. | Không phải khóa bí mật. | Thiếu hoặc tag sai phải khiến giải mã thất bại. |
-| **AAD** (Additional Authenticated Data) | Metadata được **xác thực nhưng không mã hóa**. | Không mặc định. | Phải cung cấp đúng byte AAD đã dùng khi mã hóa. |
+| **AES key** (`SecretKey`) | Secret key used to encrypt and compute the tag. | **Yes.** | Must use the exact key. Manage in a keystore/KMS or appropriate secrets manager. |
+| **IV/nonce** | Identifies one encryption under a specific key; feeds GCM state calculation. | **No** in standard AES-GCM. | Must supply the **exact IV** used during encryption. |
+| **Plaintext / ciphertext** | Confidential data and its encrypted form. | Plaintext must be protected; ciphertext can be stored/transmitted. | Use plaintext only after authentication succeeds. |
+| **Authentication tag** (`T`) | Integrity/authenticity check value, usually appended to ciphertext. | Not a secret key. | Missing or invalid tag must cause decryption to fail. |
+| **AAD** (Additional Authenticated Data) | Metadata that is **authenticated but not encrypted**. | Not by default. | Must supply the exact AAD bytes used during encryption. |
 
-Các thuật ngữ IV và nonce cùng trỏ đến tham số trong trường hợp AES-GCM này: **không cần tạo hai mảng riêng** chỉ vì tài liệu dùng hai tên. IV mang tính không bí mật nhưng có yêu cầu **duy nhất với từng khóa**.
+The terms IV and nonce refer to the same parameter in this AES-GCM context: **there is no need to create two separate arrays** just because documentation uses both names. The IV is non-secret yet carries a **per-key uniqueness** requirement.
 
-Sơ đồ một bản ghi:
+Diagram of a single record:
 
 ~~~text
-Khóa K (bí mật) ─────────────────────────┐
-IV N (mới với K) ───────────────────────┤
-AAD (metadata xác thực) ────────────────┤ AES-GCM encrypt
+Key K (secret) ─────────────────────────┐
+IV N (fresh for K) ─────────────────────┤
+AAD (authenticated metadata) ───────────┤ AES-GCM encrypt
 Plaintext P ────────────────────────────┘
-                                           |
-                                           v
+                                          |
+                                          v
                      Ciphertext C + authentication tag T
 
-Lưu/truyền: {version, keyId, N, C, T, AAD/context}
-Giải mã: lấy đúng K, N, AAD, C và T -> verify tag -> plaintext
+Store/transmit: {version, keyId, N, C, T, AAD/context}
+Decrypt: obtain exact K, N, AAD, C, and T -> verify tag -> plaintext
 ~~~
 
-**AAD không phải ciphertext**, nên không được kỳ vọng AAD được mã hóa. Ví dụ có thể đưa `recordType` hoặc `tenantId` vào AAD khi muốn phát hiện sửa metadata. Nếu hệ thống mã hóa nội dung cho tenant A nhưng bỏ qua định danh tenant trong AAD/context, bản mã có thể bị dùng nhầm ngữ cảnh.
+**AAD is not ciphertext**, so do not expect AAD to be encrypted. For instance, you can put `recordType` or `tenantId` in AAD when you want to detect metadata tampering. If a system encrypts content for tenant A but omits tenant identification from AAD/context, the ciphertext may be transplanted into the wrong context.
 
-## 2. `GCMParameterSpec` thực sự lưu những gì?
+## 2. What Does `GCMParameterSpec` Actually Hold?
 
-Lớp `javax.crypto.spec.GCMParameterSpec` thực hiện `AlgorithmParameterSpec` và chứa **hai giá trị**:
+The `javax.crypto.spec.GCMParameterSpec` class implements `AlgorithmParameterSpec` and stores **two values**:
 
-- `tLen`: độ dài **authentication tag**, đơn vị **bit**.
-- `IV`: dãy byte của initialization vector, được lưu như mảng byte, độ dài do `iv.length` xác định.
+- `tLen`: **authentication tag** length, in **bits**.
+- `IV`: byte sequence of the initialization vector, stored as a byte array whose length is given by `iv.length`.
 
-Các API quan trọng:
+Key APIs:
 
 ~~~java
-// IV dài 12 byte; tag dài 128 bit (16 byte):
-byte[] iv = new byte[12]; // CHỈ là ví dụ về độ dài; không dùng IV toàn 0 để mã hóa thực!
+// 12-byte IV; 128-bit (16-byte) tag:
+byte[] iv = new byte[12]; // ONLY an example of length; never use an all-zero IV for real encryption!
 GCMParameterSpec spec = new GCMParameterSpec(128, iv);
 
-// Lấy thông số:
+// Read parameters:
 int tagBits = spec.getTLen();   // 128
-byte[] ivCopy = spec.getIV();   // mảng mới, dài 12 byte
+byte[] ivCopy = spec.getIV();   // new array, 12 bytes long
 ~~~
 
-Đây là **mảnh minh họa API**, không phải chương trình mã hóa độc lập. Chương trình chạy đầy đủ sử dụng IV an toàn nằm ở mục 6.
+This is an **API illustration snippet**, not a standalone encryption program. The complete runnable program using a safe IV is in Section 6.
 
-Hai constructor chính:
+Two primary constructors:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `new GCMParameterSpec(int tLen, byte[] src)` | Sao chép toàn bộ `src` làm IV và lưu độ dài tag theo **bit**. |
-| `new GCMParameterSpec(int tLen, byte[] src, int offset, int len)` | Sao chép `len` byte bắt đầu tại `offset` từ `src` để làm IV; không tự chọn IV ngẫu nhiên. |
-| `spec.getTLen()` | Trả về độ dài tag, **bit**, không phải byte. |
-| `spec.getIV()` | Trả về **một mảng mới** mỗi lần gọi; thay đổi mảng trả về không làm đổi IV đã lưu trong spec. |
+| `new GCMParameterSpec(int tLen, byte[] src)` | Copies the entire `src` as the IV and stores the tag length in **bits**. |
+| `new GCMParameterSpec(int tLen, byte[] src, int offset, int len)` | Copies `len` bytes starting at `offset` from `src` as the IV; does not pick a random IV itself. |
+| `spec.getTLen()` | Returns the tag length in **bits**, not bytes. |
+| `spec.getIV()` | Returns a **fresh array** on each call; mutating the returned array does not alter the IV stored in the spec. |
 
-Constructor sao chép mảng IV để tránh việc người gọi sửa byte nguồn rồi âm thầm làm thay đổi tham số. Nhưng `GCMParameterSpec` **không tự sinh IV**, **không quản lý lịch sử IV**, cũng **không bảo đảm IV không trùng dưới cùng khóa**. Trách nhiệm cấp IV an toàn thuộc về chương trình/giao thức.
+The constructor copies the IV array so callers mutating the source array cannot silently alter the parameters. However, `GCMParameterSpec` **does not generate IVs**, **does not track IV history**, and **does not guarantee IV uniqueness under the same key**. Safe IV allocation is the responsibility of the program/protocol.
 
-**Đừng nhầm đơn vị:**
+**Do not mix up units:**
 
 ~~~text
-int IV_BYTES = 12;       // 12 byte = 96 bit (độ dài IV phổ biến)
-int TAG_BITS = 128;      // 128 bit = 16 byte (độ dài tag phổ biến)
+int IV_BYTES = 12;       // 12 bytes = 96 bits (common IV length)
+int TAG_BITS = 128;      // 128 bits = 16 bytes (common tag length)
 
-new GCMParameterSpec(TAG_BITS, iv);   // ĐÚNG nếu iv dài 12 byte
-new GCMParameterSpec(16, iv);         // SAI ý nghĩa: 16 bit, không phải 16 byte
-new GCMParameterSpec(IV_BYTES, iv);   // SAI ý nghĩa: truyền 12 làm tag length
+new GCMParameterSpec(TAG_BITS, iv);   // RIGHT if iv is 12 bytes
+new GCMParameterSpec(16, iv);         // WRONG semantics: 16 bits, not 16 bytes
+new GCMParameterSpec(IV_BYTES, iv);   // WRONG semantics: passing 12 as tag length
 ~~~
 
-Java API chỉ kiểm tra một số tính hợp lệ cơ bản của tham số khi tạo `GCMParameterSpec`. **Provider thực thi `Cipher.init` mới quyết định giá trị tag/IV cụ thể có được hỗ trợ hay không**. Do đó không coi việc constructor chạy được là bằng chứng cấu hình GCM hợp lệ và an toàn.
+The Java API performs only basic parameter sanity checks when constructing `GCMParameterSpec`. **The provider executing `Cipher.init` decides whether the specific tag/IV values are supported.** Therefore, never treat successful constructor execution as proof of a valid, secure GCM configuration.
 
-## 3. Độ dài authentication tag: 128 bit nghĩa là gì?
+## 3. Authentication Tag Length: What Does 128 Bits Mean?
 
-GCM tạo authentication tag `T`, thường chọn **128 bit (16 byte)**. Tag cho phép bên giải mã phát hiện sửa bản mã, metadata AAD hoặc sử dụng khóa/IV không khớp, với xác suất giả mạo thành công phụ thuộc cả độ dài tag lẫn giới hạn sử dụng GCM.
+GCM produces an authentication tag `T`, commonly chosen as **128 bits (16 bytes)**. The tag lets the decryptor detect tampered ciphertext, altered AAD metadata, or mismatched key/IV, with forgery success probability depending on both tag length and GCM usage limits.
 
-Theo NIST SP 800-38D, các độ dài tag thông thường được định nghĩa là **128, 120, 112, 104 hoặc 96 bit**. **64 hoặc 32 bit** chỉ được phép trong một số ứng dụng có ràng buộc đặc biệt về độ dài dữ liệu, lượng thông điệp và vòng đời khóa; không chọn chúng cho hệ thống thông thường.
+Per NIST SP 800-38D, standard tag lengths are **128, 120, 112, 104, or 96 bits**. **64 or 32 bits** are permitted only in specialized applications with strict constraints on data length, message count, and key lifetime; never choose them for general systems.
 
-| `tLen` (bit) | Độ dài tag (byte) | Định hướng |
+| `tLen` (bits) | Tag Length (bytes) | Guidance |
 | --- | --- | --- |
-| **128** | **16** | Lựa chọn thực hành ưu tiên trong ví dụ và phần lớn ứng dụng mới. |
-| 120 | 15 | Theo chuẩn GCM, nhưng phải kiểm tra provider/giao thức và nhu cầu tương thích. |
-| 112 | 14 | Tương tự; tag ngắn hơn cần phân tích giới hạn bảo mật. |
-| 104 | 13 | Tương tự; không tự ý rút ngắn để tiết kiệm vài byte. |
-| 96 | 12 | Theo chuẩn, bảo đảm xác thực thấp hơn tag 128 bit; dùng khi giao thức quy định và đánh giá đúng giới hạn. |
-| 64 hoặc 32 | 8 hoặc 4 | **Trường hợp đặc biệt theo NIST**, kèm ràng buộc nghiêm ngặt; tránh dùng nếu không có thiết kế được duyệt. |
+| **128** | **16** | Preferred practical choice in examples and most new applications. |
+| 120 | 15 | Standard GCM length, but verify provider/protocol support and interoperability needs. |
+| 112 | 14 | Same; shorter tags require analyzing security bounds. |
+| 104 | 13 | Same; do not arbitrarily shorten to save a few bytes. |
+| 96 | 12 | Standard, lower authentication assurance than a 128-bit tag; use only when mandated by protocol with bounds evaluated. |
+| 64 or 32 | 8 or 4 | **Special NIST cases** with strict limits; avoid unless formally designed and approved. |
 
-Chú ý:
-1. `tLen` là thông số **tag**, không phải số bit của khóa AES. Khóa có thể là AES-128/192/256; `GCMParameterSpec(128, iv)` không quyết định độ dài key.
-2. Tag 128 bit **không đồng nghĩa** IV 128 bit. Lựa chọn phổ biến là **IV 96 bit (12 byte)** + **tag 128 bit (16 byte)**.
-3. **Tag ngắn hơn làm tăng khả năng giả mạo khi đối thủ thử nhiều lần**, đồng thời các giới hạn an toàn/khối lượng dữ liệu có thể chặt hơn. Không rút ngắn tag để cố vừa một payload nhỏ mà không thay giao thức.
-4. NIST yêu cầu một độ dài tag cố định, được hỗ trợ, gắn với một khóa trong cấu hình GCM; không thay độ dài tag tùy tiện giữa các thông điệp cùng khóa.
-5. Không phải provider Java nào cũng hỗ trợ mọi `tLen` chuẩn. Khi `Cipher.init` gặp thông số không được hỗ trợ có thể ném `InvalidAlgorithmParameterException`. Ví dụ bên dưới chủ ý dùng 128 bit để tránh khác biệt không cần thiết.
-6. Không dùng giá trị `256` làm tag length với ý nghĩ “bảo mật gấp đôi”: GCM chuẩn không có tag 256 bit.
+Notes:
+1. `tLen` specifies the **tag**, not the AES key bit length. The key may be AES-128/192/256; `GCMParameterSpec(128, iv)` does not set key length.
+2. A 128-bit tag **does not mean** a 128-bit IV. The common pairing is a **96-bit (12-byte) IV** + **128-bit (16-byte) tag**.
+3. **Shorter tags increase forgery odds under repeated attacker attempts**, and safety/data-volume bounds become tighter. Never shorten the tag just to squeeze into a small payload without changing the protocol.
+4. NIST requires a fixed, supported tag length bound to a key in a GCM configuration; never vary tag length arbitrarily across messages under the same key.
+5. Not every Java provider supports every standard `tLen`. When `Cipher.init` encounters an unsupported value, it may throw `InvalidAlgorithmParameterException`. The examples below intentionally use 128 bits to avoid unnecessary differences.
+6. Never pass `256` as tag length thinking it gives "double security": standard GCM has no 256-bit tag.
 
-### Tag xuất hiện ở đâu trong Java?
+### Where Does the Tag Appear in Java?
 
-Với `Cipher.getInstance("AES/GCM/NoPadding")` và `TAG_BITS=128`, Java `doFinal(plaintext)` tạo **ciphertext kèm tag**, về mặt biểu diễn có thể xem là:
+With `Cipher.getInstance("AES/GCM/NoPadding")` and `TAG_BITS=128`, Java's `doFinal(plaintext)` returns **ciphertext with the tag appended**, conceptually represented as:
 
 ~~~text
 ciphertextAndTag = ciphertext || tag
-len(ciphertextAndTag) = len(plaintext) + 16 byte
+len(ciphertextAndTag) = len(plaintext) + 16 bytes
 
-Ví dụ plaintext 8 byte:
-  8 byte ciphertext + 16 byte tag = 24 byte ciphertextAndTag
+Example 8-byte plaintext:
+  8 bytes ciphertext + 16 bytes tag = 24 bytes ciphertextAndTag
 
-Nếu envelope có IV 12 byte:
-  IV(12) || ciphertextAndTag(24) = 36 byte
+If envelope includes 12-byte IV:
+  IV(12) || ciphertextAndTag(24) = 36 bytes
 ~~~
 
-`NoPadding` là tên transformation đúng cho GCM, **không có nghĩa GCM bỏ authentication tag**. Tag nằm trong kết quả `doFinal`, không tự động nằm ở `GCMParameterSpec`. `GCMParameterSpec` chỉ chứa **tham số kỳ vọng** gồm tLen và IV, chứ không giữ tag đã sinh.
+`NoPadding` is the proper transformation name for GCM—it **does not mean GCM omits the authentication tag**. The tag sits inside the `doFinal` output, not inside `GCMParameterSpec`. `GCMParameterSpec` holds only the **expected parameters** (`tLen` and `IV`), not the generated tag.
 
-Nếu phải tương tác với thư viện/protocol tách trường ciphertext và tag riêng, hãy xác định rõ **độ dài tag bằng byte**, tách/ghép đúng thứ tự và dùng một định dạng được version hóa. Không nhầm 16 byte tag với 12 byte IV.
+If interoperating with a library/protocol that stores ciphertext and tag in separate fields, explicitly define **tag length in bytes**, split/join them in the exact order, and use a versioned format. Never confuse the 16-byte tag with the 12-byte IV.
 
-## 4. Quy tắc sống còn: không lặp IV dưới cùng khóa
+## 4. The Cardinal Rule: Never Repeat an IV Under the Same Key
 
-**Bất biến của AES-GCM: với mỗi khóa K, mỗi lần mã hóa phải sử dụng một IV/nonce N chưa từng sử dụng với K.** Nói cách khác, cặp **(K, N)** phải là duy nhất trong toàn bộ vòng đời sử dụng khóa cho encryption.
+**AES-GCM invariant: for each key K, every encryption must use an IV/nonce N never previously used with K.** In other words, the pair **(K, N)** must be unique across the entire encryption lifecycle of that key.
 
-### 4.1. Điều gì xảy ra nếu tái sử dụng?
+### 4.1. What Happens If It Is Reused?
 
-GCM dùng cách mã hóa dựa trên counter cùng cơ chế tính authentication tag. Nếu cùng `K` và `N` được dùng cho hai plaintext khác nhau, phần keystream có thể lặp. Trên cùng vị trí byte, quan hệ có dạng:
+GCM combines counter-based encryption with authentication tag calculation. If the same `K` and `N` are used for two different plaintexts, the keystream repeats. At matching byte positions, the relationship is:
 
 ~~~text
 C1 = P1 XOR stream(K, N)
 C2 = P2 XOR stream(K, N)
 
-C1 XOR C2 = P1 XOR P2   (ở những phần cùng vị trí)
+C1 XOR C2 = P1 XOR P2   (at overlapping positions)
 ~~~
 
-Kẻ tấn công có thể suy ra quan hệ giữa plaintext và khai thác điểm yếu xác thực; **reusing IV còn dẫn đến nguy cơ giả mạo tag**, không chỉ lộ thông tin. Đây không phải lỗi có thể “chữa” bằng việc tạo tag dài 128 bit, thêm AAD hoặc thay plaintext. Nếu cùng (K, N) đã dùng cho encryption thì tính an toàn thiết kế đã bị vi phạm.
+An attacker can deduce relationships between plaintexts and exploit authentication weaknesses; **reusing an IV also leads to tag forgery risks**, not just confidentiality leakage. This cannot be "fixed" by using a 128-bit tag, adding AAD, or changing plaintext. Once the same `(K, N)` has been used for encryption, the design's security guarantees are violated.
 
-**Phân biệt các trường hợp:**
+**Distinguish these cases:**
 
-| Trường hợp | Có hợp lệ theo quy tắc IV? |
+| Case | Valid Under the IV Rule? |
 | --- | --- |
-| Cùng key, **IV mới** cho từng encrypt | Có thể hợp lệ, nếu thực sự bảo đảm không trùng và các điều kiện khác của GCM được đáp ứng. |
-| Cùng key, cùng IV cho **hai lần encrypt** khác nhau | **Không hợp lệ**, kể cả plaintext/AAD khác. |
-| Cùng key, cùng IV dùng để **decrypt bản mã vừa tạo** | **Bắt buộc**, vì decrypt phải dùng đúng IV của ciphertext; đây không phải encrypt thêm lần nữa. |
-| Đổi sang key mới, IV trùng một giá trị của key cũ | Quy tắc duy nhất áp dụng theo cặp (key, IV); cần quản lý key đúng, không giả định một cấu hình đổi key đã thành công nếu chưa xác minh. |
-| Hai node cùng dùng K và cùng chọn N | **Không hợp lệ**, kể cả node và JVM khác nhau. |
-| Restart làm bộ đếm nonce quay về 0 trong khi dùng lại key | **Không hợp lệ**. |
-| Tạo `new GCMParameterSpec(128, oldIV)` cho lần encrypt mới | Vẫn **không hợp lệ** nếu oldIV đã được dùng với cùng key; đối tượng spec mới không khiến IV mới. |
+| Same key, **fresh IV** per encryption | Can be valid, if non-repetition is truly ensured and other GCM conditions are met. |
+| Same key, same IV for **two different encryptions** | **Invalid**, even if plaintext/AAD differ. |
+| Same key, same IV used to **decrypt the ciphertext just created** | **Required**, since decryption must use the ciphertext's exact IV; this is not another encryption. |
+| Rotating to a new key, IV matches a value used with the old key | Uniqueness applies per `(key, IV)` pair; manage keys properly and never assume a key change succeeded without verifying. |
+| Two nodes sharing K pick the same N | **Invalid**, even across different nodes and JVMs. |
+| Restart resets nonce counter to 0 while reusing the same key | **Invalid**. |
+| Creating `new GCMParameterSpec(128, oldIV)` for a new encryption | Still **invalid** if `oldIV` was already used under that key; a new spec object does not make the IV fresh. |
 
-### 4.2. Tại sao IV 96 bit (12 byte) thường được chọn?
+### 4.2. Why Is a 96-Bit (12-Byte) IV Usually Chosen?
 
-GCM xử lý IV **96 bit** theo đường đi đơn giản và hiệu quả: giá trị đầu của counter được tạo từ IV nối với hằng số cuối theo đặc tả. Khi IV dài khác 96 bit, GCM phải xử lý IV qua phép GHASH trước khi xây dựng trạng thái counter; một số provider có thể hỗ trợ nhưng không nên xem độ dài tùy ý là cấu hình mặc định.
+GCM processes a **96-bit** IV via a simple, efficient path: the initial counter value is formed by concatenating the IV with a specification-defined constant suffix. When an IV length differs from 96 bits, GCM must process the IV through GHASH before building the counter state; some providers may support other lengths, yet arbitrary lengths should not be treated as default configuration.
 
-96 bit ở đây là **độ dài IV**, không phải độ dài tag. Ví dụ dùng **nonce 12 byte và tag 16 byte** không có mâu thuẫn.
+96 bits here is the **IV length**, not the tag length. For example, using a **12-byte nonce and 16-byte tag** has no contradiction.
 
-IV không cần bí mật. Có thể lưu công khai ngay trước ciphertext; nhưng phải dùng đúng IV khi giải mã, và **không được tái sử dụng cho một phép mã hóa mới dưới cùng khóa**.
+The IV need not be secret. It can be stored publicly right before the ciphertext; however, the exact IV must be supplied during decryption, and **never reused for a new encryption under the same key**.
 
-### 4.3. Sinh IV ngẫu nhiên không phải bảo đảm tuyệt đối
+### 4.3. Random IV Generation Is Not an Absolute Guarantee
 
-Đối với mỗi lần encrypt có thể tạo 12 byte bằng `SecureRandom.nextBytes`:
+For each encryption, 12 bytes can be generated via `SecureRandom.nextBytes`:
 
 ~~~java
 byte[] iv = new byte[12];
@@ -174,71 +174,71 @@ new java.security.SecureRandom().nextBytes(iv);
 GCMParameterSpec spec = new GCMParameterSpec(128, iv);
 ~~~
 
-Đây là **mảnh minh họa**; thực tế nên quản lý đối tượng CSPRNG và vòng đời khóa theo thiết kế. CSPRNG tạo byte khó dự đoán; với IV ngẫu nhiên, **xác suất trùng là nhỏ nhưng không bằng 0**. Với không gian 96 bit, xác suất đụng sau nhiều lần sinh tăng theo hiệu ứng birthday (xấp xỉ tăng theo bình phương số lần dùng). NIST quy định các giới hạn số lần invocation dưới cùng key và các cách xây dựng IV tương ứng.
+This is an **illustrative snippet**; in practice, manage the CSPRNG instance and key lifecycle by design. A CSPRNG produces unpredictable bytes; with random IVs, **collision probability is tiny yet non-zero**. In a 96-bit space, collision risk grows over many invocations via the birthday effect (roughly proportional to the square of invocation count). NIST defines invocation limits under a single key and corresponding IV construction rules.
 
-Đối với hệ thống lưu lượng thấp với chính sách xoay khóa thích hợp, IV 96 bit ngẫu nhiên là một phương án thông dụng. Đối với hệ thống nhiều node, lưu lượng lớn hoặc cần **bảo đảm không trùng mạnh hơn xác suất**, nên dùng thiết kế cấp nonce có trạng thái/bộ đếm với cách phân vùng thích hợp.
+For low-volume systems with proper key rotation policies, random 96-bit IVs are a common choice. For multi-node, high-volume systems, or where **non-collision guarantees stronger than probability** are needed, use a stateful/counter-based nonce allocation design with proper partitioning.
 
-Không tự chọn một ngưỡng “an toàn” vô hạn cho `SecureRandom`. Giới hạn thực tế cần dựa trên đặc tả GCM, mức chấp nhận rủi ro, kích thước dữ liệu, số bản mã, kiến trúc và chính sách quản lý khóa.
+Never invent an infinite "safe" threshold for `SecureRandom`. Actual limits must be grounded in the GCM specification, risk tolerance, data sizes, ciphertext count, architecture, and key management policy.
 
-### 4.4. Bộ đếm nonce có thể dùng, nhưng phải quản lý toàn hệ thống
+### 4.4. Counter Nonces Work, But Require System-Wide Management
 
-Một chiến lược khác là cấp mỗi encryption một **giá trị duy nhất** từ bộ đếm hoặc không gian nonce phân vùng:
+Another strategy allocates each encryption a **unique value** from a counter or partitioned nonce space:
 
 ~~~text
-96-bit IV = prefix riêng của key/node || counter tăng một chiều
+96-bit IV = per-key/node prefix || monotonically increasing counter
 
 Node A -> prefixA || 000001, prefixA || 000002, ...
 Node B -> prefixB || 000001, prefixB || 000002, ...
-                   ^ prefixA khác prefixB và được cấp không trùng
+                   ^ prefixA differs from prefixB and is uniquely allocated
 ~~~
 
-Sơ đồ chỉ minh họa ý tưởng, **không quy định một cách chia bit cụ thể cho mọi hệ thống**. Muốn an toàn thực sự cần xác định:
+This diagram only illustrates the concept—**it does not prescribe a universal bit split for all systems**. True safety requires defining:
 
-- Ai cấp prefix/namespace và làm sao biết hai node không nhận cùng prefix.
-- Làm sao lưu trạng thái counter **bền vững**, không lặp lại sau crash, restore backup, scale-out hoặc rollback deployment.
-- Làm sao xử lý nhiều thread/request cùng lúc để không cấp một IV hai lần.
-- Giới hạn tối đa của counter và việc thay key trước khi bộ đếm quay vòng.
-- Vòng đời key, version/key ID và cơ chế rotate phối hợp cùng thuật toán sinh IV.
-- Chính sách của chuẩn/giao thức: không tự phối trộn cơ chế IV random và deterministic với cùng key khi không được đặc tả/đánh giá.
+- Who assigns prefixes/namespaces and how two nodes are prevented from receiving the same prefix.
+- How counter state is **durably persisted** so it never repeats after crashes, backup restores, scale-outs, or deployment rollbacks.
+- How concurrent threads/requests are synchronized so no IV is ever issued twice.
+- The maximum counter bound and key rotation before counter wraparound.
+- Key lifecycle, version/key ID, and rotation mechanisms coordinated with IV generation.
+- Protocol/standard policy: never mix random and deterministic IV constructions under the same key unless formally specified and evaluated.
 
-**Không dùng timestamp trực tiếp làm IV vì nghĩ thời gian luôn tăng**: độ phân giải đồng hồ, điều chỉnh thời gian, nhiều node và restart có thể gây trùng.
+**Never use a raw timestamp as an IV assuming time always moves forward**: clock resolution, clock skew/adjustments, multiple nodes, and restarts can cause collisions.
 
-### 4.5. `Cipher` không thay hệ thống quản lý uniqueness
+### 4.5. `Cipher` Does Not Replace System-Wide Uniqueness Management
 
-Một số provider có thể phát hiện việc **cùng một đối tượng `Cipher`** được khởi tạo lại cho encryption bằng một cặp key/IV vừa sử dụng. Đây không phải cơ chế chống reuse trên toàn hệ thống. Một đối tượng `Cipher` mới, JVM mới hoặc node khác không có danh sách toàn cục của mọi IV mà khóa đã từng dùng. **Không dựa vào exception của provider như lớp bảo vệ cuối cùng.**
+Some providers detect if the **same `Cipher` instance** is re-initialized for encryption with the exact `(key, IV)` pair just used. That is not a system-wide anti-reuse mechanism. A new `Cipher` instance, new JVM, or another node has no global registry of every IV ever used with a key. **Never rely on a provider exception as your last line of defense.**
 
-## 5. Chu trình đúng của một phép mã hóa/giải mã AES-GCM
+## 5. Correct Lifecycle of an AES-GCM Encryption/Decryption
 
 ### 5.1. Encryption
 
-1. Lấy đúng khóa AES `K` (và quyền sử dụng khóa) từ hệ thống quản lý khóa.
-2. Cấp IV **mới với K** theo chiến lược đã chọn; ví dụ 12 byte từ CSPRNG dưới mức tải được thiết kế.
-3. Tạo `GCMParameterSpec(128, iv)`; gọi `Cipher.getInstance("AES/GCM/NoPadding")`.
-4. `cipher.init(Cipher.ENCRYPT_MODE, key, spec)`.
-5. Nếu có AAD, gọi `cipher.updateAAD(aad)` **trước** bất kỳ `update(...)` hoặc `doFinal(...)` nào xử lý plaintext.
-6. Gọi `doFinal(plaintext)` nhận ciphertext và tag; lưu/truyền cùng IV, version, key ID, AAD/context được định nghĩa trong giao thức.
+1. Retrieve the right AES key `K` (and key-usage authorization) from the key management system.
+2. Allocate a **fresh IV for K** using the chosen strategy; e.g., 12 bytes from CSPRNG within designed load limits.
+3. Create `GCMParameterSpec(128, iv)`; obtain `Cipher.getInstance("AES/GCM/NoPadding")`.
+4. Call `cipher.init(Cipher.ENCRYPT_MODE, key, spec)`.
+5. If AAD exists, call `cipher.updateAAD(aad)` **before** any `update(...)` or `doFinal(...)` calls processing plaintext.
+6. Call `doFinal(plaintext)` to obtain ciphertext and tag; store/transmit along with IV, version, key ID, and protocol-defined AAD/context.
 
 ### 5.2. Decryption
 
-1. Kiểm tra version, kích thước tối thiểu, kích thước IV và tag theo định dạng **đã thỏa thuận**; không để attacker chọn tag length tùy ý.
-2. Lấy đúng khóa K bằng key ID/phiên bản tin cậy; đọc IV đã đi kèm ciphertext.
-3. `cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv))`.
-4. Cung cấp **chính xác cùng byte AAD** (nếu có) trước xử lý ciphertext.
-5. `doFinal(ciphertextAndTag)`: nếu xác thực thất bại, xử lý `AEADBadTagException` và **từ chối dữ liệu**. Không dùng plaintext chưa xác thực.
+1. Validate version, minimum length, IV length, and tag length per the **agreed format**; never let an attacker choose an arbitrary tag length.
+2. Resolve the right key K using a trusted key ID/version; read the IV accompanying the ciphertext.
+3. Call `cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv))`.
+4. Supply the **exact same AAD bytes** (if any) before processing ciphertext.
+5. Call `doFinal(ciphertextAndTag)`: if verification fails, handle `AEADBadTagException` and **reject the data**. Never use unauthenticated plaintext.
 
-**Không phải sinh IV mới lúc decrypt.** IV mới chỉ cần cho **lần encrypt mới** với cùng key; decrypt phải dùng IV đã lưu của bản mã ban đầu.
+**Do not generate a new IV on decryption.** A new IV is only for **new encryptions** under the same key; decryption must use the saved IV from the original ciphertext.
 
-### 5.3. AAD và thứ tự gọi API
+### 5.3. AAD and API Call Ordering
 
-`updateAAD` dành cho metadata cần xác thực nhưng không giấu. Ví dụ encrypt dữ liệu thuộc record `"record:v1"`: phải truyền đúng byte `"record:v1"` khi decrypt, nếu truyền `"record:v2"` thì tag không hợp lệ. Trong Java JCE, mọi AAD của GCM phải được cung cấp **trước khi bắt đầu xử lý dữ liệu** bằng `update`/`doFinal`.
+`updateAAD` is for metadata requiring authentication without hiding it. For example, when encrypting data belonging to `"record:v1"`, you must supply the exact bytes `"record:v1"` on decryption; supplying `"record:v2"` fails tag verification. In Java JCE, all GCM AAD must be fed **before processing payload data** via `update`/`doFinal`.
 
-GCM xác thực dữ liệu **sau khi nhận đủ input và tag**. Nếu dùng chế độ streaming hoặc provider trả ra dữ liệu trước khi xác minh, ứng dụng không được thực thi, hiển thị hoặc phát tán plaintext chưa được xác thực; chỉ chấp nhận nó sau khi `doFinal` thành công.
+GCM authenticates data **after receiving full input and tag**. When using streaming modes or providers that emit intermediate output before verification, applications must never execute, display, or propagate unauthenticated plaintext; accept it only after `doFinal` succeeds.
 
-## 6. Java 17+: chương trình encrypt/decrypt hoàn chỉnh
+## 6. Java 17+: Complete Encrypt/Decrypt Program
 
-Ví dụ tạo khóa AES-128 chỉ trong bộ nhớ, sử dụng IV 12 byte mới và tag 128 bit, lưu envelope dạng `IV || ciphertext || tag`. Chương trình dùng `"xin chao"` (8 byte UTF-8) để kết quả về độ dài là cố định dù IV ngẫu nhiên mỗi lần.
+The example generates an AES-128 key in memory only, uses a fresh 12-byte IV and 128-bit tag, and stores the envelope as `IV || ciphertext || tag`. The program uses `"xin chao"` (8 UTF-8 bytes) so length results stay fixed even though the IV is randomized each run.
 
-**Tệp: `GcmRecordDemo.java`**
+**File: `GcmRecordDemo.java`**
 
 ~~~java
 import java.nio.ByteBuffer;
@@ -322,14 +322,14 @@ public class GcmRecordDemo {
 }
 ~~~
 
-Chạy bằng Java 17+ ở thư mục chứa tệp:
+Run with Java 17+ in the folder containing the file:
 
 ~~~bash
 javac GcmRecordDemo.java
 java GcmRecordDemo
 ~~~
 
-Stdout kiểm chứng (không in IV ngẫu nhiên):
+Verified stdout (no random IV printed):
 
 ~~~text
 Tag bits: 128
@@ -340,28 +340,28 @@ Tampered record rejected: true
 Wrong AAD rejected: true
 ~~~
 
-**Giải thích từng phần:**
+**Part-by-part explanation:**
 
-- `keys.init(128)` là độ dài khóa AES **128 bit**; `TAG_BITS=128` là độ dài **tag 128 bit**; `IV_BYTES=12` là **IV 96 bit**. Ba tham số mang ý nghĩa khác nhau.
-- `seal` luôn sinh IV mới trước một lần encrypt. Không dùng một biến IV toàn cục cố định, không dùng `new byte[12]` làm IV thực.
-- `enc.updateAAD(aad)` xác thực metadata không mã hóa. `enc.doFinal(message)` trả **8 byte ciphertext + 16 byte tag = 24 byte**. Envelope thêm **12 byte IV**, tổng **36 byte**.
-- `open` lấy IV từ envelope; không sinh IV mới. Đồng thời nó kiểm tra độ dài tối thiểu 12 + 16 byte trước khi cắt mảng.
-- Đảo một bit ở cuối envelope (trong tag) dẫn đến `AEADBadTagException`; AAD khác cũng bị từ chối. Đó là hành vi mong muốn; không xử lý ngoại lệ bằng cách trả về dữ liệu chưa xác thực.
-- Đây là **ví dụ API trên một process**, chưa có giới hạn lượng bản mã, rotation, key ID hay phối hợp nonce xuyên node. Không triển khai nguyên xi như dịch vụ mã hóa nhiều node ở quy mô lớn.
+- `keys.init(128)` sets the **128-bit** AES key size; `TAG_BITS=128` sets the **128-bit tag length**; `IV_BYTES=12` sets the **96-bit IV**. These three parameters serve distinct roles.
+- `seal` always generates a fresh IV before each encryption. Never use a fixed global IV variable or `new byte[12]` as a real IV.
+- `enc.updateAAD(aad)` authenticates unencrypted metadata. `enc.doFinal(message)` returns **8 bytes ciphertext + 16 bytes tag = 24 bytes**. The envelope prepends **12 bytes IV**, totaling **36 bytes**.
+- `open` reads the IV from the envelope; it does not generate a new IV. It also checks the minimum length of 12 + 16 bytes before slicing arrays.
+- Flipping one bit at the end of the envelope (inside the tag) triggers `AEADBadTagException`; mismatched AAD is also rejected. That is the intended behavior; never handle the exception by returning unauthenticated data.
+- This is a **single-process API example**, lacking ciphertext count limits, rotation, key IDs, or cross-node nonce coordination. Do not deploy it verbatim as a large-scale multi-node encryption service.
 
-Mỗi lời gọi `seal` tạo một `Cipher` mới. `Cipher` là đối tượng có trạng thái, không nên chia sẻ giữa các luồng để encrypt/decrypt cùng lúc. `SecureRandom` có thể được quản lý như một nguồn CSPRNG dùng chung theo hợp đồng API; sự phù hợp về an toàn nonce ở quy mô hệ thống vẫn phải do ứng dụng bảo đảm.
+Each call to `seal` creates a fresh `Cipher`. `Cipher` is stateful and must not be shared across threads for concurrent encrypt/decrypt calls. `SecureRandom` can be managed as a shared CSPRNG per API contract; system-wide nonce safety must still be guaranteed by the application.
 
-## 7. Java 17+: kiểm tra tag, IV copy và test vector cố định
+## 7. Java 17+: Verifying Tag, IV Copying, and Fixed Test Vector
 
-Ví dụ thứ hai **chỉ phục vụ kiểm thử** dùng khóa AES-128 toàn byte 0, IV 96 bit toàn byte 0 và plaintext 16 byte toàn byte 0. Đây là **known-answer test vector** được dùng trong tài liệu/kiểm thử AES-GCM; **không dùng key/IV cố định này để encrypt dữ liệu thật**.
+The second example **is strictly for testing**, using an all-zero AES-128 key, all-zero 96-bit IV, and all-zero 16-byte plaintext. This is a **known-answer test vector** used in AES-GCM specifications/tests; **never use this fixed key/IV to encrypt real data**.
 
-Bài test chứng minh:
-- `getTLen()` trả **bit**, còn IV lấy ra là **mảng byte**.
-- Constructor và `getIV()` sao chép IV để tránh thay đổi ngầm.
-- Với plaintext 16 byte, `doFinal` trả 16 byte ciphertext + 16 byte tag = 32 byte.
-- Ciphertext và tag đúng giá trị chuẩn dự kiến.
+The test demonstrates:
+- `getTLen()` returns **bits**, whereas the extracted IV is a **byte array**.
+- Both the constructor and `getIV()` copy the IV to prevent silent mutation.
+- With 16-byte plaintext, `doFinal` returns 16 bytes ciphertext + 16 bytes tag = 32 bytes.
+- Ciphertext and tag match expected standard values.
 
-**Tệp: `GcmKnownAnswerDemo.java`**
+**File: `GcmKnownAnswerDemo.java`**
 
 ~~~java
 import java.security.GeneralSecurityException;
@@ -378,9 +378,9 @@ public class GcmKnownAnswerDemo {
         byte[] plaintext = new byte[16];
 
         GCMParameterSpec params = new GCMParameterSpec(128, iv);
-        iv[0] = 1; // Mảng nguồn đổi, IV trong params không đổi.
+        iv[0] = 1; // Source array changes; IV inside params stays unchanged.
         byte[] ivCopy = params.getIV();
-        ivCopy[1] = 1; // Mảng trả về đổi, params vẫn giữ IV ban đầu.
+        ivCopy[1] = 1; // Returned array changes; params still retains original IV.
 
         System.out.println("IV is copied: "
                 + Arrays.equals(params.getIV(), new byte[12]));
@@ -422,112 +422,112 @@ Known vector matches: true
 Recovered zero block: true
 ~~~
 
-Chú ý không sao chép ý tưởng `new byte[12]` làm IV cố định từ **test vector** sang production. Chương trình trên **chỉ mã hóa một lần với một key/IV kiểm thử**, sau đó decrypt cùng ciphertext bằng đúng thông số.
+Be careful not to copy the `new byte[12]` fixed-IV idea from a **test vector** into production. The program above **encrypts only once with a test key/IV**, then decrypts that ciphertext with the exact same parameters.
 
-## 8. Thiết kế định dạng bản mã và quản lý khóa/IV
+## 8. Designing Ciphertext Formats and Key/IV Management
 
-Một hệ thống thực thường cần **envelope có version** để xác định các tham số được hỗ trợ. Ví dụ định dạng logic:
+Real systems generally need a **versioned envelope** to identify supported parameters. Example logical format:
 
 ~~~text
 Record {
   version: 1,
-  algorithm: "AES/GCM/NoPadding",    // cố định theo version
-  keyId: "key-2026-10",             // tra đúng khóa trong KMS
-  tagBits: 128,                    // cố định/được kiểm tra theo version
+  algorithm: "AES/GCM/NoPadding",    // fixed by version
+  keyId: "key-2026-10",             // resolves exact key in KMS
+  tagBits: 128,                    // fixed/checked by version
   iv: 12-byte nonce,
-  aadContext: metadata đã ràng buộc với record,
+  aadContext: metadata bound to record,
   ciphertextAndTag: ciphertext || 16-byte authentication tag
 }
 ~~~
 
-Đây là mô hình thiết kế, **không phải JSON chứa key**; trường `keyId` chỉ là định danh. Nếu encode byte bằng Base64URL/hex, phải decode/validate về đúng số byte. Không tin cậy giá trị do người gửi tự khai như `tagBits=32` để lách chính sách; thông số hợp lệ phải xuất phát từ định dạng/giao thức đã chọn. Giá trị `keyId` và metadata cần được ràng buộc/xác thực phù hợp, ví dụ nằm trong AAD của record.
+This is a design model, **not JSON containing a key**; `keyId` is merely an identifier. If encoding bytes as Base64URL/hex, decode and validate exact byte lengths. Never trust sender-supplied policy overrides such as `tagBits=32` to bypass rules; valid parameters must come from the chosen format/protocol. Values like `keyId` and metadata should be properly bound/authenticated, e.g., inside the record's AAD.
 
-Nếu dùng `Cipher.init(Cipher.ENCRYPT_MODE, key)` mà **để provider tự tạo IV**, vẫn phải lấy IV sau init (ví dụ `cipher.getIV()` hoặc `cipher.getParameters().getParameterSpec(GCMParameterSpec.class)` nếu được hỗ trợ), xác minh độ dài/tag theo giao thức và lưu lại cùng kết quả. Không giả định decrypt tự suy ra IV từ ciphertext hoặc Java tự lưu nonce trên disk.
+If using `Cipher.init(Cipher.ENCRYPT_MODE, key)` and **letting the provider auto-generate an IV**, you must still retrieve the IV after `init` (e.g., via `cipher.getIV()` or `cipher.getParameters().getParameterSpec(GCMParameterSpec.class)` if supported), verify its length/tag per protocol, and persist it with the output. Never assume decryption infers the IV from ciphertext or that Java automatically saves nonces to disk.
 
-Các hệ thống thực tế nên có:
+Production systems should include:
 
-1. **Key ID và rotation:** biết ciphertext được mã hóa bằng khóa nào; quản lý khóa trước và sau rotation.
-2. **Quy tắc cấp IV/nonce:** cấp phát mới, không lặp trong phạm vi key, bảo vệ trước restart/rollback/multi-node.
-3. **Giới hạn sử dụng mỗi khóa:** lượng encryption, kích thước dữ liệu, độ dài tag, thuật toán và giới hạn của NIST/protocol.
-4. **Metadata và AAD:** các trường liên quan đến ngữ cảnh (tenant, loại bản ghi, version, quyền truy cập) được xác thực nhất quán.
-5. **Kiểm tra đầu vào:** giới hạn kích thước trước khi cấp bộ nhớ, validate IV/tag và phiên bản; tránh dữ liệu hỏng làm cạn bộ nhớ.
-6. **Xử lý lỗi:** log thông tin an toàn về bản ghi/loại lỗi; không log khóa, plaintext nhạy cảm hay ghi nhận ciphertext giả mạo là đã giải mã.
-7. **Chống rollback/replay theo nghiệp vụ:** AEAD xác thực bản mã nhưng **không tự ngăn việc phát lại một bản mã cũ vẫn hợp lệ**. Nếu cần freshness/thứ tự phiên bản, phải có state/version/sequence kiểm chứng ở tầng ứng dụng.
+1. **Key ID and rotation:** know which key encrypted a ciphertext; manage keys before and after rotation.
+2. **IV/nonce allocation rules:** issue fresh, non-repeating IVs per key, safe across restarts/rollbacks/multi-node setups.
+3. **Per-key usage limits:** encryption count, data size, tag length, algorithm, and NIST/protocol limits.
+4. **Metadata and AAD:** context-relevant fields (tenant, record type, version, access scope) authenticated consistently.
+5. **Input validation:** enforce size limits before allocating memory, validate IV/tag and version; prevent malformed input from exhausting memory.
+6. **Error handling:** log safe metadata about record/error type; never log keys, sensitive plaintext, or treat forged ciphertexts as decrypted.
+7. **Business-level rollback/replay protection:** AEAD authenticates a ciphertext yet **does not prevent replaying an older valid ciphertext**. When freshness/version ordering is needed, enforce state/version/sequence checks at the application layer.
 
-## 9. Những sai lầm thường gặp
+## 9. Common Mistakes
 
-| Sai lầm | Hậu quả / nguyên nhân | Cách đúng |
+| Mistake | Consequence / Cause | Correct Approach |
 | --- | --- | --- |
-| `new GCMParameterSpec(16, iv)` vì muốn tag 16 byte | `tLen` tính bằng **bit**; truyền 16 có thể bị provider từ chối và sai bảo mật. | `new GCMParameterSpec(128, iv)`. |
-| Cho rằng IV 12 byte tức tag 12 byte | Hai tham số độc lập. | IV 12 byte, tag 16 byte là cấu hình thông dụng. |
-| `new GCMParameterSpec(128, constantIV)` cho mọi encrypt | Tái sử dụng (K, IV) khi dùng lại key. | Cấp IV mới thực sự cho **mỗi encryption**. |
-| Dùng cùng key/IV nhưng AAD hoặc plaintext khác | Vẫn vi phạm uniqueness; tag mới không cứu thiết kế. | Cặp (key, IV) không bao giờ lặp cho encryption. |
-| Sinh random 96 bit rồi cho rằng “không thể trùng” | Random có xác suất va chạm, tăng theo lượng bản mã. | Giới hạn invocation/rotation hoặc cấu trúc cấp IV bảo đảm uniqueness. |
-| Bộ đếm reset về 0 khi service restart | Có thể phát sinh cặp (key, IV) cũ. | Counter bền vững, dự phòng rollback, prefix/node được cấp không trùng. |
-| Tự cho rằng provider phát hiện mọi nonce reuse | Provider không có registry toàn hệ thống. | Bảo đảm ở tầng giao thức/ứng dụng. |
-| Không lưu IV rồi tạo IV mới khi decrypt | Không xác thực/giải mã được ciphertext. | Lưu IV công khai cùng ciphertext; dùng đúng IV cũ khi decrypt. |
-| `updateAAD` sau `update`/`doFinal` | Trái thứ tự GCM; có thể ném `IllegalStateException`. | AAD **trước** dữ liệu ciphertext/plaintext. |
-| Bỏ tag hoặc tách nhầm tag khỏi ciphertext | Xác thực thất bại hoặc sai định dạng. | Cấu hình tLen cố định; truyền đúng ciphertext + tag. |
-| Bắt `AEADBadTagException` rồi trả plaintext “thử được” | Chấp nhận dữ liệu chưa được xác thực. | Từ chối bản mã và báo lỗi có kiểm soát. |
-| Nhìn thấy `GCMParameterSpec` được tạo là nghĩ cấu hình được hỗ trợ | Constructor không kiểm tra đầy đủ mọi hạn chế provider. | Kiểm tra tại `Cipher.init` và chạy thử trên provider môi trường đích. |
-| Giảm tag xuống 32/64 bit để tiết kiệm băng thông | Giảm an toàn, cần ràng buộc đặc biệt theo NIST. | Ưu tiên tag 128 bit khi không có yêu cầu đã đánh giá riêng. |
-| Dùng `Cipher.getInstance("AES")` không chỉ định mode | Mode/padding phụ thuộc provider, không nhất thiết là GCM. | Dùng `"AES/GCM/NoPadding"` tường minh. |
-| Coi IV bí mật hơn khóa hoặc log plaintext/key | Sai ưu tiên bảo vệ. | Giữ kín khóa và plaintext; IV thường công khai nhưng phải đúng và unique. |
-| Dùng cùng `Cipher` từ nhiều thread | `Cipher` có trạng thái và không được xem là thread-safe. | Tạo instance riêng cho mỗi thao tác. |
-| Chỉ có GCM rồi tưởng đã chống replay | Ciphertext hợp lệ cũ có thể được phát lại nguyên vẹn. | Thêm sequence/version, freshness và policy cấp ứng dụng khi cần. |
+| `new GCMParameterSpec(16, iv)` aiming for a 16-byte tag | `tLen` is in **bits**; passing 16 may be rejected by the provider and weakens security. | `new GCMParameterSpec(128, iv)`. |
+| Assuming a 12-byte IV means a 12-byte tag | The two parameters are independent. | 12-byte IV with 16-byte tag is the standard configuration. |
+| `new GCMParameterSpec(128, constantIV)` for every encryption | Reuses `(K, IV)` when reusing the key. | Allocate a genuinely fresh IV for **each encryption**. |
+| Same key/IV with different AAD or plaintext | Still violates uniqueness; a new tag does not save the design. | `(key, IV)` pairs must never repeat for encryption. |
+| Generating 96 random bits assuming "collision is impossible" | Randomness has non-zero collision probability that grows with ciphertext count. | Limit invocations/rotate keys or use a uniqueness-enforcing IV scheme. |
+| Counter resets to 0 on service restart | Can regenerate old `(key, IV)` pairs. | Durable counter, rollback protection, non-overlapping node prefixes. |
+| Assuming the provider detects all nonce reuse | Providers lack a system-wide registry. | Enforce uniqueness at the protocol/application layer. |
+| Failing to save the IV and generating a new one on decryption | Cannot authenticate/decrypt ciphertext. | Store IV publicly alongside ciphertext; pass the exact old IV on decryption. |
+| Calling `updateAAD` after `update`/`doFinal` | Violates GCM ordering; may throw `IllegalStateException`. | AAD **before** ciphertext/plaintext data. |
+| Dropping the tag or splitting the tag wrong from ciphertext | Verification fails or format breaks. | Fix `tLen`; pass exact `ciphertext + tag`. |
+| Catching `AEADBadTagException` and returning "attempted" plaintext | Accepts unauthenticated data. | Reject the record and report a controlled error. |
+| Seeing `GCMParameterSpec` construct cleanly and assuming support | Constructor does not check all provider restrictions. | Verify at `Cipher.init` and test on the target environment's provider. |
+| Dropping tag to 32/64 bits to save bandwidth | Weakens security and invokes strict NIST limits. | Prefer 128-bit tags unless a specialized evaluated design requires otherwise. |
+| Calling `Cipher.getInstance("AES")` without mode | Mode/padding depends on provider, not necessarily GCM. | Specify `"AES/GCM/NoPadding"` explicitly. |
+| Treating the IV as more secret than the key or logging plaintext/key | Wrong protection priorities. | Keep keys and plaintext secret; IV is typically public yet must be accurate and unique. |
+| Sharing one `Cipher` across threads | `Cipher` is stateful and not thread-safe. | Use a separate instance per operation. |
+| Having GCM and assuming replay protection is covered | Old valid ciphertexts can be replayed intact. | Add sequence/version, freshness, and application-level policies as needed. |
 
-## 10. Tình huống chẩn đoán
+## 10. Diagnostic Scenarios
 
-**Tình huống A: `InvalidAlgorithmParameterException` khi `init`.** Trước tiên kiểm tra `spec.getTLen()` là 128 **bit**, `spec.getIV().length` là 12 **byte** và provider có hỗ trợ thông số không. Phân biệt lỗi này với `AEADBadTagException` khi xác thực decrypt.
+**Scenario A: `InvalidAlgorithmParameterException` on `init`.** First check that `spec.getTLen()` is 128 **bits**, `spec.getIV().length` is 12 **bytes**, and the provider supports the parameters. Distinguish this from `AEADBadTagException` during decryption verification.
 
-**Tình huống B: Encrypt chạy tốt, decrypt luôn `AEADBadTagException`.** Kiểm tra cùng khóa đúng version, IV đúng 12 byte gốc, đúng cách ghép ciphertext||tag, AAD byte-for-byte giống nhau, cùng tag length. Không thử “bỏ kiểm tra tag” để làm cho decrypt hoạt động.
+**Scenario B: Encryption works, decryption always throws `AEADBadTagException`.** Check that the exact same key and version are used, the exact 12-byte original IV is used, `ciphertext||tag` is joined properly, AAD matches byte-for-byte, and tag length matches. Never try "disabling tag verification" to make decryption succeed.
 
-**Tình huống C: Mỗi service đều tạo `SecureRandom` và mỗi request sinh 12 byte IV.** Cách này có xác suất va chạm rất thấp ở tải phù hợp, nhưng không cho bằng chứng tuyệt đối về uniqueness xuyên service; phải đánh giá số lần encrypt trên cùng key và chính sách xoay khóa.
+**Scenario C: Every service creates a `SecureRandom` and generates 12 IV bytes per request.** This yields very low collision odds at moderate load, yet provides no absolute proof of cross-service uniqueness; you must evaluate total encryptions per key and key rotation policies.
 
-**Tình huống D: Hai node dùng cùng key và cùng counter tăng từ 0.** Đây là **lỗi chắc chắn**: khi cả hai cùng cấp nonce 0, 1, 2... sẽ tái sử dụng (K, IV). Cần phân vùng nonce và cấp prefix/namespace không trùng hoặc sử dụng dịch vụ điều phối counter.
+**Scenario D: Two nodes share a key and both run a counter starting at 0.** This is a **guaranteed bug**: once both issue nonces 0, 1, 2..., `(K, IV)` reuse occurs. Partition nonce spaces with unique prefixes/namespaces or use a coordinated counter service.
 
-**Tình huống E: Tag 128 bit nhưng người vận hành đổi tLen xuống 96 để giảm kích thước record.** Giảm 4 byte trên mỗi bản mã không phải thay đổi định dạng vô hại; phải có protocol/version mới, thẩm định giới hạn và kiểm chứng provider. Với cùng khóa, không thay tLen tùy ý.
+**Scenario E: Tag was 128 bits, then an operator lowers `tLen` to 96 to shrink record size.** Shaving 4 bytes per record is not a harmless formatting tweak; it requires a new protocol/version, security bound review, and provider verification. Never change `tLen` arbitrarily under the same key.
 
-**Tình huống F: Đổi IV của record lưu trữ và thử decrypt.** GCM không nhận sai IV; xác thực thất bại với xác suất áp đảo. Tình huống này khác với **encrypt lại cùng key + old IV** vốn đã vi phạm giới hạn sử dụng ngay khi thực hiện.
+**Scenario F: Modifying a stored record's IV and attempting to decrypt.** GCM rejects mismatched IVs; verification fails with overwhelming probability. This differs from **re-encrypting with the same key + old IV**, which violates usage constraints the moment encryption happens.
 
-## 11. Câu hỏi tự kiểm tra (kèm đáp án)
+## 11. Self-Check Questions (with Answers)
 
-**Câu 1.** `new GCMParameterSpec(128, new byte[12])` có nghĩa IV dài 128 bit hay tag dài 128 bit?
+**Q1.** Does `new GCMParameterSpec(128, new byte[12])` mean a 128-bit IV or a 128-bit tag?
 
-**Đáp án:** Tag dài 128 bit (**16 byte**); IV dài 12 byte (**96 bit**). Mảng IV toàn 0 ở ví dụ câu hỏi không được tái sử dụng trong encryption thực.
+**A:** A 128-bit (**16-byte**) tag; the IV is 12 bytes (**96 bits**). The all-zero IV array in the question's snippet must never be reused in real encryption.
 
-**Câu 2.** Dùng lại cùng (key, IV) để decrypt chính bản mã đã lưu có vi phạm không?
+**Q2.** Does reusing the same `(key, IV)` to decrypt a stored ciphertext violate the rule?
 
-**Đáp án:** Không. **Decrypt phải dùng đúng key và IV đã encrypt**. Quy tắc không lặp áp dụng cho **các lần encryption mới** dưới cùng key.
+**A:** No. **Decryption must use the exact key and IV used to encrypt**. The non-repetition rule applies to **new encryption operations** under the same key.
 
-**Câu 3.** Có thể sinh nonce bằng bộ đếm 64-bit không?
+**Q3.** Can nonces be generated from a 64-bit counter?
 
-**Đáp án:** Có thể trong một thiết kế tạo IV 96 bit theo giao thức phù hợp, nếu kết hợp prefix/namespace và quản lý bộ đếm để toàn bộ IV không trùng với cùng khóa, kể cả multi-node/restart. Không lấy con số 64 bit rồi truyền vào mọi API như IV hợp lệ mặc định.
+**A:** Yes, within a proper 96-bit IV protocol design, if combined with a prefix/namespace and counter management ensuring the full IV never repeats under the same key, even across multi-node/restarts. Do not pass a raw 64-bit integer into arbitrary APIs expecting it to work as a default valid IV.
 
-**Câu 4.** Tag 128 bit có ngăn tác hại tái sử dụng IV cùng key không?
+**Q4.** Does a 128-bit tag prevent the harm of reusing an IV under the same key?
 
-**Đáp án:** Không. Reuse khiến GCM có nguy cơ mất cả bí mật và xác thực; tag dài không sửa được lỗi nonce reuse.
+**A:** No. Reuse puts GCM at risk of losing both confidentiality and authenticity; a long tag cannot fix nonce reuse.
 
-**Câu 5.** Sau khi mã hóa GCM, byte `cipher.doFinal` trả ra đã bao gồm tag chưa?
+**Q5.** After GCM encryption, do the bytes returned by `cipher.doFinal` already include the tag?
 
-**Đáp án:** Có. `Cipher` AEAD của Java gắn tag vào ciphertext khi encrypt, và xác minh tag khi decrypt. Nếu envelope còn có IV thì phải tự ghép/lưu IV như giao thức quy định.
+**A:** Yes. Java's AEAD `Cipher` appends the tag to ciphertext on encryption and verifies the tag on decryption. If the envelope also carries the IV, you must prepend/store the IV per protocol.
 
-**Câu 6.** Nếu AAD không cần mã hóa, có thể bỏ qua nó khi decrypt không?
+**Q6.** Since AAD is not encrypted, can it be omitted during decryption?
 
-**Đáp án:** Không nếu AAD đã được dùng khi encrypt. Decrypt phải cung cấp đúng AAD byte-for-byte để tag khớp.
+**A:** No, if AAD was supplied during encryption. Decryption must supply the exact byte-for-byte AAD for the tag to match.
 
-**Câu 7.** Constructor `GCMParameterSpec(32, iv)` chạy được có nghĩa tag 32 bit dùng an toàn không?
+**Q7.** If `GCMParameterSpec(32, iv)` runs without error, does that mean a 32-bit tag is safe?
 
-**Đáp án:** Không. Constructor không đủ để đánh giá chuẩn, provider và chính sách bảo mật. Tag 32 bit chỉ có phạm vi ứng dụng đặc biệt với ràng buộc nghiêm ngặt của NIST và không phù hợp làm cấu hình chung.
+**A:** No. The constructor does not verify standards compliance, provider rules, or security policy. A 32-bit tag applies only to specialized scenarios under strict NIST constraints and is unsuitable for general use.
 
-**Câu 8.** Nếu một record dùng key K1, IV N; record khác dùng key K2, IV N thì có chắc chắn lặp nonce dưới cùng key không?
+**Q8.** If one record uses key K1 and IV N, and another uses key K2 and IV N, is that a nonce collision under the same key?
 
-**Đáp án:** Không, nếu K1 và K2 thực sự là hai khóa AES khác nhau. Ràng buộc uniqueness là trên cặp (K, IV). Tuy nhiên việc xác định khóa và rotation phải đáng tin cậy.
+**A:** No, provided K1 and K2 are genuinely distinct AES keys. The uniqueness invariant applies to `(K, IV)` pairs. However, key identification and rotation must be reliable.
 
-## 12. Tài liệu tham khảo
+## 12. References
 
-- [Java SE 17 — GCMParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): `tLen` theo bit, các constructor, sao chép IV và `getIV()`.
-- [Java SE 17 — Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): AEAD, thứ tự `updateAAD`, tag kèm ciphertext, yêu cầu không lặp IV.
-- [Java SE 17 — SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): tạo byte ngẫu nhiên thích hợp cho bảo mật.
-- [NIST SP 800-38D — GCM and GMAC](https://csrc.nist.gov/pubs/sp/800/38/d/final): độ dài tag hợp lệ, xây dựng IV 96 bit và các giới hạn sử dụng GCM.
-- [RFC 5116 — An Interface and Algorithms for Authenticated Encryption](https://www.rfc-editor.org/rfc/rfc5116): AEAD interface và cách nhìn tổng thể về nonce, plaintext, ciphertext và AAD.
+- [Java SE 17 — GCMParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): `tLen` in bits, constructors, IV copying, and `getIV()`.
+- [Java SE 17 — Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): AEAD, `updateAAD` order, tag with ciphertext, non-repeating IV requirement.
+- [Java SE 17 — SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): generating cryptographically strong random bytes.
+- [NIST SP 800-38D — GCM and GMAC](https://csrc.nist.gov/pubs/sp/800/38/d/final): valid tag lengths, 96-bit IV construction, and GCM usage limits.
+- [RFC 5116 — An Interface and Algorithms for Authenticated Encryption](https://www.rfc-editor.org/rfc/rfc5116): AEAD interface and holistic view of nonce, plaintext, ciphertext, and AAD.

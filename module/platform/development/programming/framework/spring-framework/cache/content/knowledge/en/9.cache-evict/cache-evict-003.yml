@@ -1,0 +1,3 @@
+menuLevel1: '@CacheEvict'
+menuLevel2: beforeInvocation=false và xóa sau lời gọi thành công
+status: WRITTEN

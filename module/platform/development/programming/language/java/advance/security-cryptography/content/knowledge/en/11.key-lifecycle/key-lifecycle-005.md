@@ -1,164 +1,164 @@
-# 11.5 Envelope encryption và tách khóa dữ liệu khỏi khóa bảo vệ khóa
+# 11.5 Envelope Encryption and Separating Data Keys from Key-Protecting Keys
 
-## Mục tiêu
+## Objectives
 
-Bài học thuộc **11. Vòng đời khóa** trong Java Advance – security-cryptography. Sau bài này, bạn có thể:
+This lesson belongs to **11. Key Lifecycle** in Java Advance – security-cryptography. After this lesson, you will be able to:
 
-1. Giải thích **envelope encryption (mã hóa phong bì)** và phân biệt **DEK (Data Encryption Key)** với **KEK (Key Encryption Key)** theo vai trò, nơi lưu, quyền truy cập và vòng đời.
-2. Mô tả quy trình **sinh DEK → mã hóa dữ liệu → bọc DEK bằng KEK → lưu envelope → mở bọc DEK → giải mã dữ liệu**; hiểu phần nào được phép lưu công khai và phần nào phải được bảo vệ.
-3. Hiểu vì sao **rewrap (bọc lại DEK)** khi thay KEK thường không cần giải mã/mã hóa lại toàn bộ dữ liệu, nhưng **khác** với thay DEK hoặc khắc phục sự cố lộ khóa.
-4. Dùng **Java 17+ và AES-GCM** để viết mô phỏng độc lập có key separation, AAD, nonce, kiểm chứng tampering và tái bọc DEK.
-5. Đưa thiết kế vào KMS/HSM, kiểm soát key ID, multi-tenant, quyền gọi dịch vụ mã hóa, lịch rotation, backup, kiểm thử phục hồi và audit mà không lưu khóa bí mật lộ thiên.
+1. Explain **envelope encryption** and distinguish a **DEK (Data Encryption Key)** from a **KEK (Key Encryption Key)** by role, storage location, access permissions, and lifecycle.
+2. Describe the workflow **generate DEK → encrypt data → wrap DEK with KEK → store envelope → unwrap DEK → decrypt data**; understand what may be stored publicly and what must be protected.
+3. Understand why **rewrapping a DEK** when rotating a KEK typically avoids decrypting/re-encrypting all data, yet **differs** from rotating a DEK or remediating a key compromise.
+4. Use **Java 17+ and AES-GCM** to write a standalone simulation featuring key separation, AAD, nonces, tamper verification, and DEK rewrapping.
+5. Apply the design to KMS/HSM with key ID control, multi-tenancy, cryptographic service permissions, rotation schedules, backups, restore testing, and auditing without storing exposed secret keys.
 
-**Giới hạn của ví dụ:** chương trình Java bên dưới dùng hai `SecretKey` được tạo **trong bộ nhớ** để minh họa tầng DEK/KEK. Đây **không phải** một KMS thật, không cung cấp kiểm soát IAM, HSM, audit hay bảo vệ khóa trước tiến trình bị xâm phạm. Trong sản phẩm thực tế, KEK nên được quản lý bằng dịch vụ khóa/KMS hoặc thiết bị bảo mật phù hợp; code ứng dụng chỉ có quyền thực hiện những thao tác cần thiết theo policy.
+**Limitations of the example:** the Java program below uses two `SecretKey` objects generated **in memory** to illustrate the DEK/KEK layers. It is **not** a real KMS and provides no IAM, HSM, auditing, or key protection against a compromised process. In production, KEKs should be managed by a key management service/KMS or appropriate security hardware; application code should hold only the permissions needed by policy.
 
-## 1. Bài toán: vì sao không dùng một khóa AES cho mọi dữ liệu?
+## 1. The Problem: Why Not Use One AES Key for All Data?
 
-Giả sử dịch vụ lưu hàng triệu bản ghi hoặc tệp, mỗi tệp được mã hóa bằng AES-GCM. Cách đơn giản nhất là lấy **một khóa AES toàn hệ thống** và dùng nó mã hóa từng tệp. Nhưng khi làm vậy:
+Suppose a service stores millions of records or files, each encrypted with AES-GCM. The simplest approach is taking **one system-wide AES key** and encrypting every file with it. Yet doing so causes problems:
 
-- Mỗi service cần giải mã đều có thể phải truy cập **cùng một khóa dùng cho tất cả dữ liệu**, làm tăng phạm vi thiệt hại nếu khóa bị lộ.
-- Đổi khóa mã hóa dữ liệu có thể đòi hỏi đọc và mã hóa lại khối lượng lớn dữ liệu, tốn I/O, CPU và thời gian.
-- Phân quyền theo tenant, tài liệu hoặc ứng dụng trở nên khó kiểm soát; một khóa sai phạm vi có thể giải mã nhiều thứ không liên quan.
-- Việc theo dõi phiên bản khóa, thu hồi quyền, backup/restore và khôi phục sau sự cố trở nên phức tạp.
-- Nếu nonce AES-GCM bị lặp lại dưới cùng khóa, bảo mật bị tổn hại nghiêm trọng. Dùng một khóa cho số lượng phép mã hóa khổng lồ làm tăng gánh nặng vận hành nonce và key lifetime.
+- Every service needing decryption may have to access **the same key used for all data**, widening the blast radius if the key is compromised.
+- Rotating the data encryption key may require reading and re-encrypting massive data volumes, consuming I/O, CPU, and time.
+- Enforcing permissions per tenant, document, or application becomes difficult; one over-scoped key can decrypt unrelated assets.
+- Tracking key versions, revoking access, backup/restore, and incident recovery become complex.
+- Reusing an AES-GCM nonce under the same key severely breaks security. Using one key for massive numbers of encryptions increases operational burden for nonce management and key lifetime.
 
-**Envelope encryption** khắc phục một phần các vấn đề trên bằng **phân tầng khóa**. Thông thường, dữ liệu được mã hóa bằng **một DEK riêng**; chính DEK lại được **bọc (wrap/encrypt)** dưới một **KEK** có phạm vi bảo vệ/ủy quyền rộng hơn. Nhờ đó, phần dữ liệu lớn có thể được mã hóa cục bộ nhanh chóng, trong khi khóa tầng cao được quản lý tập trung và hạn chế truy cập.
+**Envelope encryption** addresses several of these issues through **key hierarchy**. Typically, data is encrypted with a **dedicated DEK**; the DEK itself is **wrapped/encrypted** under a **KEK** with tighter custody/authorization boundaries. Large payloads can thus be encrypted locally and quickly while the higher-tier key stays centrally managed with restricted access.
 
-Không có nghĩa mô hình này tự cung cấp mọi bảo đảm. Nếu ứng dụng được phép gọi KMS để mở mọi DEK và bị chiếm quyền, attacker vẫn có thể giải mã dữ liệu trong phạm vi quyền đó. Envelope encryption là một phần của kiến trúc an toàn, không thay thế least privilege, identity, audit, nonce policy và kiểm soát plaintext trong bộ nhớ.
+This does not mean the model automatically solves everything. If an application is allowed to ask KMS to unwrap every DEK and gets compromised, an attacker can still decrypt all data within that permission scope. Envelope encryption is one component of a secure architecture, not a substitute for least privilege, identity, auditing, nonce policy, and in-memory plaintext controls.
 
-## 2. Hai loại khóa: DEK và KEK
+## 2. Two Key Types: DEK and KEK
 
-| Tiêu chí | **DEK — Data Encryption Key** | **KEK — Key Encryption Key** |
+| Criterion | **DEK — Data Encryption Key** | **KEK — Key Encryption Key** |
 | --- | --- | --- |
-| Mục đích | Mã hóa **nội dung dữ liệu** (file, bản ghi, object, blob) | **Bảo vệ DEK** (wrap/encrypt/unwrap) |
-| Phạm vi | Có thể một object, một nhóm object hoặc một phiên, theo chính sách; thường ưu tiên phạm vi hẹp | Có thể bảo vệ nhiều DEK; nên ràng buộc tenant, app, môi trường, vai trò và key policy |
-| Ví dụ thuật toán | AES-256-GCM (AEAD), với nonce duy nhất khi dùng cùng DEK | AES key wrap / AES-GCM được cấu hình đúng, hoặc wrap bằng KMS/HSM; có thể dùng cơ chế bất đối xứng phù hợp |
-| Sinh khóa | Sinh bằng CSPRNG; thường sinh **DEK mới** khi mã hóa object mới | Sinh/quản lý trong KMS/HSM hoặc secret manager/keystore có kiểm soát |
-| Lưu trữ | **Không lưu plaintext DEK cùng ciphertext**; có thể lưu **wrapped DEK** | Giữ KEK ở vùng tin cậy; nếu KMS/HSM giữ key không xuất được, ứng dụng chỉ thấy key ID/handle |
-| Quyền sử dụng | Dùng tạm để mã hóa/giải mã nội dung cụ thể | Quyền wrap/unwrap, ràng buộc identity, key policy, audit và quota |
-| Rotation | Đổi DEK thường **phải mã hóa lại dữ liệu** được bảo vệ bởi DEK cũ | Đổi KEK có thể **rewrap các DEK** mà không thay ciphertext dữ liệu |
-| Khi lộ | Ảnh hưởng dữ liệu mã hóa bằng DEK đó; phạm vi phụ thuộc cách tái sử dụng | Có thể ảnh hưởng nhiều DEK đã được bọc bằng KEK đó, gồm bản sao lưu cũ |
+| Purpose | Encrypt **data content** (files, records, objects, blobs) | **Protect DEKs** (wrap/encrypt/unwrap) |
+| Scope | Per object, object group, or session, per policy; narrow scope is usually preferred | Can protect many DEKs; should be bound to tenant, app, environment, role, and key policy |
+| Example algorithms | AES-256-GCM (AEAD), with a unique nonce under the same DEK | Properly configured AES key wrap / AES-GCM, or KMS/HSM wrap; appropriate asymmetric schemes may also be used |
+| Key generation | Generated via CSPRNG; typically generate a **fresh DEK** when encrypting a new object | Generated/managed inside KMS/HSM or a controlled secret manager/keystore |
+| Storage | **Never store plaintext DEK alongside ciphertext**; store the **wrapped DEK** | Keep KEK in a trusted boundary; if KMS/HSM holds it non-exportable, the app only sees a key ID/handle |
+| Usage permissions | Used briefly to encrypt/decrypt specific content | Wrap/unwrap permissions, identity binding, key policy, auditing, and quotas |
+| Rotation | Changing a DEK typically **requires re-encrypting the data** protected by the old DEK | Changing a KEK can **rewrap DEKs** without altering data ciphertext |
+| If compromised | Affects data encrypted under that DEK; blast radius depends on reuse | Can affect many DEKs wrapped under that KEK, including older backups |
 
-**Thuật ngữ:**
+**Terminology:**
 
-- **Plaintext DEK:** byte khóa gốc, dùng trực tiếp với AES-GCM để mã hóa dữ liệu; là secret.
-- **Wrapped/encrypted DEK:** dữ liệu mã hóa chứa DEK và tag/metadata cần thiết; có thể được lưu cùng ciphertext của nội dung, nhưng bản thân nó **không phải khóa có thể dùng trực tiếp**.
-- **KEK ID / key version:** định danh để hệ thống **tìm đúng KEK tin cậy** khi unwrap; key ID không phải secret và **không tự cấp quyền**.
-- **Master/root key:** tên gọi tùy hệ thống cho khóa ở tầng cao hơn, có thể chính là KEK do KMS bảo vệ. Không mặc định mọi hệ thống đều phải có đúng ba tầng.
+- **Plaintext DEK:** raw key bytes used directly with AES-GCM to encrypt data; this is a secret.
+- **Wrapped/encrypted DEK:** encrypted data containing the DEK and required tag/metadata; it can be stored alongside content ciphertext, yet by itself **is not a directly usable key**.
+- **KEK ID / key version:** identifier enabling the system to **locate the right trusted KEK** during unwrap; a key ID is not a secret and **does not grant authorization**.
+- **Master/root key:** system-specific name for a higher-tier key, which may itself be the KEK protected by KMS. Do not assume every system must have exactly three tiers.
 
-Ví dụ dữ liệu dài 10 MiB được mã hóa bằng AES-256-GCM dưới DEK 32 byte. KEK chỉ cần bọc **32 byte DEK** (cộng overhead của scheme wrap), không phải nhận cả 10 MiB. Đây là điểm đem lại lợi ích hiệu năng và tách nhiệm vụ.
+For example, 10 MiB of data is encrypted with AES-256-GCM under a 32-byte DEK. The KEK only needs to wrap **32 bytes of DEK** (plus wrap overhead), rather than processing all 10 MiB. That yields both performance benefits and separation of duties.
 
-## 3. Envelope trông như thế nào?
+## 3. What Does an Envelope Look Like?
 
-Một thiết kế lưu trữ hợp lý phải ghi đủ metadata để giải mã **đúng** trong tương lai; ví dụ minh họa:
+A sound storage design records enough metadata to decrypt **correctly** in the future; illustrative example:
 
 ```text
 Encrypted Object Envelope
 +-------------------------------------------------------+
 | envelopeVersion = 1                                   |
-| tenantId / objectId / purpose (theo protocol)         |
+| tenantId / objectId / purpose (per protocol)          |
 | dataAlgorithm = AES-256-GCM                           |
 | dataNonce (12 bytes)                                  |
-| dataCiphertext || dataTag (GCM tag 16 bytes)           |
+| dataCiphertext || dataTag (16-byte GCM tag)           |
 |                                                       |
 | wrappingAlgorithm = KMS-based-wrap / AES-GCM-wrap     |
 | kekId = "tenant-A/kek-v3"                              |
-| wrapNonce (nếu wrap scheme yêu cầu)                    |
-| wrappedDEK || wrapTag (nếu là AEAD-GCM wrap)           |
+| wrapNonce (if required by the wrap scheme)            |
+| wrappedDEK || wrapTag (if using AEAD-GCM wrap)        |
 +-------------------------------------------------------+
 ```
 
-Trong đó:
+Where:
 
-- **dataCiphertext** là bản mã của dữ liệu dài, được tạo bằng DEK.
-- **wrappedDEK** là DEK sau khi được bảo vệ bằng KEK; không thể thay thế cho DEK để giải mã dữ liệu nếu chưa unwrap.
-- **dataNonce** và **wrapNonce** là hai nonce của **hai phép mã hóa riêng**. Nếu dùng GCM, nonce cần duy nhất **theo từng khóa được sử dụng**. Việc thấy nonce trong envelope không tiết lộ khóa (nonce không phải secret).
-- **dataTag / wrapTag** cung cấp xác thực AEAD tương ứng cho *mỗi tầng* khi dùng GCM. Tag không được cắt/bỏ tùy tiện.
-- **kekId** cho biết dùng KEK nào **đã được đăng ký và cho phép**. Không dùng một URL/key do payload tự khai để thay thế trusted key registry.
-- **tenantId**, **objectId** và **purpose** giúp gắn record với đúng ranh giới dữ liệu; các trường ảnh hưởng cách hiểu nội dung phải được **xác thực** qua AAD hoặc cơ chế tương đương.
+- **dataCiphertext** is the ciphertext of the bulk data, produced using the DEK.
+- **wrappedDEK** is the DEK after protection by the KEK; it cannot substitute for the DEK to decrypt data before unwrapping.
+- **dataNonce** and **wrapNonce** are two nonces for **two separate encryptions**. Under GCM, nonces must be unique **per key used**. Seeing a nonce in the envelope does not reveal the key (a nonce is not a secret).
+- **dataTag / wrapTag** provide AEAD authentication for *each layer* when GCM is used. Tags must never be truncated or dropped arbitrarily.
+- **kekId** specifies which **registered and permitted** KEK to use. Never let a payload-declared URL or arbitrary key override the trusted key registry.
+- **tenantId**, **objectId**, and **purpose** anchor the record to the right data boundary; fields affecting how content is interpreted must be **authenticated** via AAD or an equivalent mechanism.
 
-Sơ đồ hai tầng:
+Two-tier diagram:
 
 ```text
                   DATA PLANE                                KEY PLANE
 plaintext data ----------> AES-GCM(plaintext DEK) --> dataCiphertext + dataTag
                                  ^                           |
                                  |                           v
-CSPRNG --> plaintext DEK --------+                  lưu dataNonce + ciphertext
+CSPRNG --> plaintext DEK --------+                  store dataNonce + ciphertext
             |                    |
             v                    |
   wrap/encrypt under KEK         |
             |                    |
             v                    |
-    wrapped DEK + metadata ------+------> lưu cùng encrypted object
+    wrapped DEK + metadata ------+------> store alongside encrypted object
             ^
             |
-      KEK do KMS/HSM quản lý
-       (không nằm trong object)
+      KEK managed by KMS/HSM
+       (not inside the object)
 ```
 
-Sơ đồ minh họa chức năng, không phải phân chia máy chủ bắt buộc. Cả ciphertext dữ liệu, wrapped DEK, nonce và metadata có thể cùng nằm trong storage; **chính KEK và plaintext DEK phải được bảo vệ**.
+The diagram illustrates functional separation, not a mandatory server split. Data ciphertext, wrapped DEK, nonces, and metadata may reside together in storage; **it is the KEK and plaintext DEK that must be protected**.
 
-**Cẩn thận với “encrypted DEK” versus “DEK”:** gọi `getEncoded()` của secret key AES có thể đưa **khóa thật** ra mảng byte. Không lưu mảng này vào envelope. Đối tượng envelope chỉ chứa **giá trị đã bọc**; plaintext DEK được xóa/hạn chế lưu giữ sau khi thao tác hoàn tất trong khả năng của runtime.
+**Beware of “encrypted DEK” versus “DEK”:** calling `getEncoded()` on an AES secret key can expose the **real key** as a byte array. Never store that array in the envelope. The envelope holds only the **wrapped value**; the plaintext DEK is cleared or tightly lifetime-bounded after the operation completes as far as the runtime permits.
 
-## 4. Luồng mã hóa: tạo DEK và bọc bằng KEK
+## 4. Encryption Flow: Generating a DEK and Wrapping It with a KEK
 
-Quy trình khi tạo một object:
+Steps when creating an object:
 
-1. **Xác định chính sách từ phía đáng tin:** tenant, object ID, mục đích, KEK được phép, phiên bản envelope và thuật toán. Không để client tùy ý áp đặt key ID bên ngoài allowlist.
-2. **Sinh DEK mới** từ nguồn ngẫu nhiên mật mã, ví dụ 32 byte cho AES-256. Không suy DEK từ object ID, timestamp, mật khẩu yếu hay hash nội dung.
-3. **Mã hóa dữ liệu với DEK**, thông thường bằng `AES/GCM/NoPadding` với nonce 12 byte duy nhất dưới DEK, tag 128 bit và AAD gắn context ổn định.
-4. **Bọc DEK bằng KEK**: tốt nhất nhờ KMS/HSM hoặc một wrap primitive được chuẩn hóa. Nếu dùng AES-GCM làm thao tác bọc, phải sinh **nonce mới và duy nhất dưới chính KEK** và đưa vào AAD các thuộc tính ràng buộc cần thiết.
-5. **Gắn metadata**: key ID phiên bản, thuật toán, nonce/tag, schema version, thông tin context. Lưu kết quả nhất quán với object và kiểm tra giới hạn kích thước trước/ sau mã hóa.
-6. **Chỉ commit record hoàn chỉnh** (ciphertext data và wrapped DEK đi cùng nhau). Không công bố một object chưa có đủ tag hoặc key metadata; nếu lưu nhiều dịch vụ, cần giao thức commit/rollback tránh trạng thái không nhất quán.
-7. **Giảm tồn tại plaintext DEK** trong bộ nhớ, log, crash dump, trace. Việc ghi zero vào `byte[]` trong Java là best effort; JIT, garbage collector và provider có thể giữ bản sao mà ứng dụng không điều khiển hoàn toàn.
+1. **Determine policy from a trusted source:** tenant, object ID, purpose, permitted KEK, envelope version, and algorithm. Never let clients impose key IDs outside an allowlist.
+2. **Generate a fresh DEK** from a cryptographic RNG, e.g., 32 bytes for AES-256. Never derive a DEK from an object ID, timestamp, weak password, or content hash.
+3. **Encrypt the data with the DEK**, typically via `AES/GCM/NoPadding` with a 12-byte nonce unique under that DEK, a 128-bit tag, and AAD binding stable context.
+4. **Wrap the DEK with the KEK**: ideally delegated to KMS/HSM or a standardized wrapping primitive. If using AES-GCM as the wrapping operation, generate a **new nonce unique under that KEK** and include required binding attributes in AAD.
+5. **Attach metadata**: versioned key ID, algorithm, nonces/tags, schema version, and context info. Store results consistently with the object and enforce size limits before/after encryption.
+6. **Commit only a complete record** (data ciphertext and wrapped DEK together). Never publish an object missing tags or key metadata; if spanning multiple services, use commit/rollback protocols to prevent inconsistent state.
+7. **Minimize plaintext DEK lifetime** in memory, logs, crash dumps, and traces. Zeroing `byte[]` in Java is best effort; JIT, garbage collection, and providers can retain copies outside full application control.
 
-### Cùng một KEK có thể bọc nhiều DEK
+### One KEK Can Wrap Many DEKs
 
-Đây là chức năng của KEK, nhưng **KEK là điểm tập trung quyền**. Mỗi lần wrap phải dùng scheme an toàn và tuân thủ nonce/usage limit. Nếu bảo vệ nhiều tenant, tốt nhất phân vùng key policy hoặc KEK theo tenant/rủi ro. Việc tách key theo tenant/object không thay thế xác thực quyền truy cập dữ liệu trước khi gọi unwrap.
+This is what a KEK is designed for, yet the **KEK is a concentration of authority**. Every wrap must use a secure scheme and obey nonce/usage limits. When protecting multiple tenants, partition key policies or KEKs by tenant/risk tier. Separating keys by tenant/object still does not replace verifying data access permissions before calling unwrap.
 
-### Data AAD và Wrap AAD phải có mục đích rõ
+### Data AAD and Wrap AAD Must Have Clear Purposes
 
-Có thể dùng hai AAD độc lập:
+Two independent AADs can be used:
 
 ```text
 dataAAD = Encode("DATA-v1", tenantId, objectId, dataSchemaVersion)
 wrapAAD = Encode("WRAP-v1", tenantId, objectId, kekId, wrappingVersion)
 ```
 
-`Encode` phải là serialization **không mơ hồ** (length prefix, schema canonical, các trường có kiểu và thứ tự cố định). Không nối tùy ý `("ab" || "c")` và `("a" || "bc")` để hai nhóm metadata có cùng bytes. AAD **không được mã hóa**, nên đừng đưa secret vào AAD với kỳ vọng nó sẽ được che giấu. Nhưng thay đổi AAD khiến tag xác thực GCM thất bại.
+`Encode` must be an **unambiguous** serialization (length-prefixed, canonical schema, typed fields in fixed order). Never naively concatenate `("ab" || "c")` and `("a" || "bc")` where two distinct metadata sets yield identical bytes. AAD is **not encrypted**, so never put secrets in AAD expecting them to be hidden. Yet changing AAD makes GCM tag verification fail.
 
-Một chi tiết quan trọng cho rotation: nếu chỉ đổi KEK, **dataAAD không nên phụ thuộc trực tiếp vào kekId** trong một mô hình mà bạn mong giữ nguyên data ciphertext/tag. Khi thay KEK, giữ nguyên context dữ liệu để **dataNonce + dataCiphertextAndTag** không đổi; chỉ tạo **wrapped DEK mới** với `wrapAAD` chứa key ID mới. Nếu chính sách của bạn muốn thay cả dataAAD, sẽ phải giải mã và mã hóa lại dữ liệu/tag (hoặc dùng cơ chế protocol khác có xác thực tương đương).
+A key rotation detail: if rotating only the KEK, **dataAAD should not depend directly on `kekId`** in a model where you want data ciphertext/tag to remain untouched. When rotating the KEK, keep the data context unchanged so **dataNonce + dataCiphertextAndTag** stays intact; only produce a **new wrapped DEK** whose `wrapAAD` carries the new key ID. If policy requires changing `dataAAD` as well, you will have to decrypt and re-encrypt the data/tag (or use another protocol mechanism with equivalent authentication).
 
-## 5. Luồng giải mã: xác thực hai lớp
+## 5. Decryption Flow: Two-Layer Authentication
 
-Khi đọc object:
+When reading an object:
 
-1. Kiểm tra **version, format, giới hạn kích thước** và mandatory fields. Xác định tenant/object ID mong đợi từ request được xác thực hoặc trusted storage path; không lấy mọi thông tin xác thực chỉ từ payload do attacker kiểm soát.
-2. Tra cứu `kekId` trong **trusted registry/KMS** của tenant/mục đích đã xác định. Kiểm tra quyền gọi unwrap; key ID không phải secret/password.
-3. Dùng KEK phù hợp **unwrap wrapped DEK**, kiểm tra tag/wrapping integrity và wrap AAD. **Không dùng DEK** nếu bước unwrap chưa xác thực thành công.
-4. Kiểm tra byte DEK đã unwrap có **loại/độ dài đúng**; tạo tạm `SecretKeySpec` (nếu key bytes nằm trong process) hoặc dùng handle phù hợp của provider.
-5. Giải mã `dataCiphertextAndTag` bằng DEK, nonce, tag và data AAD tương ứng. Chỉ xem plaintext là hợp lệ **sau khi `Cipher.doFinal` thành công và tag được xác nhận**.
-6. Kiểm tra authorization ở mức **object/resource/action** và các ràng buộc nghiệp vụ; không trả plaintext nhạy cảm chỉ vì ai đó có thể lấy wrapped DEK.
-7. Không log DEK, KEK, plaintext hoặc thông tin vượt quá yêu cầu vận hành; cố gắng xóa secret tạm trong mức khả thi.
+1. Validate **version, format, size limits**, and mandatory fields. Determine expected tenant/object ID from the authenticated request or trusted storage path; never take all verification inputs solely from an attacker-controlled payload.
+2. Look up `kekId` in the **trusted registry/KMS** for the determined tenant/purpose. Check unwrap permissions; a key ID is not a secret/password.
+3. Use the matching KEK to **unwrap the wrapped DEK**, verifying the tag/wrapping integrity and wrap AAD. **Never use the DEK** unless unwrapping succeeded authentication.
+4. Check that the unwrapped DEK bytes have the **expected type/length**; temporarily construct a `SecretKeySpec` (if raw bytes live in-process) or use a provider handle.
+5. Decrypt `dataCiphertextAndTag` using the DEK, nonce, tag, and matching data AAD. Treat plaintext as valid **only after `Cipher.doFinal` succeeds and the tag is verified**.
+6. Enforce **object/resource/action-level** authorization and business constraints; never return sensitive plaintext merely because someone could fetch the wrapped DEK.
+7. Never log DEKs, KEKs, plaintext, or excessive operational details; clear temporary secrets as far as practical.
 
-Nếu wrapped DEK bị tráo từ một object khác, wrap AAD gắn `tenantId/objectId/purpose` giúp chặn khi không khớp. Nếu attacker có quyền thay cả metadata chưa xác thực và hệ thống tin ngay vào metadata đó, AAD có thể bị dùng sai ngữ cảnh; vì vậy cần **nguồn expected context đáng tin** ở phía server, không chỉ “dữ liệu tự mô tả” do client gửi.
+If a wrapped DEK is swapped from another object, wrap AAD binding `tenantId/objectId/purpose` catches the mismatch. If an attacker can also alter unauthenticated metadata and the system blindly trusts it, AAD can be fed the wrong context; therefore maintain a **trusted server-side source of expected context**, not merely “self-describing data” from the client.
 
-**Hai tag bảo vệ hai thứ khác nhau** khi dùng GCM ở cả tầng: wrap tag xác thực DEK/metadata của wrap; data tag xác thực ciphertext/metadata của data. Chỉ verify một tag rồi bỏ tag còn lại là sai.
+**Two tags protect two different things** when GCM is used at both layers: the wrap tag authenticates the wrapped DEK/wrap metadata; the data tag authenticates the payload ciphertext/data metadata. Verifying one tag and skipping the other is a bug.
 
-## 6. Java 17 — chương trình hoàn chỉnh: mã hóa envelope và rewrap KEK
+## 6. Java 17 — Complete Program: Envelope Encryption and KEK Rewrap
 
-Mã dưới đây cố tình không dùng SDK KMS ngoài JDK. Nó sinh **ba KEK trong bộ nhớ** (cũ, mới, sai) bằng `KeyGenerator`, tạo **một DEK 32 byte** qua `SecureRandom`, mã hóa nội dung bằng AES-GCM với DEK, rồi **mã hóa/bọc DEK bằng một KEK khác** cũng qua AES-GCM. Cách dùng GCM để bảo vệ DEK trong ví dụ là **key encryption với authentication**; các KMS/HSM hoặc giao thức thật có thể dùng **AES Key Wrap** hoặc wrapping primitive khác với API/metadata khác.
+The code below deliberately avoids external KMS SDKs outside the JDK. It generates **three in-memory KEKs** (old, new, wrong) via `KeyGenerator`, creates **a 32-byte DEK** via `SecureRandom`, encrypts the content using AES-GCM with the DEK, and then **encrypts/wraps the DEK under another KEK** also using AES-GCM. Using GCM to protect the DEK in this example illustrates **authenticated key encryption**; real KMS/HSM systems or protocols may use **AES Key Wrap** or another wrapping primitive with different APIs and metadata.
 
-Mỗi phép `seal` sinh nonce ngẫu nhiên 12 byte mới và sử dụng tag 128 bit. Với KEK tồn tại lâu và số lượng thao tác lớn, không chỉ dựa vào “random thường là không trùng”: phải có **quy tắc không tái sử dụng nonce dưới cùng KEK** và giới hạn usage theo chính sách/thiết kế GCM. Mã demo có hai vùng AAD độc lập `DATA-v1` và `WRAP-v1`, cùng `objectId`; metadata được mã hóa theo length-prefix để tránh ranh giới mơ hồ.
+Each `seal` call generates a fresh 12-byte random nonce and uses a 128-bit tag. With long-lived KEKs and high operation counts, never rely solely on “random rarely collides”: enforce **strict non-reuse of nonces under the same KEK** and usage limits per GCM policy/design. The demo code uses two independent AAD domains `DATA-v1` and `WRAP-v1` along with `objectId`; metadata is length-prefixed to avoid ambiguous boundaries.
 
-Chương trình chủ ý chứa các test:
+The program intentionally includes these tests:
 
-- Mở đúng envelope với KEK cũ: **đạt**.
-- Dùng **KEK sai**, đổi object ID, sửa data ciphertext/tag, sửa wrapped DEK/tag, làm thiếu số byte tag của wrapped DEK: **từ chối**.
-- **Rewrap DEK** sang KEK mới: data nonce và data ciphertext/tag **giữ nguyên**; KEK mới giải mã được, KEK cũ không còn được chấp nhận cho envelope mới.
+- Opening a valid envelope with the old KEK: **passes**.
+- Using the **wrong KEK**, changing the object ID, modifying data ciphertext/tag, modifying wrapped DEK/tag, or truncating wrapped DEK tag bytes: **rejected**.
+- **Rewrapping the DEK** to the new KEK: data nonce and data ciphertext/tag **stay unchanged**; the new KEK decrypts, while the old KEK is no longer accepted for the updated envelope.
 
-Tạo đúng tệp **`EnvelopeEncryptionDemo.java`**:
+Create the exact file **`EnvelopeEncryptionDemo.java`**:
 
 ```java
 import java.nio.ByteBuffer;
@@ -350,14 +350,14 @@ public final class EnvelopeEncryptionDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17+ có AES-256-GCM:
+Compile and run on JDK 17+ supporting AES-256-GCM:
 
 ```bash
 javac --release 17 EnvelopeEncryptionDemo.java
 java EnvelopeEncryptionDemo
 ```
 
-**Stdout** (đã biên dịch/chạy kiểm thử bằng Java 17):
+**Stdout** (compiled and verified on Java 17):
 
 ```text
 Original round-trip: true
@@ -371,51 +371,51 @@ New KEK decrypts: true
 Old KEK rejected after rewrap: true
 ```
 
-Chương trình dùng các khóa và nonce ngẫu nhiên, **không in ra key material**, nên chuỗi ciphertext thay đổi mỗi lần chạy nhưng 9 dòng boolean trên phản ánh kết quả mong đợi. Nếu Java/provider không hỗ trợ transformation hoặc key size theo chính sách hiện hành, các bước `getInstance`/`init` có thể báo lỗi; đừng lặng lẽ hạ key length/mode để “cho chạy”.
+The program uses random keys and nonces and **never prints key material**, so ciphertext bytes differ on every run, yet the 9 boolean lines above reflect the expected behavior. If Java or the provider does not support the transformation or key size under current policy, `getInstance`/`init` will throw an error; never silently downgrade key length or cipher mode just to “make it run.”
 
-### Tại sao demo này thể hiện đúng nguyên lý?
+### Why Does This Demo Properly Illustrate the Principle?
 
-- `encryptEnvelope` sinh **DEK riêng** và dùng nó mã hóa **plaintext data**; `kek` chỉ bọc **DEK**, không tham gia trực tiếp mã hóa nội dung.
-- `Sealed` lưu nonce và `ciphertextAndTag`; mảng byte được clone khi tạo/trả về record để các phép thử thay đổi đầu vào **không âm thầm sửa envelope ban đầu**.
-- `associatedData` mã hóa domain, object ID và key ID bằng UTF-8 với **ba độ dài int big-endian**. Mỗi bộ trường có ranh giới xác định; đây là minh họa encoding nội bộ, không tự nhận là chuẩn interoperable công khai.
-- `DATA-v1` và `WRAP-v1` là domain separation: dùng cùng tên biến “context” không có nghĩa các byte AAD của hai tầng phải giống nhau. `kekId` chỉ ràng buộc vào wrap AAD nên rewrap không thay data ciphertext.
-- `decryptEnvelope` từ chối nếu key ID envelope không bằng **expectedKekId** mà caller đã quyết định. Trong production, expected ID phải được chọn **qua trusted tenant/key registry**, không được “trust” chỉ bằng việc sao chép `envelope.keyId()` vào biến expected.
-- Khi `Cipher.doFinal` kiểm tra GCM tag thất bại, Java thường ném `AEADBadTagException` (kế thừa `BadPaddingException`). Hàm test `rejects` gộp các lỗi chỉ để hiển thị; API thực phải phân loại nội bộ và trả lỗi public không tạo oracle.
-- `rewrap` cần giải mã **DEK**, nhưng **không bao giờ gọi `open` trên data ciphertext**. Kết quả data nonce và data ciphertext/tag giữ nguyên, kiểm tra bằng `Arrays.equals`.
-- `Arrays.fill(dek, (byte) 0)` cố gắng xóa bản byte[] tạm, **không bảo đảm** xóa mọi bản sao trong JVM/hardware; trong production, ưu tiên KMS/HSM với tính năng không xuất KEK và quản lý heap/secret lifecycle chặt.
+- `encryptEnvelope` generates a **separate DEK** and uses it to encrypt **plaintext data**; `kek` only wraps the **DEK** and never directly encrypts the content.
+- `Sealed` stores the nonce and `ciphertextAndTag`; byte arrays are cloned when constructing/returning the record so input-tampering tests **never silently mutate the original envelope**.
+- `associatedData` encodes domain, object ID, and key ID in UTF-8 with **three big-endian `int` length prefixes**. Each field tuple has unambiguous boundaries; this illustrates internal encoding, not a public interoperability standard.
+- `DATA-v1` and `WRAP-v1` provide domain separation: sharing a “context” concept does not mean both layers carry identical AAD bytes. `kekId` is bound only in wrap AAD so rewrapping leaves data ciphertext unchanged.
+- `decryptEnvelope` rejects if the envelope's key ID does not equal the **expectedKekId** chosen by the caller. In production, the expected ID must come **from a trusted tenant/key registry**, never “trusted” by copying `envelope.keyId()` into the expected argument.
+- When `Cipher.doFinal` fails GCM tag verification, Java typically throws `AEADBadTagException` (a subclass of `BadPaddingException`). The `rejects` helper groups errors purely for display; real APIs must classify errors internally and return public errors that avoid creating an oracle.
+- `rewrap` must decrypt the **DEK**, yet **never calls `open` on the data ciphertext**. Consequently, data nonce and data ciphertext/tag remain identical, verified via `Arrays.equals`.
+- `Arrays.fill(dek, (byte) 0)` attempts to clear the temporary `byte[]`, **without guaranteeing** every copy in the JVM/hardware is gone; in production, prefer KMS/HSM with non-exportable KEKs and strict heap/secret lifecycle management.
 
-### Giới hạn của ví dụ cần nhận diện
+### Example Limitations to Recognize
 
-Mã chạy độc lập chỉ xử lý **một object và một lần chuyển KEK**. Nó không lưu envelope ra file/database, không kiểm tra IAM, không cung cấp transaction/rotation lock, không serialize toàn bộ cấu trúc để chống lỗi parse từ dữ liệu không đáng tin, và không thực hiện key discovery hay gọi KMS. `Operation`/`rejects` giúp trình bày trường hợp từ chối, không nên dùng trực tiếp làm API contract.
+The standalone program processes **one object and one KEK transition**. It does not persist envelopes to disk/database, check IAM, provide transaction/rotation locks, serialize the full structure defensively against untrusted inputs, or perform key discovery or KMS calls. `Operation`/`rejects` helps demonstrate rejection cases and should not be copied directly as an API contract.
 
-Đặc biệt, `Sealed` trong demo dùng AES-GCM cho **cả data lẫn wrap**. Với KMS/HSM thực, có thể sử dụng cơ chế wrapping chuyên dụng, chẳng hạn AES Key Wrap hay thao tác KMS `Encrypt`/`Decrypt`/`GenerateDataKey`/`ReEncrypt` tùy nhà cung cấp. **Không** tự chuyển đổi dữ liệu GCM-wrapped thành output AESWrap: thuật toán, IV, tag và format **khác nhau**.
+In particular, `Sealed` in the demo uses AES-GCM for **both data and wrapping**. In real KMS/HSM setups, dedicated wrapping mechanisms such as AES Key Wrap or KMS operations like `Encrypt`/`Decrypt`/`GenerateDataKey`/`ReEncrypt` are used depending on the provider. **Never** manually reinterpret GCM-wrapped output as AESWrap output: the algorithms, IVs, tags, and formats are **different**.
 
-## 7. Rewrap, re-encrypt và rotate: ba việc khác nhau
+## 7. Rewrap, Re-Encrypt, and Rotate: Three Distinct Actions
 
-Từ “xoay khóa” dễ gây hiểu nhầm vì có nhiều tầng:
+The phrase “key rotation” is easily misunderstood because multiple layers exist:
 
-### 7.1 Rewrap (đổi KEK, giữ DEK)
+### 7.1 Rewrap (Change KEK, Keep DEK)
 
 ```text
-TRƯỚC:
+BEFORE:
 plaintext data -- encrypt(DEK1) --> ciphertextData1
 DEK1           -- wrap(KEK-A) --> wrappedDEK-A
 
-SAU REWRAP:
-ciphertextData1             [KHÔNG ĐỔI]
+AFTER REWRAP:
+ciphertextData1             [UNCHANGED]
 DEK1           -- wrap(KEK-B) --> wrappedDEK-B
 keyId: KEK-A -> KEK-B
 ```
 
-Quá trình cần quyền **unwrap với KEK-A** và **wrap với KEK-B**. Tùy dịch vụ KMS, thao tác có thể được thực hiện trong ranh giới dịch vụ khóa mà không xuất DEK ra ứng dụng, hoặc cần mở DEK trong một vùng tin cậy để rewrap.
+This process requires **unwrap permission on KEK-A** and **wrap permission on KEK-B**. Depending on the KMS, the operation may execute entirely inside the key service without returning the DEK to the app, or require unwrapping the DEK inside a trusted boundary to rewrap it.
 
-**Ưu điểm:** không đọc/mã hóa lại data file 10 GiB; chỉ xử lý một DEK ngắn và metadata. Chi phí phụ thuộc số object/DEK phải chuyển, số lời gọi KMS và storage metadata. Nếu có 1 triệu object, vẫn phải rewrap khoảng 1 triệu wrapped DEK nếu mỗi object có DEK riêng: **không phải thao tác O(1) cho cả kho**.
+**Advantage:** avoids reading and re-encrypting a 10 GiB data file; only a short DEK and metadata are processed. Cost scales with the number of objects/DEKs to migrate, KMS calls, and metadata writes. With 1 million objects, you still rewrap roughly 1 million wrapped DEKs if each object has its own DEK: **it is not an O(1) operation across the whole store**.
 
-**Yêu cầu vận hành:** ghi wrapped DEK mới + key ID + metadata liên quan **nguyên tử** hoặc bằng quy trình có thể recover. Không xóa KEK-A trước khi tất cả object/backup cần thiết đã chuyển và quy trình khôi phục xác nhận có thể dùng KEK-B.
+**Operational requirement:** write the new wrapped DEK + key ID + related metadata **atomically** or via a recoverable workflow. Never delete KEK-A before all required objects/backups have migrated and recovery procedures confirm KEK-B works.
 
-### 7.2 Rotate DEK (đổi khóa mã hóa dữ liệu)
+### 7.2 Rotate DEK (Replace Data Encryption Key)
 
-Nếu chính DEK bị lộ hoặc vượt giới hạn sử dụng, tạo **DEK2 mới**, giải mã data bằng DEK1 rồi **mã hóa lại** bằng DEK2 với nonce/AAD phù hợp và lưu ciphertext/tag mới. Sau đó bọc DEK2 bằng KEK đã được phê duyệt.
+If the DEK itself was compromised or reached its usage limit, generate a **new DEK2**, decrypt data with DEK1, **re-encrypt** with DEK2 using a proper nonce/AAD, and store the new ciphertext/tag. Then wrap DEK2 under an approved KEK.
 
 ```text
 dataCiphertext1 -- decrypt(DEK1) --> plaintext
@@ -423,223 +423,223 @@ plaintext       -- encrypt(DEK2) --> dataCiphertext2
 DEK2            -- wrap(KEK-B)  --> wrappedDEK2
 ```
 
-Công việc này tác động toàn bộ dữ liệu và phải xử lý cẩn thận **plaintext tạm**, storage, timeout, tính nhất quán, checksum/integrity và rollback.
+This touches the full dataset and requires careful handling of **temporary plaintext**, storage, timeouts, consistency, checksums/integrity, and rollback.
 
-**Không đánh đồng rewrap với DEK rotation.** Nếu DEK1 đã bị lộ, chỉ rewrap dưới KEK mới **không làm DEK1 trở lại bí mật**.
+**Do not equate rewrap with DEK rotation.** If DEK1 was compromised, merely rewrapping it under a new KEK **does not make DEK1 secret again**.
 
-### 7.3 KMS-managed rotation (thay key material bên trong dịch vụ)
+### 7.3 KMS-Managed Rotation (Replacing Key Material Inside the Service)
 
-Một số KMS cung cấp **automatic rotation** cho khóa được quản lý, có thể giữ các phiên bản key material cũ để giải mã ciphertext lịch sử và tự áp dụng phiên bản mới cho mã hóa mới. Tùy provider/key type, **automatic rotation không có nghĩa mọi wrapped DEK cũ được rewrap ngay** và cũng không có nghĩa key ID của từng object thay đổi.
+Some KMS offerings provide **automatic rotation** for managed keys, keeping older key material versions to decrypt historical ciphertexts while applying the new version to new encryptions. Depending on provider and key type, **automatic rotation does not mean every old wrapped DEK is immediately rewrapped**, nor does every object's key ID change.
 
-Phải đọc đúng semantics của nhà cung cấp: alias thay đổi, phiên bản key, ciphertext chứa metadata key nào, quyền decrypt bản cũ, thời gian chờ, cách backup/migration và giới hạn API. **Không tự suy** rằng bật một nút “rotation” sẽ xóa tác động của dữ liệu khóa từng bị lộ.
+Read your provider's exact semantics: alias changes, key versions, which key metadata ciphertexts carry, decrypt rights for old versions, propagation delays, backup/migration behavior, and API limits. **Never assume** flipping a “rotation” toggle erases the impact of previously exposed key material.
 
-### 7.4 Sự cố lộ khóa và bản sao cũ
+### 7.4 Key Compromise Incidents and Legacy Copies
 
-| Sự kiện | Hành động thường cần | Vì sao chỉ rewrap không đủ trong một số trường hợp |
+| Event | Typical Actions Required | Why Rewrap Alone Is Insufficient in Some Cases |
 | --- | --- | --- |
-| Chuyển quản lý từ KEK-A sang KEK-B, chưa có dấu hiệu lộ | Rewrap DEK + chuyển policy, kiểm thử backup/restore | Đây là đúng use case hiệu quả của rewrap |
-| Quyền một service bị thu hồi | Giảm quyền KMS + credential rotation + audit + đánh giá cache plaintext/DEK | Service có thể đã trích xuất DEK hoặc dữ liệu khi còn quyền |
-| **KEK-A bị lộ** | Incident response, ngăn dùng KEK-A, đánh giá ciphertext/wrapped DEK cũ và backup, rewrap và có thể re-encrypt dữ liệu | Ai đã lưu bản sao **wrappedDEK-A + ciphertextData** và KEK-A có thể vẫn giải mã bản sao cũ; rewrap bản hiện tại **không thu hồi được snapshot** |
-| **DEK bị lộ** | Re-encrypt dữ liệu liên quan bằng DEK mới, bọc lại, thu hồi bản cũ theo quy trình | KEK mới không làm thay đổi việc attacker biết DEK cũ |
-| Xóa dữ liệu (“crypto-erasure”) | Quy trình hủy key liên quan, backup/cache/snapshot, kiểm soát retention | Xóa một wrapped DEK không bảo đảm không còn bản sao hoặc plaintext ở nơi khác |
+| Migrating custody from KEK-A to KEK-B, no leak suspected | Rewrap DEKs + update policy, test backup/restore | This is the exact efficient use case for rewrap |
+| A service's permissions are revoked | Narrow KMS permissions + credential rotation + audit + evaluate plaintext/DEK caches | The service may have extracted DEKs or data while authorized |
+| **KEK-A compromised** | Incident response, block KEK-A, audit old ciphertexts/wrapped DEKs and backups, rewrap and potentially re-encrypt data | Anyone holding copies of **wrappedDEK-A + ciphertextData** and KEK-A can still decrypt old copies; rewrapping live records **does not recall snapshots** |
+| **DEK compromised** | Re-encrypt affected data with a new DEK, rewrap, retire old copy per procedure | A new KEK does not alter the fact that the attacker knows the old DEK |
+| Data deletion (“crypto-erasure”) | Procedures to destroy related keys, backups/caches/snapshots, retention controls | Deleting one wrapped DEK does not guarantee no copies or plaintext survive elsewhere |
 
-**Tính bảo mật lịch sử không thể được tạo ngược bởi rotation.** Khi một khóa từng bị lộ, phải đánh giá dữ liệu attacker **đã lấy được**, backup, snapshot, log, các bản DEK/KEK được cache, chứ không chỉ nhìn vào khóa hiện hành.
+**Historical confidentiality cannot be restored retroactively by rotation.** Once a key has been compromised, assess what data the attacker **already captured**, along with backups, snapshots, logs, and cached DEKs/KEKs, rather than looking only at the current key.
 
-## 8. KMS/HSM trong mô hình envelope encryption
+## 8. KMS/HSM in the Envelope Encryption Model
 
-### 8.1 Dịch vụ khóa thường làm gì?
+### 8.1 What Do Key Services Typically Do?
 
-Một API kiểu `GenerateDataKey` có thể trả:
+An API such as `GenerateDataKey` may return:
 
-- **Plaintext DEK** để ứng dụng mã hóa dữ liệu ngay tại chỗ (nếu API/policy cho phép).
-- **Encrypted/wrapped DEK** để lưu cùng encrypted object.
-- Metadata cần thiết như KMS key ID và encryption context, tùy dịch vụ.
+- A **plaintext DEK** so the application can encrypt data locally (if API/policy allows).
+- An **encrypted/wrapped DEK** to persist alongside the encrypted object.
+- Required metadata such as KMS key ID and encryption context, depending on the service.
 
-Sau khi mã hóa dữ liệu, ứng dụng không lưu plaintext DEK. Lần giải mã về sau gửi **wrapped DEK** cùng **encryption context**/metadata thích hợp tới KMS theo quyền được cấp; KMS kiểm tra policy và trả về DEK plaintext hoặc thực hiện unwrap trong ranh giới bảo vệ tương ứng. Tên API, thành phần response và semantics phụ thuộc nhà cung cấp.
+After encrypting data, the application discards the plaintext DEK. For later decryption, it sends the **wrapped DEK** plus matching **encryption context**/metadata to KMS under its granted permissions; KMS checks policy and returns the plaintext DEK or unwraps within the protected boundary. Exact API names, response fields, and semantics vary by vendor.
 
-Một số HSM/KMS có thể giữ KEK **non-exportable**, giới hạn chỉ wrap/unwrap/reencrypt. Tuy vậy nếu API trả plaintext DEK, ứng dụng vẫn phải bảo vệ DEK khi nó đi qua process memory. **“KEK không xuất được” không đồng nghĩa plaintext DEK chưa từng ở trong JVM**.
+Some HSMs/KMS systems keep KEKs **non-exportable**, restricting them to wrap/unwrap/re-encrypt. Even so, if an API returns a plaintext DEK, the application must still protect that DEK while it lives in process memory. **“Non-exportable KEK” does not mean plaintext DEK never entered the JVM**.
 
-### 8.2 Policy và audit quan trọng ngang thuật toán
+### 8.2 Policy and Auditing Matter as Much as Algorithms
 
-- Chỉ service có quyền, tại đúng tenant/project và context, được phép gọi **wrap/unwrap**.
-- Tách role **encrypt-only** (có thể chỉ wrap tạo bản mới) với **decrypt-capable** nếu use case cho phép.
-- Bảo vệ key policy, alias/registry, IAM, service identities, network boundary, quota, key deletion schedule.
-- Audit **key ID, caller identity, mục đích, object/tenant reference hợp lệ, thời gian và kết quả**. Không ghi DEK plaintext, KEK, plaintext data, request secret.
-- Các API encryption context thường coi context là **AAD không bí mật**: đừng đặt mật khẩu/token hoặc PII nhạy cảm vào đó nếu KMS logging/API có thể hiển thị context.
-- Kiểm thử permission denial và lỗi provider trước rollout. Không fallback sang khóa hardcoded/local yếu để “tiếp tục chạy”.
+- Only authorized services, within the right tenant/project and context, may call **wrap/unwrap**.
+- Separate **encrypt-only** roles (allowed only to wrap/create new data) from **decrypt-capable** roles when the use case permits.
+- Protect key policies, aliases/registries, IAM, service identities, network boundaries, quotas, and key deletion schedules.
+- Audit **key ID, caller identity, purpose, valid object/tenant reference, timestamp, and outcome**. Never log plaintext DEKs, KEKs, plaintext data, or request secrets.
+- Encryption context APIs generally treat context as **non-secret AAD**: never put passwords, tokens, or sensitive PII there if KMS logs/APIs can expose context.
+- Test permission denials and provider outages before rollout. Never fall back to weak hard-coded/local keys just to “stay up.”
 
-### 8.3 So sánh các cách bảo vệ DEK
+### 8.3 Comparing Ways to Protect a DEK
 
-| Cách bọc DEK | Mô hình | Lưu ý |
+| DEK Protection Method | Model | Notes |
 | --- | --- | --- |
-| **AES-GCM với KEK** | Mã hóa DEK thành ciphertext + tag, cần nonce duy nhất dưới cùng KEK | Có thể làm theo JCA; phải serialize nonce/tag và ràng buộc AAD; demo dùng cách này |
-| **AES Key Wrap (RFC 3394)** | Primitive dành riêng cho đóng gói key material | Có kiểm tra tính toàn vẹn theo scheme; format/độ dài đầu vào khác GCM; tên và hỗ trợ `Cipher` tùy provider |
-| **AES Key Wrap with Padding (RFC 5649)** | Biến thể wrap hỗ trợ độ dài key material tổng quát hơn | Không nhầm với PKCS5Padding/GCM; hỗ trợ provider phải kiểm tra |
-| **KMS/HSM wrap/unwrap** | KEK do dịch vụ/hardware quản lý, ứng dụng gọi API đã cấp phép | KMS key ID, encryption context, IAM, logging, latency và quota; không giả định thuật toán nội bộ của mọi nhà cung cấp giống nhau |
-| **RSA-OAEP bảo vệ DEK** | Public key encrypt DEK ngắn; private key decrypt | Dùng khi kiến trúc bất đối xứng cần thiết, đúng OAEP params/key custody; không dùng raw RSA hoặc RSA PKCS#1 v1.5 cũ khi thiết kế mới |
-| **Encrypt data trực tiếp bằng KMS** | Một số dịch vụ cho mã hóa đầu vào nhỏ trực tiếp | Dữ liệu lớn nên dùng DEK cục bộ và KMS chỉ xử lý key; kiểm tra giới hạn kích thước input cụ thể |
+| **AES-GCM with KEK** | Encrypts DEK into ciphertext + tag; needs unique nonce per KEK | Implementable via JCA; must serialize nonce/tag and bind AAD; used in this lesson's demo |
+| **AES Key Wrap (RFC 3394)** | Primitive dedicated to wrapping key material | Scheme-level integrity check; different input format/length rules from GCM; `Cipher` names/support vary by provider |
+| **AES Key Wrap with Padding (RFC 5649)** | Wrap variant supporting more general key material lengths | Do not confuse with PKCS5Padding/GCM; verify provider support |
+| **KMS/HSM wrap/unwrap** | KEK managed by service/hardware; app calls authorized APIs | Involves KMS key IDs, encryption context, IAM, logging, latency, and quotas; never assume all providers share internal algorithms |
+| **RSA-OAEP protecting DEK** | Public key encrypts short DEK; private key decrypts | Use when asymmetric custody is required, with proper OAEP params/key custody; avoid raw RSA or legacy RSA PKCS#1 v1.5 for new designs |
+| **Direct data encryption via KMS** | Some services encrypt small inputs directly | For large data, use local DEKs and let KMS handle keys only; check specific input size limits |
 
-**Không** dùng `AES/ECB/NoPadding` thô để “mã hóa DEK”, không dùng phép XOR với một chuỗi cố định, không băm DEK thành “wrapped key”, và không coi Base64/hex là mã hóa. Một primitive mã hóa key phải có tính bảo mật và integrity đúng scheme.
+**Never** use raw `AES/ECB/NoPadding` to “encrypt a DEK,” XOR with a constant string, hash a DEK as a “wrapped key,” or treat Base64/hex as encryption. A key-wrapping primitive must provide confidentiality and scheme-level integrity.
 
-## 9. Nguyên tắc về nonce, AAD và thuật toán
+## 9. Principles for Nonces, AAD, and Algorithms
 
-### 9.1 Dữ liệu mã hóa và DEK được bọc đều cần integrity
+### 9.1 Both Encrypted Data and Wrapped DEKs Need Integrity
 
-Nếu thuật toán wrap chỉ cung cấp confidentiality mà thiếu integrity, một DEK bị sửa có thể đi đến giải mã hoặc dẫn tới failure khó phân tích. Dùng AEAD hoặc key-wrap scheme có kiểm tra integrity để không chấp nhận key material bị thay đổi.
+If a wrapping algorithm provides confidentiality without integrity, a corrupted or tampered DEK may enter decryption or trigger hard-to-diagnose failures. Use AEAD or a key-wrap scheme with integrity checks so altered key material is never accepted.
 
-Với `AES/GCM/NoPadding`:
+For `AES/GCM/NoPadding`:
 
-- GCM tag thường dài **128 bit**, Java nhận `GCMParameterSpec(128, nonce)` với **độ dài tính theo bit**.
-- Nonce **12 byte** là cấu hình điển hình; phải duy nhất **dưới cùng key**. Data encryption dùng **DEK**, wrap encryption dùng **KEK**, nên có hai yêu cầu quản lý nonce riêng.
-- `Cipher.updateAAD(...)` phải thực hiện trước `update/doFinal` đối với dữ liệu trong Java GCM; phía decrypt phải dùng **cùng bytes AAD**.
-- `Cipher.doFinal(...)` chỉ xuất plaintext hợp lệ khi xác minh tag thành công. Không publish output tạm trước authentication.
-- Nếu tag/nonce/AAD/key bị sửa, quá trình giải mã GCM thất bại (`AEADBadTagException` thường gặp). **Không thể biết chắc loại lỗi vật lý chỉ từ tên exception**.
+- GCM tags are typically **128 bits**; Java accepts `GCMParameterSpec(128, nonce)` with **length in bits**.
+- A **12-byte** nonce is standard; it must be unique **under the same key**. Data encryption uses the **DEK**, while wrapping uses the **KEK**, creating two separate nonce-management scopes.
+- `Cipher.updateAAD(...)` must run before `update`/`doFinal` on data in Java GCM; decryption must supply the **exact same AAD bytes**.
+- `Cipher.doFinal(...)` releases valid plaintext only when tag verification succeeds. Never publish intermediate output prior to authentication.
+- If the tag, nonce, AAD, or key is modified, GCM decryption fails (`AEADBadTagException` is common). **You cannot reliably distinguish the exact root cause solely from the exception type**.
 
-Khi dùng 96-bit random nonce và KEK sống lâu, số lượng lần wrap phải được hạn chế sao cho xác suất va chạm nonce vẫn trong mức rủi ro cho phép, hoặc dùng cơ chế quản lý nonce duy nhất bảo đảm theo policy. **Không reuse nonce trong cùng KEK** chỉ vì hai DEK khác nhau.
+With 96-bit random nonces and a long-lived KEK, limit wrapping counts so nonce collision probability remains within acceptable risk, or use a policy-enforced unique nonce allocator. **Never reuse a nonce under the same KEK** merely because the two DEKs differ.
 
-### 9.2 Ràng buộc tenant/object/role
+### 9.2 Binding Tenant, Object, and Role
 
-Một lỗi nguy hiểm là lấy wrapped DEK của tenant A gắn vào ciphertext tenant B rồi **trông đợi tag data tự giải quyết tất cả**. Tag data có thể fail khi key khác, nhưng chỉ riêng điều đó không tạo được mô hình ủy quyền đúng.
+A dangerous mistake is taking tenant A's wrapped DEK, pairing it with tenant B's ciphertext, and **expecting the data tag alone to solve everything**. The data tag may fail if the key differs, yet that alone does not establish a sound authorization model.
 
-Các lớp bảo vệ nên đồng thời bao gồm:
+Defense-in-depth layers should include:
 
-1. **Access control:** chỉ được lấy object và gọi unwrap cho đúng tenant.
-2. **Trusted key ID mapping:** `tenantId + purpose + kekId` ánh xạ tới KEK đã cấp quyền.
-3. **Wrap AAD:** ràng buộc DEK được bọc với object/tenant/purpose và phiên bản thích hợp.
-4. **Data AAD:** ràng buộc ciphertext với object/tenant/purpose, format/version thích hợp.
-5. **Authenticated data format:** đảm bảo cả bên tạo và bên đọc thống nhất representation của metadata trước khi tính tag.
+1. **Access control:** only fetch objects and call unwrap for the authorized tenant.
+2. **Trusted key ID mapping:** `tenantId + purpose + kekId` maps to the authorized KEK.
+3. **Wrap AAD:** binds the wrapped DEK to object/tenant/purpose and version.
+4. **Data AAD:** binds ciphertext to object/tenant/purpose and format/version.
+5. **Authenticated data format:** guarantees both writer and reader agree on metadata representation before computing tags.
 
-AAD không giữ bí mật metadata; cần thêm encryption nếu chính các trường metadata cũng phải được giấu. Nhưng không được bỏ AAD chỉ vì “đã có ciphertext tag”.
+AAD does not keep metadata confidential; add encryption if metadata fields themselves must be hidden. Never omit AAD simply because “the ciphertext already has a tag.”
 
-### 9.3 Đừng đưa `kekId` vào data AAD nếu cần giữ nguyên data khi rewrap
+### 9.3 Do Not Put `kekId` in Data AAD If Data Must Stay Intact During Rewrap
 
-Hàm `associatedData("DATA-v1", objectId, "")` trong demo không chứa `kekId`; `associatedData("WRAP-v1", objectId, kekId)` có chứa. Nhờ vậy sau rewrap:
+In the demo, `associatedData("DATA-v1", objectId, "")` omits `kekId`, while `associatedData("WRAP-v1", objectId, kekId)` includes it. Thus after rewrap:
 
 ```text
-dataNonce:              giữ nguyên
-dataCiphertextAndTag:   giữ nguyên
-wrappedDEK:             thay đổi
-wrapNonce:              thay đổi
-kekId:                  thay đổi
+dataNonce:              unchanged
+dataCiphertextAndTag:   unchanged
+wrappedDEK:             changed
+wrapNonce:              changed
+kekId:                  changed
 ```
 
-Đây không phải “bỏ xác thực key ID”: `kekId` vẫn **được kiểm tra ở trusted key mapping** và **được wrap AAD xác thực**. Việc phân tách đúng metadata theo mục đích giúp cả integrity và rotation hoạt động nhất quán.
+This is not “skipping key ID authentication”: `kekId` is still **validated in the trusted key mapping** and **authenticated by wrap AAD**. Separating metadata by layer lets both integrity and key rotation work coherently.
 
-## 10. Lưu trữ và giao dịch nhất quán khi rewrap hàng triệu object
+## 10. Storage and Consistent Transactions When Rewrapping Millions of Objects
 
-Một hệ thống quản lý object có thể cần migrate từ KEK version 1 sang 2, trong khi vẫn phục vụ traffic bình thường. Những trường hợp khó thường nằm ở **tính nhất quán**, không phải ở `Cipher`:
+An object store may need to migrate from KEK version 1 to 2 while serving live traffic. The hard parts are usually **consistency**, not `Cipher`:
 
-1. **Đọc snapshot/version của object:** lấy data ciphertext/tag, wrapped DEK, key ID, context và version metadata trong một phiên bản nhất quán.
-2. **Authorize old unwrap và new wrap:** không chuyển tất cả object sang key mới nếu thiếu quyền/điều kiện ở một tenant. Đặt giới hạn throughput/KMS quota.
-3. **Rewrap và xác minh:** dùng provider/KMS đúng key IDs; ít nhất kiểm thử decrypt một tập mẫu với new KEK theo policy. Đối với mỗi object, nếu unwrap/authentication thất bại, **không ghi đè wrapped DEK cũ**.
-4. **Atomic compare-and-swap:** chỉ cập nhật `(keyId, wrappedDEK, wrapMetadata, envelopeVersion)` nếu object chưa bị ghi đồng thời hoặc có cùng ETag/version. Nếu có concurrent update, re-read record và áp dụng retry có giới hạn thay vì ghi đè dữ liệu mới.
-5. **Đảm bảo khả năng khôi phục:** có state máy migrate, retry idempotent, kiểm tra checksum/record counts, ghi log không chứa key, đủ dữ liệu khôi phục nếu job bị dừng nửa chừng.
-6. **Hỗ trợ đọc cả hai KEK tạm thời:** trong thời gian rollout, service phải dùng đúng key ID để giải mã object phiên bản cũ/mới; khi không còn dependency, mới thu hồi old unwrap theo kế hoạch.
-7. **Backup và restore:** snapshot có key IDs/wrapped DEKs đúng version; nếu đã hủy KEK cũ, những bản backup cũ cần được xem xét để tránh mất khả năng phục hồi. Không assume object hiện tại rewrap xong là mọi replica/backups cũng xong.
-8. **Xác nhận điều kiện dừng:** đối chiếu inventory và audit log, đo tỷ lệ lỗi đọc, exception theo key version; áp dụng cutover/disable old key có kế hoạch.
+1. **Read an object snapshot/version:** fetch data ciphertext/tag, wrapped DEK, key ID, context, and version metadata from one consistent revision.
+2. **Authorize old unwrap and new wrap:** never migrate all objects blindly if one tenant lacks permissions/conditions. Enforce throughput/KMS quota limits.
+3. **Rewrap and verify:** call the provider/KMS with the right key IDs; test decrypting at least a sample under the new KEK per policy. For each object, if unwrap/authentication fails, **never overwrite the old wrapped DEK**.
+4. **Atomic compare-and-swap:** update `(keyId, wrappedDEK, wrapMetadata, envelopeVersion)` only if the object was not concurrently modified or matches the same ETag/version. On concurrent modification, re-read and run bounded retries rather than clobbering newer data.
+5. **Ensure recoverability:** maintain migration state machines, idempotent retries, checksum/record count checks, key-free logging, and enough state to resume if the job aborts mid-run.
+6. **Temporarily support reading both KEKs:** during rollout, the service must resolve the matching key ID for both old and new versions; retire old unwrap permissions only after zero dependencies remain.
+7. **Backups and restores:** snapshots hold versioned key IDs/wrapped DEKs; before destroying an old KEK, account for older backups so restoration isn't broken. Never assume rewrapping live objects automatically updates replicas/backups.
+8. **Verify stop conditions:** reconcile inventory and audit logs, monitor read error rates and exceptions by key version, and execute planned cutover/disablement of the old key.
 
-**Ví dụ sai:** ghi `kekId="v2"` trước, nhưng vẫn giữ `wrappedDEK` của v1; khi đọc, service chọn KEK-v2 và unwrap thất bại. Ví dụ sai khác: bọc DEK bằng v2 xong nhưng lưu object thiếu tag hoặc wrap nonce. **Nhóm trường liên quan phải cập nhật cùng nhau**.
+**Bad example:** writing `kekId="v2"` first while leaving `wrappedDEK` from v1; readers then pick KEK-v2 and unwrap fails. Another bad example: wrapping the DEK with v2 but persisting the object without the new tag or wrap nonce. **Related fields must update atomically together**.
 
-## 11. Xử lý ngoại lệ và phân loại lỗi
+## 11. Exception Handling and Error Classification
 
-| Triệu chứng | Nguyên nhân có thể có | Cách xử lý đúng |
+| Symptom | Possible Cause | Proper Handling |
 | --- | --- | --- |
-| `AEADBadTagException` khi unwrap DEK bằng AES-GCM | Sai KEK, wrap AAD khác, nonce/tag/ciphertext wrap bị sửa hoặc cắt | Từ chối DEK; không thử sửa tag hoặc đoán key; kiểm tra metadata và source bytes nội bộ |
-| `AEADBadTagException` khi giải mã data | Sai DEK, data AAD/nonce không khớp, data ciphertext/tag hỏng | Không xuất plaintext; kiểm tra object consistency, context và storage transport |
-| `IllegalArgumentException` vì nonce/tag quá ngắn | Format không đủ minimum, metadata không hợp lệ | Chặn ở parser trước khi cấp phát lớn/gọi provider |
-| `InvalidKeyException` khi `Cipher.init` | Key không hợp lệ, sai loại, provider/key policy không chấp nhận | Kiểm tra key type/size và policy; không fallback yếu |
-| KMS báo access denied | IAM/key policy không cho phép unwrap | Từ chối và audit; **không log DEK** hay dùng một KEK local mặc định |
-| KMS rate limit/timeout | Quota hoặc sự cố mạng; không liên quan trực tiếp ciphertext integrity | Retry với backoff/jitter, deadline và giới hạn; tránh giải mã sai hay leak secret |
-| `kekId` không có trong registry | Metadata lỗi, key đã bị thu hồi hoặc sender không được dùng key đó | Không tải key ngoài allowlist; trả lỗi được chuẩn hóa |
-| Rewrap thành công nhưng đọc lại bằng new KEK fail | Mismatch wrap AAD, key ID, format/serialization hoặc update không atomic | Chặn rollout, kiểm tra theo record version, rollback có kiểm soát |
-| Decrypt thành công nhưng object không đúng tenant | Thiếu authorization/context binding; lỗi thiết kế logic | Kiểm tra quyền dữ liệu, tenant ID trong AAD và trusted resource mapping |
-| Chỉ xóa KEK cũ, sau đó không restore được backup | Các bản sao cũ vẫn phụ thuộc KEK đã xóa | Diễn tập restore trước key deletion; quản lý retention theo phiên bản |
+| `AEADBadTagException` when unwrapping DEK with AES-GCM | Wrong KEK, mismatched wrap AAD, modified or truncated wrap nonce/tag/ciphertext | Reject DEK; never try fixing tags or guessing keys; inspect metadata and internal source bytes |
+| `AEADBadTagException` when decrypting data | Wrong DEK, mismatched data AAD/nonce, corrupted data ciphertext/tag | Release zero plaintext; verify object consistency, context, and storage transport |
+| `IllegalArgumentException` due to too-short nonce/tag | Missing minimum layout bytes, invalid metadata | Reject in parser before allocating large buffers or calling provider |
+| `InvalidKeyException` on `Cipher.init` | Invalid key, wrong type, rejected by provider/key policy | Check key type/size and policy; no weak fallback |
+| KMS returns access denied | IAM/key policy forbids unwrap | Reject and audit; **never log DEK** or fall back to a default local KEK |
+| KMS rate limit/timeout | Quota or network issue; unrelated to ciphertext integrity | Retry with backoff/jitter, deadlines, and caps; avoid mis-decrypting or leaking secrets |
+| `kekId` missing from registry | Corrupted metadata, revoked key, or sender unauthorized for that key | Never load keys outside allowlist; return standardized error |
+| Rewrap succeeded yet reading with new KEK fails | Mismatched wrap AAD, key ID, serialization, or non-atomic update | Halt rollout, inspect by record version, execute controlled rollback |
+| Decryption succeeds yet object belongs to wrong tenant | Missing authorization/context binding; logic bug | Enforce data permissions, tenant ID in AAD, and trusted resource mapping |
+| Deleted old KEK, then backup restore fails | Older copies still depend on the deleted KEK | Drill restores before key deletion; manage retention per version |
 
-**Lỗi từ tầng bọc và lỗi từ tầng dữ liệu không nên bị trộn trong monitoring nội bộ**, nhưng phản hồi public không được tiết lộ chi tiết về key material hoặc trạng thái xác thực làm tăng lợi thế của đối thủ. Không giải mã một phần data khi tag chưa được xác nhận; không thử hoán đổi key ID/nonce/tag theo danh sách cho đến khi “giải được”.
+**Errors from the wrapping layer and data layer should not be conflated in internal monitoring**, yet external responses must not expose key material details or authentication state that aids an attacker. Never return partial decrypted data before tag verification; never iterate over lists of key IDs/nonces/tags hoping one “unlocks” it.
 
-## 12. Những câu hỏi thiết kế thường gặp
+## 12. Common Design Questions
 
-### 12.1 Có bắt buộc mỗi record một DEK không?
+### 12.1 Must Every Record Have Its Own DEK?
 
-Không tuyệt đối. Một DEK có thể phục vụ nhiều record nếu giao thức có nonce management, usage limits và threat model đầy đủ. Tuy nhiên **DEK riêng theo object/nhóm nhỏ** thường giúp thu hẹp phạm vi khi lộ DEK, dễ phân quyền vòng đời, xóa object và re-encrypt. Đổi lại, chi phí là số lượng wrapped DEK, metadata và KMS calls tăng. Chọn độ hạt phù hợp với dung lượng, số lượng object, tốc độ truy cập và khả năng quản lý.
+Not strictly. One DEK can cover multiple records if the protocol enforces nonce management, usage limits, and full threat modeling. However, **a separate DEK per object/small group** limits blast radius on DEK compromise and simplifies lifecycle access control, deletion, and re-encryption. The trade-off is more wrapped DEKs, metadata, and KMS calls. Choose granularity based on payload size, object count, access frequency, and manageability.
 
-### 12.2 Có nên cache plaintext DEK để giảm độ trễ không?
+### 12.2 Should Plaintext DEKs Be Cached to Reduce Latency?
 
-Caching làm giảm số lời gọi KMS nhưng **kéo dài thời gian tồn tại và phạm vi lộ DEK**. Nếu cần, phải có TTL, giới hạn entry, tenant separation, quyền process, lifecycle eviction, giới hạn debug/heap dump, audit và đánh giá nguy cơ replay/stale key policy. **Cache encrypted DEK** không có nguy cơ tương tự như cache plaintext DEK; dù vậy cache metadata cũng cần xử lý nhất quán với rotation.
+Caching cuts KMS calls yet **extends plaintext DEK lifetime and exposure surface**. If needed, enforce TTLs, entry caps, tenant isolation, process permissions, lifecycle eviction, restricted debugging/heap dumps, auditing, and replay/stale-policy risk assessment. **Caching encrypted DEKs** lacks the same plaintext exposure risk, though cached metadata must still stay consistent during rotation.
 
-### 12.3 Có thể lấy một khẩu lệnh chung làm KEK không?
+### 12.3 Can a Shared Passphrase Be Used as a KEK?
 
-Không nên coi một chuỗi cấu hình dễ đoán như `"master-password-123"` là KEK. KEK phải có entropy, key management và policy thích hợp. Nếu mô hình thực sự buộc bắt đầu từ **mật khẩu người dùng**, cần password-based KDF (như Argon2id/scrypt/PBKDF2 theo kiến trúc và môi trường), salt, chi phí chống đoán và thiết kế phù hợp; không đơn giản gọi `password.getBytes()` làm AES key. Mô hình này khác với KMS-backed KEK có entropy ngẫu nhiên.
+Never treat a guessable configuration string like `"master-password-123"` as a KEK. A KEK requires proper entropy, key management, and policy. If the model genuinely starts from a **user password**, use a password-based KDF (such as Argon2id/scrypt/PBKDF2 per architecture and environment) with salt, work factor, and proper design—never simply call `password.getBytes()` as an AES key. That model differs from a randomly generated KMS-backed KEK.
 
-### 12.4 KEK và DEK có thể đều là AES-256 không?
+### 12.4 Can Both KEK and DEK Be AES-256?
 
-**Có**, cùng loại thuật toán AES nhưng là **hai khóa độc lập với vai trò khác nhau**. Cụm “tách khóa” không chỉ là thay tên biến: phải sinh key material độc lập, giới hạn truy cập và chức năng, bảo vệ KEK bằng biện pháp mạnh hơn, quản lý version và tránh dùng lại cùng một key cho data và wrap. Nếu cả hai là một mảng 32 byte giống hệt thì bạn chưa đạt được key separation.
+**Yes**—the same AES algorithm, yet **two independent keys with distinct roles**. “Key separation” is more than renaming variables: generate independent key material, separate permissions and functions, protect the KEK more strongly, manage versions, and avoid reusing one key for both data and wrapping. If both hold the same 32 bytes, you have not achieved key separation.
 
-### 12.5 Bọc DEK với public key của người nhận được không?
+### 12.5 Can a DEK Be Wrapped with a Recipient's Public Key?
 
-Có, nếu thiết kế dùng **RSA-OAEP** hoặc KEM/HPKE được chuẩn hóa, bạn có thể mã hóa/bọc DEK ngắn cho public key người nhận; chỉ bên có private key mới unwrap được. Khi này “KEK” có thể là khái niệm **key-encryption mechanism** bất đối xứng thay vì một khóa AES đối xứng. Nhưng vẫn cần authentic public key của người nhận, đúng scheme, tham số OAEP/KEM và chính sách bảo vệ private key; **đừng dùng RSA raw hoặc tự chế hybrid protocol**.
+Yes—if the design uses **RSA-OAEP** or standardized KEM/HPKE, you can encrypt/wrap a short DEK for the recipient's public key so only the private-key holder can unwrap it. Here the “KEK” is an asymmetric **key-encryption mechanism** rather than a symmetric AES key. Still, you need authentic recipient public keys, valid schemes, proper OAEP/KEM parameters, and private key custody policies; **never use raw RSA or homebrew hybrid protocols**.
 
-### 12.6 Có thể dùng “wrapped DEK” làm token cấp quyền không?
+### 12.6 Can a “Wrapped DEK” Serve as an Authorization Token?
 
-**Không.** Wrapped DEK là ciphertext của key material, không phải capability token tự chứng thực quyền người gọi. Hệ thống vẫn phải xác thực người dùng/service, authorize object, giới hạn KMS unwrap và ràng buộc tenant/context. Ai được đọc envelope thường có thể thấy wrapped DEK; điều này **không đồng nghĩa** họ có quyền KMS để mở nó.
+**No.** A wrapped DEK is ciphertext of key material, not a capability token proving caller rights. The system must still authenticate the user/service, authorize object access, restrict KMS unwrap, and bind tenant/context. Anyone able to read the envelope can typically see the wrapped DEK; that **does not mean** they have KMS permission to unwrap it.
 
-### 12.7 Crypto-erasure có đủ để xóa dữ liệu không?
+### 12.7 Is Crypto-Erasure Enough to Delete Data?
 
-Ý tưởng **crypto-erasure** là xóa vĩnh viễn material cần để giải mã; nếu mỗi object có DEK riêng và không còn bản sao DEK/wrapped DEK có thể unwrap, dữ liệu có thể trở nên không thể khôi phục về mặt mật mã. Nhưng không thể khẳng định hoàn tất chỉ vì xóa một row: cần đánh giá DEK cache, KEK version còn sống, snapshots, backups, bản sao plaintext, log và các máy chủ đã giải mã trước đó. Hủy KEK dùng chung để xóa một object có thể **vô tình xóa khả năng giải mã của toàn bộ object khác**.
+**Crypto-erasure** permanently destroys the key material needed to decrypt; if each object has its own DEK and no copies of the DEK or unwrap-capable wrapped DEK survive, data can become cryptographically unrecoverable. Yet deleting one database row does not prove completion: audit DEK caches, active KEK versions, snapshots, backups, plaintext copies, logs, and hosts that previously decrypted it. Destroying a shared KEK to erase one object can **accidentally make all other objects undecryptable**.
 
-### 12.8 Envelope encryption có tự làm dữ liệu “end-to-end encrypted” không?
+### 12.8 Does Envelope Encryption Automatically Make Data “End-to-End Encrypted”?
 
-Không. Nếu server xử lý plaintext DEK và plaintext data, server nằm trong vùng tin cậy của hệ thống. End-to-end encryption có mô hình key custody và endpoint khác; envelope encryption có thể là một thành phần nhưng không tự tạo E2EE. Cần chỉ rõ **ai có thể unwrap, ai nhìn thấy plaintext, ở đâu key được giải mã**, chứ không chỉ đếm số lớp encryption.
+No. If the server handles plaintext DEKs and plaintext data, the server sits inside the trust boundary. End-to-end encryption has a different key-custody and endpoint model; envelope encryption can be a building block, yet does not by itself create E2EE. Specify **who can unwrap, who sees plaintext, and where keys are decrypted**, rather than counting encryption layers.
 
-## 13. Checklist production và kiểm thử
+## 13. Production and Testing Checklist
 
-### Bảo mật khóa
+### Key Security
 
-- [ ] DEK và KEK khác nhau cả về **key material, role, quyền sử dụng và vòng đời**.
-- [ ] Plaintext DEK chỉ tồn tại tạm thời trong ranh giới được kiểm soát; KEK nằm trong KMS/HSM/keystore theo policy.
-- [ ] CSPRNG đúng, nonce GCM **không tái sử dụng dưới cùng khóa** và có quản lý usage limits.
-- [ ] Có trusted key ID registry; tenant, object, purpose/role được bind vào context xác thực.
-- [ ] Không ghi DEK/KEK/plaintext vào log, trace, metrics, exception hoặc metadata envelope.
-- [ ] Giao thức không dùng ECB/raw RSA/hash làm primitive bọc khóa.
+- [ ] DEKs and KEKs differ in **key material, role, usage permissions, and lifecycle**.
+- [ ] Plaintext DEKs live only ephemerally inside controlled boundaries; KEKs reside in KMS/HSM/keystores per policy.
+- [ ] Proper CSPRNG, GCM nonces **never reused under the same key**, and usage limits enforced.
+- [ ] Trusted key ID registry exists; tenant, object, and purpose/role are bound into authenticated context.
+- [ ] Zero DEKs/KEKs/plaintext in logs, traces, metrics, exceptions, or envelope metadata.
+- [ ] Protocol avoids ECB, raw RSA, or hashes as key-wrapping primitives.
 
-### Envelope và integrity
+### Envelope and Integrity
 
-- [ ] Format có version, algorithm allowlist, key ID, nonce/tag và canonical byte representation.
-- [ ] Data AAD ổn định theo object/tenant/purpose; wrap AAD ràng buộc key ID/context, cho phép rewrap độc lập khi đó là mục tiêu thiết kế.
-- [ ] Parser chặn thiếu header/tag và giới hạn độ dài trước khi cấp phát/gọi `Cipher`.
-- [ ] Đọc/ghi object và wrapped DEK nhất quán; không expose plaintext trước khi xác minh tag cả tầng unwrap lẫn tầng data.
-- [ ] Có test đổi 1 bit ciphertext/tag/nonce, dùng KEK sai, sai object ID/tenant/AAD, thiếu tag, thay key ID, sai version.
-- [ ] Đối với KMS, kiểm thử key permission, status, quota/timeout, key rotation và policy revocation.
+- [ ] Format defines version, algorithm allowlist, key ID, nonces/tags, and canonical byte layout.
+- [ ] Data AAD stays stable per object/tenant/purpose; wrap AAD binds key ID/context, enabling independent rewrap when desired.
+- [ ] Parser rejects missing headers/tags and enforces length bounds before allocating or calling `Cipher`.
+- [ ] Object and wrapped DEK reads/writes stay consistent; zero plaintext exposed before verifying both wrap and data tags.
+- [ ] Tests cover flipping 1 bit in ciphertext/tag/nonce, wrong KEK, wrong object ID/tenant/AAD, missing tag, altered key ID, and invalid version.
+- [ ] For KMS, test key permissions, key states, quotas/timeouts, key rotation, and policy revocation.
 
-### Rotation và vận hành
+### Rotation and Operations
 
-- [ ] Phân biệt **KEK rewrap** và **DEK re-encryption**, có runbook riêng.
-- [ ] Rewrap cập nhật atomic `wrappedDEK + keyId + wrap metadata` và có ETag/concurrency guard.
-- [ ] Tạm hỗ trợ đúng key versions cần đọc; xóa khóa cũ **chỉ sau** khi xác minh các object, backup và restore path.
-- [ ] Có migration metrics, audit trail, batch size, retry idempotent và rollback.
-- [ ] Có kế hoạch incident response nếu KEK/DEK bị lộ, gồm bản sao lịch sử và backup.
+- [ ] Distinguish **KEK rewrap** from **DEK re-encryption** with separate runbooks.
+- [ ] Rewrap atomically updates `wrappedDEK + keyId + wrap metadata` with ETag/concurrency guards.
+- [ ] Temporarily support required read key versions; destroy old keys **only after** verifying objects, backups, and restore paths.
+- [ ] Migration metrics, audit trails, batch sizing, idempotent retries, and rollback plans are in place.
+- [ ] Incident response plan covers KEK/DEK compromise, including historical copies and backups.
 
-## 14. Bài tập thực hành
+## 14. Practice Exercises
 
-1. Vẽ sơ đồ envelope cho hệ thống lưu hóa đơn của ba tenant. Chọn một DEK mỗi invoice hay mỗi tenant? KEK ở cấp nào? Giải thích trade-off về KMS calls và phạm vi lộ khóa.
-2. Chạy `EnvelopeEncryptionDemo.java`. Chỉ ra chỗ DEK được sinh, dùng mã hóa dữ liệu, bọc, unwrap và xóa tạm. KEK có bao giờ trực tiếp mã hóa `plaintext` ban đầu không?
-3. Tại sao test `Wrong object ID rejected` thành công dù `objectId` không nằm trong plaintext? Nếu lấy object ID tùy ý từ payload rồi dùng làm AAD, rủi ro identity binding còn gì?
-4. Thêm `tenantId` vào `associatedData` bằng length prefix. Tạo test tráo wrapped DEK giữa hai tenant khác nhau rồi chứng minh không thể giải mã sai context.
-5. Phân biệt `Rewrap keeps data bytes: true / true` với DEK rotation. Vì sao rewrap **không thay data ciphertext/tag** nhưng đổi DEK thường phải thay chúng?
-6. Giả sử công ty làm lộ KEK-v1 và attacker từng lưu snapshot của `wrappedDEK-v1`. Rewrap record hiện tại sang v2 có làm snapshot cũ mất giá trị không? Hãy viết kế hoạch xử lý sự cố.
-7. Xây dựng mô hình database với `object_version`, `kek_id`, `wrapped_dek`, `wrap_nonce`, `data_nonce` và `data_ciphertext_and_tag`. Phác thảo câu lệnh cập nhật compare-and-swap cho rewrap khi có writer đồng thời.
-8. Thiết kế thử nghiệm KMS: unwrap permission denied, key rotation, key disabled, old backup restore, KMS unavailable. Chỉ rõ tình huống nào nên retry, tình huống nào phải fail closed.
-9. Giải thích vì sao cùng một mã `AES/GCM/NoPadding` được demo dùng cho hai vai trò khác nhau vẫn là **key separation** và vì sao không nên reuse nonce dưới cùng KEK.
-10. Nếu DEK của một object cần xóa vĩnh viễn, những bản sao plaintext key/encrypted key, backup/cache/snapshot nào phải xét trước khi tuyên bố crypto-erasure đã hoàn tất?
+1. Draw an envelope diagram for a three-tenant invoice storage system. Would you choose one DEK per invoice or per tenant? At what tier does the KEK sit? Explain the trade-offs in KMS calls and compromise blast radius.
+2. Run `EnvelopeEncryptionDemo.java`. Point out where the DEK is generated, used to encrypt data, wrapped, unwrapped, and temporarily cleared. Does the KEK ever encrypt the original `plaintext` directly?
+3. Why does the `Wrong object ID rejected` test succeed even though `objectId` is not inside the plaintext? If you take an arbitrary object ID from the payload to build AAD, what identity-binding risk remains?
+4. Add `tenantId` to `associatedData` using length prefixes. Write a test that swaps wrapped DEKs between two tenants and prove decryption fails under the wrong context.
+5. Contrast `Rewrap keeps data bytes: true / true` with DEK rotation. Why does rewrapping **not alter data ciphertext/tag**, whereas changing the DEK normally requires changing them?
+6. Suppose the company exposes KEK-v1 and an attacker captured a snapshot of `wrappedDEK-v1`. Does rewrapping live records to v2 invalidate the old snapshot? Write an incident response plan.
+7. Design a database model with `object_version`, `kek_id`, `wrapped_dek`, `wrap_nonce`, `data_nonce`, and `data_ciphertext_and_tag`. Sketch a compare-and-swap update statement for rewrap under concurrent writers.
+8. Design KMS test cases: unwrap permission denied, key rotation, key disabled, old backup restore, and KMS unavailable. Specify which cases should retry and which must fail closed.
+9. Explain why using the same `AES/GCM/NoPadding` cipher in the demo for two different roles still achieves **key separation**, and why nonces must never be reused under the same KEK.
+10. If one object's DEK must be permanently deleted, which copies of plaintext/encrypted keys, backups, caches, and snapshots must be checked before declaring crypto-erasure complete?
 
-## Tài liệu tham khảo
+## References
 
-- [NIST SP 800-38D — GCM/GMAC](https://csrc.nist.gov/pubs/sp/800/38/d/final): yêu cầu về authenticated encryption, IV/nonce và tag.
-- [NIST SP 800-57 Part 1 Rev. 5 — Recommendation for Key Management](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final): thuật ngữ, key management, lifecycle và cryptoperiod.
-- [RFC 3394 — Advanced Encryption Standard (AES) Key Wrap Algorithm](https://www.rfc-editor.org/rfc/rfc3394): phương pháp bọc khóa AES.
-- [RFC 5649 — AES Key Wrap with Padding Algorithm](https://www.rfc-editor.org/rfc/rfc5649): biến thể có padding phục vụ key material độ dài tổng quát hơn.
-- [Java SE 17 — `Cipher`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): `AES/GCM/NoPadding`, `updateAAD`, `doFinal`, authentication failure và `WRAP_MODE`.
-- [Java SE 17 — `GCMParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): tag length tính bằng bit và IV/nonce.
-- [Java SE 17 — `KeyGenerator`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html): sinh khóa AES bằng provider.
-- [Java SE 17 — `SecretKeySpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/SecretKeySpec.html): khóa byte được đưa vào JCE; chỉ là wrapper trong bộ nhớ, không thay thế KMS.
-- [Java SE 17 — Java Cryptography Architecture Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): providers, key generation, Cipher/JCE và kiến trúc dịch vụ.
+- [NIST SP 800-38D — GCM/GMAC](https://csrc.nist.gov/pubs/sp/800/38/d/final): requirements for authenticated encryption, IV/nonces, and tags.
+- [NIST SP 800-57 Part 1 Rev. 5 — Recommendation for Key Management](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final): terminology, key management, lifecycle, and cryptoperiods.
+- [RFC 3394 — Advanced Encryption Standard (AES) Key Wrap Algorithm](https://www.rfc-editor.org/rfc/rfc3394): AES key-wrapping method.
+- [RFC 5649 — AES Key Wrap with Padding Algorithm](https://www.rfc-editor.org/rfc/rfc5649): padded variant supporting more general key material lengths.
+- [Java SE 17 — `Cipher`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): `AES/GCM/NoPadding`, `updateAAD`, `doFinal`, authentication failures, and `WRAP_MODE`.
+- [Java SE 17 — `GCMParameterSpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): tag length in bits and IV/nonces.
+- [Java SE 17 — `KeyGenerator`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html): generating AES keys via providers.
+- [Java SE 17 — `SecretKeySpec`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/SecretKeySpec.html): in-memory key byte wrapper; not a substitute for KMS.
+- [Java SE 17 — Java Cryptography Architecture Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): providers, key generation, Cipher/JCE, and service architecture.

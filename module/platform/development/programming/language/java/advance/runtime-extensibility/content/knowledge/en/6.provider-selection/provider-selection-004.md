@@ -1,105 +1,105 @@
-# Định nghĩa hành vi khi không có provider hoặc nhiều provider cùng phù hợp
+# Defining Behavior When No Provider Exists or Multiple Providers Match
 
-Trong kiến trúc mở rộng Java, hệ thống thường tìm các **provider** (những implementation của một interface hoặc Service Provider Interface, SPI) rồi chọn provider đáp ứng yêu cầu hiện tại. Vấn đề quan trọng không chỉ là *tìm được provider*, mà là **quyết định có thể dự đoán được** khi không tìm thấy ứng viên, khi tìm thấy nhiều ứng viên, hoặc khi provider được chọn không khởi tạo hay thực thi thành công.
+In Java extensibility architecture, a system typically discovers **providers** (implementations of an interface or Service Provider Interface, SPI) and then selects a provider that satisfies the current request. The crucial problem is not merely *finding providers*, but making **predictable decisions** when no candidate is found, when multiple candidates are found, or when the chosen provider fails to initialize or execute.
 
-Một chính sách lựa chọn tốt cần trả lời trước bốn câu hỏi:
+A sound selection policy should answer four questions upfront:
 
-1. **Không có provider nào được đăng ký:** ứng dụng thất bại, bỏ qua tính năng, hay dùng bản mặc định?
-2. **Có provider nhưng không provider nào phù hợp yêu cầu:** có được dùng fallback không, và fallback có thật sự hỗ trợ yêu cầu đó?
-3. **Nhiều provider đều phù hợp:** ưu tiên cấu hình tường minh, điểm ưu tiên, lựa chọn duy nhất, hay phối hợp nhiều provider?
-4. **Provider hợp lệ nhưng lỗi khi nạp hoặc chạy:** có dừng, thử provider khác, hay báo lỗi nghiệp vụ? Đây là lỗi khác với “không có provider”.
+1. **No providers registered:** should the application fail, skip the feature, or use a built-in default?
+2. **Providers exist, but none match the request:** is a fallback allowed, and does that fallback actually support the request?
+3. **Multiple providers match:** prefer explicit configuration, priority score, unique-match requirement, or coordinate multiple providers?
+4. **Provider is valid, but fails while loading or running:** stop, try another provider, or report a business error? This is a different failure from “no provider”.
 
-Không nên để kết quả phụ thuộc vào việc JAR nào xuất hiện trước trên classpath hoặc provider nào vô tình được duyệt đầu tiên.
+Outcomes must never depend on which JAR appears first on the classpath or which provider happens to be iterated first.
 
-## 1. Phân biệt phát hiện, phù hợp, lựa chọn và thực thi
+## 1. Distinguishing Discovery, Eligibility, Selection, and Execution
 
-Giả sử ứng dụng công bố interface `DocumentRenderer` để xuất tài liệu; các JAR cung cấp `PdfRenderer`, `HtmlRenderer` hoặc một provider dự phòng. Có bốn bước cần phân biệt:
+Suppose an application exposes a `DocumentRenderer` interface for rendering documents; JARs provide `PdfRenderer`, `HtmlRenderer`, or a fallback provider. Four steps must be kept distinct:
 
 ```text
-Danh sách JAR / module khả dụng
+Available JAR / module list
              |
              v
-[1] DISCOVER: tìm và khởi tạo các provider
+[1] DISCOVER: find and instantiate providers
              |
              v
-[2] FILTER: provider nào hỗ trợ yêu cầu?
+[2] FILTER: which providers support the request?
              |
              v
-[3] SELECT: đúng một provider, nhiều provider, hay fallback?
+[3] SELECT: one provider, multiple providers, or fallback?
              |
              v
-[4] EXECUTE: gọi provider đã chọn, xử lý lỗi và tài nguyên
+[4] EXECUTE: invoke selected provider, handle errors and resources
 ```
 
-- **Không tìm thấy provider:** registry hoặc tập được phát hiện là rỗng. Đây có thể là thiếu JAR, thiếu khai báo dịch vụ hoặc tính năng tùy chọn chưa được cài.
-- **Không có provider phù hợp:** registry không rỗng nhưng mọi ứng viên đều từ chối yêu cầu dựa trên capability, format, tenant, version hoặc chính sách.
-- **Mơ hồ (ambiguous):** ít nhất hai ứng viên cùng đạt tiêu chí cao nhất và chính sách yêu cầu chọn duy nhất.
-- **Lỗi discovery:** descriptor dịch vụ sai, class không load được, constructor/provider method lỗi, dependency không tương thích. Đây **không phải** trường hợp không có provider hợp lệ.
-- **Lỗi execution:** một provider đã được chọn nhưng thất bại khi xử lý. Không thể kết luận rằng provider khác sẽ cho kết quả tương đương.
+- **No provider found:** the registry or discovered set is empty. This can indicate a missing JAR, a missing service declaration, or an uninstalled optional feature.
+- **No matching provider:** the registry is non-empty, but every candidate rejects the request based on capability, format, tenant, version, or policy.
+- **Ambiguous:** at least two candidates tie on the highest criterion and the policy requires a unique selection.
+- **Discovery failure:** malformed service descriptor, class cannot load, constructor/provider method fails, or incompatible dependencies. This is **not** the same as having no valid provider.
+- **Execution failure:** a provider was selected but failed during processing. You cannot assume another provider would produce an equivalent result.
 
-Việc giữ riêng từng trạng thái tạo ra thông báo lỗi, metric và chính sách khôi phục chính xác.
+Keeping each state separate yields accurate error messages, metrics, and recovery policies.
 
-## 2. Chính sách khi không có provider phù hợp
+## 2. Policy When No Matching Provider Exists
 
-Không có chính sách mặc định đúng cho mọi hệ thống. Hãy dựa vào việc tính năng đó **bắt buộc hay tùy chọn**, và có một kết quả dự phòng **đúng nghĩa nghiệp vụ** hay không.
+There is no single default policy that fits every system. Base the decision on whether the feature is **required or optional**, and whether a **business-valid fallback** exists.
 
-| Chính sách | Hành vi | Dùng khi | Rủi ro cần tránh |
+| Policy | Behavior | When to use | Risk to avoid |
 |---|---|---|---|
-| **Fail fast / fail closed** | Trả lỗi có mã rõ ràng; khi khởi động có thể từ chối khởi động | Chức năng thiết yếu, mã hóa, thanh toán, kiểm tra quyền | Không đổi thành “cho phép” hoặc kết quả giả để tiếp tục |
-| **Explicit fallback** | Chỉ gọi provider dự phòng đã cấu hình và đã xác minh hỗ trợ request | Xuất text thay định dạng phong phú, chế độ cơ bản | Fallback làm sai định dạng, mất dữ liệu hay âm thầm hạ mức bảo vệ |
-| **No-op có chủ đích** | Bỏ qua tác vụ và ghi nhận trạng thái | Telemetry/hook tùy chọn, chức năng phụ không ảnh hưởng tính đúng | Báo thành công dù tác vụ bắt buộc chưa chạy |
-| **Unsupported / disabled** | Trả trạng thái tính năng không được hỗ trợ hoặc chưa bật | Capability chỉ cài cho một số môi trường/tenant | Người gọi hiểu nhầm là lỗi hạ tầng thoáng qua |
-| **Chờ/tải provider ngoài** | Chỉ khi hệ thống thiết kế cơ chế provisioning có giới hạn thời gian | Nền tảng tải plugin theo yêu cầu | Tải mã tùy ý hoặc treo request vô thời hạn |
+| **Fail fast / fail closed** | Return an error with a clear code; at startup, may refuse to boot | Critical functions, cryptography, payments, authorization checks | Never turn it into “allow” or a fake result just to keep running |
+| **Explicit fallback** | Invoke only a configured fallback provider verified to support the request | Plain text instead of rich format, basic mode | Fallback corrupting format, losing data, or silently lowering security |
+| **Intentional no-op** | Skip the operation and record status | Optional telemetry/hooks, secondary features that do not affect correctness | Reporting success when a mandatory task never ran |
+| **Unsupported / disabled** | Return a feature-unsupported or disabled status | Capabilities installed only for certain environments/tenants | Callers mistaking it for a transient infrastructure failure |
+| **Wait/load external provider** | Only when the system designs a time-bounded provisioning mechanism | Platforms that load plugins on demand | Loading arbitrary code or hanging requests indefinitely |
 
-Ví dụ: không có plugin tạo ảnh xem trước thì có thể hiển thị “chưa có preview”; không có provider xác thực chữ ký số thì phải báo lỗi hoặc từ chối thao tác, tuyệt đối không coi là đã xác thực.
+For example: if no image-preview plugin is present, you may display “preview unavailable”; if no digital-signature verification provider exists, you must fail or reject the operation, never treat it as verified.
 
-**Fallback cần điều kiện rõ ràng:**
+**Fallbacks require strict conditions:**
 
-- Chỉ dùng cho lỗi `NO_PROVIDERS` / `NO_MATCH` nếu nghiệp vụ cho phép. Không tự áp dụng cho `AMBIGUOUS`, `DISCOVERY_FAILED` hoặc `EXECUTION_FAILED`.
-- Có identity/version cố định, được kiểm thử, cấu hình và giám sát như provider thông thường.
-- Có kiểm tra `supports(request)` và hạn chế dữ liệu/format; không giả định provider “default” hỗ trợ mọi đầu vào.
-- Là lựa chọn **cuối cùng**, không âm thầm che việc bản phát hành thiếu plugin bắt buộc.
-- Tách đường thành công bình thường và thành công do fallback trong log, metric và phản hồi khi điều đó ảnh hưởng đến người dùng.
+- Use only for `NO_PROVIDERS` / `NO_MATCH` if business rules permit. Never auto-apply to `AMBIGUOUS`, `DISCOVERY_FAILED`, or `EXECUTION_FAILED`.
+- Have a fixed identity/version, tested, configured, and monitored like a normal provider.
+- Check `supports(request)` and enforce data/format limits; never assume a “default” provider supports every input.
+- Serve as a **last resort**, never silently masking a release missing a required plugin.
+- Separate normal success from fallback success in logs, metrics, and responses whenever it affects users.
 
-Phân biệt “registry rỗng” với “không match” giúp chẩn đoán đúng: trường hợp đầu thường do cài đặt hoặc discovery, trường hợp sau có thể do khả năng hỗ trợ hoặc request ngoài phạm vi.
+Distinguishing “empty registry” from “no match” enables proper diagnosis: the former usually points to installation or discovery, while the latter points to capabilities or out-of-scope requests.
 
-## 3. Chính sách khi nhiều provider cùng phù hợp
+## 3. Policy When Multiple Providers Match
 
-Có nhiều provider phù hợp **không đồng nghĩa phải lấy provider đầu tiên**. Tùy mục đích, thiết kế một trong các hợp đồng dưới đây.
+Multiple matching providers **do not mean picking the first provider**. Depending on the goal, design one of the contracts below.
 
-| Chính sách | Quy tắc | Ví dụ |
+| Policy | Rule | Example |
 |---|---|---|
-| **Require unique match** | Đúng một ứng viên mới hợp lệ; từ hai trở lên trả `AMBIGUOUS_PROVIDER` | Một codec chuyên biệt duy nhất cho format đã đăng ký |
-| **Explicit provider ID** | Cấu hình/người gọi chọn ID đã được cho phép; yêu cầu ID ấy phải tồn tại và hỗ trợ request | Tenant A chọn `s3-v2`, tenant B chọn `azure-v1` |
-| **Priority + reject tie** | Chọn priority cao nhất; nếu nhiều provider cùng priority cao nhất thì trả lỗi mơ hồ | Chọn implementation chuyên biệt hơn generic |
-| **Specificity + priority** | So theo mức độ cụ thể của capability/tenant rồi mới so priority; hòa cuối cùng vẫn phải có chính sách | Provider cho `image/png` cụ thể hơn `image/*` |
-| **Ordered chain** | Thử ứng viên theo thứ tự được cấu hình, với điều kiện tiến trình thử an toàn | Parser có khả năng trả “không nhận diện được” trước khi xử lý |
-| **Composition / fan-out** | Chủ động gọi nhiều provider và gom kết quả theo giao thức rõ ràng | Gửi cùng event tới nhiều sink giám sát |
+| **Require unique match** | Exactly one candidate is valid; two or more return `AMBIGUOUS_PROVIDER` | A single specialized codec for a registered format |
+| **Explicit provider ID** | Configuration/caller chooses an allowed ID; that ID must exist and support the request | Tenant A picks `s3-v2`, tenant B picks `azure-v1` |
+| **Priority + reject tie** | Pick the highest priority; if multiple share the highest priority, return an ambiguity error | Prefer a specialized implementation over a generic one |
+| **Specificity + priority** | Compare capability/tenant specificity first, then priority; final ties still need a policy | A provider for `image/png` is more specific than `image/*` |
+| **Ordered chain** | Try candidates in configured order, provided probing is safe | Parsers capable of returning “unrecognized” before processing |
+| **Composition / fan-out** | Intentionally invoke multiple providers and merge results via a clear protocol | Sending the same event to multiple monitoring sinks |
 
-**Không nhầm “chain” với “composition”:** chain thường tìm một provider xử lý thành công; composition chủ ý sử dụng nhiều provider. Chỉ thực hiện cả hai khi extension contract cho phép. Với thao tác có side effect như trừ tiền hoặc gửi email, thử nhiều provider sau một lỗi mơ hồ có thể gây thực thi lặp.
+**Do not confuse “chain” with “composition”:** a chain usually searches for one provider that handles the request; composition intentionally uses multiple providers. Only use either when the extension contract allows it. For operations with side effects such as charging money or sending email, trying multiple providers after an ambiguous failure can cause duplicate execution.
 
-### Thứ tự ưu tiên cần ổn định
+### Priority Order Must Be Stable
 
-Nếu dùng priority, nên công bố rõ:
+If using priority, clearly publish:
 
-1. **Điều kiện bắt buộc:** provider phải được bật, tương thích API, nằm trong danh sách được phép và hỗ trợ request.
-2. **Lựa chọn tường minh** nếu có: ID được chỉ định phải tồn tại và hỗ trợ request; nếu sai, trả lỗi thay vì lặng lẽ chuyển sang provider khác.
-3. **Xếp hạng:** ví dụ priority là số nguyên, **số lớn hơn được ưu tiên**; nếu có specificity, phải công bố thứ tự xét.
-4. **Xử lý hòa:** báo `AMBIGUOUS_PROVIDER` hoặc có một quy tắc business đã được thống nhất. Sắp xếp ID chỉ để tạo báo lỗi ổn định **không tự biến hòa thành lựa chọn đúng**.
-5. **Fallback:** chỉ xét khi **không còn ứng viên hợp lệ**, nếu chính sách cho phép.
+1. **Mandatory preconditions:** the provider must be enabled, API-compatible, on the allowlist, and support the request.
+2. **Explicit selection** if present: the specified ID must exist and support the request; if invalid, return an error rather than silently switching to another provider.
+3. **Ranking:** for example, priority is an integer where **a higher number wins**; if specificity applies, publish the evaluation order.
+4. **Tie handling:** report `AMBIGUOUS_PROVIDER` or apply an agreed business rule. Sorting IDs just for deterministic error reporting **does not automatically turn a tie into a valid choice**.
+5. **Fallback:** considered only when **no eligible candidates remain**, if policy allows.
 
-Không nên dựa vào thứ tự duyệt của `ServiceLoader`, thứ tự classpath, tên file JAR hoặc thứ tự provider được tải về. Những yếu tố đó có thể thay đổi giữa môi trường triển khai.
+Never rely on `ServiceLoader` iteration order, classpath order, JAR filenames, or provider download order. Those factors can change across deployment environments.
 
-## 4. Ví dụ Java 17 chạy được: không có provider, chọn theo priority và phát hiện mơ hồ
+## 4. Runnable Java 17 Example: No Provider, Priority Selection, and Ambiguity Detection
 
-Ví dụ sau triển khai một selector **độc lập với cách tìm provider**. Trong thực tế, danh sách `registry` có thể được lấy từ `ServiceLoader`, module layer hoặc plugin registry do ứng dụng quản lý. Selector này áp dụng chính sách:
+The following example implements a selector **independent of how providers are discovered**. In practice, the `registry` list can come from `ServiceLoader`, a module layer, or an application-managed plugin registry. This selector applies the policy:
 
-- Nếu registry rỗng: `NO_PROVIDERS`; nếu có provider nhưng không ứng viên nào hỗ trợ: `NO_MATCH`.
-- Fallback chỉ được dùng khi không có ứng viên phù hợp, và chính fallback phải hỗ trợ request.
-- Nếu có ứng viên: lấy priority cao nhất. Hai ứng viên cùng priority cao nhất gây `AMBIGUOUS`, không lấy tùy tiện một cái.
-- ID provider phải có giá trị và không được trùng trong registry.
+- If registry is empty: `NO_PROVIDERS`; if providers exist but none support the request: `NO_MATCH`.
+- Fallback is used only when no eligible candidate exists, and the fallback itself must support the request.
+- If candidates exist: pick the highest priority. Two candidates sharing the highest priority trigger `AMBIGUOUS`, rather than picking one arbitrarily.
+- Provider IDs must have a value and must not duplicate within the registry.
 
-Lưu thành tệp **`ProviderSelectionDemo.java`**:
+Save as **`ProviderSelectionDemo.java`**:
 
 ```java
 import java.util.Comparator;
@@ -216,14 +216,14 @@ public class ProviderSelectionDemo {
 }
 ```
 
-Chạy với **JDK 17+**:
+Run with **JDK 17+**:
 
 ```bash
 javac ProviderSelectionDemo.java
 java ProviderSelectionDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 empty-registry: NO_PROVIDERS kind=text
@@ -233,27 +233,27 @@ priority-tie: AMBIGUOUS kind=text priority=20 providers=[alternate, premium]
 fallback: FALLBACK plain -> PLAIN:hello
 ```
 
-**Giải thích kết quả:**
+**Output explanation:**
 
-- `empty-registry`: không đăng ký provider nào và không có fallback; lỗi được nhận diện là `NO_PROVIDERS`.
-- `no-match`: hai provider đã đăng ký đều chỉ xử lý `text`; yêu cầu `csv` không có ứng viên nên trả `NO_MATCH`.
-- `unique-best`: `basic` và `premium` đều xử lý `text`, nhưng `premium` có priority 20 cao hơn 10, nên được chọn.
-- `priority-tie`: `premium` và `alternate` cùng priority 20. Sắp xếp ID cho **thông báo lỗi ổn định**; selector vẫn từ chối kết quả mơ hồ.
-- `fallback`: `basic` không hỗ trợ `csv`; fallback `plain` công bố `kind="*"` nên được chọn và kết quả được đánh dấu `FALLBACK`.
+- `empty-registry`: no providers registered and no fallback; error is identified as `NO_PROVIDERS`.
+- `no-match`: both registered providers handle only `text`; the `csv` request has no candidate so it returns `NO_MATCH`.
+- `unique-best`: `basic` and `premium` both handle `text`, but `premium` has priority 20 > 10, so it is selected.
+- `priority-tie`: `premium` and `alternate` share priority 20. Sorting IDs provides a **deterministic error message**; the selector still rejects the ambiguous result.
+- `fallback`: `basic` does not support `csv`; fallback `plain` advertises `kind="*"` so it is selected and the result is marked `FALLBACK`.
 
-Đây là chương trình minh họa **quyết định lựa chọn**, chưa phải một plugin manager production. Trong ứng dụng thật, cần thêm validation ở lúc đăng ký, kiểm soát quyền/capability, bảo vệ `supports` khỏi lỗi, cấu hình policy theo use case, lifecycle provider và xử lý lỗi thực thi.
+This is a program demonstrating **selection decisions**, not a production plugin manager. In a real application, you must add registration-time validation, permission/capability controls, protection against errors in `supports`, per-use-case policy configuration, provider lifecycle, and execution error handling.
 
-## 5. Kết nối selector với ServiceLoader và plugin registry
+## 5. Connecting the Selector to ServiceLoader and a Plugin Registry
 
-`java.util.ServiceLoader` giúp tìm các implementation của một SPI mà các JAR/module công bố. Nó **không tự quyết định** provider nào được chọn khi có nhiều ứng viên phù hợp. Vì vậy, các bước thường là:
+`java.util.ServiceLoader` helps find SPI implementations published by JARs/modules. It **does not automatically decide** which provider is selected when multiple candidates match. Therefore, the usual steps are:
 
-1. Định nghĩa interface/SPI ổn định, chẳng hạn `DocumentRenderer` có `id()`, `supports(request)` và `render(request)`.
-2. Provider công bố qua `META-INF/services/<fully-qualified-interface>` hoặc `provides ... with ...` trong `module-info.java`.
-3. Lấy **snapshot** provider ở một ranh giới lifecycle rõ ràng; kiểm tra ID, API version, availability và dependency.
-4. Gọi selector với snapshot và request. Chỉ sau khi chọn xong mới thực thi provider.
-5. Ghi lại provider ID/version và lý do chọn; release tài nguyên khi thay thế snapshot.
+1. Define a stable interface/SPI, such as `DocumentRenderer` with `id()`, `supports(request)`, and `render(request)`.
+2. Providers advertise themselves via `META-INF/services/<fully-qualified-interface>` or `provides ... with ...` in `module-info.java`.
+3. Capture a provider **snapshot** at a clear lifecycle boundary; validate IDs, API versions, availability, and dependencies.
+4. Call the selector with the snapshot and the request. Execute the provider only after selection completes.
+5. Record the provider ID/version and selection reason; release resources when replacing the snapshot.
 
-Đoạn **minh họa tích hợp** (giả định `DocumentRenderer` là một SPI công khai đã được định nghĩa; đây không phải chương trình độc lập):
+**Integration illustration** snippet (assuming `DocumentRenderer` is an already-defined public SPI; this is not a standalone program):
 
 ```java
 ServiceLoader<DocumentRenderer> loader =
@@ -263,95 +263,95 @@ List<DocumentRenderer> discovered = loader.stream()
         .map(ServiceLoader.Provider::get)
         .toList();
 
-// Chuyển các provider vào selector/registry của ứng dụng,
-// sau khi xác thực ID, API version, capability và policy.
+// Pass providers into the application's selector/registry,
+// after validating ID, API version, capability, and policy.
 ```
 
-`ServiceLoader` có cơ chế tìm/nạp provider theo nhu cầu, có thể phát sinh `ServiceConfigurationError` nếu khai báo hoặc provider không hợp lệ. Đừng bắt lỗi này rồi giả vờ registry rỗng: như vậy sẽ che lỗi đóng gói/dependency. `ServiceLoader.reload()` xóa cache provider của instance đó cho lượt tìm sau; nó **không tự phát hiện JAR mới**, không thay đối tượng đang phục vụ request và không cho phép sửa bytecode của class đã load. Nếu ứng dụng chủ động nạp JAR động, còn phải quản lý class loader/module layer và phiên bản snapshot.
+`ServiceLoader` finds/loads providers lazily and may throw `ServiceConfigurationError` if declarations or providers are invalid. Do not catch this error and pretend the registry is empty: that hides packaging/dependency errors. `ServiceLoader.reload()` clears that instance's provider cache for subsequent lookups; it **does not automatically detect new JARs**, does not swap objects currently serving requests, and does not allow modifying bytecode of already-loaded classes. If the application dynamically loads JARs, you must also manage class loaders/module layers and snapshot versions.
 
-### Khi cấu hình chỉ định provider cụ thể
+### When Configuration Specifies a Particular Provider
 
-Nếu một tenant cấu hình `provider.id=pdf-pro`, logic chọn nên:
+If a tenant configures `provider.id=pdf-pro`, selection logic should:
 
-1. Tìm theo đúng ID trong danh sách đã được tin cậy và cho phép.
-2. Không thấy: trả `CONFIGURED_PROVIDER_NOT_FOUND`, thay vì lấy plugin đầu tiên.
-3. Thấy nhưng không hỗ trợ request: `CONFIGURED_PROVIDER_UNSUPPORTED`.
-4. Thấy hai mục trùng ID: `INVALID_REGISTRY` ngay lúc đăng ký; không để cái sau ghi đè cái trước.
-5. Chỉ khi **không có chỉ định tường minh** mới xét chọn tự động theo policy.
+1. Look up the exact ID in the trusted and allowed list.
+2. Not found: return `CONFIGURED_PROVIDER_NOT_FOUND`, instead of picking the first plugin.
+3. Found but does not support the request: `CONFIGURED_PROVIDER_UNSUPPORTED`.
+4. Found two entries with duplicate IDs: `INVALID_REGISTRY` at registration time; do not let the later entry overwrite the earlier one.
+5. Only when **no explicit specification exists** evaluate automatic policy-based selection.
 
-Cách này cho phép kiểm thử cấu hình một cách lặp lại và tránh tình trạng thay classpath làm kết quả thay đổi mà không ai biết.
+This enables repeatable configuration testing and avoids situations where classpath changes silently alter outcomes.
 
-## 6. Phân biệt fallback khi không match với failover khi provider chạy lỗi
+## 6. Distinguishing Fallback on No-Match from Failover on Execution Failure
 
-Hai thuật ngữ này dễ bị dùng lẫn:
+These two terms are easily confused:
 
-- **Fallback khi không match:** không có implementation thích hợp; một default đã được chấp thuận xử lý thay, trước khi bắt đầu hành động chính.
-- **Failover khi chạy lỗi:** implementation đã được chọn và có thể đã tạo side effect; thử implementation khác sau lỗi cần một hợp đồng retry/failover riêng.
+- **Fallback on no-match:** no suitable implementation exists; an approved default handles it instead, before starting the main action.
+- **Failover on execution failure:** an implementation was already selected and may have caused side effects; trying another implementation after an error requires a dedicated retry/failover contract.
 
-Ví dụ provider gửi thanh toán bị timeout. Thời gian chờ không chứng minh giao dịch chưa hoàn thành; tự động gọi một provider khác có thể thu tiền lần thứ hai. Muốn failover phải xem khả năng **idempotency**, transaction boundary, deduplication, correlation ID, trạng thái chưa rõ và cách đối soát.
+For example, a payment provider times out. Timing out does not prove the transaction was not completed; automatically calling another provider could charge the customer a second time. Failover requires assessing **idempotency**, transaction boundaries, deduplication, correlation IDs, indeterminate states, and reconciliation.
 
-Nên định nghĩa các lỗi tối thiểu:
+Define at least these error codes:
 
-| Mã lỗi | Giai đoạn | Cách xử lý điển hình |
+| Error code | Stage | Typical handling |
 |---|---|---|
-| `NO_PROVIDERS` | Discovery/registry | Kiểm tra JAR/descriptor/config; fallback nếu được định nghĩa |
-| `NO_MATCH` | Capability filtering | Báo unsupported; fallback nếu provider dự phòng hỗ trợ |
-| `AMBIGUOUS_PROVIDER` | Selection | Yêu cầu ID cụ thể hoặc sửa priority/policy |
-| `INVALID_REGISTRY` | Registration | Từ chối registry có ID trùng, thiếu ID hoặc API không tương thích |
-| `DISCOVERY_FAILED` | Provider loading | Báo cấu hình/plugin hỏng, ngừng hoặc cô lập extension theo policy |
-| `PROVIDER_CHECK_FAILED` | Predicate `supports` | Đánh dấu provider lỗi; không mặc nhiên xem như `false` |
-| `EXECUTION_FAILED` | Invocation | Bảo toàn dấu vết, xử lý retry/failover theo tính an toàn nghiệp vụ |
+| `NO_PROVIDERS` | Discovery/registry | Check JAR/descriptor/config; fall back if defined |
+| `NO_MATCH` | Capability filtering | Report unsupported; fall back if a fallback provider supports it |
+| `AMBIGUOUS_PROVIDER` | Selection | Require an explicit ID or fix priority/policy |
+| `INVALID_REGISTRY` | Registration | Reject registries with duplicate IDs, missing IDs, or incompatible APIs |
+| `DISCOVERY_FAILED` | Provider loading | Report broken config/plugin, halt or isolate extension per policy |
+| `PROVIDER_CHECK_FAILED` | Predicate `supports` | Mark provider unhealthy; do not silently treat as `false` |
+| `EXECUTION_FAILED` | Invocation | Preserve trace, handle retry/failover per business safety |
 
-Không nên gom mọi `RuntimeException` hoặc `ServiceConfigurationError` thành `NO_MATCH`. Bắt lỗi nên ở ranh giới có thể đưa ra quyết định khôi phục; đừng nuốt lỗi để cố duy trì “thành công” giả.
+Do not lump every `RuntimeException` or `ServiceConfigurationError` into `NO_MATCH`. Catch errors at boundaries where recovery decisions can be made; do not swallow errors to maintain a fake “success”.
 
-## 7. Quy định priority, specificity và quy tắc hòa
+## 7. Defining Priority, Specificity, and Tie-Breaking Rules
 
-Trong registry lớn, chỉ một số nguyên priority có thể chưa đủ. Ví dụ:
+In a large registry, a single integer priority may not suffice. For example:
 
-- Provider A hỗ trợ `image/*`, priority 100.
-- Provider B hỗ trợ riêng `image/png`, priority 50.
-- Request cần `image/png`.
+- Provider A supports `image/*`, priority 100.
+- Provider B specifically supports `image/png`, priority 50.
+- The request needs `image/png`.
 
-Nếu policy lấy priority lớn nhất trước, A thắng; nếu policy lấy **specificity** trước, B thắng. **Cả hai có thể hợp lệ**, nhưng cần định nghĩa và kiểm thử từ trước. Không được tự suy đoán rằng ưu tiên cao luôn đồng nghĩa provider phù hợp hơn.
+If the policy picks highest priority first, A wins; if the policy picks **specificity** first, B wins. **Both can be valid**, but this must be defined and tested upfront. Never guess that higher priority always means a better-fitting provider.
 
-Một policy rõ ràng có thể là thứ tự từ mạnh đến yếu:
+A clear policy can be ordered from strongest to weakest:
 
 ```text
-1. Explicit provider ID (nếu người gọi được phép chỉ định)
+1. Explicit provider ID (if the caller is allowed to specify it)
 2. Eligibility: enabled + API compatible + supports(request)
 3. Specificity score (exact format > format family > wildcard)
 4. Priority (higher value wins)
-5. Nếu vẫn hòa: AMBIGUOUS_PROVIDER
-6. Fallback chỉ khi không có eligible candidate
+5. If still tied: AMBIGUOUS_PROVIDER
+6. Fallback only when there are no eligible candidates
 ```
 
-Nếu cần deterministic winner ngay cả khi hòa, phải nêu **tie-breaker có ý nghĩa nghiệp vụ** (chẳng hạn provider được chỉ định trong config), đồng thời kiểm tra rằng cách chọn đó đáp ứng yêu cầu. Dùng thứ tự từ điển của ID có thể giúp tái lập kết quả, nhưng dễ che sai sót cấu hình khi hai provider đáng lẽ phải được đánh giá ngang nhau.
+If you need a deterministic winner even on ties, define a **business-meaningful tie-breaker** (such as a provider specified in config) and verify that the choice meets requirements. Using lexicographical ID order can make results reproducible, but it easily masks configuration mistakes when two providers were meant to rank equally.
 
-Với lựa chọn theo capability, cũng cần biết một provider quảng cáo nhiều format có thể không thực sự hỗ trợ mọi tùy chọn của từng format; `supports(request)` phải xem đủ những thuộc tính quyết định, không chỉ đuôi tên file.
+With capability-based selection, note also that a provider advertising multiple formats might not genuinely support every option of each format; `supports(request)` must inspect all decisive attributes, not just file extensions.
 
-## 8. Chính sách khi registry thay đổi lúc ứng dụng đang chạy
+## 8. Policy When the Registry Changes at Runtime
 
-Provider có thể được bật/tắt, cập nhật JAR, đổi config, hoặc được phát hiện trong một lần reload. Khi đó không nên sửa registry dùng chung ngay giữa lúc đang chọn và thực thi:
+Providers may be enabled/disabled, JARs updated, configs changed, or discovered during a reload. Never mutate a shared registry mid-selection and mid-execution:
 
-- Tạo một **snapshot bất biến** chứa ID, version, capability, priority và trạng thái healthy đã được xác thực.
-- Với một request, dùng cùng snapshot xuyên suốt thao tác lựa chọn; không lọc trên bản cũ rồi lấy implementation từ bản mới.
-- Nếu cập nhật thành công, atomically công bố snapshot mới để request sau sử dụng; request đang chạy có thể hoàn thành trên snapshot cũ.
-- Chỉ unload/close provider/class loader cũ sau khi hết tham chiếu hoặc theo chính sách lifecycle đã định; loader/class vẫn tồn tại khi còn tham chiếu giữ lại.
-- Khi chính sách mới làm xuất hiện mơ hồ, từ chối công bố snapshot nếu có thể kiểm tra trước theo danh sách capability được biết; với điều kiện request động, xử lý `AMBIGUOUS_PROVIDER` ở runtime.
-- Nếu provider được chọn không còn healthy, đừng âm thầm thay bằng provider khác giữa transaction; chọn lại tại ranh giới request an toàn.
+- Create an **immutable snapshot** holding validated ID, version, capabilities, priority, and health state.
+- For a single request, use the same snapshot throughout selection; never filter on an old snapshot and fetch the implementation from a new one.
+- If an update succeeds, atomically publish the new snapshot for subsequent requests; in-flight requests can finish on the old snapshot.
+- Only unload/close old providers/class loaders after all references are released or per a defined lifecycle policy; loaders/classes remain alive as long as references hold them.
+- When a new policy introduces ambiguity, reject publishing the snapshot if it can be pre-checked against known capabilities; for dynamic request conditions, handle `AMBIGUOUS_PROVIDER` at runtime.
+- If the selected provider becomes unhealthy, do not silently swap to another provider mid-transaction; re-select at a safe request boundary.
 
-Các bảo đảm này thuộc về plugin registry của ứng dụng; `ServiceLoader` chỉ là một cách phát hiện implementation và không cung cấp lifecycle/hot swap hoàn chỉnh.
+These guarantees belong to the application's plugin registry; `ServiceLoader` is only an implementation-discovery mechanism and does not provide complete lifecycle/hot-swap support.
 
-## 9. Quan sát và kiểm thử chính sách lựa chọn
+## 9. Observing and Testing the Selection Policy
 
-Để giải thích được “vì sao hệ thống chọn provider X”, nên ghi nhận:
+To explain “why did the system choose provider X”, record:
 
-- **Tại discovery:** số provider tìm được, ID và version, lỗi descriptor/dependency, kết quả validation.
-- **Tại filter:** loại request/capability, số ứng viên hợp lệ, nguyên nhân bị loại (disabled, unsupported, version mismatch).
-- **Tại select:** policy/version, ID được chọn, priority/specificity, danh sách ID hòa, có dùng fallback hay không.
-- **Tại execution:** provider ID/version, duration, success/failure, retry/failover đã thực hiện.
+- **At discovery:** number of providers found, IDs and versions, descriptor/dependency errors, validation results.
+- **At filtering:** request type/capability, eligible candidate count, exclusion reasons (disabled, unsupported, version mismatch).
+- **At selection:** policy/version, selected ID, priority/specificity, tied IDs, whether fallback was used.
+- **At execution:** provider ID/version, duration, success/failure, retries/failover performed.
 
-Ví dụ log có cấu trúc (minh họa, không phải stdout của chương trình trên):
+Example structured logs (illustrative, not stdout from the program above):
 
 ```text
 event=provider_selected capability=render/text provider=premium policy=highest-priority fallback=false
@@ -359,39 +359,39 @@ event=provider_selection_failed capability=render/text code=AMBIGUOUS_PROVIDER c
 event=provider_fallback capability=render/csv provider=plain reason=NO_MATCH
 ```
 
-Tránh ghi toàn bộ payload tài liệu, token, khóa bảo mật hoặc thông tin cá nhân chỉ để chẩn đoán chọn provider.
+Avoid logging full document payloads, tokens, security keys, or personal data just to diagnose provider selection.
 
-### Bộ tình huống kiểm thử tối thiểu
+### Minimum Test Scenarios
 
-| Trường hợp | Kỳ vọng |
+| Scenario | Expectation |
 |---|---|
-| Registry rỗng, capability bắt buộc | `NO_PROVIDERS`, không báo xử lý thành công |
-| Có registry nhưng không match, fallback không bật | `NO_MATCH` hoặc unsupported |
-| Không match, fallback hợp lệ | Chọn fallback, đánh dấu lý do và kết quả |
-| Không match, fallback cũng không hỗ trợ | Từ chối; không cưỡng ép chạy fallback |
-| Một provider match | Chọn provider đó |
-| Nhiều provider match, priority khác nhau | Chọn đúng provider cao nhất |
-| Hai provider cùng priority cao nhất | `AMBIGUOUS_PROVIDER` hoặc tie-breaker đã định nghĩa |
-| Hai provider trùng ID | `INVALID_REGISTRY` trước khi lựa chọn |
-| Config chỉ định ID không tồn tại | Lỗi cấu hình cụ thể; không lặng lẽ chọn khác |
-| Descriptor/JAR không load được | `DISCOVERY_FAILED`; không chuyển thành no-match |
-| `supports()` ném lỗi | `PROVIDER_CHECK_FAILED`; không tự coi là không hỗ trợ |
-| Provider đã chạy rồi ném timeout | `EXECUTION_FAILED`; chỉ failover nếu bảo đảm nghiệp vụ |
-| Registry đổi version trong lúc request chạy | Request dùng snapshot đã chọn; bản mới áp dụng ở ranh giới an toàn |
+| Empty registry, mandatory capability | `NO_PROVIDERS`, must not report success |
+| Registry non-empty, no match, fallback disabled | `NO_MATCH` or unsupported |
+| No match, valid fallback | Select fallback, mark reason and outcome |
+| No match, fallback also unsupported | Reject; do not force-run fallback |
+| Single provider matches | Select that provider |
+| Multiple providers match, different priorities | Select the exact highest-priority provider |
+| Two providers share highest priority | `AMBIGUOUS_PROVIDER` or defined tie-breaker |
+| Two providers share duplicate ID | `INVALID_REGISTRY` before selection |
+| Config specifies non-existent ID | Specific config error; do not silently pick another |
+| Descriptor/JAR fails to load | `DISCOVERY_FAILED`; do not convert to no-match |
+| `supports()` throws an error | `PROVIDER_CHECK_FAILED`; do not treat as unsupported |
+| Provider runs and throws timeout | `EXECUTION_FAILED`; fail over only if business-safe |
+| Registry version changes mid-request | Request uses selected snapshot; new version applies at safe boundary |
 
-Các test unit cho selector thường dễ thực hiện bằng provider giả lập như ví dụ Java. Test integration cần thêm JAR/`META-INF/services` hoặc module layer thực, trường hợp dependency lỗi và reload để kiểm tra đường discovery.
+Unit tests for the selector are usually easy to write with mock providers like the Java example. Integration tests need real JAR/`META-INF/services` or module layers, broken-dependency cases, and reloads to verify the discovery path.
 
-## 10. Lỗi thiết kế thường gặp
+## 10. Common Design Mistakes
 
-1. **“Lấy phần tử đầu từ ServiceLoader là đủ.”** Sai trong bài toán nhiều provider: thứ tự phát hiện không phải chính sách lựa chọn có ý nghĩa.
-2. **“Không có provider nghĩa là không cần xử lý.”** Sai nếu capability bắt buộc; phải phân biệt optional với required.
-3. **“Không match thì luôn fallback.”** Sai nếu fallback không hỗ trợ đầu vào hoặc làm giảm bảo mật/tính đúng.
-4. **“Hai provider cùng priority thì lấy provider có ID nhỏ nhất.”** Điều đó deterministic nhưng không nhất thiết đúng nghiệp vụ; policy cần được thống nhất rõ.
-5. **“Nhiều provider là lỗi.”** Không phải lúc nào cũng vậy: hệ thống broadcast hoặc chain có thể chủ đích dùng nhiều provider; cần hợp đồng phối hợp.
-6. **“Lỗi nạp plugin là không có plugin.”** Sai: descriptor sai, dependency thiếu hoặc lỗi constructor cần thông báo riêng.
-7. **“Gặp timeout thì thử provider kế tiếp.”** Có nguy cơ thực thi trùng side effect; cần idempotency và trạng thái giao dịch.
-8. **“Đã chọn được provider thì không cần biết version.”** Version/API compatibility ảnh hưởng khả năng chạy, rollback và chẩn đoán.
-9. **“ServiceLoader.reload() làm hot-swap tức thì.”** Sai: phải xây lớp quản lý snapshot, class loader, instance và lifecycle.
-10. **“Priority là cơ chế kiểm soát quyền.”** Sai: provider chỉ được xem xét sau khi đã kiểm tra allowlist, quyền tenant và độ tin cậy; priority chỉ xếp hạng ứng viên hợp lệ.
+1. **“Taking the first element from ServiceLoader is enough.”** Wrong in multi-provider scenarios: discovery order is not a meaningful selection policy.
+2. **“No provider means nothing needs to be done.”** Wrong if the capability is mandatory; distinguish optional from required.
+3. **“On no-match, always fall back.”** Wrong if the fallback does not support the input or lowers security/correctness.
+4. **“Two providers with equal priority mean picking the one with the smallest ID.”** That is deterministic, not necessarily business-correct; the policy must be explicitly agreed upon.
+5. **“Multiple providers is an error.”** Not always: broadcast or chain systems can intentionally use multiple providers; a coordination contract is needed.
+6. **“A plugin load error means no plugin exists.”** Wrong: invalid descriptors, missing dependencies, or constructor errors need dedicated reporting.
+7. **“On timeout, try the next provider.”** Risks duplicate side effects; requires idempotency and transaction state tracking.
+8. **“Once a provider is selected, version doesn't matter.”** Version/API compatibility affects runnability, rollback, and diagnostics.
+9. **“ServiceLoader.reload() performs instant hot-swap.”** Wrong: you must build a layer managing snapshots, class loaders, instances, and lifecycle.
+10. **“Priority is an access-control mechanism.”** Wrong: providers may only be considered after checking allowlists, tenant permissions, and trust; priority only ranks eligible candidates.
 
-**Nguyên tắc cần nhớ:** *Không có ứng viên* là quyết định về **required/optional/fallback**; *nhiều ứng viên* là quyết định về **uniqueness/priority/specificity/composition**; *provider lỗi* là quyết định về **recovery và tính an toàn nghiệp vụ**. Mỗi trạng thái phải có hành vi, mã lỗi và bằng chứng quan sát riêng để ứng dụng Java mở rộng được mà vẫn dự đoán và kiểm thử được.
+**Principle to remember:** *No candidates* is a decision about **required/optional/fallback**; *multiple candidates* is a decision about **uniqueness/priority/specificity/composition**; *a failing provider* is a decision about **recovery and business safety**. Each state must have its own behavior, error code, and observable evidence so an extensible Java application remains predictable and testable.

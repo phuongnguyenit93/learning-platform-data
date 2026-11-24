@@ -1,0 +1,403 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Lập trình phản ứng là gì và vì sao Spring hỗ trợ
+  - Phân biệt đồng bộ, bất đồng bộ, chặn và không chặn
+  - Luồng dữ liệu, tín hiệu và xử lý theo sự kiện
+  - Điều tiết nhu cầu (backpressure) giữa bên phát và bên nhận
+  - Quan hệ giữa Reactive Streams, Reactor, Reactor Netty và WebFlux
+  - So sánh mô hình xử lý của Spring MVC và Spring WebFlux
+  - Khi nào reactive phù hợp và khi nào làm tăng độ phức tạp
+  - Phân biệt khả năng chịu tải với tốc độ một yêu cầu
+  - Lộ trình từ chuỗi Reactor đến ứng dụng reactive hoàn chỉnh
+- level1: Reactive Streams
+  level2:
+  - Vai trò của Publisher, Subscriber, Subscription và Processor
+  - Trình tự onSubscribe, onNext, onError và onComplete
+  - request(n) và số phần tử đang được yêu cầu
+  - Tín hiệu kết thúc, hủy đăng ký và quy tắc không phát null
+  - Tuần tự tín hiệu trong một subscription
+  - Đăng ký nhiều lần và trạng thái riêng của mỗi bên nhận
+  - Quan hệ với java.util.concurrent.Flow và các bộ chuyển đổi
+  - Giới hạn bảo đảm của giao thức khi nguồn không thể giảm tốc
+- level1: Mono và Flux
+  level2:
+  - Mono biểu diễn kết quả từ không đến một phần tử
+  - Flux biểu diễn chuỗi từ không đến nhiều phần tử
+  - Phân biệt chuỗi rỗng, chuỗi lỗi và chuỗi không kết thúc
+  - Mono<Void> biểu diễn hoàn tất mà không mang dữ liệu
+  - Phân biệt lắp ghép chuỗi với thực thi khi đăng ký
+  - Toán tử trả về publisher mới và yêu cầu nối đúng chuỗi
+  - subscribe, Disposable và quyền kiểm soát subscription
+  - Vì sao WebFlux thường là bên thực hiện subscribe
+- level1: Tạo nguồn dữ liệu
+  level2:
+  - Tạo dữ liệu có sẵn bằng just, fromIterable và range
+  - justOrEmpty cho giá trị có thể thiếu
+  - Trì hoãn tính toán bằng defer, fromSupplier và fromCallable
+  - Tạo tín hiệu hoàn tất, lỗi và never
+  - Nguồn theo thời gian bằng interval và delay
+  - Chuyển CompletableFuture thành Mono và xem xét thời điểm khởi chạy
+  - Phát đồng bộ từng phần tử bằng generate
+  - Tích hợp API callback qua create và xử lý yêu cầu hủy
+  - Phân biệt tạo publisher với bọc một lệnh chặn đã thực thi
+- level1: Biến đổi dữ liệu
+  level2:
+  - map cho biến đổi đồng bộ một phần tử
+  - flatMap cho công việc trả về publisher
+  - concatMap để xử lý tuần tự và giữ thứ tự
+  - flatMapSequential để kết hợp đồng thời nhưng phát theo thứ tự
+  - switchMap để chuyển sang công việc mới nhất
+  - filter, filterWhen và xử lý giá trị không hợp lệ
+  - handle cho logic phát có điều kiện
+  - collectList, collectMap, reduce và scan
+  - then, thenReturn và hệ quả loại bỏ giá trị đầu vào
+  - transform và transformDeferred để tái sử dụng chuỗi xử lý
+- level1: Ghép và chia luồng
+  level2:
+  - concat và merge cho các nguồn có quan hệ thời gian khác nhau
+  - zip để ghép giá trị tương ứng từ nhiều nguồn
+  - combineLatest và dữ liệu cập nhật liên tục
+  - when, and và phối hợp tín hiệu hoàn tất
+  - defaultIfEmpty và switchIfEmpty
+  - Ảnh hưởng của nguồn empty hoặc Mono<Void> trong zip
+  - firstWithValue và firstWithSignal
+  - buffer, window và groupBy
+  - Nguy cơ giữ dữ liệu, nhóm không được tiêu thụ và bộ nhớ tăng
+- level1: Backpressure
+  level2:
+  - Theo dõi nhu cầu từ downstream về upstream
+  - Những cách đăng ký yêu cầu không giới hạn
+  - Điều khiển request bằng BaseSubscriber
+  - limitRate và sự khác biệt với giới hạn yêu cầu theo thời gian
+  - Prefetch và concurrency trong toán tử kết hợp
+  - buffer và window làm thay đổi đơn vị nhu cầu
+  - Lựa chọn buffer có giới hạn, drop, latest hoặc báo lỗi
+  - Xử lý tràn và quan sát dữ liệu bị loại bỏ
+  - Giới hạn điều tiết xuyên HTTP, bộ đệm mạng và phía khách
+- level1: Luồng thực thi
+  level2:
+  - Reactor không tự tạo luồng mới cho mọi Mono hoặc Flux
+  - Mô hình event loop và tác hại của lệnh chặn
+  - publishOn thay đổi nơi xử lý các toán tử phía sau
+  - subscribeOn điều khiển quá trình đăng ký với nguồn
+  - Vị trí đổi Scheduler và chi phí chuyển luồng
+  - single, parallel và boundedElastic
+  - Cô lập lệnh chặn bằng fromCallable kết hợp boundedElastic
+  - Giới hạn số luồng, hàng đợi và áp lực lên tài nguyên đích
+  - Luồng ảo với boundedElastic và điều kiện phiên bản, cấu hình
+  - Trạng thái dùng chung và tính an toàn luồng giữa nhiều subscription
+- level1: Lỗi và thử lại
+  level2:
+  - onError là tín hiệu kết thúc chuỗi
+  - onErrorReturn và giá trị thay thế cố định
+  - onErrorResume và chuyển sang nguồn dự phòng
+  - onErrorMap để chuyển đổi lỗi kỹ thuật thành lỗi nghiệp vụ
+  - doOnError chỉ quan sát và không phục hồi chuỗi
+  - Vị trí xử lý lỗi trong từng phần tử so với toàn chuỗi
+  - timeout và phân biệt hết thời gian với lỗi kết nối
+  - retry, retryWhen và việc đăng ký lại vào nguồn
+  - Giới hạn thử lại, thời gian lùi và nhiễu ngẫu nhiên
+  - Tính lũy đẳng, tác dụng phụ và nguy cơ lặp thao tác ghi
+  - Giới hạn onErrorContinue và trường hợp nên xử lý cục bộ
+- level1: Hủy và tài nguyên
+  level2:
+  - Lan truyền cancel khi bên nhận không cần thêm dữ liệu
+  - Hủy không đồng nghĩa với dừng công việc bên ngoài ngay lập tức
+  - doOnCancel, doOnTerminate và doFinally
+  - using và usingWhen cho vòng đời tài nguyên
+  - Dọn dẹp khi hoàn tất, lỗi hoặc hủy đăng ký
+  - Giải phóng phần tử bị loại bỏ với doOnDiscard
+  - Tránh subscribe lồng nhau làm mất liên kết lỗi và hủy
+  - Quản lý Scheduler, subscription và tài nguyên tự tạo
+- level1: Reactor Context
+  level2:
+  - Vì sao ThreadLocal không đủ cho chuỗi đổi luồng
+  - Context và ContextView gắn với subscription
+  - Ghi ngữ cảnh bằng contextWrite
+  - Đọc ngữ cảnh bằng deferContextual
+  - Hướng truyền ngữ cảnh và ảnh hưởng vị trí toán tử
+  - Cô lập ngữ cảnh trong các chuỗi con
+  - Truyền mã tương quan và thông tin yêu cầu
+  - Tích hợp truyền ngữ cảnh và giới hạn với MDC, thư viện ngoài
+- level1: Nguồn nóng và lạnh
+  level2:
+  - Phân biệt nguồn cold với nguồn hot
+  - Dữ liệu tạo lúc lắp ghép và lúc đăng ký
+  - Chia sẻ subscription bằng share và publish
+  - ConnectableFlux, connect, autoConnect và refCount
+  - cache, replay và giới hạn lưu giữ dữ liệu
+  - Sinks.One và Sinks.Many
+  - Unicast, multicast và replay theo nhu cầu sử dụng
+  - tryEmit, emit và xử lý phát đồng thời, tràn bộ đệm
+  - Vòng đời bên nhận, đăng ký muộn và nguy cơ rò rỉ
+- level1: Khởi động WebFlux
+  level2:
+  - Chuẩn bị phiên bản Spring, Reactor và thư viện máy chủ tương thích
+  - Vai trò của spring-web, spring-webflux và Reactor Netty
+  - Khởi tạo cấu hình WebFlux và endpoint tối thiểu
+  - Kết nối HttpHandler với máy chủ hỗ trợ không chặn
+  - Phân biệt cấu hình Framework với tự cấu hình Spring Boot
+  - Quan sát yêu cầu, phản hồi và tín hiệu hoàn tất đầu tiên
+  - Đóng máy chủ, context và tài nguyên mạng đúng vòng đời
+- level1: Luồng xử lý WebFlux
+  level2:
+  - HttpHandler và lớp chuyển đổi theo máy chủ
+  - WebHandler, WebFilter và WebExceptionHandler
+  - ServerHttpRequest, ServerHttpResponse và ServerWebExchange
+  - DispatcherHandler và cơ chế điều phối
+  - HandlerMapping, HandlerAdapter và HandlerResultHandler
+  - ReactiveAdapterRegistry và các kiểu reactive được hỗ trợ
+  - Thời điểm framework đăng ký đọc body và ghi phản hồi
+  - Phân biệt khả năng dùng Servlet container với Servlet API trong ứng dụng
+  - Ranh giới giữa sự kiện mạng, codec và xử lý nghiệp vụ
+- level1: Controller
+  level2:
+  - '@Controller, @RestController và đăng ký handler'
+  - '@RequestMapping cùng các annotation theo HTTP method'
+  - Đường dẫn, PathPattern và biến @PathVariable
+  - Điều kiện params, headers, consumes và produces
+  - Đọc @RequestParam, @RequestHeader và @CookieValue
+  - Đọc @RequestBody dưới dạng đối tượng hoặc publisher
+  - Mono, Flux và các dạng giá trị trả về được hỗ trợ
+  - ResponseEntity và thời điểm xác định status, header, body
+  - ServerWebExchange, Principal và Locale trong tham số handler
+  - Phân biệt phương thức trả về reactive với công việc thực sự không chặn
+- level1: Binding và validation
+  level2:
+  - Chuyển đổi chuỗi tham số bằng Converter và Formatter
+  - '@ModelAttribute và gắn dữ liệu vào đối tượng đầu vào'
+  - Constructor binding và giới hạn thuộc tính được phép cập nhật
+  - WebExchangeDataBinder, @InitBinder và Validator tùy biến
+  - Kiểm tra @RequestBody với @Valid và @Validated
+  - WebExchangeBindException và HandlerMethodValidationException
+  - Ràng buộc tham số, giá trị trả về và điều kiện phiên bản Spring
+  - Phân biệt lỗi giải mã, chuyển kiểu và lỗi ràng buộc
+  - Đưa lỗi đầu vào về phản hồi nhất quán mà không chặn luồng
+- level1: Endpoint hàm
+  level2:
+  - RouterFunction, HandlerFunction, ServerRequest và ServerResponse
+  - Khai báo tuyến bằng RouterFunctions.route
+  - Kết hợp predicate đường dẫn, method, header và media type
+  - Đọc body và tham số bằng ServerRequest
+  - Tạo phản hồi bằng bodyValue, body và build
+  - Nhóm tuyến với nest và quản lý thứ tự so khớp
+  - before, after, filter và HandlerFilterFunction
+  - Áp dụng validation rõ ràng trong handler
+  - So sánh endpoint hàm với controller cho cùng một hợp đồng HTTP
+  - Tách logic nghiệp vụ khỏi định tuyến và chuyển đổi HTTP
+- level1: Hợp đồng HTTP
+  level2:
+  - Status, header, cookie và content type
+  - Đàm phán nội dung bằng Accept và Content-Type
+  - Phân biệt không có phần tử với phản hồi 404 hoặc 204
+  - Giới hạn đổi status sau khi phản hồi đã được gửi
+  - ETag, Last-Modified và yêu cầu có điều kiện
+  - CacheControl và chiến lược bộ nhớ đệm HTTP
+  - Phục vụ Resource và xử lý Range request
+  - Tạo URI bằng UriBuilder và mã hóa tham số đúng cách
+  - Nhận diện hỗ trợ API versioning theo phiên bản Framework
+- level1: Filter và phiên
+  level2:
+  - WebFilter áp dụng logic trước và sau filter chain
+  - Thứ tự filter bằng Ordered và @Order
+  - Kết hợp chain.filter thay vì tự subscribe
+  - Phân biệt WebFilter với HandlerFilterFunction
+  - Sửa exchange qua mutate và decorator
+  - Request attributes và sự khác biệt với Reactor Context
+  - WebSession, WebSessionManager và thời điểm lưu phiên
+  - Cookie, bắt đầu phiên và hủy phiên
+  - Đọc request body một lần và giới hạn khi muốn đọc lại trong filter
+- level1: Lỗi HTTP
+  level2:
+  - Phân biệt lỗi nghiệp vụ, lỗi đầu vào và lỗi hạ tầng
+  - ResponseStatusException và @ResponseStatus
+  - '@ExceptionHandler, @ControllerAdvice và phạm vi bắt lỗi'
+  - WebExceptionHandler cho lỗi ngoài controller
+  - ProblemDetail, ErrorResponse và chuẩn phản hồi lỗi
+  - Tùy biến ResponseEntityExceptionHandler
+  - Lỗi xảy ra trước và sau khi phản hồi đã được gửi
+  - Che thông tin nhạy cảm và giữ mã tương quan trong lỗi
+- level1: Codec và bộ đệm
+  level2:
+  - Encoder, Decoder, HttpMessageReader và HttpMessageWriter
+  - ServerCodecConfigurer, ClientCodecConfigurer và ExchangeStrategies
+  - JSON, chuỗi, dữ liệu nhị phân và media type tương ứng
+  - Phân biệt giải mã một đối tượng với giải mã một chuỗi đối tượng
+  - maxInMemorySize và DataBufferLimitException
+  - DataBuffer, PooledDataBuffer và bộ nhớ ngoài heap
+  - retain, release và trách nhiệm khi thao tác bộ đệm trực tiếp
+  - Giải phóng bộ đệm khi lọc, lỗi hoặc hủy
+  - Tránh gom toàn bộ body lớn khi có thể xử lý từng phần
+- level1: Truyền dữ liệu liên tục
+  level2:
+  - Phân biệt Flux với phản hồi thực sự được gửi từng phần
+  - JSON array, NDJSON và định dạng cho truyền liên tục
+  - Server-Sent Events với Flux và ServerSentEvent
+  - Media type text/event-stream, id, event và retry
+  - Nhịp heartbeat để phát hiện kết nối không còn hoạt động
+  - Bộ đệm của máy chủ, proxy và phía nhận
+  - Kết nối chậm, backpressure và chính sách giới hạn dữ liệu
+  - Ngắt kết nối, hủy chuỗi và giải phóng tài nguyên
+  - Giới hạn sửa status và báo lỗi giữa một luồng đang phát
+- level1: Form và tập tin
+  level2:
+  - Đọc application/x-www-form-urlencoded qua exchange
+  - Đọc multipart bằng @RequestPart, Part và FilePart
+  - Validation cho phần dữ liệu có cấu trúc trong multipart
+  - Ghi tập tin với transferTo và quản lý đường dẫn đích
+  - Truyền multipart theo Flux<PartEvent>
+  - Tiêu thụ hoặc giải phóng đầy đủ phần nội dung bị bỏ qua
+  - Giới hạn kích thước, số phần và tài nguyên tạm
+  - Kiểm chứng tải lên, tải xuống lớn mà không gom hết vào bộ nhớ
+- level1: Gửi yêu cầu WebClient
+  level2:
+  - WebClient và vai trò ClientHttpConnector
+  - Tạo builder, tái sử dụng client và mutate cấu hình
+  - Base URL, UriBuilder, path và query parameter
+  - Method, header, cookie và thông tin xác thực
+  - Gửi đối tượng qua bodyValue
+  - Gửi Publisher bằng body và giữ đúng kiểu phần tử
+  - Gửi form và multipart bằng BodyInserters, MultipartBodyBuilder
+  - ExchangeFilterFunction và chuỗi filter phía khách
+  - Request attributes và truyền dữ liệu qua Reactor Context
+  - Tích hợp HTTP service interface bằng @HttpExchange và WebClientAdapter
+- level1: Đọc phản hồi WebClient
+  level2:
+  - retrieve và giải mã bằng bodyToMono, bodyToFlux
+  - toEntity và truy cập status, header cùng body
+  - onStatus và ánh xạ lỗi HTTP
+  - WebClientResponseException và nội dung phản hồi lỗi
+  - exchangeToMono, exchangeToFlux cho xử lý theo từng nhánh status
+  - Tiêu thụ hoặc giải phóng body ở mọi nhánh xử lý
+  - Phân biệt lỗi kết nối, timeout, codec và status lỗi
+  - Phối hợp nhiều lời gọi độc lập và giới hạn số yêu cầu đồng thời
+  - Timeout, retry có điều kiện và tính lũy đẳng của yêu cầu
+  - Ranh giới dùng block trong mã mệnh lệnh và tránh block trên event loop
+- level1: Kết nối và thời hạn
+  level2:
+  - Chọn connector Reactor Netty, JDK, Jetty hoặc HttpComponents
+  - Cấu hình HttpClient và tài nguyên dùng chung
+  - Connection pool, giới hạn kết nối và hàng đợi chờ
+  - Connect timeout, response timeout và thời gian chờ lấy kết nối
+  - Phân biệt timeout tầng mạng với toán tử timeout toàn chuỗi
+  - TLS, chứng chỉ, proxy và phân giải tên miền
+  - HTTP/2 và điều kiện hỗ trợ của máy chủ, connector
+  - Đóng tài nguyên mạng tùy biến và tránh tạo pool cho mỗi yêu cầu
+  - Đo lỗi cạn kết nối, kết nối nhàn rỗi và tải của dịch vụ đích
+- level1: Cấu hình WebFlux
+  level2:
+  - '@EnableWebFlux, WebFluxConfigurer và cấu hình hạ tầng'
+  - Ảnh hưởng của @EnableWebFlux tới tự cấu hình Spring Boot
+  - Cấu hình codec, Converter, Formatter và Validator
+  - Phân giải media type và đăng ký đối số handler tùy biến
+  - CORS toàn cục, @CrossOrigin và CorsWebFilter
+  - Preflight, credentials và danh sách nguồn được phép
+  - ForwardedHeaderTransformer và ranh giới tin cậy proxy
+  - Cấu hình tài nguyên tĩnh và chuỗi xử lý tài nguyên
+  - Quy tắc dấu gạch chéo cuối đường dẫn và tính nhất quán khi phân quyền
+- level1: Hiển thị giao diện
+  level2:
+  - View, ViewResolver và dữ liệu Model
+  - Trả tên view, Rendering và model chứa giá trị reactive
+  - Cấu hình công nghệ mẫu tương thích WebFlux
+  - Phân biệt chờ model hoàn tất với hiển thị từng phần
+  - Chuyển hướng và dữ liệu biểu mẫu
+  - Giới hạn công nghệ view chặn và khác biệt với JSP trên Servlet
+- level1: WebSocket
+  level2:
+  - Khác biệt giữa WebSocket, SSE và HTTP thông thường
+  - WebSocketHandler, WebSocketSession và HandshakeWebSocketService
+  - Đăng ký đường dẫn cho handler và cấu hình handshake
+  - Đọc receive, ghi send và kết hợp vòng đời hai hướng
+  - Xử lý text, binary và payload dùng bộ đệm
+  - Hủy, lỗi, đóng phiên và giải phóng tài nguyên
+  - WebSocketClient và phối hợp các kết nối
+  - Giới hạn hàng đợi khi phát cho nhiều phiên hoặc phía nhận chậm
+  - Ranh giới giữa WebSocket thuần và STOMP
+- level1: RSocket
+  level2:
+  - RSocket và nhu cầu giao tiếp phản ứng hai chiều
+  - Fire-and-forget, request-response, request-stream và request-channel
+  - Backpressure ở mức giao thức và khác biệt với HTTP
+  - RSocketRequester, RSocketStrategies và codec
+  - Route, metadata và định dạng dữ liệu
+  - '@MessageMapping và handler trả về Mono, Flux'
+  - Thiết lập kết nối, vòng đời và xử lý lỗi
+  - Điều kiện lựa chọn RSocket so với WebClient, SSE hoặc WebSocket
+- level1: Tích hợp hệ sinh thái
+  level2:
+  - Giữ hợp đồng Publisher xuyên controller, dịch vụ và truy cập dữ liệu
+  - Phân biệt JDBC, JPA chặn với driver dữ liệu reactive
+  - R2DBC và các thư viện Spring Data reactive trong kiến trúc tổng thể
+  - ReactiveTransactionManager và ngữ cảnh giao dịch theo subscription
+  - TransactionalOperator, @Transactional reactive và cùng một chuỗi thực thi
+  - Hủy hoặc lỗi trong giao dịch và trách nhiệm giải phóng kết nối
+  - ReactiveAdapterRegistry và tích hợp thư viện reactive khác
+  - Kotlin suspend, Flow và ranh giới chuyển đổi với Reactor
+  - Giới hạn tách chuỗi bằng subscribe hoặc chuyển sang API mệnh lệnh
+- level1: Tích hợp bảo mật
+  level2:
+  - SecurityWebFilterChain và điểm tích hợp Spring Security
+  - Phân biệt filter bảo mật reactive với Servlet Filter
+  - Truy cập Principal và ReactiveSecurityContextHolder
+  - Lan truyền ngữ cảnh xác thực trong chuỗi reactive
+  - Thứ tự CORS, preflight và filter bảo mật
+  - CSRF, session và lựa chọn theo cách xác thực thực tế
+  - Giới hạn kích thước nội dung, thời hạn và dữ liệu nhạy cảm trong log
+  - Phân biệt bảo mật WebFlux với thiết kế hệ thống OAuth2 chuyên sâu
+- level1: Kiểm thử Reactor
+  level2:
+  - StepVerifier và kịch bản tín hiệu mong đợi
+  - Kiểm tra dữ liệu, complete, error và thời hạn verify
+  - Điều khiển request ban đầu và thenRequest
+  - Kiểm tra cancel và công việc dọn dẹp
+  - withVirtualTime và tạo publisher sau khi thiết lập thời gian ảo
+  - TestPublisher cho các kịch bản nguồn có kiểm soát
+  - PublisherProbe để xác nhận nhánh dự phòng được đăng ký
+  - Kiểm tra Reactor Context
+  - Kiểm tra retry, timeout và các phần tử bị loại bỏ
+  - Phát hiện lệnh chặn bằng BlockHound khi môi trường hỗ trợ
+- level1: Kiểm thử WebFlux
+  level2:
+  - WebTestClient với controller, router hoặc ApplicationContext
+  - Phân biệt kiểm thử không máy chủ với kết nối máy chủ thật
+  - Kiểm tra status, header, cookie và nội dung JSON
+  - Kiểm tra body rỗng, lỗi validation và ProblemDetail
+  - Kiểm tra Flux, SSE và luồng không kết thúc bằng StepVerifier
+  - Kiểm thử WebClient với máy chủ HTTP giả có hành vi thực tế
+  - Mô phỏng kết nối chậm, ngắt kết nối và timeout
+  - Kiểm chứng filter, profile, codec và cấu hình bảo mật
+  - Giới hạn những gì kiểm thử giả lập chứng minh về mạng và backpressure
+- level1: Quan sát và gỡ lỗi
+  level2:
+  - Theo dõi chuỗi tín hiệu bằng log và các toán tử doOn
+  - Phân biệt stack trace lúc lắp ghép với lúc thực thi
+  - checkpoint, Hooks.onOperatorDebug và ReactorDebugAgent
+  - Mã tương quan, Reactor Context và tích hợp MDC
+  - Observation và số liệu phía máy chủ, phía WebClient
+  - Quan sát Scheduler, hàng đợi, pool kết nối và bộ đệm
+  - Micrometer cho chuỗi Reactor và tránh nhãn có quá nhiều giá trị
+  - Giới hạn log body, chi phí quan sát và bảo vệ thông tin nhạy cảm
+  - Nhận diện dropped error, rò rỉ bộ đệm và chuỗi không được đăng ký
+- level1: Hiệu năng và tải
+  level2:
+  - Đo độ trễ, thông lượng, số luồng và bộ nhớ
+  - Nhận diện lệnh chặn nằm sâu trong thư viện phụ thuộc
+  - Chọn giới hạn flatMap concurrency theo tài nguyên phía sau
+  - Điều chỉnh prefetch, buffer và kích thước connection pool
+  - Ảnh hưởng collectList, cache và replay tới bộ nhớ
+  - Kiểm thử phía nhận chậm và nguồn phát nhanh
+  - Giới hạn hàng đợi, timeout và cơ chế từ chối khi quá tải
+  - So sánh reactive với MVC hoặc luồng ảo trên cùng tải thực tế
+  - Đóng kết nối đang hoạt động và dừng ứng dụng có kiểm soát
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế luồng tổng hợp dữ liệu từ nhiều dịch vụ HTTP
+  - Xây cùng một hợp đồng bằng controller và endpoint hàm
+  - Xử lý kết quả rỗng, lỗi từng dịch vụ và dữ liệu dự phòng
+  - Giới hạn đồng thời, thời hạn và số lần thử lại
+  - Cung cấp NDJSON hoặc SSE với vòng đời kết nối rõ ràng
+  - Thực nghiệm callback, nguồn hot và backpressure có giới hạn
+  - Kiểm chứng lỗi, hủy, tài nguyên và ngữ cảnh theo từng yêu cầu
+  - Đo tải và giải thích lựa chọn reactive bằng bằng chứng

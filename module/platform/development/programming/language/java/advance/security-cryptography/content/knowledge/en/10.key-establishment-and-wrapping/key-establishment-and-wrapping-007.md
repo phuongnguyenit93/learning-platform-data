@@ -1,32 +1,32 @@
-# 10.7 API KEM từ Java 21 với Encapsulator, Decapsulator và thông điệp đóng gói
+# 10.7 The Java 21 KEM API with Encapsulator, Decapsulator, and Encapsulation Messages
 
-Từ **Java 21**, JDK có API chuẩn **`javax.crypto.KEM`** (JEP 452) để thực hiện **Key Encapsulation Mechanism — KEM**. Đây là cầu nối giữa mật mã khóa công khai và mã hóa đối xứng: bên gửi dùng **public key của người nhận** để tạo một **shared secret** và một **thông điệp đóng gói** (encapsulation); bên nhận dùng **private key tương ứng** và thông điệp đóng gói để khôi phục **cùng shared secret**. Hai bên dùng bí mật này làm đầu vào cho cơ chế dẫn xuất khóa hoặc mã hóa dữ liệu.
+Starting in **Java 21**, the JDK includes the standard **`javax.crypto.KEM`** API (JEP 452) for performing a **Key Encapsulation Mechanism — KEM**. This bridges public-key cryptography and symmetric encryption: the sender uses the **recipient's public key** to generate a **shared secret** and an **encapsulation message**; the recipient uses the **corresponding private key** and the encapsulation message to recover the **same shared secret**. Both sides then use this secret as input to key derivation or data encryption.
 
-Mục tiêu của bài là hiểu chính xác **`KEM`, `KEM.Encapsulator`, `KEM.Encapsulated`, `KEM.Decapsulator`**, ý nghĩa của `key()`, `encapsulation()`, `params()`, luồng byte truyền trên mạng, cách xác minh tính đúng và cách ghép KEM với **HKDF + AES-GCM** thành một envelope minh họa. Đồng thời, phải phân biệt **KEM không tự mã hóa file, không tự xác thực người gửi và không tự tạo một giao thức bảo mật hoàn chỉnh**.
+This lesson's goal is to understand **`KEM`, `KEM.Encapsulator`, `KEM.Encapsulated`, `KEM.Decapsulator`**, the meaning of `key()`, `encapsulation()`, `params()`, the byte flow over the network, how to verify correctness, and how to combine KEM with **HKDF + AES-GCM** into an illustrative envelope. At the same time, you must recognize that **KEM does not encrypt files on its own, does not authenticate the sender on its own, and does not automatically form a complete security protocol**.
 
-Ví dụ chính dùng **DHKEM + X25519**, tương thích với API có từ Java 21 khi provider JDK hỗ trợ cấu hình này. Các API và cấu hình mật mã khả dụng còn phụ thuộc phiên bản JDK/provider; không mặc định rằng mọi thuật toán KEM, đặc biệt các họ hậu lượng tử, đều đã tích hợp trong **JDK 21**.
+The main example uses **DHKEM + X25519**, compatible with the Java 21 API when the JDK provider supports this configuration. Available APIs and cryptographic profiles depend on the JDK/provider version; never assume every KEM algorithm, especially post-quantum families, is built into **JDK 21**.
 
-## 1. KEM giải quyết bài toán gì?
+## 1. What Problem Does KEM Solve?
 
-Giả sử Bob muốn nhận dữ liệu bí mật từ Alice. Bob tạo hoặc sở hữu cặp khóa:
+Suppose Bob wants to receive confidential data from Alice. Bob creates or holds a key pair:
 
-- **`pkR`**: public key có thể phân phối cho người gửi sau khi xác minh nguồn gốc;
-- **`skR`**: private key Bob giữ bí mật.
+- **`pkR`**: public key that can be distributed to senders after verifying provenance;
+- **`skR`**: private key Bob keeps secret.
 
-Alice chưa có một khóa AES chia sẻ trước với Bob. Nếu phải truyền một khóa AES dạng plaintext, kẻ nghe lén sẽ đọc được khóa. KEM cho phép Alice tạo bí mật chung mà không cần gửi bí mật đó qua mạng.
+Alice does not yet share a pre-existing AES key with Bob. Sending an AES key in plaintext would let an eavesdropper read it. KEM lets Alice establish a shared secret without sending that secret over the network.
 
 ```text
-                   BOB (người nhận)
+                   BOB (recipient)
                KeyPair(pkR, skR)
                      |
-           pkR đã được xác thực
+           pkR has been authenticated
                      |
-                   ALICE (người gửi)
-          Encapsulate(pkR) tạo:
+                   ALICE (sender)
+          Encapsulate(pkR) creates:
              sharedSecret_A
              encapsulationBytes
                      |
-      gửi encapsulationBytes (không gửi sharedSecret_A)
+      send encapsulationBytes (do NOT send sharedSecret_A)
                      |
                    BOB
     Decapsulate(skR, encapsulationBytes)
@@ -36,83 +36,83 @@ Alice chưa có một khóa AES chia sẻ trước với Bob. Nếu phải truy�
     sharedSecret_A == sharedSecret_B
 ```
 
-KEM gồm ba ý niệm nền tảng:
+KEM consists of three foundational operations:
 
-1. **Key generation (`KeyGen`):** tạo cặp khóa công khai/riêng phù hợp thuật toán KEM. Trong ví dụ `DHKEM` với X25519, dùng `KeyPairGenerator.getInstance("X25519")`.
-2. **Encapsulation (`Encap`):** nhận public key, trả về **bí mật chia sẻ và thông điệp đóng gói**. Bí mật phải giữ riêng; thông điệp đóng gói gửi được.
-3. **Decapsulation (`Decap`):** nhận private key và thông điệp đóng gói, trả về bí mật tương ứng hoặc lỗi theo thuật toán/provider.
+1. **Key generation (`KeyGen`):** creates a public/private key pair suited to the KEM algorithm. In the `DHKEM` with X25519 example, use `KeyPairGenerator.getInstance("X25519")`.
+2. **Encapsulation (`Encap`):** takes a public key and returns a **shared secret and an encapsulation message**. The secret must stay private; the encapsulation message can be sent.
+3. **Decapsulation (`Decap`):** takes a private key and an encapsulation message and returns the matching secret or an error per algorithm/provider.
 
-**Điểm mấu chốt:** `encapsulationBytes` là dữ liệu để người nhận **khôi phục cùng bí mật**, chứ **không phải** file đã mã hóa và cũng không phải shared secret dưới dạng Base64. Một người nhìn thấy encapsulation nhưng không có private key đúng không nên có khả năng suy ra shared secret trong mô hình bảo mật của KEM.
+**Key takeaway:** `encapsulationBytes` is data enabling the recipient to **recover the same secret**, **not** the encrypted file and not a Base64-encoded shared secret. Anyone who sees the encapsulation without the right private key should be unable to recover the shared secret under KEM's security model.
 
-### 1.1. Vì sao gọi là “key encapsulation”, không gọi đơn thuần là “RSA encrypt”?
+### 1.1. Why Is It Called “Key Encapsulation” Rather Than Simply “RSA Encrypt”?
 
-Với RSA-OAEP kiểu key transport truyền thống, bên gửi thường **tạo sẵn một khóa ngẫu nhiên nhỏ** rồi mã hóa khóa đó bằng RSA. Với nhiều KEM (ví dụ DHKEM), thao tác encapsulation **đồng thời tạo** shared secret và encapsulation, chứ không phải một hàm tổng quát nhận byte khóa tùy ý rồi mã hóa byte ấy. API Java thể hiện đúng khác biệt này: `Encapsulator.encapsulate()` **không nhận message plaintext**.
+With traditional RSA-OAEP key transport, the sender typically **pre-generates a small random key** and encrypts that key with RSA. With many KEMs (such as DHKEM), encapsulation **simultaneously generates** the shared secret and the encapsulation, rather than acting as a general-purpose function that accepts arbitrary key bytes and encrypts them. The Java API reflects this distinction directly: `Encapsulator.encapsulate()` **takes no plaintext message**.
 
-Các loại KEM khác nhau có thể dựa vào DH/ECDH, cấu trúc lattice hoặc primitive khác; Java `KEM` là **giao diện trừu tượng** để làm việc qua provider. Chọn thuật toán và public/private key phải khớp nhau; tên `KEM` không phải bảo đảm mọi khóa bất đối xứng đều tương thích với mọi KEM.
+Different KEMs can be built on DH/ECDH, lattices, or other primitives; Java's `KEM` is an **abstract interface** working through providers. The chosen algorithm and public/private keys must match; the `KEM` name does not mean every asymmetric key works with every KEM.
 
-### 1.2. KEM và key agreement/AEAD không giống nhau
+### 1.2. KEM Differs from Key Agreement and AEAD
 
-| Thành phần | Đầu vào/đầu ra điển hình | Mục đích |
+| Component | Typical input / output | Purpose |
 | --- | --- | --- |
-| `KeyPairGenerator` | Algorithm → public/private key pair | Tạo khóa người nhận |
-| `KEM` | Algorithm name + provider | Chọn primitive KEM |
-| `Encapsulator.encapsulate()` | Public key đã cấu hình → `SecretKey` + encapsulation bytes | Tạo bí mật chung từ phía người gửi |
-| `Decapsulator.decapsulate(bytes)` | Private key đã cấu hình + encapsulation → `SecretKey` | Khôi phục bí mật chung bên nhận |
-| KDF/HKDF | Shared secret + context → key(s) phục vụ ứng dụng | Tách miền sử dụng, tạo khóa/nonce phù hợp |
-| AEAD (AES-GCM, v.v.) | Key + nonce + plaintext + AAD → ciphertext + tag | Mã hóa dữ liệu và xác thực ciphertext/metadata |
-| Chữ ký số hoặc giao thức authenticated | Khóa định danh và thông điệp | Xác thực nguồn gửi nếu nghiệp vụ yêu cầu |
+| `KeyPairGenerator` | Algorithm → public/private key pair | Generate recipient keys |
+| `KEM` | Algorithm name + provider | Select the KEM primitive |
+| `Encapsulator.encapsulate()` | Configured public key → `SecretKey` + encapsulation bytes | Establish a shared secret from the sender side |
+| `Decapsulator.decapsulate(bytes)` | Configured private key + encapsulation → `SecretKey` | Recover the shared secret on the recipient side |
+| KDF/HKDF | Shared secret + context → application key(s) | Separate usage domains and derive appropriate keys/nonces |
+| AEAD (AES-GCM, etc.) | Key + nonce + plaintext + AAD → ciphertext + tag | Encrypt data and authenticate ciphertext/metadata |
+| Digital signature or authenticated protocol | Identity key and message | Authenticate origin when required by business logic |
 
-Không dùng `KEM.encapsulate()` thay `Cipher.doFinal(file)`. KEM **chỉ xử lý phần thiết lập bí mật chung**; file MB/GB vẫn nên đi qua cơ chế mã hóa đối xứng hoặc authenticated streaming encryption đã được thiết kế phù hợp.
+Never use `KEM.encapsulate()` instead of `Cipher.doFinal(file)`. KEM **only handles establishing a shared secret**; MB/GB files must still go through symmetric encryption or properly designed authenticated streaming encryption.
 
-## 2. API Java 21: bốn kiểu dữ liệu quan trọng
+## 2. Java 21 API: Four Key Types
 
-JEP 452 bổ sung các lớp trong module `java.base`, package **`javax.crypto`**:
+JEP 452 adds classes in module `java.base`, package **`javax.crypto`**:
 
-- **`KEM`:** factory/controller cho thuật toán KEM, ví dụ `KEM.getInstance("DHKEM")`; có các phương thức tạo encapsulator hoặc decapsulator.
-- **`KEM.Encapsulator`:** đối tượng phía gửi được tạo từ **public key người nhận**; gọi `encapsulate()` để sinh một kết quả mới.
-- **`KEM.Encapsulated`:** object chứa **`SecretKey key()`**, **`byte[] encapsulation()`**, **`byte[] params()`** (tham số tùy chọn, có thể `null`).
-- **`KEM.Decapsulator`:** đối tượng phía nhận được tạo từ **private key tương ứng**; gọi `decapsulate(byte[])` để lấy shared secret.
+- **`KEM`:** factory/controller for a KEM algorithm, e.g., `KEM.getInstance("DHKEM")`; provides methods to create encapsulators or decapsulators.
+- **`KEM.Encapsulator`:** sender-side object created from the **recipient's public key**; calling `encapsulate()` generates a fresh result.
+- **`KEM.Encapsulated`:** result object holding **`SecretKey key()`**, **`byte[] encapsulation()`**, and **`byte[] params()`** (optional parameters, may be `null`).
+- **`KEM.Decapsulator`:** recipient-side object created from the **corresponding private key**; calling `decapsulate(byte[])` recovers the shared secret.
 
-### 2.1. Các lời gọi tối thiểu
+### 2.1. Minimal Calls
 
 ```java
-// Ví dụ trích đoạn Java 21+, chưa bao gồm key provisioning/try-catch.
+// Illustrative Java 21+ snippet, omitting key provisioning and try-catch.
 KeyPairGenerator generator = KeyPairGenerator.getInstance("X25519");
 KeyPair receiverKeys = generator.generateKeyPair();
 
 KEM kem = KEM.getInstance("DHKEM");
 
-// Sender: chỉ cần public key đã xác thực của receiver.
+// Sender: only needs the receiver's authenticated public key.
 KEM.Encapsulator sender = kem.newEncapsulator(receiverKeys.getPublic());
 KEM.Encapsulated result = sender.encapsulate();
 SecretKey senderSecret = result.key();
 byte[] messageToSend = result.encapsulation();
 
-// Receiver: phải có private key tương ứng.
+// Receiver: must hold the corresponding private key.
 KEM.Decapsulator receiver = kem.newDecapsulator(receiverKeys.getPrivate());
 SecretKey receiverSecret = receiver.decapsulate(messageToSend);
 ```
 
-Đây là trích đoạn minh họa quan hệ API, không phải một file Java đầy đủ (cần `import` và xử lý lỗi). Có hai chương trình hoàn chỉnh ở các mục sau.
+This snippet shows API relationships and is not a complete Java file (missing `import`s and error handling). Two complete programs appear in later sections.
 
-### 2.2. Phân biệt `KEM`, `Encapsulator`, `Encapsulated` và `encapsulation()`
+### 2.2. Distinguishing `KEM`, `Encapsulator`, `Encapsulated`, and `encapsulation()`
 
-Tên gần nhau nhưng vai trò rất khác:
+The names are similar, but their roles are very different:
 
-| Tên Java | Kiểu | Ý nghĩa |
+| Java name | Kind | Meaning |
 | --- | --- | --- |
-| `KEM` | Đối tượng API | Biết loại thuật toán KEM, tạo worker có khóa phù hợp |
-| `KEM.Encapsulator` | Đối tượng phía gửi | Gắn với public key người nhận và provider |
-| `KEM.Encapsulated` | Giá trị kết quả | Có shared secret, encapsulation byte array và optional params |
-| `result.key()` | `SecretKey` | **Phải giữ bí mật**, không đưa vào network envelope |
-| `result.encapsulation()` | `byte[]` | **Thông điệp có thể truyền** cho receiver; không phải secret |
-| `result.params()` | `byte[]` hoặc `null` | Tham số tùy chọn để hai phía cấu hình tương thích |
-| `KEM.Decapsulator` | Đối tượng phía nhận | Gắn với private key người nhận |
-| `decapsulate(encapsulation)` | `SecretKey` | Kết quả secret phía receiver |
+| `KEM` | API object | Knows the KEM algorithm and creates appropriately keyed workers |
+| `KEM.Encapsulator` | Sender-side object | Bound to recipient's public key and provider |
+| `KEM.Encapsulated` | Result value | Holds the shared secret, encapsulation byte array, and optional params |
+| `result.key()` | `SecretKey` | **Must be kept secret**, never put into the network envelope |
+| `result.encapsulation()` | `byte[]` | **Transmittable message** for the receiver; not a secret |
+| `result.params()` | `byte[]` or `null` | Optional parameters so both sides configure compatibly |
+| `KEM.Decapsulator` | Receiver-side object | Bound to recipient's private key |
+| `decapsulate(encapsulation)` | `SecretKey` | Resulting secret on the receiver side |
 
-API cho phép gọi `Encapsulator.encapsulate()` nhiều lần; **mỗi lần** tạo một shared secret và thông điệp mới. Không nên tái sử dụng secret và nonce mã hóa dữ liệu như thể đây là “khóa dài hạn được định trước”. Đặc biệt, không lấy `encapsulation()` rồi truyền qua `SecretKeySpec` để sử dụng như khóa AES: đó là **dữ liệu công khai**, không phải secret.
+The API allows calling `Encapsulator.encapsulate()` multiple times; **each call** produces a fresh shared secret and message. Do not reuse secrets and data-encryption nonces as if they were a “pre-agreed long-term key.” In particular, never pass `encapsulation()` into `SecretKeySpec` to use as an AES key: that is **public data**, not a secret.
 
-### 2.3. Các overload quan trọng
+### 2.3. Important Overloads
 
 ```java
 KEM.getInstance("DHKEM");
@@ -130,49 +130,49 @@ decapsulator.decapsulate(encapsulationBytes);
 decapsulator.decapsulate(encapsulationBytes, from, to, keyAlgorithm);
 ```
 
-Các dòng trên chỉ là chữ ký gọi minh họa; `secureRandom`/`parameterSpec`/key là biến cần tạo đúng kiểu, không phải một đoạn chương trình độc lập. Với overload `encapsulate(int from, int to, String algorithm)`, `from`/`to` là **chỉ số byte** của phần shared secret muốn nhận; `to` là **exclusive**, và `algorithm` là **tên thuật toán gán cho SecretKey trả về**. Overload tương ứng của decapsulator phải dùng phạm vi và thuật toán **phù hợp**. Provider có thể không hỗ trợ mọi tổ hợp.
+The lines above are illustrative call signatures; `secureRandom`/`parameterSpec`/keys are variables that must be constructed with valid types, not a standalone program. In `encapsulate(int from, int to, String algorithm)`, `from`/`to` are **byte indices** into the shared secret slice to return (`to` is **exclusive**), and `algorithm` is the **algorithm name assigned to the returned SecretKey**. The matching decapsulator overload must use the **same range and algorithm**. Providers may not support every combination.
 
-**Cách nên nhớ:** `encapsulate()`/`decapsulate(bytes)` dạng không tham số phụ trả `SecretKey` với `getAlgorithm()` thường là **`"Generic"`**. Giá trị Generic thường thích hợp làm đầu vào cho **KDF**, rồi mới lấy khóa AES/HMAC theo ngữ cảnh ứng dụng. Đừng hiểu `"Generic"` nghĩa là thuật toán mã hóa dữ liệu tên Generic.
+**Rule to remember:** the no-arg `encapsulate()`/`decapsulate(bytes)` returns a `SecretKey` whose `getAlgorithm()` is typically **`"Generic"`**. A `"Generic"` value is intended as input to a **KDF**, from which you derive AES/HMAC keys for the application context. Do not interpret `"Generic"` as a data-encryption algorithm named Generic.
 
-### 2.4. Kích thước dữ liệu: `secretSize()` và `encapsulationSize()`
+### 2.4. Data Sizes: `secretSize()` and `encapsulationSize()`
 
-- `Encapsulator.secretSize()` và `Decapsulator.secretSize()` trả **số byte** của shared secret chuẩn của provider/thuật toán.
-- `Encapsulator.encapsulationSize()` và `Decapsulator.encapsulationSize()` trả **số byte** của thông điệp encapsulation.
-- Đây là hai kích thước khác nhau về ý nghĩa, dù một số cấu hình có thể cho cùng một giá trị.
-- Trong **DHKEM(X25519, HKDF-SHA256)**, encapsulation thường **32 byte** và shared secret chuẩn **32 byte**; giá trị này đến từ thuật toán/profile, không phải do file plaintext dài 32 byte.
-- Dùng metadata size của decapsulator để kiểm tra input trước khi parse/chuyển vào provider; tránh cấp phát hoặc xử lý mảng không giới hạn từ mạng.
+- `Encapsulator.secretSize()` and `Decapsulator.secretSize()` return the **number of bytes** of the provider/algorithm's standard shared secret.
+- `Encapsulator.encapsulationSize()` and `Decapsulator.encapsulationSize()` return the **number of bytes** of the encapsulation message.
+- These are two semantically different sizes, even when a configuration happens to give the same number for both.
+- In **DHKEM(X25519, HKDF-SHA256)**, the encapsulation is typically **32 bytes** and the standard shared secret is **32 bytes**; these values come from the algorithm/profile, not from a 32-byte plaintext file.
+- Use the decapsulator's size metadata to validate inputs before parsing/passing to the provider; avoid allocating or processing unbounded arrays from the network.
 
-Nếu khóa nằm trong HSM/provider không cho xuất, `SecretKey.getEncoded()` **có thể trả `null`**. Các phương thức size giúp hỏi kích thước mà không phải trích raw key. Khi cần KDF từ non-exportable secret, hãy sử dụng chức năng derivation của provider/HSM phù hợp; không ép ứng dụng phải log/xuất secret.
+If the key lives in an HSM/non-exportable provider, `SecretKey.getEncoded()` **may return `null`**. The size methods let you query sizes without extracting raw key bytes. When you need a KDF on a non-exportable secret, use the appropriate provider/HSM derivation feature; never force the application to log/export secrets.
 
-### 2.5. Encapsulation message khác ciphertext của file
+### 2.5. Encapsulation Message Differs from File Ciphertext
 
-Trong tài liệu KEM, encapsulation message **cũng có thể được gọi là KEM ciphertext**. Dù vậy, nó không phải ciphertext dữ liệu mà AES-GCM trả ra:
+In KEM literature, the encapsulation message **may also be called a KEM ciphertext**. Even so, it is not the data ciphertext returned by AES-GCM:
 
 ```text
-encapsulationBytes              : public KEM message, giúp receiver tạo secret
-sharedSecret                    : chỉ tồn tại nội bộ phía gửi/nhận
-payloadCiphertextAndTag         : dữ liệu ứng dụng đã mã hóa bằng AEAD
+encapsulationBytes              : public KEM message, lets receiver recover secret
+sharedSecret                    : exists only internally at sender/receiver
+payloadCiphertextAndTag         : application data encrypted with AEAD
 envelope                        : metadata + encapsulationBytes + AEAD payload
 ```
 
-Vì hai loại byte có thể cùng được gọi là “ciphertext” ở các lớp giao thức khác nhau, nên trong code và schema nên đặt tên rõ ràng: **`kemEncapsulation`** và **`aeadCiphertext`**. Không gửi nhầm `key().getEncoded()` thay vì `encapsulation()`.
+Because both byte arrays may be called “ciphertext” at different protocol layers, use clear variable/schema names in code: **`kemEncapsulation`** and **`aeadCiphertext`**. Never accidentally send `key().getEncoded()` instead of `encapsulation()`.
 
-## 3. Luồng gửi–nhận và vị trí của ba trường `key`, `encapsulation`, `params`
+## 3. Send–Receive Flow and the Three Fields `key`, `encapsulation`, `params`
 
-Một KEM exchange chuẩn theo API Java:
+A standard KEM exchange with the Java API:
 
 ```text
 Sender                                                   Receiver
   |                                                          |
-  | <-- authentic public key pkR / key ID / algorithm --------|
+  | <-- authentic public key pkR / key ID / algorithm -------|
   |                                                          |
-  | KEM.getInstance("DHKEM")                                |
+  | KEM.getInstance("DHKEM")                                 |
   | enc = kem.newEncapsulator(pkR).encapsulate()             |
-  |   senderSecret = enc.key()      [GIỮ BÍ MẬT]             |
+  |   senderSecret = enc.key()      [KEEP SECRET]            |
   |   encBytes     = enc.encapsulation()                     |
   |   optParams    = enc.params()                            |
   |                                                          |
-  | --- protocol header + encBytes (+ optParams nếu cần) --->|
+  | --- protocol header + encBytes (+ optParams if needed) ->|
   |                                                          |
   |                               kem.newDecapsulator(skR)   |
   |                               .decapsulate(encBytes)     |
@@ -180,35 +180,35 @@ Sender                                                   Receiver
   |                                                          |
   | HKDF(senderSecret, context)   HKDF(receiverSecret, context)
   |          |                                  |
-  |       AEAD key ------------------------> cùng AEAD key    |
-  |     mã hóa dữ liệu                   xác thực và giải mã  |
+  |       AEAD key ------------------------> same AEAD key   |
+  |     encrypts data                  authenticates & decrypts
 ```
 
-### 3.1. Bên gửi biết gì?
+### 3.1. What Does the Sender Know?
 
-Người gửi phải có **public key đích đã được xác thực**, biết **KEM algorithm** được giao thức cho phép, biết suite/hash và tham số kèm theo nếu cần. Người gửi **không cần private key** của người nhận. Vì vậy, chỉ dùng KEM theo public key người nhận **không thể tự chứng minh danh tính người gửi**: bất kỳ ai có public key hợp lệ cũng có thể thực hiện encapsulation mới.
+The sender must hold the **authenticated target public key**, know the protocol-allowed **KEM algorithm**, know the suite/hash, and any accompanying parameters. The sender **does not need the recipient's private key**. Consequently, using KEM with the recipient's public key alone **cannot prove the sender's identity**: anyone holding the valid public key can perform a new encapsulation.
 
-### 3.2. Bên nhận cần gì?
+### 3.2. What Does the Receiver Need?
 
-Người nhận cần **private key tương ứng** và đúng KEM/suite/parameter configuration. Đừng chọn private key dựa tùy tiện vào một `keyId` không đáng tin; server phải xác minh tenant, recipient, phiên bản khóa, trạng thái rotation và allowlist thuật toán. Khi private key bị mất, các encapsulation cũ phụ thuộc private key đó có thể không còn giải mã được theo kiến trúc lưu trữ.
+The receiver needs the **corresponding private key** and the exact KEM/suite/parameter configuration. Never pick a private key blindly from an untrusted `keyId`; the server must verify tenant, recipient, key version, rotation state, and algorithm allowlist. If the private key is lost, old encapsulations depending on it may become undecryptable under the storage architecture.
 
-### 3.3. `params()` là gì?
+### 3.3. What Is `params()`?
 
-`KEM.Encapsulated.params()` là optional byte array chứa **tham số thuật toán** nếu provider/algorithm cần truyền thêm dữ liệu để receiver tạo cấu hình tương ứng. Nó **có thể `null`**. Với ví dụ DHKEM/X25519 mặc định của JDK, giá trị thường `null`.
+`KEM.Encapsulated.params()` is an optional byte array holding **algorithm parameters** if the provider/algorithm needs extra data for the receiver to build a matching configuration. It **may be `null`**. For the JDK's default DHKEM/X25519 example, it is typically `null`.
 
-Nếu thuật toán yêu cầu `AlgorithmParameterSpec`, Java có overload `newEncapsulator(publicKey, spec, random)` và `newDecapsulator(privateKey, spec)`. Khi có params, receiver phải **parse theo định dạng mà provider/giao thức định nghĩa**, kiểm tra giới hạn/độ hợp lệ và khôi phục `AlgorithmParameterSpec` tương ứng (khi provider hỗ trợ `AlgorithmParameters`). Không thể đưa `params()` tùy ý vào `decapsulate(byte[])` rồi mong nó được tự nhận; `decapsulate` chỉ nhận **encapsulation bytes**.
+If an algorithm requires an `AlgorithmParameterSpec`, Java provides `newEncapsulator(publicKey, spec, random)` and `newDecapsulator(privateKey, spec)`. When params are present, the receiver must **parse them per the provider/protocol definition**, check bounds/validity, and reconstruct the matching `AlgorithmParameterSpec` (when the provider supports `AlgorithmParameters`). You cannot pass `params()` arbitrarily into `decapsulate(byte[])` expecting auto-detection; `decapsulate` only takes **encapsulation bytes**.
 
-### 3.4. Không log `SecretKey` hoặc binary encapsulation như secret
+### 3.4. Never Log `SecretKey` or Treat Binary Encapsulation as Secret
 
-- **Shared secret/KDF output/AEAD key:** phải giữ bí mật; không log base64, hex, byte array, debug dumper.
-- **Encapsulation:** thường không cần bí mật, nhưng phải bảo vệ **integrity/context binding** ở lớp envelope và giới hạn kích thước đầu vào.
-- **Metadata:** version, key ID, suite, optional params có thể không bí mật nhưng không được mặc định là **đã xác thực** chỉ vì chúng nằm cùng bản tin.
+- **Shared secret / KDF output / AEAD key:** must stay secret; never log Base64, hex, byte arrays, or debug dumps.
+- **Encapsulation:** does not normally require secrecy, but must have **integrity/context binding** at the envelope layer and strict input size limits.
+- **Metadata:** version, key ID, suite, and optional params may be public, yet must never be assumed **authenticated** merely because they travel in the same message.
 
-## 4. Ví dụ độc lập Java 21+: `Encapsulator` và `Decapsulator`
+## 4. Standalone Java 21+ Example: `Encapsulator` and `Decapsulator`
 
-Ví dụ này dùng **X25519** tạo cặp khóa nhận, **DHKEM** tạo encapsulator và decapsulator, kiểm tra hai phía thu được cùng shared secret. Nó cũng kiểm tra `encapsulationSize()`, `secretSize()` và lỗi khi truyền thông điệp encapsulation bị cắt ngắn. **Không in byte secret**.
+This example uses **X25519** to create the recipient key pair, **DHKEM** to create an encapsulator and decapsulator, and verifies both sides recover the same shared secret. It also inspects `encapsulationSize()`, `secretSize()`, and failure when passing a truncated encapsulation message. **No secret bytes are printed**.
 
-Lưu đúng tên **KemBasicDemo.java**:
+Save with exact name **KemBasicDemo.java**:
 
 ```java
 import java.security.KeyPair;
@@ -258,14 +258,14 @@ public class KemBasicDemo {
 }
 ```
 
-Dùng **JDK 21 trở lên** với provider hỗ trợ `DHKEM` và `X25519`:
+Use **JDK 21 or later** with a provider supporting `DHKEM` and `X25519`:
 
 ```bash
 javac -encoding UTF-8 KemBasicDemo.java
 java KemBasicDemo
 ```
 
-Stdout của cấu hình DHKEM/X25519 phổ biến trong JDK (đã chạy kiểm tra):
+Stdout from a common JDK DHKEM/X25519 configuration (verified):
 
 ```text
 KEM algorithm: DHKEM
@@ -277,29 +277,29 @@ optional params absent: true
 truncated encapsulation rejected: true
 ```
 
-### 4.1. Phân tích từng lời gọi
+### 4.1. Analyzing Each Call
 
-**Bước 1 — tạo key pair:** `KeyPairGenerator.getInstance("X25519")` dùng thuật toán cặp khóa phù hợp với DHKEM trên X25519. Trong hệ thống thật, key pair của người nhận thường được tạo, lưu và cấp phát theo chính sách, không phải sinh mới mỗi khi nhận file cũ.
+**Step 1 — create key pair:** `KeyPairGenerator.getInstance("X25519")` uses the key-pair algorithm matching DHKEM over X25519. In production systems, the recipient's key pair is created, stored, and provisioned per policy, not generated fresh for every old file.
 
-**Bước 2 — chọn KEM:** `KEM.getInstance("DHKEM")` chọn API KEM trên provider. `DHKEM` là tên thuật toán, còn profile cụ thể (ở đây X25519 + KDF phù hợp) do key/provider xác định theo hỗ trợ. Có thể phát sinh `NoSuchAlgorithmException` hoặc `InvalidKeyException` nếu thuật toán/key không được hỗ trợ; việc tồn tại lớp `KEM` không đảm bảo mọi provider đều dùng được mọi key type.
+**Step 2 — select KEM:** `KEM.getInstance("DHKEM")` selects the KEM API from a provider. `DHKEM` is the algorithm name, while the specific profile (here X25519 + matching KDF) is determined by the key/provider support. `NoSuchAlgorithmException` or `InvalidKeyException` can be thrown if the algorithm/key is unsupported; the existence of the `KEM` class does not guarantee every provider supports every key type.
 
-**Bước 3 — encapsulation:** `sender.encapsulate()` trả **`KEM.Encapsulated`**, gồm secret phía gửi và message `byte[]`. Trong code chỉ truyền byte message.
+**Step 3 — encapsulation:** `sender.encapsulate()` returns **`KEM.Encapsulated`**, holding the sender-side secret and the `byte[]` message. In code, only the message bytes are transmitted.
 
-**Bước 4 — decapsulation:** `kem.newDecapsulator(receiverKeys.getPrivate())` tạo phía nhận; `receiver.decapsulate(encapsulation)` trả secret cùng giá trị. Demo dùng `getEncoded()` để so sánh cho mục đích học tập; production cần lưu ý khóa **không xuất được** trong HSM/provider.
+**Step 4 — decapsulation:** `kem.newDecapsulator(receiverKeys.getPrivate())` creates the receiver side; `receiver.decapsulate(encapsulation)` returns a secret of equal value. The demo uses `getEncoded()` to compare for learning purposes; production code must account for **non-exportable** keys in HSMs/providers.
 
-**Bước 5 — kích thước:** 32 byte encapsulation và 32 byte shared secret là giá trị của profile DHKEM/X25519 trong ví dụ; **không** tự suy ra rằng mọi thuật toán KEM luôn có cùng output 32 byte.
+**Step 5 — sizes:** 32-byte encapsulation and 32-byte shared secret are specific to the DHKEM/X25519 profile in the example; **never** assume every KEM algorithm always outputs 32 bytes.
 
-**Bước 6 — dữ liệu thiếu:** `Arrays.copyOf(..., len - 1)` làm message thành 31 byte. `DecapsulateException` cho thấy input sai kích thước bị từ chối.
+**Step 6 — truncated data:** `Arrays.copyOf(..., len - 1)` shrinks the message to 31 bytes. `DecapsulateException` shows invalid-length inputs are rejected.
 
-### 4.2. Một điều rất dễ hiểu nhầm
+### 4.2. A Very Common Misconception
 
-**Không phải cứ sửa một byte trong encapsulation rồi `decapsulate()` là chắc chắn ném exception.** Với một số KEM, chuỗi byte đã bị sửa nhưng vẫn đúng khuôn dạng có thể cho ra **shared secret khác** thay vì lỗi cú pháp. Vì vậy, receiver phải dùng secret đó trong **AEAD được xác thực**; lỗi tag mới chặn việc chấp nhận plaintext không đúng. Đừng xem “decapsulation trả SecretKey” là bằng chứng sender đáng tin hoặc payload hợp lệ.
+**Modifying a byte in the encapsulation and calling `decapsulate()` does not always throw an exception.** With some KEMs, a tampered byte array that still has valid formatting can produce a **different shared secret** rather than a syntax error. Therefore, the receiver must use that secret in an **authenticated AEAD**; a tag failure is what stops accepting invalid plaintext. Never treat “decapsulation returned a SecretKey” as proof of a trustworthy sender or valid payload.
 
-## 5. Dùng shared secret: KDF, domain separation và AEAD
+## 5. Using the Shared Secret: KDF, Domain Separation, and AEAD
 
-KEM cung cấp shared secret; ứng dụng thường cần **khóa đối xứng theo mục đích**. Nếu trực tiếp lấy toàn bộ raw secret làm AES key ở mọi giao thức, dễ phát sinh **key reuse** hoặc thiếu ràng buộc context, nhất là khi cùng một KEM outcome cấp khóa cho encryption, MAC hoặc nhiều mục đích khác nhau.
+KEM provides a shared secret; applications typically need **purpose-specific symmetric keys**. Using the entire raw secret directly as an AES key across protocols easily causes **key reuse** or missing context binding, especially when one KEM outcome supplies keys for encryption, MAC, or multiple purposes.
 
-Một kiến trúc có kiểm soát:
+A controlled architecture:
 
 ```text
 KEM encapsulate/decapsulate
@@ -310,52 +310,52 @@ KEM encapsulate/decapsulate
         |
      +---------+----------+
      |                    |
-   AEAD key           other purpose key (nếu giao thức có thiết kế)
+   AEAD key           other purpose key (if designed in the protocol)
      |
  AES-GCM(key, nonce, plaintext, AAD)
      |
  ciphertext || authentication tag
 ```
 
-### 5.1. KDF có tác dụng gì ở đây?
+### 5.1. What Does the KDF Do Here?
 
-- **Chuyển đổi/điều chỉnh vật liệu khóa** theo độ dài của thuật toán đích, ví dụ AES-128 cần 16 byte, AES-256 cần 32 byte.
-- **Domain separation:** đưa protocol name, version, algorithm suite, purpose, recipient/tenant vào `info` KDF để tránh lấy một secret cho nhiều mục đích ngoài thiết kế.
-- **Context binding:** hai bên đồng ý chính xác cách encode `info`. Khi context không khớp, khóa dẫn xuất không khớp và giải mã AEAD thất bại.
-- **Giới hạn quyền:** key dùng cho encryption không tự nhiên được dùng làm HMAC hoặc signing key cho giao thức khác.
+- **Adapts/sizes key material** to the target algorithm's length, e.g., 16 bytes for AES-128 or 32 bytes for AES-256.
+- **Domain separation:** feeds protocol name, version, algorithm suite, purpose, and recipient/tenant into KDF `info` to prevent using one secret for unintended purposes.
+- **Context binding:** both sides agree on the exact encoding of `info`. When contexts differ, derived keys differ and AEAD decryption fails.
+- **Privilege scoping:** a key derived for encryption cannot naturally be reused as an HMAC or signing key for another protocol.
 
-DHKEM của RFC 9180 **đã có nội bộ cơ chế dẫn xuất secret từ DH**, nhưng điều đó không có nghĩa đầu ra là key schedule đầy đủ cho mọi ứng dụng. Bước HKDF riêng theo context của ứng dụng vẫn hữu ích để dẫn xuất AES key và tách miền sử dụng.
+RFC 9180 DHKEM **already derives its secret internally from DH** per the KEM specification, yet that does not mean the output is a complete key schedule for every application. A separate application-context HKDF step remains valuable to derive AES keys and separate usage domains.
 
-Trong Java 21, có thể triển khai HKDF theo RFC 5869 bằng `Mac.getInstance("HmacSHA256")` hoặc dùng thư viện mật mã đã được kiểm định. **Không giả định `javax.crypto.KDF` là API chuẩn có sẵn trong Java 21**; bài này cố tình chỉ dùng API chắc chắn có ở Java 21.
+In Java 21, you can implement RFC 5869 HKDF using `Mac.getInstance("HmacSHA256")` or use an audited cryptographic library. **Do not assume `javax.crypto.KDF` is a standard API available in Java 21**; this lesson intentionally uses only APIs guaranteed in Java 21.
 
-### 5.2. Vì sao phải có AES-GCM sau KEM?
+### 5.2. Why Is AES-GCM Needed After KEM?
 
-KEM chỉ tạo **khóa/secret** và encapsulation message. Nó **không** mã hóa plaintext file, không tự có nonce, không tự tạo authentication tag và không phát hiện việc ai đó thay đổi payload ciphertext. Với AES-GCM:
+KEM only produces a **key/secret** and an encapsulation message. It does **not** encrypt file plaintext, does not include a nonce, does not generate an authentication tag, and does not detect payload ciphertext tampering. With AES-GCM:
 
-- `Cipher.getInstance("AES/GCM/NoPadding")` là transformation AEAD.
-- `GCMParameterSpec(128, nonce)` chọn **tag 128 bit**, nonce là một `byte[]` riêng; nonce 96 bit/12 byte thường là lựa chọn đơn giản theo profile.
-- `Cipher.updateAAD(...)` đưa metadata/encapsulation vào phần dữ liệu được xác thực nhưng **không mã hóa**.
-- `Cipher.doFinal(plaintext)` trả ciphertext + tag trong dạng Java provider thông dụng.
-- Khi giải mã, **phải để `doFinal()` kiểm tra tag**; lỗi `AEADBadTagException` nghĩa là không chấp nhận plaintext.
+- `Cipher.getInstance("AES/GCM/NoPadding")` is the AEAD transformation.
+- `GCMParameterSpec(128, nonce)` selects a **128-bit tag**, with nonce as a separate `byte[]`; a 96-bit/12-byte nonce is a common simple profile choice.
+- `Cipher.updateAAD(...)` includes metadata/encapsulation in the authenticated-but-**unencrypted** data.
+- `Cipher.doFinal(plaintext)` outputs ciphertext + tag in standard Java provider format.
+- When decrypting, **let `doFinal()` verify the tag**; an `AEADBadTagException` means the plaintext must be rejected.
 
-Nonce AES-GCM **phải không lặp dưới cùng AES key**. Ví dụ tạo shared secret/KDF key mới cho một message rồi sinh nonce ngẫu nhiên 12 byte; khi thiết kế cho nhiều message trên một key, phải có chiến lược nonce và giới hạn số lượng message theo giao thức, không chỉ dựa vào “nonce dài đúng 12 byte”.
+AES-GCM nonces **must never repeat under the same AES key**. For example, derive a fresh shared secret/KDF key per message and generate a random 12-byte nonce; when designing for multiple messages under one key, enforce a nonce strategy and per-protocol message limits, rather than relying only on “the nonce is 12 bytes long.”
 
-### 5.3. Mã hóa không đồng nghĩa xác thực người gửi
+### 5.3. Encryption Does Not Mean Sender Authentication
 
-Chỉ biết public key người nhận, **bất kỳ ai** cũng có thể encapsulate và mã hóa một payload mới mà receiver giải được. Do đó, dữ liệu được mã hóa bởi KEM + AEAD đúng có thể **giữ bí mật và toàn vẹn của ciphertext cho một key context**, nhưng **không tự chứng minh tác giả**. Nếu cần xác thực danh tính người gửi, dùng giao thức authenticated, chữ ký số trên envelope, mutual TLS hoặc xác thực bên gửi theo thiết kế; public key của bên ký/xác thực phải có hệ thống trust riêng.
+Knowing only the recipient's public key, **anyone** can encapsulate and encrypt a new payload that the receiver will decrypt. Thus, data encrypted with KEM + AEAD can **preserve confidentiality and ciphertext integrity for a key context**, but **does not prove authorship on its own**. If sender identity authentication is required, use an authenticated protocol, a digital signature over the envelope, mutual TLS, or explicit sender authentication per design; the signer/verifier's public key requires its own trust system.
 
-## 6. Ví dụ độc lập Java 21+: KEM → HKDF → AES-GCM
+## 6. Standalone Java 21+ Example: KEM → HKDF → AES-GCM
 
-Chương trình này minh họa **một envelope đơn giản trong bộ nhớ**. Alice encapsulate bằng public key X25519 của Bob; hai bên dẫn xuất AES-128 key thông qua một vòng **HKDF-Extract + HKDF-Expand (16 byte output)**, dùng AES-GCM để mã hóa một payload và kiểm tra:
+This program demonstrates a **simple in-memory envelope**. Alice encapsulates with Bob's X25519 public key; both sides derive an AES-128 key via one round of **HKDF-Extract + HKDF-Expand (16-byte output)**, use AES-GCM to encrypt a payload, and verify:
 
-- Hai phía giải mã đúng plaintext.
-- Sửa ciphertext sẽ bị GCM từ chối.
-- Sửa AAD/header sẽ bị GCM từ chối.
-- Dùng sai private key phía nhận sẽ không giải mã/xác thực được payload.
+- Both sides decrypt the exact plaintext.
+- Modifying the ciphertext is rejected by GCM.
+- Modifying the AAD/header is rejected by GCM.
+- Using the wrong private key on the receiver side fails to decrypt/authenticate the payload.
 
-**Lưu ý:** HKDF helper chỉ triển khai **1 block Expand** để lấy **16 byte AES key**; nó **không phải** một triển khai tổng quát cho mọi `L` của RFC 5869. Example giữ mọi byte trong RAM, không serialize wire format hoặc quản lý key ID thật.
+**Note:** the HKDF helper only implements **1 Expand block** to obtain a **16-byte AES key**; it is **not** a general implementation for arbitrary RFC 5869 `L`. The example keeps all bytes in RAM without wire serialization or real key-ID management.
 
-Lưu **KemEnvelopeDemo.java**:
+Save **KemEnvelopeDemo.java**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -384,7 +384,7 @@ public class KemEnvelopeDemo {
         return mac.doFinal();
     }
 
-    // HKDF-SHA256 Extract, rồi Expand 1 block lấy 16 byte AES-128 key.
+    // HKDF-SHA256 Extract, then Expand 1 block to get a 16-byte AES-128 key.
     private static SecretKeySpec deriveKey(SecretKey kemSecret)
             throws Exception {
         byte[] raw = kemSecret.getEncoded();
@@ -392,7 +392,7 @@ public class KemEnvelopeDemo {
             throw new IllegalStateException(
                     "non-exportable KEM secret needs provider KDF support");
         }
-        byte[] prk = hmac(new byte[32], raw); // salt zero theo HKDF
+        byte[] prk = hmac(new byte[32], raw); // zero salt per HKDF
         byte[] block = hmac(prk, HEADER, new byte[]{1}); // T(1)
         SecretKeySpec key =
                 new SecretKeySpec(Arrays.copyOf(block, 16), "AES");
@@ -418,7 +418,7 @@ public class KemEnvelopeDemo {
         KeyPair recipient = keyGenerator.generateKeyPair();
         KEM kem = KEM.getInstance("DHKEM");
 
-        // Sender: có public key đã được xác thực của receiver.
+        // Sender: holds the receiver's authenticated public key.
         KEM.Encapsulated result =
                 kem.newEncapsulator(recipient.getPublic()).encapsulate();
         byte[] encapsulation = result.encapsulation();
@@ -432,7 +432,7 @@ public class KemEnvelopeDemo {
                 newGcm(Cipher.ENCRYPT_MODE, senderAesKey,
                         nonce, encapsulation, HEADER).doFinal(plain);
 
-        // Receiver: lấy encapsulation + nonce + ciphertext và private key.
+        // Receiver: receives encapsulation + nonce + ciphertext and holds private key.
         SecretKey recoveredSecret =
                 kem.newDecapsulator(recipient.getPrivate())
                    .decapsulate(encapsulation);
@@ -492,14 +492,14 @@ public class KemEnvelopeDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 KemEnvelopeDemo.java
 java KemEnvelopeDemo
 ```
 
-Stdout kỳ vọng với DHKEM/X25519 và AES-GCM của provider JDK thông dụng:
+Expected stdout with standard JDK DHKEM/X25519 and AES-GCM providers:
 
 ```text
 encapsulation bytes: 32
@@ -512,138 +512,138 @@ changed AAD rejected: true
 wrong recipient key rejected: true
 ```
 
-### 6.1. Đọc luồng mã hóa
+### 6.1. Reading the Encryption Flow
 
-1. **`recipient`:** cặp khóa X25519 của Bob. Demo sinh cặp khóa trong tiến trình để dễ thử; hệ thống thực phải cấp phát public key từ nguồn đáng tin và lưu private key đúng chính sách.
-2. **`KEM.Encapsulated`:** chứa shared secret mới và **32 byte encapsulation**. Chỉ encapsulation được đặt vào envelope; `result.key()` không truyền.
-3. **`deriveKey`:** lấy shared secret, dùng HKDF-Extract với salt rỗng/zero theo biểu diễn HMAC, rồi một bước HKDF-Expand có `info = HEADER` và counter `0x01` để lấy **16 byte** cho AES-128. Cả sender và receiver dùng **cùng HEADER** mới tạo cùng key.
-4. **`nonce`:** 12 byte ngẫu nhiên cho lần mã hóa này. Nonce không cần bí mật, nhưng phải tránh trùng dưới cùng AES key.
-5. **`cipher.updateAAD(HEADER)` rồi `updateAAD(encapsulation)`:** ràng buộc **header và encapsulation** vào tag GCM. Khi receiver thay header, nonce hoặc ciphertext, hoặc dùng sai key, xác minh không thành công.
-6. **`ciphertextAndTag`:** payload đã mã hóa + tag GCM; demo không tự lưu thành file. Độ dài tăng **16 byte** vì tag 128 bit; nonce và encapsulation được giữ riêng.
-7. **`doFinal` khi decrypt:** chỉ khi tag đúng mới coi plaintext là hợp lệ. Không lấy một phần plaintext từ stream trước xác minh rồi dùng trong nghiệp vụ.
+1. **`recipient`:** Bob's X25519 key pair. The demo generates the key pair in-process for ease of testing; a real system must provision public keys from a trusted source and store private keys per policy.
+2. **`KEM.Encapsulated`:** contains a fresh shared secret and **32-byte encapsulation**. Only the encapsulation goes into the envelope; `result.key()` is never sent.
+3. **`deriveKey`:** takes the shared secret, runs HKDF-Extract with a 32-byte zero salt for HMAC, then one HKDF-Expand step with `info = HEADER` and counter `0x01` to take **16 bytes** for AES-128. Both sender and receiver must use the **exact same HEADER** to derive the same key.
+4. **`nonce`:** 12 random bytes for this encryption. The nonce does not need secrecy, but must not repeat under the same AES key.
+5. **`cipher.updateAAD(HEADER)` then `updateAAD(encapsulation)`:** binds **header and encapsulation** to the GCM tag. If the receiver alters the header, nonce, or ciphertext, or uses the wrong key, verification fails.
+6. **`ciphertextAndTag`:** encrypted payload + GCM tag; the demo does not write to a file. Length grows by **16 bytes** due to the 128-bit tag; nonce and encapsulation are kept separate.
+7. **`doFinal` on decrypt:** treat plaintext as valid only when the tag passes. Never consume partial plaintext from a stream prior to verification in business logic.
 
-### 6.2. Vì sao có hai chỗ dẫn xuất?
+### 6.2. Why Are There Two Derivation Steps?
 
-Trong DHKEM của RFC 9180, shared secret vốn được dẫn xuất từ quá trình Diffie–Hellman theo cách của KEM. Sau đó, ứng dụng **tiếp tục dùng HKDF với application context** để thu được key phục vụ một giao thức cụ thể. Điều này giúp phân biệt “bí mật thỏa thuận” với “khóa AES dùng cho payload của phiên bản giao thức X”.
+In RFC 9180 DHKEM, the shared secret is already derived from Diffie–Hellman per the KEM design. Afterward, the application **continues using HKDF with application context** to obtain a key for a specific protocol. This separates the “established secret” from the “AES key used for payload in protocol version X.”
 
-**Không được** thay helper HKDF bằng `new SecretKeySpec(encapsulation, "AES")`, vì encapsulation không bí mật. Cũng không lấy một shared secret và dùng song song làm nhiều khóa độc lập mà không có key schedule/domain separation.
+**Never** replace the HKDF helper with `new SecretKeySpec(encapsulation, "AES")`, because encapsulation is not secret. Nor should you take one shared secret and use it directly as multiple independent keys without a key schedule/domain separation.
 
-### 6.3. Hạn chế quan trọng của demo
+### 6.3. Important Limitations of the Demo
 
-- **DHKEM + một HKDF nhỏ + AES-GCM không tự biến thành triển khai HPKE đầy đủ**. HPKE RFC 9180 định nghĩa key schedule, suite IDs, nonce management, modes và điều kiện sử dụng cụ thể; không thể gọi code mẫu là “HPKE-compatible” nếu chưa triển khai đầy đủ đúng chuẩn.
-- Header demo là **hằng số do chương trình tin cậy định nghĩa**, chưa phải serializer/parser production. Nếu header có trường động, hãy dùng cấu trúc length-prefix/TLV/format canonical, không ghép chuỗi tùy ý có delimiter mơ hồ.
-- Không có xác thực danh tính sender, anti-replay, key rotation, giới hạn message, streaming hoặc chính sách access. Đây là minh họa thành phần mật mã, **không phải một protocol triển khai nguyên mẫu**.
-- `getEncoded()` trong `deriveKey` có thể trả `null` nếu secret không xuất được; provider/HSM có thể yêu cầu KDF nội bộ và cơ chế key handle khác.
-- `Arrays.fill` chỉ xóa mảng tạm đang sở hữu ở mức best effort; nó **không bảo đảm** xóa mọi bản sao bên trong JVM/provider. Demo không in raw key nhưng application thật phải xem xét secret retention, log và crash dump.
-- Phép thử private key sai với X25519 có thể tạo một secret khác thay vì ném lỗi decapsulation; **AES-GCM** mới bác bỏ ciphertext dùng key sai. Với KEM/provider khác, sai encapsulation có thể bị từ chối ngay trong decapsulation.
-- AEAD tag đúng không chứng minh sender là ai, vì **ai cũng có thể dùng public key đích** để tạo một encrypted message mới.
+- **DHKEM + a small HKDF + AES-GCM does not automatically become a full HPKE implementation**. RFC 9180 HPKE defines exact key schedules, suite IDs, nonce management, modes, and usage conditions; never label sample code “HPKE-compatible” unless it implements the full standard.
+- The demo header is a **trusted program constant**, not a production serializer/parser. If headers have dynamic fields, use length-prefix/TLV/canonical formatting rather than concatenating strings with ambiguous delimiters.
+- There is no sender authentication, anti-replay, key rotation, message limits, streaming, or access policy. This illustrates cryptographic building blocks, **not a production-ready protocol**.
+- `getEncoded()` in `deriveKey` may return `null` if the secret is non-exportable; a provider/HSM may require internal KDFs and different key-handle mechanisms.
+- `Arrays.fill` only clears owned temporary arrays on a best-effort basis; it **does not guarantee** erasing every copy inside the JVM/provider. The demo prints no raw keys, yet real applications must consider secret retention, logs, and crash dumps.
+- The wrong-private-key test with X25519 may yield a different secret instead of throwing a decapsulation error; **AES-GCM** is what rejects the ciphertext under the wrong key. With other KEMs/providers, a bad encapsulation may fail right during decapsulation.
+- A valid AEAD tag does not prove who the sender is, because **anyone can use the target public key** to produce a new encrypted message.
 
-## 7. “Thông điệp đóng gói” khi gửi trên mạng phải chứa gì?
+## 7. What Must an “Encapsulation Message” Contain on the Network?
 
-Bản thân `encapsulation()` chỉ có byte KEM; nó không tự có version, người nhận, nonce hoặc ciphertext. Một giao thức thực cần một **envelope** mô tả tất cả byte đủ để receiver chọn đúng thuật toán/khóa và xác minh toàn bộ payload.
+`encapsulation()` alone contains only KEM bytes; it carries no version, recipient, nonce, or ciphertext. A real protocol needs an **envelope** describing all bytes required for the receiver to select the right algorithm/key and verify the entire payload.
 
-Ví dụ schema ý tưởng:
+Conceptual schema example:
 
 ```text
 EnvelopeV1:
-  magic/version                 :  định dạng được hỗ trợ
-  suiteId                       :  KEM + KDF + AEAD được allowlist
-  recipientKeyId                :  ID chọn private key, scope đã kiểm tra
-  kemParamsLength/kemParams     :  nếu thuật toán cần
-  encapsulationLength           :  độ dài binary, giới hạn
+  magic/version                 :  supported format
+  suiteId                       :  allowlisted KEM + KDF + AEAD
+  recipientKeyId                :  ID selecting private key, scope-checked
+  kemParamsLength/kemParams     :  if required by algorithm
+  encapsulationLength           :  binary length, bounded
   encapsulationBytes            :  KEM message
-  nonceLength/nonce             :  nonce của AEAD
+  nonceLength/nonce             :  AEAD nonce
   ciphertextLength/ciphertext   :  AEAD ciphertext || tag
-  associatedData                 :  metadata đã xác thực (theo quy ước)
+  associatedData                :  authenticated metadata (by convention)
 ```
 
-**Đây chỉ là sơ đồ dữ liệu**, không phải một wire format đã tiêu chuẩn hóa và không phải code Java chạy độc lập. Một định dạng production phải quyết định byte order, length-prefix, phiên bản, kích thước tối đa, xử lý unknown fields, backward compatibility và cách canonicalize dữ liệu được AAD bảo vệ.
+**This is only a data layout**, not a standardized wire format or runnable Java code. A production format must specify byte order, length prefixes, versioning, maximum sizes, unknown-field handling, backward compatibility, and canonicalization of AAD-protected data.
 
-### 7.1. Trường nào công khai, trường nào bí mật?
+### 7.1. Which Fields Are Public, Which Are Secret?
 
-| Dữ liệu | Truyền được? | Ý nghĩa |
+| Data | Transmittable? | Meaning |
 | --- | --- | --- |
-| Recipient public key | Có, nhưng phải **xác thực nguồn** | Giúp sender encapsulate đúng người nhận |
-| Recipient private key | **Không** | Chỉ receiver giữ hoặc HSM sử dụng |
-| `KEM.Encapsulated.key()` | **Không** | Shared secret phía sender |
-| `encapsulation()` | **Có** | Bắt buộc gửi để receiver decapsulate |
-| `params()` nếu được thuật toán yêu cầu | Có nếu giao thức/provider quy định | Receiver dùng để tạo cấu hình tương ứng |
-| KDF-derived AES key | **Không** | Chỉ sử dụng nội bộ |
-| AEAD nonce | Có | Tham số giải mã, phải duy nhất dưới cùng key |
-| AES-GCM ciphertext + tag | Có | Dữ liệu đã mã hóa và authentication tag |
-| Suite, version, key ID, payload ID | Thường có | Cho phép chọn đúng cấu hình; phải kiểm tra và ràng buộc integrity |
+| Recipient public key | Yes, but must **authenticate origin** | Lets sender encapsulate for the right recipient |
+| Recipient private key | **No** | Held solely by receiver or used inside HSM |
+| `KEM.Encapsulated.key()` | **No** | Sender-side shared secret |
+| `encapsulation()` | **Yes** | Must be sent so receiver can decapsulate |
+| `params()` if required by algorithm | Yes if specified by protocol/provider | Receiver uses to build matching configuration |
+| KDF-derived AES key | **No** | Internal use only |
+| AEAD nonce | Yes | Decryption parameter, must be unique under one key |
+| AES-GCM ciphertext + tag | Yes | Encrypted data and authentication tag |
+| Suite, version, key ID, payload ID | Usually yes | Enables configuration lookup; must be validated and integrity-bound |
 
-### 7.2. `keyId` không phải bằng chứng tin cậy
+### 7.2. `keyId` Is Not Proof of Trust
 
-`recipientKeyId` trong envelope đến từ nguồn bên ngoài. Receiver có thể dùng nó để **tìm đúng khóa đã được phê duyệt**, nhưng phải kết hợp tenant/đối tượng, version, chính sách và trạng thái. Không tự động lấy khóa từ đường dẫn/tên file/URL do `keyId` do attacker cung cấp. Không cho client chọn thuật toán yếu hoặc vượt scope chỉ bằng cách sửa `suiteId`.
+`recipientKeyId` in an envelope comes from an external source. The receiver can use it to **look up an approved key**, but must validate tenant/object, version, policy, and status. Never automatically load keys from file paths or URLs constructed from an attacker-supplied `keyId`. Never allow a client to pick a weak algorithm or escape scope simply by editing `suiteId`.
 
-### 7.3. Ràng buộc metadata vào AAD và KDF context
+### 7.3. Binding Metadata into AAD and KDF Context
 
-Nếu header mô tả **recipient, protocol, suite, version, file ID, tenant** nhưng không được xác thực, attacker có thể thay đổi ý nghĩa nghiệp vụ mà ciphertext vẫn hợp lệ dưới một cách diễn giải sai. Nên canonicalize và đưa metadata liên quan tính toàn vẹn vào **AEAD AAD** theo giao thức, đồng thời đưa phần context phù hợp vào **KDF info**.
+If a header describes **recipient, protocol, suite, version, file ID, tenant** without authentication, an attacker can alter business semantics while the ciphertext remains valid under a misinterpretation. Canonicalize and feed integrity-relevant metadata into **AEAD AAD** per protocol, and feed appropriate context into **KDF info**.
 
-KDF info và AAD phục vụ hai mục đích bổ trợ:
+KDF `info` and AAD serve two complementary purposes:
 
-- **KDF info:** tách miền khóa (domain-separated key schedule).
-- **AAD:** bảo vệ integrity của byte metadata gắn với ciphertext.
+- **KDF info:** separates key domains (domain-separated key schedule).
+- **AAD:** protects the integrity of metadata bytes attached to the ciphertext.
 
-Nếu header có nhiều trường động hoặc có thể chứa ký tự `|`, không sử dụng nối chuỗi “`a|b|c`” không escape/không length-prefix để làm giao thức thật; hai bộ tham số khác nhau có thể vô tình sinh cùng chuỗi. Thống nhất schema canonical với test vectors liên ngôn ngữ.
+If a header contains multiple dynamic fields or could contain `|`, never use unescaped/non-length-prefixed `a|b|c` concatenation in a real protocol; two distinct parameter tuples can accidentally produce the same string. Standardize a canonical schema with cross-language test vectors.
 
-### 7.4. `params()` không phải `encapsulation()`
+### 7.4. `params()` Is Not `encapsulation()`
 
-Nếu `result.params() == null`, không cần trường params có nội dung. Nếu thuật toán yêu cầu params, envelope phải mô tả byte params **tách riêng** và receiver khôi phục spec tương ứng trước khi tạo decapsulator.
+If `result.params() == null`, no non-empty params field is needed. If the algorithm requires params, the envelope must carry params bytes **separately**, and the receiver reconstructs the matching spec before creating the decapsulator.
 
-Không gộp raw `params` vào `encapsulation` rồi hy vọng provider tự phân tích. Dùng `Decapsulator.encapsulationSize()` để kiểm tra phần KEM message thực, không coi chiều dài **toàn bộ envelope** là chiều dài encapsulation.
+Never append raw `params` onto `encapsulation` hoping the provider parses it automatically. Use `Decapsulator.encapsulationSize()` to validate the actual KEM message portion, not the length of the **entire envelope**.
 
-## 8. Lỗi KEM, kết quả sai và xử lý thất bại
+## 8. KEM Errors, Wrong Results, and Failure Handling
 
-### 8.1. Lỗi khi tạo KEM/Encapsulator
+### 8.1. Errors When Creating KEM/Encapsulator
 
-| Lỗi hoặc trạng thái | Nguyên nhân thường gặp | Xử lý |
+| Error or state | Common cause | Handling |
 | --- | --- | --- |
-| `NoSuchAlgorithmException` | KEM `"DHKEM"` hoặc thuật toán key không có provider phù hợp | Kiểm tra JDK/provider và policy, không fallback ngầm sang primitive yếu |
-| `InvalidKeyException` | Public/private key sai hoặc không phù hợp KEM | Từ chối, kiểm tra loại khóa, trust và phiên bản |
-| `InvalidAlgorithmParameterException` | `AlgorithmParameterSpec` sai hoặc thiếu | Thực hiện theo đặc tả thuật toán/provider |
-| `UnsupportedOperationException` | Một overload/combination chưa được provider hỗ trợ | Chọn profile được phép hoặc sửa cấu hình, không đoán |
-| `DecapsulateException` | Encapsulation hỏng, sai chiều dài hoặc quá trình decapsulation thất bại | Từ chối request, ghi lỗi chung không lộ private-key state |
+| `NoSuchAlgorithmException` | No provider supports KEM `"DHKEM"` or key algorithm | Check JDK/provider and policy; never silently fall back to a weak primitive |
+| `InvalidKeyException` | Wrong public/private key or incompatible with KEM | Reject; check key type, trust, and version |
+| `InvalidAlgorithmParameterException` | Wrong or missing `AlgorithmParameterSpec` | Follow algorithm/provider specification |
+| `UnsupportedOperationException` | Overload/combination unsupported by provider | Choose an allowed profile or fix configuration; do not guess |
+| `DecapsulateException` | Corrupted encapsulation, wrong length, or decapsulation failure | Reject request; log generic error without exposing private-key state |
 
-### 8.2. Không nhầm cú pháp hợp lệ với message hợp lệ
+### 8.2. Do Not Confuse Valid Syntax with a Valid Message
 
-Một encapsulation 32 byte chỉ vượt qua kiểm tra **độ dài**, chưa chắc do người gửi đáng tin tạo. Một decapsulation không ném exception cũng **không chứng minh** payload/metadata hợp lệ. Cần:
+A 32-byte encapsulation passes only a **length** check, not proof that a trusted sender created it. A decapsulation that throws no exception also **does not prove** valid payload/metadata. You must:
 
-1. Chọn KEM, key và context từ cấu hình đáng tin.
-2. Kiểm tra độ dài byte và format theo allowlist, giới hạn bộ nhớ.
-3. Decapsulate bằng private key có quyền.
-4. Dẫn xuất AEAD key đúng context.
-5. Xác minh ciphertext/tag/AAD.
-6. Sau xác minh còn kiểm tra quyền nghiệp vụ, chống replay, hạn dùng và tính hợp lệ của dữ liệu.
+1. Select KEM, key, and context from trusted configuration.
+2. Validate byte lengths and format against an allowlist with memory bounds.
+3. Decapsulate using an authorized private key.
+4. Derive the AEAD key with the exact context.
+5. Verify ciphertext/tag/AAD.
+6. After verification, still check business authorization, anti-replay, expiration, and data validity.
 
-Đặc biệt tránh trả lỗi với thông tin quá chi tiết làm phân biệt các trường hợp private key, encapsulation, tag hoặc policy. Kiểu phản hồi chung như “Không thể xử lý thông điệp bảo mật” thường tốt hơn việc tiết lộ rằng một bí mật cụ thể đã “gần đúng”.
+Especially avoid returning detailed errors distinguishing private-key, encapsulation, tag, or policy failures. A generic response such as “Unable to process secure message” is far safer than revealing that a secret was “almost right.”
 
-### 8.3. Dữ liệu bị sửa và replay
+### 8.3. Tampered Data and Replay
 
-**Tamper:** sửa ciphertext/AAD/tag phải bị AEAD từ chối. Sửa encapsulation có thể dẫn đến lỗi decapsulation **hoặc** shared secret khác, khiến AEAD tag sai. Không được coi thành công của `decapsulate()` là đủ.
+**Tampering:** modifying ciphertext/AAD/tag must be rejected by AEAD. Modifying the encapsulation may cause either a decapsulation error **or** a different shared secret, causing the AEAD tag to fail. Never treat `decapsulate()` succeeding as sufficient.
 
-**Replay:** một envelope đúng, được gửi lại nguyên vẹn, vẫn có thể giải mã thành công. Nếu nghiệp vụ yêu cầu chống phát lại (thanh toán, tác vụ thay đổi trạng thái), cần timestamp, nonce/sequence, idempotency key, replay cache hoặc protocol state có kiểm tra nguyên tử. AEAD và KEM **không tự chống replay**.
+**Replay:** an intact valid envelope resent unchanged can still decrypt cleanly. If the business operation requires replay protection (payments, state-changing commands), use timestamps, nonces/sequences, idempotency keys, replay caches, or atomic protocol state checks. AEAD and KEM **do not prevent replay on their own**.
 
-**Truncation:** kiểm tra payload length, framing, tổng số chunk, finalization marker nếu stream; mỗi chunk có tag đúng không tự bảo đảm toàn file đã đầy đủ trừ khi giao thức ràng buộc rõ.
+**Truncation:** check payload length, framing, total chunk count, and finalization markers when streaming; each chunk having a valid tag does not guarantee the entire file is complete unless explicitly bound by the protocol.
 
-## 9. KEM trong Java 21 và các thuật toán khác: giới hạn hỗ trợ
+## 9. KEM in Java 21 and Other Algorithms: Support Limits
 
-`KEM.getInstance("DHKEM")` trong ví dụ là thuật toán **DHKEM** (Diffie–Hellman-based KEM). Với `X25519`, cơ chế tương ứng được mô tả trong **RFC 9180**. Các thuật toán khác có thể được provider bổ sung trong các JDK tương lai; **không suy ra** Java 21 bao gồm mọi KEM hậu lượng tử chỉ vì lớp `KEM` tồn tại.
+`KEM.getInstance("DHKEM")` in the example is the **DHKEM** (Diffie–Hellman-based KEM) algorithm. With `X25519`, the corresponding mechanism is specified in **RFC 9180**. Other algorithms may be added by providers in future JDKs; **do not assume** Java 21 includes every post-quantum KEM merely because the `KEM` class exists.
 
-| Khái niệm | Có thể dùng với Java 21 KEM API? | Lưu ý |
+| Concept | Usable with Java 21 KEM API? | Notes |
 | --- | --- | --- |
-| `javax.crypto.KEM`, `KEM.Encapsulator`, `KEM.Decapsulator` | **Có**, API chuẩn kể từ Java 21 | Thuộc `java.base` |
-| `DHKEM` với X25519 | Có trong profile/provider JDK thông dụng | Public/private key X25519; encapsulation và secret 32 byte ở cấu hình ví dụ |
-| DHKEM với curve khác | Tùy profile/provider | Không giả định cùng kích thước |
-| KEM hậu lượng tử như ML-KEM | **Phụ thuộc JDK/provider/version** | Không mô tả là có sẵn trong JDK 21; cần xác minh nơi chạy |
-| `javax.crypto.KDF` dạng API cấp cao | **Không phải API Java 21** | Ví dụ dùng `Mac` để minh họa HKDF |
-| AES-GCM với `javax.crypto.Cipher` | Có | Phụ thuộc key/nonce/tag và policy |
-| HPKE đầy đủ | Không được tạo tự động chỉ bằng `KEM.getInstance` | Phải có đúng key schedule, AEAD, mode, framing và profile chuẩn |
+| `javax.crypto.KEM`, `KEM.Encapsulator`, `KEM.Decapsulator` | **Yes**, standard API since Java 21 | Part of `java.base` |
+| `DHKEM` with X25519 | Yes in common JDK profiles/providers | X25519 public/private keys; 32-byte encapsulation and secret in the example config |
+| DHKEM with other curves | Depends on profile/provider | Do not assume identical sizes |
+| Post-quantum KEMs such as ML-KEM | **Depends on JDK/provider/version** | Not described as built into JDK 21; verify on target runtime |
+| High-level `javax.crypto.KDF` API | **Not a Java 21 API** | Example uses `Mac` to demonstrate HKDF |
+| AES-GCM with `javax.crypto.Cipher` | Yes | Depends on key/nonce/tag and policy |
+| Full HPKE | Not created automatically by `KEM.getInstance` alone | Requires exact key schedule, AEAD, mode, framing, and standard profile |
 
-### 9.1. Provider selection ảnh hưởng đến điều gì?
+### 9.1. What Does Provider Selection Affect?
 
-Nếu không chỉ định provider trong `KEM.getInstance(algorithm)`, Java có thể chọn provider khác nhau lúc tạo **encapsulator** và **decapsulator** tùy key/spec. Có thể hỏi:
+If you omit the provider in `KEM.getInstance(algorithm)`, Java may select different providers when creating **encapsulator** and **decapsulator** depending on the key/spec. You can inspect:
 
 ```java
 String kemAlgorithm = kem.getAlgorithm();
@@ -653,125 +653,125 @@ int kemMessageBytes = encapsulator.encapsulationSize();
 int sharedBytes = decapsulator.secretSize();
 ```
 
-Đây là trích đoạn để giải thích API chứ không phải chương trình hoàn chỉnh. Trước triển khai, kiểm thử **cùng key type, profile, version, params và wire-format** của cả hai phía. Không ép tên provider chỉ để “khớp” trong khi keys nằm trong HSM: provider cụ thể có thể có key handle riêng và yêu cầu sử dụng API phù hợp.
+This snippet illustrates the API and is not a complete program. Before deploying, test **matching key types, profiles, versions, params, and wire formats** on both sides. Never hardcode a provider name just to “make them match” when keys reside in an HSM: that specific provider may have its own key handles and require its own API.
 
-### 9.2. Provider khác không có nghĩa secret khác
+### 9.2. Different Providers Do Not Mean Different Secrets
 
-KEM chuẩn và profile phải tạo **shared secret tương thích** cho đúng khóa và encapsulation. Tuy nhiên, việc hai runtime đều có class `KEM` không bảo đảm chúng hỗ trợ cùng suite. Nếu sender Java 21 và receiver hệ thống khác, hai bên phải cùng hiểu X25519 public-key encoding, DHKEM profile, encapsulation bytes, thuật toán KDF, `info` và AEAD wire format.
+A standard KEM and profile must produce **compatible shared secrets** for the same key and encapsulation. Still, two runtimes both having the `KEM` class does not guarantee they support the same suites. With a Java 21 sender and a different-system receiver, both must agree on X25519 public-key encoding, DHKEM profile, encapsulation bytes, KDF algorithm, `info`, and AEAD wire format.
 
-Dùng **test vector liên nền tảng**; tuyệt đối không dựa vào `toString()` hoặc Java serialization của `SecretKey`/`KEM.Encapsulated` để truyền giao thức.
+Use **cross-platform test vectors**; never rely on `toString()` or Java serialization of `SecretKey`/`KEM.Encapsulated` for protocol transport.
 
-## 10. Trách nhiệm bảo mật khi dùng KEM
+## 10. Security Responsibilities When Using KEM
 
-### 10.1. Xác minh public key người nhận
+### 10.1. Verify the Recipient's Public Key
 
-KEM chỉ tốt nếu Alice nhận đúng `pkR` của Bob. Nếu attacker thay public key Bob bằng public key của attacker, Alice sẽ encapsulate một shared secret mà attacker giải được, rồi mã hóa data cho sai người. Cần certificate/PKI, authenticated directory, key pinning theo policy hoặc quy trình cấp phát khóa tin cậy.
+KEM is only as trustworthy as Alice receiving Bob's real `pkR`. If an attacker replaces Bob's public key with the attacker's own, Alice encapsulates a shared secret the attacker can decapsulate and encrypts data for the wrong party. You need certificates/PKI, an authenticated directory, policy-driven key pinning, or a trusted provisioning workflow.
 
-### 10.2. Bảo vệ private key dài hạn
+### 10.2. Protect Long-Term Private Keys
 
-Private key của người nhận có thể ở Java KeyStore, HSM/KMS hoặc cơ chế quản lý khóa theo yêu cầu. Phải hạn chế quyền sử dụng, audit, backup và rotation. Nếu private key tĩnh bị lộ, nhiều envelope lịch sử còn giữ encapsulation và ciphertext có thể bị giải mã. Do đó **KEM với một private key người nhận tĩnh không mặc định mang forward secrecy**, dù sender dùng ephemeral key trong DHKEM.
+The recipient's private key may live in a Java KeyStore, HSM/KMS, or dedicated key management service. Restrict usage permissions, audit, back up, and rotate. If a static private key is compromised, historical envelopes retaining encapsulations and ciphertexts can be decrypted. Therefore, **KEM with a static recipient private key does not provide forward secrecy by default**, even though the sender uses an ephemeral key in DHKEM.
 
-### 10.3. Key rotation/version
+### 10.3. Key Rotation / Versioning
 
-Envelope nên có `recipientKeyId` và `suiteVersion`. Khi rotate, sender dùng public key mới đã xác thực; receiver có thể giữ key cũ ở phạm vi cho phép để xử lý dữ liệu còn phải đọc. Nếu mất private key cũ trước khi rewrap/reencrypt dữ liệu, dữ liệu cũ có thể không khôi phục được. Nếu private key bị lộ, phải thu hồi/truyền đạt tác động và chuyển khóa theo incident response, không chỉ đổi tên key ID.
+Envelopes should include `recipientKeyId` and `suiteVersion`. When rotating, senders use the newly authenticated public key; receivers may keep old keys within allowed policy to read legacy data. Losing an old private key before rewrapping/re-encrypting data can render old data unrecoverable. If a private key is compromised, revoke it, assess impact, and transition keys per incident response—do not merely rename the key ID.
 
-### 10.4. Secret handling
+### 10.4. Secret Handling
 
-- Không in `result.key().getEncoded()` hoặc derived AES key trong log.
-- Không gửi shared secret dưới dạng hex/Base64 vì encoding không phải encryption.
-- Không giữ key hơn thời gian cần thiết; giới hạn quyền debug, heap dump, secret exports.
-- Java `Arrays.fill` dọn byte array ở mức best effort, không có bảo đảm xóa mọi bản sao trong provider/JVM.
-- Nếu provider giữ secret non-exportable, ưu tiên KDF/AEAD theo provider/key handle thay vì ép xuất raw key.
+- Never print `result.key().getEncoded()` or derived AES keys in logs.
+- Never send shared secrets in hex/Base64, because encoding is not encryption.
+- Do not retain keys longer than needed; restrict debug access, heap dumps, and secret exports.
+- Java's `Arrays.fill` clears byte arrays on a best-effort basis and gives no guarantee of wiping every copy inside the provider/JVM.
+- If the provider keeps secrets non-exportable, prefer provider/key-handle KDF/AEAD operations instead of forcing raw key export.
 
-### 10.5. KEM không giải quyết mọi yêu cầu hệ thống
+### 10.5. KEM Does Not Solve Every System Requirement
 
-Một hệ thống dùng KEM + AEAD vẫn phải có **authentication sender**, authorization, anti-replay, expiry, quản trị nonce, input validation, cấu hình thuật toán được allowlist, giới hạn tài nguyên, giám sát và kiểm tra nâng cấp. Không xem mã hóa thành công là cho phép thao tác nghiệp vụ.
+A system using KEM + AEAD still needs **sender authentication**, authorization, anti-replay, expiration, nonce governance, input validation, an algorithm allowlist, resource limits, monitoring, and upgrade checks. Never equate successful decryption with permission to execute a business action.
 
-## 11. Lỗi phổ biến khi học và sử dụng `javax.crypto.KEM`
+## 11. Common Mistakes When Learning and Using `javax.crypto.KEM`
 
-| Sai lầm | Vì sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Correct practice |
 | --- | --- | --- |
-| Dùng `encapsulation()` như AES key | Encapsulation là message có thể công khai | Dùng `key()` / `decapsulate()` tạo secret, rồi KDF |
-| Gửi `result.key().getEncoded()` cho receiver | Làm lộ shared secret, vô hiệu bảo mật | Chỉ gửi encapsulation và metadata cần thiết |
-| Gọi `encapsulate(fileBytes)` để mã hóa file | Java KEM không có API encrypt arbitrary message | KEM cho secret; AEAD cho payload |
-| Coi KEM là thuật toán mã hóa dữ liệu khối lớn | KEM chỉ thiết lập khóa nhỏ | Hybrid KEM + KDF + AES-GCM/streaming |
-| Chỉ cần `KeyPairGenerator("X25519")` là đảm bảo đúng Bob | Public key có thể bị tráo | Xác thực danh tính/nguồn public key |
-| Xem `decapsulate()` thành công là xác thực sender | Ai có public key cũng có thể gửi KEM message | Thêm sender authentication nếu cần |
-| Xem `params()` là ciphertext | Optional params có nghĩa cấu hình | Parse thành tham số đúng spec/giao thức |
-| Nhầm `secretSize()` là bit | API trả byte | Đổi byte × 8 khi cần hiển thị bit |
-| Cố định 32 byte cho mọi KEM | Kích thước phụ thuộc thuật toán/provider | Hỏi `encapsulationSize()`, `secretSize()` |
-| Dùng `getEncoded()` mà không xét `null` | Key non-exportable có thể không xuất được | KDF nội bộ provider hoặc interface hỗ trợ |
-| Coi Java 21 có mọi post-quantum KEM | API ≠ tập thuật toán của provider | Kiểm tra JDK, provider, policy thực tế |
-| Dùng `javax.crypto.KDF` và tuyên bố code là Java 21 | API này không thuộc Java 21 | Dùng `Mac`/thư viện HKDF tương thích Java 21 |
-| Sửa một byte encapsulation mà không throw nghĩa là hợp lệ | Decapsulation đôi khi tạo secret khác | Dùng AEAD để xác minh payload cuối |
-| Không ràng buộc version/keyId/AAD | Context confusion và downgrade | Canonical header, allowlist suite, authenticated metadata |
-| Dùng cùng AEAD key/nonce nhiều lần | AES-GCM nonce reuse có thể nguy hiểm nghiêm trọng | Quản lý cặp key/nonce duy nhất và giới hạn |
-| Nghiễm nhiên gọi tự ghép KEM + AES là HPKE RFC 9180 | HPKE còn định nghĩa key schedule, modes, format | Theo đúng HPKE suite hoặc thư viện chuẩn |
-| Không quản lý private key rotation | Dữ liệu cũ có thể mất hoặc dễ lộ | Key ID, version, backup/re-encrypt/rewrap theo policy |
+| Using `encapsulation()` as an AES key | Encapsulation is a public message | Use `key()` / `decapsulate()` for the secret, then KDF |
+| Sending `result.key().getEncoded()` to the receiver | Leaks the shared secret, breaking security | Send only encapsulation and required metadata |
+| Calling `encapsulate(fileBytes)` to encrypt a file | Java KEM has no arbitrary-message encrypt API | KEM establishes the secret; AEAD encrypts the payload |
+| Treating KEM as a bulk data encryption algorithm | KEM only establishes a small key | Hybrid KEM + KDF + AES-GCM/streaming |
+| Assuming `KeyPairGenerator("X25519")` proves it's Bob | Public keys can be swapped | Authenticate public key identity/provenance |
+| Treating successful `decapsulate()` as sender authentication | Anyone with the public key can send a KEM message | Add sender authentication if needed |
+| Treating `params()` as ciphertext | Optional params carry configuration | Parse into parameters per spec/protocol |
+| Confusing `secretSize()` as bits | The API returns bytes | Multiply bytes × 8 when displaying bits |
+| Hardcoding 32 bytes for every KEM | Sizes depend on algorithm/provider | Query `encapsulationSize()` and `secretSize()` |
+| Calling `getEncoded()` without checking `null` | Non-exportable keys may not export | Use provider-internal KDF or supported interfaces |
+| Assuming Java 21 includes all post-quantum KEMs | API class ≠ provider algorithm set | Verify actual JDK, provider, and policy |
+| Using `javax.crypto.KDF` and claiming Java 21 compatibility | That API is not in Java 21 | Use `Mac`/Java 21–compatible HKDF libraries |
+| Assuming no exception on tampered encapsulation means valid | Decapsulation can yield a different secret | Use AEAD to verify the final payload |
+| Failing to bind version/keyId/AAD | Context confusion and downgrade | Canonical header, suite allowlist, authenticated metadata |
+| Reusing the same AEAD key/nonce multiple times | AES-GCM nonce reuse can be catastrophic | Manage unique key/nonce pairs and usage limits |
+| Calling hand-rolled KEM + AES “RFC 9180 HPKE” | HPKE defines key schedule, modes, and format | Follow the full HPKE suite or a standard library |
+| Neglecting private-key rotation | Legacy data may be lost or exposed | Key ID, version, backup/re-encrypt/rewrap per policy |
 
-## 12. Checklist kiểm tra code và giao thức KEM
+## 12. KEM Code and Protocol Verification Checklist
 
-1. **JDK/API:** ứng dụng đang dùng Java 21+? `javax.crypto.KEM` tồn tại và KEM/provider được chọn hỗ trợ đúng profile?
-2. **Key pair:** private key được bảo vệ an toàn và public key người nhận đến từ nguồn đã xác thực?
-3. **Thuật toán:** `KEM.getInstance("DHKEM")` có tương thích loại key (ví dụ X25519) ở cả hai phía?
-4. **Encapsulation:** chỉ `encapsulation()` được gửi, không có shared secret hoặc derived AES key bị lộ?
-5. **Params:** nếu `params()` khác null, receiver có thiết kế parse/validate và tạo spec tương ứng không?
-6. **Kích thước:** validate `encapsulationSize()`, giới hạn byte và version trước khi decapsulate/cấp phát?
-7. **KDF:** shared secret được đưa qua key schedule/domain separation với context rõ, không dùng enc bytes hoặc một key cho nhiều purpose tùy tiện?
-8. **AEAD:** nonce duy nhất với key, tag đúng, AAD ràng buộc metadata và encapsulation, plaintext chỉ được chấp nhận sau verify?
-9. **Authentication:** có yêu cầu xác thực bên gửi không, và đã dùng cơ chế riêng thay vì coi public-key encryption là chữ ký?
-10. **Envelope:** byte encoding, key ID, suite, params, lengths, AAD và compatibility giữa runtime/ngôn ngữ đã được mô tả và kiểm thử?
-11. **Vòng đời:** key rotation, backup/restore, incident response, private-key compromise, secret log/heap dump và error handling đã tính đến?
-12. **Kiểm thử âm:** truncated enc, sai key, sai version, sửa ciphertext/tag/header, replay, input quá lớn và thuật toán không hỗ trợ bị từ chối đúng cách?
+1. **JDK/API:** is the application running Java 21+? Does `javax.crypto.KEM` exist and does the chosen provider support the intended profile?
+2. **Key pair:** is the private key securely protected and does the recipient's public key come from an authenticated source?
+3. **Algorithm:** is `KEM.getInstance("DHKEM")` compatible with the key type (e.g., X25519) on both sides?
+4. **Encapsulation:** is only `encapsulation()` transmitted, with no shared secret or derived AES key exposed?
+5. **Params:** if `params()` is non-null, does the receiver parse/validate it and build the matching spec?
+6. **Sizes:** are `encapsulationSize()`, byte bounds, and version validated before decapsulating/allocating?
+7. **KDF:** is the shared secret passed through a key schedule/domain separation with explicit context rather than using enc bytes or reusing one key across purposes?
+8. **AEAD:** is the nonce unique per key, tag verified, AAD bound to metadata and encapsulation, and plaintext accepted only after verification?
+9. **Authentication:** is sender authentication required, and is a dedicated mechanism used rather than treating public-key encryption as a signature?
+10. **Envelope:** are byte encodings, key ID, suite, params, lengths, AAD, and cross-runtime/language compatibility specified and tested?
+11. **Lifecycle:** are key rotation, backup/restore, incident response, private-key compromise, secret logging/heap dumps, and error handling addressed?
+12. **Negative tests:** are truncated enc, wrong keys, wrong versions, tampered ciphertext/tag/header, replay, oversized inputs, and unsupported algorithms cleanly rejected?
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-Check Exercises
 
-**Câu 1.** Java 21 dùng class nào để khởi tạo KEM và hai nested class nào ở hai phía?  
-**Đáp án:** `javax.crypto.KEM`; phía gửi là `KEM.Encapsulator`, phía nhận là `KEM.Decapsulator`.
+**Q1.** Which class does Java 21 use to initialize a KEM, and what are the two nested classes on each side?  
+**Answer:** `javax.crypto.KEM`; sender side is `KEM.Encapsulator`, receiver side is `KEM.Decapsulator`.
 
-**Câu 2.** `sender.encapsulate()` trả về byte array encapsulation trực tiếp hay một object?  
-**Đáp án:** `KEM.Encapsulated` object; dùng `result.key()` lấy secret, `result.encapsulation()` lấy byte message, `result.params()` lấy optional params.
+**Q2.** Does `sender.encapsulate()` return the encapsulation byte array directly or an object?  
+**Answer:** A `KEM.Encapsulated` object; use `result.key()` for the secret, `result.encapsulation()` for the message bytes, and `result.params()` for optional params.
 
-**Câu 3.** Trong DHKEM/X25519, ví dụ trả encapsulation 32 byte và shared secret 32 byte. Hai mảng này có giống nhau không?  
-**Đáp án:** **Không**. Trùng kích thước không có nghĩa trùng ý nghĩa. Encapsulation có thể công khai; shared secret phải giữ bí mật.
+**Q3.** In DHKEM/X25519, the example produces a 32-byte encapsulation and a 32-byte shared secret. Are these two arrays identical?  
+**Answer:** **No**. Same size does not mean same meaning. Encapsulation can be public; the shared secret must stay secret.
 
-**Câu 4.** Alice gửi `result.key().getEncoded()` qua mạng “để Bob dễ giải mã”. Vấn đề là gì?  
-**Đáp án:** Lộ trực tiếp shared secret. Bob phải dùng private key và `encapsulation()` để `decapsulate`, không nhận raw secret.
+**Q4.** Alice sends `result.key().getEncoded()` over the network “so Bob can decrypt easily.” What is wrong?  
+**Answer:** It directly exposes the shared secret. Bob must use his private key and `encapsulation()` to `decapsulate`, never receiving the raw secret.
 
-**Câu 5.** Một `encapsulation()` bị sửa đúng một byte nhưng vẫn có độ dài 32. Có bảo đảm `decapsulate()` throw không?  
-**Đáp án:** Không. Tùy KEM/provider, có thể ra secret khác. Phải xác minh AEAD tag của payload và metadata để bác bỏ.
+**Q5.** An `encapsulation()` has one byte altered while remaining 32 bytes long. Is `decapsulate()` guaranteed to throw?  
+**Answer:** No. Depending on the KEM/provider, it may produce a different secret. You must verify the payload and metadata AEAD tag to reject it.
 
-**Câu 6.** Nếu code `encapsulate(0, 16, "AES")` hoạt động, hai tham số số học có nghĩa bit hay byte?  
-**Đáp án:** Phạm vi theo **byte** trong shared secret, `from=0`, `to=16` exclusive. Overload decapsulation cần tương thích; không được hiểu là từ bit 0 đến bit 16.
+**Q6.** If `encapsulate(0, 16, "AES")` succeeds, are the two numeric arguments bits or bytes?  
+**Answer:** **Byte** offsets into the shared secret: `from=0`, `to=16` exclusive. The decapsulation overload must match; do not interpret them as bit 0 to bit 16.
 
-**Câu 7.** Vì sao receiver không thể khôi phục secret từ `encapsulation()` nếu chỉ có public key?  
-**Đáp án:** Decapsulation cần private key tương ứng; public key không đủ để khôi phục shared secret trong mô hình bảo mật dự kiến.
+**Q7.** Why can't the receiver recover the secret from `encapsulation()` using only the public key?  
+**Answer:** Decapsulation requires the matching private key; the public key is insufficient to recover the shared secret under the security model.
 
-**Câu 8.** Dùng KEM + AES-GCM có đủ để Bob biết Alice là người đã gửi không?  
-**Đáp án:** Không. Ai có public key Bob cũng có thể tạo secret/envelope mới. Cần xác thực người gửi riêng.
+**Q8.** Is using KEM + AES-GCM enough for Bob to know Alice sent the message?  
+**Answer:** No. Anyone with Bob's public key can create a new secret/envelope. Separate sender authentication is required.
 
-**Câu 9.** Một envelope có `keyId`, `nonce` và `encapsulation`. Chỉ cần parse là có thể tin những trường đó?  
-**Đáp án:** Không. Chúng là dữ liệu ngoài; phải validate policy/key scope/độ dài và bind metadata quan trọng vào AAD/KDF context.
+**Q9.** An envelope carries `keyId`, `nonce`, and `encapsulation`. Is parsing enough to trust those fields?  
+**Answer:** No. They are external inputs; validate policy/key scope/lengths and bind critical metadata into AAD/KDF context.
 
-**Câu 10.** Có thể đổi Java 21 sang JDK khác rồi mặc định `KEM.getInstance("ML-KEM")` luôn chạy không?  
-**Đáp án:** Không. Hỗ trợ thuật toán phụ thuộc JDK/provider phiên bản cụ thể; lớp KEM có từ Java 21 không đồng nghĩa mọi KEM có sẵn.
+**Q10.** Can you switch from Java 21 to another JDK and assume `KEM.getInstance("ML-KEM")` will always run?  
+**Answer:** No. Algorithm support depends on the specific JDK/provider version; having the `KEM` class in Java 21 does not mean every KEM is available.
 
-**Câu 11.** Khi đã có encapsulation, có cần nonce và tag AES-GCM không?  
-**Đáp án:** **Có** nếu dùng AES-GCM: KEM không thay thế nonce/tag và không mã hóa payload.
+**Q11.** Once you have an encapsulation, do you still need an AES-GCM nonce and tag?  
+**Answer:** **Yes** when using AES-GCM: KEM does not replace the nonce/tag and does not encrypt the payload.
 
-**Câu 12.** Vì sao KEM + KDF + AES-GCM tự viết chưa mặc định tương thích HPKE?  
-**Đáp án:** HPKE định nghĩa đầy đủ suite IDs, KDF key schedule, mode, context, nonce policy và các quy tắc giao thức. Phải theo đặc tả HPKE mới có interoperability đúng.
+**Q12.** Why isn't hand-assembled KEM + KDF + AES-GCM automatically compatible with HPKE?  
+**Answer:** HPKE specifies exact suite IDs, KDF key schedule, mode, context, nonce policy, and protocol rules. Full HPKE compliance is required for interoperability.
 
-## 14. Tài liệu tham khảo API
+## 14. API References
 
-- [JEP 452 — Key Encapsulation Mechanism API](https://openjdk.org/jeps/452): giới thiệu lý do thiết kế API mới trong JDK 21.
-- [Java SE 21 — javax.crypto.KEM](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KEM.html): contract, factory, overload, provider selection.
-- [Java SE 21 — KEM.Encapsulator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KEM.Encapsulator.html): `encapsulate` và hai loại size.
+- [JEP 452 — Key Encapsulation Mechanism API](https://openjdk.org/jeps/452): introduces the motivation and design of the new API in JDK 21.
+- [Java SE 21 — javax.crypto.KEM](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KEM.html): contracts, factories, overloads, provider selection.
+- [Java SE 21 — KEM.Encapsulator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KEM.Encapsulator.html): `encapsulate` and the two size methods.
 - [Java SE 21 — KEM.Encapsulated](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KEM.Encapsulated.html): `key`, `encapsulation`, `params`.
-- [Java SE 21 — KEM.Decapsulator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KEM.Decapsulator.html): `decapsulate`, lỗi và input size.
-- [RFC 9180 — Hybrid Public Key Encryption](https://www.rfc-editor.org/rfc/rfc9180): DHKEM, KDF, AEAD và các giao thức HPKE chuẩn.
-- [RFC 5869 — HMAC-based Extract-and-Expand Key Derivation Function](https://www.rfc-editor.org/rfc/rfc5869): HKDF-Extract/Expand dùng trong ví dụ dẫn xuất key.
+- [Java SE 21 — KEM.Decapsulator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KEM.Decapsulator.html): `decapsulate`, errors, and input size.
+- [RFC 9180 — Hybrid Public Key Encryption](https://www.rfc-editor.org/rfc/rfc9180): DHKEM, KDF, AEAD, and standard HPKE protocols.
+- [RFC 5869 — HMAC-based Extract-and-Expand Key Derivation Function](https://www.rfc-editor.org/rfc/rfc5869): HKDF-Extract/Expand used in the key derivation example.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Java 21 `KEM` cung cấp primitive đóng gói khóa; `Encapsulator` tạo secret và encapsulation message; `Decapsulator` khôi phục secret bằng private key. Chỉ gửi encapsulation, không gửi secret.** Từ shared secret, thiết kế thêm **KDF có context + AEAD có nonce/AAD/tag**, kiểm chứng public key, chọn đúng key ID/suite và xử lý lỗi. KEM giúp thiết lập khóa an toàn theo mô hình thuật toán, **không thay thế mã hóa dữ liệu lớn, xác thực bên gửi hoặc toàn bộ giao thức bảo mật**.
+**Java 21 `KEM` provides the key encapsulation primitive; `Encapsulator` generates the secret and encapsulation message; `Decapsulator` recovers the secret with the private key. Send only the encapsulation, never the secret.** From the shared secret, layer a **context-bound KDF + AEAD with nonce/AAD/tag**, verify public keys, select the right key ID/suite, and handle errors properly. KEM establishes keys safely per its algorithmic model, **and does not replace bulk data encryption, sender authentication, or a complete security protocol**.

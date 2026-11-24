@@ -1,76 +1,76 @@
-# Xử lý provider lỗi và giới hạn của việc tiếp tục duyệt sau lỗi cấu hình
+# Handling Failing Providers and Limits of Continuing Iteration After Configuration Errors
 
-Trong hệ thống Java cho phép mở rộng lúc chạy, ServiceLoader giúp tìm các provider triển khai một SPI (Service Provider Interface). Khi một provider hỏng, host thường muốn giữ các provider còn lại hoạt động. Điều này có thể thực hiện trong một số tình huống, nhưng **không có cam kết rằng cứ bắt ServiceConfigurationError rồi gọi tiếp Iterator.next() là bỏ qua được provider lỗi**.
+In Java runtime-extensibility systems, ServiceLoader helps find providers implementing an SPI (Service Provider Interface). When one provider is broken, the host often wants to keep the remaining providers working. This can work in some situations, but **there is no guarantee that simply catching ServiceConfigurationError and calling Iterator.next() again will skip the failing provider**.
 
-Bài này giải thích ranh giới phục hồi của ServiceLoader trên classpath, so sánh chiến lược dừng ngay với thử tiếp có giới hạn, cung cấp thí nghiệm Java 17+ và hướng dẫn chọn chính sách cho hệ thống plugin thực tế.
+This lesson explains ServiceLoader's recovery boundaries on the classpath, compares fail-fast with bounded retry strategies, provides a Java 17+ experiment, and guides policy selection for real-world plugin systems.
 
-## 1. Ba dạng lỗi phải phân biệt khi chọn provider
+## 1. Three Error Categories to Distinguish When Selecting Providers
 
-Một vòng lựa chọn provider thường trải qua ba chặng:
+A provider selection cycle typically passes through three stages:
 
-1. **Phát hiện cấu hình (discovery):** tìm file META-INF/services/<tên đầy đủ của SPI>, đọc và phân tích danh sách tên provider.
-2. **Nạp và khởi tạo (loading/instantiation):** phân giải class, kiểm tra có triển khai đúng SPI và tạo đối tượng provider.
-3. **Dùng provider (execution):** gọi phương thức nghiệp vụ, mở resource, kết nối dịch vụ hoặc xử lý dữ liệu.
+1. **Discovery:** locate the META-INF/services/<fully-qualified-SPI-name> file, read, and parse the list of provider names.
+2. **Loading and instantiation:** resolve the class, verify it properly implements the SPI, and instantiate the provider object.
+3. **Execution:** invoke business methods, open resources, connect to services, or process data.
 
-| Tình huống | Lỗi có thể quan sát | Bản chất |
+| Situation | Observable error | Nature |
 | --- | --- | --- |
-| Descriptor có cú pháp sai hoặc không đọc được | ServiceConfigurationError trong quá trình duyệt | Cấu hình dịch vụ không hợp lệ |
-| Descriptor chỉ đến class không tồn tại hoặc không thuộc SPI | ServiceConfigurationError | Khai báo provider không thể nạp/dùng được |
-| Provider classpath không có public constructor không tham số | ServiceConfigurationError | Không đáp ứng hợp đồng khởi tạo |
-| Constructor của provider ném lỗi | Thường là ServiceConfigurationError có cause liên quan | Không tạo được đối tượng provider |
-| Provider tạo thành công nhưng process() ném RuntimeException | RuntimeException của chính implementation, trừ khi nó tự ném loại khác | Lỗi trong lúc dùng provider, nằm sau bước discovery |
-| Không có descriptor cho service yêu cầu | Có thể duyệt được 0 provider, không mặc nhiên có ServiceConfigurationError | Không phát hiện provider được đăng ký |
+| Descriptor has invalid syntax or is unreadable | ServiceConfigurationError during iteration | Invalid service configuration |
+| Descriptor points to a non-existent class or one not implementing the SPI | ServiceConfigurationError | Unloadable/unusable provider declaration |
+| Classpath provider lacks a public no-arg constructor | ServiceConfigurationError | Fails the instantiation contract |
+| Provider constructor throws an error | Usually ServiceConfigurationError with relevant cause | Failed to instantiate provider object |
+| Provider constructs fine, but process() throws RuntimeException | The implementation's own RuntimeException, unless it throws another type | Error while using the provider, after discovery |
+| No descriptor for the requested service | May iterate 0 providers without automatically throwing ServiceConfigurationError | No registered providers discovered |
 
-**ServiceConfigurationError là một lớp con của java.lang.Error**, không phải Exception. Việc catch (Exception ex) không bắt được nó. Ta có thể bắt **đúng loại ServiceConfigurationError** ở biên duyệt SPI nhằm xử lý lỗi cấu hình dự kiến, nhưng không nên bắt rộng Throwable hoặc Error rồi coi tất cả là lỗi plugin bình thường: VirtualMachineError, ThreadDeath và các sự cố nghiêm trọng không phù hợp với chính sách "bỏ qua và thử tiếp".
+**ServiceConfigurationError is a subclass of java.lang.Error**, not Exception. Doing catch (Exception ex) will not catch it. You can catch **the exact ServiceConfigurationError type** at the SPI iteration boundary to handle expected configuration errors, but you should not broadly catch Throwable or Error and treat everything as an ordinary plugin error: VirtualMachineError, ThreadDeath, and severe failures do not fit a "skip and keep trying" policy.
 
-Một provider chạy được nhưng trả kết quả không đạt yêu cầu kinh doanh không trở thành "provider lỗi cấu hình". Việc lọc theo capability, priority, input format hoặc health check phải được thiết kế riêng, sau khi xác định provider đã nạp được.
+A provider that runs fine yet returns business-unsatisfactory results does not become a "configuration-error provider". Filtering by capability, priority, input format, or health checks must be designed separately after confirming the provider loaded.
 
-## 2. Hợp đồng của ServiceLoader về phục hồi sau lỗi
+## 2. ServiceLoader's Contract on Error Recovery
 
-Tài liệu Java SE 17 nêu rõ:
+The Java SE 17 documentation clearly states:
 
-- ServiceLoader.load(...) tạo đối tượng loader, nhưng tìm kiếm và khởi tạo provider phần lớn là **lazy**. Chỉ gọi load(...) chưa chứng minh mọi provider hợp lệ.
-- Khi dùng ServiceLoader.iterator(), cả **hasNext() và next()** có thể ném ServiceConfigurationError nếu lỗi xảy ra trong quá trình định vị, nạp hoặc khởi tạo provider.
-- Nếu một lần duyệt gây lỗi, các lần gọi tiếp trên iterator sẽ **nỗ lực tốt nhất (best effort)** để định vị/khởi tạo provider tiếp theo. **Không thể bảo đảm nói chung rằng nó sẽ phục hồi.**
-- Với ServiceLoader.stream(), lỗi cũng có thể xuất hiện ở các thao tác thực sự định vị hoặc nạp provider, kể cả khi chúng xảy ra trong terminal operation.
+- ServiceLoader.load(...) creates a loader object, but locating and instantiating providers is largely **lazy**. Calling load(...) alone does not prove all providers are valid.
+- When using ServiceLoader.iterator(), both **hasNext() and next()** can throw ServiceConfigurationError if an error occurs while locating, loading, or instantiating a provider.
+- If a traversal step fails, subsequent calls on the iterator make a **best-effort** attempt to locate/instantiate the next provider. **There is no general guarantee that it will recover.**
+- With ServiceLoader.stream(), errors can also surface in operations that actually locate or load providers, including during terminal operations.
 
-Hệ quả trực tiếp là code sau không có cơ sở để chạy an toàn:
+As a direct consequence, the following code has no basis for safe execution:
 
 ~~~java
-// Phản ví dụ: KHÔNG dùng trong chương trình cần tính đúng đắn.
+// Anti-pattern: DO NOT use in programs requiring correctness.
 while (iterator.hasNext()) {
     try {
         Service provider = iterator.next();
         use(provider);
     } catch (ServiceConfigurationError error) {
-        // "Bỏ qua rồi đi tiếp" không được API bảo đảm.
+        // "Skip and continue" is not guaranteed by the API.
     }
 }
 ~~~
 
-Có ít nhất ba vấn đề. Thứ nhất, **hasNext() nằm ngoài try**, nên lỗi từ bước đọc cấu hình vẫn thoát ra ngoài. Thứ hai, lỗi có thể khiến iterator không tiến được, dẫn đến lặp lại lỗi hoặc kết thúc bất ngờ. Thứ ba, việc nuốt lỗi làm host báo rằng plugin hợp lệ trong khi hệ thống chỉ chạy được một phần.
+There are at least three problems. First, **hasNext() sits outside try**, so errors from reading configuration still escape. Second, an error may prevent the iterator from advancing, causing repeated errors or premature termination. Third, swallowing errors makes the host claim plugins are healthy when the system is only partially running.
 
-Một phiên bản sửa đúng phạm vi bắt lỗi vẫn phải có **giới hạn số lần thử**, báo cáo lỗi và phương án dừng. Không có giới hạn thì vòng lặp có thể kẹt mãi ở cùng một lỗi nếu iterator không tiến.
+A corrected version with proper catch scope must still have a **retry limit**, error reporting, and a stopping condition. Without a bound, the loop could spin forever on the same error if the iterator fails to advance.
 
-## 3. Hai chính sách xử lý chính
+## 3. Two Primary Handling Policies
 
-**Dừng ngay (fail fast / fail closed):** một lỗi ServiceConfigurationError khiến quá trình nạp tập provider bị dừng; host ghi nhận nguyên nhân và từ chối bật chức năng phụ thuộc vào tập provider đó. Chọn khi provider là thành phần bắt buộc, danh sách phải đầy đủ, hoặc sai cấu hình làm kết quả không đáng tin.
+**Fail fast / fail closed:** a single ServiceConfigurationError halts loading the provider set; the host logs the cause and refuses to enable features depending on that provider set. Choose this when providers are mandatory components, the list must be complete, or misconfiguration makes results untrustworthy.
 
-**Thử tiếp có giới hạn (bounded best effort):** host ghi lỗi, thử gọi lại iterator tối đa một số bước/lỗi định trước, vẫn xử lý những provider nạp được, rồi kết thúc bằng trạng thái đầy đủ hoặc một phần. Chọn khi plugin là tùy chọn, có thể bị vô hiệu hóa độc lập, và sản phẩm chấp nhận bỏ qua plugin bị lỗi. Đây là **nỗ lực phục hồi**, không phải lời hứa rằng mọi provider hợp lệ phía sau một provider hỏng đều được tìm thấy.
+**Bounded best effort:** the host logs the error, retries calling the iterator up to a predefined step/error limit, still processes providers that successfully load, and finishes in a complete or partial state. Choose this when plugins are optional, can be independently disabled, and the product accepts skipping a broken plugin. This is a **recovery attempt**, not a promise that every valid provider behind a broken one will be found.
 
-| Yêu cầu hệ thống | Chính sách phù hợp | Điều phải kiểm tra |
+| System requirement | Appropriate policy | What must be verified |
 | --- | --- | --- |
-| Phân quyền, xác thực, chính sách bảo mật hoặc bộ xử lý bắt buộc | Fail closed | Không thể coi tập provider thiếu thành phần là hợp lệ |
-| Plugin trang trí/tính năng tùy chọn | Bounded best effort nếu có kiểm soát | Ghi rõ plugin bị từ chối, không bỏ qua âm thầm |
-| Nhiều JAR plugin cài độc lập | Khám phá và xác thực từng gói, tách loader khi kiến trúc cho phép | Một JAR lỗi không làm che khuất các gói khác |
-| Có thể cấu hình lại và triển khai mới | Sửa artifact/descriptor rồi tạo phiên duyệt mới có kiểm chứng | reload() không tự sửa lỗi cũ |
-| Chức năng có thứ tự ưu tiên provider | Quyết định rõ có cho phép fallback hay không | Không suy rằng provider bị hỏng chỉ bị bỏ qua một lần |
+| Authorization, authentication, security policy, or mandatory processor | Fail closed | A provider set missing components cannot be treated as valid |
+| Decorative plugins / optional features | Bounded best effort if controlled | Explicitly record rejected plugins; never skip silently |
+| Multiple independently installed plugin JARs | Discover and validate per package, isolate loaders when architecture allows | One broken JAR must not obscure other packages |
+| Reconfigurable and redeployable | Fix artifact/descriptor then create a new verified load session | reload() does not automatically fix old errors |
+| Features with provider priority ordering | Explicitly decide whether fallback is allowed | Do not assume a broken provider is skipped only once |
 
-## 4. Thí nghiệm Java 17+: provider tốt, provider hỏng constructor và provider tốt phía sau
+## 4. Java 17+ Experiment: Good Provider, Broken-Constructor Provider, and Trailing Good Provider
 
-Mục tiêu của lab là quan sát **điểm phát sinh lỗi** và chứng minh rằng kết quả fail-fast có thể xác định, còn kết quả thử tiếp chỉ là best effort.
+The goal of the lab is to observe **where errors occur** and demonstrate that fail-fast outcomes are deterministic, whereas continuing iteration is merely best effort.
 
-Cấu trúc thư mục từ gốc lab/:
+Directory layout from the lab/ root:
 
 ~~~text
 lab/
@@ -83,10 +83,10 @@ lab/
 ├── descriptors/
 │   ├── good/META-INF/services/demo.spi.Processor
 │   └── broken/META-INF/services/demo.spi.Processor
-└── build/                        (được tạo bởi lệnh build)
+└── build/                        (created by the build command)
 ~~~
 
-### 4.1. Định nghĩa SPI
+### 4.1. Defining the SPI
 
 File **src/api/demo/spi/Processor.java**:
 
@@ -99,9 +99,9 @@ public interface Processor {
 }
 ~~~
 
-Interface là hợp đồng được host cung cấp. Bản Java compiler của provider tham chiếu đúng artifact API, và lúc chạy host đặt API lên classpath chung.
+The interface is the contract provided by the host. Compiling providers references the exact API artifact, and at runtime the host puts the API on the shared classpath.
 
-### 4.2. Provider tốt đầu tiên
+### 4.2. First Good Provider
 
 File **src/providers/demo/providers/Alpha.java**:
 
@@ -125,7 +125,7 @@ public final class Alpha implements Processor {
 }
 ~~~
 
-### 4.3. Provider có constructor ném lỗi
+### 4.3. Provider with a Failing Constructor
 
 File **src/providers/demo/providers/Broken.java**:
 
@@ -151,9 +151,9 @@ public final class Broken implements Processor {
 }
 ~~~
 
-Broken đáp ứng yêu cầu có **public constructor không tham số**, nhưng constructor cố tình ném lỗi. Đây là lỗi **khởi tạo provider**, không phải lỗi phương thức process. Đối với cấu hình provider classpath, ServiceLoader sẽ phản ánh lỗi khởi tạo qua ServiceConfigurationError; exception nguyên gốc có thể thấy trong chuỗi cause.
+Broken satisfies the **public no-arg constructor** requirement, but its constructor intentionally throws. This is a **provider instantiation** error, not a process-method error. For classpath provider configuration, ServiceLoader surfaces instantiation failures via ServiceConfigurationError; the original exception is visible in the cause chain.
 
-### 4.4. Provider tốt ở phía sau
+### 4.4. Trailing Good Provider
 
 File **src/providers/demo/providers/Omega.java**:
 
@@ -177,7 +177,7 @@ public final class Omega implements Processor {
 }
 ~~~
 
-### 4.5. Hai file descriptor độc lập
+### 4.5. Two Independent Descriptor Files
 
 File **descriptors/good/META-INF/services/demo.spi.Processor**:
 
@@ -194,9 +194,9 @@ demo.providers.Broken
 demo.providers.Omega
 ~~~
 
-Mỗi lần chạy chỉ đặt **một** JAR chứa descriptor lên classpath. Descriptor đúng tên SPI; nó liệt kê provider bằng tên đầy đủ của class, một tên mỗi dòng. Gói broken chứa ba tên theo thứ tự Alpha → Broken → Omega; việc Broken thất bại có thể ảnh hưởng đến khả năng tìm Omega tùy trạng thái iterator và cách nó gặp lỗi.
+Each run places only **one** JAR containing a descriptor on the classpath. The descriptor uses the SPI's exact name; it lists providers by fully qualified class name, one per line. The broken package contains three names in order Alpha → Broken → Omega; Broken's failure may affect finding Omega depending on iterator state and how the failure occurs.
 
-### 4.6. Host: chế độ dừng ngay và thử tiếp có giới hạn
+### 4.6. Host: Strict (Fail-Fast) and Bounded-Retry Modes
 
 File **src/host/demo/host/Run.java**:
 
@@ -244,7 +244,7 @@ public final class Run {
             System.out.println("DONE");
         } catch (ServiceConfigurationError error) {
             System.out.println("STOP CONFIG_ERROR");
-            // Trong ứng dụng thật: log cả error và getCause().
+            // In a real application: log both error and getCause().
         }
     }
 
@@ -255,7 +255,7 @@ public final class Run {
         for (int step = 0; step < MAX_STEPS; step++) {
             Processor provider;
             try {
-                // CẢ hasNext lẫn next đều có thể báo lỗi cấu hình.
+                // BOTH hasNext and next can report configuration errors.
                 if (!iterator.hasNext()) {
                     System.out.println("DONE");
                     return;
@@ -269,7 +269,7 @@ public final class Run {
                     System.out.println("STOP ERROR_LIMIT");
                     return;
                 }
-                continue; // Chỉ thử lại; KHÔNG bảo đảm bỏ qua được lỗi.
+                continue; // Retry only; NO guarantee that the error can be skipped.
             }
 
             use(provider);
@@ -280,19 +280,19 @@ public final class Run {
 }
 ~~~
 
-Đặc điểm cần quan sát trong code:
+Notable details in the code:
 
-- try/catch của **strict** bao cả vòng for; do đó lỗi phát sinh ở iterator.hasNext() lẫn iterator.next() đều được bắt.
-- try/catch của **bounded** bao cả hai lời gọi iterator; nó không bắt chung mọi Error.
-- MAX_CONFIG_ERRORS chặn việc lặp mãi khi iterator tiếp tục báo lỗi; MAX_STEPS là **giới hạn thứ hai** để tránh vòng duyệt quá dài ngay cả khi không có cấu hình lỗi liên tiếp. Đây là ví dụ cho tập plugin nhỏ, không phải ngưỡng mặc định tối ưu cho mọi hệ thống.
-- Lỗi từ process() được phân loại riêng thành PROCESS_ERROR. Một provider khởi tạo thành công nhưng xử lý dữ liệu thất bại không được phép làm ta hiểu sai là lỗi descriptor.
-- Code in thông điệp ngắn để stdout ổn định. Trong ứng dụng thật phải log exception, nguyên nhân gốc, thông tin artifact và quyết định vô hiệu hóa provider.
+- **strict**'s try/catch wraps the entire for-loop; thus errors raised in both iterator.hasNext() and iterator.next() are caught.
+- **bounded**'s try/catch wraps both iterator calls; it does not catch all Errors indiscriminately.
+- MAX_CONFIG_ERRORS prevents infinite looping if the iterator keeps reporting errors; MAX_STEPS is a **second bound** to avoid overly long loops even without consecutive config errors. These are examples for a small plugin set, not optimal default thresholds for every system.
+- Errors from process() are separated into PROCESS_ERROR. A provider that initializes fine but fails to process data must not be mistaken for a descriptor error.
+- The code prints short messages for deterministic stdout. In real applications, log the exception, root cause, artifact info, and provider-disabling decision.
 
-**Giới hạn có chủ ý:** Nếu provider.id() tự ném RuntimeException trong catch của use(), biểu thức provider.id() ở nhánh catch cũng có thể ném lần nữa. Trong ứng dụng thật, nên lấy ID đã xác minh từ metadata/registration trước, không phụ thuộc vào việc gọi phương thức của chính provider đang lỗi. Các provider của lab đều có id() ổn định để tập trung vào ServiceConfigurationError.
+**Intentional limitation:** If provider.id() itself throws a RuntimeException inside use()'s catch block, calling provider.id() in the catch branch could throw again. In real applications, fetch the verified ID from metadata/registration beforehand instead of relying on calling a method on the failing provider itself. The lab's providers all have stable id() implementations to keep focus on ServiceConfigurationError.
 
-### 4.7. Build và chạy từ JAR phát hành
+### 4.7. Building and Running from Release JARs
 
-Từ thư mục lab/, dùng JDK 17+ và shell bash/POSIX:
+From the lab/ directory, using JDK 17+ and a bash/POSIX shell:
 
 ~~~bash
 mkdir -p build/api build/providers build/host dist
@@ -312,22 +312,22 @@ java -cp "build/host:build/api.jar:dist/broken.jar" demo.host.Run strict
 java -cp "build/host:build/api.jar:dist/broken.jar" demo.host.Run bounded
 ~~~
 
-Trên Windows khi gọi Java trực tiếp từ PowerShell/CMD, dấu phân cách classpath là **;** thay cho **:**. Cú pháp mkdir -p và cách xuống dòng ở trên dành cho bash.
+On Windows when invoking Java directly from PowerShell/CMD, the classpath separator is **;** instead of **:**. The mkdir -p syntax and line continuations above are for bash.
 
-Mỗi JAR có đầy đủ class của Alpha, Broken và Omega; sự khác biệt duy nhất giữa hai bản nằm ở **danh sách tên provider trong META-INF/services**. Điều này tách rõ tác động của service configuration khỏi tác động của việc biên dịch các class.
+Each JAR contains the full classes of Alpha, Broken, and Omega; the only difference between the two builds is **the list of provider names in META-INF/services**. This cleanly isolates the effect of service configuration from class compilation.
 
-Lệnh kiểm tra JAR:
+Command to inspect the JARs:
 
 ~~~bash
 jar --list --file dist/good.jar
 jar --list --file dist/broken.jar
 ~~~
 
-Bạn cần thấy entry **META-INF/services/demo.spi.Processor** và các file .class dưới demo/providers. Chỉ liệt kê class có mặt trong JAR chưa đủ: ServiceLoader chỉ biết các provider được khai báo cho đúng SPI trong descriptor.
+You should see the **META-INF/services/demo.spi.Processor** entry and the .class files under demo/providers. Merely having classes in the JAR is not enough: ServiceLoader only knows about providers declared for the exact SPI in the descriptor.
 
-## 5. Diễn giải kết quả thực nghiệm
+## 5. Interpreting the Experimental Results
 
-**Chạy strict với good.jar** cho stdout chính xác:
+**Running strict with good.jar** produces exact stdout:
 
 ~~~text
 USE alpha -> A:x
@@ -335,16 +335,16 @@ USE omega -> Z:x
 DONE
 ~~~
 
-**Chạy strict với broken.jar** cho stdout chính xác:
+**Running strict with broken.jar** produces exact stdout:
 
 ~~~text
 USE alpha -> A:x
 STOP CONFIG_ERROR
 ~~~
 
-Alpha được tạo và xử lý trước. Khi tới Broken, constructor ném IllegalStateException; việc iterator cố tạo provider đó thất bại và vòng strict dừng. Omega có khai báo trong file nhưng **không được dùng** ở lượt strict, bởi vì host quyết định kết thúc ngay sau lỗi cấu hình.
+Alpha is instantiated and processed first. Upon reaching Broken, its constructor throws IllegalStateException; the iterator's attempt to instantiate that provider fails and the strict loop stops. Omega is declared in the file, yet **is not used** in the strict run because the host decided to terminate immediately after a configuration error.
 
-**Chạy bounded với broken.jar** có thể cho kết quả minh họa sau ở một runtime Java 17:
+**Running bounded with broken.jar** may produce the following illustrative output on a Java 17 runtime:
 
 ~~~text
 USE alpha -> A:x
@@ -353,23 +353,23 @@ USE omega -> Z:x
 DONE
 ~~~
 
-Ở tình huống đó iterator đã tiến qua Broken và tiếp tục tìm được Omega. **Không được coi bốn dòng trên là đầu ra cam kết trên mọi runtime, mọi loại lỗi hoặc mọi file cấu hình.** Hợp đồng API chỉ nói best effort. Với lỗi không thể vượt qua, có thể xảy ra nhiều lỗi liên tiếp; khi chạm MAX_CONFIG_ERRORS, chương trình in STOP ERROR_LIMIT. Nếu không tới được cuối trong MAX_STEPS, chương trình in STOP STEP_LIMIT. Cả hai nhánh dừng này đều phải được xử lý như trạng thái tập provider **không đầy đủ**.
+In that scenario, the iterator advanced past Broken and continued to find Omega. **Do not treat those four lines as guaranteed output across every runtime, every error type, or every config file.** The API contract only states best effort. For unrecoverable errors, multiple consecutive errors may occur; upon hitting MAX_CONFIG_ERRORS, the program prints STOP ERROR_LIMIT. If it fails to reach the end within MAX_STEPS, it prints STOP STEP_LIMIT. Both stopping branches must be treated as an **incomplete** provider-set state.
 
-Điều có thể khẳng định độc lập với chi tiết thực thi là: bounded sẽ không thử nhiều hơn MAX_STEPS vòng lặp, sẽ dừng sau MAX_CONFIG_ERRORS lỗi cấu hình mà nó đã bắt, và sẽ không đưa ra lời hứa rằng provider phía sau Broken chắc chắn được nạp.
+What can be asserted independently of implementation details is: bounded will not try more than MAX_STEPS iterations, will stop after MAX_CONFIG_ERRORS caught configuration errors, and makes no promise that providers behind Broken are guaranteed to load.
 
-Một điều tinh tế: **hasNext() có thể cũng báo lỗi** (ví dụ khi đang đọc file descriptor bị hỏng), chứ không chỉ next() khi tạo Broken. Trong vài trường hợp, cả việc xác định "còn provider nào không?" cũng chưa thể hoàn tất. Bởi vậy không thể bảo đảm luôn có một provider cụ thể để "skip" sau khi gặp ServiceConfigurationError.
+One subtlety: **hasNext() can also report an error** (for instance when reading a corrupted descriptor file), not only next() when instantiating Broken. In some cases, even determining "are there any providers left?" cannot complete. Hence there is no guarantee that a specific provider will always exist to "skip" to after encountering ServiceConfigurationError.
 
-## 6. Chọn provider và cơ chế fallback: phần nào kiểm soát được?
+## 6. Provider Selection and Fallback Mechanisms: What Is Controllable?
 
-Nhiều host không cần mọi provider; chúng chỉ muốn một implementation phù hợp, chẳng hạn theo ID, media type hoặc capability. Có ba lựa chọn khác nhau:
+Many hosts do not need every provider; they just want one matching implementation, such as by ID, media type, or capability. There are three distinct options:
 
-**Lựa chọn sau khi khởi tạo:** duyệt từng provider và gọi id() hoặc supports(...), rồi chọn provider đầu tiên đáp ứng điều kiện. Cách này có thể gây side effect trong constructor của những provider đứng trước, và có thể bị chặn bởi lỗi cấu hình của provider chưa cần dùng.
+**Selection after instantiation:** iterate each provider and call id() or supports(...), then pick the first provider meeting the criteria. This can trigger side effects in constructors of preceding providers and can be blocked by configuration errors in unneeded providers.
 
-**Lọc theo metadata của provider type:** ServiceLoader.stream() trả các ServiceLoader.Provider<S>. Có thể đọc Provider.type() để xem kiểu khai báo rồi mới Provider.get() để khởi tạo; nhờ đó đôi khi tránh khởi tạo provider không được chọn. Tuy nhiên, chính giai đoạn định vị và phân giải type vẫn có thể ném ServiceConfigurationError. stream().filter(...).findFirst() **không biến một tập descriptor hỏng thành tập hợp luôn lọc được an toàn**.
+**Filtering by provider type metadata:** ServiceLoader.stream() returns ServiceLoader.Provider<S>. You can inspect Provider.type() to check the declared type before calling Provider.get() to instantiate; this sometimes avoids instantiating unselected providers. However, locating and resolving the type itself can still throw ServiceConfigurationError. stream().filter(...).findFirst() **does not turn a broken descriptor set into an always-safely-filterable collection**.
 
-**Đọc registry/manifest do host kiểm soát trước khi đưa JAR vào loader:** khi mỗi plugin có metadata được xác minh độc lập, host có thể quyết định nên tạo loader và nạp plugin nào. Đây là ranh giới kiểm soát rõ hơn cho sản phẩm có yêu cầu chọn provider theo phiên bản, độ ưu tiên, quyền hạn và khả năng tương thích.
+**Reading a host-controlled registry/manifest before putting JARs into a loader:** when each plugin carries independently verified metadata, the host can decide which loader to create and which plugins to load. This is a clearer control boundary for products requiring provider selection by version, priority, permissions, and compatibility.
 
-Ví dụ chọn provider theo **tên class** bằng stream() chỉ mang tính minh họa (không phải chương trình độc lập):
+An example selecting a provider by **class name** using stream() for illustration only (not a standalone program):
 
 ~~~java
 ServiceLoader<Processor> loader = ServiceLoader.load(Processor.class);
@@ -382,113 +382,113 @@ try {
             .get();
     System.out.println(selected.process("x"));
 } catch (ServiceConfigurationError error) {
-    // Việc quét metadata hoặc Provider.get() vẫn có thể lỗi.
-    // Ghi nhận tập plugin không hợp lệ thay vì giả định đã lọc hết.
+    // Scanning metadata or Provider.get() can still fail.
+    // Record the plugin set as invalid instead of assuming everything was filtered.
 }
 ~~~
 
-Đoạn code giả định đã có interface Processor và class tương ứng của lab. Nếu không tìm thấy provider thì orElseThrow() ném NoSuchElementException; đây là tình huống khác ServiceConfigurationError. Tương tự, nếu selected.process("x") ném RuntimeException thì đó là lỗi thực thi implementation, không mặc nhiên được catch trên bắt.
+This snippet assumes the lab's Processor interface and corresponding classes exist. If no provider is found, orElseThrow() throws NoSuchElementException; this is distinct from ServiceConfigurationError. Likewise, if selected.process("x") throws RuntimeException, that is an implementation execution error, not automatically caught by the catch block above.
 
-**Không dùng stream().findFirst() như một cơ chế "fallback tự động" sau lỗi cấu hình.** Nếu việc lấy provider đầu tiên thất bại, terminal operation có thể kết thúc bằng exception; không có cam kết tự loại provider lỗi rồi thử phần tử tiếp theo.
+**Do not use stream().findFirst() as an “automatic fallback” after configuration errors.** If fetching the first provider fails, the terminal operation can terminate with an exception; there is no guarantee of automatically excluding the failing provider and trying the next element.
 
-## 7. Khi nào được tiếp tục, khi nào nên dừng?
+## 7. When to Continue, When to Stop?
 
-Dưới đây là cách phân ranh theo mức rủi ro:
+Below is a risk-based boundary:
 
-| Kết quả quan sát | Đánh giá | Hành động |
+| Observed outcome | Assessment | Action |
 | --- | --- | --- |
-| Một provider tùy chọn ném RuntimeException lúc xử lý đầu vào, nhưng host đã biết ID và contract của nó | Lỗi nghiệp vụ/vòng đời riêng của provider | Có thể đánh dấu provider unhealthy, dùng fallback **đã định nghĩa**, log và giới hạn retry |
-| ServiceConfigurationError khi duyệt SPI bắt buộc | Cấu hình tập provider không tin cậy | Dừng khởi tạo chức năng, báo lỗi cấu hình và yêu cầu sửa artifact |
-| ServiceConfigurationError trong tập plugin tùy chọn | Có thể còn provider dùng được, nhưng iterator không hứa sẽ hồi phục | Chỉ thử tiếp nếu chính sách chấp nhận degraded mode, có giới hạn và có thông báo |
-| Nhiều lỗi cấu hình liên tiếp, hoặc lặp lại lỗi giống nhau | Có nguy cơ không tiến được | Dừng theo error budget/step budget; đánh dấu discovery không hoàn chỉnh |
-| Lỗi class linkage/version như NoClassDefFoundError, NoSuchMethodError | Có thể do tập JAR/class loader không tương thích | Kiểm tra dependency/API/classpath; không bắt Error đại trà để xem như lỗi thông thường |
-| Mất tính toàn vẹn, chữ ký, quyền hoặc chính sách bảo mật của plugin | Không chỉ là vấn đề ServiceLoader | Từ chối nạp theo chính sách bảo mật, không fallback qua plugin tùy tiện |
+| An optional provider throws RuntimeException while processing input, but the host already knows its ID and contract | Provider-specific business/lifecycle error | May mark provider unhealthy, use a **defined** fallback, log, and limit retries |
+| ServiceConfigurationError while iterating a mandatory SPI | Provider-set configuration is untrustworthy | Halt feature initialization, report config error, and require artifact fix |
+| ServiceConfigurationError in an optional plugin set | Usable providers might remain, but iterator does not promise recovery | Continue only if policy allows degraded mode, with bounds and notifications |
+| Multiple consecutive config errors, or the same error repeating | Risk of failing to make progress | Stop by error budget/step budget; mark discovery incomplete |
+| Class linkage/version errors such as NoClassDefFoundError, NoSuchMethodError | Likely incompatible JAR/class loader set | Check dependencies/API/classpath; do not catch Error broadly as a normal error |
+| Loss of plugin integrity, signature, permissions, or security policy | Not merely a ServiceLoader issue | Refuse to load per security policy; do not fall back to arbitrary plugins |
 
-Đặc biệt đối với hệ thống có nhiều plugin từ các nhóm khác nhau, **"tiếp tục sau lỗi" không có nghĩa là "đã kiểm tra hết danh sách"**. Báo cáo kết quả nên phân biệt loaded, rejected, failed discovery và not examined. Một trạng thái SUCCESS chung khi chưa xác định được đầy đủ provider thường gây hiểu nhầm.
+Especially in systems with multiple plugins from different teams, **"continuing after an error" does not mean "having inspected the entire list"**. Outcome reports should distinguish loaded, rejected, failed discovery, and not examined. A generic SUCCESS status when the full provider set has not been verified often misleads.
 
-Nếu business contract bắt buộc đúng một implementation có khả năng xử lý yêu cầu, quá trình chọn nên trả về kết quả có cấu trúc như selected, unsupported, invalid configuration hoặc ambiguous selection. Không nên để một catch rỗng quyết định ngầm rằng thiếu provider là hợp lệ.
+If the business contract requires exactly one implementation capable of handling the request, selection should return a structured result such as selected, unsupported, invalid configuration, or ambiguous selection. Never let an empty catch implicitly decide that a missing provider is valid.
 
-## 8. Mẫu xử lý lỗi cho host thực tế
+## 8. Error-Handling Patterns for Real Hosts
 
-Bộ lab dùng System.out để dễ đọc. Khi triển khai, tổ chức các bước như sau:
+The lab uses System.out for readability. When implementing in production, structure the steps as follows:
 
-1. **Định danh artifact và nguồn nạp:** log service, plugin ID/version nếu có metadata, đường dẫn JAR, hash/nguồn phát hành, class loader được chọn.
-2. **Xác minh trước khi nạp:** kiểm tra file tồn tại, descriptor đúng tên, phiên bản API, dependencies, điều kiện tương thích. Static preflight không thay được runtime discovery, nhưng giúp phát hiện nhiều lỗi packaging sớm.
-3. **Quyết định trước chính sách bắt lỗi:** SPI bắt buộc → fail closed; SPI tùy chọn → best effort có giới hạn và trạng thái partial.
-4. **Bắt lỗi tại đúng biên:** ServiceConfigurationError quanh hasNext()/next(); lỗi process() quanh lời gọi provider; lỗi I/O và timeout theo API riêng; tránh catch Throwable.
-5. **Lưu cause đầy đủ:** ghi stack trace và getCause() khi có, kèm loại giai đoạn. Không chỉ ghi một nhãn CONFIG_ERROR rồi xóa thông tin.
-6. **Dừng theo ngân sách rõ ràng:** tổng số lỗi cấu hình, số bước duyệt và deadline tổng (nếu cần). Ngân sách số bước trong demo không chặn được một lời gọi đơn lẻ bị treo; production có thể cần cách ly tiến trình hoặc timeout ở ranh giới thích hợp.
-7. **Không sử dụng provider đã thất bại khởi tạo:** provider chưa tạo đối tượng hợp lệ không thể được thêm vào registry. Với provider đã khởi tạo nhưng không qua health check, đóng tài nguyên và hủy đăng ký theo lifecycle.
-8. **Trả kết quả startup có mức độ hoàn chỉnh:** fully ready / degraded / failed, các provider đã chấp nhận hoặc bị từ chối, lý do và hành động khắc phục.
+1. **Identify artifact and load source:** log service, plugin ID/version if metadata exists, JAR path, hash/release source, and chosen class loader.
+2. **Pre-load verification:** check file existence, exact descriptor name, API version, dependencies, and compatibility conditions. Static preflight does not replace runtime discovery, but it catches many packaging errors early.
+3. **Decide error-handling policy upfront:** mandatory SPI → fail closed; optional SPI → bounded best effort with partial status.
+4. **Catch errors at the right boundaries:** ServiceConfigurationError around hasNext()/next(); process() errors around provider calls; I/O and timeouts per dedicated APIs; avoid catching Throwable.
+5. **Preserve full cause:** record stack trace and getCause() when present, along with the stage type. Do not merely log a CONFIG_ERROR label and discard details.
+6. **Stop under explicit budgets:** total configuration errors, iteration steps, and overall deadline (if needed). The step budget in the demo does not stop a single hanging call; production may need process isolation or timeouts at appropriate boundaries.
+7. **Never use a provider that failed initialization:** a provider that failed to instantiate cannot be added to the registry. For providers that instantiated yet failed health checks, close resources and unregister per lifecycle.
+8. **Return startup status with completeness level:** fully ready / degraded / failed, accepted or rejected providers, reasons, and remediation actions.
 
-Một thiết kế plugin loader độc lập cho mỗi gói có thể làm phạm vi ảnh hưởng của lỗi nhỏ hơn: mỗi JAR được kiểm tra, nạp và theo dõi riêng. Tuy nhiên, chỉ việc tạo nhiều URLClassLoader chưa đủ để cách ly nếu parent loader vẫn nhìn thấy mọi plugin, vì class/resource lookup vẫn có thể đi qua parent. Host phải kiểm soát **classpath của parent, quyền sở hữu SPI, dependency và quy tắc delegation**. Đồng thời không nên đóng loader ngay khi còn provider đang hoạt động; cần giữ loader sống tới khi plugin dừng, hủy callback và giải phóng tài nguyên.
+An independent plugin loader design per package can shrink the blast radius of errors: each JAR is inspected, loaded, and tracked separately. However, merely creating multiple URLClassLoaders is insufficient for isolation if the parent loader still sees every plugin, because class/resource lookups can still delegate through the parent. The host must control **parent classpath, SPI ownership, dependencies, and delegation rules**. Also, do not close a loader while providers remain active; keep the loader alive until plugins stop, cancel callbacks, and release resources.
 
-Với mã của bên thứ ba **không tin cậy**, class loader không phải sandbox bảo mật. Nếu plugin có thể thực thi mã tùy ý, hãy cân nhắc tách tiến trình và giới hạn quyền. Việc catch ServiceConfigurationError không thể bảo đảm tính an toàn của JVM khi plugin có side effect ngay lúc khởi tạo.
+For **untrusted** third-party code, class loaders are not a security sandbox. If a plugin can execute arbitrary code, consider process separation and privilege restriction. Catching ServiceConfigurationError cannot guarantee JVM safety if a plugin executes side effects during initialization.
 
-## 9. Những hành vi dễ hiểu sai của ServiceLoader
+## 9. Easily Misunderstood Behaviors of ServiceLoader
 
-### 9.1. Caching và reload()
+### 9.1. Caching and reload()
 
-ServiceLoader duy trì cache các provider đã nạp; lần iterator() tiếp theo có thể trả lại các instance đã cache trước khi tiếp tục tìm những provider chưa nạp. Vì thế thử lại một iteration mới với **cùng ServiceLoader** không đồng nghĩa "bắt đầu từ trạng thái sạch". Cần phân biệt retry để quan sát với retry sau sửa cấu hình.
+ServiceLoader maintains a cache of already-loaded providers; a subsequent iterator() call may return cached instances before continuing to search for unloaded providers. Therefore, retrying a fresh iteration with **the same ServiceLoader** does not mean "starting from a clean slate". Distinguish retrying to observe from retrying after fixing configuration.
 
-Gọi reload() xóa cache provider của ServiceLoader nhưng **không sửa file descriptor/JAR lỗi**, không tự unload class, cũng không đảm bảo lỗi không lặp lại. Các iterator hoặc stream bắt đầu trước reload() cần bị bỏ; việc dùng iterator cũ sau reload() có thể ném ConcurrentModificationException. Đừng gọi reload() trong catch mỗi khi gặp ServiceConfigurationError: cách đó có thể chỉ khiến host quay lại chính cấu hình hỏng.
+Calling reload() clears ServiceLoader's provider cache, yet **does not repair a broken descriptor/JAR**, does not automatically unload classes, and does not guarantee errors won't recur. Iterators or streams started before reload() must be discarded; using an old iterator after reload() can throw ConcurrentModificationException. Do not call reload() inside catch on every ServiceConfigurationError: that can simply loop the host back into the same broken configuration.
 
-Đối với hot reload plugin, cần bảo đảm loader cũ không còn thread, callback, reference hoặc resource sống; rồi tạo loader/ServiceLoader mới cho artifact đã xác minh. Đây là công việc lifecycle, không phải chức năng chữa lỗi của ServiceLoader.
+For hot-reloading plugins, ensure the old loader has no live threads, callbacks, references, or resources; then create a new loader/ServiceLoader for the verified artifact. That is lifecycle engineering, not a self-healing feature of ServiceLoader.
 
-### 9.2. Error xuất hiện muộn vì lazy loading
+### 9.2. Late Errors Due to Lazy Loading
 
-Câu lệnh sau chưa kiểm chứng được toàn bộ tập provider:
+The following statement has not verified the full provider set:
 
 ~~~java
 ServiceLoader<Processor> loader = ServiceLoader.load(Processor.class);
 System.out.println("ServiceLoader created");
 ~~~
 
-Một phần công việc chỉ xảy ra khi iterator.hasNext(), iterator.next(), stream terminal operation hoặc Provider.get() được gọi. Nếu startup check chỉ gọi load(...) rồi báo thành công, hệ thống có thể thất bại ở request đầu tiên.
+Part of the work only occurs when iterator.hasNext(), iterator.next(), a stream terminal operation, or Provider.get() is called. If a startup check only calls load(...) and reports success, the system can fail on the first request.
 
-### 9.3. Cấu hình descriptor và lỗi cú pháp
+### 9.3. Descriptor Configuration and Syntax Errors
 
-Trong classpath, descriptor phải nằm ở **META-INF/services/<tên đầy đủ SPI>** và chứa tên binary hợp lệ của các implementation. Lỗi đọc file, sai format, sai tên class, class không phù hợp hoặc thiếu constructor có thể dẫn đến ServiceConfigurationError trong quá trình duyệt. Đừng suy diễn rằng mọi lỗi đều xảy ra khi next() tạo đối tượng: đọc descriptor có thể phát sinh lỗi ngay tại hasNext().
+On the classpath, the descriptor must reside at **META-INF/services/<fully-qualified-SPI>** and contain valid binary names of implementations. File read errors, bad formatting, wrong class names, incompatible classes, or missing constructors can all cause ServiceConfigurationError during iteration. Do not infer that every error occurs when next() instantiates an object: reading the descriptor can raise an error right in hasNext().
 
-Nếu descriptor có dòng sai, một implementation hợp lệ ở các dòng sau **không được bảo đảm** sẽ được duyệt tới. Đây chính là lý do phương án bounded phải có nhánh thất bại và không hứa recovery hoàn toàn.
+If a descriptor contains a malformed line, valid implementations on subsequent lines are **not guaranteed** to be reached. This is precisely why a bounded approach must have a failure branch and cannot promise complete recovery.
 
-### 9.4. Khác biệt giữa classpath và module path
+### 9.4. Differences Between Classpath and Module Path
 
-Trên classpath, provider thường được khai báo bằng META-INF/services; provider class cần public constructor không tham số để ServiceLoader có thể khởi tạo. Trên JPMS module path, module descriptor dùng uses/provides; provider method và quy tắc khác cũng có thể xuất hiện. Vì vậy khi log thiếu constructor, cần kiểm tra **chế độ triển khai thực tế** trước khi áp dụng cách sửa cho classpath.
+On the classpath, providers are typically declared via META-INF/services; provider classes need a public no-arg constructor so ServiceLoader can instantiate them. On the JPMS module path, module descriptors use uses/provides; provider factory methods and other rules may also appear. Therefore, when logs mention a missing constructor, check the **actual deployment mode** before applying a classpath-specific fix.
 
-### 9.5. Không thay đổi loader khi nhiều thread đang duyệt
+### 9.5. Do Not Mutate the Loader While Multiple Threads Iterate
 
-Các instance ServiceLoader **không an toàn cho nhiều thread truy cập đồng thời**. Không chia sẻ một ServiceLoader đang reload/iterate giữa nhiều luồng rồi xem mọi ConcurrentModificationException là lỗi của provider. Nếu cần registry dùng chung, tạo snapshot provider đã xác minh và quản lý việc thay snapshot có đồng bộ/lifecycle rõ ràng.
+ServiceLoader instances are **not safe for concurrent access by multiple threads**. Do not share a ServiceLoader being reloaded/iterated across threads and treat every ConcurrentModificationException as a provider bug. If a shared registry is needed, build a snapshot of verified providers and manage snapshot replacement with explicit synchronization/lifecycle.
 
-## 10. Bảng chẩn đoán lỗi và hành động tương ứng
+## 10. Diagnostic Table and Corresponding Actions
 
-| Dấu hiệu | Kiểm tra ngay | Hành động |
+| Symptom | Check immediately | Action |
 | --- | --- | --- |
-| 0 provider mà không có ServiceConfigurationError | Đúng tên SPI/descriptor? JAR có nằm trong classpath/loader? | Sửa đăng ký và classpath |
-| Error ném từ hasNext() | Descriptor hỏng, đọc resource gặp lỗi, loader không truy cập file | Xem stack trace/đường dẫn; tránh vòng while có hasNext ngoài try |
-| Error ném từ next() | Class provider, kiểu SPI, public no-arg constructor, dependency, constructor failure | Sửa class/đóng gói/API compatibility; log cause |
-| Chạy được Alpha rồi không thấy Omega | Provider giữa đường gây lỗi; host fail fast hoặc iterator không phục hồi | Phân biệt chính sách dừng với khả năng phục hồi của API |
-| Một lỗi lặp lại mãi khi thử next | Iterator không tiến/đang gặp lỗi cấu hình dai dẳng | Dừng theo max errors/max steps; sửa gói thay vì retry vô hạn |
-| Provider nạp được nhưng process thất bại | Resource riêng, runtime state, input, I/O/remote service | Bắt lỗi riêng của provider, đánh dấu unhealthy hoặc dùng fallback đã định nghĩa |
-| Sau reload vẫn lỗi y hệt | Gói cấu hình/JAR chưa được sửa; loader cũ còn được dùng | Kiểm tra artifact, tạo phiên nạp mới đúng lifecycle |
-| stream().filter(...).findFirst() thất bại trước khi trả provider mong muốn | Lỗi xảy ra trong lazy discovery hoặc type loading | Bắt ServiceConfigurationError ở biên chọn; không tin rằng filter bỏ qua lỗi |
-| ClassCastException hoặc ServiceConfigurationError "not a subtype" | SPI bị nạp bởi hai class loader hoặc implementation thực sự sai kiểu | Cố định SPI chung, kiểm tra class loader/dependency version |
-| NoClassDefFoundError / NoSuchMethodError trong plugin | Dependency thiếu hoặc không khớp phiên bản runtime | Kiểm tra dependency graph và class thực sự được nạp |
+| 0 providers with no ServiceConfigurationError | Exact SPI/descriptor name? Is the JAR on the classpath/loader? | Fix registration and classpath |
+| Error thrown from hasNext() | Corrupted descriptor, resource read failure, loader cannot access file | Inspect stack trace/path; avoid while loops with hasNext outside try |
+| Error thrown from next() | Provider class, SPI type, public no-arg constructor, dependencies, constructor failure | Fix class/packaging/API compatibility; log cause |
+| Alpha runs then Omega is missing | Mid-list provider caused an error; host failed fast or iterator did not recover | Distinguish stopping policy from API recovery capability |
+| Same error repeats endlessly when calling next | Iterator not advancing / encountering persistent configuration error | Stop by max errors/max steps; fix package instead of infinite retry |
+| Provider loads fine but process fails | Dedicated resource, runtime state, input, I/O/remote service | Catch provider-specific error, mark unhealthy, or use defined fallback |
+| Identical error remains after reload | Config/JAR package not yet fixed; old loader still in use | Verify artifact, create a new load session per lifecycle |
+| stream().filter(...).findFirst() fails before returning desired provider | Error occurred during lazy discovery or type loading | Catch ServiceConfigurationError at selection boundary; do not trust filter to bypass errors |
+| ClassCastException or ServiceConfigurationError "not a subtype" | SPI loaded by two class loaders or implementation genuinely wrong type | Pin shared SPI, check class loaders/dependency versions |
+| NoClassDefFoundError / NoSuchMethodError inside plugin | Missing dependency or runtime version mismatch | Inspect dependency graph and actually loaded classes |
 
-Để chẩn đoán, dùng lệnh jar --list --file plugin.jar xem entry META-INF/services và các .class; dùng javap -public -classpath plugin.jar <tên class> để xem chữ ký constructor. Khi nghi ngờ xung đột, kiểm tra artifact của SPI tại runtime và class loader định nghĩa mỗi class. Không gán tất cả các lỗi cùng một thông báo "plugin broken".
+To diagnose, run jar --list --file plugin.jar to inspect META-INF/services entries and .class files; run javap -public -classpath plugin.jar <class name> to inspect constructor signatures. When suspecting conflicts, check the SPI artifact at runtime and the class loader defining each class. Never lump all errors under a single "plugin broken" message.
 
-## 11. Bài tập kiểm chứng giới hạn phục hồi
+## 11. Exercises to Verify Recovery Limits
 
-**Bài tập A — thay thứ tự descriptor:** trong broken descriptor, đặt Broken lên trước Alpha. Dự đoán strict: thông báo STOP CONFIG_ERROR có thể xuất hiện trước mọi dòng USE. Với bounded, quan sát xem các provider sau Broken có được tìm thấy không; kết quả không thay đổi hợp đồng best effort của API.
+**Exercise A — change descriptor order:** in the broken descriptor, place Broken before Alpha. Predict strict: STOP CONFIG_ERROR may appear before any USE line. With bounded, observe whether providers after Broken are still found; the result does not alter the API's best-effort contract.
 
-**Bài tập B — sửa Broken:** bỏ exception trong constructor rồi build lại JAR. Lúc này strict có thể duyệt cả ba provider; chạy lại từ một tiến trình Java mới để không nhầm với cache/loader đã tạo trước.
+**Exercise B — fix Broken:** remove the exception from the constructor and rebuild the JAR. Now strict can iterate all three providers; rerun in a fresh Java process so as not to confuse with previously created caches/loaders.
 
-**Bài tập C — cố tình sai tên class:** đổi dòng demo.providers.Broken thành demo.providers.DoesNotExist; chạy strict và bounded. Dùng stack trace để xác nhận lỗi là không tìm thấy provider class, khác với lỗi constructor của thí nghiệm chính. Không giả định retry sau hai loại lỗi có cùng hành vi.
+**Exercise C — intentional class typo:** change demo.providers.Broken to demo.providers.DoesNotExist; run strict and bounded. Use the stack trace to confirm the error is a missing provider class, distinct from the main experiment's constructor failure. Do not assume retries behave identically across the two error types.
 
-**Bài tập D — sai định dạng descriptor:** thêm một dòng không phải tên binary hợp lệ, ví dụ "bad provider name!". Lỗi đọc/parse descriptor có thể xảy ra ngay khi iterator tìm provider; bổ sung log để phân biệt hasNext() và next(). Không dùng kết quả quan sát được trên một bản JDK làm bảo đảm chung.
+**Exercise D — invalid descriptor format:** add a line that is not a valid binary name, such as "bad provider name!". Descriptor reading/parsing errors may happen right when the iterator searches for providers; add logs to distinguish hasNext() from next(). Do not treat behavior observed on one JDK version as a universal guarantee.
 
-**Bài tập E — provider lỗi nghiệp vụ:** tạo một provider có constructor hợp lệ nhưng process() ném IllegalArgumentException. So sánh PROCESS_ERROR với CONFIG_ERROR và cách host quyết định fallback. Điều quan trọng là không biến lỗi thực thi một phương thức thành bằng chứng descriptor sai.
+**Exercise E — business-error provider:** create a provider with a valid constructor whose process() throws IllegalArgumentException. Compare PROCESS_ERROR with CONFIG_ERROR and how the host decides fallback. Crucially, do not turn a method execution error into evidence of a broken descriptor.
 
-**Tiêu chí hoàn thành:** giải thích được (1) vì sao catch (Exception) không bắt ServiceConfigurationError, (2) vì sao phải bắt lỗi của cả hasNext() lẫn next(), (3) ý nghĩa chính xác của best effort và giới hạn retry, (4) sự khác nhau giữa provider lỗi khởi tạo và provider lỗi nghiệp vụ, (5) khi nào chọn fail closed và khi nào cho phép degraded mode, và (6) vì sao reload() không phải giải pháp cho cấu hình sai.
+**Completion criteria:** be able to explain (1) why catch (Exception) does not catch ServiceConfigurationError, (2) why errors from both hasNext() and next() must be caught, (3) the exact meaning of best effort and retry bounds, (4) the difference between an initialization-failing provider and a business-failing provider, (5) when to choose fail closed vs. degraded mode, and (6) why reload() is not a fix for bad configuration.
 
-**Tài liệu tham khảo:** [Java SE 17 — ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), đặc biệt các phần Errors, iterator(), stream() và reload(). Nguyên tắc trọng tâm là: **thử tiếp có thể có ích, nhưng kết quả phục hồi không được bảo đảm; host phải giới hạn, ghi nhận và xử lý trạng thái nạp không đầy đủ**.
+**Reference:** [Java SE 17 — ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), especially the sections on Errors, iterator(), stream(), and reload(). The core principle is: **continuing can help, yet recovery is not guaranteed; the host must bound, record, and handle incomplete load states**.

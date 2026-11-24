@@ -1,39 +1,39 @@
-# Công bố tập plugin đang hoạt động an toàn cho luồng đọc đồng thời
+# Publishing the Active Plugin Set Safely for Concurrent Readers
 
-## 1. Bài toán: nhiều luồng đọc trong khi plugin được thay thế
+## 1. The Problem: Multiple Reader Threads While Plugins Are Replaced
 
-Một hệ thống plugin thường có nhiều request thread liên tục chọn và gọi plugin, trong khi một luồng quản trị có thể thêm, cập nhật, vô hiệu hóa hoặc thay thế plugin. Tại một thời điểm, hệ thống cần công bố một **tập plugin đang hoạt động (active plugin set)** để các reader sử dụng.
+A plugin system typically has multiple request threads continuously selecting and invoking plugins, while a management thread may add, update, disable, or replace plugins. At any point in time, the system needs to publish an **active plugin set** for readers to use.
 
-Nếu registry chỉ là một \`ArrayList\` hoặc \`HashMap\` mutable được chia sẻ trực tiếp, writer có thể thay đổi cấu trúc trong khi reader đang duyệt. Hậu quả gồm dữ liệu không nhất quán, chọn nhầm provider, \`ConcurrentModificationException\` trong một số trường hợp, hoặc lỗi hiển thị bộ nhớ do thiếu quan hệ happens-before. \`ConcurrentModificationException\` **không phải cơ chế đồng bộ** và cũng không bảo đảm xuất hiện ở mọi cuộc đua dữ liệu.
+If the registry is merely a mutable \`ArrayList\` or \`HashMap\` shared directly, a writer can mutate its structure while a reader is traversing it. Consequences include inconsistent data, selecting the wrong provider, \`ConcurrentModificationException\` in some cases, or memory visibility bugs due to a missing happens-before relationship. \`ConcurrentModificationException\` is **not a synchronization mechanism** and is not guaranteed to appear on every data race.
 
-Mục tiêu thiết kế:
+Design goals:
 
-- Reader nhìn thấy **một snapshot hoàn chỉnh, đã được kiểm tra và kích hoạt**, không thấy trạng thái xây dựng dở dang.
-- Mỗi lần reader lấy registry là một thao tác đọc nhất quán, không cần khóa trên đường xử lý nóng.
-- Writer có thể chuẩn bị snapshot mới ngoài đường đọc, rồi **công bố bằng một thao tác nguyên tử**.
-- Plugin bị thay thế không bị đóng tài nguyên khi request cũ vẫn đang gọi nó.
-- Các trạng thái lifecycle như \`NEW\`, \`STARTING\`, \`ACTIVE\`, \`DRAINING\`, \`STOPPED\` không bị đánh đồng với việc một object còn xuất hiện trong map.
+- Readers see **a complete, validated, and activated snapshot**, never a half-constructed state.
+- Every registry lookup by a reader is a consistent read operation, requiring no lock on the hot path.
+- Writers can prepare a new snapshot off the read path, and then **publish it in a single atomic operation**.
+- A replaced plugin does not have its resources closed while old requests are still calling it.
+- Lifecycle states such as \`NEW\`, \`STARTING\`, \`ACTIVE\`, \`DRAINING\`, and \`STOPPED\` are not conflated with whether an object still appears in a map.
 
-Giải pháp nền tảng dễ bảo trì là **immutable snapshot + atomic/volatile reference + lifecycle drain**.
+The maintainable foundational solution is **immutable snapshot + atomic/volatile reference + lifecycle drain**.
 
-## 2. An toàn ở đây có những lớp nào?
+## 2. What Layers of Safety Are Involved Here?
 
-Cần tách bốn loại an toàn:
+Four kinds of safety must be separated:
 
-| Khía cạnh | Cần bảo đảm | Ví dụ lỗi nếu thiếu |
+| Aspect | What Must Be Guaranteed | Example Bug If Missing |
 |---|---|---|
-| Memory visibility | Reader thấy các ghi trước publication | Thấy cấu hình hay field chưa được khởi tạo |
-| Atomic publication | Reader nhận một phiên bản registry hoàn chỉnh | Thấy provider A mới nhưng B vẫn là bản cũ ngoài ý muốn |
-| Snapshot immutability | Writer không sửa object registry reader đã nhận | Duyệt map bị thay đổi giữa chừng |
-| Lifecycle safety | Plugin còn được dùng không bị đóng sớm | \`IllegalStateException\`, socket/loader đóng giữa request |
+| Memory visibility | Readers see writes made before publication | Seeing uninitialized configuration or fields |
+| Atomic publication | Readers receive a complete registry version | Seeing new provider A while B is unexpectedly still the old version |
+| Snapshot immutability | Writers do not mutate the registry object a reader received | Traversing a map mutated midway |
+| Lifecycle safety | Plugins still in use are not closed prematurely | \`IllegalStateException\`, socket/loader closed mid-request |
 
-**\`volatile\` hoặc \`AtomicReference\` chỉ giải quyết publication của tham chiếu**, không biến object mutable phía sau thành immutable, và không tự bảo đảm các plugin bên trong thread-safe.
+**\`volatile\` or \`AtomicReference\` only solves publication of the reference**; it does not make a mutable object behind it immutable, and does not automatically make the plugins inside thread-safe.
 
-Điểm tuyến tính hóa (linearization point) của lần công bố thường là thao tác \`active.set(next)\` hoặc ghi vào field \`volatile\`. Reader lấy snapshot trước điểm đó dùng bản cũ; reader lấy sau đó có thể dùng bản mới. Với một lần đọc reference, không cần tạo khóa toàn cục để duyệt cấu trúc immutable.
+The linearization point of a publication is typically the \`active.set(next)\` operation or writing to a \`volatile\` field. Readers fetching the snapshot before that point use the old version; readers fetching afterward can use the new version. With a single reference read, no global lock is needed to traverse an immutable structure.
 
-## 3. Immutable snapshot và AtomicReference
+## 3. Immutable Snapshot and AtomicReference
 
-Mô hình cơ bản:
+Basic model:
 
 \`\`\`java
 record PluginRegistry(long revision, Map<String, Plugin> plugins) {
@@ -46,7 +46,7 @@ AtomicReference<PluginRegistry> active =
         new AtomicReference<>(new PluginRegistry(0, Map.of()));
 \`\`\`
 
-Một writer tạo registry mới:
+A writer builds a new registry:
 
 \`\`\`java
 Map<String, Plugin> nextPlugins = new HashMap<>(current.plugins());
@@ -55,33 +55,33 @@ PluginRegistry next = new PluginRegistry(current.revision() + 1, nextPlugins);
 active.set(next);
 \`\`\`
 
-Một reader dùng:
+A reader uses:
 
 \`\`\`java
 PluginRegistry snapshot = active.get();
 Plugin selected = snapshot.plugins().get("csv");
 \`\`\`
 
-Đây là **copy-on-write ở cấp registry**, không phải clone mọi plugin object. \`Map.copyOf\` tạo một map không cho sửa qua API; bản sao là **shallow**. Plugin object trong map có thể giữ mutable state. Vì thế cần bảo đảm plugin đã được khởi tạo đúng, có trạng thái phù hợp và xử lý các cuộc gọi đồng thời theo contract của nó.
+This is **copy-on-write at the registry level**, not cloning every plugin object. \`Map.copyOf\` creates an unmodifiable map through the API; the copy is **shallow**. Plugin objects inside the map may hold mutable state. Therefore you must ensure plugins are properly initialized, in an appropriate state, and handle concurrent calls per their contract.
 
-Ưu điểm:
+Advantages:
 
-- Reader chỉ thực hiện \`get()\` rồi tra cứu map đã chốt.
-- Không cần khóa trong vòng lặp đọc.
-- Snapshot đã lấy không bị writer chỉnh sửa cấu trúc.
-- Revision giúp quan sát thay đổi và so khớp log.
+- Readers only call \`get()\` and look up in the finalized map.
+- No lock is required in the read loop.
+- A retrieved snapshot cannot be structurally mutated by writers.
+- Revisions make changes observable and easy to correlate in logs.
 
-Nhược điểm:
+Disadvantages:
 
-- Mỗi lần thay đổi cần tạo registry/map mới; phù hợp khi số lần cập nhật ít hơn rất nhiều so với số lần đọc.
-- Cùng một plugin instance có thể được dùng bởi nhiều snapshot.
-- Không tự giải quyết lifetime của instance và resource.
+- Each change requires creating a new registry/map; best suited when updates are much less frequent than reads.
+- The same plugin instance can be referenced by multiple snapshots.
+- Does not by itself manage the lifetime of instances and resources.
 
-## 4. Vì sao AtomicReference hoặc volatile đủ cho publication?
+## 4. Why Is AtomicReference or volatile Sufficient for Publication?
 
-Theo Java Memory Model, việc ghi vào biến \`volatile\` và lần đọc phù hợp tạo quan hệ **happens-before**. \`AtomicReference.set\`/\`get\` có memory effects của volatile. Do đó nếu writer xây dựng object snapshot hoàn chỉnh **trước** \`set\`, reader nhận reference đó sẽ nhìn thấy các ghi được xuất bản hợp lệ trước đó.
+Under the Java Memory Model, a write to a \`volatile\` variable and a matching read establish a **happens-before** relationship. \`AtomicReference.set\`/\`get\` have the memory effects of \`volatile\`. Therefore, if the writer constructs the complete snapshot object **before** \`set\`, a reader receiving that reference will observe all writes validly published before it.
 
-Mô hình:
+Model:
 
 \`\`\`text
 Writer thread                            Reader thread
@@ -95,21 +95,21 @@ active.set(registry7)  -------->         registry = active.get()
                                         invoke plugin A
 \`\`\`
 
-**Không** làm thế này:
+**Do not** do this:
 
 \`\`\`java
 Map<String, Plugin> mutable = new HashMap<>();
 active.set(new PluginRegistryMutable(mutable));
-mutable.put("A", plugin); // sửa sau publication: sai
+mutable.put("A", plugin); // mutate after publication: wrong
 \`\`\`
 
-Đồng thời, chỉ sử dụng \`final\` field trong một object không tự bảo đảm các thao tác thay thế reference mà nhiều reader đang quan sát là an toàn nếu bạn gán vào một biến thường không đồng bộ.
+Also, merely using \`final\` fields inside an object does not automatically make reference-replacement operations observed by multiple readers safe if you assign to an unsynchronized plain variable.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: snapshot đọc đồng thời
+## 5. Complete Java 17+ Example: Concurrent Snapshot Reads
 
-Ví dụ sử dụng một writer xuất bản bản registry mới và hai reader đọc snapshot. Nó không yêu cầu dependency ngoài. Nội dung log giữa các thread có thể xen kẽ, vì lịch scheduling không cố định, nhưng mỗi reader luôn dùng cùng một revision trong một lần đọc.
+The example uses one writer publishing a new registry version and two readers reading snapshots. It requires no external dependencies. Log output across threads may interleave because thread scheduling is non-deterministic, yet each reader consistently uses the same revision within a single read.
 
-Tạo file **\`PluginSnapshotDemo.java\`**:
+Create the file **\`PluginSnapshotDemo.java\`**:
 
 \`\`\`java
 import java.util.HashMap;
@@ -192,14 +192,14 @@ public class PluginSnapshotDemo {
 }
 \`\`\`
 
-Chạy:
+Run:
 
 \`\`\`bash
 javac PluginSnapshotDemo.java
 java PluginSnapshotDemo
 \`\`\`
 
-Một kết quả hợp lệ (hai dòng reader có thể đổi thứ tự):
+A valid output (the two reader lines may swap order):
 
 \`\`\`text
 reader revision=1 result=HELLO
@@ -207,40 +207,40 @@ reader revision=1 result=HELLO
 latest revision=2 result=hello
 \`\`\`
 
-Giải thích:
+Explanation:
 
-1. Writer công bố registry revision 1 chứa provider \`upper\`.
-2. Hai reader giữ reference tới **cùng một snapshot revision 1** rồi chờ writer công bố revision 2.
-3. Writer thay registry bằng revision 2 chứa \`lower\`.
-4. Hai reader hoàn tất bằng provider cũ, vì snapshot của chúng không bị sửa.
-5. Lần đọc mới sau publication nhận revision 2 và dùng \`lower\`.
+1. The writer publishes registry revision 1 containing provider \`upper\`.
+2. Both readers hold a reference to **the same snapshot revision 1** and wait for the writer to publish revision 2.
+3. The writer replaces the registry with revision 2 containing \`lower\`.
+4. Both readers finish using the old provider because their snapshot was not mutated.
+5. A fresh read after publication receives revision 2 and uses \`lower\`.
 
-Đây là demonstration về **publication và snapshot consistency**. Nó chưa đóng provider, chưa quản lý in-flight requests và chưa xử lý hai writer cạnh tranh; các phần đó phải được thiết kế bổ sung.
+This is a demonstration of **publication and snapshot consistency**. It does not close providers, manage in-flight requests, or handle competing writers; those parts must be designed additionally.
 
-## 6. Cập nhật đồng thời: set, compareAndSet và updateAndGet
+## 6. Concurrent Updates: set, compareAndSet, and updateAndGet
 
-Nếu chỉ có **một writer được serialize** (ví dụ một control-plane thread), \`active.set(next)\` là đủ cho việc công bố.
+If there is only **a single serialized writer** (such as a control-plane thread), \`active.set(next)\` is sufficient for publication.
 
-Nếu có nhiều writer:
+If there are multiple writers:
 
 \`\`\`text
-Writer A đọc revision 4
-Writer B đọc revision 4
-Writer A thêm plugin X -> revision 5
-Writer B thêm plugin Y -> revision 5
-Writer B set(...) ghi đè X
+Writer A reads revision 4
+Writer B reads revision 4
+Writer A adds plugin X -> revision 5
+Writer B adds plugin Y -> revision 5
+Writer B set(...) overwrites X
 \`\`\`
 
-Đây là **lost update**. Có thể giải quyết bằng:
+This is a **lost update**. It can be solved by:
 
-- Dùng một writer lock hoặc serial executor cho toàn bộ thay đổi registry.
-- Dùng vòng lặp \`compareAndSet(expected, next)\` để chỉ công bố nếu snapshot chưa đổi; nếu CAS thất bại, đọc lại và dựng snapshot mới.
-- Dùng \`updateAndGet\` với một hàm tạo giá trị mới **không có side effect**, vì hàm này có thể được gọi lại khi CAS cạnh tranh.
+- Using a writer lock or a serial executor for all registry mutations.
+- Using a \`compareAndSet(expected, next)\` loop to publish only if the snapshot has not changed; if CAS fails, re-read and build a new snapshot.
+- Using \`updateAndGet\` with a **side-effect-free** function that computes the new value, because that function may be retried under CAS contention.
 
-Ví dụ CAS:
+CAS example:
 
 \`\`\`java
-// Đoạn tích hợp; active là AtomicReference<Registry>, plugin đã sẵn sàng.
+// Integration snippet; active is AtomicReference<Registry>, plugin is ready.
 for (;;) {
     Registry old = active.get();
     Map<String, Plugin> changed = new HashMap<>(old.plugins());
@@ -252,46 +252,46 @@ for (;;) {
 }
 \`\`\`
 
-**Không gọi \`plugin.start()\` trong callback CAS hoặc hàm \`updateAndGet\`**. Vì retry có thể xảy ra, một lifecycle operation có side effect có thể chạy lặp. Hãy khởi tạo plugin trước khi vào vòng cập nhật và chỉ publish instance đã sẵn sàng; nếu bị thất bại do xung đột, áp dụng chính sách xử lý/tái dùng hoặc cleanup rõ ràng.
+**Do not call \`plugin.start()\` inside a CAS callback or \`updateAndGet\` function.** Because retries can occur, a lifecycle operation with side effects could run multiple times. Initialize the plugin before entering the update loop and publish only an already-ready instance; if it fails due to conflict, apply an explicit handling/reuse or cleanup policy.
 
-CAS chỉ giải quyết xung đột thay đổi snapshot; lifecycle cleanup khi một writer thất bại vẫn phải do manager điều phối.
+CAS only resolves snapshot mutation conflicts; lifecycle cleanup when a writer fails must still be orchestrated by the manager.
 
-## 7. Đừng đóng plugin ngay sau khi publish bản mới
+## 7. Do Not Close a Plugin Immediately After Publishing a New Version
 
-Tình huống nguy hiểm:
+Dangerous scenario:
 
 \`\`\`text
-Reader A lấy snapshot cũ chứa Plugin V1
+Reader A takes old snapshot containing Plugin V1
         |
-Writer công bố snapshot mới chứa Plugin V2
+Writer publishes new snapshot containing Plugin V2
         |
-Writer gọi V1.close() ngay
+Writer calls V1.close() immediately
         |
-Reader A vẫn đang chạy V1.run() --> lỗi tài nguyên đóng giữa chừng
+Reader A is still running V1.run() --> resource-closed-mid-request error
 \`\`\`
 
-Publication không đồng nghĩa với việc **mọi reader đã ngừng dùng snapshot cũ**.
+Publication does not mean **every reader has stopped using the old snapshot**.
 
-Một quy trình hot swap đúng cần:
+A proper hot-swap procedure requires:
 
-1. Tạo, kiểm tra và khởi động V2 trước.
-2. Công bố snapshot V2 nguyên tử để request mới nhận V2.
-3. Đánh dấu V1 chuyển sang trạng thái \`DRAINING\`, không cấp phát thêm lời gọi mới từ registry hiện hành.
-4. Chờ các lời gọi V1 đang chạy hoàn thành (có timeout/chính sách hủy).
-5. Khi không còn lời gọi, đóng V1 và giải phóng resource/class loader.
+1. Creating, validating, and starting V2 first.
+2. Atomically publishing the V2 snapshot so new requests receive V2.
+3. Marking V1 as \`DRAINING\`, issuing no more new calls from the active registry.
+4. Waiting for in-flight V1 calls to complete (with a timeout/cancellation policy).
+5. Once no calls remain, closing V1 and releasing resources/class loaders.
 
-Các cơ chế có thể dùng để bảo vệ lifetime:
+Mechanisms that can be used to protect lifetime:
 
-- **Reference-counted lease:** reader tăng bộ đếm quyền sử dụng trước khi gọi và giảm trong \`finally\`; writer chờ bộ đếm về 0.
-- **Reader-writer lock:** reader giữ read lock trong toàn bộ thời gian sử dụng; writer lấy write lock trước khi dừng/đóng phiên bản cũ.
-- **Epoch/quiescent-state reclamation:** reader tham gia epoch; writer chỉ thu hồi sau khi mọi reader liên quan đã rời epoch. Cần hiện thực cẩn thận.
-- **Grace-period drain:** ngừng tiếp nhận request mới và chờ các request in-flight được theo dõi bởi request manager.
+- **Reference-counted lease:** readers increment a usage counter before calling and decrement it in \`finally\`; writers wait for the counter to reach 0.
+- **Reader-writer lock:** readers hold the read lock for the duration of use; writers acquire the write lock before stopping/closing the old version.
+- **Epoch/quiescent-state reclamation:** readers enter an epoch; writers reclaim only after all relevant readers have exited that epoch. Requires careful implementation.
+- **Grace-period drain:** stop accepting new requests and wait for in-flight requests tracked by the request manager.
 
-**Cảnh báo về reference counting:** chỉ tăng bộ đếm **sau khi** lấy snapshot là chưa đủ nếu writer có thể đóng plugin ngay trước khi bộ đếm được tăng. Phải thiết kế một bước **acquire lease nguyên tử với kiểm tra trạng thái**; nếu không thành công thì reader lấy lại snapshot mới. Writer chuyển trạng thái từ \`ACTIVE\` sang \`DRAINING\` theo cùng protocol trước khi chờ số lease về 0.
+**Warning about reference counting:** simply incrementing a counter **after** taking a snapshot is not enough if a writer can close the plugin right before the counter is incremented. You must design an **atomic lease-acquisition step combined with a state check**; if it fails, the reader re-reads the latest snapshot. Writers transition state from \`ACTIVE\` to \`DRAINING\` under the same protocol before waiting for the lease count to reach 0.
 
-## 8. Một mô hình lease an toàn hơn
+## 8. A Safer Lease Model
 
-Có thể dùng object holder cho mỗi plugin version:
+A holder object can be used for each plugin version:
 
 \`\`\`text
 PluginHolder {
@@ -301,116 +301,116 @@ PluginHolder {
 }
 \`\`\`
 
-Protocol tối thiểu:
+Minimal protocol:
 
 **Reader**
-1. Lấy registry snapshot.
-2. Xác định holder mong muốn.
-3. Thử \`acquire()\`: chỉ thành công nếu holder còn ACTIVE; tăng lease count theo thao tác đồng bộ/atomic không có race với DRAINING.
-4. Nếu không acquire được, đọc lại snapshot và thử hoặc trả lỗi.
-5. Gọi plugin.
-6. \`release()\` trong \`finally\`.
+1. Obtain the registry snapshot.
+2. Identify the desired holder.
+3. Attempt \`acquire()\`: succeeds only if the holder is still ACTIVE; increments the lease count via a synchronized/atomic operation with no race against DRAINING.
+4. If acquisition fails, re-read the snapshot and retry or return an error.
+5. Invoke the plugin.
+6. \`release()\` in \`finally\`.
 
 **Writer**
-1. Chuẩn bị holder mới ở trạng thái sẵn sàng.
-2. Công bố registry mới.
-3. Chuyển holder cũ sang DRAINING, ngăn lease mới.
-4. Chờ các lease còn lại về 0.
-5. Đóng plugin và chuyển CLOSED.
+1. Prepare the new holder in a ready state.
+2. Publish the new registry.
+3. Transition the old holder to DRAINING, blocking new leases.
+4. Wait for remaining leases to drop to 0.
+5. Close the plugin and transition to CLOSED.
 
-Protocol phải bảo đảm nếu reader đang acquire cùng lúc writer drain, chỉ một kết quả được phép: reader sở hữu lease hợp lệ và writer đợi; hoặc acquire thất bại và reader retry. Cần kiểm thử race kỹ lưỡng.
+The protocol must guarantee that if a reader attempts to acquire at the exact time a writer drains, only one outcome is possible: either the reader owns a valid lease and the writer waits, or acquisition fails and the reader retries. Test races thoroughly.
 
-Một phương án đơn giản, thường dễ chứng minh đúng hơn khi tải không quá lớn là dùng **read/write lock bảo vệ cả snapshot acquisition và giai đoạn sử dụng**. Điều đó làm tăng contention nhưng phù hợp ứng dụng có ít request. Atomic snapshot và lease protocol là lựa chọn tối ưu hơn khi read-heavy, nhưng phức tạp hơn.
+A simpler option, often easier to prove correct when load is moderate, is using a **read/write lock guarding both snapshot acquisition and the usage phase**. That increases contention, but fits low-request applications. Atomic snapshots and lease protocols are a better choice for read-heavy workloads, though more complex.
 
-## 9. ConcurrentHashMap có thay thế snapshot không?
+## 9. Does ConcurrentHashMap Replace Snapshots?
 
-\`ConcurrentHashMap\` cung cấp các thao tác thread-safe ở cấp cấu trúc và lookup. Nhưng:
+\`ConcurrentHashMap\` provides thread-safe structural and lookup operations. However:
 
-- Một chuỗi thao tác đọc nhiều key có thể thấy các thời điểm cập nhật khác nhau.
-- Iterator của \`ConcurrentHashMap\` thường có **weakly consistent** semantics, không phải snapshot nhất quán tuyệt đối theo phiên bản.
-- \`put\` hoặc \`remove\` từng key không tạo ra một transaction cập nhật toàn bộ registry.
-- Lifecycle của plugin vẫn không được quản lý tự động.
+- A sequence of multi-key reads can observe different update timestamps.
+- \`ConcurrentHashMap\` iterators generally have **weakly consistent** semantics, not a strictly consistent point-in-time versioned snapshot.
+- Individual \`put\` or \`remove\` calls do not form an atomic transaction updating the entire registry.
+- Plugin lifecycle is still not managed automatically.
 
-Do vậy, nếu yêu cầu là **công bố toàn bộ tập plugin như một phiên bản logic**, immutable registry được swap nguyên tử có ngữ nghĩa rõ hơn. Nếu chỉ cập nhật từng key độc lập và không cần snapshot đồng nhất, \`ConcurrentHashMap\` có thể đủ.
+Therefore, if the requirement is to **publish the entire plugin set as a logical version**, an atomically swapped immutable registry has clearer semantics. If you only update independent keys and do not need a unified snapshot, \`ConcurrentHashMap\` may suffice.
 
-Tương tự, \`Collections.synchronizedMap\` yêu cầu đồng bộ cả khi duyệt và cả chuỗi thao tác; không tự biến một quy trình publish nhiều bước thành transaction không gián đoạn.
+Similarly, \`Collections.synchronizedMap\` requires external synchronization for iteration and multi-step sequences; it does not automatically turn a multi-step publish workflow into an uninterrupted transaction.
 
-## 10. Kiểm tra tính bất biến và cấu hình plugin
+## 10. Checking Immutability and Plugin Configuration
 
-\`Map.copyOf\` bảo vệ cấu trúc map; mọi giá trị \`Plugin\` vẫn là reference. Nếu plugin có field mutable như cấu hình, connection pool hoặc cache, reader có thể thấy thay đổi giữa request.
+\`Map.copyOf\` protects map structure; every \`Plugin\` value is still a reference. If a plugin has mutable fields such as configuration, connection pools, or caches, readers may observe changes mid-request.
 
-Nên đặt:
+You should separate:
 
-- **Metadata bất biến**: ID, version, API compatibility, capability, thứ tự lựa chọn.
-- **Cấu hình bất biến theo revision**: mỗi snapshot tham chiếu một configuration đã được validate.
-- **State runtime rõ ownership**: tài nguyên và bộ đếm bên trong holder, quản lý riêng với map metadata.
-- **Hợp đồng concurrency của plugin**: single-threaded, thread-safe, per-request instance hoặc pool có giới hạn.
+- **Immutable metadata**: ID, version, API compatibility, capabilities, selection order.
+- **Immutable per-revision configuration**: each snapshot references a validated configuration.
+- **Runtime state with explicit ownership**: resources and counters live inside the holder, managed separately from the metadata map.
+- **Plugin concurrency contract**: single-threaded, thread-safe, per-request instance, or bounded pool.
 
-Nếu plugin **không thread-safe**, việc publish vào map thread-safe không cho phép nhiều reader gọi nó đồng thời một cách an toàn. Host phải serialize invocation hoặc tạo instance riêng theo request.
+If a plugin is **not thread-safe**, publishing it into a thread-safe map does not allow multiple readers to invoke it concurrently safely. The host must serialize invocations or instantiate per request.
 
-Một snapshot nên có \`revision\` hoặc \`generation\` để log lựa chọn plugin, hỗ trợ trace/audit và phân biệt phiên bản trong lúc cập nhật nóng.
+A snapshot should carry a \`revision\` or \`generation\` to log plugin selection, aid tracing/auditing, and distinguish versions during hot updates.
 
-## 11. Lỗi, rollback và quản lý trạng thái
+## 11. Errors, Rollback, and State Management
 
-Một thay đổi registry có thể thất bại tại nhiều điểm:
+A registry change can fail at multiple points:
 
-| Giai đoạn | Lỗi | Hướng xử lý |
+| Phase | Error | Handling Approach |
 |---|---|---|
-| Chuẩn bị | JAR hoặc metadata không hợp lệ | Không publish |
-| Khởi tạo | Plugin V2 không start/health check | Giữ snapshot V1 |
-| Công bố | CAS thất bại do writer khác | Tính lại snapshot hoặc từ chối theo conflict policy |
-| Drain | V1 có request treo | Timeout, stop accepting, cancellation hoặc chính sách vận hành |
-| Cleanup | Plugin close lỗi | Log cảnh báo, thu hồi phần còn lại và đánh dấu cần xử lý |
-| Rollback | V2 có lỗi sau khi publish | Tạo/công bố snapshot rollback; không giả định V1 vẫn còn tài nguyên nếu đã đóng |
+| Preparation | Invalid JAR or metadata | Do not publish |
+| Initialization | Plugin V2 fails start/health check | Keep snapshot V1 |
+| Publication | CAS fails due to another writer | Recompute snapshot or reject per conflict policy |
+| Drain | V1 has hanging requests | Timeout, stop accepting, cancellation, or operational policy |
+| Cleanup | Plugin close fails | Log warning, reclaim remaining parts, and flag for attention |
+| Rollback | V2 fails after publication | Build/publish a rollback snapshot; do not assume V1 still has resources if already closed |
 
-Rollback ở đây là **một lần công bố revision mới** trỏ đến plugin hợp lệ (nếu còn sử dụng được), không phải xóa dấu vết của revision trước. Nếu V1 đã đóng, rollback có thể phải khởi tạo lại.
+Rollback here is **publishing a new revision** pointing back to a valid plugin (if still usable), not erasing traces of the previous revision. If V1 was already closed, rollback may require re-initializing it.
 
-Khi shutdown, hệ thống phải ngừng nhận request mới, chờ in-flight operations và đóng plugin trong thứ tự phụ thuộc thích hợp. Tránh giữ reference tới class loader plugin cũ trong static cache, callback hoặc thread; nếu không, hot unload có thể bị cản trở.
+At shutdown, the system must stop accepting new requests, wait for in-flight operations, and close plugins in the proper dependency order. Avoid retaining references to old plugin class loaders in static caches, callbacks, or threads; otherwise, hot unloading can be blocked.
 
-## 12. Kiểm thử concurrency và observability
+## 12. Concurrency Testing and Observability
 
-Không thể chứng minh an toàn thread chỉ bằng một lần chạy demo. Các ca kiểm thử quan trọng:
+Thread safety cannot be proven by a single demo run. Key test cases:
 
-1. Nhiều reader liên tục lấy snapshot trong khi writer thay revision.
-2. Writer tạo snapshot mới nhưng chưa publish: reader không được thấy cấu hình dở dang.
-3. Hai writer đồng thời thêm các key khác nhau: không được lost update.
-4. Reader giữ snapshot cũ lâu; writer phải tránh close sớm.
-5. Reader acquire lease đúng lúc writer chuyển DRAINING.
-6. Plugin start thất bại: snapshot hiện hành không thay đổi.
-7. Plugin run ném exception: lease vẫn được release trong \`finally\`.
-8. Rollback, shutdown, timeout và hot reload lặp nhiều lần.
+1. Multiple readers continuously fetch snapshots while a writer swaps revisions.
+2. Writer builds a new snapshot but has not published yet: readers must not see half-built config.
+3. Two writers concurrently add different keys: no lost updates.
+4. Reader holds an old snapshot for a long time: writer must avoid premature close.
+5. Reader acquires a lease right as writer transitions to DRAINING.
+6. Plugin start fails: active snapshot remains unchanged.
+7. Plugin run throws an exception: lease is still released in \`finally\`.
+8. Repeated rollbacks, shutdowns, timeouts, and hot reloads.
 
-Có thể kết hợp JUnit concurrency tests, stress tests và các công cụ như JCStress để kiểm tra các giao thức atomic/visibility phức tạp. Không nên dùng \`Thread.sleep\` làm bằng chứng về thứ tự; dùng \`CountDownLatch\`, barrier hoặc test harness đồng bộ để kiểm soát race.
+You can combine JUnit concurrency tests, stress tests, and tools like JCStress to verify complex atomic/visibility protocols. Do not use \`Thread.sleep\` as proof of ordering; use \`CountDownLatch\`, barriers, or synchronized test harnesses to control races.
 
-Ghi metrics/log theo \`registryRevision\`, \`pluginId\`, \`pluginVersion\`, thời gian publish, số in-flight calls, thời gian drain và trạng thái cleanup. Không log dữ liệu nhạy cảm từ request/plugin.
+Log metrics/events with \`registryRevision\`, \`pluginId\`, \`pluginVersion\`, publish time, in-flight call count, drain duration, and cleanup status. Do not log sensitive data from requests/plugins.
 
-## 13. Những lỗi thường gặp
+## 13. Common Mistakes
 
-- Chia sẻ \`HashMap\` hoặc \`ArrayList\` mutable mà không đồng bộ.
-- Giữ map mutable trong \`AtomicReference\` rồi tiếp tục sửa map đó.
-- Nghĩ rằng \`volatile\` làm các object plugin bên trong thread-safe.
-- Dùng \`ConcurrentHashMap\` nhưng đòi toàn bộ registry phải nhất quán theo một revision.
-- Dùng \`set(next)\` cho nhiều writer mà không ngăn lost update.
-- Khởi tạo plugin có side effect bên trong hàm CAS có thể được gọi lại.
-- Đóng plugin V1 ngay sau publish V2 mà chưa đợi reader V1 hoàn thành.
-- Tăng reference count không đồng bộ với thao tác đóng/drain, tạo race “acquire sau close”.
-- Để reader tra cứu registry hai lần trong cùng request rồi vô tình dùng provider khác phiên bản.
-- Bỏ qua cleanup của callback, thread và class loader khi hot reload.
-- Cho rằng \`Map.copyOf\` tạo bản sao sâu của plugin và cấu hình.
+- Sharing a mutable \`HashMap\` or \`ArrayList\` without synchronization.
+- Storing a mutable map in \`AtomicReference\` and continuing to mutate that map.
+- Thinking \`volatile\` makes the plugin objects inside thread-safe.
+- Using \`ConcurrentHashMap\` while expecting the entire registry to be consistent at a single revision.
+- Using \`set(next)\` with multiple writers without preventing lost updates.
+- Initializing plugins with side effects inside a CAS function that may be re-invoked.
+- Closing plugin V1 immediately after publishing V2 without waiting for V1 readers to finish.
+- Incrementing a reference count unsynchronized with close/drain, creating an “acquire after close” race.
+- Letting a reader look up the registry twice within the same request and accidentally use a provider from a different version.
+- Neglecting cleanup of callbacks, threads, and class loaders during hot reload.
+- Assuming \`Map.copyOf\` performs a deep copy of plugins and configuration.
 
-## 14. Checklist thiết kế
+## 14. Design Checklist
 
-Trước khi đưa plugin manager vào hoạt động:
+Before putting a plugin manager into production:
 
-- Snapshot được tạo hoàn chỉnh và không thể sửa cấu trúc sau publication?
-- Tham chiếu active được công bố bằng \`volatile\`/\`AtomicReference\`?
-- Reader giữ **một snapshot cho mỗi tác vụ logic**?
-- Writer cập nhật theo single-writer policy hoặc CAS/lock tránh lost update?
-- Plugin mới được khởi tạo, kiểm tra compatibility và health check trước khi publish?
-- Lifecycle của plugin cũ có drain/lease hoặc lock bảo vệ trước khi close?
-- Mỗi plugin tuân thủ yêu cầu thread safety trong quá trình invoke?
-- Các bản registry có revision, logs và khả năng rollback rõ?
-- Có test race, hot swap, cleanup, lỗi start và lỗi invoke?
-- Khi plugin không đáng tin, có ranh giới bảo mật ngoài cơ chế class loader/snapshot?
+- Is the snapshot constructed completely and structurally immutable after publication?
+- Is the active reference published via \`volatile\`/\`AtomicReference\`?
+- Does each reader capture **one snapshot per logical task**?
+- Do writers update via a single-writer policy or CAS/locks to avoid lost updates?
+- Are new plugins initialized, compatibility-checked, and health-checked before publication?
+- Is the old plugin's lifecycle protected by drain/lease or locks before closing?
+- Does each plugin uphold thread-safety requirements during invocation?
+- Do registry versions have explicit revisions, logs, and rollback capability?
+- Are there tests for races, hot swaps, cleanup, start failures, and invoke failures?
+- When plugins are untrusted, is there a security boundary beyond class loaders/snapshots?
 
-**Ghi nhớ:** cách công bố một tập plugin cho reader đồng thời là **xây một immutable snapshot hoàn chỉnh, rồi swap tham chiếu bằng thao tác atomic/volatile**. Nhưng để hot swap an toàn, cần thêm **quản lý quyền sử dụng (lease) hoặc đồng bộ vòng đời** để không đóng plugin đang được một request cũ sử dụng.
+**Takeaway:** the way to publish a plugin set for concurrent readers is to **build a complete immutable snapshot, then swap the reference with an atomic/volatile operation**. However, for safe hot swapping, you also need **usage rights (leases) or lifecycle synchronization** so you never close a plugin while an old request is still using it.

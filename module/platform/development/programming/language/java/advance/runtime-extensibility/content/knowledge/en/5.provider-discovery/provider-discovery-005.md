@@ -1,20 +1,20 @@
-# Ý nghĩa kiểu trả về của `ServiceLoader.Provider.type()` khi dùng phương thức `provider()`
+# Meaning of `ServiceLoader.Provider.type()`'s Return Value When Using a `provider()` Method
 
-Khi xây dựng cơ chế khám phá provider trong Java 9+ (đặc biệt là Java 17 với Java Platform Module System – JPMS), một chi tiết dễ gây nhầm lẫn là: **`ServiceLoader.Provider<S>.type()` không nhất thiết trả về lớp được khai báo trong `provides ... with ...`, và cũng không nhất thiết là lớp thực tế của đối tượng do `get()` tạo ra**.
+When building a provider discovery mechanism in Java 9+ (especially Java 17 with the Java Platform Module System — JPMS), one detail that easily causes confusion is: **`ServiceLoader.Provider<S>.type()` does not necessarily return the class declared in `provides ... with ...`, nor does it necessarily return the actual runtime class of the object created by `get()`**.
 
-Nếu một provider trong **explicit named module** sử dụng phương thức factory `public static provider()`, giá trị `type()` chính là **kiểu trả về được khai báo tĩnh của phương thức `provider()`**, miễn kiểu đó hợp lệ với service. Đây là điều khoản API của Java, không phải kết quả suy đoán từ tên lớp hay kiểm tra runtime object.
+If a provider in an **explicit named module** uses a `public static provider()` factory method, the value of `type()` is **the statically declared return type of the `provider()` method**, provided that type is compatible with the service. This is a Java API specification rule, not the result of inferring from class names or inspecting runtime objects.
 
-Bài học giải thích chính xác ba lớp/kiểu thường bị đánh đồng, cách `ServiceLoader` tạo provider, hệ quả khi lọc provider và một ví dụ Java 17 chạy được để quan sát sự khác biệt.
+This lesson explains the exact three classes/types commonly conflated, how `ServiceLoader` creates providers, the consequences when filtering providers, and a runnable Java 17 example to observe the difference.
 
-## 1. Ba khái niệm phải phân biệt
+## 1. Three Concepts That Must Be Distinguished
 
-Giả sử ta có service `TextService` và một module khai báo:
+Suppose we have a service `TextService` and a module declares:
 
 ~~~java
 provides demo.api.TextService with demo.plugins.PublicFactory;
 ~~~
 
-Trong lớp `PublicFactory`:
+Inside `PublicFactory`:
 
 ~~~java
 public static TextService provider() {
@@ -22,21 +22,21 @@ public static TextService provider() {
 }
 ~~~
 
-Ở đây có **ba khái niệm khác nhau**:
+Here there are **three distinct concepts**:
 
-| Khái niệm | Giá trị trong ví dụ | Vai trò |
+| Concept | Value in Example | Role |
 | --- | --- | --- |
-| **Provider class** ghi trong `provides ... with ...` | `demo.plugins.PublicFactory` | Lớp được JPMS đăng ký làm nơi cung cấp service; Java tìm phương thức factory trên lớp này |
-| **Declared return type** của `public static provider()` | `demo.api.TextService` | Hợp đồng kiểu tĩnh của giá trị factory trả về; **đây là giá trị `Provider.type()` báo cáo** |
-| **Runtime implementation class** của instance | `demo.plugins.HiddenFormatter` | Kiểu thực tế của object trả về sau `Provider.get()`; có thể khác declared return type |
+| **Provider class** written in `provides ... with ...` | `demo.plugins.PublicFactory` | Class registered with JPMS as the service provider location; Java looks for the factory method on this class |
+| **Declared return type** of `public static provider()` | `demo.api.TextService` | Static type contract of the value returned by the factory; **this is the value `Provider.type()` reports** |
+| **Runtime implementation class** of the instance | `demo.plugins.HiddenFormatter` | Actual type of the object returned after `Provider.get()`; may differ from the declared return type |
 
-`PublicFactory` có thể **không implement `TextService`**. Ngược lại, `HiddenFormatter` phải cung cấp một đối tượng gán được cho `TextService`, nhưng lớp này không nhất thiết xuất hiện trong descriptor `provides` hoặc được export từ module.
+`PublicFactory` may **not implement `TextService`**. Conversely, `HiddenFormatter` must provide an object assignable to `TextService`, yet that class does not have to appear in the `provides` descriptor or be exported from the module.
 
-Với provider có **provider constructor** thay cho `provider()`, kết quả lại khác: `Provider.type()` trả về lớp triển khai được đăng ký trực tiếp, ví dụ `DirectFormatter.class`.
+For a provider using a **provider constructor** instead of `provider()`, the result is different: `Provider.type()` returns the directly registered implementation class, for example `DirectFormatter.class`.
 
-## 2. API `ServiceLoader.Provider<S>` thực sự cam kết điều gì?
+## 2. What Does the `ServiceLoader.Provider<S>` API Actually Promise?
 
-Java khai báo API ở dạng:
+Java declares the API in the form:
 
 ~~~java
 public static interface ServiceLoader.Provider<S>
@@ -46,39 +46,39 @@ public static interface ServiceLoader.Provider<S>
 }
 ~~~
 
-- `type()` trả về một `Class<? extends S>` mô tả **provider type**. Khi dùng provider method, tài liệu JDK 17 quy định rõ đó là *return type của public static provider()*.
-- `get()` cung cấp **instance** của `S`. Với provider method, `ServiceLoader` gọi factory để lấy instance; factory trả về `null` hoặc ném exception có thể dẫn đến `ServiceConfigurationError`.
-- `ServiceLoader.load(ServiceType.class).stream()` trả về luồng `ServiceLoader.Provider<ServiceType>`, cho phép đọc metadata `type()` trước khi yêu cầu tạo instance bằng `get()`.
-- Chữ ký generic `Class<? extends S>` chỉ ràng buộc tính tương thích kiểu với `S`, **không hứa rằng đối tượng Class đó là implementation cuối cùng** hoặc là class có thể gọi constructor.
+- `type()` returns a `Class<? extends S>` describing the **provider type**. When a provider method is used, the JDK 17 documentation explicitly specifies this as *the return type of `public static provider()`*.
+- `get()` supplies an **instance** of `S`. With a provider method, `ServiceLoader` calls the factory to obtain the instance; a factory returning `null` or throwing an exception can result in `ServiceConfigurationError`.
+- `ServiceLoader.load(ServiceType.class).stream()` returns a stream of `ServiceLoader.Provider<ServiceType>`, allowing `type()` metadata to be read before requesting instantiation via `get()`.
+- The generic signature `Class<? extends S>` only constrains type compatibility with `S`; it **does not promise that the `Class` object is the final implementation** or a class whose constructor can be invoked.
 
-Ví dụ, cả `TextService.class` và `DirectFormatter.class` đều có thể xuất hiện hợp lệ như `Provider<TextService>.type()`. Lớp đầu tiên là interface nên không thể khởi tạo trực tiếp bằng constructor; không có mâu thuẫn nào với khai báo `Class<? extends TextService>`.
+For example, both `TextService.class` and `DirectFormatter.class` can validly appear as `Provider<TextService>.type()`. The first is an interface and therefore cannot be instantiated directly via constructor; there is no contradiction with the `Class<? extends TextService>` declaration.
 
-Theo Javadoc, `type()` **không bảo đảm lớp trả về có thể truy cập từ module gọi hoặc có public no-arg constructor**. Vì vậy, *muốn lấy service instance, hãy gọi `get()`*, không thay bằng reflection như `type().getDeclaredConstructor().newInstance()`.
+According to the Javadoc, `type()` **does not guarantee that the returned class is accessible from the calling module or has a public no-arg constructor**. Therefore, *to obtain a service instance, call `get()`*—do not replace it with reflection such as `type().getDeclaredConstructor().newInstance()`.
 
-## 3. Hai cách tạo provider và sự khác biệt của `type()`
+## 3. Two Ways to Create Providers and How `type()` Differs
 
-Trong một **explicit named module**, câu lệnh:
+Within an **explicit named module**, the statement:
 
 ~~~java
 provides demo.api.TextService
         with demo.plugins.PublicFactory, demo.plugins.DirectFormatter;
 ~~~
 
-có thể đăng ký hai dạng provider:
+can register two forms of providers:
 
-| Đặc điểm | Provider constructor | Provider method |
+| Characteristic | Provider constructor | Provider method |
 | --- | --- | --- |
-| Khai báo trên provider class | Lớp triển khai service; public no-arg constructor | Public static `provider()` không tham số, kiểu trả về gán được cho service |
-| Có bắt buộc provider class implement service? | Có | **Không** |
-| Cách `ServiceLoader` lấy instance | Gọi provider constructor | Gọi `provider()` |
-| `Provider.type()` | Chính provider implementation class đã đăng ký | **Kiểu trả về khai báo của `provider()`** |
-| `Provider.get()` | Trả về instance được xây dựng bởi constructor | Trả về instance do factory cung cấp |
-| Có thể che giấu implementation cụ thể? | Thấp hơn: lớp triển khai xuất hiện trong descriptor | Cao hơn: factory có thể trả về interface, superclass hoặc instance được chọn động |
+| Declaration on provider class | Class implements the service; public no-arg constructor | No-arg `public static provider()`, return type assignable to the service |
+| Must the provider class implement the service? | Yes | **No** |
+| How `ServiceLoader` obtains an instance | Calls the provider constructor | Calls `provider()` |
+| `Provider.type()` | The registered provider implementation class itself | **The declared return type of `provider()`** |
+| `Provider.get()` | Returns an instance built by the constructor | Returns an instance supplied by the factory |
+| Can it hide the concrete implementation? | Lower: the implementation class appears in the descriptor | Higher: the factory can return an interface, superclass, or dynamically chosen instance |
 
-**Ví dụ quan trọng:**
+**Important example:**
 
 ~~~java
-// Factory nằm trong explicit named module:
+// Factory located in an explicit named module:
 public final class PublicFactory {
     private PublicFactory() {}
 
@@ -88,15 +88,15 @@ public final class PublicFactory {
 }
 ~~~
 
-Ở tình huống này:
+In this situation:
 
 ~~~text
-Provider class (trong module-info): PublicFactory
-Provider.type():                 TextService.class
-Provider.get().getClass():       HiddenFormatter.class
+Provider class (in module-info): PublicFactory
+Provider.type():                  TextService.class
+Provider.get().getClass():        HiddenFormatter.class
 ~~~
 
-Còn với provider constructor:
+Whereas with a provider constructor:
 
 ~~~java
 public final class DirectFormatter implements TextService {
@@ -109,19 +109,19 @@ public final class DirectFormatter implements TextService {
 }
 ~~~
 
-thì `Provider.type()` là `DirectFormatter.class`, và một instance bình thường được tạo bằng constructor đó có `getClass()` là `DirectFormatter.class`.
+`Provider.type()` is `DirectFormatter.class`, and a normal instance created by that constructor has `getClass()` equal to `DirectFormatter.class`.
 
-**Lưu ý điều kiện áp dụng:** provider method thuộc cơ chế service provider được khai báo bởi **explicit named module** qua `module-info.java`. Với class path và file `META-INF/services/<service binary name>`, provider phải là lớp triển khai có public no-arg constructor hợp lệ; không sử dụng cơ chế provider factory này. **Automatic module** trên module path cũng không hỗ trợ provider method, mà cần provider constructor. Đừng áp dụng quy tắc “trả về kiểu khai báo của factory” cho mọi cách đóng gói service.
+**Note on applicability:** provider methods belong to the service provider mechanism declared by **explicit named modules** via `module-info.java`. With the class path and `META-INF/services/<service binary name>` files, the provider must be an implementation class with a valid public no-arg constructor; this provider factory mechanism is not used. **Automatic modules** on the module path also do not support provider methods, requiring a provider constructor instead. Do not apply the "returns the factory's declared return type" rule to every service packaging style.
 
-## 4. Ví dụ Java 17 đầy đủ: `type()` không bằng lớp factory hoặc lớp runtime
+## 4. Complete Java 17 Example: `type()` Equals Neither the Factory Class Nor the Runtime Class
 
-Ta tạo ba module:
+We create three modules:
 
-- `demo.api`: định nghĩa service `TextService`.
-- `demo.plugins`: khai báo một provider bằng factory và một provider bằng constructor.
-- `demo.app`: khám phá provider, in `type()`, rồi gọi `get()` và quan sát lớp thực tế.
+- `demo.api`: defines the `TextService` service.
+- `demo.plugins`: declares one provider via a factory and one provider via a constructor.
+- `demo.app`: discovers providers, prints `type()`, then calls `get()` and observes the actual runtime class.
 
-Cấu trúc thư mục:
+Directory structure:
 
 ~~~text
 src/
@@ -138,7 +138,7 @@ src/
     └── demo/app/Main.java
 ~~~
 
-### 4.1. Module service
+### 4.1. Service Module
 
 `src/demo.api/module-info.java`:
 
@@ -158,9 +158,9 @@ public interface TextService {
 }
 ~~~
 
-Module API export package chứa service để cả host và provider module có thể sử dụng cùng một kiểu service.
+The API module exports the package containing the service so both host and provider modules can use the exact same service type.
 
-### 4.2. Module chứa provider
+### 4.2. Provider Module
 
 `src/demo.plugins/module-info.java`:
 
@@ -172,7 +172,7 @@ module demo.plugins {
 }
 ~~~
 
-Lưu ý `module demo.plugins` **không export** `demo.plugins`. Điều đó phù hợp với ý định đóng gói provider: client dùng service interface, không cần phụ thuộc trực tiếp vào lớp triển khai.
+Notice that `module demo.plugins` **does not export** `demo.plugins`. That matches provider encapsulation intent: clients use the service interface without needing direct dependencies on implementation classes.
 
 `src/demo.plugins/demo/plugins/PublicFactory.java`:
 
@@ -190,7 +190,7 @@ public final class PublicFactory {
     }
 }
 
-// Package-private implementation, không export.
+// Package-private implementation, not exported.
 final class HiddenFormatter implements TextService {
     @Override
     public String process(String input) {
@@ -199,7 +199,7 @@ final class HiddenFormatter implements TextService {
 }
 ~~~
 
-`PublicFactory` không triển khai `TextService`; lớp đó chỉ chứa factory hợp lệ. **Kiểu trả về được khai báo của `provider()` là `TextService`**, nên metadata `Provider.type()` sẽ là `TextService.class`. Object thực tế lại là `HiddenFormatter`.
+`PublicFactory` does not implement `TextService`; that class merely holds a valid factory. **The declared return type of `provider()` is `TextService`**, so `Provider.type()` metadata will be `TextService.class`. The actual object, however, is `HiddenFormatter`.
 
 `src/demo.plugins/demo/plugins/DirectFormatter.java`:
 
@@ -218,9 +218,9 @@ public final class DirectFormatter implements TextService {
 }
 ~~~
 
-`DirectFormatter` không có phương thức factory `provider()`. Đây là nhánh constructor: `ServiceLoader` khởi tạo provider trực tiếp và `type()` sẽ báo `DirectFormatter.class`.
+`DirectFormatter` has no `provider()` factory method. This is the constructor branch: `ServiceLoader` instantiates the provider directly and `type()` reports `DirectFormatter.class`.
 
-### 4.3. Module ứng dụng tiêu thụ service
+### 4.3. Application Module Consuming the Service
 
 `src/demo.app/module-info.java`:
 
@@ -231,7 +231,7 @@ module demo.app {
 }
 ~~~
 
-`uses` cho JPMS biết module này khám phá `TextService`; module app không cần `requires demo.plugins` vì nó chỉ biết service API.
+`uses` tells JPMS that this module discovers `TextService`; the app module does not need `requires demo.plugins` because it only knows the service API.
 
 `src/demo.app/demo/app/Main.java`:
 
@@ -259,18 +259,18 @@ public final class Main {
 }
 ~~~
 
-Vòng lặp đầu chỉ lấy `Provider.type()`. Vòng thứ hai mới gọi `get()`, nhờ đó dễ quan sát ranh giới giữa **khám phá metadata** và **tạo instance**. Trong tình huống mẫu chỉ có hai provider trong cùng một module, thứ tự hai provider tuân theo thứ tự khai báo `provides` của module này; **đừng suy ra thứ tự cố định giữa nhiều module**.
+The first loop only reads `Provider.type()`. Only the second loop calls `get()`, making it easy to observe the boundary between **metadata discovery** and **instance creation**. In this sample setup with two providers inside the same module, the order of the two providers follows this module's `provides` declaration order; **do not infer a fixed ordering across multiple modules**.
 
-### 4.4. Biên dịch và chạy
+### 4.4. Compiling and Running
 
-Từ thư mục chứa `src/`, dùng JDK 17 trở lên:
+From the directory containing `src/`, using JDK 17 or later:
 
 ~~~bash
 javac --release 17 --module-source-path src -d out -m demo.app,demo.plugins
 java --module-path out --add-modules demo.plugins -m demo.app/demo.app.Main
 ~~~
 
-`--add-modules demo.plugins` bảo đảm module provider được resolve trong lần chạy này, giúp ví dụ độc lập với cách khởi chạy và lựa chọn root modules của môi trường. Lệnh `javac` biên dịch các module được chỉ định cùng những phụ thuộc cần thiết, bao gồm `demo.api`.
+`--add-modules demo.plugins` ensures the provider module is resolved during this run, making the example independent of how the environment launches and selects root modules. The `javac` command compiles the specified modules along with required dependencies, including `demo.api`.
 
 Stdout:
 
@@ -284,38 +284,38 @@ instance=demo.plugins.DirectFormatter
 result=direct:JAVA
 ~~~
 
-**Giải thích kết quả:**
+**Explaining the output:**
 
-1. Dòng `type=demo.api.TextService` thuộc `PublicFactory`. Dù descriptor đăng ký `PublicFactory`, `type()` vẫn lấy **return type của phương thức factory**.
-2. Dòng `type=demo.plugins.DirectFormatter` thuộc nhánh constructor; ở đây provider type chính là lớp triển khai trực tiếp.
-3. `factory-called` xuất hiện **sau cả hai dòng `type=`** vì code chưa gọi `get()` ở vòng lặp đầu. Trong ví dụ này, việc đọc `type()` không gọi factory.
-4. `instance=demo.plugins.HiddenFormatter` chứng minh **runtime class không cần trùng với metadata `type()`**. Dù `HiddenFormatter` không public, instance vẫn sử dụng được thông qua giao diện `TextService`.
-5. Hai dòng `result=` xác minh cả hai instance thực thi được API chung.
+1. The line `type=demo.api.TextService` belongs to `PublicFactory`. Even though the descriptor registers `PublicFactory`, `type()` takes **the return type of the factory method**.
+2. The line `type=demo.plugins.DirectFormatter` belongs to the constructor branch; here the provider type is the direct implementation class itself.
+3. `factory-called` appears **after both `type=` lines** because the code did not call `get()` in the first loop. In this example, reading `type()` does not invoke the factory.
+4. `instance=demo.plugins.HiddenFormatter` proves **the runtime class does not need to match `type()` metadata**. Even though `HiddenFormatter` is not public, the instance is still usable through the `TextService` interface.
+5. Both `result=` lines verify that both instances execute the shared API.
 
-Ví dụ đã dùng hai mô hình provider song song để so sánh; ngoài ứng dụng thực tế, có thể chọn một mô hình nhất quán cho từng extension point.
+The example ran two provider models side by side for comparison; in a real application, you can choose one consistent model per extension point.
 
-## 5. Vì sao Java trả về kiểu khai báo của factory?
+## 5. Why Does Java Return the Factory's Declared Type?
 
-Một provider method là **ranh giới tạo đối tượng**. Chữ ký:
+A provider method is an **object-creation boundary**. The signature:
 
 ~~~java
 public static TextService provider()
 ~~~
 
-công bố rằng mỗi lần nhà cung cấp factory thực thi thành công, kết quả tương thích với `TextService`, nhưng không hứa sẽ luôn trả về cùng lớp runtime. Factory có thể lựa chọn implementation theo cấu hình, môi trường hoặc phiên bản mà vẫn bảo đảm chữ ký.
+declares that whenever the factory executes successfully, the result is compatible with `TextService`, without promising it will always return the same runtime class. A factory can choose an implementation based on configuration, environment, or version while still honoring the signature.
 
-Nếu `Provider.type()` phải trả về kiểu runtime, hệ thống sẽ phải tạo một instance để kiểm tra `getClass()`. Điều đó phá vỡ lợi ích chính của `ServiceLoader.stream()`: **có thể xem và lọc thông tin kiểu provider mà chưa yêu cầu khởi tạo service instance**. Với factory, kiểu tĩnh của `provider()` là thông tin sẵn có và được công bố trong bytecode.
+If `Provider.type()` had to return the runtime type, the system would have to construct an instance just to inspect `getClass()`. That would break the primary benefit of `ServiceLoader.stream()`: **being able to inspect and filter provider type info without yet requesting service instance creation**. With a factory, the static type of `provider()` is readily available and published in bytecode.
 
-Vì vậy, phân biệt hai câu hỏi:
+Therefore, separate two questions:
 
-- `provider.type()` trả lời: “**Kiểu provider được công bố cho ServiceLoader là gì?**”
-- `provider.get().getClass()` trả lời: “**Instance cụ thể tôi vừa nhận có lớp runtime nào?**”
+- `provider.type()` answers: "**What is the provider type declared to `ServiceLoader`?**"
+- `provider.get().getClass()` answers: "**What runtime class does the concrete instance I just received have?**"
 
-Câu trả lời thứ hai có thể khác giữa các lần gọi `get()`. Đừng dựa vào `get()` luôn trả cùng một instance hoặc luôn trả một lớp runtime duy nhất trừ khi chính hợp đồng provider bảo đảm điều đó.
+The second answer can vary between `get()` calls. Do not rely on `get()` always returning the same instance or always returning a single runtime class unless the provider's own contract guarantees it.
 
-## 6. Hệ quả khi lọc provider bằng `stream()`
+## 6. Consequences When Filtering Providers with `stream()`
 
-Một ví dụ quen thuộc:
+A familiar example:
 
 ~~~java
 ServiceLoader<TextService> loader = ServiceLoader.load(TextService.class);
@@ -325,79 +325,79 @@ List<ServiceLoader.Provider<TextService>> selected = loader.stream()
         .toList();
 ~~~
 
-Cách này lọc theo **tên của declared provider type**, không phải tên factory và cũng không chắc là tên lớp runtime.
+This filters by **the name of the declared provider type**, not the factory name and not necessarily the runtime class name.
 
-Trong ví dụ của bài:
+In this lesson's example:
 
-- Provider dùng `PublicFactory.provider(): TextService` báo `TextService.class`: điều kiện có thể loại bỏ nó dù runtime class là `HiddenFormatter`.
-- Provider constructor báo `DirectFormatter.class`: điều kiện phù hợp.
-- Nếu hai factory khác nhau đều có return type `TextService`, `type()` có thể **giống nhau**, khiến việc chọn provider theo loại implementation không đủ thông tin.
+- The provider using `PublicFactory.provider(): TextService` reports `TextService.class`: the predicate excludes it even though the runtime class is `HiddenFormatter`.
+- The constructor provider reports `DirectFormatter.class`: the predicate matches.
+- If two different factories both have return type `TextService`, `type()` may be **identical**, making selection by implementation kind lack sufficient information.
 
-Với điều kiện kiểu:
+With a type condition:
 
 ~~~java
 boolean matches = SomeSubtype.class.isAssignableFrom(provider.type());
 ~~~
 
-phép kiểm tra **đúng về quan hệ kế thừa của kiểu khai báo**, nhưng có thể cho **false negative** nếu `provider()` khai báo trả về một supertype tổng quát trong khi implementation runtime thực tế thuộc `SomeSubtype`. Do đó phải xác định từ đầu có cần lọc theo **hợp đồng công khai**, hay cần metadata mô tả **tính năng cụ thể**.
+the check is **accurate for the inheritance relationship of the declared type**, but can yield **false negatives** if `provider()` declares a general supertype while the actual runtime implementation belongs to `SomeSubtype`. Hence you must decide upfront whether to filter by **public contract** or whether you need metadata describing **specific capabilities**.
 
-### Chọn chiến lược lọc phù hợp
+### Choosing an Appropriate Filtering Strategy
 
-| Nhu cầu | Cách dùng phù hợp |
+| Need | Appropriate Usage |
 | --- | --- |
-| Chọn provider theo declared type/cấu trúc kế thừa được công bố | Dùng `Provider.type()`; hiểu giới hạn với provider method trả về interface |
-| Chọn theo annotation đặt trên **declared return type** | `provider.type().isAnnotationPresent(...)` phù hợp nếu annotation thực sự ở kiểu đó |
-| Đọc annotation đặt trên **factory class** | `Provider.type()` không bảo đảm trả về factory class; cần metadata đăng ký riêng nếu cần |
-| Phân loại theo **implementation runtime** | Phải có instance (gọi `get()` rồi kiểm tra `instance.getClass()` hoặc capability của instance), cân nhắc chi phí/side effect |
-| Chọn theo id, version, priority, capability, vùng hỗ trợ | Thiết kế descriptor/annotation/metadata của extension point; đừng suy đoán từ `Class.getName()` |
-| Chỉ cần thực thi service | Gọi `Provider.get()` rồi làm việc qua interface `S` |
+| Select provider by declared type/published inheritance structure | Use `Provider.type()`; understand the limitation when provider methods return an interface |
+| Select by annotation placed on the **declared return type** | `provider.type().isAnnotationPresent(...)` works if the annotation is actually on that type |
+| Read annotation placed on the **factory class** | `Provider.type()` is not guaranteed to return the factory class; use separate registration metadata if needed |
+| Classify by **runtime implementation** | Must obtain an instance (call `get()` then inspect `instance.getClass()` or instance capabilities), weighing cost/side effects |
+| Select by id, version, priority, capability, supported region | Design a descriptor/annotation/metadata for the extension point; do not guess from `Class.getName()` |
+| Simply need to execute the service | Call `Provider.get()` and work through interface `S` |
 
-Một hướng thiết kế tốt là yêu cầu provider công bố metadata rõ ràng (ví dụ `id()`, `capabilities()`) qua API service hoặc descriptor độc lập. Nếu metadata phải đọc **trước khi khởi tạo instance**, nên đặt ở nơi tra cứu được mà không cần gọi factory; tránh lệ thuộc vào tên implementation mà factory cố ý che giấu.
+A sound design approach is requiring providers to publish clear metadata (such as `id()`, `capabilities()`) via the service API or an independent descriptor. If metadata must be read **before creating an instance**, place it where it can be queried without calling the factory; avoid depending on implementation names that factories intentionally conceal.
 
-## 7. Ba nhầm lẫn về reflection, annotation và quyền truy cập
+## 7. Three Misconceptions About Reflection, Annotations, and Access
 
-**Nhầm lẫn 1: `type()` trả về lớp được đăng ký trong `provides`.** Với constructor provider, thường trùng. Với provider method, `provides ... with PublicFactory` nhưng `type()` là `TextService.class` khi `provider()` khai báo trả `TextService`.
+**Misconception 1: `type()` returns the class registered in `provides`.** With constructor providers, they usually match. With provider methods, it is `provides ... with PublicFactory` yet `type()` is `TextService.class` when `provider()` declares returning `TextService`.
 
-**Nhầm lẫn 2: có `Class<? extends S>` thì có thể tự tạo instance.** `type()` có thể trả về interface/abstract class, lớp không export hoặc lớp không có public no-arg constructor. Tự dùng `newInstance()` hoặc reflection không tương đương với gọi `ServiceLoader.Provider.get()`, vì có thể bỏ qua cả factory, điều kiện cấu hình và cơ chế khởi tạo hợp lệ.
+**Misconception 2: having `Class<? extends S>` lets you instantiate it yourself.** `type()` can return an interface/abstract class, an unexported class, or a class without a public no-arg constructor. Manually using `newInstance()` or reflection is not equivalent to calling `ServiceLoader.Provider.get()`, because it can bypass factories, configuration checks, and valid initialization mechanisms.
 
-**Nhầm lẫn 3: annotation trên factory hoặc runtime class đều thấy qua `type()`.** Khi factory trả về interface, `type()` trỏ đến interface. Annotation chỉ đặt trên `PublicFactory` hoặc `HiddenFormatter` không tự xuất hiện trên `TextService.class`. Với annotation `@Inherited`, cũng không thể suy rằng annotation sẽ lan từ lớp khác sang interface hay từ factory sang lớp kết quả; các đối tượng `Class` này khác nhau.
+**Misconception 3: annotations on the factory or runtime class are visible via `type()`.** When a factory returns an interface, `type()` points to the interface. Annotations placed only on `PublicFactory` or `HiddenFormatter` do not automatically appear on `TextService.class`. Even with `@Inherited`, you cannot infer that an annotation propagates from another class to an interface or from a factory to the resulting class; these are distinct `Class` objects.
 
-Thậm chí `provider.type().getName()` trùng với một tên lớp đã biết **không đủ** để kết luận hai kiểu có cùng định danh runtime nếu chúng đến từ class loader hoặc module layer khác nhau. Nếu cần so sánh kiểu Java thực sự, dùng đối tượng `Class`/quan hệ kiểu sau khi đã xác định đúng môi trường nạp lớp.
+Even `provider.type().getName()` matching a known class name is **not enough** to conclude two types share the same runtime identity if they come from different class loaders or module layers. When genuine Java type comparison is needed, use `Class` objects/type relationships after confirming the exact class-loading environment.
 
-## 8. Điều kiện hợp lệ và lỗi liên quan
+## 8. Validity Conditions and Related Errors
 
-Với **explicit named module** dùng `provider()`, cần bảo đảm:
+For an **explicit named module** using `provider()`, ensure:
 
-1. Module khai báo `provides ServiceType with ProviderClass;`, trong đó provider class được định nghĩa trong chính module đó.
-2. Provider class có phương thức `public static provider()` không tham số, với **kiểu trả về gán được cho service**; chỉ có một phương thức như vậy được chọn hợp lệ theo quy định.
-3. Factory cung cấp giá trị không `null` và tương thích với kiểu trả về; không dựa vào public no-arg constructor của factory.
-4. Module tiêu thụ service khai báo `uses ServiceType;` và đọc service API thông qua `requires` tương ứng.
-5. Module provider được resolve ở runtime, thông qua service binding/module configuration hoặc được chỉ định phù hợp, ví dụ `--add-modules` trong mẫu.
-6. Khi muốn dùng `Provider.type()` để phân loại, hãy ghi rõ chính sách return type của provider factory: trả service interface, một subtype công bố hay interface riêng cho nhóm capability.
+1. The module declares `provides ServiceType with ProviderClass;`, where the provider class is defined in that same module.
+2. The provider class has a no-arg `public static provider()` method with a **return type assignable to the service**; only one such method is validly selected per specification rules.
+3. The factory supplies a non-`null` value compatible with the return type; do not rely on a public no-arg constructor on the factory.
+4. The service-consuming module declares `uses ServiceType;` and reads the service API via the corresponding `requires`.
+5. The provider module is resolved at runtime, via service binding/module configuration or explicit specification, such as `--add-modules` in the sample.
+6. When wanting to use `Provider.type()` for classification, document the return-type policy of provider factories: returning the service interface, a published subtype, or a dedicated interface per capability group.
 
-Các trường hợp sai cấu hình có thể khiến `ServiceLoader` ném **`ServiceConfigurationError`** khi khám phá hoặc tạo provider, tùy vị trí lỗi. Ví dụ: provider method có return type không tương thích với service, có nhiều provider method công khai không tham số cùng tên, provider không nạp được, hoặc factory trả `null`/ném lỗi. Lỗi có thể xảy ra khi xử lý `stream()`, **không chỉ lúc gọi `get()`**.
+Misconfiguration cases can cause `ServiceLoader` to throw **`ServiceConfigurationError`** during discovery or provider creation, depending on where the fault occurs. Examples: a provider method with a return type incompatible with the service, multiple public no-arg methods with the same name, an unloadable provider, or a factory returning `null`/throwing an error. Errors can happen while processing `stream()`, **not only when calling `get()`**.
 
-Riêng explicit named module còn có kiểm tra cú pháp/ngữ nghĩa của `provides` tại thời điểm biên dịch; không nên coi mọi cấu hình sai đều chỉ được phát hiện khi chạy.
+Explicit named modules also perform compile-time syntax/semantic checks on `provides`; do not assume all misconfigurations are detected only at runtime.
 
-Nếu chuyển `PublicFactory` sang class path rồi liệt kê nó trong `META-INF/services/demo.api.TextService`, cách làm sẽ không tương đương: class-path provider được trông đợi là subtype trực tiếp có constructor phù hợp. Việc có một phương thức tĩnh tên `provider` không tự kích hoạt cơ chế factory của JPMS.
+If you move `PublicFactory` onto the class path and list it in `META-INF/services/demo.api.TextService`, the behavior will not be equivalent: class-path providers are expected to be direct subtypes with an appropriate constructor. Simply having a static method named `provider` does not activate the JPMS factory mechanism.
 
-## 9. Checklist kiểm thử và xử lý sự cố
+## 9. Testing and Troubleshooting Checklist
 
-Khi gặp hiện tượng `Provider.type()` “khác lớp mong đợi”, hãy kiểm tra theo thứ tự:
+When encountering `Provider.type()` "differing from the expected class", check in order:
 
-1. Module đang là **explicit named module**, automatic module hay class path? Cơ chế provider method chỉ áp dụng nơi được hỗ trợ.
-2. Trong `module-info.java`, tên ở `provides ... with ...` là **provider class** nào?
-3. Provider class có `public static provider()` không tham số không? **Kiểu trả về khai báo chính xác** là interface, abstract class hay implementation cụ thể?
-4. `Provider.type().getName()` là gì **trước khi gọi `get()`**? Đừng thêm giả định rằng type là factory class.
-5. `Provider.get().getClass().getName()` là gì **sau khi gọi `get()`**? Kết quả này mô tả instance cụ thể, không sửa metadata do `type()` báo.
-6. Có đang dùng `type().isAnnotationPresent(...)` hoặc `type().getSimpleName()` để lọc và vô tình bỏ qua factory có return type rộng hơn không?
-7. Nếu gặp `ServiceConfigurationError`, xác minh descriptor, phương thức factory, return type, quyền nạp module và lỗi phát sinh từ factory. Không dùng reflection tự khởi tạo để “né” lỗi của hợp đồng service.
+1. Is the module an **explicit named module**, automatic module, or on the class path? The provider method mechanism applies only where supported.
+2. In `module-info.java`, which **provider class** is named in `provides ... with ...`?
+3. Does the provider class have a no-arg `public static provider()`? Is its **exact declared return type** an interface, abstract class, or concrete implementation?
+4. What is `Provider.type().getName()` **before calling `get()`**? Do not assume the type is the factory class.
+5. What is `Provider.get().getClass().getName()` **after calling `get()`**? That result describes the concrete instance, and does not alter the metadata reported by `type()`.
+6. Are you using `type().isAnnotationPresent(...)` or `type().getSimpleName()` to filter and unintentionally skipping factories with a broader return type?
+7. If `ServiceConfigurationError` occurs, verify the descriptor, factory method, return type, module load permissions, and errors thrown by the factory. Do not use manual reflection instantiation to "dodge" service contract errors.
 
-Khi viết kiểm thử đơn vị/tích hợp cho extension discovery, nên có ít nhất hai provider: **một provider constructor trả về implementation class** và **một provider method khai báo trả về service interface nhưng tạo implementation khác**. Khẳng định đồng thời giá trị `type()`, kiểu `get()`, và việc factory chỉ được yêu cầu khi gọi `get()` trong kịch bản kiểm thử. Kiểm thử thêm nhánh factory trả `null` hoặc lỗi nếu hệ thống cần xử lý provider không hợp lệ.
+When writing unit/integration tests for extension discovery, include at least two providers: **one constructor provider returning an implementation class** and **one provider method declaring the service interface as its return type while creating a different implementation**. Assert simultaneously the value of `type()`, the type of `get()`, and that the factory is invoked only when `get()` is called in the test scenario. Also test branches where the factory returns `null` or throws if the system must handle invalid providers.
 
-## 10. Kết luận áp dụng
+## 10. Practical Conclusion
 
-Đối với phương thức provider trong explicit named module, quy tắc chính xác là:
+For provider methods in explicit named modules, the exact rule is:
 
 ~~~text
 provides S with FactoryClass
@@ -405,16 +405,16 @@ provides S with FactoryClass
                +-- public static DeclaredReturnType provider()
                                       |
 ServiceLoader.Provider<S>.type() -----+--> DeclaredReturnType.class
-ServiceLoader.Provider<S>.get()  --------> instance được provider() trả về
+ServiceLoader.Provider<S>.get()  --------> instance returned by provider()
                                                  |
                                                  +--> instance.getClass()
                                                        (runtime implementation)
 ~~~
 
-**`Provider.type()` mô tả kiểu trả về được công bố của provider factory; `Provider.get()` mới cấp object thực tế**. Vì vậy, thiết kế bộ lọc hoặc cơ chế lựa chọn plugin phải dựa vào metadata đáp ứng mục đích thay vì giả định `type()` luôn là factory class hoặc implementation runtime.
+**`Provider.type()` describes the published return type of the provider factory; `Provider.get()` is what supplies the actual object**. Therefore, filters or plugin-selection mechanisms must rely on metadata suited to the purpose rather than assuming `type()` is always the factory class or the runtime implementation.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
-- [JDK 17 – `ServiceLoader.Provider<S>`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.Provider.html): mô tả `type()`, `get()` và trường hợp provider factory.
-- [JDK 17 – `ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html): provider constructor, provider method, named/automatic module, class path, stream và lỗi cấu hình.
-- [Dev.java – Decoupling Modules with Services](https://dev.java/learn/modules/services/): mô hình `uses`/`provides` và đăng ký service trong JPMS.
+- [JDK 17 – `ServiceLoader.Provider<S>`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.Provider.html): describes `type()`, `get()`, and the provider factory case.
+- [JDK 17 – `ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html): provider constructors, provider methods, named/automatic modules, class path, streams, and configuration errors.
+- [Dev.java – Decoupling Modules with Services](https://dev.java/learn/modules/services/): `uses`/`provides` model and service registration in JPMS.

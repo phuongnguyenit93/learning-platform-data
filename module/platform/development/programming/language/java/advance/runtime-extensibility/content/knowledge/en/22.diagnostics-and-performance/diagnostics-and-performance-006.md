@@ -1,55 +1,55 @@
-# Theo dõi nạp, dỡ lớp và số loader bằng công cụ chẩn đoán JVM
+# Monitoring Class Loading, Unloading, and Loader Counts with JVM Diagnostic Tools
 
-## 1. Vì sao phải quan sát class loading trong hệ thống plugin?
+## 1. Why Monitor Class Loading in a Plugin System?
 
-Mỗi lần hệ thống Java tìm, liên kết và định nghĩa một class có thể phát sinh chi phí CPU, I/O và bộ nhớ metadata. Trong kiến trúc plugin, mỗi plugin thường sở hữu một `ClassLoader` riêng để cô lập dependency; khi hot-reload, loader cũ cần hết tham chiếu để JVM có thể thu hồi những class mà loader đó định nghĩa. Nếu loader cũ còn bị giữ bởi thread, listener hoặc cache, metaspace có thể tăng dần sau nhiều lần reload.
+Every time a Java system finds, links, and defines a class, it can incur CPU, I/O, and metadata memory costs. In a plugin architecture, each plugin typically owns its own `ClassLoader` to isolate dependencies; during a hot reload, the old loader must have no remaining references so that the JVM can reclaim the classes that loader defined. If the old loader is still retained by a thread, listener, or cache, metaspace can grow steadily across repeated reloads.
 
-Có ba chỉ số thường bị nhầm:
+Three metrics are frequently confused:
 
-- **Số class đang được nạp**: số class metadata còn tồn tại hoặc được JVM thống kê tại thời điểm quan sát.
-- **Số class đã nạp/dỡ tích lũy**: counter tăng dần theo thời gian, hữu ích để thấy churn nhưng không phải live count.
-- **Số class loader**: số loader object hoặc loader data còn sống trong JVM; không đồng nghĩa số plugin hoặc số class.
+- **Loaded class count (live)**: the number of class metadata entries currently remaining or reported by the JVM at the time of observation.
+- **Cumulative loaded/unloaded class counts**: counters that increase over time, useful for observing churn but not representing the live count.
+- **Class loader count**: the number of loader objects or loader data structures currently alive in the JVM; not synonymous with the number of plugins or the number of classes.
 
-Để chẩn đoán chính xác, cần kết hợp JVM unified logging, `jcmd` và Java Flight Recorder (JFR). Không có một con số đơn lẻ nào đủ chứng minh class loader leak.
+For accurate diagnosis, you need to combine JVM unified logging, `jcmd`, and Java Flight Recorder (JFR). No single number alone is sufficient to prove a class loader leak.
 
-## 2. Cơ chế class loading và unloading
+## 2. Class Loading and Unloading Mechanics
 
-Một class trong JVM được định danh bởi **binary name + defining class loader**. Do đó hai loader có thể định nghĩa hai class cùng tên nhưng JVM vẫn coi chúng là hai kiểu khác nhau. Điều này cho phép plugin V1 và V2 tồn tại đồng thời, song cũng có thể tạo `ClassCastException` nếu hợp đồng API bị nạp trùng.
+A class in the JVM is identified by **binary name + defining class loader**. Therefore, two loaders can define two classes with the same name, yet the JVM still treats them as two distinct types. This allows plugin V1 and V2 to coexist simultaneously, while also risking a `ClassCastException` if an API contract is loaded redundantly.
 
-Class unloading phụ thuộc reachability và hoạt động của garbage collector. Về nguyên tắc, JVM chỉ có thể thu hồi metadata của class/loader khi những điều kiện về reachability và unloading của runtime được thỏa mãn. `URLClassLoader.close()` giải phóng tài nguyên như JAR handles, **không bắt JVM unload class ngay lập tức**. `System.gc()` không bảo đảm có full GC hoặc unloading, đặc biệt nếu runtime tắt explicit GC hay dùng cấu hình collector khác.
+Class unloading depends on reachability and garbage collector activity. In principle, the JVM can only reclaim class/loader metadata when the runtime's reachability and unloading conditions are satisfied. `URLClassLoader.close()` releases resources such as JAR handles; it **does not force the JVM to unload classes immediately**. `System.gc()` does not guarantee a full GC or unloading, especially if the runtime disables explicit GC or uses a different collector configuration.
 
-Những nguồn tham chiếu dễ giữ loader cũ:
+Common reference sources that easily retain an old loader:
 
-1. Thread còn chạy, `Thread.contextClassLoader` hoặc `ThreadLocal` chứa class/object của plugin.
-2. Static collections và service registries của host lưu `Class<?>`, provider instances hoặc callbacks.
-3. Executor, scheduler, timer, listener, shutdown hook chưa hủy.
-4. Proxy, `MethodHandle`, reflection cache, serialization framework và logging adapters.
-5. Native library, JNI reference, event bus và resource pool chưa đóng.
+1. Running threads, `Thread.contextClassLoader`, or `ThreadLocal` values holding plugin classes/objects.
+2. Host static collections and service registries storing `Class<?>`, provider instances, or callbacks.
+3. Uncanceled executors, schedulers, timers, listeners, or shutdown hooks.
+4. Proxies, `MethodHandle`, reflection caches, serialization frameworks, and logging adapters.
+5. Unclosed native libraries, JNI references, event buses, and resource pools.
 
-Trong phân tích, phải chứng minh **loader còn reachable từ GC roots** rồi tìm điểm giữ tham chiếu; không kết luận chỉ từ việc metaspace chưa giảm ngay sau một lần `close()`.
+During analysis, you must prove that **the loader is still reachable from GC roots** and then locate the retaining reference; do not conclude a leak solely because metaspace has not dropped immediately after a single `close()` call.
 
-## 3. Unified logging: thấy class load/unload trong HotSpot
+## 3. Unified Logging: Seeing Class Load/Unload in HotSpot
 
-Từ Java 9, HotSpot hỗ trợ unified JVM logging qua `-Xlog`. Trên OpenJDK/HotSpot 17, bắt đầu bằng:
+Since Java 9, HotSpot supports unified JVM logging via `-Xlog`. On OpenJDK/HotSpot 17, start with:
 
 ```bash
 java -Xlog:class+load=info,class+unload=info -cp app.jar com.example.Main
 ```
 
-Lệnh trên là **ví dụ cấu hình**, không chạy độc lập nếu thiếu `app.jar` và `com.example.Main`. Log load thường có class name và source (JAR hoặc module); log unload xuất hiện khi JVM thực sự dỡ class.
+The command above is a **configuration example**; it will not run standalone without `app.jar` and `com.example.Main`. Load logs typically include the class name and source (JAR or module); unload logs appear when the JVM actually unloads a class.
 
-Để ghi log ra file với timestamp, uptime và tag:
+To write logs to a file with timestamps, uptime, and tags:
 
 ```bash
 java -Xlog:class+load=info,class+unload=info:file=class-events.log:time,uptime,level,tags \
      -cp app.jar com.example.Main
 ```
 
-Trong production cần giới hạn kích thước và vòng quay log để tránh disk fill. Cấu hình file rotation của unified logging có thể dùng các option `filecount` và `filesize`; cú pháp và hỗ trợ thực tế kiểm tra bằng `java -Xlog:help`. Không bật class load logging mức quá chi tiết liên tục mà không đánh giá overhead và lượng dữ liệu.
+In production, you must limit log size and rotation to avoid filling the disk. Unified logging file rotation can use the `filecount` and `filesize` options; check the exact syntax and support with `java -Xlog:help`. Do not keep verbose class load logging enabled continuously without evaluating overhead and data volume.
 
-### 3.1. Đọc log đúng
+### 3.1. Reading Logs Correctly
 
-Ví dụ dạng log minh họa:
+Illustrative log format example:
 
 ```text
 [0.060s][info][class,load] java.lang.Object source: shared objects file
@@ -57,25 +57,25 @@ Ví dụ dạng log minh họa:
 [5.290s][info][class,unload] unloading class demo.plugins.Greeter 0x...
 ```
 
-Đường dẫn, địa chỉ, định dạng và timestamp thực tế phụ thuộc JDK/collector. Một class xuất hiện hai lần trong load log có thể do hai defining loaders khác nhau, không nhất thiết Java đọc cùng file hai lần do lỗi.
+Actual paths, addresses, formats, and timestamps depend on the JDK and collector. A class appearing twice in the load log may be due to two different defining loaders, rather than Java reading the same file twice by mistake.
 
-Nếu không thấy unload event, có thể JVM chưa chạy GC có unloading, loader vẫn còn reachable, collector/configuration chưa thực hiện unloading hoặc log đã bật sau thời điểm quan tâm. Vì vậy hãy kiểm tra GC timeline và loader statistics trước khi quy nguyên nhân.
+If no unload events appear, it may be because the JVM has not run a GC cycle with unloading, the loader is still reachable, the collector/configuration has not performed unloading, or logging was enabled after the period of interest. Therefore, inspect the GC timeline and loader statistics before attributing the cause.
 
-## 4. jcmd: xem class loader hierarchy và thống kê
+## 4. jcmd: Inspecting Class Loader Hierarchy and Statistics
 
-`jcmd` có trong JDK hỗ trợ chẩn đoán các JVM đang chạy trên cùng máy (tùy OS permissions và khả năng attach). Đầu tiên tìm PID:
+`jcmd`, included in the JDK, supports diagnosing JVMs running on the same machine (subject to OS permissions and attach capabilities). First, find the PID:
 
 ```bash
 jcmd -l
 ```
 
-Rồi xem các lệnh khả dụng với runtime cụ thể:
+Then view the available commands for that specific runtime:
 
 ```bash
 jcmd <PID> help
 ```
 
-`<PID>` là số tiến trình thật, không phải chuỗi gõ nguyên văn. Một số command hữu ích trên HotSpot/JDK 17:
+`<PID>` is the actual process ID, not a literal string to type verbatim. Some useful commands on HotSpot/JDK 17:
 
 ```bash
 jcmd <PID> VM.classloader_stats
@@ -84,62 +84,62 @@ jcmd <PID> GC.class_histogram
 jcmd <PID> VM.metaspace
 ```
 
-Không phải mọi JDK build hoặc môi trường attach đều cung cấp giống nhau; nếu command vắng mặt, dùng `jcmd <PID> help` để xác minh và lựa chọn nguồn dữ liệu khác.
+Not every JDK build or attach environment provides the exact same commands; if a command is absent, use `jcmd <PID> help` to verify and choose an alternative data source.
 
 ### 4.1. VM.classloader_stats
 
-Thường cho biết từng class loader data, số classes liên quan và chi phí metadata/byte. Đây là điểm khởi đầu để phát hiện loader cũ tồn tại sau nhiều vòng plugin reload. Khi ghi nhận, nên so sánh các snapshot cùng một JVM, cùng phiên bản và cùng workload thay vì so raw bytes giữa các JDK khác nhau.
+Usually reports each class loader data entry, the number of associated classes, and metadata/byte costs. This is the starting point for detecting old loaders persisting after multiple plugin reload cycles. When recording, compare snapshots from the same JVM, same version, and same workload rather than comparing raw bytes across different JDKs.
 
-Ví dụ bảng diễn giải tự tạo, không phải stdout chuẩn:
+Illustrative self-constructed interpretation table, not standard stdout:
 
-| Thời điểm | Plugin đã reload | Loader cũ còn thấy trong stats | Metaspace |
+| Timestamp | Plugins Reloaded | Old Loaders Still Visible in Stats | Metaspace |
 |---|---:|---:|---:|
 | T0 | 0 | 0 | 80 MiB |
 | T1 | 10 | 1 | 86 MiB |
 | T2 | 50 | 28 | 132 MiB |
 
-Nếu workload/heap/GC tương tự, số loader cũ tăng liên tục qua các lần GC đáng chú ý hơn một lần tăng metaspace đơn lẻ. Dữ liệu giả định chỉ minh họa cách đọc xu hướng.
+Under similar workload/heap/GC conditions, a steady increase in living old loaders across GC cycles is more significant than a single metaspace increase. The hypothetical data only illustrates how to read the trend.
 
 ### 4.2. VM.classloaders
 
-Hiển thị thông tin topology/class loader hierarchy trên runtime hỗ trợ. Hữu ích để tìm plugin loader nằm dưới application loader, loader nào sở hữu module/class và xem cấu trúc parent delegation. Với đồ thị có custom layer hoặc child-first loader, cần kết hợp mã ứng dụng in loader identity; tên hiển thị/hierarchy không phải bằng chứng đầy đủ cho mọi quan hệ class ownership.
+Displays topology/class loader hierarchy information on supported runtimes. Useful for finding plugin loaders under the application loader, which loader owns a module/class, and inspecting the parent delegation structure. For graphs with custom layers or child-first loaders, combine this with application code printing loader identities; display names and hierarchy alone are not sufficient proof of all class ownership relationships.
 
 ### 4.3. VM.metaspace
 
-Cho biết các số liệu metaspace, committed/reserved/used và một số chi tiết allocation hoặc class space tùy tùy chọn. Đừng nhầm committed/reserved bytes với live class metadata; JVM có thể giữ committed memory cho tái sử dụng dù class đã được unload.
+Reports metaspace metrics—committed, reserved, and used—as well as certain allocation or class space details depending on options. Do not confuse committed/reserved bytes with live class metadata; the JVM may retain committed memory for reuse even after classes have been unloaded.
 
-### 4.4. GC.class_histogram và heap dump
+### 4.4. GC.class_histogram and Heap Dump
 
-`GC.class_histogram` hỗ trợ xem object count theo class. Muốn tìm class loader object bị giữ, có thể lọc `URLClassLoader`, custom plugin loader, `Thread`, các registry objects và provider instances. Histogram chỉ là snapshot object types, không hiển thị trực tiếp đường dẫn retention.
+`GC.class_histogram` helps inspect object counts by class. To find retained class loader objects, you can filter for `URLClassLoader`, custom plugin loaders, `Thread`, registry objects, and provider instances. A histogram is only a snapshot of object types; it does not directly show retention paths.
 
-Nếu sự cố kéo dài, dùng heap dump với công cụ phân tích heap để truy GC roots và retained size. Heap dump có thể chứa mật khẩu, token, dữ liệu cá nhân và nội dung request; phải bảo vệ quyền truy cập, mã hóa, thời hạn lưu và cơ chế xóa theo chính sách tổ chức.
+If the issue persists, take a heap dump and use a heap analysis tool to trace GC roots and retained sizes. Heap dumps may contain passwords, tokens, personal data, and request payloads; you must enforce access permissions, encryption, retention periods, and deletion policies according to organizational policy.
 
 ## 5. Java Flight Recorder (JFR)
 
-JFR giúp thu thập sự kiện JVM theo thời gian với overhead tương đối thấp khi cấu hình phù hợp. Nó có thể cung cấp sự kiện class loading/unloading, class loader statistics, allocation và GC tùy JDK, profile và event settings.
+JFR collects JVM events over time with relatively low overhead when configured appropriately. It can provide class loading/unloading events, class loader statistics, allocations, and GC data depending on the JDK, profile, and event settings.
 
-Khởi chạy một recording bằng `jcmd`:
+Start a recording using `jcmd`:
 
 ```bash
 jcmd <PID> JFR.start name=plugin-diagnostics settings=profile duration=120s filename=plugin.jfr
 ```
 
-Đọc summary và event type bằng công cụ JDK:
+Inspect the summary and event types using JDK tools:
 
 ```bash
 jfr summary plugin.jfr
 jfr metadata plugin.jfr
 ```
 
-Để quan sát class load/unload, cần chắc chắn các sự kiện tương ứng được bật trong settings của recording. Các tên như `jdk.ClassLoad`, `jdk.ClassUnload` và `jdk.ClassLoaderStatistics` phụ thuộc event availability/configuration; một recording `profile` mặc định không bảo đảm có đủ mọi event chi tiết.
+To observe class load/unload, ensure the corresponding events are enabled in the recording settings. Names such as `jdk.ClassLoad`, `jdk.ClassUnload`, and `jdk.ClassLoaderStatistics` depend on event availability and configuration; a default `profile` recording is not guaranteed to include all detailed events.
 
-Có thể dùng Java Mission Control (JMC) phân tích timeline, class loading và GC; liên hệ các spike với chính thời điểm deploy/reload plugin. Đừng bật mọi event ở mức detail cao trên production nếu chưa đánh giá storage/CPU overhead.
+You can use Java Mission Control (JMC) to analyze the timeline, class loading, and GC, correlating spikes with exact plugin deploy/reload timestamps. Do not enable all events at high detail in production without evaluating storage and CPU overhead.
 
-## 6. Công cụ Java MXBean: quan sát counters từ trong ứng dụng
+## 6. Java MXBean Tools: Observing Counters from Inside the Application
 
-JDK cung cấp `ClassLoadingMXBean` để lấy số class hiện tại và bộ đếm tích lũy. Dùng nó để tạo metrics đơn giản của host mà không cần parse JVM log.
+The JDK provides `ClassLoadingMXBean` to retrieve the current class count and cumulative counters. Use it to build simple host metrics without parsing JVM logs.
 
-Ví dụ Java 17+ **chạy độc lập**, file `ClassLoadingMetrics.java`:
+**Standalone** Java 17+ example, file `ClassLoadingMetrics.java`:
 
 ```java
 import java.lang.management.ClassLoadingMXBean;
@@ -159,14 +159,14 @@ public final class ClassLoadingMetrics {
 }
 ```
 
-Biên dịch và chạy trên JDK 17+:
+Compile and run on JDK 17+:
 
 ```bash
 javac ClassLoadingMetrics.java
 java ClassLoadingMetrics
 ```
 
-Stdout dự kiến:
+Expected stdout:
 
 ```text
 live classes >= 0: true
@@ -174,37 +174,37 @@ total >= live: true
 unloaded >= 0: true
 ```
 
-Với HotSpot bình thường, các điều kiện trên hợp lý; con số class thực tế luôn thay đổi theo JVM, JDK, thư viện và thời điểm lấy mẫu. `getLoadedClassCount()` là số hiện tại; `getTotalLoadedClassCount()` và `getUnloadedClassCount()` là counter từ lúc JVM khởi động. Không lấy một counter tích lũy rồi diễn giải là số live loaders.
+On a normal HotSpot JVM, these conditions are reasonable; actual class counts always vary by JVM, JDK, libraries, and sampling time. `getLoadedClassCount()` is the current count; `getTotalLoadedClassCount()` and `getUnloadedClassCount()` are counters since JVM startup. Do not take a cumulative counter and interpret it as the number of live loaders.
 
-### 6.1. Tính delta qua thời gian
+### 6.1. Computing Deltas Over Time
 
-Ví dụ exporter quan sát mỗi khoảng lấy mẫu:
+Example of an exporter observing each sampling interval:
 
 ```java
 long loadedBefore = bean.getTotalLoadedClassCount();
 long unloadedBefore = bean.getUnloadedClassCount();
-// ... plugin reload workload diễn ra ở đây ...
+// ... plugin reload workload happens here ...
 long loadedDelta = bean.getTotalLoadedClassCount() - loadedBefore;
 long unloadedDelta = bean.getUnloadedClassCount() - unloadedBefore;
 ```
 
-Đây là **mảnh mã** cần `bean` đã khai báo. Delta này mô tả số class load/unload trong khoảng đo, không trực tiếp cho biết loader cụ thể nào leak. Thêm metrics về plugin reload count, active plugin instances, class loader references và metaspace committed/used để có bức tranh đầy đủ.
+This is a **code snippet** requiring `bean` to be already declared. This delta describes the number of classes loaded/unloaded during the measurement interval, not which specific loader is leaking. Add metrics for plugin reload count, active plugin instances, class loader references, and metaspace committed/used for a complete picture.
 
-## 7. Thực nghiệm class loader mới và rò rỉ loader
+## 7. Experimenting with New Class Loaders and Loader Leaks
 
-Một thí nghiệm nhỏ giúp thấy class identity và retention:
+A small experiment helps observe class identity and retention:
 
-1. Tạo `URLClassLoader` cho một JAR plugin versioned.
-2. Nạp một class bằng `Class.forName` và tạo instance nếu cần.
-3. Ghi lại identity của loader, loaded class count và metaspace.
-4. Dừng plugin, xóa listeners, tasks, registries và thread-local references.
-5. Đóng loader, bỏ strong references tới class/loader/instance.
-6. Để GC hoạt động theo runtime; quan sát logs/JFR/jcmd xem liệu class unload có diễn ra.
-7. Lặp lại nhiều lần trong điều kiện workload có kiểm soát.
+1. Create a `URLClassLoader` for a versioned plugin JAR.
+2. Load a class with `Class.forName` and instantiate it if needed.
+3. Record the loader's identity, loaded class count, and metaspace.
+4. Stop the plugin, clearing listeners, tasks, registries, and thread-local references.
+5. Close the loader, dropping strong references to classes, the loader, and instances.
+6. Let GC run according to the runtime; observe logs/JFR/jcmd to see whether class unloading occurs.
+7. Repeat multiple times under controlled workload conditions.
 
-**Cẩn thận:** `WeakReference<ClassLoader>` có thể được dùng để quan sát liệu loader còn reachable hay không, nhưng `weakRef.get() == null` chỉ là bằng chứng đối tượng đã được GC thu hồi ở thời điểm đó. Ngược lại, weak ref vẫn có giá trị sau một lần GC chưa chứng minh leak. Một class có thể còn giữ loader qua static caches hoặc stack đang chạy.
+**Caution:** `WeakReference<ClassLoader>` can be used to observe whether a loader is still reachable, though `weakRef.get() == null` is only proof that the object was collected by GC at that point. Conversely, a weak ref still holding a value after one GC does not prove a leak. A class can still retain a loader via static caches or an active call stack.
 
-Đoạn Java minh họa identity của loader:
+Java snippet illustrating loader identity:
 
 ```java
 ClassLoader loader = pluginInstance.getClass().getClassLoader();
@@ -212,51 +212,51 @@ System.out.println("loader identity: " + System.identityHashCode(loader));
 System.out.println("module: " + pluginInstance.getClass().getModule());
 ```
 
-Đoạn này không độc lập vì cần `pluginInstance`; `identityHashCode` không bảo đảm duy nhất tuyệt đối giữa mọi object. Khi logging production, nên cấp một plugin-loader-instance ID bằng counter/UUID và ghi cùng version để tương quan log chính xác.
+This snippet is not standalone because it requires `pluginInstance`; `identityHashCode` does not guarantee absolute uniqueness across all objects. In production logging, assign a plugin-loader-instance ID using a counter or UUID and log it alongside the version to correlate logs accurately.
 
-## 8. Quy trình chẩn đoán class loader leak có hệ thống
+## 8. Systematic Class Loader Leak Diagnosis Workflow
 
-### Bước A: Lập baseline
+### Step A: Establish a Baseline
 
-Trước khi reload, ghi `ClassLoadingMXBean`, `jcmd VM.classloader_stats`, `VM.metaspace`, heap/metaspace metrics, JFR timeline và số plugin đang hoạt động. Cố gắng ổn định workload/GC và lưu JDK flags.
+Before reloading, record `ClassLoadingMXBean`, `jcmd VM.classloader_stats`, `VM.metaspace`, heap/metaspace metrics, JFR timeline, and the number of active plugins. Try to stabilize the workload/GC and record the JDK flags.
 
-### Bước B: Tạo tải kiểm soát
+### Step B: Generate Controlled Load
 
-Reload cùng một plugin theo số vòng đã biết, ví dụ 20 lần; bảo đảm code plugin không cố tình tạo thread/resource vô hạn. Ghi timestamp và loader ID từng phiên bản.
+Reload the same plugin a known number of cycles, e.g., 20 times; ensure the plugin code does not intentionally spawn unbounded threads/resources. Record timestamps and loader IDs for each version.
 
-### Bước C: Dừng và cleanup
+### Step C: Stop and Cleanup
 
-Chờ request drain, gọi `stop/close`, hủy listener/callback/timer/executor, đóng loader khi phù hợp và xóa registry references. Sau đó quan sát qua nhiều chu kỳ GC có class unloading.
+Wait for requests to drain, call `stop/close`, cancel listeners/callbacks/timers/executors, close the loader when appropriate, and clear registry references. Then observe across multiple GC cycles that include class unloading.
 
-### Bước D: So sánh snapshot
+### Step D: Compare Snapshots
 
-Nếu số loader cũ còn sống và live class count tăng liên tục qua các vòng, kiểm tra heap dump để tìm GC roots. Nếu live count ổn định và loaded/unloaded counters đều tăng, có thể đang có class churn hợp lệ thay vì leak.
+If the number of living old loaders and the live class count rise continuously across cycles, inspect a heap dump to find GC roots. If the live count stays stable while both loaded and unloaded counters increase, you may simply have legitimate class churn rather than a leak.
 
-### Bước E: Xác nhận fix
+### Step E: Verify the Fix
 
-Sau khi sửa retained reference, lặp thí nghiệm với cùng workload, cùng JDK và cấu hình GC; so sánh xu hướng loader count, live classes, metaspace used, heap retained size và thời gian reload.
+After fixing retained references, repeat the experiment with the same workload, same JDK, and same GC configuration; compare trends in loader count, live classes, metaspace used, heap retained size, and reload duration.
 
-## 9. Lỗi phổ biến khi dùng công cụ
+## 9. Common Tooling Mistakes
 
-| Nhận định sai | Vì sao sai | Cách sửa |
+| Misconception | Why It Is Wrong | How to Fix |
 |---|---|---|
-| `URLClassLoader.close()` nghĩa là class đã unload | `close()` chỉ xử lý tài nguyên loader, còn reachability mới quyết định GC/unload | Quan sát unload events, loader references và GC |
-| Total loaded classes tăng là memory leak | Đây là counter tích lũy, không phải live count | Kết hợp live count và unloaded count |
-| Không có unload log nghĩa là leak | GC/unloading chưa diễn ra hoặc logging chưa đủ | Bật log đúng, quan sát lâu hơn và kiểm tra GC |
-| Metaspace committed không giảm nghĩa là leak | JVM có thể giữ memory để tái sử dụng | So metaspace used, class loader stats, heap roots |
-| Có hai class cùng tên là duplicate bug | Hai loader định nghĩa cùng tên có thể là chủ đích isolation | Kiểm tra defining loader và contract API |
-| Dùng `System.gc()` để test chắc chắn | JVM có thể bỏ qua hoặc không unload ngay | Dùng nhiều chu kỳ quan sát, JFR và heap analysis |
-| Ghi hết class load logs production vô hạn | Gây I/O/CPU/disk overhead | Dùng duration ngắn, log rotation, sampling |
+| `URLClassLoader.close()` means classes are unloaded | `close()` only handles loader resources; reachability determines GC/unloading | Observe unload events, loader references, and GC |
+| Increasing total loaded classes means a memory leak | This is a cumulative counter, not a live count | Combine live count and unloaded count |
+| No unload log means a leak | GC/unloading has not occurred yet or logging is insufficient | Enable proper logging, observe longer, and check GC |
+| Metaspace committed not shrinking means a leak | The JVM may keep memory for reuse | Compare metaspace used, class loader stats, and heap roots |
+| Having two classes with the same name is a duplicate bug | Two loaders defining the same name may be intentional isolation | Check the defining loader and API contract |
+| Using `System.gc()` to test reliably | The JVM may ignore it or not unload immediately | Use multiple observation cycles, JFR, and heap analysis |
+| Recording all class load logs indefinitely in production | Causes I/O/CPU/disk overhead | Use short durations, log rotation, and sampling |
 
-## 10. Checklist vận hành cho host có plugin
+## 10. Operational Checklist for Plugin Hosts
 
-- [ ] Có metrics loaded/live/unloaded class counts và metaspace.
-- [ ] Gắn plugin version, class loader instance ID vào log lifecycle.
-- [ ] Có lệnh `jcmd`/JFR dùng được trong môi trường production có phân quyền.
-- [ ] Có lịch quan sát trước/sau hot reload với workload kiểm soát.
-- [ ] Dọn ThreadLocal, TCCL, executor, listener, registry và native resources trước khi giải phóng loader.
-- [ ] Tránh giữ class/object/plugin loader cũ trong shared caches.
-- [ ] Có quy trình heap dump và bảo vệ dữ liệu nhạy cảm trong dump.
-- [ ] Alert dựa vào **xu hướng** của loader count, live classes và metaspace chứ không chỉ một snapshot.
+- [ ] Track metrics for loaded/live/unloaded class counts and metaspace.
+- [ ] Attach plugin version and class loader instance ID to lifecycle logs.
+- [ ] Ensure `jcmd`/JFR commands are usable in production with proper permissions.
+- [ ] Have an observation schedule before/after hot reloads under controlled workload.
+- [ ] Clean up ThreadLocal, TCCL, executors, listeners, registries, and native resources before releasing a loader.
+- [ ] Avoid retaining old plugin classes/objects/loaders in shared caches.
+- [ ] Have a heap dump procedure and protect sensitive data inside dumps.
+- [ ] Alert on **trends** of loader count, live classes, and metaspace rather than a single snapshot.
 
-**Kết luận:** Theo dõi nạp/dỡ class cần kết hợp counter `ClassLoadingMXBean`, event `-Xlog:class+load/unload`, thống kê `jcmd` và timeline JFR. Loader cũ chỉ có thể được thu hồi khi không còn tham chiếu giữ nó; việc đóng loader hoặc chạy GC một lần không bảo đảm unloading. Một chẩn đoán đáng tin phải liên hệ loader identity, vòng đời plugin, GC và đường dẫn retention trên heap.
+**Conclusion:** Monitoring class loading/unloading requires combining `ClassLoadingMXBean` counters, `-Xlog:class+load/unload` events, `jcmd` statistics, and JFR timelines. An old loader can only be reclaimed when no references retain it; closing the loader or running GC once does not guarantee unloading. Reliable diagnosis must correlate loader identity, plugin lifecycle, GC, and heap retention paths.

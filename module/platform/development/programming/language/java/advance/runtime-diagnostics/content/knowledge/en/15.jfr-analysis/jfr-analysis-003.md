@@ -1,21 +1,21 @@
-# 15.3. Dùng `jfr print` với bộ lọc event, category, stack depth và đầu ra JSON hoặc XML
+# 15.3. Using `jfr print` with event, category, stack depth filters, and JSON or XML output
 
-## Mục tiêu bài học
+## Lesson objectives
 
-**Java Flight Recorder (JFR)** ghi các sự kiện JVM và ứng dụng thành file binary `.jfr`. Công cụ dòng lệnh **`jfr print`** trong JDK đọc file đã lưu, in các event ở dạng dễ đọc hoặc chuyển thành JSON/XML để xử lý tự động. Khả năng chọn **event type**, **category**, và số **stack frames** hiển thị giúp tập trung vào tín hiệu cần điều tra thay vì đọc toàn bộ recording.
+**Java Flight Recorder (JFR)** records JVM and application events into a binary `.jfr` file. The **`jfr print`** command-line tool in the JDK reads a saved file, prints events in human-readable text, or converts them to JSON/XML for automated processing. Filtering by **event type**, **category**, and the number of displayed **stack frames** lets you focus on the signals under investigation instead of reading the entire recording.
 
-Sau bài này, bạn sẽ biết cách:
+After this lesson, you will know how to:
 
-1. Kiểm tra recording bằng `jfr summary` và `jfr metadata` để tìm tên event/category thật.
-2. Lọc bằng `--events`, `--categories`, danh sách tên và glob.
-3. Hiểu **quy tắc OR/union** khi dùng đồng thời filter theo tên và category.
-4. Dùng `--stack-depth` nhưng không nhầm thao tác hiển thị với thao tác thu thập stack trace.
-5. Xuất `--json` hoặc `--xml` để dùng trong pipeline, kiểm tra encoding và dữ liệu rỗng.
-6. Tạo một recording nhỏ bằng Java 17+ và tự thực hành trên các event có thể dự đoán.
+1. Inspect a recording with `jfr summary` and `jfr metadata` to find the actual event and category names.
+2. Filter using `--events`, `--categories`, comma-separated name lists, and globs.
+3. Understand the **OR/union rule** when combining name and category filters simultaneously.
+4. Use `--stack-depth` without confusing display truncation with stack trace collection.
+5. Output `--json` or `--xml` for pipelines while verifying encoding and empty results.
+6. Create a small recording with Java 17+ and practice on predictable events.
 
-Các lệnh dưới đây áp dụng cho **JDK 17+**; chi tiết event type, category và trường output phụ thuộc JDK, recording settings và workload. Cú pháp `print` tập trung vào khả năng có trong JDK 17.
+The commands below apply to **JDK 17+**; exact event types, categories, and output fields depend on the JDK, recording settings, and workload. The `print` syntax focuses on capabilities available in JDK 17.
 
-## 1. Từ Java recording đến lệnh `jfr print`
+## 1. From a Java recording to the `jfr print` command
 
 ```text
 Java process / JVM
@@ -24,20 +24,20 @@ Java process / JVM
      v
 recording.jfr  (binary file)
      |
-     +-- jfr summary    -> danh sách event type, count, kích thước
-     +-- jfr metadata   -> định nghĩa type, category và fields
-     +-- jfr print      -> từng instance event theo bộ lọc
+     +-- jfr summary    -> event type list, count, size
+     +-- jfr metadata   -> type definitions, categories, and fields
+     +-- jfr print      -> individual event instances matching filters
              |
-             +-- mặc định: human-readable text
-             +-- --json: máy đọc được
-             +-- --xml:  máy đọc được
+             +-- default: human-readable text
+             +-- --json: machine-readable
+             +-- --xml:  machine-readable
 ```
 
-Một **event type** (ví dụ `jdk.GarbageCollection`) là kiểu sự kiện; một **event instance** là một lần xảy ra được ghi, có timestamp và các field. **Category** là metadata phân loại các type, có thể bao gồm nhiều type khác nhau. Stack trace là một field tùy event/settings; không phải mọi event đều có stack.
+An **event type** (for example `jdk.GarbageCollection`) is the kind of event; an **event instance** is a single recorded occurrence with a timestamp and fields. A **category** is metadata classifying types and can cover multiple different types. A stack trace is an optional field depending on the event/settings; not every event has a stack.
 
-`jfr print` chỉ **đọc** dữ liệu đã ghi. Nó không mở recording, không thay đổi file `.jfr`, không chạy lại những thao tác ứng dụng và không tái tạo event đã bị threshold/sampling loại bỏ. Nếu cần lấy recording mới từ JVM đang chạy, dùng `jcmd ... JFR.start` hoặc cơ chế ghi JFR tương đương.
+`jfr print` only **reads** previously recorded data. It does not start a recording, does not modify the `.jfr` file, does not replay application operations, and does not reconstruct events dropped by thresholds or sampling. If you need a fresh recording from a running JVM, use `jcmd ... JFR.start` or an equivalent JFR recording mechanism.
 
-## 2. Cú pháp `jfr print` chuẩn JDK 17
+## 2. Standard JDK 17 `jfr print` syntax
 
 ```text
 jfr print [--xml|--json]
@@ -47,70 +47,70 @@ jfr print [--xml|--json]
           <file>
 ```
 
-| Tùy chọn | Tác dụng | Điều cần nhớ |
+| Option | Effect | Key points |
 | --- | --- | --- |
-| `<file>` | Đường dẫn file recording `.jfr` | File phải tồn tại và là dữ liệu JFR hợp lệ. |
-| `--events <filters>` | Chọn các event theo **tên type** | Tên đơn giản/đầy đủ, các tên cách dấu phẩy, hoặc quoted glob. |
-| `--categories <filters>` | Chọn event theo **tên category** | Category khác tên type; xem `jfr metadata`. |
-| `--stack-depth <depth>` | Giới hạn số frame stack trace được **in** | Mặc định là **5**; không khôi phục frame chưa ghi. |
-| `--json` | In JSON | Một lựa chọn thay cho human-readable và XML. |
-| `--xml` | In XML | Không kết hợp cùng `--json` trong một lệnh. |
-| Không có `--json`/`--xml` | In dạng văn bản dễ đọc | Tốt cho kiểm tra trực tiếp tại terminal. |
+| `<file>` | Path to the `.jfr` recording file | File must exist and contain valid JFR data. |
+| `--events <filters>` | Select events by **type name** | Simple/qualified names, comma-separated names, or quoted globs. |
+| `--categories <filters>` | Select events by **category name** | Categories differ from type names; check `jfr metadata`. |
+| `--stack-depth <depth>` | Limit the number of stack trace frames **printed** | Default is **5**; does not recover unrecorded frames. |
+| `--json` | Print JSON | An alternative to human-readable text and XML. |
+| `--xml` | Print XML | Cannot be combined with `--json` in one command. |
+| Neither `--json`/`--xml` | Print human-readable text | Good for direct inspection in a terminal. |
 
-Tra cứu trực tiếp từ JDK đang dùng:
+Check directly from the JDK you are running:
 
 ```bash
 jfr --help print
 ```
 
-**Quan trọng:** `jfr print` chỉ lọc **những gì đã có trong file**. Nó không lọc theo giá trị tùy ý của field như `duration > 100 ms`. Để lọc theo field, xuất JSON/XML rồi xử lý thêm hoặc dùng API phân tích JFR.
+**Important:** `jfr print` only filters **what is already in the file**. It does not filter by arbitrary field values such as `duration > 100 ms`. To filter by field values, export JSON/XML and post-process it, or use a JFR analysis API.
 
-## 3. Chuẩn bị file và xác định filter đáng dùng
+## 3. Preparing a file and identifying useful filters
 
-Nếu đã có `recording.jfr`, kiểm tra bằng:
+If you already have `recording.jfr`, inspect it with:
 
 ```bash
 jfr summary recording.jfr
 jfr metadata recording.jfr
 ```
 
-- **`summary`** thống kê số lượng instance theo event type, kích thước dữ liệu. Nếu type không có instance, `jfr print --events ...` không có gì tương ứng để in.
-- **`metadata`** hiển thị tên type, category và cấu trúc field của event trong recording. Nó giúp tránh gõ sai tên, nhầm chữ hoa/thường hoặc đoán category.
-- **Có metadata không đảm bảo có instance**. Đối chiếu `summary` hoặc `print` để biết recording đã ghi sự kiện thuộc type đó chưa.
+- **`summary`** summarizes instance counts by event type and data sizes. If a type has no instances, `jfr print --events ...` has nothing matching to print.
+- **`metadata`** displays type names, categories, and field structures of events in the recording. It helps avoid typos, case mismatches, or guessing categories.
+- **Presence in metadata does not guarantee instances exist.** Cross-check `summary` or `print` to know whether the recording captured events of that type.
 
-Để tạo một recording chẩn đoán từ tiến trình Java đang chạy, với PID minh họa `12345`:
+To create a diagnostic recording from a running Java process, with illustrative PID `12345`:
 
 ```bash
 jcmd 12345 JFR.start name=diag settings=profile duration=30s filename=diag.jfr
 ```
 
-Lệnh yêu cầu ghi 30 giây. File `diag.jfr` chỉ dùng cho `jfr print` **sau khi recording kết thúc và file thực sự tồn tại**. `settings=profile` không bảo đảm tất cả event đều được ghi: phụ thuộc cấu hình, tải, threshold và thời điểm. Đường dẫn recording thuộc môi trường của JVM đích; khi chạy trong container cần xác định path và quyền đọc tương ứng. PID cũng chỉ là ví dụ.
+This command requests a 30-second recording. The file `diag.jfr` can only be used with `jfr print` **after the recording finishes and the file actually exists**. `settings=profile` does not guarantee all events are recorded: it depends on configuration, load, thresholds, and timing. The recording path belongs to the target JVM's environment; inside a container, verify the path and read permissions accordingly. The PID is also just an example.
 
-## 4. Lọc theo tên event với `--events`
+## 4. Filtering by event name with `--events`
 
-### 4.1. Chọn một event type
+### 4.1. Selecting a single event type
 
 ```bash
 jfr print --events "jdk.GarbageCollection" diag.jfr
 ```
 
-Lệnh trên chỉ in những instance có tên type khớp `jdk.GarbageCollection`. Đây là **tên event**, không phải tên class Java mà stack trace đang gọi, cũng không phải một giá trị field.
+This command prints only instances whose type name matches `jdk.GarbageCollection`. This is the **event name**, not a Java class name called in a stack trace, and not a field value.
 
-Một ví dụ khác:
+Another example:
 
 ```bash
 jfr print --events "jdk.CPULoad" diag.jfr
 ```
 
-Nếu recording không có instance của `jdk.CPULoad`, output có thể rỗng. Không được kết luận CPU luôn bằng 0 chỉ từ lệnh lọc trống; hãy kiểm tra lại `summary`, settings và cửa sổ thời gian.
+If the recording has no `jdk.CPULoad` instances, output may be empty. Do not conclude CPU was always 0 from an empty filter result; check `summary`, settings, and the time window.
 
-### 4.2. Nhiều event trong một filter
+### 4.2. Multiple events in one filter
 
 ```bash
 jfr print --events "jdk.GarbageCollection,jdk.CPULoad" diag.jfr
 ```
 
-Dấu phẩy ngăn cách các tên type. Nghĩa là lấy instance **thuộc một trong các type được liệt kê**. Viết tên event đủ điều kiện `jdk.XXX` giúp minh bạch và tránh nhập nhằng với những event tùy biến có tên ngắn tương tự.
+Commas separate type names. This selects instances **belonging to any of the listed types**. Using fully qualified event names like `jdk.XXX` keeps filters explicit and avoids ambiguity with custom events that share a short name.
 
 ### 4.3. Wildcard/glob
 
@@ -119,73 +119,73 @@ jfr print --events "jdk.GC*" diag.jfr
 jfr print --events "jdk.*" --stack-depth 10 diag.jfr
 ```
 
-Mẫu `jdk.GC*` chọn những tên type khớp glob bắt đầu bằng `jdk.GC` nếu file có các type ấy; `jdk.*` thường rộng hơn nhiều. **Glob không đồng nghĩa Java regular expression**. Dùng dấu quote để tránh shell (Bash, zsh, PowerShell) diễn giải `*` trước khi truyền vào `jfr`.
+The pattern `jdk.GC*` selects type names matching the glob starting with `jdk.GC` if the file contains those types; `jdk.*` is much broader. **Globs are not Java regular expressions**. Use quotes to prevent the shell (Bash, zsh, PowerShell) from expanding `*` before passing it to `jfr`.
 
-Các bộ lọc danh sách tên/glob được áp dụng trên **symbolic event type names** (metadata `@Name`), không phải chuỗi văn bản tự do có trong stack trace hoặc field.
+Name/glob lists are matched against **symbolic event type names** (metadata `@Name`), not free-form text inside stack traces or fields.
 
-## 5. Lọc theo category với `--categories`
+## 5. Filtering by category with `--categories`
 
-Ví dụ chuẩn của JDK:
+Standard JDK example:
 
 ```bash
 jfr print --categories "GC" diag.jfr
 ```
 
-Lệnh tìm các event có category phù hợp `GC`, và **có thể** in nhiều event type. Danh sách category thực tế nằm trong `jfr metadata diag.jfr`.
+The command finds events whose category matches `GC`, and **may** print multiple event types. The actual category list is in `jfr metadata diag.jfr`.
 
-Có thể dùng danh sách tên đơn giản, tên qualified hoặc quoted glob:
+You can pass a list of simple names, qualified names, or quoted globs:
 
 ```bash
 jfr print --categories "GC,JVM,Java*" diag.jfr
 ```
 
-Category có thể là phân cấp hoặc metadata tùy event type; nếu muốn kết quả chính xác, hãy dựa trên category name thực tế của recording. Không mặc định tất cả event “liên quan GC” đều mang một category tên `GC` hoặc có cấu trúc field giống nhau.
+Categories can be hierarchical or metadata-driven depending on the event type; for accurate results, rely on the recording's actual category names. Do not assume all "GC-related" events carry a single category named `GC` or share the same field structure.
 
-### 5.1. Hai bộ lọc kết hợp bằng OR, không phải AND
+### 5.1. Combining both filters uses OR, not AND
 
-Ví dụ Oracle JDK 17:
+Oracle JDK 17 example:
 
 ```bash
 jfr print --categories "GC" --events "jdk.CPULoad" diag.jfr
 ```
 
-Kết quả là:
+The result is:
 
 ```text
-S = {event thuộc category GC}
-    ∪ {event có type jdk.CPULoad}
+S = {events in category GC}
+    ∪ {events of type jdk.CPULoad}
 ```
 
-Đây là **hợp (union)**. Không phải chỉ những event đồng thời thuộc category GC **và** có type `jdk.CPULoad`. Nếu muốn phép AND theo nhiều tiêu chí, chọn một bộ lọc hẹp hoặc xử lý tập kết quả xuất ra bằng công cụ khác. Không dùng hai option trên với kỳ vọng chúng thu hẹp giao của nhau.
+This is a **union**. It is not "only events that are both in category GC **and** of type `jdk.CPULoad`." If you want an AND across multiple criteria, choose a narrower single filter or post-process the exported results with another tool. Do not pass both options expecting them to intersect.
 
-Tương tự, `--events "A,B"` là type A **hoặc** type B; `--categories "C,D"` là category C **hoặc** D.
+Similarly, `--events "A,B"` means type A **or** type B; `--categories "C,D"` means category C **or** D.
 
-## 6. Giới hạn số frame với `--stack-depth`
+## 6. Limiting frame count with `--stack-depth`
 
-Khi một event có stack trace, `jfr print` mặc định **hiển thị tối đa 5 frame**. Tăng ngưỡng trình bày:
+When an event has a stack trace, `jfr print` by default **displays at most 5 frames**. Increase the display limit:
 
 ```bash
 jfr print --events "jdk.ExecutionSample" --stack-depth 20 diag.jfr
 ```
 
-Khi đọc:
+Keep in mind:
 
-1. **Recording stage:** event type phải được bật; nếu muốn stack trace cần cấu hình thu thập stack (chẳng hạn `stackTrace=true`) và JVM phải thực sự ghi frame. Còn có thể có giới hạn stack depth/sampling ở thời điểm ghi.
-2. **Printing stage:** `--stack-depth 20` chỉ tăng số frame tối đa được in từ **những frame file đã chứa**. Nó không mở rộng chiều sâu đã capture, không chạy lại ứng dụng và không gắn stack mới cho event.
-3. **Không có frame:** có thể event không hỗ trợ/cấu hình không ghi stack, hoặc không có stack phù hợp; thử `--stack-depth 100` cũng không tạo dữ liệu mới.
-4. **Giá trị lớn:** output có thể dài hơn nhưng chưa chắc hữu ích hơn. Chọn số đủ phục vụ giả thuyết điều tra.
+1. **Recording stage:** the event type must be enabled; to capture stack traces, stack collection must be configured (for instance `stackTrace=true`) and the JVM must actually record frames. There may also be recording-time stack depth/sampling limits.
+2. **Printing stage:** `--stack-depth 20` only increases the maximum frames printed from **frames already stored in the file**. It does not expand the captured depth, re-run the application, or attach new stacks to events.
+3. **No frames:** the event may not support stacks, stack recording may be disabled, or no stack was captured; trying `--stack-depth 100` will not create new data.
+4. **Large values:** output gets longer without necessarily being more useful. Pick a depth sufficient for your investigation hypothesis.
 
-Một event không nhất thiết có đầy đủ call tree của request. Nó phản ánh vị trí/tình huống ghi event. Nếu mục tiêu là phân tích hot methods, sampling frequency, lock hoặc allocation, phải chọn event type và settings phù hợp ngay từ lúc recording.
+An event does not necessarily capture the full call tree of a request. It reflects where/how the event was recorded. If your goal is analyzing hot methods, sampling frequency, locks, or allocations, choose the appropriate event types and settings at recording time.
 
-## 7. Chọn human-readable, JSON hoặc XML
+## 7. Choosing human-readable text, JSON, or XML
 
-### 7.1. Dạng văn bản mặc định
+### 7.1. Default text format
 
 ```bash
 jfr print --events "jdk.CPULoad" diag.jfr
 ```
 
-Dạng này thuận tiện xem nhanh các field, timestamp và stack. Một số giá trị được format theo annotation của JFR: ví dụ tỷ lệ có thể hiện thành %. Không tự áp dụng các đơn vị của output văn bản cho mọi field trong JSON/XML mà chưa kiểm tra.
+This format is convenient for quickly inspecting fields, timestamps, and stacks. Some values are formatted using JFR annotations: for example, ratios may be displayed as `%`. Do not assume text-output units apply identically to every JSON/XML field without checking.
 
 ### 7.2. JSON
 
@@ -193,27 +193,27 @@ Dạng này thuận tiện xem nhanh các field, timestamp và stack. Một số
 jfr print --json --events "jdk.CPULoad" diag.jfr
 ```
 
-Trên Bash/sh và Windows Command Prompt, lưu output:
+On Bash/sh and Windows Command Prompt, save output:
 
 ```bash
 jfr print --json --events "jdk.CPULoad" diag.jfr > cpu-events.json
 ```
 
-JSON dễ đưa vào parser hoặc pipeline, gồm event types, dữ liệu field, có thể có object/nested stack/thread/timestamp. **Không giả định mọi field đều tồn tại, hay schema không đổi qua mọi phiên bản JDK**. Hãy đọc output thực tế trước khi viết code truy cập field lồng nhau.
+JSON is easy to feed into parsers or pipelines, containing event types, field data, and potentially nested objects/stacks/threads/timestamps. **Do not assume every field is always present, or that the schema never changes across JDK versions**. Inspect real output before writing code that accesses nested fields.
 
-Kiểm tra file JSON có đúng cú pháp (nếu máy có Python):
+Check that the JSON file is syntactically valid (if Python is available):
 
 ```bash
 python -m json.tool cpu-events.json
 ```
 
-Trên **Windows PowerShell 5.1**, toán tử `>` có thể xuất theo encoding khác với UTF-8 mà nhiều JSON parser mong muốn. Có thể dùng cách chỉ rõ encoding:
+In **Windows PowerShell 5.1**, the `>` operator may write an encoding other than the UTF-8 expected by many JSON parsers. You can specify the encoding explicitly:
 
 ```powershell
 jfr print --json --events "jdk.CPULoad" diag.jfr | Out-File -FilePath cpu-events.json -Encoding utf8
 ```
 
-Tùy PowerShell phiên bản, encoding/BOM có thể khác; xác minh bằng parser sau khi lưu. Khi xuất JFR chứa thông tin nội bộ, kiểm soát dữ liệu nhạy cảm trong file JSON trước khi chia sẻ.
+Depending on the PowerShell version, encoding/BOM behavior may vary; verify with a parser after saving. When exporting JFR containing internal details, control sensitive data in the JSON file before sharing.
 
 ### 7.3. XML
 
@@ -222,19 +222,19 @@ jfr print --xml --events "jdk.GarbageCollection" diag.jfr
 jfr print --xml --events "jdk.GarbageCollection" diag.jfr > gc-events.xml
 ```
 
-XML phù hợp với công cụ cần tree, element/attribute và XML parser. Không dùng cách tách chuỗi thủ công để “parse XML”. Tên node/field cụ thể nên lấy từ output JDK thật.
+XML suits tools that expect a tree, elements/attributes, and an XML parser. Do not use manual string splitting to "parse XML." Verify exact node/field names from actual JDK output.
 
-### 7.4. Không bật `--json` và `--xml` cùng lúc
+### 7.4. Do not enable `--json` and `--xml` together
 
-Cú pháp `[--xml|--json]` nghĩa là chọn **một định dạng** mỗi lần gọi. Muốn hai file, chạy hai lệnh độc lập trên cùng `.jfr`. Hai định dạng **chỉ thay cách xuất**, không làm recording chi tiết hơn, không kích hoạt thêm event và không tăng stack depth đã thu thập.
+The syntax `[--xml|--json]` means choosing **one format** per invocation. If you need both files, run two independent commands on the same `.jfr` file. The two formats **only change output serialization**; they do not make the recording more detailed, enable extra events, or increase captured stack depth.
 
-Với recording lớn, in toàn bộ event dạng JSON/XML có thể tạo rất nhiều dữ liệu. Nên áp dụng `--events`/`--categories` trước, sau đó mới lưu file; kiểm tra dung lượng, encoding, timestamp và field format.
+For large recordings, printing all events as JSON/XML can generate massive output. Apply `--events`/`--categories` first before saving to a file; verify file size, encoding, timestamps, and field formats.
 
-## 8. Bài thực hành độc lập: tự tạo recording bằng Java 17+
+## 8. Standalone hands-on lab: create a recording with Java 17+
 
-Ví dụ này tạo **hai custom event**: một type `demo.Operation` có category `Demo` và một type `demo.Checkpoint` có category `Diagnostics`. Như vậy có thể kiểm tra event filter, category filter và quy tắc OR mà không phụ thuộc ứng dụng thật có GC/CPU event nào.
+This example creates **two custom events**: a `demo.Operation` type in category `Demo` and a `demo.Checkpoint` type in category `Diagnostics`. This lets you test event filters, category filters, and the OR rule without depending on whether a real app emits GC/CPU events.
 
-Tạo file **`JfrPrintDemo.java`**:
+Create **`JfrPrintDemo.java`**:
 
 ```java
 import java.nio.file.Path;
@@ -293,63 +293,63 @@ public class JfrPrintDemo {
 }
 ```
 
-Giải thích:
+Explanation:
 
-- `@Name` gắn **tên type** cho bộ lọc `--events`; `@Category` khai báo **category** cho `--categories`.
-- `@Label` chỉ là nhãn hiển thị, không thay tên type.
-- `withThreshold(Duration.ZERO)` đặt threshold 0, để event rất ngắn vẫn có thể được ghi.
-- `withStackTrace()` yêu cầu lưu stack trace trong recording. Do đó việc chỉnh `--stack-depth` về sau mới có dữ liệu để hiển thị.
-- `Recording.start()`, `stop()` và `dump()` tạo file trong thư mục hiện hành. Chương trình không gọi GC, không tạo dữ liệu dung lượng lớn.
+- `@Name` sets the **type name** for `--events` filtering; `@Category` declares the **category** for `--categories`.
+- `@Label` is only a display label and does not replace the type name.
+- `withThreshold(Duration.ZERO)` sets threshold 0 so very short events are still recorded.
+- `withStackTrace()` requests saving stack traces in the recording. This is why adjusting `--stack-depth` later has data to display.
+- `Recording.start()`, `stop()`, and `dump()` create the file in the current directory. The program does not trigger GC or generate large amounts of data.
 
-Biên dịch/chạy:
+Compile and run:
 
 ```bash
 javac --release 17 JfrPrintDemo.java
 java JfrPrintDemo
 ```
 
-Khi chạy thành công, stdout mà chính mã Java phát ra là:
+When run successfully, the stdout emitted by the Java code itself is:
 
 ```text
 Created demo.jfr
 ```
 
-JVM có thể in thông báo khác trong môi trường đặc biệt. Nội dung timestamp, thread, stack trong JFR **không cố định**, nên không bịa lại một output duy nhất cho các lệnh `jfr print`.
+The JVM may print other messages in special environments. Timestamps, threads, and stacks in JFR **are not fixed**, so do not fabricate a single fixed output for the `jfr print` commands.
 
-### 8.1. Kiểm tra
+### 8.1. Inspection
 
 ```bash
 jfr summary demo.jfr
 jfr metadata demo.jfr
 ```
 
-Trong điều kiện recording chạy thành công, hai custom event đã được `commit()` một lần mỗi type. File có thể chứa thêm metadata hoặc các event hệ thống; điều quan trọng là biết hai type dùng trong thí nghiệm.
+When the recording runs successfully, both custom events have been `commit()`-ted once per type. The file may also contain metadata or system events; what matters is recognizing the two types used in the experiment.
 
-### 8.2. Filter theo một event
+### 8.2. Filter by a single event
 
 ```bash
 jfr print --events "demo.Operation" demo.jfr
 ```
 
-Kết quả bao gồm một `demo.Operation` với field `action = checkout` (khi file đã ghi event). Các timestamp, duration và stack frames có giá trị phụ thuộc lần chạy.
+The output includes one `demo.Operation` with field `action = checkout` (when the file recorded the event). Timestamps, duration, and stack frames have run-dependent values.
 
-### 8.3. Filter theo category
+### 8.3. Filter by category
 
 ```bash
 jfr print --categories "Diagnostics" demo.jfr
 ```
 
-Trong hai custom event, chỉ `demo.Checkpoint` thuộc `Diagnostics`, với field `sequence = 7`.
+Of the two custom events, only `demo.Checkpoint` belongs to `Diagnostics`, with field `sequence = 7`.
 
-### 8.4. Kết hợp bộ lọc, trực tiếp kiểm tra OR
+### 8.4. Combine filters to verify OR directly
 
 ```bash
 jfr print --events "demo.Operation" --categories "Diagnostics" demo.jfr
 ```
 
-Kết quả gồm **cả `demo.Operation` lẫn `demo.Checkpoint`**. Nếu nhầm hai filter là phép AND thì sẽ mong kết quả rỗng; file demo cho phép nhìn thấy rõ hành vi union của JDK.
+The result includes **both `demo.Operation` and `demo.Checkpoint`**. Anyone mistaking the two filters for an AND would expect an empty result; the demo file clearly demonstrates the JDK's union behavior.
 
-### 8.5. Stack và JSON/XML
+### 8.5. Stacks and JSON/XML
 
 ```bash
 jfr print --events "demo.Operation" --stack-depth 12 demo.jfr
@@ -357,69 +357,69 @@ jfr print --json --events "demo.Operation" demo.jfr
 jfr print --xml --categories "Diagnostics" demo.jfr
 ```
 
-Dùng bản `--stack-depth 12` để xem nhiều frame hơn so với mặc định khi có đủ frame được ghi. Dùng JSON/XML để phân tích máy đọc, và chỉ giả định các field sau khi kiểm tra file thực.
+Use `--stack-depth 12` to see more frames than the default when enough frames were recorded. Use JSON/XML for machine-readable analysis, and only assume field names after inspecting the real file.
 
-## 9. Tình huống phân tích trong thực tế
+## 9. Real-world analysis scenario
 
-Khi điều tra ứng dụng bị latency spike:
+When investigating an application experiencing a latency spike:
 
-1. **Xác định recording đúng thời điểm:** ghi lại JDK vendor/version, PID, thời gian start/stop, clock/timezone và điều kiện tải.
-2. **Đọc `summary`:** có event type nào và count ra sao? Nếu không có, kiểm tra event settings/sampling/threshold trước khi kết luận nguyên nhân vắng mặt.
-3. **Đọc `metadata`:** tìm type name/category name chính xác. Nếu đang nghi GC, thử `--events "jdk.GarbageCollection"` hoặc category `GC` có trong file.
-4. **Lọc đủ hẹp:** xuất những event liên quan trước, tránh in toàn bộ recording. Nếu vừa dùng `--events` vừa dùng `--categories`, nhớ kết quả là union.
-5. **Xem stack trace:** nếu chỉ có vài frame hoặc không có, quay lại cấu hình thu thập, đừng cố sửa bằng `--stack-depth`.
-6. **Xuất JSON/XML để tự động hóa:** chuẩn hóa timestamps, xác nhận đơn vị/field và encoding, rồi ghép với application logs, request traces hoặc OS metrics.
-7. **Đặt kết luận theo bằng chứng:** một event GC không chứng minh request chậm do GC; phải ghép timestamp, duration, workload và nhiều tín hiệu khác.
+1. **Verify the recording covers the right time:** record the JDK vendor/version, PID, start/stop times, clock/timezone, and load conditions.
+2. **Read `summary`:** which event types are present and with what counts? If absent, check event settings/sampling/thresholds before concluding why they are missing.
+3. **Read `metadata`:** find exact type names and category names. If suspecting GC, try `--events "jdk.GarbageCollection"` or the `GC` category present in the file.
+4. **Filter narrowly enough:** export relevant events first instead of printing the whole recording. If using both `--events` and `--categories`, remember the result is a union.
+5. **Inspect stack traces:** if only a few frames or none appear, revisit the capture configuration rather than trying to fix it with `--stack-depth`.
+6. **Export JSON/XML for automation:** normalize timestamps, confirm units/fields and encoding, then join with application logs, request traces, or OS metrics.
+7. **Base conclusions on evidence:** a single GC event does not prove a slow request was caused by GC; combine timestamps, durations, workload, and multiple signals.
 
-| Tín hiệu | Kiểm tra tiếp | Không được kết luận vội |
+| Signal | Check next | Do not jump to conclusion |
 | --- | --- | --- |
-| `jfr print` rỗng dù nghi GC nhiều | `summary`, `metadata`, recording window/settings | “JVM không chạy GC”. |
-| `--categories GC` trả nhiều event type | Phạm vi category trong metadata | “Tất cả là một lần GC”. |
-| `--events A --categories B` trả A và B | Quy tắc OR trong tài liệu JDK | “Filter bị lỗi”. |
-| `--stack-depth 64` chỉ thấy 3 frame | Stack đã ghi, event settings | “Lệnh sẽ tự bổ sung 61 frame”. |
-| JSON không parse được sau redirect | Encoding/BOM, file hỏng hay output khác | “JFR format không hỗ trợ JSON”. |
-| Không thấy `jdk.ExecutionSample` | Config profile/default, event enabled, workload | “Ứng dụng không dùng CPU”. |
+| `jfr print` empty despite suspected heavy GC | `summary`, `metadata`, recording window/settings | "JVM did not run GC." |
+| `--categories GC` returns multiple event types | Category scope in metadata | "All of them are one single GC pause." |
+| `--events A --categories B` returns both A and B | OR rule in JDK docs | "The filter is broken." |
+| `--stack-depth 64` only shows 3 frames | Recorded stack, event settings | "The command will fill in 61 missing frames." |
+| JSON fails to parse after redirection | Encoding/BOM, truncated file, or non-JSON output | "JFR format does not support JSON." |
+| No `jdk.ExecutionSample` visible | `profile`/`default` config, event enabled, workload | "The application used no CPU." |
 
-## 10. Những lỗi phổ biến
+## 10. Common mistakes
 
-- **Nhầm `jfr print` với `jcmd JFR.start`:** lệnh đầu đọc `.jfr`, lệnh sau yêu cầu JVM bắt đầu recording.
-- **Gõ sai tên event/category:** phải kiểm tra `summary` và `metadata`; tên event phân biệt với tên Java method xuất hiện trong stack.
-- **Cho rằng `--events` cộng `--categories` là AND:** tài liệu JDK 17 xác nhận **OR/union**.
-- **Dùng regex cho `--events`:** cú pháp hỗ trợ tên, danh sách cách dấu phẩy, glob; không mặc định Java regex.
-- **Không quote wildcard:** shell có thể tự xử lý dấu `*` trước `jfr`.
-- **Tăng `--stack-depth` rồi mong có stack mới:** print không thay quá trình capture event.
-- **Cho rằng mọi event có stack trace:** không đúng; tùy loại event/settings.
-- **Dùng cả `--json` và `--xml` một lần:** hai định dạng loại trừ nhau.
-- **Coi giá trị trong định dạng người đọc là raw field value:** JFR có annotation hiển thị đơn vị/percentage; dùng parser và hiểu field đúng loại.
-- **Tạo output JSON/XML khổng lồ:** phải lọc trước, tránh ghi nội dung không cần vào log hoặc repository.
-- **Không kiểm tra encoding của file sau redirect:** dễ gây parser error, đặc biệt trên shell/PowerShell cũ.
-- **Không xác nhận event có thực trong recording:** không nên gán output trống cho một kết luận hiệu năng.
+- **Confusing `jfr print` with `jcmd JFR.start`:** the first reads `.jfr`, the second asks a JVM to start recording.
+- **Misspelling event/category names:** check `summary` and `metadata`; event names are distinct from Java method names appearing in stacks.
+- **Assuming `--events` plus `--categories` is AND:** JDK 17 docs confirm **OR/union**.
+- **Using regex in `--events`:** the syntax supports names, comma-separated lists, and globs; not Java regex by default.
+- **Forgetting to quote wildcards:** the shell may expand `*` before `jfr` sees it.
+- **Increasing `--stack-depth` expecting new stacks:** `print` does not change event capture.
+- **Assuming every event has a stack trace:** false; it depends on event type and settings.
+- **Passing both `--json` and `--xml` at once:** the two formats are mutually exclusive.
+- **Treating values in human-readable format as raw field values:** JFR applies display annotations for units/percentages; use a parser and understand the underlying field type.
+- **Generating huge JSON/XML outputs:** filter first, and avoid committing unnecessary output to logs or repositories.
+- **Not checking file encoding after redirection:** easily causes parser errors, especially in older shells/PowerShell.
+- **Not verifying events actually exist in the recording:** never turn empty output into a performance conclusion.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-check questions
 
-**Câu 1.** Muốn in riêng `jdk.CPULoad` trong `diag.jfr`?  
-**Đáp án:** `jfr print --events "jdk.CPULoad" diag.jfr`.
+**Question 1.** You want to print only `jdk.CPULoad` in `diag.jfr`?  
+**Answer:** `jfr print --events "jdk.CPULoad" diag.jfr`.
 
-**Câu 2.** Dùng `--categories GC --events jdk.CPULoad` nghĩa là gì?  
-**Đáp án:** Chọn event thuộc category GC **hoặc** có type `jdk.CPULoad`, không yêu cầu cả hai.
+**Question 2.** What does `--categories GC --events jdk.CPULoad` mean?  
+**Answer:** Select events belonging to category `GC` **or** of type `jdk.CPULoad`, not requiring both.
 
-**Câu 3.** Vì sao `--stack-depth 50` vẫn chỉ in 4 frame?  
-**Đáp án:** Vì file có thể chỉ ghi 4 frame có sẵn cho event. `print` không thể thêm frame đã mất.
+**Question 3.** Why does `--stack-depth 50` still print only 4 frames?  
+**Answer:** Because the file may only have 4 recorded frames for that event. `print` cannot add missing frames.
 
-**Câu 4.** Muốn dùng máy đọc kết quả dưới dạng JSON và XML đồng thời?  
-**Đáp án:** Chạy hai lần `jfr print` trên cùng file, lần dùng `--json` và lần dùng `--xml`.
+**Question 4.** You want machine-readable output in both JSON and XML?  
+**Answer:** Run `jfr print` twice on the same file, once with `--json` and once with `--xml`.
 
-**Câu 5.** Muốn chỉ lấy event có `duration` lớn hơn 100 ms, `--events` có làm được không?  
-**Đáp án:** Không; `--events` lọc theo tên type. Cần xử lý field từ JSON/XML hoặc API consumer JFR.
+**Question 5.** You want only events with `duration` greater than 100 ms; can `--events` do that?  
+**Answer:** No; `--events` filters by type name. You need to process fields from JSON/XML or use the JFR consumer API.
 
-**Câu 6.** Với `demo.jfr` ở bài thực hành, bộ lọc `--events "demo.Operation" --categories "Diagnostics"` chọn type nào?  
-**Đáp án:** Cả `demo.Operation` lẫn `demo.Checkpoint`, thể hiện union.
+**Question 6.** With `demo.jfr` from the hands-on lab, which types does `--events "demo.Operation" --categories "Diagnostics"` select?  
+**Answer:** Both `demo.Operation` and `demo.Checkpoint`, demonstrating union behavior.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle JDK 17 — Lệnh `jfr`: `print`, `summary`, `metadata`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html)
+- [Oracle JDK 17 — The `jfr` Command: `print`, `summary`, `metadata`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html)
 - [Oracle JDK 17 — `jcmd`: `JFR.start`, `JFR.dump`](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html)
-- [Java SE 17 — API `Recording`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/Recording.html)
-- [Java SE 17 — API `EventSettings`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/EventSettings.html)
-- [Java SE 17 — API `Category`](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/Category.html)
+- [Java SE 17 — `Recording` API](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/Recording.html)
+- [Java SE 17 — `EventSettings` API](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/EventSettings.html)
+- [Java SE 17 — `Category` API](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/Category.html)
 - [dev.java — The JFR command-line tool](https://dev.java/learn/jvm/jfr/tools/)

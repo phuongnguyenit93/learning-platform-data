@@ -1,122 +1,122 @@
-# 21.3. Ưu tiên bằng chứng ít ảnh hưởng rồi đánh giá nhu cầu dump hoặc cấu hình chi tiết
+# 21.3. Prioritizing Low-Impact Evidence Before Evaluating Dumps or Detailed Configuration
 
-Khi một dịch vụ Java bị tăng độ trễ, tăng RSS, treo thread hoặc có dấu hiệu OutOfMemoryError, thao tác chẩn đoán **cũng có thể làm tình hình xấu hơn**. Một heap dump lớn có thể làm JVM pause, tạo nhiều I/O và tiêu thụ hàng GiB dung lượng đúng lúc máy đang thiếu bộ nhớ hoặc đĩa. Bật logging ở mức quá chi tiết có thể làm tăng CPU, cấp phát chuỗi và ghi file. Đôi khi chỉ cần metrics hiện có, vài snapshot đúng thời điểm hoặc một recording JFR cấu hình nhẹ đã đủ chỉ ra hướng điều tra.
+When a Java service experiences elevated latency, rising RSS, hung threads, or signs of `OutOfMemoryError`, diagnostic operations **can also make the situation worse**. A large heap dump can pause the JVM, generate heavy I/O, and consume gigabytes of disk right when the machine is starved of memory or storage. Enabling overly verbose logging can spike CPU, string allocations, and file writes. Often, existing metrics, a few well-timed snapshots, or a lightweight JFR recording are already enough to point the investigation in the right direction.
 
-Nguyên tắc của bài là: **thu bằng chứng có chi phí thấp nhất đủ để kiểm tra giả thuyết hiện tại; chỉ nâng mức thu thập khi đã xác định khoảng trống thông tin và chấp nhận được rủi ro**. Không phải “tuyệt đối cấm heap dump” hoặc “mọi metric đều miễn phí”. Đây là cách quản lý đánh đổi giữa **giá trị chẩn đoán, tác động vận hành, thời gian thu, kích thước và bảo mật dữ liệu**.
+The core principle of this lesson is: **collect the lowest-cost evidence sufficient to test the current hypothesis; escalate collection only after identifying an information gap and accepting the risk**. This means neither "never take a heap dump" nor "every metric is free." It is about managing the trade-off among **diagnostic value, operational impact, capture time, size, and data security**.
 
-Phạm vi: HotSpot/OpenJDK Java 17+ trên server/container; ví dụ `jcmd`, `jstat`, Java Flight Recorder (JFR), các MXBean và các mức thu thập từ quan sát sẵn có tới heap dump. Với JVM khác hoặc phiên bản khác, phải tra `jcmd <pid> help` và khả năng hỗ trợ thật trước khi dùng.
+Scope: HotSpot/OpenJDK Java 17+ on servers/containers; examples use `jcmd`, `jstat`, Java Flight Recorder (JFR), MXBeans, and collection tiers ranging from existing observability to heap dumps. For other JVMs or versions, check `jcmd <pid> help` and verify actual support before use.
 
-## 1. Tại sao chọn công cụ theo mức ảnh hưởng?
+## 1. Why Select Tools by Impact Level?
 
-Có ba câu hỏi phải trả lời trước khi tác động lên JVM đang có sự cố:
+Three questions must be answered before touching a struggling JVM:
 
-1. **Bằng chứng nào đang thiếu?** Ví dụ: cần biết “CPU tăng do mã nào?”, “thread đang đợi lock hay I/O?”, “post-GC heap có tăng lâu dài?”, “vì sao object còn reachable?”. Mỗi câu hỏi cần loại dữ liệu khác nhau.
-2. **Việc thu bằng chứng có thể làm sai hoặc xóa dấu vết không?** Một lệnh có thể tạo safepoint, kích hoạt GC, thay đổi scheduling, tăng allocation/I/O, khiến tiến trình gặp giới hạn cgroup hoặc làm gián đoạn latency.
-3. **Kết quả có đủ an toàn, đủ chi tiết và đủ bền để phân tích?** Tệp JFR/HPROF có thể chứa đường dẫn, tham số, tên class, stack traces, token, chuỗi và dữ liệu người dùng. Thu xong cần lưu trữ, phân quyền, chuyển giao và xóa đúng chính sách.
+1. **What evidence is missing?** For example: "Which code is driving CPU?", "Are threads waiting on a lock or I/O?", "Is post-GC heap steadily growing?", "Why are objects still reachable?" Each question requires a different kind of data.
+2. **Can capturing the evidence distort or destroy the trail?** A command may trigger safepoints, force GC, alter scheduling, increase allocation/I/O, push the process against cgroup limits, or disrupt latency.
+3. **Is the output safe, detailed, and durable enough to analyze?** JFR/HPROF files can contain paths, arguments, class names, stack traces, tokens, strings, and user data. Once collected, they require policy-compliant storage, access control, transfer, and deletion.
 
-**Mức độ ảnh hưởng là tương đối**, không phải nhãn bất biến. Một thread dump trên JVM vài chục thread khác nhiều với JVM hàng chục nghìn thread. Một JFR recording `default` ngắn khác việc bật toàn bộ allocation stack traces liên tục. Ngay cả lệnh được tài liệu đánh dấu `Impact: Low` vẫn nên đo, giới hạn tần suất và giám sát khi chạy trên production nhạy cảm.
+**Impact is relative**, not an immutable label. A thread dump on a JVM with dozens of threads behaves very differently from one on a JVM with tens of thousands of threads. A short `default` JFR recording differs from continuously capturing full allocation stack traces. Even commands documented as `Impact: Low` should be measured, rate-limited, and monitored on latency-sensitive production services.
 
-## 2. Thang ưu tiên bằng chứng: từ nhẹ đến nặng
+## 2. Evidence Priority Ladder: From Lightest to Heaviest
 
-| Mức | Nhóm bằng chứng/công cụ | Lợi ích chính | Đánh đổi, lưu ý |
+| Level | Evidence / Tool Group | Primary Benefit | Trade-offs and Notes |
 | --- | --- | --- | --- |
-| **0 — sẵn có** | Dashboard, application logs đã ghi, metrics từ OS/cgroup, GC logs đã bật, trace hiện hữu, deployment timeline. | Không cần yêu cầu JVM tạo loại bằng chứng mới. | Metric có thể lấy mẫu thưa, bị aggregate, thiếu correlation hoặc hết retention. |
-| **1 — truy vấn nhẹ có kiểm soát** | `jcmd <pid> VM.version`, `VM.uptime`, `VM.flags`, `VM.command_line`; `jstat -gcutil` lấy mẫu hạn chế; JMX counters đang có. | Xác minh đúng tiến trình, cấu hình, xu hướng heap/GC/class/thread. | Attach, sampling, xuất stdout vẫn có overhead và yêu cầu quyền. |
-| **2 — ghi thu thập nhẹ có thời hạn** | JFR `settings=default`, dump từ recording đang chạy, một số logging đã bật hoặc thay đổi có scope hẹp. | Có timestamp/stack/event nhiều chiều hơn để đối chiếu CPU, GC, I/O, contention. | Overhead, file size và event coverage phụ thuộc cài đặt; không bật tràn lan. |
-| **3 — snapshot/điều tra có tác động vừa** | `jcmd <pid> Thread.print`, `VM.native_memory summary` nếu NMT đã bật, một số lệnh thống kê sâu. | Xác định nhóm thread BLOCKED/WAITING, locks, native-memory subsystem. | Thread count, attach cost, safepoint/VM operation và lượng output có thể đáng kể. |
-| **4 — thu nặng, cần quyết định riêng** | `GC.class_histogram`, `GC.heap_dump`, heap statistics/path-to-GC-roots trong một số cấu hình JFR, profiler hoặc native/core dump chuyên sâu. | Xem class histogram, object graph, retained references, bằng chứng chi tiết cho leak. | Có thể pause mạnh, kích hoạt GC, I/O/disk lớn, yêu cầu bảo mật cao và ảnh hưởng triệu chứng. |
+| **0 — already available** | Dashboards, already-written application logs, OS/cgroup metrics, enabled GC logs, existing traces, deployment timeline. | Requires no new evidence generation from the JVM. | Metrics may be coarsely sampled, aggregated, lack correlation, or exceed retention. |
+| **1 — controlled lightweight queries** | `jcmd <pid> VM.version`, `VM.uptime`, `VM.flags`, `VM.command_line`; bounded `jstat -gcutil` sampling; existing JMX counters. | Verifies target process, configuration, and heap/GC/class/thread trends. | Attach, sampling, and stdout output still have overhead and require permissions. |
+| **2 — time-bounded lightweight recording** | JFR `settings=default`, dumping an already-running recording, existing logging or narrowly scoped adjustments. | Adds multi-dimensional timestamps/stacks/events to correlate CPU, GC, I/O, and contention. | Overhead, file size, and event coverage depend on settings; do not enable indiscriminately. |
+| **3 — medium-impact snapshots / probes** | `jcmd <pid> Thread.print`, `VM.native_memory summary` if NMT is enabled, selected deep statistics commands. | Identifies `BLOCKED`/`WAITING` thread groups, locks, and native-memory subsystems. | Thread count, attach cost, safepoint/VM operations, and output volume can be substantial. |
+| **4 — heavy capture requiring explicit approval** | `GC.class_histogram`, `GC.heap_dump`, heap statistics/path-to-GC-roots in certain JFR configs, heavy profilers, or native/core dumps. | Reveals class histograms, object graphs, retained references, and detailed leak evidence. | Can cause major pauses, trigger GC, heavy disk I/O, strict security demands, and worsen symptoms. |
 
-Các mức là **khung lựa chọn thực hành**, không phải API công bố chính thức. Theo tài liệu `jcmd` Java 17 của Oracle: `JFR.start` được ghi `Impact: Low`, `Thread.print` là `Medium` tùy số thread, còn `GC.class_histogram` và `GC.heap_dump` là `High` tùy heap. Lệnh `VM.native_memory` có mức `Medium`. Phải đọc help và rủi ro thực tế của đúng VM/host.
+These levels are a **practical selection framework**, not a formal API classification. Per Oracle's Java 17 `jcmd` documentation: `JFR.start` is listed as `Impact: Low`, `Thread.print` as `Medium` depending on thread count, and `GC.class_histogram` and `GC.heap_dump` as `High` depending on heap size. `VM.native_memory` is rated `Medium`. Always inspect the help output and real risk for your specific VM/host.
 
-Một hành động ở mức cao vẫn **có thể đúng** khi cần bắt trạng thái trước khi tiến trình chết và hậu quả bỏ lỡ bằng chứng lớn hơn rủi ro thu thập. Nhưng phải nêu rõ quyết định, thời gian, mức ảnh hưởng dự kiến, nơi lưu, đường thoát và ai phê duyệt.
+Even a high-level action **can be the right call** when you must capture state before the process dies and the cost of missing the evidence outweighs collection risk. Even then, explicitly document the decision, timing, expected impact, storage target, abort path, and approver.
 
-## 3. Bắt đầu bằng “incident envelope” và bằng chứng đã có
+## 3. Start With the "Incident Envelope" and Existing Evidence
 
-Trước khi chạy một lệnh tác động đến JVM, ghi lại khung incident:
+Before running a command that perturbs the JVM, capture the incident frame:
 
-- **Định danh:** service, môi trường, deployment version, instance/pod/container, host, PID, JVM vendor/version, collector, application uptime.
-- **Cửa sổ:** thời điểm bắt đầu bất thường, timestamp có timezone, thời gian kéo dài, mốc triển khai hoặc cấu hình thay đổi gần nhất.
-- **Ảnh hưởng:** request rate, throughput, p95/p99 latency, error/timeout/rejection, số user hoặc job bị tác động.
-- **Tài nguyên:** CPU của host và tiến trình, RSS, giới hạn memory cgroup, heap used/committed/max, GC count/pause, disk free/inode, socket count, thread count.
-- **Bằng chứng hiện hữu:** logs có correlation ID, traces, JFR đã chạy, GC log rotation, container events (ví dụ `OOMKilled`), cảnh báo autoscaling/restart.
-- **Ràng buộc:** production có SLA latency nghiêm ngặt? JVM sắp bị restart? Có volume lưu trữ? Ai có quyền nhận HPROF/JFR?
+- **Identity:** service, environment, deployment version, instance/pod/container, host, PID, JVM vendor/version, collector, application uptime.
+- **Window:** anomaly onset time, timestamp with timezone, duration, most recent deployment or configuration change.
+- **Impact:** request rate, throughput, p95/p99 latency, errors/timeouts/rejections, affected users or jobs.
+- **Resources:** host and process CPU, RSS, cgroup memory limit, heap used/committed/max, GC count/pauses, free disk/inodes, socket count, thread count.
+- **Existing evidence:** logs with correlation IDs, traces, running JFR, GC log rotation, container events (e.g., `OOMKilled`), autoscaling/restart alerts.
+- **Constraints:** does production have a strict latency SLO? Is the JVM about to restart? Is storage volume available? Who is authorized to receive HPROF/JFR?
 
-Không cần thu hết một lượt. Chọn những metric trực tiếp phân biệt các giả thuyết. Ví dụ một process bị `OOMKilled` theo cgroup có thể **không hề phát sinh `java.lang.OutOfMemoryError` trong Java heap**, nên heap dump tự động chưa chắc có hoặc giúp ích; xem RSS/cgroup/native memory trước.
+You do not have to gather everything at once. Pick metrics that directly separate competing hypotheses. For instance, a process killed by cgroup `OOMKilled` might **never throw a `java.lang.OutOfMemoryError` in the Java heap**, so an automatic heap dump may neither exist nor help; check RSS/cgroup/native memory first.
 
-### Giữ tính đối chiếu
+### Preserve Comparability
 
-Đối với một metric, lưu **đúng instance và đơn vị**. Heap used sau GC, committed heap, RSS, container working set, native memory committed và reserved **không đồng nghĩa**. Không suy luận “Java heap leak” chỉ từ biểu đồ RSS tăng.
+For every metric, record **the exact instance and units**. Post-GC heap used, committed heap, RSS, container working set, committed native memory, and reserved native memory **are not synonyms**. Never infer a "Java heap leak" solely from a rising RSS graph.
 
-Tập hợp mốc **trước – trong – sau** khi có thể: ví dụ cùng một instance ở 10:00 (bình thường), 10:10 (bất thường), 10:20 (phục hồi). Không so hai instance có workload/JDK/heap flags khác nhau rồi khẳng định một JVM tăng memory.
+Collect **before–during–after** points when possible: for example, the same instance at 10:00 (normal), 10:10 (anomalous), and 10:20 (recovered). Never compare two instances with different workloads, JDKs, or heap flags and declare one JVM has a memory leak.
 
-## 4. Bước 0: metrics, logs và sự kiện vận hành đã tồn tại
+## 4. Step 0: Existing Metrics, Logs, and Operational Events
 
-Đây thường là nơi có tỷ lệ thông tin/chi phí tốt nhất. Tìm bằng chứng có sẵn mà không yêu cầu JVM đổi chế độ ghi:
+This usually offers the highest information-to-cost ratio. Look for available evidence without asking the JVM to change recording modes:
 
-| Triệu chứng | Chỉ số nên đọc trước | Gợi ý phân biệt |
+| Symptom | Metrics to Read First | Differentiation Hint |
 | --- | --- | --- |
-| Latency tăng | ingress latency, app handler duration, queue wait, thread pool active/queue, DB/client duration, error rate | Queue chờ nhiều hay code/I/O đang xử lý chậm? |
-| CPU cao | process CPU vs host CPU, GC CPU/time, method samples nếu JFR có sẵn | CPU nằm trong application hot path, GC hay tiến trình khác? |
-| Heap tăng | used sau GC, GC pauses, allocation rate, max/committed | Churn cấp phát hay retained live set đang tăng? |
-| RSS tăng | RSS/cgroup limit, Java heap committed, thread count, direct buffer pools, metaspace, NMT nếu đã bật | Heap hay native memory đóng góp chính? |
-| Thread treo | active vs idle threads, queue length, lock/DB pool waits, thread dump cũ nếu có | Chờ I/O/lock, backlog hay deadlock? |
-| Process chết | exit code, `OOMKilled` event, Java exception/stderr, fatal error logs, disk capacity | JVM OOM có dump hay kernel kill/crash không kịp ghi? |
-| Spike sau deploy | release timestamp, config diff, traffic mix, warmed-up state, GC/JFR sample trước đó | Regression ứng dụng hay thay đổi load/infra? |
+| Latency spike | ingress latency, app handler duration, queue wait, thread pool active/queue, DB/client duration, error rate | Is work queuing up or is code/I/O running slowly? |
+| High CPU | process CPU vs. host CPU, GC CPU/time, method samples if JFR is already running | Is CPU spent in application hot paths, GC, or another process? |
+| Heap growth | post-GC used, GC pauses, allocation rate, max/committed | Allocation churn or growing retained live set? |
+| RSS growth | RSS/cgroup limit, Java heap committed, thread count, direct buffer pools, metaspace, NMT if enabled | Is heap or native memory the main contributor? |
+| Hung threads | active vs. idle threads, queue length, lock/DB pool waits, prior thread dumps if any | Waiting on I/O/locks, backlog, or deadlock? |
+| Process death | exit code, `OOMKilled` event, Java exceptions/stderr, fatal error logs, disk capacity | JVM OOM with dump or kernel kill/crash before writing? |
+| Post-deploy spike | release timestamp, config diff, traffic mix, warmed-up state, prior GC/JFR baseline | Application regression or load/infra change? |
 
-**Không chỉ nhìn mức trung bình**. p99 latency có thể tăng rất mạnh trong khi average ổn định; tỷ lệ GC pause trên tổng thời gian nhỏ không loại trừ một số pause dài. Khi điều tra tail latency, cần time series hoặc event có timestamp, không chỉ một tổng count.
+**Do not look only at averages**. p99 latency can surge dramatically while the mean remains flat; a small percentage of total GC pause time does not rule out a few long pauses. Investigating tail latency requires time series or timestamped events, not just aggregate counts.
 
-**Không lạm dụng log nội dung request** để “có nhiều bằng chứng hơn”. Log payload, header, token, SQL parameters hoặc PII có thể tạo rủi ro bảo mật lẫn I/O; chỉ bật field thật cần thiết với scope/retention phù hợp.
+**Do not abuse request-content logging** to "get more evidence." Logging payloads, headers, tokens, SQL parameters, or PII introduces both security and I/O risks; enable only essential fields with proper scope and retention.
 
-## 5. Bước 1: xác minh JVM, flags và metric nhẹ
+## 5. Step 1: Verify JVM, Flags, and Lightweight Metrics
 
-Trên host hoặc namespace phù hợp, với JDK có `jcmd` và quyền attach đến JVM mục tiêu:
+On an appropriate host or namespace, with a JDK providing `jcmd` and attach permissions to the target JVM:
 
 ```bash
-# Liệt kê JVM có thể nhìn thấy từ môi trường chạy lệnh
+# List JVMs visible from the command execution environment
 jcmd -l
 
-# Thay <pid> bằng PID thực của đúng JVM
+# Replace <pid> with the real PID of the target JVM
 jcmd <pid> VM.version
 jcmd <pid> VM.uptime
 jcmd <pid> VM.command_line
 jcmd <pid> VM.flags
 
-# Xem help đúng phiên bản JVM trước các thao tác mới
+# Check help for the exact JVM version before running new operations
 jcmd <pid> help
 ```
 
-Lệnh `jcmd` phải nhắm đúng PID, host, user và quyền; trên container PID bên trong khác PID trên host. `jcmd -l` có thể không liệt kê JVM trong namespace container khác. **Không chạy `jcmd 0 ...` để gửi lệnh hàng loạt tới nhiều JVM** khi chỉ đang điều tra một service.
+`jcmd` must target the right PID, host, user, and permissions; inside a container, the internal PID differs from the host PID. `jcmd -l` may not list JVMs in other container namespaces. **Never run `jcmd 0 ...` to broadcast commands to multiple JVMs** when investigating a single service.
 
-Một số command có thể in system properties hay command line chứa thông tin nhạy cảm như endpoint và đôi khi credentials; **chọn lọc trước khi lưu hoặc chia sẻ output**. `VM.flags` cho thấy JVM flags, `VM.command_line` cho thông tin khởi chạy, nhưng không phải mọi thay đổi runtime/application config đều thể hiện ở đây.
+Some commands print system properties or command lines containing sensitive data such as endpoints and occasionally credentials; **filter before saving or sharing output**. `VM.flags` shows JVM flags and `VM.command_line` shows launch arguments, though not every runtime or application config change appears here.
 
-### 5.1. Quan sát GC trong cửa sổ ngắn
+### 5.1. Short-Window GC Observation
 
 ```bash
-# 10 mẫu, cách nhau 1.000 ms
+# 10 samples, 1,000 ms apart
 jstat -gcutil <pid> 1000 10
 
-# Nếu cần thông tin class load/unload và tool có hỗ trợ
+# If class load/unload info is needed and supported by the tool
 jstat -class <pid> 1000 10
 ```
 
-`jstat -gcutil` cung cấp tỉ lệ sử dụng vùng nhớ và GC counters/elapsed thông qua performance instrumentation của HotSpot; cột cụ thể khác theo JDK/collector. Đây là **lấy mẫu trong khoảng 10 giây**, không phải tổng toàn bộ sự cố, và không chứng minh class/object nào đang leak. Cột percent không phải MiB; nếu cần số tuyệt đối, kiểm tra loại metric hoặc dùng JMX/GC logs.
+`jstat -gcutil` reports memory-space utilization percentages and GC counters/elapsed times via HotSpot performance instrumentation; exact columns vary by JDK and collector. This is a **10-second sample window**, not the entire incident, and it does not prove which class or object is leaking. Percentage columns are not MiB; if absolute numbers are needed, check metric types or use JMX/GC logs.
 
-`jstat` vẫn phải chạy với tần suất hợp lý; lặp hàng trăm tiến trình mỗi vài mili-giây là một workload giám sát riêng có thể làm méo số liệu. Thông số `1000 10` là **minh họa ít mẫu**, không phải cadence bắt buộc.
+`jstat` must still be run at a sensible frequency; polling hundreds of processes every few milliseconds becomes a monitoring workload of its own that can skew measurements. `1000 10` is an **illustrative low-sample cadence**, not a mandatory schedule.
 
-### 5.2. Những phép đọc có giới hạn
+### 5.2. Bounded Programmatic Reads
 
-- `MemoryMXBean.getHeapMemoryUsage()` và `getNonHeapMemoryUsage()` cho snapshot managed-memory pools theo ngữ nghĩa Java MXBeans; **non-heap MXBean không đồng nghĩa tổng native RSS**.
-- `ClassLoadingMXBean` báo loaded/unloaded classes.
-- `ThreadMXBean.getThreadCount()` cho thread count tại lúc lấy mẫu; **không tạo thread dump**.
-- `GarbageCollectorMXBean` cho collection count/time nếu collector cung cấp, nhưng GC time tổng hợp **không mặc nhiên là tổng pause time tuyệt đối** đối với các collector concurrent.
+- `MemoryMXBean.getHeapMemoryUsage()` and `getNonHeapMemoryUsage()` snapshot managed-memory pools per Java MXBean semantics; **non-heap MXBean does not equal total native RSS**.
+- `ClassLoadingMXBean` reports loaded/unloaded classes.
+- `ThreadMXBean.getThreadCount()` returns thread count at sample time; **it does not produce a thread dump**.
+- `GarbageCollectorMXBean` reports collection counts/times if provided by the collector, though cumulative GC time **is not automatically total stop-the-world pause time** for concurrent collectors.
 
-Metric đọc nhẹ có ích để thu **xu hướng**, nhưng không thể trả lời “object cụ thể nào giữ 2 GiB heap”. Chỉ chuyển sang dữ liệu chi tiết khi có câu hỏi về bản chất object/stack/lock mà các counters không đủ.
+Lightweight metric reads are useful for spotting **trends**, but cannot answer "which specific objects hold 2 GiB of heap." Escalate to detailed data only when you have a question about object graphs, stacks, or locks that counters cannot answer.
 
-## 6. Java 17+ — lấy mẫu trạng thái nhẹ bên trong ứng dụng
+## 6. Java 17+ — Lightweight In-Process State Sampling
 
-Chương trình độc lập dưới đây chỉ gọi các **management MXBeans**, lấy hai mẫu cách nhau khoảng một giây, không yêu cầu full GC, heap dump hay thay đổi cờ JVM. Nó đo **chính JVM chạy chương trình**, hữu ích để hiểu mẫu số liệu; trên dịch vụ thật nên xuất những metric tương ứng qua monitoring/JMX được bảo vệ thay vì thêm một JVM mới rồi tưởng đang đo service khác.
+The standalone program below invokes only **management MXBeans**, takes two samples roughly one second apart, and requires no Full GC, heap dump, or JVM flag changes. It measures **the JVM running the program itself**, which is useful for understanding the metric pattern; in a real service, export equivalent metrics via secured monitoring/JMX rather than launching a second JVM and mistaking it for the service under investigation.
 
-Lưu `LowImpactSnapshot.java`:
+Save as `LowImpactSnapshot.java`:
 
 ```java
 import java.lang.management.ClassLoadingMXBean;
@@ -202,14 +202,14 @@ public final class LowImpactSnapshot {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac LowImpactSnapshot.java
 java LowImpactSnapshot
 ```
 
-Output có dạng:
+Sample output:
 
 ```text
 elapsed=1.001s heapDelta=0.10MiB
@@ -218,24 +218,24 @@ threads=6->6 loadedClasses=835->844
 gcCountDelta=0
 ```
 
-**Các con số chỉ minh họa định dạng**; giá trị thực thay đổi theo JVM, JIT, lớp được nạp và scheduler. `Thread.sleep(1000)` không bảo đảm đúng 1,000 giây, nên chương trình báo thời gian thực đo bằng `nanoTime()`. Việc đọc nhiều MXBeans không phải snapshot nguyên tử, còn heap delta trong 1 giây không bằng allocation rate vì GC có thể đã thu hồi object trong khoảng đó.
+**Numbers only illustrate the format**; actual values vary by JVM, JIT, loaded classes, and scheduler. `Thread.sleep(1000)` does not guarantee exactly 1.000 second, so the program reports elapsed time measured with `nanoTime()`. Reading multiple MXBeans is not an atomic snapshot, and a 1-second heap delta does not equal allocation rate because GC may have reclaimed objects in between.
 
-Bài tập này chỉ cho thấy cách hỏi những câu ít tác động: “heap/non-heap đang biến động không?”, “thread và class count có tăng không?”, “có GC nào xảy ra giữa hai lần lấy mẫu?”. Để điều tra **một JVM đang chạy khác**, dùng công cụ/agent/monitoring kết nối đúng process; không suy diễn từ số liệu JVM của chương trình ví dụ.
+This exercise simply illustrates how to ask low-impact questions: "Is heap/non-heap changing?", "Are thread and class counts climbing?", "Did any GC run between two samples?" To inspect **another running JVM**, use tooling, an agent, or monitoring connected to that exact process; never extrapolate from the sample program's own JVM metrics.
 
-## 7. Bước 2: JFR default hoặc tận dụng recording đã có
+## 7. Step 2: Default JFR or Reusing an Existing Recording
 
-Java Flight Recorder là lựa chọn hợp lý khi metric cho biết “có bất thường” nhưng chưa biết **thời điểm và stack/loại hoạt động nào** tương quan với spike. JFR có thể cho sự kiện CPU, GC, thread, I/O, contention, class loading và application events tùy settings.
+Java Flight Recorder is the natural choice when metrics say "something is abnormal" but you do not yet know **when and which stack or activity** correlates with the spike. JFR can provide CPU, GC, thread, I/O, contention, class loading, and application events depending on settings.
 
-### 7.1. Ưu tiên recording đang chạy sẵn
+### 7.1. Prioritize Pre-Existing Active Recordings
 
-Đầu tiên xem JVM có recording nào không:
+First check whether the JVM already has any recordings:
 
 ```bash
 jcmd <pid> JFR.check
 jcmd <pid> help JFR.dump
 ```
 
-Nếu có một recording tên thực tế, ví dụ `service_baseline`, có thể tạo **snapshot của dữ liệu đã thu**, không phải khởi động thêm một recording mới:
+If an active recording exists with an actual name, such as `service_baseline`, you can take a **snapshot of already-collected data** instead of launching a new recording:
 
 ```bash
 jcmd <pid> JFR.dump \
@@ -244,13 +244,13 @@ jcmd <pid> JFR.dump \
   maxage=5m
 ```
 
-Đường dẫn là **ví dụ**, thư mục phải tồn tại và JVM đích có quyền ghi. `JFR.dump` **không dừng recording**; nó ghi tệp từ dữ liệu còn được giữ trong repository. `maxage=5m` giới hạn phần lịch sử cần dump nếu còn dữ liệu, không thể khôi phục event đã hết retention hoặc chưa từng được bật. Nếu đang chạy trong container, tệp thuộc filesystem/mount của **JVM đích**, không tự xuất hiện trên máy của operator.
+The path is **illustrative**; the directory must exist and the target JVM must have write permission. `JFR.dump` **does not stop the recording**; it writes a file from data still retained in the repository. `maxage=5m` bounds the historical slice to dump if available—it cannot recover events that aged out of retention or were never enabled. When running in a container, the file lands on the **target JVM's filesystem/mount**, not automatically on the operator's workstation.
 
-Theo tài liệu Java 17, `JFR.dump` có mức `Impact: Low`, nhưng vẫn tốn I/O/dung lượng để ghi file và có thể gây ảnh hưởng khi host gần đầy disk. Không xem việc dump JFR như bằng chứng hoàn toàn “miễn phí”.
+Per Java 17 documentation, `JFR.dump` has `Impact: Low`, yet it still consumes I/O and disk space to write the file and can affect a host that is nearly out of disk. Never treat JFR dumping as completely "free."
 
-### 7.2. Nếu chưa có recording, bắt đầu có thời hạn
+### 7.2. If No Recording Exists, Start a Time-Bounded One
 
-Trong một cửa sổ incident được phép, ví dụ **hai phút**:
+Within an authorized incident window, such as **two minutes**:
 
 ```bash
 jcmd <pid> JFR.start \
@@ -260,9 +260,9 @@ jcmd <pid> JFR.start \
   filename=/var/diag/jfr/triage-2m.jfr
 ```
 
-`settings=default` thường phù hợp ghi nhẹ liên tục; `profile` thu nhiều sự kiện hơn và có overhead cao hơn, dùng cho cửa sổ ngắn khi thật sự thiếu bằng chứng. File được viết khi recording dừng theo cấu hình; nếu JVM bị kernel kill/crash trước đó hoặc filesystem lỗi, tệp hoàn chỉnh có thể không có. Không thay đổi các event thresholds xuống mức cực thấp chỉ để “thu tất cả” mà chưa đánh giá chi phí.
+`settings=default` is typically suitable for lightweight continuous capture; `profile` records more events with higher overhead and is meant for short windows when evidence is genuinely missing. The file is written when the recording ends as configured; if the JVM is kernel-killed/crashed earlier or the filesystem fails, a complete file may not exist. Never slash event thresholds to near zero just to "capture everything" without evaluating cost.
 
-Trên máy có thể truy cập file vừa tạo:
+On a machine with access to the generated file:
 
 ```bash
 jfr summary /var/diag/jfr/triage-2m.jfr
@@ -270,14 +270,14 @@ jfr print --events jdk.GarbageCollection \
   /var/diag/jfr/triage-2m.jfr
 ```
 
-`jfr summary` cho biết event types/count/size và khoảng thời gian; nó không tự suy ra nguyên nhân gốc. `jfr print` in chi tiết các event được chọn; trên file lớn nên lọc để tránh tràn stdout/đĩa. Tên event phải có trong file và phụ thuộc JVM/settings; một recording trống về event mục tiêu không có nghĩa hoạt động đó chắc chắn bằng không.
+`jfr summary` reports event types/counts/sizes and time span; it does not automatically deduce root cause. `jfr print` prints details for selected events; on large files, filter carefully to avoid flooding stdout or disk. Event names depend on what is present in the file and on the JVM/settings; an empty count for a target event does not prove zero activity.
 
-### 7.3. Khi nào mới cân nhắc `profile` hoặc settings chi tiết?
+### 7.3. When Should You Consider `profile` or Finer Settings?
 
-Khi `default` đã cho bằng chứng rằng **CPU hotspot**, **allocation churn**, **I/O chờ dài** hoặc **lock contention** đáng nghi nhưng thiếu stack/mẫu, cân nhắc recording `profile` ngắn có phạm vi và quyền phê duyệt:
+When `default` has provided evidence pointing to a suspected **CPU hotspot**, **allocation churn**, **long I/O wait**, or **lock contention** but lacks sufficient stacks or samples, consider a short, scoped, approved `profile` recording:
 
 ```bash
-# Chỉ sau khi thống nhất mức ảnh hưởng và điều kiện dừng
+# Only after agreeing on impact level and stop condition
 jcmd <pid> JFR.start \
   name=profile_60s \
   settings=profile \
@@ -285,200 +285,200 @@ jcmd <pid> JFR.start \
   filename=/var/diag/jfr/profile-60s.jfr
 ```
 
-Không để nhiều recording profile chồng nhau không giới hạn. Tác động thực tế thay đổi theo ứng dụng; Oracle mô tả JFR default có chi phí thấp trong đa số trường hợp, nhưng **không có cam kết “overhead = 0%” cho mọi workload**. Heap statistics và path-to-GC-roots là những tính năng có thể tốn kém hơn nhiều: không bật chỉ vì muốn có mọi loại dữ liệu.
+Do not leave multiple overlapping `profile` recordings running unbounded. Actual impact varies by application; Oracle describes `default` JFR as low-cost in most cases, but **there is no guarantee of "0% overhead" for every workload**. Heap statistics and path-to-GC-roots are far more expensive features: never enable them merely to gather every possible data type.
 
-**Đánh giá chất lượng ghi:** đủ event? đủ khoảng thời gian xảy ra bất thường? event có sampling/threshold loại bỏ hoạt động ngắn? Có stack traces cần thiết? Nếu thiếu, tăng mức thu **có chủ đích**, không mở toàn bộ event ở mức tối đa.
+**Assess recording quality:** enough events? Does it span the anomaly window? Are thresholds/sampling filtering out short operations? Are the needed stack traces present? If something is missing, raise collection level **deliberately**, rather than turning every event to maximum.
 
-## 8. Bước 3: thread dump khi vấn đề thật sự nằm ở thread/lock
+## 8. Step 3: Thread Dumps When the Issue Truly Involves Threads or Locks
 
-Metrics + JFR nhẹ đôi khi chưa đủ để biết một nhóm thread cụ thể đang chờ lock, chờ `Future.get()`, network read hay executor queue. Một vài **thread snapshots có timestamp** có thể trả lời câu hỏi đó.
+Metrics plus lightweight JFR sometimes cannot tell you which specific threads are waiting on a lock, `Future.get()`, a network read, or an executor queue. A few **timestamped thread snapshots** can answer that question.
 
-Trên HotSpot Java 17:
+On HotSpot Java 17:
 
 ```bash
-# Chỉ thực hiện khi đã phê duyệt mức tác động
+# Execute only after impact level is approved
 jcmd <pid> Thread.print -l
 ```
 
-Theo Oracle JDK 17, `Thread.print` có `Impact: Medium` và phụ thuộc số thread; tùy chọn `-l` thêm thông tin một số `java.util.concurrent` locks. Đọc lệnh qua `jcmd <pid> help Thread.print` nếu VM khác. **Không dùng thread dump như thao tác nhẹ hoàn toàn vô hại** trên dịch vụ có hàng chục nghìn thread.
+Per Oracle JDK 17, `Thread.print` carries `Impact: Medium` depending on thread count; the `-l` option adds information about certain `java.util.concurrent` locks. Check `jcmd <pid> help Thread.print` on other VMs. **Never treat thread dumps as a completely harmless lightweight call** on services running tens of thousands of threads.
 
-Phương án hữu ích là chụp **2–3 lần cách nhau một khoảng có ý nghĩa** (ví dụ 5–10 giây, chỉ là kịch bản) nếu ứng dụng vẫn chịu được, thay vì một lần rồi khẳng định deadlock. Nếu cùng nhóm thread nằm ở cùng stack/lock qua nhiều mốc, bằng chứng mạnh hơn một snapshot đơn. Đừng dùng vòng lặp vô hạn `jcmd Thread.print` gây thêm tải và làm đầy disk.
+A practical approach is taking **2–3 snapshots spaced meaningfully apart** (e.g., 5–10 seconds, scenario-dependent) if the app can tolerate it, rather than taking one snapshot and declaring a deadlock. Seeing the same threads on the same stacks/locks across multiple points provides stronger evidence than a single snapshot. Never run an infinite loop of `jcmd Thread.print` that adds load and fills disks.
 
-### Đọc thread dump đúng
+### Reading Thread Dumps Properly
 
-| Quan sát | Có thể là gì | Không được suy diễn ngay |
+| Observation | What It Might Mean | Do Not Jump to This Conclusion |
 | --- | --- | --- |
-| Nhiều thread ở `WAITING` | Worker nhàn rỗi đang chờ việc, hoặc đợi condition/future. | “Tất cả thread đang chết”. |
-| Nhiều thread `BLOCKED` tại cùng monitor | Lock contention trong một vùng code. | “Có deadlock” nếu chưa thấy chu kỳ khóa hoặc JVM phát hiện deadlock. |
-| Worker chờ `SocketInputStream`/NIO/read | Chờ I/O hoặc downstream. | “CPU cao do method read”. |
-| Thread pool queue tăng và active threads tối đa | Có khả năng saturation/backlog. | “Chỉ cần tăng thread là khỏi”, bỏ qua DB pool/CPU limit. |
-| Cùng một stack nhiều lần | Nghi stuck operation hoặc hoạt động lặp. | “Chắc chắn bug” nếu thread đang xử lý job lâu hợp lệ. |
+| Many threads in `WAITING` | Idle workers waiting for tasks, or awaiting a condition/future. | "All threads are dead." |
+| Many threads `BLOCKED` on the same monitor | Lock contention in a code region. | "There is a deadlock" unless a lock cycle is seen or detected by the JVM. |
+| Workers waiting in `SocketInputStream`/NIO/read | Waiting on I/O or a downstream dependency. | "High CPU caused by the read method." |
+| Thread pool queue growing and active threads at max | Likely saturation/backlog. | "Just add more threads," ignoring DB pools or CPU limits. |
+| Identical stack across multiple samples | Possible stuck operation or repeated work. | "Definitely a bug" if the thread is legitimately running a long job. |
 
-**Thời điểm thread dump có tác động đến hành vi**: nếu hệ thống đang stress, việc chụp có thể kéo dài/đổi timing; so với latency spike thời điểm đó, kết hợp metrics và traces. Thread dump cũng có thể chứa URL, file path, SQL/stack liên quan dữ liệu nội bộ; lưu quyền hạn phù hợp.
+**Thread dump timing affects behavior**: under heavy load, taking a dump can lengthen pauses or shift timing; compare with latency spikes at that timestamp alongside metrics and traces. Thread dumps can also expose URLs, file paths, and SQL/stacks tied to internal data; store with appropriate permissions.
 
-Với JDK mới có virtual threads, công cụ dump có thể khác với Java 17. Đừng bê nguyên lệnh `Thread.dump_to_file` của JDK 21 vào hệ thống JDK 17 nếu lệnh không có trong `jcmd <pid> help`.
+On newer JDKs with virtual threads, dump tooling can differ from Java 17. Do not blindly copy JDK 21's `Thread.dump_to_file` onto a JDK 17 system if the command does not appear in `jcmd <pid> help`.
 
-## 9. Khi nghi vấn nằm ở native memory
+## 9. When Native Memory Is Suspected
 
-Một dịch vụ có RSS tăng nhưng Java heap used sau GC ổn định cần xem **thread stacks, direct buffers, metaspace, JIT/code cache, GC/native allocations** hoặc container accounting trước khi kết luận Java heap leak.
+A service with growing RSS but stable post-GC Java heap requires checking **thread stacks, direct buffers, metaspace, JIT/code cache, GC/native allocations**, or container accounting before concluding a Java heap leak.
 
-Nếu **Native Memory Tracking (NMT) đã được bật từ lúc khởi động**:
+If **Native Memory Tracking (NMT) was enabled at startup**:
 
 ```bash
 jcmd <pid> VM.native_memory summary scale=MB
 ```
 
-NMT có thể được bật bằng `-XX:NativeMemoryTracking=summary` hoặc `detail` khi khởi động JVM; cần hiểu overhead từ thời điểm bật. Nếu NMT **không được bật**, lệnh runtime không thể tự cung cấp lại lịch sử native allocation đã không được theo dõi. Đừng yêu cầu restart production chỉ để có NMT khi chưa phân tích các metric sẵn có.
+NMT is enabled via `-XX:NativeMemoryTracking=summary` or `detail` at JVM launch; understand its ongoing overhead from startup. If NMT was **not enabled**, runtime commands cannot retroactively provide untracked native allocation history. Do not demand a production restart just to get NMT before analyzing already-available metrics.
 
-Khi đã có NMT và cần so sánh theo thời gian, trong phạm vi cho phép:
+When NMT is present and time-based comparison is needed within approved bounds:
 
 ```bash
-# Đánh dấu mốc gốc
+# Mark baseline
 jcmd <pid> VM.native_memory baseline
 
-# Sau khoảng thời gian cần quan sát
+# After the observation interval
 jcmd <pid> VM.native_memory summary.diff scale=MB
 ```
 
-Theo tài liệu `jcmd` JDK 17, `VM.native_memory` có mức `Impact: Medium`. NMT có thể làm rõ nhóm memory trong HotSpot nhưng **không bao quát mọi allocation** từ thư viện native bên ngoài JVM. Và **reserved ≠ committed ≠ RSS**; không cộng “reserved” làm RAM vật lý đã sử dụng.
+Per JDK 17 `jcmd` docs, `VM.native_memory` has `Impact: Medium`. NMT clarifies HotSpot-managed native pools, yet **does not cover all allocations** from native libraries outside the JVM. Moreover, **reserved ≠ committed ≠ RSS**; never add "reserved" memory as physical RAM in use.
 
-Bật `-XX:NativeMemoryTracking=detail` cho lần deploy sau là thay đổi cấu hình có overhead lớn hơn `summary`. Chỉ làm sau khi đã quyết định muốn truy callsite native nào và đã thử/đánh giá trên môi trường phù hợp.
+Enabling `-XX:NativeMemoryTracking=detail` for the next deploy carries higher overhead than `summary`. Do so only after deciding which native callsites you want to trace and validating in an appropriate test environment.
 
-## 10. Khi nào histogram là bước hợp lý hơn heap dump?
+## 10. When Is a Histogram More Reasonable Than a Heap Dump?
 
-Nếu dữ liệu trước đó cho thấy **Java heap used sau GC tăng bền vững**, cần biết nhóm class nào chiếm bộ nhớ; histogram có thể là bước trung gian trước khi quyết định chụp toàn bộ HPROF:
+If earlier data shows **post-GC Java heap used climbing steadily** and you need to know which classes dominate memory, a histogram can serve as an intermediate step before committing to a full HPROF:
 
 ```bash
-# Tác động HIGH: không dùng như lệnh kiểm tra "nhẹ"
+# HIGH impact: do not treat as a "lightweight" check
 jcmd <pid> GC.class_histogram
 ```
 
-`GC.class_histogram` thống kê số object và dung lượng theo class, nhưng không cho quan hệ tham chiếu/dominator. Kết quả có thể cho biết `byte[]`, `HashMap$Node` hay một kiểu cache xuất hiện nhiều; nó **không chứng minh object nào bị leak** hoặc GC root nào giữ chúng.
+`GC.class_histogram` counts objects and shallow bytes per class, but reveals no reference relationships or dominators. It may show numerous `byte[]`, `HashMap$Node`, or cache entries; it **does not prove which objects are leaked** or which GC roots retain them.
 
-Quan trọng: Oracle đánh dấu `GC.class_histogram` là **High impact**, phụ thuộc heap. Nó có thể giữ JVM ở trạng thái phải kiểm tra lượng lớn object và tạo output lớn. Đừng đưa vào “mức thấp” chỉ vì output là text thay vì file HPROF. Tùy chọn `-all` (khi VM hỗ trợ) bao gồm cả các object unreachable; điều đó có thể gây hiểu nhầm rằng mọi object đều đang live. Cần so đối chiếu chính xác collection policy và thời điểm.
+Important: Oracle rates `GC.class_histogram` as **High impact**, depending on heap size. It can stall the JVM while inspecting huge object populations and produce large output. Do not classify it as "low impact" simply because the output is text rather than an HPROF file. The `-all` option (where supported) includes unreachable objects, which can mislead readers into thinking every object is live. Always correlate collection policy and timing accurately.
 
-**Quyết định có chụp histogram không:** chỉ nên thực hiện khi ta cần **phân bố object theo class**, tác động phù hợp với tình hình, thread/GC/JFR nhẹ chưa trả lời câu hỏi và có phương án xử lý output an toàn.
+**Deciding whether to capture a histogram:** run it only when you need **per-class object distribution**, the impact fits the situation, lightweight thread/GC/JFR data cannot answer the question, and safe output handling is ready.
 
-## 11. Khi nào thật sự cần heap dump?
+## 11. When Is a Heap Dump Truly Needed?
 
-Heap dump `.hprof` chứa object graph, hữu ích khi mục tiêu là tìm **đường giữ tham chiếu**, dominator tree, retained size, class loader/retention hoặc một dạng leak Java heap không thể giải thích bằng histogram và metric.
+An `.hprof` heap dump captures the object graph and is useful when your goal is finding **retaining reference paths**, dominator trees, retained sizes, classloader retention, or a Java heap leak unexplainable by histograms and metrics.
 
-Ví dụ HotSpot JDK 17:
+HotSpot JDK 17 example:
 
 ```bash
-# HIGH impact, cần đúng đường dẫn/quyền/dung lượng và phê duyệt
+# HIGH impact; requires valid path/permissions/capacity and approval
 jcmd <pid> GC.heap_dump /var/diag/heap/incident-001.hprof
 ```
 
-Theo tài liệu Oracle JDK 17, `GC.heap_dump` là **High impact** và **yêu cầu full GC trừ khi có tùy chọn `-all`**. Full GC có thể thay đổi chính object population bạn muốn quan sát; `-all` ghi cả object unreachable và không phải một công tắc “không có tác động”. HPROF có thể có dung lượng hàng GiB; không mặc định bằng `-Xmx`. Nếu đang gần cgroup memory/disk limit, thao tác có thể làm hệ thống hỏng nặng hơn hoặc file được ghi dở.
+Per Oracle JDK 17 docs, `GC.heap_dump` is **High impact** and **triggers a full GC unless `-all` is specified**. A Full GC alters the very object population under study; `-all` writes unreachable objects as well and is not a "zero-impact" toggle. HPROF files can reach gigabytes—do not assume size equals `-Xmx`. Near cgroup memory or disk limits, dumping can worsen the outage or produce a truncated file.
 
-### Checklist go/no-go trước heap dump
+### Go/No-Go Checklist Before a Heap Dump
 
-- [ ] **Giả thuyết rõ:** đang tìm retained references trong Java heap, không phải native RSS, network timeout hay container `OOMKilled` không có Java OOM?
-- [ ] **Bằng chứng đã có:** đã so after-GC baseline/GC logs, classloader/class counts hoặc JFR phù hợp; xác nhận thông tin nào chỉ object graph mới cung cấp?
-- [ ] **Tính cấp thiết:** có nguy cơ mất cơ hội điều tra do tiến trình sắp chết? Có replica/staging có thể tái hiện ít ảnh hưởng hơn?
-- [ ] **Impact:** chấp nhận được pause/Full GC? Ai phê duyệt? Có kế hoạch hủy việc thu hoặc failover nếu SLO xấu đi?
-- [ ] **Storage:** thư mục có sẵn, quyền ghi bằng user chạy JVM, đủ quota/inode, không dùng tên file đã tồn tại; đo free disk trên **đúng mount**.
-- [ ] **Container:** file được lưu trên volume phù hợp để không mất khi pod bị thay thế? Giới hạn I/O và ephemeral storage?
-- [ ] **Bảo mật:** dump có thể chứa secret/PII; chỉ người được phép đọc, mã hóa khi truyền/lưu, retention và xóa có nhật ký.
-- [ ] **Phân tích:** có công cụ như Eclipse MAT/VisualVM, máy phân tích đủ RAM và kế hoạch đối chiếu timestamp/JFR/GC logs không?
+- [ ] **Clear hypothesis:** are you hunting retained references in the Java heap, rather than native RSS, network timeouts, or a container `OOMKilled` without Java OOM?
+- [ ] **Prior evidence:** have you checked post-GC baselines/GC logs, classloader/class counts, or relevant JFR, confirming what only an object graph can answer?
+- [ ] **Urgency:** is there a risk of losing the investigation because the process is about to die? Is there a replica or staging environment where reproduction is lower-risk?
+- [ ] **Impact:** are the pause and Full GC acceptable? Who approved it? Is there an abort plan or failover if SLO degrades?
+- [ ] **Storage:** does the directory exist, is it writable by the JVM user, are quotas/inodes sufficient, is the filename unused, and was free disk checked on **the exact mount**?
+- [ ] **Container:** is the file saved on an appropriate volume so it survives pod replacement? Are I/O and ephemeral storage limits checked?
+- [ ] **Security:** dumps can contain secrets/PII; restrict read access, encrypt in transit/at rest, enforce retention, and log deletions.
+- [ ] **Analysis:** do you have Eclipse MAT/VisualVM, enough RAM on the analysis machine, and a plan to align timestamps with JFR/GC logs?
 
-Nếu đa số câu trả lời chưa rõ, **chưa nên chụp** chỉ vì đã có sẵn lệnh. Một heap dump khó mở, không đúng instance, không còn log/metrics để đối chiếu hoặc làm đầy đĩa production có thể đem lại ít giá trị hơn chi phí gây ra.
+If most answers are unclear, **do not capture** just because the command is handy. An unopenable heap dump, captured from the wrong instance, lacking correlated logs/metrics, or filling production disk delivers far less value than the damage it causes.
 
-### Khi gặp OOM thì sao?
+### What About OOM Events?
 
-`-XX:+HeapDumpOnOutOfMemoryError` cùng `-XX:HeapDumpPath=...` có thể tạo dump khi **JVM xử lý những loại `OutOfMemoryError` phù hợp**. Hai cờ này thường được thiết lập trước lúc khởi động. Chúng **không bảo đảm** có HPROF khi kernel/cgroup kill JVM (`OOMKilled`/`SIGKILL`), mất quyền ghi, đầy đĩa hoặc tiến trình crash trước khi hoàn tất.
+`-XX:+HeapDumpOnOutOfMemoryError` paired with `-XX:HeapDumpPath=...` can produce a dump when **the JVM handles eligible `OutOfMemoryError` conditions**. These flags are normally set at launch. They **do not guarantee** an HPROF when the kernel/cgroup kills the JVM (`OOMKilled`/`SIGKILL`), write permissions fail, disk fills up, or the process crashes before completion.
 
-Đừng gây OOM trên production chỉ để kiểm tra cơ chế dump. Kiểm tra chức năng trên staging cùng image, user, mount/quota tương đương. Nếu production không có dump sau sự cố, trước tiên xem **JVM OOM hay OS kill**, log báo dump, container events và mount/retention — không tự suy luận không có leak.
+Never induce an OOM in production just to test dump mechanics. Validate the workflow in staging with an equivalent image, user, mount, and quota. If production lacks a dump after an incident, check **JVM OOM vs. OS kill**, dump log messages, container events, and mount/retention first—never assume "no dump means no leak."
 
-## 12. Cấu hình chi tiết: thay đổi nhỏ, có thời hạn và có đường quay lại
+## 12. Detailed Configuration: Small, Time-Bounded, and Reversible Changes
 
-Một số loại vấn đề không đủ bằng chứng khi settings mặc định quá thưa. Có thể cần:
+Some issues lack sufficient evidence under sparse default settings. You may need to:
 
-- Tăng mức chi tiết của **một nhóm JFR event** như `jdk.SocketRead` hoặc `jdk.JavaMonitorEnter` trong cửa sổ ngắn, thay vì bật tất cả event.
-- Thêm stack traces/sampling cho một nghi vấn cụ thể, nhớ overhead sẽ thay đổi theo event rate và threshold.
-- Bật **GC unified logging** có rotation trong lần deploy sau hoặc thay đổi runtime logging **chỉ khi JVM hỗ trợ và có phê duyệt**, tránh ghi log liên tục mức `trace`.
-- Bật NMT `summary` khi khởi động cho incident có tính lặp lại; chỉ dùng `detail` khi cần native callsites và đã đo overhead.
-- Chụp thêm heap dump/diagnostic artifact nặng chỉ khi mức bằng chứng nhẹ không thể trả lời câu hỏi nguyên nhân.
+- Increase detail on **one JFR event group** such as `jdk.SocketRead` or `jdk.JavaMonitorEnter` for a short window, rather than enabling all events.
+- Add stack traces or sampling for a specific suspicion, remembering overhead scales with event rate and thresholds.
+- Enable rotated **GC unified logging** on the next deployment, or change runtime logging **only when supported by the JVM and approved**, avoiding continuous `trace` logging.
+- Enable NMT `summary` at startup for recurring incidents; use `detail` only when native callsites are needed and overhead has been measured.
+- Capture heavy heap dumps/diagnostic artifacts only when lighter evidence cannot answer the root-cause question.
 
-Trước khi thay cấu hình, ghi **trạng thái ban đầu**, thời gian bắt đầu/kết thúc, phạm vi instance, người thực hiện, disk/CPU budget, điều kiện tự dừng, cách restore. Không “nâng hết flags cho chắc”; mỗi thay đổi có thể ảnh hưởng cả symptom và độ tin cậy của phép đo.
+Before changing configuration, record **initial state**, start/end times, target instances, operator, disk/CPU budget, auto-stop condition, and restore procedure. Never "crank up all flags just in case"; every change can alter both the symptom and measurement reliability.
 
-Ví dụ **chỉ xem** cấu hình Unified Logging đã có:
+Example **read-only check** of existing Unified Logging configuration:
 
 ```bash
 jcmd <pid> VM.log list
 ```
 
-Lệnh `VM.log` có khả năng thay đổi cấu hình logging khi truyền options thích hợp; phần ví dụ chỉ liệt kê. Để bật thêm tags hoặc đổi output, xem `jcmd <pid> help VM.log` và thử trên môi trường tương thích. Không gửi một lệnh cấu hình động chưa kiểm tra sang toàn bộ fleet.
+`VM.log` can modify logging configuration on supporting versions when passed appropriate options; this example only lists it. To enable extra tags or change outputs, check `jcmd <pid> help VM.log` and test in a compatible environment. Never push an untested dynamic logging change fleet-wide.
 
-### JFR heap statistics và GC roots không phải lựa chọn đầu tiên
+### JFR Heap Statistics and GC Roots Are Not First-Line Choices
 
-Bật **Heap Statistics** trong JFR hoặc tùy chọn `path-to-gc-root` có thể tạo thêm công việc và pause. Oracle cảnh báo Heap Statistics có thể gây overhead đáng kể do việc thu heap statistics liên quan GC; các tùy chọn GC root cũng chỉ nên bật khi đang điều tra suspected memory leak. Không bật `path-to-gc-root=true` cho mọi recording chỉ vì file có thêm “chi tiết”.
+Enabling **Heap Statistics** in JFR or `path-to-gc-root` can create extra work and pauses. Oracle warns that Heap Statistics can introduce substantial overhead due to GC-coupled heap statistics gathering; GC root options should likewise be enabled only during suspected memory leak investigations. Never set `path-to-gc-root=true` on every recording just to make files "more detailed."
 
-Muốn biết **allocation churn** thì JFR samples/metrics có thể đủ; muốn biết **retained object graph** mới cân nhắc heap dump. Hai câu hỏi khác nhau, và một loại artifact không nên được kỳ vọng giải thích hoàn toàn loại kia.
+To measure **allocation churn**, JFR samples/metrics may suffice; to inspect the **retained object graph**, consider a heap dump. Those are two different questions, and neither artifact should be expected to fully substitute for the other.
 
-## 13. Thu bằng chứng theo nhóm sự cố: ba playbook minh họa
+## 13. Incident-Grouped Collection: Three Illustrative Playbooks
 
-### A. p99 latency tăng nhưng CPU không cao
+### A. p99 Latency Rises While CPU Remains Low
 
-1. Đọc request latency breakdown, thread pool queue/active, connection pool pending, socket/database metrics và logs hiện có.
-2. Nếu thấy nhiều worker đợi downstream, dùng JFR `default`/recording sẵn có để xem I/O, contention và timestamp (chú ý threshold có thể bỏ event ngắn).
-3. Nếu vẫn không biết thread nào đang giữ lock/wait, cân nhắc **một số thread dump** có điều kiện, so giữa các mốc.
-4. **Không chụp heap dump** chỉ vì latency cao nếu không có tín hiệu memory/retention.
+1. Inspect request latency breakdown, thread pool queue/active counts, connection pool pending counts, socket/database metrics, and existing logs.
+2. If many workers appear blocked downstream, use `default` JFR or an existing recording to inspect I/O, contention, and timestamps (remembering thresholds may skip short events).
+3. If you still cannot tell which threads hold locks or wait, consider **a few conditional thread dumps**, comparing across timestamps.
+4. **Do not take a heap dump** solely for high latency when no memory/retention signal exists.
 
-Dấu hiệu như `ThreadPark` hoặc `SocketRead` là hướng điều tra, không tự động kết luận code sai. Một số thread đang `WAITING` là bình thường nếu chúng là idle workers.
+Signals like `ThreadPark` or `SocketRead` are investigative leads, not automatic proof of buggy code. Seeing some threads in `WAITING` is normal if they are idle workers.
 
-### B. RSS tiến sát container limit, heap sau GC ổn định
+### B. RSS Approaches Container Limit While Post-GC Heap Is Flat
 
-1. Xem RSS/cgroup memory, container events, `-Xmx` và heap committed, số thread, direct buffer/metaspace metrics hiện có.
-2. Nếu NMT đã bật, đọc `VM.native_memory summary` và so với baseline; kiểm tra reserved vs committed.
-3. Nếu nghi native allocations ngoài phạm vi HotSpot NMT, chuyển sang OS/native tooling có phê duyệt, không cố dùng HPROF để giải thích toàn bộ RSS.
-4. Chỉ cân nhắc heap dump nếu có **bằng chứng Java heap retention** hoặc cần truy đối tượng liên quan tới native buffers/classloaders.
+1. Check RSS/cgroup memory, container events, `-Xmx` vs. committed heap, thread count, and existing direct buffer/metaspace metrics.
+2. If NMT was enabled, read `VM.native_memory summary` and compare against baseline; distinguish reserved vs. committed.
+3. If native allocations outside HotSpot NMT are suspected, switch to approved OS/native tooling rather than trying to explain all RSS with an HPROF.
+4. Consider a heap dump only if **Java heap retention evidence** emerges or you need to trace objects anchoring native buffers/classloaders.
 
-Tăng `-Xmx` theo phản xạ có thể khiến container bị kill sớm hơn vì giảm headroom cho bộ nhớ native.
+Reflexively increasing `-Xmx` can get the container killed even sooner by shrinking headroom left for native memory.
 
-### C. Heap after-GC tăng đều qua nhiều giờ
+### C. Post-GC Heap Climbs Steadily Over Many Hours
 
-1. Thu chuỗi thời gian after-GC heap used, allocation rate, GC frequency/pause, workload và các deploy gần nhất.
-2. Dùng JFR sẵn có hoặc `settings=default` để tương quan GC, class loading, allocation samples khi được bật.
-3. Nếu nghi nhiều object thuộc một số class và cần định hướng, cân nhắc histogram **High impact** khi có cửa sổ phù hợp.
-4. Nếu câu hỏi là “điều gì giữ object này không được GC”, quyết định heap dump theo checklist go/no-go rồi mở bằng MAT để xem dominator tree và path to GC roots.
-5. Nếu leak chỉ xuất hiện ở staging có thể tái hiện, ưu tiên thu artifact nặng tại đó để bảo vệ production.
+1. Collect a time series of post-GC heap used, allocation rate, GC frequency/pauses, workload, and recent deployments.
+2. Use existing JFR or `settings=default` to correlate GC, class loading, and allocation samples when enabled.
+3. If many objects of specific classes are suspected and orientation is needed, consider a **High-impact** histogram during a safe window.
+4. When the question becomes "what keeps these objects from being GC'd," run the heap dump go/no-go checklist and inspect dominator trees and paths to GC roots in MAT.
+5. If the leak reproduces reliably in staging, prefer capturing heavy artifacts there to protect production.
 
-Đừng coi mọi biểu đồ heap dạng răng cưa hoặc mọi sự tăng trong giai đoạn warm-up là leak. Xem mức **sau chu kỳ GC có tính so sánh**, không chỉ peak trước khi GC.
+Do not mistake every sawtooth heap curve or warm-up climb for a leak. Compare **post-GC baselines across comparable cycles**, not just pre-GC peaks.
 
-## 14. Chọn công cụ theo câu hỏi, không theo thói quen
+## 14. Choose Tools by Question, Not Habit
 
-| Câu hỏi điều tra | Bằng chứng đủ nhẹ cần thử trước | Chỉ nâng mức thu khi... |
+| Investigation Question | Lightweight Evidence to Try First | Escalate Collection Only When... |
 | --- | --- | --- |
-| JVM có chạy đúng flags và version? | `VM.version`, `VM.flags`, `VM.command_line`. | Hiếm khi cần heap/thread dump cho câu hỏi này. |
-| Có GC pause/heap trend đáng ngại? | Dashboard + GC log hiện có + `jstat`/JFR default. | Cần phân bố object/GC roots cụ thể. |
-| CPU hotspot thuộc method nào? | JFR execution samples trong recording phù hợp. | Sampling không đủ, phải chẩn đoán có profiler chi tiết hơn. |
-| Task chậm do I/O hay lock? | Traces, queue wait, DB/socket metrics, JFR I/O/contended events. | Cần snapshot stack thread để xác thực block cụ thể. |
-| Metaspace/classloader tăng? | Class loading/Metaspace metrics, `VM.classloader_stats` nếu phù hợp. | Muốn tìm root giữ loader hoặc metadata retention cụ thể. |
-| Native RSS tăng? | OS/cgroup + heap committed + NMT nếu đã bật. | Cần native profiler hoặc core dump, theo quy trình riêng. |
-| Java heap leak, object nào giữ bộ nhớ? | After-GC trend + JFR allocations + histogram nếu phù hợp. | Chỉ object graph/retained-size mới trả lời được. |
-| Process đột ngột biến mất? | Kernel/container events, stderr/fatal logs, exit code. | Xác nhận loại lỗi trước khi quyết định dump. |
+| Is the JVM running the right flags and version? | `VM.version`, `VM.flags`, `VM.command_line`. | Rarely requires a heap or thread dump. |
+| Is there a concerning GC pause/heap trend? | Dashboards + existing GC logs + `jstat`/default JFR. | Specific object distribution or GC roots are needed. |
+| Which methods are CPU hotspots? | JFR execution samples from an appropriate recording. | Sampling is insufficient and a finer profiler is justified. |
+| Are tasks slow due to I/O or locks? | Traces, queue waits, DB/socket metrics, JFR I/O/contention events. | Thread stack snapshots are needed to confirm exact blocks. |
+| Are metaspace/classloaders growing? | Class loading/Metaspace metrics, `VM.classloader_stats` if appropriate. | Roots retaining specific loaders or metadata must be traced. |
+| Is native RSS rising? | OS/cgroup + heap committed + NMT if enabled. | Native profiler or core dump is needed per separate procedure. |
+| Java heap leak: which objects hold memory? | Post-GC trend + JFR allocations + histogram if justified. | Only an object graph / retained size can answer it. |
+| Did the process vanish abruptly? | Kernel/container events, stderr/fatal logs, exit code. | Failure mode is confirmed before deciding on dumps. |
 
-Một bảng dashboard không phải kết luận; một HPROF cũng không phải kết luận. **Các nguồn bằng chứng cần hỗ trợ hoặc bác bỏ nhau**. Nếu metric bảo “CPU 100%” nhưng JFR CPU samples rất ít, kiểm tra file có ghi đúng cửa sổ hay không, sampling/threshold, host vs JVM CPU, số instance và timezone trước khi khẳng định tool nào sai.
+A dashboard alone is not a conclusion; neither is an HPROF alone. **Evidence sources should corroborate or refute one another**. If metrics say "100% CPU" while JFR shows few CPU samples, check whether the recording covered the exact window, check sampling/thresholds, host vs. JVM CPU, instance count, and timezone before blaming any tool.
 
-## 15. Không để công cụ chẩn đoán làm mất dịch vụ
+## 15. Never Let Diagnostic Tools Take Down the Service
 
-### 15.1. Những tình huống cần thận trọng đặc biệt
+### 15.1. Situations Requiring Extra Caution
 
-- **Memory/cgroup sắp hết:** một dump/recording có thể tăng I/O/storage hoặc CPU; kernel có thể kill tiến trình giữa chừng.
-- **Disk gần đầy:** JFR/GC log/heap dump có thể tiêu thụ volume chứa ứng dụng hoặc log quan trọng.
-- **Độ trễ rất nhạy:** snapshot yêu cầu safepoint/Full GC có thể phá vỡ SLO.
-- **Nhiều replica đồng thời:** chạy diagnostic nặng trên mọi replica có thể gây incident diện rộng; ưu tiên giới hạn một replica/cửa sổ khi được phép.
-- **Hệ thống có autoscaling/restart:** tệp sinh trong container ephemeral có thể biến mất; cần mount/thu chuyển an toàn.
-- **Dữ liệu nhạy cảm:** heap dump/recording/thread dump có thể lộ token, path và nội dung đối tượng.
-- **Không rõ JVM/vendor:** lệnh khác nhau, impact/hỗ trợ khác nhau; đừng dùng tham số được chép từ phiên bản khác.
+- **Memory/cgroup near exhaustion:** a dump or recording can spike I/O, storage, or CPU; the kernel may kill the process mid-capture.
+- **Disk nearly full:** JFR, GC logs, or heap dumps can fill volumes shared by the app or critical logs.
+- **Extreme latency sensitivity:** snapshots requiring safepoints or Full GC can breach SLOs.
+- **Multiple concurrent replicas:** running heavy diagnostics across every replica can turn a local issue into a fleet-wide outage; target a single replica/window when approved.
+- **Autoscaling/restarting environments:** files written inside ephemeral containers can disappear; mount and extract safely.
+- **Sensitive data:** heap dumps, recordings, and thread dumps can expose tokens, paths, and object payloads.
+- **Unknown JVM/vendor:** commands differ in syntax, impact, and support; never copy flags blindly from another version.
 
-Trong tình huống nguy cấp, **ổn định dịch vụ và giữ bằng chứng hiện có** có thể ưu tiên hơn việc cố thu artifact nặng. Nếu cần restart/failover, lưu số liệu sẵn có và thời điểm quyết định; không hứa lấy lại dữ liệu chưa được thu.
+In emergencies, **stabilizing the service and preserving existing evidence** may outweigh attempting heavy artifact collection. If restarting or failing over, save available metrics and decision timestamps; never promise to recover uncollected data.
 
-### 15.2. Nguyên tắc “thu ít nhưng tái hiện được”
+### 15.2. Principle of "Minimal Yet Reproducible Collection"
 
-Mỗi lần thu nên kèm một manifest tối thiểu:
+Every collection should include a minimal manifest:
 
 ```text
 incident: INC-2026-042
@@ -494,143 +494,143 @@ owner/approval: authorized operations contact
 storage/retention: restricted incident storage; delete per policy
 ```
 
-Tất cả giá trị ở đây là **ví dụ**, không phải incident thật. Manifest giúp xác định đúng file thuộc đúng phiên bản/instance, tránh nhầm recording của replica khác. Lưu checksum sau khi chuyển file nếu cần chứng minh không thay đổi; không đưa dump hoặc config chứa secret vào Git hay ticket công khai.
+All values here are **examples**, not a real incident. A manifest ties each file to the exact version and instance so recordings from different replicas never get mixed up. Compute checksums after transfer if tamper evidence is needed; never commit dumps or configs with secrets to Git or public tickets.
 
-### 15.3. Cách đánh giá ảnh hưởng quan sát được
+### 15.3. How to Evaluate Observed Impact
 
-Trong khi chạy một diagnostic có tác động hơn mức 0, xem:
+While running any diagnostic step above level 0, watch:
 
-- p95/p99 latency và error/timeout/rejection so với khoảng trước, theo cùng instance.
-- CPU user/system, GC pause/time, heap allocation, RSS/cgroup và disk I/O.
-- Dung lượng file đang được tạo, free disk/inode, network transfer nếu có.
-- Thời điểm bắt đầu/đóng diagnostic; event nào tăng đúng từ lúc thu mới?
-- Có dấu hiệu disk pressure, container eviction/restart hoặc dữ liệu hỏng không?
+- p95/p99 latency and error/timeout/rejection rates vs. the prior window on the same instance.
+- User/system CPU, GC pause/time, heap allocation, RSS/cgroup, and disk I/O.
+- Size of files being written, free disk/inodes, and network transfer if applicable.
+- Exact diagnostic start/stop timestamps: which metrics shifted right when collection began?
+- Any signs of disk pressure, container eviction/restart, or corrupted output?
 
-Không khẳng định “lệnh A gây spike” chỉ vì xảy ra gần thời điểm A; nhưng nếu tín hiệu xấu đi đồng thời, phải có **điều kiện dừng** và khả năng quay lại trước khi làm thêm. Tham số `duration`/`maxage`/`maxsize` giúp giới hạn một số recording nhưng không thay thế giám sát thực tế.
+Do not assert "command A caused the spike" merely from temporal proximity; however, if signals degrade simultaneously, enforce **stop conditions** and rollback readiness before continuing. Parameters like `duration`/`maxage`/`maxsize` bound some recordings, yet never replace active monitoring.
 
-## 16. Tính toàn vẹn của bằng chứng: tránh suy luận từ dữ liệu thiếu
+## 16. Evidence Integrity: Avoid Over-Inferring From Incomplete Data
 
-Một ảnh chụp có thể **đúng** nhưng **không đại diện**:
+A snapshot can be **accurate** yet **unrepresentative**:
 
-- Một thread dump chỉ cho biết trạng thái thread **tại thời điểm thu**; thread có thể đang idle giữa hai đợt nghẽn.
-- JFR recording ngắn có thể bỏ qua spike trước khi recording bắt đầu; JFR `default` có event threshold và sampling.
-- Histogram là phân bố object tại một snapshot, không cho path to roots và có thể chịu ảnh hưởng GC.
-- HPROF có thể được ghi **sau full GC**, object ngắn hạn đã biến mất; file không kể lại toàn bộ allocation history.
-- NMT là những khoản theo dõi của HotSpot, không thể xem nó là toàn bộ RAM/container memory.
-- Metrics aggregate trong một phút che mất một spike 200 ms; tăng tần suất lấy mẫu cũng có chi phí.
-- File `.jfr`/`.hprof` có tên đúng nhưng có thể bị **cắt dở** vì full disk, quyền, kill, crash; cần kiểm tra dung lượng và có mở được không.
+- A thread dump shows thread states **only at capture time**; threads might be idle between bursts.
+- A short JFR recording misses spikes prior to start; `default` JFR enforces thresholds and sampling.
+- A histogram shows object distribution at one instant without reference paths and may reflect a triggered GC.
+- An HPROF may be written **after a Full GC**, stripping short-lived objects; it does not recount full allocation history.
+- NMT covers HotSpot-tracked areas and cannot be equated with total RAM or container memory.
+- 1-minute aggregated metrics hide 200 ms spikes; raising sampling frequency itself carries cost.
+- A `.jfr`/`.hprof` file with the right name can still be **truncated** due to full disk, permissions, kill, or crash; verify file size and readability.
 
-Báo cáo nên ghi rõ “bằng chứng quan sát được trong cửa sổ X cho thấy…” thay vì “chắc chắn nguyên nhân” nếu chưa có dữ liệu phân biệt các giả thuyết.
+Reports should state "evidence observed in window X indicates..." rather than "confirmed root cause" whenever data cannot rule out competing hypotheses.
 
-### Đối chiếu hai mốc không đồng nghĩa hai lần đo là nguyên tử
+### Comparing Two Points Does Not Make Multi-Metric Reads Atomic
 
-Nếu đọc heap, threads, class count và GC counters tuần tự bằng MXBeans, các số có thể được lấy ở những microtime khác nhau. Không giả định tập metric của một lần scrape là snapshot đồng thời của toàn JVM. Với nhiều JVM/máy, đồng bộ thời gian, ghi timezone và biết sai số của clock; không lấy `System.nanoTime()` từ JVM A trừ của JVM B.
+Reading heap, threads, class counts, and GC counters sequentially via MXBeans captures each metric at slightly different micro-timestamps. Never assume a single scrape represents an atomic, simultaneous JVM snapshot. Across multiple JVMs or hosts, synchronize clocks, record timezones, and account for skew; never subtract `System.nanoTime()` from JVM A against JVM B.
 
-## 17. Một quy trình quyết định escalation có thể dùng lại
+## 17. A Reusable Escalation Decision Flow
 
 ```text
-Triệu chứng mới / cảnh báo
+New symptom / alert
          │
          ▼
-Xác định service/PID/instance + rủi ro + time window
+Identify service/PID/instance + risk + time window
          │
          ▼
-Đọc metrics/logs/traces/cgroup và recording đã tồn tại
+Read metrics/logs/traces/cgroup and existing recordings
          │
          ▼
-Có giả thuyết đủ cụ thể để hành động?
+Is there a specific, actionable hypothesis?
     ┌────┴────┐
-   Có        Chưa
+   Yes        No
     │          │
     ▼          ▼
-Xác minh bằng  Bổ sung metric/snapshot nhẹ hoặc JFR default
-bằng chứng sẵn có     │
-    │                ▼
-    │           Có tín hiệu mới?
-    │                │
-    └────────────┬───┘
-                 ▼
-Thiếu điều gì chỉ loại bằng chứng sâu hơn mới trả lời?
-                 │
-         ┌───────┴────────┐
-         │                │
-      Không              Có
-         │                │
-         ▼                ▼
-Kết luận trong phạm vi   Đánh giá impact, dữ liệu, disk,
-dữ liệu hiện có         quyền, approval, stop condition
-         │                │
-         │       ┌────────┴────────┐
-         │      No-go            Go
-         │       │                │
-         │       ▼                ▼
-         │   Hoãn/escalate   Thu targeted artifact
-         │                    đúng một lần/cửa sổ
-         │                         │
-         └─────────────────────────┤
-                                   ▼
-                   Kiểm chứng file + tương quan timestamps
-                                   │
-                                   ▼
-                        Báo cáo giả thuyết + giới hạn
+Verify with   Add lightweight metric/snapshot or default JFR
+existing          │
+evidence          ▼
+    │        Any new signal?
+    │             │
+    └─────────┬───┘
+              ▼
+Is something missing that only deeper evidence can answer?
+              │
+      ┌───────┴────────┐
+      │                │
+     No               Yes
+      │                │
+      ▼                ▼
+Conclude within     Assess impact, data sensitivity, disk,
+existing data       permissions, approval, stop condition
+      │                │
+      │       ┌────────┴────────┐
+      │     No-go              Go
+      │       │                 │
+      │       ▼                 ▼
+      │  Defer/escalate   Capture targeted artifact
+      │                   once per window
+      │                         │
+      └─────────────────────────┤
+                                ▼
+                Verify file + correlate timestamps
+                                │
+                                ▼
+                   Report hypothesis + limitations
 ```
 
-Quy trình không bắt buộc luôn đi đủ mọi cấp. Một sự cố được giải thích rõ bởi metrics và trace thì **dừng ở bằng chứng nhẹ**. Nếu JVM có nguy cơ chết trước khi đội vận hành lấy được object graph, có thể chọn dump sớm sau khi cân rủi ro/phê duyệt. Điểm quan trọng là **quyết định có lý do**, không thu dữ liệu nặng theo thói quen.
+You do not always need to traverse every level. An issue clearly explained by metrics and traces **stops at lightweight evidence**. If a JVM risks dying before operators can capture an object graph, an early dump may be justified after weighing risks and getting approval. What matters is making a **reasoned decision**, not collecting heavy artifacts out of habit.
 
-## 18. Những nhầm lẫn thường gặp
+## 18. Common Misconceptions
 
-- **“Muốn debug thì cứ heap dump trước.”** Sai: heap dump không giúp trực tiếp cho mọi lỗi CPU, I/O, lock hay cgroup kill; nó có High impact.
-- **“Thread dump chỉ là text nên chắc Low impact.”** Sai: `Thread.print` được Oracle JDK 17 ghi Medium, phụ thuộc thread count.
-- **“Histogram nhỏ hơn HPROF nên rẻ.”** Không nhất thiết: `GC.class_histogram` vẫn là High impact.
-- **“JFR luôn overhead 0%.”** Sai: `default` thường thấp nhưng phụ thuộc workload và event settings; `profile`/heap statistics có thể nặng hơn.
-- **“`JFR.dump` chạy là có mọi event đã xảy ra.”** Sai: chỉ có event đã được bật và còn trong retention.
-- **“`jstat -gcutil` cho chính xác object gây leak.”** Sai: đây là các counters/ratios, không phải object graph.
-- **“RSS bằng heap used.”** Sai: RSS gồm nhiều thành phần khác; native memory phải được xem riêng.
-- **“NMT không bật vẫn xem lại mọi native allocation quá khứ.”** Sai: phải bật tracking từ startup để có dữ liệu tương ứng.
-- **“Heap dump bao giờ cũng ghi mà không đổi trạng thái heap.”** Sai: `GC.heap_dump` mặc định yêu cầu Full GC trên HotSpot JDK 17, trừ khi dùng `-all`.
-- **“`-all` khiến dump không có chi phí.”** Sai: nó đổi phạm vi object, không biến high-impact operation thành low-impact.
-- **“Có HPROF là xác định được lỗi ở dòng code.”** Sai: phải tìm retained paths/GC roots và đối chiếu nghiệp vụ; dump không phải allocation-history profiler.
-- **“Một snapshot chứng minh được xu hướng.”** Sai: cần time series, workload/cửa sổ và tính tương đương.
-- **“Có thể chạy cùng lệnh trên mọi pod.”** Nguy hiểm: nhiều diagnostic cùng lúc có thể đẩy incident diện rộng; giới hạn target.
-- **“Không cần kiểm tra disk vì chỉ chụp một lần.”** Sai: file lớn có thể làm đầy volume hoặc vi phạm quota.
-- **“Dump không chứa dữ liệu nhạy cảm.”** Sai: JFR, heap/thread dump và command-line output có thể chứa thông tin cần bảo vệ.
-- **“Không có file nghĩa là JVM không có vấn đề.”** Sai: file có thể ghi lỗi, bị kill, bị mất sau restart hoặc dùng sai path.
-- **“Hễ có thêm dữ liệu thì chẩn đoán chính xác hơn.”** Không luôn đúng: dữ liệu ồn, sampling không tương thích và overhead làm méo hệ thống có thể khiến suy luận sai.
+- **"When debugging, start with a heap dump."** False: heap dumps rarely help directly with CPU, I/O, lock, or cgroup kills, and carry High impact.
+- **"Thread dumps are just text, so they must be Low impact."** False: Oracle JDK 17 rates `Thread.print` as Medium, scaling with thread count.
+- **"Histograms are smaller than HPROFs, so they are cheap."** Not necessarily: `GC.class_histogram` is still rated High impact.
+- **"JFR always has 0% overhead."** False: `default` is usually low, but depends on workload and event settings; `profile` and heap statistics can be heavier.
+- **"Running `JFR.dump` captures every past event."** False: it captures only events that were enabled and still within retention.
+- **"`jstat -gcutil` identifies the exact leaking object."** False: it reports counters and percentages, not an object graph.
+- **"RSS equals heap used."** False: RSS includes many native components; native memory must be evaluated separately.
+- **"NMT can still inspect past native allocations even if disabled."** False: tracking must be enabled from startup to capture that data.
+- **"Heap dumps always capture state without changing the heap."** False: `GC.heap_dump` triggers a Full GC by default on HotSpot JDK 17 unless `-all` is used.
+- **"`-all` makes heap dumping cost-free."** False: it changes object scope, not a high-impact operation into a low-impact one.
+- **"An HPROF directly pinpoints the buggy line of code."** False: you must trace retained paths/GC roots and correlate business logic; a dump is not an allocation-history profiler.
+- **"One snapshot proves a trend."** False: you need time series, matched workloads/windows, and comparability.
+- **"You can run the same command across all pods at once."** Dangerous: concurrent diagnostics can trigger a fleet-wide outage; limit targets.
+- **"No need to check disk for a one-off dump."** False: large files can fill volumes or breach quotas.
+- **"Dumps contain no sensitive data."** False: JFR, heap/thread dumps, and command-line output can contain data requiring protection.
+- **"No dump file means the JVM had no problem."** False: writes may fail, get killed, disappear on restart, or go to the wrong path.
+- **"More data always yields a better diagnosis."** Not always: noisy data, mismatched sampling, and distortion from overhead can mislead analysis.
 
-## 19. Checklist trước, trong và sau thu bằng chứng
+## 19. Pre-, Mid-, and Post-Collection Checklist
 
-**Trước khi thu:**
+**Before collecting:**
 
-- [ ] Ghi lại câu hỏi/giả thuyết, instance/PID, thời gian và mức tác động dịch vụ.
-- [ ] Đọc dữ liệu đã có: metrics, log, traces, GC/JFR recording, OS/cgroup events.
-- [ ] Chọn loại bằng chứng **ít ảnh hưởng nhất** đủ để trả lời câu hỏi tiếp theo.
-- [ ] Kiểm tra đúng JDK, quyền attach, namespace, path, storage, privacy.
-- [ ] Nếu thao tác Medium/High impact: có approval, giới hạn thời gian, resource budget, stop condition và kế hoạch failover?
-- [ ] Bảo đảm không vô tình kích hoạt Full GC hoặc logging quá chi tiết.
+- [ ] Document the question/hypothesis, instance/PID, time window, and service impact tolerance.
+- [ ] Review existing data: metrics, logs, traces, GC/JFR recordings, OS/cgroup events.
+- [ ] Pick the **lowest-impact** evidence sufficient to answer the next question.
+- [ ] Verify exact JDK, attach permissions, namespace, path, storage, and privacy rules.
+- [ ] For Medium/High-impact operations: secure approval, time limit, resource budget, stop condition, and failover plan.
+- [ ] Ensure you do not accidentally trigger Full GC or excessive logging.
 
-**Trong khi thu:**
+**During collection:**
 
-- [ ] Gắn timestamp, timezone, target và command để đối chiếu.
-- [ ] Theo dõi p99/errors/GC/RSS/disk để phát hiện tác động chẩn đoán.
-- [ ] Không lặp lệnh nặng hoặc mở file lớn vô thời hạn; không chạy trên toàn fleet.
-- [ ] Không gửi dữ liệu chứa secret/PII vào nơi công khai.
+- [ ] Record timestamps, timezone, target, and exact commands for correlation.
+- [ ] Monitor p99/errors/GC/RSS/disk to catch diagnostic side effects.
+- [ ] Never loop heavy commands or leave large captures unbounded; never run fleet-wide.
+- [ ] Never send dumps containing secrets/PII to public channels.
 
-**Sau khi thu:**
+**After collection:**
 
-- [ ] Xác nhận artifact đã ghi hoàn chỉnh, đúng JVM/instance/cửa sổ và mở đọc được.
-- [ ] Ghi lại version, flags, settings/sampling/threshold và những gì file **không** chứa.
-- [ ] Phân tích đúng giả thuyết: timeline/stack với JFR, thread state với thread dumps, retained graph với HPROF.
-- [ ] So lại metrics trước–trong–sau để ước lượng ảnh hưởng của chính thao tác thu.
-- [ ] Khôi phục logging/profiling tạm thời, dọn file theo retention và bảo vệ evidence.
-- [ ] Báo cáo **kết luận có phạm vi**, mức tin cậy và bước tiếp theo, không suy luận từ dữ liệu thiếu.
+- [ ] Verify artifacts are complete, match the right JVM/instance/window, and open cleanly.
+- [ ] Document version, flags, settings/sampling/thresholds, and what the files **do not** cover.
+- [ ] Analyze according to hypothesis: timeline/stacks with JFR, thread states with thread dumps, retained graphs with HPROF.
+- [ ] Re-check before–during–after metrics to gauge the collection's own impact.
+- [ ] Revert temporary logging/profiling, clean up files per retention, and secure evidence.
+- [ ] Report **scoped conclusions**, confidence levels, and next steps without over-inferring from missing data.
 
-**Ghi nhớ:** hành động chẩn đoán tốt nhất không phải hành động thu nhiều dữ liệu nhất, mà là **hành động có giá trị thông tin cao với tác động chấp nhận được**. Bắt đầu từ telemetry đã có, thêm counters/short JFR recording, chỉ dùng thread dump/histogram/heap dump khi biết chính xác loại bằng chứng cần tìm. Việc giữ dịch vụ ổn định, định danh đúng phiên bản và bảo vệ artifact là một phần của kỹ năng chẩn đoán Java, không phải việc làm sau cùng.
+**Remember:** the best diagnostic step is not the one that collects the most data, but the one with **the highest information value at acceptable impact**. Start from existing telemetry, add counters or short JFR recordings, and reach for thread dumps, histograms, or heap dumps only when you know precisely what evidence you need. Keeping the service stable, tracking exact identity, and safeguarding artifacts are integral parts of Java diagnostics—not afterthoughts.
 
-### Tài liệu tham khảo
+### References
 
-- [Oracle JDK 17 — jcmd: impact của từng diagnostic command, JFR.start/JFR.dump, Thread.print, GC.class_histogram và GC.heap_dump](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html)
-- [Oracle JDK 17 — jstat: lấy mẫu GC/class counters](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jstat.html)
-- [Oracle JDK 17 — jfr: summary/print để đọc recording](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html)
-- [Oracle JDK 17 — Troubleshoot Performance Issues Using Flight Recorder: overhead, thresholds, sampling và heap statistics](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html)
+- [Oracle JDK 17 — jcmd: impact of each diagnostic command, JFR.start/JFR.dump, Thread.print, GC.class_histogram, and GC.heap_dump](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html)
+- [Oracle JDK 17 — jstat: sampling GC/class counters](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jstat.html)
+- [Oracle JDK 17 — jfr: summary/print for reading recordings](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html)
+- [Oracle JDK 17 — Troubleshoot Performance Issues Using Flight Recorder: overhead, thresholds, sampling, and heap statistics](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html)
 - [Oracle JDK 17 — Java Management Extensions / MXBean API](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/module-summary.html)
 - [OpenJDK JEP 328 — Flight Recorder](https://openjdk.org/jeps/328)

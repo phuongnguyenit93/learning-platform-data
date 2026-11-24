@@ -1,21 +1,21 @@
-# 18.4. Phân biệt thời gian xử lý tác vụ với thời gian chờ trong hàng đợi
+# 18.4. Distinguishing Task Processing Time from Queue Wait Time
 
-Một request có thể mất 800 ms để hoàn tất nhưng code xử lý chính chỉ chạy 30 ms. Phần lớn thời gian còn lại có thể đã trôi qua **trước khi worker nhận tác vụ**, do thread pool bận, hàng đợi đầy hoặc một tài nguyên khác chưa sẵn sàng. Ngược lại, một tác vụ bắt đầu gần như ngay lập tức nhưng mất 800 ms trong `run()` có thể đang chờ I/O, database connection, lock hoặc dịch vụ bên ngoài. Hai triệu chứng cần cách điều tra rất khác nhau.
+A request can take 800 ms to complete while the main processing code runs for only 30 ms. Most of the remaining time may have been spent **before a worker ever picked up the task**, due to a busy thread pool, a full queue, or another unavailable resource. Conversely, a task that starts almost immediately yet spends 800 ms inside `run()` may be waiting on I/O, a database connection, a lock, or an external service. The two symptoms require very different investigations.
 
-Trong Java, chẩn đoán độ trễ chính xác bắt đầu bằng việc **định nghĩa rõ ranh giới thời gian**: khi nào công việc được nhận, khi nào đi vào queue, khi nào worker thực sự bắt đầu xử lý và khi nào kết thúc. Không nên gọi mọi khoảng thời gian “latency” rồi kết luận ngay code nghiệp vụ đang chậm.
+In Java, accurate latency diagnostics begins by **defining clear time boundaries**: when work is accepted, when it enters the queue, when a worker actually starts executing it, and when it finishes. Never lump every duration together as "latency" and immediately conclude that business code is slow.
 
-Bài này dùng Java 17+, `ExecutorService` / `ThreadPoolExecutor` làm ví dụ chính, đồng thời liên hệ request HTTP, I/O bất đồng bộ, hàng đợi message và công cụ JVM/JFR. Mọi con số trong bảng là ví dụ minh họa trừ khi ghi rõ là output xác định từ code.
+This lesson uses Java 17+ and `ExecutorService` / `ThreadPoolExecutor` as primary examples, while connecting to HTTP requests, asynchronous I/O, message queues, and JVM/JFR tooling. All table figures are illustrative examples unless explicitly noted as verified code output.
 
-## 1. Bốn mốc cơ bản và ba khoảng cần tách
+## 1. Four fundamental timestamps and three intervals to separate
 
-Giả sử một tác vụ đã được hệ thống chấp nhận để xử lý:
+Suppose a task has been accepted by the system for processing:
 
-- `t_enqueue`: thời điểm tác vụ được đưa vào hoặc được gửi tới bộ lập lịch/hàng đợi ở ranh giới ta chọn đo.
-- `t_start`: thời điểm worker bắt đầu thực hiện logic của tác vụ (đầu `Runnable.run()` hoặc `Callable.call()`).
-- `t_finish`: thời điểm logic hoàn tất hoặc kết thúc bằng lỗi.
-- `t_response`: thời điểm phía gọi nhận kết quả cuối, nếu có bước phản hồi/truyền mạng phía sau.
+- `t_enqueue`: when the task is placed into or submitted to the scheduler/queue at our chosen measurement boundary.
+- `t_start`: when a worker begins executing the task's logic (start of `Runnable.run()` or `Callable.call()`).
+- `t_finish`: when the logic completes or terminates with an error.
+- `t_response`: when the caller receives the final result, if there is a downstream response/network step.
 
-Các khoảng (dùng chung một thước đo thời gian trong một JVM):
+The intervals (using a common clock within one JVM):
 
 ```text
      submit/accepted             worker starts                     task finishes
@@ -29,66 +29,66 @@ task_total_time     = t_finish - t_enqueue
 task_total_time     = task_queue_wait + task_execution_time
 ```
 
-Đẳng thức cuối **đúng cho từng tác vụ** khi ba timestamp dùng cùng đơn vị/clock và ranh giới nhất quán. Nếu tác vụ chưa từng bắt đầu (bị từ chối, hủy hoặc timeout trong queue), không có `t_start`/`t_finish` theo nghĩa này; không được gán bừa execution = 0 rồi đưa vào thống kê những tác vụ hoàn tất thành công.
+The final identity **holds for each individual task** when all three timestamps share the same unit/clock and consistent boundaries. If a task never starts (rejected, cancelled, or timed out in the queue), there is no `t_start`/`t_finish` in this sense; never arbitrarily assign `execution = 0` and mix it into statistics for successfully completed tasks.
 
-`task_execution_time` ở đây là **wall-clock elapsed time** trong phạm vi thực thi tác vụ. Nó bao gồm cả lúc worker đang bị chặn ở I/O, đợi lock, chờ downstream, bị hệ điều hành ngừng lập lịch hoặc chịu pause của JVM. Đây **không phải CPU time**. Đo CPU time của thread cần công cụ khác và có ngữ nghĩa khác.
+`task_execution_time` here is **wall-clock elapsed time** during task execution. It includes time spent blocked on I/O, waiting for locks, waiting on downstream calls, descheduled by the OS, or paused by the JVM. It is **not CPU time**. Measuring thread CPU time requires different tools and has a different meaning.
 
-### Độ trễ end-to-end còn có các đoạn ngoài queue của executor
+### End-to-end latency also includes segments outside the executor queue
 
-Đối với HTTP request:
+For an HTTP request:
 
 ```text
-client gửi ── mạng / accept ── server nhận ── admission ── executor queue
-                                                       │
-                                                       ▼
-                                               worker xử lý
-                                                       │
-                                                       ▼
-                                         serialize/ghi response ── mạng ── client nhận
+client sends ── network / accept ── server receives ── admission ── executor queue
+                                                                          │
+                                                                          ▼
+                                                                  worker processes
+                                                                          │
+                                                                          ▼
+                                                  serialize/write response ── network ── client receives
 ```
 
-`response_latency` do client đo còn bao gồm network, middleware, admission, serialization, response write và nhiều tầng queue khác. Nếu chỉ đo `executor_task_total_time`, không được coi nó là toàn bộ response latency. Nếu bắt đầu đồng hồ **trước khi tác vụ thực sự vào queue**, phép đo còn bao gồm chi phí tạo wrapper, submit và chính sách admission; hãy đặt tên metric phản ánh đúng điểm bắt đầu.
+Client-measured `response_latency` also includes network, middleware, admission, serialization, response writing, and other queue layers. If you measure only `executor_task_total_time`, do not treat it as total response latency. If you start the clock **before the task actually enters the queue**, the measurement also includes wrapper creation, submission overhead, and admission policy; name the metric to match the exact starting point.
 
-## 2. Ví dụ ba tác vụ có cùng tổng thời gian nhưng nguyên nhân khác nhau
+## 2. Example of three tasks with identical total time but different causes
 
-| Tình huống | `t_enqueue` | `t_start` | `t_finish` | Queue wait | Execution | Task total |
+| Scenario | `t_enqueue` | `t_start` | `t_finish` | Queue wait | Execution | Task total |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| A — xử lý I/O chậm, vào worker ngay | 0 ms | 5 ms | 805 ms | 5 ms | 800 ms | 805 ms |
-| B — worker bận, logic nhanh | 0 ms | 770 ms | 805 ms | 770 ms | 35 ms | 805 ms |
-| C — vừa chờ queue vừa chờ downstream | 0 ms | 400 ms | 805 ms | 400 ms | 405 ms | 805 ms |
+| A — slow I/O processing, picked up immediately | 0 ms | 5 ms | 805 ms | 5 ms | 800 ms | 805 ms |
+| B — busy workers, fast logic | 0 ms | 770 ms | 805 ms | 770 ms | 35 ms | 805 ms |
+| C — both queue wait and downstream wait | 0 ms | 400 ms | 805 ms | 400 ms | 405 ms | 805 ms |
 
-Nếu dashboard chỉ hiển thị “805 ms/task”, ba tác vụ trông giống hệt nhau. Khi tách hai khoảng:
+If a dashboard only shows "805 ms/task," all three look identical. Separating the two intervals shows:
 
-- **A:** tìm nguồn `execution_time` cao: socket read, file I/O, DB query, lock, blocking call hoặc CPU-bound work.
-- **B:** code xử lý chỉ 35 ms; tìm nguyên nhân hàng đợi lâu: arrival burst, ít worker, tác vụ khác chiếm worker quá lâu hoặc backlog.
-- **C:** cần xử lý **cả hai**: giảm áp lực queue và điều tra logic/downstream trong worker.
+- **A:** hunt for the source of high `execution_time`: socket reads, file I/O, DB queries, locks, blocking calls, or CPU-bound work.
+- **B:** processing code took only 35 ms; investigate why the queue backed up: arrival bursts, too few workers, other tasks holding workers too long, or backlog.
+- **C:** address **both**: relieve queue pressure and investigate worker logic/downstream latency.
 
-Cùng một người dùng có thể trải nghiệm p99 latency cao do queue dù **p99 execution** của các tác vụ vẫn thấp. Tối ưu một SQL query vốn chỉ 10 ms có thể không cải thiện đáng kể nếu request đã chờ 900 ms để được thực thi.
+Users can experience high p99 latency due to queuing even when **p99 execution** of tasks stays low. Optimizing a SQL query that already takes only 10 ms will have little impact if requests wait 900 ms just to start executing.
 
-## 3. Queue wait nằm ở đâu trong Java `ThreadPoolExecutor`?
+## 3. Where does queue wait occur in Java's `ThreadPoolExecutor`?
 
-Với `ThreadPoolExecutor`, `execute()` nhận một `Runnable` và executor sẽ quyết định chạy ngay, tạo worker, hoặc đưa task vào `BlockingQueue`. Theo mô hình Java 17:
+With `ThreadPoolExecutor`, `execute()` accepts a `Runnable` and the executor decides whether to run immediately, create a worker, or place the task in a `BlockingQueue`. Under the Java 17 model:
 
-1. Nếu số worker đang chạy dưới `corePoolSize`, pool thường ưu tiên tạo worker để thực hiện task mới.
-2. Khi đã đạt mức core, pool ưu tiên đưa task vào queue (nếu queue nhận được).
-3. Khi queue không thể nhận, pool có thể tạo thêm worker đến `maximumPoolSize`; sau đó áp dụng `RejectedExecutionHandler`.
-4. Với `SynchronousQueue`, đây là direct handoff; không có hàng chờ lưu tác vụ theo cách `ArrayBlockingQueue` hoạt động.
+1. If running workers are below `corePoolSize`, the pool normally prefers creating a worker to run the new task.
+2. Once core count is reached, the pool prefers queuing the task (if the queue accepts it).
+3. When the queue cannot accept it, the pool can create extra workers up to `maximumPoolSize`; after that, `RejectedExecutionHandler` applies.
+4. With `SynchronousQueue`, handoff is direct; there is no task backlog queue the way `ArrayBlockingQueue` works.
 
-Vì vậy, **không có một queue wait dương bắt buộc cho mọi task**. Một task có thể bắt đầu gần ngay thời điểm submit, hoặc bị giữ hàng trăm ms. `maximumPoolSize` **không nhất thiết làm tăng thread** nếu queue unbounded luôn nhận được task. Ví dụ `Executors.newFixedThreadPool(n)` sử dụng queue không giới hạn theo thiết kế; backlog có thể tăng lâu trước khi có rejection.
+Hence, **a positive queue wait is not mandatory for every task**. A task can begin almost at submission time or sit for hundreds of milliseconds. `maximumPoolSize` **will not grow the thread count** if an unbounded queue always accepts incoming tasks. For instance, `Executors.newFixedThreadPool(n)` uses an effectively unbounded queue by design; backlog can build up long before any rejection happens.
 
-| Cấu hình queue / policy | Hành vi thường thấy | Ý nghĩa khi đo |
+| Queue / policy configuration | Typical behavior | Measurement implications |
 | --- | --- | --- |
-| `ArrayBlockingQueue(capacity)` | Có sức chứa cố định, khi đầy và pool không thể mở rộng sẽ reject hoặc dùng policy khác. | Có thể quan sát queue length + queue wait + rejected count. |
-| `LinkedBlockingQueue` không giới hạn thực tế trong cấu hình dùng | Task có thể tích lũy lâu khi arrival rate vượt khả năng xử lý. | `queue wait` và heap/backlog có thể tăng; `maxPoolSize` không cứu được trong mô hình này. |
-| `SynchronousQueue` | Handoff trực tiếp, không lưu backlog truyền thống. | Queue size thường không thể hiện áp lực; quan sát thread growth/rejection và submit latency. |
-| `CallerRunsPolicy` | Khi không còn khả năng nhận task, **thread gọi** thực hiện task. | Queue wait của runnable có thể rất thấp nhưng **thời gian của caller** tăng; cần đo submit/admission latency. |
-| `AbortPolicy` | Task bị từ chối bằng `RejectedExecutionException` khi không nhận được. | Task bị reject không có execution time; cần metric riêng. |
+| `ArrayBlockingQueue(capacity)` | Fixed capacity; when full and the pool cannot expand, rejects or runs fallback policy. | Can observe queue length + queue wait + rejected count. |
+| Practically unbounded `LinkedBlockingQueue` | Tasks can accumulate long when arrival rate exceeds processing capacity. | `queue wait` and heap/backlog can grow; `maxPoolSize` never helps in this setup. |
+| `SynchronousQueue` | Direct handoff, stores no traditional backlog. | Queue size usually hides pressure; watch thread growth/rejections and submit latency. |
+| `CallerRunsPolicy` | When unable to accept a task, **the calling thread** executes it. | Runnable queue wait may look very low while **caller latency** spikes; measure submit/admission latency. |
+| `AbortPolicy` | Tasks are rejected with `RejectedExecutionException` when not accepted. | Rejected tasks have no execution time; track with a separate metric. |
 
-`getQueue().size()` cho snapshot độ dài queue tại lúc gọi và thay đổi liên tục; `getActiveCount()` và `getTaskCount()` là **ước lượng/quan sát tức thời**, không thay thế histogram **queue wait theo từng tác vụ**. Một queue size nhỏ không loại trừ p99 wait cao nếu lấy mẫu thưa, xử lý theo batch hoặc có các tầng queue ẩn.
+`getQueue().size()` returns an instantaneous snapshot that changes constantly; `getActiveCount()` and `getTaskCount()` are **instantaneous estimates/observations**, not substitutes for a **per-task queue wait histogram**. A small queue size does not rule out high p99 wait when sampling sparsely, batching, or dealing with hidden upstream queues.
 
-## 4. Đo đúng với `System.nanoTime()`
+## 4. Measuring accurately with `System.nanoTime()`
 
-Trong một JVM, `System.nanoTime()` là nguồn thời gian độ phân giải cao dành để đo **elapsed time**; nó có mốc gốc tùy ý, không phải Unix timestamp. Cách đúng:
+Within a single JVM, `System.nanoTime()` is the high-resolution clock meant for measuring **elapsed time**; it has an arbitrary origin, not a Unix timestamp. Correct usage:
 
 ```java
 long queuedAt = System.nanoTime();
@@ -106,21 +106,21 @@ long executionNs = finishedAt - startedAt;
 long totalNs = finishedAt - queuedAt;
 ```
 
-Đoạn trên là **minh họa trong cùng luồng công việc**, không phải chương trình chạy độc lập. Phải đặt `queuedAt` ngay ở phía submit và `startedAt` vào đầu wrapper chạy trong worker; nếu ghi cả hai trong `run()`, kết quả “queue wait” chỉ là vài instruction của cùng worker, hoàn toàn bỏ sót thời gian xếp hàng.
+The snippet above **illustrates the flow along one task's path**, not a standalone runnable program. Capture `queuedAt` right on the submitting side and `startedAt` at the start of the wrapper inside the worker; if both are recorded inside `run()`, "queue wait" measures only a few instructions in the same worker and completely misses queue residence time.
 
-- Dùng **phép trừ** hai `nanoTime` cùng JVM. Không so trực tiếp giá trị `nanoTime` của hai JVM/container; mỗi JVM có mốc gốc tùy ý.
-- Đơn vị nanosecond **không đồng nghĩa đồng hồ chính xác tới 1 ns**. Hệ điều hành, scheduler, độ phân giải clock và instrumentation đều tác động phép đo.
-- Khi đổi sang mili-giây: `double ms = nanos / 1_000_000.0`. Nếu dùng phép chia nguyên hoặc `TimeUnit.NANOSECONDS.toMillis`, các phần nhỏ hơn 1 ms có thể bị làm tròn xuống.
-- `Instant.now()`/`currentTimeMillis()` phù hợp để gắn **timestamp lịch** và đối chiếu log, nhưng có thể chịu clock adjustment. Trong cùng JVM, `nanoTime` phù hợp hơn để đo khoảng thời gian.
-- Với trace qua nhiều service, sử dụng timestamp/clock được đồng bộ và ghi rõ sai số; không lấy `nanoTime` máy A trừ của máy B.
+- **Subtract** two `nanoTime` readings within the same JVM. Never directly compare `nanoTime` values across two JVMs/containers; each JVM has an arbitrary origin.
+- Nanosecond units **do not mean 1 ns clock accuracy**. OS, scheduler, clock resolution, and instrumentation all affect measurements.
+- When converting to milliseconds: `double ms = nanos / 1_000_000.0`. Integer division or `TimeUnit.NANOSECONDS.toMillis` truncates sub-millisecond portions downward.
+- `Instant.now()`/`currentTimeMillis()` are suitable for attaching **calendar timestamps** and correlating logs, but are subject to clock adjustments. Within the same JVM, `nanoTime` is better suited for intervals.
+- For traces across services, use synchronized clocks/timestamps and document clock skew; never subtract machine B's `nanoTime` from machine A's.
 
-Để không làm lệch metrics khi có exception, đặt `finishedAt` trong `finally`; nếu tác vụ có nhiều đường return, không đo chỉ trên “happy path”.
+To avoid skewing metrics on exceptions, record `finishedAt` in `finally`; if a task has multiple return paths, never instrument only the "happy path."
 
-## 5. Java 17+ — ví dụ hoàn chỉnh đo queue wait và execution
+## 5. Java 17+ — complete example measuring queue wait and execution
 
-Ví dụ dưới đây tạo `ThreadPoolExecutor` có **một worker** và queue hữu hạn. Tác vụ thứ nhất giữ worker bằng một `CountDownLatch`. Trong lúc đó, tác vụ thứ hai đã được submit nhưng phải đợi; khi worker được thả, tác vụ thứ hai chạy khoảng 40 ms. Ví dụ dùng latch để tạo một khoảng queue wait có thể quan sát, không phải để giả lập I/O thực.
+The example below creates a `ThreadPoolExecutor` with **one worker** and a bounded queue. The first task holds the worker via a `CountDownLatch`. Meanwhile, a second task is submitted and must wait; when the worker is released, the second task runs for roughly 40 ms. The example uses latches to produce an observable queue wait, not to simulate real I/O.
 
-Lưu `QueueTimeDemo.java`:
+Save as `QueueTimeDemo.java`:
 
 ```java
 import java.util.concurrent.ArrayBlockingQueue;
@@ -162,23 +162,23 @@ public final class QueueTimeDemo {
                 }
             });
 
-            // Bảo đảm worker thứ nhất đã bắt đầu chạy.
+            // Ensure the first worker has started running.
             workerOccupied.await();
 
-            // Mốc lấy ngay trước khi submit tác vụ thứ hai.
+            // Timestamp taken immediately before submitting the second task.
             long queuedAt = System.nanoTime();
             Future<Timing> measured = pool.submit(() -> {
                 long startedAt = System.nanoTime();
                 try {
                     Thread.sleep(40);
                 } finally {
-                    // Không giữ metric ở đây vì cần return sau try.
+                    // Do not record metric here since we need to return after try.
                 }
                 long finishedAt = System.nanoTime();
                 return new Timing(queuedAt, startedAt, finishedAt);
             });
 
-            // Giữ worker bận thêm khoảng 100 ms.
+            // Keep the worker busy for roughly another 100 ms.
             Thread.sleep(100);
             releaseWorker.countDown();
 
@@ -199,28 +199,28 @@ public final class QueueTimeDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac QueueTimeDemo.java
 java QueueTimeDemo
 ```
 
-**Output minh họa**, không phải stdout số học cố định:
+**Illustrative output**, not fixed deterministic numbers:
 
 ```text
 queueWaitMs=102.7 executionMs=40.3 totalMs=143.0
 ```
 
-Các thời gian phụ thuộc JVM, scheduler và độ trễ thực tế của `sleep`; tổng ba số có thể lệch ở chữ số thập phân do làm tròn. Đẳng thức chính xác ở đơn vị nanosecond là `totalNs = queueWaitNs + executionNs`.
+Actual durations depend on the JVM, scheduler, and real `sleep` jitter; the sum of the three printed numbers can differ in the decimal place due to rounding. The exact identity at nanosecond resolution is `totalNs = queueWaitNs + executionNs`.
 
-Trong code mẫu, `queuedAt` ghi **ngay trước `submit`**, do đó queue wait đo cả một phần overhead của lời gọi submit và dispatch. Nếu cần đo chính xác chỉ thời gian **cư trú trong queue**, phải có instrument tại lúc task thật sự được nhận vào queue và lúc được lấy ra; với những executor/queue khác nhau, boundary này có thể khác. Trong thực tế, timestamp trước `submit` vẫn là chỉ số có ích để đo “submission-to-start latency” nếu đặt tên rõ ràng.
+In the sample code, `queuedAt` is captured **right before `submit`**, so queue wait includes some submission and dispatch overhead. If you need strictly **time spent residing in the queue**, instrument the exact moment the task enters the queue and the moment it is dequeued; across different executors/queues, that boundary can vary. In practice, a pre-`submit` timestamp remains a useful "submission-to-start latency" metric as long as it is named clearly.
 
-Tác vụ `blocker` chỉ giữ worker để minh họa. Với service thật, task đầu có thể chiếm worker vì DB read, socket read, lock, CPU hoặc ngủ chờ retry. Người phân tích phải kiểm tra **vì sao worker bận**, chứ không chỉ tăng số worker một cách máy móc.
+The `blocker` task simply occupies the worker for demonstration. In a real service, a preceding task might occupy a worker via DB reads, socket reads, locks, CPU work, or retry sleeps. Analysts must determine **why workers are busy** rather than mechanically adding workers.
 
-### Một biến thể an toàn hơn để bao phủ cả lỗi tác vụ
+### A safer variant covering task failures
 
-Ở hệ thống production, wrapper cần đo cả task thất bại. Cấu trúc hàm tổng quát:
+In production, the wrapper must measure failed tasks too. General wrapper structure:
 
 ```java
 static Runnable timed(Runnable delegate, java.util.function.BiConsumer<Long, Long> sink) {
@@ -237,13 +237,13 @@ static Runnable timed(Runnable delegate, java.util.function.BiConsumer<Long, Lon
 }
 ```
 
-Đây là **method minh họa**, không phải file độc lập; `sink` nhận `queueWaitNs`, `executionNs`. Cách này hoạt động khi task thực sự chạy. Với task bị cancel khi còn trong queue hoặc bị reject, callback sẽ không được gọi; phải bổ sung counter `rejected/cancelled/timed_out_before_start` ở tầng submit/admission.
+This is an **illustrative method**, not a standalone file; `sink` receives `queueWaitNs` and `executionNs`. It works whenever the task actually runs. If a task is cancelled in the queue or rejected, the callback is never invoked; add `rejected`/`cancelled`/`timed_out_before_start` counters at the submit/admission layer.
 
-Trong production, tránh để `sink` ném exception che mất lỗi gốc của `delegate`; metric sink nên nhẹ và có xử lý lỗi rõ ràng. Nếu cần đo thời gian “task từ khi bắt đầu đến khi thành công/thất bại”, lấy `finally` như trên để không bỏ các đuôi trễ nghiêm trọng vì exception.
+In production, prevent `sink` from throwing an exception that masks `delegate`'s original failure; metric sinks should be lightweight with explicit error handling. To measure "task start until success or failure," capture `finishedAt` in `finally` as above so severe exception tails are not dropped.
 
-## 6. Java 17+ — bài tập số liệu có stdout chính xác
+## 6. Java 17+ — numeric exercise with exact stdout
 
-Để kiểm tra công thức mà không phụ thuộc thread scheduling, hãy dùng các mốc thời gian **giả định**, không phải `System.nanoTime`. Lưu `LatencyMath.java`:
+To verify the formulas without depending on thread scheduling, use **hypothetical** timestamps instead of `System.nanoTime`. Save as `LatencyMath.java`:
 
 ```java
 public final class LatencyMath {
@@ -262,165 +262,165 @@ public final class LatencyMath {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac LatencyMath.java
 java LatencyMath
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 queue=490ms execution=40ms total=530ms
 ```
 
-Phép tính cho thấy tác vụ mất 530 ms nhưng chỉ thực thi 40 ms; tối ưu 5 ms trong code xử lý sẽ ít tác động nếu backlog vẫn giữ task gần nửa giây. Trong phép đo thật, ba mốc phải là khoảng thời gian tương đối cùng gốc; ví dụ này chỉ biểu diễn logic cộng/trừ.
+The math shows a task took 530 ms while executing for only 40 ms; shaving 5 ms off processing code will barely matter if the backlog holds tasks for nearly half a second. In real measurements, the three timestamps must share a relative origin; this example solely demonstrates the addition/subtraction logic.
 
-## 7. Với I/O, “execution time” vẫn có thể chủ yếu là chờ
+## 7. With I/O, "execution time" can still be mostly waiting
 
-Đây là điểm dễ nhầm: khi một `Runnable` gọi `InputStream.read()` và thread bị block 500 ms, toàn bộ 500 ms vẫn nằm giữa `t_start` và `t_finish`. Nghĩa là **processing/execution wall time** có thể cao dù CPU thực dùng rất thấp.
+Here is a common pitfall: when a `Runnable` calls `InputStream.read()` and the thread blocks for 500 ms, all 500 ms still lie between `t_start` and `t_finish`. That means **processing/execution wall time** can be high even when actual CPU usage is tiny.
 
-Ví dụ một task truy vấn database:
+Example of a database-querying task:
 
 ```text
-t_enqueue → (chờ executor 120 ms) → t_start
-    → (đợi connection pool 60 ms)
+t_enqueue → (wait in executor 120 ms) → t_start
+    → (wait on connection pool 60 ms)
     → (SQL query / network round-trip 380 ms)
-    → (map kết quả 20 ms)
+    → (map result 20 ms)
     → t_finish
 ```
 
-Khi đó:
+Then:
 
 - Executor queue wait = **120 ms**.
 - Execution wall time = `60 + 380 + 20 = 460 ms`.
 - Task total = **580 ms**.
-- “CPU xử lý dữ liệu” trong ví dụ chỉ được minh họa bằng đoạn map 20 ms, nhưng bản thân đoạn map cũng có thể có scheduling/GC và không nhất thiết tương đương CPU time.
+- "CPU data processing" in this example is represented only by the 20 ms mapping step, and even that 20 ms can include scheduling/GC and does not necessarily equal CPU time.
 
-**Có nhiều hàng đợi lồng nhau**: executor queue, database connection pool queue, upstream message broker, servlet accept queue, HTTP client connection pool, network device queue, và hệ điều hành chờ disk. Chỉ đo một tầng sẽ bỏ sót các tầng khác.
+**There are multiple nested queues**: executor queues, database connection pool queues, upstream message brokers, servlet accept queues, HTTP client connection pools, network device queues, and OS disk queues. Measuring only one layer misses the rest.
 
-| Điểm chờ | Nằm ở đâu trong phép đo trên | Metric cần có |
+| Waiting point | Where it falls in the model above | Required metric |
 | --- | --- | --- |
-| Request đợi được accept hoặc được admission | Có thể **trước** `t_enqueue`. | ingress/accept/admission latency, pending requests. |
-| Task nằm trong `ThreadPoolExecutor` queue | `t_enqueue → t_start`. | `executor_queue_wait`, queue depth, active workers. |
-| Worker đợi lấy DB connection | **Bên trong** `execution_time` của task. | `db_pool_acquire_wait`, active/idle/pending connections. |
-| Worker đợi socket read/file read | **Bên trong** `execution_time` nếu I/O đồng bộ. | `socket_read_duration`, `file_read_duration`, timeout/bytes. |
-| Worker đợi lock hoặc condition | **Bên trong** `execution_time`. | lock wait/thread state/JFR contention event. |
-| Response đợi socket writable hoặc được gửi đi | Có thể **sau** `t_finish` tùy boundary. | response write time, client RTT, network wait. |
+| Request waiting to be accepted or admitted | May be **before** `t_enqueue`. | ingress/accept/admission latency, pending requests. |
+| Task sitting in `ThreadPoolExecutor` queue | `t_enqueue → t_start`. | `executor_queue_wait`, queue depth, active workers. |
+| Worker waiting to acquire DB connection | **Inside** the task's `execution_time`. | `db_pool_acquire_wait`, active/idle/pending connections. |
+| Worker waiting on socket/file read | **Inside** `execution_time` if synchronous I/O. | `socket_read_duration`, `file_read_duration`, timeouts/bytes. |
+| Worker waiting on lock or condition | **Inside** `execution_time`. | lock wait/thread state/JFR contention events. |
+| Response waiting for writable socket or transmission | May be **after** `t_finish` depending on boundary. | response write time, client RTT, network wait. |
 
-Nếu đang dùng API **bất đồng bộ** (`CompletableFuture`, NIO, reactive pipeline), `Runnable.run()` có thể chỉ đăng ký I/O rồi kết thúc trong vài microsecond. Khi đó thời gian từ nhận request đến **future hoàn thành** mới là logical operation latency; không được lấy thời gian chạy callback đầu tiên làm toàn bộ xử lý nghiệp vụ. Cần đặt mốc riêng cho lúc gọi I/O, nhận completion, scheduler queue cho callback và khi tạo response.
+When using **asynchronous** APIs (`CompletableFuture`, NIO, reactive pipelines), `Runnable.run()` may only register I/O and finish in microseconds. Then the time from request receipt until **the future completes** is the logical operation latency; never treat the first callback's runtime as the whole business operation. Place distinct timestamps for I/O dispatch, completion receipt, callback scheduler queue wait, and response generation.
 
-## 8. Phân biệt latency do queue với latency do service
+## 8. Distinguishing queue-induced latency from service-induced latency
 
-| Quan sát | Giả thuyết ưu tiên | Bằng chứng kiểm tra |
+| Observation | Priority hypothesis | Evidence to verify |
 | --- | --- | --- |
-| `queue_wait_p95` tăng; `execution_p95` tương đối ổn định | Executor bị backlog/saturation hoặc burst arrival. | Active threads gần giới hạn, queue depth/oldest age tăng, rejection/timeout. |
-| `queue_wait` thấp; `execution` tăng cùng lúc DB latency | I/O/downstream chậm khi task đã bắt đầu. | DB query duration, pool acquire wait, socket wait, JFR I/O events. |
-| `queue_wait` tăng sau khi `execution` tăng | Work chậm chiếm worker lâu làm hàng đợi tích lũy. | Timeline: service time tăng trước; queue tăng sau; thread dump cho biết worker làm gì. |
-| `execution` thấp; client latency vẫn cao | Mất thời gian trước enqueue hoặc sau finish, hoặc tầng async khác. | HTTP receive/dispatch/write timestamps, network, callback enqueue. |
-| Queue depth gần 0 nhưng reject tăng | Direct handoff/SynchronousQueue hoặc admission limit, capacity/policy. | Cấu hình queue, active threads, `RejectedExecutionException`, rate limiter. |
-| Queue depth lớn, waiting cao, CPU thấp | Worker blocked I/O/lock hoặc downstream giới hạn concurrency. | Thread states, DB pool pending, JFR SocketRead/ThreadPark, lock events. |
-| Queue wait thay đổi mạnh khi số worker tăng | Capacity/parallelism ảnh hưởng backlog. | So throughput/p95/error theo cùng workload; cảnh giác downstream quá tải. |
-| Một số tác vụ đợi rất lâu, số khác bắt đầu ngay | Queue discipline, priority, long-running jobs hoặc starvation. | Tách theo loại task/priority; xem FIFO, scheduled delays và worker distribution. |
+| `queue_wait_p95` rises; `execution_p95` stays relatively stable | Executor backlog/saturation or arrival burst. | Active threads near limit, growing queue depth/oldest age, rejections/timeouts. |
+| `queue_wait` low; `execution` rises alongside DB latency | Slow I/O/downstream once the task starts. | DB query duration, pool acquire wait, socket waits, JFR I/O events. |
+| `queue_wait` rises after `execution` rises | Slow work holds workers longer, building a backlog. | Timeline: service time rose first; queue rose later; thread dumps show what workers are doing. |
+| `execution` low; client latency still high | Time spent before enqueue, after finish, or in another async stage. | HTTP receive/dispatch/write timestamps, network, callback enqueue. |
+| Queue depth near 0 yet rejections rise | Direct handoff/`SynchronousQueue` or admission limit, capacity/policy. | Queue config, active threads, `RejectedExecutionException`, rate limiter. |
+| Large queue depth, high waiting, low CPU | Workers blocked on I/O/locks or downstream concurrency limit. | Thread states, DB pool pending, JFR `SocketRead`/`ThreadPark`, lock events. |
+| Queue wait shifts sharply when worker count increases | Capacity/parallelism affects backlog. | Compare throughput/p95/errors under same load; watch for downstream overload. |
+| Some tasks wait very long while others start immediately | Queue discipline, priority, long-running jobs, or starvation. | Break down by task type/priority; check FIFO, scheduled delays, and worker distribution. |
 
-**Không tự động tăng thread pool khi thấy queue wait cao.** Nếu mọi worker đang đợi database vốn chỉ cho phép 20 connection, tăng worker từ 50 lên 200 có thể làm contention, memory và context switch xấu hơn. Nếu tác vụ CPU-bound và core đã sử dụng hết, nhiều thread cũng có thể tăng thời gian chuyển ngữ cảnh. Chọn can thiệp dựa trên nút thắt đã đo được.
+**Do not automatically expand the thread pool when queue wait is high.** If all workers are waiting on a database that only allows 20 connections, increasing workers from 50 to 200 can worsen contention, memory usage, and context switching. If tasks are CPU-bound and cores are already saturated, more threads also increase context-switching overhead. Base interventions on the measured bottleneck.
 
-## 9. Các chỉ số nên phát ra từ executor và I/O pipeline
+## 9. Metrics to emit from executors and I/O pipelines
 
-Để vận hành, dùng ba nhóm telemetry:
+For operations, use three telemetry groups:
 
-**Histogram latency theo từng tác vụ:**
+**Per-task latency histograms:**
 
-- `task_queue_wait_seconds`: submission/admission-to-start theo định nghĩa.
-- `task_execution_seconds`: start-to-finish wall time, gồm blocking.
+- `task_queue_wait_seconds`: submission/admission-to-start as defined.
+- `task_execution_seconds`: start-to-finish wall time, including blocking.
 - `task_total_seconds`: submission-to-finish.
-- `task_timeout_before_start_total` và `task_rejected_total`: tác vụ chưa từng bắt đầu.
-- Nếu cần, thêm `db_connection_acquire_seconds`, `io_read_seconds`, `lock_wait_seconds`.
+- `task_timeout_before_start_total` and `task_rejected_total`: tasks that never started.
+- If needed, add `db_connection_acquire_seconds`, `io_read_seconds`, `lock_wait_seconds`.
 
-**Gauge tại thời điểm lấy mẫu:**
+**Point-in-time gauges:**
 
 - `executor_active_threads`, `executor_pool_size`, `executor_max_threads`.
-- `executor_queue_depth`, `executor_queue_capacity`, **tuổi task lâu nhất đang chờ** nếu có thể đo an toàn.
-- `db_pool_pending` / `db_pool_active`, số connection và giới hạn.
+- `executor_queue_depth`, `executor_queue_capacity`, **age of the oldest waiting task** if safely measurable.
+- `db_pool_pending` / `db_pool_active`, connection count and limits.
 
-**Counter và event correlation:**
+**Counters and event correlation:**
 
-- Submitted, started, completed, failed, cancelled, rejected và timed out theo trạng thái độc lập.
+- Submitted, started, completed, failed, cancelled, rejected, and timed out as separate outcomes.
 - Request rate, task type, worker pool name, release version, deployment instance.
-- Trace ID/correlation ID để nối từ ingress → queue → start → downstream calls → completion.
+- Trace ID/correlation ID linking ingress → queue → start → downstream calls → completion.
 
-Đặt **đơn vị một cách nhất quán**: exporter thường dùng giây, trong code tính ns; `duration_seconds` không nên chứa giá trị mili-giây. Gắn nhãn có cardinality hữu hạn như pool name, task category, result; không dùng raw request ID, user ID hay URL đầy đủ làm label của từng time series.
+Keep **units consistent**: exporters typically use seconds while code measures nanoseconds; `duration_seconds` must never hold millisecond values. Use bounded-cardinality labels such as pool name, task category, and result; never put raw request IDs, user IDs, or full URLs into time-series labels.
 
-**Phân vị** `p50/p95/p99` cần đủ số mẫu và cửa sổ thời gian rõ ràng. Ví dụ 1 phút chỉ có 3 task thì một số `p99` rất thiếu ổn định. Dùng histogram phù hợp để tổng hợp qua instance; không lấy trung bình các p95 trên từng instance như p95 toàn cụm.
+**Percentiles** `p50/p95/p99` need enough samples and a clear time window. If a 1-minute window has only 3 tasks, a `p99` number is unstable. Use mergeable histograms to aggregate across instances; never average per-instance p95s as cluster p95.
 
-### Một bẫy toán học quan trọng: p95 không cộng được
+### An important math trap: p95s do not add
 
-Với **mỗi task**: `total = queue + execution`. Nhưng nói chung:
+For **each task**: `total = queue + execution`. However, in general:
 
 ```text
 p95(task_total) ≠ p95(task_queue_wait) + p95(task_execution)
 ```
 
-Bởi các task có queue wait cao chưa chắc là các task có execution cao, và quantile không có tính tuyến tính. Muốn biết p95 total, đo hoặc tính **tổng theo từng task rồi xây histogram của total**, không cộng các p95 trên dashboard.
+Because tasks with high queue wait are not necessarily the same tasks with high execution time, and quantiles are not linear. To know total p95, measure or compute **the per-task sum and build a histogram of total**, rather than adding p95s on a dashboard.
 
-Tương tự, nếu số task chưa bắt đầu bị timeout/reject, percentile trên **các task đã hoàn thành** có thể trông “rất tốt” trong khi người dùng vẫn bị lỗi. Luôn hiển thị rejection, timeout, cancellation cùng latency.
+Likewise, if tasks that never started timed out or were rejected, percentiles over **completed tasks** can look "great" while users are seeing errors. Always display rejections, timeouts, and cancellations alongside latency.
 
-## 10. Phân tích tải bằng tốc độ đến và năng lực xử lý
+## 10. Load analysis using arrival rate and processing capacity
 
-Để hiểu vì sao queue tăng, tách:
+To see why queues grow, separate:
 
-- `λ` (lambda): số task **đến** trung bình mỗi giây.
-- `E[S]`: execution wall time trung bình mỗi task, tính bằng giây.
-- `k`: số worker có thể thực hiện song song tác vụ (nếu mô hình worker pool đồng nhất).
-- `ρ ≈ λ × E[S] / k`: mức sử dụng tương đối trong mô hình đơn giản, khi mỗi task chiếm một worker trong suốt `S` và hệ thống gần trạng thái ổn định.
+- `λ` (lambda): average task **arrival rate** per second.
+- `E[S]`: average execution wall time per task, in seconds.
+- `k`: number of workers able to execute tasks in parallel (for a homogeneous worker pool model).
+- `ρ ≈ λ × E[S] / k`: relative utilization in a simple model where each task occupies one worker for `S` and the system is near steady state.
 
-Ví dụ: 40 task/s, trung bình task chiếm worker 0,2 s, có 10 worker ⇒ `ρ ≈ 40 × 0,2 / 10 = 0,8` (80%). Nếu arrivals tăng lên 55 task/s trong khi execution vẫn 0,2 s, nhu cầu trung bình là 11 worker và vượt capacity 10 worker; queue sẽ có xu hướng tăng hoặc hệ thống phải reject/điều chỉnh theo policy.
+Example: 40 tasks/s, each task occupies a worker for 0.2 s on average, with 10 workers ⇒ `ρ ≈ 40 × 0.2 / 10 = 0.8` (80%). If arrivals increase to 55 tasks/s while execution stays 0.2 s, average demand is 11 workers—exceeding the 10-worker capacity; the queue will tend to grow or the system must reject/shed load per policy.
 
-**Đây là mô hình gần đúng**, không bảo đảm p95 latency. Arrival burst, phân bố service time, priority, worker affinity, các tài nguyên downstream, timeouts và autoscaling có thể làm queue tăng cả khi mức sử dụng trung bình chưa tới 100%. Nếu service time tăng vì I/O blocked, `ρ` cũng tăng dù CPU hệ thống có thể còn nhàn.
+**This is an approximation**, not a p95 latency guarantee. Arrival bursts, service-time distributions, priorities, worker affinity, downstream resources, timeouts, and autoscaling can grow queues well below 100% average utilization. If service time grows because I/O blocks, `ρ` rises even while system CPU remains idle.
 
-### Little's Law, khi dùng đúng ranh giới
+### Little's Law, when applied with proper boundaries
 
-Ở một hệ thống ổn định với tốc độ đến/ra phù hợp, **Little's Law** cho quan hệ:
+In a stable system with matching arrival and departure rates, **Little's Law** states:
 
 ```text
 L = λ × W
 ```
 
-Nếu xét **chỉ hàng đợi**: `Lq = λ × Wq`, với `Lq` là **số task trung bình đang chờ**, `Wq` là **thời gian chờ trung bình**, `λ` là throughput dài hạn qua cùng ranh giới (đơn vị task/s). Ví dụ giả định `λ=40 task/s` và `Wq=0,25 s` ⇒ `Lq≈10 task`.
+Applied **solely to the queue**: `Lq = λ × Wq`, where `Lq` is the **average number of waiting tasks**, `Wq` is the **average wait time**, and `λ` is long-run throughput across the same boundary (tasks/s). Illustrative example: `λ=40 tasks/s` and `Wq=0.25 s` ⇒ `Lq≈10 tasks`.
 
-Không dùng `queueDepth_now ≈ rate_now × p95_wait`: Little's Law mô tả **giá trị trung bình dài hạn** khi điều kiện áp dụng phù hợp, không phải sự bằng nhau giữa một gauge tức thời và p95. Trong burst hoặc giai đoạn queue tăng vô hạn, giả định trạng thái ổn định không còn đúng.
+Do not write `queueDepth_now ≈ rate_now × p95_wait`: Little's Law relates **long-run averages** when steady-state assumptions hold, not an equality between an instantaneous gauge and p95. During bursts or unbounded queue growth, steady-state assumptions break down.
 
-## 11. JFR và thread dump hỗ trợ phân biệt ra sao?
+## 11. How do JFR and thread dumps help tell them apart?
 
-JFR có thể cho biết **worker đang làm gì trong thời gian đã bắt đầu xử lý**. Một số nhóm event hữu ích (tùy settings/threshold/collector/JDK):
+JFR reveals **what workers are doing once execution has begun**. Useful event groups (depending on settings/thresholds/collector/JDK):
 
-- `jdk.SocketRead` / `jdk.SocketWrite`: thời gian thực thi một thao tác I/O socket được JFR ghi nhận; chỉ những event thỏa cấu hình được thu.
-- `jdk.FileRead` / `jdk.FileWrite`: thao tác I/O file có duration và dữ liệu liên quan.
-- `jdk.JavaMonitorEnter`: dấu hiệu tranh chấp monitor, thường chỉ có event khi chờ vượt threshold.
-- `jdk.ThreadPark`: khoảng park/chờ trong cơ chế `LockSupport`, có thể gợi ý wait trên synchronizer.
-- CPU execution samples và stack trace: định hướng worker đang tiêu thụ CPU ở đâu.
+- `jdk.SocketRead` / `jdk.SocketWrite`: recorded duration of socket I/O operations; only events meeting configuration thresholds are captured.
+- `jdk.FileRead` / `jdk.FileWrite`: file I/O operations with durations and metadata.
+- `jdk.JavaMonitorEnter`: monitor contention indicator, typically emitted only when wait exceeds threshold.
+- `jdk.ThreadPark`: park/wait intervals in `LockSupport`, which can point to synchronizer waits.
+- CPU execution samples and stack traces: highlight where workers are burning CPU.
 
-Ví dụ bật recording ngắn trên HotSpot JDK 17+:
+Example starting a short recording on HotSpot JDK 17+:
 
 ```bash
-# Thay <pid> bằng PID thực, xác minh quyền ghi ở JVM đích.
+# Replace <pid> with the real PID and verify write permission on the target JVM.
 jcmd <pid> JFR.start name=queue_diag settings=profile duration=120s filename=/tmp/queue-diag.jfr
 
-# Sau khi file đã được ghi:
+# After the file has been written:
 jfr summary /tmp/queue-diag.jfr
 jfr print --events jdk.SocketRead,jdk.FileRead,jdk.ThreadPark /tmp/queue-diag.jfr
 ```
 
-Output các công cụ phụ thuộc file thực tế, **không có bảng số liệu cố định**. `jdk.SocketRead` kéo dài 400 ms gợi ý một đoạn chờ I/O trong worker, nhưng **không cho biết tác vụ đã chờ bao lâu trong queue trước khi worker chạy**. JFR mặc định không tự biết `t_enqueue` của mọi `Runnable` nghiệp vụ. Muốn đo queue wait, cần **instrument chính ranh giới submit/start** như ví dụ.
+Tool output depends on the actual file; **there is no fixed reference table**. A 400 ms `jdk.SocketRead` points to an I/O wait inside the worker, yet **does not tell how long the task waited in the queue before the worker started**. JFR by default does not know `t_enqueue` for arbitrary business `Runnable`s. Measuring queue wait requires **instrumenting the submit/start boundary itself**, as shown earlier.
 
-Thread dump (`jcmd <pid> Thread.print` hoặc `jstack` khi được hỗ trợ) là snapshot trạng thái stack; một worker `WAITING` hay `TIMED_WAITING` có thể đang đợi I/O/synchronizer hoặc đang nhàn rỗi chờ task mới. Không kết luận từ một thread dump đơn lẻ rằng “mọi request đều đợi queue”; cần gắn stack với metric queue và timestamp.
+A thread dump (`jcmd <pid> Thread.print` or `jstack` where supported) is a snapshot of stacks; a `WAITING` or `TIMED_WAITING` worker may be waiting on I/O/a synchronizer or sitting idle waiting for work. Do not conclude from a single thread dump that "all requests are stuck in the queue"; pair stacks with queue metrics and timestamps.
 
-### Ghi dấu queue/execution bằng custom JFR event
+### Recording queue/execution with a custom JFR event
 
-Khi cần correlate từng task mà không muốn log text cho mọi request, có thể tạo một custom JFR event với fields `queueWaitNanos`, `executionNanos`, task category và outcome. Đo trong wrapper, ghi event sau khi tác vụ kết thúc, và chọn threshold/sampling phù hợp để hạn chế overhead.
+When you want per-task correlation without text-logging every request, you can define a custom JFR event with `queueWaitNanos`, `executionNanos`, task category, and outcome. Measure in the wrapper, commit the event after the task finishes, and choose appropriate thresholds/sampling to limit overhead.
 
-Ví dụ **phần class event**, không phải chương trình hoàn chỉnh:
+Example **event class snippet**, not a complete program:
 
 ```java
 @jdk.jfr.Name("demo.TaskLatency")
@@ -438,47 +438,47 @@ public class TaskLatencyEvent extends jdk.jfr.Event {
 }
 ```
 
-Trong đoạn wrapper đo thực tế, set các field rồi gọi `commit()` khi event enabled. Không kỳ vọng custom event tự động có sẵn trong file `.jfr` nếu chưa bật `demo.TaskLatency`. Không gắn payload nhạy cảm hoặc request ID tùy ý vào JFR event, vì recording có thể lưu trên đĩa và được chia sẻ để điều tra.
+Inside the real measurement wrapper, populate fields and call `commit()` when the event is enabled. Do not expect a custom event to appear automatically in `.jfr` files unless `demo.TaskLatency` is enabled. Never attach sensitive payloads or arbitrary request IDs into JFR events, because recordings may be saved to disk and shared for investigation.
 
-## 12. I/O bất đồng bộ và message broker: đừng đặt ranh giới sai
+## 12. Async I/O and message brokers: do not draw boundaries in the wrong place
 
-### 12.1. HTTP async/reactive pipeline
+### 12.1. HTTP async/reactive pipelines
 
-Một HTTP handler gửi yêu cầu sang API bất đồng bộ có thể kết thúc callback sớm, còn `CompletableFuture` tiếp tục chờ kết quả mạng. Để không tính sai “processing”, chọn rõ hai metric:
+An HTTP handler invoking an async API may finish its initial callback quickly while a `CompletableFuture` continues waiting on the network. To avoid mismeasuring "processing," separate two metrics:
 
-- `callback_execution_seconds`: wall time của một callback cụ thể từ lúc worker chạy đến khi callback return.
-- `logical_operation_duration_seconds`: từ lúc request được chấp nhận đến lúc **future hoàn thành/kết quả sẵn sàng**.
+- `callback_execution_seconds`: wall time of a specific callback from worker start until that callback returns.
+- `logical_operation_duration_seconds`: from request acceptance until **the future completes / the result is ready**.
 
-Có thể xuất thêm `callback_scheduler_queue_wait_seconds` nếu completion callback phải đợi executor khác. Nếu chỉ đo callback đầu tiên, dashboard có thể báo 2 ms dù người dùng chờ 900 ms.
+You can also emit `callback_scheduler_queue_wait_seconds` if completion callbacks must wait on another executor. Measuring only the first callback can make a dashboard show 2 ms while users wait 900 ms.
 
-### 12.2. Message queue/broker
+### 12.2. Message queues/brokers
 
-Trong Kafka/RabbitMQ/JMS, có nhiều mốc:
+In Kafka/RabbitMQ/JMS, multiple milestones exist:
 
 ```text
-producer tạo message
- → gửi broker
- → broker lưu/đợi
- → consumer nhận/poll
+producer creates message
+ → sent to broker
+ → broker stores/waits
+ → consumer receives/polls
  → consumer local executor queue
- → handler bắt đầu
- → xử lý
+ → handler starts
+ → processing
  → ack/commit
 ```
 
-**Broker queue age** là khoảng từ lúc message được ghi vào broker đến khi consumer lấy ra (theo định nghĩa cụ thể). **Local executor wait** là từ lúc consumer giao task cho executor đến handler bắt đầu. **Handler duration** là từ handler bắt đầu đến khi xử lý xong. **Ack latency** có thể thêm một khoảng sau đó. Chúng là các metric khác nhau, không nên cùng đặt tên `message_processing_time`.
+**Broker queue age** is the interval from when the message was written to the broker until a consumer fetches it (per broker semantics). **Local executor wait** is from when the consumer submits the task to its executor until the handler starts. **Handler duration** is from handler start to processing finish. **Ack latency** may add time afterward. These are distinct metrics and should not all share the name `message_processing_time`.
 
-Với các timestamp thuộc hai máy, chú ý clock skew, broker timestamp semantics (create time vs append time), batching và redelivery. Nếu message được xử lý lại, cần xác định thời điểm đo là từ lần enqueue đầu tiên hay lần retry hiện tại; không gộp vô điều kiện.
+For timestamps across two machines, watch out for clock skew, broker timestamp semantics (create time vs. append time), batching, and redelivery. If a message is reprocessed, decide whether to measure from first enqueue or current retry attempt; never mix them blindly.
 
-### 12.3. Batch job và scheduled task
+### 12.3. Batch jobs and scheduled tasks
 
-Một scheduled task có `plannedAt`, `eligibleAt`, `actualStartAt`, `finishedAt`. Nếu scheduler hoặc worker bị bận, `actualStartAt - plannedAt` là **schedule delay**, chưa chắc hoàn toàn là queue wait trong executor. Một batch 1.000 bản ghi có thể chờ đưa vào queue từng phần rồi chạy song song; cần xác định đơn vị đo là **batch** hay **mỗi item** để tỷ lệ và duration có ý nghĩa.
+A scheduled task has `plannedAt`, `eligibleAt`, `actualStartAt`, and `finishedAt`. If the scheduler or workers are busy, `actualStartAt - plannedAt` is **schedule delay**, not necessarily purely executor queue wait. A batch of 1,000 records may wait to be enqueued piecemeal and then run in parallel; specify whether the measurement unit is **per batch** or **per item** so rates and durations remain meaningful.
 
-## 13. Phân biệt ba vấn đề trong một incident
+## 13. Distinguishing three problems in an incident
 
-### Case A — queue wait cao, execution thấp
+### Case A — high queue wait, low execution
 
-Một service nhận 500 request/s trong burst; worker pool 16 thread đang bận, queue depth tăng. Metric:
+A service receives a burst of 500 requests/s; a 16-thread worker pool is busy and queue depth climbs. Metrics:
 
 ```text
 queue_wait_p95 = 650 ms
@@ -487,57 +487,57 @@ task_total_p95 = 675 ms
 rejections     = 0
 ```
 
-Các số minh họa chỉ để mô tả. `task_total_p95` **không được tính** bằng cách cộng 650 + 40; nó được đo độc lập theo từng task. Hành động là xem arrival burst, capacity và task mix, xem có một số task lâu giữ worker không, đặt queue bound và deadline hợp lý. Nếu CPU thấp nhưng worker đang chặn network thì quay lại xét Case B như nguyên nhân gốc của backlog.
+Illustrative numbers only. `task_total_p95` **must not be computed** by adding 650 + 40; it is measured independently per task. Investigate arrival bursts, capacity, task mix, and whether a few long tasks hold workers, and set sensible queue bounds and deadlines. If CPU is low while workers block on the network, revisit Case B as the root cause of the backlog.
 
-### Case B — queue wait thấp, execution cao
+### Case B — low queue wait, high execution
 
-`queue_wait_p95 = 4 ms`, `execution_p95 = 820 ms`, DB connection acquire time `~300 ms`, socket read `~400 ms`. Mở rộng worker pool có thể **tệ hơn** nếu DB connection pool đã chật. Cần điều tra DB load, timeout, query plan, connection pool và downstream dependency; xem mốc nào tăng trước.
+`queue_wait_p95 = 4 ms`, `execution_p95 = 820 ms`, DB connection acquire time `~300 ms`, socket read `~400 ms`. Expanding the worker pool can make things **worse** if the DB connection pool is already tight. Investigate DB load, timeouts, query plans, connection pools, and downstream dependencies; check which metric rose first.
 
-### Case C — cả hai tăng theo thời gian
+### Case C — both rise over time
 
-Tại 10:00 upstream database latency tăng, khiến mỗi task giữ worker lâu hơn. Tới 10:02, executor queue depth và queue wait tăng mạnh vì worker chưa trả lại. Dashboard cho thấy tổng latency tăng, nhưng chuỗi sự kiện cho biết **execution tăng trước, queue tăng sau**. Giải pháp nên hướng vào upstream và giới hạn concurrency/backpressure; chỉ làm queue lớn hơn sẽ kéo dài thời gian chờ và tiêu thụ tài nguyên.
+At 10:00 upstream database latency rises, making each task hold a worker longer. By 10:02 executor queue depth and queue wait spike because workers are not being freed. Dashboards show total latency rising, yet the timeline proves **execution rose first and queue wait followed**. Focus fixes on upstream latency and concurrency limits/backpressure; merely enlarging the queue will lengthen wait times and consume resources.
 
-## 14. Những lỗi phổ biến khi đo và diễn giải
+## 14. Common measurement and interpretation mistakes
 
-- **“Task chạy 20 ms nên response chắc chỉ 20 ms.”** Sai: queue wait, network, admission, serialization và callback async có thể cộng thêm đáng kể.
-- **“Execution time chính là CPU time.”** Sai: wall time trong `run()` gồm I/O blocked, lock wait, GC pause và scheduler delay.
-- **“Queue wait bằng `queue.size()`.”** Sai: size là số lượng, wait là khoảng thời gian; cần đo theo từng task.
-- **“Lấy `nanoTime()` đầu `run()` và cuối `run()` là đủ để đo queue wait.”** Sai: đó chỉ đo execution.
-- **“Timestamp ISO giữa hai JVM luôn trừ được chính xác.”** Sai: clock skew và clock adjustment làm sai lệch; ghi bối cảnh đồng bộ clock.
-- **“Tăng worker luôn giảm queue wait.”** Sai: có thể đẩy nhiều I/O tới downstream, làm tăng contention và execution time.
-- **“Queue size bằng 0 nghĩa không có áp lực.”** Sai: SynchronousQueue, sampling thưa và rejection có thể che tình trạng admission overload.
-- **“Executor maxPoolSize sẽ được dùng hết trước khi queue.”** Sai: hành vi phụ thuộc core size, queue và saturation.
-- **“`CallerRunsPolicy` nghĩa là mọi tác vụ luôn được worker pool xử lý.”** Sai: caller phải chạy task; ảnh hưởng latency submit và upstream.
-- **“p95 tổng bằng p95 chờ + p95 chạy.”** Sai: quantile không có tính cộng; cần đo tổng từng task.
-- **“Task bị cancel trong queue có execution 0 ms nên đưa vào histogram thành công.”** Sai: tách trạng thái không bao giờ bắt đầu, report timeout/cancel riêng.
-- **“JFR FileRead 600 ms là queue wait 600 ms.”** Sai: duration event I/O xảy ra **trong quá trình chạy**; queue submit-to-start cần instrument riêng.
-- **“Async callback return là request đã xong.”** Sai: phải theo dõi completion của toàn logical operation.
-- **“Một lần `getActiveCount()` thấp thì pool không bị nghẽn.”** Sai: snapshot có thể lệch giai đoạn burst, cần time series/histogram.
-- **“P99 tăng là do SQL chậm.”** Chưa đủ: phải xem queue_wait, execution, DB acquire, socket read và downstream trace cùng cửa sổ.
-- **“Little's Law áp dụng trực tiếp cho queue depth tức thời và p95.”** Sai: đây là quan hệ giá trị trung bình với điều kiện áp dụng rõ ràng.
+- **"The task ran for 20 ms, so the response must be 20 ms."** False: queue wait, network, admission, serialization, and async callbacks can add substantially.
+- **"Execution time equals CPU time."** False: wall time inside `run()` includes I/O blocking, lock waits, GC pauses, and scheduler delays.
+- **"Queue wait equals `queue.size()`."** False: size is a count while wait is a duration; measure per task.
+- **"Taking `nanoTime()` at the start and end of `run()` is enough to measure queue wait."** False: that measures only execution.
+- **"ISO timestamps across two JVMs can always be subtracted accurately."** False: clock skew and adjustments distort results; record clock sync context.
+- **"Adding workers always reduces queue wait."** False: it can push more I/O downstream, increasing contention and execution time.
+- **"Queue size 0 means zero pressure."** False: `SynchronousQueue`, sparse sampling, and rejections can hide admission overload.
+- **"Executor `maxPoolSize` is always exhausted before queuing."** False: behavior depends on core size, queue type, and saturation rules.
+- **"`CallerRunsPolicy` means every task still runs on the worker pool."** False: callers end up running tasks, impacting submit latency and upstream callers.
+- **"Total p95 equals queue p95 + execution p95."** False: quantiles are not additive; measure per-task totals.
+- **"Tasks cancelled in the queue have 0 ms execution so include them in the success histogram."** False: separate tasks that never started and report timeouts/cancellations separately.
+- **"A 600 ms JFR `FileRead` means 600 ms queue wait."** False: I/O event durations occur **during execution**; submit-to-start queuing needs its own instrumentation.
+- **"Async callback return means the request is done."** False: track completion of the entire logical operation.
+- **"A single low `getActiveCount()` means the pool is healthy."** False: snapshots can miss bursts; use time series and histograms.
+- **"p99 increased because of slow SQL."** Insufficient: check `queue_wait`, `execution`, DB acquire, socket read, and downstream traces in the same window.
+- **"Little's Law applies directly to instantaneous queue depth and p95."** False: it relates averages under specific steady-state conditions.
 
-## 15. Checklist điều tra thực tế
+## 15. Practical investigation checklist
 
-Trước khi sửa mã hoặc tuning thread pool, trả lời:
+Before changing code or tuning thread pools, answer:
 
-1. **Ranh giới:** đang đo executor queue wait, DB connection wait, broker lag hay toàn request latency? Các mốc `enqueue/start/finish` ở đâu?
-2. **Đồng hồ:** timestamp trong cùng JVM bằng `nanoTime` hay qua nhiều máy? Đơn vị và sai số là gì?
-3. **Phân phối:** `p50/p95/p99` của **queue wait**, **execution**, **total** thay đổi độc lập thế nào? Còn rejected/timeout/cancelled?
-4. **Queue:** loại queue, capacity, `corePoolSize`, `maximumPoolSize`, rejection handler và oldest wait là gì?
-5. **Worker:** active/idle, thread states, CPU usage và backlog có diễn biến trùng nhau không?
-6. **I/O:** DB pool acquire, query, socket/file I/O, lock wait, timeout và downstream latency tác động phần execution nào?
-7. **Async:** nếu dùng callback/reactive, logical operation đã hoàn tất chưa hay chỉ có một callback vừa return?
-8. **Thứ tự nguyên nhân:** execution tăng trước dẫn tới queue tăng, hay burst arrival làm queue tăng dù execution vẫn ổn định?
-9. **Giải pháp:** đo lại cùng workload sau thay đổi concurrency, queue bound, backpressure, timeout hoặc tối ưu I/O; kiểm tra cả latency lẫn error/reject.
-10. **Báo cáo:** nêu rõ instance, cửa sổ, số mẫu, đơn vị, công thức và metric boundary để người khác tái hiện.
+1. **Boundaries:** are you measuring executor queue wait, DB connection wait, broker lag, or full request latency? Where are `enqueue`/`start`/`finish`?
+2. **Clocks:** are timestamps within one JVM via `nanoTime` or across machines? What are the units and error margins?
+3. **Distributions:** how do `p50/p95/p99` of **queue wait**, **execution**, and **total** move independently? What about rejected/timed-out/cancelled counts?
+4. **Queue:** what are the queue type, capacity, `corePoolSize`, `maximumPoolSize`, rejection handler, and oldest waiting task age?
+5. **Workers:** do active/idle counts, thread states, CPU usage, and backlog move together?
+6. **I/O:** how do DB pool acquire, queries, socket/file I/O, lock waits, timeouts, and downstream latency affect the execution segment?
+7. **Async:** if using callbacks/reactive flows, has the logical operation completed or did only one callback return?
+8. **Causal order:** did execution rise first causing queuing, or did an arrival burst raise queue wait while execution stayed stable?
+9. **Verification:** re-measure under identical load after changing concurrency, queue bounds, backpressure, timeouts, or I/O optimizations; check both latency and errors/rejections.
+10. **Reporting:** state instance, time window, sample size, units, formulas, and metric boundaries so others can reproduce your findings.
 
-**Ghi nhớ:** `queue_wait` trả lời **“task phải đợi bao lâu trước khi được worker bắt đầu?”**; `execution_time` trả lời **“worker giữ task trong bao lâu, kể cả lúc bị block?”**; `total_time` của task là **tổng hai phần theo từng task**, còn response latency có thể dài hơn. Việc đo riêng hai khoảng — cùng queue depth, rejection và I/O telemetry — giúp tránh tối ưu sai chỗ và tìm được nguyên nhân thật của độ trễ.
+**Remember:** `queue_wait` answers **"how long did the task wait before a worker started it?"**; `execution_time` answers **"how long did the worker hold the task, including blocked time?"**; task `total_time` is **the per-task sum of the two**, while response latency can be longer still. Measuring these two intervals separately—alongside queue depth, rejections, and I/O telemetry—prevents optimizing the wrong layer and uncovers the true source of latency.
 
-### Tài liệu tham khảo
+### References
 
-- [Oracle Java 17 — ThreadPoolExecutor (queueing, pool size, rejection, monitoring)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html)
+- [Oracle Java 17 — ThreadPoolExecutor (queuing, pool size, rejection, monitoring)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html)
 - [Oracle Java 17 — System.nanoTime()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#nanoTime())
 - [Oracle Java 17 — ExecutorService](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html)
-- [Oracle Java 17 — ThreadMXBean (CPU time khác wall time)](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html)
+- [Oracle Java 17 — ThreadMXBean (CPU time vs. wall time)](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html)
 - [Oracle Java 17 — Java Flight Recorder Consumer APIs](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jfr/jdk/jfr/consumer/package-summary.html)
 - [OpenTelemetry — Messaging semantic conventions](https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/)

@@ -1,133 +1,133 @@
-# 21.2 Lập thứ tự thu thập theo triệu chứng và thời gian còn lại trước khi sự cố biến mất
+# 21.2 Prioritizing Collection by Symptom and Remaining Time Before the Incident Vanishes
 
-## Mục tiêu
+## Objectives
 
-Trong vận hành, **bằng chứng chẩn đoán có thời hạn tồn tại**. JVM có thể tự phục hồi, được autoscaler thay thế, bị OOM killer kết thúc, container bị reschedule, hoặc spike CPU/độ trễ chỉ kéo dài vài chục giây. Nếu chọn sai thứ tự thu thập, đến lúc tạo xong một heap dump vài gigabyte thì thread đang deadlock đã biến mất, instance đã restart và recording JFR trong bộ nhớ cũng không còn.
+In operations, **diagnostic evidence has an expiration window**. A JVM may recover on its own, be replaced by an autoscaler, be terminated by the OOM killer, have its container rescheduled, or experience a CPU/latency spike lasting only tens of seconds. If you choose the wrong collection order, by the time a multi-gigabyte heap dump finishes writing, the deadlocked thread is gone, the instance has restarted, and the in-memory JFR recording no longer exists.
 
-Bài này hướng dẫn chọn **đúng bằng chứng, đúng thứ tự, đúng mức rủi ro** theo triệu chứng và khoảng thời gian dự kiến còn lại của sự cố. Sau bài học, bạn có thể:
+This lesson teaches how to choose **the right evidence, in the right order, at the right risk level** based on symptoms and the expected remaining lifetime of the incident. After completing this lesson, you will be able to:
 
-1. Nhận biết sự khác nhau giữa bằng chứng **biến mất khi process chết**, bằng chứng có sẵn trong log/monitoring và bằng chứng cần chuẩn bị **trước incident**.
-2. Lập ưu tiên theo dấu hiệu **hang/deadlock, CPU spike, GC thrashing/heap OOM, native RSS tăng, I/O/latency và crash/restart**.
-3. Dùng thời gian còn lại (vài giây, dưới một phút, vài phút, ổn định dài) để chọn giữa **JFR dump, thread dump, process/OS snapshot, heap histogram, heap dump và NMT**.
-4. Phân biệt **snapshot nhanh/rủi ro thấp** với thao tác **có thể pause JVM, tốn disk/CPU và làm thay đổi hiện trạng**.
-5. Bảo toàn **timestamp, PID/container identity, quyền truy cập và nguồn gốc file** để các nhóm có thể ghép bằng chứng sau sự cố.
-6. Thiết kế **runbook và preconfiguration** giúp incident ngắn vẫn có đủ dữ liệu, thay vì đặt toàn bộ hy vọng vào việc chạy lệnh sau khi sự cố đã xảy ra.
+1. Distinguish evidence that **vanishes when the process dies**, evidence already available in logs/monitoring, and evidence that must be prepared **before an incident**.
+2. Prioritize by symptom: **hang/deadlock, CPU spike, GC thrashing/heap OOM, native RSS growth, I/O/latency, and crash/restart**.
+3. Use remaining time (a few seconds, under a minute, several minutes, long-term stability) to choose among **JFR dumps, thread dumps, process/OS snapshots, heap histograms, heap dumps, and NMT**.
+4. Differentiate **fast/low-risk snapshots** from operations that **can pause the JVM, consume disk/CPU, and alter live state**.
+5. Preserve **timestamps, PID/container identity, access controls, and file provenance** so teams can correlate evidence post-incident.
+6. Design **runbooks and preconfiguration** so short incidents still yield enough data, rather than pinning all hopes on running commands after failure occurs.
 
-**Quy tắc:** không có thứ tự cứng đúng cho mọi incident. Ưu tiên của một bước phụ thuộc vào **khả năng bằng chứng mất đi, giá trị trả lời câu hỏi, thời gian thu, mức ảnh hưởng hệ thống, dung lượng lưu trữ và an toàn dữ liệu**. Khi nghi process chỉ còn vài giây sống, lấy thứ có thể hoàn thành ngay và không làm nó chết sớm hơn.
+**Rule of thumb:** there is no single rigid order suitable for every incident. A step's priority depends on **how likely the evidence is to vanish, its value in answering the diagnostic question, capture duration, system impact, storage capacity, and data security**. When a process appears to have only seconds left to live, grab what can finish immediately without hastening its termination.
 
-## 1. Vì sao cần ưu tiên bằng chứng?
+## 1. Why Does Evidence Ordering Matter?
 
-Hãy hình dung một JVM bị OOM sau 30 giây:
+Imagine a JVM heading toward an OOM in 30 seconds:
 
 ~~~text
-T0     Memory/RSS bất thường bắt đầu
-T+5s   Alerts được gửi; JVM còn chạy
-T+10s  Người trực xác định đúng container/PID
-T+15s  Có thể dump JFR đang ghi, đọc metrics, lấy stack
-T+25s  Heap có thể chạm giới hạn, GC thrash
-T+30s  OOM killer hoặc platform restart process
-T+31s  /proc/PID, thread states, heap sống: không còn truy cập
+T0     Memory/RSS anomaly begins
+T+5s   Alerts fire; JVM is still running
+T+10s  On-call identifies the right container/PID
+T+15s  Can dump running JFR, read metrics, grab stacks
+T+25s  Heap may hit limit, GC thrashes
+T+30s  OOM killer or platform restarts process
+T+31s  /proc/PID, thread states, live heap: no longer accessible
 ~~~
 
-Nếu ở T+15s bắt đầu **GC.heap_dump** trên một heap lớn, lệnh có thể mất quá lâu, tăng áp lực disk và ảnh hưởng JVM trong lúc nó đang yếu. Heap dump có thể rất có giá trị với leak, nhưng không phải mặc định là **việc đầu tiên** trên một process sắp bị kết thúc.
+If at T+15s you launch **GC.heap_dump** on a large heap, the command may take too long, increase disk pressure, and destabilize an already struggling JVM. A heap dump can be invaluable for a leak, yet it is not the automatic **first step** on a process about to be killed.
 
-Ngược lại, nếu đang thấy **bộ nhớ tăng chậm nhiều giờ**, được phép tạo dump, có đủ disk và thời gian, heap dump đúng thời điểm có thể là bằng chứng quan trọng hơn vài thread dumps. Do đó ưu tiên phải **theo triệu chứng và thời gian** chứ không theo một checklist “luôn chạy mọi lệnh”.
+Conversely, if you observe **slow memory growth over many hours**, have approval to dump, and possess ample disk and time, a well-timed heap dump can be more decisive than several thread dumps. Prioritization must therefore follow **symptoms and time remaining**, not a blind "run every command" checklist.
 
-### 1.1. Các loại bằng chứng có vòng đời khác nhau
+### 1.1. Evidence Types Have Different Lifespans
 
-| Loại bằng chứng | Khi nào mất? | Mức ưu tiên khi instance sắp chết |
+| Evidence Type | When Is It Lost? | Priority When Instance Is Dying |
 | --- | --- | --- |
-| **Java thread stack/state**, lock owner, in-flight task | Biến mất khi thread đổi trạng thái/process kết thúc | Rất cao với hang, deadlock, CPU spike |
-| **JFR đang chạy** | In-memory buffers và repository của process có thể không còn sau exit/eviction; một số file tồn tại nếu đã flush | Rất cao nếu recording hiện hữu và chứa giai đoạn lỗi |
-| **/proc/PID, native thread, RSS, fd, socket/memory maps** trên Linux | Biến mất khi process không còn | Cao khi cần OS/native perspective |
-| **Heap object graph tại trạng thái lỗi** | Không thể chụp lại sau GC, restart hoặc sau khi leak không còn | Cao với retention/OOM, nhưng chi phí dump lớn |
-| **GC/class histogram** | Snapshot thay đổi qua các chu kỳ GC; cũng có thể làm thay đổi trạng thái | Trung bình–cao tùy triệu chứng và rủi ro |
-| **Continuous GC/application logs** | Thường tồn tại qua restart nếu được ship ra ngoài; có thể bị rotate/xóa hoặc chỉ ở ephemeral disk | Thu/đóng băng sớm, nhưng không thay thế live snapshots |
-| **Metrics đã đẩy ra hệ thống quan sát** | Tùy retention/scrape period, có thể còn sau process chết | Có thể truy hồi sau nhưng cần ghi đúng window |
-| **Fatal-error log, core file, OOM heap dump đã cấu hình** | Được tạo lúc lỗi; có thể ở local disk không bền | Bảo toàn ngay sau sự cố, không mặc định lúc nào cũng được tạo |
+| **Java thread stack/state**, lock owners, in-flight tasks | Vanishes when threads change state or process exits | Very high for hangs, deadlocks, CPU spikes |
+| **Running JFR** | In-memory buffers and process repository may disappear on exit/eviction; some files survive if flushed | Very high if a recording exists and covers the fault window |
+| **/proc/PID, native threads, RSS, fds, socket/memory maps** on Linux | Vanishes when the process exits | High when an OS/native perspective is needed |
+| **Heap object graph at fault state** | Cannot be recaptured after GC, restart, or once the leak clears | High for retention/OOM, but dump cost is substantial |
+| **GC/class histogram** | Snapshot shifts across GC cycles and may itself alter state | Medium–high depending on symptoms and risk |
+| **Continuous GC/application logs** | Usually survive restarts if shipped externally; may rotate/delete or live only on ephemeral disk | Capture/freeze early, though not a substitute for live snapshots |
+| **Metrics pushed to observability systems** | Depends on retention/scrape period; often survive process death | Retrievable afterward, but exact window must be recorded |
+| **Fatal-error log, core file, configured OOM heap dump** | Generated on failure; may sit on non-persistent local disk | Preserve immediately post-crash; do not assume they are always produced |
 
-**Quan trọng:** Kubernetes Pod UID, container ID và Linux PID đều là danh tính khác nhau. PID có thể được tái sử dụng sau khi process chết. Khi chuyển ca, cần ghi đủ **host, namespace/container, start time, PID** để không vô tình phân tích một JVM khác.
+**Important:** Kubernetes Pod UID, container ID, and Linux PID are distinct identities. PIDs can be reused after a process dies. During handoffs, record **host, namespace/container, start time, and PID** so you do not accidentally analyze a different JVM.
 
-### 1.2. Ba câu hỏi trước khi bấm Enter
+### 1.2. Three Questions Before Pressing Enter
 
-1. **Triệu chứng chính cần giải thích là gì?** CPU, hang, heap, RSS native, I/O, crash hay hỗn hợp?
-2. **Bằng chứng sẽ còn bao lâu?** Chỉ vài giây trước restart, dưới phút, hoặc còn ổn định hàng chục phút?
-3. **Lệnh này có làm hệ thống xấu đi hoặc phá dữ liệu cần thu không?** Stop-the-world, Full GC, heap dump disk I/O, pause lớn, secrets, quota, quyền truy cập?
+1. **What is the primary symptom to explain?** CPU, hang, heap, native RSS, I/O, crash, or mixed?
+2. **How long will the evidence remain?** Just seconds before restart, under a minute, or stable for tens of minutes?
+3. **Will this command worsen the system or destroy the data being captured?** Stop-the-world, Full GC, heap dump disk I/O, major pauses, secrets, quotas, permissions?
 
-Nếu câu 2 là “vài giây” và câu 3 là “có thể tốn phút”, nên chọn snapshot giá trị cao nhưng nhanh hơn hoặc dùng recording đã cấu hình, không cố chạy một lệnh nặng bằng mọi giá.
+If question 2 is "a few seconds" and question 3 is "may take minutes," pick a fast, high-value snapshot or dump an already configured recording rather than forcing a heavy command at all costs.
 
-## 2. Quy tắc chọn theo thời gian còn lại
+## 2. Selection Rules by Remaining Time
 
-Các khoảng sau là **mốc điều phối minh họa**, không phải cam kết rằng lệnh JVM sẽ hoàn tất trong đúng thời gian:
+The intervals below are **illustrative coordination bands**, not a guarantee that JVM commands will complete within the stated window:
 
-| Thời gian ước tính còn lại | Mục tiêu | Việc nên làm trước | Việc cần cân nhắc |
+| Estimated Time Remaining | Goal | Do First | Consider Carefully |
 | --- | --- | --- | --- |
-| **0–15 giây** | Cứu dấu vết khó tái tạo nhất | Xác nhận PID; dump **JFR đã chạy** hoặc lấy **một thread snapshot** tùy triệu chứng; ghi timestamp, trạng thái Pod/process | Tránh khởi chạy heap dump lớn hoặc thu hàng chục chỉ số không liên quan |
-| **15–60 giây** | Có snapshot đầu và thêm một góc nhìn | JFR dump + thread/OS metrics hoặc bộ nhớ nhanh theo triệu chứng; ghi lỗi attach | Histogram/heap dump chỉ khi giá trị cao, hệ thống chịu được và có disk |
-| **1–5 phút** | Thu chuỗi thời gian và dấu hiệu root cause | Lặp **thread/CPU/GC/OS samples**, JFR, pool metrics; sau đó chọn histogram/NMT và dump có kiểm soát | Không chờ “đủ bộ” rồi mới lưu những snapshot quan trọng |
-| **Hơn 5 phút/ổn định** | So sánh trước–sau, phân tích sâu | Baseline, JFR profile đủ khoảng, NMT diff nếu bật, heap dump khi thích hợp, correlation logs/traces | Cân nhắc overhead, bảo mật, backpressure và tần suất thu |
+| **0–15 seconds** | Rescue the hardest-to-reproduce traces | Confirm PID; dump **already-running JFR** or capture **one thread snapshot** per symptom; record timestamp, Pod/process state | Avoid launching a large heap dump or collecting dozens of unrelated metrics |
+| **15–60 seconds** | Secure initial snapshot plus one complementary view | JFR dump + thread/OS metrics or fast memory snapshot per symptom; log any attach errors | Histogram/heap dump only if high value, system can tolerate it, and disk allows |
+| **1–5 minutes** | Capture time-series and root-cause indicators | Repeat **thread/CPU/GC/OS samples**, JFR, pool metrics; then selectively run histogram/NMT and controlled dump | Do not wait for a "complete set" before saving critical snapshots |
+| **Over 5 minutes / stable** | Before–after comparison, deep analysis | Baseline, JFR profile over sufficient window, NMT diff if enabled, heap dump when appropriate, log/trace correlation | Weigh overhead, security, backpressure, and capture frequency |
 
-Đôi khi không thể biết sự cố còn bao lâu. Trong trường hợp đó, đánh giá theo **nguy cơ mất instance cao**: restart loop, container memory.current áp sát limit, RSS tăng nhanh, OOM messages hoặc watchdog sắp kill. **Ưu tiên snapshot ngay**, không đợi một bộ biểu đồ đẹp.
+Sometimes you cannot tell how long an incident will last. In that case, assess **high instance-loss risk**: restart loops, container `memory.current` approaching limit, rapidly climbing RSS, OOM messages, or an impending watchdog kill. **Prioritize immediate snapshots** instead of waiting for clean dashboards.
 
-**Tính thứ tự bằng “lợi ích trên chi phí”**: bằng chứng nào có khả năng cung cấp câu trả lời quan trọng, sẽ sớm biến mất, thu xong nhanh và ít tác động thì đứng trước. Nếu thao tác tạo dump có khả năng làm OOM/eviction xảy ra sớm hơn, giá trị kỳ vọng của nó giảm.
+**Order by "value over cost":** evidence that can answer a key question, is about to vanish, finishes quickly, and has minimal impact comes first. If taking a dump is likely to trigger an earlier OOM or eviction, its expected value drops.
 
-## 3. Bảng điều phối theo triệu chứng
+## 3. Symptom-Driven Dispatch Table
 
-| Triệu chứng | Đầu tiên, khi còn rất ít thời gian | Sau đó, nếu JVM còn sống | Thu sâu khi có thời gian/tài nguyên |
+| Symptom | First, When Very Little Time Remains | Next, If JVM Stays Alive | Deep Capture When Time/Resources Permit |
 | --- | --- | --- | --- |
-| **Hang/deadlock, request đứng** | **Thread.print -l** hoặc thread dump đang sẵn; ghi PID/time | Lặp thread dump để thấy chờ ổn định; dump JFR đang chạy | JFR ThreadPark/JavaMonitorEnter, lock ownership, queue/pool/DB |
-| **CPU spike ngắn** | OS process/thread CPU snapshot và/hoặc **JFR.dump** của recording đã chạy | Lặp CPU-by-thread, stack snapshots, timestamps | JFR ExecutionSample, native profiling phù hợp, code/JIT/GC correlation |
-| **GC thrash, heap OOM gần kề** | JFR đã ghi, heap/GC metrics, GC logs và process/cgroup memory snapshot | Histogram nếu chịu được; xác minh heap used sau GC | Heap dump khi có đủ thời gian/disk/quyền, MAT, GC-root paths |
-| **Native RSS tăng/container OOM** | RSS/RssAnon/RssFile, Threads, cgroup memory/current/events, OS maps nhanh | **VM.native_memory summary** nếu NMT đã bật, BufferPoolMXBean, fd count | smaps chi tiết, NMT baseline/diff nếu có, native profiler/JNI |
-| **I/O/latency spike** | Timestamps, errors/timeout, inflight/queue/pool, JFR có sẵn | Thread dump, socket/file metrics, DNS/DB/network indicators | JFR SocketRead/Write/FileRead/Write, traces và before/after load |
-| **Crash/restart đã xảy ra** | Bảo quản logs, hs_err_pid, core, heap dump/JFR đã xuất, Pod events | Timeline OOM/exit code, last state, host/container metrics | Reproduce có preconfigured diagnostics; không thể chụp live JVM đã chết |
-| **Classloader/metaspace tăng** | Metaspace/heap overview, JFR/NMT nếu có | Classloader stats, class-load count | Heap dump/class-loader reference paths và NMT detail khi bật sẵn |
+| **Hang/deadlock, stalled requests** | **Thread.print -l** or ready thread dump; record PID/time | Repeat thread dumps to spot sustained waits; dump running JFR | JFR ThreadPark/JavaMonitorEnter, lock ownership, queue/pool/DB |
+| **Brief CPU spike** | OS process/thread CPU snapshot and/or **JFR.dump** of running recording | Repeat CPU-by-thread, stack snapshots, timestamps | JFR ExecutionSample, appropriate native profiling, code/JIT/GC correlation |
+| **GC thrash, imminent heap OOM** | Existing JFR, heap/GC metrics, GC logs, and process/cgroup memory snapshot | Histogram if tolerable; verify heap used after GC | Heap dump when time/disk/approval suffice, MAT, GC-root paths |
+| **Native RSS growth / container OOM** | RSS/RssAnon/RssFile, Threads, cgroup memory/current/events, quick OS maps | **VM.native_memory summary** if NMT enabled, BufferPoolMXBean, fd count | Detailed smaps, NMT baseline/diff if present, native profiler/JNI |
+| **I/O / latency spike** | Timestamps, errors/timeouts, inflight/queue/pool, available JFR | Thread dumps, socket/file metrics, DNS/DB/network indicators | JFR SocketRead/Write/FileRead/Write, traces, and before/after load |
+| **Crash/restart already happened** | Preserve logs, `hs_err_pid`, core, exported heap dump/JFR, Pod events | Timeline of OOM/exit code, last state, host/container metrics | Reproduce with preconfigured diagnostics; cannot snapshot a dead JVM |
+| **Classloader/metaspace growth** | Metaspace/heap overview, JFR/NMT if available | Classloader stats, class-load count | Heap dump / classloader reference paths and NMT detail if pre-enabled |
 
-**Đây là bảng ưu tiên, không phải mệnh lệnh chạy toàn bộ các lệnh.** Với CPU spike chỉ kéo dài 8 giây, heap dump thường thấp giá trị hơn CPU/JFR snapshot. Với heap retention kéo dài và PID còn ổn định, heap dump có thể là bằng chứng quyết định.
+**This is a priority guide, not a mandate to run every command.** For an 8-second CPU spike, a heap dump is usually lower value than CPU/JFR snapshots. For prolonged heap retention on a stable PID, a heap dump can be the decisive evidence.
 
-## 4. Hiểu độ nặng của lệnh trước khi thu
+## 4. Understand Command Impact Before Capturing
 
-Với **HotSpot JDK 21**, tài liệu **jcmd** phân loại *impact* theo lệnh; thực tế phụ thuộc heap size, số thread và tình trạng hệ thống:
+For **HotSpot JDK 21**, **jcmd** documentation classifies *impact* per command; actual cost depends on heap size, thread count, and system health:
 
-| Lệnh / nguồn | Ý nghĩa | Mức tác động cần lưu ý |
+| Command / Source | Meaning | Impact Considerations |
 | --- | --- | --- |
-| **jcmd PID JFR.check** | Xem recording đang chạy | Thường **Low** |
-| **jcmd PID JFR.dump** | Xuất recording đang chạy ra file, recording tiếp tục | Thường **Low**, vẫn tốn I/O và có chi phí lưu file |
-| **jcmd PID Thread.print -l** | Stack/locks snapshot của threads | **Medium**, có thể nặng khi rất nhiều threads |
-| **jcmd PID GC.heap_info** | Tổng quan heap hiện tại | **Medium** theo JDK 21 |
-| **jcmd PID VM.native_memory summary** | NMT memory summary khi đã bật | **Medium**; không đo được nếu NMT chưa bật |
-| **jcmd PID GC.class_histogram** | Đếm instances/shallow bytes theo class | **High**, phụ thuộc heap và options; có thể kéo theo GC |
-| **jcmd PID GC.heap_dump** | Tạo HPROF heap dump | **High**, tốn disk/CPU, mặc định yêu cầu Full GC trừ khi dùng -all |
-| **/proc/PID/status, smaps_rollup** | OS memory/thread snapshot trên Linux | Thường nhẹ hơn full heap dump nhưng phụ thuộc quyền và lượng mappings |
-| **Core dump/native profiler** | Native state rất sâu | Tác động/kích thước/quyền cao; chỉ khi đủ điều kiện và kế hoạch |
+| **jcmd PID JFR.check** | Inspect active recordings | Typically **Low** |
+| **jcmd PID JFR.dump** | Export active recording to file while continuing | Typically **Low**, still incurs I/O and file storage cost |
+| **jcmd PID Thread.print -l** | Thread stack/locks snapshot | **Medium**, can be heavy with very high thread counts |
+| **jcmd PID GC.heap_info** | Current heap overview | **Medium** per JDK 21 |
+| **jcmd PID VM.native_memory summary** | NMT memory summary when enabled | **Medium**; unavailable if NMT was not enabled |
+| **jcmd PID GC.class_histogram** | Count instances/shallow bytes by class | **High**, depends on heap and options; may trigger GC |
+| **jcmd PID GC.heap_dump** | Generate HPROF heap dump | **High**, heavy disk/CPU, triggers Full GC by default unless `-all` is used |
+| **/proc/PID/status, smaps_rollup** | Linux OS memory/thread snapshot | Usually lighter than full heap dump, subject to permissions and mapping count |
+| **Core dump / native profiler** | Deep native state | High impact/size/permission requirements; only when qualified and planned |
 
-**Không coi mức Low/Medium/High là SLA thời gian cố định.** Khi JVM đã bị stall nặng, attach của jcmd có thể không phản hồi hoặc timeout. Có thể phải dùng dữ liệu **đã phát ra từ trước** (log shipper, JFR file sẵn, metrics, crash artifacts) thay vì chờ attach vô hạn.
+**Do not treat Low/Medium/High as fixed time SLAs.** When a JVM is severely stalled, `jcmd` attach may hang or time out. You may have to rely on **previously emitted data** (log shippers, existing JFR files, metrics, crash artifacts) rather than waiting indefinitely for attach.
 
-### Heap dump có thể làm biến mất hiện trạng cần điều tra
+### A Heap Dump Can Destroy the Very State You Want to Inspect
 
-**GC.heap_dump** mặc định yêu cầu một Full GC trước khi dump (HotSpot), ngoại trừ lựa chọn **-all**. Full GC có thể làm thay đổi số object reachable/heap usage và làm gián đoạn ứng dụng. Chế độ -all giữ cả object unreachable, vì vậy việc diễn giải “leak” cũng phải khác.
+**GC.heap_dump** requests a Full GC before dumping by default (HotSpot), except when the **-all** option is passed. A Full GC can alter reachable object counts/heap usage and disrupt the application. The `-all` mode retains unreachable objects as well, so interpreting a "leak" must adjust accordingly.
 
-Không chạy dump chỉ để “thử xem có gì” trong phút cuối của OOM. Hãy xem dung lượng heap, disk free/inode/quota, tốc độ ghi, tình trạng filesystem và sự cho phép của incident commander. Một file HPROF có thể rất lớn và chứa **password, token, dữ liệu khách hàng, chuỗi SQL và object nghiệp vụ**.
+Never run a dump just to "see what's in there" during the final minute before OOM. Check heap size, free disk/inodes/quota, write throughput, filesystem state, and incident commander authorization. An HPROF file can be huge and contain **passwords, tokens, customer data, SQL strings, and business objects**.
 
-## 5. Nền tảng tốt nhất: chuẩn bị trước incident
+## 5. Best Foundation: Pre-Incident Preparation
 
-Một tình huống kéo dài vài giây hiếm khi cho phép bạn bật một profiler mới, chờ dữ liệu rồi dump. **Chuẩn bị** thường có giá trị hơn cố gắng thao tác thủ công trong lúc sự cố.
+An incident lasting a few seconds rarely gives you time to start a new profiler, wait for samples, and then dump. **Preparation** is almost always worth more than heroic manual intervention during failure.
 
-### 5.1. Ghi log và metrics liên tục
+### 5.1. Continuous Logging and Metrics
 
-Ưu tiên đã có từ trước:
+Prioritize having these in place ahead of time:
 
-- GC logs với timestamps, rotation, shipping ra kho bền vững, theo chính sách chi phí.
-- Application errors, request latency (p95/p99), success/error/timeout, inflight/queue depth và các indicators I/O quan trọng.
-- JVM heap/non-heap, thread count, JIT/GC counters và container RSS/memory.current, CPU throttling/restarts.
-- Host/container event timeline, OOMKilled, exit code và timestamps chính xác.
-- Pod UID/container ID, version/build ID và deployment change events.
+- GC logs with timestamps, rotation, and shipping to durable storage within cost policies.
+- Application errors, request latency (p95/p99), success/error/timeout counts, inflight/queue depth, and key I/O indicators.
+- JVM heap/non-heap, thread count, JIT/GC counters, and container RSS/`memory.current`, CPU throttling/restarts.
+- Host/container event timeline, OOMKilled, exit codes, and accurate timestamps.
+- Pod UID/container ID, version/build ID, and deployment change events.
 
-Nếu scrape interval là 30 giây mà spike chỉ 3 giây, metrics có thể **không nhìn thấy đỉnh**. Cân nhắc số liệu có độ phân giải phù hợp hoặc recording liên tục; không ép một sparse sample thành kết luận tuyệt đối.
+If the scrape interval is 30 seconds and a spike lasts 3 seconds, metrics may **miss the peak entirely**. Consider higher-resolution metrics or continuous recording; never force a sparse sample into an absolute conclusion.
 
-### 5.2. Bật JFR vòng quay có giới hạn
+### 5.2. Bounded Rolling JFR
 
-Trong HotSpot, có thể tạo một recording khi JVM khởi động bằng tùy chọn **-XX:StartFlightRecording** với settings phù hợp. Một ví dụ khái niệm:
+In HotSpot, a recording can be started at JVM launch via **-XX:StartFlightRecording** with appropriate settings. Conceptual example:
 
 ~~~bash
 java \
@@ -135,13 +135,13 @@ java \
   -jar app.jar
 ~~~
 
-**Đây chỉ là ví dụ startup cho một ứng dụng đã có app.jar.** Bảo đảm heap/disk/resources đủ; xác minh tùy chọn đúng với JVM/vendor và policies. **maxage/maxsize** giới hạn lượng dữ liệu recording giữ lại. Không mặc định default.jfc thu mọi event hữu ích; nếu cần socket latency/monitor stacks phải kiểm tra effective settings/threshold.
+**This is only a startup example for an existing `app.jar`.** Ensure heap/disk/resources are adequate; verify flags against your JVM/vendor and policies. **maxage/maxsize** cap retained recording data. Do not assume `default.jfc` captures every useful event; if socket latency or monitor stacks are needed, verify effective settings and thresholds.
 
-Khi incident xảy ra, nếu recording **đã chạy đủ lâu**, bạn có thể **JFR.dump** mà không phải đợi recording mới tạo dữ liệu. Bắt đầu JFR **lúc T+20s** không thể tái tạo sự kiện CPU spike xảy ra **T+5s**.
+When an incident occurs, if the recording has **already been running long enough**, you can run **JFR.dump** without waiting for a new recording to accumulate data. Starting JFR **at T+20s** cannot reconstruct a CPU spike that happened at **T+5s**.
 
-### 5.3. Chuẩn bị OOM/crash artifacts
+### 5.3. Preconfigured OOM/Crash Artifacts
 
-Ví dụ các JVM options phải được xét trước khi bật:
+Example JVM options to evaluate before enabling:
 
 ~~~bash
 -XX:+HeapDumpOnOutOfMemoryError
@@ -149,15 +149,15 @@ Ví dụ các JVM options phải được xét trước khi bật:
 -XX:ErrorFile=/secure/diagnostics/hs_err_pid%p.log
 ~~~
 
-Những options này được cung cấp trong Java command line thực tế, không phải ba lệnh shell độc lập. **HeapDumpOnOutOfMemoryError** tạo heap dump khi JVM ném **Java OutOfMemoryError** trong những điều kiện áp dụng, **không bảo đảm** tạo được dump nếu **kernel/container OOM killer gửi SIGKILL** hoặc disk không đủ.
+These options belong on the actual Java command line, not as three standalone shell commands. **HeapDumpOnOutOfMemoryError** generates a heap dump when the JVM throws a **Java OutOfMemoryError** under applicable conditions; it **does not guarantee** a dump if the **kernel/container OOM killer sends SIGKILL** or disk space runs out.
 
-**-XX:ErrorFile** áp dụng cho fatal error log phù hợp, không có nghĩa mọi exception Java sẽ tạo hs_err. Core dump cần cấu hình OS riêng và kiểm soát dữ liệu nhạy cảm.
+**-XX:ErrorFile** applies to applicable fatal error logs and does not mean every Java exception creates an `hs_err`. Core dumps require separate OS configuration and sensitive-data controls.
 
-**Có preconfiguration không có nghĩa mọi lần crash đều tạo file.** Sau sự cố vẫn phải kiểm tra file thực, exit reason, đường dẫn và upload/retention.
+**Preconfiguration does not guarantee every crash produces a file.** After an incident, still verify actual files, exit reasons, paths, and upload/retention.
 
-## 6. Runbook khởi đầu trên Linux: xác minh danh tính và đóng băng các số liệu nhẹ
+## 6. Initial Linux Runbook: Verify Identity and Freeze Lightweight Metrics
 
-Bước này dành cho Java process đang sống, tại host/container có **jcmd** và quyền truy cập. Không mặc định chạy từ một container khác sẽ nhìn thấy cùng PID namespace. Thay PID=12345 bằng số thật, và đặt một đường dẫn **chỉ người có quyền mới đọc được**.
+This step targets a live Java process on a host/container with **jcmd** and access permissions. Do not assume running from another container sees the same PID namespace. Replace `PID=12345` with the real PID and use a path **readable only by authorized users**.
 
 ~~~bash
 PID=12345
@@ -169,175 +169,175 @@ date -u '+%Y-%m-%dT%H:%M:%SZ' > "$OUT/utc-time.txt"
 ps -o pid,ppid,lstart,etime,rss,vsz,nlwp,comm -p "$PID" \
   > "$OUT/process-identity.txt" 2>&1
 
-# Các file này chỉ có trên Linux, có thể bị hạn chế bởi /proc permissions:
+# These files exist only on Linux and may be restricted by /proc permissions:
 cat "/proc/$PID/status" > "$OUT/proc-status.txt" 2>&1
 cat "/proc/$PID/limits" > "$OUT/proc-limits.txt" 2>&1
 ~~~
 
-Lệnh **ps** và /proc giúp xác nhận process còn sống, thời điểm bắt đầu, RSS/VSZ và số native threads. **Không xem PID là danh tính bền vững**; nếu process restart và PID thay đổi, kết quả các lần sau không nên gộp như cùng JVM. Ghi thêm **host, container ID/Pod UID, application version, namespace và incident ID** trong hệ thống quản lý incident.
+**ps** and `/proc` confirm whether the process is alive, its start time, RSS/VSZ, and native thread count. **Never treat PID as a durable identity**; if the process restarts and the PID changes, later outputs must not be merged as the same JVM. Also record **host, container ID/Pod UID, application version, namespace, and incident ID** in your incident management system.
 
-**Tránh tự động chép command line đầy đủ vào artifact chia sẻ rộng**: command line/environment có thể chứa secrets. Không chụp /proc/PID/environ hoặc heap dump lên chỗ công khai. Ví dụ này **không tự tạo cgroup identity** và không kiểm chứng quyền ghi vào /secure/diagnostics; đó phải là thư mục tồn tại hoặc có quyền tạo trong môi trường của bạn.
+**Avoid automatically copying full command lines into broadly shared artifacts**: command lines and environments can contain secrets. Never dump `/proc/PID/environ` or heap dumps to public locations. This example **does not create cgroup identity automatically** and does not verify write permissions on `/secure/diagnostics`; that directory must exist or be creatable in your environment.
 
-### Khi attach hoạt động và JFR đã chạy
+### When Attach Works and JFR Is Already Running
 
 ~~~bash
 jcmd "$PID" JFR.check > "$OUT/jfr-check.txt" 2>&1
 
-# Chỉ khi JFR.check xác nhận có recording đang chạy:
+# Only when JFR.check confirms an active recording:
 jcmd "$PID" JFR.dump filename="$OUT/incident.jfr" \
   > "$OUT/jfr-dump-result.txt" 2>&1
 ~~~
 
-Theo tài liệu JDK 21, **JFR.dump ghi file mà không dừng recording đang chạy**. Nếu nhiều recordings, có thể dùng **name=...** để chọn recording phù hợp. Việc JFR.dump báo thành công chưa thay thế bước **xác minh file tồn tại, kích thước hợp lệ, và thời gian recording phủ sự cố**.
+Per JDK 21 documentation, **JFR.dump writes a file without stopping the active recording**. If multiple recordings exist, pass **name=...** to select the right one. A successful `JFR.dump` message does not replace **verifying the file exists, has valid size, and covers the incident time window**.
 
 ~~~bash
 ls -lh "$OUT/incident.jfr"
 jfr summary "$OUT/incident.jfr"
 ~~~
 
-**Không dùng JFR.start rồi tuyên bố đã cứu được 30 giây trước khi start.** Một recording mới chỉ bắt đầu thu từ thời điểm bắt đầu, còn những event đã mất thì không hồi phục.
+**Do not run `JFR.start` and claim you rescued the 30 seconds prior to starting it.** A new recording only captures from its start time onward; lost events cannot be recovered.
 
-### Khi vấn đề chính là hang/lock contention
+### When the Primary Problem Is Hang / Lock Contention
 
 ~~~bash
 date -u '+%Y-%m-%dT%H:%M:%SZ' > "$OUT/threads-1-time.txt"
 jcmd "$PID" Thread.print -l > "$OUT/threads-1.txt" 2>&1
 
-# Nếu incident chưa biến mất, chụp lần nữa để so sánh:
+# If the incident persists, capture again for comparison:
 sleep 5
 date -u '+%Y-%m-%dT%H:%M:%SZ' > "$OUT/threads-2-time.txt"
 jcmd "$PID" Thread.print -l > "$OUT/threads-2.txt" 2>&1
 ~~~
 
-Nếu chỉ có 5–10 giây, ưu tiên **một** thread dump trước, không chờ đủ 3 snapshots. Nếu còn hơn một phút, nhiều lần cách nhau 5–10 giây giúp phân biệt một thread chỉ chờ ngắn với deadlock/blocked queue kéo dài. Thread.print trên JDK 21 hiển thị thread stacks trong phạm vi lệnh hỗ trợ; với **virtual threads**, nội dung dump và phạm vi visibility phụ thuộc JDK và command. Khi cần dump nhiều virtual threads, nghiên cứu **Thread.dump_to_file** hoặc JFR ở JDK hỗ trợ, không giả định một output Thread.print liệt kê toàn bộ virtual threads.
+If only 5–10 seconds remain, capture **one** thread dump first rather than waiting for 3 snapshots. If over a minute remains, multiple dumps spaced 5–10 seconds apart distinguish transient waits from sustained deadlocks or blocked queues. `Thread.print` on JDK 21 prints thread stacks within its supported scope; for **virtual threads**, dump contents and visibility depend on JDK and command. When dumping large numbers of virtual threads, investigate **Thread.dump_to_file** or JFR on supporting JDKs rather than assuming a single `Thread.print` lists all virtual threads.
 
-### Khi vấn đề chính là CPU spike
+### When the Primary Problem Is a CPU Spike
 
 ~~~bash
 date -u '+%Y-%m-%dT%H:%M:%SZ' > "$OUT/cpu-1-time.txt"
 
-# Linux: snapshot native threads, CPU và trạng thái tại thời điểm lấy mẫu:
+# Linux: snapshot native threads, CPU, and state at sampling time:
 ps -L -p "$PID" -o pid,tid,psr,stat,pcpu,comm \
   > "$OUT/os-threads-cpu.txt" 2>&1
 
-# Bổ sung stack Java trong lúc spike còn xảy ra:
+# Complement with Java stacks while the spike is still happening:
 jcmd "$PID" Thread.print > "$OUT/cpu-thread-stacks.txt" 2>&1
 ~~~
 
-OS per-thread CPU và Java stack phải được chụp **gần cùng timestamp**, nhưng CPU% từ ps là phép đo theo semantics riêng, không phải profile chính xác từng method. Khi cần hotspot methods, **JFR ExecutionSample** từ recording đã chạy thường hữu ích hơn một thread dump đơn lẻ. Nếu CPU spike biến mất sau 3 giây, có thể không đủ thời gian tạo recording mới có ý nghĩa.
+OS per-thread CPU and Java stacks should be taken **close to the same timestamp**, though `pcpu` from `ps` follows its own measurement semantics and is not an exact per-method profile. When hot methods are needed, **JFR ExecutionSample** from an already-running recording is usually more informative than a single thread dump. If a CPU spike vanishes after 3 seconds, there may not be enough time to start a meaningful new recording.
 
-## 7. Triệu chứng bộ nhớ: lựa chọn theo rủi ro và thời gian
+## 7. Memory Symptoms: Choosing by Risk and Time
 
-### 7.1. Heap tăng/GC thrashing gần OOM
+### 7.1. Heap Growth / GC Thrashing Near OOM
 
-Khi process vẫn sống, ưu tiên:
+While the process is alive, prioritize:
 
-1. **GC logs/metrics đang có**, JFR dump nếu recording đã chạy; lấy **memory/GC snapshot**.
-2. Ghi **RSS/container memory, heap used/committed, last GC, restart policy** để phân biệt Java heap OOM với cgroup OOM.
-3. Nếu JVM còn chạy và có quyền/khả năng chịu pause, chọn **GC.class_histogram** để biết class nào chiếm instance/shallow bytes.
-4. Chỉ khi **heap retention** là nghi vấn quan trọng và có đủ disk/time/authorization, tạo **GC.heap_dump**; lưu lại khi nào dump, có Full GC hay không, file size và tính bảo mật.
-5. Sau incident, mở HPROF bằng MAT để xem **Dominator Tree, retained size, Paths to GC Roots**. Không kết luận leak từ histogram một lần.
+1. **Existing GC logs/metrics**, plus a JFR dump if a recording is running; capture a **memory/GC snapshot**.
+2. Record **RSS/container memory, heap used/committed, last GC, and restart policy** to separate Java heap OOM from cgroup OOM.
+3. If the JVM is still running and can tolerate a pause with proper approval, use **GC.class_histogram** to see which classes dominate instance counts and shallow bytes.
+4. Only when **heap retention** is a prime suspect and disk/time/authorization are sufficient, take **GC.heap_dump**; log when it ran, whether Full GC occurred, file size, and security handling.
+5. Post-incident, inspect the HPROF in MAT for **Dominator Tree, retained size, and Paths to GC Roots**. Never conclude a leak from a single histogram.
 
-Các lệnh có mức tác động tăng dần, không nên chạy vô điều kiện theo chuỗi:
+Commands with escalating impact—do not run blindly in sequence:
 
 ~~~bash
 jcmd "$PID" GC.heap_info > "$OUT/heap-info.txt" 2>&1
 
-# High impact; chỉ thực hiện sau khi đánh giá rủi ro:
+# High impact; run only after risk evaluation:
 jcmd "$PID" GC.class_histogram > "$OUT/class-histogram.txt" 2>&1
 
-# High impact, có thể gây Full GC; tạo file rất lớn:
+# High impact, may trigger Full GC; creates a very large file:
 jcmd "$PID" GC.heap_dump "$OUT/heap.hprof" \
   > "$OUT/heap-dump-result.txt" 2>&1
 ~~~
 
-**Không có luật “cần phải chạy heap_dump trước khi chết”.** Nếu process chỉ còn 10 giây và dump chắc chắn vượt disk/time budget, hãy cứu các chỉ số nhẹ, JFR đã chạy và bảo toàn logs. Nếu ngược lại đây là cơ hội hiếm để bắt một leak chỉ xuất hiện một lần, và resources cho phép, quyết định dump sớm có thể có giá trị cao hơn các snapshot ít liên quan.
+**There is no rule saying "you must run heap_dump before dying."** If the process has 10 seconds left and a dump will clearly blow the disk/time budget, rescue lightweight stats, running JFR, and logs. Conversely, if this is a rare chance to catch a one-off leak and resources allow, deciding to dump early may be far more valuable than unrelated snapshots.
 
-### 7.2. Native RSS tăng mà heap không tăng
+### 7.2. Native RSS Growth Without Heap Growth
 
-Lấy OS metrics vì đây là phần có thể biến mất rất nhanh khi process exit:
+Capture OS metrics first since they vanish immediately on exit:
 
 ~~~bash
 grep -E '^(VmSize|VmRSS|RssAnon|RssFile|RssShmem|Threads):' \
   "/proc/$PID/status" > "$OUT/memory-status.txt" 2>&1
 
-# Linux kernels có smaps_rollup:
+# Linux kernels supporting smaps_rollup:
 cat "/proc/$PID/smaps_rollup" \
   > "$OUT/smaps-rollup.txt" 2>&1
 ~~~
 
-Tiếp theo, nếu **NMT đã bật từ khi JVM khởi động**:
+Next, if **NMT was enabled at JVM startup**:
 
 ~~~bash
 jcmd "$PID" VM.native_memory summary scale=MB \
   > "$OUT/nmt-summary.txt" 2>&1
 ~~~
 
-- **NMT** ghi các allocations do HotSpot theo dõi, chia reserved/committed; không phải toàn bộ native allocations của JNI/third-party libraries, và không trực tiếp bằng RSS.
-- **/proc/PID/status**: VmRSS là resident; VmSize là virtual address space; RssAnon/RssFile giúp phân biệt anonymous/file-backed ở mức OS.
-- **smaps_rollup**: RSS/PSS/Private/Shared; tùy kernel và quyền, có thể không truy cập được.
-- **NMT chưa bật từ startup**: không thể bật NMT ở mức summary/detail giữa chừng chỉ bằng jcmd. Hãy ghi “NMT unavailable”, dùng OS/process metrics, BufferPoolMXBean và kế hoạch thu cho lần tái hiện.
-- **NMT baseline/diff** chỉ có ý nghĩa khi có baseline từ trước và các lần đo sau; không thể “diff về quá khứ” nếu mới đặt baseline sau incident.
+- **NMT** records HotSpot-tracked allocations split by reserved/committed; it does not capture all native allocations from JNI/third-party libraries and does not directly equal RSS.
+- **/proc/PID/status**: `VmRSS` is resident memory; `VmSize` is virtual address space; `RssAnon`/`RssFile` distinguish anonymous vs. file-backed pages at the OS level.
+- **smaps_rollup**: RSS/PSS/Private/Shared; depending on kernel and permissions, it may be inaccessible.
+- **NMT not enabled at startup**: you cannot turn on NMT summary/detail mid-flight using `jcmd`. Record "NMT unavailable," rely on OS/process metrics, `BufferPoolMXBean`, and a plan to enable it for reproduction.
+- **NMT baseline/diff** is meaningful only when a prior baseline and subsequent snapshots exist; you cannot "diff into the past" if you set the baseline only after the incident.
 
-Nếu cgroup memory.current tăng nhưng process RSS không tương ứng, đừng quy mọi byte của cgroup cho Java PID: có thể có page cache, kernel accounting và process khác trong cgroup.
+If cgroup `memory.current` climbs while process RSS does not match, do not blame every cgroup byte on the Java PID: page cache, kernel accounting, and other processes in the cgroup may contribute.
 
-## 8. Triệu chứng I/O và độ trễ: thu đúng thời điểm, không chỉ đúng công cụ
+## 8. I/O and Latency Symptoms: Capture at the Right Time, Not Just the Right Tool
 
-Khi p99 latency tăng đột ngột nhưng vẫn có throughput:
+When p99 latency spikes suddenly while throughput continues:
 
-**Trong vài giây đầu**, lấy timestamp, request success/error/timeout, inflight, queue length, connection pool active/pending, cgroup CPU throttling và JFR đang chạy (nếu có). Đó là bức tranh cho biết bottleneck có đang diễn ra trong khoảng lỗi không.
+**Within the first few seconds**, record timestamps, request success/error/timeout rates, inflight counts, queue lengths, active/pending connection pool stats, cgroup CPU throttling, and running JFR (if any). That snapshot shows whether the bottleneck was active during the error window.
 
-Nếu kéo dài đủ lâu:
+If it persists long enough:
 
-- Lặp thread dumps để kiểm tra threads chờ I/O/lock/park hoặc thread pool bị cạn.
-- Đọc JFR **jdk.SocketRead**, **jdk.SocketWrite**, **jdk.FileRead**, **jdk.FileWrite**, **jdk.ThreadPark**, **jdk.JavaMonitorEnter**, khi các event được thu.
-- Đối chiếu DB connection pool, downstream response time, network RTT/retransmits, disk queue và OS metrics.
-- Ghi **cùng khoảng thời gian** client/server latency và JFR. Một SocketRead 500 ms có thể thuộc một request cụ thể; không thể suy toàn bộ p99 request từ event này mà thiếu correlation.
+- Repeat thread dumps to check for threads waiting on I/O/locks/parks or an exhausted thread pool.
+- Inspect JFR **jdk.SocketRead**, **jdk.SocketWrite**, **jdk.FileRead**, **jdk.FileWrite**, **jdk.ThreadPark**, and **jdk.JavaMonitorEnter** when those events are enabled.
+- Correlate DB connection pools, downstream response times, network RTT/retransmits, disk queues, and OS metrics.
+- Record **the exact same time window** for client/server latency and JFR. A 500 ms `SocketRead` might belong to one specific request; you cannot infer overall p99 latency from that event without correlation.
 
-**Không bắt đầu với heap dump** chỉ vì request chậm. Nếu thread dump/JFR cho thấy I/O wait hoặc lock contention, heap dump thường không phải công cụ có giá trị cao nhất trong sự cố ngắn.
+**Do not start with a heap dump** simply because requests are slow. If thread dumps/JFR point to I/O waits or lock contention, a heap dump is rarely the highest-value tool in a short incident.
 
-**Không đánh đồng Count=0 trong JFR với “không có I/O”**: event có thể bị disabled, threshold loại bỏ các thao tác ngắn hoặc recording không phủ thời gian sự cố.
+**Do not equate `Count=0` in JFR with "no I/O"**: the event may be disabled, thresholds may filter short operations, or the recording may not cover the incident window.
 
-## 9. Sau khi process đã chết: đổi chiến lược ngay
+## 9. After Process Death: Switch Strategy Immediately
 
-Một JVM không còn tồn tại thì không thể chụp lại live thread stack, heap graph hay /proc/PID của nó. Đừng lặp vô hạn **jcmd PID** sau khi container bị restart: PID có thể không còn, hoặc PID mới trỏ vào process khác.
+A dead JVM cannot yield live thread stacks, heap graphs, or `/proc/PID`. Do not loop `jcmd PID` endlessly after a container restarts: the old PID may be gone, or a new process may now own that PID.
 
-Quy trình:
+Workflow:
 
-1. Ghi **exit timestamp**, exit code/reason (ví dụ OOMKilled nếu nền tảng báo), Pod UID/container ID, deployment/build ID và host/node.
-2. Bảo toàn **stdout/stderr, GC logs, application logs, platform events, last metrics**, không để rotate hoặc eviction xóa dữ liệu.
-3. Tìm **hs_err_pid**, core, HPROF do **HeapDumpOnOutOfMemoryError**, JFR file đã dump hoặc repository/chunk còn trên disk; không giả định file tự xuất hiện.
-4. Kiểm tra disk path và quyền; **copy artifact trước khi node/container bị dọn** nếu chính sách cho phép.
-5. Khi tái hiện, cấu hình continuous JFR, GC log shipping, OOM/crash artifacts và alerts/automation thu snapshot ở ngưỡng sớm hơn.
-6. Đưa ra **kết luận có giới hạn** nếu thiếu bằng chứng; không bịa thread dump hay HPROF từ logs của JVM mới.
+1. Record **exit timestamp**, exit code/reason (e.g., `OOMKilled` if reported by the platform), Pod UID/container ID, deployment/build ID, and host/node.
+2. Preserve **stdout/stderr, GC logs, application logs, platform events, and last metrics** before rotation or eviction deletes them.
+3. Look for **hs_err_pid**, core files, HPROF files from **HeapDumpOnOutOfMemoryError**, dumped JFR files, or remaining repository/chunks on disk; never assume files appeared automatically.
+4. Check disk paths and permissions; **copy artifacts before the node/container is garbage-collected** if policy permits.
+5. When reproducing, configure continuous JFR, GC log shipping, OOM/crash artifacts, and earlier snapshot triggers/alerts.
+6. State **bounded conclusions** if evidence is missing; never fabricate thread dumps or HPROF conclusions from a newly restarted JVM's logs.
 
-Lưu ý: **OOMKilled (kernel SIGKILL)** không giống Java ném **OutOfMemoryError**. Cơ chế tạo heap dump của JVM có thể không kịp chạy khi bị SIGKILL, kể cả đã bật option.
+Note: **OOMKilled (kernel SIGKILL)** is not the same as Java throwing **OutOfMemoryError**. The JVM's heap dump handler may not have a chance to run on SIGKILL, even when configured.
 
-## 10. Đặt thứ tự theo giá trị của từng bằng chứng
+## 10. Ranking Evidence by Value
 
-Một cách lập kế hoạch đơn giản là chấm từng hành động theo bốn tiêu chí:
+A simple planning method scores each action along four criteria:
 
-| Tiêu chí | Câu hỏi | Nếu câu trả lời là “cao” |
+| Criterion | Question | If the Answer Is "High" |
 | --- | --- | --- |
-| **Tính mong manh** | Dữ liệu có biến mất ngay khi restart/GC/stack chuyển trạng thái? | Thu sớm |
-| **Độ liên quan** | Dữ liệu có trực tiếp giúp phân biệt các nguyên nhân đang nghi? | Thu sớm |
-| **Chi phí/ảnh hưởng** | Lệnh có gây pause, Full GC, tốn disk, timeout, dữ liệu nhạy cảm? | Hoãn hoặc cần phê duyệt |
-| **Xác suất hoàn tất** | Với thời gian còn lại, lệnh có khả năng trả kết quả? | Ưu tiên lệnh có thể hoàn tất |
+| **Volatility** | Will the data vanish immediately on restart, GC, or stack transition? | Capture early |
+| **Relevance** | Does it directly distinguish among suspected root causes? | Capture early |
+| **Cost / Impact** | Does the command cause pauses, Full GC, heavy disk, timeouts, or sensitive-data exposure? | Defer or require approval |
+| **Completion Probability** | Given remaining time, is the command likely to finish? | Prioritize commands that can finish |
 
-Ví dụ:
+Examples:
 
-- Với **deadlock 8 giây**, một thread dump có khả năng trả lời cao, heap dump vừa chậm vừa lệch chủ đề.
-- Với **heap leak chỉ lộ một lần** và process còn 10 phút, HPROF có thể đáng chi phí hơn việc lấy thêm 20 CPU snapshots.
-- Với **container sắp OOMKilled**, lấy /proc/cgroup snapshots và JFR đã chạy có thể khả thi hơn heap dump 6 GiB.
-- Với **CPU cao nhưng không có JFR đang chạy**, một per-thread CPU snapshot + thread dump sớm có giá trị hơn khởi động JFR rồi chờ vài phút.
+- For an **8-second deadlock**, a thread dump has high diagnostic power, whereas a heap dump is both slow and off-target.
+- For a **one-off heap leak** with 10 minutes remaining, an HPROF may justify its cost over taking 20 more CPU snapshots.
+- For a **container about to be OOMKilled**, capturing `/proc`/cgroup snapshots and running JFR is far more feasible than a 6 GiB heap dump.
+- For **high CPU without JFR running**, an early per-thread CPU snapshot + thread dump beats starting JFR and waiting several minutes.
 
-**Đừng cứng nhắc cố “đủ bộ”.** Sau mỗi hành động, đánh giá lại: sự cố còn không, thời gian còn bao lâu, bằng chứng quan trọng nhất đã lưu an toàn chưa và thao tác tiếp theo có đe dọa instance không?
+**Do not rigidly insist on "getting everything."** Re-evaluate after each action: is the incident ongoing, how much time remains, is the most critical evidence safely stored, and could the next step jeopardize the instance?
 
-## 11. Mẫu lập kế hoạch điều phối bằng Java 17+
+## 11. Java 17+ Dispatch Planning Example
 
-Chương trình sau **không chạy lệnh chẩn đoán**, chỉ in thứ tự gợi ý theo triệu chứng và urgency band. Nó dùng một quy tắc minh họa để người học tập ra quyết định; **không dự đoán thời gian thực** của heap dump hay lệnh jcmd và không thay thế runbook có quyền truy cập an toàn.
+The program below **does not execute diagnostic commands**; it simply prints suggested orderings by symptom and urgency band. It uses an illustrative rule for decision-making practice; it **does not predict actual runtime** of heap dumps or `jcmd` and does not replace an authorized runbook.
 
-Tạo file **CapturePriorityDemo.java**:
+Create **CapturePriorityDemo.java**:
 
 ~~~java
 import java.util.List;
@@ -389,14 +389,14 @@ public final class CapturePriorityDemo {
 }
 ~~~
 
-Chạy trên JDK 17+:
+Run on JDK 17+:
 
 ~~~bash
 javac CapturePriorityDemo.java
 java CapturePriorityDemo
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 HANG 12s:
@@ -413,148 +413,148 @@ CPU 180s:
   4. correlate repeated samples
 ~~~
 
-Đây là ví dụ **priority selection**, không phải benchmark. Nếu HEAP_OOM nhưng chưa có JFR chạy, **bỏ qua bước JFR.dump không khả dụng** và lấy bằng chứng tiếp theo. Nếu HANG và JVM không phản hồi attach, chuyển sang nguồn logs/metrics hoặc phương án chụp ngoài process theo runbook.
+This is an example of **priority selection**, not a benchmark. For `HEAP_OOM` without an active JFR recording, **skip the unavailable `JFR.dump` step** and move to the next evidence item. For `HANG` where the JVM does not respond to attach, switch to logs/metrics or out-of-process capture per runbook.
 
-Không nhầm giá trị secondsLeft trong demo với SLA của lệnh. Một thao tác “low impact” vẫn có thể treo do môi trường, quyền, I/O, mutex hoặc JVM đã ngừng phản hồi.
+Do not mistake `secondsLeft` in this demo for a command SLA. Even a "low impact" operation can hang due to environment, permissions, I/O, mutexes, or an unresponsive JVM.
 
-## 12. Thử hai tình huống có cùng thời gian nhưng thứ tự khác nhau
+## 12. Comparing Scenarios With Equal Time Remaining but Different Priorities
 
-### Tình huống A — 30 giây trước khi instance bị thay
+### Scenario A — 30 Seconds Before Instance Replacement
 
-Dấu hiệu: p99 API tăng lên 15 giây, DB pool chờ, CPU không cao, Pod được platform báo sẽ restart trong 30 giây.
+Symptoms: API p99 jumps to 15 seconds, DB pool waiting, CPU low, platform schedules Pod restart in 30 seconds.
 
-**Thứ tự hợp lý:**
+**Reasonable order:**
 
-1. Ghi process/container identity, timestamp, pool pending, inflight và request errors.
-2. Chụp một thread dump để thấy threads nằm tại pool acquire/network read.
-3. Dump **JFR đã chạy**, nếu có, để giữ timeline trước thời điểm lỗi.
-4. Nếu còn thời gian, lấy thêm thread snapshot và metrics downstream.
+1. Record process/container identity, timestamps, pool pending, inflight, and request errors.
+2. Capture a thread dump to see threads blocked on pool acquisition or network reads.
+3. Dump **running JFR**, if present, to preserve the timeline leading into the fault.
+4. If time remains, grab another thread snapshot and downstream metrics.
 
-**Không hợp lý:** tạo heap dump 4 GiB trước khi lấy bất kỳ lock/pool/thread evidence nào. HPROF có thể không liên quan và làm mất cửa sổ thu thập.
+**Unreasonable:** generating a 4 GiB heap dump before capturing any lock/pool/thread evidence. The HPROF may be irrelevant and burn through the capture window.
 
-### Tình huống B — 30 giây, memory.current tăng sát limit
+### Scenario B — 30 Seconds, `memory.current` Approaching Limit
 
-Dấu hiệu: Java heap used tương đối ổn nhưng RSS/RssAnon và cgroup memory.current tăng nhanh; platform có thể OOMKill.
+Symptoms: Java heap used is relatively flat, while RSS/RssAnon and cgroup `memory.current` rise fast; platform may OOMKill.
 
-**Thứ tự hợp lý:**
+**Reasonable order:**
 
-1. Ghi identity, process memory, cgroup current/max/events, native thread count.
-2. Nếu NMT bật sẵn, lấy nhanh NMT summary; JFR đã chạy thì dump để giữ timeline.
-3. Nếu chưa NMT, ghi rõ “unavailable”; xem BufferPoolMXBean nếu endpoint metrics đã có.
-4. Tập trung bảo toàn log/OOM platform events trước khi process biến mất.
+1. Record identity, process memory, cgroup current/max/events, and native thread count.
+2. If NMT was enabled upfront, grab a quick NMT summary; dump running JFR to preserve timeline.
+3. If NMT is absent, note "unavailable"; inspect `BufferPoolMXBean` if a metrics endpoint already exposes it.
+4. Focus on preserving logs and platform OOM events before the process disappears.
 
-**Không hợp lý:** chạy class histogram liên tục để tìm “Java object leak” khi heap không tăng và native RSS đang là vấn đề. Histogram có thể tốn thời gian và không giải thích allocations ngoài heap.
+**Unreasonable:** running repeated class histograms looking for a "Java object leak" when the heap is flat and native RSS is the issue. Histograms cost time and cannot explain off-heap allocations.
 
-### Tình huống C — còn 20 phút, nghi heap leak có thể tái hiện
+### Scenario C — 20 Minutes Remaining, Reproducible Suspected Heap Leak
 
-Dấu hiệu: sau mỗi workload cycle, heap used sau GC tăng, không có restart gấp, disk đủ và có sự cho phép.
+Symptoms: after each workload cycle, heap used after GC grows; no imminent restart; ample disk and authorization.
 
-**Thứ tự hợp lý:**
+**Reasonable order:**
 
-1. Baseline heap/GC metrics, JFR và workload timestamps.
-2. Chụp heap histogram/HPROF ở mốc có retention, cân nhắc Full GC semantics.
-3. Nếu có thể, tái hiện và lấy snapshot ở mốc thứ hai dưới tải tương đương.
-4. Phân tích MAT Dominator Tree, retained sets/GC roots và so sánh theo vòng đời nghiệp vụ.
+1. Baseline heap/GC metrics, JFR, and workload timestamps.
+2. Capture heap histogram/HPROF at a point of retention, accounting for Full GC semantics.
+3. If possible, reproduce and take a second snapshot under equivalent load.
+4. Analyze MAT Dominator Tree, retained sets/GC roots, and compare across business lifecycles.
 
-Với tình huống này, heap dump có giá trị chẩn đoán lớn hơn việc cố theo đuổi một thread dump bất kỳ.
+In this situation, a heap dump carries far more diagnostic value than chasing an arbitrary thread dump.
 
-## 13. Chất lượng, độ tin cậy và tính an toàn của bằng chứng
+## 13. Evidence Quality, Reliability, and Safety
 
-### 13.1. Gắn timestamp và provenance
+### 13.1. Timestamping and Provenance
 
-Mỗi artifact nên ghi:
+Every artifact should record:
 
-- Incident ID; host, Pod UID/container ID, PID và JVM start time nếu có.
+- Incident ID; host, Pod UID/container ID, PID, and JVM start time if available.
 - JDK/vendor/version, application version/build, command/tool version.
-- **UTC timestamp** lúc bắt đầu/kết thúc thu, file name, config/options.
-- Time window của JFR, GC log, metrics; timezone, clock skew giữa hosts nếu liên quan.
-- Lệnh chạy thành công hay lỗi, exit status, quyền/namespace.
-- Kích thước file, hash khi cần chain of custody, vị trí lưu trữ bền vững.
+- **UTC timestamp** at start/end of capture, filename, and config/options.
+- Time windows of JFR, GC logs, and metrics; timezone and clock skew across hosts if relevant.
+- Command success or failure, exit status, permissions/namespace.
+- File size, hash when chain of custody is required, and durable storage location.
 
-Nếu lấy nhiều artifacts, tạo tên riêng thay vì ghi đè file cũ; không để lần thu thứ hai xóa evidence lần thứ nhất. **Data incompleteness** phải được báo rõ: JFR chỉ 10 giây cuối, thread dump một mốc, smaps chưa thu, NMT disabled, heap dump thất bại vì thiếu disk.
+When capturing multiple artifacts, use distinct names instead of overwriting earlier files; never let a second capture erase the first piece of evidence. **Data incompleteness** must be stated clearly: JFR only covers the last 10 seconds, thread dump is a single point-in-time, smaps uncollected, NMT disabled, or heap dump failed due to disk space.
 
-### 13.2. Quyền truy cập và dữ liệu nhạy cảm
+### 13.2. Access Controls and Sensitive Data
 
-Thread dump có thể chứa class/method names và thông tin vận hành; heap dump/HSPROF, JFR và crash core có thể chứa thông tin nhạy cảm. Không tải lên chat công khai hoặc hệ thống không được phê duyệt. Dùng **umask 077**, thư mục riêng, access control, encryption/retention và quy trình redaction phù hợp.
+Thread dumps can expose class/method names and operational details; heap dumps/HPROF, JFR, and crash cores can contain sensitive data. Never upload them to public chats or unapproved systems. Use **umask 077**, private directories, access controls, encryption/retention, and proper redaction workflows.
 
-**Không tự động chạy lệnh phá hủy** như kill -9, GC.run hay restart để “dễ chụp” trừ khi có runbook và thẩm quyền. Hành động khắc phục có thể làm biến mất nguyên nhân và ảnh hưởng khách hàng; nếu phải restart, ưu tiên dữ liệu nhẹ đã thu được rồi phối hợp với incident commander.
+**Never automatically run destructive commands** like `kill -9`, `GC.run`, or restarts just to "make capture easier" unless backed by a runbook and authority. Remediation actions can destroy the root cause and impact customers; if a restart is unavoidable, rescue lightweight data first and coordinate with the incident commander.
 
-### 13.3. Tránh tình huống thu thập chính là thủ phạm
+### 13.3. Avoiding Making Collection the Culprit
 
-- JFR event settings quá dày, logging quá nhiều hoặc stack traces có thể thêm overhead.
-- Histogram/heap dump có tác động lớn, cần disk space và thời gian.
-- NMT có overhead, phải bật trước bằng flags phù hợp.
-- smaps đầy đủ trên process có rất nhiều mappings có thể tốn tài nguyên, nên smaps_rollup trước nếu đủ.
-- Không đọc/ghi toàn bộ /proc và đổ vài GB artifacts ra filesystem đang sát quota; có thể kích hoạt eviction hoặc OOM khác.
-- Nếu SRE/security policy cấm attach trên production, sử dụng metrics/JFR/logs đã được phê duyệt; không vượt quyền.
+- Overly dense JFR settings, verbose logging, or stack traces can add noticeable overhead.
+- Histograms and heap dumps are heavy and require disk space and time.
+- NMT has overhead and must be enabled upfront via appropriate flags.
+- Full `smaps` on processes with huge mapping counts can be expensive; try `smaps_rollup` first if sufficient.
+- Never read/write all of `/proc` or dump gigabytes of artifacts onto a filesystem near quota; doing so can trigger eviction or another OOM.
+- If SRE/security policy prohibits attach in production, rely on approved metrics, JFR, and logs; never bypass permissions.
 
-## 14. Cách báo cáo sau sự cố
+## 14. How to Report Post-Incident
 
-Một báo cáo thu thập hiệu quả nên có:
+An effective collection report includes:
 
-**A. Quyết định tại thời điểm incident:** “CPU spike, dự kiến còn 10–15s; ưu tiên OS thread CPU + JFR đang chạy, hoãn heap dump vì không liên quan và rủi ro cao”.
+**A. Decision at incident time:** "CPU spike, estimated 10–15s left; prioritized OS thread CPU + running JFR, deferred heap dump as irrelevant and high-risk."
 
-**B. Artifacts thực tế:** “JFR đã dump từ T−30s tới T+5s; thread dump ở 09:10:12; process RSS/cgroup ở 09:10:13; thiếu snapshot khác do process restart lúc 09:10:15”. Đây là cách trình bày minh họa.
+**B. Actual artifacts:** "JFR dumped covering T−30s to T+5s; thread dump at 09:10:12; process RSS/cgroup at 09:10:13; missing further snapshots due to process restart at 09:10:15." This is an illustrative presentation.
 
-**C. Giới hạn evidence:** “Không có heap dump; NMT chưa bật; JFR ExecutionSample sampling; không đủ bằng chứng để kết luận chắc native leak”.
+**C. Evidence limits:** "No heap dump; NMT not enabled; JFR ExecutionSample is sampling-based; insufficient evidence to confirm a native leak."
 
-**D. Next action dựa trên gaps:** thêm rolling JFR, GC log shipping, trigger thu sớm hơn, cgroup OOM alert, chuẩn bị đĩa dump hoặc tái hiện trong staging.
+**D. Next actions based on gaps:** add rolling JFR, GC log shipping, earlier capture triggers, cgroup OOM alerts, dedicated dump disk, or staging reproduction.
 
-Đừng viết **“đã kiểm tra không có leak”** khi chỉ có thread dump. Đừng viết **“không có deadlock”** nếu chỉ có một stack snapshot sau khi spike kết thúc. **Bằng chứng tốt phải được giới hạn đúng theo những gì thật sự thu được và thời điểm thu.**
+Never write **"verified no leak"** when you only have a thread dump. Never write **"no deadlock"** from a single stack snapshot taken after the spike ended. **Good evidence must be strictly scoped to what was actually captured and when.**
 
-## 15. Sai lầm phổ biến
+## 15. Common Pitfalls
 
-1. **Chạy heap dump đầu tiên cho mọi triệu chứng**: chậm, High impact và có thể không liên quan.
-2. **Đợi incident hết rồi mới tạo recording**: JFR.start không tái tạo timeline đã mất.
-3. **Chỉ lấy một thread dump sau khi hang đã tự hết**: không phản ánh trạng thái lúc lỗi.
-4. **Không ghi PID/Pod UID/start time**: dễ ghép nhầm JVM sau restart hoặc PID reuse.
-5. **Dừng ghi JFR để dump** dù không cần: JFR.dump thông thường vẫn cho recording chạy tiếp.
-6. **Tưởng JFR.dump luôn thành công**: không có recording, không có quyền hoặc disk đầy có thể thất bại.
-7. **Cho rằng NMT có thể bật muộn rồi diff về trước sự cố**: không đúng.
-8. **Dùng GC.class_histogram làm bằng chứng native RSS leak**: histogram Java heap không kiểm kê toàn bộ native memory.
-9. **Coi code cache reserved, heap committed và RSS là cùng đại lượng**: không so trực tiếp được.
-10. **Tự động Full GC trước khi giữ bằng chứng**: có thể thay đổi heap và kéo dài pause.
-11. **Coi absence of event là absence of phenomenon**: recording settings/threshold/coverage có thể không đủ.
-12. **Không kiểm tra filesystem**: dump thất bại giữa chừng, chiếm hết quota và làm hệ thống tệ hơn.
-13. **Tắt/restart instance trước khi giữ một snapshot giá trị cao**: bằng chứng sống mất đi.
-14. **Lặp jcmd tới PID đã chết**: mất thời gian, có nguy cơ PID mới trỏ vào process khác.
-15. **Đếm đủ số file nhưng không kiểm tra nội dung/time window**: có file rỗng hoặc recording không bao phủ incident.
-16. **Không phân biệt OOMKilled và Java OutOfMemoryError**: ảnh hưởng khả năng có HPROF.
-17. **Đem dump chứa secrets chia sẻ không đúng quyền**: rủi ro riêng tư và bảo mật.
-18. **Thu dữ liệu nhiều hơn khả năng phân tích, không có hypothesis**: vừa tăng overhead vừa bỏ lỡ evidence quan trọng.
+1. **Running a heap dump first for every symptom**: slow, High impact, and often irrelevant.
+2. **Waiting until the incident ends to start a recording**: `JFR.start` cannot reconstruct a lost timeline.
+3. **Taking a single thread dump after a hang self-recovers**: fails to reflect the fault state.
+4. **Omitting PID/Pod UID/start time**: easily conflates JVMs across restarts or PID reuse.
+5. **Stopping JFR just to dump** unnecessarily: `JFR.dump` normally keeps the recording running.
+6. **Assuming `JFR.dump` always succeeds**: missing recordings, missing permissions, or full disks can cause failure.
+7. **Thinking NMT can be enabled late to diff against pre-incident memory**: incorrect.
+8. **Using `GC.class_histogram` as proof of a native RSS leak**: a Java heap histogram does not inventory all native memory.
+9. **Treating reserved code cache, committed heap, and RSS as the same quantity**: they are not directly comparable.
+10. **Triggering Full GC before preserving evidence**: alters the heap and extends pauses.
+11. **Treating absence of event as absence of phenomenon**: recording settings, thresholds, or coverage may be insufficient.
+12. **Not checking the filesystem**: dumps fail partway, exhaust quotas, and worsen the outage.
+13. **Killing/restarting an instance before rescuing a high-value snapshot**: live evidence is lost.
+14. **Looping `jcmd` against a dead PID**: wastes time and risks hitting a different process reusing that PID.
+15. **Counting files without checking content/time window**: files may be empty or miss the incident interval.
+16. **Failing to distinguish OOMKilled from Java OutOfMemoryError**: changes whether an HPROF is expected.
+17. **Sharing dumps containing secrets without proper authorization**: privacy and security exposure.
+18. **Collecting more data than can be analyzed without a hypothesis**: raises overhead while missing vital evidence.
 
-## 16. Bài tự kiểm tra
+## 16. Self-Check Quiz
 
-**Câu 1.** Còn khoảng 8 giây trước restart; JVM bị hang, không có bằng chứng heap tăng. Nên chọn thread dump hay heap dump trước?  
-**Đáp án:** ưu tiên một thread dump/lock snapshot nhanh và identity; heap dump vừa chi phí cao vừa ít liên quan.
+**Q1.** Roughly 8 seconds remain before restart; the JVM is hung with no evidence of heap growth. Should you take a thread dump or a heap dump first?  
+**Answer:** prioritize a quick thread dump/lock snapshot and identity; a heap dump is both costly and poorly targeted.
 
-**Câu 2.** CPU spike vừa kết thúc, sau đó mới gọi JFR.start. Có thu lại stack samples của spike trước đó được không?  
-**Đáp án:** không. Recording mới chỉ thu từ lúc bắt đầu; nếu trước đó có rolling JFR hoặc profiling khác mới có cơ hội giữ dữ liệu quá khứ.
+**Q2.** A CPU spike just ended, and then you invoke `JFR.start`. Can you recover stack samples from the earlier spike?  
+**Answer:** no. A new recording captures only from its start time; only a pre-existing rolling JFR or profiler could have preserved past data.
 
-**Câu 3.** Container bị OOMKilled bằng SIGKILL dù đã bật HeapDumpOnOutOfMemoryError. Có chắc tồn tại HPROF không?  
-**Đáp án:** không. Cần kiểm tra file thực tế; kernel kill có thể không tạo Java OutOfMemoryError và JVM không còn thời gian dump.
+**Q3.** A container was OOMKilled with SIGKILL even though `HeapDumpOnOutOfMemoryError` was enabled. Is an HPROF guaranteed to exist?  
+**Answer:** no. Check for the actual file; a kernel kill may bypass Java `OutOfMemoryError` and leave the JVM no time to dump.
 
-**Câu 4.** NMT chưa bật khi startup, còn 40 giây trước restart. Có dùng VM.native_memory summary.diff để biết native leak hai giờ qua không?  
-**Đáp án:** không. NMT không thể theo dõi ngược các allocation quá khứ, và baseline/diff yêu cầu pre-enabled tracking cùng baseline trước đó.
+**Q4.** NMT was not enabled at startup, and 40 seconds remain before restart. Can `VM.native_memory summary.diff` reveal a native leak over the past two hours?  
+**Answer:** no. NMT cannot retroactively track past allocations, and baseline/diff requires pre-enabled tracking plus an earlier baseline.
 
-**Câu 5.** JFR.dump đã tạo file nhưng jfr summary cho thấy thời gian recording trước incident 30 phút. Có thể dùng nó để suy CPU spike hiện tại không?  
-**Đáp án:** không đủ, cần recording phủ đúng timestamp. File có tên “incident.jfr” không chứng minh tính liên quan.
+**Q5.** `JFR.dump` created a file, but `jfr summary` shows the recording ended 30 minutes before the incident. Can it explain the current CPU spike?  
+**Answer:** insufficient—the recording must cover the incident timestamp. A file named "incident.jfr" does not prove relevance.
 
-**Câu 6.** Với RSS tăng, Java heap ổn định và RssAnon tăng, có nên chạy Java heap histogram nhiều lần trước khi xem /proc và NMT không?  
-**Đáp án:** thường không. Ưu tiên OS/native evidence, NMT nếu bật từ đầu, rồi mới lựa chọn công cụ heap khi có giả thuyết phù hợp.
+**Q6.** With RSS rising, Java heap steady, and `RssAnon` growing, should you run Java heap histograms repeatedly before inspecting `/proc` and NMT?  
+**Answer:** generally no. Prioritize OS/native evidence and NMT if pre-enabled, then choose heap tools only if a matching hypothesis emerges.
 
-**Câu 7.** Hệ thống còn chạy 20 phút, có leak heap tái hiện và đủ disk. Chụp heap dump có hợp lý không?  
-**Đáp án:** có thể hợp lý, sau khi cân nhắc High impact/Full GC, quyền truy cập, dung lượng và thời điểm tốt nhất để giữ graph có retention.
+**Q7.** The system has 20 minutes left, a reproducible heap leak, and ample disk. Is capturing a heap dump reasonable?  
+**Answer:** it can be reasonable after weighing High impact/Full GC, permissions, disk capacity, and optimal timing to capture the retained graph.
 
-**Câu 8.** Có thread dump, GC metrics, JFR không bao phủ incident và không có application logs vì disk rotate. Báo cáo có được khẳng định root cause chắc chắn không?  
-**Đáp án:** chỉ nếu evidence còn lại thực sự đủ; nếu không, phải nêu mức độ bất định, gaps và cải thiện preconfiguration.
+**Q8.** You have a thread dump, GC metrics, a JFR file that misses the incident window, and no application logs due to disk rotation. Can the report declare a definitive root cause?  
+**Answer:** only if the remaining evidence is truly sufficient; otherwise state uncertainty, gaps, and preconfiguration improvements.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle JDK 21 — jcmd command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): impact, JFR.check/JFR.dump, Thread.print, GC.heap_info/class_histogram/heap_dump và VM.native_memory.
-- [Oracle JDK 21 — Prepare Java for Troubleshooting](https://docs.oracle.com/en/java/javase/21/troubleshoot/prepare-java-troubleshooting.html): thu thread traces, JFR, core, logs và các artifacts trước khi restart.
-- [Oracle JDK 21 — Troubleshoot Memory Leaks](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html): JFR khi leak diễn ra và heap dump khi JVM còn sống.
-- [Oracle JDK 21 — Recording API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html): maxAge/maxSize, dump, recording lifecycle và giới hạn retention.
-- [Oracle JDK 21 — Java launcher](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html): StartFlightRecording, HeapDumpOnOutOfMemoryError, HeapDumpPath và ErrorFile.
+- [Oracle JDK 21 — jcmd command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): impact, JFR.check/JFR.dump, Thread.print, GC.heap_info/class_histogram/heap_dump, and VM.native_memory.
+- [Oracle JDK 21 — Prepare Java for Troubleshooting](https://docs.oracle.com/en/java/javase/21/troubleshoot/prepare-java-troubleshooting.html): collecting thread traces, JFR, core files, logs, and pre-restart artifacts.
+- [Oracle JDK 21 — Troubleshoot Memory Leaks](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html): JFR while a leak is happening and heap dumps while the JVM is alive.
+- [Oracle JDK 21 — Recording API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html): maxAge/maxSize, dump, recording lifecycle, and retention limits.
+- [Oracle JDK 21 — Java launcher](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html): StartFlightRecording, HeapDumpOnOutOfMemoryError, HeapDumpPath, and ErrorFile.
 - [Linux man-pages — proc_pid_status](https://man7.org/linux/man-pages/man5/proc_pid_status.5.html): VM RSS, virtual memory, native thread count, process fields.
-- [Linux kernel — proc filesystem documentation](https://www.kernel.org/doc/html/latest/filesystems/proc.html): /proc/PID/smaps, smaps_rollup và các số liệu process.
+- [Linux kernel — proc filesystem documentation](https://www.kernel.org/doc/html/latest/filesystems/proc.html): /proc/PID/smaps, smaps_rollup, and process metrics.

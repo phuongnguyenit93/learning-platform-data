@@ -1,0 +1,198 @@
+menu:
+- level1: Bức tranh JMS
+  level2:
+  - JMS là gì và nhu cầu giao tiếp qua thông điệp
+  - Tách bên gửi và bên nhận theo thời gian xử lý
+  - Vai trò JMS provider, broker và ứng dụng khách
+  - Phân biệt chuẩn API JMS với giao thức truyền tin
+  - Quan hệ giữa JMS, Jakarta Messaging và Spring JMS
+  - So sánh nhắn tin bất đồng bộ với lời gọi HTTP đồng bộ
+  - Phân biệt JMS với Kafka, AMQP và Spring Messaging
+  - 'Luồng xuyên suốt: gửi yêu cầu, xử lý và ghi nhận kết quả'
+  - Trách nhiệm của ứng dụng, Spring và broker
+  - Kiến thức nền và thứ tự học từ message đến độ tin cậy
+- level1: Queue và Topic
+  level2:
+  - Point-to-point và mô hình Queue
+  - Publish-subscribe và mô hình Topic
+  - Nhiều consumer cùng nhận từ một Queue
+  - Mỗi subscription nhận một bản tin của Topic
+  - Phân biệt consumer, subscription và bản sao message
+  - Topic khi subscriber trực tuyến hoặc ngoại tuyến
+  - Durable subscription và thông điệp tồn tại bền vững là hai khái niệm khác nhau
+  - Shared subscription và việc chia tải trong một nhóm nhận
+  - TemporaryQueue và TemporaryTopic
+  - Chọn Queue hay Topic theo hợp đồng giao tiếp
+- level1: API JMS cốt lõi
+  level2:
+  - ConnectionFactory là điểm vào của JMS provider
+  - Connection và vòng đời kết nối
+  - Session và ngữ cảnh gửi nhận đơn luồng
+  - Destination, Queue và Topic trong API
+  - MessageProducer và thao tác gửi
+  - MessageConsumer và thao tác nhận
+  - MessageListener và callback nhận bất đồng bộ
+  - Connection.start, stop và close trong API gốc
+  - JMSException và chuyển đổi sang ngoại lệ không kiểm tra của Spring
+  - Quản lý tài nguyên bằng API gốc so với JmsTemplate
+- level1: Mô hình Message
+  level2:
+  - Cấu trúc header, properties và body
+  - TextMessage và nội dung văn bản
+  - BytesMessage và nội dung nhị phân
+  - MapMessage và tập thuộc tính có kiểu
+  - StreamMessage và chuỗi giá trị có kiểu
+  - ObjectMessage và sự phụ thuộc vào tuần tự hóa Java
+  - JMSMessageID, JMSTimestamp và thông tin do provider tạo
+  - JMSDestination, JMSReplyTo và JMSCorrelationID
+  - JMSDeliveryMode, JMSPriority và JMSExpiration
+  - JMSDeliveryTime và thời điểm được phép giao
+  - JMSRedelivered, JMSXDeliveryCount và dấu vết phát lại
+  - JMSType, property JMSX và property do ứng dụng đặt
+- level1: Thiết lập kết nối
+  level2:
+  - Chọn JMS provider và thư viện khách tương thích
+  - Khởi tạo ConnectionFactory bằng cấu hình Java
+  - Tra cứu ConnectionFactory được quản lý qua JNDI
+  - Địa chỉ broker, thông tin xác thực và tùy chọn kết nối
+  - Phân biệt broker ngoài ứng dụng và broker nhúng
+  - Đăng ký ConnectionFactory, JmsTemplate và listener factory
+  - Cấu hình qua biến môi trường mà không ghi bí mật vào mã
+  - Phân biệt Spring Framework thuần và tự cấu hình Spring Boot
+  - Kiểm tra kết nối và quyền gửi nhận bằng thí nghiệm tối thiểu
+  - Đóng tài nguyên và dừng ứng dụng có kiểm soát
+- level1: Destination
+  level2:
+  - Destination có sẵn và tên destination trong mã ứng dụng
+  - DestinationResolver và quá trình phân giải tên
+  - DynamicDestinationResolver và giới hạn cấp phát vật lý
+  - JndiDestinationResolver và tra cứu đối tượng quản trị
+  - pubSubDomain khi phân giải Queue hoặc Topic
+  - defaultDestination và defaultDestinationName
+  - Quy ước tên destination theo môi trường và miền nghiệp vụ
+  - Destination tạm thời và phạm vi vòng đời kết nối
+  - Quyền tạo destination khác với quyền gửi nhận
+  - Không đồng nhất tạo đối tượng Queue với tạo Queue trên mọi broker
+- level1: JmsTemplate
+  level2:
+  - Vai trò JmsTemplate trong quản lý thao tác và tài nguyên JMS
+  - Cấu hình ConnectionFactory và destination mặc định
+  - JmsOperations như hợp đồng cho thành phần ứng dụng
+  - send so với convertAndSend
+  - receive so với receiveAndConvert
+  - MessageCreator và Session được callback cung cấp
+  - MessagePostProcessor cho dữ liệu trước khi gửi
+  - SessionCallback và ProducerCallback cho thao tác tùy chỉnh
+  - Tái sử dụng JmsTemplate sau khi cấu hình xong
+  - Phân biệt cấu hình dùng chung với tùy chỉnh theo từng thao tác
+- level1: Gửi thông điệp
+  level2:
+  - Gửi TextMessage bằng MessageCreator
+  - Gửi tới Destination hoặc tên được phân giải
+  - Gửi đối tượng nghiệp vụ bằng convertAndSend
+  - Đặt property có kiểu trên message
+  - Đặt correlation ID và địa chỉ trả lời
+  - Bổ sung metadata bằng MessagePostProcessor
+  - Gửi nhiều thao tác qua SessionCallback
+  - Truy cập MessageProducer qua ProducerCallback
+  - Ngoại lệ lúc gửi và giới hạn suy luận về kết quả phía broker
+  - Xác nhận gửi thành công khác với xử lý nghiệp vụ thành công
+- level1: Chất lượng gửi
+  level2:
+  - PERSISTENT và NON_PERSISTENT delivery mode
+  - Giới hạn bảo đảm khi chỉ bật lưu trữ bền vững
+  - Priority và việc ưu tiên không thay thế hợp đồng thứ tự
+  - Time-to-live và hết hạn trước khi được giao
+  - Delivery delay và thời điểm giao sớm nhất
+  - explicitQosEnabled và giá trị QoS trên JmsTemplate
+  - Phân biệt mặc định của producer, provider và ứng dụng
+  - 'Vô hiệu hóa message ID hoặc timestamp: mục đích và đánh đổi'
+  - QoS cho phản hồi của listener
+  - Gửi bất đồng bộ bằng CompletionListener trong API JMS
+  - CompletionListener xác nhận thao tác gửi khác với hoàn tất tiêu thụ
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - MessageConverter của Spring JMS
+  - SimpleMessageConverter và các kiểu dữ liệu được hỗ trợ
+  - Chuyển đổi DTO sang JSON và lựa chọn converter theo phiên bản Spring
+  - TextMessage so với BytesMessage cho JSON
+  - Thông tin kiểu, ánh xạ type ID và danh sách kiểu cho phép
+  - Thiết kế schema thông điệp độc lập với lớp Java nội bộ
+  - Phiên bản schema và khả năng tương thích hai chiều
+  - Giá trị thiếu, null, kiểu số và thời gian trong hợp đồng
+  - Phân biệt lỗi chuyển đổi với lỗi xử lý nghiệp vụ
+  - Giới hạn kích thước body và tránh dữ liệu nhạy cảm
+  - Phân biệt converter của spring-jms với spring-messaging
+  - Kiểm tra hợp đồng giữa bên gửi và bên nhận độc lập
+- level1: Nhận đồng bộ
+  level2:
+  - receive và luồng chờ message
+  - 'receiveTimeout: chờ hữu hạn, không chờ và chờ không giới hạn'
+  - Kết quả null khi hết thời gian chờ
+  - receiveSelected với biểu thức lọc
+  - receiveAndConvert và kiểu dữ liệu sau chuyển đổi
+  - Ảnh hưởng của nhận đồng bộ đến luồng xử lý HTTP hoặc tác vụ
+  - Nhận trong Session có giao dịch
+  - 'QueueBrowser: xem message mà không tiêu thụ'
+  - Tiêu chí chọn polling đồng bộ hay listener bất đồng bộ
+- level1: Lọc thông điệp
+  level2:
+  - Message selector và các header/property có thể lọc
+  - Vì sao selector chuẩn không đọc nội dung body
+  - Cú pháp so sánh và toán tử logic theo tập con SQL
+  - BETWEEN, IN, LIKE và IS NULL
+  - Phân biệt kiểu chuỗi với kiểu số trong property
+  - Giá trị thiếu và logic ba trạng thái
+  - Kết hợp selector với receive hoặc @JmsListener
+  - Ảnh hưởng của selector tới phân phối tải và message tồn
+  - Kiểm thử message khớp, không khớp và sai kiểu dữ liệu
+- level1: Listener và container
+  level2:
+  - Nhận bất đồng bộ bằng MessageListener
+  - SessionAwareMessageListener và việc truy cập Session
+  - MessageListenerAdapter cho đối tượng Java thông thường
+  - Container quản lý consumer, luồng và tài nguyên
+  - Phân biệt vòng đời bean nghiệp vụ với vòng đời listener container
+  - Từ message nhận được đến gọi phương thức xử lý
+  - Chuyển đổi dữ liệu trước khi gọi listener
+  - Trách nhiệm xác nhận và giao dịch của container
+  - So sánh các cách khai báo listener trong Spring
+- level1: '@JmsListener'
+  level2:
+  - Bật hạ tầng endpoint bằng @EnableJms
+  - Đăng ký DefaultJmsListenerContainerFactory
+  - Tên mặc định jmsListenerContainerFactory
+  - Khai báo destination và containerFactory
+  - Đặt id ổn định cho mỗi endpoint
+  - Cấu hình selector, concurrency và subscription
+  - Dùng placeholder và biểu thức cấu hình có kiểm soát
+  - Nhiều @JmsListener trên một phương thức
+  - JmsListenerConfigurer và JmsListenerEndpointRegistrar
+  - Đăng ký SimpleJmsListenerEndpoint bằng mã
+  - JmsListenerEndpointRegistry để tìm và quản lý container
+  - autoStartup, phase và thứ tự bắt đầu hoặc dừng
+- level1: Dữ liệu listener
+  level2:
+  - Tham số payload và @Payload
+  - Nhận jakarta.jms.Message hoặc một kiểu message cụ thể
+  - Nhận org.springframework.messaging.Message để đọc payload và header
+  - Đọc header bằng @Header và @Headers
+  - JmsHeaders và ánh xạ metadata JMS
+  - Nhận Session để gửi phản hồi tùy chỉnh
+  - Kiểm tra payload bằng @Valid và Validator
+  - DefaultMessageHandlerMethodFactory và giải quyết tham số
+  - Lỗi chuyển đổi hoặc validation trước khi mã nghiệp vụ chạy
+  - Giữ phương thức listener ngắn và ủy quyền nghiệp vụ
+- level1: Default container
+  level2:
+  - DefaultMessageListenerContainer và cơ chế nhận dựa trên polling
+  - DefaultJmsListenerContainerFactory và container được tạo ra
+  - concurrentConsumers và maxConcurrentConsumers
+  - Cấu hình concurrency bằng giá trị hoặc khoảng
+  - TaskExecutor và số luồng thực tế
+  - receiveTimeout và độ phản hồi khi nhàn rỗi
+  - maxMessagesPerTask và vòng đời tác vụ nhận
+  - cacheLevel và tương tác với giao dịch ngoài
+  - Phục hồi kết nối bằng recoveryInterval hoặc BackOff
+  - ErrorHandler và ExceptionListener
+  - Start, stop, shutdown và message đang xử lý

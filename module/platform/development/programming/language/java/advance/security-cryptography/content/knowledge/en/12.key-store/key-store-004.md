@@ -1,172 +1,172 @@
-# 12.4 Tạo kho mới, `load`, `store` và kiểm tra đúng kiểu entry
+# 12.4 Creating a New Store, `load`, `store`, and Verifying Exact Entry Types
 
-## Mục tiêu bài học
+## Learning Objectives
 
-`java.security.KeyStore` là API chuẩn của Java Security Architecture (JCA) dùng để quản lý **khóa mật mã và chứng chỉ** theo các `alias`. Một kho có thể chứa khóa đối xứng (`SecretKey`), khóa riêng kèm chuỗi chứng chỉ (`PrivateKey` + certificate chain), hoặc chứng chỉ công khai được tin cậy (`TrustedCertificateEntry`). Nhưng **ba loại entry không được dùng lẫn**: cùng xuất hiện trong KeyStore không đồng nghĩa cùng phương thức lấy, cùng ý nghĩa tin cậy hay cùng cách bảo vệ.
+`java.security.KeyStore` is the standard Java Cryptography Architecture (JCA) API for managing **cryptographic keys and certificates** by `alias`. A store can hold symmetric keys (`SecretKey`), private keys with certificate chains (`PrivateKey` + certificate chain), or trusted public certificates (`TrustedCertificateEntry`). However, **the three entry types must never be conflated**: appearing in the same KeyStore does not mean the same retrieval method, trust semantics, or protection mechanism.
 
-Sau bài này, bạn sẽ thực hiện được toàn bộ vòng đời cơ bản:
+After this lesson, you will be able to perform the entire basic lifecycle:
 
-1. Chọn type và tạo đối tượng `KeyStore`.
-2. Khởi tạo **kho trống** bằng `load(null, password)`; phân biệt với **đọc kho tồn tại** bằng `load(inputStream, password)`.
-3. Ghi `KeyStore.Entry` đúng loại bằng `setEntry` / `setCertificateEntry`; phân biệt **store password** và **entry password/protection**.
-4. Dùng `store(outputStream, password)` để **serialize/lưu** rồi dùng một đối tượng mới `load` lại.
-5. Kiểm tra đúng loại entry trước khi đọc/cast, tránh nhầm `isKeyEntry()` với `SecretKeyEntry` hoặc `PrivateKeyEntry`.
-6. Nhận biết lỗi sai mật khẩu, sai type, chưa load, alias không tồn tại và rủi ro ghi đè file thật.
-7. Chạy một chương trình **Java 17+** tự tạo kho PKCS12 ở RAM, thêm AES SecretKey, lưu/đọc lại, kiểm tra các kiểu entry và xác minh key không thay đổi.
+1. Select a type and instantiate a `KeyStore` object.
+2. Initialize an **empty store** with `load(null, password)`; distinguish this from **reading an existing store** with `load(inputStream, password)`.
+3. Write the right `KeyStore.Entry` type using `setEntry` / `setCertificateEntry`; distinguish **store password** from **entry password/protection**.
+4. Use `store(outputStream, password)` to **serialize/save**, then reload it into a fresh instance.
+5. Check the exact entry type before reading/casting, avoiding confusing `isKeyEntry()` with `SecretKeyEntry` or `PrivateKeyEntry`.
+6. Recognize wrong password errors, wrong type errors, uninitialized stores, missing aliases, and the risk of overwriting production files.
+7. Run a **Java 17+** program that creates an in-memory PKCS12 store, adds an AES SecretKey, stores/reloads it, verifies entry types, and confirms the key is unchanged.
 
-> **Phạm vi:** Bài tập thao tác KeyStore, không phải hướng dẫn dựng PKI sản xuất. File `.p12` được bảo vệ bằng mật khẩu **không tự thay thế** quyền truy cập file, KMS/HSM, quản lý danh tính, thu hồi chứng chỉ hoặc chính sách sử dụng khóa.
+> **Scope:** This is a KeyStore operations exercise, not a guide to building a production PKI. A password-protected `.p12` file **does not by itself replace** filesystem permissions, KMS/HSM, identity management, certificate revocation, or key-usage policies.
 
-## 1. KeyStore là gì và không phải là gì?
+## 1. What KeyStore Is and What It Is Not
 
-Một KeyStore là kho logic gồm các entry được định danh bằng **alias**. API `KeyStore` tách việc dùng khóa khỏi định dạng lưu trữ cụ thể và triển khai `Provider` của JCA:
+A KeyStore is a logical repository of entries identified by **alias**. The `KeyStore` API decouples key usage from the underlying storage format and JCA `Provider` implementation:
 
 ```text
-Ứng dụng Java
+Java Application
      |
      | KeyStore.getInstance("PKCS12")
      v
-JCA KeyStore API ----> Provider hỗ trợ type PKCS12
+JCA KeyStore API ----> Provider supporting type PKCS12
      |
      +-- alias "api-aes"       -> SecretKeyEntry
      +-- alias "server-tls"    -> PrivateKeyEntry + cert chain
      +-- alias "partner-root"  -> TrustedCertificateEntry
      |
-     +-- load(...) / store(...) <--> byte của kho / file / stream
+     +-- load(...) / store(...) <--> store bytes / file / stream
 ```
 
-**KeyStore không phải map `String → Object` thông thường**: entry có kiểu mật mã, yêu cầu bảo vệ, phương thức tạo/khôi phục và ràng buộc từ provider. Mặc dù API expose các lớp `Entry`, không phải mọi implementation/type của KeyStore hỗ trợ tất cả loại entry hoặc cách bảo vệ giống nhau.
+**A KeyStore is not an ordinary `String → Object` map**: entries carry cryptographic types, protection requirements, creation/recovery methods, and provider constraints. Even though the API exposes `Entry` classes, not every KeyStore implementation/type supports all entry types or identical protection schemes.
 
-**Phân biệt ba tầng:**
+**Distinguish three layers:**
 
-- **`KeyStore` object:** trạng thái ở bộ nhớ sau khi load; gọi `setEntry` chỉ sửa trạng thái này.
-- **Keystore bytes:** kết quả `store`, có thể lưu vào file hoặc gửi tới nơi lưu trữ bảo vệ; `load` xây dựng lại trạng thái từ bytes.
-- **Key/certificate cryptographic object:** `SecretKey`, `PrivateKey`, `Certificate`; đây là các tài nguyên có yêu cầu bảo mật và ngữ nghĩa riêng.
+- **`KeyStore` object:** in-memory state after loading; calling `setEntry` modifies only this state.
+- **Keystore bytes:** output of `store`, which can be written to a file or sent to protected storage; `load` reconstructs state from bytes.
+- **Cryptographic key/certificate objects:** `SecretKey`, `PrivateKey`, `Certificate`; these are resources with dedicated security requirements and semantics.
 
-`getInstance(...)` **không** tương đương `load(...)`; `setEntry(...)` **không** tự cập nhật file; `getKey(...)` không nói rõ đó là secret hay private key nếu không kiểm tra trước.
+`getInstance(...)` is **not** equivalent to `load(...)`; `setEntry(...)` does **not** automatically update a file; `getKey(...)` does not tell you whether it is a secret key or a private key without checking first.
 
-## 2. Chọn loại kho: `PKCS12` và những khác biệt triển khai
+## 2. Choosing a Store Type: `PKCS12` and Implementation Differences
 
-Trong Java SE 17, **`PKCS12`** là keystore type chuẩn mà các implementation Java SE phải hỗ trợ. `KeyStore.getDefaultType()` lấy giá trị mặc định trong cấu hình bảo mật runtime (`keystore.type`); nhiều JDK hiện đại dùng `pkcs12` làm default, nhưng nếu lưu dữ liệu cần tương thích dài hạn, nên chọn **`"PKCS12"` tường minh**.
+In Java SE 17, **`PKCS12`** is the standard keystore type that Java SE implementations are required to support. `KeyStore.getDefaultType()` retrieves the default from runtime security configuration (`keystore.type`); many modern JDKs use `pkcs12` as the default, yet if persisting data needing long-term compatibility, specify **`"PKCS12"` explicitly**.
 
-| Type | Tính chất | Dùng khi nào? |
+| Type | Characteristics | When to use? |
 | --- | --- | --- |
-| `PKCS12` | Chuẩn container phổ biến cho key/certificate; được Java SE yêu cầu hỗ trợ | Lựa chọn thực hành cho key/certificate portable, nhưng vẫn phải kiểm tra tính tương thích của từng entry type/provider. |
-| `JKS` | Java KeyStore truyền thống | Thường gặp trong hệ thống legacy; không mặc định dùng cho secret keys và không tự coi là tốt hơn PKCS12. |
-| `JCEKS` | Legacy Java Cryptography Extension keystore | Có thể gặp ở hệ thống cũ; không ưu tiên để thiết kế mới chỉ vì trước đây lưu được secret key. |
-| Provider-specific / token | Có thể đại diện thiết bị HSM, kho hệ điều hành hoặc dịch vụ | Dùng theo chính sách; không giả định `store(OutputStream)` hoặc `getEncoded()` hoạt động như file PKCS12. |
+| `PKCS12` | Widely used container standard for keys/certificates; required by Java SE | Practical choice for portable keys/certificates, though compatibility of specific entry types/providers must still be tested. |
+| `JKS` | Traditional Java KeyStore | Common in legacy systems; do not assume support for secret keys or treat it as better than PKCS12. |
+| `JCEKS` | Legacy Java Cryptography Extension keystore | Found in older systems; avoid prioritizing for new designs merely because it historically stored secret keys. |
+| Provider-specific / token | Can represent an HSM device, OS store, or service | Use per policy; do not assume `store(OutputStream)` or `getEncoded()` works like a PKCS12 file. |
 
-**Không dùng đuôi file làm bằng chứng type tuyệt đối**: `.p12`, `.pfx`, `.jks` là quy ước; dữ liệu bên trong và provider xử lý mới quyết định. Khi tạo hoặc đọc theo định dạng đã biết, gọi `KeyStore.getInstance("PKCS12")`. Một số overload của JDK có thể probe type từ file, nhưng đó là hành vi API khác với cách bài thực hành chọn type tường minh.
+**Never use file extensions as absolute proof of type**: `.p12`, `.pfx`, and `.jks` are conventions; the internal bytes and handling provider determine the truth. When creating or reading a known format, call `KeyStore.getInstance("PKCS12")`. Some JDK overloads can probe type from a file, but that is a different API behavior from selecting the type explicitly in this lab.
 
-Một điểm quan trọng: **hỗ trợ type `PKCS12` không có nghĩa mọi provider đều hỗ trợ mọi tổ hợp entry type, cipher, password hoặc thuộc tính file**. Demo bên dưới dựa trên JDK 17+ thông dụng có hỗ trợ `SecretKeyEntry` trong PKCS12; khi triển khai cross-provider phải kiểm tra thực tế.
+An important point: **supporting the `PKCS12` type does not mean every provider supports every combination of entry types, ciphers, passwords, or file attributes**. The demo below relies on common JDK 17+ builds that support `SecretKeyEntry` in PKCS12; cross-provider deployments must be tested directly.
 
-## 3. Ba loại `KeyStore.Entry` bắt buộc phải phân biệt
+## 3. Three `KeyStore.Entry` Types You Must Distinguish
 
-### 3.1 `SecretKeyEntry` — khóa bí mật đối xứng
+### 3.1 `SecretKeyEntry` — Symmetric Secret Key
 
-Đây là một `SecretKey` như khóa AES hoặc HMAC. Nó có thể dùng cho `Cipher`, `Mac` theo thuật toán của key, **không có public-key certificate chain**.
+This holds a `SecretKey` such as an AES or HMAC key. It can be used with `Cipher` or `Mac` per the key's algorithm, and **has no public-key certificate chain**.
 
 ```java
-// Minh họa trong phương thức có xử lý checked exceptions:
+// Illustrative inside a method handling checked exceptions:
 KeyStore.SecretKeyEntry item = new KeyStore.SecretKeyEntry(aesKey);
 keyStore.setEntry("api-aes", item,
         new KeyStore.PasswordProtection(entryPassword));
 ```
 
-- `aesKey` là **bí mật**, không log hay chép vào certificate.
-- `entryPassword` bảo vệ việc lưu/khôi phục entry theo khả năng type/provider.
-- Dùng `getEntry(...)` và kiểm tra `instanceof KeyStore.SecretKeyEntry` hoặc `entryInstanceOf(...)` trước cast.
-- Với `SecretKeyEntry`, `getCertificateChain(alias)` thường `null`, vì không có chứng chỉ kèm theo.
+- `aesKey` is **secret**; never log it or embed it in a certificate.
+- `entryPassword` protects storing/recovering the entry per type/provider capabilities.
+- Use `getEntry(...)` and check `instanceof KeyStore.SecretKeyEntry` or `entryInstanceOf(...)` before casting.
+- For a `SecretKeyEntry`, `getCertificateChain(alias)` is typically `null`, because no certificate is attached.
 
-### 3.2 `PrivateKeyEntry` — khóa riêng và certificate chain
+### 3.2 `PrivateKeyEntry` — Private Key and Certificate Chain
 
-Là **`PrivateKey` + chuỗi `Certificate[]`** tương ứng. Ví dụ: khóa riêng RSA/ECDSA để ký hoặc xác thực TLS và chứng chỉ công khai của chủ sở hữu.
+This holds a **`PrivateKey` + matching `Certificate[]` chain**. Example: an RSA/ECDSA private key for signing or TLS authentication alongside the owner's public certificate.
 
 ```java
-// Minh họa khi privateKey và certificateChain đã có, được kiểm tra:
+// Illustrative once privateKey and certificateChain are obtained and verified:
 KeyStore.PrivateKeyEntry item =
         new KeyStore.PrivateKeyEntry(privateKey, certificateChain);
 keyStore.setEntry("server-tls", item,
         new KeyStore.PasswordProtection(entryPassword));
 ```
 
-**`PrivateKeyEntry` khác `SecretKeyEntry`:** private key thuộc hệ mật khóa công khai, phải có certificate chain theo hợp đồng của KeyStore; `PrivateKeyEntry.getCertificateChain()` dùng để lấy chuỗi đó. **Không tự tạo `PrivateKeyEntry` với chain rỗng/null** chỉ để lưu private key; ví dụ tự cấp chứng chỉ bằng API nội bộ `sun.security.x509` không phù hợp cho hướng dẫn portable Java SE.
+**`PrivateKeyEntry` differs from `SecretKeyEntry`:** a private key belongs to public-key cryptography and requires a certificate chain per the `KeyStore` contract; `PrivateKeyEntry.getCertificateChain()` retrieves that chain. **Never fabricate a `PrivateKeyEntry` with an empty/null chain** just to stash a private key; generating self-signed certs via internal `sun.security.x509` APIs is unsuitable for portable Java SE guides.
 
-Certificate chain đi kèm giúp bên ngoài kiểm tra public key/danh tính theo hệ thống tin cậy, nhưng **sự hiện diện của certificate chain trong KeyStore không có nghĩa chuỗi đã được xác thực/trusted**. Việc validate PKIX, hostname, validity/revocation và key usage là trách nhiệm của TLS/PKI hoặc ứng dụng.
+The attached certificate chain helps external parties verify the public key/identity under a trust system, yet **the presence of a certificate chain in a KeyStore does not mean the chain is validated/trusted**. PKIX validation, hostname checks, validity/revocation, and key usage are the responsibility of TLS/PKI or the application.
 
-### 3.3 `TrustedCertificateEntry` — một chứng chỉ tin cậy, **không có khóa riêng**
+### 3.3 `TrustedCertificateEntry` — A Trusted Certificate, **With No Private Key**
 
-Là một `java.security.cert.Certificate` (thường `X509Certificate`) được kho xem là **trust anchor hoặc chứng chỉ được tin cậy theo chính sách**. Không thể ký hoặc giải mã bằng nó vì **nó không chứa private key**.
+This holds a `java.security.cert.Certificate` (usually `X509Certificate`) treated by the store as a **trust anchor or policy-trusted certificate**. You cannot sign or decrypt with it because **it contains no private key**.
 
 ```java
-// Minh họa với Certificate đã được xác minh qua kênh đáng tin:
+// Illustrative with a Certificate verified through a trusted channel:
 keyStore.setCertificateEntry("partner-root", trustedCertificate);
-// Tương đương về loại entry:
+// Equivalent in entry type:
 // keyStore.setEntry("partner-root",
 //         new KeyStore.TrustedCertificateEntry(trustedCertificate), null);
 ```
 
-**Cảnh báo:** chỉ chạy `setCertificateEntry` không làm một chứng chỉ bên ngoài **trở nên đáng tin về mặt nghiệp vụ**; thao tác này đang *cấp quyền tin cậy* theo chính sách của kho/ứng dụng. Phải kiểm tra nguồn, fingerprint, thuộc tính/chủ thể, mục đích và quy trình phê duyệt trước khi import certificate thật.
+**Warning:** calling `setCertificateEntry` does not make an external certificate **business-trustworthy**; the operation *grants trust* under the store/application's policy. You must verify provenance, fingerprint, attributes/subject, purpose, and approval workflow before importing real certificates.
 
-### 3.4 Bảng chọn API đúng loại
+### 3.4 Table for Picking the Right API
 
-| Câu hỏi / API | `SecretKeyEntry` | `PrivateKeyEntry` | `TrustedCertificateEntry` |
+| Question / API | `SecretKeyEntry` | `PrivateKeyEntry` | `TrustedCertificateEntry` |
 | --- | --- | --- | --- |
-| Chứa | `SecretKey` | `PrivateKey` + certificate chain | Một `Certificate` |
+| Contains | `SecretKey` | `PrivateKey` + certificate chain | One `Certificate` |
 | `isKeyEntry(alias)` | `true` | `true` | `false` |
 | `isCertificateEntry(alias)` | `false` | `false` | `true` |
 | `entryInstanceOf(alias, SecretKeyEntry.class)` | `true` | `false` | `false` |
 | `entryInstanceOf(alias, PrivateKeyEntry.class)` | `false` | `true` | `false` |
 | `entryInstanceOf(alias, TrustedCertificateEntry.class)` | `false` | `false` | `true` |
-| `getKey(alias, password)` | Trả `SecretKey` | Trả `PrivateKey` | `null` |
-| `getCertificate(alias)` | Thường `null` | Trả **leaf certificate** đầu chuỗi | Trả chứng chỉ tin cậy |
-| `getCertificateChain(alias)` | `null` | Trả certificate chain | `null` |
-| Thao tác ứng dụng | AES/HMAC theo key | Ký, giải mã, TLS identity theo key | Xác minh/đánh giá trust theo PKI policy |
+| `getKey(alias, password)` | Returns `SecretKey` | Returns `PrivateKey` | `null` |
+| `getCertificate(alias)` | Typically `null` | Returns **leaf certificate** (head of chain) | Returns trusted certificate |
+| `getCertificateChain(alias)` | `null` | Returns certificate chain | `null` |
+| Application operation | AES/HMAC using key | Signing, decryption, TLS identity using key | Trust verification/evaluation per PKI policy |
 
-**Bẫy phổ biến:** `isKeyEntry(alias) == true` **không xác định** đó là `SecretKeyEntry` hay `PrivateKeyEntry`. `getCertificate(alias) != null` cũng **không chứng minh đó là `TrustedCertificateEntry`**, vì với `PrivateKeyEntry` phương thức này trả leaf certificate. Khi cần **đúng kiểu entry**, sử dụng `entryInstanceOf(...)` hoặc kiểm tra kiểu trên `getEntry(...)`, không suy đoán từ tên alias hoặc `getCertificate`.
+**Common trap:** `isKeyEntry(alias) == true` **does not distinguish** `SecretKeyEntry` from `PrivateKeyEntry`. Likewise, `getCertificate(alias) != null` **does not prove it is a `TrustedCertificateEntry`**, because for a `PrivateKeyEntry` this method returns the leaf certificate. When you need the **exact entry type**, use `entryInstanceOf(...)` or type-check `getEntry(...)`, never guess from alias names or `getCertificate`.
 
-## 4. Chu trình tạo kho mới, đọc kho cũ và lưu kho
+## 4. Lifecycle: Creating a New Store, Reading an Existing Store, and Saving
 
-### 4.1 `getInstance` chỉ chọn một implementation
+### 4.1 `getInstance` Only Selects an Implementation
 
 ```java
-// Đoạn minh họa:
+// Illustrative snippet:
 KeyStore ks = KeyStore.getInstance("PKCS12");
 ```
 
-`ks` lúc này chưa có nội dung được khởi tạo theo `load`; nhiều thao tác như `size()`, `getKey`, `setEntry` khi chưa load có thể ném `KeyStoreException` (*uninitialized keystore*).
+At this stage `ks` has no initialized contents per `load`; calling operations like `size()`, `getKey`, or `setEntry` before loading can throw `KeyStoreException` (*uninitialized keystore*).
 
-**Không dùng `getInstance("PKCS12")` xong là `setEntry(...)` ngay**.
+**Never call `getInstance("PKCS12")` and jump straight to `setEntry(...)`**.
 
-### 4.2 Tạo **mới**: `load(null, password)`
+### 4.2 Creating **New**: `load(null, password)`
 
 ```java
 KeyStore fresh = KeyStore.getInstance("PKCS12");
-fresh.load(null, storePassword);  // khởi tạo kho trống
+fresh.load(null, storePassword);  // initializes an empty store
 ```
 
-`load(null, password)` nói với provider khởi tạo **một keystore rỗng**, không phải "hãy đọc file trống". Có thể dùng password được yêu cầu ở thời điểm khởi tạo, sau đó dùng `store` để serialize theo format. **File đích chưa được tạo bởi `load(null, ...)`.**
+`load(null, password)` tells the provider to initialize **an empty keystore**, not "read an empty file". It can take the password required at initialization, followed later by `store` to serialize in the chosen format. **No destination file is created by `load(null, ...)` yet.**
 
-Phải phân biệt `load(null, password)` với `load((InputStream) null, password)` ở các overload khác hoặc `load(LoadStoreParameter)`: khi cần thể hiện rõ ý nghĩa, dùng overload `load(InputStream, char[])` như ví dụ trên. Nếu gọi `load(null,...)` lần nữa trên cùng object đã có entries, việc load lại sẽ **reinitialize** và làm mất các thay đổi chưa lưu trong object đó.
+Distinguish `load(null, password)` from `load((InputStream) null, password)` or `load(LoadStoreParameter)` overloads: when clarity is needed, use the `load(InputStream, char[])` overload as shown above. Calling `load(null, ...)` again on an object that already holds entries will **reinitialize** it and discard unsaved changes in that object.
 
-### 4.3 Đọc **tồn tại**: `load(inputStream, password)`
+### 4.3 Reading **Existing**: `load(inputStream, password)`
 
 ```java
 try (java.io.InputStream in = java.nio.file.Files.newInputStream(path)) {
     KeyStore restored = KeyStore.getInstance("PKCS12");
     restored.load(in, storePassword);
-    // Đọc alias/entry ở đây.
+    // Read aliases/entries here.
 }
 ```
 
-Khác biệt:
+Differences:
 
-- `inputStream != null`: **parse keystore bytes**, kiểm tra password/integrity theo cơ chế type/provider và tạo entries.
-- `inputStream == null`: tạo kho mới rỗng theo API contract (không phát hiện file cũ).
-- Mật khẩu store bị sai hoặc dữ liệu lỗi có thể gây `IOException`, với cause như `UnrecoverableKeyException` trong một số trường hợp.
-- `load(in, null)` trên một số keystore không thực hiện kiểm tra tính toàn vẹn của store, theo Java API; **không dùng nó như cách bỏ qua lỗi mật khẩu** cho dữ liệu cần tin cậy.
-- Sau khi `load(...)` thành công, mới dùng `containsAlias`, `size`, `getEntry`, `entryInstanceOf`.
+- `inputStream != null`: **parses keystore bytes**, checks password/integrity per type/provider mechanism, and populates entries.
+- `inputStream == null`: creates a new empty store per API contract (does not detect an old file).
+- A wrong store password or corrupted data can throw `IOException`, in some cases with an `UnrecoverableKeyException` cause.
+- `load(in, null)` on some keystores skips store integrity verification per the Java API; **never use it to bypass password errors** on data that must be trusted.
+- Only after `load(...)` succeeds should you call `containsAlias`, `size`, `getEntry`, or `entryInstanceOf`.
 
-### 4.4 Ghi entry vào object chưa đủ: phải `store(...)`
+### 4.4 Writing an Entry to the Object Is Not Enough: You Must Call `store(...)`
 
 ```java
 ks.setEntry(alias, entry, protection);
@@ -177,21 +177,21 @@ try (java.io.OutputStream out =
 }
 ```
 
-`setEntry` **sửa KeyStore trong RAM**. `store` mới viết bytes xuống output. Nếu chương trình dừng sau `setEntry` mà không `store`, file cũ không có thay đổi. Ngược lại, `store` **không tự thay đổi khóa** thành một cặp khóa khác; nó serialize trạng thái hiện có theo type và provider.
+`setEntry` **modifies the KeyStore in RAM**. `store` is what writes bytes to the output. If the program exits after `setEntry` without calling `store`, the file on disk remains unchanged. Conversely, `store` **does not mutate keys** into different key pairs; it serializes current state according to type and provider.
 
-`store(out, password)` bảo vệ tính toàn vẹn của kho theo khả năng/type, nhưng **không phải cam kết file an toàn trước mọi tấn công**. Các cấu hình PKCS12 thường dùng bảo vệ dựa trên mật khẩu; cần đủ entropy cho password, giới hạn quyền truy cập file và quản lý khóa riêng.
+`store(out, password)` protects store integrity per type capabilities, yet **is not a guarantee against all attacks**. PKCS12 setups commonly rely on password-based protection; ensure sufficient password entropy, restrict file permissions, and manage private keys properly.
 
-**Không viết trực tiếp đè file keystore đang hoạt động nếu cần khôi phục an toàn.** `Files.newOutputStream(path)` theo cách trên có thể truncate/overwrite file. Trong production, tạo file tạm **cùng filesystem** với quyền truy cập hạn chế, `store` vào file tạm, flush/fsync nếu cần tính bền vững, sau đó rename/move atomically nếu hệ thống hỗ trợ, và lưu bản backup/version hợp lệ. `ATOMIC_MOVE` không được mọi filesystem hỗ trợ; phải xử lý `AtomicMoveNotSupportedException` theo chính sách, không tự động ghi đè bừa. Khi có nhiều writer, thêm lock/transaction hoặc external key-management service; `KeyStore` object không phải một database có concurrency control.
+**Do not directly overwrite an active keystore file if safe recovery is required.** `Files.newOutputStream(path)` as written above can truncate/overwrite the file. In production, create a temporary file **on the same filesystem** with restricted permissions, `store` into the temp file, flush/fsync if durability is needed, then rename/move atomically if supported, and retain valid backups/versions. `ATOMIC_MOVE` is not supported on all filesystems; handle `AtomicMoveNotSupportedException` per policy rather than blindly overwriting. With multiple writers, add locking/transactions or an external key-management service; a `KeyStore` object is not a concurrency-controlled database.
 
-## 5. Hai loại mật khẩu/protection khác nhau
+## 5. Two Distinct Password/Protection Concepts
 
-| Thành phần | Dùng ở đâu? | Ý nghĩa |
+| Component | Where is it used? | Meaning |
 | --- | --- | --- |
-| **Store password** | `load(in, storePassword)` / `store(out, storePassword)` | Dùng để kiểm tra/bảo vệ kho theo implementation, bao gồm integrity protection. |
-| **Entry password/protection** | `setEntry(alias, entry, new PasswordProtection(...))`, `getEntry(alias, ...)` | Dùng bảo vệ/khôi phục một key entry cụ thể, nếu type/provider hỗ trợ. |
-| **Trusted certificate entry** | `setCertificateEntry(...)` hoặc `getEntry(alias, null)` | Không có secret/private key để "mở"; việc tin cậy certificate là chính sách, không phải một mật khẩu cho private key. |
+| **Store password** | `load(in, storePassword)` / `store(out, storePassword)` | Used to verify/protect the store per implementation, including integrity protection. |
+| **Entry password/protection** | `setEntry(alias, entry, new PasswordProtection(...))`, `getEntry(alias, ...)` | Used to protect/recover a specific key entry, if supported by type/provider. |
+| **Trusted certificate entry** | `setCertificateEntry(...)` or `getEntry(alias, null)` | Has no secret/private key to "unlock"; trusting a certificate is a policy decision, not a private key password. |
 
-Ví dụ nhỏ:
+Small example:
 
 ```java
 KeyStore.ProtectionParameter protection =
@@ -204,22 +204,22 @@ KeyStore.Entry loaded = ks.getEntry("api-aes",
         new KeyStore.PasswordProtection(entryPassword));
 ```
 
-**Trong nhiều triển khai PKCS12**, cách dùng một password chung cho store và key entries là cấu hình tương thích thực tế, và một số tool/implementation có ràng buộc về password khác nhau. Demo dùng cùng password để chắc chắn tương tác trên JDK phổ biến; **không kết luận Java API cấm mọi entry password riêng**.
+**In many PKCS12 implementations**, using one shared password for the store and key entries is the practical compatible configuration, and some tools/implementations impose constraints on differing passwords. The demo uses the same password to ensure compatibility across common JDKs; **do not conclude that the Java API forbids separate entry passwords everywhere**.
 
-Nên giữ mật khẩu trong `char[]` thay vì `String` bất biến khi có thể và xóa mảng bằng `Arrays.fill` sau khi không cần nữa. Tuy vậy đây **không bảo đảm xóa mọi bản sao bí mật** bên trong JDK, provider hoặc heap; không hard-code password production, không đưa password vào command-line có thể bị lộ qua process list/shell history. Ưu tiên secret manager/HSM/KMS và quyền truy cập phù hợp.
+Keep passwords in `char[]` instead of immutable `String`s whenever possible and wipe arrays with `Arrays.fill` once no longer needed. Even so, this **does not guarantee removing every secret copy** inside the JDK, providers, or heap; never hardcode production passwords, and never pass passwords on command lines exposed via process lists/shell history. Prefer a secret manager/HSM/KMS and proper access controls.
 
-**Sai mật khẩu ở hai điểm cho hành vi khác nhau:**
+**Wrong passwords at the two points behave differently:**
 
-- Mật khẩu `load()` sai: thường không đọc được keystore, xuất hiện `IOException` / vấn đề integrity hoặc định dạng.
-- Mật khẩu của `getEntry()` sai: có thể `UnrecoverableEntryException` / `UnrecoverableKeyException`; dùng store password thành công **không bảo đảm** luôn giải mã được mọi private/secret entry nếu entry dùng protection riêng.
+- Wrong `load()` password: usually prevents reading the keystore, throwing `IOException` / integrity or format errors.
+- Wrong `getEntry()` password: can throw `UnrecoverableEntryException` / `UnrecoverableKeyException`; succeeding with the store password **does not guarantee** decrypting every private/secret entry if an entry uses separate protection.
 
-Cần xử lý lỗi rõ ràng; không trả về `null` tự tạo như thể không có alias khi thực chất đã sai password.
+Handle errors explicitly; never synthesize `null` as if an alias were missing when the password was actually wrong.
 
-## 6. Java 17 chạy độc lập: tạo kho, store/load lại, nhận diện đúng entry
+## 6. Standalone Java 17: Creating a Store, Store/Reload, and Verifying Entry Types
 
-Chương trình sau không cần certificate tự ký hay thư viện nội bộ `sun.*`. Nó dùng `KeyGenerator` để tạo AES-128 secret key, đưa vào `PKCS12 SecretKeyEntry`, **store keystore vào `ByteArrayOutputStream` ở RAM**, rồi khởi tạo một KeyStore mới và `load` byte array đó. Với `store(...)` thành công, thao tác này kiểm tra **cùng encoding/persistence path** mà file I/O sẽ dùng, nhưng không tạo hoặc sửa file trên máy.
+The following program needs no self-signed certificates or internal `sun.*` libraries. It uses `KeyGenerator` to create an AES-128 secret key, puts it into a `PKCS12 SecretKeyEntry`, **stores the keystore into a `ByteArrayOutputStream` in RAM**, then instantiates a fresh KeyStore and `load`s that byte array. With `store(...)` succeeding, this tests the **same encoding/persistence path** that file I/O would use, without creating or modifying files on disk.
 
-Tạo file **`KeyStoreLifecycleDemo.java`**:
+Create **`KeyStoreLifecycleDemo.java`**:
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -293,14 +293,14 @@ public final class KeyStoreLifecycleDemo {
 }
 ```
 
-Chạy trên JDK 17+ hỗ trợ AES và PKCS12 SecretKeyEntry:
+Run on JDK 17+ supporting AES and PKCS12 SecretKeyEntry:
 
 ```bash
 javac --release 17 KeyStoreLifecycleDemo.java
 java KeyStoreLifecycleDemo
 ```
 
-Stdout của chương trình trên JDK hỗ trợ tính năng như môi trường thử nghiệm:
+Program stdout on JDKs supporting these features like our test environment:
 
 ```text
 Type: PKCS12
@@ -316,34 +316,34 @@ Missing entry is null: true
 Wrong store password rejected: true
 ```
 
-### 6.1 Giải thích từng phần và tại sao output đáng tin
+### 6.1 Step-by-Step Explanation and Why the Output Is Reliable
 
-- **`getInstance("PKCS12")` + `load(null, password)`:** tạo kho mới rỗng, nên `size() == 0`. Nếu quên `load`, các thao tác đọc/ghi entries sẽ báo chưa khởi tạo.
-- **`KeyGenerator.getInstance("AES")` + `init(128)`:** tạo một secret key 16 byte ngẫu nhiên. Chúng ta **không in key bytes**; test chỉ so sánh nội bộ.
-- **`setEntry("api-aes", new SecretKeyEntry(...), PasswordProtection)`:** thêm key entry. `isKeyEntry == true` vì đây là key; `isCertificateEntry == false` vì không phải certificate-only trust entry.
-- **`store(output, password)`:** serialize toàn bộ kho vào byte array ở bộ nhớ. **Không tự ghi một file** và không làm khóa mới xuất hiện nếu không gọi `setEntry`.
-- **`restored.load(new ByteArrayInputStream(encodedStore), password)`:** đọc lại bytes như một kho lưu trữ; `size()` vẫn `1`.
-- **`entryInstanceOf(alias, SecretKeyEntry.class)`:** `true`. Hai phép kiểm tra class còn lại `false`; đây là ý nghĩa của yêu cầu “kiểm tra đúng kiểu entry”.
-- **`getEntry(...)` rồi cast:** thực hiện **sau khi đã xác định loại**. `getSecretKey()` lấy lại secret key, so sánh thông qua `MessageDigest.isEqual` để không cần in khóa.
-- **`getEntry("missing", ...)`:** `null` vì alias không tồn tại; không tương đương “đã có alias nhưng nhập password sai”.
-- **`load` với mật khẩu sai:** với kho PKCS12 vừa được ghi và bảo vệ, JDK demo ném `IOException`, ta in `true`. Không dựa vào **exact exception message**, vì nó phụ thuộc provider/JDK.
-- **`Arrays.fill(password, '\0')`:** hạn chế thời gian mảng password demo còn trong RAM, không bảo đảm xóa được các copy khác; trong production nên có quy trình secret management.
+- **`getInstance("PKCS12")` + `load(null, password)`:** creates a new empty store, so `size() == 0`. Forgetting `load` causes read/write operations to report uninitialized state.
+- **`KeyGenerator.getInstance("AES")` + `init(128)`:** generates a random 16-byte secret key. We **do not print key bytes**; the test compares internally.
+- **`setEntry("api-aes", new SecretKeyEntry(...), PasswordProtection)`:** adds a key entry. `isKeyEntry == true` because it is a key; `isCertificateEntry == false` because it is not a certificate-only trust entry.
+- **`store(output, password)`:** serializes the entire store into an in-memory byte array. **Does not automatically write a file** and does not produce new keys unless `setEntry` was called.
+- **`restored.load(new ByteArrayInputStream(encodedStore), password)`:** reads the bytes back as a persisted store; `size()` remains `1`.
+- **`entryInstanceOf(alias, SecretKeyEntry.class)`:** `true`. The other two class checks return `false`; this illustrates "verifying exact entry types".
+- **`getEntry(...)` then cast:** performed **after confirming the type**. `getSecretKey()` retrieves the secret key, compared via `MessageDigest.isEqual` to avoid printing keys.
+- **`getEntry("missing", ...)`:** `null` because the alias does not exist; not equivalent to "alias exists but wrong password entered".
+- **`load` with wrong password:** on the freshly written and protected PKCS12 store, the demo JDK throws `IOException`, so we print `true`. Do not depend on **exact exception messages**, as they vary by provider/JDK.
+- **`Arrays.fill(password, '\0')`:** limits how long the demo password array sits in RAM, without guaranteeing erasure of other copies; production needs proper secret management.
 
-Kết quả random của AES key và byte serialized PKCS12 thay đổi giữa các lần chạy; chương trình chỉ in các trạng thái có ý nghĩa **ổn định**.
+The random AES key and serialized PKCS12 bytes differ across runs; the program only prints **deterministic** meaningful statuses.
 
-### 6.2 Vì sao không dùng `instanceof` rồi cast ngay ở mọi trường hợp?
+### 6.2 Why Not Use `instanceof` and Cast Directly in Every Case?
 
-Có hai cách hợp lệ:
+There are two valid patterns:
 
 ```java
-// Cách A: kiểm tra loại trước, hữu ích khi muốn tránh giải mã key sai loại.
+// Pattern A: check type first, useful to avoid decrypting a key of the wrong type.
 if (store.entryInstanceOf("api-aes", KeyStore.SecretKeyEntry.class)) {
     KeyStore.SecretKeyEntry secret = (KeyStore.SecretKeyEntry)
             store.getEntry("api-aes",
                     new KeyStore.PasswordProtection(entryPassword));
 }
 
-// Cách B: lấy Entry rồi pattern-match an toàn theo Java 17:
+// Pattern B: fetch Entry then pattern-match safely in Java 17:
 KeyStore.Entry item = store.getEntry("api-aes",
         new KeyStore.PasswordProtection(entryPassword));
 if (item instanceof KeyStore.SecretKeyEntry secretEntry) {
@@ -353,42 +353,42 @@ if (item instanceof KeyStore.SecretKeyEntry secretEntry) {
 } else if (item instanceof KeyStore.TrustedCertificateEntry trustEntry) {
     // trustEntry.getTrustedCertificate()
 } else if (item == null) {
-    // Alias không tồn tại.
+    // Alias does not exist.
 }
 ```
 
-Các đoạn trên là **minh họa** dùng biến `store`, `entryPassword` được khởi tạo từ ngữ cảnh chương trình (không phải lớp Java độc lập). Nếu dùng nhánh `getEntry` cho cả ba loại thì **`TrustedCertificateEntry` thường truy xuất với `null` protection**, còn key entries cần `PasswordProtection`. Vì vậy trong code production, hãy phân loại trước rồi gọi `getEntry` với **protection phù hợp**, thay vì luôn đưa password vào cả `TrustedCertificateEntry` và mong mọi provider đều chấp nhận.
+The snippets above are **illustrative**, assuming `store` and `entryPassword` are initialized in program context (not a standalone Java class). If using one `getEntry` branch for all three types, **`TrustedCertificateEntry` is typically retrieved with `null` protection**, whereas key entries need `PasswordProtection`. Therefore, in production code, classify first and then invoke `getEntry` with **the matching protection**, instead of passing a password even for `TrustedCertificateEntry` and expecting every provider to accept it.
 
-Cần kiểm tra `containsAlias(alias)` nếu muốn xử lý riêng chuyện alias không tồn tại, nhưng `containsAlias == true` **không bảo đảm** entry thuộc loại/thuật toán/mục đích được mong đợi. Khi alias thuộc type không mong muốn, fail closed thay vì ép cast.
+Check `containsAlias(alias)` if you want dedicated handling for missing aliases, yet `containsAlias == true` **does not guarantee** the entry has the expected type/algorithm/purpose. When an alias has an unexpected type, fail closed rather than forcing a cast.
 
-## 7. Thực hành bổ sung với `keytool`: PrivateKeyEntry và TrustedCertificateEntry
+## 7. Additional Practice with `keytool`: PrivateKeyEntry and TrustedCertificateEntry
 
-Vì Java SE **không cung cấp API public đơn giản để tự phát hành self-signed X.509 certificate**, bài code chính dùng SecretKeyEntry để chạy thuần Java, không đưa `sun.security.x509`/reflection/third-party library vào một ví dụ portable. Tuy nhiên, JDK có công cụ **`keytool`** giúp tạo và xem đúng các entry type khác.
+Because Java SE **does not provide a simple public API to issue self-signed X.509 certificates**, the main code lesson uses `SecretKeyEntry` to stay pure Java without introducing `sun.security.x509`/reflection/third-party libraries into a portable example. However, the JDK ships **`keytool`** to create and inspect the other entry types cleanly.
 
-Các lệnh sau là **bài thực hành riêng**, chạy trong **thư mục lab có quyền ghi**, không dùng tên file sản xuất. Không đưa password vào command line; `keytool` sẽ hỏi tương tác.
+The commands below are a **separate practice exercise**, run inside **a writable lab directory**, never using production filenames. Do not pass passwords on the command line; `keytool` will prompt interactively.
 
-### 7.1 Tạo cặp khóa riêng kèm certificate chain
+### 7.1 Creating a Private Key Pair with Certificate Chain
 
 ```bash
 keytool -genkeypair -alias lab-signer -keyalg RSA -keysize 3072 -sigalg SHA256withRSA -validity 30 -dname "CN=Local Lab Only" -storetype PKCS12 -keystore lab-identity.p12
 ```
 
-Lệnh này tạo private-key entry với cặp RSA mới và **self-signed certificate** dành cho lab. Xem metadata:
+This creates a private-key entry with a new RSA key pair and a **self-signed certificate** for lab use. Inspect metadata:
 
 ```bash
 keytool -list -v -storetype PKCS12 -keystore lab-identity.p12
 ```
 
-Trong mô hình keytool phổ biến, alias `lab-signer` có:
+In typical keytool output, alias `lab-signer` shows:
 
 ```text
 Entry type: PrivateKeyEntry
 Certificate chain length: 1
 ```
 
-**Không sao chép private key ra file text** hoặc coi certificate tự ký này là chứng chỉ production. PKCS12 private-key entry chứa key và certificate chain, khác secret-key-only entry trong Java demo.
+**Never export private keys to text files** or treat this self-signed certificate as a production certificate. A PKCS12 private-key entry holds a key and certificate chain, distinct from the secret-key-only entry in the Java demo.
 
-### 7.2 Export public certificate rồi import vào truststore
+### 7.2 Exporting the Public Certificate and Importing into a Truststore
 
 ```bash
 keytool -exportcert -rfc -alias lab-signer -file lab-signer.cer -storetype PKCS12 -keystore lab-identity.p12
@@ -396,188 +396,188 @@ keytool -importcert -alias lab-signer-trusted -file lab-signer.cer -storetype PK
 keytool -list -v -storetype PKCS12 -keystore lab-trust.p12
 ```
 
-Sau khi bạn **chủ ý xác minh certificate** và chấp nhận import trong lab, file `lab-trust.p12` có **trustedCertEntry**, chứ không chứa private key của `lab-signer`. Nếu keytool hỏi xác nhận tin cậy, chỉ xác nhận vì bạn vừa tự sinh certificate **trong môi trường lab**; không bỏ kiểm tra fingerprint ở môi trường thực.
+After you **deliberately verify the certificate** and accept the import in the lab, `lab-trust.p12` holds a **trustedCertEntry**, without containing `lab-signer`'s private key. If keytool prompts to confirm trust, confirm only because you just generated the certificate yourself **in the lab environment**; never skip fingerprint checks in real environments.
 
-`keytool -exportcert` export **chứng chỉ công khai**, không phải private key. Lưu một certificate ở truststore không cho phép ứng dụng ký thay chủ thể certificate đó. Đây là cách trực quan phân biệt một bên **identity keystore** (`PrivateKeyEntry`) với **truststore** (`TrustedCertificateEntry`). Cả hai đều có thể dùng file `.p12`, nhưng **ý nghĩa security khác nhau**.
+`keytool -exportcert` exports the **public certificate**, not the private key. Storing a certificate in a truststore does not let the application sign on behalf of that certificate's subject. This is a visual way to distinguish an **identity keystore** (`PrivateKeyEntry`) from a **truststore** (`TrustedCertificateEntry`). Both can use `.p12` files, yet their **security semantics differ**.
 
-### 7.3 Thêm secret key bằng `keytool` (tuỳ JDK/provider)
+### 7.3 Adding a Secret Key with `keytool` (JDK/Provider Dependent)
 
 ```bash
 keytool -genseckey -alias lab-aes -keyalg AES -keysize 128 -storetype PKCS12 -keystore lab-secrets.p12
 keytool -list -v -storetype PKCS12 -keystore lab-secrets.p12
 ```
 
-Với provider hỗ trợ `SecretKeyEntry` cho type này, entry type sẽ hiện secret-key entry. Nếu provider không hỗ trợ, phải xử lý theo thiết kế được phép, không ép chuyển sang JKS rồi tưởng mọi type đều chứa được secret key.
+On providers supporting `SecretKeyEntry` for this type, the entry type displays as a secret-key entry. If a provider does not support it, follow an approved design rather than forcing JKS or assuming every type holds secret keys.
 
-**Lưu ý bảo mật đối với keytool:** dùng các file và passwords dành riêng cho học tập; tool có thể lưu password-derived protected key material trong file, nên bảo vệ quyền file và xóa dữ liệu lab theo chính sách. Output `keytool -list -v` không nên chứa raw secret/private key.
+**Security notes for keytool:** use dedicated study files and passwords; the tool can write password-derived protected key material into files, so protect file permissions and clean up lab data per policy. `keytool -list -v` output should never contain raw secret/private keys.
 
-## 8. Phân biệt KeyStore và truststore trong TLS
+## 8. Distinguishing KeyStore and Truststore in TLS
 
-`KeyStore` là API/type, còn “keystore” và “truststore” trong cấu hình TLS thường là **vai trò ứng dụng**:
+`KeyStore` is the API/type, whereas "keystore" and "truststore" in TLS configurations typically denote **application roles**:
 
-- **Identity keystore:** chứa `PrivateKeyEntry` + certificate chain của service/client để **trình chứng chỉ và dùng private key khi xác thực/ký**.
-- **Truststore:** chứa `TrustedCertificateEntry` (CA roots hoặc certificate được pin) để **đánh giá chứng chỉ của peer** theo policy.
-- **Secret-key keystore:** chứa `SecretKeyEntry` cho AES/HMAC hoặc secret key khác, **không thay certificate identity**.
+- **Identity keystore:** holds the service/client's `PrivateKeyEntry` + certificate chain to **present the certificate and use the private key during authentication/signing**.
+- **Truststore:** holds `TrustedCertificateEntry` items (CA roots or pinned certificates) to **evaluate the peer's certificate** per policy.
+- **Secret-key keystore:** holds `SecretKeyEntry` for AES/HMAC or other secret keys, **not a substitute for certificate identity**.
 
-Một file keystore có thể hỗn hợp nhiều loại entry, nhưng việc đặt tên file `truststore.p12` **không tự** bảo đảm chỉ chứa trusted cert. Đừng chỉ nhìn đuôi `.p12` hoặc alias để quyết định một kho có an toàn dùng làm TLS truststore hay không.
+A single keystore file can mix entry types, yet naming a file `truststore.p12` **does not automatically** guarantee it only holds trusted certs. Never judge from the `.p12` extension or alias alone whether a store is safe to use as a TLS truststore.
 
-Khi cấu hình TLS, còn cần chọn algorithm policy, `KeyManager`/`TrustManager`, chứng chỉ được phép sử dụng, hostname/identity validation, chain validation và revocation theo hệ thống. `KeyStore` chỉ cung cấp nguồn entry; **không tự chạy validation PKIX** khi bạn thêm một chứng chỉ bất kỳ bằng `setCertificateEntry`.
+When configuring TLS, you must also choose algorithm policies, `KeyManager`/`TrustManager`, allowed certificates, hostname/identity validation, chain validation, and revocation per system requirements. `KeyStore` only supplies entries; it **does not run PKIX validation automatically** when you add an arbitrary certificate with `setCertificateEntry`.
 
-## 9. Những sai lầm thường gặp trong code và vận hành
+## 9. Common Code and Operational Mistakes
 
-| Lỗi/nhận định | Vì sao sai | Cách đúng |
+| Mistake/Assumption | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| `getInstance("PKCS12")` rồi `setEntry` không gọi `load` | Keystore chưa được initialized | `load(null, pass)` khi tạo mới, hoặc `load(in, pass)` khi đọc cũ. |
-| Dùng `load(null, pass)` để “mở file cũ” | Tạo kho mới rỗng; có thể dẫn tới xóa nội dung cũ nếu `store` đè vào cùng file | Đọc file cũ bằng `InputStream`. |
-| Gọi `setEntry(...)` rồi thoát | Mới đổi trạng thái RAM, chưa persist | `store` ra output sau khi sửa. |
-| Gọi `store` trực tiếp lên file đang dùng không backup | Có thể truncate file nếu lỗi/crash giữa chừng | Temp file + kiểm tra + atomic replace/backup khi hỗ trợ, quyền file chặt. |
-| `isKeyEntry(alias)` rồi cast thẳng `SecretKeyEntry` | Cũng `true` cho `PrivateKeyEntry` | `entryInstanceOf(alias, SecretKeyEntry.class)` trước cast. |
-| `getCertificate(alias) != null` tức trusted cert | PrivateKeyEntry cũng có leaf certificate | `isCertificateEntry(alias)` hoặc `entryInstanceOf(... TrustedCertificateEntry.class)`. |
-| Tin certificate đã `setCertificateEntry` là hợp lệ | App vừa tự **chỉ định trust**, không hề chứng thực từ nguồn ngoài | Xác minh nguồn, fingerprint, PKIX/identity/usage. |
-| Store password đúng thì mọi entry đều mở được | Entry password/protection có thể khác | Gọi `getEntry` với đúng `ProtectionParameter`, xử lý lỗi riêng. |
-| Alias không tồn tại nên `getEntry` ném lỗi | API trả `null` nếu thiếu alias | Kiểm tra `containsAlias`, `null`, báo missing riêng. |
-| Password sai thì coi như không có alias | Thất bại bảo vệ key, không phải bản ghi thiếu | Phân biệt `UnrecoverableEntryException`/lỗi load. |
-| Đặt entry mới với alias đã tồn tại | `setEntry` có thể **ghi đè** entry cũ | Check alias, policy replace/migration và backup. |
-| Gọi `load(null,pass)` lần 2 để “refresh” | Có thể reinitialize và làm mất state hiện tại | Reload từ file/stream thực hoặc tạo object mới. |
-| Cho rằng `getDefaultType()` luôn là PKCS12 | Mặc định runtime cấu hình được | Chọn type tường minh với format được yêu cầu. |
-| Lưu private key trong repo/với password nằm trong source | Lộ vật liệu khóa khi repo/log bị lộ | Secret manager/HSM/permissions/rotation. |
-| Tin PKCS12 giải quyết mọi backup/concurrency | KeyStore không phải DB transactional hoặc HSM | Thiết kế atomic update, lock/backup, quản lý key lifecycle. |
-| `getKey` trả `Key` rồi cast tùy ý thành `PrivateKey` | Alias có thể là `SecretKey` | Kiểm tra loại key/entry trước cast; dùng API đích phù hợp. |
+| `getInstance("PKCS12")` then `setEntry` without calling `load` | Keystore is uninitialized | `load(null, pass)` when creating new, or `load(in, pass)` when reading existing. |
+| Using `load(null, pass)` to "open an existing file" | Creates a new empty store; can wipe old contents if `store` overwrites the same file | Read existing file via `InputStream`. |
+| Calling `setEntry(...)` then exiting | Modifies RAM state only, not persisted | Call `store` to output after modifying. |
+| Calling `store` directly on a live file without backup | Can truncate file on mid-write error/crash | Temp file + verification + atomic replace/backup when supported, strict file permissions. |
+| `isKeyEntry(alias)` then casting straight to `SecretKeyEntry` | Also `true` for `PrivateKeyEntry` | `entryInstanceOf(alias, SecretKeyEntry.class)` before casting. |
+| `getCertificate(alias) != null` means trusted cert | `PrivateKeyEntry` also has a leaf certificate | `isCertificateEntry(alias)` or `entryInstanceOf(... TrustedCertificateEntry.class)`. |
+| Trusting a certificate just because `setCertificateEntry` ran | The app itself just **assigned trust**, without verifying external provenance | Verify origin, fingerprint, PKIX/identity/usage. |
+| Right store password means every entry can be opened | Entry password/protection may differ | Call `getEntry` with the right `ProtectionParameter` and handle errors separately. |
+| Missing alias causes `getEntry` to throw | API returns `null` when alias is missing | Check `containsAlias`, `null`, and report missing distinctly. |
+| Wrong password treated as missing alias | Key protection failure, not a missing record | Distinguish `UnrecoverableEntryException`/load errors. |
+| Adding a new entry with an existing alias | `setEntry` can **overwrite** the old entry | Check alias, follow replace/migration policy, and back up. |
+| Calling `load(null, pass)` a second time to "refresh" | Can reinitialize and lose current state | Reload from real file/stream or create a new object. |
+| Assuming `getDefaultType()` is always PKCS12 | Runtime default is configurable | Specify explicit type for the required format. |
+| Storing private keys in repo / passwords in source | Exposes key material if repo/logs leak | Secret manager/HSM/permissions/rotation. |
+| Expecting PKCS12 to handle all backups/concurrency | KeyStore is not a transactional DB or HSM | Design atomic updates, locks/backups, and key lifecycle management. |
+| `getKey` returns `Key`, then casting blindly to `PrivateKey` | Alias might hold a `SecretKey` | Check key/entry type before casting; use target API properly. |
 
-## 10. Lỗi ngoại lệ và cách phát hiện chính xác
+## 10. Exceptions and Accurate Diagnosis
 
-| Giai đoạn | Lỗi có thể xuất hiện | Hướng kiểm tra |
+| Stage | Possible exceptions | What to check |
 | --- | --- | --- |
-| `KeyStore.getInstance("PKCS12")` | `KeyStoreException` nếu type/provider không được hỗ trợ | Xem Java version, provider registry, policy. |
-| `size()`, `getKey`, `setEntry`, `store` trước `load` | `KeyStoreException` vì keystore chưa initialized | Gọi `load` trước. |
-| `load(input, wrongPassword)` | `IOException`, có thể chứa cause `UnrecoverableKeyException` | Không tiếp tục; phân biệt mật khẩu sai với file corrupt/type không đúng. |
-| `load(input, password)` | `NoSuchAlgorithmException`, `CertificateException`, `IOException` | Thuật toán integrity/cert parsing hoặc stream bytes không hợp lệ. |
-| `setEntry` | `KeyStoreException` khi type/provider không hỗ trợ entry, alias/operation sai | Kiểm tra khả năng provider và thiết kế entry. |
-| `getEntry(alias, wrongProtection)` | `UnrecoverableEntryException`, `UnrecoverableKeyException` | Entry còn đó nhưng không được mở bằng protection này. |
-| `getEntry("missing", protection)` | **`null`** | Không ném lỗi chỉ vì alias thiếu; không cast nếu `null`. |
-| `entryInstanceOf(alias, class)` | `false` nếu alias không có/khác loại; có thể `KeyStoreException` khi uninitialized | Dùng như gate trước cast và trước logic dùng key. |
-| Cast `KeyStore.Entry` sai kiểu | `ClassCastException` do code | Phân loại bằng `entryInstanceOf` hoặc `instanceof`. |
-| `store(output, password)` | `IOException` / `CertificateException` / `NoSuchAlgorithmException` | Có thể output chưa hoàn chỉnh; không thay file thật nếu lưu chưa thành công. |
+| `KeyStore.getInstance("PKCS12")` | `KeyStoreException` if type/provider unsupported | Check Java version, provider registry, policy. |
+| `size()`, `getKey`, `setEntry`, `store` before `load` | `KeyStoreException` because keystore is uninitialized | Call `load` first. |
+| `load(input, wrongPassword)` | `IOException`, possibly with cause `UnrecoverableKeyException` | Do not proceed; distinguish wrong password from corrupted file/wrong type. |
+| `load(input, password)` | `NoSuchAlgorithmException`, `CertificateException`, `IOException` | Integrity/cert parsing algorithm or invalid stream bytes. |
+| `setEntry` | `KeyStoreException` when type/provider lacks entry support, or bad alias/operation | Check provider capabilities and entry design. |
+| `getEntry(alias, wrongProtection)` | `UnrecoverableEntryException`, `UnrecoverableKeyException` | Entry exists but cannot be opened with this protection. |
+| `getEntry("missing", protection)` | **`null`** | Does not throw merely because alias is missing; do not cast `null`. |
+| `entryInstanceOf(alias, class)` | `false` if alias missing/different type; may throw `KeyStoreException` if uninitialized | Use as gate before casting and before key-using logic. |
+| Casting `KeyStore.Entry` to wrong type | `ClassCastException` from code | Classify via `entryInstanceOf` or `instanceof`. |
+| `store(output, password)` | `IOException` / `CertificateException` / `NoSuchAlgorithmException` | Output may be incomplete; never replace real file if store did not succeed. |
 
-**Phân biệt lỗi xác thực/integrity với lỗi parse:** Mật khẩu sai, file bị chỉnh sửa hoặc file không cùng type có thể cùng xuất hiện dưới dạng `IOException` ở `load`. Không hiển thị chi tiết nhạy cảm cho người dùng cuối hoặc tự fallback sang `load(..., null)` để “bỏ qua” kiểm tra integrity.
+**Distinguishing auth/integrity errors from parse errors:** Wrong password, tampered file, or mismatched file type can all surface as `IOException` during `load`. Never expose sensitive details to end users or automatically fall back to `load(..., null)` to "skip" integrity checks.
 
-### 10.1 Hệ quả của `null`
+### 10.1 Implications of `null`
 
-Có ba `null` rất khác nhau:
+There are three very different `null`s:
 
 ```text
-KeyStore.load(null, password)   -> TẠO MỚI kho trống.
-KeyStore.getEntry("missing", p)  -> trả null vì alias KHÔNG CÓ.
-KeyStore.getKey("cert-only", p)  -> trả null vì entry không chứa key.
+KeyStore.load(null, password)   -> CREATE NEW empty store.
+KeyStore.getEntry("missing", p) -> returns null because alias DOES NOT EXIST.
+KeyStore.getKey("cert-only", p) -> returns null because entry holds no key.
 ```
 
-Với `getEntry` của trusted certificate, protection thường là `null` vì không có private/secret key cần mở. Nhưng `load(in, null)` lại là quyết định khác: có thể bỏ integrity check. **Đừng áp một ý nghĩa chung cho mọi chữ `null` trong API.**
+For `getEntry` on a trusted certificate, protection is typically `null` since no private/secret key needs unlocking. Yet `load(in, null)` is a different decision: it may skip integrity checking. **Never apply one universal meaning to every `null` in the API.**
 
-## 11. Thiết kế lưu file an toàn và quản lý khóa production
+## 11. Safe File Persistence and Production Key Management Design
 
-### 11.1 Tạo file mới không vô tình đè file cũ
+### 11.1 Creating a New File Without Accidentally Overwriting an Old One
 
-Khi tạo kho, trước hết xác định rõ operation là `CREATE_NEW` hay `OPEN_EXISTING`; tránh logic:
+When creating a store, first distinguish `CREATE_NEW` vs. `OPEN_EXISTING`; avoid logic like:
 
 ```text
-Nếu file có lỗi khi load -> load(null, password) -> store đè file cũ
+If file fails to load -> load(null, password) -> store overwriting old file
 ```
 
-Đó là một **lỗi mất dữ liệu nghiêm trọng**: sai password hoặc file corrupt có thể khiến code tạo kho trống rồi ghi đè mọi key/certificate trước đó.
+That is a **critical data-loss bug**: a wrong password or corrupted file can cause code to create an empty store and wipe all prior keys/certificates.
 
-Thay vào đó:
+Instead:
 
-1. **Create new:** kiểm tra file đích chưa tồn tại, dùng thao tác tạo file **không cho phép replace** (chẳng hạn `CREATE_NEW`) và quyền truy cập hạn chế. Nếu tên đã có, báo lỗi rõ.
-2. **Open existing:** nếu file không có hoặc password sai, dừng và điều tra; **không tạo kho mới như fallback**.
-3. **Change existing:** tải kho thành công, ghi entry, serialize vào temp file, kiểm tra kết quả và bản backup phù hợp trước khi replace.
-4. **Multiple processes:** phối hợp lock/transaction ở lớp ứng dụng; tránh lost updates khi hai process cùng đọc-ghi phiên bản khác nhau.
-5. **Backup/recovery:** version store, backup an toàn, thử restore; lưu cả cấu hình type, algorithm/provider cần thiết và chính sách thay key.
+1. **Create new:** verify target file does not exist, use a file creation mode **forbidding replacement** (such as `CREATE_NEW`) with restricted permissions. If the name already exists, fail clearly.
+2. **Open existing:** if the file is missing or the password is wrong, stop and investigate; **never create a new store as a fallback**.
+3. **Modify existing:** load store successfully, write entries, serialize to a temp file, verify results and proper backups before replacing.
+4. **Multiple processes:** coordinate locks/transactions at the application layer; avoid lost updates when two processes read-modify-write different versions.
+5. **Backup/recovery:** version stores, back up securely, test restores; record required type, algorithm/provider settings, and key replacement policies.
 
-`Files.move(..., ATOMIC_MOVE)` là công cụ hữu ích khi được filesystem hỗ trợ, nhưng bản thân nó không bảo đảm tự động việc fsync thư mục, backup, khôi phục hay khóa file; thiết kế cần phù hợp môi trường.
+`Files.move(..., ATOMIC_MOVE)` is useful when supported by the filesystem, yet by itself does not guarantee directory fsync, backups, recovery, or file locking; design for your target environment.
 
-### 11.2 Bảo vệ keystore bytes không đồng nghĩa bảo vệ toàn bộ ứng dụng
+### 11.2 Protecting Keystore Bytes Does Not Equal Protecting the Entire Application
 
-- Password nên được cấp qua secure config/secret manager, không nằm trong Git, command-line, stdout, log, exception message hoặc test fixture production.
-- Phân quyền file, owner, backup, volume/cloud bucket phù hợp; tránh file `.p12` world-readable ngay cả khi có password.
-- Không ghi raw `PrivateKey.getEncoded()` hoặc `SecretKey.getEncoded()` lên log để debug. Provider/HSM có thể trả `null` vì khóa không xuất được; đây là đặc điểm an toàn, không tự coi là lỗi.
-- Với HSM/PKCS#11 hoặc provider chuyên dụng, khóa có thể không thể export; KeyStore có thể biểu diễn reference/slot, không phải file PKCS12. Không tự sao chép sang file chỉ để thỏa `store`.
-- Quản lý **key usage**: secret AES cho mã hóa không phải RSA private key cho chữ ký; certificate public không cho phép ký.
-- Rotation, expiry, revocation và trust policy là quy trình **ngoài** `KeyStore.load/store`; có thể có nhiều alias cho key cũ/mới và thời gian chuyển đổi được kiểm soát.
-- Nếu cung cấp truststore cho TLS, kiểm tra danh tính host/chain/usage, không chỉ để một CA certificate vào file.
+- Passwords should come from secure config/secret managers, never residing in Git, command lines, stdout, logs, exception messages, or production test fixtures.
+- Set proper file permissions, ownership, backups, and volume/cloud bucket ACLs; avoid world-readable `.p12` files even when password-protected.
+- Never print raw `PrivateKey.getEncoded()` or `SecretKey.getEncoded()` to debug logs. Providers/HSMs may return `null` because keys are non-exportable; this is a security property, not an error.
+- With HSM/PKCS#11 or specialized providers, keys may be non-exportable; KeyStore may represent a reference/slot rather than a PKCS12 file. Never copy keys to a file just to satisfy `store`.
+- Enforce **key usage**: an AES secret for encryption is not an RSA private key for signing; a public certificate cannot sign.
+- Rotation, expiry, revocation, and trust policies are processes **outside** `KeyStore.load/store`; maintain multiple aliases for old/new keys and controlled transition windows.
+- When supplying a truststore for TLS, verify host identity/chain/usage rather than just dropping a CA certificate into a file.
 
-## 12. Kiểm thử và checklist trước khi dùng
+## 12. Testing and Pre-Release Checklist
 
-| Test | Điều cần chứng minh |
+| Test | What to prove |
 | --- | --- |
-| `getInstance` trước `load` | Chưa init, không thể thao tác entry như kho đã mở. |
-| `load(null, password)` | Tạo kho rỗng; `size() == 0`. |
-| Thêm AES `SecretKeyEntry` | `isKeyEntry=true`; `isCertificateEntry=false`. |
-| `store` rồi tạo object mới `load` | `size()` và alias/entry type giữ đúng. |
-| `entryInstanceOf` cho ba type | Đúng một loại kỳ vọng trả `true`. |
-| `getEntry(alias, protection)` | Đúng loại được lấy; key bytes so khớp nội bộ; không log secret. |
-| Alias không tồn tại | `containsAlias=false`, `getEntry` trả `null`. |
-| `load` với store password sai | Bị từ chối trên kho protected; không fallback tạo mới. |
-| `getEntry` với key password sai | Bị từ chối theo `UnrecoverableEntryException` hoặc provider-specific lỗi. |
-| Alias xung đột | Không âm thầm overwrite; có chính sách migration. |
-| PKCS12 khác provider/JDK | Các entry types/algorithms và passwords thực sự interoperable. |
-| Certificate/trust | Chứng chỉ có nguồn đáng tin, không gán trust chỉ vì import thành công. |
-| Crash giữa `store` | File cũ/backup còn khôi phục được; không tạo kho rỗng thay thế. |
+| `getInstance` before `load` | Uninitialized; cannot manipulate entries like an open store. |
+| `load(null, password)` | Creates empty store; `size() == 0`. |
+| Add AES `SecretKeyEntry` | `isKeyEntry=true`; `isCertificateEntry=false`. |
+| `store` then new object `load` | `size()` and alias/entry type preserved accurately. |
+| `entryInstanceOf` for all three types | Only the expected type returns `true`. |
+| `getEntry(alias, protection)` | Right type retrieved; key bytes match internally; no secrets logged. |
+| Missing alias | `containsAlias=false`, `getEntry` returns `null`. |
+| `load` with wrong store password | Rejected on protected store; no fallback to creating a new store. |
+| `getEntry` with wrong key password | Rejected via `UnrecoverableEntryException` or provider-specific error. |
+| Alias collision | No silent overwrite; migration policy followed. |
+| Cross-provider/JDK PKCS12 | Entry types/algorithms and passwords are genuinely interoperable. |
+| Certificate/trust | Certificates come from trusted origins; trust is not granted merely because import succeeded. |
+| Mid-`store` crash | Old file/backup remains recoverable; no empty store replaces it. |
 
-**Checklist code review:**
+**Code review checklist:**
 
-- [ ] `KeyStore.getInstance("PKCS12")` theo type đã thống nhất; không lệ thuộc `getDefaultType()` bất ngờ.
-- [ ] Có đường đi rõ: tạo mới `load(null, pass)` **hoặc** đọc cũ `load(in, pass)`; không fallback destructive.
-- [ ] `setEntry` hoặc `setCertificateEntry` đúng loại và bảo vệ key phù hợp.
-- [ ] `store` được gọi sau thay đổi; stream được đóng, file update an toàn, không vô tình overwrite bản tốt.
-- [ ] Phân biệt `isKeyEntry` với `entryInstanceOf(SecretKeyEntry.class)`/`entryInstanceOf(PrivateKeyEntry.class)`.
-- [ ] Không xem `getCertificate != null` là đủ để xác định trusted certificate.
-- [ ] Xử lý alias `null`/missing, sai password và sai type riêng; không cast mù.
-- [ ] Password/key không nằm trong source/log/CLI; quản lý quyền file và backup.
-- [ ] Có kiểm thử reload thực tế và kiểm thử provider/JDK mục tiêu.
-- [ ] Truststore/identity keystore được phân biệt về **chính sách**, không chỉ tên file.
+- [ ] `KeyStore.getInstance("PKCS12")` uses the agreed type; does not rely unexpectedly on `getDefaultType()`.
+- [ ] Clear separation between creating new `load(null, pass)` **and** reading existing `load(in, pass)`; no destructive fallback.
+- [ ] `setEntry` or `setCertificateEntry` uses the right type and appropriate key protection.
+- [ ] `store` is called after modifications; streams are closed, file updates are safe, and good versions are never accidentally overwritten.
+- [ ] `isKeyEntry` is distinguished from `entryInstanceOf(SecretKeyEntry.class)`/`entryInstanceOf(PrivateKeyEntry.class)`.
+- [ ] `getCertificate != null` is not treated as sufficient to identify a trusted certificate.
+- [ ] Missing/`null` aliases, wrong passwords, and wrong types are handled distinctly; no blind casts.
+- [ ] Passwords/keys are absent from source/logs/CLI; file permissions and backups are enforced.
+- [ ] Actual reload tests and target provider/JDK tests are executed.
+- [ ] Truststore and identity keystore are separated by **policy**, not just filename.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-**1. `getInstance("PKCS12")` có mở hoặc tạo file ngay không?**  
-**Không.** Nó chọn implementation, object chưa load. Muốn tạo kho mới cần `load(null, password)` rồi `store(...)` khi cần persist.
+**1. Does `getInstance("PKCS12")` immediately open or create a file?**  
+**No.** It selects an implementation; the object is unloaded. To create a new store, call `load(null, password)` and then `store(...)` when persistence is needed.
 
-**2. `load(null, pass)` có an toàn để thử khi đọc file lỗi không?**  
-**Không.** Nó tạo state rỗng, nếu sau đó `store` vào file đang lỗi sẽ **ghi đè và mất nội dung**. Phải điều tra lỗi password/format.
+**2. Is `load(null, pass)` safe to try as a fallback when reading a failing file?**  
+**No.** It initializes an empty state; if `store` subsequently writes to the failing file, it **overwrites and destroys contents**. Investigate password/format errors instead.
 
-**3. Sau `setEntry`, file đã có key mới chưa?**  
-**Chưa.** Phải `store` output rồi mới có bytes lưu trữ mới.
+**3. After `setEntry`, does the file already contain the new key?**  
+**No.** You must call `store` to an output before new persisted bytes exist.
 
-**4. Vì sao `isKeyEntry("x") == true` không đủ để cast thành `SecretKeyEntry`?**  
-Vì cả `PrivateKeyEntry` và `SecretKeyEntry` đều là key entries; dùng `entryInstanceOf(..., SecretKeyEntry.class)` để xác nhận.
+**4. Why is `isKeyEntry("x") == true` insufficient to cast to `SecretKeyEntry`?**  
+Because both `PrivateKeyEntry` and `SecretKeyEntry` are key entries; use `entryInstanceOf(..., SecretKeyEntry.class)` to confirm.
 
-**5. `getCertificate("x") != null` có chứng minh `TrustedCertificateEntry` không?**  
-**Không.** `PrivateKeyEntry` cũng trả leaf certificate qua API này.
+**5. Does `getCertificate("x") != null` prove a `TrustedCertificateEntry`?**  
+**No.** `PrivateKeyEntry` also returns its leaf certificate from this API.
 
-**6. Khác biệt giữa `PrivateKeyEntry` và `TrustedCertificateEntry` là gì?**  
-`PrivateKeyEntry` chứa **private key + chain** để thực hiện thao tác private-key; `TrustedCertificateEntry` chỉ chứa **public certificate** phục vụ chính sách trust, không có private key.
+**6. What is the difference between `PrivateKeyEntry` and `TrustedCertificateEntry`?**  
+`PrivateKeyEntry` contains a **private key + chain** for private-key operations; `TrustedCertificateEntry` contains only a **public certificate** for trust policies, with no private key.
 
-**7. Store password và key entry password có nhất thiết khác nhau không?**  
-**Không.** Java API có hai vai trò khác nhau; khả năng tách password phụ thuộc type/provider. Demo PKCS12 dùng chung một password để tương thích.
+**7. Must the store password and key entry password always differ?**  
+**No.** The Java API distinguishes two roles; whether passwords can be separated depends on type/provider. The PKCS12 demo uses one shared password for compatibility.
 
-**8. Alias không tồn tại và password sai có cùng kết quả không?**  
-**Không.** Alias thiếu thường trả `null`; password sai để mở key entry gây lỗi recover, còn password sai khi `load` có thể là `IOException`.
+**8. Do a non-existent alias and a wrong password produce the same result?**  
+**No.** A missing alias typically returns `null`; a wrong password for opening a key entry causes a recovery error, whereas a wrong password in `load` can throw `IOException`.
 
-**9. Tại sao demo không sinh self-signed certificate bằng Java public API?**  
-Vì JDK không có bộ API public đơn giản dùng cho việc cấp X.509 self-signed. Demo Java thuần tập trung SecretKeyEntry; `keytool` minh họa PrivateKeyEntry và TrustedCertificateEntry.
+**9. Why didn't the Java demo generate a self-signed certificate using public Java APIs?**  
+Because the JDK lacks a simple public API for issuing self-signed X.509 certificates. The pure-Java demo focuses on `SecretKeyEntry`; `keytool` illustrates `PrivateKeyEntry` and `TrustedCertificateEntry`.
 
-**10. `PKCS12` có thay thế HSM/KMS và việc xác thực PKI không?**  
-**Không.** Nó là định dạng/keystore implementation, không tự cung cấp chính sách enterprise, cách ly phần cứng, kiểm tra chuỗi trust hay quản lý vòng đời.
+**10. Does `PKCS12` replace an HSM/KMS and PKI validation?**  
+**No.** It is a container format/keystore implementation; it does not provide enterprise policy enforcement, hardware isolation, trust-chain validation, or lifecycle management on its own.
 
-## Tài liệu chính thức
+## Official Documentation
 
-- [Java SE 17 — `java.security.KeyStore`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): các entry types, `getInstance`, `load`, `store`, `getEntry`, `setEntry`, `entryInstanceOf`, `isKeyEntry`, `isCertificateEntry` và ngoại lệ.
-- [Java SE 17 — `KeyStore.SecretKeyEntry`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.SecretKeyEntry.html): lưu và lấy `SecretKey`.
-- [Java SE 17 — `KeyStore.PrivateKeyEntry`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.PrivateKeyEntry.html): private key và certificate chain.
-- [Java SE 17 — `KeyStore.TrustedCertificateEntry`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.TrustedCertificateEntry.html): chứng chỉ được tin cậy.
-- [Java SE 17 — `KeyStore.PasswordProtection`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.PasswordProtection.html): protection parameter cho key entries.
-- [Java SE 17 — `keytool` manual](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): `-genkeypair`, `-genseckey`, `-exportcert`, `-importcert`, `-list -v`, keystore type.
-- [Java SE 17 — Java Cryptography Architecture Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): KeyStore engine và provider SPI.
-- [Java SE 17 — Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): type `PKCS12` và các tên chuẩn.
-- [Java SE 17 — `KeyGenerator`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html): cách sinh AES `SecretKey` trong ví dụ.
+- [Java SE 17 — `java.security.KeyStore`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): entry types, `getInstance`, `load`, `store`, `getEntry`, `setEntry`, `entryInstanceOf`, `isKeyEntry`, `isCertificateEntry`, and exceptions.
+- [Java SE 17 — `KeyStore.SecretKeyEntry`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.SecretKeyEntry.html): storing and retrieving `SecretKey`.
+- [Java SE 17 — `KeyStore.PrivateKeyEntry`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.PrivateKeyEntry.html): private key and certificate chain.
+- [Java SE 17 — `KeyStore.TrustedCertificateEntry`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.TrustedCertificateEntry.html): trusted certificate.
+- [Java SE 17 — `KeyStore.PasswordProtection`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.PasswordProtection.html): protection parameter for key entries.
+- [Java SE 17 — `keytool` manual](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): `-genkeypair`, `-genseckey`, `-exportcert`, `-importcert`, `-list -v`, keystore types.
+- [Java SE 17 — Java Cryptography Architecture Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): KeyStore engine and provider SPI.
+- [Java SE 17 — Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): `PKCS12` type and standard names.
+- [Java SE 17 — `KeyGenerator`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html): generating the AES `SecretKey` in the example.
 
-**Ghi nhớ:** `getInstance` chọn KeyStore; `load(null, ...)` tạo kho trống; `load(stream, ...)` đọc kho hiện có; `setEntry` sửa RAM; `store` mới lưu; `entryInstanceOf`/`instanceof` mới chứng minh **đúng kiểu entry**. Khả năng giữ khóa an toàn còn phụ thuộc mật khẩu, provider, quyền file, backup, PKI trust và key-management policy.
+**Remember:** `getInstance` selects a KeyStore; `load(null, ...)` creates an empty store; `load(stream, ...)` reads an existing store; `setEntry` updates RAM; `store` persists bytes; and `entryInstanceOf`/`instanceof` proves the **exact entry type**. Keeping keys secure also depends on passwords, providers, file permissions, backups, PKI trust, and key-management policies.

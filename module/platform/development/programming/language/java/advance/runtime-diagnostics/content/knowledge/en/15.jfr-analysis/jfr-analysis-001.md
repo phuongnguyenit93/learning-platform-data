@@ -1,45 +1,45 @@
-# 15.1. JDK Mission Control là công cụ riêng để mở và phân tích bản ghi
+# 15.1. JDK Mission Control is a separate tool for opening and analyzing recordings
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **JDK Flight Recorder (JFR)**, tệp **`.jfr`**, tiện ích dòng lệnh **`jcmd`/`jfr`** và ứng dụng đồ họa **JDK Mission Control (JMC)**.
-- Giải thích vì sao có JDK và tạo được bản ghi JFR **không đồng nghĩa** máy đã cài JMC.
-- Tạo một bản ghi, chuyển tệp sang máy phân tích, mở bằng JMC và khảo sát các event trong đúng khoảng thời gian.
-- Dùng **Automated Analysis Results**, Memory, Code, Threads/Locks, I/O và Events để tìm dấu hiệu cần điều tra, đồng thời nhận biết giới hạn của dữ liệu được thu thập.
-- Tránh kết luận sai từ cảnh báo tự động, mẫu CPU, thống kê allocation, ngưỡng event hoặc khoảng thời gian không bao phủ sự cố.
+- Distinguish **JDK Flight Recorder (JFR)**, **`.jfr`** files, the **`jcmd`/`jfr`** command-line utilities, and the **JDK Mission Control (JMC)** graphical application.
+- Explain why having a JDK and being able to create JFR recordings **does not mean** JMC is installed on the machine.
+- Create a recording, transfer the file to an analysis machine, open it with JMC, and inspect events within the right time range.
+- Use **Automated Analysis Results**, Memory, Code, Threads/Locks, I/O, and Events to find signals worth investigating, while recognizing the limitations of the collected data.
+- Avoid drawing false conclusions from automated warnings, CPU samples, allocation statistics, event thresholds, or time windows that do not cover the incident.
 
-**Môi trường:** Java 17+ phù hợp với ví dụ có API `jdk.jfr`; tên menu và chi tiết giao diện JMC có thể hơi khác tùy bản phát hành. JMC là ứng dụng desktop có bản phân phối riêng, có thể chạy trên máy khác máy sinh ra recording.
+**Environment:** Java 17+ is suitable for examples using the `jdk.jfr` API; menu names and JMC UI details may vary slightly depending on the release. JMC is a desktop application with a separate distribution and can run on a different machine from the one that generated the recording.
 
-## 1. Tách rõ nơi ghi dữ liệu và nơi phân tích
+## 1. Clearly separate where data is recorded from where it is analyzed
 
-**JDK Flight Recorder (JFR)** là cơ chế ghi sự kiện chẩn đoán/profiling tích hợp trong JVM/JDK. Các sự kiện có thể mô tả hoạt động CPU sampling, garbage collection, cấp phát, thread, lock, I/O, môi trường JVM và sự kiện do ứng dụng tự định nghĩa. JFR lưu dữ liệu kèm thời gian, thuộc tính, tên thread và stack trace **khi loại event/cấu hình cho phép**.
+**JDK Flight Recorder (JFR)** is a diagnostic/profiling event recording mechanism built into the JVM/JDK. Events can describe CPU sampling activity, garbage collection, allocations, threads, locks, I/O, the JVM environment, and application-defined events. JFR stores data along with timestamps, attributes, thread names, and stack traces **when permitted by the event type and configuration**.
 
-**JDK Mission Control (JMC)** là **bộ công cụ đồ họa phân tích** các dữ liệu đó. JMC có khả năng kết nối/quan sát JVM đang chạy qua các cơ chế tương ứng, nhưng chức năng mở một tệp `.jfr` đã có là **phân tích offline** và không cần tiến trình gốc tiếp tục chạy.
+**JDK Mission Control (JMC)** is a **graphical tool suite for analyzing** that data. JMC can connect to and observe a running JVM through the corresponding mechanisms, but opening an existing `.jfr` file is **offline analysis** and does not require the original process to keep running.
 
-| Thành phần | Chức năng chính | Điểm cần nhớ |
+| Component | Main function | Key things to remember |
 |---|---|---|
-| **JFR trong JVM** | Phát và thu thập event từ hoạt động runtime | Thu thập được những gì tùy cấu hình event, thời gian và JVM |
-| **Tệp `.jfr`** | Dữ liệu recording dạng **binary** | Không phải text log, heap dump `.hprof` hay core dump |
-| **`jcmd`** | Gửi lệnh `JFR.start`, `JFR.check`, `JFR.dump`, `JFR.stop` tới JVM đang chạy | Công cụ dòng lệnh đi cùng JDK phù hợp; cần attach/quyền đối với JVM |
-| **`jfr`** | Kiểm tra tệp recording đã tạo qua CLI (ví dụ `summary`, `print`) | Hữu ích khi máy không có giao diện đồ họa |
-| **JMC** | Mở và phân tích recording với timeline, bảng, biểu đồ, luật gợi ý | **Cài/chạy riêng** nếu bản JDK không đóng gói JMC; không bắt buộc có JVM gốc để mở `.jfr` |
+| **JFR in the JVM** | Emits and collects events from runtime activity | What gets collected depends on event settings, duration, and the JVM |
+| **`.jfr` file** | Recording data in **binary** format | Not a text log, `.hprof` heap dump, or core dump |
+| **`jcmd`** | Sends `JFR.start`, `JFR.check`, `JFR.dump`, `JFR.stop` commands to a running JVM | Command-line tool bundled with a matching JDK; requires attach/permissions for the JVM |
+| **`jfr`** | Inspects an existing recording file via CLI (e.g., `summary`, `print`) | Useful when the machine has no graphical interface |
+| **JMC** | Opens and analyzes recordings with timelines, tables, charts, and advisory rules | **Installed/run separately** if the JDK distribution does not bundle JMC; does not require the original JVM to open `.jfr` |
 
-Luồng cơ bản:
+Basic flow:
 
 ```text
-Java application + JVM (có JFR)
+Java application + JVM (with JFR)
        |
-       | start recording (CLI, JVM option, API hoặc JMC)
+       | start recording (CLI, JVM option, API, or JMC)
        v
    JFR events
        |
-       | dump/stop -> lưu file
+       | dump/stop -> save file
        v
   incident.jfr (binary file)
        |
-       | sao chép sang máy phân tích nếu cần
+       | copy to analysis machine if needed
        v
    JDK Mission Control
        |
@@ -48,30 +48,30 @@ Java application + JVM (có JFR)
        +-- Event Browser, Timeline, Stack Trace
        |
        v
-   Giả thuyết -> đối chiếu code, logs, metrics -> xác minh
+   Hypothesis -> cross-check code, logs, metrics -> verify
 ```
 
-**Hai nhầm lẫn thường gặp:**
+**Two common misconceptions:**
 
-1. `java -version` hoặc lệnh `jfr` chạy được **không chứng minh JMC đã cài**. JMC cần tải/cài từ bản phân phối riêng phù hợp hệ điều hành; thông thường không thể giả định có lệnh `jmc` trên `PATH`.
-2. Muốn đọc `incident.jfr` bằng JMC **không cần** mở JMX/management port tới production: chỉ cần tệp recording hợp lệ. Kết nối live là một workflow bổ sung, có điều kiện truy cập riêng.
+1. Being able to run `java -version` or the `jfr` command **does not prove JMC is installed**. JMC must be downloaded/installed from a separate distribution matching your operating system; you generally cannot assume a `jmc` command is on `PATH`.
+2. Reading `incident.jfr` with JMC **does not require** opening JMX/management ports to production: you only need a valid recording file. Live connections are a separate workflow with their own access requirements.
 
-## 2. Chuẩn bị JDK Mission Control đúng cách
+## 2. Preparing JDK Mission Control properly
 
-### 2.1. Lấy ứng dụng JMC
+### 2.1. Obtaining the JMC application
 
-Tìm bản phát hành JMC phù hợp hệ điều hành và Java runtime để chạy ứng dụng từ nguồn chính thức:
+Find a JMC release matching your operating system and the Java runtime used to run the application from official sources:
 
-- Trang [Oracle JDK Mission Control](https://www.oracle.com/java/technologies/jdk-mission-control.html) cung cấp download, hướng dẫn và thông tin hỗ trợ.
-- Dự án [OpenJDK JMC](https://github.com/openjdk/jmc) chứa mã nguồn và thông tin về các bản phân phối/dự án.
+- The [Oracle JDK Mission Control](https://www.oracle.com/java/technologies/jdk-mission-control.html) page provides downloads, guides, and support information.
+- The [OpenJDK JMC](https://github.com/openjdk/jmc) project contains the source code and information about distributions/projects.
 
-JMC có giao diện ứng dụng desktop dựa trên Eclipse RCP. Việc cài đặt thường là tải gói tương ứng hệ điều hành, giải nén/cài ứng dụng và khởi chạy executable được phân phối kèm. **Không áp dụng máy móc lệnh cài đặt của một bản JMC cho mọi JDK/OS**: kiểm tra tài liệu của chính bản JMC đã chọn.
+JMC has a desktop UI built on Eclipse RCP. Installation usually consists of downloading the package for your OS, extracting/installing the application, and launching the bundled executable. **Do not blindly apply installation commands from one JMC release to every JDK/OS**: check the documentation for the specific JMC version you chose.
 
-Bạn có thể tạo recording trên máy Linux/server và mở nó ở JMC chạy trên Windows/macOS/Linux của máy phát triển. Không cần cài JMC trên server chỉ để phân tích tệp offline.
+You can generate a recording on a Linux/server machine and open it in JMC running on Windows/macOS/Linux on a developer workstation. There is no need to install JMC on the server just to analyze files offline.
 
-### 2.2. Xác minh ba lớp môi trường
+### 2.2. Verify the three environment layers
 
-Trên máy có JDK:
+On a machine with a JDK:
 
 ```bash
 java -version
@@ -79,75 +79,75 @@ jcmd -h
 jfr help
 ```
 
-Những lệnh này kiểm tra **Java/JFR CLI**, không phải lệnh khởi chạy JMC. Sau khi cài, mở **JDK Mission Control** từ executable/menu của bản phân phối. Tệp `.jfr` có thể đến từ Java/JDK khác phiên bản JMC; mức tương thích định dạng, event và khả năng hiển thị phụ thuộc bản công cụ. Khi một tệp không mở được, hãy kiểm tra phiên bản JMC, phiên bản JDK tạo recording và trạng thái tệp trước khi khẳng định file hỏng.
+These commands verify the **Java/JFR CLI**, not the command to launch JMC. After installing, open **JDK Mission Control** from the distribution's executable/menu. A `.jfr` file can come from a different Java/JDK version than JMC; format compatibility, events, and display capabilities depend on the tool version. When a file fails to open, check the JMC version, the JDK version that produced the recording, and the file status before assuming the file is corrupt.
 
-### 2.3. Cách mở tệp
+### 2.3. How to open a file
 
-1. Khởi chạy ứng dụng **JDK Mission Control**.
-2. Trong menu ứng dụng, chọn **File → Open File...** (tên có thể hơi khác theo phiên bản), chọn tệp `incident.jfr`; hoặc mở recording từ danh sách/file browser trong JMC.
-3. Chờ JMC đọc/index recording và hiển thị trang phân tích. Với các bản JMC hiện hành, điểm bắt đầu thường là **Automated Analysis Results**.
-4. Xác nhận recording đúng **ứng dụng, JVM, khoảng thời gian**, rồi mới đọc cảnh báo hoặc biểu đồ.
+1. Launch the **JDK Mission Control** application.
+2. In the application menu, select **File → Open File...** (the exact label may vary slightly by version), choose `incident.jfr`; or open the recording from the list/file browser in JMC.
+3. Wait for JMC to read/index the recording and display the analysis pages. In current JMC versions, the starting point is typically **Automated Analysis Results**.
+4. Confirm that the recording matches the right **application, JVM, and time range** before reading warnings or charts.
 
-Không dùng trình soạn thảo văn bản để xem dữ liệu binary `.jfr` rồi kết luận file rỗng khi thấy ký tự lạ. Nếu chưa cài JMC, `jfr summary` hoặc `jfr print` giúp kiểm tra tệp bằng CLI.
+Do not use a text editor to inspect binary `.jfr` data and conclude the file is empty when you see strange characters. If JMC is not installed yet, `jfr summary` or `jfr print` helps inspect the file via CLI.
 
-## 3. Tạo recording JFR để mở trong JMC
+## 3. Creating a JFR recording to open in JMC
 
-Có nhiều đường tạo file. Chọn đường phù hợp vòng đời của JVM và mục đích chẩn đoán.
+There are several ways to produce a file. Choose the path that fits the JVM lifecycle and your diagnostic goal.
 
-### 3.1. Bắt đầu khi ứng dụng khởi động
+### 3.1. Starting when the application launches
 
-Ví dụ với ứng dụng Java đóng gói thành JAR chạy được:
+Example with a Java application packaged as an executable JAR:
 
 ```bash
 java -XX:StartFlightRecording=name=Startup,duration=60s,settings=profile,filename=startup.jfr -jar app.jar
 ```
 
-Khi cấu hình `duration` kết thúc, JFR ghi tệp `startup.jfr` theo đường dẫn yêu cầu. Đây là recording một khoảng thời gian xác định; nó thuận tiện khi cần đo **startup** hoặc tái hiện một kịch bản trong môi trường kiểm soát. Thay `app.jar` và thời lượng bằng ứng dụng/trường hợp thực tế.
+When the configured `duration` ends, JFR writes `startup.jfr` to the requested path. This is a fixed-duration recording; it is convenient when you need to measure **startup** or reproduce a scenario in a controlled environment. Replace `app.jar` and the duration with your actual application and case.
 
-**`settings=default` và `settings=profile` khác nhau:** preset `profile` thường thu thêm event phục vụ profiling, đổi lại tăng overhead/dung lượng. Không coi `profile` là mặc định tối ưu cho mọi production workload.
+**`settings=default` and `settings=profile` differ:** the `profile` preset typically collects additional events for profiling, at the cost of higher overhead and file size. Do not treat `profile` as the optimal default for every production workload.
 
-### 3.2. Ghi trên JVM đang chạy bằng jcmd
+### 3.2. Recording on a running JVM with jcmd
 
-Trước hết xác định PID của JVM mục tiêu:
+First, identify the PID of the target JVM:
 
 ```bash
 jcmd -l
 ```
 
-Trong những lệnh sau, **thay `<PID>` bằng số PID thật**; các dòng lệnh minh họa không chạy nguyên văn với dấu ngoặc nhọn:
+In the following commands, **replace `<PID>` with the actual PID number**; the example command lines are not meant to be run literally with angle brackets:
 
 ```bash
 jcmd <PID> JFR.start name=Incident settings=profile duration=2m filename=incident.jfr
 jcmd <PID> JFR.check
 ```
 
-Khi recording hoàn tất sau 2 phút, JFR có thể ghi `incident.jfr`. Muốn chụp một phần dữ liệu **trong lúc recording còn chạy**:
+When the recording finishes after 2 minutes, JFR can write `incident.jfr`. To capture a snapshot of data **while the recording is still running**:
 
 ```bash
 jcmd <PID> JFR.dump name=Incident filename=incident-now.jfr
 ```
 
-**`JFR.dump` không dừng recording đang chạy.** Với một recording chạy liên tục, có thể tự chọn thời điểm dump hoặc gọi `JFR.stop name=Incident filename=incident-final.jfr` để kết thúc và lưu. Hãy chỉ chạy `stop` khi thực sự muốn dừng; recording có `duration` thường tự kết thúc khi hết hạn.
+**`JFR.dump` does not stop a running recording.** For a continuous recording, you can choose when to dump or call `JFR.stop name=Incident filename=incident-final.jfr` to finish and save it. Only run `stop` when you actually want to stop; a recording with a `duration` usually finishes automatically when it expires.
 
-`jcmd` phải có khả năng truy cập JVM mục tiêu, thường cùng máy và quyền người dùng phù hợp. Container, JVM attach bị tắt hoặc môi trường bị khóa có thể khiến lệnh không kết nối được. Không cần mở port JMX cho workflow `jcmd` local.
+`jcmd` must be able to access the target JVM, typically on the same host with appropriate user permissions. Containers, disabled JVM attach, or locked-down environments can prevent the command from connecting. Opening a JMX port is not required for the local `jcmd` workflow.
 
-### 3.3. Tạo recording từ JMC khi đã kết nối JVM
+### 3.3. Creating a recording from JMC when connected to a JVM
 
-JMC cũng có phần **JVM Browser** để khám phá JVM có thể quản lý. Khi tìm được đúng JVM:
+JMC also includes a **JVM Browser** to discover manageable JVMs. Once you find the target JVM:
 
-1. Nhấp phải JVM trong **JVM Browser**, chọn **Start Flight Recording...**.
-2. Chọn recording **có thời lượng** hay **liên tục**, tên/tệp đích và template.
-3. Chọn loại event, threshold, khả năng lấy stack trace theo nhu cầu.
-4. Bắt đầu recording, rồi dump hoặc đợi recording có thời lượng kết thúc.
-5. Mở recording vừa có trong JMC để phân tích.
+1. Right-click the JVM in **JVM Browser** and select **Start Flight Recording...**.
+2. Choose a **fixed-duration** or **continuous** recording, the name/destination file, and a template.
+3. Choose event types, thresholds, and stack trace collection according to your needs.
+4. Start the recording, then dump it or wait for the fixed-duration recording to complete.
+5. Open the resulting recording in JMC to analyze it.
 
-Đường này cần JMC kết nối đúng JVM qua môi trường/quyền được hỗ trợ; nếu chỉ có file `.jfr` từ production, **bỏ qua bước kết nối** và mở file offline như mục 2.3.
+This path requires JMC to connect to the target JVM using a supported environment and permissions; if you already have a `.jfr` file from production, **skip the connection step** and open the file offline as described in section 2.3.
 
-## 4. Thực hành Java: tự tạo .jfr mà không cần server hay JMX
+## 4. Java hands-on: create a .jfr file yourself without a server or JMX
 
-Ta tạo một **custom JFR event** gồm tên bước công việc, thời điểm bắt đầu, thời lượng và stack trace. Ví dụ chạy độc lập bằng **Java 17+**, tự ghi ra `mission-control-demo.jfr`; sau đó mở file trong JMC.
+Let's create a **custom JFR event** containing a work step name, start timestamp, duration, and stack trace. The standalone example runs on **Java 17+** and writes `mission-control-demo.jfr` by itself; afterward, open the file in JMC.
 
-Tạo tệp **`MissionControlDemo.java`**:
+Create the file **`MissionControlDemo.java`**:
 
 ```java
 import java.nio.file.Path;
@@ -189,7 +189,7 @@ public class MissionControlDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp nguồn:
+Compile and run in the directory containing the source file:
 
 ```bash
 javac MissionControlDemo.java
@@ -198,182 +198,182 @@ jfr summary mission-control-demo.jfr
 jfr print --events demo.WorkUnit mission-control-demo.jfr
 ```
 
-**Dòng stdout chính xác do chương trình in:**
+**Exact stdout line printed by the program:**
 
 ```text
 Created: mission-control-demo.jfr
 ```
 
-Trong phần `jfr print`, phải thấy **ba event** thuộc type `demo.WorkUnit`, với `task = "batch-1"`, `"batch-2"`, `"batch-3"`. Các giá trị `startTime`, `duration` (thường ít nhất cỡ 30 ms do `sleep`), `javaThreadId` và line number trong stack trace **thay đổi theo lần chạy và JDK**, nên không đưa chúng thành stdout cố định. Ví dụ đã được kiểm tra thực tế với OpenJDK 24: biên dịch thành công, tệp `.jfr` được tạo, `jfr print` đọc được cả ba event và stack trace.
+In the `jfr print` output, you should see **three events** of type `demo.WorkUnit`, with `task = "batch-1"`, `"batch-2"`, `"batch-3"`. Values such as `startTime`, `duration` (usually at least ~30 ms due to `sleep`), `javaThreadId`, and line numbers in the stack trace **vary across runs and JDKs**, so they are not shown as fixed stdout. This example was verified with OpenJDK 24: it compiled successfully, created the `.jfr` file, and `jfr print` read all three events and stack traces.
 
-**Giải thích mã:**
+**Code explanation:**
 
-- `@Name("demo.WorkUnit")` đặt tên event type để lọc trong CLI/JMC; `@Label` đặt nhãn dễ đọc.
-- `Recording` tạo một phiên ghi JFR trong chính JVM. `enable(WorkUnit.class).withStackTrace()` bật event và thu stack trace cho type này.
-- `event.begin()`, `event.end()` đo khoảng thời gian; `commit()` phát event vào recording.
-- `recording.stop()` rồi `dump(Path)` lưu recording; khối `try` đóng tài nguyên.
-- Tệp có thể có **những event JVM khác** ngoài ba event custom, tùy recording/JDK. Dùng bộ lọc `demo.WorkUnit` để phân biệt.
-- Tệp này có dữ liệu giúp chứng minh **mở/analyze recording**, chưa đủ để tự tạo ra nút thắt CPU, memory leak hoặc lock contention thực tế.
+- `@Name("demo.WorkUnit")` sets the event type name for filtering in the CLI/JMC; `@Label` sets a human-readable label.
+- `Recording` creates a JFR recording session within the JVM itself. `enable(WorkUnit.class).withStackTrace()` enables the event and captures stack traces for this type.
+- `event.begin()` and `event.end()` measure the time span; `commit()` emits the event into the recording.
+- `recording.stop()` followed by `dump(Path)` saves the recording; the `try` block closes the resource.
+- The file may contain **other JVM events** in addition to the three custom events, depending on the recording and JDK. Use the `demo.WorkUnit` filter to isolate them.
+- This file provides data to verify **opening and analyzing a recording**; it is not meant to reproduce a real CPU bottleneck, memory leak, or lock contention.
 
-### Mở ví dụ trong JMC
+### Opening the example in JMC
 
-1. Chạy chương trình và xác nhận file `mission-control-demo.jfr` tồn tại.
-2. Trong JMC chọn **File → Open File...**, trỏ tới tệp đó.
-3. Tìm mục **Events / Event Browser** (tên/đường dẫn UI tùy phiên bản), lọc type `demo.WorkUnit`.
-4. Kiểm tra ba event, giá trị `task`, thời lượng và stack trace; chọn từng event để xem chi tiết.
-5. So sánh số event trong JMC với lệnh `jfr print --events demo.WorkUnit mission-control-demo.jfr`.
+1. Run the program and verify that `mission-control-demo.jfr` exists.
+2. In JMC, select **File → Open File...** and point to that file.
+3. Locate **Events / Event Browser** (the UI name/path varies by version) and filter for type `demo.WorkUnit`.
+4. Inspect the three events, the `task` value, duration, and stack trace; select each event to view its details.
+5. Compare the event count in JMC with the command `jfr print --events demo.WorkUnit mission-control-demo.jfr`.
 
-Đây là kiểm tra end-to-end: **Java code → JFR binary file → JMC mở file → thấy event**. Không cần kết nối live tới JVM đã chạy xong.
+This is an end-to-end check: **Java code → JFR binary file → JMC opens file → events visible**. No live connection to the finished JVM is needed.
 
-## 5. Đọc giao diện JMC theo câu hỏi chẩn đoán
+## 5. Reading the JMC UI by diagnostic question
 
-Các bản JMC có thể đổi tên trang hoặc bố trí, nhưng luồng phân tích tương đối ổn định: bắt đầu ở **Automated Analysis Results**, lọc khoảng thời gian, rồi đi tới trang chuyên sâu và event cụ thể.
+JMC versions may rename pages or adjust layouts, but the analysis flow remains fairly consistent: start at **Automated Analysis Results**, filter the time range, then drill down into specialized pages and specific events.
 
-### 5.1. Automated Analysis Results: gợi ý, chưa phải kết luận
+### 5.1. Automated Analysis Results: hints, not conclusions
 
-JMC áp dụng các **analysis rules** lên những event thực sự có trong file, cho biết những điểm đáng chú ý qua điểm số/cảnh báo. Một số bản hiển thị màu vàng/đỏ cho kết quả cần ưu tiên và có nút xem cả kết quả OK.
+JMC applies **analysis rules** to the events actually present in the file, highlighting notable findings via scores or warnings. Some versions show yellow/red indicators for priority findings and provide a toggle to view OK results as well.
 
-Cách dùng:
+How to use it:
 
-1. Ghi lại dấu hiệu được rule nêu: tên hiện tượng, thời gian, mức độ và dữ liệu liên quan.
-2. Nhấp vào kết quả để chuyển tới biểu đồ/event giải thích cảnh báo.
-3. Thu hẹp khoảng thời gian của sự cố và đối chiếu log/metrics/request traces.
-4. Kiểm tra recording có **event cần thiết** hay không trước khi kết luận “không thấy cảnh báo nghĩa là bình thường”.
+1. Note the signal flagged by the rule: symptom name, timestamp, severity, and related data.
+2. Click the result to jump to the chart/events explaining the warning.
+3. Narrow down the incident time window and cross-check logs, metrics, and request traces.
+4. Check whether the recording contains the **necessary events** before concluding that "no warnings means everything is normal."
 
-**Rule score không phải chứng minh root cause.** “Nhiều allocation”, “GC pause dài” hoặc “lock contention” là chỉ dấu cần kiểm tra ngữ cảnh workload, mục tiêu latency và mối quan hệ nhân quả.
+**A rule score does not prove root cause.** "High allocation," "long GC pause," or "lock contention" are indicators that must be checked against workload context, latency targets, and causal relationships.
 
-### 5.2. Chọn đúng time range trước khi đọc biểu đồ
+### 5.2. Selecting the right time range before reading charts
 
-JFR là tập event **có timestamp**; một recording có thể chứa startup, warm up, thời gian bình thường và thời gian sự cố. Hãy chọn khoảng sự cố trong timeline/range navigator và bảo đảm các bảng/biểu đồ đang phản ánh phạm vi đó.
+JFR is a collection of **timestamped** events; a single recording can include startup, warm-up, normal operation, and the incident window. Select the incident window in the timeline/range navigator and ensure that tables and charts reflect that scope.
 
-Ví dụ một ứng dụng có spike độ trễ vào phút 02:10–02:20 của recording dài 10 phút:
+For example, suppose an application has a latency spike during minutes 02:10–02:20 of a 10-minute recording:
 
-- Tập trung vào cửa sổ xảy ra spike và so sánh với một cửa sổ bình thường ngay trước đó.
-- Nếu GC pause trùng thời điểm latency spike, đó là **tương quan theo thời gian**; cần xem pause duration, thread behavior và dữ liệu request để kiểm tra quan hệ nhân quả.
-- Nếu recording bắt đầu **sau** sự cố hoặc đã hết trước lúc sự cố, JMC không thể tự khôi phục những event không từng được ghi.
+- Focus on the spike window and compare it against a normal window immediately before it.
+- If a GC pause coincides with the latency spike, that is a **temporal correlation**; inspect pause duration, thread behavior, and request data to verify causality.
+- If the recording started **after** the incident or ended before it, JMC cannot recover events that were never recorded.
 
-Khi đọc event, kiểm tra timestamp, timezone của UI/máy và khoảng coverage để tránh so sai thời gian với application logs.
+When reading events, check timestamps, UI/machine timezones, and coverage windows to avoid misaligning timestamps with application logs.
 
-### 5.3. Trang nào phù hợp vấn đề nào?
+### 5.3. Which page fits which problem?
 
-| Nghi vấn | Nơi thường xem trong JMC | Các dữ liệu cần xem và giới hạn |
+| Suspicion | Typical place to inspect in JMC | Data to inspect and limitations |
 |---|---|---|
-| **CPU cao** | Code / Method Profiling / Hot Methods | Execution samples, stack traces, thread context; tỷ lệ mẫu **không phải** thời gian chính xác tuyệt đối của từng lời gọi |
-| **Allocation pressure** | Memory / Allocation / TLAB | Điểm cấp phát, class, thread, stack, allocation rate; sự kiện **sampling** không có nghĩa mọi object đều được ghi |
-| **GC pause và heap behavior** | Memory / Garbage Collections / JVM Internals | Thời điểm và duration GC, heap before/after, tần suất; không tự chứng minh leak |
-| **Lock contention** | Threads / Locks / Java Monitor | Các event blocked/wait và stack; threshold event có thể bỏ những lần chờ ngắn |
-| **I/O latency** | I/O / File / Socket | Event duration, thread, địa chỉ/đối tượng và stack khi có; phải xem event có bật và threshold phù hợp |
-| **Thread behavior** | Threads / Event Browser | Hoạt động/đợi/chạy theo các event đã ghi; không giả định đây là snapshot đầy đủ mọi thread |
-| **Môi trường bất thường** | System / Environment / JVM Information | JDK, OS, cấu hình runtime, CPU/cgroup nếu event hỗ trợ |
-| **Custom event** | Events / Event Browser | Lọc theo type, thuộc tính và thread; kết quả phụ thuộc sự kiện do ứng dụng thực sự phát |
+| **High CPU** | Code / Method Profiling / Hot Methods | Execution samples, stack traces, thread context; sample share is **not** exact wall-clock time per call |
+| **Allocation pressure** | Memory / Allocation / TLAB | Allocation sites, classes, threads, stacks, allocation rate; **sampling** events do not mean every object was recorded |
+| **GC pauses and heap behavior** | Memory / Garbage Collections / JVM Internals | GC timestamps and durations, heap before/after, frequency; does not by itself prove a leak |
+| **Lock contention** | Threads / Locks / Java Monitor | Blocked/wait events and stacks; event thresholds may omit short waits |
+| **I/O latency** | I/O / File / Socket | Event duration, thread, address/target, and stack when available; check that events are enabled with an appropriate threshold |
+| **Thread behavior** | Threads / Event Browser | Active/waiting/running state based on recorded events; do not assume it is a complete snapshot of every thread |
+| **Abnormal environment** | System / Environment / JVM Information | JDK, OS, runtime flags, CPU/cgroup if supported by events |
+| **Custom events** | Events / Event Browser | Filter by type, attributes, and thread; results depend on events actually emitted by the application |
 
-Không phải mọi recording đều chứa đủ các view/stack. Nếu event type thiếu hoặc bị tắt, trang tương ứng có thể rỗng; không nên đồng nhất “không có dữ liệu” với “không có vấn đề”.
+Not every recording contains all views or stacks. If an event type is missing or disabled, the corresponding page may be empty; do not equate "no data" with "no problem."
 
-## 6. Workflow chẩn đoán có thể lặp lại
+## 6. Repeatable diagnostic workflows
 
-### 6.1. Phân tích spike độ trễ
+### 6.1. Analyzing a latency spike
 
-**Triệu chứng:** p99 latency tăng rõ trong khoảng một phút.
+**Symptom:** p99 latency spikes noticeably for about a minute.
 
-1. Xác định cửa sổ spike trong **ứng dụng metrics/logs** và kiểm tra recording thực sự bao phủ khoảng đó.
-2. Trong JMC đặt đúng **time range**, xem Automated Analysis Results để lấy các giả thuyết đầu tiên.
-3. Xem **I/O** có các socket/file operations lâu; xem **Threads/Locks** có monitor contention; xem **Memory/GC** có pause trùng thời điểm; xem **Code** có method execution samples nổi bật.
-4. Mở các event đặc trưng, kiểm tra timestamp, duration, thread, stack trace và method/class liên quan.
-5. Đối chiếu với request ID, downstream response time, database metrics và thread dump/CPU OS nếu cần.
+1. Identify the spike window in **application metrics/logs** and verify that the recording actually covers that interval.
+2. In JMC, set the exact **time range**, and check Automated Analysis Results for initial hypotheses.
+3. Check **I/O** for slow socket/file operations; check **Threads/Locks** for monitor contention; check **Memory/GC** for overlapping pauses; check **Code** for prominent method execution samples.
+4. Open representative events and inspect timestamps, durations, threads, stack traces, and related methods/classes.
+5. Correlate with request IDs, downstream response times, database metrics, and thread dumps/OS CPU if needed.
 
-Ví dụ, socket read 400 ms trên một request chậm là dấu hiệu chờ I/O; không thể quy 400 ms đó thành “CPU Java dùng 400 ms”. CPU sampling có thể không thấy nhiều mẫu của thread đang chờ I/O dù latency lớn.
+For example, a 400 ms socket read on a slow request indicates waiting on I/O; you cannot attribute that 400 ms to "Java CPU spent 400 ms." CPU sampling may show very few samples for threads waiting on I/O even when latency is high.
 
-### 6.2. Phân tích CPU nóng
+### 6.2. Analyzing hot CPU
 
-**Triệu chứng:** CPU của process tăng, throughput giảm.
+**Symptom:** process CPU rises and throughput drops.
 
-1. Ghi JFR ở khoảng có tải, sử dụng event execution sampling được bật (thường cần cấu hình profiling phù hợp).
-2. Trong **Code/Method Profiling**, xem nhóm stack/method xuất hiện thường xuyên ở mẫu.
-3. Đối chiếu thread, event time range, JVM GC/compiler activity và CPU ở OS.
-4. Xem code, kiểm chứng bằng benchmark/profiler/trace tại vị trí nghi vấn.
+1. Record JFR under load with execution sampling events enabled (usually requiring an appropriate profiling configuration).
+2. In **Code/Method Profiling**, inspect the stacks/methods appearing most frequently in samples.
+3. Cross-check threads, event time range, JVM GC/compiler activity, and OS-level CPU.
+4. Inspect the code and verify with a benchmark, profiler, or trace at the suspected location.
 
-**Lưu ý:** Sampling có sai lệch thống kê, chịu chu kỳ lấy mẫu, safepoint/configuration và stack depth. “25% samples” không được phát biểu thành “method chạy đúng 25% tổng wall-clock time”. Các method ngắn/ít được lấy mẫu vẫn có thể quan trọng với từng request.
+**Note:** Sampling has statistical bias and depends on sampling period, safepoints/configuration, and stack depth. "25% of samples" must not be stated as "the method ran for exactly 25% of total wall-clock time." Short or infrequently sampled methods can still matter for individual requests.
 
-### 6.3. Phân tích memory và GC
+### 6.3. Analyzing memory and GC
 
-**Triệu chứng:** GC nhiều hoặc heap tăng dần.
+**Symptom:** frequent GC or steadily rising heap usage.
 
-1. Dùng **Memory** để xem heap usage, allocation rate và pause/event GC trong khoảng sự cố.
-2. Xem loại đối tượng và stack của các event allocation có thu thập.
-3. So sánh nhiều giai đoạn workload tương đương; chú ý warm up và các cache hợp lệ.
-4. Khi nghi leak thực sự, dùng heap dump/histogram/retained-object analysis thích hợp để xác định **đối tượng còn sống**, vì JFR allocation samples không phải bằng chứng về **retained heap**.
+1. Use **Memory** to inspect heap usage, allocation rate, and GC pauses/events during the incident window.
+2. Check the object types and stacks of collected allocation events.
+3. Compare multiple intervals of equivalent workload; watch out for warm-up and legitimate caches.
+4. When suspecting a real leak, use an appropriate heap dump/histogram/retained-object analysis to identify **live objects**, because JFR allocation samples are not proof of **retained heap**.
 
-Giới hạn rất quan trọng: một class có nhiều allocation **không nhất thiết** chiếm nhiều heap sau GC; nhiều đối tượng ngắn hạn được tạo rồi giải phóng là hiện tượng phổ biến.
+A critical limitation: a class with high allocation **does not necessarily** occupy much heap after GC; creating and reclaiming many short-lived objects is normal.
 
-## 7. Vì sao JMC có thể không hiện điều bạn mong chờ?
+## 7. Why might JMC not show what you expect?
 
-Tệp JFR được tạo từ **event có bật**, thời lượng và threshold cụ thể. Phân tích chất lượng recording trước khi chẩn đoán ứng dụng.
+A JFR file is produced from **enabled events**, a specific duration, and specific thresholds. Assess recording quality before diagnosing the application.
 
-| Biểu hiện | Nguyên nhân có thể | Cách kiểm tra |
+| Symptom | Possible cause | How to check |
 |---|---|---|
-| JMC mở được file nhưng không có CPU method samples | Sampling event tắt, duration quá ngắn, workload chưa chạy | `jfr summary`, event settings, ghi lại có profiling phù hợp |
-| Không thấy lock contention dù request bị chậm | Sự cố do I/O hoặc event monitor threshold quá cao | Kiểm tra I/O và threshold/event count; dùng thêm thread dump |
-| Không thấy stack trace | Event type không bật stack, cấu hình stack trace bị tắt, giới hạn stack depth | Xem cấu hình event; thu recording khác nếu cần |
-| Một vài event allocation đại diện lượng bytes rất lớn | Event sampling/ước lượng, không liệt kê từng object | Phân biệt sample count, estimated allocated bytes và retained heap |
-| Automated Analysis Results không cảnh báo | Rule không thấy vấn đề theo dữ liệu/threshold của nó, hoặc recording không đủ | Đọc trực tiếp event và đối chiếu metrics/logs |
-| JMC có cảnh báo nhưng app vẫn đạt SLO | Ngưỡng rule chung không khớp yêu cầu thực tế | Xem workload, SLA/SLO, mức độ/tần suất và ảnh hưởng thực |
-| JMC không mở/không hiểu event mới | Recording không hoàn chỉnh, version/format hoặc event không được phiên bản JMC hỗ trợ | `jfr summary`, kiểm tra phiên bản JMC/JDK và file integrity |
-| JMC không liệt kê JVM production | Vấn đề live connection, JMX, quyền truy cập hoặc network | Nếu chỉ cần phân tích, lấy file `.jfr` và mở offline |
+| JMC opens the file but there are no CPU method samples | Sampling event disabled, duration too short, workload hadn't started | `jfr summary`, event settings, re-record with appropriate profiling settings |
+| No lock contention visible even though requests are slow | Issue caused by I/O, or monitor event threshold is too high | Check I/O and thresholds/event counts; supplement with thread dumps |
+| No stack traces visible | Stack trace disabled for the event type, global stack trace setting off, or stack depth limit | Check event configuration; capture another recording if needed |
+| A few allocation events represent a huge number of bytes | Sampling/estimation event, does not list every object | Distinguish sample count, estimated allocated bytes, and retained heap |
+| Automated Analysis Results shows no warnings | Rules saw no issues given their data/thresholds, or recording is insufficient | Inspect events directly and cross-check metrics/logs |
+| JMC shows warnings but the app still meets its SLO | Generic rule thresholds do not match actual requirements | Check workload, SLA/SLO, severity/frequency, and real impact |
+| JMC cannot open or does not understand new events | Incomplete recording, version/format or events unsupported by the JMC version | `jfr summary`, check JMC/JDK versions and file integrity |
+| JMC does not list the production JVM | Live connection, JMX, permissions, or network issue | If you only need analysis, fetch the `.jfr` file and open it offline |
 
-### Chọn cấu hình ghi phù hợp
+### Choosing the right recording configuration
 
-Hai preset phổ biến của JDK là **`default.jfc`** và **`profile.jfc`**; template dùng để quyết định event nào, threshold và stack trace. `profile` thường có nhiều dữ liệu hơn và có thêm chi phí. Nếu cần các event custom, hãy bật event type tương ứng. Nếu cần bắt một sự cố hiếm, hãy thiết kế **thời gian lưu, giới hạn dung lượng, chu kỳ ghi/dump** đủ để file chứa đúng giai đoạn cần điều tra.
+Two common JDK presets are **`default.jfc`** and **`profile.jfc`**; templates determine which events are enabled, their thresholds, and stack traces. `profile` generally captures more data at higher cost. If you need custom events, enable the corresponding event types. If you need to catch a rare incident, configure **retention time, size limits, and recording/dump intervals** so the file covers the target phase.
 
-JFR có mục tiêu overhead thấp ở cấu hình thông dụng, **không có nghĩa bằng 0**. Bật mọi event, giảm ngưỡng xuống quá thấp, bật stack trace cho sự kiện tần suất cực lớn hoặc thu heap root có thể tăng chi phí CPU, I/O và dung lượng. Kiểm tra tác động khi thay cấu hình trên production.
+JFR aims for low overhead under standard settings, which **does not mean zero overhead**. Enabling every event, lowering thresholds too far, enabling stack traces on extremely high-frequency events, or capturing heap roots can increase CPU, I/O, and storage costs. Test the impact when changing production configurations.
 
-## 8. Cách phối hợp JMC và các công cụ khác
+## 8. Combining JMC with other tools
 
-- **`jfr summary incident.jfr`:** xác nhận file đọc được, xem những loại event có trong recording và số lượng/tổng kích thước. Đây là bước nhanh trước khi mở GUI.
-- **`jfr print --events jdk.GarbageCollection incident.jfr`:** xem một event type cụ thể bằng text nếu recording có event đó; loại event có sẵn phụ thuộc phiên bản/cấu hình.
-- **JMC:** khai thác timeline, bảng, lọc event, biểu đồ, stack và automated analysis; thuận tiện để phát hiện mẫu theo thời gian.
-- **Application logs/metrics/traces:** giải thích hiện tượng tác động đến request thật, định danh transaction và downstream; JMC không tự thay thế correlation ID ứng dụng.
-- **Thread dump, heap dump, OS/container metrics:** bổ sung khi cần snapshot chính xác về lock/thread, retained heap, RSS/cgroup hoặc sự cố ngoài phạm vi event.
+- **`jfr summary incident.jfr`:** verifies the file is readable and shows which event types are in the recording along with their counts and total sizes. This is a quick step before opening the GUI.
+- **`jfr print --events jdk.GarbageCollection incident.jfr`:** prints a specific event type as text if the recording contains it; available event types depend on the JDK version and configuration.
+- **JMC:** explores timelines, tables, event filters, charts, stacks, and automated analysis; convenient for spotting patterns over time.
+- **Application logs/metrics/traces:** explain how symptoms affect real requests, transaction IDs, and downstream calls; JMC does not automatically replace application correlation IDs.
+- **Thread dumps, heap dumps, OS/container metrics:** supplement JFR when you need exact snapshots of locks/threads, retained heap, RSS/cgroup, or issues outside event coverage.
 
-Không đánh đồng các tệp: **`.jfr`** lưu sự kiện chẩn đoán theo thời gian; **`.hprof`** là heap dump, thường phân tích bằng công cụ heap chuyên dụng; **thread dump dạng text** là ảnh chụp trạng thái thread. Mỗi loại phục vụ câu hỏi khác nhau.
+Do not conflate different file types: **`.jfr`** stores diagnostic events over time; **`.hprof`** is a heap dump, typically analyzed with dedicated heap tools; a **text thread dump** is a snapshot of thread states. Each serves a different question.
 
-Recording có thể chứa thông tin nhạy cảm về class/method, host, đường dẫn, thread name, endpoint hoặc **field do ứng dụng tự đưa vào custom event**. Khi đưa file ra môi trường phân tích, áp dụng quy trình truy cập/giữ dữ liệu phù hợp với ứng dụng.
+Recordings may contain sensitive information such as class/method names, hostnames, paths, thread names, endpoints, or **fields placed in custom events by the application**. When transferring files to an analysis environment, follow your application's access and data-retention policies.
 
-## 9. Những lỗi phổ biến
+## 9. Common mistakes
 
-1. **“JFR đã có trong JDK nên JMC chắc chắn được cài cùng.”** Sai: JFR là cơ chế ghi trong JDK/JVM, còn JMC có gói ứng dụng riêng. Kiểm tra công cụ thực sự đã cài.
-2. **“Muốn mở tệp `.jfr` bắt buộc server vẫn sống và JMX mở.”** Sai: JMC có thể đọc offline một recording đã lưu hoàn chỉnh.
-3. **“File mở được thì toàn bộ event cần thiết đều có.”** Sai: recording chỉ có event đã cấu hình, thuộc thời gian được giữ lại và vượt qua threshold/sampling.
-4. **“JMC cảnh báo đỏ là đã tìm ra nguyên nhân.”** Sai: đó là nhận định từ rule, cần kiểm tra event, thời gian, ảnh hưởng và code thực.
-5. **“Không có cảnh báo là JVM không có vấn đề.”** Sai: thiếu event, recording sai cửa sổ hoặc rule không bao phủ sự cố có thể làm thiếu tín hiệu.
-6. **“Nhiều allocation nghĩa là memory leak.”** Sai: allocation rate không đồng nghĩa số đối tượng còn sống sau GC.
-7. **“Method chiếm nhiều sample thì chắc chắn chiếm tương ứng wall time.”** Sai: sampling không đo trực tiếp thời gian của từng lời gọi.
-8. **“JFR và JMC có nhiệm vụ giống nhau.”** Sai: JFR chủ yếu **thu dữ liệu**, JMC chủ yếu **hiển thị và phân tích** dữ liệu đó.
-9. **“Có tệp của production thì phải mở live connection.”** Sai: chuyển file về máy chẩn đoán an toàn thường đã đủ cho workflow offline.
-10. **“`JFR.dump` làm dừng recording.”** Sai: dump tạo file snapshot nhưng recording tiếp tục chạy; muốn dừng thì dùng `JFR.stop` hoặc thời lượng kết thúc.
+1. **“JFR is already in the JDK, so JMC must be installed with it.”** False: JFR is the recording mechanism in the JDK/JVM, whereas JMC has its own application package. Verify what tools are actually installed.
+2. **“Opening a `.jfr` file requires the server to be alive and JMX open.”** False: JMC can read a complete saved recording offline.
+3. **“If the file opens, all necessary events are present.”** False: a recording only contains events that were configured, within the retained window, and passed thresholds/sampling.
+4. **“A red warning in JMC means the root cause is found.”** False: it is a rule-based finding that must be checked against events, timestamps, impact, and actual code.
+5. **“No warnings means the JVM has no problems.”** False: missing events, a recording from the wrong window, or rules not covering the issue can hide signals.
+6. **“High allocation means a memory leak.”** False: allocation rate is not the same as objects remaining alive after GC.
+7. **“A method with many samples definitely takes that proportion of wall time.”** False: sampling does not directly measure the duration of every call.
+8. **“JFR and JMC have the same job.”** False: JFR primarily **collects data**, while JMC primarily **displays and analyzes** that data.
+9. **“If I have a production issue, I must open a live connection.”** False: transferring the file to a secure diagnostic machine is usually sufficient for an offline workflow.
+10. **“`JFR.dump` stops the recording.”** False: dump writes a snapshot file while the recording keeps running; to stop it, use `JFR.stop` or let the duration expire.
 
-## 10. Checklist trước khi kết luận từ JMC
+## 10. Checklist before drawing conclusions from JMC
 
-1. Xác nhận **JMC đã cài độc lập** và phiên bản đủ đọc file recording.
-2. Xác nhận file đúng JVM, PID/ứng dụng, JDK, **time range**; chạy `jfr summary` nếu cần.
-3. Kiểm tra event quan trọng **có được bật**, threshold, stack trace và thời gian giữ dữ liệu.
-4. Bắt đầu bằng **Automated Analysis Results** để định hướng, sau đó mở **event/stack/timeline** làm bằng chứng.
-5. Phân biệt **sample**, **duration event**, **instant event**, **count** và **estimated allocation**.
-6. Đối chiếu với log, trace, business metrics, thread/heap dump hay OS metrics theo bản chất sự cố.
-7. Ghi nhận giả thuyết và bước xác minh; không gọi cảnh báo chung là root cause khi chưa kiểm tra.
+1. Confirm **JMC is installed independently** and its version can read the recording file.
+2. Confirm the file matches the right JVM, PID/application, JDK, and **time range**; run `jfr summary` if needed.
+3. Check whether key events **were enabled**, along with their thresholds, stack traces, and retention period.
+4. Start with **Automated Analysis Results** for orientation, then open **events/stacks/timeline** for evidence.
+5. Distinguish **samples**, **duration events**, **instant events**, **counts**, and **estimated allocation**.
+6. Cross-check with logs, traces, business metrics, thread/heap dumps, or OS metrics depending on the nature of the incident.
+7. Record hypotheses and verification steps; do not call a generic warning the root cause without verification.
 
-### Tự kiểm tra
+### Self-check
 
-- Một JVM trên server chạy JFR nhưng server không cài JMC. Làm thế nào để phân tích recording bằng máy laptop?
-- Tại sao file `.jfr` vẫn mở được sau khi JVM đã tắt?
-- Tại sao một trang CPU profiling trong JMC có thể rỗng dù ứng dụng đã hoạt động?
-- Điều gì khiến số allocation samples không bằng số object được tạo?
-- Vì sao một cảnh báo GC/lock trong Automated Analysis Results cần đối chiếu với ứng dụng trước khi kết luận?
-- Trong ví dụ `MissionControlDemo`, mỗi custom event được phát ở bước nào và bạn kiểm tra chúng ở đâu?
+- A JVM on a server runs JFR, but JMC is not installed on the server. How can you analyze the recording on your laptop?
+- Why can a `.jfr` file still be opened after the JVM has shut down?
+- Why might a CPU profiling page in JMC be empty even though the application was active?
+- Why does the number of allocation samples not equal the number of objects created?
+- Why should a GC/lock warning in Automated Analysis Results be cross-checked with the application before concluding?
+- In the `MissionControlDemo` example, at which step is each custom event emitted and where do you inspect them?
 
-## Tài liệu chính thức
+## Official documentation
 
-- [Oracle JDK Mission Control](https://www.oracle.com/java/technologies/jdk-mission-control.html): nguồn tải ứng dụng, mô tả vai trò JMC và tài liệu.
-- [JDK Mission Control User Guide — Flight Recorder](https://docs.oracle.com/en/java/java-components/jdk-mission-control/9/user-guide/using-jdk-flight-recorder.html): tạo/mở recording, Automated Analysis Results, các trang phân tích.
+- [Oracle JDK Mission Control](https://www.oracle.com/java/technologies/jdk-mission-control.html): application downloads, description of JMC's role, and documentation.
+- [JDK Mission Control User Guide — Flight Recorder](https://docs.oracle.com/en/java/java-components/jdk-mission-control/9/user-guide/using-jdk-flight-recorder.html): creating/opening recordings, Automated Analysis Results, and analysis pages.
 - [Java SE 21 — `jcmd`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `JFR.start`, `JFR.check`, `JFR.dump`, `JFR.stop`.
-- [OpenJDK JMC](https://github.com/openjdk/jmc): dự án mã nguồn mở của công cụ JDK Mission Control.
-- [Java SE 21 — `jdk.jfr` package](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html): APIs cho recording và custom event.
+- [OpenJDK JMC](https://github.com/openjdk/jmc): open-source project for the JDK Mission Control tool.
+- [Java SE 21 — `jdk.jfr` package](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html): APIs for recordings and custom events.

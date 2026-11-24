@@ -1,222 +1,222 @@
-# 1.1 An toàn thông tin và mật mã giải quyết những vấn đề nào trong ứng dụng Java?
+# 1.1 What Problems Do Information Security and Cryptography Solve in Java Applications?
 
-Ứng dụng Java thường lưu tài khoản, xử lý giao dịch, truyền dữ liệu qua mạng và gọi các dịch vụ khác. Một chương trình chạy đúng chức năng vẫn có thể gây thiệt hại nếu người không được phép đọc dữ liệu, sửa thông điệp, giả mạo người gửi hoặc sử dụng thông tin bị đánh cắp. **An toàn thông tin** là mục tiêu bảo vệ hệ thống và dữ liệu trước các rủi ro đó; **mật mã học** cung cấp những cơ chế kỹ thuật quan trọng để đạt một số mục tiêu bảo vệ.
+Java applications commonly store accounts, process transactions, transmit data over networks, and call other services. A functionally correct program can still cause harm if unauthorized parties read data, alter messages, impersonate senders, or misuse stolen information. **Information security** is the goal of protecting systems and data against those risks; **cryptography** provides essential technical mechanisms to achieve a subset of those protection goals.
 
-Bài này trả lời ba câu hỏi: *Cần bảo vệ điều gì? Cơ chế mật mã giải quyết được vấn đề nào? Chọn và kết hợp cơ chế đó ra sao trong một ứng dụng Java?* Đây là bài nền tảng về bài toán và cách tư duy; phần cấu hình thuật toán, giao thức hoặc hệ thống quản lý khóa ở quy mô lớn cần được thiết kế riêng theo yêu cầu thực tế.
+This lesson answers three questions: *What needs to be protected? Which problems do cryptographic mechanisms solve? How should those mechanisms be selected and combined in a Java application?* This is a foundational lesson on problem framing and security thinking; specific algorithm configurations, protocols, or large-scale key management systems must be designed separately according to real-world requirements.
 
-## 1. Xác định tài sản, đối thủ và ranh giới tin cậy
+## 1. Identifying Assets, Adversaries, and Trust Boundaries
 
-Giả sử một ứng dụng Java phục vụ thương mại điện tử:
+Consider a Java e-commerce application:
 
-1. Người dùng đăng nhập và gửi đơn hàng từ trình duyệt đến Java API.
-2. Java API đọc thông tin khách hàng trong cơ sở dữ liệu.
-3. API gọi cổng thanh toán, nhận webhook thông báo giao dịch.
-4. Hệ thống ghi log, tạo bản sao lưu và gửi thông báo cho người dùng.
+1. Users log in and submit orders from a browser to a Java API.
+2. The Java API reads customer information from a database.
+3. The API calls a payment gateway and receives transaction notification webhooks.
+4. The system writes logs, creates backups, and sends notifications to users.
 
-Những tài sản cần bảo vệ gồm mật khẩu hoặc bộ xác minh mật khẩu, token phiên, dữ liệu cá nhân, số tiền/đơn hàng, khóa mật mã, cấu hình bí mật, log và bản sao lưu. Các nguy cơ có thể đến từ người nghe trộm đường truyền, bên sửa gói tin, kẻ có tài khoản bị chiếm đoạt, lỗi phân quyền, nhân sự vận hành hoặc máy chủ bị xâm nhập.
+Assets requiring protection include passwords or password verifiers, session tokens, personal data, amounts/orders, cryptographic keys, secret configurations, logs, and backups. Threats can come from network eavesdroppers, packet modifiers, compromised accounts, authorization flaws, operations staff, or compromised servers.
 
-**Ranh giới tin cậy** là nơi dữ liệu chuyển giữa những thành phần có mức độ kiểm soát khác nhau: trình duyệt → API, API → cơ sở dữ liệu, API → dịch vụ thanh toán, hệ thống đang chạy → kho sao lưu. Mỗi lần dữ liệu đi qua ranh giới, cần tự hỏi:
+A **trust boundary** is where data moves between components with different levels of control: browser → API, API → database, API → payment service, running system → backup storage. Whenever data crosses a boundary, ask:
 
-- Ai được phép đọc, tạo, sửa hoặc gửi dữ liệu này?
-- Người nhận chứng minh danh tính người gửi bằng cách nào?
-- Nếu thông điệp bị thay đổi trên đường đi, ai sẽ phát hiện?
-- Khóa và bí mật nằm ở đâu; nếu bị lộ thì hậu quả là gì?
-- Điều gì vẫn cần làm dù đã mã hóa, chẳng hạn kiểm soát quyền truy cập hoặc chống gửi lại yêu cầu?
+- Who is allowed to read, create, modify, or send this data?
+- How does the receiver prove the sender's identity?
+- If the message is modified in transit, who will detect it?
+- Where do keys and secrets reside; what is the consequence if they are leaked?
+- What still needs to be done even after encryption, such as access control or replay protection?
 
-Không có một thuật toán đơn lẻ nào trả lời được toàn bộ những câu hỏi này.
+No single algorithm answers all of these questions.
 
-## 2. Những mục tiêu an toàn thông tin mà ứng dụng cần đạt
+## 2. Information Security Goals an Application Must Achieve
 
-| Mục tiêu | Câu hỏi cần giải quyết | Ví dụ trong ứng dụng Java |
+| Goal | Question to Address | Example in a Java Application |
 | --- | --- | --- |
-| **Tính bí mật (confidentiality)** | Người không có quyền có đọc được nội dung không? | Che dữ liệu khách hàng khi truyền hoặc lưu; dùng TLS và mã hóa dữ liệu nhạy cảm ở nơi cần thiết. |
-| **Tính toàn vẹn (integrity)** | Nội dung có bị sửa trái phép mà không bị phát hiện không? | Phát hiện số tiền trong thông điệp đã bị đổi; dùng mã xác thực thông điệp, chữ ký số hoặc chế độ mã hóa có xác thực. |
-| **Tính xác thực (authenticity)** | Thông điệp hoặc bên giao tiếp có thật sự đến từ chủ thể được tin cậy không? | Xác thực máy chủ HTTPS, kiểm tra chữ ký webhook và gắn khóa xác minh với danh tính đúng. |
-| **Xác thực người dùng (authentication)** | Ai đang yêu cầu hành động này? | Đăng nhập bằng phương thức phù hợp, kiểm tra phiên/token và xác thực thêm khi rủi ro cao. |
-| **Phân quyền (authorization)** | Chủ thể đã xác thực được phép làm gì? | Người dùng A không được đọc đơn hàng của B; kiểm tra quyền tại server, theo từng tài nguyên và thao tác. |
-| **Khả dụng (availability)** | Dịch vụ có tiếp tục phục vụ hợp lệ khi gặp lỗi hay tấn công không? | Giới hạn tốc độ, dự phòng, khôi phục sao lưu, theo dõi và ứng phó sự cố. |
-| **Khả năng quy trách nhiệm / chống chối bỏ có điều kiện** | Có bằng chứng đáng tin về một hành động hoặc chữ ký không? | Chữ ký số cùng quy trình bảo vệ khóa, gắn danh tính và lưu bằng chứng phù hợp; chỉ có chữ ký chưa tự bảo đảm tính pháp lý. |
+| **Confidentiality** | Can unauthorized parties read the content? | Hide customer data in transit or at rest; use TLS and encrypt sensitive data where needed. |
+| **Integrity** | Can content be modified without authorization and go undetected? | Detect whether an amount in a message was altered; use message authentication codes, digital signatures, or authenticated encryption modes. |
+| **Authenticity** | Does the message or communicating party genuinely come from a trusted principal? | Authenticate HTTPS servers, verify webhook signatures, and bind verification keys to the right identity. |
+| **User Authentication** | Who is requesting this action? | Log in using an appropriate method, validate sessions/tokens, and require step-up authentication for high-risk actions. |
+| **Authorization** | What is an authenticated principal allowed to do? | User A must not read User B's orders; enforce server-side checks per resource and action. |
+| **Availability** | Does the service continue serving legitimate requests under failures or attacks? | Rate limiting, redundancy, backup recovery, monitoring, and incident response. |
+| **Accountability / Conditional Non-repudiation** | Is there reliable evidence of an action or signature? | Digital signatures paired with key protection processes, identity binding, and proper evidence storage; a signature alone does not guarantee legal validity. |
 
-Ba mục tiêu kinh điển là **CIA: Confidentiality – Integrity – Availability**. Trong hệ thống thực tế còn cần xác thực, phân quyền, truy vết và kiểm soát vận hành.
+The classic triad is **CIA: Confidentiality – Integrity – Availability**. Real-world systems also require authentication, authorization, auditability, and operational controls.
 
-Phân biệt đặc biệt quan trọng: **xác thực** trả lời “bạn là ai?”, còn **phân quyền** trả lời “bạn được làm gì?”. Một token hợp lệ không có nghĩa người sở hữu token được truy cập mọi bản ghi. Mật mã có thể hỗ trợ xác thực nhưng không thay thế kiểm tra quyền theo nghiệp vụ.
+A crucial distinction: **authentication** answers "who are you?", whereas **authorization** answers "what are you allowed to do?". A valid token does not mean its holder can access every record. Cryptography can support authentication, but it cannot replace business-level authorization checks.
 
-## 3. Các cơ chế mật mã giải những bài toán khác nhau
+## 3. Cryptographic Mechanisms Solve Different Problems
 
-### 3.1. Mã hóa đối xứng: giữ bí mật nội dung
+### 3.1. Symmetric Encryption: Keeping Content Confidential
 
-Một **khóa bí mật chung** được dùng để mã hóa và giải mã. Trong Java, một lựa chọn phổ biến cho dữ liệu ứng dụng là **AES-GCM**, vì nó vừa bảo mật nội dung vừa kiểm tra tính toàn vẹn của bản mã và dữ liệu bổ sung được xác thực (AAD).
+A **shared secret key** is used for both encryption and decryption. In Java, a common choice for application data is **AES-GCM**, because it protects content confidentiality while also verifying the integrity of the ciphertext and additional authenticated data (AAD).
 
-Dùng khi cần bảo vệ một trường dữ liệu nhạy cảm lưu trữ, file sao lưu, hoặc thông điệp mà hai phía đã chia sẻ khóa an toàn. Bản mã vẫn cần khóa mới đọc được. Các yếu tố cần quản lý: sinh khóa đủ mạnh, lưu khóa tách biệt khỏi dữ liệu, nonce/IV **không trùng với cùng một khóa**, lưu IV kèm bản mã, kiểm tra thẻ xác thực trước khi sử dụng kết quả giải mã.
+Use this when protecting a sensitive stored field, backup file, or message where both sides already securely share a key. The ciphertext still requires the key to be read. Factors to manage include: generating sufficiently strong keys, storing keys separately from the data, **never reusing a nonce/IV with the same key**, storing the IV alongside the ciphertext, and verifying the authentication tag before using the decrypted result.
 
-**Giới hạn:** mã hóa không quyết định người dùng nào được đọc bản ghi sau khi server giải mã. Lộ khóa có thể khiến dữ liệu tương ứng bị lộ; mã hóa không sửa được lỗi phân quyền.
+**Limitation:** encryption does not decide which user is allowed to read a record after the server decrypts it. Key compromise can expose the corresponding data; encryption does not fix authorization bugs.
 
-### 3.2. Mật mã bất đối xứng: khóa công khai và khóa riêng
+### 3.2. Asymmetric Cryptography: Public Keys and Private Keys
 
-Một cặp khóa gồm **public key** có thể chia sẻ và **private key** phải bảo mật. Các thuật toán khác nhau phục vụ mục tiêu khác nhau: RSA-OAEP có thể mã hóa lượng dữ liệu phù hợp; Ed25519 được dùng cho **chữ ký số**, không dùng để mã hóa; ECDH/X25519 phục vụ thỏa thuận khóa, không tự xác thực danh tính đối tác.
+A key pair consists of a **public key** that can be shared and a **private key** that must be kept secret. Different algorithms serve different goals: RSA-OAEP can encrypt appropriately sized data; Ed25519 is used for **digital signatures**, not encryption; ECDH/X25519 is used for key agreement and does not authenticate peer identity by itself.
 
-Trong ứng dụng thực tế, dữ liệu lớn thường được mã hóa bằng khóa đối xứng; cơ chế bất đối xứng có thể hỗ trợ trao đổi hoặc bao bọc khóa, xác minh chữ ký hay thiết lập phiên giao tiếp an toàn. Không nên tự ghép các phép toán thành một giao thức truyền tin riêng khi đã có TLS và thư viện đã được kiểm chứng.
+In real applications, bulk data is typically encrypted with a symmetric key; asymmetric mechanisms help exchange or wrap keys, verify signatures, or establish secure communication sessions. Do not assemble primitives into a custom transport protocol when TLS and vetted libraries already exist.
 
-### 3.3. Hàm băm mật mã: tạo dấu vân tay của dữ liệu
+### 3.3. Cryptographic Hash Functions: Creating a Data Fingerprint
 
-Hàm như **SHA-256** biến dữ liệu bất kỳ thành một giá trị có độ dài cố định. Dữ liệu thay đổi thường làm giá trị băm thay đổi; đây là công cụ cho fingerprint, kiểm tra tính toàn vẹn khi **giá trị băm kỳ vọng đến từ nguồn đáng tin**, và làm thành phần của những cơ chế khác.
+Functions like **SHA-256** transform arbitrary data into a fixed-length value. Changing the data typically changes the hash value; it serves as a tool for fingerprinting, checking integrity when **the expected hash comes from a trusted source**, and acting as a building block in other mechanisms.
 
-**SHA-256 không phải mã hóa:** không có thao tác “giải mã hash”. Tuy nhiên, băm trần của thông điệp **không chứng minh ai đã gửi**: người sửa dữ liệu cũng có thể tính lại hash. CRC32 hay checksum thông thường còn không phải công cụ bảo vệ chống sửa đổi có chủ đích.
+**SHA-256 is not encryption:** there is no "hash decryption" operation. However, a bare hash of a message **does not prove who sent it**: anyone modifying the data can also recompute the hash. Furthermore, CRC32 or ordinary checksums are not tools to protect against intentional tampering.
 
-### 3.4. MAC/HMAC: phát hiện sửa đổi và xác thực bên biết khóa
+### 3.4. MAC/HMAC: Detecting Tampering and Authenticating Key Holders
 
-**HMAC-SHA256** dùng khóa bí mật chung để tạo mã xác thực thông điệp. Người nhận có khóa kiểm tra được nội dung và MAC có khớp hay không. Phù hợp khi hai hệ thống tin cậy cùng giữ bí mật, ví dụ một kiểu webhook được nhà cung cấp quy định dùng HMAC.
+**HMAC-SHA256** uses a shared secret key to generate a message authentication code. A receiver holding the key can check whether the content and MAC match. It fits when two trusted systems share a secret, such as a provider-specified webhook using HMAC.
 
-HMAC **không mã hóa nội dung**. Vì cả hai bên cùng biết khóa, HMAC không chứng minh riêng một bên đã ký trước bên thứ ba. Bản thân HMAC cũng không ngăn việc gửi lại một thông điệp cũ hợp lệ; cần thêm thời gian, nonce, ID giao dịch, hạn hiệu lực hoặc tính idempotent theo giao thức.
+HMAC **does not encrypt content**. Because both sides know the key, HMAC cannot prove to a third party which specific side signed it. HMAC itself also does not prevent replaying an old valid message; protocols must add timestamps, nonces, transaction IDs, expiration windows, or idempotency.
 
-### 3.5. Chữ ký số: xác minh nguồn và nội dung
+### 3.5. Digital Signatures: Verifying Source and Content
 
-Người ký sử dụng private key để tạo chữ ký trên **đúng chuỗi byte**; người kiểm tra sử dụng public key tương ứng để xác minh. Nếu nội dung bị thay đổi, chữ ký cũ sẽ không còn hợp lệ. Ví dụ: xác minh gói phát hành, tài liệu hoặc webhook được ký.
+The signer uses a private key to generate a signature over the **exact byte sequence**; the verifier uses the corresponding public key to verify it. If the content changes, the old signature becomes invalid. Examples include verifying release packages, documents, or signed webhooks.
 
-**Điều kiện bắt buộc:** public key phải được gắn với đúng danh tính qua kênh tin cậy, chứng chỉ hoặc cấu hình đã xác minh. Chữ ký không làm dữ liệu bí mật, không tự chứng minh thời điểm ký và không tự tạo giá trị pháp lý nếu khóa riêng bị chia sẻ, đánh cắp hoặc quy trình quản trị thiếu tin cậy.
+**Mandatory condition:** the public key must be bound to the right identity through a trusted channel, certificate, or verified configuration. A signature does not make data confidential, does not inherently prove the signing time, and does not automatically establish legal validity if the private key is shared, stolen, or poorly governed.
 
-### 3.6. Băm mật khẩu chuyên dụng: lưu bộ xác minh, không lưu mật khẩu
+### 3.6. Dedicated Password Hashing: Store a Verifier, Not the Password
 
-Mật khẩu người dùng không nên lưu dưới dạng plaintext, mã hóa có thể giải mã, hoặc SHA-256 một lần. Khi đăng ký, hệ thống tạo **salt ngẫu nhiên riêng cho mỗi mật khẩu** và tính hàm dẫn xuất/băm mật khẩu có chi phí phù hợp như **Argon2id** (thường qua thư viện được duy trì) hoặc **PBKDF2WithHmacSHA256** trong JDK nếu cần phương án phù hợp hạ tầng. Lưu salt, tham số thuật toán và kết quả; khi đăng nhập tính và đối chiếu theo cơ chế của thư viện.
+User passwords must not be stored in plaintext, with reversible encryption, or with a single pass of SHA-256. At registration, the system generates a **unique random salt per password** and computes a password derivation/hashing function with appropriate cost, such as **Argon2id** (typically via a maintained library) or **PBKDF2WithHmacSHA256** in the JDK when infrastructure alignment is required. Store the salt, algorithm parameters, and result; at login, compute and compare using the library's verification mechanism.
 
-Salt không cần giữ bí mật; vai trò là tránh các mật khẩu giống nhau có cùng kết quả và gây khó cho tấn công tính trước. **Pepper** nếu sử dụng là bí mật bổ sung cần quản lý tách khỏi cơ sở dữ liệu. Tham số chi phí cần điều chỉnh, kiểm thử và cập nhật theo thời gian; không tự thiết kế thuật toán băm mật khẩu.
+The salt does not need to be kept secret; its role is to prevent identical passwords from producing identical hashes and to hinder precomputation attacks. A **pepper**, if used, is an additional secret that must be managed separately from the database. Cost parameters need tuning, testing, and updating over time; do not invent your own password hashing algorithm.
 
-### 3.7. Ngẫu nhiên an toàn, chứng chỉ và TLS
+### 3.7. Secure Randomness, Certificates, and TLS
 
-- **SecureRandom** tạo khóa, nonce, token ngẫu nhiên hoặc salt cần độ khó dự đoán. **Random**, thời gian hệ thống và số thứ tự tăng dần không phù hợp để sinh bí mật bảo mật.
-- **Chứng chỉ X.509/PKI** giúp gắn public key với một danh tính khi chuỗi tin cậy và tên máy chủ được kiểm tra đúng.
-- **TLS/HTTPS** bảo vệ kết nối giữa các điểm cuối cụ thể: xác thực máy chủ và cung cấp bảo mật, toàn vẹn đường truyền. Trong Java, thường sử dụng stack HTTP/TLS chuẩn (JSSE, HttpClient, framework) thay vì tự tạo giao thức mật mã.
+- **SecureRandom** generates keys, nonces, random tokens, or salts requiring unpredictability. **Random**, system timestamps, and incrementing sequence numbers are unsuitable for generating security secrets.
+- **X.509/PKI certificates** help bind a public key to an identity when the trust chain and hostname are validated properly.
+- **TLS/HTTPS** protects connections between specific endpoints: authenticating the server and providing transport confidentiality and integrity. In Java, use standard HTTP/TLS stacks (JSSE, HttpClient, frameworks) instead of building a custom cryptographic protocol.
 
-TLS chỉ bảo vệ **từng kết nối**. Dữ liệu đã giải mã trong ứng dụng, ghi vào log hoặc chuyển tiếp qua kết nối khác vẫn cần bảo vệ tương ứng. Không vô hiệu hóa kiểm tra chứng chỉ hoặc hostname chỉ để hết lỗi kết nối.
+TLS only protects **each individual connection**. Data already decrypted inside the application, written to logs, or forwarded over another connection still needs appropriate protection. Never disable certificate or hostname verification just to make connection errors go away.
 
-## 4. Bản đồ “bài toán → cơ chế → trách nhiệm còn lại”
+## 4. Mapping "Problem → Mechanism → Remaining Responsibilities"
 
-| Tình huống | Cơ chế phù hợp | Việc vẫn phải kiểm tra |
+| Scenario | Suitable Mechanism | What Must Still Be Checked |
 | --- | --- | --- |
-| Trình duyệt gọi Java API qua Internet | HTTPS/TLS đúng chứng chỉ và hostname | Xác thực phiên, phân quyền, kiểm tra dữ liệu đầu vào, CSRF khi phù hợp, xử lý lỗi an toàn |
-| Lưu mật khẩu tài khoản | Argon2id/PBKDF2 với salt riêng và tham số chi phí | Chống dò mật khẩu, MFA khi cần, chính sách đặt lại và bảo vệ phiên |
-| Lưu số định danh hoặc file nhạy cảm | AES-GCM hoặc cơ chế mã hóa được quản lý | Quản lý khóa, quyền truy cập sau giải mã, lưu bản sao lưu, hạn chế log lộ dữ liệu |
-| Nhận webhook thanh toán | Kiểm tra chữ ký số hoặc HMAC **theo đặc tả nhà cung cấp** | Xác thực đúng raw payload/canonical form, thời hạn, replay, idempotency, trạng thái giao dịch |
-| Kiểm tra gói phần mềm tải xuống | Hash đối chiếu từ nguồn xác thực hoặc chữ ký phát hành | Tin cậy nguồn cấp hash/public key, quy trình phát hành, chống rollback |
-| Phát hành và kiểm tra access token | Token opaque hoặc token có chữ ký phù hợp kiến trúc | Kiểm tra issuer/audience/expiry/thuật toán/khóa, thu hồi khi cần, quyền ở endpoint |
-| Ghi log sự kiện nhạy cảm | Log tối thiểu, phân quyền, bảo toàn log; có thể dùng chữ ký/chuỗi băm khi có yêu cầu | Bảo vệ nơi lưu, đồng bộ thời gian, chống xóa/sửa, chính sách giữ dữ liệu |
-| Chống nghẽn dịch vụ, DDoS hoặc lỗi logic | Rate limit, quota, timeout, cache, dự phòng, giám sát | Mã hóa và chữ ký **không giải quyết** tính khả dụng một cách trực tiếp |
+| Browser calls Java API over the Internet | HTTPS/TLS with valid certificate and hostname | Session authentication, authorization, input validation, CSRF where applicable, safe error handling |
+| Storing account passwords | Argon2id/PBKDF2 with unique salt and cost parameters | Brute-force protection, MFA when needed, reset policies, and session protection |
+| Storing national IDs or sensitive files | AES-GCM or a managed encryption mechanism | Key management, post-decryption access control, backup storage, minimizing sensitive data in logs |
+| Receiving payment webhooks | Digital signature or HMAC verification **per provider specification** | Validating exact raw payload/canonical form, expiration, replay, idempotency, transaction state |
+| Verifying downloaded software packages | Hash comparison from a verified source or release signature | Trusting the hash/public key source, release pipeline, rollback protection |
+| Issuing and validating access tokens | Opaque tokens or signed tokens fitting the architecture | Checking issuer/audience/expiry/algorithm/key, revocation when needed, endpoint authorization |
+| Logging sensitive events | Minimal logging, access control, log integrity; optional signatures/hash chains if required | Storage protection, time sync, tamper/deletion protection, data retention policies |
+| Mitigating service overload, DDoS, or logic bugs | Rate limits, quotas, timeouts, caching, redundancy, monitoring | Encryption and signatures **do not directly solve** availability |
 
-Một yêu cầu có thể cần nhiều cơ chế cùng lúc. Ví dụ webhook có HMAC hợp lệ vẫn có thể là thông điệp cũ bị phát lại, hoặc yêu cầu xử lý nghiệp vụ đã hoàn tất. HMAC kiểm tra thông điệp, còn cơ chế nghiệp vụ phải kiểm tra trạng thái và xử lý lặp.
+A single request may require multiple mechanisms at once. For instance, a webhook with a valid HMAC could still be an old replayed message, or request business processing that already completed. HMAC checks the message, while business logic must check state and duplicate processing.
 
-## 5. Hai câu hỏi bảo mật trên cùng một đơn hàng
+## 5. Two Security Questions on the Same Order
 
-Giả sử ứng dụng Java nhận lệnh thanh toán `order=42;amount=250000` và lưu thông tin giao dịch cho dịch vụ khác đọc. **Cùng một dữ liệu** nhưng có những câu hỏi khác nhau:
+Suppose a Java application receives a payment command `order=42;amount=250000` and stores the transaction info for another service to read. **The same data** raises different questions:
 
-- **Người đọc trộm backup có biết số tiền không?** Đây là mục tiêu bí mật ở nơi lưu trữ. Có thể dùng mã hóa xác thực như AES-GCM với khóa tách khỏi backup; không lưu khóa cạnh bản mã dưới cùng quyền đọc.
-- **Người nhận webhook có biết thông điệp bị sửa hoặc bên gửi có quyền xác thực không?** Đây là mục tiêu toàn vẹn và xác thực thông điệp. Nếu giao thức quy định một secret chung, HMAC-SHA256 phù hợp; nếu cần bên thứ ba độc lập xác minh, dùng chữ ký số với public key đã được ràng buộc vào người ký.
-- **Một webhook có tag hoặc chữ ký đúng có được ghi nhận nhiều lần không?** Không. Giao thức/nghiệp vụ vẫn phải kiểm tra sự kiện đã xử lý, thời hạn/nonce và tính idempotent.
-- **Người dùng đã đăng nhập có thể đọc đơn hàng bất kỳ không?** Không. Đây là bài toán phân quyền đối tượng; AES-GCM, HMAC, chữ ký và TLS không thể quyết định một mình.
+- **Can someone who steals a backup read the amount?** This is a data-at-rest confidentiality goal. Authenticated encryption like AES-GCM can be used with keys separated from the backup; do not store keys alongside ciphertext under the same read permissions.
+- **Can the webhook receiver tell if the message was modified or came from an authorized sender?** This is a message integrity and authenticity goal. If the protocol defines a shared secret, HMAC-SHA256 fits; if an independent third party needs to verify it, use a digital signature with a public key bound to the signer.
+- **Should a webhook with a valid tag or signature be recorded multiple times?** No. The protocol/business logic must still verify whether the event was already processed, check freshness/nonce, and enforce idempotency.
+- **Can any logged-in user read any order?** No. This is an object-level authorization problem; AES-GCM, HMAC, signatures, and TLS cannot decide this alone.
 
-Phải nêu được **đối thủ nào bị chặn**, **khóa nào do ai giữ** và **kiểm tra diễn ra ở đâu**. Một giải pháp bảo vệ tốt backup vẫn có thể thất bại nếu API giải mã rồi trả bản rõ cho người dùng khác; một webhook HMAC hợp lệ vẫn có thể là sự kiện cũ bị phát lại.
+You must specify **which adversary is blocked**, **who holds which key**, and **where verification occurs**. A solution that protects backups well can still fail if the API decrypts and returns plaintext to the wrong user; a valid HMAC webhook can still be a replayed old event.
 
-## 6. Phép thử chứng minh cơ chế đã giải đúng vấn đề
+## 6. Tests That Prove a Mechanism Solves the Right Problem
 
-| Mục tiêu | Phép thử phù hợp | Điều không thể suy ra chỉ từ kết quả đó |
+| Goal | Suitable Test | What Cannot Be Inferred From That Result Alone |
 | --- | --- | --- |
-| Bí mật dữ liệu lưu trữ | Đọc backup bằng tài khoản không có khóa giải mã phải không lấy được bản rõ | Người chạy API hợp lệ không thể lộ plaintext trong log/response |
-| Phát hiện sửa đổi | Sửa ciphertext/tag/AAD thì giải mã AEAD phải từ chối | Client đã được phân quyền trên đúng bản ghi |
-| Xác thực webhook | Sửa bytes payload nhưng giữ MAC/chữ ký cũ thì verification phải thất bại | Thông điệp chưa từng được xử lý trước đó |
-| Phân quyền dữ liệu | User A đổi ID sang record của B phải bị từ chối ở backend | Các byte lưu trong DB đã được mã hóa |
+| Data-at-rest confidentiality | Reading a backup with an account lacking decryption keys must not yield plaintext | That an authorized API user cannot leak plaintext in logs/responses |
+| Tamper detection | Modifying ciphertext/tag/AAD must cause AEAD decryption to reject | That the client is authorized for that specific record |
+| Webhook authenticity | Modifying payload bytes while keeping the old MAC/signature must fail verification | That the message has not already been processed before |
+| Data authorization | User A changing the ID to User B's record must be rejected by the backend | That bytes stored in the DB are encrypted |
 
-Ở đây chỉ cần **định hướng lựa chọn và đánh giá**. Ví dụ Java triển khai từng primitive, cách so sánh hash/MAC/chữ ký và định dạng byte được trình bày riêng ở bài phân biệt các cơ chế; còn bài này giữ trọng tâm là **vấn đề an toàn nào buộc ứng dụng phải kết hợp cơ chế và quyền truy cập**.
+Here we only need **selection and evaluation guidance**. Java implementation examples for each primitive, how to compare hashes/MACs/signatures, and byte formatting are covered separately in the lesson distinguishing these mechanisms; this lesson keeps the focus on **which security problems require applications to combine mechanisms with access control**.
 
-## 7. Chọn đúng primitive trong Java và đặt vào đúng lớp bảo vệ
+## 7. Choosing the Right Java Primitive and Placing It in the Right Protection Layer
 
-| Nhu cầu | API/cơ chế thường gặp | Điều cần nhớ |
+| Need | Common API/Mechanism | Key Takeaway |
 | --- | --- | --- |
-| Sinh giá trị khó đoán | **java.security.SecureRandom** | Dùng cho bí mật, IV/nonce/salt theo yêu cầu từng thuật toán. |
-| Băm nội dung | **MessageDigest** với SHA-256 | Hash trần không chứng minh người gửi và không dùng làm password hash. |
-| Xác thực thông điệp bằng khóa chung | **javax.crypto.Mac** với HmacSHA256 | So khớp MAC theo cách an toàn; gắn timestamp/nonce nếu cần chống replay. |
-| Mã hóa dữ liệu | **javax.crypto.Cipher**, **KeyGenerator**, **GCMParameterSpec** | Dùng AEAD và quản lý khóa/IV/tag đúng cách. |
-| Ký/xác minh | **java.security.Signature**, **KeyPairGenerator** | Kiểm tra nguồn public key; private key chỉ nằm ở bên ký. |
-| Dẫn xuất khóa từ mật khẩu | **SecretKeyFactory** với PBKDF2WithHmacSHA256 hoặc thư viện Argon2id | Phân biệt password verifier với khóa mã hóa; chọn tham số theo threat model. |
-| Lưu/đọc khóa theo thiết kế | **KeyStore** hoặc KMS/HSM của nền tảng | KeyStore là giao diện lưu khóa; chính sách truy cập, backup và rotation vẫn phải thiết kế. |
-| Kết nối có TLS | **java.net.http.HttpClient**, JSSE, HTTPS của framework | Dùng kiểm tra chứng chỉ/hostname mặc định; bảo vệ từng chặng kết nối. |
+| Generating unpredictable values | **java.security.SecureRandom** | Use for secrets, IVs/nonces/salts as required by each algorithm. |
+| Hashing content | **MessageDigest** with SHA-256 | A bare hash does not prove the sender and must not be used as a password hash. |
+| Message authentication with shared key | **javax.crypto.Mac** with HmacSHA256 | Compare MACs securely; attach timestamps/nonces if replay protection is needed. |
+| Encrypting data | **javax.crypto.Cipher**, **KeyGenerator**, **GCMParameterSpec** | Use AEAD and manage keys/IVs/tags properly. |
+| Signing/verifying | **java.security.Signature**, **KeyPairGenerator** | Verify the public key's origin; the private key stays only with the signer. |
+| Password key derivation | **SecretKeyFactory** with PBKDF2WithHmacSHA256 or an Argon2id library | Distinguish password verifiers from encryption keys; tune parameters to the threat model. |
+| Storing/reading keys by design | **KeyStore** or platform KMS/HSM | KeyStore is a key storage interface; access policies, backups, and rotation still need design. |
+| TLS-protected connections | **java.net.http.HttpClient**, JSSE, framework HTTPS | Keep default certificate/hostname verification; protect every connection hop. |
 
-Bảng trên là **bản đồ trách nhiệm**, không có nghĩa chỉ cần gọi một API là hệ thống an toàn. Kết quả bảo vệ còn phụ thuộc nguồn khóa, dữ liệu đầu vào, cách kiểm tra lỗi và ranh giới tin cậy của toàn hệ thống.
+The table above is a **responsibility map**, not a guarantee that calling an API makes a system secure. Protection outcomes still depend on key origins, input data, error-handling behavior, and system-wide trust boundaries.
 
-## 8. Ví dụ thiết kế ứng dụng: luồng đăng nhập và thanh toán
+## 8. Application Design Example: Login and Payment Flows
 
-### Đăng ký và đăng nhập
+### Registration and Login
 
-1. Trình duyệt gửi thông tin qua HTTPS đến Java API.
-2. Khi đăng ký, server sử dụng hàm băm mật khẩu chuyên dụng với salt riêng và tham số chi phí đã chọn; không lưu mật khẩu plaintext.
-3. Khi đăng nhập, server xác minh mật khẩu dựa trên bản ghi đã lưu, áp dụng giới hạn thử sai và biện pháp chống chiếm đoạt tài khoản theo mức độ rủi ro.
-4. Nếu hợp lệ, server cấp phiên/token với thời hạn, phạm vi, cách lưu và cơ chế thu hồi rõ ràng. Không log token hoặc password.
-5. Mọi API đọc/sửa đơn hàng vẫn kiểm tra quyền sở hữu tài nguyên; không tin mỗi việc “đã đăng nhập”.
+1. The browser sends credentials over HTTPS to the Java API.
+2. During registration, the server uses a dedicated password hashing function with a unique salt and chosen cost parameters; never store plaintext passwords.
+3. During login, the server verifies the password against the stored record, applying brute-force rate limits and account takeover protections based on risk.
+4. If valid, the server issues a session/token with clear lifetime, scope, storage rules, and revocation mechanism. Never log tokens or passwords.
+5. Every API reading/modifying orders still checks resource ownership; never trust "already logged in" alone.
 
-### Tạo đơn và nhận thông báo thanh toán
+### Creating Orders and Receiving Payment Notifications
 
-1. API xác thực người yêu cầu, kiểm tra số tiền và quyền thao tác theo nghiệp vụ.
-2. API gọi đối tác thanh toán qua TLS, xử lý thông tin bí mật bằng kho bí mật hoặc KMS nếu có.
-3. Khi webhook đến, hệ thống kiểm tra chữ ký/HMAC **trên đúng dữ liệu mà nhà cung cấp quy định**, xác minh nguồn khóa, thời hạn và dấu hiệu gửi lại.
-4. Server dùng ID giao dịch duy nhất và kiểm tra trạng thái hiện tại để xử lý **idempotent**: nhận hai lần cùng một webhook không được ghi nhận thanh toán hai lần.
-5. Log chứa thông tin đủ để tra soát nhưng không lộ số thẻ, token bí mật, khóa hoặc dữ liệu nhạy cảm không cần thiết.
+1. The API authenticates the requester, validates the amount, and checks business-level permissions.
+2. The API calls the payment partner over TLS, handling secrets via a secret manager or KMS when available.
+3. When a webhook arrives, the system verifies the signature/HMAC **over the exact data specified by the provider**, verifying key origin, expiration, and replay indicators.
+4. The server uses a unique transaction ID and checks the current state for **idempotent** processing: receiving the same webhook twice must not record payment twice.
+5. Logs contain enough information for auditing without exposing card numbers, secret tokens, keys, or unnecessary sensitive data.
 
-Trong cả hai luồng, mật mã bảo vệ đường truyền, dữ liệu và thông điệp; **quy tắc nghiệp vụ và kiểm soát truy cập** vẫn là phần riêng không thể bỏ qua.
+In both flows, cryptography protects transport, data, and messages; **business rules and access control** remain indispensable separate layers.
 
-## 9. Quản lý khóa: nơi nhiều thiết kế “đúng thuật toán” vẫn thất bại
+## 9. Key Management: Where Many "Algorithmically Correct" Designs Still Fail
 
-Một ứng dụng có AES-GCM chuẩn nhưng đặt khóa trong mã nguồn, ảnh container, log hoặc cùng cơ sở dữ liệu bị lộ có thể mất toàn bộ lợi ích bảo mật. Cần xác định vòng đời khóa trước khi triển khai:
+An application using standard AES-GCM can still lose all security benefits if keys are placed in source code, container images, logs, or exposed alongside the database. Define the key lifecycle before implementation:
 
-- **Tạo khóa:** dùng nguồn ngẫu nhiên mật mã và kích thước/loại khóa tương thích thuật toán, không tự dựng từ thời gian hay chuỗi cố định.
-- **Cấp phát quyền:** chỉ dịch vụ cần thiết được truy cập, tuân thủ nguyên tắc quyền tối thiểu; khóa ký riêng không cấp cho bên chỉ xác minh.
-- **Lưu khóa:** chọn keystore được bảo vệ, secret manager, KMS hoặc HSM theo môi trường; phân biệt bí mật dùng khi phát triển và production.
-- **Định danh và xoay vòng:** dữ liệu mã hóa dài hạn cần biết dùng phiên bản khóa nào; có kế hoạch mã hóa lại/khôi phục khi đổi khóa.
-- **Rò rỉ và thu hồi:** có quy trình thay khóa, vô hiệu phiên/token, đánh giá dữ liệu bị ảnh hưởng và theo dõi sự cố.
-- **Sao lưu và khôi phục:** mất khóa có thể làm mất dữ liệu vĩnh viễn; bản sao lưu khóa phải bảo vệ và kiểm thử tương ứng.
-- **Vận hành:** hạn chế để khóa hoặc nội dung bí mật trong stack trace, metrics, crash dump, log và câu lệnh debug.
+- **Key generation:** use a cryptographic random source and algorithm-compatible key size/type, never derive from timestamps or hardcoded strings.
+- **Access provisioning:** grant access only to necessary services following least privilege; never distribute signing private keys to verifier-only parties.
+- **Key storage:** choose a protected keystore, secret manager, KMS, or HSM depending on the environment; separate development and production secrets.
+- **Identification and rotation:** long-lived encrypted data must track which key version was used; plan re-encryption/recovery when rotating keys.
+- **Compromise and revocation:** establish procedures to replace keys, invalidate sessions/tokens, assess affected data, and monitor incidents.
+- **Backup and recovery:** losing a key can permanently destroy data; key backups must be protected and tested accordingly.
+- **Operations:** avoid exposing keys or secret contents in stack traces, metrics, crash dumps, logs, and debug commands.
 
-Không phải mọi dữ liệu đều cần mã hóa riêng từng trường: TLS, mã hóa đĩa, mã hóa cột và các biện pháp khác bảo vệ ở **những ranh giới khác nhau**. Chọn theo mô hình đe dọa và yêu cầu tuân thủ thực tế, tránh thêm mật mã mà không thể vận hành khóa an toàn.
+Not all data needs per-field encryption: TLS, disk encryption, column encryption, and other controls protect at **different boundaries**. Choose according to the threat model and real compliance requirements, avoiding cryptography that cannot be operated safely.
 
-## 10. Những nhầm lẫn dễ dẫn đến lỗ hổng
+## 10. Common Misconceptions That Lead to Vulnerabilities
 
-1. **“Base64 là mã hóa.”** Sai. Base64 chỉ đổi cách biểu diễn byte và có thể giải mã trực tiếp mà không cần bí mật.
-2. **“SHA-256 mật khẩu là đủ.”** Sai. Hash nhanh cho phép thử đoán với tốc độ cao; cần hàm dành cho mật khẩu, salt riêng và chi phí phù hợp.
-3. **“Đã dùng HTTPS nên dữ liệu ở database và log an toàn.”** Sai. TLS bảo vệ đường truyền giữa các điểm cuối; các bản sao dữ liệu khác có ranh giới riêng.
-4. **“Có chữ ký số thì nội dung bí mật.”** Sai. Chữ ký hỗ trợ tính toàn vẹn/xác thực nguồn; muốn giữ bí mật phải dùng mã hóa phù hợp.
-5. **“Kiểm tra HMAC một lần là webhook không thể bị phát lại.”** Sai. Thông điệp cũ vẫn có MAC hợp lệ; cần freshness, deduplication và idempotency.
-6. **“Mã hóa dữ liệu là đủ để chặn đọc trái phép.”** Sai. Server có thể giải mã cho người dùng không được phép nếu thiếu kiểm tra quyền theo tài nguyên.
-7. **“Mật mã sửa được SQL injection, XSS hoặc lỗi xử lý nghiệp vụ.”** Sai. Phải kiểm soát đầu vào/đầu ra, truy vấn có tham số, phân quyền và kiểm thử riêng.
-8. **“Dùng AES-GCM với một IV cố định tiện hơn.”** Nguy hiểm. Tái sử dụng cặp khóa/IV phá vỡ các bảo đảm an toàn quan trọng của GCM.
-9. **“Bỏ qua lỗi chứng chỉ TLS chỉ ảnh hưởng môi trường test.”** Nguy hiểm nếu cấu hình lọt sang môi trường khác; cần sửa trust chain hoặc chứng chỉ đúng cách.
-10. **“Có thuật toán mạnh là có hệ thống an toàn.”** Sai. Cách cài đặt, quản lý khóa, xác thực danh tính, phân quyền, giám sát và quy trình xử lý sự cố đều quyết định kết quả.
+1. **"Base64 is encryption."** False. Base64 only changes byte representation and can be decoded directly without any secret.
+2. **"SHA-256 for passwords is enough."** False. Fast hashes allow high-speed guessing; use a dedicated password function, unique salts, and adequate cost.
+3. **"We use HTTPS, so data in the database and logs is safe."** False. TLS protects transport between endpoints; other data copies have their own boundaries.
+4. **"Having a digital signature makes the content secret."** False. Signatures support integrity/source authenticity; confidentiality requires proper encryption.
+5. **"Checking HMAC once prevents webhook replay."** False. Old messages still carry valid MACs; freshness, deduplication, and idempotency are required.
+6. **"Encrypting data is enough to stop unauthorized reading."** False. The server can decrypt for unauthorized users if per-resource authorization checks are missing.
+7. **"Cryptography fixes SQL injection, XSS, or business logic flaws."** False. Input/output handling, parameterized queries, authorization, and dedicated testing are required.
+8. **"Using AES-GCM with a fixed IV is more convenient."** Dangerous. Reusing a key/IV pair breaks critical GCM security guarantees.
+9. **"Ignoring TLS certificate errors only affects test environments."** Dangerous if configs leak to other environments; fix the trust chain or certificate properly.
+10. **"Strong algorithms guarantee a secure system."** False. Implementation, key management, identity verification, authorization, monitoring, and incident response all determine the outcome.
 
-## 11. Quy trình chọn giải pháp cho một yêu cầu bảo mật
+## 11. Process for Choosing a Solution for a Security Requirement
 
-Trước khi chọn API Java, hãy trả lời tuần tự:
+Before choosing a Java API, answer in order:
 
-1. **Tài sản gì?** Dữ liệu cá nhân, mật khẩu, thông điệp, tài liệu, token hay khóa?
-2. **Đối thủ và quyền của họ?** Nghe trộm mạng, sửa message, đọc database backup, chiếm một tài khoản hay chiếm server?
-3. **Mục tiêu nào?** Bí mật, toàn vẹn, xác thực nguồn, phân quyền, khả dụng hay bằng chứng truy vết?
-4. **Ranh giới nào?** Trên đường truyền, trong bộ nhớ, nơi lưu trữ, giữa các dịch vụ hoặc với bên thứ ba?
-5. **Ai giữ khóa và ai tin ai?** Khóa chung, cặp khóa, nguồn public key, phiên bản/rotation và đường xử lý khi lộ khóa?
-6. **Giao thức đã có chưa?** Ưu tiên TLS và các cơ chế tiêu chuẩn đã được duy trì, kiểm thử; không tự sáng tác thuật toán hoặc tự dựng giao thức.
-7. **Kiểm chứng thế nào?** Có test cho dữ liệu bị sửa, khóa sai, bản tin hết hạn, replay, từ chối quyền, lỗi TLS, khôi phục và rotation không?
+1. **What is the asset?** Personal data, passwords, messages, documents, tokens, or keys?
+2. **Who is the adversary and what can they do?** Network eavesdropping, message tampering, reading database backups, compromising one account, or compromising a server?
+3. **Which goals apply?** Confidentiality, integrity, source authenticity, authorization, availability, or audit evidence?
+4. **Which boundaries exist?** In transit, in memory, at rest, between services, or with third parties?
+5. **Who holds keys and who trusts whom?** Shared keys, key pairs, public key origin, versioning/rotation, and compromise recovery path?
+6. **Does a standard protocol exist?** Prefer TLS and maintained, vetted standard mechanisms; do not invent algorithms or custom protocols.
+7. **How is it verified?** Are there tests for tampered data, wrong keys, expired messages, replays, denied authorization, TLS errors, recovery, and rotation?
 
-Một yêu cầu cụ thể nên dẫn đến **mục tiêu kiểm chứng cụ thể**. Ví dụ: “người đọc được bản sao lưu database không xem được trường X” có thể dẫn đến mã hóa riêng trường X và tách quyền truy cập khóa khỏi database. Ngược lại, “người dùng A không xem đơn của B” đòi hỏi kiểm tra phân quyền trên server dù dữ liệu có được mã hóa hay không.
+A concrete requirement should lead to a **concrete verification goal**. For example: "someone who reads a database backup must not see field X" may lead to encrypting field X and separating key access from the database. Conversely, "User A must not view User B's orders" requires server-side authorization checks regardless of whether the data is encrypted.
 
-## 12. Tự kiểm tra kiến thức
+## 12. Knowledge Self-Check
 
-**Câu 1.** Một client gửi số tiền và kèm SHA-256 của số tiền. Server nhận cả hai qua một kênh bị tấn công. Server có xác minh được người gửi không?  
-**Trả lời:** Không. Đối thủ có thể thay số tiền và tính lại SHA-256. Cần cơ chế xác thực nguồn/thông điệp phù hợp như HMAC/chữ ký cùng kênh hoặc giao thức xác thực tin cậy.
+**Q1.** A client sends an amount accompanied by the SHA-256 of that amount. The server receives both over an attacked channel. Can the server verify the sender?  
+**Answer:** No. An adversary can change the amount and recompute SHA-256. An appropriate source/message authentication mechanism such as HMAC/signature or a trusted authenticated channel/protocol is needed.
 
-**Câu 2.** HTTPS có ngăn user đã đăng nhập xem dữ liệu của user khác không?  
-**Trả lời:** Không. HTTPS bảo vệ kết nối; server phải kiểm tra quyền trên từng bản ghi/hành động.
+**Q2.** Does HTTPS prevent a logged-in user from viewing another user's data?  
+**Answer:** No. HTTPS protects the connection; the server must enforce authorization checks on every record and action.
 
-**Câu 3.** Nếu cần lưu mật khẩu để xác minh sau này, chọn AES hay SHA-256 một lần?  
-**Trả lời:** Không chọn cả hai làm cơ chế chính. Dùng hàm băm mật khẩu chuyên dụng với salt và tham số chi phí phù hợp (ví dụ Argon2id hoặc PBKDF2 theo yêu cầu triển khai).
+**Q3.** If you need to store passwords for later verification, should you choose AES or a single SHA-256 hash?  
+**Answer:** Choose neither as the primary mechanism. Use a dedicated password hashing function with a salt and appropriate cost parameters (e.g., Argon2id or PBKDF2 per deployment requirements).
 
-**Câu 4.** Chữ ký webhook hợp lệ có đủ để cộng tiền vào tài khoản ngay không?  
-**Trả lời:** Chưa đủ. Phải xác minh khóa đúng đối tác, payload đúng, độ mới và trạng thái giao dịch; xử lý idempotent để tránh thao tác lặp.
+**Q4.** Is a valid webhook signature enough to credit an account immediately?  
+**Answer:** Not enough. You must verify the key belongs to the right partner, the payload is right, freshness, and transaction state; handle idempotently to prevent duplicate operations.
 
-**Câu 5.** Tại sao ví dụ AES-GCM vừa giải mã được bản gốc vừa từ chối bản mã đã bị sửa?  
-**Trả lời:** AES-GCM là chế độ mã hóa có xác thực (AEAD). Tag ràng buộc nội dung và AAD với khóa/IV; việc xác minh tag thất bại khiến API từ chối dữ liệu không còn khớp.
+**Q5.** Why does the AES-GCM example both decrypt the original plaintext and reject modified ciphertext?  
+**Answer:** AES-GCM is an authenticated encryption mode (AEAD). The tag binds the content and AAD to the key/IV; tag verification failure causes the API to reject mismatched data.
 
-**Điểm cần nhớ:** An toàn thông tin xác định những điều cần bảo vệ. Mật mã cung cấp những công cụ như mã hóa, MAC, hash, chữ ký, password hashing và TLS để bảo vệ những mục tiêu cụ thể. Một ứng dụng Java an toàn chỉ hình thành khi chọn đúng công cụ, quản lý khóa đúng và kết hợp với xác thực, phân quyền, kiểm tra đầu vào, vận hành và khả năng khôi phục.
+**Key takeaway:** Information security defines what must be protected. Cryptography provides tools such as encryption, MACs, hashes, signatures, password hashing, and TLS to protect specific goals. A secure Java application emerges only when the right tools are chosen, keys are managed properly, and cryptography is combined with authentication, authorization, input validation, operations, and recovery capabilities.

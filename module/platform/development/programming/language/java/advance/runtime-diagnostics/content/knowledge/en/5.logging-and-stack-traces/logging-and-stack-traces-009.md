@@ -1,18 +1,18 @@
-# 5.9. Kiểm soát khối lượng log, dữ liệu bí mật và tác động của việc ghi đồng bộ
+# 5.9. Controlling Log Volume, Secrets, and Synchronous Logging Impact
 
-Logging giúp tìm lỗi, điều tra sự cố và kiểm toán; nhưng mỗi bản ghi đều tiêu tốn CPU, bộ nhớ, I/O, dung lượng lưu trữ và đôi khi làm tăng độ trễ request. Một dòng log có thể đi qua nhiều bước: tạo đối tượng sự kiện, format, chụp thread/trace context, serialize, khóa appender, ghi stdout/file, container runtime, collector, network, rồi storage/index. Nếu log quá nhiều, hệ thống quan sát có thể trở thành nguyên nhân gây chậm hoặc thậm chí làm lộ bí mật.
+Logging helps find bugs, investigate incidents, and support auditing; yet every log record consumes CPU, memory, I/O, storage, and sometimes adds request latency. A single log line can pass through many stages: creating the event object, formatting, capturing thread/trace context, serializing, locking an appender, writing to stdout/file, container runtime, collector, network, and storage/indexing. Excessive logging can turn the observability system itself into a source of latency or even leak secrets.
 
-Mục tiêu của bài học thuộc **5. Nhật ký và stack trace** là cân bằng ba điều:
+The goal of this lesson in **5. Logging and Stack Traces** is balancing three things:
 
-- **Đủ chứng cứ:** giữ các sự kiện quan trọng, outcome, errorCode, thời điểm, duration và correlation/trace ID để lần theo một thao tác.
-- **Trong ngân sách:** kiểm soát events/second, bytes/second, CPU, allocation/GC, queue, tác động lên p95/p99 latency và chi phí lưu trữ.
-- **An toàn:** không để password, token, session secret, thông tin cá nhân, payload nhạy cảm, nội dung exception hoặc dữ liệu hạ tầng bí mật lọt vào log.
+- **Sufficient evidence:** retain key events, outcomes, errorCodes, timestamps, durations, and correlation/trace IDs to trace an operation.
+- **Within budget:** control events/second, bytes/second, CPU, allocation/GC, queues, p95/p99 latency impact, and storage cost.
+- **Safe:** prevent passwords, tokens, session secrets, personal data, sensitive payloads, exception contents, or private infrastructure details from entering logs.
 
-**Nguyên tắc:** giảm log không có giá trị *trước khi tạo*, loại secrets *trước khi serialize*, đo chi phí *ở đúng đường thực thi*, và xem async logging là **hàng đợi hữu hạn có chính sách lỗi**, không phải phép màu loại bỏ chi phí.
+**Principle:** cut low-value logs *before creation*, strip secrets *before serialization*, measure cost *on the real execution path*, and treat async logging as a **bounded queue with failure policies**, not magic that eliminates cost.
 
-## 1. Tại sao một lời gọi logger có thể làm ứng dụng chậm?
+## 1. Why Can a Logger Call Slow Down an Application?
 
-Xem đường đi tổng quát:
+Look at the general path:
 
 ~~~text
 Request thread
@@ -21,7 +21,7 @@ Request thread
    v
 Level check / filter / sampling
    |
-   +-- tạo arguments, message, context, stack/caller data
+   +-- build arguments, message, context, stack/caller data
    |
    v
 Encoder / formatter (text, JSON)
@@ -36,21 +36,21 @@ Encoder / formatter (text, JSON)
                                 +--> queue full: block / drop / fallback
 ~~~
 
-Sơ đồ là mô hình ý niệm: việc tạo arguments, format và context có thể xảy ra ở các vị trí khác nhau tùy framework/backend/configuration. Ngay cả khi DEBUG bị tắt hoặc log được đưa vào queue, Java vẫn **đánh giá arguments của method** trước khi gọi logger; những phép tính nặng có thể tốn CPU/heap trước level check.
+The diagram is a conceptual model: argument creation, formatting, and context capture can occur in different places depending on framework/backend/configuration. Even when DEBUG is disabled or logs go to a queue, Java still **evaluates method arguments** before calling the logger; expensive computations can spend CPU/heap before the level check.
 
-Các nguồn chi phí thường gặp:
-1. **CPU:** serialize DTO/JSON, format stack trace, tạo timestamp, stringify collection, escape chuỗi.
-2. **Allocation/GC:** mỗi bản ghi có thể tạo nhiều string, array, object, buffer và snapshot MDC.
-3. **Khóa/chờ:** nhiều thread tranh một appender hay stdout stream; lock contention làm p99 tăng.
-4. **Đĩa/pipe/network:** stdout trong container là pipe có buffer; khi consumer chậm, write có thể block. File rotation, flush, network retry cũng tạo backpressure.
-5. **Bộ nhớ queue:** async logging giữ event trong heap chờ writer; queue càng lớn, memory/flush time có thể càng lớn.
-6. **Lưu trữ và tìm kiếm:** data ingest, replication, index, retention và xuất dữ liệu đều tiêu tiền và tài nguyên.
+Common cost sources:
+1. **CPU:** serializing DTOs/JSON, formatting stack traces, generating timestamps, stringifying collections, escaping strings.
+2. **Allocation/GC:** each record can allocate multiple strings, arrays, objects, buffers, and MDC snapshots.
+3. **Locking/waiting:** multiple threads contending on one appender or stdout stream; lock contention drives up p99.
+4. **Disk/pipe/network:** stdout in a container is a buffered pipe; when the consumer lags, writes can block. File rotation, flushing, and network retries also create backpressure.
+5. **Queue memory:** async logging retains events on heap awaiting the writer; larger queues increase memory footprint and flush time.
+6. **Storage and search:** ingestion, replication, indexing, retention, and exports all cost money and resources.
 
-Đừng suy từ tên API `log.info(...)` rằng ghi đã bất đồng bộ. SLF4J là façade; appender/backend mới quyết định cách vận chuyển và xử lý record.
+Never infer from `log.info(...)` that writing is asynchronous. SLF4J is a facade; the appender/backend determines how records are transported and processed.
 
-## 2. Đặt ngân sách khối lượng log bằng số liệu
+## 2. Budgeting Log Volume with Numbers
 
-### 2.1. Công thức cơ bản
+### 2.1. Basic Formulas
 
 ~~~text
 events_per_second ≈ requests_per_second × avg_events_per_request
@@ -59,7 +59,7 @@ events_per_second ≈ requests_per_second × avg_events_per_request
 raw_bytes_per_second ≈ events_per_second × avg_serialized_event_bytes
 ~~~
 
-Ví dụ giả định: một service xử lý **2.000 request/s**, mỗi request sinh **4 records**, mỗi record sau khi serialize dài trung bình **600 bytes**; tạm bỏ qua background events.
+Hypothetical example: a service handles **2,000 requests/s**, each request emits **4 records**, and each serialized record averages **600 bytes**; ignoring background events for now.
 
 ~~~text
 events/s = 2,000 × 4 = 8,000
@@ -68,47 +68,47 @@ bytes/hour = 4,800,000 × 3,600
            = 17,280,000,000 bytes = 17.28 GB/hour
 ~~~
 
-Ở đây MB/GB là **đơn vị thập phân**, không phải MiB/GiB. Đây là dung lượng **raw serialized log**, chưa kể compression, index, metadata, replication, retention hoặc việc thu thêm qua nhiều sink. Nếu bật DEBUG khiến số event/request gấp đôi, volume thường tăng tương ứng; nếu đồng thời log cả payload lớn, mức tăng còn mạnh hơn.
+Here MB/GB are **decimal units**, not MiB/GiB. This is **raw serialized log** volume, excluding compression, indexes, metadata, replication, retention, or multi-sink duplication. Enabling DEBUG to double events/request generally doubles volume; logging large payloads multiplies it even faster.
 
-Không chỉ nhìn tổng số dòng. Hai hệ thống cùng 10.000 records/s nhưng một hệ thống có stack trace dài 30 KB/record và hệ thống kia chỉ 300 bytes sẽ có chi phí rất khác nhau.
+Look beyond line count alone. Two systems both emitting 10,000 records/s—one with 30 KB stack traces per record and the other 300 bytes—have vastly different costs.
 
-### 2.2. Chỉ số cần quan sát
+### 2.2. Metrics to Watch
 
-| Chỉ số | Điều cần biết |
+| Metric | What you need to know |
 | --- | --- |
-| `log_events_total` theo service, level, event name | Sự kiện nào chiếm phần lớn traffic? |
-| `log_bytes_total` và bytes/s | Phình vì số event hay kích thước event? |
-| `log_event_size_bytes` p50/p95/p99 | Stack trace và payload nào quá lớn? |
-| `log_dropped_total` theo reason/level | Mất do sampling, filter, queue full hay exporter? |
-| Queue occupancy/capacity, enqueue/dequeue rate | Writer có theo kịp producer? |
-| Log call/enqueue p95/p99 | Caller có bị chặn hoặc tốn CPU đáng kể? |
-| Sink write latency, retry, exporter backlog | Collector, file, stdout hoặc network có chậm? |
-| Disk space/inodes, file rotation, retention | Có nguy cơ đầy disk, mất log hoặc tự làm hỏng service? |
-| Request latency/throughput, CPU, allocation/GC | Logging có gây suy giảm hiệu năng JVM không? |
+| `log_events_total` by service, level, event name | Which events dominate traffic? |
+| `log_bytes_total` and bytes/s | Is growth driven by event count or event size? |
+| `log_event_size_bytes` p50/p95/p99 | Which stack traces and payloads are oversized? |
+| `log_dropped_total` by reason/level | Drops from sampling, filters, queue full, or exporter? |
+| Queue occupancy/capacity, enqueue/dequeue rate | Is the writer keeping up with producers? |
+| Log call/enqueue p95/p99 | Are callers blocking or spending significant CPU? |
+| Sink write latency, retries, exporter backlog | Is the collector, file, stdout, or network slow? |
+| Disk space/inodes, file rotation, retention | Risk of full disk, lost logs, or self-inflicted service outage? |
+| Request latency/throughput, CPU, allocation/GC | Is logging degrading JVM performance? |
 
-Đây là **tên/nhóm metric đề xuất**, không phải chỉ số mặc định luôn có ở mọi Java logger. Phân biệt **log được tạo**, **enqueue thành công**, **ghi vào sink**, và **được backend ingest**; một appender báo nhận sự kiện không chứng minh record đã lưu bền vững ở đích.
+These are **suggested metric names/groups**, not default metrics built into every Java logger. Distinguish **log created**, **successfully enqueued**, **written to sink**, and **ingested by backend**; an appender accepting an event does not prove durable storage at the destination.
 
-### 2.3. Tìm “top talkers” và cardinality
+### 2.3. Finding "Top Talkers" and Cardinality
 
-Nhóm volume theo `service`, `environment`, `version`, `level`, `eventName`, `logger`, `route chuẩn hóa`, `instance`. Tránh dùng requestId, userId, URL chứa query params hoặc exception message làm **metric label**: cardinality tăng cực lớn. ID chi tiết nên nằm trong log/trace nếu có lý do hợp lệ; metrics thường dùng nhãn có tập giá trị hữu hạn.
+Group volume by `service`, `environment`, `version`, `level`, `eventName`, `logger`, `normalized route`, `instance`. Avoid putting `requestId`, `userId`, URLs with query params, or exception messages into **metric labels**: cardinality explodes. Detailed IDs belong in logs/traces when legitimately justified; metrics use bounded-value labels.
 
-Khi kiểm tra service có 99% INFO từ vòng lặp xử lý item, hãy hỏi **có thể chuyển thành một event tổng hợp + counter/histogram không?** Việc gỡ bỏ nguồn tạo event thường hiệu quả hơn chỉ drop ở collector, bởi collector filtering không hoàn trả CPU/heap đã dùng trong JVM.
+When inspecting a service where 99% of INFO logs come from an item-processing loop, ask: **can this become one summary event + counter/histogram?** Removing event generation at the source beats dropping at the collector, because collector filtering never refunds CPU/heap already spent in the JVM.
 
-## 3. Giảm volume mà vẫn giữ khả năng chẩn đoán
+## 3. Reducing Volume While Preserving Diagnostic Value
 
-### 3.1. Ghi đúng level và đúng mốc
+### 3.1. Logging at the Right Level and Milestones
 
-| Level phổ biến | Nên dùng | Kiểm soát volume |
+| Common level | When to use | Volume control |
 | --- | --- | --- |
-| **ERROR** | Một thao tác thất bại thực sự, có errorCode/cause | Log tại nơi quyết định outcome, tránh mỗi tầng log lại một exception |
-| **WARN** | Bất thường có thể khôi phục, retry/fallback | Giới hạn sự kiện lặp, giữ tổng số lỗi và context |
-| **INFO** | Mốc lifecycle, outcome, thay đổi cấu hình quan trọng | Ưu tiên log completion có duration/outcome thay vì từng bước |
-| **DEBUG** | Quyết định xử lý chi tiết, đặc biệt khi điều tra | Bật theo logger/service và thời lượng giới hạn, sampling hợp lý |
-| **TRACE** | Các bước cực nhỏ, volume cao | Chỉ bật có mục tiêu và trên phạm vi tải an toàn |
+| **ERROR** | An operation genuinely failed, with errorCode/cause | Log where the outcome is decided; avoid re-logging at every layer |
+| **WARN** | Recoverable anomaly, retry/fallback | Bound repeating events while preserving total error counts and context |
+| **INFO** | Lifecycle milestones, outcomes, major config changes | Prefer completion logs with duration/outcome over step-by-step chatter |
+| **DEBUG** | Detailed processing decisions, especially when investigating | Enable per logger/service with time bounds and sensible sampling |
+| **TRACE** | Very granular steps, high volume | Enable only with narrow targets and safe load bounds |
 
-Không quy mọi HTTP 4xx theo hợp đồng là ERROR; cũng không hạ thấp lỗi thật chỉ để giảm quota. Nếu một exception được log ERROR ở tầng thấp, log ERROR ở controller và tiếp tục log ERROR ở gateway, có thể thành ba bản sao cho một sự cố. Hãy phân biệt **lỗi trung gian được retry thành công** với **outcome cuối cùng thất bại**.
+Do not classify every contractually expected HTTP 4xx as ERROR; conversely, do not downgrade genuine errors merely to stay under quota. If an exception is logged ERROR in a low layer, again in the controller, and again at the gateway, one incident turns into three duplicate logs. Distinguish **intermediate errors resolved by retry** from **final failed outcomes**.
 
-Trước:
+Before:
 ~~~text
 INFO validating record 1
 INFO validating record 2
@@ -117,79 +117,79 @@ INFO validating record 3
 INFO validating record 10000
 ~~~
 
-Sau (ví dụ dữ liệu minh họa):
+After (illustrative data example):
 ~~~json
 {"level":"INFO","event":"batch.validation.completed","items":10000,"invalid":42,"durationMs":825,"outcome":"PARTIAL_FAILURE"}
 ~~~
 
-Nếu cần điều tra 42 lỗi, ghi errorCode và reference đã qua chính sách bảo vệ dữ liệu, hoặc dùng tracing/chi tiết lấy mẫu có kiểm soát. Đừng tự động ghi toàn bộ DTO cho mỗi item.
+If investigating the 42 invalid items, log errorCodes and policy-compliant references, or use tracing/controlled sampled details. Never dump full DTOs for every item automatically.
 
-### 3.2. Sampling, rate limit và aggregation
+### 3.2. Sampling, Rate Limiting, and Aggregation
 
-- **Sampling theo request/trace:** quyết định giữ/không giữ theo ID ổn định để giữ ngữ cảnh của cùng một flow, tránh chọn độc lập từng dòng khiến timeline đứt đoạn.
-- **Probabilistic sampling:** 1%, 5% hoặc tỷ lệ tùy traffic; cần hiểu sampling bias khi suy thống kê.
-- **Deterministic hash sampling:** hash request/trace ID (không dùng ID cá nhân nhạy cảm trong metric) để các nhánh có thể giữ cùng quyết định; chính sách phải được chia sẻ rõ.
-- **Rate limiting:** tối đa N event trong mỗi khoảng, tránh log storm khi một dependency hỏng. Vẫn cần metric số lần bị giảm và thông báo tổng hợp có giới hạn.
-- **Aggregation/deduplication:** “timeout tới inventory-api xảy ra 8.432 lần trong 1 phút” có giá trị hơn 8.432 dòng giống nhau, miễn vẫn giữ ngữ cảnh đại diện khi cần.
+- **Request/trace-based sampling:** decide keep/drop based on a stable ID to preserve full context for one flow, rather than sampling individual lines randomly and fragmenting timelines.
+- **Probabilistic sampling:** 1%, 5%, or traffic-appropriate rates; keep sampling bias in mind when inferring statistics.
+- **Deterministic hash sampling:** hash request/trace ID (never put sensitive personal IDs in metrics) so branches make consistent decisions; document the policy clearly.
+- **Rate limiting:** cap at N events per interval to prevent log storms when a dependency fails. Keep a metric for suppressed counts and bounded summary notices.
+- **Aggregation/deduplication:** "timeout to inventory-api occurred 8,432 times in 1 minute" is more useful than 8,432 identical lines, provided representative context is retained when needed.
 
-**Không lấy mẫu/tắt tùy tiện** audit events, sự kiện bảo mật bắt buộc hoặc log được đòi hỏi theo hợp đồng/luật. Với ERROR/WARN, chính sách cũng phải xét sự cố tạo log storm: giữ số lỗi chính xác qua metrics, giới hạn bản ghi trùng lặp, và bảo vệ những event có ý nghĩa pháp lý bằng pipeline khác.
+**Never arbitrarily sample or disable** audit events, mandatory security telemetry, or logs required by contract/law. Even for ERROR/WARN, policies must handle failure log storms: keep exact error counts via metrics, throttle duplicate log lines, and route legally significant events via a separate pipeline.
 
-Nếu dùng **tail sampling**, hệ thống thu thập cần giữ dữ liệu cho đến khi biết outcome; không thể “giữ mọi trace lỗi” nếu event đã bị drop từ đầu trước khi quyết định. Sampling ở collector không làm giảm chi phí định dạng log đã xảy ra tại application.
+With **tail sampling**, the collection pipeline buffers data until the outcome is known; you cannot "keep every error trace" if events were already dropped upfront before deciding. Collector-side sampling also does not save formatting CPU already spent in the application.
 
-### 3.3. Giới hạn kích thước mỗi record
+### 3.3. Bounding Record Size
 
-Các nguồn phình lớn: request/response body, headers, cookie, collection, DB rows, SQL bind parameters, base64 binary, nested DTO và stack trace dài hoặc lặp qua nhiều tầng.
+Common sources of bloat: request/response bodies, headers, cookies, collections, DB rows, SQL bind parameters, base64 binaries, nested DTOs, and long or repeated multi-layer stack traces.
 
-Nên:
-- Dùng **schema/allowlist**, chỉ ghi `event, outcome, statusCode, errorCode, durationMs, correlationId` và các thuộc tính có giá trị đã được duyệt.
-- Giới hạn độ dài text, số phần tử collection, stack frames hoặc số event chi tiết được tạo, theo yêu cầu điều tra.
-- Ghi `truncated=true` hoặc aggregate count khi có chủ đích; không truncate mù quáng khiến JSON thành sai cú pháp.
-- Tránh serialize toàn bộ object rồi cắt ở collector: CPU/memory và nguy cơ rò bí mật đã xảy ra ở phía ứng dụng.
+Best practices:
+- Use a **schema/allowlist**, logging only `event, outcome, statusCode, errorCode, durationMs, correlationId` and approved valuable attributes.
+- Cap text length, collection element counts, stack frame depth, or detailed events per operation per investigation needs.
+- Explicitly emit `truncated=true` or aggregate counts when truncating; never chop raw JSON mid-string and break syntax.
+- Avoid serializing whole objects only to truncate at the collector: CPU/memory cost and secret exposure have already happened inside the application.
 
-## 4. Dữ liệu bí mật: phòng ngừa trước khi serialize
+## 4. Secrets: Prevent Exposure Before Serialization
 
-Log là bản sao dữ liệu dễ bị nhân rộng sang console, file, collector, dashboard, SIEM, archive, ticket và chat. Một secret xuất hiện trong log có thể tồn tại lâu sau khi phiên làm việc gốc kết thúc.
+Logs are easily replicated to consoles, files, collectors, dashboards, SIEMs, archives, tickets, and chat. A secret written to a log can persist long after the original session expires.
 
-### 4.1. Những trường không được ghi nguyên văn
+### 4.1. Fields That Must Never Be Logged Verbatim
 
-| Loại | Ví dụ | Thay thế hợp lý |
+| Category | Examples | Appropriate alternative |
 | --- | --- | --- |
-| **Authentication** | Password, OTP, access/refresh token, JWT, API key, Authorization header | Chỉ event auth outcome, method, failure code |
-| **Session** | Session cookie, session ID, signed URL, CSRF secret | Correlation ID nội bộ không chứa secret |
-| **PII** | Email, số điện thoại, địa chỉ, định danh, dữ liệu sức khỏe | Không ghi nếu không cần; nếu được phép thì masking/tokenization có chính sách |
-| **Financial/payment** | Số thẻ, CVV, chi tiết tài khoản | Business reference đã được phê duyệt, status và errorCode |
-| **Infrastructure** | Private key, DB URL chứa password, secret env var, config secrets | Tên cấu hình, key tồn tại/không tồn tại, trạng thái kết nối |
-| **Payload** | Login form, ảnh/tài liệu, raw HTTP request/response | Content type, byte size, route, validation outcome |
-| **Exception internals** | Throwable message chứa URL token, SQL bind data hoặc user input | Exception type + stable errorCode, stack/cause đã bảo vệ |
+| **Authentication** | Passwords, OTPs, access/refresh tokens, JWTs, API keys, Authorization headers | Auth outcome event, method, failure code only |
+| **Session** | Session cookies, session IDs, signed URLs, CSRF secrets | Internal correlation ID containing no secret |
+| **PII** | Emails, phone numbers, addresses, government IDs, health data | Omit if unnecessary; if permitted, mask/tokenize per policy |
+| **Financial/payment** | Card numbers, CVVs, account details | Approved business reference, status, and errorCode |
+| **Infrastructure** | Private keys, DB URLs with passwords, secret env vars, config secrets | Config key name, present/missing flag, connection status |
+| **Payloads** | Login forms, images/documents, raw HTTP requests/responses | Content type, byte size, route, validation outcome |
+| **Exception internals** | Throwable messages containing URL tokens, SQL bind data, or user inputs | Exception type + stable errorCode, sanitized stack/cause |
 
-**Không truyền domain object hoặc credential vào logger chỉ vì framework có placeholder**. `logger.info("request={}", request)` vẫn có thể gọi `toString()` chứa password/token/PII. Đặc biệt kiểm tra nested exceptions, request headers, MDC, HTTP client interceptors, ORM SQL parameters và debug wire logs.
+**Never pass domain objects or credentials to a logger just because the API has placeholders.** `logger.info("request={}", request)` can still invoke a `toString()` containing passwords/tokens/PII. Specifically audit nested exceptions, request headers, MDC, HTTP client interceptors, ORM SQL parameters, and debug wire logs.
 
-### 4.2. Allowlist tốt hơn regex redaction một lớp
+### 4.2. Allowlisting Beats Single-Layer Regex Redaction
 
-Luồng an toàn là tạo một **log event mới chỉ từ các trường được phép**, chẳng hạn:
+The safer flow constructs a **new log event solely from approved fields**, such as:
 
 ~~~json
 {"level":"WARN","event":"payment.authorize.failed","correlationId":"req-42","errorCode":"DOWNSTREAM_TIMEOUT","durationMs":782}
 ~~~
 
-Không serialize nguyên `PaymentRequest` để rồi hy vọng regex tìm đủ mọi cách mã hóa token. Redaction tại logging encoder và collector vẫn hữu ích như **phòng tuyến bổ sung**, nhưng không nên là tuyến duy nhất.
+Do not serialize a raw `PaymentRequest` hoping regexes catch every encoding of a token. Redaction at the encoder and collector remains useful as **defense in depth**, never the sole defense.
 
-Hạn chế:
-- **Masking** như che bớt email vẫn có thể là dữ liệu cá nhân; phải tuân thủ mục đích và chính sách xử lý.
-- **Hash email/điện thoại** không tự động thành vô danh: có thể đoán được qua từ điển. Nếu cần khả năng liên kết, cân nhắc tokenization/HMAC với khóa quản lý và mục đích được phê duyệt.
-- **Log injection:** input có newline/control characters hoặc chuỗi giả timestamp có thể tạo log giả khi ghép text. Validate input và dùng structured encoder escape đúng.
-- **Secret in Throwable:** thông điệp lỗi từ HTTP/DB có thể chứa URL query, credentials; truyền Throwable cần kèm cơ chế bảo vệ nội dung.
-- **Log trong môi trường khác:** DEBUG được phép ở staging không có nghĩa production được lưu raw payload; staging cũng phải bảo vệ dữ liệu thật nếu có.
+Limitations:
+- **Masking** such as partial email masking can still constitute personal data; comply with purpose and handling policies.
+- **Hashing emails/phones** does not automatically anonymize them: dictionary attacks remain possible. Where linkability is needed, consider managed-key tokenization/HMAC for approved purposes.
+- **Log injection:** input containing newlines/control characters or fake timestamps can forge log entries in plain text. Validate inputs and use properly escaping structured encoders.
+- **Secrets in Throwables:** HTTP/DB error messages can embed URL queries or credentials; passing Throwables requires content protection mechanisms.
+- **Cross-environment logs:** DEBUG allowed in staging does not mean raw payloads belong there or in production; staging must also protect real data if present.
 
-### 4.3. Bảo vệ vòng đời log
+### 4.3. Protecting the Log Lifecycle
 
-Áp dụng các lớp: least-privilege access, mã hóa khi truyền/lưu, retention theo mục đích, phân quyền export, lịch sử truy cập, xóa bản sao theo chính sách và theo dõi ai có thể đọc log. Không để log file ở thư mục public hoặc cùng phân vùng quan trọng mà không có quota/rotation.
+Apply layered controls: least-privilege access, encryption in transit/at rest, purpose-bound retention, export authorization, access audit trails, policy-driven deletion of copies, and monitoring who reads logs. Never store log files in public directories or on critical shared partitions without quotas/rotation.
 
-Nếu phát hiện token/password đã lộ qua log, việc “ẩn dòng khỏi dashboard” **không đủ**. Cần đánh giá mọi nơi dữ liệu đã được gửi, cô lập/truy hồi quyền truy cập, xóa bản sao theo khả năng, điều tra phạm vi lộ và revoke/rotate credential khi phù hợp. Bản log tạm được gửi vào ticket hay công cụ bên ngoài cũng phải được tính đến.
+If a token/password leaks into logs, merely "hiding the line in the dashboard" **is not enough**. Assess every destination the data reached, isolate/revoke access, purge copies where possible, investigate exposure scope, and revoke/rotate compromised credentials as appropriate. Temporary snippets pasted into tickets or external tools must also be accounted for.
 
-## 5. Vì sao ghi đồng bộ có thể kéo p99 latency tăng?
+## 5. Why Synchronous Logging Can Spike p99 Latency
 
-**Synchronous appender** thực hiện phần việc ghi trên đường caller, đôi khi phải chờ lock, output buffer, disk, stdout pipe, rotation hoặc network. Chi phí có thể rất dao động. Ví dụ **minh họa** cùng một request:
+A **synchronous appender** performs write work on the caller's path, sometimes waiting on locks, output buffers, disk, stdout pipes, rotation, or network. Costs can vary wildly. **Illustrative** breakdown of a single request:
 
 ~~~text
 business work:                   10.0 ms
@@ -200,26 +200,26 @@ business work:                    5.0 ms
 approx elapsed:                 30.3 ms
 ~~~
 
-Trong ví dụ các đoạn tuần tự, phần chờ write chiếm phần lớn thời gian tăng thêm dù CPU thực thi logic nghiệp vụ ít. Đây **không phải benchmark thực tế**; một logger có thể buffered và không flush từng bản ghi, hoặc sink có thể đủ nhanh khi không tải.
+In these sequential steps, waiting on writes dominates added latency even though business logic uses little CPU. This is **not a real benchmark**; a logger may buffer without flushing every record, or a sink may be fast when unloaded.
 
-Nguồn chặn thường bị bỏ qua:
-- `ConsoleAppender` hoặc `System.out` ghi qua pipe; collector/container runtime chậm khiến buffer đầy và write block.
-- `FileAppender` có lock/flush/rotation, chịu filesystem latency và disk-full.
-- Network appender trực tiếp có thể gặp timeout/reconnect; quy tắc ghi lại phụ thuộc backend.
-- Ghi Throwable stack trace tốn CPU/strings ngay cả khi file nhanh.
-- Khi nhiều worker cùng gọi appender, lock contention có thể dồn vào tail latency.
+Often-overlooked blocking sources:
+- `ConsoleAppender` or `System.out` writing over a pipe; a slow collector/container runtime fills the buffer and blocks writes.
+- `FileAppender` locking/flushing/rotating, subject to filesystem latency and full disks.
+- Direct network appenders encountering timeouts/reconnects; retry rules depend on the backend.
+- Formatting Throwable stack traces costing CPU/strings even when file I/O is fast.
+- Multiple workers calling the same appender concurrently, concentrating lock contention in tail latency.
 
-**Synchronous write không có nghĩa durable:** file write thành công có thể mới vào OS page cache, chưa fsync; stdout write được nhận có thể chưa tới backend. Cần phân biệt `logged/enqueued`, `written`, `flushed` và `ingested`.
+**Synchronous writes do not equal durability:** a successful file write may sit in OS page cache without `fsync`; an accepted stdout write may not have reached the backend yet. Distinguish `logged/enqueued`, `written`, `flushed`, and `ingested`.
 
-### Argument evaluation: tắt DEBUG vẫn có thể tốn CPU
+### Argument Evaluation: Disabled DEBUG Can Still Spend CPU
 
-Hai đoạn sau là **minh họa dùng SLF4J**, không chạy độc lập vì cần logger, DTO và helper trong ứng dụng:
+The two snippets below **illustrate SLF4J usage** and are not standalone runnable because they require application logger, DTO, and helpers:
 
 ~~~java
 logger.debug("payload={}", expensiveSerialize(payload));
 ~~~
 
-`expensiveSerialize(payload)` **vẫn được gọi** do Java đánh giá arguments trước method call, kể cả khi level DEBUG bị tắt. Nếu tính summary đắt đỏ, dùng guard:
+`expensiveSerialize(payload)` **is still called** because Java evaluates method arguments prior to the call, even when DEBUG is off. If computing a summary is expensive, guard it:
 
 ~~~java
 if (logger.isDebugEnabled()) {
@@ -227,27 +227,27 @@ if (logger.isDebugEnabled()) {
 }
 ~~~
 
-Trong ứng dụng thật nên dùng API lazy/supplier phù hợp backend khi có, không serialize raw payload nhạy cảm. Đừng quên một object `toString()` có thể tự thực hiện logic nặng hoặc lộ dữ liệu.
+In real apps, use lazy/supplier APIs supported by the backend where available, and never serialize sensitive raw payloads. Remember an object's `toString()` itself can run heavy logic or leak data.
 
-## 6. Logging bất đồng bộ: tách sink nhưng không xóa backpressure
+## 6. Asynchronous Logging: Decoupling the Sink Without Removing Backpressure
 
-Async appender có **producer thread** đưa record vào queue và **writer thread** xử lý sink. Điều này có thể giảm thời gian caller phải đợi I/O, nhưng vẫn có phí enqueue, allocation và context capture. Memory queue có giới hạn, writer phải theo kịp lượng log phát ra.
+An async appender has **producer threads** pushing records into a queue and a **writer thread** draining to the sink. This can reduce caller I/O waits, yet enqueueing, allocation, and context capture still cost resources. Memory queues are bounded, and the writer must keep pace with log emission.
 
-### 6.1. Khi queue đầy, chuyện gì sẽ xảy ra?
+### 6.1. What Happens When the Queue Fills?
 
-| Chính sách | Tác dụng | Rủi ro |
+| Policy | Effect | Risk |
 | --- | --- | --- |
-| **Block producer** | Chờ có chỗ trống, giảm nguy cơ bỏ log trong ngắn hạn | Request thread bị chặn, timeout, pool saturation, có thể gây outage nếu sink chết |
-| **Drop record mới** | Giữ latency caller ít bị tác động | Mất log đúng lúc sự cố, điều tra thiếu chứng cứ |
-| **Ưu tiên severity** | Giữ WARN/ERROR khi queue gần đầy, bỏ bớt TRACE/DEBUG/INFO | Không đảm bảo giữ tất cả high severity nếu full/kill; không thay audit |
-| **Spill/buffer ra đĩa** | Chịu gián đoạn network ngắn | Tốn disk, I/O, policy dọn và rủi ro disk-full |
-| **Fallback sync** | Có thể giữ một số event quan trọng | Lại đặt I/O vào critical path, p99 tăng đúng lúc quá tải |
+| **Block producer** | Waits for queue space, reducing short-term drops | Request threads stall, timeouts, pool saturation, potential outage if sink dies |
+| **Drop new records** | Keeps caller latency minimally impacted | Logs vanish right during incidents, starving investigations of evidence |
+| **Severity priority** | Keeps WARN/ERROR near full, drops TRACE/DEBUG/INFO | Does not guarantee all high-severity logs survive full/kill; not a substitute for audit |
+| **Spill/buffer to disk** | Absorbs brief network interruptions | Consumes disk, I/O, cleanup complexity, disk-full risk |
+| **Fallback to sync** | May preserve critical events | Reintroduces I/O onto the critical path, spiking p99 right under overload |
 
-Không có chính sách nào đúng cho mọi hệ thống. “Never block” thường đánh đổi khả năng mất event, trong khi “never drop” bằng cách chặn có thể đánh đổi availability. Với audit events bắt buộc, cần kênh có semantics delivery/durability rõ ràng, không dựa đơn thuần vào async logger.
+No single policy fits every system. "Never block" trades off potential event loss, whereas "never drop" via blocking can trade off availability. Mandatory audit events need channels with explicit delivery/durability semantics rather than relying solely on async loggers.
 
-### 6.2. Logback AsyncAppender: ví dụ cấu hình và trade-off
+### 6.2. Logback AsyncAppender: Configuration Example and Trade-offs
 
-Với Logback Classic đã có dependency phù hợp, ví dụ XML dưới đây **chỉ minh họa các công tắc**, không phải khuyến nghị mặc định trên production:
+With Logback Classic dependencies present, the XML below **illustrates only the switches**, not a blanket production recommendation:
 
 ~~~xml
 <configuration>
@@ -269,31 +269,31 @@ Với Logback Classic đã có dependency phù hợp, ví dụ XML dưới đây
 </configuration>
 ~~~
 
-- `queueSize=1024`: số event tối đa trong queue, **không phải số bytes tối đa**. Event lớn/stack trace dài vẫn có thể tốn heap.
-- `discardingThreshold=0`: tắt cơ chế tự loại bớt level thấp khi queue gần đầy theo ngưỡng của Logback, **không đảm bảo không bao giờ mất log**.
-- `neverBlock=false`: khi queue đầy, producer có thể **bị block** để chờ. Chọn `true` có thể dẫn đến drop nếu queue không nhận record.
-- `maxFlushTime=2000`: trong shutdown bình thường, chờ xử lý queue theo giới hạn thời gian (ms); nếu hết hạn hoặc process bị kill/crash thì không chắc đã flush tất cả.
-- Appender cuối vẫn là stdout; **pipe/container/collector vẫn có thể chậm**. Bọc AsyncAppender không làm stdout vô hạn.
-- Pattern này chỉ xuất plain text, **không tự redaction** hoặc gắn trace ID/correlation ID. Muốn production-safe phải cấu hình encoder/context và bảo vệ secrets riêng.
+- `queueSize=1024`: maximum number of events in the queue, **not maximum bytes**. Large events or long stack traces can still consume significant heap.
+- `discardingThreshold=0`: disables Logback's automatic low-level event discarding near queue saturation, **without guaranteeing zero log loss**.
+- `neverBlock=false`: when the queue is full, producers may **block** waiting. Setting `true` causes drops when the queue cannot accept records.
+- `maxFlushTime=2000`: during normal shutdown, waits up to the timeout (ms) to drain the queue; if exceeded or killed/crashed, flushing everything is not guaranteed.
+- The underlying appender is still stdout; **pipe/container/collector stalls can still back up**. Wrapping in AsyncAppender does not make stdout infinite.
+- This pattern outputs plain text only—it **does not redact secrets** or attach trace IDs/correlation IDs. Production safety requires proper encoders/context and secret protection.
 
-Logback có cơ chế mặc định loại các event level thấp khi queue gần đầy trong một số phiên bản, và `discardingThreshold` thay đổi hành vi đó. **Đọc manual của đúng version đang sử dụng**; backend khác có cấu hình và semantics khác. Chỉ số INFO bị drop không phải sự kiện ERROR được đảm bảo giữ trọn vẹn.
+Logback defaults to dropping lower-level events near full queue in certain versions, and `discardingThreshold` alters that behavior. **Read the manual for the exact version in use**; other backends have different settings and semantics. Dropping INFO does not guarantee ERROR events are preserved unconditionally.
 
-### 6.3. Shutdown, ordering, retry và mất mát
+### 6.3. Shutdown, Ordering, Retries, and Loss
 
-- Khi service dừng bình thường cần flush/stop logger theo lifecycle và đủ termination grace period. SIGKILL/OOM/crash có thể mất event chưa xử lý.
-- Async queue có thể giao thứ tự riêng; nhiều producer và nhiều services có thể xuất hiện thứ tự khác nhau ở backend. Giữ event timestamp, traceId/spanId.
-- Retry tại exporter có thể tạo duplicates; queue drop và collector failure tạo gaps. Không mặc định exactly-once.
-- MDC/trace context cần được capture khi event phát sinh/propagate đúng qua executor; writer thread không tự biết request gốc.
-- Queue tăng mãi là dấu hiệu producer nhanh hơn sink; chỉ tăng queue size làm chậm thời điểm vỡ và tăng heap.
-- Theo dõi `queue_size`, `dropped_total`, `write_duration`, exporter errors và request p99 khi thay cấu hình.
+- During normal service shutdown, flush/stop loggers cleanly within an adequate termination grace period. SIGKILL/OOM/crashes can lose un-flushed events.
+- Async queues can reorder across producers and services at the backend. Always keep event timestamps and traceId/spanId.
+- Exporter retries can create duplicates; queue drops and collector failures create gaps. Never assume exactly-once delivery.
+- MDC/trace context must be captured at emission time and propagated across executors; the writer thread does not inherently know the originating request.
+- A steadily growing queue signals producers outpacing the sink; merely enlarging `queueSize` delays failure and increases heap usage.
+- Monitor `queue_size`, `dropped_total`, `write_duration`, exporter errors, and request p99 whenever changing configuration.
 
-## 7. Java 17+ chạy độc lập: sampling, allowlist và chống log injection
+## 7. Standalone Java 17+: Sampling, Allowlisting, and Log Injection Defense
 
-Ví dụ này dùng `System.out` để **minh họa chọn event và bảo vệ dữ liệu**, không phải benchmark synchronous/async. Nó xử lý 12 input; giữ 2 event lỗi, lấy mẫu 4 event thành công, bỏ 6 event còn lại. Dữ liệu có email/token trong object **không được đưa vào log**; reference có ký tự newline sẽ bị từ chối.
+This example uses `System.out` to **illustrate event selection and data protection**, not to benchmark synchronous vs. async logging. It processes 12 inputs; retains 2 error events, samples 4 success events, and suppresses the remaining 6. Email/token fields in the object **are never written to logs**; a reference containing a newline is rejected.
 
-**Lưu ý:** quy tắc giữ “mỗi request thứ ba” chỉ giúp tạo output xác định; với traffic thật, sampling theo thứ tự có thể sai lệch và không thay thế sampling nhất quán theo request/trace ID.
+**Note:** keeping "every third request" is solely to produce deterministic output; on live traffic, positional sampling can skew results and does not replace consistent sampling by request/trace ID.
 
-Tệp **SafeLogBudgetDemo.java**:
+File **`SafeLogBudgetDemo.java`**:
 
 ~~~java
 import java.time.Instant;
@@ -363,14 +363,14 @@ public final class SafeLogBudgetDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac SafeLogBudgetDemo.java
 java SafeLogBudgetDemo
 ~~~
 
-**Stdout chính xác**:
+**Exact stdout**:
 
 ~~~text
 2026-10-29T00:00:03Z level=INFO event=order.sampled_success requestId=req-3 orderRef=ORD-3
@@ -382,123 +382,123 @@ java SafeLogBudgetDemo
 summary observed=12 sampledSuccess=4 errors=2 suppressed=6
 ~~~
 
-**Diễn giải:**
-- 4 success logs (3, 6, 9, 12) và 2 error logs (5, 10); 6 success events bị suppress theo policy.
-- Ở request 6, `orderRef` chứa newline không hợp lệ; code in `[omitted]`, không tạo thêm dòng log giả.
-- `email` và `accessToken` tồn tại trong `Incoming` nhưng logger chỉ nhận `requestId`, event và reference đã kiểm tra. Không serialize toàn bộ input object.
-- Timestamp cố định giúp test stdout; production phải dùng event time thực, cùng timezone/trace context.
-- Chương trình ghi đồng bộ bằng `System.out.printf` nên **không chứng minh** async hay cải thiện p99. Cần benchmark backend/appender thật với workload và sink thực tế.
-- Giữ mọi lỗi trong **12 record minh họa** không có nghĩa việc log mọi ERROR ở tải không giới hạn là miễn phí. Pipeline thật vẫn cần capacity/aggregation và kênh bảo vệ audit/security độc lập.
+**Interpretation:**
+- 4 success logs (3, 6, 9, 12) and 2 error logs (5, 10); 6 success events are suppressed per policy.
+- On request 6, `orderRef` contains an invalid newline; code prints `[omitted]` rather than forging an extra log line.
+- `email` and `accessToken` exist inside `Incoming`, yet the logger receives only `requestId`, event, and the validated reference. The whole input object is never serialized.
+- Fixed timestamps make stdout testable; production must use real event times with proper timezone/trace context.
+- Because the program prints synchronously via `System.out.printf`, it **does not prove** async behavior or p99 improvement. Benchmark real backends/appenders under real workloads and sinks.
+- Keeping every error in **12 illustrative records** does not mean logging unlimited ERRORs under unbounded load is free. Real pipelines still need capacity/aggregation and separate durable channels for audit/security.
 
-## 8. Đo tác động của synchronous và async logging một cách công bằng
+## 8. Fairly Measuring Synchronous vs. Asynchronous Logging Impact
 
-Một thử nghiệm có ích phải giữ nguyên workload, event size, logging level, encoder, host/container, disk/collector và thời lượng. Cần có warm-up, số mẫu đủ lớn và ít nhất hai lần chạy ổn định trước khi so p99.
+A meaningful experiment holds workload, event size, logging level, encoder, host/container, disk/collector, and duration constant. Include warm-up, enough samples, and at least two stable runs before comparing p99.
 
-Các bước:
-1. **Baseline:** ghi request p50/p95/p99, throughput, CPU, allocation rate, GC pauses, event/s, bytes/s, dropped events.
-2. **Synchronous configuration:** đo thời gian lời gọi logger/appender, lock contention, stdout/file latency và số event tới backend.
-3. **Async configuration:** giữ nguyên dữ liệu log, đo thời gian enqueue, queue occupancy, drop/block, writer latency và ingestion count.
-4. **Tình huống sink chậm:** giả lập collector down/pipe đầy/disk chậm có kiểm soát trong môi trường thử nghiệm; quan sát ứng dụng block hay drop.
-5. **Shutdown:** thử dừng bình thường và abrupt kill; đánh giá logs còn trong queue, ghi rõ giới hạn durability.
-6. **Kết luận:** cải thiện p99 chỉ được coi là thành công nếu chất lượng chứng cứ và yêu cầu audit/security vẫn được bảo vệ.
+Steps:
+1. **Baseline:** record request p50/p95/p99, throughput, CPU, allocation rate, GC pauses, events/s, bytes/s, dropped events.
+2. **Synchronous configuration:** measure logger/appender call duration, lock contention, stdout/file latency, and events reaching the backend.
+3. **Async configuration:** keep identical log payloads; measure enqueue time, queue occupancy, drops/blocks, writer latency, and ingestion counts.
+4. **Slow sink scenario:** simulate collector downtime/full pipe/slow disk safely in a test environment; observe whether the app blocks or drops.
+5. **Shutdown:** test graceful stop and abrupt kill; measure logs remaining in the queue and document durability limits.
+6. **Conclusion:** a p99 improvement counts as a success only if diagnostic evidence quality and audit/security requirements remain intact.
 
-Một đoạn đo khoảng thời gian bằng Java:
+Interval measurement snippet in Java:
 
 ~~~java
 long startNanos = System.nanoTime();
-// Gọi logging thực sự cần đo nằm ở đây trong bài test.
+// Actual logging call to measure goes here in the test.
 long elapsedNanos = System.nanoTime() - startNanos;
 ~~~
 
-Đoạn trên chỉ **minh họa boundary đo**; không phải benchmark độc lập. Đo một lần log cực nhỏ chịu overhead của chính phép đo. Một async logger trả về nhanh có thể **chỉ enqueue** chứ chưa ghi log xuống sink. Dùng thông tin của appender và collector để phân biệt.
+This snippet only **illustrates measurement boundaries**; it is not a standalone benchmark. Timing a single tiny log call suffers measurement overhead. An async logger returning quickly may **only be enqueueing**, not writing to the sink. Use appender and collector metrics to tell them apart.
 
-### Bảng dấu hiệu và giả thuyết
+### Symptom and Hypothesis Matrix
 
-| Dấu hiệu | Khả năng | Kiểm chứng |
+| Symptom | Possibility | Verification |
 | --- | --- | --- |
-| p99 request tăng sau bật DEBUG | Eager serialization, log locks, I/O | CPU profiler, log call timing, allocation, bytes/s |
-| CPU vẫn tăng khi DEBUG bị filter | Code tạo arguments trước check level | Kiểm tra serialize/toString và level guards |
-| Async queue gần đầy, p99 tăng | Producer block chờ queue | Enqueue latency, full count, `neverBlock` |
-| p99 giảm nhưng thiếu nhiều log lỗi | Queue drop hoặc exporter/collector mất dữ liệu | Dropped counter, written/ingested counts |
-| GC tăng khi async queue lớn | Buffered events chiếm heap | Queue memory, heap usage, allocation, GC |
-| Disk hết nhanh sau deploy | More events, larger payload, rotation/retention thiếu | Bytes/event, file sizes, disk/inode, collector |
-| Log có token trong exception | Throwable/header/body chưa được sanitize | Review exception messages, encoder, collector filter |
-| Không thấy log nhưng request có chạy | Filter, sampling, queue drop, flush chưa xong | Pipeline metrics, trace, appender config |
+| Request p99 rises after enabling DEBUG | Eager serialization, log locks, I/O | CPU profiler, log call timing, allocation, bytes/s |
+| CPU still rises with DEBUG filtered out | Code evaluates arguments before level check | Inspect serialization/`toString` calls and level guards |
+| Async queue nearly full, p99 rises | Producers blocking on queue | Enqueue latency, full count, `neverBlock` |
+| p99 drops yet many error logs vanish | Queue drops or exporter/collector loss | Dropped counter, written vs. ingested counts |
+| GC rises when async queue is large | Buffered events occupy heap | Queue memory, heap usage, allocation, GC |
+| Disk fills rapidly after deploy | More events, larger payloads, missing rotation/retention | Bytes/event, file sizes, disk/inodes, collector |
+| Logs contain tokens in exceptions | Unsanitized Throwable/headers/bodies | Audit exception messages, encoders, collector filters |
+| No logs seen although requests ran | Filters, sampling, queue drops, unflushed buffers | Pipeline metrics, traces, appender config |
 
-## 9. Phân loại nguồn log theo yêu cầu độ tin cậy
+## 9. Classifying Log Sources by Reliability Requirements
 
-| Nguồn | Mục tiêu | Chính sách tham khảo |
+| Source | Purpose | Reference policy |
 | --- | --- | --- |
-| DEBUG/TRACE | Chẩn đoán chi tiết | Có thể sampling, TTL ngắn, rate limit, drop có metric |
-| Operational INFO | Outcome, latency, lifecycle | Giữ mốc quan trọng, giảm lặp, aggregate hot paths |
-| WARN/ERROR | Chẩn đoán sự cố | Giữ code/context, theo dõi drop, giới hạn lặp có kiểm soát |
-| Security telemetry | Xác định hành vi bất thường | Event schema, integrity, quyền và retention nghiêm ngặt |
-| Audit trail bắt buộc | Kiểm toán, trách nhiệm, phục hồi | Durable pipeline với delivery/failure semantics cụ thể |
+| DEBUG/TRACE | Detailed diagnostics | Can sample, short TTL, rate limit, drop with metrics |
+| Operational INFO | Outcomes, latency, lifecycle | Keep key milestones, curb repetition, aggregate hot paths |
+| WARN/ERROR | Incident diagnostics | Keep codes/context, monitor drops, cap repetition safely |
+| Security telemetry | Detect anomalous behavior | Strict event schema, integrity, permissions, and retention |
+| Mandatory audit trail | Auditing, accountability, recovery | Durable pipeline with explicit delivery/failure semantics |
 
-**Operational logging không tự động là audit trail.** Nếu một sự kiện bắt buộc phải tồn tại sau khi transaction commit, có thể cân nhắc transactional outbox, durable queue hoặc event store với cơ chế replay, deduplication và retention rõ. Chỉ đổi ConsoleAppender sang AsyncAppender không tạo bảo đảm exactly-once.
+**Operational logging is not automatically an audit trail.** When an event must persist after a transaction commits, consider a transactional outbox, durable queue, or event store with replay, deduplication, and explicit retention. Switching `ConsoleAppender` to `AsyncAppender` does not create an exactly-once guarantee.
 
-**Fail-open hay fail-closed khi logger lỗi?**
-- Với diagnostics không thiết yếu, thường ưu tiên request vẫn phục vụ, ghi metric/cảnh báo về mất log.
-- Với audit/security bắt buộc, chính sách có thể yêu cầu dừng hoặc giới hạn thao tác khi không thể ghi chứng cứ; quyết định phải căn cứ rủi ro và yêu cầu pháp lý, không áp dụng chung.
-- Tránh vòng lặp khi bản thân logger/collector lỗi; không spam “failed to log” qua đúng pipeline đang hỏng.
+**Fail-open or fail-closed when the logger fails?**
+- For non-essential diagnostics, usually keep serving requests while emitting metrics/alerts about log loss.
+- For mandatory audit/security, policy may require halting or restricting operations when evidence cannot be recorded; base this decision on risk and legal requirements, never as a blanket rule.
+- Avoid feedback loops when the logger/collector itself fails; do not spam "failed to log" through the very broken pipeline.
 
-## 10. Các tình huống trước và sau
+## 10. Before-and-After Scenarios
 
-**A. INFO trong vòng lặp nóng.** Trước: mỗi request sinh 8 records, stdout pipe bị nghẽn; sau: chỉ log kết thúc với `outcome/durationMs/traceId` và dùng metrics cho số item. Đo lại bytes/s và request p99 thay vì chỉ so số dòng.
+**A. INFO inside a hot loop.** Before: every request emitted 8 records, saturating the stdout pipe; after: log only completion with `outcome/durationMs/traceId` and track item counts via metrics. Re-measure bytes/s and request p99 instead of counting lines alone.
 
-**B. Async appender giúp p99 nhưng mất chứng cứ.** Queue nhỏ + cấu hình nonblocking có thể drop khi collector chậm. Sau: bổ sung queue/dropped metrics, chọn policy theo severity, tăng capacity có kiểm chứng, kiểm tra shutdown và tách audit channel khi cần. Không chỉ “tăng queueSize thật lớn”.
+**B. Async appender helps p99 but loses evidence.** Small queue + nonblocking config dropped logs whenever the collector slowed. After: add queue/dropped metrics, apply severity-aware policies, size capacity based on tests, verify shutdown flushing, and separate audit channels where needed. Do not just "make `queueSize` huge".
 
-**C. Secret lọt vào exception.** Request URL chứa access token được gắn vào Throwable message; log ERROR tự động đưa message đó vào storage. Sau: bỏ secret khỏi URL, xây errorCode an toàn và áp dụng redaction cho exception/context; đánh giá việc rotate token đã lộ.
+**C. Secret leaked in exception.** A request URL containing an access token was embedded in a Throwable message; ERROR logging sent it straight to storage. After: strip secrets from URLs, build safe errorCodes, apply redaction to exceptions/contexts, and evaluate rotating the exposed token.
 
-**D. Bật DEBUG làm OOM nặng hơn.** Serialize object graph lớn và queue async giữ events khiến heap/GC tăng. Sau: giới hạn event size, lấy mẫu theo mục tiêu, đo allocation/heap/queue và tự động hết hạn debug override.
+**D. Enabling DEBUG worsens OOM.** Serializing large object graphs plus retaining events in an async queue spiked heap/GC. After: cap event sizes, sample purposefully, measure allocation/heap/queue, and auto-expire debug overrides.
 
-**E. Mất log lúc shutdown.** Async worker vẫn còn queue khi container bị kill; những dòng cuối biến mất. Sau: graceful shutdown/flush theo timeout, điều chỉnh grace period, đo event gaps; với audit cần kênh durable khác.
+**E. Logs lost on shutdown.** The async worker still had queued items when the container was killed; trailing lines disappeared. After: add graceful shutdown/flush timeouts, adjust grace periods, measure event gaps; use a separate durable channel for audit.
 
-**F. Log volume thành vấn đề bảo mật.** Raw request/response ở production chứa email và cookie; trước đó mỗi request được lưu hàng tuần. Sau: allowlist fields, retention ngắn đúng mục đích, phân quyền, redaction và quy trình xóa/bảo vệ bản sao.
+**F. Log volume becomes a security incident.** Production raw requests/responses contained emails and cookies, stored for weeks. After: allowlist fields, enforce short purpose-bound retention, tighten access controls, redact, and purge/protect existing copies.
 
-## 11. Các lỗi suy luận thường gặp
+## 11. Common Reasoning Pitfalls
 
-- **“Một dòng INFO nhỏ không ảnh hưởng.”** Hàng nghìn dòng mỗi giây và nhiều sink cộng thành CPU, I/O, storage và tail latency.
-- **“DEBUG disabled nghĩa là không tốn gì.”** Arguments Java có thể được tạo trước logger call.
-- **“Async luôn non-blocking.”** Queue đầy có thể block, drop hoặc fallback; mỗi chính sách có trade-off.
-- **“Tăng queueSize sẽ không bao giờ drop.”** Queue hữu hạn, có shutdown và sink failure; queue lớn còn làm tăng heap.
-- **“Log lỗi ở mọi tầng giúp điều tra hơn.”** Stack trace lặp làm tăng volume, phình search và nguy cơ lộ bí mật.
-- **“Bật DEBUG thì nên dump nguyên payload.”** Body/header có PII, cookies và secrets; luôn dùng allowlist.
-- **“Regex ở collector xóa hết secrets.”** Secrets có thể đã đi qua stdout/file và có nhiều biểu diễn lồng nhau.
-- **“Hash email là vô danh.”** Dữ liệu có thể vẫn tái nhận diện; đánh giá theo rủi ro và chính sách.
-- **“Không thấy log nghĩa là sự kiện không xảy ra.”** Có thể bị level filter, sampling, drop, sink lỗi hoặc đang trễ ingest.
-- **“Ứng dụng đã enqueue là log được lưu rồi.”** Producer, queue, sink, collector và backend là nhiều giai đoạn.
-- **“Ghi file đồng bộ có nghĩa dữ liệu chắc chắn durable.”** OS cache/fsync, filesystem và rotation quyết định khác nhau.
-- **“RequestId tốt cho metric label.”** Đây thường là cardinality quá cao.
-- **“Xóa log ở dashboard giải quyết secret leak.”** Cần xem các bản sao và revoke/rotate secret nếu phù hợp.
-- **“Bật TRACE khi incident rồi quên tắt cũng không sao.”** Chi phí và rủi ro dữ liệu kéo dài; cần thời hạn và quyền bật.
+- **"One small INFO line has no impact."** Thousands of lines per second across multiple sinks compound into CPU, I/O, storage, and tail latency.
+- **"DEBUG disabled means zero cost."** Java method arguments can still be evaluated before the logger call.
+- **"Async is always non-blocking."** Full queues can block, drop, or fall back; every policy has trade-offs.
+- **"Making `queueSize` bigger prevents drops forever."** Queues remain finite, shutdowns and sink failures still occur, and huge queues inflate heap.
+- **"Logging errors at every layer helps investigation."** Repeated stack traces bloat volume, overload search, and multiply secret-leak risk.
+- **"When DEBUG is on, dump the whole payload."** Bodies/headers carry PII, cookies, and secrets; always allowlist.
+- **"Collector regexes catch all secrets."** Secrets already traversed stdout/files and appear in many nested encodings.
+- **"Hashing emails makes them anonymous."** Data can still be re-identified; assess against risk and policy.
+- **"Missing logs mean the event didn't happen."** It could be level-filtered, sampled, dropped, failed at the sink, or delayed in ingestion.
+- **"Once the app enqueues it, the log is saved."** Producer, queue, sink, collector, and backend are distinct stages.
+- **"Synchronous file write means guaranteed durability."** OS cache/`fsync`, filesystem, and rotation govern durability differently.
+- **"`requestId` makes a great metric label."** It usually explodes cardinality.
+- **"Deleting the log in the dashboard fixes a secret leak."** Inspect all copies and revoke/rotate the secret where appropriate.
+- **"Leaving TRACE on after an incident is harmless."** Cost and data exposure persist; enforce expiration and authorization.
 
-## 12. Checklist production
+## 12. Production Checklist
 
-**Trước khi phát hành:**
-1. Đặt schema/allowlist event theo level, service, event, errorCode, outcome, duration và correlation/trace ID.
-2. Kiểm thử không có password/token/PII trong message, DTO, headers, MDC, exception và debug libraries.
-3. Tính ngân sách event/s, bytes/s, event size và retention cho traffic dự kiến và tình huống lỗi bùng nổ.
-4. Dùng metric và sampling/rate limit phù hợp cho hot paths, không xóa audit/security events tùy tiện.
-5. Kiểm tra effective logging level, chi phí eager argument formatting và giới hạn size của log record.
-6. Ghi rõ appender synchronous/async, queue capacity, block/drop, fallback, retry, shutdown flush và metrics phản ánh loss.
-7. Kiểm tra disk/pipe/collector quotas, quyền đọc, encryption và rotation/retention; tránh shared disk exhaustion.
+**Before release:**
+1. Define event schemas/allowlists with level, service, event, errorCode, outcome, duration, and correlation/trace IDs.
+2. Test that no passwords/tokens/PII appear in messages, DTOs, headers, MDC, exceptions, or debug libraries.
+3. Budget events/s, bytes/s, event sizes, and retention for expected traffic and failure bursts.
+4. Use metrics and appropriate sampling/rate limits on hot paths without arbitrarily dropping audit/security events.
+5. Audit effective log levels, eager argument formatting costs, and record size limits.
+6. Document sync/async appenders, queue capacity, block/drop policies, fallbacks, retries, shutdown flush, and loss metrics.
+7. Verify disk/pipe/collector quotas, read permissions, encryption, and rotation/retention; avoid shared disk exhaustion.
 
-**Khi chứng minh cải thiện hiệu năng:**
-1. Giữ nguyên workload, JDK, backend, event size và sink để so baseline.
-2. Đo p95/p99 request, throughput, CPU/GC, log call/enqueue latency, queue occupancy và dropped events.
-3. Giả lập collector chậm/disk đầy/queue full/kill ở môi trường thử nghiệm, xác nhận behavior khi lỗi.
-4. So số event emitted với written và backend ingested; kiểm tra các lỗi có correlation ID còn tìm được.
-5. Ghi quyết định trade-off: trường hợp nào ưu tiên availability, trường hợp nào cần audit durability, ai phê duyệt điều chỉnh.
-6. Giới hạn thời gian DEBUG/TRACE tăng cường và đánh giá lại secrets/cost sau thay đổi.
+**When proving performance improvements:**
+1. Hold workload, JDK, backend, event size, and sink constant against the baseline.
+2. Measure request p95/p99, throughput, CPU/GC, log call/enqueue latency, queue occupancy, and dropped events.
+3. Simulate slow collector/full disk/full queue/kill in staging to confirm failure behavior.
+4. Compare emitted vs. written vs. backend-ingested counts; verify errors remain findable by correlation ID.
+5. Document trade-off decisions: where availability wins, where audit durability wins, and who approved adjustments.
+6. Time-box elevated DEBUG/TRACE overrides and re-audit secrets/cost afterward.
 
-**Ghi nhớ:** giảm log **ở nguồn**, bảo vệ secret **trước serialization**, theo dõi **events/s và bytes/s**, đo **chi phí đồng bộ trên critical path**, và coi **async queue luôn hữu hạn**. Một chiến lược logging tốt phải vừa giúp điều tra sự cố, vừa không trở thành nguyên nhân của sự cố.
+**Key takeaway:** cut logs **at the source**, block secrets **before serialization**, track **events/s and bytes/s**, measure **synchronous cost on the critical path**, and assume **async queues are always finite**. A sound logging strategy aids incident investigation without becoming the incident itself.
 
-### Tài liệu tham khảo
+### References
 
 - OWASP, Logging Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html
 - Logback, AsyncAppender manual: https://logback.qos.ch/manual/appenders-async-sift.html
 - OpenTelemetry, Logs Data Model: https://opentelemetry.io/docs/specs/otel/logs/data-model/
 - Java SE 17, PrintStream API: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/PrintStream.html
 
-Hành vi thực tế của appender và chính sách drop phụ thuộc phiên bản thư viện, sink và runtime. Cần đối chiếu cấu hình triển khai thật với metrics, không coi các ví dụ minh họa là cấu hình bắt buộc.
+Actual appender behavior and drop policies depend on library version, sink, and runtime. Cross-check real deployment configs with metrics rather than treating illustrative examples as mandatory configurations.

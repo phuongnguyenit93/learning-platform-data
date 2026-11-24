@@ -1,66 +1,66 @@
-# Ràng buộc nạp lớp, package lúc chạy và truy cập thành viên không public
+# Loading Constraints, Runtime Packages, and Non-Public Member Access
 
-## 1. Vì sao cùng tên package vẫn có thể không truy cập được?
+## 1. Why Can the Same Package Name Still Be Inaccessible?
 
-Khi thiết kế plugin Java, một tình huống dễ gây nhầm lẫn là hai lớp đều khai báo:
+When designing Java plugins, a confusing situation arises when two classes both declare:
 
-\`\`\`java
+```java
 package com.example.shared;
-\`\`\`
+```
 
-nhưng một lớp nằm trong ứng dụng chủ (host) và lớp kia được nạp bởi \`ClassLoader\` riêng của plugin. Dù tên package giống nhau, JVM có thể coi chúng thuộc **hai runtime package khác nhau**. Vì vậy thành viên có quyền truy cập mặc định (*package-private*) hoặc một số truy cập \`protected\` có thể thất bại ngay cả khi mã nguồn trông như nằm trong cùng package.
+yet one class resides in the host application and the other is loaded by a plugin's dedicated `ClassLoader`. Even though the package name is identical, the JVM may treat them as belonging to **two distinct runtime packages**. As a result, default-access (*package-private*) members or certain `protected` accesses can fail even when the source code appears to live in the same package.
 
-Nguyên tắc trung tâm trong cơ chế JVM: **runtime package được xác định bằng tên package và class loader định nghĩa lớp**. Trong môi trường module, quyền truy cập còn chịu ràng buộc của Java Platform Module System (JPMS), chẳng hạn \`exports\`, \`opens\` và quan hệ module. Không thể chỉ đổi chuỗi \`package\` hoặc đường dẫn JAR để vượt ranh giới đó.
+The central rule in the JVM mechanism is: **a runtime package is identified by the package name and the class loader that defines the class**. In a modular environment, access is further constrained by the Java Platform Module System (JPMS), such as `exports`, `opens`, and module relationships. You cannot simply change a `package` string or JAR path to cross that boundary.
 
-Bài này tập trung vào tương tác giữa cách nạp lớp, danh tính runtime package và kiểm tra quyền truy cập thành viên không \`public\`; đặc biệt hữu ích khi host và plugin cố tình cô lập các dependency bằng nhiều class loader.
+This article focuses on the interaction between class loading, runtime package identity, and non-`public` member access checks; it is especially useful when host and plugins intentionally isolate dependencies using multiple class loaders.
 
-## 2. Danh tính lớp và runtime package
+## 2. Class Identity and Runtime Packages
 
-### 2.1. Class identity
+### 2.1. Class Identity
 
-Ở JVM, mỗi lớp được định danh bởi:
+In the JVM, each class is identified by:
 
-1. **Binary name**, ví dụ \`com.example.api.Contract\`.
-2. **Defining class loader**: loader thực sự gọi cơ chế định nghĩa lớp đó.
+1. **Binary name**, for example `com.example.api.Contract`.
+2. **Defining class loader**: the loader that actually invokes the mechanism to define that class.
 
-Do đó hai class loader khác nhau có thể định nghĩa hai lớp có cùng binary name nhưng JVM vẫn coi là hai kiểu khác nhau. Hậu quả có thể là \`ClassCastException\`, \`LinkageError\` hoặc lỗi kiểm tra quyền truy cập tùy cách sử dụng và ràng buộc nạp lớp.
+Consequently, two different class loaders can define two classes with the same binary name while the JVM still considers them two distinct types. The outcome can be `ClassCastException`, `LinkageError`, or access-check errors depending on usage and loading constraints.
 
-Phân biệt các vai trò:
+Distinguish the roles:
 
-- **Initiating loader**: loader được yêu cầu tìm/nạp lớp; có thể ủy quyền cho loader cha.
-- **Defining loader**: loader thực sự định nghĩa \`Class\` từ bytecode.
-- **Parent delegation**: cơ chế thường dùng để ưu tiên class do loader cha cung cấp. Hai plugin loader cùng ủy quyền API cho parent có thể nhìn thấy đúng **một** \`Contract.class\`.
+- **Initiating loader**: the loader requested to find/load the class; it may delegate to a parent loader.
+- **Defining loader**: the loader that actually defines the `Class` from bytecode.
+- **Parent delegation**: the mechanism commonly used to prioritize classes provided by a parent loader. Two plugin loaders both delegating the API to the parent can see the exact same **single** `Contract.class`.
 
-Trong bài này, ranh giới runtime package dựa vào **defining loader**, không chỉ loader được truyền vào \`Class.forName\` hoặc đường dẫn class path xuất hiện trong cấu hình.
+In this article, runtime package boundaries rely on the **defining loader**, not merely the loader passed to `Class.forName` or the class path appearing in configuration.
 
-### 2.2. Runtime package
+### 2.2. Runtime Package
 
-Xét hai lớp:
+Consider two classes:
 
-\`\`\`text
+```text
 HostClass    package com.example.shared;  defining loader = L1
 PluginClass  package com.example.shared;  defining loader = L2
-\`\`\`
+```
 
-Nếu \`L1 != L2\`, hai lớp nằm ở **hai runtime package khác nhau**, mặc dù cùng tên package. Điều này ảnh hưởng tới khả năng truy cập:
+If `L1 != L2`, the two classes reside in **two different runtime packages**, despite having the same package name. This affects accessibility:
 
-| Thành viên/kiểu | Điều kiện quan trọng trong class path truyền thống |
+| Member/type | Key condition on the traditional class path |
 |---|---|
-| \`public\` class, \`public\` member | Có thể truy cập nếu lớp khai báo nhìn thấy được và không bị chính sách module cản trở |
-| \`private\` | Chỉ truy cập theo quy tắc cùng lớp/nest, không trở thành truy cập tự do vì cùng package |
-| Không ghi modifier (package-private) | Chỉ truy cập trong **cùng runtime package** |
-| \`protected\` | Cho phép cùng runtime package; hoặc theo quy tắc subclass cùng các hạn chế của truy cập \`protected\` |
-| Package-private top-level class | Không thể tự động dùng từ plugin loader chỉ vì cùng tên package |
+| `public` class, `public` member | Accessible if the declaring class is visible and not blocked by module policy |
+| `private` | Accessible only under same-class/nest rules; does not become freely accessible due to same package |
+| No modifier (package-private) | Accessible only within the **same runtime package** |
+| `protected` | Allowed within the same runtime package; or under subclass rules with the additional restrictions of `protected` access |
+| Package-private top-level class | Cannot be used automatically from a plugin loader merely by sharing the package name |
 
-Một lớp Java có thể được biên dịch hợp lệ vì compiler thấy các source trong cùng package, nhưng khi chạy dưới các loader khác nhau, JVM kiểm tra quyền theo runtime package thực tế và có thể ném \`IllegalAccessError\`.
+A Java class may compile validly because the compiler sees sources in the same package, yet when running under different loaders, the JVM checks permissions against the actual runtime package and can throw `IllegalAccessError`.
 
-## 3. Package-private: ví dụ lỗi thực tế
+## 3. Package-Private: A Practical Failure Example
 
-Hãy xét hai source trong cùng package:
+Consider two sources in the same package:
 
-**\`host-src/demo/shared/HostSecret.java\`**
+**`host-src/demo/shared/HostSecret.java`**
 
-\`\`\`java
+```java
 package demo.shared;
 
 public class HostSecret {
@@ -68,13 +68,13 @@ public class HostSecret {
         return "HOST_TOKEN";
     }
 }
-\`\`\`
+```
 
-\`token()\` không có modifier nên là **package-private**.
+`token()` has no modifier, so it is **package-private**.
 
-**\`plugin-src/demo/shared/PluginCall.java\`**
+**`plugin-src/demo/shared/PluginCall.java`**
 
-\`\`\`java
+```java
 package demo.shared;
 
 public class PluginCall {
@@ -82,24 +82,24 @@ public class PluginCall {
         return HostSecret.token();
     }
 }
-\`\`\`
+```
 
-Khi compile, nếu cả hai lớp được nhìn thấy trên cùng compile classpath và cùng package, \`javac\` chấp nhận lời gọi. Nhưng giả sử khi chạy \`HostSecret\` được parent loader định nghĩa còn \`PluginCall\` được child loader định nghĩa thì dù binary name của package vẫn là \`demo.shared\`, hai lớp không thuộc cùng runtime package.
+At compile time, if both classes are visible on the same compile classpath and in the same package, `javac` accepts the call. Suppose at runtime `HostSecret` is defined by the parent loader while `PluginCall` is defined by a child loader; then even though the binary package name is still `demo.shared`, the two classes do not belong to the same runtime package.
 
-### 3.1. Bộ ví dụ có thể chạy trên Java 17+
+### 3.1. Runnable Example on Java 17+
 
-Tạo cấu trúc:
+Create the structure:
 
-\`\`\`text
+```text
 demo/
 ├── host-src/demo/shared/HostSecret.java
 ├── plugin-src/demo/shared/PluginCall.java
 └── Runner.java
-\`\`\`
+```
 
-Tệp **\`Runner.java\`**:
+File **`Runner.java`**:
 
-\`\`\`java
+```java
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
@@ -128,11 +128,11 @@ public class Runner {
         }
     }
 }
-\`\`\`
+```
 
-Dùng các lệnh POSIX shell từ thư mục \`demo/\`:
+Run these POSIX shell commands from the `demo/` directory:
 
-\`\`\`bash
+```bash
 mkdir -p build/host build/plugin build/runner
 javac -d build/host host-src/demo/shared/HostSecret.java
 javac -cp build/host -d build/plugin plugin-src/demo/shared/PluginCall.java
@@ -140,39 +140,39 @@ jar --create --file build/host.jar -C build/host .
 jar --create --file build/plugin.jar -C build/plugin .
 javac -cp build/host.jar -d build/runner Runner.java
 java -cp "build/runner:build/host.jar" Runner
-\`\`\`
+```
 
-Đầu ra điển hình của OpenJDK 17 trên class path thông thường:
+Typical output on OpenJDK 17 on a standard class path:
 
-\`\`\`text
+```text
 host loader: AppClassLoader
 plugin loader: URLClassLoader
 cause: IllegalAccessError
-\`\`\`
+```
 
-Giải thích:
+Explanation:
 
-1. JVM application loader định nghĩa \`HostSecret\` từ \`host.jar\`.
-2. \`PluginCall\` chỉ tồn tại trong \`plugin.jar\` mà parent loader không thấy, nên \`URLClassLoader\` định nghĩa lớp plugin.
-3. Khi mã plugin thực hiện \`invokestatic HostSecret.token()\`, JVM phát hiện \`token()\` không public và hai lớp không ở cùng runtime package.
-4. \`IllegalAccessError\` được ném tại runtime. Reflection ở \`Runner\` chỉ dùng để gọi \`PluginCall.call()\` và bọc exception trong \`InvocationTargetException\`; nguyên nhân gốc là lỗi truy cập trực tiếp trong bytecode plugin.
+1. The JVM application loader defines `HostSecret` from `host.jar`.
+2. `PluginCall` exists only in `plugin.jar`, which the parent loader does not see, so `URLClassLoader` defines the plugin class.
+3. When plugin code executes `invokestatic HostSecret.token()`, the JVM detects that `token()` is not public and the two classes are not in the same runtime package.
+4. `IllegalAccessError` is thrown at runtime. Reflection in `Runner` is used only to call `PluginCall.call()` and wraps the exception in `InvocationTargetException`; the root cause is the direct access error in the plugin bytecode.
 
-Tên loại loader trên JVM/launcher khác có thể khác; giá trị cần kiểm chứng là **class loader của hai lớp khác nhau** và \`IllegalAccessError\`.
+The loader class names may differ on another JVM/launcher; the points to verify are that **the class loaders of the two classes differ** and `IllegalAccessError` occurs.
 
-Nếu chuyển \`HostSecret.token()\` thành \`public static\` rồi biên dịch lại JAR host, lời gọi qua ranh giới loader được phép theo quyền \`public\` trong ví dụ class path này. Nhưng trong JPMS named modules, vẫn phải bảo đảm package được export cho module cần truy cập.
+If `HostSecret.token()` is changed to `public static` and the host JAR is recompiled, the cross-loader call is permitted under `public` access in this class path example. However, with JPMS named modules, you must also ensure the package is exported to the accessing module.
 
-**Điều cần tránh:** Không đưa \`host.jar\` vào \`plugin.jar\` để giữ lại một bản \`HostSecret\` riêng. Cách đó có thể làm biến mất triệu chứng lỗi truy cập nhưng gây chia đôi state/type identity, phá contract và làm hệ thống khó debug.
+**What to avoid:** Do not bundle `host.jar` into `plugin.jar` to keep a private copy of `HostSecret`. That approach may mask the access-error symptom, but it splits state/type identity, breaks contracts, and makes the system hard to debug.
 
-## 4. Truy cập protected khác package-private ra sao?
+## 4. How Does `protected` Access Differ from Package-Private?
 
-Thành viên \`protected\` có hai hướng truy cập quan trọng:
+A `protected` member has two important access paths:
 
-- Các lớp cùng runtime package có thể sử dụng theo quy tắc package.
-- Subclass khác runtime package có thể truy cập thành viên inherited được phép, nhưng với instance member thường có điều kiện bổ sung về kiểu của expression mục tiêu; không phải mọi đối tượng của superclass đều là receiver hợp lệ.
+- Classes in the same runtime package can access it under package rules.
+- A subclass in a different runtime package can access permitted inherited members, though for instance members there are usually additional conditions on the type of the target expression; not every instance of the superclass is a valid receiver.
 
-Ví dụ về subclass được phép về mặt source:
+Example of a subclass permitted at the source level:
 
-\`\`\`java
+```java
 package demo.plugin;
 
 public class PluginChild extends demo.api.Base {
@@ -180,74 +180,74 @@ public class PluginChild extends demo.api.Base {
         return this.state();
     }
 }
-\`\`\`
+```
 
-Giả sử \`demo.api.Base\` là public và có:
+Suppose `demo.api.Base` is public and has:
 
-\`\`\`java
+```java
 protected String state() {
     return "ready";
 }
-\`\`\`
+```
 
-Đây là **đoạn minh họa**; phải đặt \`Base\` vào file \`demo/api/Base.java\` trong API JAR và \`PluginChild\` vào file \`demo/plugin/PluginChild.java\` để biên dịch. Access hợp lệ qua \`this\` vì \`PluginChild\` kế thừa từ \`Base\`; không đồng nghĩa code bất kỳ trong package \`demo.plugin\` có thể gọi \`state()\`.
+This is an **illustrative snippet**; `Base` must be placed in `demo/api/Base.java` inside the API JAR and `PluginChild` in `demo/plugin/PluginChild.java` to compile. Access through `this` is valid because `PluginChild` inherits from `Base`; it does not mean arbitrary code in package `demo.plugin` can call `state()`.
 
-Nếu plugin chỉ đặt cùng package với \`Base\` nhưng loader khác, đường truy cập "cùng package" không có hiệu lực; phải thỏa điều kiện subclass. Với API plugin, thường nên dùng phương thức \`public\` trong contract/interface thay vì dựa vào sự thân thiện của package-private hoặc quy tắc \`protected\` phức tạp.
+If a plugin merely uses the same package name as `Base` but a different loader, the "same package" access path does not take effect; subclass rules must be satisfied. For plugin APIs, it is generally better to use `public` methods in contracts/interfaces rather than relying on package-private friendliness or intricate `protected` rules.
 
-## 5. Module JPMS bổ sung ràng buộc nào?
+## 5. What Constraints Do JPMS Modules Add?
 
-Từ Java 9, **named modules** còn có ranh giới truy cập theo module:
+Since Java 9, **named modules** also enforce module-level access boundaries:
 
-- \`requires\` khai báo module phụ thuộc.
-- \`exports\` cho phép code ở module khác truy cập **public types** trong package được xuất.
-- \`opens\` cho phép deep reflection đối với package được mở, theo phạm vi của module directive.
-- \`exports ... to ...\` / \`opens ... to ...\` chỉ áp dụng cho các module đích được chỉ định.
+- `requires` declares module dependencies.
+- `exports` permits code in other modules to access **public types** in the exported package.
+- `opens` permits deep reflection on the opened package, according to the scope of the module directive.
+- `exports ... to ...` / `opens ... to ...` apply only to the specified target modules.
 
-Ví dụ mô tả module API:
+Example API module descriptor:
 
-\`\`\`java
+```java
 module demo.api {
     exports demo.api;
 }
-\`\`\`
+```
 
-Module plugin:
+Plugin module:
 
-\`\`\`java
+```java
 module demo.plugin {
     requires demo.api;
 }
-\`\`\`
+```
 
-Những module declaration trên là **mã minh họa** cần cấu trúc source/class và build module path phù hợp; không phải một chương trình đơn file.
+The module declarations above are **illustrative code** requiring an appropriate source/class structure and module-path build; they are not a single-file program.
 
-**Cảnh báo trọng tâm:** \`exports\` không biến package-private thành public. Một \`public\` class trong package không exported cũng không có quyền truy cập bình thường từ module khác. \`opens\` cho phép deep reflection trong điều kiện được chỉ định, nhưng không cấp quyền truy cập Java thông thường của bytecode vào package-private member.
+**Core warning:** `exports` does not turn package-private into public. Nor does a `public` class in a non-exported package have normal access from another module. `opens` enables deep reflection under the specified conditions, but does not grant normal Java bytecode access to package-private members.
 
-JPMS không cho phép dùng tên package trùng một cách tùy tiện giữa các named modules được resolve trong cùng module layer/ClassLoader; cấu trúc "split packages" có thể dẫn tới lỗi module resolution hoặc layer definition. Trong plugin architecture, nên thiết kế package namespace riêng theo module, tránh coi việc cùng tên package là công cụ chia sẻ API.
+JPMS does not permit arbitrary duplicate package names across named modules resolved in the same module layer/ClassLoader; "split packages" can cause module resolution or layer definition errors. In a plugin architecture, design distinct package namespaces per module and avoid treating matching package names as an API-sharing mechanism.
 
-## 6. Reflection có vượt được ranh giới này không?
+## 6. Can Reflection Bypass This Boundary?
 
-Reflection khác với liên kết bytecode thông thường.
+Reflection behaves differently from normal bytecode linkage.
 
-Ví dụ Java reflection:
+Java reflection example:
 
-\`\`\`java
+```java
 var method = someClass.getDeclaredMethod("hidden");
 method.setAccessible(true);
 Object value = method.invoke(instance);
-\`\`\`
+```
 
-Đoạn trên chỉ minh họa API, phụ thuộc vào \`someClass\` và \`instance\` đã tồn tại. Nó không bảo đảm chạy được trong mọi module/class loader. \`setAccessible(true)\` có thể thất bại với \`InaccessibleObjectException\` khi package nằm trong named module không mở theo đúng quan hệ quyền truy cập. Java module encapsulation không được vô hiệu hóa chỉ vì plugin dùng reflection.
+The snippet above only illustrates the API and depends on an existing `someClass` and `instance`. It is not guaranteed to work across all modules/class loaders. `setAccessible(true)` can fail with `InaccessibleObjectException` when the package resides in a named module that is not opened under the required access relationship. Java module encapsulation is not disabled merely because a plugin uses reflection.
 
-Ở class path/unnamed module, nhiều trường hợp deep reflection có thể được cho phép, nhưng cách này làm coupling mạnh vào chi tiết implementation, khó bảo trì và gây rủi ro tương thích. \`MethodHandles.Lookup\` và \`privateLookupIn\` cũng chịu các quy tắc quyền truy cập và module openness riêng; không được coi là cơ chế bypass tự do.
+On the class path / unnamed module, many deep reflection cases may be allowed, yet doing so creates tight coupling to implementation details, complicates maintenance, and introduces compatibility risks. `MethodHandles.Lookup` and `privateLookupIn` are also governed by their own access rules and module openness; they should not be treated as a free bypass mechanism.
 
-Trong hệ thống plugin, giải pháp bền vững là công khai một API rõ ràng, chuyển capability cần thiết vào contract và truyền dependency qua interface hoặc factory.
+In a plugin system, the durable solution is to publish a clear API, move required capabilities into the contract, and pass dependencies through interfaces or factories.
 
-## 7. Cô lập dependency và shared API
+## 7. Isolating Dependencies and Sharing the API
 
-Một sơ đồ loader điển hình:
+A typical loader layout:
 
-\`\`\`text
+```text
 Bootstrap / Platform
        |
 Application loader (parent)
@@ -257,53 +257,53 @@ Application loader (parent)
        |
        +-- PluginLoader A (child)
        |       |-- demo.vendorA.PluginA
-       |       +-- thư viện A phụ thuộc
+       |       +-- library A dependencies
        |
        +-- PluginLoader B (child)
                |-- demo.vendorB.PluginB
-               +-- thư viện B phụ thuộc
-\`\`\`
+               +-- library B dependencies
+```
 
-Host và plugins chia sẻ **cùng bản định nghĩa** của interface/API ở parent. Các lớp implementation của plugin nên nằm trong namespace riêng, do child loader sở hữu. Cách bố trí này tránh cố dùng package-private để giao tiếp xuyên loader.
+Host and plugins share the **same definition** of interfaces/APIs in the parent. Plugin implementation classes should sit in separate namespaces owned by child loaders. This layout avoids trying to use package-private access to communicate across loaders.
 
-Nếu plugin tự nạp bản \`demo.api.PluginService\` riêng (ví dụ child-first ưu tiên JAR plugin chứa API), host có thể gặp \`ClassCastException\` khi cố ép plugin instance sang \`PluginService\` của host. Cả hai interface cùng tên nhưng defining loader khác nhau nên là các kiểu khác nhau.
+If a plugin loads its own copy of `demo.api.PluginService` (for example, child-first loading favors a plugin JAR containing the API), the host can hit `ClassCastException` when trying to cast the plugin instance to the host's `PluginService`. Both interfaces have the same name, yet differing defining loaders make them distinct types.
 
-**Loading constraints:** JVM áp dụng ràng buộc nhất quán kiểu khi liên kết các phương thức/field có kiểu đi qua ranh giới loader. Một hệ thống cấu hình class loader sai có thể gặp \`LinkageError: loader constraint violation\`, kể cả trước khi xuất hiện thao tác ép kiểu rõ ràng. Nguyên tắc vận hành là giữ các kiểu crossing boundary (interface, DTO, exception chung) trong API dùng chung, không nhân đôi chúng trong plugin loader.
+**Loading constraints:** the JVM enforces type consistency constraints when linking methods/fields whose types cross loader boundaries. A system with misconfigured class loaders can hit `LinkageError: loader constraint violation` even before an explicit cast occurs. The operational rule is to keep cross-boundary types (shared interfaces, DTOs, exceptions) in the shared API and never duplicate them inside plugin loaders.
 
-## 8. Sealing và package namespace
+## 8. Sealing and Package Namespaces
 
-**Package sealing** trong JAR manifest là một cơ chế riêng: đặt \`Sealed: true\` yêu cầu các class của package sealed phải được định nghĩa từ code source phù hợp, thường cùng JAR, trong một class loader. Nó ngăn split package từ nhiều JAR cùng loader khi package bị seal.
+**Package sealing** in a JAR manifest is a separate mechanism: setting `Sealed: true` requires classes of a sealed package to be defined from a matching code source, typically the same JAR, within a class loader. It prevents split packages across multiple JARs in the same loader when the package is sealed.
 
-Nhưng sealing **không** kết hợp hai runtime package ở hai loader thành một package và **không** trao quyền package-private xuyên loader. Thay đổi \`Sealed\` cũng không sửa được \`IllegalAccessError\` ở ví dụ \`HostSecret\` và \`PluginCall\` vì nguyên nhân nằm ở defining loader khác nhau.
+However, sealing does **not** merge two runtime packages in two different loaders into one package and does **not** grant package-private access across loaders. Changing `Sealed` also cannot fix `IllegalAccessError` in the `HostSecret` and `PluginCall` example because the cause lies in differing defining loaders.
 
-Một nguyên tắc hữu ích khi đóng gói plugin:
+A helpful rule when packaging plugins:
 
-- Dùng package riêng cho implementation và dependency nội bộ.
-- Giữ API chia sẻ trong JAR/module riêng, do loader chung cung cấp.
-- Không tạo split package giữa host, contract và plugin.
-- Chỉ bật sealing khi muốn enforce nguồn định nghĩa lớp trong một package, sau khi đã kiểm tra cấu trúc JAR và loader.
+- Use dedicated packages for internal implementations and dependencies.
+- Keep shared APIs in a separate JAR/module supplied by a shared loader.
+- Do not create split packages across host, contract, and plugins.
+- Enable sealing only when you want to enforce the class definition source within a package, after verifying JAR and loader structure.
 
-## 9. Các lỗi thường gặp khi triển khai
+## 9. Common Deployment Errors
 
-| Triệu chứng | Nguyên nhân có thể | Hướng kiểm tra |
+| Symptom | Possible cause | What to check |
 |---|---|---|
-| \`IllegalAccessError\` khi gọi package-private method | Caller và declaring class có cùng tên package nhưng khác defining loader | In \`Class.getClassLoader()\`, kiểm tra runtime package |
-| \`ClassCastException\` giữa hai interface cùng tên | Contract bị load hai lần trong các loader khác nhau | Kiểm tra \`api.jar\` ở parent và child, parent delegation |
-| \`NoClassDefFoundError\` | Thiếu class dependency hoặc lỗi khi khởi tạo class | Xem full stack trace và runtime classpath |
-| \`LinkageError: loader constraint violation\` | Type xuyên boundary bị định nghĩa không nhất quán | Kiểm tra binary names, signatures và loader topology |
-| \`InaccessibleObjectException\` ở reflection | Named module chưa \`opens\` package phù hợp | Kiểm tra \`module-info.java\`, \`--add-opens\` chỉ dùng tạm khi hiểu rủi ro |
-| \`SecurityException: sealing violation\` | Class cùng package được nạp từ nhiều code sources không hợp lệ | Xem manifest, JAR và defining loader |
-| \`IllegalAccessError\` với public class trong named module | Package không exported hoặc module access không hợp lệ | Kiểm tra module readability và \`exports\` |
+| `IllegalAccessError` when calling a package-private method | Caller and declaring class share a package name but have different defining loaders | Print `Class.getClassLoader()` and check runtime packages |
+| `ClassCastException` between two same-named interfaces | The contract was loaded twice in different loaders | Check `api.jar` in parent and child, and parent delegation |
+| `NoClassDefFoundError` | Missing class dependency or error during class initialization | Inspect full stack trace and runtime classpath |
+| `LinkageError: loader constraint violation` | Cross-boundary types were defined inconsistently | Check binary names, signatures, and loader topology |
+| `InaccessibleObjectException` in reflection | Named module has not `opens` the appropriate package | Check `module-info.java`; use `--add-opens` only temporarily when risks are understood |
+| `SecurityException: sealing violation` | Classes of the same package were loaded from invalid multiple code sources | Inspect manifest, JARs, and defining loaders |
+| `IllegalAccessError` with a public class in a named module | Package is not exported or module access is invalid | Check module readability and `exports` |
 
-Không phải lỗi nào cũng do class loader: cần kiểm tra chính xác exception và stack trace trước khi đổi cấu trúc packaging. Ví dụ, \`NoSuchMethodError\` thường liên quan binary incompatibility hơn là package-private.
+Not every error is caused by class loaders: verify the exact exception and stack trace before changing packaging structure. For example, `NoSuchMethodError` is usually related to binary incompatibility rather than package-private access.
 
-## 10. Chẩn đoán và kiểm thử
+## 10. Diagnostics and Testing
 
-### Quan sát nguồn và loader
+### Observing Sources and Loaders
 
-Có thể thêm chẩn đoán trong host:
+You can add diagnostics in the host:
 
-\`\`\`java
+```java
 static void describe(Class<?> type) {
     System.out.println(type.getName());
     System.out.println("loader=" + type.getClassLoader());
@@ -312,27 +312,27 @@ static void describe(Class<?> type) {
             ? "unknown"
             : type.getProtectionDomain().getCodeSource().getLocation()));
 }
-\`\`\`
+```
 
-Đây là **đoạn tiện ích minh họa** cần đặt trong một lớp Java, có thể gặp security policy trong một số môi trường. \`getModule().getName()\` có thể trả \`null\` đối với unnamed module. Không dựa vào tên hiển thị của loader làm ID tuyệt đối; so sánh chính các đối tượng loader trong môi trường debug.
+This is an **illustrative utility snippet** that must be placed inside a Java class and may be subject to security policies in some environments. `getModule().getName()` can return `null` for an unnamed module. Do not rely on a loader's display string as an absolute ID; compare the loader objects themselves in a debugging environment.
 
-Trên JVM HotSpot hiện đại, có thể dùng:
+On modern HotSpot JVMs, you can use:
 
-\`\`\`bash
+```bash
 java -Xlog:class+load=info -cp "build/runner:build/host.jar" Runner
-\`\`\`
+```
 
-Thông tin class loading hỗ trợ xác định lớp lấy từ JAR nào. Khi debug có nhiều plugin loader, nên kết hợp log, \`Class.getClassLoader()\`, code source, module và đồ thị phụ thuộc.
+Class-loading output helps identify which JAR a class came from. When debugging with multiple plugin loaders, combine logs, `Class.getClassLoader()`, code sources, modules, and the dependency graph.
 
-### Checklist kiểm thử plugin
+### Plugin Testing Checklist
 
-1. **Compile** plugin chỉ dựa vào contract API công khai; không dùng package-private member của host.
-2. **Runtime** kiểm tra API được parent loader định nghĩa một lần, implementation được child loader định nghĩa đúng ý định.
-3. **Dependency isolation** chạy đồng thời hai plugin dùng thư viện nội bộ khác phiên bản để kiểm tra xung đột.
-4. **Access control** có test xác nhận lời gọi public API thành công và truy cập không hợp lệ bị chặn.
-5. **Module mode** nếu dùng JPMS, kiểm thử cả \`requires\`, \`exports\`, \`opens\`, package name và module layer.
-6. **Packaging** kiểm tra JAR không vô ý nhúng duplicate contract, split package hoặc cấu hình sealing mâu thuẫn.
+1. **Compile** plugins against the public contract API only; do not use package-private members of the host.
+2. **Runtime** verification that the API is defined once by the parent loader and implementations are defined by child loaders as intended.
+3. **Dependency isolation** by running two plugins concurrently that use different versions of internal libraries to check for conflicts.
+4. **Access control** tests confirming public API calls succeed and invalid accesses are blocked.
+5. **Module mode** if using JPMS: test `requires`, `exports`, `opens`, package names, and module layers.
+6. **Packaging** checks ensuring JARs do not inadvertently embed duplicate contracts, split packages, or conflicting sealing configurations.
 
-## 11. Kết luận
+## 11. Conclusion
 
-Tên package là một phần của namespace Java, nhưng runtime package còn phụ thuộc **defining class loader**. Đặt plugin và host vào cùng tên package không tạo được quan hệ truy cập package-private khi chúng được định nghĩa bởi các loader khác nhau. Muốn hai bên giao tiếp ổn định, hãy thiết kế hợp đồng \`public\` được chia sẻ bởi một loader chung, kiểm soát module exports khi dùng JPMS, và để các lớp implementation/dependency của mỗi plugin trong namespace riêng. Điều này làm việc cô lập dependency khả thi mà không dựa vào các đặc quyền truy cập dễ bị phá vỡ lúc chạy.
+A package name is part of Java's namespace, yet the runtime package also depends on the **defining class loader**. Placing a plugin and the host in the same package name does not establish package-private access when they are defined by different loaders. For both sides to communicate reliably, design a `public` contract shared by a common loader, control module exports when using JPMS, and keep each plugin's implementation classes and dependencies in separate namespaces. This makes dependency isolation viable without relying on access privileges that break easily at runtime.

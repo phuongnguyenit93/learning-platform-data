@@ -1,52 +1,52 @@
-# Classpath, module path và thư mục plugin do ứng dụng quản lý
+# Classpath, Module Path, and Application-Managed Plugin Directories
 
-Trong Java, cả ba khái niệm đều liên quan đến việc tìm và sử dụng mã đã biên dịch, nhưng chúng trả lời **ba câu hỏi khác nhau**:
+In Java, all three concepts relate to locating and using compiled code, yet they answer **three different questions**:
 
-- **Classpath:** JVM hoặc class loader tìm các lớp và tài nguyên theo những đường dẫn nào?
-- **Module path:** hệ thống module Java (JPMS) tìm những module nào để giải quyết quan hệ phụ thuộc, quyền truy cập và cấu hình module?
-- **Thư mục plugin do ứng dụng quản lý:** ứng dụng đặt gói mở rộng ở đâu, phát hiện chúng lúc nào và quyết định nạp, khởi tạo, vô hiệu hóa hoặc thay thế chúng ra sao?
+- **Classpath:** Which paths does the JVM or a class loader search for classes and resources?
+- **Module path:** Which modules does the Java Platform Module System (JPMS) locate to resolve dependencies, access rules, and module configuration?
+- **Application-managed plugin directory:** Where does the application store extension packages, when does it discover them, and how does it decide to load, instantiate, disable, or replace them?
 
-Một thư mục tên `plugins/` không tự trở thành classpath hay module path. Ứng dụng có thể dùng chính các JAR trong thư mục đó để tạo `ClassLoader` hoặc `ModuleLayer` mới; lúc ấy thư mục là **quy ước triển khai do ứng dụng sở hữu**, còn class loader hoặc JPMS mới là cơ chế nạp mã.
+A directory named `plugins/` does not automatically become a classpath or module path. An application can use the JARs inside that directory to create a new `ClassLoader` or `ModuleLayer`; in that case, the directory is a **deployment convention owned by the application**, while the class loader or JPMS is the actual code-loading mechanism.
 
-## 1. So sánh nhanh
+## 1. Quick Comparison
 
-| Tiêu chí | Classpath (`-cp` / `--class-path`) | Module path (`-p` / `--module-path`) | Thư mục plugin do ứng dụng quản lý |
+| Criterion | Classpath (`-cp` / `--class-path`) | Module path (`-p` / `--module-path`) | Application-managed plugin directory |
 |---|---|---|---|
-| Bản chất | Danh sách thư mục và JAR có lớp/tài nguyên | Danh sách vị trí chứa module Java | Vị trí lưu các gói mở rộng theo quy ước của ứng dụng |
-| Ai diễn giải? | Java launcher, compiler và class loader | Bộ giải quyết module của JPMS và module layer | Mã khởi động, bộ quét và bộ quản lý plugin của ứng dụng |
-| Đơn vị chính | Class, package, resource; mã trên classpath thuộc unnamed module của class loader tương ứng | Named module với tên, phụ thuộc và quy tắc truy cập; có thể có automatic module | Gói plugin với ID, phiên bản, metadata, trạng thái và vòng đời do ứng dụng định nghĩa |
-| Khả năng nhìn thấy | Phụ thuộc class loader và quy tắc delegation, không có ranh giới `exports` của named module giữa các JAR classpath | Phụ thuộc module được resolve, `requires`, `exports`, `opens` và layer | Phụ thuộc loader/layer mà ứng dụng tự tạo, API được chia sẻ và chính sách đăng ký |
-| Phát hiện plugin tự động? | Không; thêm JAR vào classpath không mặc nhiên tạo đối tượng plugin | Không; đặt module lên module path không có nghĩa ứng dụng đã kích hoạt plugin | Chỉ khi ứng dụng tự quét, kiểm tra, nạp và đăng ký |
-| Thay đổi sau khi JVM chạy | Classpath launcher không tự cập nhật; có thể tạo class loader riêng | Boot layer không tự nạp thêm module; có thể tạo layer mới | Có thể hỗ trợ cài/gỡ/nạp lại, nếu ứng dụng thiết kế vòng đời phù hợp |
-| Trường hợp điển hình | Ứng dụng và thư viện Java truyền thống | Ứng dụng/module dùng JPMS để mô tả và kiểm soát liên kết | IDE, hệ thống tích hợp, ứng dụng desktop/server có cơ chế mở rộng |
+| Nature | A list of directories and JARs containing classes/resources | A list of locations containing Java modules | A storage location for extension bundles by application convention |
+| Who interprets it? | Java launcher, compiler, and class loaders | The JPMS module resolver and module layers | The application's startup code, scanner, and plugin manager |
+| Primary unit | Classes, packages, resources; code on the classpath belongs to the unnamed module of the defining class loader | Named modules with names, dependencies, and access rules; may include automatic modules | Plugin bundles with IDs, versions, metadata, state, and lifecycle defined by the application |
+| Visibility | Depends on the class loader and delegation rules; no `exports` boundaries of named modules between classpath JARs | Resolved module dependencies, `requires`, `exports`, `opens`, and layers | Depends on the loader/layer created by the application, shared APIs, and registration policies |
+| Automatic plugin discovery? | No; adding a JAR to the classpath does not automatically instantiate plugin objects | No; placing a module on the module path does not mean the application has activated a plugin | Only when the application explicitly scans, validates, loads, and registers it |
+| Changes after JVM startup | Launcher classpath does not auto-update; separate class loaders can be created | Boot layer does not automatically load additional modules; new layers can be created | Can support install/uninstall/reload if the application designs an appropriate lifecycle |
+| Typical use cases | Traditional Java applications and libraries | Applications/modules using JPMS to declare and enforce linkage | IDEs, integration platforms, extensible desktop/server applications |
 
-**Lưu ý:** một JAR có thể nằm vật lý trong `plugins/`, nhưng được nạp bằng `URLClassLoader` theo kiểu classpath, hoặc được tìm bằng `ModuleFinder` và resolve thành named module. **Tên thư mục không quyết định cơ chế nạp.**
+**Note:** a JAR may physically reside in `plugins/`, yet be loaded by a `URLClassLoader` in classpath mode, or located by `ModuleFinder` and resolved as a named module. **The directory name does not determine the loading mechanism.**
 
-## 2. Classpath: đường tìm class và resource
+## 2. Classpath: Lookup Path for Classes and Resources
 
-Ví dụ trên Linux/macOS, khởi chạy một ứng dụng không modular:
+Example on Linux/macOS, launching a non-modular application:
 
 ~~~bash
 java -cp "app.jar:lib/*" com.example.Main
 ~~~
 
-`-cp` khai báo các đường dẫn để Java launcher thiết lập classpath. Dấu `:` phân tách đường dẫn trên Linux/macOS; Windows dùng `;`. Wildcard `lib/*` bao gồm các JAR trực tiếp trong `lib`, không quét đệ quy thư mục con. Cách chạy `java -jar app.jar` sử dụng entry point trong manifest và bỏ qua tùy chọn `-cp` của launcher; classpath bổ sung, nếu cần, phải được xử lý theo quy tắc manifest hoặc cách khởi chạy khác.
+`-cp` declares the paths for the Java launcher to set up the classpath. `:` separates paths on Linux/macOS; Windows uses `;`. The wildcard `lib/*` includes JARs directly inside `lib`, without recursively scanning subdirectories. Launching with `java -jar app.jar` uses the entry point in the manifest and ignores the launcher's `-cp` option; any additional classpath, if needed, must be handled via manifest rules or a different launch mechanism.
 
-Các điểm quan trọng:
+Key points:
 
-1. Khi không khai báo `module-info.java` và đặt JAR trên classpath, lớp thuộc **unnamed module** của class loader đã định nghĩa lớp đó. Các package trong những JAR như vậy không tạo ra module boundary riêng theo từng JAR.
-2. JVM không có một kho class toàn cục duy nhất. `ClassLoader` tìm class theo tên nhị phân; đa số loader chuẩn dùng cơ chế ủy quyền cho parent trước. Hai loader khác nhau có thể định nghĩa hai lớp **cùng tên** nhưng JVM vẫn xem chúng là **hai kiểu khác nhau**.
-3. Thư viện JAR có mặt trên classpath chỉ làm mã của nó có thể được tìm thấy. Ứng dụng vẫn phải gọi API, quét annotation, dùng `ServiceLoader` hoặc có cơ chế khác để tạo và đăng ký thành phần.
-4. Đổi `java.class.path` bằng `System.setProperty` sau khi JVM đã chạy **không tự cập nhật** những loader hiện hữu. Với plugin nạp lúc runtime, ứng dụng thường tạo loader riêng.
-5. `ServiceLoader` trên classpath tìm file descriptor `META-INF/services/<tên-interface-đầy-đủ>`. Mỗi dòng hợp lệ trong file chứa tên đầy đủ của lớp provider. Classpath và `ServiceLoader` làm hai việc khác nhau: một bên cho phép tìm class, bên kia tìm nhà cung cấp dịch vụ theo hợp đồng.
+1. When `module-info.java` is not declared and JARs are placed on the classpath, classes belong to the **unnamed module** of the class loader that defined them. Packages in such JARs do not create per-JAR module boundaries.
+2. The JVM does not have a single global class repository. `ClassLoader` looks up classes by binary name; most standard loaders delegate to their parent first. Two different loaders can define two classes with the **same name**, yet the JVM still treats them as **two distinct types**.
+3. A library JAR being on the classpath only makes its code findable. The application must still invoke APIs, scan annotations, use `ServiceLoader`, or employ another mechanism to instantiate and register components.
+4. Changing `java.class.path` via `System.setProperty` after the JVM has started **does not automatically update** existing loaders. For plugins loaded at runtime, applications typically create dedicated loaders.
+5. `ServiceLoader` on the classpath looks for the descriptor file `META-INF/services/<fully-qualified-interface-name>`. Each valid line in the file contains the fully qualified name of a provider class. Classpath and `ServiceLoader` perform two different jobs: one makes classes findable, while the other locates service providers by contract.
 
-### Khi nào classpath hợp lý?
+### When does classpath make sense?
 
-Dùng classpath khi phụ thuộc đã biết từ lúc triển khai, bạn không cần quy tắc module JPMS và ứng dụng có mô hình build/runtime truyền thống. Classpath đơn giản để triển khai nhưng dễ gặp trùng thư viện, xung đột phiên bản và tình trạng nhiều thành phần cùng thấy các package mà lẽ ra nên che giấu.
+Use the classpath when dependencies are known at deployment time, you do not need JPMS module rules, and the application follows a traditional build/runtime model. The classpath is simple to deploy, but prone to duplicate libraries, version conflicts, and components seeing packages that ought to remain hidden.
 
-## 3. Module path: nơi JPMS tìm và resolve named module
+## 3. Module Path: Where JPMS Locates and Resolves Named Modules
 
-Từ Java 9, Java Platform Module System (JPMS) cho phép mô tả một module bằng `module-info.java`. Ví dụ một API công khai:
+Since Java 9, the Java Platform Module System (JPMS) allows describing a module with `module-info.java`. Example of a public API:
 
 ~~~java
 module com.example.greeting.api {
@@ -54,7 +54,7 @@ module com.example.greeting.api {
 }
 ~~~
 
-Một module plugin phụ thuộc vào API và cung cấp implementation:
+A plugin module depends on the API and provides an implementation:
 
 ~~~java
 module com.example.greeting.plugin {
@@ -64,7 +64,7 @@ module com.example.greeting.plugin {
 }
 ~~~
 
-Một module host dùng service này:
+A host module consumes this service:
 
 ~~~java
 module com.example.greeting.host {
@@ -73,7 +73,7 @@ module com.example.greeting.host {
 }
 ~~~
 
-Đây là **các descriptor minh họa cho phương án JPMS**, tách biệt với ví dụ classpath có thể chạy ở mục 5. Với dự án đã biên dịch thành các modular JAR trong `mods/`, lệnh khởi chạy có thể có dạng:
+These are **illustrative descriptors for the JPMS approach**, separate from the runnable classpath example in section 5. For a project compiled into modular JARs in `mods/`, the launch command may look like:
 
 ~~~bash
 java --module-path mods \
@@ -81,22 +81,22 @@ java --module-path mods \
      --module com.example.greeting.host/com.example.host.Main
 ~~~
 
-Lệnh này giả định `com.example.host.Main` là điểm vào hợp lệ và đã có đủ modular JAR. `--add-modules` đưa module plugin vào tập module root được resolve; việc đặt JAR trong `mods/` đơn thuần không đảm bảo nó đã được resolve hoặc được ứng dụng sử dụng.
+This command assumes `com.example.host.Main` is a valid entry point and all required modular JARs are present. `--add-modules` adds the plugin module to the set of resolved root modules; merely placing a JAR in `mods/` does not guarantee it is resolved or used by the application.
 
-Hiểu bốn khái niệm sau:
+Understand these four concepts:
 
-- **Resolve/readability:** JPMS chọn các module tham gia graph; `requires` khai báo phụ thuộc module. Một named module chỉ đọc những module mà graph cho phép.
-- **Exports:** `exports package` cho phép module khác truy cập những kiểu `public` trong package đó theo quy tắc JPMS. Một kiểu `public` trong package không export không tự trở thành API công khai cho module khác.
-- **Opens:** `opens package` cho phép deep reflection theo phạm vi khai báo; khác với `exports`. Một framework dùng reflection có thể cần `opens` mà không cần package đó được export cho mọi consumer.
-- **Service binding:** `uses` và `provides ... with ...` là cách mô tả nhà dùng và nhà cung cấp service trong named module. `ServiceLoader` có thể dùng thông tin này sau khi các module liên quan được resolve.
+- **Resolve/readability:** JPMS selects which modules participate in the graph; `requires` declares a module dependency. A named module can only read modules permitted by the graph.
+- **Exports:** `exports package` allows other modules to access `public` types in that package under JPMS rules. A `public` type in a non-exported package does not automatically become public API for other modules.
+- **Opens:** `opens package` permits deep reflection according to the declared scope; it differs from `exports`. A framework using reflection may require `opens` without needing that package exported to every consumer.
+- **Service binding:** `uses` and `provides ... with ...` declare service consumers and providers in named modules. `ServiceLoader` can use this information once the relevant modules are resolved.
 
-Một JAR không có `module-info.class` có thể được xử lý như **automatic module** khi đặt trên module path. Đây là cơ chế hỗ trợ chuyển đổi, nhưng tên module suy ra từ tên JAR có thể không ổn định; nên ưu tiên tên module được khai báo rõ khi thiết kế lâu dài.
+A JAR without `module-info.class` can be treated as an **automatic module** when placed on the module path. This is a migration aid, but the module name derived from the JAR filename can be unstable; explicitly declared module names should be preferred for long-term designs.
 
-**Module path không đồng nghĩa cơ chế hot plugin.** Boot layer được thiết lập lúc khởi động và không tự cập nhật khi bạn chép thêm file JAR. Với modular plugin được bổ sung lúc chạy, ứng dụng phải thực hiện các bước như tìm module bằng `ModuleFinder`, resolve `Configuration`, tạo `ModuleLayer` mới và khám phá service. Cách này cần xử lý tên module, quan hệ phụ thuộc, package và loader cẩn thận.
+**Module path does not equate to a hot-plugin mechanism.** The boot layer is established at startup and does not update automatically when you copy additional JAR files. For modular plugins added at runtime, the application must perform steps such as finding modules with `ModuleFinder`, resolving a `Configuration`, creating a new `ModuleLayer`, and discovering services. This approach requires careful handling of module names, dependencies, packages, and loaders.
 
-## 4. Thư mục plugin: quy ước triển khai và vòng đời của ứng dụng
+## 4. Plugin Directory: Deployment Convention and Application Lifecycle
 
-Cấu trúc triển khai có thể là:
+A deployment layout may look like:
 
 ~~~text
 my-app/
@@ -108,44 +108,44 @@ my-app/
     reporting-plugin.jar
 ~~~
 
-`plugins/` chỉ là một thư mục trên filesystem. Nếu chạy:
+`plugins/` is just a directory on the filesystem. If you run:
 
 ~~~bash
 java -cp "app.jar:lib/*" com.example.Main
 ~~~
 
-thì các JAR ở `plugins/` **không nằm trong classpath của lệnh trên**. Chúng cũng không tự tham gia JPMS module graph. Muốn biến chúng thành plugin, host phải có giao thức cụ thể, chẳng hạn:
+then the JARs in `plugins/` are **not on the classpath of that command**. Nor do they automatically join the JPMS module graph. To turn them into plugins, the host must implement a concrete protocol, for example:
 
-1. Định nghĩa **hợp đồng mở rộng** ổn định: interface/SPI, cấu hình, version API và quyền mà plugin được sử dụng.
-2. Phát hiện JAR hoặc gói plugin trong thư mục; kiểm tra loại file, metadata, ID và phiên bản phù hợp.
-3. Chọn cơ chế nạp: `URLClassLoader` cho plugin kiểu classpath; `ModuleFinder` và `ModuleLayer` cho plugin dạng named module.
-4. Tìm implementation qua `ServiceLoader`, một entry point khai báo trong manifest hoặc giao thức riêng; kiểm tra provider hợp lệ.
-5. Đăng ký, khởi động, theo dõi trạng thái, ngắt kết nối và giải phóng tài nguyên theo vòng đời do host quản lý.
+1. Define a stable **extension contract**: interfaces/SPI, configuration, API version, and permissions available to plugins.
+2. Discover JARs or plugin bundles in the directory; validate file types, metadata, IDs, and compatible versions.
+3. Choose the loading mechanism: `URLClassLoader` for classpath-style plugins; `ModuleFinder` and `ModuleLayer` for named-module plugins.
+4. Locate implementations via `ServiceLoader`, a manifest-declared entry point, or a custom protocol; validate that the provider is valid.
+5. Register, start, monitor state, disconnect, and release resources according to a host-managed lifecycle.
 
-Quy trình này giải thích vì sao **phát hiện file**, **nạp class**, **khởi tạo đối tượng** và **kích hoạt chức năng** là bốn sự kiện riêng biệt. Chép JAR vào thư mục chưa đủ để kết luận plugin đã chạy.
+This workflow explains why **file discovery**, **class loading**, **object instantiation**, and **feature activation** are four separate events. Copying a JAR into a directory is not enough to conclude the plugin is running.
 
-### Quan hệ giữa host, API và implementation
+### Relationship Between Host, API, and Implementation
 
 ~~~text
 Host/application
     |
     +-- Shared API / SPI: GreetingPlugin  (host/parent loader)
     |
-    +-- Plugin manager: quét plugins/*.jar
+    +-- Plugin manager: scan plugins/*.jar
             |
-            +-- URLClassLoader hoặc ModuleLayer mới
+            +-- New URLClassLoader or ModuleLayer
                     |
                     +-- Plugin implementation
-                    +-- Thư viện phụ thuộc của plugin (nếu được cung cấp)
+                    +-- Plugin's dependency libraries (if provided)
 ~~~
 
-API chung nên do host/parent loader hoặc module chung cung cấp. Nếu một plugin vô tình đóng gói **bản sao** của chính API này trong class loader riêng, hai kiểu có cùng tên vẫn có thể không tương thích, gây `ClassCastException` hoặc lỗi tương tự về định danh kiểu.
+The shared API should be supplied by the host/parent loader or a shared module. If a plugin accidentally packages a **duplicate copy** of this API inside its own class loader, two identically named types may still be incompatible, causing `ClassCastException` or similar type-identity errors.
 
-## 5. Ví dụ Java 17+: host tự nạp plugin JAR từ thư mục
+## 5. Java 17+ Example: Host Loading Plugin JARs from a Directory
 
-Ví dụ dưới đây **chạy được** trên Java 17+ và không dùng JPMS. Host được biên dịch cùng API, nhưng implementation nằm trong JAR ở `plugins/`, không xuất hiện trên classpath khi khởi động host.
+The example below is **runnable** on Java 17+ and does not use JPMS. The host is compiled against the API, while the implementation resides in a JAR inside `plugins/`, absent from the host's startup classpath.
 
-Cấu trúc mã nguồn ban đầu:
+Initial source structure:
 
 ~~~text
 demo/
@@ -155,7 +155,7 @@ demo/
     host/com/example/host/Host.java
 ~~~
 
-**Bước 1 — API chung** (`src/api/com/example/api/GreetingPlugin.java`):
+**Step 1 — Shared API** (`src/api/com/example/api/GreetingPlugin.java`):
 
 ~~~java
 package com.example.api;
@@ -166,7 +166,7 @@ public interface GreetingPlugin {
 }
 ~~~
 
-**Bước 2 — implementation của plugin** (`src/plugin/com/example/plugin/HelloPlugin.java`):
+**Step 2 — Plugin implementation** (`src/plugin/com/example/plugin/HelloPlugin.java`):
 
 ~~~java
 package com.example.plugin;
@@ -181,12 +181,12 @@ public final class HelloPlugin implements GreetingPlugin {
 
     @Override
     public String greet(String name) {
-        return "Xin chào, " + name + "!";
+        return "Hello, " + name + "!";
     }
 }
 ~~~
 
-**Bước 3 — host liệt kê JAR, tạo loader và tìm provider** (`src/host/com/example/host/Host.java`):
+**Step 3 — Host lists JARs, creates loader, and finds providers** (`src/host/com/example/host/Host.java`):
 
 ~~~java
 package com.example.host;
@@ -232,21 +232,21 @@ public final class Host {
                 count++;
             }
             if (count == 0) {
-                System.out.println("Không tìm thấy plugin.");
+                System.out.println("No plugin found.");
             }
         }
     }
 }
 ~~~
 
-Ở đây:
+Here:
 
-- `Files.list` chỉ **phát hiện file**; nó không nạp class.
-- `URLClassLoader` đưa các JAR vào khả năng tìm class của loader plugin. Parent loader là loader của `GreetingPlugin`, giúp API dùng chung có cùng định danh kiểu.
-- `ServiceLoader.load(GreetingPlugin.class, loader)` tìm cấu hình provider qua loader được chỉ định và tạo implementation khi duyệt. Nếu chỉ gọi overload mặc định dùng context class loader, kết quả có thể khác tùy thread đang chạy.
-- `try-with-resources` đóng loader khi kết thúc quá trình duyệt. Trong hệ thống plugin thực tế, host giữ loader sống suốt thời gian plugin còn hoạt động rồi mới đóng.
+- `Files.list` only **discovers files**; it does not load classes.
+- `URLClassLoader` places the JARs on the plugin loader's class lookup path. The parent loader is the loader of `GreetingPlugin`, ensuring the shared API retains the same type identity.
+- `ServiceLoader.load(GreetingPlugin.class, loader)` searches for provider configurations through the specified loader and instantiates implementations while iterating. Calling only the default overload that uses the context class loader may yield different results depending on the running thread.
+- `try-with-resources` closes the loader once iteration finishes. In a real plugin system, the host keeps the loader alive for as long as the plugin remains active and closes it only afterward.
 
-**Bước 4 — biên dịch và đóng gói trên Bash (Linux/macOS hoặc Git Bash trên Windows)**. Chạy tại thư mục `demo/`:
+**Step 4 — Compile and package in Bash (Linux/macOS or Git Bash on Windows)**. Run in the `demo/` directory:
 
 ~~~bash
 mkdir -p build/api build/plugin build/host plugins
@@ -264,35 +264,35 @@ javac -cp build/api -d build/host src/host/com/example/host/Host.java
 java -cp "build/api:build/host" com.example.host.Host
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
-hello -> Xin chào, Java!
+hello -> Hello, Java!
 ~~~
 
-Trên Windows khi dùng `java` hoặc `javac` trực tiếp trong PowerShell/CMD, ký tự phân tách classpath là `;`, ví dụ `java -cp "build/api;build/host" com.example.host.Host`. Các lệnh `mkdir -p` và `printf` trong đoạn trên dùng cú pháp Bash.
+On Windows when using `java` or `javac` directly in PowerShell/CMD, the classpath separator character is `;`, for example `java -cp "build/api;build/host" com.example.host.Host`. The `mkdir -p` and `printf` commands above use Bash syntax.
 
-File `META-INF/services/com.example.api.GreetingPlugin` nằm **bên trong JAR plugin** và có nội dung đúng một dòng:
+The file `META-INF/services/com.example.api.GreetingPlugin` lives **inside the plugin JAR** and contains a single line:
 
 ~~~text
 com.example.plugin.HelloPlugin
 ~~~
 
-Nếu bỏ file descriptor này, host vẫn có thể tìm class bằng loader nhưng `ServiceLoader` trong ví dụ sẽ không biết provider nào cần khởi tạo, nên in `Không tìm thấy plugin.`. Nếu thêm `plugins/hello-plugin.jar` trực tiếp vào `-cp` thì đó là triển khai theo classpath tĩnh, không còn minh họa cơ chế host tự quản lý thư mục plugin như trên.
+If this descriptor file is omitted, the host can still find the class via the loader, but `ServiceLoader` in the example will not know which provider to instantiate, so it prints `No plugin found.`. If `plugins/hello-plugin.jar` is added directly to `-cp`, that becomes static classpath deployment and no longer demonstrates a host managing a plugin directory on its own as above.
 
-### Những giới hạn có chủ ý của ví dụ
+### Intentional Limitations of the Example
 
-Ví dụ quét mỗi JAR trực tiếp trong `plugins/`, sử dụng **một loader chung cho tất cả plugin trong thư mục**, không quét đệ quy, không có cơ chế chữ ký, kiểm tra phiên bản, dependency resolution hay nạp lại khi file thay đổi. Nếu hai plugin mang các phiên bản xung đột của cùng một thư viện, loader chung vẫn có thể gây lỗi. Đây là bản mẫu để thấy rõ các bước nạp mã, chưa phải bộ quản lý plugin sản xuất.
+The example scans only JARs directly inside `plugins/`, uses **a single shared loader for all plugins in the directory**, does not scan recursively, and lacks signature checks, version checks, dependency resolution, or reloading when files change. If two plugins bring conflicting versions of the same library, a shared loader can still fail. This is a minimal prototype to highlight the code-loading steps, not a production plugin manager.
 
-## 6. Nếu plugin là named module thì khác gì?
+## 6. How Does a Named-Module Plugin Differ?
 
-Với JPMS, thay vì file `META-INF/services/...` trong JAR kiểu classpath, provider thường được khai báo qua `provides ... with ...` trong `module-info.java`; host là named module cần khai báo `uses`. Sau khi module plugin được **resolve vào một layer**, host có thể tìm provider bằng `ServiceLoader.load(layer, GreetingPlugin.class)`.
+With JPMS, instead of `META-INF/services/...` in a classpath-style JAR, providers are typically declared via `provides ... with ...` in `module-info.java`; a named-module host must declare `uses`. Once the plugin module is **resolved into a layer**, the host can locate providers with `ServiceLoader.load(layer, GreetingPlugin.class)`.
 
-Khi nạp module runtime, các lớp API phải được thiết kế để host và plugin cùng tham chiếu tới đúng module API. Một hướng triển khai là:
+When loading modules at runtime, API classes must be structured so that both host and plugins reference the exact same API module. One implementation approach is:
 
 ~~~java
-// Đoạn mô tả phần lõi của plugin manager modular;
-// giả định API đã nằm trong boot layer và module plugin tồn tại.
+// Snippet illustrating the core of a modular plugin manager;
+// assumes the API is already in the boot layer and the plugin module exists.
 ModuleFinder finder = ModuleFinder.of(Path.of("plugins"));
 Configuration config = ModuleLayer.boot().configuration()
         .resolve(finder, ModuleFinder.of(),
@@ -305,52 +305,52 @@ ServiceLoader.load(layer, GreetingPlugin.class)
         .forEach(plugin -> System.out.println(plugin.id()));
 ~~~
 
-Đây là **đoạn minh họa tích hợp**, không phải chương trình độc lập: cần import `java.lang.module.ModuleFinder`, `java.lang.module.Configuration`, `java.util.Set`, `java.util.ServiceLoader`, `java.nio.file.Path`, có `GreetingPlugin` từ module API, và JAR plugin phải có module descriptor hợp lệ. Nếu triển khai module mới, host phải kiểm soát roots, dependencies, tên module trùng, split packages và vòng đời layer. Một layer mới cũng **không tự sửa nội dung** của boot layer đã tồn tại.
+This is an **integration snippet**, not a standalone program: it requires importing `java.lang.module.ModuleFinder`, `java.lang.module.Configuration`, `java.util.Set`, `java.util.ServiceLoader`, `java.nio.file.Path`, having `GreetingPlugin` from the API module, and ensuring the plugin JAR has a valid module descriptor. When deploying new modules, the host must manage roots, dependencies, duplicate module names, split packages, and layer lifecycles. A new layer also **does not automatically modify the contents** of an existing boot layer.
 
-Chọn `ModuleLayer` khi bạn cần ngữ nghĩa JPMS cho plugin và chấp nhận độ phức tạp giải quyết module. Chọn `URLClassLoader` khi plugin xây trên classpath/SPI và mô hình class loader đáp ứng đủ yêu cầu. Hai lựa chọn đều cần một **plugin manager** để quản lý lifecycle; riêng JPMS không cung cấp đầy đủ cơ chế cài đặt, nâng cấp hay gỡ plugin.
+Choose `ModuleLayer` when you need JPMS semantics for plugins and accept the complexity of module resolution. Choose `URLClassLoader` when plugins are built on classpath/SPI and the class loader model satisfies your requirements. Both options still need a **plugin manager** to handle lifecycles; JPMS alone does not provide a complete mechanism for installing, upgrading, or removing plugins.
 
-## 7. Dependency, isolation và cập nhật phiên bản
+## 7. Dependencies, Isolation, and Version Updates
 
-**Phụ thuộc chia sẻ:** API/SPI chung như `GreetingPlugin` nên có phiên bản tương thích và được nạp thống nhất. Plugin implementation có thể phụ thuộc thư viện riêng. Với parent-first `URLClassLoader`, class đã tồn tại ở parent thường được dùng trước, nên một dependency của host có thể lấn át phiên bản mà plugin mong muốn.
+**Shared dependencies:** shared APIs/SPIs like `GreetingPlugin` should have compatible versions and be loaded consistently. Plugin implementations may depend on private libraries. With a parent-first `URLClassLoader`, classes already present in the parent are typically chosen first, so a host dependency can shadow the version a plugin expects.
 
-**Isolation:** tạo một loader/layer cho từng plugin có thể giảm xung đột giữa các implementation, nhưng cần thiết kế cách chia sẻ API, thông điệp, tài nguyên và phụ thuộc. Cơ chế child-first tùy chỉnh không phải giải pháp mặc định: nó có thể phá vỡ chia sẻ API và khiến class bị định nghĩa trùng. Với JPMS, package visibility và readability giúp kiểm soát liên kết nhưng không loại bỏ nhu cầu quản lý dependency và service contract.
+**Isolation:** creating a separate loader/layer per plugin can reduce conflicts between implementations, but requires designing how APIs, messages, resources, and dependencies are shared. Custom child-first delegation is not a default silver bullet: it can break API sharing and cause duplicate class definitions. With JPMS, package visibility and readability help govern linkage, but do not eliminate the need to manage dependencies and service contracts.
 
-**Nạp lại:** thay file JAR trên đĩa không thay thế những class đã được định nghĩa trong loader hiện hữu. Thông thường cần dừng plugin cũ, ngắt đăng ký và đóng tài nguyên, tạo loader/layer mới rồi khởi tạo plugin mới. Class loader cũ chỉ có thể được thu gom khi không còn tham chiếu tới class, instance, thread, listener, cache, static state hoặc tài nguyên của nó. `URLClassLoader.close()` đóng tài nguyên mở của loader; **không có nghĩa unload class ngay lập tức**.
+**Reloading:** replacing a JAR file on disk does not replace classes already defined in an existing loader. Typically you must stop the old plugin, unregister it and close resources, create a new loader/layer, and then initialize the new plugin. The old class loader can only be garbage collected when no references remain to its classes, instances, threads, listeners, caches, static state, or resources. `URLClassLoader.close()` closes the loader's open resources; it **does not mean classes are unloaded immediately**.
 
-**An toàn:** class loader và JPMS giúp tổ chức mã và kiểm soát một số khả năng truy cập, **không tạo sandbox bảo mật cho mã plugin tùy ý**. Plugin chạy cùng tiến trình có thể thực hiện hành vi nguy hiểm với quyền của tiến trình nếu host cho nó thực thi. Với plugin không tin cậy, cân nhắc tiến trình/container riêng, hợp đồng giao tiếp giới hạn, kiểm soát quyền hệ điều hành, xác thực nguồn cung và tài nguyên.
+**Safety:** class loaders and JPMS help organize code and control certain access capabilities, **not create a security sandbox for arbitrary plugin code**. A plugin running in the same process can perform dangerous actions with the process's permissions if the host allows it to execute. For untrusted plugins, consider separate processes/containers, restricted communication contracts, OS-level permission controls, and verification of provenance and resources.
 
-## 8. Các lỗi thường gặp và cách chẩn đoán
+## 8. Common Errors and Diagnostics
 
-| Triệu chứng | Nguyên nhân cần kiểm tra | Cách xử lý |
+| Symptom | Causes to Check | How to Fix |
 |---|---|---|
-| `ClassNotFoundException` | JAR không nằm trên đường tìm của **đúng loader** hoặc sai package/tên class | In đường dẫn JAR, kiểm tra nội dung bằng `jar tf`, xác định loader đang gọi |
-| `NoClassDefFoundError` | Tìm thấy class chính nhưng thiếu dependency lúc liên kết/khởi tạo | Kiểm tra dependency của plugin và phạm vi nhìn thấy của loader/module |
-| `ClassCastException` với hai class cùng tên | Host và plugin nạp bản sao API bằng hai loader khác nhau | Để hợp đồng chung tại parent/module API dùng chung; không đóng gói chồng API |
-| `ServiceConfigurationError` | Sai descriptor `META-INF/services`, sai tên provider, provider không hợp lệ hoặc lỗi khi khởi tạo | Kiểm tra descriptor trong JAR, constructor/provider và liên kết module |
-| `IllegalAccessError` / `InaccessibleObjectException` | Vi phạm ranh giới truy cập, thiếu `exports`/`opens` hoặc dùng deep reflection trái phép | Chỉnh module descriptor hoặc thiết kế API rõ ràng; không mở toàn bộ module chỉ để che lỗi |
-| Không có provider dù JAR nằm trong `plugins/` | Host chưa quét/nạp, chưa đăng ký; module chưa resolve; hoặc thiếu service metadata | Theo dõi lần lượt **discover → load → resolve → instantiate → register** |
-| Lỗi sau khi thay JAR đang chạy | Vẫn dùng loader/class/instance cũ, hoặc còn file handle và tài nguyên | Thiết kế lifecycle stop/close, tạo loader mới và loại bỏ tham chiếu cũ |
+| `ClassNotFoundException` | JAR is not on the lookup path of the **right loader**, or wrong package/class name | Print the JAR path, inspect contents with `jar tf`, identify the calling loader |
+| `NoClassDefFoundError` | Main class was found, but a dependency is missing during linking/initialization | Check plugin dependencies and the visibility scope of the loader/module |
+| `ClassCastException` with two identically named classes | Host and plugin loaded duplicate copies of the API via two different loaders | Keep the shared contract in the common parent/API module; do not bundle overlapping APIs |
+| `ServiceConfigurationError` | Wrong `META-INF/services` descriptor, wrong provider name, invalid provider, or instantiation error | Inspect the descriptor inside the JAR, provider constructor/method, and module linkage |
+| `IllegalAccessError` / `InaccessibleObjectException` | Access boundary violation, missing `exports`/`opens`, or unauthorized deep reflection | Fix the module descriptor or design explicit APIs; do not open entire modules just to mask errors |
+| No provider found despite JAR in `plugins/` | Host has not scanned/loaded or registered it; module unresolved; or missing service metadata | Trace sequentially: **discover → load → resolve → instantiate → register** |
+| Errors after replacing a running JAR | Old loader/classes/instances still in use, or leftover file handles and resources | Design stop/close lifecycle, create a new loader, and clear old references |
 
-Một cách chẩn đoán hữu ích là ghi log **đường dẫn JAR, tên plugin, phiên bản, tên module nếu có, class loader đã định nghĩa provider và trạng thái đăng ký**. Điều này thường làm rõ vấn đề nhanh hơn việc thêm JAR vào mọi đường dẫn một cách thử-và-sai.
+A useful diagnostic practice is logging the **JAR path, plugin name, version, module name if present, the class loader that defined the provider, and registration status**. This usually clarifies issues much faster than trial-and-error adding of JARs to every path.
 
-## 9. Chọn mô hình nào?
+## 9. Which Model Should You Choose?
 
-| Tình huống | Lựa chọn khởi đầu |
+| Scenario | Starting Choice |
 |---|---|
-| Các thư viện là dependency cố định của một ứng dụng Java truyền thống | Classpath, dùng Maven/Gradle quản lý dependency |
-| Ứng dụng muốn khai báo module rõ ràng và kiểm soát package public/reflective access | Module path và JPMS |
-| Cần phân phối plugin độc lập, ứng dụng phát hiện khi khởi động hoặc đang chạy | Thư mục plugin + plugin manager + class loader/layer phù hợp |
-| Plugin cần nạp/gỡ phiên bản mới mà không khởi động lại host | Plugin manager có lifecycle rõ ràng và loader/layer mới; kiểm soát tham chiếu/tài nguyên |
-| Plugin đến từ bên thứ ba không đáng tin cậy | Tách tiến trình và quyền thực thi trước khi xét classpath hay JPMS |
+| Libraries are fixed dependencies of a traditional Java application | Classpath, using Maven/Gradle to manage dependencies |
+| Application wants explicit module declarations and control over public/reflective package access | Module path and JPMS |
+| Need independent plugin distribution discovered at startup or runtime | Plugin directory + plugin manager + appropriate class loader/layer |
+| Plugins must load/unload new versions without restarting the host | Plugin manager with explicit lifecycle and fresh loaders/layers; track references/resources |
+| Plugins come from untrusted third parties | Process isolation and execution permissions before considering classpath or JPMS |
 
-Bạn cũng có thể **kết hợp** các cơ chế: host và SPI chạy trên classpath, JAR plugin nằm trong `plugins/` rồi được host nạp qua `URLClassLoader`; hoặc host modular trên module path, plugin manager tạo `ModuleLayer` riêng cho modular plugin. Câu hỏi thiết kế chính không phải “JAR nằm trong thư mục nào?”, mà là **ai phát hiện nó, loader/layer nào định nghĩa lớp, API nào được chia sẻ và ai quản lý vòng đời?**
+You can also **combine** mechanisms: host and SPI run on the classpath, plugin JARs sit in `plugins/` and are loaded by the host via `URLClassLoader`; or a modular host runs on the module path while its plugin manager creates separate `ModuleLayer` instances for modular plugins. The central design question is not "which directory is the JAR in?", but **who discovers it, which loader/layer defines its classes, which API is shared, and who manages the lifecycle?**
 
-## 10. Tự kiểm tra kiến thức
+## 10. Knowledge Self-Check
 
-1. **Chép `weather.jar` vào `plugins/` rồi chạy lại `java -cp app.jar com.example.Main` có đủ để plugin hoạt động không?** Không. Host phải có logic quét thư mục, nạp JAR, tìm provider và đăng ký nó; hoặc phải cấu hình rõ ràng một cách nạp khác.
-2. **Đưa một JAR lên `--module-path` có đảm bảo module của nó đã được resolve?** Không. Module graph phụ thuộc các root, quan hệ `requires`, service binding và tùy chọn khởi chạy như `--add-modules`.
-3. **Có thể dùng `ServiceLoader` với classpath không?** Có. Khai báo provider qua `META-INF/services`, rồi sử dụng đúng class loader. Với named module, dùng `uses` và `provides` theo JPMS.
-4. **Dùng một class loader cho nhiều JAR plugin có tương đương mỗi plugin được cô lập không?** Không. Chúng chia sẻ không gian định nghĩa class của loader đó; có thể đụng dependency và phiên bản.
-5. **Gọi `close()` trên `URLClassLoader` có làm mọi class plugin biến mất ngay không?** Không. Loader và class chỉ có thể được thu gom khi không còn tham chiếu thích hợp; thread, instance hoặc cache còn giữ chúng sẽ ngăn điều đó.
+1. **Is copying `weather.jar` into `plugins/` and re-running `java -cp app.jar com.example.Main` enough for the plugin to work?** No. The host must have logic to scan the directory, load the JAR, find the provider, and register it; or a different loading mechanism must be explicitly configured.
+2. **Does placing a JAR on `--module-path` guarantee its module is resolved?** No. The module graph depends on roots, `requires` relationships, service binding, and launch options such as `--add-modules`.
+3. **Can `ServiceLoader` be used with the classpath?** Yes. Declare the provider via `META-INF/services`, then use the appropriate class loader. With named modules, use `uses` and `provides` under JPMS.
+4. **Is using one class loader for multiple plugin JARs equivalent to isolating each plugin?** No. They share that loader's class-definition namespace; dependency and version collisions can occur.
+5. **Does calling `close()` on `URLClassLoader` make all plugin classes disappear immediately?** No. The loader and classes can only be collected once no relevant references remain; threads, instances, or caches holding onto them will prevent collection.
 
-**Ghi nhớ:** **classpath** là con đường tìm lớp/tài nguyên; **module path** là đầu vào cho cơ chế resolve và encapsulation của JPMS; **thư mục plugin** là vị trí triển khai mà ứng dụng chủ động biến thành thành phần chạy thông qua loader/layer, SPI và lifecycle.
+**Remember:** **classpath** is the lookup path for classes/resources; **module path** is the input to JPMS's resolution and encapsulation; a **plugin directory** is a deployment location that the application actively turns into running components via loaders/layers, SPI, and lifecycle management.

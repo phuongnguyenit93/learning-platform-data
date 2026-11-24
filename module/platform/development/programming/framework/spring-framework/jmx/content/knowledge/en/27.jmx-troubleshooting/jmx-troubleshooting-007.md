@@ -1,0 +1,997 @@
+# Notifications Not Reaching Listeners in Spring Framework JMX
+
+## 1. Problem and Objectives
+
+In Java Management Extensions (**JMX**), an MBean can emit **notifications** to announce administrative events such as cache refreshes, worker failures, queue threshold breaches, or connection recoveries. Spring Framework JMX supports this mechanism through **NotificationPublisher**, **NotificationPublisherAware**, **@ManagedNotification**, **NotificationListenerBean**, and **MBeanExporter**.
+
+A common issue is that the MBean works normally—JConsole can still read attributes or invoke operations—yet **listeners do not receive notifications**. This is not necessarily a JMX transport failure. The notification may never have been emitted, the listener may not be registered, a filter may be rejecting the event, the MBean may have been replaced, or the remote connection may have dropped.
+
+The goal of this lesson is to investigate along the chain:
+
+~~~text
+Business event
+    |
+    v
+MBean creates Notification
+    |
+    v
+NotificationPublisher / NotificationBroadcaster
+    |
+    v
+MBeanServer + ObjectName
+    |
+    v
+Listener registration + filter
+    |
+    v
+Local/remote dispatch
+    |
+    v
+handleNotification(...)
+~~~
+
+**Diagnostic principle:** Identify at which step the event is lost rather than randomly modifying multiple classes. Seeing `@ManagedNotification` or `MBeanInfo.getNotifications()` does not prove a notification was actually emitted.
+
+## 2. Components That Must Be Distinguished
+
+| Component | Responsibility | Common Mistake |
+| --- | --- | --- |
+| `@ManagedNotification` | Declares metadata of event types supported by the MBean | Annotation present, but no code emits notifications |
+| `NotificationPublisherAware` | Receives publisher injected by Spring exporter | Bean is not managed by the exporter |
+| `NotificationPublisher` | Emits notifications from a Spring bean | Publisher not initialized or never called |
+| `NotificationBroadcasterSupport` | Emits notifications via plain JMX API | Listener registered on a different MBean |
+| `NotificationListener` | Receives `handleNotification` callbacks | Not registered or throws in handler |
+| `NotificationFilter` | Decides whether an event is delivered | Wrong notification type or overly strict filter |
+| `NotificationListenerBean` | Defines listener/filter/target for Spring exporter | `mappedObjectNames` does not match |
+| `MBeanServerConnection` | Registers listener locally/remotely | Wrong target, lost connection, insufficient permissions |
+| `ObjectName` | Identifies MBean inside the server | Wrong domain/key/value |
+| `MBeanServerDelegate` | Announces MBean registration/unregistration | Not monitored when MBean is replaced |
+
+**Metadata, registration, and delivery are three separate states.** An MBean with valid metadata but no registered listener produces no callbacks. A registered listener also cannot receive notifications that the emitter never sent.
+
+## 3. Categorize Symptoms Before Fixing
+
+The single phrase "not receiving events" can hide several distinct scenarios.
+
+### Scenario A: Never received any event
+
+- Wrong ObjectName.
+- MBean does not support notifications.
+- Publisher not injected.
+- Listener not attached to the target.
+- NotificationFilter rejects everything.
+- Business event has not occurred yet.
+
+### Scenario B: Used to receive events, then suddenly stopped
+
+- MBean was unregistered or replaced.
+- Spring context restarted without the client re-subscribing.
+- JMX remote connection dropped.
+- Executor handling listeners was shut down.
+- Handler threw an exception or processing queue filled up.
+- Throttle/rate-limit policy suppressed events.
+
+### Scenario C: Only some events are lost
+
+- Filter matching on the wrong type.
+- Listener falling behind (backlog).
+- Events suppressed/coalesced at the source.
+- Two MBeans emitting different notification types.
+- Async dispatch allowing data loss during shutdown.
+- Remote JMX lacking replay for events emitted while disconnected.
+
+From this categorization, pick the minimal check most likely to pinpoint the failure location.
+
+## 4. Step 1: Confirm the Right MBeanServer and ObjectName
+
+A listener cannot receive notifications from an MBean living in a different JVM or MBeanServer.
+
+Expected MBean example:
+
+~~~text
+com.example.orders:type=Queue,name=payments
+~~~
+
+Verification:
+
+~~~java
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+
+public static void ensureRegistered(
+        MBeanServerConnection connection
+) throws Exception {
+    ObjectName name = new ObjectName(
+        "com.example.orders:type=Queue,name=payments"
+    );
+
+    if (!connection.isRegistered(name)) {
+        throw new IllegalStateException(
+            "MBean not registered: " + name
+        );
+    }
+}
+~~~
+
+When `isRegistered(name)` is `false`, check:
+
+1. Has the Spring bean been created in ApplicationContext?
+2. Is `MBeanExporter` or `AnnotationMBeanExporter` active?
+3. Does the ObjectName generated by the exporter differ from expected?
+4. Was the MBean unregistered or replaced by another MBean?
+5. Is this code using the right MBeanServer?
+
+You can query by domain:
+
+~~~java
+ObjectName pattern = new ObjectName("com.example.orders:*");
+
+for (ObjectName objectName : connection.queryNames(pattern, null)) {
+    System.out.println(objectName.getCanonicalName());
+}
+~~~
+
+Use `getCanonicalName()` or `ObjectName.equals` to avoid confusion from key property ordering.
+
+### Local vs. remote note
+
+`ManagementFactory.getPlatformMBeanServer()` returns the MBeanServer **of the calling JVM**. Running a diagnostic tool in a separate JVM and calling that method will not automatically connect to the running Spring application. To access another JVM, use a `JMXConnector` and the target endpoint's `MBeanServerConnection`.
+
+## 5. Step 2: Confirm the MBean Has Notification Metadata
+
+JMX provides `MBeanInfo` to inspect the list of notification types advertised by the MBean:
+
+~~~java
+import javax.management.MBeanInfo;
+import javax.management.MBeanNotificationInfo;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+
+public static void printNotificationMetadata(
+        MBeanServerConnection connection,
+        ObjectName name
+) throws Exception {
+    MBeanInfo info = connection.getMBeanInfo(name);
+
+    for (MBeanNotificationInfo item : info.getNotifications()) {
+        System.out.println("Description: " + item.getDescription());
+
+        for (String type : item.getNotifTypes()) {
+            System.out.println("Type: " + type);
+        }
+    }
+}
+~~~
+
+Expected example:
+
+~~~text
+com.example.orders.queue.threshold
+com.example.orders.queue.recovered
+~~~
+
+If the list is empty or missing types:
+
+- Does the bean declare `@ManagedNotification` or an appropriate `getNotificationInfo()`?
+- Does the exporter use annotation metadata or the corresponding assembler?
+- Is the current target the right MBean?
+- Is a Standard MBean wrapper or proxy altering expected metadata?
+- Was `NotificationBroadcaster` or the corresponding publisher omitted?
+
+**Important:** `getNotifications()` describes advertised event types; it does not count emitted events. An MBean with valid metadata can still never call `sendNotification`.
+
+Conversely, since some MBeans can emit events despite incomplete or non-standard metadata declarations, verifying the registry and listener registration remains necessary. Do not use metadata alone as a final conclusion.
+
+## 6. Step 3: Confirm Code Actually Emits Notifications
+
+### 6.1. Example with Spring NotificationPublisherAware
+
+~~~java
+package com.example.orders.management;
+
+import java.util.concurrent.atomic.AtomicLong;
+import javax.management.Notification;
+
+import org.springframework.jmx.export.annotation.ManagedNotification;
+import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.jmx.export.notification.NotificationPublisher;
+import org.springframework.jmx.export.notification.NotificationPublisherAware;
+import org.springframework.stereotype.Component;
+
+@Component
+@ManagedResource(
+    objectName = "com.example.orders:type=Queue,name=payments",
+    description = "Payment queue management"
+)
+@ManagedNotification(
+    name = "com.example.orders.queue.threshold",
+    description = "Payment queue crossed threshold"
+)
+public class PaymentQueueManagement
+        implements NotificationPublisherAware {
+
+    private final AtomicLong sequence = new AtomicLong();
+    private volatile NotificationPublisher publisher;
+
+    @Override
+    public void setNotificationPublisher(NotificationPublisher publisher) {
+        this.publisher = publisher;
+    }
+
+    public void onQueueThreshold(long pending) {
+        NotificationPublisher current = publisher;
+
+        if (current == null) {
+            throw new IllegalStateException(
+                "JMX NotificationPublisher not initialized"
+            );
+        }
+
+        Notification notification = new Notification(
+            "com.example.orders.queue.threshold",
+            this,
+            sequence.incrementAndGet(),
+            System.currentTimeMillis(),
+            "Queue pending=" + pending
+        );
+
+        current.sendNotification(notification);
+    }
+}
+~~~
+
+This example separates two questions:
+
+- Is `onQueueThreshold` actually called?
+- Did Spring attach `NotificationPublisher` to the exported bean?
+
+If `publisher == null`, do not force a `sendNotification` call on a new object; inspect how the exporter receives the bean, its lifecycle, and whether Spring manages the instance being invoked.
+
+### Reasons the publisher is not injected
+
+- The class has `@ManagedResource` but is not exported.
+- Business code instantiates the object with `new` instead of calling the exported Spring-managed bean.
+- The bean resides in a different context from the exporter.
+- The exporter does not use the annotation/publisher mechanism the class assumes.
+- Code emits events before the exporter completes registration.
+- Multiple instances of the same class exist, and the publisher is attached to only one instance.
+
+**Separate class from instance:** Annotating a class does not mean every instance of that class is an MBean. Confirm that business events invoke the exact instance published by the Spring exporter.
+
+## 7. Step 4: Check Listener Registration
+
+Under the JMX API, a listener only receives events after it is registered:
+
+~~~java
+import javax.management.NotificationListener;
+import javax.management.ObjectName;
+
+NotificationListener listener = (notification, handback) -> {
+    System.out.println(
+        "Received type=" + notification.getType()
+        + ", source=" + notification.getSource()
+    );
+};
+
+ObjectName name = new ObjectName(
+    "com.example.orders:type=Queue,name=payments"
+);
+
+connection.addNotificationListener(
+    name,
+    listener,
+    null,
+    name
+);
+~~~
+
+`connection` is the `MBeanServerConnection` of the right target server.
+
+If the registration call throws an exception, inspect the exception rather than ignoring it:
+
+- `InstanceNotFoundException`: target does not exist at registration time.
+- Unsupported notification error or runtime exception: target/configuration does not support notifications or call is invalid.
+- `SecurityException` or connector error: client lacks permissions.
+- `IOException`: remote connection issue.
+
+`addNotificationListener` returning normally does not prove events will occur; it only establishes the registration according to the server/connection mechanism.
+
+### Registering at the wrong time
+
+If the listener is registered before the MBean appears, registration can fail. For applications with multi-step startup, register after the exporter creates the MBean or wait for the MBean to be present.
+
+Do not use a fixed `Thread.sleep` and assume all environments will be fine; prefer checking `isRegistered`, synchronizing startup, or listening to `MBeanServerDelegate` registration notifications.
+
+## 8. Step 5: Check NotificationListenerBean Mapping
+
+Spring Framework provides `NotificationListenerBean` to configure listeners managed by `MBeanExporter`.
+
+Example:
+
+~~~java
+import org.springframework.jmx.export.NotificationListenerBean;
+
+NotificationListenerBean registration =
+    new NotificationListenerBean(listener);
+
+registration.setMappedObjectNames(
+    "com.example.orders:type=Queue,name=payments"
+);
+~~~
+
+Then the exporter receives the configuration:
+
+~~~java
+exporter.setNotificationListeners(registration);
+~~~
+
+`exporter` is the `MBeanExporter` managing the target MBean. This example illustrates API relationships; declare the exporter/bean in Spring configuration and check overloads for your Spring version.
+
+### When mapping does not match
+
+Suppose the exporter registers:
+
+~~~text
+com.example.orders:type=Queue,name=payment
+~~~
+
+but `NotificationListenerBean` is configured with:
+
+~~~text
+com.example.orders:type=Queue,name=payments
+~~~
+
+These are two different ObjectNames. The listener will not receive events from the intended source.
+
+If the exporter uses an `ObjectNamingStrategy`, inspect the **actual ObjectName** via `queryNames` rather than relying solely on the bean name or class name.
+
+### Exporter scope
+
+Listeners configured on `MBeanExporter` typically apply to MBeans managed by that exporter. They do not automatically subscribe to every JVM, library, or other exporter's MBean. If the target is managed by another exporter or the JDK, registering directly via `MBeanServerConnection` may be more appropriate.
+
+## 9. Step 6: Check NotificationFilter
+
+A listener may be registered, yet a `NotificationFilter` rejects all events.
+
+Example:
+
+~~~java
+import javax.management.NotificationFilter;
+
+NotificationFilter filter = notification ->
+    "com.example.orders.queue.threshold".equals(
+        notification.getType()
+    );
+~~~
+
+If the emitter sends:
+
+~~~text
+com.example.orders.queue.warning
+~~~
+
+then the filter returns `false` and the listener never receives the event.
+
+### How to isolate the issue
+
+In a test environment:
+
+1. Register the listener with `filter=null`.
+2. Emit a harmless test event.
+3. If the listener receives it, compare `notification.getType()`.
+4. Restore the filter and test again.
+5. With multiple event types, verify each type individually.
+
+Do not relax filters or remove protections in production before knowing whether notification contents could contain sensitive data.
+
+### NotificationFilterSupport prefix matching
+
+`NotificationFilterSupport.enableType("com.example.orders.queue")` allows types with a matching prefix. If an exact match is needed, use `equals`. Too broad a prefix may accept unwanted events; too narrow a prefix may drop valid types.
+
+## 10. Step 7: Check Whether Listener Receives Event but Handler Fails
+
+Sometimes the callback is invoked, yet downstream processing logic throws an error or drops the event:
+
+~~~java
+@Override
+public void handleNotification(
+        Notification notification,
+        Object handback
+) {
+    downstreamService.send(notification); // May fail.
+}
+~~~
+
+If the callback throws an exception, how the emitter/connector handles the failure depends on the implementation. Do not assume errors are automatically retried or appear in the expected log.
+
+A safe debugging approach:
+
+~~~java
+@Override
+public void handleNotification(
+        Notification notification,
+        Object handback
+) {
+    receivedCounter.incrementAndGet();
+
+    try {
+        process(notification, handback);
+    } catch (RuntimeException ex) {
+        failureCounter.incrementAndGet();
+        logger.warn(
+            "Failed to process JMX notification type={}",
+            notification.getType(),
+            ex
+        );
+    }
+}
+~~~
+
+`receivedCounter`, `failureCounter`, `process`, and `logger` are illustrative dependencies. Do not log full `userData` if it may contain secrets or sensitive information.
+
+### Async listeners and full queues
+
+If the listener puts events into a `BlockingQueue`, an `offer` returning `false` drops the event even though the callback ran. Measure explicitly:
+
+~~~text
+notification_received_total
+notification_enqueued_total
+notification_dropped_total
+notification_processed_total
+notification_handler_failed_total
+~~~
+
+These are suggested application metric names, not built-in JMX metrics.
+
+If `received_total` rises while `processed_total` does not, the problem lies after the callback, not in the emitter or registration.
+
+## 11. Step 8: Check Rate Limiters, Throttling, and Coalescing
+
+Some applications intentionally reduce notification frequency to protect performance:
+
+~~~text
+Business events:       1000
+Notification emitted:    20
+Notification suppressed: 980
+~~~
+
+In that case, the listener not receiving 980 events is policy behavior, not necessarily a bug. Check:
+
+- Which events are allowed to be dropped?
+- Is the limiter applied per MBean, per type, or JVM-wide?
+- Are there warning/recovered state transitions?
+- Does debouncing defer events indefinitely under continuous load?
+- Is coalescing used to emit summary events?
+- Is there a suppressed counter metric?
+
+Do not modify the listener to expect events the producer does not emit. Verify the publishing policy at the source.
+
+In particular, a policy that emits only on threshold crossing will not re-emit on every increase in queue depth while the system remains above the threshold. That is a valid design when documented.
+
+## 12. Step 9: MBean Unregistered or Replaced
+
+When a Spring `ApplicationContext` closes, the exporter may unregister the MBean. When another context re-registers the same ObjectName, it is a **new MBean** even though the name is identical.
+
+Example:
+
+~~~text
+T0: MBean A registered under ObjectName X
+T1: Listener registered on X
+T2: Exporter unregisters A
+T3: Exporter registers MBean B under X
+T4: Listener no longer receives notifications
+~~~
+
+Subscriptions on emitter A do not automatically transfer to emitter B.
+
+With `RegistrationPolicy.REPLACE_EXISTING`, this same risk appears when replacing an MBean currently in use.
+
+### Observing MBeanServerDelegate
+
+JMX provides a delegate MBean:
+
+~~~text
+JMImplementation:type=MBeanServerDelegate
+~~~
+
+You can listen for `MBeanServerNotification.REGISTRATION_NOTIFICATION` and `UNREGISTRATION_NOTIFICATION`.
+
+~~~java
+import javax.management.MBeanServerNotification;
+import javax.management.NotificationListener;
+import javax.management.ObjectName;
+
+ObjectName delegate = new ObjectName(
+    "JMImplementation:type=MBeanServerDelegate"
+);
+
+NotificationListener observer = (notification, handback) -> {
+    if (notification instanceof MBeanServerNotification event) {
+        System.out.println(
+            notification.getType() + " " + event.getMBeanName()
+        );
+    }
+};
+
+connection.addNotificationListener(
+    delegate,
+    observer,
+    null,
+    null
+);
+~~~
+
+This example uses modern Java `instanceof` pattern matching. For older Java versions, use traditional `instanceof` and casting.
+
+Upon receiving a re-registration notification for ObjectName X, the client can confirm `isRegistered(X)`, inspect metadata, and **re-subscribe**. Make this operation idempotent to avoid registering duplicate listeners.
+
+**Limitation:** registry notifications are not an event store. If a client disconnects, it may miss registration events; after reconnecting, re-query the registry.
+
+## 13. Step 10: Remote JMX Connection Lost
+
+A remote client usually obtains `MBeanServerConnection` from a `JMXConnector`. When the connection drops:
+
+- Previous subscriptions may be lost.
+- The client misses notifications emitted during the disconnect window.
+- Callbacks may stop arriving without the application realizing immediately.
+- Server and client may have mismatched subscription states after reconnecting.
+
+Distinguish:
+
+~~~text
+MBean still emits events
+      |
+      v
+JMX connector disconnected
+      |
+      x
+Remote listener receives nothing
+~~~
+
+With remote JMX, monitor connector connection notifications and implement reconnection logic:
+
+~~~java
+import javax.management.remote.JMXConnectionNotification;
+import javax.management.NotificationListener;
+
+NotificationListener connectionObserver =
+    (notification, handback) -> {
+        String type = notification.getType();
+        if (JMXConnectionNotification.CLOSED.equals(type)
+                || JMXConnectionNotification.FAILED.equals(type)) {
+            System.out.println("JMX connection interrupted");
+        }
+    };
+
+connector.addConnectionNotificationListener(
+    connectionObserver, null, null
+);
+~~~
+
+`connector` is a previously created/connected `JMXConnector`. After a successful reconnect, obtain the appropriate connection and re-register listeners.
+
+Do not automatically retry side-effecting management operations just because the connection dropped; determine the operation's outcome before retrying. Re-subscribing listeners is a separate concern from retrying operations.
+
+## 14. Diagnose Locally First, Then Remotely
+
+When a remote listener misses notifications, verify inside the target JVM:
+
+1. Does an emitter MBean exist with the right ObjectName?
+2. Does a local listener receive notifications?
+3. Does the MBean actually emit notifications?
+4. Does a local filter pass the corresponding type?
+
+If a local listener receives notifications while a remote one does not, focus on:
+
+- Is JMXConnector pointing to the right JVM?
+- TLS/authentication/authorization.
+- Listener registration over the remote connection.
+- Connection drops, timeouts, or reconnects.
+- Notification serialization/userData types.
+- Remote connector backlog or delivery limits.
+- Client-side handler and queue.
+
+If neither local nor remote receives anything, inspect the publisher, emitter, registration, or filter first.
+
+### Do not confuse remote JMX with HTTP management
+
+A Spring Boot Actuator endpoint reachable over HTTP does not prove the JMX remote connector works. HTTP and JMX are two distinct management channels.
+
+## 15. Minimal Testing with NotificationBroadcasterSupport
+
+To isolate Spring and remote factors, you can create a plain Java Standard MBean that emits notifications.
+
+Interface:
+
+~~~java
+package com.example.testjmx;
+
+public interface TestEmitterMBean {
+    void emit();
+}
+~~~
+
+Implementation:
+
+~~~java
+package com.example.testjmx;
+
+import java.util.concurrent.atomic.AtomicLong;
+import javax.management.Notification;
+import javax.management.NotificationBroadcasterSupport;
+
+public class TestEmitter extends NotificationBroadcasterSupport
+        implements TestEmitterMBean {
+
+    private final AtomicLong sequence = new AtomicLong();
+
+    @Override
+    public void emit() {
+        sendNotification(new Notification(
+            "com.example.test.event",
+            this,
+            sequence.incrementAndGet(),
+            System.currentTimeMillis(),
+            "Synthetic notification"
+        ));
+    }
+}
+~~~
+
+Registration test:
+
+~~~java
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
+import javax.management.NotificationListener;
+import javax.management.ObjectName;
+
+MBeanServer server = MBeanServerFactory.newMBeanServer();
+
+ObjectName name = new ObjectName(
+    "com.example.test:type=Emitter,name=primary"
+);
+
+server.registerMBean(new TestEmitter(), name);
+
+CountDownLatch latch = new CountDownLatch(1);
+
+NotificationListener listener = (notification, handback) -> {
+    if ("com.example.test.event".equals(notification.getType())) {
+        latch.countDown();
+    }
+};
+
+server.addNotificationListener(name, listener, null, null);
+
+try {
+    server.invoke(name, "emit", new Object[0], new String[0]);
+
+    if (!latch.await(3, TimeUnit.SECONDS)) {
+        throw new AssertionError("Notification not received");
+    }
+} finally {
+    server.removeNotificationListener(name, listener);
+    server.unregisterMBean(name);
+}
+~~~
+
+When the test above succeeds, core JMX notifications work. If the real test still fails, the difference lies in Spring export, ObjectName, filters, lifecycle, or the connector.
+
+In a project, place this test inside a JUnit method; this is a statement-level example illustrating the mechanism, not a complete standalone Java file.
+
+## 16. Testing Spring NotificationPublisher
+
+An integration test should build an isolated Spring context with:
+
+- A bean annotated with `@ManagedResource` and `@ManagedNotification`.
+- The bean implementing `NotificationPublisherAware`.
+- `AnnotationMBeanExporter` or an exporter with appropriate metadata.
+- A `NotificationListenerBean` mapping the exact ObjectName.
+- A dedicated test MBeanServer.
+- `CountDownLatch` or a thread-safe collector.
+
+Test flow:
+
+~~~text
+Create test MBeanServer
+      |
+Create Spring context/exporter
+      |
+Assert ObjectName registered
+      |
+Assert notification metadata
+      |
+Register listener
+      |
+Call method causing NotificationPublisher.sendNotification()
+      |
+Await callback with timeout
+      |
+Assert type/source/handback
+      |
+Close context and cleanup
+~~~
+
+The critical detail to confirm is that **the exact same bean instance** is invoked by business code and managed by the exporter.
+
+### Example listener collector in tests
+
+~~~java
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import javax.management.Notification;
+import javax.management.NotificationListener;
+
+public class RecordingListener implements NotificationListener {
+
+    private final List<Notification> received =
+        new CopyOnWriteArrayList<>();
+
+    private final CountDownLatch latch = new CountDownLatch(1);
+
+    @Override
+    public void handleNotification(
+            Notification notification,
+            Object handback
+    ) {
+        received.add(notification);
+        latch.countDown();
+    }
+
+    public boolean awaitNotification(long timeoutSeconds)
+            throws InterruptedException {
+        return latch.await(
+            timeoutSeconds,
+            java.util.concurrent.TimeUnit.SECONDS
+        );
+    }
+
+    public List<Notification> getReceived() {
+        return received;
+    }
+}
+~~~
+
+Do not use `Thread.sleep(100)` and check immediately; bounded timeouts and latches make tests far less flaky.
+
+## 17. When Spring Listener Mapping Is Incorrect
+
+A `NotificationListenerBean` configuration can restrict which MBeans are listened to:
+
+~~~java
+NotificationListenerBean bean =
+    new NotificationListenerBean(recordingListener);
+
+bean.setMappedObjectNames(
+    "com.example.orders:type=Queue,name=payments"
+);
+~~~
+
+If the exporter's actual ObjectName is:
+
+~~~text
+com.example.orders:type=Queue,application=checkout,name=payments
+~~~
+
+then the mapping may not match.
+
+Similarly, if the listener is attached to a different `MBeanExporter` than the one managing the emitter, the listener may fail to receive events under the expected mapping mechanism.
+
+### Diagnostic hints
+
+Do not see `NotificationListenerBean` existing in the ApplicationContext and assume the listener is registered. You must:
+
+1. Confirm the exporter uses that listener bean.
+2. Confirm the exporter actually manages the target.
+3. Confirm the registered ObjectName matches the mapping.
+4. Confirm the notification type is emitted and not dropped by a filter.
+5. Use a harmless synthetic event to verify the callback.
+
+## 18. Notification Type, Source, and Sequence Number
+
+A `Notification` typically carries:
+
+~~~text
+type
+source
+sequenceNumber
+timestamp
+message
+userData
+~~~
+
+These fields aid diagnostics:
+
+- `type`: does it match the filter?
+- `source`: what identifier did the emitter attach? It can be an object or ObjectName depending on export/transport.
+- `sequenceNumber`: does it increment per emitter?
+- `timestamp`: did the event happen before listener registration?
+- `message`: does it accurately describe the state?
+- `userData`: does it hold the required payload and is it serializable for remote JMX?
+
+**Do not treat sequence numbers as a global ordering** across multiple MBeans. Across multiple JVMs, you need target identity and ObjectName to distinguish emitters.
+
+If a filter relies on `notification.getSource().equals(objectName)`, it may fail if `source` is an object other than `ObjectName`. Use `handback` or registration mapping when you need to identify the source reliably.
+
+## 19. Common Errors and Remedies
+
+| Symptom | Suspected Cause | Check |
+| --- | --- | --- |
+| MBean exists, listener receives nothing | `sendNotification` not called | Logs/counters at producer |
+| Metadata has `@ManagedNotification`, no callbacks | Annotation only declares event types | Test emitting an actual event |
+| Publisher is null | Bean instance not given publisher by exporter | Spring bean and exporter lifecycle |
+| `InstanceNotFoundException` on subscribe | Wrong ObjectName or not yet registered | `isRegistered`, `queryNames` |
+| Listener receives only some event types | Filter differs from actual type | Print type, try filter=null in test |
+| Listener created, no callbacks | Not attached to exporter/MBeanServer | Registration path |
+| Works locally, fails remotely | JMX connector/connection | TLS, permissions, reconnect, serialization |
+| Stops receiving after restart | Subscription lost | Re-subscribe and query registry |
+| Stops receiving after REPLACE_EXISTING | New MBean replaced old emitter | Delegate events, re-subscribe |
+| Callback invoked, downstream doesn't process | Handler exception or full queue | Received/processed/dropped metrics |
+| Events lost only under load | Throttling, coalescing, or backpressure | Suppressed counter and queue depth |
+| Event sent before subscribing | Listener did not exist at emit time | Adjust startup/ordering |
+| Operator sees event in JConsole, code misses it | JConsole listener differs from Spring listener | Inspect in-app mapping |
+| Single emit received multiple times | Duplicate listener registration | Audit subscriptions and cleanup |
+| Notification payload fails remotely | Incompatible `userData` type | Serialization/Open Types |
+
+## 20. Step-by-Step Diagnostic Checklist
+
+You can follow this procedure for a concrete incident:
+
+1. **Right target?** Confirm JVM, MBeanServer, and canonical ObjectName.
+2. **Does MBean exist?** `isRegistered` returns true.
+3. **Can MBean emit?** Inspect `MBeanInfo.getNotifications`.
+4. **Did business event occur?** Logs/counters at the source.
+5. **Did code emit?** Trace calls to publisher/broadcaster.
+6. **Is publisher injected?** Non-null and on the right bean instance.
+7. **Is listener registered?** Inspect `addNotificationListener` or Spring exporter mapping.
+8. **Is filter accurate?** Compare exact type strings.
+9. **Does callback run?** Counter right at the start of `handleNotification`.
+10. **Does handler drop events?** Full queue, exceptions, stopped executor.
+11. **Was MBean replaced?** Monitor unregister/register events.
+12. **Is remote connection alive?** Check connection notifications and reconnect.
+13. **Is rate limiting active?** Check suppressed event count.
+14. **Does minimal local test pass?** Separate core JMX bugs from Spring/transport bugs.
+15. **Are cleanup/re-subscribe handled?** Inspect context and listener lifecycle.
+16. **Any sensitive data?** Do not log raw `userData`/credentials while debugging.
+
+This workflow traces from source to pipeline end, preventing fixing the wrong cause.
+
+## 21. Ways to Reduce Error Recurrence
+
+### 21.1. Use a stable naming contract
+
+Do not build ObjectNames from proxy class names or random IDs unnecessarily. Keep domains and key properties stable so listener mappings do not drift across releases.
+
+### 21.2. Maintain health checks and counters for the notification pipeline
+
+Example:
+
+~~~text
+jmx_notification_created_total
+jmx_notification_sent_total
+jmx_notification_received_total
+jmx_notification_processed_total
+jmx_notification_dropped_total
+jmx_listener_reconnect_total
+~~~
+
+These metrics are implemented by the application, not provided by Spring by default. If `created` rises while `sent` does not, look for producer errors. If `sent` rises while `received` does not, inspect registration/filter/connector. If `received` rises while `processed` does not, inspect the handler.
+
+### 21.3. Keep load and logging reasonable
+
+Do not format huge payloads and emit thousands of notifications per second. For repeated state changes, use edge-triggered notifications or coalescing.
+
+### 21.4. Use idempotent re-subscribe
+
+When a connector reconnects or an MBean re-registers, the client should reconcile active subscriptions before adding new ones. Avoid duplicating events via repeated registrations.
+
+### 21.5. Do not rely on durable delivery
+
+JMX notifications do not natively support replaying events lost while a client was disconnected. If events must never be lost, use an event store/message broker/audit log and use JMX only for status reporting.
+
+## 22. Hands-on Exercises
+
+**Goal:** Reproduce and fix three "notification not reaching listener" scenarios.
+
+### Scenario A: Wrong mapping
+
+1. Create an emitter MBean with ObjectName `com.example.test:type=Queue,name=payments`.
+2. Register a listener using ObjectName `com.example.test:type=Queue,name=payment`.
+3. Observe registration failing or the listener receiving nothing.
+4. Fix the ObjectName properly.
+5. Emit event `com.example.test.queue.warning`.
+6. Verify the callback executes.
+
+### Scenario B: Wrong filter
+
+1. Emitter emits `com.example.test.queue.warning`.
+2. Listener filter accepts only `com.example.test.queue.recovered`.
+3. Verify the callback does not run.
+4. Change the filter or temporarily use `null` in test.
+5. Verify the callback executes.
+6. Restore the proper filter per policy.
+
+### Scenario C: Replaced MBean
+
+1. Register MBean A under ObjectName X.
+2. Add listener, verify events are received.
+3. Unregister A, register MBean B under the same X.
+4. Emit event on B, observe the old subscription does not transfer automatically.
+5. Re-subscribe the listener to X.
+6. Re-emit the test event, verify the callback executes.
+7. Clean up registrations when finished.
+
+Run these exercises on an isolated test MBeanServer without interfering with production MBeans.
+
+## 23. Self-Check Questions
+
+**1. Does having `@ManagedNotification` guarantee notifications are sent?**
+
+No. The annotation describes metadata. Code must actually call the publisher/broadcaster to emit.
+
+**2. Why can attributes be read while the listener receives nothing?**
+
+Because attribute reading and notification emission follow separate paths; MBean existence is not enough for a listener to be registered or for events to be emitted.
+
+**3. Does creating a `NotificationListenerBean` in Spring guarantee an active subscription?**
+
+No. It must also be used by the right exporter and match the ObjectName mapping.
+
+**4. When should you test with `filter=null`?**
+
+When a test needs to isolate a filter bug from a registration or emitter bug, in a controlled environment with harmless events.
+
+**5. Why does a listener lose events after MBean replacement?**
+
+The subscription was bound to the unregistered emitter and does not automatically transfer to the new MBean under the same ObjectName.
+
+**6. Why does a remote listener stop after reconnecting?**
+
+Runtime connections/subscriptions may be lost; the client must restore the connection and re-subscribe.
+
+**7. What is needed to determine where an event was lost?**
+
+Counters/logs at the producer, publisher, callback, and handler, along with ObjectName/filter/connection details.
+
+**8. Do notifications guarantee zero event loss during network disconnects?**
+
+No. For durability requirements, use another event system or audit log.
+
+## 24. Summary
+
+When **notifications do not reach listeners** in Spring Framework JMX, do not inspect just one annotation or one listener class. Trace the entire path:
+
+~~~text
+Event occurs
+    -> publisher emits
+    -> MBean present in registry
+    -> listener registered on right ObjectName
+    -> filter allows event
+    -> connector forwards event
+    -> handler processes successfully
+~~~
+
+Key root cause groups include:
+
+- MBean or publisher not configured/initialized properly.
+- Notification not actually emitted.
+- Listener not registered on the right target.
+- Wrong filter or mapping.
+- MBean unregistered/replaced.
+- Remote connection interrupted.
+- Handler failing or dropping events due to overload.
+
+A resilient system requires stable naming, clear lifecycle management, re-subscription when needed, pipeline metrics, and an accurate understanding that JMX notifications are not a durable event-delivery mechanism.
+
+### References
+
+- Spring Framework Reference — JMX Notifications: https://docs.spring.io/spring-framework/reference/integration/jmx/notifications.html
+- Spring Framework Reference — JMX: https://docs.spring.io/spring-framework/reference/integration/jmx.html
+- Spring Framework API — NotificationPublisher: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jmx/export/notification/NotificationPublisher.html
+- Spring Framework API — NotificationListenerBean: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jmx/export/NotificationListenerBean.html
+- Java SE API — MBeanServerConnection: https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/MBeanServerConnection.html
+- Java SE API — MBeanServerNotification: https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/MBeanServerNotification.html

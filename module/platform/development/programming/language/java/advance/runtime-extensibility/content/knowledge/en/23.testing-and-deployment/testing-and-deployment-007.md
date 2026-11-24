@@ -1,25 +1,25 @@
-# Đóng gói runtime bằng jlink với module công cụ và service binding cần thiết
+# Packaging a Runtime with jlink Including Required Tool Modules and Service Binding
 
-Một ứng dụng Java có thể chạy ổn trong môi trường phát triển vì máy cài **đầy đủ JDK**, nhưng thất bại khi triển khai bằng một **custom runtime image** tạo từ `jlink`. Những triệu chứng thường gặp gồm: `ToolProvider.getSystemJavaCompiler()` trả `null`, không có JShell hoặc một công cụ cần thiết, `ServiceLoader` không tìm được provider, hoặc module phụ thuộc biến mất khỏi ảnh runtime. Nguyên nhân không nhất thiết do code sai: **ảnh được liên kết chỉ chứa các module đã được chọn và các phụ thuộc/provider được resolver đưa vào lúc tạo ảnh**.
+A Java application may run fine in development because the machine has a **full JDK**, yet fail when deployed as a **custom runtime image** built with `jlink`. Common symptoms include: `ToolProvider.getSystemJavaCompiler()` returning `null`, missing JShell or a needed tool, `ServiceLoader` finding no providers, or dependent modules missing from the runtime image. The cause is not necessarily a code bug: **the linked image contains only the selected modules plus dependencies and providers pulled in by the resolver at link time**.
 
-Bài này hướng dẫn cách **chọn module gốc, giữ đúng các module công cụ (`jdk.compiler`, `jdk.jshell` và module liên quan), dùng `--bind-services` để liên kết provider cần thiết, kiểm chứng bằng chương trình Java 17 có thể chạy**, rồi kiểm soát dung lượng và tính tương thích khi triển khai.
+This lesson shows how to **choose root modules, retain the right tool modules (`jdk.compiler`, `jdk.jshell`, and related modules), use `--bind-services` to link required providers, verify with a runnable Java 17 program**, and manage image size and compatibility during deployment.
 
-**Thông điệp cốt lõi:** `jlink` là bước **đóng gói module graph thành một Java runtime image riêng**, không phải một lệnh “copy nguyên JDK”. `requires` mô tả dependency, `uses`/`provides` mô tả dịch vụ; **module chứa implementation hoặc service provider có thể không thuộc graph nếu không được root hoặc service binding lựa chọn**.
+**Core message:** `jlink` is a step that **packages a module graph into a dedicated Java runtime image**, not a command to "copy the whole JDK". `requires` expresses dependencies, while `uses`/`provides` express services; **a module containing an implementation or service provider may be absent from the graph unless selected as a root or added via service binding**.
 
-## 1. Runtime image, JDK, JRE và jlink khác nhau ở đâu?
+## 1. How Runtime Image, JDK, JRE, and jlink Differ
 
-| Khái niệm | Ý nghĩa |
+| Concept | Meaning |
 |---|---|
-| **JDK đầy đủ** | Bộ phát triển gồm JVM, standard modules, công cụ như `javac`, `jar`, `jlink`, `jdeps`, `jshell` tùy bản phân phối |
-| **Custom runtime image** | Thư mục gồm `bin/java`, thư viện JVM, module image và những thành phần linker chọn; được tạo bằng `jlink` |
-| **`java.base`** | Module nền tảng luôn cần cho runtime Java |
-| **Application module** | Module do dự án định nghĩa trong `module-info.java`, ví dụ `demo.host` |
-| **Tool module** | Module chứa API/implementation liên quan công cụ, ví dụ `jdk.compiler` hoặc `jdk.jshell` |
-| **Service provider module** | Module khai báo `provides Service with Implementation` và được ứng dụng tìm bằng `ServiceLoader` |
-| **Module path** | Tập `.jmod`, modular JAR hoặc dạng module phù hợp mà `jlink` dùng để tìm module lúc liên kết |
-| **Service binding** | Quá trình bổ sung các provider module của dịch vụ được `uses` bởi những module trong graph, cùng các dependency tương ứng |
+| **Full JDK** | Development kit containing the JVM, standard modules, and tools like `javac`, `jar`, `jlink`, `jdeps`, `jshell` depending on distribution |
+| **Custom runtime image** | Directory containing `bin/java`, JVM libraries, module image, and components chosen by the linker; built via `jlink` |
+| **`java.base`** | Foundational module always required by any Java runtime |
+| **Application module** | Module defined by the project in `module-info.java`, e.g. `demo.host` |
+| **Tool module** | Module providing tool APIs/implementations, e.g. `jdk.compiler` or `jdk.jshell` |
+| **Service provider module** | Module declaring `provides Service with Implementation` and discovered via `ServiceLoader` |
+| **Module path** | Set of `.jmod` files, modular JARs, or compatible modules searched by `jlink` at link time |
+| **Service binding** | Process of adding provider modules for services declared with `uses` by modules in the graph, along with their dependencies |
 
-Trong quá trình build:
+During the build:
 
 ```text
 JDK jmods + modular application JARs
@@ -29,11 +29,11 @@ JDK jmods + modular application JARs
                    |
            resolve requires
                    |
-        (tùy chọn --bind-services)
+        (optional --bind-services)
                    |
-      tìm provider qua uses/provides
+     find providers via uses/provides
                    |
-          graph đã được resolve
+            resolved graph
                    |
                    v
                  jlink
@@ -43,18 +43,18 @@ JDK jmods + modular application JARs
          bin/java, lib/modules,...
                    |
                    v
-       Chạy java -m module/main
+       Run java -m module/main
                    |
             Self-test + smoke test
 ```
 
-`jlink` có mặt trong JDK hiện đại; thông thường nó liên kết **JDK modules và modular application modules**, không chấp nhận dùng một JAR chỉ có automatic module name như thể đó là một explicit module hoàn chỉnh. Nếu một thư viện ngoài chỉ là automatic module hoặc một JAR classpath, phải quyết định đóng gói lại/đưa ra runtime classpath/module path bên ngoài, chứ không mặc nhiên coi nó là đầu vào link hợp lệ.
+`jlink` ships with modern JDKs; typically it links **JDK modules and modular application modules**, refusing to treat a plain JAR with only an automatic module name as a complete explicit module. If a third-party library is only an automatic module or classpath JAR, you must decide how to modularize it or keep it on an external runtime classpath/module path rather than assuming it is a valid link input.
 
-Một runtime image tạo với JDK 24 mang runtime **JDK 24**, dù source ứng dụng được biên dịch bằng `javac --release 17`. `--release 17` điều chỉnh mức ngôn ngữ/API/bytecode của class; nó **không biến jlink của JDK 24 thành trình tạo JDK 17 runtime**. Muốn image chạy Java 17, hãy build bằng **toolchain JDK 17 phù hợp với nền tảng đích**.
+A runtime image built with JDK 24 carries a **JDK 24** runtime, even if application source was compiled with `javac --release 17`. `--release 17` targets class/language/API level; it **does not turn JDK 24's `jlink` into a JDK 17 runtime builder**. To produce a Java 17 runtime image, build with a **JDK 17 toolchain matching the target platform**.
 
-## 2. Cách jlink xác định tập module sẽ nằm trong image
+## 2. How jlink Determines Which Modules Enter the Image
 
-Một lệnh đơn giản:
+A simple command:
 
 ```bash
 jlink --module-path "$JAVA_HOME/jmods:mlib" \
@@ -62,18 +62,18 @@ jlink --module-path "$JAVA_HOME/jmods:mlib" \
       --output image
 ```
 
-Lệnh dùng cú pháp shell Linux/macOS. `mlib` là thư mục chứa modular JAR của ứng dụng; trên Windows, dấu phân tách module path là **chấm phẩy**. `demo.host` là module gốc; `jlink` xét các `requires` trong descriptor để đưa vào các module cần thiết. `java.base` được đưa vào theo cơ chế module system.
+This command uses Linux/macOS shell syntax. `mlib` is the directory holding the application's modular JARs; on Windows, the module path separator is a **semicolon**. `demo.host` is the root module; `jlink` follows `requires` clauses in descriptors to pull in needed modules. `java.base` is included automatically by the module system.
 
-**Điểm khác nhau giữa các quan hệ:**
+**Differences between relationships:**
 
-- `requires some.module;`: đây là **phụ thuộc có tên** mà module system cần giải quyết để xây graph.
-- `uses com.example.Service;`: module nói rằng nó **sử dụng một service**; điều đó không có nghĩa mọi provider của service tự động được đưa vào image ở chế độ link mặc định.
-- `provides com.example.Service with com.example.Impl;`: một module **cung cấp provider**, nhưng phải có lý do để module provider này được đưa vào graph: là root, là dependency được chọn hoặc được thêm nhờ service binding.
-- `--bind-services`: yêu cầu linker liên kết các service provider module cùng phụ thuộc của chúng theo cấu hình/module path, có thể làm graph và dung lượng image **lớn hơn đáng kể**.
+- `requires some.module;`: a **named dependency** the module system must resolve to build the graph.
+- `uses com.example.Service;`: the module declares it **consumes a service**; this does not mean every provider of that service automatically enters the image in default link mode.
+- `provides com.example.Service with com.example.Impl;`: a module **supplies a provider**, yet there must be a reason for it to enter the graph: as a root, as a selected dependency, or via service binding.
+- `--bind-services`: instructs the linker to include service provider modules and their dependencies from the configuration/module path, which can make the graph and image size **significantly larger**.
 
-### 2.1. Root module phải phản ánh runtime cần chạy
+### 2.1. Root Modules Must Reflect What Needs to Run
 
-Ví dụ một ứng dụng gồm:
+Consider an application composed of:
 
 ```text
 demo.host
@@ -86,26 +86,26 @@ demo.provider
   provides demo.spi.GreetingService with demo.provider.HelloProvider
 ```
 
-Nếu chỉ root `demo.host`, module `demo.spi` và `java.compiler` có thể được kéo vào qua `requires`, nhưng `demo.provider` **không** tự đi vào chỉ vì có file JAR trên module path. Khi dùng `--bind-services`, linker có thể nhận ra `demo.host` dùng service `demo.spi.GreetingService`, tìm `demo.provider` và đưa nó vào image.
+If only `demo.host` is rooted, `demo.spi` and `java.compiler` are pulled in via `requires`, yet `demo.provider` **does not** enter automatically merely because its JAR sits on the module path. With `--bind-services`, the linker sees that `demo.host` uses `demo.spi.GreetingService`, finds `demo.provider`, and includes it in the image.
 
-**Không nên bật tất cả module bằng `ALL-MODULE-PATH` một cách máy móc** để chữa lỗi thiếu provider: làm thế làm mất mục tiêu tối giản và có thể đưa mã không mong muốn vào image. Nên bắt đầu từ module gốc rõ ràng, kiểm tra dependency rồi bổ sung công cụ/provider có chủ đích.
+**Do not blindly enable every module with `ALL-MODULE-PATH`** to fix a missing provider: that defeats minimization and can bundle unwanted code into the image. Start from explicit roots, inspect dependencies, and add tools/providers intentionally.
 
-## 3. Các module công cụ cần hiểu và chọn có chủ đích
+## 3. Tool Modules to Understand and Include Deliberately
 
-| Module | Chức năng chính | Khi nào cần đưa vào image? |
+| Module | Primary Role | When to Include in the Image? |
 |---|---|---|
-| `java.base` | API Java nền tảng | Có mặt theo cơ chế module, không cần tự xử lý riêng |
-| `java.compiler` | API chuẩn `javax.tools.JavaCompiler`, `ToolProvider`, `DiagnosticCollector` | Ứng dụng biên dịch động hoặc dùng compiler SPI/API; thường được kéo bởi `requires java.compiler` |
-| **`jdk.compiler`** | Implementation `javac` của JDK, system compiler/provider và công cụ liên quan | Khi image cần **thật sự biên dịch Java** bằng `ToolProvider.getSystemJavaCompiler()` hoặc chạy `javac` |
-| **`jdk.jshell`** | JShell API và công cụ REPL của JDK | Khi ứng dụng dùng `jdk.jshell.JShell` hoặc muốn phân phối tính năng JShell |
-| `java.scripting` | API JSR 223 `javax.script` | Khi host dùng `ScriptEngine`/`Bindings`; **không** đồng nghĩa có JavaScript engine |
-| `jdk.jdeps` | Công cụ phân tích module/dependency như `jdeps` | Nếu muốn dùng công cụ phân tích trong môi trường đó; thường chỉ cần ở pipeline build |
-| `jdk.jlink` | Công cụ liên kết runtime image | Nếu cần chạy thao tác liên kết ở môi trường đó; thường chỉ cần trong build JDK |
-| `jdk.jartool` | Công cụ thao tác JAR như `jar` | Thường chỉ cần ở build stage, không nhất thiết trong runtime image |
-| `jdk.javadoc` | Công cụ sinh Javadoc | Thường chỉ cần ở build/docs stage |
-| `jdk.zipfs` | FileSystemProvider cho ZIP/JAR qua NIO FileSystem API | Cần khi code dùng `FileSystems.newFileSystem` cho ZIP hoặc một dependency yêu cầu provider đó |
+| `java.base` | Core Java APIs | Included by the module system; no manual handling needed |
+| `java.compiler` | Standard APIs `javax.tools.JavaCompiler`, `ToolProvider`, `DiagnosticCollector` | App performs dynamic compilation or uses compiler SPI/APIs; typically pulled by `requires java.compiler` |
+| **`jdk.compiler`** | JDK `javac` implementation, system compiler/provider, and related tools | When the image must **actually compile Java** via `ToolProvider.getSystemJavaCompiler()` or run `javac` |
+| **`jdk.jshell`** | JShell API and JDK REPL tool | When the app uses `jdk.jshell.JShell` or needs to distribute JShell capability |
+| `java.scripting` | JSR 223 `javax.script` API | When host uses `ScriptEngine`/`Bindings`; **does not** imply a JavaScript engine exists |
+| `jdk.jdeps` | Module/dependency analyzer such as `jdeps` | If running analysis tools in that environment; usually needed only in build pipelines |
+| `jdk.jlink` | Runtime image linker tool | If running linking operations in that environment; usually needed only in build JDK |
+| `jdk.jartool` | JAR manipulation tool such as `jar` | Usually needed only at build stage, not in runtime images |
+| `jdk.javadoc` | Javadoc generator tool | Usually needed only in build/docs stages |
+| `jdk.zipfs` | FileSystemProvider for ZIP/JAR via NIO FileSystem API | Needed when code calls `FileSystems.newFileSystem` on ZIPs or a dependency requires that provider |
 
-**Phân biệt API với implementation:**
+**Distinguish API from implementation:**
 
 ```java
 import javax.tools.JavaCompiler;
@@ -117,34 +117,34 @@ if (compiler == null) {
 }
 ```
 
-Đây là đoạn minh họa **trong một method**, không phải chương trình độc lập. Nó có thể biên dịch vì module chứa API `java.compiler` hiện diện, nhưng `compiler` vẫn có thể `null` nếu image không có một implementation phù hợp, điển hình là khi thiếu `jdk.compiler`. Vì thế **chỉ có `java.compiler` chưa đủ** cho yêu cầu biên dịch mã Java trong runtime.
+This snippet belongs **inside a method**, not as a standalone program. It compiles because the API module `java.compiler` is present, yet `compiler` can still be `null` if the image lacks a matching implementation—typically because `jdk.compiler` is absent. Thus **having `java.compiler` alone is not enough** for runtime Java compilation.
 
-**Một điểm về JShell:** Không phải cứ có `java.compiler` là đã có `jdk.jshell`. Nếu ứng dụng dùng `JShell` theo kiểu tĩnh, descriptor của host cần `requires jdk.jshell;` để module system kéo dependency vào. Nếu host quyết định sử dụng JShell bằng cấu hình/reflection hoặc cần phân phối công cụ JShell, hãy thêm `jdk.jshell` tường minh và kiểm thử trên image thật. Khi chạy example dưới đây, `jdk.jshell` được đưa vào như root tùy chọn và kiểm chứng bằng `ModuleLayer.boot().findModule(...)`.
+**A note on JShell:** Having `java.compiler` does not imply `jdk.jshell` is present. If the application uses `JShell` statically, the host descriptor needs `requires jdk.jshell;` so the module system pulls it in. If the host uses JShell via configuration/reflection or distributes the JShell tool, add `jdk.jshell` explicitly and test on the real image. In the example below, `jdk.jshell` is added as an optional root and verified via `ModuleLayer.boot().findModule(...)`.
 
-Các bản JDK/image có thể cung cấp **launcher** tương ứng cho tool module (ví dụ `bin/javac`, `bin/jshell`); cần kiểm tra file thực tế trong `bin` của image được tạo, không chỉ suy đoán từ tên module. Trên JDK 24 kiểm thử, đưa `jdk.compiler` và `jdk.jshell` vào image cũng tạo các launcher tương ứng. Không nên mang build tools vào production image nếu môi trường thực thi không cần chúng.
+JDK builds/images may provide **launchers** for tool modules (e.g. `bin/javac`, `bin/jshell`); inspect the actual files inside the generated image's `bin` rather than guessing from module names. On the tested JDK 24, including `jdk.compiler` and `jdk.jshell` also produced the corresponding launchers. Do not ship build tools inside production images if the runtime environment does not need them.
 
-### 3.1. java.scripting không mang kèm JavaScript engine
+### 3.1. java.scripting Does Not Bundle a JavaScript Engine
 
-`ScriptEngineManager` thuộc `java.scripting` nhưng **Nashorn JavaScript engine đã bị gỡ khỏi JDK từ Java 15**. Vì thế thêm `java.scripting` vào image Java 17+ chỉ bảo đảm có API JSR 223; `getEngineByName("JavaScript")` vẫn có thể trả `null`. Engine ngoài JDK cần được chọn, đóng gói và cấu hình quyền host access riêng.
+`ScriptEngineManager` lives in `java.scripting`, yet **the Nashorn JavaScript engine was removed from the JDK in Java 15**. Adding `java.scripting` to a Java 17+ image guarantees only the JSR 223 API; `getEngineByName("JavaScript")` can still return `null`. External engines must be selected, packaged, and configured with host access permissions separately.
 
-Tương tự, một service provider được cài bằng module bên ngoài **không tự xuất hiện** vì Java API `ServiceLoader` có sẵn trong `java.base`. Cần provider đúng và visibility phù hợp.
+Similarly, an externally supplied service provider **does not appear automatically** just because `ServiceLoader` exists in `java.base`. You need both the right provider and proper visibility.
 
-## 4. jlink và service binding: dùng --bind-services có ý nghĩa gì?
+## 4. jlink and Service Binding: What Does --bind-services Mean?
 
-Cơ chế provider theo JPMS sử dụng ba thành phần:
+The JPMS provider mechanism uses three pieces:
 
 ```java
-// module-info.java ở module sử dụng dịch vụ
+// module-info.java in the service-consuming module
 uses demo.spi.GreetingService;
 
-// module-info.java ở module cung cấp dịch vụ
+// module-info.java in the service-providing module
 provides demo.spi.GreetingService
         with demo.provider.HelloProvider;
 ```
 
-Đây là hai **mệnh đề descriptor minh họa**, không thể đặt trực tiếp trong thân class Java. Trong chương trình thực tế, mỗi mệnh đề thuộc `module-info.java` của module tương ứng.
+These are two **illustrative descriptor directives**, not valid directly inside a Java class body. In real programs, each belongs in its respective module's `module-info.java`.
 
-Một ứng dụng có thể dùng:
+An application can use:
 
 ```java
 ServiceLoader<GreetingService> loader =
@@ -155,43 +155,43 @@ for (GreetingService provider : loader) {
 }
 ```
 
-Đây là đoạn minh họa trong class đã import `java.util.ServiceLoader` và `demo.spi.GreetingService`. Với module đã được link vào boot layer, loader tìm provider theo quan hệ module và service visibility tương ứng.
+This snippet assumes a class importing `java.util.ServiceLoader` and `demo.spi.GreetingService`. For modules linked into the boot layer, the loader finds providers according to module relationships and service visibility.
 
-**Không có `--bind-services`:** link mặc định dựa vào roots và dependencies. Module chỉ đóng vai trò provider nhưng không được root/dependency có thể **không nằm trong image**, nên `ServiceLoader` không tìm được provider ấy.
+**Without `--bind-services`:** default linking follows roots and dependencies. A module acting solely as a provider that is neither rooted nor required may **be omitted from the image**, leaving `ServiceLoader` unable to find it.
 
-**Có `--bind-services`:** `jlink` bổ sung service provider modules và dependency cần thiết từ module path, tùy graph/module visibility. Điều này hữu ích cho các provider của ứng dụng và cả provider chuẩn JDK (ví dụ provider cho công cụ, xử lý locale/crypto/encoding tùy hệ thống). Cũng vì vậy, nó **không có nghĩa “chỉ bind đúng provider tôi đang nghĩ tới”**: image có thể chứa **nhiều module hơn dự kiến**.
+**With `--bind-services`:** `jlink` adds service provider modules and their needed dependencies from the module path, subject to graph/module visibility. This covers both application providers and standard JDK providers (e.g., providers for tools, locale/crypto/encoding depending on the system). For that very reason, it **does not mean "bind only the exact provider I am thinking of"**: the image may end up containing **more modules than expected**.
 
-### 4.1. Khi nào nên bật service binding?
+### 4.1. When Should You Enable Service Binding?
 
-Bật khi:
+Enable it when:
 
-- Host sử dụng `ServiceLoader` để phát hiện plugin/provider mà module provider chưa là dependency tĩnh/root.
-- Ảnh JDK tùy biến cần service provider của JDK cho tác vụ cụ thể.
-- Bạn đã kiểm soát module path, danh tính provider và kết quả graph, đồng thời chấp nhận kích thước image tăng.
+- The host uses `ServiceLoader` to discover plugins/providers that are not static dependencies or roots.
+- A custom JDK image needs JDK service providers for specific capabilities.
+- You control the module path, provider identities, and resulting graph, and accept the larger image size.
 
-Không nên bật bừa:
+Do not enable it indiscriminately when:
 
-- Khi module path còn chứa provider thử nghiệm, provider không tin cậy hoặc không muốn phát hành.
-- Khi yêu cầu runtime image tối giản cực kỳ chặt và provider chỉ cần một vài implementation cố định.
-- Khi kiến trúc chủ ý **nạp plugin ngoài image lúc runtime**: `--bind-services` chạy **lúc build image**, không thay cho cơ chế nạp plugin/layer mới sau khi JVM đã chạy.
+- The module path contains experimental, untrusted, or unreleased providers.
+- Strict runtime image minimization is required and only a few fixed provider implementations are needed.
+- Your architecture intentionally **loads plugins outside the image at runtime**: `--bind-services` runs **at image build time**, not as a replacement for loading new plugins/layers after the JVM starts.
 
-Có hai lựa chọn hợp lệ khi provider bắt buộc:
+There are two valid options when providers are required:
 
-1. **Root provider rõ ràng** trong `--add-modules` (dễ cố định tập module nhưng cần quản lý danh sách).
-2. **Dùng `--bind-services`** để resolver tự bổ sung provider từ module path (linh hoạt nhưng phải audit output graph và phạm vi provider).
+1. **Explicit provider roots** in `--add-modules` (easy to lock down the exact module set, though you maintain the list).
+2. **Using `--bind-services`** so the resolver pulls providers from the module path (flexible, though you must audit the output graph and provider scope).
 
-Dù chọn cách nào, **service binding không quyết định provider nào sẽ được ưu tiên khi nhiều implementation cùng khả dụng**. Ứng dụng phải định nghĩa policy chọn provider theo ID/version/priority/khả năng, không xem thứ tự `ServiceLoader` là hợp đồng nghiệp vụ xuyên môi trường.
+Either way, **service binding does not decide which provider takes precedence when multiple implementations are available**. The application must define a selection policy by ID/version/priority/capability rather than treating `ServiceLoader` order as a cross-environment business contract.
 
-## 5. Ví dụ Java 17 chạy được: image có compiler và service provider
+## 5. Runnable Java 17 Example: Image with Compiler and Service Provider
 
-Ví dụ dựng ba **explicit modules** rồi tạo **hai image**:
+This example builds three **explicit modules** and creates **two images**:
 
-- Image A: có `demo.host` và `jdk.compiler`, **không bật service binding**, không yêu cầu `jdk.jshell`.
-- Image B: có `demo.host`, `jdk.compiler`, `jdk.jshell`, **bật `--bind-services`**.
-- Cả hai dùng cùng ba modular JAR trên module path, gồm cả `demo.provider.jar`, để chứng minh: **có JAR ở module path không đồng nghĩa provider được link vào image**.
-- Host dùng `ToolProvider.getSystemJavaCompiler()` và `ServiceLoader<GreetingService>`, rồi kiểm tra module hiện diện ở boot layer.
+- Image A: includes `demo.host` and `jdk.compiler`, **without service binding**, and without requesting `jdk.jshell`.
+- Image B: includes `demo.host`, `jdk.compiler`, and `jdk.jshell`, **with `--bind-services` enabled**.
+- Both use the same three modular JARs on the module path, including `demo.provider.jar`, proving: **having a JAR on the module path does not mean the provider gets linked into the image**.
+- The host calls `ToolProvider.getSystemJavaCompiler()` and `ServiceLoader<GreetingService>`, and checks module presence in the boot layer.
 
-### 5.1. Cấu trúc mã nguồn
+### 5.1. Source Structure
 
 ```text
 project/
@@ -207,7 +207,7 @@ project/
       demo/provider/HelloProvider.java
 ```
 
-Tệp `src/demo.spi/module-info.java`:
+File `src/demo.spi/module-info.java`:
 
 ```java
 module demo.spi {
@@ -215,7 +215,7 @@ module demo.spi {
 }
 ```
 
-Tệp `src/demo.spi/demo/spi/GreetingService.java`:
+File `src/demo.spi/demo/spi/GreetingService.java`:
 
 ```java
 package demo.spi;
@@ -225,7 +225,7 @@ public interface GreetingService {
 }
 ```
 
-Tệp `src/demo.host/module-info.java`:
+File `src/demo.host/module-info.java`:
 
 ```java
 module demo.host {
@@ -235,7 +235,7 @@ module demo.host {
 }
 ```
 
-Tệp `src/demo.host/demo/host/Main.java`:
+File `src/demo.host/demo/host/Main.java`:
 
 ```java
 package demo.host;
@@ -264,7 +264,7 @@ public final class Main {
 }
 ```
 
-Tệp `src/demo.provider/module-info.java`:
+File `src/demo.provider/module-info.java`:
 
 ```java
 module demo.provider {
@@ -274,7 +274,7 @@ module demo.provider {
 }
 ```
 
-Tệp `src/demo.provider/demo/provider/HelloProvider.java`:
+File `src/demo.provider/demo/provider/HelloProvider.java`:
 
 ```java
 package demo.provider;
@@ -289,28 +289,28 @@ public final class HelloProvider implements GreetingService {
 }
 ```
 
-**Vì sao tách ba module?** `demo.spi` giữ contract chung, `demo.host` là consumer và `demo.provider` là implementation không có `requires` ngược từ host. Nếu host khai báo `requires demo.provider;`, ví dụ sẽ không còn kiểm chứng đúng ý nghĩa của service binding.
+**Why split into three modules?** `demo.spi` holds the shared contract, `demo.host` is the consumer, and `demo.provider` is an implementation with no reverse `requires` from the host. If the host declared `requires demo.provider;`, the example would no longer properly demonstrate service binding.
 
-`ServiceLoader.load(GreetingService.class).findFirst()` ở đây chỉ dùng để in **một provider duy nhất của demo**. Trong ứng dụng có nhiều provider, không chọn bằng `findFirst()` nếu chưa có chính sách thứ tự.
+`ServiceLoader.load(GreetingService.class).findFirst()` is used here only to print **the demo's single provider**. In applications with multiple providers, never pick with `findFirst()` without an ordering policy.
 
-### 5.2. Biên dịch thành các explicit modules
+### 5.2. Compiling into Explicit Modules
 
-Từ thư mục `project`, trên JDK 17 trở lên:
+From the `project` directory, on JDK 17 or newer:
 
 ```bash
 javac --release 17 --module-source-path src -d out \
       -m demo.host,demo.provider
 ```
 
-Đây là lệnh Linux/macOS; trên PowerShell có thể viết **một dòng**:
+That is a Linux/macOS command; in PowerShell, write it on **one line**:
 
 ```powershell
 javac --release 17 --module-source-path src -d out -m demo.host,demo.provider
 ```
 
-`javac` biên dịch `demo.spi` là module phụ thuộc, nên thư mục `out` chứa cả ba module.
+`javac` compiles `demo.spi` as a required dependency, so `out` contains all three modules.
 
-Đóng gói thành modular JAR (lệnh `jar` chạy từng dòng trên mọi hệ điều hành):
+Package into modular JARs (`jar` commands run line by line on any OS):
 
 ```bash
 mkdir -p mlib
@@ -319,17 +319,17 @@ jar --create --file mlib/demo.host.jar -C out/demo.host .
 jar --create --file mlib/demo.provider.jar -C out/demo.provider .
 ```
 
-Trên Windows PowerShell, tạo thư mục bằng:
+On Windows PowerShell, create the directory with:
 
 ```powershell
 New-Item -ItemType Directory -Force mlib | Out-Null
 ```
 
-Sau đó dùng ba lệnh `jar --create ...` phía trên. Bước này rất quan trọng: `jlink` làm việc với **explicit module descriptors** trong các modular JAR. Không dựa vào JAR không có `module-info.class` chỉ được suy ra automatic module để mong linker hoạt động.
+Then run the three `jar --create ...` commands above. This step is critical: `jlink` operates on **explicit module descriptors** inside modular JARs. Do not expect the linker to work with plain JARs lacking `module-info.class` that only infer automatic module names.
 
-### 5.3. Tạo hai image trên Linux/macOS
+### 5.3. Building Both Images on Linux/macOS
 
-Với `JAVA_HOME` trỏ đến thư mục **JDK đầy đủ** chứa `jmods`:
+With `JAVA_HOME` pointing to a **full JDK** containing `jmods`:
 
 ```bash
 jlink --module-path "$JAVA_HOME/jmods:mlib" \
@@ -347,9 +347,9 @@ jlink --module-path "$JAVA_HOME/jmods:mlib" \
 ./img-bound/bin/java -m demo.host/demo.host.Main
 ```
 
-### 5.4. Tạo hai image trên Windows PowerShell
+### 5.4. Building Both Images on Windows PowerShell
 
-Thư mục `jmods` nằm trong JDK, các modular JAR ở `mlib`. Khác với Unix, Windows dùng dấu **`;`** để phân tách module path:
+The `jmods` directory lives inside the JDK, and modular JARs live in `mlib`. Unlike Unix, Windows uses **`;`** as the module path separator:
 
 ```powershell
 $modulePath = "$env:JAVA_HOME\jmods;mlib"
@@ -362,11 +362,11 @@ jlink --module-path $modulePath --add-modules demo.host,jdk.compiler,jdk.jshell 
 .\img-bound\bin\java.exe -m demo.host/demo.host.Main
 ```
 
-**Yêu cầu chạy:** không phải chỉ chạy `java` từ PATH, mà phải dùng chính executable `bin/java` **nằm trong image**. Nếu không, bạn có thể vô tình kiểm thử bằng full JDK thay vì custom runtime và không phát hiện module đã bị bỏ.
+**Execution requirement:** do not merely run `java` from PATH—invoke the exact `bin/java` executable **inside the image**. Otherwise you may accidentally test against the full JDK instead of your custom runtime and fail to notice omitted modules.
 
-### 5.5. Kết quả chính xác đã kiểm tra
+### 5.5. Exact Verified Output
 
-Image A **không** có service binding:
+Image A **without** service binding:
 
 ```text
 service=none
@@ -375,7 +375,7 @@ jdk.compiler=true
 jdk.jshell=false
 ```
 
-Image B **có** service binding và JShell module:
+Image B **with** service binding and the JShell module:
 
 ```text
 service=hello-provider
@@ -384,91 +384,91 @@ jdk.compiler=true
 jdk.jshell=true
 ```
 
-Các kết quả được kiểm tra với JDK 24, trong đó Java source được biên dịch bằng `--release 17`. Cùng mã Java và cùng tính năng `jlink`/JPMS được hỗ trợ trên JDK 17+, nhưng tên/phiên bản các module nền tảng và chính sách các runtime khác cần được xác nhận theo toolchain thực tế.
+These outputs were verified on JDK 24 with Java sources compiled via `--release 17`. The same Java code and `jlink`/JPMS features are supported on JDK 17+, though exact base module names/versions and other runtime policies should be verified against your actual toolchain.
 
-**Phân tích kết quả:**
+**Result analysis:**
 
-1. `service=none` của image A: `demo.provider.jar` hiện diện ở **module path lúc link**, nhưng `demo.provider` không được root hay kéo vào qua `requires`, nên **không tồn tại trong image A**.
-2. `service=hello-provider` của image B: `--bind-services` đưa provider module vào graph vì consumer có `uses demo.spi.GreetingService;` và provider có `provides ... with ...;`.
-3. `compiler=true` ở cả hai: `jdk.compiler` đã được chọn làm root tool module, nên `ToolProvider.getSystemJavaCompiler()` tìm được implementation.
-4. `jdk.compiler=true`: kiểm tra runtime module presence, không chỉ việc Java source host có thể import `javax.tools`.
-5. `jdk.jshell=false/true`: minh họa một **tool module không nằm trong dependency graph tĩnh của host** sẽ không tự xuất hiện trừ khi có lý do được đưa vào graph.
+1. `service=none` in image A: `demo.provider.jar` was present on the **link-time module path**, yet `demo.provider` was neither rooted nor pulled via `requires`, so it **does not exist in image A**.
+2. `service=hello-provider` in image B: `--bind-services` pulled the provider module into the graph because the consumer has `uses demo.spi.GreetingService;` and the provider has `provides ... with ...;`.
+3. `compiler=true` in both: `jdk.compiler` was selected as a root tool module, so `ToolProvider.getSystemJavaCompiler()` finds an implementation.
+4. `jdk.compiler=true`: confirms runtime module presence, not merely that host Java sources can import `javax.tools`.
+5. `jdk.jshell=false/true`: illustrates that a **tool module outside the host's static dependency graph** will not appear unless explicitly included in the graph.
 
-Có thể kiểm tra những module thực sự đóng trong image B:
+You can inspect which modules were actually bundled into image B:
 
 ```bash
 ./img-bound/bin/java --list-modules
 ```
 
-Trên Windows:
+On Windows:
 
 ```powershell
 .\img-bound\bin\java.exe --list-modules
 ```
 
-Trong danh sách đã kiểm tra có `demo.host`, `demo.spi`, `demo.provider`, `java.compiler`, `jdk.compiler` và `jdk.jshell`. Danh sách thực tế **còn nhiều module JDK khác** do dependencies và service binding; không nên mong đúng sáu module đó.
+The verified list contains `demo.host`, `demo.spi`, `demo.provider`, `java.compiler`, `jdk.compiler`, and `jdk.jshell`. The actual list includes **many additional JDK modules** due to dependencies and service binding; do not expect only those six modules.
 
-## 6. Kiểm tra công cụ trong image: module tồn tại chưa đủ
+## 6. Verifying Tools Inside the Image: Module Presence Is Not Enough
 
-Khi cần compiler thực sự ở runtime (ví dụ biên dịch đoạn Java do người dùng nhập):
+When a real runtime compiler is needed (e.g., compiling user-entered Java snippets):
 
-1. Dùng `bin/java --list-modules` để xác nhận `jdk.compiler` và `java.compiler` có trong image.
-2. Gọi `ToolProvider.getSystemJavaCompiler()` **bằng Java chạy từ image**; phải khác `null`.
-3. Thử biên dịch một lớp test nhỏ bằng `JavaCompiler` và `DiagnosticCollector` theo hợp đồng thật.
-4. Kiểm tra đường output là writable và `--release` được compiler runtime hỗ trợ.
-5. Nếu ứng dụng cần lệnh `javac`/`jshell` để chạy trực tiếp, kiểm tra các launcher trong `bin` và chạy smoke test.
-6. Đối với JShell API, thử khởi tạo/đánh giá snippet trong môi trường đã cấu hình; chỉ thấy `jdk.jshell` trong `--list-modules` chưa bảo đảm process/remote execution/hệ điều hành phù hợp với mọi ứng dụng.
+1. Run `bin/java --list-modules` to confirm `jdk.compiler` and `java.compiler` are in the image.
+2. Invoke `ToolProvider.getSystemJavaCompiler()` **using Java from inside the image**; it must be non-`null`.
+3. Compile a small test class with `JavaCompiler` and `DiagnosticCollector` matching the real contract.
+4. Verify the output path is writable and `--release` is supported by the runtime compiler.
+5. If the application invokes `javac`/`jshell` executables directly, verify launchers in `bin` and run smoke tests.
+6. For the JShell API, create a session and evaluate a snippet in the configured environment; seeing `jdk.jshell` in `--list-modules` alone does not guarantee process/remote execution/OS policies fit every application.
 
-**Lưu ý về compiler:** `jdk.compiler` là implementation nằm trong image, nhưng một bản Java runtime bị bỏ module này có thể vẫn có API `java.compiler` và biên dịch source host thành công ở build stage. Cần test `ToolProvider` **trên image được phân phối**, không trên JDK developer.
+**Note on the compiler:** `jdk.compiler` supplies the in-image implementation, yet a Java runtime omitting this module may still have the `java.compiler` API and compile host sources fine at build time. Always test `ToolProvider` **on the shipped image**, not on a developer JDK.
 
-**Lưu ý về JShell:** JShell thường cần runtime hỗ trợ thực thi snippet và cơ chế giao tiếp với execution engine; nếu sandbox/container hạn chế process hoặc network nội bộ, chức năng có thể thất bại dù module đã link. Không mở rộng quyền OS chỉ để “sửa JShell” mà không đánh giá threat model.
+**Note on JShell:** JShell typically needs runtime support to execute snippets and communicate with its execution engine; if a sandbox/container restricts processes or local sockets, it can fail even when linked. Never broaden OS privileges solely to "fix JShell" without evaluating the threat model.
 
-### 6.1. Tool module trong runtime khác tool ở build stage
+### 6.1. Runtime Tool Modules vs. Build-Stage Tools
 
-Nếu mục đích duy nhất là **đóng gói app** trước khi phát hành, `jlink`, `jdeps`, `jar` hay `javadoc` nên ở **build environment**. Runtime image production không nhất thiết cần `jdk.jlink`, `jdk.jdeps`, `jdk.jartool` hoặc `jdk.javadoc`.
+If your sole purpose is **packaging the app** before release, `jlink`, `jdeps`, `jar`, and `javadoc` belong in the **build environment**. Production runtime images rarely need `jdk.jlink`, `jdk.jdeps`, `jdk.jartool`, or `jdk.javadoc`.
 
-Nếu sản phẩm thật sự hỗ trợ biên dịch Java hoặc JShell tại runtime, mới đưa các implementation/module cần thiết vào ảnh và chấp nhận chi phí dung lượng/attack surface tương ứng. Chọn **theo tính năng**, không đưa tất cả công cụ vào “cho chắc”.
+Only when the product genuinely supports runtime Java compilation or JShell should you bundle those implementations/modules and accept the resulting footprint/attack surface cost. Select **by feature**, never bundling every tool "just in case".
 
-## 7. jdeps, --suggest-providers và cách kiểm soát graph
+## 7. jdeps, --suggest-providers, and Controlling the Graph
 
-### 7.1. jdeps giúp tìm dependency tĩnh
+### 7.1. Using jdeps to Find Static Dependencies
 
-Trong pipeline build có thể dùng `jdeps` để xem dependency của modular JAR:
+In a build pipeline, use `jdeps` to inspect modular JAR dependencies:
 
 ```bash
 jdeps --module-path mlib --print-module-deps --module demo.host
 ```
 
-Đây là lệnh phân tích chạy bằng **JDK build**, với `mlib` chứa các modular JAR. Tập module được in phản ánh phân tích tĩnh; **không tự bao gồm mọi module được load qua reflection, ServiceLoader, script engine hoặc cấu hình động**. Nó là điểm khởi đầu tốt để chọn roots, không phải cơ chế chứng minh runtime image đã đầy đủ.
+This analysis command runs on the **build JDK**, with `mlib` holding modular JARs. The printed module set reflects static analysis; **it does not automatically capture modules loaded via reflection, `ServiceLoader`, script engines, or dynamic configuration**. It is a good starting point for choosing roots, not proof that a runtime image is complete.
 
-**Quy trình chọn tool modules sau jdeps:**
+**Workflow for choosing tool modules after jdeps:**
 
-- Nếu code dùng `javax.tools.JavaCompiler`, xác nhận `java.compiler` trong dependency graph.
-- Nếu cần compiler implementation lúc chạy, thêm `jdk.compiler` vào root hoặc bảo đảm nó được linker đưa vào, rồi kiểm tra `getSystemJavaCompiler()`.
-- Nếu cần `jdk.jshell.JShell`, xác nhận module tương ứng được thêm vào image.
-- Nếu dùng `ServiceLoader`, kiểm tra `uses`/`provides` và chọn cách thêm provider: explicit roots hay `--bind-services`.
-- Nếu các thư viện sử dụng JDK service provider khác qua reflection, thêm smoke test tương ứng (encoding, locale, TLS/crypto, filesystem provider, logging, management) theo đúng tính năng.
+- If code uses `javax.tools.JavaCompiler`, confirm `java.compiler` is in the dependency graph.
+- If runtime compiler implementation is required, add `jdk.compiler` to roots or ensure the linker includes it, then verify `getSystemJavaCompiler()`.
+- If `jdk.jshell.JShell` is required, confirm the module is added to the image.
+- If using `ServiceLoader`, verify `uses`/`provides` and decide how to include providers: explicit roots or `--bind-services`.
+- If libraries invoke other JDK service providers via reflection, add corresponding smoke tests (encoding, locale, TLS/crypto, filesystem providers, logging, management) per feature.
 
-### 7.2. --suggest-providers để khảo sát provider
+### 7.2. --suggest-providers to Explore Providers
 
-Một số bản `jlink` có tùy chọn `--suggest-providers` để gợi ý những module cung cấp một service trên module path:
+Some `jlink` builds provide `--suggest-providers` to list modules supplying a service on the module path:
 
 ```bash
 jlink --module-path "$JAVA_HOME/jmods:mlib" \
       --suggest-providers demo.spi.GreetingService
 ```
 
-Trên Windows, thay dấu `:` trong module path bằng `;`. Đây là thao tác **khảo sát trong pipeline build**, không tạo image. `--suggest-providers` giúp phát hiện những provider có thể liên kết, nhưng **không thay cho validation/allowlist** về nhà cung cấp nào được phép triển khai. Luôn kiểm tra output thực tế của `--list-modules` sau khi link.
+On Windows, replace `:` in the module path with `;`. This is an **exploratory step in the build pipeline** and does not create an image. `--suggest-providers` helps discover linkable providers, yet **never replaces validation/allowlists** governing which providers are approved for deployment. Always check actual `--list-modules` output after linking.
 
-### 7.3. --launcher để tạo entry point tùy biến
+### 7.3. --launcher for Custom Entry Points
 
-Nếu muốn tạo launcher cho app, `jlink` có tùy chọn:
+To create an application launcher, `jlink` provides:
 
 ```text
---launcher tên=module[/mainClass]
+--launcher name=module[/mainClass]
 ```
 
-Với module của demo:
+For the demo module:
 
 ```bash
 jlink --module-path "$JAVA_HOME/jmods:mlib" \
@@ -477,13 +477,13 @@ jlink --module-path "$JAVA_HOME/jmods:mlib" \
       --output img-launcher
 ```
 
-Sau đó, tùy OS, image có thể chạy bằng `img-launcher/bin/greeting` hoặc `img-launcher\bin\greeting.exe`. Lệnh `--launcher` **tạo điểm vào**, không tự thêm provider module chưa có trong graph: nếu cần provider hãy root hoặc dùng `--bind-services` như trên. Đừng nhầm application launcher do jlink tạo với các executable JDK tool như `javac` hoặc `jshell`.
+Then, depending on OS, run `img-launcher/bin/greeting` or `img-launcher\bin\greeting.exe`. `--launcher` **creates an entry point**; it does not pull unlinked provider modules into the graph—root providers or use `--bind-services` as shown above. Do not confuse jlink-generated app launchers with JDK tool executables like `javac` or `jshell`.
 
-## 8. --bind-services không phải cơ chế hot-plug plugin sau khi image được phát hành
+## 8. --bind-services Is Not a Runtime Hot-Plug Mechanism After Image Release
 
-Đây là ranh giới rất quan trọng trong module **runtime extensibility**.
+This is a critical boundary in **runtime extensibility**.
 
-**Service binding lúc build image:**
+**Service binding at image build time:**
 
 ```text
 Build time
@@ -491,62 +491,62 @@ Build time
       |
       | jlink --bind-services
       v
-  Image chứa các modules đã link
+  Image containing linked modules
       |
-      | JVM khởi động từ image
+      | JVM boots from image
       v
-  ServiceLoader tìm provider thuộc module graph khả dụng
+  ServiceLoader finds providers in the available module graph
 ```
 
-**Plugin được thêm sau khi JVM đã chạy:**
+**Plugins added after the JVM is running:**
 
 ```text
 Runtime
-  image đang chạy, module graph đã được định nghĩa
+  running image, module graph already defined
       |
-      | copy plugin-v2.jar vào thư mục
+      | copy plugin-v2.jar into directory
       v
-  Module mới KHÔNG tự chui vào boot layer
+  New module does NOT enter boot layer automatically
       |
       | ModuleFinder + Configuration.resolve /
       | resolveAndBind + ModuleLayer.defineModules...
       v
-  Layer mới + service loading theo layer/loader đó
+  New layer + service loading scoped to that layer/loader
 ```
 
-`jlink` không theo dõi thư mục plugin. Việc thay/copy JAR sau khi đóng gói **không tái liên kết `lib/modules`** và cũng không tự động đưa provider vào boot layer. Với plugin không liên kết trong image, thiết kế runtime cần phân giải module mới thành `ModuleLayer` con phù hợp hoặc nạp qua cơ chế class loader/ServiceLoader cho classpath plugin theo đúng kiến trúc.
+`jlink` does not watch plugin directories. Copying/replacing a JAR after packaging **does not re-link `lib/modules`** and does not automatically add providers to the boot layer. For plugins not linked into the image, runtime design must resolve new modules into an appropriate child `ModuleLayer` or load classpath plugins via class loaders/`ServiceLoader` per architecture.
 
-Chọn giữa hai cách:
+Choose between the two models:
 
-- **Provider cố định, tin cậy, phát hành cùng sản phẩm**: link vào image; service binding hoặc explicit roots là cách hợp lý, dễ kiểm thử.
-- **Provider được cài/cập nhật linh hoạt sau phát hành**: giữ module path/plugin artifacts ngoài image và có lifecycle manager để discover, resolve, load, validate, switch, close. Không dùng `--bind-services` như một lời hứa hot reload.
+- **Fixed, trusted providers shipped with the product**: link into the image; service binding or explicit roots are clean and easy to test.
+- **Providers installed/updated dynamically after release**: keep module paths/plugin artifacts outside the image and build a lifecycle manager to discover, resolve, load, validate, switch, and close them. Never treat `--bind-services` as a hot-reload promise.
 
-Cần chú ý: **một module trong image là thành phần runtime đã liên kết**, không phải một JAR rời có thể thay trực tiếp theo tên file. Việc “xóa/chỉnh” module từ image sau link không phải quy trình cập nhật plugin.
+Note: **a module inside an image is a linked runtime component**, not a loose JAR swappable by filename. "Deleting/patching" a module inside an image post-link is not a plugin update workflow.
 
-## 9. Đóng gói cho đúng hệ điều hành và đúng phiên bản Java
+## 9. Packaging for the Right OS and Java Version
 
-`jlink` tạo image gắn với **JDK và nền tảng target**: hệ điều hành, kiến trúc, native libraries và launchers. Đừng build image Windows rồi sao chép nguyên sang Linux và mong chạy được.
+`jlink` produces an image tied to the **JDK and target platform**: OS, architecture, native libraries, and launchers. Never build a Windows image, copy it to Linux, and expect it to run.
 
-| Vấn đề | Quy tắc |
+| Concern | Rule |
 |---|---|
-| JDK dùng để link | Cố định vendor, feature version và bản cập nhật trong CI |
-| JDK 17 vs JDK 24 | Dùng **JDK 17 jlink** để tạo Java 17 runtime, **JDK 24 jlink** để tạo Java 24 runtime |
-| `javac --release 17` | Đặt mức class/source/API, **không** quyết định version của runtime image |
-| OS/CPU | Build bằng JDK toolchain cho target hoặc pipeline cross-target đã kiểm chứng |
-| Đường phân tách module path | Linux/macOS: `:`; Windows: `;` |
-| Input module | Ưu tiên explicit modular JAR có `module-info.class`; không tự giả định automatic JAR link được |
-| Artifact integrity | Pin và xác minh JDK/toolchain, module JAR và dependency; lưu hash/checksum |
-| Native dependencies | Cần test `java.library.path`, JNI, TLS/SSL, DNS, timezone, locale nếu ứng dụng dùng |
-| Production deployment | Mang **nguyên image directory** và app resources phù hợp; dùng `image/bin/java` |
-| Runtime flags | Tương thích module graph và JDK đích; `--add-modules` lúc chạy không thể làm xuất hiện một module chưa được link |
+| JDK used for linking | Pin vendor, feature version, and update level in CI |
+| JDK 17 vs JDK 24 | Use **JDK 17 jlink** for a Java 17 runtime, **JDK 24 jlink** for a Java 24 runtime |
+| `javac --release 17` | Sets class/source/API target; **does not** determine the runtime image version |
+| OS/CPU | Build with the target JDK toolchain or a verified cross-target pipeline |
+| Module path separator | Linux/macOS: `:`; Windows: `;` |
+| Input modules | Prefer explicit modular JARs with `module-info.class`; never assume automatic JARs link |
+| Artifact integrity | Pin and verify JDK/toolchain, module JARs, and dependencies; store hashes/checksums |
+| Native dependencies | Test `java.library.path`, JNI, TLS/SSL, DNS, timezone, and locale if used |
+| Production deployment | Ship the **entire image directory** and app resources; invoke `image/bin/java` |
+| Runtime flags | Must match module graph and target JDK; `--add-modules` at runtime cannot conjure an unlinked module |
 
-**Image nhỏ không đồng nghĩa image đúng.** Quy trình QA phải chạy trên image vừa build và kiểm tra mọi tính năng runtime cần thiết, không chỉ `java -version`.
+**A small image does not equal a correct image.** QA must run against the newly built image and verify every required runtime feature, not just `java -version`.
 
-### 9.1. Về module tool có khả năng phát triển/biên dịch runtime
+### 9.1. Regarding Tool Modules for Runtime Development/Compilation
 
-Trước khi bỏ `jdk.compiler` để giảm dung lượng, phải kiểm tra đường chạy thật: ứng dụng có dùng `ToolProvider`, annotation processing, thư viện biên dịch biểu thức/DSL ra Java source, thư viện quản lý script hoặc test runtime nào không? Một số chức năng chỉ kích hoạt ở các cấu hình hiếm và không xuất hiện trong smoke test chính.
+Before dropping `jdk.compiler` to save space, trace real execution paths: does the app use `ToolProvider`, annotation processing, libraries compiling expressions/DSLs to Java source, script engines, or runtime tests? Some features activate only under rare configurations and won't appear in basic smoke tests.
 
-Với module công cụ, nên giữ một bảng đặc tả:
+For tool modules, maintain a specification table:
 
 ```text
 feature: runtime-compile
@@ -562,95 +562,95 @@ requires: service interfaces + selected provider modules
 probe: ServiceLoader returns expected provider ID
 ```
 
-Những dòng trên là **manifest ý tưởng**, không phải file cấu hình do `jlink` tự đọc. Manifest giúp giữ mối liên hệ giữa tính năng, module và smoke test khi thay đổi tập roots.
+These lines are a **conceptual manifest**, not a config file read by `jlink`. Such a manifest keeps features, modules, and smoke tests aligned whenever roots change.
 
-## 10. Dung lượng, attack surface và tính tái lập của image
+## 10. Image Size, Attack Surface, and Reproducibility
 
-`--strip-debug`, `--no-header-files` và `--no-man-pages` thường giúp loại dữ liệu không cần thiết khi phân phối, nhưng **không thay được việc chọn đúng module graph**.
+`--strip-debug`, `--no-header-files`, and `--no-man-pages` help strip unnecessary data for distribution, yet **cannot replace choosing the right module graph**.
 
-`--bind-services` có thể kéo nhiều provider modules. Một lựa chọn cân bằng:
+`--bind-services` can pull in many provider modules. A balanced workflow:
 
-1. Tạo image không bind, kiểm tra những dịch vụ đang thiếu.
-2. Xác định dịch vụ nào cần và provider nào thực sự được phép/được triển khai.
-3. Thử image dùng explicit provider roots, hoặc `--bind-services` với module path đã lọc.
-4. So sánh `--list-modules`, kích thước image, thời gian khởi động, tính năng và rủi ro của mỗi phương án.
-5. Chốt một policy rõ ràng: không đưa provider thử nghiệm, không thêm module không được kiểm soát vào CI module path.
+1. Build an image without binding and inspect which services are missing.
+2. Determine which services are needed and which providers are actually approved/deployed.
+3. Compare an image using explicit provider roots against `--bind-services` with a filtered module path.
+4. Compare `--list-modules`, image size, startup time, features, and risks for each option.
+5. Lock down an explicit policy: never leave experimental providers or uncontrolled modules on the CI module path.
 
-Cần phân biệt **service binding để đóng gói** với **chọn provider để thực thi**. Nếu module path có hai implementation cùng service, chúng có thể đều được link khi bind. Vì vậy mỗi pipeline nên test provider inventory và hành vi lựa chọn ứng dụng sau khi build.
+Distinguish **service binding for packaging** from **selecting a provider at runtime**. If the module path holds two implementations of the same service, binding may link both. Every pipeline should test both the provider inventory and application selection behavior post-build.
 
-Một runtime image cần có bằng chứng provenance để tái dựng: phiên bản JDK, options của `jlink`, module path, modules được liên kết, bản build của modular JAR, checksum và smoke test results. Đây cũng là cơ sở cho rollback và điều tra lỗi môi trường.
+A runtime image needs provenance records for reproduction: JDK version, `jlink` options, module path, linked modules, modular JAR build versions, checksums, and smoke test results. This also underpins rollbacks and environment debugging.
 
-## 11. Những lỗi dễ gặp và cách chẩn đoán
+## 11. Common Pitfalls and Diagnostics
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Typical Root Cause | Fix |
 |---|---|---|
-| `ToolProvider.getSystemJavaCompiler() == null` | Image chỉ chứa `java.compiler` API, thiếu compiler implementation | Root/link `jdk.compiler`, kiểm tra trên image |
-| `ClassNotFoundException` khi gọi JShell | Thiếu `jdk.jshell` hoặc đường module visibility không đúng | Thêm/require module, kiểm tra layer và loader |
-| `ServiceLoader` không thấy provider | Provider JAR chỉ nằm trên build module path, chưa được link | Bật `--bind-services` hoặc explicit root provider |
-| `ServiceConfigurationError` | Descriptor/provider constructor/access/dependency sai | Kiểm tra `module-info.java`, provider implementation và module graph |
-| Có hai provider nhưng chỉ muốn một | `--bind-services` đã thêm nhiều provider | Kiểm soát module path, explicit roots hoặc selector nghiệp vụ |
-| `jlink` báo automatic module | JAR không có explicit module descriptor | Chuyển thành modular JAR hoặc giữ ở classpath ngoài image theo thiết kế |
-| Image link được nhưng plugin sau deploy không thấy | Nhầm build-time binding với runtime hot-plug | Tạo runtime loader/layer và discovery riêng |
-| Java trên máy dev chạy nhưng image không | Đã dùng `java` từ full JDK hoặc thiếu module/provider | Gọi `image/bin/java` và `--list-modules` |
-| Bản build tạo image sai version | Dùng JDK khác kỳ vọng; hiểu nhầm `--release` | Cố định JDK tạo image, kiểm tra `image/bin/java -version` |
-| `bin/jshell` không chạy dù module có | Cấu hình runtime/launchers/OS hoặc dependency không phù hợp | Test executable và JShell API trên image thật |
-| Script JavaScript engine trả `null` | Nhầm `java.scripting` với implementation JavaScript engine | Đóng gói engine ngoài JDK, kiểm tra JSR 223 provider |
-| Lỗi TLS/locale/ZIP trên image nhỏ | Service/native provider chưa có hoặc module bị bỏ | Kiểm tra tính năng, root/bind provider cần thiết |
-| Biên dịch động không ghi class file | Folder output read-only hoặc quyền process hạn chế | Chọn output dir tách biệt, quyền tối thiểu, log diagnostics |
-| Image chạy khác OS | Native binaries của OS/arch build không tương thích | Build image cho target hoặc dùng pipeline target-specific |
+| `ToolProvider.getSystemJavaCompiler() == null` | Image has `java.compiler` API only, missing compiler implementation | Root/link `jdk.compiler` and verify on image |
+| `ClassNotFoundException` invoking JShell | Missing `jdk.jshell` or broken module visibility | Add/require module, verify layer and loader |
+| `ServiceLoader` finds no provider | Provider JAR was on build module path only, never linked | Enable `--bind-services` or explicit provider roots |
+| `ServiceConfigurationError` | Invalid descriptor/provider constructor/access/dependency | Check `module-info.java`, provider implementation, and graph |
+| Two providers present when only one wanted | `--bind-services` pulled multiple providers | Control module path, use explicit roots, or enforce selector |
+| `jlink` rejects automatic module | JAR lacks explicit module descriptor | Convert to modular JAR or keep on external classpath by design |
+| Image links yet post-deploy plugin unseen | Confused build-time binding with runtime hot-plug | Build dedicated runtime loader/layer and discovery |
+| Works on dev machine, fails on image | Ran `java` from full JDK or missed module/provider | Invoke `image/bin/java` and `--list-modules` |
+| Build produces wrong image version | Used unexpected JDK; misunderstood `--release` | Pin image-building JDK, verify `image/bin/java -version` |
+| `bin/jshell` fails despite module presence | Incompatible runtime/launcher/OS config or dependency | Test executable and JShell API on actual image |
+| JavaScript script engine returns `null` | Confused `java.scripting` with JavaScript engine implementation | Bundle external engine, check JSR 223 providers |
+| TLS/locale/ZIP errors on minimal image | Missing service/native provider or omitted module | Verify features, root/bind needed providers |
+| Dynamic compile cannot write class files | Read-only output folder or restricted process permissions | Use isolated output dir, least privilege, log diagnostics |
+| Image fails on another OS | Native binaries built for wrong OS/arch | Build image for target or use target-specific pipeline |
 
-### 11.1. Trình tự chẩn đoán có ít thao tác nhất
+### 11.1. Minimal Diagnostic Sequence
 
 ```text
-1. Xác nhận image/bin/java -version
+1. Verify image/bin/java -version
 2. image/bin/java --list-modules
-3. Kiểm tra modules jdk.compiler/jdk.jshell/provider
-4. Gọi compiler probe / JShell probe / ServiceLoader probe
-5. Đối chiếu root modules, module path và --bind-services
-6. Kiểm tra artifact modular JAR và module-info.java
-7. Chạy test trong cùng OS/container/runtime flags production
+3. Check jdk.compiler/jdk.jshell/provider modules
+4. Run compiler probe / JShell probe / ServiceLoader probe
+5. Compare root modules, module path, and --bind-services
+6. Inspect modular JAR artifacts and module-info.java
+7. Run tests under the same OS/container/runtime flags as production
 ```
 
-Nếu thiếu provider, đừng “chữa cháy” bằng việc thêm `--add-modules ALL-MODULE-PATH` vào production mà không review. Hãy xác định **dịch vụ và module bị thiếu** rồi sửa graph một cách có chủ đích.
+When a provider is missing, do not "hotfix" production by adding `--add-modules ALL-MODULE-PATH` without review. Identify the **missing service and module** and fix the graph intentionally.
 
-## 12. Kiểm thử và triển khai custom runtime image
+## 12. Testing and Deploying Custom Runtime Images
 
-Bộ test nên bao gồm **khả năng khởi động** và **tính năng động** của ứng dụng:
+Tests should cover both **startup capability** and **dynamic features**:
 
-| Trường hợp | Bằng chứng cần có |
+| Test Case | Required Evidence |
 |---|---|
-| Build application modules | `javac --release 17` thành công với explicit `module-info.java` |
-| JAR modular hợp lệ | `jar --describe-module --file mlib/demo.host.jar` đọc được descriptor |
-| Image không bind services | `service=none` trong ví dụ, chứng minh provider không tự vào graph |
-| Image có binding | `service=hello-provider` và `demo.provider` hiện diện |
-| Compiler implementation | `getSystemJavaCompiler()!=null` trong image |
-| JShell module | `jdk.jshell` có trong `--list-modules` và API hoạt động nếu ứng dụng cần |
-| Module path theo OS | Separator chính xác, JDK `jmods` đúng bản build |
-| Không có provider bị cài nhầm | Kiểm tra toàn bộ `--list-modules` và nguồn artifact |
-| Runtime không có full JDK trên máy | App chạy chỉ với image và tài nguyên đã phát hành |
-| Feature runtime compile | Biên dịch source ngắn, thu diagnostic và xác minh class output |
-| Feature plugin động | Thêm provider ngoài image qua loader/layer đúng, không giả định build-time binding |
-| Kiểm thử âm tính | Bỏ module/provider cần thiết phải có lỗi dễ chẩn đoán |
-| Đóng gói đa OS | Chạy trong CI runner/container/VM của từng target |
-| Bản vá JDK | Tạo lại image từ JDK cập nhật, không chỉ thay tệp `java` trong image |
-| Rollback deployment | Có thể khôi phục nguyên image và app artifact tương thích |
+| Build application modules | `javac --release 17` succeeds with explicit `module-info.java` |
+| Valid modular JARs | `jar --describe-module --file mlib/demo.host.jar` reads descriptor |
+| Image without bound services | `service=none` in demo, proving providers do not auto-enter graph |
+| Image with service binding | `service=hello-provider` and `demo.provider` present |
+| Compiler implementation | `getSystemJavaCompiler()!=null` inside image |
+| JShell module | `jdk.jshell` in `--list-modules` and API works if app requires it |
+| OS-specific module path | Correct separator, JDK `jmods` matching build |
+| No unintended providers | Audit full `--list-modules` and artifact origins |
+| Runtime without full JDK installed | App runs using only image and shipped resources |
+| Runtime compile feature | Compiles short source, captures diagnostics, verifies class output |
+| Dynamic plugin feature | Loads external provider via proper loader/layer without assuming build-time binding |
+| Negative testing | Omitting required module/provider yields clear diagnostic errors |
+| Multi-OS packaging | Executed in target CI runners/containers/VMs |
+| JDK patching | Rebuild image from patched JDK rather than swapping only `java` binary |
+| Deployment rollback | Can restore entire image and compatible app artifacts |
 
-**Điểm kiểm tra quan trọng:** một image được link và `java -version` thành công mới chứng minh JVM khởi động. Nó **chưa** chứng minh provider, compiler, JShell hay dynamic plugin manager hoạt động. Các phép thử theo tính năng là tiêu chí nghiệm thu.
+**Key checkpoint:** an image that links and passes `java -version` proves only that the JVM boots. It **does not** prove providers, compiler, JShell, or the dynamic plugin manager work. Feature-level probes are the acceptance criteria.
 
-## 13. Checklist để đưa jlink vào pipeline CI/CD
+## 13. Checklist for Integrating jlink into CI/CD Pipelines
 
-1. **Toolchain cố định:** dùng JDK có `jmods` đúng vendor/feature/update và nền tảng target.
-2. **Phân tích module:** kiểm kê `requires`, `uses`, `provides`, reflection và service providers; dùng `jdeps` như nguồn gợi ý, không xem là danh sách hoàn chỉnh của dynamic loading.
-3. **Modular artifacts:** biên dịch/package các module dự án có descriptor hợp lệ, kiểm tra version và supply chain.
-4. **Root có chủ đích:** chọn module host và các tool modules thật sự cần ở runtime: `jdk.compiler` cho compiler, `jdk.jshell` cho JShell, các module khác theo từng tính năng.
-5. **Service binding:** quyết định bật `--bind-services` hay root provider rõ ràng; kiểm soát module path và inventory provider được link.
-6. **Đóng image:** dùng `jlink --module-path ... --add-modules ... --output ...` với tùy chọn kích thước khi phù hợp.
-7. **Xác minh:** chạy `image/bin/java --list-modules`, compiler probe, ServiceLoader provider probe, JShell probe nếu cần.
-8. **Kiểm tra isolation:** nếu hỗ trợ chạy script/mã người dùng không tin cậy, `jlink` không phải sandbox. Cần quyền OS/container, giới hạn CPU/RAM/network/filesystem và capability gateway.
-9. **Triển khai:** phân phối nguyên image, chạy executable bên trong image, không dựa vào full JDK có sẵn trên server.
-10. **Bảo trì:** cập nhật JDK bằng việc **build lại image**, chạy hồi quy và lưu thông tin provenance; kiểm tra tác động của `--bind-services` lên danh sách module qua từng bản build.
+1. **Pinned toolchain:** use a JDK whose `jmods` match vendor/feature/update and target platform.
+2. **Module inventory:** audit `requires`, `uses`, `provides`, reflection, and service providers; treat `jdeps` as advisory, not an exhaustive list of dynamic loading.
+3. **Modular artifacts:** compile/package project modules with valid descriptors; verify versions and supply chain.
+4. **Intentional roots:** select the host module and only tool modules needed at runtime: `jdk.compiler` for compiler, `jdk.jshell` for JShell, others per feature.
+5. **Service binding:** choose between `--bind-services` and explicit provider roots; control the module path and linked provider inventory.
+6. **Build image:** run `jlink --module-path ... --add-modules ... --output ...` with size flags where appropriate.
+7. **Verify:** run `image/bin/java --list-modules`, compiler probe, `ServiceLoader` provider probe, and JShell probe if needed.
+8. **Check isolation:** if executing untrusted scripts/user code, `jlink` is not a sandbox. Enforce OS/container privileges, CPU/RAM/network/filesystem limits, and capability gateways.
+9. **Deploy:** ship the whole image, invoke the executable inside the image, and never rely on a pre-installed full JDK on the server.
+10. **Maintain:** apply JDK updates by **rebuilding the image**, running regressions, and preserving provenance; audit how `--bind-services` affects module lists across builds.
 
-### Tài liệu Java chính thức
+### Official Java Documentation
 
 - [jlink tool — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jlink.html)
 - [Java Platform Module System — JLS/Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html)
@@ -659,4 +659,4 @@ Bộ test nên bao gồm **khả năng khởi động** và **tính năng độn
 - [ToolProvider — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ToolProvider.html)
 - [JShell — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.jshell/jdk/jshell/JShell.html)
 
-**Kết luận:** tạo custom runtime bằng `jlink` không chỉ chọn `java.base` và module ứng dụng. Với tính năng biên dịch động cần bảo đảm **`jdk.compiler`**, với JShell cần **`jdk.jshell`**, và với kiến trúc service-based phải chọn cách đưa **provider modules** vào image bằng root tường minh hoặc **`--bind-services`**. Kiểm thử bằng chính `image/bin/java`, đối chiếu `--list-modules` và smoke test thực tế giúp image vừa gọn, vừa có đủ chức năng, vừa tránh nhầm lẫn giữa **đóng gói provider lúc build** và **nạp plugin mới lúc runtime**.
+**Conclusion:** building a custom runtime with `jlink` involves more than picking `java.base` and application modules. For dynamic compilation ensure **`jdk.compiler`**, for JShell ensure **`jdk.jshell`**, and for service-based architectures decide whether to bring **provider modules** into the image via explicit roots or **`--bind-services`**. Testing with `image/bin/java` itself, auditing `--list-modules`, and running real smoke tests keep images lean and functional while avoiding confusion between **build-time provider packaging** and **runtime plugin loading**.

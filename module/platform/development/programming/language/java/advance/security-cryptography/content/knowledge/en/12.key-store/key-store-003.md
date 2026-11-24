@@ -1,146 +1,146 @@
-# 12.3 PKCS12, JKS và các loại kho do provider cung cấp
+# 12.3 PKCS12, JKS, and Provider-Provided Store Types
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Mô tả đúng vai trò của **java.security.KeyStore** như một API lưu/truy cập khóa và chứng chỉ do **Security Provider** triển khai, không đồng nhất KeyStore với một tệp có đuôi .jks.
-2. So sánh **PKCS12**, **JKS**, **JCEKS**, **DKS**, **PKCS11**, kho của hệ điều hành (Windows-MY/Windows-ROOT, macOS KeychainStore) và loại kho do provider bên thứ ba cung cấp.
-3. Phân biệt **keystore** chứa khóa định danh của server/client với **truststore** chứa các chứng chỉ/điểm tin cậy cho xác minh đối tác, và hiểu việc này phụ thuộc **vai trò sử dụng**, không chỉ tên đuôi tệp.
-4. Chọn định dạng lưu khóa phù hợp cho ứng dụng Java 17+, hiểu **mặc định PKCS12 của JDK 9+**, các hạn chế tương thích và lý do tránh JKS/JCEKS cho thiết kế mới.
-5. Dùng KeyStore.getInstance(...), load(...), setEntry(...), getEntry(...), store(...), kiểm tra alias/entry/provider, thực hiện ví dụ Java 17+, và nhận biết cách cấu hình KeyStore dựa trên HSM/PKCS11.
-6. Lập kế hoạch **migration JKS → PKCS12**, bảo vệ file/mật khẩu, kiểm tra quyền sử dụng private key, cấu hình TLS, rotation và backup mà không coi “đã có keystore” là đủ để bảo mật.
+1. Accurately describe the role of **java.security.KeyStore** as an API for storing/accessing keys and certificates implemented by a **Security Provider**, without equating KeyStore with a `.jks` file.
+2. Compare **PKCS12**, **JKS**, **JCEKS**, **DKS**, **PKCS11**, OS stores (Windows-MY/Windows-ROOT, macOS KeychainStore), and store types supplied by third-party providers.
+3. Distinguish a **keystore** holding server/client identity keys from a **truststore** holding certificates/trust anchors for peer verification, and understand this depends on **usage role**, not just file extension.
+4. Choose an appropriate key storage format for Java 17+ applications, understand **JDK 9+'s PKCS12 default**, compatibility limitations, and why to avoid JKS/JCEKS in new designs.
+5. Use KeyStore.getInstance(...), load(...), setEntry(...), getEntry(...), store(...), inspect aliases/entries/providers, run a Java 17+ example, and recognize how HSM/PKCS11-backed KeyStores are configured.
+6. Plan a **JKS → PKCS12 migration**, protect files/passwords, verify private key usage permissions, configure TLS, rotation, and backups without assuming "having a keystore" alone guarantees security.
 
-**Ghi nhớ:** **KeyStore là một giao diện trừu tượng; PKCS12/JKS/PKCS11/... là các kiểu triển khai của nó**. Loại kho quyết định cách biểu diễn, bảo vệ và truy cập các entry, còn provider quyết định tính năng thực tế. Không có một quy tắc “mọi KeyStore đều là file”, “mọi loại kho chứa được mọi loại key” hoặc “mọi password đều tương đương với bảo vệ bằng HSM”.
+**Remember:** **KeyStore is an abstract interface; PKCS12/JKS/PKCS11/... are its implementation types**. The store type determines how entries are represented, protected, and accessed, while the provider determines actual capabilities. There is no single rule that "every KeyStore is a file", "every store type holds every key type", or "every password equals HSM protection".
 
-## 1. Bức tranh tổng quan: KeyStore, type, provider và location
+## 1. The Big Picture: KeyStore, Type, Provider, and Location
 
-Java Cryptography Architecture (JCA) dùng mô hình **engine API + provider**. Lập trình viên gọi các phương thức chuẩn của java.security.KeyStore, trong khi triển khai cụ thể là KeyStoreSpi của provider.
+The Java Cryptography Architecture (JCA) uses an **engine API + provider** model. Developers call standard methods on java.security.KeyStore, while the concrete implementation is the provider's KeyStoreSpi.
 
 ~~~text
-Ứng dụng Java 17+
+Java 17+ Application
       |
 java.security.KeyStore (API)
       |
 KeyStore.getInstance("TYPE" [, provider])
       |
 +--------------------------------------------+
-| Provider cung cấp KeyStoreSpi               |
+| Provider supplying KeyStoreSpi             |
 |                                            |
-| SUN        -> PKCS12, JKS, DKS, ...         |
-| SunJCE     -> JCEKS                         |
-| SunPKCS11  -> PKCS11 token / HSM            |
-| SunMSCAPI  -> Windows-MY, Windows-ROOT      |
-| Apple      -> KeychainStore trên macOS      |
-| Third-party-> các keystore type riêng       |
+| SUN        -> PKCS12, JKS, DKS, ...        |
+| SunJCE     -> JCEKS                        |
+| SunPKCS11  -> PKCS11 token / HSM           |
+| SunMSCAPI  -> Windows-MY, Windows-ROOT     |
+| Apple      -> KeychainStore on macOS       |
+| Third-party-> custom keystore types        |
 +--------------------------------------------+
       |
-File .p12/.jks, hệ thống OS, token/HSM,
-domain keystore hoặc backend chuyên biệt
+.p12/.jks file, OS store, token/HSM,
+domain keystore, or specialized backend
 ~~~
 
-**Bốn khái niệm phải phân biệt:**
+**Four concepts to distinguish:**
 
-- **KeyStore API:** tập phương thức dùng chung như load, getEntry, setEntry, aliases, store.
-- **KeyStore type:** định danh kiểu kho, ví dụ "PKCS12", "JKS", "PKCS11"; mô tả triển khai/định dạng hoặc cách truy cập.
-- **Provider:** nhà cung cấp hiện thực KeyStoreSpi và thuật toán liên quan; ví dụ SUN, SunJCE, SunPKCS11, SunMSCAPI, Apple. Tên type và khả năng phụ thuộc provider đã cài/cấu hình.
-- **Backing store:** nơi giữ thông tin: file trên đĩa, Windows certificate store, macOS Keychain, smartcard/HSM hoặc hệ thống chuyên biệt. Không phải type nào cũng có một file tương ứng.
+- **KeyStore API:** common methods such as load, getEntry, setEntry, aliases, store.
+- **KeyStore type:** identifier for the store type, e.g., "PKCS12", "JKS", "PKCS11"; describes the implementation/format or access mechanism.
+- **Provider:** the supplier implementing KeyStoreSpi and related algorithms; e.g., SUN, SunJCE, SunPKCS11, SunMSCAPI, Apple. Available type names and capabilities depend on installed/configured providers.
+- **Backing store:** where information is held: file on disk, Windows certificate store, macOS Keychain, smartcard/HSM, or a specialized system. Not every type corresponds to a file.
 
-Trong JDK, việc chọn provider chịu ảnh hưởng bởi danh sách provider, cấu hình bảo mật và đôi khi chính sách provider ưu tiên. Vì thế **KeyStore.getInstance("PKCS12")** và **KeyStore.getInstance("PKCS12", "SUN")** không hoàn toàn là cùng một yêu cầu. Mặc định, chỉ định type rồi để JCA chọn provider thường linh hoạt hơn; ghim provider chỉ khi thật sự cần tính năng, cơ chế HSM hoặc khả năng tương thích được kiểm định.
+In the JDK, provider selection is influenced by the provider list, security configuration, and sometimes provider preference policies. Thus **KeyStore.getInstance("PKCS12")** and **KeyStore.getInstance("PKCS12", "SUN")** are not entirely identical requests. By default, specifying the type and letting JCA pick the provider is usually more flexible; pin a provider only when genuinely needing specific features, HSM mechanisms, or vetted compatibility.
 
-Ví dụ quan sát loại kho và provider:
+Example inspecting store type and provider:
 
 ~~~java
-// Đoạn minh họa, không phải chương trình độc lập.
+// Illustrative snippet, not a standalone program.
 KeyStore ks = KeyStore.getInstance("PKCS12");
 System.out.println(ks.getType());
 System.out.println(ks.getProvider().getName());
 ~~~
 
-**getType()** trả tên type của instance, **getProvider()** trả provider được chọn; hai giá trị này giúp chẩn đoán chứ không chứng minh file/khóa đã an toàn. Trước khi dùng phương thức đọc entry, instance thường phải được **load(...)**.
+**getType()** returns the instance's type name, and **getProvider()** returns the selected provider; these two values aid diagnostics rather than proving the file/key is secure. Before calling entry-reading methods, the instance must usually be **load(...)**ed.
 
-## 2. KeyStore có những loại entry nào?
+## 2. What Entry Types Can a KeyStore Hold?
 
-**java.security.KeyStore** có các entry chính:
+**java.security.KeyStore** has the primary entry types:
 
-| Entry | Nội dung | Tình huống |
+| Entry | Contents | Scenarios |
 | --- | --- | --- |
-| **KeyStore.PrivateKeyEntry** | PrivateKey và chuỗi certificate chain phù hợp | Khóa TLS của server/client, khóa ký, định danh mTLS |
-| **KeyStore.SecretKeyEntry** | SecretKey đối xứng | AES/HMAC key được lưu theo chính sách provider hỗ trợ |
-| **KeyStore.TrustedCertificateEntry** | Chứng chỉ được xem là trust anchor hoặc điểm tin cậy theo cấu hình | CA nội bộ, chứng chỉ CA tin cậy cho TLS |
-| **Provider-specific entries** | Có thể có tính năng hoặc hạn chế riêng | Key handle, token/HSM/OS store; không giả định giống file store |
+| **KeyStore.PrivateKeyEntry** | PrivateKey and matching certificate chain | Server/client TLS keys, signing keys, mTLS identity |
+| **KeyStore.SecretKeyEntry** | Symmetric SecretKey | AES/HMAC keys stored per supporting provider policy |
+| **KeyStore.TrustedCertificateEntry** | Certificate treated as a trust anchor or configured trust point | Internal CAs, trusted CA certificates for TLS |
+| **Provider-specific entries** | May have specific features or restrictions | Key handles, token/HSM/OS stores; do not assume identical to file stores |
 
-Ví dụ, một kho PKCS12 cho HTTPS server có thể chứa **PrivateKeyEntry** gồm private key và certificate chain. Một truststore để kiểm tra chứng chỉ server có thể chứa các **TrustedCertificateEntry**. Tuy nhiên cả hai vẫn có thể dùng cùng **format PKCS12**: thuật ngữ keystore/truststore chủ yếu nói về **vai trò ứng dụng**.
+For example, a PKCS12 store for an HTTPS server may contain a **PrivateKeyEntry** consisting of a private key and certificate chain. A truststore for verifying server certificates may contain **TrustedCertificateEntry** items. Yet both can use the same **PKCS12 format**: the terms keystore and truststore primarily describe **application roles**.
 
-Các phương thức thường dùng:
+Commonly used methods:
 
-- **aliases():** lấy danh sách tên entry (Enumeration).
-- **containsAlias(alias):** alias tồn tại hay không.
-- **entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class):** kiểm tra lớp entry.
-- **isKeyEntry(alias):** alias chứa key entry, không nhất thiết là private key.
-- **isCertificateEntry(alias):** alias là một trusted certificate entry theo API; không đồng nghĩa mọi certificate trong chain đều là entry độc lập.
-- **getEntry(alias, ProtectionParameter):** truy cập entry với cơ chế bảo vệ như PasswordProtection.
-- **setEntry(alias, Entry, ProtectionParameter):** thêm/sửa entry nếu provider cho phép.
-- **getCertificateChain(alias), getCertificate(alias):** truy cập chứng chỉ theo khả năng của loại entry.
+- **aliases():** retrieves entry names (Enumeration).
+- **containsAlias(alias):** checks whether an alias exists.
+- **entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class):** checks the entry class.
+- **isKeyEntry(alias):** whether the alias holds a key entry, not necessarily a private key.
+- **isCertificateEntry(alias):** whether the alias is a trusted certificate entry per the API; does not mean every certificate in a chain is a standalone entry.
+- **getEntry(alias, ProtectionParameter):** accesses an entry with a protection mechanism such as PasswordProtection.
+- **setEntry(alias, Entry, ProtectionParameter):** adds/updates an entry if the provider permits.
+- **getCertificateChain(alias), getCertificate(alias):** accesses certificates per the entry type's capabilities.
 
-**Alias không phải khóa mật mã**. Alias là tên để tra cứu một entry. Provider có thể áp dụng quy tắc phân biệt hoặc chuẩn hóa chữ hoa/thường khác nhau. Khi tích hợp nhiều provider, không nên tạo các alias chỉ khác nhau ở chữ hoa/thường rồi kỳ vọng chúng luôn tách biệt.
+**An alias is not a cryptographic key**. An alias is a name used to look up an entry. Providers may apply different case-sensitivity or normalization rules. When integrating multiple providers, avoid creating aliases differing only by case and expecting them to always stay distinct.
 
-### 2.1 Private key và certificate chain
+### 2.1 Private Key and Certificate Chain
 
-Một **PrivateKeyEntry** dùng cho TLS cần private key khớp với public key trong certificate chain tương ứng. KeyStore lưu trữ không thay thế việc:
+A **PrivateKeyEntry** used for TLS requires a private key matching the public key in the corresponding certificate chain. Storing it in a KeyStore does not replace the need for:
 
-- Có chứng chỉ đúng tên máy chủ, mục đích (EKU/key usage), thời hạn;
-- Có chuỗi chứng chỉ đầy đủ theo yêu cầu triển khai;
-- Private key có thể thực hiện ký/xác thực trong provider/HSM;
-- TLS engine được cấu hình **KeyManagerFactory** và **TrustManagerFactory** phù hợp;
-- Chính sách trust, hostname verification, thời gian và trạng thái thu hồi chứng chỉ được kiểm tra.
+- Having a certificate with the right hostname, purpose (EKU/key usage), and validity period;
+- Having a complete certificate chain per deployment requirements;
+- Ensuring the private key can perform signing/authentication in the provider/HSM;
+- Configuring the TLS engine with appropriate **KeyManagerFactory** and **TrustManagerFactory**;
+- Checking trust policies, hostname verification, time validity, and certificate revocation status.
 
-Không đồng nhất “file chứa certificate” với “file chứa private key”. **TrustedCertificateEntry không có private key**.
+Never equate "a file containing a certificate" with "a file containing a private key". **TrustedCertificateEntry contains no private key**.
 
-### 2.2 Secret key và khả năng hỗ trợ type
+### 2.2 Secret Keys and Type Support
 
-Không phải provider/KeyStore type nào cũng hỗ trợ lưu **SecretKeyEntry**. Trên JDK Sun điển hình, PKCS12 và JCEKS hỗ trợ entry secret key, còn JKS truyền thống **không lưu SecretKeyEntry**.
+Not every provider/KeyStore type supports storing a **SecretKeyEntry**. On typical Sun JDKs, PKCS12 and JCEKS support secret key entries, whereas traditional JKS **does not store SecretKeyEntry**.
 
-Khi một ứng dụng từ JKS chuyển sang PKCS12, khả năng hỗ trợ SecretKeyEntry là một điểm khác biệt hữu ích. Tuy nhiên **PKCS12 secret key bag do JDK tạo không đảm bảo tương thích hoàn toàn với mọi công cụ ngoại ngữ**, dù PKCS12 là format chuẩn. Mỗi loại entry, thuật toán bảo vệ, mật khẩu và cách encode đều phải được kiểm tra với ứng dụng đối tác.
+When an application migrates from JKS to PKCS12, support for SecretKeyEntry is a useful difference. However, **PKCS12 secret key bags created by the JDK are not guaranteed to be 100% interoperable with every non-Java tool**, even though PKCS12 is a standard format. Each entry type, protection algorithm, password, and encoding must be tested with peer applications.
 
-Với HSM, một số secret key **không cho phép xuất raw bytes**. Đừng coi việc getEncoded() trả null là lỗi cần “vượt rào”; đó có thể là thuộc tính bảo vệ được thiết kế.
+With HSMs, some secret keys **do not allow exporting raw bytes**. Never treat `getEncoded()` returning null as a bug to "work around"; it can be an intentional protection property.
 
-## 3. PKCS12: định dạng nên cân nhắc đầu tiên cho file keystore mới
+## 3. PKCS12: The First Format to Consider for New File Keystores
 
-**PKCS12 (PKCS #12, thường có đuôi .p12 hoặc .pfx)** là định dạng được chuẩn hóa để trao đổi/lưu các đối tượng như private key và chứng chỉ cùng thông tin liên quan. Nó có tính liên thông tốt hơn JKS với nhiều hệ thống khác, đặc biệt khi trao đổi **private key + certificate chain**.
+**PKCS12 (PKCS #12, typically `.p12` or `.pfx`)** is a standardized format for exchanging/storing objects such as private keys and certificates along with related metadata. It offers better interoperability with external systems than JKS, especially when exchanging **private key + certificate chain**.
 
-JDK 9 trở lên dùng **PKCS12 làm default keystore type** trong cấu hình phân phối tiêu chuẩn. Với Java 17, kết quả thường gặp:
+JDK 9 and later use **PKCS12 as the default keystore type** in standard distribution configurations. On Java 17, the typical result is:
 
 ~~~java
-String type = KeyStore.getDefaultType();  // Thường là "pkcs12".
+String type = KeyStore.getDefaultType();  // Usually "pkcs12".
 ~~~
 
-Tuy nhiên kết quả là **giá trị cấu hình bảo mật keystore.type** trong runtime đang chạy, nên có thể đã được administrator, bản JDK hoặc môi trường triển khai thay đổi. Không hardcode rằng mọi Java process trên thế giới đều có cùng default.
+However, the result is the **keystore.type security property** value in the running runtime, so it may have been modified by an administrator, JDK build, or deployment environment. Do not hardcode an assumption that every Java process worldwide shares the same default.
 
-Ưu điểm thực tế của PKCS12:
+Practical advantages of PKCS12:
 
-1. Phù hợp nhiều sản phẩm, công cụ và runtime ngoài Java khi sử dụng thuật toán/định dạng tương thích.
-2. Là lựa chọn mặc định hiện đại của JDK cho file-based keystore.
-3. Có thể lưu private keys, certificate chains và các loại entry khác khi provider hỗ trợ.
-4. Hỗ trợ cơ chế bảo vệ bằng mật khẩu và các thuật toán PBE/MAC tùy triển khai/provider.
-5. Có thể dùng với **keytool**, JCA, TLS KeyManagerFactory và các công cụ thao tác PKCS12 phù hợp.
+1. Works well across many products, tools, and non-Java runtimes when compatible algorithms/formats are used.
+2. Serves as the modern JDK default for file-based keystores.
+3. Can store private keys, certificate chains, and other entry types when supported by the provider.
+4. Supports password-based protection and PBE/MAC algorithms depending on the implementation/provider.
+5. Works with **keytool**, JCA, TLS KeyManagerFactory, and standard PKCS12 manipulation tools.
 
-**Không suy ra từ chữ “PKCS12” rằng file tự động có bảo vệ tối ưu.** Mức an toàn còn phụ thuộc:
+**Do not infer from the word "PKCS12" that a file automatically has optimal protection.** Actual security also depends on:
 
-- Thuật toán mã hóa key bag/PBE, MAC và tham số của provider;
-- Độ mạnh của mật khẩu, khả năng bị brute-force offline;
-- Quyền truy cập filesystem, backup, CI artifacts, volume và audit;
-- Phiên bản JDK, lựa chọn chế độ tương thích legacy;
-- Việc private key có exportable hay không;
-- Cách ứng dụng lưu password và nơi giải mã key vào bộ nhớ.
+- Key bag/PBE encryption algorithms, MACs, and provider parameters;
+- Password strength and resistance to offline brute-force attacks;
+- Filesystem permissions, backups, CI artifacts, volumes, and auditing;
+- JDK version and whether legacy compatibility modes are chosen;
+- Whether private keys are exportable;
+- How the application stores passwords and where keys are decrypted in memory.
 
-File PKCS12 **không tương đương HSM**: tiến trình có password và file có thể lấy key khi chính sách cho phép, nên key material có thể đi vào bộ nhớ ứng dụng. Nếu cần private key non-exportable và chính sách ký trong phần cứng, dùng HSM/KMS/OS keystore phù hợp.
+A PKCS12 file **is not equivalent to an HSM**: a process holding the password and file can retrieve the key when policy permits, meaning key material can enter application memory. If you need non-exportable private keys and hardware-backed signing policies, use an appropriate HSM/KMS/OS keystore.
 
-### 3.1 Đuôi tệp .p12 / .pfx không phải bằng chứng format
+### 3.1 File Extensions .p12 / .pfx Do Not Prove Format
 
-Tên file là quy ước. Một file tên credentials.p12 có thể không chứa PKCS12 hợp lệ; file tên old.jks đôi khi là PKCS12 vì người vận hành đặt tên sai. Phải biết format thực, kiểm tra bằng công cụ phù hợp, tránh đoán từ extension.
+Filenames are merely conventions. A file named credentials.p12 may not contain valid PKCS12; a file named old.jks is sometimes PKCS12 because an operator misnamed it. You must know the actual format, inspect it with appropriate tools, and avoid guessing from extensions.
 
-Khi muốn giảm sự phụ thuộc vào default và phát hiện lỗi rõ hơn:
+To reduce reliance on defaults and surface errors clearly:
 
 ~~~java
 KeyStore store = KeyStore.getInstance("PKCS12");
@@ -149,186 +149,186 @@ try (InputStream input = Files.newInputStream(path)) {
 }
 ~~~
 
-Đây là đoạn minh họa cần import java.security.KeyStore, java.io.InputStream, java.nio.file.Files/Path và định nghĩa biến path/password; **không phải chương trình độc lập**. Trong thiết kế bảo mật, không tiếp tục nếu tải kho gặp exception hoặc integrity check thất bại.
+This is an illustrative snippet requiring imports for java.security.KeyStore, java.io.InputStream, java.nio.file.Files/Path and definitions for path/password; **not a standalone program**. In secure design, never proceed if loading the store throws an exception or fails integrity verification.
 
-### 3.2 Mật khẩu kho và mật khẩu entry
+### 3.2 Store Password and Entry Password
 
-Ở nhiều file keystore, có:
+In many keystore files, there are:
 
-- **Store password:** bảo vệ/kiểm tra dữ liệu của kho khi load/store.
-- **Key/entry password:** dùng để giải mã private key hoặc secret key entry cụ thể khi getKey/getEntry.
+- **Store password:** protects/verifies the store's data during load/store.
+- **Key/entry password:** used to decrypt a specific private key or secret key entry during getKey/getEntry.
 
-**Không phải mọi type/provider hỗ trợ hai password độc lập**. Với PKCS12 của nhiều provider, hạn chế về entry password và store password có thể làm sự khác biệt so với JKS. Nếu chuyển kho JKS vốn có nhiều key password khác nhau, cần kiểm thử migration, KeyManagerFactory và khả năng unlock entry. Một số bộ công cụ yêu cầu hoặc thực tế dùng cùng password.
+**Not every type/provider supports two independent passwords**. With PKCS12 across many providers, constraints between entry password and store password differ from JKS. When migrating a JKS store that had distinct key passwords, test migration, KeyManagerFactory, and entry unlocking thoroughly. Some toolchains require or practically use the same password.
 
-Không bỏ qua lỗi bằng cách nhập password rỗng, truyền null bừa bãi hoặc thử mọi password từ các nguồn không được phép.
+Never bypass errors by passing empty passwords, arbitrarily passing null, or brute-forcing passwords from unauthorized sources.
 
-## 4. JKS: legacy Java-specific, không nên chọn cho hệ thống mới
+## 4. JKS: Legacy Java-Specific, Avoid for New Systems
 
-**JKS (Java KeyStore)** là định dạng kho file proprietary được Java dùng phổ biến trước JDK 9. Nó hỗ trợ những mẫu entry lâu đời như private key + certificate chain và trusted certificates.
+**JKS (Java KeyStore)** is a proprietary file store format widely used by Java prior to JDK 9. It supports legacy entry patterns such as private key + certificate chain and trusted certificates.
 
-Đặc điểm:
+Characteristics:
 
-- Format **riêng của Java/SUN**, không phải định dạng trao đổi được nhiều thư viện ngoài Java hỗ trợ mặc định.
-- Có cơ chế bảo vệ private key và integrity bằng password theo cách legacy; các cơ chế cũ không phù hợp để coi là lựa chọn hiện đại khi triển khai mới.
-- **Không hỗ trợ SecretKeyEntry** theo JKS truyền thống của JDK SUN.
-- Được giữ lại để tương thích hệ thống, ứng dụng Java cũ và một số truststore hiện hữu.
+- **Java/SUN-proprietary** format, not an interchange format supported by default by most non-Java libraries.
+- Uses legacy password-based protection for private keys and integrity; older mechanisms are unsuitable as a modern choice for new deployments.
+- **Does not support SecretKeyEntry** in traditional JDK SUN JKS.
+- Retained for compatibility with legacy systems, older Java apps, and certain existing truststores.
 
-**Khuyến nghị:** với file keystore mới cho Java 17+, ưu tiên PKCS12 khi đáp ứng nhu cầu. Nếu phải đọc JKS legacy, hãy xác định thật sự loại file, dùng đúng mật khẩu, khóa/chain và lên kế hoạch chuyển đổi thay vì chỉ đổi đuôi file.
+**Recommendation:** for new keystore files on Java 17+, prefer PKCS12 when it meets requirements. If you must read legacy JKS files, verify the actual file type, use proper passwords and keys/chains, and plan a migration rather than merely renaming the file extension.
 
-### 4.1 JKS khác JCEKS
+### 4.1 JKS vs. JCEKS
 
-**JCEKS** là một type Java proprietary khác do **SunJCE** cung cấp. Nó có hỗ trợ secret key entry và cơ chế bảo vệ key khác với JKS. Tuy nhiên các thuật toán bảo vệ legacy của JCEKS không khiến nó trở thành lựa chọn ưu tiên cho hệ thống mới.
+**JCEKS** is another proprietary Java type provided by **SunJCE**. It supports secret key entries and a different key protection mechanism than JKS. However, JCEKS's legacy protection algorithms do not make it a preferred choice for new systems.
 
-| Tiêu chí | JKS | JCEKS |
+| Criterion | JKS | JCEKS |
 | --- | --- | --- |
-| Provider điển hình | SUN | SunJCE |
+| Typical provider | SUN | SunJCE |
 | Format | Proprietary Java | Proprietary Java |
-| Trusted certificate entry | Có | Có |
-| PrivateKeyEntry | Có theo điều kiện provider | Có theo điều kiện provider |
-| SecretKeyEntry | Không trong JKS truyền thống | Có |
-| Liên thông ngoài Java | Hạn chế | Hạn chế |
-| Khuyến nghị cho hệ thống mới | Ưu tiên PKCS12 thay thế | Ưu tiên PKCS12/KMS theo nhu cầu |
-| Rủi ro chính | Cơ chế legacy, dễ phụ thuộc type | Cơ chế PBE legacy và phụ thuộc provider |
+| Trusted certificate entry | Yes | Yes |
+| PrivateKeyEntry | Yes per provider conditions | Yes per provider conditions |
+| SecretKeyEntry | No in traditional JKS | Yes |
+| Non-Java interoperability | Limited | Limited |
+| Recommendation for new systems | Prefer PKCS12 instead | Prefer PKCS12/KMS per needs |
+| Main risk | Legacy mechanisms, type lock-in | Legacy PBE mechanisms and provider lock-in |
 
-**Đừng nhận định “JCEKS tốt hơn PKCS12” chỉ vì JCEKS lưu được AES key.** PKCS12 của JDK hiện đại cũng hỗ trợ nhiều loại entry, và tính bảo vệ thực sự phụ thuộc thuật toán PBE/provider/configuration.
+**Never conclude "JCEKS is better than PKCS12" just because JCEKS stores AES keys.** Modern JDK PKCS12 also supports multiple entry types, and real protection depends on PBE/provider/configuration algorithms.
 
-### 4.2 JKS compatibility mode là bẫy kiểm thử
+### 4.2 JKS Compatibility Mode Is a Testing Trap
 
-Một số phiên bản JDK SUN dùng cơ chế **dual-format compatibility** để nhận diện và đọc cả kho JKS/PKCS12 trong các trường hợp, tùy thuộc tính tương thích và API. Vì thế việc load thành công qua **KeyStore.getInstance("JKS")** không đủ để khẳng định nội dung file thực sự được lưu theo định dạng JKS.
+Some JDK SUN versions employ a **dual-format compatibility** mechanism to detect and load both JKS/PKCS12 stores in certain cases, depending on compatibility settings and APIs. Therefore, succeeding with **KeyStore.getInstance("JKS")** does not prove the file's contents are genuinely stored in JKS format.
 
-Muốn kiểm tra migration, hãy:
+To verify a migration properly:
 
-1. Dùng công cụ và cấu hình báo rõ **keystore type/format thực tế**, không suy từ alias hoặc tên file.
-2. Xác minh **keytool -list** với loại kho mong muốn trong môi trường đã kiểm soát.
-3. Kiểm tra private key/certificate chain bằng TLS hoặc thao tác ký/giải mã đúng chính sách.
-4. Tránh dựa vào tính tự nhận diện format chỉ vì hiện tại một JDK chấp nhận file; các provider khác có thể không chấp nhận.
+1. Use tools and configurations that explicitly report the **actual keystore type/format**, without inferring from aliases or filenames.
+2. Verify **keytool -list** with the expected store type in a controlled environment.
+3. Test the private key/certificate chain via TLS or policy-compliant sign/decrypt operations.
+4. Avoid relying on automatic format detection just because one JDK currently accepts the file; other providers may reject it.
 
-**Chuyển đổi format không phải chỉ đổi tên file.** Phải chạy công cụ nhập/xuất keystore đúng loại và xác nhận kết quả.
+**Format conversion is not just renaming a file.** You must run keystore import/export tools with explicit types and verify the output.
 
-## 5. Các loại kho khác từ JDK/provider
+## 5. Other Store Types from the JDK/Providers
 
-### 5.1 PKCS11: cửa ngõ tới token, smartcard hoặc HSM
+### 5.1 PKCS11: Gateway to Tokens, Smartcards, or HSMs
 
-**PKCS11** trong JCA là KeyStore type liên quan đến PKCS #11 token. Với **SunPKCS11** được cấu hình, ứng dụng có thể truy cập các đối tượng khóa/chứng chỉ trên phần cứng hoặc phần mềm PKCS #11, thông qua provider thay vì một file .p12 thông thường.
+**PKCS11** in JCA is the KeyStore type associated with PKCS #11 tokens. With **SunPKCS11** configured, an application can access key/certificate objects on hardware or software PKCS #11 modules through the provider instead of a regular .p12 file.
 
 ~~~text
 Java KeyStore API
         |
 KeyStore.getInstance("PKCS11")
         |
-SunPKCS11 Provider (đã cấu hình module/library)
+SunPKCS11 Provider (module/library configured)
         |
 PKCS#11 native library
         |
 Token / smartcard / HSM
         |
-Key handle và policy sử dụng khóa
+Key handles and key usage policies
 ~~~
 
-Mẫu code **minh họa, không chạy độc lập nếu chưa cấu hình thiết bị và provider**:
+Code pattern (**illustrative, will not run standalone without device and provider configuration**):
 
 ~~~java
 KeyStore tokenStore = KeyStore.getInstance("PKCS11");
-tokenStore.load(null, pin); // pin là char[] cấp qua kênh an toàn.
+tokenStore.load(null, pin); // pin is a char[] supplied via a secure channel.
 ~~~
 
-Điểm rất quan trọng: **load(null, pin) đối với token KHÔNG có nghĩa “tạo kho trống mới” như với file keystore**. Nó thường mở kho/token theo provider và đăng nhập nếu thiết bị cần PIN. Cùng lời gọi KeyStore.load nhưng semantics của backend khác nhau.
+Crucial point: **load(null, pin) on a token does NOT mean "create a new empty store" as with file keystores**. It typically opens the configured store/token via the provider and logs in if the device requires a PIN. Same KeyStore.load call, different backend semantics.
 
-Một số khóa trên HSM không xuất được raw key bytes; getEncoded() trả null hoặc API không cho export. Việc ứng dụng có thể gọi sign/decrypt bằng key handle không đồng nghĩa có quyền backup private key thành file. Một số thao tác setEntry/store có thể bị hạn chế hoặc không được hỗ trợ.
+Some keys on an HSM cannot export raw key bytes; getEncoded() returns null or the API forbids export. Being able to invoke sign/decrypt via a key handle does not mean having permission to back up the private key to a file. Certain setEntry/store operations may be restricted or unsupported.
 
-Để dùng PKCS11 thực tế cần kiểm tra:
+Practical PKCS11 usage requires verifying:
 
-- Provider **SunPKCS11** được cấu hình đúng native library/token slot;
-- Driver/vendor PKCS#11 hỗ trợ thuật toán và key usage cần dùng;
-- Quy trình PIN, callback, session, số lần thử, khóa token và lifecycle;
-- Quyền của ứng dụng, alias/object label, mapping key handle;
-- Token offline/reconnect, nhiều tiến trình và concurrency;
-- Backup/HA/rotation theo quy trình HSM, không tự tạo file bằng store(...).
+- **SunPKCS11** provider is properly configured with the native library/token slot;
+- PKCS#11 vendor/driver supports the required algorithms and key usages;
+- PIN workflow, callbacks, sessions, retry limits, token lockout, and lifecycle;
+- Application permissions, alias/object labels, key handle mapping;
+- Offline/reconnect token handling, multi-process access, and concurrency;
+- HSM-specific backup/HA/rotation procedures, never trying to write a file via store(...).
 
-**Không hardcode PIN trong source.** Có thể dùng KeyStore.Builder với CallbackHandlerProtection theo thiết kế đăng nhập tương tác hoặc chính sách doanh nghiệp.
+**Never hardcode a PIN in source code.** You can use KeyStore.Builder with CallbackHandlerProtection per interactive login designs or enterprise policy.
 
-### 5.2 Windows-MY và Windows-ROOT: SunMSCAPI
+### 5.2 Windows-MY and Windows-ROOT: SunMSCAPI
 
-Trên Windows với provider **SunMSCAPI**, Java có thể truy cập kho chứng chỉ và private key do Windows quản lý. Các type thường gặp là:
+On Windows with the **SunMSCAPI** provider, Java can access Windows-managed certificate and private key stores. Common types are:
 
-- **Windows-MY** (alias của kho cá nhân current user, với các biến thể current-user/local-machine do provider hỗ trợ).
-- **Windows-ROOT** (kho chứng chỉ root tin cậy, cùng các biến thể tùy cấp quyền).
+- **Windows-MY** (current user personal store alias, with current-user/local-machine variants as supported by the provider).
+- **Windows-ROOT** (trusted root certificate store, with privilege-dependent variants).
 
-Mẫu code **minh họa phụ thuộc Windows/SunMSCAPI**, không portable:
+Code pattern (**illustrative, Windows/SunMSCAPI-dependent**, non-portable):
 
 ~~~java
 KeyStore windowsMy = KeyStore.getInstance("Windows-MY");
 windowsMy.load(null, null);
 ~~~
 
-Khi được hỗ trợ, hệ thống lưu trữ và chính sách bảo mật OS mới là nơi quản lý private key. Điều đó có thể giúp tránh xuất private key sang file ứng dụng, nhưng **không có nghĩa mọi key đều non-exportable hoặc mọi thao tác đều được phép**; điều này do Windows key provider, quyền tài khoản và cấu hình key quyết định.
+When supported, the OS storage system and security policies manage the private key. That can help avoid exporting private keys into application files, yet **it does not mean every key is non-exportable or every operation is allowed**; this is governed by the Windows key provider, account privileges, and key configuration.
 
-Với service, account chạy ứng dụng khác với account của người dùng tương tác, nên **current-user store có thể không chứa certificate/key bạn đang thấy trong giao diện Windows**. Nếu cần local-machine store, kiểm tra type tương ứng và phân quyền thích hợp theo phiên bản JDK/provider.
+For services, the service account differs from an interactive user's account, so the **current-user store may not contain the certificate/key you see in the Windows GUI**. If you need the local-machine store, check the corresponding store type and proper permissions per JDK/provider version.
 
-### 5.3 macOS KeychainStore: Apple provider
+### 5.3 macOS KeychainStore: Apple Provider
 
-JDK có **Apple provider** cho phép truy cập **macOS Keychain** qua KeyStore type **KeychainStore** trên môi trường hỗ trợ.
+The JDK includes an **Apple provider** allowing access to the **macOS Keychain** via the **KeychainStore** KeyStore type on supported environments.
 
 ~~~java
-// Minh họa chỉ khi chạy trên macOS có Apple provider.
+// Illustrative only when running on macOS with the Apple provider.
 KeyStore mac = KeyStore.getInstance("KeychainStore");
 mac.load(null, null);
 ~~~
 
-Không giả định KeychainStore tồn tại trên Windows/Linux hoặc mọi loại entry đều có thể export/store theo cách giống PKCS12. Sự chấp thuận quyền truy cập, tương tác người dùng, code signing, user account và môi trường chạy service có thể ảnh hưởng.
+Never assume KeychainStore exists on Windows/Linux or that every entry type can be exported/stored like PKCS12. Access consent, user prompts, code signing, user accounts, and service runtime contexts can all affect behavior.
 
-### 5.4 DKS: một domain gồm nhiều keystore
+### 5.4 DKS: A Domain Comprising Multiple Keystores
 
-**DKS (Domain KeyStore)** là type do provider SUN cung cấp, dùng để trình bày **nhiều keystore như một logical keystore** theo **DomainLoadStoreParameter** và file/cấu hình domain tương ứng.
+**DKS (Domain KeyStore)** is a type supplied by the SUN provider to present **multiple keystores as one logical keystore** using **DomainLoadStoreParameter** and a corresponding domain configuration/file.
 
-Nó không phải định dạng nhị phân PKCS12 được đổi tên. DKS chủ yếu giải quyết vấn đề **kết hợp/ủy quyền nhiều store** trong một giao diện logical; security của từng keystore thành phần vẫn phụ thuộc type, provider, password và quyền nguồn.
+It is not a renamed PKCS12 binary format. DKS primarily solves **combining/delegating multiple stores** behind one logical interface; the security of each member keystore still depends on its own type, provider, password, and source permissions.
 
-DKS có những quy tắc alias, cấu hình và password riêng. Không dùng KeyStore.getInstance("DKS") rồi gọi load(null, password) như cách khởi tạo kho trống PKCS12 và kỳ vọng đã liên kết nhiều file tự động.
+DKS has its own alias, configuration, and password rules. Never call KeyStore.getInstance("DKS") followed by load(null, password) as if initializing an empty PKCS12 store and expect multiple files to link automatically.
 
-### 5.5 CaseExactJKS, third-party types và KMS
+### 5.5 CaseExactJKS, Third-Party Types, and KMS
 
-**CaseExactJKS** là biến thể JKS của SUN với xử lý alias theo case khác JKS thông thường. Đây là lý do không nên xây quy trình dựa trên việc alias luôn case-sensitive/case-insensitive ở mọi provider.
+**CaseExactJKS** is a SUN JKS variant with case-sensitive alias handling differing from standard JKS. This is why workflows should never depend on aliases being universally case-sensitive or case-insensitive across all providers.
 
-Một provider bên thứ ba như thư viện cryptography/JCA provider độc lập có thể bổ sung type kho riêng (ví dụ BKS/BCFKS khi provider tương ứng thực sự đã được cài và hỗ trợ). **Tên type không có nghĩa Java 17 mặc định hỗ trợ**. Trước khi sử dụng, phải kiểm tra danh sách provider, thuật toán, giấy phép/chính sách bảo mật và khả năng khôi phục.
+A third-party provider such as a standalone cryptography/JCA provider library can add custom store types (e.g., BKS/BCFKS when the corresponding provider is genuinely installed and supported). **A type name does not mean Java 17 supports it by default**. Before adopting one, verify the provider list, algorithms, licensing/security policies, and recovery capabilities.
 
-**Cloud KMS** không tự động là một KeyStore type. Nhiều dịch vụ KMS có API riêng để generate, wrap, encrypt, sign, rotate và audit, không ánh xạ thành KeyStoreSpi trừ khi đã cài adapter/provider tương ứng. Không tự gọi KeyStore.getInstance("KMS") rồi kỳ vọng mọi cloud KMS đều hỗ trợ.
+**Cloud KMS** is not automatically a KeyStore type. Many KMS services provide dedicated APIs to generate, wrap, encrypt, sign, rotate, and audit keys, which do not map to KeyStoreSpi unless a matching adapter/provider is installed. Do not call KeyStore.getInstance("KMS") expecting every cloud KMS to work out of the box.
 
-## 6. Bảng so sánh nhanh
+## 6. Quick Comparison Table
 
-| Loại kho | Backing store điển hình | Đặc tính/ứng dụng | Khả năng liên thông | Điểm cần chú ý |
+| Store type | Typical backing store | Characteristics/Use cases | Interoperability | Points to watch |
 | --- | --- | --- | --- | --- |
-| **PKCS12** | File .p12/.pfx | Private key, cert chain, secret key khi provider hỗ trợ; mặc định JDK 9+ | Khá tốt cho key+cert; chi tiết entry/PBE khác nhau | Password mạnh, provider, thuật toán bảo vệ, backup |
-| **JKS** | File .jks (legacy) | PrivateKeyEntry/trusted cert, hệ thống Java cũ | Hạn chế ngoài Java | Không dùng cho thiết kế mới nếu không cần |
-| **JCEKS** | File .jceks (legacy) | Có secret key entry | Hạn chế | Phụ thuộc Java/provider, thuật toán PBE cũ |
-| **DKS** | Tập keystore cấu hình theo domain | Một logical view từ nhiều store | Phụ thuộc cấu hình Java | Không tự chứa tất cả khóa một cách đơn giản |
-| **PKCS11** | Token/smartcard/HSM qua native driver | Key handle, quyền dùng khóa trong thiết bị | Chuẩn API PKCS #11, phụ thuộc vendor | PIN, slot, policy, session, non-exportable keys |
-| **Windows-MY/ROOT** | Windows certificate stores | Identity/trust theo account/machine | Gắn với OS | Quyền tài khoản, provider và platform |
-| **KeychainStore** | macOS Keychain | Identity/cert/OS keychain | Gắn với macOS | App authorization, keychain login, runtime |
-| **Third-party store** | File/token/backend tùy provider | Định dạng/tính năng chuyên biệt | Phụ thuộc nhà cung cấp | Không tự có trên Java chuẩn, phải kiểm chứng |
+| **PKCS12** | .p12/.pfx file | Private key, cert chain, secret key when supported by provider; JDK 9+ default | Good for key+cert; entry/PBE details vary | Strong password, provider, protection algorithms, backups |
+| **JKS** | .jks file (legacy) | PrivateKeyEntry/trusted cert, older Java systems | Limited outside Java | Avoid for new designs unless required |
+| **JCEKS** | .jceks file (legacy) | Supports secret key entries | Limited | Java/provider lock-in, older PBE algorithms |
+| **DKS** | Domain-configured set of keystores | Single logical view over multiple stores | Depends on Java configuration | Does not trivially self-contain all keys |
+| **PKCS11** | Token/smartcard/HSM via native driver | Key handles, in-device key usage enforcement | Standard PKCS #11 API, vendor-dependent | PIN, slot, policy, sessions, non-exportable keys |
+| **Windows-MY/ROOT** | Windows certificate stores | Account/machine-scoped identity/trust | Tied to OS | Account permissions, provider, and platform |
+| **KeychainStore** | macOS Keychain | Identity/cert/OS keychain | Tied to macOS | App authorization, login keychain, runtime |
+| **Third-party store** | Provider-specific file/token/backend | Specialized formats/features | Vendor-dependent | Not built into standard Java; must be verified |
 
-**Cách chọn thường gặp:**
+**Common selection choices:**
 
-- File keystore mới, Java 17, cần lưu khóa và cert thông dụng: **PKCS12**.
-- Đọc file JKS/JCEKS hiện hữu: giữ khả năng tương thích trong migration nhưng lên kế hoạch chuyển sang **PKCS12** hoặc hệ thống quản lý khóa được phép.
-- Private key cần không rời HSM và sử dụng qua PKCS #11: **PKCS11** với provider đúng.
-- Dùng chứng chỉ hệ điều hành Windows/macOS: **SunMSCAPI/Apple KeychainStore** khi platform và quyền phù hợp.
-- Nhiều kho logic: xem xét **DKS** hoặc cấu trúc ứng dụng có ranh giới quyền rõ ràng.
-- Cloud KMS: dùng API/SDK/provider tích hợp chính thức nếu có, không tự giả định là một KeyStore file.
+- New file keystore, Java 17, standard keys and certs: **PKCS12**.
+- Reading existing JKS/JCEKS files: keep compatibility during migration while planning a move to **PKCS12** or an approved key management system.
+- Private keys that must stay inside an HSM and be used via PKCS #11: **PKCS11** with the right provider.
+- Using Windows/macOS OS certificates: **SunMSCAPI/Apple KeychainStore** when platform and permissions fit.
+- Multiple logical stores: consider **DKS** or application structure with clear permission boundaries.
+- Cloud KMS: use official APIs/SDKs/integrated providers if available; do not assume it is a KeyStore file.
 
-## 7. Java 17+ thực hành: PKCS12, JKS và JCEKS
+## 7. Hands-On Java 17+: PKCS12, JKS, and JCEKS
 
-Ví dụ dưới đây được thiết kế để chạy trong một tiến trình **không cần chứng chỉ tự ký, không cần file ngoài**. Nó:
+The example below is designed to run in a single process **without self-signed certificates or external files**. It:
 
-1. Tạo AES-128 secret key ngẫu nhiên bằng KeyGenerator.
-2. Tạo một **PKCS12 trong bộ nhớ**, ghi **SecretKeyEntry** dưới alias demo-aes.
-3. Serialize PKCS12 ra byte[] qua ByteArrayOutputStream rồi load lại từ ByteArrayInputStream.
-4. Xác nhận entry AES được khôi phục đúng.
-5. Thử lưu SecretKeyEntry vào JKS truyền thống để thấy provider SUN từ chối.
-6. Thử JCEKS hỗ trợ SecretKeyEntry (chỉ nhằm minh họa khác biệt, **không phải lời khuyên triển khai mới bằng JCEKS**).
+1. Generates a random AES-128 secret key using KeyGenerator.
+2. Creates an **in-memory PKCS12**, writing a **SecretKeyEntry** under alias demo-aes.
+3. Serializes the PKCS12 to byte[] via ByteArrayOutputStream and reloads it from ByteArrayInputStream.
+4. Verifies the AES entry is restored accurately.
+5. Attempts to store SecretKeyEntry in traditional JKS to observe the SUN provider rejecting it.
+6. Tests JCEKS supporting SecretKeyEntry (solely to illustrate the difference, **not as a recommendation to adopt JCEKS for new deployments**).
 
-**Mật khẩu "demo-only-password" là dữ liệu minh họa công khai trong mã học tập, tuyệt đối không dùng trong môi trường thật.** Trong hệ thống thực, lấy password/PIN từ secret manager hoặc nguồn cấp quyền an toàn, không commit mật khẩu vào repository.
+**The password "demo-only-password" is public illustrative data in study code; never use it in real environments.** In real systems, fetch passwords/PINs from a secret manager or secure credential provider, and never commit passwords to repositories.
 
-Tệp **KeyStoreTypesDemo.java** (UTF-8):
+File **KeyStoreTypesDemo.java** (UTF-8):
 
 ~~~java
 import java.io.*;
@@ -338,7 +338,7 @@ import javax.crypto.*;
 
 public class KeyStoreTypesDemo {
     public static void main(String[] args) throws Exception {
-        // Chỉ dùng cho ví dụ công khai. Production: secret manager.
+        // For public example only. Production: secret manager.
         char[] password = "demo-only-password".toCharArray();
 
         KeyGenerator generator = KeyGenerator.getInstance("AES");
@@ -346,7 +346,7 @@ public class KeyStoreTypesDemo {
         SecretKey original = generator.generateKey();
 
         KeyStore pkcs12 = KeyStore.getInstance("PKCS12");
-        // Với file store: null InputStream tạo kho rỗng.
+        // For file stores: null InputStream creates an empty store.
         pkcs12.load(null, password);
 
         KeyStore.PasswordProtection protection =
@@ -400,14 +400,14 @@ public class KeyStoreTypesDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng **JDK 17+ có SUN/SunJCE provider hỗ trợ**:
+Compile and run with **JDK 17+ having SUN/SunJCE provider support**:
 
 ~~~bash
 javac -encoding UTF-8 KeyStoreTypesDemo.java
 java KeyStoreTypesDemo
 ~~~
 
-Stdout dự kiến với các provider tiêu chuẩn của Oracle/OpenJDK:
+Expected stdout with standard Oracle/OpenJDK providers:
 
 ~~~text
 PKCS12 alias exists: true
@@ -417,140 +417,140 @@ JKS rejects SecretKeyEntry: true
 JCEKS supports SecretKeyEntry: true
 ~~~
 
-**Giải thích kết quả:**
+**Result explanation:**
 
-- **PKCS12 alias exists: true:** sau serialize/deserialize, alias demo-aes vẫn hiện diện.
-- **PKCS12 AES key restored: true:** original và restored secret key có cùng bytes trong demo phần mềm. Khóa không được in ra.
-- **PKCS12 store has bytes: true:** store(OutputStream, ...) thực sự serialize kho file vào mảng bytes. Với token/HSM, store(...) không thể được suy luận giống file store.
-- **JKS rejects SecretKeyEntry: true:** SUN/JKS truyền thống không có cơ chế lưu SecretKeyEntry như PKCS12/JCEKS.
-- **JCEKS supports SecretKeyEntry: true:** type legacy JCEKS lưu secret key theo provider đã thử; không có nghĩa nó là lựa chọn tốt cho ứng dụng mới.
+- **PKCS12 alias exists: true:** after serialization/deserialization, alias demo-aes remains present.
+- **PKCS12 AES key restored: true:** the original and restored secret keys have identical bytes in the software demo. The key is never printed.
+- **PKCS12 store has bytes: true:** store(OutputStream, ...) actually serializes the file store into a byte array. For tokens/HSMs, store(...) cannot be assumed to behave like a file store.
+- **JKS rejects SecretKeyEntry: true:** traditional SUN/JKS has no mechanism to store SecretKeyEntry like PKCS12/JCEKS.
+- **JCEKS supports SecretKeyEntry: true:** legacy type JCEKS stores secret keys on the tested provider; this does not mean it is a good choice for new applications.
 
-Ví dụ chỉ đánh giá **hành vi của JDK/provider điển hình**. Nếu chạy trên môi trường không có provider/algorithm tương ứng, KeyStore.getInstance hoặc KeyGenerator.getInstance có thể thất bại; đó là yêu cầu kiểm tra compatibility, không phải lý do bỏ xác thực để “vượt qua” lỗi.
+The example only evaluates **typical JDK/provider behavior**. Running in an environment lacking the matching provider/algorithm may cause KeyStore.getInstance or KeyGenerator.getInstance to fail; that signals a compatibility check requirement, not a reason to skip verification to "get past" the error.
 
-**Về bảo mật trong bộ nhớ:** chương trình demo dùng getEncoded() để so sánh nên đã tạo bản sao raw AES bytes. Trong production, tránh export key không cần thiết. Arrays.fill(password, '\0') chỉ xóa mảng char[] này; không đảm bảo xóa mọi bản sao trong JVM/chuỗi literal hoặc vùng native memory. Với JDK, cơ chế cấp password qua char[] thường tốt hơn giữ password trong String lâu dài, nhưng **không mang nghĩa xóa sạch bí mật tuyệt đối**.
+**On in-memory security:** the demo program uses getEncoded() to compare keys, creating copies of raw AES bytes. In production, avoid unnecessary key exports. Arrays.fill(password, '\0') clears only that char[] array; it does not guarantee clearing all copies in the JVM/literal pool or native memory. In the JDK, passing passwords via char[] is generally better than keeping passwords in long-lived Strings, yet **it does not mean absolute erasure of secrets**.
 
-### 7.1 Vì sao ví dụ không tạo PrivateKeyEntry?
+### 7.1 Why Didn't the Example Create a PrivateKeyEntry?
 
-Một **PrivateKeyEntry** đòi private key và certificate chain phù hợp. Việc tạo chứng chỉ self-signed đúng chuẩn bằng Java standard API đơn giản hơn qua **keytool**, không nên ép chương trình crypto minh họa phụ thuộc vào internal API như sun.security.x509. Phần tiếp theo dùng keytool để tạo một file PKCS12 chứa keypair/certificate dành cho **lab**.
+A **PrivateKeyEntry** requires a private key and a matching certificate chain. Creating a standards-compliant self-signed certificate is simpler using **keytool** than forcing an illustrative crypto program to rely on internal APIs like sun.security.x509. The next section uses keytool to create a PKCS12 file with a keypair/certificate for **lab practice**.
 
-### 7.2 Chạy demo bằng một JDK khác thì sao?
+### 7.2 What If Running the Demo on a Different JDK?
 
-Một provider có thể hỗ trợ PKCS12 nhưng không hỗ trợ lưu SecretKeyEntry; hoặc provider khác có chính sách riêng cho password/key protection. Khi triển khai, kiểm tra:
+A provider might support PKCS12 without supporting SecretKeyEntry storage; or another provider might enforce different policies for passwords/key protection. During deployment, verify:
 
-- Provider nào đang được chọn: ks.getProvider().
-- Type có thật sự là PKCS12/JKS/JCEKS theo yêu cầu không.
-- Khả năng xử lý **đúng loại entry** ứng dụng muốn dùng.
-- Có thể store, load, backup, restore và dùng key trên **mọi JDK/provider trong phạm vi hỗ trợ**.
-- Cơ chế PBE/MAC, thuật toán được chính sách cấp phép có tương thích với phần mềm đối tác.
+- Which provider is selected: ks.getProvider().
+- Whether the type is genuinely PKCS12/JKS/JCEKS as required.
+- Support for **the exact entry type** the application needs.
+- Whether store, load, backup, restore, and key operations succeed on **every JDK/provider in the support matrix**.
+- Whether PBE/MAC mechanisms and policy-approved algorithms are compatible with peer software.
 
-Không thay sự kiểm thử bằng nhận xét “type chuẩn nên chắc chắn hoạt động”.
+Never replace testing with an assumption like "it is a standard type so it must work".
 
-## 8. keytool: tạo và kiểm tra kho PKCS12
+## 8. keytool: Creating and Inspecting PKCS12 Stores
 
-**keytool** là công cụ JDK để quản lý khóa và chứng chỉ. Đối với lab, có thể tạo một keypair và chứng chỉ self-signed trong **demo.p12** như sau:
+**keytool** is the JDK utility for managing keys and certificates. For lab practice, you can generate a keypair and self-signed certificate in **demo.p12** as follows:
 
 ~~~bash
 keytool -genkeypair -alias demo-tls -keyalg RSA -keysize 3072 -validity 30 -dname "CN=localhost, OU=Training, O=Example, C=VN" -keystore demo.p12 -storetype PKCS12
 ~~~
 
-Lệnh sẽ hỏi password theo cách tương tác thay vì nhúng vào command line. Khóa và certificate tạo ra chỉ dành cho **thực hành**, không đủ điều kiện thay cho CA-issued certificate khi phục vụ HTTPS công khai. Chứng chỉ self-signed và CN=localhost không tự tạo trust hoặc hostname verification đúng cho môi trường production.
+The command prompts interactively for passwords rather than embedding them on the command line. The generated key and certificate are strictly for **practice**, unsuitable as a substitute for CA-issued certificates serving public HTTPS. A self-signed certificate and CN=localhost do not automatically establish trust or valid hostname verification for production environments.
 
-Kiểm tra các entry:
+Inspect entries:
 
 ~~~bash
 keytool -list -v -keystore demo.p12 -storetype PKCS12
 ~~~
 
-Quan sát **alias, entry type, certificate chain, subject, issuer, validity và fingerprint**. Trước khi đem kho vào TLS server thật, cần có certificate chain đúng danh tính máy chủ và chính sách tin cậy. Không dùng một kết quả keytool -list thành công để suy ra keypair được trusted bởi người dùng khác.
+Inspect **alias, entry type, certificate chain, subject, issuer, validity, and fingerprint**. Before deploying a store to a real TLS server, ensure the certificate chain matches the server identity and trust policy. Never take a successful keytool -list output as proof that the keypair is trusted by other users.
 
-**Không đặt storepass/keypass trực tiếp vào shell command** trong quy trình thật khi có nguy cơ lộ qua history/process list/CI logs. Với CI cần secret injection phù hợp, hạn chế log và ghi quyền truy cập kho.
+**Never place storepass/keypass directly in shell commands** in real workflows where they risk exposure via history/process lists/CI logs. In CI, use proper secret injection, restrict logging, and enforce store access permissions.
 
-### 8.1 Nhận diện type, password và alias
+### 8.1 Identifying Type, Password, and Alias
 
-Khi gặp file key store do nhóm khác cung cấp:
+When handed a keystore file by another team:
 
-1. Không đoán type từ đuôi .jks/.p12.
-2. Hỏi người cấp **format thực tế**, alias, loại entry, algorithm và yêu cầu password.
-3. Chạy keytool -list với -storetype rõ ràng trong môi trường đáng tin.
-4. Nếu cần private key, kiểm tra **PrivateKeyEntry**, không chỉ một TrustedCertificateEntry.
-5. Kiểm tra certificate chain, hạn dùng, key usage và khả năng client/server TLS đọc đúng alias.
-6. Không xuất private key ra text/PEM trừ khi workflow được phép và bảo vệ đúng.
+1. Never guess the type from the .jks/.p12 extension.
+2. Ask the provider of the file for the **actual format**, aliases, entry types, algorithms, and password requirements.
+3. Run keytool -list with an explicit -storetype in a trusted environment.
+4. If a private key is required, verify a **PrivateKeyEntry**, not merely a TrustedCertificateEntry.
+5. Verify certificate chain, expiration, key usage, and whether TLS clients/servers can read the exact alias.
+6. Never export private keys to text/PEM unless an authorized, properly protected workflow requires it.
 
-Lưu ý rằng một số JDK có chế độ tự nhận diện JKS/PKCS12 legacy; vì vậy test cần xác thực **format cuối cùng được ghi ra**, không chỉ việc file được load thành công.
+Note that some JDKs have legacy JKS/PKCS12 auto-detection modes; therefore tests must verify the **actual format written out**, not just that the file loaded successfully.
 
-## 9. Migration JKS/JCEKS → PKCS12
+## 9. Migrating JKS/JCEKS → PKCS12
 
-Migration không phải đổi tên file. Nó là hoạt động có nguy cơ làm mất private key hoặc sai certificate chain nếu làm ẩu.
+Migration is not file renaming. It is an operation that risks losing private keys or breaking certificate chains if done carelessly.
 
-### 9.1 Quy trình đề xuất
+### 9.1 Recommended Procedure
 
-1. **Inventory:** tập hợp nơi dùng kho legacy, type, alias, private key/cert/trust entries, quyền, password, ứng dụng đọc và JDK/provider.
-2. **Backup an toàn:** lưu bản gốc với quyền hạn chế, kiểm tra khả năng restore; không đưa password/keystore lên ticket hoặc repository.
-3. **Đánh giá tương thích:** chuẩn hóa alias, xác định các entry có thể chuyển; đặc biệt JCEKS secret key và private key non-exportable có thể cần quy trình riêng.
-4. **Chọn đích PKCS12:** xác nhận provider, thuật toán PBE/MAC, password và policy của môi trường sẽ dùng.
-5. **Import vào file mới**, không overwrite bản gốc.
-6. **Kiểm tra kết quả:** so alias, entry type, số lượng certificate, chain, fingerprint, key usage; thực hiện signing/TLS handshake hoặc giải mã thử khi nghiệp vụ cho phép.
-7. **Thay cấu hình dịch vụ:** cập nhật keystore path/type/secret reference, xác định thời điểm chuyển đổi và rollback.
-8. **Theo dõi:** lỗi load, password, chain, expired certificate, handshake; chỉ xóa bản sao legacy khi migration đã ổn và chính sách retention cho phép.
+1. **Inventory:** collect all locations using legacy stores, types, aliases, private key/cert/trust entries, permissions, passwords, consuming apps, and JDK/providers.
+2. **Secure backup:** back up originals with restricted permissions and test restoration; never paste passwords/keystores into tickets or repositories.
+3. **Compatibility assessment:** normalize aliases, identify migratable entries; in particular, JCEKS secret keys and non-exportable private keys may need specialized handling.
+4. **Target PKCS12 selection:** confirm provider, PBE/MAC algorithms, passwords, and policies of the target environment.
+5. **Import into a new file**, never overwriting the original.
+6. **Verify results:** compare aliases, entry types, certificate counts, chains, fingerprints, and key usages; execute a test signing/TLS handshake or decryption when policy permits.
+7. **Update service configuration:** update keystore path/type/secret references, define cutover timing and rollback.
+8. **Monitor:** watch for load, password, chain, expired certificate, and handshake errors; remove legacy copies only after migration stabilizes and retention policy allows.
 
-Với kho JKS legacy (ví dụ tên **legacy.jks**), lệnh minh họa:
+For a legacy JKS store (e.g., named **legacy.jks**), illustrative command:
 
 ~~~bash
 keytool -importkeystore -srckeystore legacy.jks -srcstoretype JKS -destkeystore migrated.p12 -deststoretype PKCS12
 ~~~
 
-Lệnh có thể yêu cầu store password và key password; có thể xảy ra cảnh báo hoặc yêu cầu nhập lại theo provider. Kiểm tra file migrated.p12:
+The command may prompt for store passwords and key passwords; warnings or re-entry prompts may occur depending on the provider. Inspect migrated.p12:
 
 ~~~bash
 keytool -list -v -keystore migrated.p12 -storetype PKCS12
 ~~~
 
-Không cho rằng **file import thành công** bảo đảm ứng dụng TLS dùng được. Cần kiểm tra **PrivateKeyEntry**, chain, password, alias cấu hình trong ứng dụng và handshake thật.
+Do not assume a **successful file import** guarantees the TLS application will work. You must verify **PrivateKeyEntry**, chain, passwords, configured aliases in the app, and real handshakes.
 
-### 9.2 Vấn đề về key password và chính sách PKCS12
+### 9.2 Key Password Issues and PKCS12 Policies
 
-Một JKS legacy có thể dùng **mỗi private key một password riêng**. Khi sang PKCS12, provider/tool có thể yêu cầu sử dụng password theo cấu trúc khác, đôi khi cùng store password cho nhiều entry. Điều này có thể làm KeyManagerFactory hoặc code getKey(alias, password) thất bại nếu cấu hình giữ nguyên password cũ.
+A legacy JKS store may use **a separate password for each private key**. When moving to PKCS12, providers/tools may enforce different password structures, sometimes requiring the same store password across entries. This can cause KeyManagerFactory or getKey(alias, password) calls to fail if configurations retain old distinct passwords.
 
-**Không ép về mật khẩu yếu hơn chỉ cho thuận tiện.** Phải điều chỉnh quy trình cấp secret và rollout; đặt password mạnh và kiểm thử các alias riêng biệt.
+**Never downgrade to weaker passwords for convenience.** Adjust secret provisioning and rollout procedures; use strong passwords and test individual aliases.
 
-### 9.3 Với HSM/OS store không được dùng importkeystore như file thông thường
+### 9.3 Do Not Use importkeystore Like a Regular File for HSM/OS Stores
 
-Đối với **non-exportable private key**, có thể **không có khả năng xuất khóa** để chuyển sang PKCS12. Trong tình huống đó, phải:
+For **non-exportable private keys**, there may be **no way to export the key** into PKCS12. In that case, you must:
 
-- Dùng thủ tục backup/migration riêng của HSM hoặc vendor.
-- Cấp lại chứng chỉ cho key trên thiết bị nếu phù hợp.
-- Sinh cặp khóa mới trong thiết bị mới và chạy quy trình rotation/cert enrollment.
-- Tôn trọng quy tắc key usage, audit và quyền người quản trị.
+- Use the HSM or vendor's dedicated backup/migration procedures.
+- Re-issue certificates for the on-device key if appropriate.
+- Generate new key pairs in the new device and run rotation/certificate enrollment workflows.
+- Respect key usage rules, auditing, and administrator permissions.
 
-**Không tự coi private key không export được là sự cố để tìm cách bypass**.
+**Never treat a non-exportable private key as a bug to bypass**.
 
-## 10. KeyStore trong TLS: keystore khác truststore thế nào?
+## 10. KeyStore in TLS: How Keystore Differs from Truststore
 
-Cùng một file PKCS12 có thể được dùng cho nhiều vai trò, nhưng ứng dụng TLS phải gán đúng:
+The same PKCS12 format can serve multiple roles, but the TLS application must assign them properly:
 
 ~~~text
 TLS SERVER                               TLS CLIENT
 
 Server KeyManager                        Client TrustManager
 -> private key + server cert chain       -> CA/trust anchors
--> dùng khi server chứng minh            -> xác minh server cert
-   quyền giữ private key
+-> used when server proves               -> verifies server cert
+   possession of private key
 
-Nếu mTLS:
+If mTLS:
 Client KeyManager                        Server TrustManager
 -> client key + client cert chain        -> CA/trust anchors
--> chứng minh client identity            -> xác minh client cert
+-> proves client identity                -> verifies client cert
 ~~~
 
-Trong Java JSSE:
+In Java JSSE:
 
-- **KeyManagerFactory** lấy khóa định danh và certificate chain từ KeyStore theo quyền/alias.
-- **TrustManagerFactory** xây trust manager từ truststore, phục vụ xác minh chứng chỉ của đối tác.
-- **SSLContext** sử dụng KeyManagers và TrustManagers tương ứng theo giao thức TLS.
+- **KeyManagerFactory** obtains identity keys and certificate chains from a KeyStore according to permissions/aliases.
+- **TrustManagerFactory** builds trust managers from a truststore for verifying peer certificates.
+- **SSLContext** uses the corresponding KeyManagers and TrustManagers for the TLS protocol.
 
-**Đặt chứng chỉ bất kỳ vào truststore có thể mở rộng phạm vi tin cậy nguy hiểm.** Không import root CA không rõ nguồn gốc hoặc tắt certificate/hostname verification vì “TLS bắt tay không chạy”.
+**Putting arbitrary certificates into a truststore can dangerously widen the trust scope.** Never import an unknown root CA or disable certificate/hostname verification just because "the TLS handshake fails".
 
-Các property JSSE thường gặp:
+Common JSSE properties:
 
 ~~~text
 javax.net.ssl.keyStore
@@ -562,241 +562,241 @@ javax.net.ssl.trustStoreType
 javax.net.ssl.trustStorePassword
 ~~~
 
-Đây là danh sách property, không phải đoạn Java/bộ lệnh độc lập. Type chỉ định format/provider dự kiến, không thay đổi nội dung chứng chỉ/khóa. Lưu password qua system properties có thể mang rủi ro lộ trong diagnostics/argument listing; ứng dụng production nên ưu tiên cơ chế cung cấp secret có kiểm soát theo framework và môi trường.
+This is a list of properties, not a standalone Java snippet or command set. Type specifies the expected format/provider without altering certificate/key contents. Passing passwords via system properties carries exposure risks in diagnostics/argument listings; production apps should prefer controlled secret delivery mechanisms suited to the framework and environment.
 
-### 10.1 Truststore mặc định và cacerts
+### 10.1 Default Truststore and cacerts
 
-JDK cung cấp kho trust anchor phổ biến **cacerts**, nhưng **nội dung, format cụ thể, đường dẫn và tập root CA có thể thay đổi theo bản JDK/vendor và cấu hình runtime**. Không mặc định “cacerts luôn là JKS” hoặc “mọi bản Java đều tin cùng CA”.
+The JDK supplies a common trust anchor store **cacerts**, yet **its contents, specific format, path, and root CA set can vary across JDK releases/vendors and runtime configurations**. Never assume "cacerts is always JKS" or "every Java version trusts the exact same CAs".
 
-Dùng công cụ và cấu hình phù hợp để kiểm tra trust anchors khi chẩn đoán lỗi TLS. Không sửa kho hệ thống mặc định trên diện rộng nếu ứng dụng chỉ cần một CA nội bộ; cân nhắc truststore riêng theo dịch vụ để quản trị tin cậy.
+Use appropriate tools and configurations to inspect trust anchors when diagnosing TLS errors. Avoid modifying the system-wide default store if an application only needs one internal CA; consider a per-service truststore to govern trust cleanly.
 
-### 10.2 PKCS12 có tự bảo đảm trust không?
+### 10.2 Does PKCS12 Automatically Guarantee Trust?
 
-Không. Một PKCS12 chứa CA certificate chỉ là kho dữ liệu cho tới khi ứng dụng/trust manager dùng các entry ấy làm trust anchors đúng cách. Một private key và certificate trong PKCS12 cũng không tự chứng minh chứng chỉ thuộc về hostname nào; TLS cần xác minh danh tính và chuỗi chứng chỉ theo quy tắc.
+No. A PKCS12 file holding CA certificates is merely a data store until the application/trust manager properly uses those entries as trust anchors. Likewise, a private key and certificate in PKCS12 do not automatically prove which hostname the certificate belongs to; TLS must validate identity and certificate chains per policy.
 
-Hãy phân biệt **storage**, **key usage**, **certificate validation** và **authorization**.
+Always separate **storage**, **key usage**, **certificate validation**, and **authorization**.
 
-## 11. Phát hiện provider và capability tại runtime
+## 11. Discovering Providers and Capabilities at Runtime
 
-Nếu bạn cần biết những type KeyStore thực sự hiện có trên JVM:
+If you need to know which KeyStore types are actually available on the JVM:
 
 ~~~java
-// Đoạn mã minh họa; cần import java.security.Security.
+// Illustrative code snippet; requires importing java.security.Security.
 java.util.Set<String> types =
         java.security.Security.getAlgorithms("KeyStore");
 System.out.println(types);
 ~~~
 
-Danh sách thay đổi theo provider đã đăng ký. Lệnh này **không chứng minh một HSM đang hoạt động, có token online hay đã cấp quyền sử dụng khóa**.
+The list varies by registered providers. This call **does not prove an HSM is online, a token is inserted, or key usage permissions are granted**.
 
-Bạn cũng có thể lấy provider cụ thể:
+You can also inspect the selected provider:
 
 ~~~java
-// Minh họa, không phải chương trình độc lập.
+// Illustrative, not a standalone program.
 KeyStore ks = KeyStore.getInstance("PKCS12");
 System.out.println(ks.getProvider().getName());
 ~~~
 
-Với việc cần ép provider đặc thù, JCA hỗ trợ các overload:
+When needing to enforce a specific provider, JCA supports overloads:
 
 ~~~java
-// Minh họa, có thể ném exception khi provider không hiện diện:
+// Illustrative, may throw an exception if the provider is absent:
 KeyStore ks = KeyStore.getInstance("PKCS12", "SUN");
 ~~~
 
-**Không ghim "SUN" bừa bãi** nếu ứng dụng có mục tiêu portable hoặc muốn sử dụng provider hardware/OS. Khi triển khai, xác minh provider danh sách đúng ở JDK target, quyền và tính tương thích với key/entry.
+**Do not pin "SUN" indiscriminately** if the application targets portability or intends to use hardware/OS providers. At deployment, verify the exact provider list on the target JDK, permissions, and key/entry compatibility.
 
-### 11.1 Những gì danh sách provider không cho biết
+### 11.1 What the Provider List Does Not Tell You
 
-- Token PKCS11 đã đăng nhập được hay chưa.
-- Certificate chain có valid hay không.
-- Password store/key có đúng không.
-- File đã bị thay đổi hoặc permission bị nới lỏng chưa.
-- Private key có cho phép ký/decrypt hay export không.
-- Format PKCS12 từ công cụ bên ngoài có dùng PBE/MAC được JDK hỗ trợ không.
-- Tính ổn định khi chạy service account khác so với người dùng tương tác.
+- Whether a PKCS11 token is logged in.
+- Whether a certificate chain is valid.
+- Whether store/key passwords are correct.
+- Whether a file was tampered with or permissions are overly permissive.
+- Whether a private key permits signing/decryption or export.
+- Whether a PKCS12 from an external tool uses PBE/MAC algorithms supported by the JDK.
+- Stability when running under a service account different from an interactive user.
 
-Do đó **capability discovery + thực hiện thao tác trong sandbox kiểm thử + kiểm tra policy** mới tạo được bằng chứng triển khai thực tế.
+Therefore, **capability discovery + executing operations in a test sandbox + policy checks** together provide real deployment evidence.
 
-## 12. Bảo vệ file, password và quyền truy cập
+## 12. Protecting Files, Passwords, and Access Permissions
 
-### 12.1 File-based keystore vẫn cần bảo vệ ở lớp OS
+### 12.1 File-Based Keystores Still Need OS-Layer Protection
 
-Khi lưu file .p12, quyền filesystem thường quan trọng không kém chọn type:
+When storing a .p12 file, filesystem permissions are often just as critical as choosing the type:
 
-- Giới hạn read access cho account dịch vụ thực sự cần dùng.
-- Không commit file private-key keystore vào Git, image container, artifact chung hoặc backup không mã hóa.
-- Mã hóa volume/backup và hạn chế quyền giải mã backup.
-- Dùng secret manager/secret injection thích hợp cho password, hạn chế hiện lên trong command line/log.
-- Có chính sách backup, kiểm tra restore và rotation khi private key hoặc password bị lộ.
-- Không mount kho shared read-write cho mọi container/host không cần thiết.
-- Không tắt integrity check bằng cách bỏ password tùy tiện chỉ để load thành công.
+- Restrict read access to the service account that genuinely needs it.
+- Never commit private-key keystore files to Git, container images, shared artifacts, or unencrypted backups.
+- Encrypt volumes/backups and restrict backup decryption privileges.
+- Use a secret manager/secret injection for passwords, avoiding command-line/log exposure.
+- Maintain backup policies, restore drills, and rotation plans if a private key or password leaks.
+- Never mount a shared read-write store across unnecessary containers/hosts.
+- Never bypass integrity checks by omitting passwords arbitrarily just to get load to succeed.
 
-Một file PKCS12 với mật khẩu yếu vẫn có thể bị dò offline nếu attacker sao chép được file; không coi passphrase vài ký tự là thay thế cho KMS/HSM.
+A PKCS12 file with a weak password can still be brute-forced offline if an attacker copies the file; never treat a short passphrase as a substitute for a KMS/HSM.
 
-### 12.2 char[] giúp gì và không giúp gì?
+### 12.2 What `char[]` Helps With and What It Does Not
 
-Java khuyến nghị nhiều API nhận **char[]** cho password, để ứng dụng có thể làm giảm thời gian sống của buffer bí mật và xóa nội dung bằng Arrays.fill khi không dùng nữa. Tuy nhiên:
+Java recommends many APIs accept **char[]** for passwords so applications can shorten the lifetime of secret buffers and zero them with Arrays.fill when finished. However:
 
-- Password có thể đã có bản sao trong biến môi trường, String, shell command, native library hoặc library API.
-- Xóa char[] không bảo đảm byte copy trong JVM, GC heap/native memory đều biến mất.
-- Không log password, PIN hoặc raw key khi exception.
-- Khi cần, dùng callback/secret manager thay vì hardcode secret.
+- The password may already exist as copies in environment variables, Strings, shell commands, native libraries, or framework APIs.
+- Clearing `char[]` does not guarantee all byte copies in the JVM, GC heap, or native memory vanish.
+- Never log passwords, PINs, or raw keys on exceptions.
+- When possible, use callbacks/secret managers instead of hardcoded secrets.
 
-**Trong bài demo** password là hằng công khai phục vụ chạy thử; không được copy sang production.
+**In the lesson demo**, the password is a public constant for testing convenience; never copy that pattern to production.
 
-### 12.3 Rotation và incident response
+### 12.3 Rotation and Incident Response
 
-Đối với private key TLS hoặc key ký:
+For TLS private keys or signing keys:
 
-1. Xác định key ID/alias/certificate chain đang dùng.
-2. Cấp key/certificate mới theo chính sách và bảo vệ private key.
-3. Triển khai key mới cùng cấu hình đúng loại kho/provider.
-4. Cập nhật chứng chỉ/trust của đối tác nếu cần, kiểm tra mTLS, hostname, key usage.
-5. Thu hồi certificate/khóa cũ khi cần và theo kế hoạch chuyển đổi.
-6. Rà soát bản sao cũ trong backup, CI/log, snapshot và các instance chưa cập nhật.
+1. Identify the active key ID/alias/certificate chain.
+2. Provision a new key/certificate per policy and protect the private key.
+3. Deploy the new key with matching store type/provider configuration.
+4. Update peer certificates/trust if needed, and verify mTLS, hostname, and key usage.
+5. Revoke old certificates/keys when appropriate per the transition plan.
+6. Audit old copies in backups, CI/logs, snapshots, and un-updated instances.
 
-**Đổi mật khẩu file PKCS12 không giải quyết việc private key đã bị lộ.** Nếu key material bị compromise, phải đánh giá sinh/đăng ký khóa mới, cấp lại chứng chỉ và thu hồi theo chính sách. Tương tự, di chuyển JKS sang PKCS12 không làm khóa từng bị đánh cắp trở nên bí mật trở lại.
+**Changing a PKCS12 file password does not remediate a compromised private key.** If key material is compromised, you must generate/enroll a new key, reissue certificates, and revoke per policy. Similarly, migrating JKS to PKCS12 does not make a stolen key secret again.
 
-## 13. Chẩn đoán lỗi thường gặp
+## 13. Diagnosing Common Errors
 
-| Hiện tượng | Nguyên nhân cần kiểm tra | Hướng xử lý |
+| Symptom | Cause to investigate | Remediation |
 | --- | --- | --- |
-| **KeyStoreException: type not found** | Provider không hỗ trợ hoặc chưa cấu hình (PKCS11/Keychain/Windows) | Kiểm tra Security.getAlgorithms, platform, provider registration |
-| **IOException khi load file** | Sai password, sai file/format, lỗi integrity, I/O | Xác minh format/path/password và backup; không cố bỏ password để bypass |
-| **UnrecoverableKeyException** | Sai entry password, key protection không phù hợp | Đối chiếu key password và provider, phân quyền |
-| **Alias tồn tại nhưng getKey trả null** | Alias là certificate entry hoặc không có key accessible | Kiểm tra entry type và key usage |
-| **JKS setEntry(SecretKeyEntry) thất bại** | JKS không hỗ trợ secret key entry | Dùng PKCS12/JCEKS theo chính sách, ưu tiên PKCS12 |
-| **PKCS12 từ tool khác đọc được cert nhưng không lấy private key** | Khác encoding/PBE, thiếu password đúng, unsupported private-key format | Kiểm tra phiên bản tool/provider và định dạng nhập |
-| **KeyManager không chọn được alias** | Chain, thuật toán, EKU, password, certificate, alias selection | Kiểm thử TLS handshake, xem config key manager |
-| **Windows-MY không thấy chứng chỉ** | Sai user/machine store hoặc service account | Dùng store phù hợp, kiểm tra access và phiên bản provider |
-| **PKCS11 getInstance/load lỗi** | Native library/slot/PIN/permission/provider chưa phù hợp | Chẩn đoán theo vendor, không chuyển key ra file trái policy |
-| **Private key getEncoded() trả null** | Khóa non-exportable theo provider | Thao tác bằng handle/thiết bị, không cưỡng bức export |
-| **Migration import thành công nhưng TLS fail** | Key password, chain, truststore, type, hostname, alias | Test end-to-end bằng service thật và rollback |
-| **getInstance("JKS") mở file PKCS12** | Cơ chế dual-format compatibility ở một số JDK | Xác minh format thực và công cụ migration, không tin type giả định |
+| **KeyStoreException: type not found** | Provider unsupported or unconfigured (PKCS11/Keychain/Windows) | Check Security.getAlgorithms, platform, provider registration |
+| **IOException when loading file** | Wrong password, wrong file/format, integrity failure, I/O | Verify format/path/password and backups; never drop password to bypass |
+| **UnrecoverableKeyException** | Wrong entry password, incompatible key protection | Check key password against provider, permissions |
+| **Alias exists yet getKey returns null** | Alias is a certificate entry or lacks an accessible key | Check entry type and key usage |
+| **JKS setEntry(SecretKeyEntry) fails** | JKS does not support secret key entries | Use PKCS12/JCEKS per policy, preferring PKCS12 |
+| **PKCS12 from external tool reads cert but not private key** | Different encoding/PBE, missing right password, unsupported private-key format | Check tool/provider versions and import formats |
+| **KeyManager cannot select alias** | Chain, algorithm, EKU, password, certificate, alias selection | Test TLS handshake, inspect key manager config |
+| **Windows-MY does not show certificate** | Wrong user/machine store or service account | Use matching store, verify access and provider version |
+| **PKCS11 getInstance/load error** | Native library/slot/PIN/permission/provider mismatch | Diagnose per vendor; never export keys to files against policy |
+| **Private key getEncoded() returns null** | Non-exportable key per provider | Operate via handle/device; never force export |
+| **Migration import succeeds yet TLS fails** | Key password, chain, truststore, type, hostname, alias | Test end-to-end with real services and keep rollback ready |
+| **getInstance("JKS") opens a PKCS12 file** | Dual-format compatibility mode in some JDKs | Verify real format and migration tools; do not trust assumed types |
 
-**Lưu ý:** loại exception và thông điệp lỗi có thể khác theo provider, phiên bản JDK và tình huống. Khi kiểm tra input không tin cậy, không tiết lộ password, key material hay chi tiết provider nhạy cảm ra response.
+**Note:** exception types and error messages vary by provider, JDK version, and scenario. When validating untrusted inputs, never leak passwords, key material, or sensitive provider details in responses.
 
-## 14. Những hiểu nhầm cần tránh
+## 14. Misconceptions to Avoid
 
-1. **“KeyStore là một file .jks.”** Không: KeyStore là API, có nhiều type; PKCS11/Windows/Apple có thể không phải file ứng dụng.
-2. **“PKCS12 và JKS chỉ khác đuôi file.”** Không: khác định dạng, khả năng entry và cách bảo vệ.
-3. **“Java 17 mặc định JKS.”** Không trong cấu hình JDK 9+ tiêu chuẩn: mặc định là PKCS12, nhưng security property có thể được thay đổi.
-4. **“PKCS12 tự động an toàn dù password yếu.”** Sai: PBE/MAC/provider và password, ACL, backup vẫn quyết định an toàn.
-5. **“JCEKS là giải pháp tốt nhất vì lưu secret key.”** Không: có cơ chế legacy; PKCS12/KMS mới thường phù hợp hơn.
-6. **“Mọi PKCS12 đều tương thích 100% giữa Java/OpenSSL/Windows.”** Không: loại entry, bag attributes, PBE và phiên bản tool có thể khác.
-7. **“KeyStore.load(null, pin) luôn tạo kho trống.”** Sai: với PKCS11, nó có thể đăng nhập/mở token đã có.
-8. **“Nếu KeyStore.getInstance("PKCS11") thành công, HSM chắc đã online.”** Không: cần config, token login và thao tác thực.
-9. **“Private key trong HSM phải export được để Java dùng.”** Không: provider có thể sử dụng key handle trực tiếp.
-10. **“PasswordProtect có nghĩa mọi entry được bảo vệ bằng cùng chuẩn.”** Không: cách dùng password tùy type/provider và loại entry.
-11. **“JKS tự động chứa mọi secret key Java.”** Không: JKS truyền thống không hỗ trợ SecretKeyEntry.
-12. **“TrustedCertificateEntry là PrivateKeyEntry.”** Sai: trusted cert không có private key.
-13. **“Keystore và truststore là hai định dạng bắt buộc khác nhau.”** Không: có thể đều là PKCS12 nhưng vai trò TLS khác.
-14. **“Import CA bất kỳ vào truststore giúp TLS an toàn hơn.”** Không: thêm CA làm mở rộng bề mặt tin cậy.
-15. **“Đổi password PKCS12 là đủ sau khi private key rò rỉ.”** Không: phải xử lý compromise của chính key.
-16. **“Chuyển JKS sang PKCS12 chỉ cần đổi tên old.jks thành new.p12.”** Sai: cần importkeystore và kiểm tra kết quả.
-17. **“Ghim provider SUN luôn là tốt.”** Không: có thể phá portability hoặc bỏ lỡ provider hardware.
-18. **“Alias và format luôn phân biệt hoa/thường như nhau.”** Không: quy tắc alias phụ thuộc provider.
-19. **“Đã load được keystore nghĩa là cert hợp lệ cho domain.”** Sai: certificate validation và hostname verification là tầng khác.
-20. **“Cloud KMS luôn sử dụng KeyStore.getInstance.”** Không: chỉ nếu có adapter/provider tương ứng.
+1. **"KeyStore is a .jks file."** No: KeyStore is an API with many types; PKCS11/Windows/Apple may not correspond to application files.
+2. **"PKCS12 and JKS differ only by file extension."** No: they differ in format, entry capabilities, and protection mechanisms.
+3. **"Java 17 defaults to JKS."** Not in standard JDK 9+ configurations: the default is PKCS12, though the security property can be changed.
+4. **"PKCS12 is automatically secure even with a weak password."** False: PBE/MAC/provider plus passwords, ACLs, and backups still govern security.
+5. **"JCEKS is the best solution because it stores secret keys."** No: it uses legacy mechanisms; modern PKCS12/KMS is usually more appropriate.
+6. **"All PKCS12 files are 100% compatible across Java/OpenSSL/Windows."** No: entry types, bag attributes, PBE, and tool versions can differ.
+7. **"KeyStore.load(null, pin) always creates an empty store."** False: with PKCS11, it can open/log into an existing token.
+8. **"If KeyStore.getInstance("PKCS11") succeeds, the HSM must be online."** No: configuration, token login, and actual operations are required.
+9. **"A private key in an HSM must be exportable for Java to use it."** No: the provider can use key handles directly.
+10. **"PasswordProtection means every entry is protected by the same standard."** No: password handling varies by type/provider and entry kind.
+11. **"JKS automatically holds every Java secret key."** No: traditional JKS does not support SecretKeyEntry.
+12. **"TrustedCertificateEntry is a PrivateKeyEntry."** False: trusted certs have no private key.
+13. **"Keystore and truststore must use two different formats."** No: both can be PKCS12 while serving distinct TLS roles.
+14. **"Importing any CA into the truststore makes TLS safer."** No: adding CAs expands the trust surface.
+15. **"Changing the PKCS12 password is enough after a private key leaks."** No: you must address compromise of the key itself.
+16. **"Converting JKS to PKCS12 is just renaming old.jks to new.p12."** False: you need importkeystore and result verification.
+17. **"Pinning the SUN provider is always good."** No: it can break portability or bypass hardware providers.
+18. **"Aliases and formats always handle case identically."** No: alias rules depend on the provider.
+19. **"Successfully loading the keystore means the cert is valid for the domain."** False: certificate validation and hostname verification belong to another layer.
+20. **"Cloud KMS always uses KeyStore.getInstance."** No: only if a matching adapter/provider exists.
 
-## 15. Tình huống phân tích
+## 15. Scenario Analysis
 
-### Tình huống A — Dịch vụ chuyển Java 8 sang Java 17
+### Scenario A — Service Upgrading from Java 8 to Java 17
 
-Ứng dụng cũ dùng code KeyStore.getInstance(KeyStore.getDefaultType()) nhưng file đang là JKS. Runtime mới mặc định PKCS12. Một số cấu hình tương thích có thể khiến file vẫn load được, nhưng **không nên dựa vào việc này cho tương lai**.
+An old application calls KeyStore.getInstance(KeyStore.getDefaultType()) while the file on disk is JKS. The new runtime defaults to PKCS12. Compatibility settings might allow the file to load, yet **you should not rely on that going forward**.
 
-**Hướng xử lý:** kiểm kê format file, ghi rõ type dự kiến, chuyển sang PKCS12 có kế hoạch, kiểm tra alias/chain/key password và TLS end-to-end.
+**Action:** inventory file formats, specify expected types explicitly, plan a controlled conversion to PKCS12, and verify aliases/chains/key passwords and end-to-end TLS.
 
-### Tình huống B — Microservice cần ký JWT bằng private key trên HSM
+### Scenario B — Microservice Needs to Sign JWTs Using an HSM Private Key
 
-PrivateKey.getEncoded() trả null. Developer định xuất key ra file PKCS12 để ký dễ hơn.
+PrivateKey.getEncoded() returns null. A developer plans to export the key to a PKCS12 file to make signing easier.
 
-**Phân tích:** non-exportable có thể là chủ đích. Hãy dùng JCA provider PKCS11 hoặc API KMS ký phù hợp; giữ private key trong thiết bị. Test key usage/algorithm và quyền dịch vụ.
+**Analysis:** non-exportability may be intentional. Use the PKCS11 JCA provider or an appropriate KMS signing API; keep the private key inside the hardware device. Test key usage/algorithms and service permissions.
 
-### Tình huống C — Có file truststore.p12 nhưng HTTPS vẫn lỗi
+### Scenario C — truststore.p12 Exists Yet HTTPS Still Fails
 
-File đã chứa chứng chỉ đối tác nhưng ứng dụng không dùng TrustManagerFactory từ file đó, hoặc hostname/san/chain không đúng.
+The file already contains the partner's certificate, yet the app does not build its TrustManagerFactory from that file, or hostname/SAN/chain validation fails.
 
-**Phân tích:** lưu cert không tự cấu hình trust. Kiểm tra SSLContext, trust manager, certificate path, hostname verification và môi trường thực.
+**Analysis:** storing a cert does not automatically configure trust. Inspect SSLContext, trust manager, certificate path, hostname verification, and the live environment.
 
-### Tình huống D — Container chạy bằng account khác
+### Scenario D — Container/Service Runs Under a Different Account
 
-Developer chạy app trên Windows thấy alias "my-cert" trong Windows-MY. Khi triển khai thành service account, alias biến mất.
+A developer runs the app on Windows and sees alias "my-cert" in Windows-MY. When deployed under a service account, the alias disappears.
 
-**Phân tích:** Windows-MY current-user ràng buộc tài khoản. Kiểm tra store scope, quyền tài khoản và loại kho máy cục bộ theo provider thay vì copy private key sang file trái chính sách.
+**Analysis:** Windows-MY current-user is bound to the user account. Check store scope, account permissions, and local-machine store types per provider rather than copying private keys to files against policy.
 
-### Tình huống E — PKCS12 import thành công nhưng không ký được
+### Scenario E — PKCS12 Import Succeeds Yet Signing Fails
 
-Alias trùng tên nhưng entry thực tế là TrustedCertificateEntry; private key bị bỏ sót hoặc password không đúng.
+The alias name matches, but the actual entry is a TrustedCertificateEntry; the private key was omitted or the password is wrong.
 
-**Phân tích:** keytool -list cho biết entry type; cần PrivateKeyEntry, private key khớp certificate chain và quyền sử dụng khóa phù hợp. Không dùng certificate-only entry để giả làm identity.
+**Analysis:** keytool -list reveals entry types; you need a PrivateKeyEntry, a private key matching the certificate chain, and appropriate key usage permissions. Never use a certificate-only entry to impersonate an identity.
 
-### Tình huống F — Cần lưu AES secret key cho service
+### Scenario F — Need to Store an AES Secret Key for a Service
 
-JKS không nhận SecretKeyEntry, JCEKS nhận được. Chọn loại nào?
+JKS rejects SecretKeyEntry, while JCEKS accepts it. Which type should be chosen?
 
-**Phân tích:** với file store hiện đại và provider phù hợp, nên dùng PKCS12 hoặc secret manager/KMS/HSM theo yêu cầu. JCEKS legacy không phải mặc định tốt nhất chỉ vì chạy được. Test recovery, password, quyền và độ nhạy của DEK.
+**Analysis:** for modern file stores with a supporting provider, use PKCS12 or a secret manager/KMS/HSM as required. Legacy JCEKS is not the best default simply because it runs. Test recovery, passwords, permissions, and DEK sensitivity.
 
-## 16. Bài tập và tự kiểm tra
+## 16. Exercises and Self-Check
 
-**Câu 1.** Java KeyStore khác KeyStore type như thế nào?
+**Question 1.** How does Java KeyStore differ from a KeyStore type?
 
-**Trả lời:** KeyStore là API engine, còn type như PKCS12, JKS, PKCS11 xác định một triển khai/định dạng qua provider.
+**Answer:** KeyStore is the engine API, whereas types like PKCS12, JKS, and PKCS11 identify specific implementations/formats via providers.
 
-**Câu 2.** Java 17 mặc định type nào?
+**Question 2.** What type does Java 17 default to?
 
-**Trả lời:** Trên JDK 9+ tiêu chuẩn thường là **PKCS12**; có thể bị cấu hình lại qua security property keystore.type. Hãy gọi KeyStore.getDefaultType() để biết runtime đang dùng gì.
+**Answer:** On standard JDK 9+, it is typically **PKCS12**; it can be reconfigured via the keystore.type security property. Call KeyStore.getDefaultType() to see what the current runtime uses.
 
-**Câu 3.** Tại sao PKCS12 thường được ưu tiên hơn JKS cho file mới?
+**Question 3.** Why is PKCS12 generally preferred over JKS for new files?
 
-**Trả lời:** PKCS12 là định dạng chuẩn hơn, liên thông tốt hơn và là mặc định hiện đại; JKS là proprietary legacy với cơ chế bảo vệ cũ.
+**Answer:** PKCS12 is a more standardized, interoperable format and the modern default; JKS is legacy proprietary with older protection mechanisms.
 
-**Câu 4.** JKS hỗ trợ SecretKeyEntry không?
+**Question 4.** Does JKS support SecretKeyEntry?
 
-**Trả lời:** JKS truyền thống của SUN không hỗ trợ, còn JCEKS và PKCS12 của JDK hiện đại có thể hỗ trợ.
+**Answer:** Traditional SUN JKS does not, whereas JCEKS and modern JDK PKCS12 can support it.
 
-**Câu 5.** Keystore và truststore có bắt buộc dùng hai type khác nhau không?
+**Question 5.** Must a keystore and a truststore use two different types?
 
-**Trả lời:** Không. Cả hai có thể là PKCS12; khác ở vai trò: identity/private key và trust anchors/certificate validation.
+**Answer:** No. Both can be PKCS12; they differ in role: identity/private keys versus trust anchors/certificate validation.
 
-**Câu 6.** getEncoded() trả null khi lấy private key từ HSM có nghĩa gì?
+**Question 6.** What does getEncoded() returning null when retrieving a private key from an HSM mean?
 
-**Trả lời:** Key có thể không được export. Cần thao tác trong provider/HSM bằng key handle, không cưỡng bức xuất raw key.
+**Answer:** The key may be non-exportable. Operate within the provider/HSM using key handles; do not attempt to force raw key export.
 
-**Câu 7.** KeyStore.load(null, pin) với PKCS11 có tạo token mới không?
+**Question 7.** Does KeyStore.load(null, pin) with PKCS11 create a new token?
 
-**Trả lời:** Không theo cách hiểu file keystore. Thường là mở và/hoặc đăng nhập token đã được cấu hình.
+**Answer:** Not in the file-keystore sense. It usually opens and/or logs into an already-configured token.
 
-**Câu 8.** Một service trên Windows thấy Windows-MY thiếu certificate mặc dù GUI của user có, vì sao?
+**Question 8.** Why does a Windows service see Windows-MY missing a certificate that appears in the user's GUI?
 
-**Trả lời:** Store current-user phụ thuộc account chạy service. Cần kiểm tra scope user/local machine và quyền.
+**Answer:** The current-user store depends on the account running the service. Check user/local-machine scope and permissions.
 
-**Câu 9.** Chuyển legacy.jks sang migrated.p12 đúng cách bằng gì?
+**Question 9.** What is the proper way to convert legacy.jks to migrated.p12?
 
-**Trả lời:** Dùng keytool -importkeystore với -srcstoretype JKS, -deststoretype PKCS12 rồi kiểm tra entries/chain/key password và thử ứng dụng thật.
+**Answer:** Use keytool -importkeystore with -srcstoretype JKS and -deststoretype PKCS12, then verify entries/chains/key passwords and test the real application.
 
-**Câu 10.** PKCS12 có bảo vệ được bí mật khi người khác có file và password không?
+**Question 10.** Can PKCS12 protect secrets if someone obtains both the file and the password?
 
-**Trả lời:** Không thể đảm bảo; người có quyền và password phù hợp có thể mở khóa. KMS/HSM và tách quyền cần được cân nhắc khi yêu cầu mạnh hơn.
+**Answer:** No guarantee; anyone with file access and the right password can unlock it. KMS/HSM and privilege separation should be considered when stronger guarantees are required.
 
-**Câu 11.** Khi load keystore thành công, đã đủ để TLS tin server chưa?
+**Question 11.** Once a keystore loads successfully, is that enough for TLS to trust the server?
 
-**Trả lời:** Chưa. Phải có trust manager, chain/path validation, kiểm tra hostname và các điều kiện bảo mật phù hợp.
+**Answer:** Not yet. You need a trust manager, chain/path validation, hostname verification, and appropriate security checks.
 
-**Câu 12.** Khi loại kho provider-specific không được hỗ trợ trên JDK target, nên làm gì?
+**Question 12.** When a provider-specific store type is unsupported on the target JDK, what should you do?
 
-**Trả lời:** Kiểm tra provider registration/cấu hình, driver, quyền và API chính thức; không tự downgrade hoặc xuất private key sang file trái policy.
+**Answer:** Check provider registration/configuration, drivers, permissions, and official APIs; do not downgrade security or export private keys to files against policy.
 
-## 17. Tài liệu tham khảo chính thức
+## 17. Official References
 
-- [Oracle Java SE 17 — KeyStore API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): API, entry types, load/store, getInstance, default type và provider.
+- [Oracle Java SE 17 — KeyStore API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): API, entry types, load/store, getInstance, default type, and providers.
 - [Oracle Java SE 17 — Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html): PKCS12, JKS, JCEKS, DKS, PKCS11.
 - [Oracle Java SE 17 — JDK Providers Documentation](https://docs.oracle.com/en/java/javase/17/security/oracle-providers.html): SUN, SunJCE, SunPKCS11, SunMSCAPI, Apple.
-- [Oracle Java SE 17 — PKCS#11 Reference Guide](https://docs.oracle.com/en/java/javase/17/security/pkcs11-reference-guide1.html): SunPKCS11, token login, HSM và KeyStore.Builder.
-- [Oracle Java SE 17 — keytool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): generate, list, importkeystore và lưu ý password.
-- [Oracle Java SE 17 — Security Developer’s Guide](https://docs.oracle.com/en/java/javase/17/security/): lựa chọn KeyStore type, bảo mật keys/certificates và cách triển khai.
+- [Oracle Java SE 17 — PKCS#11 Reference Guide](https://docs.oracle.com/en/java/javase/17/security/pkcs11-reference-guide1.html): SunPKCS11, token login, HSM, and KeyStore.Builder.
+- [Oracle Java SE 17 — keytool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): generate, list, importkeystore, and password notes.
+- [Oracle Java SE 17 — Security Developer’s Guide](https://docs.oracle.com/en/java/javase/17/security/): selecting KeyStore types, securing keys/certificates, and deployment practices.
 
-## Kết luận
+## Conclusion
 
-**PKCS12 là lựa chọn file-based KeyStore thường phù hợp cho Java 17+, còn JKS/JCEKS chủ yếu phục vụ tương thích legacy.** Khi khóa nằm trong HSM hoặc kho của hệ điều hành, **PKCS11, SunMSCAPI và KeychainStore** cho phép Java truy cập bằng cùng API KeyStore nhưng với semantics, khả năng export, quyền và cơ chế lưu khác file .p12. Chọn type theo loại khóa, mục tiêu bảo vệ và provider thực tế; **kiểm thử load, entry type, password, crypto operation, TLS/trust và backup/restore** trước khi chuyển môi trường. Không đánh đồng lưu được khóa với việc đã quản lý khóa an toàn.
+**PKCS12 is usually the appropriate file-based KeyStore choice for Java 17+, while JKS/JCEKS exist primarily for legacy compatibility.** When keys reside in an HSM or OS store, **PKCS11, SunMSCAPI, and KeychainStore** let Java access them through the same KeyStore API, albeit with different semantics, exportability, permissions, and storage mechanisms than a .p12 file. Select the type according to key kind, protection goals, and actual provider; **test loading, entry types, passwords, crypto operations, TLS/trust, and backup/restore** before promoting across environments. Never equate being able to store a key with managing keys securely.

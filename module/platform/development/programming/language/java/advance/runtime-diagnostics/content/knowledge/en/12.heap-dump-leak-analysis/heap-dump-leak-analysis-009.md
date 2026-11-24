@@ -1,29 +1,29 @@
-# 12.9 So sánh bằng chứng qua thời gian thay vì kết luận rò rỉ từ một histogram
+# 12.9 Comparing Evidence Over Time Instead of Concluding a Leak from One Histogram
 
-## 1. Mục tiêu: biến một ảnh chụp đáng ngờ thành kết luận có chứng cứ
+## 1. Goal: Turning a Suspicious Snapshot into Evidence-Backed Conclusions
 
-Một **class histogram** của Java heap cho biết mỗi lớp hiện có bao nhiêu instance và tổng dung lượng *shallow* của các instance đó. Nó rất hữu ích để khoanh vùng nghi vấn, nhưng **không trả lời trực tiếp** liệu một tập object có đang rò rỉ, object nào giữ chúng sống, hay số lượng đó có bình thường với tải hiện tại.
+A Java heap **class histogram** shows how many instances of each class currently exist and their total *shallow* bytes. It is very useful for narrowing down suspects, yet **it does not directly answer** whether a set of objects is leaking, which object keeps them alive, or whether that count is normal for current traffic.
 
-Ví dụ, nhìn thấy hàng `byte[]` chiếm nhiều bộ nhớ chỉ cho biết có nhiều mảng byte. Chúng có thể thuộc cache có giới hạn, request đang xử lý, payload tạm, hàng đợi, kết quả batch hoặc những object thực sự bị giữ ngoài ý muốn. Một histogram đơn lẻ không phân biệt được các nguyên nhân ấy.
+For example, seeing the `byte[]` row occupy lots of memory only tells you there are many byte arrays. They could belong to a bounded cache, in-flight requests, temporary payloads, queues, batch results, or objects genuinely retained unintentionally. A single histogram cannot distinguish among those causes.
 
-**Mục tiêu bài học:** xây chuỗi bằng chứng `T0 → T1 → T2` dưới các điều kiện có thể so sánh, kiểm tra xu hướng số lượng object và bộ nhớ sau GC cùng workload, rồi dùng heap dump và đường tham chiếu tới GC roots khi cần tìm nguyên nhân. Kết luận phải phân biệt được:
+**Lesson goal:** build an evidence chain `T0 → T1 → T2` under comparable conditions, examine trends in object counts and post-GC memory at equal workloads, and then use a heap dump and paths to GC roots when you need the root cause. Conclusions must distinguish:
 
-- **Dữ kiện:** điều đo được tại một thời điểm, ví dụ số instance `[B` và `#bytes`.
-- **Xu hướng:** thay đổi qua nhiều mốc sau khi đã chuẩn hóa thời gian, tải, GC và cách đo.
-- **Giả thuyết:** cache tăng, backlog tồn đọng, session không hết hạn, listener không hủy, hay retention ngoài ý muốn.
-- **Chứng cứ xác nhận:** xác định object sống lâu bất thường, nguồn giữ tham chiếu, vòng đời mong đợi và phép thử giải phóng/ổn định.
+- **Observation:** what was measured at one point in time, such as `[B` instance count and `#bytes`.
+- **Trend:** change across multiple checkpoints after normalizing time, load, GC, and measurement mode.
+- **Hypothesis:** growing cache, queue backlog, non-expiring sessions, unremoved listeners, or unintended retention.
+- **Confirming evidence:** identifying abnormally long-lived objects, the retaining reference source, expected lifecycle, and a release/stabilization test.
 
-Trong Java, “memory leak” thường là **tham chiếu còn giữ object mà nghiệp vụ không cần nữa**, khiến GC không thể thu hồi; object vẫn *reachable* nhưng không còn hữu ích. Đây là khái niệm khác việc **cấp phát nhanh** hoặc **heap.used cao tại một thời điểm**.
+In Java, a "memory leak" usually means **references still retaining objects that business logic no longer needs**, preventing GC from reclaiming them; the objects remain *reachable* yet are no longer useful. This differs from **fast allocation** or **high `heap.used` at a single instant**.
 
-## 2. Histogram đo gì, và không đo gì?
+## 2. What Does a Histogram Measure, and What Does It Omit?
 
-Lệnh thường dùng trên HotSpot JDK 17+:
+Common command on HotSpot JDK 17+:
 
 ```bash
 jcmd 12345 GC.class_histogram
 ```
 
-`12345` là **PID minh họa**, thay bằng PID thật. Một bảng histogram có thể có cấu trúc sau (số liệu **giả định**, không phải stdout cố định):
+`12345` is an **illustrative PID**; replace it with the real PID. A histogram table may look like this (**hypothetical** numbers, not fixed stdout):
 
 ```text
  num     #instances         #bytes  class name
@@ -34,86 +34,86 @@ jcmd 12345 GC.class_histogram
 Total         13500        5482880
 ```
 
-Các số giả định chỉ nhằm minh họa hình thức cột; đừng dùng phép cộng những hàng minh họa này để suy ra tổng bộ nhớ thật của JVM. Với output thực tế, hãy đọc đúng header và số ở từng dòng.
+These hypothetical numbers only illustrate column layout; do not add these sample rows to infer real JVM memory totals. With real output, read the exact header and row figures.
 
-| Cột | Ý nghĩa | Không được suy diễn thành |
+| Column | Meaning | Do not misinterpret as |
 | --- | --- | --- |
-| `num` | Thứ hạng trong bảng được sắp theo dung lượng tại lần đo | ID ổn định của lớp qua các lần lấy mẫu |
-| `#instances` | Số object thuộc lớp được liệt kê trong lần đo | Số lần cấp phát từ lúc JVM chạy |
-| `#bytes` | Tổng **shallow size** của các instance cùng lớp, đơn vị byte | Retained size, tổng bộ nhớ do lớp đó giữ gián tiếp |
-| `class name` | Tên lớp/array type, ví dụ `[B` là `byte[]` và `[Ljava.lang.String;` là `String[]` | Bằng chứng chỉ ra lớp này là nguyên nhân leak |
+| `num` | Rank in the table sorted by size at measurement time | A stable class ID across sampling runs |
+| `#instances` | Number of objects of the listed class in this capture | Total allocations since JVM startup |
+| `#bytes` | Total **shallow size** of instances of that class, in bytes | Retained size, or total memory indirectly held by that class |
+| `class name` | Class/array type name, e.g. `[B` for `byte[]` and `[Ljava.lang.String;` for `String[]` | Proof pointing to this class as the leak cause |
 
-**Shallow size** là kích thước của bản thân object/array, bao gồm phần dữ liệu nằm trong array; nó **không** cộng mọi object được object đó tham chiếu. **Retained size** của một object, ngược lại, ước lượng lượng bộ nhớ sẽ có thể giải phóng nếu loại bỏ các đường giữ tham chiếu thích hợp và các object do nó chi phối trở thành không thể truy cập. Muốn xét retained size, phải phân tích **đồ thị tham chiếu** (heap dump, dominator tree), điều histogram không chứa.
+**Shallow size** is the size of the object/array itself, including data stored inside an array; it does **not** add objects referenced by that object. **Retained size** of an object, by contrast, estimates the memory that could be freed if appropriate retention paths were removed and objects dominated by it became unreachable. Evaluating retained size requires analyzing the **reference graph** (heap dump, dominator tree), which a histogram lacks.
 
-Histogram nhóm theo class nên cũng không cho biết:
+Because a histogram groups by class, it also cannot tell you:
 
-- Object nào được tạo trong request nào, ai sở hữu, tuổi thọ và deadline giải phóng của nó.
-- Những object đang tạm thời được tham chiếu bởi thread stack, cache, static field hay class loader nào.
-- Mức sử dụng đó có phù hợp với số user/session/message đang hoạt động không.
-- Có object không còn reachable nhưng chưa được GC dọn trước khi đo không (tùy chế độ của công cụ).
-- Một class có nhiều instance do hàng nghìn phần tử hợp lệ hay vì một bộ sưu tập phát triển không giới hạn.
+- Which request created which object, who owns it, its age, or its release deadline.
+- Which objects are temporarily referenced by thread stacks, caches, static fields, or which class loader.
+- Whether that usage matches the number of active users, sessions, or messages.
+- Whether unreachable objects not yet cleared by GC were counted prior to measurement (depending on tool mode).
+- Whether a class has many instances due to thousands of valid items or one collection growing without bound.
 
-### Reachability và `-all` làm thay đổi ý nghĩa phép đo
+### Reachability and `-all` change the meaning of the measurement
 
-Với `jcmd GC.class_histogram`, tùy chọn `-all` cho phép **kiểm tra cả object không còn reachable**; giá trị mặc định là `false` theo tài liệu JDK 21. Vì vậy:
+With `jcmd GC.class_histogram`, the `-all` option enables **inspecting unreachable objects as well**; the default is `false` per JDK 21 docs. Therefore:
 
 ```bash
 jcmd 12345 GC.class_histogram
 jcmd 12345 GC.class_histogram -all=true
 ```
 
-**Không so chéo** hai chế độ trên như thể chúng cùng phản ánh “live objects”. Chế độ mặc định hướng tới các object còn được giữ sau hoạt động thu gom thích hợp của VM; chế độ `-all=true` có thể bao gồm object đã chết về mặt reachability nhưng chưa được thu hồi. Trong điều tra leak, hãy ghi lại chính xác chế độ đã dùng, collector/JDK, thời điểm và hoạt động GC lân cận.
+**Do not cross-compare** these two modes as if both reflected "live objects." Default mode targets objects remaining after appropriate VM collection activity; `-all=true` can include objects that are dead in terms of reachability yet not reclaimed. In leak investigations, record the exact mode used, collector/JDK, timestamp, and nearby GC activity.
 
-Lệnh histogram được JDK xếp **Impact: High**, phụ thuộc kích thước heap và nội dung; có thể gây pause/hoạt động GC và tác động quan sát. Chỉ lấy mẫu với tần suất hợp lý, đặc biệt trên production. Không dùng vòng lặp chụp histogram liên tục như một hệ thống metrics.
+The histogram command is rated **Impact: High** by the JDK, depending on heap size and contents; it can cause pauses/GC activity and perturb what you observe. Sample only at reasonable intervals, especially in production. Never run a tight histogram capture loop as a metrics system.
 
-## 3. Vì sao một histogram “to” thường tạo kết luận sai?
+## 3. Why Does One "Huge" Histogram Often Produce Wrong Conclusions?
 
-| Hiện tượng ở một snapshot | Giả thuyết còn mở | Điều cần đo tiếp |
+| Observation in one snapshot | Open hypotheses | What to measure next |
 | --- | --- | --- |
-| `byte[]` đứng đầu bảng | Buffer của I/O, nội dung cache, payload, object còn chờ GC hoặc retention bất thường | Count/bytes ở T0–T2, loại truy cập, owner trong heap dump |
-| Rất nhiều `String` | Data set hợp lệ, parser đang chạy, key cache, log/trace payload | Count trên mỗi request/record; key/value và đối tượng giữ |
-| Nhiều `HashMap$Node` | Cache/map lớn; có thể là registry hợp lệ hoặc map không được dọn | Số key, chính sách giới hạn/TTL, owner của map và retained graph |
-| `Class`/class loader tăng | Khởi tạo thư viện, tạo dynamic class hợp lệ hoặc class-loader retention | Số class loader qua các chu kỳ deploy, class-unloading/Metaspace |
-| Heap cao nhưng histogram không có “thủ phạm” rõ | Nhiều object nhỏ, dữ liệu phân tán, cấu trúc giữ phức tạp | Sau-GC used, dominator tree, nhóm theo class loader/package |
+| `byte[]` tops the table | I/O buffers, cache payloads, request bodies, garbage awaiting GC, or abnormal retention | Counts/bytes at T0–T2, traffic type, owner in a heap dump |
+| Very many `String`s | Valid dataset, active parser, cache keys, log/trace payloads | Count per request/record; keys/values and holding objects |
+| Many `HashMap$Node`s | Large cache/map; could be a valid registry or an uncleaned map | Key count, bound/TTL policy, map owner, and retained graph |
+| `Class`/class loaders growing | Library init, valid dynamic class generation, or class-loader retention | Class loader counts across deploy cycles, class unloading/Metaspace |
+| High heap yet no obvious "culprit" in histogram | Many small objects, spread-out data, complex retention structure | Post-GC used, dominator tree, grouping by class loader/package |
 
-Một mốc cao ở cuối batch có thể rất khác với cùng con số sau khi batch hoàn thành và hàng đợi đã rỗng. **Không thể đánh giá tính bất thường của kích thước nếu chưa biết vòng đời mong đợi của dữ liệu.**
+A high point at the end of a batch looks very different from the same number after the batch finishes and the queue drains. **You cannot judge whether a size is abnormal without knowing the expected lifecycle of the data.**
 
-Ngoài ra, bảng là **xếp hạng theo `#bytes`**; dòng số 1 của T0 và dòng số 1 của T1 có thể là hai lớp khác nhau. Muốn diff đúng, ghép bằng **danh tính class (và khi cần class loader)**, không trừ theo cùng số dòng `num`.
+Furthermore, the table is **ranked by `#bytes`**; row 1 at T0 and row 1 at T1 may be two different classes. To diff properly, match by **class identity (and class loader when needed)**, never subtract by `num` row number.
 
-## 4. Thiết kế phép đo theo thời gian có thể so sánh
+## 4. Designing Comparable Time-Series Measurements
 
-Nên coi mỗi lần thu thập là một bản ghi gồm **histogram + ngữ cảnh vận hành**, không phải chỉ là tệp text. Bộ metadata tối thiểu:
+Treat each capture as a record containing **histogram + operational context**, not just a plain text file. Minimum metadata set:
 
-| Trường | Cách thu thập hoặc ghi chú | Vì sao cần |
+| Field | How to collect or note | Why it is needed |
 | --- | --- | --- |
-| PID, JVM start time/uptime, version | `jcmd -l`, `VM.version`, `VM.uptime` | Tránh trộn hai JVM khi PID bị tái sử dụng |
-| GC, `-Xms`, `-Xmx`, cấu hình runtime | `VM.flags`, cấu hình khởi động | Collector và giới hạn heap ảnh hưởng hình dạng số đo |
-| Timestamp của từng snapshot | Đặt tên mốc T0, T1, T2 và ghi giờ bắt đầu/kết thúc | Đối chiếu với GC, log nghiệp vụ và latency |
-| Chế độ histogram | Mặc định hay `-all=true`, cùng công cụ/JDK | Bảo đảm cùng tiêu chí reachability |
-| Tải | RPS, số request hoàn tất, active users, batch size, queue length | Phân biệt dữ liệu hữu ích tăng với retention bất thường |
-| Chu kỳ nghiệp vụ | Sau warm-up? sau batch? sau TTL? sau logout? | Nền sau chu kỳ ổn định mới so được |
-| GC và heap | GC count/time, used sau GC hoặc log GC | Không nhầm allocation tạm thời với nền object còn sống |
-| Đặc điểm snapshot | Pause, lỗi attach, thời gian chụp, snapshot thiếu | Không kết luận từ mẫu méo/thiếu |
+| PID, JVM start time/uptime, version | `jcmd -l`, `VM.version`, `VM.uptime` | Avoid mixing two JVMs when a PID is reused |
+| GC, `-Xms`, `-Xmx`, runtime flags | `VM.flags`, startup config | Collector and heap limits shape measurements |
+| Timestamp of each snapshot | Label T0, T1, T2 and log start/end times | Correlate with GC, business logs, and latency |
+| Histogram mode | Default vs. `-all=true`, same tool/JDK | Ensure consistent reachability criteria |
+| Load | RPS, completed requests, active users, batch size, queue length | Separate useful data growth from abnormal retention |
+| Business cycle | Post warm-up? Post batch? Post TTL? Post logout? | Only baselines after stable cycles are comparable |
+| GC and heap | GC count/time, post-GC used or GC logs | Avoid confusing temporary allocation with live-object baseline |
+| Snapshot anomalies | Pauses, attach errors, capture duration, missing snapshots | Do not draw conclusions from skewed/incomplete samples |
 
-**Một chuỗi thực hành tốt**:
+**A sound practice sequence**:
 
-1. **Khởi động/warm-up:** đợi JIT, cache khởi tạo, class loading ban đầu và các tác vụ startup tương đối ổn định. Đặt mốc **T0** khi biết rõ trạng thái nghiệp vụ.
-2. **Vận hành ở mức tải A:** giữ tương đối đồng nhất các yếu tố ảnh hưởng; nếu tải thay đổi phải **ghi lại rõ ràng**. Chụp **T1** sau khoảng đủ để có nhiều đợt GC hoặc qua một chu kỳ nghiệp vụ.
-3. **Duy trì hoặc dừng tải:** đợi request, batch, session, queue hoặc TTL có cơ hội hoàn thành/hết hạn; chụp **T2**. Nếu nghi retention chậm, thu thập thêm T3, T4 thay vì cố giải thích hai điểm.
-4. **Đọc mẫu sau-GC và metrics:** quan sát nền bộ nhớ thấp nhất sau những lần GC **tự nhiên tương đương** trong cùng điều kiện. Nếu chủ động kích hoạt Full GC để chuẩn hóa trong môi trường thử nghiệm, phải gắn nhãn rõ vì bản thân phép đo đã làm thay đổi trạng thái.
-5. **Đối chiếu với nghiệp vụ:** khi throughput/active objects ổn định, object còn sống có giữ trần hay tiếp tục tích lũy? Nếu số request tăng gấp đôi, một số class tăng gấp đôi chưa đủ để nghi leak.
+1. **Startup/warm-up:** wait for JIT, initial caches, initial class loading, and startup tasks to stabilize. Set baseline **T0** when business state is well understood.
+2. **Operate at load level A:** keep influencing factors relatively steady; if traffic changes, **record it explicitly**. Capture **T1** after enough time for multiple GC cycles or one business cycle.
+3. **Sustain or drain load:** allow requests, batches, sessions, queues, or TTLs a chance to finish/expire; capture **T2**. If slow retention is suspected, collect T3 and T4 rather than over-interpreting two points.
+4. **Read post-GC samples and metrics:** observe the lowest memory floor after **comparable natural GCs** under matching conditions. If you explicitly trigger a Full GC to normalize in a test environment, label it clearly because the measurement itself altered state.
+5. **Compare against business volume:** when throughput/active objects are steady, do live objects plateau or keep accumulating? If request rate doubled, a class doubling in count is not enough to suspect a leak.
 
-Không có “chu kỳ 5 phút” đúng cho mọi ứng dụng. Chọn khoảng cách theo **lifetime dự kiến**: buffer theo request có thể đo vài phút; session TTL một giờ cần theo dõi qua hơn một giờ; cache có warm-up dài cần baseline sau warm-up.
+There is no universal "5-minute interval" for every app. Pick intervals based on **expected lifetime**: per-request buffers can be measured over minutes; 1-hour session TTLs require watching past an hour; caches with long warm-ups need a post-warm-up baseline.
 
-### “Sau GC” nên hiểu thế nào?
+### How should "post-GC" be understood?
 
-`heap.used` lúc T0 khác với live set sau collection: ngay trước GC có thể tồn tại object đã không còn reachable nhưng chưa bị thu hồi. Với concurrent collectors, “sau một lần young GC” không có nghĩa toàn bộ old generation đã được quét và reclaim. Hãy dùng GC log/GC counters để biết **đã xảy ra collection loại nào**, tránh khẳng định một số đo là “sau Full GC” nếu không có bằng chứng.
+`heap.used` at T0 differs from the post-collection live set: right before GC, unreachable objects may still sit uncollected. With concurrent collectors, "after one young GC" does not mean the entire old generation was scanned and reclaimed. Use GC logs/counters to verify **which collection type ran**, and avoid claiming a figure is "after Full GC" without evidence.
 
-Oracle khuyên theo dõi **live set trong trạng thái ổn định, dưới tải ổn định, theo thời gian** để nhận biết leak. Dấu hiệu sau-GC used tăng kéo dài tạo **nghi vấn có cơ sở**, chưa thay thế bằng chứng giữ tham chiếu.
+Oracle recommends monitoring the **live set in steady state, under steady load, over time** to detect leaks. A steadily rising post-GC used baseline creates **grounded suspicion**, not a replacement for reference-retention proof.
 
-## 5. Lấy histogram và GC evidence trên cùng PID
+## 5. Capturing Histograms and GC Evidence on the Same PID
 
-Tại terminal chứa JDK 17+:
+In a terminal with JDK 17+:
 
 ```bash
 jcmd -l
@@ -123,85 +123,85 @@ jcmd 12345 VM.uptime
 jcmd 12345 help GC.class_histogram
 ```
 
-Thay `12345` bằng PID của JVM đang cần khảo sát. Chụp cách nhau theo kế hoạch và đặt tên tệp khác nhau. Ví dụ chạy trong terminal hỗ trợ chuyển hướng stdout:
+Replace `12345` with the PID of the JVM under investigation. Capture at planned intervals with distinct filenames. Example in a terminal supporting stdout redirection:
 
 ```bash
 jcmd 12345 GC.class_histogram > hist_T0.txt
 jstat -gcutil 12345 1000 5 > gc_T0.txt
 
-# Thực hiện hoặc quan sát cùng mức tải, ghi mốc thời gian.
+# Run or observe the same load level, recording timestamps.
 jcmd 12345 GC.class_histogram > hist_T1.txt
 jstat -gcutil 12345 1000 5 > gc_T1.txt
 
-# Sau khi tải/công việc có cơ hội hoàn tất.
+# After load/work has had a chance to complete.
 jcmd 12345 GC.class_histogram > hist_T2.txt
 jstat -gcutil 12345 1000 5 > gc_T2.txt
 ```
 
-Đây là **trình tự thao tác**, không phải một script tự đợi đúng khoảng thời gian: người thực hành phải chụp T0/T1/T2 vào các mốc đã chọn. Trên Windows PowerShell, chuyển hướng output sẽ theo cơ chế encoding của shell; kiểm tra encoding khi xử lý tự động. Nếu công cụ attach thất bại trong container, phải xác minh user/permission, cùng namespace và cơ chế attach, thay vì âm thầm đổi PID.
+This is a **procedural sequence**, not a script that sleeps automatically for the right interval: the operator must take T0/T1/T2 at the chosen checkpoints. In Windows PowerShell, output redirection follows the shell's encoding rules; check encoding if parsing automatically. If attaching fails in a container, verify user/permissions, namespace, and attach mechanism rather than silently switching PIDs.
 
-Các số `YGC`, `FGC`, `YGCT`, `FGCT`, `GCT` của `jstat` cho biết số lần/thời gian GC tích lũy theo bộ đếm công cụ (thời gian thường bằng giây). `-gcutil` hiển thị `E`, `O` theo **phần trăm riêng từng space**; **không đồng nhất `O=80%` với “heap 80%”**. Collector/JDK khác nhau có thể hiển thị cột khác; đọc header thay vì giả định thứ tự cứng.
+`jstat`'s `YGC`, `FGC`, `YGCT`, `FGCT`, and `GCT` report cumulative GC counts/times from tool counters (times are typically in seconds). `-gcutil` prints `E` and `O` as **percentages of each individual space**; **do not equate `O=80%` with "80% total heap."** Different collectors/JDKs may display different columns; read the header instead of assuming fixed positions.
 
-Nên lưu riêng `heap.used/committed/max` từ `MemoryMXBean`, ứng dụng metrics hoặc GC log. Histogram chỉ là lớp bổ sung để nhìn **phân bố object theo class**, không thay thế toàn cảnh heap.
+Save `heap.used/committed/max` separately from `MemoryMXBean`, app metrics, or GC logs. A histogram is an extra layer showing **object distribution by class**, not a substitute for the overall heap picture.
 
-**Tác động sản xuất:** `GC.class_histogram` có mức tác động cao, nên lên lịch ở cửa sổ chẩn đoán phù hợp, đo thời gian chạy và kiểm tra latency. Không cần gọi `System.gc()` hay `jcmd ... GC.run` sau mỗi mẫu; cách này làm thay đổi hệ thống đang điều tra. Nếu đã chủ động Full GC vì một thí nghiệm được kiểm soát, phải ghi thành một biến của thí nghiệm và không so trực tiếp với mẫu bình thường.
+**Production impact:** `GC.class_histogram` has high impact, so schedule it in suitable diagnostic windows, time its execution, and watch latency. Do not call `System.gc()` or `jcmd ... GC.run` after every sample; that alters the system under investigation. If you intentionally ran a Full GC for a controlled experiment, record it as an experimental variable and do not compare directly against normal samples.
 
-## 6. Cách tính delta đúng khi so T0, T1, T2
+## 6. Computing Deltas Properly Across T0, T1, T2
 
-Giả sử với **cùng class** `com.acme.OrderContext`:
+Suppose for the **same class** `com.acme.OrderContext`:
 
 ```text
 deltaInstances(T0,T1) = instances(T1) - instances(T0)
 deltaShallowBytes     = shallowBytes(T1) - shallowBytes(T0)
 growthRate           = deltaShallowBytes / elapsedMinutes
-bytesPerInstance     = shallowBytes / instances  (khi instances > 0)
+bytesPerInstance     = shallowBytes / instances  (when instances > 0)
 ```
 
-Chúng là số đo **net change** giữa các snapshot; không phản ánh tất cả allocation trong khoảng đó vì hàng triệu object có thể vừa được cấp phát vừa được thu hồi.
+These measure **net change** between snapshots; they do not reflect every allocation in that interval, since millions of objects may have been allocated and reclaimed.
 
-Ví dụ **giả định** với tải ổn định và cùng chế độ đo:
+**Hypothetical** example under steady load and identical capture mode:
 
-| Mốc | Thời gian từ T0 | `OrderContext` instances | Shallow bytes | Sau-GC heap used |
+| Checkpoint | Time from T0 | `OrderContext` instances | Shallow bytes | Post-GC heap used |
 | --- | ---: | ---: | ---: | ---: |
-| T0 | 0 phút | 2.000 | 160.000 B | 120 MiB |
-| T1 | 10 phút | 3.200 | 256.000 B | 150 MiB |
-| T2 | 20 phút | 4.400 | 352.000 B | 180 MiB |
+| T0 | 0 min | 2,000 | 160,000 B | 120 MiB |
+| T1 | 10 min | 3,200 | 256,000 B | 150 MiB |
+| T2 | 20 min | 4,400 | 352,000 B | 180 MiB |
 
-Tính được:
+We compute:
 
-- T0 → T1: `+1.200` instances, `+96.000 B` shallow, tốc độ trung bình `9.600 B/phút`.
-- T1 → T2: `+1.200` instances, `+96.000 B` shallow, tiếp tục tăng trong cửa sổ thứ hai.
-- Nền sau-GC heap used tăng `+30 MiB` mỗi khoảng 10 phút.
+- T0 → T1: `+1,200` instances, `+96,000 B` shallow, average rate `9,600 B/min`.
+- T1 → T2: `+1,200` instances, `+96,000 B` shallow, continuing to climb in the second window.
+- Post-GC heap used floor rises `+30 MiB` every 10 minutes.
 
-Đây là **bằng chứng xu hướng đáng điều tra** khi RPS, số request đồng thời, cache warm-up, batch queue và các chu kỳ nghiệp vụ đã ổn định. **Không được** gán toàn bộ mức tăng `30 MiB` cho `OrderContext`: shallow bytes của chính lớp đó chỉ tăng `96.000 B`, còn các object nó tham chiếu hoặc các cấu trúc khác có thể chiếm phần lớn. Histogram không chứng minh mối liên hệ giữ tham chiếu.
+This is **trend evidence worth investigating** once RPS, concurrency, cache warm-up, batch queues, and business cycles are confirmed steady. **Do not** attribute the entire `30 MiB` growth solely to `OrderContext`: that class's own shallow bytes grew by only `96,000 B`, whereas objects it references or other structures may account for most of it. A histogram does not prove reference-holding relationships.
 
-Ngược lại, giả sử cache hợp lệ có số instance `2.000 → 3.200 → 3.200` sau giai đoạn warm-up rồi ổn định nhiều chu kỳ tải; đây có thể là hành vi cache có giới hạn. Nếu workload ở T2 gấp đôi T0, cần chuẩn hóa số liệu theo request/session/queue size trước khi gọi tăng trưởng là bất thường.
+Conversely, suppose a valid cache shows instance counts `2,000 → 3,200 → 3,200` after warm-up and stays flat across multiple load cycles; that can simply be bounded-cache behavior. If workload at T2 is double T0, normalize counts by requests/sessions/queue size before labeling growth abnormal.
 
-**Đừng chỉ lấy tỉ lệ phần trăm tăng**: tăng từ 1 lên 10 object là `+900%` nhưng có thể vô nghĩa; tăng từ 5 GiB lên 6 GiB chỉ `+20%` nhưng có thể nghiêm trọng. Luôn báo cả **delta tuyệt đối, thời gian và bối cảnh tải**.
+**Never report percentage growth alone**: going from 1 to 10 objects is `+900%` yet may be meaningless; going from 5 GiB to 6 GiB is only `+20%` yet can be critical. Always report **absolute deltas, elapsed time, and load context**.
 
-## 7. Phân biệt bốn kiểu đồ thị qua thời gian
+## 7. Distinguishing Four Trend Shapes Over Time
 
-### 7.1. Allocation tạm thời: đỉnh cao nhưng nền trở về
+### 7.1. Temporary allocation: high peaks, baseline returns
 
-Sau mỗi đợt request, heap used tăng rồi giảm khi GC thu hồi object ngắn hạn. Histogram ở đỉnh tải có thể cho nhiều `byte[]` hoặc `String`, nhưng số lượng sau xử lý và sau GC không tăng bền vững. Hướng xử lý thường là kiểm tra **allocation rate/GC pressure/latency**, chưa phải xác định “leak”.
+After each burst of requests, heap used rises and then drops as GC reclaims short-lived objects. A peak-load histogram may show many `byte[]` or `String` instances, but post-processing and post-GC counts do not climb persistently. The right direction is checking **allocation rate/GC pressure/latency**, not prematurely declaring a "leak."
 
-### 7.2. Warm-up hoặc cache hữu hạn: tăng rồi đạt trần
+### 7.2. Warm-up or bounded cache: rises then plateaus
 
-Cache dần lấp đầy từ 0 tới giới hạn 10.000 entry rồi đi ngang. Histogram lấy sớm sẽ luôn cho delta dương; phải đo qua mốc đạt trần, TTL/eviction hoặc sau khi dừng workload. Kiểm tra cả giới hạn theo **số lượng, dung lượng byte, cardinality khóa** và chính sách eviction thực tế.
+A cache fills gradually from 0 to a 10,000-entry cap and then levels off. Early histograms will always show positive deltas; measure past the cap point, across TTL/eviction cycles, or after stopping load. Inspect limits by **entry count, byte weight, key cardinality**, and actual eviction policy.
 
-### 7.3. Backlog: tích lũy có thể đảo ngược
+### 7.3. Backlog: reversible accumulation
 
-Queue tăng vì tốc độ sản xuất lớn hơn tiêu thụ, trong khi xử lý chậm. Nhiều message/context cùng tồn tại, sau đó giảm khi consumer bắt kịp. Nếu T0–T2 nằm trong giờ cao điểm, histogram tăng đều có thể là **hệ quả của backlog**. Cần đối chiếu queue depth, throughput, retries và thời gian xả backlog.
+A queue grows because production outpaces consumption while processing slows down. Many messages/contexts coexist concurrently, then drain once consumers catch up. If T0–T2 span peak hours, a steadily climbing histogram can be a **symptom of backlog**. Cross-check queue depth, throughput, retries, and drain time.
 
-### 7.4. Retention bất thường: nền tăng dù đầu vào đã ổn định/kết thúc
+### 7.4. Abnormal retention: baseline rises even after input stabilizes/stops
 
-Sau mỗi chu kỳ hoàn tất, một bộ sưu tập, listener registry, thread-local, cache không có giới hạn hoặc static field vẫn giữ object không còn cần nữa. T2 sau khi workload/TTL kết thúc vẫn cao và tăng theo số chu kỳ. Đây là **nghi vấn leak mạnh hơn**, nhưng phải mở heap dump để tìm **GC root → chuỗi tham chiếu → object** và so với vòng đời mong đợi.
+After each cycle finishes, a collection, listener registry, thread-local, unbounded cache, or static field keeps holding objects that are no longer needed. T2 remains elevated after load/TTL ends and climbs with each cycle. This is **stronger leak suspicion**, yet you must open a heap dump to trace **GC root → reference chain → object** and compare with expected lifecycle.
 
-## 8. Ví dụ Java 17+ có thể chạy: bounded và growing retention
+## 8. Runnable Java 17+ Example: Bounded vs. Growing Retention
 
-Thí nghiệm tạo hai kiểu retention cùng dạng `byte[]`; ý nghĩa là so **xu hướng trong mỗi tiến trình**. Chế độ `bounded` là cache giới hạn; `growing` cố ý giữ các mảng ngày càng nhiều để mô phỏng **triệu chứng** mà một leak có thể gây ra. Đây là mô phỏng có chủ đích, không phải một lỗi bí mật trong code.
+The experiment creates two retention styles with the same `byte[]` shape; the point is to compare **trends within each process**. `bounded` mode models a capped cache; `growing` mode intentionally retains more and more arrays to simulate the **symptom** a leak can produce. This is a deliberate simulation, not a hidden bug in the code.
 
-Lưu toàn bộ mã thành **`HistogramTrendDemo.java`**:
+Save the full code as **`HistogramTrendDemo.java`**:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -226,7 +226,7 @@ public final class HistogramTrendDemo {
                 + " mode=" + mode);
 
         for (int step = 1; step <= 240; step++) {
-            // Allocation tam thoi: co the duoc GC thu hoi ve sau.
+            // Temporary allocation: eligible for later GC reclamation.
             byte[][] burst = new byte[8][];
             for (int i = 0; i < burst.length; i++) {
                 burst[i] = new byte[128 * 1024];
@@ -234,7 +234,7 @@ public final class HistogramTrendDemo {
             }
             lastBurst = burst;
 
-            // Mang co tham chieu manh tu static Deque.
+            // Array with strong reference from static Deque.
             byte[] kept = new byte[128 * 1024];
             kept[0] = (byte) step;
             RETAINED.addLast(kept);
@@ -259,21 +259,21 @@ public final class HistogramTrendDemo {
 }
 ```
 
-Biên dịch:
+Compile:
 
 ```bash
 javac HistogramTrendDemo.java
 ```
 
-Chạy **lần lượt từng chế độ** để tránh nhầm PID và cạnh tranh tài nguyên. Trong terminal A:
+Run **one mode at a time** to avoid PID confusion and resource contention. In Terminal A:
 
 ```bash
 java -Xms64m -Xmx128m -XX:+UseG1GC HistogramTrendDemo bounded
 ```
 
-Đầu ra luôn bắt đầu bằng dòng có dạng `PID=12345 mode=bounded`. Các số `used` và `committed` **không cố định**; khi in ở các bước 20, 40, 60, bộ đếm `retained` lần lượt là `20`, `32`, `32` vì mã giới hạn 32 phần tử. Chương trình lặp 240 bước cách nhau ít nhất 500 ms (khoảng hai phút, có thể lâu hơn do GC hoặc lệnh chẩn đoán).
+Output always starts with a line formatted like `PID=12345 mode=bounded`. `used` and `committed` numbers are **not fixed**; when printed at steps 20, 40, and 60, the `retained` counter is `20`, `32`, `32` because the code caps at 32 items. The program runs 240 steps spaced by at least 500 ms (around two minutes, potentially longer due to GC or diagnostic commands).
 
-Trong terminal B khi tiến trình vẫn chạy, thay PID thực tế rồi chụp các mốc ở khoảng sau bước 40/80/160:
+In Terminal B while the process is still running, substitute the actual PID and capture checkpoints roughly after steps 40/80/160:
 
 ```bash
 jcmd 12345 GC.class_histogram > bounded_T0.txt
@@ -281,113 +281,113 @@ jcmd 12345 GC.class_histogram > bounded_T1.txt
 jcmd 12345 GC.class_histogram > bounded_T2.txt
 ```
 
-**Các lệnh là ba hành động thủ công tại ba thời điểm**, đừng chạy nối nhau tức thì; giữa mỗi lần cần chờ đủ khoảng lấy mẫu và ghi lại step thực tế của ứng dụng. Có thể lấy mẫu GC qua `jstat -gcutil 12345 1000 5` ở giữa.
+**These commands are three manual actions at three distinct times**; do not run them back-to-back immediately; wait an adequate sampling interval between runs and note the application's actual step. You can sample GC via `jstat -gcutil 12345 1000 5` in between.
 
-Sau khi tiến trình `bounded` kết thúc, mở terminal A chạy lại:
+After the `bounded` process exits, run again in Terminal A:
 
 ```bash
 java -Xms64m -Xmx128m -XX:+UseG1GC HistogramTrendDemo growing
 ```
 
-Chụp cùng một giao thức cho **PID mới**, lưu thành `growing_T0.txt`, `growing_T1.txt`, `growing_T2.txt`. Khi in ở bước 20/40/60, `retained` lần lượt là `20`, `40`, `60`, vì không loại phần tử.
+Capture using the same protocol for the **new PID**, saving `growing_T0.txt`, `growing_T1.txt`, `growing_T2.txt`. When printed at steps 20/40/60, `retained` is `20`, `40`, `60`, since nothing is evicted.
 
-### Dự kiến quan sát và cách viết kết luận
+### Expected observations and how to write conclusions
 
-- **`bounded`:** sau warm-up, số mảng `byte[]` được giữ cố ý sẽ ổn định quanh giới hạn; các buffer Java/JVM khác có thể làm tổng `[B` dao động, nên histogram không nhất thiết cho một con số phẳng tuyệt đối.
-- **`growing`:** `RETAINED` tăng thêm một mảng `128 KiB` mỗi bước, nên phần dữ liệu cố ý giữ tăng khoảng `128 KiB/bước` (240 bước ≈ 30 MiB dữ liệu mảng, chưa kể overhead). Histogram `[B` và nền sau-GC có xu hướng tăng, nhưng số đo thực tế vẫn chịu ảnh hưởng hoạt động JVM/GC.
-- **Điểm mấu chốt:** chỉ từ histogram tăng không thể biết vì sao; khi xem source trong bài mới xác định được tham chiếu `static RETAINED` và vòng đời hai chế độ. Ở dự án thật phải tìm quan hệ này bằng heap dump, thông tin nghiệp vụ và phân tích GC roots.
+- **`bounded`:** after warm-up, the number of intentionally retained `byte[]` arrays stabilizes around the cap; other Java/JVM buffers can make total `[B` fluctuate, so the histogram need not be strictly flat.
+- **`growing`:** `RETAINED` adds one `128 KiB` array per step, so intentionally retained data grows by roughly `128 KiB/step` (240 steps ≈ 30 MiB of array data, excluding overhead). The `[B` histogram and post-GC floor tend to rise, though exact measurements remain influenced by JVM/GC activity.
+- **Key point:** from a growing histogram alone you cannot tell why; reading the source in this exercise reveals the `static RETAINED` reference and the two lifecycle modes. In real projects, you uncover this relationship via a heap dump, business context, and GC root analysis.
 
-Không lấy kết quả hai JVM khác nhau làm cặp T0/T1 để tính delta. **Mỗi chế độ phải có chuỗi T0–T2 bên trong chính JVM của nó** rồi mới so đặc điểm hình dạng xu hướng giữa hai chế độ.
+Never pair results from two different JVMs as T0/T1 to compute a delta. **Each mode must have its own T0–T2 series inside its own JVM** before comparing trend shapes between modes.
 
-## 9. Khi nào cần heap dump thay vì histogram tiếp theo?
+## 9. When Do You Need a Heap Dump Instead of Another Histogram?
 
-Histogram qua nhiều mốc có thể chỉ ra **class đáng nghi và xu hướng**. Để hỏi “object nào đang giữ dữ liệu này?” phải chuyển sang đồ thị object, ví dụ heap dump HPROF:
+Histograms across multiple checkpoints identify **suspect classes and trends**. Asking "which object is retaining this data?" requires moving to the object graph—for example, an HPROF heap dump:
 
 ```bash
 jcmd 12345 GC.heap_dump heap_T2.hprof
 ```
 
-Chỉ chạy khi đã cân nhắc pause, dung lượng ổ đĩa, quyền truy cập và thông tin nhạy cảm có thể tồn tại trong heap. Trên HotSpot JDK 21, `GC.heap_dump` được tài liệu xếp **Impact: High** và **yêu cầu Full GC trừ khi dùng `-all`**. Vì vậy dump mặc định và dump `-all=true` không phải hai snapshot có ý nghĩa reachability giống nhau. Thu thập T1/T2 bằng cùng chế độ và ghi lại mọi thay đổi do dump/GC tạo ra.
+Run only after weighing pause impact, disk space, permissions, and sensitive information that may reside in the heap. On HotSpot JDK 21, `GC.heap_dump` is documented as **Impact: High** and **requests a Full GC unless `-all` is used**. Therefore, default dumps and `-all=true` dumps do not share identical reachability semantics. Capture T1/T2 in the same mode and log any shifts caused by the dump/GC.
 
-Trong **Eclipse Memory Analyzer (MAT)** hoặc công cụ tương đương, thực hiện:
+In **Eclipse Memory Analyzer (MAT)** or an equivalent tool, do the following:
 
-1. **Histogram/Top Consumers:** xác nhận loại object và lượng shallow heap tương ứng; tìm những class tăng đáng kể khi so hai dump có điều kiện tương đương.
-2. **Dominator Tree:** xem object/cấu trúc nào đang chi phối một tập object lớn; **retained size** giúp đo mức bộ nhớ có thể giải phóng nếu bỏ được điểm giữ đó.
-3. **Path to GC Roots:** lần ngược từ object nghi vấn đến static field, thread, thread-local, JNI root, class loader... để biết **vì sao object còn reachable**.
-4. **Kiểm tra vòng đời nghiệp vụ:** tham chiếu đó có được phép tồn tại tới thời điểm T2 không? Nếu dữ liệu chỉ cần trong một request đã hoàn tất, lý do gì object vẫn nằm trong registry/cache/queue?
-5. **Xác nhận bằng phép thử:** giới hạn cache, hủy registration, xóa key đã hết hạn, đóng resource... trong môi trường phù hợp; lặp lại cùng tải và xem nền sau-GC/retained path có còn tích lũy không.
+1. **Histogram / Top Consumers:** verify object types and corresponding shallow heap; find classes that grew significantly when comparing two dumps under equivalent conditions.
+2. **Dominator Tree:** see which object/structure dominates a large object set; **retained size** estimates memory freed if that anchor is removed.
+3. **Path to GC Roots:** trace back from suspect objects to static fields, threads, thread-locals, JNI roots, class loaders, etc., to learn **why objects stay reachable**.
+4. **Check business lifecycle:** should that reference still exist at T2? If data was only needed during a completed request, why is it still inside a registry/cache/queue?
+5. **Verify via experiment:** bound caches, unregister listeners, expire keys, close resources, etc., in a suitable environment; repeat the same workload and confirm post-GC floor and retained paths stop accumulating.
 
-**Một root giữ hàng triệu object không tự động là lỗi.** Cấu trúc đó có thể là cache chủ đích. Câu hỏi cuối cùng là “đang giữ **đúng những object còn cần** trong **đúng khoảng thời gian** hay không?”.
+**A root retaining millions of objects is not automatically a bug.** That structure may be an intentional cache. The final question is: "Is it holding **the right objects that are still needed** for **the right duration**?"
 
-Phân biệt:
+Distinction:
 
-| Công cụ | Khẳng định có thể đưa ra | Điều còn thiếu |
+| Tool | Claim it supports | What is still missing |
 | --- | --- | --- |
-| Một histogram | Lớp X có N instance, B shallow bytes tại mốc T | Xu hướng, root, vòng đời, tính bất thường |
-| Nhiều histogram cùng điều kiện | Lớp X có delta/tốc độ tăng qua các mốc | Object cụ thể nào tồn tại, đường tham chiếu |
-| Heap/GC metrics theo thời gian | Nền sau GC tăng/ổn định, GC pressure thay đổi | Object và chủ sở hữu dẫn đến tăng |
-| Heap dump + dominator + GC roots | Đường giữ object và retained graph tại mốc đo | Dữ liệu nghiệp vụ để kết luận giữ tham chiếu sai |
-| Phép thử trước/sau thay đổi | Kiểm tra giả thuyết nguyên nhân dưới tải tương đương | Độ tin cậy qua nhiều chu kỳ, edge cases, regression |
+| Single histogram | Class X has N instances, B shallow bytes at time T | Trend, roots, lifecycle, abnormality |
+| Multiple histograms under same conditions | Class X has a delta/growth rate across checkpoints | Which specific objects persist, reference paths |
+| Heap/GC metrics over time | Post-GC floor rises/stabilizes, GC pressure changes | Specific objects and owners driving growth |
+| Heap dump + dominators + GC roots | Retention paths and retained graph at capture time | Business context to conclude improper retention |
+| Before/after fix test | Tests causal hypothesis under equivalent load | Confidence across multiple cycles, edge cases, regressions |
 
-## 10. Mẫu biên bản điều tra và cách trình bày có trách nhiệm
+## 10. Investigation Report Template and Responsible Phrasing
 
-Dùng một bảng thống nhất để tránh lời kết luận vượt quá dữ liệu:
+Use a consistent table to avoid making claims that go beyond the data:
 
-| Mốc | Giờ/PID | Workload | GC context | N của lớp nghi vấn | Shallow bytes | Sau-GC heap used | Ghi chú |
+| Checkpoint | Time/PID | Workload | GC context | N of suspect class | Shallow bytes | Post-GC heap used | Notes |
 | --- | --- | --- | --- | ---: | ---: | ---: | --- |
-| T0 | ... | warm-up xong, load A | ... | ... | ... | ... | Baseline |
-| T1 | ... | load A, sau 1 chu kỳ | ... | ... | ... | ... | Delta so T0 |
-| T2 | ... | load A hoặc đã xả queue | ... | ... | ... | ... | Kiểm tra plateau |
-| T3 (nếu cần) | ... | sau TTL/GC phù hợp | ... | ... | ... | ... | Phản chứng |
+| T0 | ... | post warm-up, load A | ... | ... | ... | ... | Baseline |
+| T1 | ... | load A, after 1 cycle | ... | ... | ... | ... | Delta vs. T0 |
+| T2 | ... | load A or queue drained | ... | ... | ... | ... | Plateau check |
+| T3 (if needed) | ... | after TTL/appropriate GC | ... | ... | ... | ... | Counter-check |
 
-**Mẫu nhận định tốt (số giả định):**
+**Good conclusion example (hypothetical numbers):**
 
-> Trong cùng JVM HotSpot/G1, với các histogram mặc định và tải khoảng 100 requests/s ổn định, count của `OrderContext` tăng 2.000 → 3.200 → 4.400 trong 20 phút; mức used sau các chu kỳ GC tương đương tăng từ 120 lên 180 MiB. Các request quan sát đã hoàn tất và queue không tăng. Đây là dấu hiệu retention cần điều tra. Chưa đủ bằng chứng xác định leak hay đối tượng giữ; bước tiếp theo là tìm dominator/GC roots trong heap dump và đối chiếu TTL/vòng đời `OrderContext`.
+> Within the same HotSpot/G1 JVM, using default histograms at a steady load of ~100 requests/s, `OrderContext` count increased 2,000 → 3,200 → 4,400 over 20 minutes; used heap after comparable GC cycles climbed from 120 to 180 MiB. Observed requests completed and queues did not grow. This is a retention signal requiring investigation. Evidence is not yet sufficient to confirm a leak or retaining owner; the next step is locating dominators/GC roots in a heap dump and verifying `OrderContext` TTL/lifecycle.
 
-**Mẫu nhận định yếu:** “Histogram có rất nhiều `byte[]`, chắc chắn ứng dụng leak.” Câu này không nói tải, thời gian, cách đo, kiểu GC hay chủ sở hữu object.
+**Weak conclusion example:** "The histogram has lots of `byte[]`, so the app definitely leaks." This omits traffic, timeframe, measurement mode, GC type, and object ownership.
 
-Đừng dùng “đã chứng minh leak” chỉ vì thấy hai histogram tăng. Dùng ngôn ngữ thích hợp với mức bằng chứng: **quan sát → nghi vấn → nguyên nhân có đường tham chiếu → được xác nhận bằng phép thử**.
+Do not write "leak proven" just because two histograms grew. Match language to evidence strength: **observation → suspicion → causal reference path → confirmed by experiment**.
 
-## 11. Các sai lầm thường gặp
+## 11. Common Mistakes
 
-1. **Kết luận từ một histogram:** không biết tăng hay giảm, trước/sau chu kỳ nghiệp vụ, cũng không biết baseline.
-2. **Trừ theo số thứ tự `num`:** thứ hạng thay đổi; cần ghép đúng class, cân nhắc class loader cùng tên.
-3. **Đọc `#bytes` như retained size:** đó là shallow tổng theo class; không chứng minh những object này đang giữ cả cây tham chiếu.
-4. **So histogram mặc định với `-all=true`:** một bên có thể đếm object đã không còn reachable; ý nghĩa phép đo khác.
-5. **Không đồng bộ thời gian/tải:** một ảnh chụp giữa batch và một ảnh chụp lúc idle không tạo được delta đại diện.
-6. **Không biết collector và GC vừa chạy gì:** so `used` trước GC với sau GC rồi kết luận “đã hết leak” hoặc “leak tăng”.
-7. **Nhầm `heap.committed` hoặc RSS với live set:** committed là bộ nhớ JVM đã cam kết; RSS còn chứa native/stack/direct memory; histogram không giải thích hết RSS.
-8. **Bỏ qua cache warm-up và TTL:** object tăng đúng thời gian xây dựng cache hoặc trong thời gian session tồn tại có thể hợp lệ.
-9. **Nhìn class phổ biến mà bỏ qua owner:** `String`/`byte[]` xuất hiện ở rất nhiều thư viện; cần path đến root và ngữ cảnh nghiệp vụ.
-10. **Dùng tỷ lệ % mà không ghi chênh lệch byte/count:** tỷ lệ cao có thể là thay đổi rất nhỏ về tuyệt đối.
-11. **Lấy histogram quá thường xuyên trên production:** lệnh có Impact High, bản thân phép đo có thể ảnh hưởng latency/GC.
-12. **Chủ động Full GC không ghi nhận:** làm thay đổi live set/latency và biến thí nghiệm thành điều kiện khác.
-13. **So class count giữa hai phiên bản/deployment khác nhau:** schema, traffic, code path, GC, cache và class loader có thể khác.
-14. **Cho rằng tăng trưởng tuyến tính đủ chứng minh không có giới hạn:** nhiều cache tăng tuyến tính trong giai đoạn đầu, sau đó đạt trần.
-15. **Không xác minh bằng phép thử:** có đường tham chiếu tới một static cache vẫn chưa đủ nếu dữ liệu đó đúng là phải tồn tại.
+1. **Concluding from one histogram:** unknown direction of change, pre/post-business-cycle context, or baseline.
+2. **Subtracting by row rank `num`:** ranks shift; match by exact class, accounting for multiple class loaders with the same name.
+3. **Reading `#bytes` as retained size:** it is per-class shallow total; it does not prove those objects retain an entire reference subtree.
+4. **Comparing default histogram with `-all=true`:** one side may count unreachable objects; the measurements mean different things.
+5. **Misaligned time/load:** one snapshot mid-batch and another while idle do not form a representative delta.
+6. **Ignoring collector and recent GC activity:** comparing pre-GC `used` with post-GC `used` and declaring "leak fixed" or "leak worsened."
+7. **Confusing `heap.committed` or RSS with live set:** committed is memory reserved by the JVM; RSS also includes native/stack/direct memory; histograms do not explain all of RSS.
+8. **Ignoring cache warm-up and TTL:** object growth during cache population or valid session lifetime may be completely expected.
+9. **Focusing on ubiquitous classes while ignoring owners:** `String`/`byte[]` appear in countless libraries; you need root paths and business context.
+10. **Citing percentages without byte/count deltas:** huge percentages can correspond to trivial absolute changes.
+11. **Capturing histograms too frequently in production:** the command is High Impact and can perturb latency/GC itself.
+12. **Forcing Full GC without logging it:** alters live set and latency, turning the experiment into a different condition.
+13. **Comparing class counts across different versions/deployments:** schemas, traffic, code paths, GC, caches, and class loaders may differ.
+14. **Assuming linear early growth proves unbounded growth:** many caches grow linearly during warm-up before hitting their cap.
+15. **Skipping experimental verification:** even a path to a static cache is insufficient if that data is genuinely supposed to stay live.
 
-## 12. Bài tập tự đánh giá
+## 12. Self-Assessment Exercises
 
-**Tình huống A:** T0 có 10 MiB shallow `byte[]`, T1 là 18 MiB trong lúc queue tăng từ 200 lên 2.000, T2 còn 11 MiB sau khi queue xả hết và qua GC. Kết luận nào phù hợp?
+**Scenario A:** T0 shows 10 MiB shallow `byte[]`, T1 shows 18 MiB while a queue grows from 200 to 2,000 items, and T2 returns to 11 MiB after the queue drains and GC runs. Which conclusion fits?
 
-Gợi ý: số liệu phù hợp với **backlog/retention tạm thời**; chưa có bằng chứng leak. Cần chứng minh queue xử lý xong và mảng có vòng đời tương ứng.
+Hint: numbers fit **temporary backlog/retention**; no evidence of a leak. Confirm queue completion and corresponding array lifecycles.
 
-**Tình huống B:** cùng workload và cấu hình, T0/T1/T2 cách nhau mỗi 30 phút; sau-GC used tăng 300 → 390 → 480 MiB, `SessionRecord` và `HashMap$Node` tăng đều; session cũ đã hết hạn. Làm gì?
+**Scenario B:** under identical workload and config, T0/T1/T2 are spaced 30 minutes apart; post-GC used rises 300 → 390 → 480 MiB, `SessionRecord` and `HashMap$Node` grow steadily, and old sessions have already expired. What do you do?
 
-Gợi ý: báo **nghi vấn retention bền vững**, thu heap dump tại mốc phù hợp, tìm map/registry giữ `SessionRecord` và path tới GC roots, đối chiếu TTL. Chỉ sau khi chứng minh object không cần nữa vẫn được tham chiếu và thay đổi eviction làm xu hướng ổn định mới đủ mạnh để quy kết cơ chế leak.
+Hint: report **sustained retention suspicion**, capture a heap dump at an appropriate time, locate the map/registry holding `SessionRecord` and its paths to GC roots, and inspect TTL. Only after confirming unneeded objects remain referenced and fixing eviction stabilizes the trend can you attribute a leak mechanism.
 
-**Tình huống C:** hai histogram báo `byte[]` tăng gấp đôi nhưng T0 dùng mặc định còn T1 dùng `-all=true`. Có tính `Δ` để kết luận không?
+**Scenario C:** two histograms report `byte[]` doubled, but T0 used default mode while T1 used `-all=true`. Should you compute `Δ` to draw conclusions?
 
-Gợi ý: **không**; điều kiện reachability khác nhau, phải lấy lại mẫu cùng chế độ.
+Hint: **no**; reachability conditions differ, so re-sample using the same mode.
 
-**Thực hành:** chạy hai chế độ `bounded` và `growing` ở mục 8, lấy ba histogram theo thời gian, trích count/bytes của `[B`, ghi cả `retained` từ stdout và `heap.used`. Viết báo cáo 5 câu lần lượt gồm: điều kiện, số đo T0–T2, delta, cách giải thích bằng vòng đời, bước xác minh tiếp theo. Chỉ được kết luận mức mà dữ kiện hỗ trợ.
+**Practice:** run both `bounded` and `growing` modes from Section 8, capture three time-series histograms, extract `[B` counts/bytes, and record both `retained` from stdout and `heap.used`. Write a 5-sentence report covering: conditions, T0–T2 metrics, deltas, lifecycle explanation, and next verification step. Claim only what the data supports.
 
-## 13. Tài liệu chuẩn để đối chiếu
+## 13. Authoritative Reference Documentation
 
-- [Oracle JDK 21 — `jcmd`, `GC.class_histogram` / `GC.heap_dump` và mức impact](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html).
-- [Oracle JDK 21 — Troubleshoot Memory Leaks: live set, histogram theo chuỗi và giả thuyết leak](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html).
-- [Oracle JDK 21 — Diagnostic Tools: JFR, JMX và GC evidence](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html).
+- [Oracle JDK 21 — `jcmd`, `GC.class_histogram` / `GC.heap_dump`, and impact levels](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html).
+- [Oracle JDK 21 — Troubleshoot Memory Leaks: live set, serial histograms, and leak hypotheses](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html).
+- [Oracle JDK 21 — Diagnostic Tools: JFR, JMX, and GC evidence](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html).
 - [Eclipse MAT — Dominator Tree: retained graph](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/concepts/dominatortree.html).
-- [Eclipse MAT — Finding Memory Leak: Top Consumers và Paths to GC Roots](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/reference/findingmemoryleak.html).
+- [Eclipse MAT — Finding Memory Leak: Top Consumers and Paths to GC Roots](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/reference/findingmemoryleak.html).
 
-**Nguyên tắc thực hành:** histogram cho biết *cái gì đang có*; nhiều mốc cùng điều kiện cho biết *cái gì đang thay đổi*; heap dump/GC roots và vòng đời nghiệp vụ mới giúp giải thích *vì sao object còn được giữ*, còn phép thử có kiểm soát giúp xác nhận giả thuyết.
+**Guiding principle:** one histogram tells *what is present*; multiple checkpoints under matching conditions tell *what is changing*; heap dumps, GC roots, and business lifecycle explain *why objects remain held*, and controlled experiments confirm the hypothesis.

@@ -1,47 +1,47 @@
-# Đọc SnippetEvent, trạng thái, kết quả và chẩn đoán của đoạn mã trong JShell nhúng
+# Reading `SnippetEvent`, Status, Results, and Diagnostics in Embedded JShell
 
-## 1. Bốn nguồn thông tin khác nhau
+## 1. Four Distinct Sources of Information
 
-Java cung cấp JShell API từ Java 9 qua module `jdk.jshell`. Trong ứng dụng nhúng, gọi `JShell.eval(String)` trả về `List<SnippetEvent>`, có thể gồm nhiều sự kiện cho một lần nhập: sự kiện snippet mới và sự kiện cập nhật snippet phụ thuộc hoặc snippet cũ bị ghi đè.
+Java has provided the JShell API since Java 9 via the `jdk.jshell` module. In an embedded application, calling `JShell.eval(String)` returns a `List<SnippetEvent>`, which can contain multiple events for a single input: an event for the new snippet plus events updating dependent snippets or overwritten older snippets.
 
-Để trình bày chính xác kết quả biên dịch/đánh giá cần phân biệt:
+To accurately present compilation and evaluation results, distinguish between:
 
-- `SnippetEvent` mô tả **sự chuyển trạng thái** của một snippet, gồm status, value và exception.
-- `Snippet` chứa định danh `id()`, nguồn `source()`, loại `kind()`.
-- `Diag` chứa compiler diagnostics lấy qua `JShell.diagnostics(snippet)`, không có API `event.getDiagnostics()`.
-- Output từ `System.out`/`System.err` trong snippet được gửi qua stream của JShell, không đồng nghĩa `event.value()`.
+- `SnippetEvent` describes a **state transition** of a snippet, including status, value, and exception.
+- `Snippet` holds the identifier `id()`, source text `source()`, and kind `kind()`.
+- `Diag` holds compiler diagnostics obtained via `JShell.diagnostics(snippet)`; there is no `event.getDiagnostics()` API.
+- Output from `System.out`/`System.err` inside a snippet is routed through JShell's configured streams and is not synonymous with `event.value()`.
 
-## 2. Các getter của SnippetEvent
+## 2. `SnippetEvent` Getters
 
-| Getter | Ý nghĩa | Khi nào có thể thiếu? |
+| Getter | Meaning | When Might Something Be Absent? |
 | --- | --- | --- |
-| `snippet()` | Snippet gắn với event | Đọc để liên kết UI/session |
-| `status()` | Trạng thái **sau** sự kiện | Cần đọc cho từng event |
-| `previousStatus()` | Trạng thái **trước** sự kiện | Có thể `NONEXISTENT` khi là snippet mới |
-| `causeSnippet()` | Snippet gây cập nhật gián tiếp | Có thể `null` nếu đánh giá trực tiếp |
-| `isSignatureChange()` | Chữ ký snippet thay đổi hay không | Không phải thước đo runtime success |
-| `value()` | Chuỗi biểu diễn kết quả khi có | Có thể `null` với import, method, lệnh không có value |
-| `exception()` | Lỗi khi chạy snippet | Có thể `null` dù compile bị từ chối |
+| `snippet()` | The snippet associated with the event | Read to correlate UI/session state |
+| `status()` | Status **after** the event | Must be read for every event |
+| `previousStatus()` | Status **before** the event | Can be `NONEXISTENT` for a new snippet |
+| `causeSnippet()` | Snippet that triggered an indirect update | `null` for direct evaluation |
+| `isSignatureChange()` | Whether the snippet's signature changed | Not a measure of runtime success |
+| `value()` | String representation of result when present | `null` for imports, methods, or statements without a value |
+| `exception()` | Error thrown while running the snippet | `null` even when compilation is rejected |
 
-**`status() == VALID` không bảo đảm đoạn code chạy thành công**: một biểu thức compile được vẫn có thể ném exception khi thực thi. Tương tự, `value() == null` không đồng nghĩa compile thất bại.
+**`status() == VALID` does not guarantee the code ran without error**: an expression that compiles cleanly can still throw an exception at runtime. Likewise, `value() == null` does not mean compilation failed.
 
-## 3. Trạng thái Snippet.Status
+## 3. `Snippet.Status` Values
 
-- `VALID`: snippet được chấp nhận và có hiệu lực.
-- `RECOVERABLE_DEFINED`: declaration thiếu tham chiếu nhưng còn có thể được định nghĩa/phục hồi khi bổ sung dependency.
-- `RECOVERABLE_NOT_DEFINED`: declaration chưa thể định nghĩa đầy đủ vì thiếu phụ thuộc; vẫn có khả năng phục hồi.
-- `REJECTED`: đoạn mã bị từ chối bởi kiểm tra cú pháp/kiểu hoặc các điều kiện compile.
-- `OVERWRITTEN`: snippet cũ bị declaration mới thay thế.
-- `DROPPED`: snippet bị xóa qua thao tác drop.
-- `NONEXISTENT`: snippet không tồn tại trong trạng thái được đề cập.
+- `VALID`: the snippet was accepted and is active.
+- `RECOVERABLE_DEFINED`: the declaration has missing references but could still be defined/recovered once dependencies are supplied.
+- `RECOVERABLE_NOT_DEFINED`: the declaration cannot be fully defined yet due to missing dependencies; still recoverable.
+- `REJECTED`: the snippet was rejected by syntax/type checks or compilation rules.
+- `OVERWRITTEN`: an older snippet was replaced by a new declaration.
+- `DROPPED`: the snippet was removed via a drop operation.
+- `NONEXISTENT`: the snippet does not exist in the referenced state.
 
-Đây là status của **snippet theo JShell state**, không phải một boolean `success` duy nhất. Một lần eval có thể thay đổi nhiều snippet; consumer cần duyệt toàn bộ danh sách event.
+These are statuses of **snippets in JShell state**, not a single `success` boolean. A single `eval` call can affect multiple snippets; consumers must iterate over the entire event list.
 
-## 4. Ví dụ Java 17+ chạy được
+## 4. Runnable Java 17+ Example
 
-Ví dụ sau tạo JShell, đánh giá biến, biểu thức và lỗi compile. Chương trình in kind/status/value và số diagnostics lỗi. Không cần cài thêm JavaScript engine hay Nashorn; đây là **JShell Java code**, không phải JSR 223.
+The following example creates a JShell instance and evaluates a variable, an expression, and a compile error. The program prints kind/status/value and the number of error diagnostics. No extra JavaScript engine or Nashorn installation is needed; this is **JShell Java code**, not JSR 223.
 
-Tệp `EmbeddedJShellDemo.java`:
+File `EmbeddedJShellDemo.java`:
 
 ```java
 import jdk.jshell.Diag;
@@ -81,14 +81,14 @@ public final class EmbeddedJShellDemo {
 }
 ```
 
-Chạy trên JDK 17+ có `jdk.jshell`:
+Run on JDK 17+ with `jdk.jshell`:
 
 ```bash
 javac --add-modules jdk.jshell EmbeddedJShellDemo.java
 java --add-modules jdk.jshell EmbeddedJShellDemo
 ```
 
-Output điển hình với JDK 17:
+Typical output on JDK 17:
 
 ```text
 INPUT: int x = 10;
@@ -104,11 +104,11 @@ INPUT: int broken = missingName;
   errors=1
 ```
 
-JShell có thể tạo scratch variable khi đánh giá biểu thức `x + 5`, nên kind là `VAR` trong trường hợp trên. Compiler message cụ thể có thể thay đổi theo phiên bản JDK/locale. Ví dụ chủ động đếm lỗi thay vì so sánh chuỗi thông báo.
+JShell can create a scratch variable when evaluating the expression `x + 5`, which is why `kind` is `VAR` above. Exact compiler messages can vary across JDK versions and locales. The example intentionally counts errors instead of comparing message strings.
 
-## 5. Đọc chẩn đoán bằng Diag
+## 5. Reading Diagnostics with `Diag`
 
-API chuẩn để lấy diagnostics:
+Standard API for retrieving diagnostics:
 
 ```java
 shell.diagnostics(snippet).forEach(diag -> {
@@ -119,9 +119,9 @@ shell.diagnostics(snippet).forEach(diag -> {
 });
 ```
 
-Đoạn này là **snippet minh họa trong method** đã có `JShell shell` và `Snippet snippet`, không phải chương trình độc lập. `Diag.getStartPosition()`, `getEndPosition()` và `getPosition()` trả offset trong source của snippet, có thể là `-1` nếu không có vị trí. Không coi offset là số dòng.
+This is an **illustrative snippet inside a method** that already has `JShell shell` and `Snippet snippet`, not a standalone program. `Diag.getStartPosition()`, `getEndPosition()`, and `getPosition()` return offsets within the snippet's source, or `-1` if no position applies. Do not treat offsets as line numbers.
 
-Ví dụ helper ánh xạ offset sang dòng/cột theo UTF-16 code units của source Java (không xử lý riêng tab width, grapheme clusters hoặc source preprocessing):
+Example helper mapping an offset to line/column in UTF-16 code units of Java source (without special handling for tab widths, grapheme clusters, or source preprocessing):
 
 ```java
 static String lineColumn(String source, long offset) {
@@ -140,15 +140,15 @@ static String lineColumn(String source, long offset) {
 }
 ```
 
-Với dữ liệu nhiều file, source transform hoặc editor đếm code points khác Java, cần source map thích hợp. Không gắn line/column của một snippet ngắn trực tiếp vào tệp gốc khi ứng dụng đã nối/preprocess code.
+With multi-file inputs, source transformations, or editors counting code points differently from Java, a proper source map is needed. Do not map a short snippet's line/column directly onto an original file if the application concatenated or preprocessed code.
 
-## 6. Lỗi compile khác lỗi runtime
+## 6. Compile Errors vs. Runtime Errors
 
-**Compile failure:** một snippet như `int n = noSuchIdentifier;` thường có `REJECTED`; hãy kiểm tra `JShell.diagnostics(event.snippet())`, vì `exception()` không phải kênh báo lỗi compile.
+**Compile failure:** a snippet such as `int n = noSuchIdentifier;` typically yields `REJECTED`; check `JShell.diagnostics(event.snippet())`, because `exception()` is not the channel for compile errors.
 
-**Runtime failure:** một snippet như `1 / 0` có thể compile thành công nhưng gây lỗi khi đánh giá. `event.exception()` khi đó có thể là `jdk.jshell.EvalException`; thông tin bổ sung gồm `getExceptionClassName()` và stack trace. Một số snippet thiếu tham chiếu có thể dẫn đến `UnresolvedReferenceException`. Không dùng `value()` đơn lẻ để quyết định thành công.
+**Runtime failure:** a snippet such as `1 / 0` can compile successfully yet fail during evaluation. `event.exception()` may then be a `jdk.jshell.EvalException`; additional details include `getExceptionClassName()` and the stack trace. Some snippets with missing references can throw `UnresolvedReferenceException`. Never use `value()` alone to determine success.
 
-Ví dụ (trong method có biến `shell`):
+Example (inside a method with variable `shell`):
 
 ```java
 for (SnippetEvent event : shell.eval("1 / 0")) {
@@ -158,11 +158,11 @@ for (SnippetEvent event : shell.eval("1 / 0")) {
 }
 ```
 
-Đối với exception runtime, UI có thể hiển thị loại và message, còn hệ thống log giữ stack trace phù hợp. Không để nội dung message/stack trace chưa escape đi thẳng vào HTML.
+For runtime exceptions, the UI can display the exception type and message while logging retains the stack trace appropriately. Never pass unescaped message or stack trace text directly into HTML.
 
-## 7. Theo dõi event phụ, overwrite và drop
+## 7. Tracking Secondary Events, Overwrites, and Drops
 
-Trạng thái JShell tồn tại qua nhiều lần eval. Khi cùng một variable/method/type được khai báo lại, JShell có thể báo snippet mới và snippet cũ `OVERWRITTEN`. Khi một declaration được thêm hoặc sửa, snippets phụ thuộc có thể được cập nhật. Duyệt tất cả event:
+JShell state persists across `eval` calls. When the same variable/method/type is redeclared, JShell can report the new snippet alongside `OVERWRITTEN` for the old snippet. When a declaration is added or modified, dependent snippets may be updated. Iterate over all events:
 
 ```java
 for (SnippetEvent event : events) {
@@ -176,11 +176,11 @@ for (SnippetEvent event : events) {
 }
 ```
 
-Đây là đoạn minh họa trong method có `List<SnippetEvent> events`. Khi host có UI hoặc registry, key cần bao gồm **session identity** cùng snippet identity; `snippet.id()` chỉ có ý nghĩa trong một JShell session. Đừng giữ status/value cũ sau event `OVERWRITTEN` hay `DROPPED`.
+This is an illustrative snippet inside a method with `List<SnippetEvent> events`. When the host maintains a UI or registry, keys must include **session identity** alongside snippet identity; `snippet.id()` is only meaningful within a single JShell session. Do not retain stale status/values after `OVERWRITTEN` or `DROPPED` events.
 
-## 8. Tách stdout/stderr với value
+## 8. Separating `stdout`/`stderr` from `value`
 
-`System.out.println("hello")` do code snippet gọi xuất text qua output stream, **không biến text thành event.value()**. Khi khởi tạo JShell có thể cấu hình:
+`System.out.println("hello")` called by a snippet writes text to the output stream; **it does not turn that text into `event.value()`**. When constructing JShell, you can configure streams:
 
 ```java
 try (JShell shell = JShell.builder()
@@ -191,53 +191,53 @@ try (JShell shell = JShell.builder()
 }
 ```
 
-Trong ứng dụng thật, mỗi session/request nên có stream/buffer riêng. Nếu dùng chung `System.out` giữa các session, output có thể xen kẽ. Các phần UI nên trình bày riêng: diagnostics compile, lỗi runtime, giá trị biểu thức và stdout/stderr.
+In a real application, each session/request should have its own stream or buffer. Sharing `System.out` across sessions can interleave output. UI sections should present these separately: compile diagnostics, runtime errors, expression values, and `stdout`/`stderr`.
 
-## 9. Cách thiết kế kết quả API
+## 9. Designing the API Result Structure
 
-Ví dụ contract dữ liệu có thể bao gồm:
+An example data contract might include:
 
-| Field | Lấy từ | Ý nghĩa |
+| Field | Source | Meaning |
 | --- | --- | --- |
-| `sessionId` | Host tự tạo | Tránh trùng snippet ID giữa các session |
-| `snippetId` | `snippet.id()` | Định danh của snippet trong session |
-| `source` | `snippet.source()` | Source được JShell nhận |
-| `kind` | `snippet.kind()` | Loại snippet |
-| `previousStatus`, `status` | `SnippetEvent` | Sự chuyển trạng thái |
-| `value` | `SnippetEvent.value()` | Result string nếu có |
-| `runtimeException` | `SnippetEvent.exception()` | Lỗi khi thực thi |
+| `sessionId` | Host-generated | Prevents snippet ID collisions across sessions |
+| `snippetId` | `snippet.id()` | Identifier of the snippet within the session |
+| `source` | `snippet.source()` | Source accepted by JShell |
+| `kind` | `snippet.kind()` | Snippet kind |
+| `previousStatus`, `status` | `SnippetEvent` | State transition |
+| `value` | `SnippetEvent.value()` | Result string if present |
+| `runtimeException` | `SnippetEvent.exception()` | Error during execution |
 | `diagnostics` | `JShell.diagnostics(snippet)` | Compiler errors/warnings |
-| `stdout`, `stderr` | Stream của JShell builder | Text do code in ra |
+| `stdout`, `stderr` | JShell builder streams | Text printed by the code |
 
-Khi kết quả trả về ứng dụng web, escape source, message và output. Giới hạn kích thước buffer và lưu ý rằng output từ code chưa tin cậy có thể chứa thông tin nhạy cảm.
+When returning results to a web application, escape source text, messages, and output. Cap buffer sizes and keep in mind that output from untrusted code can expose sensitive data.
 
-## 10. Vòng đời và bảo mật
+## 10. Lifecycle and Security
 
-JShell là môi trường giữ state: variables, imports, methods và classes có thể tồn tại qua nhiều snippet. Dùng `try-with-resources` hoặc `close()` khi kết thúc. Tránh chia sẻ một instance giữa nhiều người dùng nếu không có kiểm soát session và truy cập đồng thời.
+JShell is a stateful environment: variables, imports, methods, and classes persist across snippets. Use `try-with-resources` or `close()` when finished. Avoid sharing a single instance across multiple users without session and concurrency controls.
 
-JShell nhúng **không phải sandbox bảo mật tự động**. Nếu chạy code không tin cậy, phải kiểm soát execution engine, OS permissions, CPU/memory/time budgets và cô lập process/container khi phù hợp. Đừng nhận đầu vào code bất kỳ rồi thực thi trong tiến trình host có quyền rộng.
+Embedded JShell is **not an automatic security sandbox**. When running untrusted code, control the execution engine, OS permissions, CPU/memory/time budgets, and process/container isolation as appropriate. Never accept arbitrary code input and execute it in a host process with broad privileges.
 
-## 11. Những lỗi thường gặp
+## 11. Common Mistakes
 
-| Lỗi | Hậu quả | Giải pháp |
+| Mistake | Consequence | Solution |
 | --- | --- | --- |
-| Chỉ đọc event đầu tiên | Bỏ sót trạng thái của snippet phụ thuộc | Duyệt toàn bộ events |
-| Coi VALID là chạy thành công | Bỏ qua runtime exception | Kiểm tra exception riêng |
-| Coi value() là System.out | Sai hiển thị output | Tách stream và value |
-| Không đọc diagnostics | Không giải thích vì sao REJECTED | Gọi JShell.diagnostics |
-| Coi offset Diag là số dòng | Highlight sai vị trí | Ánh xạ offset vào source |
-| Giữ state cũ sau overwrite | UI hiển thị sai | Dựa trên event mới nhất |
-| Dùng snippet.id xuyên session | Va chạm ID | Thêm session ID của host |
-| Không đóng JShell | Rò rỉ tài nguyên | Close mỗi session |
+| Reading only the first event | Misses status updates on dependent snippets | Iterate through all events |
+| Treating `VALID` as execution success | Misses runtime exceptions | Check `exception()` separately |
+| Treating `value()` as `System.out` | Incorrect output display | Separate streams and values |
+| Not reading diagnostics | Cannot explain why a snippet was `REJECTED` | Call `JShell.diagnostics` |
+| Treating `Diag` offsets as line numbers | Highlights wrong positions | Map offsets onto source text |
+| Retaining old state after overwrite | UI displays stale information | Update from the latest event |
+| Using `snippet.id` across sessions | ID collisions | Scope by host session ID |
+| Not closing JShell | Resource leaks | Close every session |
 
 ## 12. Checklist
 
-- [ ] Duyệt toàn bộ `List<SnippetEvent>` của mỗi lần eval.
-- [ ] Đọc cả status trước/sau, cause và signature change.
-- [ ] Phân biệt compiler diagnostics, runtime exception, value và stdout.
-- [ ] Xử lý `REJECTED` và các trạng thái recoverable đúng ý nghĩa.
-- [ ] Dùng `Diag` cho message và vị trí; map offsets cẩn thận.
-- [ ] Dọn state sau overwrite/drop, không giữ dữ liệu cũ.
-- [ ] Đóng session và dùng chính sách cô lập cho code chưa tin cậy.
+- [ ] Iterate over the entire `List<SnippetEvent>` from each `eval` call.
+- [ ] Inspect both previous/current status, cause, and signature change.
+- [ ] Distinguish compiler diagnostics, runtime exceptions, values, and `stdout`.
+- [ ] Handle `REJECTED` and recoverable statuses accurately.
+- [ ] Use `Diag` for messages and positions; map offsets carefully.
+- [ ] Clean up state after overwrite/drop without retaining stale data.
+- [ ] Close sessions and enforce isolation policies for untrusted code.
 
-**Kết luận:** `SnippetEvent` nói điều gì **đã thay đổi** trong JShell, `status()` nói snippet có trạng thái nào, `value()` là kết quả biểu thức nếu có, `exception()` báo lỗi khi đánh giá, và `Diag` cung cấp chẩn đoán của compiler. Đọc các nguồn này riêng biệt giúp ứng dụng nhúng giải thích lỗi và cập nhật giao diện một cách chính xác.
+**Conclusion:** `SnippetEvent` tells you **what changed** in JShell, `status()` gives the snippet's state, `value()` is the expression result if any, `exception()` reports evaluation errors, and `Diag` provides compiler diagnostics. Reading each of these sources distinctly lets an embedded application explain errors and update its UI accurately.

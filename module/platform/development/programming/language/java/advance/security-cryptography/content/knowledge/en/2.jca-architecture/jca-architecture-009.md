@@ -1,148 +1,148 @@
-# 2.9 Tính tương thích và trạng thái thay đổi khi dùng dịch vụ mật mã đồng thời
+# 2.9 Compatibility and Mutable State When Using Cryptographic Services Concurrently
 
-## 1. Vì sao hai vấn đề này phải được xem xét cùng nhau?
+## 1. Why Must These Two Issues Be Considered Together?
 
-Một ứng dụng Java có thể thực hiện hàng nghìn tác vụ mật mã đồng thời: băm nội dung tải lên, xác minh chữ ký webhook, tính HMAC, mã hóa dữ liệu người dùng, hoặc giải mã các thông điệp đến từ dịch vụ khác. Những tác vụ có thể chạy trên nhiều thread của web server, thread pool, tác vụ bất đồng bộ hoặc nhiều instance ứng dụng.
+A Java application may execute thousands of concurrent cryptographic operations: hashing uploaded content, verifying webhook signatures, computing HMACs, encrypting user data, or decrypting messages arriving from another service. These tasks may run across multiple web server threads, thread pools, async tasks, or multiple application instances.
 
-Để kết quả chính xác và an toàn, cần đồng thời giải quyết **hai nhóm vấn đề độc lập nhưng liên quan**:
+For results to be both accurate and secure, **two independent yet related problem areas** must be solved simultaneously:
 
-1. **Tính tương thích (interoperability / compatibility):** Bên tạo và bên tiêu thụ dữ liệu mật mã có thống nhất thuật toán, tham số, định dạng byte, biểu diễn khóa và phiên bản giao thức không? Các Java Security Provider khác nhau có cùng hỗ trợ những lựa chọn đó không?
-2. **Trạng thái và tính đồng thời (state / concurrency):** Một đối tượng JCA đang giữ dữ liệu từ thao tác trước, khóa nào, chế độ ký/xác minh hay mã hóa/giải mã nào? Nếu nhiều thread cùng gọi update, init hoặc doFinal trên đối tượng đó, liệu một yêu cầu có lẫn dữ liệu/trạng thái của yêu cầu khác không?
+1. **Compatibility (interoperability / compatibility):** Do the producer and consumer of cryptographic data agree on algorithms, parameters, byte formats, key representations, and protocol versions? Do different Java Security Providers mutually support those choices?
+2. **State and concurrency:** What data from a previous operation is a JCA object currently holding, which key, sign/verify mode, or encrypt/decrypt mode? If multiple threads call `update`, `init`, or `doFinal` on that object concurrently, could one request mix its data/state with another request's?
 
-**Mấu chốt:** “Cùng tên thuật toán” chưa đủ bảo đảm tương thích giữa hai hệ thống; “cùng dùng một đối tượng Java” cũng chưa bảo đảm được phép gọi đồng thời.
+**Key point:** “Same algorithm name” is not enough to guarantee compatibility between two systems; “sharing one Java object” also does not guarantee concurrent calls are permitted.
 
-### Mục tiêu sau bài
+### Lesson Objectives
 
-Sau khi học, bạn có thể:
+After studying this lesson, you will be able to:
 
-- Phân biệt **engine API**, **provider implementation** và **trạng thái riêng của engine instance** trong JCA.
-- Xác định trạng thái thay đổi ở MessageDigest, Mac, Signature, Cipher và ý nghĩa của init, update, digest/sign/verify/doFinal, reset.
-- Chọn phạm vi sở hữu đối tượng mật mã an toàn khi chạy đa luồng.
-- Nhận diện lỗi do provider/default, tham số, encoding, định dạng khóa và nonce/IV bị dùng lại.
-- Thiết kế và kiểm thử hợp đồng byte/thuật toán để nhiều ứng dụng, phiên bản hoặc provider tương tác được với nhau.
+- Distinguish **engine API**, **provider implementation**, and **per-engine-instance state** in JCA.
+- Identify mutable state in `MessageDigest`, `Mac`, `Signature`, and `Cipher`, and the semantics of `init`, `update`, `digest`/`sign`/`verify`/`doFinal`, and `reset`.
+- Choose a safe ownership scope for cryptographic objects in multithreaded execution.
+- Recognize failures caused by providers/defaults, parameters, encodings, key formats, and reused nonces/IVs.
+- Design and test byte/algorithm contracts so multiple applications, versions, or providers can interoperate.
 
 
-## 2. Tách cấu hình provider khỏi trạng thái của mỗi phép toán
+## 2. Separating Provider Configuration from Per-Operation State
 
-Trong JCA/JCE, `getInstance` tạo engine (ví dụ `Cipher`, `Mac`, `Signature`) thông qua implementation của provider. **Provider registry** mô tả khả năng/cấu hình ở mức JVM, còn **engine instance** giữ khóa, mode, tham số và dữ liệu đang xử lý của **một phép toán cụ thể**. Cùng một provider có thể phục vụ nhiều engine độc lập; chia sẻ một engine instance đang xử lý dữ liệu giữa hai request lại là vấn đề khác hẳn.
+In JCA/JCE, `getInstance` creates an engine (e.g., `Cipher`, `Mac`, `Signature`) via a provider's implementation. The **provider registry** describes JVM-level capabilities/configuration, whereas an **engine instance** holds the key, mode, parameters, and in-progress data of **one specific operation**. The same provider can back many independent engines; sharing one in-progress engine instance across two requests is a completely different matter.
 
-| Ranh giới | Được chia sẻ khi có chính sách? | Rủi ro nếu nhầm |
+| Boundary | Shareable under policy? | Risk if confused |
 | --- | --- | --- |
-| Tên thuật toán, cấu hình bất biến, provider đã đăng ký | Có | Cấu hình thay đổi giữa các môi trường gây khác biệt |
-| Đối tượng khóa/handle | Có điều kiện theo provider và quyền sử dụng | Lộ khóa, không tương thích HSM hoặc thay khóa giữa chừng |
-| `MessageDigest`, `Mac`, `Cipher`, `Signature` đang xử lý | Không mặc định; nên sở hữu theo tác vụ | Xen `init/update/final` từ request khác, gây kết quả sai hoặc rò trạng thái |
-| `SecureRandom` | API cho phép dùng đồng thời | Vẫn cần đo contention/entropy tùy provider |
+| Algorithm names, immutable config, registered providers | Yes | Config drift across environments causes behavioral differences |
+| Key objects / handles | Conditionally per provider and usage permissions | Key exposure, HSM incompatibility, or mid-flight key changes |
+| In-progress `MessageDigest`, `Mac`, `Cipher`, `Signature` | Not by default; should be owned per task | Interleaved `init/update/final` from another request, causing wrong results or state leakage |
+| `SecureRandom` | API permits concurrent use | Still need to measure contention/entropy per provider |
 
-Vì vậy kiểm tra **tương thích giao thức** và **quyền sở hữu state** phải song hành: đúng thuật toán/byte format không cứu được một phép tính bị thread khác xen vào; tách engine theo request cũng không cứu được hai bên không thống nhất IV, AAD, key hay định dạng chữ ký.
+Therefore, checking **protocol compatibility** and **state ownership** must go hand in hand: the right algorithm/byte format cannot save a computation interleaved by another thread; isolating engines per request also cannot fix two parties disagreeing on IV, AAD, key, or signature format.
 
-## 3. “Tương thích” thực sự bao gồm những lớp nào?
+## 3. What Layers Does “Compatibility” Actually Encompass?
 
-| Lớp | Cần thống nhất | Ví dụ không tương thích |
+| Layer | What must agree | Incompatibility example |
 | --- | --- | --- |
-| **API/khả năng hỗ trợ** | Provider có thuật toán và operation cần thiết; JDK/thư viện/hardware có hỗ trợ | JVM A có AES/GCM, provider B không hỗ trợ cấu hình hoặc kích thước khóa tương ứng. |
-| **Thuật toán và mode** | Tên/biến thể/thuật toán ký, mã hóa, MAC, digest | Cùng khóa AES nhưng một bên dùng GCM, bên kia dùng CBC; hoặc một bên ký RSASSA-PSS, bên kia xác minh SHA256withRSA/PKCS#1 v1.5. |
-| **Tham số mật mã** | Nonce/IV, tag length, salt, iteration count, padding, hash/MGF và tham số phù hợp | Một bên dùng tag GCM 128 bit, bên kia diễn giải 96 bit; RSA-PSS có salt length khác. |
-| **Byte input** | UTF-8, thứ tự trường, canonical serialization, AAD, dấu xuống dòng, các byte được ký | Hai bên tưởng ký “cùng JSON” nhưng khoảng trắng, thứ tự key hoặc Unicode encoding khác nhau. |
-| **Wire format** | Cách đóng gói version, key ID, IV, ciphertext, tag, signature; Base64/hex nếu có | Một bên gửi ciphertext||tag, bên kia mong tag ở trường riêng; đảo vị trí IV. |
-| **Key format / trust** | Thuật toán, mục đích dùng, cách import public/private/secret key, nguồn tin cậy | Public key ở X.509 SubjectPublicKeyInfo nhưng bên nhận đọc như PKCS#8 private key. |
-| **Vòng đời và phiên bản** | Phiên bản thông điệp, key rotation, thời gian hiệu lực, chính sách chấp nhận thuật toán | Bản ghi cũ thiếu key ID khi ứng dụng đã xoay khóa. |
-| **Môi trường thực thi** | Provider, chính sách/FIPS, token/hardware, khả năng vận hành | HSM không cho xuất private key, hoặc một provider không cho dùng khóa thuộc provider khác. |
+| **API / support capabilities** | Provider has the required algorithm and operation; JDK/library/hardware supports it | JVM A has AES/GCM; provider B does not support that configuration or key size. |
+| **Algorithm and mode** | Name/variant/algorithm for signing, encryption, MAC, digest | Same AES key, yet one side uses GCM and the other uses CBC; or one signs with RSASSA-PSS while the other verifies with SHA256withRSA/PKCS#1 v1.5. |
+| **Cryptographic parameters** | Nonce/IV, tag length, salt, iteration count, padding, hash/MGF, and matching params | One side uses a 128-bit GCM tag, the other interprets 96 bits; RSA-PSS uses different salt lengths. |
+| **Input bytes** | UTF-8, field ordering, canonical serialization, AAD, line endings, exact signed bytes | Both sides think they sign “the same JSON” while whitespace, key order, or Unicode encoding differs. |
+| **Wire format** | How version, key ID, IV, ciphertext, tag, and signature are framed; Base64/hex if any | One side sends ciphertext||tag while the other expects tag in a separate field; IV position swapped. |
+| **Key format / trust** | Algorithm, intended usage, how public/private/secret keys are imported, trust anchor | Public key in X.509 SubjectPublicKeyInfo yet the receiver reads it as PKCS#8 private key. |
+| **Lifecycle and versioning** | Message version, key rotation, validity period, algorithm acceptance policy | Legacy records lack a key ID once the application has rotated keys. |
+| **Execution environment** | Provider, policy/FIPS, token/hardware, operational capability | HSM forbids exporting private keys, or one provider rejects keys belonging to another provider. |
 
-**Tương thích chức năng** nghĩa là có thể giải mã/xác minh một cách nhất quán khi dùng cùng giao thức; **an toàn bảo mật** còn đòi hỏi thuật toán, tham số, nguồn khóa và quy tắc sử dụng đúng. Một thiết kế dùng ECB có thể “tương thích” giữa hai provider nhưng không đạt yêu cầu bảo mật dữ liệu ứng dụng.
+**Functional compatibility** means consistently decrypting/verifying when using the same protocol; **security** additionally requires sound algorithms, parameters, key sources, and usage rules. A design using ECB might be “compatible” between two providers yet fail application data security requirements.
 
-### Quy tắc thực hành
+### Practical Rules
 
-- Yêu cầu transformation rõ ràng, chẳng hạn **AES/GCM/NoPadding**, thay vì chỉ **AES** rồi phụ thuộc mode/padding mặc định của provider.
-- Xác định thuật toán ký kèm tham số chính xác. Với **RSASSA-PSS** phải thống nhất hash, MGF, salt length và trailer field; với **RSA-OAEP** phải thống nhất các tham số OAEP được giao thức sử dụng.
-- Tách **định dạng truyền/ghi** khỏi đối tượng engine. Không cố lưu đối tượng Cipher/Signature đang chạy hoặc dựa vào trạng thái nội bộ của provider như một định dạng trao đổi.
-- Quy định encoding, field ordering, framing/version và byte sequence trước khi ký hoặc MAC. JSON object bằng nhau về ý nghĩa không mặc nhiên giống nhau ở mức byte.
-- Chấp nhận có điều kiện: **getInstance thành công chưa chứng minh init/doFinal sẽ thành công** với khóa, tag/IV hay tham số cụ thể. Cần kiểm thử chính tổ hợp triển khai.
+- Require an explicit transformation, such as **AES/GCM/NoPadding**, rather than **AES** alone and relying on provider default mode/padding.
+- Specify signature algorithms together with exact parameters. With **RSASSA-PSS**, agree on hash, MGF, salt length, and trailer field; with **RSA-OAEP**, agree on the OAEP parameters used by the protocol.
+- Separate **wire/storage format** from engine objects. Never try to serialize an active `Cipher`/`Signature` object or rely on provider internal state as an interchange format.
+- Define encoding, field ordering, framing/version, and byte sequences before signing or computing a MAC. Semantically equal JSON objects are not automatically identical at the byte level.
+- Treat capability conditionally: **`getInstance` succeeding does not prove `init`/`doFinal` will succeed** with specific keys, tags/IVs, or parameters. Test the exact deployment combination.
 
 
-## 4. Đơn vị an toàn là cả chuỗi thao tác, không phải từng method call
+## 4. The Unit of Safety Is the Whole Operation Sequence, Not Each Method Call
 
-Phần vòng đời riêng của từng engine đã có bài giải thích chi tiết. Ở góc nhìn **đa luồng**, điều quan trọng hơn là một **transaction mật mã** phải giữ nguyên quyền sở hữu engine từ lúc khởi tạo cho đến khi có kết quả cuối cùng. Ngay cả khi `doFinal` hoặc `digest` tự reset state, chúng **không tự khóa toàn bộ chuỗi thao tác** để bảo vệ trước thread khác.
+Individual engine lifecycles were covered in detail in the previous lesson. From a **multithreading** perspective, what matters even more is that a **cryptographic transaction** must retain exclusive ownership of the engine from initialization through the final result. Even when `doFinal` or `digest` auto-resets state, they **do not automatically lock the entire operation sequence** against other threads.
 
-| Engine | State mà các lời gọi cùng sửa | Race khi dùng chung một instance | Cách sở hữu an toàn |
+| Engine | State mutated across calls | Race when sharing one instance | Safe ownership pattern |
 | --- | --- | --- | --- |
-| `MessageDigest` | Các byte đã `update`, digest state | Băm nhầm phần dữ liệu của request khác; thread kia `digest/reset` trước | Một instance trên mỗi phép băm |
-| `Mac` | Key đã `init`, các byte đang tính MAC | Xen `update/doFinal` tạo MAC sai dù cùng key | Một instance theo message; có thể dùng lại **tuần tự** khi API reset |
-| `Signature` | Chế độ `initSign/initVerify`, key, message pending | Request khác đổi mode/key hoặc thêm bytes trước khi `sign/verify` | Một instance theo chữ ký |
-| `Cipher` | Encrypt/decrypt mode, key, IV, AAD, buffer, authentication state | Key/IV bị ghi đè, plaintext/ciphertext xen kẽ; lỗi GCM nghiêm trọng | Một instance theo bản tin, IV mới cho mỗi lần **mã hóa** GCM cùng key |
-| `KeyAgreement` | Private key và pha thỏa thuận đang diễn ra | Peer public key của hai phiên bị trộn | Một instance theo phiên thỏa thuận |
-| `SecureRandom` | PRNG state thuộc implementation | **Ngoại lệ được API quy định:** đối tượng có thể gọi đồng thời | Có thể dùng chung sau khi kiểm tra performance/provider |
+| `MessageDigest` | Bytes passed to `update`, digest state | Hashing mixed data from another request; another thread calls `digest/reset` early | One instance per hash operation |
+| `Mac` | Initialized key, bytes accumulating for MAC | Interleaved `update/doFinal` produces wrong MAC even with the same key | One instance per message; may reuse **sequentially** once API resets |
+| `Signature` | `initSign/initVerify` mode, key, pending message | Another request changes mode/key or appends bytes before `sign/verify` | One instance per signature |
+| `Cipher` | Encrypt/decrypt mode, key, IV, AAD, buffers, authentication state | Key/IV overwritten, plaintext/ciphertext interleaved; severe GCM failure | One instance per message, fresh IV for every GCM **encryption** under the same key |
+| `KeyAgreement` | Private key and active agreement phase | Peer public keys from two sessions mixed | One instance per agreement session |
+| `SecureRandom` | Implementation-owned PRNG state | **API-documented exception:** object may be called concurrently | Shareable after checking performance/provider behavior |
 
-### 4.1. Vì sao `synchronized` từng lời gọi vẫn chưa đủ?
+### 4.1. Why Isn't Synchronizing Each Method Call Enough?
 
-Giả sử A chạy `mac.update(a)`, sau đó B chạy `mac.update(b)`, cuối cùng A gọi `mac.doFinal()`. **Dù từng phương thức riêng lẻ được khóa**, giá trị A tính có thể là HMAC của `a || b`, không phải `a`. Nếu thật sự dùng một instance chung, phải khóa cả chuỗi `init → update → doFinal` như một giao dịch; đơn giản hơn thường là tạo instance riêng.
+Suppose thread A runs `mac.update(a)`, then thread B runs `mac.update(b)`, and finally thread A calls `mac.doFinal()`. **Even if each individual method is synchronized**, the value A computes may be the HMAC of `a || b`, not `a`. If you genuinely share one instance, you must synchronize the entire `init → update → doFinal` sequence as a single transaction; creating a dedicated instance is usually simpler.
 
-Với GCM, còn có invariant **không trùng (key, IV) giữa các lần mã hóa**. Một race trong bộ cấp nonce có thể gây lỗi mật mã ngay cả khi từng Cipher instance hoàn toàn độc lập; vấn đề cấp IV sẽ được kiểm thử ở mục 8. Với AEAD giải mã, không phát tán plaintext chưa kiểm chứng tag.
+With GCM, there is also the invariant **never duplicate `(key, IV)` across encryptions**. A race in the nonce allocator can cause a cryptographic break even when every `Cipher` instance is completely isolated; IV allocation is tested in section 8. For AEAD decryption, never release plaintext before verifying the tag.
 
-### 4.2. Vì sao `SecureRandom` là ngoại lệ?
+### 4.2. Why Is `SecureRandom` an Exception?
 
-Java quy định `SecureRandom` an toàn cho nhiều thread, bằng khả năng thread-safe của SPI hoặc đồng bộ truy cập do lớp bao quản lý. Tuy nhiên provider có thể chờ entropy/reseed hoặc có contention. Cam kết này **không lan sang** `MessageDigest`, `Mac`, `Signature`, `Cipher` hoặc `KeyAgreement`; các engine ấy cần policy sở hữu riêng.
+Java specifies `SecureRandom` as thread-safe, either through a thread-safe SPI or wrapper-managed synchronization. However, a provider may wait for entropy/reseeding or suffer contention. This guarantee **does not extend** to `MessageDigest`, `Mac`, `Signature`, `Cipher`, or `KeyAgreement`; those engines require explicit ownership policies.
 
-## 5. Các tình huống lỗi đồng thời điển hình
+## 5. Typical Concurrency Failure Scenarios
 
-### 5.1. Đặt engine stateful vào static field hoặc singleton
+### 5.1. Placing a Stateful Engine in a Static Field or Singleton
 
-Một service trong web framework thường là singleton, nghĩa là nhiều request cùng gọi vào một instance service. Nếu service giữ Cipher, Mac hoặc MessageDigest như **field dùng chung**, các method update/init/doFinal tác động lên cùng trạng thái. Dưới tải nhẹ chương trình có thể trông bình thường; dưới tải cao sinh kết quả sai, exception ngẫu nhiên hoặc nguy cơ rò rỉ dữ liệu giữa các request.
+A service in a web framework is typically a singleton, meaning many requests invoke the same service instance concurrently. If the service holds a `Cipher`, `Mac`, or `MessageDigest` as a **shared field**, `update`/`init`/`doFinal` calls mutate the same state. Under light load the program may appear normal; under heavy load it yields wrong outputs, sporadic exceptions, or risk of cross-request data leakage.
 
-**Thiết kế tốt hơn:** một lời gọi xử lý request tạo/khởi tạo engine độc lập, dùng từ đầu đến cuối, rồi loại bỏ; chỉ chia sẻ những cấu hình bất biến, tài liệu key ID và key handle có contract dùng đồng thời phù hợp.
+**Better design:** each request handler creates/initializes an independent engine, uses it end-to-end, and discards it; share only immutable configuration, key ID metadata, and key handles with appropriate concurrency contracts.
 
-### 5.2. Khóa từng phương thức nhưng quên toàn bộ giao dịch
+### 5.2. Synchronizing Individual Methods While Forgetting the Whole Transaction
 
-Nếu chỉ synchronized(update), synchronized(doFinal) riêng lẻ, thread khác vẫn xen vào giữa hai lời gọi. Để chia sẻ một engine stateful bằng khóa, toàn bộ chuỗi thao tác phải được tuần tự hóa. Cách này khó bảo trì, dễ deadlock và làm mất lợi ích xử lý song song. Instance riêng theo tác vụ thường đơn giản hơn.
+If you only have `synchronized(update)` and `synchronized(doFinal)` individually, another thread can still interleave between the two calls. To share a stateful engine via locking, the entire operation sequence must be serialized. That is hard to maintain, deadlock-prone, and sacrifices parallelism. Per-task instances are usually simpler.
 
-### 5.3. Dùng ThreadLocal hoặc object pool mà quên reset
+### 5.3. Using `ThreadLocal` or an Object Pool and Forgetting to Reset
 
-**ThreadLocal** có thể giữ một engine riêng cho mỗi thread nhưng không tự giải quyết việc tái sử dụng qua các request trên cùng thread pool. Phải init/reset đúng, tránh tồn đọng context người dùng trước; cân nhắc remove khi không còn cần và xử lý vòng đời thread. Object pool còn cần quy trình checkout → khởi tạo → xử lý → xử lý lỗi → trả lại, kiểm tra loại provider, khóa và tham số.
+**ThreadLocal** can keep one engine per thread, yet it does not automatically handle reuse across requests on the same thread pool. You must `init`/reset properly to avoid leftover context from a previous user; consider calling `remove` when no longer needed and managing thread lifecycles. An object pool additionally requires a checkout → initialize → process → error-handling → return workflow, checking provider type, keys, and parameters.
 
-Riêng **AES-GCM**, tái sử dụng một Cipher trong ThreadLocal không tự tạo nonce mới; **phải thay IV và khởi tạo lại trước mỗi lần mã hóa**. Không vì muốn tối ưu mà giữ IV của request trước.
+Specifically for **AES-GCM**, reusing a `Cipher` in `ThreadLocal` does not automatically generate a fresh nonce; **you must change the IV and re-initialize before every encryption**. Never retain the previous request's IV for the sake of optimization.
 
-### 5.4. Chia sẻ buffer mutable
+### 5.4. Sharing Mutable Buffers
 
-Dù mỗi thread có engine riêng, vẫn có thể gây lỗi nếu cùng thao tác trên một **ByteBuffer**, byte[] đang bị ghi, hoặc tập tham số mutable. Một task sửa input sau khi task khác bắt đầu ký/HMAC có thể khiến chữ ký không khớp. Chỉ chia sẻ dữ liệu thực sự không thay đổi, chuyển quyền sở hữu buffer rõ ràng, hoặc tạo bản sao khi cần.
+Even if every thread has its own engine, bugs can still arise if they operate concurrently on a shared **`ByteBuffer`**, a `byte[]` being mutated, or a mutable parameter set. One task modifying input after another starts signing/HMAC can cause signature mismatches. Share only truly immutable data, transfer buffer ownership explicitly, or copy when necessary.
 
-### 5.5. Nonce bị lặp ở nhiều thread hoặc nhiều instance ứng dụng
+### 5.5. Nonce Collisions Across Threads or Application Instances
 
-Nếu hai thread lấy cùng giá trị counter vì read/modify/write không đồng bộ, chúng có thể dùng trùng IV. Dùng **AtomicLong** hoặc một bộ cấp số duy nhất giúp tránh lặp **trong phạm vi mà bộ cấp số đó thực sự quản lý**. Điều này **không đủ** nếu nhiều JVM/container có cùng khóa nhưng mỗi nơi lại bắt đầu counter từ 0.
+If two threads read the same counter value due to unsynchronized read/modify/write, they may reuse the same IV. Using **`AtomicLong`** or a unique allocator prevents collisions **within the scope that allocator actually governs**. That is **not enough** if multiple JVMs/containers share the same key while each starts its counter at 0.
 
-Một chiến lược IV/nonce cho production phải được thiết kế **theo từng khóa** và bao phủ restart, nhiều node, backup/restore và lượng message dự kiến. Nếu dùng IV ngẫu nhiên 96 bit, cần đánh giá xác suất va chạm và giới hạn lượng message theo chính sách thuật toán; không gọi xác suất nhỏ là bảo đảm tuyệt đối. Không dùng timestamp đơn thuần, Random, hay IV cố định như một cơ chế cấp nonce an toàn.
+A production IV/nonce strategy must be designed **per key** and cover restarts, multiple nodes, backup/restore, and expected message volume. If using random 96-bit IVs, evaluate collision probability and enforce per-key message limits per algorithm guidance; do not call a small probability an absolute guarantee. Never use raw timestamps, `Random`, or a fixed IV as a nonce generation scheme.
 
-### 5.6. “Trùng kết quả” do dữ liệu và provider không thống nhất
+### 5.6. “Mismatching Results” Caused by Inconsistent Data and Providers
 
-Ngay cả khi hoàn toàn không có race, hai hệ thống có thể tạo ra chữ ký/MAC khác nhau do charset, thứ tự field, cách chuẩn hóa JSON, salt length, tag length hoặc thuật toán biến thể khác. **Đừng quy mọi lỗi BadPaddingException, AEADBadTagException hay Signature.verify(false) cho concurrency.** Trước tiên cần xác minh đúng giao thức byte và key ID, sau đó mới cô lập lỗi đồng thời.
+Even with zero data races, two systems can produce different signatures/MACs due to charsets, field order, JSON canonicalization, salt length, tag length, or different algorithm variants. **Do not blame every `BadPaddingException`, `AEADBadTagException`, or `Signature.verify(false)` on concurrency.** First verify the exact byte protocol and key ID, then isolate concurrency bugs.
 
-## 6. Mô hình sở hữu an toàn: cấu hình chung, engine theo tác vụ
+## 6. Safe Ownership Model: Shared Config, Per-Task Engines
 
-| Thành phần | Có thể chia sẻ? | Điều kiện |
+| Component | Shareable? | Conditions |
 | --- | --- | --- |
-| String tên thuật toán/transformation, tham số cấu hình bất biến | Có | Được định nghĩa rõ và không sửa giữa một giao dịch. |
-| SecretKey/PublicKey/PrivateKey | Có điều kiện | Key object/handle và provider hỗ trợ cách dùng đang chọn; kiểm soát quyền và vòng đời khóa; không sửa byte nguồn/chia sẻ dữ liệu private key bừa bãi. |
-| SecureRandom | Có | API bảo đảm thread-safe; đo throughput/latency của provider cụ thể. |
-| MessageDigest, Mac, Signature, Cipher dùng cho các request độc lập | **Nên tách** | Tạo engine riêng cho mỗi thao tác để không chia sẻ trạng thái. |
-| Counter cấp IV, trạng thái phiên bản khóa | Có với đồng bộ đúng phạm vi | Phải bảo đảm uniqueness/consistency xuyên các worker/process nếu cùng khóa. |
-| Byte array chứa plaintext/key/material | Cần thận trọng | Có thể bị sửa; kiểm soát quyền sở hữu, sao chép và xóa khi thích hợp. |
-| Provider configuration / Security provider order | Là cấu hình runtime | Xác định lúc khởi động và coi là hợp đồng triển khai; không sửa provider list liên tục theo request. |
+| Algorithm/transformation `String`, immutable config parameters | Yes | Well-defined and never mutated mid-transaction. |
+| `SecretKey`/`PublicKey`/`PrivateKey` | Conditionally | Key object/handle and provider support the chosen usage; enforce permissions and key lifecycle; never mutate source bytes or casually share private key material. |
+| `SecureRandom` | Yes | API guarantees thread safety; benchmark throughput/latency of the specific provider. |
+| `MessageDigest`, `Mac`, `Signature`, `Cipher` for independent requests | **Keep separate** | Create a dedicated engine per operation so state is never shared. |
+| IV counter, key-version state | Yes with properly scoped synchronization | Must guarantee uniqueness/consistency across workers/processes sharing the key. |
+| Byte arrays holding plaintext/keys/material | With care | Mutable; control ownership, copying, and zeroing when appropriate. |
+| Provider configuration / Security provider order | Runtime configuration | Establish at startup and treat as a deployment contract; do not mutate the provider list per request. |
 
-**Mẫu áp dụng cho handler đa luồng:**
+**Pattern for multithreaded handlers:**
 
-1. Xác định rõ operation, algorithm, key ID/version, nonce/AAD và input bytes của request.
-2. Tạo engine mới với **getInstance** (và provider nếu thực sự cần pin).
-3. Khởi tạo bằng khóa và tham số đúng cho request.
-4. Chạy toàn bộ update/finalize trong **cùng task/thread sở hữu engine**; không công bố engine ra singleton.
-5. Trả về **bytes kết quả kèm metadata định dạng**, không trả đối tượng Cipher/Mac/Signature.
-6. Xử lý exception, không tiếp tục dùng trạng thái lỗi; giải phóng tài nguyên/đóng session khi API/provider yêu cầu.
-7. Bảo vệ key lifecycle, kiểm tra authorization và lưu vết phù hợp ở lớp ứng dụng.
+1. Explicitly determine operation, algorithm, key ID/version, nonce/AAD, and request input bytes.
+2. Create a new engine via **`getInstance`** (and provider if pinning is truly required).
+3. Initialize with the right key and parameters for the request.
+4. Execute the entire `update`/finalize sequence within **the same task/thread owning the engine**; never expose the engine via a singleton.
+5. Return **result bytes plus format metadata**, never the `Cipher`/`Mac`/`Signature` object.
+6. Handle exceptions without continuing to use errored state; release resources/close sessions when required by the API/provider.
+7. Protect key lifecycle, check authorization, and audit appropriately at the application layer.
 
-Thiết kế per-operation thường là điểm xuất phát an toàn. **Chỉ tối ưu bằng reuse khi đã đo hiệu năng, kiểm chứng contract provider và kiểm soát lifecycle hoàn chỉnh.**
+A per-operation design is usually the safe starting point. **Optimize with reuse only after profiling performance, verifying provider contracts, and controlling the full lifecycle.**
 
-## 7. Ví dụ Java 17+: nhiều tác vụ băm SHA-256 và HMAC chạy song song
+## 7. Java 17+ Example: Running Multiple SHA-256 and HMAC Tasks in Parallel
 
-Chương trình tạo **32 tác vụ** trong thread pool. Mỗi tác vụ dùng **MessageDigest riêng** và **Mac riêng**, rồi so với hai test vector chuẩn (input và expected output được cố định). Phần cuối kiểm chứng việc digest() và Mac.doFinal() reset state khi tái sử dụng **tuần tự**.
+The program launches **32 tasks** in a thread pool. Each task uses its **own `MessageDigest`** and **own `Mac`**, then compares against two standard test vectors (fixed input and expected output). The final section verifies that `digest()` and `Mac.doFinal()` reset state when reused **sequentially**.
 
-Tạo file **ConcurrentJcaStateDemo.java**:
+Create the file **`ConcurrentJcaStateDemo.java`**:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -190,7 +190,7 @@ public class ConcurrentJcaStateDemo {
                     ok++;
                 }
             }
-            System.out.println("32 tác vụ đúng: " + ok + "/32");
+            System.out.println("32 tasks correct: " + ok + "/32");
         } finally {
             pool.shutdown();
         }
@@ -199,50 +199,50 @@ public class ConcurrentJcaStateDemo {
         sequential.init(new SecretKeySpec(
                 "key".getBytes(StandardCharsets.US_ASCII), "HmacSHA256"));
         byte[] bytes = "abc".getBytes(StandardCharsets.US_ASCII);
-        System.out.println("Mac doFinal đặt lại trạng thái: " +
+        System.out.println("Mac doFinal resets state: " +
                 Arrays.equals(sequential.doFinal(bytes), sequential.doFinal(bytes)));
 
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        System.out.println("MessageDigest digest đặt lại trạng thái: " +
+        System.out.println("MessageDigest digest resets state: " +
                 Arrays.equals(digest.digest(bytes), digest.digest(bytes)));
     }
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 --release 17 ConcurrentJcaStateDemo.java
 java ConcurrentJcaStateDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-32 tác vụ đúng: 32/32
-Mac doFinal đặt lại trạng thái: true
-MessageDigest digest đặt lại trạng thái: true
+32 tasks correct: 32/32
+Mac doFinal resets state: true
+MessageDigest digest resets state: true
 ~~~
 
-### Điều ví dụ chứng minh
+### What the Example Demonstrates
 
-1. **Mỗi lần calculate() tạo engine riêng** nên các lệnh update/digest/doFinal của các tác vụ không dùng chung trạng thái của một engine.
-2. **Test vector xác nhận kết quả bytes**, thay vì chỉ so hai lần tính có thể cùng sai vì một lỗi cài đặt khác.
-3. **Cùng một Mac hoặc MessageDigest có thể được dùng lại tuần tự** sau doFinal/digest theo contract của API. Điều này không nói rằng chia sẻ đúng instance đó giữa các task là an toàn.
-4. Chuỗi **"key"** chỉ là test vector công khai, **không phải bí mật production**. Trên hệ thống thật, khóa HMAC phải có entropy đủ, được lưu và cấp quyền đúng.
-5. Số 32/32 chỉ cho biết phép chạy ví dụ này thành công; không thể dùng một lần chạy để “chứng minh” mọi thao tác, mọi provider hay mọi trường hợp race đều an toàn.
+1. **Each `calculate()` call creates its own engines**, so `update`/`digest`/`doFinal` calls across tasks never share an engine's state.
+2. **Test vectors verify the exact output bytes**, rather than merely comparing two computations that could both fail due to another implementation bug.
+3. **The same `Mac` or `MessageDigest` can be reused sequentially** after `doFinal`/`digest` per the API contract. That does not mean sharing that same instance across concurrent tasks is safe.
+4. The string **`"key"`** is solely a public test vector, **not a production secret**. In real systems, HMAC keys must have adequate entropy and proper storage/access controls.
+5. The `32/32` count only shows this example run succeeded; a single run cannot “prove” that all operations, providers, or race cases are safe.
 
-Trong ví dụ, ta cố ý **không** tạo một static MessageDigest/Mac dùng chung. Nếu đặt chúng trong một singleton rồi gọi từ nhiều thread, tính đúng đắn không còn được bảo đảm bởi contract chung.
+In the example, we deliberately **avoid** creating a shared static `MessageDigest`/`Mac`. Putting them in a singleton and calling from multiple threads is not guaranteed to remain correct by the general contract.
 
-## 8. Ví dụ Java 17+: AES-GCM đa luồng và IV không bị lặp trong phạm vi ví dụ
+## 8. Java 17+ Example: Multithreaded AES-GCM and Non-Repeating IVs Within the Example Scope
 
-Đây là trường hợp quan trọng hơn vì lỗi concurrency có thể biến thành lỗ hổng mật mã dù kết quả giải mã đôi khi trông đúng.
+This is a more critical case because concurrency bugs can become cryptographic vulnerabilities even when decryption results occasionally look right.
 
-Chương trình tạo **khóa AES mới cho một lần chạy**, dùng một **prefix 4 byte** tạo ngẫu nhiên và một **AtomicLong 8 byte** cấp giá trị khác nhau cho từng message trong cùng JVM. Mỗi task tạo **Cipher riêng**, dùng IV 12 byte mới, AAD cố định, mã hóa rồi giải mã cùng message. Sau đó thử sửa tag để kiểm tra thao tác giải mã bị từ chối.
+The program generates **a fresh AES key per run**, uses a randomly generated **4-byte prefix** and an **8-byte `AtomicLong`** to issue distinct values per message within the same JVM. Each task creates its **own `Cipher`**, uses a fresh 12-byte IV and fixed AAD, then encrypts and decrypts the same message. Afterward, it tampers with the tag to verify decryption is rejected.
 
-Mục tiêu của cách cấp IV ở đây chỉ là minh họa **không trùng IV trong một lần chạy với một khóa vừa tạo**. Đây **không phải thuật toán cấp IV production cho khóa được dùng lại qua nhiều lần restart hoặc nhiều node**.
+The goal of this IV allocator is solely to illustrate **non-repeating IVs within one run using one freshly generated key**. This is **not a production IV allocation algorithm for keys reused across restarts or multiple nodes**.
 
-Tạo file **ConcurrentGcmDemo.java**:
+Create the file **`ConcurrentGcmDemo.java`**:
 
 ~~~java
 import java.nio.ByteBuffer;
@@ -319,7 +319,7 @@ public class ConcurrentGcmDemo {
                     ok++;
                 }
             }
-            System.out.println("GCM song song: " + ok + "/32");
+            System.out.println("Parallel GCM: " + ok + "/32");
 
             Envelope original = encrypt(key, nextIv(prefix, sequence), "order-99");
             byte[] modified = original.ciphertextWithTag().clone();
@@ -327,9 +327,9 @@ public class ConcurrentGcmDemo {
 
             try {
                 decrypt(key, new Envelope(original.iv(), modified));
-                System.out.println("Sai: chấp nhận bản mã sửa");
+                System.out.println("Error: modified ciphertext accepted");
             } catch (AEADBadTagException expected) {
-                System.out.println("Tag sai: đã từ chối");
+                System.out.println("Bad tag: rejected");
             }
         } finally {
             pool.shutdown();
@@ -338,76 +338,76 @@ public class ConcurrentGcmDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 --release 17 ConcurrentGcmDemo.java
 java ConcurrentGcmDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-GCM song song: 32/32
-Tag sai: đã từ chối
+Parallel GCM: 32/32
+Bad tag: rejected
 ~~~
 
-### Đọc kỹ những điều được và chưa được bảo đảm
+### Carefully Read What Is and Is Not Guaranteed
 
-- **Cipher riêng cho từng phép toán:** hai task không gọi init/updateAAD/doFinal trên cùng một Cipher instance.
-- **Một khóa AES dùng nhiều lần là điều có thể thiết kế**, nhưng **mỗi lần mã hóa AES-GCM với khóa đó phải dùng IV duy nhất**. AtomicLong bảo đảm các lần lấy số không trùng trong phạm vi counter của ví dụ; byte prefix không thay đổi trong lần chạy.
-- **Khóa được tạo mới khi chạy chương trình**. Nếu triển khai có khóa tồn tại lâu dài, các JVM khác nhau, khởi động lại hoặc khôi phục snapshot thì counter riêng không bảo đảm toàn cục. Cần thiết kế bộ cấp IV phối hợp với key version và giới hạn sử dụng theo hướng dẫn của thuật toán.
-- **Envelope** là record chứa tham chiếu byte[]: record không tự làm byte[] bất biến sâu. Trong ví dụ, buffer chỉ được đọc hoặc clone trước khi sửa; ở ứng dụng thật cần kiểm soát quyền sở hữu, bản sao và dữ liệu có thể bị sửa đồng thời.
-- **CiphertextWithTag** là chuỗi byte do JCE GCM trả về với tag gắn cùng bản mã. Khi lưu hoặc truyền, phải định nghĩa rõ format (version, key ID, IV length, IV, ciphertext/tag, AAD rule); người nhận không thể tự đoán các giá trị này.
-- **AAD** không bị mã hóa nhưng được xác thực. Nếu bên nhận truyền AAD khác, tag sẽ không hợp lệ. Lỗi AEADBadTagException không chứng minh một cách duy nhất rằng có kẻ tấn công; cũng có thể do dữ liệu hỏng, sai khóa, sai IV hoặc sai AAD.
+- **Dedicated `Cipher` per operation:** two tasks never call `init`/`updateAAD`/`doFinal` on the same `Cipher` instance.
+- **Reusing an AES key across operations is a valid design**, provided **every AES-GCM encryption with that key uses a unique IV**. `AtomicLong` guarantees non-repeating numbers within the example's counter scope; the prefix bytes stay unchanged during the run.
+- **The key is freshly generated at runtime**. In deployments with long-lived keys, multiple JVMs, restarts, or snapshot restores, an in-memory counter gives no global uniqueness guarantee. Design an IV allocator coordinated with key versions and usage limits per algorithm guidance.
+- **`Envelope`** is a record holding `byte[]` references: a record does not make `byte[]` deeply immutable. In the example, buffers are only read or cloned before modification; in real applications, control ownership, copying, and concurrent mutation.
+- **`CiphertextWithTag`** is the byte sequence returned by JCE GCM with the tag appended to the ciphertext. When storing or transmitting, define the format clearly (version, key ID, IV length, IV, ciphertext/tag, AAD rule); the recipient cannot guess these values.
+- **AAD** is unencrypted yet authenticated. If the recipient passes different AAD, the tag fails validation. `AEADBadTagException` does not uniquely prove an attacker is present; it can also stem from corrupted data, wrong key, wrong IV, or wrong AAD.
 
-Ví dụ chỉ minh họa concurrency, state và tính toàn vẹn. Bảo vệ dữ liệu production còn đòi hỏi KMS/secret management, giới hạn lượng dữ liệu/mỗi khóa, rotation, chính sách truy cập và giải mã thông điệp cũ.
+The example illustrates only concurrency, state, and integrity. Production data protection also requires KMS/secret management, per-key data volume limits, rotation, access policies, and legacy message decryption.
 
-## 9. Thiết kế format để các provider và phiên bản ứng dụng tương tác được
+## 9. Designing Formats So Providers and Application Versions Interoperate
 
-**Không truyền đối tượng engine; truyền dữ liệu và tham số được định nghĩa rõ.** Ví dụ cho AES-GCM:
+**Do not transmit engine objects; transmit explicitly defined data and parameters.** Example for AES-GCM:
 
 ~~~text
-Envelope V1 (định dạng do ứng dụng tự quy định, chỉ là ví dụ thiết kế)
+Envelope V1 (application-defined format, design example only)
   version:          1 byte
   keyIdLength:      1 byte
-  keyId:            UTF-8 bytes, keyIdLength byte
-  iv:               12 byte
-  ciphertextAndTag: phần còn lại (tag 16 byte ở cuối)
-  AAD:              bytes được xác định riêng bằng hợp đồng giao thức
+  keyId:            UTF-8 bytes, keyIdLength bytes
+  iv:               12 bytes
+  ciphertextAndTag: remainder (16-byte tag at the end)
+  AAD:              bytes defined separately by protocol contract
 ~~~
 
-Định dạng trên chỉ là **đề xuất giao thức minh họa**, không phải format do JCA chuẩn hóa. Nếu triển khai cần xác định giới hạn độ dài, xử lý input sai format, version nâng cấp, và byte nào thuộc AAD để bảo vệ metadata trước sửa đổi. Đừng để key ID/tenant ID quan trọng bị thay đổi mà không được xác thực hoặc đối chiếu với ngữ cảnh tin cậy.
+The layout above is merely an **illustrative protocol proposal**, not a JCA-standardized format. If implemented, define length limits, malformed-input handling, version upgrades, and which bytes belong to AAD to protect metadata against tampering. Never allow critical key ID/tenant ID values to be altered without authentication or verification against trusted context.
 
-Một bản ghi thường cần:
+A record typically needs:
 
-1. **Version:** cho phép đọc dữ liệu cũ khi thay cách đóng gói/thuật toán được hỗ trợ.
-2. **Key ID / key version:** giúp chọn đúng khóa khi rotation; phải kiểm tra quyền dùng khóa, không dùng ID đến từ nguồn không đáng tin để truy cập tùy ý.
-3. **Algorithm parameters:** IV, tag length, các tham số cần thiết. Có thể cố định trong version để bớt metadata, nhưng phải ghi trong đặc tả.
-4. **Payload:** ciphertext và tag hoặc signature/MAC với format/encoding đã thống nhất.
-5. **AAD/canonicalization:** quy định chính xác byte dùng làm dữ liệu được xác thực.
-6. **Chính sách kiểm tra:** reject unknown version, khóa không hợp lệ, tag/signature sai; không tự fallback sang cơ chế yếu.
+1. **Version:** allows reading legacy data when packaging or supported algorithms change.
+2. **Key ID / key version:** selects the right key during rotation; verify authorization to use the key and never let untrusted IDs grant arbitrary key access.
+3. **Algorithm parameters:** IV, tag length, and required parameters. May be fixed per version to reduce metadata overhead, provided it is documented in the specification.
+4. **Payload:** ciphertext and tag, or signature/MAC, in an agreed format/encoding.
+5. **AAD / canonicalization:** specifies the exact bytes treated as authenticated data.
+6. **Validation policy:** reject unknown versions, invalid keys, and bad tags/signatures; never auto-fallback to weak mechanisms.
 
-### Khóa có thể dùng qua provider khác không?
+### Can Keys Be Used Across Different Providers?
 
-JCA hướng tới tính tương thích giữa các implementation, nhưng **không nên giả định mọi đối tượng Key đều chuyển được sang mọi provider**.
+JCA aims for interoperability across implementations, yet **you should not assume every `Key` object transfers to every provider**.
 
-- Public key thông thường có thể được biểu diễn ở dạng **X.509 SubjectPublicKeyInfo**; private key phần mềm ở dạng **PKCS#8** nếu cho phép export. Cần dùng **KeyFactory** với key spec phù hợp.
-- SecretKeySpec có thể mô tả khóa đối xứng từ bytes, nhưng một khóa **HSM/PKCS#11** có thể là handle không xuất được và bị ràng buộc với provider/token.
-- Key.getEncoded() **có thể trả null** khi khóa không cho phép xuất dạng mã hóa. Không dùng getEncoded() như một bước mặc định để “di chuyển” private key.
-- Khi đưa khóa vào một provider mới, vẫn phải kiểm chứng thuật toán, mục đích sử dụng, policy và khả năng init. Một khóa từ provider A không tự động tương thích với mọi API/provider B.
+- Standard public keys can typically be represented in **X.509 `SubjectPublicKeyInfo`** format; software private keys in **PKCS#8** if exportable. Use **`KeyFactory`** with the appropriate key spec.
+- `SecretKeySpec` can construct a symmetric key from bytes, whereas an **HSM/PKCS#11** key may be a non-exportable handle bound to its provider/token.
+- `Key.getEncoded()` **can return `null`** when a key does not permit encoded export. Never rely on `getEncoded()` as a universal step to “migrate” private keys.
+- When passing a key to a new provider, still verify algorithm, intended purpose, policy, and `init` compatibility. A key from provider A is not automatically compatible with every API/provider B.
 
-### Băm, MAC và chữ ký có cần định dạng không?
+### Do Hashes, MACs, and Signatures Need Formatting?
 
-Có. Ví dụ SHA-256 tạo **32 byte**, nhưng bên khác có thể hiển thị hex chữ thường, hex chữ hoa hay Base64: chúng là cách biểu diễn khác nhau của **cùng bytes**. HMAC cũng cần thống nhất input bytes và thứ tự tính. Chữ ký số còn có đặc tả encoding của chữ ký tùy thuật toán (ví dụ một số định dạng chữ ký ECDSA khác nhau không thể được coi là như nhau). Tên “RSA” đơn lẻ không đủ xác định padding, digest và profile chữ ký.
+Yes. For instance, SHA-256 produces **32 bytes**, yet another party may display lowercase hex, uppercase hex, or Base64: those are different representations of **the same bytes**. HMAC also requires agreeing on input bytes and computation order. Digital signatures further have algorithm-specific signature encodings (e.g., distinct ECDSA signature encodings cannot be treated as interchangeable). The name “RSA” alone does not fully specify padding, digest, and signature profile.
 
-Nếu dùng JSON cho dữ liệu ký, hãy chuẩn hóa theo một quy tắc rõ hoặc ký đúng raw payload mà giao thức định nghĩa; không chuyển đổi object → JSON lại ở bên nhận rồi mặc định byte giống bản gốc.
+If signing JSON data, canonicalize using an explicit rule or sign the exact raw payload defined by the protocol; never re-serialize an object back to JSON on the receiving side and assume the bytes match the original.
 
-## 10. Provider và khả năng tương thích khi triển khai
+## 10. Providers and Deployment Compatibility
 
-### 10.1. Định danh provider trong chẩn đoán
+### 10.1. Identifying Providers in Diagnostics
 
-Các câu lệnh sau là **mảnh minh họa dùng trong một method có throws phù hợp**, không phải chương trình Java độc lập:
+The statements below are an **illustrative snippet used inside a method with appropriate `throws`**, not a standalone Java program:
 
 ~~~java
 var digest = java.security.MessageDigest.getInstance("SHA-256");
@@ -419,104 +419,104 @@ System.out.println(cipher.getAlgorithm());
 System.out.println(cipher.getProvider().getName());
 ~~~
 
-Tên provider in ra **phụ thuộc runtime**, không nên ghi cứng kết quả khi dạy hoặc kiểm thử đa nền tảng. Có thể xem danh sách provider được đăng ký bằng **Security.getProviders()**. Khi kiểm thử, cần ghi lại JDK, provider thực tế, algorithm/transformation, loại khóa và tham số; không log nội dung khóa, plaintext hay bí mật.
+Printed provider names **depend on the runtime**, so do not hardcode expected output when teaching or testing cross-platform. You can inspect registered providers via **`Security.getProviders()`**. During testing, record JDK version, actual provider, algorithm/transformation, key type, and parameters; never log key contents, plaintext, or secrets.
 
-### 10.2. Có nên chỉ định provider cụ thể?
+### 10.2. Should You Specify a Specific Provider?
 
-- **Không chỉ định provider:** giúp ứng dụng tận dụng cài đặt phù hợp trên JVM đang chạy; vẫn phải kiểm thử điều kiện hỗ trợ và hợp đồng mật mã.
-- **Chỉ định provider:** hữu ích khi bắt buộc dùng HSM, provider đã qua kiểm định, chính sách/FIPS hoặc khi cần hành vi/khả năng được xác minh cụ thể; có thể giảm tính di động giữa môi trường.
-- Thay đổi thứ tự Security provider, cấu hình JDK hoặc dependency provider trong khi hệ thống đang chạy có thể ảnh hưởng **các lần tạo engine sau đó**; engine hiện có không tự chuyển cài đặt một cách kỳ diệu.
+- **Without specifying a provider:** lets the application use the appropriate implementation on the running JVM; you must still test support preconditions and cryptographic contracts.
+- **Specifying a provider:** useful when mandating an HSM, a vetted provider, FIPS/policy compliance, or verified provider-specific behavior/capabilities; may reduce portability across environments.
+- Changing Security provider order, JDK configuration, or provider dependencies at runtime affects **subsequent engine creations**; existing engines do not magically switch implementations.
 
-Không nên sửa cấu hình provider theo request để “thử cho chạy”. Quyết định provider là cấu hình kiến trúc/triển khai và cần test rõ ràng.
+Do not mutate provider configuration per request to “make it work”. Choosing a provider is an architectural/deployment configuration decision and requires explicit testing.
 
-### 10.3. Đừng phụ thuộc default
+### 10.3. Do Not Rely on Defaults
 
-Phản ví dụ: **Cipher.getInstance("AES")** cho provider tự chọn mode/padding mặc định. Điều này vừa có nguy cơ không an toàn vừa làm kết quả không nhất quán giữa môi trường. **Cipher.getInstance("AES/GCM/NoPadding")** nêu yêu cầu rõ hơn, nhưng vẫn phải thống nhất IV, tag, AAD và format.
+Anti-pattern: **`Cipher.getInstance("AES")`** lets the provider choose default mode/padding. That is both potentially insecure and inconsistent across environments. **`Cipher.getInstance("AES/GCM/NoPadding")`** states the requirement explicitly, though you must still align IV, tag, AAD, and format.
 
-Tương tự, hãy ghi rõ tên thuật toán HMAC, thuật toán chữ ký và tham số liên quan; tránh cơ chế fallback “nếu ký chuẩn không được thì chuyển sang thuật toán cũ yếu hơn” mà không được thiết kế và kiểm soát.
+Similarly, specify exact HMAC algorithm names, signature algorithms, and associated parameters; avoid undocumented, uncontrolled fallbacks like “if standard signing fails, switch to an older weaker algorithm”.
 
-## 11. Kiểm thử đúng: tách compatibility test khỏi concurrency test
+## 11. Proper Testing: Separating Compatibility Tests from Concurrency Tests
 
-| Nhóm kiểm thử | Cách thực hiện | Lỗi được phát hiện |
+| Test group | How to execute | Bugs caught |
 | --- | --- | --- |
-| **Known-answer test** | Cùng input/key/params cho expected digest/HMAC/ciphertext khi thuật toán có vector chuẩn | Sai thuật toán, encoding, padding, profile, implementation. |
-| **Cross-provider / cross-version** | Provider A tạo, provider B đọc/xác minh; đảo chiều khi phù hợp | Khác định dạng key/signature, mode, tham số, khả năng hỗ trợ. |
-| **Tamper/negative test** | Đổi 1 bit ciphertext/tag/AAD, thay chữ ký/khóa, sai key ID | Không xác minh tag/chữ ký, xử lý lỗi/fallback không đúng. |
-| **Concurrency/stress test** | Chạy hàng trăm/nghìn tác vụ độc lập với expected outputs và nhiều thread | Race khi dùng chung engine/buffer/counter, dữ liệu request bị trộn. |
-| **Lifecycle test** | init → update → doFinal; dùng lại tuần tự; thử exception rồi khởi tạo lại | Hiểu sai reset, dùng sai mode, reuse với trạng thái lỗi. |
-| **Nonce/key lifecycle test** | Chạy đồng thời trên nhiều node, restart/snapshot, rotation | IV trùng theo khóa, key ID cũ không giải mã được, khóa không nhất quán. |
-| **Runtime matrix** | Kiểm tra môi trường JDK, provider, FIPS/HSM, policy, độ dài khóa | NoSuchAlgorithm/NoSuchPadding/InvalidKey/InvalidAlgorithmParameter trong production. |
-| **Performance & liveness** | Đo throughput, contention, provider lock, HSM session pool, entropy wait | Tắc nghẽn, starvation, timeout và chi phí getInstance/init. |
+| **Known-answer test** | Fixed input/key/params against expected digest/HMAC/ciphertext when standard vectors exist | Wrong algorithm, encoding, padding, profile, implementation. |
+| **Cross-provider / cross-version** | Provider A produces, provider B reads/verifies; reverse direction where applicable | Different key/signature formats, modes, parameters, support capabilities. |
+| **Tamper / negative test** | Flip 1 bit of ciphertext/tag/AAD, swap signature/key, wrong key ID | Missing tag/signature verification, improper error handling/fallback. |
+| **Concurrency / stress test** | Run hundreds/thousands of independent tasks with expected outputs across multiple threads | Races on shared engines/buffers/counters, mixed request data. |
+| **Lifecycle test** | `init` → `update` → `doFinal`; sequential reuse; trigger exception then re-initialize | Misunderstood reset, wrong mode usage, reusing errored state. |
+| **Nonce / key lifecycle test** | Concurrent runs across nodes, restarts/snapshots, key rotation | Duplicate IVs per key, old key IDs failing decryption, inconsistent keys. |
+| **Runtime matrix** | Test across JDK environments, providers, FIPS/HSM, policies, key lengths | `NoSuchAlgorithm`/`NoSuchPadding`/`InvalidKey`/`InvalidAlgorithmParameter` in production. |
+| **Performance & liveness** | Measure throughput, contention, provider locks, HSM session pools, entropy waits | Bottlenecks, starvation, timeouts, and `getInstance`/`init` overhead. |
 
-Một bài stress test chạy xanh **không chứng minh không có data race**. Chứng minh thiết kế an toàn dựa trước hết vào ownership, API contract và invariant (như một IV cho mỗi lần mã hóa), sau đó dùng test để bắt lỗi cài đặt.
+A green stress test **does not prove the absence of data races**. Proving design safety relies first on ownership, API contracts, and invariants (such as one IV per encryption), followed by tests to catch implementation bugs.
 
-### Checklist review một dịch vụ đa luồng
+### Checklist for Reviewing a Multithreaded Service
 
-- Có engine stateful nào là field/static của singleton hay bị share giữa request không?
-- Mỗi tác vụ có sở hữu trọn chuỗi init → update → finalize không?
-- Input buffer, key parameter, IV/AAD có bị thread khác sửa khi đang xử lý không?
-- Với AES-GCM, có thể chứng minh hoặc đánh giá theo thiết kế **không lặp (key, IV)** khi scale/restart không?
-- Có giao thức byte chuẩn: charset, trường dữ liệu, version, key ID, tag/padding, tham số và thứ tự không?
-- Có negative test cho dữ liệu sai, khóa sai, replay khi giao thức yêu cầu không?
-- Có test trên môi trường/provider thực tế và ghi lại các thay đổi provider/JDK không?
-- Có giữ bí mật khỏi log, bảo vệ private/secret keys và giới hạn truy cập hợp lý không?
+- Is any stateful engine stored in a singleton field/static field or shared across requests?
+- Does each task exclusively own the entire `init` → `update` → finalize sequence?
+- Can input buffers, key parameters, or IV/AAD be mutated by another thread mid-processing?
+- For AES-GCM, can you prove or evaluate by design **no `(key, IV)` reuse** across scaling and restarts?
+- Is there a canonical byte protocol: charset, fields, version, key ID, tag/padding, parameters, and ordering?
+- Are there negative tests for bad data, wrong keys, and replay where required by the protocol?
+- Have you tested on real target environments/providers and tracked provider/JDK changes?
+- Are secrets kept out of logs, private/secret keys protected, and access properly restricted?
 
-## 12. Phân biệt lỗi state, lỗi khả năng hỗ trợ và lỗi dữ liệu
+## 12. Distinguishing State Errors, Support Errors, and Data Errors
 
-| Triệu chứng | Hướng kiểm tra |
+| Symptom | Where to investigate |
 | --- | --- |
-| **NoSuchAlgorithmException** hoặc **NoSuchPaddingException** | Provider có cung cấp thuật toán/transformation đúng tên không? JDK và chính sách có khác nhau không? |
-| **InvalidKeyException** | Key size, key type, purpose và khả năng import/provider handle có hợp lệ không? |
-| **InvalidAlgorithmParameterException** | IV, tag length, PSS/OAEP/GCM parameters có đúng contract/provider không? |
-| **IllegalStateException** khi update/finalize | Đã init chưa? Mode đang là gì? Có thread khác re-init hoặc finalize cùng engine không? |
-| **AEADBadTagException** | Sai key/IV/AAD, ciphertext/tag hỏng hoặc bị sửa; kiểm tra format, byte serialization và nonce. |
-| **Signature.verify trả false** | Public key, byte input, algorithm/profile, encoding chữ ký và tham số có khớp không? |
-| **Lỗi chỉ xuất hiện khi tải cao** | Engine/buffer singleton, ThreadLocal reuse, counter IV, provider/HSM contention, key rotation race. |
+| **`NoSuchAlgorithmException`** or **`NoSuchPaddingException`** | Does the provider supply the exact algorithm/transformation name? Do JDK and security policies differ? |
+| **`InvalidKeyException`** | Are key size, key type, purpose, and import/provider handle valid? |
+| **`InvalidAlgorithmParameterException`** | Do IV, tag length, and PSS/OAEP/GCM parameters match the contract/provider? |
+| **`IllegalStateException`** during update/finalize | Was `init` called? What is the current mode? Did another thread re-init or finalize the same engine? |
+| **`AEADBadTagException`** | Wrong key/IV/AAD, corrupted or tampered ciphertext/tag; check format, byte serialization, and nonce. |
+| **`Signature.verify` returns `false`** | Do public key, input bytes, algorithm/profile, signature encoding, and parameters match? |
+| **Errors appearing only under high load** | Singleton engine/buffer, `ThreadLocal` reuse, IV counter, provider/HSM contention, key rotation race. |
 
-Không dùng thông báo lỗi chi tiết có chứa khóa, plaintext hoặc metadata nhạy cảm trong API phản hồi cho client. Hãy log nguyên nhân kỹ thuật ở mức đủ để chẩn đoán, kèm request ID/algorithm version đã được phê duyệt, không log secrets.
+Do not include detailed error messages containing keys, plaintext, or sensitive metadata in client-facing API responses. Log technical causes at a level sufficient for diagnostics, with request ID/approved algorithm version, never logging secrets.
 
-## 13. Một thiết kế ứng dụng Java thực tế
+## 13. A Practical Java Application Design
 
-Giả sử có dịch vụ web xác thực webhook đồng thời:
+Suppose you have a concurrent webhook verification web service:
 
-1. Mỗi request có đúng **raw payload bytes**, chữ ký/MAC, key ID và timestamp theo giao thức đã thỏa thuận.
-2. Server kiểm tra định dạng, giới hạn payload, thời hạn và replay/idempotency theo yêu cầu.
-3. Thành phần tìm khóa nhận key ID và trả về đúng key/version đã được phép sử dụng; cấu hình provider đã cố định từ deployment.
-4. Service tạo **Mac hoặc Signature instance mới trong method**; init đúng khóa, update trên raw bytes/canonical bytes đã định nghĩa, kiểm tra kết quả.
-5. Chỉ khi xác thực thông điệp hợp lệ mới đi tiếp tới xử lý nghiệp vụ và kiểm soát quyền.
-6. Tại lớp nghiệp vụ, xử lý idempotent để thông điệp hợp lệ bị gửi lặp không tạo giao dịch lặp.
-7. Khi thay provider/JDK, chạy lại compatibility vectors, negative tests và concurrency tests trước khi triển khai.
+1. Each request carries exact **raw payload bytes**, signature/MAC, key ID, and timestamp per the agreed protocol.
+2. The server validates format, payload size limits, expiration window, and replay/idempotency as required.
+3. The key lookup component accepts the key ID and returns the permitted key/version; provider configuration is fixed at deployment.
+4. The service creates a **new `Mac` or `Signature` instance inside the method**; initializes it with the right key, updates over the defined raw/canonical bytes, and checks the result.
+5. Only after message authentication succeeds does execution proceed to business logic and authorization checks.
+6. At the business layer, handle requests idempotently so valid duplicate deliveries do not create duplicate transactions.
+7. When changing providers/JDKs, rerun compatibility vectors, negative tests, and concurrency tests before rollout.
 
-Tương tự, với dịch vụ mã hóa dữ liệu, **mỗi thao tác mã hóa** cần một Cipher với khóa/IV/AAD đúng; bản ghi phải lưu metadata giải mã theo version, còn bộ quản lý IV và key lifecycle phải đủ an toàn dưới tải đồng thời, restart và nhiều instance.
+Similarly, for a data encryption service, **each encryption operation** needs a `Cipher` with the right key/IV/AAD; records must store versioned decryption metadata, while IV management and key lifecycle must remain safe under concurrent load, restarts, and multiple instances.
 
-## 14. Câu hỏi tự kiểm tra
+## 14. Self-Check Questions
 
-**1. Mac.doFinal() reset về trạng thái sau init. Có thể dùng một Mac instance cho nhiều request song song không?**  
-Không suy ra được. Reset hỗ trợ **tái sử dụng tuần tự**; các chuỗi update và doFinal ở các thread khác nhau vẫn có thể xen vào nhau. Nên tạo Mac riêng cho mỗi tác vụ.
+**1. `Mac.doFinal()` resets to the post-`init` state. Can one `Mac` instance be shared across multiple concurrent requests?**  
+That does not follow. Reset supports **sequential reuse**; `update` and `doFinal` sequences across threads can still interleave. Create a separate `Mac` per task.
 
-**2. Vì sao cùng một chương trình AES-GCM chạy trên hai JVM có thể không tương thích?**  
-Không chỉ cần cùng transformation. Hai bên phải thống nhất key, IV, tag length, AAD và byte format; provider của mỗi bên phải hỗ trợ cấu hình đó.
+**2. Why can the same AES-GCM program running on two JVMs fail to interoperate?**  
+Having the same transformation is not enough. Both sides must agree on key, IV, tag length, AAD, and byte format; each side's provider must also support that configuration.
 
-**3. Cipher.doFinal() reset state, vậy dùng lại Cipher GCM vừa mã hóa để mã hóa message khác có an toàn không?**  
-Không nếu vẫn dùng cặp key/IV cũ. Phải thiết lập một IV mới hợp lệ, duy nhất với khóa đó; thường tạo Cipher mới cho thao tác tiếp theo.
+**3. `Cipher.doFinal()` resets state, so is it safe to reuse the GCM `Cipher` that just encrypted to encrypt another message?**  
+No if still using the old key/IV pair. You must configure a valid new IV unique for that key; typically you create a new `Cipher` for the next operation.
 
-**4. Có thể đặt một SecureRandom trong singleton để các thread dùng chung không?**  
-Có, Java quy định SecureRandom thread-safe. Tuy nhiên vẫn cần xem throughput, hành vi block/reseed và provider thực tế. Không áp dụng kết luận tương tự cho Cipher, Signature, Mac hay MessageDigest.
+**4. Can one `SecureRandom` be placed in a singleton for threads to share?**  
+Yes, Java specifies `SecureRandom` as thread-safe. Still evaluate throughput, blocking/reseed behavior, and the actual provider. Do not apply the same conclusion to `Cipher`, `Signature`, `Mac`, or `MessageDigest`.
 
-**5. Signature.verify(false) chắc chắn chứng minh có race condition?**  
-Không. Lỗi cũng có thể nằm ở public key, thuật toán/tham số, định dạng chữ ký hoặc byte input khác nhau. Kiểm tra compatibility contract trước, rồi mới phân tích concurrency.
+**5. Does `Signature.verify(false)` definitely prove a race condition?**  
+No. The mismatch could also stem from the public key, algorithm/parameters, signature encoding, or differing input bytes. Check the compatibility contract first before analyzing concurrency.
 
-**6. AtomicLong sinh nonce duy nhất trong một JVM có đủ cho cluster dùng cùng khóa không?**  
-Không. Một node khác có thể dùng lại cùng dãy counter; restart/khôi phục trạng thái cũng vậy. Uniqueness cần được bảo đảm trong **toàn bộ phạm vi dùng chung khóa**.
+**6. Is an `AtomicLong` generating unique nonces in one JVM sufficient for a cluster sharing the same key?**  
+No. Another node can reuse the same counter sequence; restarts or state restores can do the same. Uniqueness must be guaranteed across **the entire scope sharing that key**.
 
-**7. Vì sao không nên dựa vào getEncoded() cho mọi private key?**  
-Các khóa thuộc HSM/PKCS#11 có thể là key handle không cho xuất. Khả năng chuyển khóa phụ thuộc provider, loại khóa và chính sách an toàn; getEncoded có thể trả null.
+**7. Why shouldn't you rely on `getEncoded()` for every private key?**  
+HSM/PKCS#11 keys may be non-exportable key handles. Key exportability depends on provider, key type, and security policy; `getEncoded` can return `null`.
 
-## 15. Ghi nhớ và tài liệu đối chiếu
+## 15. Takeaways and Official References
 
-Tính tương thích trong JCA là khả năng các phía thống nhất **thuật toán + tham số + bytes + khóa/định dạng + giao thức/version + chính sách provider**. Tính đúng đắn khi chạy đồng thời phụ thuộc **quyền sở hữu stateful engine**, thứ tự gọi phương thức và các invariant bảo mật như **mỗi lần mã hóa AES-GCM không lặp key/IV**. Thiết kế tốt thường chia sẻ cấu hình và quản lý khóa có kiểm soát, tạo engine riêng cho từng tác vụ và kiểm thử tính tương thích trên môi trường triển khai thật.
+Compatibility in JCA is the ability for parties to agree on **algorithm + parameters + bytes + key/format + protocol/version + provider policy**. Correctness under concurrency depends on **stateful engine ownership**, call ordering, and security invariants such as **never repeating key/IV per AES-GCM encryption**. Good design typically shares configuration and controlled key management, creates dedicated engines per task, and tests compatibility in the real deployment environment.
 
-Tài liệu API chuẩn cho JDK 21:
+Standard API documentation for JDK 21:
 
 - [JCA Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-cryptography-architecture-jca-reference-guide.html)
 - [MessageDigest](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/MessageDigest.html)

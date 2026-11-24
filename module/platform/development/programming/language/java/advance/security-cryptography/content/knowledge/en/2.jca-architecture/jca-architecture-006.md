@@ -1,71 +1,71 @@
-# 2.6. AlgorithmParameterSpec, AlgorithmParameters và việc lưu tham số thuật toán trong JCA
+# 2.6. `AlgorithmParameterSpec`, `AlgorithmParameters`, and Storing Algorithm Parameters in JCA
 
-## 1. Bài toán: khóa và tham số thuật toán là hai phần khác nhau
+## 1. The Problem: Keys and Algorithm Parameters Are Two Different Things
 
-Trong Java Cryptography Architecture (JCA), **khóa** là vật liệu mật mã dùng cho phép mã hóa, giải mã, ký hoặc xác minh; **tham số thuật toán** xác định cách một thuật toán vận hành trong một lần sử dụng cụ thể. Có đúng khóa mà thiếu tham số cần thiết vẫn có thể không giải mã hoặc xác minh được dữ liệu.
+In the Java Cryptography Architecture (JCA), a **key** is the cryptographic material used for encryption, decryption, signing, or verification; **algorithm parameters** define how an algorithm operates in a specific invocation. Having the right key while missing required parameters can still prevent you from decrypting or verifying data.
 
-Các trường hợp tiêu biểu:
+Representative cases:
 
-- **AES-GCM:** cần khóa, nonce/IV và độ dài authentication tag. Nonce không phải khóa, nhưng *không được trùng giữa hai lần mã hóa dùng cùng khóa*.
-- **AES-CBC:** cần IV bên cạnh khóa. IV có thể công khai nhưng CBC tự nó không đảm bảo tính toàn vẹn.
-- **Password-based encryption (PBE):** cần salt và số vòng lặp, đôi khi cả tham số thuật toán bên trong; không nhầm những giá trị này với mật khẩu.
-- **RSA-PSS:** bên ký và bên xác minh cần thống nhất digest, mask generation function, độ dài salt và trailer field.
-- **RSA-OAEP:** có lựa chọn digest, MGF và nguồn dữ liệu nhãn (label).
+- **AES-GCM:** requires a key, a nonce/IV, and an authentication tag length. The nonce is not a key, yet *it must never repeat across two encryptions using the same key*.
+- **AES-CBC:** requires an IV alongside the key. The IV may be public, though CBC by itself does not guarantee integrity.
+- **Password-based encryption (PBE):** requires a salt and iteration count, and sometimes inner algorithm parameters; do not confuse these values with the password.
+- **RSA-PSS:** signer and verifier must agree on the digest, mask generation function, salt length, and trailer field.
+- **RSA-OAEP:** involves choices for digest, MGF, and label data source.
 
-Khi thiết kế lưu trữ bản mã, phải xác định **những gì cần lưu để khôi phục đúng phép toán**: tên thuật toán/mode, tham số, ciphertext/tag, tham chiếu tới khóa và AAD nếu có. Không nên coi tất cả các giá trị đó là “khóa”, cũng không nên giả định provider tự tái tạo được tham số của một lần mã hóa đã qua.
+When designing ciphertext storage, you must determine **what must be stored to reconstruct the exact operation**: algorithm/mode name, parameters, ciphertext/tag, key reference, and AAD if present. Do not treat all of these values as “keys”, nor assume the provider can regenerate the parameters of a past encryption on its own.
 
-## 2. Phân biệt các đối tượng trong JCA
+## 2. Distinguishing the Objects in JCA
 
-| API | Bản chất | Dùng để làm gì |
+| API | Nature | What it is used for |
 | --- | --- | --- |
-| `java.security.spec.AlgorithmParameterSpec` | Marker interface, không tự định nghĩa phương thức encode | Đại diện **có kiểu** cho các trường tham số mà engine có thể nhận. |
-| `java.security.AlgorithmParameters` | Đối tượng JCA dựa trên implementation của security provider | Giữ tham số của một thuật toán; chuyển đổi giữa spec và byte encoding, đọc metadata thuật toán/provider. |
-| `java.security.AlgorithmParameterGenerator` | Engine JCA có provider | Sinh các tham số theo khả năng của thuật toán/provider; không phải đối tượng dùng để giải mã một blob đã lưu. |
-| `java.security.Key`, `SecretKey`, `PrivateKey` | Vật liệu khóa | Thực hiện phép mật mã, phải được quản lý theo chính sách khóa. |
+| `java.security.spec.AlgorithmParameterSpec` | Marker interface, defines no encoding methods itself | **Typed** representation of parameter fields that an engine can accept. |
+| `java.security.AlgorithmParameters` | JCA object backed by a security provider implementation | Holds parameters for an algorithm; converts between specs and byte encodings, reads algorithm/provider metadata. |
+| `java.security.AlgorithmParameterGenerator` | Provider-backed JCA engine | Generates parameters according to algorithm/provider capabilities; not the object used to decode a saved blob. |
+| `java.security.Key`, `SecretKey`, `PrivateKey` | Key material | Performs cryptographic operations; must be managed under key policy. |
 
-`AlgorithmParameterSpec` là một cách biểu diễn *transparent*: ứng dụng truy cập các trường được lớp cụ thể công bố. Ví dụ `GCMParameterSpec.getIV()` trả IV và `getTLen()` trả độ dài tag **tính bằng bit**. `IvParameterSpec` chỉ mô tả IV, không chứa độ dài tag; `PSSParameterSpec` lại có các trường hoàn toàn khác. Bản thân interface `AlgorithmParameterSpec` **không có** `getEncoded()`.
+`AlgorithmParameterSpec` is a *transparent* representation: the application accesses fields exposed by the concrete class. For example, `GCMParameterSpec.getIV()` returns the IV and `getTLen()` returns the tag length **in bits**. `IvParameterSpec` describes only an IV without tag length; `PSSParameterSpec` has completely different fields. The `AlgorithmParameterSpec` interface itself **has no** `getEncoded()`.
 
-`AlgorithmParameters` là biểu diễn *opaque* theo nghĩa ứng dụng gọi API chung và giao việc diễn giải cho provider. Những phương thức quan trọng:
+`AlgorithmParameters` is an *opaque* representation in the sense that the application calls a generic API and leaves interpretation to the provider. Key methods:
 
-- `AlgorithmParameters.getInstance("GCM")`: yêu cầu đối tượng cho tên thuật toán tham số `GCM`; JCA chọn provider hỗ trợ.
-- `init(AlgorithmParameterSpec)`: khởi tạo từ một spec có kiểu.
-- `init(byte[])` hoặc `init(byte[], String format)`: nhập byte encoding và giải mã theo format tương ứng.
-- `getParameterSpec(GCMParameterSpec.class)`: trích xuất một spec có kiểu phù hợp.
-- `getEncoded()` hoặc `getEncoded(String format)`: mã hóa tham số thành byte theo format chính hoặc format được hỗ trợ.
-- `getAlgorithm()` và `getProvider()`: xem thuật toán tham số và provider đang dùng.
+- `AlgorithmParameters.getInstance("GCM")`: requests an object for parameter algorithm name `GCM`; JCA selects a supporting provider.
+- `init(AlgorithmParameterSpec)`: initializes from a typed spec.
+- `init(byte[])` or `init(byte[], String format)`: imports a byte encoding and decodes it under the corresponding format.
+- `getParameterSpec(GCMParameterSpec.class)`: extracts a matching typed spec.
+- `getEncoded()` or `getEncoded(String format)`: encodes parameters into bytes using the primary or a supported format.
+- `getAlgorithm()` and `getProvider()`: inspects the parameter algorithm and provider in use.
 
-Một `AlgorithmParameters` mới chỉ được `init(...)` **một lần**. Muốn giải mã một bộ tham số khác, tạo instance mới. Không phải mọi loại spec đều có implementation `AlgorithmParameters` tương ứng ở mọi provider.
+A fresh `AlgorithmParameters` instance can be initialized with `init(...)` **only once**. To decode another parameter set, create a new instance. Not every spec type has a corresponding `AlgorithmParameters` implementation in every provider.
 
-### Liên hệ với kiến trúc provider và engine
+### Connection to Provider and Engine Architecture
 
-`Cipher`, `Signature`, `KeyPairGenerator`, `AlgorithmParameters` là các API/engine JCA; lớp SPI phía dưới do provider triển khai. Lựa chọn thuật toán/provider quyết định loại spec và encoding nào được chấp nhận.
+`Cipher`, `Signature`, `KeyPairGenerator`, and `AlgorithmParameters` are JCA APIs/engines; the underlying SPI classes are implemented by providers. The choice of algorithm/provider determines which specs and encodings are accepted.
 
-- `Cipher.init(mode, key, AlgorithmParameterSpec)` phù hợp khi ứng dụng đã có spec có kiểu.
-- `Cipher.init(mode, key, AlgorithmParameters)` phù hợp khi đã có đối tượng tham số.
-- `Cipher.getParameters()` lấy tham số thực tế mà cipher dùng sau khi khởi tạo; có thể chứa giá trị mà provider tự sinh. Nếu cipher không dùng tham số, phương thức có thể trả `null`.
-- `Signature.setParameter(PSSParameterSpec)` cấu hình tham số chữ ký RSA-PSS; không dùng `Cipher` để ký.
-- `"AES/GCM/NoPadding"` là **Cipher transformation**, còn `"GCM"` là tên thuật toán tham số trong ví dụ. Không đưa nguyên transformation vào `AlgorithmParameters.getInstance` mà không kiểm tra hỗ trợ.
+- `Cipher.init(mode, key, AlgorithmParameterSpec)` is appropriate when the application already has a typed spec.
+- `Cipher.init(mode, key, AlgorithmParameters)` is appropriate when you already have a parameters object.
+- `Cipher.getParameters()` retrieves the actual parameters used by the cipher after initialization; it may contain values auto-generated by the provider. If the cipher uses no parameters, it may return `null`.
+- `Signature.setParameter(PSSParameterSpec)` configures RSA-PSS signature parameters; do not use `Cipher` for signing.
+- `"AES/GCM/NoPadding"` is a **Cipher transformation**, whereas `"GCM"` is the parameter algorithm name in the example. Do not pass the full transformation directly to `AlgorithmParameters.getInstance` without checking support.
 
-## 3. Chọn đúng lớp AlgorithmParameterSpec
+## 3. Choosing the Right `AlgorithmParameterSpec` Class
 
-| Spec | Các trường đặc trưng | Bối cảnh |
+| Spec | Characteristic fields | Context |
 | --- | --- | --- |
-| `GCMParameterSpec(tagBits, iv)` | Tag length (bit), IV/nonce (byte) | AES-GCM, ví dụ tag 128 bit và nonce 12 byte. |
-| `IvParameterSpec(iv)` | IV | AES-CBC/CTR khi mode/provider yêu cầu; không diễn tả riêng độ dài tag GCM. |
-| `PBEParameterSpec(salt, iterations)` | Salt, iteration count; có constructor nhận nested spec | PBE; không phải nơi lưu mật khẩu. |
+| `GCMParameterSpec(tagBits, iv)` | Tag length (bits), IV/nonce (bytes) | AES-GCM, e.g., 128-bit tag and 12-byte nonce. |
+| `IvParameterSpec(iv)` | IV | AES-CBC/CTR when required by mode/provider; does not separately express GCM tag length. |
+| `PBEParameterSpec(salt, iterations)` | Salt, iteration count; also has a constructor accepting a nested spec | PBE; not a place to store the password. |
 | `PSSParameterSpec(...)` | Digest, MGF, MGF parameters, salt length, trailer field | RSA-PSS. |
 | `OAEPParameterSpec(...)` | Digest, MGF, label source | RSA-OAEP. |
-| `ECGenParameterSpec(curveName)` | Tên đường cong | Khởi tạo bộ sinh khóa EC. |
+| `ECGenParameterSpec(curveName)` | Curve name | Initializing an EC key pair generator. |
 
-Cần phân biệt `PBEKeySpec` (thuộc họ `KeySpec`, phục vụ biểu diễn vật liệu để dẫn xuất khóa bằng `SecretKeyFactory`) với `PBEParameterSpec` (thuộc họ `AlgorithmParameterSpec`). Việc lưu salt và iteration count **không đồng nghĩa** với việc lưu mật khẩu hay khóa đã dẫn xuất.
+Distinguish `PBEKeySpec` (from the `KeySpec` family, representing material for key derivation via `SecretKeyFactory`) from `PBEParameterSpec` (from the `AlgorithmParameterSpec` family). Storing salt and iteration count **does not mean** storing the password or derived key.
 
-Với AES-GCM, `new GCMParameterSpec(128, iv)` chứa IV và tag length; giá trị 128 là **bit**, tương ứng 16 byte tag. IV 12 byte tương ứng 96 bit, là kích thước thường dùng. `getIV()` trả mảng sao chép; tuy vậy ứng dụng vẫn phải kiểm soát nguồn sinh và uniqueness của IV.
+For AES-GCM, `new GCMParameterSpec(128, iv)` holds the IV and tag length; `128` is in **bits**, corresponding to a 16-byte tag. A 12-byte IV corresponds to 96 bits, which is the standard size. `getIV()` returns a defensive copy; nevertheless, the application must still control the generation source and uniqueness of the IV.
 
-## 4. Vòng đời tham số: tạo, dùng, encode, lưu và khôi phục
+## 4. Parameter Lifecycle: Create, Use, Encode, Store, and Restore
 
 ```text
-MÃ HÓA
-  key (bí mật) + nonce mới + tagBits
+ENCRYPTION
+  key (secret) + fresh nonce + tagBits
                   |
                   v
             GCMParameterSpec
@@ -84,28 +84,28 @@ MÃ HÓA
                   |
              getEncoded()
                   |
-                  +--------> encodedParams để lưu
+                  +--------> encodedParams for storage
 
-GIẢI MÃ
+DECRYPTION
   encodedParams -> AlgorithmParameters.getInstance("GCM")
                   -> init(encodedParams)
                   -> Cipher.init(DECRYPT_MODE, key, parameters)
-                  -> updateAAD(cùng aad)
-  ciphertext || tag -> doFinal(...) -> plaintext hoặc lỗi xác thực
+                  -> updateAAD(same aad)
+  ciphertext || tag -> doFinal(...) -> plaintext or authentication error
 ```
 
-Có hai chiến lược lưu:
+There are two storage strategies:
 
-1. **Định dạng tường minh:** lưu riêng `iv` và `tagBits` cùng bản mã. Khi đọc, dựng lại `GCMParameterSpec(tagBits, iv)`. Cách này dễ xác định giao thức lưu trữ và chia sẻ với hệ thống không dùng Java.
-2. **Encoding của `AlgorithmParameters`:** lưu `parameters.getEncoded()` và khôi phục bằng `parameters.init(encodedBytes)`. Cách này tiện trong hệ sinh thái provider tương thích, nhưng cần kiểm thử format/phiên bản khi muốn trao đổi giữa nhiều implementation.
+1. **Explicit format:** store `iv` and `tagBits` separately alongside the ciphertext. When reading, reconstruct `GCMParameterSpec(tagBits, iv)`. This makes it straightforward to define a storage protocol and interoperate with non-Java systems.
+2. **`AlgorithmParameters` encoding:** store `parameters.getEncoded()` and restore with `parameters.init(encodedBytes)`. This is convenient within compatible provider ecosystems, though formats/versions must be tested when exchanging across multiple implementations.
 
-**Tuyệt đối không dùng `toString()` của `AlgorithmParameters` hoặc spec làm dữ liệu lưu trữ.** Nó không có cam kết parse ngược. Cũng không nên dùng Java object serialization thay cho một giao thức lưu trữ có version và schema rõ ràng.
+**Never use `toString()` on `AlgorithmParameters` or a spec as stored data.** It carries no reverse-parsing contract. Nor should you use Java object serialization instead of an explicitly versioned and schema-defined storage protocol.
 
-## 5. Ví dụ hoàn chỉnh Java 17+: AES-GCM round-trip với AlgorithmParameters
+## 5. Complete Java 17+ Example: AES-GCM Round-Trip with `AlgorithmParameters`
 
-Ví dụ dưới đây dùng JDK có provider hỗ trợ `AES/GCM/NoPadding` và `AlgorithmParameters` tên `GCM` (như SunJCE của JDK phổ biến). Chương trình tạo key AES trong bộ nhớ, nonce mới, mã hóa có AAD, encode tham số, tạo đối tượng khác để decode và giải mã. Sau đó thay AAD để kiểm tra xác thực.
+The example below uses a JDK with a provider supporting `AES/GCM/NoPadding` and `AlgorithmParameters` named `GCM` (such as SunJCE in common JDKs). The program generates an in-memory AES key, a fresh nonce, encrypts with AAD, encodes the parameters, creates another object to decode them, and decrypts. It then alters the AAD to verify authentication.
 
-Tạo tệp `GcmParametersRoundTrip.java`:
+Create the file `GcmParametersRoundTrip.java`:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -120,7 +120,7 @@ import javax.crypto.spec.GCMParameterSpec;
 
 public class GcmParametersRoundTrip {
     public static void main(String[] args) throws Exception {
-        // Sinh key demo. Hệ thống thật phải quản lý key riêng.
+        // Generate demo key. Real systems must manage keys separately.
         KeyGenerator generator = KeyGenerator.getInstance("AES");
         generator.init(128);
         SecretKey key = generator.generateKey();
@@ -128,7 +128,7 @@ public class GcmParametersRoundTrip {
         byte[] nonce = new byte[12];
         new SecureRandom().nextBytes(nonce);
         byte[] aad = "document:v1".getBytes(StandardCharsets.UTF_8);
-        byte[] input = "Ma hoa va giai ma JCA".getBytes(StandardCharsets.UTF_8);
+        byte[] input = "JCA encryption and decryption".getBytes(StandardCharsets.UTF_8);
 
         Cipher encryption = Cipher.getInstance("AES/GCM/NoPadding");
         encryption.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, nonce));
@@ -166,110 +166,110 @@ public class GcmParametersRoundTrip {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac GcmParametersRoundTrip.java
 java GcmParametersRoundTrip
 ```
 
-Stdout (key, nonce, ciphertext ngẫu nhiên nhưng các dòng hiển thị này ổn định):
+Stdout (the key, nonce, and ciphertext are random, but these displayed lines are deterministic):
 
 ```text
 Nonce length: 12
 Tag bits: 128
 Plaintext matches: true
-Text: Ma hoa va giai ma JCA
+Text: JCA encryption and decryption
 Tamper detected: true
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `encryption.getParameters()` lấy tham số mà cipher thực dùng; `used.getEncoded()` trả byte **tham số**, không phải byte của key hay bản mã.
-- `restored.init(serializedParams)` diễn giải dữ liệu đã encode. `getParameterSpec(GCMParameterSpec.class)` trích xuất lại IV và tag length để kiểm tra.
-- `decryption.init(..., key, restored)` cho thấy có thể truyền trực tiếp `AlgorithmParameters` vào `Cipher`, không buộc phải dựng lại spec.
-- `updateAAD` phải xảy ra trước xử lý bản mã trong GCM; cùng key, IV, ciphertext/tag **và đúng byte AAD** thì mới xác thực thành công.
-- `Cipher.doFinal` ở chế độ mã hóa GCM trả ciphertext kèm authentication tag. Khi lưu phải giữ **trọn vẹn** mảng `ciphertextAndTag`.
-- Khi AAD đổi, `doFinal` ném `AEADBadTagException`. Trong ứng dụng thật, phải từ chối dữ liệu và không trả plaintext chưa xác thực.
+- `encryption.getParameters()` retrieves the parameters actually used by the cipher; `used.getEncoded()` returns **parameter** bytes, not key or ciphertext bytes.
+- `restored.init(serializedParams)` parses the encoded data. `getParameterSpec(GCMParameterSpec.class)` extracts the IV and tag length back out for inspection.
+- `decryption.init(..., key, restored)` shows that `AlgorithmParameters` can be passed directly into `Cipher` without having to rebuild a spec.
+- `updateAAD` must occur before processing ciphertext in GCM; only with the same key, IV, ciphertext/tag, **and exact AAD bytes** does authentication succeed.
+- `Cipher.doFinal` in GCM encryption mode returns ciphertext plus the authentication tag. When storing, you must keep the **entire** `ciphertextAndTag` array.
+- When AAD changes, `doFinal` throws `AEADBadTagException`. In real applications, reject the data and never return unauthenticated plaintext.
 
-Demo chỉ giữ key trong process hiện tại. Nó **không chứng minh** có thể giải mã sau khi chương trình kết thúc mà không lưu/truy xuất key riêng. Dù `serializedParams` được lưu thành công, việc mất key vẫn khiến bản mã không thể giải mã.
+The demo keeps the key only in the current process. It **does not prove** you can decrypt after the program exits without storing/retrieving the key separately. Even if `serializedParams` is saved successfully, losing the key still renders the ciphertext undecryptable.
 
-### Lưu thật vào file hoặc cơ sở dữ liệu
+### Persisting to Files or a Database
 
-Đoạn dưới là **mảnh mã bổ sung**, dùng sau khi đã có `serializedParams` và `ciphertextAndTag` từ chương trình trên; thêm imports `java.nio.file.Files` và `java.nio.file.Path`:
+The snippet below is an **additional code fragment**, used after obtaining `serializedParams` and `ciphertextAndTag` from the program above; add imports `java.nio.file.Files` and `java.nio.file.Path`:
 
 ```java
 Files.write(Path.of("gcm-parameters.bin"), serializedParams);
 Files.write(Path.of("gcm-ciphertext.bin"), ciphertextAndTag);
 
-// Trong quy trình đọc lại:
+// During the read-back workflow:
 byte[] paramsBytes = Files.readAllBytes(Path.of("gcm-parameters.bin"));
 byte[] encryptedBytes = Files.readAllBytes(Path.of("gcm-ciphertext.bin"));
 AlgorithmParameters fromFile = AlgorithmParameters.getInstance("GCM");
 fromFile.init(paramsBytes);
-// Dùng key và AAD phù hợp rồi giải mã encryptedBytes.
+// Use the appropriate key and AAD, then decrypt encryptedBytes.
 ```
 
-Tệp tham số **không phải** tệp key. Với production, nên gói metadata, độ dài trường, ciphertext/tag và version thành một record có schema rõ ràng thay vì dựa vào hai tên tệp cố định. Đảm bảo key lấy từ keystore/KMS hoặc cơ chế quản lý khóa an toàn.
+The parameter file is **not** a key file. For production, package metadata, field lengths, ciphertext/tag, and version into a record with an explicit schema instead of relying on two hardcoded filenames. Ensure keys come from a keystore/KMS or secure key management mechanism.
 
-## 6. Thiết kế định dạng lưu trữ có version, tính tương thích và AAD
+## 6. Designing a Versioned Storage Format, Compatibility, and AAD
 
-Một bản ghi mã hóa cần mô tả chính xác cách giải mã mà không làm lộ vật liệu khóa. Các trường nên cân nhắc:
+An encrypted record must describe exactly how to decrypt without exposing key material. Fields to consider:
 
-| Trường | Ý nghĩa |
+| Field | Meaning |
 | --- | --- |
-| `version` | Phiên bản schema lưu trữ; tránh đoán format trong tương lai. |
-| `transformation` | Ví dụ `AES/GCM/NoPadding`, xác định algorithm/mode/padding. |
-| `keyId` | Tham chiếu tới khóa hợp lệ trong keystore/KMS; không chứa khóa bí mật. |
-| `iv` + `tagBits` **hoặc** `parameterAlgorithm` + `parameterEncoding` + `parameterBytes` | Một cách lưu tường minh hoặc một cách lưu qua `AlgorithmParameters`; ghi rõ format và độ dài. |
-| `ciphertextAndTag` | Trọn vẹn bản mã kèm tag của GCM. |
-| `aad` hoặc quy tắc tái tạo AAD | Phải giữ đúng **từng byte** cho phía giải mã. |
+| `version` | Storage schema version; avoids guessing the format in the future. |
+| `transformation` | e.g., `AES/GCM/NoPadding`, specifying algorithm/mode/padding. |
+| `keyId` | Reference to a valid key in keystore/KMS; contains no secret key. |
+| `iv` + `tagBits` **or** `parameterAlgorithm` + `parameterEncoding` + `parameterBytes` | Either explicit field storage or `AlgorithmParameters` encoding; document format and lengths clearly. |
+| `ciphertextAndTag` | Complete ciphertext including the GCM tag. |
+| `aad` or AAD reconstruction rule | Must remain **byte-for-byte identical** on the decryption side. |
 
-Nếu metadata như tenant, documentId, version hay keyId ảnh hưởng đến quyền truy cập hoặc cách diễn giải dữ liệu, nên **ràng buộc chúng bằng AAD** hoặc cơ chế toàn vẹn thích hợp. Không nhận lựa chọn thuật toán yếu từ metadata chưa được xác thực. Phía đọc cần giới hạn kích thước, kiểm tra thuật toán cho phép, tagBits, IV length và version trước khi dùng.
+If metadata such as tenant, documentId, version, or keyId affects access control or how data is interpreted, **bind it via AAD** or an appropriate integrity mechanism. Never accept weak algorithm choices from unauthenticated metadata. The reader side must enforce size bounds and validate allowed algorithms, `tagBits`, IV length, and version before use.
 
-Trong JSON, có thể biểu diễn byte bằng Base64, nhưng **Base64 không mã hóa bí mật hay xác thực dữ liệu**. Định dạng nhị phân cần có độ dài các trường rõ ràng; khi đọc không được mặc định rằng các trường byte có chiều dài vô hạn hoặc đủ dữ liệu.
+In JSON, bytes can be represented in Base64, but **Base64 neither encrypts secrets nor authenticates data**. Binary formats need explicit field lengths; when parsing, never assume byte fields have unbounded length or sufficient remaining data.
 
-### Format và provider compatibility
+### Format and Provider Compatibility
 
-Theo API, `getEncoded()` trả primary encoding; nếu có đặc tả ASN.1 cho tham số thì primary format sử dụng ASN.1. Tuy nhiên, *không* suy ra mọi provider đều hỗ trợ cùng tên thuật toán, cùng format phụ hoặc đọc được mọi encoding của nhau. `getEncoded(String format)` và `init(byte[], String format)` chỉ dùng được khi provider hỗ trợ format yêu cầu.
+Per the API, `getEncoded()` returns the primary encoding; if an ASN.1 specification exists for the parameters, the primary format uses ASN.1. However, do *not* infer that every provider supports the same algorithm names, secondary formats, or can read each other's encodings. `getEncoded(String format)` and `init(byte[], String format)` work only when the provider supports the requested format.
 
-Đối với dữ liệu lưu lâu dài, nhiều runtime hoặc liên thông Java với hệ khác, cách an toàn về kỹ thuật là định nghĩa format lưu ở mức trường (`iv`, `tagBits`, v.v.), ghi rõ phiên bản, rồi viết test round-trip giữa các runtime/provider mục tiêu. Nếu chọn `AlgorithmParameters.getEncoded()` thì phải lưu thông tin format và có bài kiểm thử tương thích thực tế.
+For long-lived data, multi-runtime environments, or Java-to-non-Java interoperability, the technically safest approach is to define a field-level storage format (`iv`, `tagBits`, etc.), include a version, and write round-trip tests across target runtimes/providers. If choosing `AlgorithmParameters.getEncoded()`, record the format metadata and run real compatibility tests.
 
-## 7. Giới hạn an toàn và lỗi thường gặp
+## 7. Security Limits and Common Mistakes
 
-1. **Nonce AES-GCM phải duy nhất với mỗi lần mã hóa dưới cùng khóa.** Nonce 12 byte từ `SecureRandom` là cách minh họa thực dụng; hệ thống xử lý lượng dữ liệu lớn cần kiểm soát khả năng trùng, giới hạn lượt mã hóa mỗi khóa và chính sách thay khóa. Không dùng nonce cố định, zero-IV hoặc tái sử dụng nonce cũ.
-2. **Không nhầm tham số công khai với khóa.** IV, salt thường có thể đi cùng bản mã; key vẫn cần kiểm soát truy cập và quản lý vòng đời riêng. Đừng lưu key cạnh ciphertext chỉ để tiện giải mã.
-3. **Không bỏ authentication tag hay nuốt lỗi xác thực.** GCM là AEAD: `AEADBadTagException` phải dẫn tới từ chối dữ liệu. Với CBC, chỉ lưu IV không tự cung cấp tính toàn vẹn.
-4. **Không đoán AAD.** AAD được xác thực dù không mã hóa; AAD khi giải mã phải tái tạo đúng byte và lấy từ nguồn ngữ cảnh đáng tin cậy.
-5. **Không tin provider sẽ tự sinh lại IV trong lúc giải mã.** Provider có thể sinh tham số ở chế độ mã hóa; khi đó phải lấy và lưu `Cipher.getParameters()` hoặc `getIV()` sau khi `init`.
-6. **Không coi mọi spec hợp lệ ở mọi mode/provider.** GCM cần cả tag length; `IvParameterSpec` không thể thay thế hợp đồng `GCMParameterSpec` một cách an toàn/tổng quát.
-7. **Không lưu `toString()` hoặc Java object serialization để round-trip.** Cần trường có schema hoặc byte encoding được xác định và kiểm thử.
-8. **Không bỏ bước validate input.** Byte tham số, tagBits, salt/iteration, thuật toán, version và chiều dài ciphertext từ phía không tin cậy phải được kiểm tra trước khi cấp phát hay giải mã.
+1. **The AES-GCM nonce must be unique per encryption under the same key.** A 12-byte nonce from `SecureRandom` is a pragmatic demonstration; high-volume systems must manage collision probability, per-key encryption limits, and key-rotation policy. Never use a fixed nonce, zero-IV, or reuse an old nonce.
+2. **Do not confuse public parameters with keys.** IVs and salts can typically accompany ciphertext; keys still require access control and separate lifecycle management. Never store the key next to ciphertext merely for decryption convenience.
+3. **Do not strip the authentication tag or swallow authentication errors.** GCM is AEAD: `AEADBadTagException` must result in rejecting the data. With CBC, storing only an IV does not provide integrity on its own.
+4. **Do not guess AAD.** AAD is authenticated even though unencrypted; AAD during decryption must be reconstructed byte-for-byte from a trusted contextual source.
+5. **Do not expect the provider to regenerate the IV during decryption.** A provider may generate parameters in encryption mode; in that case, extract and save `Cipher.getParameters()` or `getIV()` after `init`.
+6. **Do not assume every spec is valid for every mode/provider.** GCM needs the tag length as well; `IvParameterSpec` cannot safely or generally substitute for the `GCMParameterSpec` contract.
+7. **Do not store `toString()` or Java object serialization for round-tripping.** You need schema-defined fields or a specified, tested byte encoding.
+8. **Do not skip input validation.** Parameter bytes, `tagBits`, salt/iterations, algorithm, version, and ciphertext length from untrusted sources must be validated before allocation or decryption.
 
-| Lỗi/triệu chứng | Nguyên nhân thường gặp | Hướng xử lý |
+| Error / symptom | Common cause | How to handle |
 | --- | --- | --- |
-| `InvalidAlgorithmParameterException` khi `Cipher.init` | Spec không phù hợp transformation/provider, thiếu tham số hoặc kích thước không được hỗ trợ | Kiểm tra tên transformation, spec type, IV/tag length và provider. |
-| `NoSuchAlgorithmException` khi `AlgorithmParameters.getInstance` | Tên thuật toán tham số không được provider hỗ trợ | Kiểm tra danh sách provider, dùng đúng algorithm name (không nhầm transformation). |
-| `InvalidParameterSpecException` | Spec không phù hợp, chưa khởi tạo hoặc cố init lại object | Tạo instance mới, chọn đúng spec/algorithm. |
-| `IOException` khi decode/encode tham số | Blob bị cắt/hỏng, encoding sai hoặc object chưa khởi tạo | Kiểm tra size, format, version và encoding provider. |
-| `AEADBadTagException` | Key, IV, AAD, ciphertext hoặc tag không khớp | Từ chối bản mã; điều tra dữ liệu lưu/truyền, không hạ cấp bảo mật để bỏ lỗi. |
-| `Cipher.getParameters()` trả `null` | Cipher không có tham số cần xuất, hoặc chưa ở trạng thái phù hợp | Đọc hợp đồng thuật toán/mode và thời điểm gọi; không tự bịa IV. |
-| Chạy được trên máy A, lỗi trên máy B | Khác provider/encoding, key hoặc AAD | Test interoperability; dùng định dạng field-level có version khi cần. |
+| `InvalidAlgorithmParameterException` at `Cipher.init` | Spec does not match transformation/provider, missing parameters, or unsupported size | Check transformation name, spec type, IV/tag length, and provider. |
+| `NoSuchAlgorithmException` at `AlgorithmParameters.getInstance` | Parameter algorithm name unsupported by provider | Check provider list, use the right algorithm name (do not confuse with transformation). |
+| `InvalidParameterSpecException` | Unsuitable spec, uninitialized object, or attempting to re-init the same object | Create a new instance, select the matching spec/algorithm. |
+| `IOException` when decoding/encoding parameters | Truncated/corrupted blob, wrong encoding, or uninitialized object | Check size, format, version, and provider encoding. |
+| `AEADBadTagException` | Key, IV, AAD, ciphertext, or tag mismatch | Reject ciphertext; investigate stored/transmitted data without weakening security to bypass the error. |
+| `Cipher.getParameters()` returns `null` | Cipher has no parameters to export, or is not in an appropriate state | Check algorithm/mode contract and call timing; never fabricate an IV. |
+| Works on machine A, fails on machine B | Different provider/encoding, key, or AAD | Test interoperability; use a versioned field-level format when needed. |
 
-### Checklist trước khi triển khai
+### Pre-Deployment Checklist
 
-- Đã xác định rõ transformation, keyId, format/version, cách lưu IV/tag và ciphertext/tag?
-- Mỗi bản mã mới có nonce duy nhất dưới cùng khóa, và nonce đó được lưu đủ để giải mã?
-- AAD được tính lại chính xác và những metadata nhạy cảm đã được ràng buộc xác thực?
-- Lưu key riêng bằng cơ chế đáng tin cậy, có rotation và kiểm soát truy cập?
-- Có test round-trip, test ciphertext/AAD bị sửa, test dữ liệu bị cắt và test provider khác?
-- Có whitelist thuật toán, giới hạn kích thước và từ chối các tham số không hợp lệ?
+- Are transformation, `keyId`, format/version, IV/tag storage, and ciphertext/tag clearly defined?
+- Does each new ciphertext have a unique nonce under the same key, and is that nonce stored intact for decryption?
+- Is AAD recomputed accurately and is sensitive metadata bound to authentication?
+- Are keys stored separately via a trusted mechanism with rotation and access control?
+- Are there round-trip tests, tampered ciphertext/AAD tests, truncated data tests, and cross-provider tests?
+- Is there an algorithm allowlist, size limits, and rejection of invalid parameters?
 
-**Tự thực hành:** sửa ví dụ lần lượt thay (a) 1 byte của ciphertext, (b) AAD, (c) IV lúc giải mã; cả ba phải không vượt qua xác thực. Sau đó thay `AlgorithmParameters` bằng cách lưu `iv` và `tagBits` riêng, khôi phục `GCMParameterSpec`, và đối chiếu ưu/nhược của hai contract lưu trữ. Không đưa khóa thật vào source hay bài tập.
+**Hands-on exercise:** modify the example to change in turn (a) 1 byte of the ciphertext, (b) the AAD, and (c) the IV during decryption; all three must fail authentication. Then replace `AlgorithmParameters` by storing `iv` and `tagBits` separately, reconstruct `GCMParameterSpec`, and compare the pros/cons of both storage contracts. Never place real keys in source code or exercises.
 
-## 8. Tài liệu API chính thức
+## 8. Official API Documentation
 
-- [AlgorithmParameters — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/AlgorithmParameters.html): init, encoding, provider, getParameterSpec.
-- [AlgorithmParameterSpec — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/AlgorithmParameterSpec.html): marker interface của các lớp spec.
-- [Cipher — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): init, getParameters, updateAAD, yêu cầu nonce GCM.
+- [AlgorithmParameters — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/AlgorithmParameters.html): init, encoding, provider, `getParameterSpec`.
+- [AlgorithmParameterSpec — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/AlgorithmParameterSpec.html): marker interface for spec classes.
+- [Cipher — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): init, `getParameters`, `updateAAD`, GCM nonce requirements.
 - [GCMParameterSpec — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): IV, tag length.

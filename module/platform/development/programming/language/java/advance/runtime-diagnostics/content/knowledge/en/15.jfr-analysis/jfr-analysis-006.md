@@ -1,67 +1,67 @@
-# 15.6 Phân tích execution sample, cây lời gọi và tỷ trọng mẫu trong JFR
+# 15.6 Analyzing execution samples, call trees, and sample shares in JFR
 
-## 1. Mục tiêu của phân tích execution sample
+## 1. Objectives of execution sample analysis
 
-Một API có p99 tăng, process CPU cao; trong JDK Mission Control (JMC), bảng Hot Methods hiển thị `parse() 42%`, `hash() 28%` và `serialize() 12%`. Các tỷ lệ này thường được tính từ **số stack samples được quan sát**, không tự động có nghĩa từng hàm tiêu thụ đúng ngần ấy **CPU time của toàn máy** hoặc phần trăm **wall-clock latency** của request.
+An API sees rising p99 latency and high process CPU; in JDK Mission Control (JMC), the Hot Methods table shows `parse() 42%`, `hash() 28%`, and `serialize() 12%`. These percentages are typically calculated from **observed stack sample counts**, which does not automatically mean each function consumed that exact percentage of **machine-wide CPU time** or **request wall-clock latency**.
 
-Bài này giải thích cách dùng `jdk.ExecutionSample` để:
+This lesson explains how to use `jdk.ExecutionSample` to:
 
-- Xác định phương thức đang thực thi Java code xuất hiện nhiều trong mẫu.
-- Dựng **call tree** theo caller→callee, lần theo đường gọi dẫn đến hot method.
-- Phân biệt **self/exclusive samples** và **inclusive/total samples**.
-- Tính **tỷ trọng mẫu** với mẫu số, phạm vi thời gian và thread filter rõ ràng.
-- Nhận ra sampling bias, khoảng thiếu coverage, tác dụng của JIT/inlining, stack depth, native code và blocking.
-- Xác nhận giả thuyết bằng số đo CPU/GC/I/O và thử nghiệm trước–sau.
+- Identify methods executing Java code that appear frequently in samples.
+- Build a **call tree** from caller to callee, tracing the call paths leading to hot methods.
+- Distinguish **self/exclusive samples** from **inclusive/total samples**.
+- Compute **sample shares** with an explicit denominator, time range, and thread filter.
+- Recognize sampling bias, coverage gaps, effects of JIT/inlining, stack depth, native code, and blocking.
+- Confirm hypotheses with CPU/GC/I/O measurements and before–after experiments.
 
-**Nguyên tắc:** execution sampling là ảnh chụp thống kê về *mã Java đang chạy tại thời điểm được lấy mẫu*, không phải đồng hồ đo thời gian thực thi chính xác của từng method call.
+**Principle:** execution sampling is a statistical snapshot of *Java code running at the moment a sample is taken*, not a stopwatch measuring the exact execution time of every method call.
 
-## 2. Một `jdk.ExecutionSample` gồm những gì?
+## 2. What does a `jdk.ExecutionSample` contain?
 
-Java Flight Recorder (JFR) ghi các event có thời gian và metadata. Với `jdk.ExecutionSample`, những trường thường hữu ích là:
+Java Flight Recorder (JFR) records events with timestamps and metadata. For `jdk.ExecutionSample`, commonly useful fields include:
 
-| Trường | Ý nghĩa | Cần tránh nhầm |
+| Field | Meaning | Pitfall to avoid |
 | --- | --- | --- |
-| `startTime` | Thời điểm một mẫu được thu | Không phải thời điểm bắt đầu lời gọi method |
-| `sampledThread` | Thread có stack bị lấy mẫu | Không mặc định đồng nhất với thread quản lý recorder |
-| `stackTrace` | Dãy frame phương thức có mặt trên stack | Không phải trace của toàn bộ các lần gọi đã xảy ra |
-| `state` | Thread state được event mô tả (tùy phiên bản JDK/viewer) | Không thể từ một state suy ra toàn bộ thời gian blocked/runnable |
-| Event count | Số lần quan sát phù hợp bộ lọc | Không phải invocation count, nanoseconds CPU hoặc số request |
+| `startTime` | Timestamp when a sample was captured | Not when the method call began |
+| `sampledThread` | Thread whose stack was sampled | Not automatically the thread managing the recorder |
+| `stackTrace` | Sequence of method frames on the stack | Not a trace of every call that occurred |
+| `state` | Thread state described by the event (depends on JDK/viewer version) | Cannot deduce total blocked/runnable time from a single state |
+| Event count | Number of observations matching filters | Not invocation count, CPU nanoseconds, or request count |
 
-Một stack sample có thể giống:
+A stack sample might look like:
 
 ~~~text
-(top: đang ở điểm thực thi)
+(top: currently executing point)
 com.example.Tokenizer.scan()
 com.example.JsonParser.parse()
 com.example.Controller.handle()
 com.example.Dispatcher.dispatch()
-(bottom: caller gốc)
+(bottom: root caller)
 ~~~
 
-Khi dựng cây từ caller tới callee, đọc **từ bottom lên top**:
+When building a tree from caller to callee, read **from bottom to top**:
 
 `Dispatcher.dispatch() → Controller.handle() → JsonParser.parse() → Tokenizer.scan()`.
 
-Mỗi event **đếm một mẫu**. Một phương thức chạy 1 triệu lần nhưng mỗi lần rất ngắn có thể ít xuất hiện; một phương thức chạy liên tục lâu có thể xuất hiện rất nhiều. Số frame của một stack không phải số mẫu mới.
+Each event **counts as one sample**. A method called 1 million times for a tiny duration each time may appear rarely; a method running continuously for a long time may appear many times. The number of frames in one stack is not additional samples.
 
-### Phân biệt event liên quan
+### Distinguishing related events
 
-- **`jdk.ExecutionSample`:** lấy mẫu thread đang thực thi mã Java. Thread đang chờ I/O/monitor/park hoặc đang thực thi native code có thể không hiện trong event này.
-- **`jdk.NativeMethodSample`:** event lấy mẫu các thread đang ở native code, có phạm vi và ý nghĩa khác, không biến `ExecutionSample` thành profiler native đầy đủ.
-- **`jdk.CPULoad`/`jdk.ThreadCPULoad` và process CPU OS metrics:** cho biết CPU load nhưng không thay cho stack-path analysis.
-- **Duration/wait events:** `jdk.SocketRead`, `jdk.ThreadPark`, `jdk.JavaMonitorEnter`, GC-related events giúp điều tra chậm do chờ, lock và pause. Việc bật/threshold ảnh hưởng đến event count.
+- **`jdk.ExecutionSample`:** samples threads executing Java code. Threads waiting on I/O, monitors, `park`, or executing native code may not appear in this event.
+- **`jdk.NativeMethodSample`:** samples threads executing native code, with different scope and semantics; it does not turn `ExecutionSample` into a full native profiler.
+- **`jdk.CPULoad`/`jdk.ThreadCPULoad` and OS process CPU metrics:** show CPU load, but do not replace stack-path analysis.
+- **Duration/wait events:** `jdk.SocketRead`, `jdk.ThreadPark`, `jdk.JavaMonitorEnter`, and GC-related events help investigate slowdowns from waiting, locks, and pauses. Enablement and thresholds affect event counts.
 
-Các template và bản JDK có thể dùng period khác nhau. `20 ms` hay `10 ms` là **cấu hình yêu cầu lấy mẫu**, không đảm bảo mỗi thread có đúng một event sau từng khoảng ấy. Đừng nhân `sampleCount × 10 ms` để lấy CPU time thật. Với virtual thread, nhiều tác vụ đang unmount chờ I/O có thể hoàn toàn không xuất hiện trong execution samples dù chúng đóng góp lớn vào response latency.
+Templates and JDK releases can use different periods. `20 ms` or `10 ms` is a **requested sampling configuration**, not a guarantee that every thread gets exactly one event per interval. Never multiply `sampleCount × 10 ms` to compute true CPU time. With virtual threads, many tasks unmounted while waiting on I/O may be completely absent from execution samples even when they dominate response latency.
 
-## 3. Cây lời gọi: inclusive khác self như thế nào?
+## 3. Call trees: how inclusive differs from self
 
-**Top-down call tree** gộp các stack samples có cùng tiền tố đường gọi, từ caller ở đáy stack đến frame đang thực thi. Cách đếm hai cột:
+A **top-down call tree** merges stack samples sharing the same call-path prefix, from the caller at the bottom of the stack up to the executing frame. How the two columns count:
 
-- **Inclusive/total sample count tại node:** số mẫu mà đường gọi đi qua node, gồm các mẫu rơi vào descendant của node.
-- **Self/exclusive sample count tại node:** số mẫu rơi tại chính node, không thuộc các descendant được thể hiện. Tưởng tượng frame trên cùng đang nằm ở phương thức node đó.
-- **Caller/parent:** phương thức đã gọi node; một method có thể xuất hiện dưới **nhiều caller** và tạo nhiều node trong call tree.
+- **Inclusive/total sample count at a node:** number of samples whose call path passes through the node, including samples landing in descendants of that node.
+- **Self/exclusive sample count at a node:** number of samples landing right at that node itself, not in any displayed descendant. Think of the top frame being inside that node's method.
+- **Caller/parent:** the method that invoked the node; one method can appear under **multiple callers**, creating multiple nodes in the call tree.
 
-Ví dụ hoàn toàn giả định, sau khi lọc chỉ còn **100 mẫu hợp lệ** của một workload:
+Purely hypothetical example, after filtering down to **100 valid samples** for one workload:
 
 ~~~text
 Worker.run                      100 inclusive,  0 self
@@ -73,97 +73,97 @@ Worker.run                      100 inclusive,  0 self
     └── Encoder.encode           25 inclusive, 25 self
 ~~~
 
-**Cách đọc đúng:**
+**How to read it accurately:**
 
-1. `Api.handle` chiếm **70/100 = 70% inclusive**; điều đó có nghĩa 70 mẫu có call path đi qua API, không phải code riêng của `handle` tự tiêu thụ 70% CPU.
-2. `Parser.decode` có **45 inclusive**, gồm **15 self** và **30** ở `Parser.scan`. Nếu chỉ xem hot leaf, `Parser.scan` có 30 mẫu tự thân; nếu xem caller branch, cần nhìn cả `Parser.decode`.
-3. `Batch.handle` có **30 inclusive**, gồm **5 self** và **25 self** ở `Encoder.encode`.
-4. Tổng self ở các node không chồng nhau bằng **15 + 30 + 25 + 5 + 25 = 100**. **Không cộng inclusive của cha và con**: cùng một mẫu được đếm ở mọi node trên đường stack, nên tổng các số inclusive lớn hơn 100.
+1. `Api.handle` accounts for **70/100 = 70% inclusive**; this means 70 samples had a call path passing through the API, not that `handle`'s own body consumed 70% CPU.
+2. `Parser.decode` has **45 inclusive**, consisting of **15 self** and **30** in `Parser.scan`. If you only look at hot leaves, `Parser.scan` has 30 self samples; if you look at caller branches, you must inspect `Parser.decode` too.
+3. `Batch.handle` has **30 inclusive**, consisting of **5 self** and **25 self** in `Encoder.encode`.
+4. The sum of self across non-overlapping nodes equals **15 + 30 + 25 + 5 + 25 = 100**. **Do not add inclusive counts of parent and child**: the same sample is counted at every node along the stack path, so summing inclusive numbers exceeds 100.
 
-Lưu ý: JMC có thể ẩn các frame JDK, nhóm theo package/method, hoặc hiển thị stack bị cắt. Khi cách nhóm thay đổi, self ở một node nhìn trên màn hình có thể đổi theo; luôn xem event stack hoặc lựa chọn aggregation để hiểu mẫu số.
+Note: JMC may hide JDK frames, group by package/method, or show truncated stacks. When grouping changes, visible self counts at a node can shift; always check raw event stacks or aggregation settings to understand the denominator.
 
-### Top-down, bottom-up, Hot Methods và flame graph
+### Top-down, bottom-up, Hot Methods, and flame graphs
 
-- **Top-down/call tree:** trả lời “đường caller nào dẫn tới vùng code nóng?”. Nếu `HashUtil.hash()` nằm dưới `Api.authenticate()` và `Batch.index()`, hai nhánh cần đánh giá riêng.
-- **Bottom-up/Hot Methods:** trả lời “method nào xuất hiện nhiều, các caller nào tạo ra số mẫu đó?”. Gộp cùng method từ nhiều đường gọi rồi mở **predecessors/callers** để truy ngược nguồn.
-- **Flame graph:** mỗi stack được gom theo đường gọi; chiều rộng thường tỷ lệ **số mẫu**, không phải thời gian bắt đầu/kết thúc riêng của từng lời gọi. Chiều cao là độ sâu stack, không phải CPU load.
+- **Top-down/call tree:** answers "which caller paths lead into hot code?" If `HashUtil.hash()` sits under both `Api.authenticate()` and `Batch.index()`, the two branches must be evaluated separately.
+- **Bottom-up/Hot Methods:** answers "which methods appear most often, and which callers generate those samples?" Merges the same method across call paths, then opens **predecessors/callers** to trace back to the source.
+- **Flame graph:** stacks are grouped by call path; bar width is usually proportional to **sample count**, not individual call start/end times. Height represents stack depth, not CPU load.
 
-Khi cần tìm code để tối ưu, nhìn **self samples** và method thật đang làm việc. Khi cần xác định business path chịu trách nhiệm, nhìn **inclusive + caller tree**. Cả hai cần lọc đúng time window và các thread liên quan.
+When looking for code to optimize, inspect **self samples** and the methods actually doing the work. When identifying the responsible business path, inspect **inclusive + caller tree**. Both require filtering to the right time window and relevant threads.
 
-## 4. Tính tỷ trọng mẫu với mẫu số hợp lệ
+## 4. Computing sample shares with a valid denominator
 
-Với tập `S` gồm `N` sự kiện `jdk.ExecutionSample` **được chọn và có stack hợp lệ**:
+Given a set `S` of `N` **selected `jdk.ExecutionSample` events with valid stacks**:
 
 `selfPct(m) = 100 × selfCount(m) / N`
 
 `inclusivePct(node) = 100 × inclusiveCount(node) / N`
 
-Ví dụ `N=500`; node `Parser.decode` xuất hiện ở 125 stack, nhưng chỉ 40 lần là leaf:
+Example `N=500`; node `Parser.decode` appears in 125 stacks, but only 40 times as the leaf:
 
 - **Inclusive:** `125 / 500 = 25%`.
 - **Self:** `40 / 500 = 8%`.
 
-Nếu GUI đang lọc còn `100` mẫu của riêng một API, phần trăm phải tính theo `N=100`, không so ngang 25% của toàn process với 25% của riêng API. Ghi rõ **event type**, **recording**, **time window**, **thread filter**, **stack availability**, **node/method grouping** và tổng `N`.
+If the GUI is filtered down to `100` samples for one API, percentages must be computed against `N=100`; do not compare 25% of the whole process directly with 25% of one API. Explicitly document **event type**, **recording**, **time window**, **thread filter**, **stack availability**, **node/method grouping**, and total `N`.
 
-Cách phát biểu an toàn là “`Parser.scan` xuất hiện trong **30% execution samples của tập đang chọn**”. Câu “`Parser.scan` sử dụng đúng **30% CPU của hệ thống**” không được phép suy ra chỉ từ dữ liệu này. Tương tự, nếu `parse` chiếm 40% mẫu, tối ưu nó không đảm bảo giảm p99 40%.
+A safe statement is "`Parser.scan` appears in **30% of execution samples in the selected set**." The claim "`Parser.scan` uses exactly **30% of system CPU**" cannot be inferred from this data alone. Likewise, if `parse` is 40% of samples, optimizing it does not guarantee a 40% p99 reduction.
 
-### Tại sao tỷ trọng thay đổi mà hiệu năng có thể không đổi?
+### Why can sample share change while performance does not?
 
-Tỷ trọng là **tỷ số tương đối**. Giả sử trong hai recording:
+Sample share is a **relative ratio**. Suppose across two recordings:
 
-| Recording | Mẫu của `parse` | Toàn bộ mẫu được chọn | Tỷ trọng |
+| Recording | Samples in `parse` | Total selected samples | Share |
 | --- | ---: | ---: | ---: |
-| Trước | 300 | 750 | 40% |
-| Sau | 350 | 1.750 | 20% |
+| Before | 300 | 750 | 40% |
+| After | 350 | 1,750 | 20% |
 
-Có thể nhìn 40% → 20% rồi tuyên bố `parse` “nhanh gấp đôi”, nhưng số mẫu còn phụ thuộc thời lượng recording, period, số thread, workload và CPU quota; phần còn lại có thể đã nóng hơn. **Không dùng tỷ trọng để thay thế CPU time/request, throughput, latency và benchmark cùng điều kiện.**
+Looking at 40% → 20%, one might claim `parse` became "twice as fast," yet sample counts also depend on recording length, period, thread count, workload, and CPU quota; other code may simply have gotten hotter. **Never use sample share as a substitute for CPU time/request, throughput, latency, and controlled benchmarks.**
 
-Với tỷ lệ nhỏ từ **8 mẫu** chẳng hạn, 5/8 = 62,5% có thể dao động mạnh giữa hai lần chạy. Các mẫu lấy gần nhau cũng có thể tương quan; không áp dụng sai công thức thống kê coi chúng là những phép thử độc lập tuyệt đối.
+With small sample counts such as **8 samples**, 5/8 = 62.5% can swing wildly between runs. Samples taken close together can also be correlated; do not misuse statistical formulas that assume strictly independent trials.
 
-## 5. Giới hạn và sai lệch của execution sampling
+## 5. Limitations and biases of execution sampling
 
-1. **Tác vụ short-lived:** một method chạy vài microsecond rất nhiều lần có thể xuất hiện ít do xác suất chụp đúng frame thấp; sample count không nói số lần gọi.
-2. **Waiting và native code:** `jdk.ExecutionSample` không thể đại diện toàn wall-clock latency khi thread chủ yếu chờ DB, socket, lock, semaphore hoặc chạy native code. Đối chiếu duration events, `NativeMethodSample` và OS/native profiler nếu phù hợp.
-3. **Không đều giữa các thread:** period không đồng nghĩa mỗi thread được lấy mẫu với tần suất như nhau. Thread scheduling, sampler behavior, số thread và CPU quota ảnh hưởng xác suất được chọn.
-4. **JIT/inlining:** frame interpreted/compiled/inlined/lambda có thể được giải mã/hiển thị khác nhau theo JDK và viewer; không xem tên method là call graph tĩnh luôn đúng.
-5. **Stack thiếu/cắt:** stack trace có thể bị hạn chế độ sâu khi **ghi** hoặc chỉ khi **in**, hai giới hạn này khác nhau. Call tree thiếu caller sâu sẽ làm sai bối cảnh.
-6. **Lựa chọn khoảng thời gian:** startup/JIT, GC, idle, warm-up và peak traffic có profile khác nhau; chỉ so các cửa sổ tải tương đương.
-7. **Thiên lệch trong cách tổng hợp:** filter thread, package, method, loại event và việc loại mẫu stack rỗng làm mẫu số `N` thay đổi. Cần ghi lại bộ lọc khi báo phần trăm.
-8. **Suy luận nguyên nhân:** call path nóng là **manh mối**. Nó có thể do helper quá chậm, caller gọi quá thường xuyên hoặc lượng dữ liệu/thuật toán sai. Cần thử nghiệm để phân biệt.
+1. **Short-lived tasks:** a method running for a few microseconds very frequently may rarely appear because the odds of catching that frame are low; sample count does not indicate invocation count.
+2. **Waiting and native code:** `jdk.ExecutionSample` cannot represent total wall-clock latency when threads spend most of their time waiting on DB, sockets, locks, semaphores, or running native code. Cross-check duration events, `NativeMethodSample`, and OS/native profilers when appropriate.
+3. **Unevenness across threads:** a sampling period does not guarantee every thread is sampled equally often. Thread scheduling, sampler behavior, thread counts, and CPU quotas affect selection probability.
+4. **JIT/inlining:** interpreted, compiled, inlined, and lambda frames may be decoded or displayed differently across JDKs and viewers; do not treat method names as an invariant static call graph.
+5. **Missing/truncated stacks:** stack traces can be depth-limited during **recording** or merely during **printing**; those two limits differ. A tree missing deep callers distorts context.
+6. **Time-window selection:** startup/JIT, GC, idle, warm-up, and peak traffic have distinct profiles; only compare windows under equivalent load.
+7. **Aggregation bias:** filtering threads, packages, methods, event types, or dropping empty-stack samples changes the denominator `N`. Document active filters whenever reporting percentages.
+8. **Causal inference:** a hot call path is a **clue**. It might reflect a slow helper, callers invoking it too often, or excessive data / a poor algorithm. Run experiments to tell them apart.
 
-Không nên điều chỉnh period cực nhỏ không giới hạn trên production: volume và chi phí profiling có thể tăng; chọn đủ mẫu cho mục đích điều tra, đo overhead và ưu tiên recording hữu hạn khi có thể.
+Avoid setting arbitrarily tiny sampling periods in production: volume and profiling overhead can spike; pick enough samples for the diagnostic goal, measure overhead, and prefer bounded recordings when possible.
 
-## 6. Thu recording bằng `jcmd` và đọc bằng `jfr`
+## 6. Capturing a recording with `jcmd` and reading it with `jfr`
 
-Với JDK 17+ có JFR, xác định PID của JVM cần đo và dùng công cụ cùng JDK tương thích:
+On JDK 17+ with JFR, find the target JVM's PID and use tools from a compatible JDK:
 
 ~~~bash
 jcmd <PID> JFR.start name=cpu-probe settings=profile duration=60s filename=cpu-probe.jfr
 ~~~
 
-Chọn `settings=profile` để có template tập trung vào profiling. Cần **kiểm tra cấu hình thực tế** của `jdk.ExecutionSample` trên bản JDK/template đang dùng, không mặc định period một giá trị bất biến. Sau khi recording hoàn tất và file đã sẵn sàng:
+Choose `settings=profile` for a profiling-focused template. Always **check the actual configuration** of `jdk.ExecutionSample` on your JDK/template instead of assuming a fixed default period. After the recording finishes and the file is ready:
 
 ~~~bash
 jfr summary cpu-probe.jfr
 jfr print --events jdk.ExecutionSample --stack-depth 32 cpu-probe.jfr
 ~~~
 
-`jfr summary` liệt kê các event type và event count, giúp biết có đủ mẫu để xem không. `jfr print` hiện từng event/stack. `--stack-depth 32` giới hạn số frame **được in ra**; nó không tái tạo frame vốn chưa được ghi. Không dump hàng triệu event ra terminal; mở JMC hoặc dùng parser tuần tự/bộ lọc.
+`jfr summary` lists event types and counts, letting you see whether enough samples exist. `jfr print` displays individual events and stacks. `--stack-depth 32` limits the number of frames **printed**; it does not recover frames that were never recorded. Do not dump millions of events to the terminal; open JMC or use a streaming parser/filter.
 
-Trong **JDK Mission Control (JMC)**, mở `cpu-probe.jfr` và đi tới màn hình Method Profiling/Hot Methods/Call Tree tương ứng với version của JMC. Cách làm thực tế:
+In **JDK Mission Control (JMC)**, open `cpu-probe.jfr` and navigate to Method Profiling/Hot Methods/Call Tree depending on your JMC version. Practical workflow:
 
-1. Chọn **time window** có CPU/p99 bất thường, loại idle/warm-up nếu đó không phải phạm vi cần phân tích.
-2. Chọn **thread scope** và `jdk.ExecutionSample`; xem số event sau filter.
-3. Đọc **Hot Methods/self** để tìm nơi đang chạy, rồi mở **call tree/inclusive** để tìm đường gọi chiếm phần lớn mẫu.
-4. Chọn một leaf, đi ngược caller: đoạn code hay luồng xử lý nào thường dẫn đến leaf đó?
-5. Đối chiếu CPU load, GC, lock/I/O events; không mặc định mọi request chậm đều do CPU.
-6. Chọn một tối ưu nhỏ có bằng chứng (giảm parse lặp, batch hợp lý, tránh thừa thao tác), đo lại cùng tải và cùng JFR settings.
+1. Select the **time window** with abnormal CPU/p99, excluding idle or warm-up if outside your scope.
+2. Select the **thread scope** and `jdk.ExecutionSample`; check the post-filter event count.
+3. Read **Hot Methods/self** to see where execution sits, then open **call tree/inclusive** to find the call paths accounting for most samples.
+4. Pick a leaf and walk up callers: which code path or request flow leads to that leaf most often?
+5. Cross-check CPU load, GC, and lock/I/O events; do not assume every slow request is CPU-bound.
+6. Choose one evidence-backed small optimization (remove redundant parsing, batch sensibly, eliminate wasted work) and re-measure under the same load and JFR settings.
 
-Tên view có thể khác theo JMC release. Trong JFR recording, `sampledThread` là đối tượng được lấy mẫu; cần cẩn thận khi thread pool có thể chạy nhiều loại request trên cùng worker.
+View names can vary across JMC releases. In a JFR recording, `sampledThread` is the sampled thread; be careful when a thread pool runs multiple request types on the same worker.
 
-## 7. Lab Java 17+: tự ghi JFR, đọc mẫu và tính tỷ trọng
+## 7. Java 17+ lab: record JFR yourself, read samples, and compute shares
 
-Lab này chỉ cần **JDK 17+** (module `jdk.jfr` thuộc JDK), chạy một worker CPU với hai call path chung hàm `busyLoop()`. `apiPath()` tính toán khoảng **2,4 giây**, `batchPath()` tính khoảng **0,8 giây**, sau đó worker ngủ **0,4 giây**. Nó chủ động bật `jdk.ExecutionSample` với requested period **10 ms**, lọc theo `sampledThread`, đếm những stack chứa path A/B và tính phần trăm trong **worker samples có stack**.
+This lab requires only **JDK 17+** (the `jdk.jfr` module is part of the JDK) and runs a CPU worker with two call paths sharing `busyLoop()`. `apiPath()` computes for about **2.4 seconds**, `batchPath()` computes for about **0.8 seconds**, and then the worker sleeps for **0.4 seconds**. It explicitly enables `jdk.ExecutionSample` with a requested period of **10 ms**, filters by `sampledThread`, counts stacks containing path A/B, and computes percentages out of **worker samples with stacks**.
 
 **File `ExecutionSampleLab.java`:**
 
@@ -283,7 +283,7 @@ public class ExecutionSampleLab {
 }
 ~~~
 
-Chạy từ thư mục chứa file Java:
+Run from the directory containing the Java file:
 
 ~~~bash
 javac ExecutionSampleLab.java
@@ -292,58 +292,58 @@ jfr summary execution-sample-lab.jfr
 jfr print --events jdk.ExecutionSample --stack-depth 16 execution-sample-lab.jfr
 ~~~
 
-**Dạng kết quả**, không phải stdout cố định:
+**Output format**, not fixed stdout:
 
 ~~~text
 workerSamples=<N> pathA=<A> pathB=<B> other=<O>
 A=<a.a>% B=<b.b>%
 ~~~
 
-Các biến `N/A/B/O` phụ thuộc môi trường và sampler; nếu `N=0`, chương trình cố ý không in dòng tỷ trọng. Trên một lần chạy JDK 24, ví dụ có thể chỉ được **8 mẫu** cho toàn đoạn CPU hơn 3 giây, nên phần trăm dao động mạnh. Đừng ép đúng **75:25** dù hai pha CPU có thời lượng khoảng 3:1; tăng thời gian test hoặc lặp recording nếu cần mẫu đủ lớn.
+Variables `N/A/B/O` depend on the environment and sampler; if `N=0`, the program intentionally skips printing the percentage line. In a JDK 24 run, for example, you might get only **8 samples** across over 3 seconds of CPU work, causing percentages to fluctuate sharply. Do not force an exact **75:25** split even though the two CPU phases have roughly a 3:1 duration ratio; extend test duration or repeat recordings if you need a larger sample size.
 
-**Điểm cần hiểu trong code:**
+**Key points in the code:**
 
-- `Recording.enable("jdk.ExecutionSample")` và `withPeriod(10 ms)` cấu hình thu mẫu; không phải phép đo tự động CPU time.
-- `getThread("sampledThread")` lọc đúng worker; event của thread khác không thuộc mẫu số.
-- `getFrames()` chứa stack; kiểm tra sự hiện diện của `apiPath`/`batchPath` trong bất kỳ frame nào tức là đếm **inclusive theo call path**, không phải self samples tại hai method.
-- `busyLoop` chung giữa A và B dễ chiếm hot leaf; để tìm bên nào tạo tải, phải xem **caller path** của nó.
-- `Thread.sleep(400)` tăng wall-clock thời gian worker nhưng không tương ứng tăng execution samples cho phần chờ. Điều này giúp phân biệt CPU sampling và latency.
-- `RecordingFile.readAllEvents` giữ mọi event trong bộ nhớ, thích hợp lab ngắn. Với recording lớn, dùng `RecordingFile` tuần tự hoặc JMC để tránh tải dữ liệu quá lớn.
+- `Recording.enable("jdk.ExecutionSample")` and `withPeriod(10 ms)` configure sampling; they are not an automatic CPU time measurement.
+- `getThread("sampledThread")` filters to the worker thread; events from other threads are excluded from the denominator.
+- `getFrames()` holds the stack; checking whether `apiPath`/`batchPath` appears in any frame counts **inclusive by call path**, not self samples in those two methods.
+- `busyLoop` shared by A and B easily dominates the hot leaf; to see which side drives the load, inspect its **caller path**.
+- `Thread.sleep(400)` adds wall-clock time to the worker without adding execution samples during the sleep. This helps distinguish CPU sampling from latency.
+- `RecordingFile.readAllEvents` holds all events in memory, suitable for short labs. For large recordings, iterate `RecordingFile` sequentially or use JMC to avoid excessive memory usage.
 
-Để tính **self** tại một method, xác định event có **frame ở đỉnh stack** chính là method đó, sau đó đếm. Khi `busyLoop` là frame đang thực thi và `apiPath` chỉ nằm bên dưới, `apiPath` có inclusive +1 còn self của `apiPath` không tăng. Nếu các frame bị cắt hoặc JIT inlining làm thay đổi cách viewer hiển thị, phải kiểm tra stack trace cụ thể trước khi kết luận.
+To compute **self** at a method, check events whose **top-of-stack frame** is that method and count them. When `busyLoop` is the currently executing frame and `apiPath` sits beneath it, `apiPath` gets +1 inclusive while `apiPath`'s self does not increment. If frames are truncated or JIT inlining alters how a viewer displays them, inspect the raw stack trace before concluding.
 
-## 8. Đọc kết quả trong ba tình huống
+## 8. Interpreting results in three scenarios
 
-### A. Hot method lớn vì caller gọi lặp không cần thiết
+### A. A large hot method due to unnecessary repeated calls from a caller
 
-Hot Methods: `JsonParser.parse` chiếm 38% self samples. Caller tree cho thấy phần lớn các mẫu đến từ một request mapper parse lại payload đã parse ở tầng trước. Hướng tối ưu hợp lý có thể là **xóa parse lặp** hoặc tái sử dụng kết quả đúng phạm vi request, thay vì viết lại parser. Kiểm tra semantics, benchmark và regression test.
+Hot Methods: `JsonParser.parse` accounts for 38% of self samples. The caller tree shows most samples come from a request mapper re-parsing a payload already parsed in an earlier layer. A sensible optimization may be **removing the redundant parse** or reusing the parsed result within the request scope, rather than rewriting the parser. Verify semantics, benchmarks, and regression tests.
 
-### B. Request chậm nhưng không xuất hiện trong CPU samples
+### B. Slow requests that do not show up in CPU samples
 
-Request mất 1,5 giây, phần lớn chờ connection pool hoặc socket; CPU Java thực thi rất ngắn. `jdk.ExecutionSample` có thể không thấy đủ để giải thích p99. Lúc này xem `SocketRead`, `ThreadPark`, pool metrics, DB query tracing, timeout và call path của request. **Ít execution samples không chứng minh request nhanh.**
+A request takes 1.5 seconds, mostly waiting on a connection pool or socket; Java CPU execution is very brief. `jdk.ExecutionSample` may show too little to explain p99. In this case, inspect `SocketRead`, `ThreadPark`, pool metrics, DB query tracing, timeouts, and the request's call path. **Few execution samples do not prove requests are fast.**
 
-### C. Một helper dùng ở nhiều luồng xử lý
+### C. A helper used across multiple processing flows
 
-`HashUtil.hash` chiếm 35% samples của toàn process, nhưng caller tree cho thấy phần lớn đến từ batch indexing, một phần nhỏ từ API xác thực. Nếu mục tiêu là cải thiện API p99, việc tối ưu batch có thể không tác động trực tiếp. Chọn đúng caller, workload và time window, rồi đo lại sau thay đổi.
+`HashUtil.hash` accounts for 35% of whole-process samples, yet the caller tree shows most come from batch indexing and only a small portion from API authentication. If your goal is improving API p99, optimizing the batch job may have no direct impact. Isolate the right caller, workload, and time window, then re-measure after making changes.
 
-## 9. Checklist trước khi báo một hot spot
+## 9. Checklist before reporting a hotspot
 
-- [ ] Có JDK version, JFR template/period, duration và CPU quota.
-- [ ] `jdk.ExecutionSample` được bật; có đủ sample event và phần trăm stack hợp lệ.
-- [ ] Đã xác định time window, thread filter, event type và **mẫu số N**.
-- [ ] Đã hiểu stack: top là điểm thực thi, bottom là caller; cây top-down đi ngược lại chiều đọc stack.
-- [ ] Đã phân biệt **inclusive** (cả subtree) với **self** (vị trí thực thi tại node).
-- [ ] Không cộng inclusive của các node cha/con, không xem sample % là CPU time % hay response latency % chính xác.
-- [ ] Đã mở callers/bottom-up nếu hot method là helper dùng nhiều nơi.
-- [ ] Đã kiểm tra native, blocking, GC/JIT, short-lived methods và thiếu mẫu/truncated stack.
-- [ ] Có thử nghiệm cùng tải cho throughput, CPU time/request, p95/p99 và error rate sau tối ưu.
+- [ ] Recorded JDK version, JFR template/period, duration, and CPU quota.
+- [ ] `jdk.ExecutionSample` enabled; sufficient sample events and valid stack percentage.
+- [ ] Defined time window, thread filter, event type, and **denominator N**.
+- [ ] Understood stack orientation: top is the execution point, bottom is the caller; top-down trees reverse stack reading order.
+- [ ] Distinguished **inclusive** (whole subtree) from **self** (execution directly at that node).
+- [ ] Did not add inclusive counts of parent/child nodes, and did not treat sample % as exact CPU time % or response latency %.
+- [ ] Inspected callers/bottom-up if the hot method is a shared helper.
+- [ ] Checked for native code, blocking, GC/JIT, short-lived methods, and missing samples/truncated stacks.
+- [ ] Verified under matched load for throughput, CPU time/request, p95/p99, and error rate after optimization.
 
-### Nguồn tham khảo
+### References
 
 - OpenJDK JEP 328 — Flight Recorder: https://openjdk.org/jeps/328
-- Oracle JDK 21 — công cụ `jfr`: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html
-- Oracle JDK 21 — công cụ `jcmd`: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
-- Oracle JDK Mission Control — đọc profiling và recordings: https://docs.oracle.com/en/java/java-components/jdk-mission-control/9/user-guide/using-jdk-flight-recorder.html
+- Oracle JDK 21 — `jfr` tool: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html
+- Oracle JDK 21 — `jcmd` tool: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
+- Oracle JDK Mission Control — reading profiling and recordings: https://docs.oracle.com/en/java/java-components/jdk-mission-control/9/user-guide/using-jdk-flight-recorder.html
 - Oracle JFR API — `RecordingFile`: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html
 
-**Tiêu chí kết luận:** Một hot path được hỗ trợ bởi `jdk.ExecutionSample` là **ứng viên tối ưu dựa trên tỷ trọng mẫu của tập quan sát được**. Chỉ kết luận ảnh hưởng đến CPU, throughput hoặc SLA sau khi đối chiếu với các chỉ số đó và xác nhận bằng phép thử trước/sau.
+**Conclusion criterion:** A hot path backed by `jdk.ExecutionSample` is an **optimization candidate based on sample share within the observed set**. Only claim impact on CPU, throughput, or SLAs after cross-checking those metrics and confirming with a before/after experiment.

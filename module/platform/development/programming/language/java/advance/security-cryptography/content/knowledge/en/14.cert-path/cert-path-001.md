@@ -1,127 +1,127 @@
-# 14.1 Mô hình `CertPath`, `TrustAnchor` và chứng thư trung gian
+# 14.1 The `CertPath`, `TrustAnchor`, and Intermediate Certificate Model
 
-## 1. Mục tiêu: một chứng thư hợp lệ về chữ ký chưa đủ để được tin cậy
+## 1. Goal: A Certificate with a Valid Signature Is Not Enough to Be Trusted
 
-Trong Java Security / PKI, **chứng thư X.509** (*certificate*) thường gắn một **public key** với một **subject** (chủ thể) và mang chữ ký của **issuer** (bên cấp). Việc một chứng thư có chữ ký kiểm tra được **không tự động** có nghĩa ứng dụng phải tin public key ấy: trước hết phải xác định issuer đó có được trao quyền cấp chứng thư hay không, rồi lần ngược qua các **chứng thư CA trung gian** đến **điểm neo tin cậy (`TrustAnchor`)** đã được ứng dụng chấp nhận từ trước.
+In Java Security / PKI, an **X.509 certificate** typically binds a **public key** to a **subject** and carries the signature of an **issuer**. The fact that a certificate's signature verifies successfully **does not automatically** mean the application should trust that public key: first, you must determine whether that issuer is authorized to issue certificates, and then trace back through any **intermediate CA certificates** to a **trust anchor (`TrustAnchor`)** previously accepted by the application.
 
-Bài học này giải thích ba thành phần chính:
+This lesson explains three core components:
 
-- **`CertPath`:** một **đường dẫn chứng nhận** (*certification path*), tức chuỗi chứng thư mục tiêu và các chứng thư trung gian theo quy tắc thứ tự của Java.
-- **`TrustAnchor`:** điểm xuất phát được **tin cậy theo chính sách/cấu hình bên ngoài đường dẫn**, thường đại diện cho CA gốc, có thể biểu diễn bằng chứng thư CA đã được tin cậy hoặc tên CA + public key.
-- **Chứng thư trung gian (`intermediate CA certificate`):** chứng thư CA nằm giữa certificate mục tiêu và điểm neo; nó **không mặc nhiên được tin cậy**, mà được xác thực bởi CA ở phía trên theo quy tắc PKIX.
+- **`CertPath`:** a **certification path**, i.e., the ordered chain of the target certificate and intermediate certificates according to Java's ordering rules.
+- **`TrustAnchor`:** the starting point **trusted by policy/configuration outside the path**, usually representing a root CA, which can be represented by a trusted CA certificate or a CA name + public key.
+- **Intermediate certificate (`intermediate CA certificate`):** a CA certificate sitting between the target certificate and the anchor; it is **not trusted by default**, but is validated by the CA above it according to PKIX rules.
 
-Nội dung dùng mô hình **PKIX / RFC 5280** và Java 17+. Ví dụ thực nghiệm có **root → intermediate → leaf**, sử dụng `CertificateFactory`, `CertPathValidator`, `PKIXParameters`, `CertPathBuilder`, `CertStore` và `TrustAnchor`.
+The content uses the **PKIX / RFC 5280** model and Java 17+. The hands-on example has **root → intermediate → leaf**, using `CertificateFactory`, `CertPathValidator`, `PKIXParameters`, `CertPathBuilder`, `CertStore`, and `TrustAnchor`.
 
-**Điều quan trọng nhất:** *Dữ liệu certificate chain được bên kia gửi đến không phải danh sách trusted roots.* CA gốc chỉ là trust anchor sau khi **chính ứng dụng hoặc môi trường tin cậy đã phê duyệt** nó. Không được chấp nhận bất kỳ chứng thư tự ký (*self-signed*) nào chỉ vì chữ ký tự kiểm tra thành công.
+**Most important rule:** *The certificate chain data sent by a peer is not a list of trusted roots.* A root CA is only a trust anchor once **the application itself or the trust environment has approved** it. Never accept any self-signed certificate merely because its signature verifies against itself.
 
-## 2. Một đường dẫn tin cậy trông như thế nào?
+## 2. What Does a Trusted Path Look Like?
 
-Giả sử dịch vụ `demo.example.invalid` có chứng thư leaf do **Intermediate CA** ký; Intermediate CA do **Root CA** ký:
+Suppose service `demo.example.invalid` has a leaf certificate signed by an **Intermediate CA**; the Intermediate CA is signed by a **Root CA**:
 
 ```text
-                          PHÍA CẤP / CẤU HÌNH TIN CẬY
+                      ISSUING SIDE / TRUST CONFIGURATION
 
          +----------------------------------------------------+
-         | Root CA: TrustAnchor đã được cài và tin cậy        |
-         | Subject: CN=Training Root CA                        |
-         | Public key gốc được quản trị, không lấy theo peer  |
+         | Root CA: installed and trusted TrustAnchor         |
+         | Subject: CN=Training Root CA                       |
+         | Root public key is managed, not taken from peer    |
          +---------------------------+------------------------+
                                      |
-                         ký chứng thư Intermediate
+                      signs Intermediate certificate
                                      v
          +----------------------------------------------------+
          | Intermediate CA certificate                        |
-         | Subject: CN=Training Intermediate CA                |
-         | Issuer:  CN=Training Root CA                        |
+         | Subject: CN=Training Intermediate CA               |
+         | Issuer:  CN=Training Root CA                       |
          | BasicConstraints: CA=true, pathLenConstraint=0     |
-         | KeyUsage: keyCertSign (+ cRLSign nếu có CRL)         |
+         | KeyUsage: keyCertSign (+ cRLSign if CRL is used)   |
          +---------------------------+------------------------+
                                      |
-                         ký chứng thư leaf
+                         signs leaf certificate
                                      v
          +----------------------------------------------------+
          | End-entity / leaf certificate                      |
-         | Subject: CN=demo.example.invalid                    |
-         | Issuer:  CN=Training Intermediate CA                |
+         | Subject: CN=demo.example.invalid                   |
+         | Issuer:  CN=Training Intermediate CA               |
          | BasicConstraints: CA=false                         |
-         | Dùng theo mục đích và định danh ứng dụng            |
+         | Used per application purpose and identity          |
          +----------------------------------------------------+
 
-Đối tượng Java CertPath (X.509) theo thứ tự:
-    [leaf, intermediate]                // KHÔNG đưa root vào đây
+Java CertPath (X.509) object in order:
+    [leaf, intermediate]                // DO NOT put root here
 
-Đầu vào tin cậy riêng:
-    Set<TrustAnchor> = {root đã tin cậy}
+Separate trust input:
+    Set<TrustAnchor> = {trusted root}
 ```
 
-**Hướng quan hệ chữ ký** là Root ký Intermediate, Intermediate ký Leaf. **Hướng sắp thứ tự trong `CertPath` của Java** lại là từ *đối tượng cần xác thực* đi dần đến *CA gần điểm neo nhất*:
+The **signature relationship direction** is Root signs Intermediate, Intermediate signs Leaf. The **ordering direction in Java's `CertPath`**, however, goes from the *object to be validated* toward the *CA closest to the anchor*:
 
 ```text
 getCertificates().get(0)  -> leaf (target)
 getCertificates().get(1)  -> intermediate
-TrustAnchor               -> root (ở ngoài CertPath)
+TrustAnchor               -> root (outside CertPath)
 ```
 
-Tài liệu Java SE 17 về `CertPath` và *Java PKI Programmer's Guide* nêu rõ **certificate đại diện cho `TrustAnchor` không nên nằm trong certification path**. Path do `CertPathBuilder` tạo theo PKIX cũng **không chứa** root/trust anchor; lấy điểm neo qua `PKIXCertPathBuilderResult.getTrustAnchor()`.
+The Java SE 17 documentation for `CertPath` and the *Java PKI Programmer's Guide* explicitly state that **the certificate representing the `TrustAnchor` should not be in the certification path**. A path built by `CertPathBuilder` under PKIX also **does not contain** the root/trust anchor; retrieve the anchor via `PKIXCertPathBuilderResult.getTrustAnchor()`.
 
-### 2.1 Các vai trò không được đánh đồng
+### 2.1 Roles That Must Not Be Conflated
 
-| Đối tượng | Nó đại diện cho gì? | Nó có sẵn đáng tin không? | Đặt ở đâu trong Java? |
+| Object | What does it represent? | Is it inherently trustworthy? | Where is it placed in Java? |
 | --- | --- | --- | --- |
-| Leaf / end entity | Danh tính hoặc public key cần xác minh cho ứng dụng (máy chủ TLS, người ký, v.v.) | **Không**; phải có path và policy phù hợp | Chứng thư đầu tiên trong `CertPath` |
-| Intermediate CA | CA ủy quyền cấp chứng thư cấp dưới | **Không tự có**; phải xác minh chuỗi chữ ký, BasicConstraints và các ràng buộc | Chứng thư tiếp theo trong `CertPath` |
-| Root CA certificate | Thường là chứng thư CA tự ký (*self-signed*) chứa public key gốc | Chỉ khi được **chấp nhận/cài sẵn qua kênh đáng tin** | Thường dùng để tạo `TrustAnchor`, không đưa vào path |
-| `TrustAnchor` | Thông tin CA đã được tin cậy để kết thúc kiểm tra đường dẫn | **Có, vì đã được chọn bởi chính sách của ứng dụng** | Tập `Set<TrustAnchor>` trong `PKIXParameters` |
-| `CertPath` | Thứ tự các chứng thư cần được xác thực | **Chưa** cho đến khi PKIX validation thành công | `java.security.cert.CertPath` |
-| `PKIXCertPathValidatorResult` | Kết quả PKIX validation thành công cùng trust anchor đã dùng | Có ý nghĩa theo **anchors + policy + thời điểm** đã truyền | Giá trị trả về sau `CertPathValidator.validate` |
+| Leaf / end entity | Identity or public key to verify for the application (TLS server, signer, etc.) | **No**; must have a valid path and matching policy | First certificate in `CertPath` |
+| Intermediate CA | CA delegated to issue subordinate certificates | **Not inherently**; must verify signature chain, BasicConstraints, and constraints | Subsequent certificate(s) in `CertPath` |
+| Root CA certificate | Usually a self-signed CA certificate containing the root public key | Only when **accepted/pre-installed via a trusted channel** | Usually used to create a `TrustAnchor`, not put into the path |
+| `TrustAnchor` | Trusted CA information used to terminate path checking | **Yes, because it was chosen by application policy** | `Set<TrustAnchor>` in `PKIXParameters` |
+| `CertPath` | Ordered sequence of certificates to be validated | **Not yet** until PKIX validation succeeds | `java.security.cert.CertPath` |
+| `PKIXCertPathValidatorResult` | Successful PKIX validation result along with the trust anchor used | Meaningful under the **anchors + policy + validation date** passed in | Return value of `CertPathValidator.validate` |
 
-**Một intermediate cũng có thể được tổ chức chủ động cấu hình làm `TrustAnchor`.** Khi đó điểm neo là intermediate đã được phê duyệt, còn đường dẫn có thể ngắn hơn. Sự khác biệt là **vai trò chính sách** (*anchor*) so với **vai trò cấu trúc** (*CA nằm trong path*), không chỉ nằm ở trường `BasicConstraints`.
+**An organization may also actively configure an intermediate as a `TrustAnchor`.** In that case, the anchor is the approved intermediate, and the path can be shorter. The difference is a **policy role** (*anchor*) versus a **structural role** (*CA inside the path*), not merely the `BasicConstraints` field.
 
-## 3. Nền tảng X.509: subject, issuer, chữ ký và quyền làm CA
+## 3. X.509 Foundations: Subject, Issuer, Signatures, and CA Authority
 
-Một chứng thư X.509 có những trường/extension phục vụ xác minh đường dẫn:
+An X.509 certificate has fields/extensions used for path verification:
 
-| Trường/extension | Chức năng trong kiểm tra đường dẫn | Lưu ý |
+| Field/extension | Role in path checking | Notes |
 | --- | --- | --- |
-| `subject` | Định danh X.500 của chủ thể được cấp | Không đồng nghĩa đã khớp hostname/định danh ứng dụng |
-| `issuer` | Định danh bên phát hành | Hỗ trợ nối với CA cấp trên; **so trùng tên không đủ** |
-| `subjectPublicKeyInfo` | Public key của leaf hoặc CA | Dùng để xác minh chữ ký ở tầng dưới tương ứng |
-| `signatureAlgorithm` và `signatureValue` | Thuật toán/chữ ký của issuer lên TBSCertificate | PKIX phải kiểm tra chữ ký bằng public key issuer và constraint thuật toán |
-| `notBefore` / `notAfter` | Khoảng thời gian hợp lệ | Validation theo ngày đã cấu hình; không được bỏ qua |
-| `BasicConstraints` | `CA=true/false`, cùng `pathLenConstraint` nếu có | Intermediate ký chứng thư cấp dưới phải có quyền CA |
-| `KeyUsage` | Quyền dùng key: `keyCertSign`, `digitalSignature`, `keyEncipherment`, ... | CA ký chứng thư cần `keyCertSign` nếu extension hiện diện |
-| `ExtendedKeyUsage` | Mục đích dùng end-entity: TLS `serverAuth`, `clientAuth`, `codeSigning`, ... | Ứng dụng cần xác thực đúng purpose |
-| `SubjectAlternativeName` (SAN) | Tên DNS/IP/danh tính thay thế của leaf | TLS hostname matching **là bước riêng**, không chỉ validate path |
-| `NameConstraints` | Giới hạn namespace CA có thể cấp | PKIX áp dụng constraints theo RFC |
-| `CertificatePolicies`, `PolicyConstraints` | Kiểm soát chính sách chứng thư | Quan trọng với nhiều hệ thống PKI chuyên dụng |
-| `AuthorityKeyIdentifier` (AKI), `SubjectKeyIdentifier` (SKI) | Gợi ý tìm issuer/khóa tương ứng | Hỗ trợ path building; **không phải chứng minh mật mã duy nhất** |
-| CRL Distribution Points / AIA OCSP | Thông tin truy vấn trạng thái thu hồi | Không có nghĩa runtime sẽ tự truy vấn thành công |
+| `subject` | X.500 identity of the issued subject | Does not automatically mean hostname/application identity matches |
+| `issuer` | Identity of the issuing party | Helps link to the upper CA; **matching names alone is insufficient** |
+| `subjectPublicKeyInfo` | Public key of the leaf or CA | Used to verify the signature at the corresponding lower tier |
+| `signatureAlgorithm` and `signatureValue` | Issuer's algorithm/signature over TBSCertificate | PKIX must verify the signature using the issuer's public key and algorithm constraints |
+| `notBefore` / `notAfter` | Validity period | Validated against the configured date; must not be skipped |
+| `BasicConstraints` | `CA=true/false`, plus `pathLenConstraint` if present | An intermediate signing subordinate certificates must have CA authority |
+| `KeyUsage` | Key permissions: `keyCertSign`, `digitalSignature`, `keyEncipherment`, ... | A CA signing certificates needs `keyCertSign` if the extension is present |
+| `ExtendedKeyUsage` | End-entity usage purposes: TLS `serverAuth`, `clientAuth`, `codeSigning`, ... | Applications need to verify the right purpose |
+| `SubjectAlternativeName` (SAN) | Alternative DNS/IP/identity names of the leaf | TLS hostname matching **is a separate step**, not just path validation |
+| `NameConstraints` | Restricts the namespaces a CA may issue for | PKIX enforces constraints per RFC |
+| `CertificatePolicies`, `PolicyConstraints` | Controls certificate policies | Important for many specialized PKI systems |
+| `AuthorityKeyIdentifier` (AKI), `SubjectKeyIdentifier` (SKI) | Hints for finding the corresponding issuer/key | Aids path building; **not the sole cryptographic proof** |
+| CRL Distribution Points / AIA OCSP | Information for querying revocation status | Does not mean the runtime will automatically query successfully |
 
-**Ví dụ `BasicConstraints`:** root có `CA=true, pathLenConstraint=1`; intermediate có `CA=true, pathLenConstraint=0`. Intermediate `pathLen=0` vẫn có thể ký **leaf end-entity**, nhưng không cho phép thêm một CA trung gian **không self-issued** khác bên dưới nó trong một đường dẫn được phép. Path-length constraint không phải giới hạn số lượng leaf do CA cấp.
+**`BasicConstraints` example:** root has `CA=true, pathLenConstraint=1`; intermediate has `CA=true, pathLenConstraint=0`. An intermediate with `pathLen=0` can still sign a **leaf end-entity**, but does not allow another **non-self-issued** intermediate CA below it in an allowed path. The path-length constraint is not a limit on the number of leaf certificates a CA may issue.
 
-**Ví dụ `KeyUsage`:** intermediate có `keyCertSign`, root cũng có `keyCertSign`; leaf dùng `digitalSignature` theo nhu cầu ứng dụng. Không hoán đổi `digitalSignature` của leaf thành quyền ký CA. Một CA chỉ có subject tên “CA” không đủ để hợp thức hóa việc cấp chứng thư.
+**`KeyUsage` example:** the intermediate has `keyCertSign`, and the root also has `keyCertSign`; the leaf uses `digitalSignature` as required by the application. Do not conflate a leaf's `digitalSignature` with CA signing authority. A CA merely having “CA” in its subject name is not enough to legitimize certificate issuance.
 
-### 3.1 Vì sao self-signed root chưa tự đáng tin?
+### 3.1 Why Is a Self-Signed Root Not Automatically Trustworthy?
 
-Chứng thư tự ký nghĩa là public key của chứng thư có thể kiểm tra chữ ký của **chính chứng thư đó**. Điều này chứng minh tính **tự nhất quán**, không chứng minh danh tính CA hoặc sự chấp thuận của ứng dụng. `TrustAnchor` đến từ tập tin cấu hình, truststore do quản trị viên cung cấp, certificate pinning theo cơ chế đã xác thực hoặc chính sách tin cậy tương đương.
+A self-signed certificate means the certificate's own public key can verify the signature on **that very certificate**. This proves **self-consistency**, not CA identity or application approval. A `TrustAnchor` comes from a configuration file, an administrator-provisioned truststore, certificate pinning via a verified mechanism, or an equivalent trust policy.
 
-Nếu attacker đưa một chuỗi:
+If an attacker sends a chain:
 
 ```text
 attacker leaf <- attacker self-signed root
 ```
 
-thì mọi chữ ký có thể hợp lệ về toán học. Nhưng nếu attacker root **không nằm trong tập trust anchors đã phê duyệt**, PKIX validation phải không thể kết thúc ở root ấy. **Tuyệt đối không tạo `TrustAnchor` trực tiếp từ root bất kỳ nằm trong chain do peer gửi.**
+then every signature may be mathematically valid. But if the attacker root **is not in the approved set of trust anchors**, PKIX validation must fail to terminate at that root. **Never create a `TrustAnchor` directly from an arbitrary root present in a peer-sent chain.**
 
-### 3.2 Trust anchor không luôn là một chứng thư đầy đủ
+### 3.2 A Trust Anchor Is Not Always a Full Certificate
 
-Java `TrustAnchor` có các constructor thường gặp:
+Java `TrustAnchor` has common constructors:
 
 ```java
-// Minh họa trong phương thức có quyền truy cập trustedRoot:
+// Illustrated inside a method that has access to trustedRoot:
 TrustAnchor byCertificate = new TrustAnchor(trustedRoot, null);
 
-// Tương đương khái niệm: đặt tên CA + public key đáng tin
+// Conceptual equivalent: specify CA name + trusted public key
 TrustAnchor byNameAndKey =
         new TrustAnchor(
                 trustedRoot.getSubjectX500Principal(),
@@ -129,25 +129,25 @@ TrustAnchor byNameAndKey =
                 null);
 ```
 
-Tham số thứ hai/ba `null` ở đây là **name constraints tùy chọn**. Constructor dùng tên + public key không chứa toàn bộ chứng thư self-signed. Cả hai cách tạo chỉ được dùng với **dữ liệu đã tin cậy từ trước**, không biến bất kỳ certificate tải được thành CA được chấp nhận.
+The second/third `null` argument here is **optional name constraints**. The name + public key constructor does not carry the full self-signed certificate. Both construction forms must only be used with **pre-trusted data**, never turning an arbitrary downloaded certificate into an accepted CA.
 
-## 4. `CertPath` trong Java được tạo và đọc thế nào?
+## 4. How Is `CertPath` Created and Read in Java?
 
-Các thành phần liên quan đều thuộc `java.security.cert`:
+The relevant components are in `java.security.cert`:
 
-- `X509Certificate`: đại diện một chứng thư X.509, cho phép đọc subject, issuer, extension, public key, chữ ký, ngày hiệu lực.
-- `CertificateFactory.getInstance("X.509")`: phân tích chứng thư DER/PEM và tạo `CertPath` theo collection/list.
-- `CertPath.getCertificates()`: đọc danh sách bất biến các chứng thư của path.
-- `CertPathValidator.getInstance("PKIX")`: **xác thực path đã xác định**.
-- `CertPathBuilder.getInstance("PKIX")`: **tìm path phù hợp** từ nguồn chứng thư và trust anchors theo constraints.
-- `PKIXParameters`: cấu hình anchors, thời điểm, policy, revocation, checkers cho validator.
-- `PKIXBuilderParameters`: kế thừa `PKIXParameters`, bổ sung target selector, `CertStore` và `maxPathLength`.
-- `CertStore.getInstance("Collection", ...)`: cung cấp candidate certificates (và có thể CRLs) từ bộ nhớ cho path builder.
+- `X509Certificate`: represents an X.509 certificate, allowing reading subject, issuer, extensions, public key, signature, and validity dates.
+- `CertificateFactory.getInstance("X.509")`: parses DER/PEM certificates and creates a `CertPath` from a collection/list.
+- `CertPath.getCertificates()`: reads the immutable list of certificates in the path.
+- `CertPathValidator.getInstance("PKIX")`: **validates an already-determined path**.
+- `CertPathBuilder.getInstance("PKIX")`: **discovers a valid path** from a certificate source and trust anchors under constraints.
+- `PKIXParameters`: configures anchors, date, policy, revocation, and checkers for the validator.
+- `PKIXBuilderParameters`: extends `PKIXParameters`, adding target selector, `CertStore`, and `maxPathLength`.
+- `CertStore.getInstance("Collection", ...)`: provides candidate certificates (and possibly CRLs) from memory to the path builder.
 
-Mô hình quan hệ:
+Relationship model:
 
 ```text
-Dữ liệu đã có sẵn path
+Data already has a path
     [leaf, intermediate]
             |
             v
@@ -169,146 +169,146 @@ Dữ liệu đã có sẵn path
       .getPublicKey()
       .getPolicyTree()
 
-Dữ liệu có nhiều certificate candidates, chưa chọn path
-    leaf + intermediates ở CertStore
+Data has many candidate certificates, path not yet chosen
+    leaf + intermediates in CertStore
             |
             v
   CertPathBuilder("PKIX")
       + PKIXBuilderParameters(anchors, X509CertSelector)
-      + CertStore chứa candidates
+      + CertStore containing candidates
             |
           success?
             |
            yes
             v
   PKIXCertPathBuilderResult
-      .getCertPath()      // thứ tự leaf -> intermediates; không có anchor
+      .getCertPath()      // order leaf -> intermediates; no anchor
       .getTrustAnchor()
 ```
 
-`CertificateFactory.generateCertPath(List.of(leaf, intermediate))` **chỉ tạo cấu trúc**; nó không thực hiện PKIX validation. Cũng tương tự, `X509Certificate.checkValidity()` chỉ kiểm tra thời gian riêng của chứng thư; `leaf.verify(intermediate.getPublicKey())` chỉ kiểm tra một chữ ký của leaf. **Không phép nào thay thế xác thực toàn bộ path.**
+`CertificateFactory.generateCertPath(List.of(leaf, intermediate))` **only builds the structure**; it does not perform PKIX validation. Likewise, `X509Certificate.checkValidity()` only checks the individual certificate's validity dates; `leaf.verify(intermediate.getPublicKey())` only checks the leaf's single signature. **Neither operation replaces full path validation.**
 
-### 4.1 Thứ tự không đúng và thiếu intermediate
+### 4.1 Wrong Order and Missing Intermediate
 
-Trong Java X.509 `CertPath`, đường dẫn thường là:
+In a Java X.509 `CertPath`, the path is typically:
 
 ```java
-// Minh họa, leaf và intermediate là các X509Certificate đã tải:
+// Illustrated; leaf and intermediate are loaded X509Certificates:
 CertificateFactory factory = CertificateFactory.getInstance("X.509");
 CertPath correct = factory.generateCertPath(
-        java.util.List.of(leaf, intermediate)); // leaf trước
+        java.util.List.of(leaf, intermediate)); // leaf first
 ```
 
-Các trường hợp thường sai:
+Common mistakes:
 
-- `[intermediate, leaf]` đảo thứ tự, dù cả hai chứng thư đều hợp lệ riêng.
-- `[leaf]` thiếu intermediate khi leaf không trực tiếp được root cấp.
-- `[leaf, intermediate, root]` đưa root vào path đồng thời dùng root làm `TrustAnchor`, trái quy ước PKIX Java.
-- `[leaf, wrongIntermediate]` issuer name/key/chữ ký hoặc constraints không khớp.
-- Chỉ kiểm tra `leaf.getIssuerX500Principal().equals(intermediate.getSubjectX500Principal())` rồi chấp nhận: tên khớp chưa chứng minh chữ ký đúng, CA có quyền hay đường dẫn kết thúc ở anchor tin cậy.
+- `[intermediate, leaf]` reversed order, even when both certificates are individually valid.
+- `[leaf]` missing intermediate when the leaf is not directly issued by the root.
+- `[leaf, intermediate, root]` placing the root into the path while also using the root as the `TrustAnchor`, violating Java PKIX convention.
+- `[leaf, wrongIntermediate]` mismatched issuer name/key/signature or constraints.
+- Only checking `leaf.getIssuerX500Principal().equals(intermediate.getSubjectX500Principal())` and accepting: matching names do not prove the signature is valid, the CA is authorized, or the path terminates at a trusted anchor.
 
-Đôi khi dữ liệu TLS hoặc PEM gửi theo thứ tự khác, hoặc có nhiều cross-signed intermediates. Dùng **path builder** để tìm một đường dẫn hợp lệ thay vì giả định index/issuer name đơn giản là đủ. PKIX Builder chỉ tìm trong **các nguồn `CertStore`/cơ chế được cấu hình**; không bảo đảm tự tải hết intermediates từ Internet.
+Sometimes TLS or PEM data arrives in a different order, or there are multiple cross-signed intermediates. Use a **path builder** to find a valid path instead of assuming simple index/issuer-name checks suffice. The PKIX Builder only searches within **configured `CertStore` sources/mechanisms**; it is not guaranteed to automatically fetch all intermediates from the Internet.
 
-## 5. Khác nhau giữa `CertPathValidator` và `CertPathBuilder`
+## 5. Differences Between `CertPathValidator` and `CertPathBuilder`
 
-| Vấn đề | `CertPathValidator` | `CertPathBuilder` |
+| Aspect | `CertPathValidator` | `CertPathBuilder` |
 | --- | --- | --- |
-| Câu hỏi | *Đường dẫn cho trước này có hợp lệ không?* | *Có thể tạo một đường dẫn hợp lệ tới trust anchor không?* |
-| Đầu vào chính | `CertPath` đã có thứ tự + `PKIXParameters` | `PKIXBuilderParameters` với target `CertSelector`, `CertStore` và anchors |
-| Trả về khi thành công | `PKIXCertPathValidatorResult` | `PKIXCertPathBuilderResult` |
-| Có tự tìm intermediate? | Không, vì path đã được đưa vào | Có, trong tập nguồn certificates/constraints được cấu hình |
-| Trust anchor có là phần tử cuối `CertPath`? | **Không** | **Không** |
-| Nếu thiếu intermediate | Thường validation không thể nối path tới root đã tin | Builder có thể tìm được nếu candidate intermediate ở `CertStore` |
-| Mục tiêu | Kiểm tra một path xác định | Tìm và kiểm tra một path hợp lệ |
+| Question | *Is this given path valid?* | *Can a valid path to a trust anchor be built?* |
+| Primary input | Already-ordered `CertPath` + `PKIXParameters` | `PKIXBuilderParameters` with target `CertSelector`, `CertStore`, and anchors |
+| Return on success | `PKIXCertPathValidatorResult` | `PKIXCertPathBuilderResult` |
+| Discovers intermediates automatically? | No, because the path is already supplied | Yes, within the configured certificate sources/constraints |
+| Is the trust anchor the last element of `CertPath`? | **No** | **No** |
+| If an intermediate is missing | Validation usually cannot chain the path to a trusted root | Builder can find it if the candidate intermediate is in `CertStore` |
+| Goal | Verify a specific path | Discover and verify a valid path |
 
-**Câu nhớ nhanh:** *Builder tìm đường; Validator kiểm tra đường.* Một `CertPathBuilder` PKIX tạo đường dẫn đã được kiểm tra trong quy trình build, nên trả về path và trust anchor đã chọn; với validation một đường dẫn sẵn có, bạn vẫn cần chọn anchors/chính sách đúng.
+**Quick mnemonic:** *Builder finds a path; Validator checks a path.* A PKIX `CertPathBuilder` builds a path that has already been verified during the build process, so it returns both the path and the selected trust anchor; when validating an existing path, you still must choose the right anchors/policies.
 
-## 6. Thực nghiệm Java 17: tạo ba chứng thư bằng `keytool`
+## 6. Java 17 Lab: Creating Three Certificates with `keytool`
 
-Phần này dùng **fixture hoàn toàn cục bộ**, không tải private key của người khác và không cần kết nối CA thật. Mọi mật khẩu `changeit` chỉ phục vụ bài lab, tuyệt đối **không dùng cho hệ thống thực**.
+This section uses a **completely local fixture**, does not download anyone else's private key, and needs no real CA connection. All `changeit` passwords are strictly for the lab—**never use them in production systems**.
 
-### 6.1 Chuẩn bị và sinh ba cặp khóa
+### 6.1 Preparation and Generating Three Key Pairs
 
-Mở shell có `keytool`, `javac`, `java` từ JDK 17+, tạo **thư mục bài thực hành riêng**:
+Open a shell with `keytool`, `javac`, and `java` from JDK 17+, and create a **dedicated lab directory**:
 
 ```bash
 mkdir pkix-lab
 cd pkix-lab
 ```
 
-Tạo **Root CA tự ký** với quyền CA và một intermediate ở dưới (`pathlen:1`). Lệnh có thể chạy trên shell xử lý dấu ngoặc kép thông thường (Bash, PowerShell):
+Create a **self-signed Root CA** with CA authority and room for one intermediate below it (`pathlen:1`). The command works in shells that handle standard double quotes (Bash, PowerShell):
 
 ```bash
 keytool -genkeypair -alias root -dname "CN=Training Root CA, O=Local Demo" -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -validity 365 -keystore root.p12 -storetype PKCS12 -storepass changeit -keypass changeit -ext "BC:critical=ca:true,pathlen:1" -ext "KU:critical=keyCertSign,cRLSign" -noprompt
 ```
 
-Tạo một **cặp key của Intermediate CA** và một **cặp key của leaf**. Ở thời điểm sinh keypair, `keytool` có thể gắn chứng thư tự ký tạm thời cho entry; chứng thư có quan hệ CA thực trong lab sẽ được **ký qua CSR ở bước tiếp**:
+Create an **Intermediate CA key pair** and a **leaf key pair**. At keypair generation time, `keytool` attaches a temporary self-signed certificate to the entry; the certificates with real CA relationships in the lab will be **signed via CSR in the next step**:
 
 ```bash
 keytool -genkeypair -alias intermediate -dname "CN=Training Intermediate CA, O=Local Demo" -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -validity 365 -keystore intermediate.p12 -storetype PKCS12 -storepass changeit -keypass changeit -ext "BC:critical=ca:true,pathlen:0" -ext "KU:critical=keyCertSign,cRLSign" -noprompt
 keytool -genkeypair -alias leaf -dname "CN=demo.example.invalid, O=Local Demo" -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -validity 365 -keystore leaf.p12 -storetype PKCS12 -storepass changeit -keypass changeit -noprompt
 ```
 
-### 6.2 Root cấp Intermediate; Intermediate cấp leaf
+### 6.2 Root Issues Intermediate; Intermediate Issues Leaf
 
-**Bước 1 — CSR của Intermediate:** tạo yêu cầu chứng thư từ public key / subject của Intermediate:
+**Step 1 — Intermediate CSR:** generate a certificate signing request from the Intermediate's public key / subject:
 
 ```bash
 keytool -certreq -alias intermediate -keystore intermediate.p12 -storepass changeit -file intermediate.csr
 ```
 
-**Bước 2 — Root ký và cấp chứng thư cho Intermediate:**
+**Step 2 — Root signs and issues the Intermediate certificate:**
 
 ```bash
 keytool -gencert -alias root -keystore root.p12 -storepass changeit -infile intermediate.csr -outfile intermediate.pem -rfc -validity 365 -ext "BC:critical=ca:true,pathlen:0" -ext "KU:critical=keyCertSign,cRLSign"
 ```
 
-**Bước 3 — CSR của leaf:**
+**Step 3 — Leaf CSR:**
 
 ```bash
 keytool -certreq -alias leaf -keystore leaf.p12 -storepass changeit -file leaf.csr
 ```
 
-**Bước 4 — Intermediate ký chứng thư leaf**, đánh dấu end entity, `serverAuth` và DNS SAN minh họa:
+**Step 4 — Intermediate signs the leaf certificate**, marking end entity, `serverAuth`, and an illustrative DNS SAN:
 
 ```bash
 keytool -gencert -alias intermediate -keystore intermediate.p12 -storepass changeit -infile leaf.csr -outfile leaf.pem -rfc -validity 365 -ext "BC:critical=ca:false" -ext "KU:critical=digitalSignature,keyEncipherment" -ext "EKU=serverAuth" -ext "SAN=dns:demo.example.invalid"
 ```
 
-**Bước 5 — Xuất chứng thư công khai của Root để làm trusted anchor trong lab:**
+**Step 5 — Export the Root's public certificate to serve as the trusted anchor in the lab:**
 
 ```bash
 keytool -exportcert -alias root -keystore root.p12 -storepass changeit -file root.pem -rfc
 ```
 
-Kết quả cần có:
+Expected files:
 
 ```text
 pkix-lab/
-  root.p12                (có PRIVATE KEY của root: giữ kín)
-  intermediate.p12        (có PRIVATE KEY của intermediate: giữ kín)
-  leaf.p12                (có PRIVATE KEY của leaf: giữ kín)
-  intermediate.csr        (chỉ phục vụ cấp chứng thư)
+  root.p12                (contains root PRIVATE KEY: keep secret)
+  intermediate.p12        (contains intermediate PRIVATE KEY: keep secret)
+  leaf.p12                (contains leaf PRIVATE KEY: keep secret)
+  intermediate.csr        (for certificate issuance only)
   leaf.csr
-  root.pem                (public certificate; lab phê duyệt làm anchor)
-  intermediate.pem        (intermediate certificate do root ký)
-  leaf.pem                (leaf certificate do intermediate ký)
+  root.pem                (public certificate; lab approves as anchor)
+  intermediate.pem        (intermediate certificate signed by root)
+  leaf.pem                (leaf certificate signed by intermediate)
 ```
 
-Các file `.pem` là **chứng thư X.509 công khai**, không chứa private key; `.p12` có private key và **không** được đưa lên Internet hoặc commit repository. `-rfc` của `keytool` xuất PEM (Base64 cùng header/footer). Các lệnh được dùng để tạo dữ liệu **học tập**; PKI sản xuất cần quy trình phát hành CA, bảo vệ signing keys, key ceremony, certificate policies, thu hồi và quản lý khóa nghiêm ngặt.
+The `.pem` files are **public X.509 certificates** without private keys; `.p12` files contain private keys and **must not** be uploaded to the Internet or committed to a repository. `keytool`'s `-rfc` flag exports PEM (Base64 with header/footer). These commands create **learning** data; production PKI requires CA issuance procedures, signing key protection, key ceremonies, certificate policies, revocation, and strict key management.
 
-**Chi tiết dễ nhầm trong lab:** `intermediate.p12` ban đầu chứa keypair và chứng thư tự ký tạm; lệnh `-gencert` sử dụng **private key tương ứng** để ký `leaf.pem`. Đường dẫn cần validate trong bước tiếp chỉ dùng **chứng thư CA được Root ký là `intermediate.pem`**, không nhầm với chứng thư tự ký tạm trong entry của keystore.
+**Common lab pitfall:** `intermediate.p12` initially holds a keypair and a temporary self-signed certificate; `-gencert` uses the **corresponding private key** to sign `leaf.pem`. The path to validate in the next step must use **the Root-signed CA certificate `intermediate.pem`**, not the temporary self-signed certificate inside the keystore entry.
 
-## 7. Chương trình Java 17 đầy đủ: validate path, thử lỗi, rồi build path
+## 7. Complete Java 17 Program: Validate Path, Test Failures, Then Build Path
 
-Tạo file **`CertPathTrustModelDemo.java`** trong cùng thư mục chứa ba file PEM. Chương trình:
+Create **`CertPathTrustModelDemo.java`** in the same directory as the three PEM files. The program:
 
-1. Tải `root.pem`, `intermediate.pem`, `leaf.pem` thành `X509Certificate` bằng `CertificateFactory`.
-2. Kiểm tra thuộc tính CA (`getBasicConstraints()`).
-3. Tạo `CertPath` theo thứ tự **`[leaf, intermediate]`**, tạo `TrustAnchor(root, null)` và dùng `CertPathValidator("PKIX")` để xác thực.
-4. Thử thiếu intermediate và đảo thứ tự: kỳ vọng bị từ chối.
-5. Tạo `CertStore` chứa candidate certificates và dùng `CertPathBuilder("PKIX")` để **tìm** đường dẫn.
-6. Quan sát result cho thấy path có **2 certificate**, root chỉ xuất hiện ở `TrustAnchor`.
+1. Loads `root.pem`, `intermediate.pem`, and `leaf.pem` as `X509Certificate` using `CertificateFactory`.
+2. Checks the CA attribute (`getBasicConstraints()`).
+3. Creates a `CertPath` in **`[leaf, intermediate]`** order, creates `TrustAnchor(root, null)`, and validates using `CertPathValidator("PKIX")`.
+4. Tests missing intermediate and reversed order: expects rejection.
+5. Creates a `CertStore` with candidate certificates and uses `CertPathBuilder("PKIX")` to **find** the path.
+6. Observes the result showing the path has **2 certificates**, with root appearing only in `TrustAnchor`.
 
 ```java
 import java.io.InputStream;
@@ -416,14 +416,14 @@ public final class CertPathTrustModelDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 CertPathTrustModelDemo.java
 java CertPathTrustModelDemo root.pem intermediate.pem leaf.pem
 ```
 
-Stdout **đã kiểm chứng** với ba chứng thư được tạo theo lệnh lab:
+**Verified** stdout with the three certificates generated by the lab commands:
 
 ```text
 Intermediate is CA: true
@@ -437,187 +437,187 @@ Builder path starts with leaf: true
 Builder trust anchor is root: true
 ```
 
-**Giải thích các dòng:**
+**Line-by-line explanation:**
 
-- `Intermediate is CA: true` vì `intermediate.pem` có BasicConstraints CA hợp lệ.
-- `Leaf is CA: false`: leaf không có quyền cấp chứng thư CA.
-- `Supplied path size: 2`: path chỉ chứa **leaf và intermediate**; root nằm trong tập `TrustAnchor`.
-- `Validated trust anchor is root: true`: `validate` đã hoàn tất và trả về anchor chính xác theo cấu hình lab.
-- `Missing intermediate rejected: true`: leaf được **intermediate** cấp, không trực tiếp bởi root; path `[leaf]` không nối được tới anchor root.
-- `Wrong certificate order rejected: true`: `CertPath` đảo thứ tự sai, không phải đường từ target về anchor.
-- `Builder path size: 2`: builder tìm intermediate từ `CertStore` với selector chọn leaf.
-- `Builder path starts with leaf: true`: xác nhận quy ước sắp thứ tự của Java.
-- `Builder trust anchor is root: true`: builder trả riêng thông tin root đáng tin.
+- `Intermediate is CA: true` because `intermediate.pem` has valid CA BasicConstraints.
+- `Leaf is CA: false`: the leaf does not have CA certificate-issuing authority.
+- `Supplied path size: 2`: the path contains only **leaf and intermediate**; the root sits in the `TrustAnchor` set.
+- `Validated trust anchor is root: true`: `validate` completed and returned the exact anchor configured in the lab.
+- `Missing intermediate rejected: true`: the leaf was issued by **intermediate**, not directly by root; the path `[leaf]` cannot chain to the root anchor.
+- `Wrong certificate order rejected: true`: `CertPath` is in the wrong order, not a path from target to anchor.
+- `Builder path size: 2`: the builder found the intermediate from `CertStore` with the selector targeting the leaf.
+- `Builder path starts with leaf: true`: confirms Java's ordering convention.
+- `Builder trust anchor is root: true`: the builder returns the trusted root information separately.
 
-**Giới hạn có chủ đích:** `setRevocationEnabled(false)` ở **cả validator lẫn builder** là để lab không phải thiết lập CRL/OCSP cho CA tự tạo. Trong production, **không vô hiệu hóa revocation chỉ vì môi trường thiếu mạng**. Phải triển khai chính sách thu hồi phù hợp (OCSP/CRL, timeout, caching, xử lý offline và lỗi) và kiểm thử thực tế. Tương tự, chương trình **không thực hiện xác minh hostname TLS**, không triển khai chứng chỉ CT, không tự kiểm tra mọi yêu cầu nghiệp vụ lên leaf: đây là ví dụ **PKIX path model**, không phải HTTPS client hoàn chỉnh.
+**Intentional limitations:** `setRevocationEnabled(false)` in **both the validator and the builder** avoids setting up CRL/OCSP for self-created lab CAs. In production, **do not disable revocation just because the environment lacks network access**. You must implement an appropriate revocation policy (OCSP/CRL, timeouts, caching, offline and error handling) and test it realistically. Likewise, this program **does not perform TLS hostname verification**, does not enforce CT certificates, and does not automatically check all business requirements on the leaf: this is a **PKIX path model** example, not a complete HTTPS client.
 
-Một lưu ý nữa: thời hạn fixture là **365 ngày kể từ thời điểm tạo**. Nếu để file trong nhiều năm rồi chạy lại, có thể fail vì expired; hãy tạo mới fixture hoặc thiết lập validation date theo tình huống kiểm thử có chủ đích, không “bỏ qua” ngày hiệu lực trong production.
+One more note: the fixture validity is **365 days from creation time**. If you leave the files for years and rerun, it may fail due to expiration; regenerate the fixture or set a validation date for an intentional test scenario rather than “skipping” validity dates in production.
 
-## 8. Đặt `TrustAnchor` đúng chỗ: `PKIXParameters` và `KeyStore`
+## 8. Placing `TrustAnchor` in the Right Spot: `PKIXParameters` and `KeyStore`
 
-Ở cấp API có hai cách thông dụng:
+At the API level there are two common approaches:
 
-### 8.1 Truyền tập anchors trực tiếp
+### 8.1 Passing the Anchor Set Directly
 
 ```java
-// Minh họa đặt trong phương thức throws GeneralSecurityException.
+// Illustrated inside a method that throws GeneralSecurityException.
 Set<TrustAnchor> anchors =
         Set.of(new TrustAnchor(trustedRootCertificate, null));
 PKIXParameters params = new PKIXParameters(anchors);
 ```
 
-- `PKIXParameters(Set<TrustAnchor>)` yêu cầu một tập **không rỗng**; nếu rỗng sẽ có `InvalidAlgorithmParameterException`.
-- `setDate(Date)` có thể dùng để xác minh tại một thời điểm; giá trị `null` mặc định nghĩa là thời điểm hiện tại khi validate, không có nghĩa “không cần kiểm tra thời gian”.
-- `setInitialPolicies`, `setExplicitPolicyRequired`, `setAnyPolicyInhibited`, `setPolicyMappingInhibited` v.v. cho phép cấu hình các ràng buộc PKIX theo policy.
-- `setRevocationEnabled(boolean)` kiểm soát việc kiểm tra thu hồi; cấu hình đúng cần nguồn dữ liệu tin cậy và chính sách thất bại.
-- `PKIXRevocationChecker` có thể cung cấp điều khiển OCSP/CRL và các option như `PREFER_CRLS`, `ONLY_END_ENTITY` hay `SOFT_FAIL`. `SOFT_FAIL` là quyết định an ninh cần chủ đích, **không phải cờ bật mặc định để bỏ qua sự cố**.
+- `PKIXParameters(Set<TrustAnchor>)` requires a **non-empty** set; if empty, an `InvalidAlgorithmParameterException` is thrown.
+- `setDate(Date)` can be used to verify at a specific point in time; the default `null` value means the current time at validation, not “skip time checks”.
+- `setInitialPolicies`, `setExplicitPolicyRequired`, `setAnyPolicyInhibited`, `setPolicyMappingInhibited`, etc. allow configuring policy-based PKIX constraints.
+- `setRevocationEnabled(boolean)` controls revocation checking; proper configuration requires trusted data sources and a failure policy.
+- `PKIXRevocationChecker` can provide OCSP/CRL control and options such as `PREFER_CRLS`, `ONLY_END_ENTITY`, or `SOFT_FAIL`. `SOFT_FAIL` is an intentional security decision, **not a default flag to ignore incidents**.
 
-### 8.2 Lấy anchors từ truststore được quản trị
+### 8.2 Loading Anchors from a Managed Truststore
 
 ```java
-// Minh họa trong phương thức có quyền truy cập trustStore đã load:
+// Illustrated inside a method with access to a loaded trustStore:
 PKIXParameters params = new PKIXParameters(trustStore);
 ```
 
-Constructor `PKIXParameters(KeyStore)` xem các mục **trusted certificate entry** trong truststore là nguồn anchors (theo đặc tả API). Nó không lấy tất cả chứng thư bất kỳ trong keypair entries làm root đáng tin. Trên JVM server, truststore có thể được cấu hình bởi hệ thống, container hoặc ứng dụng và phải được quản lý như **cấu hình an ninh**.
+The `PKIXParameters(KeyStore)` constructor treats **trusted certificate entries** in the truststore as anchor sources (per the API specification). It does not treat arbitrary certificates in keypair entries as trusted roots. On a JVM server, the truststore may be configured by the system, container, or application and must be managed as **security configuration**.
 
-**Không** xây truststore theo cách tải danh sách chứng thư từ TLS peer rồi `setCertificateEntry` tất cả, vì lúc đó đã **biến dữ liệu chưa tin thành trust anchors**. Truststore nội bộ dùng cho mTLS hoặc test chỉ nên chứa CA/peer đã được phê duyệt theo chính sách.
+**Do not** build a truststore by downloading certificates from a TLS peer and calling `setCertificateEntry` on all of them, because that **turns untrusted data into trust anchors**. An internal truststore used for mTLS or testing should contain only CAs/peers approved by policy.
 
-### 8.3 `TrustAnchor` và certificate root trong chain
+### 8.3 `TrustAnchor` and a Root Certificate in the Chain
 
-Nếu TLS peer gửi kèm chứng thư root, bên nhận **không mặc nhiên tin root đó**. Trust manager phải tìm một anchor trong truststore **đã được cấu hình độc lập**. Root trong peer chain có thể trùng với anchor đã tin, nhưng sự trùng dữ liệu không phải nguồn cấp quyền tin cậy; anchor được lựa chọn từ truststore.
+If a TLS peer sends a root certificate along with its chain, the receiver **does not automatically trust that root**. The trust manager must look up an anchor in an **independently configured** truststore. A root in the peer chain may match a trusted anchor, but matching bytes are not the source of trust authority; the anchor is selected from the truststore.
 
-Một application có nhiều anchors có thể tìm được **nhiều đường dẫn hợp lệ khác nhau** tới các root khác nhau khi xuất hiện cross-signing. Builder được phép chọn một path hợp lệ theo constraints và candidates của provider; ứng dụng không nên giả định “chỉ có đúng một đường”, hoặc so sánh tên root bằng chuỗi hiển thị để suy luận tin cậy.
+An application with multiple anchors may find **multiple different valid paths** to different roots when cross-signing exists. The builder is allowed to choose one valid path according to provider constraints and candidates; applications should not assume “there is only one exact path”, or compare root names by display string to infer trust.
 
-## 9. PKIX validation kiểm tra những gì — và những gì còn ở tầng ứng dụng?
+## 9. What Does PKIX Validation Check — and What Remains at the Application Layer?
 
-Theo RFC 5280 và các giới hạn thuật toán/chính sách của provider, việc xác minh đường dẫn thường bao gồm:
+According to RFC 5280 and provider algorithm/policy restrictions, path verification typically includes:
 
-1. **Nối issuer–subject và chữ ký số:** certificate cấp dưới có thể được xác minh bằng public key của CA cấp trên tương ứng.
-2. **Thời hạn hợp lệ** cho các certificate trong path tại validation date.
-3. **Quyền CA:** `BasicConstraints: CA=true` ở issuer intermediates, `pathLenConstraint` thích hợp và `KeyUsage.keyCertSign` khi có extension.
-4. **Name constraints** kế thừa từ các CA theo quy tắc RFC.
-5. **Certificate policies/policy mappings** và các extension critical được nhận diện.
-6. **Algorithm constraints** của runtime/policy, ví dụ `jdk.certpath.disabledAlgorithms` cho các thuật toán hoặc key-size bị loại bỏ.
-7. **Trạng thái thu hồi** nếu được bật và có đủ thông tin/cơ chế xử lý theo cấu hình.
+1. **Issuer–subject chaining and digital signatures:** a subordinate certificate can be verified using the public key of the corresponding superior CA.
+2. **Validity periods** for the certificates in the path at the validation date.
+3. **CA authority:** `BasicConstraints: CA=true` on issuer intermediates, appropriate `pathLenConstraint`, and `KeyUsage.keyCertSign` when the extension is present.
+4. **Name constraints** inherited from CAs per RFC rules.
+5. **Certificate policies/policy mappings** and recognized critical extensions.
+6. **Runtime/policy algorithm constraints**, e.g., `jdk.certpath.disabledAlgorithms` for deprecated algorithms or key sizes.
+7. **Revocation status** if enabled and configured with sufficient information/handling mechanisms.
 
-Nhưng một thành công của `CertPathValidator.validate()` **chưa đủ** để chấp nhận leaf cho mọi ứng dụng:
+Yet a successful `CertPathValidator.validate()` **is not enough** to accept a leaf for every application:
 
-| Điều ứng dụng cần | PKIX path validation có tự làm đầy đủ không? | Phần còn phải kiểm tra |
+| What the application needs | Does PKIX path validation handle it fully? | What else must be checked |
 | --- | --- | --- |
-| Chứng thư có chain hợp lệ tới CA đã tin | **Có**, trong phạm vi PKIX parameters và provider | Lựa chọn anchors/policy đúng cho ứng dụng |
-| Chứng thư đúng cho **hostname TLS** | **Không**, chỉ kiểm tra path không tự khớp DNS bạn đang kết nối | SAN DNS/IP và endpoint identity theo quy tắc TLS/JSSE |
-| Chứng thư có quyền **TLS serverAuth** hoặc **codeSigning** | Không mặc định cho mọi purpose | EKU/KeyUsage và policy ứng dụng/JSSE |
-| Chứng thư có bị thu hồi hay không | Phụ thuộc `setRevocationEnabled` và cấu hình checker/CRL/OCSP | Chính sách revocation, xử lý offline/failure |
-| Root có nên được tin ở tenant này hay không | Không tự chọn chính sách trust store | Trust anchors phân vùng theo tenant/purpose |
-| Chủ thể có quyền thực hiện hành động nghiệp vụ không | **Không** | Authorization, mapping identity → role/account |
-| Có chống replay/đảm bảo dữ liệu kênh không bị sửa? | Không bởi riêng path | TLS handshake + record protection / protocol khác |
+| Certificate has a valid chain to a trusted CA | **Yes**, within PKIX parameters and provider scope | Selecting the right anchors/policy for the application |
+| Certificate matches the **TLS hostname** | **No**, checking only the path does not match the DNS name you connect to | SAN DNS/IP and endpoint identity per TLS/JSSE rules |
+| Certificate is authorized for **TLS serverAuth** or **codeSigning** | Not automatically for every purpose | EKU/KeyUsage and application/JSSE policy |
+| Whether the certificate has been revoked | Depends on `setRevocationEnabled` and checker/CRL/OCSP config | Revocation policy, offline/failure handling |
+| Whether the root should be trusted for this tenant | Does not choose trust store policy automatically | Trust anchors partitioned by tenant/purpose |
+| Whether the subject is authorized to perform a business action | **No** | Authorization, mapping identity → role/account |
+| Replay protection / ensuring channel data is untampered? | Not by path alone | TLS handshake + record protection / other protocols |
 
-**Phân biệt `CertPathValidator` với HTTPS verification:** JSSE `X509TrustManager`/`X509ExtendedTrustManager` phục vụ xác thực chuỗi trong ngữ cảnh TLS; `HttpsURLConnection`/HTTP client và cấu hình endpoint identification bổ sung kiểm tra hostname/purpose theo giao thức. Một bài tập gọi trực tiếp `CertPathValidator` **không thay cho HTTPS client an toàn**.
+**Distinguishing `CertPathValidator` from HTTPS verification:** JSSE `X509TrustManager`/`X509ExtendedTrustManager` handles chain validation in a TLS context; `HttpsURLConnection`/HTTP clients and endpoint identification configuration add protocol-specific hostname/purpose verification. An exercise calling `CertPathValidator` directly **does not replace a secure HTTPS client**.
 
-## 10. Các lỗi hay gặp khi làm việc với intermediate và root
+## 10. Common Errors When Working with Intermediates and Roots
 
-| Hiện tượng/lỗi | Nguyên nhân thường gặp | Cách xử lý đúng |
+| Symptom/error | Common cause | Correct resolution |
 | --- | --- | --- |
-| `CertPathValidatorException` do không nối được tới anchor | Thiếu intermediate, sai issuer/key, hoặc root chưa nằm trong tập đáng tin | Cung cấp intermediate đúng, **không tự tin root do peer gửi** |
-| Dùng `CertPath [root, intermediate, leaf]` | Sai thứ tự, đưa trust anchor vào path | Tạo `[leaf, intermediate]`, truyền root riêng trong `PKIXParameters` |
-| Builder không tìm được path | `CertStore` thiếu intermediate hoặc selector/ràng buộc quá chặt | Kiểm tra target `X509CertSelector`, candidate store, issuer/cert extensions |
-| Chứng thư intermediate bị từ chối | `BasicConstraints CA=false`, thiếu `keyCertSign`, `pathLenConstraint` hoặc critical extensions sai | CA phải phát hành lại chứng thư trung gian hợp lệ, **không tắt check** |
-| Chứng thư hết hạn | `notAfter` đã qua hoặc `notBefore` còn ở tương lai | Cấp mới/gia hạn đúng quy trình, đồng bộ đồng hồ; không bỏ qua validity |
-| `InvalidAlgorithmParameterException: trustAnchors must be non-empty` | Tập anchor rỗng hoặc truststore không có trusted cert entries | Cài anchors phê duyệt rồi tạo `PKIXParameters` |
-| Revocation báo lỗi do mạng/thiếu CRL | Policy bật nhưng nguồn trạng thái không khả dụng | Cấu hình OCSP/CRL, cache/timeout và quy tắc fail-open/closed có phê duyệt |
-| `validate` thành công nhưng hostname sai | Code chỉ kiểm tra path, không kiểm tra server identity | Xác minh SAN/endpoint identification ở tầng TLS/ứng dụng |
-| Tin tự động root được peer gửi | Vô tình mở rộng trust anchors theo dữ liệu chưa đáng tin | Root phải đến từ truststore/pinning/quản trị độc lập |
-| So trùng `issuer.getName()` rồi coi là hợp lệ | Không kiểm tra chữ ký/policy/constraints | Dùng PKIX validator/builder |
-| Dùng `getBasicConstraints() >= 0` như kiểm tra tất cả | Chỉ cho biết CA bit/độ sâu, **chưa chứng minh chain hợp lệ** | Bắt buộc validate toàn bộ path |
-| Dùng Java certificate entry/keystore nhầm loại | `KeyStore` chứa key entries/certs khác trusted entries | Phân biệt `isCertificateEntry`/entry policy, kiểm tra truststore thực |
+| `CertPathValidatorException` due to inability to chain to an anchor | Missing intermediate, wrong issuer/key, or root not in trusted set | Provide the right intermediate, **do not auto-trust peer-sent roots** |
+| Using `CertPath [root, intermediate, leaf]` | Wrong order, putting trust anchor in the path | Create `[leaf, intermediate]`, pass root separately in `PKIXParameters` |
+| Builder cannot find a path | `CertStore` missing intermediate or selector/constraints too strict | Check target `X509CertSelector`, candidate store, issuer/cert extensions |
+| Intermediate certificate rejected | `BasicConstraints CA=false`, missing `keyCertSign`, wrong `pathLenConstraint` or critical extensions | The CA must reissue a valid intermediate certificate, **do not disable checks** |
+| Certificate expired | `notAfter` has passed or `notBefore` is in the future | Reissue/renew properly, synchronize clocks; do not skip validity checks |
+| `InvalidAlgorithmParameterException: trustAnchors must be non-empty` | Empty anchor set or truststore has no trusted cert entries | Install approved anchors before creating `PKIXParameters` |
+| Revocation error due to network/missing CRL | Policy enabled but status source unavailable | Configure OCSP/CRL, cache/timeout, and approved fail-open/closed rules |
+| `validate` succeeds but hostname is wrong | Code checks only the path, not server identity | Verify SAN/endpoint identification at the TLS/application layer |
+| Auto-trusting a peer-sent root | Accidentally expanding trust anchors with untrusted data | Roots must come from an independently managed truststore/pinning |
+| Matching `issuer.getName()` and treating as valid | Does not check signatures/policy/constraints | Use PKIX validator/builder |
+| Using `getBasicConstraints() >= 0` as the entire check | Only indicates CA bit/depth, **does not prove a valid chain** | Must validate the entire path |
+| Using the wrong Java certificate entry/keystore type | `KeyStore` contains key entries/certs other than trusted entries | Distinguish `isCertificateEntry`/entry policy, inspect actual truststore |
 
-### 10.1 Chẩn đoán exception thay vì chấp nhận tiếp
+### 10.1 Diagnosing Exceptions Instead of Accepting Anyway
 
-`CertPathValidatorException` có thể cung cấp:
+`CertPathValidatorException` can provide:
 
 ```java
-// Đoạn minh họa trong catch (CertPathValidatorException ex):
-int index = ex.getIndex();  // vị trí chứng thư lỗi trong path, có thể -1
+// Illustrative snippet inside catch (CertPathValidatorException ex):
+int index = ex.getIndex();  // position of failing cert in path, may be -1
 CertPathValidatorException.Reason reason = ex.getReason();
 ```
 
-Giá trị `index` có thể giúp chỉ ra leaf/intermediate nào liên quan, nhưng **không phải mọi lỗi đều gắn với một index**. Không bắt tất cả exception rồi `return true` hoặc tự fallback sang một CA tự ký không được tin. Nếu validation thất bại, **không chấp nhận certificate**.
+The `index` value can help pinpoint which leaf/intermediate is involved, but **not every error is tied to an index**. Do not catch all exceptions and `return true` or automatically fall back to an untrusted self-signed CA. If validation fails, **do not accept the certificate**.
 
-Không dùng `jdk.certpath.disabledAlgorithms` theo cách làm yếu chính sách để “sửa” lỗi tương thích. Nếu ứng dụng đang dùng thuật toán yếu hay root không hợp lệ, cần **di trú đúng** (cấp lại certificate/khóa, cấu hình trust anchors thích hợp) thay vì tắt bảo vệ.
+Do not use `jdk.certpath.disabledAlgorithms` to weaken policy as a compatibility “fix”. If an application uses weak algorithms or an invalid root, **migrate properly** (reissue certificates/keys, configure appropriate trust anchors) instead of turning off protections.
 
-## 11. Bài tập kiểm tra bằng chính fixture
+## 11. Exercises Using the Fixture
 
-**Bài tập A — Nhận diện ba vai trò.** Dùng `keytool -printcert -file root.pem`, `-file intermediate.pem` và `-file leaf.pem` để quan sát subject, issuer, BasicConstraints, KeyUsage, SAN/EKU. Xác định:
+**Exercise A — Identify the three roles.** Run `keytool -printcert -file root.pem`, `-file intermediate.pem`, and `-file leaf.pem` to inspect subject, issuer, BasicConstraints, KeyUsage, SAN/EKU. Verify:
 
-- Root tự ký có subject/issuer trùng nhau; nhưng điều làm nó đáng tin là nó đã được ứng dụng chọn làm `TrustAnchor`.
-- Intermediate mang subject riêng, issuer là Root, `CA=true`, `pathlen:0` và quyền `keyCertSign`.
-- Leaf mang issuer là Intermediate, `CA=false`, SAN DNS theo lab.
+- The self-signed Root has identical subject/issuer; yet what makes it trusted is that the application selected it as a `TrustAnchor`.
+- The Intermediate has its own subject, issuer is Root, `CA=true`, `pathlen:0`, and `keyCertSign` permission.
+- The Leaf has issuer Intermediate, `CA=false`, and the lab DNS SAN.
 
-**Bài tập B — Đổi thứ tự `CertPath`.** Thay `List.of(leaf, intermediate)` thành `List.of(intermediate, leaf)` trong đoạn validate. Vì sao cùng hai certificate vẫn không tạo đường từ target đến anchor? Dùng `getIndex()`/`getReason()` để hiểu lỗi, không dựa vào một thông điệp text cố định của provider.
+**Exercise B — Reverse `CertPath` order.** Change `List.of(leaf, intermediate)` to `List.of(intermediate, leaf)` in the validate step. Why do the same two certificates fail to form a path from target to anchor? Use `getIndex()`/`getReason()` to understand the error without relying on a fixed provider text message.
 
-**Bài tập C — Bỏ intermediate.** Chỉ truyền `[leaf]` cho validator, giữ Root là anchor. Nhận biết không thể nối leaf trực tiếp tới root. Thêm intermediate vào `CollectionCertStoreParameters` cho builder để nó tìm lại path đúng.
+**Exercise C — Drop the intermediate.** Pass only `[leaf]` to the validator, keeping Root as the anchor. Observe that the leaf cannot chain directly to the root. Add the intermediate to `CollectionCertStoreParameters` for the builder so it rediscovers the right path.
 
-**Bài tập D — Sai anchor.** Sinh **một CA root khác** trong lab, thay `TrustAnchor` bằng root mới. `CertPath` vẫn có các chữ ký nội bộ đúng theo root cũ nhưng **không thể kết thúc ở anchor mới**. Đây là khác biệt giữa “chứng thư có chữ ký hợp lệ” và “ứng dụng tin issuer cuối”.
+**Exercise D — Wrong anchor.** Generate **another root CA** in the lab and replace `TrustAnchor` with the new root. The `CertPath` still has valid internal signatures under the old root, yet **cannot terminate at the new anchor**. This is the difference between “a certificate with a valid signature” and “the application trusts the final issuer”.
 
-**Bài tập E — CA mất quyền cấp.** Thử thay intermediate được Root ký thành bản không có `CA=true` hoặc thiếu `keyCertSign` (khi có KeyUsage), rồi kiểm tra PKIX validator từ chối. Đừng tự thêm chứng thư ấy vào truststore để lách lỗi.
+**Exercise E — CA stripped of issuing authority.** Try replacing the Root-signed intermediate with a version lacking `CA=true` or missing `keyCertSign` (when KeyUsage is present), then verify the PKIX validator rejects it. Do not add that certificate to the truststore to bypass the error.
 
-**Bài tập F — Thời gian và revocation.** Tạo fixture có thời hạn ngắn và thử sau khi hết hạn; quan sát `CertPathValidatorException`. Tìm hiểu `PKIXRevocationChecker` (cần hạ tầng OCSP/CRL) và giải thích vì sao `setRevocationEnabled(false)` chỉ dùng cho thí nghiệm kín.
+**Exercise F — Validity period and revocation.** Create a short-lived fixture and test after expiration; observe `CertPathValidatorException`. Explore `PKIXRevocationChecker` (which requires OCSP/CRL infrastructure) and explain why `setRevocationEnabled(false)` is only for closed lab experiments.
 
-**Bài tập G — Purpose và hostname.** Thay SAN của leaf bằng DNS khác nhưng giữ root/intermediate hợp lệ. Chỉ `validate()` chưa đủ kết luận máy chủ đúng hostname. Kiểm tra thêm quy tắc endpoint identification/TLS và EKU/KeyUsage.
+**Exercise G — Purpose and hostname.** Change the leaf's SAN to a different DNS name while keeping a valid root/intermediate. `validate()` alone is not enough to conclude the server matches the hostname. Also check endpoint identification/TLS rules and EKU/KeyUsage.
 
-## 12. Checklist thiết kế đường dẫn tin cậy trong Java
+## 12. Checklist for Designing Trust Paths in Java
 
-- [ ] **Không lấy trust anchor từ dữ liệu chưa tin cậy**; tin CA/định danh qua truststore/chính sách được quản trị.
-- [ ] Phân biệt **leaf, intermediate và root**; `CertPath` X.509 theo thứ tự leaf → intermediate; root/anchor **nằm ngoài** path.
-- [ ] Với `CertPathValidator("PKIX")`, truyền **đúng `PKIXParameters`**, thời gian, anchors, chính sách và revocation.
-- [ ] Với `CertPathBuilder("PKIX")`, có selector **đúng target** và `CertStore` chứa intermediate candidates, không mong mọi intermediate tự tải xuống.
-- [ ] Không tự viết thuật toán “so tên issuer → subject” rồi coi như path validation; phải kiểm tra chữ ký, BasicConstraints, KeyUsage, time, constraints và policy.
-- [ ] Không nhầm `KeyStore` trusted cert entry với keypair/private-key entry hoặc certificates được peer trình bày.
-- [ ] Không bỏ qua hostname/EKU/purpose khi dùng certificate cho TLS, mTLS, code signing hoặc danh tính nghiệp vụ.
-- [ ] Revocation phải là **quyết định chính sách thực tế** có OCSP/CRL và xử lý lỗi; ví dụ tắt chỉ để lab.
-- [ ] Theo dõi thuật toán/key-size bị chính sách JDK từ chối; **không vô hiệu hóa bảo vệ** để chạy certificate yếu.
-- [ ] Có negative tests: thiếu intermediate, đảo thứ tự, sai root, CA=false, thiếu keyCertSign, certificate expired, hostname mismatch.
-- [ ] Không để khóa CA private từ fixture/hệ thống production vào source code, log, repo, hoặc file tải công khai.
+- [ ] **Never take a trust anchor from untrusted data**; trust CAs/identities via a managed truststore/policy.
+- [ ] Distinguish **leaf, intermediate, and root**; X.509 `CertPath` orders leaf → intermediate; root/anchor **stays outside** the path.
+- [ ] With `CertPathValidator("PKIX")`, pass the **right `PKIXParameters`**, date, anchors, policies, and revocation settings.
+- [ ] With `CertPathBuilder("PKIX")`, provide the **right target** selector and a `CertStore` containing intermediate candidates; do not expect all intermediates to auto-download.
+- [ ] Do not hand-roll an “issuer → subject name matching” algorithm and treat it as path validation; signatures, BasicConstraints, KeyUsage, validity, constraints, and policies must all be checked.
+- [ ] Do not confuse `KeyStore` trusted cert entries with keypair/private-key entries or peer-presented certificates.
+- [ ] Do not skip hostname/EKU/purpose checks when using certificates for TLS, mTLS, code signing, or business identities.
+- [ ] Revocation must be a **real policy decision** with OCSP/CRL and error handling; disabling it is strictly for labs.
+- [ ] Monitor algorithms/key sizes rejected by JDK policy; **do not disable protections** to run weak certificates.
+- [ ] Include negative tests: missing intermediate, reversed order, wrong root, CA=false, missing keyCertSign, expired certificate, hostname mismatch.
+- [ ] Do not put CA private keys from fixtures or production systems into source code, logs, repositories, or publicly downloadable files.
 
-## 13. Tự kiểm tra kiến thức
+## 13. Knowledge Self-Check
 
-**1. Trong Java, `CertPath` của root → intermediate → leaf được sắp ra sao?**  
-Theo X.509 path của Java: **`[leaf, intermediate]`** từ target đến phía trust anchor. `root` cung cấp riêng dưới dạng `TrustAnchor`, không thêm vào danh sách.
+**1. In Java, how is the `CertPath` for root → intermediate → leaf ordered?**  
+Under Java's X.509 path convention: **`[leaf, intermediate]`** from target toward the trust anchor. `root` is supplied separately as a `TrustAnchor`, not added to the list.
 
-**2. `TrustAnchor` là certificate tự ký nào bất kỳ phải không?**  
-**Không.** Nó là thông tin CA đã được cấu hình **tin cậy ngoài đường dẫn**. Một certificate tự ký do attacker gửi không thể tự trở thành anchor.
+**2. Is `TrustAnchor` just any self-signed certificate?**  
+**No.** It is CA information configured as **trusted outside the path**. A self-signed certificate sent by an attacker cannot become an anchor on its own.
 
-**3. Intermediate được Root ký rồi có tự động trở thành trusted root không?**  
-**Không.** Intermediate là chứng thư CA trong đường dẫn; nó phải được kiểm tra chữ ký/constraints và nối lên một anchor đáng tin đã có.
+**3. Once an Intermediate is signed by Root, does it automatically become a trusted root?**  
+**No.** The intermediate is a CA certificate in the path; its signature/constraints must be verified and it must chain up to an existing trusted anchor.
 
-**4. `pathLenConstraint=0` trên intermediate có cấm cấp certificate leaf không?**  
-**Không.** Nó cấm thêm CA trung gian **không self-issued** phía dưới trong path hợp lệ, không cấm cấp leaf.
+**4. Does `pathLenConstraint=0` on an intermediate forbid issuing leaf certificates?**  
+**No.** It forbids additional **non-self-issued** intermediate CAs below it in a valid path; it does not forbid issuing leaf certificates.
 
-**5. `CertificateFactory.generateCertPath` có tự kiểm tra chain không?**  
-**Không.** Nó tạo representation. Dùng `CertPathValidator("PKIX").validate` để kiểm tra path; builder có thể tìm và xác thực path theo constraints.
+**5. Does `CertificateFactory.generateCertPath` automatically validate the chain?**  
+**No.** It creates the representation. Use `CertPathValidator("PKIX").validate` to verify a path; the builder can discover and validate a path according to constraints.
 
-**6. `CertPathValidator` và `CertPathBuilder` khác nhau ở đâu?**  
-Validator **xác thực path đã cho**. Builder **tìm path** từ certificates/`CertStore` và trust anchors, rồi trả path hợp lệ khi build thành công.
+**6. How do `CertPathValidator` and `CertPathBuilder` differ?**  
+Validator **validates a given path**. Builder **discovers a path** from source certificates/`CertStore` and trust anchors, returning a valid path when building succeeds.
 
-**7. `validate()` thành công đã bảo đảm hostname trong URL trùng certificate chưa?**  
-**Chưa.** Phải có kiểm tra SAN/endpoint identity cùng key usage/purpose ở tầng ứng dụng/TLS.
+**7. Does a successful `validate()` guarantee the hostname in the URL matches the certificate?**  
+**No.** SAN/endpoint identity along with key usage/purpose checks must still be performed at the application/TLS layer.
 
-**8. Vì sao ví dụ đặt `setRevocationEnabled(false)` và production có nên copy nguyên không?**  
-Lab không có hệ thống CRL/OCSP để kiểm thử thu hồi. Production phải có chính sách revocation phù hợp; tắt vì tiện có thể khiến chứng thư đã thu hồi vẫn được chấp nhận.
+**8. Why does the example set `setRevocationEnabled(false)`, and should production copy it as-is?**  
+The lab has no CRL/OCSP infrastructure to test revocation. Production must have an appropriate revocation policy; disabling it for convenience can allow revoked certificates to still be accepted.
 
-## Tài liệu chính thức
+## Official References
 
-- [Java SE 17 — `CertPath`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPath.html): tập certificate, quy tắc thứ tự X.509 và vai trò riêng của trust anchor.
-- [Java SE 17 — `TrustAnchor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/TrustAnchor.html): mô hình CA tin cậy với certificate hoặc CA name + public key, name constraints.
-- [Java SE 17 — `CertPathValidator`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): engine PKIX validation và exceptions.
-- [Java SE 17 — `CertPathBuilder`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathBuilder.html): xây dựng đường dẫn bằng target constraints, certificates nguồn và trust anchors.
+- [Java SE 17 — `CertPath`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPath.html): certificate collection, X.509 ordering rules, and the separate role of the trust anchor.
+- [Java SE 17 — `TrustAnchor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/TrustAnchor.html): trusted CA model with certificate or CA name + public key, name constraints.
+- [Java SE 17 — `CertPathValidator`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): PKIX validation engine and exceptions.
+- [Java SE 17 — `CertPathBuilder`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathBuilder.html): building paths using target constraints, source certificates, and trust anchors.
 - [Java SE 17 — `PKIXParameters`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): anchors, date, policies, revocation.
 - [Java SE 17 — `PKIXBuilderParameters`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXBuilderParameters.html): target selector, CertStore, max path length.
-- [Java SE 17 — `PKIXCertPathValidatorResult`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXCertPathValidatorResult.html): kết quả gồm `getTrustAnchor`, public key, policy tree.
-- [Java SE 17 — `PKIXCertPathBuilderResult`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXCertPathBuilderResult.html): path được build và trust anchor riêng.
-- [Java SE 17 — Java PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-pki-programmers-guide.html): hướng dẫn chính thức về xây và xác minh certification paths.
+- [Java SE 17 — `PKIXCertPathValidatorResult`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXCertPathValidatorResult.html): result containing `getTrustAnchor`, public key, policy tree.
+- [Java SE 17 — `PKIXCertPathBuilderResult`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXCertPathBuilderResult.html): built path and separate trust anchor.
+- [Java SE 17 — Java PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-pki-programmers-guide.html): official guide on building and validating certification paths.
 - [Java SE 17 — `keytool` reference](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): `-genkeypair`, `-certreq`, `-gencert`, `-ext BC`, `-ext KU`, `-exportcert`.
-- [RFC 5280 — X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): §4.2.1.9 BasicConstraints; §4.2.1.3 KeyUsage; §6 path validation và trust anchors.
+- [RFC 5280 — X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): §4.2.1.9 BasicConstraints; §4.2.1.3 KeyUsage; §6 path validation and trust anchors.
 
-**Kết luận:** `CertPath` là **đường đi của các chứng thư cần kiểm tra**, intermediate là **mắt xích phải được xác thực**, còn `TrustAnchor` là **điểm xuất phát được tin theo chính sách**. `CertPathValidator` kiểm tra một đường đã cho; `CertPathBuilder` tìm một đường hợp lệ từ candidate certificates. Không chấp nhận một chứng thư chỉ vì chữ ký của nó kiểm tra được — chỉ tin khi nó có **đường dẫn hợp lệ tới anchor đã phê duyệt và đáp ứng các ràng buộc của chính ứng dụng**.
+**Conclusion:** `CertPath` is **the sequence of certificates to inspect**, an intermediate is **a link that must be validated**, and `TrustAnchor` is **the policy-trusted starting point**. `CertPathValidator` checks a given path; `CertPathBuilder` discovers a valid path from candidate certificates. Never accept a certificate solely because its signature verifies — trust it only when it has a **valid path to an approved anchor and satisfies your application's own constraints**.

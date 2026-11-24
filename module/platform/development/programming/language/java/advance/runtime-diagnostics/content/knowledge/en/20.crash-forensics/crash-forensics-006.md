@@ -1,112 +1,112 @@
-# 20.6. Core dump, executable và yêu cầu tương thích JDK hoặc kiến trúc khi phân tích
+# 20.6. Core Dumps, Executables, and JDK or Architecture Compatibility Requirements During Analysis
 
-## Mục tiêu
+## Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **core dump/crash dump của tiến trình** với `hs_err_pid*.log`, Java heap dump `.hprof`, thread dump và JFR `.jfr`.
-- Giải thích vì sao phân tích sau crash cần **core + executable thực sự đã chạy + thư viện native/JDK tương ứng**, chứ không chỉ một tệp `core`.
-- Kiểm tra tính phù hợp của **OS, định dạng dump, kiến trúc CPU, 32/64-bit, JDK vendor/version/build, `libjvm`, native libraries và debug symbols**.
-- Thực hiện workflow Linux với `file`, `readelf`, `sha256sum`, `coredumpctl`, `jhsdb` và `gdb`; hiểu điều gì khác trên Windows/macOS.
-- Nhận diện trường hợp **không có core, core bị cắt/thiếu mapping, binary lệch bản**, cùng các rủi ro bảo mật khi lưu/chia sẻ dump.
+- Distinguish a **process core dump / crash dump** from `hs_err_pid*.log`, a Java heap dump `.hprof`, a thread dump, and a JFR `.jfr` file.
+- Explain why post-crash analysis requires **the core + the actual executable that ran + matching native/JDK libraries**, rather than just a `core` file alone.
+- Verify compatibility across **OS, dump format, CPU architecture, 32/64-bit, JDK vendor/version/build, `libjvm`, native libraries, and debug symbols**.
+- Execute a Linux workflow with `file`, `readelf`, `sha256sum`, `coredumpctl`, `jhsdb`, and `gdb`; understand what differs on Windows and macOS.
+- Recognize cases of **missing cores, truncated cores/missing mappings, and mismatched binaries**, along with security risks when storing or sharing dumps.
 
-**Phạm vi:** HotSpot/OpenJDK trong quá trình **phân tích sau lỗi (postmortem)**. Ví dụ tập trung Linux ELF core; Windows và macOS có dump/debugger/định dạng khác. Lệnh minh họa không tự tạo crash trên hệ thống thật. Một bản core từ tiến trình có thể chứa dữ liệu cực kỳ nhạy cảm; mọi bước cần tuân theo chính sách bảo mật.
+**Scope:** HotSpot/OpenJDK during **postmortem analysis**. Examples focus on Linux ELF cores; Windows and macOS have different dump formats, tools, and debuggers. Illustrative commands do not trigger crashes on live systems. A process core dump can contain highly sensitive data; every step must follow security policy.
 
-## 1. Trước hết: bạn đang có loại hiện vật nào?
+## 1. First: What Kind of Artifact Do You Have?
 
-Khi ứng dụng Java bị lỗi, không phải mọi tệp có chữ *dump* đều dùng được với cùng công cụ.
+When a Java application fails, not every file with *dump* in its name works with the same tools.
 
-| Hiện vật | Nội dung chính | Công cụ thường dùng | Điều không nên nhầm |
+| Artifact | Primary contents | Typical tools | What not to confuse it with |
 |---|---|---|---|
-| **Linux core file (ELF core)** | Ảnh chụp **một phần hoặc nhiều phần** address space, trạng thái thread/registers tại thời điểm process chết hoặc chụp dump | `gdb`, `jhsdb` với executable, libs phù hợp | Không phải một snapshot bảo đảm chứa toàn bộ RAM; có thể thiếu mapping |
-| **Windows process dump `.dmp`** | Dump tiến trình theo loại full/minidump và chính sách thu thập | WinDbg/Windows debugger tương thích | Không mặc nhiên là ELF core dùng với Linux `gdb`/`jhsdb` |
-| **macOS core/crash report** | Core có định dạng/phạm vi riêng; crash report có stack/metadata | `lldb` và công cụ Apple | Không phải Linux ELF; crash report không tự đồng nghĩa full core |
-| **`hs_err_pid*.log`** | Báo cáo fatal error do HotSpot có thể sinh: signal/exception, problematic frame, JVM, OS, native libraries, registers/stack khi có | Trình đọc text, phân tích thủ công | Không phải tệp chứa toàn bộ process memory |
-| **Java heap dump `.hprof`** | Object graph/heap Java tại lúc chụp | Eclipse MAT, VisualVM/heap analyzer | Không thay thế native frames/registers của core |
-| **Thread dump** | Stack/trạng thái thread tại thời điểm chụp | `jcmd`, JFR/JMC, công cụ đọc text | Không chứa đầy đủ memory image và registers |
-| **JFR `.jfr`** | Chuỗi event theo thời gian: GC, CPU samples, allocation, threads, I/O... nếu được bật | `jfr` CLI, JDK Mission Control | Không phải một post-crash core snapshot |
+| **Linux core file (ELF core)** | Snapshot of **part or many parts** of address space, thread states, and registers when the process died or was dumped | `gdb`, `jhsdb` with matching executable and libs | Not a guaranteed snapshot of all RAM; mappings may be omitted |
+| **Windows process dump `.dmp`** | Process dump by full/minidump type and collection policy | WinDbg / compatible Windows debuggers | Not by default an ELF core usable with Linux `gdb`/`jhsdb` |
+| **macOS core/crash report** | Core with its own format/scope; crash report has stack/metadata | `lldb` and Apple tools | Not Linux ELF; a crash report does not automatically equal a full core |
+| **`hs_err_pid*.log`** | Fatal error report HotSpot may generate: signal/exception, problematic frame, JVM, OS, native libraries, registers/stack when available | Text viewer, manual analysis | Not a file containing full process memory |
+| **Java heap dump `.hprof`** | Java object graph / heap at capture time | Eclipse MAT, VisualVM / heap analyzers | Does not replace native frames/registers from a core |
+| **Thread dump** | Thread stacks and states at capture time | `jcmd`, JFR/JMC, text tools | Does not contain a full memory image or registers |
+| **JFR `.jfr`** | Time-ordered event stream: GC, CPU samples, allocations, threads, I/O, etc., if enabled | `jfr` CLI, JDK Mission Control | Not a post-crash core snapshot |
 
-**Core dump** hữu ích nhất khi JVM/process **chết do native fault** như `SIGSEGV`, `SIGBUS`, `SIGILL` hoặc `SIGABRT` trên Linux (tùy OS/signal/config). Nó cho phép hỏi: thread nào gặp fault, instruction pointer ở đâu, registers gì, Java/native stacks có ra sao, code và data tại địa chỉ đó thuộc binary/library nào.
+A **core dump** is most useful when the JVM/process **dies from a native fault** such as `SIGSEGV`, `SIGBUS`, `SIGILL`, or `SIGABRT` on Linux (depending on OS/signal/config). It lets you ask: which thread faulted, where was the instruction pointer, what were the registers, what did the Java/native stacks look like, and which binary/library owned the code and data at that address.
 
-**Lưu ý:** Java exception thông thường (`NullPointerException` trong code Java, chẳng hạn) **không tự tạo OS core dump**. `OutOfMemoryError` trong Java cũng không mặc nhiên tạo core; container/kernel OOM killer thường kết thúc bằng `SIGKILL`, vốn **không sinh core theo cơ chế signal crash**. Nếu chỉ có `ExitCode=137` trong container, ưu tiên kiểm tra cgroup/OOM events trước khi tìm core.
+**Note:** ordinary Java exceptions (`NullPointerException` in Java code, for instance) **do not automatically produce an OS core dump**. A Java `OutOfMemoryError` also does not generate a core by default; container/kernel OOM killers typically terminate with `SIGKILL`, which **does not generate a core via the signal-crash mechanism**. If you only have `ExitCode=137` in a container, prioritize checking cgroup/OOM events before looking for a core.
 
-## 2. Vì sao core không đủ? Cần đúng executable và các thư viện
+## 2. Why Is a Core Alone Not Enough? You Need the Exact Executable and Libraries
 
-Trong Linux ELF, core chủ yếu giữ trạng thái process và những vùng memory được hệ điều hành chọn ghi. Các đoạn code, symbol table, debug info và một số mapped pages có thể **không nằm đầy đủ trong core**. Native debugger cần **executable** và các **shared libraries** tương ứng để ghép địa chỉ trong core với mã máy, hàm và stack.
+In Linux ELF, a core primarily preserves process state and the memory regions the OS chose to write. Code segments, symbol tables, debug info, and certain mapped pages may **not be fully included inside the core**. A native debugger needs the corresponding **executable** and **shared libraries** to map addresses in the core back to machine code, functions, and stacks.
 
-Giả sử Java crash ở native code:
+Suppose Java crashes in native code:
 
 ```text
 Core:   PC = 0x7f...; TID = ...; registers; mappings; memory pages
           |
-          +--- executable đã chạy: /opt/runtime/bin/java
+          +--- executable that ran: /opt/runtime/bin/java
           |
           +--- JVM library: /opt/runtime/lib/server/libjvm.so
           |
           +--- native/JNI libraries: libfoo.so, libbar.so, libc.so...
           |
-          +--- debug symbols (nếu có): debuginfo, build-id, symbol files
+          +--- debug symbols (if available): debuginfo, build-id, symbol files
           v
-GDB: native backtrace, registers, instruction/symbol gần fault
-jhsdb: cố gắng giải mã Java threads/HotSpot VM structures/heap
+GDB: native backtrace, registers, instruction/symbol near fault
+jhsdb: attempts to decode Java threads/HotSpot VM structures/heap
 ```
 
-Nếu dùng **executable khác** hoặc `libjvm.so` sau khi đã upgrade:
+If you use a **different executable** or a `libjvm.so` from after an upgrade:
 
-- Debugger có thể vẫn mở được core, nhưng dùng symbol hoặc offsets **sai**.
-- Stack có thể hiện `??`, frame vô nghĩa, sai địa chỉ hoặc dừng khi đọc dữ liệu JVM.
-- Serviceability Agent trong `jhsdb` có thể không nhận ra layout/cấu trúc HotSpot, dù hai JDK đều ghi “Java 21”.
-- Một kết quả mở được file **không chứng minh** mọi frame hay đối tượng đã được phân tích đúng.
+- The debugger may still open the core, yet resolve **wrong** symbols or offsets.
+- The stack may show `??`, nonsensical frames, wrong addresses, or fail while reading JVM data.
+- The Serviceability Agent in `jhsdb` may fail to recognize HotSpot's internal layout/structures, even if both JDKs say “Java 21.”
+- Simply being able to open the file **does not prove** every frame or object was decoded accurately.
 
-**Khái niệm quan trọng:**
+**Key concepts:**
 
-- **JDK version** là nhãn version (`21.0.x`, `24.0.x`), **không phải fingerprint đầy đủ**.
-- **JDK vendor/distribution/build** cho biết sản phẩm và build cụ thể; ngay trong cùng một major version có thể khác patch, native layout, compiler flags hoặc native binary.
-- **Executable** là *binary thực sự khởi động tiến trình*: thường là `bin/java`, nhưng JNI Invocation API hoặc custom launcher có thể khiến executable là một binary khác. Không mặc định `app.jar` chính là executable mà `jhsdb --exe` cần.
-- **`libjvm`** là thư viện HotSpot native; riêng tên file giống nhau không chứng minh hash/build giống nhau.
-- **Native/JNI/shared libraries** và libc/loader cũng ảnh hưởng việc dựng native backtrace; symbol packages phải khớp bản build.
+- **JDK version** is a version label (`21.0.x`, `24.0.x`), **not a complete fingerprint**.
+- **JDK vendor/distribution/build** identifies the specific product and build; even within the same major version, patches, native layouts, compiler flags, or native binaries can differ.
+- **Executable** is *the binary that actually started the process*: usually `bin/java`, though JNI Invocation API or a custom launcher can make the executable another binary. Never assume `app.jar` itself is the executable `jhsdb --exe` expects.
+- **`libjvm`** is the HotSpot native library; identical filenames alone do not prove identical hashes or builds.
+- **Native/JNI/shared libraries** and libc/loader also affect native backtrace reconstruction; symbol packages must match the exact build.
 
-### Một quy tắc thực hành
+### A practical rule
 
-Để giảm sai số, ưu tiên **tái dựng đúng image/runtime của lần crash**: cùng OS ABI, CPU architecture, bộ binary JDK và thư viện được dùng, thêm debug symbols khớp **build ID** nếu có. Lưu bản sao có hash từ deployment artifact/container image, thay vì tải đại một JDK “cùng major” sau khi sự cố xảy ra.
+To minimize errors, prioritize **reconstructing the exact runtime image from the crash**: the same OS ABI, CPU architecture, JDK binaries, and libraries used, plus debug symbols matching the **build ID** if available. Save a hash-verified copy from the deployment artifact or container image rather than grabbing a random “same major” JDK after the incident occurs.
 
-Không phải mọi phép đọc sơ bộ đều yêu cầu exact build tuyệt đối: GDB có thể cho biết một số register/thread hoặc file format ngay cả khi symbols thiếu. Nhưng đối với **kết luận sâu về HotSpot object/heap/Java stack**, đồng nhất build là mục tiêu có giá trị đặc biệt cao; đừng coi dữ liệu từ bản lệch là đáng tin khi chưa xác minh.
+Not every preliminary check requires an exact byte-for-byte build: GDB can still inspect some registers, threads, or file metadata even when symbols are missing. However, for **deep conclusions about HotSpot objects, heap, or Java stacks**, build consistency is exceptionally valuable; never trust data from a mismatched build without verification.
 
-## 3. Bảng kiểm tương thích trước khi mở core
+## 3. Compatibility Checklist Before Opening a Core
 
-| Lớp đối chiếu | Cần xác minh | Nếu sai sẽ thế nào? |
+| Comparison layer | What to verify | What happens if wrong? |
 |---|---|---|
-| **Định dạng** | Linux ELF core, Windows dump, macOS Mach-O core/crash report | Công cụ không mở được hoặc hiểu sai định dạng |
-| **Kiến trúc máy** | `x86_64/amd64`, `aarch64/arm64`, ARM 32-bit... | Debugger native/SA không hỗ trợ cross-target; register và instruction set khác |
-| **Word size & ABI** | 32/64-bit, endianness, ABI và OS phù hợp | Layout pointer/stack/register không tương thích |
-| **Executable build** | Byte-for-byte binary hoặc build ID/hash phù hợp với thời điểm core | Symbol address/stack mapping có thể lệch |
-| **JDK vendor/build/patch** | Java runtime/VM version, vendor, HotSpot implementation, build tương ứng | HotSpot SA có thể giải mã sai cấu trúc nội bộ |
-| **`libjvm` và thư viện JDK** | Bản đã nạp khi crash, đúng đường dẫn/build ID | Native frames/HotSpot offsets có thể không khớp |
-| **JNI/native libraries và libc** | Đúng versions, symbols, loader và đường dẫn mapping | Thiếu frame hoặc symbol trong thư viện gây crash |
-| **Debug symbols** | Symbols cho executable/`libjvm`/native libs phải cùng build ID | Backtrace vẫn có thể có addresses nhưng ít tên hàm, file/line |
-| **Tính toàn vẹn core** | File đầy đủ, hash, không truncate, đủ mappings được dump | Truy vấn memory/stack thất bại hoặc dữ liệu thiếu |
-| **Bộ công cụ phân tích** | Phiên bản `gdb`/`jhsdb` tương thích hệ/bản JDK/định dạng | Gặp lỗi parser, Unsupported OS/CPU, symbol mismatch |
+| **Format** | Linux ELF core, Windows dump, macOS Mach-O core/crash report | Tools fail to open or misparse the format |
+| **Machine architecture** | `x86_64/amd64`, `aarch64/arm64`, 32-bit ARM, etc. | Native debugger / SA does not support cross-target; registers and ISA differ |
+| **Word size & ABI** | 32/64-bit, endianness, matching ABI and OS | Pointer/stack/register layouts are incompatible |
+| **Executable build** | Byte-for-byte binary or build ID/hash matching the core's time | Symbol addresses and stack mappings can shift |
+| **JDK vendor/build/patch** | Matching Java runtime/VM version, vendor, HotSpot implementation, build | HotSpot SA may misdecode internal structures |
+| **`libjvm` and JDK libraries** | The exact ones loaded at crash time, matching path/build ID | Native frames and HotSpot offsets may not match |
+| **JNI/native libraries and libc** | Exact versions, symbols, loader, and mapping paths | Missing frames or symbols in the crashing library |
+| **Debug symbols** | Symbols for executable/`libjvm`/native libs must share the same build ID | Backtrace may still show addresses, but few function names or file:line info |
+| **Core integrity** | Complete file, hash, not truncated, essential mappings dumped | Memory/stack queries fail or data is missing |
+| **Analysis toolset** | `gdb`/`jhsdb` version compatible with the OS/JDK/format | Parser errors, Unsupported OS/CPU, symbol mismatch |
 
-**Không đồng nhất các lớp:** cùng `os.arch=amd64` không bảo đảm cùng CPU feature set, libc hoặc binary. Cùng Java `21` không bảo đảm cùng `21.0.x+build`. Và một binary có hash đúng **không làm file core bị thiếu trang trở thành hoàn chỉnh**.
+**Do not conflate these layers:** having the same `os.arch=amd64` does not guarantee the same CPU feature set, libc, or binary. Being the same Java `21` does not guarantee the same `21.0.x+build`. And a binary with the right hash **does not make a core file missing pages complete**.
 
-Đối với x86-64 so với AArch64, dùng `file`/`readelf` ở cả executable và core (trên Linux) để kiểm tra `Machine`, `Class` và `Data`. Việc phân tích cross-architecture chỉ khả thi khi debugger thật sự hỗ trợ target và đủ file/runtime tương ứng; với `jhsdb` không nên mặc định phân tích tùy ý từ một kiến trúc khác.
+For x86-64 vs. AArch64, use `file`/`readelf` on both the executable and core (on Linux) to check `Machine`, `Class`, and `Data`. Cross-architecture analysis is only feasible when the debugger truly supports the target and all corresponding files/runtimes are present; with `jhsdb`, do not assume arbitrary cross-architecture analysis works.
 
-## 4. Thu thập hiện vật đúng lúc: trước khi rollout thay JDK/image
+## 4. Collecting Artifacts at the Right Time: Before a Rollout Replaces the JDK/Image
 
-Một incident có thể bị mất khả năng phân tích khi team chỉ giữ file `core`, còn hệ thống CI/CD thay runtime sau restart. Khi vẫn còn truy cập metadata hợp pháp, ưu tiên giữ:
+An incident can lose investigability if the team saves only the `core` file while CI/CD replaces the runtime after a restart. While authorized metadata access is still available, prioritize keeping:
 
-1. **Core file hoặc Windows dump** và checksum.
-2. **`hs_err_pid*.log`** gắn cùng PID/incident (nếu HotSpot tạo được).
-3. **Executable gốc**, toàn bộ JDK/runtime image đã dùng, đặc biệt `lib/server/libjvm.so` trên Linux HotSpot.
-4. **Các native shared libraries** của ứng dụng/JNI, libc/loader liên quan, phiên bản OS/container image và bộ debug symbols tương ứng.
-5. **Application JAR/config/flags/command line** của phiên bản deployment đã crash; log và JFR nếu đã được thu.
-6. **Metadata tương quan:** UTC timestamp, PID/TID (lưu ý namespace container), host/pod/container ID, image **digest** chứ không chỉ tag, architecture và crash signal/exit code.
+1. **The core file or Windows dump** and its checksum.
+2. **`hs_err_pid*.log`** associated with the same PID/incident (if HotSpot generated it).
+3. **The original executable** and the entire JDK/runtime image used, especially `lib/server/libjvm.so` on Linux HotSpot.
+4. **Application/JNI native shared libraries**, relevant libc/loader, OS/container image version, and matching debug symbols.
+5. **Application JAR/config/flags/command line** from the crashed deployment version; logs and JFR if captured.
+6. **Correlation metadata:** UTC timestamp, PID/TID (mindful of container namespaces), host/pod/container ID, image **digest** rather than just tag, architecture, and crash signal/exit code.
 
-Nếu ứng dụng chạy trong container, hãy lưu **image digest** hoặc artifact bất biến. Một tag như `latest` hoặc `release-2026` có thể đã được trỏ sang image mới; chạy lại tag đó không bảo đảm lấy đúng thư viện đã map ở thời điểm crash.
+If the application runs in a container, save the **image digest** or an immutable artifact. A tag like `latest` or `release-2026` can later point to a new image; pulling that tag again does not guarantee the exact libraries mapped at crash time.
 
-### Trên Linux, khi tiến trình vẫn còn sống
+### On Linux, while the process is still alive
 
-Các lệnh sau **chỉ đọc thông tin**. Thay PID bằng số thực:
+The following commands are **read-only**. Replace `12345` with the real PID:
 
 ```bash
 PID=12345
@@ -117,34 +117,34 @@ grep -E 'libjvm|libc\.so|libjli|\.so' "/proc/$PID/maps"
 cat "/proc/$PID/limits" | grep -i 'core file'
 ```
 
-Thông tin `/proc/$PID/exe` giúp biết binary **thực sự đang chạy**, nhưng sau crash process đã biến mất, link này không còn. `/proc/$PID/maps` là các **mapping của lúc quan sát**; nếu thư viện đã thay thế/xóa sau đó, đường dẫn không đủ để khôi phục byte-for-byte version gốc. Những lệnh có thể yêu cầu quyền đọc đối với process khác; `cmdline` còn có thể chứa tham số nhạy cảm nên không chia sẻ bừa bãi.
+`/proc/$PID/exe` tells you which binary is **actually running**, but once the process crashes and vanishes, that link disappears. `/proc/$PID/maps` shows the **mappings at observation time**; if a library is later replaced or deleted, the path alone cannot recover the original byte-for-byte version. These commands may require privileges to inspect another process; `cmdline` can also contain sensitive arguments, so do not share it carelessly.
 
-Nếu tiến trình đã chết, dùng `hs_err`, metadata systemd-coredump, deployment inventory, container image digest, OS package database và các artifact đã lưu từ trước. Đừng khẳng định bản JDK trên **máy hiện tại** là bản đã crash khi có deployment thay thế.
+If the process is already dead, rely on `hs_err`, `systemd-coredump` metadata, deployment inventory, container image digests, OS package databases, and pre-saved artifacts. Never claim the JDK on the **current host** is the one that crashed if a deployment replaced it.
 
-## 5. Vì sao có khi không thấy core? Kiểm tra chính sách Linux
+## 5. Why Is the Core Sometimes Missing? Checking Linux Policies
 
-### 5.1. Hạn mức và cơ chế ghi
+### 5.1. Limits and write mechanisms
 
-Trước khi chạy workload trong một môi trường **được phép cấu hình**, kiểm tra:
+Before running workloads in an environment **where you are authorized to configure settings**, check:
 
 ```bash
 ulimit -c
 cat /proc/sys/kernel/core_pattern
 ```
 
-`ulimit -c` là soft core-file-size limit của **shell hiện tại**, không nhất thiết đúng limit của service đã chạy trước đó. `ulimit -c unlimited` trong shell chỉ ảnh hưởng shell và các process con; với systemd service thường cần cấu hình `LimitCORE=` hoặc chính sách service/container liên quan. Một `core_pattern` bắt đầu bằng ký tự `|` nghĩa là core được chuyển đến **user-space handler**, chẳng hạn `systemd-coredump`, thay vì xuất hiện như file `core` trong working directory.
+`ulimit -c` is the soft core-file-size limit of the **current shell**, not necessarily the limit of a previously running service. `ulimit -c unlimited` in a shell affects only that shell and its child processes; for systemd services you typically configure `LimitCORE=` or the relevant service/container policy. A `core_pattern` starting with `|` means cores are piped to a **user-space handler**, such as `systemd-coredump`, rather than written as a `core` file in the working directory.
 
-Các lý do khác khiến file không xuất hiện:
+Other reasons a file may not appear:
 
-- Crash không phát sinh signal có action dump core; ví dụ `SIGKILL` từ OOM killer.
-- Cờ dumpable, quyền file/directory, container permissions, policy bảo mật hoặc quota không cho ghi.
-- Filesystem đầy, core quá lớn, pipeline collector bị giới hạn, retention đã xóa.
-- Mapping được loại theo `coredump_filter` hoặc `MADV_DONTDUMP`, làm **nội dung core thiếu một phần**.
-- Một số trường hợp HotSpot tự ghi error log nhưng OS không tạo core; không có bằng chứng đủ để mặc định rằng cả hai luôn đi cùng nhau.
+- The crash did not raise a signal whose default action dumps core; e.g., `SIGKILL` from the OOM killer.
+- Dumpable flags, file/directory permissions, container permissions, security policies, or quotas blocked writing.
+- Filesystem full, core too large, collector pipeline limits, or retention deleted it.
+- Mappings excluded via `coredump_filter` or `MADV_DONTDUMP`, leaving **core contents partially missing**.
+- In some cases HotSpot writes an error log yet the OS creates no core; there is no basis to assume both always appear together.
 
-### 5.2. Nếu host dùng systemd-coredump
+### 5.2. If the host uses systemd-coredump
 
-Khi đã xác định máy sử dụng `systemd-coredump`, với quyền thích hợp:
+Once you confirm the host uses `systemd-coredump`, with appropriate permissions:
 
 ```bash
 coredumpctl list
@@ -152,23 +152,23 @@ coredumpctl info 12345
 coredumpctl dump 12345 -o core.12345
 ```
 
-Thay `12345` bằng PID của incident. `coredumpctl` có thể không được cài, dữ liệu có thể bị giới hạn quyền/trữ lượng hoặc đã hết hạn retention; `PID` có thể trùng qua thời gian, nên đối chiếu **timestamp, executable, unit/host** trong metadata. Tệp trích xuất được phải lưu ở nơi an toàn.
+Replace `12345` with the incident PID. `coredumpctl` may not be installed, data may be restricted by permissions/capacity, or retention may have expired; `PID`s can repeat over time, so cross-check **timestamp, executable, and unit/host** in the metadata. Extracted files must be stored securely.
 
-Không chạy `kill -SEGV`, `kill -ABRT` hay ép crash lên production chỉ để thử core collection. Nếu cần test chính sách, dùng process thử nghiệm có chủ đích trong môi trường cách ly được phê duyệt.
+Do not run `kill -SEGV`, `kill -ABRT`, or force crashes in production just to test core collection. If policy testing is needed, use a dedicated test process in an approved, isolated environment.
 
-### 5.3. hs_err và vị trí lưu
+### 5.3. `hs_err` and output location
 
-Khi HotSpot gặp fatal error, nó thường cố viết `hs_err_pid*.log`, nhưng thành công phụ thuộc trạng thái process và quyền filesystem. Có thể đặt đường dẫn mong muốn qua tùy chọn HotSpot:
+When HotSpot encounters a fatal error, it usually tries to write `hs_err_pid*.log`, though success depends on process state and filesystem permissions. You can set a target path via the HotSpot option:
 
 ```bash
 java -XX:ErrorFile=/secure/java-crashes/hs_err_pid%p.log -jar app.jar
 ```
 
-Ví dụ chỉ có ý nghĩa khi `/secure/java-crashes` tồn tại và process có quyền ghi; không tự tạo thư mục. Đường dẫn và tên tùy triển khai. Trong log, xem **JRE/VM version, problematic frame, signal/exception, current thread, native frames, dynamic libraries và memory map** khi có, đồng thời đọc thông điệp core dump location. Tệp log này là **bằng chứng đối chiếu**, không phải executable hoặc core.
+This example only works if `/secure/java-crashes` already exists and the process has write permission; HotSpot does not create missing directories. Paths and filenames depend on deployment. In the log, check **JRE/VM version, problematic frame, signal/exception, current thread, native frames, dynamic libraries, and memory map** when present, as well as the core dump location message. This log file is **corroborating evidence**, not an executable or a core dump.
 
-## 6. Xác minh file và architecture trên Linux
+## 6. Verifying Files and Architecture on Linux
 
-Giả sử bạn đã đặt hiện vật trong một thư mục điều tra chỉ người được phép đọc, với file `core.12345` và bản executable đã lưu. Thay các đường dẫn minh họa bằng đường dẫn hiện có.
+Suppose you placed artifacts in a restricted investigation directory containing `core.12345` and the saved executable. Replace illustrative paths with your actual paths.
 
 ```bash
 file /secure/incident/core.12345
@@ -187,32 +187,32 @@ sha256sum /secure/incident/core.12345 \
 uname -m
 ```
 
-Ý nghĩa:
+Meaning:
 
-- `file` nhận diện nhanh ELF core, binary ELF, kiến trúc và class 32/64-bit theo metadata; không đảm bảo file core chứa **đủ mọi trang**.
-- `readelf -h` đọc ELF header: `Class`, `Data`, `Machine`, `Type`; có thể phát hiện mismatch 32/64-bit hoặc x86-64/AArch64.
-- `readelf -n` hiển thị ELF notes, đôi khi có `Build ID` để đối chiếu binary và bộ debug symbols; không bảo đảm mọi build có build-id.
-- `sha256sum` xác nhận byte integrity giữa bản lưu/bản chuyển, **không tự chứng minh** file được sinh từ cùng tiến trình nếu bạn không có checksum/inventory đáng tin tại thời điểm crash.
-- `uname -m` báo architecture **máy đang phân tích**, không phải máy đã tạo core. Nếu đem core sang máy khác, kết luận architecture phải dựa trên **core/executable**, không dựa vào `uname` hiện tại.
+- `file` quickly identifies ELF cores, ELF binaries, architecture, and 32/64-bit class from metadata; it does not guarantee the core contains **all pages**.
+- `readelf -h` reads the ELF header: `Class`, `Data`, `Machine`, `Type`; detects 32/64-bit or x86-64/AArch64 mismatches.
+- `readelf -n` displays ELF notes, sometimes including a `Build ID` to match binaries with debug symbols; not every build includes a build-id.
+- `sha256sum` verifies byte integrity between stored and transferred copies, **without proving by itself** that the files came from the same process unless you have trusted checksums/inventory from crash time.
+- `uname -m` reports the architecture of **the analysis machine**, not the machine that produced the core. If you move a core to another host, architecture conclusions must come from the **core/executable**, not the local `uname`.
 
-Tệp `libjvm.so` có thể ở đường dẫn khác hoặc không hiện diện nếu VM không phải HotSpot/Linux thông thường. Dùng image/runtime gốc; không tự giả định cấu trúc khi phân phối JDK khác.
+`libjvm.so` may reside at a different path or be absent if the VM is not standard Linux HotSpot. Use the original image/runtime; never assume identical layout across different JDK distributions.
 
-### 6.1. Các mức độ khớp không giống nhau
+### 6.1. Not all levels of matching are equal
 
-| Kết quả | Diễn giải |
+| Result | Interpretation |
 |---|---|
-| Core và executable đều ELF64 x86-64 | **Mới chỉ qua kiểm tra định dạng/architecture** |
-| Cùng Java major `21` nhưng khác vendor hoặc patch | Chưa đáng tin cho phân tích HotSpot SA chuyên sâu; cần đúng build |
-| Executable hash đúng nhưng `libjvm.so` đã bị thay sau deployment | Native symbols/HotSpot memory layout vẫn có thể sai |
-| Build ID của `libjvm.so` khớp bản debug symbols | Khả năng dựng tên native functions/file:line tốt hơn |
-| Core mở được nhưng thiếu một mapping quan trọng | Một số memory/stack/heap query sẽ thất bại dù executable đúng |
-| Phân tích trên host khác OS/arch | Phải có debugger và target support tương ứng; không giả định `jhsdb`/`gdb` dùng được mọi tổ hợp |
+| Both core and executable are ELF64 x86-64 | **Only passed format/architecture checks so far** |
+| Same Java major `21` but different vendor or patch | Not reliable enough for deep HotSpot SA analysis; exact build needed |
+| Executable hash matches, yet `libjvm.so` was replaced after deployment | Native symbols and HotSpot memory layout may still be wrong |
+| `libjvm.so` Build ID matches debug symbols | Much better chance of resolving native function names and file:line |
+| Core opens, yet a critical mapping is missing | Some memory/stack/heap queries will fail even with the right executable |
+| Analyzing on a different OS/arch host | Requires matching debugger and target support; do not assume `jhsdb`/`gdb` supports every combination |
 
-## 7. Phân tích Java/HotSpot core bằng jhsdb (Serviceability Agent)
+## 7. Analyzing Java/HotSpot Cores with `jhsdb` (Serviceability Agent)
 
-**`jhsdb`** là công cụ trong JDK sử dụng **Serviceability Agent (SA)** để đọc cấu trúc VM/Java từ tiến trình hoặc core. Đây là công cụ **experimental và unsupported** theo tài liệu Oracle Java SE 21. Nó phụ thuộc nhiều vào nội bộ HotSpot nên **càng cần JDK tương ứng**. Các ví dụ bên dưới minh họa cú pháp documented; không phải kết quả chạy trên một core thực ở đây.
+**`jhsdb`** is a JDK tool using the **Serviceability Agent (SA)** to inspect VM/Java structures from a live process or core dump. It is **experimental and unsupported** per Oracle Java SE 21 documentation. Because it depends heavily on HotSpot internals, **matching the exact JDK build is critical**. The examples below show documented syntax, not output from a real core here.
 
-### 7.1. Lệnh cơ bản với core và executable
+### 7.1. Basic commands with core and executable
 
 ```bash
 jhsdb jstack \
@@ -228,12 +228,12 @@ jhsdb jinfo \
   --core /secure/incident/core.12345
 ```
 
-- `jhsdb jstack` cố dựng **Java threads/stack traces** từ core.
-- `--mixed` cố bổ sung native frames khi nền tảng/tool hỗ trợ; không cam kết luôn dựng được mọi frame.
-- `jhsdb jinfo` có thể lấy thông tin VM flags/properties.
-- Có thể dùng `jhsdb jmap --heap` hoặc `--histo` với cặp `--exe`/`--core` khi khả năng của tool và core cho phép; phân tích heap lớn có thể tốn tài nguyên.
+- `jhsdb jstack` attempts to reconstruct **Java threads and stack traces** from the core.
+- `--mixed` attempts to include native frames when supported by the platform/tool; it is not guaranteed to unwind every frame.
+- `jhsdb jinfo` can retrieve VM flags and properties.
+- You can also use `jhsdb jmap --heap` or `--histo` with `--exe`/`--core` when supported by the tool and core; analyzing large heaps can consume substantial resources.
 
-Nếu cần khám phá tương tác với cấu trúc HotSpot:
+If interactive exploration of HotSpot structures is needed:
 
 ```bash
 jhsdb clhsdb \
@@ -241,38 +241,38 @@ jhsdb clhsdb \
   --core /secure/incident/core.12345
 ```
 
-Lệnh sẽ mở **CLI debugger** tương tác. `jhsdb hsdb` là giao diện GUI khi có môi trường phù hợp. Không chạy những lệnh này trên production core chưa được cấp quyền; core chứa dữ liệu tiến trình, và tool có thể xử lý file không đáng tin, nên ưu tiên sandbox chẩn đoán cách ly.
+This opens an interactive **CLI debugger**. `jhsdb hsdb` provides a GUI when an appropriate environment is available. Never run these commands on unauthorized production cores; cores contain process data and tools may parse untrusted files, so prefer an isolated diagnostic sandbox.
 
-**`--exe` là binary thực sự đã tạo core**, không phải tùy tiện file Java bytecode/JAR. Nếu ứng dụng nhúng JVM qua JNI Invocation API, executable có thể là native launcher khác `bin/java`. Không đổi `--exe` thành một `java` mới cài chỉ để làm command chạy được.
+**`--exe` must be the binary that actually produced the core**, not an arbitrary Java bytecode/JAR file. If the application embeds the JVM via the JNI Invocation API, the executable may be a native launcher rather than `bin/java`. Never swap `--exe` to a newly installed `java` just to make the command run.
 
-### 7.2. Cảnh báo quan trọng về attach live
+### 7.2. Critical warning about live attach
 
-Theo tài liệu Oracle, **attach `jhsdb` trực tiếp bằng `--pid` vào JVM đang chạy có thể làm process treo và có nguy cơ crash khi debugger detach**. Bài này tập trung **postmortem `--exe` + `--core`**. Không biến lệnh live attach thành routine production, đặc biệt khi sự cố đã có core để phân tích offline.
+According to Oracle documentation, **attaching `jhsdb` directly via `--pid` to a running JVM can hang the process and risks crashing it when the debugger detaches**. This lesson focuses on **postmortem `--exe` + `--core`**. Do not make live attach a routine production practice, especially when an incident already produced a core for offline analysis.
 
-### 7.3. Diễn giải lỗi từ Serviceability Agent
+### 7.3. Interpreting Serviceability Agent errors
 
-Những biểu hiện như “không nhận ra VM layout”, lỗi đọc address, thiếu symbols hoặc stack bất thường có thể do:
+Symptoms such as “unrecognized VM layout,” address read errors, missing symbols, or malformed stacks can be caused by:
 
-- Sai `--exe` hoặc file thuộc **JDK khác build/vendor/version**.
-- Thư viện `libjvm`/runtime không tương ứng với core.
-- CPU architecture/OS ABI khác hoặc SA phiên bản dùng không hỗ trợ combination đó.
-- Core thiếu mapping, bị truncate/corrupt hoặc thiếu page quan trọng.
-- Core được tạo bởi một **native launcher** không phải file `bin/java` đã chỉ định.
-- VM gặp hỏng memory thật tại thời điểm crash: một vài cấu trúc đã bị ghi đè, kể cả khi artifacts hoàn toàn đúng.
+- Wrong `--exe` or files from a **different JDK build/vendor/version**.
+- `libjvm`/runtime libraries that do not match the core.
+- Different CPU architecture/OS ABI, or an SA version that does not support that combination.
+- Core missing mappings, truncated/corrupted, or missing critical pages.
+- Core created by a **native launcher** rather than the specified `bin/java`.
+- Real memory corruption in the VM at crash time: some structures were overwritten even though all artifacts match.
 
-**Phân biệt “tool không phân tích được” với “tìm thấy lỗi ở ứng dụng”.** Phải xác nhận artifact compatibility và completeness trước khi kết luận vùng memory hỏng do bug.
+**Distinguish “the tool could not parse it” from “found an application bug.”** Verify artifact compatibility and completeness before concluding that corrupted memory was caused by an application bug.
 
-## 8. Phân tích native crash với GDB và đúng symbols
+## 8. Analyzing Native Crashes with GDB and Matching Symbols
 
-**GDB** đọc ELF core cùng executable để xem **native frames, registers, thread states**. Nó không tự hiểu object graph của HotSpot theo cách `jhsdb` làm; khi JVM chạy JIT-compiled Java, GDB có thể chỉ thấy native entry/VM frames hoặc địa chỉ code cache mà không dựng đầy đủ Java stack.
+**GDB** reads an ELF core alongside its executable to inspect **native frames, registers, and thread states**. It does not natively understand HotSpot's object graph the way `jhsdb` does; when the JVM runs JIT-compiled Java, GDB may show only native entry/VM frames or code-cache addresses without reconstructing full Java stacks.
 
-### 8.1. Mở core
+### 8.1. Opening the core
 
 ```bash
 gdb -q /secure/incident/jdk/bin/java /secure/incident/core.12345
 ```
 
-Trong phiên GDB (các dòng sau là **lệnh tương tác**, không phải stdout):
+Inside a GDB session (the following lines are **interactive commands**, not stdout):
 
 ```text
 info files
@@ -283,20 +283,20 @@ bt full
 info registers
 ```
 
-- `info files`: quan sát executable, sections và các thông tin file của phiên debug.
-- `info sharedlibrary`: xem các shared libraries GDB biết và trạng thái symbol.
-- `info threads`: các OS threads trong core.
-- `thread apply all bt`: dựng native backtrace cho các thread, giúp xem crash thread, JNI frames, libc/VM internals.
-- `bt full`: chi tiết locals ở **thread đang chọn** nếu symbols/debug info cho phép.
-- `info registers`: register values (ở thread đang chọn) để xem PC/SP, pointers và trạng thái fault.
+- `info files`: inspect executable, sections, and file details of the debug session.
+- `info sharedlibrary`: check shared libraries known to GDB and their symbol status.
+- `info threads`: list OS threads in the core.
+- `thread apply all bt`: generate native backtraces for all threads, helping inspect the crashing thread, JNI frames, and libc/VM internals.
+- `bt full`: details of locals in the **currently selected thread** if symbols/debug info allow.
+- `info registers`: register values (for the selected thread) showing PC/SP, pointers, and fault state.
 
-Các lệnh này **không** làm core “chạy lại”; chúng đọc snapshot sau crash. Nếu bạn không có debug symbols, vẫn có thể đọc addresses/một số exported symbols, nhưng nhiều frame có thể thành `??`, không có file/line/locals.
+These commands do **not** “re-run” the core; they read a post-crash snapshot. Without debug symbols, you can still read addresses and some exported symbols, though many frames will appear as `??` without file/line/locals.
 
-### 8.2. Khi GDB đọc nhầm thư viện của máy phân tích
+### 8.2. When GDB picks up the analysis machine's libraries by mistake
 
-Nếu core đến từ container hoặc host khác, đường dẫn trong mappings có thể trùng nhưng **nội dung file trên máy phân tích khác**. GDB có thể báo missing shared libraries hoặc dùng bản host không phù hợp.
+If the core came from a container or another host, paths in the mappings may look identical while **the file contents on the analysis machine differ**. GDB may report missing shared libraries or load an incompatible host library.
 
-Cách điều tra là cung cấp **bản sao thư viện gốc** với cây đường dẫn thích hợp và cấu hình `sysroot`/`solib-search-path` theo tài liệu GDB, chẳng hạn:
+The solution is to supply **copies of the original libraries** in an appropriate directory tree and configure `sysroot`/`solib-search-path` per GDB documentation, for example:
 
 ```text
 (gdb) set sysroot /secure/incident/rootfs
@@ -304,13 +304,13 @@ Cách điều tra là cung cấp **bản sao thư viện gốc** với cây đư
 (gdb) info sharedlibrary
 ```
 
-Đây là ví dụ **lệnh tương tác GDB**; phải có rootfs/native libs thực sự lấy từ container/image gốc, không tạo chúng bằng cách tự cài một gói cùng tên. Tùy cách GDB đã đọc libraries, có thể cần **khởi động lại phiên GDB hoặc reload symbols** sau khi sửa search path.
+These are **interactive GDB commands**; you must obtain the real rootfs/native libs from the original container/image rather than creating them by installing a similarly named package yourself. Depending on how GDB already loaded libraries, you may need to **restart the GDB session or reload symbols** after updating search paths.
 
-**Debug symbols cũng phải khớp build**: symbol package đúng tên nhưng build ID khác có thể gây stack sai hoặc thiếu line numbers. Khi có build ID, kiểm tra với `readelf -n` và hệ thống phân phối debuginfo. Có thể cùng **source code** mà binary khác do compiler flags hoặc linker; “cùng commit” chưa chắc cùng native address layout.
+**Debug symbols must also match the exact build**: a symbol package with the right name but a different build ID can yield wrong stacks or missing line numbers. When build IDs exist, verify with `readelf -n` and your debuginfo distribution system. Even from the **same source code**, binaries can differ due to compiler flags or linkers; “same commit” does not guarantee the same native address layout.
 
-### 8.3. Tìm nguyên nhân từ “problematic frame”
+### 8.3. Tracing root cause from “problematic frame”
 
-Nếu `hs_err_pid*.log` nói:
+If `hs_err_pid*.log` says:
 
 ```text
 # SIGSEGV ... 
@@ -318,21 +318,21 @@ Nếu `hs_err_pid*.log` nói:
 # C  [libexample.so+0x1234]  example_call+0x...
 ```
 
-Đây chỉ là **dạng minh họa**, không phải log từ một crash cụ thể. Hướng phân tích:
+This is **illustrative format only**, not a log from a specific crash. Analysis steps:
 
-1. Xác nhận library `libexample.so` từ **image/deployment bị crash**, không lấy bản mới nhất.
-2. Đối chiếu core thread/PC và native backtrace của GDB.
-3. Kiểm tra JNI arguments, buffer/pointer lifetime, concurrency, memory corruption hoặc lỗi trong library.
-4. Phân biệt **faulting instruction** với **root cause**: ghi đè bộ nhớ có thể xảy ra sớm hơn rồi crash ở một hàm khác.
-5. Bổ sung sanitizer, test tái hiện native và vendor bug reports khi phù hợp.
+1. Obtain `libexample.so` from the **crashed image/deployment**, not the newest version.
+2. Correlate the core thread/PC and GDB's native backtrace.
+3. Check JNI arguments, buffer/pointer lifetimes, concurrency, memory corruption, or bugs in the library.
+4. Distinguish the **faulting instruction** from the **root cause**: a memory overwrite may have occurred earlier and crashed in a different function.
+5. Add sanitizers, native reproduction tests, and vendor bug reports when appropriate.
 
-Không kết luận “lỗi ở JVM” chỉ vì frame nằm trong `libjvm.so`: lỗi JNI hoặc memory corruption trước đó cũng có thể khiến VM crash. Ngược lại, có bug JVM thực sự, nên giữ đúng build và incident evidence để kiểm tra release notes/vendor support.
+Never conclude “JVM bug” merely because the frame is inside `libjvm.so`: an earlier JNI error or memory corruption can cause the VM to crash. Conversely, if a real JVM bug is present, preserve the exact build and incident evidence to check release notes and vendor support.
 
-## 9. Java 17+ runnable: ghi lại manifest môi trường trước khi crash
+## 9. Runnable Java 17+: Recording an Environment Manifest Before a Crash
 
-**Mục đích:** luyện cách thu thập metadata runtime để sau này đối chiếu core với executable/JDK, **không** tạo crash và không giả vờ có sẵn core thật. Java API không thể tự xác nhận mọi mapping và checksum của native libraries; vì vậy ví dụ cung cấp dữ liệu **tham khảo**, phải ghép với OS tools và deployment inventory.
+**Purpose:** practice collecting runtime metadata to later correlate a core with its executable/JDK—**without** triggering a crash and without pretending a real core exists. Java APIs cannot by themselves confirm all native library mappings and checksums; therefore, this example provides **reference** data that must be paired with OS tools and deployment inventory.
 
-Tạo file **`CrashArtifactManifest.java`**:
+Create **`CrashArtifactManifest.java`**:
 
 ```java
 import java.nio.file.Path;
@@ -368,14 +368,14 @@ public class CrashArtifactManifest {
 }
 ```
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac --release 17 CrashArtifactManifest.java
 java CrashArtifactManifest
 ```
 
-Chương trình in **các khóa với giá trị phụ thuộc máy**. Ví dụ đầu ra rút gọn trên một máy Java 24 (**chỉ là minh họa, không phải stdout cố định**):
+The program prints **keys with machine-dependent values**. Example abbreviated output on a Java 24 machine (**illustrative only, not fixed stdout**):
 
 ```text
 java.version=24.0.2
@@ -393,125 +393,125 @@ pid=...
 Inventory complete
 ```
 
-Dòng cuối **`Inventory complete`** là cố định; PID, đường dẫn, OS/vendor/version **không cố định**. Ví dụ đã được biên dịch bằng `javac --release 17` và chạy thành công trên OpenJDK 24.
+The final line **`Inventory complete`** is fixed; PID, paths, and OS/vendor/version **are not fixed**. The example was compiled with `javac --release 17` and verified on OpenJDK 24.
 
-**Đọc output thế nào:**
+**How to read the output:**
 
-- `java.vm.version` và `java.runtime.version` giúp nhận dạng build; khi có nhiều runtime trên máy, không chỉ dựa vào `java -version` của shell hiện tại.
-- `java.home` và `candidate.java` là **ứng viên**, không phải bảo đảm binary thực sự đã khởi động. Trong ứng dụng nhúng JVM, `jlink` runtime image, custom launcher hoặc symlink, vị trí và executable có thể khác.
-- `actual.command` lấy từ `ProcessHandle` có thể không được OS/JVM cho phép cung cấp, nên in `(unavailable)`; cũng không thay thế xác thực bằng hash/build ID.
-- `os.arch` mô tả JVM/OS architecture theo thuộc tính Java, không phải kiểm tra ELF header của core tương lai.
-- `pid` giúp liên kết log/dump, nhưng PID có thể tái sử dụng và khác nhau giữa host/container namespaces.
+- `java.vm.version` and `java.runtime.version` help identify the build; when multiple runtimes exist on a host, do not rely solely on `java -version` from the current shell.
+- `java.home` and `candidate.java` are **candidates**, not guarantees of the actual launching binary. In embedded JVMs, `jlink` runtime images, custom launchers, or symlinks, the location and executable may differ.
+- `actual.command` from `ProcessHandle` may be withheld by the OS/JVM, printing `(unavailable)`; nor does it replace hash/build ID verification.
+- `os.arch` describes the JVM/OS architecture per Java properties, not an ELF header check of a future core.
+- `pid` helps link logs and dumps, though PIDs can be reused and differ across host/container namespaces.
 
-Trong production, thay vì tùy tiện in `java.home`/command line ra log công cộng, thu manifest dưới quyền vận hành, bảo vệ dữ liệu và lưu kèm deployment ID/image digest. Tập hợp cả file `hs_err`, JDK image và native libs sau khi xảy ra sự cố.
+In production, rather than printing `java.home`/command lines casually to public logs, capture manifests under operational permissions, protect the data, and store alongside deployment ID/image digest. Gather `hs_err`, the JDK image, and native libs together after an incident.
 
-## 10. Khi phân tích trên Windows hoặc macOS
+## 10. When Analyzing on Windows or macOS
 
 ### 10.1. Windows
 
-Trên Windows, process dump thường có đuôi `.dmp` và được mở bằng **WinDbg/Windows Debugger** với executable/DLL và **PDB symbols** phù hợp. Crash reports có thể dẫn đến minidump hoặc full dump; một **minidump chỉ chứa subset** memory/thông tin được collector cấu hình, nên nhiều biến/heap pages có thể không sẵn có.
+On Windows, process dumps typically have a `.dmp` extension and are opened with **WinDbg / Windows Debugger** alongside the matching executable/DLLs and **PDB symbols**. Crash reports can lead to a minidump or a full dump; a **minidump contains only a subset** of memory/information configured by the collector, so many variables and heap pages may be unavailable.
 
-Các điểm cần kiểm tra là **x64/ARM64/32-bit**, exception code, module versions, DLLs, PDB GUID/age, và mức độ đầy đủ của dump. Không dùng máy phân tích Linux ELF rồi giả định mở được mọi file `.dmp`. Đường dẫn `.dll` và cơ chế tải PDB khác với Linux `.so`/debuginfo. Khả năng dùng `jhsdb` với một loại Windows dump cụ thể còn tùy JDK/platform/định dạng, phải kiểm tra hỗ trợ thực tế.
+Items to verify include **x64/ARM64/32-bit**, exception code, module versions, DLLs, PDB GUID/age, and dump completeness. Do not use a Linux ELF analysis host and assume it can open every `.dmp` file. `.dll` paths and PDB loading work differently from Linux `.so`/debuginfo. Whether `jhsdb` works with a particular Windows dump depends on the JDK/platform/format and must be verified in practice.
 
 ### 10.2. macOS
 
-Trên macOS, **Mach-O/dSYM** và **LLDB** là những công cụ/định dạng phổ biến để dựng native stack. Cần kiểm tra Apple Silicon `arm64` so với Intel `x86_64`, executable/framework/dylib versions và dSYM UUID phù hợp. Một **macOS crash report** thường cung cấp metadata/stack mà không bao gồm toàn bộ memory như core. Không đổi `.crash`/`.ips` thành `core` rồi áp lệnh Linux.
+On macOS, **Mach-O/dSYM** and **LLDB** are standard formats/tools for reconstructing native stacks. Check Apple Silicon `arm64` vs. Intel `x86_64`, executable/framework/dylib versions, and matching dSYM UUIDs. A **macOS crash report** typically provides metadata/stacks without full memory like a core dump. Never rename `.crash`/`.ips` to `core` and apply Linux commands.
 
-**Bài học chung:** core/dump phải được đọc bằng debugger hiểu **định dạng + CPU architecture + OS ABI** tương ứng, cùng binary/symbols của build đã crash. Khả năng phân tích khác kiến trúc/máy là **tính năng cần được xác minh**, không phải mặc định.
+**General lesson:** a core/dump must be read with a debugger that understands the matching **format + CPU architecture + OS ABI**, using binaries/symbols from the crashed build. Cross-architecture or cross-machine analysis is a **capability that must be verified**, not assumed by default.
 
-## 11. Sáu tình huống chẩn đoán thường gặp
+## 11. Six Common Diagnostic Scenarios
 
-| Hiện tượng | Giả thuyết cần kiểm tra | Bước xác minh |
+| Symptom | Hypothesis to check | Verification steps |
 |---|---|---|
-| Có `core` nhưng `jhsdb` báo không đọc được VM | JDK/SA không đúng vendor/build, libjvm khác hoặc core thiếu trang | So build ID/hash của JDK, library mapping, format và completeness |
-| GDB mở core nhưng nhiều `??` trong native stack | Thiếu debug symbols, bản thư viện lệch, optimized code hoặc corrupted stack | `info sharedlibrary`, rootfs/lib đúng, build IDs/debuginfo và `hs_err` |
-| Core là ELF64 AArch64, công cụ chạy trên x86-64 | Target architecture/tool không tương thích | `readelf -h`, cross-target support; dùng môi trường phù hợp |
-| Cùng tên `libjvm.so` nhưng stack đi vào offsets vô lý | Binary JDK đã bị thay bởi deployment mới | Tìm runtime image theo **digest/hash lúc crash**, không dùng bản mới |
-| Process exit 137 trong Kubernetes, không có core | Cgroup/kernel OOM kill bằng SIGKILL | Pod last state, node logs, memory events, RSS/cgroup; không chờ core |
-| `hs_err` tồn tại nhưng không có core | Limit/policy, disk/permission, systemd collector hoặc crash không dump được | `core_pattern`, `coredumpctl`, `ulimit/LimitCORE`, quota, dumpable |
-| Core có data nhưng `jhsdb jmap` thiếu một vùng heap | Mappings không được dump, core truncated hoặc VM memory corrupted | `coredump_filter`, kiểm tra file size/collector, native maps |
+| Have `core`, yet `jhsdb` fails to read VM | Wrong JDK/SA vendor/build, different `libjvm`, or core missing pages | Compare JDK build ID/hash, library mappings, format, and completeness |
+| GDB opens core, yet native stack has many `??` | Missing debug symbols, mismatched library version, optimized code, or corrupted stack | `info sharedlibrary`, right rootfs/libs, build IDs/debuginfo, and `hs_err` |
+| Core is ELF64 AArch64, tools run on x86-64 | Incompatible target architecture/tool | `readelf -h`, cross-target support; use an appropriate environment |
+| Same `libjvm.so` name, yet stack jumps to nonsensical offsets | JDK binary was replaced by a newer deployment | Retrieve runtime image by **crash-time digest/hash**, not the new version |
+| Process exited 137 in Kubernetes, no core | Cgroup/kernel OOM kill via `SIGKILL` | Pod last state, node logs, memory events, RSS/cgroup; do not wait for a core |
+| `hs_err` exists, yet no core | Limits/policy, disk/permissions, systemd collector, or undumpable crash | `core_pattern`, `coredumpctl`, `ulimit/LimitCORE`, quota, dumpable flag |
+| Core has data, yet `jhsdb jmap` misses a heap region | Mappings excluded from dump, truncated core, or corrupted VM memory | `coredump_filter`, check file size/collector, native maps |
 
-**Tình huống A — Cùng JDK major, khác build.** Service chạy `21.0.5+...`, sau incident team nâng lên `21.0.6+...`. Tải bản `21.0.6` để phân tích core cũ có thể khiến SA không đọc được layout. Cách đúng là lấy lại runtime `21.0.5` **đúng distribution/build và libraries** từ release artifact hoặc container digest. Nếu không thể, vẫn có thể thử native GDB trên core để tìm một số signals/threads, nhưng phải báo rõ giới hạn độ tin cậy.
+**Scenario A — Same JDK major, different build.** The service ran `21.0.5+...`, and after the incident the team upgraded to `21.0.6+...`. Downloading `21.0.6` to analyze the old core can prevent SA from reading the layout. The right approach is to retrieve the `21.0.5` runtime **exact distribution/build and libraries** from the release artifact or container digest. If impossible, native GDB on the core may still yield some signals/threads, but you must clearly report the confidence limits.
 
-**Tình huống B — JVM được nhúng.** Process là `/opt/app/native-launcher` gọi JNI Invocation API để tạo JVM. `jhsdb --exe /opt/jdk/bin/java` có thể sai vì đó không phải executable đã tạo core. Phải lấy `native-launcher` tương ứng và các JDK libraries đã nạp.
+**Scenario B — Embedded JVM.** The process is `/opt/app/native-launcher` calling the JNI Invocation API to create a JVM. `jhsdb --exe /opt/jdk/bin/java` can fail because that was not the executable that created the core. Use the matching `native-launcher` and the loaded JDK libraries.
 
-**Tình huống C — Core từ container.** Team sao chép mỗi `core.1234` ra host, GDB vô tình dùng `/usr/lib/libc.so` của host. Native frames khác lạ. Giải pháp: giữ **image/rootfs gốc**, chỉ định GDB search path để dùng đúng libs và kiểm chứng build ID. Đừng tự tin kết luận root cause khi library mapping chưa khớp.
+**Scenario C — Core from a container.** The team copied only `core.1234` to the host, and GDB accidentally loaded the host's `/usr/lib/libc.so`. Native frames look bizarre. Fix: preserve the **original image/rootfs**, point GDB search paths to the right libs, and verify build IDs. Never assert a root cause while library mappings remain mismatched.
 
-**Tình huống D — Core sau lỗi native nhưng Java heap histogram không dựng được.** Đây không nhất thiết là “Java heap trống”: có thể SA không tương thích, dump thiếu memory hoặc chính VM structures bị corruption. Hãy ưu tiên `hs_err`, native backtrace, registers, artifacts và tái hiện phù hợp.
+**Scenario D — Core after a native fault, yet Java heap histogram fails to build.** This does not necessarily mean “Java heap is empty”: SA may be incompatible, the dump may lack memory regions, or VM structures themselves may be corrupted. Prioritize `hs_err`, native backtrace, registers, artifacts, and an appropriate reproducer.
 
-**Tình huống E — Crash chỉ xuất hiện trên ARM.** Kiểm tra ARM64 image, JNI/native libraries, các optimized intrinsic/JIT paths và kernel/OS ABI. Không lấy x86-64 binary cùng source để phân tích ARM64 core rồi suy luận về instruction pointer.
+**Scenario E — Crash appears only on ARM.** Inspect the ARM64 image, JNI/native libraries, optimized intrinsic/JIT paths, and kernel/OS ABI. Never take an x86-64 binary built from the same source to analyze an ARM64 core and draw conclusions about the instruction pointer.
 
-**Tình huống F — Lỗi tưởng là native crash nhưng thực ra OOM kill.** Có exit 137, không thấy `hs_err`, không core. Điều tra event cgroup/OS và OOM pressure trước; nếu không có signal tạo dump thì không có cơ sở yêu cầu jhsdb đọc file core không tồn tại.
+**Scenario F — Suspected native crash turns out to be an OOM kill.** Exit 137, no `hs_err`, no core. Check cgroup/OS events and OOM pressure first; if no core-producing signal occurred, there is no reason to ask `jhsdb` to read a nonexistent core file.
 
-## 12. Bảo mật và tính nguyên vẹn của core
+## 12. Security and Integrity of Core Dumps
 
-Core có thể chứa **passwords, tokens, TLS keys, customer data, heap objects, URLs, session information, request payloads** và nội dung đang có trong process memory. Trước khi thu/chuyển:
+Cores can contain **passwords, tokens, TLS keys, customer data, heap objects, URLs, session information, request payloads**, and anything currently in process memory. Before collecting or transferring:
 
-1. Xác định người **được phép** thu dump và mục đích điều tra; tuân theo quy trình incident/security.
-2. Dùng thư mục có quyền chặt, mã hóa lưu trữ/chuyển giao và retention có hạn.
-3. Ghi **hash SHA-256** và metadata để phát hiện thay đổi; không tự sửa/truncate core rồi coi vẫn là nguyên bản.
-4. Tránh gửi core hoặc `hs_err` lên issue tracker/ticket công khai; error log cũng có thể chứa command line, environment và đường dẫn.
-5. Phân tích trong môi trường được cách ly và có quyền, ưu tiên bản **copy**; không cài debugger mở port tùy tiện lên production.
-6. Giữ cùng bộ artifacts ở dạng có thể tái lập, nhưng chỉ trong thời gian chính sách cho phép; hủy an toàn khi hết nhu cầu.
+1. Identify who is **authorized** to collect dumps and for what investigative purpose; follow incident/security procedures.
+2. Use tightly restricted directories, encryption at rest and in transit, and bounded retention.
+3. Record **SHA-256 hashes** and metadata to detect tampering; never edit or truncate a core and still treat it as original.
+4. Avoid posting cores or `hs_err` files on public issue trackers or tickets; error logs can also contain command lines, environments, and paths.
+5. Analyze in an isolated, authorized environment, working on a **copy**; never open arbitrary debugger ports on production.
+6. Keep the artifact bundle in a reproducible form only as long as policy permits; destroy securely once no longer needed.
 
-Dung lượng core có thể rất lớn. Trước khi cấu hình lưu hàng loạt, lập ngân sách disk, storage quota và cơ chế retention; crash nhiều lần có thể làm đầy filesystem nếu không kiểm soát.
+Core files can be huge. Before enabling bulk collection, budget disk space, storage quotas, and retention; repeated crashes can fill filesystems if left unchecked.
 
-## 13. Quy trình postmortem ngắn gọn có thể lặp lại
+## 13. Concise, Repeatable Postmortem Workflow
 
-**Giai đoạn A — Xác minh sự cố**
+**Phase A — Verify the incident**
 
-1. Xác định **fatal JVM/native crash** hay Java exception, shutdown bình thường, SIGKILL/OOMKill.
-2. Thu `hs_err`/OS signal/exit code, timestamp, PID/TID, host/pod, JDK build, image digest, application logs/JFR.
-3. Xác nhận core/dump có thực sự được tạo, nằm ở collector nào và có đủ quyền truy cập.
+1. Determine whether it was a **fatal JVM/native crash** vs. a Java exception, normal shutdown, or `SIGKILL`/OOMKill.
+2. Collect `hs_err`/OS signal/exit code, timestamp, PID/TID, host/pod, JDK build, image digest, and application logs/JFR.
+3. Confirm whether a core/dump was actually created, which collector holds it, and whether you have access permissions.
 
-**Giai đoạn B — Khóa tính đúng đắn của artifacts**
+**Phase B — Lock down artifact accuracy**
 
-4. Sao lưu core, **executable thật**, JDK runtime (có `libjvm`), native libraries và debug symbols tương ứng.
-5. Ghi checksum; xác minh core format/architecture; đối chiếu version/vendor/build/OS ABI và library build IDs.
-6. Kiểm tra dấu hiệu core bị truncated, file thiếu, permission/sparse/filtered mapping.
+4. Back up the core, **real executable**, JDK runtime (including `libjvm`), native libraries, and matching debug symbols.
+5. Record checksums; verify core format/architecture; cross-check version/vendor/build/OS ABI and library build IDs.
+6. Check for signs of truncated cores, missing files, or permission/sparse/filtered mappings.
 
-**Giai đoạn C — Chọn công cụ đúng tầng**
+**Phase C — Choose tools at the right layer**
 
-7. Dùng `hs_err` để xác định problematic frame/signal/VM và library nghi vấn.
-8. Trên Linux, dùng **GDB** với matching binary/libs để xem native crash; dùng **jhsdb với `--exe --core`** để cố dựng Java/HotSpot state khi phiên bản tool hỗ trợ.
-9. Nếu symbol hoặc SA mismatch, sửa **artifact/tool compatibility** trước khi đưa kết luận từ stack/heap.
+7. Use `hs_err` to identify the problematic frame/signal/VM and suspect libraries.
+8. On Linux, use **GDB** with matching binaries/libs to inspect native crashes; use **`jhsdb` with `--exe --core`** to try reconstructing Java/HotSpot state when tool versions support it.
+9. If symbols or SA mismatch, fix **artifact/tool compatibility** before drawing conclusions from stacks or heap.
 
-**Giai đoạn D — Tìm root cause và kiểm chứng**
+**Phase D — Find root cause and verify**
 
-10. Phân biệt điểm xảy ra fault với chỗ memory corruption/vi phạm invariant xảy ra sớm hơn.
-11. Tìm testcase tái hiện trong môi trường cách ly; đối chiếu JNI/library/JVM patch release notes nếu nghi native bug.
-12. Ghi **kết luận kèm mức độ tin cậy**, các file/symbols được xác minh và giới hạn của core; không nói “đã xác định root cause” chỉ vì thấy một frame.
+10. Distinguish the faulting site from where memory corruption or an invariant violation happened earlier.
+11. Build a reproducer test case in an isolated environment; check JNI/library/JVM patch release notes if a native bug is suspected.
+12. Write **conclusions with confidence levels**, verified files/symbols, and core limitations; never say “root cause confirmed” from a single frame alone.
 
-### Những sai lầm cần tránh
+### Mistakes to avoid
 
-- **“Có core là đủ, không cần executable.”** Sai: debugger thường cần binary và libraries để ánh xạ memory/địa chỉ sang code.
-- **“Cùng Java 21 là chắc chắn tương thích.”** Sai: vendor, patch, build, architecture và HotSpot layout vẫn khác.
-- **“Dùng `java` mới nhất để debug core cũ sẽ tốt hơn.”** Không nhất thiết, và có thể gây SA mismatch nghiêm trọng.
-- **“`file core` nhận ra ELF64 nghĩa là core đầy đủ.”** Sai: header không chứng minh mọi page được lưu.
-- **“`hs_err` và core cùng nội dung.”** Sai: một là text fatal-error report; một là memory/process snapshot.
-- **“GDB báo `??` nghĩa là JVM không có stack.”** Sai: thường do symbol/library mismatch hoặc thiếu debug info; cũng có thể do corruption.
-- **“Không có core là không phải crash.”** Sai: limits, handler, dumpable, disk, signal hoặc retention đều có thể ngăn core.
-- **“Heap dump `.hprof` phân tích như ELF core.”** Sai: khác format, phạm vi và công cụ.
-- **“Dùng native `gdb` đủ để hiểu mọi Java object.”** Sai: GDB không tự nắm HotSpot object model; cần SA phù hợp.
-- **“Có thể tự do chia sẻ core vì chỉ chứa stack trace.”** Sai: core có thể chứa secrets và dữ liệu cá nhân.
-- **“Thấy `libjvm.so` trong fault frame là chắc chắn bug HotSpot.”** Sai: JNI hoặc memory corruption từ trước có thể gây fault trong VM.
+- **“A core alone is enough; the executable isn't needed.”** Wrong: debuggers generally need the binary and libraries to map memory/addresses back to code.
+- **“Same Java 21 guarantees compatibility.”** Wrong: vendor, patch, build, architecture, and HotSpot layout can still differ.
+- **“Using the newest `java` to debug an old core is better.”** Not necessarily, and it can cause severe SA mismatches.
+- **“`file core` recognizes ELF64 so the core is complete.”** Wrong: the header does not prove every page was saved.
+- **“`hs_err` and `core` hold the same contents.”** Wrong: one is a text fatal-error report; the other is a memory/process snapshot.
+- **“GDB prints `??` so the JVM had no stack.”** Wrong: usually caused by symbol/library mismatch or missing debug info, or sometimes corruption.
+- **“No core means no crash.”** Wrong: limits, handlers, dumpable flags, disk, signal type, or retention can all prevent a core.
+- **“Analyze an `.hprof` heap dump like an ELF core.”** Wrong: different format, scope, and tools.
+- **“Native `gdb` alone is enough to understand all Java objects.”** Wrong: GDB does not natively understand the HotSpot object model; a compatible SA is needed.
+- **“Cores can be shared freely because they only contain stack traces.”** Wrong: cores can contain secrets and personal data.
+- **“Seeing `libjvm.so` in the fault frame proves a HotSpot bug.”** Wrong: earlier JNI errors or memory corruption can trigger a fault inside the VM.
 
-### Tự kiểm tra
+### Self-check
 
-1. Nếu process dùng JDK `21.0.5` đã crash, nhưng server vừa cập nhật lên JDK `21.0.6`, những file/version nào phải tìm lại trước khi chạy `jhsdb`?
-2. Vì sao `gdb` có thể mở core nhưng không in ra tên đầy đủ của native frames?
-3. Vì sao `--exe` của `jhsdb` có thể không phải `bin/java` với ứng dụng dùng JNI Invocation API?
-4. Với file ELF core x86-64 và bản executable ARM64, bạn sẽ phát hiện mismatch bằng công cụ nào?
-5. Tại sao exit code 137 hoặc Java `OutOfMemoryError` không tự bảo đảm có core?
-6. `hs_err_pid*.log`, `.hprof`, `.jfr` và `core` trả lời các câu hỏi khác nhau ra sao?
-7. Nếu core đã được lấy ra khỏi container, vì sao bản libc/native libraries trên host phân tích có thể gây kết luận sai?
-8. Khi phải chuyển core cho nhóm hỗ trợ bên ngoài, những bước nào bảo vệ cả tính toàn vẹn lẫn bí mật dữ liệu?
+1. If a process running JDK `21.0.5` crashed, yet the server just upgraded to JDK `21.0.6`, which files/versions must you recover before running `jhsdb`?
+2. Why might `gdb` open a core yet fail to print full names of native frames?
+3. Why might `jhsdb`'s `--exe` not be `bin/java` for an application using the JNI Invocation API?
+4. Given an x86-64 ELF core and an ARM64 executable, which tool detects the mismatch?
+5. Why do exit code 137 or a Java `OutOfMemoryError` not automatically guarantee a core dump?
+6. How do `hs_err_pid*.log`, `.hprof`, `.jfr`, and `core` answer different questions?
+7. If a core was extracted from a container, why can the analysis host's libc/native libraries lead to wrong conclusions?
+8. When transferring a core to an external support team, which steps protect both data integrity and confidentiality?
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle Java SE 21 — `jhsdb` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jhsdb.html): `--exe`/`--core`, các chế độ `jstack`/`jmap`/`jinfo` và trạng thái experimental.
-- [Oracle Java SE 21 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): `jhsdb` với core, mixed Java/native stack và postmortem tools.
-- [Oracle Java SE 21 — Prepare Java for Troubleshooting](https://docs.oracle.com/en/java/javase/21/troubleshoot/prepare-java-troubleshooting.html): thu core, fatal error log và các hiện vật cần giữ.
-- [Linux `core(5)` — man-pages](https://man7.org/linux/man-pages/man5/core.5.html): core limits, `core_pattern`, filtered mappings và systemd-coredump.
-- [GDB Manual — Executable and Core Files](https://sourceware.org/gdb/current/onlinedocs/gdb.html/Files.html): cách GDB dùng binary, core, symbols và sysroot/shared-library search path.
-- [GDB Manual — Core File Generation](https://sourceware.org/gdb/current/onlinedocs/gdb.html/Core-File-Generation.html): core như snapshot memory/process status và `gcore` trong ngữ cảnh được phép.
+- [Oracle Java SE 21 — `jhsdb` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jhsdb.html): `--exe`/`--core`, `jstack`/`jmap`/`jinfo` modes, and experimental status.
+- [Oracle Java SE 21 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): `jhsdb` with cores, mixed Java/native stacks, and postmortem tools.
+- [Oracle Java SE 21 — Prepare Java for Troubleshooting](https://docs.oracle.com/en/java/javase/21/troubleshoot/prepare-java-troubleshooting.html): collecting cores, fatal error logs, and artifacts to retain.
+- [Linux `core(5)` — man-pages](https://man7.org/linux/man-pages/man5/core.5.html): core limits, `core_pattern`, filtered mappings, and `systemd-coredump`.
+- [GDB Manual — Executable and Core Files](https://sourceware.org/gdb/current/onlinedocs/gdb.html/Files.html): how GDB uses binaries, cores, symbols, and sysroot/shared-library search paths.
+- [GDB Manual — Core File Generation](https://sourceware.org/gdb/current/onlinedocs/gdb.html/Core-File-Generation.html): cores as memory/process status snapshots and `gcore` in authorized contexts.

@@ -1,46 +1,46 @@
-# 10.4 Bí mật chung, bước dẫn xuất khóa, ngữ cảnh sử dụng và tách khóa theo mục đích
+# 10.4 Shared Secret, Key Derivation, Usage Context, and Purpose-Based Key Separation
 
-Trong một giao thức mã hóa, hai bên có thể thực hiện thỏa thuận khóa như **X25519/ECDH** và thu được cùng một **bí mật chung (shared secret)**. Nhưng từ việc có cùng bí mật đó đến việc dùng an toàn các khóa cho **mã hóa hai chiều, MAC, bọc khóa dữ liệu (key wrapping)** và những mục đích khác còn một bước bắt buộc: **dẫn xuất khóa (key derivation) với ngữ cảnh và nhãn mục đích đúng**.
+In an encryption protocol, two parties can perform key agreement such as **X25519/ECDH** and obtain the same **shared secret**. Yet going from having that secret to safely using keys for **bidirectional encryption, MAC, data-key wrapping**, and other purposes requires a mandatory step: **key derivation with the proper context and purpose labels**.
 
-Không nên lấy thẳng các byte shared secret làm khóa AES, không cắt tùy ý thành nhiều khóa, và càng không sử dụng cùng một khóa cho nhiều thuật toán/hướng truyền. Bài học đi sâu vào **HKDF Extract/Expand, transcript/context binding, domain separation, phân chia vai trò gửi–nhận, phân biệt DEK/KEK**, cùng ví dụ Java 17+ chạy độc lập.
+Never take raw shared secret bytes directly as an AES key, never slice them arbitrarily into multiple keys, and certainly never reuse the same key across multiple algorithms or transmission directions. This lesson dives into **HKDF Extract/Expand, transcript/context binding, domain separation, sender–receiver role separation, and DEK/KEK distinction**, along with a standalone runnable Java 17+ example.
 
-## 1. Mục tiêu và các thuật ngữ
+## 1. Objectives and Terminology
 
-Khi học xong, bạn có thể:
+After completing this lesson, you will be able to:
 
-1. Mô tả vì sao **key agreement không đồng nghĩa đã có session key an toàn** và không tự xác thực danh tính.
-2. Phân biệt **shared secret/IKM**, **PRK** sau HKDF-Extract và **OKM** sau HKDF-Expand; hiểu vai trò của `salt` và `info`.
-3. Ràng buộc khóa với **phiên bản giao thức, thuật toán, transcript, vai trò, kênh, chiều truyền và mục đích** để tránh sử dụng nhầm khóa.
-4. Tạo **khóa AES-GCM theo chiều c2s/s2c**, khóa HMAC và **key-encryption key (KEK)** tách biệt; biết khi nào cần dùng AES key wrap.
-5. Triển khai ví dụ X25519 + HKDF-HMAC-SHA256 + AES-GCM + AESWrap trong Java 17+, kiểm chứng được đầu ra và những trường hợp thất bại.
-6. Nhận diện lỗi MITM, sai ngữ cảnh, trùng nhãn, nonce reuse, replay, rekey, key confirmation và quản lý vòng đời secret.
+1. Explain why **key agreement does not mean you already have a safe session key** and does not authenticate identities on its own.
+2. Distinguish **shared secret/IKM**, **PRK** after HKDF-Extract, and **OKM** after HKDF-Expand; understand the roles of `salt` and `info`.
+3. Bind keys to **protocol version, algorithm, transcript, role, channel, direction, and purpose** to prevent key confusion.
+4. Derive separate **c2s/s2c AES-GCM keys**, HMAC keys, and **key-encryption keys (KEK)**; know when to use AES key wrap.
+5. Implement an X25519 + HKDF-HMAC-SHA256 + AES-GCM + AESWrap example in Java 17+, verifying both outputs and failure cases.
+6. Identify MITM risks, context mismatches, label collisions, nonce reuse, replay, rekeying, key confirmation, and secret lifecycle management.
 
-Thuật ngữ chính:
+Key terminology:
 
-| Thuật ngữ | Ý nghĩa | Có cần bí mật? |
+| Term | Meaning | Must be kept secret? |
 | --- | --- | --- |
-| **ECDH / X25519** | Cơ chế thỏa thuận bí mật từ private key của một bên và public key của bên kia | Private key phải bí mật; public key có thể công khai |
-| **Z / shared secret** | Đầu ra raw của thỏa thuận khóa; hai bên hợp lệ thu cùng byte | **Có**; không phát tán hoặc log |
-| **IKM (Input Keying Material)** | Vật liệu bí mật đưa vào HKDF-Extract, thường là shared secret | **Có** |
-| **PRK (Pseudorandom Key)** | Khóa giả ngẫu nhiên do HKDF-Extract tạo ra | **Có**; là bí mật trung gian |
-| **OKM (Output Keying Material)** | Byte khóa đã dẫn xuất theo `info`, dùng làm traffic key, MAC key, KEK... | **Có** |
-| **Salt của HKDF** | Tham số đầu vào Extract; có thể công khai nhưng phải theo giao thức | Không cần bí mật |
-| **Info/context** | Nhãn và ngữ cảnh dùng trong Expand để tạo các khóa tách biệt | Thường công khai, nhưng phải nhất quán và được ràng buộc đúng |
-| **DEK** | Data Encryption Key: mã hóa dữ liệu thực | **Có** |
-| **KEK** | Key Encryption Key: dùng bọc/bảo vệ một DEK hoặc khóa khác | **Có**, phải cách ly mục đích |
+| **ECDH / X25519** | Mechanism for agreeing on a secret from one side's private key and the other side's public key | Private key must be secret; public key may be public |
+| **Z / shared secret** | Raw output of key agreement; valid peers obtain identical bytes | **Yes**; never leak or log |
+| **IKM (Input Keying Material)** | Secret material fed into HKDF-Extract, usually the shared secret | **Yes** |
+| **PRK (Pseudorandom Key)** | Pseudorandom key produced by HKDF-Extract | **Yes**; intermediate secret |
+| **OKM (Output Keying Material)** | Key bytes derived per `info`, used as traffic keys, MAC keys, KEK, etc. | **Yes** |
+| **HKDF Salt** | Input parameter to Extract; may be public, must follow the protocol | Does not need secrecy |
+| **Info/context** | Labels and context used in Expand to produce separated keys | Usually public, but must be consistent and properly bound |
+| **DEK** | Data Encryption Key: encrypts actual data | **Yes** |
+| **KEK** | Key Encryption Key: used to wrap/protect a DEK or other keys | **Yes**, must be purpose-isolated |
 
-**Điểm phân biệt:** HKDF không làm mạnh lên một password yếu thành shared secret có entropy cao; password cần **password KDF/hash** chuyên dụng. HKDF thích hợp cho đầu vào đã có độ ngẫu nhiên/bí mật phù hợp như ECDH secret hoặc một secret master được sinh an toàn.
+**Key distinction:** HKDF does not strengthen a weak password into a high-entropy shared secret; passwords require a dedicated **password KDF/hash**. HKDF is suited for inputs that already possess appropriate randomness/secrecy, such as an ECDH secret or a securely generated master secret.
 
-## 2. Đường đi từ thỏa thuận khóa đến các khóa ứng dụng
+## 2. Path from Key Agreement to Application Keys
 
-Sơ đồ tổng thể:
+Overall diagram:
 
 ~~~text
 Client                                       Server
   private a                                  private b
   public A = X25519(a, G)                    public B = X25519(b, G)
        \                                     /
-        ---- trao đổi public keys A, B ----
+        ---- exchange public keys A, B -----
        /                                     \
   Zc = X25519(a, B)                     Zs = X25519(b, A)
                     Zc == Zs
@@ -56,60 +56,60 @@ HKDF-Expand(         HKDF-Expand(             HKDF-Expand(
     |                    |                         |
  client→server key   server→client key             KEK
                          |
-               ...MAC/confirm/export keys riêng...
+               ...separate MAC/confirm/export keys...
 ~~~
 
-Ở cấp API, đừng coi `Z` là “khóa AES đã sẵn sàng” dù nó dài 32 byte với X25519. Độ dài đúng **không có nghĩa** byte đã được chuẩn hóa, gắn ngữ cảnh, ràng buộc danh tính hay có thuộc tính thích hợp cho mọi primitive. Đặc biệt, cùng một `Z` có thể xuất hiện ở các mục đích/giao thức khác nhau khi thiết kế thiếu domain separation.
+At the API level, never treat `Z` as a “ready-to-use AES key” even though it is 32 bytes long for X25519. Having the right length **does not mean** the bytes are uniformized, context-bound, identity-bound, or possess properties suited for every primitive. In particular, the same `Z` could appear across different purposes/protocols when a design lacks domain separation.
 
-**Key schedule** là tập quy tắc chính xác về cách sinh, đặt tên, phân phát và sử dụng khóa: từ đầu vào bí mật, transcript, vai trò đến thuật toán và thời hạn sử dụng. Một key schedule đúng cần được hai bên tính **giống hệt về byte**, không chỉ “cùng gọi HKDF”.
+A **key schedule** is the exact set of rules specifying how keys are generated, named, distributed, and used: from secret inputs, transcript, and roles to algorithms and lifetimes. A proper key schedule must be computed **byte-for-byte identically** by both sides, not merely “both calling HKDF”.
 
-## 3. Vì sao shared secret không nên dùng trực tiếp?
+## 3. Why Shouldn't the Shared Secret Be Used Directly?
 
-### 3.1. Shared secret là vật liệu đầu vào, không phải khóa đa năng
+### 3.1. The Shared Secret Is Input Material, Not a Multi-Purpose Key
 
-Ví dụ X25519 trả một chuỗi byte 32 byte qua `KeyAgreement.generateSecret()`. Dù 32 byte trông vừa đủ cho AES-256, vẫn cần làm rõ:
+For example, X25519 returns a 32-byte array via `KeyAgreement.generateSecret()`. Even though 32 bytes looks just right for AES-256, you still must establish:
 
-- **Bí mật đó thuộc phiên nào?** Nếu dùng lại trong nhiều ngữ cảnh, khóa sẽ không tự tách theo phiên/giao thức.
-- **Hai vai trò đối xứng hay có hướng?** Cùng một khóa c2s và s2c có thể dẫn đến rủi ro nonce trùng nếu cách phân phối nonce không được phối hợp.
-- **Khóa sẽ dùng cho mục đích nào?** Encryption, MAC, xác thực handshake và key wrapping có yêu cầu và vòng đời khác.
-- **Thuật toán nào đang được thương lượng?** Một suite mới không nên vô tình tạo cùng khóa với suite cũ.
-- **Ngữ cảnh/đối tượng nào được bảo vệ?** Nếu khóa dùng đa tenant, đa channel hoặc nhiều loại thông điệp, cần tránh cross-context/key-confusion.
+- **Which session does this secret belong to?** If reused across contexts, the key does not automatically isolate sessions/protocols.
+- **Are the two roles symmetric or directional?** Sharing the same key for c2s and s2c can cause nonce-collision risks if nonce allocation is not coordinated.
+- **What purpose will the key serve?** Encryption, MAC, handshake confirmation, and key wrapping have different requirements and lifecycles.
+- **Which algorithm was negotiated?** A new suite must not accidentally derive the same key as an old suite.
+- **Which context/object is being protected?** If keys span multiple tenants, channels, or message types, cross-context/key-confusion must be prevented.
 
-Dùng HKDF giúp **chuẩn hóa vật liệu, hỗ trợ xuất nhiều khóa với nhãn riêng và ràng buộc vào ngữ cảnh**. KDF không sửa được các lỗi như lộ private key, public key giả hoặc cấu hình giao thức thiếu xác thực.
+Using HKDF helps **normalize the material, derive multiple keys with distinct labels, and bind them to context**. A KDF cannot fix flaws such as leaked private keys, forged public keys, or protocol designs lacking authentication.
 
-### 3.2. Điều gì xảy ra nếu chỉ cắt secret?
+### 3.2. What Happens If You Just Slice the Secret?
 
-Sai lầm ví dụ:
+Example mistake:
 
 ~~~java
-// Không nên làm kiểu này:
+// Do not do this:
 byte[] raw = agreement.generateSecret();
 byte[] encryptionKey = Arrays.copyOfRange(raw, 0, 16);
 byte[] macKey = Arrays.copyOfRange(raw, 16, 32);
 ~~~
 
-Đây không phải key schedule đã thẩm định. Hai đoạn không có nhãn mục đích, không được dẫn xuất theo transcript/role, và bạn đã tự giả định rằng các đoạn byte raw có thuộc tính độc lập phù hợp với mọi thuật toán. Cách đúng là **HKDF-Extract một lần**, sau đó **HKDF-Expand có nhãn đầy đủ và chiều dài riêng** cho từng khóa.
+This is not a vetted key schedule. The two slices have no purpose labels, are not derived from transcript/roles, and assume raw bytes have independent cryptographic properties suited to every algorithm. The right approach is **one HKDF-Extract**, followed by **HKDF-Expand with full labels and explicit lengths** per key.
 
-Nếu giao thức dùng một khóa làm đầu vào cho nhiều KDF khác nhau mà không có domain separation, có nguy cơ lặp đầu ra hoặc key confusion. Đừng tự thiết kế chuỗi `SHA-256(Z + "enc")` theo thói quen; dùng HKDF hoặc KDF chuẩn theo đặc tả.
+If a protocol feeds one key into multiple KDFs without domain separation, output collisions or key confusion can occur. Never invent `SHA-256(Z + "enc")` out of habit; use HKDF or a standard KDF per specification.
 
-## 4. HKDF-HMAC-SHA256: Extract và Expand
+## 4. HKDF-HMAC-SHA256: Extract and Expand
 
-**HKDF** (HMAC-based Extract-and-Expand Key Derivation Function, RFC 5869) có hai giai đoạn:
+**HKDF** (HMAC-based Extract-and-Expand Key Derivation Function, RFC 5869) has two stages:
 
-### 4.1. Extract: chuẩn hóa bí mật đầu vào
+### 4.1. Extract: Normalizing Input Secret Material
 
 ~~~text
 PRK = HKDF-Extract(salt, IKM)
     = HMAC-Hash(key = salt, message = IKM)
 ~~~
 
-Với `HmacSHA256`, PRK dài **32 byte**. `salt` có thể công khai, không phải mật khẩu/pepper và không cần giữ bí mật. RFC 5869 cho phép salt vắng mặt bằng cách sử dụng chuỗi `HashLen` byte 0; tuy nhiên khi giao thức quy định salt, **hai bên phải sử dụng cùng byte**, không tùy tiện thay nó bằng chuỗi rỗng, timestamp hay digest khác.
+With `HmacSHA256`, PRK is **32 bytes** long. `salt` may be public; it is not a password/pepper and does not need to be secret. RFC 5869 handles an absent salt by using `HashLen` zero bytes; however, when a protocol specifies a salt, **both sides must use the exact same bytes**, never arbitrarily substituting an empty string, timestamp, or different digest.
 
-Salt có thể là giá trị công khai theo handshake hoặc được dẫn xuất theo đặc tả từ các thành phần transcript; ví dụ phía dưới chọn một giá trị SHA-256 có nhãn từ transcript để hai bên tính giống nhau. **Salt không xác thực danh tính**, không thay kiểm chữ ký/certificate hoặc chống MITM.
+Salt may be a public handshake value or derived deterministically from transcript components per spec; the example below computes a labeled SHA-256 value from the transcript so both sides compute the same salt. **Salt does not authenticate identity**, nor does it replace signature/certificate checks or stop MITM.
 
-Mục đích của Extract là đưa IKM có thể có cấu trúc vào PRK phù hợp cho bước Expand, không tăng entropy thực chất của một đầu vào yếu. Raw ECDH secret vẫn cần được xử lý theo quy tắc thuật toán, kiểm đầu vào public key và trường hợp shared secret bất thường theo giao thức/provider.
+Extract concentrates potentially structured IKM into a PRK suitable for Expand; it does not increase the true entropy of a weak input. Raw ECDH secrets must still follow algorithm rules, public-key validation, and protocol/provider checks for anomalous shared secrets.
 
-### 4.2. Expand: tạo khóa theo mục đích
+### 4.2. Expand: Creating Purpose-Specific Keys
 
 ~~~text
 OKM = HKDF-Expand(PRK, info, L)
@@ -121,55 +121,55 @@ T(2) = HMAC(PRK, T(1) || info || 0x02)
 OKM  = first L bytes of T(1) || T(2) || ...
 ~~~
 
-Trong đó:
+Where:
 
-- `PRK`: bí mật đầu vào của Expand, chỉ nằm phía các bên được phép.
-- `info`: byte mô tả ngữ cảnh và mục đích xuất khóa, ví dụ `"c2s/aes-gcm"`; **không phải khóa bí mật**.
-- `L`: độ dài đầu ra **tính bằng byte**, có giới hạn tối đa `255 × HashLen`; với SHA-256 là **8160 byte**. Một traffic key AES-128 cần 16 byte, HMAC-SHA256 thường dùng khóa được thiết kế với độ dài phù hợp như 32 byte.
-- Các block có counter tăng từ **`0x01`**, không phải chuỗi ASCII `"1"` hoặc số nguyên 4 byte.
+- `PRK`: secret input to Expand, held only by authorized parties.
+- `info`: bytes describing the context and derivation purpose, e.g., `"c2s/aes-gcm"`; **not a secret key**.
+- `L`: output length **in bytes**, capped at `255 × HashLen`; for SHA-256 this is **8160 bytes**. An AES-128 traffic key needs 16 bytes; HMAC-SHA256 typically uses a key of appropriate designed length such as 32 bytes.
+- Blocks have a 1-byte counter starting from **`0x01`**, not the ASCII string `"1"` or a 4-byte integer.
 
-Nếu cùng `PRK`, `info` và `L`, HKDF Expand **trả cùng byte**. Đó là tính chất xác định để cả hai bên làm việc. Muốn khóa khác cho mục đích khác, phải dùng **info/nhãn khác nhau**; PRK không được đưa lên client logs hoặc lưu cùng ciphertext công khai.
+Given the same `PRK`, `info`, and `L`, HKDF-Expand **returns the same bytes**. That determinism is how both parties align. To get a different key for a different purpose, you must use **different info/labels**; PRK must never be sent to client logs or stored alongside public ciphertext.
 
-### 4.3. Phân biệt HKDF với PBKDF2
+### 4.3. Distinguishing HKDF from PBKDF2
 
 | HKDF | PBKDF2/Argon2id/scrypt |
 | --- | --- |
-| Dùng khi đã có **key material bí mật đủ mạnh**, như X25519 secret hoặc random master key | Dùng cho **mật khẩu do con người tạo**, thường entropy thấp |
-| Mục tiêu extract/expand và tách khóa theo ngữ cảnh | Mục tiêu làm chậm/đắt việc đoán password offline |
-| `info` và nhãn mục đích giữ vai trò quan trọng | Salt, cost và cơ chế password hashing là trọng tâm |
-| Không thể tự làm một password dễ đoán thành secret chống brute force | Được thiết kế để tăng chi phí tấn công đoán password |
+| Used when you already have **strong secret key material**, like an X25519 secret or random master key | Used for **human-chosen passwords**, which typically have low entropy |
+| Goal is extract/expand and context-based key separation | Goal is to make offline password guessing slow/expensive |
+| `info` and purpose labels play a central role | Salt, work factor/cost, and password-hashing mechanisms are central |
+| Cannot turn a guessable password into a brute-force-resistant secret | Designed specifically to raise the cost of password-guessing attacks |
 
-Không dùng HKDF đơn lẻ làm password hashing mới, và không cần tự chạy PBKDF2 trên ECDH secret theo thói quen nếu giao thức đã quy định HKDF.
+Never use HKDF alone as a new password-hashing scheme, and do not run PBKDF2 on an ECDH secret out of habit when the protocol specifies HKDF.
 
-## 5. `info`, transcript và context binding
+## 5. `info`, Transcript, and Context Binding
 
-Một thiết kế trưởng thành cần thống nhất **không chỉ thuật toán HKDF, mà cả byte chính xác của `info` và salt**. Ví dụ một `info` có thể chứa:
+A mature design must agree **not only on HKDF as the algorithm, but on the exact bytes of `info` and salt**. For example, `info` may include:
 
-| Thành phần | Tại sao quan trọng? |
+| Component | Why is it important? |
 | --- | --- |
-| **Protocol ID/version** | Tránh vô tình dùng cùng key trong các protocol hoặc version khác nhau |
-| **Algorithm suite** | Gắn khóa với lựa chọn X25519, HKDF-SHA256, AES-GCM/AEAD mode |
-| **Handshake transcript hash** | Ràng buộc với thông điệp thương lượng, public keys, nonces, role và các trường đã định nghĩa |
-| **Identity hoặc peer binding** | Phân biệt giao tiếp với đúng đối tác đã xác thực |
-| **Hướng truyền/role** | `c2s` khác `s2c`, initiator khác responder |
-| **Purpose label** | `enc`, `mac`, `wrap`, `confirm` tạo output riêng |
-| **Tenant/channel/record context** | Chặn nhầm khóa giữa các miền sử dụng nếu nghiệp vụ cần |
-| **Epoch/rekey counter** | Chuyển sang khóa mới có ngữ cảnh/chu kỳ rõ ràng |
+| **Protocol ID/version** | Avoids accidentally reusing the same key across different protocols or versions |
+| **Algorithm suite** | Ties the key to the chosen X25519, HKDF-SHA256, AES-GCM/AEAD mode |
+| **Handshake transcript hash** | Binds to negotiated messages, public keys, nonces, roles, and defined fields |
+| **Identity or peer binding** | Distinguishes communication with the specific authenticated peer |
+| **Direction/role** | `c2s` differs from `s2c`, initiator differs from responder |
+| **Purpose label** | `enc`, `mac`, `wrap`, `confirm` produce distinct outputs |
+| **Tenant/channel/record context** | Prevents key confusion across usage domains when required by business logic |
+| **Epoch/rekey counter** | Transitions to new keys with clear context/periods |
 
-**Đừng nối string một cách mơ hồ**, như:
+**Do not concatenate strings ambiguously**, such as:
 
 ~~~text
 info = tenant + ":" + channel + ":" + purpose
 
-("a:b", "c", "enc") và ("a", "b:c", "enc")
-  → có thể tạo cùng chuỗi nếu chỉ nối bằng dấu ":"
+("a:b", "c", "enc") and ("a", "b:c", "enc")
+  → can produce the exact same string if joined solely with ":"
 ~~~
 
-Thay vào đó, quy định một binary encoding **không nhập nhằng**: mỗi trường có độ dài cố định hay tiền tố length, thứ tự trường, charset UTF-8, version, dạng ID chuẩn. Ví dụ Java dưới dùng `DataOutputStream.writeInt(length)` (big-endian 4 byte) rồi ghi đúng byte trường đó.
+Instead, define an **unambiguous binary encoding**: each field has a fixed length or length prefix, defined field order, UTF-8 charset, version, and canonical ID representation. The Java example below uses `DataOutputStream.writeInt(length)` (4-byte big-endian) followed by the exact field bytes.
 
-### 5.1. Handshake transcript là gì?
+### 5.1. What Is a Handshake Transcript?
 
-Một transcript là trình tự **chính xác các thông điệp/giá trị của phiên thỏa thuận khóa**, ví dụ version, suite, hai public keys, identities đã được xác thực, nonce và các lựa chọn thương lượng. Hai bên tính cùng một `transcriptHash` từ byte đã canonicalize, rồi gắn nó vào key schedule.
+A transcript is the **exact sequence of messages/values in a key-agreement session**, such as version, suite, both public keys, authenticated identities, nonces, and negotiated options. Both sides compute the same `transcriptHash` over canonicalized bytes and feed it into the key schedule.
 
 ~~~text
 transcriptBytes = encode(
@@ -183,79 +183,79 @@ transcriptHash = SHA-256(transcriptBytes)
 info = encode("key-schedule/v1", suite, transcriptHash, purpose)
 ~~~
 
-**Đừng nhầm:** gắn transcript hash vào HKDF **không tự xác thực transcript**. Nếu attacker kiểm soát quá trình trao đổi và hai bên không xác minh công khai/danh tính, họ vẫn có thể thực hiện hai phiên X25519 khác nhau rồi ngồi giữa. Transcript binding hỗ trợ chống key confusion và làm nền cho bước xác thực, nhưng **phải có cơ chế xác thực thật** (TLS đã cấu hình đúng, signature trên transcript, PSK authentication hoặc giao thức AKE đã được thẩm định).
+**Do not misunderstand:** putting a transcript hash into HKDF **does not authenticate the transcript on its own**. If an attacker controls the exchange and neither side verifies public keys/identities, the attacker can still run two separate X25519 sessions and sit in the middle. Transcript binding helps prevent key confusion and supports authentication, but **real authentication is required** (properly configured TLS, signatures over the transcript, PSK authentication, or a vetted AKE protocol).
 
-### 5.2. Một handshake có thể cần key confirmation
+### 5.2. A Handshake May Need Key Confirmation
 
-Hai bên tính cùng shared secret không có nghĩa bên kia đã thực sự nhận đúng thông điệp và có cùng khóa. Giao thức có thể sử dụng **handshake Finished/confirmation MAC** từ khóa chuyên dụng, ràng buộc với transcript **đúng chiều**. Điều này phát hiện mismatch và xác nhận bên kia biết secret hiện tại, nhưng **nếu không có xác thực danh tính trước/đúng trong giao thức**, key confirmation **không ngăn MITM** giả lập hai phiên.
+Both sides computing the same shared secret does not prove the peer received the right messages and holds the same key. A protocol can use a **handshake Finished/confirmation MAC** from a dedicated key, bound to the transcript **with the right direction**. This detects mismatches and confirms the peer knows the current secret, but **without prior/proper identity authentication in the protocol**, key confirmation **does not stop a MITM** running two separate sessions.
 
-Không dùng traffic key AES-GCM để ký tùy tiện các thông điệp Finished; nếu cần confirmation key hãy **dẫn xuất nhãn `confirm` riêng**, hoặc dùng key schedule chuẩn của giao thức như TLS 1.3 thay vì tự ghép.
+Never use the AES-GCM traffic key to sign arbitrary Finished messages; if a confirmation key is needed, **derive a dedicated `confirm` label**, or use a standard protocol key schedule such as TLS 1.3 rather than assembling your own.
 
-## 6. Tách khóa theo hướng và theo mục đích
+## 6. Separating Keys by Direction and Purpose
 
-Từ một PRK của phiên, tạo **đầu ra khác nhãn**:
+From one session PRK, derive **distinct labeled outputs**:
 
 ~~~text
-K_c2s_enc   = HKDF-Expand(PRK, info("c2s/aes-gcm"),     16)
-K_s2c_enc   = HKDF-Expand(PRK, info("s2c/aes-gcm"),     16)
-K_wrap      = HKDF-Expand(PRK, info("wrap/aes-kw"),     16)
+K_c2s_enc   = HKDF-Expand(PRK, info("c2s/aes-gcm"),      16)
+K_s2c_enc   = HKDF-Expand(PRK, info("s2c/aes-gcm"),      16)
+K_wrap      = HKDF-Expand(PRK, info("wrap/aes-kw"),      16)
 K_hmac      = HKDF-Expand(PRK, info("auth/hmac-sha256"), 32)
 K_confirm_c = HKDF-Expand(PRK, info("confirm/client"),   32)
 K_confirm_s = HKDF-Expand(PRK, info("confirm/server"),   32)
 ~~~
 
-Đây là **minh họa nhãn** cho một giao thức giả định. Trong thiết kế thực, hai bên phải theo một đặc tả duy nhất và **không mở thêm khóa/mục đích tùy hứng**. HKDF có thể tạo các giá trị khác nhau theo nhãn dưới giả định HMAC hoạt động như PRF; không có lời hứa toán học tuyệt đối “không bao giờ trùng”, nhưng xác suất trùng ngoài ý muốn khi dùng đúng kích thước là cực nhỏ.
+These are **illustrative labels** for a hypothetical protocol. In real designs, both sides must follow a single specification and **never invent extra keys/purposes ad hoc**. HKDF produces distinct values per label under the assumption that HMAC acts as a PRF; there is no absolute mathematical promise of “zero collisions ever”, but accidental collision probability at proper lengths is negligible.
 
-| Key | Bên sử dụng | Primitive | Mục đích |
+| Key | Used by | Primitive | Purpose |
 | --- | --- | --- | --- |
-| `K_c2s_enc` | Client encrypt → Server decrypt | AES-GCM | Traffic client → server |
-| `K_s2c_enc` | Server encrypt → Client decrypt | AES-GCM | Traffic server → client |
-| `K_wrap` | Bên được phép bọc/mở DEK | AES Key Wrap / KEK | Bảo vệ khóa dữ liệu khác |
-| `K_hmac` | Bên cần xác thực thông điệp ngoài AEAD theo giao thức | HMAC-SHA256 | Xác thực một loại message riêng, không mặc định dùng chung với GCM |
-| `K_confirm_*` | Bên có trách nhiệm xác nhận handshake | MAC/protocol Finished | Kiểm tra handshake với nhãn/hướng riêng |
+| `K_c2s_enc` | Client encrypt → Server decrypt | AES-GCM | Client → server traffic |
+| `K_s2c_enc` | Server encrypt → Client decrypt | AES-GCM | Server → client traffic |
+| `K_wrap` | Party authorized to wrap/unwrap DEKs | AES Key Wrap / KEK | Protecting other data keys |
+| `K_hmac` | Party needing non-AEAD message authentication per protocol | HMAC-SHA256 | Authenticating a dedicated message type, not shared with GCM by default |
+| `K_confirm_*` | Party responsible for handshake confirmation | MAC/protocol Finished | Verifying handshake with separate label/direction |
 
-**Định danh hướng truyền:** Client và server phải **cùng hiểu** `c2s`/`s2c`, không phải mỗi bên tự gắn nhãn `"send"` rồi cho ra cùng khóa. Trong một kết nối peer-to-peer không có client/server cố định, đặt role `initiator`/`responder` hoặc quy tắc sắp xếp được xác thực. Nếu hai bên tự đảo role, key mismatch hoặc key reflection có thể xảy ra.
+**Directional naming:** Client and server must **both agree** on `c2s`/`s2c`, not each side labeling its own key `"send"` and expecting them to match. In a peer-to-peer connection without fixed client/server roles, establish `initiator`/`responder` roles or an authenticated ordering rule. If both sides invert roles, key mismatch or key reflection can occur.
 
-**Tách theo mục đích không đồng nghĩa tách theo nonce:** Dù có hai AES-GCM keys khác nhau, **mỗi key vẫn phải dùng nonce duy nhất cho từng lần mã hóa** dưới chính key đó. Nonce/replay sequencing là bài toán tiếp theo. Nếu dẫn xuất cả nonce base từ secret, phải dùng nhãn **`iv` khác `key`**, cộng sequence number theo giao thức đã được thẩm định.
+**Purpose separation is not nonce separation:** Even with two distinct AES-GCM keys, **each key must still use a unique nonce for every encryption** under that key. Nonce/replay sequencing is the next problem. If deriving an IV base from the secret as well, use an **`iv` label distinct from `key`**, combined with a sequence number per a vetted protocol.
 
-### 6.1. Key lifecycle và rekey
+### 6.1. Key Lifecycle and Rekeying
 
-Không nên dùng một traffic key cho số lượng message vô hạn. Hệ thống cần chính sách giới hạn theo thuật toán và mô hình nonce, ví dụ:
+A single traffic key must not be used for an unlimited number of messages. Systems need policy limits matched to the algorithm and nonce model, for example:
 
-- Cấp nonce 96 bit duy nhất cho mỗi lần AES-GCM encrypt dưới một key; phối hợp counter giữa nhiều luồng/process hoặc dùng chiến lược nonce đã được thẩm định.
-- Đếm/giới hạn số bản tin và lượng dữ liệu dưới cùng traffic key, xoay khóa theo chính sách an toàn.
-- Nếu rekey từ secret trước, dùng **KDF epoch/sequence label** đã định nghĩa, thay đổi ngữ cảnh để không tái xuất cùng key; tránh rollback key.
-- Quản lý retention/zeroization của secret cũ khi không còn cần để decrypt, đồng thời đáp ứng yêu cầu vận hành/khôi phục.
-- Nếu dùng lại một master secret để bọc DEK lưu trữ, **vòng đời KEK khác traffic key**; không tùy tiện buộc lifetime của cả hai chỉ vì chúng cùng được dẫn xuất từ một PRK.
+- Allocate a unique 96-bit nonce for each AES-GCM encryption under a key; coordinate counters across threads/processes or use a vetted nonce strategy.
+- Track/limit message counts and byte volumes under one traffic key, rotating keys per security policy.
+- When rekeying from a prior secret, use a defined **KDF epoch/sequence label**, changing context so the same key is never re-derived; prevent key rollback.
+- Manage retention/zeroization of old secrets once no longer needed for decryption, while satisfying operational/recovery requirements.
+- If reusing a master secret to wrap stored DEKs, **KEK lifetimes differ from traffic key lifetimes**; do not arbitrarily couple their lifetimes simply because both came from one PRK.
 
-## 7. Shared secret có xác thực không? Rủi ro MITM
+## 7. Is the Shared Secret Authenticated? MITM Risks
 
-**X25519/ECDH thuần túy là thỏa thuận bí mật, không có chữ ký số.** Hai bên có thể tạo cùng một secret nếu public key đầu vào thật thuộc về đối phương, nhưng một attacker trên kênh trao đổi có thể tráo public keys:
+**Plain X25519/ECDH is secret agreement, not a digital signature.** Both sides compute the same secret if the input public key truly belongs to the peer, but an attacker on the channel can swap public keys:
 
 ~~~text
 Alice ---- A_pub ----> Mallory ---- M1_pub ----> Bob
 Alice <--- M2_pub ---- Mallory <--- B_pub ----- Bob
 
-Alice ↔ Mallory: Z1 (bí mật của kết nối giả)
-Mallory ↔ Bob:   Z2 (bí mật của kết nối giả)
-Alice và Bob không trực tiếp có cùng shared secret.
-Mallory có thể giải mã rồi mã hóa lại dữ liệu giữa hai phía.
+Alice ↔ Mallory: Z1 (secret of the spoofed connection)
+Mallory ↔ Bob:   Z2 (secret of the spoofed connection)
+Alice and Bob do not directly share the same secret.
+Mallory can decrypt and re-encrypt data between both sides.
 ~~~
 
-Trong mô hình này, HKDF chạy đúng và key separation hoàn hảo **không ngăn attacker** nếu không xác minh danh tính công khai của bên kia. Cần một **authenticated key exchange (AKE)**: chữ ký trên transcript với khóa tin cậy, certificate xác minh đúng danh tính, PSK đã được phân phối an toàn hoặc một giao thức thỏa thuận khóa có xác thực được đánh giá độc lập. Đối với ứng dụng mạng, **TLS 1.3** đã triển khai key schedule và xác thực; thường nên dùng TLS thay vì tự xây handshake X25519.
+In this scenario, valid HKDF execution and perfect key separation **do not stop the attacker** without verifying the peer's public identity. You need an **authenticated key exchange (AKE)**: a signature over the transcript with a trusted key, a certificate verified for the right identity, a securely distributed PSK, or an independently audited authenticated key-agreement protocol. For network applications, **TLS 1.3** already implements the key schedule and authentication; prefer TLS over building a custom X25519 handshake.
 
-Ngoài MITM, còn những kiểm tra quan trọng:
+Beyond MITM, other checks are essential:
 
-- Dữ liệu public key nhập từ mạng phải **được parse/validate đúng thuật toán**, không chấp nhận trộn curve/thuật toán, độ dài sai hoặc giá trị đặc biệt gây secret không an toàn theo chuẩn/provider.
-- Với X25519, các triển khai/giao thức cần giải quyết trường hợp **low-order public input / all-zero shared secret** theo quy tắc thuật toán. Hãy dựa vào kiểm tra của provider/thư viện đáng tin và yêu cầu đặc tả, không coi chỉ cần public key parse được là đủ.
-- Nếu private key dài hạn được dùng cho nhiều phiên, cân nhắc **forward secrecy**: khóa ephemeral riêng cho phiên thường là yếu tố quan trọng trong giao thức có xác thực.
-- Xác thực identity không có nghĩa có quyền truy cập tài nguyên; vẫn cần **authorization**, tenant boundary, endpoint binding và logging an toàn.
+- Public keys received from the network must be **parsed/validated per algorithm**; reject mixed curves/algorithms, wrong lengths, or special values that produce unsafe secrets per standard/provider.
+- For X25519, implementations/protocols must handle **low-order public inputs / all-zero shared secrets** per algorithm rules. Rely on trusted provider/library checks and specification rules rather than assuming parseable public keys are sufficient.
+- If long-term private keys are used across multiple sessions, consider **forward secrecy**: per-session ephemeral keys are typically critical in authenticated protocols.
+- Authenticating identity does not grant resource access; you still need **authorization**, tenant boundaries, endpoint binding, and safe logging.
 
-Ví dụ chạy độc lập ở phần 9 chỉ mô phỏng hai bên trong cùng một tiến trình, **chưa chứng minh kết nối mạng chống MITM hoặc đã xác thực Alice/Bob**.
+The standalone example in section 9 only simulates two parties in the same process and **does not prove a MITM-resistant network channel or authenticate Alice/Bob**.
 
-## 8. Bọc khóa: KEK, DEK và tách quyền hạn
+## 8. Key Wrapping: KEK, DEK, and Separation of Privileges
 
-Trong envelope encryption, hệ thống thường tạo một **DEK ngẫu nhiên** để mã hóa dữ liệu khối lượng lớn, rồi dùng **KEK** để bọc DEK:
+In envelope encryption, a system typically generates a **random DEK** to encrypt bulk data, then uses a **KEK** to wrap the DEK:
 
 ~~~text
                  DEK (AES random)
@@ -266,30 +266,30 @@ Trong envelope encryption, hệ thống thường tạo một **DEK ngẫu nhiê
              |                               |
     ciphertext + tag                wrapped DEK
              \                              /
-              +---- lưu cùng metadata ------+
+              +---- store with metadata ----+
 ~~~
 
-**DEK (Data Encryption Key)** và **KEK (Key Encryption Key)** khác vai trò, không nên là cùng byte. Khi key schedule có quyền xuất KEK, dùng nhãn riêng như `"wrap/aes-kw"`; không lấy `K_c2s_enc` dùng làm KEK.
+**DEK (Data Encryption Key)** and **KEK (Key Encryption Key)** serve different roles and should not share the same bytes. When a key schedule is authorized to derive a KEK, use a dedicated label such as `"wrap/aes-kw"`; never reuse `K_c2s_enc` as a KEK.
 
-**AES Key Wrap (AES-KW)** là thuật toán bọc vật liệu khóa, Java 17 có provider hỗ trợ transformation `"AESWrap"` trong JCE phổ biến. Nó không phải mode mã hóa bất kỳ metadata/payload dài tùy ý; với AES-KW theo RFC 3394, đầu vào khóa bọc phải tuân theo yêu cầu độ dài/khối của thuật toán. Các hệ thống cần bảo vệ **associated metadata** hoặc khóa với độ dài bất kỳ có thể cần AES-KWP hoặc AEAD wrapping theo đặc tả riêng.
+**AES Key Wrap (AES-KW)** is a key-material wrapping algorithm; Java 17 providers commonly support the `"AESWrap"` transformation in JCE. It is not a cipher mode for arbitrary metadata or long payloads; with RFC 3394 AES-KW, the wrapped key input must satisfy the algorithm's length/block rules. Systems that must protect **associated metadata** or arbitrary-length keys may need AES-KWP or AEAD wrapping per specification.
 
-- **Không xuất wrapped DEK rồi bỏ metadata định danh KEK.** Cần key ID/version/algorithm để giải bọc sau rotation.
-- **Không giả định AESWrap tự ràng buộc tenant/record ID**. AES-KW có phép kiểm tính toàn vẹn của vật liệu được bọc, nhưng không nhận AAD như AES-GCM. Nếu metadata quyết định đối tượng/thuật toán, phải ràng buộc bằng thiết kế giao thức/metadata xác thực đúng.
-- Với khóa lưu trữ lâu dài, thông thường **KEK lấy từ KMS/HSM hoặc một key hierarchy được quản lý**, không phải một traffic shared secret ngắn hạn bị hủy sau phiên mạng. Ví dụ dưới bọc DEK bằng khóa dẫn xuất từ phiên chỉ để minh họa **key-purpose separation**, không đề xuất quy trình lưu trữ production.
-- Không nhầm **key wrapping** với gửi plaintext DEK qua kênh “đã mã hóa” nhưng không xác thực, hoặc với việc Base64-encode khóa.
+- **Never output a wrapped DEK and discard KEK-identifying metadata.** You need key ID/version/algorithm to unwrap after rotation.
+- **Never assume AESWrap binds tenant/record IDs on its own**. AES-KW checks integrity of the wrapped key material, but takes no AAD like AES-GCM. If metadata determines the object/algorithm, bind it via proper protocol/authenticated metadata design.
+- For long-term stored keys, **KEKs typically come from a KMS/HSM or managed key hierarchy**, not from a short-lived traffic shared secret discarded after a network session. The example below wraps a DEK with a session-derived key solely to demonstrate **key-purpose separation**, not to recommend a production storage workflow.
+- Do not confuse **key wrapping** with sending a plaintext DEK over an “encrypted” unauthenticated channel, or with Base64-encoding a key.
 
-## 9. Java 17+ hoàn chỉnh: X25519, HKDF, AES-GCM, AESWrap
+## 9. Complete Java 17+ Example: X25519, HKDF, AES-GCM, AESWrap
 
-Chương trình sau dùng JCA/JCE trong JDK 17+; không cần Maven. Nó thực hiện:
+The following program uses JCA/JCE in JDK 17+ with no Maven dependencies. It performs:
 
-1. Kiểm chứng mã HKDF Extract/Expand theo **test vector số 1 của RFC 5869** (không in byte secret).
-2. Tạo hai cặp khóa X25519, mỗi bên tính shared secret; in kết quả **so khớp** chứ không lộ secret.
-3. Tạo hash của handshake transcript được encode có length-prefix; tạo một public salt từ transcript theo **quy tắc giả định của demo**.
-4. Extract hai PRK bằng HMAC-SHA256; Expand các khóa `c2s/aes-gcm`, `s2c/aes-gcm`, `wrap/aes-kw` và `auth/hmac-sha256` theo **label/context độc lập**.
-5. Dùng key c2s AES-GCM để mã hóa và phía kia giải mã; dùng sai key hướng/khác context sẽ lỗi authentication tag.
-6. Bọc AES DEK bằng key `wrap` và bên còn lại mở bọc thành công.
+1. Verification of HKDF Extract/Expand against **RFC 5869 test vector 1** (without printing secret bytes).
+2. Generation of two X25519 key pairs, with each side computing the shared secret; prints a **match check** without exposing the secret.
+3. Hashing of a length-prefixed encoded handshake transcript; derives a public salt from the transcript using a **hypothetical demo convention**.
+4. Extracts two PRKs with HMAC-SHA256; Expands `c2s/aes-gcm`, `s2c/aes-gcm`, `wrap/aes-kw`, and `auth/hmac-sha256` keys with **independent labels/contexts**.
+5. Uses the c2s AES-GCM key to encrypt and the other side to decrypt; wrong direction/wrong context fails the authentication tag.
+6. Wraps an AES DEK with the `wrap` key and the other side unwraps it successfully.
 
-**Lưu thành file `KeyScheduleDemo.java`:**
+**Save as `KeyScheduleDemo.java`:**
 
 ~~~java
 import java.io.ByteArrayOutputStream;
@@ -307,7 +307,7 @@ public class KeyScheduleDemo {
         return text.getBytes(StandardCharsets.UTF_8);
     }
 
-    // Framing không nhập nhằng: 4 byte độ dài (big-endian) + bytes.
+    // Unambiguous framing: 4-byte length (big-endian) + bytes.
     static byte[] frame(byte[]... fields) throws Exception {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(bytes);
@@ -338,7 +338,7 @@ public class KeyScheduleDemo {
         return mac.doFinal(ikm);
     }
 
-    // HKDF-Expand với đúng các block T(i), counter từ 0x01.
+    // HKDF-Expand with exact T(i) blocks, counter starting at 0x01.
     static byte[] expand(byte[] prk, byte[] info, int length)
             throws Exception {
         Mac mac = Mac.getInstance("HmacSHA256");
@@ -403,7 +403,7 @@ public class KeyScheduleDemo {
     }
 
     public static void main(String[] args) throws Exception {
-        // Vector RFC 5869 TC1 (IKM=0x0b * 22), kiểm tra HKDF.
+        // RFC 5869 TC1 vector (IKM=0x0b * 22), verify HKDF.
         byte[] ikm = new byte[22];
         Arrays.fill(ikm, (byte) 0x0b);
         byte[] testSalt = HexFormat.of().parseHex(
@@ -427,7 +427,7 @@ public class KeyScheduleDemo {
                 + MessageDigest.isEqual(aliceSecret, bobSecret));
         System.out.println("Shared bytes       = " + aliceSecret.length);
 
-        // Transcript giả định: hai public key và role được cố định thứ tự.
+        // Hypothetical transcript: two public keys and roles in fixed order.
         byte[] transcriptHash = sha256(frame(
                 utf8("handshake-demo-v1"),
                 utf8("initiator=Alice"),
@@ -491,7 +491,7 @@ public class KeyScheduleDemo {
                 + MessageDigest.isEqual(
                         dataKey.getEncoded(), restored.getEncoded()));
 
-        // Giảm vòng đời secret do ứng dụng giữ; provider có thể giữ copy.
+        // Shorten lifetime of application-held secrets; provider may hold copies.
         Arrays.fill(aliceSecret, (byte) 0);
         Arrays.fill(bobSecret, (byte) 0);
         Arrays.fill(aPrk, (byte) 0);
@@ -506,14 +506,14 @@ public class KeyScheduleDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac KeyScheduleDemo.java
 java KeyScheduleDemo
 ~~~
 
-Output kỳ vọng **ổn định dù cặp khóa, nonce và DEK được sinh ngẫu nhiên**:
+Expected output **remains stable even though keypairs, nonce, and DEK are randomly generated**:
 
 ~~~text
 HKDF RFC5869       = true
@@ -531,21 +531,21 @@ Wrong ctx rejected = true
 Wrapped DEK matches= true
 ~~~
 
-### 9.1. Giải thích theo thứ tự
+### 9.1. Step-by-Step Explanation
 
-1. **`HKDF RFC5869 = true`:** phép thử đối chiếu đầu ra 42 byte với vector chuẩn, giúp phát hiện sai công thức, byte counter hoặc copy block. Đừng tự triển khai HKDF trong production nếu đã có thư viện/provider chuẩn phù hợp.
-2. **`Shared match = true`:** `KeyAgreement("X25519")` cho hai bên cùng byte khi dùng đúng cặp private/public. `Shared bytes = 32` là độ dài X25519 output; không phải tuyên bố đây đã là traffic key.
-3. **`transcriptHash`:** encode các trường có độ dài, thứ tự role và hai public keys rồi SHA-256. Demo đặt `salt` từ hash này theo một quy ước riêng để hai bên cùng làm được. Giao thức thực tế phải có **thông điệp và quy tắc salt/transcript chính xác được đặc tả**, không sao chép demo như một handshake tiêu chuẩn.
-4. **`aPrk/bPrk`:** hai bên Extract bằng cùng IKM/salt cho cùng PRK; mỗi `expand` có cùng PRK nhưng **info purpose khác** sẽ cho output khác.
-5. **`Same role keys = true`:** Alice gửi với `aC2s`, Bob nhận với `bC2s`. Bob không dùng nhãn `"s2c"` khi nhận c2s. `C2S != S2C` chứng minh labels khác nhau trên chính lượt demo; không coi một ví dụ trùng/khác là chứng minh mật mã về mọi input.
-6. **`Wrong role rejected` / `Wrong ctx rejected`:** AES-GCM từ chối bản mã khi dùng khóa khác; `Wrong ctx` được tạo bằng Expand với transcript khác. Điều này minh họa key binding, **không chứng minh đã chống MITM**.
-7. **`Wrapped DEK matches`:** khóa `wrap` do hai phía dẫn xuất được dùng với `AESWrap`. Phép wrap bảo vệ bản thân DEK khi gửi trong phạm vi khóa KEK này; không thay chính sách KMS, phân quyền hoặc bảo vệ metadata.
+1. **`HKDF RFC5869 = true`:** verifies the 42-byte output against the standard vector, catching mistakes in the formula, counter byte, or block copying. Do not hand-roll HKDF in production if an appropriate standard library/provider is available.
+2. **`Shared match = true`:** `KeyAgreement("X25519")` gives both sides identical bytes with matching private/public pairs. `Shared bytes = 32` is the X25519 output length; it is not a claim that this is already a traffic key.
+3. **`transcriptHash`:** encodes length-prefixed fields, role order, and both public keys, then hashes with SHA-256. The demo derives `salt` from this hash using a custom convention so both sides match. Real protocols must have **explicitly specified messages and salt/transcript rules**—do not copy the demo as a standard handshake.
+4. **`aPrk/bPrk`:** both sides Extract with the same IKM/salt to get the same PRK; each `expand` with the same PRK but **different info purpose** yields different outputs.
+5. **`Same role keys = true`:** Alice sends with `aC2s`, Bob receives with `bC2s`. Bob does not use the `"s2c"` label when receiving c2s traffic. `C2S != S2C` demonstrates distinct labels in this demo run; do not treat a single equal/unequal run as a cryptographic proof over all inputs.
+6. **`Wrong role rejected` / `Wrong ctx rejected`:** AES-GCM rejects ciphertext when using a different key; `Wrong ctx` is derived via Expand with a different transcript. This illustrates key binding; **it does not prove MITM resistance**.
+7. **`Wrapped DEK matches`:** the `wrap` key derived on both sides is used with `AESWrap`. Wrapping protects the DEK itself during transfer under this KEK; it does not replace KMS policy, authorization, or metadata protection.
 
-Các mảng byte được `Arrays.fill` sau khi dùng để giảm thời gian tồn tại secret ở bộ nhớ do ứng dụng kiểm soát. Điều này không bảo đảm xóa các bản copy bên trong provider/JVM hoặc mọi secret còn tồn tại trong object `PrivateKey`/`SecretKey`. Demo không có giao tiếp mạng, certificate, key confirmation, chống replay hoặc persistence; đó là các lớp cần bổ sung bằng **giao thức chuẩn**.
+Byte arrays are cleared with `Arrays.fill` after use to shorten secret lifetime in application-controlled memory. This does not guarantee wiping copies inside the provider/JVM or secrets remaining in `PrivateKey`/`SecretKey` objects. The demo has no network communication, certificates, key confirmation, replay protection, or persistence; those layers must be added via a **standard protocol**.
 
-## 10. KDF và bản tin thực tế: chọn đúng ngữ cảnh AAD, IV, role
+## 10. KDF and Real Messages: Choosing the Right AAD, IV, and Role Context
 
-Tách khóa mục đích mới là một phần. Nếu lưu/truyền encrypted data, bên nhận còn cần biết đúng **nonce, ciphertext, authentication tag, suite, key epoch và sequence**:
+Purpose separation is only part of the picture. When storing/transmitting encrypted data, the receiver also needs the right **nonce, ciphertext, authentication tag, suite, key epoch, and sequence**:
 
 ~~~text
 handshake metadata:
@@ -558,141 +558,141 @@ application record:
     key = K_direction_for_epoch
 ~~~
 
-**Key derivation context và AEAD AAD là hai lớp khác nhau.** KDF ràng buộc key với phiên/vai trò; AAD ràng buộc **từng bản tin** với metadata không mã hóa. Có transcript binding trong KDF vẫn không tự bảo vệ mọi field header ứng dụng, và AAD đúng vẫn không sửa được việc cấp nonce trùng.
+**Key derivation context and AEAD AAD are two distinct layers.** The KDF binds keys to a session/role; AAD binds **each individual message** to unencrypted metadata. Having transcript binding in the KDF still does not protect all application header fields, and proper AAD still cannot fix duplicate nonces.
 
-Một record đầy đủ có thể cần:
+A complete record may need:
 
-- **Key epoch/generation**: lựa chọn đúng khóa sau rekey; chống dùng epoch cũ trái phép theo policy.
-- **Sequence / message ID**: dùng để xác thực thứ tự/chống replay; tag hợp lệ của message cũ vẫn hợp lệ nếu protocol không nhớ đã thấy.
-- **Nonce**: 96 bit theo GCM phổ biến; duy nhất dưới cùng traffic key.
-- **Ciphertext + tag**: không chấp nhận plaintext nếu `AEADBadTagException`/verification failure.
-- **Header/AAD**: ràng buộc với đúng channel, tenant, type hoặc direction cần bảo vệ khỏi thay đổi.
-- **Algorithm/key ID**: sử dụng mapping và chính sách xác thực chống downgrade, tránh attacker điều khiển chọn key/suite tùy tiện.
+- **Key epoch/generation**: selects the right key after rekeying; prevents unauthorized use of old epochs per policy.
+- **Sequence / message ID**: authenticates ordering/prevents replay; a valid tag on an old message remains valid if the protocol does not remember having seen it.
+- **Nonce**: 96 bits for standard GCM; unique under a given traffic key.
+- **Ciphertext + tag**: never accept plaintext upon `AEADBadTagException`/verification failure.
+- **Header/AAD**: binds to the exact channel, tenant, type, or direction that must be protected from tampering.
+- **Algorithm/key ID**: uses mapping and verification policy against downgrade, preventing an attacker from steering arbitrary key/suite selection.
 
-**Không nối dữ liệu không tin cậy vào HKDF info rồi kỳ vọng bảo mật tự xuất hiện**: cần xác thực/kiểm ngữ cảnh quan trọng trước khi coi nó là claim tin cậy, hoặc ràng buộc nó qua protocol transcript đã xác thực.
+**Never concatenate untrusted data into HKDF `info` expecting security to appear automatically**: you must validate/check critical context before treating it as a trusted claim, or bind it through an authenticated protocol transcript.
 
-## 11. Tình huống thiết kế thường gặp
+## 11. Common Design Scenarios
 
-### 11.1. Ứng dụng chat hai chiều
+### 11.1. Bidirectional Chat Application
 
-Một phiên client/server dùng X25519 để tạo Z. Nếu chọn cùng `K_enc` cho cả gửi và nhận, client và server có thể dùng lại cùng nonce counter bắt đầu ở 0 rồi vô tình tái sử dụng **cùng (key, nonce)** trong AES-GCM. Chia `K_c2s_enc` và `K_s2c_enc` bằng labels khác làm giảm nguy cơ chồng miền sử dụng, nhưng **mỗi hướng vẫn phải bảo đảm nonce unique**. Dùng protocol sequence/AAD và chống replay.
+A client/server session uses X25519 to establish Z. If the same `K_enc` is chosen for both sending and receiving, client and server may both start nonce counters at 0 and accidentally reuse the **same (key, nonce)** in AES-GCM. Separating `K_c2s_enc` and `K_s2c_enc` with distinct labels reduces domain-overlap risk, yet **each direction must still guarantee unique nonces**. Use protocol sequences/AAD and replay protection.
 
-### 11.2. Cùng thư viện dùng cho hai sản phẩm
+### 11.2. Same Library Used by Two Products
 
-Sản phẩm A có `"sync/v1"` và B có `"backup/v1"`, cùng nguồn secret trong key hierarchy. Nếu cả hai gọi `HKDF-Expand(PRK, "enc", 16)` thì có thể lấy cùng key. Hãy đưa **protocol/product ID, version, usage label** vào info khác nhau, tránh cross-protocol key reuse. Nếu thiết kế yêu cầu tổ chức tenant hoặc device, đưa những ID có ý nghĩa và đã xác minh vào context.
+Product A has `"sync/v1"` and B has `"backup/v1"`, sharing the same root secret in a key hierarchy. If both call `HKDF-Expand(PRK, "enc", 16)`, they could derive the same key. Put distinct **protocol/product IDs, versions, and usage labels** into `info` to prevent cross-protocol key reuse. If the design requires tenant or device isolation, put meaningful, verified IDs into the context.
 
-### 11.3. Bọc DEK để lưu hồ sơ
+### 11.3. Wrapping DEKs for Record Storage
 
-Hệ thống lưu ciphertext hồ sơ bằng DEK, wrapped DEK bằng KEK trong KMS. Khi rotation, cần metadata `keyId` để biết đúng KEK; nếu rewrap DEK, có thể không cần decrypt toàn bộ dữ liệu. **KEK storage dài hạn không nên mặc nhiên được dẫn xuất từ ephemeral X25519 session Z**, vì sau phiên KEK đó biến mất hoặc không có cơ chế khôi phục. Thiết kế key hierarchy, quyền unwrap, auditing và backup riêng cho lưu trữ.
+A system stores encrypted record ciphertexts under a DEK, with the DEK wrapped by a KEK in a KMS. On rotation, `keyId` metadata is needed to locate the right KEK; by rewrapping the DEK, you may avoid re-encrypting all data. **Long-term storage KEKs should not by default be derived from an ephemeral X25519 session Z**, because once the session ends that KEK disappears or lacks recovery mechanisms. Design a separate key hierarchy, unwrap permissions, auditing, and backup for storage.
 
-### 11.4. Xác thực handshake
+### 11.4. Handshake Confirmation
 
-Alice/Bob cùng tính shared secret và PRK, sau đó tạo confirmation MAC trên transcript bằng `K_confirm_client`/`K_confirm_server`. Nó giúp phát hiện một bên thiếu secret hoặc transcript khác nhưng **không chứng minh danh tính** nếu public keys không được xác thực: MITM có thể có confirmation MAC hợp lệ ở từng phiên do chính họ tham gia. Cần thiết kế AKE có identity binding thật.
+Alice/Bob compute the shared secret and PRK, then compute a confirmation MAC over the transcript using `K_confirm_client`/`K_confirm_server`. This detects if one party lacks the secret or has a different transcript, but **does not prove identity** if public keys are unauthenticated: a MITM can produce valid confirmation MACs on each session it participates in. You need an AKE design with real identity binding.
 
-### 11.5. Chuyển thuật toán và rekey
+### 11.5. Algorithm Migration and Rekeying
 
-Hệ thống chuyển từ AES-128-GCM sang AES-256-GCM hoặc một suite khác, không chỉ đổi độ dài từ 16 lên 32 byte mà quên **suite ID trong transcript/info**. Thỏa thuận thuật toán phải chống downgrade, hai bên derive đúng key length, key ID và được xác thực. Một server có nhiều bản cũ/mới phải có version rõ ràng và chính sách ngừng chấp nhận suite yếu.
+When a system upgrades from AES-128-GCM to AES-256-GCM or another suite, do not merely change the length from 16 to 32 bytes while omitting the **suite ID in transcript/info**. Algorithm negotiation must resist downgrade, and both sides must derive matching key lengths, key IDs, and be authenticated. A server supporting old and new versions needs explicit versioning and a deprecation policy for weak suites.
 
-## 12. Những lỗi bảo mật hay gặp
+## 12. Frequent Security Mistakes
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng trực tiếp 16/32 byte đầu của ECDH secret làm AES key | Không có context/purpose/role separation; key schedule tự phát | HKDF Extract/Expand theo giao thức, nhãn đầy đủ |
-| Lấy SHA-256(Z) rồi dùng cho mọi mục đích | Không tách encryption, MAC, wrap | HKDF Expand với `info` riêng mỗi purpose |
-| Client `"send"`, Server cũng `"send"` nhưng nhầm hướng | Hai bên derive sai key hoặc cùng key ở hai hướng | Định nghĩa `c2s/s2c` hoặc initiator/responder bất biến |
-| Cùng HKDF `info` cho MAC và AES | Tái sử dụng khóa chéo primitive | Domain separation bằng label/thuật toán/role |
-| `info = a + ":" + b` không đóng khung trường | Hai tuple ngữ cảnh có thể cùng byte string | Length prefix/canonical binary encoding |
-| Không ràng buộc phiên bản và suite | Khóa giữa version/protocol có thể trùng hoặc bị nhầm | Thêm version, suite, transcript hash vào info |
-| Cho rằng transcript hash là chữ ký số | Không ngăn MITM tráo public key | AKE có certificate/signature/PSK auth |
-| Coi HKDF salt là bí mật bắt buộc | Khó đồng bộ giữa hai bên, sai giả định | Salt thường công khai, phải đúng quy tắc giao thức |
-| Coi HKDF là password KDF | Bẻ password yếu rất nhanh | Argon2id/scrypt/PBKDF2 cho password |
-| Dùng một AES-GCM key, nonce 0 cho cả hai phía | Nonce reuse gây hỏng bảo mật GCM | Khóa tách hướng + nonce duy nhất mỗi key |
-| Dẫn xuất KEK từ phiên ngắn hạn rồi lưu DEK lâu dài | Sau restart/phiên kết thúc không còn KEK để unwrap | Dùng KMS/HSM/key hierarchy lưu trữ |
-| Tưởng AES-KW có AAD như AES-GCM | Không có binding metadata tự động | Xác thực context/metadata bằng protocol riêng |
-| Lưu log `generateSecret()` hoặc PRK | Lộ toàn bộ traffic/wrap keys liên quan | Secret không in/log; giảm tồn tại trong RAM |
-| Không kiểm public key hoặc lỗi X25519 all-zero | Có thể nhận input bất thường/không an toàn | Parse/validate đúng algorithm và provider/standard |
-| Không giới hạn HKDF `L` | Sai hoặc vượt HKDF output bound | Kiểm `1 ≤ L ≤ 255×HashLen` trong demo |
-| Chỉ kiểm encrypt/decrypt đúng, bỏ negative tests | Không phát hiện sai context, role, length và tamper | Test expected failures, key separation và interoperability |
-| Dùng code demo như giao thức mạng production | Thiếu danh tính, replay, metadata, rotation | Dùng TLS 1.3 hoặc AKE/record protocol chuẩn |
+| Using the first 16/32 bytes of an ECDH secret directly as an AES key | No context/purpose/role separation; ad-hoc key schedule | HKDF Extract/Expand per protocol with full labels |
+| Taking SHA-256(Z) and reusing it for all purposes | Fails to separate encryption, MAC, and wrapping | HKDF Expand with distinct `info` per purpose |
+| Client uses `"send"` and Server also uses `"send"`, confusing direction | Sides derive mismatched keys or identical keys for both directions | Define immutable `c2s/s2c` or initiator/responder labels |
+| Same HKDF `info` for MAC and AES | Cross-primitive key reuse | Domain separation via labels/algorithms/roles |
+| `info = a + ":" + b` without field framing | Two context tuples can produce the same byte string | Length-prefixed or canonical binary encoding |
+| Omitting version and suite binding | Keys across versions/protocols can collide or be confused | Include version, suite, and transcript hash in `info` |
+| Treating a transcript hash as a digital signature | Does not prevent MITM swapping public keys | Use AKE with certificate/signature/PSK authentication |
+| Assuming HKDF salt must be a secret | Hard to synchronize across parties, wrong assumption | Salt is typically public; follow exact protocol rules |
+| Treating HKDF as a password KDF | Weak passwords are cracked very quickly | Use Argon2id/scrypt/PBKDF2 for passwords |
+| Using one AES-GCM key starting at nonce 0 on both sides | Nonce reuse breaks GCM security | Direction-separated keys + unique nonce per key |
+| Deriving a KEK from a short-lived session to store long-term DEKs | After restart/session end, no KEK remains to unwrap | Use KMS/HSM/storage key hierarchy |
+| Assuming AES-KW has AAD like AES-GCM | No automatic metadata binding | Authenticate context/metadata via separate protocol layer |
+| Logging `generateSecret()` or PRK | Compromises all derived traffic/wrap keys | Never print/log secrets; minimize lifetime in RAM |
+| Skipping public key validation or X25519 all-zero checks | May accept malformed or unsafe inputs | Parse/validate per algorithm and provider/standard |
+| Not bounding HKDF `L` | Violates or overflows HKDF output limit | Enforce `1 ≤ L ≤ 255×HashLen` in demos/implementations |
+| Testing only happy-path encrypt/decrypt without negative tests | Misses context, role, length, and tamper bugs | Test expected failures, key separation, and interoperability |
+| Using demo code as a production network protocol | Lacks identity, replay, metadata, and rotation | Use TLS 1.3 or a standard AKE/record protocol |
 
-## 13. Kiểm thử key schedule và cross-system interoperability
+## 13. Testing the Key Schedule and Cross-System Interoperability
 
-**Kiểm tra byte không chỉ so người dùng thấy output giống nhau.** Hai triển khai Java/Python/Go có thể cùng gọi X25519/HKDF nhưng khác cách đóng khung public keys hoặc labels, dẫn tới khóa khác.
+**Verify bytes, not just whether users see readable output.** Two implementations in Java/Python/Go might both call X25519/HKDF yet frame public keys or labels differently, deriving different keys.
 
-Bộ test nên có:
+A test suite should include:
 
-1. **RFC 5869 HKDF known-answer vectors:** input IKM/salt/info/length cố định và expected PRK/OKM. Chương trình minh họa chạy vector số 1.
-2. **Role symmetry:** Alice c2s encryption key phải bằng Bob c2s decryption key; riêng c2s khác s2c và wrap.
-3. **Purpose separation:** thay nhãn `"enc"` thành `"wrap"` phải tạo key khác; dùng nhãn cũ để giải bọc sai phải thất bại.
-4. **Context separation:** thay transcript, suite version, tenant/channel hoặc identity được ràng buộc phải tạo khóa khác.
-5. **Transcript canonicalization:** cùng các field nhưng serialization/byte order khác có thể ra khác hash; phải định nghĩa và test chính xác thứ tự/length.
-6. **Negative AEAD tests:** dùng sai key, nonce, AAD, tag hoặc sửa ciphertext phải từ chối; không phát plaintext chưa xác thực.
-7. **Public key validation:** peer key malformed, wrong curve, wrong encoding, low-order issues, error mapping an toàn.
-8. **Replay/sequence:** gói hợp lệ cũ không được coi là message mới nếu giao thức đòi chống replay; state phải kiểm.
-9. **Rekey/rotation:** epoch mới derive key khác, key ID chọn đúng và không chấp nhận rollback trái chính sách.
-10. **Wrap/unwrap:** DEK wrap bằng KEK đúng mở được; KEK sai hoặc wrapped bytes sửa phải fail theo primitive/provider.
-11. **Cross-provider:** Java JCE provider, thư viện C/Go/Python phải thống nhất X25519 encoding, HKDF info, nonce format, AES-KW variant và test vectors; không chỉ test ASCII labels đơn giản.
+1. **RFC 5869 HKDF known-answer vectors:** fixed IKM/salt/info/length inputs and expected PRK/OKM. The demo runs vector 1.
+2. **Role symmetry:** Alice's c2s encryption key must equal Bob's c2s decryption key; c2s differs from s2c and wrap.
+3. **Purpose separation:** changing label `"enc"` to `"wrap"` must produce a different key; using the old label to unwrap must fail.
+4. **Context separation:** changing transcript, suite version, bound tenant/channel, or identity must yield different keys.
+5. **Transcript canonicalization:** identical fields with different serialization/byte order produce different hashes; specify and test exact field order/lengths.
+6. **Negative AEAD tests:** wrong key, nonce, AAD, tag, or modified ciphertext must be rejected; never emit unauthenticated plaintext.
+7. **Public key validation:** malformed peer keys, wrong curves, wrong encodings, low-order inputs, and safe error mapping.
+8. **Replay/sequence:** old valid packets must not be accepted as new messages if the protocol requires replay protection; track state properly.
+9. **Rekey/rotation:** new epochs derive distinct keys, select the right key ID, and reject policy-disallowed rollbacks.
+10. **Wrap/unwrap:** DEKs wrapped with the right KEK unwrap cleanly; wrong KEKs or tampered wrapped bytes must fail per primitive/provider.
+11. **Cross-provider:** Java JCE providers and C/Go/Python libraries must agree on X25519 encoding, HKDF info, nonce format, AES-KW variant, and test vectors—do not test only simple ASCII labels.
 
-**Lưu ý khi test:** Mẫu known-answer có thể chứa byte giả cố định công khai, nhưng **không bao giờ log secret production** để đối chiếu. Test `MessageDigest.isEqual` trên byte để kiểm kết quả; giao thức xác thực sản xuất nên dùng verification API của primitive và phân tích thời gian/timing tùy mô hình đe dọa.
+**Testing note:** known-answer fixtures may contain fixed public dummy bytes, but **never log production secrets** for comparison. Use `MessageDigest.isEqual` on bytes in checks; production verification should use primitive verification APIs and consider timing behavior per threat model.
 
-## 14. Bài tập (có đáp án)
+## 14. Exercises (with Solutions)
 
-**Bài 1.** Hai bên X25519 có cùng shared secret 32 byte. Có nên dùng toàn bộ secret làm khóa AES-256 rồi dùng lại làm HMAC key?
+**Exercise 1.** Two X25519 peers share a 32-byte secret. Should they use the entire secret as an AES-256 key and also reuse it as an HMAC key?
 
-**Đáp án:** Không. Cần key schedule HKDF Extract/Expand, tách nhãn và chiều dài riêng cho AES và HMAC. Cùng kích thước không bảo đảm đúng mục đích hay ngữ cảnh.
+**Answer:** No. You need an HKDF Extract/Expand key schedule with distinct labels and lengths for AES and HMAC. Having the same size does not ensure proper purpose or context isolation.
 
-**Bài 2.** `K_c2s = HKDF-Expand(PRK, "c2s", 16)` và `K_s2c = HKDF-Expand(PRK, "s2c", 16)` khác nhau để làm gì?
+**Exercise 2.** Why do `K_c2s = HKDF-Expand(PRK, "c2s", 16)` and `K_s2c = HKDF-Expand(PRK, "s2c", 16)` differ?
 
-**Đáp án:** Để **tách hai hướng sử dụng**, tránh vô tình dùng cùng key cho traffic hai chiều và nhầm quyền/nonce. Vẫn cần bảo đảm nonce unique cho từng key.
+**Answer:** To **separate the two traffic directions**, avoiding accidental key reuse across bidirectional traffic and role/nonce confusion. Each key still requires unique nonces.
 
-**Bài 3.** `salt` HKDF và `info` có nhất thiết phải bí mật không?
+**Exercise 3.** Must HKDF `salt` and `info` be kept secret?
 
-**Đáp án:** Thường **không**. Chúng có thể công khai nhưng phải nhất quán/được ràng buộc vào giao thức, trong khi IKM, PRK và OKM phải giữ bí mật. Salt không thay xác thực identity.
+**Answer:** Usually **no**. They can be public, though they must be consistent and bound into the protocol, whereas IKM, PRK, and OKM must remain secret. Salt does not replace identity authentication.
 
-**Bài 4.** Thay `info` từ `"wrap"` sang `"enc"` có đảm bảo có đúng cùng key không?
+**Exercise 4.** If you change `info` from `"wrap"` to `"enc"`, will you get the same key?
 
-**Đáp án:** Không. HKDF Expand với nhãn khác được thiết kế để cho **key độc lập về mặt tính toán** dưới giả định PRF. Hai bên phải dùng cùng nhãn cho cùng mục đích; nhầm nhãn sẽ khiến decrypt/unwrap thất bại.
+**Answer:** No. HKDF-Expand with different labels is designed to produce **computationally independent keys** under the PRF assumption. Both sides must use the same label for the same purpose; mismatched labels cause decrypt/unwrap failure.
 
-**Bài 5.** Nếu Alice/Bob dùng transcript hash trong HKDF info nhưng không ký hoặc xác minh public key, họ có tránh MITM chưa?
+**Exercise 5.** If Alice and Bob include the transcript hash in HKDF `info` without signing or verifying public keys, have they prevented MITM?
 
-**Đáp án:** Chưa. Mallory có thể thực hiện hai phiên riêng với Alice và Bob, mỗi phiên có transcript/key hợp lệ. Phải có cơ chế xác thực identity/public key theo AKE/giao thức chuẩn.
+**Answer:** Not yet. Mallory can run two separate sessions with Alice and Bob, each having a valid transcript/key. You need real identity/public-key authentication via an AKE or standard protocol.
 
-**Bài 6.** Hai ứng dụng cùng dùng `info = "enc"` với cùng PRK. Lỗi gì có thể xảy ra?
+**Exercise 6.** Two applications both use `info = "enc"` with the same PRK. What bug can occur?
 
-**Đáp án:** **Cross-protocol key reuse/confusion**. Cần thêm protocol ID/version, cipher suite, purpose, hướng và ngữ cảnh phân biệt.
+**Answer:** **Cross-protocol key reuse/confusion**. You must include distinct protocol ID/version, cipher suite, purpose, direction, and context fields.
 
-**Bài 7.** Trong Java, `new GCMParameterSpec(128, nonce)` dùng tag 128 bit. Có liên quan gì đến việc key AES-128 là 16 byte?
+**Exercise 7.** In Java, `new GCMParameterSpec(128, nonce)` specifies a 128-bit tag. Is that related to an AES-128 key being 16 bytes?
 
-**Đáp án:** Đây là **hai thông số khác nhau**: AES-128 dùng key 128 bit (16 byte); tag GCM 128 bit là độ dài thẻ xác thực. Ngoài ra nonce 96 bit (12 byte) thường được dùng. Không lấy nhầm tag size làm key size.
+**Answer:** Those are **two separate parameters**: AES-128 uses a 128-bit (16-byte) key; a 128-bit GCM tag is the authentication tag length. Additionally, a 96-bit (12-byte) nonce is typically used. Never confuse tag size with key size.
 
-**Bài 8.** DEK được bọc bằng KEK sinh từ shared secret X25519 ephemeral, rồi lưu 5 năm. Vấn đề gì?
+**Exercise 8.** A DEK is wrapped using a KEK derived from an ephemeral X25519 shared secret, then stored for 5 years. What is the problem?
 
-**Đáp án:** KEK biến mất cùng phiên nếu không được duy trì/khôi phục; không thích hợp với lưu trữ dài hạn nếu chưa có thiết kế key hierarchy. Nên dùng KEK quản lý qua KMS/HSM hoặc hệ thống lưu khóa bền vững có rotation/backup/authorization.
+**Answer:** The KEK disappears with the session if not persisted/recovered; it is unsuitable for long-term storage without a designed key hierarchy. Use a KEK managed in a KMS/HSM or persistent key-storage system with rotation, backup, and authorization.
 
-**Bài 9.** Cặp key AES-GCM c2s/s2c đã tách riêng; hai process gửi cùng hướng lại dùng nonce counter khởi tạo từ 0 dưới cùng key. Có an toàn không?
+**Exercise 9.** The c2s/s2c AES-GCM keys are separated; two processes sending in the same direction both start a nonce counter at 0 under the same key. Is this safe?
 
-**Đáp án:** Không. Nonce phải duy nhất **toàn miền các lần mã hóa dưới một key**, không chỉ theo từng process. Cần phân phối counter/partition hoặc chiến lược nonce được đánh giá.
+**Answer:** No. Nonces must be unique **across all encryptions under a key**, not merely per process. You need counter partitioning/coordination or a vetted nonce strategy.
 
-**Bài 10.** Một record AES-KW có wrapped key hợp lệ, nhưng metadata tenant/record ID bị thay. AES-KW có tự kiểm chính xác tenant không?
+**Exercise 10.** An AES-KW record contains a valid wrapped key, but the tenant/record ID metadata was altered. Does AES-KW automatically detect the altered tenant?
 
-**Đáp án:** Không. AES-KW kiểm vật liệu khóa theo thiết kế wrap, **không có AAD tenant/record ID** như AES-GCM. Cần binding metadata vào hệ thống xác thực/phân quyền hoặc định dạng wrapping có AAD theo đặc tả.
+**Answer:** No. AES-KW checks the wrapped key material itself and **has no tenant/record ID AAD** like AES-GCM. Metadata must be bound via authentication/authorization layers or a wrapping format with AAD per specification.
 
-## 15. Checklist thiết kế và triển khai
+## 15. Design and Implementation Checklist
 
-- [ ] Public-key agreement dùng X25519/ECDH theo thư viện chuẩn; **peer key/identity được xác thực** bởi AKE/TLS/certificate/PSK policy.
-- [ ] Không dùng raw shared secret trực tiếp làm AES/MAC/KEK; xử lý điều kiện public-key malformed/all-zero theo chuẩn/provider.
-- [ ] HKDF-Extract đúng HMAC hash/salt/IKM; HKDF-Expand đúng byte info/counter/length; có known-answer tests.
-- [ ] Dữ liệu `info` được đóng khung không nhập nhằng, có **protocol/version/suite/transcript/role/purpose** và những miền sử dụng cần ràng buộc.
-- [ ] Các key cho `c2s`, `s2c`, MAC, confirmation và wrap có nhãn khác nhau, độ dài đúng primitive.
-- [ ] Với AES-GCM, **nonce duy nhất** cho mỗi lần encrypt dưới từng key, tag được xác minh trước khi dùng plaintext, AAD gắn metadata message khi cần.
-- [ ] Có chống replay, sequence/epoch, giới hạn sử dụng key và rekey/rotation theo giao thức.
-- [ ] DEK để mã hóa dữ liệu, KEK để bọc DEK; KEK dài hạn dùng key management phù hợp, không buộc vào ephemeral session.
-- [ ] Không log hoặc lưu công khai private key, shared secret, PRK/OKM; giảm vòng đời secret và quản lý quyền giải bọc.
-- [ ] Chạy interoperability vectors trên các triển khai, kiểm cả negative cases và metadata/algorithm negotiation.
-- [ ] Nếu ứng dụng cần kết nối an toàn thực tế, ưu tiên **giao thức chuẩn đã được thẩm định** (điển hình TLS 1.3) thay vì chắp vá key agreement, KDF và AEAD thành một handshake riêng.
+- [ ] Public-key agreement uses X25519/ECDH via standard libraries; **peer keys/identities are authenticated** by AKE/TLS/certificate/PSK policy.
+- [ ] Never use raw shared secrets directly as AES/MAC/KEK; handle malformed public keys and all-zero secrets per standard/provider.
+- [ ] HKDF-Extract uses proper HMAC hash/salt/IKM; HKDF-Expand uses exact info/counter/length bytes; verified with known-answer tests.
+- [ ] `info` data is unambiguously framed, containing **protocol/version/suite/transcript/role/purpose** and any required domain bindings.
+- [ ] Keys for `c2s`, `s2c`, MAC, confirmation, and wrapping use distinct labels and primitive-appropriate lengths.
+- [ ] With AES-GCM, use a **unique nonce** per encryption under each key, verify tags before using plaintext, and bind message metadata in AAD as needed.
+- [ ] Enforce replay protection, sequence/epoch tracking, key-usage limits, and rekey/rotation per protocol.
+- [ ] DEKs encrypt data, KEKs wrap DEKs; long-term KEKs use proper key management rather than binding to ephemeral sessions.
+- [ ] Never log or publicly store private keys, shared secrets, or PRK/OKM; minimize secret lifetime and enforce unwrap permissions.
+- [ ] Run interoperability test vectors across implementations, testing negative cases and metadata/algorithm negotiation.
+- [ ] If the application needs real-world secure transport, prefer a **vetted standard protocol** (typically TLS 1.3) over stitching key agreement, KDF, and AEAD into a custom handshake.
 
-## 16. Tóm tắt
+## 16. Summary
 
-**Shared secret chỉ là đầu vào cho key schedule**, không phải khóa chung dùng cho mọi việc. Với X25519, hai bên có thể có cùng byte bí mật; **HKDF-Extract** tạo PRK, **HKDF-Expand** với `info` có định dạng chuẩn và nhãn mục đích sinh ra các key **đúng thuật toán, chiều truyền và phạm vi sử dụng**. Ngữ cảnh handshake/transcript phải được ràng buộc, nhưng vẫn cần **xác thực danh tính và thỏa thuận thuật toán** theo giao thức. Tách `c2s/s2c`, AES-GCM, HMAC và KEK giúp giảm key confusion; kết hợp với nonce, AAD, chống replay và vòng đời khóa đúng mới tạo thành một hệ thống mã hóa an toàn.
+**A shared secret is only the input to a key schedule**, not a single key for everything. With X25519, two parties obtain identical secret bytes; **HKDF-Extract** produces the PRK, and **HKDF-Expand** with canonical `info` and purpose labels derives keys matched to **algorithm, direction, and usage scope**. Handshake/transcript context must be bound, while **identity authentication and algorithm negotiation** remain mandatory per protocol. Separating `c2s/s2c`, AES-GCM, HMAC, and KEK reduces key confusion; combining this with unique nonces, AAD, replay protection, and proper key lifecycles builds a secure cryptographic system.
 
-Tài liệu tham khảo định nghĩa thuật toán: **RFC 5869 (HKDF)** https://www.rfc-editor.org/rfc/rfc5869 ; **RFC 7748 (X25519/X448)** https://www.rfc-editor.org/rfc/rfc7748 ; **RFC 3394 (AES Key Wrap)** https://www.rfc-editor.org/rfc/rfc3394 . Các RFC này định nghĩa primitive, không tự thay thế việc thiết kế/kiểm định một giao thức có xác thực đầu-cuối.
+Algorithm specifications: **RFC 5869 (HKDF)** https://www.rfc-editor.org/rfc/rfc5869 ; **RFC 7748 (X25519/X448)** https://www.rfc-editor.org/rfc/rfc7748 ; **RFC 3394 (AES Key Wrap)** https://www.rfc-editor.org/rfc/rfc3394 . These RFCs define primitives and do not replace designing or auditing an end-to-end authenticated protocol.

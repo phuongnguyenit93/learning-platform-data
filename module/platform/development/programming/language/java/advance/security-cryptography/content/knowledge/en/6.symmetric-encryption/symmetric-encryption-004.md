@@ -1,134 +1,134 @@
-# 6.4. Chu trình `Cipher.init`, `update`, `doFinal` và tính toán bộ đệm đầu ra
+# 6.4. The `Cipher.init`, `update`, `doFinal` Lifecycle and Output Buffer Sizing
 
-## Mục tiêu
+## Objectives
 
-Bài này giải thích vòng đời **`javax.crypto.Cipher`** trong Java Cryptography Architecture (JCA) khi mã hóa và giải mã đối xứng. Trọng tâm là cách dữ liệu đi qua **`init` → `update` → `doFinal`**, cách tính chỗ chứa output bằng **`getOutputSize`**, và cách dùng đúng các overload nhận mảng/`ByteBuffer` khi không biết mỗi lần `update` sẽ phát ra bao nhiêu byte.
+This lesson explains the lifecycle of **`javax.crypto.Cipher`** in the Java Cryptography Architecture (JCA) for symmetric encryption and decryption. The focus is on how data flows through **`init` → `update` → `doFinal`**, how to size output storage with **`getOutputSize`**, and how to properly use array/`ByteBuffer` overloads when the number of bytes emitted by each `update` call is unknown in advance.
 
-Sau khi học, bạn có thể:
+After studying this lesson, you will be able to:
 
-- Khởi tạo `Cipher` đúng chiều mã hóa/giải mã, khóa, IV/nonce và tham số thuật toán.
-- Xử lý thông điệp trong **một phần hoặc nhiều phần** mà không bỏ sót output của `update` và `doFinal`.
-- Phân biệt output của block cipher có padding với output của AEAD như AES-GCM, bao gồm authentication tag.
-- Cấp phát buffer dựa trên **`getOutputSize(inputLen)`** và theo dõi **số byte thực tế đã ghi**.
-- Xử lý `ShortBufferException`, `BadPaddingException`, `AEADBadTagException` và tránh reuse IV/nonce, nhận plaintext trước khi được xác thực.
+- Initialize `Cipher` with the proper encrypt/decrypt mode, key, IV/nonce, and algorithm parameters.
+- Process messages in **single or multiple parts** without dropping output from `update` and `doFinal`.
+- Distinguish output from padded block ciphers versus AEAD ciphers like AES-GCM, including the authentication tag.
+- Allocate buffers using **`getOutputSize(inputLen)`** and track the **actual number of bytes written**.
+- Handle `ShortBufferException`, `BadPaddingException`, and `AEADBadTagException`, and avoid reusing IVs/nonces or consuming plaintext before authentication.
 
-Mã trong bài dùng **Java 17+**, `AES/GCM/NoPadding` làm ví dụ chính; `AES/CBC/PKCS5Padding` chỉ dùng để minh họa block padding và sizing. **AES-GCM được ưu tiên cho dữ liệu cần đồng thời bảo mật và xác thực**, với key/nonce được quản lý đúng cách.
+The code in this lesson targets **Java 17+**, using `AES/GCM/NoPadding` as the primary example; `AES/CBC/PKCS5Padding` is used solely to illustrate block padding and sizing. **AES-GCM is preferred for data needing both confidentiality and authentication**, with properly managed keys and nonces.
 
-## 1. Một `Cipher` đi qua những trạng thái nào?
+## 1. What States Does a `Cipher` Transition Through?
 
-`Cipher` là **engine có trạng thái**, không phải hàm biến đổi byte độc lập. Trước khi xử lý payload, phải chọn transformation và gọi `init`:
+`Cipher` is a **stateful engine**, not a stateless byte-transformation function. Before processing a payload, you must select a transformation and call `init`:
 
 ```java
 Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
 cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, nonce));
 ```
 
-Đây là **snippet**, trong đó `key` là `SecretKey` AES và `nonce` là mảng 12 byte hợp lệ, đã tạo riêng cho thao tác. Cần import `javax.crypto.Cipher` và `javax.crypto.spec.GCMParameterSpec`, đồng thời xử lý checked exceptions.
+This is a **snippet**, where `key` is an AES `SecretKey` and `nonce` is a valid 12-byte array generated specifically for this operation. You need imports for `javax.crypto.Cipher` and `javax.crypto.spec.GCMParameterSpec`, along with checked exception handling.
 
-`Cipher.getInstance("AES/GCM/NoPadding")` chọn **transformation đầy đủ** gồm thuật toán, mode, padding. Tránh chỉ ghi `"AES"` vì cách diễn giải mode/padding mặc định phụ thuộc provider và có thể không phù hợp về bảo mật.
+`Cipher.getInstance("AES/GCM/NoPadding")` selects a **full transformation** specifying algorithm, mode, and padding. Avoid writing just `"AES"` because default mode/padding interpretation depends on the provider and may be insecure.
 
-Các bước chính:
+Key steps:
 
 ```text
 Cipher.getInstance(transformation)
        |
        v
-chưa init: KHÔNG update/doFinal
+uninitialized: NO update/doFinal
        |
        v
 init(ENCRYPT_MODE/DECRYPT_MODE, key, params)
        |
-       +-- đối với AEAD: updateAAD(aad) trước dữ liệu payload
+       +-- for AEAD: updateAAD(aad) before payload data
        |
        v
 update(chunk 1) -> update(chunk 2) -> ... -> update(chunk n)
-       |               có thể xuất 0 hoặc nhiều byte mỗi lần
+       |               may emit 0 or more bytes per call
        v
-doFinal(last chunk hoặc không có thêm input)
+doFinal(last chunk or no additional input)
        |
-       +-- xử lý byte tồn đọng, padding hoặc tag
-       +-- trả phần output CUỐI; với GCM decrypt, xác minh tag
+       +-- processes remaining bytes, padding, or tag
+       +-- returns FINAL output; on GCM decrypt, verifies tag
        |
        v
-hoàn tất: Cipher trở về trạng thái sau init nếu thành công
+complete: Cipher resets to post-init state if successful
 ```
 
-- `init(Cipher.ENCRYPT_MODE, ...)` khởi tạo để **mã hóa**; `init(Cipher.DECRYPT_MODE, ...)` khởi tạo để **giải mã**. Không gọi `update/doFinal` trước `init`; có thể nhận `IllegalStateException`.
-- `init` còn có các mode `WRAP_MODE`/`UNWRAP_MODE` cho `wrap/unwrap` key, nhưng bài này tập trung `ENCRYPT_MODE`/`DECRYPT_MODE`.
-- `update(...)` xử lý thêm một phần payload. **Số byte output một lần gọi không nhất thiết bằng số byte input**; provider có thể giữ block chưa đủ, chờ padding hoặc xác minh tag.
-- `doFinal(...)` xử lý phần cuối và kết thúc phép biến đổi. Trong AES-GCM, mã hóa **gắn tag xác thực vào output**, giải mã **kiểm tra tag** và có thể ném `AEADBadTagException`.
-- Sau `doFinal` thành công, theo API, `Cipher` được reset về **trạng thái đã init trước đó**. Tuy nhiên, với AES-GCM, **không được mã hóa thông điệp tiếp theo bằng cùng cặp key + nonce**: phải `init` cho mỗi encryption với nonce mới, ngay cả khi đối tượng có vẻ sẵn sàng tiếp tục.
-- Nếu `doFinal` ném exception, không suy đoán state còn an toàn để sử dụng; xử lý lỗi và **khởi tạo lại** đối tượng cho một thông điệp mới.
+- `init(Cipher.ENCRYPT_MODE, ...)` initializes for **encryption**; `init(Cipher.DECRYPT_MODE, ...)` initializes for **decryption**. Do not call `update/doFinal` before `init`; doing so can throw `IllegalStateException`.
+- `init` also supports `WRAP_MODE`/`UNWRAP_MODE` for key `wrap/unwrap`, though this lesson focuses on `ENCRYPT_MODE`/`DECRYPT_MODE`.
+- `update(...)` processes another chunk of payload. **The number of output bytes from a single call does not necessarily equal the input byte count**; the provider may buffer incomplete blocks or wait for padding or tag verification.
+- `doFinal(...)` processes the final portion and finishes the transformation. In AES-GCM, encryption **appends the authentication tag to the output**, while decryption **verifies the tag** and may throw `AEADBadTagException`.
+- After a successful `doFinal`, per the API, `Cipher` resets to its **previously initialized state**. However, with AES-GCM, **you must never encrypt a second message using the same key + nonce pair**: call `init` per encryption with a fresh nonce, even though the instance appears ready to continue.
+- If `doFinal` throws an exception, do not assume the state remains safe to use; handle the error and **re-initialize** the object for a new message.
 
-Hình dung **một `init` và chuỗi các `update/doFinal` tương ứng với một message**. Không gọi `init` giữa các chunk của cùng message: làm vậy sẽ bỏ state của phần trước.
+Think of **one `init` and a sequence of `update/doFinal` calls as corresponding to one message**. Do not call `init` between chunks of the same message: doing so discards state from earlier chunks.
 
-## 2. Vai trò của khóa, IV/nonce và AAD
+## 2. Role of Key, IV/Nonce, and AAD
 
-`AES` dùng khóa đối xứng; để giải mã, bên nhận cần **cùng key**, mode, IV/nonce và các tham số liên quan. Với AES-GCM:
+`AES` uses a symmetric key; to decrypt, the receiver needs the **exact same key**, mode, IV/nonce, and associated parameters. For AES-GCM:
 
-- **Key:** ví dụ AES-128 hoặc AES-256; phải lưu/truyền bằng cơ chế quản lý khóa phù hợp, **không đưa key vào log** và không nhúng key cố định trong source.
-- **Nonce/IV:** thường dùng **12 byte (96 bit)** cho GCM. Mỗi lần mã hóa với **cùng key** phải có nonce **khác nhau**. Có thể tạo nonce từ `SecureRandom` cho minh họa/quy mô phù hợp; ở hệ thống sản lượng lớn cần thiết kế cấp phát nonce bảo đảm không trùng và chính sách xoay key.
-- **Tag:** ví dụ `GCMParameterSpec(128, nonce)` đặt tag **128 bit = 16 byte**. Khi encryption kết thúc, `doFinal` trả thêm tag ở cuối ciphertext; khi decryption kết thúc, `doFinal` kiểm tra tag, và dữ liệu/khóa/nonce/AAD sai có thể dẫn đến xác thực thất bại.
-- **AAD (Additional Authenticated Data):** dữ liệu **được xác thực nhưng không được mã hóa**, như version/header của protocol. Gọi `cipher.updateAAD(aad)` **trước** mọi `update/doFinal` xử lý payload, và bên giải mã phải cung cấp **chính xác cùng AAD**.
-- **Ciphertext+tag:** đối với GCM, Java `Cipher` phát ra ciphertext cùng tag; nonce cần được truyền/lưu riêng (nonce không phải bí mật). Một định dạng đơn giản có thể là `version || nonce || ciphertext || tag` với quy tắc phân tích độ dài rõ ràng. Đừng lẫn lộn tag và nonce.
+- **Key:** e.g. AES-128 or AES-256; must be stored/transmitted via proper key management, **never logged**, and never hardcoded in source code.
+- **Nonce/IV:** typically **12 bytes (96 bits)** for GCM. Each encryption under the **same key** must use a **different nonce**. Nonces can be generated via `SecureRandom` for demonstrations or appropriate scales; high-volume production systems need non-repeating nonce allocation designs and key rotation policies.
+- **Tag:** e.g. `GCMParameterSpec(128, nonce)` sets a **128-bit = 16-byte** tag. When encryption finishes, `doFinal` appends the tag to the ciphertext; when decryption finishes, `doFinal` checks the tag, and invalid data/key/nonce/AAD causes verification failure.
+- **AAD (Additional Authenticated Data):** data that is **authenticated but not encrypted**, such as a protocol header/version. Call `cipher.updateAAD(aad)` **before** any `update/doFinal` processing payload, and the decryptor must supply the **exact same AAD**.
+- **Ciphertext+tag:** for GCM, Java `Cipher` emits ciphertext together with the tag; the nonce must be transmitted/stored separately (the nonce is not secret). A simple format might be `version || nonce || ciphertext || tag` with unambiguous length-parsing rules. Do not confuse the tag with the nonce.
 
-**Cảnh báo bắt buộc của GCM:** cùng key + nonce không được sử dụng cho hai lần mã hóa khác nhau. Việc `doFinal` “reset” state **không hợp thức hóa** việc reuse nonce. Khi đổi ciphertext/nonce/key/AAD hoặc tag, bên giải mã phải coi toàn bộ thông điệp **không hợp lệ** nếu kiểm tra tag thất bại.
+**Mandatory GCM warning:** the same key + nonce must never be used for two different encryptions. The fact that `doFinal` "resets" state **does not legitimize** nonce reuse. If ciphertext/nonce/key/AAD or tag is altered, the decryptor must treat the entire message as **invalid** when tag verification fails.
 
-## 3. Các overload của `update` và `doFinal`
+## 3. Overloads of `update` and `doFinal`
 
-| Phương thức | Input | Output | Điểm cần nhớ |
+| Method | Input | Output | Key Points |
 | --- | --- | --- | --- |
-| `update(byte[] in)` | Cả mảng `in` | `byte[]`, **có thể `null`** nếu chưa phát ra block | Không được bỏ qua output khi nối nhiều chunk. |
-| `update(byte[] in, int off, int len)` | Đoạn `[off, off+len)` | `byte[]`, có thể `null` | Tránh xử lý byte thừa của buffer tái dùng. |
-| `update(in, off, len, out, outOff)` | Đoạn từ input | Ghi trực tiếp vào `out`; trả **số byte đã ghi** | Có thể trả 0; có thể ném `ShortBufferException`. |
-| `update(ByteBuffer in, ByteBuffer out)` | Các byte còn lại của `in` | Ghi vào `out`, trả **số byte ghi** | Cập nhật position của cả hai buffer khi thành công. |
-| `doFinal()` | Không thêm input; final dữ liệu đã `update` | `byte[]` | Bắt buộc để xử lý phần cuối, padding/tag. |
-| `doFinal(byte[] in)` | Input cuối + dữ liệu đã buffer | `byte[]` | Có thể dùng **một lần** nếu không cần chia chunk. |
-| `doFinal(in, inOff, inLen)` | Đoạn cuối | `byte[]` | Xử lý cả state từ những `update` trước. |
-| `doFinal(out, outOff)` | Không thêm input | Ghi phần cuối vào `out`; trả số byte | Dùng sau các `update` đã ghi vào cùng output. |
-| `doFinal(in, inOff, inLen, out, outOff)` | Input cuối | Ghi output cuối vào `out`; trả số byte | Phải còn đủ chỗ, tính đến byte đã buffer. |
-| `doFinal(ByteBuffer in, ByteBuffer out)` | `in.remaining()` | Ghi trực tiếp vào `out` | Chú ý position/limit và space của output. |
+| `update(byte[] in)` | Entire array `in` | `byte[]`, **may be `null`** if no block emitted yet | Never discard output when concatenating multiple chunks. |
+| `update(byte[] in, int off, int len)` | Slice `[off, off+len)` | `byte[]`, may be `null` | Avoids processing trailing garbage in reused buffers. |
+| `update(in, off, len, out, outOff)` | Input slice | Writes directly into `out`; returns **bytes written** | May return 0; may throw `ShortBufferException`. |
+| `update(ByteBuffer in, ByteBuffer out)` | Remaining bytes of `in` | Writes into `out`, returns **bytes written** | Advances positions of both buffers on success. |
+| `doFinal()` | No new input; finalizes prior `update` data | `byte[]` | Required to flush final block, padding/tag. |
+| `doFinal(byte[] in)` | Final input + buffered data | `byte[]` | Can be used **single-shot** when chunking is unnecessary. |
+| `doFinal(in, inOff, inLen)` | Final slice | `byte[]` | Also processes state from prior `update` calls. |
+| `doFinal(out, outOff)` | No new input | Writes final portion into `out`; returns byte count | Used after `update` calls that wrote into the same output buffer. |
+| `doFinal(in, inOff, inLen, out, outOff)` | Final input | Writes final output into `out`; returns byte count | Must have enough space accounting for buffered bytes. |
+| `doFinal(ByteBuffer in, ByteBuffer out)` | `in.remaining()` | Writes directly into `out` | Watch position/limit and output space. |
 
-**Khác `MessageDigest`:** `Cipher.update` có thể **phát output** ngay. Không thể chỉ gọi `update` rồi lấy output của `doFinal` cuối cùng nếu muốn toàn bộ ciphertext/plaintext. Khi dùng API trả `byte[]`, hãy **gom cả những mảng không null** theo đúng thứ tự. Khi dùng API ghi vào buffer có sẵn, hãy **cộng số byte đã ghi** sau mỗi lần.
+**Unlike `MessageDigest`:** `Cipher.update` can **emit output** immediately. You cannot simply call `update` and take only the final `doFinal` output if you want the full ciphertext/plaintext. When using `byte[]`-returning methods, **collect every non-null array** in order. When writing into an existing buffer, **accumulate the returned byte count** after every call.
 
-Ví dụ sơ đồ xử lý ba chunk với output:
+Example three-chunk processing diagram with output:
 
 ```text
 in = [chunk1] [chunk2] [chunk3]
         |        |        |
      update   update    doFinal
         |        |        |
-      out1     out2    out3 (gồm block cuối, padding/tag)
+      out1     out2    out3 (includes final block, padding/tag)
         \        |       /
          result = out1 || out2 || out3
 ```
 
-Không giả định `out1.length == chunk1.length` hoặc `out2.length == chunk2.length`. Với block cipher có padding, `update` có thể trả `null`/0 vì chưa đủ dữ liệu; với GCM decrypt, một provider có thể giữ plaintext đến khi tag được xác minh. Ứng dụng **không được công bố/tiêu thụ plaintext chưa xác thực** trước khi `doFinal` thành công.
+Never assume `out1.length == chunk1.length` or `out2.length == chunk2.length`. With padded block ciphers, `update` may return `null`/0 because a full block is not ready; with GCM decryption, a provider may buffer plaintext until the tag is verified. Applications **must not publish/consume unauthenticated plaintext** before `doFinal` succeeds.
 
-## 4. `Cipher.getOutputSize(inputLen)` là gì?
+## 4. What Is `Cipher.getOutputSize(inputLen)`?
 
-Phương thức:
+The method:
 
 ```java
 int capacity = cipher.getOutputSize(inputLen);
 ```
 
-trả về kích thước buffer **đủ chứa output của lượt `update` hoặc `doFinal` sắp tới** với `inputLen` byte đầu vào, **có tính đến dữ liệu đã buffer ở các `update` trước**, padding và authentication tag của AEAD. Đây là **cận trên cần thiết**, **không phải** số byte chắc chắn sẽ ghi: kết quả thực có thể ngắn hơn.
+returns a buffer size **large enough to hold the output of the next `update` or `doFinal` call** for `inputLen` input bytes, **accounting for data already buffered by previous `update` calls**, padding, and the AEAD authentication tag. This is a **required upper bound**, **not** the exact byte count guaranteed to be written: the actual output may be shorter.
 
-**Các quy tắc áp dụng:**
+**Rules to follow:**
 
-1. **Phải `init` trước khi gọi `getOutputSize`**; nếu Cipher ở state không hợp lệ có thể ném `IllegalStateException`.
-2. Khi đã biết số byte của toàn bộ message, có thể tính **một lần sau `init`, trước các `update`**: `byte[] output = new byte[cipher.getOutputSize(totalInputLength)]`. Sau đó nạp các chunk và cộng số byte được ghi qua các overload có output buffer.
-3. Nếu đang giữa một quy trình, gọi `getOutputSize(remainingInputLength)` tại **state hiện tại** để dự trù kết quả cho thao tác tiếp theo, bao gồm dữ liệu đã tích lũy; **không dùng các cận trên tính từ thời điểm khác như thể chúng là số byte đã xuất ra**.
-4. Dùng **số byte trả về thực tế** từ từng `update`/`doFinal` để xác định phần hợp lệ trong output. **Không** gửi/lưu toàn bộ mảng đã cấp phát nếu mới điền một phần.
-5. Với `ByteBuffer`, `remaining()` là chỗ chứa còn lại, không phải `capacity()` tổng; `output.position()` tăng theo số byte ghi.
-6. Nếu buffer không đủ, API ghi output có thể ném **`ShortBufferException`**. Theo Javadoc, sau lỗi thiếu buffer có thể gọi lại thao tác đó với output lớn hơn; nhưng sau lỗi xử lý/padding/authentication khác, phải thiết kế tái khởi tạo state rõ ràng.
-7. Đừng tự suy `update` sẽ tạo bao nhiêu byte từ riêng `inputLen`. Kể cả khi biết block size, buffering/padding/AEAD khiến **thời điểm output xuất hiện** phụ thuộc implementation.
+1. **You must call `init` before `getOutputSize`**; calling it in an invalid state may throw `IllegalStateException`.
+2. When the total message byte length is known upfront, you can compute it **once after `init`, before `update` calls**: `byte[] output = new byte[cipher.getOutputSize(totalInputLength)]`. Then feed chunks and accumulate bytes written via output-buffer overloads.
+3. If mid-stream, call `getOutputSize(remainingInputLength)` in the **current state** to size the next operation, including accumulated buffered data; **do not treat bounds computed at another point as if they were actual bytes already emitted**.
+4. Use the **actual return counts** from each `update`/`doFinal` call to identify the valid slice of output. **Never** send/store the entire allocated array if only part of it was filled.
+5. For `ByteBuffer`, `remaining()` is the available capacity, not total `capacity()`; `output.position()` advances by the bytes written.
+6. If the buffer is too small, output-writing methods may throw **`ShortBufferException`**. Per Javadoc, after a buffer-shortage error you can retry that operation with a larger output buffer; however, after other processing/padding/authentication errors, you must explicitly re-initialize state.
+7. Do not try to compute how many bytes `update` will emit from `inputLen` alone. Even knowing block size, buffering/padding/AEAD causes **when output appears** to depend on the implementation.
 
-Mẫu tổng quát khi **đã biết `allInput.length`** (snippet trong phương thức đã khởi tạo `cipher`):
+General pattern when **`allInput.length` is known** (snippet inside a method with an initialized `cipher`):
 
 ```java
-byte[] allInput = /* bytes của một thông điệp */;
+byte[] allInput = /* bytes of a single message */;
 int split = allInput.length / 2;
 byte[] output = new byte[cipher.getOutputSize(allInput.length)];
 int written = 0;
@@ -141,29 +141,29 @@ written += cipher.doFinal(output, written);
 byte[] actualResult = Arrays.copyOf(output, written);
 ```
 
-Snippet dùng `java.util.Arrays` và có xử lý exceptions; không phải chương trình độc lập. Với GCM, phải gọi `updateAAD` trước payload nếu protocol có AAD. Chỉ `actualResult` gồm `written` byte là dữ liệu hợp lệ; output dư sau `written` không thuộc thông điệp.
+The snippet uses `java.util.Arrays` and handles exceptions; it is not a standalone program. For GCM, call `updateAAD` before payload if the protocol uses AAD. Only `actualResult` consisting of `written` bytes is valid data; trailing space past `written` is not part of the message.
 
-### Kích thước đầu ra ví dụ
+### Example Output Sizes
 
-| Transformation | Input plaintext | Output encryption thực tế | Lý do |
+| Transformation | Input Plaintext | Actual Encryption Output | Reason |
 | --- | ---: | ---: | --- |
-| `AES/GCM/NoPadding`, tag 128 bit | 0 byte | 16 byte | Tag 16 byte, ngay cả khi payload rỗng. |
-| `AES/GCM/NoPadding`, tag 128 bit | 3 byte | 19 byte | 3 byte ciphertext + 16 byte tag. |
-| `AES/GCM/NoPadding`, tag 128 bit | 16 byte | 32 byte | 16 byte ciphertext + 16 byte tag. |
-| `AES/CBC/PKCS5Padding` | 0 byte | 16 byte | Padding lấp một block. |
-| `AES/CBC/PKCS5Padding` | 3 byte | 16 byte | Padding lấp block AES 16 byte. |
-| `AES/CBC/PKCS5Padding` | 16 byte | 32 byte | Khi input đã tròn block vẫn phải thêm block padding. |
-| `AES/CBC/NoPadding` | 3 byte | Lỗi khi final hóa | Input chưa đủ bội số block 16 byte. |
+| `AES/GCM/NoPadding`, 128-bit tag | 0 byte | 16 byte | 16-byte tag, even when payload is empty. |
+| `AES/GCM/NoPadding`, 128-bit tag | 3 byte | 19 byte | 3-byte ciphertext + 16-byte tag. |
+| `AES/GCM/NoPadding`, 128-bit tag | 16 byte | 32 byte | 16-byte ciphertext + 16-byte tag. |
+| `AES/CBC/PKCS5Padding` | 0 byte | 16 byte | Padding fills one block. |
+| `AES/CBC/PKCS5Padding` | 3 byte | 16 byte | Padding fills the 16-byte AES block. |
+| `AES/CBC/PKCS5Padding` | 16 byte | 32 byte | Even when input is block-aligned, a padding block is appended. |
+| `AES/CBC/NoPadding` | 3 byte | Error on finalization | Input is not a multiple of the 16-byte block size. |
 
-Bảng mô tả **kích thước output cuối cùng** với cấu hình đã ghi và dữ liệu hợp lệ, không phải giả định kết quả `getOutputSize` của mọi provider ở mọi state luôn bằng các con số này. Với AES-CBC + `PKCS5Padding`, nếu input có `P` byte và block AES = 16 byte, output encryption sau hoàn tất có độ dài `16 × (floor(P / 16) + 1)`. Với AES-GCM tag 128 bit, output encryption có độ dài `P + 16`; tên `NoPadding` **không có nghĩa** không có tag.
+The table shows **final output lengths** for the stated configuration and valid input, rather than assuming `getOutputSize` for every provider in every state always equals these exact numbers. With AES-CBC + `PKCS5Padding`, for `P` input bytes and a 16-byte AES block, final encryption output length is `16 × (floor(P / 16) + 1)`. With AES-GCM 128-bit tag, encryption output length is `P + 16`; `NoPadding` **does not mean** no tag.
 
-Với decryption, kích thước plaintext chỉ biết chắc **sau khi đã bỏ padding/kiểm tra tag thành công**. `getOutputSize` cung cấp kích thước buffer đủ chứa, có thể **lớn hơn** số byte plaintext thực sự.
+During decryption, exact plaintext size is known **only after unpadding/tag verification succeeds**. `getOutputSize` provides a buffer size guaranteed sufficient, which may be **larger** than the actual plaintext byte count.
 
-## 5. Ví dụ đầy đủ: AES-GCM qua nhiều `update` với output buffer
+## 5. Complete Example: AES-GCM Across Multiple `update` Calls with Output Buffer
 
-Chương trình sau tạo khóa AES-128 ngẫu nhiên và nonce GCM 12 byte cho **một lần mã hóa**. Nó chia plaintext thành hai chunk, cộng số byte `update` ghi, hoàn tất bằng `doFinal`, rồi dùng cùng key/nonce/AAD để **giải mã và kiểm tra tag**. Cipher giải mã được khởi tạo **riêng**. Một lần giải mã với AAD khác được thử để chứng minh xác thực thất bại.
+The following program generates a random AES-128 key and 12-byte GCM nonce for **one encryption**. It splits plaintext into two chunks, accumulates bytes written by `update`, finalizes with `doFinal`, and then uses the same key/nonce/AAD to **decrypt and verify the tag**. The decryption Cipher is initialized **separately**. A decryption attempt with different AAD demonstrates authentication failure.
 
-Lưu **`CipherFlowDemo.java`**:
+Save **`CipherFlowDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -232,14 +232,14 @@ public final class CipherFlowDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 CipherFlowDemo.java
 java CipherFlowDemo
 ```
 
-**Stdout dự kiến (đã kiểm tra trên JDK 24, mã tương thích Java 17+):**
+**Expected stdout (verified on JDK 24, Java 17+ compatible code):**
 
 ```text
 plainBytes=16
@@ -249,25 +249,25 @@ roundTrip=true
 wrongAadRejected=true
 ```
 
-Dù khóa và nonce được tạo ngẫu nhiên nên **byte ciphertext mỗi lần khác nhau**, các dòng trên không in ciphertext, và vẫn ổn định với AES-GCM tag 128 bit.
+Even though the key and nonce are randomly generated—making **ciphertext bytes differ each run**—these lines do not print ciphertext and stay stable with 128-bit-tag AES-GCM.
 
-**Phân tích chi tiết:**
+**Detailed analysis:**
 
-1. `KeyGenerator` tạo khóa AES 128 bit; `SecureRandom` tạo nonce 12 byte. Demo **không xuất key/nonce**. Trong hệ thống thực tế phải bảo đảm nonce không trùng với cùng key và lưu/truyền nonce để giải mã.
-2. `encrypt.init` thiết lập chiều mã hóa, khóa và `GCMParameterSpec(128, iv)`. `updateAAD` xuất hiện **trước** khi đưa byte plaintext.
-3. `getOutputSize(plain.length)` cấp phát buffer đủ chỗ cho ciphertext cộng tag. `split=5` chia 16 byte thành phần đầu 5 và phần cuối 11; tổng output không đổi so với mã hóa một lần.
-4. `used += encrypt.update(...)` lưu **số byte output**, không phải số byte input. `encrypt.doFinal(output, used)` ghi phần cuối và tag vào vị trí kế tiếp; `Arrays.copyOf(output, used)` loại phần buffer không sử dụng.
-5. Phía nhận `decrypt.init` với **cùng key/nonce**, rồi `updateAAD` với **cùng bytes**. `decrypt.update` có thể trả 0 do buffering/authentication; không cố đoán output.
-6. **Chỉ sau khi `decrypt.doFinal` thành công**, dữ liệu `recovered` mới được chấp nhận và so sánh với plaintext. Không đưa bytes từ `update` ra các hệ thống tin cậy trước khi xác minh tag.
-7. `wrongHeader` giả lập AAD khác (v1 → v2). `doFinal` ném `AEADBadTagException` và demo in `wrongAadRejected=true`. Trong ứng dụng thật phải **từ chối toàn bộ thông điệp**, không xử lý plaintext chưa được xác thực.
+1. `KeyGenerator` produces a 128-bit AES key; `SecureRandom` produces a 12-byte nonce. The demo **does not print key/nonce**. Real systems must guarantee nonces never repeat under the same key and store/transmit the nonce for decryption.
+2. `encrypt.init` sets encryption direction, key, and `GCMParameterSpec(128, iv)`. `updateAAD` comes **before** feeding plaintext bytes.
+3. `getOutputSize(plain.length)` allocates a buffer big enough for ciphertext plus tag. `split=5` divides 16 bytes into a first part of 5 and a second of 11; total output is unchanged compared to single-shot encryption.
+4. `used += encrypt.update(...)` tracks **output bytes written**, not input bytes. `encrypt.doFinal(output, used)` appends the final portion and tag at the next offset; `Arrays.copyOf(output, used)` strips unused buffer tail.
+5. On the receiving side, `decrypt.init` uses the **same key/nonce**, followed by `updateAAD` with the **exact same bytes**. `decrypt.update` may return 0 due to buffering/authentication; do not guess output counts.
+6. **Only after `decrypt.doFinal` succeeds** is `recovered` accepted and compared with plaintext. Never expose bytes from `update` to trusted systems before tag verification.
+7. `wrongHeader` simulates mismatched AAD (v1 → v2). `doFinal` throws `AEADBadTagException` and the demo prints `wrongAadRejected=true`. Real applications must **reject the entire message**, never processing unauthenticated plaintext.
 
-Đây là mô phỏng trong **một tiến trình**. Nếu truyền dữ liệu qua mạng/file, sender phải gửi nonce (và thông tin phiên bản/định dạng, tag nằm trong `sealed`), receiver phải có key qua kênh bảo mật và xác định đúng AAD. **Không có bước nào được phép tái mã hóa thông điệp thứ hai bằng key + IV vừa dùng**.
+This is a **single-process** simulation. When transmitting over a network/file, the sender must send the nonce (along with version/format info; the tag is inside `sealed`), and the receiver must obtain the key securely and reconstruct the exact AAD. **No step may re-encrypt a second message using the same key + IV just used**.
 
-## 6. Ví dụ thứ hai: CBC có padding và `ByteBuffer`
+## 6. Second Example: Padded CBC and `ByteBuffer`
 
-AES-CBC trong ví dụ này chỉ minh họa vì sao **3 byte input có thể tạo 16 byte output sau `doFinal`**, và cách buffer đầu ra được dùng với API `ByteBuffer`. **CBC không tự xác thực ciphertext**; đừng chọn CBC không có MAC cho dữ liệu cần chống sửa đổi. Với ứng dụng mới, ưu tiên AES-GCM có kiểm soát nonce.
+AES-CBC in this example solely illustrates why **3 input bytes produce 16 output bytes after `doFinal`**, and how output buffers work with the `ByteBuffer` API. **CBC does not authenticate ciphertext**; do not use unauthenticated CBC where tampering must be prevented. For new applications, prefer AES-GCM with managed nonces.
 
-Lưu **`CipherBufferSizeDemo.java`**:
+Save **`CipherBufferSizeDemo.java`**:
 
 ```java
 import java.nio.ByteBuffer;
@@ -324,7 +324,7 @@ javac -encoding UTF-8 CipherBufferSizeDemo.java
 java CipherBufferSizeDemo
 ```
 
-Stdout chính xác khi transform được cung cấp:
+Exact stdout when the transformation is supported:
 
 ```text
 plainBytes=3
@@ -335,87 +335,87 @@ inputConsumed=true
 roundTrip=true
 ```
 
-Giải thích:
+Explanation:
 
-- Input `"abc"` chứa 3 byte UTF-8. AES block size = **16 byte**; `PKCS5Padding` của JCA cung cấp padding kiểu block tương thích AES, vì vậy ciphertext cuối là 16 byte. `getOutputSize(3)` cấp phát đủ chỗ.
-- `update(plain,0,2,ciphertext,0)` nạp hai byte đầu. Vì chưa đủ một block, provider có thể giữ chúng và trả **0 byte**. `doFinal(plain,2,1,ciphertext,first)` nạp byte cuối, thêm padding rồi final hóa. **Luôn cộng `first + finalBytes`**.
-- Khi giải mã, `ByteBuffer.wrap(ciphertext,0,produced)` đặt giới hạn đúng ciphertext thực tế; không giả định cả buffer luôn đầy. `ByteBuffer.allocate(decrypt.getOutputSize(input.remaining()))` tạo output đủ chỗ; `decrypt.doFinal(input,output)` xử lý các byte đang remaining.
-- `ByteBuffer` đầu vào tiến đến limit, output.position tăng theo số byte ghi. Gọi `output.flip()` để chuyển output sang **chế độ đọc**, rồi lấy chính phần remaining hợp lệ. `restoredCount=3` chứ không phải kích thước đã cấp phát.
-- Nếu chỉ có `AES/CBC/NoPadding` thì plaintext 3 byte không đủ block và `doFinal` encryption có thể ném `IllegalBlockSizeException`. Chuyển sang mode khác không được hiểu là tự động cung cấp xác thực.
+- Input `"abc"` is 3 UTF-8 bytes. AES block size = **16 bytes**; JCA's `PKCS5Padding` provides AES-compatible block padding, so the final ciphertext is 16 bytes. `getOutputSize(3)` allocates sufficient space.
+- `update(plain,0,2,ciphertext,0)` feeds the first two bytes. Since that is less than one block, the provider may buffer them and return **0 bytes**. `doFinal(plain,2,1,ciphertext,first)` feeds the last byte, adds padding, and finalizes. **Always sum `first + finalBytes`**.
+- For decryption, `ByteBuffer.wrap(ciphertext,0,produced)` bounds the exact ciphertext length; do not assume the entire buffer is always full. `ByteBuffer.allocate(decrypt.getOutputSize(input.remaining()))` allocates enough output space; `decrypt.doFinal(input,output)` processes the remaining bytes.
+- Input `ByteBuffer` advances to its limit, while `output.position` advances by the bytes written. Call `output.flip()` to switch output to **read mode**, then read only the valid remaining slice. `restoredCount=3`, not the allocated capacity.
+- With `AES/CBC/NoPadding` instead, a 3-byte plaintext is not block-aligned and encryption `doFinal` can throw `IllegalBlockSizeException`. Switching to another mode must not be mistaken for automatically providing authentication.
 
-Đối với `Cipher.update(ByteBuffer input, ByteBuffer output)` và `doFinal(ByteBuffer input, ByteBuffer output)`, hai tham số **không được là cùng một `ByteBuffer` object**; output buffer cũng phải writable và có đủ `remaining()`. Với output buffer quá nhỏ có thể ném `ShortBufferException`; API thay đổi `position` dựa trên số byte đã xử lý khi thành công.
+For `Cipher.update(ByteBuffer input, ByteBuffer output)` and `doFinal(ByteBuffer input, ByteBuffer output)`, the two arguments **must not be the same `ByteBuffer` object**; the output buffer must also be writable with sufficient `remaining()`. An undersized output buffer can throw `ShortBufferException`; on success, the API updates `position` according to bytes processed.
 
-## 7. Bộ đệm kết quả: cách tư duy đúng trong production
+## 7. Result Buffering: Right Thinking for Production
 
-### Biết toàn bộ input trước khi bắt đầu
+### Total Input Known Upfront
 
-Với một thông điệp vừa/bé nằm trong mảng, chiến lược đơn giản là **tính cận trên một lần**, dùng overload có output buffer, và chỉ giữ `written` byte kết quả. Mọi `update`/`doFinal` nối output liên tiếp trong mảng. Chương trình `CipherFlowDemo` ở mục 5 chính là ví dụ đầy đủ.
+For a small/medium in-memory message in an array, the simplest strategy is to **compute the upper bound once**, use the output-buffer overloads, and retain only `written` result bytes. Each `update`/`doFinal` writes sequentially into the array. `CipherFlowDemo` in Section 5 is the complete example.
 
-### Input đến theo nhiều lần, chưa biết tổng độ dài
+### Input Arriving in Chunks, Total Length Unknown
 
-Nếu xử lý file/stream lớn hoặc nguồn dữ liệu liên tục, **không nên** cấp phát mảng chứa toàn bộ ciphertext/plaintext chỉ vì có `getOutputSize`. Có thể cấp output buffer phù hợp cho từng bước dựa trên state và số input còn lại, ghi những byte đã hoàn thành ra sink, và phải lưu/ghi **cả byte từ `doFinal`**. Cần chú ý thêm:
+When processing large files/streams or continuous data sources, **do not** allocate a single array for the entire ciphertext/plaintext just because `getOutputSize` exists. Allocate an appropriately sized output buffer per step based on current state and incoming chunk size, write completed bytes to a sink, and make sure to retain/write **bytes from `doFinal` as well**. Note further:
 
-- Với **GCM encryption**, gửi ciphertext theo chunk có thể phù hợp, nhưng vẫn phải ghi đầy đủ **tag ở cuối** và truyền nonce/AAD theo protocol. Mỗi message dùng nonce riêng.
-- Với **GCM decryption**, plaintext phát ra từ `update` (nếu có) **chưa được xác thực** trước `doFinal`. Thiết kế receiver phải **giữ cách ly** plaintext đến lúc tag thành công; không thực thi, hiển thị hoặc ghi đè dữ liệu tin cậy dựa trên plaintext chưa được xác thực. Với message rất lớn, có thể cần spool tạm vào vùng cách ly hoặc định dạng có khung AEAD riêng từng bản tin; không coi streaming giải mã là đã xác thực từng chunk.
-- Với CBC có padding, output cuối có thể chứa dữ liệu được trả sau khi bỏ padding. Cần kiểm tra lỗi `BadPaddingException`; CBC vẫn cần phương án xác thực riêng nếu dùng trong protocol nhạy cảm.
-- Dùng `CipherInputStream`/`CipherOutputStream` cần đọc kỹ contract về exception và cách final ở `close`. Đặc biệt, không dùng wrapper che khuất lỗi xác thực để mặc nhiên tin tưởng plaintext từ AEAD; khi mục tiêu là xác minh tag, ưu tiên luồng kiểm soát rõ ràng quanh `Cipher.doFinal`.
+- With **GCM encryption**, streaming ciphertext chunks out can work, provided the trailing **tag is written in full** and nonce/AAD follow protocol rules. Each message uses its own nonce.
+- With **GCM decryption**, any plaintext emitted from `update` (if any) **is unauthenticated** until `doFinal`. Receiver design must **quarantine** plaintext until the tag succeeds; never execute, display, or overwrite trusted data based on unauthenticated plaintext. For very large messages, spool temporarily to an isolated staging area or use a framing format with per-frame AEAD; never treat streaming decryption as per-chunk authenticated.
+- With padded CBC, the final output may yield bytes after unpadding. Check `BadPaddingException`; CBC still requires a separate authentication scheme in sensitive protocols.
+- When using `CipherInputStream`/`CipherOutputStream`, read their exception and `close`-finalization contracts carefully. In particular, do not use wrappers that swallow authentication errors and implicitly trust AEAD plaintext; when verifying tags, prefer explicit control around `Cipher.doFinal`.
 
-### Khi nào có `ShortBufferException`?
+### When Does `ShortBufferException` Occur?
 
-Ví dụ với API `doFinal(input, inOff, len, output, outOff)`, nếu `output.length - outOff` không đủ cho byte kết quả, có thể bị `ShortBufferException`. Kiểm tra offset/length và hỏi lại `getOutputSize(remainingInputLen)` từ state hiện tại trước khi cấp buffer. `getOutputSize` luôn tính cả dữ liệu trước đó còn buffer; không chỉ tính theo chunk vừa đưa vào. Khi thao tác lỗi do authentication hoặc padding, **không xử lý output từng phần như dữ liệu thành công**.
+For example, in `doFinal(input, inOff, len, output, outOff)`, if `output.length - outOff` is insufficient for the resulting bytes, `ShortBufferException` may be thrown. Check offsets/lengths and query `getOutputSize(remainingInputLen)` from the current state before allocating the buffer. `getOutputSize` always includes previously buffered bytes, not just the newly supplied chunk. When an operation fails due to authentication or padding, **never treat partial output as valid data**.
 
-### Một số lỗi state thường gặp
+### Common State Mistakes
 
-| Tình huống | Kết quả | Giải pháp |
+| Situation | Result | Solution |
 | --- | --- | --- |
-| `update` trước `init` | `IllegalStateException` hoặc thao tác sai state. | `getInstance`, rồi `init` chính xác. |
-| `update` nhiều lần nhưng bỏ output của chúng | Ciphertext/plaintext thiếu phần đầu. | Thu cả `update` và `doFinal`, theo đúng thứ tự. |
-| Giả định `update` trả đúng số byte input | Sai với buffering, padding, AEAD. | Dùng số byte trả về và `getOutputSize` để cấp phát. |
-| Cấp output bằng `new byte[input.length]` | Không đủ cho padding/tag hoặc buffered bytes. | Dùng `getOutputSize`. |
-| In toàn bộ mảng cấp phát dù chỉ ghi một phần | Ghi thêm zero/dữ liệu dư, phá protocol. | Chỉ dùng `[0,written)` hoặc vị trí byte thực tế. |
-| Không gọi `doFinal` | Thiếu bytes cuối, thiếu GCM tag hoặc chưa xác minh tag. | Final hóa đúng một lần cho mỗi thông điệp. |
-| Reuse GCM key + nonce sau `doFinal` | Phá vỡ an toàn của AEAD. | Tạo nonce **duy nhất cho mỗi lần encryption** với cùng key. |
-| `updateAAD` sau payload | `IllegalStateException` hoặc sai quy trình. | Cung cấp toàn bộ AAD trước payload. |
-| Tiêu thụ plaintext GCM trước tag verification | Có thể xử lý dữ liệu bị sửa/giả mạo. | Chỉ công bố plaintext sau `doFinal` thành công. |
-| Dùng `Cipher.getInstance("AES")` | Mode/padding không được chỉ định rõ. | Dùng đầy đủ `AES/GCM/NoPadding`. |
-| Tưởng `NoPadding` nghĩa là ciphertext không thêm byte | Quên GCM tag. | Tính cả tag trong cận trên. |
-| Dùng `ByteBuffer.capacity()` thay `remaining()` | Đánh giá sai vùng có thể đọc/ghi. | Dựa trên position/limit/remaining. |
-| Dùng chung một Cipher cho nhiều thread | State có thể bị trộn. | Instance riêng cho từng operation. |
-| Bắt lỗi `BadPaddingException` rồi dùng plaintext dở | Dữ liệu không đáng tin, state không chắc. | Hủy output, báo lỗi và khởi tạo lại. |
+| `update` before `init` | `IllegalStateException` or invalid-state error. | `getInstance`, then `init` properly. |
+| Multiple `update` calls while ignoring their outputs | Ciphertext/plaintext missing leading portion. | Collect all `update` and `doFinal` outputs in order. |
+| Assuming `update` returns exact input byte count | Fails with buffering, padding, AEAD. | Use actual returned byte counts and `getOutputSize` to allocate. |
+| Allocating output with `new byte[input.length]` | Too small for padding/tag or buffered bytes. | Use `getOutputSize`. |
+| Writing the whole allocated array when only partly filled | Appends trailing zeros/garbage, breaking protocol. | Use only `[0,written)` or actual written positions. |
+| Omitting `doFinal` | Missing trailing bytes, missing GCM tag, or unverified tag. | Finalize exactly once per message. |
+| Reusing GCM key + nonce after `doFinal` | Breaks AEAD security. | Use a **unique nonce per encryption** under the same key. |
+| `updateAAD` after payload | `IllegalStateException` or invalid workflow. | Supply all AAD before payload. |
+| Consuming GCM plaintext before tag verification | Risks acting on tampered/forged data. | Expose plaintext only after `doFinal` succeeds. |
+| Using `Cipher.getInstance("AES")` | Mode/padding left unspecified. | Specify full `AES/GCM/NoPadding`. |
+| Assuming `NoPadding` means no extra ciphertext bytes | Forgets the GCM tag. | Include tag in upper bound. |
+| Using `ByteBuffer.capacity()` instead of `remaining()` | Misjudges readable/writable space. | Rely on position/limit/remaining. |
+| Sharing one Cipher across threads | State may become corrupted/interleaved. | Separate instance per operation. |
+| Catching `BadPaddingException` and keeping partial plaintext | Untrusted data, uncertain state. | Discard output, report error, and re-initialize. |
 
-## 8. API exception và trạng thái sau lỗi
+## 8. Exception API and Post-Error State
 
-Các lỗi đáng nhận diện:
+Exceptions to recognize:
 
-- `NoSuchAlgorithmException` hoặc `NoSuchPaddingException`: transformation không được hỗ trợ theo provider đã chọn.
-- `InvalidKeyException`: key không phù hợp với thuật toán hoặc provider.
-- `InvalidAlgorithmParameterException`: tham số IV/nonce/mode không hợp lệ hoặc không được chấp nhận.
-- `IllegalStateException`: sử dụng Cipher không đúng state (chưa init, sai mode, thứ tự AAD sai...).
-- `ShortBufferException`: buffer output không đủ; với overload ghi ra buffer, API chỉ rõ trường hợp cần tăng kích thước.
-- `IllegalBlockSizeException`: input không đáp ứng yêu cầu block size khi không padding, hoặc thuật toán không xử lý được input.
-- `BadPaddingException`: padding không hợp lệ trong decryption của các mode có padding.
-- `AEADBadTagException`: tag không khớp khi decryption trong AEAD; lớp này **kế thừa `BadPaddingException`**. Nếu cần xử lý riêng, catch `AEADBadTagException` **trước** `BadPaddingException`.
+- `NoSuchAlgorithmException` or `NoSuchPaddingException`: transformation unsupported by the chosen provider.
+- `InvalidKeyException`: key unsuitable for algorithm or provider.
+- `InvalidAlgorithmParameterException`: IV/nonce/mode parameters invalid or rejected.
+- `IllegalStateException`: Cipher used in wrong state (uninitialized, wrong mode, wrong AAD order, etc.).
+- `ShortBufferException`: insufficient output buffer; for buffer-writing overloads, the API explicitly indicates increasing buffer size.
+- `IllegalBlockSizeException`: input fails block-size requirements without padding, or algorithm cannot process input.
+- `BadPaddingException`: invalid padding during decryption in padded modes.
+- `AEADBadTagException`: tag mismatch during AEAD decryption; this class **extends `BadPaddingException`**. To handle specifically, catch `AEADBadTagException` **before** `BadPaddingException`.
 
-Không sử dụng lỗi tag như “một biến thể dữ liệu gần đúng”; mọi kết quả giải mã từ lần thất bại đều phải bị loại. Không giả định có thể tiếp tục gọi `update` trên đối tượng đã ném exception ở `doFinal` mà không init lại. Ghi log loại lỗi, tên transformation và ngữ cảnh không nhạy cảm; **không log key, plaintext bí mật hay thông tin tạo oracle về padding**.
+Never treat a tag error as a "close approximation of data"; all decrypted output from a failed attempt must be discarded. Do not assume you can keep calling `update` on an instance that threw an exception in `doFinal` without re-initializing it. Log error types, transformation names, and non-sensitive context; **never log keys, secret plaintext, or details that create a padding oracle**.
 
-## 9. Bài tập kiểm tra hiểu bài
+## 9. Comprehension Exercises
 
-1. **Thay split.** Trong `CipherFlowDemo` đổi `split` từ 5 thành 1, 8 và 16. Vì sao output length và `roundTrip=true` vẫn không đổi? Quan sát riêng số byte của từng `update` trên provider đang chạy và giải thích vì sao không nhất thiết bằng input chunk.
-2. **Tính cận trên.** Mã hóa AES-GCM với tag 128 bit, plaintext 100 byte. Giải thích vì sao ciphertext+tag có 116 byte, nhưng code vẫn nên gọi `getOutputSize(100)` trước khi cấp buffer.
-3. **Padding.** Với AES/CBC/PKCS5Padding, tính output encryption cho plaintext 0, 1, 15, 16, 17 và 32 byte. Giải thích vì sao 16 byte input cho 32 byte ciphertext.
-4. **Đổi AAD.** Thay `header:v1` thành `header:v2` chỉ ở bên decrypt. Xác nhận `AEADBadTagException` và giải thích vì sao không được sử dụng bất kỳ plaintext nào từ lần decrypt đó.
-5. **Đổi nonce.** Mã hóa một message, lưu nonce và sealed bytes. Với cùng key, thử giải mã bằng nonce khác; giải thích vai trò của nonce và tag. **Không tái mã hóa hai message bằng cùng key + nonce** khi làm bài.
-6. **Kiểm tra output buffer.** Chủ động cấp mảng bé hơn `getOutputSize` để quan sát `ShortBufferException`; sau đó tạo Cipher mới/khởi tạo lại và cấp đủ buffer. Xác định vì sao cần lưu số byte trả về của mỗi `update`.
-7. **ByteBuffer.** Thay `ByteBuffer.allocate` bằng buffer có limit hẹp để thấy `remaining` là giới hạn thực sự. Sau khi `doFinal` thành công, thực hành `flip` và so output với plaintext.
-8. **Thiết kế message lớn.** Với GCM decrypt file vài GB, đề xuất nơi tạm chứa plaintext cho đến khi tag được xác minh trước khi publish. Giải thích tại sao lưu ngay plaintext vào file đích tin cậy trong lúc `update` là nguy hiểm.
-9. **Sai quy trình.** Trình bày hậu quả khi bỏ `doFinal`, gọi `init` giữa các chunk, dùng Cipher chung cho hai request, hoặc gửi thiếu tag.
+1. **Change split.** In `CipherFlowDemo`, change `split` from 5 to 1, 8, and 16. Why do output length and `roundTrip=true` stay unchanged? Observe individual byte counts returned by each `update` on your provider and explain why they do not necessarily match input chunk sizes.
+2. **Upper bound math.** Encrypting 100-byte plaintext with AES-GCM and a 128-bit tag: explain why ciphertext+tag is 116 bytes, yet code should still call `getOutputSize(100)` before allocating the buffer.
+3. **Padding.** For AES/CBC/PKCS5Padding, compute encryption output sizes for 0, 1, 15, 16, 17, and 32 plaintext bytes. Explain why 16 input bytes yield 32 ciphertext bytes.
+4. **Change AAD.** Change `header:v1` to `header:v2` only on the decrypt side. Confirm `AEADBadTagException` and explain why no plaintext from that decryption attempt may be used.
+5. **Change nonce.** Encrypt a message, save the nonce and sealed bytes. With the same key, try decrypting with a different nonce; explain the roles of nonce and tag. **Do not re-encrypt two messages with the same key + nonce** during the exercise.
+6. **Test output buffer.** Intentionally allocate an array smaller than `getOutputSize` to observe `ShortBufferException`; then create/re-initialize a Cipher and allocate a sufficiently large buffer. Explain why tracking each `update` return count is mandatory.
+7. **ByteBuffer.** Replace `ByteBuffer.allocate` with a buffer having a narrow limit to see that `remaining` is the true boundary. After `doFinal` succeeds, call `flip` and compare output against plaintext.
+8. **Large message design.** When GCM-decrypting a multi-GB file, propose where to temporarily hold plaintext until the tag is verified before publishing. Explain why writing plaintext straight to the trusted destination file during `update` is dangerous.
+9. **Workflow mistakes.** Describe the consequences of omitting `doFinal`, calling `init` between chunks, sharing one Cipher across two requests, or truncating the tag.
 
-**Tiêu chí hoàn thành:** bạn mô tả đúng `init` chọn mode/key/params, `update` có output tùy state, `doFinal` final padding/tag và reset sau thành công; biết dùng `getOutputSize` và số byte thực viết; đồng thời giữ đúng nonce, AAD và ranh giới xác thực khi dùng AES-GCM.
+**Completion criteria:** you accurately describe how `init` selects mode/key/params, `update` produces state-dependent output, and `doFinal` finalizes padding/tag and resets upon success; you use `getOutputSize` and actual written byte counts; and you maintain proper nonces, AAD, and authentication boundaries with AES-GCM.
 
-## Tham khảo chính thức (Java 17)
+## Official References (Java 17)
 
 - [`Cipher` API — `init`, `update`, `doFinal`, `getOutputSize`, `updateAAD`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html)
-- [`GCMParameterSpec` — nonce và độ dài authentication tag](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html)
-- [`AEADBadTagException` — lỗi xác thực tag AEAD](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/AEADBadTagException.html)
+- [`GCMParameterSpec` — nonce and authentication tag length](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html)
+- [`AEADBadTagException` — AEAD tag verification error](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/AEADBadTagException.html)
 - [`ByteBuffer` — `position`, `limit`, `remaining`, `flip`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html)
 - [Java Cryptography Architecture (JCA) Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html)

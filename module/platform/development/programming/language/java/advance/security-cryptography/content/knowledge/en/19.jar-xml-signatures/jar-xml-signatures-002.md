@@ -1,79 +1,79 @@
-# 19.2. Dùng `jarsigner` để ký, xác minh và kiểm tra cảnh báo ở chế độ `-strict`
+# 19.2. Using `jarsigner` to Sign, Verify, and Check Warnings in `-strict` Mode
 
-## 1. Bài toán và kết quả cần đạt
+## 1. Problem Statement and Desired Outcomes
 
-Khi phát hành một thư viện hoặc ứng dụng dạng JAR, người nhận cần kiểm tra hai điều riêng biệt: **các entry đã ký có bị thay đổi sau khi ký hay không** và **chứng thư của người ký có đáng tin theo chính sách của họ hay không**. JDK cung cấp `keytool` để quản lý khóa/chứng thư và `jarsigner` để ký, xác minh JAR.
+When publishing a library or application as a JAR, the recipient needs to verify two separate things: **whether the signed entries have been modified after signing** and **whether the signer's certificate is trustworthy according to their policy**. The JDK provides `keytool` to manage keys/certificates and `jarsigner` to sign and verify JARs.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích cấu trúc chữ ký JAR và ranh giới giữa *integrity*, *authenticity* và *trust*.
-2. Tạo keystore thử nghiệm, ký một JAR bằng khóa riêng rồi xác minh bằng `jarsigner -verify`.
-3. Đọc cờ `s`/`m`/`k`, thông tin certificate, timestamp và cảnh báo trong `-verbose -certs`.
-4. Dùng `-strict` để phát hiện severe warnings qua exit code, phân biệt lỗi thật với cảnh báo và cấu hình kiểm tra khi phát hành.
+1. Explain the JAR signature structure and the boundary between *integrity*, *authenticity*, and *trust*.
+2. Create a test keystore, sign a JAR with a private key, and verify it with `jarsigner -verify`.
+3. Read the `s`/`m`/`k` flags, certificate information, timestamps, and warnings in `-verbose -certs`.
+4. Use `-strict` to detect severe warnings via exit codes, distinguish real failures from warnings, and configure release-time verification.
 
-**Phạm vi:** ký và xác minh JAR bằng công cụ JDK; chữ ký XML là cơ chế khác, không được thực hiện bằng lệnh `jarsigner` này.
+**Scope:** signing and verifying JARs with JDK tools; XML signatures are a different mechanism and are not performed with this `jarsigner` command.
 
-## 2. Chữ ký JAR chứng minh điều gì?
+## 2. What Does a JAR Signature Prove?
 
-JAR là một archive dựa trên ZIP, thường chứa bytecode `.class`, resources và `META-INF/MANIFEST.MF`. Khi ký, `jarsigner` dùng **private key** của một alias trong keystore; chứng thư X.509 (có public key tương ứng) được đưa vào khối chữ ký để bên nhận có thể kiểm tra chữ ký.
+A JAR is a ZIP-based archive typically containing `.class` bytecode, resources, and `META-INF/MANIFEST.MF`. When signing, `jarsigner` uses the **private key** of an alias in a keystore; the X.509 certificate (containing the corresponding public key) is placed into the signature block so the recipient can verify the signature.
 
-Các thành phần quan trọng:
+Key components:
 
-| Thành phần | Chức năng |
+| Component | Function |
 | --- | --- |
-| `META-INF/MANIFEST.MF` | Có các section ghi digest của dữ liệu các entry được ký. |
-| `META-INF/<SIGNER>.SF` | Chứa digest của manifest hoặc các section manifest; kết nối dữ liệu entry với chữ ký. |
-| `META-INF/<SIGNER>.RSA` (hoặc `.DSA`/`.EC`) | Chứa chữ ký số của `.SF` và certificate chain của người ký. |
-| Certificate chain | Cung cấp public key/danh tính được khai báo; **không tự động biến thành nguồn đáng tin**. |
-| Timestamp token (nếu dùng TSA) | Chứng cứ thời điểm ký do dịch vụ đóng dấu thời gian cung cấp, hỗ trợ kiểm tra sau khi chứng thư hết hạn. |
+| `META-INF/MANIFEST.MF` | Contains sections recording the digests of signed entries' data. |
+| `META-INF/<SIGNER>.SF` | Contains the digest of the manifest or manifest sections; links entry data to the signature. |
+| `META-INF/<SIGNER>.RSA` (or `.DSA`/`.EC`) | Contains the digital signature of `.SF` and the signer's certificate chain. |
+| Certificate chain | Provides the public key/claimed identity; **does not automatically become a trusted source**. |
+| Timestamp token (if TSA is used) | Evidence of the signing time provided by a time-stamping service, supporting verification after the certificate expires. |
 
-Luồng kiểm tra ở mức khái niệm:
+Conceptual verification flow:
 
 ```text
-Private key + dữ liệu JAR
-    -> manifest digest của entry
+Private key + JAR data
+    -> entry manifest digest
     -> signature file (.SF)
     -> signature block (.RSA/.DSA/.EC)
     -> signed JAR
 
-Người nhận:
-    chữ ký block hợp lệ?
-    -> digest .SF/manifest hợp lệ?
-    -> byte của từng entry đã ký còn khớp?
-    -> thuật toán, certificate chain, hạn dùng, chính sách trust phù hợp?
+Recipient:
+    signature block valid?
+    -> .SF/manifest digest valid?
+    -> bytes of each signed entry still match?
+    -> algorithms, certificate chain, validity period, trust policy satisfied?
 ```
 
-**Phân biệt ba kết luận:**
+**Distinguishing three conclusions:**
 
-- **Integrity:** nội dung entry đã được ký chưa bị đổi kể từ khi ký.
-- **Authentication:** chữ ký khớp public key trong certificate của signer.
-- **Trust:** người nhận thực sự chấp nhận signer/certificate chain theo truststore, chính sách cấp phát, mục đích sử dụng, thời hạn và (khi yêu cầu) trạng thái thu hồi. Một JAR có thể xác minh được chữ ký nhưng signer vẫn **self-signed hoặc không đáng tin**.
-- Ký JAR **không mã hóa** file, không xác nhận nội dung chương trình là an toàn, không tự bảo vệ các entry được thêm sau khi ký. Nếu tồn tại entry chưa ký, phải xem warning và kiểm tra phạm vi ký.
+- **Integrity:** the content of signed entries has not been altered since signing.
+- **Authentication:** the signature matches the public key in the signer's certificate.
+- **Trust:** the recipient actually accepts the signer/certificate chain based on their truststore, issuance policy, intended usage, validity period, and (when required) revocation status. A JAR may pass signature verification while its signer is still **self-signed or untrusted**.
+- JAR signing **does not encrypt** files, does not certify that the program's content is safe, and does not automatically protect entries added after signing. If unsigned entries exist, you must inspect warnings and check the signing scope.
 
-## 3. Các lệnh và tùy chọn thường dùng
+## 3. Commonly Used Commands and Options
 
-| Công cụ/tùy chọn | Ý nghĩa thực tế |
+| Tool / option | Practical meaning |
 | --- | --- |
-| `keytool -genkeypair` | Tạo cặp khóa và chứng thư trong keystore để làm bài thử. |
-| `keytool -list -v` | Xem alias, `Entry type`, fingerprint, chain, validity và extensions. |
-| `jarsigner -keystore <path> <jar> <alias>` | Ký JAR bằng private key của alias; không dùng `-signedjar` thì file nguồn có thể bị thay thế. |
-| `-signedjar <output.jar>` | Ghi kết quả ra JAR mới, giữ bản unsigned để đối chiếu. |
-| `-storetype PKCS12` | Nêu tường minh loại keystore; PKCS12 là mặc định của JDK hiện đại. |
-| `-digestalg SHA-256` | Chọn digest cho các entry; khác với thuật toán chữ ký. |
-| `-sigalg SHA256withRSA` | Thuật toán ký với khóa RSA trong ví dụ; cần tương thích loại khóa. |
-| `-verify` | Kiểm tra chữ ký/digest đã ký của JAR thay vì tạo chữ ký mới. |
-| `-verbose`, `-certs` | Hiện từng entry, trạng thái `s/m/k` và thông tin signer/certificate. |
-| `-strict` | Biến severe warnings thành **exit code khác 0**; không phải nút “bật thêm mật mã”. |
-| `-tsa <URL>` | Nhờ Time Stamping Authority (TSA) cấp timestamp theo RFC 3161 khi ký. |
-| `-revCheck` | Yêu cầu kiểm tra revocation (OCSP/CRL) khi ký/xác minh; có thể cần kết nối mạng. |
+| `keytool -genkeypair` | Generate a key pair and certificate in a keystore for testing. |
+| `keytool -list -v` | View alias, `Entry type`, fingerprints, chain, validity, and extensions. |
+| `jarsigner -keystore <path> <jar> <alias>` | Sign a JAR using the alias's private key; without `-signedjar`, the source file may be overwritten. |
+| `-signedjar <output.jar>` | Write the output to a new JAR, keeping the unsigned version for comparison. |
+| `-storetype PKCS12` | Explicitly specify the keystore type; PKCS12 is the default in modern JDKs. |
+| `-digestalg SHA-256` | Choose the digest algorithm for entries; distinct from the signature algorithm. |
+| `-sigalg SHA256withRSA` | Signature algorithm for the RSA key in the example; must match the key type. |
+| `-verify` | Verify the existing signature/digests of a JAR instead of creating a new signature. |
+| `-verbose`, `-certs` | Display each entry, `s/m/k` status, and signer/certificate details. |
+| `-strict` | Turn severe warnings into a **non-zero exit code**; not a “turn on extra cryptography” switch. |
+| `-tsa <URL>` | Request an RFC 3161 timestamp from a Time Stamping Authority (TSA) when signing. |
+| `-revCheck` | Require revocation checking (OCSP/CRL) when signing/verifying; may require network access. |
 
-Có thể kiểm tra công cụ sẵn có qua `java -version`, `javac -version`, `jar --help`, `keytool -help`, `jarsigner -help`. Các ví dụ dưới đây dùng **JDK 17+**, với terminal đặt tại thư mục thực hành trống. Mỗi lệnh dài viết trên **một dòng** để chạy được trong PowerShell, Command Prompt và shell Unix. Giữ nguyên tên file/alias để đối chiếu.
+You can check tool availability via `java -version`, `javac -version`, `jar --help`, `keytool -help`, `jarsigner -help`. The examples below use **JDK 17+**, with the terminal opened in an empty practice directory. Each long command is written on **one line** so it works in PowerShell, Command Prompt, and Unix shells. Keep the same filenames and aliases for reference.
 
-## 4. Thực hành từ JAR chưa ký đến JAR đã ký
+## 4. Hands-On: From Unsigned JAR to Signed JAR
 
-### Bước 1 — Tạo class và đóng gói JAR
+### Step 1 — Create a class and package the JAR
 
-Tạo file `HelloJar.java`:
+Create `HelloJar.java`:
 
 ```java
 public class HelloJar {
@@ -83,7 +83,7 @@ public class HelloJar {
 }
 ```
 
-Biên dịch, đóng gói với `Main-Class`, rồi chạy thử:
+Compile, package with `Main-Class`, and run:
 
 ```shell
 javac HelloJar.java
@@ -91,62 +91,62 @@ jar --create --file hello-unsigned.jar --main-class HelloJar HelloJar.class
 java -jar hello-unsigned.jar
 ```
 
-`stdout` của lệnh `java -jar`:
+`stdout` of `java -jar`:
 
 ```text
 Hello from JAR
 ```
 
-`javac` tạo `HelloJar.class`; `jar` đóng gói bytecode và manifest. Nếu không khai báo `--main-class`, `java -jar` sẽ thiếu entry point, nhưng JAR vẫn có thể được ký.
+`javac` produces `HelloJar.class`; `jar` packages the bytecode and manifest. Without `--main-class`, `java -jar` would lack an entry point, though the JAR can still be signed.
 
-### Bước 2 — Tạo keystore PKCS12 và signer thử nghiệm
+### Step 2 — Create a PKCS12 keystore and test signer
 
 ```shell
 keytool -genkeypair -alias demo-signer -keyalg RSA -keysize 3072 -sigalg SHA256withRSA -validity 365 -dname "CN=Demo JAR Signer, O=Example, C=VN" -ext "KU=digitalSignature" -ext "EKU=codeSigning" -keystore demo-signer.p12 -storetype PKCS12
 ```
 
-Công cụ hỏi mật khẩu keystore. Trong ví dụ PKCS12 này, khóa riêng sử dụng cùng mật khẩu lưu trữ khi không chỉ định mật khẩu khóa riêng khác. Các trường có nghĩa:
+The tool prompts for the keystore password. In this PKCS12 example, the private key uses the same store password when no separate key password is specified. Meaning of the fields:
 
-- `-alias demo-signer`: tên entry có private key, phải dùng đúng khi ký.
-- `RSA` 3072 bit và `SHA256withRSA`: lựa chọn minh họa tương thích JDK 17+.
-- `-validity 365`: chứng thư thử nghiệm có hiệu lực 365 ngày tính theo ngày tạo; không phải thời hạn tự động gia hạn.
-- `KU=digitalSignature`, `EKU=codeSigning`: khai báo mục đích ký mã; giá trị extension phải phù hợp với mục đích sử dụng trong môi trường thực.
-- Không có CA ký chứng thư ở bước này, nên `keytool` tạo **self-signed certificate**. Đây là chủ ý để quan sát cảnh báo `-strict`, **không phải cấu hình phát hành**.
+- `-alias demo-signer`: name of the entry holding the private key; must be specified accurately when signing.
+- `RSA` 3072-bit and `SHA256withRSA`: illustrative choices compatible with JDK 17+.
+- `-validity 365`: the test certificate is valid for 365 days from creation; not an auto-renewing period.
+- `KU=digitalSignature`, `EKU=codeSigning`: declares code-signing purpose; extension values must fit the intended usage in a real environment.
+- No CA signs the certificate in this step, so `keytool` creates a **self-signed certificate**. This is intentional for observing `-strict` warnings and is **not a production release configuration**.
 
-Xem entry trước khi ký:
+Inspect the entry before signing:
 
 ```shell
 keytool -list -v -keystore demo-signer.p12 -storetype PKCS12 -alias demo-signer
 ```
 
-Xác nhận `Entry type: PrivateKeyEntry`, alias, certificate chain, fingerprints, thời hạn, `KeyUsage` và `ExtendedKeyUsage`. Giá trị fingerprint, thời gian và phần thông tin cụ thể phụ thuộc lần tạo, không có một output cố định cho tất cả máy. Giữ file `.p12` và mật khẩu ở nơi an toàn; **không commit private key** vào Git.
+Confirm `Entry type: PrivateKeyEntry`, alias, certificate chain, fingerprints, validity, `KeyUsage`, and `ExtendedKeyUsage`. Fingerprint values, timestamps, and specific details depend on each run, so there is no fixed output across all machines. Keep the `.p12` file and password in a safe place; **never commit private keys** to Git.
 
-### Bước 3 — Ký JAR bằng `jarsigner`
+### Step 3 — Sign the JAR with `jarsigner`
 
 ```shell
 jarsigner -keystore demo-signer.p12 -storetype PKCS12 -digestalg SHA-256 -sigalg SHA256withRSA -signedjar hello-signed.jar hello-unsigned.jar demo-signer
 ```
 
-Lệnh có dạng `jarsigner [options] jar-file alias`. Nhập mật khẩu khi được hỏi. Kết quả là `hello-signed.jar`; `hello-unsigned.jar` vẫn giữ nguyên. Với signer self-signed và không có TSA, công cụ có thể báo cảnh báo **certificate chain not validated / self-signed** và **no timestamp**. Việc có dòng `jar signed.` không đồng nghĩa đã được mọi bên tin tưởng.
+The command syntax is `jarsigner [options] jar-file alias`. Enter the password when prompted. The output is `hello-signed.jar`; `hello-unsigned.jar` remains untouched. With a self-signed signer and no TSA, the tool may emit **certificate chain not validated / self-signed** and **no timestamp** warnings. Seeing `jar signed.` does not mean every party trusts it.
 
-Kiểm tra các entry:
+Inspect the entries:
 
 ```shell
 jar --list --file hello-signed.jar
 java -jar hello-signed.jar
 ```
 
-Danh sách phải có `HelloJar.class`, `META-INF/MANIFEST.MF` và các file chữ ký `META-INF/*.SF`, `META-INF/*.RSA` tương ứng với RSA signer. Chạy ứng dụng vẫn in chính xác:
+The listing should show `HelloJar.class`, `META-INF/MANIFEST.MF`, and the signature files `META-INF/*.SF` and `META-INF/*.RSA` corresponding to the RSA signer. Running the application still prints exactly:
 
 ```text
 Hello from JAR
 ```
 
-Tên file chữ ký phát sinh từ alias nhưng có thể được chuẩn hóa để tuân thủ tên entry chữ ký; hãy xem output thực tế của `jar --list`.
+The signature filenames are derived from the alias, though they may be normalized to conform to signature entry naming rules; inspect the actual output of `jar --list`.
 
-## 5. Xác minh: từ kiểm tra cơ bản đến đọc chi tiết
+## 5. Verification: From Basic Check to Detailed Inspection
 
-Chạy theo thứ tự:
+Run in sequence:
 
 ```shell
 jarsigner -verify hello-signed.jar
@@ -154,12 +154,12 @@ jarsigner -verify -verbose -certs hello-signed.jar
 jarsigner -verify -strict -verbose -certs hello-signed.jar
 ```
 
-- `-verify` kiểm tra sự nhất quán chữ ký và digest của các entry thuộc phạm vi ký. Khi kiểm tra mật mã thành công, kết quả thường có `jar verified.`, dù có thể kèm warning.
-- `-verbose` liệt kê entry; phần chú giải thường bao gồm `s = signature was verified`, `m = entry is listed in manifest`, `k = at least one certificate was found in keystore`. Ví dụ các cờ `sm` bên cạnh `HelloJar.class` cho biết entry này có chữ ký đã xác minh và được ghi trong manifest. `k` phụ thuộc keystore dùng để đối chiếu, **không tự chứng minh signer được mọi máy tin cậy**.
-- `-certs` cùng `-verify -verbose` hiển thị signer DN, certificate chain, ngày hiệu lực, và TSA nếu có. Đọc certificate thực tế thay vì chỉ nhìn thông điệp một dòng.
-- Với cặp khóa self-signed ở bước 2, `-strict` **được kỳ vọng trả về exit code khác 0**, thường có bit `4` do `signerSelfSigned`/`chainNotValidated`, mặc dù bytecode chưa hề bị sửa. Kết quả và wording khác nhau tùy phiên bản JDK, cấu hình trust và các warning đồng thời.
+- `-verify` checks signature and digest consistency for entries within the signing scope. When cryptographic verification succeeds, the output usually includes `jar verified.`, possibly accompanied by warnings.
+- `-verbose` lists entries; the legend typically includes `s = signature was verified`, `m = entry is listed in manifest`, and `k = at least one certificate was found in keystore`. For example, flags `sm` next to `HelloJar.class` indicate that this entry has a verified signature and is listed in the manifest. `k` depends on the keystore used for lookup and **does not by itself prove that the signer is trusted by every machine**.
+- `-certs` combined with `-verify -verbose` displays the signer DN, certificate chain, validity dates, and TSA if present. Read the actual certificate instead of looking only at a one-line message.
+- With the self-signed key pair from step 2, `-strict` **is expected to return a non-zero exit code**, commonly including bit `4` due to `signerSelfSigned`/`chainNotValidated`, even though the bytecode has not been altered. Exact output and wording vary by JDK version, trust configuration, and concurrent warnings.
 
-Sau lệnh `jarsigner -verify -strict ...`, lấy exit code **ngay lập tức**, trước khi chạy lệnh khác:
+After `jarsigner -verify -strict ...`, capture the exit code **immediately**, before running any other command:
 
 ```bash
 # Bash / zsh (Linux, macOS):
@@ -171,132 +171,132 @@ echo $?
 $LASTEXITCODE
 ```
 
-Ví dụ `jar verified, with signer errors` nghĩa là chữ ký có thể đã xác minh về mặt mật mã nhưng có **severe warning** về signer/điều kiện phát hành. Ngược lại, thông báo lỗi `java.lang.SecurityException` liên quan digest/chữ ký có thể chỉ ra JAR đã bị thay đổi hoặc hỏng, cần coi là **verification failure**.
+For example, `jar verified, with signer errors` means the signature may have verified cryptographically, but there is a **severe warning** regarding the signer/release conditions. Conversely, a `java.lang.SecurityException` message related to digests/signatures can indicate that the JAR was tampered with or corrupted and must be treated as a **verification failure**.
 
-### Tự kiểm tra đúng signer/alias
+### Explicitly checking the expected signer/alias
 
-Có thể đưa keystore và alias vào lệnh verify:
+You can pass the keystore and alias to the verify command:
 
 ```shell
 jarsigner -verify -strict -verbose -certs -keystore demo-signer.p12 -storetype PKCS12 hello-signed.jar demo-signer
 ```
 
-Khi cung cấp alias, `jarsigner` kiểm tra chữ ký có phù hợp với certificate thuộc alias đó hay không; thiếu hoặc sai alias/keystore có thể dẫn đến severe warning loại `notSignedByAlias` hoặc `aliasNotInStore`. Tuy nhiên, khớp alias trong một keystore thử nghiệm vẫn **không loại bỏ thực tế certificate là self-signed**. Dùng CA/chính sách trust có kiểm soát khi xác minh artefact phát hành.
+When an alias is supplied, `jarsigner` checks whether the signature matches the certificate belonging to that alias; a missing or wrong alias/keystore can trigger severe warnings such as `notSignedByAlias` or `aliasNotInStore`. However, matching an alias in a test keystore still **does not eliminate the fact that the certificate is self-signed**. Use a CA and controlled trust policy when verifying release artifacts.
 
-## 6. `-strict` thực sự thay đổi điều gì?
+## 6. What Does `-strict` Actually Change?
 
-Không dùng `-strict`, một số tình huống nguy hiểm chỉ được in thành cảnh báo nhưng lệnh vẫn có thể trả mã `0` nếu phần ký/xác minh không gặp lỗi trực tiếp. Dùng `-strict`, **severe warnings** được phản ánh vào mã thoát để script/CI phát hiện. Nó không sửa certificate, không tải một CA mới, không tự kích hoạt kiểm tra thu hồi và không buộc mọi cảnh báo thông tin thành lỗi.
+Without `-strict`, some dangerous conditions are only printed as warnings while the command may still return `0` if signing/verification itself encounters no direct error. With `-strict`, **severe warnings** are reflected in the exit code so scripts/CI can catch them. It does not fix certificates, does not fetch a new CA, does not enable revocation checking automatically, and does not force every informational warning into an error.
 
-Bảng mã theo tài liệu `jarsigner` của JDK 21:
+Code table per JDK 21 `jarsigner` documentation:
 
-| Exit code / bit | Nhóm tình huống | Cách hiểu |
+| Exit code / bit | Condition group | Interpretation |
 | --- | --- | --- |
-| `0` | Không có failure hoặc severe warning | Có thể vẫn còn **informational warnings**, như `noTimestamp`; phải đọc log/chính sách. |
-| `1` | `failure` | Lệnh thất bại, lỗi cú pháp/keystore/khóa, hoặc kiểm tra chữ ký/digest thất bại. |
-| `4` | `hasExpiredCert`, `notYetValidCert`, `chainNotValidated`, `signerSelfSigned`, `disabledAlg`; một số lỗi hết hạn timestamp | Certificate/chain/thuật toán không đáp ứng yêu cầu nghiêm ngặt. |
-| `8` | `badKeyUsage`, `badExtendedKeyUsage`, `badNetscapeCertType` | Extension certificate không cho phép mục đích ký mã. |
-| `16` | `hasUnsignedEntry` | Có entry dữ liệu chưa ký, nằm ngoài phạm vi xác minh integrity. |
-| `32` | `notSignedByAlias`, `aliasNotInStore` | Signer không khớp alias/keystore được yêu cầu. |
-| `64` | `tsaChainNotValidated` | Chuỗi chứng thư của TSA không được xác minh hợp lệ. |
+| `0` | No failure or severe warning | **Informational warnings** may still exist, such as `noTimestamp`; must inspect logs/policy. |
+| `1` | `failure` | Command failed, syntax/keystore/key error, or signature/digest verification failed. |
+| `4` | `hasExpiredCert`, `notYetValidCert`, `chainNotValidated`, `signerSelfSigned`, `disabledAlg`; some timestamp expiration errors | Certificate/chain/algorithm does not satisfy strict requirements. |
+| `8` | `badKeyUsage`, `badExtendedKeyUsage`, `badNetscapeCertType` | Certificate extensions do not permit code signing. |
+| `16` | `hasUnsignedEntry` | Unsigned data entry present, outside integrity verification coverage. |
+| `32` | `notSignedByAlias`, `aliasNotInStore` | Signer does not match the requested alias/keystore. |
+| `64` | `tsaChainNotValidated` | The TSA's certificate chain was not validly verified. |
 
-**Mã severe warning là bitmask (OR):** ví dụ `4 | 8 = 12` nếu vừa có vấn đề certificate vừa sai KeyUsage. `1` biểu thị failure; đừng áp dụng phép tách bit như một lời giải thích thay thế cho log failure. Nhiều nguyên nhân cùng nằm trong bit `4`, nên chỉ đọc mã `4` **không xác định được lỗi chính xác**: phải phân tích phần cảnh báo ngay phía trên. Mã và tên warning có thể thay đổi theo JDK; với môi trường thực, đối chiếu tài liệu của chính phiên bản đang sử dụng.
+**Severe warning codes are a bitmask (bitwise OR):** for example, `4 | 8 = 12` when both a certificate issue and a bad KeyUsage occur. `1` indicates failure; do not apply bit decomposition as an explanation for a failure log. Multiple causes share bit `4`, so seeing code `4` alone **does not identify the exact error**: you must analyze the warning output directly above it. Codes and warning names can vary across JDK versions; in production, consult the documentation for the exact JDK version in use.
 
-### Warning nghiêm trọng và warning thông tin
+### Severe warnings vs. informational warnings
 
-**Severe warnings** có thể khiến `-strict` trả khác `0`: signer self-signed, chain không xác minh được, chứng thư hết hạn/chưa có hiệu lực, extension không cho ký mã, thuật toán bị vô hiệu, entry chưa ký, sai alias, TSA chain lỗi.
+**Severe warnings** can cause `-strict` to return non-zero: self-signed signer, unvalidated chain, expired/not-yet-valid certificate, extensions not permitting code signing, disabled algorithm, unsigned entry, wrong alias, or invalid TSA chain.
 
-**Informational warnings** thường **không khiến `-strict` thất bại nếu đứng một mình**:
+**Informational warnings** normally **do not cause `-strict` to fail on their own**:
 
-- `noTimestamp`: chữ ký không kèm timestamp; sau khi chứng thư hết hạn hoặc bị thu hồi trong tương lai, việc chứng minh thời điểm ký có thể trở nên khó hoặc không đạt chính sách.
-- `hasExpiringCert`: certificate sắp hết hạn (khoảng sáu tháng theo tài liệu).
-- `hasExpiringTsaCert`: chứng thư TSA sắp hết hạn.
-- `legacyAlg`: thuật toán cũ sắp không được khuyến nghị/chấp nhận ở tương lai.
-- `extraAttributesDetected`: thuộc tính POSIX permission/symlink được giữ lại nhưng không được chữ ký bảo vệ.
+- `noTimestamp`: the signature has no timestamp; once the certificate expires or is revoked in the future, proving the signing time may become difficult or violate policy.
+- `hasExpiringCert`: certificate expiring soon (roughly six months per the documentation).
+- `hasExpiringTsaCert`: TSA certificate expiring soon.
+- `legacyAlg`: legacy algorithm soon to be discouraged/disallowed in the future.
+- `extraAttributesDetected`: POSIX permission/symlink attributes preserved in the archive but not protected by the signature.
 
-Đặc biệt: **`noTimestamp` không có bit severe warning riêng** trong bảng trên. Vì vậy `-strict` trả `0` không chứng tỏ JAR có timestamp. Nếu chính sách phát hành yêu cầu TSA, phải kiểm tra thông tin `Timestamped by`/timestamp của signer trong output.
+Specifically: **`noTimestamp` has no dedicated severe warning bit** in the table above. Therefore, `-strict` returning `0` does not prove that the JAR has a timestamp. If release policy requires a TSA, you must check the signer's `Timestamped by`/timestamp details in the output.
 
-## 7. Bốn tình huống cần chẩn đoán đúng
+## 7. Four Scenarios to Diagnose Correctly
 
-### Tình huống A — JAR hợp lệ về digest nhưng signer self-signed
+### Scenario A — JAR passes digest check, but the signer is self-signed
 
-Bạn tạo `demo-signer.p12` bằng `keytool -genkeypair`, ký `hello-unsigned.jar` rồi chạy `-verify -strict`. Nội dung `HelloJar.class` có thể có `s` và `m`; `jar verified` có thể đi kèm `signerSelfSigned` hoặc `chainNotValidated`. Với `-strict` thường xuất hiện bit `4`. Đây là bài học về **trust**, không phải bằng chứng file bị sửa.
+You create `demo-signer.p12` with `keytool -genkeypair`, sign `hello-unsigned.jar`, and run `-verify -strict`. `HelloJar.class` may show `s` and `m`; `jar verified` may appear alongside `signerSelfSigned` or `chainNotValidated`. With `-strict`, bit `4` commonly appears. This is a lesson about **trust**, not evidence that the file was modified.
 
-Cách xử lý khi phát hành: dùng certificate signing với chain được bên nhận chấp nhận; phân phối/kiểm tra chuỗi chứng thư phù hợp, không xóa cảnh báo chỉ để pipeline xanh.
+How to handle in production: use a code-signing certificate with a chain accepted by recipients; distribute/verify the appropriate certificate chain rather than suppressing warnings just to make the pipeline green.
 
-### Tình huống B — Một entry đã ký bị sửa sau khi ký
+### Scenario B — A signed entry is modified after signing
 
-Nếu thay byte của `HelloJar.class` trong archive **sau khi ký** mà không ký lại, digest của dữ liệu không khớp manifest đã ký. `jarsigner -verify` có thể báo `SecurityException` hoặc thông báo digest invalid và thất bại. Không nên “sửa manifest tay” hoặc dùng `-strict` như giải pháp: phải **build lại JAR cuối cùng rồi ký lại** bằng khóa hợp lệ.
+If the bytes of `HelloJar.class` in the archive are altered **after signing** without re-signing, the data digest no longer matches the signed manifest. `jarsigner -verify` may throw `SecurityException` or report an invalid digest and fail. Do not “hand-edit the manifest” or remove `-strict` as a workaround: you must **rebuild the final JAR and re-sign** with a valid key.
 
-**Quy tắc pipeline:** compile → test → package → sign → verify → publish. Bất kỳ bước nào thay nội dung JAR sau sign đều đòi hỏi ký/verify lại.
+**Pipeline rule:** compile → test → package → sign → verify → publish. Any step that alters the JAR content after signing requires re-signing and re-verifying.
 
-### Tình huống C — Thêm resource sau khi ký
+### Scenario C — Adding a resource after signing
 
-Nếu thêm `extra.txt` vào JAR đã ký mà entry mới chưa có chữ ký, chữ ký của các entry cũ vẫn có thể hợp lệ, song entry mới **không được bảo vệ**. `-verbose` giúp phân biệt entry đã ký và chưa ký; `-strict` có thể phát `hasUnsignedEntry` (bit `16`). Không nhầm “chữ ký cũ còn đúng” với “mọi nội dung hiện có đều đã được ký”.
+If `extra.txt` is added to an already-signed JAR without signing the new entry, signatures for old entries may remain valid, yet the new entry **is unprotected**. `-verbose` helps distinguish signed from unsigned entries; `-strict` may raise `hasUnsignedEntry` (bit `16`). Do not confuse “old signatures still pass” with “all current content is signed”.
 
-Khi kiểm tra đóng gói, lưu ý các entry kỹ thuật dưới `META-INF/` và thư mục có thể không có cờ ký theo cách hiển thị thông thường. Tập trung vào entry dữ liệu/class thực tế và cảnh báo của `jarsigner`.
+When inspecting packaging, note that technical entries under `META-INF/` and directory entries may not show standard signing flags. Focus on actual data/class entries and `jarsigner` warnings.
 
-### Tình huống D — Chữ ký không có timestamp
+### Scenario D — Signature without a timestamp
 
-Lệnh ký trong bài cố ý không có `-tsa`, do đó có thể thấy `noTimestamp`. Đây là cảnh báo **informational**. Dùng timestamp từ TSA được tổ chức chấp nhận khi cần chứng minh chữ ký được tạo lúc certificate còn hiệu lực:
+The signing command in this lesson intentionally omitted `-tsa`, so `noTimestamp` may appear. This is an **informational** warning. Use a timestamp from an organization-approved TSA when you need to prove the signature was created while the certificate was valid:
 
 ```text
-jarsigner -keystore <signer-keystore.p12> -storetype PKCS12 -tsa <https://TSA-da-duoc-phe-duyet> -signedjar <signed.jar> <unsigned.jar> <signer-alias>
+jarsigner -keystore <signer-keystore.p12> -storetype PKCS12 -tsa <https://approved-TSA-URL> -signedjar <signed.jar> <unsigned.jar> <signer-alias>
 ```
 
-Đây là **cú pháp minh họa**, phải thay mọi placeholder bằng giá trị thực và có TSA hoạt động. Kết nối mạng, certificate của TSA và cấu hình thuật toán là các điều kiện đầu vào. Timestamp hợp lệ **không làm certificate self-signed trở thành đáng tin**, không chữa chữ ký bị sửa và không thay thế việc đánh giá trust chain.
+This is **illustrative syntax**; every placeholder must be replaced with real values and an operational TSA. Network connectivity, the TSA certificate, and algorithm configuration are prerequisites. A valid timestamp **does not make a self-signed certificate trusted**, cannot repair a tampered signature, and does not replace trust-chain evaluation.
 
-## 8. Quy trình xác minh cho build/CI và phát hành
+## 8. Verification Workflow for Build/CI and Release
 
-Trình tự kiểm tra được khuyến nghị cho JAR cuối cùng:
+Recommended verification sequence for the final JAR:
 
-1. **Build và chốt artifact:** sau compile/package không còn bước sửa `.class`, manifest hay tài nguyên.
-2. **Ký với khóa phát hành:** private key được bảo vệ (vault/HSM/PKCS11 hoặc cơ chế bí mật phù hợp), alias đúng, chain certificate thích hợp và TSA nếu chính sách yêu cầu.
-3. **Verify chính JAR sẽ phát hành:** chạy `jarsigner -verify -strict -verbose -certs <artifact.jar>`; lưu log và exit code ngay khi lệnh kết thúc. Exit code khác `0` là tín hiệu chặn để điều tra.
-4. **Đánh giá log ngoài mã thoát:** xem có entry unsigned, signer có đúng người/chứng thư mong đợi, thuật toán có bị disabled/legacy, timestamp có cần thiết, thời hạn/chain có thỏa chính sách, và `-revCheck` có được bật khi yêu cầu hay không.
-5. **Chính sách chấp nhận:** chỉ phát hành khi kết luận về integrity, identity/trust và các yêu cầu bổ sung đều đạt. Không xem `jar verified.` riêng lẻ là đủ.
+1. **Build and freeze the artifact:** after compile/package, no further steps modify `.class` files, the manifest, or resources.
+2. **Sign with the release key:** protect the private key (vault/HSM/PKCS11 or appropriate secret mechanism), use the right alias, proper certificate chain, and TSA if required by policy.
+3. **Verify the exact JAR to be published:** run `jarsigner -verify -strict -verbose -certs <artifact.jar>`; save logs and capture the exit code immediately after the command finishes. Any non-zero exit code is a blocking signal for investigation.
+4. **Evaluate logs beyond the exit code:** check for unsigned entries, whether the signer matches the expected identity/certificate, whether algorithms are disabled/legacy, whether a timestamp is required, whether validity/chain meet policy, and whether `-revCheck` is enabled when required.
+5. **Acceptance policy:** publish only when integrity, identity/trust, and additional requirements all pass. Never treat `jar verified.` alone as sufficient.
 
-Ví dụ lệnh CI đối với **artifact thực tế đã ký bằng certificate phù hợp**:
+Example CI command for a **real artifact signed with an appropriate certificate**:
 
 ```shell
 jarsigner -verify -strict -verbose -certs release.jar
 ```
 
-Script/CI phải kiểm tra exit code của chính lệnh trên và lưu stdout/stderr làm bằng chứng. Nếu policy yêu cầu timestamp hoặc một signer cụ thể, bổ sung kiểm tra có cấu trúc đối với log/certificate/keystore và đối chiếu signer được cho phép; không suy diễn từ `exit 0`. **Không dùng JAR self-signed của bài lab để giả lập kết quả CI production thành công.**
+The script/CI must check the exit code of that exact command and archive stdout/stderr as evidence. If policy requires a timestamp or a specific signer, add structured checks against logs/certificates/keystores and verify the allowed signer; do not infer compliance from `exit 0`. **Never use the lab's self-signed JAR to simulate a passing production CI run.**
 
-Với `-revCheck`, xác minh có thể cần OCSP/CRL và mạng. Không bật/tắt ngầm mà phải theo chính sách kiểm tra thu hồi của hệ thống. Kiểm soát vòng đời, quyền truy cập, thay mới và thu hồi khóa ký; mật khẩu không nên truyền bằng literal trên command line trong môi trường thật (có thể lộ qua lịch sử lệnh/process list). `jarsigner` hỗ trợ `-storepass:env`/`-storepass:file` trong các cấu hình phù hợp, và cũng có thể nhắc nhập tương tác.
+With `-revCheck`, verification may require OCSP/CRL and network access. Do not toggle it implicitly; follow the system's revocation-checking policy. Manage the lifecycle, access control, rotation, and revocation of signing keys; passwords should never be passed as command-line literals in real environments (they can leak through command history or process lists). `jarsigner` supports `-storepass:env`/`-storepass:file` in suitable setups, and can also prompt interactively.
 
-## 9. Lỗi phổ biến và cách sửa
+## 9. Common Errors and How to Fix Them
 
-| Hiện tượng | Nguyên nhân có thể | Hành động kiểm tra |
+| Symptom | Possible cause | Verification action |
 | --- | --- | --- |
-| `jarsigner: key associated with ... not a private key` hoặc không tìm thấy alias | Alias sai hoặc entry là trusted certificate thay vì `PrivateKeyEntry` | `keytool -list -v -keystore ... -alias ...`; dùng đúng keystore/alias chứa private key. |
-| Lỗi mở keystore/mật khẩu | Sai file, `-storetype`, storepass/keypass hoặc hạn chế provider | Kiểm tra đường dẫn, loại keystore, mật khẩu và nhà cung cấp khóa; không in secret vào log. |
-| `jar verified.` nhưng `-strict` báo signer errors | Severe warning về self-signed/chain/cert/unsigned entries | Đọc warning cụ thể và mã bitmask; xử lý theo nguyên nhân, không bỏ `-strict`. |
-| `hasUnsignedEntry` | Bổ sung entry sau khi ký hoặc build/ký sai thứ tự | Kiểm tra các entry chưa ký, build hoàn chỉnh rồi ký lại. |
-| `invalid ... digest`/`SecurityException` | Entry đã ký thay đổi, hỏng, hoặc chữ ký/manifest không nhất quán | So sánh artifact nguồn; rebuild, ký lại và verify; không sửa chữ ký thủ công. |
-| `badKeyUsage` hoặc `badExtendedKeyUsage` | Certificate không được phép dùng cho code signing | Sử dụng certificate có KU/EKU đúng theo chính sách CA. |
-| `noTimestamp` | Không dùng TSA khi ký | Nếu policy yêu cầu, ký với TSA được phê duyệt và kiểm tra timestamp sau đó. |
-| `disabledAlg` / `legacyAlg` | Thuật toán/key size vi phạm hoặc sắp vi phạm chính sách JDK | Dùng thuật toán/khóa hiện hành; không nới `jdk.jar.disabledAlgorithms` để né kiểm tra. |
-| Kết quả khác giữa hai máy | Khác phiên bản JDK, truststore, chính sách thuật toán, thời gian, revocation hoặc certificate chain | Ghi nhận `java -version`, tham số, signer, chain và log; chuẩn hóa môi trường kiểm thử. |
+| `jarsigner: key associated with ... not a private key` or alias not found | Wrong alias, or entry is a trusted certificate instead of `PrivateKeyEntry` | `keytool -list -v -keystore ... -alias ...`; use the right keystore/alias containing the private key. |
+| Error opening keystore/password | Wrong file, `-storetype`, storepass/keypass, or provider restriction | Check path, keystore type, password, and key provider; do not print secrets to logs. |
+| `jar verified.` but `-strict` reports signer errors | Severe warning about self-signed/chain/cert/unsigned entries | Read specific warnings and bitmask code; fix root cause instead of removing `-strict`. |
+| `hasUnsignedEntry` | Entry added after signing or wrong build/sign order | Inspect unsigned entries, complete the build, then re-sign. |
+| `invalid ... digest`/`SecurityException` | Signed entry modified, corrupted, or signature/manifest inconsistent | Compare against source artifact; rebuild, re-sign, and verify; do not edit signatures manually. |
+| `badKeyUsage` or `badExtendedKeyUsage` | Certificate not permitted for code signing | Use a certificate with proper KU/EKU per CA policy. |
+| `noTimestamp` | TSA not used when signing | If required by policy, sign with an approved TSA and verify the timestamp afterward. |
+| `disabledAlg` / `legacyAlg` | Algorithm/key size violates or will soon violate JDK policy | Use current algorithms/key sizes; do not relax `jdk.jar.disabledAlgorithms` to bypass checks. |
+| Different results between two machines | Different JDK versions, truststores, algorithm policies, system time, revocation, or certificate chains | Record `java -version`, arguments, signer, chain, and logs; standardize the test environment. |
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-1. **`jar verified.` có đủ để tin nhà phát hành không?** Không. Nó nói về xác minh chữ ký/digest; cần đánh giá signer identity, certificate chain, chính sách trust và warnings.
-2. **Vì sao ví dụ lab có thể trả `4` trong `-strict`?** Signer được tạo bằng `keytool -genkeypair` là self-signed; `signerSelfSigned` và `chainNotValidated` thuộc nhóm severe bit `4`.
-3. **`noTimestamp` có khiến `-strict` trả nonzero không?** Nếu chỉ có `noTimestamp` thì không; đây là informational warning. Policy riêng vẫn có thể từ chối artifact thiếu TSA.
-4. **Hai warning cùng lúc sẽ ra mã gì?** Severe warning codes được OR, ví dụ `4` và `8` thành `12`; phải đọc log để xác định từng nguyên nhân.
-5. **Thêm `config.properties` sau khi ký có an toàn không?** Không thể mặc định coi là được bảo vệ. Entry mới có thể unsigned dù chữ ký của entry cũ vẫn hợp lệ.
-6. **Khi nào dùng `-revCheck`?** Khi chính sách yêu cầu kiểm tra revocation; cần dự liệu OCSP/CRL và kết nối mạng.
-7. **Vì sao nên dùng `-signedjar`?** Để có JAR đầu ra riêng và tránh vô tình ghi đè artifact chưa ký, thuận tiện đối chiếu và tái lập.
+1. **Is `jar verified.` enough to trust the publisher?** No. It only addresses signature/digest verification; you must evaluate signer identity, certificate chain, trust policy, and warnings.
+2. **Why might the lab example return `4` under `-strict`?** The signer created with `keytool -genkeypair` is self-signed; `signerSelfSigned` and `chainNotValidated` belong to severe bit `4`.
+3. **Does `noTimestamp` cause `-strict` to return non-zero?** Not if `noTimestamp` is the only warning; it is an informational warning. A custom policy can still reject artifacts missing a TSA.
+4. **What code results from two warnings at once?** Severe warning codes are bitwise ORed, e.g., `4` and `8` become `12`; you must read the log to identify each cause.
+5. **Is adding `config.properties` after signing safe?** You cannot assume it is protected by default. The new entry may be unsigned even though old entries' signatures remain valid.
+6. **When should `-revCheck` be used?** When policy requires revocation checking; plan for OCSP/CRL and network connectivity.
+7. **Why should `-signedjar` be used?** To produce a separate output JAR and avoid accidentally overwriting the unsigned artifact, making comparison and reproducibility easier.
 
-## 11. Checklist thực hành
+## 11. Practice Checklist
 
-- [ ] Tạo `HelloJar.java`, chạy `javac`, đóng gói và chạy `hello-unsigned.jar` thành công.
-- [ ] Tạo `demo-signer.p12` bằng `keytool`; xác nhận alias `demo-signer` là `PrivateKeyEntry`.
-- [ ] Ký sang `hello-signed.jar`, quan sát hai file chữ ký trong `META-INF` và chạy JAR như trước.
-- [ ] Chạy `-verify`, `-verify -verbose -certs` và `-verify -strict -verbose -certs`; đối chiếu cờ `s/m/k` với các entry.
-- [ ] Lấy exit code ngay sau `-strict`, nhận diện severe warning self-signed/chain và tách bạch với informational `noTimestamp`.
-- [ ] Giải thích được hành vi khi entry đã ký bị sửa hoặc entry mới chưa ký xuất hiện.
-- [ ] Đề xuất được luồng build → sign → verify → publish với certificate/trust/TSA đúng chính sách.
+- [ ] Create `HelloJar.java`, run `javac`, package, and run `hello-unsigned.jar` successfully.
+- [ ] Create `demo-signer.p12` with `keytool`; verify alias `demo-signer` is `PrivateKeyEntry`.
+- [ ] Sign into `hello-signed.jar`, observe the two signature files in `META-INF`, and run the JAR as before.
+- [ ] Run `-verify`, `-verify -verbose -certs`, and `-verify -strict -verbose -certs`; match `s/m/k` flags against entries.
+- [ ] Capture the exit code immediately after `-strict`, identify self-signed/chain severe warnings, and distinguish them from informational `noTimestamp`.
+- [ ] Explain the behavior when a signed entry is modified or a new unsigned entry appears.
+- [ ] Propose a build → sign → verify → publish workflow with policy-compliant certificates, trust, and TSA.
 
-**Nguồn đối chiếu theo JDK 21:** [jarsigner command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jarsigner.html) (cấu trúc chữ ký, `-verify`, `-strict`, warning/exit code) và [keytool command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/keytool.html) (PKCS12, `-genkeypair`, X.509 KU/EKU). Khi triển khai trên JDK khác, kiểm tra tài liệu và cấu hình `java.security` của đúng phiên bản đó.
+**JDK 21 reference documentation:** [jarsigner command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jarsigner.html) (signature structure, `-verify`, `-strict`, warnings/exit codes) and [keytool command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/keytool.html) (PKCS12, `-genkeypair`, X.509 KU/EKU). When deploying on another JDK version, check the documentation and `java.security` configuration for that exact version.

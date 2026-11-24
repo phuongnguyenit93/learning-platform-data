@@ -1,142 +1,142 @@
-# 19.1 — Chữ ký JAR, manifest, digest của entry và chuỗi chứng thư người ký
+# 19.1 — JAR Signatures, Manifest, Entry Digests, and Signer Certificate Chains
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể giải thích chữ ký số trong Java Archive (JAR) bảo vệ phần nào của gói, đọc được các tệp `META-INF/MANIFEST.MF`, `*.SF` và `*.RSA`/`*.EC`, phân biệt tính toàn vẹn với độ tin cậy của người ký, ký và kiểm tra một JAR bằng JDK 17+, và lấy thông tin người ký của từng entry qua API Java.
+After this lesson, you will be able to explain which parts of a package a digital signature in a Java Archive (JAR) protects, read `META-INF/MANIFEST.MF`, `*.SF`, and `*.RSA`/`*.EC` files, distinguish integrity from signer trust, sign and verify a JAR using JDK 17+, and retrieve signer information for each entry through the Java API.
 
-Phạm vi ở đây là **JAR signing**. Chữ ký XML là cơ chế khác và không nằm trong bài 19.1.
+The scope here is **JAR signing**. XML Signatures are a different mechanism and are not covered in lesson 19.1.
 
-## 1. JAR được ký là gì?
+## 1. What is a Signed JAR?
 
-JAR là một tệp lưu trữ theo định dạng ZIP chứa `.class`, resource và các mục siêu dữ liệu. Mỗi tệp hoặc thư mục bên trong gọi là một **entry**; ví dụ `com/example/App.class` hoặc `config/default.properties`.
+A JAR is a ZIP-format archive file containing `.class` files, resources, and metadata entries. Each file or directory inside is called an **entry**; for example, `com/example/App.class` or `config/default.properties`.
 
-Ký JAR dùng **khóa riêng** của người ký tạo chữ ký số, còn người kiểm tra dùng **khóa công khai** trong chứng thư để xác minh chữ ký. Cơ chế gắn các digest của dữ liệu JAR với chữ ký đó, từ đó giúp phát hiện việc thay đổi các entry đã ký.
+JAR signing uses the signer's **private key** to create a digital signature, while the verifier uses the **public key** in the certificate to verify the signature. This mechanism binds the digests of the JAR data to that signature, thereby enabling detection of modifications to signed entries.
 
-Ba điều phải tách riêng:
+Three things must be kept separate:
 
-- **Integrity (toàn vẹn):** các byte của một entry được ký có còn đúng như khi ký không?
-- **Authenticity (xác thực chữ ký):** chữ ký có được tạo bởi khóa riêng tương ứng với khóa công khai trong chứng thư người ký không?
-- **Trust (tin cậy):** chứng thư người ký có được hệ thống của bạn chấp nhận, được cấp đúng mục đích, còn hiệu lực và phù hợp chính sách không?
+- **Integrity:** Do the bytes of a signed entry still match what was signed?
+- **Authenticity (signature verification):** Was the signature created by the private key corresponding to the public key in the signer certificate?
+- **Trust:** Is the signer certificate accepted by your system, issued for the right purpose, still valid, and compliant with policy?
 
-Một chữ ký hợp lệ **không tự chứng minh** mã nguồn an toàn, người ký đáng tin, hay toàn bộ entry trong JAR đều đã được ký. Java không tự coi mọi JAR có chữ ký là được phép chạy với quyền cao hơn.
+A valid signature **does not by itself prove** that the source code is safe, that the signer is trustworthy, or that every entry in the JAR has been signed. Java does not automatically treat every signed JAR as allowed to run with elevated privileges.
 
-## 2. Ba lớp liên kết nội dung với chữ ký
+## 2. Three Layers Binding Content to the Signature
 
-JAR ký thông thường có những tệp quan trọng sau:
+A typical signed JAR contains the following key files:
 
-| Thành phần | Chứa gì? | Vai trò |
+| Component | What does it contain? | Role |
 | --- | --- | --- |
-| `META-INF/MANIFEST.MF` | Thuộc tính chính và các section `Name: ...`, `SHA-256-Digest: ...` của entry | Liên kết **byte nội dung từng entry** với digest |
-| `META-INF/JAR-DEMO.SF` (tên chỉ minh họa) | `Signature-Version`, digest của manifest và/hoặc digest của các section manifest | Liên kết **manifest** với dữ liệu sắp được ký |
-| `META-INF/JAR-DEMO.RSA`, `.EC` hoặc `.DSA` | Signature block dạng nhị phân, chữ ký trên tệp `.SF` và thông tin chứng thư liên quan | Liên kết **`.SF`** với khóa của người ký |
-| Entry ứng dụng | Ví dụ `Hello.class`, tài nguyên, cấu hình | Dữ liệu được kiểm tra đối chiếu digest khi đọc |
+| `META-INF/MANIFEST.MF` | Main attributes and entry sections `Name: ...`, `SHA-256-Digest: ...` | Binds **each entry's content bytes** to a digest |
+| `META-INF/JAR-DEMO.SF` (illustrative name only) | `Signature-Version`, manifest digest and/or digests of manifest sections | Binds the **manifest** to the data about to be signed |
+| `META-INF/JAR-DEMO.RSA`, `.EC`, or `.DSA` | Binary signature block, signature over the `.SF` file, and related certificate information | Binds **`.SF`** to the signer's key |
+| Application entry | For example `Hello.class`, resources, configuration | Data checked against the digest when read |
 
-Tên `JAR-DEMO` phụ thuộc alias hoặc tùy chọn `-sigfile`, không phải tên cố định. Một JAR có thể có nhiều cặp `.SF` và signature block do nhiều người ký.
+The name `JAR-DEMO` depends on the alias or the `-sigfile` option; it is not a fixed name. A JAR can have multiple `.SF` and signature block pairs from multiple signers.
 
-Sơ đồ logic:
+Logical diagram:
 
 ~~~text
-Byte của Hello.class
+Bytes of Hello.class
        │ SHA-256
        ▼
 MANIFEST.MF: section Name: Hello.class + SHA-256-Digest
-       │ digest của section manifest (và có thể cả manifest)
+       │ digest of manifest section (and possibly the whole manifest)
        ▼
-JAR-DEMO.SF: các digest về manifest
-       │ ký bằng private key
+JAR-DEMO.SF: digests of the manifest
+       │ signed with private key
        ▼
-JAR-DEMO.RSA: chữ ký của .SF + chứng thư người ký
+JAR-DEMO.RSA: signature of .SF + signer certificate
        │
        ▼
-Verifier dùng public key trong chứng thư xác minh chữ ký,
-rồi đối chiếu .SF → manifest → byte thực của Hello.class
+Verifier uses public key in certificate to verify signature,
+then cross-checks .SF → manifest → actual bytes of Hello.class
 ~~~
 
-**Digest không phải chữ ký.** Digest là kết quả hàm băm, ai cũng có thể tính lại khi sửa file. Chữ ký số mới ràng buộc các digest đó với khóa riêng của người ký.
+**A digest is not a signature.** A digest is the output of a hash function, which anyone can recompute after editing a file. A digital signature is what binds those digests to the signer's private key.
 
-## 3. Manifest và digest của từng entry
+## 3. Manifest and Per-Entry Digests
 
-`META-INF/MANIFEST.MF` có main section ở đầu, tiếp theo là các section riêng, ngăn nhau bởi dòng trống:
+`META-INF/MANIFEST.MF` has a main section at the top, followed by individual sections separated by blank lines:
 
-- Main section có `Manifest-Version: 1.0` và có thể có `Main-Class`, `Class-Path` hay các thuộc tính đóng gói khác.
-- Section của entry bắt đầu bằng `Name: đường/dẫn/trong/jar`, sau đó có thể có `SHA-256-Digest`, `SHA-384-Digest` hoặc thuật toán khác tùy phiên bản/cấu hình.
-- Giá trị digest là Base64 của **các byte nội dung entry sau khi giải nén**, không phải Base64 của tên tệp, không phải hash của toàn bộ JAR và không phải chữ ký bằng private key.
+- The main section has `Manifest-Version: 1.0` and may have `Main-Class`, `Class-Path`, or other packaging attributes.
+- An entry section starts with `Name: path/inside/jar`, followed by `SHA-256-Digest`, `SHA-384-Digest`, or another algorithm depending on version/configuration.
+- The digest value is the Base64 encoding of the **decompressed entry content bytes**, not Base64 of the filename, not a hash of the entire JAR, and not a signature with a private key.
 
-Có thể biểu diễn cách tính bằng công thức:
+The calculation can be expressed as a formula:
 
 ~~~text
 entryDigest = Base64(SHA-256(uncompressedEntryBytes))
 ~~~
 
-Ví dụ một section được nhận diện bởi `Name: Hello.class`; trường `SHA-256-Digest` tương ứng được `jarsigner` tạo từ byte của `Hello.class`. Không tự điền một chuỗi hash bất kỳ: verifier so sánh với digest tính từ byte thực tế.
+For example, a section is identified by `Name: Hello.class`; the corresponding `SHA-256-Digest` field is generated by `jarsigner` from the bytes of `Hello.class`. Do not fill in an arbitrary hash string yourself: the verifier compares against the digest computed from the actual bytes.
 
-**Định dạng là một phần của cơ chế.** Manifest là văn bản theo quy tắc riêng: thuộc tính dạng `Key: Value`, các section phân cách bằng dòng trống, dòng dài được tiếp nối bằng một dòng bắt đầu bằng khoảng trắng, và có giới hạn 72 byte cho mỗi dòng vật lý. Các byte, cách xuống dòng và biểu diễn section liên quan đến phép băm của `.SF`; vì vậy sửa manifest bằng công cụ formatter hoặc đổi encoding/xuống dòng sau khi ký có thể làm xác minh thất bại.
+**Formatting is part of the mechanism.** The manifest is text following strict rules: `Key: Value` attributes, sections separated by blank lines, long lines continued on a line starting with a space, and a 72-byte limit per physical line. The bytes, line endings, and section representation affect the `.SF` hashing; therefore, editing the manifest with a formatter tool or changing its encoding/line endings after signing can cause verification to fail.
 
-Không phải mọi entry có mặt trong JAR đều nhất thiết có section được ký. Với `jarsigner`, các file entry hiện có thông thường được ký (ngoại trừ tệp metadata chữ ký dành riêng). API ký cấp thấp có thể chỉ ký một tập con; entry mới được thêm vào sau khi ký cũng có thể không nằm trong phạm vi chữ ký trước đó.
+Not every entry present in a JAR necessarily has a signed section. With `jarsigner`, normal existing file entries are signed (excluding reserved signature metadata files). Low-level signing APIs may sign only a subset; new entries added after signing may also fall outside the scope of the previous signature.
 
-## 4. Tệp `.SF` bảo vệ manifest như thế nào?
+## 4. How Does the `.SF` File Protect the Manifest?
 
-Tệp `META-INF/<tên>.SF` là **signature file**, nhưng **không phải** bản chữ ký nhị phân. Nó chứa các digest dùng để kiểm tra manifest:
+The `META-INF/<name>.SF` file is a **signature file**, but it is **not** the binary signature itself. It contains digests used to verify the manifest:
 
-- `Signature-Version: 1.0` xác định phiên bản signature file.
-- `SHA-256-Digest-Manifest` (nếu có) là digest của toàn bộ manifest.
-- `SHA-256-Digest-Manifest-Main-Attributes` (nếu có) là digest của main attributes của manifest.
-- Mỗi section `Name: Hello.class` trong `.SF` chứa digest của **section tương ứng trong manifest**, khác với digest của nội dung `Hello.class` nằm trong manifest.
+- `Signature-Version: 1.0` identifies the signature file version.
+- `SHA-256-Digest-Manifest` (if present) is the digest of the entire manifest.
+- `SHA-256-Digest-Manifest-Main-Attributes` (if present) is the digest of the manifest's main attributes.
+- Each `Name: Hello.class` section in `.SF` contains the digest of the **corresponding section in the manifest**, which differs from the digest of `Hello.class` content located in the manifest.
 
-Ví dụ, hai trường cùng tên `SHA-256-Digest` nhưng ở hai tầng khác nhau có ý nghĩa khác:
+For example, two fields with the same name `SHA-256-Digest` at two different layers have different meanings:
 
-| Trường | Dữ liệu được băm |
+| Field | Data being hashed |
 | --- | --- |
-| `MANIFEST.MF` → `Name: Hello.class` → `SHA-256-Digest` | Byte nội dung `Hello.class` |
-| `JAR-DEMO.SF` → `Name: Hello.class` → `SHA-256-Digest` | Byte của section `Hello.class` trong `MANIFEST.MF` |
+| `MANIFEST.MF` → `Name: Hello.class` → `SHA-256-Digest` | Content bytes of `Hello.class` |
+| `JAR-DEMO.SF` → `Name: Hello.class` → `SHA-256-Digest` | Bytes of the `Hello.class` section in `MANIFEST.MF` |
 
-Verifier thường thử digest của toàn bộ manifest trước. Nếu digest đó không có hoặc không khớp, đặc tả cho phép kiểm tra theo main attributes và từng section. Điều này hỗ trợ tình huống manifest được **bổ sung section mới** sau lần ký trước: chữ ký cũ vẫn có thể hợp lệ cho các entry ban đầu, miễn các section và byte đã ký không thay đổi. Không được suy diễn rằng phần bổ sung cũng được signer cũ bảo vệ.
+The verifier usually checks the digest of the entire manifest first. If that digest is absent or does not match, the specification allows checking by main attributes and individual sections. This supports the case where **new sections are appended** to the manifest after a previous signing: the old signature can still remain valid for the original entries, provided the previously signed sections and bytes have not changed. You must not infer that the newly added parts are also protected by the old signer.
 
-## 5. Signature block và chuỗi chứng thư người ký
+## 5. Signature Block and Signer Certificate Chain
 
-Tệp `META-INF/<tên>.RSA`/`.EC`/`.DSA` là signature block, thường ở dạng PKCS #7/CMS SignedData. Nó chứa chữ ký số của `.SF`, cùng chứng thư X.509 phục vụ xác minh người ký; không phải nơi lưu trữ private key. Tùy thuật toán của khóa và JDK, tên phần mở rộng sẽ khác nhau.
+The `META-INF/<name>.RSA`/`.EC`/`.DSA` file is the signature block, typically in PKCS #7/CMS SignedData format. It contains the digital signature of `.SF`, along with X.509 certificates for verifying the signer; it is not where the private key is stored. Depending on the key algorithm and JDK, the file extension varies.
 
-**Chuỗi chứng thư (certificate chain)** thường gồm:
+A **certificate chain** typically consists of:
 
-1. **Leaf / signer certificate:** chứng thư đầu cuối chứa public key dùng xác minh chữ ký, chủ thể (Subject) và thời hạn.
-2. **Intermediate CA certificate(s):** nếu người ký dùng CA, các chứng thư trung gian nối leaf đến CA cấp trên.
-3. **Trust anchor:** gốc tin cậy do bên kiểm tra lựa chọn trong truststore/chính sách. Root không bắt buộc phải được nhúng vào JAR và việc xuất hiện trong JAR cũng không tự khiến nó đáng tin.
+1. **Leaf / signer certificate:** the end-entity certificate containing the public key used to verify the signature, the Subject, and the validity period.
+2. **Intermediate CA certificate(s):** if the signer uses a CA, intermediate certificates linking the leaf to an upper-level CA.
+3. **Trust anchor:** the trusted root chosen by the verifying party in its truststore/policy. The root is not required to be embedded in the JAR, and appearing in the JAR does not by itself make it trusted.
 
-Chuỗi được xây dựng và đánh giá theo chính sách PKIX/X.509: chữ ký giữa các chứng thư, thời hạn, KeyUsage/ExtendedKeyUsage (nếu có), thuật toán được phép, trạng thái thu hồi khi yêu cầu, và trust anchor được chấp nhận. Chuỗi chứng thư **không thay thế** kiểm tra digest của entry; hai bước giải quyết hai vấn đề khác nhau.
+The chain is built and evaluated according to PKIX/X.509 policy: signatures between certificates, validity period, KeyUsage/ExtendedKeyUsage (if present), permitted algorithms, revocation status when required, and an accepted trust anchor. The certificate chain **does not replace** entry digest checking; the two steps solve two different problems.
 
-Một JAR có thể được ký đúng bằng self-signed certificate. Khi đó kiểm tra chữ ký có thể thành công nhưng công cụ vẫn cảnh báo `self-signed certificate` hoặc `certificate chain not validated`. Đối với triển khai thực tế, chính sách phải xác định người ký nào được tin cậy; không tin chỉ vì certificate xuất hiện trong signature block.
+A JAR can be validly signed with a self-signed certificate. In that case, signature verification may succeed, yet the tool still warns `self-signed certificate` or `certificate chain not validated`. In real deployments, policy must define which signers are trusted; do not trust a signer merely because a certificate appears in the signature block.
 
-**Timestamp (dấu thời gian):** nếu `jarsigner` dùng dịch vụ TSA, thông tin timestamp đã ký có thể được đính kèm; verifier kiểm tra chữ ký/chuỗi của TSA theo chính sách riêng. Timestamp tin cậy giúp chứng minh thời điểm ký nằm trong giai đoạn chứng thư người ký hợp lệ. Timestamp không giúp bỏ qua kiểm tra integrity và không sửa được một entry đã bị thay đổi.
+**Timestamp:** if `jarsigner` uses a TSA service, signed timestamp information can be attached; the verifier checks the TSA's signature/chain under its own policy. A trusted timestamp helps prove that the signing time fell within the signer certificate's validity period. A timestamp does not bypass integrity checks and cannot fix an entry whose bytes have been altered.
 
-## 6. Trình tự xác minh và điểm phát hiện sai lệch
+## 6. Verification Order and Discrepancy Detection Points
 
-Dưới góc nhìn người xác minh:
+From the verifier's perspective:
 
-1. Mở JAR với chế độ verification. Xác minh chữ ký cryptographic trên `.SF` bằng public key trong certificate signer của signature block.
-2. Xác minh nội dung liên quan trong manifest qua digest của `.SF`: toàn manifest hoặc main attributes/section theo quy tắc đặc tả.
-3. Khi đọc **đến hết nội dung từng entry**, tính digest từ byte thực và đối chiếu digest ở section manifest được bảo vệ. Sai lệch có thể phát sinh `SecurityException`.
-4. Xác định entry đó có bao nhiêu người ký và lấy chuỗi chứng thư của từng người ký.
-5. Thực hiện kiểm tra **tin cậy/policy** riêng: người ký được cho phép không, chain có tới trust anchor mong đợi không, certificate, thuật toán, timestamp và các quy tắc doanh nghiệp có đạt không.
-6. Kiểm kê **tất cả entry bắt buộc phải ký**. Sự thành công của một entry đã ký không đồng nghĩa các entry khác cũng được ký.
+1. Open the JAR in verification mode. Verify the cryptographic signature on `.SF` using the public key in the signer certificate from the signature block.
+2. Verify the relevant content in the manifest via the digests in `.SF`: either the entire manifest or the main attributes/sections per the specification rules.
+3. When reading **to the end of each entry's content**, compute the digest from the actual bytes and compare it against the digest in the protected manifest section. A mismatch can throw a `SecurityException`.
+4. Determine how many signers that entry has and retrieve the certificate chain of each signer.
+5. Perform separate **trust/policy** checks: whether the signer is allowed, whether the chain reaches an expected trust anchor, and whether the certificate, algorithms, timestamp, and enterprise rules pass.
+6. Inventory **all entries that must be signed**. Success on one signed entry does not mean other entries are also signed.
 
-Tình huống thường gặp:
+Common scenarios:
 
-| Thay đổi hoặc trạng thái | Kết quả phải hiểu đúng |
+| Modification or state | Expected outcome to understand correctly |
 | --- | --- |
-| Sửa byte của `Hello.class` sau ký | Digest thực không còn khớp manifest đã ký; xác minh entry thất bại |
-| Sửa `.SF` nhưng giữ signature block cũ | Chữ ký trên `.SF` không khớp |
-| Chỉ thêm resource mới sau khi ký | Entry mới có thể **unsigned**; entry ban đầu vẫn có thể hợp lệ |
-| Certificate tự ký, chưa được tin cậy | Integrity/signature có thể hợp lệ nhưng identity/trust chưa đạt |
-| Certificate hết hạn hoặc bị thu hồi | Cần xét policy, thời điểm ký và timestamp tin cậy nếu có |
-| Algorithm ký/digest nằm trong danh sách bị vô hiệu hóa | JDK có thể coi JAR như unsigned hoặc từ chối theo chính sách thuật toán |
+| Modifying bytes of `Hello.class` after signing | Actual digest no longer matches signed manifest; entry verification fails |
+| Modifying `.SF` while keeping old signature block | Signature over `.SF` does not match |
+| Only adding a new resource after signing | New entry may be **unsigned**; original entries may still be valid |
+| Self-signed, untrusted certificate | Integrity/signature may be valid, but identity/trust is not satisfied |
+| Expired or revoked certificate | Must evaluate policy, signing time, and trusted timestamp if present |
+| Signing/digest algorithm on the disabled list | JDK may treat the JAR as unsigned or reject it per algorithm policy |
 
-Việc **repackaging, shading, re-compression, sửa manifest hoặc ghi lại JAR** sau ký phải được xem là thay đổi cần kiểm tra lại. Quy trình an toàn thường là **build hoàn tất → ký → verify → phát hành bất biến**.
+**Repackaging, shading, re-compression, editing the manifest, or rewriting the JAR** after signing must be treated as modifications requiring re-verification. A safe workflow is usually **complete build → sign → verify → immutable release**.
 
-## 7. Thực hành: tạo, ký và kiểm tra JAR trên JDK 17+
+## 7. Hands-On: Create, Sign, and Verify a JAR on JDK 17+
 
-Các lệnh dưới đây chạy trong thư mục thực hành có JDK 17+ và `java`, `javac`, `jar`, `keytool`, `jarsigner` trên `PATH`. Chứng thư được tạo **chỉ để học tập**, không dùng làm chứng thư phát hành thật.
+The commands below run in a practice directory with JDK 17+ and `java`, `javac`, `jar`, `keytool`, `jarsigner` on `PATH`. The generated certificate is **for learning purposes only**, not for use as a real release certificate.
 
-Tạo tệp **Hello.java**:
+Create the file **Hello.java**:
 
 ~~~java
 public class Hello {
@@ -146,7 +146,7 @@ public class Hello {
 }
 ~~~
 
-Biên dịch, đóng gói JAR chưa ký và chạy thử:
+Compile, package an unsigned JAR, and test-run it:
 
 ~~~bash
 javac Hello.java
@@ -154,25 +154,25 @@ jar --create --file unsigned.jar Hello.class
 java -cp unsigned.jar Hello
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 Signed JAR demo
 ~~~
 
-Tạo một cặp khóa RSA và chứng thư X.509 tự ký trong PKCS#12; `keytool` sẽ hỏi mật khẩu keystore qua terminal:
+Create an RSA key pair and a self-signed X.509 certificate in PKCS#12; `keytool` will prompt for the keystore password in the terminal:
 
 ~~~bash
 keytool -genkeypair -alias jar-demo -keyalg RSA -keysize 3072 -validity 90 -storetype PKCS12 -keystore demo.p12 -dname "CN=Training Signer, OU=Learning, O=Example, C=VN"
 ~~~
 
-Dùng alias `jar-demo` để ký và xuất thành **signed.jar**, giữ nguyên **unsigned.jar**:
+Use the `jar-demo` alias to sign and output **signed.jar**, preserving **unsigned.jar**:
 
 ~~~bash
 jarsigner -keystore demo.p12 -storetype PKCS12 -signedjar signed.jar unsigned.jar jar-demo
 ~~~
 
-Công cụ sẽ hỏi mật khẩu. Đọc cấu trúc JAR và kiểm tra chữ ký:
+The tool will prompt for the password. Inspect the JAR structure and verify the signature:
 
 ~~~bash
 jar --list --file signed.jar
@@ -180,19 +180,19 @@ jarsigner -verify -verbose -certs signed.jar
 java -cp signed.jar Hello
 ~~~
 
-Lệnh `jar --list` sẽ cho thấy `META-INF/MANIFEST.MF`, cặp tệp signature `META-INF/JAR-DEMO.SF` và `META-INF/JAR-DEMO.RSA`, cùng `Hello.class`. Tên và thứ tự entry hiển thị có thể thay đổi theo công cụ. Lệnh `java` cuối vẫn in đúng `Signed JAR demo` như trước.
+The `jar --list` command will show `META-INF/MANIFEST.MF`, the signature file pair `META-INF/JAR-DEMO.SF` and `META-INF/JAR-DEMO.RSA`, along with `Hello.class`. Displayed entry names and order may vary by tool. The final `java` command still prints `Signed JAR demo` just as before.
 
-Trong kết quả `jarsigner -verify -verbose -certs`, ký hiệu `s` cho biết chữ ký entry được xác minh, `m` cho biết entry có trong manifest; `k` liên quan việc tìm thấy chứng thư trong keystore đang dùng. Hãy kiểm tra **từng entry ứng dụng** và phần cảnh báo của công cụ. Vì bài demo dùng self-signed certificate và không có TSA, có thể thấy cảnh báo về chuỗi chứng thư và timestamp; đó là dự kiến, không phải dấu hiệu byte `Hello.class` đã bị sửa.
+In the `jarsigner -verify -verbose -certs` output, the `s` flag indicates the entry's signature was verified, `m` indicates the entry is listed in the manifest, and `k` relates to finding a certificate in the keystore being used. Check **every application entry** and the tool's warning section. Because this demo uses a self-signed certificate and no TSA, warnings about the certificate chain and timestamp may appear; that is expected, not a sign that the bytes of `Hello.class` were altered.
 
-Trong CI/CD phát hành thực tế, có thể dùng `jarsigner -verify -strict -verbose -certs signed.jar` để biến một số **severe warnings** thành mã thoát khác 0. Lưu ý lệnh `-strict` đối với certificate tự ký của bài demo có thể thất bại đúng theo thiết kế. `-strict` không thay chính sách kiểm kê entry và tin cậy publisher của tổ chức.
+In real release CI/CD, you can use `jarsigner -verify -strict -verbose -certs signed.jar` to turn certain **severe warnings** into a non-zero exit code. Note that the `-strict` command against the demo's self-signed certificate may fail by design. `-strict` does not replace an organization's entry-inventory and publisher-trust policies.
 
-## 8. Kiểm tra từng entry bằng API Java 17
+## 8. Checking Each Entry Using the Java 17 API
 
-`JarFile` có chế độ `verify=true` để kiểm tra tính toàn vẹn/chữ ký của nội dung entry khi đọc. `JarEntry.getCodeSigners()` hoặc `getCertificates()` chỉ có thông tin đáng tin cậy sau khi **đọc hết stream của entry**; hỏi trước thường trả về `null`. API này **không tự đánh giá mức tin cậy của certificate signer**.
+`JarFile` has a `verify=true` mode to verify the integrity/signature of entry contents as they are read. `JarEntry.getCodeSigners()` or `getCertificates()` only return reliable information after **reading the entry's stream to the end**; querying beforehand usually returns `null`. This API **does not by itself evaluate the trust level of the signer certificate**.
 
-Chương trình sau liệt kê người ký của các entry ứng dụng. Để ví dụ ngắn gọn, nó bỏ qua `META-INF/`; khi triển khai kiểm kê nghiêm ngặt phải xem cả các resource không thuộc signature metadata trong thư mục đó.
+The following program lists the signers of application entries. To keep the example concise, it skips `META-INF/`; in strict inventory implementations, you must also inspect non-signature-metadata resources inside that directory.
 
-Tạo **InspectJar.java**:
+Create **InspectJar.java**:
 
 ~~~java
 import java.io.OutputStream;
@@ -220,7 +220,7 @@ public class InspectJar {
                     continue;
                 }
 
-                // Đọc đến EOF mới hoàn tất kiểm tra digest/chữ ký cho entry.
+                // Read to EOF to complete digest/signature verification for the entry.
                 try (var input = jar.getInputStream(entry)) {
                     input.transferTo(OutputStream.nullOutputStream());
                 }
@@ -252,83 +252,83 @@ public class InspectJar {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac InspectJar.java
 java InspectJar signed.jar
 ~~~
 
-Với JAR nhỏ đã ký ở mục 7, chương trình sẽ nhận diện `Hello.class` có một signer; phần cuối:
+With the small JAR signed in section 7, the program will identify `Hello.class` as having one signer; the end of the output:
 
 ~~~text
 Signed entries: 1, unsigned entries: 0
 ~~~
 
-Các dòng subject và độ dài certificate chain phụ thuộc certificate thực tế. Nếu entry được ký bị thay byte, chương trình có thể ném `SecurityException` trong lúc đọc hoặc xác minh. Nếu entry không được ký, `getCodeSigners()` trả về `null` dù chương trình đã đọc hết nó. `CodeSigner.getSignerCertPath()` cho chuỗi chứng thư của từng signer; `getTimestamp()` có thể `null` nếu ký không có timestamp.
+The subject lines and certificate chain length depend on the actual certificate. If a signed entry has its bytes modified, the program may throw `SecurityException` during reading or verification. If an entry is unsigned, `getCodeSigners()` returns `null` even after the program finishes reading it. `CodeSigner.getSignerCertPath()` gives each signer's certificate chain; `getTimestamp()` may be `null` if signed without a timestamp.
 
-**Giới hạn quan trọng:** chương trình minh họa chỉ kiểm tra chữ ký/digest và đếm signer. Để quyết định có **chấp nhận** publisher hay không, ứng dụng cần truststore/PKIX validation, danh sách signer được phép, chính sách thuật toán và timestamp. Đừng lấy `count > 0` làm quy tắc tin cậy trong môi trường thật.
+**Important limitation:** the demo program only checks signatures/digests and counts signers. To decide whether to **accept** a publisher, an application needs truststore/PKIX validation, an allowlist of permitted signers, algorithm policies, and timestamp checks. Do not use `count > 0` as a trust rule in real environments.
 
-## 9. Cách đọc kết quả đúng và kiểm thử âm tính
+## 9. Reading Results Correctly and Negative Testing
 
-Cần phân biệt ba kết luận riêng biệt thay vì chỉ nhìn dòng `jar verified`:
+Three separate conclusions must be distinguished instead of merely looking at the `jar verified` line:
 
-1. **Byte của các entry được ký có khớp?** Kiểm tra phần xác minh chữ ký và digest; mọi entry bắt buộc ký phải được đọc/kiểm tra.
-2. **Mọi entry quan trọng đều đã ký?** Kiểm kê file ứng dụng/resource được phép. Entry thêm sau khi ký có thể unsigned mà chữ ký trên entry cũ vẫn đúng.
-3. **Người ký có được chấp nhận?** Xem chain, certificate validity/usage, trust anchor, revocation/timestamp và chính sách tổ chức.
+1. **Do the bytes of signed entries match?** Check the signature and digest verification; every entry required to be signed must be read/verified.
+2. **Are all critical entries signed?** Inventory allowed application/resource files. Entries added after signing can be unsigned while signatures on old entries still pass.
+3. **Is the signer accepted?** Check the chain, certificate validity/usage, trust anchor, revocation/timestamp, and organizational policy.
 
-Một bộ thử nghiệm nên có:
+A test suite should include:
 
-- **Mẫu chuẩn:** JAR ký, mọi entry cần bảo vệ có signer theo dự kiến.
-- **Sửa nội dung entry:** dựng bản thử nghiệm bằng cách thay byte rồi kiểm tra lại; phải bắt được lỗi integrity.
-- **Thêm entry chưa ký:** kiểm tra rằng quy trình phát hành phát hiện entry ngoài danh sách đã ký.
-- **Self-signed/unknown CA:** crypto verification có thể hợp lệ, nhưng trust phải bị từ chối bởi policy thật.
-- **Expired/disabled algorithm:** xem cảnh báo và mã thoát của `jarsigner -strict`, đối chiếu chính sách JDK đang chạy.
-- **Nhiều người ký:** xác minh signer theo **entry**, không chỉ đếm tệp `.SF` toàn JAR.
+- **Baseline sample:** a signed JAR where every entry requiring protection has the expected signer.
+- **Modified entry content:** build a test sample by altering bytes and re-verifying; it must catch the integrity error.
+- **Added unsigned entry:** verify that the release pipeline detects entries outside the signed set.
+- **Self-signed/unknown CA:** cryptographic verification may pass, but trust must be rejected by real policy.
+- **Expired/disabled algorithm:** inspect warnings and the exit code of `jarsigner -strict`, cross-checking against the running JDK's policy.
+- **Multiple signers:** verify signers **per entry**, rather than only counting `.SF` files across the whole JAR.
 
-Không cần phá khóa riêng để giả mạo một JAR: một attacker có thể thử chèn entry unsigned, đổi classpath, thay dependency, hoặc lợi dụng code loader bỏ qua bước kiểm tra policy. Vì vậy phát hành JAR an toàn còn cần khóa phiên bản dependency, kiểm tra provenance, giới hạn nguồn tải và không thực thi trực tiếp gói chưa được tin cậy.
+An attacker does not need to break the private key to spoof a JAR: they might try injecting unsigned entries, altering the classpath, swapping dependencies, or exploiting a classloader that skips policy checks. Therefore, secure JAR distribution also requires locking dependency versions, verifying provenance, restricting download sources, and never directly executing untrusted packages.
 
-## 10. Lỗi phổ biến và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-| Nhầm lẫn | Diễn giải/cách sửa |
+| Misconception | Clarification / fix |
 | --- | --- |
-| “Manifest là chữ ký số.” | Manifest chỉ chứa metadata và digest. Chữ ký cryptographic nằm trong signature block của `.SF`. |
-| “SHA-256-Digest trong `.SF` là hash của file `.class`.” | Digest trong `.SF` trỏ tới **section manifest**; digest trong manifest trỏ tới **byte entry**. |
-| “Có `META-INF/*.RSA` thì mọi file đều được ký.” | Có thể có entry unsigned; phải xem signer theo entry và chính sách phạm vi. |
-| “`jarsigner -verify` thành công tức là publisher đáng tin.” | Chữ ký hợp lệ và certificate chain được tin cậy là hai kết luận tách biệt. |
-| “Gọi `getCodeSigners()` ngay sau `getJarEntry()`.” | Phải đọc hết input stream với verification bật rồi mới lấy signer. |
-| “Có certificate trong block nên root CA đương nhiên trusted.” | Trust anchor do phía verifier cấu hình; root được nhúng không tạo niềm tin. |
-| “Sửa tên, nén lại hoặc chèn resource sau ký không sao.” | Luôn kiểm tra lại; các thay đổi có thể làm invalid signature hoặc sinh entry unsigned. |
-| “Dùng chứng thư tự ký demo để publish production.” | Cần quy trình cấp phát/giữ private key, certificate code signing và chính sách tin cậy thật. |
-| “Không có TSA thì chữ ký vô giá trị ngay.” | Chữ ký vẫn có thể xác minh; thiếu timestamp làm việc đánh giá hợp lệ theo thời gian khó hơn và có thể gây cảnh báo. |
+| “The manifest is the digital signature.” | The manifest only holds metadata and digests. The cryptographic signature resides in the `.SF` signature block. |
+| “`SHA-256-Digest` in `.SF` is the hash of the `.class` file.” | The digest in `.SF` points to the **manifest section**; the digest in the manifest points to the **entry bytes**. |
+| “If `META-INF/*.RSA` exists, every file is signed.” | Unsigned entries may still exist; you must inspect signers per entry and enforce scope policy. |
+| “`jarsigner -verify` succeeding means the publisher is trusted.” | A valid signature and a trusted certificate chain are two separate conclusions. |
+| “Calling `getCodeSigners()` immediately after `getJarEntry()`.” | You must read the input stream to completion with verification enabled before retrieving signers. |
+| “Because a certificate is in the block, the root CA is automatically trusted.” | The trust anchor is configured by the verifier; an embedded root does not create trust. |
+| “Renaming, recompressing, or injecting a resource after signing is harmless.” | Always re-verify; changes can invalidate the signature or introduce unsigned entries. |
+| “Using a demo self-signed certificate to publish to production.” | You need proper private key issuance/storage, a code-signing certificate, and a real trust policy. |
+| “Without a TSA, the signature is immediately worthless.” | The signature can still verify; lacking a timestamp makes time-based validity assessment harder and may trigger warnings. |
 
-## 11. Checklist triển khai
+## 11. Implementation Checklist
 
-- Build artifact cuối cùng xong trước khi ký; lưu artifact đã ký bất biến.
-- Dùng thuật toán hiện đại được JDK và chính sách của hệ thống chấp nhận; tránh SHA-1/MD5 và các thuật toán bị vô hiệu hóa.
-- Bảo vệ private key bằng keystore/secret manager/HSM phù hợp; không hard-code mật khẩu trong mã hay log.
-- Chọn signer certificate và chain đúng mục đích code signing; xác định trust anchor trước khi phát hành.
-- Cân nhắc TSA đáng tin cậy, kiểm tra tính hợp lệ của TSA và kế hoạch xử lý hết hạn/thu hồi.
-- Chạy `jarsigner -verify -verbose -certs` và `-strict` theo policy với certificate thật; đọc cảnh báo và exit code.
-- Bảo đảm **mọi entry bắt buộc** có signer đúng; không chấp nhận resource unsigned bất ngờ.
-- Với classloader tùy biến hoặc công cụ tự kiểm tra, đọc hết entry trước khi dùng `getCodeSigners()`; áp dụng kiểm tra trust riêng.
-- Nếu thay đổi JAR sau ký, build/ký/verify lại và kiểm thử đường dẫn triển khai cuối cùng.
+- Finish building the final artifact before signing; store the signed artifact immutably.
+- Use modern algorithms accepted by the JDK and system policy; avoid SHA-1/MD5 and disabled algorithms.
+- Protect private keys with an appropriate keystore/secret manager/HSM; do not hard-code passwords in code or logs.
+- Choose a signer certificate and chain intended for code signing; define trust anchors before release.
+- Consider a trusted TSA, verify TSA validity, and plan for expiration/revocation handling.
+- Run `jarsigner -verify -verbose -certs` and `-strict` per policy with real certificates; inspect warnings and exit codes.
+- Ensure **every required entry** has the right signer; reject unexpected unsigned resources.
+- For custom classloaders or self-checking tools, read entries to completion before calling `getCodeSigners()`; apply separate trust checks.
+- If the JAR is modified after signing, rebuild/re-sign/re-verify and test the final deployment path.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-**1. Nếu thay `Hello.class` nhưng giữ nguyên manifest và `.SF` thì sao?** Verifier tính digest từ byte `Hello.class` mới; digest không khớp giá trị đã ký trong manifest nên thất bại khi xác minh entry.
+**1. What happens if `Hello.class` is replaced while keeping the manifest and `.SF` unchanged?** The verifier computes the digest from the bytes of the new `Hello.class`; the digest will not match the signed value in the manifest, so entry verification fails.
 
-**2. Vì sao `.SF` cần digest của section manifest?** Vì chữ ký số ký `.SF`, còn manifest chứa digest của byte entry. Digest section tạo cầu nối được bảo vệ giữa `.SF` và manifest.
+**2. Why does `.SF` need digests of manifest sections?** Because the digital signature signs `.SF`, while the manifest holds the digests of entry bytes. Section digests form a protected bridge between `.SF` and the manifest.
 
-**3. Tại sao certificate self-signed vẫn có thể xác minh chữ ký?** Public key của certificate xác minh được phép toán chữ ký, nhưng certificate tự ký không tự trở thành trust anchor của người kiểm tra.
+**3. Why can a self-signed certificate still verify a signature?** The certificate's public key verifies the signature math, but a self-signed certificate does not automatically become a trust anchor for the verifier.
 
-**4. Vì sao `getCodeSigners()` có thể trả `null`?** Entry unsigned hoặc chưa được đọc/verify đến EOF; cũng phải kiểm tra chế độ verify và lỗi thuật toán/chữ ký.
+**4. Why might `getCodeSigners()` return `null`?** The entry is unsigned or has not been read/verified to EOF; you should also check verification mode and algorithm/signature errors.
 
-**5. Nếu JAR được thêm file sau lần ký ban đầu, chứng thư người ký cũ đảm bảo file mới không?** Không. Cần kiểm tra phạm vi signer của chính file mới; chữ ký cũ chỉ có thể tiếp tục bảo vệ phần đã ký trước.
+**5. If a file is added to a JAR after initial signing, does the old signer's certificate vouch for the new file?** No. You must inspect the signer coverage of the new file itself; the old signature can only continue protecting what was previously signed.
 
-## Tài liệu chuẩn để đối chiếu
+## Authoritative Reference Documentation
 
-- JAR File Specification (Java 17), phần Signed JAR File và Signature Validation: https://docs.oracle.com/en/java/javase/17/docs/specs/jar/jar.html
+- JAR File Specification (Java 17), Signed JAR File and Signature Validation sections: https://docs.oracle.com/en/java/javase/17/docs/specs/jar/jar.html
 - `jarsigner` tool: https://docs.oracle.com/en/java/javase/17/docs/specs/man/jarsigner.html
 - `java.util.jar.JarFile` (Java 17): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/jar/JarFile.html
 - `java.util.jar.JarEntry` (Java 17): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/jar/JarEntry.html

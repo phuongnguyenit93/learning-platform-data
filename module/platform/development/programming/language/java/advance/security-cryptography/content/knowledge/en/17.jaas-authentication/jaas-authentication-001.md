@@ -1,36 +1,36 @@
-# 17.1 Phân biệt xác thực danh tính với quyết định phân quyền trong ứng dụng
+# 17.1 Distinguishing Identity Authentication from Application Authorization Decisions
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Trả lời rõ hai câu hỏi bảo mật khác nhau: **Authentication — “Bạn là ai?”** và **Authorization — “Bạn có được thực hiện hành động này đối với tài nguyên cụ thể này, trong ngữ cảnh hiện tại không?”**
-2. Hiểu JAAS (**Java Authentication and Authorization Service**) trong Java 17, đặc biệt **LoginContext**, **LoginModule**, **Configuration**, **CallbackHandler**, **Subject**, **Principal**, các pha **login/commit/abort/logout**.
-3. Phân biệt việc **LoginContext.login() thành công** với quyết định cho phép đọc hóa đơn, sửa hồ sơ, gọi API quản trị hay truy cập tài nguyên thuộc tenant khác.
-4. Thiết kế authorization kiểm tra **actor + action + resource + context**, áp dụng **deny-by-default**, **least privilege**, **tenant isolation** và kiểm tra **quyền ở từng object** thay vì chỉ kiểm tra đăng nhập hoặc vai trò.
-5. Chạy ví dụ Java 17+ có **LoginModule tùy chỉnh**, Subject nhận một Principal sau khi xác thực, và **policy của ứng dụng** từ chối truy cập sai tenant/chủ sở hữu dù người gọi đăng nhập hợp lệ.
-6. Nhận biết quan hệ giữa JAAS Authorization truyền thống với **Java Security Manager/Policy** trong tài liệu cũ; hiểu vì sao không được coi **Subject.doAs** là cơ chế phân quyền nghiệp vụ tự động trên các JDK hiện đại.
-7. Xây test và audit đúng cho các trường hợp **chưa xác thực**, **đã xác thực nhưng không đủ quyền**, **quyền bị thu hồi**, **mạo danh**, **IDOR/BOLA** và **session context bị trộn**.
+1. Clearly answer two distinct security questions: **Authentication — "Who are you?"** and **Authorization — "Are you permitted to perform this action on this specific resource, in the current context?"**
+2. Understand JAAS (**Java Authentication and Authorization Service**) in Java 17, especially **`LoginContext`**, **`LoginModule`**, **`Configuration`**, **`CallbackHandler`**, **`Subject`**, **`Principal`**, and the **`login/commit/abort/logout`** phases.
+3. Distinguish **`LoginContext.login()` succeeding** from the decision to permit reading an invoice, editing a profile, calling an admin API, or accessing resources belonging to another tenant.
+4. Design authorization checking **actor + action + resource + context**, applying **deny-by-default**, **least privilege**, **tenant isolation**, and **per-object permission checks** rather than checking only login status or roles.
+5. Run a Java 17+ example with a **custom `LoginModule`**, a `Subject` receiving a `Principal` after authentication, and **application policy** denying cross-tenant or non-owner access even when the caller logged in validly.
+6. Recognize the relationship between traditional JAAS Authorization and **Java Security Manager/Policy** in legacy docs; understand why **`Subject.doAs`** must not be treated as automatic business authorization on modern JDKs.
+7. Build proper tests and audits for **unauthenticated**, **authenticated but unauthorized**, **revoked permissions**, **impersonation**, **IDOR/BOLA**, and **mixed session context** cases.
 
-**Ý chính:** Xác thực cho ứng dụng một **identity đã được kiểm chứng qua cơ chế đáng tin**; phân quyền là **một quyết định khác, lặp lại tại từng ranh giới tài nguyên và thao tác**. **Đã đăng nhập không đồng nghĩa được phép làm mọi việc.** JAAS có cả các API và tài liệu authorization lịch sử, nhưng **kết quả authentication không tự động cấp quyền nghiệp vụ** cho mọi invoice, tenant, database row hoặc API.
+**Key takeaway:** Authentication gives the application an **identity verified through a trusted mechanism**; authorization is **a separate decision, repeated at every resource and operation boundary**. **Being logged in does not mean being allowed to do everything.** While JAAS includes historical authorization APIs and docs, **authentication success does not automatically grant business permissions** to every invoice, tenant, database row, or API.
 
-## 1. Hai câu hỏi: Authentication và Authorization
+## 1. Two Questions: Authentication and Authorization
 
-### 1.1 Authentication — xác thực danh tính
+### 1.1 Authentication — Verifying Identity
 
-**Authentication (AuthN)** trả lời: một thực thể (người dùng, máy chủ, service hoặc tiến trình) có thực sự chứng minh được identity mà nó đang khai báo hay không?
+**Authentication (AuthN)** answers: has an entity (user, host, service, or process) genuinely proven the identity it claims?
 
-Ví dụ bằng chứng:
+Examples of evidence:
 
-- Mật khẩu được xác minh theo đúng password verifier có salt và KDF phù hợp.
-- Token/session đã được xác thực chữ ký/MAC, issuer, audience, hiệu lực và ràng buộc cần thiết.
-- Private key chứng minh qua mTLS hoặc một giao thức ký thách thức đúng.
-- Kerberos ticket được xác minh theo cơ chế JAAS/GSS-API.
-- MFA/passkey, theo chính sách của identity provider và application.
+- A password verified against a proper salted password verifier and KDF.
+- A token/session with verified signature/MAC, issuer, audience, validity, and required bindings.
+- A private key proven via mTLS or a valid challenge-signing protocol.
+- A Kerberos ticket verified through JAAS/GSS-API mechanisms.
+- MFA/passkey, per identity provider and application policy.
 
-Sau khi chứng cứ hợp lệ, hệ thống có thể lập một **authentication context**: user ID ổn định, cơ chế xác thực, thời điểm, độ tin cậy, tenant được liên kết, session ID và các claim đã kiểm chứng. Không có bằng chứng hợp lệ thì **không được tự nhận actor theo dữ liệu do client gửi**.
+Once evidence is valid, the system can establish an **authentication context**: stable user ID, authentication method, timestamp, assurance level, linked tenant, session ID, and verified claims. Without valid evidence, **never accept an actor identity from client-supplied data**.
 
-Ví dụ:
+Example:
 
 ~~~text
 HTTP request
@@ -38,21 +38,21 @@ Authorization: Bearer <token>
 
    Token/credential validation
        |
-       +--- Không hợp lệ ---> Reject (chưa được xác thực)
+       +--- Invalid ----------> Reject (unauthenticated)
        |
-       +--- Hợp lệ --------> Authenticated identity:
+       +--- Valid ------------> Authenticated identity:
                              userId = "alice"
                              authMethod = "oidc"
                              session = ...
 ~~~
 
-**Authentication không nói Alice có được xem hóa đơn số 127 của Bob.** Nó chỉ nói hệ thống có cơ sở tin người gọi là Alice theo quá trình kiểm tra tương ứng.
+**Authentication does not say whether Alice may view Bob's invoice #127.** It only says the system has grounds to trust the caller is Alice based on that verification step.
 
-### 1.2 Authorization — quyết định quyền trên tài nguyên
+### 1.2 Authorization — Deciding Access on Resources
 
-**Authorization (AuthZ)** trả lời: actor đã được xác thực (hoặc một public/anonymous actor được chính sách cho phép) có quyền thực hiện **một action** trên **một resource** trong **một context** không?
+**Authorization (AuthZ)** answers: is an authenticated actor (or an anonymous/public actor permitted by policy) allowed to perform **an action** on **a resource** within **a context**?
 
-Mô hình:
+Model:
 
 ~~~text
 Authorize(
@@ -61,114 +61,114 @@ Authorize(
     resource = Invoice 127,
     context  = {tenant: "tenant-A", time, authStrength, ...}
 )
-    => ALLOW hoặc DENY
+    => ALLOW or DENY
 ~~~
 
-Policy có thể yêu cầu đồng thời:
+Policy may simultaneously require:
 
-- Alice đã được xác thực từ một nguồn tin.
-- Alice có quyền **INVOICE_READER** theo role/permission store đáng tin.
-- Invoice 127 thuộc **tenant-A** và Alice có membership hợp lệ với tenant này.
-- Alice là **owner** hoặc được ủy quyền đọc tài nguyên đó.
-- Invoice chưa bị khóa/tịch thu hoặc có các trạng thái nghiệp vụ cho phép đọc.
-- Phiên còn hiệu lực, MFA gần đây hoặc thiết bị đạt điều kiện nếu thao tác nhạy cảm.
-- Không có explicit deny/thu hồi quyền nào vượt các điều kiện allow.
+- Alice was authenticated from a trusted source.
+- Alice holds the **INVOICE_READER** privilege in a trusted role/permission store.
+- Invoice 127 belongs to **tenant-A** and Alice has valid membership in that tenant.
+- Alice is the **owner** or explicitly authorized to read that resource.
+- The invoice is not locked/impounded and is in a business state permitting reads.
+- The session is still valid, with recent MFA or compliant device status if the operation is sensitive.
+- No explicit deny or permission revocation overrides the allow conditions.
 
-Nếu một điều kiện bắt buộc không đạt, kết quả phải là **DENY**.
+If any mandatory condition fails, the result must be **DENY**.
 
-### 1.3 Authentication và Authorization độc lập nhưng liên quan
+### 1.3 Authentication and Authorization Are Independent Yet Related
 
-| Khía cạnh | Authentication (AuthN) | Authorization (AuthZ) |
+| Aspect | Authentication (AuthN) | Authorization (AuthZ) |
 | --- | --- | --- |
-| Câu hỏi | Ai đang gọi? Bằng chứng identity hợp lệ? | Actor này được làm gì, với tài nguyên nào, lúc nào? |
-| Dữ liệu đầu vào | Credential, session/token, client certificate, challenge | Identity đã xác thực, policy/role, tenant, quyền đối tượng, context |
-| Thành phần điển hình | LoginContext/LoginModule, IdP, session verifier | Authorization service, policy decision point, ACL/RBAC/ABAC/ReBAC |
-| Kết quả | Identity đáng tin hoặc thất bại | ALLOW/DENY cho một action/resource |
-| Thời điểm | Khi đăng nhập hoặc xác minh request/session | **Mỗi thao tác/tài nguyên nhạy cảm**; có thể có cache ngắn hạn theo policy |
-| Thay đổi thường gặp | Logout, hết phiên, token sai, MFA | Vai trò đổi, quyền bị thu hồi, resource đổi owner, chuyển tenant |
-| Sai lầm | Chấp nhận userId do client khai | Cho phép vì user đã login mà không kiểm tra object-level access |
-| Bảo mật | Ngăn giả mạo identity | Ngăn vượt quyền, xem nhầm dữ liệu, leo thang quyền và cross-tenant access |
+| Question | Who is calling? Is identity evidence valid? | What may this actor do, on which resource, and when? |
+| Input data | Credentials, session/token, client certificate, challenge | Authenticated identity, policy/roles, tenant, object permissions, context |
+| Typical components | `LoginContext`/`LoginModule`, IdP, session verifier | Authorization service, policy decision point, ACL/RBAC/ABAC/ReBAC |
+| Outcome | Trusted identity or failure | ALLOW/DENY for an action/resource |
+| Timing | At login or request/session verification | **Every sensitive operation/resource**; may have short-lived caching per policy |
+| Common changes | Logout, session expiry, invalid token, MFA | Role changes, permission revocation, resource owner changes, tenant switch |
+| Pitfall | Accepting client-declared `userId` | Allowing access merely because user logged in without object-level checks |
+| Security goal | Prevent identity spoofing | Prevent privilege escalation, unauthorized reads, and cross-tenant access |
 
-**Một tài nguyên công khai có thể được truy cập không cần login** nếu policy cố ý cho phép actor anonymous thực hiện action cụ thể. Ngược lại, ngay cả admin đã xác thực cũng **không nhất thiết được quyền đọc mọi dữ liệu** nếu chính sách quy định ranh giới tenant, phân tách nhiệm vụ hoặc dữ liệu đặc biệt.
+**A public resource may be accessed without login** if policy intentionally allows an anonymous actor to perform that specific action. Conversely, even an authenticated admin is **not necessarily allowed to read all data** when policies enforce tenant boundaries, separation of duties, or restricted data.
 
-### 1.4 Ví dụ ngắn: login thành công vẫn bị từ chối
+### 1.4 Short Example: Login Succeeds, Access Still Denied
 
 ~~~text
-Alice đăng nhập đúng mật khẩu            -> AuthN: SUCCESS
-Alice mở invoice do Alice sở hữu          -> AuthZ: ALLOW (nếu policy cho phép)
-Alice mở invoice thuộc tenant-B           -> AuthZ: DENY
-Alice sửa cấu hình hệ thống chỉ admin      -> AuthZ: DENY
-Alice vừa bị thu hồi vai trò invoice.read  -> AuthZ: DENY ở lần check tiếp theo
+Alice logs in with valid password        -> AuthN: SUCCESS
+Alice opens an invoice owned by Alice    -> AuthZ: ALLOW (if policy permits)
+Alice opens an invoice in tenant-B       -> AuthZ: DENY
+Alice edits admin-only system config     -> AuthZ: DENY
+Alice's invoice.read role was revoked    -> AuthZ: DENY on the next check
 ~~~
 
-**AuthN thành công + AuthZ thất bại là hành vi hoàn toàn bình thường và phải được kiểm thử.**
+**AuthN succeeding + AuthZ failing is completely normal behavior and must be tested.**
 
-## 2. JAAS xuất hiện ở đâu trong câu chuyện này?
+## 2. Where Does JAAS Fit in This Story?
 
-**JAAS** là thành phần trong Java SE cho cơ chế **xác thực có thể cắm nhiều provider/module**. JAAS còn có mô hình **authorization dựa trên Subject/Principal** tích hợp với hệ thống permission/security policy Java truyền thống. Vì vậy sẽ sai nếu nói “JAAS chỉ có authentication và không hề có authorization”; nhưng cũng sai nếu nói “JAAS login tự cấp quyền API”.
+**JAAS** is the Java SE component for **pluggable authentication across multiple providers/modules**. JAAS also includes a **Subject/Principal-based authorization** model integrated with Java's traditional permission/security policy system. Therefore, it is inaccurate to claim "JAAS only does authentication and has no authorization at all"; yet it is equally wrong to claim "JAAS login automatically grants API permissions."
 
-Trong ứng dụng hiện đại, cần phân biệt rõ:
+In modern applications, clearly separate:
 
-- **JAAS authentication layer**: xác định và kiểm chứng identity, xây Subject/Principals theo module được cấu hình.
-- **Authorization policy của ứng dụng**: quyết định user/service được thực hiện action trên resource cụ thể hay không.
-- **Lịch sử JAAS permission-based authorization**: dùng Subject/Principal, Subject.doAs, AccessControlContext, Policy và Security Manager trong kiến trúc Java cũ; **không phải lớp kiểm tra RBAC/tenant nghiệp vụ tự động**.
+- **JAAS authentication layer**: identifies and verifies identity, populating `Subject`/`Principal`s per configured modules.
+- **Application authorization policy**: decides whether a user/service may execute an action on a specific resource.
+- **Historical JAAS permission-based authorization**: uses `Subject`/`Principal`, `Subject.doAs`, `AccessControlContext`, `Policy`, and Security Manager in older Java architectures; **not an automatic business RBAC/tenant enforcement layer**.
 
-### 2.1 Những class/interface chính của JAAS
+### 2.1 Main JAAS Classes and Interfaces
 
-| API | Trách nhiệm |
+| API | Responsibility |
 | --- | --- |
-| **javax.security.auth.login.LoginContext** | Điều phối đăng nhập theo tên cấu hình, gọi LoginModule; login/logout và lấy Subject |
-| **javax.security.auth.login.Configuration** | Chọn LoginModule nào, thứ tự, control flag và options của từng module |
-| **javax.security.auth.spi.LoginModule** | Xác thực theo cơ chế cụ thể: Kerberos, password backend, smartcard, v.v. |
-| **javax.security.auth.callback.CallbackHandler** | Cung cấp câu trả lời cho Callback (tên, mật khẩu, PIN...), tách UI/source credential khỏi module |
-| **NameCallback / PasswordCallback** | Phương tiện truyền tên và mật khẩu cho LoginModule |
-| **javax.security.auth.Subject** | Tập các Principal/credentials liên quan đến một thực thể đã hoặc đang được xác thực |
-| **java.security.Principal** | Danh tính/thuộc tính nhận dạng được biểu diễn bằng đối tượng có getName() |
-| **AppConfigurationEntry** | Tên LoginModule, control flag và options trong cấu hình |
-| **LoginException / FailedLoginException** | Báo thất bại login/module; ứng dụng không chấp nhận identity khi login thất bại |
+| **`javax.security.auth.login.LoginContext`** | Coordinates login by configuration name, invokes `LoginModule`s; handles `login`/`logout` and retrieving `Subject` |
+| **`javax.security.auth.login.Configuration`** | Chooses which `LoginModule`s run, their order, control flags, and per-module options |
+| **`javax.security.auth.spi.LoginModule`** | Authenticates via a concrete mechanism: Kerberos, password backend, smartcard, etc. |
+| **`javax.security.auth.callback.CallbackHandler`** | Supplies answers to `Callback`s (name, password, PIN...), decoupling UI/credential source from modules |
+| **`NameCallback` / `PasswordCallback`** | Carriers for passing username and password to a `LoginModule` |
+| **`javax.security.auth.Subject`** | Holds `Principal`s and credentials associated with an authenticated or authenticating entity |
+| **`java.security.Principal`** | Identity/identifying attribute represented as an object with `getName()` |
+| **`AppConfigurationEntry`** | `LoginModule` class name, control flag, and options in configuration |
+| **`LoginException` / `FailedLoginException`** | Signals login/module failure; application must reject identity when login fails |
 
-Một Subject có thể có **nhiều Principal** đại diện những danh tính/kiểu nhận dạng khác nhau. Ví dụ account user, Kerberos principal và nhóm/danh tính khác. Không được mặc định rằng Subject chỉ có một Principal hoặc mọi Principal đều là **role**.
+A `Subject` can hold **multiple `Principal`s** representing different identities or identifier types—for example, an account user, a Kerberos principal, and groups/other identities. Never assume a `Subject` has only one `Principal` or that every `Principal` is a **role**.
 
-### 2.2 Luồng JAAS authentication điển hình
+### 2.2 Typical JAAS Authentication Flow
 
 ~~~text
-Ứng dụng gọi LoginContext("appName")
+Application calls LoginContext("appName")
               |
-        Đọc Configuration
+        Read Configuration
               |
-       Chọn một hoặc nhiều LoginModule
+       Select one or more LoginModules
               |
     LoginModule.initialize(subject, callbackHandler,
                            sharedState, options)
               |
-    LoginModule.login()     -> xác thực credential
+    LoginModule.login()     -> verify credentials
               |
-       Thành công toàn cục?
+       Overall success?
           /              \
         NO                YES
         |                  |
-  abort()/exception   commit() của modules
+  abort()/exception   modules' commit()
         |                  |
-    Không tin          Subject chứa Principals /
-    danh tính          credentials được module thêm
+    Do not trust       Subject holds Principals /
+    identity           credentials added by modules
                            |
                        LoginContext.getSubject()
                            |
                 Application authentication context
                            |
-                   Authorization trên từng request
+                   Per-request authorization
 ~~~
 
-**Hai pha quan trọng:**
+**Two crucial phases:**
 
-1. **login()**: module xác minh bằng chứng identity, giữ trạng thái tạm trong module; chưa nên thêm Principal vào Subject trước khi biết toàn bộ authentication đã thành công.
-2. **commit()**: sau khi các module cần thiết vượt qua, module thêm Principal/credential thích hợp vào Subject. Nếu toàn bộ login fail, hệ thống gọi **abort()** để dọn trạng thái; **logout()** dùng để dọn các thông tin module đã commit.
+1. **`login()`**: the module verifies identity evidence and holds temporary state internally; it should not yet add Principals to `Subject` before knowing overall authentication succeeded.
+2. **`commit()`**: once required modules pass, the module adds appropriate `Principal`s/credentials to `Subject`. If overall login fails, the system invokes **`abort()`** to clean state; **`logout()`** removes data committed by the module.
 
-Việc Subject chứa một Principal được tạo từ một module đáng tin sau LoginContext.login() thành công **có ý nghĩa identity**. Nó không tự chứng minh actor được xem mọi object.
+Having a `Subject` contain a `Principal` created by a trusted module after `LoginContext.login()` succeeds **carries identity meaning**. It does not by itself prove the actor may read every object.
 
-### 2.3 Configuration và control flag
+### 2.3 Configuration and Control Flags
 
-Một file cấu hình JAAS theo cú pháp truyền thống có thể như sau:
+A traditional JAAS configuration file might look like:
 
 ~~~text
 BusinessApp {
@@ -177,28 +177,28 @@ BusinessApp {
 };
 ~~~
 
-Đây là **minh họa cấu hình**, không thể chạy nếu các class com.example... chưa có trong ứng dụng. Tên lớp và options phải trỏ tới LoginModule hợp lệ.
+This is **conceptual configuration illustration**, which cannot run unless `com.example...` classes exist in the application. Class names and options must point to valid `LoginModule`s.
 
-Các flag của JAAS:
+JAAS flags:
 
-| Flag | Vai trò |
+| Flag | Role |
 | --- | --- |
-| **REQUIRED** | Module cần thành công; dù module thất bại vẫn tiếp tục xử lý những module tiếp theo, cuối cùng login thất bại |
-| **REQUISITE** | Module cần thành công; thất bại khiến việc đánh giá dừng ngay |
-| **SUFFICIENT** | Nếu thành công và các REQUIRED/REQUISITE trước nó không thất bại, có thể kết thúc login sớm; nếu thất bại tiếp tục module khác |
-| **OPTIONAL** | Thành công/thất bại có thể không quyết định tổng thể; nếu không có module bắt buộc thì cần ít nhất một module tùy chọn/đủ điều kiện thành công |
+| **`REQUIRED`** | Module must succeed; even if it fails, evaluation continues through subsequent modules before overall login fails |
+| **`REQUISITE`** | Module must succeed; failure stops evaluation immediately |
+| **`SUFFICIENT`** | If it succeeds and no prior `REQUIRED`/`REQUISITE` failed, login may finish early; if it fails, evaluation continues |
+| **`OPTIONAL`** | Individual success/failure may not decide the whole; if no mandatory modules exist, at least one optional/sufficient module must succeed |
 
-Các flag điều khiển **kết quả xác thực hợp thành**, **không phải** quyền “invoice:read”, “admin:write” hay membership tenant.
+Flags govern **composite authentication success**, **not** permissions like `invoice:read`, `admin:write`, or tenant membership.
 
-**Sai cấu hình JAAS** có thể vô tình khiến một module yếu trở thành đường đăng nhập thay thế cho module mạnh. Nhưng kể cả cấu hình login đúng, authorization trên tài nguyên vẫn phải tự kiểm tra.
+**Misconfiguring JAAS** can accidentally turn a weak module into an alternate login path bypassing a strong module. Yet even with a sound login config, resource authorization must still be checked independently.
 
-## 3. Subject, Principal và claim: không phải quyền cấp sẵn
+## 3. `Subject`, `Principal`, and Claims: Not Pre-Granted Permissions
 
-### 3.1 Principal là identity, không phải permission toàn cục
+### 3.1 A `Principal` Is an Identity, Not a Global Permission
 
-**Principal** là một đối tượng biểu diễn một danh tính được gắn với Subject. Việc Principal có tên “alice” không có ý nghĩa “Alice được đọc tất cả bảng hóa đơn”.
+**`Principal`** is an object representing an identity attached to a `Subject`. Having a Principal named `"alice"` does not mean "Alice may read all invoice tables."
 
-Ví dụ:
+Example:
 
 ~~~text
 Subject:
@@ -206,18 +206,18 @@ Subject:
     UserPrincipal("alice")
     KerberosPrincipal("alice@EXAMPLE.TEST")
   PublicCredentials:   ...
-  PrivateCredentials:  ... (có thể chứa bí mật)
+  PrivateCredentials:  ... (may contain secrets)
 ~~~
 
-Đây là **biểu diễn khái niệm**, không phải output cố định của JAAS. Các module/provider thực sự có loại Principal riêng.
+This is a **conceptual representation**, not fixed JAAS output. Real modules/providers supply their own `Principal` types.
 
-Subject có thể chứa credentials nhạy cảm. Đừng đưa toàn bộ **Subject.toString()**, getPrivateCredentials() hoặc raw ticket/token vào log/response. Thu thập chỉ những thông tin được phép phục vụ audit (userId, mechanism, session reference, outcome).
+`Subject` may contain sensitive credentials. Never dump full **`Subject.toString()`**, `getPrivateCredentials()`, or raw tickets/tokens into logs or responses. Capture only permitted audit fields (`userId`, mechanism, session reference, outcome).
 
-### 3.2 Có một Principal trong object chưa đủ chứng minh đã đăng nhập
+### 3.2 Having a `Principal` in an Object Is Not Proof of Login
 
-Một **Subject có thể được tạo/chỉnh sửa bằng code Java** trong các ngữ cảnh được phép. Do đó code không nên tin bất kỳ Subject object hoặc chuỗi Principal nào **được client tùy ý cung cấp** là bằng chứng login.
+A **`Subject` can be created or modified by Java code** in permitted contexts. Code must never trust an arbitrary `Subject` object or `Principal` string **supplied freely by a client** as proof of login.
 
-Một sự kiện “đã xác thực” phải đến từ **đường kiểm tra credential/token có tin cậy**. Khi service tự tạo identity từ header:
+An "authenticated" event must originate from a **trusted credential/token verification path**. When a service blindly constructs an identity from headers:
 
 ~~~text
 X-User-Id: admin
@@ -225,61 +225,61 @@ X-Role: OWNER
 X-Tenant: tenant-A
 ~~~
 
-mà không xác minh header có đến từ một upstream identity gateway đã xác thực và được bảo vệ khỏi spoofing, kẻ gọi bên ngoài có thể tự chọn identity/role. Tương tự, **new UserPrincipal("admin")** trong một lớp request không tạo đặc quyền nào ngoài những gì code sai có thể tự gán.
+without verifying the headers came from an authenticated upstream identity gateway protected against spoofing, external callers can choose any identity/role. Likewise, **`new UserPrincipal("admin")`** in a request layer grants no real authority beyond whatever buggy code trusts it.
 
-**Quy tắc:** chỉ lấy authenticated principal từ một ranh giới được kiểm soát như JAAS login thành công, framework security context được chứng thực, hoặc token/session verifier hợp lệ.
+**Rule:** obtain authenticated principals only from a controlled boundary such as a successful JAAS login, an authenticated framework security context, or a valid token/session verifier.
 
-### 3.3 Khi nào role/nhóm trong Principal hoặc JWT có thể dùng?
+### 3.3 When Can Roles/Groups in a `Principal` or JWT Be Used?
 
-Một hệ thống JAAS/IdP có thể gắn **group/role/claim** vào Subject hoặc token. Nhưng ứng dụng cần quyết định:
+A JAAS/IdP system may attach **groups/roles/claims** to a `Subject` or token. However, the application must verify:
 
-- Nguồn nào được phép phát hành các role/claim đó?
-- Claim đã được kiểm chứng chữ ký/issuer/audience/timestamp chưa?
-- Claim có đúng **tenant, application, resource, audience** hiện tại?
-- Role có hết hạn/đã bị thu hồi không?
-- Role có đủ cho action trên object cụ thể không?
-- Quyền có bị explicit deny, ownership, separation-of-duties hoặc policy khác hạn chế?
+- Which source is authorized to issue those roles/claims?
+- Have the claims had their signature/issuer/audience/timestamp verified?
+- Do the claims match the current **tenant, application, resource, and audience**?
+- Has the role expired or been revoked?
+- Is the role sufficient for this action on this specific object?
+- Is access restricted by explicit denies, ownership, separation of duties, or other policies?
 
-**Role đã xác thực là đầu vào của authorization policy**, không phải mọi lúc là quyết định allow tự động. Ví dụ “MANAGER” của tenant-A không có nghĩa được xem tài liệu bí mật của tenant-B.
+**A verified role is an input to authorization policy**, not always an automatic allow decision. For example, `"MANAGER"` in `tenant-A` does not grant access to confidential documents in `tenant-B`.
 
-### 3.4 Authentication strength và step-up
+### 3.4 Authentication Strength and Step-Up
 
-Một số thao tác cần điều kiện mạnh hơn chỉ “đã đăng nhập”: MFA gần đây, thiết bị quản lý, phiên chưa vượt thời gian, mạng/vùng địa lý được cấp phép hoặc phê duyệt hai người. Đó là **điều kiện context** của authorization.
+Some actions require stronger conditions than merely "logged in": recent MFA, managed device, fresh session, approved network/region, or two-person approval. Those are **context conditions** for authorization.
 
-Ví dụ:
+Example:
 
 ~~~text
-Alice đã login bằng mật khẩu hôm qua.
-Action: đổi thông tin nhận tiền của doanh nghiệp.
+Alice logged in with a password yesterday.
+Action: change company payout details.
 
 Policy:
-  user đã xác thực
-  AND có quyền billing:update
-  AND thuộc đúng tenant
-  AND MFA step-up trong 5 phút gần đây
-  AND tài khoản không bị khóa
-=> nếu thiếu MFA mới: yêu cầu step-up, không cho UPDATE ngay.
+  user is authenticated
+  AND has billing:update permission
+  AND belongs to the right tenant
+  AND MFA step-up within the last 5 minutes
+  AND account is not locked
+=> if recent MFA is missing: require step-up, deny immediate UPDATE.
 ~~~
 
-**Không nhầm yêu cầu MFA** (bước tăng độ tin cậy của xác thực) với **quyền nghiệp vụ**. Hai điều kiện có thể phải đồng thời đúng.
+**Do not confuse an MFA requirement** (raising authentication assurance) with **business permission**. Both conditions may need to hold simultaneously.
 
-## 4. Mô hình quyết định quyền cho ứng dụng Java
+## 4. Authorization Decision Model for Java Applications
 
-Thiết kế một điểm kiểm tra logic:
+Design a logical enforcement point:
 
 ~~~text
 AUTHZ(actor, action, resource, context):
-    nếu actor chưa xác thực và resource không public:
+    if actor is unauthenticated and resource is not public:
         DENY
 
-    lấy chính sách/role/tenant từ nguồn đáng tin
-    tải resource đúng tenant/owner và trạng thái
-    áp dụng explicit deny & business constraints
-    chỉ ALLOW nếu tất cả điều kiện bắt buộc đạt
-    còn lại DENY
+    fetch policy/roles/tenant from trusted source
+    load resource with tenant/owner and status
+    apply explicit deny & business constraints
+    ALLOW only if all mandatory conditions pass
+    otherwise DENY
 ~~~
 
-**Deny-by-default** nghĩa là không có rule cho phép rõ thì từ chối. Không viết:
+**Deny-by-default** means anything without an explicit allow rule is denied. Never write:
 
 ~~~text
 if (user != null) {
@@ -287,41 +287,41 @@ if (user != null) {
 }
 ~~~
 
-đối với mọi thao tác nhạy cảm. User được xác thực là **điều kiện đầu**, không phải toàn bộ chính sách.
+for sensitive operations. An authenticated user is the **starting precondition**, not the entire policy.
 
-### 4.1 Actor + action + resource + context
+### 4.1 Actor + Action + Resource + Context
 
-| Trường | Ví dụ | Vì sao cần |
+| Field | Example | Why needed |
 | --- | --- | --- |
-| **Actor** | userId "alice", tenant membership | Người thật sự đang yêu cầu |
-| **Action** | invoice.read, invoice.approve, invoice.delete | Mỗi thao tác có quyền khác nhau |
-| **Resource** | invoice ID 127, tenant-A, owner alice | Quyền phải gắn với object cụ thể |
-| **Context** | trạng thái hóa đơn, MFA age, thời gian, môi trường | Quyết định phụ thuộc điều kiện hiện tại |
-| **Policy** | role grant + owner + tenant + explicit deny | Tách quy tắc khỏi code chỉ xử lý HTTP |
-| **Decision** | ALLOW/DENY + reason code nội bộ | Dễ test/audit, không tiết lộ nhạy cảm |
+| **Actor** | `userId` `"alice"`, tenant membership | Who is actually making the request |
+| **Action** | `invoice.read`, `invoice.approve`, `invoice.delete` | Each operation carries different risk/privileges |
+| **Resource** | invoice ID 127, `tenant-A`, owner `alice` | Permissions must bind to a specific object |
+| **Context** | invoice status, MFA age, time, environment | Decisions depend on runtime conditions |
+| **Policy** | role grants + owner + tenant + explicit deny | Separates rules from HTTP plumbing |
+| **Decision** | ALLOW/DENY + internal reason code | Easy to test/audit without leaking sensitive info |
 
-Một người được **invoice.read** không nhất thiết được **invoice.delete** hoặc **invoice.approve**. Một tài nguyên public cũng có thể chỉ được đọc, không được sửa.
+Someone permitted **`invoice.read`** is not necessarily permitted **`invoice.delete`** or **`invoice.approve`**. Even a public resource may allow reading while forbidding modification.
 
-### 4.2 RBAC: role-based access control
+### 4.2 RBAC: Role-Based Access Control
 
-RBAC cấp permission cho **vai trò**, vai trò gắn với actor:
+RBAC assigns permissions to **roles**, and roles to actors:
 
 ~~~text
 Role INVOICE_READER -> invoice:read
 Role INVOICE_EDITOR -> invoice:read, invoice:update
-Role AUDITOR        -> invoice:read (trong phạm vi được giao)
+Role AUDITOR        -> invoice:read (within assigned scope)
 ~~~
 
-RBAC hữu ích vì dễ quản trị, nhưng không tự xử lý đủ ranh giới object/tenant:
+RBAC is convenient to administer, yet does not handle object/tenant boundaries by itself:
 
-- Alice có role INVOICE_READER trong tenant-A.
-- Invoice X thuộc tenant-B.
-- RBAC role check một mình có thể ALLOW sai.
-- **Tenant check** phải bổ sung, và có thể thêm owner, purpose hoặc resource ACL.
+- Alice has role `INVOICE_READER` in `tenant-A`.
+- Invoice X belongs to `tenant-B`.
+- Checking only the RBAC role could wrongly ALLOW.
+- **Tenant checks** must be added, potentially along with owner, purpose, or resource ACL checks.
 
-### 4.3 ABAC: attribute-based access control
+### 4.3 ABAC: Attribute-Based Access Control
 
-ABAC dùng thuộc tính của actor, resource, action và môi trường:
+ABAC evaluates attributes of the actor, resource, action, and environment:
 
 ~~~text
 allow if
@@ -332,11 +332,11 @@ allow if
     AND resource.status != "SEALED"
 ~~~
 
-Không tin attribute từ request khi attribute đó phải do server kiểm soát. Ví dụ **tenantId** gửi trong URL chỉ là **target identifier**, không có nghĩa người gọi là member của tenant đó. Kiểm tra membership từ directory/token đáng tin và trạng thái database.
+Never trust attributes from a request when those attributes must be server-controlled. For example, a **`tenantId`** sent in a URL is only the **target identifier**, not proof the caller belongs to that tenant. Verify membership from a trusted directory/token and database state.
 
-### 4.4 ReBAC: relationship-based access control
+### 4.4 ReBAC: Relationship-Based Access Control
 
-ReBAC dựa trên quan hệ giữa actor và resource:
+ReBAC relies on relationships between actor and resource:
 
 ~~~text
 Alice --owns--> Invoice 127
@@ -344,102 +344,102 @@ Bob   --reviewer-of--> Invoice 127
 Carol --member-of--> Team Finance --owns--> Folder F
 ~~~
 
-Nó đặc biệt hữu ích với tài nguyên có owner/share/team hierarchy. Nhưng vẫn phải kiểm tra nguồn quan hệ và tình huống revoke; không dùng một danh sách ID do client gửi làm bằng chứng.
+It is especially effective for resources with ownership, sharing, or team hierarchies. Still verify relationship provenance and revocation; never treat a client-sent ID list as proof.
 
-### 4.5 ACL, capability và các mô hình khác
+### 4.5 ACLs, Capabilities, and Other Models
 
-- **ACL** trên tài nguyên định nghĩa ai hoặc nhóm nào có quyền; cần bảo vệ việc cập nhật ACL.
-- **Capability token** có thể trao quyền truy cập tài nguyên cụ thể khi được xác thực và giới hạn rõ ràng, ví dụ signed short-lived download URL. Capability phải có phạm vi/expiry/audience thích hợp.
-- **Policy-as-code/authorization service** có thể tập trung quyết định; bản thân policy engine không bảo vệ endpoint nếu backend quên gọi nó.
+- **ACLs** on resources define which users or groups have access; protect ACL updates carefully.
+- **Capability tokens** can grant access to a specific resource when properly authenticated and bounded, such as a signed short-lived download URL. Capabilities need tight scope/expiry/audience.
+- **Policy-as-code / authorization services** centralize decisions; a policy engine does not protect an endpoint if the backend forgets to call it.
 
-Bạn có thể kết hợp RBAC + ABAC + ReBAC; không phải chọn đúng một mô hình mới an toàn.
+You can combine RBAC + ABAC + ReBAC; you do not have to pick just one model to be secure.
 
-## 5. Phân quyền theo object: chống IDOR/BOLA và rò tenant
+## 5. Object-Level Authorization: Preventing IDOR/BOLA and Tenant Leaks
 
-Một sai lầm nghiêm trọng:
+A critical mistake:
 
 ~~~text
 GET /api/invoices/127
     |
-Security filter: "User đã login? YES"
+Security filter: "User logged in? YES"
     |
 db.findInvoiceById(127)
     |
 return invoice
 ~~~
 
-Nếu hóa đơn 127 thuộc Bob hoặc tenant-B, Alice có thể truy xuất bằng cách đoán ID. Đây là một dạng **Broken Object Level Authorization (BOLA)** / **Insecure Direct Object Reference (IDOR)**.
+If invoice 127 belongs to Bob or `tenant-B`, Alice can fetch it simply by guessing IDs. This is **Broken Object Level Authorization (BOLA)** / **Insecure Direct Object Reference (IDOR)**.
 
-Phiên bản đúng:
+The right version:
 
 ~~~text
 GET /api/invoices/127
     |
-AuthN: xác thực identity Alice
+AuthN: verify Alice's identity
     |
-AuthZ: Alice có invoice:read trong tenant-A?
+AuthZ: does Alice have invoice:read in tenant-A?
     |
-Data layer: lấy invoice 127 trong tenant được phép
+Data layer: fetch invoice 127 within allowed tenant
     |
-AuthZ: owner/ACL/status của object có cho Alice đọc?
+AuthZ: do object's owner/ACL/status allow Alice to read?
     |
-ALLOW -> serialize đúng field được phép
-DENY  -> trả lỗi theo chính sách, không lộ dữ liệu
+ALLOW -> serialize only allowed fields
+DENY  -> return error per policy without leaking data
 ~~~
 
-**Lưu ý:** kiểm tra quyền ở đầu request là cần nhưng chưa đủ nếu quyền thay đổi hoặc resource bị chuyển owner giữa lần check và lần sử dụng. Với transaction quan trọng, gắn điều kiện vào truy vấn cập nhật, transaction hoặc cơ chế lock/version phù hợp.
+**Note:** checking permissions at the start of a request is necessary yet insufficient if permissions or resource ownership change between check and use. For critical transactions, embed conditions into the update query, transaction, or appropriate locking/version checks.
 
-### 5.1 Query bị thiếu tenant filter
+### 5.1 Query Missing a Tenant Filter
 
-Code không an toàn:
+Unsafe code:
 
 ~~~java
-// Ví dụ anti-pattern; không phải chương trình Java độc lập.
+// Anti-pattern example; not a standalone Java program.
 Invoice invoice = repository.findById(request.invoiceId());
 return invoice;
 ~~~
 
-Có thể sửa theo pattern:
+Fixed pattern:
 
 ~~~java
-// Ví dụ minh họa, phụ thuộc repository và actor context.
+// Illustrative example, depending on repository and actor context.
 Invoice invoice = repository.findByIdAndTenantId(
         request.invoiceId(), authenticatedActor.tenantId());
 authorization.requireCanRead(authenticatedActor, invoice);
 return invoice;
 ~~~
 
-Với nhiều tenant có thể dùng cùng danh sách role, thiếu tenant condition trong truy vấn làm rò dữ liệu. Chỉ role-check ở controller rồi gọi findById không tự tạo tenant isolation.
+When multiple tenants share role names, omitting the tenant condition in queries leaks data. Checking a role in the controller and then calling `findById` does not provide tenant isolation.
 
-### 5.2 Admin role cũng có phạm vi
+### 5.2 Even Admin Roles Have Scopes
 
-Quyền **ADMIN** có thể có scope:
+**ADMIN** privileges can be scoped in multiple ways:
 
-- Admin trong một project;
-- Admin trong tenant-A;
+- Admin within one project;
+- Admin within `tenant-A`;
 - Tenant administrator;
 - System administrator;
-- Compliance reader chỉ đọc;
-- Break-glass account theo quy trình đặc biệt.
+- Read-only compliance auditor;
+- Break-glass account under special workflow.
 
-Không dùng một boolean **isAdmin** toàn cục nếu policy thực tế có nhiều phạm vi; đây là nguyên nhân hay gặp của **privilege escalation**.
+Never use a single global **`isAdmin`** boolean when real policies span multiple scopes; that is a frequent source of **privilege escalation**.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: JAAS login + kiểm tra quyền riêng
+## 6. Complete Java 17+ Example: JAAS Login + Separate Permission Check
 
-Ví dụ này dùng **một chương trình tự chứa**. Nó thể hiện:
+This example uses **a self-contained program**. It demonstrates:
 
-1. **LoginContext** nạp **DemoLoginModule** qua Configuration do Java code tạo, thay vì cần file cấu hình ngoài.
-2. **CallbackHandler** đưa username/password cho LoginModule.
-3. **LoginModule.login()** xác minh credential đào tạo, còn **commit()** mới thêm UserPrincipal vào Subject.
-4. Sau xác thực, **canRead(...)** là **chính sách ứng dụng độc lập**, lấy role/tenant từ một directory nội bộ mô phỏng và kiểm tra **tenant + owner** của hóa đơn.
-5. Test Alice được xem hóa đơn của mình; bị chặn khi chuyển tenant hoặc chủ sở hữu, dù login thành công.
-6. **logout()** xóa Principal mà module đã thêm. Login sai mật khẩu bị từ chối.
+1. **`LoginContext`** loading **`DemoLoginModule`** via a Java-constructed `Configuration`, avoiding external config files.
+2. **`CallbackHandler`** supplying username/password to the `LoginModule`.
+3. **`LoginModule.login()`** verifying training credentials, while only **`commit()`** adds `UserPrincipal` to `Subject`.
+4. After authentication, **`canRead(...)`** is an **independent application policy**, reading roles/tenants from a simulated internal directory and checking **tenant + owner** of the invoice.
+5. Testing that Alice can view her own invoice, yet is blocked across tenants or owners even though login succeeded.
+6. **`logout()`** removing the Principal added by the module. Wrong-password login is rejected.
 
-**Giới hạn an toàn:** Credential **test-only** được hardcode để làm ví dụ chạy độc lập. **Tuyệt đối không dùng LoginModule này trong production**. Không có password hashing, user store thật, rate limiting, MFA, session manager hoặc audit. Directory Map cố định là **mô phỏng dữ liệu quyền từ backend đáng tin**, không phải nguồn claim do browser truyền vào.
+**Safety limits:** **test-only** credentials are hardcoded to keep the example self-contained. **Never use this `LoginModule` in production.** There is no password hashing, real user store, rate limiting, MFA, session manager, or auditing. The fixed `directory` `Map` **simulates entitlement data from a trusted backend**, not claims sent by a browser.
 
-### 6.1 Code độc lập: JaasDecisionDemo.java
+### 6.1 Standalone Code: `JaasDecisionDemo.java`
 
-Tạo tệp **JaasDecisionDemo.java** bằng UTF-8:
+Create the file **`JaasDecisionDemo.java`** in UTF-8:
 
 ~~~java
 import java.io.IOException;
@@ -464,7 +464,7 @@ public class JaasDecisionDemo {
     public record Entitlement(
             Set<String> roles, Set<String> tenants) { }
 
-    // Provider xác thực đào tạo: không dùng mật khẩu hardcode trong production.
+    // Training auth provider: never hardcode passwords in production.
     public static final class DemoLoginModule implements LoginModule {
         private Subject subject;
         private CallbackHandler handler;
@@ -562,7 +562,7 @@ public class JaasDecisionDemo {
         };
     }
 
-    // Configuration nằm trong code để chương trình độc lập và dễ chạy.
+    // Configuration lives in code so the program is standalone and easy to run.
     private static Configuration config() {
         return new Configuration() {
             @Override
@@ -579,14 +579,14 @@ public class JaasDecisionDemo {
         };
     }
 
-    // Giả lập entitlement store SERVER-SIDE đáng tin.
-    // Không xây Map này từ user-supplied request/header.
+    // Simulates a trusted SERVER-SIDE entitlement store.
+    // Never build this Map from user-supplied requests/headers.
     private static final Map<String, Entitlement> directory = Map.of(
         "alice", new Entitlement(
                 Set.of("INVOICE_READER"), Set.of("tenant-A"))
     );
 
-    // QUYẾT ĐỊNH PHÂN QUYỀN ỨNG DỤNG, KHÔNG PHẢI LOGIN.
+    // APPLICATION AUTHORIZATION DECISION, NOT LOGIN.
     private static boolean canRead(
             Subject authenticated, Invoice invoice) {
         if (authenticated == null || invoice == null) return false;
@@ -610,7 +610,7 @@ public class JaasDecisionDemo {
             "demo", null,
             credentials("alice", goodSecret), config());
 
-        login.login();               // AuthN thành công.
+        login.login();               // AuthN succeeds.
         Arrays.fill(goodSecret, '\0');
 
         Subject subject = login.getSubject();
@@ -649,16 +649,16 @@ public class JaasDecisionDemo {
 }
 ~~~
 
-Chương trình dùng **record** và pattern matching **instanceof**, đều là tính năng chuẩn trong **Java 17**. Class **DemoLoginModule** là lớp public static nằm trong class public bên ngoài, có constructor public không đối số mặc định, cho phép LoginContext khởi tạo module bằng tên class được Configuration cung cấp.
+The program uses **`record`** and pattern matching **`instanceof`**, both standard features in **Java 17**. **`DemoLoginModule`** is a `public static` nested class inside the outer `public` class with a default public no-arg constructor, allowing `LoginContext` to instantiate the module from the class name supplied by `Configuration`.
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 JaasDecisionDemo.java
 java JaasDecisionDemo
 ~~~
 
-Stdout dự kiến:
+Expected stdout:
 
 ~~~text
 JAAS authenticated: true
@@ -669,47 +669,47 @@ Principals removed on logout: true
 Wrong password rejected: true
 ~~~
 
-**Giải thích từng bước:**
+**Step-by-step explanation:**
 
-1. **JAAS authenticated: true:** LoginModule nhận callback, xác minh username/password demo, commit UserPrincipal("alice") vào Subject; LoginContext.login() trả về bình thường.
-2. **Own invoice allowed: true:** policy canRead nhìn entitlement server-side Alice có role INVOICE_READER, membership tenant-A và owner Alice, nên cho phép.
-3. **Cross-tenant denied: true:** Alice vẫn đăng nhập nhưng invoice thuộc tenant-B, không đạt điều kiện membership.
-4. **Other owner denied: true:** Invoice thuộc tenant-A nhưng owner Bob, còn chính sách ví dụ yêu cầu actor là owner.
-5. **Principals removed on logout: true:** LoginModule.logout() bỏ UserPrincipal mà module đã thêm.
-6. **Wrong password rejected: true:** một LoginContext khác được đưa mật khẩu sai, login() thất bại và không tạo authenticated context hợp lệ.
+1. **`JAAS authenticated: true`:** `LoginModule` receives callbacks, checks demo username/password, and commits `UserPrincipal("alice")` to `Subject`; `LoginContext.login()` returns normally.
+2. **`Own invoice allowed: true`:** the `canRead` policy checks server-side entitlements showing Alice has role `INVOICE_READER`, `tenant-A` membership, and owner Alice, so it allows.
+3. **`Cross-tenant denied: true`:** Alice is still logged in, yet the invoice belongs to `tenant-B`, failing the membership check.
+4. **`Other owner denied: true`:** the invoice belongs to `tenant-A` yet its owner is Bob, and the example policy requires the actor to be the owner.
+5. **`Principals removed on logout: true`:** `LoginModule.logout()` removes the `UserPrincipal` that the module added.
+6. **`Wrong password rejected: true`:** another `LoginContext` receives a wrong password, `login()` fails, and no valid authenticated context is created.
 
-**Tất cả kiểm tra quyền trong ví dụ nằm ở canRead(...), không phải LoginModule.login().** Việc tách hàm minh họa ranh giới trách nhiệm: module xác minh “Alice là ai”, policy service quyết định “Alice có được đọc object này không”.
+**All permission checks in the example reside in `canRead(...)`, not `LoginModule.login()`.** Separating the functions demonstrates responsibility boundaries: the module verifies "who Alice is," while the policy service decides "whether Alice may read this object."
 
-### 6.2 Vì sao demo dùng một Map directory thay vì Principal role?
+### 6.2 Why Does the Demo Use a `directory` Map Instead of a Role Principal?
 
-Map **directory** đại diện database/identity directory đáng tin của ứng dụng. Dù một LoginModule thực có thể thêm **RolePrincipal** từ nguồn tin, ví dụ muốn minh họa rằng **authorization không chỉ nhìn một claim hoặc đã login**.
+The **`directory`** Map represents the application's trusted database/identity directory. Although a real `LoginModule` could attach a **`RolePrincipal`** from a trusted source, the example emphasizes that **authorization does not look merely at a single claim or login status**.
 
-Trong production, directory cần:
+In production, the directory needs to:
 
-- Cập nhật role, trạng thái membership và quyền được ủy quyền từ backend quản trị.
-- Kiểm tra tenant/project scope, resource owner, ACL và explicit deny.
-- Có chính sách cache/TTL/invalidation để hạn chế quyền đã thu hồi vẫn được dùng.
-- Phân tách nguồn role đáng tin với dữ liệu user đưa vào form/header/URL.
-- Không chấp nhận người dùng tự sửa Map/policy hoặc tạo Subject tùy ý để bỏ qua LoginContext.
+- Update roles, membership status, and delegated permissions from an authoritative admin backend.
+- Verify tenant/project scope, resource owner, ACLs, and explicit denies.
+- Enforce cache/TTL/invalidation policies to minimize stale use of revoked permissions.
+- Separate trusted role sources from user-supplied form/header/URL data.
+- Reject user attempts to mutate maps/policies or forge arbitrary `Subject`s bypassing `LoginContext`.
 
-### 6.3 Những gì demo chưa làm được
+### 6.3 What the Demo Intentionally Omits
 
-Ví dụ được cố tình giới hạn:
+The example is deliberately scoped down:
 
-- Không có user DB, password hash, salt, MFA, session cookie, JWT hoặc OIDC.
-- Mật khẩu đào tạo **test-only** hardcode, không an toàn cho production.
-- AuthZ policy cố định, không load từ database thực, không có TTL/cache/revoke.
-- Invoice chỉ là record gồm tenant và owner; không có ID, status, ACL, amount.
-- Không làm HTTP server, không thực hiện input validation, CSRF/XSS/CORS hay audit storage.
-- Không giải quyết concurrency hoặc TOCTOU khi quyền/object thay đổi giữa kiểm tra và ghi DB.
-- Subject trong demo được tạo qua đường đăng nhập do ứng dụng tin. **Bản thân Java Subject không phải một security boundary nếu mã không đáng tin có thể tự tạo/chỉnh nó**.
-- **LoginContext.logout() không hủy mọi API token, session cookie hoặc quyết định quyền đã cache** ở một lớp khác. Quản lý session/revocation là trách nhiệm bổ sung của ứng dụng.
+- No user DB, password hashes, salts, MFA, session cookies, JWTs, or OIDC.
+- Hardcoded **`test-only`** training password, unsafe for production.
+- Static AuthZ policy, not loaded from a real database, with no TTL/cache/revocation.
+- `Invoice` is just a record with tenant and owner; no ID, status, ACL, or amount.
+- No HTTP server, input validation, CSRF/XSS/CORS, or audit storage.
+- Does not handle concurrency or TOCTOU when permissions/objects change between check and DB write.
+- The `Subject` in the demo is produced via an application-trusted login path. **A Java `Subject` itself is not a security boundary if untrusted code can create/modify it**.
+- **`LoginContext.logout()` does not invalidate API tokens, session cookies, or cached permission decisions** in other layers. Session/revocation management is an additional application responsibility.
 
-Không lấy ví dụ làm “template đăng nhập production” bằng cách thay chuỗi password thật vào source; hãy dùng cơ chế danh tính được duy trì/kiểm định và framework security phù hợp.
+Never turn this example into a "production login template" by replacing the password string in source; use maintained/vetted identity mechanisms and proper security frameworks.
 
-## 7. Đưa AuthN/AuthZ vào request pipeline
+## 7. Placing AuthN/AuthZ in the Request Pipeline
 
-Một pipeline web/API lý tưởng phân tách trách nhiệm rõ ràng:
+An ideal web/API pipeline separates responsibilities cleanly:
 
 ~~~text
 Client Request
@@ -739,208 +739,208 @@ Client Request
   expose only fields within approved scope
 ~~~
 
-**Không tin rằng mọi API controller đều sẽ nhớ kiểm tra quyền**. Hãy đặt policy enforcement ở lớp dùng chung (method boundary/service/repository) và có integration tests để phát hiện endpoint nào bỏ sót kiểm tra.
+**Never assume every API controller will remember to check permissions.** Enforce policy in a shared layer (method boundary/service/repository) and write integration tests to catch any endpoint missing a check.
 
-Tuy nhiên, một security filter chỉ có thể kiểm tra “người gọi đăng nhập hợp lệ” **không thể tự quyết định quyền với object chưa được load**. Nhiều ứng dụng cần kiểm tra coarse-grained ở route và **fine-grained sau khi biết resource**.
+However, a security filter that only checks "did the caller log in validly" **cannot decide access for an object that has not been loaded yet**. Many applications need coarse-grained route checks plus **fine-grained checks once the resource is known**.
 
-### 7.1 AuthN context phải đúng cho từng request
+### 7.1 AuthN Context Must Be Correct Per Request
 
-Với thread pool, async tasks, messaging hoặc reactive pipelines, cần tránh **principal của request A bị dùng nhầm cho request B**. Dù framework có thread-local security context, không được mặc định nó được sao chép đúng qua CompletableFuture, executor, callback hoặc message consumer.
+With thread pools, async tasks, messaging, or reactive pipelines, prevent **request A's principal from leaking into request B**. Even if a framework uses a thread-local security context, never assume it propagates across `CompletableFuture`, executors, callbacks, or message consumers.
 
-An toàn hơn:
+Safer practices:
 
-- Truyền authentication context **đã được kiểm tra** vào nơi cần sử dụng theo cơ chế được framework hỗ trợ.
-- Ở consumer của queue, xác thực service/producer hoặc xác minh message provenance trước khi nhận actor context.
-- Không dùng biến static global currentUserId.
-- Dọn context khi request kết thúc và kiểm thử cross-request isolation.
-- Không tin userId/tenantId được gửi qua job payload nếu chưa có ràng buộc/quyền phù hợp.
+- Pass a **verified** authentication context explicitly where needed using framework-supported propagation.
+- In queue consumers, authenticate the service/producer or verify message provenance before accepting an actor context.
+- Never use a global `static currentUserId` variable.
+- Clean context at request end and test cross-request isolation.
+- Never trust a `userId`/`tenantId` inside a job payload without appropriate bindings/permissions.
 
-### 7.2 401, 403 và 404
+### 7.2 401, 403, and 404
 
-Đối với HTTP API, các mã thường dùng:
+For HTTP APIs, standard status codes are:
 
-- **401 Unauthorized**: request thiếu hoặc chưa có chứng cứ xác thực hợp lệ; có thể kèm challenge WWW-Authenticate theo giao thức.
-- **403 Forbidden**: server đã hiểu request, identity có thể hợp lệ, nhưng policy **không cho phép** action/resource.
-- **404 Not Found**: có thể được dùng theo chính sách để **không tiết lộ sự tồn tại** của tài nguyên mà actor không có quyền biết.
+- **401 Unauthorized**: request lacks valid authentication credentials; may include a `WWW-Authenticate` challenge per protocol.
+- **403 Forbidden**: server understood the request and identity may be valid, yet policy **denies** the action/resource.
+- **404 Not Found**: may be returned by policy to **avoid disclosing the existence** of a resource the actor is not allowed to know about.
 
-Việc chọn 403 hay 404 nhằm tránh object enumeration cần **nhất quán**, nhưng không thay thế kiểm tra quyền thật. Không trả nội dung nhạy cảm rồi mới đổi HTTP status thành 403; side effect đã xảy ra.
+Choosing 403 vs. 404 to prevent object enumeration must be **consistent**, yet never replaces real permission checks. Never return sensitive data and then merely swap the status to 403; side effects would already have occurred.
 
-Với API JSON, đừng trả chi tiết private policy, danh sách role bị thiếu của người khác hoặc tên tài nguyên không được phép trong thông báo lỗi. Ghi reason code nội bộ ở mức kiểm soát, không tiết lộ qua response.
+For JSON APIs, never leak private policy details, missing roles of other users, or unauthorized resource names in error messages. Record internal reason codes under access-controlled logging, never in client responses.
 
-## 8. Xác thực thành công nhưng phiên hoặc quyền đã thay đổi
+## 8. Authentication Succeeded, Yet Session or Permissions Changed
 
-### 8.1 Logout không đồng nghĩa thu hồi tất cả phiên ở mọi hệ thống
+### 8.1 Logout Does Not Equal Revoking All Sessions Everywhere
 
-**LoginContext.logout()** gọi logout các LoginModule và dọn các Principal/credential mà module quản lý. Nó **không tự vô hiệu** một access token JWT đã phát hành, không xóa server-side session store bên ngoài, không gửi thông báo thu hồi role tới các service khác và không xóa authz cache một cách kỳ diệu.
+**`LoginContext.logout()`** calls `logout` on `LoginModule`s and cleans up module-managed `Principal`s/credentials. It **does not automatically invalidate** issued JWT access tokens, clear external server-side session stores, broadcast role-revocation notices to other services, or magically clear authz caches.
 
-Hệ thống có thể cần:
+Systems may need:
 
-- Session invalidation và cookie deletion đúng.
-- Token expiry/refresh rotation/revocation phù hợp threat model.
-- Cập nhật quyền theo nguồn tin sau khi role/membership bị thu hồi.
-- Audit user/session logout và xử lý multi-device.
-- CSRF protection đối với session cookie khi tương ứng.
-- Xử lý các background jobs đang giữ principal/entitlements đã cũ.
+- Proper session invalidation and cookie deletion.
+- Token expiry/refresh rotation/revocation suited to the threat model.
+- Updating permissions from authoritative sources after role/membership revocation.
+- Auditing user/session logouts and handling multi-device sessions.
+- CSRF protection on session cookies where applicable.
+- Handling background jobs holding stale principals/entitlements.
 
-### 8.2 Quyền có thể bị thu hồi giữa hai request
+### 8.2 Permissions Can Be Revoked Between Two Requests
 
 ~~~text
-10:00 Alice login thành công.
-10:01 Alice được quyền invoice:read tenant-A.
-10:05 Admin thu hồi quyền invoice:read của Alice.
-10:06 Alice gửi request mới đọc invoice.
+10:00 Alice logs in successfully.
+10:01 Alice is granted invoice:read for tenant-A.
+10:05 Admin revokes Alice's invoice:read permission.
+10:06 Alice sends a new request to read an invoice.
 
-AuthN có thể vẫn VALID (session còn).
-AuthZ phải đọc quyết định theo quyền hiện hành/policy cache hợp lệ:
+AuthN may still be VALID (session remains active).
+AuthZ must evaluate against current permissions/valid policy cache:
        DENY.
 ~~~
 
-Nếu toàn hệ thống chỉ đọc role tại lúc login rồi cache vô thời hạn, quyền đã thu hồi có thể tiếp tục được dùng. Thiết kế freshness phù hợp với sensitivity: cache ngắn hạn, version/policy epoch, event invalidation hoặc kiểm tra nguồn authoritative cho action nhạy cảm.
+If the system reads roles once at login and caches them indefinitely, revoked privileges stay usable. Design freshness to match sensitivity: short caches, version/policy epochs, event invalidation, or authoritative checks for sensitive actions.
 
-**Không đồng nhất expiry của chứng cứ xác thực với expiry của entitlement**. Hai thời điểm có thể khác nhau.
+**Never equate authentication credential expiry with entitlement expiry.** The two lifetimes can differ.
 
-### 8.3 Token chứa role không bảo đảm role còn hiệu lực mãi
+### 8.3 A Token Containing Roles Does Not Guarantee Those Roles Stay Valid Forever
 
-JWT hoặc token ký có thể mang claim roles/permissions; sau khi verify, chúng là claim **được issuer công bố tại thời điểm phát hành**, không chắc phản ánh mọi thay đổi kể từ đó. Phải xét:
+A JWT or signed token may carry role/permission claims; once verified, those are claims **asserted by the issuer at issuance time**, not necessarily reflecting every change since. Evaluate:
 
-- Token lifetime và rotation/revocation.
-- Audience, issuer, signature/MAC và thuật toán được phép.
-- Tenant scope và resource scope.
-- Có cần kiểm tra entitlement động cho dữ liệu nhạy cảm không?
-- Giao thức nào cho phép service tin upstream identity context?
+- Token lifetime and rotation/revocation.
+- Audience, issuer, signature/MAC, and allowed algorithms.
+- Tenant scope and resource scope.
+- Whether dynamic entitlement checks are needed for sensitive data.
+- Which protocol lets services trust an upstream identity context.
 
-**Không đọc payload JWT bằng Base64 decoder rồi tin claim mà không xác minh chữ ký, issuer/audience/expiry**. Base64 chỉ là cách biểu diễn, không xác thực.
+**Never Base64-decode a JWT payload and trust its claims without verifying signature, issuer/audience, and expiry.** Base64 is merely encoding, not authentication.
 
-## 9. Legacy JAAS authorization và giới hạn trên Java hiện đại
+## 9. Legacy JAAS Authorization and Limits on Modern Java
 
-### 9.1 JAAS từng hỗ trợ principal-based access control
+### 9.1 JAAS Historically Supported Principal-Based Access Control
 
-Tài liệu JAAS Authorization của Java SE 17 mô tả cách sử dụng **Subject/Principal** cùng **java.security.Policy**, **AccessControlContext**, **Subject.doAs** và **Security Manager** để kiểm tra các permission trong sandbox Java truyền thống.
+Java SE 17's JAAS Authorization guide describes combining **`Subject`/`Principal`** with **`java.security.Policy`**, **`AccessControlContext`**, **`Subject.doAs`**, and the **Security Manager** to check permissions inside the classic Java sandbox.
 
-Ý tưởng lịch sử:
+Historical idea:
 
 ~~~text
 Authenticated Subject
         |
    Subject.doAs(subject, action)
         |
-AccessControlContext gắn Subject/Principals
+AccessControlContext binds Subject/Principals
         |
-Security Manager + Policy quyết định Permission
+Security Manager + Policy evaluate Permission
         |
-Java runtime có thể chặn thao tác được bảo vệ
+Java runtime may block protected operations
 ~~~
 
-Đây là mô hình **truy cập API/tài nguyên Java theo permission policy** thuộc kiến trúc Security Manager, **không tự tương đương** với policy kiểu “Alice được xóa invoice nào của tenant nào”.
+This is a **Java API/resource permission policy model** belonging to the Security Manager architecture, **not automatically equivalent** to business policies like "which tenant's invoices Alice may delete."
 
-### 9.2 Java 17 và JDK 24+ cần phân biệt
+### 9.2 Distinguishing Java 17 and JDK 24+
 
-- **Java 17:** Security Manager bị **deprecated for removal** theo JEP 411. Một số API JAAS authorization truyền thống vẫn hiện diện và các tutorial cũ vẫn mô tả chúng.
-- **JDK 18+:** nhiều API phụ thuộc AccessControlContext/Security Manager như Subject.doAs bị đánh dấu deprecated for removal, có API chạy với Subject khác trong đời sau.
-- **JDK 24+:** theo **JEP 486**, Security Manager **bị vô hiệu hóa vĩnh viễn**; không thể bật lại bằng property startup hoặc cài custom SecurityManager như trước. Các đường kiểm tra quyền dựa trên Security Manager không còn là nền tảng đáng tin để bảo vệ tài nguyên.
-- **JAAS authentication APIs không vì vậy mà đồng loạt biến mất**. LoginContext, LoginModule và Subject vẫn có vai trò với các công nghệ cần cơ chế xác thực pluggable, tùy JDK/provider.
+- **Java 17:** Security Manager is **deprecated for removal** under JEP 411. Some traditional JAAS authorization APIs still exist and older tutorials describe them.
+- **JDK 18+:** several `AccessControlContext`/Security Manager-dependent APIs such as `Subject.doAs` are marked deprecated for removal, with newer `Subject.current`/`Subject.callAs` alternatives introduced.
+- **JDK 24+:** under **JEP 486**, the Security Manager is **permanently disabled**; it cannot be re-enabled via startup properties or custom `SecurityManager` installation. Security Manager-based permission checks are no longer a viable foundation for protecting resources.
+- **JAAS authentication APIs do not all vanish with it.** `LoginContext`, `LoginModule`, and `Subject` remain relevant where pluggable authentication is needed, depending on JDK/provider.
 
-Vì vậy **không thiết kế một hệ thống phân quyền REST/API mới chỉ dựa trên Subject.doAs + java.policy với kỳ vọng JDK tương lai tự ngăn dữ liệu cross-tenant**. Thay vào đó, làm **authorization check tường minh ở service/repository/policy layer**, với enforcement có test và quan sát được.
+Therefore **never design a new REST/API authorization system solely around `Subject.doAs` + `java.policy` expecting future JDKs to block cross-tenant data automatically**. Instead, implement **explicit authorization checks in the service/repository/policy layer**, backed by testable and observable enforcement.
 
-### 9.3 Subject.doAs không tự thực hiện requirePermission
+### 9.3 `Subject.doAs` Does Not Execute `requirePermission` Automatically
 
-Ngay cả trong code Java cũ:
+Even in legacy Java code:
 
 ~~~java
-// Minh họa ý tưởng legacy; KHÔNG phải code khuyến nghị
-// cho cơ chế phân quyền API mới trên JDK 24+.
+// Illustrates legacy concept; NOT recommended code
+// for new API authorization on JDK 24+.
 Subject.doAs(subject, (java.security.PrivilegedAction<Void>) () -> {
     readSomeResource();
     return null;
 });
 ~~~
 
-Code trên **không tự chứa điều kiện kiểm tra quyền invoice/tenant**. Tác dụng permission-based còn phụ thuộc policy, Security Manager và API tạo ra permission checks đúng. Không được suy diễn:
+The code above **contains no invoice/tenant permission check**. Permission-based enforcement depended on policy files, the Security Manager, and APIs actually issuing permission checks. Never infer:
 
 ~~~text
-"Chạy dưới Subject của Alice"
+"Running under Alice's Subject"
            =>
-"Alice tự động không xem được invoice của Bob"
+"Alice is automatically prevented from viewing Bob's invoice"
 ~~~
 
-Đó là suy luận **sai** đối với authorization nghiệp vụ nếu bạn không thực hiện riêng rule kiểm tra object.
+That is a **false** conclusion for business authorization unless you implement explicit object-level rules.
 
-### 9.4 Có nên dùng Principal như role không?
+### 9.4 Should `Principal` Be Used as a Role?
 
-Một framework có thể xây **RolePrincipal** hoặc **GroupPrincipal**, nhưng cần rõ:
+A framework may define `RolePrincipal` or `GroupPrincipal`, but clarify:
 
-- Module nào có thẩm quyền khẳng định role?
-- Role có ràng buộc tenant và expiry không?
-- Có quyền truy cập object riêng hay không?
-- Chỗ nào của code thật sự thực hiện **require** quyền?
-- Khi Principal bị bỏ đi/đổi, session/policy cache có còn giữ quyền cũ không?
+- Which module has authority to assert the role?
+- Is the role bound to a tenant and expiration?
+- Does it grant access to specific objects?
+- Where does code actually **enforce** (`require`) the permission?
+- When a `Principal` is removed/changed, do session/policy caches retain stale privileges?
 
-**Principal là dữ liệu identity/security context, không tự là policy enforcement point.** Không dựa vào class name hoặc getName() tùy ý như một security check hoàn chỉnh.
+**A `Principal` is identity/security-context data, not a policy enforcement point.** Never treat an arbitrary class name or `getName()` as a complete security check.
 
-## 10. Bảo vệ tài nguyên ở lớp service và DB
+## 10. Protecting Resources at the Service and DB Layers
 
-### 10.1 Check gần nơi thực hiện hành động
+### 10.1 Check Close to Where the Action Occurs
 
-Ví dụ dịch vụ chuyển tiền:
+Example money-transfer service:
 
 ~~~text
 POST /transfers
-   -> authn hợp lệ
-   -> authz account.transfer trên account nguồn
-   -> xác minh owner/membership từ DB
-   -> kiểm tra trạng thái account, hạn mức, MFA
-   -> trong transaction xác nhận điều kiện vẫn đúng
-   -> ghi transfer & audit
+   -> valid authn
+   -> authz account.transfer on source account
+   -> verify owner/membership from DB
+   -> check account status, limits, MFA
+   -> within transaction confirm conditions still hold
+   -> record transfer & audit
 ~~~
 
-Không chỉ check endpoint là “có role TRANSFER_USER” rồi cho caller truyền **fromAccountId** của bất kỳ người nào. Nhiều lỗi nghiêm trọng bắt nguồn từ **IDOR trong thao tác ghi**, chứ không chỉ đọc.
+Do not check merely "has role `TRANSFER_USER`" on the endpoint and let the caller pass any **`fromAccountId`**. Many critical vulnerabilities stem from **IDOR on write operations**, not just reads.
 
-### 10.2 TOCTOU: Time of Check vs Time of Use
+### 10.2 TOCTOU: Time of Check vs. Time of Use
 
-Giả sử service:
+Suppose a service:
 
-1. Kiểm tra Alice là owner invoice.
-2. Một request khác chuyển owner hoặc thu hồi membership.
-3. Service vẫn UPDATE invoice vì đã check xong.
+1. Checks Alice is the invoice owner.
+2. Another request transfers ownership or revokes membership.
+3. The service still updates the invoice based on the stale check.
 
-Nếu action cần bảo đảm nhất quán, cách tiếp cận có thể là:
+When operations require consistency, approaches include:
 
-- Thực hiện policy check và UPDATE trong **cùng transaction** với isolation phù hợp.
-- Gắn điều kiện tenant/owner/status vào **UPDATE ... WHERE ...**; kiểm tra affected row count.
-- Dùng optimistic locking/version để tránh thay đổi state ngoài dự đoán.
-- Đọc lại entitlement hoặc policy epoch tại điểm commit khi cần.
-- Không dùng cached role/owner quá lâu cho thao tác quan trọng.
+- Performing the policy check and UPDATE inside the **same transaction** with appropriate isolation.
+- Embedding tenant/owner/status predicates into **`UPDATE ... WHERE ...`** and verifying the affected row count.
+- Using optimistic locking/versions to prevent unexpected state transitions.
+- Re-checking entitlements or policy epochs at commit time when needed.
+- Avoiding long-cached roles/ownership for critical mutations.
 
-Cách chính xác phụ thuộc DB và mô hình cạnh tranh; điều cốt lõi là **không để kết quả kiểm tra quyền cũ bị tách rời khỏi thao tác bảo vệ**.
+The exact mechanism depends on the database and concurrency model; the core principle is **never decoupling the permission check from the protected operation**.
 
-### 10.3 Field-level authorization
+### 10.3 Field-Level Authorization
 
-Một actor được xem Invoice không nhất thiết được xem mọi trường:
+An actor allowed to view an Invoice is not necessarily allowed to view every field:
 
 ~~~text
 Invoice:
-  id, date, status, amount            -> reader thông thường
-  customerPersonalId, bankAccount     -> cần permission nhạy cảm
+  id, date, status, amount            -> standard reader
+  customerPersonalId, bankAccount     -> requires sensitive permission
   internalRiskNotes, fraudFlags       -> compliance only
 ~~~
 
-Sau object-level allow, response serialization có thể phải **lọc field** theo policy. Đừng trả toàn bộ object entity từ ORM rồi hy vọng front-end ẩn trường bằng CSS.
+After object-level allow, response serialization may need to **filter fields** by policy. Never return entire ORM entities hoping the front-end hides fields with CSS.
 
-### 10.4 Multi-tenant data access
+### 10.4 Multi-Tenant Data Access
 
-Trong hệ thống SaaS:
+In SaaS systems:
 
-- Mọi read/list/update/delete phải thực thi tenant boundary.
-- Tenant header/subdomain/URL chỉ xác định **tenant được yêu cầu**, không chứng minh membership.
-- Dữ liệu policy/role có thể phụ thuộc tenant.
-- Background jobs/scheduled workflows cũng cần actor/service authorization, không được bypass vì “nội bộ”.
-- DB row-level security (RLS), tenant-scoped repository và API authorization có thể hỗ trợ nhau; không coi một lớp là lý do bỏ hết lớp khác.
+- Every read/list/update/delete must enforce tenant boundaries.
+- A tenant header/subdomain/URL only identifies the **requested tenant**, never proving membership.
+- Policies/roles themselves can be tenant-scoped.
+- Background jobs/scheduled workflows also need actor/service authorization, never bypassing checks as "internal."
+- DB row-level security (RLS), tenant-scoped repositories, and API authorization reinforce each other; never treat one layer as an excuse to drop all others.
 
-## 11. Logging và lỗi phải thể hiện đúng sự khác biệt
+## 11. Logs and Errors Must Reflect the Difference
 
-### 11.1 Log authn và authz riêng
+### 11.1 Log AuthN and AuthZ Separately
 
-Các sự kiện gợi ý:
+Suggested events:
 
 ~~~text
 AUTHN_SUCCESS user=alice mechanism=JAAS sessionRef=...
@@ -950,170 +950,170 @@ AUTHZ_DENY  actor=alice action=invoice.read resource=127 reasonCode=TENANT_SCOPE
 AUTHZ_DENY  actor=alice action=invoice.update reasonCode=MISSING_PERMISSION
 ~~~
 
-Đây là **minh họa log structure**, không phải dữ liệu thật và không phải định dạng bắt buộc. Ở production, tránh ghi password, access token, private credentials, raw Subject, session secret, PII nhạy cảm, hay giá trị resource mà caller không có quyền biết. Quy định correlation ID, thời hạn lưu, phân quyền log và phát hiện xâm nhập.
+This is an **illustrative log structure**, not real data and not a mandatory format. In production, avoid logging passwords, access tokens, private credentials, raw `Subject`s, session secrets, sensitive PII, or resource values the caller may not see. Define correlation IDs, retention periods, log access controls, and intrusion detection.
 
-**Không phân biệt cụ thể “username không tồn tại” và “password sai” trong phản hồi đăng nhập công khai** nếu việc đó giúp user enumeration. Có thể lưu reason code nội bộ thích hợp.
+**Do not distinguish "username does not exist" from "wrong password" in public login responses** if that enables user enumeration. Store appropriate internal reason codes instead.
 
-### 11.2 Authz denial không phải login failure
+### 11.2 An AuthZ Denial Is Not a Login Failure
 
-Nếu Alice đăng nhập hợp lệ mà bị chặn invoice:delete, không nên tự động báo **“invalid password”** hoặc logout người dùng chỉ vì action không được phép. Xử lý đúng là **authorization denied** cho action đó, trừ khi có dấu hiệu session compromise hoặc chính sách rủi ro yêu cầu bước khác.
+If Alice is validly logged in yet blocked from `invoice:delete`, do not automatically report **"invalid password"** or log the user out solely because the action was unauthorized. Report **authorization denied** for that action, unless session compromise is suspected or risk policy dictates otherwise.
 
-Phân biệt giúp support, audit và test không bị sai tín hiệu.
+Keeping them distinct prevents misleading support teams, audits, and tests.
 
-## 12. Test matrix thiết yếu
+## 12. Essential Test Matrix
 
-| Test case | AuthN | AuthZ | Kết quả mong đợi |
+| Test case | AuthN | AuthZ | Expected outcome |
 | --- | --- | --- | --- |
-| Không có cookie/token và endpoint yêu cầu login | FAIL | Không cấp quyền | 401/challenge theo giao thức |
-| Login sai password demo | FAIL | Không tạo actor tin cậy | Không được truy cập protected resource |
-| Login đúng với Alice | PASS | Chưa được quyết định cho object | Có authenticated Subject/context |
-| Alice đọc invoice tenant-A do Alice sở hữu | PASS | ALLOW | Đọc được field đã cấp quyền |
-| Alice đọc invoice tenant-B | PASS | DENY | Không trả dữ liệu |
-| Alice đọc invoice của Bob cùng tenant-A | PASS | DENY theo policy ví dụ | Không trả dữ liệu |
-| Alice không có role editor nhưng gọi invoice:update | PASS | DENY | Không cập nhật |
-| Alice có role reader nhưng chưa được cấp MFA step-up cần thiết | PASS | DENY hoặc yêu cầu step-up | Không tiến hành hành động nhạy cảm |
-| Alice có session còn hạn nhưng role vừa bị thu hồi | PASS | DENY sau khi policy cập nhật có hiệu lực | Quyền thay đổi không bị bỏ qua |
-| Client gửi X-User-Id: admin mà không có trust boundary | FAIL | Không tin header | Không mạo danh |
-| Caller tự tạo Subject/Principal không qua login tin cậy | Không chứng minh identity | Không chấp nhận | Không nâng quyền |
-| Object đổi owner giữa check và write | PASS | Phải được kiểm tra nhất quán | Không ghi nếu điều kiện không còn đúng |
-| User được đọc invoice nhưng không được xem bankAccount | PASS | Object ALLOW, field DENY | Response không rò field |
-| Service/queue consumer không có actor context hợp lệ | FAIL hoặc theo service identity policy | DENY nếu policy đòi caller | Không chạy như admin mặc định |
-| Logout JAAS, nhưng session store ngoài còn tồn tại | Trạng thái tùy kiến trúc | Revoke session đúng | Không đánh đồng logout với invalidation toàn hệ |
-| Một developer quên gọi authz ở endpoint mới | PASS | Không được phép bypass | Integration/security test thất bại |
+| Missing cookie/token on login-required endpoint | FAIL | No access granted | 401/challenge per protocol |
+| Login with wrong demo password | FAIL | No trusted actor created | Cannot access protected resources |
+| Valid login as Alice | PASS | Not yet decided for objects | Authenticated Subject/context established |
+| Alice reads tenant-A invoice owned by Alice | PASS | ALLOW | Authorized fields returned |
+| Alice reads tenant-B invoice | PASS | DENY | No data returned |
+| Alice reads Bob's invoice in same tenant-A | PASS | DENY per example policy | No data returned |
+| Alice lacks editor role yet calls `invoice:update` | PASS | DENY | No update performed |
+| Alice has reader role yet lacks required MFA step-up | PASS | DENY or prompt step-up | Sensitive action blocked |
+| Alice has active session yet role was just revoked | PASS | DENY once policy update takes effect | Permission change is honored |
+| Client sends `X-User-Id: admin` without trust boundary | FAIL | Header untrusted | No impersonation |
+| Caller constructs `Subject`/`Principal` bypassing trusted login | No identity proof | Rejected | No privilege escalation |
+| Object changes owner between check and write | PASS | Must be checked consistently | Write aborted if condition no longer holds |
+| User may read invoice yet may not view `bankAccount` | PASS | Object ALLOW, field DENY | Response does not leak field |
+| Service/queue consumer lacks valid actor context | FAIL or per service identity policy | DENY if caller required | Never runs as default admin |
+| JAAS logout called, yet external session store still active | Architecture-dependent | Revoke session explicitly | Never equate JAAS logout with system-wide invalidation |
+| Developer forgets authz check on a new endpoint | PASS | Must not allow bypass | Integration/security test catches it |
 
-### 12.1 Test trực tiếp quyền ở các tầng
+### 12.1 Test Permissions Directly Across Layers
 
-Đừng chỉ test service function với boolean **isAdmin=true**. Nên kiểm tra:
+Do not test service methods solely with `isAdmin=true`. Test:
 
-- Policy đơn vị với actor/action/resource/context kết hợp hợp lệ và bất hợp lệ.
-- Endpoint integration: login và quyền object, status/response/body, không có side effect khi deny.
-- Database query/transaction: tenant scope, row count, race ownership/permission changes.
-- Multi-tenant negative tests: cùng ID nhưng khác tenant, ID đoán được, list/export endpoints.
-- Role revocation và expired sessions.
-- Async message/job propagation và cross-request context leakage.
-- Audit events không chứa secrets.
-- Unauthorized field serialization và bulk endpoints.
+- Unit policy tests with valid and invalid actor/action/resource/context combinations.
+- Endpoint integration tests: login plus object permissions, status/response/body, zero side effects on deny.
+- Database query/transaction tests: tenant scoping, row counts, racing ownership/permission changes.
+- Multi-tenant negative tests: identical IDs across tenants, guessable IDs, list/export endpoints.
+- Role revocation and expired sessions.
+- Async message/job propagation and cross-request context isolation.
+- Audit events free of secrets.
+- Unauthorized field serialization and bulk endpoints.
 
-Bài test quan trọng là **“đã xác thực nhưng không được quyền”**, vì nhiều API chỉ kiểm tra trường hợp “chưa đăng nhập” và bỏ sót object-level policy.
+A critical test is **"authenticated yet unauthorized,"** because many APIs only test "unauthenticated" and miss object-level policy.
 
-## 13. Những sai lầm phổ biến và cách sửa
+## 13. Common Mistakes and Fixes
 
-1. **“LoginContext.login() không ném exception nên mọi API đều ALLOW.”** Sai; cần AuthZ trên từng action/resource.
-2. **“Principal có tên admin nên là admin toàn hệ thống.”** Sai; phải kiểm tra nguồn role, scope và chính sách.
-3. **“Có role USER thì được đọc mọi user.”** Sai; cần owner/ACL và tenant scoping.
-4. **“Client gửi tenantId nên đó là tenant membership của họ.”** Sai; membership phải tới từ backend/token đáng tin.
-5. **“Dùng Subject.doAs là JAAS sẽ tự chặn SQL SELECT sai tenant.”** Sai; cần policy enforcement cụ thể.
-6. **“Security Manager còn hoạt động như cũ trên mọi JDK.”** Sai; JDK 24+ đã vô hiệu hóa vĩnh viễn.
-7. **“Để admin bypass toàn bộ check cho nhanh.”** Rủi ro vượt quyền; cần phân biệt admin scope, break-glass và audit.
-8. **“Role lúc login không bao giờ đổi.”** Sai; cần xử lý revoke/freshness.
-9. **“Đã có JWT signed nên resource ID trong URL chắc hợp lệ.”** Sai; JWT identity không tự cấp quyền object.
-10. **“Mọi trường invoice đều được trả vì người gọi được invoice.read.”** Sai; có thể cần field-level authorization.
-11. **“Service nội bộ không cần authz.”** Sai; service principal cũng cần least privilege và tenant scope.
-12. **“Lấy user từ thread-local bất kỳ async task nào cũng đúng.”** Sai; context propagation và dọn sạch phải được kiểm chứng.
-13. **“Chỉ controller cần check, repository không cần tenant filter.”** Sai; nhiều code path có thể bypass controller.
-14. **“Kiểm tra quyền xong thì ghi DB bao giờ cũng được.”** Sai trong race/TOCTOU; cần transaction và điều kiện tương ứng.
-15. **“Logout LoginContext chắc chắn revoke JWT bên IdP.”** Sai; session/token lifecycle độc lập.
-16. **“Các permission Java Policy trong tutorial cũ là thay thế tương đương cho API RBAC.”** Không; chức năng và trạng thái Security Manager đã khác.
-17. **“401 và 403 dùng thay nhau được.”** Không; lỗi nhận dạng khác lỗi thiếu quyền, dù policy có thể trả 404 khi cần che resource.
-18. **“Authz DENY nên in hết mọi claim, resource và policy cho client biết.”** Sai; chỉ log tối thiểu có phân quyền và tránh rò dữ liệu.
-19. **“Endpoint list có tenant filter, endpoint export/bulk thì không cần.”** Sai; mọi đường đọc dữ liệu phải enforce scope.
-20. **“LoginModule tự quyết định invoice nào Alice được đọc.”** Không phù hợp phân tách trách nhiệm; module xác thực, service policy đánh giá resource/action.
+1. **"`LoginContext.login()` threw no exception, so every API is ALLOW."** False; enforce AuthZ per action/resource.
+2. **"Principal is named `admin`, so it is a system-wide admin."** False; verify role provenance, scope, and policy.
+3. **"Having role `USER` allows reading every user."** False; enforce owner/ACL and tenant scoping.
+4. **"Client sent `tenantId`, so that is their tenant membership."** False; membership must come from a trusted backend/token.
+5. **"Using `Subject.doAs` makes JAAS block cross-tenant SQL SELECTs automatically."** False; enforce explicit policies.
+6. **"Security Manager still works identically on every JDK."** False; JDK 24+ permanently disabled it.
+7. **"Let admins bypass all checks for convenience."** Escalation risk; enforce admin scopes, break-glass flows, and auditing.
+8. **"Roles at login never change."** False; handle revocation and freshness.
+9. **"Signed JWT is present, so resource IDs in the URL must be authorized."** False; JWT identity does not grant object permissions.
+10. **"Return all invoice fields since the caller has `invoice.read`."** False; field-level authorization may apply.
+11. **"Internal services do not need authz."** False; service principals also need least privilege and tenant scoping.
+12. **"Reading user from a thread-local inside any async task works."** False; verify context propagation and cleanup.
+13. **"Only controllers need checks; repositories need no tenant filter."** False; multiple code paths can bypass controllers.
+14. **"Once permission is checked, DB writes are always safe."** False under race/TOCTOU; use transactions and guarded conditions.
+15. **"Logging out of `LoginContext` definitely revokes the JWT at the IdP."** False; session/token lifecycles are independent.
+16. **"Java Policy permissions in old tutorials are an equivalent replacement for API RBAC."** No; Security Manager semantics and availability have changed.
+17. **"401 and 403 are interchangeable."** No; identity failure differs from insufficient permissions, though 404 may be used by policy to hide resource existence.
+18. **"On AuthZ DENY, print all claims, resources, and policies to the client."** False; log minimally with access controls and avoid data leaks.
+19. **"List endpoints have tenant filters; export/bulk endpoints do not need them."** False; every data-reading path must enforce scope.
+20. **"`LoginModule` decides which invoices Alice may read."** Poor separation of concerns; modules authenticate, while policy services evaluate resources/actions.
 
-## 14. Câu hỏi ôn tập
+## 14. Review Questions
 
-**Câu 1.** Xác thực và phân quyền khác nhau thế nào?
+**Q1.** How do authentication and authorization differ?
 
-**Trả lời:** Xác thực kiểm tra actor thực sự là ai; phân quyền kiểm tra actor có được làm action này trên resource cụ thể trong context hiện tại hay không.
+**Answer:** Authentication verifies who the actor genuinely is; authorization checks whether that actor may perform a given action on a specific resource in the current context.
 
-**Câu 2.** LoginContext.login thành công có tự cấp quyền invoice.read không?
+**Q2.** Does a successful `LoginContext.login()` automatically grant `invoice.read`?
 
-**Trả lời:** Không. Cần chính sách quyền từ nguồn đáng tin và kiểm tra resource-level scope.
+**Answer:** No. You need permission policies from a trusted source and resource-level scope checks.
 
-**Câu 3.** LoginModule.commit có vai trò gì?
+**Q3.** What is the role of `LoginModule.commit()`?
 
-**Trả lời:** Khi login toàn cục đạt điều kiện, commit thêm Principal/credential liên quan vào Subject; login phase trước đó chỉ kiểm chứng credential và giữ trạng thái tạm.
+**Answer:** When overall login meets policy conditions, `commit` adds the relevant `Principal`/credentials to `Subject`; the earlier `login` phase only verifies credentials and holds temporary state.
 
-**Câu 4.** Subject chứa UserPrincipal("alice") có chắc Alice đã login không?
+**Q4.** If `Subject` contains `UserPrincipal("alice")`, is Alice guaranteed to have logged in?
 
-**Trả lời:** Chỉ khi Subject đến từ authentication flow được server tin và chưa bị mạo danh/tamper; Subject object tự tạo không phải bằng chứng mật mã.
+**Answer:** Only if `Subject` came from a server-trusted authentication flow and was not spoofed/tampered with; a self-constructed `Subject` is not cryptographic proof.
 
-**Câu 5.** Vì sao role INVOICE_READER không đủ để xem invoice tenant-B?
+**Q5.** Why is role `INVOICE_READER` not enough to view a `tenant-B` invoice?
 
-**Trả lời:** Role có thể được cấp trong tenant-A; phải kiểm tra tenant/resource scope và owner/ACL khác.
+**Answer:** The role may be granted only within `tenant-A`; you must check tenant/resource scope and owner/ACL rules.
 
-**Câu 6.** RBAC khác ABAC ra sao?
+**Q6.** How does RBAC differ from ABAC?
 
-**Trả lời:** RBAC dùng role→permission; ABAC kiểm tra thuộc tính actor/resource/action/context. Có thể kết hợp với ReBAC để bảo vệ object.
+**Answer:** RBAC maps role → permission; ABAC evaluates attributes of actor/resource/action/context. Both can be combined with ReBAC to protect objects.
 
-**Câu 7.** Tại sao code chỉ tìm invoice theo ID dễ bị BOLA/IDOR?
+**Q7.** Why is finding invoices solely by ID vulnerable to BOLA/IDOR?
 
-**Trả lời:** User đã đăng nhập có thể đoán ID của tài nguyên người khác; phải kiểm tra owner/tenant/ACL trước khi trả dữ liệu.
+**Answer:** Logged-in users can guess other users' resource IDs; verify owner/tenant/ACL before returning data.
 
-**Câu 8.** Có cần đánh giá quyền lại sau khi user vừa bị thu hồi role?
+**Q8.** Must permissions be re-evaluated after a user's role is revoked?
 
-**Trả lời:** Có. Chính sách cache/revalidation phải phản ánh thu hồi trong thời gian thích hợp với độ nhạy của action.
+**Answer:** Yes. Caching/revalidation policies must reflect revocation within a window appropriate to the action's sensitivity.
 
-**Câu 9.** Subject.doAs có tự bảo vệ mọi resource của ứng dụng không?
+**Q9.** Does `Subject.doAs` automatically protect every application resource?
 
-**Trả lời:** Không. Mô hình permission-based JAAS lịch sử phụ thuộc Policy/Security Manager và các permission checks; JDK 24 đã disable Security Manager. API nghiệp vụ cần authorization enforcement tường minh.
+**Answer:** No. Historical permission-based JAAS relied on `Policy`/Security Manager and permission checks, and JDK 24 disabled the Security Manager. Business APIs need explicit authorization enforcement.
 
-**Câu 10.** Logout JAAS có tự hủy một JWT đang có ngoài hệ thống không?
+**Q10.** Does JAAS logout automatically revoke an external JWT?
 
-**Trả lời:** Không. Token/session manager và policy revocation là trách nhiệm hệ thống liên quan.
+**Answer:** No. Token/session managers and revocation policies belong to their respective systems.
 
-**Câu 11.** HTTP 401 và 403 thường được dùng thế nào?
+**Q11.** How are HTTP 401 and 403 typically used?
 
-**Trả lời:** 401 khi thiếu/chưa có authentication hợp lệ; 403 khi không được phép thực hiện thao tác. Có thể dùng 404 theo chính sách che sự tồn tại tài nguyên.
+**Answer:** 401 when valid authentication is missing; 403 when the operation is forbidden. 404 may be used by policy to conceal resource existence.
 
-**Câu 12.** Vì sao authz cần actor/action/resource/context chứ không chỉ username?
+**Q12.** Why does AuthZ need actor/action/resource/context rather than username alone?
 
-**Trả lời:** Quyền phụ thuộc vào việc đang làm gì, object thuộc ai/tenant nào, trạng thái nào và điều kiện hiện tại; username đơn lẻ không quyết định được.
+**Answer:** Access depends on what is being done, who owns/tenants the object, its state, and current conditions; a bare username cannot decide that.
 
-**Câu 13.** Một admin tenant-A có thể đọc dữ liệu tenant-B không?
+**Q13.** Can a `tenant-A` admin read `tenant-B` data?
 
-**Trả lời:** Không mặc nhiên. Admin thường có scope; quyền global chỉ tồn tại khi policy đã cho phép rõ và có kiểm soát.
+**Answer:** Not by default. Admins are normally scoped; global access exists only when explicitly permitted and controlled by policy.
 
-**Câu 14.** Authentication có thể chưa cần cho tài nguyên nào?
+**Q14.** For which resources might authentication not be required?
 
-**Trả lời:** Với resource/action được chính sách xác định là public, anonymous actor có thể được cho phép; không có nghĩa mọi action trên cùng resource là public.
+**Answer:** For resources/actions explicitly designated public by policy, anonymous actors may be allowed; that does not make every action on that resource public.
 
-**Câu 15.** Vì sao cần test race giữa check quyền và update DB?
+**Q15.** Why test for races between permission checks and DB updates?
 
-**Trả lời:** Resource owner/membership có thể đổi sau check; transaction, row condition, locking/version giúp giữ quyết định phù hợp thời điểm sử dụng.
+**Answer:** Resource ownership or memberships can change after the check; transactions, row predicates, and locking/versions keep the decision valid at the time of use.
 
-## 15. Checklist triển khai
+## 15. Deployment Checklist
 
-- [ ] Có nguồn **identity** đáng tin (JAAS LoginModule/IdP/session verifier).
-- [ ] Tách AuthN context khỏi AuthZ decision; không tin userId/role từ header không bảo vệ.
-- [ ] Có mapping rõ **actor → roles/permissions theo scope**, quản lý bằng backend có thẩm quyền.
-- [ ] Định nghĩa policy cho từng **action/resource**, bao gồm public access có chủ đích.
-- [ ] **Default DENY** khi thiếu actor/policy/tenant/ownership.
-- [ ] Kiểm tra **object-level** và **field-level** khi cần, không chỉ route-level.
-- [ ] Mọi read/list/update/delete/export/bulk endpoint đều enforce tenant scope.
-- [ ] Dữ liệu quyền bị thu hồi có thời hạn hiệu lực, cache invalidation hoặc kiểm tra nguồn đáng tin.
-- [ ] Check và hành động ghi quan trọng được bảo vệ khỏi TOCTOU.
-- [ ] Async/thread/queue context không làm rò principal giữa người dùng.
-- [ ] Xử lý session/token/JAAS logout đúng theo từng tầng.
-- [ ] Logging phân biệt authn failure và authz denial, không ghi credentials/Subject nhạy cảm.
-- [ ] Không dựa vào **SecurityManager/Subject.doAs** như bộ máy RBAC mới cho REST API.
-- [ ] Có test **đã login nhưng bị từ chối**, cross-tenant, missing role, impersonation, revoke, field leak.
-- [ ] Triển khai least privilege ở service, DB, network và secret store.
+- [ ] Trusted **identity source** (`LoginModule`/IdP/session verifier).
+- [ ] Separate AuthN context from AuthZ decisions; never trust `userId`/roles from unprotected headers.
+- [ ] Clear **actor → scoped roles/permissions** mapping managed by an authoritative backend.
+- [ ] Policy defined for every **action/resource**, including intentional public access.
+- [ ] **Default DENY** when actor, policy, tenant, or ownership is missing.
+- [ ] **Object-level** and **field-level** checks where needed, not only route-level checks.
+- [ ] Every read/list/update/delete/export/bulk endpoint enforces tenant scope.
+- [ ] Revoked permissions have bounded lifetimes, cache invalidation, or authoritative checks.
+- [ ] Critical checks and writes are protected against TOCTOU.
+- [ ] Async/thread/queue contexts never leak principals across users.
+- [ ] Sessions, tokens, and JAAS logout are handled cleanly at each layer.
+- [ ] Logging distinguishes authn failure from authz denial without recording credentials or sensitive `Subject`s.
+- [ ] Never rely on **`SecurityManager`/`Subject.doAs`** as a new RBAC engine for REST APIs.
+- [ ] Tests cover **authenticated-but-denied**, cross-tenant, missing role, impersonation, revocation, and field leaks.
+- [ ] Least privilege enforced across services, DBs, networks, and secret stores.
 
-## 16. Tài liệu chính thức để tra cứu
+## 16. Official References
 
-- [Oracle Java SE 17 — JAAS Authentication](https://docs.oracle.com/en/java/javase/17/security/jaas-authentication.html): giải thích pluggable authentication, LoginContext, Subject, Principal.
-- [Oracle Java SE 17 — JAAS Authentication Tutorial](https://docs.oracle.com/en/java/javase/17/security/jaas-authentication-tutorial.html): luồng login với JAAS.
-- [Oracle Java SE 17 — JAAS LoginModule Developer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-authentication-and-authorization-service-jaas-loginmodule-developers-guide1.html): các pha login/commit/abort/logout và CallbackHandler.
-- [Oracle Java SE 17 — JAAS Authorization](https://docs.oracle.com/en/java/javase/17/security/jaas-authorization.html): authorization legacy dựa trên Principal và Java permission policy.
-- [Oracle Java SE 17 — LoginContext API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/LoginContext.html): constructor, login, getSubject, logout.
-- [Oracle Java SE 17 — Configuration API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/Configuration.html): các flag REQUIRED/REQUISITE/SUFFICIENT/OPTIONAL.
-- [Oracle Java SE 17 — Subject API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/Subject.html): Principal và credential sets.
-- [OpenJDK JEP 411](https://openjdk.org/jeps/411): deprecate Security Manager trong Java 17.
-- [OpenJDK JEP 486](https://openjdk.org/jeps/486): permanently disable Security Manager từ JDK 24.
-- [Oracle JDK 24 — Security Manager Permanently Disabled](https://docs.oracle.com/en/java/javase/24/security/security-manager-is-permanently-disabled.html): tác động tới các API permission/security legacy.
+- [Oracle Java SE 17 — JAAS Authentication](https://docs.oracle.com/en/java/javase/17/security/jaas-authentication.html): explains pluggable authentication, `LoginContext`, `Subject`, and `Principal`.
+- [Oracle Java SE 17 — JAAS Authentication Tutorial](https://docs.oracle.com/en/java/javase/17/security/jaas-authentication-tutorial.html): login flow with JAAS.
+- [Oracle Java SE 17 — JAAS LoginModule Developer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-authentication-and-authorization-service-jaas-loginmodule-developers-guide1.html): `login/commit/abort/logout` phases and `CallbackHandler`.
+- [Oracle Java SE 17 — JAAS Authorization](https://docs.oracle.com/en/java/javase/17/security/jaas-authorization.html): legacy authorization based on `Principal` and Java permission policies.
+- [Oracle Java SE 17 — LoginContext API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/LoginContext.html): constructors, `login`, `getSubject`, and `logout`.
+- [Oracle Java SE 17 — Configuration API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/login/Configuration.html): `REQUIRED`/`REQUISITE`/`SUFFICIENT`/`OPTIONAL` flags.
+- [Oracle Java SE 17 — Subject API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/Subject.html): `Principal` and credential sets.
+- [OpenJDK JEP 411](https://openjdk.org/jeps/411): deprecating the Security Manager in Java 17.
+- [OpenJDK JEP 486](https://openjdk.org/jeps/486): permanently disabling the Security Manager as of JDK 24.
+- [Oracle JDK 24 — Security Manager Permanently Disabled](https://docs.oracle.com/en/java/javase/24/security/security-manager-is-permanently-disabled.html): impact on legacy permission/security APIs.
 
-## Kết luận
+## Conclusion
 
-**Xác thực danh tính là điểm khởi đầu, không phải giấy phép toàn quyền.** JAAS có thể xác thực người dùng/service qua LoginContext và LoginModule, đặt Principal/credential đáng tin vào Subject. Nhưng ứng dụng vẫn phải đánh giá **actor, action, resource và context** theo policy rõ ràng, kiểm tra scope/tenant/owner/ACL cùng thời điểm sử dụng và mặc định từ chối khi điều kiện không đủ.
+**Identity authentication is the starting point, not a blanket license.** JAAS can authenticate users/services via `LoginContext` and `LoginModule`, placing trusted `Principal`s/credentials into a `Subject`. However, the application must still evaluate **actor, action, resource, and context** under explicit policy, check scope/tenant/owner/ACL at time of use, and deny by default when conditions are insufficient.
 
-**JAAS authorization dựa trên Java Security Manager là một cơ chế lịch sử có giới hạn lớn trên JDK hiện đại**, không thay thế cho phân quyền nghiệp vụ. Với Java 17+ và các service có REST API, thực hiện policy enforcement tường minh, kiểm thử các tình huống người dùng đã login nhưng **không đủ quyền**, và quản lý session/role revocation thay vì chỉ kiểm tra LoginContext.login().
+**JAAS authorization built on the Java Security Manager is a historical mechanism with major limits on modern JDKs** and does not replace business authorization. For Java 17+ and REST API services, enforce policy explicitly, test cases where authenticated users have **insufficient permissions**, and manage session/role revocation rather than checking `LoginContext.login()` alone.

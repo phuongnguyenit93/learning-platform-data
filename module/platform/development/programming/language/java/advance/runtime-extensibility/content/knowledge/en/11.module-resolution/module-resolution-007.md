@@ -1,48 +1,48 @@
-# Xử lý FindException, ResolutionException, thiếu phụ thuộc và package xung đột trong JPMS
+# Handling FindException, ResolutionException, Missing Dependencies, and Package Conflicts in JPMS
 
-## 1. Module resolution là bước gì?
+## 1. What Step Is Module Resolution?
 
-Trong Java Platform Module System (JPMS), đặt JAR lên **module path** chưa đủ để chương trình chạy. Java phải tìm module bằng tên, xây dựng tập module được chọn, giải quyết quan hệ \`requires\`/service binding và kiểm tra tính nhất quán của module graph. Chỉ sau khi cấu hình hợp lệ, runtime mới định nghĩa module/layer và ứng dụng mới bắt đầu chạy.
+In the Java Platform Module System (JPMS), placing JARs on the **module path** is not enough for a program to run. Java must locate modules by name, build the set of selected modules, resolve \`requires\`/service-binding relationships, and verify module graph consistency. Only after the configuration is valid does the runtime define modules/layers and start the application.
 
-Quá trình này có thể thất bại ngay trước khi gọi \`main()\`:
+This process can fail before \`main()\` is even invoked:
 
-- **\`java.lang.module.FindException\`**: module finder không tìm được module được yêu cầu hoặc không thể đọc/nhận diện module artifact trong một số trường hợp.
-- **\`java.lang.module.ResolutionException\`**: có vấn đề khi resolver xây module graph hoặc phát hiện cấu hình module không nhất quán, ví dụ package visibility xung đột.
-- **Thiếu dependency**: module tên trong \`requires\` không có trong tập module có thể tìm thấy; thường biểu hiện bằng \`FindException\`, không phải lúc nào cũng có exception độc lập.
-- **Package xung đột (split package)**: cùng một package thuộc nhiều module được resolved trong cùng điều kiện không hợp lệ; có thể phát hiện ở compilation/resolution hoặc khi định nghĩa layer, tùy tình huống.
+- **\`java.lang.module.FindException\`**: the module finder cannot locate a required module or cannot read/recognize a module artifact in certain cases.
+- **\`java.lang.module.ResolutionException\`**: an issue occurs while the resolver builds the module graph or detects an inconsistent module configuration, such as conflicting package visibility.
+- **Missing dependency**: a module named in \`requires\` is absent from observable modules; this commonly surfaces as \`FindException\`, not always a separate exception type.
+- **Package conflict (split package)**: the same package belongs to multiple resolved modules under invalid conditions; this may be detected at compilation/resolution or when defining a layer, depending on the situation.
 
-Các lỗi trên khác lỗi **\`ClassNotFoundException\`**, **\`NoClassDefFoundError\`** hoặc **\`IllegalAccessError\`** phát sinh sau đó khi nạp/link/sử dụng class. Không nên dùng một biện pháp chữa mọi lỗi.
+These errors differ from **\`ClassNotFoundException\`**, **\`NoClassDefFoundError\`**, or **\`IllegalAccessError\`**, which arise later when loading/linking/using classes. Do not use a single catch-all workaround for every error.
 
-## 2. Quy trình phân giải module ở mức khái niệm
+## 2. Conceptual Module Resolution Workflow
 
 \`\`\`text
 Module path / system modules
           |
           v
-ModuleFinder xác định module artifacts và descriptors
+ModuleFinder identifies module artifacts and descriptors
           |
           v
 Root modules (--module / --add-modules / layer roots)
           |
           v
-Resolve requires và service binding khi áp dụng
+Resolve requires and service binding when applicable
           |
           v
-Kiểm tra graph: module tồn tại, readability, exports, xung đột
+Validate graph: module existence, readability, exports, conflicts
           |
           v
-Configuration -> ModuleLayer -> chạy main()
+Configuration -> ModuleLayer -> run main()
 \`\`\`
 
-Trong lệnh \`java --module-path mods --module app.host/app.Main\`, \`app.host\` là root module. Các quan hệ \`requires\` được lần theo để giải quyết dependencies. Một module chỉ có mặt trên module path nhưng không được giải quyết vào graph thì chưa chắc tham gia runtime.
+In the command \`java --module-path mods --module app.host/app.Main\`, \`app.host\` is the root module. \`requires\` relationships are traversed to resolve dependencies. A module merely present on the module path but not resolved into the graph does not necessarily participate at runtime.
 
-**Bước đầu khi lỗi:** đọc thông điệp đầy đủ, xác định module root, module bị yêu cầu, đường dẫn vật lý của artifact và loại lỗi; đừng đoán rằng chỉ cần thêm \`--add-modules ALL-MODULE-PATH\`.
+**First step on error:** read the full message, identify the root module, the requested module, the physical path of the artifact, and the error type; do not guess that simply adding \`--add-modules ALL-MODULE-PATH\` will fix it.
 
-## 3. Ví dụ Java 17+: thiếu module gây FindException
+## 3. Java 17+ Example: Missing Module Causing FindException
 
-Tạo hai named modules, module \`demo.app\` phụ thuộc \`demo.api\`.
+Create two named modules where \`demo.app\` depends on \`demo.api\`.
 
-Cấu trúc:
+Structure:
 
 \`\`\`text
 demo/
@@ -99,20 +99,20 @@ public final class Main {
 }
 \`\`\`
 
-Tại thư mục \`demo\`, trên shell bash và JDK 17+:
+In the \`demo\` directory, on a bash shell with JDK 17+:
 
 \`\`\`bash
 javac --module-source-path src -d mods --module demo.api,demo.app
 java --module-path mods --module demo.app/app.Main
 \`\`\`
 
-Kết quả:
+Result:
 
 \`\`\`text
 JPMS OK
 \`\`\`
 
-Giờ đóng gói chỉ module ứng dụng và cố tình bỏ dependency:
+Now package only the application module and intentionally omit its dependency:
 
 \`\`\`bash
 mkdir -p broken
@@ -120,57 +120,57 @@ jar --create --file broken/demo.app.jar -C mods/demo.app .
 java --module-path broken --module demo.app/app.Main
 \`\`\`
 
-Lệnh chạy thất bại trước \`main()\`. Thông điệp điển hình:
+The run fails before \`main()\`. Typical message:
 
 \`\`\`text
 Error occurred during initialization of boot layer
 java.lang.module.FindException: Module demo.api not found, required by demo.app
 \`\`\`
 
-Thông điệp/định dạng lỗi có thể phụ thuộc phiên bản JDK/launcher, nhưng nội dung chính là thiếu \`demo.api\`. Để khắc phục, đưa **đúng modular JAR** của \`demo.api\` vào module path:
+The exact message/formatting may depend on the JDK/launcher version, but the core issue is the missing \`demo.api\`. To fix it, put **the proper modular JAR** for \`demo.api\` onto the module path:
 
 \`\`\`bash
 jar --create --file broken/demo.api.jar -C mods/demo.api .
 java --module-path broken --module demo.app/app.Main
 \`\`\`
 
-Output trở lại:
+Output returns to:
 
 \`\`\`text
 JPMS OK
 \`\`\`
 
-Khi thiếu module, **không sửa bằng \`--add-exports\` hoặc \`--add-opens\`**: hai cờ này liên quan quyền truy cập package, không tạo artifact \`demo.api\` chưa có.
+When a module is missing, **do not try to fix it with \`--add-exports\` or \`--add-opens\`**: those two flags control package access permissions and do not create the missing \`demo.api\` artifact.
 
-## 4. Hiểu FindException theo nhóm nguyên nhân
+## 4. Understanding FindException by Root Cause
 
-Các nguyên nhân cần tách:
+Causes to separate:
 
-| Nhóm | Dấu hiệu | Kiểm tra | Hướng sửa |
+| Category | Symptom | Check | Fix Direction |
 | --- | --- | --- | --- |
-| Module không tồn tại trên observable module path | \`Module X not found, required by Y\` | \`--module-path\`, thư mục/JAR thực tế | Bổ sung artifact đúng tên |
-| Tên module khác tên mong đợi | \`requires example.api\` nhưng JAR khai báo \`example.contract\` | \`jar --describe-module\` | Đồng bộ \`module-info.java\` và module name |
-| Artifact không phải module hợp lệ | Lỗi khi đọc/parse \`module-info.class\` hoặc JAR | \`jar --list\`, \`jar --describe-module\` | Build lại JAR, kiểm tra bytecode/module descriptor |
-| Có nhiều module trùng tên trên đường tìm kiếm | Module finder/cấu hình chọn nhầm artifact | Kiểm tra module path và cách launcher/layer chọn finder | Loại bỏ trùng lặp, xác định một nguồn module rõ ràng |
-| Module được yêu cầu chỉ có ở classpath | Named module không resolve dependency từ unnamed module như một module có tên | So sánh \`-cp\` và \`--module-path\` | Đưa dependency vào đúng module path hoặc thay thiết kế |
+| Module does not exist on observable module path | \`Module X not found, required by Y\` | \`--module-path\`, actual directories/JARs | Add the artifact with the matching name |
+| Module name differs from expected name | \`requires example.api\` but JAR declares \`example.contract\` | \`jar --describe-module\` | Align \`module-info.java\` and module name |
+| Artifact is not a valid module | Error reading/parsing \`module-info.class\` or JAR | \`jar --list\`, \`jar --describe-module\` | Rebuild JAR, check bytecode/module descriptor |
+| Multiple same-named modules on search path | Module finder/configuration selects wrong artifact | Check module path and how launcher/layer selects finders | Remove duplicates, define a single clear module source |
+| Required module is only on the classpath | A named module does not resolve dependencies from the unnamed module as a named module | Compare \`-cp\` and \`--module-path\` | Move dependency onto the proper module path or change design |
 
-\`FindException\` không đồng nghĩa với “file JAR không tồn tại”: JAR có thể có trên đĩa nhưng tên module sai, không nằm trên module path hiệu lực, hoặc không được \`ModuleFinder\` nhìn thấy theo cấu hình đang chạy.
+\`FindException\` is not synonymous with “JAR file does not exist”: the JAR may exist on disk yet have the wrong module name, not be on the effective module path, or not be visible to \`ModuleFinder\` under the running configuration.
 
-### Xác minh tên module thực sự
+### Verifying the Actual Module Name
 
 \`\`\`bash
 jar --describe-module --file path/to/library.jar
 \`\`\`
 
-Với explicit modular JAR, kết quả chứa tên từ \`module-info.class\`. Với non-modular JAR đặt trên module path, Java có thể coi đó là **automatic module**: tên được suy ra từ \`Automatic-Module-Name\` trong manifest nếu có, hoặc từ filename theo quy tắc automatic module naming. Không đoán tên từ Maven coordinates; cần kiểm tra output công cụ.
+For an explicit modular JAR, the output shows the name from \`module-info.class\`. For a non-modular JAR placed on the module path, Java may treat it as an **automatic module**: its name is derived from \`Automatic-Module-Name\` in the manifest if present, or from the filename per automatic module naming rules. Do not guess names from Maven coordinates; inspect the tool output.
 
-\`jar --list --file path/to/library.jar\` xác minh cấu trúc archive. Nếu dùng multi-release JAR, phải kiểm tra khả năng tương thích với phiên bản Java đích và versioned module descriptor tương ứng.
+\`jar --list --file path/to/library.jar\` verifies archive structure. If using a multi-release JAR, check compatibility with the target Java version and the corresponding versioned module descriptor.
 
-## 5. ResolutionException: module graph không nhất quán
+## 5. ResolutionException: Inconsistent Module Graph
 
-\`ResolutionException\` xuất hiện khi các ràng buộc phân giải module không thể thỏa mãn. Một tình huống quan trọng là **hai module khác nhau cùng cung cấp package mà module đọc được theo cách tạo ra xung đột**.
+\`ResolutionException\` occurs when module resolution constraints cannot be satisfied. A major scenario is when **two different modules provide the same package that a module reads in a conflicting way**.
 
-Ví dụ thiết kế sai:
+Flawed design example:
 
 \`\`\`text
 module demo.alpha
@@ -186,13 +186,13 @@ module demo.app
   requires demo.beta;
 \`\`\`
 
-Ứng dụng không thể đồng thời đọc hai module export cùng package \`shared\` theo cấu hình này. Compiler hoặc resolver có thể báo package conflict. Không nên “fix” bằng cách thay đổi thứ tự module path hoặc hy vọng module đầu tiên thắng. **Named modules không hoạt động như classpath first-match cho package export xung đột.**
+The application cannot simultaneously read two modules exporting the same package \`shared\` under this configuration. The compiler or resolver will report a package conflict. Do not “fix” this by reordering the module path or hoping the first module wins. **Named modules do not behave like classpath first-match for conflicting package exports.**
 
-Giải pháp chuẩn: đặt các package khác nhau, ví dụ \`alpha.shared\` và \`beta.shared\`, hoặc thiết kế một module API chung và cho hai provider implement API từ module đó. Nếu cả hai JAR chứa các class của *cùng một thư viện* trong một package, cần hợp nhất/sắp xếp ownership đúng, thay vì ngẫu nhiên giữ cả hai trên module path.
+Standard solution: use distinct packages, such as \`alpha.shared\` and \`beta.shared\`, or design a common API module and have both providers implement that API from it. If both JARs contain classes of *the same library* in one package, consolidate/organize ownership properly instead of leaving both on the module path haphazardly.
 
-## 6. Ví dụ package conflict khi hai module cùng export package
+## 6. Package Conflict Example When Two Modules Export the Same Package
 
-Đây là ví dụ *cố ý sai* để hiểu lỗi; các tệp là minh họa chứ không thể compile cả graph như một ứng dụng hợp lệ.
+This is an *intentionally invalid* example to understand the error; the files are illustrative and cannot compile as a single valid application graph.
 
 \`demo.alpha/module-info.java\`:
 
@@ -233,67 +233,67 @@ module demo.app {
 }
 \`\`\`
 
-Nếu module \`demo.app\` đọc cả \`demo.alpha\` lẫn \`demo.beta\`, package \`shared\` được export từ hai nguồn khác nhau. Trình biên dịch \`javac\` có thể báo lỗi kiểu \`module demo.app reads package shared from both demo.alpha and demo.beta\`. Khi xây configuration programmatically hoặc gặp graph sai ở runtime, lỗi thuộc nhóm resolution/consistency.
+Because module \`demo.app\` reads both \`demo.alpha\` and \`demo.beta\`, package \`shared\` is exported from two different sources. The \`javac\` compiler may report an error like \`module demo.app reads package shared from both demo.alpha and demo.beta\`. When building configurations programmatically or encountering an invalid graph at runtime, the error belongs to resolution/consistency.
 
-**Cách sửa:** tổ chức tên package và module boundaries để module consumer chỉ thấy một chủ sở hữu cho package đó. Ví dụ \`demo.alpha\` export \`alpha.shared\`, còn \`demo.beta\` export \`beta.shared\`. Đổi package phải cập nhật source, imports, metadata và build artifact nhất quán.
+**How to fix:** organize package names and module boundaries so a consumer module sees only a single owner for that package. For instance, \`demo.alpha\` exports \`alpha.shared\`, while \`demo.beta\` exports \`beta.shared\`. Renaming packages requires updating sources, imports, metadata, and build artifacts consistently.
 
-### Cẩn trọng với automatic modules
+### Be Careful with Automatic Modules
 
-Automatic modules thường export tất cả packages và có readability rộng. Khi chuyển một thư viện legacy sang module path, các split packages đã sống được trên classpath có thể trở thành xung đột resolution. Hãy kiểm tra package names bên trong từng JAR, không chỉ tên module. Tránh dùng automatic module như giải pháp lâu dài cho hệ thống có nhiều phụ thuộc trùng package.
+Automatic modules typically export all packages and have broad readability. When moving a legacy library to the module path, split packages that survived on the classpath can become resolution conflicts. Inspect package names inside every JAR, not just module names. Avoid using automatic modules as a long-term solution for systems with many package-overlapping dependencies.
 
-## 7. Lỗi package khác: cùng package trong một module layer
+## 7. Another Package Error: Same Package Inside a Module Layer
 
-Bên cạnh việc hai module cùng export package mà consumer đọc, còn có ràng buộc khi định nghĩa modules trong classloader: một classloader không thể định nghĩa cùng một package thuộc hai named modules trong layer theo cách vi phạm ràng buộc loader/package mapping. API \`ModuleLayer.defineModulesWithOneLoader\` và \`defineModulesWithManyLoaders\` có ràng buộc khác nhau về mapping classloader và có thể phát hiện cấu hình không hợp lệ sau resolution. Vì vậy khi kiểm tra package conflicts, phân biệt:
+In addition to two modules exporting the same package read by a consumer, there is a constraint when defining modules in class loaders: a single class loader cannot define the same package belonging to two named modules in a layer in ways that violate loader/package mapping rules. \`ModuleLayer.defineModulesWithOneLoader\` and \`defineModulesWithManyLoaders\` impose different constraints on classloader mapping and can detect invalid configurations after resolution. Therefore, when investigating package conflicts, distinguish:
 
-1. **Resolution/readability conflict:** graph bị coi là không nhất quán.
-2. **Definition/classloader conflict:** cấu hình layer không thể định nghĩa với chiến lược classloader đã chọn.
-3. **Build/source conflict:** compiler từ chối \`split package\` hoặc package được export từ nhiều nguồn.
-4. **Classpath collision:** nhiều JAR trong unnamed module có class cùng fully qualified name; classpath thường lấy một theo loader lookup, làm lỗi bị che giấu nhưng không an toàn.
+1. **Resolution/readability conflict:** the graph is deemed inconsistent.
+2. **Definition/classloader conflict:** the layer configuration cannot be defined with the chosen classloader strategy.
+3. **Build/source conflict:** the compiler rejects a \`split package\` or a package exported from multiple sources.
+4. **Classpath collision:** multiple JARs in the unnamed module have classes with the same fully qualified name; the classpath typically picks one by loader lookup order, hiding the bug unsafely.
 
-Không suy ra rằng mọi tình huống hai JAR chứa cùng package đều ném đúng \`ResolutionException\`. Kết quả phụ thuộc module graph, exports, loader strategy và giai đoạn kiểm tra.
+Do not assume that every case where two JARs contain the same package throws exactly \`ResolutionException\`. The outcome depends on the module graph, exports, loader strategy, and checking stage.
 
-## 8. Công cụ chẩn đoán khi phân giải thất bại
+## 8. Diagnostic Tools When Resolution Fails
 
-### Bước 1: in lệnh chạy và môi trường
+### Step 1: Print the Run Command and Environment
 
-Ghi lại nguyên văn lệnh \`java\`, \`javac\`/Maven/Gradle và các giá trị:
+Record the exact \`java\`, \`javac\`/Maven/Gradle command and values:
 
 - JDK version: \`java -version\`.
 - Root module: \`--module module.name/main.Class\`.
-- Module path: \`--module-path path1:path2\` trên Unix; dấu phân cách path là \`;\` trên Windows.
-- \`--add-modules\`, \`--limit-modules\`, \`--patch-module\`, \`--upgrade-module-path\` nếu có.
-- Command line khác nhau giữa IDE/tests và distribution.
+- Module path: \`--module-path path1:path2\` on Unix; the path separator is \`;\` on Windows.
+- \`--add-modules\`, \`--limit-modules\`, \`--patch-module\`, \`--upgrade-module-path\` if present.
+- Command-line differences between IDE/tests and distribution.
 
-### Bước 2: kiểm tra artifact
+### Step 2: Inspect the Artifact
 
 \`\`\`bash
 jar --describe-module --file dist/your-module.jar
 jar --list --file dist/your-module.jar
 \`\`\`
 
-Không đưa tên giả định vào \`requires\` nếu descriptor cho thấy tên khác. Kiểm tra \`module-info.class\` thực sự tồn tại và đúng JDK target.
+Do not put an assumed name in \`requires\` if the descriptor shows a different name. Verify \`module-info.class\` actually exists and targets the right JDK version.
 
-### Bước 3: xem graph được resolver chấp nhận
+### Step 3: View the Graph Accepted by the Resolver
 
-Khi **resolution thành công**, launcher có thể in thông tin resolution:
+When **resolution succeeds**, the launcher can print resolution details:
 
 \`\`\`bash
 java --show-module-resolution --module-path dist --module app.host/app.Main
 \`\`\`
 
-Thay \`app.host/app.Main\` bằng root thực. Với graph đang lỗi, output có thể dừng tại lỗi nên không bảo đảm in đủ thông tin; đây là công cụ chẩn đoán, không phải cách khắc phục.
+Replace \`app.host/app.Main\` with the actual root. With a failing graph, output may stop at the failure and is not guaranteed to print everything; this is a diagnostic tool, not a fix.
 
-\`jdeps\` hỗ trợ phân tích dependencies tĩnh:
+\`jdeps\` helps analyze static dependencies:
 
 \`\`\`bash
 jdeps --module-path dist --check app.host
 \`\`\`
 
-Cần lưu ý \`jdeps\` không phát hiện mọi dependency được tải động qua reflection, \`ServiceLoader\` hay tên class lấy từ cấu hình. Khi có SPI, test nạp plugin thật trên module path sau build.
+Note that \`jdeps\` does not detect every dependency loaded dynamically via reflection, \`ServiceLoader\`, or class names read from configuration. When using SPI, test loading real plugins on the module path after building.
 
-### Bước 4: xác định module finder và root set
+### Step 4: Verify the Module Finder and Root Set
 
-Nếu ứng dụng tự tạo module layer:
+If the application creates module layers itself:
 
 \`\`\`java
 ModuleFinder finder = ModuleFinder.of(pluginDirectory);
@@ -301,15 +301,15 @@ Configuration config = ModuleLayer.boot().configuration()
         .resolve(finder, ModuleFinder.of(), java.util.Set.of("demo.plugin"));
 \`\`\`
 
-Đây là đoạn minh họa trong method có biến \`Path pluginDirectory\` và các import \`java.lang.module.Configuration\`, \`java.lang.module.ModuleFinder\`. \`resolve\` có thể ném \`FindException\`/\`ResolutionException\`, trước khi module layer được định nghĩa. Đảm bảo \`finder\` thấy module đúng tên, parent configuration có module hợp đồng cần thiết, và root set là tên module chứ không phải tên JAR.
+This is an illustrative snippet inside a method that has a \`Path pluginDirectory\` variable and imports \`java.lang.module.Configuration\`, \`java.lang.module.ModuleFinder\`. \`resolve\` may throw \`FindException\`/\`ResolutionException\` before any module layer is defined. Ensure \`finder\` sees the module with the right name, the parent configuration has required contract modules, and the root set uses module names rather than JAR filenames.
 
-### Bước 5: thay đổi ít nhất có thể rồi kiểm tra lại
+### Step 5: Make the Minimal Change and Re-Test
 
-Sau khi xác định nguyên nhân, chỉ thay đổi chính xác module path, descriptor hoặc package ownership tương ứng; không thêm một loạt cờ mở quyền cho mọi module. Build sạch và thử lại lệnh giống production.
+After identifying the root cause, change only the exact module path, descriptor, or package ownership involved; do not add a pile of flags opening access to every module. Perform a clean build and re-run the production-like command.
 
-## 9. Xử lý lỗi bằng code khi tự tạo module layer
+## 9. Handling Errors in Code When Creating Module Layers Yourself
 
-Khi ứng dụng cho phép tải plugin module động, có thể xử lý lỗi phân giải ở boundary để trả diagnostics rõ ràng. Ví dụ (đặt trong một class có \`Path pluginDir\` hợp lệ):
+When an application supports loading dynamic plugin modules, you can handle resolution errors at the boundary to return clear diagnostics. Example (placed in a class with a valid \`Path pluginDir\`):
 
 \`\`\`java
 import java.lang.module.Configuration;
@@ -335,52 +335,52 @@ public final class Resolver {
 }
 \`\`\`
 
-Để biên dịch đoạn trên như một class độc lập, cần thêm \`import java.nio.file.Path;\`. Đây là skeleton minh họa, không phải app runnable end-to-end; thực tế cần định nghĩa layer và loader strategy sau khi có \`Configuration\`.
+To compile the snippet above as a standalone class, add \`import java.nio.file.Path;\`. This is an illustrative skeleton, not an end-to-end runnable app; in practice you must define a layer and loader strategy after obtaining \`Configuration\`.
 
-**Lưu ý:** \`FindException\` và \`ResolutionException\` đều là unchecked exceptions. Không nên bắt \`RuntimeException\` chung rồi mặc định đổi thành “plugin missing” vì điều đó làm mất phân biệt lỗi tìm module, graph conflict và lỗi runtime khác. Giữ cause và log module path/root names (không log dữ liệu nhạy cảm) để vận hành xử lý được.
+**Note:** Both \`FindException\` and \`ResolutionException\` are unchecked exceptions. Do not catch a generic \`RuntimeException\` and turn it into “plugin missing” by default, as that erases the distinction between module lookup failures, graph conflicts, and other runtime errors. Preserve the cause and log module paths/root names (without logging sensitive data) so operations can act on it.
 
-## 10. Phân biệt với lỗi access và lỗi loading sau resolution
+## 10. Distinguishing from Access and Loading Errors After Resolution
 
-| Lỗi | Thời điểm thường gặp | Câu hỏi cần hỏi |
+| Error | Typical Stage | Question to Ask |
 | --- | --- | --- |
-| \`FindException\` | Tìm module/resolve dependency | Module có được finder nhìn thấy không? Tên đúng không? |
-| \`ResolutionException\` | Resolver kiểm tra graph | Có split package, export/readability conflicts hoặc graph constraints? |
-| \`LayerInstantiationException\` | Tạo module layer/định nghĩa classloaders | Loader mapping có thể định nghĩa package/module này không? |
-| \`IllegalAccessError\` | Link/sử dụng class sau resolution | Package có được export tới module gọi không? |
-| \`InaccessibleObjectException\` | Deep reflection ở runtime | Package có được opens phù hợp không? |
-| \`ClassNotFoundException\` | Tìm class bằng tên/classloader | Class có trong module/artifact và đúng loader/layer không? |
-| \`NoClassDefFoundError\` | Link/load class được tham chiếu | Class hay dependency của nó bị thiếu hoặc không thể initialize? |
-| \`ServiceConfigurationError\` | Khám phá/khởi tạo service provider | \`uses\`/\`provides\`, provider contract, resolution/layer có đúng không? |
+| \`FindException\` | Module lookup / dependency resolution | Is the module visible to the finder? Is the name right? |
+| \`ResolutionException\` | Resolver graph validation | Are there split packages, export/readability conflicts, or graph constraints? |
+| \`LayerInstantiationException\` | Creating module layer / defining class loaders | Can the loader mapping define this package/module? |
+| \`IllegalAccessError\` | Linking/using classes after resolution | Is the package exported to the calling module? |
+| \`InaccessibleObjectException\` | Deep reflection at runtime | Is the package appropriately opened? |
+| \`ClassNotFoundException\` | Looking up a class by name/classloader | Is the class in the module/artifact and in the right loader/layer? |
+| \`NoClassDefFoundError\` | Linking/loading a referenced class | Is the class or its dependency missing or failing initialization? |
+| \`ServiceConfigurationError\` | Discovering/instantiating service providers | Are \`uses\`/\`provides\`, provider contract, and resolution/layer right? |
 
-Bảng là định hướng chẩn đoán, không phải quy tắc tuyệt đối về mọi tình huống.
+This table is a diagnostic guide, not an absolute rule for every scenario.
 
-\`--add-exports\` làm thay đổi khả năng truy cập public types trong package, \`--add-opens\` hỗ trợ deep reflection, còn \`--add-reads\` thay đổi readability của module. **Không cờ nào tự tạo module artifact thiếu hoặc sửa split package trong module graph**. Những cờ này nên là phương án tương thích có phạm vi rõ, không phải công cụ “bật hết” để giấu lỗi phân giải.
+\`--add-exports\` alters access to public types in a package, \`--add-opens\` enables deep reflection, and \`--add-reads\` alters module readability. **None of these flags creates a missing module artifact or fixes a split package in the module graph.** These flags should be tightly scoped compatibility measures, not a “turn everything on” tool to hide resolution errors.
 
-## 11. Một tình huống thực tế: chuyển thư viện từ classpath sang module path
+## 11. A Practical Scenario: Migrating Libraries from Classpath to Module Path
 
-Một ứng dụng có thể hoạt động trên classpath vì các JAR được nạp theo classpath order. Khi chuyển sang JPMS:
+An application may work on the classpath because JARs are loaded in classpath order. When migrating to JPMS:
 
-1. Xác định explicit modules và automatic modules trong tất cả JAR.
-2. Kiểm tra tên module thật, tránh phụ thuộc tên file theo phỏng đoán.
-3. Phát hiện duplicated packages giữa JAR, đặc biệt package \`javax.*\`/\`jakarta.*\`, shaded dependencies và thư viện đã đổi tên artifact.
-4. Tách API chung ra một module rõ ràng; không để nhiều module sở hữu cùng package API.
-5. Nếu có automatic modules, thay dần bằng modularized dependencies hoặc điều chỉnh cách đóng gói để tránh split package.
-6. Chạy \`jdeps\`, smoke test \`java --module-path\` và kiểm tra \`ServiceLoader\`/reflection trong runtime thật.
-7. Đảm bảo build không vô tình đưa \`module-info.class\` bị cũ hoặc JAR sai variant lên module path.
+1. Identify explicit modules and automatic modules across all JARs.
+2. Verify real module names instead of relying on guessed filenames.
+3. Detect duplicated packages across JARs, especially \`javax.*\`/\`jakarta.*\` packages, shaded dependencies, and libraries whose artifact names changed.
+4. Extract shared APIs into an explicit module; do not let multiple modules own the same API package.
+5. If automatic modules exist, gradually replace them with modularized dependencies or adjust packaging to avoid split packages.
+6. Run \`jdeps\`, smoke-test \`java --module-path\`, and verify \`ServiceLoader\`/reflection in a real runtime.
+7. Ensure the build does not accidentally place an outdated \`module-info.class\` or wrong JAR variant on the module path.
 
-Tránh “sửa” split package bằng cách đưa một bản thư viện lên classpath và bản còn lại lên module path mà không xem lại class identity và API contract. Cách này có thể né một lỗi trước mắt nhưng tạo lỗi khó chẩn đoán hơn.
+Avoid “fixing” a split package by putting one copy of a library on the classpath and the other on the module path without reviewing class identity and API contracts. That may sidestep an immediate error while creating harder-to-diagnose failures.
 
-## 12. Checklist xử lý sự cố JPMS
+## 12. JPMS Troubleshooting Checklist
 
-- [ ] Đọc toàn bộ stacktrace và xác định chính xác loại lỗi.
-- [ ] Xác minh root module, module path, JDK version và tên module từ descriptor.
-- [ ] Kiểm tra dependency trong \`requires\` có thực sự observable/resolved.
-- [ ] So sánh tên module automatic và explicit; không đoán theo Maven artifactId.
-- [ ] Kiểm tra package ownership và split packages của các module cùng graph.
-- [ ] Phân biệt compilation, resolution, layer definition và runtime class loading.
-- [ ] Với layer động, xác nhận \`ModuleFinder\`, parent configuration và root module set đúng.
-- [ ] Không dùng \`--add-reads\`, \`--add-exports\`, \`--add-opens\` để thay cho module artifact còn thiếu.
-- [ ] Build sạch và chạy artifact phát hành thật trên module path.
-- [ ] Viết negative tests cho trường hợp thiếu module và package conflict để ngăn tái phát.
+- [ ] Read the full stack trace and identify the exact exception type.
+- [ ] Verify the root module, module path, JDK version, and module names from descriptors.
+- [ ] Verify dependencies in \`requires\` are actually observable/resolved.
+- [ ] Compare automatic and explicit module names; do not guess from Maven artifactId.
+- [ ] Check package ownership and split packages across modules in the same graph.
+- [ ] Separate compilation, resolution, layer definition, and runtime class loading.
+- [ ] For dynamic layers, confirm \`ModuleFinder\`, parent configuration, and root module set are correct.
+- [ ] Do not use \`--add-reads\`, \`--add-exports\`, or \`--add-opens\` as substitutes for missing module artifacts.
+- [ ] Perform a clean build and run the real release artifacts on the module path.
+- [ ] Write negative tests for missing modules and package conflicts to prevent regressions.
 
-**Kết luận:** \`FindException\` thường hướng tới vấn đề **tìm module hoặc dependency**, còn \`ResolutionException\` hướng tới **module graph không nhất quán**. Cách xử lý đúng là xác định root, module finder, module names, dependency edges và package ownership; sửa nguyên nhân ở mô hình module hoặc artifact thay vì vá mù bằng classpath hay cờ truy cập.
+**Conclusion:** \`FindException\` typically points to **finding a module or dependency**, whereas \`ResolutionException\` points to an **inconsistent module graph**. The right fix is to identify roots, module finders, module names, dependency edges, and package ownership, and repair the root cause in the module model or artifacts rather than patching blindly with classpath or access flags.

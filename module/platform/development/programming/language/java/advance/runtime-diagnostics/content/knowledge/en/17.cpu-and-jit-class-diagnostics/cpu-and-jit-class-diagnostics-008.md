@@ -1,88 +1,88 @@
-# 17.8 ClassLoadingMXBean, VM.classloader_stats và log class load hoặc unload
+# 17.8 ClassLoadingMXBean, VM.classloader_stats, and Class Load or Unload Logs
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Trong Java, **nạp lớp (class loading)** diễn ra khi JVM cần định nghĩa một lớp. Với ứng dụng lâu sống, lượng lớp đang được nạp, số class loader và khả năng **dỡ lớp (class unloading)** có thể liên quan trực tiếp đến tốc độ khởi động, cơ chế plugin/hot reload, việc sinh proxy/lambda động và sử dụng **Metaspace**. Nhưng “số lớp tăng” **không tự động có nghĩa memory leak**.
+In Java, **class loading** happens when the JVM needs to define a class. For long-running applications, the number of loaded classes, the number of class loaders, and the ability to perform **class unloading** can directly affect startup speed, plugin/hot-reload mechanisms, dynamic proxy/lambda generation, and **Metaspace** usage. However, "class count rising" **does not automatically mean a memory leak**.
 
-Bài học này cung cấp một quy trình chẩn đoán thống nhất bằng ba loại bằng chứng:
+This lesson provides a unified diagnostic workflow using three types of evidence:
 
-1. **`ClassLoadingMXBean`**: bộ đếm mức JVM — bao nhiêu lớp đang loaded, tổng lượt loaded và tổng lượt unloaded từ lúc khởi động.
-2. **`jcmd <pid> VM.classloader_stats`**: ảnh chụp chi tiết theo class loader và ClassLoaderData, bao gồm số lớp và thông tin các metaspace chunks/blocks.
-3. **Unified logging `class+load` / `class+unload`**: dòng thời gian sự kiện — lớp nào được nạp hoặc dỡ, vào lúc nào và đôi khi từ nguồn nào.
+1. **`ClassLoadingMXBean`**: JVM-level counters — how many classes are currently loaded, total loaded since startup, and total unloaded since startup.
+2. **`jcmd <pid> VM.classloader_stats`**: a detailed snapshot per class loader and ClassLoaderData, including class counts and metaspace chunk/block information.
+3. **Unified logging `class+load` / `class+unload`**: an event timeline — which classes were loaded or unloaded, when, and sometimes from which source.
 
-Hoàn thành bài, bạn có thể đọc đúng ý nghĩa của các số đo, bật logging ở mức phù hợp, chạy thí nghiệm Java 17+ với nhiều `URLClassLoader`, phát hiện xu hướng class loader retention và phân biệt class-loading churn hợp lệ với khả năng leak.
+Upon completing this lesson, you will be able to read the metrics accurately, enable logging at an appropriate level, run a Java 17+ experiment with multiple `URLClassLoader`s, detect class-loader retention trends, and distinguish legitimate class-loading churn from a potential leak.
 
-**Phạm vi:** API `ClassLoadingMXBean` thuộc Java SE (module `java.management`). Các lệnh `VM.classloader_stats`, `VM.log` và cờ `-Xlog` được minh họa trên **HotSpot/OpenJDK 17+**; kết quả, tên cột và khả năng dùng lệnh phụ thuộc JDK và môi trường. Ví dụ đã được biên dịch với `javac --release 17` và chạy trên HotSpot JDK 24. Không suy diễn rằng mọi JVM đều có cùng lệnh HotSpot.
+**Scope:** The `ClassLoadingMXBean` API belongs to Java SE (module `java.management`). The `VM.classloader_stats`, `VM.log`, and `-Xlog` commands are illustrated on **HotSpot/OpenJDK 17+**; results, column names, and command availability depend on JDK and environment. Examples were compiled with `javac --release 17` and run on HotSpot JDK 24. Do not assume every JVM provides the exact same HotSpot commands.
 
-## 1. Bản chất của class loading và class unloading
+## 1. Nature of Class Loading and Class Unloading
 
-### 1.1 Tên lớp không đủ để xác định một runtime class
+### 1.1 A Class Name Alone Cannot Identify a Runtime Class
 
-Trong JVM, định danh của một lớp về bản chất gắn với **tên nhị phân** và **class loader định nghĩa nó**. Hai class loader khác nhau có thể định nghĩa hai lớp cùng tên `lab.PluginThing` nhưng chúng là **hai runtime classes khác nhau**, có metadata riêng và không hoán đổi kiểu với nhau chỉ vì tên giống.
+In the JVM, a class's identity is fundamentally tied to its **binary name** and **its defining class loader**. Two different class loaders can define two classes with the exact same name `lab.PluginThing`, yet they are **two distinct runtime classes** with separate metadata and cannot be cast to one another merely because their names match.
 
-Một ứng dụng có thể sử dụng:
+An application may use:
 
-- **Bootstrap class loader** để nạp lớp nền của Java runtime.
-- **Platform class loader** cho các module nền tảng thích hợp.
-- **Application class loader** cho class path hoặc module path thông thường.
-- **Custom class loader** như `URLClassLoader`, loader của application server, plugin system, framework code generation hoặc môi trường hot reload.
+- **Bootstrap class loader** to load core classes of the Java runtime.
+- **Platform class loader** for appropriate platform modules.
+- **Application class loader** for the standard class path or module path.
+- **Custom class loaders** such as `URLClassLoader`, application-server loaders, plugin systems, framework code generation, or hot-reload environments.
 
-Thông thường loader tuân theo cơ chế delegation đến parent; cũng có loader sử dụng chiến lược riêng. Khi phân tích, cần phân biệt **loại loader** (`URLClassLoader`, `AppClassLoader`, …), **từng instance loader** và các lớp do loader đó định nghĩa. “Nạp cùng tên một lần nữa” có thể hợp lệ nếu loader khác, nhưng đáng điều tra nếu cứ tạo thêm loader mà không giải phóng được.
+Loaders typically follow parent delegation; some use custom strategies. When analyzing, distinguish **loader type** (`URLClassLoader`, `AppClassLoader`, …), **individual loader instances**, and the classes defined by each loader. "Loading the same name again" can be normal if a different loader defines it, yet worth investigating if loaders keep getting created without being freed.
 
-### 1.2 Các bước khác nhau, không nên dùng từ “load” cho tất cả
+### 1.2 Distinct Steps — Do Not Call All of Them "Load"
 
-Một cách nhìn khái quát:
+A high-level view:
 
 ~~~text
-Class loader được JVM yêu cầu định nghĩa lớp
+JVM asks a class loader to define a class
                    |
                  Loading
                    |
            Linking (verify,
-         prepare, resolve nếu cần)
+         prepare, resolve if needed)
                    |
-          Initialization khi
-             điều kiện yêu cầu
+          Initialization when
+           conditions require
                    |
-         Được dùng trong runtime
+           Used at runtime
                    |
-   Loader và các lớp của nó không còn
-      bị giữ sống theo điều kiện GC
+    Loader and its classes are no longer
+     kept alive per GC reachability rules
                    |
-       Có thể class unloading khi
-         JVM/GC hỗ trợ và chọn dỡ
+       Class unloading may occur when
+       JVM/GC supports and chooses to
 ~~~
 
-- **Loading**: tìm/đọc biểu diễn class và tạo định nghĩa trong JVM.
-- **Linking**: gồm verification, preparation và resolution (thời điểm resolution có thể khác).
-- **Initialization**: chạy logic khởi tạo tĩnh nếu cần; **không phải** cứ class loading là static initializer lập tức chạy trong cùng ngữ cảnh.
-- **Unloading**: thu hồi metadata của lớp khi các điều kiện về reachability và chính sách JVM/GC cho phép; không xảy ra ngay khi một biến trỏ tới loader ra khỏi scope.
+- **Loading**: locating/reading the class representation and creating its definition in the JVM.
+- **Linking**: includes verification, preparation, and resolution (resolution timing can vary).
+- **Initialization**: runs static initialization logic if needed; class loading **does not** immediately run static initializers in every context.
+- **Unloading**: reclaims class metadata when reachability conditions and JVM/GC policies permit; does not happen the instant a variable pointing to the loader goes out of scope.
 
-`Class.forName("pkg.Name", true, loader)` có thể yêu cầu class initialization. `ClassLoader.loadClass(...)` thông thường không nhất thiết chủ động initialization. Đừng kết luận từ một dòng log `class,load` rằng static initializer đã chạy hoặc rằng class đó còn sống mãi.
+`Class.forName("pkg.Name", true, loader)` can trigger class initialization. Ordinary `ClassLoader.loadClass(...)` does not necessarily trigger initialization eagerly. Do not conclude from a `class,load` log line alone that the static initializer ran or that the class will live forever.
 
-### 1.3 Liên hệ đến Metaspace và heap
+### 1.3 Relation to Metaspace and Heap
 
-Metadata lớp của HotSpot được lưu trong các cấu trúc native, đặc biệt là Metaspace (và compressed class space tùy cấu hình). Trong khi đó, object `ClassLoader`, đối tượng `java.lang.Class` và nhiều cấu trúc tham chiếu từ ứng dụng là đối tượng Java/heap. Một loader bị giữ sống có thể gián tiếp giữ metadata của rất nhiều lớp.
+HotSpot class metadata lives in native structures, notably Metaspace (and compressed class space depending on configuration). Meanwhile, `ClassLoader` objects, `java.lang.Class` mirrors, and many application references live as Java/heap objects. A retained loader can indirectly retain metadata for a large number of classes.
 
-**Nhưng:** `ClassLoadingMXBean.getLoadedClassCount()` không cho biết dung lượng Metaspace bằng byte, còn `VM.classloader_stats` không trực tiếp đo retained heap của mọi object thuộc loader. Khi cần chứng minh leak, phải ghép bằng chứng class loader + bộ nhớ + tham chiếu giữ sống.
+**However:** `ClassLoadingMXBean.getLoadedClassCount()` does not report Metaspace size in bytes, and `VM.classloader_stats` does not directly measure retained heap across all objects belonging to a loader. Proving a leak requires combining class-loader, memory, and retaining-reference evidence.
 
-## 2. Chọn công cụ theo câu hỏi chẩn đoán
+## 2. Choose the Tool by Diagnostic Question
 
-| Câu hỏi | Công cụ ưu tiên | Dữ liệu chính | Không trả lời trực tiếp |
+| Question | Primary Tool | Key Data | Does Not Answer Directly |
 | --- | --- | --- | --- |
-| Tổng số lớp đang loaded có tăng theo thời gian không? | `ClassLoadingMXBean` | `loadedClassCount` | Loader nào giữ chúng, tổng byte |
-| Tốc độ sinh lớp / unload có cao không? | `ClassLoadingMXBean` đọc định kỳ | Chênh lệch `totalLoaded` và `unloaded` theo thời gian | Từng tên lớp hay call site |
-| Loader nào đang có nhiều lớp, số loader có tăng? | `VM.classloader_stats` | Loader, parent, CLD, classes, chunk/block stats | Toàn bộ GC roots của loader |
-| Tên lớp nào được load, từ nguồn nào, vào lúc nào? | `-Xlog:class+load=info` | Timeline class load | Lý do ứng dụng yêu cầu lớp |
-| Lớp nào thực sự bị dỡ? | `-Xlog:class+unload=info` | Timeline class unload đã xảy ra | Vì sao có/không có GC |
-| Metaspace đang reserve/commit/used bao nhiêu? | `jcmd <pid> VM.metaspace` và metrics bộ nhớ | Số liệu Metaspace | Đầy đủ referent giữ loader sống |
-| Vì sao loader vẫn reachable? | Heap dump, reference paths, thread/context loader, framework metrics | Đường tham chiếu mạnh | Không thể suy ra chỉ từ class-loading counters |
+| Is total currently loaded class count rising over time? | `ClassLoadingMXBean` | `loadedClassCount` | Which loader holds them, total bytes |
+| Is the class creation / unload rate high? | Periodic `ClassLoadingMXBean` reads | Deltas of `totalLoaded` and `unloaded` over time | Individual class names or call sites |
+| Which loader holds many classes, and is loader count growing? | `VM.classloader_stats` | Loader, parent, CLD, classes, chunk/block stats | Full GC roots of the loader |
+| Which class was loaded, from where, and when? | `-Xlog:class+load=info` | Class-load timeline | Why the app requested the class |
+| Which classes were actually unloaded? | `-Xlog:class+unload=info` | Timeline of actual class unloads | Why GC did or did not run |
+| How much Metaspace is reserved/committed/used? | `jcmd <pid> VM.metaspace` and memory metrics | Metaspace metrics | All referents keeping a loader alive |
+| Why is the loader still reachable? | Heap dump, reference paths, thread/context loaders, framework metrics | Strong reference chains | Cannot be inferred from class-loading counters alone |
 
-**Phương pháp:** đo **xu hướng tổng quan** bằng MXBean, tìm **phân bố loader** bằng `VM.classloader_stats`, nhìn **sự kiện cụ thể** qua logs. Chỉ chuyển sang heap dump/reference analysis khi có giả thuyết rõ về retention.
+**Approach:** measure **overall trend** with the MXBean, find **loader distribution** with `VM.classloader_stats`, and inspect **specific events** via logs. Move to heap dumps/reference analysis only once you have a clear retention hypothesis.
 
-## 3. `ClassLoadingMXBean`: ba bộ đếm cốt lõi
+## 3. `ClassLoadingMXBean`: Three Core Counters
 
-### 3.1 Cách truy cập API chuẩn
+### 3.1 Accessing the Standard API
 
 ~~~java
 import java.lang.management.ClassLoadingMXBean;
@@ -94,37 +94,37 @@ long total = bean.getTotalLoadedClassCount();
 long unloaded = bean.getUnloadedClassCount();
 ~~~
 
-Đây là **snippet** dùng trong phương thức Java, không phải một chương trình độc lập; ví dụ có thể chạy nằm ở phần 7. JVM có **một** instance MXBean quản lý class loading, có thể truy cập trong process bằng `ManagementFactory` hoặc qua JMX platform MBeanServer bằng ObjectName:
+This is a **snippet** for use inside a Java method, not a standalone program; the runnable example is in Section 7. A JVM has **one** MXBean managing class loading, accessible in-process via `ManagementFactory` or via the JMX platform MBeanServer using ObjectName:
 
 ~~~text
 java.lang:type=ClassLoading
 ~~~
 
-Ba chỉ số có nghĩa chính xác:
+The three metrics have exact meanings:
 
-| Phương thức | Kiểu | Diễn giải | Xu hướng thường gặp |
+| Method | Type | Interpretation | Typical Trend |
 | --- | --- | --- | --- |
-| `getLoadedClassCount()` | `int` | Số lớp đang loaded tại thời điểm đo | Tăng, giảm hoặc ổn định |
-| `getTotalLoadedClassCount()` | `long` | Tổng số lớp từng loaded **từ lúc JVM khởi động** | Không giảm |
-| `getUnloadedClassCount()` | `long` | Tổng số lớp đã unloaded **từ lúc JVM khởi động** | Không giảm |
+| `getLoadedClassCount()` | `int` | Classes currently loaded at measurement time | Rises, drops, or stays steady |
+| `getTotalLoadedClassCount()` | `long` | Total classes ever loaded **since JVM startup** | Non-decreasing |
+| `getUnloadedClassCount()` | `long` | Total classes unloaded **since JVM startup** | Non-decreasing |
 
-**Không** đọc `getTotalLoadedClassCount()` như “số lớp đang chiếm bộ nhớ”. Nó là số tích lũy. Nếu ứng dụng tạo/dỡ 10.000 lớp trong ngày, total có thể tăng 10.000 nhưng số lớp đang sống cuối ngày hầu như không đổi.
+**Do not** read `getTotalLoadedClassCount()` as "number of classes currently consuming memory." It is a cumulative counter. If an app creates and unloads 10,000 classes during the day, total can climb by 10,000 while live loaded classes at end of day remain nearly unchanged.
 
-Các giá trị có thể thay đổi trong lúc đọc từng getter. Ba lần gọi liên tiếp **không phải một ảnh chụp nguyên tử** cùng thời điểm; không đặt yêu cầu rằng một đẳng thức số học giữa ba giá trị phải luôn chính xác đến từng lớp khi hệ thống đang load/unload đồng thời.
+Values can change while reading each getter. Three sequential calls are **not an atomic snapshot** at a single instant; do not demand that an arithmetic identity across the three numbers hold down to the exact class during concurrent loading/unloading.
 
-### 3.2 Ví dụ cách đọc chênh lệch theo thời gian
+### 3.2 Example Reading Deltas Over Time
 
-Giả sử hai lần lấy mẫu trên **cùng JVM** cách nhau đúng 60 giây:
+Suppose two samples on **the same JVM** are spaced exactly 60 seconds apart:
 
-| Chỉ số | Tại `t0` | Tại `t1` | Delta |
+| Metric | At `t0` | At `t1` | Delta |
 | --- | ---: | ---: | ---: |
-| `getLoadedClassCount()` | 8.200 | 8.280 | +80 |
-| `getTotalLoadedClassCount()` | 12.000 | 12.500 | +500 |
-| `getUnloadedClassCount()` | 3.800 | 4.220 | +420 |
+| `getLoadedClassCount()` | 8,200 | 8,280 | +80 |
+| `getTotalLoadedClassCount()` | 12,000 | 12,500 | +500 |
+| `getUnloadedClassCount()` | 3,800 | 4,220 | +420 |
 
-Trong cửa sổ này, JVM đã load thêm khoảng **500 lớp**, unload **420 lớp** và số lớp đang loaded tăng **80**. Tốc độ load trung bình là khoảng **8,33 lớp/giây**; tốc độ unload trung bình **7 lớp/giây**. Đây là **số liệu giả định để luyện cách đọc**, không phải baseline chuẩn.
+In this window, the JVM loaded about **500 additional classes**, unloaded **420 classes**, and currently loaded classes rose by **80**. Average load rate is roughly **8.33 classes/s**; average unload rate is **7 classes/s**. These are **hypothetical figures for practicing interpretation**, not a standard baseline.
 
-Một cách gần đúng:
+An approximation:
 
 ~~~text
 load_rate ≈ (totalLoaded(t1) - totalLoaded(t0)) / (t1 - t0)
@@ -132,58 +132,58 @@ unload_rate ≈ (unloaded(t1) - unloaded(t0)) / (t1 - t0)
 net_loaded_change = loadedNow(t1) - loadedNow(t0)
 ~~~
 
-Cần cùng process và biết khoảng thời gian thực, tốt nhất là monotonic clock của hệ thống đo. Không lấy chênh lệch giữa hai JVM khác PID/restart rồi coi là rate. Sau restart, các bộ đếm tích lũy bắt đầu lại.
+You need the same process and the real elapsed interval, ideally from a monotonic clock. Never subtract across two JVMs with different PIDs/restarts and call it a rate. After a restart, cumulative counters reset.
 
-**Cách phân loại ban đầu:**
+**Initial classification:**
 
-- **Total tăng, unloaded tăng tương ứng, current khá ổn định:** có **class loading churn**. Có thể là công việc hợp lệ (plugin/test/job) hoặc tạo lớp động quá thường xuyên gây CPU/GC overhead; chưa chứng minh leak.
-- **Total tăng, current tăng kéo dài, unloaded gần như không tăng:** nghi class loader/class definitions bị giữ hoặc chưa đến thời điểm GC thích hợp. Kiểm tra số loader, thời gian chạy và Metaspace; không vội kết luận leak.
-- **Current tăng mạnh ở startup rồi dừng:** có thể do khởi động lười, JIT/framework warmup, nạp các lớp/cấu trúc dùng lâu dài; có thể hoàn toàn bình thường.
-- **Unloaded tăng theo đợt sau GC:** có thể là class unloading theo chu kỳ GC; không mong đợi unloading liên tục từng giây.
+- **Total rises, unloaded rises correspondingly, current stays relatively flat:** **class loading churn**. May be legitimate work (plugins/tests/jobs) or overly frequent dynamic class generation causing CPU/GC overhead; does not yet prove a leak.
+- **Total rises, current rises persistently, unloaded barely moves:** suspect retained class loaders/definitions or not yet reaching an appropriate GC cycle. Check loader counts, runtime duration, and Metaspace; do not jump to "leak."
+- **Current climbs sharply at startup then flattens:** likely lazy loading, JIT/framework warmup, loading long-lived classes/structures; can be completely normal.
+- **Unloaded jumps in bursts after GC:** class unloading tied to GC cycles; do not expect continuous per-second unloading.
 
-### 3.3 `isVerbose()` và `setVerbose(boolean)`
+### 3.3 `isVerbose()` and `setVerbose(boolean)`
 
-`ClassLoadingMXBean` còn cung cấp:
+`ClassLoadingMXBean` also provides:
 
 ~~~java
 boolean enabled = bean.isVerbose();
 bean.setVerbose(true);
 ~~~
 
-Đây chỉ là **snippet**. Theo API Java, verbose output và luồng xuất phụ thuộc implementation; thao tác `setVerbose` bật/tắt **toàn cục** trong JVM, có thể được nhiều thread gọi. Vì vậy **không dùng `setVerbose(true)` vô điều kiện trong production**, nhất là khi service load nhiều lớp.
+This is only a **snippet**. Per the Java API, verbose output and destination stream are implementation-dependent; `setVerbose` toggles **globally** in the JVM and can be called by multiple threads. Therefore **do not call `setVerbose(true)` unconditionally in production**, especially when a service loads many classes.
 
-Trên HotSpot hiện đại, **Unified Logging với `-Xlog`** thường phù hợp hơn vì lựa chọn được tag, level, output, decorator và file rotation. Dùng MXBean chủ yếu để **đọc số liệu** thay vì thay đổi trạng thái ghi log toàn cục. Nếu hệ thống đã có chính sách logging, không nên tùy ý gạt `setVerbose(false)` để “khôi phục”: có thể xung đột yêu cầu chẩn đoán từ component khác.
+On modern HotSpot, **Unified Logging with `-Xlog`** is usually more suitable because you can choose tags, levels, output targets, decorators, and file rotation. Use the MXBean primarily to **read metrics** rather than mutating global logging state. If the system already has a logging policy, do not arbitrarily flip `setVerbose(false)` to "reset" it: that can conflict with diagnostics from another component.
 
-### 3.4 Đo qua JMX khi không muốn nhúng code
+### 3.4 Reading via JMX Without Embedding Code
 
-Tương tự các MXBean chuẩn khác, bean có thể được quan sát qua kênh JMX thích hợp, ví dụ công cụ JConsole/JMC hoặc hệ thống metrics bridge. ObjectName là `java.lang:type=ClassLoading` và các attribute tương ứng với getter. Điều kiện là cấu hình và quyền truy cập JMX đúng; **không mở JMX remote ra mạng công cộng chỉ để lấy class count**.
+Like other standard MXBeans, this bean can be observed through an appropriate JMX channel, such as JConsole/JMC or a metrics bridge. The ObjectName is `java.lang:type=ClassLoading` and attributes correspond to getters. Ensure proper JMX configuration and access control; **never expose remote JMX to a public network just to read class counts**.
 
-Khi xuất metrics sang dashboard, giữ PID/JVM start time trong nhãn hoặc metadata để phân biệt restart, và lấy rate từ các bộ đếm tích lũy thay vì vẽ `totalLoaded` như “currently loaded”.
+When exporting metrics to dashboards, include PID/JVM start time in labels or metadata to distinguish restarts, and take rates from cumulative counters instead of graphing `totalLoaded` as "currently loaded."
 
-## 4. `jcmd VM.classloader_stats`: đi từ tổng số lớp đến loader cụ thể
+## 4. `jcmd VM.classloader_stats`: From Total Class Count to Specific Loaders
 
-`VM.classloader_stats` là diagnostic command của HotSpot, in thống kê các class loader hiện có. Nó đặc biệt hữu ích khi `current` tăng bất thường và bạn nghi một framework tạo thêm class loader cho mỗi lần deploy/plugin/job.
+`VM.classloader_stats` is a HotSpot diagnostic command that prints statistics for existing class loaders. It is especially useful when `current` grows abnormally and you suspect a framework creates a new class loader per deploy/plugin/job.
 
-### 4.1 Xác định PID và gọi lệnh
+### 4.1 Identify the PID and Run the Command
 
 ~~~sh
-# Chạy cùng host/namespace và với quyền có thể attach JVM:
+# Run on the same host/namespace and with permissions to attach to the JVM:
 jcmd -l
 
-# Thay <pid> bằng PID của process Java thực sự:
+# Replace <pid> with the actual Java process PID:
 jcmd <pid> VM.classloader_stats
 
-# Kiểm tra syntax/impact ngay trên JVM đích:
+# Check syntax/impact directly on the target JVM:
 jcmd <pid> help VM.classloader_stats
 ~~~
 
-`jcmd` thường đi kèm JDK. Nếu attach không được, kiểm tra user sở hữu process, namespace/container, đường dẫn JDK, việc `-XX:+DisableAttachMechanism` có được bật hay không và PID có còn tồn tại hay không. Không sử dụng PID của service khác chỉ vì tên gần giống.
+`jcmd` normally ships with the JDK. If attach fails, verify the process owner user, namespace/container, JDK path, whether `-XX:+DisableAttachMechanism` is enabled, and whether the PID still exists. Never use another service's PID just because its name looks similar.
 
-Tài liệu Oracle liệt kê `VM.classloader_stats` là lệnh impact thấp, nhưng trong hệ thống có rất nhiều loader/classes và tải nhạy latency, vẫn nên thu thập có kiểm soát. Đây là **ảnh chụp**, không phải một stream events và không cho lịch sử của các loader đã bị dỡ.
+Oracle documentation lists `VM.classloader_stats` as low impact, yet in systems with very many loaders/classes under latency-sensitive load, collect it judiciously. It is a **snapshot**, not an event stream, and shows no history for already-unloaded loaders.
 
-### 4.2 Đọc ví dụ output thực tế
+### 4.2 Reading Real Output Examples
 
-Trên HotSpot JDK 24, khi một Java demo giữ ba `URLClassLoader` sống, một phần report có dạng:
+On HotSpot JDK 24, when a Java demo holds three live `URLClassLoader`s, part of the report looks like:
 
 ~~~text
 ClassLoader         Parent              CLD*               Classes   ChunkSz   BlockSz  Type
@@ -197,78 +197,78 @@ ChunkSz: Total size of all allocated metaspace chunks
 BlockSz: Total size of all allocated metaspace blocks (each chunk has several blocks)
 ~~~
 
-Đây là **trích đoạn minh họa từ một lần đo**, đã rút gọn địa chỉ, một số dòng và số liệu; không phải kết quả cố định để so cho tất cả JDK. Số `Total = 6` trong ví dụ gốc đếm các mục class loader/data được report, không phải tổng số Java classes; tổng classes ở cột khác. Một report có thể có mục riêng cho hidden classes, bootstrap hoặc loader với `Classes=0`.
+This is an **illustrative excerpt from one run**, with addresses, some rows, and numbers abbreviated; it is not a fixed result to compare across all JDKs. `Total = 6` in the original example counts reported class loader/data entries, not total Java classes; total classes are in another column. A report may also have separate entries for hidden classes, bootstrap, or loaders with `Classes=0`.
 
-Đọc các cột:
+Reading the columns:
 
-| Cột | Ý nghĩa | Cần tránh |
+| Column | Meaning | Avoid |
 | --- | --- | --- |
-| `ClassLoader` | Địa chỉ/identifier mang tính nội bộ của loader theo bản HotSpot | Không dùng làm business ID hoặc lưu để so trực tiếp qua restart |
-| `Parent` | Thông tin parent loader ở dạng nội bộ | Không khẳng định quan hệ ứng dụng chỉ từ một số hex |
-| `CLD*` | Định danh ClassLoaderData native, dùng liên kết loader ↔ metadata | Không nhầm là địa chỉ `ClassLoader` object trên heap |
-| `Classes` | Số classes được thống kê trong mục loader đó | Không phải số instance đối tượng Java |
-| `ChunkSz` | Tổng size các **metaspace chunks** được cấp phát cho mục đó | Không phải bytes live của Java heap |
-| `BlockSz` | Tổng size các **metaspace blocks** trong các chunks của mục đó | Không phải “số đối tượng”; chunk có thể chứa nhiều blocks |
-| `Type` | Loại loader, ví dụ `java.net.URLClassLoader` | Nhiều instance có cùng tên Type |
+| `ClassLoader` | Internal HotSpot address/identifier for the loader | Do not use as a business ID or compare directly across restarts |
+| `Parent` | Internal parent loader information | Do not assert application relationships from a hex number alone |
+| `CLD*` | Native ClassLoaderData identifier linking loader ↔ metadata | Do not confuse with the heap address of the `ClassLoader` object |
+| `Classes` | Number of classes counted in that loader entry | Not the count of Java object instances |
+| `ChunkSz` | Total size of **metaspace chunks** allocated for that entry | Not live Java heap bytes |
+| `BlockSz` | Total size of **metaspace blocks** inside chunks for that entry | Not "object count"; a chunk can contain multiple blocks |
+| `Type` | Loader type, e.g., `java.net.URLClassLoader` | Multiple instances can share the same Type name |
 
-Đơn vị và cách trình bày các size có thể khác giữa các JDK; đọc chú giải cuối report, **không mặc định KB hay MB**. Cột `Classes` có thể bao gồm các phân loại được JVM hiển thị riêng như hidden classes. Tổng các loader không nên bị đồng nhất máy móc với `ClassLoadingMXBean.getLoadedClassCount()` vì ngữ nghĩa/điểm lấy snapshot, cách tính hidden/array classes và việc class loading đang chạy có thể khác.
+Units and formatting of sizes can vary across JDKs; read the legend at the bottom of the report and **do not assume KB or MB**. The `Classes` column can include categories shown separately by the JVM such as hidden classes. The sum across loaders should not be mechanically equated to `ClassLoadingMXBean.getLoadedClassCount()` because snapshot timing, hidden/array-class accounting, and concurrent class loading can differ.
 
-### 4.3 Tìm dấu hiệu đáng điều tra
+### 4.3 Spotting Signals Worth Investigating
 
-Ở **hai mốc cùng tải và sau warmup**, bạn thấy số `java.net.URLClassLoader` hoặc loader tùy biến tăng từ 20 lên 200 trong khi ứng dụng chỉ có 20 plugin cố định. Đây là dấu hiệu mạnh để hỏi:
+At **two checkpoints under equal load after warmup**, you see `java.net.URLClassLoader` or custom loaders jump from 20 to 200 even though the app has only 20 fixed plugins. This is a strong cue to ask:
 
-- Mỗi lần reload/deploy có tạo loader mới mà vẫn giữ loader cũ không?
-- Còn thread/thread pool nào có `contextClassLoader` trỏ vào loader cũ?
-- Có static cache, singleton, listener, service registry, timer, MBean, JDBC driver, thread local hoặc reflective method reference giữ class/loader không?
-- Loader có còn các lớp do nó định nghĩa; metaspace dành cho chúng có tăng tương ứng?
-- Sau khi ngừng churn và qua GC/class unloading, số loader có giảm không?
+- Does each reload/deploy create a new loader while retaining the old one?
+- Does any thread or thread pool still hold a `contextClassLoader` pointing to an old loader?
+- Does a static cache, singleton, listener, service registry, timer, MBean, JDBC driver, thread local, or reflective method reference hold a class or loader?
+- Does the loader still own classes it defined, and does metaspace for them grow accordingly?
+- After churn stops and GC/class unloading runs, does loader count drop?
 
-**Đừng suy từ một cột `ChunkSz` lớn ra nguyên nhân leak.** Chunks là tài nguyên quản lý Metaspace; size có thể cao do đã cấp phát cho loader hợp lệ, phân mảnh hay cấu trúc nội bộ. Cần xu hướng, thời gian sống và đường tham chiếu giữ loader.
+**Do not infer a leak from one large `ChunkSz` column.** Chunks are Metaspace management units; size can be large due to legitimate loader allocations, fragmentation, or internal structures. You need trends, lifetimes, and retaining reference paths.
 
-### 4.4 Phối hợp với lệnh khác khi cần
+### 4.4 Pairing with Other Commands When Needed
 
 ~~~sh
-# Tóm tắt Metaspace trên HotSpot hỗ trợ:
+# Metaspace summary on supporting HotSpot:
 jcmd <pid> VM.metaspace basic
 
-# Báo cáo chi tiết Metaspace và/hoặc phân bố theo loader:
+# Detailed Metaspace report and/or per-loader breakdown:
 jcmd <pid> VM.metaspace show-loaders
 
-# Có thể xem cấu trúc loader trên các HotSpot hỗ trợ:
+# Inspect loader hierarchy on supporting HotSpot builds:
 jcmd <pid> VM.classloaders
 ~~~
 
-`VM.metaspace` xem bytes reserved/committed/used và các phần cấu trúc native; `VM.classloaders` nghiêng về cây/quan hệ loader. Những lệnh này **bổ sung** cho `VM.classloader_stats`; không tự tìm được GC root của loader. Trên bản JDK khác, kiểm tra `jcmd <pid> help VM.metaspace` hoặc `help VM.classloaders` trước khi dùng option.
+`VM.metaspace` shows reserved/committed/used bytes and native structural details; `VM.classloaders` focuses on loader trees/relationships. These commands **supplement** `VM.classloader_stats`; they do not by themselves find a loader's GC roots. On different JDKs, run `jcmd <pid> help VM.metaspace` or `help VM.classloaders` before using options.
 
-Nếu cần so sánh footprint của VM trong phạm vi Native Memory Tracking, có thể dùng `VM.native_memory summary` **chỉ khi NMT đã bật khi JVM khởi động**. Không trộn `ClassLoadingMXBean` class count với bytes native mà không có metric riêng.
+To compare VM footprint within Native Memory Tracking, you can use `VM.native_memory summary` **only if NMT was enabled at JVM startup**. Never mix `ClassLoadingMXBean` class counts with native bytes without a dedicated metric.
 
-## 5. Unified Logging: quan sát class load và unload theo thời gian
+## 5. Unified Logging: Observing Class Load and Unload Over Time
 
-Từ JDK 9, HotSpot hỗ trợ **Unified Logging `-Xlog`**. Đây là cách thuận tiện để ghi sự kiện load/unload có timestamp. Với JDK 17+:
+Since JDK 9, HotSpot supports **Unified Logging `-Xlog`**. This is a convenient way to record timestamped load/unload events. With JDK 17+:
 
 ~~~sh
-# Thu class load và class unload ra một file:
+# Capture class load and class unload into a file:
 java '-Xlog:class+load=info,class+unload=info:file=class-events.log:uptime,level,tags' -jar app.jar
 ~~~
 
-`app.jar` là ứng dụng minh họa, thay bằng JAR thực tế. Trong shell hỗ trợ quote, toàn bộ `-Xlog:...` là **một JVM argument** và phải đứng **trước `-jar`**. Với Windows PowerShell, dùng single quote như trên; với Windows CMD, cần điều chỉnh cú pháp quote phù hợp. Nếu dùng Docker, file nằm trong filesystem của tiến trình JVM (có thể là trong container).
+`app.jar` is illustrative; replace with your real JAR. In shells supporting quoting, the entire `-Xlog:...` is **one JVM argument** and must appear **before `-jar`**. In Windows PowerShell, use single quotes as shown; in Windows CMD, adjust quoting accordingly. In Docker, the file is written in the JVM process's filesystem (often inside the container).
 
-Hai tags quan trọng:
+Two key tags:
 
-- **`class+load=info`:** log khi HotSpot load class, thường có tên lớp, source/module và timestamp theo decorator.
-- **`class+unload=info`:** log khi class thực sự được unload. Nếu không có event, chưa có bằng chứng unload trong **khoảng log thu được**; không có nghĩa GC hoặc unloading “bị lỗi”.
+- **`class+load=info`:** logs when HotSpot loads a class, typically including class name, source/module, and timestamps per decorators.
+- **`class+unload=info`:** logs when a class is actually unloaded. Absence of events means no unload was observed in **the captured log window**; it does not mean GC or unloading is "broken."
 
-Có thể giới hạn file log bằng rotation nếu hỗ trợ theo JDK:
+You can bound log files with rotation where supported by the JDK:
 
 ~~~sh
 java '-Xlog:class+load=info,class+unload=info:file=class-events.log:uptime,level,tags:filecount=3,filesize=5M' -jar app.jar
 ~~~
 
-Lệnh trên sử dụng **ba phần ngăn bằng dấu `:`** sau `-Xlog`: selection → output → decorators → output options (có filecount/filesize). Cú pháp đã được kiểm tra trên HotSpot JDK 24. File rolling có thể làm mất các class load events cũ; nếu điều tra sự cố hiếm, cần đồng bộ chiến lược retention với thời gian tái hiện.
+The command above uses **colon-separated sections** after `-Xlog`: selection → output → decorators → output options (including filecount/filesize). This syntax was verified on HotSpot JDK 24. Rolling files can drop older class-load events; when investigating rare incidents, align retention strategy with reproduction time.
 
-### 5.1 Ví dụ log load
+### 5.1 Example Load Log
 
-Trong thí nghiệm phần 7, sau khi chạy ba loader khác nhau, file có ba dòng dạng:
+In the Section 7 experiment, after running three distinct loaders, the file contains three lines like:
 
 ~~~text
 [0.072s][info][class,load] lab.PluginThing source: file:/.../plugin/
@@ -276,56 +276,56 @@ Trong thí nghiệm phần 7, sau khi chạy ba loader khác nhau, file có ba d
 [0.076s][info][class,load] lab.PluginThing source: file:/.../plugin/
 ~~~
 
-Mốc thời gian, đường dẫn và mọi địa chỉ là **phụ thuộc máy/lần chạy**, còn điểm trọng tâm là **ba lần load cùng tên `lab.PluginThing`** do ba loader khác nhau định nghĩa. Nhìn thấy cùng tên xuất hiện ba lần chưa đủ chứng minh leak: chương trình thí nghiệm **cố ý** tạo ba loader.
+Timestamps, paths, and addresses depend on the **machine/run**; the key point is **three loads of the same name `lab.PluginThing`** defined by three separate loaders. Seeing the same name three times does not prove a leak: the experiment program **intentionally** creates three loaders.
 
-Lưu ý: event `class+load` không nhất thiết in danh tính loader theo cách giúp phân biệt từng instance ở level `info`. Ghép với `VM.classloader_stats` và thời gian thu, hoặc dùng cấu hình logging chi tiết hơn khi cần và khi có thể chấp nhận overhead. `source: file:/...` là nguồn mã của lớp, **không phải GC root** hay bằng chứng loader sẽ tồn tại mãi.
+Note: `class+load` events do not necessarily print loader identity in a way that distinguishes each instance at `info` level. Pair with `VM.classloader_stats` and capture timestamps, or use more detailed logging when needed and overhead is acceptable. `source: file:/...` is the class code source, **not a GC root** or proof the loader will stay alive forever.
 
-### 5.2 Vì sao unload log có thể vắng mặt?
+### 5.2 Why Might Unload Logs Be Absent?
 
-Unloading không phải lệnh đóng file, mà liên quan **class loader reachability** và cơ chế GC. Một số nguyên nhân:
+Unloading is not a file-close call; it involves **class loader reachability** and GC mechanics. Possible reasons:
 
-1. Loader vẫn bị giữ từ static map/list, TCCL của thread, JMX/listener, scheduled task, callback hoặc object/class từ chính loader.
-2. Workload vẫn đang sử dụng class hoặc loader, có stack/object tham chiếu còn sống.
-3. Chưa diễn ra chu kỳ GC/class unloading phù hợp; GC có thể trì hoãn.
-4. Tùy chọn JVM/collector hoặc chế độ VM đang không thực hiện class unloading.
-5. Logging mới bật sau khi unload đã xảy ra, log bị rotate/truncated hoặc event filter chưa đúng.
+1. The loader is still held by a static map/list, a thread's TCCL, JMX/listeners, scheduled tasks, callbacks, or objects/classes from the loader itself.
+2. Workload is still using the class or loader, with live stack/object references.
+3. No suitable GC/class-unloading cycle has occurred yet; GC may be deferred.
+4. JVM/collector flags or VM mode currently disable class unloading.
+5. Logging was enabled after unloading already happened, logs rotated/truncated, or event filters are wrong.
 
-**`URLClassLoader.close()` chỉ đóng các tài nguyên do loader mở; không ép JVM unload lớp.** Tương tự, gán biến thành `null` chỉ loại bỏ một cạnh tham chiếu, không chứng minh object không còn reachable. `System.gc()` hay `jcmd <pid> GC.run` là yêu cầu/biện pháp thử nghiệm có thể gây pause, **không bảo đảm** mọi lớp đủ điều kiện sẽ được unload đúng lúc.
+**`URLClassLoader.close()` only closes resources opened by the loader; it does not force the JVM to unload classes.** Likewise, setting a variable to `null` removes only one reference edge and does not prove the object is unreachable. `System.gc()` or `jcmd <pid> GC.run` are experimental requests that can cause pauses and **do not guarantee** all eligible classes unload immediately.
 
-### 5.3 Bật logging khi JVM đã chạy
+### 5.3 Enabling Logging on an Already-Running JVM
 
-Trên HotSpot hỗ trợ diagnostic command `VM.log`, có thể kiểm tra cấu hình hiện tại:
+On HotSpot supporting the `VM.log` diagnostic command, inspect the current setup:
 
 ~~~sh
 jcmd <pid> VM.log list
 jcmd <pid> help VM.log
 ~~~
 
-Một ví dụ kích hoạt log trên output console của JVM đích:
+An example enabling logs to the target JVM's console output:
 
 ~~~sh
 jcmd <pid> VM.log what=class+load=info,class+unload=info output=stdout decorators=uptime,level,tags
 ~~~
 
-Lệnh được kiểm tra trên HotSpot JDK 24 và trả `Command executed successfully`. **Cẩn trọng:** nó thay đổi cấu hình logging của **JVM đích**, không phải chỉ in log vào terminal gọi `jcmd`. Trong container/server, `stdout` của JVM có thể đi vào hệ thống log khác; thao tác đổi output có thể tương tác với cấu hình logs sẵn có. Nên ghi lại trạng thái `VM.log list` trước thay đổi và lập phương án khôi phục chính xác, không gạt tắt các log hệ thống khác tùy tiện. Với điều tra tái hiện trong môi trường kiểm soát, bật `-Xlog` từ khởi động thường dễ lưu vết và kiểm soát hơn.
+This command was tested on HotSpot JDK 24 and returned `Command executed successfully`. **Caution:** it modifies the logging configuration of **the target JVM**, rather than printing logs into the terminal running `jcmd`. In containers/servers, JVM `stdout` may flow into another log pipeline, and changing outputs can interact with existing log configs. Record `VM.log list` state beforehand and plan exact restoration without inadvertently disabling other system logs. For controlled reproductions, enabling `-Xlog` at startup is usually easier to track and manage.
 
-### 5.4 Level và chi phí vận hành
+### 5.4 Levels and Operational Cost
 
-`info` thường đủ để biết tên và thời điểm lớp loaded/unloaded. `debug`/`trace` cho một số tag có thể tạo log rất lớn, tăng I/O và gây nhiễu. Không bật `-Xlog:class*=trace` trên production diện rộng khi chỉ cần xác nhận vài loader tăng. Sử dụng file rotation, khoảng thu hạn chế, kiểm tra dung lượng, và bảo vệ đường dẫn nếu tên module/class/source là thông tin nội bộ.
+`info` is usually sufficient to see class names and load/unload timestamps. `debug`/`trace` on some tags can produce huge logs, increase I/O, and add noise. Do not turn on `-Xlog:class*=trace` broadly in production when you only need to confirm a few extra loaders. Use file rotation, bounded capture windows, disk-space checks, and protect paths if module/class/source names are sensitive.
 
-## 6. Phân biệt churn, retention và leak theo bằng chứng
+## 6. Distinguishing Churn, Retention, and Leaks with Evidence
 
-### 6.1 Class loading churn (tạo/dỡ nhiều lớp)
+### 6.1 Class Loading Churn (Frequent Creation/Unloading)
 
-Giả sử service liên tục xử lý rule expression hoặc sinh proxy động. `totalLoaded` tăng nhanh; sau các chu kỳ GC, `unloaded` cũng tăng; `current` dao động quanh một mức. Nhiều load/unload logs cùng tên lớp qua các loader khác nhau có thể đi kèm.
+Suppose a service continuously compiles rule expressions or generates dynamic proxies. `totalLoaded` climbs quickly; after GC cycles, `unloaded` also climbs; `current` fluctuates around a band. Frequent load/unload logs for the same class names across different loaders may accompany it.
 
-Tác động có thể bao gồm CPU cho verifier/linker/initializer, tạo metadata, GC class unloading, cache JIT mất hiệu lực khi loader biến mất. Đây có thể là **vấn đề hiệu năng**, ngay cả khi không có memory leak. Cần hỏi: có thể tái sử dụng loader/generated class/cache hợp lý không? Chi phí sinh class có đáng kể trong profile hay log startup không?
+Impacts can include CPU for verification/linking/initialization, metadata allocation, GC class unloading, and JIT caches invalidated when loaders vanish. This can be a **performance problem** even without a memory leak. Ask: can loaders/generated classes/caches be reused safely? Is class generation cost significant in CPU profiles or startup logs?
 
-### 6.2 Class loader retention
+### 6.2 Class Loader Retention
 
-Nếu một ứng dụng redeploy 10 lần và giữ 10 loader cũ, mỗi loader có thể duy trì nhiều định nghĩa lớp, static data và object gắn với chúng. Bộ đếm `current` tăng hoặc chững ở mức cao; `VM.classloader_stats` cho thấy các loader của phiên cũ còn sống; Metaspace có thể tăng và không thu hồi đủ.
+If an app redeploys 10 times and retains 10 old loaders, each loader can hold many class definitions, static data, and attached objects. `current` climbs or plateaus high; `VM.classloader_stats` shows loaders from old deployments still alive; Metaspace may grow without sufficient reclamation.
 
-Một số điểm giữ loader thường gặp:
+Common loader-retention paths:
 
 ~~~text
 GC roots (static fields, live threads, native references...)
@@ -339,7 +339,7 @@ GC roots (static fields, live threads, native references...)
              Loaded classes / metadata
 ~~~
 
-Hoặc:
+Or:
 
 ~~~text
 Live worker thread
@@ -351,25 +351,25 @@ Old webapp/plugin class loader
 Metadata + classes belonging to old deployment
 ~~~
 
-Đây là **mô hình minh họa**; đường tham chiếu thực phải được xác minh bằng heap dump/GC roots. Không cho rằng bất kỳ ThreadLocal hay singleton nào cũng giữ loader nếu đối tượng thực tế không còn liên quan. Cũng không kết luận leak chỉ vì loader của plugin đang cần được giữ để phục vụ tác vụ hợp lệ.
+These are **illustrative models**; actual reference paths must be verified with heap dumps/GC roots. Never assume every `ThreadLocal` or singleton retains a loader if those objects are no longer relevant. Nor call it a leak merely because an active plugin's loader is still needed for legitimate work.
 
-### 6.3 Class unloading bình thường
+### 6.3 Normal Class Unloading
 
-Nếu ứng dụng tắt plugin, hủy mọi tham chiếu tới loader/classes/instances rồi qua GC hỗ trợ unloading, log `class,unload` có thể xuất hiện; `unloaded` tăng và `current` có thể giảm. Nhưng:
+If an app shuts down a plugin, drops all references to its loader/classes/instances, and undergoes a GC supporting unloading, `class,unload` logs may appear, `unloaded` rises, and `current` may drop. Still:
 
-- Không phải mọi lần GC đều unload classes.
-- Metadata/Metaspace committed của JVM có thể không giảm ngay, ngay cả khi classes đã unload, do cơ chế chunk management hoặc retention.
-- Một số classes được chia sẻ/loaded bởi loader nền tảng có vòng đời gần bằng JVM và không mong đợi unload trước khi process dừng.
+- Not every GC cycle unloads classes.
+- JVM committed Metaspace may not shrink immediately even after classes unload, due to chunk management or retention.
+- Some classes shared/loaded by platform loaders have lifetimes matching the JVM and are not expected to unload before exit.
 
-Việc không thấy `class,unload` trong một khoảng đo ngắn **không đủ** để nói leak.
+Not seeing `class,unload` over a short window is **insufficient** to claim a leak.
 
-## 7. Bài thực hành Java 17+: ba class loader định nghĩa cùng một lớp
+## 7. Java 17+ Hands-On: Three Class Loaders Defining the Same Class
 
-Thí nghiệm dùng hai file Java, biên dịch lớp plugin vào thư mục riêng, sau đó load `lab.PluginThing` bằng **ba instance `URLClassLoader`** với parent là platform loader. Chương trình giữ ba loader trong một list để bạn xem `VM.classloader_stats`, rồi cho phép bỏ tham chiếu. Mọi thành phần của bài thực hành dùng Java SE 17+; không phụ thuộc thư viện ngoài.
+This experiment uses two Java files, compiles a plugin class into a separate folder, and loads `lab.PluginThing` using **three `URLClassLoader` instances** whose parent is the platform loader. The program holds the three loaders in a list so you can inspect `VM.classloader_stats`, then releases references. Every component uses Java SE 17+ with zero external libraries.
 
-### 7.1 Tạo lớp plugin
+### 7.1 Create the Plugin Class
 
-Lưu file **PluginThing.java**:
+Save **`PluginThing.java`**:
 
 ~~~java
 package lab;
@@ -381,17 +381,17 @@ public final class PluginThing {
 }
 ~~~
 
-Biên dịch vào thư mục `plugin` (tạo các thư mục package nếu chưa có):
+Compile into the `plugin` directory (creating package subdirectories if needed):
 
 ~~~sh
 javac --release 17 -d plugin PluginThing.java
 ~~~
 
-Sau lệnh này, tệp class nằm tại `plugin/lab/PluginThing.class`. Không thêm thư mục `plugin` vào class path mặc định của ứng dụng chính; trong ví dụ, **từng `URLClassLoader`** sẽ nạp lớp từ URL của thư mục đó.
+After this command, the class file sits at `plugin/lab/PluginThing.class`. Do not add `plugin` to the main app's default classpath; in this example, **each `URLClassLoader`** loads the class from that directory's URL.
 
-### 7.2 Chương trình dùng MXBean và custom loaders
+### 7.2 Program Using the MXBean and Custom Loaders
 
-Lưu file đúng tên **LoaderDiagnosticsDemo.java**:
+Save the file as **`LoaderDiagnosticsDemo.java`**:
 
 ~~~java
 import java.io.BufferedReader;
@@ -446,33 +446,33 @@ public final class LoaderDiagnosticsDemo {
 }
 ~~~
 
-Giải thích những dòng thiết yếu:
+Explanation of key lines:
 
-- `ManagementFactory.getClassLoadingMXBean()` lấy số đếm lớp ở cấp JVM, **không chỉ những lớp của ba URLClassLoader**.
-- `getPlatformClassLoader()` làm parent để nạp các lớp nền tảng; thư mục `plugin` không nằm trong application class path nên `lab.PluginThing` được ba custom loaders định nghĩa riêng.
-- `Class.forName(..., true, loader)` yêu cầu nạp và khởi tạo lớp qua loader đó; `ping()` trả lại chuỗi xác nhận `OK`.
-- `ACTIVE_LOADERS` giữ strong references để bạn chắc chắn thấy ba loader tại điểm đo.
-- `loader.close()` đóng tài nguyên liên quan file/URL; `ACTIVE_LOADERS.clear()` bỏ đi những strong references mà list này nắm giữ. **Không bảo đảm unload ngay** vì có thể còn tham chiếu khác/stack liveness/GC chưa chạy.
+- `ManagementFactory.getClassLoadingMXBean()` reads JVM-wide class counts, **not just the classes of the three `URLClassLoader`s**.
+- `getPlatformClassLoader()` serves as parent for platform classes; `plugin` is not on the application classpath, so `lab.PluginThing` is defined separately by each of the three custom loaders.
+- `Class.forName(..., true, loader)` loads and initializes the class through that loader; `ping()` returns confirmation string `OK`.
+- `ACTIVE_LOADERS` holds strong references so you are guaranteed to see three loaders at the measurement point.
+- `loader.close()` closes file/URL resources; `ACTIVE_LOADERS.clear()` drops strong references held by this list. **Does not guarantee immediate unloading** because other references/stack liveness or GC timing may apply.
 
-### 7.3 Chạy bằng hai terminal và đo theo ba giai đoạn
+### 7.3 Run with Two Terminals and Measure Across Three Stages
 
-**Terminal A**, trong thư mục chứa hai file source (đã biên dịch plugin ở trên):
+**Terminal A**, in the folder with both source files (with `plugin` already compiled above):
 
 ~~~sh
 javac --release 17 LoaderDiagnosticsDemo.java
 java '-Xlog:class+load=info,class+unload=info:file=class-events.log:uptime,level,tags' LoaderDiagnosticsDemo
 ~~~
 
-Chương trình in một dòng có số biến động, rồi dừng ở prompt:
+The program prints a line with variable numbers, then pauses at the prompt:
 
 ~~~text
-START current=<số tùy JVM> total=<số tùy JVM> unloaded=<số tùy JVM>
+START current=<JVM-dependent number> total=<JVM-dependent number> unloaded=<JVM-dependent number>
 READY_LOAD
 ~~~
 
-Dòng chứa dấu ngoặc nhọn là **mẫu mô tả output, không phải stdout cố định**; các counters là số thực của JVM ở thời điểm chạy. **Không gõ chữ mẫu trên**; chỉ nhấn Enter khi muốn chuyển bước.
+The line with angle brackets is an **output template, not fixed stdout**; the counters are real numbers from your running JVM. **Do not type the template text above**; just press Enter when ready to advance.
 
-**Terminal B**, khi Terminal A còn đang đợi:
+**Terminal B**, while Terminal A is waiting:
 
 ~~~sh
 jcmd -l
@@ -480,61 +480,61 @@ jcmd <pid> VM.classloader_stats
 jcmd <pid> VM.metaspace basic
 ~~~
 
-Ghi lại số loader và các thông số. Trở lại **Terminal A**, nhấn **Enter lần thứ nhất**. Java sẽ in:
+Record the loader count and metrics. Return to **Terminal A** and press **Enter the first time**. Java prints:
 
 ~~~text
 LOADED_1=OK
 LOADED_2=OK
 LOADED_3=OK
-AFTER_LOAD current=<số tùy JVM> total=<số tùy JVM> unloaded=<số tùy JVM>
+AFTER_LOAD current=<JVM-dependent number> total=<JVM-dependent number> unloaded=<JVM-dependent number>
 READY_RELEASE
 ~~~
 
-Vẫn ở **Terminal B**, lấy snapshot thứ hai:
+Still in **Terminal B**, take the second snapshot:
 
 ~~~sh
 jcmd <pid> VM.classloader_stats
 ~~~
 
-Tìm ba mục `java.net.URLClassLoader` tương ứng các lớp vừa nạp. Trên HotSpot JDK 24 đã kiểm thử, báo cáo có **ba mục URLClassLoader, mỗi mục `Classes=1`**. Số loader nền tảng, số class khác, chunks và các địa chỉ thay đổi theo JVM. `ClassLoadingMXBean` cũng tăng nhiều hơn đúng ba trong thí nghiệm vì lần dùng MXBean/URL/reflective API có thể kéo theo các lớp JDK khác được nạp lười.
+Find the three `java.net.URLClassLoader` entries corresponding to the newly loaded classes. On the tested HotSpot JDK 24, the report showed **three `URLClassLoader` entries, each with `Classes=1`**. Platform loader counts, other class counts, chunks, and addresses vary by JVM. `ClassLoadingMXBean` also rises by more than three in the experiment because using MXBean/URL/reflective APIs lazily loads additional JDK classes.
 
-Trở lại **Terminal A**, nhấn **Enter lần thứ hai**. Chương trình in:
+Return to **Terminal A** and press **Enter the second time**. The program prints:
 
 ~~~text
 REFERENCES_RELEASED
 READY_EXIT
 ~~~
 
-Lúc này danh sách `ACTIVE_LOADERS` đã được clear, các URLClassLoader đã đóng tài nguyên. Bạn có thể chụp thêm:
+At this point `ACTIVE_LOADERS` is cleared and the `URLClassLoader`s have closed their resources. You can take another snapshot:
 
 ~~~sh
 jcmd <pid> VM.classloader_stats
 ~~~
 
-**Đừng mặc định các dòng URLClassLoader sẽ biến mất ngay.** Đã bỏ một nguồn strong reference, nhưng class unloading còn phụ thuộc reachability thực và GC. Trong bài lab (không phải production), nếu muốn thử tạo cơ hội GC, có thể chủ động gọi `jcmd <pid> GC.run` và đo lại; lệnh này có thể gây pause và **không bảo đảm** unload. Với production, tránh dùng `GC.run` chỉ để cho đẹp số liệu.
+**Do not assume the `URLClassLoader` rows will disappear immediately.** One strong-reference source was removed, yet class unloading still depends on true reachability and GC. In this lab (not production), if you want to give GC a chance to run, you may invoke `jcmd <pid> GC.run` and re-measure; this command can cause a pause and **does not guarantee** unloading. In production, avoid calling `GC.run` just to make numbers look cleaner.
 
-Khi hoàn tất, nhấn **Enter lần thứ ba** ở Terminal A để kết thúc.
+When finished, press **Enter the third time** in Terminal A to exit.
 
-### 7.4 Đọc class load log
+### 7.4 Read the Class Load Log
 
-Ở thư mục của Terminal A:
+In Terminal A's working directory:
 
 ~~~sh
 # Linux/macOS:
 grep 'lab.PluginThing' class-events.log
 ~~~
 
-Hoặc với PowerShell:
+Or with PowerShell:
 
 ~~~powershell
 Select-String -Path class-events.log -Pattern 'lab.PluginThing'
 ~~~
 
-Trên HotSpot JDK 24 đã kiểm thử, ba dòng load `lab.PluginThing` xuất hiện và mô tả source trỏ tới thư mục `plugin`. Như đã nêu, thời điểm là biến động. Nếu có các dòng `[class,unload]` liên quan lớp này, nghĩa là unload đã thực sự diễn ra trong thời gian ghi; nếu không, không được kết luận loader bị leak từ một lần chạy ngắn.
+On the tested HotSpot JDK 24, three `lab.PluginThing` load lines appear with sources pointing to the `plugin` directory. As noted, timestamps vary. If `[class,unload]` lines appear for this class, unloading genuinely occurred during capture; if not, you cannot conclude a loader leak from one short run.
 
-### 7.5 Đối chiếu output đã kiểm thử
+### 7.5 Cross-Checking Verified Output
 
-Trong thử nghiệm bằng cách cấp ba dòng Enter ngay để chương trình đi hết các giai đoạn, những dòng xác nhận **cố định** lần lượt là:
+In a test run feeding three Enter newlines immediately so the program steps through all stages, the **fixed** confirmation lines in order are:
 
 ~~~text
 READY_LOAD
@@ -546,113 +546,113 @@ REFERENCES_RELEASED
 READY_EXIT
 ~~~
 
-Ngoài các dòng trên còn có hai dòng counter `START ...` và `AFTER_LOAD ...` với **giá trị phụ thuộc máy/JVM**. Trong một lần chạy thực tế, ví dụ `START current=789 total=789 unloaded=0` và `AFTER_LOAD current=983 total=983 unloaded=0`; đây chỉ là **số mẫu từ môi trường kiểm thử**, không phải kỳ vọng cố định. Thí nghiệm dùng `javac --release 17` và chạy thành công trên HotSpot JDK 24; cờ logging tới file cũng đã được kiểm tra.
+Beyond those lines, two counter lines `START ...` and `AFTER_LOAD ...` print **machine/JVM-dependent values**. In one real run, for example, `START current=789 total=789 unloaded=0` and `AFTER_LOAD current=983 total=983 unloaded=0`; these are only **sample numbers from the test environment**, not fixed expectations. The experiment used `javac --release 17` and ran successfully on HotSpot JDK 24; file logging flags were also verified.
 
-## 8. Từ số liệu thành giả thuyết: ba kịch bản chẩn đoán
+## 8. From Metrics to Hypotheses: Three Diagnostic Scenarios
 
-### Kịch bản A — startup tăng đột ngột rồi ổn định
+### Scenario A — Sudden Startup Rise Followed by Stability
 
-Một service sau khởi động nạp thêm 2.000 lớp qua framework, cache serializer, HTTP clients và reflection. `current` tăng trong vài phút đầu rồi ổn định; `VM.classloader_stats` cho loader của framework tương ứng. `class+load` ghi nhiều lớp trong giai đoạn warmup, nhưng không thấy các loader tăng mãi.
+After startup, a service loads 2,000 more classes via frameworks, serializer caches, HTTP clients, and reflection. `current` climbs during the first few minutes and then plateaus; `VM.classloader_stats` shows the corresponding framework loaders. `class+load` logs many classes during warmup, yet loaders do not keep multiplying.
 
-**Đánh giá:** có thể là lazy class loading bình thường. Đặt baseline **sau warmup**, đo tiếp dưới lưu lượng tương tự; không báo “leak” chỉ vì `totalLoaded` tăng lúc đầu.
+**Assessment:** likely normal lazy class loading. Set the baseline **after warmup** and keep measuring under steady traffic; do not declare a "leak" just because `totalLoaded` rose initially.
 
-### Kịch bản B — class loading churn ở hệ thống rule động
+### Scenario B — Class Loading Churn in a Dynamic Rule Engine
 
-Một service mỗi giây tạo thêm vài loại lớp proxy ngắn hạn với loader riêng. Sau GC, `getUnloadedClassCount()` tăng nhiều, `current` xấp xỉ ổn định và các URLClassLoader cũ dần biến mất. `class+load` và `class+unload` cùng dày đặc.
+Every second a service generates several short-lived proxy classes with dedicated loaders. After GC, `getUnloadedClassCount()` climbs steeply, `current` stays roughly flat, and old `URLClassLoader`s gradually vanish. Both `class+load` and `class+unload` logs are dense.
 
-**Đánh giá:** có thể không leak, nhưng vẫn có **chi phí CPU/GC/Metaspace churn**. Điều tra nơi tạo class/loader, xem có thể cache/reuse hợp lý thay vì liên tục sinh class mới; đo hiệu quả tối ưu theo workload thực.
+**Assessment:** likely not a leak, yet there is **CPU/GC/Metaspace churn cost**. Investigate where classes/loaders are generated and see if reasonable caching/reuse can replace continuous class generation; measure optimization impact under realistic workload.
 
-### Kịch bản C — class loader leak sau redeploy
+### Scenario C — Class Loader Leak After Redeploy
 
-Sau mỗi lần redeploy, có thêm một nhóm loader ứng dụng cũ. `current` tăng bậc thang, `unloaded` gần như không tăng sau nhiều chu kỳ GC phù hợp, `VM.classloader_stats` liên tục có loader thuộc những deployment cũ và `VM.metaspace` cho xu hướng footprint lớn dần. Heap dump xác định một thread sống dài giữ `contextClassLoader` trỏ tới loader cũ.
+After each redeploy, another set of old application loaders remains. `current` steps upward, `unloaded` barely moves across multiple appropriate GC cycles, `VM.classloader_stats` persistently shows loaders from old deployments, and `VM.metaspace` shows a growing footprint trend. A heap dump identifies a long-lived thread whose `contextClassLoader` still points to an old loader.
 
-**Đánh giá:** có bằng chứng phù hợp **loader retention/leak**. Biện pháp có thể là ngừng thread trong lúc undeploy, khôi phục TCCL đúng scope, remove listener/ThreadLocal, giải phóng cache hoặc đóng plugin lifecycle. Phải kiểm chứng sau sửa bằng chính những số đo trên, không chỉ vì count giảm một lần.
+**Assessment:** evidence aligns with **loader retention/leak**. Remediation may include stopping threads on undeploy, restoring TCCL in scope, removing listeners/`ThreadLocal`s, clearing caches, or closing plugin lifecycles. Re-verify after the fix using the exact same metrics, not just a single drop in count.
 
-## 9. Checklist điều tra trong môi trường thật
+## 9. Production Investigation Checklist
 
-1. **Xác định đúng JVM:** lưu PID, JVM start time, JDK version/vendor, GC, tình trạng container và thời gian quan sát. Tách restart khỏi biến động bộ đếm.
-2. **Lấy baseline:** đọc `ClassLoadingMXBean` hoặc JMX: current, total, unloaded. Ghi timestamp/load/concurrency và Metaspace used/committed.
-3. **Đo cửa sổ:** lấy số ở mốc sau warmup và sau một workload lặp; tính `load_rate` và `unload_rate` từ counter tích lũy.
-4. **Khoanh loader:** với cùng PID, chụp `VM.classloader_stats` vài lần. Xem loại loader, số lớp mỗi mục, số loader đang có, ChunkSz/BlockSz và xu hướng.
-5. **Bật log theo giả thuyết:** nếu cần biết tên lớp hoặc lịch load/unload, sử dụng `class+load` và `class+unload` với output/rotation có giới hạn. Thu quanh giai đoạn xuất hiện vấn đề.
-6. **Đặt giả thuyết cụ thể:** ví dụ “mỗi hot deploy giữ một URLClassLoader do thread pool không dừng” thay vì “Metaspace đang leak”.
-7. **Kiểm tra root:** dùng heap dump/path-to-GC-roots, thread dump/TCCL, listener, cache, framework/plugin lifecycle. Với một đợt điều tra nhạy latency, cân nhắc tác động của từng diagnostic command.
-8. **Thử sửa và đo lại:** so dưới cùng tải, cùng JVM config, cùng khoảng warmup, quan sát loader cũ biến mất khi đủ điều kiện GC/unloading, xu hướng `current` ổn định và memory footprint ngừng tăng.
+1. **Identify the exact JVM:** record PID, JVM start time, JDK version/vendor, GC, container state, and observation window. Separate restarts from counter movements.
+2. **Capture baseline:** read `ClassLoadingMXBean` or JMX: current, total, unloaded. Record timestamp/load/concurrency and Metaspace used/committed.
+3. **Measure over a window:** take readings post-warmup and after repeated workload; compute `load_rate` and `unload_rate` from cumulative counters.
+4. **Narrow down loaders:** on the same PID, capture `VM.classloader_stats` several times. Inspect loader types, classes per entry, live loader count, `ChunkSz`/`BlockSz`, and trends.
+5. **Enable targeted logs:** if you need class names or load/unload timestamps, use `class+load` and `class+unload` with bounded output/rotation around the symptom window.
+6. **Form a concrete hypothesis:** e.g., "each hot deploy retains a `URLClassLoader` via an unstopped thread pool" rather than "Metaspace is leaking."
+7. **Inspect roots:** use heap dumps/paths-to-GC-roots, thread dumps/TCCL, listeners, caches, and framework/plugin lifecycles. In latency-sensitive environments, weigh each diagnostic command's impact.
+8. **Test fix and re-measure:** compare under equal load, JVM config, and warmup window; verify old loaders disappear once GC/unloading conditions are met, `current` stabilizes, and memory footprint stops climbing.
 
-**Không dùng một screenshot đơn lẻ của `VM.classloader_stats` để tuyên bố leak.** Một ứng dụng có 50.000 lớp hoàn toàn hợp lệ nếu đó là thiết kế runtime, trong khi một loader cũ giữ 100 lớp không còn dùng vẫn có thể là lỗi vòng đời.
+**Never declare a leak from a single `VM.classloader_stats` screenshot.** An application with 50,000 classes can be completely legitimate by runtime design, whereas one stale loader holding 100 unused classes can still be a lifecycle bug.
 
-## 10. Lỗi phổ biến cần tránh
+## 10. Common Pitfalls to Avoid
 
-1. **Nhầm `totalLoaded` với `current`.** `totalLoaded` tăng không có nghĩa số lớp còn sống tăng.
-2. **Diễn giải `unloaded=0` trong vài giây như bug GC.** Unloading chỉ xảy ra khi đáp ứng điều kiện và ở thời điểm phù hợp.
-3. **Nhầm số `Classes` trong `VM.classloader_stats` với số instance object của lớp đó.** Đây là số định nghĩa class theo loader/CLD, không phải object histogram.
-4. **Đọc `ChunkSz` như Java heap used hoặc tổng metaspace live chính xác.** Cần đối chiếu `VM.metaspace` và cách cấp phát chunk/block của HotSpot.
-5. **Thấy cùng tên class load ba lần rồi kết luận trùng lặp vô ích.** Có thể mỗi bản là class khác do loader khác định nghĩa.
-6. **Cho rằng `URLClassLoader.close()` hoặc gán `null` là unload.** Close giải phóng tài nguyên của loader; unload cần reachability/GC.
-7. **Bật `setVerbose(true)` và quên nó là thay đổi toàn cục.** Log có thể tăng mạnh và output phụ thuộc implementation.
-8. **Dùng flags cũ `-XX:+TraceClassLoading` của các JDK xưa cho JDK 17+.** HotSpot hiện đại dùng `-Xlog:class+load=info` và `class+unload=info`.
-9. **Quên class source logging được bật quá muộn.** `-Xlog` từ startup chỉ ghi thời gian sau khi khởi động với flag; bật động qua `VM.log` không hồi cứu những lần load đã qua.
-10. **Quên log rotation.** Khi file đã xoay vòng, không thấy event cũ không có nghĩa nó chưa xảy ra.
-11. **So counters giữa PID/JVM khác nhau.** Restart reset bộ đếm; phải tách series theo process.
-12. **Kết luận mọi lần current tăng là leak.** Lazy loading, proxy, generated classes, plugin mới, warmup có thể hợp lệ.
-13. **Bỏ qua thread context class loader.** Thread lâu sống có thể giữ loader cũ dù không còn request/plugin sử dụng.
-14. **Chạy `GC.run` trên production để “ép unload” liên tục.** Có thể gây pause và không bảo đảm; hãy quan sát chu kỳ GC tự nhiên trước.
-15. **Dùng quá nhiều log và diagnostic commands làm méo latency.** Cấu hình mức chi tiết thấp đủ trả lời câu hỏi, giữ giới hạn file và thời gian đo.
+1. **Confusing `totalLoaded` with `current`.** A rising `totalLoaded` does not mean live loaded classes are growing.
+2. **Interpreting `unloaded=0` over a few seconds as a GC bug.** Unloading only runs when conditions are met at appropriate times.
+3. **Confusing `Classes` in `VM.classloader_stats` with object instance counts.** It counts class definitions per loader/CLD, not an object histogram.
+4. **Reading `ChunkSz` as Java heap used or exact live Metaspace.** Cross-check `VM.metaspace` and HotSpot chunk/block allocation.
+5. **Seeing the same class name load three times and calling it wasteful duplication.** Each may be a distinct class defined by a separate loader.
+6. **Assuming `URLClassLoader.close()` or `null` assignment unloads classes.** `close()` frees loader resources; unloading requires reachability and GC.
+7. **Calling `setVerbose(true)` and forgetting it is global.** Logs can explode and output depends on implementation.
+8. **Using legacy flags like `-XX:+TraceClassLoading` on JDK 17+.** Modern HotSpot uses `-Xlog:class+load=info` and `class+unload=info`.
+9. **Forgetting class-source logging was enabled too late.** Startup `-Xlog` records only after launch; dynamic `VM.log` does not retroactively log past loads.
+10. **Forgetting log rotation.** Once files rotate, missing old events does not mean they never occurred.
+11. **Comparing counters across different PIDs/JVMs.** Restarts reset counters; separate series per process.
+12. **Concluding every `current` increase is a leak.** Lazy loading, proxies, generated classes, new plugins, and warmup can all be valid.
+13. **Overlooking thread context class loaders.** Long-lived threads can pin old loaders even after requests/plugins finish.
+14. **Repeatedly running `GC.run` in production to "force unloading."** It can cause pauses and offers no guarantee; observe natural GC cycles first.
+15. **Enabling excessive logs and diagnostic commands that distort latency.** Choose the lowest detail sufficient to answer the question, capping file sizes and duration.
 
-## 11. Bài tập có lời giải
+## 11. Exercises with Solutions
 
-**Bài 1.** `totalLoaded` tăng thêm 4.000 sau 1 giờ, `unloaded` tăng 3.900 và `current` chỉ tăng 100. Đây là memory leak?
+**Exercise 1.** `totalLoaded` rose by 4,000 over 1 hour, `unloaded` rose by 3,900, and `current` rose by only 100. Is this a memory leak?
 
-**Giải:** Chưa có bằng chứng. Dữ liệu phù hợp với churn khoảng 4.000 lượt load/3.900 unload; lớp còn loaded ròng tăng khoảng 100. Cần theo dõi tốc độ và chi phí, đồng thời kiểm tra nhóm loader nếu xu hướng current tiếp tục tăng.
+**Solution:** Insufficient evidence. The data fits churn of ~4,000 loads / 3,900 unloads with net loaded classes up ~100. Monitor rate and CPU/GC cost, and inspect loader groups if `current` keeps climbing.
 
-**Bài 2.** `VM.classloader_stats` liệt kê 40 `URLClassLoader`, mỗi loader có 10 classes. Công cụ này đã chứng minh 400 đối tượng Java đang nằm trên heap chưa?
+**Exercise 2.** `VM.classloader_stats` lists 40 `URLClassLoader`s, each with 10 classes. Has the tool proven 400 Java objects sit on the heap?
 
-**Giải:** Không. `Classes` là số class definitions theo các loader/CLD ở ảnh chụp, không phải instance count. Để đếm/định vị object, dùng profiler hoặc heap dump/histogram, đồng thời lưu ý một loader có thể chứa metadata nhiều lớp khác nhau.
+**Solution:** No. `Classes` is the number of class definitions per loader/CLD at snapshot time, not object instance count. To count/locate objects, use a profiler or heap dump/histogram, keeping in mind a loader holds metadata for various classes.
 
-**Bài 3.** Bạn chạy `URLClassLoader.close()` rồi không thấy `[class,unload]` trong 3 giây. Kết luận?
+**Exercise 3.** You call `URLClassLoader.close()` and see no `[class,unload]` within 3 seconds. Conclusion?
 
-**Giải:** Chỉ biết chưa quan sát được unload trong ba giây log đó. Có thể còn tham chiếu mạnh, class loader chưa unreachable hoặc chưa có GC/unloading thích hợp. Không nên suy ra ngay leak hay lỗi JDK.
+**Solution:** Only that no unload was observed in those 3 seconds of logs. Strong references may remain, the loader may still be reachable, or an appropriate GC/unloading cycle has not run yet. Do not jump to a leak or JDK bug.
 
-**Bài 4.** Log `class,load` xuất hiện lặp `lab.PluginThing` ba lần, nhưng application không có ba loại plugin khác nhau. Có gì đáng kiểm tra?
+**Exercise 4.** `class,load` logs show `lab.PluginThing` loaded three times, yet the application does not have three different plugin types. What is worth checking?
 
-**Giải:** Hãy kiểm tra loader định nghĩa từng lớp. Có thể ba instance loader độc lập nạp cùng tên, như demo; nếu ứng dụng chỉ cần một instance, đó có thể là churn không cần thiết. Dùng `VM.classloader_stats`/loader identity để phân biệt, rồi kiểm vòng đời.
+**Solution:** Check which loader defined each class. Three independent loader instances may be loading the same name, as in the demo; if the app only needs one instance, that could be unnecessary churn. Use `VM.classloader_stats`/loader identity to distinguish, then inspect lifecycle management.
 
-**Bài 5.** Service đang chạy 30 ngày, cần xác định khi nào `com.acme.DynamicRule` được load lần đầu. Hiện tại chưa bật logging. Có thể lấy lịch sử chính xác từ `VM.classloader_stats`?
+**Exercise 5.** A service has been up for 30 days and you need to know when `com.acme.DynamicRule` was first loaded. Logging is not currently enabled. Can `VM.classloader_stats` give you the exact timestamp history?
 
-**Giải:** Không. `VM.classloader_stats` chỉ cung cấp snapshot hiện tại; `ClassLoadingMXBean` chỉ cho tổng counters. Phải có log/JFR/trace đã ghi đúng cửa sổ trước đó để biết timestamp lịch sử. Bật log bây giờ không tái tạo event đã xảy ra.
+**Solution:** No. `VM.classloader_stats` gives only a current snapshot; `ClassLoadingMXBean` gives only total counters. You need logs/JFR/traces captured during that earlier window for historical timestamps. Enabling logging now will not reconstruct past events.
 
-**Bài 6.** Sau redeploy, số lớp hiện loaded tăng đều, `VM.classloader_stats` có nhiều loader của deployment cũ và Metaspace tăng. Bước xác minh tiếp theo?
+**Exercise 6.** After redeploying, currently loaded classes climb steadily, `VM.classloader_stats` shows multiple loaders from old deployments, and Metaspace grows. Next verification step?
 
-**Giải:** Tìm **đường tham chiếu giữ class loader sống** bằng heap dump và GC roots, kiểm các thread/TCCL, static registries, listener, timer, JDBC driver, ThreadLocal hoặc framework resources; xác nhận những loader đó đáng ra phải được dỡ. Sau sửa, lặp đo ở cùng tải qua các chu kỳ GC phù hợp.
+**Solution:** Find **retaining reference paths keeping those class loaders alive** using a heap dump and GC roots—inspect threads/TCCL, static registries, listeners, timers, JDBC drivers, `ThreadLocal`s, or framework resources; confirm those loaders should have been unloaded. After fixing, re-measure under the same load across appropriate GC cycles.
 
-## 12. Bảng lệnh ghi nhớ
+## 12. Quick Command Cheat Sheet
 
 ~~~sh
-# 1. Lấy số current/total/unloaded bằng ClassLoadingMXBean
-#    (sử dụng Java/JMX metrics, xem code phần 7)
+# 1. Read current/total/unloaded with ClassLoadingMXBean
+#    (via Java/JMX metrics, see Section 7 code)
 
-# 2. Xác định PID và lấy snapshot loader:
+# 2. Identify PID and capture loader snapshot:
 jcmd -l
 jcmd <pid> VM.classloader_stats
 
-# 3. Khi cần chi tiết memory:
+# 3. When memory detail is needed:
 jcmd <pid> VM.metaspace basic
 jcmd <pid> VM.metaspace show-loaders
 
-# 4. Ghi class load/unload từ JVM startup:
+# 4. Log class load/unload from JVM startup:
 java '-Xlog:class+load=info,class+unload=info:file=class-events.log:uptime,level,tags' -jar app.jar
 
-# 5. Nếu cần thay logging khi JVM đang chạy (thao tác có kiểm soát):
+# 5. If changing logging on a running JVM (controlled operation):
 jcmd <pid> VM.log list
 jcmd <pid> help VM.log
 ~~~
 
-**Điểm mấu chốt:** `ClassLoadingMXBean` cho **xu hướng**, `VM.classloader_stats` cho **phân bố theo loader**, `class+load`/`class+unload` cho **timeline sự kiện**. Kết hợp thêm Metaspace và GC roots mới giúp trả lời câu hỏi **vì sao loader còn sống**. Phân biệt “load nhiều”, “đang loaded nhiều” và “unload chưa xảy ra” trước khi gán nhãn leak.
+**Bottom line:** `ClassLoadingMXBean` gives **trends**, `VM.classloader_stats` gives **per-loader distribution**, and `class+load`/`class+unload` give the **event timeline**. Combining them with Metaspace and GC roots answers **why a loader stays alive**. Distinguish "lots loaded," "lots currently loaded," and "unloading hasn't run yet" before labeling anything a leak.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
 - Oracle Java 21 API, `ClassLoadingMXBean`: https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ClassLoadingMXBean.html
-- Oracle Java 21, `The jcmd Command` (gồm `VM.classloader_stats`, `VM.metaspace`, `VM.log`): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
-- Oracle Java 17, `The java Command` / Unified Logging / chuyển cờ `TraceClassLoading` sang `-Xlog`: https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html
+- Oracle Java 21, `The jcmd Command` (including `VM.classloader_stats`, `VM.metaspace`, `VM.log`): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
+- Oracle Java 17, `The java Command` / Unified Logging / migrating `TraceClassLoading` to `-Xlog`: https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html
 - Oracle Java 22, `Troubleshooting Memory Leaks` (class loader statistics): https://docs.oracle.com/en/java/javase/22/troubleshoot/troubleshooting-memory-leaks.html
 - Oracle Java 21 API, `URLClassLoader`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/URLClassLoader.html

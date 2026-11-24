@@ -1,0 +1,3 @@
+menuLevel1: '@Autowired'
+menuLevel2: Chọn theo tên bằng jakarta.annotation.Resource
+status: WRITTEN

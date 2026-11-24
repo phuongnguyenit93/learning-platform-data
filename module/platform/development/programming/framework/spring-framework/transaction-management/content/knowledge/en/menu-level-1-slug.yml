@@ -1,0 +1,58 @@
+menu:
+- title: Tổng quan
+  slug: transaction-overview
+  index: 0
+- title: Nền tảng giao dịch
+  slug: transaction-fundamentals
+  index: 1
+- title: Mô hình Spring
+  slug: spring-transactions
+  index: 2
+- title: Giao dịch đầu tiên
+  slug: first-transaction
+  index: 3
+- title: '@Transactional'
+  slug: transactional
+  index: 4
+- title: Cấu hình XML
+  slug: xml-transactions
+  index: 5
+- title: Cơ chế proxy
+  slug: transaction-proxies
+  index: 6
+- title: Quy tắc rollback
+  slug: rollback-rules
+  index: 7
+- title: Phạm vi giao dịch
+  slug: transaction-scope
+  index: 8
+- title: REQUIRED
+  slug: required-propagation
+  index: 9
+- title: REQUIRES_NEW
+  slug: requires-new-propagation
+  index: 10
+- title: NESTED và savepoint
+  slug: nested-propagation
+  index: 11
+- title: Propagation khác
+  slug: other-propagation
+  index: 12
+- title: Mức cô lập
+  slug: isolation-levels
+  index: 13
+- title: Khóa và đồng thời
+  slug: transaction-concurrency
+  index: 14
+- title: Read-only và timeout
+  slug: read-only-timeout
+  index: 15
+- title: TransactionTemplate
+  slug: transaction-template
+  index: 16
+- title: API giao dịch trực tiếp
+  slug: direct-transaction-api
+  index: 17
+- title: Tài nguyên gắn giao dịch
+  slug: transaction-resources
+  index: 18

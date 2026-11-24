@@ -1,60 +1,60 @@
-# Vì sao thay JAR trên đĩa không làm lớp đã nạp tự đổi mã
+# Why Replacing a JAR on Disk Does Not Automatically Change Loaded Class Code
 
-Trong ứng dụng Java cho phép cài hoặc nâng cấp plugin lúc chạy, một thao tác có vẻ đơn giản là **chép JAR phiên bản mới đè lên JAR cũ**. Nhưng sau khi chép, lời gọi vào đối tượng plugin đang chạy vẫn thực hiện logic cũ. Đây là hành vi đúng theo mô hình **class loading và class identity** của JVM, không phải lỗi đồng bộ dữ liệu hay do hệ điều hành chưa cập nhật file.
+In a Java application that supports installing or upgrading plugins at runtime, a seemingly simple operation is **copying a new-version JAR over the old JAR**. Yet after copying, calls to the running plugin object still execute the old logic. This is correct behavior under the JVM's **class loading and class identity** model, not a data synchronization bug or an OS failure to refresh the file.
 
-**Nguyên tắc quan trọng nhất:** *JAR là nguồn chứa bytecode để class loader nạp; còn `Class` đã được JVM định nghĩa là thực thể runtime có danh tính và vòng đời riêng. Thay nội dung JAR trên đĩa không tự định nghĩa lại `Class`, không cập nhật instance cũ, và không khiến JVM tạo lại class loader.*
+**Most important principle:** *A JAR is a bytecode source for a class loader to load from; a `Class` already defined by the JVM is a runtime entity with its own identity and lifecycle. Replacing JAR contents on disk does not automatically redefine the `Class`, update old instances, or cause the JVM to recreate the class loader.*
 
-Khi muốn cập nhật một plugin, cần phân biệt ba việc:
+When upgrading a plugin, three actions must be distinguished:
 
-1. **Thay artifact**: có một JAR mới trên ổ đĩa.
-2. **Nạp phiên bản mới**: tạo class loader/layer phù hợp để định nghĩa các class từ JAR mới.
-3. **Chuyển hoạt động sang phiên bản mới**: đổi registry, route các lời gọi mới, hoàn tất hoặc hủy có kiểm soát các lời gọi cũ và giải phóng tài nguyên.
+1. **Artifact replacement**: placing a new JAR on disk.
+2. **Loading the new version**: creating an appropriate class loader/layer to define classes from the new JAR.
+3. **Switching execution to the new version**: updating the registry, routing new calls, completing or cancelling old calls in a controlled manner, and releasing resources.
 
-Chỉ hoàn thành việc (1) **không** tự động hoàn thành (2) và (3).
+Completing only step (1) does **not** automatically complete (2) and (3).
 
-## 1. Khi Java nạp class từ JAR thì điều gì xảy ra?
+## 1. What happens when Java loads a class from a JAR?
 
-Xét file `plugins/report.jar` chứa class `com.example.report.ReportPlugin`. Khi ứng dụng cần class đó, một class loader có thể tìm bytecode trong JAR, chuyển byte thành định nghĩa class và JVM tạo đối tượng metadata kiểu `java.lang.Class`. Sau đó class có thể được liên kết, khởi tạo và thực thi theo vòng đời JVM.
+Consider the file `plugins/report.jar` containing the class `com.example.report.ReportPlugin`. When the application needs that class, a class loader locates the bytecode inside the JAR, converts the bytes into a class definition, and the JVM creates a metadata object of type `java.lang.Class`. The class can then be linked, initialized, and executed according to the JVM lifecycle.
 
 ```text
-Trên đĩa: plugins/report.jar (bytecode v1)
+On disk: plugins/report.jar (v1 bytecode)
                    |
                    v
-       ClassLoader tìm class theo tên
+       ClassLoader looks up class by name
                    |
                    v
-          JVM define/load Class
+          JVM defines/loads Class
                    |
                    v
-  Class<ReportPlugin> đã được định nghĩa
+  Class<ReportPlugin> is now defined
                    |
-                   +--> tạo ReportPlugin instance A
-                   +--> tạo ReportPlugin instance B
-                   +--> JIT có thể tối ưu đường thực thi
+                   +--> creates ReportPlugin instance A
+                   +--> creates ReportPlugin instance B
+                   +--> JIT may optimize execution paths
                    
-Sau đó: report.jar được thay bằng bytecode v2
+Later: report.jar is replaced with v2 bytecode
                    |
-                   X (không có cơ chế tự động)
+                   X (no automatic mechanism)
                    |
-     Class v1, instance A và B không tự biến thành v2
+     Class v1, instances A and B do not turn into v2
 ```
 
-JVM có những giai đoạn khác nhau: **loading, linking, initialization**. Từ bytecode trong artifact, JVM xác lập một class với metadata và quan hệ loader. Khi đã được định nghĩa, class đó **không được tải lại một cách thông thường dưới cùng danh tính chỉ vì file bên ngoài đổi**.
+The JVM has distinct phases: **loading, linking, initialization**. From bytecode inside an artifact, the JVM establishes a class with metadata and a loader relationship. Once defined, that class is **not normally reloaded under the same identity merely because an external file changed**.
 
-Một số hệ quả:
+Several consequences follow:
 
-- `new ReportPlugin()` dùng class đã được loader giải quyết có thể tiếp tục tạo instance **v1**, ngay cả khi file JAR ở đường dẫn cũ chứa byte mới.
-- Instance hiện có giữ class của chính nó; sửa file JAR không thay mã phương thức của instance đó.
-- JIT compiler tối ưu mã **của class runtime**; quá trình JIT/GC không có nghĩa JVM sẽ tự thăm dò file JAR để cập nhật bytecode.
-- Nếu class vẫn chưa từng được nạp, một lời tìm kiếm sau khi file đổi có thể bị ảnh hưởng bởi cache, loader và trạng thái JAR. Vì thế có nguy cơ **trộn phiên bản** giữa các class cũ và các class được nạp sau; không nên dùng ghi đè JAR làm chiến lược cập nhật.
+- `new ReportPlugin()` using the class already resolved by the loader can continue creating **v1** instances, even if the JAR file at the old path now contains new bytes.
+- Existing instances retain their own class; editing the JAR file does not replace the method code of those instances.
+- The JIT compiler optimizes code **of the runtime class**; JIT/GC activity does not mean the JVM polls JAR files to refresh bytecode.
+- If a class has never been loaded yet, a lookup after the file changes can be affected by caches, the loader, and JAR state. Therefore there is a risk of **mixing versions** between older classes and later-loaded classes; overwriting JARs should not be used as an update strategy.
 
-Nên coi một bản JAR được đưa vào vận hành như một **artifact bất biến**. Mỗi lần phát hành dùng đường dẫn hoặc tên có phiên bản, rồi để một loader/layer mới đọc bản đó.
+A deployed JAR should be treated as an **immutable artifact**. Each release should use a versioned path or filename, and let a new loader/layer read that release.
 
-## 2. Danh tính class gồm tên và class loader định nghĩa
+## 2. Class identity consists of the name and the defining class loader
 
-Một điểm rất quan trọng của Java là **hai class có cùng binary name vẫn có thể là hai kiểu runtime khác nhau**, nếu chúng được định nghĩa bởi hai class loader khác nhau.
+A crucial point in Java is that **two classes with the same binary name can still be two different runtime types**, if they are defined by two different class loaders.
 
-Có thể hình dung:
+Think of it as:
 
 ```text
 DefiningLoader#1 + "com.example.Plugin" => Class A (v1)
@@ -64,31 +64,31 @@ Class A.getName().equals(Class B.getName())  == true
 Class A == Class B                           == false
 ```
 
-Danh tính kiểu runtime của một class được quyết định bởi **binary name và defining class loader**. Không thể dùng riêng tên class hay tên file JAR để kết luận hai class có cùng kiểu.
+The runtime type identity of a class is determined by **its binary name and its defining class loader**. You cannot rely solely on the class name or JAR filename to conclude that two classes are the same type.
 
-Vì vậy:
+Therefore:
 
-- `Class<?> oldClass` và `Class<?> newClass` có thể có cùng `getName()` nhưng `oldClass != newClass`.
-- Đối tượng được tạo từ class thuộc loader cũ không tự trở thành instance của class thuộc loader mới.
-- Cố ép kiểu một object định nghĩa bởi loader A sang kiểu **cùng tên** do loader B định nghĩa có thể gặp `ClassCastException`.
-- Các kiểu trong chữ ký plugin phải được quản lý cẩn thận: nếu plugin tự đóng gói một bản interface API của host và loader định nghĩa lại interface ấy, ngay cả các phương thức nhìn giống nhau cũng có thể không tương thích kiểu.
-- Parent delegation có thể làm class loader mới lấy class từ parent thay vì từ JAR mới, khiến việc tưởng rằng đã chuyển phiên bản thực chất vẫn gọi mã cũ.
+- `Class<?> oldClass` and `Class<?> newClass` can have the same `getName()`, yet `oldClass != newClass`.
+- An object created from a class in the old loader does not automatically become an instance of the class in the new loader.
+- Attempting to cast an object defined by loader A to a **same-named** type defined by loader B can throw `ClassCastException`.
+- Types in the plugin signature must be managed carefully: if a plugin bundles its own copy of the host API interface and its loader redefines that interface, even methods that look identical can be type-incompatible.
+- Parent delegation can cause the new class loader to pick up the class from the parent instead of the new JAR, making you think the version switched when it is actually still invoking the old code.
 
-### 2.1. Cùng một loader không thể cứ định nghĩa lại cùng tên
+### 2.1. The same loader cannot simply redefine the same name
 
-Với cơ chế nạp class thông thường, một `ClassLoader` ghi nhớ các class nó đã nạp/định nghĩa. Khi yêu cầu cùng binary name lần nữa, `loadClass` thường trả class đã được nạp theo quy tắc delegation; nó **không tự mở lại JAR để thay bytecode cũ**.
+Under normal class loading, a `ClassLoader` remembers the classes it has loaded/defined. When the same binary name is requested again, `loadClass` typically returns the already-loaded class following delegation rules; it **does not reopen the JAR to replace old bytecode**.
 
-Một class loader cũng không được định nghĩa lần thứ hai một class trùng binary name trong cùng namespace loader theo `defineClass` như cách nạp thông thường; nỗ lực định nghĩa trùng có thể gây `LinkageError`. Vì thế “xóa cache ứng dụng rồi gọi `loadClass` lại” **không** tương đương với reload class đã tồn tại.
+Nor can a class loader define a second class with the same binary name within the same loader namespace via `defineClass` in normal loading; attempting a duplicate definition can cause a `LinkageError`. Thus, “clearing an application cache and calling `loadClass` again” is **not** equivalent to reloading an existing class.
 
-Không phải mọi thứ có tên “reload” đều tái định nghĩa Java class. Phải đọc hợp đồng cụ thể của framework/loader để biết nó reload cấu hình, service list, resource hay **thực sự tạo runtime class mới**.
+Not everything named “reload” redefines Java classes. You must read the specific contract of the framework/loader to know whether it reloads configuration, a service list, resources, or **actually creates new runtime classes**.
 
-## 3. Ví dụ Java 17 chạy được: cùng tên class, hai JAR, hai phiên bản
+## 3. Runnable Java 17 example: same class name, two JARs, two versions
 
-Ví dụ dùng **hai JAR có đường dẫn khác nhau** để tránh lỗi ghi đè file đang được mở trên Windows/Linux và để kết quả ổn định. Nó cho thấy trong **cùng một JVM**, bản v1 vẫn thực thi được sau khi bản v2 đã được nạp bởi loader khác.
+The example uses **two JARs at different paths** to avoid errors from overwriting an open file on Windows/Linux and to keep results deterministic. It shows that within **the same JVM**, v1 can still execute after v2 has been loaded by another loader.
 
-### 3.1. Chuẩn bị hai phiên bản mã nguồn
+### 3.1. Prepare two source versions
 
-Cấu trúc dự án:
+Project structure:
 
 ```text
 project/
@@ -99,7 +99,7 @@ project/
   PluginSwapDemo.java
 ```
 
-Nội dung `v1/src/demo/plugin/Greeting.java`:
+Contents of `v1/src/demo/plugin/Greeting.java`:
 
 ```java
 package demo.plugin;
@@ -111,7 +111,7 @@ public final class Greeting {
 }
 ```
 
-Nội dung `v2/src/demo/plugin/Greeting.java`:
+Contents of `v2/src/demo/plugin/Greeting.java`:
 
 ```java
 package demo.plugin;
@@ -123,11 +123,11 @@ public final class Greeting {
 }
 ```
 
-Hai class có **cùng package, tên và public API**. Chỉ thân phương thức khác nhau.
+Both classes have **the same package, name, and public API**. Only the method body differs.
 
-### 3.2. Chương trình host dùng hai URLClassLoader
+### 3.2. Host program using two URLClassLoaders
 
-Tệp `PluginSwapDemo.java`:
+File `PluginSwapDemo.java`:
 
 ```java
 import java.net.URL;
@@ -173,11 +173,11 @@ public final class PluginSwapDemo {
 }
 ```
 
-**Vì sao parent là platform class loader?** Ví dụ `Greeting` chỉ dùng API JDK, nên có thể chọn `ClassLoader.getPlatformClassLoader()` để tránh vô tình lấy một `demo.plugin.Greeting` cùng tên từ application classpath. **Đây chỉ là cách tổ chức demo**. Trong kiến trúc plugin thực tế, parent thường cần chia sẻ **interface API ổn định của host** và các dependency dùng chung; chọn parent sai sẽ làm plugin không nạp được lớp API hoặc tạo type identity khác.
+**Why is the parent the platform class loader?** Since `Greeting` uses only JDK APIs, we can pick `ClassLoader.getPlatformClassLoader()` to avoid accidentally picking up a same-named `demo.plugin.Greeting` from the application classpath. **This is only how the demo is organized.** In a real plugin architecture, the parent typically needs to share **the host's stable API interfaces** and shared dependencies; choosing the wrong parent will prevent plugins from loading API classes or create mismatched type identities.
 
-### 3.3. Biên dịch, đóng JAR và chạy
+### 3.3. Compile, package JARs, and run
 
-Từ thư mục `project`, với JDK 17+:
+From the `project` directory, with JDK 17+:
 
 ```bash
 javac -d v1/classes v1/src/demo/plugin/Greeting.java
@@ -190,9 +190,9 @@ javac PluginSwapDemo.java
 java PluginSwapDemo v1.jar v2.jar
 ```
 
-Các lệnh `javac` và `jar` có cú pháp giống nhau trên PowerShell/CMD và bash khi chạy từ thư mục dự án có cấu trúc trên. Lệnh dùng đường dẫn không có ký tự phân tách classpath dành riêng cho hệ điều hành.
+The `javac` and `jar` commands have the same syntax in PowerShell/CMD and bash when run from a project directory with the structure above. The commands use paths without OS-specific classpath separators.
 
-Stdout đã kiểm tra khi chạy chương trình:
+Verified stdout when running the program:
 
 ```text
 old=v1
@@ -203,163 +203,163 @@ sameLoader=false
 oldStill=v1
 ```
 
-**Giải thích từng kết quả:**
+**Explanation of each result:**
 
-- `old=v1`: class do `oldLoader` định nghĩa đọc bytecode từ `v1.jar`.
-- `new=v2`: class do `newLoader` định nghĩa đọc bytecode từ `v2.jar`.
-- `sameName=true`: hai class đều tên `demo.plugin.Greeting`.
-- `sameClass=false` và `sameLoader=false`: JVM coi chúng là hai kiểu khác nhau vì defining loader khác nhau.
-- `oldStill=v1`: sau khi lớp v2 xuất hiện trong JVM, **lớp cũ không bị viết lại**; lời gọi qua `oldClass` vẫn thực thi v1.
+- `old=v1`: the class defined by `oldLoader` reads bytecode from `v1.jar`.
+- `new=v2`: the class defined by `newLoader` reads bytecode from `v2.jar`.
+- `sameName=true`: both classes are named `demo.plugin.Greeting`.
+- `sameClass=false` and `sameLoader=false`: the JVM treats them as two different types because their defining loaders differ.
+- `oldStill=v1`: after the v2 class appears in the JVM, **the old class is not rewritten**; calls through `oldClass` still execute v1.
 
-Ví dụ này minh họa **nạp hai phiên bản** theo cách an toàn và quyết định được kết quả, không thực hiện xóa/ghi đè JAR đang được sử dụng. Nó cũng không tự chuyển request thật của ứng dụng từ v1 sang v2: việc chuyển route phải được lập trình riêng.
+This example demonstrates **loading two versions** safely and deterministically, without deleting or overwriting an in-use JAR. Nor does it automatically route real application requests from v1 to v2: routing switches must be programmed separately.
 
-## 4. Vì sao ghi đè cùng một đường dẫn JAR có thể tạo kết quả khó lường?
+## 4. Why overwriting the same JAR path can produce unpredictable results
 
-Giả sử ứng dụng đang dùng:
-
-```text
-plugins/analytics.jar   -> đã được nạp từ v1
-```
-
-Sau đó triển khai bằng cách ghi đè:
+Suppose the application is using:
 
 ```text
-plugins/analytics.jar   -> nội dung file v2
+plugins/analytics.jar   -> already loaded from v1
 ```
 
-Sẽ có các yếu tố độc lập:
+Then a deployment overwrites it:
 
-| Thành phần | Sau khi ghi đè file | Kết luận |
+```text
+plugins/analytics.jar   -> v2 file contents
+```
+
+There will be independent factors:
+
+| Component | After overwriting the file | Conclusion |
 |---|---|---|
-| `Class` đã định nghĩa của v1 | Vẫn là đối tượng kiểu runtime v1 | Không tự đổi thành v2 |
-| Instance v1 đang được giữ trong registry | Vẫn tham chiếu class/loader cũ | Các lời gọi tiếp theo vẫn có thể chạy v1 |
-| Method đã được JIT tối ưu | Dựa trên class runtime đã định nghĩa | Không phải cơ chế thăm dò JAR trên đĩa |
-| Class chưa được nạp bởi loader cũ | Có thể bị ảnh hưởng bởi cache, handle JAR, nội dung file mới hoặc lỗi I/O | Không thể dùng làm bảo đảm hot reload |
-| `URLClassLoader` đang giữ JAR | Có thể giữ handle/cache đến JAR cũ tùy môi trường | Ghi đè có thể bị chặn hoặc gây trạng thái không nhất quán |
-| `getResource(...)` / resource stream | Cách mở URL/cache/resource có thể khác đường nạp class | Không chứng minh bytecode của class cũ đã thay |
-| Class loader mới chỉ vào JAR mới | Có thể định nghĩa các class mới từ v2 khi cấu hình đúng | Vẫn cần route chuyển phiên bản |
+| Already-defined v1 `Class` | Remains the v1 runtime type object | Does not automatically change to v2 |
+| v1 instance held in registry | Still references old class/loader | Subsequent calls can still run v1 |
+| JIT-optimized method | Based on the defined runtime class | Not a polling mechanism for JARs on disk |
+| Class not yet loaded by old loader | Can be affected by caches, JAR handles, new file contents, or I/O errors | Cannot be relied upon as a hot-reload guarantee |
+| `URLClassLoader` holding the JAR | May hold handles/caches to the old JAR depending on environment | Overwriting can be blocked or cause inconsistent state |
+| `getResource(...)` / resource stream | How URLs/caches/resources are opened may differ from class loading | Does not prove old class bytecode changed |
+| New class loader pointing to new JAR | Can define new classes from v2 when configured properly | Still requires version-switching routing |
 
-### 4.1. Đường dẫn ổn định không có nghĩa bytecode được cập nhật
+### 4.1. A stable path does not mean updated bytecode
 
-`ClassLoader` và `URLClassLoader` không phải file watcher. Chúng **không tự đăng ký** theo dõi thời điểm file sửa, tự xóa `Class`, hay tự gọi lại `defineClass` cho kiểu đã nạp. Một đường dẫn như `plugins/current.jar` có thể đổi target của symlink hoặc thay bytes, nhưng `Class` đã load vẫn là class đã được định nghĩa trước đó.
+`ClassLoader` and `URLClassLoader` are not file watchers. They **do not automatically register** to monitor file modification times, purge `Class` objects, or re-call `defineClass` for already-loaded types. A path such as `plugins/current.jar` might switch symlink targets or change bytes, yet an already-loaded `Class` remains the class defined earlier.
 
-Trong một JVM, **địa chỉ file của artifact và danh tính class không giống nhau**. Cơ chế file cache của hệ điều hành hoặc URL/JAR caching có thể làm việc đọc một resource mới xảy ra khác kỳ vọng; nó không làm thay đổi định luật class identity.
+Within a JVM, **an artifact's file location and class identity are not the same thing**. OS file caching or URL/JAR caching can make reading a new resource behave unexpectedly; it does not alter the rules of class identity.
 
-### 4.2. Nguy cơ “nửa cũ, nửa mới”
+### 4.2. The “half-old, half-new” hazard
 
-Đừng chủ động thay bytes JAR tại chỗ khi JVM đang hoạt động:
+Do not actively replace JAR bytes in place while the JVM is running:
 
-- Class A đã được nạp trước thay đổi và tiếp tục chạy theo v1.
-- Class B chưa từng được nạp; một lượt tải sau khi thay đổi có thể mở bản đã thay, dùng cache cũ hoặc gặp lỗi.
-- Nếu A và B có ABI/constant khác nhau, có thể xuất hiện `NoSuchMethodError`, `NoSuchFieldError`, `LinkageError`, `ClassNotFoundException` hoặc hành vi không nhất quán khác.
-- Một resource cấu hình mới có thể không tương thích code v1, dẫn đến lỗi mà người vận hành tưởng rằng “plugin vừa nâng cấp”.
-- Trên Windows, file đang được mở có thể không ghi đè/xóa được; trên các hệ thống khác, cách rename/replace và open handles cũng có semantics riêng.
+- Class A was loaded before the change and continues running v1.
+- Class B was never loaded; a load after the change might open the replaced file, use an old cache, or fail.
+- If A and B have different ABIs/constants, `NoSuchMethodError`, `NoSuchFieldError`, `LinkageError`, `ClassNotFoundException`, or other inconsistent behaviors can occur.
+- A new configuration resource might be incompatible with v1 code, causing failures that operators assume mean “the plugin just upgraded.”
+- On Windows, an open file may fail to be overwritten/deleted; on other systems, rename/replace and open handles also have their own semantics.
 
-**Giải pháp:** tạo file theo phiên bản/content hash riêng (`plugin-1.4.0.jar`, `plugin-1.5.0.jar`), kiểm tra tính toàn vẹn rồi chỉ định **loader mới** tới đường dẫn artifact mới. Giữ artifact cũ cho đến khi không còn request hoặc loader cũ cần nó.
+**Solution:** create files with distinct versions/content hashes (`plugin-1.4.0.jar`, `plugin-1.5.0.jar`), verify integrity, and point a **new loader** to the new artifact path. Keep the old artifact until no request or old loader needs it.
 
-## 5. Tại sao chỉ gọi reload hoặc restart một phần chưa đủ?
+## 5. Why merely calling reload or a partial restart is not enough
 
-Có một số API có tên gần giống reload nhưng phạm vi khác nhau.
+Several APIs have names resembling reload but have different scopes.
 
 ### 5.1. `ServiceLoader.reload()`
 
-`java.util.ServiceLoader` tìm các provider mà JAR/module công bố theo cơ chế dịch vụ Java. `ServiceLoader.reload()` **xóa cache provider** của chính đối tượng `ServiceLoader` đó để lượt duyệt sau có thể tìm/khởi tạo lại provider theo lookup hiện tại.
+`java.util.ServiceLoader` finds providers published by JARs/modules via Java's service mechanism. `ServiceLoader.reload()` **clears the provider cache** of that specific `ServiceLoader` object so subsequent iterations can discover/re-instantiate providers under the current lookup.
 
-Nó **không** tự:
+It does **not** automatically:
 
-- Thêm URL JAR mới vào `URLClassLoader` đang có.
-- Định nghĩa lại class đã được loader cũ nạp.
-- Thay object provider v1 mà ứng dụng đã lưu ở registry/field trước đó.
-- Đảm bảo các lớp thuộc JAR vừa ghi đè sẽ được load từ v2.
-- Quản lý lifecycle, hoàn tất request cũ hoặc giải phóng resource cho bạn.
+- Add a new JAR URL to an existing `URLClassLoader`.
+- Redefine classes already loaded by the old loader.
+- Replace v1 provider objects that the application previously stored in registries/fields.
+- Guarantee that classes in an overwritten JAR will be loaded from v2.
+- Manage lifecycle, drain old requests, or release resources for you.
 
-Một provider mới được lấy qua một `ServiceLoader` vẫn có thể thuộc **cùng `Class` cũ** nếu loader đang dùng đã nạp kiểu ấy.
+A new provider obtained through a `ServiceLoader` can still belong to **the same old `Class`** if the loader in use has already loaded that type.
 
-### 5.2. Đóng `URLClassLoader`
+### 5.2. Closing `URLClassLoader`
 
-`URLClassLoader` triển khai `Closeable`; nên đóng loader khi không còn cần nạp tài nguyên từ JAR. Nhưng:
+`URLClassLoader` implements `Closeable`; loaders should be closed when loading resources from their JARs is no longer needed. However:
 
 ```java
 try (URLClassLoader loader =
         new URLClassLoader(jarUrls, parentLoader)) {
-    // load class, tạo provider, sử dụng trong vòng đời được kiểm soát
+    // load classes, create providers, use within a controlled lifecycle
 }
 ```
 
-Đoạn trên là **mã minh họa trong một phương thức**; `jarUrls` và `parentLoader` phải được khởi tạo, đồng thời import `java.net.URLClassLoader`.
+The above is **illustrative code inside a method**; `jarUrls` and `parentLoader` must be initialized, along with importing `java.net.URLClassLoader`.
 
-`close()` đóng các tài nguyên mở bởi loader theo hợp đồng `URLClassLoader` và hạn chế việc tiếp tục nạp class/resource mới từ loader. Nó **không xóa `Class` đã định nghĩa khỏi JVM**, không phá hủy các instance, không đóng thread do plugin khởi tạo, và không bảo đảm GC sẽ unload class ngay. Các class đã nạp vẫn có thể được gọi trong thời gian còn tham chiếu.
+`close()` closes resources opened by the loader per the `URLClassLoader` contract and restricts loading further new classes/resources from the loader. It **does not remove already-defined `Class` objects from the JVM**, does not destroy instances, does not stop threads started by the plugin, and does not guarantee GC will unload classes immediately. Loaded classes can still be called while references remain.
 
-Trong ví dụ mục 3, cả hai loader được đóng khi thoát khỏi `try`; trước đó class v1 và v2 tồn tại song song. **Đóng loader không phải thao tác “nâng cấp class”.**
+In the Section 3 example, both loaders are closed upon exiting `try`; prior to that, v1 and v2 classes coexisted. **Closing a loader is not a “class upgrade” operation.**
 
-### 5.3. JPMS và `ModuleLayer`
+### 5.3. JPMS and `ModuleLayer`
 
-Với plugin triển khai bằng named modules, `ModuleLayer` biểu diễn nhóm module đã được định nghĩa. Thay JAR được finder nhìn thấy trên đĩa **không đổi các module đã định nghĩa vào layer hiện hữu**. Thông thường, cần tạo **`ModuleFinder` và `Configuration` mới**, phân giải từ roots phù hợp, rồi định nghĩa một **layer mới** để nạp module phiên bản mới.
+For plugins deployed as named modules, `ModuleLayer` represents the group of defined modules. Replacing JARs visible to a finder on disk **does not mutate modules already defined in an existing layer**. Typically, you must create a **new `ModuleFinder` and `Configuration`**, resolve from appropriate roots, and define a **new layer** to load the new module version.
 
-Tương tự class loader, module layer không phải “danh sách file sống” được tự cập nhật. Khi thay module plugin, phải cân nhắc API module dùng chung ở parent layer, dependency graph, module readability và references giữ layer cũ.
+Like a class loader, a module layer is not a “live file list” that updates itself. When replacing plugin modules, you must account for shared API modules in parent layers, the dependency graph, module readability, and references retaining the old layer.
 
-### 5.4. `Class.forName(...)` hoặc “clear cache”
+### 5.4. `Class.forName(...)` or “clear cache”
 
-`Class.forName(name, true, oldLoader)` không mang ý nghĩa “lấy phiên bản mới nhất trên đĩa”. Nó yêu cầu loader xác định class có tên đó, và loader có thể trả về class đã nạp. `Class.forName` cũng **không đồng nghĩa tạo instance mới**. Tương tự, xóa một map cache do ứng dụng tự tạo không buộc JVM quên metadata class.
+`Class.forName(name, true, oldLoader)` does not mean “fetch the latest version on disk.” It asks the loader to locate the class with that name, and the loader can return the already-loaded class. Nor does `Class.forName` **mean creating a new instance**. Likewise, clearing an application-built map cache does not force the JVM to forget class metadata.
 
-Muốn có class mới ở cơ chế nạp thông thường, cần một **defining loader khác** hoặc đường can thiệp bytecode chuyên biệt được nêu ở phần sau.
+To obtain a new class under normal loading mechanisms, you need a **different defining loader** or the specialized bytecode intervention described later.
 
-## 6. Cách nâng cấp plugin an toàn bằng loader mới
+## 6. How to upgrade plugins safely with a new loader
 
-Một quy trình cập nhật có kiểm soát không chỉ “copy JAR, gọi reload”. Nó quản lý version, quyền, reference và request đang chạy.
+A controlled update workflow is not just “copy JAR, call reload.” It manages versions, permissions, references, and in-flight requests.
 
 ```text
-             plugin v1 đang hoạt động
+             plugin v1 currently active
                      |
-           [1] Nạp artifact v2 mới
+           [1] Stage new v2 artifact
                      |
-           [2] Xác minh hash/chữ ký,
-              API và dependency
+           [2] Verify hash/signature,
+              API and dependencies
                      |
-           [3] Tạo loader/layer v2
+           [3] Create v2 loader/layer
                      |
-           [4] Khởi tạo + self-test,
+           [4] Initialize + self-test,
               health check + warm-up
                      |
-           [5] Công bố snapshot v2
-                bằng thao tác atomic
+           [5] Publish v2 snapshot
+                atomically
                  /                 \
-          request mới           request cũ
-           -> v2                -> v1 đến khi xong
+          new requests         old requests
+           -> v2                -> v1 until done
                  \                 /
                   [6] Drain v1
                        |
              [7] Deregister/stop
-                 thread, listener,
-                 callback và tài nguyên
+                 threads, listeners,
+                 callbacks, and resources
                        |
-             [8] Đóng loader v1,
-                 bỏ tham chiếu
+             [8] Close v1 loader,
+                 drop references
                        |
-             [9] GC có thể unload
-                 khi đủ điều kiện
+             [9] GC may unload
+                 when eligible
 ```
 
-### 6.1. Các bước vận hành chi tiết
+### 6.1. Detailed operational steps
 
-1. **Stage artifact bất biến.** Lưu `plugin-2.0.0.jar` (hoặc đường dẫn chứa hash) riêng với `plugin-1.0.0.jar`; không ghi vào bản đang phục vụ request. Kiểm tra chữ ký/hashing từ nguồn triển khai được tin cậy.
-2. **Xác minh metadata.** Kiểm tra plugin ID, version, min/max host API version, dependency, quyền plugin yêu cầu và danh sách package/module; từ chối bản không hợp lệ.
-3. **Tạo loader/layer mới.** Dùng JAR mới và parent loader chứa **SPI/API chung ổn định**, không để plugin tái định nghĩa interface API của host.
-4. **Khởi tạo thử.** Tạo instance mới, chạy kiểm tra readiness và dependency. Nếu thất bại, bỏ bản candidate và để v1 phục vụ bình thường.
-5. **Quản lý state.** Quy định state nào có thể chuyển, schema/config có cần migrate, transaction nào đang dở và khả năng tương thích ngược. Không ép object v1 sang class v2.
-6. **Chuyển route nguyên tử.** Đổi tham chiếu registry/holder dùng cho **request mới** từ v1 sang v2 bằng cơ chế đồng bộ/atomic phù hợp; đừng ghi lại bytecode trong class cũ.
-7. **Drain các request đang dùng v1.** Có chính sách timeout/cancel an toàn, đặc biệt với thao tác có side effect; request đang chạy có thể hoàn tất trên snapshot v1.
-8. **Tháo đăng ký v1.** Dừng scheduler/thread, deregister listener, MBean, callback, service, close stream/socket, clear cache/ThreadLocal, đóng loader theo vòng đời.
-9. **Rollback khi cần.** Có thể chuyển lại registry sang instance v1 còn sống nếu chưa drain/dừng và data migration tương thích; nếu đã thay schema, rollback phải được lập kế hoạch riêng.
-10. **Thu gom artifact cũ khi an toàn.** Chỉ xóa file v1 sau khi không còn loader/request cần nó và việc vận hành không cần giữ để rollback.
+1. **Stage immutable artifact.** Store `plugin-2.0.0.jar` (or a hash-addressed path) separately from `plugin-1.0.0.jar`; never write over the copy serving requests. Verify signatures/hashes from a trusted deployment source.
+2. **Verify metadata.** Check plugin ID, version, min/max host API version, dependencies, requested plugin permissions, and package/module lists; reject invalid releases.
+3. **Create new loader/layer.** Use the new JAR and a parent loader containing **the stable shared SPI/API**, preventing the plugin from redefining host API interfaces.
+4. **Trial initialization.** Create a new instance, run readiness and dependency checks. If it fails, discard the candidate and keep v1 serving normally.
+5. **Manage state.** Define which state can be transferred, whether schemas/configs need migration, which transactions are in progress, and backward compatibility. Never cast a v1 object to a v2 class.
+6. **Atomic route switch.** Swap the registry/holder reference used for **new requests** from v1 to v2 using proper synchronization/atomic primitives; do not rewrite bytecode inside old classes.
+7. **Drain requests using v1.** Apply safe timeout/cancellation policies, especially for side-effecting operations; in-flight requests can complete on the v1 snapshot.
+8. **Teardown v1.** Stop schedulers/threads, deregister listeners, MBeans, callbacks, and services, close streams/sockets, clear caches/ThreadLocals, and close the loader according to lifecycle.
+9. **Roll back if needed.** You can switch the registry back to a still-alive v1 instance if it has not been drained/stopped and data migrations are compatible; if the schema changed, rollback must be planned separately.
+10. **Collect old artifacts when safe.** Delete the v1 file only after no loader/request needs it and operations no longer need to retain it for rollback.
 
-### 6.2. Ranh giới host API và plugin implementation
+### 6.2. Boundary between host API and plugin implementation
 
-Một kiến trúc phổ biến:
+A common architecture:
 
 ```text
 Application / parent class loader
-  com.example.plugin.api.Plugin    <-- contract dùng chung
+  com.example.plugin.api.Plugin    <-- shared contract
                   |
            PluginRegistry
             /          \
@@ -368,99 +368,99 @@ Application / parent class loader
        impl JAR v1    impl JAR v2
 ```
 
-`Plugin` là interface do host hoặc một API artifact ổn định quản lý, được nạp một lần từ **parent loader**. Các plugin implementation khác version được định nghĩa bởi **child loaders**; implementation có thể thực thi cùng một interface chung.
+`Plugin` is an interface managed by the host or a stable API artifact, loaded once from the **parent loader**. Different plugin implementation versions are defined by **child loaders**; implementations can implement the same shared interface.
 
-Với `URLClassLoader` mặc định, delegation thường là parent-first. Do đó cần:
+With standard `URLClassLoader`, delegation is normally parent-first. Therefore:
 
-- Không để implementation class name trùng với class đã được parent nạp.
-- Không đóng gói trùng API/SPI trong plugin JAR theo cách dẫn tới nhiều phiên bản API bị loader khác nhau định nghĩa.
-- Cố định host API compatibility (method signature, data DTO, exception contract); versioning chỉ tên file JAR không giải quyết được lỗi binary compatibility.
-- Kiểm tra dependencies mà plugin cung cấp và dependencies dùng chung. Hai plugin có thể dùng thư viện version khác nhau nếu loader isolation hợp lệ; không phải lúc nào cũng tách được thư viện native hoặc global state.
-- Dùng interface/DTO làm ranh giới, không trả thẳng implementation classes của plugin lên host lâu dài nếu muốn unload phiên bản cũ.
+- Do not allow implementation class names to collide with classes already loaded by the parent.
+- Do not bundle duplicate API/SPI copies in plugin JARs in a way that causes multiple API versions to be defined by different loaders.
+- Lock down host API compatibility (method signatures, DTO data, exception contracts); versioning the JAR filename alone does not fix binary compatibility errors.
+- Check plugin-provided dependencies and shared dependencies. Two plugins can use different library versions if loader isolation is sound; native libraries or global state cannot always be isolated.
+- Use interfaces/DTOs as the boundary; do not pass raw plugin implementation classes back to the host for long-term retention if you want to unload older versions.
 
-### 6.3. Atomic switch không đồng nghĩa unload ngay
+### 6.3. Atomic switch does not mean immediate unload
 
-Registry có thể lưu một đối tượng `PluginHandle` gồm version, provider instance, loader, lifecycle status và số request đang giữ snapshot. Khi thay bản, host atomically công bố handle v2, nhưng vẫn giữ handle v1 đến khi in-flight calls kết thúc.
+The registry can store a `PluginHandle` object containing the version, provider instance, loader, lifecycle status, and number of requests holding the snapshot. When swapping versions, the host atomically publishes the v2 handle, while keeping the v1 handle until in-flight calls complete.
 
-Sơ đồ code minh họa (không phải chương trình độc lập):
+Illustrative code sketch (not a standalone program):
 
 ```java
 AtomicReference<PluginHandle> active =
         new AtomicReference<>(handleV1);
 
-// Sau khi handleV2 đã được validate và khởi tạo thành công:
+// After handleV2 has been validated and initialized successfully:
 PluginHandle previous = active.getAndSet(handleV2);
 
-// Request đã giữ handleV1 vẫn có thể cần hoàn thành.
-// previous chỉ được close sau khi đã drain an toàn.
+// Requests still holding handleV1 may still need to complete.
+// previous is closed only after safe draining.
 ```
 
-Để dùng thực tế, cần các kiểu `PluginHandle`, `handleV1`, `handleV2` và import `java.util.concurrent.atomic.AtomicReference`; `AtomicReference` **chỉ bảo đảm thay tham chiếu nguyên tử**, không tự giải quyết drain, transaction, quota, lifecycle hay rollback.
+For real use, the types `PluginHandle`, `handleV1`, `handleV2`, and `import java.util.concurrent.atomic.AtomicReference` are required; `AtomicReference` **only guarantees an atomic reference swap**, and does not by itself solve draining, transactions, quotas, lifecycle, or rollback.
 
-Nếu request đọc `active.get()` rồi gọi plugin mà hệ thống lập tức đóng loader cũ, vẫn có race. Cần hợp đồng lease/reference counting, read/write coordination hoặc cơ chế snapshot ổn định phù hợp. Việc ngắt một thao tác đang tạo side effect không được giải quyết bằng thay tham chiếu đơn thuần.
+If a request reads `active.get()` and calls the plugin while the system immediately closes the old loader, a race still exists. A lease/reference counting contract, read/write coordination, or appropriate stable snapshot mechanism is required. Interrupting an operation producing side effects is not solved by a simple reference swap.
 
-## 7. Khi nào class cũ mới có thể được unload?
+## 7. When can old classes actually be unloaded?
 
-JVM có cơ chế **class unloading** khi những class và defining class loader phù hợp trở nên không còn cần thiết và GC quyết định thu gom; thời điểm không được bảo đảm. Gọi `System.gc()` không phải hợp đồng đảm bảo unload.
+The JVM performs **class unloading** when eligible classes and their defining class loader become unneeded and GC decides to collect them; timing is not guaranteed. Calling `System.gc()` is not an unloading contract.
 
-Các tham chiếu thường giữ plugin cũ sống lâu ngoài ý muốn:
+References that commonly keep old plugins alive unintentionally:
 
-| Nguồn giữ tham chiếu | Hậu quả |
+| Reference source | Consequence |
 |---|---|
-| Registry/singleton còn giữ provider v1 | Giữ instance, class và loader của v1 |
-| Một `Class<?>` / `Method` / `Constructor` được cache | Giữ metadata liên quan đến class cũ |
-| Thread của plugin chưa dừng hoặc thread context class loader trỏ v1 | Loader có thể tiếp tục được giữ sống |
-| `ThreadLocal` ở thread pool còn giá trị của plugin | Giữ object plugin và loader cũ qua nhiều request |
-| Listener/event bus/scheduler/MBean còn đăng ký | Callback và target instance v1 vẫn tồn tại |
-| `ServiceLoader`, cache reflection hoặc framework container | Có thể giữ provider/class/loader cũ |
-| Task đang chạy, stream/socket hoặc resource chưa đóng | Giữ vòng đời và file handles liên quan |
-| Static field bên trong class v1 | Có thể giữ thêm object/thread; nếu class vẫn reachable thì làm phức tạp giải phóng |
+| Registry/singleton still holding v1 provider | Retains v1 instance, class, and loader |
+| Cached `Class<?>` / `Method` / `Constructor` | Retains metadata tied to old classes |
+| Unstopped plugin thread or thread context class loader pointing to v1 | Loader can continue to be kept alive |
+| `ThreadLocal` on a thread pool still holding plugin values | Retains plugin objects and old loader across requests |
+| Listeners/event bus/schedulers/MBeans still registered | v1 callbacks and target instances remain alive |
+| `ServiceLoader`, reflection caches, or framework containers | May retain old providers/classes/loaders |
+| Running tasks, unclosed streams/sockets or resources | Retains lifecycle and associated file handles |
+| Static fields inside v1 classes | May retain more objects/threads; if the class stays reachable, complicates cleanup |
 
-Một plugin manager tốt cung cấp `start`/`stop`/`close`, đăng ký tất cả resource theo vòng đời và có metric theo version. Khi dừng, chủ động clear references của host, deregister callback, dọn TCCL/ThreadLocal khi thích hợp, dừng executor. **Đóng `URLClassLoader` giúp giải phóng resource, nhưng không bảo đảm class unloading.**
+A good plugin manager provides `start`/`stop`/`close`, registers all resources by lifecycle, and tracks metrics per version. On stop, actively clear host references, deregister callbacks, clean TCCL/ThreadLocals where appropriate, and shut down executors. **Closing `URLClassLoader` helps release resources, but does not guarantee class unloading.**
 
-Nếu thao tác thay plugin liên tục khiến metaspace hoặc thread count tăng dần, hãy kiểm tra leak từ registry, thread, event listener và class loader reachability, không chỉ kích thước JAR.
+If repeated plugin replacements steadily increase Metaspace or thread counts, inspect leaks from registries, threads, event listeners, and class loader reachability—not just JAR sizes.
 
-## 8. Trường hợp ngoại lệ: Instrumentation có thể định nghĩa lại bytecode
+## 8. Exception: Instrumentation can redefine bytecode
 
-Java còn có cơ chế chuyên biệt `java.lang.instrument.Instrumentation`, thông thường được cung cấp qua **Java agent**, cho phép `redefineClasses(...)` hoặc `retransformClasses(...)` trong những JVM hỗ trợ tính năng tương ứng.
+Java also has a specialized mechanism, `java.lang.instrument.Instrumentation`, typically supplied via a **Java agent**, allowing `redefineClasses(...)` or `retransformClasses(...)` on JVMs supporting the corresponding features.
 
-Điều này tạo khác biệt quan trọng:
+This introduces important differences:
 
-- **Ghi đè JAR không gọi các API instrumentation.** JVM không tự thay định nghĩa class chỉ vì byte trong file thay.
-- Với API instrumentation hỗ trợ, agent có thể đưa **bytecode mới của một class đã tồn tại** vào runtime, nhưng phải thỏa những giới hạn và năng lực của JVM/agent.
-- `redefineClasses` có các ràng buộc về việc thay cấu trúc class (ví dụ không thể tùy ý thêm/bớt field hoặc method, đổi hierarchy/signatures trong cơ chế chuẩn). Đây không phải thay plugin JAR bất kỳ theo kiểu hot swap hoàn chỉnh.
-- Những method invocation **đang thực thi** có thể tiếp tục bằng bytecode cũ trên stack, trong khi lời gọi sau dùng định nghĩa được cập nhật theo cơ chế JVM. Không nên giả định có một thời điểm dừng toàn bộ logic một cách tự động.
-- State, static fields, object instances, resources và cấu trúc dependency không tự được migrate. Method body mới có thể không tương thích trạng thái cũ.
-- Không phải mọi JVM đều hỗ trợ mọi dạng redefine/retransform; cần kiểm tra các capability như `isRedefineClassesSupported()` và `isRetransformClassesSupported()`.
+- **Overwriting a JAR does not invoke instrumentation APIs.** The JVM does not automatically replace class definitions merely because bytes in a file changed.
+- With supporting instrumentation APIs, an agent can supply **new bytecode for an existing class** at runtime, subject to JVM/agent limitations and capabilities.
+- `redefineClasses` has restrictions on changing class structure (e.g., it cannot arbitrarily add/remove fields or methods or change hierarchy/signatures in standard HotSwap). This is not an arbitrary full-plugin JAR hot swap.
+- **Already-executing** method invocations may continue running the old bytecode on the stack, while subsequent calls use the updated definition per JVM mechanics. Do not assume an automatic global pause across all logic.
+- State, static fields, object instances, resources, and dependency graphs are not automatically migrated. New method bodies may be incompatible with old state.
+- Not every JVM supports every form of redefine/retransform; check capabilities such as `isRedefineClassesSupported()` and `isRetransformClassesSupported()`.
 
-**Khi nào dùng?** Agent/hot code replace có thể hữu ích cho debugger, profiler, instrumentation hoặc thay đổi method body được kiểm soát. Với **plugin upgrade có thay API, field, dependency hoặc vòng đời**, cách tạo **class loader/layer mới rồi switch** thường thích hợp và rõ ràng hơn. Không hứa rằng “bật HotSwap” là đủ để áp mọi JAR mới trong production.
+**When to use it?** Agent/hot code replace can be useful for debuggers, profilers, instrumentation, or controlled method body changes. For **plugin upgrades involving API, field, dependency, or lifecycle changes**, creating **a new class loader/layer and switching** is usually clearer and more appropriate. Do not promise that “enabling HotSwap” is enough to apply arbitrary new JARs in production.
 
-## 9. Kiểm thử tình huống thay plugin
+## 9. Testing plugin replacement scenarios
 
-Các bài test nên phân biệt bytecode trên đĩa, class đã định nghĩa, loader, instance và registry:
+Tests should distinguish bytecode on disk, defined classes, loaders, instances, and the registry:
 
-| Tình huống | Kỳ vọng |
+| Scenario | Expectation |
 |---|---|
-| Host đang giữ `Greeting` v1; file JAR bị thay | `Class`/instance v1 không tự biến thành v2 |
-| Gọi `Class.forName(..., oldLoader)` sau thay file | Không yêu cầu tạo class v2; thường nhận class v1 đã được loader nạp |
-| Tạo loader mới chỉ tới `v2.jar` | Có thể tạo `Class` v2 nếu delegation không chọn class cũ |
-| Tên class v1/v2 giống nhau, loader khác nhau | `getName()` bằng nhau, `Class<?>` khác nhau |
-| Ép object của implementation v1 sang implementation v2 cùng tên | Có thể `ClassCastException` nếu dùng type v2 |
-| Host/chid cùng có bản SPI khác defining loader | Cast API có thể thất bại dù tên interface giống |
-| `ServiceLoader.reload()` với old loader | Không bảo đảm bytecode provider đã load thay đổi |
-| `URLClassLoader.close()` | Không xóa class đã nạp hoặc kết thúc mọi thread |
-| Plugin mới không qua health check | Không switch active registry, v1 vẫn phục vụ |
-| In-flight request dùng v1 khi chuyển route | Tiếp tục theo snapshot v1, không tự nhảy sang v2 |
-| Plugin v1 còn đăng ký listener/thread | Có nguy cơ leak hoặc callback v1 tiếp tục chạy |
-| Loader/layer v1 không còn tham chiếu | GC **có thể** unload, không có deadline cứng |
-| Trên Windows ghi đè JAR đang mở | Có thể bị khóa, vì vậy dùng artifact versioned |
-| Resource đọc ra v2 nhưng code vẫn v1 | Đây không chứng minh class reload; cần chẩn đoán riêng |
-| Plugin JAR chưa được load trước khi file đổi | Không giả định an toàn/nhất quán; phụ thuộc loader/cache |
-| JVM agent redefine đúng cách | Chỉ hành vi trong phạm vi instrumentation hỗ trợ; không tự migrate state |
+| Host holds `Greeting` v1; JAR file is replaced | v1 `Class`/instance does not automatically become v2 |
+| Call `Class.forName(..., oldLoader)` after replacing file | Not guaranteed to create v2 class; usually gets v1 class already loaded by the loader |
+| Create new loader pointing to `v2.jar` | Can create v2 `Class` if delegation does not pick the old class |
+| Same v1/v2 class name, different loaders | `getName()` matches, `Class<?>` differs |
+| Cast v1 implementation object to same-named v2 implementation | Can throw `ClassCastException` when using v2 type |
+| Host and child both have SPI copies with different defining loaders | API cast can fail despite identical interface name |
+| `ServiceLoader.reload()` on old loader | Does not guarantee already-loaded provider bytecode changes |
+| `URLClassLoader.close()` | Does not remove loaded classes or terminate all threads |
+| New plugin fails health check | Does not switch active registry; v1 keeps serving |
+| In-flight request using v1 during route switch | Continues on v1 snapshot; does not jump mid-flight to v2 |
+| v1 plugin still has registered listeners/threads | Risk of leaks or v1 callbacks continuing to execute |
+| v1 loader/layer has no remaining references | GC **may** unload it, with no hard deadline |
+| Overwriting an open JAR on Windows | Can be locked; therefore use versioned artifacts |
+| Resource reads v2 while code stays v1 | This does not prove class reload; diagnose separately |
+| Plugin JAR had not been loaded before file change | Do not assume safety/consistency; depends on loader/caches |
+| Proper JVM agent redefinition | Behavior only within instrumentation support; does not migrate state automatically |
 
-### 9.1. Log tối thiểu cần ghi khi chẩn đoán
+### 9.1. Minimum logs needed for diagnosis
 
-Khi người dùng báo “đã thay JAR mà chạy mã cũ”, log nên có:
+When users report “replaced the JAR yet old code runs,” logs should include:
 
 ```text
 plugin.id=report
@@ -473,48 +473,48 @@ active.handle.version=2.0.0
 inflight.v1=3
 ```
 
-Đây là **ví dụ tên trường**, không phải stdout của chương trình. `artifact.sha256` phải được tính thật từ artifact; đừng tin riêng nhãn version hoặc một đường dẫn `current.jar`. Định danh loader có thể do registry cấp để debug, không nên dùng `toString()` của loader như một cơ chế phân quyền.
+These are **example field names**, not program stdout. `artifact.sha256` must be computed from the actual artifact; do not trust a version label or a `current.jar` path alone. A loader identifier can be assigned by the registry for debugging; do not use a loader's `toString()` as an authorization mechanism.
 
-Nếu active handle vẫn trỏ v1 dù artifact path đã cập nhật v2, lỗi nằm ở **không chuyển registry/snapshot**, không phải JVM không đọc được file mới. Nếu đã chuyển v2 mà log vẫn gọi class v1, kiểm tra **parent delegation**, cache instance/callback, class identity và resource path.
+If the active handle still points to v1 even though the artifact path updated to v2, the bug is **failing to switch the registry/snapshot**, not the JVM failing to read the new file. If switched to v2 yet logs still invoke the v1 class, check **parent delegation**, instance/callback caches, class identity, and resource paths.
 
-## 10. Những hiểu nhầm cần tránh
+## 10. Misconceptions to avoid
 
-1. **“JVM luôn đọc file JAR từ đĩa mỗi khi gọi phương thức.”** Sai: method call thực thi mã của class đã được định nghĩa; JAR là nguồn load, không phải file script tự đọc lại mỗi lần.
-2. **“Chép đè JAR xong phải có hiệu lực ngay.”** Sai: không có watcher/hot reload mặc định.
-3. **“Nếu class name giống nhau thì hai object có thể cast qua lại.”** Sai: class identity bao gồm defining loader.
-4. **“Đặt JAR mới trong cùng thư mục rồi gọi `Class.forName` sẽ nạp lại.”** Không nếu class cũ đã được loader giải quyết; class loader mới và route mới mới là bước chính.
-5. **“`ServiceLoader.reload()` giải quyết mọi việc.”** Sai: nó chỉ reset cache provider của chính `ServiceLoader`, không update class hay registry của ứng dụng.
-6. **“Gọi `close()` trên `URLClassLoader` sẽ hủy mọi object plugin.”** Sai: object/class cũ còn sống theo references và GC.
-7. **“Gọi GC chắc chắn giải phóng class loader.”** Sai: không có bảo đảm thời điểm, nhất là khi còn tham chiếu ở thread/listener/singleton.
-8. **“Dùng một loader cho mọi phiên bản là tiết kiệm nhất.”** Dễ gây xung đột tên và khiến không thay được class; phải có ranh giới loader hợp lý.
-9. **“Hai loader luôn cô lập hoàn toàn plugin.”** Sai: cùng JVM còn chia sẻ process, native state, OS permissions và những global services; class loader không phải sandbox.
-10. **“Đã nạp v2 thì mọi request lập tức dùng v2.”** Sai: route/registry, active objects và in-flight request có vòng đời độc lập.
-11. **“Instrumentation có thể thay bất kỳ cấu trúc class nào.”** Sai: redefine có giới hạn, state không tự thay và support phụ thuộc JVM.
-12. **“Thay JAR tại chỗ chỉ có lỗi Windows khóa file.”** Sai: còn nguy cơ trộn class/resource, cache, race, thiếu rollback trên nhiều nền tảng.
-13. **“Xóa tên JAR cũ ngay sau switch là đủ dọn rác.”** Sai: còn request cũ, class loader/resource handles và khả năng rollback.
-14. **“Đổi đường dẫn resource nghĩa là code đã nâng cấp.”** Sai: resource lookup và class definition là hai cơ chế khác nhau.
+1. **“The JVM always reads the JAR file from disk on every method call.”** False: method calls execute code of already-defined classes; a JAR is a loading source, not a script re-read on every call.
+2. **“Overwriting the JAR takes effect immediately.”** False: there is no default file watcher/hot reload.
+3. **“If class names match, two objects can be cast between each other.”** False: class identity includes the defining loader.
+4. **“Placing a new JAR in the same folder and calling `Class.forName` will reload it.”** Not if the old class was already resolved by that loader; a new class loader and new routing are the primary steps.
+5. **“`ServiceLoader.reload()` solves everything.”** False: it only resets the provider cache of that `ServiceLoader`, without updating classes or application registries.
+6. **“Calling `close()` on `URLClassLoader` destroys all plugin objects.”** False: old objects/classes live on according to references and GC.
+7. **“Calling GC definitely frees the class loader.”** False: there is no timing guarantee, especially if references remain in threads/listeners/singletons.
+8. **“Using one loader for all versions is the most economical.”** Easily causes name conflicts and prevents replacing classes; sensible loader boundaries are required.
+9. **“Two loaders always isolate plugins completely.”** False: in the same JVM they still share the process, native state, OS permissions, and global services; a class loader is not a sandbox.
+10. **“Once v2 is loaded, all requests immediately use v2.”** False: routing/registries, active objects, and in-flight requests have independent lifecycles.
+11. **“Instrumentation can change any class structure.”** False: redefinition has restrictions, state does not migrate automatically, and support depends on the JVM.
+12. **“Replacing a JAR in place only suffers from Windows file locks.”** False: there are also risks of mixing classes/resources, caching, races, and lacking rollback across platforms.
+13. **“Deleting the old JAR right after switching is enough cleanup.”** False: old requests, class loader/resource handles, and rollback capability still remain.
+14. **“Changing a resource path means the code upgraded.”** False: resource lookup and class definition are two different mechanisms.
 
-## 11. Checklist cho plugin manager có thể nâng cấp
+## 11. Checklist for an upgradeable plugin manager
 
-Trước khi đổi phiên bản, hãy xác nhận:
+Before switching versions, confirm:
 
-- Có **artifact v2 bất biến** đã kiểm tra nguồn, checksum/chữ ký và API version.
-- Có **class loader/module layer mới** với parent API và dependency policy đúng.
-- Có bài kiểm tra rằng `v2` thật sự chạy từ loader/layer v2, không bị parent lấy nhầm class v1.
-- Có cách khởi tạo candidate, health check và từ chối bản lỗi mà không ảnh hưởng active v1.
-- Có holder/snapshot để **switch atomically** và quản lý in-flight calls an toàn.
-- Có phương án **state migration**, idempotency, database/schema compatibility và rollback.
-- Có lifecycle stop/close cho executor, listener, cache, ThreadLocal, stream, socket và class loader.
-- Có log/metric theo plugin ID, version, artifact hash, defining loader, active handle và inflight.
-- Có kiểm thử cả môi trường Windows lẫn hệ triển khai thực, JAR/module path và classloader delegation.
-- Có giới hạn an ninh: plugin không tin cậy **không** được coi là an toàn chỉ vì chạy trong class loader riêng.
+- There is an **immutable v2 artifact** whose origin, checksum/signature, and API version have been verified.
+- There is a **new class loader/module layer** with correct parent API and dependency policies.
+- There is a check that `v2` truly runs from the v2 loader/layer, without the parent mistakenly serving the v1 class.
+- There is a way to instantiate candidates, run health checks, and reject faulty versions without affecting active v1.
+- There is a holder/snapshot to **switch atomically** and manage in-flight calls safely.
+- There is a plan for **state migration**, idempotency, database/schema compatibility, and rollback.
+- There is lifecycle stop/close handling for executors, listeners, caches, ThreadLocals, streams, sockets, and class loaders.
+- There are logs/metrics by plugin ID, version, artifact hash, defining loader, active handle, and inflight count.
+- There is testing on both Windows and the actual deployment OS, covering JAR/module paths and classloader delegation.
+- Security boundaries are respected: untrusted plugins are **not** considered safe merely because they run in a separate class loader.
 
-### API tham khảo (Java SE 17)
+**Conclusion:** replacing a JAR **only replaces the artifact**, and does not automatically replace JVM-defined `Class` objects or live instances. To upgrade plugins at runtime under standard Java mechanisms, **produce a new versioned artifact, load it with a new loader/layer, switch the registry to the new instance, and drain and release the old version**. That workflow cleanly separates file replacement, runtime type replacement, and request-serving switches, making the application testable, rollback-capable, and free of mixed versions.
+
+### Reference APIs (Java SE 17)
 
 - [ClassLoader — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html)
 - [URLClassLoader — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html)
 - [ServiceLoader — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html)
 - [Instrumentation — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.instrument/java/lang/instrument/Instrumentation.html)
 - [ModuleLayer — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html)
-
-**Kết luận:** thay JAR **chỉ thay artifact**, không tự thay `Class` đã được JVM định nghĩa hay instance còn sống. Để nâng cấp plugin ở runtime theo cơ chế Java thông thường, hãy **tạo artifact phiên bản mới, nạp bằng loader/layer mới, chuyển registry sang instance mới, drain và giải phóng phiên bản cũ**. Quy trình ấy tách rõ việc thay file, thay kiểu runtime và thay hoạt động phục vụ request, giúp ứng dụng có thể kiểm thử, rollback và tránh trộn các phiên bản.

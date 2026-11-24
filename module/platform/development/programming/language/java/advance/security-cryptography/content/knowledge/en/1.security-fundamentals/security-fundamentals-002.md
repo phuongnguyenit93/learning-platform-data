@@ -1,204 +1,204 @@
-# 1.2 Mô hình đe dọa, tài sản cần bảo vệ và ranh giới tin cậy
+# 1.2 Threat Modeling, Assets to Protect, and Trust Boundaries
 
-Mô hình đe dọa (*threat modeling*) là cách phân tích một hệ thống từ góc nhìn an toàn: **đang bảo vệ điều gì, ai hoặc điều gì có thể gây hại, họ tiếp cận qua đâu, và biện pháp nào làm rủi ro còn ở mức chấp nhận được?** Đây là hoạt động thiết kế và đánh giá lặp lại theo thay đổi của hệ thống, không phải bảng liệt kê lỗ hổng hay một lần chạy công cụ quét bảo mật.
+Threat modeling is a way of analyzing a system from a security perspective: **what are we protecting, who or what can cause harm, how do they reach it, and which measures bring risk down to an acceptable level?** It is an iterative design and review activity that evolves with the system, not a vulnerability checklist or a one-time security scanner run.
 
-Trong module **Java Advance - security-cryptography**, mô hình đe dọa giúp quyết định chỗ nào cần xác thực, phân quyền, bảo vệ tính toàn vẹn, mã hóa, quản lý khóa, kiểm toán và giới hạn tài nguyên. Chọn thuật toán mã hóa trước khi xác định tài sản và đường tấn công dễ dẫn đến giải pháp an toàn trên một đường truyền nhưng vẫn làm lộ dữ liệu ở lớp ứng dụng.
+In the **Java Advance - security-cryptography** module, threat modeling helps decide where authentication, authorization, integrity protection, encryption, key management, auditing, and resource limits are needed. Choosing an encryption algorithm before identifying assets and attack paths easily leads to a solution that is secure on one transport link yet leaks data at the application layer.
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt **tài sản**, **tác nhân đe dọa**, **đe dọa**, **lỗ hổng**, **kịch bản tấn công**, **kiểm soát** và **rủi ro còn lại**.
-2. Liệt kê tài sản theo vòng đời dữ liệu, gồm dữ liệu gốc, khóa bí mật, token, quyền truy cập, log và bản sao lưu; xác định thuộc tính bảo mật cần giữ cho từng tài sản.
-3. Vẽ được luồng dữ liệu và **ranh giới tin cậy** giữa client, dịch vụ Java, cơ sở dữ liệu, dịch vụ quản lý khóa và bên thứ ba.
-4. Dùng STRIDE cùng kịch bản lạm dụng nghiệp vụ để tìm đường tấn công cụ thể, xếp ưu tiên, chọn kiểm soát và lập phép kiểm chứng.
-5. Nhận ra vì sao **TLS, mã hóa dữ liệu và xác thực người dùng không thay thế cho kiểm tra quyền trên từng tài nguyên**.
+1. Distinguish **asset**, **threat actor**, **threat**, **vulnerability**, **attack scenario**, **control**, and **residual risk**.
+2. Inventory assets across the data lifecycle, including raw data, secret keys, tokens, access permissions, logs, and backups; identify the security properties required for each asset.
+3. Draw data flows and **trust boundaries** across clients, Java services, databases, key management services, and third parties.
+4. Use STRIDE alongside business abuse scenarios to uncover concrete attack paths, prioritize them, select controls, and define verification tests.
+5. Recognize why **TLS, data encryption, and user authentication do not replace per-resource authorization checks**.
 
-## 2. Khái niệm cốt lõi: đe dọa khác gì lỗ hổng?
+## 2. Core Concepts: How Does a Threat Differ from a Vulnerability?
 
-| Khái niệm | Ý nghĩa | Ví dụ trong API tải tài liệu |
+| Concept | Meaning | Example in a Document Download API |
 | --- | --- | --- |
-| Tài sản (*asset*) | Điều có giá trị cần được bảo vệ | Nội dung hợp đồng, quyền sở hữu tệp, khóa giải mã |
-| Tác nhân đe dọa (*threat actor*) | Người hoặc thực thể có khả năng gây hại, có chủ ý hay vô ý | Người dùng hợp lệ muốn đọc tài liệu của tổ chức khác; tài khoản dịch vụ bị chiếm |
-| Bề mặt tấn công (*attack surface*) | Các điểm có thể tương tác với hệ thống | Endpoint HTTPS, webhook, job queue, API KMS, pipeline CI/CD |
-| Đe dọa (*threat*) | Sự kiện/hành vi có thể vi phạm thuộc tính bảo mật | Người dùng thay `documentId` để đọc tài liệu không thuộc quyền mình |
-| Lỗ hổng/điểm yếu (*vulnerability*) | Thiếu sót khiến đe dọa có đường thực hiện | API chỉ kiểm tra đã đăng nhập, bỏ qua quyền trên `documentId` |
-| Kiểm soát (*control*) | Biện pháp phòng ngừa, phát hiện hoặc giảm tác hại | Phân quyền theo tài liệu và tenant, xác thực token, audit, quota |
-| Rủi ro (*risk*) | Kết hợp khả năng xảy ra và tác động đối với mục tiêu bảo vệ | Lộ tài liệu khách hàng gây thiệt hại tài chính và pháp lý |
-| Rủi ro còn lại (*residual risk*) | Rủi ro sau khi áp dụng và kiểm chứng kiểm soát | Tài khoản có quyền hợp lệ bị chiếm vẫn có thể tải tài liệu được cấp phép |
+| Asset | Something of value that needs protection | Contract content, file ownership permissions, decryption keys |
+| Threat actor | A person or entity capable of causing harm, intentionally or accidentally | A legitimate user trying to read another organization's document; a compromised service account |
+| Attack surface | Points where interaction with the system is possible | HTTPS endpoints, webhooks, job queues, KMS APIs, CI/CD pipelines |
+| Threat | An event or action that can violate a security property | A user altering `documentId` to read a document they do not own |
+| Vulnerability / weakness | A flaw that gives a threat a viable path to succeed | The API only checks login status and skips authorization on `documentId` |
+| Control | A measure to prevent, detect, or reduce harm | Per-document and per-tenant authorization, token validation, auditing, quotas |
+| Risk | Combination of likelihood and impact on protection goals | Customer document leak causing financial and legal damage |
+| Residual risk | Risk remaining after controls are applied and verified | A compromised authorized account can still download permitted documents |
 
-**Phân biệt quan trọng:** một ý tưởng tấn công chưa chứng minh rằng hệ thống hiện có lỗ hổng; ngược lại, không thấy lỗi qua một bài kiểm thử không chứng minh hệ thống không có đe dọa. Mô hình đe dọa ghi rõ *giả định*, *kịch bản* và *bằng chứng kiểm tra*, rồi cập nhật khi có thông tin mới.
+**Important distinction:** an attack idea does not prove the current system has a vulnerability; conversely, finding no bugs in one test does not prove the system is free of threats. A threat model documents *assumptions*, *scenarios*, and *verification evidence*, then updates as new information emerges.
 
-Cách đặt câu hỏi hữu ích cho một kịch bản:
+A useful way to frame a scenario:
 
-> “Ai có thể đưa dữ liệu hoặc lệnh vào qua ranh giới nào, với quyền gì, nhằm thay đổi tài sản nào, gây hại ra sao? Kiểm soát ở đâu, và làm thế nào kiểm tra kiểm soát đó?”
+> "Who can introduce data or commands across which boundary, with what privileges, to alter which asset, and cause what harm? Where is the control, and how can that control be tested?"
 
-## 3. Xác định tài sản cần bảo vệ
+## 3. Identifying Assets to Protect
 
-Không chỉ dữ liệu kinh doanh mới là tài sản. Hãy liệt kê cả những thứ **cho phép truy cập hoặc giải mã dữ liệu**. Với mỗi tài sản, ghi chủ sở hữu, nơi tồn tại, người được quyền sử dụng, thời gian lưu giữ, luồng di chuyển và tác động nếu bị lộ/sửa/xóa/không truy cập được.
+Business data is not the only asset. List everything that **grants access to or decrypts data**. For each asset, record its owner, storage locations, authorized users, retention period, movement flows, and impact if leaked/modified/deleted/unavailable.
 
-| Tài sản | Thuộc tính cần bảo vệ | Ví dụ đường phơi lộ hoặc bị thay đổi |
+| Asset | Properties to Protect | Example Exposure or Modification Paths |
 | --- | --- | --- |
-| Bản rõ (*plaintext*) của tài liệu, dữ liệu cá nhân | Bí mật, toàn vẹn, quyền riêng tư | Response API, bộ nhớ tiến trình, bản tạm, log, bản sao lưu |
-| Bản mã (*ciphertext*) và metadata | Toàn vẹn, tính sẵn sàng, liên kết đúng với chủ sở hữu | Object storage, URL đối tượng, metadata tenant, nonce/IV |
-| Khóa đối xứng, khóa riêng, secret KMS, mật khẩu dịch vụ | Bí mật và quyền sử dụng; khả năng thu hồi/luân chuyển | Biến môi trường, file cấu hình, mã nguồn, CI log, IAM role |
-| Token phiên, refresh token, API key | Bí mật, hạn sử dụng, phạm vi quyền | Header, cookie, cache, báo cáo lỗi, công cụ quan sát |
-| Danh tính, role, policy, ACL, mối quan hệ tenant–object | Toàn vẹn và tính xác thực | Trường `ownerId` do client gửi, dữ liệu phân quyền trong DB |
-| Audit log, thời điểm, request ID | Toàn vẹn, truy vết, giới hạn tiết lộ | Log bị sửa/xóa, log chứa token hoặc plaintext |
-| Dịch vụ, quota, dữ liệu sao lưu, cấu hình hạ tầng | Sẵn sàng, khả năng khôi phục | DDoS, thao tác xóa, cấu hình sai, lỗi khóa/giải mã |
+| Plaintext of documents, personal data | Confidentiality, integrity, privacy | API responses, process memory, temporary files, logs, backups |
+| Ciphertext and metadata | Integrity, availability, accurate owner binding | Object storage, object URLs, tenant metadata, nonces/IVs |
+| Symmetric keys, private keys, KMS secrets, service passwords | Confidentiality and usage permissions; revocability/rotation | Environment variables, config files, source code, CI logs, IAM roles |
+| Session tokens, refresh tokens, API keys | Confidentiality, expiration, permission scope | Headers, cookies, caches, error reports, observability tools |
+| Identities, roles, policies, ACLs, tenant–object relationships | Integrity and authenticity | Client-supplied `ownerId` fields, authorization data in DB |
+| Audit logs, timestamps, request IDs | Integrity, traceability, disclosure limits | Altered/deleted logs, logs containing tokens or plaintext |
+| Services, quotas, backup data, infrastructure configs | Availability, recoverability | DDoS, deletion operations, misconfigurations, key/decryption failures |
 
-Các thuộc tính thường được xem xét:
+Properties commonly evaluated:
 
-- **Confidentiality (bí mật):** chủ thể không được phép không thể đọc nội dung.
-- **Integrity (toàn vẹn):** sửa đổi trái phép được ngăn hoặc phát hiện.
-- **Availability (sẵn sàng):** người được phép có thể dùng dịch vụ, kể cả trong điều kiện lỗi hợp lý.
-- **Authenticity (tính xác thực):** danh tính hoặc nguồn gốc thông điệp được xác minh đúng.
-- **Authorization (quyền):** danh tính hợp lệ chỉ thao tác đúng tài nguyên và hành động được cấp.
-- **Accountability (truy vết):** hoạt động quan trọng được ghi nhận đủ để điều tra; log đơn thuần không mặc nhiên chứng minh chống chối bỏ tuyệt đối.
-- **Privacy (quyền riêng tư):** giới hạn thu thập, suy luận, liên kết, lưu trữ và chia sẻ dữ liệu về cá nhân.
+- **Confidentiality:** unauthorized principals cannot read the content.
+- **Integrity:** unauthorized modification is prevented or detected.
+- **Availability:** authorized principals can use the service, even under reasonable failure conditions.
+- **Authenticity:** identity or message origin is accurately verified.
+- **Authorization:** a valid identity only performs granted actions on permitted resources.
+- **Accountability:** critical activities are recorded sufficiently for investigation; logs alone do not automatically prove absolute non-repudiation.
+- **Privacy:** limiting collection, inference, linking, retention, and sharing of personal data.
 
-### Phân loại tài sản theo vòng đời
+### Categorizing Assets by Lifecycle
 
-Một bản rõ có thể đi qua `client -> HTTPS -> JVM heap -> DB -> backup -> log/monitoring`. Mã hóa bản ghi trong DB chưa đủ nếu endpoint cho người sai quyền lấy bản rõ, khóa nằm cùng nơi với dữ liệu dưới cùng quyền truy cập, hoặc debug log in ra request/response nhạy cảm. Đừng bỏ qua dữ liệu trong bộ nhớ, tệp tạm, snapshot, bản sao môi trường test và thông điệp lỗi.
+A plaintext item can travel through `client -> HTTPS -> JVM heap -> DB -> backup -> log/monitoring`. Encrypting records in the DB is insufficient if an endpoint serves plaintext to the wrong user, keys sit alongside data under the same access permissions, or debug logs print sensitive requests/responses. Do not overlook data in memory, temporary files, snapshots, test-environment copies, and error messages.
 
-Với khóa bí mật, hãy ghi riêng: **ai có thể yêu cầu mã hóa/giải mã**, ai có thể lấy/export khóa, chính sách IAM, vị trí tạo/lưu khóa, cơ chế luân chuyển/thu hồi, các bản khóa cũ cần để đọc dữ liệu cũ, cùng kế hoạch khi khóa bị lộ hoặc bị mất. Quyền gọi `Decrypt` trên KMS là một tài sản quyền lực dù byte khóa không bao giờ rời KMS.
+For secret keys, document separately: **who can request encryption/decryption**, who can retrieve/export keys, IAM policies, where keys are generated/stored, rotation/revocation mechanisms, old key versions needed to read historical data, and contingency plans if a key is leaked or lost. Permission to call `Decrypt` on KMS is a powerful asset even if key bytes never leave KMS.
 
-## 4. Ranh giới tin cậy là gì?
+## 4. What Is a Trust Boundary?
 
-**Ranh giới tin cậy (*trust boundary*)** là nơi dữ liệu hoặc lệnh đi giữa các vùng có chủ sở hữu, cơ chế xác thực, mức đặc quyền hay giả định tin cậy khác nhau. Ranh giới thường trùng với kết nối mạng nhưng **không nhất thiết**: hai thành phần cùng máy, cùng VPC hoặc cùng JVM vẫn có thể có quyền và nguồn dữ liệu khác nhau.
+A **trust boundary** is where data or commands pass between zones with different owners, authentication mechanisms, privilege levels, or trust assumptions. Boundaries often align with network connections, though **not necessarily**: two components on the same host, in the same VPC, or in the same JVM can still have different privileges and data sources.
 
-Ví dụ hệ thống Java cho phép người dùng tải tài liệu đã mã hóa:
+Example of a Java system allowing users to download encrypted documents:
 
 ```text
-[Trình duyệt / người dùng]    (không tin đầu vào)
+[Browser / User]              (untrusted input)
             |
-            | B1: HTTPS + phiên/token
+            | B1: HTTPS + session/token
             v
-[Gateway / API Java]          (xác thực danh tính, áp dụng quyền)
+[Gateway / Java API]          (authenticates identity, enforces authorization)
        |                 \
        | B2: SQL/TLS      \ B3: KMS API/TLS, IAM role
        v                   v
-[DB: metadata/ACL]      [KMS: quản lý và sử dụng khóa]
+[DB: metadata/ACL]      [KMS: key management and usage]
        |
-       | tham chiếu đối tượng
+       | object reference
        v
-[Object storage: bản mã]      (quyền và chính sách truy cập riêng)
+[Object storage: ciphertext]  (separate access permissions and policies)
 ```
 
-Lưu ý: hình trên là **sơ đồ logic đơn giản**, không ngụ ý DB trực tiếp truy cập object storage; triển khai thực tế thường có luồng API Java -> object storage riêng, cũng cần vẽ thành một ranh giới. Vị trí kết thúc TLS tại gateway/load balancer phải được ghi rõ: nếu gateway giải mã TLS, chặng từ gateway đến backend là một luồng khác cần đánh giá.
+Note: the diagram above is a **simplified logical diagram** and does not imply the DB directly accesses object storage; real deployments usually have a separate Java API -> object storage flow, which must also be drawn as a boundary. Where TLS terminates at a gateway/load balancer must be explicitly noted: if the gateway decrypts TLS, the hop from gateway to backend is a separate flow to evaluate.
 
-Tại **mỗi lần vượt ranh giới**, đặt sáu câu hỏi:
+At **every boundary crossing**, ask six questions:
 
-1. Ai gửi và ai nhận? Có xác minh đúng danh tính dịch vụ/người dùng không?
-2. Những byte nào là dữ liệu **không đáng tin** (ID, header, JWT, nội dung tệp, sự kiện, thông tin tenant)?
-3. Bên nhận có thực hiện thêm quyền cao hơn, truy vấn DB, gọi KMS hoặc ghi tệp dựa trên dữ liệu đó không?
-4. Kiểm tra đầu vào, **ủy quyền**, giới hạn kích thước/tốc độ, chống phát lại và xác minh toàn vẹn đặt ở đâu?
-5. Lộ, sửa, mất hoặc gửi lại dữ liệu qua ranh giới sẽ ảnh hưởng tài sản nào?
-6. Khi kiểm soát thất bại, có dấu hiệu kiểm toán và cách ngăn lan truyền thiệt hại không?
+1. Who is sending and who is receiving? Are service/user identities properly verified?
+2. Which bytes are **untrusted data** (IDs, headers, JWTs, file contents, events, tenant info)?
+3. Does the receiver exercise higher privileges, query a DB, call KMS, or write files based on that data?
+4. Where are input validation, **authorization**, size/rate limits, replay protection, and integrity verification placed?
+5. Which assets are affected if data crossing the boundary is leaked, altered, lost, or replayed?
+6. When a control fails, are there audit signals and ways to contain damage propagation?
 
-Một số ranh giới hay bị bỏ sót:
+Commonly overlooked boundaries:
 
-- **Client -> backend:** client kiểm soát ID, body, query, file upload; kể cả người dùng đã đăng nhập, toàn bộ trường do họ gửi vẫn không đáng tin.
-- **Gateway -> service:** gateway xác thực không mặc nhiên đồng nghĩa backend đã phân quyền; backend cần hợp đồng xác thực có thể kiểm chứng, hạn chế tin header danh tính từ Internet.
-- **Service -> DB/cache/object storage:** tài khoản dịch vụ có thể rộng quyền hơn người dùng cuối; cần tenant isolation, truy vấn ràng buộc quyền, least privilege và bảo vệ kết nối.
-- **Service -> KMS/HSM:** việc có quyền gọi giải mã có thể biến server bị chiếm thành “cỗ máy giải mã”; giới hạn quyền theo key, điều kiện, mục đích và theo dõi lạm dụng.
-- **Ứng dụng -> webhook/partner/queue:** dữ liệu hoặc sự kiện của bên ngoài phải kiểm tra nguồn, chữ ký/MAC khi được thiết kế, thời gian, nonce/idempotency và schema; xác thực kết nối chỉ giải quyết một phần.
-- **Build/CI -> production secrets:** artifact, dependency và người có quyền triển khai có thể thay đổi chương trình chạy với đặc quyền sản xuất.
+- **Client -> backend:** the client controls IDs, bodies, queries, file uploads; even for logged-in users, all client-sent fields remain untrusted.
+- **Gateway -> service:** gateway authentication does not automatically mean the backend has authorized the action; the backend needs a verifiable auth contract and must avoid trusting identity headers from the Internet.
+- **Service -> DB/cache/object storage:** service accounts often have broader privileges than end users; enforce tenant isolation, permission-scoped queries, least privilege, and connection protection.
+- **Service -> KMS/HSM:** decryption permissions can turn a compromised server into a "decryption oracle"; scope permissions per key, condition, and purpose, and monitor for abuse.
+- **Application -> webhook/partner/queue:** external data or events must validate origin, signature/MAC when designed, timestamps, nonce/idempotency, and schema; transport auth solves only part of the problem.
+- **Build/CI -> production secrets:** artifacts, dependencies, and deployers can alter code running with production privileges.
 
-**Nguyên tắc:** “nội bộ”, “chạy trong Kubernetes”, “có HTTPS” hoặc “đã đăng nhập” không phải bảo đảm cho mọi hành động. Tin cậy phải có *phạm vi*, *điều kiện xác minh* và *thời hạn* cụ thể.
+**Principle:** "internal", "running in Kubernetes", "uses HTTPS", or "logged in" are not guarantees for every action. Trust must have explicit *scope*, *verification conditions*, and *time bounds*.
 
-## 5. Quy trình xây dựng mô hình đe dọa
+## 5. Process for Building a Threat Model
 
-### Bước 1 — Chốt phạm vi và các giả định
+### Step 1 — Lock Scope and Assumptions
 
-Ghi tên chức năng, luồng nghiệp vụ, các actor (người dùng, admin, service, bên thứ ba), môi trường, điểm vào/ra, loại dữ liệu và điều gì **nằm ngoài** phạm vi. Ví dụ: “Xét `GET /api/documents/{id}` và thao tác giải mã phục vụ tải về; không phân tích quy trình thanh toán”. Ghi giả định kiểm chứng được, như “gateway xác minh JWT và backend chỉ nhận kết nối từ gateway”; không xem giả định là sự thật khi chưa kiểm thử.
+Record the feature name, business flow, actors (users, admins, services, third parties), environment, entry/exit points, data types, and what is **out of scope**. For example: "Examine `GET /api/documents/{id}` and decryption for download; exclude payment flows." Document testable assumptions, such as "the gateway validates JWTs and the backend only accepts connections from the gateway"; do not treat assumptions as facts until tested.
 
-### Bước 2 — Kiểm kê tài sản và phân quyền
+### Step 2 — Inventory Assets and Permissions
 
-Dùng bảng ở mục 3 để mô tả tác động nếu vi phạm từng thuộc tính. Tách **chủ sở hữu dữ liệu**, **người được phép xem**, **tài khoản máy thực thi** và **người quản trị khóa**; các danh tính này không đồng nhất.
+Use the table in Section 3 to describe the impact of violating each property. Separate **data owners**, **authorized viewers**, **executing machine accounts**, and **key administrators**; these identities are not identical.
 
-### Bước 3 — Vẽ luồng dữ liệu (DFD) và đánh dấu ranh giới
+### Step 3 — Draw Data Flow Diagrams (DFD) and Mark Boundaries
 
-DFD tối thiểu cần có **external entities**, **processes**, **data stores**, **data flows** và **trust boundaries**. Trên các mũi tên, ghi dữ liệu chuyển đi, giao thức, cơ chế xác thực, điểm kết thúc mã hóa và nơi ra quyết định quyền. Vẽ riêng đường đi ghi, đọc, xóa, sao lưu và luân chuyển khóa nếu mức rủi ro khác nhau.
+A minimal DFD needs **external entities**, **processes**, **data stores**, **data flows**, and **trust boundaries**. On arrows, note the transferred data, protocol, authentication mechanism, where encryption terminates, and where authorization decisions occur. Draw separate paths for writes, reads, deletes, backups, and key rotation if risk levels differ.
 
-### Bước 4 — Tìm các kịch bản đe dọa
+### Step 4 — Identify Threat Scenarios
 
-Duyệt từng tài sản và mỗi điểm vượt ranh giới. Kết hợp STRIDE (mục 6) với các câu hỏi: “Nếu client thay ID?”, “Nếu token bị lấy cắp?”, “Nếu service role bị chiếm?”, “Nếu dữ liệu/ciphertext bị tráo?”, “Nếu retry cùng sự kiện nhiều lần?”, “Nếu KMS không phản hồi?”. Nêu **tiền điều kiện -> hành động -> kiểm soát bị vượt qua -> hậu quả**, tránh chỉ ghi “có nguy cơ hacker”.
+Walk through each asset and each boundary crossing. Combine STRIDE (Section 6) with questions like: "What if the client changes the ID?", "What if a token is stolen?", "What if a service role is compromised?", "What if data/ciphertext is swapped?", "What if the same event is retried multiple times?", "What if KMS is unresponsive?". State **precondition -> action -> bypassed control -> consequence**, avoiding vague notes like "risk of hacker".
 
-### Bước 5 — Ưu tiên và gắn kiểm soát
+### Step 5 — Prioritize and Assign Controls
 
-Ước lượng **khả năng xảy ra** và **mức tác động** theo bối cảnh thực tế; cân nhắc mức phơi lộ, quyền cần có, độ khó khai thác và kiểm soát đang tồn tại. Ví dụ thang nội bộ 1–5: khả năng 4 và tác động 5 cho điểm 20; đây chỉ là phép sắp xếp thảo luận, **không phải xác suất định lượng hay chuẩn ngành**. Nêu chủ sở hữu rủi ro, người thực thi, thời hạn và trạng thái (giảm thiểu/chuyển giao/tránh/chấp nhận có lý do).
+Estimate **likelihood** and **impact** in real context; consider exposure, required privileges, exploit difficulty, and existing controls. For example, on an internal 1–5 scale: likelihood 4 and impact 5 yields 20; this is merely a prioritization aid for discussion, **not a quantitative probability or industry standard**. Assign a risk owner, implementer, deadline, and status (mitigate/transfer/avoid/accept with justification).
 
-### Bước 6 — Kiểm chứng, lưu vết và cập nhật
+### Step 6 — Verify, Document, and Update
 
-Với mỗi kiểm soát, viết kiểm thử hoặc tiêu chí quan sát: request khác tenant bị từ chối, token giả bị loại, IAM không cho key trái phép, log không chứa bearer token, hạn mức không làm cạn tài nguyên. Lưu artifact mô hình, quyết định và rủi ro còn lại cùng version thiết kế. Cập nhật khi thêm endpoint, nhà cung cấp, cơ chế xác thực, vùng lưu trữ hoặc thay đổi luồng khóa.
+For every control, write tests or observable criteria: cross-tenant requests rejected, forged tokens denied, IAM blocks unauthorized keys, logs contain no bearer tokens, rate limits prevent resource exhaustion. Store the model artifact, decisions, and residual risks alongside the design version. Update whenever adding endpoints, providers, auth mechanisms, storage locations, or changing key flows.
 
-## 6. STRIDE: gợi ý để không bỏ sót lớp đe dọa
+## 6. STRIDE: A Prompt to Avoid Missing Threat Categories
 
-STRIDE có sáu nhóm. Áp chúng lên thành phần và đường dữ liệu **cụ thể**; một thành phần có thể gặp nhiều nhóm, và một threat có thể liên quan nhiều nhóm.
+STRIDE has six categories. Apply them to **concrete** components and data paths; one component can face multiple categories, and one threat can span multiple categories.
 
-| Nhóm | Câu hỏi kiểm tra | Kịch bản ở API tài liệu | Kiểm soát điển hình |
+| Category | Check Question | Scenario in the Document API | Typical Control |
 | --- | --- | --- | --- |
-| **S — Spoofing** (mạo danh) | Ai có thể giả làm người/dịch vụ khác? | Kẻ xấu gửi token giả hoặc giả header `X-User` | Xác minh chữ ký token, issuer, audience, thời hạn; bảo vệ mTLS/identity giữa service; bỏ header không đáng tin |
-| **T — Tampering** (sửa đổi) | Ai thay dữ liệu/lệnh ngoài ý muốn? | Bản mã/metadata bị sửa, tenant ID bị tráo | Kiểm tra ủy quyền và tính toàn vẹn; AEAD khi mã hóa; kiểm soát ghi DB/object |
-| **R — Repudiation** (phủ nhận hành động) | Có truy vết ai đã làm gì không? | Người có quyền tải/xóa tài liệu phủ nhận hành động | Audit theo actor đã xác minh, resource ID, thời điểm; chống sửa log; hạn chế dữ liệu nhạy cảm trong log |
-| **I — Information Disclosure** (tiết lộ) | Ai đọc được thông tin không được phép? | BOLA khiến tải tài liệu của tenant khác; token lọt vào log | Phân quyền cấp đối tượng, tenant isolation, TLS, mã hóa phù hợp, redaction log |
-| **D — Denial of Service** (từ chối dịch vụ) | Ai có thể làm hệ thống cạn tài nguyên? | Spam request giải mã làm hết quota KMS/CPU | Rate limit, quota, timeout, backpressure, kiểm soát tài nguyên, circuit breaker theo nhu cầu |
-| **E — Elevation of Privilege** (leo thang quyền) | Người dùng có thể hành động ngoài vai trò? | Dùng input `role=admin` hoặc service account quá rộng quyền | Quyền từ nguồn đáng tin, kiểm tra server-side cho từng action, IAM tối thiểu, phân tách nhiệm vụ |
+| **S — Spoofing** | Who can impersonate another user/service? | Attacker sends a forged token or spoofs `X-User` header | Verify token signature, issuer, audience, expiration; enforce mTLS/identity between services; strip untrusted headers |
+| **T — Tampering** | Who can alter data/commands unexpectedly? | Ciphertext/metadata modified, tenant ID swapped | Enforce authorization and integrity checks; AEAD for encryption; DB/object write controls |
+| **R — Repudiation** | Can we trace who did what? | An authorized user who downloaded/deleted a document denies the action | Audit with verified actor, resource ID, timestamp; tamper-evident logs; limit sensitive data in logs |
+| **I — Information Disclosure** | Who can read unauthorized info? | BOLA lets user download another tenant's document; tokens leak into logs | Object-level authorization, tenant isolation, TLS, proper encryption, log redaction |
+| **D — Denial of Service** | Who can exhaust system resources? | Spamming decryption requests exhausts KMS/CPU quotas | Rate limits, quotas, timeouts, backpressure, resource limits, circuit breakers as needed |
+| **E — Elevation of Privilege** | Can a user act beyond their role? | Sending `role=admin` in input or overly broad service account | Derive roles from trusted sources, server-side checks per action, least-privilege IAM, separation of duties |
 
-STRIDE là **khung gợi ý**, không đảm bảo phát hiện hết tấn công nghiệp vụ, riêng tư hay chuỗi cung ứng. Với hành vi lạm dụng quy trình, thêm *abuse case*; với đường tấn công nhiều bước, dùng *attack tree*; với yêu cầu về quyền riêng tư, có thể bổ sung LINDDUN. Đừng biến việc điền đủ sáu hàng thành mục tiêu thay cho tìm ra rủi ro có thật.
+STRIDE is a **prompting framework**, not a guarantee of catching all business-logic, privacy, or supply-chain attacks. For workflow abuse, add *abuse cases*; for multi-step attack paths, use *attack trees*; for privacy requirements, supplement with LINDDUN. Do not make filling all six rows the goal instead of uncovering real risks.
 
-## 7. Ví dụ xuyên suốt: tải tài liệu đã mã hóa theo tenant
+## 7. End-to-End Example: Tenant-Scoped Encrypted Document Download
 
-**Bài toán:** Dịch vụ Java lưu tệp dưới dạng bản mã trong object storage; DB lưu metadata gồm `documentId`, `tenantId`, `ownerId` và tham chiếu đối tượng; KMS bảo vệ khóa. Người dùng gửi `GET /api/documents/{id}` để tải tệp. Người dùng hợp lệ **chỉ được xem tài liệu được cấp quyền trong tenant của mình**.
+**Problem:** A Java service stores files as ciphertext in object storage; the DB stores metadata including `documentId`, `tenantId`, `ownerId`, and the object reference; KMS protects keys. Users send `GET /api/documents/{id}` to download files. A valid user is **only permitted to view authorized documents within their own tenant**.
 
-### 7.1 Luồng hợp lệ
+### 7.1 Valid Flow
 
-1. Client gọi API qua HTTPS với thông tin phiên/token.
-2. Thành phần xác thực kiểm tra bằng chứng danh tính; Java API nhận **principal đã xác minh**. Nếu JWT được dùng, phải kiểm tra chữ ký, thuật toán được cho phép, issuer, audience, thời hạn và các claim cần thiết theo giao thức; giải mã chuỗi JWT ra JSON không có nghĩa là đã xác thực.
-3. Server nhận `id` từ URL **như dữ liệu do client kiểm soát**, lấy metadata tài liệu từ kho đáng tin.
-4. Policy kiểm tra cả **tenant**, **quyền trên tài liệu** và **hành động đọc**. Không dùng `ownerId` hoặc `tenantId` do client tự khai làm quyết định quyền.
-5. Chỉ khi policy cho phép, service mới yêu cầu lấy bản mã/giải mã qua KMS theo đặc quyền tối thiểu rồi trả nội dung. Response và log tuân theo chính sách bảo vệ dữ liệu.
+1. Client calls the API over HTTPS with session/token credentials.
+2. The authentication layer verifies identity evidence; the Java API receives a **verified principal**. If JWT is used, validate signature, allowed algorithms, issuer, audience, expiration, and required claims per protocol; decoding a JWT string into JSON does not authenticate it.
+3. Server receives `id` from the URL **as client-controlled input**, fetching document metadata from a trusted store.
+4. Policy checks **tenant**, **document permissions**, and **read action**. Never use client-claimed `ownerId` or `tenantId` for authorization decisions.
+5. Only when policy permits does the service fetch ciphertext/decrypt via KMS under least privilege and return the content. Responses and logs obey data protection policies.
 
-### 7.2 Kịch bản lạm dụng đáng ưu tiên
+### 7.2 High-Priority Abuse Scenarios
 
-| ID | Ranh giới và kịch bản | Tài sản / tác hại | Kiểm soát cần có | Cách xác minh |
+| ID | Boundary & Scenario | Asset / Impact | Required Control | Verification Method |
 | --- | --- | --- | --- | --- |
-| T1 | B1: người đã đăng nhập đổi `id=doc-a` thành `id=doc-b` của người/tenant khác (**BOLA**) | Bí mật của tài liệu bị lộ | Policy theo từng đối tượng, tenant và hành động ở backend; mặc định từ chối | Kiểm thử cùng tenant khác owner, khác tenant, tài liệu không tồn tại; không trả bản rõ |
-| T2 | B1: dùng token giả, hết hạn hoặc sai audience | Mạo danh, truy cập trái phép | Xác minh token đúng chuẩn, không tin header tùy ý từ client | Gửi token thiếu/sai chữ ký, sai issuer/audience, hết hạn và xác nhận từ chối |
-| T3 | B2/B3: tài khoản dịch vụ hoặc IAM role bị chiếm để gọi giải mã rộng khắp | Lộ hàng loạt bản rõ dù storage đã mã hóa | IAM/KMS policy tối thiểu, tách quyền, giới hạn phạm vi key, audit và cảnh báo | Thử một role không được cấp phép gọi decrypt; kiểm tra audit KMS |
-| T4 | API -> storage: sửa bản mã hoặc tráo metadata tenant/đối tượng | Trả dữ liệu sai, mất toàn vẹn | Kiểm soát ghi, ràng buộc bản mã với ngữ cảnh, dùng mã hóa xác thực (AEAD) khi thiết kế yêu cầu | Thử sửa bit bản mã/AAD hoặc thay liên kết đối tượng; giải mã phải thất bại hoặc bị chặn |
-| T5 | B1/B3: spam tải/giải mã, file cực lớn | Gián đoạn API hoặc hết quota KMS | Rate limit, giới hạn kích thước, timeout, quota, backpressure | Load test có giới hạn, đo lỗi và ảnh hưởng lên người dùng hợp lệ |
-| T6 | API -> log/observability: log token, plaintext, URL chứa secret | Rò rỉ dữ liệu qua hệ thống phụ trợ | Redaction, không ghi credential/bản rõ, phân quyền và retention log | Quét log ở tình huống thành công/lỗi; không thấy bearer token hay plaintext |
+| T1 | B1: logged-in user changes `id=doc-a` to `id=doc-b` of another user/tenant (**BOLA**) | Document confidentiality leaked | Per-object, per-tenant, per-action policy on backend; deny by default | Test same-tenant different-owner, cross-tenant, non-existent doc; no plaintext returned |
+| T2 | B1: forged, expired, or wrong-audience token used | Impersonation, unauthorized access | Standard token validation, never trust arbitrary client headers | Send token with missing/bad signature, wrong issuer/audience, expired; verify rejection |
+| T3 | B2/B3: compromised service account or IAM role calls decrypt broadly | Mass plaintext leak despite encrypted storage | Least-privilege IAM/KMS policies, separation of duties, key scoping, audit & alerts | Attempt decrypt with unauthorized role; check KMS audit logs |
+| T4 | API -> storage: ciphertext modified or tenant/object metadata swapped | Wrong data returned, integrity loss | Write controls, binding ciphertext to context, AEAD when required by design | Flip bits in ciphertext/AAD or swap object links; decryption must fail or be blocked |
+| T5 | B1/B3: download/decrypt spam, oversized files | API outage or KMS quota exhaustion | Rate limits, size caps, timeouts, quotas, backpressure | Bounded load tests, measure errors and impact on legitimate users |
+| T6 | API -> log/observability: logging tokens, plaintext, URLs with secrets | Data leakage via auxiliary systems | Redaction, never log credentials/plaintext, log access control & retention | Scan logs across success/error paths; no bearer tokens or plaintext present |
 
-**Phân tích T1 theo chuỗi nguyên nhân:**
+**Root-cause analysis of T1:**
 
-- **Tiền điều kiện:** Alice có tài khoản hợp lệ và biết/đoán được ID của tài liệu Bob. ID là tham số đầu vào, dù là UUID ngẫu nhiên vẫn có thể bị lộ qua log, link hoặc API khác.
-- **Điểm vượt ranh giới:** client gửi `id`; API dùng ID đó để đọc metadata và giải mã bằng quyền của server.
-- **Lỗi thiết kế có thể có:** API kiểm tra “đã login” rồi gọi `decrypt(documentId)`, không kiểm tra Alice có quyền trên tài liệu này.
-- **Hậu quả:** tài liệu của Bob bị tiết lộ. **TLS không ngăn được** vì request được gửi qua kênh hợp lệ; **mã hóa storage không ngăn được** vì chính server có quyền giải mã.
-- **Sửa đúng chỗ:** backend ra quyết định quyền theo principal đã xác minh và metadata/policy tin cậy **trước mọi thao tác lấy bản rõ**; deny by default; kiểm thử chéo người dùng và tenant.
+- **Precondition:** Alice has a valid account and knows/guesses Bob's document ID. The ID is an input parameter; even a random UUID can leak via logs, links, or other APIs.
+- **Boundary crossing:** client sends `id`; the API uses that ID to fetch metadata and decrypt using the server's privileges.
+- **Likely design flaw:** the API checks "is logged in" then calls `decrypt(documentId)`, skipping whether Alice has permission for this document.
+- **Consequence:** Bob's document is disclosed. **TLS does not stop it** because the request arrives over a valid channel; **storage encryption does not stop it** because the server itself holds decrypt permission.
+- **Fixing at the right layer:** the backend evaluates authorization against the verified principal and trusted metadata/policy **before any plaintext retrieval**; deny by default; test across users and tenants.
 
-Đây là nhóm **Broken Object Level Authorization (API1:2023)** trong OWASP API Security Top 10. Đổi ID tuần tự sang UUID hoặc chỉ che nút tải trên UI không giải quyết được gốc rễ.
+This falls under **Broken Object Level Authorization (API1:2023)** in the OWASP API Security Top 10. Switching sequential IDs to UUIDs or merely hiding the download button in the UI does not fix the root cause.
 
-### 7.3 Biên giới mật mã và quản lý khóa
+### 7.3 Cryptographic and Key Management Boundaries
 
-Mật mã chỉ có ý nghĩa khi trả lời chính xác **bảo vệ tài sản nào trước tác nhân nào**:
+Cryptography only makes sense when it explicitly answers **which asset is protected against which threat actor**:
 
-- **TLS** bảo vệ kênh truyền đến điểm kết thúc TLS và xác thực endpoint theo cấu hình; TLS không xác định người dùng có quyền đọc tài liệu hay không. Khi TLS kết thúc tại proxy, vẽ lại đường đi proxy -> service.
-- **Mã hóa dữ liệu lưu trữ** hỗ trợ bảo mật bản rõ nếu storage/bản sao lưu bị đọc trái phép. Nếu tiến trình có quyền giải mã bị chiếm, mối đe dọa chuyển sang quyền sử dụng khóa và đường xuất bản rõ.
-- **Mã hóa xác thực** như AES-GCM có thể phát hiện bản mã/AAD bị sửa khi dùng đúng; với cùng một khóa, không tái sử dụng nonce/IV và cần lưu/đưa đúng AAD khi giải mã. AEAD không tự làm kiểm tra ủy quyền.
-- **Chữ ký số/MAC** hỗ trợ xác minh nguồn và tính toàn vẹn theo giả định khóa/chứng chỉ được quản lý đúng; chúng không tự mã hóa nội dung để giữ bí mật.
-- **Hash mật khẩu** khác mã hóa đảo ngược: dùng cơ chế password hashing có salt và cost phù hợp (ví dụ Argon2id theo chính sách) thay vì lưu mật khẩu bằng AES hay SHA-256 đơn thuần.
-- **Khóa và secret** cần lưu giữ, phân quyền, rotation và audit riêng. Tránh nhúng khóa trong mã nguồn, image build, stack trace hoặc log; hạn chế quyền decrypt hơn cả quyền đọc bản mã.
+- **TLS** protects the channel up to the TLS termination point and authenticates endpoints per configuration; TLS does not determine whether a user is allowed to read a document. When TLS terminates at a proxy, map the proxy -> service path separately.
+- **Data-at-rest encryption** helps protect plaintext confidentiality if storage/backups are read without authorization. If the process holding decryption permission is compromised, the threat shifts to key usage permissions and plaintext output paths.
+- **Authenticated encryption** like AES-GCM can detect ciphertext/AAD tampering when used properly; never reuse a nonce/IV with the same key, and store/supply the exact AAD during decryption. AEAD does not perform authorization checks.
+- **Digital signatures/MACs** help verify origin and integrity assuming keys/certificates are managed properly; they do not encrypt content for confidentiality.
+- **Password hashing** differs from reversible encryption: use a password hashing mechanism with appropriate salt and cost (e.g., Argon2id per policy) rather than storing passwords with AES or plain SHA-256.
+- **Keys and secrets** require separate storage, access control, rotation, and auditing. Avoid embedding keys in source code, build images, stack traces, or logs; restrict decrypt permissions even more strictly than ciphertext read permissions.
 
-Một kiểm soát có thể giảm một loại đe dọa nhưng để nguyên loại khác. Mô hình đe dọa tốt ghi rõ **điều kiện kiểm soát đúng**, vị trí kiểm chứng và rủi ro còn lại.
+One control may mitigate one threat while leaving another intact. A good threat model states **conditions for the control to hold**, where to verify it, and residual risk.
 
-## 8. Ví dụ Java 17: kiểm tra quyền trước khi chạm bản rõ
+## 8. Java 17 Example: Checking Authorization Before Touching Plaintext
 
-Đoạn sau chỉ minh họa **quy tắc phân quyền đơn giản theo chủ sở hữu và tenant**. Nó không kết nối mạng/DB/KMS, không xác thực token và không mã hóa thật. Trong ứng dụng thực tế, `Principal` phải được tạo từ **ngữ cảnh xác thực đã kiểm chứng**, còn `Document` phải đến từ nguồn metadata tin cậy.
+The snippet below illustrates only **a simple owner-and-tenant authorization rule**. It does not connect to networks/DB/KMS, validate tokens, or perform real encryption. In a real application, `Principal` must come from a **verified authentication context**, and `Document` must come from a trusted metadata source.
 
-Lưu thành `TrustBoundaryDemo.java`:
+Save as `TrustBoundaryDemo.java`:
 
 ```java
 import java.util.Objects;
@@ -230,14 +230,14 @@ public class TrustBoundaryDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac TrustBoundaryDemo.java
 java TrustBoundaryDemo
 ```
 
-Kết quả stdout chính xác:
+Exact stdout output:
 
 ```text
 true
@@ -245,71 +245,71 @@ false
 false
 ```
 
-Hàng đầu cho phép Alice đọc tài liệu của mình. Hàng thứ hai từ chối tài liệu của Bob trong cùng tenant; hàng thứ ba từ chối tài liệu có cùng owner ID nhưng thuộc tenant khác. **Chỉ so sánh user ID mà bỏ qua tenant là thiếu**, cũng như chỉ so sánh tenant mà không kiểm tra quyền trên từng tài liệu.
+The first line allows Alice to read her own document. The second line denies Bob's document in the same tenant; the third line denies a document with the same owner ID in a different tenant. **Comparing only user ID while ignoring tenant is incomplete**, just as comparing only tenant without per-document authorization is incomplete.
 
-Trong hệ thống thật, thay `canRead` bằng policy phù hợp (owner, chia sẻ có kiểm soát, vai trò, điều kiện thời gian, quyền hành động). Hàm nên trả **deny** khi metadata thiếu hoặc danh tính chưa xác minh. Thứ tự quan trọng là: **xác thực -> nạp thông tin đáng tin -> phân quyền tài nguyên -> truy xuất/giải mã -> trả dữ liệu**. Cách trả 403/404 và thông tin log phải theo chính sách tránh lộ sự tồn tại tài nguyên, không biến thông báo lỗi thành kênh rò rỉ.
+In a real system, replace `canRead` with the appropriate policy (owner, controlled sharing, roles, time conditions, action permissions). The function should return **deny** when metadata is missing or identity is unverified. Order matters: **authenticate -> load trusted metadata -> authorize resource -> fetch/decrypt -> return data**. Whether to return 403/404 and what to log must follow a policy that avoids leaking resource existence and never turns error messages into a leak channel.
 
-### Chuyển mô hình thành phép kiểm thử
+### Turning the Model into Tests
 
-Đối với API thật, ít nhất phải có các ca:
+For a real API, include at least these cases:
 
-1. User được cấp quyền, đúng tenant, đúng tài liệu: được tải và nội dung chính xác.
-2. User khác cùng tenant nhưng chưa được cấp quyền: bị từ chối; service không gọi KMS/decrypt.
-3. User có cùng tên/ID trong tenant khác: bị từ chối; truy vấn metadata luôn ràng buộc tenant theo chính sách.
-4. Token sai chữ ký, sai audience, hết hạn, hoặc không có token: thất bại trước khi truy xuất nội dung.
-5. Request chứa `ownerId`, `tenantId` hoặc `role` giả trong body/header: không thay đổi quyết định quyền.
-6. Role dịch vụ chỉ được phép dùng một khóa: yêu cầu giải mã bằng khóa ngoài phạm vi bị từ chối, có audit.
-7. Bản mã/AAD bị can thiệp, log lỗi, retry hoặc lượng request vượt quota: xử lý an toàn, không trả bản rõ sai hay rò secret.
+1. Authorized user, matching tenant, matching document: download succeeds with exact content.
+2. Different user in the same tenant without permission: denied; service does not call KMS/decrypt.
+3. User with identical name/ID in another tenant: denied; metadata queries always bind tenant per policy.
+4. Token with invalid signature, wrong audience, expired, or missing: fails before content retrieval.
+5. Request carrying forged `ownerId`, `tenantId`, or `role` in body/header: does not alter authorization decision.
+6. Service role restricted to a specific key: decrypt request with an out-of-scope key is denied and audited.
+7. Tampered ciphertext/AAD, error logs, retries, or quota-exceeding traffic: handled safely without returning corrupted plaintext or leaking secrets.
 
-Cần có cả kiểm thử unit policy, integration cho boundary API/DB/KMS (môi trường kiểm thử an toàn), và kiểm tra cấu hình IAM thực tế. Test chạy qua không thay thế rà soát giả định và thay đổi kiến trúc.
+Include unit policy tests, integration tests across API/DB/KMS boundaries (in a safe test environment), and real IAM configuration checks. Passing tests do not replace reviewing assumptions and architectural changes.
 
-## 9. Ghi nhận quyết định, mức ưu tiên và rủi ro còn lại
+## 9. Recording Decisions, Priorities, and Residual Risk
 
-Một bản ghi threat tối thiểu nên có:
+A minimal threat record should include:
 
-| Trường | Nội dung mẫu |
+| Field | Sample Content |
 | --- | --- |
-| `ID` / phạm vi | `T1` — `GET /api/documents/{id}` |
-| Tài sản, mục tiêu | Bản rõ hợp đồng; chỉ owner/được chia sẻ trong đúng tenant mới đọc |
-| Tác nhân và tiền điều kiện | User hợp lệ có thể gửi ID của tài liệu khác |
-| Ranh giới/đường tấn công | Client -> Java API -> metadata -> KMS/decrypt |
-| Hậu quả | Lộ nội dung tài liệu trái phép |
-| Đánh giá trước kiểm soát | Khả năng 4/5 x tác động 5/5 = 20/25 (ví dụ nội bộ) |
-| Kiểm soát và vị trí | Policy kiểm tra tenant, action và quyền object ở backend, trước decrypt |
-| Bằng chứng | Test chéo tenant/user, audit request bị từ chối, không gọi KMS |
-| Owner, trạng thái | Nhóm sở hữu API; đang triển khai/đã kiểm chứng; ngày đánh giá |
-| Rủi ro còn lại | Token hợp lệ bị đánh cắp vẫn có thể truy cập tài liệu trong quyền được cấp; cân nhắc session control, MFA và phát hiện bất thường |
+| `ID` / scope | `T1` — `GET /api/documents/{id}` |
+| Asset, goal | Contract plaintext; only owner/shared users in the right tenant can read |
+| Actor and precondition | Valid user can submit another document's ID |
+| Boundary/attack path | Client -> Java API -> metadata -> KMS/decrypt |
+| Consequence | Unauthorized disclosure of document content |
+| Pre-control rating | Likelihood 4/5 x Impact 5/5 = 20/25 (internal example) |
+| Control and location | Policy checking tenant, action, and object permission in backend, before decrypt |
+| Evidence | Cross-tenant/cross-user tests, denied request audits, no KMS call |
+| Owner, status | API owning team; implementing/verified; review date |
+| Residual risk | A stolen valid token can still access permitted documents; consider session controls, MFA, and anomaly detection |
 
-Không cộng trừ điểm một cách máy móc: các thang số không mô tả đầy đủ mức phơi lộ, tác động pháp lý, mục tiêu của attacker hoặc tương quan giữa nhiều đe dọa. Nếu rủi ro được chấp nhận, cần người chịu trách nhiệm, lý do, thời hạn xem xét lại và tiêu chí mở lại đánh giá.
+Do not add or subtract scores mechanically: numeric scales do not fully capture exposure, legal impact, attacker motivation, or correlations across threats. If risk is accepted, record the accountable owner, rationale, review deadline, and re-evaluation criteria.
 
-**Khi nào cập nhật mô hình?** Khi thêm luồng dữ liệu (webhook, export, analytics), dữ liệu nhạy cảm, tenant mới, thay đổi quyền IAM, phương thức xác thực, thư viện mật mã, vị trí TLS termination, logic chia sẻ đối tượng hoặc công đoạn backup/restore. Mô hình là tài liệu sống gắn với thiết kế, code review và kiểm thử.
+**When to update the model?** Whenever adding data flows (webhooks, exports, analytics), sensitive data, new tenants, IAM permission changes, authentication methods, crypto libraries, TLS termination points, object sharing logic, or backup/restore steps. The model is a living document tied to design, code review, and testing.
 
-## 10. Các lỗi tư duy thường gặp
+## 10. Common Thinking Traps
 
-- **“Đã dùng HTTPS nên an toàn.”** HTTPS bảo vệ kênh đến điểm TLS termination; request của người có quyền thấp vẫn có thể làm lộ dữ liệu nếu thiếu authorization.
-- **“Đã mã hóa DB, kể cả admin/service bị chiếm cũng không đọc được.”** Phải xem ai có quyền decrypt và bản rõ xuất hiện ở đâu. Mã hóa không thay thế kiểm soát truy cập và phân tách quyền.
-- **“Đã xác thực JWT thì mọi object ID do người dùng gửi đều đáng tin.”** Token xác thực người gọi; mỗi object/action cần kiểm tra quyền độc lập.
-- **“UUID đủ ngẫu nhiên nên không cần policy.”** Khó đoán ID không phải ranh giới bảo vệ: ID có thể lộ hoặc được chia sẻ ngoài ý muốn.
-- **“Trong cùng private network thì không có ranh giới.”** Các service/role có đặc quyền và đường dữ liệu khác nhau; tài khoản bị chiếm vẫn gây hại.
-- **“Có đủ sáu ô STRIDE là xong.”** STRIDE chỉ là checklist tìm ý tưởng; cần kịch bản cụ thể, tác động, owner, kiểm soát và kiểm chứng.
-- **“Threat = bug đã xảy ra.”** Threat là điều có thể sai; cần tách giả định, điểm yếu đã xác minh và rủi ro chưa được xử lý.
-- **“Log càng nhiều càng tốt.”** Log có thể biến thành tài sản nhạy cảm, đặc biệt nếu chứa bản rõ, token, khóa hoặc dữ liệu cá nhân.
-- **“Mã hóa xác thực tự đảm bảo dữ liệu thuộc đúng user.”** AEAD bảo vệ toàn vẹn trong ngữ cảnh khóa/AAD được chọn; việc user có quyền với object vẫn do authorization quyết định.
+- **"We use HTTPS, so it's secure."** HTTPS protects the channel up to TLS termination; requests from low-privilege users can still leak data if authorization is missing.
+- **"The DB is encrypted, so even a compromised admin/service can't read it."** Check who holds decrypt permission and where plaintext appears. Encryption does not replace access control and privilege separation.
+- **"The JWT is verified, so all user-sent object IDs are trustworthy."** A token authenticates the caller; every object/action needs independent authorization.
+- **"UUIDs are random enough, so no policy is needed."** Hard-to-guess IDs are not a security boundary: IDs can leak or be shared unintentionally.
+- **"Inside the same private network, there are no boundaries."** Services/roles have different privileges and data paths; compromised accounts still cause harm.
+- **"Filling all six STRIDE boxes means we're done."** STRIDE is only an idea-generation checklist; you need concrete scenarios, impacts, owners, controls, and verification.
+- **"Threat = an existing bug."** A threat is what could go wrong; separate assumptions, verified weaknesses, and unhandled risks.
+- **"Log as much as possible."** Logs can turn into sensitive assets, especially if they contain plaintext, tokens, keys, or personal data.
+- **"Authenticated encryption automatically ensures the data belongs to the right user."** AEAD protects integrity within the chosen key/AAD context; whether a user has rights to an object is decided by authorization.
 
-## 11. Bài luyện tập áp dụng
+## 11. Practice Exercise
 
-Một dịch vụ Spring/Java nhận webhook từ đối tác, ghi sự kiện vào queue, worker cập nhật trạng thái thanh toán trong DB, và API cho người dùng xem lịch sử. Hãy tự tạo một trang threat model:
+A Spring/Java service receives webhooks from a partner, writes events to a queue, a worker updates payment status in a DB, and an API lets users view history. Create a one-page threat model:
 
-1. Liệt kê ít nhất sáu tài sản: trạng thái/tham chiếu thanh toán, danh tính người dùng, khóa bí mật xác thực webhook, message ID, quyền cập nhật DB, audit log.
-2. Vẽ ranh giới **đối tác -> webhook**, **API -> queue**, **worker -> DB**, **người dùng -> API đọc**, và đánh dấu ai xác thực ai.
-3. Viết ít nhất năm kịch bản: webhook giả, phát lại webhook hợp lệ, sửa tenant/order ID trong payload, tiêu thụ queue lặp gây cập nhật sai, người dùng đọc giao dịch của người khác, hoặc queue bị quá tải.
-4. Với mỗi kịch bản, ghi tiền điều kiện, tài sản bị ảnh hưởng, kiểm soát dự kiến và một test chứng minh. Ví dụ chống replay có thể cần xác thực nguồn, thời gian có giới hạn **và** idempotency theo event ID ở phía tiêu thụ; chỉ có HTTPS chưa đủ.
-5. Ghi một giả định còn phải xác minh (ví dụ “đối tác có cơ chế ký webhook”) và một rủi ro còn lại sau kiểm soát.
+1. List at least six assets: payment status/reference, user identity, webhook verification secret, message ID, DB update privilege, audit logs.
+2. Draw boundaries **partner -> webhook**, **API -> queue**, **worker -> DB**, **user -> read API**, and mark who authenticates whom.
+3. Write at least five scenarios: forged webhook, replayed valid webhook, modified tenant/order ID in payload, duplicate queue consumption causing wrong updates, user reading another user's transactions, or queue overload.
+4. For each scenario, document precondition, affected asset, expected control, and one proving test. For instance, anti-replay may require origin authentication, bounded timestamps **and** event-ID idempotency on the consumer side; HTTPS alone is not enough.
+5. Record one unverified assumption (e.g., "the partner supports webhook signing") and one residual risk after controls.
 
-**Tiêu chí hoàn thành:** người khác đọc artifact có thể tìm đúng điểm vượt ranh giới, thấy rõ đường từ dữ liệu không tin cậy tới quyền cao, biết tại đâu kiểm tra nó và cách xác nhận kết quả — không cần suy diễn “service này chắc đã an toàn”.
+**Completion criteria:** someone reading the artifact can pinpoint every boundary crossing, trace the path from untrusted data to high privilege, see where it is checked, and know how to verify the outcome — without assuming "this service is probably safe."
 
-## Tài liệu tham khảo
+## References
 
-- [OWASP — Threat Modeling Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html): quy trình xây dựng mô hình, DFD, STRIDE, kiểm soát và review.
-- [OWASP — API1:2023 Broken Object Level Authorization](https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/): ví dụ lỗi phân quyền từng đối tượng.
-- [OWASP — Threat Modeling trong DevSecOps Guideline](https://owasp.github.io/DevSecOpsGuideline/2-Process/2-1-Design/2-1-1-Threat-modeling/): ví dụ DFD, ranh giới tin cậy và STRIDE.
+- [OWASP — Threat Modeling Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html): modeling process, DFDs, STRIDE, controls, and reviews.
+- [OWASP — API1:2023 Broken Object Level Authorization](https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/): examples of object-level authorization flaws.
+- [OWASP — Threat Modeling in DevSecOps Guideline](https://owasp.github.io/DevSecOpsGuideline/2-Process/2-1-Design/2-1-1-Threat-modeling/): DFD, trust boundary, and STRIDE examples.

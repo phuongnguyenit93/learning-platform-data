@@ -1,91 +1,91 @@
-# 22.3 Tái hiện deadlock rồi dựng vòng chờ từ nhiều nguồn bằng chứng
+# 22.3 Reproducing a Deadlock and Building a Wait-For Graph from Multiple Evidence Sources
 
-## Mục tiêu
+## Objective
 
-**Deadlock** là tình trạng một nhóm luồng không thể tiến triển vì mỗi luồng đang chờ tài nguyên do luồng khác trong chính nhóm giữ, tạo thành một **chu trình quan hệ chờ**. Trong Java, một ví dụ dễ kiểm chứng là hai platform threads giữ hai monitor theo thứ tự ngược nhau.
+A **deadlock** is a state where a group of threads cannot make progress because each thread is waiting for a resource held by another thread in the same group, forming a **circular wait relationship**. In Java, an easily verifiable example is two platform threads acquiring two monitors in opposite orders.
 
-Bài thực hành này hướng dẫn:
+This practice lab walks through:
 
-1. **Tái hiện deadlock có chủ đích, có thể lặp lại** với synchronized, hai object locks và CountDownLatch; không chỉ tăng xác suất bằng Thread.sleep.
-2. Đọc **ThreadMXBean.findMonitorDeadlockedThreads()**, **findDeadlockedThreads()**, **ThreadInfo.getLockOwnerName()**, trạng thái và các monitors đang giữ.
-3. Thu **jcmd PID Thread.print -l** hoặc **jstack -l**, ghép các dòng waiting-to-lock/locked theo cùng monitor identity và đối chiếu owner từ MXBean.
-4. Ghi **JFR custom events** mô tả mốc trước khi BLOCKED, đọc summary/metadata/print và hiểu vì sao một sự kiện jdk.JavaMonitorEnter của lần chờ vô hạn có thể không nằm trong recording.
-5. Xây **wait-for graph** có hướng, xác minh cạnh A → B và B → A rồi tìm cycle.
-6. Sửa lỗi bằng **global lock order**, kiểm chứng bằng regression test phù hợp và phân biệt monitor deadlock với contention, starvation, sleep/park, I/O stall, distributed deadlock.
+1. **Intentionally and reproducibly triggering a deadlock** with `synchronized`, two object locks, and `CountDownLatch`; rather than merely nudging probability with `Thread.sleep`.
+2. Reading **`ThreadMXBean.findMonitorDeadlockedThreads()`**, **`findDeadlockedThreads()`**, **`ThreadInfo.getLockOwnerName()`**, thread states, and held monitors.
+3. Capturing **`jcmd PID Thread.print -l`** or **`jstack -l`**, matching `waiting to lock`/`locked` lines by identical monitor identity, and cross-checking the owner from MXBean.
+4. Recording **JFR custom events** marking points before entering BLOCKED, reading summary/metadata/print, and understanding why an infinite-wait `jdk.JavaMonitorEnter` event may be absent from the recording.
+5. Building a directed **wait-for graph**, verifying edges A → B and B → A, and detecting the cycle.
+6. Fixing the bug via **global lock ordering**, verifying with an appropriate regression test, and distinguishing monitor deadlock from contention, starvation, sleep/park, I/O stalls, and distributed deadlocks.
 
-**An toàn:** mã đầu tiên cố tình làm hai threads kẹt vĩnh viễn. Chỉ chạy ở môi trường lab được phép, không chạy trong dịch vụ production; không sử dụng Thread.stop hay kill -9 để “kiểm thử” ứng dụng thật.
+**Safety:** the first program intentionally leaves two threads stuck permanently. Run it only in an authorized lab environment, never in a production service; never use `Thread.stop` or `kill -9` to "test" a live application.
 
-## 1. Vòng chờ xuất hiện như thế nào?
+## 1. How Does a Wait Cycle Form?
 
-Giả sử hai shared objects có monitors đặt tên dễ đọc là LEFT và RIGHT.
+Suppose two shared objects have monitors given readable names LEFT and RIGHT.
 
 ~~~text
 worker-A                      worker-B
 --------                      --------
 synchronized(LEFT)            synchronized(RIGHT)
-  đang giữ LEFT                 đang giữ RIGHT
+  holds LEFT                    holds RIGHT
         |                             |
-  yêu cầu RIGHT                 yêu cầu LEFT
+  requests RIGHT                requests LEFT
         |                             |
-  B đang giữ RIGHT              A đang giữ LEFT
+  B holds RIGHT                 A holds LEFT
         |                             |
-        +----------- chu trình ------+
+        +----------- cycle -----------+
 ~~~
 
-Hai mức biểu diễn:
+Two levels of representation:
 
 ~~~text
-Đồ thị tài nguyên:
+Resource graph:
   worker-A --> RIGHT --> worker-B --> LEFT --> worker-A
 
-Đồ thị wait-for chỉ gồm threads:
+Thread-only wait-for graph:
   worker-A --> worker-B
   worker-B --> worker-A
 ~~~
 
-Quy ước **T → U** nghĩa là T đang chờ một lock do U giữ. Hai cạnh đối nghịch tạo chu trình; Java monitor chỉ thuộc một thread ở một thời điểm nên cả hai không thể lấy được lock tiếp theo và tự hoàn tất.
+By convention, **T → U** means T is waiting for a lock held by U. Two opposing edges create a cycle; a Java monitor belongs to only one thread at a time, so neither thread can acquire the next lock and complete on its own.
 
-### Bốn điều kiện cần hiểu
+### Four Conditions to Understand
 
-- **Mutual exclusion:** monitor không được sở hữu đồng thời bởi hai threads.
-- **Hold and wait:** mỗi thread giữ một lock trong lúc chờ lock khác.
-- **No preemption:** không có cơ chế an toàn tự cướp monitor từ thread chủ sở hữu.
-- **Circular wait:** A chờ B và B chờ A.
+- **Mutual exclusion:** a monitor cannot be owned simultaneously by two threads.
+- **Hold and wait:** each thread holds one lock while waiting for another lock.
+- **No preemption:** there is no safe mechanism to forcibly take a monitor away from its owning thread.
+- **Circular wait:** A waits for B and B waits for A.
 
-Một thread đang **BLOCKED** chưa đủ kết luận deadlock: có thể nó chỉ đang chờ một thread khác làm việc xong. Phải chứng minh **vòng chờ khép kín** hoặc có bằng chứng deadlock tương đương.
+A single **BLOCKED** thread does not prove a deadlock: it may simply be waiting for another thread to finish work. You must prove a **closed wait cycle** or equivalent deadlock evidence.
 
-**Synchronized không có timed try-acquire** như ReentrantLock.tryLock(timeout,...). Khi worker bị BLOCKED ở entry của intrinsic monitor, interrupt thông thường không khiến nó nhả monitor hay hủy lệnh lấy lock.
+**`synchronized` has no timed try-acquire** like `ReentrantLock.tryLock(timeout,...)`. When a worker is BLOCKED trying to enter an intrinsic monitor, a regular interrupt does not make it release its held monitor or cancel the lock acquisition.
 
-## 2. Những bằng chứng cần lấy
+## 2. Evidence to Collect
 
-| Nguồn | Câu hỏi có thể trả lời | Giới hạn |
+| Source | Questions It Can Answer | Limitations |
 | --- | --- | --- |
-| **Source code** | Thứ tự lấy locks nào có thể tạo vòng? | Code cho khả năng, chưa chứng minh trạng thái runtime |
-| **ThreadMXBean** | Thread nào BLOCKED, chờ lock nào, owner là ai? Có monitor cycle không? | Chủ yếu platform threads và các resource kinds JVM hỗ trợ |
-| **jcmd Thread.print -l** | Stack, trạng thái, waiting-to-lock identity và locked identity ở thời điểm chụp? | Snapshot có thể tốn thời gian, format theo JVM/JDK |
-| **JFR custom event** | A/B đã giữ lock đầu và thử lock thứ hai khi nào? | Mốc ứng dụng, chưa phải lời chứng độc lập về owner hiện tại |
-| **JFR built-in events** | Có contention/park/wait trước sự cố? | Event settings, threshold và event đang chờ chưa kết thúc |
-| **OS/JVM metrics** | Đúng PID? process còn sống? CPU/threads thay đổi? | OS không tự giải mã Java monitor ownership |
+| **Source code** | Which lock acquisition orders could form a cycle? | Code shows possibility, does not prove runtime state |
+| **ThreadMXBean** | Which threads are BLOCKED, waiting on which lock, who is the owner? Is there a monitor cycle? | Mainly platform threads and resource kinds supported by the JVM |
+| **jcmd Thread.print -l** | Stack, state, waiting-to-lock identity, and locked identity at capture time? | Snapshots can add latency; format varies by JVM/JDK |
+| **JFR custom event** | When did A/B hold the first lock and attempt the second lock? | Application milestones, not independent proof of current owner |
+| **JFR built-in events** | Was there contention/park/wait before the incident? | Subject to event settings, thresholds, and incomplete ongoing waits |
+| **OS/JVM metrics** | Right PID? Is the process alive? Did CPU/threads change? | OS does not decode Java monitor ownership by itself |
 
-Không phải càng nhiều file thì càng đúng. **Thread dump và ThreadMXBean** chứng minh owner graph; **JFR** chứng minh timeline dẫn đến trạng thái đó; **source code** giải thích tại sao trình tự tạo vòng chờ.
+More files do not automatically mean more truth. **Thread dumps and ThreadMXBean** prove the owner graph; **JFR** proves the timeline leading into that state; **source code** explains why that sequence creates a wait cycle.
 
-## 3. Vì sao dùng CountDownLatch thay Thread.sleep?
+## 3. Why Use CountDownLatch Instead of Thread.sleep?
 
-Một ví dụ ngây thơ dùng Thread.sleep để hy vọng hai threads giữ lock đầu trong cùng thời điểm có thể **không bao giờ tái hiện** deadlock dưới scheduler khác.
+A naive example using `Thread.sleep` hoping both threads hold their first lock at the same instant might **never reproduce** the deadlock under another scheduler.
 
-Chúng ta dùng hai CountDownLatch:
+We use two `CountDownLatch` instances:
 
-1. Worker A vào synchronized(LEFT), đánh dấu A đã sở hữu LEFT và mở latch A.
-2. Worker B vào synchronized(RIGHT), đánh dấu B đã sở hữu RIGHT và mở latch B.
-3. A chỉ được thử synchronized(RIGHT) sau khi biết B đã giữ RIGHT.
-4. B chỉ được thử synchronized(LEFT) sau khi biết A đã giữ LEFT.
-5. Cả hai vẫn **giữ lock thứ nhất** trong lúc chờ/thử lock thứ hai, nên vòng chờ sẽ hình thành.
+1. Worker A enters `synchronized(LEFT)`, records that A owns LEFT, and opens latch A.
+2. Worker B enters `synchronized(RIGHT)`, records that B owns RIGHT, and opens latch B.
+3. A is allowed to try `synchronized(RIGHT)` only after knowing B already holds RIGHT.
+4. B is allowed to try `synchronized(LEFT)` only after knowing A already holds LEFT.
+5. Both continue **holding their first lock** while waiting/attempting the second lock, so the wait cycle reliably forms.
 
-Trong giai đoạn chờ latch, threads có thể hiện trạng thái **WAITING**. Sau khi cả hai latches đã mở và chúng tranh lock thứ hai, chúng chuyển sang **BLOCKED (on object monitor)**. Cần chọn đúng thời điểm thu thread dump.
+While waiting on the latches, threads may show state **WAITING**. Once both latches open and they contend for the second lock, they transition to **BLOCKED (on object monitor)**. Pick the right moment to capture the thread dump.
 
-## 4. Chương trình Java 17+ độc lập: DeadlockEvidenceLab.java
+## 4. Standalone Java 17+ Program: DeadlockEvidenceLab.java
 
-Chương trình tạo monitor deadlock, ghi custom JFR events **lab.LockMilestone**, phát hiện cycle bằng ThreadMXBean, xuất file **deadlock-evidence.jfr** và giữ JVM còn sống khoảng 120 giây để thu thread dump từ terminal khác.
+The program creates a monitor deadlock, records custom JFR events **lab.LockMilestone**, detects the cycle with `ThreadMXBean`, exports **deadlock-evidence.jfr**, and keeps the JVM alive for about 120 seconds so you can take a thread dump from another terminal.
 
 ~~~java
 import java.lang.management.ManagementFactory;
@@ -153,13 +153,13 @@ public final class DeadlockEvidenceLab {
 
                 emit(name, "TRY_SECOND", secondName);
                 synchronized (second) {
-                    // Deadlock có chủ đích: không tới đoạn này.
+                    // Intentional deadlock: execution will not reach here.
                     emit(name, "ACQUIRED_SECOND", secondName);
                 }
             }
         }, name);
 
-        // Chỉ để main có thể kết thúc sau khoảng lab:
+        // Only so main can exit after the lab window:
         worker.setDaemon(true);
         worker.start();
     }
@@ -179,8 +179,8 @@ public final class DeadlockEvidenceLab {
                     ManagementFactory.getThreadMXBean();
             long[] ids = null;
 
-            // Lab: tối đa khoảng 5 giây để kiểm tra cycle.
-            // Không polling dày kiểu này ở production.
+            // Lab: wait up to ~5 seconds to check for the cycle.
+            // Do not poll this tightly in production.
             for (int attempt = 0; attempt < 100; attempt++) {
                 ids = bean.findMonitorDeadlockedThreads();
                 if (ids != null && ids.length == 2) {
@@ -220,68 +220,68 @@ public final class DeadlockEvidenceLab {
 }
 ~~~
 
-**Biên dịch và chạy** bằng JDK 17+ HotSpot/OpenJDK có module jdk.jfr:
+**Compile and run** on JDK 17+ HotSpot/OpenJDK with the `jdk.jfr` module:
 
 ~~~bash
 javac --add-modules java.management,jdk.jfr DeadlockEvidenceLab.java
 java --add-modules java.management,jdk.jfr DeadlockEvidenceLab
 ~~~
 
-**Các dòng do chương trình in khi chạy thành công** (PID thay đổi theo lần chạy):
+**Lines printed by the program on a successful run** (PID changes per run):
 
 ~~~text
 Deadlocked threads: 2
 worker-A -> worker-B (BLOCKED)
 worker-B -> worker-A (BLOCKED)
 JFR saved: deadlock-evidence.jfr
-PID: <PID thực tế>
+PID: <actual PID>
 Snapshot window: 120 seconds
 ~~~
 
-**<PID thực tế> là placeholder minh họa**, không phải literal output của Java. Ngoài PID, cấu trúc hai cạnh và thứ tự hai dòng được ổn định nhờ sort theo thread name. Kết quả JFR thật có timestamps và event order tùy scheduler.
+**`<actual PID>` is an illustrative placeholder**, not literal Java output. Aside from the PID, the two edges and order of those two lines are deterministic because they are sorted by thread name. Actual JFR output has scheduler-dependent timestamps and event ordering.
 
-Nếu JFR không được hỗ trợ trong runtime, không ghi được file, hoặc thread detector báo lỗi quyền/VM capabilities thì ví dụ có thể ném exception; phải sửa môi trường thay vì coi đây là “không có deadlock”.
+If JFR is unsupported in the runtime, the file cannot be written, or the thread detector hits permission/VM capability errors, the example may throw an exception; fix the environment rather than treating this as "no deadlock".
 
-### Chú thích các điểm quan trọng
+### Notes on Key Points
 
-- **CountDownLatch** bảo đảm cả hai thread đã vào lock thứ nhất trước khi thử lấy lock thứ hai; không có sleep giả để “hy vọng đúng timing”.
-- **ThreadMXBean.findMonitorDeadlockedThreads()** trả IDs của threads trong chu trình object monitors, hoặc **null** nếu không tìm thấy chu trình thuộc phạm vi hỗ trợ.
-- **getThreadInfo(ids, true, true)** yêu cầu lock ownership details; HotSpot thông thường hỗ trợ monitors và ownable synchronizers.
-- **Recording.stop() rồi dump(Path)** lưu custom milestone events trước khi người học thu jcmd, nên file vẫn đọc được trong khi JVM còn sống.
-- **setDaemon(true)** không “giải cứu” deadlock; nó chỉ cho phép JVM thoát khi main và các non-daemon threads khác đã kết thúc. Không áp dụng cách này để sửa dịch vụ thật.
-- **Snapshot window 120 seconds** chỉ là khoảng giúp người học mở terminal khác. Không phải bảo đảm về deadline công cụ hay hệ thống.
+- **`CountDownLatch`** guarantees both threads have entered their first lock before attempting the second lock; no fake sleeps "hoping for lucky timing".
+- **`ThreadMXBean.findMonitorDeadlockedThreads()`** returns IDs of threads in an object monitor cycle, or **null** if no cycle within its supported scope is found.
+- **`getThreadInfo(ids, true, true)`** requests lock ownership details; HotSpot normally supports monitors and ownable synchronizers.
+- **`Recording.stop()` then `dump(Path)`** saves the custom milestone events before the learner runs `jcmd`, so the file is readable while the JVM remains alive.
+- **`setDaemon(true)`** does not "fix" a deadlock; it only allows the JVM to exit once `main` and other non-daemon threads finish. Never apply this to fix a real service.
+- **Snapshot window 120 seconds** is simply a window for opening another terminal. It is not a guarantee about tool or system deadlines.
 
-### Vì sao chương trình sẽ tạo vòng chờ?
+### Why Will This Program Form a Wait Cycle?
 
-Ở thời điểm mỗi latch được count down, luồng đó đang **nằm trong synchronized(first)**. LEFT_HELD và RIGHT_HELD chỉ cùng mở sau khi A nắm LEFT và B nắm RIGHT. Hai monitor này vẫn được giữ khi await kết thúc. A cần RIGHT do B giữ; B cần LEFT do A giữ. Kết quả là mỗi luồng không thể tiếp tục nếu luồng kia chưa nhả khóa, còn luồng kia cũng không thể nhả khóa khi đang bị chặn.
+At the moment each latch counts down, that thread is **inside `synchronized(first)`**. `LEFT_HELD` and `RIGHT_HELD` open together only after A holds LEFT and B holds RIGHT. Both monitors remain held when `await` returns. A needs RIGHT held by B; B needs LEFT held by A. Consequently neither thread can proceed until the other releases its lock, and the other cannot release its lock while blocked.
 
-Hai custom events **ACQUIRED_FIRST** xảy ra trước các events **TRY_SECOND** của cùng worker. Tuy nhiên thứ tự giữa A và B không cố định. **ACQUIRED_SECOND** không xuất hiện trong bản ghi bình thường vì không luồng nào lấy được second lock.
+Both **ACQUIRED_FIRST** custom events occur before the same worker's **TRY_SECOND** event. However, ordering between A and B is not fixed. **ACQUIRED_SECOND** does not appear in a normal recording because neither thread acquires the second lock.
 
-## 5. Phát hiện từ ThreadMXBean
+## 5. Detection via ThreadMXBean
 
-**java.lang.management.ThreadMXBean** cung cấp dữ liệu thread state và lock ownership trong JVM. Những API cần phân biệt:
+**`java.lang.management.ThreadMXBean`** provides thread state and lock ownership data inside the JVM. APIs to distinguish:
 
-| API | Phạm vi |
+| API | Scope |
 | --- | --- |
-| **findMonitorDeadlockedThreads()** | Chu trình platform threads chờ **object monitors** (synchronized) |
-| **findDeadlockedThreads()** | Chu trình platform threads chờ **object monitors hoặc ownable synchronizers** như ReentrantLock khi VM hỗ trợ |
-| **getThreadInfo(ids, true, true)** | Stack và thông tin locked monitors/ownable synchronizers cho IDs |
-| **dumpAllThreads(true, true)** | Snapshot live **platform threads**, có thể tốn chi phí khi rất nhiều threads |
+| **findMonitorDeadlockedThreads()** | Cycles of platform threads waiting on **object monitors** (`synchronized`) |
+| **findDeadlockedThreads()** | Cycles of platform threads waiting on **object monitors or ownable synchronizers** such as `ReentrantLock` when supported by the VM |
+| **getThreadInfo(ids, true, true)** | Stacks and locked monitor/ownable synchronizer details for the given IDs |
+| **dumpAllThreads(true, true)** | Snapshot of live **platform threads**, potentially expensive when thread count is very high |
 
-Trong **Java 21**, ThreadMXBean không hỗ trợ giám sát **virtual threads**; null từ detector không chứng minh toàn hệ thống không có deadlock, đặc biệt các cycles có virtual threads, database locks hoặc phân tán nhiều JVM.
+In **Java 21**, `ThreadMXBean` does not support monitoring **virtual threads**; returning `null` from the detector does not prove the whole system is deadlock-free, especially for cycles involving virtual threads, database locks, or distributed JVMs.
 
-### ThreadInfo: các trường cần ghi
+### ThreadInfo: Fields to Record
 
-- **getThreadName() / getThreadId()**: tên và Java thread ID tại thời điểm snapshot; Java ID không phải OS TID/nid.
-- **getThreadState()**: BLOCKED, WAITING, TIMED_WAITING, RUNNABLE...
-- **getLockName() / getLockInfo()**: đối tượng thread đang chờ.
-- **getLockOwnerName() / getLockOwnerId()**: luồng chủ sở hữu monitor/ownable synchronizer đang chờ.
-- **getLockedMonitors()**: monitors thread đang giữ.
-- **getLockedSynchronizers()**: ownable synchronizers mà thread đang giữ.
-- **getStackTrace()**: frame/đường code đang bị chặn.
-- **getBlockedTime()**: có thể trả -1 khi contention monitoring không bật/không hỗ trợ.
+- **`getThreadName()` / `getThreadId()`**: thread name and Java thread ID at snapshot time; Java ID is not OS TID/`nid`.
+- **`getThreadState()`**: `BLOCKED`, `WAITING`, `TIMED_WAITING`, `RUNNABLE`...
+- **`getLockName()` / `getLockInfo()`**: the object the thread is waiting on.
+- **`getLockOwnerName()` / `getLockOwnerId()`**: the thread owning the awaited monitor/ownable synchronizer.
+- **`getLockedMonitors()`**: monitors held by the thread.
+- **`getLockedSynchronizers()`**: ownable synchronizers held by the thread.
+- **`getStackTrace()`**: frames/code path currently blocked.
+- **`getBlockedTime()`**: may return `-1` when contention monitoring is disabled or unsupported.
 
-Một **edge** được tạo khi có quan hệ rõ ràng: “thread T chờ lock do thread U giữ” → **T → U**.
+An **edge** is created whenever there is a clear relation: "thread T waits on a lock held by thread U" → **T → U**.
 
 ~~~text
 worker-A state=BLOCKED
@@ -293,49 +293,49 @@ worker-B state=BLOCKED
   => worker-B --> worker-A
 ~~~
 
-Trong output thật, ThreadMXBean biết lock identity/owner nhưng không tự biết nhãn nghiệp vụ **LEFT/RIGHT** nếu code không mô tả; đây là cách diễn giải kết hợp với source. Luôn dùng owner IDs/monitor identities thuộc **cùng snapshot** khi dựng đồ thị, thay vì chỉ so tên thread.
+In real output, `ThreadMXBean` knows lock identities/owners but does not inherently know business labels **LEFT/RIGHT** unless code describes them; that mapping comes from combining with source. Always use owner IDs/monitor identities from **the same snapshot** when building the graph, rather than matching thread names alone.
 
-### BLOCKED, WAITING và TIMED_WAITING
+### BLOCKED, WAITING, and TIMED_WAITING
 
-- **BLOCKED** là chờ để vào/reenter intrinsic monitor bị giữ.
-- **WAITING** có thể do Object.wait(), CountDownLatch.await(), Thread.join() hoặc LockSupport.park(); không đồng nghĩa deadlock.
-- **TIMED_WAITING** có thể do Thread.sleep(), timed await/park; thường mang timeout bình thường.
-- **RUNNABLE** không bảo đảm thread thật sự tiêu thụ CPU tại thời điểm OS đo; có thể đang ở các native operations.
+- **`BLOCKED`** means waiting to enter/reenter a held intrinsic monitor.
+- **`WAITING`** can come from `Object.wait()`, `CountDownLatch.await()`, `Thread.join()`, or `LockSupport.park()`; it does not automatically mean deadlock.
+- **`TIMED_WAITING`** can come from `Thread.sleep()`, timed await/park; usually carries a normal timeout.
+- **`RUNNABLE`** does not guarantee a thread is actively consuming CPU at OS measurement time; it may be in native operations.
 
-Ở lúc chạy demo ban đầu, threads chờ latch có thể hiện **WAITING**. Khi cả hai thử synchronized(second), chúng trở thành **BLOCKED**. Đây là lý do lấy snapshot đúng thời điểm và, khi có thời gian, lặp lại sau vài giây.
+Early in the demo run, threads waiting on the latch may show **WAITING**. Once both try `synchronized(second)`, they become **BLOCKED**. That is why capturing at the right time and, when time permits, repeating a few seconds later matters.
 
-## 6. Nguồn độc lập: jcmd Thread.print -l và jstack -l
+## 6. Independent Source: jcmd Thread.print -l and jstack -l
 
-Trong khoảng JVM còn sống, mở terminal khác trên **cùng máy/namespace có thể attach JVM**.
+While the JVM is still alive, open another terminal on **the same host/namespace able to attach to the JVM**.
 
-### 6.1. Tìm đúng PID
+### 6.1. Finding the Right PID
 
 ~~~bash
 jcmd -l
 jcmd <PID> help Thread.print
 ~~~
 
-Thay **<PID>** bằng số process do chương trình in. Dấu ngoặc nhọn chỉ là placeholder; đừng gõ nguyên văn trong shell. Với Docker/Kubernetes, PID trong container và trên host có thể khác; jcmd cần quyền attach và effective user/group thích hợp.
+Replace **`<PID>`** with the process number printed by the program. Angle brackets are placeholders; do not type them literally in the shell. With Docker/Kubernetes, PIDs inside a container and on the host may differ; `jcmd` requires attach permissions and matching effective user/group.
 
-### 6.2. Lấy một thread dump
+### 6.2. Capturing a Thread Dump
 
 ~~~bash
 jcmd <PID> Thread.print -l > deadlock-thread-dump.txt
 ~~~
 
-Trong JDK 21, **Thread.print -l** in stack và thông tin locks/concurrent synchronizers; thường có phần báo deadlock Java-level khi VM phát hiện. Tùy phiên bản, cú pháp và các trường cụ thể cần xác minh bằng **jcmd PID help Thread.print**.
+In JDK 21, **`Thread.print -l`** prints stacks and lock/concurrent synchronizer details; it usually includes a Java-level deadlock section when the VM detects one. Exact flags and fields should be verified with **`jcmd PID help Thread.print`** per JDK version.
 
-Cũng có thể dùng:
+You can also use:
 
 ~~~bash
 jstack -l <PID> > deadlock-jstack.txt
 ~~~
 
-Tài liệu Oracle khuyến nghị ưu tiên jcmd trong nhiều công việc chẩn đoán. Khi chỉ còn ít thời gian trước restart, ưu tiên **một snapshot đầy đủ**, không chờ đủ nhiều công cụ. Thread dump có thể gây overhead khi số threads lớn hoặc VM không phản hồi attach.
+Oracle documentation recommends preferring `jcmd` for most diagnostic tasks. When little time remains before a restart, prioritize **one complete snapshot** instead of waiting for multiple tools. Thread dumps can introduce overhead when thread counts are huge or the VM is unresponsive to attach.
 
-### 6.3. Mẫu thread dump đã rút gọn
+### 6.3. Abbreviated Sample Thread Dump
 
-Đây là **ví dụ cấu trúc**, không phải stdout cố định; địa chỉ, line numbers, nid và cách trình bày thay đổi theo JVM:
+This is a **structural example**, not fixed stdout; addresses, line numbers, `nid`, and formatting vary by JVM:
 
 ~~~text
 "worker-A" ... java.lang.Thread.State: BLOCKED (on object monitor)
@@ -351,32 +351,32 @@ Found one Java-level deadlock:
   worker-B waits for monitor held by worker-A
 ~~~
 
-Cách suy luận:
+How to reason from it:
 
-1. A chờ monitor **BBBB**.
-2. B đang **giữ BBBB**.
-3. B chờ monitor **AAAA**.
-4. A đang **giữ AAAA**.
-5. Suy ra **A → B → A**, một chu trình không có thread nào có thể tiến triển.
+1. A is waiting for monitor **BBBB**.
+2. B has **locked BBBB**.
+3. B is waiting for monitor **AAAA**.
+4. A has **locked AAAA**.
+5. Therefore **A → B → A**, a cycle from which neither thread can advance.
 
-**Không giả định các giá trị 0xAAAA/0xBBBB là cố định.** Trong output thực, hãy match chính các token monitor IDs trong **cùng một thread dump**. Không lấy **System.identityHashCode(obj)** rồi so trực tiếp với VM object address: đó là các khái niệm/biểu diễn khác nhau.
+**Do not assume values `0xAAAA`/`0xBBBB` are fixed.** In real output, match exact monitor ID tokens within **the same thread dump**. Do not compute **`System.identityHashCode(obj)`** and compare it directly with VM object addresses: they are different concepts/representations.
 
-### 6.4. Nếu trạng thái chưa chắc chắn
+### 6.4. If the State Is Uncertain
 
-Lấy snapshot thứ hai sau khoảng ngắn nếu process còn sống:
+Take a second snapshot after a short delay if the process is still alive:
 
 ~~~bash
 sleep 5
 jcmd <PID> Thread.print -l > deadlock-thread-dump-2.txt
 ~~~
 
-Với deadlock thật, owner cycle lặp lại và các threads không tiến triển. Nhưng một monitor contention dài cũng có thể không thay đổi qua hai snapshots; **chính chu trình ownership/waiting** mới là điểm quyết định.
+In a true deadlock, the owner cycle repeats and threads make no progress. However, long monitor contention can also appear unchanged across two snapshots; **the ownership/waiting cycle itself** is the decisive criterion.
 
-Nếu jcmd không attach được, ghi lỗi cùng timestamp, không suy “không deadlock”. Một số HotSpot trên Linux có thể in dump khi nhận **SIGQUIT** theo runbook, nhưng cần quyền, đúng process và quản lý output. Không gửi kill -9 và không chủ động phá dữ liệu.
+If `jcmd` fails to attach, log the error with a timestamp instead of concluding "no deadlock". Some HotSpot builds on Linux print a dump on **SIGQUIT** per runbook, though that requires permissions, the right process, and output management. Never send `kill -9` or intentionally destroy evidence.
 
-## 7. Nguồn timeline: JFR custom milestone events
+## 7. Timeline Source: JFR Custom Milestone Events
 
-Trong chương trình lab, recording được cấu hình:
+In the lab program, the recording is configured with:
 
 ~~~java
 recording.enable(LockMilestone.class)
@@ -384,16 +384,16 @@ recording.enable(LockMilestone.class)
 recording.start();
 ~~~
 
-Sau khi detector tìm thấy vòng, chương trình **stop() rồi dump()** thành file JFR. Custom type **lab.LockMilestone** có các trường:
+Once the detector finds the cycle, the program calls **`stop()` then `dump()`** to write the JFR file. Custom type **`lab.LockMilestone`** has fields:
 
-| Field | Ví dụ | Nghĩa |
+| Field | Example | Meaning |
 | --- | --- | --- |
-| worker | worker-A | Thread phát dấu mốc |
-| action | ACQUIRED_FIRST, TRY_SECOND | Vị trí đã đi qua trong code |
-| lockName | LEFT, RIGHT | Nhãn nghiệp vụ do lập trình viên định nghĩa |
-| startTime/eventThread | Do JVM ghi nếu có | Mốc thời gian/luồng tạo event |
+| `worker` | `worker-A` | Thread emitting the milestone |
+| `action` | `ACQUIRED_FIRST`, `TRY_SECOND` | Code checkpoint reached |
+| `lockName` | `LEFT`, `RIGHT` | Developer-defined business label |
+| `startTime`/`eventThread` | Recorded by JVM if enabled | Timestamp/thread producing the event |
 
-Các lệnh:
+Commands:
 
 ~~~bash
 jfr summary deadlock-evidence.jfr
@@ -401,11 +401,11 @@ jfr metadata --events lab.LockMilestone deadlock-evidence.jfr
 jfr print --events lab.LockMilestone deadlock-evidence.jfr
 ~~~
 
-- **summary**: recording start/duration, số instances theo type và serialized size.
+- **summary**: recording start/duration, instance counts per type, and serialized size.
 - **metadata**: event name, category, field schema.
-- **print**: từng instance và giá trị field, timestamps.
+- **print**: individual instances, field values, and timestamps.
 
-Trong một run đúng, có **bốn milestone records**: A và B mỗi luồng phát **ACQUIRED_FIRST** và **TRY_SECOND**. Ví dụ một thứ tự hợp lệ:
+On a clean run, there are **four milestone records**: A and B each emit **ACQUIRED_FIRST** and **TRY_SECOND**. Example of one valid sequence:
 
 ~~~text
 worker-A  ACQUIRED_FIRST  LEFT
@@ -414,20 +414,20 @@ worker-B  TRY_SECOND      LEFT
 worker-A  TRY_SECOND      RIGHT
 ~~~
 
-Thứ tự A/B có thể khác. **Không có ACQUIRED_SECOND** vì synchronized(second) không được vào. Không suy từ JFR custom events đơn lẻ rằng locks thật sự thuộc owner nào: các mốc do code phát giúp mô tả timeline, còn thread dump/ThreadInfo là bằng chứng độc lập về ownership hiện tại.
+Ordering between A and B can vary. **There is no ACQUIRED_SECOND** because `synchronized(second)` is never entered. Do not infer from custom JFR events alone which thread actually owns a lock: code-emitted milestones describe the timeline, while thread dumps/`ThreadInfo` serve as independent proof of current ownership.
 
-### Vì sao jdk.JavaMonitorEnter có thể không có sự kiện của deadlock?
+### Why Might `jdk.JavaMonitorEnter` Miss the Deadlocking Event?
 
-Trong JFR, **jdk.JavaMonitorEnter** mô tả contended monitor entry, thường là duration event. Với lần chờ **không bao giờ hoàn tất**, event chưa có điểm kết thúc để ghi theo cơ chế thông thường; file có thể không chứa instance tương ứng. Ngoài ra event còn phụ thuộc **enabled/threshold/recording period**.
+In JFR, **`jdk.JavaMonitorEnter`** describes contended monitor entry and is typically a duration event. For a wait that **never finishes**, the event has no completion point to commit under normal mechanics; the file may contain no matching instance. Events also depend on **`enabled`/`threshold`/recording period**.
 
-Phân biệt:
+Distinguish:
 
-- **jdk.JavaMonitorEnter**: contention khi vào monitor.
-- **jdk.JavaMonitorWait**: liên quan Object.wait(), không giống mọi monitor entry BLOCKED.
-- **jdk.ThreadPark**: việc park thread (chẳng hạn trong một số dạng java.util.concurrent wait), không phải chỉ báo độc lập của mọi deadlock.
-- **JFR JavaMonitorEnter Count=0**: không chứng minh không có deadlock, vì event có thể đang chờ hoàn thành hoặc chưa bật.
+- **`jdk.JavaMonitorEnter`**: contention when entering a monitor.
+- **`jdk.JavaMonitorWait`**: related to `Object.wait()`, not the same as every `BLOCKED` monitor entry.
+- **`jdk.ThreadPark`**: thread parking (e.g., in certain `java.util.concurrent` waits), not standalone proof of every deadlock.
+- **JFR `JavaMonitorEnter` Count=0**: does not prove there is no deadlock, since the event may still be waiting to finish or disabled.
 
-Với một recording production khác (file phải thực sự tồn tại):
+For another production recording (the file must actually exist):
 
 ~~~bash
 jfr summary incident.jfr
@@ -435,83 +435,83 @@ jfr metadata --events jdk.JavaMonitorEnter,jdk.JavaMonitorWait,jdk.ThreadPark in
 jfr print --events jdk.JavaMonitorEnter,jdk.ThreadPark incident.jfr
 ~~~
 
-Các event này chủ yếu cho **bối cảnh contention/park trước khi kẹt**, còn bằng chứng cycle hiện thời nên lấy từ thread snapshots/ThreadMXBean khi JVM còn sống. Recording bắt đầu **sau khi deadlock đã hình thành** không thể tự hồi phục các mốc ACQUIRED_FIRST trước đó.
+These events mainly provide **contention/park context before getting stuck**, whereas current cycle proof should come from thread snapshots/`ThreadMXBean` while the JVM is alive. A recording started **after a deadlock already formed** cannot reconstruct earlier `ACQUIRED_FIRST` milestones.
 
-### Vì sao không bật custom lock events ồ ạt ở production?
+### Why Not Enable High-Frequency Custom Lock Events Everywhere in Production?
 
-Ghi một event cho mỗi lần lock ở tần suất hàng triệu/giây có thể tạo overhead. Chỉ instrument những critical sections hoặc workflow có giá trị, dùng fields nhỏ, thiết lập threshold/retention phù hợp và không ghi secrets. Telemetry cũng có thể thay đổi timing; nên kiểm chứng bằng dữ liệu độc lập.
+Recording an event on every lock at millions per second can add significant overhead. Instrument only critical sections or high-value workflows, keep fields small, configure appropriate thresholds/retention, and never log secrets. Telemetry can also perturb timing; corroborate with independent data.
 
-## 8. Ghép bằng chứng thành bảng và đồ thị
+## 8. Combining Evidence into a Matrix and Graph
 
-| Câu hỏi | MXBean | jcmd dump | JFR | Code |
+| Question | MXBean | jcmd dump | JFR | Code |
 | --- | --- | --- | --- | --- |
-| A đang BLOCKED không? | getThreadState | BLOCKED entry | Không nhất thiết | Có khả năng |
-| A chờ lock do B giữ? | getLockOwnerName/Id | waiting/locked cùng identity | TRY_SECOND(RIGHT) | LEFT → RIGHT |
-| B chờ lock do A giữ? | getLockOwnerName/Id | waiting/locked cùng identity | TRY_SECOND(LEFT) | RIGHT → LEFT |
-| Có chu trình? | findMonitorDeadlockedThreads | Deadlock section và owner graph | Bối cảnh, chưa đủ | Thiết kế có thể tạo cycle |
-| Mốc khởi đầu? | Snapshot time | Dump timestamp | ACQUIRED_FIRST/TRY_SECOND timestamps | Chưa đủ timestamp thực |
-| Liệu có progress? | Cùng trạng thái khi đo lại | Chụp nhiều dump | Không có ACQUIRED_SECOND trong demo | Operation không vào critical section tiếp |
+| Is A currently BLOCKED? | `getThreadState` | `BLOCKED` entry | Not necessarily | Possible |
+| Is A waiting for a lock held by B? | `getLockOwnerName`/`Id` | `waiting`/`locked` same identity | `TRY_SECOND(RIGHT)` | LEFT → RIGHT |
+| Is B waiting for a lock held by A? | `getLockOwnerName`/`Id` | `waiting`/`locked` same identity | `TRY_SECOND(LEFT)` | RIGHT → LEFT |
+| Is there a cycle? | `findMonitorDeadlockedThreads` | Deadlock section and owner graph | Context, insufficient alone | Design can form a cycle |
+| Initial timeline? | Snapshot time | Dump timestamp | `ACQUIRED_FIRST`/`TRY_SECOND` timestamps | Lacks runtime timestamps |
+| Any progress? | Same state on re-check | Multiple dumps | No `ACQUIRED_SECOND` in demo | Operation never enters next critical section |
 
-**Kết luận mạnh:** MXBean xác nhận A chờ B và B chờ A, jcmd cho cùng quan hệ qua monitor IDs, JFR cho các mốc dẫn tới đối tượng chờ. **Kết luận yếu:** chỉ có hai threads BLOCKED hoặc chỉ thấy một JFR ThreadPark dài.
+**Strong conclusion:** MXBean confirms A waits on B and B waits on A, `jcmd` shows the same relation via monitor IDs, and JFR gives the milestones leading to the waited objects. **Weak conclusion:** merely seeing two BLOCKED threads or one long JFR `ThreadPark`.
 
-### Dựng wait-for graph theo từng bước
+### Building a Wait-For Graph Step by Step
 
-1. Đặt mỗi **platform thread ID** là một vertex, giữ thread name làm nhãn.
-2. Với mỗi thread T có lock owner U được xác minh, tạo cạnh **T → U**.
-3. Ghi thêm edge metadata: waiting monitor identity, owner identity, thread state, timestamp.
-4. Chạy DFS với trạng thái **WHITE/GRAY/BLACK** để phát hiện back-edge tới vertex GRAY; hoặc dùng thuật toán strongly connected components.
-5. Nếu có cycle khép kín, dựng lại chuỗi thread IDs và các monitors trong cycle.
-6. Xác nhận bằng nguồn thứ hai cùng khoảng thời gian; không ghép các snapshots từ nhiều lần restart hay nhiều PID vào một graph.
+1. Make each **platform thread ID** a vertex, keeping the thread name as a label.
+2. For each thread T with a verified lock owner U, add directed edge **T → U**.
+3. Attach edge metadata: waiting monitor identity, owner identity, thread state, timestamp.
+4. Run DFS with **WHITE/GRAY/BLACK** states to detect a back-edge to a GRAY vertex; or run strongly connected components.
+5. If a closed cycle exists, reconstruct the sequence of thread IDs and monitors in the cycle.
+6. Confirm with a second source from the same time window; never merge snapshots from different restarts or PIDs into one graph.
 
-Độ phức tạp DFS là **O(V+E)** cho V threads, E edges sau khi đã đọc đúng lock ownership. Nếu getLockOwnerId()=-1 hoặc owner null, graph **không đầy đủ**; không tự thêm cạnh dựa vào suy đoán.
+DFS complexity is **O(V+E)** for V threads and E edges once lock ownership is properly read. If `getLockOwnerId() == -1` or owner is `null`, the graph is **incomplete**; never invent edges by guessing.
 
-Một chuỗi A → B → C nhưng C đang chạy và có thể nhả lock **không tạo chu trình**; đó là contention/backpressure hoặc sự cố khác, chưa đủ chứng minh Java deadlock.
+A chain A → B → C where C is running and able to release its lock **does not form a cycle**; that is contention/backpressure or another stall, not yet proof of a Java deadlock.
 
-## 9. Phân biệt với các tình huống gần giống
+## 9. Distinguishing Similar-Looking Scenarios
 
-| Hiện tượng | Triệu chứng | Cách chứng minh |
+| Phenomenon | Symptoms | How to Prove |
 | --- | --- | --- |
-| Intrinsic monitor deadlock | BLOCKED và owner cycle | jcmd/MXBean monitor identities |
-| ReentrantLock deadlock | WAITING/park, ownable synchronizers bị giữ vòng | findDeadlockedThreads + lock ownership |
-| Lock contention | A chờ B nhưng B còn chạy và có thể nhả lock | Nhiều snapshots, owner tiến triển |
-| Thread pool starvation | Tasks chờ nhau/queue không có worker rảnh | Queue/task dependency graph; có thể MXBean null |
-| Livelock | Threads RUNNABLE/retry nhưng không hoàn thành | CPU, retry counters, JFR/progress |
-| Socket/file I/O stall | Stack ở network/file call | I/O latency/timeout, downstream metrics |
-| Object.wait bình thường | WAITING on monitor | Notifier/condition và hợp đồng chờ |
-| Distributed deadlock | Transactions/services khóa tài nguyên liên process | DB locks, transaction IDs, traces |
-| Virtual-thread cycle | Java 21 MXBean không thấy đầy đủ | Công cụ hỗ trợ virtual threads và graph dependencies |
+| Intrinsic monitor deadlock | `BLOCKED` and owner cycle | `jcmd`/MXBean monitor identities |
+| `ReentrantLock` deadlock | `WAITING`/park, ownable synchronizers held in a cycle | `findDeadlockedThreads` + lock ownership |
+| Lock contention | A waits on B, but B is still running and can release the lock | Multiple snapshots, owner progresses |
+| Thread pool starvation | Tasks wait on each other/queue with no free worker | Queue/task dependency graph; MXBean may return `null` |
+| Livelock | Threads `RUNNABLE`/retrying yet making no progress | CPU, retry counters, JFR/progress |
+| Socket/file I/O stall | Stack in network/file call | I/O latency/timeout, downstream metrics |
+| Normal `Object.wait` | `WAITING` on monitor | Notifier/condition and wait contract |
+| Distributed deadlock | Transactions/services locking resources across processes | DB locks, transaction IDs, traces |
+| Virtual-thread cycle | Java 21 MXBean lacks full visibility | Virtual-thread-aware tools and dependency graphs |
 
-**Không suy mọi hang là monitor deadlock.** Đặc biệt database row locks không nằm trong các object monitor Java; phải dùng chẩn đoán phía database nếu vòng chờ nằm ở đó.
+**Do not assume every hang is a monitor deadlock.** In particular, database row locks are outside Java object monitors; use database diagnostics when the wait cycle lives there.
 
-## 10. Sửa lỗi bằng một thứ tự lock nhất quán
+## 10. Fixing the Bug with a Consistent Lock Order
 
-Với hai monitors, cách đơn giản là yêu cầu **mọi đoạn code** lấy LEFT rồi mới RIGHT, tuyệt đối không có nhánh RIGHT rồi LEFT khi đã giữ một lock.
+For two monitors, the straightforward fix is requiring **every code path** to acquire LEFT before RIGHT, never RIGHT before LEFT while already holding a lock.
 
-Đoạn minh họa (chỉ chạy khi LEFT/RIGHT đã được khai báo trong class):
+Illustrative snippet (runs only when LEFT/RIGHT are declared in the class):
 
 ~~~java
 private static void updateSafely() {
     synchronized (LEFT) {
         synchronized (RIGHT) {
-            // Cập nhật trạng thái chia sẻ.
+            // Update shared state.
         }
     }
 }
 ~~~
 
-Điều này loại bỏ **vòng chờ do thứ tự lấy hai locks đảo nhau**. Tuy nhiên contention vẫn có thể tồn tại, và bug khác vẫn có thể gây deadlock nếu bên trong gọi code lấy thêm các locks theo thứ tự không nhất quán.
+This eliminates **wait cycles caused by inverted lock acquisition order**. Contention can still occur, however, and another bug can still cause deadlock if inner calls acquire additional locks in inconsistent orders.
 
-Đừng xem tăng thread count, timeout HTTP hoặc bật daemon là cách giải quyết deadlock. Chúng không phá được monitor cycle.
+Do not treat increasing thread counts, HTTP timeouts, or making threads daemon as fixes for a deadlock. None of those break a monitor cycle.
 
-### Tại sao test harness cũ phải được thay?
+### Why Must the Old Test Harness Be Replaced?
 
-Demo ban đầu yêu cầu **hai worker đều đã nắm lock first của mình** rồi mới cho thử lock thứ hai. Khi đổi cả A và B thành **LEFT → RIGHT**, worker A có thể nắm LEFT rồi chờ worker B báo đã nắm LEFT; B không thể có LEFT để báo, nên chính **CountDownLatch barrier** trở thành điểm chờ vô hạn. Nếu giữ nguyên barrier cũ, bạn sẽ tưởng bản fix không chạy.
+The original demo required **both workers to hold their `first` lock** before attempting the second lock. Once both A and B use **LEFT → RIGHT**, worker A can acquire LEFT and then wait for worker B to signal that it holds LEFT; B cannot acquire LEFT to signal, so the **`CountDownLatch` barrier itself** becomes an infinite wait point. If you keep the old barrier, you would mistakenly think the fix failed.
 
-Vì vậy, kiểm thử bản sửa dùng một **start latch trước khi vào bất kỳ monitor nào**, cho hai worker bắt đầu gần nhau rồi join với timeout. Không dùng synchronization của test để đòi hai luồng cùng giữ một monitor độc quyền.
+Therefore, testing the fix uses a **start latch before entering any monitor**, letting both workers start close together and then joining with a timeout. Never use test synchronization that demands two threads simultaneously hold the same exclusive monitor.
 
-## 11. Chương trình Java 17+ thứ hai: SafeLockOrderDemo.java
+## 11. Second Java 17+ Program: SafeLockOrderDemo.java
 
-Đây là chương trình độc lập để xác minh hai workers dùng chung global order đều hoàn thành.
+This standalone program verifies that both workers using a shared global lock order complete cleanly.
 
 ~~~java
 import java.util.concurrent.CountDownLatch;
@@ -526,7 +526,7 @@ public final class SafeLockOrderDemo {
     private static void work() {
         synchronized (LEFT) {
             synchronized (RIGHT) {
-                // Cả hai workers dùng cùng lock order.
+                // Both workers use the same lock order.
             }
         }
     }
@@ -572,19 +572,19 @@ javac SafeLockOrderDemo.java
 java SafeLockOrderDemo
 ~~~
 
-Khi hoàn tất bình thường, **stdout chính xác**:
+On normal completion, **exact stdout**:
 
 ~~~text
 Both workers completed
 ~~~
 
-**Kết luận đúng phạm vi:** chương trình nhỏ này hoàn tất, không có monitor cycle trong hai critical sections đang thử. Nó **không chứng minh** mọi call path của một ứng dụng production đều hết deadlock. Cần code review lock ordering, regression tests trên các đường nested calls và load/chaos tests có điều kiện tái hiện.
+**Properly scoped conclusion:** this small program completes without a monitor cycle across the two tested critical sections. It **does not prove** all call paths in a production application are deadlock-free. You need code review of lock ordering, regression tests on nested call paths, and reproducible load/chaos tests.
 
-### Nếu cần timeout để tránh chờ vô hạn
+### When Timeouts Are Needed to Avoid Infinite Waits
 
-**ReentrantLock.tryLock(timeout, unit)** có thể giúp từ bỏ lần lấy lock thứ hai và release lock thứ nhất trong finally; nhưng ReentrantLock vẫn deadlock nếu dùng **lock()** theo thứ tự đảo. Nếu retry vô hạn sau timeout, nguy cơ **livelock**. Timeout/retry cần theo hợp đồng nghiệp vụ, có idempotency/backoff và bảo vệ shared-state invariants.
+**`ReentrantLock.tryLock(timeout, unit)`** lets you back off from acquiring the second lock and release the first lock in `finally`; however, `ReentrantLock` still deadlocks if `lock()` is called in opposite orders. Infinite retries after timeout risk **livelock**. Timeouts/retries must follow business contracts, maintain idempotency/backoff, and protect shared-state invariants.
 
-Fragment dưới đây chỉ minh họa khi first/second là hai ReentrantLock, còn updateState/reportRetry là các hàm đã được ứng dụng định nghĩa:
+The fragment below is purely illustrative when `first`/`second` are two `ReentrantLock` instances and `updateState`/`reportRetry` are application-defined methods:
 
 ~~~java
 if (first.tryLock()) {
@@ -604,83 +604,83 @@ if (first.tryLock()) {
 }
 ~~~
 
-Phải xử lý trường hợp **first.tryLock() trả false** (ví dụ retry hoặc trả lỗi). Không copy fragment này như chương trình độc lập; nó cần class/variables/import thích hợp.
+You must handle the case where **`first.tryLock()` returns `false`** (e.g., retry or fail). Do not copy this fragment as a standalone program; it requires the surrounding class, variables, and imports.
 
-### Cách giảm khả năng deadlock trong codebase
+### Ways to Reduce Deadlock Risk in a Codebase
 
-- Áp dụng **global lock order** theo resource IDs cho mọi call path.
-- Không thực hiện network, DB I/O hoặc gọi callback/plugin không kiểm soát trong vùng đang giữ locks.
-- Giảm nested locking; dùng immutable snapshots, actor/message passing hoặc concurrent collections khi phù hợp.
-- Tránh lock nhiều đối tượng bằng identity hash mà không xử lý collisions/tie-breaker.
-- Đặt tên/ghi chú thứ tự khóa trong API contracts và review tự động hóa khi khả thi.
-- Monitor tình trạng queue/blocked threads trong production, nhưng tránh polling deadlock detection quá dày vì có overhead.
+- Enforce a **global lock order** by resource IDs across all call paths.
+- Never perform network, DB I/O, or uncontrolled callback/plugin calls while holding locks.
+- Minimize nested locking; use immutable snapshots, actor/message passing, or concurrent collections where appropriate.
+- Avoid ordering multi-object locks by identity hash without collision tie-breaking.
+- Document and enforce lock ordering in API contracts and automate reviews where feasible.
+- Monitor queued/blocked threads in production, while avoiding overly aggressive deadlock-detector polling due to overhead.
 
-## 12. Quy trình phản ứng khi deadlock xảy ra trên hệ thống thật
+## 12. Response Procedure When a Deadlock Hits a Live System
 
-1. **Xác minh đúng JVM**: timestamp, PID, container ID/Pod UID, host, JVM start time, version/build và tình trạng request.
-2. **Thu ngay một thread dump** nếu hang/blocked threads là triệu chứng chính. Đừng bắt đầu bằng heap dump lớn khi không có bằng chứng heap retention.
-3. **Lấy JFR đang chạy** nếu có để giữ timeline trước khi restart. Một recording mới không tái tạo quá khứ.
-4. **Dựng edges** T → owner từ lock identities/ThreadInfo; xác minh cycle và stack frames dẫn đến thứ tự lấy lock.
-5. Nếu còn thời gian, lấy snapshot thứ hai, đối chiếu ThreadMXBean/JFR và request queue/GC/I/O.
-6. Chỉ can thiệp restart/mitigation khi được phê duyệt; trước đó lưu artifacts an toàn.
-7. Sau fix, thiết kế test tái hiện deterministic và kiểm tra tính đúng/throughput, không chỉ “không thấy deadlock trong một run”.
+1. **Verify the exact JVM**: timestamp, PID, container ID/Pod UID, host, JVM start time, version/build, and request status.
+2. **Capture a thread dump immediately** if hung/blocked threads are the primary symptom. Do not start with a huge heap dump when there is no evidence of heap retention.
+3. **Dump any running JFR** if available to preserve the timeline before restarting. A fresh recording cannot reconstruct the past.
+4. **Build edges** T → owner from lock identities/`ThreadInfo`; confirm the cycle and stack frames leading to the acquisition order.
+5. If time allows, take a second snapshot and correlate `ThreadMXBean`/JFR with request queues/GC/I/O.
+6. Perform restarts/mitigations only once approved; secure diagnostic artifacts first.
+7. After fixing, write a deterministic reproduction test and verify correctness/throughput, not just "no deadlock seen in one run".
 
-Dữ liệu JFR, thread dump và logs có thể chứa tên method, thông tin nghiệp vụ, paths và thậm chí secrets tùy instrumentation. Bảo vệ bằng access control, encryption/retention thích hợp; không chia sẻ công khai HPROF/JFR/thread dumps của production.
+JFR data, thread dumps, and logs can contain method names, business details, paths, and even secrets depending on instrumentation. Protect them with access control, encryption/retention policies; never share production HPROF/JFR/thread dumps publicly.
 
-## 13. Những lỗi dễ mắc
+## 13. Common Mistakes
 
-1. Thấy hai BLOCKED threads rồi kết luận deadlock mà chưa xem owner cycle.
-2. Nhầm WAITING trên CountDownLatch với monitor entry BLOCKED.
-3. Dựa vào Thread.sleep để đảm bảo tái hiện race.
-4. Tin vào source code mà không chụp trạng thái runtime.
-5. Tin custom JFR TRY_SECOND như bằng chứng độc lập của monitor owner.
-6. Không thấy jdk.JavaMonitorEnter rồi phủ nhận deadlock.
-7. Thấy findDeadlockedThreads() null rồi phủ nhận deadlock ngoài phạm vi MXBean.
-8. Dùng thread name làm khóa graph khi nhiều threads trùng tên; cần thread IDs.
-9. Nhầm Java thread ID với Linux TID/nid.
-10. So Java identityHashCode với địa chỉ internal monitor trong dump.
-11. Ghép edges từ hai PID hoặc hai snapshots khác thời điểm.
-12. Coi Java monitor deadlock và distributed database deadlock là cùng phạm vi phát hiện.
-13. Cho rằng ReentrantLock tự tránh mọi deadlock.
-14. Dùng Thread.stop hoặc ngắt BLOCKED synchronized để sửa lỗi.
-15. Đổi lock order nhưng giữ barrier test vốn phụ thuộc thứ tự ngược.
-16. Bật profiler hoặc event recording quá nặng trên production đang yếu.
-17. Chạy jcmd liên tục khi JVM không thể attach, làm mất cửa sổ bằng chứng.
-18. Kết luận fix hoàn toàn vì một test nhỏ qua, bỏ qua các call paths khác.
+1. Seeing two BLOCKED threads and concluding deadlock without checking the owner cycle.
+2. Confusing `WAITING` on `CountDownLatch` with monitor entry `BLOCKED`.
+3. Relying on `Thread.sleep` to guarantee race reproduction.
+4. Trusting source code without capturing runtime state.
+5. Treating custom JFR `TRY_SECOND` as independent proof of the current monitor owner.
+6. Seeing no `jdk.JavaMonitorEnter` and denying a deadlock exists.
+7. Seeing `findDeadlockedThreads()` return `null` and denying deadlocks outside MXBean's scope.
+8. Keying the graph by thread name when multiple threads share a name; use thread IDs.
+9. Confusing Java thread ID with Linux TID/`nid`.
+10. Comparing Java `identityHashCode` with internal monitor addresses in a dump.
+11. Merging edges from two PIDs or two snapshots from different times.
+12. Treating Java monitor deadlock and distributed database deadlock as the same detection scope.
+13. Assuming `ReentrantLock` automatically prevents all deadlocks.
+14. Using `Thread.stop` or interrupting a BLOCKED `synchronized` thread as a fix.
+15. Changing lock order while keeping a test barrier that relies on the inverted order.
+16. Enabling heavy profiling or event recording on an already strained production JVM.
+17. Running `jcmd` repeatedly when the JVM cannot attach, wasting the evidence window.
+18. Concluding a fix is complete because one small test passed, ignoring other call paths.
 
-## 14. Bài tập tự kiểm tra
+## 14. Self-Check Exercises
 
-**Câu 1.** Thread dump cho A BLOCKED chờ lock X do B giữ; B BLOCKED chờ lock Y do A giữ. Có cycle không?  
-**Đáp án:** Có, nếu các quan hệ waiting/owner thuộc cùng snapshot: **A → B → A**.
+**Question 1.** A thread dump shows A BLOCKED waiting on lock X held by B; B BLOCKED waiting on lock Y held by A. Is there a cycle?  
+**Answer:** Yes, if those waiting/owner relationships belong to the same snapshot: **A → B → A**.
 
-**Câu 2.** A BLOCKED chờ B, nhưng B đang RUNNABLE làm I/O rồi sẽ release lock. Có chắc deadlock Java không?  
-**Đáp án:** Chưa. Mới có A → B, chưa có B → A tạo cycle. Có thể là contention hoặc I/O stall.
+**Question 2.** A is BLOCKED waiting on B, while B is RUNNABLE doing I/O and will release the lock. Is it definitely a Java deadlock?  
+**Answer:** Not yet. There is only A → B, without B → A forming a cycle. It may be contention or an I/O stall.
 
-**Câu 3.** JFR lab.LockMilestone ghi 4 events nhưng không ghi ACQUIRED_SECOND. Chỉ thế đã chứng minh deadlock chưa?  
-**Đáp án:** Chưa. Nó chứng minh mã đã tới mốc TRY_SECOND nhưng không độc lập xác nhận lock owner; cần ThreadInfo/thread dump.
+**Question 3.** JFR `lab.LockMilestone` records 4 events and no `ACQUIRED_SECOND`. Does that alone prove a deadlock?  
+**Answer:** No. It proves code reached `TRY_SECOND`, not independent confirmation of lock ownership; you need `ThreadInfo`/thread dumps.
 
-**Câu 4.** Vì sao một thread chờ synchronized vô hạn có thể không sinh jdk.JavaMonitorEnter instance trong JFR?  
-**Đáp án:** Contention event là duration event thường được commit khi thao tác vào monitor hoàn thành; vô hạn chờ có thể không có end, cùng với enabled/threshold restrictions.
+**Question 4.** Why might a thread waiting forever on `synchronized` fail to produce a `jdk.JavaMonitorEnter` instance in JFR?  
+**Answer:** Contention events are duration events typically committed when monitor entry completes; an infinite wait may have no end point, alongside `enabled`/`threshold` constraints.
 
-**Câu 5.** findMonitorDeadlockedThreads và findDeadlockedThreads khác nhau thế nào?  
-**Đáp án:** Bản đầu chỉ xét object monitors; bản sau còn xét ownable synchronizers trên platform threads khi JVM hỗ trợ.
+**Question 5.** How do `findMonitorDeadlockedThreads` and `findDeadlockedThreads` differ?  
+**Answer:** The former checks only object monitors; the latter also checks ownable synchronizers on platform threads when supported by the JVM.
 
-**Câu 6.** Tại sao sửa cả hai threads thành LEFT → RIGHT nhưng vẫn dùng hai latches chờ “mỗi worker đã giữ first lock” có thể làm test đứng?  
-**Đáp án:** Vì first lock lúc này trùng nhau và độc quyền: một worker giữ LEFT đợi người kia báo đã giữ LEFT, điều không thể xảy ra. Phải thiết kế lại harness.
+**Question 6.** Why can changing both threads to LEFT → RIGHT while keeping two latches waiting for "each worker holds its first lock" hang the test?  
+**Answer:** Because the first lock is now identical and mutually exclusive: one worker holds LEFT waiting for the other to signal it holds LEFT, which cannot happen. The harness must be redesigned.
 
-**Câu 7.** Trong Java 21, ThreadMXBean trả null có đủ chứng minh không tồn tại virtual-thread deadlock không?  
-**Đáp án:** Không. API không hỗ trợ virtual-thread monitoring; cần công cụ và graph tương ứng.
+**Question 7.** In Java 21, does `ThreadMXBean` returning `null` prove no virtual-thread deadlock exists?  
+**Answer:** No. The API does not support virtual-thread monitoring; appropriate tools and dependency graphs are required.
 
-**Câu 8.** Một dump có waiting-to-lock 0xABC ở A và locked 0xABC ở B. Làm gì tiếp?  
-**Đáp án:** Tạo edge A → B, kiểm tra B đang chờ monitor do ai giữ, tìm vòng và so với MXBean ở cùng JVM/snapshot window.
+**Question 8.** A dump shows `waiting to lock 0xABC` on A and `locked 0xABC` on B. What do you do next?  
+**Answer:** Add edge A → B, check whose monitor B is waiting on, look for a cycle, and cross-check with MXBean in the same JVM/snapshot window.
 
-## 15. Tài liệu tham khảo
+## 15. References
 
-- [Oracle JDK 21 — ThreadMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): phạm vi platform threads, findMonitorDeadlockedThreads, findDeadlockedThreads và lock information.
-- [Oracle JDK 21 — ThreadInfo](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadInfo.html): Thread.State, getLockOwnerId/Name, getLockedMonitors và getLockedSynchronizers.
-- [Oracle JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): Thread.print -l, help, quyền attach và impact.
-- [Oracle JDK 21 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): lấy thread dumps bằng jcmd/jstack và phân tích deadlock/hang.
-- [Oracle JDK 21 — JFR Recording](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html): enable, start, stop, dump và custom event lifecycle.
-- [Oracle JDK 21 — JFR Event](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Event.html): custom event, isEnabled và commit.
-- [Oracle JDK 21 — jfr command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): summary, metadata và print.
-- [Oracle JDK 21 — Troubleshooting JFR](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshoot-performance-issues-using-jfr.html): JavaMonitorEnter/Wait, ThreadPark, event threshold và latency.
+- [Oracle JDK 21 — ThreadMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): platform thread scope, `findMonitorDeadlockedThreads`, `findDeadlockedThreads`, and lock information.
+- [Oracle JDK 21 — ThreadInfo](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadInfo.html): `Thread.State`, `getLockOwnerId`/`Name`, `getLockedMonitors`, and `getLockedSynchronizers`.
+- [Oracle JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `Thread.print -l`, `help`, attach permissions, and impact.
+- [Oracle JDK 21 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): capturing thread dumps with `jcmd`/`jstack` and analyzing deadlocks/hangs.
+- [Oracle JDK 21 — JFR Recording](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html): `enable`, `start`, `stop`, `dump`, and custom event lifecycle.
+- [Oracle JDK 21 — JFR Event](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Event.html): custom events, `isEnabled`, and `commit`.
+- [Oracle JDK 21 — jfr command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): `summary`, `metadata`, and `print`.
+- [Oracle JDK 21 — Troubleshooting JFR](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshoot-performance-issues-using-jfr.html): `JavaMonitorEnter`/`Wait`, `ThreadPark`, event thresholds, and latency.

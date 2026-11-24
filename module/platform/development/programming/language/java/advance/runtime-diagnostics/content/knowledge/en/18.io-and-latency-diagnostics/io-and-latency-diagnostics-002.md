@@ -1,170 +1,170 @@
-# 18.2. JFR FileRead, FileWrite, SocketRead và SocketWrite theo thời lượng hoặc kích thước
+# 18.2. JFR FileRead, FileWrite, SocketRead, and SocketWrite by Duration or Size
 
-## 1. Mục đích và giới hạn của bài
+## 1. Purpose and scope of this lesson
 
-Khi một ứng dụng Java đáp ứng chậm, thời gian có thể được tiêu tốn ở thao tác đọc/ghi file hoặc socket. **Java Flight Recorder (JFR)** cho phép ghi lại những thao tác I/O nhất định thành các *duration events* để biết **thread nào**, **đối tượng file hoặc kết nối nào**, **mỗi thao tác mất bao lâu** và **đã chuyển bao nhiêu byte**.
+When a Java application responds slowly, time may be spent in file or socket read/write operations. **Java Flight Recorder (JFR)** lets you record specific I/O operations as *duration events* to see **which thread**, **which file or connection**, **how long each operation took**, and **how many bytes were transferred**.
 
-Bốn event cần nhận diện:
+Four events to recognize:
 
-- `jdk.FileRead` — một thao tác đọc từ file.
-- `jdk.FileWrite` — một thao tác ghi vào file.
-- `jdk.SocketRead` — một thao tác đọc từ socket.
-- `jdk.SocketWrite` — một thao tác ghi vào socket.
+- `jdk.FileRead` — a read operation from a file.
+- `jdk.FileWrite` — a write operation to a file.
+- `jdk.SocketRead` — a read operation from a socket.
+- `jdk.SocketWrite` — a write operation to a socket.
 
-**Trọng tâm của bài là hai chiều lọc khác nhau:** *thời lượng* (event diễn ra lâu) và *kích thước* (event chuyển nhiều byte). Một operation có thể chậm nhưng rất ít byte, hoặc nhanh nhưng rất nhiều byte. Vì thế không được coi “đọc nhiều dữ liệu” là “đọc chậm” hay ngược lại.
+**The focus of this lesson is two distinct filtering dimensions:** *duration* (events that took a long time) and *size* (events that transferred many bytes). An operation can be slow with very few bytes, or fast with many bytes. Therefore, "reading a lot of data" must never be treated as equivalent to "reading slowly," or vice versa.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Đọc đúng tên, trường dữ liệu và đơn vị của bốn event.
-2. Hiểu rõ **JFR `threshold` dùng thời lượng**, còn lọc theo số byte thường được thực hiện **sau khi thu event**.
-3. Bật và xác minh các event trong recording; lấy dữ liệu bằng `jfr`, JDK Mission Control hoặc API `RecordingFile`.
-4. Phân nhóm theo path/endpoint/thread, tìm thao tác chậm hoặc nhiều byte và phân biệt những gì event thực sự chứng minh với giả thuyết về root cause.
-5. Chạy ví dụ Java 17+ ghi cả bốn loại I/O rồi kiểm tra sự hiện diện của chúng trong file `.jfr`.
-6. Tránh kết luận sai do threshold, thiếu event, các hoạt động concurrent hoặc giới hạn phạm vi instrument của JDK.
+1. Read the exact names, fields, and units of the four events.
+2. Understand clearly that **JFR `threshold` uses duration**, whereas filtering by byte count is usually done **after events are collected**.
+3. Enable and verify these events in a recording; extract data using `jfr`, JDK Mission Control, or the `RecordingFile` API.
+4. Group by path/endpoint/thread, find slow or high-byte operations, and separate what events actually prove from root-cause hypotheses.
+5. Run a Java 17+ example that records all four I/O types and verifies their presence in a `.jfr` file.
+6. Avoid misinterpretations caused by thresholds, missing events, concurrent operations, or JDK instrumentation coverage limits.
 
-Phạm vi: các **sự kiện I/O JFR được JVM phát ra**, không phải một bộ đếm tất cả syscall của hệ điều hành hay giải pháp theo dõi toàn bộ mạng/ổ đĩa. Kết quả phụ thuộc JDK, VM, cấu hình event và đường API I/O mà ứng dụng thực sự sử dụng.
+Scope: **JFR I/O events emitted by the JVM**, not an all-syscall OS counter or a complete network/disk monitoring solution. Results depend on the JDK, VM, event configuration, and the I/O API paths the application actually uses.
 
-## 2. Đường đi từ I/O đến sự kiện JFR
+## 2. Path from I/O to a JFR event
 
 ~~~text
-Code Java                        HotSpot/JDK instrumentation
+Java Code                        HotSpot/JDK instrumentation
 ----------                       ---------------------------
 FileInputStream.read()  --------> jdk.FileRead
 FileOutputStream.write() -------> jdk.FileWrite
 Socket InputStream.read() ------> jdk.SocketRead
 Socket OutputStream.write() ----> jdk.SocketWrite
                                            |
-                                           | nếu event được bật
-                                           | và duration đạt threshold
+                                           | if event is enabled
+                                           | and duration meets threshold
                                            v
-                                     Event JFR
+                                      JFR Event
                         (startTime, duration, bytes, thread,
-                         path hoặc host/address/port...)
+                         path or host/address/port...)
                                            |
                                            v
-                                    Recording .jfr
+                                    .jfr Recording
                                            |
                          +-----------------+----------------+
                          |                                  |
                     jfr print/view                    JMC / Java API
                          |                                  |
-                         +--------------> phân tích <-------+
+                         +--------------> analysis <--------+
 ~~~
 
-Đây là sơ đồ **minh họa những API phổ biến có instrumentation**. Không cam kết mọi lệnh `read()`/`write()` hoặc mọi API NIO/asynchronous/native đều sinh một event tương ứng trên mọi bản JDK. Một lời gọi thư viện có thể tạo nhiều thao tác ở tầng thấp, một thao tác có thể được gộp, hoặc một đường I/O không đi qua hook quan sát đang dùng. Kiểm chứng trên đúng JVM và workload thay vì đoán từ tên phương thức.
+This diagram **illustrates common APIs that have instrumentation**. It does not promise that every `read()`/`write()` call or every NIO/asynchronous/native API emits a corresponding event across all JDK releases. A single library call may trigger multiple low-level operations, multiple operations may be coalesced, or an I/O path may bypass the observed hook. Verify on the exact target JVM and workload instead of guessing from method names.
 
-Bản ghi JFR có các **event đã qua bộ lọc**, không phải nhật ký hoàn chỉnh của mọi I/O. Nếu `threshold=20 ms`, một thao tác 2 ms có thể bị loại dù nó chuyển hàng MB. Ngược lại thao tác đọc 1 byte kéo dài 200 ms vẫn có thể xuất hiện.
+A JFR recording contains **filtered events**, not a complete log of all I/O. If `threshold=20 ms`, a 2 ms operation may be omitted even if it transfers megabytes. Conversely, a 1-byte read taking 200 ms can still appear.
 
-### 2.1. Event duration là gì?
+### 2.1. What is event duration?
 
-`RecordedEvent.getDuration()` trả về `java.time.Duration` của **một event**, tức khoảng thời gian được ghi nhận cho thao tác. Nó không bằng tổng latency của HTTP request, không luôn là thời gian thiết bị vật lý bận, và không phản ánh trực tiếp số byte/giây của toàn bộ ứng dụng. Thời lượng còn chịu ảnh hưởng của cách API vận hành, blocking, scheduling và instrumentation.
+`RecordedEvent.getDuration()` returns a `java.time.Duration` for **a single event**, i.e., the duration recorded for that operation. It does not equal total HTTP request latency, is not always physical device busy time, and does not directly represent application-wide bytes/second. Duration is also affected by how the API works, blocking behavior, scheduling, and instrumentation.
 
-Ví dụ: `jdk.SocketRead` mất 180 ms để nhận 100 byte. Các nguyên nhân khả dĩ gồm đối tác phản hồi chậm, chờ dữ liệu, mạng, TLS/application framing hoặc lịch trình thread. **Event chỉ định vị thời gian của lời gọi**, chưa đủ kết luận mạng bị hỏng.
+For example: `jdk.SocketRead` takes 180 ms to receive 100 bytes. Possible causes include a slow peer response, waiting for data, the network, TLS/application framing, or thread scheduling. **The event only localizes the duration of the call**; it is not enough to conclude the network is broken.
 
-### 2.2. Event size là gì?
+### 2.2. What is event size?
 
-`bytesRead`/`bytesWritten` diễn tả **số byte được chuyển trong thao tác được ghi**. Nó không phải kích thước toàn bộ file, số byte của cả HTTP request, độ dài payload ở tầng nghiệp vụ, mức sử dụng băng thông trên dây hay dung lượng đĩa đã phân bổ.
+`bytesRead`/`bytesWritten` represent **the number of bytes transferred in the recorded operation**. They are not the entire file size, the total bytes of an HTTP request, business-level payload length, wire bandwidth utilization, or allocated disk space.
 
-Ví dụ, một lần `FileRead.bytesRead=8192` nghĩa là thao tác đó trả về 8192 byte theo instrumentation; file nguồn vẫn có thể dài vài GB. Một request đọc qua socket có thể chia thành nhiều sự kiện, mỗi sự kiện chỉ chứa một phần bytes.
+For example, a single `FileRead.bytesRead=8192` means that operation returned 8192 bytes according to instrumentation; the underlying file may still be gigabytes long. A single socket read request may be split across multiple events, each carrying only part of the bytes.
 
-## 3. Schema của bốn loại event
+## 3. Schema of the four event types
 
-Các tên field sau khớp metadata quan sát được trên OpenJDK 24 và là mẫu thường gặp của HotSpot. **Khi tự động hóa phải đọc metadata của JDK/file thực tế**, bởi sự kiện nội bộ và field có thể khác giữa bản phát hành.
+The following field names match metadata observed on OpenJDK 24 and are typical for HotSpot. **When automating, read the metadata of the actual JDK/file**, as internal events and fields can differ between releases.
 
-| Event | Trường riêng thường có | Ý nghĩa chính |
+| Event | Common specific fields | Primary meaning |
 | --- | --- | --- |
-| `jdk.FileRead` | `path: String`; `bytesRead: long`; `endOfFile: boolean` | File nào được đọc, số byte đọc, đã tới EOF hay chưa |
-| `jdk.FileWrite` | `path: String`; `bytesWritten: long` | File nào được ghi, số byte ghi |
-| `jdk.SocketRead` | `host: String`; `address: String`; `port: int`; `timeout: long`; `bytesRead: long`; `endOfStream: boolean` | Địa chỉ/port phía xa, timeout cấu hình (ms), lượng dữ liệu nhận, EOF trên stream |
-| `jdk.SocketWrite` | `host: String`; `address: String`; `port: int`; `bytesWritten: long` | Đích socket phía xa và byte được ghi |
+| `jdk.FileRead` | `path: String`; `bytesRead: long`; `endOfFile: boolean` | Which file was read, bytes read, whether EOF was reached |
+| `jdk.FileWrite` | `path: String`; `bytesWritten: long` | Which file was written, bytes written |
+| `jdk.SocketRead` | `host: String`; `address: String`; `port: int`; `timeout: long`; `bytesRead: long`; `endOfStream: boolean` | Remote address/port, configured timeout (ms), data received, EOF on stream |
+| `jdk.SocketWrite` | `host: String`; `address: String`; `port: int`; `bytesWritten: long` | Remote socket destination and bytes written |
 
-Cả bốn loại còn có các trường event chung như `startTime`, `duration`, `eventThread` và `stackTrace` (nếu recording thu stack). Khi dùng Java consumer API, nên lấy thời lượng bằng `event.getDuration()` và luồng bằng `event.getThread()`; không tự đoán cách diễn giải các tick raw trong file.
+All four types also share common event fields such as `startTime`, `duration`, `eventThread`, and `stackTrace` (if the recording collects stacks). When using the Java consumer API, obtain duration via `event.getDuration()` and thread via `event.getThread()`; do not guess how to interpret raw ticks in the file.
 
-- `path` có thể là `N/A` hoặc không mang đường dẫn hữu ích khi dùng file descriptor, `System.in`/`System.out` hoặc một số nguồn đặc biệt. Không mặc định mọi file event đều có path tuyệt đối hợp lệ.
-- `host` và `address` có thể khác nhau: tên host khác địa chỉ IP. `port` là **remote port**, không mặc định là cổng lắng nghe nội bộ của tiến trình đang phân tích.
-- `timeout` của `SocketRead` là timeout cấu hình cho việc đọc (field annotated theo milliseconds), **không phải duration thực đã chờ**. Dùng `event.getDuration()` để đo thời lượng thao tác; tuyệt đối không gán nhầm `timeout=5000` thành “mất 5 giây”.
-- `endOfFile` và `endOfStream` báo tình huống đọc kết thúc nguồn. Một event EOF với `bytesRead=0` không chứng minh đã chuyển 0 byte trong suốt phiên; nó chỉ mô tả riêng thao tác đó.
-- `stackTrace` có thể `null` nếu event không bật stack, stack bị cắt theo cấu hình hoặc JVM không cung cấp. Không xây pipeline yêu cầu stack luôn có.
+- `path` can be `N/A` or lack a useful path when using file descriptors, `System.in`/`System.out`, or special sources. Do not assume every file event has a valid absolute path.
+- `host` and `address` may differ: hostname vs. IP address. `port` is the **remote port**, not by default the local listening port of the analyzed process.
+- `timeout` on `SocketRead` is the configured read timeout (field annotated in milliseconds), **not the actual duration waited**. Use `event.getDuration()` to measure operation duration; never misread `timeout=5000` as "took 5 seconds."
+- `endOfFile` and `endOfStream` indicate the read reached the end of the source. An EOF event with `bytesRead=0` does not prove 0 bytes were transferred over the entire session; it describes only that individual operation.
+- `stackTrace` can be `null` if stack traces were not enabled for the event, were truncated by configuration, or were not provided by the JVM. Do not build pipelines that assume stacks are always present.
 
-### 3.1. Kiểm tra field bằng công cụ của JDK
+### 3.1. Inspecting fields with JDK tools
 
 ~~~bash
-# Dùng JDK đang phân tích; xác nhận schema ngay trên JDK đó.
+# Use the JDK being analyzed; verify schema directly on that JDK.
 jfr metadata --events jdk.FileRead,jdk.FileWrite,jdk.SocketRead,jdk.SocketWrite
 
-# Nếu đã có bản ghi, xem metadata chứa trong chính bản ghi:
+# If you already have a recording, inspect metadata embedded in that recording:
 jfr metadata --events jdk.FileRead,jdk.FileWrite,jdk.SocketRead,jdk.SocketWrite io-diagnostics.jfr
 ~~~
 
-`jfr metadata` không phải là lệnh đếm số I/O đã diễn ra; nó mô tả schema. `jfr summary` và `jfr print` được dùng khi muốn xem **instance event có thật**. Một event có metadata không có nghĩa trong file có event instance.
+`jfr metadata` does not count how many I/O operations occurred; it describes the schema. Use `jfr summary` and `jfr print` when you want to see **actual event instances**. Having metadata for an event does not mean instances exist in the file.
 
-## 4. Thời lượng và kích thước là hai tiêu chí độc lập
+## 4. Duration and size are two independent criteria
 
-| Tiêu chí | Đo bằng | Áp dụng ở đâu | Rủi ro khi hiểu sai |
+| Criterion | Measured by | Where applied | Risk if misunderstood |
 | --- | --- | --- | --- |
-| **Duration** | `getDuration()` hoặc field `duration`, thường hiển thị ms | JFR có **`threshold`** lúc thu; cũng lọc lại sau ghi | Bỏ qua hàng nghìn I/O nhanh, dù tổng byte rất lớn |
-| **Bytes** | `bytesRead` / `bytesWritten`, đơn vị **byte** | Thường **lọc trên sự kiện đã thu** bằng JMC/API/script | Dữ liệu dưới duration threshold chưa có trong file để lọc theo bytes |
-| **Số lần** | Count các instance event | Tổng hợp theo time window và event type | Count trong file là **count sự kiện đủ điều kiện**, không nhất thiết count mọi lời gọi I/O |
-| **Endpoint/path** | `path` hoặc `address/host + port` | Group/filter sau thu | Hostname không ổn định; path có thể chứa dữ liệu nhạy cảm hoặc bị ẩn |
-| **Thread/stack** | `getThread()`, `getStackTrace()` | Điều tra caller và mã đang chờ | Stack có thể thiếu; không thay thế trace toàn request |
+| **Duration** | `getDuration()` or `duration` field, usually shown in ms | JFR has **`threshold`** at capture time; also re-filtered post-capture | Drops thousands of fast I/Os, even if total bytes are huge |
+| **Bytes** | `bytesRead` / `bytesWritten`, in **bytes** | Usually **filtered on collected events** via JMC/API/script | Data below the duration threshold is not in the file to filter by bytes |
+| **Count** | Count of event instances | Aggregated by time window and event type | Count in the file is **qualifying events count**, not necessarily all I/O calls |
+| **Endpoint/path** | `path` or `address/host + port` | Post-capture group/filter | Hostnames may be unstable; paths may contain sensitive data or be hidden |
+| **Thread/stack** | `getThread()`, `getStackTrace()` | Investigate caller and waiting code | Stacks may be missing; does not replace full request traces |
 
-### 4.1. Ngưỡng thời lượng của JFR
+### 4.1. JFR duration threshold
 
-Trong `jdk.jfr`, setting `threshold` biểu thị **duration nhỏ hơn ngưỡng sẽ không được ghi**. Có thể cấu hình bằng `EventSettings.withThreshold(Duration)`, `.jfc` hoặc công cụ điều khiển recording. Với nhiều cấu hình JFR mặc định/phổ biến, các sự kiện I/O có threshold ở khoảng **20 ms**; đó là **giá trị của cấu hình cụ thể**, không phải quy luật cố định của mọi JDK. `default.jfc`, `profile.jfc` hoặc cấu hình custom có thể khác nhau.
+In `jdk.jfr`, the `threshold` setting specifies that **durations shorter than the threshold are not recorded**. It can be configured via `EventSettings.withThreshold(Duration)`, `.jfc` files, or recording control tools. In many default/common JFR configurations, I/O events have a threshold around **20 ms**; that is **the value of a specific configuration**, not a fixed rule across all JDKs. `default.jfc`, `profile.jfc`, or custom configurations may differ.
 
-Ví dụ:
+Examples:
 
-- `threshold=20 ms`: đọc 1 MiB trong 4 ms **không được ghi** bởi loại event này, dù byte nhiều.
-- `threshold=20 ms`: đọc 16 byte trong 150 ms **có thể được ghi** nếu event type được bật và instrumentation thu được.
-- `threshold=0`: không loại theo duration, thuận tiện cho đo ngắn trong môi trường lab nhưng có thể tạo **rất nhiều event**, tăng overhead, file size và chi phí phân tích.
-- Event disabled thì `threshold=0` cũng không giúp; phải `enabled=true`.
+- `threshold=20 ms`: reading 1 MiB in 4 ms is **not recorded** by this event type, despite the large byte count.
+- `threshold=20 ms`: reading 16 bytes in 150 ms **can be recorded** if the event type is enabled and instrumentation captures it.
+- `threshold=0`: does not drop events by duration; convenient for short lab measurements, but can generate **very large numbers of events**, increasing overhead, file size, and analysis cost.
+- If the event is disabled, `threshold=0` will not help; `enabled=true` is required.
 
-**Không có setting chung “`sizeThreshold=1MB`” cho bốn built-in event này trong API `EventSettings`.** Nếu muốn mọi event ≥1 MiB dù chạy nhanh, giải pháp thường phải thu đủ các event cần thiết (giảm duration threshold phù hợp) rồi lọc `bytesRead/bytesWritten` **sau ghi**. Giảm threshold xuống 0 trong production có thể gây overhead rất lớn trên hệ thống thực hiện I/O tần suất cao.
+**There is no built-in "`sizeThreshold=1MB`" setting for these four events in the `EventSettings` API.** If you want every event ≥1 MiB even when fast, you generally have to collect the needed events (lowering the duration threshold appropriately) and filter `bytesRead`/`bytesWritten` **after recording**. Lowering the threshold to 0 in production can incur very high overhead on systems performing high-frequency I/O.
 
-### 4.2. Ví dụ phân loại cùng một tập dữ liệu
+### 4.2. Example classifying the same dataset
 
-Đây là **bảng giả định để học cách diễn giải**, không phải output JFR của một máy thật:
+This is a **hypothetical table for learning interpretation**, not JFR output from a real machine:
 
-| Event | Duration | Bytes | Nhận xét |
+| Event | Duration | Bytes | Notes |
 | --- | ---: | ---: | --- |
-| `SocketRead` A | 210 ms | 96 B | Chậm, rất ít byte; nghi chờ peer/response |
-| `FileRead` B | 3 ms | 4 MiB | Nhanh, nhiều byte; có thể vắng trong recording threshold 20 ms |
-| `SocketWrite` C | 25 ms | 512 KiB | Vừa dài vừa nhiều byte; cần xem bối cảnh |
-| `FileWrite` D | 1 ms | 0 B | Ghi không chuyển byte; cần kiểm tra trường hợp call cụ thể |
-| `FileRead` E | 85 ms | 4 KiB | Chậm, byte ít; kiểm tra path, filesystem và caller |
+| `SocketRead` A | 210 ms | 96 B | Slow, very few bytes; suspect waiting on peer/response |
+| `FileRead` B | 3 ms | 4 MiB | Fast, many bytes; likely absent in a 20 ms threshold recording |
+| `SocketWrite` C | 25 ms | 512 KiB | Both relatively long and large; inspect context |
+| `FileWrite` D | 1 ms | 0 B | Write transferred zero bytes; check specific call case |
+| `FileRead` E | 85 ms | 4 KiB | Slow, few bytes; check path, filesystem, and caller |
 
-Với `duration ≥20 ms`, tập còn A/C/E. Với `bytes ≥1 MiB`, tập chỉ có B **nếu B đã được thu**; nhưng file JFR ghi từ `threshold=20 ms` sẽ **không** có B. Kết luận “không có file read lớn” từ bản ghi đó là sai.
+With `duration ≥20 ms`, the set has A/C/E. With `bytes ≥1 MiB`, the set has only B **if B was captured**; however, a JFR file recorded with `threshold=20 ms` will **not** contain B. Concluding "there were no large file reads" from that recording is wrong.
 
-### 4.3. Dùng AND hay OR để trả lời đúng câu hỏi
+### 4.3. Using AND vs. OR to answer the right question
 
-- **Chậm:** `duration ≥ 20 ms`, không quan tâm bytes.
-- **Lớn:** `bytes ≥ 1 MiB`, không quan tâm duration; chỉ làm được trên tập event thực sự đã được thu.
-- **Vừa chậm vừa lớn:** `duration ≥ 20 ms AND bytes ≥ 1 MiB`.
-- **Chậm hoặc lớn:** `duration ≥ 20 ms OR bytes ≥ 1 MiB`.
+- **Slow:** `duration ≥ 20 ms`, regardless of bytes.
+- **Large:** `bytes ≥ 1 MiB`, regardless of duration; only possible over events that were actually collected.
+- **Both slow and large:** `duration ≥ 20 ms AND bytes ≥ 1 MiB`.
+- **Slow or large:** `duration ≥ 20 ms OR bytes ≥ 1 MiB`.
 
-Hãy ghi rõ điều kiện trong bảng kết quả. Khi cần tìm “các request chuyển nhiều dữ liệu”, filter theo **một event có bytes lớn** có thể bỏ sót request gồm 100 thao tác nhỏ. Cần bổ sung phép tổng hợp theo request/connection/time window với ID hoặc trace ứng dụng phù hợp.
+State the condition explicitly in result tables. When looking for "requests transferring lots of data," filtering for **a single large-byte event** can miss a request performing 100 small operations. Supplement with aggregations by request/connection/time window using appropriate IDs or application traces.
 
-## 5. Thu bản ghi: chọn khoảng thời gian và kiểm tra sự kiện
+## 5. Capturing a recording: picking a window and checking events
 
-Giả sử JVM HotSpot có PID `21891` và operator có quyền attach. Các lệnh sau chỉ là ví dụ; dùng `jcmd 21891 help JFR.start` trên đúng JVM trước khi áp dụng.
+Suppose a HotSpot JVM has PID `21891` and the operator has attach permissions. The following commands are examples only; run `jcmd 21891 help JFR.start` on the target JVM before applying.
 
 ~~~bash
 jcmd 21891 VM.version
 jcmd 21891 help JFR.start
 
-# Ghi tạm 1 phút với cấu hình profile (file do JVM tạo khi recording kết thúc).
+# Record temporarily for 1 minute with profile settings (file written by JVM when recording ends).
 jcmd 21891 JFR.start name=io-diag settings=profile duration=1m filename=/secure/jfr/io-diag.jfr
 
-# Kiểm tra trạng thái và cấu hình thực sự:
+# Check actual status and configuration:
 jcmd 21891 JFR.check name=io-diag
 ~~~
 
-`settings=profile` là điểm khởi đầu cho điều tra sâu hơn, **không đảm bảo** bốn event đều enabled với threshold mà bạn mong muốn. Hãy kiểm tra `.jfc`/settings và file sau ghi. Bật thêm event, giảm threshold hoặc mở stack traces có thể tăng chi phí CPU, I/O, dung lượng và ảnh hưởng latency. Ghi ngắn trên staging hoặc cửa sổ sự cố có kiểm soát trước khi triển khai kéo dài.
+`settings=profile` is a starting point for deeper investigation, **not a guarantee** that all four events are enabled with your desired threshold. Check the `.jfc`/settings and the recorded file afterward. Enabling more events, lowering thresholds, or turning on stack traces can increase CPU, I/O, disk usage, and latency impact. Test short captures in staging or a controlled incident window before deploying long-running configurations.
 
-**Cần tùy biến threshold cho từng loại event:** cách dễ kiểm chứng trong Java API là:
+**Need per-event custom thresholds:** an easily verifiable approach in the Java API is:
 
 ~~~java
-// Đoạn minh họa bên trong code đã có biến jdk.jfr.Recording recording:
+// Illustrative snippet inside code that already has a jdk.jfr.Recording variable named recording:
 recording.enable("jdk.FileRead")
          .withThreshold(java.time.Duration.ofMillis(5));
 recording.enable("jdk.FileWrite")
@@ -175,35 +175,35 @@ recording.enable("jdk.SocketWrite")
          .withThreshold(java.time.Duration.ofMillis(20));
 ~~~
 
-Đoạn này **không phải chương trình độc lập**. Với JVM được theo dõi từ ngoài, có thể tạo bản `.jfc` tùy chỉnh bằng `jfr configure`, chỉnh bốn event và truyền `settings=/path/to/your.jfc` khi bắt đầu recording. Cú pháp `jfr configure` và event settings phải được kiểm tra bằng `jfr help configure` và metadata của bản JDK đang dùng. Tránh đổi template mặc định trong JDK hoặc bật `0 ms` vô thời hạn chỉ để tìm event hiếm.
+This snippet is **not a standalone program**. For an externally monitored JVM, you can create a custom `.jfc` with `jfr configure`, adjust the four events, and pass `settings=/path/to/your.jfc` when starting the recording. Verify `jfr configure` syntax and event settings via `jfr help configure` and the target JDK's metadata. Avoid editing the JDK's default templates or enabling `0 ms` indefinitely just to catch rare events.
 
-### 5.1. Phân tích file đã thu
+### 5.1. Analyzing the recorded file
 
 ~~~bash
-# Xác nhận file đọc được và có bao nhiêu instance mỗi loại:
+# Verify the file is readable and see how many instances exist per type:
 jfr summary /secure/jfr/io-diag.jfr
 
-# In riêng bốn loại; chú ý số lượng dữ liệu có thể rất lớn:
+# Print only the four types; beware output volume can be very large:
 jfr print --events jdk.FileRead,jdk.FileWrite,jdk.SocketRead,jdk.SocketWrite /secure/jfr/io-diag.jfr
 
-# Nếu JDK hỗ trợ, có thể dùng view để có báo cáo tổng hợp:
+# If the JDK supports it, use view for a summary report:
 jfr view types /secure/jfr/io-diag.jfr
 ~~~
 
-- `summary` trả về count và kích thước nội dung theo loại event; **count=0** có thể là không có thao tác, event disabled, threshold quá cao, recording sai khoảng thời gian hoặc không có instrumentation ở đường code đó.
-- `print` hiện các instance, bao gồm duration, byte, thread, path/remote address; cách format có thể thay đổi theo JDK, vì vậy automation nên dùng API/định dạng có schema rồi kiểm tra thay vì tách dòng output tự do bằng vị trí cố định.
-- `view` là công cụ tổng hợp hỗ trợ khi JDK có subcommand đó; xác minh bằng `jfr help view`. Không coi nó là bằng chứng mọi I/O đã được thu.
-- Trong JDK Mission Control, kiểm tra các trang I/O/Socket, sắp xếp theo thời lượng, bytes hoặc số sự kiện; nhiều UI có aggregate theo host/path/thread. Hãy phân biệt chỉ số của **file đã được lọc threshold** với toàn bộ workload.
+- `summary` returns counts and content size per event type; **count=0** may mean no operations occurred, the event was disabled, the threshold was too high, the recording missed the time window, or that code path lacks instrumentation.
+- `print` shows instances including duration, bytes, thread, path/remote address; formatting can change across JDK versions, so automation should use schema-aware APIs/formats and validate fields rather than slicing free-form text lines by fixed columns.
+- `view` is a summary tool available when the JDK includes that subcommand; verify with `jfr help view`. Do not treat it as proof that all I/O was captured.
+- In JDK Mission Control, inspect the I/O and Socket pages, sorting by duration, bytes, or event count; many views aggregate by host/path/thread. Distinguish metrics from **a threshold-filtered file** from the total workload.
 
-File `.jfr` có thể chứa path, host, IP, port, thread name và stack trace. Hãy cấp quyền truy cập theo chính sách bảo mật và không mặc định gửi file vào kênh công khai. Phải bảo đảm thư mục output tồn tại, JVM đích có quyền ghi và đủ dung lượng.
+`.jfr` files can contain paths, hosts, IPs, ports, thread names, and stack traces. Restrict access according to security policy and do not share recordings in public channels by default. Ensure the output directory exists, the target JVM has write permission, and sufficient disk space is available.
 
-## 6. Ví dụ Java 17+: sinh và kiểm tra cả bốn event
+## 6. Java 17+ example: generating and verifying all four events
 
-Ví dụ chạy trong **một JVM**: bật bốn loại event với threshold 0, ghi/đọc một file tạm, tạo một `ServerSocket` loopback và trao đổi dữ liệu với `Socket` cục bộ, dừng/dump recording ra file `.jfr` rồi đọc bằng `RecordingFile`.
+This example runs in **a single JVM**: it enables all four event types with threshold 0, writes/reads a temporary file, creates a loopback `ServerSocket` and exchanges data with a local `Socket`, stops/dumps the recording to a `.jfr` file, and reads it with `RecordingFile`.
 
-Nó cố ý in trạng thái **có ít nhất một event có bytes dương** cho từng loại thay vì in số event, duration hay kích thước chính xác (những con số đó phụ thuộc JDK, OS, flush và cách nhóm I/O). Vì `threshold=0` chỉ dùng trong chương trình ngắn này, **không copy nguyên cấu hình vào collector production chạy 24/7**.
+It intentionally prints whether **at least one event with positive bytes** exists for each type rather than printing exact event counts, durations, or sizes (which depend on the JDK, OS, flushing, and I/O batching). Because `threshold=0` is used solely for this short demo, **do not copy this configuration verbatim into a 24/7 production collector**.
 
-Lưu tên `JfrIoEventsDemo.java`:
+Save as `JfrIoEventsDemo.java`:
 
 ~~~java
 import java.io.FileInputStream;
@@ -303,14 +303,14 @@ public final class JfrIoEventsDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng **JDK 17+ có JFR**. Mẫu cần quyền tạo tệp trong thư mục tạm và mở socket loopback:
+Compile and run with **JDK 17+ with JFR**. The sample requires permission to create temporary files and open loopback sockets:
 
 ~~~bash
 javac JfrIoEventsDemo.java
 java JfrIoEventsDemo
 ~~~
 
-Stdout **đã được xác minh trực tiếp trên OpenJDK 24**:
+Stdout **directly verified on OpenJDK 24**:
 
 ~~~text
 jdk.FileRead=true
@@ -319,21 +319,21 @@ jdk.SocketRead=true
 jdk.SocketWrite=true
 ~~~
 
-**Cách hiểu:**
+**How to interpret:**
 
-- Mỗi dòng `true` nghĩa là trong recording có ít nhất một instance có `bytesRead` hoặc `bytesWritten` >0, thuộc loại tương ứng. Nó không nói số event tổng cộng, tổng byte, độ trễ hay rằng JVM luôn phát đúng một event cho một lời gọi.
-- Nếu môi trường khác cho `false`, kiểm tra khả năng JFR, thread/IO API, recording settings, quyền loopback, JVM/version và metadata trước khi quy kết lỗi Java. Ví dụ cố ý không “bịa” một duration/bytes cố định.
-- `Recording.enable(name).withThreshold(Duration.ZERO)` giúp thu thao tác ngắn trong bài lab. `withoutStackTrace()` giảm dữ liệu call stack của bốn loại event, nên không thể dùng output này để kết luận method gây I/O; hãy bật stack trong phiên điều tra khi cần.
-- `recording.stop()` rồi `dump()` chỉ ghi bản sao file từ dữ liệu recording đã dừng, trước khi `close()`.
-- `RecordingFile` đọc từng `RecordedEvent` và kiểm tra tên/field thay vì parse text output. Nó vẫn cần xử lý schema khác nếu bạn muốn dùng ở nhiều JDK.
-- `finally` xóa file tạm; có thể còn file nếu quá trình bị kill đột ngột, vì vậy môi trường thật phải quản lý cleanup/retention.
+- Each `true` line means the recording contains at least one instance with `bytesRead` or `bytesWritten` >0 for that event type. It does not state the total event count, total bytes, latency, or that the JVM always emits exactly one event per call.
+- If another environment prints `false`, check JFR availability, thread/IO APIs, recording settings, loopback permissions, JVM/version, and metadata before blaming a Java bug. The example intentionally avoids fabricating fixed durations or byte counts.
+- `Recording.enable(name).withThreshold(Duration.ZERO)` captures short operations in this lab. `withoutStackTrace()` reduces call stack data for these four event types, so this output cannot tell which method triggered the I/O; enable stacks during real investigations when needed.
+- `recording.stop()` followed by `dump()` writes a copy from the stopped recording data before `close()`.
+- `RecordingFile` reads each `RecordedEvent` and checks names/fields instead of parsing text output. It still needs to handle schema differences if run across multiple JDK versions.
+- `finally` deletes temporary files; files can remain if the process is killed abruptly, so real environments must manage cleanup/retention.
 
-## 7. Lọc theo thời lượng hoặc kích thước bằng Java API
+## 7. Filtering by duration or size with the Java API
 
-Đây là **đoạn code minh họa bên trong vòng đọc `RecordedEvent`**, không phải chương trình độc lập. Nó thể hiện việc phân biệt các thao tác chậm ≥20 ms và các thao tác lớn ≥1 MiB. Điều kiện phụ thuộc event đã thực sự được ghi.
+This is an **illustrative code snippet inside a `RecordedEvent` reading loop**, not a standalone program. It demonstrates separating slow operations (≥20 ms) from large operations (≥1 MiB). Whether this catches everything depends on which events were actually recorded.
 
 ~~~java
-// "event" là jdk.jfr.consumer.RecordedEvent đang đọc từ RecordingFile.
+// "event" is a jdk.jfr.consumer.RecordedEvent read from RecordingFile.
 String type = event.getEventType().getName();
 boolean read = type.equals("jdk.FileRead") || type.equals("jdk.SocketRead");
 boolean write = type.equals("jdk.FileWrite") || type.equals("jdk.SocketWrite");
@@ -346,168 +346,168 @@ if (read || write) {
         boolean large = bytes >= 1024L * 1024L;
 
         if (slow || large) {
-            // Sau đây là policy phân tích: ghi metric/bản tóm tắt phù hợp.
+            // Apply analysis policy here: record appropriate metrics/summaries.
             System.out.printf("%s slow=%s large=%s%n", type, slow, large);
         }
     }
 }
 ~~~
 
-**Không biến đoạn code thành parser production ngay:** bạn còn phải xác định path/endpoint, thời gian window, xử lý null/field khác schema, storage/privacy, khả năng thiếu event và tải phân tích. Chỉ bắt exception kiểu parsing rồi thay bytes=0 sẽ tạo số liệu sai. Khi API field không tồn tại, báo schema mismatch thay vì gán ý nghĩa nhầm.
+**Do not turn this snippet straight into a production parser:** you also must resolve paths/endpoints, time windows, nulls/schema variations, storage/privacy, missing events, and analysis load. Catching parsing exceptions and substituting `bytes=0` produces wrong numbers. When an expected API field does not exist, report a schema mismatch instead of assigning a misleading meaning.
 
-Để gom theo cùng một endpoint, bạn có thể định danh:
+To group by the same endpoint, you can key on:
 
-- File: `event.getString("path")`, chuẩn hóa theo policy (đường dẫn tạm có ID ngẫu nhiên có thể làm cardinality nổ).
-- Socket: `host/address/port`, lưu ý cùng IP có nhiều dịch vụ theo port và cùng endpoint có thể có nhiều connections.
-- Window: `getStartTime()`/`getEndTime()`, cùng timezone/clock để đối chiếu với log ứng dụng.
-- Thread: `event.getThread()`, thuận tiện tìm call site khi stack có mặt nhưng không luôn đồng nghĩa với “request owner”.
+- File: `event.getString("path")`, normalized per policy (temporary paths with random IDs can cause cardinality explosion).
+- Socket: `host/address/port`, noting that the same IP can host multiple services by port and the same endpoint can have multiple connections.
+- Window: `getStartTime()`/`getEndTime()`, aligned on timezone/clock to correlate with application logs.
+- Thread: `event.getThread()`, convenient for finding the call site when stacks are enabled, though not always synonymous with "request owner."
 
-### 7.1. Một bài toán tổng hợp minh họa
+### 7.1. An illustrative aggregation exercise
 
-Trong cửa sổ 60 giây có 3 `SocketRead` cùng peer:
+Within a 60-second window, there are 3 `SocketRead` events to the same peer:
 
-| Sự kiện | Duration | bytesRead |
+| Event | Duration | bytesRead |
 | --- | ---: | ---: |
 | R1 | 100 ms | 100 |
 | R2 | 5 ms | 4000 |
 | R3 | 180 ms | 100 |
 
-Nếu **đã thu đủ ba event** (threshold cho phép):
+If **all three events were captured** (allowed by threshold):
 
-- Tổng count = 3, tổng bytesRead = **4.200 B**.
-- Tổng duration = **285 ms**, duration trung bình = **95 ms/event**.
-- Theo ngưỡng 20 ms: có 2 event chậm, count 2, bytes của event chậm = **200 B**.
-- Nếu recording threshold 20 ms, R2 (5 ms, 4000 B) có thể **không tồn tại** trong file: count và tổng bytes được tính từ JFR khi đó chỉ là thống kê **trên các event đạt ngưỡng**, không phải số I/O thật.
-- Tổng duration 285 ms không nhất thiết có nghĩa ứng dụng mất 285 ms wall-clock: các sự kiện ở thread khác có thể chồng lấp và cùng một socket có thể được xử lý đồng thời theo kiến trúc ứng dụng.
+- Total count = 3, total bytesRead = **4,200 B**.
+- Total duration = **285 ms**, average duration = **95 ms/event**.
+- At a 20 ms threshold: there are 2 slow events, count 2, bytes of slow events = **200 B**.
+- If the recording used a 20 ms threshold, R2 (5 ms, 4000 B) might **not exist** in the file: count and total bytes computed from JFR would then reflect **only events meeting the threshold**, not true I/O totals.
+- Total duration of 285 ms does not necessarily mean the application spent 285 ms wall-clock time: events on different threads may overlap, and the same socket may be handled concurrently depending on application architecture.
 
-**Tỷ số bytes/tổng duration không phải băng thông mạng thực.** Với hoạt động chờ nhiều, nó giống tốc độ chuyển dữ liệu theo *thời gian lời gọi ghi nhận*; muốn đo throughput thật, dùng tổng byte trong khoảng **wall-clock** có đầy đủ coverage, và đối chiếu network/OS metrics.
+**The ratio bytes/total duration is not actual network bandwidth.** For wait-heavy operations, it resembles transfer rate over *recorded call duration*; to measure real throughput, use total bytes over a **wall-clock** interval with complete coverage and cross-check network/OS metrics.
 
-## 8. Cách diễn giải khi điều tra I/O chậm
+## 8. How to interpret slow I/O investigations
 
-### 8.1. SocketRead lâu, byte ít
+### 8.1. Long SocketRead, few bytes
 
-Ví dụ một `SocketRead` mất 450 ms nhưng chỉ nhận 32 B:
+For example, a `SocketRead` takes 450 ms but receives only 32 B:
 
-- Có thể request đang chờ server/peer gửi dữ liệu, mạng bị trễ, server backend chậm, hoặc ứng dụng có khoảng chờ giữa các frame.
-- `duration` mô tả thao tác đọc; nó **không** đo trực tiếp RTT, congestion hay thời gian HTTP server xử lý.
-- Xem host/address/port, thread name, stack nếu bật, timestamp và ứng dụng đang ở bước nào; ghép với distributed trace, server log và network metrics để phân biệt.
+- The request may be waiting for the server/peer to send data, experiencing network latency, slow backend processing, or application pauses between frames.
+- `duration` describes the read operation; it does **not** directly measure RTT, congestion, or HTTP server processing time.
+- Inspect host/address/port, thread name, stack if enabled, timestamp, and what step the application is in; combine with distributed traces, server logs, and network metrics to distinguish causes.
 
-Đặc biệt, `SocketRead.timeout` là giá trị cấu hình, không phải thời gian chờ thật. Nếu timeout=5000 ms nhưng event duration=40 ms, không được nói thao tác mất 5 giây.
+Specifically, `SocketRead.timeout` is a configured setting, not the actual wait time. If `timeout=5000 ms` while `event duration=40 ms`, do not claim the operation took 5 seconds.
 
-### 8.2. SocketWrite lâu hoặc nhiều byte
+### 8.2. Long or high-byte SocketWrite
 
-Socket write trả về khi dữ liệu được chấp nhận bởi API/socket stack theo semantics, **không phải bằng chứng toàn bộ remote service đã nhận và xử lý dữ liệu**. Duration cao có thể liên quan backpressure, send buffer, tốc độ peer đọc, TLS wrapper hoặc scheduling. Bytes lớn có thể do batch payload, không phải lỗi hiệu năng.
+Socket write returns when data is accepted by the API/socket stack according to its semantics, **not as proof that the remote service received and processed everything**. High duration can involve backpressure, send buffers, peer read speed, TLS wrappers, or scheduling. High byte counts may simply reflect batch payloads rather than a performance bug.
 
-Tìm kết nối có tổng ghi lớn hoặc event ghi kéo dài; đối chiếu ứng dụng có đang streaming/upload đúng thiết kế không. Với HTTPS, event `SocketWrite` phản ánh byte tầng socket (có thể là ciphertext/framing), không nhất thiết đúng kích thước payload nghiệp vụ.
+Identify connections with large total writes or prolonged write events; verify whether the application is streaming/uploading as designed. For HTTPS, `SocketWrite` events reflect socket-layer bytes (potentially ciphertext/framing), not necessarily the business payload size.
 
-### 8.3. FileRead/FileWrite kéo dài
+### 8.3. Prolonged FileRead/FileWrite
 
-File I/O chậm có thể liên quan disk, filesystem, network mount, antivirus, page cache, contention hoặc scheduling. Một `FileRead` nhanh không chứng minh ổ đĩa vật lý nhanh vì dữ liệu có thể đến từ OS page cache; một `FileWrite` nhanh không chứng minh dữ liệu đã được `fsync` an toàn tới ổ lưu trữ.
+Slow file I/O can relate to disk, filesystem, network mounts, antivirus, page cache, contention, or scheduling. A fast `FileRead` does not prove a fast physical disk because data may come from the OS page cache; a fast `FileWrite` does not prove data has been safely `fsync`ed to storage.
 
-Đối chiếu path (nếu có), mount/volume, file size thực, IOPS, disk latency, queue depth, JVM thread stack, GC/CPU pressure và workload cùng thời điểm. Sự kiện JFR thường không đo riêng thời gian `fsync` hay mức độ durability. Nếu nghi log flush hoặc JDBC storage, cần thêm bằng chứng ở tầng phù hợp.
+Cross-check path (if available), mount/volume, actual file size, IOPS, disk latency, queue depth, JVM thread stacks, GC/CPU pressure, and concurrent workload. JFR events generally do not measure `fsync` duration or durability guarantees separately. If log flushing or JDBC storage is suspected, gather evidence at the appropriate layer.
 
-### 8.4. “Không có event” không có nghĩa “không có I/O”
+### 8.4. "No events" does not mean "no I/O"
 
-Một ghi nhận rỗng có thể do:
+An empty result can occur because:
 
-1. Event type không được enabled trong `.jfc`/recording.
-2. Duration của tất cả thao tác nhỏ hơn threshold.
-3. Recording bắt đầu quá muộn, kết thúc trước workload hoặc bị lỗi dump.
-4. Code dùng API không phát sinh loại event này với JDK cụ thể.
-5. Thao tác diễn ra trong tiến trình khác/native code không nằm trong JVM đang ghi.
-6. Đã lọc sai event name khi dùng `jfr print`/JMC.
-7. Recording file bị thiếu chunk, chưa được dump/stop đúng hoặc không được đọc đủ.
+1. The event type was not enabled in `.jfc`/recording.
+2. All operations had durations below the threshold.
+3. The recording started too late, ended before the workload, or failed to dump.
+4. The code used an API that does not emit this event type on that specific JDK.
+5. Operations occurred in another process or native code outside the recorded JVM.
+6. The wrong event name was filtered in `jfr print`/JMC.
+7. The recording file is missing chunks, was not stopped/dumped properly, or was only partially read.
 
-Do đó, luôn dùng `jfr summary`, metadata, timestamp, settings và một thao tác kiểm chứng nhỏ trước khi tin vào “zero I/O”.
+Therefore, always verify `jfr summary`, metadata, timestamps, settings, and a small sanity check operation before trusting "zero I/O."
 
-## 9. Tư duy phân tích theo workload và giới hạn số liệu
+## 9. Workload-oriented analysis and metric limits
 
-| Điều muốn biết | JFR hỗ trợ thế nào | Cần thêm gì để kết luận |
+| Question | How JFR helps | What else is needed to conclude |
 | --- | --- | --- |
-| Thao tác file chậm nhất là gì? | Sắp `jdk.FileRead/FileWrite` theo `duration` | Đối chiếu path, OS disk metrics, stack |
-| Peer nào làm read chờ lâu? | Group `SocketRead` theo host/address/port và xem duration | Client/server trace, timeout/retry, network metrics |
-| File nào được đọc nhiều byte? | Group `FileRead.bytesRead` | Threshold thấp đủ để không bỏ sót file read nhanh; filesystem/process counters |
-| Tổng traffic ứng dụng là bao nhiêu? | Tổng bytes từ event đã thu là một tín hiệu | Socket metrics/telemetry đầy đủ, TLS framing và socket khác |
-| I/O có gây p99 HTTP request chậm? | Thread/timestamp/stack có thể nêu đường nghi ngờ | Span request, correlation ID, app latency timeline |
-| Có bao nhiêu lời gọi I/O mỗi giây? | Count event theo time window | Xác minh coverage, threshold, instrumentation; không gọi count event là count syscall |
-| Mỗi sự kiện được thu từ thread nào? | `eventThread` và stack nếu bật | Mapping sang executor/task/request context |
-| Lỗi retry, timeout, EOF có nguyên nhân gì? | `SocketRead.timeout`, `endOfStream`, `FileRead.endOfFile` bổ sung bối cảnh | Exception/log ứng dụng, protocol state, telemetry từ peer |
+| What is the slowest file operation? | Sort `jdk.FileRead/FileWrite` by `duration` | Cross-check path, OS disk metrics, stack |
+| Which peer causes long read waits? | Group `SocketRead` by host/address/port and inspect duration | Client/server traces, timeouts/retries, network metrics |
+| Which file had the most bytes read? | Group `FileRead.bytesRead` | Threshold low enough not to miss fast reads; filesystem/process counters |
+| What is total application traffic? | Sum of bytes from captured events is a signal | Complete socket metrics/telemetry, TLS framing, other sockets |
+| Does I/O cause slow HTTP request p99? | Thread/timestamp/stack can point to suspects | Request spans, correlation IDs, app latency timeline |
+| How many I/O calls per second? | Count events per time window | Verify coverage, threshold, instrumentation; do not equate event count with syscall count |
+| Which thread produced each event? | `eventThread` and stack if enabled | Mapping to executor/task/request context |
+| What caused retries, timeouts, EOF? | `SocketRead.timeout`, `endOfStream`, `FileRead.endOfFile` add context | App exceptions/logs, protocol state, peer telemetry |
 
-**Không cộng thời lượng của bốn event rồi coi là “tổng thời gian ứng dụng ngừng hoạt động”.** Có thể có event ở nhiều thread trùng thời gian, hoặc một request cùng sử dụng FileWrite và SocketWrite. Cần đo critical path bằng tracing ứng dụng nếu mục tiêu là latency người dùng.
+**Do not sum the durations of the four events and call it "total time the application was stalled."** Events across multiple threads can overlap in time, or a single request may perform both FileWrite and SocketWrite. Measure the critical path via application tracing if user latency is the target.
 
-**Không tổng hợp bytes trên hai phía của cùng một kết nối nội bộ rồi xem đó là traffic toàn hệ thống duy nhất.** Một JVM chạy client và server loopback như bài lab sẽ ghi cả SocketWrite phía gửi lẫn SocketRead phía nhận; đó là hai quan sát của luồng dữ liệu, không phải hai payload độc lập.
+**Do not sum bytes from both sides of the same internal connection and treat it as unique system traffic.** A JVM running both loopback client and server like the lab will record both `SocketWrite` on the sender and `SocketRead` on the receiver; those are two observations of one data flow, not two independent payloads.
 
-## 10. Overhead, an toàn dữ liệu và môi trường triển khai
+## 10. Overhead, data safety, and deployment environment
 
-### 10.1. Trade-off khi giảm threshold
+### 10.1. Trade-offs when lowering thresholds
 
-Giảm threshold có thể tăng số event, độ lớn recording, CPU và chi phí stack trace/aggregation. Dùng ngưỡng lớn để xác định **spikes chậm**, rồi thu ngắn với ngưỡng thấp hơn nếu cần thống kê đủ **byte/count**. Không dùng mức 0 ms vô thời hạn trong hệ thống I/O dày mà chưa benchmark.
+Lowering thresholds can increase event volume, recording size, CPU usage, and stack trace/aggregation cost. Use higher thresholds to spot **slow spikes**, then run short captures with lower thresholds if you need complete **byte/count** statistics. Do not run `0 ms` indefinitely on I/O-heavy systems without benchmarking.
 
-Thiết kế thử nghiệm: thu baseline throughput/p95/p99/error rate và CPU; bật cấu hình JFR trong một cửa sổ tải tương đương; đo thay đổi; giảm event hoặc tăng threshold nếu có tác động vượt ngân sách. Với recording chạy dài, đặt `maxage`/`maxsize` và theo dõi dung lượng/repository.
+Experiment design: capture baseline throughput/p95/p99/error rate and CPU; enable the JFR configuration for an equivalent load window; measure deltas; trim events or raise thresholds if impact exceeds budget. For continuous recordings, set `maxage`/`maxsize` and monitor disk/repository capacity.
 
-### 10.2. Field có thể nhạy cảm
+### 10.2. Potentially sensitive fields
 
-`path`, `host`, `address`, `port`, `thread name`, `stackTrace` có thể tiết lộ cấu trúc hệ thống, tên file của người dùng hoặc điểm kết nối nội bộ. Không đưa raw path/endpoint có cardinality vô hạn vào metric label. Chỉ lưu thông tin đủ cho điều tra, hạn chế đọc file `.jfr` theo quyền, xóa file tạm sau khi phân tích.
+`path`, `host`, `address`, `port`, `thread name`, and `stackTrace` can reveal system layout, user filenames, or internal connection endpoints. Do not put raw paths/endpoints with unbounded cardinality into metric labels. Store only what is needed for investigation, restrict `.jfr` file access via permissions, and delete temporary files after analysis.
 
-### 10.3. Triển khai ngoài JVM được kiểm tra
+### 10.3. Deploying outside the tested JVM
 
-JDK/vendor khác có thể thay đổi event, field hoặc hành vi instrument. `jfr metadata` của bản ghi và code kiểm tra `event.hasField(...)` giúp tránh fail âm thầm. Với JVM trong container, chú ý PID namespace, quyền `jcmd` và đường filesystem của JVM đích. NIO, asynchronous I/O, virtual threads hoặc native libraries có thể làm event coverage khác; phải thực nghiệm với API đang dùng.
+Different JDKs/vendors may alter events, fields, or instrumentation behavior. Checking `jfr metadata` on the recording and `event.hasField(...)` in code prevents silent failures. For JVMs in containers, account for PID namespaces, `jcmd` permissions, and the target JVM's filesystem paths. NIO, asynchronous I/O, virtual threads, or native libraries can change event coverage; validate experimentally with the APIs actually used.
 
-Khi file JFR lớn, `jfr print` toàn bộ có thể tạo lượng stdout khổng lồ: chọn loại event, khoảng thời gian nếu công cụ hỗ trợ, dùng `jfr view`/JMC hoặc API streaming `RecordingFile` với bounded aggregation. Với dashboard liên tục, cân nhắc telemetry ứng dụng/OpenTelemetry và metrics OS bên cạnh JFR; không biến bản ghi sự cố thành nguồn số liệu duy nhất.
+When `.jfr` files are large, running `jfr print` on everything can produce huge stdout: filter by event type and time range where supported, or use `jfr view`/JMC or the `RecordingFile` streaming API with bounded aggregation. For continuous dashboards, pair JFR with application/OpenTelemetry telemetry and OS metrics; do not treat incident recordings as the sole source of metrics.
 
-## 11. Lỗi phổ biến
+## 11. Common pitfalls
 
-| Sai lầm | Tại sao sai | Cách sửa |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| `FileRead` hiếm nên file ít được đọc | Threshold loại hết thao tác ngắn | Đọc settings và kiểm chứng workload |
-| `SocketRead.timeout = 2000` nghĩa là read mất 2 giây | Timeout là giới hạn cấu hình | Dùng `getDuration()` để lấy duration thật |
-| `bytesWritten` là kích thước response HTTP | Socket có framing/TLS và nhiều lần write | Đo payload nghiệp vụ riêng, hoặc phân tích tổng hợp có ngữ cảnh |
-| Dùng `duration` để tính throughput toàn app | Các event không chắc phủ toàn bộ I/O và có overlap | Dùng wall-clock và tổng byte hợp lệ, đối chiếu telemetry khác |
-| Lọc “bytes ≥1MiB” sau khi thu ở threshold 20ms rồi kết luận đủ | I/O lớn nhưng nhanh đã bị loại | Hạ duration threshold cho cửa sổ đo khi chi phí chấp nhận |
-| Cộng socket read và write của loopback vào một traffic “unique” | Hai phía cùng quan sát cùng dữ liệu | Chỉ định hướng/endpoint rõ ràng |
-| FileWrite nhanh nghĩa là ghi xuống ổ bền vững | Write có thể vào cache/buffer | Phân biệt write với fsync/flush/durability |
-| Bật cả bốn event threshold 0 trong production không giới hạn | Event volume và overhead có thể lớn | Thử ngắn, giới hạn thời gian/dung lượng và đo tác động |
-| Một sự kiện JFR là một request | Một request có thể nhiều I/O; nhiều request dùng một socket | Dùng ID/trace ứng dụng để liên kết |
-| Stack luôn tồn tại để tìm call site | Có thể tắt stackTrace | Bật stack khi điều tra cần và benchmark overhead |
-| Đổi JDK nhưng giữ parser hard-code field | Schema có thể thay đổi | Kiểm tra `jfr metadata`/`hasField` khi nâng cấp |
+| `FileRead` is rare so files are rarely read | Threshold dropped all short operations | Read settings and verify against workload |
+| `SocketRead.timeout = 2000` means the read took 2 seconds | Timeout is a configured limit | Use `getDuration()` for actual duration |
+| `bytesWritten` equals HTTP response size | Socket includes framing/TLS and multiple writes | Measure business payload separately or aggregate with context |
+| Using `duration` to compute app-wide throughput | Events may not cover all I/O and can overlap | Use wall-clock and valid byte totals, cross-checked with other telemetry |
+| Filtering "bytes ≥1MiB" after recording with 20 ms threshold and calling it complete | Fast large I/Os were already dropped | Lower duration threshold for a bounded measurement window when overhead is acceptable |
+| Adding loopback socket read and write as "unique" traffic | Both sides observe the same data | Specify direction/endpoint clearly |
+| Fast FileWrite means durable disk write | Write may only hit cache/buffers | Distinguish write from fsync/flush/durability |
+| Enabling all four events at threshold 0 in production without limits | Event volume and overhead can be large | Test briefly, bound duration/size, and measure impact |
+| One JFR event equals one request | One request can do many I/Os; many requests share a socket | Use app IDs/traces to correlate |
+| Stacks are always present to find call sites | `stackTrace` may be disabled | Enable stacks when needed for investigation and benchmark overhead |
+| Upgrading JDK while keeping hard-coded field parsers | Schema can change | Check `jfr metadata`/`hasField` during upgrades |
 
-## 12. Bài tập và tự kiểm tra
+## 12. Exercises and self-check
 
-**Bài 1 — phân biệt hai tiêu chí.** Có `FileRead` 2 ms/8 MiB và `SocketRead` 150 ms/128 B. Nếu threshold thu là 20 ms, event nào có thể xuất hiện? Chỉ socket read. Nếu muốn tìm 8 MiB file read phải làm gì? Thu với threshold thấp hơn (đã đo overhead), sau đó lọc `bytesRead`.
+**Exercise 1 — separating the two criteria.** There is a `FileRead` of 2 ms / 8 MiB and a `SocketRead` of 150 ms / 128 B. If the recording threshold is 20 ms, which event can appear? Only the socket read. What must you do to find the 8 MiB file read? Record with a lower threshold (after measuring overhead), then filter on `bytesRead`.
 
-**Bài 2 — đơn vị.** `SocketRead.timeout=3000`, `getDuration()=120 ms`, `bytesRead=64`. Timeout là bao nhiêu? 3000 ms **giá trị cài đặt**. Thao tác ghi nhận 120 ms và 64 B, chưa xác nhận lỗi mạng hay server.
+**Exercise 2 — units.** `SocketRead.timeout=3000`, `getDuration()=120 ms`, `bytesRead=64`. What is the timeout? 3000 ms **configured setting**. The operation recorded 120 ms and 64 B, which alone does not confirm a network or server fault.
 
-**Bài 3 — thước đo.** Trong 1 phút có 100 socket reads đều 5 ms và 8 KiB, nhưng JFR threshold 20 ms. `summary` trả count=0. Có được kết luận network throughput=0 không? Không; các thao tác không đủ duration để thành event.
+**Exercise 3 — measurement scope.** In 1 minute, 100 socket reads each take 5 ms and 8 KiB, while JFR threshold is 20 ms. `summary` reports count=0. Can you conclude network throughput=0? No; the operations lacked enough duration to become events.
 
-**Bài 4 — cộng thời gian.** Hai thread song song, mỗi thread có `SocketRead.duration=100 ms` cùng khoảng 10:00:00.000–10:00:00.100. Tổng duration=200 ms, elapsed window chỉ 100 ms. Không dùng 200 ms làm latency wall-clock của request nếu chưa phân tích critical path.
+**Exercise 4 — adding durations.** Two parallel threads each have `SocketRead.duration=100 ms` during 10:00:00.000–10:00:00.100. Total duration=200 ms, elapsed window is only 100 ms. Do not use 200 ms as request wall-clock latency without analyzing the critical path.
 
-**Bài 5 — nhân bản dữ liệu.** JVM vừa tạo loopback client vừa tạo loopback server và ghi 1 MiB. Trong recording có `SocketWrite.bytesWritten≈1 MiB` và `SocketRead.bytesRead≈1 MiB` cho cùng trao đổi. Có được nói “2 MiB dữ liệu độc lập đã được chuyển” không? Không; đó là hai góc quan sát của một luồng dữ liệu.
+**Exercise 5 — duplicated data.** A JVM runs both a loopback client and loopback server and writes 1 MiB. The recording shows `SocketWrite.bytesWritten≈1 MiB` and `SocketRead.bytesRead≈1 MiB` for the same exchange. Can you say "2 MiB of independent data were transferred"? No; those are two viewpoints of one data stream.
 
-**Bài 6 — nguyên nhân gốc.** Top event `FileWrite` là 500 ms, `bytesWritten=512`; JVM dùng ổ đĩa mạng. Những nguồn nào cần đối chiếu? Thread stack, thời điểm, app log, OS I/O wait và filesystem/network mount metrics, GC/CPU để phân biệt stalls.
+**Exercise 6 — root cause.** Top `FileWrite` event is 500 ms, `bytesWritten=512`; the JVM uses a network-mounted drive. Which sources should be cross-checked? Thread stacks, timestamps, app logs, OS I/O wait and filesystem/network mount metrics, plus GC/CPU to distinguish stalls.
 
-**Bài 7 — kiểm tra code.** Chạy `JfrIoEventsDemo`, sau đó thử `.withThreshold(Duration.ofSeconds(10))` cho bốn event. Vì sao có thể in `false`? Bốn thao tác mẫu ngắn hơn 10 giây nên bị loại. Không đổi logic in boolean để ép ra `true`.
+**Exercise 7 — checking code.** Run `JfrIoEventsDemo`, then try `.withThreshold(Duration.ofSeconds(10))` on all four events. Why might it print `false`? The four sample operations take less than 10 seconds and are filtered out. Do not alter the boolean printing logic to force `true`.
 
-**Bài 8 — chọn phép lọc.** Yêu cầu “các I/O ≥10 MiB *hoặc* ≥100 ms”. Hãy viết điều kiện `bytes >= 10*1024*1024 || duration >= 100 ms` trên event đã thu. Giải thích vì sao `threshold=100ms` lúc ghi sẽ không bao giờ bảo đảm có đủ các event ≥10 MiB chạy nhanh.
+**Exercise 8 — choosing the filter.** Requirement: "I/Os ≥10 MiB *or* ≥100 ms." Write the condition `bytes >= 10*1024*1024 || duration >= 100 ms` on collected events. Explain why setting `threshold=100ms` at capture time will never guarantee capturing fast events ≥10 MiB.
 
-## 13. Checklist vận hành
+## 13. Operational checklist
 
-- [ ] Có đúng JVM/PID và đúng khoảng thời gian đang có hiện tượng I/O chậm.
-- [ ] Xác nhận bốn event enabled và biết ngưỡng `threshold` thực tế.
-- [ ] Biết duration là thời lượng một event, bytes là số byte **trên thao tác đó**, không đồng nhất với request/file/connection total.
-- [ ] Đã xem `jfr summary` và metadata của file để tránh kết luận từ event count rỗng.
-- [ ] Chọn filter duration, bytes, AND/OR và grouping theo path/peer/thời gian có chú giải rõ.
-- [ ] Hiểu dữ liệu thiếu vì threshold hoặc instrumentation, không thay bằng 0.
-- [ ] Kết hợp thread/stack/app trace và OS metrics trước khi xác định root cause.
-- [ ] Theo dõi overhead, retention, dung lượng, quyền truy cập và cleanup của `.jfr`.
+- [ ] Target the exact JVM/PID and exact time window exhibiting slow I/O.
+- [ ] Confirm all four events are enabled and know the actual `threshold` values.
+- [ ] Remember duration is for one event and bytes are for **that operation**, not identical to request/file/connection totals.
+- [ ] Inspected `jfr summary` and file metadata to avoid drawing conclusions from empty event counts.
+- [ ] Selected duration filters, byte filters, AND/OR logic, and grouping by path/peer/time with clear annotations.
+- [ ] Understand missing data due to thresholds or instrumentation; do not substitute 0.
+- [ ] Combine threads/stacks/app traces and OS metrics before declaring root cause.
+- [ ] Monitor overhead, retention, disk usage, access permissions, and `.jfr` cleanup.
 
-**Kết luận:** JFR cung cấp bằng chứng hữu ích cho **thời lượng** và **số byte** của các thao tác file/socket được ghi lại. Điều kiện thu `threshold` chủ yếu kiểm soát **thời lượng**, còn yêu cầu “I/O bao nhiêu byte” phải phân tích từ field trên **những event đã có**. Hãy đọc đủ schema, giới hạn capture và workload trước khi biến kết quả thành đánh giá hiệu năng.
+**Conclusion:** JFR provides useful evidence for **duration** and **byte counts** of recorded file/socket operations. The capture `threshold` primarily controls **duration**, whereas questions about "how many I/O bytes" must be analyzed from fields on **events that were actually captured**. Read the schema, capture limits, and workload thoroughly before turning results into a performance assessment.
 
-## Tài liệu đối chiếu
+## References
 
-- Oracle Java SE 21, [The jfr Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html) — `metadata`, `summary`, `print` và `view`.
-- Oracle Java SE 21, [The jcmd Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html) — `JFR.start`, `JFR.check` và tùy chọn thu recording.
-- Oracle Java SE 21, [jdk.jfr Package](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html) — `enabled`, `threshold`, `period` và `stackTrace`.
-- Oracle Java SE 21, [EventSettings](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html) — `withThreshold(Duration)` và cấu hình event.
+- Oracle Java SE 21, [The jfr Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html) — `metadata`, `summary`, `print`, and `view`.
+- Oracle Java SE 21, [The jcmd Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html) — `JFR.start`, `JFR.check`, and recording options.
+- Oracle Java SE 21, [jdk.jfr Package](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/package-summary.html) — `enabled`, `threshold`, `period`, and `stackTrace`.
+- Oracle Java SE 21, [EventSettings](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html) — `withThreshold(Duration)` and event configuration.
 - Oracle Java SE 21, [RecordedEvent](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedEvent.html) — `getDuration`, `getStartTime`, `getEndTime`.
-- Oracle Java SE 21, [Recording](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html) và [RecordingFile](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html) — bật/ghi/dump và đọc `.jfr` bằng Java.
-- Oracle Java SE 21, [Troubleshooting Guide](https://docs.oracle.com/en/java/javase/21/troubleshoot/) — điều tra điểm nghẽn I/O bằng JFR, threshold và tác động của việc thu thêm event.
+- Oracle Java SE 21, [Recording](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Recording.html) and [RecordingFile](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html) — starting/recording/dumping and reading `.jfr` in Java.
+- Oracle Java SE 21, [Troubleshooting Guide](https://docs.oracle.com/en/java/javase/21/troubleshoot/) — investigating I/O bottlenecks with JFR, thresholds, and overhead of additional event collection.

@@ -1,71 +1,71 @@
-# 10.3. Lấy thread dump có virtual thread bằng `jcmd Thread.dump_to_file` (plain và JSON)
+# 10.3. Capturing Virtual-Thread Dumps with `jcmd Thread.dump_to_file` (Plain and JSON)
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích vì sao thread dump kiểu truyền thống có thể bỏ sót virtual thread đang tạm ngừng chạy.
-2. Xác định đúng tiến trình Java, tạo hai bản dump `plain` và `json` bằng `jcmd`.
-3. Tìm stack trace của một virtual thread trong file, đọc cấu trúc JSON và nhận diện dấu hiệu cần điều tra tiếp.
-4. Hiểu giới hạn của snapshot và xử lý các lỗi thường gặp khi thu thập dump trên máy chủ/container.
+1. Explain why traditional thread dumps can miss virtual threads that are temporarily suspended.
+2. Identify the right Java process and generate both `plain` and `json` dumps using `jcmd`.
+3. Locate a virtual thread's stack trace in the output file, read the JSON structure, and recognize signals that warrant further investigation.
+4. Understand snapshot limitations and troubleshoot common errors when collecting dumps on servers/containers.
 
-> **Phân biệt tên gọi:** `Thread.dump_to_file` ở đây là **diagnostic command của HotSpot/JVM**, được gọi qua công cụ dòng lệnh `jcmd`. Đây **không phải** phương thức `java.lang.Thread.dump_to_file()` để gọi trong mã Java.
+> **Naming distinction:** `Thread.dump_to_file` here is a **HotSpot/JVM diagnostic command**, invoked via the `jcmd` command-line tool. It is **not** a `java.lang.Thread.dump_to_file()` method to call in Java code.
 
-## 1. Bối cảnh: virtual thread thay đổi cách quan sát ứng dụng
+## 1. Context: Virtual Threads Change How We Observe Applications
 
-- **Platform thread** thường gắn với một thread hệ điều hành trong suốt vòng đời.
-- **Virtual thread** (chính thức từ Java 21, JEP 444) được JVM lên lịch chạy trên một platform thread gọi là **carrier**. Khi gặp thao tác chờ có thể unmount (ví dụ I/O hỗ trợ hoặc `LockSupport.park`), virtual thread được tạm dừng và carrier có thể phục vụ việc khác.
-- Vì vậy một ứng dụng có thể có rất nhiều virtual thread đang chờ dù số carrier/platform thread ít. Dump truyền thống như `jstack` hoặc `jcmd <PID> Thread.print` không phải cách đầy đủ để liệt kê các virtual thread đã unmount.
-- `jcmd <PID> Thread.dump_to_file` được thiết kế để ghi stack của **cả platform thread lẫn virtual thread** ra file. Cách này phù hợp khi cần tìm vị trí đang đợi I/O, lock, latch, queue hay truy vết một tác vụ bị treo.
+- A **platform thread** is typically bound to an OS thread for its entire lifetime.
+- A **virtual thread** (permanent since Java 21, JEP 444) is scheduled by the JVM onto a platform thread called a **carrier**. When encountering a wait operation that supports unmounting (such as supported I/O or `LockSupport.park`), the virtual thread is suspended and the carrier can serve other work.
+- As a result, an application can have huge numbers of waiting virtual threads even with few carrier/platform threads. Traditional dumps such as `jstack` or `jcmd <PID> Thread.print` are not a complete way to list unmounted virtual threads.
+- `jcmd <PID> Thread.dump_to_file` is designed to write the stacks of **both platform threads and virtual threads** to a file. This is well-suited when you need to find where tasks are waiting on I/O, locks, latches, or queues, or to trace a stalled task.
 
-**Thread dump là ảnh chụp trạng thái tại thời điểm thu thập**, không phải lịch sử thực thi. Một frame `await`, `park` hoặc `sleep` chưa đủ chứng minh deadlock hay bug; cần liên hệ với tải thực tế và so sánh nhiều lần lấy mẫu.
+**A thread dump is a point-in-time snapshot of state**, not an execution history. An `await`, `park`, or `sleep` frame alone does not prove a deadlock or bug; you must correlate it with actual load and compare multiple samples.
 
-### Phạm vi và điều kiện
+### Scope and Prerequisites
 
-- Dùng **JDK 21 trở lên** cho ứng dụng minh họa và cho diagnostic command này; phải có tiện ích `jcmd` từ JDK.
-- `jcmd` phải chạy trên **cùng máy/không gian tiến trình có thể attach** tới JVM đích và thường cần cùng người dùng hiệu lực (effective user/group). Trong container, PID nhìn từ host có thể khác PID bên trong container.
-- Tiến trình JVM phải đang chạy, hỗ trợ diagnostic command và có quyền **tạo file ở đường dẫn đích**. File dump được ghi bởi **JVM đích**, không phải bởi shell đang gõ `jcmd`.
-- Tên lệnh và lựa chọn chính xác có thể kiểm tra trực tiếp bằng `jcmd <PID> help Thread.dump_to_file`.
+- Use **JDK 21 or later** for the sample application and this diagnostic command; the `jcmd` utility from the JDK must be available.
+- `jcmd` must run on the **same machine/process namespace able to attach** to the target JVM and usually requires the same effective user/group. Inside containers, the PID seen from the host may differ from the PID inside the container.
+- The target JVM process must be running, support the diagnostic command, and have permission to **create the file at the target path**. The dump file is written by the **target JVM**, not by the shell invoking `jcmd`.
+- Exact command names and options can be checked directly with `jcmd <PID> help Thread.dump_to_file`.
 
-## 2. Cú pháp của `Thread.dump_to_file`
+## 2. Syntax of `Thread.dump_to_file`
 
 ```bash
-jcmd <PID> Thread.dump_to_file [-format=plain|-format=json] [-overwrite] <duong-dan-file>
+jcmd <PID> Thread.dump_to_file [-format=plain|-format=json] [-overwrite] <file-path>
 ```
 
-Ví dụ trên Linux/macOS (thay `<PID>` bằng số PID thực; đảm bảo thư mục `/tmp` ghi được bởi JVM đích):
+Examples on Linux/macOS (replace `<PID>` with the actual PID; ensure `/tmp` is writable by the target JVM):
 
 ```bash
-# Plain (mặc định); hai lệnh sau có cùng ý định:
+# Plain (default); the following two commands have the same intent:
 jcmd <PID> Thread.dump_to_file /tmp/vthreads-plain.txt
 jcmd <PID> Thread.dump_to_file -format=plain /tmp/vthreads-plain-2.txt
 
-# JSON cho chương trình phân tích:
+# JSON for analysis tools:
 jcmd <PID> Thread.dump_to_file -format=json /tmp/vthreads-json.json
 ```
 
-Trên Windows, dùng đường dẫn tồn tại và cho phép JVM ghi, ví dụ:
+On Windows, use an existing path that the JVM is allowed to write to, for example:
 
 ```powershell
 jcmd <PID> Thread.dump_to_file -format=plain "C:\temp\vthreads-plain.txt"
 jcmd <PID> Thread.dump_to_file -format=json "C:\temp\vthreads-json.json"
 ```
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 | --- | --- |
-| `<PID>` | Mã tiến trình JVM cần quan sát; không phải thread ID. |
-| `-format=plain` | Văn bản đọc trực tiếp, là kiểu mặc định trong trợ giúp diagnostic command. |
-| `-format=json` | JSON có cấu trúc để lọc bằng script/công cụ phân tích. |
-| `-overwrite` | Cho phép thay thế file đã tồn tại; mặc định **không ghi đè**. Chỉ dùng khi thực sự muốn mất bản cũ. |
-| `<duong-dan-file>` | Vị trí file **trong hệ thống file của tiến trình JVM đích**. |
+| `<PID>` | The JVM process ID to inspect; not a thread ID. |
+| `-format=plain` | Human-readable plain text, which is the default in the diagnostic command help. |
+| `-format=json` | Structured JSON for filtering with scripts/analysis tools. |
+| `-overwrite` | Allows replacing an existing file; by default **it does not overwrite**. Use only when you genuinely intend to discard the previous copy. |
+| `<file-path>` | File location **on the target JVM process's filesystem**. |
 
-Một số bài viết của Oracle dùng cách ghi `-format=text` để chỉ dạng văn bản. Trên HotSpot, trợ giúp trực tiếp của `Thread.dump_to_file` mô tả hai lựa chọn là **`plain` và `json`**. Để dễ kiểm chứng và đồng nhất, hãy dùng `-format=plain` hoặc bỏ hẳn `-format` cho văn bản.
+Some Oracle articles use `-format=text` to refer to the plain-text format. On HotSpot, the built-in help for `Thread.dump_to_file` lists the two options as **`plain` and `json`**. For consistency and ease of verification, use `-format=plain` or omit `-format` altogether for plain text.
 
-Đường dẫn **tuyệt đối** giúp tránh nhầm lẫn. Nếu dùng đường dẫn tương đối, JVM giải quyết nó dựa trên thư mục làm việc của **tiến trình đích**; do đó file có thể không nằm trong thư mục terminal gọi `jcmd`.
+An **absolute** path avoids confusion. If a relative path is given, the JVM resolves it relative to the **target process's** working directory; consequently, the file may not appear in the working directory of the terminal where `jcmd` was invoked.
 
-## 3. Thực hành: tạo ba virtual thread có tên dễ tìm
+## 3. Hands-On: Create Three Easily Searchable Virtual Threads
 
-Tạo file **`VirtualThreadDumpDemo.java`** với toàn bộ chương trình Java 21 sau:
+Create the file **`VirtualThreadDumpDemo.java`** with the following complete Java 21 program:
 
 ```java
 import java.util.ArrayList;
@@ -104,16 +104,16 @@ public class VirtualThreadDumpDemo {
 }
 ```
 
-**Vì sao ví dụ này phù hợp để lấy dump?** `Thread.ofVirtual()` tạo virtual thread thật; `name("vt-demo-" + i)` đặt tên `vt-demo-1` đến `vt-demo-3`. Mỗi thread đứng ở `CountDownLatch.await()` cho đến khi main gọi `countDown()`. Main chờ người dùng nhấn Enter, nên có khoảng thời gian đủ dài để thu thập dump trong một terminal khác. `join()` đảm bảo chương trình kết thúc sau khi cả ba virtual thread hoàn thành.
+**Why is this example well-suited for taking a dump?** `Thread.ofVirtual()` creates real virtual threads; `name("vt-demo-" + i)` names them `vt-demo-1` through `vt-demo-3`. Each thread waits at `CountDownLatch.await()` until `main` calls `countDown()`. `main` waits for the user to press Enter, providing plenty of time to collect dumps from another terminal. `join()` ensures the program exits cleanly after all three virtual threads finish.
 
-### Terminal A — khởi động chương trình
+### Terminal A — Start the Program
 
 ```bash
 javac --release 21 VirtualThreadDumpDemo.java
 java VirtualThreadDumpDemo
 ```
 
-Đầu ra mẫu (số PID phụ thuộc máy):
+Sample output (the PID value depends on your machine):
 
 ```text
 PID=12345
@@ -121,9 +121,9 @@ PID=12345
 Press Enter to stop...
 ```
 
-**Giữ nguyên terminal A và chưa nhấn Enter.** Chương trình đang chạy, các virtual thread vẫn chờ trên latch.
+**Keep Terminal A open and do not press Enter yet.** The program is running, and the virtual threads remain waiting on the latch.
 
-### Terminal B — xác định JVM và thu thập hai định dạng
+### Terminal B — Identify the JVM and Collect Both Formats
 
 ```bash
 jcmd -l
@@ -132,64 +132,64 @@ jcmd 12345 Thread.dump_to_file -format=plain /tmp/vthreads-demo.txt
 jcmd 12345 Thread.dump_to_file -format=json /tmp/vthreads-demo.json
 ```
 
-Ở đây `12345` **chỉ là PID minh họa**: thay bằng PID thực in ra ở terminal A. Hai file phải có tên khác nhau để bảo toàn cả hai kết quả. Khi `jcmd` báo tạo file thành công, kiểm tra trên **máy/container nơi JVM đích đang chạy**:
+Here `12345` is **only an illustrative PID**: replace it with the actual PID printed in Terminal A. The two files must have different names so both outputs are preserved. Once `jcmd` reports that file creation succeeded, check on the **machine/container where the target JVM is running**:
 
 ```bash
 ls -lh /tmp/vthreads-demo.txt /tmp/vthreads-demo.json
 grep -n "vt-demo-" /tmp/vthreads-demo.txt
 ```
 
-Sau khi hoàn tất, quay lại terminal A, **nhấn Enter**. Dòng cuối dự kiến:
+Once finished, return to Terminal A and **press Enter**. Expected final line:
 
 ```text
 Done.
 ```
 
-Nếu bạn sử dụng Windows, thay đường dẫn `/tmp/...` bằng đường dẫn Windows như ở mục 2. Nếu JVM chạy trong Docker/Kubernetes, hãy thực hiện lệnh trong đúng container hoặc dùng cơ chế attach phù hợp, sau đó lấy file ra khỏi filesystem của container khi cần.
+If you are on Windows, replace `/tmp/...` with a Windows path as shown in Section 2. If the JVM runs inside Docker/Kubernetes, execute the command inside the appropriate container or use an appropriate attach mechanism, then copy the file out of the container filesystem as needed.
 
-## 4. Cách đọc dump `plain`
+## 4. How to Read a `plain` Dump
 
-Mở file bằng `less`, `grep`, trình soạn thảo hoặc công cụ tìm kiếm văn bản. Tập trung vào:
+Open the file with `less`, `grep`, an editor, or a text search tool. Focus on:
 
-1. **Tên thread**: tìm `vt-demo-1`, `vt-demo-2`, `vt-demo-3` hoặc quy ước tên task/request của ứng dụng.
-2. **Dấu hiệu virtual thread**: định dạng plain có thể thể hiện nhãn `virtual`; cách trình bày chi tiết phụ thuộc bản JDK.
-3. **Stack trace**: đọc từ frame trên xuống để tìm hàm đang chờ và các hàm nghiệp vụ đã gọi tới đó. Với demo, hãy tìm `CountDownLatch.await` (có thể có thêm `LockSupport.park` hay frame nội bộ của JVM).
-4. **Mẫu lặp lại**: nhiều thread cùng dừng tại một lời gọi JDBC, HTTP, queue hay latch có thể cho thấy điểm nghẽn, nhưng chưa đủ để khẳng định nguyên nhân.
+1. **Thread name**: search for `vt-demo-1`, `vt-demo-2`, `vt-demo-3`, or your application's task/request naming convention.
+2. **Virtual thread indicator**: the plain format may display a `virtual` label; exact presentation details depend on the JDK release.
+3. **Stack trace**: read from the top frame downward to find the waiting method and the business methods that called it. In the demo, look for `CountDownLatch.await` (possibly alongside `LockSupport.park` or internal JVM frames).
+4. **Repeating patterns**: many threads stopped at the same JDBC, HTTP, queue, or latch call may suggest a bottleneck, though it is not yet enough to confirm the root cause.
 
-Ví dụ tìm tên thread trong dump bằng công cụ Unix:
+Example searching for thread names in the dump using Unix tools:
 
 ```bash
 grep -n -A 15 "vt-demo-" /tmp/vthreads-demo.txt
 ```
 
-`-n` thêm số dòng, `-A 15` hiện 15 dòng theo sau một kết quả khớp. Số frame cần đọc tùy trường hợp; không suy ra tình trạng deadlock chỉ từ một kết quả `grep`.
+`-n` adds line numbers, and `-A 15` shows 15 lines following each match. How many frames you need to read depends on the case; never conclude a deadlock from a single `grep` result.
 
-**Không nhầm:** `Thread.print -l` có ích khi cần phân tích platform thread/monitor và một số thông tin JVM truyền thống, nhưng nó không thay thế được `Thread.dump_to_file` khi mục tiêu là tìm **virtual thread chưa được mount**. Với một sự cố phức tạp, hai loại dump có thể bổ trợ cho nhau.
+**Do not confuse them:** `Thread.print -l` is useful when analyzing platform threads/monitors and certain traditional JVM details, but it does not replace `Thread.dump_to_file` when the goal is to find **unmounted virtual threads**. For a complex incident, the two dump types complement each other.
 
-## 5. Cách đọc dump `JSON`
+## 5. How to Read a `JSON` Dump
 
-JSON thích hợp khi một JVM có hàng nghìn virtual thread, vì bạn có thể lọc dữ liệu theo thread container, tên và stack mà không phải dò thủ công toàn file.
+JSON is ideal when a JVM has thousands of virtual threads, because you can filter by thread container, name, and stack without scanning the entire file manually.
 
-Trong JDK 21, các trường thường thấy bao gồm:
+In JDK 21, commonly seen fields include:
 
-| Đường dẫn JSON | Ý nghĩa |
+| JSON Path | Meaning |
 | --- | --- |
-| `threadDump.processId` | PID JVM tạo dump. |
-| `threadDump.time` | Thời điểm thu thập. |
-| `threadDump.runtimeVersion` | Phiên bản JVM tạo dump. |
-| `threadDump.threadContainers[]` | Các nhóm/container chứa thread, thường có `container`, `parent`, `owner`. |
-| `threadContainers[].threads[]` | Các thread thuộc từng nhóm; thường có `tid`, `name`, `stack`. |
-| `threadContainers[].threadCount` | Số lượng thread được ghi nhận trong container. |
+| `threadDump.processId` | PID of the JVM that generated the dump. |
+| `threadDump.time` | Timestamp of collection. |
+| `threadDump.runtimeVersion` | Version of the JVM that generated the dump. |
+| `threadDump.threadContainers[]` | Thread containers/groups, typically with `container`, `parent`, `owner`. |
+| `threadContainers[].threads[]` | Threads belonging to each group; typically with `tid`, `name`, `stack`. |
+| `threadContainers[].threadCount` | Number of threads recorded in the container. |
 
-Trong các bản JDK 21–26, một số giá trị như `processId`, `tid`, `threadCount` có thể là **chuỗi chứa số**; các bản JDK mới hơn có thể dùng kiểu số và thêm trường mới. Vì thế, parser nên chịu được thay đổi theo phiên bản, thay vì coi tất cả trường/tình trạng của các bản JDK là bất biến. Đặc biệt, **đừng mặc định JSON của JDK 21 có các trường `state`, lock-owner hoặc timestamp riêng cho từng thread** như các bản JDK mới.
+In JDK 21–26, values such as `processId`, `tid`, and `threadCount` may be **numeric strings**; newer JDK releases may use numeric JSON types and add new fields. Therefore, parsers should tolerate version differences instead of treating every field and representation across JDK versions as immutable. Specifically, **do not assume JDK 21 JSON includes `state`, lock-owner, or per-thread timestamp fields** found in newer JDKs.
 
-Dùng tiện ích `jq` (cài riêng, không phải thành phần JDK) để kiểm tra metadata:
+Use `jq` (installed separately, not part of the JDK) to inspect metadata:
 
 ```bash
 jq '.threadDump | {processId, time, runtimeVersion}' /tmp/vthreads-demo.json
 ```
 
-Liệt kê các container và số thread:
+List containers and thread counts:
 
 ```bash
 jq -r '
@@ -199,7 +199,7 @@ jq -r '
 ' /tmp/vthreads-demo.json
 ```
 
-Lọc ba thread đã đặt tên và lấy frame đầu tiên của stack:
+Filter the three named threads and extract the top stack frame:
 
 ```bash
 jq -r '
@@ -212,73 +212,73 @@ jq -r '
 ' /tmp/vthreads-demo.json
 ```
 
-**Giải thích truy vấn:** duyệt từng `threadContainer`; lấy từng phần tử `threads`; chỉ giữ tên bắt đầu bằng `vt-demo-`; xuất tên container, thread ID, tên thread và frame đầu tiên dưới dạng tab-separated text. Các chuỗi/tên container và ID cụ thể thay đổi giữa những lần chạy.
+**Query explanation:** iterate over each `threadContainer`; extract each element of `threads`; keep only names starting with `vt-demo-`; output the container name, thread ID, thread name, and top frame as tab-separated text. Specific container strings/names and IDs change between runs.
 
-Nếu không có `jq`, có thể dùng công cụ kiểm tra cú pháp JSON thông dụng, chẳng hạn:
+If `jq` is unavailable, you can use a standard JSON syntax checker, for example:
 
 ```bash
 python3 -m json.tool /tmp/vthreads-demo.json > /dev/null
 ```
 
-Lệnh Python trên chỉ xác minh file là JSON hợp lệ, không phân tích nguyên nhân treo. Để điều tra nội dung sâu hơn, có thể viết parser JSON với thư viện tương ứng hoặc nạp file vào công cụ phân tích phù hợp với phiên bản JDK.
+The Python command above only verifies that the file is valid JSON; it does not analyze stall causes. For deeper inspection, write a JSON parser using an appropriate library or load the file into an analysis tool compatible with your JDK version.
 
-## 6. Dùng dump để điều tra một hiện tượng thực tế
+## 6. Using Dumps to Investigate a Real Incident
 
-Giả sử một dịch vụ xử lý request bằng virtual thread và nhiều request bị chậm:
+Suppose a service handles requests using virtual threads and many requests become slow:
 
-1. **Xác nhận đúng PID và thời điểm có triệu chứng.** Ghi lại tải, endpoint liên quan và mốc thời gian; tránh lấy dump của JVM khác.
-2. **Lấy ít nhất hai hoặc ba mẫu cách nhau một khoảng ngắn**, với tên file khác nhau, ví dụ `vthreads-01.json`, `vthreads-02.json`, `vthreads-03.json`. Mỗi lần là một snapshot riêng.
-3. **Nhóm stack theo lời gọi nghiệp vụ**: nhiều thread dừng tại `socketRead`, `Future.get`, `CountDownLatch.await`, pool connection hay một chỗ giữ lock có thể gợi ý nơi cần kiểm tra; hãy xác định ai tạo điều kiện để chờ kết thúc.
-4. **So sánh qua các mẫu**: stack luôn ở cùng một điểm có thể là chờ dài hoặc bế tắc, nhưng cũng có thể là hoạt động bình thường của worker. Kiểm tra timeout, queue depth, thời lượng I/O, dependency và log.
-5. **Kết hợp bằng chứng khác** khi cần: JFR (nhất là sự kiện `jdk.VirtualThreadPinned` khi điều tra pinning), log ứng dụng, metrics, hoặc `jcmd <PID> Thread.print -l` để khảo sát phần platform thread/lock.
+1. **Confirm the exact PID and symptom window.** Record load, affected endpoints, and timestamps; avoid capturing a dump from the wrong JVM.
+2. **Capture at least two or three samples a short interval apart**, using different filenames such as `vthreads-01.json`, `vthreads-02.json`, `vthreads-03.json`. Each capture is an independent snapshot.
+3. **Group stacks by business call:** many threads paused at `socketRead`, `Future.get`, `CountDownLatch.await`, a connection pool, or holding a lock may point to where to look; identify what is supposed to satisfy the wait condition.
+4. **Compare across samples:** stacks stuck at the exact same point may indicate a long wait or stall, or simply normal worker behavior. Check timeouts, queue depths, I/O durations, dependencies, and logs.
+5. **Combine with other evidence** when needed: JFR (especially `jdk.VirtualThreadPinned` when investigating pinning), application logs, metrics, or `jcmd <PID> Thread.print -l` to examine platform threads and locks.
 
-Không gán nhãn `BLOCKED`/`WAITING` chỉ bằng việc đoán từ một frame stack trong dump JDK 21; trạng thái đầy đủ và thông tin lock tùy phiên bản JDK. Một dump không phải phép đo CPU, profiling hay công cụ tự động tìm deadlock.
+Do not assign `BLOCKED`/`WAITING` labels just by guessing from a stack frame in a JDK 21 dump; full thread states and lock metadata depend on the JDK version. A dump is not a CPU measurement, profiler, or automatic deadlock detector.
 
-### Hai mẫu lệnh hữu ích khác
+### Two Other Useful Command Patterns
 
 ```bash
-# Liệt kê các JVM mà jcmd thấy trên máy:
+# List the JVMs visible to jcmd on the machine:
 jcmd -l
 
-# Dump platform-thread theo kiểu truyền thống vào file do shell ghi:
+# Traditional platform-thread dump written to a file by the shell:
 jcmd <PID> Thread.print -l > /tmp/platform-threads.txt
 ```
 
-Phân biệt hai kiểu ghi file: dấu `>` ở lệnh `Thread.print` khiến **shell gọi lệnh** tạo file; còn `<duong-dan-file>` ở `Thread.dump_to_file` được gửi tới **JVM đích** để JVM tự ghi.
+Distinguish the two file-writing mechanisms: `>` in `Thread.print` causes the **calling shell** to create the file; whereas `<file-path>` in `Thread.dump_to_file` is passed to the **target JVM** so the JVM writes the file itself.
 
-## 7. Giới hạn, tác động và an toàn vận hành
+## 7. Limitations, Overhead, and Operational Safety
 
-- **Không phải snapshot hoàn toàn đồng bộ:** các thread có thể tiến triển trong lúc dump được thu thập; thứ tự/stack không đại diện cho một “thời điểm dừng toàn JVM” tuyệt đối.
-- **Dung lượng và overhead:** hàng chục nghìn đến hàng triệu virtual thread có thể tạo file rất lớn và làm công cụ lấy dump tốn thời gian/tài nguyên; tránh thu thập dồn dập trên hệ thống đang quá tải.
-- **Không thay thế dump truyền thống:** ở JDK 21, định dạng này tập trung vào thông tin thread/stack, không mang đầy đủ chi tiết địa chỉ đối tượng, JNI, heap, monitor/lock hoặc tự động dò deadlock như một số công cụ khác.
-- **Bảo mật:** tên lớp/phương thức, đường dẫn và các thông tin thực thi trong dump có thể nhạy cảm. Lưu file với quyền hạn phù hợp, che dữ liệu trước khi chia sẻ và xoá theo chính sách lưu giữ.
-- **Phiên bản JDK:** format, trường JSON, khả năng trình bày lock và thread state thay đổi theo bản phát hành. Kiểm tra `runtimeVersion`, `jcmd <PID> help Thread.dump_to_file` và schema công cụ phân tích sau khi nâng JDK.
-- **File tồn tại:** mặc định không ghi đè; tốt nhất dùng tên mới có mốc thời gian. Chỉ thêm `-overwrite` khi thực sự muốn thay thế.
+- **Not a fully synchronized snapshot:** threads may continue progressing while the dump is collected; ordering and stacks do not represent an absolute "stop-the-entire-JVM instant."
+- **Size and overhead:** tens of thousands to millions of virtual threads can produce huge files and make dump collection costly in time and resources; avoid rapid-fire collection on an overloaded system.
+- **Does not replace traditional dumps:** in JDK 21, this format focuses on thread/stack info and lacks full object address, JNI, heap, monitor/lock details, or automatic deadlock detection provided by some other tools.
+- **Security:** class/method names, paths, and runtime info inside dumps can be sensitive. Store files with proper permissions, redact before sharing, and delete according to retention policies.
+- **JDK versions:** format, JSON fields, lock presentation, and thread states evolve across releases. Check `runtimeVersion`, `jcmd <PID> help Thread.dump_to_file`, and analysis tool schemas after upgrading the JDK.
+- **Existing files:** by default existing files are not overwritten; it is best to use fresh timestamped filenames. Add `-overwrite` only when replacement is genuinely intended.
 
-## 8. Xử lý lỗi thường gặp
+## 8. Troubleshooting Common Errors
 
-| Hiện tượng | Nguyên nhân cần kiểm tra | Cách xử lý |
+| Symptom | Causes to Check | Resolution |
 | --- | --- | --- |
-| `Thread.dump_to_file` không được nhận diện | JVM đích quá cũ, không hỗ trợ lệnh hoặc dùng VM khác HotSpot | Kiểm tra `java -version` của JVM đích và `jcmd <PID> help`; dùng JDK 21+ có hỗ trợ. |
-| `jcmd -l` không thấy PID | JVM ở container/PID namespace khác, chạy người dùng khác hoặc đã thoát | Xác nhận tiến trình thực và chạy `jcmd` trong môi trường có thể nhìn/attach tới JVM. |
-| Attach thất bại hoặc thiếu quyền | Người dùng/nhóm không phù hợp, cấu hình attach bị vô hiệu hóa hoặc giới hạn OS/container | Chạy với quyền hợp lệ trên đúng máy/container và kiểm tra chính sách attach. |
-| Báo file đã tồn tại | Mặc định không ghi đè | Chọn tên mới; cân nhắc `-overwrite` chỉ khi được phép mất bản cũ. |
-| Không thấy file tại terminal B | File được JVM đích tạo ở đường dẫn của nó | Dùng đường dẫn tuyệt đối; kiểm tra filesystem/working directory của JVM, đặc biệt trong container. |
-| Không tìm thấy `vt-demo-` | Nhấn Enter quá sớm, chọn sai PID, chương trình đã thoát | Chạy lại demo, giữ terminal A mở và dump trước khi `countDown()`. |
-| `jq` báo lỗi hoặc thiếu field | File chưa hoàn tất, chọn sai file hoặc schema JDK khác dự kiến | Đợi `jcmd` hoàn tất, kiểm tra `runtimeVersion`/cấu trúc thực; không giả định mọi phiên bản có cùng field. |
+| `Thread.dump_to_file` is unrecognized | Target JVM is too old, does not support the command, or is a non-HotSpot VM | Check `java -version` of the target JVM and `jcmd <PID> help`; use a supporting JDK 21+. |
+| `jcmd -l` does not list the PID | JVM is in another container/PID namespace, running as another user, or has exited | Confirm the actual process and run `jcmd` in an environment that can see and attach to the JVM. |
+| Attach fails or permission denied | User/group mismatch, attach disabled by config, or OS/container restrictions | Run with valid privileges on the right host/container and check attach policies. |
+| Error that file already exists | Default behavior does not overwrite | Pick a new filename; consider `-overwrite` only when overwriting the old copy is acceptable. |
+| File not found in Terminal B | The target JVM created the file at its own path | Use an absolute path; check the JVM's filesystem and working directory, especially in containers. |
+| `vt-demo-` not found | Pressed Enter too early, wrong PID, or program already exited | Re-run the demo, keep Terminal A open, and dump before `countDown()`. |
+| `jq` errors or missing fields | File is incomplete, wrong file selected, or JDK schema differs from expectations | Wait for `jcmd` to finish, inspect `runtimeVersion` and actual structure; do not assume all versions share identical fields. |
 
-## 9. Tự kiểm tra kiến thức
+## 9. Self-Check
 
-1. Vì sao `Thread.print` có thể không thể hiện đầy đủ virtual thread đang chờ? **Vì virtual thread có thể đã unmount khỏi carrier**, trong khi dump truyền thống tập trung vào platform thread.
-2. `-format=plain` và `-format=json` khác gì? **Plain** thuận tiện đọc trực tiếp; **JSON** thuận tiện xử lý và lọc tự động theo nhóm/thread/stack.
-3. Tại sao không thấy file trong thư mục terminal đang gọi `jcmd`? Vì `Thread.dump_to_file` yêu cầu **JVM đích ghi file** theo filesystem và working directory của JVM đó.
-4. Một virtual thread nằm tại `CountDownLatch.await()` có chắc chắn deadlock không? **Không**; trong demo đó là chờ có chủ đích, được giải phóng khi nhấn Enter. Cần ngữ cảnh và nhiều snapshot.
-5. Vì sao cần giữ `runtimeVersion` khi phân tích JSON? Vì các trường và kiểu dữ liệu thread dump có thể khác giữa các phiên bản JDK.
+1. Why might `Thread.print` fail to show all waiting virtual threads? **Because virtual threads may have unmounted from their carriers**, while traditional dumps focus on platform threads.
+2. How do `-format=plain` and `-format=json` differ? **Plain** is convenient for direct reading; **JSON** is convenient for automated processing and filtering by container/thread/stack.
+3. Why might the file not appear in the working directory of the terminal invoking `jcmd`? Because `Thread.dump_to_file` instructs the **target JVM to write the file** using the JVM's own filesystem and working directory.
+4. Does a virtual thread stopped at `CountDownLatch.await()` definitely indicate a deadlock? **No**; in this demo it is an intentional wait released upon pressing Enter. Context and multiple snapshots are required.
+5. Why keep `runtimeVersion` when parsing JSON dumps? Because thread dump fields and data types can differ across JDK versions.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle Java 21 — Virtual Threads, mục Viewing Virtual Threads in jcmd Thread Dumps](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html)
-- [Oracle — `jcmd` command (cách liệt kê PID, chạy diagnostic command và kiểm tra help)](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
+- [Oracle Java 21 — Virtual Threads, section Viewing Virtual Threads in jcmd Thread Dumps](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html)
+- [Oracle — `jcmd` command (how to list PIDs, run diagnostic commands, and check help)](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
 - [OpenJDK JEP 444 — Virtual Threads](https://openjdk.org/jeps/444)
-- [Oracle — `jcmd` ở các JDK mới hơn, mô tả tùy chọn `-format`/`-overwrite`](https://docs.oracle.com/en/java/javase/24/docs/specs/man/jcmd.html)
-- [Inside Java — thay đổi kiểu trường số trong JSON thread dump ở JDK 27](https://inside.java/2026/05/20/quality-heads-up/)
+- [Oracle — `jcmd` in newer JDKs, describing `-format`/`-overwrite` options](https://docs.oracle.com/en/java/javase/24/docs/specs/man/jcmd.html)
+- [Inside Java — numeric field type changes in JSON thread dumps in JDK 27](https://inside.java/2026/05/20/quality-heads-up/)

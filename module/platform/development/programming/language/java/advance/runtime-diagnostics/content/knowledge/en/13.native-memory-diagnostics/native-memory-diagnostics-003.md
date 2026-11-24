@@ -1,21 +1,21 @@
-# 13.3 Bật NativeMemoryTracking từ lúc khởi động với `summary` hoặc `detail`
+# 13.3 Enabling NativeMemoryTracking at Startup with `summary` or `detail`
 
-## 1. Native Memory Tracking (NMT) dùng để làm gì?
+## 1. What Is Native Memory Tracking (NMT) For?
 
-**Native Memory Tracking (NMT)** là khả năng chẩn đoán của **HotSpot JVM** để thống kê bộ nhớ do chính JVM quản lý: heap được đặt chỗ và commit, metadata lớp, thread stack, JIT code cache, cấu trúc GC, vùng cấp phát nội bộ và một số nguồn cấp phát native khác. NMT giúp trả lời các câu hỏi:
+**Native Memory Tracking (NMT)** is a **HotSpot JVM** diagnostic capability that accounts for memory managed by the JVM itself: reserved and committed heap, class metadata, thread stacks, JIT code cache, GC structures, internal allocations, and several other native allocation sources. NMT helps answer:
 
-- JVM đã **reserve** và **commit** bao nhiêu bộ nhớ theo từng nhóm?
-- Nhóm nào tăng dần theo thời gian, dù Java heap có vẻ ổn định?
-- Nếu cần đào sâu, những **native allocation call site** hoặc vùng địa chỉ ảo nào đang đóng góp vào mức tăng?
-- Sau khi ứng dụng warm up, bộ nhớ thay đổi bao nhiêu giữa hai thời điểm?
+- How much memory has the JVM **reserved** and **committed** per category?
+- Which category grows over time, even while the Java heap looks stable?
+- If deeper inspection is needed, which **native allocation call sites** or virtual address regions are contributing to the growth?
+- After the application warms up, how much does memory change between two points in time?
 
-Bài này tập trung vào **bật NMT ngay từ khi khởi động JVM** bằng `-XX:NativeMemoryTracking=summary` hoặc `-XX:NativeMemoryTracking=detail`; sau đó xác nhận cấu hình và đọc bằng `jcmd`. Đây là công cụ phân tích **bộ nhớ native phía HotSpot**, không phải heap profiler hay trình phát hiện mọi rò rỉ bộ nhớ trong tiến trình.
+This lesson focuses on **enabling NMT right when starting the JVM** via `-XX:NativeMemoryTracking=summary` or `-XX:NativeMemoryTracking=detail`, then verifying the configuration and reading it with `jcmd`. This is a tool for analyzing **HotSpot-side native memory**, not a heap profiler or a detector for every memory leak in the process.
 
-**Giới hạn quan trọng:** NMT không bao phủ đầy đủ cấp phát trực tiếp của thư viện native bên thứ ba, mã JNI không đi qua bộ cấp phát được HotSpot theo dõi, hay mọi phần bộ nhớ của thư viện JDK. Vì vậy, kết quả NMT **không đồng nhất** với RSS, bộ nhớ container hay toàn bộ address space của tiến trình. Các số liệu phải được đối chiếu với hệ điều hành khi nghi ngờ native leak ngoài JVM.
+**Important limitation:** NMT does not fully cover direct allocations by third-party native libraries, JNI code that bypasses HotSpot-tracked allocators, or every part of JDK library memory. Therefore, NMT results are **not identical** to RSS, container memory, or the entire process address space. Metrics must be cross-checked with the OS when suspecting a native leak outside the JVM.
 
-## 2. Vì sao phải bật từ lúc khởi động?
+## 2. Why Must It Be Enabled at Startup?
 
-HotSpot mặc định đặt NMT ở `off` để tránh chi phí theo dõi. Chọn cấp độ bằng **JVM startup option**:
+HotSpot sets NMT to `off` by default to avoid tracking overhead. Choose the level with a **JVM startup option**:
 
 ```text
 -XX:NativeMemoryTracking=off
@@ -23,64 +23,64 @@ HotSpot mặc định đặt NMT ở `off` để tránh chi phí theo dõi. Ch�
 -XX:NativeMemoryTracking=detail
 ```
 
-Theo tài liệu HotSpot (JDK 17–26), `jcmd VM.native_memory` **đọc được** kết quả đã theo dõi, tạo baseline, in diff và có thể **tắt** NMT, nhưng **không thể bật lại NMT đã off hoặc nâng summary thành detail trong cùng JVM**. Khi cần NMT ở mức cao hơn, phải sửa tùy chọn khởi động và **restart JVM** theo quy trình vận hành phù hợp. Nếu xảy ra sự cố lúc NMT đang off, không có cách hồi tố để dựng lại allocation history từ các cấp phát đã qua.
+Per HotSpot documentation (JDK 17–26), `jcmd VM.native_memory` can **read** tracked results, create a baseline, print diffs, and **shut down** NMT, but it **cannot re-enable NMT once off or upgrade `summary` to `detail` within the same JVM**. When a higher NMT level is needed, update the startup option and **restart the JVM** following appropriate operational procedures. If an incident occurs while NMT is off, there is no way to retroactively reconstruct allocation history from past allocations.
 
-| Cấp độ lúc khởi động | Thu thập được | Câu hỏi phù hợp | Giới hạn |
+| Startup Level | What Is Collected | Suitable Questions | Limitations |
 | --- | --- | --- | --- |
-| `off` (mặc định) | Không duy trì NMT | Chạy khi không cần NMT | `jcmd` không thể lấy báo cáo NMT hữu ích. |
-| `summary` | Tổng hợp theo subsystem/category, `malloc`/`mmap`/`arena`, reserved/committed | Nhóm nào đang tăng? JVM có tăng native memory hay không? | Không đủ dữ liệu để truy chi tiết call site. |
-| `detail` | Toàn bộ dạng summary **và** native allocation call sites, bản đồ virtual memory/committed regions | Allocation site nào tăng? Vùng native nào tạo khác biệt? | Theo dõi và báo cáo chi tiết hơn, có thể làm tăng CPU, RAM, thời gian lấy dump và dung lượng output. |
+| `off` (default) | Does not maintain NMT | Run when NMT is not needed | `jcmd` cannot retrieve a useful NMT report. |
+| `summary` | Aggregates by subsystem/category, `malloc`/`mmap`/`arena`, reserved/committed | Which category is growing? Is JVM native memory increasing? | Insufficient data to trace detailed call sites. |
+| `detail` | Everything in `summary` **plus** native allocation call sites and virtual memory/committed region map | Which allocation site is growing? Which native region makes the difference? | More detailed tracking and reporting can increase CPU, RAM, dump time, and output size. |
 
-NMT làm thay đổi profile hiệu năng và bản thân NMT cũng dùng bộ nhớ; tài liệu Oracle đưa ra mức tác động tham khảo **5–10% hiệu năng**, tùy workload/build. Không coi con số này là cam kết cho mọi cấu hình: hãy benchmark ứng dụng thực khi đưa vào môi trường có yêu cầu latency nghiêm ngặt. `detail` nên dùng có mục tiêu khi `summary` đã chỉ ra nhóm bất thường nhưng chưa đủ bằng chứng.
+NMT alters the performance profile and uses memory itself; Oracle documentation gives a reference impact of **5–10% performance overhead**, depending on workload/build. Do not treat this figure as a guarantee for every configuration: benchmark your actual application when deploying in latency-sensitive environments. `detail` should be used purposefully when `summary` already points to an abnormal category without enough evidence.
 
-**Quy tắc lựa chọn:** lần đầu điều tra thường dùng `summary` vì dễ đọc; khi cần định vị native C/C++ call sites thì chủ động chạy lại với `detail` ngay từ startup. Không có thao tác `jcmd` nào biến dữ liệu summary cũ thành detail một cách chính xác.
+**Selection rule:** start an investigation with `summary` for readability; when you need to pinpoint native C/C++ call sites, purposefully restart with `detail` from startup. No `jcmd` operation can accurately convert prior `summary` data into `detail`.
 
-## 3. Các cách khởi động JVM với NMT
+## 3. Ways to Launch the JVM with NMT
 
-### 3.1 Ứng dụng Java chạy trực tiếp
+### 3.1 Direct Java Application Launch
 
 ```bash
 java -XX:NativeMemoryTracking=summary -Xms256m -Xmx1g -jar application.jar
 ```
 
-Đổi sang `detail` khi điều tra sâu:
+Switch to `detail` for deep investigation:
 
 ```bash
 java -XX:NativeMemoryTracking=detail -Xms256m -Xmx1g -jar application.jar
 ```
 
-Chỉ chọn **một** trong hai mức cho một lần chạy. `-Xms`/`-Xmx` trong ví dụ là cấu hình heap minh họa, không phải điều kiện bắt buộc để sử dụng NMT. Các tùy chọn `-XX` phải nằm **trước** `-jar` hoặc tên main class:
+Choose only **one** of the two levels per run. `-Xms`/`-Xmx` in the examples are illustrative heap settings, not prerequisites for NMT. `-XX` options must appear **before** `-jar` or the main class name:
 
 ```bash
-# Sai mục đích: đối số bên phải application.jar được chuyển vào main(String[] args)
+# Unintended placement: arguments after application.jar are passed to main(String[] args)
 java -jar application.jar -XX:NativeMemoryTracking=summary
 ```
 
-Dòng trên có thể làm ứng dụng nhận một đối số lạ trong khi **NMT của JVM vẫn không được bật**.
+The line above may pass an unexpected argument to the application while **JVM NMT remains disabled**.
 
-### 3.2 Chạy bằng classpath
+### 3.2 Launching via Classpath
 
 ```bash
 java -XX:NativeMemoryTracking=summary -cp out com.example.Main
 ```
 
-Không cần code Java gọi API NMT. Tùy chọn `-XX:NativeMemoryTracking` được JVM xử lý **trước khi `main` chạy**. Cú pháp này áp dụng cho các ứng dụng dùng HotSpot/OpenJDK tương thích, gồm cả executable Spring Boot JAR khi khởi chạy bằng `java -jar`.
+No Java code needs to call an NMT API. The `-XX:NativeMemoryTracking` option is processed by the JVM **before `main` runs**. This syntax applies to compatible HotSpot/OpenJDK applications, including executable Spring Boot JARs launched via `java -jar`.
 
-### 3.3 Ứng dụng container
+### 3.3 Containerized Applications
 
-Đặt tùy chọn trong câu lệnh khởi động Java thực sự của container. Ví dụ hình thức `exec` trong Dockerfile:
+Place the option in the container's actual Java launch command. Example `exec` form in a Dockerfile:
 
 ```dockerfile
 ENTRYPOINT ["java", "-XX:NativeMemoryTracking=summary", "-jar", "/app/application.jar"]
 ```
 
-Nếu runtime được khởi chạy bằng script hoặc cấu hình orchestration, kiểm tra **câu lệnh cuối cùng** (entrypoint, args, environment) để chắc chắn cờ đã đến Java process. Có thể đặt `JAVA_TOOL_OPTIONS=-XX:NativeMemoryTracking=summary` trong môi trường phù hợp, nhưng biến này ảnh hưởng **mọi JVM** kế thừa biến môi trường đó, bao gồm tác vụ build/tool phụ; ghi rõ phạm vi và thử trước. Tránh vô tình bật `detail` trên tất cả dịch vụ.
+If the runtime starts via a wrapper script or orchestration config, verify the **final effective command** (entrypoint, args, environment) to ensure the flag reaches the Java process. You can set `JAVA_TOOL_OPTIONS=-XX:NativeMemoryTracking=summary` in an appropriate environment, but that variable affects **every JVM** inheriting it, including build tasks or helper tools; document its scope and test first. Avoid accidentally enabling `detail` across all services.
 
-Trong container, cần phân biệt **PID nhìn từ container** với PID nhìn từ host. `jcmd` phải nhìn thấy JVM cùng PID namespace, có Java tool đủ tương thích và quyền attach. Không suy ra PID từ tên pod hoặc service.
+In containers, distinguish **the PID seen inside the container** from the PID seen on the host. `jcmd` must see the JVM in the same PID namespace, with a compatible Java tool and attach permissions. Do not infer PID from pod or service names.
 
-### 3.4 In báo cáo khi JVM thoát bình thường
+### 3.4 Printing Statistics on Normal JVM Exit
 
-Có thể bật thêm diagnostic options để HotSpot in NMT cuối vòng đời tiến trình:
+Additional diagnostic options can tell HotSpot to print NMT at the end of the process lifecycle:
 
 ```bash
 java -XX:NativeMemoryTracking=summary \
@@ -89,11 +89,11 @@ java -XX:NativeMemoryTracking=summary \
      -jar application.jar
 ```
 
-Ví dụ trên dùng cú pháp tiếp dòng của shell Unix; trên Windows PowerShell hãy gõ tất cả tùy chọn trên **một dòng** hoặc dùng cú pháp tiếp dòng riêng của PowerShell. `-XX:+UnlockDiagnosticVMOptions` và `-XX:+PrintNMTStatistics` là để in thống kê lúc thoát; **không bắt buộc** khi chỉ muốn bật `summary`/`detail` rồi đọc bằng `jcmd`. Khi bị `SIGKILL`, container OOM kill hoặc hệ điều hành kết thúc tiến trình đột ngột, đừng trông chờ báo cáo shutdown này luôn xuất hiện.
+The example above uses Unix shell line-continuation syntax; on Windows PowerShell, put all options on **one line** or use PowerShell's line-continuation syntax. `-XX:+UnlockDiagnosticVMOptions` and `-XX:+PrintNMTStatistics` are for printing stats on exit; they are **not required** if you only want to enable `summary`/`detail` and inspect via `jcmd`. On `SIGKILL`, container OOM kill, or abrupt OS termination, do not expect this shutdown report to appear.
 
-## 4. Xác minh đúng JVM đang chạy
+## 4. Verifying the Right Running JVM
 
-Trước khi phân tích, kiểm tra version, PID, JVM options và trạng thái NMT **trên ứng dụng đích**:
+Before analyzing, verify the version, PID, JVM options, and NMT status **on the target application**:
 
 ```bash
 java -version
@@ -105,22 +105,22 @@ jcmd <PID> help VM.native_memory
 jcmd <PID> VM.native_memory summary scale=MB
 ```
 
-Thay `<PID>` bằng số PID thực tế được liệt kê, không gõ nguyên dấu `<` và `>`. `java -version` ở terminal chỉ mô tả binary được shell dùng; lệnh `jcmd <PID> VM.version` mới xác nhận runtime của **process cần điều tra**. `VM.command_line` hoặc `VM.flags` giúp xác minh flag NMT có được đưa vào startup, kể cả khi cấu hình đến từ launcher/script.
+Replace `<PID>` with the actual PID listed, without typing `<` and `>`. `java -version` in the terminal only describes the binary in your shell PATH; `jcmd <PID> VM.version` confirms the runtime of **the target process**. `VM.command_line` or `VM.flags` verifies that the NMT flag was passed at startup, even when configuration comes from a launcher or script.
 
-Khi NMT chưa bật, JVM có thể trả thông báo tương đương “Native memory tracking is not enabled”. Đây là lỗi **cấu hình khởi động**, không phải bug của `jcmd`. Khi NMT được bật ở mức `summary`, lệnh `detail` không tự tạo ra các call sites còn thiếu. Đọc output thực tế của JDK đang dùng và dùng `jcmd <PID> help VM.native_memory` để xem cú pháp công cụ tương ứng.
+When NMT is not enabled, the JVM may return a message equivalent to "Native memory tracking is not enabled". That is a **startup configuration** issue, not a `jcmd` bug. When NMT is enabled at `summary`, running `detail` will not fabricate missing call sites. Read the actual output of your JDK and run `jcmd <PID> help VM.native_memory` to check the exact command syntax.
 
-**Vấn đề quyền:** công cụ `jcmd` thường cần cùng máy/namespace và user đủ quyền attach; ảnh hưởng của `-XX:+DisableAttachMechanism`, container PID namespace, bản JDK thiếu `jcmd` hoặc hạn chế bảo mật có thể khiến lệnh thất bại dù NMT đã bật. Khi gặp lỗi attach, xử lý quyền/quy trình triển khai theo chính sách thay vì kết luận ngay “NMT off”.
+**Permissions:** `jcmd` typically requires the same host/namespace and a user with attach permissions; `-XX:+DisableAttachMechanism`, container PID namespaces, JDK images missing `jcmd`, or security restrictions can cause commands to fail even when NMT is enabled. When encountering attach errors, resolve permissions/deployment workflow per policy instead of concluding "NMT is off".
 
-## 5. `summary`: đọc tổng hợp và phân biệt reserved với committed
+## 5. `summary`: Reading Aggregates and Separating Reserved from Committed
 
-Bắt đầu bằng:
+Start with:
 
 ```bash
 jcmd <PID> VM.native_memory summary
 jcmd <PID> VM.native_memory summary scale=MB
 ```
 
-Bạn sẽ thấy dòng `Total` và các category. Cấu trúc khái quát:
+You will see a `Total` line followed by categories. General structure:
 
 ```text
 Native Memory Tracking:
@@ -134,92 +134,92 @@ Total: reserved=..., committed=...
 ...
 ```
 
-Đây chỉ là **sơ đồ vị trí trường**; tên nhóm, số lượng nhóm và các chi tiết `malloc`/`mmap` khác nhau giữa JDK, GC, nền tảng và cấu hình. Để xem số thật phải chạy `jcmd` trên JVM đích.
+This is only a **field-layout sketch**; category names, category counts, and `malloc`/`mmap` details vary across JDKs, GCs, platforms, and configurations. Run `jcmd` on the target JVM to see real numbers.
 
-- **Reserved**: dải địa chỉ ảo JVM đã đặt chỗ; không đồng nghĩa số byte RAM vật lý đang dùng. Ví dụ khi `-Xmx` lớn, Java Heap có thể reserve vùng lớn dù chưa commit hết.
-- **Committed**: phần bộ nhớ đã được hệ điều hành cam kết cấp phát theo quan sát NMT. Đây vẫn **không chính xác bằng RSS**: committed không có nghĩa mọi trang đã cư trú trong RAM vật lý ở thời điểm đọc.
-- **`malloc`**: bộ nhớ phân bổ qua các đường cấp phát native mà NMT theo dõi; output có thể kèm số lần/phần tử cấp phát.
-- **`mmap`**: các vùng địa chỉ ảo dựa trên mapping/reservation, thường liên quan Java Heap, class space, code cache và vùng JVM khác.
-- **`arena`**: quản lý bộ nhớ theo chunk để cấp phát ngắn hạn; đừng dùng số lượng arena làm số byte rò rỉ từng Java object.
+- **Reserved**: virtual address range set aside by the JVM; not synonymous with bytes of physical RAM used. For example, with a large `-Xmx`, Java Heap may reserve a large range without committing all of it.
+- **Committed**: memory committed for allocation by the OS as observed by NMT. This still **does not strictly equal RSS**: committed does not mean every page is resident in physical RAM at read time.
+- **`malloc`**: memory allocated via native allocation paths tracked by NMT; output may include allocation counts.
+- **`mmap`**: virtual address regions based on mappings/reservations, often related to Java Heap, class space, code cache, and other JVM areas.
+- **`arena`**: chunk-based memory management for short-lived allocations; do not treat arena counts as leaked bytes of individual Java objects.
 
-Một số category thường gặp:
+Common categories:
 
-| Category | Nội dung cần xem | Ví dụ hướng điều tra tiếp |
+| Category | What to Look At | Example Next Investigation Steps |
 | --- | --- | --- |
-| `Java Heap` | Heap reserved/committed, chịu ảnh hưởng `-Xms`/`-Xmx` và GC | Đối chiếu `GC.heap_info`, heap usage, GC logs; NMT không profile từng Java object. |
-| `Class` | Metaspace, class space, metadata lớp | Classloader, dynamic class generation, class unloading, `VM.classloader_stats`/`VM.metaspace`. |
-| `Thread` | Cấu trúc thread, native stack reservation/commit | Số platform thread, stack size, thread creation; không suy số live thread chính xác chỉ từ byte. |
-| `Code` | JIT-generated code/code cache | Tình trạng compilation và code cache. |
-| `GC` | Native structures của garbage collector | Collector đang dùng, số CPU/heap, cấu hình GC và cấu trúc hỗ trợ. |
-| `Compiler` | Tài nguyên của C1/C2/JIT compiler | Warm up, hoạt động biên dịch, chu kỳ tăng/giảm sau khởi động. |
-| `Internal`, `Other` | Các phân bổ được HotSpot theo dõi nhưng khó gán vào category chuyên biệt | Xem `detail` và tài liệu của build cụ thể; tránh quy ngay “Other = leak”. |
-| `Native Memory Tracking` | Bộ nhớ dành cho chính bộ đếm/tracker | Là overhead của quá trình quan sát. |
-| `Symbol`, `Arena Chunk`, `Module`, `Logging`… | Cấu trúc vận hành JVM | Theo dõi chiều tăng qua các mốc; category có thể xuất hiện/thay đổi theo JDK. |
+| `Java Heap` | Heap reserved/committed, affected by `-Xms`/`-Xmx` and GC | Cross-check `GC.heap_info`, heap usage, GC logs; NMT does not profile individual Java objects. |
+| `Class` | Metaspace, class space, class metadata | Class loaders, dynamic class generation, class unloading, `VM.classloader_stats`/`VM.metaspace`. |
+| `Thread` | Thread structures, native stack reservation/commit | Platform thread count, stack size, thread creation; do not infer exact live thread count from bytes alone. |
+| `Code` | JIT-generated code / code cache | Compilation status and code cache usage. |
+| `GC` | Garbage collector native structures | Active collector, CPU/heap count, GC config and supporting structures. |
+| `Compiler` | C1/C2/JIT compiler resources | Warm-up, compilation activity, post-startup rise/fall cycles. |
+| `Internal`, `Other` | Allocations tracked by HotSpot that do not fit specialized categories | Check `detail` and build-specific docs; avoid immediately blaming "Other = leak". |
+| `Native Memory Tracking` | Memory used by the tracker itself | Observation overhead. |
+| `Symbol`, `Arena Chunk`, `Module`, `Logging`… | JVM runtime structures | Track growth direction across checkpoints; categories may appear/vary by JDK. |
 
-**Sai lầm hay gặp:** lấy `Total reserved` làm RAM đang dùng, hoặc tính `Total committed` trừ `Java Heap committed` rồi gọi phần dư là “toàn bộ native memory của process”. Cách trừ này chỉ cho phần non-heap **nằm trong phạm vi NMT**, không bao gồm toàn bộ cấp phát không được HotSpot theo dõi.
+**Common mistake:** treating `Total reserved` as RAM in use, or computing `Total committed` minus `Java Heap committed` and calling the remainder "all native memory of the process". That subtraction only gives the non-heap portion **within NMT's scope**, excluding allocations HotSpot does not track.
 
-## 6. `detail`: nhìn native call site và bản đồ virtual memory
+## 6. `detail`: Viewing Native Call Sites and Virtual Memory Map
 
-Muốn biết **allocation site phía JVM** liên quan đến tăng bộ nhớ, JVM phải được khởi động với `detail`:
+To see **JVM-side allocation sites** linked to memory growth, the JVM must be started with `detail`:
 
 ```bash
 java -XX:NativeMemoryTracking=detail -jar application.jar
 ```
 
-Khi chạy:
+When running:
 
 ```bash
 jcmd <PID> VM.native_memory detail scale=KB
 ```
 
-Ngoài các category như `summary`, báo cáo có thể bao gồm:
+In addition to the categories in `summary`, the report can include:
 
-- **Virtual memory map**: dải địa chỉ reserved/committed với nguồn gọi HotSpot liên quan.
-- **Call-site allocation statistics**: tổng phân bổ theo các điểm cấp phát native, đôi khi hiện ký hiệu C/C++/địa chỉ tùy build và symbols.
-- **Phân rã theo `malloc`/`mmap` và vùng commit**: giúp phát hiện phần nào của một category tăng.
+- **Virtual memory map**: reserved/committed address ranges with associated HotSpot call sources.
+- **Call-site allocation statistics**: aggregated allocations by native allocation sites, sometimes showing C/C++ symbols or addresses depending on build and symbols.
+- **Breakdown by `malloc`/`mmap` and committed regions**: helps identify which part of a category grew.
 
-“Call site” ở đây **không phải Java stack trace của từng đối tượng**. NMT không trả về chuỗi phương thức Java đã gọi `new` như heap profiler. Nếu nghi heap leak cần heap dump/profiler; nếu nghi JNI hoặc thư viện C cấp phát ngoài HotSpot, cần OS/native tools hoặc profiler phù hợp.
+"Call site" here is **not a Java stack trace of individual objects**. NMT does not return the chain of Java methods that called `new` like a heap profiler. If you suspect a heap leak, use a heap dump/profiler; if you suspect JNI or C libraries allocating outside HotSpot, use OS/native tools or an appropriate profiler.
 
-Báo cáo `detail` thường dài; nên lưu artifact có **mốc thời gian, PID, build JDK và chế độ NMT**. Dùng `detail.diff` sau baseline để tập trung vào phần tăng, thay vì cuộn từng địa chỉ trong báo cáo tổng.
+`detail` reports are often long; save artifacts with **timestamp, PID, JDK build, and NMT mode**. Use `detail.diff` after a baseline to focus on growth rather than scrolling through every address in the full report.
 
-**Không thể chuyển cấp độ bằng câu lệnh đọc:** JVM chạy `summary` có thể cung cấp `summary`/`summary.diff`; muốn `detail`/`detail.diff` đầy đủ phải restart với `NativeMemoryTracking=detail`.
+**Cannot switch level with a read command:** a JVM running `summary` provides `summary`/`summary.diff`; to get full `detail`/`detail.diff`, restart with `NativeMemoryTracking=detail`.
 
-## 7. Baseline và diff: phân tích xu hướng thay vì một ảnh chụp
+## 7. Baseline and Diff: Analyzing Trends Instead of One Snapshot
 
-Một snapshot NMT đơn lẻ cho biết hiện trạng; leak giả định cần **mức tăng lặp lại theo thời gian**. Sau khi ứng dụng warm up và trước khi bắt đầu pha tải cần đo, đặt baseline:
+A single NMT snapshot shows current state; a leak hypothesis requires **repeated growth over time**. After the application warms up and before starting the measured load phase, set a baseline:
 
 ```bash
 jcmd <PID> VM.native_memory baseline
 ```
 
-Sau 5, 15 hoặc 30 phút chạy workload ổn định, lấy chênh lệch:
+After 5, 15, or 30 minutes of steady workload, capture the diff:
 
 ```bash
 jcmd <PID> VM.native_memory summary.diff scale=MB
 ```
 
-Nếu đã khởi động bằng `detail`, có thể dùng:
+If started with `detail`, you can use:
 
 ```bash
 jcmd <PID> VM.native_memory detail.diff scale=KB
 ```
 
-`summary.diff`/`detail.diff` hiển thị **giá trị hiện tại và phần tăng/giảm** so với baseline; ký hiệu cộng/trừ chỉ delta, không có nghĩa bản thân tổng hiện tại nhỏ hoặc lớn. Gọi `baseline` lần nữa sẽ thay mốc đối chiếu, vì vậy ghi lại thời điểm mốc và đừng vô tình reset baseline giữa lần đo.
+`summary.diff`/`detail.diff` display **current values and increases/decreases** relative to the baseline; plus/minus signs indicate the delta, not whether the current total itself is small or large. Calling `baseline` again replaces the reference point, so record the baseline timestamp and avoid accidentally resetting it mid-measurement.
 
-Quy trình mẫu:
+Sample workflow:
 
-1. Chạy ứng dụng có NMT và xác nhận `VM.native_memory summary` hoạt động.
-2. Cho ứng dụng warm up; ghi heap committed, RSS/working set, CPU, thread count, request rate, tải DB/network và collector.
-3. Đặt `baseline` **sau warm up**; đánh dấu thời gian chính xác.
-4. Chạy workload có kiểm soát; chụp `summary.diff` nhiều lần và lưu từng kết quả.
-5. Nếu một category tăng bền vững qua nhiều chu kỳ dừng tải/GC mà không quay lại mức nền, chuyển sang điều tra sâu (ví dụ lần chạy `detail` mới).
-6. Thử workload đối chứng và đối chiếu process-level RSS; xác minh tăng do cache hợp lệ, JIT, class loading, GC sizing hoặc memory pool trước khi gọi là leak.
+1. Start the app with NMT and verify `VM.native_memory summary` works.
+2. Let the app warm up; record heap committed, RSS/working set, CPU, thread count, request rate, DB/network load, and collector.
+3. Set `baseline` **after warm-up**; mark the exact timestamp.
+4. Run a controlled workload; capture `summary.diff` multiple times and save each output.
+5. If a category grows steadily across multiple load-stop/GC cycles without returning to baseline levels, escalate to deep investigation (e.g., a new `detail` run).
+6. Run a control workload and cross-check process-level RSS; verify whether growth comes from legitimate caching, JIT, class loading, GC sizing, or memory pools before calling it a leak.
 
-**Không có ngưỡng tuyệt đối “delta dương = leak”.** JVM có thể tăng bộ nhớ bình thường trong pha warm up, compilation, mở rộng class metadata, GC hoặc connection pool. Với leak nhỏ cần quan sát lâu hơn; ứng dụng phải được kiểm tra khi tải và vòng đời đối tượng/tài nguyên tương đương.
+**There is no absolute rule "positive delta = leak".** The JVM normally grows memory during warm-up, compilation, class metadata expansion, GC, or connection pools. Small leaks require longer observation windows; test under comparable load and object/resource lifecycles.
 
-## 8. Ví dụ Java 17+: thấy NMT trước và sau một cấp phát native
+## 8. Java 17+ Example: Seeing NMT Before and After a Native Allocation
 
-Lưu chương trình độc lập sau thành **`NmtStartupDemo.java`**:
+Save the following standalone program as **`NmtStartupDemo.java`**:
 
 ```java
 import java.io.BufferedReader;
@@ -246,21 +246,21 @@ public class NmtStartupDemo {
 }
 ```
 
-`ByteBuffer.allocateDirect` yêu cầu một direct buffer khoảng **32 MiB** nằm ngoài Java heap thông thường; `retained` giữ tham chiếu để buffer không đủ điều kiện bị thu hồi trong lúc đo. Ghi một byte để bảo đảm ít nhất phần đầu của buffer được chạm tới. Mã không đòi hỏi API preview; dùng **JDK 17+ và HotSpot** cho hướng dẫn NMT.
+`ByteBuffer.allocateDirect` requests a direct buffer of roughly **32 MiB** outside the regular Java heap; `retained` holds a reference so the buffer is not eligible for reclamation during measurement. Writing one byte ensures at least the start of the buffer is touched. The code requires no preview APIs; use **JDK 17+ and HotSpot** for the NMT steps.
 
-Biên dịch:
+Compile:
 
 ```bash
 javac --release 17 NmtStartupDemo.java
 ```
 
-**Terminal 1** — chạy ở chế độ `summary`:
+**Terminal 1** — run in `summary` mode:
 
 ```bash
 java -XX:NativeMemoryTracking=summary -Xms128m -Xmx512m NmtStartupDemo
 ```
 
-Chương trình in `READY` và **chờ Enter**. Trên **terminal 2**, tìm PID của `NmtStartupDemo` và đặt baseline:
+The program prints `READY` and **waits for Enter**. On **terminal 2**, find the PID of `NmtStartupDemo` and set a baseline:
 
 ```bash
 jcmd -l
@@ -268,15 +268,15 @@ jcmd <PID> VM.native_memory summary scale=MB
 jcmd <PID> VM.native_memory baseline
 ```
 
-Quay lại terminal 1, **nhấn Enter một lần** để cấp phát buffer. Khi thấy `ALLOCATED`, quay sang terminal 2:
+Return to terminal 1 and **press Enter once** to allocate the buffer. When you see `ALLOCATED`, switch to terminal 2:
 
 ```bash
 jcmd <PID> VM.native_memory summary.diff scale=KB
 ```
 
-Phân tích category có delta dương từ cấp phát; trên nhiều build HotSpot, direct buffer có thể xuất hiện dưới `Other`/`malloc`, nhưng **không cam kết output đúng một tên nhóm hoặc đúng 32.768 KB**: runtime có thêm các chi phí metadata và các cấp phát nền. Đối chiếu thay đổi trong `Total committed`, category và RSS; số phần trăm và địa chỉ không cố định.
+Inspect the category with a positive delta from the allocation; on many HotSpot builds, direct buffers may appear under `Other`/`malloc`, though **no specific category name or exact 32,768 KB output is guaranteed**: the runtime incurs additional metadata and background allocations. Cross-check changes in `Total committed`, categories, and RSS; percentages and addresses are not fixed.
 
-Cuối cùng nhấn Enter lần thứ hai ở terminal 1 để thoát. Nếu người dùng nhấn Enter **hai lần**, các dòng stdout **do chương trình in**, theo thứ tự, là:
+Finally, press Enter a second time in terminal 1 to exit. If the user presses Enter **twice**, the stdout lines **printed by the program**, in order, are:
 
 ```text
 READY
@@ -284,94 +284,94 @@ ALLOCATED
 DONE
 ```
 
-Lệnh `jcmd` trên terminal 2 tạo output riêng và không phải stdout của ứng dụng.
+The `jcmd` commands in terminal 2 produce separate output and are not the application's stdout.
 
-**Chạy lại bằng `detail`:** sau khi ứng dụng cũ đã thoát, dùng:
+**Re-run with `detail`:** after the previous app exits, run:
 
 ```bash
 java -XX:NativeMemoryTracking=detail -Xms128m -Xmx512m NmtStartupDemo
 ```
 
-Lặp lại thao tác baseline trước lần Enter đầu tiên, sau đó dùng:
+Repeat the baseline step before the first Enter, then run:
 
 ```bash
 jcmd <PID> VM.native_memory detail.diff scale=KB
 ```
 
-So sánh thông tin call sites xuất hiện ở `detail` mà `summary` không cung cấp. Đây là mô phỏng giáo dục, không phải bài đo leak: buffer được giữ cố ý trong thời gian ngắn, rồi tài nguyên của process được hệ điều hành thu hồi khi thoát. Trên hệ thống thiếu console tương tác, `readLine()` có thể nhận EOF và kết thúc sớm; chạy trong terminal tương tác để lặp lại đúng các bước.
+Compare the call-site details that appear in `detail` but are absent in `summary`. This is an educational simulation, not a leak measurement: the buffer is intentionally held briefly, and process resources are reclaimed by the OS on exit. On systems lacking an interactive console, `readLine()` may receive EOF and exit early; run in an interactive terminal to reproduce the steps accurately.
 
-## 9. Vận hành thật: từ dấu hiệu đến hành động
+## 9. Real-World Operations: From Symptoms to Action
 
-### Trường hợp A — Container bị OOM kill, Java heap chưa đầy
+### Case A — Container OOM-Killed, Java Heap Not Full
 
-**Quan sát:** `-Xmx` có vẻ nhỏ hơn container memory limit, nhưng RSS vẫn tăng. **Thao tác:** bật `summary` từ lần deploy kế tiếp; thu NMT theo thời gian và kết hợp cgroup/container memory, RSS, thread stacks, native libraries và memory mappings. Nếu `Total committed` trong NMT tăng tương ứng, tìm category; nếu RSS tăng mà NMT ổn định, mở rộng điều tra sang thư viện native/JNI/allocator và OS page mappings.
+**Observation:** `-Xmx` appears smaller than the container memory limit, yet RSS keeps climbing. **Action:** enable `summary` on the next deploy; collect NMT over time alongside cgroup/container memory, RSS, thread stacks, native libraries, and memory mappings. If NMT `Total committed` rises correspondingly, identify the category; if RSS rises while NMT stays flat, expand investigation to native/JNI libraries/allocators and OS page mappings.
 
-**Không kết luận:** NMT thấp không chứng minh tiến trình không tiêu thụ bộ nhớ; phạm vi tracker có giới hạn.
+**Do not conclude:** low NMT proves the process is not consuming memory; the tracker's scope has limits.
 
-### Trường hợp B — `Thread` tăng dần sau mỗi đợt request
+### Case B — `Thread` Grows Steadily After Each Request Wave
 
-**Giả thuyết:** platform threads tăng, thread lifecycle hoặc pool/config không giải phóng. **Thao tác:** so sánh NMT `Thread` với thread dump, số OS threads, pool executor và stack size. `reserved` của stack có thể lớn hơn đáng kể `committed`. Không dùng NMT như nguồn duy nhất đếm virtual thread và không giả định mỗi virtual thread có một OS stack riêng.
+**Hypothesis:** platform threads are growing, or thread lifecycle/pool config is not releasing them. **Action:** compare NMT `Thread` with thread dumps, OS thread counts, pool executors, and stack sizes. Stack `reserved` can be much larger than `committed`. Do not use NMT as the sole source for counting virtual threads, and do not assume each virtual thread has a dedicated OS stack.
 
-### Trường hợp C — `Class` tăng, heap không tăng tương ứng
+### Case C — `Class` Grows While Heap Does Not Grow Proportionally
 
-**Giả thuyết:** tăng metaspace/classloaders, proxy/bytecode generation, hot reload hoặc các classloader không được giải phóng. **Thao tác:** so sánh `Class`, `VM.classloader_stats`, `VM.metaspace`, số lớp tải và lịch sử deployment; khi cần nguồn native chính xác có thể chạy `detail`. Class metadata tăng một thời gian sau startup có thể bình thường.
+**Hypothesis:** growing metaspace/classloaders, proxy/bytecode generation, hot reload, or unreleased classloaders. **Action:** compare `Class`, `VM.classloader_stats`, `VM.metaspace`, loaded class count, and deployment history; when exact native sources are needed, run `detail`. Class metadata rising for a period after startup can be normal.
 
-### Trường hợp D — `Code` hoặc `GC` tăng sau warm up
+### Case D — `Code` or `GC` Grows After Warm-Up
 
-**Giả thuyết:** code cache của JIT/GC structures được cấp phát theo nhu cầu. **Thao tác:** giữ cố định JDK, collector, `-Xms/-Xmx`, thời gian warm up và tải; đọc delta qua các giai đoạn. Nếu đường biểu diễn dần phẳng ra và bộ nhớ còn trong hạn mức, chưa có bằng chứng leak.
+**Hypothesis:** JIT code cache / GC structures being allocated on demand. **Action:** keep JDK, collector, `-Xms/-Xmx`, warm-up duration, and load constant; inspect deltas across phases. If the curve gradually flattens and memory stays within bounds, there is no evidence of a leak.
 
-### Trường hợp E — `Other` tăng ổn định, `summary` không đủ giải thích
+### Case E — `Other` Grows Steadily, `summary` Cannot Explain Enough
 
-**Thao tác:** lưu snapshot, tạo môi trường tái hiện và **restart với `detail`**; lấy baseline sau warm up, tái hiện workload, gọi `detail.diff`. Nếu call sites HotSpot không tăng nhưng RSS vẫn tăng, nghiên cứu native allocations ngoài NMT. Không dựa vào nhãn `Other` để khẳng định lỗi nằm ở ứng dụng hoặc thư viện cụ thể.
+**Action:** save snapshots, create a reproduction environment, and **restart with `detail`**; take a baseline after warm-up, reproduce the workload, and call `detail.diff`. If HotSpot call sites do not grow while RSS still grows, investigate native allocations outside NMT. Do not rely on the `Other` label alone to blame the application or a specific library.
 
-## 10. Những lỗi vận hành và cách sửa
+## 10. Operational Errors and Fixes
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách kiểm tra / xử lý |
+| Symptom | Common Cause | How to Check / Fix |
 | --- | --- | --- |
-| `VM.native_memory` báo NMT chưa bật | Startup thiếu flag, flag nằm sau `-jar`, cấu hình chỉ sửa nhưng process chưa restart | Xem `VM.command_line`/`VM.flags`, chỉnh Java command và restart. |
-| `detail` không có call sites | Process chỉ bật `summary` | Chạy lại với `-XX:NativeMemoryTracking=detail`; không tự “nâng cấp” bằng `jcmd`. |
-| `summary.diff` lỗi hoặc không có baseline | Chưa gọi `baseline` trong JVM hiện tại | Gọi `baseline` sau warm up rồi thu diff; baseline không tồn tại qua process restart. |
-| `jcmd` không attach được | Khác user/PID namespace, không có công cụ trong image, attach bị chặn, không phải JVM HotSpot hỗ trợ | Kiểm tra PID namespace, user, Java version, `jcmd -l` và chính sách runtime. |
-| `Total reserved` rất lớn | Heap/class space đặt chỗ địa chỉ ảo lớn | So sánh `committed`, RSS, `-Xmx`, cgroup; reserved khác RAM thực dùng. |
-| NMT không giải thích được RSS tăng | Ngoài phạm vi JVM tracking, native library, OS mappings hoặc RSS khác committed | Dùng `pmap`/`smaps` trên Linux, process memory tools, native profiler và metric hệ điều hành. |
-| Kết quả thay đổi khi nâng JDK/GC | Category, allocation implementation và cấu hình GC khác nhau | So sánh cùng workload, build, GC và flags; tránh so bằng một con số không đủ ngữ cảnh. |
-| Dừng NMT bằng `VM.native_memory shutdown` | Tracker bị tắt trong process hiện tại | Muốn theo dõi lại thì restart process với flag NMT. |
+| `VM.native_memory` reports NMT is not enabled | Startup missing flag, flag placed after `-jar`, config updated without restarting process | Check `VM.command_line`/`VM.flags`, fix Java command and restart. |
+| `detail` has no call sites | Process only enabled `summary` | Relaunch with `-XX:NativeMemoryTracking=detail`; cannot "upgrade" via `jcmd`. |
+| `summary.diff` errors or has no baseline | `baseline` has not been called in the current JVM | Call `baseline` after warm-up then capture diff; baselines do not persist across process restarts. |
+| `jcmd` cannot attach | Different user/PID namespace, tool missing from image, attach disabled, unsupported non-HotSpot JVM | Check PID namespace, user, Java version, `jcmd -l`, and runtime policy. |
+| `Total reserved` is huge | Large virtual address reservation for heap/class space | Compare `committed`, RSS, `-Xmx`, cgroup; reserved differs from actual RAM used. |
+| NMT cannot explain RSS growth | Outside JVM tracking scope, native libraries, OS mappings, or RSS differing from committed | Use `pmap`/`smaps` on Linux, process memory tools, native profilers, and OS metrics. |
+| Results change when upgrading JDK/GC | Different categories, allocation implementations, and GC configurations | Compare under the same workload, build, GC, and flags; avoid comparing single numbers without context. |
+| Stopping NMT with `VM.native_memory shutdown` | Tracker disabled in the current process | To track again, restart the process with the NMT flag. |
 
-Đừng bỏ qua chi phí đo: `detail` có thể gây overhead và output lớn, đặc biệt khi thu liên tục. Với tiến trình quan trọng, cân nhắc mức `summary`, tần suất chụp và khoảng thời gian đo, rồi tái hiện `detail` trên staging khi cần phân tích sâu. Báo cáo NMT cũng có thể chứa địa chỉ/native symbol nhạy cảm với môi trường chạy; lưu trong nơi kiểm soát truy cập.
+Do not overlook measurement cost: `detail` can add overhead and huge output, especially when polled continuously. For critical processes, consider `summary` level, capture frequency, and measurement duration, then reproduce with `detail` in staging when deep analysis is needed. NMT reports can also expose runtime-sensitive addresses/native symbols; store them in access-controlled locations.
 
-## 11. Phân biệt NMT với các thước đo bộ nhớ khác
+## 11. Distinguishing NMT from Other Memory Metrics
 
-| Dữ liệu | Đo/quan sát gì? | Có trả lời trực tiếp “NMT summary/detail” không? |
+| Data | What Does It Measure / Observe? | Directly Answered by "NMT summary/detail"? |
 | --- | --- | --- |
-| NMT `reserved` | Không gian địa chỉ ảo HotSpot đã đặt chỗ | Có; không phải RAM vật lý. |
-| NMT `committed` | Bộ nhớ HotSpot cam kết cấp phát | Có; không hoàn toàn bằng RSS. |
-| Java heap used | Byte của object còn trong heap theo GC/runtime | Không; dùng heap/GC metrics hoặc heap profiler. |
-| RSS / working set | Những trang của process đang cư trú ở RAM theo OS | Không; dùng OS/container metrics. |
-| cgroup container memory | Bộ nhớ bị tính vào giới hạn container | Không; kiểm tra cgroup/monitoring. |
-| malloc của JNI/native third-party | Cấp phát ngoài khả năng quan sát HotSpot NMT | Thường không; dùng native allocation profiler hoặc OS tool. |
-| Buffer pool (direct/mapped) | Thống kê pool từ `BufferPoolMXBean` | Độc lập; phối hợp để giải thích các buffer allocations. |
+| NMT `reserved` | Virtual address space reserved by HotSpot | Yes; not physical RAM. |
+| NMT `committed` | Memory HotSpot committed for allocation | Yes; not strictly equal to RSS. |
+| Java heap used | Bytes of objects remaining on the heap per GC/runtime | No; use heap/GC metrics or heap profilers. |
+| RSS / working set | Process pages currently resident in RAM per the OS | No; use OS/container metrics. |
+| cgroup container memory | Memory charged against the container limit | No; check cgroup/monitoring. |
+| JNI / third-party native `malloc` | Allocations outside HotSpot NMT visibility | Usually no; use a native allocation profiler or OS tools. |
+| Buffer pool (direct/mapped) | Pool statistics from `BufferPoolMXBean` | Independent; combine to explain buffer allocations. |
 
-Ví dụ khi Java heap `reserved=1GiB` và `committed=256MiB`, phép cộng **1 GiB + số native committed** sẽ phóng đại RAM đã tiêu thụ vì 1 GiB là địa chỉ ảo reserved. Ngược lại, chỉ nhìn heap used có thể bỏ sót Thread Stack, GC, Code Cache hoặc native library allocation. Một quyết định vận hành tốt phải nhìn đủ **heap usage, NMT delta, RSS/container metrics và tải ứng dụng**.
+For example, when Java heap `reserved=1GiB` and `committed=256MiB`, adding **1 GiB + native committed** exaggerates RAM consumed because 1 GiB is reserved virtual address space. Conversely, looking only at heap used can miss Thread Stacks, GC, Code Cache, or native library allocations. Sound operational decisions require looking at **heap usage, NMT deltas, RSS/container metrics, and application load** together.
 
-## 12. Checklist trước khi xác nhận đã bật NMT đúng
+## 12. Checklist Before Confirming NMT Is Enabled Properly
 
-- [ ] Tùy chọn `-XX:NativeMemoryTracking=summary` hoặc `detail` được đặt **trước `-jar`/main class** trong Java command thực tế.
-- [ ] Đã restart JVM sau khi sửa startup options và xác minh **runtime PID/JDK** đúng ứng dụng.
-- [ ] `jcmd <PID> VM.command_line`/`VM.flags` xác nhận cấu hình; `VM.native_memory summary` trả báo cáo hợp lệ.
-- [ ] Chọn `summary` cho phân tích category, `detail` khi thực sự cần call sites; biết không thể nâng mức theo dõi trong cùng process.
-- [ ] Hiểu `reserved` khác `committed` và cả hai khác RSS; NMT có giới hạn bao phủ.
-- [ ] Đã lưu phiên bản JDK/HotSpot, GC, `-Xms/-Xmx`, PID, OS/container, tải và thời điểm mỗi lần lấy mẫu.
-- [ ] Đã đặt `baseline` sau warm up, thu `summary.diff` hoặc `detail.diff` nhiều lần trên workload có kiểm soát.
-- [ ] Đã đo overhead với workload quan trọng, tránh thu báo cáo chi tiết quá dày.
-- [ ] Nếu nghi native leak ngoài JVM, đã bổ sung OS/native metrics trước khi quy kết nguyên nhân.
-- [ ] Nếu bật `PrintNMTStatistics`, hiểu rằng process bị kill đột ngột có thể không in báo cáo khi thoát.
+- [ ] `-XX:NativeMemoryTracking=summary` or `detail` is placed **before `-jar`/main class** in the actual Java command.
+- [ ] The JVM was restarted after editing startup options, and the **runtime PID/JDK** matches the target app.
+- [ ] `jcmd <PID> VM.command_line`/`VM.flags` confirms the flag; `VM.native_memory summary` returns a valid report.
+- [ ] Chose `summary` for category analysis and `detail` when call sites are genuinely needed; aware that level cannot be upgraded in the same process.
+- [ ] Understand that `reserved` differs from `committed`, both differ from RSS, and NMT has coverage limits.
+- [ ] Recorded JDK/HotSpot version, GC, `-Xms/-Xmx`, PID, OS/container, load, and timestamp for each sample.
+- [ ] Set `baseline` after warm-up and collected `summary.diff` or `detail.diff` multiple times under a controlled workload.
+- [ ] Evaluated overhead on critical workloads and avoided overly frequent detail dumps.
+- [ ] If suspecting a native leak outside the JVM, added OS/native metrics before attributing root cause.
+- [ ] If `PrintNMTStatistics` is enabled, understand that abruptly killed processes may not print exit reports.
 
-## 13. Tài liệu chính thức để đối chiếu
+## 13. Official Reference Documentation
 
-1. Oracle Java 21 VM Guide, *Native Memory Tracking* — mô tả modes, `jcmd`, baseline, giới hạn bao phủ và thông tin lúc exit: https://docs.oracle.com/en/java/javase/21/vm/native-memory-tracking.html
-2. Oracle Java 26 VM Guide, *Native Memory Tracking* — kiểm tra cùng cơ chế startup trên JDK hiện đại: https://docs.oracle.com/en/java/javase/26/vm/native-memory-tracking.html
-3. Oracle Java 26 `jcmd` manual — cú pháp `VM.native_memory` và từng option: https://docs.oracle.com/en/java/javase/26/docs/specs/man/jcmd.html
-4. Oracle Java 21 Troubleshooting Guide, *Diagnostic Tools* — category, `summary/detail`, `baseline/diff` và cách đọc ví dụ: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
-5. Oracle `java` launcher options — cú pháp `-XX:NativeMemoryTracking` trên build cụ thể: https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
+1. Oracle Java 21 VM Guide, *Native Memory Tracking* — describes modes, `jcmd`, baseline, coverage limits, and exit stats: https://docs.oracle.com/en/java/javase/21/vm/native-memory-tracking.html
+2. Oracle Java 26 VM Guide, *Native Memory Tracking* — verify the same startup mechanisms on modern JDKs: https://docs.oracle.com/en/java/javase/26/vm/native-memory-tracking.html
+3. Oracle Java 26 `jcmd` manual — `VM.native_memory` syntax and options: https://docs.oracle.com/en/java/javase/26/docs/specs/man/jcmd.html
+4. Oracle Java 21 Troubleshooting Guide, *Diagnostic Tools* — categories, `summary/detail`, `baseline/diff`, and reading examples: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
+5. Oracle `java` launcher options — `-XX:NativeMemoryTracking` syntax on specific builds: https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
 
-**Nguyên tắc thực hành:** chọn mức NMT ngay ở startup, xác minh trên đúng process, ghi baseline sau warm up và đối chiếu **delta theo category/call site** với metric hệ điều hành. NMT rất hữu ích để khoanh vùng phần bộ nhớ do HotSpot quản lý, nhưng không đủ để kết luận độc lập về mọi native leak hoặc RSS của ứng dụng.
+**Practical rule:** choose the NMT level at startup, verify on the exact process, record a baseline after warm-up, and cross-check **category/call-site deltas** against OS metrics. NMT excels at isolating HotSpot-managed memory, but it is insufficient on its own to settle every native leak or application RSS question.

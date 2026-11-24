@@ -1,93 +1,93 @@
-# 16.3 SSLParameters cho protocol, cipher suite, SNI, ALPN và endpoint identification
+# 16.3 SSLParameters for protocols, cipher suites, SNI, ALPN, and endpoint identification
 
-Một Java client có thể dùng `SSLContext` và `SSLEngine` hoặc `SSLSocket` để tạo kết nối TLS. Tuy nhiên, câu lệnh `SSLContext.getInstance("TLS")` **không tự giải thích** phiên bản TLS nào sẽ được bật, bộ mã (*cipher suite*) nào được chọn, client gửi tên server qua SNI hay không, giao thức ứng dụng được thương lượng qua ALPN thế nào, và đặc biệt client có kiểm tra **chứng thư thực sự thuộc đúng hostname đích** hay không.
+A Java client can use `SSLContext` and `SSLEngine` or `SSLSocket` to create a TLS connection. However, `SSLContext.getInstance("TLS")` **does not explain by itself** which TLS versions will be enabled, which *cipher suite* is selected, whether the client sends the server name via SNI, how the application protocol is negotiated via ALPN, and especially whether the client verifies that **the certificate actually belongs to the target hostname**.
 
-Trong JSSE (*Java Secure Socket Extension*), `javax.net.ssl.SSLParameters` là một đối tượng cấu hình cho những điều khoản handshake và xác thực liên quan. Nó bao gồm danh sách protocol, cipher suites, SNI, ALPN, endpoint identification và một số lựa chọn khác. Nhưng cần phân biệt **cấu hình đã được thiết lập** với **kết quả handshake đã thương lượng và xác thực thành công**: `setProtocols` không bảo đảm peer hỗ trợ protocol, `setApplicationProtocols` không có nghĩa đã dùng HTTP/2, `setServerNames` không thay thế kiểm hostname, và `setEndpointIdentificationAlgorithm("HTTPS")` không tự tạo một trust anchor đáng tin.
+In JSSE (*Java Secure Socket Extension*), `javax.net.ssl.SSLParameters` is a configuration object for those handshake terms and related checks. It includes the protocol list, cipher suites, SNI, ALPN, endpoint identification, and several other options. However, you must distinguish **applied configuration** from **negotiated and successfully verified handshake results**: `setProtocols` does not guarantee the peer supports the protocol, `setApplicationProtocols` does not mean HTTP/2 is already in use, `setServerNames` does not replace hostname verification, and `setEndpointIdentificationAlgorithm("HTTPS")` does not create a trusted trust anchor on its own.
 
-Bài học dùng **Java 17+** và tập trung đúng năm nhóm:
+This lesson uses **Java 17+** and focuses on five groups:
 
-1. `protocols`: giới hạn phiên bản TLS được phép.
-2. `cipherSuites`: giới hạn bộ thuật toán TLS tương thích với phiên bản và chính sách.
-3. `serverNames` / **SNI**: thông báo server name để máy chủ chọn cấu hình/certificate thích hợp.
-4. `applicationProtocols` / **ALPN**: thương lượng giao thức tầng ứng dụng, ví dụ `h2` hoặc `http/1.1`.
-5. `endpointIdentificationAlgorithm`: yêu cầu JSSE kiểm danh tính server, nhất là hostname của kết nối HTTPS.
+1. `protocols`: restricting allowed TLS versions.
+2. `cipherSuites`: restricting TLS algorithm suites compatible with the version and policy.
+3. `serverNames` / **SNI**: announcing the server name so the server selects the appropriate configuration/certificate.
+4. `applicationProtocols` / **ALPN**: negotiating the application-layer protocol, such as `h2` or `http/1.1`.
+5. `endpointIdentificationAlgorithm`: instructing JSSE to verify the server identity, especially the hostname of an HTTPS connection.
 
-Mục tiêu là biết **đặt đúng thuộc tính ở đúng phía client/server, trước handshake**, giữ kiểm chứng TLS đầy đủ, xác định giới hạn của APIs và có bài test dương/âm. Ví dụ Java chạy được ở mục 9 không cần mạng để tránh phụ thuộc server công khai và không giả vờ rằng cấu hình thành công đồng nghĩa đã xác thực một TLS peer.
+The goal is to know how to **place the right attributes on the right side (client/server), before the handshake**, maintain full TLS verification, recognize the limits of the APIs, and write positive/negative tests. The runnable Java example in section 9 requires no network to avoid depending on public servers and does not pretend that successful configuration equals authenticating a TLS peer.
 
-## 1. Mục tiêu học tập
+## 1. Learning objectives
 
-Sau khi học, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích quan hệ giữa `SSLContext`, `SSLEngine`, `SSLSocket`, `SSLParameters`, `TrustManager` và `KeyManager`.
-- Lấy cấu hình từ `getSSLParameters()`, thay đổi đúng các thuộc tính cần thiết, rồi áp dụng bằng `setSSLParameters(...)` **trước khi bắt đầu handshake**.
-- Phân biệt `getSupportedProtocols()` với `getEnabledProtocols()` và tránh bật phiên bản TLS cũ chỉ để kết nối.
-- Hiểu tên cipher suite trong TLS 1.2 so với TLS 1.3, mối liên hệ với protocol, certificate, signature và key exchange.
-- Dùng `SNIHostName` và `SSLParameters.setServerNames(...)` ở **client**, biết server-side `SNIMatcher` không thay chứng thư/hostname validation.
-- Dùng `setApplicationProtocols(...)` để đề xuất ALPN và đọc giao thức **đã thương lượng** sau handshake bằng `SSLEngine.getApplicationProtocol()` hoặc `SSLSocket.getApplicationProtocol()`.
-- Bật endpoint identification `HTTPS` với socket/engine thích hợp, hiểu `SNI != hostname verification != trust chain validation`.
-- Nắm những khác biệt quan trọng giữa `SSLEngine`, `SSLSocket`, `HttpsURLConnection` và `java.net.http.HttpClient`.
-- Kiểm tra các trường hợp cấu hình sai, downgrade, ALPN mismatch, SNI sai, certificate SAN sai, CA không tin, mTLS và tác động của TLS connection pooling.
+- Explain the relationship among `SSLContext`, `SSLEngine`, `SSLSocket`, `SSLParameters`, `TrustManager`, and `KeyManager`.
+- Retrieve configuration via `getSSLParameters()`, modify the required attributes, and apply them via `setSSLParameters(...)` **before starting the handshake**.
+- Distinguish `getSupportedProtocols()` from `getEnabledProtocols()` and avoid enabling legacy TLS versions merely to connect.
+- Understand cipher suite naming in TLS 1.2 vs. TLS 1.3, and their relationship to protocol, certificate, signature, and key exchange.
+- Use `SNIHostName` and `SSLParameters.setServerNames(...)` on the **client**, knowing server-side `SNIMatcher` does not replace certificate/hostname validation.
+- Use `setApplicationProtocols(...)` to offer ALPN and read the **negotiated** protocol after the handshake via `SSLEngine.getApplicationProtocol()` or `SSLSocket.getApplicationProtocol()`.
+- Enable `HTTPS` endpoint identification on the appropriate socket/engine, understanding `SNI != hostname verification != trust chain validation`.
+- Grasp key differences among `SSLEngine`, `SSLSocket`, `HttpsURLConnection`, and `java.net.http.HttpClient`.
+- Test misconfigurations, downgrades, ALPN mismatches, wrong SNI, wrong certificate SAN, untrusted CAs, mTLS, and the impact of TLS connection pooling.
 
-## 2. SSLParameters nằm ở đâu trong JSSE?
+## 2. Where does SSLParameters sit in JSSE?
 
-Một lớp nhìn tổng quát:
+An overview layer view:
 
 ```text
 Java application
     |
     +-- java.net.http.HttpClient / HTTPS library
     |       |
-    |       +-- JSSE/TLS implementation (tùy library/provider)
+    |       +-- JSSE/TLS implementation (depends on library/provider)
     |
-    +-- SSLSocket hoặc SSLEngine trực tiếp
+    +-- SSLSocket or SSLEngine directly
             |
             +-- SSLContext
-            |      +-- KeyManager (local identity, nếu cần)
+            |      +-- KeyManager (local identity, if needed)
             |      +-- TrustManager (peer certificate verification)
             |      +-- SecureRandom / provider
             |
-            +-- SSLParameters (cấu hình handshake / endpoint)
+            +-- SSLParameters (handshake / endpoint configuration)
                    +-- protocols
                    +-- cipher suites
                    +-- SNI server names
                    +-- ALPN application protocols
                    +-- endpoint identification algorithm
-                   +-- client auth / algorithm constraints / các tùy chọn khác
+                   +-- client auth / algorithm constraints / other options
 ```
 
-`SSLContext` được khởi tạo bằng key managers/trust managers/provider theo chính sách. Một `SSLEngine` hoặc `SSLSocket` được tạo từ context và mang cấu hình sử dụng khi giao tiếp. `SSLParameters` thường là **một đối tượng cấu hình có thể sửa**, không phải “kết quả kiểm tra bảo mật”.
+`SSLContext` is initialized with key managers/trust managers/provider per policy. An `SSLEngine` or `SSLSocket` is created from the context and carries the configuration used during communication. `SSLParameters` is normally **a mutable configuration object**, not a "security verification result."
 
-Mẫu thay đổi thường thấy:
+Common update pattern:
 
 ```java
-// Mã minh họa trong một method; giả sử SSLEngine engine đã tạo.
+// Illustrative code inside a method; assume SSLEngine engine is already created.
 SSLParameters p = engine.getSSLParameters();
 p.setEndpointIdentificationAlgorithm("HTTPS");
-engine.setSSLParameters(p); // Áp lại vào engine.
+engine.setSSLParameters(p); // Apply back to the engine.
 ```
 
-Đừng chỉnh `p` rồi quên `setSSLParameters(p)`. Việc có object `p` với dữ liệu mới không có nghĩa engine/socket đã nhận thay đổi.
+Do not modify `p` and forget `setSSLParameters(p)`. Having an object `p` with new values does not mean the engine/socket has received the changes.
 
-### Năm câu hỏi phải tách rời
+### Five questions to keep separate
 
-| Câu hỏi | Thuộc tính/API liên quan | Chứng minh được điều gì? |
+| Question | Related property/API | What does it prove? |
 | --- | --- | --- |
-| Tôi cho phép TLS version nào? | `setProtocols` | Những version được cấu hình bật trên endpoint |
-| Tôi cho phép thuật toán TLS nào? | `setCipherSuites` | Những suite được cấu hình; chưa chắc peer chọn được |
-| Server nên nhận tên đích nào để chọn certificate? | `setServerNames` / SNI | Client gửi tên như một TLS extension khi handshake hỗ trợ |
-| Client/server sẽ nói HTTP/2 hay HTTP/1.1? | `setApplicationProtocols` / ALPN | Danh sách đề xuất; giao thức thật chỉ biết sau thương lượng |
-| Certificate có đại diện đúng endpoint không? | `setEndpointIdentificationAlgorithm("HTTPS")` | Bật chính sách endpoint identity cho engine/socket phù hợp; còn cần trusted path và handshake thực |
+| Which TLS versions do I allow? | `setProtocols` | The versions configured as enabled on the endpoint |
+| Which TLS algorithms do I allow? | `setCipherSuites` | The suites configured; not yet certain the peer can select one |
+| Which target name should the server receive to pick a certificate? | `setServerNames` / SNI | Client sends the name as a TLS extension when the handshake supports it |
+| Will client/server speak HTTP/2 or HTTP/1.1? | `setApplicationProtocols` / ALPN | Offered list; actual protocol is known only after negotiation |
+| Does the certificate represent the right endpoint? | `setEndpointIdentificationAlgorithm("HTTPS")` | Enables endpoint identity policy for the matching engine/socket; still needs a trusted path and real handshake |
 
-**Không thay thế lẫn nhau:** SNI là thông tin client gửi để server chọn virtual host; ALPN là chọn giao thức ứng dụng; hostname verification là xác thực tên server từ chứng thư. Cả ba có thể dùng cùng một hostname trong ứng dụng HTTPS, nhưng là **ba cơ chế độc lập**.
+**Not interchangeable:** SNI is information the client sends so the server selects a virtual host; ALPN selects the application protocol; hostname verification validates the server name from the certificate. All three may use the same hostname in an HTTPS application, yet they are **three independent mechanisms**.
 
-## 3. Phân biệt supported, enabled, configured và negotiated
+## 3. Distinguishing supported, enabled, configured, and negotiated
 
-Đây là chìa khóa để tránh hiểu sai output của JSSE.
+This is the key to avoiding misreading JSSE output.
 
-- **Supported:** provider/runtime có triển khai một TLS protocol hoặc cipher suite, thể hiện qua `getSupportedProtocols()` và `getSupportedCipherSuites()`.
-- **Enabled:** tập tính năng runtime đang bật cho endpoint đó theo chính sách mặc định và cấu hình đã áp, thể hiện qua `getEnabledProtocols()` và `getEnabledCipherSuites()`.
-- **Configured/allowed:** tập mà ứng dụng chủ động đặt qua `SSLParameters`; cần là subset phù hợp với provider và policy.
-- **Negotiated:** kết quả peer thực sự thống nhất sau handshake; có thể xem qua `SSLSession.getProtocol()`, `SSLSession.getCipherSuite()` và `getApplicationProtocol()`.
+- **Supported:** the provider/runtime implements a TLS protocol or cipher suite, exposed via `getSupportedProtocols()` and `getSupportedCipherSuites()`.
+- **Enabled:** the set of features currently enabled by default policy and applied configuration for that endpoint, exposed via `getEnabledProtocols()` and `getEnabledCipherSuites()`.
+- **Configured/allowed:** the set explicitly set by the application via `SSLParameters`; must be a subset compatible with the provider and policy.
+- **Negotiated:** the result the peers actually agree upon after the handshake; inspected via `SSLSession.getProtocol()`, `SSLSession.getCipherSuite()`, and `getApplicationProtocol()`.
 
 ```text
 Provider SUPPORTED
@@ -105,80 +105,80 @@ ClientHello + ServerHello + certificate checks + handshake
 NEGOTIATED protocol, cipher suite, ALPN, authenticated peer
 ```
 
-Một protocol có mặt trong **supported** nhưng không nằm trong **enabled** có thể bị tắt vì đã cũ, nguy hiểm hoặc không phù hợp policy. **Không bật lại chỉ vì nó có mặt trong danh sách supported**. Java 17 thường hỗ trợ TLS 1.2 và 1.3 trên các JSSE provider phổ biến, nhưng danh sách thực tế phụ thuộc vendor/build/provider, security properties, các cài đặt `jdk.tls.disabledAlgorithms` và runtime.
+A protocol present in **supported** but absent from **enabled** may be disabled because it is obsolete, dangerous, or non-compliant with policy. **Do not re-enable it simply because it appears in the supported list.** Java 17 typically supports TLS 1.2 and 1.3 on common JSSE providers, though the actual list depends on vendor/build/provider, security properties, `jdk.tls.disabledAlgorithms` settings, and runtime.
 
-### Cấu hình ưu tiên an toàn
+### Safe-by-default configuration
 
-Trong production, nên bắt đầu từ **JSSE defaults đã được quản trị** hoặc một allowlist được review. Nếu có yêu cầu bắt buộc tối thiểu TLS 1.2, hãy kiểm giao của các version cho phép với **enabled protocols** tại runtime cụ thể. Nếu giao rỗng, **fail closed** thay vì ép bật TLS 1.0/1.1.
+In production, start from **governed JSSE defaults** or a reviewed allowlist. If minimum TLS 1.2 is mandatory, take the intersection of allowed versions with **enabled protocols** at the specific runtime. If the intersection is empty, **fail closed** instead of forcing TLS 1.0/1.1 on.
 
-Không lấy mảng từ `getSupportedProtocols()` rồi đưa nguyên vào `setProtocols(...)`; hành vi đó có thể bật những protocol mà mặc định JDK cố ý loại bỏ.
+Do not take the array from `getSupportedProtocols()` and feed it directly into `setProtocols(...)`; doing so can enable protocols that JDK defaults intentionally excluded.
 
-## 4. Protocol: TLSv1.2, TLSv1.3 và phiên bản handshake
+## 4. Protocols: TLSv1.2, TLSv1.3, and handshake version
 
-Cách đặt:
+How to set:
 
 ```java
-// Mã minh họa: chỉ dùng khi các protocol đã được kiểm là enabled và được policy cho phép.
+// Illustrative code: use only when protocols are verified as enabled and policy-approved.
 SSLParameters p = engine.getSSLParameters();
 p.setProtocols(new String[] { "TLSv1.3", "TLSv1.2" });
 engine.setSSLParameters(p);
 ```
 
-Ở mức ý tưởng, đây là danh sách version **được phép thử thương lượng**. Nó không buộc server phải chọn TLS 1.3; server có thể chỉ hỗ trợ TLS 1.2, hoặc giao các phiên bản có thể rỗng và handshake thất bại.
+Conceptually, this is the list of versions **allowed to be attempted during negotiation**. It does not force the server to pick TLS 1.3; the server may support only TLS 1.2, or the intersection of versions may be empty and the handshake fails.
 
-**TLS 1.3** có thay đổi đáng kể so với TLS 1.2 về quá trình handshake, bộ mã được định nghĩa và cơ chế khóa tạm thời. Đừng suy rằng một cipher suite có tên `TLS_AES_128_GCM_SHA256` dùng được với TLS 1.2 hoặc rằng một tên `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` là TLS 1.3 suite.
+**TLS 1.3** introduces major changes over TLS 1.2 in the handshake flow, defined cipher suites, and ephemeral key mechanics. Do not assume a cipher suite named `TLS_AES_128_GCM_SHA256` works with TLS 1.2 or that a name like `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` is a TLS 1.3 suite.
 
-### Các thiết lập thường gây rủi ro
+### Risky settings to watch out for
 
-- Bật `TLSv1` / `TLSv1.1` / `SSLv3` để “hỗ trợ server cũ” mà không có review chính sách.
-- Coi `SSLContext.getInstance("TLS")` là cố định chỉ TLS 1.2/1.3 bất kể provider.
-- Đọc `setProtocols` thành “handshake đã dùng TLS 1.3”.
-- Xóa TLS 1.2 trên một hệ thống có client/peer chưa hỗ trợ TLS 1.3 mà không có kiểm thử tương thích.
-- Cho user request quyết định danh sách protocol/cipher rồi chuyển trực tiếp vào `SSLParameters`.
-- Thay global security properties hoặc provider chỉ để làm một kết nối legacy chạy được, vô tình ảnh hưởng toàn bộ JVM.
-- Đổi allowlist khi `SSLSocket` đã handshake; kết nối đã thiết lập không tự thương lượng lại theo cấu hình mới.
+- Enabling `TLSv1` / `TLSv1.1` / `SSLv3` to "support legacy servers" without policy review.
+- Treating `SSLContext.getInstance("TLS")` as fixed to only TLS 1.2/1.3 regardless of provider.
+- Reading `setProtocols` as "the handshake already used TLS 1.3."
+- Removing TLS 1.2 on a system whose clients/peers do not yet support TLS 1.3 without compatibility testing.
+- Letting user requests decide the protocol/cipher list and passing it straight into `SSLParameters`.
+- Changing global security properties or providers just to get one legacy connection working, inadvertently affecting the entire JVM.
+- Changing the allowlist after `SSLSocket` has already completed the handshake; an established connection does not renegotiate automatically to the new config.
 
-### Khi nào nên chỉ cho TLSv1.3?
+### When should you allow TLSv1.3 only?
 
-Khi threat model và tất cả peer có thể hỗ trợ, **TLS 1.3 only** có thể là một chính sách hợp lý. Với hệ thống cần tương thích, cho phép TLS 1.2 và 1.3 theo profile mạnh cũng có thể hợp lệ. Cần đo telemetry và có lộ trình loại bỏ TLS cũ; việc chọn protocol là **quyết định security/compliance và compatibility**, không phải đoán dựa trên một bài demo.
+When the threat model and all peers support it, **TLS 1.3 only** can be a sound policy. For systems needing compatibility, allowing TLS 1.2 and 1.3 under a strong profile can also be valid. Measure telemetry and establish a deprecation roadmap for older TLS; choosing protocols is a **security/compliance and compatibility decision**, not guesswork based on a single demo.
 
-## 5. Cipher suites: TLS 1.2 khác TLS 1.3
+## 5. Cipher suites: TLS 1.2 differs from TLS 1.3
 
-**Cipher suite** mô tả tổ hợp thuật toán TLS được dùng khi handshake và bảo vệ record. Tuy nhiên, mức thông tin trong tên suite khác nhau theo TLS version.
+A **cipher suite** describes the combination of TLS algorithms used during the handshake and record protection. However, the amount of information encoded in the suite name differs by TLS version.
 
-| Phiên bản | Ví dụ tên suite | Điều cần hiểu |
+| Version | Example suite name | What to understand |
 | --- | --- | --- |
-| TLS 1.3 | `TLS_AES_128_GCM_SHA256` | AEAD cipher + hash dùng trong TLS 1.3; thuật toán key exchange và xác thực được thương lượng qua cơ chế khác |
-| TLS 1.3 | `TLS_AES_256_GCM_SHA384` | AEAD AES-GCM và hash tương ứng |
-| TLS 1.3 | `TLS_CHACHA20_POLY1305_SHA256` | AEAD ChaCha20-Poly1305 nếu provider hỗ trợ |
-| TLS 1.2 | `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` | ECDHE key exchange, RSA-based authentication trong profile TLS 1.2, AES-GCM |
-| TLS 1.2 | `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256` | ECDHE với ECDSA certificate/authentication trong profile TLS 1.2 |
-| TLS 1.2 | `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384` | Profile TLS 1.2 có ECDHE và AES-GCM |
+| TLS 1.3 | `TLS_AES_128_GCM_SHA256` | AEAD cipher + hash used in TLS 1.3; key exchange and authentication algorithms are negotiated via other mechanisms |
+| TLS 1.3 | `TLS_AES_256_GCM_SHA384` | AES-GCM AEAD and corresponding hash |
+| TLS 1.3 | `TLS_CHACHA20_POLY1305_SHA256` | ChaCha20-Poly1305 AEAD if supported by the provider |
+| TLS 1.2 | `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` | ECDHE key exchange, RSA-based authentication in TLS 1.2 profile, AES-GCM |
+| TLS 1.2 | `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256` | ECDHE with ECDSA certificate/authentication in TLS 1.2 profile |
+| TLS 1.2 | `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384` | TLS 1.2 profile with ECDHE and AES-GCM |
 
-**Đừng diễn giải tên TLS 1.3 suite bằng logic tên TLS 1.2.** Trong TLS 1.3, cipher suite không còn mã hóa tên thuật toán chứng thư RSA/ECDSA hoặc key exchange như TLS 1.2.
+**Do not interpret TLS 1.3 suite names using TLS 1.2 naming logic.** In TLS 1.3, the cipher suite no longer encodes the RSA/ECDSA certificate algorithm or key exchange as in TLS 1.2.
 
-### Chọn cipher suite đúng cách
+### Selecting cipher suites properly
 
-- Bắt đầu với **enabled suites**, không bật toàn bộ supported suites.
-- Chỉ giữ suite theo allowlist bảo mật được cập nhật và **tương thích với protocol**.
-- Không cố ép một TLS 1.3 suite khi chỉ cho TLS 1.2; có thể dẫn đến “no shared cipher”/handshake failure.
-- Với TLS 1.2, key type của certificate và khả năng của server cũng quan trọng. Một suite ECDSA có thể không phù hợp server chỉ triển khai RSA identity, tùy cấu hình và provider.
-- Không coi `setCipherSuites(...)` là cơ chế pin certificate hoặc ép peer identity.
-- Với đa số ứng dụng HTTPS thông thường, mặc định JSSE/provider được cập nhật và không tự giới hạn cứng một suite thường giúp duy trì compatibility tốt hơn. Chỉ pin danh sách suite khi có yêu cầu cụ thể và đã test cả hai phía.
+- Start from **enabled suites**, not all supported suites.
+- Keep only suites in an up-to-date security allowlist that are **compatible with the protocol**.
+- Do not force a TLS 1.3 suite when allowing only TLS 1.2; this can cause "no shared cipher"/handshake failure.
+- With TLS 1.2, the certificate's key type and server capabilities also matter. An ECDSA suite may not work with a server deploying only an RSA identity, depending on configuration and provider.
+- Do not treat `setCipherSuites(...)` as a mechanism for pinning certificates or enforcing peer identity.
+- For most standard HTTPS apps, keeping updated JSSE/provider defaults without hard-pinning a single suite helps preserve compatibility. Pin a suite list only when specifically required and tested on both sides.
 
-### Cấu hình cipher suite order
+### Configuring cipher suite order
 
-`SSLParameters.setUseCipherSuitesOrder(true)` có ý nghĩa ưu tiên thứ tự suite của **phía server** trong những trường hợp/protocol/provider áp dụng. Nó không bảo đảm server luôn chọn suite đầu nếu không tương thích hoặc không được hỗ trợ. TLS 1.3 và TLS 1.2 có quy tắc thương lượng khác nhau; hãy test negotiated cipher thực tế.
+`SSLParameters.setUseCipherSuitesOrder(true)` means prioritizing the **server's** suite order in applicable cases/protocols/providers. It does not guarantee the server always picks the first suite if incompatible or unsupported. TLS 1.3 and TLS 1.2 have different negotiation rules; always test the actual negotiated cipher.
 
-### Cảnh báo mạnh
+### Strong warning
 
-Không dùng hoặc bật lại cipher suites đã bị chính sách JDK tắt chỉ vì một peer cũ yêu cầu. Các quyết định như bỏ static RSA key exchange trong TLS 1.2, CBC/3DES/RC4 hay thuật toán chữ ký yếu cần theo security policy, không thực hiện bằng cách copy một list cũ từ internet.
+Do not use or re-enable cipher suites disabled by JDK policy just because a legacy peer asks for them. Decisions such as dropping static RSA key exchange in TLS 1.2, CBC/3DES/RC4, or weak signature algorithms must follow security policy, not copying an old list from the internet.
 
-## 6. SNI: client thông báo tên server đang muốn kết nối
+## 6. SNI: client announces which server name it wants to connect to
 
-**SNI** (*Server Name Indication*) là TLS extension cho phép client gửi một server name tới endpoint, thường giúp server/CDN/reverse proxy đang dùng chung IP:port chọn certificate và virtual host tương ứng. Một server có thể phục vụ nhiều hostname trên cùng địa chỉ IP.
+**SNI** (*Server Name Indication*) is a TLS extension allowing a client to send a server name to the endpoint, typically helping a server/CDN/reverse proxy sharing an IP:port select the corresponding certificate and virtual host. One server can serve multiple hostnames on the same IP address.
 
-Ví dụ:
+Example:
 
 ```text
 Shared IP 203.0.113.10:443
@@ -192,48 +192,48 @@ Client connects to api.example.test
    Server chooses certificate A
 ```
 
-**SNI không phải bằng chứng danh tính.** Client có thể nói nó muốn server name `api.example.test`, nhưng TLS client vẫn phải xác minh certificate của server đúng tên ấy và có chain đến trust anchor được phép. Nếu server trả chứng thư cho `admin.example.test`, việc client đã gửi đúng SNI **không** cứu được lỗi hostname mismatch.
+**SNI is not proof of identity.** A client can say it wants server name `api.example.test`, but the TLS client must still verify that the server's certificate matches that name and chains to an allowed trust anchor. If the server returns a certificate for `admin.example.test`, having sent the right SNI **will not** save you from a hostname mismatch error.
 
-### Java client dùng SNIHostName
+### Java client using SNIHostName
 
 ```java
-// Mã minh họa trong method.
+// Illustrative code inside a method.
 String hostname = "api.example.test";
 SSLParameters p = engine.getSSLParameters();
 p.setServerNames(List.of(new SNIHostName(hostname)));
 engine.setSSLParameters(p);
 ```
 
-Đoạn này cần import `java.util.List` và `javax.net.ssl.SNIHostName`, và giả sử `engine` đã được tạo cho đúng peer. `SNIHostName` biểu diễn host_name SNI; không đưa URL nguyên `https://api.example.test/path`, cổng `:443`, wildcard `*.example.test`, IP literal hoặc chuỗi không hợp lệ vào chỗ tên DNS.
+This snippet requires importing `java.util.List` and `javax.net.ssl.SNIHostName`, and assumes `engine` was created for the right peer. `SNIHostName` represents an SNI `host_name`; never pass a full URL `https://api.example.test/path`, port `:443`, wildcard `*.example.test`, IP literal, or invalid string where a DNS name belongs.
 
-**Trong nhiều HTTPS client JSSE hiện đại, SNI có thể được điền tự động theo hostname đích**. Việc set thủ công chỉ cần khi bạn có lý do và chắc chắn không tạo mâu thuẫn với host mà endpoint identification dùng. Khi kết nối tới một IP nhưng cần xác minh DNS name, phải hiểu rõ API của TLS engine/socket, peerHost, SNI, HTTP Host header và security policy; đừng chỉnh một chuỗi duy nhất để bypass xác thực.
+**In many modern JSSE HTTPS clients, SNI may be populated automatically from the target hostname.** Manual setting is needed only when you have a specific reason and are sure it does not conflict with the host used by endpoint identification. When connecting to an IP while needing to verify a DNS name, clearly understand the API of the TLS engine/socket, peerHost, SNI, HTTP Host header, and security policy; never tweak a single string to bypass verification.
 
-### SNI trên server
+### SNI on the server
 
-Phía server có thể dùng `SSLParameters.setSNIMatchers(...)` hoặc logic TLS stack để quyết định chấp nhận/sắp xếp tên và lựa chọn local identity. Nhưng:
+On the server side, `SSLParameters.setSNIMatchers(...)` or TLS stack logic can decide whether to accept/rank names and select a local identity. However:
 
-- `SNIMatcher` không cấp certificate cho hostname tự động.
-- `setServerNames` là cách client cung cấp danh sách tên, **không phải** cấu hình “tên máy chủ mà server chắc chắn sở hữu”.
-- Server thường phải có `KeyManager`/alias selection/certificate chain tương ứng với SNI.
-- Nếu server yêu cầu một SNI cụ thể, thiếu/sai SNI có thể bị từ chối theo policy hoặc chọn một virtual host mặc định; hành vi tùy server.
-- SNI truyền thống không phải lúc nào được giữ bí mật khỏi quan sát mạng; không chứa token, secret hay dữ liệu nghiệp vụ nhạy cảm trong SNI.
-- SNI và HTTP `Host`/`:authority` nên được xử lý nhất quán, không cho Host header giả mạo vượt qua TLS peer/route authorization.
+- `SNIMatcher` does not automatically issue a certificate for a hostname.
+- `setServerNames` is how the client supplies a list of names, **not** a configuration declaring "hostnames the server definitely owns."
+- The server typically needs `KeyManager`/alias selection/certificate chains matching the SNI.
+- If the server requires a specific SNI, missing/wrong SNI may be rejected per policy or fall back to a default virtual host; behavior depends on the server.
+- Traditional SNI is not always hidden from network observers; never put tokens, secrets, or sensitive business data inside SNI.
+- SNI and HTTP `Host`/`:authority` should be handled consistently, never allowing a spoofed Host header to bypass TLS peer/route authorization.
 
-### SNI khác hostname verification
+### SNI vs. hostname verification
 
-| Cơ chế | Ai chủ động? | Kiểm điều gì? |
+| Mechanism | Who initiates? | What does it check? |
 | --- | --- | --- |
-| SNI | Client gửi tên trong handshake | Giúp server biết virtual host được yêu cầu |
-| Certificate SAN | CA/issuer cấp danh tính vào certificate | Danh sách DNS/IP names được certificate khai báo |
-| Endpoint identification | Client kiểm chứng certificate đối với peer host kỳ vọng | Xác nhận certificate hợp lệ cho hostname/IP đích |
-| HTTP Host / :authority | HTTP client gửi tên của origin | Định tuyến HTTP; không thay TLS xác thực |
-| App authorization | Ứng dụng kiểm tra caller/tenant/endpoint | Người dùng có quyền thực hiện tác vụ hay không |
+| SNI | Client sends name during handshake | Helps the server know which virtual host is requested |
+| Certificate SAN | CA/issuer embeds identity into certificate | List of DNS/IP names declared by the certificate |
+| Endpoint identification | Client verifies certificate against expected peer host | Confirms the certificate is valid for the target hostname/IP |
+| HTTP Host / :authority | HTTP client sends origin name | HTTP routing; does not replace TLS authentication |
+| App authorization | Application checks caller/tenant/endpoint | Whether the user is permitted to perform the action |
 
-Không kết luận “SNI đúng” khi mới chỉ gọi `getServerNames()`. Đó là kiểm local config; handshake thật phải được thực hiện và endpoint certificate vẫn phải xác thực thành công.
+Do not conclude "SNI is right" just because `getServerNames()` returns the name. That only checks local config; a real handshake must occur and the endpoint certificate must still validate successfully.
 
-## 7. ALPN: thương lượng HTTP/2, HTTP/1.1 và giao thức khác
+## 7. ALPN: negotiating HTTP/2, HTTP/1.1, and other protocols
 
-**ALPN** (*Application-Layer Protocol Negotiation*) là TLS extension cho client và server chọn giao thức ứng dụng chạy **trên** kết nối TLS. Ví dụ HTTPS client có thể đề xuất:
+**ALPN** (*Application-Layer Protocol Negotiation*) is a TLS extension allowing client and server to select the application protocol running **over** the TLS connection. For example, an HTTPS client might offer:
 
 ```text
 Client ALPN offers: ["h2", "http/1.1"]
@@ -241,9 +241,9 @@ Server ALPN supports: ["http/1.1"]
 Negotiated ALPN: "http/1.1"
 ```
 
-Nếu cả hai bên hỗ trợ và policy cho phép, kết quả có thể là `h2`. ALPN **không tự triển khai HTTP/2**: ứng dụng phải có HTTP/2 framing, stream management, flow control và nội dung protocol. Nếu Java socket raw chỉ set ALPN `h2` mà chương trình vẫn ghi HTTP/1.1 text, kết nối sẽ không vận hành đúng.
+If both sides support it and policy allows, the result may be `h2`. ALPN **does not implement HTTP/2 on its own**: the application must have HTTP/2 framing, stream management, flow control, and protocol semantics. If a raw Java socket sets ALPN `h2` while the program still writes HTTP/1.1 text, the connection will not operate properly.
 
-### Java đặt ALPN offers
+### Java setting ALPN offers
 
 ```java
 SSLParameters p = engine.getSSLParameters();
@@ -251,30 +251,30 @@ p.setApplicationProtocols(new String[] { "h2", "http/1.1" });
 engine.setSSLParameters(p);
 ```
 
-Thứ tự offer có thể mang ý nghĩa ưu tiên tùy TLS stack/server. `setApplicationProtocols` khai báo danh sách ALPN được cấu hình, **chưa phải kết quả thương lượng**. Sau khi handshake hoàn tất:
+Offer order can carry preference semantics depending on the TLS stack/server. `setApplicationProtocols` declares the configured ALPN list, **not yet the negotiation result**. After the handshake completes:
 
 ```java
-// Mã minh họa khi handshake thực sự đã thành công.
+// Illustrative code once the handshake has actually succeeded.
 String selectedProtocol = engine.getApplicationProtocol();
 ```
 
-Nếu ứng dụng **bắt buộc HTTP/2**, phải kiểm result là `"h2"` trước khi phát HTTP/2 frames. Nếu ứng dụng cho fallback HTTP/1.1 thì phải chuyển sang protocol implementation tương ứng. Khi peer không thương lượng ALPN hoặc trả kết quả không chấp nhận được, hành vi fail/fallback phải theo đặc tả của giao thức, không mặc nhiên coi là `"http/1.1"` cho mọi ứng dụng.
+If the application **requires HTTP/2**, it must verify the result is `"h2"` before sending HTTP/2 frames. If the application allows HTTP/1.1 fallback, it must switch to the corresponding protocol implementation. When the peer does not negotiate ALPN or returns an unacceptable result, fail/fallback behavior must follow the protocol specification rather than assuming `"http/1.1"` for every application.
 
 ### ALPN server selection
 
-JSSE cung cấp API phía server như `SSLSocket.setHandshakeApplicationProtocolSelector(...)` hoặc biến thể cho `SSLEngine` trong môi trường phù hợp. Server phải chọn **một protocol mà client đề xuất** và server thực sự triển khai, theo policy. Không trả tên arbitrary hoặc chọn `h2` mà ứng dụng không hỗ trợ.
+JSSE provides server-side APIs such as `SSLSocket.setHandshakeApplicationProtocolSelector(...)` or the `SSLEngine` variant in appropriate environments. The server must choose **a protocol offered by the client** and actually implemented by the server, per policy. Do not return arbitrary strings or pick `h2` when the application does not support it.
 
-ALPN còn xuất hiện ở TLS-based gRPC, HTTP/2 và nhiều protocol đặc thù. Một service gRPC thường cần kiểm yêu cầu `h2`/HTTP/2; đừng nghĩ đặt tên ALPN là đủ để service lập tức thành gRPC server.
+ALPN also appears in TLS-based gRPC, HTTP/2, and many custom protocols. A gRPC service typically needs to verify `h2`/HTTP/2; do not think setting an ALPN string is enough to instantly turn a service into a gRPC server.
 
-### ALPN không giải quyết certificate trust
+### ALPN does not solve certificate trust
 
-Cho dù chọn `h2` thành công, client vẫn phải xác minh chain, hostname, KU/EKU, protocol security và application authorization. Không dùng ALPN output như bằng chứng peer là một service cụ thể.
+Even if `h2` is selected successfully, the client must still verify the chain, hostname, KU/EKU, protocol security, and application authorization. Never use ALPN output as proof that a peer is a specific service.
 
-## 8. Endpoint identification: ràng buộc certificate với hostname đích
+## 8. Endpoint identification: binding the certificate to the target hostname
 
-**Endpoint identification** là bước kiểm certificate của peer có đại diện cho **định danh dịch vụ được yêu cầu** hay không. Trong HTTPS, đó thường là DNS hostname hoặc IP literal của URL. Đây là lớp bảo vệ riêng với việc certificate được CA đáng tin ký.
+**Endpoint identification** is the step that checks whether the peer's certificate represents the **requested service identity**. In HTTPS, this is usually the URL's DNS hostname or IP literal. It is a separate layer of protection from having the certificate signed by a trusted CA.
 
-Ví dụ:
+Example:
 
 ```text
 Requested endpoint: https://payments.example.test
@@ -286,9 +286,9 @@ Name valid?     no
 Result:         reject connection
 ```
 
-Chỉ tin CA không đủ: một CA đáng tin có thể phát hành chứng thư cho nhiều hostname. Nếu kiểm chain mà bỏ kiểm tên, kẻ tấn công có một certificate hợp lệ cho hostname của họ có thể đưa nó vào một kết nối mà ứng dụng tưởng thuộc hostname khác.
+Trusting a CA alone is insufficient: a trusted CA can issue certificates for many hostnames. Checking the chain without checking the name lets an attacker with a valid certificate for their own hostname present it on a connection the application thinks belongs to another hostname.
 
-### Java bật HTTPS endpoint identification
+### Java enabling HTTPS endpoint identification
 
 ```java
 SSLParameters p = engine.getSSLParameters();
@@ -296,25 +296,25 @@ p.setEndpointIdentificationAlgorithm("HTTPS");
 engine.setSSLParameters(p);
 ```
 
-Thuộc tính `"HTTPS"` yêu cầu dùng thuật toán kiểm định danh HTTPS được JSSE hỗ trợ khi handshake. Điều kiện quan trọng:
+The `"HTTPS"` property requests the JSSE-supported HTTPS identity verification algorithm during the handshake. Key conditions:
 
-- Engine/socket phải có **peer hostname kỳ vọng** được tạo/thiết lập đúng theo API; một `SSLEngine` không biết peer host có thể không có đủ ngữ cảnh để kiểm tên như bạn nghĩ.
-- `SSLContext` phải có **trust manager** phù hợp để xác minh chain. Bật hostname check không tự biến một certificate thành đáng tin.
-- Kết nối thực sự phải được handshake và trust manager/provider thực hiện validation. Chỉ nhìn `getEndpointIdentificationAlgorithm()` trả `"HTTPS"` là kiểm cấu hình, **không** chứng minh certificate.
-- Với HTTP clients cấp cao như `java.net.http.HttpClient`, cơ chế endpoint verification thường được thư viện quản lý. **Không tắt hoặc vô tình ghi đè** các thiết lập nội bộ đó.
-- Với raw `SSLSocket`, phải kiểm đúng lúc cấu hình, peer host và TLS context; không giả định mọi socket factory giống nhau.
-- Với TLS server kiểm chứng **client certificate mTLS**, identity policy không giống HTTPS server hostname. Cần kiểm chain, KU/EKU clientAuth, mapping certificate identity tới principal và authorization.
+- The engine/socket must have the **expected peer hostname** created/set properly via the API; an `SSLEngine` unaware of the peer host may lack the context to check names as you expect.
+- `SSLContext` must have an appropriate **trust manager** to verify the chain. Enabling hostname checking does not make an untrusted certificate trustworthy.
+- The connection must actually perform the handshake and the trust manager/provider must run validation. Seeing `getEndpointIdentificationAlgorithm()` return `"HTTPS"` checks configuration, **not** the certificate.
+- With high-level HTTP clients such as `java.net.http.HttpClient`, endpoint verification is usually managed by the library. **Do not disable or accidentally overwrite** those internal settings.
+- With raw `SSLSocket`, verify configuration timing, peer host, and TLS context; do not assume all socket factories behave identically.
+- For a TLS server verifying an **mTLS client certificate**, identity policy differs from an HTTPS server hostname. Check the chain, `clientAuth` KU/EKU, mapping certificate identity to a principal, and authorization.
 
-### Những điều không nên làm
+### Things you should never do
 
-- `p.setEndpointIdentificationAlgorithm(null)` hoặc `""` để làm một certificate sai tên được chấp nhận.
-- Cài `HostnameVerifier` luôn trả true, hoặc `X509TrustManager.checkServerTrusted` luôn rỗng.
-- Lấy tên do user cung cấp bất kỳ rồi dùng làm “expected hostname” để chấp nhận certificate của attacker.
-- So Subject CN bằng `contains(...)` hoặc `endsWith(...)` thay cho các quy tắc SAN/IDN/wildcard chuẩn.
-- Coi SNI hostname là trusted identity mà không đối chiếu certificate.
-- Tắt verification khi dùng proxy, service mesh, private CA: phải cấu hình đúng trust anchors, SNI/hostname và endpoint identity mà môi trường yêu cầu.
+- `p.setEndpointIdentificationAlgorithm(null)` or `""` to make a mismatched certificate be accepted.
+- Install a `HostnameVerifier` that always returns true, or an empty `X509TrustManager.checkServerTrusted`.
+- Take an arbitrary user-supplied name and use it as the "expected hostname" to accept an attacker's certificate.
+- Compare Subject CN using `contains(...)` or `endsWith(...)` instead of standard SAN/IDN/wildcard rules.
+- Treat the SNI hostname as a trusted identity without checking it against the certificate.
+- Disable verification when using proxies, service meshes, or private CAs: configure the exact trust anchors, SNI/hostname, and endpoint identity required by the environment.
 
-### SNI, ALPN và endpoint identification trong một luồng
+### SNI, ALPN, and endpoint identification in one flow
 
 ```text
 Client knows trusted URL/hostname = api.example.test
@@ -348,13 +348,13 @@ Application speaks negotiated ALPN protocol
 Application still checks authorization/tenant/resource
 ```
 
-## 9. Chương trình Java 17+ chạy được, không cần kết nối mạng
+## 9. Runnable Java 17+ program requiring no network connection
 
-Chương trình sau chỉ **cấu hình một `SSLEngine` client**, không gọi handshake và không gửi yêu cầu tới một hostname thật. Nó chọn **một protocol đang enabled** từ allowlist `TLSv1.3`/`TLSv1.2`, chọn **một cipher suite đã enabled và phù hợp với version được chọn**, rồi đặt SNI, ALPN và `HTTPS` endpoint identification.
+The following program solely **configures a client `SSLEngine`**, without calling handshake or sending requests to a real hostname. It picks **one enabled protocol** from the `TLSv1.3`/`TLSv1.2` allowlist, picks **one enabled cipher suite compatible with the chosen version**, and sets SNI, ALPN, and `HTTPS` endpoint identification.
 
-Việc cố ý chọn **một** protocol và **một** suite giúp đọc code và kết quả dễ dàng. Đây **không phải khuyến nghị** production luôn ép một suite; production thường nên dùng allowlist tương thích hoặc defaults bảo mật được quản trị để tránh pin cứng làm giảm khả năng kết nối. Code fail closed nếu runtime không có lựa chọn nào trong list. Kết quả dưới đây chỉ chứng minh config được áp vào engine.
+Intentionally choosing **one** protocol and **one** suite makes the code and output easy to read. This is **not a recommendation** for production to always pin a single suite; production should generally use a compatible allowlist or governed security defaults to avoid rigid pinning that breaks connectivity. The code fails closed if the runtime has no matching option in the list. The output below proves only that the configuration was applied to the engine.
 
-Lưu đúng tên **`SslParametersDemo.java`**:
+Save as **`SslParametersDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -431,14 +431,14 @@ public class SslParametersDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac --release 17 SslParametersDemo.java
 java SslParametersDemo
 ```
 
-**Stdout đã đối chiếu sau khi chạy trên runtime có một trong các protocol/suite tương ứng đang enabled:**
+**Verified stdout after running on a runtime with one of the corresponding protocols/suites enabled:**
 
 ```text
 Client mode: true
@@ -451,39 +451,39 @@ Endpoint identification: HTTPS
 No handshake performed: true
 ```
 
-Nếu runtime/provider không enable TLS 1.2/1.3 hoặc không có bất kỳ suite được phép, `choose` ném `IllegalStateException` một cách có chủ đích; đó là **fail closed**, không phải lý do bật suite yếu. Đây là output có điều kiện của môi trường test đã chạy, không cam kết mọi vendor/JDK giống hệt nhau.
+If the runtime/provider does not enable TLS 1.2/1.3 or has none of the allowed suites, `choose` intentionally throws `IllegalStateException`; that is **fail closed**, not a reason to enable weak suites. This is conditional output from the tested environment, not a guarantee that every vendor/JDK produces identical results.
 
-### 9.1 Phân tích từng bước
+### 9.1 Step-by-step analysis
 
-1. `SSLContext.getInstance("TLS")` chọn implementation TLS từ provider. `context.init(null,null,null)` sử dụng key/trust configuration mặc định của provider cho mục đích demo; **nó không xác minh một server cụ thể** và không nên hiểu `null` luôn trỏ đúng file `cacerts` trong mọi runtime.
-2. `createSSLEngine(host,443)` tạo engine có peer host/port tham chiếu, quan trọng cho các kiểm tra endpoint và SNI trong một handshake thật. Nó **không** kết nối mạng.
-3. `setUseClientMode(true)` thiết lập vai trò TLS client. Cần đặt chế độ trước handshake và trước khi sử dụng những thông số riêng theo client.
-4. `getEnabledProtocols()` cung cấp phiên bản đang enabled. `choose` chỉ lấy `TLSv1.3` hoặc `TLSv1.2` từ tập đó, không bừa bãi bật mọi supported protocol.
-5. Danh sách cipher được chọn **phụ thuộc protocol**. Đây là ví dụ tối giản để tránh phối TLSv1.3 với TLSv1.2 suite. Một server thực có certificate/key/signature/ALPN và policy riêng nên handshake vẫn có thể thất bại dù local suite đã enabled.
-6. `setProtocols` và `setCipherSuites` áp các lựa chọn đã kiểm; `setServerNames` đưa hostname SNI, `setApplicationProtocols` đề xuất `h2`/`http/1.1`, `setEndpointIdentificationAlgorithm("HTTPS")` bật kiểm định danh mong đợi.
-7. `engine.setSSLParameters(parameters)` là bước **áp lại**. Sau đó `getSSLParameters()` kiểm những giá trị cục bộ, không kiểm trạng thái server.
-8. Các biến boolean xác nhận các thuộc tính được giữ. Không dòng nào trong output là “TLS handshake successful” hay “server trusted”.
-9. `No handshake performed: true` là thông báo về thiết kế của chương trình, **không phải một TLS security assertion**. Chương trình không gọi `engine.beginHandshake()`, `wrap` hoặc `unwrap`.
+1. `SSLContext.getInstance("TLS")` selects a TLS implementation from the provider. `context.init(null,null,null)` uses the provider's default key/trust configuration for demo purposes; **it does not verify a specific server** and `null` should not be assumed to always point to `cacerts` across all runtimes.
+2. `createSSLEngine(host,443)` creates an engine with reference peer host/port, which is crucial for endpoint checks and SNI during a real handshake. It makes **no** network connection.
+3. `setUseClientMode(true)` sets the TLS client role. The mode must be set before the handshake and before using client-specific parameters.
+4. `getEnabledProtocols()` returns the currently enabled versions. `choose` takes only `TLSv1.3` or `TLSv1.2` from that set, never blindly enabling every supported protocol.
+5. The selected cipher list **depends on the protocol**. This is a minimal example to avoid mixing TLSv1.3 with TLSv1.2 suites. A real server has its own certificate/key/signature/ALPN and policy, so the handshake can still fail even when a local suite is enabled.
+6. `setProtocols` and `setCipherSuites` apply the checked selections; `setServerNames` sets the SNI hostname, `setApplicationProtocols` offers `h2`/`http/1.1`, and `setEndpointIdentificationAlgorithm("HTTPS")` enables expected identity checking.
+7. `engine.setSSLParameters(parameters)` is the **apply** step. Subsequent `getSSLParameters()` checks local values, not server state.
+8. The boolean variables confirm the attributes were retained. No line in the output claims "TLS handshake successful" or "server trusted."
+9. `No handshake performed: true` is a statement about the program's design, **not a TLS security assertion**. The program never calls `engine.beginHandshake()`, `wrap`, or `unwrap`.
 
-### 9.2 Vì sao không đưa toàn bộ code SSLEngine handshake vào demo?
+### 9.2 Why didn't the demo include full SSLEngine handshake code?
 
-`SSLEngine` là API nonblocking dành cho các chương trình biết quản lý buffer, I/O, handshake status và delegated tasks. Handshake thật cần vòng `wrap/unwrap`, `NEED_TASK`, `NEED_WRAP`, `NEED_UNWRAP`, timeout/EOF xử lý đúng, và transport peer thực tế. Một ví dụ ngắn mà chỉ gọi `beginHandshake()` rồi in “connected” sẽ **không đúng**.
+`SSLEngine` is a nonblocking API meant for programs that manage buffers, I/O, handshake status, and delegated tasks. A real handshake requires a `wrap/unwrap` loop, handling `NEED_TASK`, `NEED_WRAP`, `NEED_UNWRAP`, proper timeout/EOF handling, and an actual peer transport. A short example that just calls `beginHandshake()` and prints "connected" would be **incorrect**.
 
-Để tập trung vào `SSLParameters`, demo chỉ tạo/configure engine và kiểm bằng getters. Với ứng dụng HTTP thật, nên dùng HTTP client/JSSE library đã được kiểm chứng thay vì tự xây handshake machine.
+To keep the focus on `SSLParameters`, the demo only creates/configures the engine and verifies via getters. For real HTTP applications, use a proven HTTP client/JSSE library instead of writing your own handshake state machine.
 
-### 9.3 Không nên copy hardcode suite sang production
+### 9.3 Do not copy hardcoded suites to production
 
-Ví dụ ưu tiên `TLS_AES_128_GCM_SHA256` nếu dùng TLS 1.3, hoặc một suite ECDHE-GCM phù hợp khi dùng TLS 1.2. Đây là lựa chọn cho demo deterministic. Production cần:
+The example prefers `TLS_AES_128_GCM_SHA256` when using TLS 1.3, or a matching ECDHE-GCM suite when using TLS 1.2. This is a choice for a deterministic demo. Production requires:
 
-- Không đặt mặc định TLS 1.2 nếu tổ chức bắt buộc TLS 1.3.
-- Không ép một RSA/ECDSA suite TLS 1.2 khi server certificate/key không phù hợp.
-- Không coi bộ mã có trong provider là đủ để được policy cho phép.
-- Không để client tự chọn các mục tiêu bảo mật bất chấp policy.
-- Test với server thật, dự phòng thay certificate và cập nhật JDK/root store.
+- Not defaulting to TLS 1.2 if the organization mandates TLS 1.3.
+- Not forcing an RSA/ECDSA TLS 1.2 suite when the server certificate/key does not match.
+- Not assuming a suite present in the provider is approved by policy.
+- Not letting clients choose security targets regardless of policy.
+- Testing against real servers, planning for certificate rotation, and updating JDK/root stores.
 
-## 10. SSLSocket và handshake thực: cấu hình phải có hiệu lực trước khi gửi
+## 10. SSLSocket and real handshakes: configuration must take effect before sending
 
-Với `SSLSocket`, bạn cũng có thể gọi `getSSLParameters()`, thay đổi và `setSSLParameters(...)` trước `startHandshake()`. Ví dụ **minh họa bên trong một method** (không phải chương trình độc lập, cần exception handling/import tương ứng và một `SSLContext context` đã được cấu hình đáng tin):
+With `SSLSocket`, you can also call `getSSLParameters()`, modify it, and call `setSSLParameters(...)` before `startHandshake()`. Example **illustrated inside a method** (not a standalone program; requires appropriate exception handling/imports and a reliably configured `SSLContext context`):
 
 ```java
 String host = "api.example.test";
@@ -497,79 +497,79 @@ try (SSLSocket socket = (SSLSocket)
     p.setEndpointIdentificationAlgorithm("HTTPS");
     socket.setSSLParameters(p);
 
-    socket.startHandshake(); // Có thể thất bại do CA/SAN/protocol/suite.
+    socket.startHandshake(); // May fail due to CA/SAN/protocol/suite.
     SSLSession session = socket.getSession();
     String negotiatedTls = session.getProtocol();
     String negotiatedCipher = session.getCipherSuite();
     String negotiatedApp = socket.getApplicationProtocol();
 
-    // Chọn đúng implementation của negotiatedApp trước khi trao đổi dữ liệu.
+    // Select the right implementation for negotiatedApp before exchanging data.
 }
 ```
 
-Đoạn trên **không cấu hình giao diện HTTP/2 hay thực hiện HTTP request**. Nó chỉ cho thấy thông tin sau handshake và nhắc rằng TLS và HTTP là hai tầng khác nhau. Khi kết nối tới một test server thực tế, phải có truststore/CA phù hợp, DNS/SNI/hostname đúng và endpoint identification bật.
+The snippet above **does not configure an HTTP/2 interface or perform an HTTP request**. It only shows post-handshake information and serves as a reminder that TLS and HTTP are two separate layers. When connecting to a real test server, you need an appropriate truststore/CA, accurate DNS/SNI/hostname, and endpoint identification enabled.
 
-### Tại sao nên cấu hình trước handshake?
+### Why configure before the handshake?
 
-Handshake thực hiện thương lượng protocol, cipher suite, SNI/ALPN và peer authentication. Nếu sửa `SSLParameters` sau khi đã handshake, không thể mặc nhiên yêu cầu phiên hiện hữu bắt đầu lại hoặc kiểm certificate lần nữa. Trong thực tế, HTTP keep-alive, pooling và TLS session resumption còn làm policy reload phức tạp hơn. Khi policy thay đổi, cần tạo mới SSL contexts/clients hoặc quản lý pool/session theo threat model.
+The handshake negotiates protocol, cipher suite, SNI/ALPN, and peer authentication. Modifying `SSLParameters` after the handshake does not automatically force the existing session to restart or re-verify the certificate. In practice, HTTP keep-alive, pooling, and TLS session resumption complicate policy reloading further. When policy changes, create new SSL contexts/clients or manage pools/sessions per your threat model.
 
-### SSLSocket với custom TrustManager
+### SSLSocket with custom TrustManager
 
-`SSLParameters` chỉ điều khiển một phần kiểm soát. Trust anchors đến từ `SSLContext`/`TrustManagerFactory`/`X509ExtendedTrustManager` phù hợp. Nếu tự viết `X509TrustManager`, phải hiểu đầy đủ việc JSSE có hay không áp endpoint checks với custom manager: không viết `checkServerTrusted` rỗng và mặc nhiên tin rằng `setEndpointIdentificationAlgorithm("HTTPS")` sẽ “bù lại” việc thiếu chain validation.
+`SSLParameters` controls only part of the checks. Trust anchors come from `SSLContext`/`TrustManagerFactory`/an appropriate `X509ExtendedTrustManager`. If you write a custom `X509TrustManager`, you must fully understand whether JSSE applies endpoint checks with custom managers: never write an empty `checkServerTrusted` assuming `setEndpointIdentificationAlgorithm("HTTPS")` will "make up for" missing chain validation.
 
-Ưu tiên trust manager của provider được quản lý đúng và kho CA được kiểm soát; tránh tự bỏ qua PKIX checks.
+Prefer a properly managed provider trust manager and a controlled CA store; avoid bypassing PKIX checks.
 
-## 11. Java HTTP client cấp cao: tránh phá các ràng buộc do thư viện quản lý
+## 11. High-level Java HTTP client: avoid breaking library-managed constraints
 
-`java.net.http.HttpClient` thường đã quản lý nhiều chi tiết TLS, HTTP/2 và hostname verification. Nếu không có yêu cầu đặc biệt, **giữ mặc định an toàn** của JDK và cập nhật runtime/trust policy. Một số API cho phép chỉ định:
+`java.net.http.HttpClient` already manages many TLS, HTTP/2, and hostname verification details. Unless you have specific requirements, **keep the JDK's secure defaults** and update the runtime/trust policy. Some APIs allow specifying:
 
 ```java
-// Mã minh họa; giả sử SSLContext context được cấu hình phù hợp.
+// Illustrative code; assume SSLContext context is properly configured.
 HttpClient client = HttpClient.newBuilder()
         .sslContext(context)
         .version(HttpClient.Version.HTTP_2)
         .build();
 ```
 
-Đoạn trên không phải chương trình độc lập, cần import `java.net.http.HttpClient` và context đã tạo. `version(HTTP_2)` là sở thích/chế độ HTTP client ở lớp cao, **không tự chứng minh ALPN đã chọn h2 trên từng kết nối**. HTTP client có thể chọn/điều chỉnh ALPN hoặc fallback theo giao thức/API; kiểm thực tế qua response/client traces khi cần.
+The snippet above is not a standalone program; it requires importing `java.net.http.HttpClient` and an initialized context. `version(HTTP_2)` is a high-level HTTP client preference/mode and **does not prove ALPN selected h2 on every connection**. The HTTP client may select/adjust ALPN or fall back depending on protocol/API; verify via actual responses/client traces when needed.
 
-**Không nên** tạo một `SSLParameters` chứa mọi thứ rồi truyền bừa vào HTTP client: một số HTTP client quản lý ALPN/hostname verification của riêng nó và có thể thay đổi hoặc bỏ qua những thuộc tính do caller đưa vào. Đọc documentation của **đúng thư viện và phiên bản** được triển khai; kiểm behavior trong integration tests.
+**Do not** stuff everything into an `SSLParameters` and pass it blindly to an HTTP client: some HTTP clients manage their own ALPN/hostname verification and may alter or ignore caller-supplied attributes. Read the documentation for the **exact library and version** deployed, and verify behavior in integration tests.
 
-### Đừng tắt hostname verification qua global debug flags
+### Never disable hostname verification via global debug flags
 
-Một số người dùng flag nội bộ hoặc custom `HostnameVerifier` luôn true để vượt lỗi certificate sai SAN. Làm vậy có thể xóa bảo đảm identity của HTTPS. Khi gặp vấn đề TLS, hãy sửa CA chain, SAN, URL hostname, SNI, proxy và truststore, không disable verification.
+Some people use internal flags or a custom `HostnameVerifier` returning always true to bypass SAN mismatch errors. Doing so can strip HTTPS identity guarantees. When facing TLS issues, fix the CA chain, SAN, URL hostname, SNI, proxy, and truststore—never disable verification.
 
-## 12. Cấu hình server khác client ở đâu?
+## 12. Where does server configuration differ from client configuration?
 
-Trên server, `SSLParameters` được áp vào `SSLServerSocket`, `SSLSocket` server-side hoặc `SSLEngine` server-side tùy kiến trúc. Các thuộc tính có thể được hiểu khác:
+On the server, `SSLParameters` is applied to `SSLServerSocket`, server-side `SSLSocket`, or server-side `SSLEngine` depending on architecture. Attributes may be interpreted differently:
 
-| Thuộc tính | Client TLS | Server TLS |
+| Attribute | TLS Client | TLS Server |
 | --- | --- | --- |
-| `setProtocols` | Những version client sẵn sàng offer | Những version server sẵn sàng accept |
-| `setCipherSuites` | Những suite có thể thương lượng | Những suite server có thể chọn |
-| `setServerNames` | Tên client gửi qua SNI | **Không** dùng để tuyên bố server sở hữu hostname |
-| `setSNIMatchers` | Không thường dùng | Có thể kiểm/giới hạn SNI incoming theo policy |
-| `setApplicationProtocols` | Danh sách ALPN client đề xuất | Danh sách ALPN server hỗ trợ |
-| `setEndpointIdentificationAlgorithm("HTTPS")` | Dùng khi kiểm server HTTPS | Không phải cơ chế server công bố certificate/hostname |
-| `setNeedClientAuth(true)` | Không phải thiết lập HTTPS server identity | Yêu cầu client certificate trong mTLS theo API thích hợp |
-| `setWantClientAuth(true)` | Không thay authorization | Yêu cầu chứng thư client một cách tùy chọn theo server policy |
-| `setUseCipherSuitesOrder` | Không ép server theo thứ tự client | Có thể thể hiện ưu tiên server trong trường hợp được hỗ trợ |
+| `setProtocols` | Versions the client is willing to offer | Versions the server is willing to accept |
+| `setCipherSuites` | Suites eligible for negotiation | Suites the server can select |
+| `setServerNames` | Name the client sends via SNI | **Not** used to declare server-owned hostnames |
+| `setSNIMatchers` | Not commonly used | Can check/restrict incoming SNI per policy |
+| `setApplicationProtocols` | ALPN list offered by client | ALPN list supported by server |
+| `setEndpointIdentificationAlgorithm("HTTPS")` | Used when verifying an HTTPS server | Not a mechanism for the server to advertise its certificate/hostname |
+| `setNeedClientAuth(true)` | Not an HTTPS server identity setting | Requires client certificate in mTLS via appropriate API |
+| `setWantClientAuth(true)` | Does not replace authorization | Requests client certificate optionally per server policy |
+| `setUseCipherSuitesOrder` | Does not force server to follow client order | Can express server preference where supported |
 
-**Need vs want client auth:** `needClientAuth` thường làm handshake thất bại nếu không có client certificate hợp lệ theo policy; `wantClientAuth` cho phép client không cung cấp certificate trong tình huống được hỗ trợ. Hai cài đặt có tác động qua lại; không bật cả hai và đoán thứ tự override. Khi bật mTLS, server phải có truststore cho client CAs, identity mapping và authorization, chứ không chỉ `setNeedClientAuth(true)`.
+**Need vs. want client auth:** `needClientAuth` typically fails the handshake if no policy-valid client certificate is presented; `wantClientAuth` allows the client to omit a certificate where supported. The two settings interact; do not enable both and guess the override order. When enabling mTLS, the server must have a truststore for client CAs, identity mapping, and authorization—not just `setNeedClientAuth(true)`.
 
-### Server lựa chọn certificate theo SNI
+### Server selecting a certificate by SNI
 
-Một reverse proxy hoặc Java server có nhiều certificate identities có thể dùng hostname SNI và `X509ExtendedKeyManager`/application server selection policy để chọn certificate/alias. Điều đó đòi hỏi key material/certificate chain đã được cấu hình. `SSLParameters.setSNIMatchers` không tự tạo alias hoặc thay key manager.
+A reverse proxy or Java server with multiple certificate identities can use the SNI hostname and `X509ExtendedKeyManager`/application server selection policy to pick a certificate/alias. That requires pre-configured key material/certificate chains. `SSLParameters.setSNIMatchers` does not create aliases or replace a key manager.
 
-Nếu server chỉ có một certificate cho `api.example.test` mà client gửi SNI `admin.example.test`, server có thể chọn certificate default hoặc từ chối. Client vẫn phải kiểm SAN/endpoint identity, không chấp nhận certificate khác tên.
+If the server only has a certificate for `api.example.test` while the client sends SNI `admin.example.test`, the server may pick a default certificate or reject. The client must still check SAN/endpoint identity and reject any certificate for a different name.
 
-### Server chọn ALPN
+### Server selecting ALPN
 
-Server phải chọn protocol có trong danh sách client gửi và server triển khai. Nếu server chọn `h2`, HTTP stack phải thật sự hiểu HTTP/2; nếu chọn `http/1.1`, dùng HTTP/1.1 parser. Nếu ứng dụng sử dụng TLS cho giao thức khác, chuỗi ALPN phải đúng chuẩn/registry tương ứng, không tự ý đặt tên vô nghĩa.
+The server must pick a protocol present in the list sent by the client and implemented by the server. If the server picks `h2`, the HTTP stack must genuinely understand HTTP/2; if it picks `http/1.1`, use the HTTP/1.1 parser. If the application uses TLS for another protocol, the ALPN string must match the corresponding standard/registry—do not invent meaningless names.
 
-## 13. Tương tác giữa protocol, cipher suite, certificate và ALPN
+## 13. Interactions among protocol, cipher suite, certificate, and ALPN
 
-Một cấu hình nhìn qua hợp lệ có thể thất bại do những ràng buộc chéo:
+A seemingly valid configuration can fail due to cross-constraints:
 
 ```text
 Client enabled protocols:      TLSv1.3
@@ -587,182 +587,182 @@ Server presents cert:          b.example.test
 Result:                        hostname verification must reject a.example.test
 ```
 
-Từng dòng là **tình huống minh họa**, không phải output của một chương trình Java độc lập. Lỗi cụ thể có thể là `SSLHandshakeException` hoặc hành vi no-application-protocol/fallback tùy TLS version, provider và library; không xem câu chữ exception là contract cố định.
+Each block is an **illustrative scenario**, not output from a standalone Java program. Specific errors may be `SSLHandshakeException` or no-application-protocol/fallback behavior depending on TLS version, provider, and library; do not treat exception text as a fixed contract.
 
-**Mấu chốt:** TLS có nhiều bước kiểm liên kết. Đừng chấp nhận thông điệp “Cipher suite applied: true” trong demo như bằng chứng handshake đã hợp lệ.
+**Key point:** TLS involves multiple linked checks. Do not accept a message like "Cipher suite applied: true" in a demo as proof of a valid handshake.
 
-### Chữ ký chứng thư và cipher suite
+### Certificate signatures and cipher suites
 
-TLS 1.2 suite tên `ECDHE_RSA` thường yêu cầu dạng chứng thư/authentication thích hợp; TLS 1.3 tách lựa chọn suite khỏi cơ chế authentication/signature algorithm và key-share negotiation. Do đó, chuyển từ TLS 1.2 sang TLS 1.3 có thể khiến các kiểm tra config “tên suite có RSA hay không” không còn phản ánh quy trình xác thực. Luôn xét version, certificate algorithm, signature schemes và provider policy.
+A TLS 1.2 suite named `ECDHE_RSA` typically requires the matching certificate/authentication type; TLS 1.3 decouples suite selection from the authentication/signature algorithm and key-share negotiation. Consequently, moving from TLS 1.2 to TLS 1.3 can make config checks like "does the suite name contain RSA" stop reflecting the authentication flow. Always consider version, certificate algorithm, signature schemes, and provider policy.
 
-### Session resumption và cấu hình mới
+### Session resumption and updated configuration
 
-Nếu ứng dụng đổi trust roots, hostname policy, enabled versions hoặc ALPN, **các kết nối TLS đã thiết lập và sessions được resumption** có thể không lập tức theo policy mới. Trong thay đổi khẩn cấp (ví dụ distrust CA), cần kế hoạch thay client/context, đóng connection pools và kiểm tra các new handshakes/session caches. Không chỉ sửa một object `SSLParameters` rồi tuyên bố toàn cluster đã cập nhật.
+If an application changes trust roots, hostname policy, enabled versions, or ALPN, **already-established TLS connections and resumed sessions** may not immediately follow the new policy. During urgent changes (such as distrusting a CA), plan to replace clients/contexts, close connection pools, and inspect new handshakes/session caches. Do not merely edit one `SSLParameters` object and declare the whole cluster updated.
 
-## 14. Kiểm thử E2E: phải có cả positive và negative
+## 14. E2E testing: include both positive and negative cases
 
-Một bộ integration test nên phân biệt **configuration unit tests** với **TLS handshake tests**:
+An integration test suite should distinguish **configuration unit tests** from **TLS handshake tests**:
 
-| Ca | Cấu hình hoặc dữ liệu đầu vào | Kết quả mong đợi |
+| Case | Configuration or input | Expected result |
 | --- | --- | --- |
-| Config protocol | Set TLSv1.3 enabled theo allowlist | `getSSLParameters` phản ánh cấu hình |
-| Config suite | Set suite compatible và enabled | Được áp; **chưa chứng minh handshake** |
-| TLS version thực | Client/server chỉ có chung TLSv1.2 | Handshake chọn TLSv1.2 nếu policy cho phép |
-| No shared protocol | Client chỉ TLSv1.3, server chỉ TLSv1.2 | Handshake fail, không fallback ra ngoài policy |
-| No usable cipher | Protocol chung nhưng suite không giao | Handshake fail |
-| SNI đúng | Hai virtual hosts, client gửi tên A | Server chọn certificate/config đúng A nếu hỗ trợ |
-| SNI sai | Client gửi tên B trong khi kỳ vọng A | Endpoint identity phải từ chối certificate B cho hostname A |
-| SNI không có | Server cần SNI để chọn vhost | Fail hoặc behavior theo policy, không tin certificate sai |
-| ALPN h2 | Cả hai hỗ trợ h2 | `getApplicationProtocol()` trả h2 sau handshake thành công |
-| ALPN fallback | Client cho h2/http1, server chỉ http1 | Chọn http/1.1 nếu policy/implementation cho phép |
-| ALPN mismatch | Không có protocol chung, ứng dụng yêu cầu h2 | Fail closed hoặc không tiến vào ứng dụng trái protocol |
-| CA chưa tin | Server cert chain không tới trusted CA | Handshake reject |
-| SAN mismatch | Chain hợp lệ cho hostname khác | HTTPS endpoint identification reject |
-| Cert expired | Server leaf hết hạn | Handshake reject theo chính sách |
-| Invalid KU/EKU | Leaf không cho serverAuth theo policy | TLS server auth reject |
-| Client auth required | mTLS server need client cert, client không có | Handshake reject |
-| Client certificate lạ | mTLS client có cert từ CA ngoài allowlist | Reject theo server trust policy |
-| mTLS authorized? | Certificate hợp lệ nhưng principal không có quyền | TLS có thể pass; application rejects request |
-| Downgrade attempt | Peer yêu cầu TLS cũ bị policy tắt | Reject; không tự enable legacy |
-| Connection reused | Policy CA thay đổi trong lúc pool mở | Quan sát refresh/reload đúng theo lifecycle |
-| Multi-runtime | JDK17/JDK khác nhau | Kiểm supported/enabled/ALPN/endpoint behavior thật |
-| Proxy/mesh | TLS termination và SNI routing khác | Kiểm endpoint được xác thực đúng trust boundary |
+| Config protocol | Set TLSv1.3 enabled per allowlist | `getSSLParameters` reflects configuration |
+| Config suite | Set compatible and enabled suite | Applied; **does not prove handshake** |
+| Real TLS version | Client/server share only TLSv1.2 | Handshake selects TLSv1.2 if policy allows |
+| No shared protocol | Client TLSv1.3 only, server TLSv1.2 only | Handshake fails; no fallback outside policy |
+| No usable cipher | Shared protocol but disjoint suites | Handshake fails |
+| Matching SNI | Two virtual hosts, client sends name A | Server picks certificate/config for A if supported |
+| Wrong SNI | Client sends name B while expecting A | Endpoint identity must reject certificate B for hostname A |
+| Missing SNI | Server requires SNI to pick vhost | Fails or follows policy; never trusts wrong certificate |
+| ALPN h2 | Both support h2 | `getApplicationProtocol()` returns h2 after successful handshake |
+| ALPN fallback | Client offers h2/http1, server supports only http1 | Selects http/1.1 if policy/implementation allows |
+| ALPN mismatch | No common protocol, app requires h2 | Fails closed or does not proceed into app violating protocol |
+| Untrusted CA | Server cert chain does not lead to a trusted CA | Handshake rejects |
+| SAN mismatch | Valid chain for a different hostname | HTTPS endpoint identification rejects |
+| Expired cert | Server leaf expired | Handshake rejects per policy |
+| Invalid KU/EKU | Leaf does not permit serverAuth per policy | TLS server auth rejects |
+| Client auth required | mTLS server needs client cert, client has none | Handshake rejects |
+| Unknown client certificate | mTLS client has cert from CA outside allowlist | Rejects per server trust policy |
+| mTLS authorized? | Valid certificate but principal lacks permission | TLS may pass; application rejects request |
+| Downgrade attempt | Peer requests legacy TLS disabled by policy | Rejects; never auto-enables legacy |
+| Reused connection | CA policy changes while pool is open | Observe proper refresh/reload per lifecycle |
+| Multi-runtime | Different JDK17/JDK versions | Verify actual supported/enabled/ALPN/endpoint behavior |
+| Proxy/mesh | Separate TLS termination and SNI routing | Verify endpoints are authenticated at the right trust boundary |
 
-**Kiểm thử đơn vị `SSLParameters` như mục 9 là cần nhưng không đủ.** Muốn chứng minh bảo mật kết nối, cần lab server có certificate chain/SAN được tạo có kiểm soát, truststore test và kiểm phiên thực sự được thương lượng.
+**`SSLParameters` unit tests like section 9 are necessary but insufficient.** To prove connection security, you need a lab server with controlled certificate chains/SANs, a test truststore, and verification of the actual negotiated session.
 
-### Tạo lab riêng
+### Building an isolated lab
 
-Bạn có thể dùng `keytool` tạo CA và leaf dành riêng cho `localhost`/tên test; dùng loopback port hoặc test container. **Không** import CA test vào `cacerts` của JDK sản xuất, không dùng trust-all. Cần kiểm certificate có SAN đúng hostname/loopback dùng, không chỉ `CN`. Với JSSE server có thể dùng `KeyStore`/`KeyManagerFactory`, client dùng `TrustManagerFactory` nạp CA test.
+You can use `keytool` to create a dedicated CA and leaf for `localhost`/test names; use a loopback port or test container. **Never** import test CAs into a production JDK's `cacerts`, and never use trust-all. Verify the certificate has the proper SAN for the hostname/loopback used, not just `CN`. A JSSE server can use `KeyStore`/`KeyManagerFactory`, while the client uses `TrustManagerFactory` loading the test CA.
 
-Muốn test ALPN đúng, server phải có implementation chọn `h2`/`http/1.1`, và client phải kiểm `getApplicationProtocol()` sau handshake. Với một server chỉ nói HTTP/1.1, đừng cấu hình ALPN `h2` rồi tuyên bố thành công của TLS đồng nghĩa HTTP/2 hoạt động.
+To properly test ALPN, the server must have an implementation that selects `h2`/`http/1.1`, and the client must check `getApplicationProtocol()` after the handshake. With a server that speaks only HTTP/1.1, never configure ALPN `h2` and claim TLS success means HTTP/2 works.
 
-## 15. Những lỗi phổ biến khi dùng SSLParameters
+## 15. Common mistakes when using SSLParameters
 
-| Sai lầm | Hậu quả | Cách tránh |
+| Mistake | Consequence | How to avoid |
 | --- | --- | --- |
-| Lấy toàn bộ `getSupportedProtocols()` để enable | Có thể bật version bị tắt do policy | Lấy allowlist giao với enabled và policy |
-| Không xét TLS version khi chọn cipher suite | No shared cipher; cấu hình không tương thích | Dùng suite theo profile phiên bản; test handshake |
-| Cố định một suite trong mọi service | Lỗi khi thay certificate hoặc peer policy | Ưu tiên defaults/curated compatible set |
-| Chỉ sửa local `SSLParameters` mà quên `setSSLParameters` | Engine/socket chưa nhận thay đổi | Áp lại và kiểm getters |
-| Cấu hình sau handshake | Session đã thương lượng trước đó | Cấu hình trước handshake, refresh connection lifecycle |
-| Nhầm `setServerNames` là hostname verification | MITM/đồng nhất sai peer | Bật endpoint identification và trust validation |
-| Dùng SNI khác URL hostname tùy ý | Server trả certificate sai identity | Ràng buộc SNI, peerHost và endpoint identity theo policy |
-| Cho URL nguyên vào `SNIHostName` | Invalid SNI name / lỗi format | Chỉ hostname DNS thích hợp |
-| Cho rằng ALPN offers = negotiated result | Gửi HTTP/2 frames tới HTTP/1.1 peer | Đọc negotiated ALPN sau handshake |
-| Chỉ set `h2` ALPN nhưng không có HTTP/2 stack | Giao thức ứng dụng lỗi | Tích hợp library thực sự hiểu h2 |
-| Tắt endpoint identification để sửa SAN lỗi | Chấp nhận server sai tên | Sửa certificate/URL/SNI/trust |
-| Cài trust-all X509TrustManager | Loại bỏ CA/path validation | Trust manager PKIX đáng tin và truststore hẹp |
-| Tự map clientAuth cert thành quyền admin | Lỗi authorization mTLS | Validate identity rồi áp RBAC/ABAC |
-| Dùng một custom truststore cho mọi client mà không phân scope | Mở rộng hoặc mất public roots | Per-client SSLContext khi cần |
-| Thay file truststore mà không reload context/pool | Sử dụng trust anchors cũ | Versioned config, reload và kiểm handshake mới |
-| Dựa vào chuỗi exception text | Chẩn đoán sai qua các JDK | Log lý do đã làm sạch và test đúng provider |
-| Coi `setSSLParameters` thành công = TLS an toàn | Bỏ qua chứng thư/cipher/ALPN thực | Xác minh qua handshake và negotiated session |
-| Mặc định raw SSLEngine tự chạy I/O | Handshake không hoàn thành | Dùng đúng SSLEngine wrap/unwrap/tasks hoặc HTTP client |
-| Dùng global debug flags ở production lâu dài | Log lớn, có thể lộ metadata | Bật có kiểm soát, tắt sau chẩn đoán |
-| Không kiểm test âm | Không chứng minh boundary | Test CA sai, SAN sai, protocol/suite mismatch, ALPN mismatch |
+| Enabling everything from `getSupportedProtocols()` | May enable policy-disabled versions | Intersect allowlist with enabled and policy |
+| Ignoring TLS version when picking cipher suites | No shared cipher; incompatible configuration | Use suites matching version profile; test handshake |
+| Pinning a single suite across all services | Failures when rotating certificates or peer policy | Prefer defaults/curated compatible sets |
+| Editing local `SSLParameters` without calling `setSSLParameters` | Engine/socket never receives the change | Re-apply and verify with getters |
+| Configuring after the handshake | Session already negotiated earlier | Configure before handshake; refresh connection lifecycle |
+| Confusing `setServerNames` with hostname verification | MITM / wrong peer identity | Enable endpoint identification and trust validation |
+| Arbitrarily using SNI different from URL hostname | Server returns wrong identity certificate | Bind SNI, peerHost, and endpoint identity per policy |
+| Passing a full URL into `SNIHostName` | Invalid SNI name / format error | Pass only an appropriate DNS hostname |
+| Assuming ALPN offers = negotiated result | Sending HTTP/2 frames to an HTTP/1.1 peer | Read negotiated ALPN after the handshake |
+| Setting ALPN `h2` without an HTTP/2 stack | Application protocol failure | Integrate a library that actually speaks h2 |
+| Disabling endpoint identification to fix SAN errors | Accepts wrong-named server | Fix certificate/URL/SNI/trust |
+| Installing a trust-all X509TrustManager | Removes CA/path validation | Trusted PKIX trust manager and narrow truststore |
+| Mapping any clientAuth cert to admin privileges | mTLS authorization flaw | Validate identity then apply RBAC/ABAC |
+| Using one custom truststore for all clients without scoping | Expands or drops public roots | Use per-client SSLContext when needed |
+| Swapping truststore files without reloading context/pools | Keeps using old trust anchors | Versioned config, reload, and verify new handshakes |
+| Relying on exception text strings | Misdiagnosis across JDKs | Log sanitized reasons and test on target provider |
+| Treating `setSSLParameters` success = secure TLS | Ignores actual certificate/cipher/ALPN | Verify via handshake and negotiated session |
+| Assuming raw SSLEngine runs I/O automatically | Handshake never completes | Properly implement SSLEngine wrap/unwrap/tasks or use an HTTP client |
+| Leaving global debug flags on long-term in production | Huge logs, potential metadata leaks | Enable with controls, disable after diagnosis |
+| Skipping negative tests | Fails to prove boundaries | Test wrong CA, wrong SAN, protocol/suite mismatch, ALPN mismatch |
 
-## 16. Quy trình thiết kế cấu hình production
+## 16. Production configuration design workflow
 
-Một workflow có thể kiểm toán:
+An auditable workflow:
 
-1. **Định nghĩa security policy:** TLS versions tối thiểu, cipher profiles, trust anchors, endpoint names, ALPN protocols và mTLS requirements; ghi rõ scope client/server.
-2. **Kiểm provider/runtime:** Java version, JSSE provider, `getEnabledProtocols()`, enabled suites, `jdk.tls.disabledAlgorithms`, container image và root store.
-3. **Ưu tiên default HTTPS client:** chỉ override khi có yêu cầu cụ thể và đã hiểu sự tương tác với HTTP/2, hostname verification, proxy/mesh.
-4. **Nếu dùng raw SSLEngine/SSLSocket:** tạo context với trust/key managers đúng, dùng peer host thực, đặt client/server mode và cấu hình `SSLParameters` **trước handshake**.
-5. **Dùng SNI đúng tên:** không dùng SNI như authorization; đối chiếu SAN/hostname của chứng thư.
-6. **Đề xuất ALPN phù hợp ứng dụng:** HTTP/2 phải có stack h2; kiểm protocol đã thương lượng trước khi gửi dữ liệu.
-7. **Giữ endpoint identification:** với HTTPS dùng thuật toán phù hợp, không bỏ chỉ vì private CA hoặc proxy.
-8. **Kiểm cả chiều âm:** server sai hostname, CA không tin, EKU sai, protocol/suite yếu, ALPN mismatch đều phải được xử lý theo policy.
-9. **Kiểm real negotiated state:** TLS version/cipher từ `SSLSession`, ALPN từ API sau handshake, peer certificate chain và identity thông qua TLS stack; không tự log secret.
-10. **Quan sát và vận hành:** TLS handshake failure rate, protocol/cipher distribution, certificate renewal, truststore version và thay đổi ở server.
-11. **Triển khai theo canary:** nhiều JVM/provider/regions, rollback được nhưng không bật lại chính sách yếu đã bị cấm.
-12. **Thực hiện rotation/reload có chủ đích:** tạo context/client mới, quản lý session resumption/connection pooling và xử lý distrust CA khi cần.
-13. **Đánh giá tương tác HTTP:** proxy, redirect, Alt-Svc, SNI/authority routing và HTTP/2 downgrade theo yêu cầu hệ thống.
-14. **Không nhầm TLS authentication với application authorization:** dù TLS thành công, request vẫn phải được xác thực và cấp quyền nghiệp vụ.
+1. **Define security policy:** minimum TLS versions, cipher profiles, trust anchors, endpoint names, ALPN protocols, and mTLS requirements; explicitly state client/server scope.
+2. **Inspect provider/runtime:** Java version, JSSE provider, `getEnabledProtocols()`, enabled suites, `jdk.tls.disabledAlgorithms`, container image, and root store.
+3. **Prefer default HTTPS client:** override only for specific needs after understanding interactions with HTTP/2, hostname verification, and proxy/mesh.
+4. **If using raw SSLEngine/SSLSocket:** create context with proper trust/key managers, use real peer host, set client/server mode, and configure `SSLParameters` **before handshake**.
+5. **Use accurate SNI names:** never use SNI as authorization; cross-check against certificate SAN/hostname.
+6. **Offer ALPN matching the application:** HTTP/2 requires an h2 stack; check negotiated protocol before sending data.
+7. **Keep endpoint identification:** for HTTPS use the proper algorithm; do not drop it because of a private CA or proxy.
+8. **Test negative paths too:** wrong server hostname, untrusted CA, wrong EKU, weak protocol/suite, and ALPN mismatch must all be handled per policy.
+9. **Inspect actual negotiated state:** TLS version/cipher from `SSLSession`, ALPN from post-handshake APIs, peer certificate chain and identity via the TLS stack; never log secrets.
+10. **Observe and operate:** TLS handshake failure rates, protocol/cipher distribution, certificate renewal, truststore version, and server-side changes.
+11. **Roll out via canary:** across multiple JVMs/providers/regions, rollback-capable without re-enabling banned weak policies.
+12. **Perform deliberate rotation/reload:** create new contexts/clients, manage session resumption/connection pooling, and handle CA distrust when required.
+13. **Evaluate HTTP interactions:** proxy, redirect, Alt-Svc, SNI/authority routing, and HTTP/2 downgrade per system requirements.
+14. **Never confuse TLS authentication with application authorization:** even when TLS succeeds, requests must still be authenticated and authorized at the business layer.
 
-### Ví dụ log nên và không nên
+### Example of what to log and what not to log
 
-Nên (sau khi cân nhắc privacy): TLS version, cipher suite, ALPN negotiated, endpoint hostname, phiên bản trust bundle, loại lỗi handshake đã làm sạch, request/correlation ID. Không nên: private key, session secrets, raw application credentials, plaintext nhạy cảm, debug handshake chi tiết kéo dài hoặc bộ certificate chain chứa dữ liệu không cần cho mục đích giám sát.
+Log (after privacy review): TLS version, cipher suite, negotiated ALPN, endpoint hostname, trust bundle version, sanitized handshake error category, and request/correlation ID. Never log: private keys, session secrets, raw application credentials, sensitive plaintext, prolonged detailed handshake debug dumps, or full certificate chains containing data unnecessary for monitoring.
 
-## 17. Debug và xác định nguyên nhân handshake fail
+## 17. Debugging and identifying handshake failure causes
 
-Các nhóm lỗi hay gặp:
+Common failure groups:
 
-| Triệu chứng | Hướng kiểm tra |
+| Symptom | Where to check |
 | --- | --- |
 | `SSLHandshakeException: no appropriate protocol` | Protocol allowlist, disabled algorithms, client/server versions |
-| `no cipher suites in common` / `handshake_failure` | Giao giữa suites, TLS version, certificate algorithm và provider |
-| `PKIX path building failed` | Truststore/CA chain, intermediate thiếu, CA policy, certificate validity |
-| `No subject alternative DNS name matching` | SNI/URL host và leaf SAN, endpoint verification |
-| ALPN chưa chọn `h2` | Server supported list, client offers, protocol implementations và negotiation |
-| `no_application_protocol` alert | ALPN không giao trên peer yêu cầu ALPN và TLS stack báo lỗi |
-| TLS thành công nhưng HTTP/2 fail | ALPN/config chưa thực sự có HTTP/2 codec hoặc proxy thay đổi |
-| Hành vi khác sau restart | SSLContext/connection pools đã cache config cũ |
-| SNI thiếu | Client tạo socket với IP, không set host, hoặc proxy/TLS library thay đổi |
-| Certificate đúng nhưng mTLS client bị từ chối | Need/want client auth, client KeyManager, issuer trust và clientAuth EKU |
-| Chỉ một JDK fail | Provider/version, truststore, disabledAlgorithms, cipher support khác |
+| `no cipher suites in common` / `handshake_failure` | Intersection of suites, TLS version, certificate algorithm, and provider |
+| `PKIX path building failed` | Truststore/CA chain, missing intermediate, CA policy, certificate validity |
+| `No subject alternative DNS name matching` | SNI/URL host and leaf SAN, endpoint verification |
+| ALPN did not select `h2` | Server supported list, client offers, protocol implementations, and negotiation |
+| `no_application_protocol` alert | Disjoint ALPN on a peer requiring ALPN and TLS stack raises error |
+| TLS succeeds but HTTP/2 fails | ALPN/config lacks an actual HTTP/2 codec, or proxy altered behavior |
+| Different behavior after restart | Cached old config in SSLContext/connection pools |
+| Missing SNI | Client created socket with IP, omitted host, or proxy/TLS library altered it |
+| Valid certificate yet mTLS client rejected | Need/want client auth, client KeyManager, issuer trust, and clientAuth EKU |
+| Fails on only one JDK | Differences in provider/version, truststore, disabledAlgorithms, cipher support |
 
-Có thể bật JSSE debug trong môi trường kiểm soát:
+JSSE debugging can be enabled in controlled environments:
 
 ```text
 -Djavax.net.debug=ssl,handshake,trustmanager
 ```
 
-Kết quả là log kỹ thuật lớn, có thể chứa hostnames, chứng thư và metadata nhạy cảm; chỉ thu thập khi cần và áp chính sách bảo vệ log. **Không** coi mọi thông điệp debug là bảo đảm protocol negotiation thành công; kiểm ứng dụng và TLS session thực tế.
+This produces large technical logs that may contain hostnames, certificates, and sensitive metadata; collect only when needed and apply log protection policies. **Never** treat every debug line as proof of successful protocol negotiation; verify the actual application and TLS session.
 
-## 18. Bài tập thực hành
+## 18. Practice exercises
 
-### Bài 1 — Supported vs enabled
+### Exercise 1 — Supported vs. enabled
 
-Chạy `SslParametersDemo` trên JDK 17. In danh sách `engine.getSupportedProtocols()` và `engine.getEnabledProtocols()` ở lab riêng, so sánh. Có protocol cũ nào supported nhưng không enabled? Giải thích tại sao không được bật lại chỉ để “tối đa compatibility”.
+Run `SslParametersDemo` on JDK 17. Print `engine.getSupportedProtocols()` and `engine.getEnabledProtocols()` in an isolated lab and compare them. Are there older protocols that are supported but not enabled? Explain why they must not be re-enabled just to "maximize compatibility."
 
-### Bài 2 — Tách protocol và cipher suites
+### Exercise 2 — Separating protocols and cipher suites
 
-Thay danh sách TLS versions được cho phép thành chỉ `TLSv1.2` trong lab, chọn một suite ECDHE-GCM đang enabled. Thiết lập suite TLS 1.3 để thấy cấu hình có thể không thương lượng được. Không dùng suite yếu để ép test pass.
+Change the allowed TLS versions list to `TLSv1.2` only in the lab, selecting an enabled ECDHE-GCM suite. Configure a TLS 1.3 suite to observe how the configuration cannot be negotiated. Do not use weak suites to force the test to pass.
 
-### Bài 3 — Hai virtual hosts, một IP
+### Exercise 3 — Two virtual hosts, one IP
 
-Dựng hai TLS virtual hosts `api.example.test` và `admin.example.test` trong lab. Gửi SNI tương ứng, quan sát certificate. Sau đó yêu cầu kết nối tới `api.example.test` nhưng cố đặt SNI `admin.example.test`. Chứng minh endpoint identification vẫn từ chối nếu certificate không đúng hostname được yêu cầu.
+Set up two TLS virtual hosts `api.example.test` and `admin.example.test` in the lab. Send the corresponding SNI and observe the certificate. Then request a connection to `api.example.test` while deliberately setting SNI to `admin.example.test`. Prove that endpoint identification still rejects if the certificate does not match the requested hostname.
 
-### Bài 4 — ALPN và HTTP/2
+### Exercise 4 — ALPN and HTTP/2
 
-Dùng server hỗ trợ cả `h2` và `http/1.1`, client offer hai giá trị, log `getApplicationProtocol()` sau handshake. Đổi server thành chỉ hỗ trợ `http/1.1` và kiểm fallback theo protocol policy. Tại sao ứng dụng không được gửi HTTP/2 frames trước khi xác định negotiated ALPN?
+Use a server supporting both `h2` and `http/1.1`, have the client offer both, and log `getApplicationProtocol()` after the handshake. Switch the server to support only `http/1.1` and test fallback per protocol policy. Why must the application not send HTTP/2 frames before determining the negotiated ALPN?
 
-### Bài 5 — HTTPS endpoint identity
+### Exercise 5 — HTTPS endpoint identity
 
-Tạo CA test và certificate có SAN `service.example.test`, thiết lập trust manager tin CA này. Test kết nối với đúng hostname và hostname khác, cả hai đều có thể đưa ra chain hợp lệ, nhưng chỉ hostname khớp mới được chấp nhận. Không tắt hostname check.
+Create a test CA and certificate with SAN `service.example.test`, and configure a trust manager trusting this CA. Test connections with the matching hostname and another hostname; both may present valid chains, yet only the matching hostname may be accepted. Do not disable hostname checks.
 
-### Bài 6 — Per-client security policy
+### Exercise 6 — Per-client security policy
 
-Một service gọi public API và private mTLS endpoint. Thiết kế hai `SSLContext`, truststores/KeyManagers phù hợp và `SSLParameters` riêng nếu cần. Phân tích SNI, ALPN, serverAuth/clientAuth, endpoint identity và authorization theo từng luồng.
+A service calls both a public API and a private mTLS endpoint. Design two `SSLContext` instances, appropriate truststores/KeyManagers, and separate `SSLParameters` if needed. Analyze SNI, ALPN, serverAuth/clientAuth, endpoint identity, and authorization for each flow.
 
-### Bài 7 — Quản lý rollout
+### Exercise 7 — Managing a rollout
 
-Hệ thống đang cho TLS 1.2 và 1.3; muốn dần chuyển sang TLS 1.3 only. Nêu telemetry cần thu, kiểm client compatibility, ALPN/HTTP2, cipher suite, JDK/provider và phương án rollback **không vi phạm** security policy.
+A system currently allows TLS 1.2 and 1.3 and wants to transition gradually to TLS 1.3 only. Specify the telemetry to collect, client compatibility checks, ALPN/HTTP2, cipher suites, JDK/provider checks, and a rollback plan that **does not violate** security policy.
 
-### Bài 8 — Handshake state machine
+### Exercise 8 — Handshake state machine
 
-Tạo một client `SSLEngine` thực sự kết nối tới test server qua TCP, xử lý `NEED_WRAP`, `NEED_UNWRAP`, `NEED_TASK` và `FINISHED` với timeout. So sánh với `SSLSocket` và HTTP client cấp cao. Nếu mục tiêu sản phẩm là HTTPS tiêu chuẩn, vì sao nên ưu tiên library hơn tự viết handshake loop?
+Create a real `SSLEngine` client connecting to a test server over TCP, handling `NEED_WRAP`, `NEED_UNWRAP`, `NEED_TASK`, and `FINISHED` with timeouts. Compare with `SSLSocket` and a high-level HTTP client. If the production goal is standard HTTPS, why prefer a library over writing your own handshake loop?
 
-### Bài 9 — Kiểm thử âm toàn diện
+### Exercise 9 — Comprehensive negative testing
 
-Tạo bảng test cho: CA không tin, certificate SAN sai, EKU chỉ clientAuth, không có shared TLS version, không có shared cipher suite, ALPN chỉ h2 khi server không hỗ trợ, SNI sai, mTLS client không có chứng thư, và connection pool giữ policy cũ. Chỉ rõ ca nào fail ở TLS, ca nào fail ở HTTP hoặc authorization.
+Create a test matrix for: untrusted CA, wrong certificate SAN, EKU `clientAuth` only, no shared TLS version, no shared cipher suite, ALPN `h2` only when server does not support it, wrong SNI, mTLS client without cert, and a connection pool retaining stale policy. Specify which cases fail at TLS and which fail at HTTP or authorization.
 
-**Điều kiện hoàn thành:** bạn biết chính xác giá trị nào thuộc `SSLParameters`, chúng được áp vào engine/socket thế nào, ba cơ chế **SNI – ALPN – hostname verification** khác nhau ở đâu, và tại sao chỉ khi handshake thành công cùng đầy đủ kiểm chứng peer thì mới được xem là có một kênh TLS xác thực.
+**Completion criteria:** you know exactly which values belong in `SSLParameters`, how they are applied to an engine/socket, where the three mechanisms **SNI – ALPN – hostname verification** differ, and why an authenticated TLS channel exists only once a handshake succeeds with full peer verification.
 
-## 19. Tài liệu tham khảo
+## 19. References
 
 - [Java SE 17 — SSLParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): `setProtocols`, `setCipherSuites`, `setServerNames`, `setApplicationProtocols`, `setEndpointIdentificationAlgorithm`.
-- [Java SE 17 — SSLEngine](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLEngine.html): TLS nonblocking, `getSSLParameters`, `setSSLParameters`, `getApplicationProtocol`.
+- [Java SE 17 — SSLEngine](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLEngine.html): nonblocking TLS, `getSSLParameters`, `setSSLParameters`, `getApplicationProtocol`.
 - [Java SE 17 — SSLSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html): TLS socket, `startHandshake`, `getApplicationProtocol`.
-- [Java SE 17 — SSLContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLContext.html): key/trust managers và tạo engine/socket.
-- [Java SE 17 — SNIHostName](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SNIHostName.html): cấu trúc host_name SNI.
-- [Java SE 17 — SSLSession](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSession.html): negotiated TLS version, cipher suite và peer metadata.
-- [Java SE 17 — HttpClient.Builder](https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpClient.Builder.html): per-client SSL context, params và HTTP version.
-- [Java 17 — JSSE Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): cấu hình/handshake/trust manager/ALPN và endpoint checks.
+- [Java SE 17 — SSLContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLContext.html): key/trust managers and creating engines/sockets.
+- [Java SE 17 — SNIHostName](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SNIHostName.html): SNI `host_name` structure.
+- [Java SE 17 — SSLSession](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSession.html): negotiated TLS version, cipher suite, and peer metadata.
+- [Java SE 17 — HttpClient.Builder](https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpClient.Builder.html): per-client SSL context, params, and HTTP version.
+- [Java 17 — JSSE Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): configuration/handshake/trust manager/ALPN and endpoint checks.
 - [RFC 6066 — TLS Extensions](https://www.rfc-editor.org/rfc/rfc6066): SNI.
 - [RFC 7301 — TLS ALPN Extension](https://www.rfc-editor.org/rfc/rfc7301): ALPN negotiation.
-- [RFC 8446 — TLS 1.3](https://www.rfc-editor.org/rfc/rfc8446): handshake, TLS 1.3 cipher suites và certificate authentication.
-- [RFC 5246 — TLS 1.2](https://www.rfc-editor.org/rfc/rfc5246): TLS 1.2 protocol và cipher suite model.
-- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): khớp danh tính endpoint bằng certificate identifiers.
-- [OWASP Transport Layer Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html): TLS protocol choices, certificates và vận hành.
+- [RFC 8446 — TLS 1.3](https://www.rfc-editor.org/rfc/rfc8446): handshake, TLS 1.3 cipher suites, and certificate authentication.
+- [RFC 5246 — TLS 1.2](https://www.rfc-editor.org/rfc/rfc5246): TLS 1.2 protocol and cipher suite model.
+- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): matching endpoint identity using certificate identifiers.
+- [OWASP Transport Layer Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html): TLS protocol choices, certificates, and operations.

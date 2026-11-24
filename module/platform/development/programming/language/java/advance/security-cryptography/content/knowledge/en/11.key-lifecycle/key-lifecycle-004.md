@@ -1,27 +1,27 @@
-# 11.4 Mã định danh khóa, phiên bản khóa và khả năng giải mã dữ liệu cũ
+# 11.4 Key Identifiers, Key Versions, and Backward Decryption of Legacy Data
 
-Khi một hệ thống Java mã hóa dữ liệu để lưu nhiều tháng hoặc nhiều năm, câu hỏi không chỉ là **“mã hóa bằng AES-GCM thế nào?”** mà còn là **“sau khi đổi khóa, làm sao xác định đúng khóa cũ để đọc bản mã đã lưu?”**. Nếu chỉ giữ một biến `CURRENT_KEY` và thay byte khóa mỗi lần triển khai, những ciphertext cũ thường **không thể giải mã** bằng khóa mới. Thêm một bản sao key mới không tự chuyển đổi được dữ liệu cũ.
+When a Java system encrypts data to store for months or years, the question is not just **“how do we encrypt with AES-GCM?”** but also **“after rotating the key, how do we identify the right old key to read stored ciphertexts?”**. If you only keep a single `CURRENT_KEY` variable and overwrite the key bytes on each deployment, legacy ciphertexts will generally **fail to decrypt** with the new key. Adding a new key copy does not automatically convert existing data.
 
-Giải pháp cần một hợp đồng bền vững gồm **mã định danh khóa (key ID)**, **phiên bản/vòng đời khóa (key version)**, **phiên bản định dạng bản mã (envelope/format version)** và chính sách **giữ khả năng giải mã dữ liệu cũ (backward decryption)**. Hệ thống có thể dùng một khóa mới cho dữ liệu phát sinh, đồng thời duy trì quyền giải mã hạn chế cho bản ghi cũ cho đến khi chúng được chuyển đổi, hết hạn hoặc bị hủy theo chính sách.
+The solution requires a durable contract consisting of a **key identifier (key ID)**, **key lifecycle/version (key version)**, **ciphertext format version (envelope/format version)**, and a policy for **retaining backward decryption capability**. The system can use a new key for newly generated data while preserving restricted decryption permissions for older records until they are migrated, expired, or destroyed per policy.
 
-Điều cốt lõi: **key ID là tham chiếu tới khóa, không phải khóa**; **số phiên bản không tự sinh ra khóa cũ**; và **giải mã bằng khóa đúng nhưng bỏ qua kiểm tra toàn vẹn/phân quyền vẫn không an toàn**. Bài này xây dựng tư duy quản lý khóa dài hạn trong Java, dùng AES-GCM như ví dụ cụ thể và có chương trình Java 17+ kiểm chứng quá trình rotation, giữ khóa cũ, re-encrypt và xử lý dữ liệu bị sửa.
+Core insight: **a key ID is a reference to a key, not the key itself**; **a version number does not magically reconstruct an old key**; and **decrypting with the right key while skipping integrity or authorization checks is still insecure**. This lesson builds long-term key management reasoning in Java, using AES-GCM as a concrete example with a Java 17+ program verifying rotation, retaining old keys, re-encryption, and handling tampered data.
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt `keyId`, `keyVersion`, `formatVersion`, phiên bản dữ liệu nghiệp vụ và thuật toán mã hóa.
-2. Thiết kế bản mã/envelope có đủ metadata để chọn đúng khóa về sau: định dạng, key ID, nonce, ciphertext, tag và ngữ cảnh xác thực.
-3. Mô tả trạng thái **active-for-encryption**, **decrypt-only**, **disabled/revoked** và **destroyed**, không nhầm “không dùng mã hóa mới” với “không được giải mã nữa”.
-4. Tạo chính sách “encrypt bằng phiên bản hiện hành, decrypt theo phiên bản gắn trên bản mã” mà không thử ngẫu nhiên tất cả khóa.
-5. Hiểu cách dùng AES-GCM và `updateAAD` để ràng buộc thông tin header/key ID, chỉ sử dụng plaintext sau khi xác thực tag thành công.
-6. So sánh rotation không chuyển dữ liệu, **lazy migration**, **batch re-encryption**, **rewrap DEK/KEK** và các giới hạn của mỗi cách.
-7. Xây quy trình rollout, rollback, backup/restore, audit và thu hồi khóa mà không đánh mất dữ liệu ngoài ý muốn.
-8. Viết test về khả năng đọc bản cũ, data migration, thiếu khóa, đổi key ID, sửa ciphertext/tag, đổi AAD và tính độc lập của từng tenant.
+1. Distinguish `keyId`, `keyVersion`, `formatVersion`, business data schema versions, and encryption algorithms.
+2. Design a ciphertext/envelope carrying sufficient metadata to select the right key later: format, key ID, nonce, ciphertext, tag, and authenticated context.
+3. Describe **active-for-encryption**, **decrypt-only**, **disabled/revoked**, and **destroyed** states without confusing “no longer used for new encryption” with “no longer allowed to decrypt.”
+4. Implement a policy to “encrypt with the current active version, decrypt using the version stamped on the ciphertext” without blindly trying every key.
+5. Understand how to use AES-GCM and `updateAAD` to bind header/key ID metadata, releasing plaintext only after tag verification succeeds.
+6. Compare rotation without data migration, **lazy migration**, **batch re-encryption**, **DEK/KEK rewrap**, and each approach's limitations.
+7. Establish rollout, rollback, backup/restore, auditing, and key revocation procedures without unintended data loss.
+8. Write tests for backward readability, data migration, missing keys, swapped key IDs, modified ciphertext/tag, modified AAD, and per-tenant isolation.
 
-## 2. Khái niệm: key ID khác key bytes và key version
+## 2. Concepts: Key ID vs. Key Bytes and Key Version
 
-Giả sử một dịch vụ lưu tài liệu:
+Suppose a service stores documents:
 
 ```text
 Document A (2025)  -- encrypted with --> key version 1001
@@ -32,25 +32,25 @@ Key registry:
   1002 -> Key material #2, status ACTIVE
 ```
 
-Khi đọc A, hệ thống lấy thông tin `keyId=1001` được lưu bên cạnh hoặc bên trong bản mã, tra đúng khóa #1 đã được cho phép và xác thực dữ liệu. Khi tạo C, hệ thống dùng khóa #2 và ghi `keyId=1002`. Không có lý do để bắt A phải giải mã bằng key #2 chỉ vì “đã đổi key hiện hành”.
+When reading A, the system retrieves `keyId=1001` stored beside or inside the ciphertext, looks up authorized key #1, and authenticates the data. When creating C, the system uses key #2 and records `keyId=1002`. There is no reason to force A to decrypt with key #2 merely because “the active key changed.”
 
-| Thuật ngữ | Ý nghĩa | Ví dụ | Điều không được suy ra |
+| Term | Meaning | Example | What Must Not Be Inferred |
 | --- | --- | --- | --- |
-| **Key material** | Giá trị khóa bí mật thực sự, có thể nằm trong KMS/HSM | 32 byte khóa AES-256, key handle | Không thể tính lại từ key ID đơn thuần |
-| **Key ID** | Định danh để tìm đúng khóa hoặc key reference | `document-prod/1002`, opaque UUID, số 1002 | Không phải secret; không tự chứng minh key đáng tin |
-| **Key version** | Thế hệ/version của vật liệu khóa hoặc phiên bản trong một key resource | `v1`, `v2` hoặc provider key version | Không đồng nghĩa version định dạng ciphertext |
-| **Active key** | Phiên bản được policy chọn để **mã hóa mới** | `1002` | Không có nghĩa mọi dữ liệu cũ đã dùng key 1002 |
-| **Decrypt-only key** | Không dùng để mã hóa mới, vẫn có quyền giải mã dữ liệu hợp lệ trong phạm vi cho phép | `1001` | Không phải “key đã bị xóa” |
-| **Envelope format version** | Phiên bản cấu trúc header/nonce/tag/serialization | `formatVersion=1` | Không phải tuổi/phiên bản khóa |
-| **Algorithm/profile** | Thuật toán và tham số được phép | `AES/GCM/NoPadding`, nonce 12 byte, tag 128 bit | Không để request tự chọn thuật toán yếu hơn |
-| **Data/schema version** | Cách hiểu plaintext nghiệp vụ | `documentSchema=4` | Không gắn trực tiếp với key rotation |
-| **KEK / DEK** | Key-encryption key và data-encryption key trong envelope encryption | KEK tại KMS, DEK per object | Không tự động có rewrap nếu dùng một key mã hóa trực tiếp |
+| **Key material** | Actual secret key value, possibly residing in KMS/HSM | 32-byte AES-256 key, key handle | Cannot be recomputed from key ID alone |
+| **Key ID** | Identifier to locate the right key or key reference | `document-prod/1002`, opaque UUID, number `1002` | Not a secret; does not by itself prove the key is trusted |
+| **Key version** | Generation/version of key material or version within a key resource | `v1`, `v2`, or provider key version | Does not equal ciphertext format version |
+| **Active key** | Version selected by policy for **new encryptions** | `1002` | Does not mean all old data already uses key `1002` |
+| **Decrypt-only key** | Disallowed for new encryption; still authorized to decrypt valid data within permitted scope | `1001` | Does not mean “deleted key” |
+| **Envelope format version** | Version of header/nonce/tag/serialization layout | `formatVersion=1` | Not key age or key version |
+| **Algorithm/profile** | Permitted algorithm and parameters | `AES/GCM/NoPadding`, 12-byte nonce, 128-bit tag | Never let requests pick a weaker algorithm |
+| **Data/schema version** | How business plaintext is interpreted | `documentSchema=4` | Not directly tied to key rotation |
+| **KEK / DEK** | Key-encryption key and data-encryption key in envelope encryption | KEK in KMS, per-object DEK | Rewrap does not apply automatically if one key encrypts data directly |
 
-Một tên `keyId` có thể đã chứa version, hoặc hệ thống có thể lưu `keyAlias` + `keyVersion` thành hai trường. **Không bắt buộc tách thành hai field**, nhưng cần một tham chiếu **duy nhất và bất biến tới phiên bản vật liệu khóa**. Nếu alias “current” đổi sang phiên bản mới, bản mã cũ không thể chỉ lưu alias biến động rồi bỏ version.
+A `keyId` name may already embed the version, or a system may store `keyAlias` + `keyVersion` as two fields. **Splitting into two fields is not mandatory**, yet you need an **unambiguous, immutable reference to the key material version**. If an alias `"current"` moves to a new version, legacy ciphertexts cannot store only a mutable alias without a version.
 
-### Tránh ba loại “v1” trùng nhau
+### Avoid Colliding Three Kinds of “v1”
 
-Ví dụ một record có:
+For example, a record containing:
 
 ```json
 {
@@ -61,68 +61,68 @@ Ví dụ một record có:
 }
 ```
 
-Đây là **JSON mô tả metadata**, không phải format binary của chương trình ở mục 7. Giá trị `envelopeVersion=2` cho biết cách parse package; `keyVersion=7` là thế hệ key; `documentSchemaVersion=4` quyết định deserialize plaintext. Ba phiên bản có thể thay đổi **độc lập**. Đừng dùng cùng một field `version` cho cả ba mà không ghi rõ ý nghĩa.
+This is **descriptive metadata JSON**, not the binary format of the program in Section 7. `envelopeVersion=2` indicates how to parse the package; `keyVersion=7` is the key generation; `documentSchemaVersion=4` governs plaintext deserialization. These three versions can evolve **independently**. Never use one ambiguous `version` field for all three without clearly defining its meaning.
 
-### Key ID có cần bí mật không?
+### Does a Key ID Need to Be Secret?
 
-Thông thường **không**. Key ID là định danh hoặc tham chiếu, có thể hiện diện ở header của ciphertext. Tuy nhiên nó vẫn có thể tiết lộ tên hệ thống/tenant nếu dùng tên dễ đoán; dùng opaque identifier khi cần hạn chế lộ metadata. Dù công khai, **không bao giờ đưa raw key bytes, password hoặc secret token vào header**.
+Usually **no**. A key ID is an identifier or reference that can appear in a ciphertext header. However, predictable names can still reveal system/tenant names; use opaque identifiers when limiting metadata leakage matters. Even though public, **never put raw key bytes, passwords, or secret tokens in the header**.
 
-ID được đọc từ bản mã chưa xác thực chỉ là **dữ liệu do input cung cấp**. Nó có thể giúp route tới key đã nằm trong allowlist, nhưng không được dùng làm quyết định quyền: attacker không thể được quyền giải mã key của tenant khác chỉ bằng cách thay header.
+An ID parsed from an unauthenticated ciphertext is strictly **input-supplied data**. It may act as a routing hint to an allowlisted key, never as an authorization decision: an attacker must never gain permission to decrypt another tenant's key simply by altering the header.
 
-## 3. Mô hình vòng đời khóa và quyền thao tác
+## 3. Key Lifecycle Model and Operation Permissions
 
-Một hệ thống lưu trữ dài hạn thường cần tách quyền **encrypt mới** khỏi quyền **decrypt cũ**. Bảng trạng thái minh họa:
+A long-term storage system usually separates **new encryption** permission from **legacy decryption** permission. Illustrative state table:
 
-| Trạng thái | Encrypt dữ liệu mới | Decrypt dữ liệu cũ | Quyết định vận hành |
+| State | Encrypt New Data | Decrypt Legacy Data | Operational Decision |
 | --- | --- | --- | --- |
-| `PENDING` / `STAGED` | Chưa | Thường chưa | Phân phối key, cấu hình, kiểm thử mà chưa activate |
-| `ACTIVE` | **Có** | **Có** | Key hiện hành; kiểm nonce uniqueness và giới hạn sử dụng |
-| `DECRYPT_ONLY` | **Không** | **Có**, có điều kiện | Cho phép đọc bản mã cũ trong giai đoạn retention/migration |
-| `SUSPENDED` / `DISABLED` | Không | Không trong thời gian khóa | Đóng tạm hoặc thu hồi quyền truy cập theo chính sách |
-| `RETIRED` / `DESTROYED` | Không | Không; key đã mất có thể không thể khôi phục | Chỉ sau khi đã quyết định dữ liệu phụ thuộc không cần đọc nữa, hoặc đã migrate |
+| `PENDING` / `STAGED` | No | Usually no | Distribute key, configure, and test before activation |
+| `ACTIVE` | **Yes** | **Yes** | Current key; enforce nonce uniqueness and usage limits |
+| `DECRYPT_ONLY` | **No** | **Yes**, conditionally | Allow reading legacy ciphertexts during retention/migration |
+| `SUSPENDED` / `DISABLED` | No | No while disabled | Temporarily lock or revoke access per policy |
+| `RETIRED` / `DESTROYED` | No | No; lost keys may be unrecoverable | Only after confirming dependent data no longer needs reading, or migration finished |
 
-Tên trạng thái ở bảng là **ví dụ policy ứng dụng**, không phải tên bắt buộc của API Java hay mọi KMS. Một nhà cung cấp có thể có các trạng thái và chế độ rotation khác nhau. Đặc biệt **`DECRYPT_ONLY` phải được thực thi bằng quyền/logic thực tế**, không chỉ ghi một cột trạng thái rồi vẫn để mọi service gọi encrypt bằng khóa cũ.
+State names in the table are **example application policies**, not mandatory names in Java APIs or every KMS. Each provider may define different states and rotation modes. In particular, **`DECRYPT_ONLY` must be enforced by real permissions/logic**, not just by updating a status column while every service keeps calling encrypt with the old key.
 
-Luồng rotation bình thường:
+Normal rotation flow:
 
 ```text
-giai đoạn 1:
-   v1 ACTIVE -> vừa encrypt vừa decrypt
+Phase 1:
+   v1 ACTIVE -> both encrypt and decrypt
 
-giai đoạn 2:
+Phase 2:
    v1 DECRYPT_ONLY
-   v2 ACTIVE -> mọi ciphertext mới ghi keyVersion=v2
+   v2 ACTIVE -> all new ciphertexts stamp keyVersion=v2
 
-giai đoạn 3 (nếu cần):
-   decrypt + authenticate record v1
-   encrypt lại bằng v2 và nonce mới
-   commit record v2 an toàn
+Phase 3 (if needed):
+   decrypt + authenticate v1 record
+   re-encrypt with v2 and a fresh nonce
+   commit v2 record safely
 
-giai đoạn 4:
-   kiểm hết live objects, backups, snapshots, jobs, DR copies theo policy
-   -> có thể disable/destroy v1 nếu không còn phụ thuộc và retention cho phép
+Phase 4:
+   audit all live objects, backups, snapshots, jobs, DR copies per policy
+   -> may disable/destroy v1 once zero dependencies remain and retention allows
 ```
 
-Trường hợp **key bị nghi lộ** khác planned rotation. Việc giữ key cũ để decrypt có thể tiếp tục tạo rủi ro nếu kẻ tấn công cũng có key. Phải ưu tiên containment, chặn quyền không hợp lệ, đánh giá dữ liệu đã lộ, re-encrypt theo mức khẩn cấp, rotate dependencies và xử lý theo quy trình incident response. **Re-encrypt bây giờ không thể thu hồi plaintext mà attacker có thể đã đọc trong quá khứ**.
+A **suspected key compromise** differs from planned rotation. Keeping the old key around for decryption may pose ongoing risk if the attacker also holds it. Prioritize containment, blocking unauthorized access, assessing exposed data, emergency re-encryption, rotating dependencies, and following incident response procedures. **Re-encrypting now cannot recall plaintext the attacker already read in the past**.
 
-## 4. Vì sao ciphertext phải có key reference bất biến?
+## 4. Why Ciphertext Must Carry an Immutable Key Reference
 
-Ví dụ lỗi thường gặp:
+Common failure example:
 
 ```text
-2025: encrypt(payload, System.getenv("APP_ENCRYPTION_KEY")) -> lưu nonce+ciphertext+tag
-2026: thay APP_ENCRYPTION_KEY bằng giá trị khác, không lưu key ID/version
-2027: gọi decrypt trên record 2025 với key mới -> tag thất bại
+2025: encrypt(payload, System.getenv("APP_ENCRYPTION_KEY")) -> store nonce+ciphertext+tag
+2026: replace APP_ENCRYPTION_KEY with another value, without storing key ID/version
+2027: call decrypt on 2025 record with new key -> tag verification fails
 ```
 
-Trong AES-GCM, giải mã bằng sai key thường thất bại ở bước xác thực tag; ứng dụng không thể đoán key cũ từ ciphertext. Nếu key cũ không còn ở bất kỳ kho bảo mật/backup hợp lệ nào, **dữ liệu có thể mất vĩnh viễn**.
+In AES-GCM, decrypting with the wrong key typically fails during tag verification; the application cannot guess the old key from the ciphertext. If the old key no longer exists in any valid vault or backup, **data can be permanently lost**.
 
-Mô hình đúng:
+Proper model:
 
 ```text
 record = {
   formatVersion,
-  immutableKeyReference,  <-- đúng phiên bản vật liệu khóa
+  immutableKeyReference,  <-- exact version of key material
   nonce,
   ciphertext,
   authenticationTag
@@ -131,119 +131,119 @@ record = {
 decrypt(record):
    parse+validate formatVersion
    resolve key via trusted key registry and authorization
-   verify AEAD with nonce, ciphertext, tag and AAD
+   verify AEAD with nonce, ciphertext, tag, and AAD
    only then interpret plaintext
 ```
 
-**Không lưu key reference mơ hồ** như `keyId="current"` nếu tên đó sẽ trỏ sang key bytes khác sau rotation. Nếu provider dùng alias chuyển tiếp, cần lưu **version cụ thể** hoặc đủ metadata từ cryptographic service để provider tìm đúng phiên bản lịch sử mà không dựa vào alias hiện tại. Một số KMS quản lý version trong ciphertext nội bộ; không suy ra đó là tính năng phổ quát, cần kiểm contract API.
+**Never store an ambiguous key reference** such as `keyId="current"` if that name will point to different key bytes after rotation. If a provider uses forwarding aliases, store the **specific version** or sufficient cryptographic service metadata so the provider resolves the exact historical version without relying on the current alias. Some KMS services track versions inside an internal ciphertext blob; do not assume that is universal—check the API contract.
 
-### Key registry cần đảm bảo điều gì?
+### What Must a Key Registry Guarantee?
 
-Một registry/kho key thích hợp trả lời được:
+A proper key registry/store should answer:
 
-- `keyRef` này thuộc **environment** nào (prod/staging), tenant/trust domain nào, ứng dụng và mục đích nào?
-- Nó dùng thuật toán nào, có còn **decrypt permission** không, và key material có còn khả dụng không?
-- Nó có phải **tham chiếu bất biến** tới key generation cần thiết không?
-- Caller đã được xác thực và được cấp quyền trên **record cụ thể** chưa?
-- Nếu key bị disabled/destroyed/expired, hệ thống từ chối như thế nào và phản hồi/log ra sao?
-- Khi key rotation, có thể audit key version của mỗi record và đếm được record còn phụ thuộc vào key cũ không?
+- Which **environment** (prod/staging), tenant/trust domain, application, and purpose does this `keyRef` belong to?
+- Which algorithm does it use, does it still hold **decrypt permission**, and is the key material still available?
+- Is it an **immutable reference** to the required key generation?
+- Is the caller authenticated and authorized for this **specific record**?
+- If the key is disabled/destroyed/expired, how does the system fail closed and report/log it?
+- During key rotation, can we audit each record's key version and count records still depending on the old key?
 
-Key ID chỉ là **lookup key**. **Không** cho request chỉ định một path đến secret file hoặc một key URI tùy ý rồi sử dụng trực tiếp. Key registry cần allowlist và kiểm quyền server-side, tránh cross-tenant decryption và key-enumeration abuse.
+A key ID is strictly a **lookup key**. **Never** allow requests to specify a secret file path or arbitrary key URI and use it directly. The key registry must enforce allowlists and server-side authorization to prevent cross-tenant decryption and key-enumeration abuse.
 
-## 5. Đóng gói key ID và version trong authenticated envelope
+## 5. Packaging Key ID and Version in an Authenticated Envelope
 
-Để dễ minh họa, bài dùng một binary envelope **demo v1** cho AES-256-GCM:
+For clarity, this lesson uses a **demo v1** binary envelope for AES-256-GCM:
 
 ```text
 offset   length   field                      meaning
-0        4        magic "KVR1"               marker định dạng
-4        1        formatVersion = 1          phiên bản envelope
-5        4        keyId (int32 big-endian)   1001 hoặc 1002 trong ví dụ
-9        12       nonce                      IV/nonce GCM, sinh mới mỗi lần
-21       N        ciphertext                ciphertext của N byte plaintext
-21+N     16       authentication tag         tag GCM, 128 bit
+0        4        magic "KVR1"               format marker
+4        1        formatVersion = 1          envelope version
+5        4        keyId (int32 big-endian)   1001 or 1002 in the example
+9        12       nonce                      GCM IV/nonce, freshly generated each time
+21       N        ciphertext                 ciphertext of N plaintext bytes
+21+N     16       authentication tag         GCM tag, 128 bits
 
 header = magic || formatVersion || keyId || nonce
 envelope = header || ciphertext || tag
 ```
 
-Mỗi record dùng nonce 12 byte mới, tag 16 byte. `ByteBuffer` của Java mặc định **big-endian**, và spec phải cố định thứ tự byte. Đây là **định dạng do bài học định nghĩa**, không phải tiêu chuẩn tương thích tự động với mọi dịch vụ. Không dùng y nguyên cho sản xuất nếu chưa có security review, KMS integration, nonce allocation policy, giới hạn size và lộ trình migration.
+Each record uses a fresh 12-byte nonce and a 16-byte tag. Java's `ByteBuffer` defaults to **big-endian**, and any specification must fix byte order. This is a **lesson-defined format**, not a standard automatically interoperable with external services. Do not copy it verbatim into production without a security review, KMS integration, nonce allocation policy, size limits, and a migration path.
 
-Điểm quan trọng là **header phải được authenticated**. Bên encrypt đưa chính byte header vào **AAD** của AES-GCM. Bên decrypt dùng lại chính byte header. Nếu ai đó đổi `keyId=1001` thành `1002` mà không có key và khả năng tạo tag hợp lệ, phép kiểm GCM phải thất bại. Ngay cả khi hai ID vô tình cùng trỏ tới cùng vật liệu khóa, việc đổi byte header đã được AAD ràng buộc sẽ làm tag thất bại.
+Crucially, **the header must be authenticated**. The encryptor feeds the exact header bytes into AES-GCM **AAD**. The decryptor feeds the exact same header bytes. If anyone alters `keyId=1001` to `1002` without the key and ability to forge a valid tag, GCM verification must fail. Even if two IDs happened to point to the same key material, changing AAD-bound header bytes makes tag verification fail.
 
-Ví dụ profile v1:
+Example v1 profile:
 
 ```text
 AAD = fixedDomain || headerBytes || uint32be(contextBytes.length) || contextBytes
 
 fixedDomain = ASCII "document-envelope:v1"
-contextBytes = ngữ cảnh đã được ứng dụng xác thực và serialize nhất quán
+contextBytes = application-verified and consistently serialized context
 ```
 
-`fixedDomain` giúp phân tách mục đích sử dụng. `headerBytes` ràng buộc format, key ID và nonce. `contextBytes` có thể ràng buộc document/tenant vào ciphertext. **Dữ liệu AAD không được mã hóa**, nhưng được xác thực khi tag thành công; bên giải mã phải có đúng những byte đó.
+`fixedDomain` provides domain separation across uses. `headerBytes` binds the format, key ID, and nonce. `contextBytes` can bind document/tenant identity to the ciphertext. **AAD data is not encrypted**, yet it is authenticated when the tag verifies; the decryptor must supply the exact same bytes.
 
-Bài demo dùng một chuỗi context cố định `tenant-7/document-42` như opaque identifier. Với nhiều trường tùy ý từ user, không được nối text tùy tiện như `tenant + "/" + document` nếu các giá trị có thể chứa dấu phân cách. Cần **canonical framing từng field** (length-prefix, schema/version, charset UTF-8, null/empty) hoặc một serialization chuẩn đã được thỏa thuận.
+The demo uses a fixed context string `tenant-7/document-42` as an opaque identifier. With multiple user-supplied fields, never concatenate strings naively like `tenant + "/" + document` if values could contain the delimiter. Use **canonical per-field framing** (length prefixes, schema/version, UTF-8 charset, null/empty rules) or an agreed standard serialization.
 
-**Quyền kiểm tra trước, tag kiểm sau:** header parse từ record chưa đáng tin; cần kiểm format, size, key namespace và authorization theo identity/resource đã được server xác lập **trước** khi lấy key. AEAD tag thành công mới chứng minh tính toàn vẹn ciphertext/AAD. Dù tag hợp lệ, vẫn phải kiểm quy tắc nghiệp vụ và chống replay/rollback khi cần.
+**Check permissions first, check the tag afterward:** a header parsed from a record is untrusted; verify format, size, key namespace, and identity/resource authorization established by the server **before** fetching the key. A valid AEAD tag then proves integrity of ciphertext/AAD. Even with a valid tag, enforce business rules and anti-replay/rollback checks where required.
 
-## 6. Quy trình ghi và đọc trong hệ thống nhiều phiên bản
+## 6. Write and Read Workflows in a Multi-Version System
 
-### 6.1 Ghi record mới
+### 6.1 Writing a New Record
 
 ```text
-1. Xác thực caller, tenant, quyền ghi và loại dữ liệu.
-2. Chọn activeKeyRef từ cấu hình/trusted key registry của service.
-3. Sinh nonce/IV đúng chính sách, độc nhất đối với cùng AES-GCM key.
-4. Encode header chứa formatVersion, immutable key reference, nonce.
-5. Canonicalize AAD từ metadata/ngữ cảnh đáng tin; cập nhật AAD.
-6. Encrypt plaintext bằng AES-GCM -> ciphertext || tag.
-7. Lưu toàn bộ envelope và metadata cần khôi phục AAD.
-8. Ghi audit kỹ thuật (record ID, key version, result) không lộ secret.
+1. Authenticate caller, tenant, write permission, and data type.
+2. Select activeKeyRef from the service's trusted config/key registry.
+3. Generate nonce/IV per policy, unique for the same AES-GCM key.
+4. Encode header with formatVersion, immutable key reference, and nonce.
+5. Canonicalize AAD from trusted metadata/context; feed AAD.
+6. Encrypt plaintext with AES-GCM -> ciphertext || tag.
+7. Store full envelope and metadata needed to reconstruct AAD.
+8. Emit technical audit (record ID, key version, outcome) without exposing secrets.
 ```
 
-**Không** nhận `activeKeyId` do client tùy ý yêu cầu; encrypt key phải do policy server chọn. Khi rollout, phân phối key mới và quyền truy cập cho các instance trước khi chuyển active pointer, tránh node cũ không giải mã được record vừa xuất hiện.
+**Never** accept an arbitrary client-requested `activeKeyId`; encryption keys must be chosen by server policy. During rollouts, distribute the new key and access permissions to all instances before switching the active pointer, preventing older nodes from failing to decrypt newly written records.
 
-### 6.2 Đọc record cũ
+### 6.2 Reading an Old Record
 
 ```text
-1. Xác thực caller, quyền đọc đúng record/tenant.
-2. Nhận envelope có bounded length và kiểm version/profile.
-3. Parse key ID như một untrusted routing hint.
-4. Kiểm key ID thuộc allowed key namespace, không lấy key tùy ý.
-5. Resolve đúng key material/version; nếu không còn thì fail closed.
-6. Init AES-GCM bằng nonce; cung cấp authenticated header và context AAD.
-7. Decrypt + xác minh toàn bộ tag trong doFinal.
-8. Chỉ sau thành công mới trả plaintext, parse schema, thực thi nghiệp vụ.
+1. Authenticate caller and read permission for the exact record/tenant.
+2. Receive length-bounded envelope and validate version/profile.
+3. Parse key ID as an untrusted routing hint.
+4. Verify key ID belongs to an allowed key namespace; never fetch arbitrary keys.
+5. Resolve exact key material/version; if unavailable, fail closed.
+6. Init AES-GCM with nonce; supply authenticated header and context AAD.
+7. Decrypt + verify full tag in doFinal.
+8. Only on success return plaintext, parse schema, and execute business logic.
 ```
 
-**Không** vòng lặp “thử lần lượt v2, v1, v0 cho đến khi có text đọc được”. Cách thử brute-force keys làm lỗi vận hành mơ hồ, tăng attack surface, latency và có thể sinh decryption oracle. Thiết kế có key reference rõ ràng giúp **chọn chính xác một phiên bản được policy cho phép**.
+**Never** loop “try v2, then v1, then v0 until readable text comes out.” Brute-forcing keys obscures operational failures, widens attack surface, adds latency, and can introduce decryption oracles. Designing with explicit key references lets you **select the exact policy-permitted version**.
 
-Nếu record thiếu key ID (định dạng legacy), cần **migration path được xác định rõ theo nguồn/giai đoạn**, không coi đoán toàn bộ keyring là thiết kế dài hạn. Có thể có một đầu vào legacy-version-specific và key riêng phục vụ migration trong cửa sổ kiểm soát, nhưng phải giới hạn và tắt khi hoàn tất.
+If legacy records lack a key ID, establish an **explicit, stage-bounded migration path per data source**, never treating full-keyring guessing as a permanent design. A legacy-version entry point with a dedicated key may exist for controlled migration, but must be strictly scoped and retired once finished.
 
-### 6.3 Tách nhận dạng key và xác minh AEAD
+### 6.3 Separating Key Identification from AEAD Verification
 
-Key ID trên wire **không phải bằng chứng authentication**. Attacker có thể sửa key ID và làm tăng số yêu cầu KMS nếu service cho phép ID bất kỳ. Vì vậy:
+A key ID on the wire is **not authentication proof**. An attacker can alter key IDs and trigger excess KMS calls if the service allows arbitrary IDs. Therefore:
 
-- Chỉ chấp nhận format/version/ID nằm trong scope được cấu hình.
-- Không dùng key ID trong input thay quyền kiểm tra tenant/resource dựa trên dữ liệu tin cậy.
-- Không tiết lộ nguyên nhân chi tiết cho caller kiểu “key 1001 của tenant A có tồn tại hay không”.
-- Đưa byte header vào AAD để ngăn tráo metadata không được xác thực.
-- Coi `AEADBadTagException` / `GeneralSecurityException` là thất bại: không trả plaintext một phần, không fallback sang mode không xác thực.
-- Với file lớn hoặc stream, không publish bất kỳ plaintext nào trước khi tag được xác minh; xem phần 11.
+- Accept only formats/versions/IDs within the configured scope.
+- Never let an input key ID bypass tenant/resource checks based on trusted data.
+- Never leak detailed causes to untrusted callers such as “whether key 1001 for tenant A exists.”
+- Include header bytes in AAD to prevent unauthenticated metadata swapping.
+- Treat `AEADBadTagException` / `GeneralSecurityException` as hard failure: return zero partial plaintext and never fall back to an unauthenticated mode.
+- For large files or streams, never publish any plaintext before the tag is verified; see Section 11.
 
-## 7. Ví dụ Java 17+ chạy được: rotation không làm mất dữ liệu cũ
+## 7. Runnable Java 17+ Example: Rotating Without Losing Legacy Data
 
-Ví dụ dưới đây dùng:
+The example below uses:
 
-- AES-256-GCM, IV ngẫu nhiên 12 byte, tag 128 bit.
-- Một **keyring trong RAM** mô phỏng key registry: `1001` là v1, `1002` là v2.
-- Record nhị phân có `formatVersion=1` khác với `keyId=1001/1002`.
-- Header và context nằm trong AAD; mọi byte ciphertext/tag đều được xác thực trong `Cipher.doFinal`.
-- Sau rotation, cả v1 và v2 còn trong keyring, nên **cả dữ liệu cũ và mới** đọc được. Khi migrate một record sang v2 rồi bỏ v1 khỏi map, record được migrate vẫn đọc được; record legacy v1 không còn đọc được.
+- AES-256-GCM, 12-byte random IV, 128-bit tag.
+- An **in-memory keyring** simulating a key registry: `1001` is v1, `1002` is v2.
+- Binary record with `formatVersion=1`, distinct from `keyId=1001/1002`.
+- Header and context included in AAD; every ciphertext/tag byte is authenticated inside `Cipher.doFinal`.
+- After rotation, both v1 and v2 remain in the keyring, so **both old and new data** stay readable. After migrating a record to v2 and removing v1 from the map, the migrated record remains readable while the legacy v1 record becomes unreadable.
 
-**Khóa trong demo được sinh lại khi chạy**, không phải cấu hình lưu trữ thực. Chương trình chỉ mô phỏng retention của key trong một lần chạy. Ở hệ thống thật, key phải tồn tại và được quản lý bền vững trong KMS/HSM/keystore theo policy; không lưu key chỉ trong một `static Map` rồi kỳ vọng giải mã dữ liệu sau khi service restart.
+**Keys in the demo are generated fresh per run**, not a real storage setup. The program only simulates key retention within a single execution. In real systems, keys must persist and be governed in a KMS/HSM/keystore under policy; never hold keys solely in a `static Map` and expect to decrypt data after a service restart.
 
-Lưu thành file **`KeyVersionDemo.java`**:
+Save as **`KeyVersionDemo.java`**:
 
 ```java
 import java.nio.ByteBuffer;
@@ -396,14 +396,14 @@ public class KeyVersionDemo {
 }
 ```
 
-Chạy bằng **JDK 17 trở lên**:
+Run with **JDK 17 or higher**:
 
 ```bash
 javac --release 17 KeyVersionDemo.java
 java KeyVersionDemo
 ```
 
-**Stdout chính xác** (không in key/nonce/ciphertext ngẫu nhiên):
+**Exact stdout** (no random keys/nonces/ciphertexts printed):
 
 ```text
 Old record key ID: 1001
@@ -419,43 +419,43 @@ Migrated plaintext preserved: true
 Old key unavailable blocks legacy record: true
 ```
 
-### 7.1 Giải thích luồng và bảo đảm thực sự
+### 7.1 Explaining the Flow and Real Guarantees
 
-- `generator.generateKey()` tạo hai khóa AES khác nhau cho bản demo. Production phải có key registry/KMS bảo toàn vật liệu khóa và trạng thái version qua restart.
-- `encrypt(..., 1001, ...)` ghi v1, `encrypt(..., 1002, ...)` ghi v2. **Format version đều bằng 1**; chỉ key generation khác nhau.
-- `setAad` ràng buộc domain, header và length-prefixed context. Sửa `keyId` từ 1001 sang 1002 khiến service chọn key v2, nhưng không thể xác thực tag do key/AAD không phù hợp.
-- `decrypt` kiểm kích thước, magic và format trước khi lấy key. Nó **chỉ return byte[] sau `Cipher.doFinal` thành công**, không publish plaintext chưa xác thực.
-- Mã hóa lại `migratedRecord` **giải mã v1 đã xác thực rồi mã hóa lại bằng v2 và nonce mới**. Không chỉ cập nhật header key ID.
-- Map `newOnly` mô phỏng v1 không còn sẵn cho caller. Record v1 bị từ chối, record đã migrate giải mã được. **Đây là mô phỏng thiếu khóa**, không phải thao tác KMS destroy hay xóa khóa thật.
-- `recordKeyId` chỉ được dùng trong `main` với dữ liệu do chính chương trình sinh. Hàm này **không phải parser an toàn cho input bất kỳ** vì giả sử record đủ dài và đúng cấu trúc; code `decrypt` mới có kiểm tra tối thiểu.
-- `rejected` bắt `GeneralSecurityException` để minh họa các lỗi parse/key/AEAD. Hệ sản xuất cần xử lý lỗi và audit rõ ràng, không phân biệt quá chi tiết cho client không tin cậy.
-- Nonce ngẫu nhiên không được coi là cam kết toán học rằng **không bao giờ** trùng. Ứng dụng có tải lớn/nhiều node cần chính sách nonce uniqueness và giới hạn số lần mã hóa với cùng key, theo quy tắc AES-GCM.
+- `generator.generateKey()` generates two distinct AES keys for the demo. Production requires a key registry/KMS preserving key material and version states across restarts.
+- `encrypt(..., 1001, ...)` writes v1, and `encrypt(..., 1002, ...)` writes v2. **Both share format version 1**; only the key generation differs.
+- `setAad` binds domain, header, and length-prefixed context. Changing `keyId` from `1001` to `1002` makes the service select key v2, which fails tag verification because key and AAD mismatch.
+- `decrypt` validates length, magic, and format before fetching the key. It **returns `byte[]` only after `Cipher.doFinal` succeeds**, never releasing unauthenticated plaintext.
+- Re-encrypting `migratedRecord` **decrypts and authenticates v1 first, then re-encrypts with v2 and a fresh nonce**. It does not merely overwrite the header key ID.
+- Map `newOnly` simulates v1 no longer being available to the caller. The v1 record is rejected while the migrated record decrypts. **This simulates a missing key**, not a real KMS destroy operation or key deletion.
+- `recordKeyId` is called in `main` solely on records produced by the program itself. It is **not a safe parser for arbitrary input** because it assumes sufficient length and valid layout; `decrypt` performs the minimal validation.
+- `rejected` catches `GeneralSecurityException` to illustrate parse/key/AEAD failures. Production systems require clear error handling and auditing without leaking overly granular reasons to untrusted clients.
+- Random nonces must not be treated as a mathematical guarantee of **zero** collisions forever. High-volume or multi-node apps need a nonce uniqueness policy and per-key encryption limits per AES-GCM rules.
 
-### 7.2 Điều chương trình không khẳng định
+### 7.2 What the Program Does Not Claim
 
-Chương trình mô phỏng hai key với một map cục bộ; nó **không** dạy lưu private secret trong source code, không hỗ trợ persistence giữa hai lần chạy, không triển khai PKCS#11/KMS/HSM hoặc database migration, không có đa tenant isolation thực tế, không giải quyết khả năng mất key trong backup. Khi triển khai thật, phải thay `Map<Integer, SecretKey>` bằng bộ giải quyết key được xác thực/cấp quyền theo policy, thường là KMS/HSM hoặc keystore, và dùng immutable key version reference.
+The program simulates two keys using a local map; it does **not** demonstrate storing secrets in source code, persistence across runs, PKCS#11/KMS/HSM integration, database migration, true multi-tenant isolation, or backup key loss handling. In production, replace `Map<Integer, SecretKey>` with an authenticated, policy-enforced key resolver—typically a KMS/HSM or keystore—and use immutable key version references.
 
-## 8. Những chiến lược rotation và bảo toàn dữ liệu cũ
+## 8. Rotation Strategies and Legacy Data Preservation
 
-Rotation không chỉ có một cách. Chọn tùy khối lượng, SLA, lưu trữ, compliance và mức độ rủi ro.
+There is no single rotation strategy. Choose based on volume, SLA, storage model, compliance, and risk level.
 
-| Chiến lược | Dữ liệu cũ có phải đổi ngay? | Khóa cũ cần sẵn sàng decrypt? | Khi nào phù hợp? |
+| Strategy | Must Old Data Change Immediately? | Must Old Key Remain Decryptable? | When Is It Appropriate? |
 | --- | --- | --- | --- |
-| **New-writes-only rotation** | Không | **Có** trong thời gian giữ bản mã v1 | Muốn đổi key ghi mới nhanh, volume cũ lớn |
-| **Lazy re-encryption** | Đổi khi record được đọc/cập nhật | Có, cho đến khi toàn bộ records cũ được migrate/hết hạn | Trải tải migration, nhưng cần xử lý record ít truy cập |
-| **Batch re-encryption** | Có, theo job có kiểm soát | Có trong suốt migration và rollback window | Muốn giảm phụ thuộc vào key cũ một cách chủ động |
-| **Rewrap DEK bằng KEK mới** | Có thể **không** cần re-encrypt bulk payload | Cần key/KEK cũ đủ lâu để unwrap, trước khi rewrap hoàn tất | Hệ thống envelope encryption lưu wrapped DEK |
-| **Xóa/hủy key cũ** | Không tự chuyển dữ liệu | **Không thể** decrypt bằng key đã mất | Crypto-shredding khi policy chấp nhận mất khả năng đọc |
+| **New-writes-only rotation** | No | **Yes** while v1 ciphertexts are retained | Need fast switch for new writes and legacy volume is large |
+| **Lazy re-encryption** | Changed when a record is read/updated | Yes, until all legacy records migrate/expire | Spread migration load, though rarely read records still need handling |
+| **Batch re-encryption** | Yes, via controlled job | Yes throughout migration and rollback window | Want to proactively eliminate dependency on the old key |
+| **Rewrap DEK with new KEK** | May **not** require re-encrypting bulk payloads | Old key/KEK needed long enough to unwrap until rewrap finishes | Envelope encryption systems storing wrapped DEKs |
+| **Delete/destroy old key** | Does not convert data | **Cannot** decrypt with a lost key | Crypto-shredding when policy accepts losing readability |
 
-### 8.1 New-writes-only: dễ triển khai nhưng kéo dài phụ thuộc
+### 8.1 New-Writes-Only: Easy to Deploy, Extends Dependency
 
-Thay active version `v1 -> v2` trong service. Mọi ciphertext mới chứa v2, nhưng tất cả ciphertext v1 vẫn tồn tại. Ưu điểm là rollout nhanh; nhược điểm là phải bảo vệ và giữ key v1 **miễn là còn dữ liệu hoặc backup cần giải mã**. Chính sách `DECRYPT_ONLY` hữu ích để tránh sản sinh thêm phụ thuộc vào v1.
+Switch the active version `v1 -> v2` in the service. All new ciphertexts use v2, while all v1 ciphertexts remain in place. Advantage: fast rollout; drawback: you must protect and retain key v1 **as long as data or backups still require decryption**. A `DECRYPT_ONLY` policy helps avoid accumulating new dependencies on v1.
 
-Nếu giữ key 10 năm vì một object không bao giờ đọc, hệ thống có rủi ro vận hành và chi phí giữ khóa kéo dài. Cần inventory theo key version để ra quyết định có migrate hoặc cho hết hạn dữ liệu đó.
+Holding a key for 10 years because of one unread object adds operational risk and key-retention overhead. Track inventory by key version to decide whether to migrate or expire that data.
 
-### 8.2 Lazy migration: đọc v1, ghi lại v2
+### 8.2 Lazy Migration: Read v1, Rewrite v2
 
-Luồng:
+Flow:
 
 ```text
 get(record v1)
@@ -466,28 +466,28 @@ get(record v1)
    -> serve plaintext only after successful verification
 ```
 
-Ưu điểm: tải migration dàn theo lưu lượng đọc. Rủi ro: record hiếm khi đọc không bao giờ tự chuyển; record bị cập nhật song song có thể bị overwrite nếu thiếu optimistic locking; migration không được làm ảnh hưởng latency hoặc vô tình phát event nghiệp vụ.
+Advantage: migration load spreads across read traffic. Risks: cold records never migrate automatically; concurrent updates can be overwritten without optimistic locking; migration must not degrade latency or accidentally emit business events.
 
-**Không** coi lazy migration là hoàn tất trước khi có báo cáo key-version inventory xác thực và kế hoạch cho những record chưa được truy cập.
+**Never** consider lazy migration complete until a key-version inventory report confirms zero remaining v1 records or handles untouched records explicitly.
 
-### 8.3 Batch migration: phải idempotent và quan sát được
+### 8.3 Batch Migration: Must Be Idempotent and Observable
 
-Một job migration tốt:
+A sound migration job:
 
-1. Snapshot/đọc **đúng record version** và metadata AAD cũ.
-2. Lấy key v1 có quyền decrypt; `doFinal` phải xác thực thành công.
-3. Mã hóa plaintext bằng key v2, IV mới và AAD/context theo policy mới.
-4. Lưu ciphertext mới + key ID mới + nonce/tag + version/schema trong **một transaction hoặc atomic object replacement**.
-5. Chỉ cập nhật checkpoint sau khi commit; nếu lỗi, bản v1 vẫn còn nguyên.
-6. Đọc kiểm một phần hoặc toàn bộ records theo mức độ rủi ro; lưu metrics số lượng v1/v2 và lỗi.
-7. Retry theo phiên bản ban đầu và optimistic lock; tránh mất cập nhật đồng thời.
-8. Chỉ disable/delete v1 sau khi toàn bộ live data và backups/DR/archives phụ thuộc đã được đánh giá.
+1. Snapshots/reads the **exact record version** and legacy AAD metadata.
+2. Fetches v1 with decrypt permission; `doFinal` must authenticate successfully.
+3. Encrypts plaintext with key v2, a fresh IV, and AAD/context per the new policy.
+4. Saves new ciphertext + new key ID + nonce/tag + version/schema in **one transaction or atomic object replacement**.
+5. Updates checkpoints only after commit; on failure, the v1 record remains intact.
+6. Verifies readback on a sample or all records based on risk; tracks v1/v2 counts and error metrics.
+7. Retries using the original version and optimistic locking to prevent lost concurrent updates.
+8. Disables/deletes v1 only after all live data and dependent backups/DR/archives have been evaluated.
 
-Nếu job bị ngắt giữa chừng, nó phải có thể chạy lại **không** biến record đã migrate thành bản không thể đọc. Với re-encryption, mỗi lần thử thành công tạo ciphertext mới vì nonce mới; nếu retry chưa commit, kết quả cũ chưa được coi là nguồn chính. Không lấy `keyId` trong request để quyết định key mà không đối chiếu registry/tenant đã tin cậy.
+If interrupted mid-run, the job must be able to rerun **without** turning migrated records unreadable. Because re-encryption produces a new nonce and new ciphertext on every successful attempt, uncommitted retries must never overwrite the source of truth. Never trust a `keyId` from an external request without checking the trusted registry and tenant scope.
 
-### 8.4 Rewrap: chỉ có khi kiến trúc tách DEK và KEK
+### 8.4 Rewrap: Only Applies When Architecture Separates DEK and KEK
 
-**Envelope encryption** thường tạo một **DEK** để mã hóa nội dung và một **KEK** (thường do KMS giữ) để wrap/unwrap DEK:
+**Envelope encryption** typically creates a **DEK** to encrypt content and a **KEK** (often held in KMS) to wrap/unwrap the DEK:
 
 ```text
 plaintext --encrypt with DEK--> ciphertext + tag
@@ -496,25 +496,25 @@ DEK ------wrap with KEK v1--> wrappedDEK-v1
 record = ciphertext + nonce + tag + wrappedDEK + KEK reference + metadata
 ```
 
-Khi thay KEK v1 bằng KEK v2:
+When replacing KEK v1 with KEK v2:
 
 ```text
-unwrap wrappedDEK-v1 using KEK v1 (có quyền)
+unwrap wrappedDEK-v1 using KEK v1 (with permission)
    -> rewrap the same DEK with KEK v2
    -> update wrappedDEK + KEK reference atomically
-   -> bulk ciphertext có thể giữ nguyên vì DEK không đổi
+   -> bulk ciphertext can stay unchanged because DEK did not change
 ```
 
-**Khác với re-encrypt:** nếu thay **DEK**, phải mã hóa lại nội dung bằng DEK mới và nonce/tag thích hợp. Nếu chỉ thay **KEK** theo cơ chế wrapping được hỗ trợ, ciphertext của dữ liệu có thể không đổi. Tuy nhiên:
+**Difference from re-encryption:** changing the **DEK** requires re-encrypting the content with the new DEK and appropriate nonce/tag. Changing only the **KEK** under a supported wrapping mechanism can leave data ciphertext untouched. However:
 
-- Phải giữ metadata/AD binding đúng, kiểm cơ chế key wrapping có integrity và quyền trước khi dùng DEK.
-- Nếu ciphertext AAD trực tiếp ràng buộc KEK version/wrapped DEK metadata, chỉ rewrap có thể khiến tag cũ không khớp; format phải được thiết kế có chủ đích để hỗ trợ rewrap hoặc phải re-encrypt theo contract.
-- KMS có thể hỗ trợ rotate/re-encrypt key hierarchy theo cách riêng; không giả định “đổi key alias” tự động chuyển bất kỳ record nào.
-- Rewrap không giải quyết dữ liệu đã bị lộ do DEK/KEK cũ bị compromise trong thời gian trước đó; cần threat-model và incident response.
+- Preserve proper metadata/AAD binding, verify key wrapping integrity, and enforce permissions before using the DEK.
+- If ciphertext AAD directly binds the KEK version or wrapped DEK metadata, rewrapping alone will invalidate the old tag; design the envelope explicitly for rewrap or re-encrypt per contract.
+- A KMS may handle rotating/re-encrypting its key hierarchy in specific ways; never assume “changing a key alias” automatically rekeys any stored record.
+- Rewrapping does not cure past exposure if the old DEK or KEK was compromised earlier; apply threat modeling and incident response.
 
-## 9. Ràng buộc metadata: đừng cho key ID mở đường đổi tenant
+## 9. Binding Metadata: Do Not Let Key ID Become a Tenant-Hopping Vector
 
-Một header có key ID là **untrusted input** cho đến khi phép xác thực mật mã thành công. Với SaaS đa tenant:
+A header containing a key ID is **untrusted input** until cryptographic authentication succeeds. In multi-tenant SaaS:
 
 ```text
 Request identity -> trusted tenant & document permissions
@@ -535,36 +535,36 @@ Decrypt + authenticate header/ciphertext/AAD
 Validate plaintext schema and business authorization
 ```
 
-Không cho user lấy ciphertext từ tenant A, sửa key ID thành một ID của tenant B, rồi buộc service gọi KMS với quyền tenant B. Kể cả tag sẽ thất bại, hành vi đó có thể tạo key-access side effects, tiết lộ tồn tại key hoặc vượt scope IAM nếu registry không kiểm.
+Never allow a user to take ciphertext from tenant A, change the key ID to an ID owned by tenant B, and force the service to call KMS under tenant B's permissions. Even if the tag will fail, that behavior can cause key-access side effects, probe key existence, or bypass IAM scope if the registry lacks checks.
 
-Cần cân nhắc:
+Consider:
 
-- KMS permission per workload/tenant, chặn cross-tenant key use từ identity tin cậy.
-- AAD chứa tenant/document/usage theo một serialization không nhập nhằng.
-- Record ID/version trong dữ liệu xác thực nếu cần chống tráo object.
-- Domain separation giữa các mục đích mã hóa (document, token, backup), thay vì dùng một key không phân biệt.
-- Kiểm key ID có đúng **loại thuật toán, mục đích và vùng** trước khi dùng; không chấp nhận bất kỳ ID format nào do attacker đặt.
-- Tag hợp lệ không tự thay thế RBAC/ABAC; chỉ đảm bảo integrity cho byte đã được đưa vào phạm vi AEAD.
+- Per-workload/per-tenant KMS permissions blocking cross-tenant key usage from trusted identities.
+- Including tenant/document/usage in AAD using an unambiguous serialization.
+- Including record ID/version in authenticated data when object swapping must be prevented.
+- Domain separation across encryption purposes (documents, tokens, backups) rather than one undifferentiated key.
+- Checking that a key ID matches the expected **algorithm, purpose, and region** before use; reject arbitrary attacker-formatted IDs.
+- A valid tag never replaces RBAC/ABAC; it only guarantees integrity for the bytes covered by AEAD.
 
-### “Rollback” khác “tampering”
+### “Rollback” vs. “Tampering”
 
-GCM có thể chứng minh một ciphertext và AAD là hợp lệ dưới key đã chọn, **nhưng không tự chứng minh ciphertext đó là phiên bản mới nhất**. Một attacker có quyền thay object trong storage có thể phục hồi nguyên ciphertext/tag cũ mà vẫn hợp lệ, nếu ứng dụng không gắn một nguồn **trusted monotonic version** hoặc state kiểm rollback.
+GCM proves a ciphertext and AAD are valid under the selected key, **yet it does not prove that ciphertext is the latest version**. An attacker able to replace an object in storage can restore an older valid ciphertext/tag pair unless the application checks a **trusted monotonic version** or anti-rollback state.
 
-Nếu nghiệp vụ cần chống phục hồi phiên bản cũ (ví dụ số dư, quyền truy cập, thứ tự sự kiện), nên có object version/sequence/state được lưu trong DB tin cậy hay một cơ chế chống rollback có kiểm soát. Đưa objectVersion vào AAD chỉ hữu ích nếu giá trị phiên bản kỳ vọng được lấy từ nguồn **không thể bị rollback cùng ciphertext**.
+If the domain must prevent restoring stale state (e.g., balances, permissions, event ordering), maintain an object version/sequence/state in a trusted database or controlled anti-rollback mechanism. Putting `objectVersion` in AAD only helps if the expected version comes from a source **that cannot be rolled back alongside the ciphertext**.
 
-## 10. Metadata cần lưu để giải mã sau nhiều năm
+## 10. Metadata Required to Decrypt Years Later
 
-Một bản mã phải tự đủ dữ liệu công khai hoặc có khả năng truy ra chúng qua metadata bền vững để thực hiện:
+A ciphertext record must be self-describing or resolvable via durable metadata to perform:
 
-1. Chọn parser đúng `formatVersion` và crypto profile.
-2. Tìm **immutable key ID/version** hoặc wrapped DEK + KEK reference.
-3. Lấy nonce và tag đúng độ dài.
-4. Khôi phục **chính xác byte AAD** theo cùng policy/version đã dùng khi encrypt.
-5. Đưa ciphertext vào AEAD đúng trình tự, chỉ lấy plaintext khi tag hợp lệ.
-6. Biết cách deserialize plaintext theo schema version phù hợp.
-7. Kiểm phân quyền trên record và mục đích sử dụng.
+1. Selecting the parser matching `formatVersion` and crypto profile.
+2. Locating the **immutable key ID/version** or wrapped DEK + KEK reference.
+3. Extracting the nonce and tag of the exact expected lengths.
+4. Reconstructing the **exact AAD bytes** under the same policy/version used during encryption.
+5. Feeding ciphertext into AEAD in order, releasing plaintext only if the tag passes.
+6. Deserializing plaintext according to the matching schema version.
+7. Checking authorization for the record and intended operation.
 
-Ví dụ mô hình dữ liệu khái niệm (không phải schema bắt buộc):
+Conceptual data model example (not a mandatory schema):
 
 ```text
 EncryptedObject {
@@ -582,17 +582,17 @@ EncryptedObject {
 }
 ```
 
-Nếu key reference nằm trong **header AAD**, không được update riêng trong database mà bỏ qua việc tái tạo tag. Nếu metadata AAD nằm ngoài ciphertext, cần bảo đảm việc đọc lại nguyên giá trị và cách serialize không thay đổi sau migration. Đừng để thư viện JSON khác phiên bản sửa thứ tự field hoặc Unicode normalization rồi làm tag fail. Với dữ liệu dài hạn, nên lưu byte AAD đã xác thực hoặc một versioned canonical representation đủ để tái tạo 100%.
+If the key reference sits inside **header AAD**, never update it in the database alone without recomputing the tag. If AAD metadata lives outside the ciphertext, ensure reading it back preserves exact values and serialization across migrations. Never let a newer JSON library alter field ordering or Unicode normalization and break tag verification. For long-lived data, store the exact authenticated AAD bytes or a versioned canonical representation capable of 100% deterministic reconstruction.
 
-**Tag và IV không phải bí mật**, nhưng không được bỏ hoặc chỉnh sửa. **Key bytes phải bảo vệ riêng**, không đưa vào record hay log. Nếu dùng wrapped DEK, wrapped blob không phải plaintext key và vẫn cần bảo vệ thông tin truy cập, integrity và metadata theo thiết kế.
+**Tag and IV are not secrets**, yet must never be stripped or altered. **Key bytes must be protected separately**, never stored in records or logs. With wrapped DEKs, the wrapped blob is not a plaintext key, yet still needs access control, integrity, and metadata protection by design.
 
-## 11. An toàn khi decrypt: chỉ đưa plaintext ra ngoài sau khi tag đúng
+## 11. Safe Decryption: Release Plaintext Only After Tag Verification
 
-Khi dùng Java `Cipher` với `AES/GCM/NoPadding`:
+When using Java `Cipher` with `AES/GCM/NoPadding`:
 
 ```java
-// Minh họa trong method đã có SecretKey key, byte[] nonce,
-// byte[] authenticatedHeader, byte[] trustedContext và byte[] ciphertextAndTag.
+// Illustrative snippet inside a method with SecretKey key, byte[] nonce,
+// byte[] authenticatedHeader, byte[] trustedContext, and byte[] ciphertextAndTag.
 Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
 cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, nonce));
 cipher.updateAAD(authenticatedHeader);
@@ -600,172 +600,172 @@ cipher.updateAAD(trustedContext);
 byte[] plaintext = cipher.doFinal(ciphertextAndTag);
 ```
 
-Đoạn trên **không độc lập**; AAD và format cụ thể phải giống phía mã hóa. `doFinal` thất bại khi tag sai có thể ném `AEADBadTagException` (một dạng `BadPaddingException`) hoặc lỗi tương ứng; ứng dụng **không được trả byte được giải mã một phần** trong catch branch.
+This snippet is **not standalone**; the exact AAD and format must match encryption. `doFinal` throws `AEADBadTagException` (a subclass of `BadPaddingException`) or an equivalent error if the tag is invalid; the application **must never return partially decrypted bytes** in a catch block.
 
-Một số provider/mode streaming có thể cho `Cipher.update` trả output **trước khi tag cuối được kiểm**. Tuyệt đối không ghi những byte đó vào HTTP response, event bus, database, log, cache hoặc file mà component khác có thể đọc. Nếu cần xử lý file rất lớn, cân nhắc staging được cô lập và atomic publish sau xác thực, hoặc định dạng **record-based AEAD** có tag cho từng record và commitment về thứ tự/EOF/truncation; không lấy một ví dụ in-memory rồi kéo dài tùy tiện để stream plaintext chưa xác thực.
+Some streaming providers/modes may emit output from `Cipher.update` **before the final tag is checked**. Never stream those bytes into an HTTP response, event bus, database, log, cache, or file visible to other components. For very large files, use isolated staging with atomic publish after verification, or a **record-based AEAD** format with per-record tags and commitments to order, EOF, and truncation; never stretch an in-memory demo arbitrarily to stream unverified plaintext.
 
-**Lưu ý `CipherInputStream`:** tài liệu Java cảnh báo class này có thể bắt một số exception kiểm tra integrity, ví dụ `BadPaddingException`, và không tái ném. Nó **có thể không thích hợp** khi ứng dụng bắt buộc biết đầy đủ lỗi xác thực. Cần đánh giá API streaming được dùng và kiểm thử end-to-end việc không phát plaintext khi tag sai.
+**Note on `CipherInputStream`:** Java documentation warns that this class may catch certain integrity-check exceptions such as `BadPaddingException` without rethrowing them. It **may be unsuitable** where the application must reliably detect authentication failures. Evaluate any streaming API carefully and test end-to-end that zero plaintext escapes on tag failure.
 
-### Đơn vị độ dài
+### Length Units
 
-`new GCMParameterSpec(128, nonce)` dùng **128 bit tag**, tức **16 byte**. IV demo 12 byte. Metadata phải ghi rõ đơn vị và thuật toán. Đừng giả định mọi provider/giao thức đặt tag ở cùng vị trí; profile Java demo dùng `ciphertext || tag` từ `Cipher.doFinal`.
+`new GCMParameterSpec(128, nonce)` specifies a **128-bit tag**, i.e., **16 bytes**. The demo IV is 12 bytes. Metadata must explicitly state units and algorithms. Never assume all providers/protocols place the tag in the same position; the Java demo profile relies on `ciphertext || tag` returned by `Cipher.doFinal`.
 
-## 12. Kiểm soát nonce uniqueness qua nhiều thế hệ khóa
+## 12. Controlling Nonce Uniqueness Across Key Generations
 
-Đối với AES-GCM, **không được tái sử dụng cùng nonce với cùng key**. Rotation tạo key mới có thể giúp tách phạm vi nonce, nhưng **không** cho phép thiết kế nonce tùy tiện hoặc bỏ qua collision risk. Trong ví dụ, `SecureRandom` tạo IV 96-bit mới mỗi lần; ứng dụng thực tế phải đánh giá số lượng bản tin trên mỗi key, nhiều node cùng encrypt, snapshot restore, counter rollback và key lifetime theo chuẩn/khuyến nghị.
+For AES-GCM, **never reuse the same nonce with the same key**. Rotation creates a new key that separates nonce scopes, yet **does not** permit sloppy nonce design or ignoring collision risk. In the example, `SecureRandom` generates a fresh 96-bit IV each time; real applications must account for message volume per key, concurrent encrypting nodes, snapshot restores, counter rollbacks, and key lifetime per standards/guidelines.
 
-Những tình huống cần cảnh giác:
+Situations requiring vigilance:
 
-- Nhiều instance dùng chung key và cùng counter khởi động từ 0.
-- VM snapshot restore khiến sequence/counter lặp.
-- Retry mã hóa dùng lại nonce với **plaintext/AAD khác** trên cùng key.
-- Job migration tái sử dụng nonce v1 khi re-encrypt v2 mà không có policy bảo đảm uniqueness; tốt hơn sinh IV mới theo profile.
-- Một key version cũ vẫn được dùng để encrypt ở node chưa update sau switch sang decrypt-only.
-- Key alias được reset trỏ lại key bytes cũ, làm hệ thống tưởng đó là key mới nhưng thực ra cùng key/nonce domain.
-- Hệ thống dùng random 96-bit nonce ở quy mô vượt ngân sách message count đã được đánh giá, làm collision probability không còn được chấp nhận.
+- Multiple instances sharing one key and starting the same counter from 0.
+- VM snapshot restores causing sequences/counters to repeat.
+- Retrying encryption reusing a nonce with **different plaintext/AAD** under the same key.
+- Migration jobs reusing v1 nonces when re-encrypting under v2 without a uniqueness guarantee; prefer generating a fresh IV per profile.
+- An older key version still encrypting on an un-updated node after switching to decrypt-only.
+- Resetting a key alias back to older key bytes, fooling the system into thinking it is a new key while sharing the old key/nonce domain.
+- Using random 96-bit nonces at volumes exceeding the evaluated message budget, making collision probability unacceptable.
 
-Trong luồng key rotation, mỗi key generation phải có **usage limits, nonce allocation model và metrics** độc lập. Với cơ chế counter, phải đồng bộ đa node và chống rollback; với nonce ngẫu nhiên, có giới hạn cryptoperiod/message count và chính sách rotation hợp lý.
+In a key rotation pipeline, each key generation needs independent **usage limits, a nonce allocation model, and metrics**. With counters, synchronize across nodes and prevent rollbacks; with random nonces, enforce cryptoperiod/message-count caps and timely rotation policies.
 
-## 13. Rollout và rollback khi nhiều service cùng đọc/ghi
+## 13. Rollout and Rollback When Multiple Services Read and Write Concurrently
 
-Thay `activeKeyVersion` không chỉ là đổi một config:
+Changing `activeKeyVersion` is more than flipping one config value:
 
-**Giai đoạn chuẩn bị:**
+**Preparation phase:**
 
-1. Tạo key v2 trong KMS/keystore với đúng policy và quyền.
-2. Cập nhật consumer/decryptor trước để **có khả năng resolve v2**, nhưng vẫn đọc v1.
-3. Kiểm end-to-end test/health, khả năng encrypt/decrypt ở staging, failover region và backup service.
-4. Chốt `formatVersion`/AAD schema để không vô tình đổi nhiều thứ cùng lúc.
+1. Create key v2 in KMS/keystore with proper policies and permissions.
+2. Update consumers/decryptors first so they **can resolve v2** while continuing to read v1.
+3. Verify end-to-end tests/health, encrypt/decrypt in staging, failover regions, and backup services.
+4. Lock down `formatVersion`/AAD schemas to avoid changing multiple moving parts simultaneously.
 
-**Giai đoạn kích hoạt:**
+**Activation phase:**
 
-1. Chuyển active encrypt version sang v2 theo cơ chế cấu hình tin cậy.
-2. Đảm bảo chỉ có **một chính sách chọn key được công bố**; với distributed rollout cần xử lý thời gian hệ thống có cả v1/v2 writer.
-3. Xác nhận record mới chứa v2 và decrypt được trên các node hiện hành; không dùng v1 cho new writes sau khi đã chuyển hoàn tất.
-4. Giữ v1 ở chế độ decrypt-only cho đến khi bảo đảm retention và migration.
+1. Switch the active encryption version to v2 via a trusted configuration mechanism.
+2. Ensure **one authoritative key-selection policy** is published; during distributed rollouts handle the window where both v1 and v2 writers coexist.
+3. Confirm new records use v2 and decrypt across active nodes; ensure v1 stops receiving new writes once rollout completes.
+4. Keep v1 in decrypt-only mode until retention and migration complete.
 
-**Giai đoạn hậu kiểm:**
+**Post-check phase:**
 
-1. Đếm live records theo key reference, theo tenant và theo môi trường; kiểm failed decrypt theo version.
-2. Kiểm backup, DR, job chậm, message queue, archive và batch export.
-3. Chạy migration có checkpoint/transaction nếu cần.
-4. Đưa v1 vào trạng thái disabled/destroyed **chỉ sau khi có bằng chứng không còn phụ thuộc cần đọc** hoặc khi chính sách rủi ro buộc từ chối.
+1. Count live records by key reference, tenant, and environment; monitor failed decrypts by version.
+2. Check backups, DR, slow jobs, message queues, archives, and batch exports.
+3. Run checkpointed/transactional migrations if required.
+4. Transition v1 to disabled/destroyed **only after evidence confirms no readable dependencies remain** or when risk policy forces rejection.
 
-**Rollback:** Nếu writer v2 gặp lỗi, đừng xóa/disable v2 ngay — **những ciphertext đã được ghi bằng v2 có thể cần key v2 để đọc**. Quay lại writer v1 (nếu policy cho phép) chỉ thay đổi key dùng ghi mới, **không đảo ngược các record v2 đã tồn tại**. Kế hoạch rollback phải giữ cả bộ key versions mà dữ liệu đã tham chiếu.
+**Rollback:** If v2 writers hit a bug, do not immediately delete/disable v2 — **ciphertexts already written with v2 need key v2 to be read**. Reverting writers to v1 (if policy allows) only changes the key used for future writes; **it does not roll back existing v2 records**. Rollback plans must preserve all key versions referenced by stored data.
 
-### Multi-region và backup
+### Multi-Region and Backups
 
-Một bản backup dữ liệu chỉ hữu ích nếu có cách lấy đúng key để giải mã **theo quyền và chính sách**. Hệ thống phải có recovery plan cho metadata/key reference, availability của KMS, trust domain, quyền IAM, và lịch sử key versions.
+A data backup is only useful if the right key can be retrieved to decrypt it **according to permissions and policy**. Maintain a recovery plan covering metadata/key references, KMS availability, trust domains, IAM permissions, and historical key versions.
 
-Khi restore backup 6 tháng trước, các records có thể còn tham chiếu v1 dù production hiện tại đã chuyển v2. Nếu v1 bị hủy, có thể không restore được. Ngược lại, backup một cách bừa bãi toàn bộ plaintext key material lại phá vỡ mục tiêu quản lý khóa. Cần quy trình escrow/backup/restore trong vùng bảo vệ được kiểm soát, với audit và business continuity requirements.
+When restoring a 6-month-old backup, records may still reference v1 even if production moved to v2. If v1 was destroyed, restoration may fail. Conversely, recklessly backing up raw plaintext key material defeats key management. Establish controlled escrow/backup/restore procedures inside protected boundaries with auditing and business continuity alignment.
 
-**Kiểm thử restore thực tế**, không chỉ kiểm rằng file backup tồn tại.
+**Actually test restores**, rather than only checking that backup files exist.
 
-## 14. Xóa khóa có thể đồng nghĩa xóa khả năng đọc dữ liệu
+## 14. Deleting a Key Can Mean Deleting Data Readability
 
-Khóa bị xóa/disable không còn dùng decrypt được. Nếu tất cả các bản sao DEK/KEK hoặc key material liên quan bị hủy thật và không có cách khôi phục, ciphertext tương ứng có thể trở thành **không thể giải mã** — đây là nguyên tắc *cryptographic erasure* trong một số thiết kế.
+A deleted/disabled key can no longer decrypt. If every copy of the relevant DEK/KEK or key material is genuinely destroyed with no recovery path, the corresponding ciphertext becomes **undecryptable** — this is the principle of *cryptographic erasure* in certain designs.
 
-Tuy nhiên, không nên khẳng định “đã crypto-erase” chỉ vì xóa một entry khỏi config:
+However, do not claim “crypto-erased” just because an entry was removed from config:
 
-- Có thể còn bản sao key trong backup, cache, log, snapshot, instance sống hoặc hệ KMS khác.
-- Có thể còn plaintext và bản sao dữ liệu đã được xuất ra.
-- Với envelope encryption, xóa KEK có thể ảnh hưởng nhiều wrapped DEK; cần hiểu key hierarchy.
-- Key rotation và xóa key không thay thế hủy dữ liệu, truy cập hạn chế và chính sách retention.
-- Khi key bị compromise, xóa khỏi service không làm các bản ciphertext attacker đã sao chép trở lại an toàn.
+- Key copies may remain in backups, caches, logs, snapshots, running instances, or another KMS.
+- Exported plaintext copies and downstream data extracts may still exist.
+- Under envelope encryption, deleting a KEK can affect many wrapped DEKs; understand the key hierarchy.
+- Key rotation and key deletion do not replace data disposal, restricted access, and retention enforcement.
+- During a key compromise, deleting the key from the service does not render ciphertext copies already stolen by an attacker safe again.
 
-Do đó, trước khi **destroy** key cũ phải có bằng chứng kiểm kê record dependencies, backup retention và quyết định pháp lý/nghiệp vụ. Nếu vẫn còn dữ liệu cần đọc mà key đã mất hoàn toàn, **không có thao tác Java nào tự tái tạo được key chỉ từ key ID hoặc ciphertext**.
+Therefore, before **destroying** an old key, gather verified inventory of record dependencies, backup retention, and legal/business sign-off. If readable data still depends on a completely lost key, **no Java operation can reconstruct the key from a key ID or ciphertext alone**.
 
-## 15. Những lỗi thiết kế thường gặp
+## 15. Common Design Mistakes
 
-| Sai lầm | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng duy nhất `CURRENT_KEY` để decrypt mọi record | Đổi key làm record cũ fail tag | Lưu immutable key reference trên mỗi record |
-| Lưu alias `latest` nhưng không version | Alias chuyển hướng sang key khác | Lưu version cụ thể hoặc blob KMS tự định tuyến lịch sử theo contract |
-| Coi key ID là secret hoặc đưa key bytes vào ID | Lộ key hoặc nhầm trust boundary | Key ID chỉ là tham chiếu; secret trong key manager |
-| Dùng chung một `version` cho format, key và schema | Không biết cần parse/dùng key nào | Tách ý nghĩa/version field |
-| Tự động thử toàn bộ keyring khi decrypt | Lỗi mơ hồ, tốn tài nguyên, mở oracle | Lookup đúng một key version theo metadata/registry |
-| Cho client chọn key tùy ý | Cross-tenant lookup/key abuse | Scope theo tenant, identity và IAM/allowlist server |
-| Không xác thực key ID/header bằng AEAD | Metadata có thể bị tráo | Đưa header vào AAD, validate profile/key scope |
-| Giữ v1 ACTIVE ở node cũ sau rotation | Dữ liệu mới tiếp tục phụ thuộc key cũ | Triển khai trạng thái decrypt-only và quan sát writers |
-| Chỉ đổi header v1 thành v2 khi migrate | Ciphertext/tag vẫn gắn key/nonce/AAD cũ | Decrypt + verify rồi encrypt lại với v2 + nonce mới |
-| Xóa v1 ngay khi đổi active v2 | Mất khả năng đọc/restore bản mã cũ | Retain decrypt-only tới khi hết phụ thuộc |
-| Quên backup/DR/queue khi đếm key usage | Restore thất bại hoặc job còn dùng key cũ | Inventory đầy đủ theo nơi lưu và thời hạn |
-| Migration ghi key ID mới trước ciphertext/tag | State nửa vời, mất dữ liệu | Atomic transaction/object replace/compare-and-swap |
-| Rewrap KEK nhưng format AAD chứa KEK metadata | Tag payload có thể không còn đúng | Thiết kế envelope để rewrap đúng contract hoặc re-encrypt |
-| Re-encrypt nhưng dùng lại nonce trên cùng key | Nguy cơ phá bảo mật GCM | Nonce uniqueness toàn vòng đời key |
-| Coi tag hợp lệ là record mới nhất | Replay/rollback ciphertext cũ | Trusted monotonic revision hoặc anti-rollback state |
-| Công bố plaintext từ `Cipher.update` trước tag | Dữ liệu chưa xác thực thoát khỏi vùng tin cậy | Chỉ commit/publish sau `doFinal` thành công |
-| Đổi active pointer rồi rollback nhưng xóa key v2 | Record vừa tạo bằng v2 không đọc được | Retain mọi key version đã ghi dữ liệu |
-| In key, plaintext, raw wrapped DEK vào log | Lộ dữ liệu nhạy cảm | Audit metadata có làm sạch và kiểm quyền |
+| Using a single `CURRENT_KEY` to decrypt all records | Rotating the key breaks tag checks on old records | Store an immutable key reference on each record |
+| Storing alias `latest` without a version | Alias shifts to point at a different key | Store explicit version or KMS blob routing history per contract |
+| Treating key ID as secret or embedding key bytes in ID | Key exposure or confused trust boundary | Key ID is a reference only; secrets stay in the key manager |
+| Sharing one `version` for format, key, and schema | Ambiguity over parsing vs. key selection | Separate version fields by meaning |
+| Automatically trying the whole keyring on decrypt | Ambiguous errors, wasted resources, decryption oracle | Look up one exact key version via metadata/registry |
+| Letting clients choose arbitrary keys | Cross-tenant lookup/key abuse | Scope by tenant, identity, and server-side IAM/allowlist |
+| Omitting key ID/header from AEAD authentication | Metadata can be swapped undetected | Include header in AAD; validate profile and key scope |
+| Leaving v1 ACTIVE on stale nodes after rotation | New data continues depending on old key | Enforce decrypt-only state and monitor writers |
+| Changing only header v1 to v2 during migration | Ciphertext/tag remain bound to old key/nonce/AAD | Decrypt + verify, then re-encrypt with v2 + fresh nonce |
+| Deleting v1 immediately upon activating v2 | Loss of ability to read/restore legacy ciphertexts | Retain in decrypt-only until dependencies are zero |
+| Forgetting backups/DR/queues when counting key usage | Failed restores or jobs still needing old keys | Maintain full inventory across storage locations and retention windows |
+| Migration writing new key ID before ciphertext/tag | Half-migrated state, data corruption | Atomic transaction, object replacement, or compare-and-swap |
+| Rewrapping KEK while AAD embeds KEK metadata | Payload tag may become invalid | Design envelope specifically for rewrap or re-encrypt |
+| Re-encrypting while reusing nonces on the same key | Risk of breaking GCM security | Enforce nonce uniqueness across the key's entire lifetime |
+| Treating a valid tag as proof of latest record | Replay/rollback of stale ciphertexts | Use trusted monotonic revision or anti-rollback state |
+| Publishing plaintext from `Cipher.update` before tag check | Unauthenticated data escapes trust boundary | Commit/publish only after `doFinal` succeeds |
+| Switching active pointer, rolling back, and deleting v2 | Newly written v2 records become unreadable | Retain every key version that ever wrote persisted data |
+| Logging keys, plaintext, or raw wrapped DEKs | Sensitive data exposure | Audit sanitized metadata with access controls |
 
-## 16. Checklist kiểm thử và chấp nhận rotation
+## 16. Rotation Testing and Acceptance Checklist
 
-Bộ test tối thiểu nên chạy tự động trong CI/staging trước mỗi rollout:
+Minimum automated test suite to run in CI/staging before every rollout:
 
-| Trường hợp | Kết quả mong đợi |
+| Test Case | Expected Outcome |
 | --- | --- |
-| Ghi v1 rồi chuyển ACTIVE sang v2 | Record v1 vẫn decrypt với v1 nếu policy còn cho phép |
-| Ghi record mới sau switch | Envelope chứa immutable v2 key ref; decrypt với v2 |
-| v1 chuyển DECRYPT_ONLY | Không tạo new writes bằng v1; record v1 vẫn đọc được |
-| v1 key bị disabled/mất | Record v1 bị từ chối rõ ràng, không thử key khác |
-| Đổi key ID v1 thành v2 trong header | AEAD authentication thất bại |
-| Đổi IV, ciphertext hoặc tag | Bị từ chối; không trả plaintext |
-| Đổi tenant/document context AAD | Tag fail; không dùng plaintext |
-| Format version không hỗ trợ | Parser từ chối, không fallback yếu |
-| Migrate v1 -> v2 | Decrypt/authenticate v1 rồi encrypt v2 bằng IV mới, nội dung không đổi |
-| Migration bị ngắt trước commit | Bản v1 còn nguyên; retry idempotent |
-| Hai migration workers đụng cùng record | Optimistic lock/CAS chặn ghi đè phiên bản mới |
-| Rollback writer sau khi đã có v2 records | v2 records vẫn decrypt được |
-| Backup/DR restore | Hệ khôi phục đúng key version theo policy và role |
-| Còn legacy record trong archive | Không được destroy key cũ nếu archive còn phải phục hồi |
-| Tenant A header trỏ key tenant B | Scope authorization từ chối trước key use |
-| Key ID giả/cực dài/không tồn tại | Bounded parsing, lookup từ chối, không lộ thông tin key |
-| Nonce reuse attempt với cùng key | Test/quy trình nonce allocation và limits phát hiện/prevent theo thiết kế |
-| Record cũ hợp lệ được replay | Anti-replay/anti-rollback policy xử lý theo state tin cậy |
-| Performance migration | Có quota/rate limit, backoff, checkpoint và audit |
-| Audit | Ghi record ID, key reference, migration result; không lộ key/plaintext |
+| Write v1 then switch ACTIVE to v2 | v1 records still decrypt with v1 while policy allows |
+| Write new record after switch | Envelope contains immutable v2 key ref; decrypts with v2 |
+| Transition v1 to DECRYPT_ONLY | Zero new writes under v1; v1 records remain readable |
+| Disable/lose v1 key | v1 records fail clearly without trying other keys |
+| Alter key ID from v1 to v2 in header | AEAD authentication fails |
+| Alter IV, ciphertext, or tag | Rejected; zero plaintext returned |
+| Alter tenant/document context AAD | Tag fails; plaintext never used |
+| Unsupported format version | Parser rejects; no weak fallback |
+| Migrate v1 -> v2 | Decrypt/authenticate v1, then encrypt v2 with fresh IV; content identical |
+| Migration interrupted before commit | v1 record intact; retry is idempotent |
+| Two migration workers hit the same record | Optimistic lock/CAS prevents overwriting newer revision |
+| Roll back writer after v2 records exist | v2 records remain decryptable |
+| Backup/DR restore | System resolves exact key versions per policy and role |
+| Legacy records still in archive | Old key cannot be destroyed while archive recovery is required |
+| Tenant A header points to tenant B key | Scope authorization rejects before key use |
+| Forged/oversized/non-existent key ID | Bounded parsing, lookup rejected, no key details leaked |
+| Attempted nonce reuse with same key | Nonce allocation/limit tests and controls detect/prevent per design |
+| Replay of an older valid record | Anti-replay/anti-rollback policy handles via trusted state |
+| Migration performance | Quotas/rate limits, backoff, checkpoints, and auditing in place |
+| Auditing | Logs record ID, key reference, migration result; zero keys/plaintext exposed |
 
-**Điều kiện hoàn thành rotation:** không chỉ là “mã hóa mới được bằng v2”. Cần có bằng chứng decrypt các record v1/v2 đúng theo policy, migration không làm hỏng dữ liệu, backup có thể restore, old-key retirement không phá retention và không có key access ngoài quyền.
+**Rotation completion criteria:** not merely “new data encrypts with v2.” You must verify v1/v2 decryption per policy, zero data corruption during migration, tested backup restores, old-key retirement aligned with retention, and zero out-of-policy key access.
 
-## 17. Bài tập thực hành
+## 17. Practice Exercises
 
-### Bài 1 — Phân biệt loại version
+### Exercise 1 — Distinguishing Version Types
 
-Cho record có `formatVersion=2`, `keyRef=orders/prod`, `keyVersion=5`, `documentSchemaVersion=3`. Hãy mô tả từng version quyết định phương thức nào, giá trị nào được phép đổi khi re-encrypt, và vì sao không thể chỉ đọc `keyRef=orders/prod` nếu alias trỏ tới key material mới.
+Given a record with `formatVersion=2`, `keyRef=orders/prod`, `keyVersion=5`, and `documentSchemaVersion=3`, describe what each version governs, which values may change during re-encryption, and why reading only `keyRef=orders/prod` fails if the alias moves to new key material.
 
-### Bài 2 — Phân tích output chương trình
+### Exercise 2 — Analyzing Program Output
 
-Chạy `KeyVersionDemo` và giải thích từng dòng stdout. Bổ sung test đổi một byte nonce/header, đổi một bit tag, thiếu toàn bộ record, và record có `formatVersion` chưa được allowlist. Chứng minh method `decrypt` không trả plaintext khi tag không hợp lệ.
+Run `KeyVersionDemo` and explain every stdout line. Add tests that flip one byte in the nonce/header, flip one bit in the tag, truncate the entire record, and pass an un-allowlisted `formatVersion`. Prove `decrypt` returns no plaintext when the tag is invalid.
 
-### Bài 3 — Lập chính sách vòng đời
+### Exercise 3 — Designing a Lifecycle Policy
 
-Một hệ thống có 3 triệu bản ghi v1, 10.000 bản ghi v2, snapshot hàng tuần giữ 180 ngày, archive giữ 7 năm. Hãy đề xuất states ACTIVE/DECRYPT_ONLY/DISABLED, KPI theo key version, kế hoạch batch migration và khi nào được phép destroy v1. Phân biệt số live records với số bản nằm trong backup còn phải restore.
+A system holds 3 million v1 records, 10,000 v2 records, weekly snapshots retained for 180 days, and archives retained for 7 years. Propose `ACTIVE`/`DECRYPT_ONLY`/`DISABLED` states, KPIs per key version, a batch migration plan, and when v1 may be destroyed. Distinguish live record counts from backup copies that still require restoration.
 
-### Bài 4 — Lazy migration và optimistic lock
+### Exercise 4 — Lazy Migration and Optimistic Locking
 
-Thiết kế bảng `EncryptedDocument(id, revision, keyVersion, encryptedEnvelope)`. Hai request đồng thời đọc record v1, cả hai muốn migrate sang v2. Viết giả mã transaction/CAS để chỉ một lần cập nhật được commit, request còn lại không được ghi đè revision mới hơn. Mô tả cách retry và bảo đảm không phát side effects nghiệp vụ.
+Design a table `EncryptedDocument(id, revision, keyVersion, encryptedEnvelope)`. Two concurrent requests read a v1 record and both try to migrate it to v2. Write transaction/CAS pseudocode ensuring only one update commits and the other never overwrites a newer revision. Describe retry behavior and how to avoid duplicate business side effects.
 
-### Bài 5 — Rewrap DEK và KEK
+### Exercise 5 — Rewrapping DEK and KEK
 
-Một service mã hóa từng object bằng DEK riêng; KMS dùng KEK v1 để wrap DEK. Khi KEK chuyển sang v2, phần nào có thể được giữ nguyên và phần nào phải được cập nhật? Giải thích vì sao điều này khác trường hợp hệ thống dùng **một AES key trực tiếp mã hóa mọi object**, và xử lý ra sao nếu AAD của ciphertext bao gồm KEK version.
+A service encrypts each object with its own DEK; KMS uses KEK v1 to wrap the DEK. When the KEK rotates to v2, what can remain unchanged and what must be updated? Explain why this differs from a system using **a single AES key directly to encrypt every object**, and how to handle it if the ciphertext's AAD included the KEK version.
 
-### Bài 6 — Khôi phục thảm họa
+### Exercise 6 — Disaster Recovery
 
-Sau khi đổi active key v2, một region bị lỗi và đội vận hành restore backup chứa cả v1/v2 ciphertext. Viết danh sách key versions, quyền IAM, metadata AAD, key availability và phiên bản code cần có. Nêu những tình huống mà restore không thể hoàn tất dù file backup còn nguyên.
+After switching the active key to v2, one region fails and operations restores a backup containing both v1 and v2 ciphertexts. List the required key versions, IAM permissions, AAD metadata, key availability, and code versions. Describe failure scenarios where restoration cannot complete even though the backup file is intact.
 
-### Bài 7 — Compromise và cryptographic erasure
+### Exercise 7 — Compromise and Cryptographic Erasure
 
-Một key v1 bị nghi lộ khi vẫn còn 100.000 records phụ thuộc. Hãy lập thứ tự ưu tiên containment, kiểm phạm vi dữ liệu có thể bị lộ, migration, key disable/revoke, backup/key retention và thông báo sự cố theo policy. Tại sao re-encrypt không thể làm “bí mật trở lại” nếu đối thủ đã lấy plaintext trước đó?
+Key v1 is suspected compromised while 100,000 records still depend on it. Prioritize containment, scoping potentially exposed data, migration, key disable/revoke, backup/key retention, and policy-driven incident reporting. Why can re-encryption not make data “secret again” if an adversary already captured plaintext earlier?
 
-**Kết quả mong đợi:** bạn có thể nhìn một ciphertext và xác định **đúng khóa cần dùng, đúng phiên bản format, metadata nào phải xác thực, cách đọc dữ liệu cũ khi rotation**, và khi nào **không được hủy key**. Một triển khai đạt yêu cầu luôn có test cho thiếu/sai key, tampering, replay/rollback theo threat model và migration transaction safety.
+**Expected outcomes:** you can inspect a ciphertext and determine **which key to use, which format version applies, which metadata must be authenticated, how to read legacy data across rotation**, and when **a key must not be destroyed**. A complete implementation always tests missing/wrong keys, tampering, replay/rollback per threat model, and migration transaction safety.
 
-## 18. Tài liệu tham khảo
+## 18. References
 
-- [Java SE 17 — Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): `init`, `updateAAD`, `doFinal` và AEAD.
-- [Java SE 17 — GCMParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): IV/nonce và độ dài tag tính bằng bit.
-- [Java SE 17 — KeyGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html): sinh secret key theo thuật toán/provider.
-- [Java SE 17 — SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): nguồn byte ngẫu nhiên mật mã.
-- [NIST SP 800-57 Part 1 — Recommendation for Key Management](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final): vòng đời và quản lý khóa.
-- [NIST SP 800-38D — Galois/Counter Mode (GCM)](https://csrc.nist.gov/pubs/sp/800/38/d/final): AEAD và yêu cầu IV/nonce.
-- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html): quản lý khóa, dữ liệu và rotation.
-- [OWASP Key Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html): lifecycle, storage, access control và rotation.
+- [Java SE 17 — Cipher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html): `init`, `updateAAD`, `doFinal`, and AEAD.
+- [Java SE 17 — GCMParameterSpec](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/GCMParameterSpec.html): IV/nonce and tag length in bits.
+- [Java SE 17 — KeyGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyGenerator.html): generating secret keys by algorithm/provider.
+- [Java SE 17 — SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): cryptographic random byte source.
+- [NIST SP 800-57 Part 1 — Recommendation for Key Management](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final): key lifecycle and management.
+- [NIST SP 800-38D — Galois/Counter Mode (GCM)](https://csrc.nist.gov/pubs/sp/800/38/d/final): AEAD and IV/nonce requirements.
+- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html): key, data, and rotation management.
+- [OWASP Key Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html): lifecycle, storage, access control, and rotation.

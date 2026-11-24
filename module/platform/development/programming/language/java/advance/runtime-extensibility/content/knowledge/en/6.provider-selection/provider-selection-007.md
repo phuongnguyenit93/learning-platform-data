@@ -1,33 +1,33 @@
-# Phân biệt khám phá dịch vụ với quản lý phụ thuộc và vòng đời plugin trong Java
+# Distinguishing Service Discovery from Dependency Management and Plugin Lifecycle in Java
 
-## 1. Ba trách nhiệm khác nhau của một hệ thống mở rộng
+## 1. Three Distinct Responsibilities of an Extensible System
 
-Trong Java, một ứng dụng (*host*) có thể cho phép cài thêm những phần triển khai (*service provider*, *extension*, *plugin*) để mở rộng chức năng. Khi **lựa chọn provider**, cần phân biệt ba câu hỏi:
+In Java, an application (*host*) can allow installing additional implementations (*service provider*, *extension*, *plugin*) to extend functionality. When **selecting a provider**, three questions must be distinguished:
 
-1. **Khám phá dịch vụ (*service discovery*):** Những lớp nào tuyên bố triển khai một service contract và hiện có thể được tìm thấy?
-2. **Quản lý phụ thuộc (*dependency management/resolution*):** Provider được chọn cần những API, thư viện, dịch vụ hoặc plugin khác nào; chúng có tồn tại và tương thích không?
-3. **Quản lý vòng đời (*plugin lifecycle management*):** Khi nào provider được khởi tạo, được phép nhận yêu cầu, bị dừng và được giải phóng tài nguyên?
+1. **Service discovery:** Which classes claim to implement a service contract and can currently be found?
+2. **Dependency management/resolution:** What other APIs, libraries, services, or plugins does the selected provider need; do they exist and are they compatible?
+3. **Plugin lifecycle management:** When is a provider instantiated, allowed to receive requests, stopped, and cleaned up?
 
-Chúng liên quan đến nhau nhưng **không phải cùng một cơ chế**. `java.util.ServiceLoader` chủ yếu giải quyết việc tìm và tạo provider được khai báo qua Java SPI; nó không tự tải dependency từ repository, không xác định thứ tự khởi động các plugin phụ thuộc, không gọi các phương thức nghiệp vụ `start()` hay `stop()`, và không áp đặt một cơ chế nâng cấp/dỡ plugin đang chạy.
+They are related, yet **they are not the same mechanism**. `java.util.ServiceLoader` primarily handles finding and instantiating providers declared via Java SPI; it does not automatically download dependencies from repositories, determine startup order for dependent plugins, invoke business methods like `start()` or `stop()`, or enforce a mechanism to upgrade/unload running plugins.
 
-| Khía cạnh | Khám phá dịch vụ | Quản lý phụ thuộc | Quản lý vòng đời |
+| Aspect | Service discovery | Dependency management | Lifecycle management |
 | --- | --- | --- | --- |
-| Câu hỏi | “Có provider nào cho contract này?” | “Provider cần gì để hoạt động đúng?” | “Provider đang ở trạng thái nào và được phép làm gì?” |
-| Đầu vào điển hình | Service interface, SPI descriptor, module declaration, class loader | Metadata/version, JAR và thư viện, module graph, dịch vụ host, quan hệ plugin | Provider instance, cấu hình, tài nguyên, readiness, request đang chạy |
-| Công cụ/cách làm | `ServiceLoader`, `META-INF/services`, `uses/provides` | Maven/Gradle lúc build, runtime classpath/module resolution, plugin dependency resolver, DI | Plugin manager, state machine, `start/stop/close`, dispatcher và registry |
-| Kết quả | Một hoặc nhiều provider ứng viên | Tập phụ thuộc phù hợp, có thể nạp/được cung cấp | Instance ACTIVE, hoặc STOPPED/FAILED cùng cleanup |
-| Lỗi điển hình | Không có provider, khai báo SPI hỏng | Thiếu lớp, sai version, xung đột dependency, vòng phụ thuộc | Start lỗi, request sau stop, thread/leak tài nguyên |
-| `ServiceLoader` làm được? | Có: tìm và tạo provider theo quy tắc SPI | Không làm dependency resolver tổng quát | Không điều phối lifecycle do ứng dụng định nghĩa |
+| Question | “Which providers exist for this contract?” | “What does the provider need to work properly?” | “What state is the provider in and what is it allowed to do?” |
+| Typical inputs | Service interface, SPI descriptor, module declaration, class loader | Metadata/version, JARs and libraries, module graph, host services, plugin relations | Provider instance, configuration, resources, readiness, in-flight requests |
+| Tools/approaches | `ServiceLoader`, `META-INF/services`, `uses/provides` | Maven/Gradle at build time, runtime classpath/module resolution, plugin dependency resolver, DI | Plugin manager, state machine, `start/stop/close`, dispatcher and registry |
+| Output | One or more candidate providers | Compatible dependency set, loadable/supplied | `ACTIVE` instance, or `STOPPED`/`FAILED` with cleanup |
+| Typical errors | No provider, broken SPI declaration | Missing class, wrong version, dependency conflict, dependency cycle | Start failure, request after stop, thread/resource leak |
+| Can `ServiceLoader` do it? | Yes: finds and instantiates providers per SPI rules | Not a general dependency resolver | Does not orchestrate application-defined lifecycles |
 
-**Ví dụ:** Host tìm thấy `PdfExporter` qua SPI. Điều đó **không chứng minh** phiên bản PDF library mà provider cần đã có, cũng **không chứng minh** kết nối lưu trữ đã được cấp. Sau khi xác minh phụ thuộc, host vẫn phải quyết định có bật provider không, cấp cấu hình và dịch vụ cần thiết, khởi động, đưa vào registry, giám sát rồi dừng theo chính sách.
+**Example:** The host finds `PdfExporter` via SPI. That **does not prove** the PDF library version required by the provider is present, nor does it **prove** a storage connection has been provided. After verifying dependencies, the host still has to decide whether to enable the provider, supply required configuration and services, start it, add it to the registry, monitor it, and stop it according to policy.
 
-Trong bài này, “service discovery” là **khám phá provider Java trong tiến trình** qua SPI/Module System. Đây là khái niệm khác với việc tìm instance dịch vụ mạng bằng DNS, Kubernetes Service hay service registry.
+In this lesson, “service discovery” means **in-process Java provider discovery** via SPI/Module System. This is a different concept from finding network service instances via DNS, Kubernetes Services, or a service registry.
 
-## 2. Khám phá dịch vụ: Java SPI và `ServiceLoader`
+## 2. Service Discovery: Java SPI and `ServiceLoader`
 
-### 2.1. Service contract và provider declaration
+### 2.1. Service Contract and Provider Declaration
 
-Giả sử host công bố một interface:
+Suppose the host publishes an interface:
 
 ```java
 package app.api;
@@ -38,21 +38,21 @@ public interface Plugin {
 }
 ```
 
-Đây chỉ là **đoạn minh họa contract**; ví dụ chạy được ở mục 6 có thêm API vòng đời. Một lớp triển khai `app.ext.UppercasePlugin` có thể đăng ký với SPI trên classpath qua tệp:
+This is only a **contract illustration snippet**; the runnable example in section 6 adds lifecycle APIs. An implementation class `app.ext.UppercasePlugin` can register with SPI on the classpath via the file:
 
 ```text
 META-INF/services/app.api.Plugin
 ```
 
-Nội dung:
+Contents:
 
 ```text
 app.ext.UppercasePlugin
 ```
 
-Tên tệp chính là *fully qualified name* của service interface; mỗi dòng hợp lệ trong tệp chỉ tới một provider class theo quy tắc SPI. Với named modules thuộc JPMS, provider có thể đăng ký bằng khai báo `provides app.api.Plugin with app.ext.UppercasePlugin;` và module tiêu thụ khai báo `uses app.api.Plugin;`.
+The filename is the *fully qualified name* of the service interface; each valid line in the file points to one provider class per SPI rules. With JPMS named modules, a provider can register via `provides app.api.Plugin with app.ext.UppercasePlugin;` and the consuming module declares `uses app.api.Plugin;`.
 
-Host tìm provider bằng:
+The host finds providers with:
 
 ```java
 ServiceLoader<Plugin> loader = ServiceLoader.load(Plugin.class);
@@ -61,37 +61,37 @@ for (Plugin plugin : loader) {
 }
 ```
 
-Đoạn trên là minh họa cần `import java.util.ServiceLoader;` và interface tương ứng. `ServiceLoader.load(Plugin.class)` dùng context class loader của thread; có overload `ServiceLoader.load(Plugin.class, specificLoader)` khi host quản lý plugin qua class loader được chỉ định. `ServiceLoader.load(layer, Plugin.class)` hỗ trợ tìm từ module layer.
+This snippet illustrates usage requiring `import java.util.ServiceLoader;` and the corresponding interface. `ServiceLoader.load(Plugin.class)` uses the thread's context class loader; there is an overload `ServiceLoader.load(Plugin.class, specificLoader)` when the host manages plugins via a designated class loader. `ServiceLoader.load(layer, Plugin.class)` supports lookup from a module layer.
 
-### 2.2. “Đã khám phá” có thể hàm ý những mức khác nhau
+### 2.2. “Discovered” Can Mean Different Levels
 
-Không nên gom mọi thao tác vào một từ “load”:
+Do not lump every operation into the single word “load”:
 
-- **Tìm artifact:** thấy một JAR/manifest trong thư mục plugin; vẫn có thể chưa chạm vào class của plugin.
-- **Tìm khai báo service:** nhận diện tên provider qua `META-INF/services` hoặc module metadata.
-- **Nạp class:** JVM tìm, định nghĩa và liên kết các lớp cần thiết qua class loader; việc nạp không đồng nghĩa gọi constructor hay method `start` của ứng dụng.
-- **Tạo instance provider:** `ServiceLoader` có thể tạo provider khi duyệt `iterator()` hoặc khi gọi `Provider.get()`; lúc này constructor/static initializer liên quan có thể chạy.
-- **Kích hoạt nghiệp vụ:** host tự gọi method khởi động do contract quy định; đây không thuộc nhiệm vụ tự động của `ServiceLoader`.
+- **Artifact discovery:** seeing a JAR/manifest in the plugin directory; may not have touched any plugin classes yet.
+- **Service declaration discovery:** identifying provider names via `META-INF/services` or module metadata.
+- **Class loading:** the JVM finds, defines, and links required classes via a class loader; loading does not mean invoking constructors or the application's `start` method.
+- **Provider instantiation:** `ServiceLoader` may instantiate providers when iterating `iterator()` or calling `Provider.get()`; at this point constructors/relevant static initializers may run.
+- **Business activation:** the host explicitly invokes the startup method defined by the contract; this is not an automatic duty of `ServiceLoader`.
 
-`ServiceLoader` có tính *lazy*: tạo đối tượng loader không buộc tất cả provider được tạo ngay. `findFirst()` trả `Optional<Plugin>`, phù hợp khi ứng dụng chỉ cần một provider có sẵn:
+`ServiceLoader` is *lazy*: creating the loader object does not force all providers to be instantiated immediately. `findFirst()` returns `Optional<Plugin>`, suitable when the application simply needs any available provider:
 
 ```java
 Optional<Plugin> first =
     ServiceLoader.load(Plugin.class).findFirst();
 ```
 
-Tuy nhiên **provider đầu tiên không mặc định là provider tốt nhất**. Thứ tự duyệt có thể chịu ảnh hưởng classpath, module configuration và nguồn đăng ký. Khi lựa chọn provider theo ID, capability, version hay priority, host phải xây quy tắc lựa chọn riêng. `Optional.empty()` chỉ biểu thị không tìm thấy provider nào sau một lần duyệt bình thường; nó không thay cho xác thực dependency hoặc readiness.
+However, **the first provider is not by default the best provider**. Iteration order can be affected by classpath, module configuration, and registration sources. When selecting providers by ID, capability, version, or priority, the host must build its own selection rules. `Optional.empty()` only indicates no provider was found after a normal traversal; it does not substitute for dependency or readiness validation.
 
-### 2.3. `findFirst()` và `stream()` phục vụ nhu cầu khác nhau
+### 2.3. `findFirst()` and `stream()` Serve Different Needs
 
-| API | Kiểu kết quả | Mục đích |
+| API | Return type | Purpose |
 | --- | --- | --- |
-| `loader.findFirst()` | `Optional<Plugin>` | Lấy instance provider đầu tiên |
-| `loader.stream().findFirst()` | `Optional<ServiceLoader.Provider<Plugin>>` | Lấy provider handle đầu tiên |
-| `Provider.type()` | `Class<? extends Plugin>` | Xem kiểu provider mà không chủ động gọi `Provider.get()` |
-| `Provider.get()` | `Plugin` | Yêu cầu tạo/lấy instance provider |
+| `loader.findFirst()` | `Optional<Plugin>` | Obtain the first provider instance |
+| `loader.stream().findFirst()` | `Optional<ServiceLoader.Provider<Plugin>>` | Obtain the first provider handle |
+| `Provider.type()` | `Class<? extends Plugin>` | Inspect provider type without proactively calling `Provider.get()` |
+| `Provider.get()` | `Plugin` | Request/obtain the provider instance |
 
-Chẳng hạn:
+For example:
 
 ```java
 Optional<Plugin> selected = loader.stream()
@@ -100,84 +100,84 @@ Optional<Plugin> selected = loader.stream()
     .map(ServiceLoader.Provider::get);
 ```
 
-Đây là đoạn minh họa lựa chọn theo tên class để chỉ ra sự khác biệt giữa *handle* và *instance*. Việc xem kiểu qua `type()` vẫn có thể cần nạp class/metadata; **không nên coi discovery là hành động an toàn với mã không đáng tin cậy**. Nếu muốn chọn theo ID/capability trước khi khởi tạo instance, nên có metadata/manifest do host kiểm soát thay vì phải gọi constructor chỉ để đọc thuộc tính.
+This snippet illustrates selecting by class name to show the difference between a *handle* and an *instance*. Inspecting type via `type()` may still require loading classes/metadata; **discovery must not be treated as safe on untrusted code**. If you want to select by ID/capability before instantiation, keep host-controlled metadata/manifests instead of having to call constructors just to read properties.
 
-### 2.4. Khám phá không tự giải quyết lỗi cấu hình
+### 2.4. Discovery Does Not Automatically Resolve Configuration Errors
 
-Một tệp SPI có thể khai báo provider không tồn tại, không thuộc service interface, không thể tạo instance hoặc thiếu dependency. Trong trường hợp đó, quá trình duyệt `ServiceLoader` có thể ném `ServiceConfigurationError`. Cần phân biệt:
+An SPI file may declare a provider that does not exist, does not belong to the service interface, cannot be instantiated, or lacks dependencies. In that case, iterating `ServiceLoader` can throw `ServiceConfigurationError`. Distinguish:
 
-- Không có provider nào: `findFirst()` trả `Optional.empty()`.
-- Có khai báo provider nhưng không dùng được: thường là lỗi cấu hình/nạp/tạo provider; phải chẩn đoán và khắc phục, không biến hết thành “trống”.
-- Có provider nhưng không đáp ứng chính sách lựa chọn: host có thể trả kết quả “không có provider phù hợp”, dù SPI vẫn phát hiện được các provider khác.
+- No providers at all: `findFirst()` returns `Optional.empty()`.
+- Providers declared but unusable: usually a configuration/loading/instantiation error; must be diagnosed and fixed, not turned into “empty”.
+- Providers exist but fail selection policy: the host can return “no matching provider”, even though SPI still discovered other providers.
 
-## 3. Quản lý phụ thuộc: “nhìn thấy provider” chưa đủ để chạy được
+## 3. Dependency Management: “Seeing a Provider” Is Not Enough to Run It
 
-### 3.1. Bốn loại phụ thuộc thường gặp
+### 3.1. Four Common Dependency Types
 
-**1. Phụ thuộc thư viện/mã:** provider cần thư viện bên ngoài hoặc một phiên bản Java/JAR cụ thể. Ví dụ `PdfExporter` cần một thư viện tạo PDF, nhưng `ServiceLoader` không tải thư viện đó giúp bạn. Maven/Gradle giải quyết phụ thuộc trong quá trình build/packaging; môi trường runtime vẫn cần có đúng class/module cần thiết. Thiếu dependency có thể dẫn tới `ClassNotFoundException`, `NoClassDefFoundError` hoặc `LinkageError`.
+**1. Library/code dependencies:** the provider needs external libraries or a specific Java/JAR version. For example, `PdfExporter` needs a PDF generation library, yet `ServiceLoader` does not fetch that library for you. Maven/Gradle resolve dependencies during build/packaging; the runtime environment still needs the right classes/modules present. Missing dependencies can cause `ClassNotFoundException`, `NoClassDefFoundError`, or `LinkageError`.
 
-**2. Phụ thuộc API dùng chung:** host và plugin phải hiểu cùng service contract/DTO. Trong JVM, danh tính của một class gồm **tên đầy đủ + defining class loader**. Nếu một JAR plugin tự mang bản sao `app.api.Plugin` được nạp bởi class loader khác, host có thể gặp lỗi ép kiểu hoặc liên kết dù tên class giống nhau. Thông thường host/parent loader sở hữu contract ổn định; plugin loader chỉ nạp implementation và dependency riêng.
+**2. Shared API dependencies:** the host and plugin must understand the same service contracts/DTOs. In the JVM, a class's identity consists of **fully qualified name + defining class loader**. If a plugin JAR bundles its own copy of `app.api.Plugin` loaded by a different class loader, the host can hit cast or linkage errors despite identical class names. Typically the host/parent loader owns stable contracts; plugin loaders load only implementations and private dependencies.
 
-**3. Phụ thuộc dịch vụ host:** provider cần logger, clock, repository, cấu hình hoặc khách hàng HTTP. Host phải tạo, chọn, cấu hình và cấp những dịch vụ đó qua interface/context hay DI. `ServiceLoader` không biết provider cần một `AuditLog` hay một kết nối database như thế nào, trừ khi ứng dụng tự thiết kế contract và quy trình cấp dependency.
+**3. Host service dependencies:** the provider needs a logger, clock, repository, configuration, or HTTP client. The host must create, select, configure, and supply those services via interfaces/context or DI. `ServiceLoader` has no idea how a provider needs an `AuditLog` or a database connection unless the application designs the contract and dependency-provision flow.
 
-**4. Phụ thuộc plugin khác:** ví dụ plugin `Report` cần plugin `Storage` đã `ACTIVE`; plugin `Export` lại cần `Report`. Host phải biết các cạnh phụ thuộc, kiểm tra version/capability và khởi động theo thứ tự hợp lệ.
+**4. Inter-plugin dependencies:** for example, the `Report` plugin needs the `Storage` plugin to be `ACTIVE`; the `Export` plugin in turn needs `Report`. The host must know dependency edges, check versions/capabilities, and start them in valid order.
 
-### 3.2. Đồ thị phụ thuộc và thứ tự khởi động
+### 3.2. Dependency Graph and Startup Order
 
-Giả sử:
+Suppose:
 
 ```text
 Export ──requires──► Report ──requires──► Storage
 ```
 
-Nếu ký hiệu `A → B` là “A cần B”, thứ tự khởi động nên là:
+If `A → B` denotes “A depends on B”, startup order should be:
 
 ```text
 Storage → Report → Export
 ```
 
-Khi dừng, đảo ngược:
+On shutdown, reverse it:
 
 ```text
 Export → Report → Storage
 ```
 
-Một plugin manager có thể áp dụng **topological sort** cho dependency graph, rồi:
+A plugin manager can apply **topological sort** to the dependency graph, and then:
 
-1. Đọc danh sách dependency/capability và yêu cầu version.
-2. Xác minh mỗi dependency bắt buộc có mặt và tương thích; dependency tùy chọn có chính sách rõ ràng.
-3. Phát hiện vòng phụ thuộc, ví dụ A cần B và B cần A, để báo lỗi có thể chẩn đoán.
-4. Chuẩn bị class loader/module layer và các dịch vụ cần thiết.
-5. Khởi động các phần phụ thuộc trước, chỉ kích hoạt plugin đang chờ khi những phần bắt buộc đã sẵn sàng.
-6. Dừng theo thứ tự ngược, tránh đóng một dependency trong khi plugin khác vẫn dùng nó.
+1. Read dependency/capability lists and version constraints.
+2. Verify each mandatory dependency is present and compatible; optional dependencies follow a clear policy.
+3. Detect dependency cycles, such as A needing B and B needing A, to report actionable diagnostics.
+4. Prepare class loaders/module layers and required services.
+5. Start dependencies first, activating waiting plugins only when mandatory prerequisites are ready.
+6. Stop in reverse order, avoiding closing a dependency while another plugin still uses it.
 
-Đây là chính sách của host/framework, **không phải chức năng có sẵn của `ServiceLoader`**. Đặc biệt, một vòng lặp `for (Plugin p : ServiceLoader.load(Plugin.class))` không bảo đảm đưa các plugin vào đúng thứ tự phụ thuộc.
+This is a host/framework policy, **not a built-in feature of `ServiceLoader`**. In particular, a `for (Plugin p : ServiceLoader.load(Plugin.class))` loop never guarantees putting plugins in proper dependency order.
 
-### 3.3. Maven/Gradle, JPMS và dependency injection khác nhau ra sao?
+### 3.3. How Do Maven/Gradle, JPMS, and Dependency Injection Differ?
 
-| Cơ chế | Giải quyết được | Không giải quyết tự động |
+| Mechanism | What it resolves | What it does not resolve automatically |
 | --- | --- | --- |
-| Maven/Gradle | Khai báo, lấy và đóng gói dependency trong build | Quyết định plugin nào `ACTIVE`, chạy `start/stop` của runtime plugin |
-| Classpath và class loader | Nạp/tìm class từ nguồn được cung cấp | Tải dependency thiếu từ repository, xác minh version theo chính sách nghiệp vụ |
-| JPMS `requires` và module resolution | Ràng buộc tính đọc được và giải quyết dependency module khi cấu hình layer | Đưa plugin vào trạng thái nghiệp vụ READY, đợi inflight request, close resource |
-| DI container/factory | Tạo object graph và tiêm dependency theo cấu hình | Tự nhận diện mọi provider bên ngoài hay điều phối hot swap nếu không được cấu hình |
-| Plugin manager tự thiết kế | Có thể kết hợp metadata, graph resolution, DI, trạng thái, health check và cleanup | Chỉ làm được những chính sách mà ứng dụng thực sự triển khai |
+| Maven/Gradle | Declaring, fetching, and packaging dependencies at build time | Deciding which plugins are `ACTIVE`, running runtime plugin `start/stop` |
+| Classpath and class loaders | Loading/finding classes from provided sources | Downloading missing dependencies from repositories, verifying versions per business policy |
+| JPMS `requires` and module resolution | Enforcing readability and resolving module dependencies when configuring layers | Bringing plugins to business `READY` state, awaiting in-flight requests, closing resources |
+| DI container/factory | Building object graphs and injecting dependencies per configuration | Auto-discovering arbitrary external providers or orchestrating hot swaps if unconfigured |
+| Custom plugin manager | Can combine metadata, graph resolution, DI, state, health checks, and cleanup | Only enforces the policies the application actually implements |
 
-**JPMS làm rõ dependency ở cấp module**, nhưng việc cấu hình module layer và runtime lifecycle vẫn cần host chủ động quản lý. **DI giải quyết quan hệ giữa các object**, còn service discovery giúp tìm tập provider ứng viên. Nhiều ứng dụng kết hợp cả hai.
+**JPMS clarifies dependencies at the module level**, yet configuring module layers and runtime lifecycles still requires active host management. **DI resolves relationships between objects**, while service discovery finds candidate providers. Many applications combine both.
 
-### 3.4. Dependency conflict trong plugin động
+### 3.4. Dependency Conflicts in Dynamic Plugins
 
-Nếu hai plugin đòi hai phiên bản không tương thích của cùng thư viện, đưa cả hai lên một classpath có thể gây lỗi. Một chiến lược là class loader riêng cho plugin, đặt API dùng chung ở parent và quản lý policy cho dependency riêng. Điều đó cần xét:
+If two plugins require incompatible versions of the same library, putting both on one classpath can cause failures. One strategy is a dedicated class loader per plugin, placing shared APIs in the parent and managing policies for private dependencies. This requires examining:
 
-- Ranh giới parent-first/child-first thực tế và sự xuất hiện của trùng package.
-- Không đóng gói lặp contract của host vào plugin.
-- Dependency được chia sẻ hay cô lập; JNI/native library có giới hạn riêng.
-- Thread, callback, `ThreadLocal` hoặc cache nào có thể giữ class loader cũ sau reload.
-- Quyền truy cập tài nguyên: **class loader isolation không phải security sandbox**. Plugin chạy trong cùng tiến trình thường có các quyền của tiến trình.
+- Effective parent-first/child-first boundaries and overlapping packages.
+- Avoiding re-packaging host contracts inside plugins.
+- Shared vs. isolated dependencies; JNI/native libraries have their own constraints.
+- Which threads, callbacks, `ThreadLocal`s, or caches might retain an old class loader after reload.
+- Resource access rights: **class loader isolation is not a security sandbox**. Plugins running in the same process generally hold the process's privileges.
 
-## 4. Quản lý vòng đời: provider phải được kích hoạt và dừng rõ ràng
+## 4. Lifecycle Management: Providers Must Be Activated and Stopped Explicitly
 
-### 4.1. Một state machine hợp lý
+### 4.1. A Reasonable State Machine
 
 ```text
 DISCOVERED
@@ -189,29 +189,29 @@ VALIDATED / DEPENDENCIES_RESOLVED
 INSTANTIATED
     │
     ▼
-STARTING ──lỗi──► FAILED ──cleanup──► STOPPED
+STARTING ──error──► FAILED ──cleanup──► STOPPED
     │
-  thành công
+  success
     ▼
-ACTIVE ──ngừng nhận mới──► QUIESCING
-                              │
-                           đợi inflight
-                              ▼
-                           STOPPING
-                              │
-                              ▼
-                            STOPPED
+ACTIVE ──stop new requests──► QUIESCING
+                                  │
+                            wait inflight
+                                  ▼
+                               STOPPING
+                                  │
+                                  ▼
+                                STOPPED
 ```
 
-Các tên trạng thái là **thiết kế ở cấp ứng dụng**; JVM không có sẵn state machine này cho SPI. Host quyết định ai được gọi khi nào:
+These state names are an **application-level design**; the JVM provides no built-in state machine like this for SPI. The host decides who gets called when:
 
-- Chỉ công bố plugin vào registry phục vụ request sau khi `start` và readiness check thành công.
-- Chặn các lời gọi mới ngay khi chuyển sang `QUIESCING`.
-- Cho những lời gọi đang chạy hoàn thành trong deadline, sau đó áp dụng chính sách hủy/rollback.
-- Gọi `stop()`/`close()`, hủy đăng ký listener, đóng executor/thread, stream, socket và các tài nguyên mà plugin sở hữu.
-- Gỡ plugin khỏi registry, callback và cache; đóng class loader do host tạo khi thích hợp.
+- Publish a plugin into the request-serving registry only after `start` and readiness checks succeed.
+- Block new calls as soon as transitioning to `QUIESCING`.
+- Let in-flight calls finish within a deadline, then apply cancellation/rollback policies.
+- Call `stop()`/`close()`, unregister listeners, close executors/threads, streams, sockets, and plugin-owned resources.
+- Remove the plugin from registries, callbacks, and caches; close host-created class loaders when appropriate.
 
-Một hợp đồng vòng đời phổ biến:
+A common lifecycle contract:
 
 ```java
 public interface ManagedPlugin {
@@ -222,76 +222,76 @@ public interface ManagedPlugin {
 }
 ```
 
-Đây là **minh họa thiết kế API**, chưa phải chương trình chạy đầy đủ. Contract nên quy định thread safety, idempotence của `stop`, cách xử lý lỗi một phần khi `start` thất bại và deadline khi chờ request kết thúc.
+This is an **API design illustration**, not a complete runnable program. The contract should specify thread safety, idempotency of `stop`, partial-failure handling when `start` fails, and deadlines when waiting for requests to finish.
 
-### 4.2. Tạo instance khác với khởi động nghiệp vụ
+### 4.2. Instantiation Differs from Business Startup
 
-Khi `ServiceLoader` tạo provider, constructor và logic khởi tạo class có thể chạy. Nhưng `ServiceLoader` **không tự gọi** một phương thức `start` mà bạn tự khai báo.
+When `ServiceLoader` instantiates a provider, constructors and class initialization logic may run. However, `ServiceLoader` **never automatically calls** a `start` method that you declare.
 
-Ví dụ một plugin `StoragePlugin` có constructor không tham số. Dù `ServiceLoader.findFirst()` tìm được instance, host vẫn phải cung cấp cấu hình/kết nối trước khi đưa plugin vào bộ định tuyến. Nếu constructor gây side effect lớn, host rất khó kiểm soát và rollback; nên giữ constructor gọn và đưa phần khởi động chủ động vào `start`.
+For instance, a `StoragePlugin` has a no-arg constructor. Even if `ServiceLoader.findFirst()` finds an instance, the host still has to supply configuration/connections before placing the plugin into the router. If the constructor triggers heavy side effects, the host can hardly control or roll them back; keep constructors lean and put active initialization in `start`.
 
-Khi `start` thất bại sau khi đã tạo một số tài nguyên, plugin nên tự giải phóng phần đã cấp phát; host không đánh dấu `ACTIVE` và tránh điều phối request vào instance đó. Khi plugin khác phụ thuộc instance này, manager phải ngăn khởi động hoặc đánh dấu trạng thái phụ thuộc lỗi theo chính sách.
+When `start` fails after allocating some resources, the plugin should release what it allocated; the host does not mark it `ACTIVE` and avoids routing requests to that instance. When another plugin depends on this instance, the manager must block startup or mark the dependency state failed per policy.
 
-### 4.3. Dừng plugin không có nghĩa unload class
+### 4.3. Stopping a Plugin Does Not Mean Unloading Classes
 
-`URLClassLoader.close()` đóng các file/JAR mà loader đã mở; nó **không giết thread**, không làm các object plugin đang tồn tại ngừng hoạt động và không bảo đảm class unloading. Class loader/class chỉ có thể được GC dọn khi không còn tham chiếu giữ chúng. Các nguồn giữ lại thường là thread, TCCL (`Thread.currentThread().getContextClassLoader()`), `ThreadLocal`, static cache, listener, callback, executor và registry.
+`URLClassLoader.close()` closes files/JARs opened by the loader; it **does not kill threads**, does not stop existing plugin objects from running, and does not guarantee class unloading. Class loaders/classes can only be collected by GC when no live references retain them. Common retention sources include threads, TCCL (`Thread.currentThread().getContextClassLoader()`), `ThreadLocal`, static caches, listeners, callbacks, executors, and registries.
 
-Đối với **hot reload**, thường dùng loader mới + instance mới, kiểm tra compatibility, khởi động và health check, chuyển traffic, đợi request cũ, dừng instance cũ, bỏ các tham chiếu cũ rồi đóng loader cũ. `ServiceLoader.reload()` chỉ xóa cache provider của đối tượng `ServiceLoader`; nó không thay định nghĩa class đã được JVM nạp bằng loader cũ và không tự gọi `stop`.
+For **hot reload**, a typical flow uses a new loader + new instance, checks compatibility, starts and health-checks, shifts traffic, drains old requests, stops the old instance, clears old references, and then closes the old loader. `ServiceLoader.reload()` only clears the `ServiceLoader` object's provider cache; it does not replace classes already loaded by the JVM via the old loader and does not call `stop`.
 
-## 5. Khi lựa chọn provider, ba cơ chế kết hợp với nhau thế nào?
+## 5. When Selecting Providers, How Do the Three Mechanisms Fit Together?
 
-Một quy trình vận hành điển hình:
+A typical operational pipeline:
 
 ```text
-[1] Nhận artifact / metadata
+[1] Receive artifact / metadata
           │
           ▼
-[2] Xác thực nguồn, version, capability, dependency bắt buộc
+[2] Validate source, version, capability, required dependencies
           │
           ▼
-[3] Resolve dependency graph, cấu hình class loader/module layer
+[3] Resolve dependency graph, configure class loader/module layer
           │
           ▼
-[4] SPI discovery: ServiceLoader → các provider ứng viên
+[4] SPI discovery: ServiceLoader → candidate providers
           │
           ▼
-[5] Selection policy: bật/tắt, ID, capability, priority, compatibility
+[5] Selection policy: enabled/disabled, ID, capability, priority, compatibility
           │
           ▼
-[6] Tạo instance, cấp HostServices, gọi start và readiness check
+[6] Instantiate, supply HostServices, invoke start and readiness check
           │
           ▼
-[7] Chỉ đưa provider ACTIVE vào registry nhận request
+[7] Publish only ACTIVE providers to the request-serving registry
           │
           ▼
-[8] Quiesce → stop → cleanup theo dependency order
+[8] Quiesce → stop → cleanup in dependency order
 ```
 
-Thứ tự thực thi cụ thể phụ thuộc kiến trúc: provider trên classpath có thể được đóng gói với dependency từ trước, nên bước resolve ở runtime gần như không nhìn thấy; hệ thống nạp JAR động cần xác minh metadata và thư viện **trước khi** cho code provider chạy. Điểm cốt lõi là host phải phân biệt **“được tìm thấy”**, **“hợp lệ để lựa chọn”** và **“sẵn sàng để phục vụ”**.
+The exact execution order depends on architecture: classpath providers may bundle dependencies upfront, making runtime resolution nearly invisible; dynamic JAR-loading systems must verify metadata and libraries **before** letting provider code execute. The core point is that the host must distinguish **“discovered”**, **“eligible for selection”**, and **“ready to serve”**.
 
-### Selection policy cần rõ ràng
+### Selection Policy Must Be Explicit
 
-Nếu có hai provider cùng một interface, đừng đơn thuần dùng `findFirst()` khi nghiệp vụ yêu cầu lựa chọn xác định. Host có thể:
+If two providers implement the same interface, do not merely call `findFirst()` when the business requires deterministic selection. The host can:
 
-- Lọc theo `id` và kiểm tra ID không trùng.
-- Lọc theo capability (ví dụ `supports("pdf")`).
-- Kiểm tra version contract, flags bật/tắt và chính sách nguồn đã được tin cậy.
-- Ưu tiên dựa trên cấu hình/priority được định nghĩa, có tie-break ổn định.
-- Chỉ chọn provider có dependency đã thỏa mãn; chỉ dispatch sau readiness.
+- Filter by `id` and verify there are no duplicate IDs.
+- Filter by capability (for example `supports("pdf")`).
+- Check contract version, enable/disable flags, and trusted-source policy.
+- Prioritize based on defined configuration/priority, with a stable tie-breaker.
+- Select only providers whose dependencies are satisfied; dispatch only after readiness.
 
-Đối với provider **không có**, nên phân biệt “tính năng tùy chọn → bỏ qua/fallback”, “tính năng bắt buộc → báo lỗi rõ” và “có provider nhưng hỏng dependency/config → không im lặng fallback”. Nếu nhiều provider có cùng ID, manager nên từ chối cấu hình mơ hồ hoặc áp dụng quy tắc xung đột tường minh.
+For **missing** providers, distinguish “optional feature → skip/fallback”, “mandatory feature → report clear error”, and “provider exists but dependency/config is broken → do not silently fall back”. If multiple providers share the same ID, the manager should reject the ambiguous configuration or apply an explicit conflict rule.
 
-## 6. Ví dụ Java 17+ chạy được: khám phá bằng SPI, host tự cấp phụ thuộc và quản lý lifecycle
+## 6. Runnable Java 17+ Example: SPI Discovery, Host-Supplied Dependencies, and Lifecycle Management
 
-Ví dụ dưới đây cố tình tách ba trách nhiệm bằng ba thao tác nhìn thấy được:
+The example below intentionally separates the three responsibilities into three visible operations:
 
-1. **Khám phá và chọn:** `ServiceLoader` tìm lớp thực thi `Plugin` từ một JAR và host chọn theo `id`.
-2. **Cấp dependency:** host tạo `AuditLog` rồi truyền vào `start(AuditLog)`. `ServiceLoader` không cấp dependency này.
-3. **Vòng đời:** host chủ động gọi `start`, `process` và `stop` trong `finally`.
+1. **Discovery and selection:** `ServiceLoader` finds `Plugin` implementations from a JAR and the host selects by `id`.
+2. **Dependency supply:** the host creates `AuditLog` and passes it into `start(AuditLog)`. `ServiceLoader` does not supply this dependency.
+3. **Lifecycle:** the host explicitly invokes `start`, `process`, and `stop` inside `finally`.
 
-Ví dụ chỉ có một plugin để giữ mã dễ theo dõi. Một plugin manager production cần bổ sung resolver cho quan hệ plugin-to-plugin, version check, đồng bộ trạng thái, giới hạn thời gian và xử lý lỗi khởi động một phần như đã giải thích.
+The example uses only one plugin to keep code easy to follow. A production plugin manager needs to add a resolver for plugin-to-plugin relations, version checks, state synchronization, timeouts, and partial-startup failure handling as explained above.
 
-### 6.1. Cấu trúc
+### 6.1. Structure
 
 ```text
 demo/
@@ -310,7 +310,7 @@ demo/
             └── app.api.Plugin
 ```
 
-### 6.2. Contract cấp cho cả host và plugin
+### 6.2. Contract Provided to Both Host and Plugin
 
 **`src/app/api/AuditLog.java`**
 
@@ -336,9 +336,9 @@ public interface Plugin {
 }
 ```
 
-`AuditLog` là một **phụ thuộc của plugin do host cấp**, không phải service mà `ServiceLoader` tự động biết cách khởi tạo và tiêm.
+`AuditLog` is a **host-supplied plugin dependency**, not a service that `ServiceLoader` automatically knows how to instantiate and inject.
 
-### 6.3. Implementation được đóng trong JAR riêng
+### 6.3. Implementation Packaged in a Separate JAR
 
 **`src/app/ext/UppercasePlugin.java`**
 
@@ -354,7 +354,7 @@ public final class UppercasePlugin implements Plugin {
     private AuditLog audit;
     private boolean active;
 
-    // Constructor mặc định không tham số, dùng được với SPI.
+    // Default no-arg constructor, usable with SPI.
     @Override
     public String id() {
         return "uppercase";
@@ -390,9 +390,9 @@ public final class UppercasePlugin implements Plugin {
 }
 ```
 
-`active` trong ví dụ chỉ phục vụ kiểm tra vòng đời tuần tự; nó **không phải** giải pháp thread safety cho ứng dụng có nhiều request đồng thời. Trong production, việc chuyển trạng thái và đếm inflight cần cơ chế đồng bộ/điều phối thích hợp.
+`active` in the example serves only to verify sequential lifecycle checks; it is **not** a thread-safety solution for applications handling concurrent requests. In production, state transitions and in-flight tracking require proper synchronization/coordination.
 
-### 6.4. Host khám phá, chọn, tiêm dependency rồi dừng
+### 6.4. Host Discovers, Selects, Injects Dependency, and Stops
 
 **`src/app/host/App.java`**
 
@@ -408,8 +408,8 @@ public final class App {
     public static void main(String[] args) {
         String desiredId = args.length == 0 ? "uppercase" : args[0];
 
-        // (1) Khám phá: SPI tạo các provider khi stream được duyệt.
-        // (2) Lựa chọn: chính sách ID do host quyết định.
+        // (1) Discovery: SPI instantiates providers as the stream is traversed.
+        // (2) Selection: ID policy is decided by the host.
         Optional<Plugin> selected = ServiceLoader.load(Plugin.class)
             .stream()
             .map(ServiceLoader.Provider::get)
@@ -423,65 +423,65 @@ public final class App {
 
         Plugin plugin = selected.orElseThrow();
 
-        // (3) Quản lý dependency: host tự tạo và cấp AuditLog.
+        // (3) Dependency management: host creates and supplies AuditLog.
         AuditLog audit = event -> System.out.println("[audit] " + event);
 
-        // (4) Quản lý lifecycle: ServiceLoader không tự gọi start/stop.
+        // (4) Lifecycle management: ServiceLoader does not call start/stop automatically.
         try {
             plugin.start(audit);
             System.out.println("Kết quả: " + plugin.process("Java SPI"));
         } finally {
-            // Hợp đồng plugin phải cho phép cleanup kể cả khi start lỗi.
+            // Plugin contract must allow cleanup even if start fails.
             plugin.stop();
         }
     }
 }
 ```
 
-Ở đây `map(ServiceLoader.Provider::get)` tạo instance cho các ứng viên được duyệt tới trước khi lọc ID. Nếu có rất nhiều plugin và muốn chọn **trước khi khởi tạo**, cần metadata bên ngoài hoặc một chính sách dựa trên `Provider.type()`; không nên tạo tất cả chỉ để đọc ID khi việc khởi tạo tốn kém. Đoạn mã này chủ ý giữ mô hình lựa chọn đơn giản.
+Here `map(ServiceLoader.Provider::get)` instantiates candidates visited before filtering by ID. If there are many plugins and you want to select **before instantiation**, you need external metadata or a policy based on `Provider.type()`; do not instantiate everything just to read IDs when instantiation is expensive. This snippet intentionally keeps the selection model simple.
 
-### 6.5. Khai báo SPI
+### 6.5. SPI Declaration
 
-Tạo tệp **`resources/META-INF/services/app.api.Plugin`** có nội dung:
+Create file **`resources/META-INF/services/app.api.Plugin`** containing:
 
 ```text
 app.ext.UppercasePlugin
 ```
 
-Tệp phải nằm trong JAR provider đúng vị trí; service interface `app.api.Plugin` nằm trong host/API, không đóng gói lặp vào provider JAR.
+The file must be placed inside the provider JAR at the right path; the service interface `app.api.Plugin` belongs in the host/API and should not be duplicated inside the provider JAR.
 
-### 6.6. Biên dịch và chạy trên Windows PowerShell
+### 6.6. Compiling and Running on Windows PowerShell
 
-Đứng tại thư mục `demo` với JDK 17+ (`javac`, `java` và `jar` có trong `PATH`):
+Stand in the `demo` directory with JDK 17+ (`javac`, `java`, and `jar` on `PATH`):
 
 ```powershell
 New-Item -ItemType Directory -Force build/host, build/provider | Out-Null
 
-# Biên dịch contract và host, chưa đưa implementation lên classpath.
+# Compile contract and host, without putting implementation on classpath.
 javac -encoding UTF-8 -d build/host src/app/api/AuditLog.java src/app/api/Plugin.java src/app/host/App.java
 
-# Provider được biên dịch riêng, phụ thuộc vào API ở build/host.
+# Provider is compiled separately, depending on the API in build/host.
 javac -encoding UTF-8 -cp build/host -d build/provider src/app/ext/UppercasePlugin.java
 
-# Đóng descriptor SPI và class provider vào JAR.
+# Package SPI descriptor and provider class into a JAR.
 New-Item -ItemType Directory -Force build/provider/META-INF/services | Out-Null
 Copy-Item resources/META-INF/services/app.api.Plugin build/provider/META-INF/services/app.api.Plugin
 jar --create --file build/uppercase-plugin.jar -C build/provider .
 
-# Thử không có provider:
+# Test without provider:
 java -cp build/host app.host.App
 
-# Thử có provider:
+# Test with provider:
 java -cp 'build/host;build/uppercase-plugin.jar' app.host.App
 ```
 
-**Chạy lần 1 (không có provider)** — stdout chính xác:
+**Run 1 (without provider)** — exact stdout:
 
 ```text
 Không có provider: uppercase
 ```
 
-**Chạy lần 2 (có JAR provider)** — stdout chính xác:
+**Run 2 (with provider JAR)** — exact stdout:
 
 ```text
 [audit] start uppercase
@@ -489,13 +489,13 @@ Kết quả: JAVA SPI
 [audit] stop uppercase
 ```
 
-Giải thích theo ba trách nhiệm:
+Explanation across the three responsibilities:
 
-- **Discovery:** lần 1 thiếu descriptor/provider trong runtime classpath nên `selected.isEmpty()` là `true`; lần 2 thấy descriptor, SPI tạo instance `UppercasePlugin`.
-- **Dependency:** host tạo lambda `AuditLog` rồi **truyền tường minh** vào `plugin.start(audit)`. Không có dòng nào của `ServiceLoader` tự tiêm `AuditLog`.
-- **Lifecycle:** `start` và `stop` ghi log qua dependency; `process` chỉ chạy giữa hai lời gọi đó. Nếu bỏ `start` mà gọi `process`, implementation sẽ ném `IllegalStateException("Plugin not active")`.
+- **Discovery:** Run 1 lacks the descriptor/provider on the runtime classpath, so `selected.isEmpty()` is `true`; Run 2 finds the descriptor, and SPI instantiates `UppercasePlugin`.
+- **Dependency:** the host creates the `AuditLog` lambda and **passes it explicitly** into `plugin.start(audit)`. No line in `ServiceLoader` injects `AuditLog`.
+- **Lifecycle:** `start` and `stop` log through the dependency; `process` runs only between those two calls. If you skip `start` and call `process`, the implementation throws `IllegalStateException("Plugin not active")`.
 
-Để thử lựa chọn theo ID khi đã có JAR, chạy:
+To test ID selection with the JAR present, run:
 
 ```powershell
 java -cp 'build/host;build/uppercase-plugin.jar' app.host.App unknown
@@ -507,74 +507,74 @@ Stdout:
 Không có provider: unknown
 ```
 
-Lúc này **SPI vẫn khám phá được `UppercasePlugin`**, nhưng host không chọn nó vì ID không khớp. Điều này phân biệt rõ “không có provider được đăng ký” với “có provider nhưng không phù hợp tiêu chí chọn”.
+At this point **SPI still discovered `UppercasePlugin`**, yet the host did not select it because the ID did not match. This clearly distinguishes “no provider registered” from “provider exists but does not match selection criteria”.
 
-Trên Linux/macOS dùng `mkdir -p`/`cp` thay cho `New-Item`/`Copy-Item` và dấu hai chấm `:` thay dấu chấm phẩy `;` giữa các phần classpath; ví dụ `java -cp 'build/host:build/uppercase-plugin.jar' app.host.App`.
+On Linux/macOS use `mkdir -p`/`cp` instead of `New-Item`/`Copy-Item` and a colon `:` instead of a semicolon `;` between classpath entries; for example `java -cp 'build/host:build/uppercase-plugin.jar' app.host.App`.
 
-### 6.7. Giới hạn của ví dụ
+### 6.7. Limitations of the Example
 
-Ví dụ không dùng dependency resolver bên ngoài, không thực hiện khởi động nhiều plugin theo dependency graph, không quản lý class loader riêng và không hot swap. Với **cùng JVM và một lần chạy**, `ServiceLoader` tìm các provider đã hiện diện trong classpath. Nếu muốn cài JAR mới trong khi host vẫn đang chạy, phải quản lý class loader/module layer, phiên bản API, thư viện liên quan và lifecycle của instance cũ/mới. Demo chỉ chứng minh rằng discovery, dependency injection và lifecycle là các trách nhiệm khác nhau.
+The example does not use an external dependency resolver, does not start multiple plugins according to a dependency graph, does not manage dedicated class loaders, and does not hot swap. Within **the same JVM and a single run**, `ServiceLoader` finds providers already present on the classpath. To install new JARs while the host is running, you must manage class loaders/module layers, API versions, related libraries, and old/new instance lifecycles. The demo only proves that discovery, dependency injection, and lifecycle are separate responsibilities.
 
-Trong ví dụ, `stop` có thể gọi lặp lại mà không gây tác dụng phụ. Với plugin mở tài nguyên ngay giữa `start` rồi lỗi, contract phải yêu cầu cleanup phần đã mở (trong `start` hoặc `stop`). Khi ứng dụng phức tạp có nhiều plugin, host cũng nên bắt lỗi cleanup riêng để tiếp tục dọn các thành phần khác.
+In the example, `stop` can be called repeatedly without side effects. For plugins that open resources midway through `start` and then fail, the contract must require cleaning up partially opened resources (in `start` or `stop`). In complex applications with many plugins, the host should also catch cleanup errors individually so it can continue cleaning up other components.
 
-## 7. Các tình huống thực tế và cách thiết kế
+## 7. Real-World Scenarios and How to Design for Them
 
-### Tình huống A: ServiceLoader tìm được provider nhưng thiếu thư viện
+### Scenario A: ServiceLoader Finds a Provider, but a Library Is Missing
 
-Một provider `CsvExporter` được khai báo đúng SPI nhưng tham chiếu thư viện phiên bản khác với môi trường chạy. Khi duyệt, JVM có thể ném `NoClassDefFoundError`, `LinkageError` hoặc `ServiceConfigurationError` tùy nơi lỗi phát sinh.
+A `CsvExporter` provider is properly declared for SPI, yet references a different library version than the runtime environment provides. During iteration, the JVM may throw `NoClassDefFoundError`, `LinkageError`, or `ServiceConfigurationError` depending on where the failure happens.
 
-**Cách xử lý:** kiểm tra artifact/dependency/bytecode và policy version; sửa runtime packaging hoặc resolver. Không kết luận rằng chỉ cần gọi `findFirst()` lần nữa hoặc `reload()` là đủ. Không biến lỗi tạo provider thành `Optional.empty()` để âm thầm dùng fallback.
+**How to handle:** verify artifacts/dependencies/bytecode and version policies; fix runtime packaging or the resolver. Do not assume calling `findFirst()` again or `reload()` is enough. Do not convert provider instantiation errors into `Optional.empty()` to silently fall back.
 
-### Tình huống B: Có hai provider đều triển khai cùng contract
+### Scenario B: Two Providers Implement the Same Contract
 
-`FastCompressor` và `SafeCompressor` cùng implement `Compressor`. `findFirst()` chỉ cho “provider đầu tiên được duyệt” và không hiểu nhu cầu hiệu năng hay an toàn.
+`FastCompressor` and `SafeCompressor` both implement `Compressor`. `findFirst()` merely gives “the first traversed provider” and knows nothing about performance or safety needs.
 
-**Cách xử lý:** host định policy chọn dựa vào ID, định dạng hỗ trợ, feature flag, độ ưu tiên, compatibility và ràng buộc cần thiết. Nếu dùng priority, phải quy định khi bằng điểm và có thể không ổn định theo thứ tự SPI.
+**How to handle:** the host defines a selection policy based on ID, supported formats, feature flags, priority, compatibility, and required constraints. If using priority, specify tie handling and do not rely on SPI order stability.
 
-### Tình huống C: Provider phụ thuộc plugin khác
+### Scenario C: A Provider Depends on Another Plugin
 
-`ReportPlugin` đòi `StoragePlugin` ở trạng thái `ACTIVE`. `ServiceLoader` có thể tìm cả hai nhưng không tự biết cần khởi động `StoragePlugin` trước.
+`ReportPlugin` requires `StoragePlugin` to be in the `ACTIVE` state. `ServiceLoader` can find both, yet has no idea `StoragePlugin` must start first.
 
-**Cách xử lý:** quản lý dependency graph, kiểm tra presence/version, resolve thứ tự và chỉ đưa `ReportPlugin` vào registry khi dependency sẵn sàng. Khi tắt, dừng `ReportPlugin` trước `StoragePlugin`.
+**How to handle:** manage a dependency graph, check presence/versions, resolve order, and publish `ReportPlugin` to the registry only when its dependencies are ready. On shutdown, stop `ReportPlugin` before `StoragePlugin`.
 
-### Tình huống D: Provider khởi động thất bại
+### Scenario D: A Provider Fails to Start
 
-`PaymentPlugin.start()` mở kết nối rồi lỗi vì thiếu cấu hình. Việc discovery thành công không có nghĩa plugin đủ điều kiện nhận request.
+`PaymentPlugin.start()` opens a connection and fails due to missing configuration. Succeeding at discovery does not mean the plugin is eligible to receive requests.
 
-**Cách xử lý:** state machine chuyển sang `FAILED`, không publish instance, ghi lỗi và rollback tài nguyên đã mở. Dịch vụ host cần thông báo tình trạng health thay vì tiếp tục gọi instance chưa khởi động.
+**How to handle:** transition the state machine to `FAILED`, do not publish the instance, log the error, and roll back opened resources. The host service should report health status rather than continuing to invoke an unstarted instance.
 
-### Tình huống E: Nâng cấp plugin trong JVM đang chạy
+### Scenario E: Upgrading a Plugin in a Running JVM
 
-JAR plugin đã được nạp qua loader cũ. Việc thay file trên disk và gọi `ServiceLoader.reload()` không tự chuyển code đang chạy sang phiên bản mới.
+A plugin JAR was loaded via an old loader. Replacing the file on disk and calling `ServiceLoader.reload()` does not switch running code to the new version.
 
-**Cách xử lý:** nạp bản mới qua loader/layer phù hợp, xác minh dependency và API, khởi động/readiness, chuyển traffic, chờ request cũ, dừng bản cũ, dọn callback/thread và đóng loader cũ. Không kết luận class đã unload chỉ vì đã gọi `URLClassLoader.close()`.
+**How to handle:** load the new version via an appropriate loader/layer, verify dependencies and API, start and health-check, shift traffic, drain old requests, stop the old version, clean up callbacks/threads, and close the old loader. Do not assume classes have been unloaded merely because `URLClassLoader.close()` was called.
 
-## 8. Lỗi thường gặp khi gộp các trách nhiệm
+## 8. Common Mistakes When Conflating Responsibilities
 
-| Sai lầm | Vì sao sai? | Cách sửa |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| “`ServiceLoader` quản lý dependencies.” | Nó tìm/tạo provider, không tải JAR hoặc resolve graph plugin nghiệp vụ | Dùng build dependency resolver và runtime plugin resolver thích hợp |
-| “Có provider nghĩa là sẵn sàng chạy.” | Constructor có thể thành công nhưng thiếu cấu hình/readiness | Kiểm tra dependency, gọi start, chỉ publish khi ACTIVE |
-| “`findFirst()` bảo đảm chọn đúng provider.” | Thứ tự phát hiện không phải policy nghiệp vụ | Chọn theo ID/capability/priority, kiểm tra trùng |
-| “`Optional.empty()` và `ServiceConfigurationError` là một.” | Một bên là vắng mặt bình thường; một bên là lỗi khai báo/tạo provider | Báo lỗi cấu hình riêng, không nuốt lỗi |
-| “DI container đồng nghĩa plugin discovery.” | DI thường tạo object theo cấu hình; SPI phát hiện provider từ declaration | Kết nối rõ bước discovery với bước dependency injection |
-| “`start` tự chạy khi ServiceLoader tạo instance.” | SPI không biết method nghiệp vụ do ứng dụng đặt tên | Host chủ động start/stop và kiểm soát state |
-| “`reload()` là nâng cấp code tại chỗ.” | Nó xóa cache tìm provider, không thay class đã định nghĩa | Loader/instance mới cùng quy trình chuyển traffic |
-| “Đóng loader là dừng plugin/unload class.” | Instance/thread/callback cũ vẫn có thể sống | Quiesce, stop, cleanup, gỡ reference rồi đóng loader |
-| “Class loader là sandbox bảo mật.” | Plugin trong cùng JVM thường dùng quyền của tiến trình | Chạy mã không tin cậy ở process cô lập, quyền OS giới hạn |
+| “`ServiceLoader` manages dependencies.” | It finds/instantiates providers, does not download JARs or resolve business plugin graphs | Use appropriate build dependency resolvers and runtime plugin resolvers |
+| “Having a provider means ready to run.” | The constructor may succeed while config/readiness is missing | Verify dependencies, call start, publish only when ACTIVE |
+| “`findFirst()` guarantees the right provider.” | Discovery order is not a business policy | Select by ID/capability/priority and check for duplicates |
+| “`Optional.empty()` and `ServiceConfigurationError` are the same.” | One is normal absence; the other is a declaration/instantiation failure | Report config errors separately; never swallow errors |
+| “A DI container equals plugin discovery.” | DI builds objects from configuration; SPI discovers providers from declarations | Explicitly connect discovery with dependency injection |
+| “`start` runs automatically when ServiceLoader instantiates.” | SPI knows nothing about application-named business methods | Host explicitly invokes start/stop and controls state |
+| “`reload()` upgrades code in place.” | It clears the provider lookup cache, does not replace already-defined classes | Use new loader/instance along with traffic-switching procedures |
+| “Closing the loader stops plugins/unloads classes.” | Old instances/threads/callbacks can remain alive | Quiesce, stop, clean up, clear references, then close the loader |
+| “Class loaders are a security sandbox.” | Plugins in the same JVM normally run with process privileges | Run untrusted code in isolated processes with restricted OS privileges |
 
-## 9. Checklist cho người thiết kế hệ thống plugin
+## 9. Checklist for Plugin System Designers
 
-- [ ] Contract service rõ ràng, API/version ổn định và không bị nạp lặp bởi class loader không tương thích.
-- [ ] Cơ chế discovery được khai báo đúng (SPI descriptor hoặc JPMS `uses/provides`).
-- [ ] Có chính sách chọn provider xác định: ID, capability, enabled state, version, priority; không ngầm dựa vào thứ tự duyệt.
-- [ ] Tách lỗi “không tìm thấy” khỏi lỗi descriptor/class loading/constructor.
-- [ ] Liệt kê dependency thư viện, host service và plugin-to-plugin; xác minh version, optional dependency, conflict và cycle.
-- [ ] Plugin manager xác định thứ tự start/stop theo dependency graph, cấp context tối thiểu và chỉ publish sau readiness.
-- [ ] Invocation có kiểm soát concurrency, timeout, input/output contract, lỗi và metrics.
-- [ ] Shutdown chặn request mới, chờ inflight, cleanup đầy đủ và không để tham chiếu giữ loader cũ.
-- [ ] Hot reload (nếu cần) có chiến lược loader/instance mới, switch traffic, rollback và leak check.
+- [ ] Clear service contract, stable API/version, and not duplicated across incompatible class loaders.
+- [ ] Discovery mechanism properly declared (SPI descriptor or JPMS `uses/provides`).
+- [ ] Deterministic provider selection policy: ID, capability, enabled state, version, priority; never implicitly rely on traversal order.
+- [ ] Separate “not found” errors from descriptor/class-loading/constructor errors.
+- [ ] List library, host service, and inter-plugin dependencies; verify versions, optional dependencies, conflicts, and cycles.
+- [ ] Plugin manager determines start/stop order via dependency graph, supplies minimal context, and publishes only after readiness.
+- [ ] Invocation controls concurrency, timeouts, input/output contracts, errors, and metrics.
+- [ ] Shutdown blocks new requests, drains in-flight work, cleans up thoroughly, and leaves no references pinning old loaders.
+- [ ] Hot reload (if needed) has a new-loader/instance strategy, traffic switching, rollback, and leak checks.
 
-**Điểm cần ghi nhớ:** `ServiceLoader` trả lời **“ai có thể cung cấp service?”**; dependency management trả lời **“provider cần gì để có thể chạy?”**; lifecycle management trả lời **“provider được phép chạy khi nào và phải dừng ra sao?”**. Một host chọn provider đúng cần cả ba, với chính sách rõ ràng ở ranh giới từng bước.
+**Key takeaway:** `ServiceLoader` answers **“who can supply the service?”**; dependency management answers **“what does the provider need to run?”**; lifecycle management answers **“when is the provider allowed to run and how must it stop?”**. A host that selects providers properly needs all three, with clear policies at each boundary.
 
-**Tài liệu tham khảo:** [`ServiceLoader` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), [`ServiceConfigurationError` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceConfigurationError.html), [`URLClassLoader` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html), [`ModuleLayer` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html).
+**References:** [`ServiceLoader` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), [`ServiceConfigurationError` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceConfigurationError.html), [`URLClassLoader` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html), [`ModuleLayer` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html).

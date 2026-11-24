@@ -1,422 +1,422 @@
-# 7.3 JConsole để xem biểu đồ, thuộc tính và thao tác quản lý JVM
+# 7.3 JConsole for viewing charts, attributes, and JVM management operations
 
-## Mục tiêu học tập
+## Learning objectives
 
-**JConsole** là công cụ giao diện đồ họa (GUI) đi kèm JDK, sử dụng **Java Management Extensions (JMX)** để quan sát và, khi được cấp quyền, **quản lý** một Java Virtual Machine đang chạy. Không giống một dashboard chỉ hiển thị biểu đồ, JConsole còn truy cập được cây **MBeans**: đọc thuộc tính (attributes), xem notifications và gọi operations. Những khả năng đó rất hữu ích khi chẩn đoán nhưng cũng có rủi ro: một thao tác bấm nút có thể kích hoạt GC, thay đổi thiết lập logging hoặc thực thi chức năng quản trị ngay trong tiến trình JVM đích.
+**JConsole** is a graphical user interface (GUI) tool bundled with the JDK that uses **Java Management Extensions (JMX)** to observe and, when authorized, **manage** a running Java Virtual Machine. Unlike a read-only chart dashboard, JConsole also accesses the **MBeans** tree: reading attributes, viewing notifications, and invoking operations. Those capabilities are valuable during diagnostics yet carry risk: a single button click can trigger GC, alter logging settings, or execute administrative functions inside the target JVM process.
 
-Bài này hướng dẫn thực hành JConsole theo ba trọng tâm của đề bài: **xem biểu đồ**, **đọc thuộc tính**, **thực hiện thao tác quản lý JVM** một cách có kiểm soát.
+This lesson walks through JConsole around three practical pillars: **viewing charts**, **reading attributes**, and **performing JVM management operations** in a controlled manner.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Khởi chạy JConsole từ JDK 17+, kết nối đúng **JVM local hoặc remote** qua JMX, kiểm tra PID, thời gian khởi động và quyền truy cập.
-- Đọc đúng các tab **Overview, Memory, Threads, Classes, VM Summary và MBeans**; hiểu mỗi biểu đồ/giá trị là snapshot hay một chuỗi thời gian từ lúc theo dõi.
-- Điều hướng cây `java.lang` và custom MBeans, phân biệt **read-only attribute**, **writable attribute**, **operation** và **notification**.
-- Phân biệt các thao tác quan sát với hành động thay đổi trạng thái như **Perform GC**, **set Verbose**, **invoke operation** hoặc **heap dump**, và biết khi nào phải xin quyền/phê duyệt vận hành.
-- Tự xây một chương trình Java 17+ đăng ký MBean có thuộc tính và operation; kết nối JConsole để đọc, ghi, gọi method và quan sát biểu đồ.
-- Thu thập dữ liệu có timestamp, đơn vị, context và giới hạn; bảo vệ JMX remote bằng xác thực, mã hóa, quyền tối thiểu và giới hạn mạng.
+- Launch JConsole from JDK 17+, connect to the right **local or remote JVM** via JMX, and verify PID, start time, and access permissions.
+- Read the **Overview, Memory, Threads, Classes, VM Summary, and MBeans** tabs accurately; understand whether each chart/value is a snapshot or a time series captured since monitoring began.
+- Navigate the `java.lang` tree and custom MBeans, distinguishing **read-only attributes**, **writable attributes**, **operations**, and **notifications**.
+- Distinguish observational actions from state-changing actions such as **Perform GC**, **set Verbose**, **invoke operation**, or **heap dump**, and know when operational approval is required.
+- Build a standalone Java 17+ program registering an MBean with attributes and operations; connect JConsole to read, write, invoke methods, and observe charts.
+- Collect data with timestamps, units, context, and limitations; secure remote JMX using authentication, encryption, least privilege, and network boundaries.
 
-> Phạm vi chính: Java SE/JDK 21 với hành vi minh họa phù hợp cho JDK 17+. Màn hình cụ thể có thể khác theo JDK, hệ điều hành, look-and-feel, JVM implementation và MBeans mà ứng dụng đăng ký. **Các thao tác nhạy cảm phải làm trên JVM thử nghiệm, không chạy tùy tiện trên production.**
+> Primary scope: Java SE/JDK 21 with illustrative behavior applicable to JDK 17+. Specific screens may differ by JDK, operating system, look-and-feel, JVM implementation, and application-registered MBeans. **Sensitive actions must be practiced on test JVMs, never run casually in production.**
 
-## 1. JConsole, JMX và MBean: hiểu đúng vai trò
+## 1. JConsole, JMX, and MBeans: understanding each role
 
-Để sử dụng JConsole có hiệu quả, cần tách ba lớp:
+To use JConsole effectively, separate three layers:
 
-| Thành phần | Vai trò | Ví dụ |
+| Component | Role | Example |
 | --- | --- | --- |
-| **JVM đích** | Tiến trình thật đang chạy code ứng dụng và cung cấp các chỉ số quản trị | PID của service hoặc chương trình demo |
-| **JMX agent / MBeanServer** | Công bố các MBean, phục vụ việc đọc thuộc tính, gọi operation, nhận notification | Platform MBean server của JVM |
-| **JConsole** | Công cụ GUI **khách** kết nối vào JMX và hiển thị/điều khiển thông tin | Các tab Memory, Threads, MBeans |
+| **Target JVM** | The real process running application code and exposing management metrics | Service PID or demo program |
+| **JMX agent / MBeanServer** | Exposes MBeans, serves attribute reads, operation invocations, and notifications | The JVM's Platform MBeanServer |
+| **JConsole** | **Client** GUI tool connecting via JMX to display and control information | Memory, Threads, MBeans tabs |
 
-Các platform MXBeans như `MemoryMXBean`, `ThreadMXBean`, `ClassLoadingMXBean` và `RuntimeMXBean` cung cấp dữ liệu chuẩn. Ứng dụng hoặc thư viện cũng có thể đăng ký **custom MBeans** cho hàng đợi, cache, trạng thái tính năng, các counters hoặc thao tác quản trị.
+Platform MXBeans such as `MemoryMXBean`, `ThreadMXBean`, `ClassLoadingMXBean`, and `RuntimeMXBean` provide standard data. Applications or libraries can also register **custom MBeans** for queues, caches, feature state, counters, or administrative operations.
 
-Một lược đồ:
+A diagram:
 
 ```text
 +---------------------------+           JMX connector           +---------------------------+
-| JConsole (GUI, client)    | <--------------------------------> | JVM đích (process)         |
-|  - Overview / Memory      |      local attach hoặc remote      |  Platform MBeanServer      |
-|  - Threads / Classes      |        JMX được cấp quyền         |   - java.lang:* MXBeans    |
-|  - VM Summary / MBeans    |                                    |   - app custom MBeans      |
+| JConsole (GUI, client)    | <--------------------------------> | Target JVM (process)      |
+|  - Overview / Memory      |     local attach or authorized     |  Platform MBeanServer     |
+|  - Threads / Classes      |            remote JMX              |   - java.lang:* MXBeans   |
+|  - VM Summary / MBeans    |                                    |   - app custom MBeans     |
 +---------------------------+                                    +---------------------------+
               |                                                               |
-              +-- Đọc thuộc tính, hiển thị series                              +-- MXBeans phản ánh VM
-              +-- Gọi operation, ghi thuộc tính khi có quyền                  +-- Operations chạy ở JVM
-              +-- Subscribe notifications khi được hỗ trợ                    +-- Có thể đổi state/chi phí
+              +-- Read attributes, display series                             +-- MXBeans reflect the VM
+              +-- Invoke operations, write attributes when authorized         +-- Operations run in JVM
+              +-- Subscribe to notifications when supported                   +-- May change state/cost
 ```
 
-**JConsole không phải profiler toàn năng.** Nó có một số biểu đồ CPU/memory/threads/classes và khả năng nhìn stack thread, nhưng không tự thu đầy đủ flamegraph, allocation stack, distributed traces, query latency hay lịch sử trước khi kết nối. Dùng JFR, GC logs, thread dumps, metrics và tracing khi câu hỏi cần dữ liệu sâu hoặc timeline dài.
+**JConsole is not an all-purpose profiler.** It offers basic CPU/memory/threads/classes charts and thread stack inspection, but it does not collect full flamegraphs, allocation stacks, distributed traces, query latencies, or pre-connection history. Use JFR, GC logs, thread dumps, metrics, and tracing when investigations require deep data or longer timelines.
 
-### 1.1 Read-only hay quản lý?
+### 1.1 Read-only or management?
 
-Đọc số `HeapMemoryUsage`, `ThreadCount` hoặc `LoadedClassCount` thường là **monitoring**. Ngược lại:
+Reading `HeapMemoryUsage`, `ThreadCount`, or `LoadedClassCount` is generally **monitoring**. Conversely:
 
-- Ghi một MBean attribute **writable** sẽ gọi setter ở JVM đích.
-- Bấm button **operation** có thể gọi method của MBean ở JVM đích.
-- `Perform GC` trong tab Memory yêu cầu JVM thực hiện garbage collection.
-- Một số operations như `dumpHeap` có thể gây pause, I/O lớn và tạo file chứa dữ liệu nhạy cảm.
-- Việc bật verbose class loading/GC hoặc thay cấu hình logging có thể tăng lượng log/overhead.
+- Writing a **writable** MBean attribute invokes the setter in the target JVM.
+- Clicking an **operation** button can invoke an MBean method in the target JVM.
+- `Perform GC` in the Memory tab requests the JVM to run garbage collection.
+- Some operations like `dumpHeap` can cause pauses, heavy I/O, and create files containing sensitive data.
+- Enabling verbose class loading/GC or modifying logging configuration can increase log volume and overhead.
 
-**Quyền xem JMX không đồng nghĩa quyền thao tác.** Với production, chính sách nên mặc định read-only; phân quyền quản trị riêng cho các thao tác đã được duyệt, và ghi audit khi có thay đổi.
+**JMX view access does not mean operation access.** In production, policy should default to read-only; grant separate administrative privileges for approved actions and audit changes.
 
-## 2. Chuẩn bị trước khi kết nối
+## 2. Preparing before connecting
 
-### 2.1 JConsole nằm ở đâu?
+### 2.1 Where is JConsole located?
 
-Trên bản JDK có chứa công cụ này, executable thường nằm ở:
+On JDK distributions that include this tool, the executable usually resides at:
 
 ```text
 <JDK_HOME>/bin/jconsole
 ```
 
-Mở terminal:
+From a terminal:
 
 ```bash
 jconsole
 ```
 
-Đây là lệnh mở **giao diện đồ họa**, không phải lệnh in metrics ra stdout. Cần hệ thống có môi trường hiển thị GUI; container tối giản, server headless và Java runtime tạo bằng `jlink` có thể không đóng gói `jconsole`. Dùng JDK với GUI trên máy quản trị được phép thay vì cài thêm desktop vào production container chỉ để xem biểu đồ.
+This command launches a **graphical interface**, not a CLI printing metrics to stdout. It requires a GUI display environment; minimal containers, headless servers, and custom runtimes built with `jlink` may omit `jconsole`. Run the GUI JDK tool from an authorized administrative workstation instead of installing a desktop into production containers just to view charts.
 
-Theo tài liệu JDK 21, JConsole có thể kết nối local/remote. Với local application và PID đã biết:
+Per JDK 21 documentation, JConsole supports local/remote connections. For a local application with a known PID:
 
 ```bash
 jconsole 12345
 ```
 
-**12345 là PID giả định.** Thay bằng PID đã xác nhận của process cần xem. Chạy JConsole và target JVM với quyền user phù hợp. Trong môi trường HotSpot có khả năng attach, JConsole có thể bật management agent khi kết nối local nếu trước đó chưa bật; nhưng điều này **không được bảo đảm** nếu JVM tắt attach, policy chặn, namespace/container khác hoặc công cụ/JDK không tương thích.
+**12345 is an illustrative PID.** Replace it with the verified PID of the target process. Run JConsole and the target JVM under compatible user permissions. In HotSpot environments supporting attach, JConsole can start the management agent on local connect if not already enabled; however, this **is not guaranteed** if the JVM disables attach, policy blocks it, namespaces/containers differ, or tools/JDKs are incompatible.
 
-### 2.2 Chọn đúng Java process
+### 2.2 Selecting the right Java process
 
-Trước khi chọn một dòng trong Local Process, xác nhận:
+Before picking a row in Local Process, confirm:
 
-1. Tên service/application, host và container/pod hoặc session.
-2. PID cùng **process start time**, vì PID có thể tái sử dụng sau restart.
-3. JDK/runtime version và instance nhận request lỗi; không gán thông tin replica khác cho replica đang hỏng.
-4. JVM hiện hữu và quyền attach/JMX; một máy có thể chạy nhiều `java`/`javaw`.
-5. Môi trường GUI và hệ thống đích tương thích, cùng chính sách giám sát được phép.
+1. Service/application name, host, and container/pod or session.
+2. PID alongside **process start time**, since PIDs can be reused after restarts.
+3. JDK/runtime version and the specific instance serving failing requests; do not attribute another replica's data to a failing replica.
+4. Active JVM and attach/JMX permissions; one machine may run multiple `java`/`javaw` processes.
+5. Compatible GUI environment and target system, plus approved monitoring policy.
 
-Trên Linux, có thể dùng OS process metadata đã được cấp quyền:
+On Linux, you can use authorized OS process metadata:
 
 ```bash
 ps -p 12345 -o pid,lstart,etime,comm,args
 ```
 
-Lệnh này có thể hiện **arguments chứa secret**; xem trong terminal đáng tin và chỉ lưu phần đã xử lý. `jps`/`jcmd -l` cũng hữu ích khi được hỗ trợ, nhưng có thể không liệt kê JVM trong container namespace riêng.
+This command may reveal **arguments containing secrets**; inspect it in a trusted terminal and save only redacted excerpts. `jps`/`jcmd -l` are also helpful where supported, though they may not list JVMs inside isolated container namespaces.
 
-Trong JConsole, sau khi kết nối, xem **VM Summary** để đối chiếu runtime version/uptime và JVM arguments; đừng vội giải thích biểu đồ khi chưa chắc chọn đúng target.
+In JConsole, once connected, inspect **VM Summary** to cross-check runtime version/uptime and JVM arguments; never interpret charts before confirming you attached to the right target.
 
-### 2.3 Local và remote khác nhau
+### 2.3 Local vs. remote differences
 
-| Kiểu | Cách kết nối thường dùng | Điều kiện và giới hạn |
+| Mode | Typical connection method | Conditions and limitations |
 | --- | --- | --- |
-| **Local** | Chạy `jconsole`, chọn Local Process hoặc `jconsole <PID>` | Cùng máy, quyền user, attach và namespace phù hợp; có thể không hoạt động trên JVM không attachable |
-| **Remote host:port** | `jconsole host.example:9010` hoặc nhập host/port trong GUI | Target phải cung cấp JMX remote connector; có vấn đề TLS, authentication, authorization, network/firewall/RMI |
-| **JMX Service URL** | Chọn Remote/Advanced connection theo giao diện và nhập URL | Dành cho connector riêng hoặc khi cần URL đầy đủ; syntax phụ thuộc connector |
-| **Qua vùng mạng giới hạn** | Kết nối trong mạng quản trị/VPN/tunnel được phê duyệt | Không biến JMX thành public endpoint; remote network topology/RMI ports phải đúng |
+| **Local** | Run `jconsole`, select Local Process, or `jconsole <PID>` | Same machine, matching user/permissions, attach, and namespace; may fail on non-attachable JVMs |
+| **Remote host:port** | `jconsole host.example:9010` or enter host/port in GUI | Target must expose a JMX remote connector; involves TLS, authentication, authorization, network/firewall/RMI |
+| **JMX Service URL** | Choose Remote/Advanced connection in UI and enter URL | For custom connectors or full URLs; syntax depends on connector |
+| **Across restricted networks** | Connect inside approved admin network/VPN/tunnel | Do not turn JMX into a public endpoint; remote network topology/RMI ports must match |
 
-Đối với Remote JMX dùng RMI trong HotSpot, cần phân biệt **RMI registry port** với **RMI connector/server port**, và đôi khi cấu hình `java.rmi.server.hostname` để stub trả địa chỉ client truy cập được. Một host:port đúng mà kết nối đứng ở “Connecting...” có thể do cổng thứ hai hoặc địa chỉ trong RMI stub không truy cập được; không tự tắt TLS/authentication để “sửa nhanh”.
+For Remote JMX over RMI in HotSpot, distinguish the **RMI registry port** from the **RMI connector/server port**, and sometimes configure `java.rmi.server.hostname` so the stub advertises an address reachable by clients. A valid host:port that hangs on "Connecting..." may stem from the second port or an unreachable hostname inside the RMI stub; never disable TLS/authentication as a "quick fix."
 
-JDK 21 mô tả các system properties như `com.sun.management.jmxremote.port`, `com.sun.management.jmxremote.rmi.port` và `java.rmi.server.hostname`. Chúng được cấu hình theo chính sách vận hành/triển khai; **không tự mở JMX remote trên production chỉ vì muốn dùng JConsole**.
+JDK 21 documents system properties such as `com.sun.management.jmxremote.port`, `com.sun.management.jmxremote.rmi.port`, and `java.rmi.server.hostname`. These are configured under operational/deployment policies; **never open remote JMX in production just because you want to use JConsole**.
 
-### 2.4 Bảo mật kết nối JMX remote
+### 2.4 Securing remote JMX connections
 
-JMX remote là **mặt phẳng quản trị ứng dụng**, không phải một port metrics đơn giản. Khi được phép triển khai:
+Remote JMX is an **application management control plane**, not a plain metrics port. When authorized for deployment:
 
-- Giới hạn truy cập ở network/firewall/VPN/bastion và port RMI cần thiết; không expose trực tiếp ra Internet.
-- Dùng TLS/SSL được cấu hình và xác thực server/khách theo chính sách, credentials và authorization rõ ràng.
-- Áp dụng quyền tối thiểu: tài khoản `readonly` để quan sát; quyền ghi/invoke operations chỉ cho người hoặc hệ thống được phép.
-- Không dùng cấu hình bỏ xác thực và TLS (`authenticate=false`, `ssl=false`) cho môi trường production.
-- Không lưu password ở command history, ticket, ảnh chụp màn hình hoặc URL được chia sẻ; khóa/secret cần được quản lý đúng chính sách.
-- Kiểm tra bảo vệ RMI registry, file password/access permission và tính tương thích với môi trường container/NAT.
-- Không cho rằng vì đang mở được GUI thì mọi thao tác MBean đều an toàn; **giấy phép truy cập và giấy phép thay đổi** là hai quyết định khác nhau.
+- Restrict access via network/firewall/VPN/bastion and only required RMI ports; never expose directly to the Internet.
+- Configure TLS/SSL and server/client authentication per policy with explicit credentials and authorization.
+- Apply least privilege: `readonly` accounts for observation; write/invoke permissions strictly for authorized personnel or systems.
+- Never run authentication-less, TLS-less configs (`authenticate=false`, `ssl=false`) in production.
+- Never store passwords in command history, tickets, screenshots, or shared URLs; manage keys/secrets according to policy.
+- Verify RMI registry protection, password/access file permissions, and container/NAT compatibility.
+- Do not assume opening the GUI makes every MBean action safe; **access permission and mutation permission** are separate decisions.
 
-JConsole/management agent cũng có overhead và có thể ảnh hưởng JVM, nhất là khi polling dữ liệu nặng. Oracle khuyên thận trọng với JConsole local trên production; thường sử dụng một JConsole client riêng qua remote connection được bảo vệ nếu việc chẩn đoán yêu cầu.
+JConsole/management agents also add overhead and can affect the JVM, especially when polling heavy data. Oracle advises caution with local JConsole in production; diagnostics typically use a separate JConsole client over a secured remote connection when required.
 
-## 3. Sáu tab chuẩn: đọc được gì?
+## 3. The six standard tabs: what can you read?
 
-Giao diện JConsole JDK 21 thường có **sáu tab**:
+The JDK 21 JConsole interface typically has **six tabs**:
 
-| Tab | Dữ liệu chính | Vấn đề thường khoanh vùng |
+| Tab | Primary data | Issues commonly narrowed down |
 | --- | --- | --- |
-| **Overview** | Đồ thị CPU, memory, thread count, loaded classes | So sánh biến động tài nguyên theo cùng một khoảng thời gian |
-| **Memory** | Heap/non-heap, memory pools, used/committed/max, GC count/time | Heap pressure, GC activity, vùng bộ nhớ tăng |
-| **Threads** | Live/peak threads, tên/trạng thái/stack của thread, deadlock detection | Request kẹt, block/lock contention, thread tăng |
-| **Classes** | Current loaded, total loaded, unloaded classes | Class loading churn, nghi classloader retention |
-| **VM Summary** | VM/runtime facts, uptime, CPU time, flags/args, GC và OS tóm tắt | Xác nhận target JVM và ngữ cảnh thực thi |
-| **MBeans** | ObjectName, attributes, operations, notifications của platform/custom MBeans | Đọc trường chi tiết, xem domain-specific counters, quản trị có kiểm soát |
+| **Overview** | CPU, memory, thread count, loaded classes charts | Comparing resource fluctuations over the same time window |
+| **Memory** | Heap/non-heap, memory pools, used/committed/max, GC count/time | Heap pressure, GC activity, growing memory regions |
+| **Threads** | Live/peak threads, thread names/states/stacks, deadlock detection | Stuck requests, block/lock contention, thread growth |
+| **Classes** | Current loaded, total loaded, unloaded classes | Class loading churn, suspected classloader retention |
+| **VM Summary** | VM/runtime facts, uptime, CPU time, flags/args, GC and OS summary | Confirming target JVM and execution context |
+| **MBeans** | ObjectName, attributes, operations, notifications for platform/custom MBeans | Reading granular fields, inspecting domain counters, controlled management |
 
-Tất cả đều là **cách nhìn vào cùng JVM**, nhưng các getter và biểu đồ có thể lấy dữ liệu tại những thời điểm khác nhau. Không giả định mọi số cùng một hàng là “atomic transaction snapshot”.
+All of them are **views into the same JVM**, though getters and charts may sample data at different instants. Never assume every value shown together forms an "atomic transaction snapshot."
 
-## 4. Overview: đọc biểu đồ tổng quan
+## 4. Overview: reading the summary charts
 
-Tab **Overview** hiển thị các biểu đồ CPU, memory, threads và loaded classes trên một màn hình. Đây là nơi hữu ích để trả lời: “Khoảng thời gian latency tăng có trùng với tăng heap, thread count hoặc class loading không?”.
+The **Overview** tab displays CPU, memory, threads, and loaded classes charts on one screen. It helps answer: "Did the latency spike window coincide with rising heap, thread counts, or class loading?"
 
-### 4.1 Các đồ thị trả lời câu hỏi gì?
+### 4.1 What questions do the charts answer?
 
-- **CPU:** đại diện cho CPU consumption theo số liệu OS/MXBean mà JConsole có thể cung cấp; không tự chỉ ra method nào dùng CPU. Với nhiều cores, tỷ lệ hiển thị cần hiểu theo định nghĩa của VM/JMX implementation.
-- **Memory:** thể hiện memory usage theo thời gian, thường gắn heap; biểu đồ không đủ chứng minh retained-object leak.
-- **Threads:** số platform/live threads quan sát được; tăng lên có thể do pool mở rộng, workload, blocked requests hoặc tạo thread ngoài kiểm soát.
-- **Classes:** số class đã load hiện tại; tăng trong warm-up bình thường, tăng liên tục qua redeploy/plugin reload có thể cần kiểm tra classloader lifecycle.
+- **CPU:** represents CPU consumption based on OS/MXBean metrics JConsole can obtain; does not identify which methods used CPU. On multi-core hosts, interpret percentages according to the VM/JMX implementation's definition.
+- **Memory:** displays memory usage over time, typically heap-oriented; a rising chart alone does not prove a retained-object leak.
+- **Threads:** observed platform/live thread count; increases can stem from pool scaling, workload, blocked requests, or uncontrolled thread creation.
+- **Classes:** currently loaded class count; growth during warm-up is normal, whereas continuous growth across redeploys/plugin reloads warrants checking classloader lifecycles.
 
-Một **cùng thời điểm spike** trên hai chart là **correlation**, chưa chứng minh causal chain. Ví dụ CPU tăng cùng heap used có thể do request throughput, allocation churn hoặc GC; cần thêm CPU samples/JFR/GC events, request metrics và traces.
+A **simultaneous spike** on two charts is **correlation**, not proof of a causal chain. For example, rising CPU alongside heap used can result from request throughput, allocation churn, or GC; corroborate with CPU samples/JFR/GC events, request metrics, and traces.
 
-### 4.2 Time Range và dữ liệu lịch sử
+### 4.2 Time Range and historical data
 
-JConsole hiển thị dữ liệu khi nó giám sát JVM và theo bộ đệm/biểu đồ của phiên GUI; thay đổi menu **Time Range** không làm JConsole tự lấy được lịch sử trước khi kết nối nếu không có hệ thống recording riêng. Nếu bạn vừa mở JConsole sau khi incident đã kết thúc, thấy biểu đồ phẳng **không chứng minh** hệ thống không từng có spike.
+JConsole displays data gathered while actively monitoring the JVM within the GUI session's buffers; changing the **Time Range** menu does not retrieve history from before you connected unless a separate recording system exists. Opening JConsole after an incident ends and seeing flat lines **does not prove** the system never spiked.
 
-Khi chọn time range:
+When choosing a time range:
 
-1. Chọn khoảng đủ rộng để thấy baseline, incident và recovery.
-2. Kiểm tra độ phân giải/số mẫu. Spike kéo dài 1 giây có thể không nhìn thấy nếu chu kỳ cập nhật lớn.
-3. So cùng khoảng thời gian trên Overview và tab chi tiết.
-4. Ghi thời điểm UTC và thời gian JVM đã chạy; tránh ghép hai process trước/sau restart như một chuỗi liên tục.
+1. Pick a window wide enough to show baseline, incident, and recovery.
+2. Check resolution/sampling density. A 1-second spike may be invisible if the polling interval is large.
+3. Compare the exact same time window across Overview and detail tabs.
+4. Record UTC timestamps and JVM uptime; never merge two processes across a restart into one continuous series.
 
-### 4.3 Lưu biểu đồ CSV
+### 4.3 Saving chart data as CSV
 
-Tài liệu JDK 21 mô tả thao tác **right-click chart → Save data as...** để xuất dữ liệu biểu đồ ra **CSV**. File CSV được lưu trên **máy đang chạy JConsole**, không mặc nhiên trên máy chủ JVM remote. Sau khi xuất, cần kiểm tra timestamp/timezone, tên cột, units, khoảng quan sát và số mẫu.
+JDK 21 documentation describes **right-click chart → Save data as...** to export chart series to **CSV**. The CSV file is saved on **the machine running JConsole**, not automatically on the remote JVM host. After exporting, verify timestamps/timezones, column headers, units, observation window, and sample count.
 
-CSV là ảnh dữ liệu mà JConsole thực sự có trong bộ đệm cho chart đó, không phải sự thật toàn bộ vòng đời JVM. Nếu muốn giám sát nhiều ngày, hệ thống metrics có retention/chính sách alert là nguồn thích hợp hơn; JConsole phù hợp điều tra tương tác và kiểm tra trực tiếp.
+CSV reflects only the samples JConsole held in its chart buffer, not the ground truth of the JVM's entire lifetime. For multi-day monitoring, dedicated metrics systems with retention and alerting are appropriate; JConsole fits interactive investigation and live inspection.
 
-## 5. Memory: biểu đồ heap, non-heap và memory pools
+## 5. Memory: heap, non-heap, and memory pool charts
 
-Tab **Memory** cho phép chọn scope trong danh sách chart: total heap, non-heap và các **memory pools** mà JVM đó công bố. Số lượng/tên pools phụ thuộc implementation và GC. Trên một HotSpot JDK 21, có thể gặp Metaspace, Code Cache và các G1/ZGC pools; không lấy tài liệu hình ảnh JDK đời cũ có “Permanent Generation” làm bằng chứng rằng PermGen tồn tại trên JDK 21.
+The **Memory** tab lets you pick scopes from the chart dropdown: total heap, non-heap, and individual **memory pools** exposed by that JVM. Pool count and names depend on the implementation and GC. On HotSpot JDK 21, you may see Metaspace, Code Cache, and G1/ZGC pools; never use legacy JDK diagrams showing "Permanent Generation" to claim PermGen exists in JDK 21.
 
-### 5.1 Ba giá trị quan trọng
+### 5.1 Three critical values
 
-| Giá trị | Nghĩa | Không được hiểu là |
+| Value | Meaning | Must not be interpreted as |
 | --- | --- | --- |
-| **Used** | Số byte bộ nhớ hiện được vùng Java quản lý sử dụng; có thể gồm object chưa GC dù đã unreachable | “Retained/live objects chắc chắn”, “RSS của tiến trình” |
-| **Committed** | Memory JVM đã đảm bảo sẵn cho vùng được đo | RAM vật lý resident hoặc current used |
-| **Max** | Giới hạn tối đa nếu JVM có thể công bố; có thể undefined | Memory đã cấp hoặc giới hạn duy nhất của toàn container |
+| **Used** | Bytes currently used in the managed Java region; may include unreachable objects not yet GC'd | "Confirmed retained/live objects" or "process RSS" |
+| **Committed** | Memory the JVM has guaranteed/reserved for the measured region | Physical resident RAM or current used |
+| **Max** | Maximum limit if the JVM can expose one; may be undefined | Already allocated memory or sole limit of the entire container |
 
-Nếu đi vào MBeans và đọc `java.lang:type=Memory`, attribute `HeapMemoryUsage` trả một composite gồm `init`, `used`, `committed`, `max` theo Java Management API. `-1` của `max` là “không xác định”, **không phải 0 hoặc không giới hạn**.
+Opening MBeans and reading `java.lang:type=Memory`, attribute `HeapMemoryUsage` returns a composite containing `init`, `used`, `committed`, and `max` per the Java Management API. A `max` of `-1` means "undefined," **not 0 or unlimited**.
 
-**Ví dụ số học minh họa** (không phải output từ một JVM):
+**Illustrative arithmetic example** (not output from a live JVM):
 
 ```text
 heap.used      = 300 MiB
 heap.committed = 600 MiB
-heap.max       = 1.200 MiB
+heap.max       = 1,200 MiB
 
 used / committed = 50%
 used / max       = 25%
 ```
 
-Dashboard ghi “heap sử dụng 50%” mà không nói mẫu số là committed hay max có thể gây hiểu nhầm. Cùng một snapshot nhưng câu hỏi khác nhau.
+A dashboard saying "heap usage 50%" without stating whether the denominator is `committed` or `max` causes confusion. Same snapshot, different questions.
 
-### 5.2 Cách đọc đường heap used
+### 5.2 Reading the heap used curve
 
-Thông thường heap used tăng khi cấp phát object và giảm sau một số GC event; biểu đồ hình răng cưa có thể là bình thường. Đừng kết luận leak khi chưa có chuỗi **sau GC** dưới workload tương đương, allocation/retention evidence hoặc heap analysis phù hợp. Heap used không thể quy đổi trực tiếp thành RSS: native memory, thread stacks, direct buffers, mappings, code cache và nhiều vùng khác còn ảnh hưởng footprint.
+Normally heap used rises during object allocation and drops after GC events; a sawtooth pattern can be completely normal. Do not diagnose a leak without a **post-GC** trend under comparable workload, allocation/retention evidence, or proper heap analysis. Heap used cannot be converted directly into RSS: native memory, thread stacks, direct buffers, mappings, code cache, and other regions all contribute to footprint.
 
-Để so GC với latency:
+To correlate GC with latency:
 
-1. Xác định incident time window.
-2. Ghi heap used/committed/max ở thời điểm có liên quan.
-3. Xem GC count/time trong Memory cùng GC logs/JFR để biết tần suất và pause.
-4. Đối chiếu throughput, allocation rate, request latency, container memory.
-5. Khi cần retained objects, chỉ dùng heap dump/histogram sau khi cân nhắc overhead, dung lượng và bí mật.
+1. Identify the incident time window.
+2. Record heap used/committed/max at relevant points.
+3. Cross-check GC count/time in Memory alongside GC logs/JFR for frequency and pause durations.
+4. Correlate throughput, allocation rate, request latency, and container memory.
+5. When retained objects are needed, use heap dumps/histograms only after weighing overhead, disk size, and sensitive data.
 
-GC time từ Management API thường là **số tích lũy** theo collector từ lúc JVM khởi động, không phải duration của đúng request đang xem; muốn tính rate/delta cần có hai snapshot và khoảng thời gian phù hợp.
+GC time from the Management API is typically a **cumulative total** per collector since JVM startup, not the duration of the specific request you are inspecting; computing rates/deltas requires two snapshots and the elapsed time interval.
 
-### 5.3 Nút Perform GC là thao tác, không phải “xem thêm”
+### 5.3 The Perform GC button is an action, not "view more"
 
-JConsole có nút **Perform GC** trong Memory tab. Bấm nút này yêu cầu JVM thực hiện garbage collection; nó **có thể ảnh hưởng latency/throughput** và làm thay đổi chính tình trạng đang điều tra. Tùy GC/VM flags, JVM có thể xử lý yêu cầu theo chính sách riêng; không nên dùng GC thủ công như phương pháp lấy baseline chuẩn.
+JConsole has a **Perform GC** button in the Memory tab. Clicking it asks the JVM to execute garbage collection; it **can affect latency/throughput** and alters the very state under investigation. Depending on GC/VM flags, the JVM handles the request according to its own policy; manual GC should not be used to establish a standard baseline.
 
-Vì vậy:
+Therefore:
 
-- Trong production incident, **không bấm Perform GC** chỉ vì muốn xem đồ thị “sau khi sạch”.
-- Không dùng giảm used sau forced GC để khẳng định không có leak.
-- Nếu thực sự cần thử trên môi trường lab, ghi thời điểm bấm và đánh dấu đây là can thiệp, không còn chỉ là quan sát.
-- Đừng giả định JConsole sẽ hỏi xác nhận với tất cả operations; một số thao tác có thể được thực thi ngay.
+- During a production incident, **never click Perform GC** just to see the chart "after cleanup."
+- Never use a drop in `used` after a forced GC to prove there is no leak.
+- If truly needed in a lab environment, log the click timestamp and mark it as an intervention, no longer pure observation.
+- Do not assume JConsole prompts for confirmation on all operations; several actions execute immediately.
 
-## 6. Threads: số luồng, stack và Detect Deadlock
+## 6. Threads: thread counts, stacks, and Detect Deadlock
 
-Tab **Threads** hiển thị số lượng thread live/peak theo thời gian và danh sách thread mà VM hỗ trợ quản lý. Khi chọn một thread, giao diện có thể hiện **tên, trạng thái và stack trace**.
+The **Threads** tab plots live/peak thread counts over time and lists threads the VM exposes for management. Selecting a thread displays its **name, state, and stack trace**.
 
-### 6.1 Diễn giải thread state
+### 6.1 Interpreting thread states
 
-| Trạng thái | Ý nghĩa khái quát | Điều cần kiểm tra thêm |
+| State | General meaning | What else to check |
 | --- | --- | --- |
-| `RUNNABLE` | Thread đang hoặc sẵn sàng thực thi theo mô hình JVM | Không tự chứng minh CPU cao; cần CPU samples/OS counters |
-| `BLOCKED` | Đang chờ monitor lock | Lock owner, các frame liên quan, thời lượng kẹt |
-| `WAITING` | Chờ không đặt timeout, có thể vì queue, condition hoặc join | Có thể là trạng thái bình thường của worker |
-| `TIMED_WAITING` | Chờ có timeout (sleep, wait, park...) | Kiểm tra nhiệm vụ và timeout |
-| `NEW` / `TERMINATED` | Chưa start / đã kết thúc trong mô hình thread | Một snapshot danh sách active có thể không chứa các trạng thái này |
+| `RUNNABLE` | Thread is executing or ready to execute in the JVM model | Does not prove high CPU alone; check CPU samples/OS counters |
+| `BLOCKED` | Waiting for a monitor lock | Lock owner, relevant frames, duration stuck |
+| `WAITING` | Waiting indefinitely, e.g. on a queue, condition, or join | Can be completely normal for idle workers |
+| `TIMED_WAITING` | Waiting with a timeout (sleep, wait, park, etc.) | Inspect task and timeout value |
+| `NEW` / `TERMINATED` | Not yet started / finished in the thread model | Active thread list snapshots may omit these states |
 
-Một thread `WAITING` có thể đang khỏe mạnh và chờ công việc. Một thread `RUNNABLE` không mặc nhiên là CPU hotspot. Để chẩn đoán request treo, nên lấy **nhiều snapshot cách nhau hợp lý** và liên hệ với thread pool queue, lock metrics, request trace và JFR.
+A `WAITING` thread may be healthy and awaiting work. A `RUNNABLE` thread is not automatically a CPU hotspot. To diagnose hung requests, capture **multiple spaced snapshots** and correlate with thread pool queues, lock metrics, request traces, and JFR.
 
 ### 6.2 Detect Deadlock
 
-Trong tab Threads, **Detect Deadlock** gửi yêu cầu phát hiện deadlock mà JVM hỗ trợ, rồi hiển thị các chu trình tìm thấy (nếu có). Theo JDK 21, công cụ có thể tìm deadlock trên **object monitors** và các ownable synchronizers thuộc `java.util.concurrent` do JVM hỗ trợ.
+In the Threads tab, **Detect Deadlock** issues a JVM-supported deadlock check and shows any cycles found. Per JDK 21, the tool can detect deadlocks involving **object monitors** and supported `java.util.concurrent` ownable synchronizers.
 
-Giới hạn:
+Limitations:
 
-- Không phải mọi sự cố chờ đều là deadlock theo mô hình công cụ. Thread có thể bị kẹt do network I/O, database lock ở hệ thống ngoài, queue starvation hoặc chờ tín hiệu không tạo chu trình lock rõ.
-- “No deadlock detected” chỉ nghĩa là **không phát hiện loại deadlock được hỗ trợ tại thời điểm đo**, không chứng minh ứng dụng không thể deadlock hoặc không đang treo.
-- Nếu hỗ trợ và có quyền, `java.lang:type=Threading` trong MBeans còn cho biết các operations/attributes của `ThreadMXBean`. Một operation tra cứu lock/stack có thể tốn chi phí theo số lượng thread.
+- Not every hang is a tool-detectable deadlock. Threads can stall on network I/O, external database locks, queue starvation, or waiting on signals without forming an explicit lock cycle.
+- "No deadlock detected" only means **no supported deadlock type was found at measurement time**; it does not prove the app cannot deadlock or is not hung.
+- When supported and authorized, `java.lang:type=Threading` under MBeans also exposes `ThreadMXBean` operations/attributes. Operations inspecting locks/stacks can scale in cost with thread count.
 
-### 6.3 Java 21 virtual threads: giới hạn cực kỳ quan trọng
+### 6.3 Java 21 virtual threads: a critical limitation
 
-`ThreadMXBean` trong Java SE 21 **hỗ trợ platform threads, không quản lý/giám sát virtual threads theo cùng cách**. Vì JConsole tab Threads chủ yếu dựa vào nền tảng ThreadMXBean, không được dùng số thread trong tab đó để kết luận “ứng dụng có chính xác n virtual threads” hoặc “không có virtual thread nào bị block”.
+`ThreadMXBean` in Java SE 21 **supports platform threads and does not manage or monitor virtual threads in the same way**. Because JConsole's Threads tab relies primarily on `ThreadMXBean`, never use that tab's thread count to conclude "the app has exactly n virtual threads" or "no virtual threads are blocked."
 
-Nếu dịch vụ sử dụng virtual threads, cần công cụ/recording phù hợp phiên bản JDK như JFR events, đặc biệt khi nghi pinning, blocking hay có nhiều virtual threads đang chờ. Đọc dữ liệu **theo phạm vi mà nguồn thực sự hỗ trợ**, không mở rộng kết luận.
+If a service uses virtual threads, use JDK-appropriate tools/recordings such as JFR events, especially when suspecting pinning, blocking, or large numbers of parked virtual threads. Always interpret data **strictly within the scope supported by the source**, without over-extrapolating.
 
-### 6.4 Khi nào tab Threads hữu ích?
+### 6.4 When is the Threads tab useful?
 
-- Thread count tăng đều qua thời gian, nghi tạo threads không được giải phóng.
-- Nhiều request kẹt ở cùng monitor/lock và có stack tương đồng.
-- Thread pool starvation: nhiều worker đang block trên downstream, queue tăng.
-- Cần kiểm tra deadlock theo Java monitor/ownable synchronizer.
-- Muốn xem cấu trúc stack của một thread trước khi quyết định có cần thread dump/JFR sâu hơn.
+- Thread count climbs steadily over time, suggesting unreleased threads.
+- Many requests stall on the same monitor/lock with similar stacks.
+- Thread pool starvation: workers blocked on downstream calls while queues grow.
+- Checking for deadlocks across Java monitors/ownable synchronizers.
+- Inspecting a thread's stack shape before deciding whether deeper thread dumps/JFR are warranted.
 
-JConsole không tự cung cấp một **CPU profile thống kê đầy đủ** của mọi method; khi cần hotspot, chọn profiler/JFR CPU sampling.
+JConsole does not provide a **full statistical CPU profile** across all methods; for hotspots, use a profiler or JFR CPU sampling.
 
-## 7. Classes: class loading và khả năng classloader leak
+## 7. Classes: class loading and potential classloader leaks
 
-Tab **Classes** cho biết:
+The **Classes** tab reports:
 
-- **Current loaded:** số class hiện được JVM giữ đã load.
-- **Total loaded:** số class đã từng load kể từ lúc VM bắt đầu, bao gồm class sau này unload.
-- **Total unloaded:** số class đã unload kể từ lúc VM bắt đầu.
+- **Current loaded:** number of classes currently held loaded by the JVM.
+- **Total loaded:** cumulative classes loaded since VM startup, including later unloaded ones.
+- **Total unloaded:** cumulative classes unloaded since VM startup.
 
-Biểu đồ thường phân biệt **total loaded** và **current loaded** theo thời gian. Tổng loaded là counter tích lũy nên hiếm khi giảm, ngay cả khi nhiều class được unload; current có thể lên xuống. Đừng nhầm total loaded tăng với “classloader leak”.
+The chart usually separates **total loaded** from **current loaded** over time. Total loaded is a cumulative counter so it rarely decreases, even when many classes unload; current loaded can rise and fall. Never mistake rising total loaded for a "classloader leak."
 
-Trong môi trường plugin hot-reload, reflection/proxy, bytecode generation hoặc application server redeploy:
+In environments with plugin hot-reload, reflection/proxies, bytecode generation, or app server redeploys:
 
-1. Quan sát current class count qua các chu kỳ có cùng workload.
-2. Đối chiếu Metaspace pool, GC/class unloading events và lifecycle classloader.
-3. Xem hoạt động redeploy/module/plugin mới diễn ra lúc nào.
-4. Nếu current và Metaspace sau nhiều vòng vẫn tăng, đó mới là tín hiệu cần điều tra sâu, **chưa đủ để kết luận leak**.
+1. Observe current class count across cycles with matching workloads.
+2. Correlate with the Metaspace pool, GC/class unloading events, and classloader lifecycles.
+3. Note exactly when redeploys or new modules/plugins occurred.
+4. Only if current classes and Metaspace keep climbing across multiple cycles is there a signal for deeper investigation—**still not proof of a leak on its own**.
 
-JConsole có điều khiển **Verbose** để bật/tắt thông tin class loading trên một số VM. Đây là **hành động thay đổi trạng thái logging** của JVM, có thể tăng output và overhead; không bật chỉ vì đang quan sát. Việc số classes tăng trong warm-up có thể hoàn toàn bình thường.
+JConsole includes a **Verbose** control to toggle class loading output on some VMs. This is a **state-changing logging action** on the JVM that can increase output and overhead; never turn it on merely while observing. Class counts rising during warm-up can be completely normal.
 
-## 8. VM Summary: biết mình đang xem JVM nào
+## 8. VM Summary: knowing which JVM you are inspecting
 
-Tab **VM Summary** cho biết ngữ cảnh mà các biểu đồ khác thiếu: runtime/VM version, uptime, process CPU time, classpath, library path, JVM input arguments, threads/classes/GC/OS summary (mức độ hiển thị phụ thuộc JVM).
+The **VM Summary** tab provides context missing from individual charts: runtime/VM version, uptime, process CPU time, classpath, library path, JVM input arguments, and threads/classes/GC/OS summaries (exact visibility varies by JVM).
 
-Các mục hữu ích:
+Useful fields:
 
-| Trường | Mục đích | Lưu ý |
+| Field | Purpose | Notes |
 | --- | --- | --- |
-| JVM/version/uptime | Xác nhận JVM đúng instance và đúng vòng đời process | Sau restart uptime reset; PID có thể đổi/tái sử dụng |
-| VM arguments | Xem input arguments được VM báo cáo | Có thể chứa `-Dpassword`/token; không tương đương mọi app arguments |
-| Heap/GC information | Đối chiếu với Memory tab | Số snapshot có thể khác vì lấy khác thời điểm |
-| Threads/classes | Tóm tắt trạng thái | Không thay thế tab chi tiết |
-| Process CPU time | Tổng CPU time đã tiêu thụ từ khi JVM khởi động | **Không phải** “mức dùng CPU hiện tại” nếu không tính delta/interval |
-| Classpath/library path | Tìm đường dẫn artifact/dependencies | Có thể lộ cấu trúc filesystem, không mặc nhiên là đúng version code từ repo |
-| OS information | Kiểm tra context CPU/RAM/OS | Không tự thay thế container limits/native process metrics |
+| JVM/version/uptime | Confirm exact instance and process lifecycle | Uptime resets on restart; PID may change or be reused |
+| VM arguments | Inspect input arguments reported by the VM | May contain `-Dpassword`/tokens; not equivalent to all app args |
+| Heap/GC information | Cross-check against Memory tab | Snapshot figures may differ due to sampling timing |
+| Threads/classes | Status summary | Does not replace detailed tabs |
+| Process CPU time | Total CPU time consumed since JVM startup | **Not** "current CPU usage" without computing delta/interval |
+| Classpath/library path | Locate artifact/dependency paths | Can expose filesystem layout; does not guarantee exact repo code version |
+| OS information | Check CPU/RAM/OS context | Does not replace container limits or native process metrics |
 
-JConsole có thể cho thấy các input arguments nhưng không tự đưa ra toàn bộ **effective VM flags** do ergonomics, container constraints hoặc runtime changes. Nếu cần phân biệt `-Xmx` explicit và `MaxHeapSize` hiện hành, đối chiếu `jcmd <PID> VM.command_line` và `VM.flags` khi được phép.
+JConsole shows input arguments but does not automatically list all **effective VM flags** altered by ergonomics, container constraints, or runtime tuning. To distinguish explicit `-Xmx` from effective `MaxHeapSize`, check `jcmd <PID> VM.command_line` and `VM.flags` when authorized.
 
-Những thông tin có thể nhạy cảm: command line, JVM properties, file paths, classpath. Trước khi chụp màn hình hoặc xuất CSV, xem lại dữ liệu; không công bố raw arguments chứa secrets.
+Potentially sensitive fields include command line, JVM properties, file paths, and classpath. Review before capturing screenshots or exporting CSVs; never publish raw arguments containing secrets.
 
-## 9. MBeans: nơi xem thuộc tính, gọi thao tác và nhận thông báo
+## 9. MBeans: viewing attributes, invoking operations, and receiving notifications
 
-Đây là trọng tâm của khả năng **quản lý JVM**. Tab **MBeans** truy cập các MBean được đăng ký trong platform MBean server. Mỗi MBean thường có:
+This is the core of **JVM management**. The **MBeans** tab accesses MBeans registered in the platform MBeanServer. Each MBean typically exposes:
 
-- **ObjectName:** tên định danh JMX gồm domain và key properties, ví dụ `java.lang:type=Memory` hoặc `demo.jmx:type=LabControl`.
-- **Attributes:** các giá trị hoặc cấu hình; có thể **read-only**, **write-only**, hoặc **read-write**, phụ thuộc MBean.
-- **Operations:** methods có thể gọi qua JMX; có thể chỉ tra cứu hoặc thay đổi trạng thái/thực hiện I/O.
-- **Notifications:** events từ một số MBeans, có thể subscribe để nhận.
-- **MBeanInfo/Descriptor:** metadata về tên, kiểu dữ liệu, parameter, mô tả và capabilities.
+- **ObjectName:** JMX identifier with domain and key properties, such as `java.lang:type=Memory` or `demo.jmx:type=LabControl`.
+- **Attributes:** values or configuration; may be **read-only**, **write-only**, or **read-write** depending on the MBean.
+- **Operations:** methods invocable via JMX; may be read-only lookups or mutate state/perform I/O.
+- **Notifications:** events from certain MBeans that clients can subscribe to.
+- **MBeanInfo/Descriptor:** metadata on names, data types, parameters, descriptions, and capabilities.
 
-Tab này không chỉ chứa platform MXBeans; custom MBeans do ứng dụng/libraries đăng ký cũng có thể xuất hiện. MBean có thể biến mất hoặc xuất hiện mới khi ứng dụng thay đổi lifecycle.
+This tab does not contain only platform MXBeans; custom MBeans registered by applications/libraries also appear. MBeans can appear or disappear as application components change lifecycle.
 
-### 9.1 Đọc ObjectName và cây MBeans
+### 9.1 Reading ObjectNames and the MBeans tree
 
-Một số ví dụ phổ biến trên Java 17+/21:
+Common examples on Java 17+/21:
 
-| ObjectName / mẫu | Vai trò |
+| ObjectName / pattern | Role |
 | --- | --- |
-| `java.lang:type=Memory` | Heap/non-heap usage, GC verbosity, memory notifications và liên quan |
-| `java.lang:type=Threading` | Platform thread counts, CPU time/stack/lock operations theo hỗ trợ |
-| `java.lang:type=ClassLoading` | Loaded/unloaded classes và verbose class loading |
+| `java.lang:type=Memory` | Heap/non-heap usage, GC verbosity, memory notifications, and related |
+| `java.lang:type=Threading` | Platform thread counts, CPU time/stack/lock operations where supported |
+| `java.lang:type=ClassLoading` | Loaded/unloaded classes and verbose class loading |
 | `java.lang:type=Runtime` | VM name/vendor/version, uptime, input arguments |
-| `java.lang:type=OperatingSystem` | OS/process counters theo Java Management API |
-| `java.lang:type=MemoryPool,name=...` | Current/peak/collection usage và thresholds theo pool |
-| `java.lang:type=GarbageCollector,name=...` | Collection count/time và GC pools |
-| `com.sun.management:type=HotSpotDiagnostic` | Diagnostics phụ thuộc HotSpot, gồm heap dump/VM options |
-| `demo.jmx:type=LabControl` | Custom MBean của ví dụ thực hành bên dưới |
+| `java.lang:type=OperatingSystem` | OS/process counters per Java Management API |
+| `java.lang:type=MemoryPool,name=...` | Current/peak/collection usage and per-pool thresholds |
+| `java.lang:type=GarbageCollector,name=...` | Collection count/time and GC pools |
+| `com.sun.management:type=HotSpotDiagnostic` | HotSpot-specific diagnostics, including heap dump / VM options |
+| `demo.jmx:type=LabControl` | Custom MBean from the hands-on lab below |
 
-Các pattern có dấu `...` là **minh họa**: tên thực tế thuộc VM, collector và library của ứng dụng. Không giả định mọi MBean hoặc mọi operation đều tồn tại trên OpenJ9, HotSpot version khác, runtime image rút gọn hay custom MBean server.
+Patterns with `...` are **illustrative**: actual names depend on the VM, collector, and application libraries. Never assume every MBean or operation exists on OpenJ9, different HotSpot versions, stripped-down runtime images, or custom MBean servers.
 
-JConsole nhóm cây theo ObjectName; key properties có thể ảnh hưởng cấu trúc cây, nên hãy dùng tên đầy đủ cùng domain để nhận diện, không chỉ vị trí hiển thị.
+JConsole groups the tree by ObjectName; key properties affect tree layout, so identify beans by their full name and domain rather than visual position alone.
 
-### 9.2 Attributes: đọc và ghi khác nhau như thế nào?
+### 9.2 Attributes: how reading and writing differ
 
-Chọn **MBeans → java.lang → type=Memory → Attributes → HeapMemoryUsage** (tên đường dẫn trực quan có thể khác chút theo GUI). Thuộc tính này là một composite có `init, used, committed, max`; mở chi tiết sẽ thấy dữ liệu JVM hiện tại. Với numeric attribute, JConsole có thể cho phép mở **chart** bằng thao tác nhấp đúp; dữ liệu được cập nhật khi công cụ polling.
+Select **MBeans → java.lang → type=Memory → Attributes → HeapMemoryUsage** (exact path labels may vary slightly by UI). This attribute is a composite with `init, used, committed, max`; expanding it shows current JVM values. On numeric attributes, JConsole often allows opening a **chart** by double-clicking; values update as the tool polls.
 
-Theo tài liệu JDK 21, **writable attributes** có thể hiển thị giá trị bằng màu xanh trong JConsole. Ví dụ thuộc tính `Verbose` của Memory/ClassLoading có thể được sửa từ GUI — nhưng điều đó **gọi setter trên MBean** và thay đổi JVM logging. Đừng coi “chỉ sửa một ô trong GUI” là thao tác vô hại.
+Per JDK 21 documentation, **writable attributes** may render values in blue in JConsole. For example, `Verbose` on Memory/ClassLoading can be edited in the GUI — yet doing so **invokes the MBean setter** and alters JVM logging. Never treat "just editing a field in the GUI" as harmless.
 
-Một attribute có các tính chất:
+Attribute properties:
 
-| Thuộc tính | Kiểu | Hành động |
+| Attribute | Type | Action |
 | --- | --- | --- |
-| `HeapMemoryUsage` | Dữ liệu tổng hợp read-only | Đọc và quan sát; không sửa |
-| `ThreadCount` | Numeric read-only | Đọc/quan sát |
-| `Verbose` | Boolean writable trên MBean hỗ trợ | Set giá trị và gây thay đổi tracing/logging |
-| Custom `Counter` | Numeric getter trong demo | Đọc, có thể vẽ chart |
-| Custom `Ready` | Boolean getter + setter trong demo | Đọc và thay đổi trạng thái demo |
+| `HeapMemoryUsage` | Read-only composite data | Read and observe; do not modify |
+| `ThreadCount` | Read-only numeric | Read/observe |
+| `Verbose` | Writable boolean on supporting MBeans | Sets value and alters tracing/logging |
+| Custom `Counter` | Numeric getter in demo | Read, can be charted |
+| Custom `Ready` | Boolean getter + setter in demo | Read and mutates demo state |
 
-**Không tự suy từ tên attribute “có vẻ vô hại” mà gọi setter trên production.** Chỉ khi MBean metadata cho biết writable và có quyền điều khiển, phải hiểu side effect từ contract của chính MBean.
+**Never assume an attribute looks "harmless" and invoke its setter in production.** Even when MBean metadata marks an attribute writable and you have permission, understand the side effects from the MBean's own contract first.
 
-### 9.3 Operations: button có thể gọi code thật
+### 9.3 Operations: buttons can invoke real code
 
-Trong cây MBean, chọn **Operations** để thấy methods được đăng ký. JConsole có thể hiển thị nút cho từng operation và các tham số; khi bấm, JMX **invoke method trong JVM đích**.
+In the MBean tree, select **Operations** to view registered methods. JConsole renders buttons for each operation and its parameters; clicking one **invokes the method inside the target JVM** via JMX.
 
-Phân biệt:
+Distinguish:
 
-- Getter-like operation: có thể trả thông tin hiện tại nhưng vẫn có overhead.
-- Mutation/maintenance: ví dụ `resetCounter`, `setVMOption`, bật tracing, clear cache; có thể ảnh hưởng business behavior.
-- Heap dump: `com.sun.management:type=HotSpotDiagnostic` có `dumpHeap` trên HotSpot; gọi nó có thể tạo file lớn, pause và làm lộ dữ liệu trong heap.
-- GC operation: tương đương yêu cầu JVM làm GC, không phải một thao tác đọc.
-- Operation của custom MBean: **hợp đồng do ứng dụng tự định nghĩa**; JConsole không tự bảo đảm nó idempotent, nhanh, thread-safe hoặc an toàn.
+- Getter-like operations: may return current info yet still incur overhead.
+- Mutation/maintenance: e.g., `resetCounter`, `setVMOption`, enabling tracing, clearing caches; can alter business behavior.
+- Heap dump: `com.sun.management:type=HotSpotDiagnostic` offers `dumpHeap` on HotSpot; invoking it can create large files, trigger pauses, and expose sensitive heap contents.
+- GC operation: equivalent to asking the JVM to run GC, not a read operation.
+- Custom MBean operations: **contract defined by the application**; JConsole cannot guarantee they are idempotent, fast, thread-safe, or safe.
 
-MBean metadata có thể hiển thị operation “impact” như INFO/ACTION/ACTION_INFO/UNKNOWN, nhưng **không thay thế phân tích tác động thực tế** và policy. Một MBean có thể được viết sai metadata hoặc method bên trong có I/O/blocking; đừng bấm thử để “xem nó làm gì”.
+MBean metadata may display an operation "impact" such as `INFO`, `ACTION`, `ACTION_INFO`, or `UNKNOWN`, which **does not replace analyzing actual impact** and policy. An MBean might misdeclare metadata or perform I/O/blocking inside the method; never click just to "see what it does."
 
-### 9.4 Notifications: một kênh sự kiện từ MBeans
+### 9.4 Notifications: an event channel from MBeans
 
-MBeans có thể phát JMX notifications. Trong tab MBeans, chọn nhánh **Notifications**, nhấn **Subscribe** nếu MBean hỗ trợ và bạn được phép. Đây là cơ chế nhận sự kiện trong phiên JConsole, không thay thế toàn bộ lịch sử alert hoặc message queue.
+MBeans can emit JMX notifications. In the MBeans tab, open **Notifications** and click **Subscribe** if supported and permitted. This is a live session event feed inside JConsole, not a replacement for full alert history or a message queue.
 
-Ví dụ `MemoryMXBean` có thể phát notification khi JVM phát hiện **memory usage threshold** hoặc **collection usage threshold** bị vượt theo các pool hỗ trợ. Nếu threshold chưa được cấu hình, không có notification **không chứng minh** memory không từng tăng cao.
+For instance, `MemoryMXBean` can emit notifications when the JVM detects a **memory usage threshold** or **collection usage threshold** crossing on supported pools. If thresholds are not configured, seeing zero notifications **does not prove** memory never spiked high.
 
-Lưu ý:
+Notes:
 
-- Subscribe có thể giữ listener trong JMX session; kiểm tra lifecycle/unsubscribe khi cần.
-- Notification count không phải số request lỗi hay số bytes đã cấp phát.
-- Một callback/notification của MBean có thể đến theo thời điểm JVM phát hiện sự kiện, không phải timestamp chính xác của mọi allocation.
-- Trong production, một hệ thống alert chuyên dụng có retention và policy phù hợp thường đáng tin hơn việc để cửa sổ JConsole mở liên tục.
+- Subscribing keeps a listener active for the JMX session; check lifecycle/unsubscribe as needed.
+- Notification counts are not failed request counts or allocated byte counts.
+- An MBean notification arrives when the JVM detects the condition, not necessarily at the exact timestamp of every allocation.
+- In production, a dedicated alerting system with retention and policy is far more reliable than leaving a JConsole window open continuously.
 
-## 10. Bảng phân loại thao tác: quan sát, quản lý nhẹ và thao tác rủi ro
+## 10. Action classification table: observation, light management, and risky actions
 
-| Hành động JConsole | Tính chất | Hướng xử lý |
+| JConsole action | Nature | Recommended handling |
 | --- | --- | --- |
-| Xem Overview, Memory, Threads, Classes | Chủ yếu đọc | Được phép khi có quyền monitoring; đánh giá polling overhead |
-| Xem VM Summary | Đọc, có thể lộ args/paths | Chỉ chụp/chia sẻ bản đã redact |
-| Xem attributes read-only | Đọc | Xác nhận scope/unit/timestamp và quyền |
-| Vẽ chart của numeric attribute | Polling/đọc liên tục | Giới hạn tần suất và số đối tượng được đọc |
-| Detect Deadlock | Gọi diagnostic để kiểm tra lock cycles | Chỉ dùng khi cần, tránh lặp quá dày |
-| Subscribe notifications | Đăng ký listener | Hiểu lifecycle và ngữ nghĩa event |
-| Ghi attribute `Verbose` | **Thay đổi cấu hình tracing** | Cần phê duyệt/rollback và kiểm tra chi phí log |
-| Gọi custom operation `incrementCounter` của demo | Thay đổi state của **JVM lab** | Được dùng trong lab; không áp dụng lên production MBean không rõ contract |
-| Perform GC | **Yêu cầu GC** | Không dùng tùy tiện trên production |
-| `dumpHeap` hoặc operation phân tích nặng | **I/O/disk/memory lớn**, có thể pause | Cần kế hoạch tác động, dung lượng, quyền và bảo mật artifact |
-| `setVMOption` hay operations điều khiển khác | **Đổi VM/app state** | Chỉ thực hiện theo quy trình change/incident được phê duyệt |
+| View Overview, Memory, Threads, Classes | Mostly read-only | Permitted with monitoring access; consider polling overhead |
+| View VM Summary | Read-only, may expose args/paths | Capture/share redacted versions only |
+| View read-only attributes | Read-only | Verify scope/units/timestamps and permissions |
+| Chart a numeric attribute | Continuous polling/reading | Limit frequency and number of polled attributes |
+| Detect Deadlock | Invokes diagnostic lock-cycle check | Use only when needed; avoid frequent repetition |
+| Subscribe notifications | Registers listener | Understand lifecycle and event semantics |
+| Write `Verbose` attribute | **Changes tracing configuration** | Needs approval/rollback and log-cost check |
+| Invoke demo `incrementCounter` operation | Mutates **lab JVM** state | Use in lab; never apply blindly to production MBeans with unclear contracts |
+| Perform GC | **Requests GC** | Never invoke casually in production |
+| `dumpHeap` or heavy diagnostic operations | **Heavy I/O/disk/memory**, possible pause | Plan impact, disk space, permissions, and artifact security |
+| `setVMOption` or control operations | **Alters VM/app state** | Execute only under approved change/incident procedures |
 
-Một nguyên tắc vận hành có giá trị lâu dài: **mở tab để nhìn không đồng nghĩa đã được phép nhấn mọi button**. Thao tác JMX đi qua mạng nhưng chạy trong JVM đích; hậu quả có thể trực tiếp đến latency, throughput, logging, memory hoặc tính nhất quán ứng dụng.
+An operational rule with lasting value: **opening a tab to look does not grant permission to press every button**. JMX calls travel over the wire but execute inside the target JVM; consequences can directly hit latency, throughput, logging, memory, or application consistency.
 
-## 11. Thực hành Java 17+: tạo MBean để đọc, ghi và gọi operation
+## 11. Java 17+ hands-on lab: creating an MBean to read, write, and invoke operations
 
-Bài thực hành này dùng **một JVM lab riêng**, không yêu cầu remote JMX và không thực hiện thao tác vào ứng dụng thật. Ta tạo một **Standard MBean** tên `demo.jmx:type=LabControl` với:
+This lab uses **a standalone lab JVM**, requires no remote JMX, and never touches any real application. We create a **Standard MBean** named `demo.jmx:type=LabControl` with:
 
-- Attribute `Counter` (**read-only**): bắt đầu từ 0.
-- Attribute `Ready` (**read-write**): bắt đầu là `true`, thay đổi chỉ ảnh hưởng biến demo.
-- Operation `ping()` (**không thay đổi state**): trả `"pong"`.
-- Operation `incrementCounter()` (**thay đổi state**): tăng bộ đếm và trả kết quả.
-- Operation `resetCounter()` (**thay đổi state**): đưa bộ đếm về 0.
+- `Counter` attribute (**read-only**): starts at 0.
+- `Ready` attribute (**read-write**): starts as `true`; changing it affects only the demo variable.
+- `ping()` operation (**no state change**): returns `"pong"`.
+- `incrementCounter()` operation (**mutates state**): increments the counter and returns the new value.
+- `resetCounter()` operation (**mutates state**): resets the counter to 0.
 
-### 11.1 Code đầy đủ, biên dịch được
+### 11.1 Complete, compilable code
 
-Tạo tệp **`JConsoleLab.java`**:
+Create **`JConsoleLab.java`**:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -427,7 +427,7 @@ import javax.management.StandardMBean;
 
 public final class JConsoleLab {
 
-    // Nested public interface là giao diện quản lý chuẩn của MBean.
+    // Nested public interface is the MBean's standard management interface.
     public interface LabControlMBean {
         long getCounter();
         boolean isReady();
@@ -484,212 +484,212 @@ public final class JConsoleLab {
         System.out.println("MBean=demo.jmx:type=LabControl");
         System.out.println("PID=" + ProcessHandle.current().pid());
 
-        // Giữ process tồn tại để mở GUI JConsole ở terminal khác.
+        // Keep process alive to open JConsole GUI in another terminal.
         Thread.sleep(120_000L);
         System.out.println("JConsoleLab DONE");
     }
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac JConsoleLab.java
 java JConsoleLab
 ```
 
-**Hai dòng stdout đầu tiên chính xác, bất kể hệ điều hành/JVM:**
+**First two stdout lines are exact across OS/JVMs:**
 
 ```text
 JConsoleLab READY
 MBean=demo.jmx:type=LabControl
 ```
 
-Dòng tiếp theo là `PID=<giá-trị-thực>`, phụ thuộc máy. Sau khoảng 120 giây chương trình in `JConsoleLab DONE` và thoát. Nếu chạy JConsole quá chậm, hãy khởi động lại **JVM lab**; không mặc định một PID đã kết thúc còn hợp lệ. Trên JDK 17+/21, `javac` thành công thường không in gì; đó không phải lỗi.
+The next line is `PID=<actual-value>`, machine-dependent. After roughly 120 seconds, the program prints `JConsoleLab DONE` and exits. If you take too long launching JConsole, restart the **lab JVM**; never assume an exited PID remains valid. On JDK 17+/21, a successful `javac` typically prints nothing; that is not an error.
 
-### 11.2 Tại sao dùng StandardMBean?
+### 11.2 Why use StandardMBean?
 
-`LabControlMBean` là interface **public** khai báo contract JMX. Class `LabControl` implement contract đó. `StandardMBean` giúp đăng ký implementation theo interface xác định, tránh phải tự tạo metadata MBean phức tạp. Bean được đăng ký qua **platform MBeanServer** nên local JConsole có thể tìm thấy trong tab MBeans khi kết nối đúng process.
+`LabControlMBean` is a **public** interface declaring the JMX contract. Class `LabControl` implements that contract. `StandardMBean` registers the implementation against the specified interface, avoiding hand-written MBean metadata. The bean is registered on the **platform MBeanServer**, so local JConsole finds it in the MBeans tab once connected to the right process.
 
-Chương trình dùng:
+The program uses:
 
-- `AtomicLong` để tăng/reset counter an toàn khi JMX client gọi đồng thời.
-- `volatile boolean` để getter/setter của `Ready` thấy state mới giữa các threads; trong demo, đổi `Ready` **không tắt service, không pause worker và không điều khiển JVM runtime**.
-- `Thread.sleep` chỉ để giữ JVM sống đủ lâu cho lab, không chứng minh rằng JMX sẽ block ứng dụng trong 120 giây.
-- `ProcessHandle.current().pid()` để in PID của **chính JVM demo**, không lấy PID từ máy khác.
+- `AtomicLong` to increment/reset the counter safely under concurrent JMX client calls.
+- `volatile boolean` so `Ready` getter/setter updates are visible across threads; in the demo, changing `Ready` **does not shut down a service, pause workers, or control the JVM runtime**.
+- `Thread.sleep` solely to keep the JVM alive long enough for the lab—not to suggest JMX blocks applications for 120 seconds.
+- `ProcessHandle.current().pid()` to print the **demo JVM's own** PID, not a PID from another machine.
 
-JConsole hoặc JMX có thể gọi getter thường xuyên để vẽ đồ thị; getter của custom MBean nên **nhanh, an toàn và không có side effects đáng kể**. Không nên đưa DB query đắt hoặc thao tác network blocking vào mỗi lần `getCounter()`.
+JConsole or JMX can call getters frequently to plot charts; custom MBean getters should be **fast, safe, and free of significant side effects**. Never put expensive DB queries or blocking network I/O inside `getCounter()`.
 
-### 11.3 Kết nối đúng JVM demo
+### 11.3 Connecting to the right demo JVM
 
-Mở JConsole trong một terminal khác trên cùng máy, cùng user:
+Open JConsole in another terminal on the same machine under the same user:
 
 ```bash
 jconsole
 ```
 
-Trong cửa sổ Local Process, chọn process `JConsoleLab` có PID trùng dòng in từ demo; hoặc:
+In the Local Process dialog, pick `JConsoleLab` matching the PID printed by the demo; or:
 
 ```bash
-# Thay 12345 bằng PID thật in trên terminal của JConsoleLab.
+# Replace 12345 with the real PID printed in JConsoleLab's terminal.
 jconsole 12345
 ```
 
-Trình tự thao tác trên GUI:
+GUI walkthrough order:
 
-1. Kết nối JVM demo và mở **VM Summary**; xác minh uptime/process context.
-2. Mở **Overview** để xem các biểu đồ; vì demo gần như idle, không kỳ vọng CPU cao hay memory tăng liên tục.
-3. Mở **MBeans**, tìm domain `demo.jmx` và ObjectName `type=LabControl`.
-4. Chọn **Attributes**: đọc `Counter = 0` và `Ready = true` trước khi dùng operations.
-5. Thử nhấp đúp giá trị numeric `Counter` để xem chart (nếu GUI hỗ trợ kiểu/hiển thị đó).
-6. Chọn **Operations → ping** và gọi; kết quả kỳ vọng là chuỗi `pong`.
-7. Chọn **Operations → incrementCounter** và gọi một lần; giá trị trả về dự kiến **1**, attribute `Counter` sau refresh là **1**.
-8. Gọi `incrementCounter` thêm lần nữa; giá trị trả về dự kiến **2**, attribute `Counter` sau refresh là **2**.
-9. Thay `Ready` thành `false` ở **writable attribute** nếu GUI và quyền cho phép; đọc lại để xác minh state. Đây chỉ là flag của lab.
-10. Gọi `resetCounter`; sau khi refresh, `Counter` trở lại **0**.
-11. Không cần thử `Perform GC` hoặc `HotSpotDiagnostic.dumpHeap` để chứng minh custom MBean hoạt động.
+1. Connect to the demo JVM and open **VM Summary**; confirm uptime/process context.
+2. Open **Overview** to view charts; because the demo is nearly idle, expect low CPU and steady memory.
+3. Open **MBeans**, locate domain `demo.jmx` and ObjectName `type=LabControl`.
+4. Select **Attributes**: read `Counter = 0` and `Ready = true` before using operations.
+5. Try double-clicking the numeric `Counter` value to open a chart (if supported for that type/view in the GUI).
+6. Select **Operations → ping** and invoke; expected result is `"pong"`.
+7. Select **Operations → incrementCounter** and invoke once; expected return value is **1**, and `Counter` after refresh is **1**.
+8. Invoke `incrementCounter` once more; expected return value is **2**, and `Counter` after refresh is **2**.
+9. Change `Ready` to `false` under **writable attributes** if GUI and permissions permit; refresh to verify state. This only changes the lab flag.
+10. Invoke `resetCounter`; after refresh, `Counter` returns to **0**.
+11. There is no need to test `Perform GC` or `HotSpotDiagnostic.dumpHeap` to prove the custom MBean works.
 
-Thứ tự hiển thị attributes/operations trên GUI có thể khác, và giá trị chart chỉ được cập nhật khi JConsole polling. Các kỳ vọng 0→1→2→0 chính xác **nếu chỉ một người đang thao tác vào JVM demo này** và không có client khác gọi operations xen vào.
+Attribute/operation display order in the GUI may vary, and chart values update only when JConsole polls. The 0→1→2→0 expectations hold **provided only one person interacts with this demo JVM** and no other client invokes operations concurrently.
 
-### 11.4 Sự khác nhau giữa read-only, writable và operation
+### 11.4 Differences between read-only, writable, and operation
 
-| Thành phần demo | Cơ chế | Tác động |
+| Demo member | Mechanism | Impact |
 | --- | --- | --- |
-| `getCounter()` | Getter → attribute `Counter` | Chỉ đọc atomic counter |
-| `isReady()` | Boolean getter → attribute `Ready` | Chỉ đọc state |
-| `setReady(boolean)` | Setter → ghi attribute `Ready` | Đổi state trong JVM demo |
-| `ping()` | MBean operation | Trả `pong`; không đổi counter/state |
-| `incrementCounter()` | MBean operation | **Tăng Counter** |
-| `resetCounter()` | MBean operation | **Reset Counter** |
+| `getCounter()` | Getter → attribute `Counter` | Reads atomic counter only |
+| `isReady()` | Boolean getter → attribute `Ready` | Reads state only |
+| `setReady(boolean)` | Setter → writes attribute `Ready` | Mutates state in demo JVM |
+| `ping()` | MBean operation | Returns `pong`; leaves counter/state unchanged |
+| `incrementCounter()` | MBean operation | **Increments Counter** |
+| `resetCounter()` | MBean operation | **Resets Counter** |
 
-Việc gọi setter/operation qua JMX là **hành động thực**, không phải tương tác giả lập của JConsole. Trong hệ thống thật, custom MBean có thể cung cấp drain queue, rotate secret, clear cache, reload config hoặc shutdown service; không gọi khi chưa hiểu contract/ủy quyền.
+Invoking setters/operations via JMX executes **real actions**, not simulated JConsole interactions. In real systems, custom MBeans can drain queues, rotate secrets, clear caches, reload configs, or shut down services; never invoke without understanding the contract and authorization.
 
-### 11.5 Cách dừng lab an toàn
+### 11.5 Stopping the lab safely
 
-Nếu chưa đủ 120 giây, quay lại terminal chạy JVM lab và bấm Ctrl+C để dừng. JConsole có thể báo mất kết nối, đó là hành vi bình thường khi target process thoát. Nếu khởi động lại, JVM nhận **PID mới hoặc cùng PID đã được tái sử dụng**, và custom MBean/Counter quay lại trạng thái ban đầu.
+Before 120 seconds elapse, return to the lab JVM terminal and press Ctrl+C to exit. JConsole may report a lost connection, which is expected when the target process terminates. On restart, the JVM gets a **new PID or a reused PID**, and the custom MBean/Counter returns to its initial state.
 
-Không kết luận JConsole “tự sửa counter” khi thấy từ 2 trở về 0 nếu thực tế bạn vừa kết nối vào **phiên JVM mới**.
+Do not assume JConsole "reset the counter on its own" when seeing 2 drop back to 0 if you actually connected to a **new JVM session**.
 
-## 12. Diễn giải ba tình huống thực tế
+## 12. Interpreting three realistic scenarios
 
-### 12.1 Memory chart tăng liên tục: leak hay workload?
+### 12.1 Memory chart climbing continuously: leak or workload?
 
-Giả sử trong Overview/Memory bạn thấy heap used tăng 200→700 MiB trong 20 phút, max là 1 GiB. Đây là **dữ liệu minh họa**, chưa phải bằng chứng leak.
+Suppose Overview/Memory shows heap used rising 200→700 MiB over 20 minutes with a 1 GiB max. This is **illustrative data**, not proof of a leak yet.
 
-Các bước:
+Steps:
 
-1. Kiểm tra cùng PID/uptime, time range và GC collector.
-2. Nhìn chu kỳ GC: used có giảm sau GC không, đáy sau GC có tăng liên tục không?
-3. Kiểm tra heap committed/max và container memory limits; đừng nhầm committed với used hoặc RSS.
-4. Đối chiếu request mix, throughput, caches, batch jobs, JFR allocation/GC events.
-5. Nếu nghi retained references, lên kế hoạch heap analysis/dump có ngân sách overhead và bảo vệ dữ liệu.
-6. Không dùng **Perform GC** để chỉnh kết quả đo khi đang cố quan sát trạng thái tự nhiên.
+1. Verify same PID/uptime, time range, and GC collector.
+2. Watch GC cycles: does `used` drop after GC, and is the post-GC baseline climbing steadily?
+3. Check heap committed/max and container memory limits; never confuse committed with used or RSS.
+4. Correlate request mix, throughput, caches, batch jobs, and JFR allocation/GC events.
+5. If retained references are suspected, plan heap analysis/dumps with an overhead budget and data protection.
+6. Never use **Perform GC** to alter measurements while trying to observe natural behavior.
 
-Kết luận có thể là allocation churn bình thường, cache warm-up, giữ object lâu, classloader issue hoặc leak; JConsole **gợi hướng** chứ không tự chứng minh nguyên nhân.
+The cause might be normal allocation churn, cache warm-up, long-lived objects, classloader issues, or a leak; JConsole **points toward hypotheses** rather than proving root cause alone.
 
-### 12.2 Threads tăng và latency p99 cao
+### 12.2 Rising threads and high p99 latency
 
-Khi Threads chart tăng, mở danh sách thread/stacks; tìm những worker đang chờ lock, downstream hoặc queue; dùng Detect Deadlock nếu có bằng chứng Java lock cycle.
+When the Threads chart climbs, inspect thread lists/stacks; look for workers waiting on locks, downstream calls, or queues; run Detect Deadlock if there is evidence of Java lock cycles.
 
-Không kết luận ngay có deadlock vì thread count tăng. Có thể thread pool scale theo workload; các thread `WAITING` đang nhàn; p99 cao do DB/network timeout mà Java Deadlock Detection không thể biết. Thu một vài snapshot qua thời gian và nối với service metrics, thread pool queue, distributed traces.
+Do not conclude a deadlock exists just because thread count rose. Thread pools scale with load; `WAITING` threads may simply be idle; high p99 may stem from DB/network timeouts invisible to Java Deadlock Detection. Capture multiple snapshots over time and correlate with service metrics, thread pool queues, and distributed traces.
 
-Nếu JVM dùng **virtual threads**, nhớ ThreadMXBean của Java 21 không phản ánh đầy đủ chúng: JConsole Threads chart chỉ là một phần góc nhìn, không phải tổng mọi logical tasks.
+If the JVM uses **virtual threads**, remember Java 21 `ThreadMXBean` does not fully reflect them: the JConsole Threads chart shows only part of the picture, not all logical tasks.
 
-### 12.3 Current classes và Metaspace tăng qua redeploy
+### 12.3 Current classes and Metaspace climbing across redeploys
 
-Chọn Classes tab và Memory pool liên quan đến Metaspace:
+Open the Classes tab and the Metaspace Memory pool:
 
-1. Ghi current loaded, total loaded, total unloaded và Metaspace usage.
-2. Đối chiếu thời điểm reload/deploy, plugin generation, GC/class unloading.
-3. Khi total loaded tăng nhưng current ổn định, có thể do nhiều class đã unload.
-4. Nếu current và Metaspace tiếp tục tăng qua nhiều chu kỳ tương tự, cần điều tra classloader retention hoặc dynamic code generation.
-5. Không bật class loading verbose từ JConsole chỉ để “thử” trên production, vì nó có thể tăng logging và làm thay đổi overhead.
+1. Record current loaded, total loaded, total unloaded, and Metaspace usage.
+2. Correlate timestamps of reloads/deploys, plugin generation, and GC/class unloading.
+3. When total loaded grows while current stays flat, classes are likely unloading properly.
+4. If current loaded and Metaspace keep climbing across multiple similar cycles, investigate classloader retention or dynamic code generation.
+5. Never enable verbose class loading from JConsole just to "test" in production, as it increases logging and alters overhead.
 
-## 13. Sự cố kết nối JConsole: giải quyết theo nguyên nhân
+## 13. Troubleshooting JConsole connections by root cause
 
-| Triệu chứng | Khả năng | Cách kiểm tra |
+| Symptom | Likely causes | How to verify |
 | --- | --- | --- |
-| Không tìm thấy JVM trong Local Process | Khác user, namespace/container, JVM không attachable, process đã thoát | Xác nhận PID/start time, quyền OS, JDK/attach policy |
-| “Connection failed” khi dùng PID | Sai PID, JVM restart, permission hoặc attach disabled | Đối chiếu target, user và logs; không tự dùng quyền admin để vượt policy |
-| Remote host:port mở được nhưng JConsole vẫn treo | RMI stub trả host/port khác, firewall/NAT, TLS/certificate | Kiểm tra connector/server port và hostname công bố, mạng quản trị |
-| Bị từ chối xác thực | Wrong credentials/role, access file, TLS settings | Dùng cơ chế cấp quyền chính thức, không tắt auth/SSL |
-| Tab MBeans không có custom MBean | Kết nối nhầm JVM, bean chưa register, khác MBeanServer, lỗi lifecycle | Xác nhận ObjectName và platform registration trong app |
-| Attribute/operation báo permission denied | Vai trò read-only, access control hoặc MBean policy | Chỉ dùng quyền được phép; không tìm cách bypass |
-| Chart không thay đổi | JVM idle, dữ liệu chưa refresh, series không supported, sai scope | Kiểm tra timestamps, thuộc tính raw và workload |
-| Biểu đồ mất sau reconnect | JConsole session mới chỉ có samples từ phiên/đệm hiện có | Dùng metrics/recording được thiết kế có retention |
-| GUI không mở | JDK không có `jconsole` hoặc không có display server | Dùng GUI client trên máy phù hợp, kết nối theo chính sách |
+| JVM missing from Local Process list | Different user, namespace/container, non-attachable JVM, process exited | Check PID/start time, OS permissions, JDK/attach policy |
+| "Connection failed" with PID | Wrong PID, JVM restarted, permission denied, or attach disabled | Check target, user, and logs; never escalate privileges to bypass policy |
+| Remote host:port reachable yet JConsole hangs | RMI stub returns another host/port, firewall/NAT, TLS/certificate | Check connector/server port and advertised hostname, admin network |
+| Authentication rejected | Wrong credentials/role, access file, TLS settings | Use official credential provisioning; never disable auth/SSL |
+| Custom MBean missing in MBeans tab | Wrong JVM connected, bean unregistered, different MBeanServer, lifecycle bug | Verify ObjectName and platform registration in app |
+| Attribute/operation reports permission denied | Read-only role, access control, or MBean policy | Use only granted permissions; never bypass |
+| Chart stays flat | JVM idle, not yet refreshed, unsupported series, wrong scope | Check timestamps, raw attributes, and workload |
+| Chart history lost after reconnect | New JConsole session holds only current session/buffer samples | Use metrics/recording systems designed for retention |
+| GUI fails to launch | JDK lacks `jconsole` or no display server | Run GUI client on an appropriate workstation per policy |
 
-Một sự cố JMX remote **không nên được khắc phục bằng cách thêm `authenticate=false`/`ssl=false`** trên production. Hãy ưu tiên cấu hình chính xác TLS, phân quyền, RMI ports, hostname và mạng quản trị.
+A remote JMX issue **must never be "fixed" by adding `authenticate=false`/`ssl=false`** in production. Fix TLS, role permissions, RMI ports, hostnames, and admin network routing properly instead.
 
-## 14. Overhead và giới hạn khi dùng JConsole
+## 14. Overhead and limitations of JConsole
 
-### 14.1 Polling có chi phí
+### 14.1 Polling carries cost
 
-JConsole lấy các getter định kỳ và vẽ biểu đồ; tùy số lượng attributes, độ phức tạp custom MBeans và đường mạng, nó có thể tăng CPU, heap allocations, safepoint/management activity hoặc network traffic. Một custom getter duyệt toàn bộ cache hàng triệu phần tử có thể đắt gấp nhiều lần platform getter đơn giản.
+JConsole polls getters periodically to render charts; depending on attribute count, custom MBean complexity, and network paths, it can increase CPU, heap allocations, safepoint/management activity, or network traffic. A custom getter scanning a million-item cache can cost orders of magnitude more than a simple platform getter.
 
-Khi thấy CPU tăng sau khi mở JConsole, không tự gán tăng này cho application workload. So baseline, xem operations đã gọi và thuộc tính nào đang được chart polling.
+If CPU rises after opening JConsole, do not automatically blame application workload. Compare baselines, review invoked operations, and check which attributes are being polled for charts.
 
-### 14.2 Không thay telemetry dài hạn
+### 14.2 Not a replacement for long-term telemetry
 
-- Chỉ số Overview theo cửa sổ GUI không phải monitoring retention nhiều ngày.
-- JConsole không tự cung cấp traces tương quan nhiều services.
-- Chart CPU/Memory không thay thế CPU flamegraph, allocation profiler hoặc heap object graph.
-- JVM memory không bao gồm toàn bộ native/process RSS.
-- CSV từ một chart không phải snapshot nhất quán nguyên tử của mọi MBean.
-- JMX read-only role không phải “không có overhead”; getter cũng có thể tính toán.
-- JConsole version GUI và VM version có thể lệch; khi gặp thiếu operation, kiểm tra contract trên target VM.
+- Overview charts reflect only the GUI window, not multi-day monitoring retention.
+- JConsole does not provide cross-service distributed traces.
+- CPU/Memory charts do not replace CPU flamegraphs, allocation profilers, or heap object graphs.
+- JVM memory does not cover all native memory or full process RSS.
+- A CSV from one chart is not an atomic consistent snapshot across all MBeans.
+- A JMX read-only role is not "zero overhead"; getters can still perform computation.
+- JConsole GUI version and target VM version may differ; if an operation is missing, check the target VM's contract.
 
-### 14.3 Cân bằng giữa thao tác bằng GUI và automation
+### 14.3 Balancing GUI interaction and automation
 
-JConsole hữu ích trong **khám phá tương tác, thực hành và điều tra một process**. Để có monitoring liên tục/alert, thường dùng metrics/exporter hoặc hệ thống quan sát có retention. Khi cần chẩn đoán thời điểm sự cố trong production, JFR/thread dump/GC logs có thể phù hợp hơn tùy câu hỏi.
+JConsole excels at **interactive exploration, hands-on learning, and inspecting a single process**. For continuous monitoring and alerting, use metrics/exporters or retention-backed observability stacks. For production incident deep dives, JFR/thread dumps/GC logs may be more suitable depending on the question.
 
-Không ghi giá trị “Observed at 10:00” từ JConsole rồi suy ra “đã như vậy trong 24 giờ trước”. Chỉ trình bày khoảng thực sự có dữ liệu.
+Never write "Observed at 10:00" from JConsole and extrapolate "it has been like this for the past 24 hours." Report only the window where data was actually observed.
 
-## 15. Quy trình vận hành JConsole có kiểm soát
+## 15. Controlled JConsole operating workflow
 
-### Bước 1: Xác minh quyền và target
+### Step 1: Verify authorization and target
 
-Ghi:
+Record:
 
-- Service và environment, host/node/container/pod.
-- PID và process start time, Java version/vendor, ứng dụng/build.
-- Người thực hiện, mục đích, incident/ticket, quyền role JMX.
-- Có cho phép operations/attribute writes hay chỉ monitoring?
+- Service and environment, host/node/container/pod.
+- PID and process start time, Java version/vendor, application/build.
+- Operator, purpose, incident/ticket, JMX role permissions.
+- Are operations/attribute writes permitted, or monitoring only?
 
-Nếu dùng remote connection, xác nhận secure network/TLS, RMI hostname/ports và authorization. Không publish credential trong ghi chú.
+If using a remote connection, confirm secure network/TLS, RMI hostname/ports, and authorization. Never publish credentials in notes.
 
-### Bước 2: Lấy bối cảnh từ VM Summary
+### Step 2: Gather context from VM Summary
 
-Đọc uptime/version/arguments theo đúng PID và ghi timestamp UTC. Redact paths/tokens trước khi chia sẻ. Nếu nhận ra nhầm JVM, ngừng ngay; không tiếp tục đọc/ghi MBean của process khác.
+Read uptime/version/arguments for the exact PID and record UTC timestamps. Redact paths/tokens before sharing. If you notice you connected to the wrong JVM, disconnect immediately; do not read or write MBeans on another process.
 
-### Bước 3: Quan sát Overview rồi vào tab theo triệu chứng
+### Step 3: Observe Overview, then target tabs by symptom
 
-- Memory pressure → Memory; phân biệt heap/non-heap và pool, GC times, used/committed/max.
-- Thread stall → Threads, nhiều snapshots và deadlock detection khi phù hợp.
-- Classloader/metaspace → Classes + Memory pool.
-- Application custom state → MBeans → ObjectName/Attributes, chỉ đọc trước.
-- Cần liên hệ nhiều nhóm → Chọn cùng khoảng thời gian và lấy CSV/metrics khi được phép.
+- Memory pressure → Memory; distinguish heap/non-heap and pools, GC times, used/committed/max.
+- Thread stall → Threads, multiple snapshots and deadlock detection when appropriate.
+- Classloader/metaspace → Classes + Memory pools.
+- Custom application state → MBeans → ObjectName/Attributes, read-only first.
+- Cross-team correlation → align time windows and export CSV/metrics when authorized.
 
-### Bước 4: Trước khi gọi setter/operation
+### Step 4: Before invoking a setter or operation
 
-Tự trả lời đủ:
+Answer completely:
 
-1. Attribute/operation này **thay đổi điều gì trong JVM/app**?
-2. Tài liệu/owner của MBean xác nhận side effects, concurrency và quyền nào?
-3. Có thể gây pause, chạy GC, dump file lớn, clear cache, mất dữ liệu hoặc tăng log không?
-4. Có điều kiện dừng, rollback và cách đo tác động sau thay đổi không?
-5. Có phải production, nhiều replica, hay dữ liệu nhạy cảm không?
-6. Có phê duyệt vận hành tương ứng không?
+1. What does this attribute/operation **change inside the JVM/app**?
+2. What side effects, concurrency behavior, and permissions are documented by the MBean owner?
+3. Can it trigger pauses, run GC, dump large files, clear caches, lose data, or spike logs?
+4. Are there stop conditions, rollback steps, and a way to measure post-change impact?
+5. Is this production, multi-replica, or sensitive data?
+6. Is there formal operational approval?
 
-Nếu không trả lời được, **không gọi**. Xem MBean metadata và liên hệ owner thay vì bấm thử.
+If any answer is unknown, **do not invoke it**. Inspect MBean metadata and contact the owner instead of clicking blindly.
 
-### Bước 5: Thu bằng chứng và thoát phiên
+### Step 5: Collect evidence and exit the session
 
-Lưu chart CSV/screenshot nếu chính sách cho phép, gắn timestamp, units, time range, PID/start time và mục tiêu. Không để GUI/remote JMX mở không kiểm soát; disconnect và quản lý phiên/credentials theo policy. Với recording/heap artifacts tạo từ operations, lưu/xóa theo retention và kiểm soát quyền.
+Save chart CSVs/screenshots if policy allows, labeled with timestamps, units, time range, PID/start time, and target. Never leave GUIs or remote JMX sessions open unattended; disconnect and manage sessions/credentials per policy. Store or delete any recordings/heap artifacts created by operations according to retention and access controls.
 
-### Bước 6: Kết luận có giới hạn
+### Step 6: State bounded conclusions
 
-Ví dụ ghi nhận **minh họa**:
+**Illustrative** record example:
 
 ```yaml
 captureTimeUtc: "2026-10-29T08:30:00Z"
@@ -714,93 +714,93 @@ limitations:
   - "Data available only during observed time window"
 ```
 
-Các số và tên trong mẫu là **giả định**. Chỉ điền values đã quan sát thật và không tự chèn thông tin nhạy cảm. `deadlockDetection` ghi cụ thể phạm vi “theo hỗ trợ và tại thời điểm đo”, không ghi khẳng định toàn bộ chương trình không bao giờ deadlock.
+Numbers and names in the sample are **fictional**. Fill in only actually observed values and never insert sensitive secrets. `deadlockDetection` explicitly scopes to "supported types at capture time," never claiming the entire program can never deadlock.
 
-## 16. Những lỗi thường gặp
+## 16. Common misconceptions
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Accurate understanding |
 | --- | --- |
-| “JConsole chỉ để xem, bấm mọi nút đều vô hại.” | Writable attributes/operations thực thi ngay trong target JVM. |
-| “Có thể luôn attach local JVM mà không cần cấu hình.” | Còn phụ thuộc user/permissions, namespace, attach policy, runtime và platform. |
-| “Bật JMX remote chỉ cần mở một cổng.” | RMI có registry, connector port, stub hostname, firewall và TLS/auth concerns. |
-| “Bỏ xác thực JMX để dễ chẩn đoán production.” | Rủi ro truy cập trái phép/mutation; phải giữ security và phân quyền. |
-| “CPU chart đã cho thấy class/method gây chậm.” | Cần profiler/JFR CPU samples và workload context. |
-| “Memory used tăng là leak.” | Có thể do allocation churn, cache/warm-up, GC policy; cần chuỗi sau-GC và retained references. |
-| “Committed heap bằng RSS.” | Heap committed khác physical resident/process memory. |
-| “Perform GC chỉ cập nhật biểu đồ.” | Gửi yêu cầu garbage collection và có thể làm thay đổi trạng thái/latency. |
-| “ThreadCount của Java 21 bao gồm mọi virtual thread.” | `ThreadMXBean` chỉ giám sát platform threads theo contract JDK 21. |
-| “Detect Deadlock không tìm thấy nghĩa là không có chờ/kẹt.” | Chỉ kiểm tra những loại deadlock hỗ trợ tại thời điểm đó. |
-| “Total loaded classes tăng luôn là classloader leak.” | Total loaded là số tích lũy; cần current, unloaded, Metaspace và bối cảnh. |
-| “MBean attribute writable chỉ là một ô trên GUI.” | Ghi value gọi setter trong process. |
-| “MBean operation có tên `ping` nên chắc chắn không tác động.” | Với custom MBeans, phải đọc contract/code của owner; tên không bảo đảm side effect. |
-| “Chart xuất CSV bao gồm dữ liệu từ trước khi JConsole mở.” | CSV chỉ xuất dữ liệu chart có trong phiên/bộ đệm. |
-| “Có thể dùng một JVM demo để suy ra JVM production.” | Luôn lấy dữ liệu từ đúng PID/instance/runtime đang cần chẩn đoán. |
-| “JConsole luôn hiển thị các memory pool theo hình cũ có Permanent Generation.” | Tên pools thay đổi theo GC/JDK; Java 17/21 không dùng PermGen theo cách Java 7 trước đây. |
-| “Một role đọc JMX hoàn toàn miễn chi phí.” | Getter/polling có thể tốn tài nguyên, đặc biệt custom MBean không tối ưu. |
+| "JConsole is just for viewing; clicking buttons is harmless." | Writable attributes and operations execute directly inside the target JVM. |
+| "Local JVM attach always works with zero setup." | Depends on user/permissions, namespaces, attach policy, runtime, and platform. |
+| "Enabling remote JMX only needs opening one port." | RMI involves registry, connector port, stub hostname, firewalls, and TLS/auth. |
+| "Disable JMX auth to troubleshoot production faster." | Risks unauthorized access and mutation; maintain security and role separation. |
+| "The CPU chart reveals which class/method is slow." | Requires profiler/JFR CPU samples and workload context. |
+| "Rising memory used means a leak." | May be allocation churn, cache/warm-up, or GC policy; requires post-GC trend and retained references. |
+| "Committed heap equals RSS." | Committed heap differs from physical resident/process memory. |
+| "Perform GC only refreshes the chart." | Triggers a garbage collection request and can alter state and latency. |
+| "Java 21 ThreadCount includes all virtual threads." | `ThreadMXBean` monitors platform threads only per the JDK 21 contract. |
+| "Detect Deadlock finding nothing means nothing is stuck." | Checks only supported deadlock types at that instant. |
+| "Total loaded classes rising always means a classloader leak." | Total loaded is cumulative; inspect current, unloaded, Metaspace, and context. |
+| "A writable MBean attribute is just a GUI text box." | Writing a value invokes the setter inside the process. |
+| "An MBean operation named `ping` is guaranteed side-effect-free." | For custom MBeans, verify the owner's contract/code; names do not guarantee safety. |
+| "Exported chart CSV includes data from before JConsole opened." | CSV exports only chart samples held in the active session/buffer. |
+| "A demo JVM proves production JVM behavior." | Always collect data from the exact target PID/instance/runtime. |
+| "JConsole always shows old PermGen memory pools." | Pool names vary by GC/JDK; Java 17/21 do not use PermGen like Java 7 did. |
+| "A read-only JMX role has zero overhead." | Getters and polling still consume resources, especially unoptimized custom MBeans. |
 
-## 17. Câu hỏi tự kiểm tra
+## 17. Self-check questions
 
-**Câu 1.** Mở JConsole kết nối JVM và thấy CPU cùng heap used tăng. Có đủ kết luận memory leak gây CPU cao?
+**Question 1.** You connect JConsole to a JVM and see CPU and heap used rising together. Is that enough to conclude a memory leak is causing high CPU?
 
-**Đáp án:** chưa. Đó là tương quan theo thời gian, cần GC/CPU sampling, allocation, workload và retained-object evidence. Hai chart không cho thấy causal chain.
+**Answer:** Not yet. That is temporal correlation; you need GC/CPU sampling, allocation rates, workload data, and retained-object evidence. Two charts alone do not prove a causal chain.
 
-**Câu 2.** Trong MBeans thấy `HeapMemoryUsage` gồm `used=300`, `committed=600`, `max=1200` MiB. Used/max và used/committed là bao nhiêu?
+**Question 2.** Under MBeans, `HeapMemoryUsage` shows `used=300`, `committed=600`, `max=1200` MiB. What are used/max and used/committed?
 
-**Đáp án:** **25%** và **50%**. Hai tỷ lệ nói đến hai loại capacity khác nhau; không đổi tên mà không đổi mẫu số.
+**Answer:** **25%** and **50%**. The two ratios measure against different capacities; never change labels without tracking the denominator.
 
-**Câu 3.** Người quan sát muốn “làm sạch heap trước khi nhìn chart” bằng `Perform GC`. Có coi là read-only được không?
+**Question 3.** An observer wants to "clean the heap before looking at the chart" by clicking `Perform GC`. Can this be considered read-only?
 
-**Đáp án:** không. Nó yêu cầu GC, có thể ảnh hưởng dịch vụ và thay đổi trạng thái đang đo. Trong môi trường thật cần quy trình phê duyệt can thiệp.
+**Answer:** No. It requests GC, can impact the service, and alters the very state under measurement. In real environments, intervention requires approval procedures.
 
-**Câu 4.** Trong demo `Counter` đọc bằng attribute, `incrementCounter()` gọi bằng operation, `Ready` được sửa bằng setter. Ba việc khác nhau thế nào?
+**Question 4.** In the demo, `Counter` is read as an attribute, `incrementCounter()` is invoked as an operation, and `Ready` is edited via setter. How do the three differ?
 
-**Đáp án:** đọc `Counter` không đổi state; `incrementCounter` tăng state; ghi `Ready` gọi setter và đổi flag trong process demo. Hai thao tác sau là mutation.
+**Answer:** Reading `Counter` does not mutate state; `incrementCounter` increments state; writing `Ready` invokes the setter and flips the flag in the demo process. The latter two are mutations.
 
-**Câu 5.** `Detect Deadlock` không phát hiện gì nhưng request vẫn bị treo. Có mâu thuẫn không?
+**Question 5.** `Detect Deadlock` finds nothing, yet requests remain hung. Is that a contradiction?
 
-**Đáp án:** không. Có thể do I/O, starvation, database lock bên ngoài hoặc loại chờ không tạo deadlock cycle mà JConsole kiểm tra được.
+**Answer:** No. Requests may be stalled on I/O, starvation, external database locks, or wait patterns that do not form a deadlock cycle checkable by JConsole.
 
-**Câu 6.** Một ứng dụng Java 21 tạo 100.000 virtual threads, nhưng Threads tab không báo con số đó. Vì sao?
+**Question 6.** A Java 21 app spawns 100,000 virtual threads, yet the Threads tab does not show that number. Why?
 
-**Đáp án:** JDK 21 `ThreadMXBean` không giám sát virtual threads theo cách tương tự platform threads. Cần JFR/công cụ phù hợp virtual threads để đánh giá.
+**Answer:** JDK 21 `ThreadMXBean` does not monitor virtual threads the same way as platform threads. Use JFR or virtual-thread-aware tools to evaluate them.
 
-**Câu 7.** Một JMX remote connection cần login, nhưng người vận hành muốn bật `authenticate=false` và `ssl=false` để truy cập từ laptop. Có nên không?
+**Question 7.** A remote JMX connection requires login, and an operator wants to set `authenticate=false` and `ssl=false` to connect from a laptop. Should they?
 
-**Đáp án:** không trên production. JMX có operations và writable state, cần authentication, TLS, role/network restrictions. Sửa credential/RMI/SSL đúng cách.
+**Answer:** Never in production. JMX exposes operations and writable state and requires authentication, TLS, role separation, and network restrictions. Fix credentials, RMI, and SSL properly.
 
-**Câu 8.** JConsole đang vẽ `Counter` của demo, gọi `incrementCounter` hai lần. Chart không đổi ngay lập tức. Có chứng minh operation thất bại?
+**Question 8.** JConsole is charting the demo's `Counter`, and you invoke `incrementCounter` twice. The chart does not update immediately. Does that prove the operation failed?
 
-**Đáp án:** chưa. Polling interval, refresh và selected attribute có thể khiến chart chậm cập nhật. Xác minh kết quả operation và đọc lại raw `Counter`.
+**Answer:** Not yet. Polling intervals, refresh timing, and chart selection can delay visual updates. Verify the operation's return value and re-read raw `Counter`.
 
-**Câu 9.** Tại sao VM Summary không được xem là bằng chứng chắc chắn về toàn bộ effective flags và parameters của app?
+**Question 9.** Why is VM Summary not conclusive proof of all effective flags and application parameters?
 
-**Đáp án:** VM input args khác với application args và những VM flags mà JVM tự chọn/điều chỉnh; có thể cần `jcmd`/JVM APIs, deployment config và runtime state.
+**Answer:** VM input arguments differ from application arguments and from VM flags adjusted automatically by ergonomics; `jcmd`/JVM APIs, deployment configs, and runtime state may be needed.
 
-**Câu 10.** Một custom MBean có operation `clearCache`. Khi nào được gọi?
+**Question 10.** A custom MBean exposes a `clearCache` operation. When is it appropriate to invoke it?
 
-**Đáp án:** chỉ khi hiểu contract/side effect, phạm vi ảnh hưởng, concurrency/rollback và có quyền vận hành phù hợp. Không bấm thử chỉ để xem GUI có hoạt động không.
+**Answer:** Only when you understand its contract and side effects, blast radius, concurrency/rollback behavior, and hold proper operational authorization. Never click it just to test if the GUI works.
 
-## 18. Checklist thực hành cuối bài
+## 18. End-of-lesson practical checklist
 
-- Xác định đúng **JVM/PID/start time**, Java version và quyền kết nối.
-- Local attach đúng user/namespace; remote JMX có TLS, authentication, authorization và mạng giới hạn.
-- Biết sáu tab: **Overview, Memory, Threads, Classes, VM Summary, MBeans**.
-- Phân biệt **used/committed/max**, current/peak threads, loaded/current classes và cumulative metrics.
-- Không nhầm JConsole charts với profiler hoặc hệ thống lưu lịch sử dài hạn.
-- Trong MBeans, nhận diện **ObjectName**, **attribute read-only/writable**, **operation**, **notification** và metadata.
-- Mọi writable attribute, GC action, heap dump hay custom operation được xem là **change** cho đến khi biết chắc side effects.
-- Chạy được ví dụ `JConsoleLab.java`, tìm `demo.jmx:type=LabControl`, đọc `Counter`/`Ready`, gọi `ping`/`incrementCounter`/`resetCounter`.
-- Ghi timestamp, scope, units, source, window và giới hạn phép đo; bảo vệ dữ liệu trước khi xuất screenshot/CSV.
-- Dùng JFR, GC logs, thread dumps, metrics/tracing khi cần độ sâu hoặc timeline mà JConsole không cung cấp.
+- Verified exact **JVM/PID/start time**, Java version, and connection permissions.
+- Used matching user/namespace for local attach; enforced TLS, authentication, authorization, and network limits for remote JMX.
+- Know all six tabs: **Overview, Memory, Threads, Classes, VM Summary, MBeans**.
+- Distinguished **used/committed/max**, current/peak threads, loaded/current classes, and cumulative metrics.
+- Never confuse JConsole charts with a profiler or long-term historical storage.
+- Under MBeans, identified **ObjectName**, **read-only/writable attributes**, **operations**, **notifications**, and metadata.
+- Treated every writable attribute, GC trigger, heap dump, or custom operation as a **state change** until side effects are verified.
+- Ran `JConsoleLab.java`, located `demo.jmx:type=LabControl`, read `Counter`/`Ready`, and invoked `ping`/`incrementCounter`/`resetCounter`.
+- Recorded timestamps, scope, units, source, window, and measurement limitations; protected sensitive data before exporting screenshots/CSVs.
+- Used JFR, GC logs, thread dumps, and metrics/tracing when depth or timelines exceed JConsole's scope.
 
-**Kết luận:** JConsole giúp “nhìn JVM bằng mắt” thông qua đồ thị và MBeans, nhưng nó đồng thời là một **công cụ điều khiển** có thể ảnh hưởng trực tiếp đến ứng dụng. Quy trình an toàn là **xác nhận đúng process → quan sát trước → hiểu hợp đồng MBean → chỉ thực hiện thao tác được phép → kiểm tra tác động và lưu bằng chứng có ngữ cảnh**.
+**Conclusion:** JConsole lets you "see inside the JVM" through charts and MBeans, while also serving as a **control tool** that can directly impact the application. The safe workflow is **verify the exact process → observe first → understand MBean contracts → perform only authorized actions → verify impact and archive context-rich evidence**.
 
-### Tài liệu tham khảo chính thức
+### Official references
 
-- [Oracle JDK 21 — Using JConsole](https://docs.oracle.com/en/java/javase/21/management/using-jconsole.html): cách mở JConsole, local/remote, sáu tab, chart CSV, attributes, operations và notifications.
-- [Oracle JDK 21 — Monitoring and Management Using JMX Technology](https://docs.oracle.com/en/java/javase/21/management/monitoring-and-management-using-jmx-technology.html): management agent, remote RMI ports/hostname, authentication, TLS và role access.
-- [Oracle JDK 21 — The jconsole Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jconsole.html): launcher command, `-J` options và cách khởi chạy.
-- [Java SE 21 — ThreadMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): quản lý platform threads và giới hạn virtual threads.
-- [Java SE 21 — MBeanServer](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/MBeanServer.html): register/query/read/set/invoke MBeans trong server.
-- [Java SE 21 — StandardMBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/StandardMBean.html): đăng ký Standard MBean thông qua management interface.
-- [Java SE 21 — MemoryUsage](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryUsage.html): semantics của init/used/committed/max.
+- [Oracle JDK 21 — Using JConsole](https://docs.oracle.com/en/java/javase/21/management/using-jconsole.html): launching JConsole, local/remote connections, six tabs, chart CSV export, attributes, operations, and notifications.
+- [Oracle JDK 21 — Monitoring and Management Using JMX Technology](https://docs.oracle.com/en/java/javase/21/management/monitoring-and-management-using-jmx-technology.html): management agent, remote RMI ports/hostname, authentication, TLS, and role access.
+- [Oracle JDK 21 — The jconsole Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jconsole.html): launcher command, `-J` options, and invocation syntax.
+- [Java SE 21 — ThreadMXBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): managing platform threads and virtual thread limitations.
+- [Java SE 21 — MBeanServer](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/MBeanServer.html): registering, querying, reading, setting, and invoking MBeans in a server.
+- [Java SE 21 — StandardMBean](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/javax/management/StandardMBean.html): registering a Standard MBean via its management interface.
+- [Java SE 21 — MemoryUsage](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/MemoryUsage.html): semantics of init/used/committed/max.

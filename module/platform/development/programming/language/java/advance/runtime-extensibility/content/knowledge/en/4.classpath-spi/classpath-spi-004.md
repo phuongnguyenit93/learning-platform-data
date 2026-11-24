@@ -1,43 +1,43 @@
-# Điều kiện public, khả năng gán kiểu và constructor không tham số của SPI trên classpath
+# Public Visibility, Assignability, and No-Arg Constructor Requirements for Classpath SPIs
 
-## 1. Bối cảnh: ServiceLoader nạp provider từ classpath như thế nào?
+## 1. Context: How Does ServiceLoader Load Providers from the Classpath?
 
-Một **Service Provider Interface (SPI)** mô tả khả năng mà ứng dụng chính (host) cần, còn **provider** là lớp hiện thực khả năng đó. Trên **classpath**, Java có thể tìm provider thông qua **java.util.ServiceLoader** mà host không cần trực tiếp gọi constructor của từng implementation.
+A **Service Provider Interface (SPI)** describes a capability that the main application (host) needs, while a **provider** is a class implementing that capability. On the **classpath**, Java can find providers via **java.util.ServiceLoader** without the host directly calling each implementation's constructor.
 
-Ví dụ, host chỉ phụ thuộc giao diện GreetingService, còn JAR của bên mở rộng đăng ký lớp PoliteGreeting. Khi duyệt ServiceLoader, JVM đọc tài nguyên **META-INF/services/<tên nhị phân đầy đủ của service>**, tải tên lớp provider và tạo instance.
+For example, the host depends only on the `GreetingService` interface, while an extension JAR registers the `PoliteGreeting` class. When iterating over `ServiceLoader`, the JVM reads the resource **META-INF/services/<fully qualified binary name of service>**, loads the provider class name, and creates an instance.
 
-Ba điều kiện cốt lõi đối với một provider được đăng ký theo cơ chế **META-INF/services trên classpath** là:
+The three core conditions for a provider registered via **META-INF/services on the classpath** are:
 
-1. **Lớp provider phải public**, có thể được loader nhìn thấy và là lớp cụ thể có thể khởi tạo.
-2. **Lớp provider phải gán được cho kiểu service**: implements interface SPI hoặc extends service class tương ứng.
-3. **Lớp provider phải có constructor public không tham số** để ServiceLoader tạo instance.
+1. **The provider class must be public**, visible to the loader, and a concrete instantiable class.
+2. **The provider class must be assignable to the service type**: implementing the SPI interface or extending the corresponding service class.
+3. **The provider class must have a public no-argument constructor** so `ServiceLoader` can create an instance.
 
-Đây là điều kiện cho provider kiểu **constructor trên classpath**; không được nhầm với cơ chế public static provider() có thể dùng trong một số **named module**. Một chữ ký đúng nhưng cấu hình runtime sai vẫn có thể khiến ứng dụng không tìm được provider.
+These are conditions for **constructor-based providers on the classpath**; do not confuse them with the `public static provider()` mechanism available in some **named modules**. A correct signature with a wrong runtime configuration can still prevent the application from finding the provider.
 
-## 2. Ba điều kiện và cách phân biệt
+## 2. The Three Conditions and How to Distinguish Them
 
-| Kiểm tra | Điều cần đúng | Lỗi thường gặp |
+| Check | What Must Be True | Common Mistakes |
 | --- | --- | --- |
-| Public/khả năng truy cập | Provider là public class phù hợp, không phải non-static inner class; class loader có thể tìm thấy nó | Lớp package-private, tên provider sai, JAR không ở classpath |
-| Khả năng gán kiểu (assignability) | ServiceType.class.isAssignableFrom(ProviderType.class) trả true | Có phương thức trùng tên nhưng quên implements, extends sai kiểu, hai bản SPI do class loader khác nhau định nghĩa |
-| Constructor không tham số | Có constructor **public** với **0 tham số**, có thể gọi thành công | Chỉ có constructor nhận Config, constructor private/package-private, constructor ném lỗi |
+| Public/accessibility | Provider is a proper public class, not a non-static inner class; class loader can find it | Package-private class, wrong provider name, JAR not on classpath |
+| Assignability | `ServiceType.class.isAssignableFrom(ProviderType.class)` returns `true` | Has matching method names but forgot `implements`, extends wrong type, two SPI copies defined by different class loaders |
+| No-argument constructor | Has a **public** constructor with **0 parameters**, callable successfully | Only has constructor taking `Config`, private/package-private constructor, constructor throws an error |
 
-Ngoài ba điều kiện đó, provider phải thực sự khởi tạo được: không abstract, không phải interface khi dùng đường tạo instance trực tiếp, không bị lỗi khởi tạo lớp, thiếu dependency hoặc vòng lặp khởi tạo. Tệp đăng ký dịch vụ cũng phải đúng tên và định dạng.
+Beyond those three conditions, the provider must actually be instantiable: not `abstract`, not an `interface` when using direct instantiation, no class initialization failures, missing dependencies, or initialization cycles. The service registration file must also have the right name and format.
 
-Một lớp có thể qua hai điều kiện nhưng trượt điều kiện còn lại. Ví dụ, public và implements SPI không bảo đảm có public no-arg constructor; ngược lại, public constructor cũng không làm lớp trở thành subtype của SPI.
+A class can pass two conditions yet fail the third. For example, being `public` and implementing the SPI does not guarantee a public no-arg constructor; conversely, a public constructor does not make a class a subtype of the SPI.
 
-## 3. Điều kiện public: public cho cả lớp và constructor
+## 3. The Public Requirement: Public for Both Class and Constructor
 
-### 3.1. Public class là điều kiện riêng
+### 3.1. A Public Class Is a Separate Requirement
 
-Trong Java, một top-level class khai báo không có public sẽ có quyền truy cập package-private. Ví dụ sau **không hợp lệ để làm classpath provider theo quy tắc ServiceLoader**, dù constructor được ghi là public:
+In Java, a top-level class declared without `public` has package-private access. The following example is **invalid as a classpath provider under `ServiceLoader` rules**, even though the constructor is marked `public`:
 
 ~~~java
 package example.provider;
 
 import example.spi.GreetingService;
 
-// Mã minh họa trường hợp sai, không thay thế provider của ví dụ chạy ở phần 7.
+// Code illustrating an invalid case; does not replace the provider in the runnable example in Section 7.
 final class HiddenGreeting implements GreetingService {
     public HiddenGreeting() {}
 
@@ -48,22 +48,22 @@ final class HiddenGreeting implements GreetingService {
 }
 ~~~
 
-Constructor public không thể bù cho lớp package-private. Một provider khai báo là public static nested class có thể dùng nếu đáp ứng các điều kiện còn lại; lúc đăng ký phải dùng **binary name** có dấu **$** giữa tên lớp ngoài và tên lớp lồng. Một **non-static inner class** phụ thuộc instance của lớp bao ngoài nên không phù hợp cho provider được tạo trực tiếp bằng public no-arg constructor.
+A public constructor cannot compensate for a package-private class. A provider declared as a `public static` nested class can be used if it satisfies the remaining conditions; when registering, you must use the **binary name** with `$` between the outer class name and nested class name. A **non-static inner class** depends on an instance of the enclosing class and therefore is unsuitable for a provider instantiated directly via a public no-arg constructor.
 
-Giao diện SPI cũng cần **truy cập được từ provider và caller**. Đối với SPI dự định dùng qua package/JAR, thường khai báo public interface hoặc public abstract class. Đừng hiểu rằng chỉ thêm public vào SPI đã làm provider hợp lệ.
+The SPI interface also needs to be **accessible from both the provider and the caller**. For an SPI intended to be used across packages/JARs, it is normally declared as a `public interface` or `public abstract class`. Do not assume that merely adding `public` to the SPI makes providers valid.
 
-### 3.2. Public không có nghĩa là ở đúng classpath
+### 3.2. Public Does Not Mean It Is on the Right Classpath
 
-Dù class là public, ServiceLoader vẫn không tìm ra nó nếu không có lớp bytecode trong classpath của loader liên quan, tên trong service descriptor sai, hoặc không nhìn thấy dependency cần thiết. Chữ public điều chỉnh khả năng truy cập của mã Java; **đường tìm lớp và tài nguyên** do class loader quyết định.
+Even if a class is `public`, `ServiceLoader` still will not find it if its bytecode is absent from the relevant loader's classpath, the name in the service descriptor is wrong, or required dependencies are invisible. The `public` modifier governs Java code accessibility; **class and resource lookup paths** are determined by the class loader.
 
-Ở phần lớn ứng dụng classpath thông thường, ServiceLoader.load(ServiceType.class) dùng **thread context class loader** hiện tại. Trong host/plugin container có nhiều loader, kết quả tìm provider có thể khác nhau giữa các thread hoặc giữa các loader. Khi cần chủ động chọn loader, dùng overload ServiceLoader.load(serviceClass, classLoader) và đảm bảo loader đó nhìn thấy cả resource đăng ký lẫn provider.
+In most ordinary classpath applications, `ServiceLoader.load(ServiceType.class)` uses the current **thread context class loader**. In a host/plugin container with multiple loaders, provider lookup results can differ across threads or loaders. When needing to choose a loader explicitly, use the `ServiceLoader.load(serviceClass, classLoader)` overload and ensure that loader sees both the registration resource and the provider.
 
-## 4. Khả năng gán kiểu: cùng chữ ký không có nghĩa là cùng SPI
+## 4. Assignability: Matching Method Signatures Does Not Mean the Same SPI
 
-Java dùng **nominal typing** cho class/interface, không suy ra một lớp implements interface chỉ vì có method giống hệt.
+Java uses **nominal typing** for classes/interfaces; it does not infer that a class implements an interface merely because it has identical methods.
 
 ~~~java
-// Chỉ là minh họa: lớp này chưa implements GreetingService.
+// Illustration only: this class does not implement GreetingService.
 public final class LooksLikeGreeting {
     public String greet(String name) {
         return "Hello, " + name;
@@ -73,7 +73,7 @@ public final class LooksLikeGreeting {
 }
 ~~~
 
-Một lớp như LooksLikeGreeting có thể có method public với cùng tham số và kiểu trả về nhưng **không gán được cho GreetingService**. Để thành provider, cần khai báo:
+A class like `LooksLikeGreeting` can have a `public` method with the exact same parameters and return type yet **not be assignable to `GreetingService`**. To become a provider, it must declare:
 
 ~~~java
 public final class PoliteGreeting implements GreetingService {
@@ -86,23 +86,23 @@ public final class PoliteGreeting implements GreetingService {
 }
 ~~~
 
-Hai đoạn này là mã rút gọn nhằm minh họa quan hệ kiểu; chương trình hoàn chỉnh và các khai báo package/import nằm ở phần 7.
+These two snippets are abbreviated code to illustrate type relationships; the complete program and package/import declarations are in Section 7.
 
-Kiểm tra bằng reflection theo đúng chiều:
+Check via reflection in the right direction:
 
 ~~~java
 boolean compatible = GreetingService.class.isAssignableFrom(PoliteGreeting.class);
 ~~~
 
-Giá trị compatible là true khi PoliteGreeting triển khai GreetingService đang được host dùng (hoặc là subtype của một service class). Cách viết ngược PoliteGreeting.class.isAssignableFrom(GreetingService.class) không trả lời câu hỏi đó.
+The value `compatible` is `true` when `PoliteGreeting` implements the `GreetingService` used by the host (or is a subtype of a service class). Writing it backwards as `PoliteGreeting.class.isAssignableFrom(GreetingService.class)` does not answer that question.
 
-**Cẩn trọng với nhiều class loader.** Định danh class tại runtime phụ thuộc **tên nhị phân và class loader định nghĩa nó**. Nếu host và plugin vô tình đóng gói hai bản SPI giống tên nhưng do hai loader khác nhau định nghĩa, quan hệ assignability có thể thất bại dù mã nguồn cùng ghi implements example.spi.GreetingService. Thiết kế plugin nên thống nhất nơi tải bản SPI dùng chung và tránh nhúng bản sao SPI riêng vào từng plugin khi chúng cần trao đổi cùng kiểu với host.
+**Be careful with multiple class loaders.** Class identity at runtime depends on **binary name and defining class loader**. If the host and plugin accidentally package two copies of the SPI with the same name but defined by two different loaders, assignability can fail even though both sources write `implements example.spi.GreetingService`. Plugin designs should unify where the shared SPI copy is loaded and avoid embedding separate SPI copies in each plugin when they must exchange the same type with the host.
 
-## 5. Constructor không tham số: public, tồn tại và gọi được
+## 5. No-Arg Constructor: Public, Present, and Callable
 
-### 5.1. Constructor tường minh và constructor mặc định
+### 5.1. Explicit Constructor and Default Constructor
 
-ServiceLoader cần một **public constructor không có tham số** để tạo provider trên classpath. Khai báo tường minh giúp ý định rõ ràng:
+`ServiceLoader` needs a **public constructor with no parameters** to instantiate a provider on the classpath. Declaring it explicitly makes the intent clear:
 
 ~~~java
 public final class PoliteGreeting implements GreetingService {
@@ -116,12 +116,12 @@ public final class PoliteGreeting implements GreetingService {
 }
 ~~~
 
-Nếu một **public class không khai báo bất kỳ constructor nào**, compiler sinh **default constructor** không tham số với mức truy cập tương ứng (public). Vì vậy trường hợp đó cũng đáp ứng điều kiện, miễn lớp có thể tạo được.
+If a **`public` class declares no constructors at all**, the compiler generates a no-argument **default constructor** with matching access (`public`). Thus that case also satisfies the condition, provided the class can be instantiated.
 
-Nhưng **ngay khi tự khai báo một constructor nhận tham số**, Java không còn tự sinh default constructor:
+However, **as soon as you explicitly declare a constructor taking parameters**, Java no longer auto-generates a default constructor:
 
 ~~~java
-// Minh họa trường hợp sai với ServiceLoader classpath.
+// Illustrates an invalid case for classpath ServiceLoader.
 public final class ConfiguredGreeting implements GreetingService {
     private final String prefix;
 
@@ -136,44 +136,44 @@ public final class ConfiguredGreeting implements GreetingService {
 }
 ~~~
 
-ConfiguredGreeting public và implements SPI, nhưng thiếu constructor public không tham số. Không thể yêu cầu ServiceLoader trên classpath tự đoán một Config để truyền vào constructor.
+`ConfiguredGreeting` is `public` and implements the SPI, but lacks a public no-argument constructor. You cannot expect classpath `ServiceLoader` to guess a `Config` to pass into the constructor.
 
-Constructor private, protected hoặc package-private không thỏa yêu cầu public, ngay cả khi không nhận tham số. Constructor của superclass **không được thừa kế** như method; điều kiện cần kiểm tra trên class provider thực sự được ghi trong descriptor.
+Private, protected, or package-private constructors do not satisfy the `public` requirement, even if they take no parameters. A superclass's constructor is **not inherited** like a method; the condition must be checked on the actual provider class listed in the descriptor.
 
-### 5.2. Có constructor chưa đủ nếu gọi constructor thất bại
+### 5.2. Having a Constructor Is Not Enough If Calling It Fails
 
-Một public no-arg constructor vẫn có thể ném exception hoặc kích hoạt lỗi khởi tạo lớp. Khi ServiceLoader tạo instance, các lỗi đó có thể được báo dưới dạng **ServiceConfigurationError**, kèm nguyên nhân gốc nếu có. Không để constructor phụ thuộc vào trạng thái global chưa khởi tạo hoặc thực hiện công việc mạng kéo dài không được công bố.
+A public no-arg constructor can still throw an exception or trigger a class initialization error. When `ServiceLoader` creates an instance, such failures can be reported as **`ServiceConfigurationError`**, with the root cause if available. Do not make the constructor depend on uninitialized global state or perform long undocumented network work.
 
-Nếu provider cần cấu hình runtime, với SPI trên classpath có thể:
-- Tạo provider qua no-arg constructor rồi gọi phương thức cấu hình/khởi động được SPI công bố, có kiểm soát vòng đời và lỗi.
-- Cấp context qua phương thức riêng của hợp đồng thay vì nhúng dependency ngầm vào constructor.
-- Nếu kiểm soát kiến trúc JPMS của named module, cân nhắc provider factory method như phần 10; không áp dụng sai phương thức đó cho JAR classpath.
+If a provider needs runtime configuration, with a classpath SPI you can:
+- Instantiate the provider via the no-arg constructor and then call a configuration/initialization method published by the SPI, with controlled lifecycle and error handling.
+- Supply context via a dedicated contract method rather than embedding hidden dependencies in the constructor.
+- If you control a JPMS named-module architecture, consider a provider factory method as in Section 10; do not misapply that approach to classpath JARs.
 
-Đừng dùng reflection để ép constructor private thành accessible nhằm "sửa" cơ chế ServiceLoader; làm như vậy tạo một cơ chế khởi tạo khác, phụ thuộc chính sách truy cập và module, không giải quyết hợp đồng classpath provider.
+Do not use reflection to force a private constructor to be accessible to "fix" `ServiceLoader`; doing so creates a different instantiation mechanism dependent on access and module policies, and does not solve the classpath provider contract.
 
-## 6. Đăng ký đúng META-INF/services trên classpath
+## 6. Registering META-INF/services Properly on the Classpath
 
-Đối với SPI example.spi.GreetingService, đường dẫn tài nguyên **phải chính xác**:
+For the SPI `example.spi.GreetingService`, the resource path **must be exact**:
 
 ~~~text
 META-INF/services/example.spi.GreetingService
 ~~~
 
-Nội dung tệp, mã hóa **UTF-8**, ghi **binary name đầy đủ** của mỗi provider, mỗi tên một dòng:
+The file contents, encoded in **UTF-8**, list the **fully qualified binary name** of each provider, one name per line:
 
 ~~~text
 example.provider.PoliteGreeting
 ~~~
 
-Không thêm đuôi .class hay .java vào tên file cấu hình hoặc tên lớp trong nội dung. Tên file theo **service**, còn dòng nội dung theo **provider**. Có thể có nhiều provider, mỗi provider một dòng; dòng trống được bỏ qua và dấu # bắt đầu comment. Nếu cùng provider bị liệt kê trùng, ServiceLoader bỏ qua tên trùng theo quy tắc của nó.
+Do not add `.class` or `.java` extensions to the configuration file name or class names inside. The file name follows the **service**, while content lines follow the **provider**. There may be multiple providers, one per line; blank lines are ignored and `#` starts a comment. If the same provider is listed multiple times, `ServiceLoader` skips duplicates according to its rules.
 
-Tài nguyên này có thể nằm trong provider JAR hoặc một classpath entry khác, nhưng khi chạy, loader phải tìm được resource và load được lớp tương ứng. Tệp nằm đúng thư mục nguồn của dự án chưa chắc đã được copy vào JAR hay đưa vào classpath cuối cùng. Khi đóng gói, kiểm tra bên trong artifact thay vì chỉ nhìn source tree.
+This resource can reside in the provider JAR or another classpath entry, but at runtime the loader must be able to find the resource and load the corresponding class. A file sitting in the right source directory of a project is not guaranteed to be copied into the JAR or placed on the final classpath. When packaging, inspect inside the artifact rather than looking only at the source tree.
 
-## 7. Ví dụ hoàn chỉnh, chạy được với Java 17+
+## 7. Complete, Runnable Example on Java 17+
 
-Ví dụ sau dùng một SPI public, một provider public có public no-arg constructor, một host không import provider và một service descriptor.
+The following example uses one public SPI, one public provider with a public no-arg constructor, one host that does not import the provider, and one service descriptor.
 
-Cấu trúc thư mục, tính từ thư mục demo:
+Directory structure, relative to the `demo` directory:
 
 ~~~text
 demo/
@@ -186,7 +186,7 @@ demo/
 │   └── META-INF/
 │       └── services/
 │           └── example.spi.GreetingService
-└── out/                    (thư mục output tạo trước khi biên dịch)
+└── out/                    (output directory created before compiling)
 ~~~
 
 **src/example/spi/GreetingService.java**:
@@ -241,59 +241,59 @@ public final class Main {
 }
 ~~~
 
-**resources/META-INF/services/example.spi.GreetingService** (tệp văn bản thuần UTF-8):
+**resources/META-INF/services/example.spi.GreetingService** (plain UTF-8 text file):
 
 ~~~text
 example.provider.PoliteGreeting
 ~~~
 
-Từ thư mục demo, tạo thư mục out và biên dịch các tệp .java:
+From the `demo` directory, create the `out` directory and compile the `.java` files:
 
 ~~~bash
 mkdir out
 javac -encoding UTF-8 --release 17 -d out src/example/spi/GreetingService.java src/example/provider/PoliteGreeting.java src/example/app/Main.java
 ~~~
 
-Trên Linux/macOS, chạy với dấu **:** ngăn cách hai classpath entries:
+On Linux/macOS, run with **:** separating the two classpath entries:
 
 ~~~bash
 java -cp "out:resources" example.app.Main
 ~~~
 
-Trên Windows, dùng dấu **;** thay thế:
+On Windows, use **;** instead:
 
 ~~~powershell
 java -cp "out;resources" example.app.Main
 ~~~
 
-**Stdout chính xác** (chỉ có một provider được đăng ký):
+**Exact stdout** (only one provider is registered):
 
 ~~~text
 Xin chao, Java!
 Providers: 1
 ~~~
 
-Vì Main chỉ import interface GreetingService, host không cần tham chiếu trực tiếp tới PoliteGreeting. ServiceLoader đọc descriptor từ resources, tải class và khởi tạo provider khi vòng for duyệt tới nó.
+Because `Main` imports only the `GreetingService` interface, the host never needs to reference `PoliteGreeting` directly. `ServiceLoader` reads the descriptor from `resources`, loads the class, and instantiates the provider when the `for` loop iterates to it.
 
-Để thấy sự khác biệt giữa **lỗi không tìm thấy provider** và **provider vi phạm điều kiện**, thử bỏ resources khỏi runtime classpath rồi chạy:
+To see the difference between **failing to find a provider** and **a provider violating conditions**, try removing `resources` from the runtime classpath and running:
 
 ~~~bash
 java -cp out example.app.Main
 ~~~
 
-Khi chỉ có các class trong out và không có bản descriptor khác, kết quả là:
+When only the classes in `out` exist and no other descriptor copy is present, the result is:
 
 ~~~text
 Providers: 0
 ~~~
 
-Trường hợp này **không có ServiceConfigurationError** vì không có provider nào được đăng ký mà loader tìm thấy. Ngược lại, khi descriptor có tên một lớp nhưng lớp đó không hợp lệ, lỗi thường xảy ra trong lúc duyệt và nạp provider.
+In this case **there is no `ServiceConfigurationError`** because the loader found no registered provider. Conversely, when the descriptor contains a class name that is invalid, an error typically occurs while iterating and loading the provider.
 
-## 8. Kiểm tra chủ động ba điều kiện bằng reflection
+## 8. Proactively Checking the Three Conditions Using Reflection
 
-Để chẩn đoán trong môi trường ví dụ, có thể kiểm tra các thuộc tính của class trước khi đăng ký. Đây là **công cụ kiểm tra**, không phải cách thay ServiceLoader tạo instance.
+To diagnose in the example environment, you can inspect the class properties before registration. This is an **inspection tool**, not a replacement for how `ServiceLoader` creates instances.
 
-Tạo tệp **src/example/app/Inspector.java**:
+Create the file **src/example/app/Inspector.java**:
 
 ~~~java
 package example.app;
@@ -326,14 +326,14 @@ public final class Inspector {
 }
 ~~~
 
-Sau khi đã biên dịch ví dụ phần 7, chạy thêm:
+After compiling the example in Section 7, also run:
 
 ~~~bash
 javac -encoding UTF-8 --release 17 -cp out -d out src/example/app/Inspector.java
 java -cp out example.app.Inspector
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 public: true
@@ -342,28 +342,28 @@ assignable: true
 public no-arg: true
 ~~~
 
-**Giải thích:** Modifier.isPublic kiểm tra access của lớp; !Modifier.isAbstract và !isInterface kiểm tra đây là kiểu có thể tạo instance trực tiếp; isAssignableFrom kiểm tra quan hệ kiểu theo đúng hướng; Class.getConstructor() tìm constructor public không tham số (nếu không có thì ném NoSuchMethodException).
+**Explanation:** `Modifier.isPublic` checks class accessibility; `!Modifier.isAbstract` and `!isInterface` check that it is a directly instantiable type; `isAssignableFrom` checks the type relationship in the right direction; `Class.getConstructor()` looks for a public no-argument constructor (throwing `NoSuchMethodException` if none exists).
 
-Bốn kết quả true vẫn **không bảo đảm discovery thành công**: Inspector chưa kiểm tra descriptor, classpath entry, sự nhất quán class loader, dependency, lỗi khởi tạo hoặc logic của constructor. Inspector dùng cách tải lớp trong ví dụ đơn giản; trong plugin host thực tế phải kiểm tra đúng class loader được cấu hình cho ServiceLoader.
+Four `true` results still **do not guarantee successful discovery**: `Inspector` has not checked the descriptor, classpath entries, class loader consistency, dependencies, class initialization errors, or constructor logic. `Inspector` uses simple class loading in the example; in a real plugin host, you must check with the exact class loader configured for `ServiceLoader`.
 
-## 9. Nhận diện lỗi và cách xử lý
+## 9. Identifying Errors and How to Handle Them
 
-| Hiện tượng | Nguyên nhân có thể | Cách kiểm tra/sửa |
+| Symptom | Possible Cause | How to Check/Fix |
 | --- | --- | --- |
-| Không thấy provider nào, không ném lỗi | Thiếu META-INF/services trong runtime classpath hoặc descriptor không được loader thấy | Kiểm tra đường dẫn resource, nội dung JAR, classpath và context class loader |
-| ServiceConfigurationError khi duyệt provider | Descriptor chứa tên sai, class không load được hoặc không đáp ứng contract | Kiểm tra tên binary, classpath và cause của lỗi |
-| Lớp package-private | Class provider không public | Đổi thành public top-level class hoặc public static nested class hợp lệ |
-| Có method giống SPI nhưng không implements/extends | Không có quan hệ kiểu nominal | Triển khai đúng SPI, thống nhất class loader cho API chung |
-| Lớp public nhưng không có public no-arg constructor | Chỉ có constructor nhận tham số hoặc no-arg không public | Khai báo public Provider() {} thực sự phù hợp |
-| Constructor tồn tại nhưng ném lỗi | Phụ thuộc cấu hình hoặc initializer thất bại | Kiểm tra cause, dời bước khởi tạo có thể thất bại sang lifecycle có hợp đồng rõ |
-| Nhiều bản cùng tên SPI | Hai class loader định nghĩa hai lớp khác nhau | Chia sẻ một bản SPI trong loader phù hợp, tránh đóng gói trùng |
-| Provider abstract/non-static inner | Không thể khởi tạo theo lối direct-constructor | Dùng concrete public class với no-arg constructor |
-| Chỉ thêm static provider() vào classpath provider | Nhầm cơ chế named module với classpath | Trên classpath vẫn phải có public no-arg constructor và provider subtype |
+| No providers found, no error thrown | Missing `META-INF/services` on runtime classpath or descriptor not seen by loader | Check resource path, JAR contents, classpath, and context class loader |
+| `ServiceConfigurationError` when iterating providers | Descriptor contains wrong name, class cannot be loaded, or fails contract | Check binary name, classpath, and error cause |
+| Package-private class | Provider class is not `public` | Change to a `public` top-level class or a valid `public static` nested class |
+| Has methods matching SPI without `implements`/`extends` | No nominal type relationship | Implement the SPI properly, unify class loader for shared API |
+| Public class without public no-arg constructor | Only parameterized constructors or non-public no-arg constructor | Declare an appropriate `public Provider() {}` |
+| Constructor exists but throws error | Config dependency or initializer failure | Inspect cause, move fallible initialization to an explicit contract lifecycle |
+| Multiple copies with same SPI name | Two class loaders defined two distinct classes | Share one SPI copy in the appropriate loader, avoid duplicate packaging |
+| Abstract or non-static inner provider | Cannot be instantiated via direct constructor | Use a concrete `public` class with a no-arg constructor |
+| Added only `static provider()` to a classpath provider | Confused named-module mechanism with classpath | On classpath, still must have public no-arg constructor and be a provider subtype |
 
-**Khi phát sinh ServiceConfigurationError**, nhớ rằng ServiceLoader nạp provider **lazily**. Lỗi có thể xảy ra khi gọi Iterator.hasNext(), Iterator.next(), duyệt for-each, hoặc khi xử lý Stream/Provider.get(), chứ không nhất thiết ngay tại ServiceLoader.load(...). Bắt đúng loại lỗi này ở ranh giới *discovery/loading* để ghi nhận provider lỗi và áp dụng chính sách fail-fast hoặc fallback đã định nghĩa:
+**When `ServiceConfigurationError` occurs**, remember that `ServiceLoader` loads providers **lazily**. The error can happen when calling `Iterator.hasNext()`, `Iterator.next()`, iterating with for-each, or processing a `Stream`/`Provider.get()`, rather than immediately at `ServiceLoader.load(...)`. Catch this error type at the *discovery/loading* boundary to record the failing provider and apply a defined fail-fast or fallback policy:
 
 ~~~java
-// Đoạn minh họa xử lý discovery, không phải chương trình độc lập.
+// Snippet illustrating discovery handling, not a standalone program.
 try {
     for (GreetingService provider : ServiceLoader.load(GreetingService.class)) {
         System.out.println(provider.greet("Java"));
@@ -374,22 +374,22 @@ try {
 }
 ~~~
 
-Không mặc định dùng catch(Throwable) để nuốt mọi Error. ServiceConfigurationError là một lỗi chuyên biệt của cơ chế nạp dịch vụ; lỗi nền tảng của JVM cần chính sách khác. Nếu một provider lỗi, quyết định bỏ qua hay dừng phải được thực thi cẩn thận: tiếp tục dùng cùng iterator sau lỗi có thể tiếp tục gặp trạng thái lỗi, và không nên giả định có thể bỏ qua provider bằng một lần next().
+Do not default to `catch(Throwable)` to swallow every `Error`. `ServiceConfigurationError` is a specialized error of the service-loading mechanism; fundamental JVM errors require a different policy. If one provider fails, the decision to skip or stop must be implemented carefully: continuing to use the same iterator after an error may keep encountering an error state, and you should not assume a single `next()` call cleanly skips the bad provider.
 
-Khi tạo JAR, có thể kiểm tra mục lưu trữ bằng lệnh **jar --list --file tên-file.jar** và xác nhận tồn tại tài nguyên META-INF/services cùng class được chỉ định. Không dựa vào tên thư mục source hoặc việc IDE compile thành công để kết luận runtime discovery đã đúng.
+When creating a JAR, you can check archive entries with **`jar --list --file filename.jar`** and confirm the presence of the `META-INF/services` resource and the specified class. Do not rely on source directory names or IDE compilation success to conclude that runtime discovery is right.
 
-## 10. Điểm khác biệt quan trọng với Java modules
+## 10. Key Differences from Java Modules
 
-Chỉ xét **SPI trên classpath** thì ServiceLoader sử dụng **META-INF/services** và đường khởi tạo provider bằng **public no-arg constructor**. Với **named module** được khai báo rõ bằng module-info.java, service được đăng ký bởi **provides ... with ...** và có thêm cơ chế **provider method**:
+Considering only **SPIs on the classpath**, `ServiceLoader` uses **`META-INF/services`** and instantiates providers via a **public no-arg constructor**. With a **named module** explicitly declared via `module-info.java`, services are registered by **`provides ... with ...`** and gain the **provider method** mechanism:
 
 ~~~java
-// Trích đoạn module-info.java minh họa, không phải chương trình độc lập.
+// Illustrative module-info.java snippet, not a standalone program.
 provides example.spi.GreetingService
     with example.provider.GreetingFactory;
 ~~~
 
 ~~~java
-// Trích đoạn kiểu factory trong named module, cần các class/import của module.
+// Factory-style snippet in a named module, requiring the module's classes/imports.
 public final class GreetingFactory {
     public static GreetingService provider() {
         return new PoliteGreeting();
@@ -397,36 +397,36 @@ public final class GreetingFactory {
 }
 ~~~
 
-Khi có public static **provider()** không tham số với kiểu trả về gán được cho service, ServiceLoader của **named module** có thể gọi method đó thay vì constructor; **class factory không bắt buộc implements SPI**, và không buộc có public no-arg constructor theo đường khởi tạo này. Nếu named-module provider **không có provider method**, nó phải có provider constructor public không tham số và phải gán kiểu được cho SPI. Một **automatic module** trên module path vẫn phải dùng provider constructor; nó không hỗ trợ provider method theo cơ chế này.
+When a `public static provider()` method with no parameters and a return type assignable to the service exists, `ServiceLoader` for a **named module** can call that method instead of a constructor; **the factory class does not have to implement the SPI**, nor is it required to have a public no-arg constructor under this instantiation path. If a named-module provider **has no provider method**, it must have a public no-arg provider constructor and must be assignable to the SPI. An **automatic module** on the module path must still use a provider constructor; it does not support the provider method under this mechanism.
 
-**Không suy diễn** rằng một JAR đặt trên classpath chỉ cần khai báo static provider() là đủ. Một classpath provider phải là subtype của SPI và có public no-arg constructor để ServiceLoader tạo nó. Đó chính là phạm vi của bài học này.
+**Do not infer** that a JAR placed on the classpath only needs to declare `static provider()`. A classpath provider must be a subtype of the SPI and have a public no-arg constructor for `ServiceLoader` to create it. That is the scope of this lesson.
 
-## 11. Bài kiểm thử tối thiểu cho từng provider
+## 11. Minimal Test Suite for Each Provider
 
-| Bài kiểm thử | Kết quả đúng |
+| Test Case | Expected Result |
 | --- | --- |
-| Provider hợp lệ, descriptor đúng, classpath đúng | ServiceLoader tìm và tạo được provider |
-| Bỏ descriptor khỏi runtime classpath | Không tìm được provider; có thể được 0 kết quả |
-| Đổi provider class thành package-private | Báo cấu hình provider lỗi khi nạp |
-| Xóa implements/extends SPI nhưng giữ method cùng tên | Báo lỗi do không gán kiểu được |
-| Chỉ giữ constructor có tham số | Báo lỗi do thiếu public no-arg constructor |
-| Đổi constructor no-arg thành private | Báo lỗi do constructor không public |
-| Constructor ném IllegalStateException | Nạp provider thất bại; kiểm tra cause |
-| Nhân đôi API SPI bằng class loader khác | Kiểm tra khả năng gán kiểu của lớp runtime thực tế |
-| Chuyển JAR sang named module/automatic module | Xác minh lại quy tắc registration/khởi tạo đúng với loại module |
+| Valid provider, valid descriptor, valid classpath | `ServiceLoader` finds and creates the provider |
+| Remove descriptor from runtime classpath | Provider not found; may yield 0 results |
+| Change provider class to package-private | Reports invalid provider configuration when loading |
+| Remove `implements`/`extends` SPI while keeping matching method | Fails because it is not assignable |
+| Keep only parameterized constructor | Fails due to missing public no-arg constructor |
+| Change no-arg constructor to `private` | Fails because constructor is not `public` |
+| Constructor throws `IllegalStateException` | Provider loading fails; inspect cause |
+| Duplicate SPI API via another class loader | Check assignability of the actual runtime class |
+| Convert JAR to named module/automatic module | Re-verify registration/instantiation rules for the module type |
 
-Trong hệ thống có plugin do bên thứ ba cung cấp, nên tự động kiểm thử từng artifact sau khi đóng gói: xác minh có META-INF/services đúng tên, chạy ServiceLoader bằng class loader mô phỏng môi trường host, thử gọi một hành vi tối thiểu và kiểm tra loại lỗi khi provider thiếu điều kiện.
+In systems with third-party plugins, you should automatically test each artifact after packaging: verify the properly named `META-INF/services` exists, run `ServiceLoader` using a class loader simulating the host environment, invoke a minimal behavior, and verify the error type when a provider lacks a required condition.
 
-## 12. Checklist trước khi phát hành classpath SPI
+## 12. Checklist Before Releasing a Classpath SPI
 
-1. SPI là interface/class được host và provider truy cập qua API chung; provider dùng **đúng cùng kiểu SPI tại runtime**.
-2. Provider là **public concrete class** (hoặc dạng public static nested thích hợp), thật sự implements/extends SPI.
-3. Có **public constructor không tham số** và constructor thực thi an toàn.
-4. Đúng tên tài nguyên **META-INF/services/<service binary name>**, mã hóa UTF-8; mỗi dòng chỉ đúng **provider binary name**.
-5. Cả descriptor, provider và dependency có mặt trong runtime classpath mà ServiceLoader sử dụng.
-6. Đã kiểm thử bằng ServiceLoader thực tế, không chỉ dựa vào javac hay reflection; lỗi được quan sát tại thời điểm duyệt/khởi tạo provider.
-7. Đã phân biệt rõ cơ chế classpath với cơ chế provider method trong named module.
+1. The SPI is an interface/class accessed by both host and provider through a shared API; the provider uses the **exact same SPI type at runtime**.
+2. The provider is a **public concrete class** (or appropriate `public static` nested class) that actually implements/extends the SPI.
+3. There is a **public no-argument constructor**, and the constructor executes safely.
+4. Exact resource name **META-INF/services/<service binary name>**, UTF-8 encoded; each line contains only the **provider binary name**.
+5. The descriptor, provider, and dependencies are all present on the runtime classpath used by `ServiceLoader`.
+6. Tested with actual `ServiceLoader`, not just `javac` or reflection; errors are observed at provider iteration/instantiation time.
+7. Clearly distinguished the classpath mechanism from the provider method mechanism in named modules.
 
-**Ghi nhớ:** **public** quyết định khả năng truy cập lớp, **assignability** quyết định có đúng kiểu SPI, và **public no-arg constructor** quyết định ServiceLoader classpath có đường tạo instance hay không. Ba điều kiện phải cùng đúng; descriptor và class loader phải đưa provider đến được nơi cần nạp.
+**Remember:** **`public`** determines class accessibility, **assignability** determines whether it matches the SPI type, and the **public no-arg constructor** determines whether classpath `ServiceLoader` has a way to instantiate it. All three conditions must hold simultaneously; the descriptor and class loader must deliver the provider to where it needs to be loaded.
 
-Tham khảo API chuẩn: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+Standard API reference: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html

@@ -1,56 +1,56 @@
-# 12.1 Heap dump lưu dữ liệu gì và khác gì với class histogram hoặc bản ghi cấp phát
+# 12.1 What a Heap Dump Stores and How It Differs from a Class Histogram or Allocation Recording
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể trả lời ba câu hỏi khác nhau khi phân tích bộ nhớ Java: **đang còn những đối tượng nào trong heap, nhóm lớp nào đang chiếm nhiều dung lượng, và mã nguồn nào liên tục tạo ra đối tượng mới?** Bạn cũng sẽ biết vì sao một biểu đồ cấp phát cao chưa chứng minh có rò rỉ bộ nhớ, và vì sao histogram chưa đủ để xác định ai đang giữ đối tượng sống.
+After this lesson, you will be able to answer three distinct questions when analyzing Java memory: **which objects are currently in the heap, which classes occupy the most space, and which code paths continuously create new objects?** You will also understand why a high allocation chart does not prove a memory leak, and why a histogram alone is not enough to determine what is keeping objects alive.
 
-## 1. Phân biệt ba góc nhìn
+## 1. Distinguishing the Three Perspectives
 
-- **Heap dump:** ảnh chụp cấu trúc bộ nhớ heap tại một thời điểm. Cho phép đi từ đối tượng sang trường dữ liệu, tham chiếu, chuỗi giữ sống và GC root; phù hợp để điều tra **retention** (đối tượng còn bị giữ lại).
-- **Class histogram:** bảng tổng hợp tại một thời điểm, thường có **tên lớp, số instance, tổng shallow bytes**. Phù hợp để phát hiện nhóm đối tượng tăng bất thường và khoanh vùng nhanh; thiếu chi tiết đồ thị tham chiếu.
-- **Bản ghi cấp phát (allocation recording/profile):** dữ liệu thu thập trong **một khoảng thời gian**, thường là sự kiện hoặc mẫu cấp phát từ JFR/profiler, có thể có lớp, thread, call stack và trọng số/số byte ước lượng. Phù hợp để tìm **allocation hot spot** (đường gọi tạo nhiều đối tượng), nhưng không mặc nhiên cho biết đối tượng nào còn sống.
+- **Heap dump:** a point-in-time snapshot of the heap memory structure. It lets you navigate from objects to fields, references, retention chains, and GC roots; well-suited for investigating **retention** (objects still being held alive).
+- **Class histogram:** a point-in-time summary table, typically showing **class name, instance count, and total shallow bytes**. Well-suited for spotting abnormally growing object groups and narrowing down suspects quickly; lacks reference graph details.
+- **Allocation recording/profile:** data collected over **a time interval**, typically allocation events or samples from JFR/profilers, which may include class, thread, call stack, and estimated weight/bytes. Well-suited for finding **allocation hot spots** (call paths creating many objects), though it does not by itself tell you which objects remain alive.
 
-Điểm mấu chốt: **allocation là lúc tạo ra đối tượng; retention là việc đối tượng tiếp tục có thể tới được và chưa được thu hồi.** Ứng dụng có thể cấp phát rất nhanh nhưng GC thu hồi tốt, hoặc cấp phát tương đối ít mà giữ lại lượng lớn dữ liệu không còn cần thiết.
+The key point: **allocation is when an object is created; retention is when an object remains reachable and has not been reclaimed.** An application can allocate very rapidly while GC reclaims well, or allocate relatively little yet retain large amounts of data that are no longer needed.
 
-| Câu hỏi cần trả lời | Công cụ ưu tiên | Vì sao |
+| Question to answer | Preferred tool | Why |
 | --- | --- | --- |
-| Những đối tượng và tham chiếu nào đang nằm trong heap tại thời điểm chụp? | Heap dump | Có dữ liệu từng instance và liên kết giữa chúng |
-| Class nào có nhiều instance/chiếm nhiều shallow bytes? | Class histogram | Tổng hợp nhanh theo class |
-| Object nào giữ một tập object khác không được GC thu hồi? | Heap dump + dominator tree + path to GC roots | Truy vết quan hệ giữ sống |
-| Hàm nào đang tạo ra phần lớn object hoặc byte cấp phát? | JFR/allocation profiler | Có mẫu sự kiện và stack cấp phát qua thời gian |
-| Có rò rỉ bộ nhớ kéo dài không? | Theo dõi xu hướng + heap dump tại các thời điểm + thông tin GC | Một snapshot đơn lẻ chỉ cho thấy trạng thái; cần chứng minh việc giữ lại tăng dai dẳng |
+| Which objects and references are in the heap at capture time? | Heap dump | Contains per-instance data and links between them |
+| Which classes have many instances / occupy many shallow bytes? | Class histogram | Fast per-class aggregation |
+| Which object keeps a set of other objects from being collected by GC? | Heap dump + dominator tree + path to GC roots | Traces retention relationships |
+| Which method is creating most of the objects or allocated bytes? | JFR/allocation profiler | Captures event samples and allocation stacks over time |
+| Is there a sustained memory leak? | Trend monitoring + heap dumps at multiple points + GC info | A single snapshot only shows state; persistent retention growth must be proven |
 
-## 2. Heap dump thực sự lưu gì?
+## 2. What Does a Heap Dump Actually Store?
 
-Với HotSpot/OpenJDK, heap dump thường được tạo ở định dạng **HPROF**. Nó mô tả trạng thái Java heap trong thời điểm thu thập; đây là một tập đối tượng cùng quan hệ tham chiếu, không phải chỉ là báo cáo sử dụng RAM.
+On HotSpot/OpenJDK, a heap dump is typically generated in the **HPROF** format. It describes the state of the Java heap at the time of collection; it is a set of objects and their reference relationships, not merely a RAM usage report.
 
-Các nhóm thông tin cốt lõi:
+Core groups of information:
 
-1. **Instance object và array:** kiểu/class của object, dữ liệu trường primitive được ghi nhận, các trường tham chiếu trỏ tới object khác; array có loại phần tử, độ dài và phần tử/giá trị tương ứng. Ví dụ một đối tượng danh sách có thể trỏ đến mảng backing array, rồi đến các phần tử.
-2. **Thông tin lớp phục vụ giải mã heap:** tên class, quan hệ lớp, các trường instance/static, liên kết đến class loader; nhờ đó công cụ phân tích có thể quy object về đúng kiểu và nhận diện class loader đang giữ dữ liệu. Không đồng nghĩa với chụp toàn bộ bytecode, mọi metadata của Metaspace hay tất cả thông tin nội bộ JVM.
-3. **Các tham chiếu và thông tin GC roots mà định dạng/VM xuất ra:** ví dụ liên quan đến biến cục bộ trên stack, static field, thread và JNI handle. Công cụ như Eclipse MAT dùng chúng để tính **Paths to GC Roots**, tức vì sao object vẫn có thể tới được.
-4. **Kích thước và số lượng:** công cụ phân tích suy ra hoặc tính shallow size của từng object và các tập object liên quan; sau đó tính retained size dựa trên đồ thị tham chiếu. Đây là kết quả phân tích chứ không nên hiểu toàn bộ phép tính đã được lưu sẵn trong một cột của dump.
+1. **Object instances and arrays:** the type/class of the object, recorded primitive field data, reference fields pointing to other objects; arrays include element type, length, and corresponding elements/values. For example, a list object may point to a backing array, and then to its elements.
+2. **Class metadata for decoding the heap:** class names, class hierarchy, instance/static fields, and links to class loaders; this allows analysis tools to map objects to their proper types and identify which class loader holds the data. This does not mean capturing all bytecode, all Metaspace metadata, or all JVM internal data.
+3. **References and GC root information exported by the format/VM:** for example, information related to stack local variables, static fields, threads, and JNI handles. Tools like Eclipse MAT use these to compute **Paths to GC Roots**, showing why an object remains reachable.
+4. **Sizes and counts:** the analysis tool derives or computes the shallow size of each object and related object sets, then computes retained size based on the reference graph. These are analysis results rather than precomputed totals stored in a single column inside the dump.
 
-### Shallow size, retained size và GC root
+### Shallow size, retained size, and GC root
 
-- **Shallow size**: bộ nhớ của chính object, ví dụ phần vỏ của một đối tượng Map hoặc mảng (không cộng toàn bộ object mà nó tham chiếu).
-- **Retained size**: tổng bộ nhớ của những object sẽ trở nên không thể tới được nếu loại bỏ object đang xét khỏi đồ thị giữ sống, theo mô hình dominator. Nó thể hiện tác động giữ bộ nhớ, không phải chỉ độ lớn của đối tượng mẹ.
-- **GC root**: điểm xuất phát mà JVM coi là còn sống để truy vết các object có thể tới được; đi theo các cạnh tham chiếu từ root cho biết lý do một object chưa được thu hồi.
+- **Shallow size**: the memory of the object itself, such as the shell of a Map or array object (excluding all objects it references).
+- **Retained size**: the total memory of objects that would become unreachable if the object under consideration were removed from the retention graph, according to the dominator model. It represents memory retention impact, not just the size of the parent object.
+- **GC root**: a starting point that the JVM considers live when tracing reachable objects; following reference edges from a root explains why an object has not been collected.
 
-Ví dụ: một cache Map có thể chỉ có shallow size vài chục byte, nhưng đang giữ hàng trăm nghìn entry và các mảng byte. **Retained size** của đối tượng giữ cache có thể rất lớn. Class histogram có thể cho thấy nhiều mảng byte; **heap dump mới giúp lần ngược đường tham chiếu** từ các mảng đó đến cache hoặc trường static giữ chúng.
+For example, a cache Map might have a shallow size of only a few dozen bytes, yet hold hundreds of thousands of entries and byte arrays. The **retained size** of the object holding the cache can be huge. A class histogram may show many byte arrays; **a heap dump is what lets you trace the reference path back** from those arrays to the cache or static field holding them.
 
-### Những điều heap dump không tự cung cấp
+### What a heap dump does not provide on its own
 
-- Không phải lịch sử: một dump thông thường **không lưu đầy đủ thời điểm tạo, tần suất cấp phát, stack tạo ra từng object, hay danh sách object từng tồn tại rồi đã bị GC thu hồi**.
-- Không phải bộ chụp toàn bộ tiến trình: không trực tiếp mô tả đầy đủ **native/off-heap memory** như direct buffer native payload, thread native stack, Code Cache, Metaspace, mmap, socket/file descriptor. Một object Java đại diện cho tài nguyên native có thể thấy được, nhưng phần native bên dưới không nhất thiết có trong heap dump.
-- Không tự kết luận “leak”: object còn sống tại thời điểm chụp có thể hoàn toàn hợp lệ. Phải so sánh với vòng đời mong đợi, xu hướng theo thời gian, GC và đường giữ sống.
-- Không phải ảnh chụp trung lập về trạng thái chưa GC: với lệnh HotSpot ở phần sau, mặc định JVM **yêu cầu Full GC trước khi xuất heap dump**; tùy chọn -all thay đổi tập object được đưa vào và bỏ yêu cầu Full GC đó. Vì thế hai cách chụp có thể cho kết quả khác nhau.
+- Not a history: a standard dump **does not store exact creation timestamps, allocation rates, the call stack that created each object, or a list of objects that once existed and were already reclaimed by GC**.
+- Not a full-process snapshot: it does not directly and fully describe **native/off-heap memory** such as direct buffer native payloads, thread native stacks, Code Cache, Metaspace, mmap, or sockets/file descriptors. A Java object representing a native resource may be visible, but the underlying native memory is not necessarily in the heap dump.
+- Does not automatically prove a "leak": objects alive at capture time may be completely legitimate. You must compare against expected lifecycle, trends over time, GC behavior, and retention paths.
+- Not a GC-neutral snapshot of pre-GC state: with the HotSpot command shown later, by default the JVM **requests a Full GC before writing the heap dump**; the `-all` option changes the set of included objects and omits that Full GC request. Therefore, the two capture modes can yield different results.
 
-**Chú ý dữ liệu nhạy cảm:** heap dump có thể chứa chuỗi, token, nội dung request, dữ liệu khách hàng và thông tin ứng dụng ở dạng đọc được. Kiểm soát quyền truy cập, nơi lưu, thời gian lưu và việc chia sẻ file.
+**Sensitive data notice:** a heap dump can contain strings, tokens, request payloads, customer data, and application state in readable form. Control access permissions, storage locations, retention periods, and file sharing.
 
-## 3. Class histogram ghi gì và không ghi gì?
+## 3. What Does a Class Histogram Record and Omit?
 
-Histogram thường có một dòng cho mỗi class hoặc kiểu array, gồm thứ hạng, **#instances**, **#bytes** và tên class. Ví dụ minh họa (số liệu giả định):
+A histogram typically has one row per class or array type, containing rank, **#instances**, **#bytes**, and class name. Illustrative example (hypothetical numbers):
 
 ~~~text
  num     #instances       #bytes  class name
@@ -59,57 +59,57 @@ Histogram thường có một dòng cho mỗi class hoặc kiểu array, gồm t
    3:           100        12000  java.util.HashMap
 ~~~
 
-Trong ký hiệu tên lớp của JVM, **[B** là mảng byte (byte[]). **#bytes** đại diện tổng shallow size của các instance trong hàng, không phải retained size của chúng. Cột tổng hợp **không nói 10.000 mảng byte đến từ request nào**, vì sao chúng còn sống, hay HashMap nào giữ những mảng đó.
+In JVM class name notation, **[B** is a byte array (`byte[]`). **#bytes** represents the total shallow size of the instances in that row, not their retained size. The summary column **does not tell you which request the 10,000 byte arrays came from**, why they are still alive, or which `HashMap` holds those arrays.
 
-Histogram hữu ích khi:
-- So sánh nhanh hai thời điểm **sau khi áp dụng cùng điều kiện đo**: số instance/bytes của một class có đang tăng không?
-- Xác định nghi phạm như byte[], char[], String, Map entry hoặc đối tượng thuộc package ứng dụng.
-- Cần một bức tranh tổng quan ngắn gọn trước khi tạo và phân tích file dump lớn.
+A histogram is useful when:
+- Quickly comparing two points in time **under the same measurement conditions**: are the instance count/bytes of a class increasing?
+- Identifying suspects such as `byte[]`, `char[]`, `String`, Map entries, or objects from application packages.
+- Getting a concise overview before creating and analyzing a large dump file.
 
-Giới hạn quan trọng:
-- Không có tham chiếu giữa từng object và không có path to GC roots/dominator tree.
-- Không có call stack hoặc tốc độ cấp phát theo giây.
-- Một class tăng mạnh có thể là cache hợp lệ, tải tăng, ứng dụng đang warm-up hoặc lượng dữ liệu đầu vào lớn; **không đủ chứng minh rò rỉ**.
-- Histogram lấy trực tiếp từ JVM ở thời điểm khác với histogram dựng từ một file dump có thể khác nhau, nhất là khi tập object và điều kiện GC không giống nhau.
+Important limitations:
+- No per-object references and no paths to GC roots or dominator tree.
+- No call stacks or allocation rate per second.
+- A sharp increase in a class can be a valid cache, increased traffic, application warm-up, or large input payloads; **it is not sufficient to prove a leak**.
+- A histogram taken directly from the live JVM at one time and a histogram built from a dump file can differ, especially when the object set and GC conditions are not identical.
 
-## 4. Bản ghi cấp phát lưu gì và khác heap dump thế nào?
+## 4. What Does an Allocation Recording Store and How Does It Differ from a Heap Dump?
 
-Một **allocation recording** quan sát *hoạt động tạo object* trong một khoảng đo. Với Java Flight Recorder (JFR), sự kiện/mẫu như **jdk.ObjectAllocationSample** có thể cung cấp kiểu object, thread, stack trace và **weight** (trọng số byte dùng để ước lượng áp lực cấp phát). Những kiểu sự kiện chi tiết khác, ví dụ **jdk.ObjectAllocationInNewTLAB** hoặc **jdk.ObjectAllocationOutsideTLAB**, phụ thuộc cấu hình thu thập và chi phí đo. Các profiler khác có thể dùng cơ chế sampling riêng.
+An **allocation recording** observes *object creation activity* over a measurement window. With Java Flight Recorder (JFR), events/samples such as **jdk.ObjectAllocationSample** can provide the object type, thread, stack trace, and **weight** (byte weight used to estimate allocation pressure). Other detailed event types, such as **jdk.ObjectAllocationInNewTLAB** or **jdk.ObjectAllocationOutsideTLAB**, depend on recording configuration and measurement overhead. Other profilers may use their own sampling mechanisms.
 
-Vì sao cần lấy mẫu? Ghi lại chính xác mọi lần cấp phát trong hệ thống bận rộn có thể tạo chi phí rất lớn. Do đó **kết quả sampling là ước lượng**, không phải nhật ký bắt buộc chứa mọi object. Không được đọc số event như tổng số lần cấp phát thực tế nếu công cụ đang sampling.
+Why sample? Recording every single allocation in a busy system can incur very high overhead. Therefore, **sampling results are estimates**, not a guaranteed log containing every object. Do not read the event count as the actual total number of allocations when the tool is sampling.
 
-Allocation recording trả lời:
-- Call stack/phương thức nào tạo nhiều byte[] hay đối tượng tạm thời?
-- Trong khoảng đo, allocation rate và nhóm class cấp phát biến động thế nào?
-- Những thread hoặc request path nào tạo áp lực cấp phát dẫn tới GC thường xuyên?
+An allocation recording answers:
+- Which call stack/method creates many `byte[]` arrays or temporary objects?
+- During the measurement window, how do the allocation rate and allocating class groups fluctuate?
+- Which threads or request paths create allocation pressure leading to frequent GCs?
 
-Nó **không tự trả lời** object đó hiện còn sống, đang được root nào giữ, hay sẽ được GC thu hồi ngay sau sự kiện. File JFR chứa nhiều loại sự kiện theo cấu hình; bản thân nó cũng không phải một heap dump HPROF. Một loại sự kiện khác là **OldObjectSample** có thể hỗ trợ điều tra object sống lâu và dữ liệu về đường đến GC root nếu bật tính năng phù hợp, nhưng chỉ là mẫu và không thay thế đồ thị đối tượng đầy đủ từ heap dump.
+It **does not by itself answer** whether those objects are still alive, which root is holding them, or whether they were reclaimed by GC right after the event. A JFR file contains many event types depending on configuration; it is not an HPROF heap dump either. Another event type, **OldObjectSample**, can assist in investigating long-lived objects and paths to GC roots if the appropriate feature is enabled, but it is only sampled and does not replace the full object graph of a heap dump.
 
-Ví dụ khác biệt thực tế:
+Practical contrast examples:
 
-- **Tình huống A — tạo nhiều object tạm:** mỗi request tạo hàng nghìn buffer rồi bỏ tham chiếu sau khi trả response. JFR có thể báo điểm cấp phát nóng; sau GC, heap dump/histogram có thể chứa rất ít buffer đó. Vấn đề là **allocation pressure/GC overhead**, chưa chắc có leak.
-- **Tình huống B — cache giữ object vô hạn:** request chỉ thêm vài object vào một Map static nhưng không có cơ chế eviction. Theo thời gian, retained heap tăng; heap dump cho thấy Map giữ dữ liệu, histogram cho biết class nào tích lũy. JFR có thể giúp tìm nơi cấp phát ban đầu nhưng không tự chỉ ra quan hệ giữ sống hiện tại.
+- **Scenario A — creating many temporary objects:** every request allocates thousands of buffers and drops references after sending the response. JFR may report an allocation hot spot; after GC, a heap dump/histogram may contain very few of those buffers. The issue is **allocation pressure/GC overhead**, not necessarily a leak.
+- **Scenario B — unbounded cache retention:** requests add only a few objects into a static `Map` with no eviction policy. Over time, retained heap grows; a heap dump shows the `Map` holding data, and a histogram shows which classes accumulate. JFR can help locate where they were originally allocated, but does not directly show current retention relationships.
 
-## 5. Bảng đối chiếu lựa chọn công cụ
+## 5. Tool Selection Comparison Table
 
-| Tiêu chí | Heap dump (HPROF) | Class histogram | Allocation recording (ví dụ JFR) |
+| Criterion | Heap dump (HPROF) | Class histogram | Allocation recording (e.g., JFR) |
 | --- | --- | --- | --- |
-| Bản chất | Snapshot đồ thị object | Snapshot tổng hợp theo class | Sự kiện/mẫu phát sinh trong khoảng thời gian |
-| Đơn vị quan sát | Từng instance và reference | Class, số instance, shallow bytes | Lần cấp phát/mẫu, class, stack/thread, trọng số |
-| Tìm ai giữ object sống | **Có**, qua đồ thị, GC roots/dominator | **Không** | Không trực tiếp với mẫu cấp phát thông thường |
-| Tìm call stack gây cấp phát | Thường **không** | **Không** | **Có thể**, nếu cấu hình thu thập stack |
-| Thấy object đã cấp phát nhưng đã bị GC dọn | Không trong bản dump live thông thường | Không trong histogram live thông thường | **Có thể**, nếu sự kiện được thu khi object tạo |
-| Theo dõi diễn biến qua thời gian | So sánh nhiều dump; bản dump riêng lẻ không có timeline | So sánh nhiều histogram | Phù hợp với timeline/tốc độ trong thời gian ghi |
-| Chi phí thường gặp | Tác động lớn, có thể Full GC/pause và file rất lớn | Có thể tốn thời gian/pause khi quét heap | Tùy sự kiện và cấu hình, profile lấy mẫu thường nhẹ hơn |
-| Phù hợp nhất | Tìm retention/leak và root giữ sống | Khoanh vùng class và biến động số lượng | Tìm allocation hot spot/GC pressure |
+| Nature | Snapshot of object graph | Point-in-time class aggregation | Events/samples emitted over a time window |
+| Unit of observation | Individual instances and references | Class, instance count, shallow bytes | Allocation/sample, class, stack/thread, weight |
+| Finds what keeps objects alive | **Yes**, via graph, GC roots/dominator | **No** | Not directly with standard allocation samples |
+| Finds call stack causing allocation | Usually **no** | **No** | **Possible**, if stack capture is configured |
+| Sees allocated objects already reclaimed by GC | No in a standard live dump | No in a standard live histogram | **Possible**, if events are captured upon creation |
+| Tracking changes over time | Compare multiple dumps; a single dump has no timeline | Compare multiple histograms | Well-suited for timeline/rate over recording period |
+| Typical cost | High impact, may cause Full GC/pause and very large files | Can incur pause/time scanning the heap | Depends on events and config; sampled profiles are usually lighter |
+| Best suited for | Finding retention/leaks and retaining roots | Narrowing down classes and count fluctuations | Finding allocation hot spots/GC pressure |
 
-**Không đồng nhất heap usage với process RSS:** Java heap chỉ là một phần bộ nhớ tiến trình. Nếu RSS tăng mà Java heap sau GC ổn định, cần điều tra native memory/off-heap, không suy kết luận leak từ histogram.
+**Do not equate heap usage with process RSS:** the Java heap is only one part of process memory. If RSS grows while Java heap after GC remains stable, investigate native/off-heap memory rather than inferring a leak from a histogram.
 
-## 6. Thực hành Java 17+: cùng lúc có nhiều allocation và ít object còn được giữ
+## 6. Java 17+ Hands-On: High Allocation Alongside Few Retained Objects
 
-Chương trình sau tạo 20.000 mảng byte được thay thế liên tục qua một trường volatile; sau đó giữ 500 mảng trong List. Các mảng bị thay thế có thể đủ điều kiện GC. JIT, GC, class của thư viện và thời điểm chụp sẽ làm số lượng object quan sát thực tế thay đổi.
+The following program creates 20,000 byte arrays, continuously replacing them via a `volatile` field, and then retains 500 arrays in a `List`. The replaced arrays become eligible for GC. JIT, GC, library classes, and capture timing will vary the exact counts observed in practice.
 
-Lưu file **HeapSnapshotDemo.java**:
+Save the file **HeapSnapshotDemo.java**:
 
 ~~~java
 import java.util.ArrayList;
@@ -135,21 +135,21 @@ public class HeapSnapshotDemo {
 }
 ~~~
 
-Biên dịch và chạy (JDK 17+, ví dụ sử dụng HotSpot):
+Compile and run (JDK 17+, using HotSpot as an example):
 
 ~~~bash
 javac HeapSnapshotDemo.java
 java -Xmx128m -XX:StartFlightRecording=filename=alloc.jfr,settings=profile,dumponexit=true HeapSnapshotDemo
 ~~~
 
-Hai dòng stdout xác định của chương trình là:
+The two deterministic stdout lines from the program are:
 
 ~~~text
 Retained arrays: 500
 Ready for diagnostics
 ~~~
 
-Tại terminal thứ hai, tìm PID Java đang chạy và lấy các phép đo khác nhau:
+In a second terminal, find the running Java PID and capture the different measurements:
 
 ~~~bash
 jcmd -l
@@ -157,74 +157,74 @@ jcmd <PID> GC.class_histogram
 jcmd <PID> GC.heap_dump heap.hprof
 ~~~
 
-- **Histogram** giúp kiểm tra tổng byte[] đang có tại thời điểm đo, nhưng còn có byte[] do chính JDK hoặc các thư viện tạo nên đừng kỳ vọng đúng 500.
-- **Heap dump** mở bằng Eclipse Memory Analyzer (MAT) cho phép đi sâu từ byte[] đến List hoặc các root khác. RETAINED là trường static giữ tham chiếu đến List; mostRecent giữ một mảng cuối cùng.
-- **JFR** đã được bật từ lúc khởi động. Sau khi chương trình kết thúc, dùng lệnh dưới đây để xem các mẫu cấp phát nếu recording thực tế chứa sự kiện tương ứng:
+- **Histogram** lets you inspect total `byte[]` present at measurement time, but there are also `byte[]` created by the JDK itself or libraries, so do not expect exactly 500.
+- **Heap dump** opened in Eclipse Memory Analyzer (MAT) lets you drill down from `byte[]` to the `List` or other roots. `RETAINED` is a static field holding a reference to the `List`; `mostRecent` holds the single latest array.
+- **JFR** was enabled from startup. After the program exits, use the command below to inspect allocation samples if the actual recording contains the corresponding events:
 
 ~~~bash
 jfr print --events jdk.ObjectAllocationSample alloc.jfr
 ~~~
 
-Dữ liệu mẫu JFR có thể gợi ý nơi tạo các mảng; số event cụ thể **không cố định** và không phải “20.500 object” vì có sampling, các cấp phát khác và tối ưu của JVM. Đây là demo về **sự khác biệt thông tin**, không phải bài kiểm thử bắt buộc mọi công cụ phải trả một tổng số giống nhau.
+JFR sample data can point toward where arrays are created; the exact event count is **not fixed** and will not be "20,500 objects" due to sampling, other allocations, and JVM optimizations. This demonstrates **information differences**, not a test asserting that all tools must return identical totals.
 
-Nếu cần lấy dump khi hết heap, có thể cấu hình JVM **-XX:+HeapDumpOnOutOfMemoryError** và **-XX:HeapDumpPath=/duong-dan/dump.hprof** từ trước. Đảm bảo dung lượng đĩa, quyền ghi và quy trình bảo vệ file.
+If you need a dump when the heap runs out of memory, you can preconfigure the JVM with **-XX:+HeapDumpOnOutOfMemoryError** and **-XX:HeapDumpPath=/path/to/dump.hprof**. Ensure sufficient disk space, write permissions, and file protection procedures.
 
-## 7. Quy trình điều tra thực tế
+## 7. Practical Investigation Workflow
 
-### Khi heap sau GC tiếp tục tăng và nghi có leak
+### When post-GC heap continues rising and a leak is suspected
 
-1. Xác minh triệu chứng bằng chỉ số heap/GC theo thời gian và trạng thái tải. Phân biệt peak sử dụng trước GC với dung lượng còn lại **sau các lần GC có ý nghĩa**.
-2. Lấy histogram ở những thời điểm có thể so sánh; xem nhóm class nào tăng về instance hoặc shallow bytes. Đây chỉ là bước chọn nghi phạm.
-3. Khi cần biết nguyên nhân giữ sống, tạo **heap dump** ở thời điểm phù hợp; nếu có thể, thu thêm dump khác dưới điều kiện tải và GC tương đương để so sánh.
-4. Mở bằng **Eclipse MAT**: xem Histogram, Dominator Tree hoặc Top Consumers, rồi **Paths to GC Roots** đối với object đáng ngờ. Lần ngược đến trường static, cache, queue, listener, collection hoặc class loader đang giữ object.
-5. So sánh với vòng đời thiết kế: object tồn tại vì cache hợp lệ, job chưa xong hay do thiếu remove/evict/close/unregister? Sửa cơ chế quản lý vòng đời và đo lại.
+1. Verify the symptom using heap/GC metrics over time and traffic state. Distinguish pre-GC peak usage from remaining usage **after meaningful GC cycles**.
+2. Take histograms at comparable points in time; check which class groups are growing in instances or shallow bytes. This is only the suspect-selection step.
+3. When you need to know why objects stay alive, capture a **heap dump** at an appropriate moment; if possible, collect another dump under equivalent load and GC conditions for comparison.
+4. Open in **Eclipse MAT**: inspect Histogram, Dominator Tree, or Top Consumers, then **Paths to GC Roots** for suspicious objects. Trace back to the static field, cache, queue, listener, collection, or class loader holding them.
+5. Compare against the intended lifecycle: are the objects alive due to a valid cache, an unfinished job, or missing remove/evict/close/unregister logic? Fix the lifecycle management and re-measure.
 
-**Ví dụ lý luận:** histogram cho thấy số lượng byte[] tăng → dump xác định byte[] thuộc nhiều value của cache → Paths to GC Roots nối cache tới một static field → kiểm tra chính sách eviction. Kết luận leak chỉ được củng cố nếu dữ liệu đáng lẽ phải hết hạn mà vẫn bị giữ lâu dài.
+**Reasoning example:** histogram shows `byte[]` count rising → dump identifies `byte[]` belonging to many cache values → Paths to GC Roots connects the cache to a static field → inspect the eviction policy. A leak conclusion is only substantiated if data that should have expired is being retained indefinitely.
 
-### Khi GC chạy dày, throughput giảm nhưng heap sau GC ổn định
+### When GC runs frequently and throughput drops, but post-GC heap is stable
 
-1. Thu **JFR allocation profile** trong khoảng thời gian có tải đại diện, xem nhóm class, allocation rate và call stack.
-2. Tối ưu điểm nóng phù hợp: tránh tạo buffer lặp không cần thiết, tránh trung gian dư thừa hoặc xem xét batch/pooling trong điều kiện có lợi.
-3. Đo lại allocation rate, latency và GC sau thay đổi. Không kết luận “không leak” chỉ bằng một vài phút recording; đánh giá retention riêng khi có dấu hiệu tích lũy.
+1. Capture a **JFR allocation profile** over a period with representative load, inspecting class groups, allocation rate, and call stacks.
+2. Optimize appropriate hot spots: avoid unnecessary repeated buffer creation, eliminate redundant intermediates, or consider batching/pooling where beneficial.
+3. Re-measure allocation rate, latency, and GC after the change. Do not conclude "no leak" from just a few minutes of recording; evaluate retention separately if signs of accumulation appear.
 
-### Lệnh chẩn đoán HotSpot và lưu ý vận hành
+### HotSpot diagnostic commands and operational notes
 
 ~~~bash
-# Thay PID bằng tiến trình đích, đường dẫn bằng nơi có đủ dung lượng.
+# Replace PID with the target process and path with a location that has sufficient disk space.
 jcmd <PID> GC.class_histogram
 jcmd <PID> GC.heap_dump /safe-path/heap.hprof
 
-# Với -all, bao gồm cả object không còn reachable; không yêu cầu Full GC trước dump.
+# With -all, includes unreachable objects; does not request a Full GC before dumping.
 jcmd <PID> GC.heap_dump -all /safe-path/all-objects.hprof
 
-# Ghi JFR trong 2 phút; sự kiện thực tế phụ thuộc profile và JDK.
+# Record JFR for 2 minutes; actual events depend on profile and JDK.
 jcmd <PID> JFR.start name=alloc settings=profile duration=2m filename=/safe-path/alloc.jfr
 ~~~
 
-Theo tài liệu lệnh **jcmd** của JDK 21, GC.heap_dump mặc định yêu cầu Full GC trừ khi dùng **-all**; GC.class_histogram và heap dump đều được xếp tác động cao. Thu dump có thể làm ứng dụng tạm dừng lâu và tạo file lớn. Cần thực hiện vào thời điểm phù hợp, kiểm tra dung lượng đĩa/quyền truy cập, và tránh nhiều tác vụ nặng đồng thời trên JVM production. Thông số và hỗ trợ lệnh phụ thuộc JDK/VM; ví dụ ở đây áp dụng cho HotSpot/OpenJDK.
+According to JDK 21 **jcmd** documentation, `GC.heap_dump` requests a Full GC by default unless **-all** is specified; both `GC.class_histogram` and heap dump are classified as high-impact. Taking a dump can pause the application for a long time and produce huge files. Execute at an appropriate time, verify disk space and permissions, and avoid running multiple heavy tasks concurrently on a production JVM. Flags and command support depend on the JDK/VM; examples here apply to HotSpot/OpenJDK.
 
-**-all không có nghĩa là “dữ liệu chính xác hơn để kết luận leak”.** Nó bao gồm cả object không thể tới được và có thể bị GC thu hồi, nên tập object khác với dump live mặc định. Khi so sánh hai lần đo, ghi rõ cách chụp và điều kiện GC.
+**-all does not mean "more accurate data for concluding a leak."** It includes unreachable objects awaiting GC collection, so the object set differs from a default live dump. When comparing two measurements, document the capture method and GC conditions.
 
-## 8. Lỗi suy luận thường gặp
+## 8. Common Reasoning Mistakes
 
-1. **“Histogram có 2 GB byte[] nên chắc chắn byte[] bị leak.”** Sai: đó là tổng shallow bytes tại thời điểm đo, chưa nói ai giữ, vì sao giữ và có đang tăng bất thường hay không.
-2. **“JFR ghi nhiều allocation nên heap sẽ luôn tăng.”** Sai: allocation rate cao có thể đi cùng heap sau GC ổn định vì object chỉ sống rất ngắn.
-3. **“Object lớn nhất trong heap là nguyên nhân gốc.”** Chưa chắc: một object nhỏ như cache holder có thể giữ lại cả mạng object lớn. Cần xem dominator và retained size.
-4. **“Heap dump có stack cấp phát của từng object.”** Thường sai đối với HPROF dump thông thường; dùng allocation profiler/JFR nếu cần đường gọi tạo object.
-5. **“Chỉ cần một heap dump là chứng minh leak.”** Chưa đủ: cần so với vòng đời mong đợi, xu hướng và đường giữ sống.
-6. **“Giải phóng Java heap chắc chắn giảm ngay RSS.”** Sai: JVM có thể giữ vùng heap đã commit và RSS còn bao gồm native memory; hai số liệu không đồng nhất.
-7. **“Có cờ -all thì tất cả số liệu giữa các công cụ phải giống nhau.”** Sai: khác thời điểm, cách GC, phạm vi đối tượng, sampling và overhead nên không thể ép số lượng bằng nhau.
+1. **"The histogram shows 2 GB of `byte[]`, so `byte[]` must be leaking."** False: that is total shallow bytes at capture time; it does not tell who holds them, why they are held, or whether they are growing abnormally.
+2. **"JFR records many allocations, so the heap will keep growing."** False: a high allocation rate can coexist with a stable post-GC heap if objects are very short-lived.
+3. **"The largest object in the heap is the root cause."** Not necessarily: a small object like a cache holder can retain an entire graph of large objects. Inspect dominators and retained size.
+4. **"A heap dump contains the allocation stack of every object."** Usually false for standard HPROF dumps; use an allocation profiler/JFR if you need creation call paths.
+5. **"A single heap dump proves a leak."** Insufficient: you must compare against expected lifecycle, trends, and retention paths.
+6. **"Freeing Java heap will immediately reduce RSS."** False: the JVM may retain committed heap regions, and RSS also includes native memory; the two metrics are not identical.
+7. **"With the `-all` flag, all numbers across tools must match."** False: differences in timing, GC behavior, object scope, sampling, and overhead mean totals cannot be forced to match.
 
-## 9. Tự kiểm tra cách chọn công cụ
+## 9. Self-Check on Tool Selection
 
-- Cần biết **cache nào giữ 500.000 đối tượng cũ**: thu heap dump, xem dominator tree và paths to GC roots; histogram chỉ giúp định vị class.
-- Cần biết **phương thức nào tạo 1 GB object tạm mỗi phút**: thu JFR/allocation profile có stack trace, phân tích thời gian và trọng số mẫu.
-- Cần **xem class nào có số lượng tăng nhanh** trước khi quyết định dump: so sánh class histogram ở các thời điểm cùng điều kiện.
-- Cần điều tra **RSS tăng trong khi Java heap sau GC không tăng**: bổ sung phân tích native memory/off-heap; ba công cụ tập trung vào Java object không giải thích đầy đủ mọi vùng nhớ tiến trình.
+- Need to know **which cache holds 500,000 old objects**: capture a heap dump, inspect the dominator tree and paths to GC roots; a histogram only helps locate the class.
+- Need to know **which method allocates 1 GB of temporary objects per minute**: capture a JFR/allocation profile with stack traces, analyzing timeline and sample weights.
+- Need to **see which classes are growing rapidly in count** before deciding to dump: compare class histograms at multiple times under the same conditions.
+- Need to investigate **RSS rising while post-GC Java heap is flat**: add native/off-heap memory analysis; the three Java-object-focused tools do not fully explain every process memory region.
 
-### Tài liệu tra cứu
+### Reference Documentation
 
-- [Oracle JDK 21 — jcmd: GC.heap_dump, GC.class_histogram và JFR.start](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
+- [Oracle JDK 21 — jcmd: GC.heap_dump, GC.class_histogram, and JFR.start](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
 - [Oracle JDK 21 — jfr command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
-- [Oracle — Troubleshoot Memory Leaks và OldObjectSample](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html)
+- [Oracle — Troubleshoot Memory Leaks and OldObjectSample](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html)
 - [Eclipse Memory Analyzer — Finding Memory Leak](https://help.eclipse.org/latest/topic/org.eclipse.mat.ui.help/reference/findingmemoryleak.html)

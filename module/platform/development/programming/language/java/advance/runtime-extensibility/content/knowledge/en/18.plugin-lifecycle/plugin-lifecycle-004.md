@@ -1,49 +1,49 @@
-# Khởi tạo theo thứ tự phụ thuộc và hoàn tác khi chỉ một phần thành công
+# Initializing in Dependency Order and Rolling Back on Partial Success
 
-## 1. Bài toán của vòng đời plugin
+## 1. The Plugin Lifecycle Problem
 
-Trong host hỗ trợ nhiều plugin, một plugin có thể cần service do plugin khác cung cấp. Ví dụ `storage` tạo kho lưu trữ, `cache` cần `storage`, còn `report` cần cả `cache` và `storage`. Nếu host gọi `start()` tùy ý, `report` có thể khởi động trước khi dependency sẵn sàng. Ngược lại, nếu plugin thứ ba thất bại sau khi hai plugin đầu đã mở file, socket hoặc thread, host phải **hoàn tác những phần đã khởi tạo thành công**, tránh trạng thái nửa vời.
+In a host that supports multiple plugins, one plugin may depend on services provided by another. For example, `storage` creates a repository, `cache` requires `storage`, and `report` requires both `cache` and `storage`. If the host calls `start()` in arbitrary order, `report` may start before its dependencies are ready. Conversely, if the third plugin fails after the first two have opened files, sockets, or threads, the host must **roll back the parts that initialized successfully**, avoiding a half-initialized state.
 
-Thiết kế đúng cần giải quyết ba vấn đề khác nhau:
+A proper design must solve three distinct problems:
 
-1. **Dependency graph:** các plugin bắt buộc phải chạy trước plugin nào?
-2. **Lifecycle transaction:** những bước nào đã thành công, và rollback chúng theo thứ tự nào?
-3. **Failure semantics:** khi khởi tạo hoặc dọn dẹp lỗi, host báo nguyên nhân và giữ trạng thái nhất quán ra sao?
+1. **Dependency graph:** which plugins must run before which others?
+2. **Lifecycle transaction:** which steps have succeeded, and in what order must they be rolled back?
+3. **Failure semantics:** when initialization or cleanup fails, how does the host report the cause and keep state consistent?
 
-Không có transaction phân tán tự động cho plugin: `start()` có thể tạo side effect không đảo ngược được, nên rollback là **compensating action** dựa trên hợp đồng `stop()`/`close()` và tài nguyên thực tế.
+There is no automatic distributed transaction for plugins: `start()` can produce irreversible side effects, so rollback is a **compensating action** based on the `stop()`/`close()` contract and the actual resources involved.
 
-## 2. Mô hình phụ thuộc: đồ thị có hướng không chu trình
+## 2. Dependency Model: Directed Acyclic Graph
 
-Gọi mỗi plugin là một đỉnh. Với quan hệ `report -> cache`, nghĩa là **report phụ thuộc cache**, nên cache phải hoàn tất trước khi report bắt đầu. Một thứ tự hợp lệ cho ví dụ:
+Treat each plugin as a vertex. With the relation `report -> cache`, meaning **report depends on cache**, `cache` must complete before `report` starts. A valid ordering for the example:
 
 ```text
 storage  ---> cache  ---> report
     \___________________^
 ```
 
-Ở đây mũi tên có nghĩa “phải khởi tạo trước”: `storage → cache`, `storage → report`, `cache → report`.
+Here the arrows mean “must initialize before”: `storage → cache`, `storage → report`, `cache → report`.
 
-### 2.1. Topological sorting
+### 2.1. Topological Sorting
 
-Với DAG (Directed Acyclic Graph), sắp xếp topo trả về thứ tự sao cho mọi dependency đứng trước plugin phụ thuộc. Có thể dùng DFS kết hợp màu `WHITE/GRAY/BLACK` hoặc thuật toán Kahn với indegree.
+For a DAG (Directed Acyclic Graph), topological sorting returns an order where every dependency precedes its dependent plugins. You can use DFS with `WHITE/GRAY/BLACK` coloring or Kahn's algorithm with in-degrees.
 
-Điều kiện cần kiểm tra **trước khi gọi `start()`**:
+Conditions to check **before calling `start()`**:
 
-- Plugin ID duy nhất, không trùng registry.
-- Mọi dependency bắt buộc tồn tại và version/contract tương thích.
-- Không có chu trình (`A` cần `B` và `B` cần `A`, kể cả chu trình dài).
-- Chính sách plugin optional rõ ràng: thiếu optional dependency có được phép bỏ qua không?
-- Thứ tự giữa các plugin độc lập được xác định khi cần kết quả ổn định (ví dụ so theo ID).
+- Unique plugin IDs with no registry duplicates.
+- All required dependencies exist with compatible versions/contracts.
+- No cycles (`A` requires `B` and `B` requires `A`, including longer cycles).
+- Clear policy for optional plugins: is a missing optional dependency allowed to be skipped?
+- Deterministic ordering among independent plugins when stable results are needed (e.g., sorting by ID).
 
-Nếu graph chứa cycle, không thể tìm thứ tự topo; host nên dừng trước khi tạo bất kỳ resource nào. Không nên cố “khởi chạy thử” rồi xử lý lỗi vì phụ thuộc vòng.
+If the graph contains a cycle, no topological order exists; the host should fail before creating any resources. Do not attempt to “try starting anyway” and deal with circular dependency errors later.
 
-### 2.2. Cài đặt kiểm tra version và capability
+### 2.2. Enforcing Version and Capability Checks
 
-Chỉ kiểm tra dependency ID thường chưa đủ. Một provider có thể yêu cầu `storage-api` version 2 hoặc một capability cụ thể. Host phải xác minh yêu cầu ngay ở giai đoạn resolution (trước activation) và cung cấp **một bản contract API** thống nhất giữa các class loader; nếu không, plugin có thể khởi động xong nhưng thất bại ở lần gọi service đầu tiên.
+Checking only the dependency ID is rarely sufficient. A provider may require `storage-api` version 2 or a specific capability. The host must verify requirements at the resolution stage (before activation) and provide **a single consistent API contract** across class loaders; otherwise, a plugin may finish starting yet fail on its first service call.
 
-## 3. Máy trạng thái lifecycle
+## 3. Lifecycle State Machine
 
-Một mô hình hữu ích:
+A useful model:
 
 ```text
 DISCOVERED -> RESOLVED -> STARTING -> ACTIVE -> STOPPING -> STOPPED
@@ -52,13 +52,13 @@ DISCOVERED -> RESOLVED -> STARTING -> ACTIVE -> STOPPING -> STOPPED
                             FAILED              STOP_FAILED
 ```
 
-`DISCOVERED` nghĩa metadata/JAR được nhìn thấy; `RESOLVED` nghĩa phụ thuộc phù hợp; `STARTING` cho phép khởi tạo; `ACTIVE` nghĩa start thành công; `STOPPING`/`STOPPED` là giải phóng. Tên trạng thái tùy hệ thống, nhưng host phải phân biệt **bắt đầu khởi tạo** với **đã hoạt động đầy đủ**.
+`DISCOVERED` means metadata/JAR is visible; `RESOLVED` means dependencies match; `STARTING` allows initialization; `ACTIVE` means start succeeded; `STOPPING`/`STOPPED` covers release. State names vary by system, but the host must distinguish **starting initialization** from **fully active**.
 
-**Quan trọng:** nếu `start()` tạo một số resource rồi ném exception, plugin đó chưa được ghi là ACTIVE. Tuy vậy nó vẫn sở hữu tài nguyên một phần và cần dọn dẹp. Vì thế `start()` nên hoặc tự dọn toàn bộ tài nguyên nó đã cấp phát trước khi ném lỗi, hoặc host cần một cơ chế `abortStart()`/`close()` an toàn cho đối tượng chưa khởi tạo xong.
+**Important:** if `start()` creates some resources and then throws an exception, that plugin has not been recorded as ACTIVE. Even so, it still owns partial resources and needs cleanup. Therefore `start()` should either clean up all resources it allocated before throwing, or the host needs an `abortStart()`/`close()` mechanism that is safe for partially initialized objects.
 
-## 4. Nguyên tắc rollback
+## 4. Rollback Principles
 
-Giả sử thứ tự activation là:
+Suppose the activation order is:
 
 ```text
 start storage : OK
@@ -66,27 +66,27 @@ start cache   : OK
 start report  : FAIL
 ```
 
-Host phải dừng các plugin đã active theo thứ tự **ngược**:
+The host must stop the already-active plugins in **reverse** order:
 
 ```text
 stop cache
 stop storage
 ```
 
-Không nên gọi `stop storage` trước `stop cache`, vì cache có thể vẫn cần storage để flush hoặc ghi trạng thái lúc shutdown. Một stack các plugin đã start thành công là cấu trúc tự nhiên cho rollback LIFO.
+You should not call `stop storage` before `stop cache`, because `cache` might still need `storage` to flush or persist state during shutdown. A stack of plugins that started successfully is the natural structure for LIFO rollback.
 
-Để giữ nguyên nhân ban đầu, khi cleanup cũng thất bại:
+To preserve the original cause when cleanup also fails:
 
-- Giữ exception do `start report` làm **primary failure**.
-- Đính các lỗi cleanup bằng `Throwable.addSuppressed(...)` hoặc báo theo cấu trúc tương đương.
-- Tiếp tục cleanup các plugin còn lại dù một `stop()` gặp lỗi; không được dừng rollback ở lỗi đầu tiên.
-- Chỉ đánh dấu `STOPPED` khi cleanup đạt trạng thái mong muốn; không nói rollback “thành công toàn bộ” khi tài nguyên có thể vẫn đang hoạt động.
+- Keep the exception thrown by `start report` as the **primary failure**.
+- Attach cleanup errors via `Throwable.addSuppressed(...)` or report them in an equivalent structure.
+- Continue cleaning up the remaining plugins even if one `stop()` fails; never abort rollback on the first cleanup error.
+- Only mark `STOPPED` when cleanup reaches the desired state; do not claim rollback “completely succeeded” when resources may still be running.
 
-## 5. Ví dụ Java 17+ chạy độc lập: topo + rollback LIFO
+## 5. Standalone Runnable Java 17+ Example: Topo Sort + LIFO Rollback
 
-Ví dụ dưới đây dùng interface `Plugin` đơn giản, metadata dependency là `List<String>`, không cần framework. Plugin `report` được cố tình làm thất bại để thấy rollback hoạt động.
+The example below uses a simple `Plugin` interface with `List<String>` dependency metadata and no framework. The `report` plugin is intentionally made to fail to demonstrate rollback in action.
 
-Tạo file **`PluginLifecycleDemo.java`**:
+Create the file **`PluginLifecycleDemo.java`**:
 
 ```java
 import java.util.ArrayDeque;
@@ -207,14 +207,14 @@ public final class PluginLifecycleDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac PluginLifecycleDemo.java
 java PluginLifecycleDemo
 ```
 
-**Stdout chính xác**:
+**Exact stdout**:
 
 ```text
 start storage
@@ -227,19 +227,19 @@ caught: failure in report
 suppressed: 0
 ```
 
-Giải thích: `topologicalOrder` yêu cầu `storage` trước `cache`, sau đó đến `report`, bất kể thứ tự khai báo input. `started.push(p)` **chỉ được gọi sau khi `start()` trả về thành công**. Khi `report.start()` ném lỗi, rollback chỉ chứa `cache` và `storage`, nên dừng đúng thứ tự ngược.
+Explanation: `topologicalOrder` requires `storage` before `cache`, and then `report`, regardless of input declaration order. `started.push(p)` is **called only after `start()` returns successfully**. When `report.start()` throws, the rollback stack contains only `cache` and `storage`, stopping them in exact reverse order.
 
-### Giới hạn có chủ ý của ví dụ
+### Intentional Limitations of the Example
 
-Ví dụ này giả định `start()` của plugin thất bại sẽ **tự dọn những tài nguyên được cấp phát dở** trước khi ném exception. Đây là hợp đồng cần được quy định rõ. Nếu plugin không thể đảm bảo điều đó, host phải gọi cleanup cho plugin đang fail hoặc cung cấp cơ chế transactional resource scope riêng; không thể chỉ dừng những plugin đã nằm trong `started`.
+This example assumes a plugin whose `start()` fails will **clean up its own partially allocated resources** before throwing an exception. That is a contract that must be specified explicitly. If plugins cannot guarantee that, the host must call cleanup on the failing plugin or provide a dedicated transactional resource scope; you cannot stop only the plugins already pushed onto `started`.
 
-Các `stop()` trong demo không ném lỗi, nên suppressed count là 0. Trong production, rollback phải xử lý cả checked exceptions, `Error` khi phù hợp và những thao tác cleanup cần timeout. Không nên dùng một `catch(Throwable)` chung một cách mù quáng rồi tiếp tục chạy ở trạng thái JVM có thể đã hỏng.
+None of the `stop()` calls in the demo throw exceptions, so the suppressed count is 0. In production, rollback must also handle checked exceptions, `Error` where appropriate, and cleanup operations that require timeouts. Do not blindly use a catch-all `catch(Throwable)` and keep running when the JVM may already be in a broken state.
 
-## 6. Xử lý partial initialization bên trong từng plugin
+## 6. Handling Partial Initialization Inside Each Plugin
 
-Giả sử `report.start()` thực hiện ba bước: tạo client mạng, mở cache và đăng ký listener. Nếu bước đăng ký listener thất bại, client và cache đã được tạo cần được giải phóng.
+Suppose `report.start()` performs three steps: creating a network client, opening a cache, and registering a listener. If registering the listener fails, the client and cache that were already created must be released.
 
-Thiết kế một plugin tự dọn trước khi báo lỗi:
+Designing a plugin to clean itself up before reporting failure:
 
 ```java
 final class ReportPlugin {
@@ -276,13 +276,13 @@ final class ReportPlugin {
 }
 ```
 
-**Đoạn minh họa**, chưa phải ứng dụng độc lập: `HttpClient` ở đây chỉ nhằm mô phỏng dependency tạo trước; trên Java 17, không nên khẳng định `HttpClient` tự đóng bằng `close()` như `AutoCloseable` của các phiên bản Java mới. Trong ví dụ này `client = null` chỉ bỏ tham chiếu; nếu tài nguyên thật cần đóng, phải dùng API close/stop đúng của tài nguyên đó. `registerListener()` minh họa subscription có `AutoCloseable`.
+**Illustrative snippet**, not a standalone application: `HttpClient` here merely simulates a dependency created beforehand; on Java 17, you should not claim `HttpClient` closes itself via `close()` like the `AutoCloseable` support in newer Java versions. In this example `client = null` only drops the reference; if a real resource needs closing, use that resource's proper close/stop API. `registerListener()` illustrates an `AutoCloseable` subscription.
 
-Thay vì rải cleanup logic qua nhiều field, có thể dùng `Deque<AutoCloseable>` trong `start()`: mỗi lần tạo xong resource thì push một hành động cleanup; khi bất kỳ bước nào lỗi, pop và close tất cả. Mẫu này cho phép rollback cục bộ theo thứ tự ngược và tái sử dụng cho `stop()`.
+Instead of scattering cleanup logic across multiple fields, you can use a `Deque<AutoCloseable>` inside `start()`: after each resource is created, push a cleanup action; if any step fails, pop and close them all. This pattern enables local rollback in reverse order and can be reused for `stop()`.
 
-## 7. Resource scope và shutdown theo thứ tự phụ thuộc
+## 7. Resource Scope and Shutdown in Dependency Order
 
-Một mẫu thiết kế ở tầng host là ghi nhận các resource đã được cấp phát thành công:
+A host-level design pattern is to record each resource that has been successfully allocated:
 
 ```java
 Deque<AutoCloseable> undo = new ArrayDeque<>();
@@ -291,7 +291,7 @@ try {
     undo.push(db);
     AutoCloseable listener = registerListener(db);
     undo.push(listener);
-    // Hoàn tất initialization: chuyển quyền sở hữu undo cho lifecycle manager.
+    // Initialization complete: transfer undo ownership to the lifecycle manager.
 } catch (Exception ex) {
     while (!undo.isEmpty()) {
         try { undo.pop().close(); }
@@ -301,13 +301,13 @@ try {
 }
 ```
 
-Đoạn này **chỉ minh họa** vì `openDatabase()` và `registerListener(...)` là API giả định, không độc lập. Ý chính: *đăng ký hành động hoàn tác ngay sau khi mỗi bước thành công*, không chờ tới cuối mới tạo danh sách tài nguyên. Khi initialization thành công, owner của resource phải chuyển rõ ràng sang lifecycle manager; không được tự động đóng chúng ở cuối scope như một lỗi thiết kế.
+This snippet is **illustrative only** because `openDatabase()` and `registerListener(...)` are hypothetical APIs and not standalone. The key idea: *register the undo action immediately after each step succeeds*, instead of waiting until the end to build a list of resources. Once initialization succeeds, resource ownership must be explicitly transferred to the lifecycle manager; do not automatically close them at the end of the scope as a design bug.
 
-Với nhiều plugin, thứ tự dừng toàn hệ thống là thứ tự ngược của topo order: dependent trước, dependency sau. Tuy nhiên shutdown không chỉ là `stop()`; còn có thể cần quiesce request, từ chối task mới, drain queues, flush dữ liệu, chờ thread hoàn thành rồi giải phóng external resources.
+With multiple plugins, system-wide shutdown order is the reverse of topological order: dependents first, dependencies afterward. However, shutdown is not just `stop()`; it may also require quiescing requests, rejecting new tasks, draining queues, flushing data, waiting for threads to finish, and releasing external resources.
 
-## 8. Khi một plugin cần nhiều dependency cùng lúc
+## 8. When One Plugin Needs Multiple Dependencies Simultaneously
 
-Một plugin có thể phụ thuộc nhiều service, ví dụ:
+A plugin may depend on multiple services, for example:
 
 ```text
 billing -> storage
@@ -315,39 +315,39 @@ billing -> audit
 audit   -> storage
 ```
 
-Topo hợp lệ: `storage`, `audit`, `billing`. Nếu `audit` bị lỗi, không nên chạy `billing`. Nếu `billing` lỗi, rollback `audit` trước `storage`.
+Valid topological order: `storage`, `audit`, `billing`. If `audit` fails, `billing` must not run. If `billing` fails, roll back `audit` before `storage`.
 
-Điều kiện version/capability nên được kiểm tra trước `startAll`. Nếu plugin là optional, host phải xác định có thể bỏ qua nó và những dependent nào cũng phải bị disable, thay vì để service thiếu xuất hiện ở runtime.
+Version/capability requirements should be verified before `startAll`. If a plugin is optional, the host must determine whether it can be skipped and which dependents must also be disabled, rather than letting missing services surface at runtime.
 
-### Parallel startup?
+### Parallel Startup?
 
-Trong DAG, các plugin độc lập về phụ thuộc có thể được khởi tạo song song, nhưng rollback lúc này phức tạp hơn vì thứ tự hoàn thành không đồng nhất thứ tự topo. Cần xác định các plugin đã start thành công, chờ/cancel công việc đang start, rồi dừng theo quan hệ phụ thuộc. Chỉ triển khai parallel startup khi có nhu cầu rõ ràng và đã có lifecycle coordinator xử lý race, timeout và failure aggregation.
+In a DAG, plugins independent in dependencies can be initialized in parallel, but rollback becomes more complex because completion order does not match topological order. You must track which plugins started successfully, wait for/cancel in-progress startup tasks, and then stop according to dependency relationships. Implement parallel startup only when there is a clear need and a lifecycle coordinator handles races, timeouts, and failure aggregation.
 
-## 9. Idempotency, retry và rollback thất bại
+## 9. Idempotency, Retry, and Failed Rollbacks
 
-Một `start()` tốt nên có hợp đồng rõ về việc gọi nhiều lần. Không tự động giả định idempotent; host cần state machine cấm hai `start()` đồng thời trên cùng instance. `stop()` nên an toàn khi gọi trong trạng thái đã stopped hoặc start thất bại nếu kiến trúc yêu cầu cleanup lặp, nhưng vẫn phải ghi rõ lỗi không thể phục hồi.
+A good `start()` should have an explicit contract regarding multiple invocations. Do not assume idempotency automatically; the host needs a state machine prohibiting two concurrent `start()` calls on the same instance. `stop()` should be safe to call in an already-stopped or failed-start state if the architecture requires repeated cleanup, while still clearly recording unrecoverable errors.
 
-Phân biệt:
+Distinguish:
 
-- **Retry**: thử lại initialization sau khi nguyên nhân tạm thời được khắc phục.
-- **Rollback**: giải phóng side effect của những bước đã thành công.
-- **Recovery**: đưa hệ thống về trạng thái có thể nhận lượt start mới.
+- **Retry**: re-attempting initialization after a transient cause is resolved.
+- **Rollback**: undoing side effects of steps that succeeded.
+- **Recovery**: returning the system to a state capable of accepting a new start attempt.
 
-Không nên retry bằng chính instance đã thất bại nếu nó giữ state dở dang. Cân nhắc tạo instance mới sau cleanup, bảo đảm tài nguyên cũ đã bị đóng và dependency vẫn ở trạng thái ACTIVE.
+Do not retry using the same failed instance if it retains partial state. Consider creating a new instance after cleanup, ensuring old resources are closed and dependencies remain `ACTIVE`.
 
-Khi rollback bị lỗi, host phải giữ dấu vết `FAILED_CLEANUP` hoặc trạng thái tương đương. Trạng thái `STOPPED` chỉ nên dùng khi đã biết tài nguyên được giải phóng đủ theo contract. Nếu resource là transaction ngoài (DB, message broker, filesystem), compensation có thể không đảo ngược hoàn toàn side effect; cần idempotency key hoặc thao tác bù cụ thể.
+When rollback fails, the host must retain a `FAILED_CLEANUP` marker or equivalent state. The `STOPPED` state should be used only when resources are known to have been released sufficiently per the contract. If a resource involves external transactions (DB, message broker, filesystem), compensation may not completely reverse side effects; idempotency keys or explicit compensating actions are required.
 
-## 10. Monitoring và log vòng đời
+## 10. Lifecycle Monitoring and Logging
 
-Để chẩn đoán lỗi production, mỗi plugin activation nên ghi:
+To diagnose production failures, each plugin activation should record:
 
-- Plugin ID, version, API version và dependent IDs.
-- Thời gian bắt đầu/kết thúc từng `start` và `stop`.
-- Dependency path tới plugin bị fail.
-- Nguyên nhân chính và suppressed cleanup errors.
-- Trạng thái cuối sau rollback, resource chưa chắc đã giải phóng.
+- Plugin ID, version, API version, and dependent IDs.
+- Start/end timestamps of each `start` and `stop`.
+- Dependency path to the failing plugin.
+- Primary cause and suppressed cleanup errors.
+- Final state after rollback and any resources not confirmed released.
 
-Ví dụ log có cấu trúc (minh họa):
+Example structured log (illustrative):
 
 ```text
 event=plugin_start id=storage status=SUCCESS
@@ -357,30 +357,30 @@ event=plugin_stop id=cache status=SUCCESS rollback=true
 event=plugin_stop id=storage status=SUCCESS rollback=true
 ```
 
-Không log credential, token, URL chứa secret hoặc full configuration của plugin. Với tài nguyên nhạy cảm, dùng định danh an toàn và telemetry có giới hạn.
+Do not log credentials, tokens, URLs containing secrets, or full plugin configuration. For sensitive resources, use safe identifiers and bounded telemetry.
 
-## 11. Các lỗi phổ biến
+## 11. Common Mistakes
 
-| Lỗi | Tác hại | Cách khắc phục |
+| Mistake | Harm | Fix |
 |---|---|---|
-| Khởi chạy theo thứ tự JAR được quét | Dependent có thể chạy trước dependency | Topological sort với dependency metadata |
-| Không phát hiện cycle trước khi start | Deadlock/log lỗi muộn | Validate graph và báo cycle rõ ràng |
-| Ghi plugin vào stack trước khi `start()` xong | Rollback gọi `stop` trên instance chưa sẵn sàng | Chỉ push sau success; xử lý partial-start riêng |
-| Không rollback khi plugin thứ ba lỗi | Leak resource của plugin đã active | Rollback reverse order |
-| Rollback dừng ngay khi một `stop()` lỗi | Các plugin còn lại không được cleanup | Tiếp tục cleanup, addSuppressed |
-| Bắt exception rồi tiếp tục phục vụ | Hệ thống ở trạng thái thiếu service | Fail startup hoặc degrade theo policy có kiểm soát |
-| Dùng lại instance start lỗi để retry | State dở dang, tài nguyên cũ còn sót | Cleanup, tạo instance mới hoặc cơ chế reset chính thức |
-| Gọi `stop()` không theo dependency | Dependency bị đóng khi dependent còn dùng | Shutdown reverse topological order |
+| Starting in the order JARs were scanned | Dependents may run before dependencies | Topological sort using dependency metadata |
+| Not detecting cycles before start | Deadlocks/late error logs | Validate graph and report cycles clearly |
+| Pushing plugin onto stack before `start()` finishes | Rollback calls `stop` on an unready instance | Push only after success; handle partial-start separately |
+| Not rolling back when the third plugin fails | Leaks resources of already-active plugins | Roll back in reverse order |
+| Stopping rollback as soon as one `stop()` fails | Remaining plugins never get cleaned up | Continue cleanup, use `addSuppressed` |
+| Catching exceptions and continuing to serve | System runs with missing services | Fail startup or degrade under controlled policy |
+| Reusing a failed-start instance for retry | Partial state and leftover old resources | Clean up, create a new instance or formal reset mechanism |
+| Calling `stop()` without respecting dependencies | Dependencies closed while dependents still use them | Shut down in reverse topological order |
 
-## 12. Checklist trước khi phát hành plugin host
+## 12. Pre-Release Checklist for a Plugin Host
 
-- [ ] Plugin metadata mô tả ID, version và dependency bắt buộc/optional.
-- [ ] Host validate missing IDs, duplicate IDs, cycles và API compatibility trước activation.
-- [ ] Thứ tự start topo có kết quả ổn định khi nhiều plugin độc lập.
-- [ ] `start()` có hợp đồng xử lý partial failure; ownership của resource rõ ràng.
-- [ ] Host ghi nhận plugin ACTIVE sau thành công và rollback theo LIFO.
-- [ ] Cleanup errors được gắn với primary failure nhưng không cản dọn các plugin còn lại.
-- [ ] Có timeout/quiescence/retry policy và trạng thái rõ khi cleanup thất bại.
-- [ ] Có integration test: tất cả thành công, thiếu dependency, cycle, fail giữa chừng, fail cleanup.
+- [ ] Plugin metadata describes ID, version, and required/optional dependencies.
+- [ ] Host validates missing IDs, duplicate IDs, cycles, and API compatibility before activation.
+- [ ] Topological start order produces deterministic results when multiple plugins are independent.
+- [ ] `start()` has a contract for partial failure; resource ownership is explicit.
+- [ ] Host marks a plugin ACTIVE after success and rolls back in LIFO order.
+- [ ] Cleanup errors are attached to the primary failure without blocking cleanup of remaining plugins.
+- [ ] Timeout/quiescence/retry policies and an explicit state for cleanup failures exist.
+- [ ] Integration tests cover: all succeed, missing dependency, cycle, mid-way failure, and cleanup failure.
 
-**Kết luận:** Quản lý vòng đời plugin đáng tin cậy bắt đầu từ dependency graph được xác minh trước khi kích hoạt. Start theo thứ tự topo, ghi nhận từng thành công, rollback theo thứ tự ngược và dọn cả trạng thái partial initialization. Đây là nền tảng giúp host khởi động nhất quán và phục hồi khi chỉ một phần hệ thống plugin khởi tạo thành công.
+**Conclusion:** Reliable plugin lifecycle management begins with a dependency graph verified before activation. Start in topological order, record each success, roll back in reverse order, and clean up partial initialization states as well. This is the foundation that lets a host start consistently and recover when only part of the plugin system initializes successfully.

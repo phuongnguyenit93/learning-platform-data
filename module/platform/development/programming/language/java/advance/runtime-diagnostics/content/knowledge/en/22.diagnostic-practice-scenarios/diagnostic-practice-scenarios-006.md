@@ -1,23 +1,23 @@
-# 22.6 So sánh bộ nhớ tiến trình, heap, NMT và direct buffer trong một tình huống tăng bộ nhớ
+# 22.6 Comparing Process Memory, Heap, NMT, and Direct Buffers During Memory Growth
 
-## Mục tiêu
+## Objective
 
-Một service Java có thể báo heap used ổn định ở 350 MiB, trong khi biểu đồ “process memory” tăng từ 760 lên 1.180 MiB rồi container chạm giới hạn. Tình huống này **không tự chứng minh Java heap bị leak**, cũng không chứng minh native memory leak. Người điều tra cần biết mỗi nguồn dữ liệu đang đo **lớp bộ nhớ nào**, theo **đơn vị nào**, ở **thời điểm nào** và có **bao hàm/chồng lấp** với nguồn khác hay không.
+A Java service may report heap used steady at 350 MiB while the "process memory" graph climbs from 760 to 1,180 MiB and the container hits its limit. This scenario **does not by itself prove a Java heap leak**, nor does it prove a native memory leak. An investigator needs to know **which memory layer** each data source measures, in **what unit**, at **what point in time**, and whether it **includes or overlaps** with other sources.
 
-Trong chủ đề thực hành tổng hợp này, chúng ta đối chiếu bốn góc nhìn chính:
+In this integrated practice topic, we compare four primary views:
 
-1. **Bộ nhớ tiến trình:** Linux RSS/PSS, virtual size, anonymous/file-backed mappings, native allocations.
-2. **Java heap:** used, committed, max, hành vi GC, live set và ý nghĩa của số liệu sau GC.
-3. **HotSpot Native Memory Tracking (NMT):** reserved/committed theo hạng mục JVM, baseline/diff, phạm vi NMT đo được và các khoảng trống.
-4. **Direct buffers:** ByteBuffer.allocateDirect, BufferPoolMXBean, bytes/capacity/count, vòng đời off-heap và mối liên hệ *có thể có* với NMT.
+1. **Process memory:** Linux RSS/PSS, virtual size, anonymous/file-backed mappings, native allocations.
+2. **Java heap:** used, committed, max, GC behavior, live set, and the meaning of post-GC numbers.
+3. **HotSpot Native Memory Tracking (NMT):** reserved/committed per JVM category, baseline/diff, what NMT covers, and where its gaps are.
+4. **Direct buffers:** `ByteBuffer.allocateDirect`, `BufferPoolMXBean`, bytes/capacity/count, off-heap lifecycle, and its *possible* relationship with NMT.
 
-Sau bài học, bạn có thể lập bảng snapshot đúng thời gian, tránh cộng trùng, nhận diện giả thuyết hợp lý khi RSS tăng khác nhịp với heap/NMT/direct, thu số liệu bằng jcmd/JMX/proc/cgroup, rồi thiết kế một phép kiểm chứng không làm tình trạng thiếu bộ nhớ nặng thêm.
+After this lesson, you will be able to build time-aligned snapshot tables, avoid double counting, formulate sound hypotheses when RSS rises out of step with heap/NMT/direct, collect data with `jcmd`/JMX/`proc`/cgroup, and design a verification test without worsening memory pressure.
 
-**Phạm vi:** Java 17+ trên HotSpot/OpenJDK; ví dụ lệnh jcmd theo JDK 21; Linux và cgroup v2 nếu đang chạy trong container. Tên hạng mục NMT và mức bao phủ có thể khác giữa JDK/vendor. Không áp dụng các công thức cân bằng bên dưới như một phép “hạch toán chính xác từng byte”: các phép đo có **định nghĩa và thời điểm khác nhau**.
+**Scope:** Java 17+ on HotSpot/OpenJDK; `jcmd` command examples per JDK 21; Linux and cgroup v2 when running in containers. NMT category names and coverage can differ across JDKs/vendors. Do not treat the balance equations below as "byte-exact accounting": measurements differ in **definition and timing**.
 
-## 1. Bốn góc nhìn không nằm ở bốn ngăn độc lập
+## 1. The Four Views Do Not Live in Four Disjoint Buckets
 
-Mô hình khái niệm:
+Conceptual model:
 
 ~~~text
 Host / kernel / container memory accounting
@@ -38,100 +38,100 @@ Host / kernel / container memory accounting
 +-- File/page cache and some kernel charges
 ~~~
 
-Gắn từng đồng hồ đo lên mô hình:
+Mapping each meter onto the model:
 
-- **Java heap used:** phần heap JVM đang sử dụng theo định nghĩa memory pool/MXBean; không phải toàn bộ vùng nhớ của process.
-- **Heap committed:** bộ nhớ ảo JVM đã cam kết cho heap theo API/runtime; không tự là số trang vật lý đang resident.
-- **NMT:** theo dõi nhiều cấp phát và vùng bộ nhớ **nội bộ HotSpot**; có cả hạng mục Java Heap và các vùng native do VM theo dõi. Vì vậy NMT total **không phải “native ngoài heap”**.
-- **Direct BufferPoolMXBean:** ước lượng usage của các buffer pools JVM báo cáo; một phần off-heap này có thể đã nằm trong NMT ở hạng mục thích hợp trên bản triển khai đang dùng. Nó không phải một khoản luôn luôn cần cộng thêm.
-- **Process RSS:** các trang bộ nhớ vật lý hiện resident và được ánh xạ vào tiến trình, gồm anonymous và file-backed/shared pages; có thể bao gồm trang tương ứng với heap, một số native areas và mappings. RSS không phản ánh toàn bộ virtual reserved space.
-- **Cgroup memory.current:** lượng bộ nhớ đang bị tính cho cgroup, có thể bao gồm file cache, kernel memory và các process khác; **không đồng nhất với RSS của một PID**.
+- **Java heap used:** the portion of heap the JVM reports as used under memory pool/MXBean definitions; not the entire process memory.
+- **Heap committed:** virtual memory the JVM has committed for the heap per API/runtime; not automatically the physical pages currently resident.
+- **NMT:** tracks many **internal HotSpot** allocations and regions; it includes the Java Heap category alongside VM-tracked native areas. Hence NMT total **is not "native outside heap"**.
+- **Direct `BufferPoolMXBean`:** estimates usage of JVM-reported buffer pools; part of this off-heap storage may already be accounted for inside an NMT category on your runtime implementation. It is not an amount you can always blindly add on top.
+- **Process RSS:** physical memory pages currently resident and mapped into the process, including anonymous and file-backed/shared pages; it can cover pages belonging to the heap, some native areas, and mappings. RSS does not reflect all virtual reserved space.
+- **Cgroup `memory.current`:** memory charged to the cgroup, which can include file cache, kernel memory, and other processes; **it is not identical to a single PID's RSS**.
 
-Do đó phép tính sau **sai về mô hình**:
+Therefore the following calculation is **model-broken**:
 
 ~~~text
 total_memory = process_RSS + heap_used + NMT_committed + direct_used
 ~~~
 
-Các đại lượng này chồng lấp hoặc dùng phương pháp đo khác nhau. Nếu RSS đã chứa phần heap resident, cộng heap vào RSS là đếm lại. Nếu NMT total đã bao gồm committed Java Heap, cộng heap committed vào NMT total là đếm lại. Nếu direct allocation được NMT ghi nhận ở một hạng mục, cộng direct pool vào NMT total lại có thể đếm trùng.
+These quantities overlap or use different accounting methods. If RSS already includes resident heap pages, adding heap to RSS double-counts. If NMT total already includes committed Java Heap, adding heap committed to NMT total double-counts. If direct allocations appear under an NMT category, adding direct pool to NMT total can double-count again.
 
-## 2. Định nghĩa chuẩn trước khi so sánh
+## 2. Standard Definitions Before Comparing
 
-| Đại lượng | Nguồn điển hình | Thước đo | Câu hỏi trả lời | Điều **không** được suy |
+| Quantity | Typical Source | Unit | Question Answered | What **Not** to Infer |
 | --- | --- | --- | --- | --- |
-| Heap used | MemoryMXBean / JMX / GC telemetry | Bytes | Heap đang được sử dụng theo runtime | Toàn bộ process RSS hoặc retained live objects |
-| Heap committed | MemoryMXBean / JMX | Bytes | JVM đã cam kết dung lượng heap bao nhiêu | Tất cả committed pages đang resident |
-| Heap max | MemoryMXBean / -Xmx | Bytes hoặc undefined | Giới hạn heap mà runtime công bố | Container memory limit |
-| NMT reserved | jcmd VM.native_memory | KB/MB/GB | Vùng địa chỉ/virtual reservations do NMT theo dõi | RAM vật lý đang dùng |
-| NMT committed | jcmd VM.native_memory | KB/MB/GB | Bộ nhớ các subsystem HotSpot báo đã commit | Bằng RSS hay bao trọn mọi malloc trong process |
-| Direct pool memoryUsed | BufferPoolMXBean | Bytes, có thể -1 | Ước lượng bộ nhớ của buffer pool | Toàn bộ off-heap/JNI/native memory |
-| Direct pool totalCapacity | BufferPoolMXBean | Bytes | Tổng logical capacities thuộc pool | Physical RSS hoặc native allocation chính xác |
-| VmRSS/RSS | /proc/PID/status, smaps_rollup, ps | kB/KiB tùy tool | Resident pages của process | Private memory duy nhất của process |
-| PSS | /proc/PID/smaps_rollup | kB | Shared pages phân bổ tỷ lệ cho process | JVM heap used |
-| VmSize/VSZ | /proc/PID/status, ps | kB | Tổng virtual address space mappings/reservations | RAM đã cấp phát vật lý |
-| memory.current | cgroup v2 | Bytes | Charge bộ nhớ của toàn cgroup | RSS của riêng Java PID |
-| memory.stat anon/file | cgroup v2 | Bytes | Một số nhóm charge trong cgroup | Bản đối chiếu một–một với NMT categories |
+| Heap used | MemoryMXBean / JMX / GC telemetry | Bytes | Heap currently in use per runtime | Total process RSS or retained live objects |
+| Heap committed | MemoryMXBean / JMX | Bytes | How much heap capacity the JVM committed | All committed pages are physically resident |
+| Heap max | MemoryMXBean / `-Xmx` | Bytes or undefined | Heap limit advertised by the runtime | Container memory limit |
+| NMT reserved | `jcmd VM.native_memory` | KB/MB/GB | Address space/virtual reservations tracked by NMT | Physical RAM in use |
+| NMT committed | `jcmd VM.native_memory` | KB/MB/GB | Memory HotSpot subsystems report as committed | Equals RSS or covers every `malloc` in the process |
+| Direct pool `memoryUsed` | `BufferPoolMXBean` | Bytes, may be `-1` | Estimated memory used by buffer pool | All off-heap/JNI/native memory |
+| Direct pool `totalCapacity` | `BufferPoolMXBean` | Bytes | Total logical capacities in the pool | Physical RSS or exact native allocations |
+| `VmRSS`/RSS | `/proc/PID/status`, `smaps_rollup`, `ps` | kB/KiB depending on tool | Resident pages mapped to the process | Exclusively private memory of the process |
+| PSS | `/proc/PID/smaps_rollup` | kB | Shared pages apportioned proportionally to the process | JVM heap used |
+| `VmSize`/VSZ | `/proc/PID/status`, `ps` | kB | Total virtual address space mappings/reservations | Physically allocated RAM |
+| `memory.current` | cgroup v2 | Bytes | Memory charged to the entire cgroup | RSS of the Java PID alone |
+| `memory.stat` anon/file | cgroup v2 | Bytes | Selected charge buckets in the cgroup | One-to-one match with NMT categories |
 
-**Đơn vị:** NMT với scale=MB và các tiện ích Linux có thể dùng cách định nghĩa MB/KiB khác cách đặt tên trong dashboard. Quy ước thống nhất trong ví dụ ở bài: **1 MiB = 1.048.576 bytes**; nếu số liệu từ lệnh dùng kB/KiB, ghi cách chuyển đổi trước khi trừ. Sai lệch do MB thập phân và MiB nhị phân không giải thích được mọi chênh lệch lớn, nhưng có thể làm bảng thiếu chính xác.
+**Units:** NMT with `scale=MB` and Linux utilities may define MB/KiB differently from dashboard labels. Consistent convention in this lesson's examples: **1 MiB = 1,048,576 bytes**; if command output uses kB/KiB, record the conversion before subtracting. Decimal MB vs. binary MiB mismatches will not explain huge gaps, but they can make tables inaccurate.
 
-## 3. Java heap: used, committed, max và live set
+## 3. Java Heap: Used, Committed, Max, and Live Set
 
-### 3.1. Heap used chưa chắc là bộ nhớ còn sống
+### 3.1. Heap Used Is Not Always Live Memory
 
-Heap used là dung lượng đang sử dụng theo cách JVM báo; nó có thể chứa các object đã không còn reachable **nhưng chưa được GC thu gom**. Không thể chỉ lấy heap used ở hai timestamp rồi kết luận retained live set thay đổi đúng bằng chênh lệch.
+Heap used is the capacity currently occupied as reported by the JVM; it can include objects that are already unreachable **but not yet collected by GC**. You cannot simply take heap used at two timestamps and claim the retained live set changed by that exact difference.
 
-Muốn xét **heap leak / retention**, ưu tiên:
+To evaluate **heap leaks / retention**, prioritize:
 
-- Chuỗi thời gian **heap usage sau các chu kỳ GC tương đương**, đặc biệt old-generation live set ở steady state.
-- Allocation rate, GC frequency, số lượng/loại object, classloader, cache occupancy.
-- Heap dump/dominator tree khi cần và có đủ quyền/bộ nhớ lưu; phân biệt objects còn reachable với các vùng native.
-- Cùng workload, traffic, payload, warm-up, GC collector và Xmx.
+- Time series of **heap usage after comparable GC cycles**, especially steady-state old-generation live set.
+- Allocation rate, GC frequency, object counts/types, classloaders, and cache occupancy.
+- Heap dumps/dominator trees when needed and permitted with enough storage/RAM; distinguish reachable objects from native areas.
+- Matching workload, traffic, payloads, warm-up, GC collector, and `-Xmx`.
 
-Một biểu đồ heap hình răng cưa tăng rồi giảm về baseline có thể là allocation pressure bình thường, không phải leak. Ngược lại một baseline sau GC tăng đều với lượng công việc tương đương đáng điều tra object retention.
+A sawtooth heap graph rising and falling back to baseline may reflect normal allocation pressure, not a leak. Conversely, a post-GC baseline climbing steadily under equivalent work warrants investigating object retention.
 
-### 3.2. Heap committed không bằng heap used hoặc RSS
+### 3.2. Heap Committed Does Not Equal Heap Used or RSS
 
-JVM có thể commit một vùng heap lớn để tối ưu allocation/GC, trong khi số byte used thấp. Chuyển từ used=350 MiB sang used=355 MiB không có nghĩa process RSS chỉ tăng 5 MiB; native allocations và resident pages khác vẫn có thể thay đổi.
+The JVM can commit a large heap region to optimize allocation/GC while used bytes stay low. Moving from `used=350 MiB` to `used=355 MiB` does not mean process RSS grew by only 5 MiB; native allocations and other resident pages can still change.
 
-Heap committed cũng **không nhất thiết tương đương số trang vật lý đã fault vào RAM**. Trên Linux, việc reserve/commit/mmap/huge pages/transparent huge pages và touch pages ảnh hưởng RSS. JVM có thể giữ heap committed không giảm ngay khi used giảm sau GC; behavior phụ thuộc collector và chính sách uncommit.
+Heap committed also **does not necessarily equal the physical pages faulted into RAM**. On Linux, reserve/commit/`mmap`/huge pages/transparent huge pages and page touching affect RSS. The JVM may keep heap committed from shrinking immediately when used drops after GC; behavior depends on the collector and uncommit policy.
 
-### 3.3. Xmx không phải bộ nhớ tối đa của container
+### 3.3. `-Xmx` Is Not the Container Maximum Memory
 
--Xmx thường giới hạn Java heap tối đa, **không giới hạn** metaspace, code cache, direct buffers, thread stacks, JNI/native malloc, JIT/GC bookkeeping, file mappings hay page cache được tính trong cgroup. Container có memory.max=1.5 GiB và -Xmx=1 GiB vẫn có thể OOMKilled khi native/cgroup charges vượt headroom.
+`-Xmx` generally caps maximum Java heap, **not** metaspace, code cache, direct buffers, thread stacks, JNI/native `malloc`, JIT/GC bookkeeping, file mappings, or page cache charged to the cgroup. A container with `memory.max=1.5 GiB` and `-Xmx=1 GiB` can still be `OOMKilled` when native/cgroup charges exceed headroom.
 
-Với memory pressure, kiểm tra cả heap **và** process/cgroup metrics; không tự tăng Xmx khi RSS hoặc memory.current đã gần giới hạn.
+Under memory pressure, inspect both heap **and** process/cgroup metrics; never blindly raise `-Xmx` when RSS or `memory.current` is already near the limit.
 
-## 4. Bộ nhớ tiến trình ở Linux: RSS, VSS và PSS
+## 4. Process Memory on Linux: RSS, VSS, and PSS
 
-### 4.1. RSS là gì?
+### 4.1. What Is RSS?
 
-Resident Set Size (RSS) xấp xỉ số trang hiện có trong RAM được ánh xạ vào process. Thường bao gồm:
-- anonymous resident pages: heap, một số native allocations/stacks;
+Resident Set Size (RSS) approximates pages currently in RAM mapped into the process. It typically includes:
+- anonymous resident pages: heap, some native allocations/stacks;
 - file-backed resident pages: shared libraries, mapped files;
 - shared-memory pages;
-- các vùng hợp lệ theo kernel accounting.
+- other regions per kernel accounting.
 
-Trong /proc/PID/status, VmRSS thường được biểu diễn tương ứng với **RssAnon + RssFile + RssShmem** theo giao diện kernel. RSS từ proc/status có thể không là snapshot tuyệt đối chính xác ở từng thời điểm vì cơ chế accounting; smaps_rollup cho phân tích chi tiết hơn nhưng đọc có overhead.
+In `/proc/PID/status`, `VmRSS` typically corresponds to **`RssAnon + RssFile + RssShmem`** per kernel interface. RSS from `proc/status` may not be a microsecond-exact snapshot at every instant due to kernel accounting mechanics; `smaps_rollup` offers deeper breakdown though reading it has overhead.
 
-**RSS không chỉ là native heap.** Nó bao phần heap đã resident, code, stacks, mappings và một số shared pages. Nếu hai JVM cùng map một thư viện, RSS của cả hai có thể cùng ghi nhận các shared pages; cộng RSS của nhiều process có thể đếm lại physical pages.
+**RSS is not just native heap.** It includes resident heap pages, code, stacks, mappings, and some shared pages. If two JVMs map the same library, both processes' RSS can include those shared pages; summing RSS across multiple processes can double-count physical pages.
 
-### 4.2. VSS/VmSize thường rất lớn mà vẫn bình thường
+### 4.2. Huge VSS/`VmSize` Is Often Normal
 
-Virtual address space bao gồm vùng reserved, mapped nhưng chưa resident, class space reservation, guard pages, thread stack reservations và các vùng khác. Một JVM có VmSize 8 GiB nhưng RSS 700 MiB **không tự** nghĩa nó dùng 8 GiB RAM. Đó là khác biệt cốt lõi giữa **reserved virtual** và **resident physical**.
+Virtual address space includes reserved areas, mapped-but-not-resident regions, class space reservations, guard pages, thread stack reservations, and more. A JVM with `VmSize` 8 GiB and RSS 700 MiB **does not** mean it uses 8 GiB of RAM. That is the core difference between **reserved virtual** and **resident physical**.
 
-Cũng không dùng NMT “Total reserved = vài GiB” để kết luận container sắp chạm RAM limit. Cần nhìn committed, RSS, cgroup usage và memory pressure.
+Similarly, never use NMT "Total reserved = several GiB" to conclude a container is about to hit its RAM limit. Look at committed, RSS, cgroup usage, and memory pressure.
 
-### 4.3. PSS/USS khi có nhiều shared mappings
+### 4.3. PSS/USS When Many Shared Mappings Exist
 
-- **PSS (Proportional Set Size):** resident shared pages được chia tỷ lệ giữa những process cùng dùng; có ích khi quy chi phí giữa nhiều process.
-- **USS/private RSS** (tùy công cụ, thường suy từ Private_Clean + Private_Dirty trong smaps): phần resident không được chia sẻ theo cách đếm của công cụ.
-- **RSS:** tính resident mappings của process, bao cả shared pages.
+- **PSS (Proportional Set Size):** resident shared pages divided proportionally among processes sharing them; useful for attributing cost across multiple processes.
+- **USS/private RSS** (tool-dependent, often derived from `Private_Clean + Private_Dirty` in `smaps`): resident pages not shared under the tool's accounting.
+- **RSS:** counts resident mappings of the process, including shared pages.
 
-PSS giúp khi có nhiều JVM dùng chung libs/file maps, nhưng nó **không** tương đương NMT committed, và không nên bỏ qua sai số/timestamp khi so với cgroup.
+PSS helps when multiple JVMs share libraries/file maps, yet it is **not** equivalent to NMT committed, and you should not ignore tolerances/timestamps when comparing against cgroups.
 
-### 4.4. Lệnh read-only cho đúng PID
+### 4.4. Read-Only Commands for the Exact PID
 
-Trên host hoặc namespace có quyền, thay PID cho đúng tiến trình Java:
+On a host or namespace with permission, substitute the Java process PID:
 
 ~~~bash
 PID=12345
@@ -141,25 +141,25 @@ cat "/proc/$PID/smaps_rollup"
 ps -p "$PID" -o pid,etime,rss,vsz,cmd
 ~~~
 
-- /proc/PID/status cung cấp snapshot thô, gồm VmHWM (RSS high-water mark) nhưng HWM không cho biết **khi nào** đỉnh xảy ra.
-- smaps_rollup cho Rss, Pss, shared/private dirty/clean và các counters liên quan nếu kernel hỗ trợ. Đọc rất thường xuyên có overhead.
-- ps có đơn vị riêng cho rss/vsz (thường KiB), cần đọc man của OS/tool.
-- Một số môi trường container cấm đọc /proc/ PID khác; không mở rộng quyền hoặc chạy công cụ trái chính sách để bỏ qua hạn chế.
+- `/proc/PID/status` gives a coarse snapshot, including `VmHWM` (RSS high-water mark), though HWM does not tell you **when** the peak occurred.
+- `smaps_rollup` reports `Rss`, `Pss`, shared/private dirty/clean, and related counters when supported by the kernel. Polling it very frequently adds overhead.
+- `ps` has its own units for `rss`/`vsz` (typically KiB); verify with the OS/tool man page.
+- Some container environments forbid reading `/proc/PID` of other processes; never escalate privileges or run policy-violating tools to bypass restrictions.
 
-Nếu Java process **đã chết** và PID được tái sử dụng, đọc /proc/PID hiện tại có thể là một process khác; phải xác nhận start time và process identity.
+If the Java process **died** and its PID was reused, reading `/proc/PID` now inspects a different process; always verify start time and process identity.
 
-## 5. Memory cgroup: tại sao memory.current có thể khác RSS?
+## 5. Memory Cgroups: Why `memory.current` Can Differ from RSS
 
-Trong cgroup v2, memory.current phản ánh memory charges của cgroup cùng descendants theo semantics kernel, có thể gồm:
+In cgroup v2, `memory.current` reflects memory charges of the cgroup and its descendants per kernel semantics, which can include:
 
-- anonymous memory của các process thuộc cgroup;
-- file/page cache được charge vào cgroup;
-- kernel memory như slab/sock/pagetables/kstack theo kernel/controller;
-- các process/sidecar khác nếu nằm trong cùng phạm vi cgroup.
+- anonymous memory of processes in the cgroup;
+- file/page cache charged to the cgroup;
+- kernel memory such as slab/sock/pagetables/kstack per kernel/controller;
+- other processes/sidecars inside the same cgroup scope.
 
-Nó không phải “RAM riêng của Java heap” và cũng không nhất thiết trùng tổng RSS. Trên container orchestration, biểu đồ “container memory usage”, “working set”, “RSS” hoặc “usage_bytes” dùng định nghĩa và trừ một số cache khác nhau theo collector. **Ghi tên metric gốc**, không chỉ nhãn trên dashboard.
+It is neither "Java-heap-only RAM" nor necessarily equal to summed RSS. In container orchestration, charts labeled "container memory usage", "working set", "RSS", or "usage_bytes" use differing definitions and cache exclusions depending on the collector. **Record the raw metric name**, not just a dashboard label.
 
-Các file read-only điển hình, khi **đã xác nhận đúng cgroup v2**:
+Typical read-only files once **the exact cgroup v2 is verified**:
 
 ~~~bash
 cat /proc/self/cgroup
@@ -170,22 +170,22 @@ cat /sys/fs/cgroup/memory.stat
 cat /sys/fs/cgroup/memory.events
 ~~~
 
-Trên host, /sys/fs/cgroup của shell có thể là cgroup **khác** với Java PID. Khi đọc từ trong container, cgroup namespace có thể khiến path biểu diễn khác host. Phải kiểm tra /proc/PID/cgroup, mount info và mapping Kubernetes/container ID; không dùng các con số cgroup **khác scope** để diễn giải Java process.
+On a host, the shell's `/sys/fs/cgroup` may belong to a **different** cgroup than the Java PID. Inside a container, cgroup namespaces can display paths differently from the host. Check `/proc/PID/cgroup`, mount info, and Kubernetes/container ID mappings; never use cgroup figures from a **different scope** to explain the Java process.
 
-Đặc biệt:
-- **memory.current:** usage tại thời điểm đọc, không phải process RSS.
-- **memory.max:** hard limit (“max” nếu không áp giới hạn) của cgroup theo cấu hình; không phải -Xmx.
-- **memory.peak:** đỉnh theo semantics kernel/FD; không có timestamp riêng để biết khi nào peak.
-- **memory.stat anon, file, slab...:** phân tách một số khoản cgroup charge; tùy kernel có các counters khác nhau.
-- **memory.events oom/oom_kill/max:** sự kiện pressure/kill; so delta và xác nhận cgroup/khung thời gian, không coi một counter tích lũy là bằng chứng vừa xảy ra OOM.
+Specifically:
+- **`memory.current`:** usage at read time, not process RSS.
+- **`memory.max`:** configured hard limit (`max` if unlimited) of the cgroup; not `-Xmx`.
+- **`memory.peak`:** peak per kernel/FD semantics; carries no timestamp telling when the peak happened.
+- **`memory.stat` anon, file, slab...:** breaks down selected cgroup charge buckets; counters vary by kernel.
+- **`memory.events` oom/oom_kill/max:** pressure/kill event counters; check deltas and verify cgroup/timeframe rather than treating a cumulative counter as proof of a brand-new OOM.
 
-Nếu memory.current tăng trong khi RSS Java ổn định, có thể do page cache, sidecar, kernel charges hoặc process khác. Ngược lại RSS Java tăng nhưng cgroup usage ít đổi cũng có thể do reclaim/cache và các cơ chế khác; cần xem đúng metric và timestamp.
+If `memory.current` climbs while Java RSS stays flat, the cause may be page cache, sidecars, kernel charges, or another process. Conversely, Java RSS rising while cgroup usage barely shifts can also happen due to reclaim/cache and other mechanisms; check the exact metrics and timestamps.
 
-## 6. Native Memory Tracking (NMT) đo gì, không đo gì?
+## 6. What Does Native Memory Tracking (NMT) Measure and Miss?
 
-### 6.1. Bản chất NMT
+### 6.1. Nature of NMT
 
-**NMT là tính năng của HotSpot theo dõi vùng/cấp phát bộ nhớ do JVM quản lý nội bộ**, không phải một máy quét toàn bộ address space của process. Nó cho biết các hạng mục như:
+**NMT is a HotSpot feature that tracks memory regions/allocations managed internally by the JVM**, not a scanner of the process's entire virtual address space. It reports categories such as:
 
 - Java Heap;
 - Class / Metadata / Compressed Class Space;
@@ -193,33 +193,33 @@ Nếu memory.current tăng trong khi RSS Java ổn định, có thể do page ca
 - Code;
 - GC, Compiler, Internal;
 - Symbol, Native Memory Tracking, Arena Chunk;
-- Other và các categories bổ sung tùy JDK/collector.
+- Other and additional categories depending on JDK/collector.
 
-Danh sách và cách phân loại có thể thay đổi theo phiên bản JDK. NMT có thể không theo dõi chính xác mọi allocation của JNI/native third-party libraries hoặc các thành phần runtime nằm ngoài cơ chế HotSpot tracking. Oracle cũng nêu rõ giới hạn với third-party native code và một số JDK class-library allocations. **Nếu NMT flat trong khi RSS tăng, điều đó không loại trừ native memory leak.**
+The category list and classification can change across JDK versions. NMT may not accurately track all allocations from third-party JNI/native libraries or runtime components outside HotSpot tracking hooks. Oracle explicitly documents limitations around third-party native code and certain JDK class-library allocations. **If NMT stays flat while RSS climbs, that does not rule out a native memory leak.**
 
-### 6.2. NMT tắt theo mặc định và cần bật từ lúc khởi chạy
+### 6.2. NMT Is Off by Default and Must Be Enabled at Startup
 
-Ví dụ startup **cho môi trường có thể đánh giá overhead**:
+Startup example **for environments where overhead can be evaluated**:
 
 ~~~bash
 java -XX:NativeMemoryTracking=summary -Xmx768m -jar app.jar
 ~~~
 
-Hoặc chọn detail khi cần call-site evidence và có điều kiện:
+Or choose `detail` when call-site evidence is needed and conditions allow:
 
 ~~~bash
 java -XX:NativeMemoryTracking=detail -Xmx768m -jar app.jar
 ~~~
 
-- **summary:** tổng hợp theo hạng mục; thường là điểm bắt đầu phù hợp nhất.
-- **detail:** theo dõi chi tiết hơn, phục vụ truy nguồn cấp phát VM nhưng overhead cao hơn; phải đánh giá trên workload.
-- **off:** mặc định trên nhiều HotSpot builds; không có NMT history để dựng lại sau sự cố.
+- **`summary`:** aggregates by category; usually the best starting point.
+- **`detail`:** tracks finer granularity for tracing VM allocation sites, with higher overhead; evaluate against workload.
+- **`off`:** default on many HotSpot builds; leaves no historical NMT data to reconstruct after an incident.
 
-NMT **không thể bật từ off thành summary/detail cho một process đang chạy chỉ bằng jcmd**. Có thể dừng NMT theo cơ chế hỗ trợ, nhưng không được giả định khởi động lại tracking trong process sau khi đã tắt. NMT có overhead CPU/memory; tài liệu Oracle nêu mức tham khảo khoảng **5–10% overhead hiệu năng** trong một số điều kiện, không phải SLA cố định.
+NMT **cannot be switched from `off` to `summary`/`detail` on an already running process via `jcmd` alone**. Supported mechanisms can shut NMT down at runtime, but you cannot assume tracking can be turned back on inside the same process once off. NMT adds CPU/memory overhead; Oracle documentation cites roughly **5–10% performance overhead** under certain conditions, not a fixed SLA.
 
-### 6.3. Reserved và committed không bằng nhau
+### 6.3. Reserved and Committed Are Not Equal
 
-Một ví dụ NMT summary minh họa:
+An illustrative NMT summary example:
 
 ~~~text
 Total: reserved=4500MB, committed=740MB
@@ -230,82 +230,82 @@ Total: reserved=4500MB, committed=740MB
 - ...
 ~~~
 
-Đây là **số tổng hợp giả định để minh họa**, không phải output đầy đủ của JDK cụ thể; các hạng mục rút gọn **không cộng ra Total** do không liệt kê toàn bộ. Một reserved=4.500 MB không có nghĩa process dùng 4.500 MB RAM; committed=740 MB cũng không bằng RSS=740 MB. NMT committed là commit theo mô hình VM, còn RSS phụ thuộc trang hiện resident và những cấp phát/mappings khác.
+These are **hypothetical aggregate numbers for illustration**, not complete output from a specific JDK; the abbreviated categories **do not sum to Total** because not all categories are listed. `reserved=4,500 MB` does not mean the process uses 4,500 MB of RAM; `committed=740 MB` also does not equal `RSS=740 MB`. NMT committed follows VM commit accounting, whereas RSS depends on currently resident pages and other allocations/mappings.
 
-Cần đọc:
-- Giá trị tuyệt đối của hạng mục;
-- Delta committed so với **baseline cùng PID**;
-- Delta reserved chỉ để hiểu address-space growth;
-- Chênh lệch giữa các categories (Java Heap, Thread, Class, Code, GC, Other);
-- Context của JVM flags, collector, JDK version, threads/classes và workload.
+Inspect:
+- Absolute values per category;
+- Committed delta relative to a **baseline on the same PID**;
+- Reserved delta solely to understand address-space growth;
+- Breakdown across categories (Java Heap, Thread, Class, Code, GC, Other);
+- Context of JVM flags, collector, JDK version, threads/classes, and workload.
 
-**Không lấy NMT total rồi cộng heap committed**: Java Heap đã được tính trong NMT total nếu report chứa category tương ứng.
+**Never take NMT total and add heap committed**: Java Heap is already included in NMT total when the report contains that category.
 
-### 6.4. Baseline/diff: so xu hướng thay vì hai ảnh chụp rời rạc
+### 6.4. Baseline/Diff: Comparing Trends Instead of Disconnected Snapshots
 
-Khi NMT đã được bật từ startup:
+When NMT was enabled from startup:
 
 ~~~bash
 PID=12345
 jcmd "$PID" VM.native_memory summary scale=MB
 jcmd "$PID" VM.native_memory baseline
-# Tái hiện workload hoặc quan sát một khoảng được ghi rõ.
+# Reproduce workload or observe a clearly recorded window.
 jcmd "$PID" VM.native_memory summary.diff scale=MB
 ~~~
 
-Nếu bật detail từ startup và có lý do điều tra sâu:
+If `detail` was enabled from startup and deeper investigation is justified:
 
 ~~~bash
 jcmd "$PID" VM.native_memory detail.diff scale=MB
 ~~~
 
-- Baseline đánh dấu tham chiếu **tại thời điểm chạy**, không tự bao gồm trạng thái trước lúc bạn bật NMT.
-- summary.diff hiển thị delta theo category kể từ baseline; các allocations/frees có thể triệt tiêu nên snapshot không thay thế event history.
-- Không so diff của hai JVM/PID khác nhau rồi gọi đó là leak của cùng process.
-- NMT output có thể thay đổi do GC/heap expansion, JIT warm-up, classloading hoặc native allocator; cần phân biệt thay đổi dự kiến với tăng trưởng liên tục.
-- Đảm bảo workload/cấu hình tương đương; baseline nên lấy sau warm-up nếu bạn muốn điều tra steady-state retention.
+- Baseline marks a reference **at the moment it is taken**, without retroactively capturing state before NMT was enabled.
+- `summary.diff` shows net deltas per category since the baseline; allocations and frees can cancel out, so snapshots do not replace event history.
+- Never diff across two different JVMs/PIDs and call it a leak in the same process.
+- NMT numbers can shift from GC/heap expansion, JIT warm-up, classloading, or native allocators; separate expected warm-up shifts from continuous growth.
+- Ensure comparable workload/configuration; take the baseline after warm-up if investigating steady-state retention.
 
-## 7. Direct ByteBuffer và BufferPoolMXBean
+## 7. Direct `ByteBuffer` and `BufferPoolMXBean`
 
-### 7.1. Direct buffer ở heap hay native?
+### 7.1. Are Direct Buffers in Heap or Native Memory?
 
-ByteBuffer.allocateDirect(capacity) trả về một **Java object trên heap** mô tả buffer, nhưng vùng lưu dữ liệu chính thường nằm **ngoài Java heap**, thuộc memory do JVM/native allocator quản lý tùy implementation. Vì vậy heap used có thể chỉ tăng rất ít khi ứng dụng tạo nhiều direct buffers có tổng capacity lớn; process RSS hoặc cgroup memory vẫn tăng.
+`ByteBuffer.allocateDirect(capacity)` returns a **Java object on the heap** describing the buffer, while its primary data backing storage typically lives **outside the Java heap**, in memory managed by the JVM/native allocator depending on implementation. Hence heap used may grow only slightly when an application creates many direct buffers with large total capacity, while process RSS or cgroup memory still rises.
 
-Đây là một cơ chế quan trọng trong NIO, network frameworks, file I/O và zero-copy-oriented paths. Nhưng:
-- Không phải mọi native allocation đều là direct buffer.
-- Không phải mọi ByteBuffer nằm ngoài heap: ByteBuffer.allocate(...) là heap buffer.
-- MappedByteBuffer/file mapping là một loại mapping khác; không đồng nhất với direct pool.
-- Direct buffer object có thể vẫn reachable vì cache/pool/reference; thu hồi native memory liên quan lifecycle của object và cơ chế cleanup/runtime, **không nhất thiết diễn ra ngay** khi application bỏ tham chiếu.
+This is a key mechanism in NIO, network frameworks, file I/O, and zero-copy-oriented paths. However:
+- Not every native allocation is a direct buffer.
+- Not every `ByteBuffer` lives off-heap: `ByteBuffer.allocate(...)` creates a heap buffer.
+- `MappedByteBuffer`/file mappings are a different kind of mapping, not identical to the direct pool.
+- Direct buffer wrapper objects may stay reachable due to caches/pools/references; reclaiming native storage depends on object lifecycle and runtime cleanup mechanisms, **and does not necessarily happen instantly** when the application drops a reference.
 
-### 7.2. BufferPoolMXBean đưa ra ba metric khác nhau
+### 7.2. `BufferPoolMXBean` Exposes Three Distinct Metrics
 
-Java cung cấp BufferPoolMXBean qua:
+Java exposes `BufferPoolMXBean` via:
 
 ~~~java
 ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)
 ~~~
 
-Các pool thường thấy trên HotSpot là **direct**, **mapped** (và có thể thêm pool khác). Với mỗi pool:
+Common pools on HotSpot are **direct** and **mapped** (and possibly others). For each pool:
 
-- **getCount():** số buffers ước lượng thuộc pool;
-- **getTotalCapacity():** tổng capacity logic ước lượng, đơn vị bytes;
-- **getMemoryUsed():** ước lượng bộ nhớ JVM đang dùng cho pool, đơn vị bytes; có thể **trả -1** nếu không có ước lượng.
+- **`getCount()`:** estimated number of buffers in the pool;
+- **`getTotalCapacity()`:** estimated total logical capacity in bytes;
+- **`getMemoryUsed()`:** estimated memory the JVM is using for the pool in bytes; may **return `-1`** if an estimate is unavailable.
 
-MemoryUsed và TotalCapacity **không bắt buộc bằng nhau** do alignment, allocator overhead và implementation. Không dùng capacity làm “RSS direct memory” tuyệt đối; không dùng count làm số allocation còn live trên mọi thư viện vì pooling/slicing và implementation details.
+`MemoryUsed` and `TotalCapacity` **need not be equal** due to alignment, allocator overhead, and implementation details. Do not treat capacity as exact "direct memory RSS"; do not treat count as live allocation count across every library because pooling/slicing and implementation details vary.
 
-### 7.3. Direct pool không bằng mọi off-heap
+### 7.3. Direct Pool Does Not Equal All Off-Heap
 
-Nhiều native allocations có thể đi qua JNI, malloc trong libraries, JIT/GC/internal JVM, compression, crypto/TLS, memory-mapped files hoặc SDK khác. BufferPoolMXBean không hứa đo mọi vùng đó. Ngược lại, một số allocations của direct ByteBuffer có thể xuất hiện trong NMT ở hạng mục như Other trên một bản HotSpot, nhưng **không được giả định category Other luôn bằng direct pool**; cần kiểm tra implementation/JDK, thời điểm đo và NMT diff.
+Many native allocations go through JNI, library `malloc`, JIT/GC/JVM internals, compression, crypto/TLS, memory-mapped files, or other SDKs. `BufferPoolMXBean` makes no promise to measure all of those. Conversely, some direct `ByteBuffer` allocations can show up inside NMT under a category such as `Other` on a given HotSpot build, yet **never assume NMT `Other` always equals the direct pool**; verify JDK/implementation behavior, measurement timing, and NMT diffs.
 
-Quan trọng nhất: nếu một direct buffer đã được phản ánh trong NMT committed hoặc process RSS, thì thêm direct pool number vào NMT/RSS sẽ **đếm trùng**. Hãy dùng direct pool như **bằng chứng về một loại allocation**, không phải một “dòng tiền mới” có thể cộng vào tổng.
+Most importantly: if a direct buffer is already reflected in NMT committed or process RSS, adding the direct pool figure on top of NMT/RSS **double-counts**. Use the direct pool as **evidence for a specific allocation class**, not an independent "new line item" to sum into totals.
 
-### 7.4. MaxDirectMemorySize không phải trần toàn bộ native memory
+### 7.4. `MaxDirectMemorySize` Is Not a Ceiling for All Native Memory
 
-Tùy HotSpot và JDK, -XX:MaxDirectMemorySize có thể hạn chế một số allocations qua cơ chế direct buffer tương ứng, nhưng **không giới hạn mọi off-heap/JNI/mmap/allocator**. Không coi -Xmx + MaxDirectMemorySize là tổng process max. Khi thay limit này, kiểm tra thư viện đang dùng allocations nào và behavior thực tế; thiếu direct memory có thể gây OutOfMemoryError ở Java ngay cả khi heap chưa đầy.
+Depending on HotSpot and JDK, `-XX:MaxDirectMemorySize` can cap certain allocations made through the corresponding direct-buffer mechanism, but **does not cap all off-heap/JNI/`mmap`/allocator usage**. Do not treat `-Xmx + MaxDirectMemorySize` as total process maximum. When adjusting this limit, check which allocations your libraries actually use and their real behavior; running out of direct memory can throw `OutOfMemoryError` in Java even while heap has free space.
 
-## 8. Mô hình các phép đo và bẫy cộng trùng
+## 8. Measurement Model and the Double-Counting Trap
 
-Giả sử bốn nguồn cùng lúc đưa:
+Suppose four sources simultaneously report:
 
 ~~~text
 Process RSS             = 1,180 MiB
@@ -314,165 +314,165 @@ NMT total committed     =   860 MiB
 Direct pool memoryUsed  =   218 MiB
 ~~~
 
-**Không** tính 1.180 + 355 + 860 + 218 = 2.613 MiB. Con số đó vô nghĩa vì có nhiều phần chồng lấp.
+**Do not** compute `1,180 + 355 + 860 + 218 = 2,613 MiB`. That number is meaningless because major portions overlap.
 
-Thay bằng bốn nhận định **tách biệt**:
-1. OS đang ghi nhận process có 1.180 MiB resident mappings.
-2. JVM báo 355 MiB used trong heap tại snapshot đó.
-3. NMT báo 860 MiB committed trong các categories do HotSpot theo dõi, gồm cả heap committed.
-4. BufferPoolMXBean báo 218 MiB ước lượng direct memory của pool (nếu implementation hỗ trợ).
+Replace it with four **separate** statements:
+1. The OS records 1,180 MiB of resident mappings for the process.
+2. The JVM reports 355 MiB used inside the heap at that snapshot.
+3. NMT reports 860 MiB committed across HotSpot-tracked categories, including committed heap.
+4. `BufferPoolMXBean` reports an estimated 218 MiB for the direct buffer pool (if supported by the implementation).
 
-Mỗi số phục vụ một câu hỏi:
-- **Ứng dụng có đang tiến sát memory limit ở process/container không?** → RSS, cgroup usage, memory.max và xu hướng trước OOM.
-- **Objects Java có bị giữ lại không?** → heap-after-GC, old generation, heap dump/retained set.
-- **HotSpot subsystem nào lớn lên?** → NMT summary.diff, categories Thread/Class/GC/Code/Java Heap/Other.
-- **Direct buffers có góp phần không?** → BufferPoolMXBean direct metrics, số connections/pools, reference retention và NMT category correlation nếu có.
+Each number answers its own question:
+- **Is the application approaching process/container memory limits?** → RSS, cgroup usage, `memory.max`, and pre-OOM trend.
+- **Are Java objects being retained?** → post-GC heap, old generation, heap dumps/retained sets.
+- **Which HotSpot subsystem grew?** → NMT `summary.diff`, categories Thread/Class/GC/Code/Java Heap/Other.
+- **Are direct buffers contributing?** → `BufferPoolMXBean` direct metrics, connection/pool counts, reference retention, and NMT category correlation if present.
 
-Hãy tránh mô hình “unexplained native = RSS − heap used − NMT committed − direct”. Vì các đại lượng khác accounting, phép trừ có thể âm hoặc dương tùy page residency, shared mappings, kernel caches và NMT coverage; **phần dư không tự là native leak**.
+Avoid the formula "`unexplained native = RSS − heap used − NMT committed − direct`". Because the metrics use different accounting rules, that subtraction can turn negative or positive depending on page residency, shared mappings, kernel caches, and NMT coverage; **the remainder is not automatically a native leak**.
 
-## 9. Tình huống thực hành: process tăng 420 MiB nhưng heap used gần như đứng yên
+## 9. Practice Scenario: Process Grows 420 MiB While Heap Used Barely Moves
 
-Service xử lý nhiều kết nối NIO, giữ một số buffer pools để phục vụ network traffic. Hai snapshot được thu trên **cùng PID**, sau warm-up, cùng JDK, cùng cgroup và gần các mốc tải tương ứng. Mọi số bên dưới là **giả định** và đã chuẩn hóa sang MiB để luyện lập luận.
+A service handles many NIO connections and maintains buffer pools for network traffic. Two snapshots are collected on **the same PID**, post warm-up, same JDK, same cgroup, under matching load points. All numbers below are **hypothetical** and normalized to MiB to practice reasoning.
 
-| Chỉ số | T0 | T1 sau 30 phút | Delta |
+| Metric | T0 | T1 after 30 min | Delta |
 | --- | ---: | ---: | ---: |
-| Process RSS | 760 | 1.180 | +420 |
+| Process RSS | 760 | 1,180 | +420 |
 | Heap used | 350 | 355 | +5 |
 | Heap committed | 512 | 512 | 0 |
-| Heap max (-Xmx) | 768 | 768 | 0 |
+| Heap max (`-Xmx`) | 768 | 768 | 0 |
 | NMT total committed | 680 | 860 | +180 |
 | NMT category Other committed | 80 | 250 | +170 |
-| Direct pool memoryUsed | 48 | 218 | +170 |
-| Direct pool totalCapacity | 48 | 218 | +170 |
-| Direct pool count | 120 | 540 | +420 |
-| Cgroup memory.current | 980 | 1.420 | +440 |
-| Cgroup memory.max | 1.536 | 1.536 | 0 |
-| RPS trung bình | 800 | 800 | 0 |
+| Direct pool `memoryUsed` | 48 | 218 | +170 |
+| Direct pool `totalCapacity` | 48 | 218 | +170 |
+| Direct pool `count` | 120 | 540 | +420 |
+| Cgroup `memory.current` | 980 | 1,420 | +440 |
+| Cgroup `memory.max` | 1,536 | 1,536 | 0 |
+| Average RPS | 800 | 800 | 0 |
 
-Vì hai snapshot cách 30 phút, các delta không nói từng MiB đã cấp phát lúc nào. Process RSS tăng 420 MiB, còn NMT committed chỉ tăng 180 MiB; không phải số liệu “đánh nhau” vì NMT committed và RSS **khác phạm vi và semantics**.
+Because the snapshots are 30 minutes apart, deltas do not show when each MiB was allocated. Process RSS rose 420 MiB while NMT committed rose only 180 MiB; the metrics do not "contradict each other" because NMT committed and RSS **have different scopes and semantics**.
 
-### 9.1. Đọc bảng theo thứ tự đúng
+### 9.1. Reading the Table in the Right Order
 
-**Quan sát 1 — RSS tăng và tiến gần giới hạn.** Process RSS tăng +420 MiB, container memory.current +440 MiB và chỉ còn 116 MiB trước memory.max trong số liệu T1 (1.536 − 1.420). Đây là rủi ro vận hành thực, nhưng memory.current không phải RSS và có thể chứa page cache/kernel/other-process charges.
+**Observation 1 — RSS climbs toward the limit.** Process RSS rose +420 MiB, container `memory.current` rose +440 MiB, leaving only 116 MiB below `memory.max` at T1 (`1,536 − 1,420`). This is a real operational risk, though `memory.current` is not RSS and can include page cache/kernel/other-process charges.
 
-**Quan sát 2 — heap used gần như không tăng.** Heap +5 MiB, heap committed không đổi. Không ủng hộ giả thuyết “toàn bộ +420 MiB đến từ Java objects đang chiếm heap used”, nhưng chưa thể nói heap retention **không** có vấn đề nếu hai snapshot không chuẩn hóa theo GC phase/live set.
+**Observation 2 — Heap used barely changed.** Heap +5 MiB, heap committed unchanged. This does not support "all +420 MiB came from Java objects filling heap used", though you still cannot declare heap retention completely problem-free if snapshots were not aligned by GC phase/live set.
 
-**Quan sát 3 — NMT đang thấy một phần tăng trưởng.** Total committed +180 MiB, trong đó Other +170 MiB. Đây là tín hiệu cần drill-down: biết category Other tăng không tự chứng minh nó là direct buffers.
+**Observation 3 — NMT sees part of the growth.** Total committed +180 MiB, with Other +170 MiB. That is a signal to drill down: seeing Other grow does not by itself prove direct buffers.
 
-**Quan sát 4 — direct pool tăng tương quan.** Direct memoryUsed +170 MiB, capacity +170 MiB, count tăng. Điều này phù hợp giả thuyết **direct-buffer pool/retention tăng** và có thể giải thích **một phần** sự dịch chuyển NMT Other trên implementation này. Không được cộng +170 (direct) và +170 (Other) thành +340 MiB mà không chứng minh chúng độc lập.
+**Observation 4 — Direct pool grew in step.** Direct `memoryUsed` +170 MiB, capacity +170 MiB, count climbed. This aligns with a hypothesis of **direct-buffer pool/retention growth** and could explain **part** of the NMT Other shift on this implementation. Never add +170 (direct) and +170 (Other) into +340 MiB without proving they are disjoint.
 
-**Quan sát 5 — còn khoảng chênh về cơ chế đo.** RSS +420, NMT committed +180. Không thể gọi ngay +240 MiB còn lại là “native leak không được NMT tracking”. Có thể là allocator arenas, resident transition của pages đã committed, file-backed mappings, JNI/native allocations hoặc noise do snapshots/lượt thu khác thời điểm. Cần smaps_rollup, /proc/PID/status, memory.stat và native evidence phù hợp.
+**Observation 5 — An accounting gap remains.** RSS +420, NMT committed +180. You cannot immediately label the remaining +240 MiB an "untracked native leak". It could be allocator arenas, already-committed pages faulting into residency, file-backed mappings, JNI/native allocations, or timing skew across snapshot collection. You need `smaps_rollup`, `/proc/PID/status`, `memory.stat`, and proper native evidence.
 
-### 9.2. Kết luận sơ bộ đúng mức
+### 9.2. Properly Scoped Preliminary Conclusion
 
-> Trong 30 phút, cùng JVM PID có RSS tăng +420 MiB, heap used gần như ổn định, NMT committed tăng +180 MiB (chủ yếu category Other +170 MiB) và direct buffer pool memoryUsed tăng +170 MiB. Có cơ sở điều tra **direct-buffer growth** là một phần nguyên nhân; chưa đủ dữ liệu để gọi leak hoặc quy toàn bộ RSS tăng cho direct buffers. Container memory.current đã gần memory.max; cần kiểm tra buffer ownership/lifecycle và các memory mappings khác trước khi tăng heap hoặc giảm memory limit.
+> Over 30 minutes on the same JVM PID, RSS grew +420 MiB while heap used stayed nearly flat, NMT committed rose +180 MiB (mostly Other +170 MiB), and direct buffer pool `memoryUsed` rose +170 MiB. There is solid basis to investigate **direct-buffer growth** as a contributing factor; data is not yet sufficient to declare a leak or blame the entire RSS jump on direct buffers. Container `memory.current` is close to `memory.max`; inspect buffer ownership/lifecycle and other memory mappings before raising heap or shrinking memory limits.
 
-Đây là kết luận có nguồn và giới hạn; tốt hơn câu “NMT thiếu 240 MiB nên JNI đang leak” hoặc “direct buffer đã dùng 218 MiB, cộng thêm vào RSS là 1.398 MiB”.
+This conclusion cites sources and limits; it is far better than "NMT missed 240 MiB so JNI is leaking" or "direct buffers used 218 MiB, adding to RSS makes 1,398 MiB".
 
-### 9.3. Vì sao tương quan chưa phải leak?
+### 9.3. Why Correlation Is Not Yet a Leak
 
-Pool có thể tăng lên theo concurrency hoặc high-water mark rồi ổn định; một hệ thống giữ buffer cache có giới hạn có thể chủ ý dùng memory để tránh allocations. Một số buffers có thể được giữ bởi connections đang hoạt động; buffer count tăng khi traffic mix/payload thay đổi dù RPS bằng nhau. Hỏi thêm:
+Pools can grow up to a concurrency high-water mark and then plateau; a bounded buffer cache may intentionally retain memory to avoid allocations. Buffers may be held by active connections; buffer count can rise when traffic mix/payloads change even at identical RPS. Ask further:
 
-- Số connection/HTTP2 streams, request size và in-flight messages có tăng không?
-- Direct pool có **plateau** khi workload ổn định không, hay vẫn tăng không giới hạn?
-- Sau khi kết nối/batch đóng và load giảm, buffers có được trả về pool hoặc cleanup theo lifecycle hợp lệ không?
-- Có reference retention ở cache/pool/map/listener không? Có leak trong Netty/driver/native transport không?
-- Có allocator chunk fragmentation hoặc memory không trả ngay cho OS dù buffers đã release không?
-- Có đổi SDK/JDK/GC, pool config hoặc phiên bản thư viện không?
+- Did open connections/HTTP2 streams, request sizes, or in-flight messages increase?
+- Does the direct pool **plateau** under steady workload, or keep growing unboundedly?
+- Once connections/batches close and load drops, are buffers returned to the pool or cleaned up per lifecycle?
+- Is there reference retention in a cache/pool/map/listener? Is there a leak in Netty/driver/native transport?
+- Is there allocator chunk fragmentation or memory not immediately returned to the OS even after buffers are released?
+- Did SDK/JDK/GC, pool configuration, or library versions change?
 
-Không nên ép System.gc() để cố chứng minh direct buffers “phải giảm ngay”; GC/cleaner, pooling và native allocator release không đồng nhất, và ép GC có thể làm méo phép đo.
+Do not force `System.gc()` to try proving direct buffers "must drop immediately"; GC/cleaners, pooling, and native allocator release are asynchronous, and forcing GC distorts measurements.
 
-## 10. Bổ sung số liệu để phân xử phần RSS tăng
+## 10. Additional Data to Arbitrate the RSS Increase
 
-### 10.1. Nhìn /proc/PID/status và smaps_rollup trước/sau
+### 10.1. Inspecting `/proc/PID/status` and `smaps_rollup` Before/After
 
-Nếu T0 → T1:
-- RssAnon tăng mạnh: nghĩ tới heap pages, direct/native malloc, thread stacks, anonymous mappings và các vùng khác; **không** kết luận ngay direct leak.
-- RssFile tăng mạnh: nghĩ tới mapped files, shared libraries, page cache gắn process; kiểm tra smaps theo path và mapping.
-- RssShmem tăng: xem shared memory/mmap mechanism tương ứng.
-- PSS và Private_Dirty tăng: giúp hiểu phần resident thực của process và tính shared/private.
-- VmSize tăng nhưng RSS không: có thể chỉ tăng virtual reservations, không phải áp lực RAM vật lý ngay.
+From T0 → T1:
+- `RssAnon` spikes: think heap pages, direct/native `malloc`, thread stacks, anonymous mappings, and similar areas; **do not** jump straight to a direct leak.
+- `RssFile` spikes: think mapped files, shared libraries, process-attached page cache; inspect `smaps` by path and mapping.
+- `RssShmem` spikes: examine the corresponding shared memory/`mmap` mechanism.
+- `PSS` and `Private_Dirty` rise: clarify true per-process resident footprint and shared vs. private memory.
+- `VmSize` rises while RSS stays flat: likely only virtual reservations growing, not immediate physical RAM pressure.
 
-Sử dụng đồng thời NMT diff để xem HotSpot categories nào đổi. Nếu NMT flat mà RssAnon tăng, ưu tiên kiểm tra third-party JNI/native malloc, allocator arenas và những resident transitions không được NMT phản ánh. **Không thay mọi giả thuyết bằng một phép trừ.**
+Use NMT diff concurrently to see which HotSpot categories changed. If NMT is flat while `RssAnon` rises, prioritize checking third-party JNI/native `malloc`, allocator arenas, and resident transitions unreflected by NMT. **Never replace all hypotheses with one subtraction.**
 
-### 10.2. Cgroup memory.stat bổ sung gì?
+### 10.2. What Does Cgroup `memory.stat` Add?
 
-Nếu memory.current tăng +440 MiB, kiểm tra các key theo kernel cụ thể:
-- anon tăng → có thể tương ứng user anonymous memory từ các process;
-- file tăng → file/page cache/mapped file charges;
-- slab, sock, kernel_stack, pagetables hoặc kernel thành phần khác tăng → kernel charges;
-- các process cùng cgroup/sidecar cũng có thể sử dụng memory.
+If `memory.current` grew +440 MiB, inspect kernel-specific keys:
+- `anon` rises → likely user anonymous memory from processes;
+- `file` rises → file/page cache/mapped file charges;
+- `slab`, `sock`, `kernel_stack`, `pagetables`, or other kernel components rise → kernel charges;
+- sibling processes/sidecars in the cgroup may also consume memory.
 
-Một pod có Java RSS tương đối ổn định nhưng memory.current tăng do file cache/sidecar là chuyện có thể xảy ra. NMT không giúp đo page cache của toàn cgroup.
+A pod whose Java RSS is relatively steady while `memory.current` climbs due to file cache/sidecars is entirely plausible. NMT does not measure cgroup-wide page cache.
 
-### 10.3. Áp lực bộ nhớ và OOMKill
+### 10.3. Memory Pressure and OOMKill
 
-Tại T1 memory.current=1.420 MiB, memory.max=1.536 MiB, headroom khoảng 116 MiB theo snapshot. Tuy nhiên headroom không phải lời hứa sẽ không OOM: memory có thể tăng đột ngột, charging/reclaim behavior và concurrent workloads thay đổi. Nếu đã có OOMKilled:
-- đọc container last termination reason, đúng container ID;
-- đọc cgroup memory.events oom_kill delta và kernel logs nếu còn;
-- xác nhận memory usage/peak trước crash;
-- không dùng PID mới hoặc cgroup sau restart làm snapshot thay cho process đã chết.
+At T1 `memory.current=1,420 MiB`, `memory.max=1,536 MiB`, leaving about 116 MiB of headroom at that snapshot. However, headroom is no guarantee against OOM: memory can spike suddenly, and kernel charging/reclaim behavior and concurrent workloads change. If an `OOMKilled` occurred:
+- read the container's last termination reason for the exact container ID;
+- read cgroup `memory.events` `oom_kill` delta and kernel logs if still available;
+- confirm memory usage/peak prior to crash;
+- never use the new PID or post-restart cgroup as a substitute snapshot for the dead process.
 
-Heap dump hoặc NMT attach vào process đã bị SIGKILL không thể thực hiện sau đó; chuẩn bị telemetry **trước sự cố** là một phần của bài thực hành.
+Heap dumps or NMT attaches cannot run against a process already killed by `SIGKILL`; preparing telemetry **before an incident** is part of the practice.
 
-## 11. Quy trình đo lặp lại được: T0, T1, T2
+## 11. Repeatable Measurement Workflow: T0, T1, T2
 
-### Bước 1 — Xác định đúng đối tượng và giới hạn
+### Step 1 — Identify the Exact Target and Limits
 
-Ghi service, build, JDK vendor/version, PID + start time, container ID/pod UID, node, Xms/Xmx, MaxDirectMemorySize nếu dùng, NMT level, GC, thread count, direct-buffer/pool config, memory.max và cgroup path.
+Record service, build, JDK vendor/version, PID + start time, container ID/pod UID, node, `Xms`/`Xmx`, `MaxDirectMemorySize` if set, NMT level, GC, thread count, direct-buffer/pool config, `memory.max`, and cgroup path.
 
-**Không bao giờ** ghép NMT của PID mới với RSS của PID cũ sau restart. Nếu có nhiều JVM cùng một pod, container memory.current không thể mặc nhiên gán hết cho một JVM.
+**Never** pair NMT from a new PID with RSS from an old PID after a restart. If multiple JVMs share one pod, container `memory.current` cannot automatically be blamed solely on one JVM.
 
-### Bước 2 — Chọn điều kiện đo có thể so
+### Step 2 — Pick Comparable Measurement Conditions
 
-T0 sau warm-up; T1 trong lúc memory tăng; T2 sau khi tải/hay batch kết thúc hoặc sau giai đoạn ổn định. Ghi:
-- exact timestamp UTC;
-- RPS, request mix, connection count, in-flight, payload sizes, batch;
-- GC phase gần snapshot (heap used trước hay sau GC);
-- deploy, traffic spike, autoscale và native library state.
+T0 after warm-up; T1 while memory is climbing; T2 after the load/batch finishes or during a stabilization phase. Record:
+- exact UTC timestamp;
+- RPS, request mix, connection count, in-flight count, payload sizes, batches;
+- GC phase near snapshot (heap used before vs. after GC);
+- deploys, traffic spikes, autoscaling, and native library state.
 
-Nếu RPS như nhau nhưng số kết nối mở tăng gấp ba, mẫu trực tiếp vẫn không hoàn toàn tương đương.
+Even at the same RPS, if open connections tripled, the samples are not strictly equivalent.
 
-### Bước 3 — Chụp đồng thời bốn nhóm
+### Step 3 — Capture All Four Groups Together
 
-1. JMX heap used/committed/max và GC metrics;
-2. NMT summary/diff (nếu đã bật);
-3. direct/mapped BufferPoolMXBean count/capacity/memoryUsed;
-4. Process /proc/PID/{status,smaps_rollup}, cgroup memory.current/memory.stat/memory.events.
+1. JMX heap used/committed/max and GC metrics;
+2. NMT summary/diff (if enabled);
+3. direct/mapped `BufferPoolMXBean` count/capacity/memoryUsed;
+4. Process `/proc/PID/{status,smaps_rollup}`, cgroup `memory.current`/`memory.stat`/`memory.events`.
 
-Đọc một chuỗi lệnh cần thời gian; ghi mỗi snapshot timestamp, không viết “đo đồng thời chính xác đến mili-giây” nếu thực tế thu lần lượt.
+Running a sequence of commands takes time; log each snapshot timestamp instead of claiming "simultaneous to the millisecond" when collected sequentially.
 
-### Bước 4 — Tính delta **trong từng cột**
+### Step 4 — Compute Deltas **Within Each Column**
 
-RSS_T1 − RSS_T0, HeapUsed_T1 − HeapUsed_T0, NMTCommitted_T1 − NMTCommitted_T0, DirectUsed_T1 − DirectUsed_T0, CgroupCurrent_T1 − CgroupCurrent_T0.
+`RSS_T1 − RSS_T0`, `HeapUsed_T1 − HeapUsed_T0`, `NMTCommitted_T1 − NMTCommitted_T0`, `DirectUsed_T1 − DirectUsed_T0`, `CgroupCurrent_T1 − CgroupCurrent_T0`.
 
-Sau đó mới xem **tương quan về thời gian** và sự phù hợp cơ chế, chứ không cộng các delta thành “total delta”.
+Only then inspect **temporal correlation** and mechanistic consistency, rather than summing deltas into a "total delta".
 
-### Bước 5 — Đặt giả thuyết và chỉ định nguồn bác bỏ
+### Step 5 — State Hypotheses and Falsifiers
 
-Ví dụ:
-- Direct retention: direct pool tăng và number connections/buffers không được giải phóng sau load; bác bỏ nếu pool ổn định/giảm trong khi RSS vẫn tăng.
-- Heap retention: post-GC old-gen trend tăng; bác bỏ nếu live-set ổn định qua các chu kỳ so sánh.
-- Native leak ngoài NMT: RSS/RssAnon tăng và NMT/direct/heap ổn định; xác nhận bằng native allocator profiling, JNI ownership hoặc smaps.
-- Page cache/cgroup growth: memory.stat file/slab tăng, process RSS không tăng tương ứng; xác nhận OS/controller evidence.
-- Thread explosion: thread count và NMT Thread committed/virtual stack tăng; kiểm tra thread dumps và pool limits.
+For example:
+- Direct retention: direct pool grows and connections/buffers are not freed after load; falsified if the pool plateaus/drops while RSS keeps rising.
+- Heap retention: post-GC old-gen trend rises; falsified if live set stays stable across comparable cycles.
+- Native leak outside NMT: RSS/`RssAnon` rises while NMT/direct/heap stay flat; verify via native allocator profiling, JNI ownership, or `smaps`.
+- Page cache/cgroup growth: `memory.stat` file/slab rises without matching process RSS growth; confirm via OS/controller evidence.
+- Thread explosion: thread count and NMT Thread committed/virtual stack rise; check thread dumps and pool bounds.
 
-### Bước 6 — Thí nghiệm nhỏ, đo cả hệ thống
+### Step 6 — Run Small Experiments and Measure the Whole System
 
-Nếu nghi direct buffers: đo trước/sau khi giới hạn connection pool, fixed buffer cache, giảm retained references hoặc đóng đúng lifecycle; bảo đảm throughput, latency và CPU/GC không regress. Nếu nghi native third-party: dùng tool có khả năng phân tích allocator đúng libc/library, trong staging trước khi áp production.
+If suspecting direct buffers: measure before/after bounding connection pools, fixing buffer caches, reducing retained references, or closing lifecycles properly; verify throughput, latency, and CPU/GC do not regress. If suspecting third-party native code: use allocator profiling suited to the exact libc/library in staging before production.
 
-### Bước 7 — Báo cáo theo mức tin cậy
+### Step 7 — Report with Confidence Levels
 
-Phân biệt:
-- **Observed:** metric nào tăng bao nhiêu, nguồn nào, window nào;
-- **Hypothesis:** vùng hay allocator nào có khả năng gây tăng;
-- **Falsifier:** đo gì sẽ bác bỏ hypothesis;
-- **Decision:** observe, reproduce, limited rollout, rollback;
-- **Limitations:** NMT disabled, thiếu T0, timestamps lệch, cgroup không cùng scope...
+Separate:
+- **Observed:** which metric rose by how much, from which source, in which window;
+- **Hypothesis:** which region or allocator likely caused the increase;
+- **Falsifier:** what measurement would disprove the hypothesis;
+- **Decision:** observe, reproduce, canary rollout, rollback;
+- **Limitations:** NMT disabled, missing T0, skewed timestamps, mismatched cgroup scope...
 
-## 12. Lệnh thực tế: jcmd và JMX
+## 12. Practical Commands: `jcmd` and JMX
 
-### 12.1. JVM đang chạy và đã bật NMT từ startup
+### 12.1. Running JVM with NMT Enabled at Startup
 
 ~~~bash
 java -version
@@ -484,41 +484,41 @@ jcmd "$PID" VM.flags
 jcmd "$PID" GC.heap_info
 jcmd "$PID" VM.native_memory summary scale=MB
 jcmd "$PID" VM.native_memory baseline
-# Sau một khoảng tải đã ghi rõ:
+# After a clearly recorded workload window:
 jcmd "$PID" VM.native_memory summary.diff scale=MB
 ~~~
 
-Lưu ý:
-- jcmd attach thường cần user/quyền phù hợp, JVM hỗ trợ và target PID nhìn thấy trong namespace.
-- GC.heap_info cho thông tin heap theo JVM, nhưng nội dung khác nhau theo collector/version.
-- NMT summary/diff chỉ hoạt động nếu đã bật NMT; khi disabled, không có dữ liệu đã bị mất trong quá khứ để khôi phục.
-- Đặt baseline ở **trạng thái ổn định**, không so startup đang JIT/classload với steady state rồi gọi là leak.
-- Không gọi GC.heap_dump, GC.class_histogram hoặc GC.run tùy tiện trên production. Heap dump có thể dừng ứng dụng, tiêu I/O/disk và chứa dữ liệu nhạy cảm; một số diagnostic operations thay đổi trạng thái/GC, làm méo phép so.
+Notes:
+- `jcmd` attach usually requires matching user/permissions, JVM support, and target PID visibility in the namespace.
+- `GC.heap_info` prints JVM heap info, though formatting varies by collector/version.
+- NMT summary/diff works only if NMT was enabled; when disabled, lost historical data cannot be recovered.
+- Set the baseline in a **steady state**, avoiding comparing startup JIT/classloading against steady state and calling it a leak.
+- Do not call `GC.heap_dump`, `GC.class_histogram`, or `GC.run` carelessly in production. Heap dumps can pause the app, consume I/O/disk, and expose sensitive data; some diagnostic operations alter GC/state and skew comparisons.
 
-### 12.2. NMT chưa bật?
+### 12.2. NMT Not Enabled?
 
-Nếu process vẫn chạy với NMT off, không thể đơn giản dùng jcmd để bật summary “từ giờ” mà không restart JVM theo cách được hỗ trợ. Vẫn còn:
-- JMX heap, direct BufferPoolMXBean và thread/class metrics;
-- /proc/PID/status, smaps_rollup và cgroup;
-- application pool counters, GC logs/JFR nếu đã có;
-- OS/native allocator diagnostics phù hợp quyền.
+If the process is running with NMT off, you cannot simply use `jcmd` to turn on `summary` "from now on" without restarting the JVM in a supported way. You still have:
+- JMX heap, direct `BufferPoolMXBean`, and thread/class metrics;
+- `/proc/PID/status`, `smaps_rollup`, and cgroup;
+- application pool counters, GC logs/JFR if already active;
+- OS/native allocator diagnostics within authorized bounds.
 
-Lập kế hoạch enable NMT trong lần redeploy canary/staging để lấy T0/T1 có kiểm soát; không restart ồ ạt production chỉ để bổ sung một metric.
+Plan to enable NMT on a canary/staging redeploy to capture controlled T0/T1 data; never mass-restart production just to add one metric.
 
-### 12.3. BufferPoolMXBean qua JMX
+### 12.3. `BufferPoolMXBean` via JMX
 
-ObjectName của buffer pool trên JVM thường theo dạng:
+Buffer pool `ObjectName` values on the JVM typically look like:
 
 ~~~text
 java.nio:type=BufferPool,name=direct
 java.nio:type=BufferPool,name=mapped
 ~~~
 
-Các attributes như Count, TotalCapacity, MemoryUsed có thể scrape qua JMX agent/metrics exporter đã phê duyệt. Hãy kiểm tra names/attributes thực có, không giả định mọi JVM đều có pool direct hay mapped với cùng semantics. Đặc biệt MemoryUsed có thể trả -1 và cần xử lý như “unknown”, không gán 0.
+Attributes like `Count`, `TotalCapacity`, and `MemoryUsed` can be scraped via an approved JMX agent/metrics exporter. Verify actual names/attributes rather than assuming every JVM exposes `direct` or `mapped` with identical semantics. Specifically, `MemoryUsed` can return `-1` and must be handled as "unknown", not coerced to `0`.
 
-## 13. Java 17+ runnable: đọc heap và direct pool trên một JVM thật
+## 13. Runnable Java 17+: Reading Heap and Direct Pool in a Real JVM
 
-Ví dụ **MemoryViewProbe.java** dùng API chuẩn java.management và java.nio. Nó không dùng internal sun.* APIs, không phụ thuộc thư viện ngoài. Chương trình tạo **8 MiB direct buffer** trong một lần chạy lab để minh họa sự khác nhau giữa heap array và direct-buffer storage, nhưng không gây OOME hay cố buộc GC dọn sạch bộ nhớ.
+Example **`MemoryViewProbe.java`** uses standard `java.management` and `java.nio` APIs. It uses no internal `sun.*` APIs and requires no external libraries. The program allocates an **8 MiB direct buffer** in a single lab run to illustrate the difference between a heap array and direct-buffer storage, without causing an OOME or trying to force GC to clean memory.
 
 ~~~java
 import java.lang.management.BufferPoolMXBean;
@@ -577,40 +577,40 @@ public final class MemoryViewProbe {
         System.out.println("heap-first=" + heapArray[0]);
         System.out.println("direct-first=" + direct.get(0));
 
-        // Giữ hai đối tượng reachable tới đây.
+        // Keep both objects reachable up to this point.
         java.lang.ref.Reference.reachabilityFence(heapArray);
         java.lang.ref.Reference.reachabilityFence(direct);
     }
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac MemoryViewProbe.java
 java MemoryViewProbe
 ~~~
 
-**Hai dòng kiểm tra giá trị dữ liệu** luôn có cùng nội dung nếu chương trình chạy thành công:
+**The two data-check lines** always output the exact same values on a successful run:
 
 ~~~text
 heap-first=7
 direct-first=9
 ~~~
 
-Chương trình còn in hai dòng snapshot before/after với các số cụ thể **phụ thuộc JDK, heap/GC, allocation alignment, background activity và implementation BufferPoolMXBean**, nên không bịa số stdout cố định cho các dòng đó. Trong một lần chạy HotSpot điển hình, direct-pool-used có thể tăng xấp xỉ 8 MiB; nhưng điều này không bảo đảm tuyệt đối vì metric là **ước lượng** và các allocations khác có thể cùng xảy ra.
+The program also prints two before/after snapshot lines whose exact numbers **depend on JDK, heap/GC, allocation alignment, background activity, and `BufferPoolMXBean` implementation**, so do not invent fixed stdout numbers for those lines. In a typical HotSpot run, `direct-pool-used` may rise by roughly 8 MiB; however that is not strictly guaranteed because the metric is an **estimate** and other allocations can occur concurrently.
 
-Bài học từ code:
-- byte[] là đối tượng/data trong heap, ByteBuffer object ở heap nhưng backing direct storage ở ngoài heap.
-- Heap used có thể biến đổi không theo kích thước 2 MiB chính xác vì GC/allocator; không dùng snapshot một lần làm phép đo live set.
-- Direct pool dùng API tiêu chuẩn, nhưng **không báo RSS** và không bắt mọi JNI allocations.
-- reachabilityFence tránh compiler coi hai tham chiếu đã không còn cần trước điểm cuối minh họa; nó **không** ép giải phóng bộ nhớ.
+Lessons from the code:
+- `byte[]` is an object/data on the heap; the `ByteBuffer` wrapper lives on the heap while its backing direct storage lives off-heap.
+- Heap used may not change by exactly 2 MiB due to GC/allocator behavior; never treat a one-shot snapshot as a live-set measurement.
+- Direct pool uses a standard API, yet **does not report RSS** and does not capture all JNI allocations.
+- `reachabilityFence` prevents the compiler from treating the two references as dead before the end of the demonstration; it **does not** force memory release.
 
-## 14. Java 17+ runnable: tính delta mà không cộng trùng
+## 14. Runnable Java 17+: Computing Deltas Without Double Counting
 
-Ví dụ thứ hai xử lý **bảng giả định ở mục 9**, xuất ra kết quả **hoàn toàn xác định**. Nó không cần truy cập jcmd hoặc /proc, thích hợp để kiểm tra cách ghi báo cáo và tránh suy luận “cộng các lớp” sai.
+The second example processes **the hypothetical table from section 9**, producing **completely deterministic** output. It needs no `jcmd` or `/proc` access, making it handy for checking reporting format and avoiding bogus "sum the layers" reasoning.
 
-Tạo file **MemoryDeltaCase.java**:
+Create **`MemoryDeltaCase.java`**:
 
 ~~~java
 public final class MemoryDeltaCase {
@@ -644,14 +644,14 @@ public final class MemoryDeltaCase {
 }
 ~~~
 
-Chạy trên JDK 17+:
+Run on JDK 17+:
 
 ~~~bash
 javac MemoryDeltaCase.java
 java MemoryDeltaCase
 ~~~
 
-Stdout **chính xác**:
+**Exact** stdout:
 
 ~~~text
 RSS delta MiB=420
@@ -663,11 +663,11 @@ Cgroup current delta MiB=440
 Do not sum overlapping memory views.
 ~~~
 
-**Quan trọng:** Các delta không phải từng khoản độc lập để cộng. Ví dụ NMT +180 MiB có thể đã bao gồm phần direct +170 MiB trên implementation cụ thể; việc direct và NMT tăng gần nhau là tín hiệu **cần kiểm tra bằng chứng**, không chứng minh tương đương tuyệt đối.
+**Important:** The deltas are not disjoint components to sum. For example, NMT +180 MiB may already include the direct +170 MiB growth on a specific implementation; seeing direct and NMT rise closely together is a signal **to verify with evidence**, not proof of strict equality.
 
-## 15. Dùng NMT đúng cách khi Direct pool tăng
+## 15. Using NMT Properly When the Direct Pool Grows
 
-Giả sử NMT summary.diff:
+Suppose NMT `summary.diff` shows:
 
 ~~~text
 Total: committed=860MB +180MB
@@ -676,190 +676,190 @@ Total: committed=860MB +180MB
 - ...
 ~~~
 
-Đây là **output giả lập rút gọn** để minh họa số delta; thiếu các hạng mục còn lại và không đại diện chính xác dòng chữ của mọi JDK.
+This is an **abbreviated mock output** illustrating delta figures; remaining categories are omitted and exact wording varies across JDKs.
 
-Quy trình:
-1. Xác minh NMT bật từ T0; output là **summary.diff so cùng baseline**, không phải hai process khác nhau.
-2. Chụp direct pool memoryUsed/count/totalCapacity **cùng cửa sổ**.
-3. Nếu Other tăng +170 và Direct tăng +170, ghi giả thuyết “có thể là direct backing memory được phân loại ở Other”.
-4. Chạy thử có kiểm soát: giữ workload, giảm/đóng buffer holders đúng lifecycle và xem **cả** direct pool, Other, RSS thay đổi thế nào.
-5. Nếu direct pool giảm nhưng NMT Other không giảm, xem allocator retention, category mapping, sampling time và allocations khác.
-6. Nếu NMT Other giảm nhưng RSS vẫn cao, có thể physical pages chưa trả về OS, file mappings tăng hoặc có nguồn ngoài NMT.
-7. Nếu both flat mà RSS tăng, điều tra /proc/smaps và native third-party.
+Workflow:
+1. Verify NMT was enabled at T0; output is **`summary.diff` against the same baseline**, not two different processes.
+2. Capture direct pool `memoryUsed`/`count`/`totalCapacity` in **the same window**.
+3. If `Other` grew +170 and `Direct` grew +170, record the hypothesis "likely direct backing memory classified under `Other`".
+4. Run a controlled test: keep workload steady, shrink/close buffer holders per lifecycle, and watch how **all three** — direct pool, `Other`, and RSS — change.
+5. If direct pool drops while NMT `Other` stays flat, check allocator retention, category mapping, sampling timing, and other allocations.
+6. If NMT `Other` drops while RSS stays high, physical pages may not be returned to the OS yet, file mappings may have grown, or a non-NMT source exists.
+7. If both stay flat while RSS grows, investigate `/proc/smaps` and third-party native code.
 
-**Không tự tuyên bố NMT Other = ByteBuffer.allocateDirect** hoặc NMT total = heap + direct. NMT categories và đối tượng được tính có thay đổi giữa JDK, thư viện, allocator và đường cấp phát.
+**Never assert NMT `Other` = `ByteBuffer.allocateDirect`** or NMT total = heap + direct. NMT categories and what gets tracked vary by JDK, libraries, allocators, and allocation paths.
 
-## 16. Bộ bằng chứng tối thiểu cho một incident
+## 16. Minimum Evidence Bundle for an Incident
 
-| Nguồn | Mốc cần thu | Dùng để | Cảnh báo quan trọng |
+| Source | When to Collect | Used For | Key Warning |
 | --- | --- | --- | --- |
-| PID/start time/build | T0, T1, T2 | Đảm bảo cùng JVM | Restart làm số liệu không còn so được |
-| JMX heap used/committed/max | T0, T1, T2 cùng GC context | Heap usage/commit trend | Used không tự là live retained set |
-| GC logs/after-GC occupancy | Liên tục | Retention vs allocation pressure | GC/collector phase khác nhau |
-| NMT summary/diff | T0 baseline, T1/T2 | JVM internal categories | Off từ startup thì không khôi phục được |
-| BufferPoolMXBean direct/mapped | T0, T1, T2 | Buffer count, capacity, usage | Ước lượng, có thể -1, không phải mọi off-heap |
-| /proc/PID/status | T0, T1, T2 | RSS, RssAnon/RssFile/RssShmem, threads | Snapshot, process identity, accuracy |
-| /proc/PID/smaps_rollup | Theo trigger | PSS, private/shared/mappings | Có overhead/quyền; không nên đọc liên tục |
-| cgroup memory.current/stat/events | T0, T1, T2 | Container charges/limits/cache/pressure | Scope có thể gồm sidecar/other processes |
-| Workload metrics | Liên tục | RPS, bytes, connections, queue/batches | Không cùng tải thì không kết luận leak vội |
-| JVM flags, pool configs | Mỗi deploy | Xmx, NMT, direct size/pooling | Thay cấu hình làm baseline mất giá trị |
+| PID/start time/build | T0, T1, T2 | Ensure same JVM | Restarts invalidate cross-run comparisons |
+| JMX heap used/committed/max | T0, T1, T2 with GC context | Heap usage/commit trends | Used is not automatically live retained set |
+| GC logs/after-GC occupancy | Continuous | Retention vs. allocation pressure | GC/collector phases differ |
+| NMT summary/diff | T0 baseline, T1/T2 | JVM internal categories | Cannot recover if off at startup |
+| `BufferPoolMXBean` direct/mapped | T0, T1, T2 | Buffer count, capacity, usage | Estimate, may be `-1`, not all off-heap |
+| `/proc/PID/status` | T0, T1, T2 | RSS, `RssAnon`/`RssFile`/`RssShmem`, threads | Point-in-time, process identity, accuracy limits |
+| `/proc/PID/smaps_rollup` | Triggered | PSS, private/shared/mappings | Overhead/permissions; avoid polling continuously |
+| cgroup `memory.current`/`stat`/`events` | T0, T1, T2 | Container charges/limits/cache/pressure | Scope may include sidecars/other processes |
+| Workload metrics | Continuous | RPS, bytes, connections, queues/batches | Do not claim leak without matched load |
+| JVM flags, pool configs | Every deploy | `-Xmx`, NMT, direct sizing/pooling | Config changes invalidate baselines |
 
-**Lưu dữ liệu theo timestamp UTC** và nhãn environment, service, pod/container ID, host node và PID. Không thu snapshots “trong 5 phút” rồi khẳng định chúng cùng một thời điểm; chênh thời gian có thể quan trọng khi GC và buffer recycling xảy ra nhanh.
+**Store data with UTC timestamps** plus environment, service, pod/container ID, host node, and PID labels. Never collect snapshots "over 5 minutes" and claim they represent the same instant; timing gaps matter when GC and buffer recycling happen quickly.
 
-## 17. Phân loại các mẫu tăng trưởng thường gặp
+## 17. Classifying Common Growth Patterns
 
-### 17.1. RSS tăng, heap used tăng, after-GC baseline tăng
+### 17.1. RSS Rises, Heap Used Rises, After-GC Baseline Rises
 
-Giả thuyết ưu tiên: Java object retention hoặc tăng live data set. Kiểm tra old-gen occupancy, dominator tree, static maps/caches, request/context leaks, classloader retention và workload. Nhưng đừng bỏ native area: cùng lúc JVM có thể mở rộng heap **và** direct buffers.
+Primary hypothesis: Java object retention or growing live data set. Check old-gen occupancy, dominator tree, static maps/caches, request/context leaks, classloader retention, and workload. Still do not ignore native areas: the JVM can expand heap **and** direct buffers concurrently.
 
-**Phản chứng:** heap sau GC ổn định qua cùng workload trong nhiều chu kỳ, còn RSS tăng chủ yếu ở RssAnon ngoài các vùng heap theo smaps; cần chuyển hướng điều tra.
+**Falsifier:** post-GC heap stays flat under identical workload across multiple cycles while RSS grows mainly in `RssAnon` outside heap mappings in `smaps`; pivot the investigation.
 
-### 17.2. RSS tăng, heap ổn định, direct pool và NMT Other tăng cùng nhịp
+### 17.2. RSS Rises, Heap Steady, Direct Pool and NMT `Other` Rise Together
 
-Giả thuyết ưu tiên: direct-buffer growth hoặc allocator behavior liên quan. Xem Netty/NIO/JDBC/network caches, byte buffer lifetime, connection count, in-flight requests, pooled chunk retention. Đừng gọi leak nếu tăng đến mức giới hạn rồi plateau hợp lý và giảm khi tải giảm.
+Primary hypothesis: direct-buffer growth or related allocator behavior. Check Netty/NIO/JDBC/network caches, byte buffer lifetimes, connection counts, in-flight requests, and pooled chunk retention. Do not call it a leak if it grows up to a cap, plateaus appropriately, and shrinks when load drops.
 
-**Phản chứng:** đóng connections/release pool trong lab làm direct memoryUsed giảm rõ, nhưng RSS vẫn tăng theo một native library khác; phải thu native allocator evidence.
+**Falsifier:** closing connections/releasing pools in the lab clearly drops direct `memoryUsed`, yet RSS continues rising under another native library; gather native allocator evidence.
 
-### 17.3. RSS tăng, NMT Thread tăng, thread count tăng
+### 17.3. RSS Rises, NMT `Thread` Rises, Thread Count Rises
 
-Giả thuyết: unbounded thread creation hoặc thread pool cấu hình sai. Mỗi thread thường có native stack reservation/commit và runtime structures, nhưng Thread **reserved** không bằng stack resident. Xem /proc/PID/task count, Java thread dump, pool sizes, virtual threads vs platform threads, NMT Thread committed, RssAnon và container limit.
+Hypothesis: unbounded thread creation or misconfigured thread pools. Each thread typically has native stack reservations/commits and runtime structures, though `Thread` **reserved** does not equal resident stack RAM. Check `/proc/PID/task` count, Java thread dumps, pool bounds, virtual threads vs. platform threads, NMT `Thread` committed, `RssAnon`, and container limits.
 
-**Không** tính Thread reserved của 1.000 threads như RAM đã dùng vật lý. Virtual threads có cơ chế quản lý stack khác platform threads; không quy tất cả cho 1 MB OS stack/thread.
+**Do not** count `Thread` reserved for 1,000 threads as physical RAM used. Virtual threads manage stacks differently from platform threads; never assume 1 MB of OS stack per thread across the board.
 
-### 17.4. RSS tăng, NMT Class/Metaspace tăng và loaded classes tăng
+### 17.4. RSS Rises, NMT `Class`/Metaspace Rises, and Loaded Classes Rise
 
-Giả thuyết: classloader leak, dynamic proxy/generation, repeated redeploy-in-process, script/bytecode generation hoặc legitimate class growth. Kiểm tra loaded/unloaded class counters, classloader references, metaspace committed/used và JDK class metadata.
+Hypothesis: classloader leak, dynamic proxy/generation, repeated in-process redeploys, script/bytecode generation, or legitimate class growth. Check loaded/unloaded class counters, classloader references, metaspace committed/used, and JDK class metadata.
 
-**Đừng** coi Class reserved lớn là leak nếu committed ổn định; compressed class space thường reserve address space lớn.
+**Do not** treat large `Class` reserved as a leak if committed stays flat; compressed class space typically reserves a large virtual address range.
 
-### 17.5. RSS tăng nhưng NMT/direct/heap tương đối phẳng
+### 17.5. RSS Rises While NMT/Direct/Heap Stay Relatively Flat
 
-Điều tra:
-- malloc/JNI/agent/native codec/crypto/compression allocations ngoài NMT;
-- native allocator fragmentation/arenas, bộ nhớ không trả OS;
-- anonymous/file mappings hoặc page residency;
-- process khác trong cgroup, kernel/page cache nếu nhìn cgroup usage;
-- metric mismatch hoặc snapshot không tương đương.
+Investigate:
+- `malloc`/JNI/agent/native codec/crypto/compression allocations outside NMT;
+- native allocator fragmentation/arenas, memory not returned to OS;
+- anonymous/file mappings or page residency;
+- other processes in the cgroup, kernel/page cache when looking at cgroup usage;
+- metric mismatches or non-comparable snapshots.
 
-**NMT flat không phủ định native leak**, đặc biệt ở thư viện bên thứ ba. Dùng native memory profiler phù hợp, cùng thời gian, chứ không kết luận bằng phép trừ tự chế.
+**Flat NMT does not disprove a native leak**, especially in third-party libraries. Use an appropriate native memory profiler in the same time window rather than inventing subtraction formulas.
 
-### 17.6. Cgroup current tăng nhưng Java RSS ổn định
+### 17.6. Cgroup `current` Rises While Java RSS Stays Steady
 
-Ưu tiên memory.stat: file/page cache, slab/sock, các processes/sidecars khác, OOM group scope, filesystem activity. Kiểm tra pod-level/container-level labels và memory working-set metric definitions. **Không** tăng heap hay giảm direct allocation nếu dữ liệu cho thấy phần tăng không thuộc Java PID.
+Prioritize `memory.stat`: file/page cache, slab/sock, other processes/sidecars, OOM group scope, filesystem activity. Check pod-level/container-level labels and working-set metric definitions. **Do not** raise heap or shrink direct allocations if data shows the growth lies outside the Java PID.
 
-### 17.7. VmSize/NMT reserved tăng mạnh nhưng RSS/committed không tăng
+### 17.7. `VmSize`/NMT Reserved Jumps Sharply While RSS/Committed Does Not
 
-Đây có thể là virtual address reservation, stack reserve, class space hoặc mapping. Trừ khi có address-space exhaustion/commit failure, virtual reserved lớn tự nó không phải bằng chứng physical memory pressure. Trên 32-bit hoặc khi giới hạn VA đặc biệt, reservation có thể gây vấn đề khác; bài này tập trung Java 17+ 64-bit phổ biến.
+This can be virtual address reservation, stack reserve, class space, or mappings. Unless address-space exhaustion or commit failures occur, large virtual reservations alone are not evidence of physical memory pressure. On 32-bit or under strict VA limits reservations can pose other issues; this lesson focuses on common 64-bit Java 17+ environments.
 
-## 18. Direct memory được giải phóng khi nào?
+## 18. When Is Direct Memory Freed?
 
-Điểm khó thực tế: một Java direct buffer có **wrapper object** trên heap, trong khi backing storage có vòng đời native. Khi wrapper không còn reachable, cơ chế cleanup/GC có thể thu hồi theo implementation; nhưng:
-- thời điểm không nhất thiết ngay lập tức;
-- pool/caches có thể giữ references có chủ ý;
-- views/slices/duplicates có thể còn liên kết tới backing storage;
-- native libraries có thể dùng cơ chế sở hữu/release riêng;
-- allocator có thể giữ arena/chunks để tái sử dụng ngay cả sau free.
+Practical subtlety: a Java direct buffer has a **wrapper object** on the heap while its backing storage has a native lifecycle. Once the wrapper becomes unreachable, runtime cleanup/GC mechanisms can reclaim it per implementation; however:
+- timing is not necessarily immediate;
+- pools/caches may intentionally retain references;
+- views/slices/duplicates may still point to the backing storage;
+- native libraries may manage their own ownership/release semantics;
+- allocators may keep arenas/chunks for reuse even after `free`.
 
-Đừng đánh giá leak từ một snapshot “sau khi method return”. Đặt **điểm đo T2 sau khi workload/connection lifecycle hoàn tất**, có thời gian ổn định, rồi xem buffer metrics và OS/RSS trajectories. Không dùng System.gc() làm thủ tục chuẩn để “ép direct memory về 0”; nó không bảo đảm native allocator trả pages về OS và gây méo benchmark.
+Do not judge a leak from one snapshot "right after the method returns". Place **measurement point T2 after workload/connection lifecycles finish**, allow stabilization time, and inspect buffer metrics alongside OS/RSS trajectories. Never use `System.gc()` as a standard ritual to "force direct memory to 0"; it does not guarantee the native allocator returns pages to the OS and distorts benchmarks.
 
-Với framework có reference-counted buffers (ví dụ một số network libraries), phải tuân thủ API release/retain thực tế và instrument leak detector của thư viện theo chính sách. Một ByteBuffer.allocateDirect tiêu chuẩn không có giao thức release giống mọi framework.
+With frameworks using reference-counted buffers (such as certain networking libraries), follow actual `release`/`retain` APIs and enable the framework's leak detector per policy. Standard `ByteBuffer.allocateDirect` does not share the exact release protocol of every framework.
 
-## 19. Vì sao NMT committed tăng ít hơn RSS?
+## 19. Why Does NMT Committed Grow Less Than RSS?
 
-Đừng xem chênh lệch như một bucket bí mật. Các nguồn sai khác gồm:
+Do not treat the gap as a mystery bucket. Sources of divergence include:
 
-1. **Coverage:** NMT không theo dõi đầy đủ native allocations của thư viện ngoài HotSpot.
-2. **Resident vs committed:** physical pages có thể bắt đầu được touch trong vùng đã committed mà NMT delta committed không đổi.
-3. **Shared/file-backed mappings:** RSS có file-backed pages chưa tương ứng theo cách NMT ghi.
-4. **Allocator accounting:** malloc arenas/retained pages và khác biệt giữa alloc/free với RSS returned-to-OS.
-5. **Time skew:** NMT, JMX, /proc và cgroup đọc tại những mốc hơi khác.
-6. **Different scope:** cgroup current gồm nhiều processes/kernel/cache; NMT chỉ JVM target.
-7. **Unit/rounding:** KB/MB, MiB và dashboard aggregation.
+1. **Coverage:** NMT does not fully track native allocations from libraries outside HotSpot.
+2. **Resident vs. committed:** physical pages can start getting touched inside already-committed regions while NMT committed delta stays zero.
+3. **Shared/file-backed mappings:** RSS includes file-backed pages not represented the same way in NMT.
+4. **Allocator accounting:** `malloc` arenas/retained pages and differences between `alloc`/`free` vs. RSS returned to the OS.
+5. **Time skew:** NMT, JMX, `/proc`, and cgroup read at slightly different instants.
+6. **Different scope:** cgroup `current` spans multiple processes/kernel/cache; NMT covers only the target JVM.
+7. **Units/rounding:** KB/MB, MiB, and dashboard aggregation.
 8. **Collector/JDK behavior:** heap uncommit, THP, page touching, GC resizing.
-9. **Snapshots thiếu completeness:** partial files, permission, process restart, metrics scrape gaps.
+9. **Incomplete snapshots:** partial files, permissions, process restarts, metric scrape gaps.
 
-Để quyết định, xem **xu hướng tương quan cùng thời gian và tính phù hợp cơ chế**, không theo một phương trình trừ tổng.
+To decide, examine **time-aligned trends and mechanistic fit**, not a sum-subtraction equation.
 
-## 20. Phòng OOMKilled: ngân sách memory cho Java container
+## 20. Preventing `OOMKilled`: Memory Budgeting for a Java Container
 
-Một ngân sách thực hành gồm:
-- heap max theo -Xmx hoặc ergonomic sizing;
-- metaspace/class metadata và code cache;
+A practical budget covers:
+- heap max per `-Xmx` or ergonomic sizing;
+- metaspace/class metadata and code cache;
 - JIT/GC structures;
 - platform thread stacks;
-- direct buffers và native allocator;
+- direct buffers and native allocators;
 - JNI/agents/third-party libraries;
 - mappings/page cache/kernel charges;
-- peak workload/payload, spikes và safety headroom.
+- peak workload/payloads, spikes, and safety headroom.
 
-Không có công thức “-Xmx bằng 80% memory limit” đúng cho mọi service. Ứng dụng dùng NIO/direct pools lớn cần headroom khác ứng dụng compute-bound không dùng native libraries. Hãy đo ở **peak representative load**, không chỉ idle startup.
+There is no single rule like "`-Xmx` equals 80% of memory limit" that works for every service. An app with heavy NIO/direct pools needs different headroom than a compute-bound app using no native libraries. Measure under **peak representative load**, not just idle startup.
 
-Ví dụ: memory.max=1.536 MiB, Xmx=768 MiB. Heap max không bảo đảm còn 768 MiB dành cho native. Nếu direct pool + thread stacks + filesystem cache + kernel charges tăng nhanh, cgroup vẫn có thể đạt memory.max. Để ngăn OOM, có thể cần giới hạn pool, giảm retained buffers, điều chỉnh connection concurrency, workload/caches hoặc tăng resource limit sau capacity assessment — **không tự tăng Xmx**.
+Example: `memory.max=1,536 MiB`, `Xmx=768 MiB`. Heap max does not guarantee 768 MiB remains available for native use. If direct pools + thread stacks + filesystem cache + kernel charges grow quickly, the cgroup can still hit `memory.max`. Preventing OOM may require bounding pools, reducing retained buffers, tuning connection concurrency, limiting workloads/caches, or raising resource limits after capacity evaluation — **never blindly raising `-Xmx`**.
 
-Hành động kiểm soát:
-- alerts theo cgroup current / memory.max, RSS, direct pool, heap post-GC, NMT diff;
-- xác nhận cgroup scope và restart metadata;
-- giới hạn concurrency/queue/buffer ownership;
-- chọn canary rollout, đo p99/throughput/GC/CPU và có rollback.
+Control actions:
+- alert on cgroup `current / memory.max`, RSS, direct pool, post-GC heap, and NMT diffs;
+- verify cgroup scope and restart metadata;
+- bound concurrency/queues/buffer ownership;
+- use canary rollouts, measure p99/throughput/GC/CPU, and keep rollback ready.
 
-## 21. Khi nào cần heap dump, khi nào cần native tooling?
+## 21. When Do You Need a Heap Dump vs. Native Tooling?
 
-| Câu hỏi | Công cụ phù hợp | Rủi ro/giới hạn |
+| Question | Appropriate Tool | Risks/Limitations |
 | --- | --- | --- |
-| Objects Java nào còn reachable? | Heap dump + dominator tree, JFR object allocation/old object (nếu bật) | Pause/disk/PII, heap dump không đo native malloc |
-| HotSpot subsystem nào tăng? | NMT summary.diff/detail.diff | Phải bật trước startup; không bao trọn third-party |
-| Direct pool đang giữ bao nhiêu? | BufferPoolMXBean metrics + framework pool instrumentation | Ước lượng, không bao trọn off-heap |
-| Cấp phát JNI/native ngoài NMT nào tăng? | Native allocator profiler, malloc/eBPF/traces trong môi trường có phép | Overhead/quyền/phạm vi khó; dữ liệu nhạy cảm |
-| Process resident pages thuộc mappings nào? | /proc/PID/smaps_rollup, smaps, pmap | Snapshot, kernel accounting, shared pages |
-| Container charge đến từ đâu? | cgroup memory.current/stat/events, runtime metrics | Scope gồm nhiều processes/kernel |
-| Có OOM kill? | Kernel logs + cgroup oom_kill delta + container termination reason | Metrics sau restart có thể mất chứng cứ |
-| Code path tạo direct buffers? | Application allocation tracing, JFR/native instrument theo API/thư viện | Sampling bias, context khớp request |
+| Which Java objects are still reachable? | Heap dump + dominator tree, JFR object allocation/old object (if enabled) | Pause/disk/PII; heap dumps do not measure native `malloc` |
+| Which HotSpot subsystem grew? | NMT `summary.diff`/`detail.diff` | Must be enabled at startup; excludes full third-party native coverage |
+| How much is the direct pool holding? | `BufferPoolMXBean` metrics + framework pool instrumentation | Estimates; excludes non-pool off-heap |
+| Which JNI/native allocations outside NMT grew? | Native allocator profiler, `malloc`/eBPF/traces in authorized environments | Overhead/permissions/scope complexity; sensitive data |
+| Which mappings own process resident pages? | `/proc/PID/smaps_rollup`, `smaps`, `pmap` | Point-in-time, kernel accounting, shared pages |
+| Where do container charges come from? | cgroup `memory.current`/`stat`/`events`, runtime metrics | Scope spans multiple processes/kernel |
+| Did an OOM kill happen? | Kernel logs + cgroup `oom_kill` delta + container termination reason | Post-restart metrics may lose evidence |
+| Which code path allocates direct buffers? | Application allocation tracing, JFR/native instrumentation per library/API | Sampling bias, request context correlation |
 
-**Không lấy heap dump để giải thích trực tiếp toàn bộ RSS**. Nó hữu ích khi nghi Java object retention hoặc wrapper references giữ backing memory, nhưng không đo mọi native allocations. Với off-heap library không hiển thị trong heap, cần native/OS evidence.
+**Never take a heap dump to directly explain all of RSS.** It helps when suspecting Java object retention or wrapper references pinning backing memory, but does not capture all native allocations. For off-heap libraries invisible in the heap, collect native/OS evidence.
 
-## 22. Những quyết định sai và cách sửa
+## 22. Wrong Decisions and How to Fix Them
 
-### Sai lầm 1 — “Heap used 350 MiB, RSS 1.180 MiB, vậy leak native 830 MiB”
+### Mistake 1 — "Heap used 350 MiB, RSS 1,180 MiB, so 830 MiB native leak"
 
-Phép trừ không đủ: RSS gồm pages của heap committed/resident, mappings, shared pages; heap used không phải resident heap size; native areas có thể đã tồn tại ổn định. Muốn kết luận leak cần **tăng trưởng theo thời gian** và chứng minh không tương xứng với workload hoặc không được release hợp lệ.
+Subtraction is invalid: RSS includes resident/committed heap pages, mappings, and shared pages; heap used is not resident heap size; native areas may be steady baseline. Concluding a leak requires **growth over time** proven disproportionate to workload or lacking valid release.
 
-### Sai lầm 2 — “NMT reserved 4 GiB, container chỉ 1.5 GiB nên chắc chắn OOM”
+### Mistake 2 — "NMT reserved 4 GiB, container only 1.5 GiB, so OOM is guaranteed"
 
-Reserved virtual address space khác committed/resident physical memory. Kiểm tra memory.current/RSS/NMT committed và limit; reserved lớn một mình không đủ.
+Reserved virtual address space differs from committed/resident physical memory. Inspect `memory.current`/RSS/NMT committed and limits; huge reserved space alone is not enough.
 
-### Sai lầm 3 — “NMT committed 860 + direct 218 = 1.078 MiB native”
+### Mistake 3 — "NMT committed 860 + direct 218 = 1,078 MiB native"
 
-NMT total đã gồm Java Heap; direct bytes có thể được NMT theo dõi trong một category; total và direct không độc lập. Cần so categories và pool, **không cộng**.
+NMT total already includes Java Heap; direct bytes may be tracked inside an NMT category; total and direct are not disjoint. Compare categories and pools, **do not sum**.
 
-### Sai lầm 4 — “NMT flat nên Java không làm RSS tăng”
+### Mistake 4 — "NMT is flat so Java isn't raising RSS"
 
-NMT có giới hạn coverage, đặc biệt JNI/native third-party; cũng có committed-vs-resident differences. Kiểm tra OS mappings và native allocator evidence.
+NMT has coverage limits, notably third-party JNI/native; committed-vs-resident differences also exist. Check OS mappings and native allocator evidence.
 
-### Sai lầm 5 — “Direct pool count tăng thì chắc chắn leak”
+### Mistake 5 — "Direct pool count went up so it's definitely a leak"
 
-Pool có thể tăng tới watermark hợp lệ khi concurrency/payload tăng; vẫn cần kiểm tra plateau, owner references và behavior sau load/connection closure. Count/capacity/memoryUsed cùng timeline mạnh hơn một count đơn lẻ.
+Pools can grow to a valid high-water mark as concurrency/payloads rise; still check for plateaus, owner references, and behavior after load/connections close. Count/capacity/`memoryUsed` over a timeline beat a single count reading.
 
-### Sai lầm 6 — “GC vừa chạy, direct memory phải về 0”
+### Mistake 6 — "GC just ran, direct memory must drop to 0"
 
-Direct buffers có lifecycle native/cleaner và pooling; GC không hứa giải phóng mọi off-heap ngay. Allocation đã free cũng có thể chưa trả resident pages cho OS.
+Direct buffers have native/cleaner lifecycles and pooling; GC does not promise immediate off-heap release. Freed allocations may also keep resident pages before returning to the OS.
 
-### Sai lầm 7 — “Container memory.current chính là Java RSS”
+### Mistake 7 — "Container `memory.current` equals Java RSS"
 
-Cgroup có file cache/kernel charges và có thể chứa sidecar/process khác. Đọc memory.stat, đúng cgroup scope và metrics definition.
+Cgroups include file cache/kernel charges and may contain sidecars/other processes. Read `memory.stat`, verify cgroup scope, and check metric definitions.
 
-### Sai lầm 8 — “Tăng Xmx để chữa OOMKilled”
+### Mistake 8 — "Raise `-Xmx` to cure `OOMKilled`"
 
-Nếu kernel kill vì tổng cgroup usage vượt limit, tăng heap max khi limit không đổi có thể **giảm native headroom**. Phải xác định nguồn memory growth trước.
+If the kernel killed the container because total cgroup usage exceeded the limit, raising heap max under an unchanged limit can **shrink native headroom**. Identify the source of memory growth first.
 
-### Sai lầm 9 — “Một snapshot là đủ”
+### Mistake 9 — "One snapshot is enough"
 
-Các snapshot trước/sau GC hoặc sau restart không so trực tiếp. Phải ghi cùng PID, time window, workload, unit và GC state; ưu tiên time series.
+Snapshots before/after GC or across restarts cannot be compared directly. Record identical PID, time window, workload, units, and GC state; prefer time series.
 
-### Sai lầm 10 — “Cứ bật detail NMT và heap dump trên mọi production”
+### Mistake 10 — "Enable detail NMT and heap dumps on all production nodes"
 
-NMT và heap dumps có overhead/ảnh hưởng disk/latency, đặc biệt lúc memory pressure. Dùng canary/staging hoặc kỹ thuật ít xâm lấn, có quyền, giới hạn tần suất, retention và kế hoạch rollback.
+NMT and heap dumps add overhead and disk/latency impact, especially under memory pressure. Use canary/staging or low-intrusion methods with proper permissions, rate limits, retention, and rollback plans.
 
-## 23. Mẫu phiếu điều tra có thể audit
+## 23. Auditable Investigation Sheet Template
 
 ~~~text
 # Java memory growth comparison
@@ -902,52 +902,52 @@ Experiment / guardrails / rollback:
 Conclusion with confidence level:
 ~~~
 
-Bảng này dùng để ghi chứng cứ **không cộng trùng** và tách rõ trực tiếp quan sát được khỏi giả thuyết. Khi thu snapshots, giữ cả output thô (không chỉ copy một con số) để người khác kiểm tra category, units và cách công cụ báo cáo.
+This sheet records evidence **without double counting** and clearly separates direct observations from hypotheses. When collecting snapshots, save raw outputs (not just one copied number) so reviewers can check categories, units, and tool reporting conventions.
 
-## 24. Checklist hoàn thành bài thực hành
+## 24. Practice Completion Checklist
 
-- [ ] Tôi xác nhận đúng JVM PID/start time, container/cgroup scope, JDK version, GC và workload.
-- [ ] Tôi hiểu heap used, committed, max và vì sao heap used không hoàn toàn là live set.
-- [ ] Tôi hiểu RSS khác virtual memory size, PSS và cgroup memory.current.
-- [ ] Tôi không đồng nhất NMT total committed với RSS hoặc với “native ngoài heap”.
-- [ ] Tôi phân biệt NMT reserved (virtual) và committed, không dùng reserved làm physical usage.
-- [ ] Tôi biết NMT cần bật trước startup, level summary/detail và baseline/diff trên cùng JVM.
-- [ ] Tôi biết NMT không bao trọn JNI/third-party native allocations hoặc mọi process mappings.
-- [ ] Tôi dùng BufferPoolMXBean để đọc direct/mapped pool count, totalCapacity và memoryUsed.
-- [ ] Tôi biết memoryUsed có thể -1 và capacity không tự là actual RSS.
-- [ ] Tôi **không cộng** heap, NMT total, direct pool và RSS như các khoản độc lập.
-- [ ] Tôi kiểm tra T0/T1/T2 cùng thời gian/workload và ghi GC state để so meaningful.
-- [ ] Tôi tính delta riêng theo mỗi metric, không gọi phần dư RSS−NMT là leak không rõ.
-- [ ] Tôi kiểm tra RssAnon/RssFile/RssShmem, smaps_rollup/PSS khi RSS thay đổi.
-- [ ] Tôi kiểm tra memory.stat anon/file/slab và process khác khi cgroup current tăng.
-- [ ] Tôi xem thread/class/code/GC/Other categories nếu NMT committed tăng.
-- [ ] Tôi kiểm tra pool/connection/buffer lifecycle trước khi gọi direct growth là leak.
-- [ ] Tôi không tăng Xmx hoặc MaxDirectMemorySize mù quáng khi container gần memory.max.
-- [ ] Tôi đánh giá overhead của diagnostic tooling và bảo vệ dữ liệu trong logs/dumps.
-- [ ] Tôi có hypothesis, falsifier, phép thử giới hạn và metrics xác nhận sau thay đổi.
-- [ ] Tôi ghi “chưa đủ dữ liệu” khi chỉ có một snapshot hoặc NMT disabled.
+- [ ] Verified exact JVM PID/start time, container/cgroup scope, JDK version, GC, and workload.
+- [ ] Understood heap used, committed, max, and why heap used is not strictly live set.
+- [ ] Understood how RSS differs from virtual memory size, PSS, and cgroup `memory.current`.
+- [ ] Did not equate NMT total committed with RSS or "native outside heap".
+- [ ] Distinguished NMT reserved (virtual) from committed, never treating reserved as physical usage.
+- [ ] Knew NMT must be enabled at startup, with summary/detail levels and baseline/diff on the same JVM.
+- [ ] Knew NMT does not cover all JNI/third-party native allocations or all process mappings.
+- [ ] Used `BufferPoolMXBean` to read direct/mapped pool count, `totalCapacity`, and `memoryUsed`.
+- [ ] Knew `memoryUsed` can be `-1` and capacity is not automatically actual RSS.
+- [ ] Did **not sum** heap, NMT total, direct pool, and RSS as independent buckets.
+- [ ] Checked T0/T1/T2 under aligned timing/workload and recorded GC state for meaningful comparison.
+- [ ] Computed per-metric deltas independently without calling `RSS − NMT` an unexplained leak.
+- [ ] Checked `RssAnon`/`RssFile`/`RssShmem` and `smaps_rollup`/PSS when RSS changed.
+- [ ] Checked `memory.stat` anon/file/slab and sibling processes when cgroup `current` rose.
+- [ ] Inspected thread/class/code/GC/Other categories when NMT committed grew.
+- [ ] Checked pool/connection/buffer lifecycles before calling direct growth a leak.
+- [ ] Avoided blindly raising `-Xmx` or `MaxDirectMemorySize` when a container nears `memory.max`.
+- [ ] Evaluated diagnostic tooling overhead and protected sensitive data in logs/dumps.
+- [ ] Defined hypothesis, falsifier, bounded test, and post-change verification metrics.
+- [ ] Recorded "insufficient data" when only one snapshot existed or NMT was disabled.
 
-## 25. Kết luận
+## 25. Conclusion
 
-**Process RSS, Java heap, NMT và direct buffer không phải bốn phép đo cùng đơn vị của bốn khoản độc lập.** Mỗi nguồn nhìn một lớp và một semantics khác:
+**Process RSS, Java heap, NMT, and direct buffers are not four same-unit measurements of four disjoint buckets.** Each source observes a different layer with different semantics:
 
-- Heap giúp điều tra Java objects/GC và giới hạn Java heap.
-- NMT giúp nhận diện phần tăng theo các hạng mục nội bộ HotSpot với reserved/committed/baseline/diff.
-- BufferPoolMXBean cho thấy direct/mapped buffer pool usage theo API JVM, nhưng không phải toàn bộ off-heap.
-- Linux /proc và cgroup giúp thấy resident pages, memory charges, shared/file mappings và rủi ro chạm giới hạn thực.
+- Heap helps investigate Java objects/GC and Java heap limits.
+- NMT helps identify growth across internal HotSpot categories via reserved/committed/baseline/diff.
+- `BufferPoolMXBean` exposes direct/mapped buffer pool usage per JVM APIs, though not all off-heap memory.
+- Linux `/proc` and cgroups reveal resident pages, memory charges, shared/file mappings, and proximity to real limits.
 
-Trong tình huống RSS +420 MiB, heap used +5 MiB, NMT committed +180 MiB và direct pool +170 MiB, kết luận đúng là **direct buffer growth đáng điều tra**, không phải “đã xác nhận leak 170 MiB” và càng không phải “NMT thiếu 240 MiB là native leak”. Cần ghép cùng PID, timestamp, workload, NMT categories, OS memory mappings, buffer lifetime và số liệu sau khi workload giảm.
+In the scenario with RSS +420 MiB, heap used +5 MiB, NMT committed +180 MiB, and direct pool +170 MiB, the sound conclusion is **direct buffer growth worth investigating**, not "confirmed 170 MiB leak" and certainly not "NMT missed 240 MiB so there is a native leak". Correlate with PID, timestamps, workload, NMT categories, OS memory mappings, buffer lifetimes, and post-load recovery metrics.
 
-Quy trình sử dụng được trong production:
+Production-ready workflow:
 
-**Ghi định nghĩa metric → chụp T0/T1/T2 cùng JVM → so delta riêng từng nguồn → kiểm tra category/mapping/cgroup scope → đặt giả thuyết và phản chứng → kiểm thử nhỏ → xác nhận RSS, memory.current, GC, direct pool và SLO cùng ổn định.**
+**Document metric definitions → capture T0/T1/T2 on the same JVM → compute deltas per source → verify category/mapping/cgroup scope → form hypotheses and falsifiers → test small changes → confirm RSS, `memory.current`, GC, direct pool, and SLOs all stabilize.**
 
-### Tài liệu tham khảo chính thức
+### Official References
 
 - Oracle JDK 21 — Native Memory Tracking: https://docs.oracle.com/en/java/javase/21/vm/native-memory-tracking.html
-- Oracle JDK 21 — jcmd (VM.native_memory, GC.heap_info): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
-- Oracle JDK 21 — BufferPoolMXBean API: https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/BufferPoolMXBean.html
-- Oracle JDK 21 — ManagementFactory / MXBeans: https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ManagementFactory.html
+- Oracle JDK 21 — jcmd (`VM.native_memory`, `GC.heap_info`): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
+- Oracle JDK 21 — `BufferPoolMXBean` API: https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/BufferPoolMXBean.html
+- Oracle JDK 21 — `ManagementFactory` / MXBeans: https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ManagementFactory.html
 - Oracle JDK 21 — Diagnostic Tools and NMT categories: https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
-- Linux kernel — /proc filesystem, status/smaps/smaps_rollup: https://www.kernel.org/doc/html/latest/filesystems/proc.html
-- Linux kernel — Control Group v2 memory.current/stat/max/events: https://docs.kernel.org/admin-guide/cgroup-v2.html
+- Linux kernel — `/proc` filesystem, `status`/`smaps`/`smaps_rollup`: https://www.kernel.org/doc/html/latest/filesystems/proc.html
+- Linux kernel — Control Group v2 `memory.current`/`stat`/`max`/`events`: https://docs.kernel.org/admin-guide/cgroup-v2.html

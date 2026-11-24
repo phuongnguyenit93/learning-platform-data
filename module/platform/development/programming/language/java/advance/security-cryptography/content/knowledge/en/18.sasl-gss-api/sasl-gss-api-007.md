@@ -1,23 +1,23 @@
-# 18.7 — Thiết lập ngữ cảnh GSS, wrap/unwrap, MIC và kiểm tra replay hoặc thứ tự
+# 18.7 — Establishing a GSS Context, wrap/unwrap, MIC, and Checking Replay or Sequence
 
-## 1. Mục tiêu và mô hình cần nắm
+## 1. Objectives and Mental Model
 
-Sau bài này, bạn có thể: (1) phân biệt xác thực khi thiết lập `GSSContext` với bảo vệ từng thông điệp sau xác thực; (2) triển khai luồng `initSecContext`/`acceptSecContext` qua kênh truyền có đóng khung token; (3) chọn `wrap`/`unwrap` hay `getMIC`/`verifyMIC` theo yêu cầu bí mật dữ liệu; (4) yêu cầu, xác minh và xử lý đúng replay/sequence detection; (5) tránh coi các cờ GSS là chính sách ứng dụng tự động.
+After this lesson, you will be able to: (1) distinguish authentication during `GSSContext` establishment from per-message protection afterward; (2) implement the `initSecContext`/`acceptSecContext` flow over a token-framed transport; (3) choose `wrap`/`unwrap` versus `getMIC`/`verifyMIC` based on confidentiality needs; (4) request, verify, and properly handle replay/sequence detection; and (5) avoid treating GSS flags as automatic application policy.
 
-**GSS-API (Generic Security Service API)** là giao diện chung cho cơ chế bảo mật như Kerberos. Trong Java, API chuẩn nằm ở module `java.security.jgss`, package `org.ietf.jgss`. GSS có hai phía: **initiator** (bên khởi tạo, thường là client) và **acceptor** (bên chấp nhận, thường là server). Hai phía trao đổi các **token nhị phân** để xây dựng ngữ cảnh bảo mật, rồi dùng chính ngữ cảnh ấy để bảo vệ dữ liệu. GSS **không tự cung cấp** kết nối TCP, định dạng frame, định tuyến thông điệp, retry hay phân quyền nghiệp vụ. SASL có thể sử dụng cơ chế GSSAPI, nhưng phần này thao tác trực tiếp bằng Java GSS-API.
+**GSS-API (Generic Security Service API)** is a common interface for security mechanisms such as Kerberos. In Java, the standard API resides in module `java.security.jgss`, package `org.ietf.jgss`. GSS has two sides: the **initiator** (starting side, typically client) and the **acceptor** (accepting side, typically server). Both sides exchange **binary tokens** to establish a security context, then use that context to protect data. GSS **does not itself provide** TCP connections, frame formats, message routing, retries, or business authorization. SASL can use the GSSAPI mechanism, whereas this lesson works directly with Java GSS-API.
 
-Các đối tượng chính:
+Key objects:
 
-| Thành phần | Vai trò |
+| Component | Role |
 |---|---|
-| `GSSManager` | Factory tạo `GSSName`, `GSSCredential`, `GSSContext`; liệt kê mechanism. |
-| `GSSName` | Danh tính bên gửi/bên nhận hoặc service được nhắm tới. |
-| `GSSCredential` | Handle tới thông tin xác thực đã được cấp; API không tự đăng nhập để tạo danh tính. |
-| `GSSContext` | Trạng thái xác thực, khóa/sequence của **một phiên**; dùng để tạo/kiểm tra token. |
-| `MessageProp` | Chọn QOP/privacy khi gửi; nhận QOP/privacy và trạng thái replay/order khi nhận. |
-| `GSSException` | Lỗi token, credential, policy mechanism, timeout/expiry, kiểm tra MIC... |
+| `GSSManager` | Factory creating `GSSName`, `GSSCredential`, and `GSSContext`; lists mechanisms. |
+| `GSSName` | Identity of the sender, receiver, or targeted service. |
+| `GSSCredential` | Handle to provisioned credentials; the API does not log in by itself to create identities. |
+| `GSSContext` | Authentication state, keys, and sequence state for **one session**; used to generate/verify tokens. |
+| `MessageProp` | Requests QOP/privacy when sending; receives QOP/privacy and replay/order status when receiving. |
+| `GSSException` | Token, credential, mechanism policy, timeout/expiry, or MIC verification errors. |
 
-## 2. Ngữ cảnh GSS được thiết lập như thế nào?
+## 2. How is a GSS context established?
 
 ```text
 Initiator                                          Acceptor
@@ -26,45 +26,45 @@ Initiator                                          Acceptor
   |                                                  |
   | -- initSecContext(empty) -> token #1 ----------> |
   |                                   acceptSecContext(token #1)
-  | <--------- token #2 (nếu phát sinh) ------------- |
+  | <--------- token #2 (if produced) -------------- |
   | initSecContext(token #2)                          |
-  | -- token #3 (nếu phát sinh) --------------------> |
+  | -- token #3 (if produced) ---------------------> |
   |                      ...                         |
-  | isEstablished() trên cả hai phía                  |
+  | isEstablished() on both sides                    |
   | check get*State(), peer identity, authorization   |
-  | ====== ứng dụng bắt đầu trao đổi dữ liệu ======= |
+  | ====== application begins data exchange ======== |
   | -- wrap(plaintext) -> wrapped token ------------> | unwrap(token)
   | -- plaintext + getMIC(plaintext) ---------------> | verifyMIC(token, plaintext)
 ```
 
-Một lần gọi `initSecContext` hoặc `acceptSecContext` **chưa chắc hoàn thành handshake**. Mỗi lời gọi nhận token trước đó và có thể trả một token mới; ứng dụng phải chuyển **đầy đủ byte của token**, kể cả khi phía tạo token đã báo `isEstablished() == true`. `null` nghĩa là lần gọi không phát sinh token để gửi. Kết quả `isEstablished()` là **trạng thái cục bộ**: giao thức truyền của ứng dụng phải điều phối để hai phía đều sẵn sàng trước khi gửi dữ liệu nghiệp vụ.
+A single call to `initSecContext` or `acceptSecContext` **does not necessarily complete the handshake**. Each call accepts the prior token and may return a new token; the application must transmit **every byte of the token**, even when the token-producing side already reports `isEstablished() == true`. `null` means that call produced no token to send. `isEstablished()` is **local state**: the application's transport protocol must coordinate so both sides are ready before sending business data.
 
-1. Chuẩn bị cơ chế và credential hợp lệ. Với Kerberos v5, OID chuẩn là `1.2.840.113554.1.2.2`; phía client thường cần TGT, phía server cần credential nhận cho service principal tương ứng.
-2. Initiator tạo `GSSContext` cho **đúng service**, cấu hình các yêu cầu **trước lần `initSecContext` đầu tiên**: `requestMutualAuth(true)`, `requestInteg(true)`, `requestConf(true)`, `requestReplayDet(true)`, `requestSequenceDet(true)`. Không yêu cầu credential delegation nếu ứng dụng không thực sự cần.
-3. Acceptor tạo context từ credential có quyền `ACCEPT_ONLY`. Nó không gọi các phương thức `request*` dành cho initiator; chính token thương lượng quyết định dịch vụ cuối cùng.
-4. Đổi token qua transport; lặp đến khi cả hai context established. Token GSS **không được** đổi sang chuỗi bằng encoding mặc định, cắt ở byte 0 hoặc nhầm với dữ liệu UTF-8.
-5. Khi thành công, kiểm tra trạng thái thực tế: `getMech()`, `getSrcName()`, `getTargName()`, `getMutualAuthState()`, `getIntegState()`, `getConfState()`, `getReplayDetState()`, `getSequenceDetState()`, `getLifetime()`. Một yêu cầu `request*` **không đảm bảo** mechanism sẽ bật tính năng tương ứng.
-6. Server xác thực **và** phân quyền danh tính `getSrcName()` cho tài nguyên cụ thể. Client xác nhận service đích/đặc tính xác thực. Khi không đáp ứng chính sách bắt buộc, kết thúc context, không chuyển sang thông điệp nghiệp vụ.
+1. Prepare a valid mechanism and credentials. For Kerberos v5, the standard OID is `1.2.840.113554.1.2.2`; the client typically needs a TGT, and the server needs an acceptor credential for the corresponding service principal.
+2. The initiator creates a `GSSContext` for the **right service** and configures requests **before the first `initSecContext` call**: `requestMutualAuth(true)`, `requestInteg(true)`, `requestConf(true)`, `requestReplayDet(true)`, `requestSequenceDet(true)`. Do not request credential delegation unless the application genuinely requires it.
+3. The acceptor creates a context from a credential with `ACCEPT_ONLY` usage. It does not call the initiator-only `request*` methods; token negotiation determines the final services.
+4. Exchange tokens over the transport, looping until both contexts are established. GSS tokens **must never** be converted to strings via a default charset, truncated at byte 0, or confused with UTF-8 text.
+5. Once complete, inspect the actual state: `getMech()`, `getSrcName()`, `getTargName()`, `getMutualAuthState()`, `getIntegState()`, `getConfState()`, `getReplayDetState()`, `getSequenceDetState()`, and `getLifetime()`. Calling `request*` **does not guarantee** the mechanism enabled that feature.
+6. The server authenticates **and** authorizes `getSrcName()` for the specific resource. The client verifies the target service and authentication properties. If mandatory policy is unmet, tear down the context without proceeding to business messages.
 
-Với `GSSName.NT_HOSTBASED_SERVICE`, Java nhận dạng dạng `service@hostname`, ví dụ `HTTP@app.example.com`; thư viện Kerberos có thể ánh xạ nó thành principal `HTTP/app.example.com@REALM`. Đừng nhầm ký hiệu `@` của host-based GSS name với phần `@REALM` trong principal Kerberos. DNS, realm, SPN và credential phải đồng nhất.
+With `GSSName.NT_HOSTBASED_SERVICE`, Java recognizes the `service@hostname` form, such as `HTTP@app.example.com`; the Kerberos library may map it to principal `HTTP/app.example.com@REALM`. Do not confuse the `@` separator in host-based GSS names with `@REALM` in Kerberos principals. DNS, realm, SPN, and credentials must align.
 
-**Lưu ý về thứ tự gọi:** các phương thức `requestReplayDet`, `requestSequenceDet`, `requestConf`, `requestInteg`, `requestMutualAuth` chỉ được initiator yêu cầu **trước** lần `initSecContext` đầu tiên. `setChannelBinding(...)` (nếu dùng) cần đặt **trên cả hai phía, với cùng thông tin binding đã thỏa thuận**, trước khi bắt đầu context. Đối với phần lớn ứng dụng, chỉ cho phép message operations sau `isEstablished()`; `isProtReady()` tồn tại cho trường hợp cơ chế cho phép bảo vệ sớm nhưng cần quy tắc giao thức chặt chẽ.
+**Call ordering note:** `requestReplayDet`, `requestSequenceDet`, `requestConf`, `requestInteg`, and `requestMutualAuth` may only be requested by the initiator **before** the first `initSecContext` call. `setChannelBinding(...)` (if used) must be configured **on both sides with the same agreed binding data** prior to starting the context. Most applications should permit message operations only after `isEstablished()`; `isProtReady()` exists for mechanisms allowing early protection but demands strict protocol rules.
 
-## 3. Hai cách bảo vệ từng thông điệp
+## 3. Two ways to protect individual messages
 
-| Đường API | Thông điệp trên đường truyền | Đảm bảo chính |
+| API path | Message on the wire | Primary guarantee |
 |---|---|---|
-| `wrap(plaintext, ..., new MessageProp(0, true))` → `unwrap(token, ..., prop)` | Một **wrapped token** chứa dữ liệu và thông tin kiểm tra | Integrity; thêm confidentiality **nếu thực tế privacy được áp dụng**. |
-| `wrap(..., new MessageProp(0, false))` → `unwrap(...)` | Wrapped token có dữ liệu, không yêu cầu mã hóa | Integrity, dữ liệu không được giữ bí mật. |
-| `getMIC(plaintext, ..., prop)` → `verifyMIC(micToken, ..., samePlaintext, ..., prop)` | **Plaintext và MIC token tách biệt** | Kiểm chứng integrity/authenticity; **không mã hóa plaintext**. |
+| `wrap(plaintext, ..., new MessageProp(0, true))` → `unwrap(token, ..., prop)` | One **wrapped token** holding data and verification metadata | Integrity; plus confidentiality **if privacy was actually applied**. |
+| `wrap(..., new MessageProp(0, false))` → `unwrap(...)` | Wrapped token holding data, without requesting encryption | Integrity; data is not kept confidential. |
+| `getMIC(plaintext, ..., prop)` → `verifyMIC(micToken, ..., samePlaintext, ..., prop)` | **Separate plaintext and MIC token** | Verifies integrity/authenticity; **does not encrypt plaintext**. |
 
-`MessageProp(0, true)` có nghĩa QOP = 0 (mức mặc định) và **yêu cầu privacy**, không phải bằng chứng đã mã hóa. Sau `wrap`, kiểm tra `prop.getPrivacy()`; sau `unwrap`, kiểm tra `prop.getPrivacy()` của token thực nhận. Nếu ứng dụng bắt buộc bí mật mà `getConfState()` hoặc `getPrivacy()` không thỏa, phải từ chối. `getIntegState()` cần được bật cho cả wrap và MIC. MIC được tính trên **đúng chuỗi byte**: chỉ cần thay encoding, dấu xuống dòng hay một byte thì `verifyMIC` không còn khớp. Không dùng `getMIC` như API chữ ký chung độc lập với GSS context.
+`MessageProp(0, true)` means QOP = 0 (default level) and **requesting privacy**, not proof that encryption occurred. After `wrap`, inspect `prop.getPrivacy()`; after `unwrap`, inspect `prop.getPrivacy()` on the received token. If the application requires secrecy and `getConfState()` or `getPrivacy()` is false, reject it. `getIntegState()` must be enabled for both wrap and MIC. A MIC is computed over **the exact byte sequence**: changing encoding, line endings, or a single byte causes `verifyMIC` to fail. Do not use `getMIC` as a general-purpose signature API independent of a GSS context.
 
-`getWrapSizeLimit(qop, confReq, maxTokenSize)` ước lượng lượng dữ liệu đầu vào tối đa để wrapped token nằm trong giới hạn transport. Nó **không** thay thế giới hạn frame, kiểm tra kích thước token thực nhận, hay phân mảnh ở lớp ứng dụng.
+`getWrapSizeLimit(qop, confReq, maxTokenSize)` estimates the maximum input bytes that produce a wrapped token within a transport limit. It **does not** replace frame limits, incoming token size validation, or application-level chunking.
 
-## 4. Ví dụ Java 17+: tạo context, đổi token, xử lý message
+## 4. Java 17+ example: creating contexts, exchanging tokens, handling messages
 
-Tệp dưới đây **biên dịch và chạy được trên JDK 17+**. Lệnh `main` chỉ chạy một bài kiểm thử chính sách replay/order bằng `MessageProp` giả lập nên **không cần KDC**. Các phương thức `newInitiator`, `newAcceptor`, `establish...`, `protect`, `open`, `makeMic`, `verifyMic` là mã thực để tích hợp vào client/server **khi đã có credential Kerberos và transport**. Không có dữ liệu Kerberos thật được tạo tự động trong chương trình kiểm thử.
+The file below **compiles and runs on JDK 17+**. Its `main` method only executes a replay/order policy test using simulated `MessageProp` instances, so it **requires no KDC**. The methods `newInitiator`, `newAcceptor`, `establish...`, `protect`, `open`, `makeMic`, and `verifyMic` are real integration code for client/server use **once Kerberos credentials and a transport exist**. No real Kerberos tokens are fabricated in the test harness.
 
 ```java
 // File: GssLesson.java
@@ -80,13 +80,13 @@ import org.ietf.jgss.*;
 public final class GssLesson {
     private GssLesson() {}
 
-    // Chỉ trao đổi token GSS; lớp ứng dụng phải quản lý phase handshake/data.
+    // Only exchanges GSS tokens; the application layer must manage handshake/data phases.
     public interface TokenPipe {
         void send(byte[] token) throws IOException;
         byte[] receive() throws IOException;
     }
 
-    // Ví dụ framing nhị phân: độ dài int 4 byte + token; hai phía dùng cùng quy ước.
+    // Example binary framing: 4-byte int length + token; both sides share the convention.
     public static final class FramedPipe implements TokenPipe {
         private static final int MAX_TOKEN = 1_048_576;
         private final DataInputStream in;
@@ -123,7 +123,7 @@ public final class GssLesson {
         return new Oid("1.2.840.113554.1.2.2");
     }
 
-    // Client: đã có default initiator credential, ví dụ TGT của Subject hiện hành.
+    // Client: already holds a default initiator credential, e.g., TGT in current Subject.
     public static GSSContext newInitiator(String hostBasedService)
             throws GSSException {
         GSSManager manager = GSSManager.getInstance();
@@ -140,7 +140,7 @@ public final class GssLesson {
         return context;
     }
 
-    // Server: caller sở hữu acceptorCredential và phải dispose khi xong.
+    // Server: caller owns acceptorCredential and must dispose it when finished.
     public static GSSContext newAcceptor(GSSCredential acceptorCredential)
             throws GSSException {
         return GSSManager.getInstance().createContext(acceptorCredential);
@@ -148,12 +148,12 @@ public final class GssLesson {
 
     public static void establishInitiator(GSSContext context, TokenPipe link)
             throws GSSException, IOException {
-        byte[] incoming = new byte[0]; // Token rỗng chỉ cho lời gọi đầu.
+        byte[] incoming = new byte[0]; // Empty token only for the initial call.
         while (!context.isEstablished()) {
             byte[] outgoing = context.initSecContext(
                     incoming, 0, incoming.length);
             if (outgoing != null) {
-                link.send(outgoing); // Gửi cả khi context vừa established.
+                link.send(outgoing); // Send even if context just became established.
             }
             if (!context.isEstablished()) {
                 incoming = link.receive();
@@ -170,12 +170,12 @@ public final class GssLesson {
             byte[] outgoing = context.acceptSecContext(
                     incoming, 0, incoming.length);
             if (outgoing != null) {
-                link.send(outgoing); // Không bỏ final token.
+                link.send(outgoing); // Never drop the final token.
             }
         }
     }
 
-    // Kiểm tra chính sách bắt buộc, không chỉ tin vào request* của client.
+    // Verify mandatory policy rather than trusting client request* calls alone.
     public static void requireServices(GSSContext context,
             boolean requirePrivacy, boolean strictSequence) {
         if (!context.isEstablished()
@@ -248,7 +248,7 @@ public final class GssLesson {
         checkArrival(prop, false, strictSequence);
     }
 
-    // Chỉ kiểm tra logic chính sách; KHÔNG tạo/kiểm chứng token Kerberos.
+    // Tests policy logic only; does NOT generate or verify Kerberos tokens.
     private static String policyResult(MessageProp p, boolean strict) {
         try {
             checkArrival(p, false, strict);
@@ -262,7 +262,7 @@ public final class GssLesson {
         MessageProp normal = new MessageProp(0, false);
         MessageProp duplicate = new MessageProp(0, false);
         MessageProp gap = new MessageProp(0, false);
-        // Giả lập trạng thái provider sẽ điền sau unwrap/verifyMIC.
+        // Simulate flags the provider populates after unwrap/verifyMIC.
         duplicate.setSupplementaryStates(true, false, false, false, 0, null);
         gap.setSupplementaryStates(false, false, false, true, 0, null);
         System.out.println("normal=" + policyResult(normal, true));
@@ -273,14 +273,14 @@ public final class GssLesson {
 }
 ```
 
-Chạy từ thư mục chứa `GssLesson.java`:
+Run from the directory containing `GssLesson.java`:
 
 ```bash
 javac -encoding UTF-8 GssLesson.java
 java GssLesson
 ```
 
-Kết quả chuẩn xác của **bài test chính sách giả lập**:
+Exact output of the **simulated policy test**:
 
 ```text
 normal=ACCEPT
@@ -289,98 +289,98 @@ gap_strict=REJECT
 gap_relaxed=ACCEPT
 ```
 
-Giải thích: `setSupplementaryStates` ở `main` chỉ dùng **trong phép thử** để tạo dữ liệu giả; trong xử lý GSS thực, provider điền cờ sau `unwrap`/`verifyMIC`, ứng dụng **không tự đặt cờ**. Việc `gap_relaxed=ACCEPT` minh họa rằng chính sách không bắt buộc thứ tự có thể chấp nhận token đến thiếu predecessor, **không** có nghĩa mọi nghiệp vụ được phép mất hoặc đảo thông điệp.
+Explanation: `setSupplementaryStates` in `main` is used **only in the test** to fabricate sample flags; in real GSS processing, the provider populates flags during `unwrap`/`verifyMIC`, and the application **never sets flags manually**. `gap_relaxed=ACCEPT` demonstrates that a policy without strict ordering can accept a token arriving before its predecessor, **not** that arbitrary business logic may lose or reorder messages.
 
-### 4.1. Kết nối class vào Kerberos thực tế
+### 4.1. Wiring the class into real Kerberos
 
-Trên môi trường có KDC, cấu hình `krb5.conf`, principal/keytab, JAAS/`Subject` hoặc login session phù hợp:
+In an environment with a KDC, `krb5.conf`, principal/keytab, and an appropriate JAAS/`Subject` or login session:
 
-- Client tạo `GSSContext client = GssLesson.newInitiator("HTTP@app.example.com")` sau khi đã có initiator credential/TGT (ví dụ từ `kinit` hoặc Java login flow).
-- Server tạo `GSSCredential serviceCred = manager.createCredential(serviceName, GSSCredential.DEFAULT_LIFETIME, kerberosOid, GSSCredential.ACCEPT_ONLY)` bằng principal có keytab/ticket hợp lệ, rồi `GSSContext server = GssLesson.newAcceptor(serviceCred)`.
-- Mỗi phía dùng một `TokenPipe` trên connection. Client gọi `establishInitiator(...)`, server gọi `establishAcceptor(...)`. Server gửi token trả về cho client **trước khi** ứng dụng chuyển phase. Khung ví dụ ở trên chỉ chứa length + bytes; nếu dùng chung kênh cho nhiều loại message, bổ sung frame type/state machine và thông điệp kết thúc handshake của ứng dụng để tránh hiểu nhầm final token với dữ liệu.
-- Sau khi cả hai bên sẵn sàng, mỗi bên gọi `requireServices(...)`, kiểm tra `getSrcName()`/`getTargName()` đúng danh tính mong đợi; server phân quyền trước khi cho phép xử lý request.
-- Sender dùng `protect(context, "lệnh nghiệp vụ", true)` để tạo token, gửi qua kênh; receiver gọi `open(context, token, true, true)` và **chỉ thực hiện tác động nghiệp vụ sau khi mọi kiểm tra thành công**.
-- Trường hợp chỉ cần integrity, sender gửi **hai thành phần**: byte `message` và `makeMic(context, message)`. Receiver gọi `verifyMic(context, mic, receivedMessage, true)` rồi mới sử dụng `receivedMessage`. Byte message phải được bảo toàn 100%.
+- The client creates `GSSContext client = GssLesson.newInitiator("HTTP@app.example.com")` after obtaining an initiator credential/TGT (e.g., via `kinit` or a Java login flow).
+- The server creates `GSSCredential serviceCred = manager.createCredential(serviceName, GSSCredential.DEFAULT_LIFETIME, kerberosOid, GSSCredential.ACCEPT_ONLY)` using a principal with a valid keytab/ticket, then `GSSContext server = GssLesson.newAcceptor(serviceCred)`.
+- Each side wraps the connection in a `TokenPipe`. The client calls `establishInitiator(...)`, and the server calls `establishAcceptor(...)`. The server sends any response token to the client **before** the application switches phases. The example framing carries only length + bytes; if a channel carries multiple message kinds, add a frame type/state machine and an explicit handshake completion boundary so the final token is never confused with data.
+- Once both sides are ready, each calls `requireServices(...)` and verifies `getSrcName()`/`getTargName()` match expected identities; the server checks authorization before handling requests.
+- The sender calls `protect(context, "business command", true)` to build a token and sends it over the pipe; the receiver calls `open(context, token, true, true)` and **executes business side effects only after all checks pass**.
+- When only integrity is needed, the sender transmits **two pieces**: the `message` bytes and `makeMic(context, message)`. The receiver calls `verifyMic(context, mic, receivedMessage, true)` before using `receivedMessage`. Message bytes must be preserved 100% intact.
 
-Gọi `dispose()` trên mọi context và credential do ứng dụng sở hữu trong `finally` hoặc cơ chế quản lý tài nguyên tương đương. Không chia sẻ một `GSSContext` cho nhiều luồng đồng thời mà thiếu đồng bộ, bởi các phương thức context không được đảm bảo synchronized. Mỗi phiên/peer có context riêng; context hết hạn cần thiết lập lại theo chính sách, không tự dùng token của context cũ.
+Call `dispose()` on every application-owned context and credential inside `finally` or an equivalent lifecycle mechanism. Never share one `GSSContext` across concurrent threads without synchronization, as context methods are not guaranteed to be thread-safe. Each session/peer gets its own context; expired contexts must be re-established per policy rather than reusing tokens from old contexts.
 
-**Vì sao ví dụ không giả lập handshake thành công ngay trong `main`?** Kerberos cần credential và KDC thực. In ra “authenticated” từ dữ liệu giả sẽ tạo hiểu lầm về tính an toàn. Có thể kiểm tra biên dịch và logic policy độc lập; muốn chạy handshake thực, cần môi trường Kerberos tương ứng.
+**Why doesn't the example simulate a successful handshake inside `main`?** Kerberos requires real credentials and a KDC. Printing "authenticated" from fake data creates dangerous misconceptions about security. You can verify compilation and policy logic independently; running a real handshake requires an actual Kerberos environment.
 
-## 5. Replay detection và sequence detection: khác nhau ở đâu?
+## 5. Replay detection and sequence detection: how do they differ?
 
-Replay là **phát lại** token cũ; sequence là **thứ tự giao nhận**. Context có thể phát hiện cả hai nhờ metadata/sequence của cơ chế, nhưng kết quả phụ thuộc tính năng thực sự đã thương lượng, phạm vi cửa sổ kiểm tra và cách ứng dụng sử dụng một context.
+Replay is **re-sending** an old token; sequence is **delivery ordering**. A context can detect both via mechanism metadata/sequence numbers, though behavior depends on negotiated features, check window size, and how the application uses a context.
 
-| Cờ nhận sau `unwrap`/`verifyMIC` | Ý nghĩa thực tế | Chính sách thường dùng |
+| Flag received after `unwrap`/`verifyMIC` | Practical meaning | Common policy |
 |---|---|---|
-| `isDuplicateToken()` | Token đã được xử lý trước đó trong cửa sổ phát hiện. | Từ chối, không chạy lại side effect. |
-| `isOldToken()` | Token quá cũ để kiểm tra chắc việc phát lại. | Từ chối khi yêu cầu chống replay. |
-| `isUnseqToken()` | Một token có thứ tự **muộn hơn** đã được xử lý trước token này. | Từ chối nếu giao thức yêu cầu đúng thứ tự. |
-| `isGapToken()` | Chưa thấy một hoặc nhiều token tiền nhiệm mong đợi. | Dừng/chờ/báo lỗi theo protocol; từ chối nếu strict ordering. |
+| `isDuplicateToken()` | Token was already processed within the detection window. | Reject; do not re-execute side effects. |
+| `isOldToken()` | Token is too old to verify reliably against replay. | Reject when replay protection is required. |
+| `isUnseqToken()` | A token with a **later** sequence number was already processed before this one. | Reject if the protocol requires strict ordering. |
+| `isGapToken()` | One or more expected preceding tokens have not been seen yet. | Pause/wait/error per protocol; reject under strict ordering. |
 
-Các cờ là **thông tin bổ sung** về token nhận, không đồng nghĩa với “ứng dụng đã an toàn”. Sau `verifyMIC` không ném lỗi và sau `unwrap` trả về plaintext, vẫn phải kiểm tra các cờ trước khi chấp nhận. Với token hỏng, MIC sai, context hết hạn hoặc credential lỗi, API có thể ném `GSSException`; phải fail closed (không giải mã hoặc nhận message lỗi rồi tiếp tục nghiệp vụ). Đừng coi mọi `GSSException` là replay; ghi nhận major code (`getMajor()`, `getMajorString()`) để chẩn đoán có kiểm soát, tránh log secret/token gốc.
+These flags are **supplementary status** on the received token, not a guarantee that "the application is safe." Even when `verifyMIC` does not throw and `unwrap` returns plaintext, you must still inspect the flags before accepting. For corrupted tokens, bad MICs, expired contexts, or invalid credentials, the API may throw `GSSException`; you must fail closed (never decrypt or accept a failed message and continue business execution). Do not assume every `GSSException` means replay; log major codes (`getMajor()`, `getMajorString()`) in a controlled way without logging raw secrets or tokens.
 
-**Thứ tự đánh giá hợp lý tại receiver:**
+**Sound evaluation order at the receiver:**
 
-1. Đảm bảo context đã thiết lập, có integrity và replay detection; nếu yêu cầu strict order thì `getSequenceDetState() == true`. Khi muốn mã hóa, cần thêm confidentiality.
-2. Đọc **trọn một token**; giới hạn độ dài frame trước cấp phát bộ nhớ.
-3. `unwrap` hoặc `verifyMIC`, bắt `GSSException`; không dùng plaintext khi xác minh thất bại.
-4. Kiểm tra `duplicate` và `old`; nếu bật strict order, kiểm tra thêm `unseq` và `gap`. Nếu cần privacy, kiểm tra `prop.getPrivacy()`.
-5. Chỉ khi đạt các kiểm tra mới parse, authorize và thực hiện nghiệp vụ; kết hợp transaction/idempotency key cho request có side effect.
+1. Confirm the context is established with integrity and replay detection; if strict ordering is required, require `getSequenceDetState() == true`. If encryption is needed, also require confidentiality.
+2. Read **one complete token**; enforce frame length limits before allocating memory.
+3. Call `unwrap` or `verifyMIC`, catching `GSSException`; never use plaintext when verification fails.
+4. Check `duplicate` and `old`; if strict ordering is active, also check `unseq` and `gap`. If privacy is required, check `prop.getPrivacy()`.
+5. Only when every check passes should you parse, authorize, and execute business logic; combine with transaction/idempotency keys for side-effecting requests.
 
-Ví dụ thứ tự token do sender phát là `T1, T2, T3`:
+Suppose the sender emits tokens in order `T1, T2, T3`:
 
-| Receiver nhìn thấy | Khả năng cờ | Ý nghĩa ứng dụng |
+| Receiver observes | Possible flags | Application implication |
 |---|---|---|
-| `T1, T2, T3` | Không có cờ bổ sung | Giao nhận đúng thứ tự (khi mechanism hỗ trợ). |
-| `T1, T1` | `duplicate` ở lần thứ hai | Request thứ hai không được chạy lại. |
-| `T1, T3` | Có thể `gap` tại `T3` | `T2` chưa được xử lý; quyết định chờ hay từ chối. |
-| `T1, T3, T2` | Có thể `gap` ở `T3`, `unseq` ở `T2` | Với strict order, không thể âm thầm áp dụng T2 sau T3. |
-| Token nằm ngoài cửa sổ kiểm tra | Có thể `old` | Không thể kết luận token mới an toàn; nên từ chối. |
+| `T1, T2, T3` | No supplementary flags | Delivered in order (when supported by mechanism). |
+| `T1, T1` | `duplicate` on the second delivery | Second request must not run again. |
+| `T1, T3` | Possible `gap` on `T3` | `T2` has not been processed; decide whether to wait or reject. |
+| `T1, T3, T2` | Possible `gap` on `T3`, `unseq` on `T2` | Under strict order, T2 cannot silently apply after T3. |
+| Token outside detection window | Possible `old` | Cannot prove freshness; should be rejected. |
 
-“Có thể” ở trên là chủ ý: chi tiết thời điểm gắn cờ, cửa sổ kiểm tra, việc ném exception và đường đi token phụ thuộc mechanism/provider. Test bảo mật thật cần phát lại/chuyển thứ tự **chính những token đã được provider tạo ra trên hai context đang hoạt động**, không chỉ thao tác `MessageProp` bằng tay. Các cờ cũng chỉ bao quát **một context**; request bị gửi lại ở phiên mới cần chính sách idempotency/replay ở tầng ứng dụng.
+"Possible" above is intentional: exact flagging timing, window size, exception behavior, and token handling depend on the mechanism and provider. Real security testing must replay and reorder **actual provider-generated tokens across two live contexts**, not merely mutate `MessageProp` by hand. Furthermore, these flags cover **only one context**; requests replayed across a new session require application-level idempotency and replay policies.
 
-### 5.1. Test case cần có khi tích hợp
+### 5.1. Essential integration test cases
 
-| Ca thử | Điều kiện | Kết quả mong đợi |
+| Test case | Condition | Expected result |
 |---|---|---|
-| Handshake hợp lệ | Client/service credentials đúng, mutual auth thành công | Cả hai established; identity và các `get*State()` đạt policy. |
-| Service principal sai | Client trỏ sai service hoặc server không có key phù hợp | Không chấp nhận peer, không xử lý dữ liệu. |
-| Wrapped token bị sửa byte | Thay một byte của token | `unwrap` lỗi MIC/token hoặc từ chối; không có side effect. |
-| MIC so với message khác | `getMIC` trên A, `verifyMIC` trên B | Lỗi xác minh; không dùng B. |
-| Chế độ bí mật không được cấp | `getConfState()==false` hoặc token `getPrivacy()==false` | Từ chối nếu chính sách cần confidentiality. |
-| Phát lại cùng token | `unwrap`/`verifyMIC` hai lần trên cùng context | Cờ duplicate/old hoặc lỗi mechanism; từ chối lần hai. |
-| Đảo thứ tự/gap | Gửi T2 trước T1 trên cơ chế có sequence detection | Xử lý theo chính sách strict; không chạy side effect của token sai thứ tự. |
-| Context hết hạn | Gọi per-message API sau expiry | Từ chối, tạo phiên mới theo quy trình. |
-| Kênh nhận frame dài bất thường | Length vượt giới hạn | Chặn trước khi cấp phát hoặc xử lý GSS token. |
+| Valid handshake | Matching client/service credentials, mutual auth succeeds | Both established; identities and `get*State()` satisfy policy. |
+| Wrong service principal | Client targets wrong service or server lacks matching key | Peer rejected; no data processed. |
+| Tampered wrapped token | Flip one byte in the token | `unwrap` fails MIC/token check or rejects; no side effect. |
+| MIC against different message | `getMIC` on A, `verifyMIC` on B | Verification error; B is discarded. |
+| Secrecy not granted | `getConfState()==false` or token `getPrivacy()==false` | Rejected when policy requires confidentiality. |
+| Replaying the same token | `unwrap`/`verifyMIC` called twice on same context | Duplicate/old flag or mechanism error; second call rejected. |
+| Out-of-order / gap | Send T2 before T1 on sequence-detecting mechanism | Handled per strict policy; out-of-order token causes no side effect. |
+| Expired context | Call per-message API after expiration | Rejected; establish a fresh session per procedure. |
+| Abnormally long frame | Length exceeds cap | Rejected before allocating or passing to GSS. |
 
-## 6. Các lỗi thiết kế thường gặp và cách tránh
+## 6. Common design mistakes and how to avoid them
 
-**Nhầm “request” với “đã được cấp”.** `requestReplayDet(true)` chỉ đề nghị dịch vụ. Quyết định nhận message phải dựa trên `getReplayDetState()`, `getSequenceDetState()` và trạng thái token sau khi xử lý.
+**Confusing "requested" with "granted."** `requestReplayDet(true)` only asks for the service. Accepting a message must depend on `getReplayDetState()`, `getSequenceDetState()`, and post-processing token flags.
 
-**Cho rằng `wrap` luôn mã hóa.** Một wrapped token có thể chỉ có integrity. Muốn confidentiality, yêu cầu nó lúc thiết lập context, dùng `MessageProp(0, true)`, kiểm tra `getConfState()` và `getPrivacy()` ở cả bên gửi/bên nhận.
+**Assuming `wrap` always encrypts.** A wrapped token may carry integrity only. To get confidentiality, request it during context setup, pass `MessageProp(0, true)`, and verify `getConfState()` and `getPrivacy()` on both sender and receiver.
 
-**Cho rằng MIC là mã hóa hoặc chữ ký không phụ thuộc phiên.** MIC không che plaintext; kết quả gắn với context và bytes của message. Khi protocol chuyển đổi JSON, Unicode normalization hay newline giữa sender và receiver, MIC có thể không hợp lệ. Chốt canonical representation hoặc giữ nguyên bytes.
+**Assuming MIC is encryption or a session-independent signature.** MIC does not hide plaintext; its value is tied to the context and exact message bytes. If a protocol alters JSON formatting, Unicode normalization, or newlines between sender and receiver, MIC verification can fail. Fix a canonical representation or preserve exact bytes.
 
-**Bỏ qua cờ supplementary vì `unwrap` đã trả plaintext.** Plaintext có MIC hợp lệ vẫn có thể là replay hoặc sai thứ tự. Đặt check ngay sau GSS operation và trước parse/execute.
+**Ignoring supplementary flags because `unwrap` returned plaintext.** Plaintext with a valid MIC can still be replayed or out of order. Place flag checks immediately after the GSS call and before parsing or execution.
 
-**Gộp mọi token vào một luồng mà không có framing/protocol phase.** GSS không đánh dấu kết thúc TCP stream hay phân biệt application frame. Dùng length prefix với giới hạn, phân loại message, xử lý token handshake trước message payload, và tránh deadlock do cả hai chờ nhận.
+**Dumping all tokens into one stream without framing or protocol phases.** GSS does not mark TCP stream boundaries or distinguish application frames. Use bounded length prefixes, message type tags, process handshake tokens before data payloads, and avoid deadlocks where both sides wait to read.
 
-**Coi bảo vệ GSS là thay thế authorization và idempotency.** GSS xác nhận danh tính theo mechanism và bảo vệ token; ứng dụng vẫn phải kiểm tra role/quyền, request ID và chống thực thi lặp các thao tác như chuyển tiền/ghi trạng thái. Replay window của mechanism không thay thế nhật ký request đã xử lý.
+**Treating GSS protection as a substitute for authorization and idempotency.** GSS verifies identity per mechanism and protects tokens; the application must still enforce roles/permissions, request IDs, and deduplication for operations like transfers or state writes. A mechanism's replay window does not replace a ledger of processed requests.
 
-**Dùng sai identity/credential.** Host-based `service@host` khác principal `service/host@REALM`. Credential mặc định có thể không tồn tại hoặc không có quyền `ACCEPT_ONLY`. Sử dụng keytab/JAAS/`Subject` đúng role, không nhúng password trong source hay log token nhạy cảm.
+**Using the wrong identity or credential.** Host-based `service@host` differs from principal `service/host@REALM`. Default credentials may not exist or may lack `ACCEPT_ONLY` authority. Use keytabs, JAAS, and `Subject` with the proper role, never embed passwords in source code, and never log sensitive tokens.
 
-**Quên dọn tài nguyên và xử lý lỗi.** Khi `GSSException` xảy ra trong handshake, không được coi phiên established; đóng context và transport. Khi request bị từ chối do replay/order, đừng tự thực thi lại tác vụ chỉ vì transport retry. GSS context không an toàn để dùng song song tùy tiện; cần khóa hoặc phân chia context theo kết nối.
+**Forgetting resource cleanup and error handling.** When a `GSSException` occurs during the handshake, never treat the session as established; close the context and transport. When a request is rejected for replay/ordering, do not blindly retry it just because the transport layer supports retries. A `GSSContext` is not safe for arbitrary concurrent use; synchronize or isolate one context per connection.
 
-## 7. Checklist thực hành và tài liệu chuẩn
+## 7. Practical checklist and standard references
 
-Trước khi bật GSS trên một dịch vụ, hãy kiểm tra đủ: identity client/service; Kerberos credential hợp lệ; token framing có kích thước tối đa; handshake hai chiều kết thúc rõ ràng; requested và negotiated flags được kiểm tra; `wrap`/`MIC` đúng yêu cầu confidentiality; receiver chặn token duplicate/old/out-of-order trước side effect; authorization/idempotency riêng; cleanup và negative tests.
+Before enabling GSS on a service, verify all items: client/service identities; valid Kerberos credentials; bounded token framing; clear two-way handshake termination; verification of requested vs. negotiated flags; `wrap`/`MIC` matching confidentiality needs; receiver blocking duplicate/old/out-of-order tokens before side effects; separate authorization/idempotency; cleanup and negative tests.
 
-Tài liệu đối chiếu:
+Reference documents:
 
 - Java 17 `GSSContext`: https://docs.oracle.com/en/java/javase/17/docs/api/java.security.jgss/org/ietf/jgss/GSSContext.html
-- Java 17 `GSSManager` và `GSSCredential`: https://docs.oracle.com/en/java/javase/17/docs/api/java.security.jgss/org/ietf/jgss/GSSManager.html và https://docs.oracle.com/en/java/javase/17/docs/api/java.security.jgss/org/ietf/jgss/GSSCredential.html
+- Java 17 `GSSManager` and `GSSCredential`: https://docs.oracle.com/en/java/javase/17/docs/api/java.security.jgss/org/ietf/jgss/GSSManager.html and https://docs.oracle.com/en/java/javase/17/docs/api/java.security.jgss/org/ietf/jgss/GSSCredential.html
 - Java 17 `MessageProp`: https://docs.oracle.com/en/java/javase/17/docs/api/java.security.jgss/org/ietf/jgss/MessageProp.html
 - RFC 2743, GSS-API v2: https://www.rfc-editor.org/rfc/rfc2743.html
 - RFC 8353, Java bindings update: https://www.rfc-editor.org/rfc/rfc8353.html
 
-Ghi nhớ: **GSSContext xác lập phiên và danh tính; wrap/unwrap bảo vệ dữ liệu (có hoặc không có mã hóa); MIC kiểm tra nguyên vẹn; replay/order flags cho ứng dụng dữ liệu để quyết định nhận hay từ chối.**
+Takeaway: **`GSSContext` establishes the session and identities; `wrap/unwrap` protects data (with or without encryption); MIC verifies integrity; replay/order flags give the application the evidence needed to accept or reject messages.**

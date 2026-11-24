@@ -1,170 +1,170 @@
-# Khi nào nên nhận mã nguồn Java thay vì cài thêm JAR đã biên dịch?
+# When Should You Accept Java Source Code Instead of Installing a Precompiled JAR?
 
-## 1. Câu hỏi thiết kế thực sự là gì?
+## 1. What Is the Real Design Question?
 
-Trong ứng dụng Java có khả năng mở rộng lúc chạy (runtime extensibility), host muốn bổ sung hành vi mới mà không sửa hoặc biên dịch lại toàn bộ ứng dụng chính. Có hai cách nhận phần mở rộng:
+In a Java application with runtime extensibility, the host wants to add new behavior without modifying or recompiling the entire main application. There are two ways to accept extensions:
 
-- **Nhận JAR đã biên dịch:** nhà phát triển plugin viết mã Java, biên dịch/kiểm thử/đóng gói từ trước, rồi host nhận artifact chứa bytecode và tài nguyên (ví dụ một provider ServiceLoader).
-- **Nhận mã nguồn Java:** host hoặc một dịch vụ build được chỉ định nhận các tệp **.java** hoặc đoạn source có cấu trúc, **biên dịch chúng thành bytecode** phù hợp môi trường, rồi mới nạp và gọi class kết quả.
+- **Accept a precompiled JAR:** the plugin developer writes Java code, compiles/tests/packages it in advance, and the host receives an artifact containing bytecode and resources (for example, a ServiceLoader provider).
+- **Accept Java source code:** the host or a designated build service receives **.java** files or structured source snippets, **compiles them into bytecode** suitable for the environment, and only then loads and invokes the resulting class.
 
-Dù chọn cách nào, **JVM chạy bytecode, không trực tiếp chạy cú pháp Java source như một ngôn ngữ script thông thường**. “Nhận source” bổ sung một giai đoạn compilation trước class loading; nó không thay thế class loader, API/SPI, kiểm soát phiên bản hay chính sách trust.
+Regardless of the choice, **the JVM executes bytecode; it does not directly execute Java source syntax like a typical scripting language**. "Accepting source" adds a compilation stage before class loading; it does not replace the class loader, API/SPI, version control, or trust policy.
 
-Một hiểu lầm phổ biến là “muốn cài plugin lúc chạy thì bắt buộc nhận source”. Điều này **sai**. JAR cũng có thể được phát hiện và nạp khi ứng dụng đang chạy nếu host thiết kế class loader hoặc module layer và vòng đời plugin phù hợp. Ngược lại, một hệ thống có thể **nhận source để review/build trong CI** rồi phát hành JAR, hoàn toàn không cần JavaCompiler trong tiến trình sản xuất.
+A common misconception is that "to install plugins at runtime, you must accept source." This is **false**. A JAR can also be discovered and loaded while the application is running if the host designs an appropriate class loader or module layer and plugin lifecycle. Conversely, a system can **accept source for review/building in CI** and then release a JAR, completely eliminating the need for JavaCompiler in the production process.
 
-Vì vậy, cần tách hai quyết định:
+Therefore, two decisions should be separated:
 
-1. **Định dạng đầu vào** cần chấp nhận: mã nguồn để biên dịch, hay artifact bytecode đã được build?
-2. **Nơi và lúc biên dịch**: trước triển khai (CI/build service), lúc cài plugin, hay mỗi khi quy tắc thay đổi tại runtime?
+1. **Input format** to accept: source code to compile, or a prebuilt bytecode artifact?
+2. **Where and when to compile**: before deployment (CI/build service), at plugin installation time, or whenever rules change at runtime?
 
-Nhận mã nguồn là hợp lý khi có **nhu cầu thay đổi/điều chỉnh code thực sự** và có khả năng quản lý cả bước biên dịch. Nếu chỉ cần tải một implementation đã ổn định, JAR thường đơn giản và có ít trách nhiệm vận hành hơn.
+Accepting source code makes sense when there is a **genuine need to change/adjust code** and the ability to manage the compilation step as well. If you only need to load a stable implementation, a JAR is usually simpler and carries fewer operational responsibilities.
 
-## 2. Hai chuỗi xử lý: source và JAR
+## 2. Two Processing Pipelines: Source and JAR
 
 ~~~text
-Phương án A: nhận JAR
-Nhà phát triển plugin
-  └─ viết source → build/test/sign → plugin.jar
+Option A: accept JAR
+Plugin developer
+  └─ write source → build/test/sign → plugin.jar
                                    |
                                    v
-Host: xác minh artifact → nạp JAR → kiểm tra SPI → khởi tạo → gọi
-                          (loader hoặc ModuleLayer)
+Host: verify artifact → load JAR → check SPI → instantiate → invoke
+                          (loader or ModuleLayer)
 
-Phương án B: nhận Java source
-Người cung cấp mã nguồn
-  └─ source .java + dependency/version/compile options
+Option B: accept Java source
+Source provider
+  └─ .java source + dependency/version/compile options
                                    |
                                    v
-Host hoặc build service: validate → JavaCompiler/javac → .class
-                                    |                 |
-                                 diagnostics       kiểm tra output
+Host or build service: validate → JavaCompiler/javac → .class
+                                    |                  |
+                                 diagnostics     verify output
                                                        |
                                                        v
-                      nạp qua loader/layer → kiểm tra SPI → gọi
+                      load via loader/layer → check SPI → invoke
 ~~~
 
-Điểm khác biệt nằm ở **đầu vào và trách nhiệm compilation**, không nằm ở việc JVM có thể mở rộng lúc chạy hay không. Cả hai đều phải giải quyết namespace của class, ranh giới API, liên kết dependency, quyền thực thi, vòng đời và thông tin lỗi.
+The difference lies in **the input and compilation responsibility**, not in whether the JVM can be extended at runtime. Both must address class namespaces, API boundaries, dependency linking, execution permissions, lifecycle, and error reporting.
 
-### Ma trận quyết định nhanh
+### Quick Decision Matrix
 
-| Tiêu chí | Nhận source rồi biên dịch | Cài JAR có sẵn |
+| Criterion | Accept source then compile | Install prebuilt JAR |
 | --- | --- | --- |
-| Hành vi được sinh từ cấu hình/quy tắc thay đổi liên tục | Hữu ích nếu Java source là đầu ra cần thiết | Phải có quy trình build lại JAR mỗi lần đổi |
-| Plugin là bản phát hành ổn định do đội khác cung cấp | Thường không cần thiết | Phù hợp hơn |
-| Chạy nơi không có JDK/compiler | Cần build ở nơi khác | Chạy được với runtime có đủ module/dependency |
-| Cần kiểm tra lại source và xây dựng artifact theo API hiện tại | Có lợi nếu có toolchain kiểm soát | Chỉ thích hợp khi có artifact tương thích |
-| Yêu cầu khởi động/cài đặt nhanh, ít phụ thuộc build | Bất lợi khi compile lúc cài | Phù hợp hơn |
-| Cần quản lý annotation processing, compiler flags, dependencies | Host/build service phải đảm nhiệm | Trách nhiệm chủ yếu nằm ở pipeline build plugin |
-| Cần cô lập mã không đáng tin | **Không tự giải quyết an toàn** | **Không tự giải quyết an toàn** |
-| Cần thay đổi class đã load | Phải nạp output bằng loader/layer mới | Cũng phải quản lý loader/layer mới |
+| Behavior generated from frequently changing config/rules | Useful if Java source is a required output | Requires a JAR rebuild pipeline on every change |
+| Plugin is a stable release provided by another team | Usually unnecessary | More suitable |
+| Running where no JDK/compiler is present | Must build elsewhere | Works with a runtime that has sufficient modules/dependencies |
+| Need to re-inspect source and build artifact against current API | Advantageous if a controlled toolchain exists | Only suitable when a compatible artifact exists |
+| Requirement for fast startup/install, minimal build dependencies | Disadvantage when compiling at install time | More suitable |
+| Need to manage annotation processing, compiler flags, dependencies | Host/build service must handle this | Responsibility mainly lies in the plugin build pipeline |
+| Need to isolate untrusted code | **Does not solve safety on its own** | **Does not solve safety on its own** |
+| Need to swap already-loaded classes | Must load output using a new loader/layer | Also must manage a new loader/layer |
 
-Không dùng riêng một hàng trong bảng để ra quyết định. Ví dụ, “muốn audit được source” là lý do tốt để **nhận source**, nhưng chưa phải lý do đủ để **compile source trong JVM đang phục vụ người dùng**.
+Do not use a single row in the table alone to make a decision. For example, "wanting to audit source" is a good reason to **accept source**, but not yet a sufficient reason to **compile source inside the JVM serving users**.
 
-## 3. Trường hợp nên nhận mã nguồn Java
+## 3. Cases Where You Should Accept Java Source Code
 
-### 3.1. Host phải tạo implementation từ dữ liệu động
+### 3.1. The Host Must Generate Implementations from Dynamic Data
 
-Một hệ thống rule engine hoặc generator có thể tạo class Java dựa trên cấu hình nghiệp vụ, schema, DSL đã được biên dịch thành Java, template được kiểm soát hoặc định nghĩa hàm do đội nội bộ cung cấp.
+A rule engine or generator system can generate Java classes based on business configuration, schemas, DSLs compiled to Java, controlled templates, or function definitions supplied by internal teams.
 
-Ví dụ: nền tảng xử lý đơn hàng sinh adapter cho một schema mới; mỗi phiên bản schema dẫn tới một implementation của cùng interface **OrderTransformer**. Nếu yêu cầu phải có **Java class** để gắn vào hệ thống và cập nhật trong runtime, JavaCompiler có thể là một giai đoạn hợp lý.
+For example: an order processing platform generates an adapter for a new schema; each schema version results in an implementation of the same **OrderTransformer** interface. If a **Java class** is strictly required to plug into the system and update at runtime, JavaCompiler can be a reasonable stage.
 
-Điều kiện để chọn hướng này:
-- Phải biên dịch thật ra class hoặc module; một bảng cấu hình/interpreter không đáp ứng yêu cầu.
-- Thời điểm thay đổi và vòng đời phiên bản đã rõ.
-- Toolchain, dependency, mã nguồn tạo ra và kết quả compile có thể kiểm chứng/tái tạo.
-- Source chỉ có khả năng truy cập những API của host được công bố trong hợp đồng.
+Conditions for choosing this approach:
+- It must genuinely compile to a class or module; a configuration table or interpreter cannot meet the requirement.
+- Change timing and version lifecycle are clear.
+- Toolchain, dependencies, generated source code, and compilation output can be verified/reproduced.
+- Source can only access host APIs published in the contract.
 
-**Nếu quy tắc chỉ là biểu thức đơn giản**, cân nhắc cấu hình, DSL có giới hạn, rule engine hoặc callback đã biên dịch sẵn trước. Việc xây dựng runtime Java compiler chỉ để thay một điều kiện if có thể tạo chi phí và rủi ro không cần thiết.
+**If rules are only simple expressions**, consider configuration, a restricted DSL, a rule engine, or precompiled callbacks first. Building a runtime Java compiler just to replace an `if` condition can introduce unnecessary cost and risk.
 
-### 3.2. Cần biên dịch theo đúng phiên bản API và môi trường hiện hành
+### 3.2. Need to Compile Against the Current API Version and Environment
 
-Đôi khi source của một extension có thể tương thích với một phiên bản API đã thay đổi, nhưng JAR đóng gói sẵn phụ thuộc chữ ký cũ. Nếu sở hữu source và có kiểm thử đầy đủ, build lại theo API hiện hành có thể tạo artifact tương thích.
+Sometimes an extension's source is compatible with a changed API version, while the prepackaged JAR depends on old signatures. If you own the source and have thorough tests, rebuilding against the current API can produce a compatible artifact.
 
-Ví dụ: host vừa đổi một interface nội bộ, và các provider nội bộ cần được biên dịch lại trước khi kích hoạt. Đây là lý do **nhận source**, nhưng vẫn thường nên thực hiện trong **pipeline build/test** hơn là ở mỗi request sản xuất.
+For example: the host just changed an internal interface, and internal providers need to be recompiled before activation. This is a reason to **accept source**, though it should still typically be done in a **build/test pipeline** rather than on every production request.
 
-**Không bảo đảm tự tương thích:** recompilation chỉ giải quyết những vấn đề mà source thực sự biên dịch được theo API mới. Nếu ý nghĩa API, yêu cầu null, đồng bộ, data format hay transaction đã đổi, vẫn phải sửa source và kiểm thử hành vi. Compiler thành công không chứng minh hợp đồng runtime còn đúng.
+**No guarantee of automatic compatibility:** recompilation only resolves issues where the source actually compiles against the new API. If API semantics, nullability requirements, concurrency, data formats, or transactions changed, the source still needs to be updated and behavior-tested. Compiler success does not prove the runtime contract still holds.
 
-### 3.3. Plugin là bản tùy chỉnh riêng theo tenant hoặc lần triển khai
+### 3.3. Plugin Is a Custom Build per Tenant or Deployment
 
-Một sản phẩm có nhiều khách hàng có thể cần thuật toán tùy chỉnh do nhóm triển khai đáng tin cậy cung cấp. Nhận source cho phép lưu phiên bản rõ ràng, kiểm tra khác biệt, build thành nhiều artifact độc lập và quay lại phiên bản trước.
+A multi-customer product may require custom algorithms provided by a trusted deployment team. Accepting source enables clear versioning, diff inspection, building into multiple independent artifacts, and rolling back to previous versions.
 
-Khi chọn giải pháp này, mỗi bản cần có **version ID, hash, trạng thái compile/test, API target và quyền kích hoạt**. Không compile lại bất kỳ đoạn source nào ở mỗi request nếu đã có artifact tương ứng. Mô hình đáng cân nhắc là **compile ở bước công bố phiên bản**, sau đó chỉ nạp kết quả đã được phê duyệt.
+When choosing this solution, each version needs a **version ID, hash, compile/test status, target API, and activation permissions**. Do not recompile any source snippet on every request if a corresponding artifact already exists. A model worth considering is **compiling at the version publishing step**, then loading only approved results.
 
-### 3.4. Mục tiêu là review, kiểm thử hoặc tái lập build
+### 3.4. Goal Is Review, Testing, or Reproducible Builds
 
-Nhận mã nguồn giúp kiểm tra cách triển khai, chạy static analysis, kiểm toán dependency và build lại bằng toolchain xác định. Tuy nhiên, từ nhu cầu review không suy ra cần compile trong ứng dụng đang chạy. Thường an toàn và dễ vận hành hơn nếu:
+Accepting source code helps inspect implementations, run static analysis, audit dependencies, and rebuild with a deterministic toolchain. However, the need for review does not imply needing to compile inside the running application. It is usually safer and easier to operate if you:
 
-1. Nhận source trong một môi trường build.
-2. Chạy formatter/linter/test/scan thích hợp.
-3. Biên dịch bằng toolchain cố định, tạo artifact versioned.
-4. Kiểm tra checksum/chữ ký và triển khai artifact.
-5. Host cài JAR/nhận service provider khi cần.
+1. Accept source in a build environment.
+2. Run appropriate formatters/linters/tests/scans.
+3. Compile with a fixed toolchain, producing a versioned artifact.
+4. Verify checksums/signatures and deploy the artifact.
+5. Have the host install the JAR / load the service provider when needed.
 
-Một phương án thiết kế tốt có thể **nhận source ở cổng phát triển nhưng chỉ nhận JAR ở cổng runtime**.
+A good design option can **accept source at the development gate while accepting only JARs at the runtime gate**.
 
-## 4. Khi nào chỉ nên cài thêm JAR đã biên dịch?
+## 4. When Should You Only Install a Precompiled JAR?
 
-**Ưu tiên JAR đã build** khi plugin được phát hành bởi một đội phát triển hoặc nhà cung cấp, có giao diện SPI ổn định, ít cần sửa trực tiếp theo từng lần chạy và đã có quy trình build, kiểm thử, xác minh artifact.
+**Prefer a prebuilt JAR** when the plugin is released by a development team or vendor, has a stable SPI interface, rarely needs direct per-run edits, and already has a build, test, and artifact verification pipeline.
 
-Các tình huống điển hình:
+Typical scenarios:
 
-- Thêm một JDBC driver, implementation SPI, bộ xử lý định dạng, extension adapter đã phát hành.
-- Triển khai bản vá hoặc phiên bản plugin đã qua kiểm thử ở staging.
-- Runtime được tối giản bằng **jlink**, container nhỏ hoặc môi trường chỉ có module cần chạy, không chứa compiler.
-- Cần startup/activation nhanh, kết quả build có thể tái lập và không muốn để compiler flags/dependency resolution trở thành trách nhiệm của host.
-- Muốn sử dụng registry, Maven repository hoặc hệ thống phân phối artifact có checksum/chữ ký.
+- Adding a released JDBC driver, SPI implementation, format processor, or extension adapter.
+- Deploying a patch or plugin version already tested in staging.
+- The runtime is minimized with **jlink**, a small container, or an environment with only runtime modules and no compiler.
+- Fast startup/activation and reproducible build outputs are needed, and you do not want compiler flags/dependency resolution to become the host's responsibility.
+- Wanting to use a registry, Maven repository, or artifact distribution system with checksums/signatures.
 
-JAR không tự động là “an toàn” hoặc “tương thích”. Bytecode của JAR vẫn có thể đọc file, mở network, sửa dữ liệu hoặc gây lỗi JVM. Host phải kiểm tra provenance, version, loader/module visibility, API contract và policy trước khi kích hoạt.
+A JAR is not automatically "safe" or "compatible." A JAR's bytecode can still read files, open network connections, modify data, or crash the JVM. The host must verify provenance, version, loader/module visibility, API contract, and policy before activation.
 
-Một JAR có thể chứa **META-INF/services** để ServiceLoader tìm provider trên classpath, hoặc **module-info.class** với chỉ thị **provides ... with ...** trên module path. Hai cơ chế discovery cần được cấu hình đúng; việc thêm file JAR vào một thư mục không khiến JVM đang chạy tự động tìm đến nó nếu host không có cơ chế reload/scan.
+A JAR can contain **META-INF/services** for ServiceLoader to discover providers on the classpath, or **module-info.class** with a **provides ... with ...** directive on the module path. Both discovery mechanisms must be configured properly; dropping a JAR file into a directory does not cause a running JVM to automatically find it if the host has no reload/scan mechanism.
 
-## 5. Những điều kiện bắt buộc trước khi host chấp nhận source
+## 5. Mandatory Prerequisites Before the Host Accepts Source
 
-### 5.1. Có compiler thực sự, không chỉ Java runtime
+### 5.1. An Actual Compiler Must Exist, Not Just a Java Runtime
 
-API chuẩn **javax.tools.JavaCompiler** cho phép gọi trình biên dịch từ Java code; implementation thường lấy qua **ToolProvider.getSystemJavaCompiler()** khi đang chạy trên JDK có **jdk.compiler**. Giá trị trả về **có thể là null** nếu runtime image không có system compiler.
+The standard **javax.tools.JavaCompiler** API lets you invoke the compiler from Java code; the implementation is usually obtained via **ToolProvider.getSystemJavaCompiler()** when running on a JDK with **jdk.compiler**. The return value **can be null** if the runtime image does not contain a system compiler.
 
-**java.compiler** chứa API JavaCompiler; **jdk.compiler** cung cấp compiler implementation trong các JDK tiêu chuẩn. Ứng dụng đóng gói bằng jlink phải kiểm tra các module đi kèm. Trong production, không nên mặc định “có lệnh java” đồng nghĩa “có javac”.
+**java.compiler** contains the JavaCompiler API; **jdk.compiler** provides the compiler implementation in standard JDKs. Applications packaged with jlink must verify included modules. In production, you should not assume "having the `java` command" means "having `javac`."
 
-Có thể dùng compiler ở một **dịch vụ build tách biệt** và để runtime chỉ nạp artifact đã xác thực. Đây là phương án thường tốt khi runtime cần nhỏ gọn hoặc có hạn chế an toàn.
+You can run the compiler in a **separate build service** and have the runtime load only verified artifacts. This is often the better option when the runtime must stay slim or has security constraints.
 
-### 5.2. Có bộ hợp đồng SPI rõ ràng
+### 5.2. A Clear SPI Contract
 
-Mã nguồn được nhận phải biết implement interface nào, dùng kiểu DTO nào và được phép gọi API nào. Định nghĩa đầu vào/đầu ra, nullability, exception, thread safety, timeout và ownership ở ranh giới.
+Accepted source code must know which interface to implement, which DTO types to use, and which APIs it is allowed to call. Define inputs/outputs, nullability, exceptions, thread safety, timeouts, and ownership at the boundary.
 
-Trên classpath, nên đặt **API/SPI trong loader cha**, implementation trong loader con. Nếu cùng tên interface nhưng hai loader định nghĩa hai bản khác nhau, class vừa compile vẫn có thể không cast được sang API host. Với JPMS, cần làm rõ **module readability, exports/opens, uses/provides** và ModuleLayer; không thể giả định việc đặt .class vào URLClassLoader sẽ tự bổ sung nó vào một named module đã tồn tại.
+On the classpath, you should place **the API/SPI in the parent loader** and implementations in child loaders. If the same interface name is defined by two different loaders as two distinct versions, the freshly compiled class still cannot be cast to the host API. With JPMS, you must clarify **module readability, exports/opens, uses/provides**, and ModuleLayer; you cannot assume placing `.class` files into a URLClassLoader will automatically add them to an existing named module.
 
-### 5.3. Có toàn bộ đầu vào build đúng phiên bản
+### 5.3. Complete Build Inputs with Exact Versions
 
-Compiler cần:
-- Source files đúng package và public type, các source liên quan nếu biên dịch nhiều lớp.
-- **Classpath hoặc module path** có các dependency cần thiết, đúng phiên bản và thứ tự.
-- Target Java version, **--release** hoặc cặp source/target phù hợp.
-- Compiler options, encoding, annotation processor policy và output directory.
-- Cách thu thập **diagnostics**: mức độ, file, dòng/cột, mã lỗi; không chỉ boolean thành công/thất bại.
-- Cơ chế kiểm tra class output và artifact provenance sau compilation.
+The compiler needs:
+- Source files with matching packages and public types, plus related sources if compiling multiple classes.
+- **Classpath or module path** containing the required dependencies, in the right versions and order.
+- Target Java version, **--release**, or an appropriate source/target pair.
+- Compiler options, encoding, annotation processor policy, and output directory.
+- A way to collect **diagnostics**: severity, file, line/column, error code; not just a boolean success/failure.
+- A mechanism to inspect class outputs and artifact provenance after compilation.
 
-JavaCompiler **không tự tải dependency Maven**, không tự chạy Gradle/Maven và không tự giải quyết mọi vấn đề của module graph. Với project phức tạp dùng annotation processors/code generation, build tool có thể phù hợp hơn việc gọi compiler một lần với một danh sách .java.
+JavaCompiler **does not automatically download Maven dependencies**, does not run Gradle/Maven, and does not automatically solve every module graph issue. For complex projects using annotation processors/code generation, a build tool may be more appropriate than invoking the compiler once with a list of `.java` files.
 
-### 5.4. Có quyết định về trust và thời điểm thực thi
+### 5.4. Decisions on Trust and Execution Timing
 
-Nếu code từ người dùng hoặc đối tác chưa tin cậy, **không compile và chạy trực tiếp trong JVM của host** với quyền của chính tiến trình. Nhận source không đồng nghĩa kiểm tra được ý đồ của nó; sau compilation, code có thể thực thi I/O, gọi network, tạo thread, giữ lock hoặc thay đổi trạng thái.
+If code comes from untrusted users or partners, **do not compile and execute it directly inside the host JVM** with the host process's own privileges. Accepting source does not mean you can verify its intent; after compilation, code can perform I/O, make network calls, spawn threads, hold locks, or mutate state.
 
-Cần thiết kế riêng quyền truy cập, xác thực publisher, tài nguyên/timeout và môi trường cách ly. Với nội dung không đáng tin, cân nhắc một DSL có năng lực hạn chế hoặc **quy trình compile và execute trong process/container được cô lập**. Bản thân JavaCompiler, URLClassLoader và việc ký JAR **không tạo sandbox**.
+You must separately design access permissions, publisher authentication, resource limits/timeouts, and an isolated environment. For untrusted content, consider a restricted-capability DSL or **a pipeline that compiles and executes in an isolated process/container**. JavaCompiler, URLClassLoader, and JAR signing **do not create a sandbox** by themselves.
 
-## 6. Ví dụ Java 17 hoàn chỉnh: biên dịch source rồi nạp một Task
+## 6. Complete Java 17 Example: Compiling Source and Loading a Task
 
-Bài thực hành mô phỏng host nhận một implementation dạng Java source. Để có thể chạy độc lập và kiểm tra rõ kết quả, ví dụ nhúng source đáng tin cậy trong **String**. Trong hệ thống thực, đoạn source này có thể được lấy từ bản version đã được review và xác thực.
+This exercise simulates a host receiving an implementation as Java source. To run standalone and clearly verify results, the example embeds trusted source in a **String**. In a real system, this source snippet would be fetched from a reviewed and verified version.
 
-**Mục tiêu kỹ thuật**:
-1. Host giữ một interface **Task** ổn định.
-2. JavaCompiler biên dịch mã nguồn **dyn.UpperTask** theo API của host.
-3. Host nạp .class trong output directory bằng URLClassLoader con.
-4. Object được cast sang **Task** và thực thi.
-5. Host đóng file manager/loader và dọn thư mục output tạm.
+**Technical goals**:
+1. The host keeps a stable **Task** interface.
+2. JavaCompiler compiles the **dyn.UpperTask** source against the host's API.
+3. The host loads `.class` files in the output directory using a child URLClassLoader.
+4. The object is cast to **Task** and executed.
+5. The host closes the file manager/loader and cleans up the temporary output directory.
 
-Đây là ví dụ học tập về compile/load. Nó không phải pipeline có sandbox, tính năng ký code, rate limit hay cache production.
+This is a learning example about compiling/loading. It is not a production pipeline with sandboxing, code signing, rate limiting, or caching.
 
-Tạo **src/demo/Host.java**:
+Create **src/demo/Host.java**:
 
 ~~~java
 package demo;
@@ -251,22 +251,22 @@ public final class Host {
 }
 ~~~
 
-Giải thích:
+Explanation:
 
-- **ToolProvider.getSystemJavaCompiler()** lấy system compiler. Nếu không có, ví dụ từ chối trước khi compile.
-- **SimpleJavaFileObject** biểu diễn một Java source file trong bộ nhớ có URI **string:///dyn/UpperTask.java** phù hợp tên class **dyn.UpperTask**; **getCharContent** cấp toàn bộ source.
-- **StandardJavaFileManager** quản lý đầu vào/đầu ra chuẩn và được đóng trong try-with-resources. Với **-d**, compiler ghi .class vào một thư mục tạm.
-- **--release 17** yêu cầu biên dịch theo ngôn ngữ/API nền tảng Java 17 khi compiler hỗ trợ release đó; không bảo đảm các library ngoài JDK tương thích.
-- **-proc:none** tắt annotation processing cho ví dụ để không vô tình chạy processor từ compiler classpath. Nếu hệ thống cần processor thật sự, phải định nghĩa, khóa phiên bản và kiểm soát processor path.
-- **-classpath System.getProperty("java.class.path")** đưa class **demo.Host.Task** vào tập class mà compiler nhìn thấy trong ví dụ này. Khi host dùng loader/module khác, cần dựng classpath/module path đúng kiến trúc; không sao chép nguyên cách này mà không kiểm tra.
-- **Boolean.TRUE.equals(...call())** giúp phân biệt kết quả compile thành công với giá trị null/false; khi thất bại, mã in diagnostics rồi dừng trước bước class loading.
-- URLClassLoader được tạo với **Host.class.getClassLoader()** làm parent: lớp **Task** dùng chung vẫn được parent định nghĩa, còn provider mới chỉ có trong thư mục output con.
-- **getDeclaredConstructor().newInstance()** cần constructor không tham số có thể truy cập. Trong ví dụ UpperTask là public class không khai báo constructor nào, nên Java sinh public default constructor.
-- try-with-resources đóng loader, và **Files.walk** xóa output tạm theo thứ tự con trước cha. Đóng loader không bảo đảm class được unload ngay nếu vẫn còn reference.
+- **ToolProvider.getSystemJavaCompiler()** obtains the system compiler. If unavailable, the example fails before compiling.
+- **SimpleJavaFileObject** represents an in-memory Java source file with URI **string:///dyn/UpperTask.java** matching the class name **dyn.UpperTask**; **getCharContent** supplies the entire source.
+- **StandardJavaFileManager** manages standard inputs/outputs and is closed in a try-with-resources block. With **-d**, the compiler writes `.class` files into a temporary directory.
+- **--release 17** requests compilation against the Java 17 platform language/APIs when the compiler supports that release; it does not guarantee compatibility of non-JDK libraries.
+- **-proc:none** disables annotation processing for the example so processors on the compiler classpath are not accidentally executed. If a system genuinely needs processors, they must be defined, version-pinned, and controlled via processor path.
+- **-classpath System.getProperty("java.class.path")** puts **demo.Host.Task** into the set of classes visible to the compiler in this example. When the host uses different loaders/modules, construct the classpath/module path according to the architecture; do not copy this approach verbatim without checking.
+- **Boolean.TRUE.equals(...call())** distinguishes successful compilation from null/false; on failure, the code prints diagnostics and stops before the class loading step.
+- URLClassLoader is created with **Host.class.getClassLoader()** as its parent: the shared **Task** interface remains defined by the parent, while the new provider exists only in the child output directory.
+- **getDeclaredConstructor().newInstance()** requires an accessible no-arg constructor. In the example, `UpperTask` is a public class declaring no constructors, so Java generates a public default constructor.
+- try-with-resources closes the loader, and **Files.walk** deletes temporary output in child-before-parent order. Closing the loader does not guarantee classes are immediately unloaded if references remain.
 
-### 6.1. Biên dịch và chạy trên JDK 17 trở lên
+### 6.1. Compiling and Running on JDK 17 or Later
 
-Từ thư mục chứa **src/**, tạo thư mục output và biên dịch host:
+From the directory containing **src/**, create the output directory and compile the host:
 
 ~~~bash
 mkdir -p out
@@ -274,9 +274,9 @@ javac --release 17 -d out src/demo/Host.java
 java -cp out demo.Host
 ~~~
 
-Trên Windows PowerShell, thay riêng bước tạo thư mục bằng **New-Item -ItemType Directory -Force out**, còn hai lệnh **javac** và **java** giữ nguyên.
+On Windows PowerShell, replace only the directory creation step with **New-Item -ItemType Directory -Force out**, while keeping the two **javac** and **java** commands unchanged.
 
-Kết quả chuẩn, với code và classpath của ví dụ:
+Standard output, given the example's code and classpath:
 
 ~~~text
 Compiled: true
@@ -285,183 +285,183 @@ Child defines provider: true
 Host API compatible: true
 ~~~
 
-Kết quả cho thấy **source được biên dịch ở runtime**, provider được định nghĩa bởi **loader con**, và interface Task vẫn có **cùng type identity** với host. Đây là lý do việc phân chia loader quan trọng ngay cả khi bản thân compilation đã thành công.
+The output shows **source was compiled at runtime**, the provider is defined by **the child loader**, and the `Task` interface retains **the same type identity** with the host. This is why separating loaders matters even when compilation itself succeeds.
 
-### 6.2. Source được biên dịch ở đâu và kết quả được giữ ở đâu?
+### 6.2. Where Is Source Compiled and Where Is the Output Stored?
 
-Ví dụ dùng một URI in-memory cho **source** nhưng output vẫn là **file .class** trong thư mục tạm do **-d** chỉ định. Đây là mô hình **in-memory input + disk output**, không phải cả quá trình đều diễn ra trong RAM.
+The example uses an in-memory URI for **source**, yet the output is still **.class files** in the temporary directory specified by **-d**. This is an **in-memory input + disk output** model, not a process executed entirely in RAM.
 
-Muốn hoàn toàn in-memory, cần triển khai **JavaFileManager** riêng để giữ bytecode và một ClassLoader có **defineClass** đọc các byte[] đó. Cách này hữu ích khi cần tránh ghi output tạm, nhưng phức tạp hơn, cần quản lý package, dependency, class identity và vòng đời. Không nên chọn chỉ để có chữ “in-memory” nếu thư mục tạm được quản lý tốt đã đáp ứng nhu cầu.
+To stay completely in-memory, you need a custom **JavaFileManager** implementation to hold bytecode and a ClassLoader with **defineClass** reading those `byte[]` arrays. This approach is useful when temporary disk output must be avoided, but it is more complex and requires managing packages, dependencies, class identity, and lifecycle. Do not choose it just for the "in-memory" label if a well-managed temporary directory already meets your needs.
 
-### 6.3. Giới hạn của ví dụ
+### 6.3. Limitations of the Example
 
-- Biên dịch **một implementation** và khởi tạo bằng reflection; không tự quản lý toàn bộ multi-file project hay annotation processors.
-- Không có validation, authentication hoặc sandbox cho source ngoài hệ thống.
-- Không có cache: mỗi lần chạy main đều compile lại.
-- Không chạy trong custom ModuleLayer hay triển khai module-info.java cho plugin.
-- Không có SLA cho compilation time, giới hạn RAM/CPU, timeout hoặc rollback.
-- Không chạy source nhập ngẫu nhiên từ web/khách hàng; source đã được viết sẵn để ví dụ an toàn và xác định.
-- Không tự biến source thành JAR: nếu cần phát hành artifact, phải có bước đóng gói và metadata riêng.
+- Compiles **one implementation** and instantiates it via reflection; it does not automatically manage full multi-file projects or annotation processors.
+- No validation, authentication, or sandboxing for external source code.
+- No caching: every execution of `main` recompiles.
+- Does not run in a custom ModuleLayer or deploy a `module-info.java` for the plugin.
+- No SLA for compilation time, RAM/CPU limits, timeouts, or rollback.
+- Does not run arbitrary source entered from the web/customers; the source is hardcoded so the example is safe and deterministic.
+- Does not turn source into a JAR automatically: if artifact distribution is needed, a separate packaging and metadata step is required.
 
-## 7. Nhận source rồi compile có giải quyết được lỗi tương thích JAR không?
+## 7. Does Accepting Source and Compiling Fix JAR Compatibility Errors?
 
-Có thể giải quyết **một số lỗi biên dịch hoặc bytecode target** khi có đủ source và dependency, nhưng không phải mọi lỗi.
+It can solve **some compilation or bytecode target errors** when full source and dependencies are available, but not all errors.
 
-| Triệu chứng khi cài JAR | Source và recompilation giúp gì? | Cần kiểm tra gì nữa? |
+| Symptom when installing a JAR | How do source and recompilation help? | What else must be checked? |
 | --- | --- | --- |
-| **UnsupportedClassVersionError** vì bytecode mới hơn JVM | Có thể compile lại với **--release** được compiler hỗ trợ nếu source không dùng tính năng quá mới | API/library target và source có tương thích phiên bản Java cũ không? |
-| **NoSuchMethodError** sau thay thư viện | Có thể compile lại, phát hiện chữ ký cũ ngay lúc build | Tất cả dependency runtime có đúng phiên bản và hành vi không? |
-| **ClassNotFoundException** do thiếu dependency | Chỉ compile lại không tạo ra thư viện còn thiếu | Dependency của source, compile path và runtime path |
-| **ClassCastException** giữa loader | Source vẫn có thể tạo hai bản API trong hai loader | Type identity của API/SPI và parent delegation |
-| **IllegalAccessError** hoặc ràng buộc JPMS | Recompile chỉ có ích nếu thay thiết kế quyền truy cập đúng | module-info.java, requires, exports/opens và layer |
-| Kết quả nghiệp vụ sai | Không có gì bảo đảm từ việc compile thành công | Contract tests và integration tests |
-| Lỗi khởi tạo hoặc thiếu cấu hình môi trường | Compiler có thể pass nhưng plugin vẫn fail khi chạy | Config, resource, native library, permission và lifecycle |
+| **UnsupportedClassVersionError** because bytecode is newer than the JVM | Can recompile with **--release** supported by the compiler if source does not use too-new features | Are target APIs/libraries and source compatible with the older Java version? |
+| **NoSuchMethodError** after a library change | Can recompile, catching stale signatures at build time | Do all runtime dependencies have the right versions and behavior? |
+| **ClassNotFoundException** due to missing dependency | Recompiling alone does not create the missing library | Source dependencies, compile path, and runtime path |
+| **ClassCastException** across loaders | Source can still produce two copies of the API in two loaders | API/SPI type identity and parent delegation |
+| **IllegalAccessError** or JPMS constraints | Recompiling only helps if the access design is fixed properly | `module-info.java`, `requires`, `exports`/`opens`, and layers |
+| Incorrect business results | Nothing guaranteed by successful compilation | Contract tests and integration tests |
+| Initialization failure or missing environment configuration | Compiler may pass while the plugin still fails at runtime | Config, resources, native libraries, permissions, and lifecycle |
 
-Nếu một plugin có JAR tương thích sẵn, việc yêu cầu source và compile lại có thể tạo thêm một tổ hợp phiên bản chưa từng được kiểm thử. **Reproducibility** và cách chứng minh artifact đang chạy tương ứng đúng source/flags/dependencies quan trọng hơn cảm giác “build trên máy này chắc tương thích”.
+If a plugin already has a compatible JAR, demanding source and recompiling may produce an untested combination of versions. **Reproducibility** and proving that the running artifact corresponds to the exact source/flags/dependencies matter more than the feeling that "building on this machine probably makes it compatible."
 
-## 8. Classpath, module path và chiến lược nạp sau compile
+## 8. Classpath, Module Path, and Post-Compilation Loading Strategy
 
-### 8.1. Classpath plugin
+### 8.1. Classpath Plugins
 
-Trong chương trình đơn giản, source compile với **-classpath** để tham chiếu API host. Sau đó URLClassLoader con nạp class output. Parent-first tạo cơ hội chia sẻ một bản SPI, trong khi mỗi plugin có thể có loader và package riêng.
+In a simple program, source compiles with **-classpath** to reference the host API. A child URLClassLoader then loads the compiled classes. Parent-first delegation lets them share a single SPI definition, while each plugin can have its own loader and packages.
 
-Cần tránh:
-- Đưa bản sao SPI vào loader con rồi dùng child-first, khiến cùng interface có hai identity.
-- Để host API tham chiếu trực tiếp implementation class chỉ tồn tại trong loader con.
-- Giữ static reference đến ClassLoader cũ sau khi nạp phiên bản mới.
-- Gộp nhiều JAR/version không tương thích vào một global classpath.
+Avoid:
+- Placing a duplicate copy of the SPI into the child loader and using child-first, giving the same interface two identities.
+- Letting the host API directly reference implementation classes that only exist in the child loader.
+- Holding static references to an old ClassLoader after loading a new version.
+- Merging multiple incompatible JARs/versions into a single global classpath.
 
-Nếu cài JAR prebuilt, host cũng có thể đưa URL của JAR vào URLClassLoader rồi khám phá implementation qua **ServiceLoader.load(service, loader)**. **JavaCompiler không cần tham gia** chuỗi xử lý này.
+When installing a prebuilt JAR, the host can likewise pass the JAR's URL to a URLClassLoader and discover implementations via **ServiceLoader.load(service, loader)**. **JavaCompiler does not need to participate** in this flow.
 
-### 8.2. Named module và JPMS
+### 8.2. Named Modules and JPMS
 
-Đối với plugin là **explicit named module**, cần biên dịch với các option thích hợp như **--module-path** và **--module-source-path**, khai báo **module-info.java** khi cần, rồi quản lý **ModuleLayer**. Chỉ viết bytecode vào thư mục và đưa URL vào loader không biến module đó thành một module đã resolve theo mong muốn.
+For a plugin packaged as an **explicit named module**, you must compile with appropriate options such as **--module-path** and **--module-source-path**, declare **module-info.java** when needed, and manage a **ModuleLayer**. Simply writing bytecode to a directory and passing a URL to a loader does not turn that module into a properly resolved module.
 
-SPI qua JPMS thường dùng **uses Service** trong consumer và **provides Service with Provider** trong provider; host nên gọi ServiceLoader theo layer phù hợp. Implementation package có thể được đóng gói, không exports/opens cho host, trong khi provider vẫn được ServiceLoader khởi tạo theo cơ chế của JPMS.
+SPI via JPMS typically uses **uses Service** in the consumer and **provides Service with Provider** in the provider; the host should invoke ServiceLoader against the appropriate layer. The implementation package can stay encapsulated without `exports`/`opens` to the host, while the provider is still instantiated by ServiceLoader through JPMS mechanisms.
 
-Nếu không có lý do vận hành để tự dựng graph module lúc runtime, hãy biên dịch module trong pipeline build rồi cài artifact theo cấu hình JPMS xác định.
+If there is no operational reason to construct module graphs dynamically at runtime, compile modules in the build pipeline and install artifacts according to a defined JPMS configuration.
 
-## 9. Chi phí compile ở runtime và cách giảm
+## 9. Runtime Compilation Cost and How to Reduce It
 
-**Compiling có chi phí khác loading.** Compiler phải parse/resolve/type-check/generate bytecode; có thể cần nhiều nguồn, annotation processors, module graph và file I/O. Với các rule thay đổi ít nhưng được gọi nhiều, compile ở mỗi request làm tăng latency, CPU, memory và khả năng bị abuse.
+**Compiling has a different cost profile than loading.** The compiler must parse/resolve/type-check/generate bytecode; it may require multiple sources, annotation processors, a module graph, and file I/O. For rules that change rarely but are invoked frequently, compiling on every request increases latency, CPU, memory, and abuse risk.
 
-Mô hình thực tế:
+Practical model:
 
 ~~~text
-Source version được phê duyệt
+Approved source version
        |
        v
-Tạo key: source hash + API version + compiler target
-       + options + fingerprint dependency + processor version
+Build key: source hash + API version + compiler target
+       + options + dependency fingerprint + processor version
        |
        v
-Cache đã có artifact hợp lệ?
-   | có                      | không
+Valid artifact already cached?
+   | yes                     | no
    v                         v
-Đọc artifact                Compile + kiểm thử + kiểm chứng
+Read artifact               Compile + test + verify
    |                         |
    +------------+------------+
                 |
                 v
-        Kích hoạt bản được chọn
+        Activate selected version
                 |
                 v
-       Gọi nhiều lần, không compile lại
+       Invoke repeatedly, no recompilation
 ~~~
 
-Nên khóa **release target, classpath/module path, compiler version, processor policy, dependency versions và source hash**. Chỉ dùng hash của source sẽ sai khi API hoặc compiler flags thay đổi. Kết quả build cần có định danh bất biến để rollback và chẩn đoán.
+You should pin **release target, classpath/module path, compiler version, processor policy, dependency versions, and source hash**. Using only the source hash will break when the API or compiler flags change. Build outputs need immutable identifiers for rollback and diagnostics.
 
-Mỗi phiên bản được kích hoạt có thể cần **loader riêng**. Khi thay phiên bản, tách traffic khỏi loader cũ, dừng callback, đóng tài nguyên và giải phóng reference trước khi kỳ vọng class unloading. **URLClassLoader.close() không tự unload class** và không ngắt thread do plugin tạo.
+Each activated version may require **its own loader**. When swapping versions, drain traffic from the old loader, stop callbacks, close resources, and release references before expecting class unloading. **URLClassLoader.close() does not automatically unload classes** and does not terminate threads spawned by the plugin.
 
-Với nhiều biến thể nhỏ, kiểm tra liệu một interpreter/DSL hoặc các tham số cấu hình truyền cho một implementation đã build sẵn có rẻ hơn việc sinh nhiều class. “Có thể compile” không đồng nghĩa “nên compile”.
+For many small variants, check whether an interpreter/DSL or configuration parameters passed to a prebuilt implementation are cheaper than generating many classes. "Can compile" does not mean "should compile."
 
-## 10. An toàn: kiểm soát cả bước biên dịch lẫn thực thi
+## 10. Safety: Controlling Both Compilation and Execution
 
-Đây là điều kiện quyết định nếu source không đến từ đội phát triển đáng tin cậy:
+This is the decisive requirement if source does not come from a trusted development team:
 
-- **Source Java có quyền năng của Java code**, không phải một file cấu hình thụ động. Khi class được nạp và thực thi, code có thể truy cập những tài nguyên mà tiến trình cho phép.
-- **Annotation processor và compiler plugin** là code có thể được chạy trong giai đoạn build. Ví dụ dùng **-proc:none** để tắt processor cho source minh họa; dự án có processor phải khóa, rà soát và cô lập chúng.
-- Giới hạn kích thước source, số file, thời gian compile, CPU/memory/disk và số lượng phiên bản lưu trữ. Cần xác thực/quota trước khi compile.
-- Không trộn compiler classpath với thư viện nhạy cảm nội bộ một cách vô thức; chỉ cấp các API cần để build. Tuy nhiên, **giấu library khỏi compiler path không phải biện pháp sandbox khi thực thi**.
-- Compile và chạy trong **quy trình/process cách ly** nếu phải nhận source từ bên không tin cậy; áp dụng quyền filesystem/network, resource quota và lifecycle phù hợp.
-- Kiểm tra provenance, hash, version và logs; không lưu source/diagnostic có secret như văn bản công khai.
-- Không coi **SecurityManager** là mô hình sandbox hiện đại mặc định; trên Java 17 cơ chế này đã bị đánh dấu deprecated for removal và có nhiều giới hạn thực tế.
+- **Java source has the full power of Java code**, not a passive configuration file. Once classes are loaded and executed, code can access whatever resources the process permits.
+- **Annotation processors and compiler plugins** are code that can run during the build stage. The example uses **-proc:none** to disable processors for the demo source; projects that use processors must pin, review, and isolate them.
+- Limit source size, file count, compilation time, CPU/memory/disk, and stored version count. Validation/quotas are required before compiling.
+- Do not casually mix the compiler classpath with sensitive internal libraries; expose only the APIs needed to build. However, **hiding libraries from the compiler path is not an execution-time sandbox**.
+- Compile and run in an **isolated process/container** if you must accept source from untrusted parties; apply appropriate filesystem/network permissions, resource quotas, and lifecycle controls.
+- Audit provenance, hashes, versions, and logs; do not store source/diagnostics containing secrets as public plain text.
+- Do not treat **SecurityManager** as the default modern sandbox model; in Java 17 it is already marked deprecated for removal and has many practical limitations.
 
-JAR prebuilt cũng cần các biện pháp trust phù hợp. Khác biệt là với source, host còn phải kiểm soát **compiler/build pipeline**. Không nên quảng bá nhận source là “an toàn hơn” chỉ vì có thể đọc được mã.
+Prebuilt JARs also require appropriate trust measures. The difference is that with source, the host must also govern **the compiler/build pipeline**. Accepting source should not be marketed as "safer" merely because the code is readable.
 
-## 11. Các lỗi phổ biến trong luồng source compilation
+## 11. Common Pitfalls in the Source Compilation Flow
 
-| Lỗi | Dấu hiệu | Xử lý đúng |
+| Error | Symptom | Proper Handling |
 | --- | --- | --- |
-| Chạy trên runtime thiếu compiler | ToolProvider.getSystemJavaCompiler() trả null | Cài JDK phù hợp hoặc chuyển compile sang build service |
-| Source dùng cú pháp/API ngoài target | Diagnostics cho biết lỗi release hoặc symbol | Sửa source/target; dùng --release rõ |
-| Thiếu classpath/module path | cannot find symbol, package does not exist | Cấu hình dependency chính xác; không tự phỏng đoán từ environment |
-| Sai package hoặc binary name | ClassNotFoundException khi nạp output | Tên file, package, URI của JavaFileObject và tên load phải khớp |
-| Compile thành công nhưng không cast được | ClassCastException | Chia sẻ đúng SPI qua loader cha hoặc module dùng chung |
-| Source compile nhưng runtime lỗi linkage | NoClassDefFoundError/NoSuchMethodError | Kiểm tra dependency runtime và version của artifact |
-| Lạm dụng một loader cho nhiều bản cùng tên | Vẫn dùng class đã nạp hoặc LinkageError | Kích hoạt version bằng loader/layer phù hợp |
-| Output tạm/loader tích tụ | Disk/memory tăng, tài nguyên không được đóng | Đóng file manager/loader, dọn temp, gỡ tham chiếu/callback |
-| Diagnostics lộ secret | Log chứa source hoặc đường dẫn nhạy cảm | Lọc thông tin, gắn request/version ID thay vì log toàn source |
-| Chạy compile theo mỗi request | Latency/CPU tăng nhanh | Cache output theo toàn bộ build inputs và compile theo phiên bản |
-| Nhận source chưa tin cậy ngay trong host | Code có thể gây side effect ngoài ý muốn | DSL hoặc compile/execute trong process cách ly |
+| Running on a runtime without a compiler | `ToolProvider.getSystemJavaCompiler()` returns `null` | Install an appropriate JDK or move compilation to a build service |
+| Source uses syntax/API outside target | Diagnostics report release or symbol errors | Fix source/target; pass `--release` explicitly |
+| Missing classpath/module path | `cannot find symbol`, `package does not exist` | Configure exact dependencies; do not guess from the environment |
+| Wrong package or binary name | `ClassNotFoundException` when loading output | File name, package, `JavaFileObject` URI, and load name must match |
+| Compiles successfully but cannot cast | `ClassCastException` | Share the SPI properly via parent loader or shared module |
+| Source compiles but runtime linkage fails | `NoClassDefFoundError`/`NoSuchMethodError` | Verify runtime dependencies and artifact versions |
+| Overusing one loader for multiple versions with the same name | Keeps using already-loaded class or `LinkageError` | Activate versions using appropriate loaders/layers |
+| Accumulating temp outputs/loaders | Disk/memory growth, unclosed resources | Close file manager/loader, clean temp files, clear references/callbacks |
+| Diagnostics leak secrets | Logs contain source or sensitive paths | Redact info, attach request/version IDs instead of logging full source |
+| Compiling on every request | Rapid latency/CPU increase | Cache output by all build inputs and compile per version |
+| Accepting untrusted source directly in the host | Code can cause unintended side effects | Use a DSL or compile/execute in an isolated process |
 
-**Phân biệt lỗi:** compile fail không phải là không tìm thấy plugin; class loading fail không phải lỗi ngôn ngữ Java source; extension chạy và ném exception không chứng minh compiler sai. Mỗi giai đoạn nên có trạng thái và diagnostics riêng: RECEIVED → VALIDATED → COMPILED → VERIFIED → ACTIVATED → FAILED/RETIRED.
+**Distinguishing errors:** a compile failure is not a missing plugin; a class loading failure is not a Java source syntax error; an extension throwing an exception at runtime does not prove the compiler failed. Each stage should have distinct states and diagnostics: RECEIVED → VALIDATED → COMPILED → VERIFIED → ACTIVATED → FAILED/RETIRED.
 
-## 12. Quy trình chọn phương án theo tình huống
+## 12. Scenario-Based Decision Flow
 
 ~~~text
-Có sẵn JAR của đúng plugin và phiên bản hợp đồng?
+Is a JAR of the right plugin and contract version already available?
    |
-   +-- Có --> JAR đã kiểm thử/được tin cậy?
+   +-- Yes --> Is the JAR tested/trusted?
    |              |
-   |              +-- Có --> Cài JAR qua loader/layer của host
+   |              +-- Yes --> Install JAR via host loader/layer
    |              |
-   |              +-- Không --> Yêu cầu nguồn/provenance/test phù hợp
+   |              +-- No --> Require proper source/provenance/tests
    |
-   +-- Không --> Có cần tùy biến Java implementation?
+   +-- No --> Do you need a custom Java implementation?
                     |
-                    +-- Không --> Tìm config/DSL/plugin JAR hiện có
+                    +-- No --> Look for config/DSL/existing plugin JAR
                     |
-                    +-- Có --> Source có được tin cậy và định phiên bản?
+                    +-- Yes --> Is the source trusted and versioned?
                                  |
-                                 +-- Không --> Không compile và chạy
-                                 |            trong JVM host; thiết kế cách ly
+                                 +-- No --> Do not compile and run
+                                 |           in the host JVM; design isolation
                                  |
-                                 +-- Có --> Có cần compile ngay trong host?
+                                 +-- Yes --> Must compilation happen in the host?
                                               |
-                                              +-- Không --> CI/build service
-                                              |            tạo JAR đã xác thực
+                                              +-- No --> CI/build service
+                                              |           produces verified JAR
                                               |
-                                              +-- Có --> Kiểm tra JDK compiler,
-                                                           API/dependencies,
-                                                           quotas/cache,
-                                                           test và loader
+                                              +-- Yes --> Check JDK compiler,
+                                                          API/dependencies,
+                                                          quotas/cache,
+                                                          tests, and loader
 ~~~
 
-### Ba tình huống so sánh
+### Three Comparative Scenarios
 
-**Tình huống A: cài provider định dạng dữ liệu đã phát hành.** Nhà cung cấp gửi JAR với implementation SPI tương thích, đã test và có checksum. Host chỉ cần khởi tạo plugin loader/ServiceLoader thích hợp. **Chọn JAR**; yêu cầu source compilation ở runtime không đem lại giá trị rõ.
+**Scenario A: installing a released data-format provider.** A vendor delivers a JAR with a compatible SPI implementation, already tested and checksummed. The host only needs to set up the appropriate plugin loader/ServiceLoader. **Choose a JAR**; requiring runtime source compilation adds no clear value.
 
-**Tình huống B: khách hàng doanh nghiệp có adapter riêng được đội nội bộ review.** Adapter phải khác theo từng phiên bản API, nhưng cập nhật mỗi tuần. Có thể **nhận source**, chạy build/test trong CI, tạo JAR riêng và phát hành có version. **Không cần compile trong JVM phục vụ request**.
+**Scenario B: an enterprise customer has a custom adapter reviewed by an internal team.** The adapter must differ per API version, yet updates weekly. You can **accept source**, run build/test in CI, produce a separate JAR, and release it with versioning. **No compilation is needed inside the request-serving JVM**.
 
-**Tình huống C: hệ thống generator tạo class Java từ một schema vừa được cấu hình tại runtime.** Mỗi schema được duyệt phát sinh một implementation cần nạp ngay, compiler đã được chuẩn bị, và execution nằm trong boundary được thiết kế. Có thể **compile source theo từng phiên bản schema**, cache bytecode và chỉ gọi implementation đã xác thực. Nếu schema do người dùng không tin cậy điều khiển, cần thêm cơ chế giới hạn và cách ly phù hợp trước khi cho phép chạy code.
+**Scenario C: a generator system creates Java classes from a schema newly configured at runtime.** Each approved schema produces an implementation that must be loaded immediately, the compiler is provisioned, and execution stays within a designed boundary. You can **compile source per schema version**, cache the bytecode, and invoke only verified implementations. If schemas are controlled by untrusted users, add appropriate limits and isolation mechanisms before allowing code execution.
 
-## 13. Checklist trước khi chấp nhận Java source làm đầu vào extension
+## 13. Checklist Before Accepting Java Source as Extension Input
 
-1. **Có lý do cần source:** plugin thực sự phải sinh/tùy biến/rebuild từ source, thay vì chỉ cần cài JAR hiện có.
-2. **Đã xác định giai đoạn compile:** CI, build service, lúc cài plugin hoặc runtime theo version; không compile lại vô ích trên mỗi request.
-3. **Đã xác định compiler:** JDK/module jdk.compiler hay dịch vụ build riêng, release target, options và dependency resolution.
-4. **Có API/SPI dùng chung:** phân biệt class loader/module layer và bảo đảm assignability, null/exception contract.
-5. **Có diagnostics rõ:** lỗi syntax, compile, load/link, instantiate và runtime được báo thành các giai đoạn khác nhau.
-6. **Có kiểm thử và versioning:** source hash, fingerprint dependency/compiler, artifact immutable, kích hoạt/rollback và cache.
-7. **Có giới hạn tài nguyên và trust:** input validation, processor policy, quota, filesystem/network isolation nếu source chưa đáng tin.
-8. **Có quản lý lifecycle:** close loader/resource, ngừng thread/callback, loại tham chiếu cũ khi thay phiên bản.
-9. **Có chiến lược vận hành:** logs, observability, thời gian compilation, số phiên bản đồng thời, bảo mật source và diagnostics.
-10. **Đã so sánh với JAR/DSL/config:** giải pháp được chọn phải giải quyết nhu cầu nghiệp vụ bằng chi phí phù hợp.
+1. **Clear reason for source:** the plugin genuinely needs to be generated/customized/rebuilt from source, rather than simply installing an existing JAR.
+2. **Compilation stage defined:** CI, build service, plugin installation time, or runtime per version; never recompile pointlessly on every request.
+3. **Compiler defined:** JDK/`jdk.compiler` module or a separate build service, release target, options, and dependency resolution.
+4. **Shared API/SPI:** separate class loader/module layer and ensure assignability, null/exception contracts.
+5. **Clear diagnostics:** syntax, compile, load/link, instantiation, and runtime errors are reported as separate stages.
+6. **Testing and versioning:** source hash, dependency/compiler fingerprint, immutable artifacts, activation/rollback, and caching.
+7. **Resource and trust limits:** input validation, processor policy, quotas, and filesystem/network isolation if source is untrusted.
+8. **Lifecycle management:** close loaders/resources, stop threads/callbacks, clear old references on version swaps.
+9. **Operational strategy:** logs, observability, compilation duration, concurrent versions, and security of source and diagnostics.
+10. **Compared against JAR/DSL/config:** the chosen solution must solve the business need at an appropriate cost.
 
-**Nguyên tắc cốt lõi:** nhận mã nguồn Java khi **cần quyền kiểm soát hoặc tạo implementation trước khi có bytecode**; cài JAR đã biên dịch khi **chỉ cần phân phối và kích hoạt hành vi đã được build**. JavaCompiler mở thêm một bước tạo bytecode tại runtime, nhưng không loại bỏ trách nhiệm tương thích, class loading, kiểm thử, cache và an toàn khi thực thi.
+**Core principle:** accept Java source code when **you need control or must generate implementations before bytecode exists**; install a precompiled JAR when **you only need to distribute and activate already-built behavior**. JavaCompiler adds a runtime bytecode-generation step, but it does not eliminate responsibilities for compatibility, class loading, testing, caching, and execution safety.
 
-## Tài liệu Java 17 tham khảo
+## Java 17 References
 
 - JavaCompiler: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html
 - ToolProvider: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ToolProvider.html

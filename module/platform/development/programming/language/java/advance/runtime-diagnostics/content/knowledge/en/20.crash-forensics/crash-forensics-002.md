@@ -1,111 +1,111 @@
-# 20.2 Thu `hs_err_pid` log với `-XX:ErrorFile` và giữ dữ liệu ngay sau sự cố
+# 20.2 Collecting `hs_err_pid` Logs with `-XX:ErrorFile` and Preserving Data Immediately After an Incident
 
-> **Bối cảnh:** Java Advance – runtime diagnostics, phần **20. Crash và phân tích sau lỗi**. Khi **HotSpot JVM** gặp *fatal error* (chẳng hạn lỗi native nghiêm trọng, lỗi nội bộ VM), nó thường cố gắng ghi một báo cáo văn bản có tên `hs_err_pid<pid>.log`. Dùng `-XX:ErrorFile` để ấn định nơi nhận file, đồng thời chuẩn bị cách bảo quản chứng cứ **ngay sau crash** trước khi tiến trình khởi động lại, thư mục tạm bị xóa hoặc log bị ghi đè.
+> **Context:** Java Advance – runtime diagnostics, section **20. Crash and Post-Failure Analysis**. When the **HotSpot JVM** encounters a *fatal error* (such as a severe native fault or an internal VM error), it usually attempts to write a text report named `hs_err_pid<pid>.log`. Use `-XX:ErrorFile` to specify the output destination, while also preparing how to preserve evidence **immediately after a crash** before the process restarts, temporary directories are wiped, or logs are overwritten.
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt **HotSpot fatal error log** với Java exception, heap dump, core dump, GC log và JFR recording.
-2. Cấu hình `-XX:ErrorFile=/path/hs_err_pid%p.log`, giải thích `%p`, `%%`, đường mặc định và fallback.
-3. Kiểm tra đúng **quyền ghi, storage, quota, vị trí mount và chính sách restart** trước khi có sự cố.
-4. Thu thập nguyên trạng `hs_err_pid` cùng stderr, GC/JFR, core và dữ liệu OS/container **nếu có**, sau đó bảo toàn metadata/checksum.
-5. Đọc header, `Problematic frame`, current thread, VM arguments và native libraries để bắt đầu điều tra, **không vội suy ra nguyên nhân chỉ từ một dòng**.
-6. Chạy lab **Java 17+ không gây crash** để kiểm tra thư mục và startup argument.
+1. Distinguish a **HotSpot fatal error log** from a Java exception, heap dump, core dump, GC log, and JFR recording.
+2. Configure `-XX:ErrorFile=/path/hs_err_pid%p.log`, and explain `%p`, `%%`, default locations, and fallback behavior.
+3. Properly verify **write permissions, storage, quotas, mount locations, and restart policies** before an incident occurs.
+4. Collect `hs_err_pid` intact along with stderr, GC/JFR, core dumps, and OS/container data **when available**, then preserve metadata and checksums.
+5. Read the header, `Problematic frame`, current thread, VM arguments, and native libraries to begin an investigation, **without jumping to conclusions from a single line**.
+6. Run a **non-crashing Java 17+ lab** to verify the directory and startup arguments.
 
-**Nguyên tắc xuyên suốt:** `-XX:ErrorFile` chỉ định **vị trí và tên báo cáo lỗi nếu VM có khả năng ghi**. Nó không ngăn sự cố, không bảo đảm file được tạo trong mọi trường hợp, không tự động xuất heap dump và không biến mọi loại kết thúc tiến trình thành JVM fatal error.
+**Core principle:** `-XX:ErrorFile` specifies **the location and filename of the error report if the VM is able to write it**. It does not prevent failures, does not guarantee the file is created in every scenario, does not automatically produce a heap dump, and does not turn every kind of process termination into a JVM fatal error.
 
-## 2. Khi nào có `hs_err_pid`, khi nào không?
+## 2. When Does `hs_err_pid` Exist, and When Does It Not?
 
-| Hiện tượng | Khả năng có `hs_err_pid` | Bằng chứng nên tìm |
+| Phenomenon | Likelihood of `hs_err_pid` | Evidence to look for |
 | --- | --- | --- |
-| HotSpot fatal VM error, native `SIGSEGV` trên Linux hoặc `EXCEPTION_ACCESS_VIOLATION` trên Windows | **Thường có nếu error handler còn thực thi và ghi được** | `hs_err_pid...log`, console fatal header, core/minidump nếu được tạo |
-| VM internal error/assertion/guarantee failure | Có thể | Fatal header, build JVM, current thread, internal-error information |
-| Java `NullPointerException` hoặc exception không được bắt | Không chỉ vì exception Java | Application logs, Java stack trace, exit status |
-| `System.exit`, shutdown bình thường, SIGTERM được xử lý | Không chỉ vì shutdown | Shutdown/service logs, supervisor reason |
-| `java.lang.OutOfMemoryError: Java heap space` hoặc `Metaspace` | **Không mặc định** tạo fatal log chỉ vì Java OOME | Exception logs, GC metrics, heap dump nếu đã bật cờ |
-| Kernel/cgroup **OOMKilled**, `kill -9`/`SIGKILL` | **Không kỳ vọng**: OS không cho JVM chạy error handler | Container exit reason, kernel/cgroup events, node metrics |
-| Mất điện, filesystem hỏng, crash rất sớm hoặc memory corruption nặng | Có thể không có hoặc **chỉ một phần** | Console, host logs, backup, partial file, core nếu có |
+| HotSpot fatal VM error, native `SIGSEGV` on Linux, or `EXCEPTION_ACCESS_VIOLATION` on Windows | **Usually present if the error handler can still execute and write** | `hs_err_pid...log`, console fatal header, core/minidump if generated |
+| VM internal error / assertion / guarantee failure | Possible | Fatal header, JVM build, current thread, internal-error information |
+| Java `NullPointerException` or uncaught exception | Not solely from a Java exception | Application logs, Java stack trace, exit status |
+| `System.exit`, normal shutdown, or handled SIGTERM | Not from normal shutdown | Shutdown/service logs, supervisor reason |
+| `java.lang.OutOfMemoryError: Java heap space` or `Metaspace` | **Not generated by default** solely for a Java OOME | Exception logs, GC metrics, heap dump if flags were enabled |
+| Kernel/cgroup **OOMKilled**, `kill -9`/`SIGKILL` | **Do not expect it**: the OS does not let the JVM run its error handler | Container exit reason, kernel/cgroup events, node metrics |
+| Power loss, filesystem corruption, very early crash, or severe memory corruption | May be absent or **only partial** | Console, host logs, backups, partial file, core dump if present |
 
-Vì vậy **không có file `hs_err` không chứng minh JVM không gặp lỗi nghiêm trọng**. Và ngược lại, có file `hs_err` không có nghĩa root cause nằm trong HotSpot; lỗi có thể do JNI, agent, thư viện native, driver, hardware hoặc memory corruption xảy ra trước thời điểm crash.
+Therefore, **the absence of an `hs_err` file does not prove the JVM did not encounter a severe error**. Conversely, the presence of an `hs_err` file does not mean the root cause lies inside HotSpot; the fault could be due to JNI, an agent, a native library, a driver, hardware, or memory corruption that occurred prior to the crash.
 
-**Phân biệt OOM cho đúng:** `-XX:+HeapDumpOnOutOfMemoryError` và `-XX:HeapDumpPath` áp dụng cho cơ chế **heap dump khi có Java OOME**; khác hoàn toàn mục tiêu `-XX:ErrorFile`. Nếu container bị kernel OOM killer chấm dứt, thường không có cơ hội tạo Java OOME, `hs_err` hoặc heap dump. Không nên cố làm JVM chết để “kiểm tra” trên môi trường production.
+**Distinguish OOM properly:** `-XX:+HeapDumpOnOutOfMemoryError` and `-XX:HeapDumpPath` apply to the **heap dump mechanism on Java OOME**; their purpose is completely different from `-XX:ErrorFile`. If a container is terminated by the kernel OOM killer, there is usually no opportunity to generate a Java OOME, `hs_err`, or heap dump. Do not intentionally kill the JVM to “test” this in production.
 
-## 3. `-XX:ErrorFile` hoạt động thế nào?
+## 3. How Does `-XX:ErrorFile` Work?
 
-### 3.1. Cú pháp đặt đường dẫn
+### 3.1. Path syntax
 
-Ví dụ Linux:
+Linux example:
 
 ```bash
 java '-XX:ErrorFile=/var/lib/myapp/crash/hs_err_pid%p.log' -jar app.jar
 ```
 
-Các điểm cần nhớ:
+Points to remember:
 
-- Đây là **HotSpot `-XX` option**, đặt **trước** `-jar app.jar` hoặc tên main class. Đặt sau `-jar` thường biến nó thành **tham số của ứng dụng**, không cấu hình JVM.
-- Dùng đường dẫn **tuyệt đối** để tránh phụ thuộc vào current working directory.
-- `%p` được thay bằng **PID của tiến trình JVM**, ví dụ PID `28471` → `hs_err_pid28471.log`.
-- `%%` biểu diễn một dấu `%` trong filename. Đừng nhầm với các placeholder riêng của `-Xlog`, nơi có thể có quy ước khác.
-- Thư mục **phải có trước khi crash** và tài khoản thực chạy JVM phải có quyền ghi. JVM không thể tự cứu một đường dẫn nằm trên filesystem đã mất hoặc chỉ đọc.
-- Nếu chọn filename cố định và file đã tồn tại, có thể xảy ra **ghi đè**. Dùng `%p`, nhưng PID có thể **được tái sử dụng** sau restart hoặc trùng trong các PID namespaces khác nhau. Hãy archive thêm **UTC timestamp, host/container/pod UID và release**.
+- This is a **HotSpot `-XX` option**, placed **before** `-jar app.jar` or the main class name. Placing it after `-jar` usually turns it into an **application argument** rather than a JVM configuration flag.
+- Use an **absolute** path to avoid depending on the current working directory.
+- `%p` is replaced by the **PID of the JVM process**, e.g., PID `28471` → `hs_err_pid28471.log`.
+- `%%` represents a literal `%` character in the filename. Do not confuse this with `-Xlog`-specific placeholders, which may follow different conventions.
+- The directory **must exist before the crash**, and the account running the JVM must have write permissions. The JVM cannot salvage a path on a lost or read-only filesystem.
+- If you choose a fixed filename and the file already exists, **overwriting** may occur. Use `%p`, though PIDs can be **reused** after restarts or collide across different PID namespaces. Also archive the **UTC timestamp, host/container/pod UID, and release**.
 
-Ví dụ Windows PowerShell với directory tồn tại:
+Windows PowerShell example with an existing directory:
 
 ```powershell
 java '-XX:ErrorFile=C:/java-diag/crash/hs_err_pid%p.log' -jar app.jar
 ```
 
-Khi path chứa khoảng trắng, quote để JVM nhận toàn bộ `-XX:ErrorFile=...` như **một đối số**. Không assume shell Bash, CMD và PowerShell xử lý quoting giống nhau. `app.jar` ở đây là một ví dụ tên ứng dụng, cần thay bằng deployment thật.
+When the path contains spaces, quote it so the JVM receives the entire `-XX:ErrorFile=...` as **a single argument**. Do not assume Bash, CMD, and PowerShell handle quoting identically. Here `app.jar` is an example application name and should be replaced with your actual deployment artifact.
 
-### 3.2. Vị trí mặc định và fallback
+### 3.2. Default location and fallback
 
-Khi không có `-XX:ErrorFile`, HotSpot thường thử tạo `hs_err_pid<pid>.log` trong **current working directory** của process. CWD **không nhất thiết** là thư mục chứa `.jar`; với systemd, container hoặc IDE, nó do launcher/entrypoint/WorkingDirectory quyết định.
+When `-XX:ErrorFile` is omitted, HotSpot usually attempts to create `hs_err_pid<pid>.log` in the process's **current working directory**. The CWD is **not necessarily** the directory containing the `.jar`; with systemd, containers, or IDEs, it is determined by the launcher/entrypoint/WorkingDirectory.
 
-Theo tài liệu Oracle, nếu file không được tạo tại đường định trước/CWD do quyền, dung lượng hoặc lỗi khác, VM có thể thử **OS temporary directory**, ví dụ `/tmp` trên Linux, `%TMP%` hoặc `%TEMP%` trên Windows. Đây là **cơ chế dự phòng**, không phải chiến lược lưu trữ đáng tin: `/tmp` có thể đầy, bị dọn, nằm trong container filesystem tạm, hoặc VM không còn đủ khả năng chạy fallback.
+According to Oracle documentation, if the file cannot be created at the specified path/CWD due to permissions, disk space, or other errors, the VM may try the **OS temporary directory**, such as `/tmp` on Linux or `%TMP%` / `%TEMP%` on Windows. This is a **fallback mechanism**, not a reliable storage strategy: `/tmp` may be full, cleaned up, located in an ephemeral container filesystem, or the VM may no longer be healthy enough to run the fallback.
 
-Tìm ở những vị trí có căn cứ:
+Search in well-grounded locations:
 
 ```bash
 find /var/lib/myapp/crash -maxdepth 1 -type f -name 'hs_err_pid*.log' -ls
 find /tmp -maxdepth 1 -type f -name 'hs_err_pid*.log' -ls
 ```
 
-Nếu không đặt ErrorFile, còn phải kiểm tra **CWD lúc JVM chạy** (lấy từ service unit, deployment/entrypoint hoặc `/proc/<PID>/cwd` **khi PID còn sống**). Sau crash, `/proc/<PID>` thường không còn nên không thể suy CWD từ shell của người đang điều tra. Không tùy tiện quét toàn bộ host hoặc truy cập dữ liệu ngoài quyền.
+If `ErrorFile` was not set, also check the **CWD at the time the JVM ran** (obtained from the service unit, deployment/entrypoint, or `/proc/<PID>/cwd` **while the PID is still alive**). After a crash, `/proc/<PID>` is usually gone, so you cannot infer the CWD from the investigator's shell. Do not scan the entire host indiscriminately or access data outside your permissions.
 
-### 3.3. Không có file khi chạy bình thường là đúng
+### 3.3. No file during normal execution is expected
 
-Lệnh:
+The command:
 
 ```bash
 java '-XX:ErrorFile=/var/lib/myapp/crash/hs_err_pid%p.log' -version
 ```
 
-chỉ kiểm tra **JVM parse được option**. Nó **không sinh** `hs_err` vì không có fatal error; cũng không chứng minh thực tế filesystem/permissions sẽ cho phép tạo file tại thời điểm crash. Cần có một **write preflight** chạy bằng chính account, mount và security context của service.
+only verifies that **the JVM can parse the option**. It does **not generate** `hs_err` because there is no fatal error; nor does it prove that the filesystem/permissions will actually allow file creation at crash time. You need a **write preflight** executed under the exact same account, mounts, and security context as the service.
 
-Không chủ động kích hoạt `Unsafe`, JNI segmentation fault hoặc flags làm VM crash trên production chỉ để thử cơ chế này. Với yêu cầu kiểm tra end-to-end việc ghi file khi fatal error, làm trong môi trường kiểm thử cô lập, giới hạn storage, có phê duyệt và cleanup được kiểm soát.
+Do not intentionally trigger `Unsafe`, JNI segmentation faults, or VM-crashing flags in production just to test this mechanism. When end-to-end verification of fatal error file writing is required, run it in an isolated test environment with storage limits, approval, and controlled cleanup.
 
-## 4. Chuẩn bị từ trước: thư mục, quyền và storage
+## 4. Preparing Ahead of Time: Directories, Permissions, and Storage
 
-### 4.1. Cấu trúc đề xuất
+### 4.1. Recommended structure
 
 ```text
 /var/lib/myapp/
-  crash/       # hs_err fatal logs, lưu bền
-  jfr/         # recordings/chunks, chính sách riêng
-  logs/        # GC/application logs, rotation riêng
+  crash/       # hs_err fatal logs, persistent storage
+  jfr/         # recordings/chunks, separate retention policy
+  logs/        # GC/application logs, separate rotation
 ```
 
-Ví dụ Linux, chạy dưới quyền quản trị khi provisioning:
+Linux example, run with administrative privileges during provisioning:
 
 ```bash
 sudo install -d -m 0700 -o myapp -g myapp /var/lib/myapp/crash
 sudo install -d -m 0700 -o myapp -g myapp /var/lib/myapp/logs
 ```
 
-`myapp` chỉ là ví dụ user/group. Đảm bảo chính tài khoản service ghi được. Permission `0700` minh họa nguyên tắc quyền tối thiểu; doanh nghiệp có thể dùng group cho nhóm SRE/incident response, cùng ACL rõ ràng.
+`myapp` is only an example user/group. Ensure the service account itself can write. Permission `0700` illustrates the principle of least privilege; organizations may use a group for SRE/incident response teams with clear ACLs.
 
-Khởi động ứng dụng:
+Starting the application:
 
 ```bash
 java \
@@ -114,25 +114,25 @@ java \
   -jar app.jar
 ```
 
-`-Xlog` ở đây bổ sung GC/safepoint evidence trước crash. Nó **không thay thế fatal log**; output `gc-%p.log` có retention riêng, `filecount=5` có thể loại file cũ. `%p` của unified logging không được dùng để suy đoán rằng mọi placeholder tương tự hoạt động trong `-XX:ErrorFile`.
+Here `-Xlog` adds pre-crash GC/safepoint evidence. It does **not replace the fatal log**; `gc-%p.log` output has its own retention, and `filecount=5` can evict older files. Unified logging's `%p` must not be used to assume that all similar placeholders work in `-XX:ErrorFile`.
 
-**Preflight cần kiểm tra:**
+**Preflight checks needed:**
 
-- Directory tồn tại và nằm trong namespace/container thật nơi JVM chạy.
-- User chạy JVM có thể **tạo, ghi, đóng file** tại directory.
-- Filesystem/mount ghi được: không `read-only`, không chặn bởi SELinux/AppArmor/systemd sandbox, quota/inodes/disk capacity còn đủ.
-- Crash volume có phương án **giữ nguyên qua restart/reschedule** theo yêu cầu.
-- Có phân biệt file theo **instance + PID + timestamp**; tránh trùng tên trên shared volume.
-- Có cảnh báo dung lượng và retention **sau khi bảo quản**, không cron xóa ngay sau crash.
-- Crash artifacts nhạy cảm không nằm trong public web root hoặc thư mục dùng chung không giới hạn quyền.
+- The directory exists and is inside the actual namespace/container where the JVM runs.
+- The JVM user can **create, write, and close files** in the directory.
+- The filesystem/mount is writable: not `read-only`, not blocked by SELinux/AppArmor/systemd sandbox, and has sufficient quota/inodes/disk capacity.
+- The crash volume has a mechanism to **persist across restarts/rescheduling** as required.
+- Files are distinguished by **instance + PID + timestamp**; avoid filename collisions on shared volumes.
+- Disk usage alerts and retention **after preservation** are configured—do not run a cron job that deletes files right after a crash.
+- Sensitive crash artifacts are not placed in a public web root or an unrestricted shared directory.
 
-`chmod` hoặc `Files.isWritable` chỉ phản ánh một phần điều kiện. Một service dưới systemd `ProtectSystem`, container `readOnlyRootFilesystem` hoặc security policy có thể không ghi được dù chủ sở hữu host nhìn thấy quyền `rw`. Nên thử bằng **cùng execution context**.
+`chmod` or `Files.isWritable` only reflects part of the conditions. A service under systemd `ProtectSystem`, container `readOnlyRootFilesystem`, or a security policy may fail to write even though host ownership shows `rw`. Test using the **same execution context**.
 
-### 4.2. Kubernetes/Docker: mount đúng quan trọng hơn tên file
+### 4.2. Kubernetes/Docker: proper mounts matter more than filenames
 
-Trong container, `/tmp` và writable layer có thể mất khi container/pod bị thay thế. Kubernetes `emptyDir` **thường tồn tại qua lần restart container khi Pod còn sống trên node**, nhưng bị xóa khi Pod bị dọn/evict/recreate. Vì vậy `emptyDir` chưa phải là kho bằng chứng bền vững lâu dài.
+In containers, `/tmp` and the writable container layer can be lost when a container or pod is replaced. Kubernetes `emptyDir` **generally survives container restarts while the Pod remains alive on the node**, but is deleted when the Pod is removed/evicted/recreated. Thus `emptyDir` is not durable long-term evidence storage.
 
-Muốn giữ `hs_err` qua vòng đời Pod, cần persistent volume, host collector hoặc cơ chế snapshot/sidecar thích hợp. Ví dụ **chỉ phần mount, không phải manifest triển khai đầy đủ**:
+To preserve `hs_err` across Pod lifecycles, you need a persistent volume, host collector, or an appropriate snapshot/sidecar mechanism. Example (**mount section only, not a complete deployment manifest**):
 
 ```yaml
 containers:
@@ -146,13 +146,13 @@ volumes:
       claimName: myapp-crash-pvc
 ```
 
-`-XX:ErrorFile` phải trỏ vào **đúng mountPath** trong container. Xác minh PVC, `fsGroup`/user ID, ownership và quota. Shared volume giữa nhiều instances có thể có nhiều PID `1`; `%p` **không bảo đảm global uniqueness**. Chia thư mục con theo pod UID/instance hoặc thu ngay vào case storage có tên duy nhất.
+`-XX:ErrorFile` must point to the **exact `mountPath`** inside the container. Verify the PVC, `fsGroup`/user ID, ownership, and quota. A volume shared across multiple instances can have multiple PID `1`s; `%p` **does not guarantee global uniqueness**. Separate subdirectories by pod UID/instance or collect immediately into uniquely named case storage.
 
-**Không nên chỉ dựa vào `kubectl cp` sau khi container chết**: lệnh này cần một container đang truy cập được; pod replacement, crash loop hoặc thiếu `tar` có thể khiến việc lấy artifact thất bại. Thu từ PVC/snapshot/collector thiết kế trước thường tin cậy hơn.
+**Do not rely solely on `kubectl cp` after a container dies**: this command requires an accessible running container; pod replacement, crash loops, or a missing `tar` binary can cause artifact retrieval to fail. Collecting from a pre-designed PVC/snapshot/collector is far more reliable.
 
-### 4.3. systemd/service managers
+### 4.3. systemd / service managers
 
-Một phần unit **minh họa**, không phải production unit hoàn chỉnh:
+**Illustrative** unit snippet, not a complete production unit:
 
 ```ini
 [Service]
@@ -162,32 +162,32 @@ ExecStart=/usr/bin/java -XX:ErrorFile=/var/lib/myapp/crash/hs_err_pid%p.log -jar
 Restart=on-failure
 ```
 
-`WorkingDirectory=/opt/myapp` không thay đổi đường output khi ErrorFile dùng absolute path. Nhưng `User=myapp` phải ghi được vào crash directory, và các sandbox settings của unit vẫn có thể hạn chế path. `Restart=on-failure` khiến thời gian giữa crash và khởi động lại ngắn; một collector hoặc runbook không được xóa artifact trước khi copy.
+`WorkingDirectory=/opt/myapp` does not change the output path when `ErrorFile` uses an absolute path. However, `User=myapp` must be able to write to the crash directory, and unit sandbox settings can still restrict paths. `Restart=on-failure` keeps the window between crash and restart short; a collector or runbook must not delete artifacts before copying them.
 
-Lệnh đọc journal trong cửa sổ sự cố (timestamp và unit là ví dụ):
+Command to read the journal within the incident window (timestamp and unit are examples):
 
 ```bash
 journalctl -u myapp.service --since '2026-10-29 10:00:00' \
   --until '2026-10-29 10:30:00' --no-pager
 ```
 
-Đồng bộ múi giờ giữa systemd journal, HotSpot log, GC/JFR, application logs và Kubernetes events trước khi quyết định chuỗi nguyên nhân.
+Synchronize timezones across the systemd journal, HotSpot log, GC/JFR, application logs, and Kubernetes events before establishing the causal timeline.
 
-## 5. Bên trong `hs_err_pid`: những phần nên đọc trước
+## 5. Inside `hs_err_pid`: What Sections to Read First
 
-Fatal error log là file **text** gồm nhiều phần; định dạng thay đổi theo JDK/build/platform. Những mục thường thấy:
+The fatal error log is a multi-section **text** file; formatting varies by JDK, build, and platform. Common sections include:
 
-| Thành phần | Mục đích khi điều tra |
+| Component | Investigation purpose |
 | --- | --- |
-| **Header** | Loại fatal signal/internal error, `pc`, `pid`, `tid`, JRE/VM build, `Problematic frame` |
-| **Current thread** | Java/native stack của thread crash, thread state và đôi khi registers/stack bytes |
-| **Other threads** | Trạng thái các thread khác và bối cảnh JVM đang làm gì |
-| **VM arguments/process** | JVM flags, command line, agent configuration, dynamic libraries và memory mappings |
-| **Heap/GC summary** | Một phần cấu hình/bộ nhớ heap/collector gần thời điểm lỗi |
-| **System** | OS, CPU, memory, environment và thông tin platform khi có |
-| **Core dump information** | Có hoặc không có core dump, vị trí hoặc lý do bị hạn chế |
+| **Header** | Fatal signal/internal error type, `pc`, `pid`, `tid`, JRE/VM build, `Problematic frame` |
+| **Current thread** | Java/native stack of the crashing thread, thread state, and sometimes registers/stack bytes |
+| **Other threads** | States of other threads and context of what the JVM was doing |
+| **VM arguments/process** | JVM flags, command line, agent configuration, dynamic libraries, and memory mappings |
+| **Heap/GC summary** | Partial heap/collector configuration and memory status near the time of failure |
+| **System** | OS, CPU, memory, environment, and platform details when available |
+| **Core dump information** | Whether a core dump was created, its location, or why it was suppressed/restricted |
 
-Ví dụ **minh họa đã rút gọn**, không phải output của một lần chạy thật:
+**Abbreviated illustrative** example, not output from a real run:
 
 ```text
 #
@@ -204,31 +204,31 @@ Ví dụ **minh họa đã rút gọn**, không phải output của một lần 
 # /var/lib/myapp/crash/hs_err_pid28471.log
 ```
 
-Các marker như `pc`, `tid` và `Problematic frame` giúp đối chiếu với core và native stack. Trên Windows có thể là `EXCEPTION_ACCESS_VIOLATION` thay vì `SIGSEGV`. Trong crash nặng, file có thể **bị cắt giữa chừng**; đừng vứt bỏ chỉ vì thiếu section cuối.
+Markers such as `pc`, `tid`, and `Problematic frame` help correlate with core dumps and native stacks. On Windows, you may see `EXCEPTION_ACCESS_VIOLATION` instead of `SIGSEGV`. In severe crashes, the file may be **truncated mid-write**; do not discard it just because the trailing sections are missing.
 
-### Đọc `Problematic frame` đúng mức độ chắc chắn
+### Reading `Problematic frame` with the right level of certainty
 
-- `C`: frame C/C++ native (JNI, thư viện hệ thống hoặc external code).
+- `C`: native C/C++ frame (JNI, system library, or external code).
 - `V`: HotSpot VM frame.
 - `J`: compiled Java frame.
 - `j`: interpreted Java frame.
 - `v`: VM-generated stub.
 
-Một frame `C [libfoo.so+...]` nói **nơi thực thi khi crash**, nhưng memory corruption có thể phát sinh trước đó ở thư viện hay thread khác. Frame `V [libjvm.so+...]` **không tự chứng minh** bug của HotSpot; native agents, JNI, data corruption, JDK build và CPU/OS issues cũng có thể liên quan.
+A frame `C [libfoo.so+...]` tells **where execution was at crash time**, but memory corruption could have originated earlier in another library or thread. A `V [libjvm.so+...]` frame **does not automatically prove** a HotSpot bug; native agents, JNI, data corruption, JDK build issues, and CPU/OS issues can also be involved.
 
-Khi đọc nhanh, hãy nối **signal → problematic frame → current thread native/Java stack → libraries/agents → JDK build → recent deploy changes**. Không chọn giải pháp chỉ vì hai file có cùng một dòng hex address hoặc internal error ID; address và layout có thể khác nhau sau mỗi build/restart.
+For a quick read, connect **signal → problematic frame → current thread native/Java stack → libraries/agents → JDK build → recent deploy changes**. Do not pick a fix solely because two files share the same hex address or internal error ID; addresses and layouts can differ across builds and restarts.
 
-### Vì sao log có thể không đầy đủ?
+### Why might the log be incomplete?
 
-Fatal error handler hoạt động trong điều kiện bất thường: memory corruption, gần cạn tài nguyên, stack hỏng, file descriptors không hoạt động, disk lỗi hoặc signal chồng. VM có thể ghi được header nhưng chưa kịp ghi process/system sections. Trong báo cáo incident phải đánh dấu **partial / missing / apparently complete**, không tự coi mọi thiếu hụt là trạng thái “normal”.
+The fatal error handler runs under abnormal conditions: memory corruption, near-exhausted resources, corrupted stacks, broken file descriptors, disk errors, or nested signals. The VM might write the header yet fail to finish the process/system sections. In incident reports, mark the file as **partial / missing / apparently complete**, and do not treat missing sections as a “normal” state.
 
-## 6. Quy trình thu thập ngay sau crash (runbook)
+## 6. Post-Crash Collection Workflow (Runbook)
 
-**Mục tiêu 5 phút đầu:** giữ nguyên bằng chứng và gắn đúng identity; phân tích root cause chỉ thực hiện sau khi đã có bản sao/metadata. Việc restart, rollout, retention hoặc dọn thư mục có thể làm mất file trong vài phút.
+**Goal for the first 5 minutes:** preserve evidence intact and attach the right identity; root-cause analysis only starts after copies and metadata are secured. Restarts, rollouts, retention policies, or directory cleanups can wipe files within minutes.
 
-### Bước 1 — Ghi nhận danh tính sự cố
+### Step 1 — Record the incident identity
 
-Tối thiểu cần:
+At minimum, record:
 
 ```text
 Incident ID: INC-2026-001
@@ -243,29 +243,29 @@ Actual hs_err path found: ...
 Collector case directory: ...
 ```
 
-Đây là **mẫu biểu dữ kiện**, không phải thông tin lấy từ một production incident thật. PID có thể trùng giữa các containers; nên lưu Pod UID, host và timestamp. Phân biệt thời điểm lỗi từ JVM, journal, Docker/Kubernetes và hệ thống log tập trung; quy đổi về UTC trước khi dựng timeline.
+This is a **fact-collection template**, not data from a real production incident. PIDs can collide across containers; always record Pod UID, host, and timestamp. Distinguish failure timestamps from the JVM, journal, Docker/Kubernetes, and centralized logging; normalize to UTC before building a timeline.
 
-Nếu JVM **đã chết**, `jcmd <PID> ...` không thể lấy thêm thread dump/JFR/heap từ process đó. Chỉ thu những artifact đã được ghi trước khi chết, hoặc những thông tin OS/container vẫn giữ.
+If the JVM **is already dead**, `jcmd <PID> ...` cannot pull thread dumps, JFR, or heap data from that process. Collect only artifacts written before termination, or information still retained by the OS/container.
 
-### Bước 2 — Xác định file thật, không chọn bừa file mới nhất
+### Step 2 — Identify the real file, don't blindly grab the newest one
 
-Kiểm tra stdout/stderr trước: HotSpot thường in fatal header và đường dẫn report nếu còn khả năng. Đối chiếu theo PID, thời điểm, JDK version, service/build. Sau đó tìm ở:
+Check stdout/stderr first: HotSpot usually prints the fatal header and report path if still able. Cross-reference by PID, timestamp, JDK version, and service/build. Then search in:
 
-1. Path `-XX:ErrorFile` của JVM **thật đang chạy lúc crash**.
-2. CWD của process, nhất là khi flag không được truyền đúng.
-3. OS temp fallback, ví dụ `/tmp`.
-4. Volume/mount của container đã chết, nếu còn.
+1. The `-XX:ErrorFile` path of the JVM **actually running at crash time**.
+2. The process CWD, especially if the flag was not passed properly.
+3. The OS temp fallback, e.g., `/tmp`.
+4. The volume/mount of the terminated container, if still accessible.
 
 ```bash
 find /var/lib/myapp/crash -maxdepth 1 -type f -name 'hs_err_pid*.log' -ls
 find /tmp -maxdepth 1 -type f -name 'hs_err_pid*.log' -ls
 ```
 
-Chỉ chạy trong host/container/volume được phép và xác nhận đúng namespace. File 0 bytes hoặc chỉ vài dòng là evidence **chưa đầy đủ**, không phải lý do để dọn. Nếu file quá lớn, không mở trong editor có khả năng autosave hoặc sửa encoding; dùng `head`, `grep`/`less` **trên bản sao** khi đã bảo toàn.
+Run only on authorized hosts/containers/volumes and confirm the exact namespace. A 0-byte file or one with only a few lines is **incomplete** evidence, not a reason to clean it up. If the file is huge, do not open it in an editor that might autosave or alter encoding; inspect **on a copy** using `head`, `grep`, or `less` after preservation.
 
-### Bước 3 — Copy, giữ metadata và đối chiếu SHA-256
+### Step 3 — Copy, preserve metadata, and verify SHA-256
 
-Ví dụ Linux với một file đã xác định rõ. `CASE_DIR` cần là thư mục **mới, chỉ thuộc incident này** trên storage được bảo vệ, không trùng đích từ lần copy khác:
+Linux example for a clearly identified file. `CASE_DIR` should be a **new directory belonging exclusively to this incident** on protected storage, not colliding with another copy target:
 
 ```bash
 umask 077
@@ -281,35 +281,35 @@ sha256sum -- "$CASE_DIR/hs_err_pid28471.log" \
   > "$CASE_DIR/copy-sha256.txt"
 ```
 
-`stat` ghi timestamp/size/ownership sẵn có của **nguồn**; `cp -p` cố giữ timestamp/mode theo khả năng filesystem; SHA-256 cho phép so bản gốc với bản copy. Lưu ý khi so hai file `source-sha256.txt`/`copy-sha256.txt`: phần **pathname** khác nhau dù hash giống nhau, nên so hai chuỗi hash chứ không so nguyên dòng.
+`stat` records existing timestamps/size/ownership of the **source**; `cp -p` attempts to preserve timestamps/mode as supported by the filesystem; SHA-256 lets you compare the original against the copy. Note when comparing `source-sha256.txt` and `copy-sha256.txt`: the **pathname** field differs even when the digest matches, so compare the hash strings rather than the full lines.
 
-Kiểm tra lại:
+Verify again:
 
 ```bash
 sha256sum -- "$SOURCE" "$CASE_DIR/hs_err_pid28471.log"
 ```
 
-**Không** chỉnh sửa, đổi newline, nén-xóa, rename hoặc xóa file gốc trước khi đã có bản sao verify được. Nếu filesystem hoặc file vẫn thay đổi, việc chụp snapshot có kiểm soát và đối chiếu hash sẽ phù hợp hơn. Với log gửi cho vendor/ticket, tạo **bản copy đã che dữ liệu nhạy cảm**, giữ forensic original riêng.
+**Do not** edit, convert line endings, compress-and-delete, rename, or remove the original file before a verified copy exists. If the filesystem or file is still changing, taking a controlled snapshot and verifying hashes is more appropriate. For logs sent to vendors/tickets, create a **redacted copy** and keep the forensic original separate.
 
-### Bước 4 — Thu dữ liệu quanh thời điểm crash
+### Step 4 — Gather surrounding data from the time of the crash
 
-| Artifact (nếu tồn tại) | Vị trí/cách lấy | Giá trị chẩn đoán |
+| Artifact (if present) | Location / how to obtain | Diagnostic value |
 | --- | --- | --- |
-| `hs_err_pid<pid>.log` | ErrorFile path/CWD/fallback | Fatal signal, problematic frame, threads, VM state |
-| Stderr/stdout, launcher log | Console, journal, container log collector | Fatal header, actual report path, restart/exit reason |
-| GC/safepoint logs | `-Xlog` output hoặc log aggregation | Memory/GC timeline, pauses trước crash |
-| JFR `.jfr` / repository chunks | JFR disk recording/repository còn được giữ | CPU, GC, locks, I/O events trước crash, nếu đã flush |
-| `.hprof` **nếu được tạo** | `HeapDumpPath` hoặc pre-captured heap | Java heap OOME, retained objects |
-| Core/minidump **nếu có** | OS core handler/Windows dump | Native memory, registers, stacks |
+| `hs_err_pid<pid>.log` | ErrorFile path / CWD / fallback | Fatal signal, problematic frame, threads, VM state |
+| Stderr/stdout, launcher logs | Console, journal, container log collector | Fatal header, actual report path, restart/exit reason |
+| GC/safepoint logs | `-Xlog` output or log aggregation | Memory/GC timeline, pauses prior to crash |
+| JFR `.jfr` / repository chunks | Retained JFR disk recording/repository | CPU, GC, locks, I/O events prior to crash, if flushed |
+| `.hprof` **if generated** | `HeapDumpPath` or pre-captured heap | Java heap OOME, retained objects |
+| Core/minidump **if available** | OS core handler / Windows dump | Native memory, registers, stacks |
 | Kernel/cgroup/container events | Node/orchestrator logs, cgroup metrics | OOMKilled, SIGKILL, disk/host resource issues |
-| Deployment metadata | Image digest, JDK build, startup args đã kiểm duyệt | Tái hiện đúng software/config versions |
-| Service/dependency metrics | Hệ thống monitoring hiện có | Error burst, memory/CPU/network context |
+| Deployment metadata | Image digest, JDK build, sanitized startup args | Reproducing exact software/config versions |
+| Service/dependency metrics | Existing monitoring system | Error burst, memory/CPU/network context |
 
-Không phải lúc nào cũng cần hoặc có được tất cả. **Core dump là một cơ chế khác** và phụ thuộc OS policy, `ulimit`, kernel `core_pattern`/systemd-coredump, filesystem, container settings, dung lượng. `hs_err` **không** tự động chứa toàn bộ core hay Java heap. JFR có thể mất những event chưa flush ở đoạn cuối trước crash.
+You will not always need or obtain all of these. **Core dumps are a separate mechanism** and depend on OS policy, `ulimit`, kernel `core_pattern`/systemd-coredump, filesystem, container settings, and disk capacity. `hs_err` does **not** automatically contain a full core or Java heap. JFR may lose unflushed events right before the crash.
 
-### Bước 5 — Tạo manifest để không mất nguồn gốc
+### Step 5 — Create a manifest so provenance is never lost
 
-Ví dụ schema của manifest (phải điền giá trị thật cho từng incident):
+Example manifest schema (fill in real values for each incident):
 
 ```text
 incident_id: INC-2026-001
@@ -328,11 +328,11 @@ collector: ...
 permissions: restricted
 ```
 
-Manifest cần nêu **cách thu thập, ai/hệ thống nào thu, thời điểm, nguồn, checksum và trạng thái đầy đủ**. Trường chưa xác minh phải để *unknown*, không tự điền “complete” chỉ vì file tồn tại. Đừng công bố error log thiếu đuôi là báo cáo toàn trạng thái JVM.
+The manifest should state **how it was collected, who/what system collected it, timestamp, source, checksum, and completeness state**. Unverified fields must be marked *unknown*; do not write “complete” merely because the file exists. Never present a truncated error log as a full report of the JVM state.
 
-## 7. Kubernetes: nhận diện OS kill và giữ log cũ
+## 7. Kubernetes: Identifying OS Kills and Keeping Previous Logs
 
-Khi pod/container restart, lấy termination reason và previous logs **nếu Kubernetes vẫn còn giữ**:
+When a pod/container restarts, retrieve the termination reason and previous logs **if Kubernetes still retains them**:
 
 ```bash
 kubectl get pod checkout-7c48 -n production \
@@ -342,24 +342,24 @@ kubectl logs checkout-7c48 -n production -c java-service \
   --previous --timestamps
 ```
 
-Tên Pod/namespace/container ở đây là **ví dụ**, phải dùng đúng identity. `--previous` chỉ hoạt động khi logs container instance trước còn được kubelet/API cung cấp; nếu Pod đã bị xóa hoặc replacement xảy ra, logs có thể đã mất.
+Pod/namespace/container names here are **examples**; use the real identity. `--previous` only works while the previous container instance's logs are still available from the kubelet/API; if the Pod was deleted or replaced, those logs may already be lost.
 
-Cách đọc:
+How to read them:
 
-- `OOMKilled`, thường `exitCode=137`: ưu tiên memory cgroup/node/limit; **không kỳ vọng** JVM tạo `hs_err` trước khi bị kill.
-- `SIGSEGV` fatal header: tìm `hs_err` ở persistent crash volume và stderr.
-- `Error`/exit code khác 0 nhưng **không có fatal header**: có thể là app exception, startup error, failed health check hoặc OS signal khác; không tự quy thành JVM bug.
-- Multiple restarts: lưu **pod UID, container ID và thời gian**, không chỉ tên service. Pod mới không đồng nhất với container filesystem cũ.
+- `OOMKilled`, typically `exitCode=137`: prioritize memory cgroup/node/limits; **do not expect** the JVM to write `hs_err` before being killed.
+- `SIGSEGV` fatal header: look for `hs_err` in the persistent crash volume and stderr.
+- `Error`/non-zero exit code **without a fatal header**: could be an app exception, startup error, failed health check, or another OS signal; do not automatically blame a JVM bug.
+- Multiple restarts: record **pod UID, container ID, and timestamps**, not just the service name. A new Pod does not share the old container's filesystem.
 
-Ở cgroup v2, `memory.events` có thể ghi nhận `oom`/`oom_kill`, nhưng cần đọc tại **đúng cgroup** trong thời gian còn tồn tại. Khi cgroup bị xóa, dựa thêm metrics và events đã thu trước đó. `memory.current` là mức accounting theo cgroup, không bằng RSS của riêng JVM.
+In cgroup v2, `memory.events` can record `oom`/`oom_kill`, but it must be read at the **exact cgroup** while it still exists. Once the cgroup is removed, rely on previously collected metrics and events. `memory.current` reflects cgroup accounting, which is not equal to the JVM's RSS alone.
 
-**Đừng** xóa/rollout/migrate crash volume trước khi copy nếu việc đó có thể làm mất bằng chứng; cân đối với yêu cầu khôi phục dịch vụ và phân quyền incident response.
+**Do not** delete, roll out, or migrate the crash volume before copying if doing so could destroy evidence; balance this with service recovery needs and incident-response authorization.
 
-## 8. Lab Java 17+: kiểm tra khả năng ghi mà không crash
+## 8. Java 17+ Lab: Testing Write Capability Without Crashing
 
-Lab chủ động **không tạo fatal error**, chỉ kiểm tra JVM nhận cờ và current user có thể tạo/ghi/xóa file tạm trong directory. Không cần JNI/Unsafe, không tác động project.
+This proactive lab **does not trigger a fatal error**; it only verifies that the JVM accepts the flag and the current user can create, write, and delete a temporary file in the directory. No JNI/Unsafe is needed, and no project is affected.
 
-### 8.1. Tạo `CrashArtifactPreflight.java`
+### 8.1. Create `CrashArtifactPreflight.java`
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -392,16 +392,16 @@ public class CrashArtifactPreflight {
 }
 ```
 
-Giải thích:
+Explanation:
 
-- `Files.isDirectory(dir)`: directory có tồn tại không, chưa tự chứng minh writable.
-- `Files.createTempFile` và `Files.writeString` thử **ghi file thật**, sau đó `finally` xóa file test. Thất bại sẽ ném exception để preflight FAIL.
-- `getInputArguments()` trả startup flags, kiểm tra `-XX:ErrorFile=` có mặt. Nó **không** xác minh path cụ thể và tuyệt đối không đảm bảo handler ghi được khi crash.
-- `ProcessHandle.current().pid()` có PID hợp lệ, giúp hiểu `%p` nhưng không in giá trị thay đổi theo từng lần chạy.
+- `Files.isDirectory(dir)`: checks whether the directory exists, which does not by itself prove writability.
+- `Files.createTempFile` and `Files.writeString` perform an **actual file write test**, and `finally` deletes the probe file. Any failure throws an exception so the preflight FAILS.
+- `getInputArguments()` returns startup flags and checks whether `-XX:ErrorFile=` is present. It does **not** validate the exact path and certainly cannot guarantee the handler can write at crash time.
+- `ProcessHandle.current().pid()` checks for a valid positive PID, illustrating `%p` without printing a value that changes across runs.
 
-### 8.2. Biên dịch/chạy Linux
+### 8.2. Compile and run on Linux
 
-Giả sử `/var/lib/myapp/crash` đã được provision và writable với user hiện hành:
+Assuming `/var/lib/myapp/crash` has been provisioned and is writable by the current user:
 
 ```bash
 javac CrashArtifactPreflight.java
@@ -409,7 +409,7 @@ java '-XX:ErrorFile=/var/lib/myapp/crash/hs_err_pid%p.log' \
   CrashArtifactPreflight /var/lib/myapp/crash
 ```
 
-Stdout **chính xác khi mọi kiểm tra thành công**, đã kiểm tra bằng `javac --release 17` và chạy trên OpenJDK 24:
+**Exact stdout when all checks pass**, verified with `javac --release 17` and run on OpenJDK 24:
 
 ```text
 directory.exists=true
@@ -418,9 +418,9 @@ errorfile.argument.present=true
 pid.positive=true
 ```
 
-Vì JVM kết thúc bình thường, **không có** `hs_err_pid...log` được tạo — đây là điều đúng. Nếu directory không ghi được, có thể có stack trace Java cho `AccessDeniedException` hoặc lỗi I/O khác; **đó vẫn không phải fatal VM error**.
+Because the JVM exits normally, **no** `hs_err_pid...log` is created—which is expected. If the directory is not writable, you may see a Java stack trace for `AccessDeniedException` or another I/O error; **that is still not a fatal VM error**.
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path C:\java-diag\crash
@@ -428,21 +428,21 @@ javac CrashArtifactPreflight.java
 java '-XX:ErrorFile=C:/java-diag/crash/hs_err_pid%p.log' CrashArtifactPreflight 'C:\java-diag\crash'
 ```
 
-**Giới hạn của preflight:** tại thời điểm crash vẫn có thể phát sinh disk full, inode exhaustion, readonly remount, memory corruption, hết file descriptors hoặc process bị `SIGKILL`; không có kiểm tra trước nào biến `ErrorFile` thành bảo đảm 100%.
+**Preflight limitations:** at crash time, disk full, inode exhaustion, read-only remounts, memory corruption, file-descriptor exhaustion, or `SIGKILL` can still occur; no pre-check turns `ErrorFile` into a 100% guarantee.
 
-## 9. Không nhầm `ErrorFile` với các dump khác
+## 9. Do Not Confuse `ErrorFile` with Other Dumps
 
-| Tùy chọn/công cụ | Kích hoạt ở tình huống nào | Kết quả |
+| Option / tool | When it triggers | Output |
 | --- | --- | --- |
-| `-XX:ErrorFile=...` | HotSpot fatal error, nếu handler chạy được | Text fatal error report (`hs_err_pid...log`) |
-| `-XX:+HeapDumpOnOutOfMemoryError` | Một số Java OOME theo cơ chế VM | Heap profile `.hprof` |
-| `-XX:HeapDumpPath=...` | Chỉ đường của heap dump khi tính năng tương ứng bật | Đường đến `.hprof`; không quyết định hs_err |
-| OS core-dump settings | Core dump được OS/VM cho phép | Binary core/minidump, có thể rất lớn |
-| `-XX:StartFlightRecording=...` | JFR recording được bật | Recording `.jfr` và/hoặc disk chunks tùy settings |
-| `-Xlog:gc*` | Unified logging theo event và level | GC log với rotation riêng |
-| `jcmd ...` | **JVM đang sống và attach được** | Thread dump, JFR dump, heap data hoặc các diagnostic views tùy command |
+| `-XX:ErrorFile=...` | HotSpot fatal error, if handler can run | Text fatal error report (`hs_err_pid...log`) |
+| `-XX:+HeapDumpOnOutOfMemoryError` | Certain Java OOMEs per VM mechanism | Heap profile `.hprof` |
+| `-XX:HeapDumpPath=...` | Sets path for heap dump when enabled | Path to `.hprof`; does not control `hs_err` |
+| OS core-dump settings | Core dump permitted by OS/VM | Binary core/minidump, can be very large |
+| `-XX:StartFlightRecording=...` | JFR recording enabled | `.jfr` recording and/or disk chunks depending on settings |
+| `-Xlog:gc*` | Unified logging by event and level | GC log with its own rotation |
+| `jcmd ...` | **JVM is alive and attachable** | Thread dump, JFR dump, heap data, or other diagnostic views per command |
 
-Ví dụ đồng thời chuẩn bị fatal log và heap dump cho Java OOME:
+Example preparing both a fatal log and a heap dump for Java OOME simultaneously:
 
 ```bash
 java \
@@ -452,94 +452,94 @@ java \
   -jar app.jar
 ```
 
-**Hai loại file có điều kiện kích hoạt khác nhau.** Heap dump có thể rất lớn và chứa dữ liệu nhạy cảm. Cần riêng headroom và policy bảo quản. Với core dump cũng vậy: có `hs_err` không đồng nghĩa core có tồn tại; còn phụ thuộc OS, `ulimit -c`, kernel core handler, volume, quota và security settings.
+**The two file types have different trigger conditions.** Heap dumps can be huge and contain sensitive data, requiring separate headroom and preservation policies. The same applies to core dumps: having `hs_err` does not mean a core dump exists; that also depends on OS, `ulimit -c`, kernel core handler, volume, quota, and security settings.
 
-Cờ `-XX:+ExtensiveErrorReports` trên một số HotSpot có thể tăng chi tiết fatal report, nhưng đồng thời khiến dữ liệu lớn/nhạy cảm hơn; không bật tràn lan nếu chưa có policy.
+The flag `-XX:+ExtensiveErrorReports` on some HotSpot builds can increase fatal report detail, but it also makes the data larger and potentially more sensitive; do not enable it broadly without a policy.
 
-## 10. Xử lý khi không thấy file hoặc file thiếu dữ liệu
+## 10. Handling Missing Files or Incomplete Data
 
-**Cây quyết định:**
+**Decision tree:**
 
 ```text
-Service kết thúc bất thường
+Service terminated abnormally
     |
-    +-- Stderr có fatal header / native signal không?
+    +-- Does stderr show a fatal header / native signal?
     |        |
-    |        +-- Có: tìm ErrorFile path -> CWD -> OS temporary fallback
-    |        |          kiểm tra quyền, disk/quota, mount, container lifecycle
-    |        |          file có thể partial -> vẫn bảo quản
+    |        +-- Yes: check ErrorFile path -> CWD -> OS temporary fallback
+    |        |          check permissions, disk/quota, mounts, container lifecycle
+    |        |          file may be partial -> preserve it anyway
     |        |
-    |        +-- Không: kiểm tra Java exception, termination signal,
+    |        +-- No: check Java exceptions, termination signals,
     |                   OOMKilled, orchestrator/host logs
     |
-    +-- Có file hs_err thuộc đúng PID/instance/time không?
+    +-- Is there an hs_err file matching the right PID/instance/time?
              |
-             +-- Có: copy + stat + SHA-256 + incident manifest + liên hệ JDK
+             +-- Yes: copy + stat + SHA-256 + incident manifest + correlate with JDK
              |
-             +-- Không: đánh dấu MISSING, thu evidence độc lập khác
+             +-- No: mark MISSING, gather other independent evidence
 ```
 
-Các nguyên nhân thường gặp:
+Common reasons:
 
-1. **Không có fatal VM error:** Java exception/OOME/normal shutdown không trigger handler theo mặc định.
-2. **OS chấm dứt process:** SIGKILL hoặc container OOMKill không cho handler chạy.
-3. **Flag không nằm trong JVM args:** startup script dùng đường khác, option đặt sau `-jar`, config thay đổi mà chưa redeploy.
-4. **Path không tồn tại hoặc không ghi được:** SELinux/AppArmor, container readonly root, user sai, quota đầy.
-5. **Fallback nằm trong `/tmp`:** người điều tra chỉ tìm custom path, trong khi VM thực tế đã ghi nơi khác.
-6. **CWD khác dự kiến:** service manager hoặc entrypoint đổi working directory.
-7. **Pod/container bị tái tạo:** ephemeral layer cũ biến mất.
-8. **PID reuse/trùng tên:** file bị ghi đè hoặc một file thuộc instance khác.
-9. **Rotation/cleanup:** collector chưa kịp sao chép trước khi artifact bị dọn.
-10. **Crash quá nặng:** file có thể rỗng hoặc chỉ chứa header trước khi error handler gặp lỗi thứ hai.
+1. **No fatal VM error occurred:** Java exceptions, OOME, or normal shutdown do not trigger the handler by default.
+2. **OS terminated the process:** `SIGKILL` or container OOMKill prevents the handler from running.
+3. **Flag missing from JVM args:** startup script uses a different path, option placed after `-jar`, or config changed without redeployment.
+4. **Path does not exist or is not writable:** SELinux/AppArmor, read-only container root, wrong user, or full quota.
+5. **Fallback landed in `/tmp`:** investigators only checked the custom path while the VM actually wrote elsewhere.
+6. **CWD differs from expectations:** the service manager or entrypoint changed the working directory.
+7. **Pod/container was recreated:** the old ephemeral layer vanished.
+8. **PID reuse / filename collision:** the file was overwritten or belongs to a different instance.
+9. **Rotation/cleanup:** the collector failed to copy the file before cleanup removed it.
+10. **Crash was too severe:** the file may be empty or contain only a header before the error handler hit a secondary fault.
 
-Nếu chỉ có header, xem nó là **partial artifact**, tiếp tục bảo quản. Không tạo file rỗng với tên `hs_err_pid` để giả làm bằng chứng; manifest nên ghi `missing`, `partial`, hoặc `apparently complete` đúng theo quan sát.
+If only the header is present, treat it as a **partial artifact** and preserve it anyway. Never create an empty file named `hs_err_pid` to fake evidence; the manifest should record `missing`, `partial`, or `apparently complete` strictly as observed.
 
-### Ba tình huống để luyện chẩn đoán
+### Three scenarios to practice diagnosis
 
-**A. Native SIGSEGV từ JNI:** stderr có `SIGSEGV` và `Problematic frame: C [libcodec.so+...]`; file `hs_err` còn trong crash volume. Thu ngay fatal log/core (nếu có), ghi phiên bản thư viện, JDK, flags, deploy timeline và SHA-256. **Chưa kết luận** đúng thư viện đó là nguyên nhân gốc nếu chưa xem memory corruption/lifetime.
+**A. Native SIGSEGV from JNI:** stderr shows `SIGSEGV` and `Problematic frame: C [libcodec.so+...]`; `hs_err` is in the crash volume. Immediately collect the fatal log and core (if present), and record library versions, JDK, flags, deploy timeline, and SHA-256. **Do not conclude** that library is the root cause before examining memory corruption or object lifetimes.
 
-**B. Java heap OOME:** log có `java.lang.OutOfMemoryError: Java heap space` nhưng không có fatal header. Nếu đã bật heap dump, thu `.hprof`, GC logs, app metrics. Không xem thiếu `hs_err` là lỗi cấu hình.
+**B. Java heap OOME:** logs show `java.lang.OutOfMemoryError: Java heap space` with no fatal header. If heap dump was enabled, collect `.hprof`, GC logs, and app metrics. Do not treat the absence of `hs_err` as a configuration error.
 
-**C. Kubernetes OOMKilled:** container reason `OOMKilled`, không có `hs_err`. Thu cgroup/node memory evidence, host/container events, stdout/stderr trước kill, configured memory limits, heap/native memory metrics từ collector. Không tìm cách bắt `jcmd` vào PID đã mất.
+**C. Kubernetes OOMKilled:** container reason `OOMKilled`, no `hs_err`. Gather cgroup/node memory evidence, host/container events, stdout/stderr prior to kill, configured memory limits, and heap/native memory metrics from collectors. Do not try to attach `jcmd` to a vanished PID.
 
-## 11. Bảo mật và vòng đời của crash artifacts
+## 11. Security and Lifecycle of Crash Artifacts
 
-Fatal log có thể chứa **JVM arguments, system properties, environment variables, đường dẫn file, stack trace, native libraries, memory addresses**. Một số hệ thống đặt token/secret ở command line hoặc environment. Vì thế:
+Fatal logs can contain **JVM arguments, system properties, environment variables, file paths, stack traces, native libraries, and memory addresses**. Some systems place tokens or secrets on the command line or in the environment. Therefore:
 
-- Lưu original trong restricted case storage, có phân quyền và encryption thích hợp; tránh public/share links.
-- Không paste nguyên log lên ticket/chat công khai hoặc vendor chưa có chính sách dữ liệu.
-- Khi chia sẻ, dùng **bản sao được che dữ liệu nhạy cảm**, giữ bản gốc và hash dưới quyền IR/SRE phù hợp.
-- Thu đủ **host, process, deployment version, timestamp và chain of custody** để tái dựng nguồn gốc, không dùng filename đơn lẻ như identity.
-- Đặt retention/quota cho crash artifacts; archive/copy **trước** khi xóa. Không để cleanup xóa log ngay lúc rollout sau crash.
-- Theo dõi disk space; một crash loop có thể tạo nhiều logs và core dumps. Đừng làm đầy crash volume khiến incident kế tiếp không ghi được file.
-- Nếu phát hiện secrets bị chia sẻ sai, thực hiện quy trình thu hồi/rotate phù hợp.
+- Store originals in restricted case storage with appropriate permissions and encryption; avoid public or shared links.
+- Do not paste raw logs into public tickets, chat channels, or vendors without a data-handling policy.
+- When sharing, use a **redacted copy**, keeping the original and hash under appropriate IR/SRE access control.
+- Capture full **host, process, deployment version, timestamp, and chain of custody** to reconstruct provenance rather than relying on filename alone as identity.
+- Set retention and quotas for crash artifacts; archive/copy **before** deletion. Do not let cleanup delete logs right during a post-crash rollout.
+- Monitor disk space; a crash loop can generate many logs and core dumps. Do not let the crash volume fill up and prevent the next incident from writing a file.
+- If secrets are found to have been exposed improperly, execute the appropriate revocation/rotation procedure.
 
-## 12. Checklist áp dụng
+## 12. Implementation Checklist
 
-### Trước sự cố
+### Before an incident
 
-- [ ] JVM sử dụng HotSpot/JDK phù hợp, `-XX:ErrorFile` nằm trong startup flags thật.
-- [ ] Đường dẫn tuyệt đối trỏ tới directory có trước khi chạy; dùng `%p` và tránh tên dễ ghi đè.
-- [ ] User/service/container security context ghi được; có disk/quota/inode headroom.
-- [ ] Crash directory được mount để sống qua lifecycle cần thiết; biết rõ `emptyDir` vs persistent volume.
-- [ ] Có collector và runbook bảo quản ngay, không để cleanup/rotation chạy trước.
-- [ ] Có quyền truy cập hạn chế, retention và chính sách bảo vệ dữ liệu nhạy cảm.
-- [ ] Chạy lab Java 17+ **không crash** bằng đúng user/mount, kiểm tra flag và khả năng ghi.
+- [ ] The JVM uses an appropriate HotSpot/JDK build, and `-XX:ErrorFile` is present in actual startup flags.
+- [ ] An absolute path points to a directory that exists before startup; use `%p` and avoid easily overwritten names.
+- [ ] The user/service/container security context can write; sufficient disk/quota/inode headroom exists.
+- [ ] The crash directory is mounted to survive the required lifecycle; understand `emptyDir` vs. persistent volumes.
+- [ ] A collector and immediate preservation runbook are in place so cleanup/rotation does not run first.
+- [ ] Restricted access, retention, and sensitive-data protection policies are enforced.
+- [ ] Run the **non-crashing** Java 17+ lab under the exact user/mount to verify the flag and write capability.
 
-### Ngay sau sự cố
+### Immediately after an incident
 
-- [ ] Ghi time UTC, host, instance/container/pod UID, PID, JDK version, release, exit reason.
-- [ ] Tìm `hs_err` ở ErrorFile path, CWD hoặc OS temp fallback theo bằng chứng.
-- [ ] Xác định đúng file với PID/time/header; ghi rõ nếu file partial hoặc missing.
-- [ ] Lưu bản gốc, tạo bản copy riêng, stat, checksum và manifest.
-- [ ] Thu stdout/stderr, GC/JFR/heap/core nếu có, kernel/container events và deployment metadata.
-- [ ] Đọc header, problematic frame, current/native thread, VM args, libraries; liên hệ phiên bản/recent changes.
-- [ ] Không suy root cause chỉ từ `Problematic frame`, không nhầm Java OOME với kernel OOMKilled.
-- [ ] Khi chia sẻ, chỉ chuyển bản đã kiểm duyệt và được phép.
+- [ ] Record UTC time, host, instance/container/pod UID, PID, JDK version, release, and exit reason.
+- [ ] Search for `hs_err` in the `ErrorFile` path, CWD, or OS temp fallback based on evidence.
+- [ ] Confirm the exact file matches PID/time/header; clearly note if the file is partial or missing.
+- [ ] Keep the original, create a separate copy, and capture `stat`, checksum, and manifest.
+- [ ] Collect stdout/stderr, GC/JFR/heap/core if present, kernel/container events, and deployment metadata.
+- [ ] Read the header, problematic frame, current/native thread, VM args, and libraries; correlate with versions and recent changes.
+- [ ] Do not infer root cause solely from `Problematic frame`, and do not confuse Java OOME with kernel `OOMKilled`.
+- [ ] When sharing, transmit only reviewed and authorized copies.
 
-**Kết luận:** thu `hs_err_pid` hiệu quả là một **quy trình gồm hai nửa**: chuẩn bị `-XX:ErrorFile`/writable persistent storage **trước crash**, và **bảo toàn chứng cứ ngay sau crash**. `hs_err` là snapshot khả dĩ tại thời điểm HotSpot gặp lỗi nghiêm trọng, **không phải** công cụ đảm bảo mọi lần process chết đều để lại báo cáo. Kết hợp nó với stderr, JFR/GC logs, heap/core và OS/container evidence để có kết luận đáng tin.
+**Conclusion:** collecting `hs_err_pid` effectively is a **two-part workflow**: preparing `-XX:ErrorFile` and writable persistent storage **before a crash**, and **preserving evidence immediately after a crash**. `hs_err` is a best-effort snapshot when HotSpot hits a severe failure, **not** a guarantee that every process death leaves a report. Combine it with stderr, JFR/GC logs, heap/core dumps, and OS/container evidence for reliable conclusions.
 
-## Tài liệu tham khảo
+## References
 
 - [Oracle JDK 21 — `java` command: `-XX:ErrorFile`, fallback, heap dump, extensive reports](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)
 - [Oracle JDK 24 — Fatal Error Log: location, file naming, header/threads/process/system](https://docs.oracle.com/en/java/javase/24/troubleshoot/location-fatal-error-log.html)

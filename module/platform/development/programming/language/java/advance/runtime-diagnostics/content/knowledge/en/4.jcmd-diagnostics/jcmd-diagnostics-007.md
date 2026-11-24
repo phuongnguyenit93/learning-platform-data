@@ -1,12 +1,12 @@
-# 4.7 Xử lý sai PID, tiến trình đã thoát, attach bị vô hiệu và công cụ không tương thích
+# 4.7 Handling Wrong PIDs, Exited Processes, Disabled Attach, and Incompatible Tools
 
-Khi chạy `jcmd 4242 VM.version` và nhận lỗi, đừng vội kết luận JVM hỏng, GC bị treo hoặc ứng dụng đã chết. `jcmd` cần **đúng JVM đích, đúng PID trong phạm vi quan sát, tiến trình còn sống, cơ chế attach khả dụng, quyền phù hợp và công cụ tương thích**. Một lỗi trông giống “không attach được” có thể bắt nguồn từ nhiều lớp khác nhau: gõ nhầm PID, JVM đã restart, PID nhìn từ container khác PID trên host, HotSpot được khởi động với `-XX:+DisableAttachMechanism`, bản JDK chứa `jcmd` không phù hợp JVM đích, hoặc quyền hệ điều hành không cho phép kết nối.
+When you run `jcmd 4242 VM.version` and get an error, do not jump to concluding the JVM is broken, GC is hung, or the application is dead. `jcmd` requires **the right target JVM, the right PID in the observation scope, a live process, an available attach mechanism, appropriate permissions, and a compatible tool**. An error that looks like "cannot attach" can originate from several different layers: a mistyped PID, a restarted JVM, a container PID differing from the host PID, HotSpot launched with `-XX:+DisableAttachMechanism`, a `jcmd` from a JDK incompatible with the target JVM, or OS permissions blocking connection.
 
-Bài này trình bày một quy trình **chẩn đoán bằng chứng trước, thao tác sau** cho bốn nhóm lỗi chính: **sai PID**, **tiến trình đã thoát**, **attach bị vô hiệu** và **công cụ không tương thích**. Đồng thời học cách tách các lỗi có triệu chứng gần giống: quyền/namespace, JVM không phản hồi và diagnostic command không được hỗ trợ. Ví dụ sử dụng HotSpot/JDK hiện đại (Java 17+ để chạy mẫu); câu chữ, mã lỗi và cách attach có thể khác theo JDK, JVM implementation và hệ điều hành.
+This lesson presents an **evidence-first, action-second** diagnostic workflow for four main failure classes: **wrong PID**, **exited process**, **disabled attach**, and **incompatible tools**. You will also learn how to separate errors with similar symptoms: permissions/namespaces, an unresponsive JVM, and unsupported diagnostic commands. Examples use modern HotSpot/JDK (Java 17+ for running samples); exact wording, error codes, and attach behavior can vary by JDK, JVM implementation, and OS.
 
-## 1. Hiểu đúng jcmd nhắm tới đối tượng nào
+## 1. Understand clearly what jcmd targets
 
-`jcmd` là tiện ích JDK để gửi **diagnostic command tới JVM hỗ trợ cơ chế tương ứng**. Ví dụ:
+`jcmd` is a JDK utility for sending **diagnostic commands to a JVM supporting that mechanism**. Example:
 
 ```bash
 jcmd -l
@@ -15,30 +15,30 @@ jcmd 4242 VM.version
 jcmd 4242 VM.command_line
 ```
 
-Ở đây `4242` chỉ là PID **giả định** dùng minh họa. Một PID tìm thấy bằng công cụ hệ điều hành chưa chắc là JVM; một JVM được liệt kê chưa chắc còn sống ở thời điểm gọi lệnh sau; việc có tên `java` trong command line cũng chưa chứng minh đó là đúng service mong muốn.
+Here `4242` is only a **hypothetical** illustrative PID. A PID found via OS tools is not guaranteed to be a JVM; a listed JVM is not guaranteed to still be alive when a later command runs; having `java` in the command line does not prove it is the intended service.
 
-Theo hướng dẫn Oracle JDK, `jcmd` thường cần chạy **cùng máy** và dưới **effective user/group identity phù hợp** với JVM đích. Thêm vào đó, cơ chế attach còn chịu ảnh hưởng của quyền OS, namespace/container, JVM flags và phiên bản công cụ. Khi gọi theo tên main class, lệnh có thể nhắm nhiều JVM trùng tên. Đối với một ca điều tra cụ thể, **dùng PID đã xác minh** sẽ giảm nguy cơ gửi lệnh nhầm ứng dụng.
+Per Oracle JDK guidance, `jcmd` generally must run on the **same machine** and under **matching effective user/group identity** with the target JVM. In addition, attach is governed by OS permissions, namespaces/containers, JVM flags, and tool version. When targeting by main class name, the command may match multiple JVMs sharing that name. For a specific incident investigation, **using a verified PID** reduces the risk of hitting the wrong application.
 
-**Cảnh báo quan trọng:** `jcmd 0 <command>` có thể gửi diagnostic command tới **mọi JVM phù hợp** trong phạm vi công cụ, và nhắm bằng main class cũng có thể chọn nhiều JVM. Khi đang phân tích một instance, không dùng các cách chọn hàng loạt vì kết quả khó quy về đúng tiến trình và một số command có tác động đáng kể.
+**Important warning:** `jcmd 0 <command>` can send the diagnostic command to **every eligible JVM** in the tool's scope, and targeting by main class can also select multiple JVMs. When analyzing one instance, avoid bulk selection because results are hard to attribute to a specific process and some commands carry substantial impact.
 
-### 1.1 “Khám phá JVM” khác “attach vào JVM”
+### 1.1 "Discovering JVMs" differs from "attaching to a JVM"
 
-| Hoạt động | Câu hỏi trả lời | Giới hạn |
+| Action | Question answered | Limitations |
 | --- | --- | --- |
-| `ps`, Task Manager, ProcessHandle | OS còn thấy tiến trình nào, dưới PID/namespace nào? | Không tự chứng minh một process là JVM hay có thể attach |
-| `jps -l` | Công cụ thấy những HotSpot JVM có instrumentation nào? | Phụ thuộc quyền, implementation, namespace và dữ liệu sẵn có |
-| `jcmd -l` | Công cụ liệt kê được JVM nào trong phạm vi hỗ trợ? | Có giới hạn, đặc biệt JVM trong Docker process riêng theo tài liệu `jcmd` |
-| `jcmd PID help` | JVM PID đó có thể trả danh sách diagnostic command không? | Phải tìm được, kết nối/attach và nhận phản hồi từ JVM |
-| `jcmd PID VM.version` | JVM đích báo runtime version nào? | Chỉ thực hiện được khi điều kiện kết nối đã đạt |
-| `jcmd PID VM.flags` | JVM đích báo flags nào? | Không dùng được để đọc cờ nếu **chính attach đang bị chặn** |
+| `ps`, Task Manager, ProcessHandle | Which processes does the OS see, under which PID/namespace? | Does not by itself prove a process is a JVM or attachable |
+| `jps -l` | Which HotSpot JVMs with instrumentation does the tool see? | Depends on permissions, implementation, namespace, and available data |
+| `jcmd -l` | Which JVMs can the tool list within its supported scope? | Has limitations, especially JVMs in separate Docker processes per `jcmd` docs |
+| `jcmd PID help` | Can the JVM at that PID return its diagnostic command list? | Must locate, connect/attach, and receive a response from the JVM |
+| `jcmd PID VM.version` | Which runtime version does the target JVM report? | Succeeds only once connection conditions are satisfied |
+| `jcmd PID VM.flags` | Which flags does the target JVM report? | Cannot be used to read flags if **attach itself is blocked** |
 
-Điểm cần nhớ: **được liệt kê và được attach là hai kiểm tra khác nhau**. Đặc biệt không áp dụng suy luận “`jcmd -l` thiếu dòng nghĩa là service đã tắt”.
+Key takeaway: **being listed and being attachable are two distinct checks**. In particular, never infer "the service has stopped" from a missing line in `jcmd -l`.
 
-### 1.2 PID phải đi kèm phạm vi và thời điểm
+### 1.2 A PID must carry scope and timestamp
 
-PID có nghĩa trong **PID namespace** nhất định. Cùng một JVM trong container có thể là PID 1 khi nhìn từ container nhưng là PID khác trên host. Sau khi restart, tiến trình mới có thể có PID mới; PID cũ sau đó có thể được OS cấp lại cho process khác.
+A PID only has meaning inside a given **PID namespace**. The same JVM inside a container can be PID 1 when viewed from inside the container while having a different PID on the host. After a restart, the new process can get a new PID; the OS can later reassign the old PID to another process.
 
-Một bản ghi danh tính tốt hơn “PID=4242” là:
+A better identity record than "PID=4242" is:
 
 ```text
 service=order-api
@@ -47,196 +47,196 @@ where_observed=container/order-api
 pid_in_scope=1
 observed_at_utc=2026-10-29T08:00:00Z
 process_start_utc=2026-10-29T07:34:20Z
-runtime_identity=Java 21 / HotSpot (xác minh từ nguồn phù hợp)
+runtime_identity=Java 21 / HotSpot (verified from an appropriate source)
 ```
 
-Tất cả giá trị trong khối trên là **dữ liệu giả định**. Trong thực tế, chỉ ghi trường có bằng chứng và không đưa metadata nhạy cảm lên kênh chia sẻ không phù hợp.
+All values in the block above are **hypothetical data**. In practice, record only verified fields and never post sensitive metadata onto inappropriate shared channels.
 
-## 2. Luồng xử lý nhanh trước khi diễn giải thông báo lỗi
+## 2. Quick triage flow before interpreting error messages
 
-Một sơ đồ điều tra read-only:
+A read-only investigation flowchart:
 
 ```text
-jcmd PID <diagnostic-command> thất bại
+jcmd PID <diagnostic-command> fails
                    |
                    v
-(1) PID thuộc đúng host/namespace và process còn hiện diện?
+(1) Is the PID in the right host/namespace and still present?
             /                      \
-          KHÔNG                    CÓ
+          NO                       YES
            |                        |
-  Tìm đúng PID hoặc         (2) Đúng JVM/instance?
-  xác minh process thoát        /         \
-                              KHÔNG       CÓ
-                               |           |
-                        Sửa PID và     (3) Tool + user +
-                        xác minh lại    namespace phù hợp?
-                                           /         \
-                                         KHÔNG        CÓ
-                                          |           |
-                                     Sửa phạm vi   (4) Attach enabled?
-                                     /quyền/tool      /         \
-                                                   KHÔNG        CÓ/CHƯA RÕ
-                                                    |             |
-                                               Dùng nguồn     (5) JVM responsive,
-                                               ngoài attach    command supported?
-                                                                 |
-                                                    Phân biệt timeout, command
-                                                    không hỗ trợ, JVM bị nghẽn
+  Find right PID or         (2) Right JVM/instance?
+  verify process exit          /         \
+                              NO         YES
+                               |          |
+                        Fix PID and   (3) Tool + user +
+                        re-verify      namespace compatible?
+                                          /         \
+                                        NO          YES
+                                         |           |
+                                    Fix scope    (4) Attach enabled?
+                                    /perms/tool     /         \
+                                                  NO        YES/UNCLEAR
+                                                   |             |
+                                              Use non-attach (5) JVM responsive,
+                                              sources         command supported?
+                                                                |
+                                                   Separate timeout, unsupported
+                                                   command, congested JVM
 ```
 
-Thứ tự này có mục đích: loại trừ **sai mục tiêu** trước khi suy đoán **hỏng cơ chế attach**. Nếu không biết chắc PID hoặc service đã restart, mọi kiểm tra quyền/flag trên PID ấy đều có nguy cơ vô nghĩa.
+This ordering is deliberate: rule out **wrong target** before speculating about a **broken attach mechanism**. If you are unsure of the PID or the service restarted, every permission/flag check against that PID risks being meaningless.
 
-Một checklist ngắn đủ dùng trong incident:
+A short incident checklist that is sufficient in practice:
 
-1. Ghi **thời gian UTC**, host/container đang đứng, người dùng đang chạy tool và câu lệnh chính xác.
-2. Kiểm tra PID tồn tại **ngay bây giờ** trong đúng namespace.
-3. Xác minh identity: executable, start time/uptime, workload/container instance; chú ý PID reuse.
-4. Xác minh `jcmd` nào đang được dùng, JDK/runtime nào đang chạy service.
-5. Đối chiếu quyền và cơ chế attach, bao gồm startup flag nếu có bằng chứng độc lập.
-6. Nếu process còn sống và đúng JVM, thử **một command nhẹ** như `help`, ghi nguyên loại lỗi; nếu không phản hồi thì tách nhánh riêng.
-7. Kết luận dựa trên **điều đã xác nhận**; ghi “chưa đủ bằng chứng” khi thiếu dữ liệu.
+1. Record **UTC timestamp**, host/container you are on, user running the tool, and exact command.
+2. Check whether the PID exists **right now** in the right namespace.
+3. Verify identity: executable, start time/uptime, workload/container instance; watch for PID reuse.
+4. Verify which `jcmd` is being invoked and which JDK/runtime runs the service.
+5. Cross-check permissions and attach mechanism, including startup flags if independent evidence exists.
+6. If the process is alive and the right JVM, try **a lightweight command** like `help`, saving the verbatim error; if unresponsive, split into a separate branch.
+7. Conclude based only on **confirmed facts**; write "insufficient evidence" when data is missing.
 
-## 3. Trường hợp 1: sai PID hoặc nhầm process
+## 3. Case 1: wrong PID or wrong process
 
-### 3.1 Vì sao PID có thể sai?
+### 3.1 Why can a PID be wrong?
 
-- Lấy PID của lần triển khai trước, service đã restart.
-- Ghi PID của shell, Java launcher tạm, build daemon, sidecar hoặc process khác.
-- Lấy PID từ **bên trong container** rồi dùng `jcmd` **trên host** mà không đối chiếu namespace.
-- Sao chép PID từ dashboard/log có timestamp cũ; OS đã tái sử dụng số đó.
-- Có nhiều JVM cùng main class/JAR, chọn nhầm replica.
-- Lệnh `jcmd -l` và `ps` chạy ở những host, user hoặc namespace khác nhau; hai danh sách không nhất thiết có cùng tập process.
-- Dùng LVMID của `jps` như PID native mà không kiểm chứng; với JVM cục bộ thường trùng nhau nhưng không phải bảo đảm tổng quát.
+- Using a PID from an earlier deployment after the service restarted.
+- Recording the PID of a shell, temporary Java launcher, build daemon, sidecar, or unrelated process.
+- Taking a PID from **inside a container** and running `jcmd` **on the host** without reconciling namespaces.
+- Copying a PID from a dashboard/log with an old timestamp; the OS already reused that number.
+- Multiple JVMs share the same main class/JAR, and you picked the wrong replica.
+- `jcmd -l` and `ps` ran on different hosts, users, or namespaces; the two lists do not necessarily share the same process set.
+- Treating `jps`'s LVMID as a native PID without verification; on local JVMs they usually match, yet it is not a universal guarantee.
 
-### 3.2 Xác minh bằng công cụ OS trước
+### 3.2 Verify with OS tools first
 
-Ví dụ Linux/Unix, giả sử đang đứng ở **đúng host/namespace** và dùng PID minh họa `4242`:
+Linux/Unix example, assuming you are on the **right host/namespace** with illustrative PID `4242`:
 
 ```bash
 ps -p 4242 -o pid,ppid,user,lstart,etime,comm
 ```
 
-Nếu công cụ báo không có dòng ứng viên, chưa thể kết luận duy nhất “đã thoát”: PID có thể được lấy từ namespace khác hoặc không tồn tại trong phạm vi hiện tại. Nếu `ps` thấy process, xem executable/đường chạy và start time khi có quyền. Lệnh `ps -o args` có thể giúp xác minh lệnh khởi động nhưng **có nguy cơ hiển thị secret**, nên hạn chế sử dụng/đưa nguyên output vào ticket.
+If the tool returns no candidate row, you cannot immediately conclude only "it exited": the PID may come from another namespace or not exist in the current scope. If `ps` finds the process, inspect its executable/path and start time when permitted. `ps -o args` helps verify the launch command, yet **risks exposing secrets**, so restrict its use and avoid pasting raw output into tickets.
 
-Trên Windows có thể tham khảo:
+On Windows you can check:
 
 ```powershell
 Get-Process -Id 4242 | Select-Object Id, ProcessName, StartTime, Path
 ```
 
-Một số property có thể không khả dụng do quyền hoặc OS. Với PowerShell, việc process không còn tồn tại có thể tạo lỗi, nên đọc stderr/mã thoát thay vì coi output rỗng là nguyên nhân đã được xác minh.
+Some properties may be unavailable due to permissions or OS behavior. In PowerShell, a missing process can throw an error, so read stderr/exit code instead of treating empty output as a verified cause.
 
-Trên Kubernetes, hãy xác định namespace/pod/container thực sự chứa JVM và cách PID được ánh xạ. **Không mặc định PID 1 trong container là PID 1 của host**. Với Docker, tài liệu Oracle `jcmd -l` nêu giới hạn không liệt kê JVM chạy trong Docker process riêng; trường hợp ấy nên tìm PID bằng process tools ở nơi JVM đang chạy rồi đối chiếu runtime/đường nhìn.
+On Kubernetes, identify the exact namespace/pod/container hosting the JVM and how PIDs map. **Never assume PID 1 inside a container is PID 1 on the host**. With Docker, Oracle `jcmd -l` docs note the limitation of not listing JVMs in separate Docker processes; in that case, find the PID using process tools where the JVM runs and cross-check runtime/visibility.
 
-### 3.3 Dùng nhiều bằng chứng để tránh PID reuse
+### 3.3 Use multiple signals to guard against PID reuse
 
-Đối chiếu ít nhất **PID + thời điểm bắt đầu** nếu lấy được, cộng service/container identity. Java `ProcessHandle.Info.startInstant()` có thể trả `Optional<Instant>`; không phải môi trường nào cũng cấp trường này.
+Cross-check at least **PID + start time** when available, plus service/container identity. Java's `ProcessHandle.Info.startInstant()` can return `Optional<Instant>`; not every environment supplies this field.
 
-Ví dụ giả định:
+Hypothetical example:
 
-- Lúc 08:00, PID 4242 của JVM A được ghi nhận.
-- Lúc 08:03, A thoát.
-- Lúc 08:05, OS cấp lại PID 4242 cho process B.
-- Chạy `jcmd 4242 ...` lúc 08:06 có thể thất bại vì B không phải JVM phù hợp; nếu B là JVM khác, việc kết nối thành công còn **nguy hiểm hơn** vì bạn đã hỏi nhầm đích.
+- At 08:00, PID 4242 of JVM A is recorded.
+- At 08:03, A exits.
+- At 08:05, the OS reassigns PID 4242 to process B.
+- Running `jcmd 4242 ...` at 08:06 may fail because B is not a matching JVM; if B happens to be another JVM, succeeding is **even more dangerous** because you queried the wrong target.
 
-Do vậy, **lệnh thành công cũng không tự chứng minh đã hỏi đúng service**. Trước các command có impact cao, kiểm tra danh tính lại ngay sát thời điểm thao tác.
+Thus, **command success does not by itself prove you queried the right service**. Before high-impact commands, re-verify identity right before acting.
 
-### 3.4 Kết luận đúng từ những bằng chứng thường gặp
+### 3.4 Sound conclusions from common evidence
 
-| Bằng chứng quan sát | Có thể kết luận | Chưa thể kết luận |
+| Observed evidence | What you can conclude | What you cannot conclude yet |
 | --- | --- | --- |
-| `ps` không thấy PID | PID không hiện diện trong phạm vi và thời điểm đo | JVM bị crash, OOM, bị xóa hay chỉ khác namespace |
-| `ps` thấy PID nhưng executable khác | PID không khớp giả định ban đầu về process | Nguyên nhân service Java cũ đã biến mất |
-| PID trùng nhưng start time khác | Đã đổi instance hoặc PID được tái sử dụng | Lỗi attach chắc chắn do phiên bản JDK |
-| `jcmd -l` có tên main class trùng | Có JVM ứng viên trong phạm vi liệt kê | Chính xác là replica/user request đang điều tra |
-| `jcmd VM.version` thành công | Có JVM tương ứng PID trả lời command | Đó chắc chắn là instance nghiệp vụ đúng nếu chưa xác minh identity |
+| `ps` does not show PID | PID is not present in this scope at measurement time | Whether the JVM crashed, OOM'd, was deleted, or is just in another namespace |
+| `ps` shows PID, but different executable | PID does not match initial assumption about the process | Why the old Java service disappeared |
+| Same PID, different start time | Instance changed or PID was reused | That an attach failure was definitely due to JDK version |
+| `jcmd -l` shows duplicate main class names | Candidate JVMs exist within listing scope | Exactly which replica/user request is under investigation |
+| `jcmd VM.version` succeeds | A JVM at that PID responded to the command | That it is definitely the right business instance without identity verification |
 
-## 4. Trường hợp 2: tiến trình đã thoát hoặc đang restart
+## 4. Case 2: process exited or is restarting
 
-Một process sống lúc lấy PID có thể thoát trước khi `jcmd` bắt đầu kết nối. Đây là **race condition** bình thường khi các thao tác quan sát không nguyên tử. Lỗi có thể được diễn đạt là “process not found”, “No such process”, “not responding”, “attach failed” hoặc một thông báo IOException tùy môi trường; **không coi chuỗi lỗi cụ thể là chẩn đoán duy nhất**.
+A process alive when you grabbed the PID can exit before `jcmd` connects. This is a normal **race condition** when observation steps are non-atomic. Errors may read "process not found", "No such process", "not responding", "attach failed", or an IOException message depending on the environment; **do not treat a specific error string as a unique diagnosis**.
 
-### 4.1 Dấu hiệu cần kiểm tra
+### 4.1 Signals to check
 
-- Process không còn trong OS process list hoặc `ProcessHandle.of(pid)` trả empty.
-- Orchestration/deployment có event restart, terminated, failed health check hoặc process exit.
-- Timestamp của log cuối, startup log của instance mới và PID/start time không còn khớp.
-- Container/pod bị thay mới, rolling update, crash loop hoặc autoscaling.
-- Ứng dụng có exit code và termination reason; kiểm tra **bằng nguồn hệ thống** thay vì đoán từ `jcmd`.
+- Process is gone from the OS process list, or `ProcessHandle.of(pid)` returns empty.
+- Orchestration/deployment shows restart, terminated, failed health check, or process exit events.
+- Last log timestamp, new instance startup log, and PID/start time no longer match.
+- Container/pod was replaced, rolling-updated, crash-looping, or autoscaled.
+- The application has an exit code and termination reason; inspect them **from system sources** rather than guessing from `jcmd`.
 
-Một exit code 137 thường liên hệ SIGKILL trong môi trường Unix/container, nhưng **không tự chứng minh OOM kill**. Cần sự kiện memory/cgroup/kernel hoặc termination reason đáng tin. Một tiến trình có thể bị kill vì lý do khác, và một JVM có thể thoát hợp lệ.
+An exit code 137 is often associated with SIGKILL in Unix/container environments, yet **does not by itself prove an OOM kill**. You need reliable memory/cgroup/kernel events or termination reasons. A process can be killed for other reasons, and a JVM can exit normally.
 
-### 4.2 Khi process đã thoát thì jcmd không thể “quay về quá khứ”
+### 4.2 Once a process exits, jcmd cannot "go back in time"
 
-`jcmd` thao tác với **JVM đang chạy và có thể kết nối**; nó không thể yêu cầu thread dump hoặc GC state trực tiếp từ JVM đã kết thúc. Khi đã xác định process cũ thoát, hãy chuyển sang:
+`jcmd` interacts with a **running, attachable JVM**; it cannot request a thread dump or GC state directly from an exited JVM. Once you confirm the old process exited, switch to:
 
-1. Logs trước khi thoát, event của orchestrator, exit status và mã lỗi.
-2. GC logs/JFR recording **được cấu hình ghi ra file trước đó**, nếu tồn tại và có quyền đọc.
-3. `hs_err_pid*.log` hoặc core dump/heap dump **nếu thực sự đã được tạo**; không giả định file nào luôn có.
-4. Tài nguyên OS/container trước khi process dừng: memory pressure, throttling, OOM events, disk/network, host events.
-5. Identity và cấu hình của instance mới để so sự khác biệt.
+1. Pre-exit logs, orchestrator events, exit status, and error codes.
+2. GC logs/JFR recordings **configured to write to disk beforehand**, if present and readable.
+3. `hs_err_pid*.log` or core/heap dumps **if actually generated**; never assume any file automatically exists.
+4. OS/container resources before the process stopped: memory pressure, throttling, OOM events, disk/network, host events.
+5. Identity and config of the new instance to compare differences.
 
-Không khuyên “chạy lại ngay cùng PID” hay ép JVM khởi động lại chỉ để phục vụ một command. Bản ghi cũ, nếu có, và trạng thái dịch vụ hiện tại là hai đối tượng điều tra khác nhau.
+Do not advise "re-running immediately on the same PID" or forcing a JVM restart just to satisfy a command. Historical artifacts (if any) and the current service instance are two distinct investigation subjects.
 
-### 4.3 Ứng dụng không phản hồi chưa chắc đã thoát
+### 4.3 An unresponsive app has not necessarily exited
 
-Phân biệt:
+Distinguish:
 
-- **Đã thoát:** OS không còn process trong phạm vi đúng, có bằng chứng termination.
-- **Còn sống nhưng không phục vụ request:** OS vẫn có process; có thể deadlock, thread starvation, GC pause, CPU throttling, I/O hoặc dependency chờ.
-- **Còn sống nhưng attach không phản hồi:** có thể JVM quá tải/không xử lý được attach hoặc attach bị chặn; cần quan sát OS và startup configuration.
-- **Không thấy trong danh sách JVM:** có thể do limitation của discovery, không đồng nghĩa đã thoát.
+- **Exited:** OS no longer has the process in the right scope, backed by termination evidence.
+- **Alive yet not serving requests:** OS still shows the process; possible deadlock, thread starvation, GC pause, CPU throttling, I/O, or downstream wait.
+- **Alive yet attach unresponsive:** JVM may be overloaded/unable to service attach, or attach is blocked; check OS metrics and startup configuration.
+- **Missing from JVM listing:** may be a discovery limitation, not equivalent to exited.
 
-Nếu không có dữ liệu để tách bốn trạng thái, ghi rõ “chưa phân biệt được vì không có process/event evidence ở namespace tương ứng”.
+If data is lacking to separate the four states, state "indistinguishable due to missing process/event evidence in that namespace".
 
-## 5. Trường hợp 3: attach bị vô hiệu
+## 5. Case 3: attach is disabled
 
-### 5.1 Flag quan trọng trên HotSpot
+### 5.1 Key flag on HotSpot
 
-Trên HotSpot, tùy chọn:
+On HotSpot, the option:
 
 ```text
 -XX:+DisableAttachMechanism
 ```
 
-**vô hiệu hóa cơ chế attach** cho các công cụ dùng cơ chế đó, trong đó có `jcmd`. Tài liệu `java` mô tả flag này ở nhóm tùy chọn serviceability. Đừng nhầm nó với “JVM không chạy”, “OS không cấp quyền” hay “không cài jcmd”.
+**disables the attach mechanism** for tools using it, including `jcmd`. `java` docs list this flag under serviceability options. Do not confuse it with "JVM is not running", "OS denied permission", or "jcmd is not installed".
 
-Một cách hiểu đúng:
+An accurate mental model:
 
-- JVM vẫn có thể thực thi ứng dụng, phục vụ request, ghi GC log và xuất metrics đã cấu hình.
-- Công cụ vẫn có thể tìm thấy native process qua OS/`ProcessHandle`.
-- `jcmd PID ...` có thể không kết nối được vì attach đã bị tắt.
-- `jcmd -l`/`jps` nhìn thấy hoặc không nhìn thấy process **không đủ** để xác nhận flag; các cơ chế khám phá có giới hạn riêng.
+- The JVM can still run the application, serve requests, write GC logs, and emit configured metrics.
+- Tools can still see the native process via OS/`ProcessHandle`.
+- `jcmd PID ...` cannot connect because attach is disabled.
+- `jcmd -l`/`jps` seeing or missing the process is **insufficient** to confirm the flag; discovery mechanisms have their own limitations.
 
-**Không cố suy ra flag bằng `jcmd PID VM.flags` khi lệnh attach đã thất bại**. Nếu attach không hoạt động, phải dùng một nguồn **độc lập**: tham số khởi động đã được ghi nhận hợp lệ, deployment manifest/config, startup logs hoặc dữ liệu platform đã lưu.
+**Do not try to check the flag with `jcmd PID VM.flags` when attach has already failed**. If attach does not work, use an **independent** source: recorded startup arguments, deployment manifests/configs, startup logs, or stored platform metadata.
 
-### 5.2 Xác minh attach disabled theo trình tự
+### 5.2 Verify disabled attach in sequence
 
-1. Chứng minh **đúng PID/instance và JVM đang sống** bằng nguồn OS/container.
-2. Đối chiếu account/quyền và namespace của `jcmd` với JVM.
-3. Đối chiếu JDK tool/runtime để loại khả năng không tương thích.
-4. Kiểm tra **startup options thực tế** từ manifest/launch script/log cấu hình, xem có `-XX:+DisableAttachMechanism` hay không. Không dựa duy nhất vào bản cấu hình mong đợi nếu service đã chạy bằng tham số khác.
-5. Nếu có bằng chứng flag này thực sự được sử dụng, xác nhận chính sách triển khai có chủ ý hay cấu hình sai.
-6. Nếu không có bằng chứng, trạng thái vẫn là **attach unavailable, cause unconfirmed**; tiếp tục điều tra các điều kiện còn lại.
+1. Prove **the right PID/instance and a live JVM** via OS/container sources.
+2. Cross-check `jcmd`'s account/permissions and namespace against the JVM.
+3. Cross-check JDK tool/runtime to rule out version incompatibility.
+4. Inspect **actual startup options** from manifests/launch scripts/config logs to see if `-XX:+DisableAttachMechanism` is present. Do not rely solely on expected config if the service launched with different parameters.
+5. If evidence confirms this flag is used, check whether it is intentional deployment policy or misconfiguration.
+6. Without evidence, the status remains **attach unavailable, cause unconfirmed**; continue checking the remaining conditions.
 
-Trong thực tế, cơ chế attach còn có thể bị ngăn bởi quyền file/socket, user namespace, sandbox hoặc cấu hình runtime ngay cả khi flag này không bật. Vì vậy “`jcmd` không attach được” **không tương đương** “`DisableAttachMechanism` đang bật”.
+In practice, attach can also be blocked by file/socket permissions, user namespaces, sandboxes, or runtime configuration even when this flag is not set. Thus "`jcmd` cannot attach" **is not equivalent to** "`DisableAttachMechanism` is enabled".
 
-### 5.3 Hướng xử lý khi xác nhận attach disabled
+### 5.3 How to proceed once disabled attach is confirmed
 
-Nếu attach bị vô hiệu **có chủ đích** bởi chính sách vận hành, không tự ý bật lại hoặc sửa quyền để “cho chạy được lệnh”. Thu thập bằng nguồn đã chuẩn bị sẵn: application metrics, JMX endpoint được cấu hình/phân quyền, GC logs, JFR recording khởi tạo trước (nếu có), OS/process/container metrics và event logs.
+If attach is **intentionally** disabled by operational policy, do not unilaterally re-enable it or alter permissions just to "get the command to run". Collect data from pre-configured sources: application metrics, properly configured/authorized JMX endpoints, GC logs, pre-started JFR recordings (if any), OS/process/container metrics, and event logs.
 
-Nếu chính sách cho phép bật attach để chẩn đoán, thay đổi startup options phải đi qua deployment/restart có kiểm soát. Không có một lời gọi `jcmd` từ bên ngoài nào bảo đảm bật được cơ chế attach đã tắt ngay trên JVM đang chạy. **Đừng hứa sửa lỗi bằng cách thêm flag vào một terminal khác**: điều đó chỉ ảnh hưởng lệnh mới hoặc JVM được khởi động lại theo cấu hình mới.
+If policy allows enabling attach for diagnostics, changing startup options must go through controlled deployment/restart. No external `jcmd` call can guarantee turning on a disabled attach mechanism in a live running JVM. **Never promise to fix it by passing a flag in another terminal**: that only affects new commands or a JVM restarted under the new configuration.
 
-### 5.4 Attach bị chặn khác dynamic agent loading bị hạn chế
+### 5.4 Blocked attach differs from restricted dynamic agent loading
 
-Một số JDK phiên bản mới có chính sách/cảnh báo riêng về **tải agent động**. Đây là khái niệm hẹp hơn việc một JVM có cho `jcmd` attach để đọc diagnostic commands hay không. Không gom mọi thông báo về agent loading vào nhãn “`jcmd` bị vô hiệu”. Đọc đúng cảnh báo, tên flag, loại thao tác và phiên bản trước khi kết luận.
+Some newer JDK releases have dedicated policies/warnings regarding **dynamic agent loading**. That is a narrower concept than whether a JVM lets `jcmd` attach to read diagnostic commands. Do not lump every agent-loading notice under "`jcmd` is disabled". Read the exact warning, flag name, operation type, and version before concluding.
 
-## 6. Trường hợp 4: công cụ jcmd không tương thích với JVM đích
+## 6. Case 4: jcmd tool is incompatible with the target JVM
 
-### 6.1 “jcmd có trong PATH” chưa đủ
+### 6.1 "jcmd is in PATH" is not enough
 
-Máy có thể cài JDK 8, 17, 21 đồng thời. Một terminal chạy `java -version` từ một `JAVA_HOME`, nhưng `jcmd` lại đến từ thư mục JDK khác trong `PATH`. Service còn có thể chạy bằng runtime image trong container hoặc một JDK vendor khác.
+A machine can have JDK 8, 17, and 21 installed side by side. A terminal may run `java -version` from one `JAVA_HOME`, while `jcmd` comes from another JDK directory in `PATH`. A service may also run from a containerized runtime image or a different JDK vendor.
 
-Ví dụ giả định:
+Hypothetical example:
 
 ```text
 Service A: /opt/java/jdk-21/bin/java
@@ -244,11 +244,11 @@ Shell java: /usr/bin/java (JDK 17)
 Shell jcmd: /opt/java/jdk-11/bin/jcmd
 ```
 
-Trong trường hợp này, kết quả `java -version` trên shell **không mô tả JVM đang chạy service A**, và `jcmd` hiện được chọn cũng không khớp release của service. Tài liệu Oracle cảnh báo các serviceability tools như `jcmd` không được hỗ trợ khi lấy từ **một phiên bản JDK** để chẩn đoán **JDK phiên bản khác**. Việc thỉnh thoảng có lệnh thành công không biến tổ hợp đó thành hỗ trợ chính thức.
+In this case, `java -version` in the shell **does not describe the JVM running service A**, and the chosen `jcmd` does not match the service's release either. Oracle documentation warns that serviceability tools like `jcmd` are unsupported when taken from **one JDK version** to diagnose **another JDK version**. An occasional command succeeding does not make that combination officially supported.
 
-### 6.2 Kiểm tra đường dẫn tool thật
+### 6.2 Check actual tool paths
 
-Trên shell Unix/Linux:
+On Unix/Linux shells:
 
 ```bash
 command -v java
@@ -256,95 +256,95 @@ command -v jcmd
 java -version
 ```
 
-Đầu ra chỉ cho bạn biết **tool mà shell hiện tìm thấy**; service Java có thể đã khởi động từ một executable khác. Với môi trường dùng nhiều JDK, kiểm tra đường dẫn thực tế của `jcmd` và executable của JVM đích qua process metadata, service launch manifest hoặc container image. Chỉ đọc thông tin phù hợp; command line đầy đủ có thể chứa secret.
+The output only tells you **which tools the current shell finds**; the Java service may have started from a different executable. In multi-JDK environments, check the real path of `jcmd` and the target JVM's executable via process metadata, service launch manifests, or container images. Read only appropriate details; full command lines may expose secrets.
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ```powershell
 Get-Command java
 Get-Command jcmd
 ```
 
-Sau đó đối chiếu path/JDK release của lệnh được tìm thấy với runtime của đúng process. Nếu chỉ có `java -version` trên terminal nhưng không biết path của process đích, đánh dấu **target JVM release not confirmed**.
+Then compare the path/JDK release of the discovered command with the exact process's runtime. If you only have `java -version` in the terminal without knowing the target process's path, mark **target JVM release not confirmed**.
 
-### 6.3 Cách xử lý phù hợp
+### 6.3 Proper handling
 
-- Ưu tiên `jcmd` đi kèm **đúng JDK release** và môi trường gần với JVM đích; xác minh implementation/vendor/hệ điều hành nếu có khác biệt.
-- Kiểm tra cả độ đầy đủ của bản phân phối: runtime image tối giản có thể không chứa `jcmd`. Thiếu file executable chỉ chứng minh thiếu tool, không chứng minh JVM không có diagnostic capability.
-- Sau khi xác minh quyền và namespace, dùng `jcmd PID help` để xem **diagnostic commands JVM thực sự hỗ trợ**. Không sao chép command mới từ tài liệu JDK 21 rồi mặc định JVM 17 có cùng command/option.
-- Nếu không thể có tool tương thích trong môi trường, dùng số liệu ứng dụng/JVM đã bật hoặc các metric OS/container thay thế và ghi rõ giới hạn.
+- Prefer `jcmd` bundled with **the matching JDK release** and an environment close to the target JVM; verify implementation/vendor/OS where differences exist.
+- Check distribution completeness as well: minimal runtime images may omit `jcmd`. A missing executable only proves missing tooling, not that the JVM lacks diagnostic capability.
+- After verifying permissions and namespace, run `jcmd PID help` to see **which diagnostic commands the JVM actually supports**. Do not copy a new command from JDK 21 docs and assume a JDK 17 JVM has the exact same command/options.
+- If no compatible tool can be made available in the environment, fall back to enabled app/JVM telemetry or OS/container metrics and note the limitation clearly.
 
-Không nên tải một binary `jcmd` ngẫu nhiên trên Internet hay tự ghi đè runtime production. Một tool đúng phiên bản nhưng chạy **sai user/namespace** vẫn có thể attach thất bại; tương thích chỉ là một điều kiện.
+Never download a random `jcmd` binary from the Internet or overwrite a production runtime. Even a matching-version tool running under **the wrong user/namespace** can still fail to attach; compatibility is just one condition.
 
-### 6.4 “Unknown diagnostic command” là một loại lỗi khác
+### 6.4 "Unknown diagnostic command" is a different error class
 
-Nếu đã attach được và JVM trả lỗi kiểu `Unknown diagnostic command`, hãy kiểm tra command name, options và danh sách `jcmd PID help`. Đây là bằng chứng **command cụ thể không được JVM đó nhận**, không tự chứng minh PID sai, process đã chết hay toàn bộ tool bị lỗi phiên bản.
+If attach succeeded and the JVM returns an error like `Unknown diagnostic command`, check the command name, options, and `jcmd PID help` list. This is evidence that **the specific command is not recognized by that JVM**, not proof of a wrong PID, dead process, or full tool-version failure.
 
-Tương tự, khi một command có impact cao bị chặn bởi quyền/chính sách riêng hoặc thiếu điều kiện chạy, cần đọc **help của chính command**. Việc `VM.version` chạy được không bảo đảm mọi command khác đều được hỗ trợ hoặc có tác động giống nhau.
+Similarly, when a high-impact command is blocked by specific permissions/policies or unmet prerequisites, read **that command's own help**. `VM.version` working does not guarantee every other command is supported or has similar impact.
 
-## 7. Các nguyên nhân dễ bị chẩn đoán nhầm thành bốn lỗi chính
+## 7. Causes easily misdiagnosed as the four main errors
 
-### 7.1 Quyền OS, effective UID/GID, sandbox
+### 7.1 OS permissions, effective UID/GID, sandboxes
 
-Tài liệu `jcmd` yêu cầu cùng máy và effective user/group phù hợp với JVM đích. Nếu lệnh được thực thi bằng account khác, trong sandbox khác hoặc thiếu quyền truy cập cơ chế IPC/attach, lỗi có thể tương tự attach disabled.
+`jcmd` docs require the same machine and matching effective user/group as the target JVM. If invoked under another account, inside another sandbox, or lacking IPC/attach access permissions, the error can resemble disabled attach.
 
-Đừng mặc định `sudo` hoặc chạy mọi lệnh bằng root là giải pháp. Điều đó có thể tạo khác biệt UID/GID, quyền file và rủi ro không cần thiết; quan trọng là **đúng danh tính và chính sách truy cập**. Với container, user namespace/capabilities/securityContext cũng có thể ảnh hưởng.
+Do not assume `sudo` or running everything as root is the fix. That can create UID/GID mismatches, file-permission issues, and unnecessary risk; what matters is **matching identity and access policy**. In containers, user namespaces/capabilities/securityContext can also affect access.
 
-Kiểm tra quyền ở cấp phù hợp:
+Check permissions at the right level:
 
-- Account được dùng để khởi động JVM là ai? Công cụ đang chạy với effective identity nào?
-- Tool có đang ở cùng host, namespace, mount/IPC context cần thiết không?
-- Chính sách bảo mật hoặc mount của runtime có hạn chế đường truyền attach không?
-- Có dấu hiệu `Permission denied` hoặc lỗi OS cụ thể trong stderr không?
+- Which account launched the JVM? Which effective identity is the tool running under?
+- Is the tool on the right host, namespace, and mount/IPC context?
+- Do runtime security policies or mounts restrict the attach channel?
+- Is there `Permission denied` or a specific OS error in stderr?
 
-Không tự `chmod` thư mục tạm, xóa socket attach hoặc thay security policy trên production khi chưa có bằng chứng và quyền vận hành. Đây là những thay đổi có thể tác động process khác và che nguyên nhân thật.
+Never `chmod` temp directories, delete attach sockets, or alter security policies in production without evidence and operational authorization. Those changes can disrupt other processes and mask the real cause.
 
-### 7.2 JVM quá tải hoặc không trả lời attach kịp thời
+### 7.2 Overloaded JVM or untimely attach response
 
-Một JVM còn PID nhưng đang bị CPU throttling, scheduler starvation, native resource exhaustion, long GC pause hoặc lỗi khác có thể làm attach chậm/thất bại. Đây là một nhánh **khác** với “attach disabled”.
+A JVM that still has a PID yet faces CPU throttling, scheduler starvation, native resource exhaustion, long GC pauses, or other stalls can make attach slow or fail. This is a **different branch** from "attach disabled".
 
-Khi `ps` thấy process nhưng `jcmd PID help` bị timeout:
+When `ps` sees the process yet `jcmd PID help` times out:
 
-1. Ghi thời gian chính xác và timeout/error text.
-2. Quan sát CPU, load/run queue, memory limit, cgroup throttling, OS process state, file descriptor/resource limits qua nguồn có sẵn.
-3. Kiểm tra logs/GC/JFR đã cấu hình, deployment events và service health.
-4. Chỉ sau khi loại trừ sai PID, quyền, namespace, tool mismatch mới cân nhắc JVM không phản hồi; không vội kill/restart để “thử”.
+1. Record exact timestamp and timeout/error text.
+2. Inspect CPU, load/run queue, memory limits, cgroup throttling, OS process state, and file descriptor/resource limits via available sources.
+3. Check configured logs/GC/JFR, deployment events, and service health.
+4. Only after ruling out wrong PID, permissions, namespace, and tool mismatch should you consider an unresponsive JVM; do not rush to kill/restart as a "test".
 
-Một thread dump có thể hữu ích nhưng **không nên hứa `jcmd Thread.print` luôn thành công** nếu chính attach đang không phản hồi.
+A thread dump can be helpful, yet **never promise `jcmd Thread.print` will always succeed** when attach itself is not responding.
 
-### 7.3 Dữ liệu discovery bị giới hạn
+### 7.3 Limited discovery data
 
-`jcmd -l` và `jps` không phải inventory tuyệt đối mọi JVM; đặc biệt trong Docker process riêng, tài liệu `jcmd` lưu ý cần dùng công cụ như `ps` để xác định PID. Cũng cần tính tới namespace, quyền và implementation.
+`jcmd -l` and `jps` are not an absolute inventory of every JVM; specifically for isolated Docker processes, `jcmd` docs note using tools like `ps` to identify PIDs. Account for namespaces, permissions, and implementations as well.
 
-Vì vậy:
+Therefore:
 
-- `jcmd -l` rỗng: chưa chứng minh ứng dụng tắt.
-- `jps` có dòng: chưa chứng minh attach được.
-- `ProcessHandle.of(pid)` trả một handle: chưa chứng minh đó là JVM.
-- `ProcessHandle.Info.command()` rỗng: chưa chứng minh process không có executable; OS có thể không cung cấp field này.
+- Empty `jcmd -l`: does not prove the app is down.
+- Entry in `jps`: does not prove attach will succeed.
+- `ProcessHandle.of(pid)` returning a handle: does not prove it is a JVM.
+- Empty `ProcessHandle.Info.command()`: does not prove the process lacks an executable; the OS may withhold this field.
 
-### 7.4 Một số thông báo lỗi có nhiều nguyên nhân
+### 7.4 Error messages with multiple possible causes
 
-Bảng sau chỉ để **định hướng điều tra**; text thực tế thay đổi theo OS/JDK và không được xem là ánh xạ nguyên nhân 1–1.
+The table below is strictly for **investigation guidance**; exact text varies by OS/JDK and must not be treated as a 1-to-1 cause mapping.
 
-| Dạng thông báo hoặc biểu hiện | Giả thuyết cần phân biệt | Bằng chứng tiếp theo |
+| Error pattern or symptom | Hypotheses to separate | Next evidence to gather |
 | --- | --- | --- |
-| Process not found / No such process | PID sai, process thoát, PID namespace sai | OS process list ở đúng scope, start time, container events |
-| Unable to open socket file / attach failed | Quyền, namespace/mount, attach bị tắt, JVM không phản hồi, tool mismatch | Effective identity, startup flags, OS stderr, tool/runtime path |
-| Permission denied / access denied | User/group hoặc OS policy | Effective UID/GID, file/IPC policy, container security settings |
-| Target VM not responding / attach timeout | JVM bận, resource pressure, attach không khả dụng, scope sai | Process alive, CPU/memory/cgroup metrics, startup options |
-| Unknown diagnostic command | Command name/options không hỗ trợ ở JVM đích | `jcmd PID help` và help cho command cụ thể |
-| `jcmd -l` không liệt kê JVM | Discovery limitation, đặc biệt Docker, quyền/namespace | `ps`/ProcessHandle/process metadata cùng phạm vi |
-| `jcmd` không có trong PATH | Tool không được cài hoặc PATH/JDK khác | File của JDK phù hợp, runtime image inventory |
-| `jcmd PID VM.version` trả JVM khác dự kiến | Nhầm PID, replica khác hoặc PID reuse | PID + start time + service/container identity |
+| Process not found / No such process | Wrong PID, exited process, wrong PID namespace | OS process list in the right scope, start time, container events |
+| Unable to open socket file / attach failed | Permissions, namespace/mount, disabled attach, unresponsive JVM, tool mismatch | Effective identity, startup flags, OS stderr, tool/runtime paths |
+| Permission denied / access denied | User/group or OS policy | Effective UID/GID, file/IPC policy, container security settings |
+| Target VM not responding / attach timeout | Busy JVM, resource pressure, unavailable attach, wrong scope | Process alive check, CPU/memory/cgroup metrics, startup options |
+| Unknown diagnostic command | Command name/options unsupported on target JVM | `jcmd PID help` and help for the specific command |
+| `jcmd -l` does not list JVM | Discovery limitation, especially Docker, permissions/namespace | `ps`/ProcessHandle/process metadata in same scope |
+| `jcmd` not in PATH | Tool not installed or different PATH/JDK | Matching JDK files, runtime image inventory |
+| `jcmd PID VM.version` returns unexpected JVM | Wrong PID, different replica, or PID reuse | PID + start time + service/container identity |
 
-Chỉ đưa một giả thuyết vào kết luận cuối khi có bằng chứng kiểm chứng được; nếu không, ghi trạng thái “under investigation” và bước kiểm tra còn thiếu.
+Only put a hypothesis into the final conclusion when backed by verifiable evidence; otherwise, mark it "under investigation" along with the missing check.
 
-## 8. Ví dụ Java 17+ chạy độc lập: kiểm tra PID bằng ProcessHandle trước khi dùng jcmd
+## 8. Standalone Java 17+ example: checking a PID with ProcessHandle before using jcmd
 
-Đoạn mã này **không thực hiện attach, không kill và không đọc command line/arguments** của process khác. Nó dùng API chuẩn để xác định PID có hiện diện trong **phạm vi OS mà JVM gọi chương trình nhìn thấy** hay không. Điều này giúp tách bước nhận diện process khỏi bước gửi diagnostic command.
+This snippet **does not attach, kill, or read command lines/arguments** of another process. It uses standard APIs to check whether a PID is present within **the OS scope visible to the JVM running this program**. That separates process identification from sending diagnostic commands.
 
-Lưu tệp `JcmdPidPreflight.java`:
+Save file `JcmdPidPreflight.java`:
 
 ```java
 import java.util.Optional;
@@ -393,7 +393,7 @@ public class JcmdPidPreflight {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac JcmdPidPreflight.java
@@ -402,100 +402,100 @@ java JcmdPidPreflight abc
 java JcmdPidPreflight 4242
 ```
 
-Hai lệnh chạy đầu có **stdout xác định**:
+The first two runs have **deterministic stdout**:
 
 ```text
 Usage: java JcmdPidPreflight <positive-pid>
 ```
 
-và:
+and:
 
 ```text
 INVALID_PID
 ```
 
-Lệnh `java JcmdPidPreflight 4242` có đầu ra **phụ thuộc môi trường**: nếu process không hiện diện có thể in `NOT_VISIBLE_AT_LOOKUP`; nếu tìm thấy, nó in PID, alive status, start instant nếu có và trạng thái khả dụng của đường dẫn command; nếu OS không cho phép thì in `OS_INSPECTION_UNAVAILABLE`. Không đưa một stdout PID/command giả cố định rồi coi đó là kết quả thực nghiệm.
+Running `java JcmdPidPreflight 4242` has **environment-dependent** output: if the process is absent it prints `NOT_VISIBLE_AT_LOOKUP`; if found, it prints the PID, alive status, start instant if available, and whether the command path is available; if the OS denies access it prints `OS_INSPECTION_UNAVAILABLE`. Never supply a fake fixed PID/command stdout and treat it as observed runtime output.
 
-### 8.1 Giới hạn của chương trình mẫu
+### 8.1 Limitations of the sample program
 
-1. `ProcessHandle.of(pid)` không phân biệt JVM với process native khác.
-2. `isAlive()` chỉ đúng **ở thời điểm lấy mẫu**; process có thể thoát ngay sau đó.
-3. `startInstant()` trả `Optional`, có thể không có vì OS/permission; `UNAVAILABLE` không phải lỗi chắc chắn.
-4. `COMMAND_AVAILABLE=true` chỉ nói có thông tin executable, không chứng minh process có attach listener hoặc là HotSpot.
-5. Chương trình không biết PID được cấp trong container khác; hãy chạy nó ở namespace cần kiểm tra.
-6. Chương trình cố ý **không in `commandLine()` hay environment** vì các trường đó có thể chứa credential. Nếu cần danh tính runtime, đối chiếu từ nguồn triển khai hợp lệ.
-7. Ngay cả khi mọi dòng cho thấy process sống, `jcmd` vẫn có thể thất bại vì quyền, attach disabled hoặc mismatch.
+1. `ProcessHandle.of(pid)` does not distinguish a JVM from any other native process.
+2. `isAlive()` is only accurate **at the instant sampled**; the process can exit immediately afterward.
+3. `startInstant()` returns an `Optional` and may be absent due to OS/permissions; `UNAVAILABLE` is not automatically an error.
+4. `COMMAND_AVAILABLE=true` only says executable metadata exists, not that the process has an attach listener or is HotSpot.
+5. The program cannot see PIDs assigned in another container; run it in the namespace you intend to inspect.
+6. The program intentionally **does not print `commandLine()` or environment** because those fields can contain credentials. For runtime identity, cross-check from authorized deployment sources.
+7. Even when every line indicates a live process, `jcmd` can still fail due to permissions, disabled attach, or version mismatch.
 
-### 8.2 Nối với jcmd như thế nào?
+### 8.2 How to bridge to jcmd?
 
-Khi có bằng chứng OS đúng PID và phiên bản runtime/JDK tool phù hợp, có thể thử lệnh nhẹ:
+Once OS evidence confirms the right PID and compatible runtime/JDK tool, you can try a lightweight command:
 
 ```bash
 jcmd 4242 help
 jcmd 4242 VM.version
 ```
 
-Nếu thành công, ghi **timestamp, PID/namespace, JVM version, câu lệnh và exit status**. Nếu thất bại, lưu thông báo lỗi và tiếp tục phân loại. Đừng gửi hàng loạt `Thread.print`, `GC.heap_dump` hoặc JFR commands để thử vận may: một số command có chi phí/tác động cao, còn bước này chỉ cần chứng minh kết nối cơ bản.
+If successful, record **timestamp, PID/namespace, JVM version, command, and exit status**. If it fails, save the error message and continue classifying. Do not fire a barrage of `Thread.print`, `GC.heap_dump`, or JFR commands hoping one works: some commands have high cost/impact, whereas this step only needs to verify basic connectivity.
 
-## 9. Quy trình xử lý theo tình huống cụ thể
+## 9. Handling procedures for specific cases
 
-### 9.1 Case A — JVM đã restart, PID cũ không còn
+### 9.1 Case A — JVM restarted, old PID is gone
 
-**Triệu chứng:** service trở lại healthy, nhưng `jcmd 4242 VM.version` báo không tìm thấy hoặc không kết nối được. Log cho thấy instance mới được tạo gần đây.
+**Symptom:** service recovered to healthy, yet `jcmd 4242 VM.version` reports not found or cannot connect. Logs show a new instance was created recently.
 
-**Cách xử lý:**
+**How to handle:**
 
-- Tra sự kiện restart/deployment và xác định **đúng instance mới**.
-- Kiểm tra start time của PID hiện tại; không dựa vào PID lưu từ incident cũ.
-- Nếu cần điều tra sự cố trước restart, dùng log/JFR/GC/event/dump đã tạo trước đó.
-- Nếu muốn hỏi instance mới bằng `jcmd`, xác minh identity, scope, user và tool rồi mới chạy.
+- Check restart/deployment events and identify **the exact new instance**.
+- Verify the start time of the current PID; do not rely on a PID saved from an earlier incident.
+- If investigating the pre-restart failure, use logs/JFR/GC/events/dumps created earlier.
+- If you want to query the new instance with `jcmd`, verify identity, scope, user, and tool before running.
 
-**Kết luận có thể kiểm chứng:** “PID trong câu lệnh là PID của instance đã kết thúc” chỉ khi có event/process evidence. Không kết luận ngay “Java bị OOM” chỉ vì JVM đã restart.
+**Verifiable conclusion:** "The PID in the command belonged to an exited instance" only holds with event/process evidence. Never jump to "Java OOM'd" merely because the JVM restarted.
 
-### 9.2 Case B — PID 1 trong container, PID khác trên host
+### 9.2 Case B — PID 1 inside container, different PID on host
 
-**Triệu chứng:** công cụ trong container và trên host báo PID khác nhau; `jcmd` chạy ngoài container nhắm PID 1 không đúng đích.
+**Symptom:** tools inside the container and on the host report different PIDs; `jcmd` run outside the container targeting PID 1 hits the wrong target.
 
-**Cách xử lý:**
+**How to handle:**
 
-- Xác định công cụ thực thi ở đâu và JVM ở đâu; ghi scope của mỗi PID.
-- Dùng process list của container để lấy PID theo namespace bên trong; nếu cần quan sát từ host, lấy mapping PID theo nền tảng đã cấp quyền.
-- Chọn nơi chạy công cụ cùng phạm vi mà chính sách cho phép, đối chiếu user/group và đường filesystem/IPC liên quan.
-- Xác minh identity trước khi gửi `jcmd PID help`.
+- Clarify where the tool executes and where the JVM runs; record the scope of each PID.
+- Use the container's process list to get the PID in the internal namespace; if observing from the host is required, obtain the platform-authorized PID mapping.
+- Pick a policy-approved execution location in the matching scope, aligning user/group and relevant filesystem/IPC paths.
+- Verify identity before sending `jcmd PID help`.
 
-**Bằng chứng mạnh:** tên service/container, process start time và mapping PID khớp, không chỉ trùng một con số.
+**Strong evidence:** service/container name, process start time, and PID mapping match—not just matching digits.
 
-### 9.3 Case C — Process còn sống, attach bị vô hiệu có chủ đích
+### 9.3 Case C — Process alive, attach intentionally disabled
 
-**Triệu chứng:** OS thấy đúng JVM, startup config xác nhận `-XX:+DisableAttachMechanism`; `jcmd` không thể attach.
+**Symptom:** OS sees the right JVM, startup config confirms `-XX:+DisableAttachMechanism`; `jcmd` cannot attach.
 
-**Cách xử lý:** không sửa live process để “cứu `jcmd`”. Thu từ logs/metrics/recordings đã bật và đánh giá liệu incident có cần bật attach trong lần triển khai tiếp theo không. Nếu có, thay đổi theo quy trình release/restart hợp lệ.
+**How to handle:** do not patch the live process just to "rescue `jcmd`". Collect from already-enabled logs/metrics/recordings and assess whether future deployments need attach enabled. If so, apply changes through a valid release/restart workflow.
 
-**Giới hạn:** nếu chỉ có error “attach failed” nhưng không có bằng chứng startup flag, **không** được gắn nhãn chắc chắn attach disabled.
+**Limitation:** if you only have an "attach failed" error without startup-flag evidence, **do not** conclusively label it attach disabled.
 
-### 9.4 Case D — Tool và target khác phiên bản JDK
+### 9.4 Case D — Tool and target differ in JDK version
 
-**Triệu chứng:** service đang chạy JDK 21, nhưng shell chọn `jcmd` từ JDK 11; các lệnh không ổn định hoặc báo lỗi.
+**Symptom:** service runs JDK 21, while the shell selects `jcmd` from JDK 11; commands behave erratically or fail.
 
-**Cách xử lý:** xác minh target runtime từ nguồn OS/deployment đáng tin, tìm tool thuộc JDK release tương ứng; chạy ở đúng host/namespace và đúng user. Kiểm tra `jcmd PID help` rồi chọn command thực sự hỗ trợ.
+**How to handle:** confirm the target runtime from reliable OS/deployment sources, locate the tool from the matching JDK release, and run it in the right host/namespace under the right user. Check `jcmd PID help` and pick a genuinely supported command.
 
-**Giới hạn:** nếu đổi tool mà vẫn thất bại, còn phải đánh giá quyền/attach disabled/JVM responsiveness; việc chọn sai tool có thể chỉ là **một trong nhiều** vấn đề.
+**Limitation:** if switching tools still fails, you must also evaluate permissions/disabled attach/JVM responsiveness; picking the wrong tool may be only **one of multiple** issues.
 
-### 9.5 Case E — jcmd hoạt động nhưng command cụ thể không nhận
+### 9.5 Case E — jcmd works, yet a specific command is rejected
 
-**Triệu chứng:** `jcmd 4242 VM.version` thành công, trong khi một diagnostic command khác báo không hỗ trợ hoặc sai option.
+**Symptom:** `jcmd 4242 VM.version` succeeds, while another diagnostic command reports unsupported or invalid option.
 
-**Cách xử lý:** dùng `jcmd 4242 help` và `jcmd 4242 help <command>` trên JVM đó; đọc tên command/các option được công bố. Thay command sai theo tài liệu version tương ứng. Nếu command bị hạn chế hoặc yêu cầu cấu hình trước, không đồng nhất với “attach disabled”.
+**How to handle:** run `jcmd 4242 help` and `jcmd 4242 help <command>` on that JVM; read the published command names/options. Fix the wrong command per the corresponding version's docs. If a command is restricted or requires prior startup config, do not equate that with "attach disabled".
 
-### 9.6 Case F — Lệnh attach timeout khi JVM đang quá tải
+### 9.6 Case F — Attach times out while JVM is overloaded
 
-**Triệu chứng:** PID đúng, runtime và tool phù hợp, quyền không thấy lỗi, nhưng `help` hoặc `VM.version` chậm hoặc không trả lời trong lúc ứng dụng treo.
+**Symptom:** PID is right, runtime and tool match, no permission errors appear, yet `help` or `VM.version` hangs or fails to respond while the app is stalled.
 
-**Cách xử lý:** đối chiếu process state, CPU scheduling/throttling, memory limits, GC logs và resource exhaustion qua OS/container; ghi timestamp để liên hệ sự kiện. Không đưa kết luận deadlock/GC chỉ từ timeout của `jcmd`. Có thể cần quy trình chẩn đoán khác trong phạm vi vận hành đã cho phép.
+**How to handle:** cross-check process state, CPU scheduling/throttling, memory limits, GC logs, and resource exhaustion via OS/container metrics; align timestamps with events. Never conclude deadlock/GC solely from a `jcmd` timeout. Alternative diagnostic procedures within operational boundaries may be required.
 
-## 10. Lưu chứng cứ: mẫu ghi nhận ca jcmd thất bại
+## 10. Preserving evidence: template for recording a failed jcmd attempt
 
-Dưới đây là **biểu mẫu minh họa bằng giá trị giả**, không đại diện cho hệ thống thực. Khi lập hồ sơ, chỉ ghi bằng chứng đã kiểm tra, không mang nguyên command line có token/password:
+Below is an **illustrative template with hypothetical values**, not representing any real system. When documenting, record only verified facts and never paste raw command lines containing tokens/passwords:
 
 ```yaml
 incident: "java-diag-illustration"
@@ -507,117 +507,117 @@ target_start_time_utc: "2026-10-29T07:45:00Z"
 tool_scope: "host"
 tool_user_scope: "operator-A"
 tool_release: "JDK 17"
-target_runtime_release: "JDK 21 (theo deployment manifest)"
+target_runtime_release: "JDK 21 (per deployment manifest)"
 requested_command: "VM.version"
 outcome: "attach failed"
 verified_facts:
-  - "PID từ host và container chưa được đối chiếu mapping"
-  - "Tool release khác runtime đích"
+  - "Host and container PID mapping has not been reconciled"
+  - "Tool release differs from target runtime"
 unverified:
-  - "Attach có bị vô hiệu hay không"
-  - "Quyền IPC/mount ở phạm vi đích"
+  - "Whether attach is disabled"
+  - "IPC/mount permissions in the target scope"
 next_read_only_check:
-  - "Xác minh PID mapping và startup evidence"
-  - "Chọn tool JDK release phù hợp tại đúng scope"
+  - "Verify PID mapping and startup evidence"
+  - "Select matching JDK release tool in the right scope"
 ```
 
-Trong ví dụ, **không thể** kết luận chắc chắn lỗi do mismatch: scope cũng chưa khớp, và attach flag chưa xác định. Mẫu giúp phân biệt **fact**, **unverified hypothesis** và **next check**, tránh biến suy đoán thành nguyên nhân cuối.
+In this example, you **cannot** conclusively blame version mismatch: scope is also mismatched, and the attach flag is unverified. The template separates **facts**, **unverified hypotheses**, and **next checks**, preventing speculation from becoming a final root cause.
 
-Các trường nên giữ trong incident record thực:
+Fields to retain in a real incident record:
 
-- Thời gian lấy PID và thời gian gọi `jcmd`, timezone/UTC.
-- Scope (host/container/namespace), PID và start time/instance identity.
-- User/group thực thi tool và user/group chạy JVM (nếu được phép ghi).
-- Path và JDK release của `jcmd`, runtime release của target, nguồn xác minh.
-- Command đã chạy, stderr, exit status, timeout và trạng thái service.
-- Startup flags đã xác nhận, sự kiện restart/OOM nếu có.
-- Các bước đã thực hiện, giả thuyết bị loại hoặc còn mở.
+- Timestamp when PID was captured and timestamp when `jcmd` ran, with timezone/UTC.
+- Scope (host/container/namespace), PID, and start time/instance identity.
+- User/group running the tool and user/group running the JVM (if permitted to record).
+- Path and JDK release of `jcmd`, target runtime release, and verification source.
+- Command executed, stderr, exit status, timeout, and service state.
+- Confirmed startup flags, plus restart/OOM events if any.
+- Steps taken, ruled-out hypotheses, and open hypotheses.
 
-Cần xử lý thông tin nhạy cảm trong command line, JVM properties, env, URL, username và stack/log; không đăng raw secret lên ticket. Khi cần chia sẻ rộng, dùng alias cho host/pod/user và chỉ giữ thông số chẩn đoán cần thiết.
+Sanitize sensitive details in command lines, JVM properties, env vars, URLs, usernames, and stacks/logs; never post raw secrets into tickets. For wider sharing, alias hosts/pods/users and keep only necessary diagnostic fields.
 
-## 11. Không thực hiện các “sửa nhanh” dễ gây thêm sự cố
+## 11. Avoid "quick fixes" that trigger new incidents
 
-| Hành động hấp tấp | Vì sao không nên làm | Thay bằng |
+| Hasty action | Why not to do it | Do instead |
 | --- | --- | --- |
-| Chạy `jcmd 0 ...` để “thử mọi JVM” | Có thể gửi command cho nhiều tiến trình ngoài mục tiêu | Xác minh PID/instance rồi chỉ nhắm một JVM |
-| Dùng PID cũ rồi retry liên tục | Process có thể thoát/restart, PID được tái sử dụng | Lấy PID và start time mới từ đúng scope |
-| Giả định thiếu trong `jcmd -l` nghĩa là app chết | Docker/namespace/permission có thể làm discovery thiếu | Kiểm tra native process và orchestration events |
-| Chạy `sudo` mọi nơi | Không chứng minh user/group phù hợp, có thể vi phạm chính sách | Đối chiếu effective identity và quyền được cấp |
-| Đổi `chmod` hoặc xóa socket/file attach bừa bãi | Có thể ảnh hưởng JVM khác hoặc phá bằng chứng | Xác minh nguyên nhân và quy trình vận hành |
-| Thêm `-XX:-DisableAttachMechanism` vào terminal bất kỳ | Không thay đổi JVM đang chạy đã khởi động bằng flags khác | Sửa startup configuration qua deployment/restart có kiểm soát |
-| Lấy `java -version` của shell làm version service | Nhiều JDK có thể tồn tại cùng máy/container | Xác minh process executable/manifest/runtime đích |
-| Coi `Unknown diagnostic command` là PID sai | Command có thể không tồn tại ở JVM/version đó | Dùng `jcmd PID help`, help từng command |
-| Gửi heap dump khi chỉ cần xác nhận PID | Dump nặng, có thể chứa dữ liệu nhạy cảm | Bắt đầu bằng `help`/`VM.version` và OS metadata |
-| Restart ngay khi attach timeout | Mất trạng thái sự cố và có thể làm tăng downtime | Thu metrics/log/event trước, quyết định theo runbook |
+| Running `jcmd 0 ...` to "try all JVMs" | Can send commands to unintended processes | Verify PID/instance and target a single JVM |
+| Retrying repeatedly with an old PID | Process may have exited/restarted and PID been reused | Re-acquire fresh PID and start time from the right scope |
+| Assuming absence in `jcmd -l` means app is dead | Docker/namespaces/permissions can hide discovery | Check native processes and orchestration events |
+| Running `sudo` everywhere | Does not guarantee matching user/group and may violate policy | Align effective identity and authorized permissions |
+| Changing `chmod` or deleting attach sockets/files blindly | Can impact other JVMs or destroy evidence | Verify cause and follow operational procedures |
+| Passing `-XX:-DisableAttachMechanism` in any terminal | Does not alter a live JVM already launched with other flags | Update startup config via controlled deployment/restart |
+| Treating shell's `java -version` as service version | Multiple JDKs can coexist on the same host/container | Verify target process executable/manifest/runtime |
+| Treating `Unknown diagnostic command` as wrong PID | Command may simply not exist in that JVM/version | Use `jcmd PID help` and per-command help |
+| Triggering a heap dump just to confirm PID | Heavy dump, may contain sensitive data | Start with `help`/`VM.version` and OS metadata |
+| Restarting immediately on attach timeout | Destroys incident state and can extend downtime | Gather metrics/logs/events first, act per runbook |
 
-Một số lỗi có thể cần thay đổi cấu hình/runtime hoặc restart thật; phần này không cấm hành động khắc phục có kiểm soát. Nó yêu cầu **xác định đúng nguyên nhân và tác động trước khi hành động**, đặc biệt trên production.
+Some errors genuinely require configuration/runtime changes or restarts; this section does not forbid controlled remediation. It requires **confirming the exact cause and impact before acting**, especially in production.
 
-## 12. Checklist quyết định: xác nhận nguyên nhân nào?
+## 12. Decision checklist: confirming which cause applies
 
-### 12.1 Sai PID
+### 12.1 Wrong PID
 
-- [ ] PID lấy từ đúng host/namespace và thuộc đúng service?
-- [ ] Process hiện tại có start time/instance identity đúng không?
-- [ ] Có khả năng PID reuse hoặc chọn nhầm replica?
-- [ ] Lỗi có biến mất khi dùng PID được xác minh mới?
+- [ ] Was the PID taken from the right host/namespace and belonging to the right service?
+- [ ] Does the current process have the right start time/instance identity?
+- [ ] Is PID reuse or picking the wrong replica possible?
+- [ ] Does the error disappear when using the newly verified PID?
 
-Chỉ khi có bằng chứng mới kết luận **wrong PID**. Nếu OS không thấy process nhưng scope chưa xác định, kết luận nên là **PID not visible in current scope**.
+Only conclude **wrong PID** with supporting evidence. If the OS does not show the process and scope is unconfirmed, conclude **PID not visible in current scope**.
 
-### 12.2 Tiến trình đã thoát
+### 12.2 Exited process
 
-- [ ] Có event termination/restart cùng instance và timestamp?
-- [ ] OS xác nhận process không còn ở đúng namespace?
-- [ ] Có log/exit status/termination reason cho phiên bản cũ?
-- [ ] Đã chuyển sang nguồn lịch sử thay cho cố `jcmd` process không tồn tại?
+- [ ] Are there termination/restart events for the same instance and timestamp?
+- [ ] Does the OS confirm the process is gone in the right namespace?
+- [ ] Are there logs/exit status/termination reasons for the old instance?
+- [ ] Have you switched to historical sources instead of retrying `jcmd` on a nonexistent process?
 
-Nếu có, phân loại **process exited**; loại sự cố dẫn tới exit (OOM, shutdown, kill, crash) vẫn là một câu hỏi riêng.
+If yes, classify as **process exited**; the incident cause leading to exit (OOM, shutdown, kill, crash) remains a separate question.
 
-### 12.3 Attach bị vô hiệu
+### 12.3 Disabled attach
 
-- [ ] Có bằng chứng từ startup options `-XX:+DisableAttachMechanism` trên đúng JVM?
-- [ ] Đã loại trừ quyền, namespace, tool mismatch, process exit?
-- [ ] Đã biết chính sách này có chủ đích hay ngoài dự kiến?
-- [ ] Có nguồn metrics/log/JFR được cấu hình từ trước để thay thế?
+- [ ] Is there startup-option evidence of `-XX:+DisableAttachMechanism` on that exact JVM?
+- [ ] Have permissions, namespaces, tool mismatch, and process exit been ruled out?
+- [ ] Is it known whether this policy is intentional or unintended?
+- [ ] Are pre-configured metrics/logs/JFR available as alternatives?
 
-Không dùng lỗi attach chung làm chứng cứ duy nhất.
+Never treat a generic attach error as sole proof.
 
-### 12.4 Tool không tương thích
+### 12.4 Incompatible tool
 
-- [ ] `jcmd` đang chạy nằm ở path/JDK release nào?
-- [ ] Runtime của đúng JVM đích là JDK release/vendor nào?
-- [ ] Tool có chạy đúng OS/namespace/account cần thiết?
-- [ ] `jcmd PID help` có cho thấy command được hỗ trợ sau khi chọn tool phù hợp?
-- [ ] Nếu vẫn lỗi, đã quay lại kiểm tra quyền/flags/JVM responsiveness?
+- [ ] Which path/JDK release does the running `jcmd` come from?
+- [ ] Which JDK release/vendor runs the target JVM?
+- [ ] Is the tool running in the required OS/namespace/account?
+- [ ] Does `jcmd PID help` show supported commands once a matching tool is chosen?
+- [ ] If it still fails, did you circle back to check permissions/flags/JVM responsiveness?
 
-Không tự suy luận mismatch từ mỗi dòng `java -version` trên terminal.
+Never infer a mismatch solely from one `java -version` line in a terminal.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-check questions
 
-**Câu 1.** `jcmd -l` không in PID của ứng dụng trong container, nhưng container status và process list cho thấy PID 1 còn sống. Có thể tuyên bố JVM đã chết không?
+**Question 1.** `jcmd -l` does not print the app's PID inside a container, yet container status and process list show PID 1 is alive. Can you declare the JVM dead?
 
-**Trả lời:** Không. Phải kiểm tra giới hạn Docker discovery, namespace và quyền. PID 1 trong container cũng chưa chắc là PID 1 trên host.
+**Answer:** No. You must check Docker discovery limits, namespaces, and permissions. PID 1 inside a container is also not necessarily PID 1 on the host.
 
-**Câu 2.** Process PID 4242 còn sống, `jcmd 4242 VM.version` lỗi. Đồng nghiệp kết luận `-XX:+DisableAttachMechanism` bật. Đã đủ chứng cứ chưa?
+**Question 2.** Process PID 4242 is alive, and `jcmd 4242 VM.version` fails. A colleague concludes `-XX:+DisableAttachMechanism` is on. Is the evidence sufficient?
 
-**Trả lời:** Chưa. Cần xác minh tool release, effective user/group, host/namespace, startup flags và khả năng JVM phản hồi. Lỗi attach có nhiều nguyên nhân.
+**Answer:** Not yet. You need to verify tool release, effective user/group, host/namespace, startup flags, and JVM responsiveness. Attach failures have many causes.
 
-**Câu 3.** `jcmd 4242 VM.version` thành công nhưng `jcmd 4242 Some.New.Command` trả `Unknown diagnostic command`. Điều gì được chứng minh?
+**Question 3.** `jcmd 4242 VM.version` succeeds, while `jcmd 4242 Some.New.Command` returns `Unknown diagnostic command`. What is proven?
 
-**Trả lời:** Đã kết nối tới JVM ở PID đó tại thời điểm lệnh thành công, nhưng command được yêu cầu có thể không tồn tại/hỗ trợ. Hãy xem `jcmd 4242 help`; chưa có cơ sở nói attach disabled.
+**Answer:** Connectivity to the JVM at that PID worked at that moment, while the requested command may not exist or be supported. Inspect `jcmd 4242 help`; there is no basis to claim attach is disabled.
 
-**Câu 4.** PID trong log hôm qua và PID hôm nay đều bằng 4242. Có chắc cùng JVM không?
+**Question 4.** Yesterday's log showed PID 4242 and today's shows PID 4242. Is it definitely the same JVM?
 
-**Trả lời:** Không. PID có thể được tái sử dụng. Cần đối chiếu start time, service instance, container/pod identity và thời điểm.
+**Answer:** No. PIDs can be reused. Cross-check start time, service instance, container/pod identity, and timestamps.
 
-**Câu 5.** Tool từ JDK 11 không attach vào service JDK 21. Chỉ đổi `jcmd` sang JDK 21 là đã bảo đảm thành công?
+**Question 5.** A JDK 11 tool fails to attach to a JDK 21 service. Does switching `jcmd` to JDK 21 guarantee success?
 
-**Trả lời:** Không. Đó chỉ khắc phục một biến nghi ngờ. Vẫn phải xác minh process còn sống, đúng PID, quyền, scope, attach flags và hỗ trợ diagnostic command.
+**Answer:** No. That only resolves one suspected variable. You must still verify that the process is alive, PID is right, permissions, scope, attach flags, and diagnostic command support.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): cú pháp, `-l`, điều kiện cùng máy/identity, chọn PID và lệnh `help`.
-- [Oracle Java command — serviceability options](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html): các startup flags của HotSpot, đặc biệt `-XX:+DisableAttachMechanism`; chi tiết có thể thay đổi theo release.
-- [Oracle JDK 21 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): vai trò `jcmd`, command examples, chi phí thu thập và các giới hạn theo JVM/OS.
-- [Java SE 17 — Process API](https://docs.oracle.com/en/java/javase/17/core/process-api1.html): `ProcessHandle.of`, `isAlive`, `Info.startInstant` và tính tùy chọn của dữ liệu OS.
+- [Oracle JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): syntax, `-l`, same-machine/identity conditions, PID selection, and `help` command.
+- [Oracle Java command — serviceability options](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html): HotSpot startup flags, notably `-XX:+DisableAttachMechanism`; details may vary by release.
+- [Oracle JDK 21 — Diagnostic Tools](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): role of `jcmd`, command examples, collection cost, and JVM/OS limitations.
+- [Java SE 17 — Process API](https://docs.oracle.com/en/java/javase/17/core/process-api1.html): `ProcessHandle.of`, `isAlive`, `Info.startInstant`, and optionality of OS metadata.
 
-**Ghi nhớ:** Khi `jcmd` thất bại, thứ tự đúng là **xác minh PID/instance còn tồn tại → xác minh host/namespace/quyền → xác minh JDK tool tương thích → xác minh attach flags và JVM responsiveness → kiểm tra command được hỗ trợ**. Một lỗi attach không tự xác định nguyên nhân. Khi có bằng chứng cụ thể, mới chọn biện pháp: lấy PID đúng, dùng dữ liệu lịch sử nếu process đã thoát, dùng nguồn quan sát ngoài attach khi cơ chế bị vô hiệu, hoặc chọn JDK tool phù hợp.
+**Key takeaway:** when `jcmd` fails, the right sequence is **verify PID/instance exists → verify host/namespace/permissions → verify compatible JDK tool → verify attach flags and JVM responsiveness → check supported commands**. An attach error does not identify its own root cause. Only once concrete evidence is in hand should you choose the remedy: obtain the right PID, use historical artifacts if the process exited, use non-attach telemetry when attach is disabled, or select the matching JDK tool.

@@ -1,16 +1,16 @@
-# Tách JAR hợp đồng, JAR ứng dụng chủ và JAR phần triển khai
+# Separating the Contract JAR, Host Application JAR, and Implementation JAR
 
-## Mục tiêu và vai trò của từng JAR
+## Purpose and Role of Each JAR
 
-Một hệ thống plugin cần ranh giới rõ ràng giữa **hợp đồng mở rộng**, **ứng dụng chủ** và **phần triển khai có thể thay thế**. Thay vì biên dịch ứng dụng chủ cùng mọi plugin, đóng gói ba thành phần riêng:
+A plugin system needs clear boundaries between the **extension contract**, the **host application**, and **replaceable implementations**. Instead of compiling the host application together with every plugin, package the three components separately:
 
-| Thành phần | Chứa gì | Phụ thuộc lúc biên dịch | Được phân phối cho ai |
+| Component | What It Contains | Compile-Time Dependencies | Distributed To |
 |---|---|---|---|
-| **Contract/API JAR** | Interface, các kiểu dữ liệu ổn định mà hai bên dùng chung | Tối thiểu, tốt nhất không có dependency ngoài | Cả host và tác giả plugin |
-| **Host JAR** | Điểm khởi chạy, vòng đời, khám phá và gọi plugin | Contract JAR | Người chạy ứng dụng |
-| **Plugin implementation JAR** | Lớp triển khai interface, provider descriptor và tài nguyên riêng | Contract JAR | Người cài plugin, có thể phát hành độc lập |
+| **Contract/API JAR** | Interfaces and stable data types shared by both sides | Minimal, ideally no external dependencies | Both the host and plugin authors |
+| **Host JAR** | Entry point, lifecycle, plugin discovery, and invocation | Contract JAR | Application operators/runners |
+| **Plugin implementation JAR** | Interface implementation classes, provider descriptors, and private resources | Contract JAR | Plugin installers; can be released independently |
 
-Hướng phụ thuộc lúc biên dịch:
+Compile-time dependency direction:
 
 \`\`\`text
        host.jar ───────────┐
@@ -19,15 +19,15 @@ Hướng phụ thuộc lúc biên dịch:
                            ▲
        plugin.jar ─────────┘
 
-Host không import trực tiếp lớp triển khai trong plugin.
-Plugin không phụ thuộc host.jar.
+The host does not directly import implementation classes in the plugin.
+The plugin does not depend on host.jar.
 \`\`\`
 
-Đây là ranh giới **compile-time dependency**. Trong lúc chạy, host vẫn cần truy cập contract JAR và có cách khám phá plugin JAR. Ví dụ dưới dùng Java SPI (\`ServiceLoader\`) trên classpath để minh họa sự tách biệt. Cơ chế nạp động phức tạp hơn, cách ly ClassLoader, bảo mật và phiên bản API là các quyết định bổ sung; việc tách file JAR tự nó chưa giải quyết những vấn đề ấy.
+This is the **compile-time dependency** boundary. At runtime, the host still needs access to the contract JAR and a way to discover plugin JARs. The example below uses Java SPI (\`ServiceLoader\`) on the classpath to illustrate this separation. More complex dynamic loading mechanisms, ClassLoader isolation, security, and API versioning are additional decisions; separating JAR files alone does not solve those problems.
 
-## Ví dụ hoàn chỉnh trên Java 17+
+## Complete Example on Java 17+
 
-Ta xây dựng ứng dụng xử lý thông điệp bằng plugin. Contract quy định thao tác xử lý; host chọn provider qua \`ServiceLoader\`; plugin cung cấp một implementation. Cấu trúc dự án:
+We will build a message-processing application using plugins. The contract defines the processing operation; the host selects providers via \`ServiceLoader\`; the plugin supplies an implementation. Project structure:
 
 \`\`\`text
 plugin-demo/
@@ -38,12 +38,12 @@ plugin-demo/
 ├── plugin-src/
 │   ├── demo/plugin/UppercasePlugin.java
 │   └── META-INF/services/demo.api.MessagePlugin
-└── build/                              # sinh ra khi chạy lệnh
+└── build/                              # generated when running commands
 \`\`\`
 
-### 1. Contract JAR: định nghĩa API chung
+### 1. Contract JAR: Defining the Shared API
 
-Tệp \`contract-src/demo/api/MessagePlugin.java\`:
+File \`contract-src/demo/api/MessagePlugin.java\`:
 
 \`\`\`java
 package demo.api;
@@ -54,9 +54,9 @@ public interface MessagePlugin {
 }
 \`\`\`
 
-\`id()\` là định danh để host nhận biết plugin; \`transform()\` là hành vi mà các provider phải triển khai. Interface thuộc package \`demo.api\`, không nằm trong package của host hay plugin. Chữ ký dùng \`String\` của JDK, tránh làm API phụ thuộc kiểu riêng của host.
+\`id()\` is the identifier for the host to recognize the plugin; \`transform()\` is the behavior that providers must implement. The interface belongs to the \`demo.api\` package, not inside the host's or plugin's package. The signature uses JDK \`String\`, avoiding coupling the API to host-specific types.
 
-Biên dịch và đóng gói từ thư mục \`plugin-demo\`:
+Compile and package from the \`plugin-demo\` directory:
 
 \`\`\`bash
 mkdir -p build/contract-classes
@@ -64,11 +64,11 @@ javac -d build/contract-classes contract-src/demo/api/MessagePlugin.java
 jar --create --file build/contract.jar -C build/contract-classes .
 \`\`\`
 
-\`contract.jar\` hiện chứa \`demo/api/MessagePlugin.class\`. Nó phải có mặt đúng một bản trong phạm vi nạp lớp dùng chung của host và plugin.
+\`contract.jar\` now contains \`demo/api/MessagePlugin.class\`. There must be exactly one copy of it within the shared class-loading scope of the host and plugins.
 
-### 2. Plugin JAR: triển khai và đăng ký provider
+### 2. Plugin JAR: Implementing and Registering the Provider
 
-Tệp \`plugin-src/demo/plugin/UppercasePlugin.java\`:
+File \`plugin-src/demo/plugin/UppercasePlugin.java\`:
 
 \`\`\`java
 package demo.plugin;
@@ -89,15 +89,15 @@ public final class UppercasePlugin implements MessagePlugin {
 }
 \`\`\`
 
-Tệp văn bản \`plugin-src/META-INF/services/demo.api.MessagePlugin\` chứa chính xác tên lớp provider:
+The text file \`plugin-src/META-INF/services/demo.api.MessagePlugin\` contains the exact provider class name:
 
 \`\`\`text
 demo.plugin.UppercasePlugin
 \`\`\`
 
-Với kiểu provider thông thường dùng classpath, lớp triển khai phải được khai báo là provider trong file cấu hình \`META-INF/services/<tên-interface-đầy-đủ>\`. Lớp ở đây là \`public\`, có constructor không tham số public ngầm định, triển khai interface và được JVM khởi tạo khi \`ServiceLoader\` duyệt provider. Việc thiếu hoặc gõ sai descriptor khiến provider không được phát hiện; khai báo provider không hợp lệ có thể gây \`ServiceConfigurationError\`.
+For standard providers on the classpath, the implementation class must be declared as a provider in the configuration file \`META-INF/services/<fully-qualified-interface-name>\`. Here the class is \`public\`, has an implicit public no-argument constructor, implements the interface, and is instantiated by the JVM when \`ServiceLoader\` iterates over providers. A missing or misspelled descriptor prevents the provider from being discovered; an invalid provider declaration can cause a \`ServiceConfigurationError\`.
 
-Biên dịch plugin chỉ với **contract JAR** trên compile classpath, rồi đóng gói cả \`class\` và descriptor:
+Compile the plugin with only the **contract JAR** on the compile classpath, then package both the \`class\` files and the descriptor:
 
 \`\`\`bash
 mkdir -p build/plugin-classes
@@ -107,11 +107,11 @@ jar --create --file build/plugin.jar \
   -C plugin-src META-INF/services
 \`\`\`
 
-Lệnh \`jar\` không tự sao chép descriptor chỉ vì ta đã biên dịch class: phải đưa tài nguyên này vào JAR. Plugin JAR không chứa lại \`MessagePlugin.class\` từ contract.
+The \`jar\` command does not automatically copy the descriptor just because we compiled the class: this resource must be explicitly included in the JAR. The plugin JAR does not contain a duplicate copy of \`MessagePlugin.class\` from the contract.
 
-### 3. Host JAR: chỉ biết interface
+### 3. Host JAR: Knowing Only the Interface
 
-Tệp \`host-src/demo/host/Main.java\`:
+File \`host-src/demo/host/Main.java\`:
 
 \`\`\`java
 package demo.host;
@@ -125,16 +125,16 @@ public final class Main {
         boolean found = false;
         for (MessagePlugin plugin : plugins) {
             found = true;
-            System.out.println(plugin.id() + ": " + plugin.transform("Xin chào Java"));
+            System.out.println(plugin.id() + ": " + plugin.transform("Hello Java"));
         }
         if (!found) {
-            System.out.println("Không tìm thấy plugin");
+            System.out.println("No plugin found");
         }
     }
 }
 \`\`\`
 
-Host không import \`demo.plugin.UppercasePlugin\`: việc gắn kết implementation được thực hiện khi chạy qua service descriptor.
+The host does not import \`demo.plugin.UppercasePlugin\`: binding to the implementation happens at runtime via the service descriptor.
 
 \`\`\`bash
 mkdir -p build/host-classes
@@ -142,43 +142,43 @@ javac -cp build/contract.jar -d build/host-classes host-src/demo/host/Main.java
 jar --create --file build/host.jar --main-class demo.host.Main -C build/host-classes .
 \`\`\`
 
-Ở cách đóng gói này, \`host.jar\` chỉ chứa mã host và manifest \`Main-Class\`. Nó **không** phải fat JAR; contract và plugin là các file riêng phải được đưa vào runtime classpath.
+In this packaging approach, \`host.jar\` contains only the host code and the \`Main-Class\` manifest attribute. It is **not** a fat JAR; the contract and plugin are separate files that must be placed on the runtime classpath.
 
-### 4. Chạy và kiểm chứng khả năng thay thế
+### 4. Running and Verifying Replaceability
 
-Trên Linux/macOS, dấu phân cách classpath là \`:\`:
+On Linux/macOS, the classpath separator is \`:\`:
 
 \`\`\`bash
 java -cp "build/host.jar:build/contract.jar:build/plugin.jar" demo.host.Main
 \`\`\`
 
-Trên Windows, dùng dấu \`;\`:
+On Windows, use \`;\`:
 
 \`\`\`powershell
 java -cp "build/host.jar;build/contract.jar;build/plugin.jar" demo.host.Main
 \`\`\`
 
-Kết quả chính xác của cả hai:
+The exact output of both:
 
 \`\`\`text
-uppercase: XIN CHÀO JAVA
+uppercase: HELLO JAVA
 \`\`\`
 
-Thử bỏ plugin JAR khỏi runtime classpath:
+Try removing the plugin JAR from the runtime classpath:
 
 \`\`\`bash
 java -cp "build/host.jar:build/contract.jar" demo.host.Main
 \`\`\`
 
-Kết quả:
+Output:
 
 \`\`\`text
-Không tìm thấy plugin
+No plugin found
 \`\`\`
 
-Như vậy cùng \`host.jar\` và \`contract.jar\` vẫn chạy khi không có plugin, và phát hiện plugin khi JAR cung cấp provider có mặt. Nếu đổi provider hoặc thêm provider tương thích, không phải biên dịch lại host.
+Thus, the same \`host.jar\` and \`contract.jar\` still run without any plugins, and detect the plugin when a JAR providing a provider is present. If you swap the provider or add a compatible provider, you do not have to recompile the host.
 
-Có thể kiểm tra trực tiếp nội dung bằng:
+You can inspect the contents directly with:
 
 \`\`\`bash
 jar --list --file build/contract.jar
@@ -186,19 +186,19 @@ jar --list --file build/plugin.jar
 jar --list --file build/host.jar
 \`\`\`
 
-Hãy xác nhận \`contract.jar\` chứa \`demo/api/MessagePlugin.class\`, \`plugin.jar\` chứa \`demo/plugin/UppercasePlugin.class\` cùng \`META-INF/services/demo.api.MessagePlugin\`, còn \`host.jar\` chứa \`demo/host/Main.class\`. Danh sách đầy đủ còn có manifest và entry thư mục tùy lệnh đóng gói.
+Verify that \`contract.jar\` contains \`demo/api/MessagePlugin.class\`, \`plugin.jar\` contains \`demo/plugin/UppercasePlugin.class\` along with \`META-INF/services/demo.api.MessagePlugin\`, and \`host.jar\` contains \`demo/host/Main.class\`. The full listing also includes the manifest and directory entries depending on the packaging command.
 
-## Quy tắc dependency khi dùng Maven hoặc Gradle
+## Dependency Rules When Using Maven or Gradle
 
-Trong dự án đa module, thể hiện hướng phụ thuộc như sau:
+In a multi-module project, express the dependency direction as follows:
 
 \`\`\`text
-:plugin-api          (định nghĩa contract; xuất bản artifact riêng)
+:plugin-api          (defines the contract; published as a separate artifact)
 :host                -> :plugin-api
 :uppercase-plugin    -> :plugin-api
 \`\`\`
 
-Với Gradle Java Library plugin, ví dụ phần dependencies:
+With the Gradle Java Library plugin, example dependencies sections:
 
 \`\`\`groovy
 // host/build.gradle
@@ -213,42 +213,42 @@ plugins { id 'java-library' }
 dependencies { compileOnly project(':plugin-api') }
 \`\`\`
 
-\`compileOnly\` phù hợp khi runtime của host đã cung cấp API JAR và ta không muốn package lại contract vào plugin. Nó cũng có nghĩa plugin phải được chạy trong môi trường có contract; nếu cần test plugin độc lập, bổ sung \`testImplementation project(':plugin-api')\` theo nhu cầu. Với các hệ thống xuất bản plugin cho bên thứ ba, contract nên có tọa độ artifact và version rõ ràng, ví dụ \`com.example:plugin-api:1.0.0\`. Người viết plugin biên dịch chống lại API đã phát hành, không phụ thuộc mã host nội bộ.
+\`compileOnly\` is appropriate when the host runtime already supplies the API JAR and we do not want to repackage the contract into the plugin. It also means the plugin must be run in an environment where the contract is present; if you need to test the plugin independently, add \`testImplementation project(':plugin-api')\` as needed. For systems that publish plugins for third parties, the contract should have clear artifact coordinates and a version, such as \`com.example:plugin-api:1.0.0\`. Plugin authors compile against the published API without depending on internal host code.
 
-Nếu plugin cần một thư viện riêng, package hoặc phân phối runtime dependency đó một cách có chủ đích. JAR thường không tự chứa các JAR phụ thuộc. Một fat JAR có thể phù hợp trong một số mô hình, nhưng tuyệt đối tránh nhúng một bản \`contract.jar\` riêng vào không gian ClassLoader của provider khi host kỳ vọng cùng một lớp contract.
+If a plugin needs its own library, package or distribute that runtime dependency intentionally. A standard JAR does not bundle its dependent JARs. A fat JAR may fit certain models, but strictly avoid embedding a separate copy of \`contract.jar\` into the provider's ClassLoader space when the host expects the same contract class.
 
-## Classpath, ClassLoader và danh tính kiểu
+## Classpath, ClassLoader, and Type Identity
 
-Trên classpath đơn giản của ví dụ, cả ba JAR được application ClassLoader nạp. Khi chuyển sang kiến trúc host tải plugin lúc chạy bằng \`URLClassLoader\`, cần duy trì **một định nghĩa được chia sẻ** của \`demo.api.MessagePlugin\` qua parent ClassLoader. Trong JVM, tên đầy đủ của lớp **chưa đủ** để đảm bảo cùng kiểu: danh tính lớp còn phụ thuộc ClassLoader định nghĩa nó. Nếu host và plugin nạp hai bản contract trong hai ClassLoader khác nhau, hai interface cùng tên có thể không tương thích và ép kiểu thất bại (\`ClassCastException\`).
+On the simple classpath in the example, all three JARs are loaded by the application ClassLoader. When moving to an architecture where the host loads plugins at runtime using \`URLClassLoader\`, you must maintain **one shared definition** of \`demo.api.MessagePlugin\` via the parent ClassLoader. In the JVM, a class's fully qualified name is **not enough** to guarantee the same type: class identity also depends on the ClassLoader that defined it. If the host and plugin load two copies of the contract in two different ClassLoaders, the two identically named interfaces may be incompatible and casting will fail (\`ClassCastException\`).
 
-Thiết kế phổ biến là parent loader cung cấp contract và các kiểu chung; child loader của plugin nạp implementation và dependency riêng, thường với cơ chế parent-first tiêu chuẩn. Cần chủ động giải quyết trùng dependency, tên package, native library, resource, thread, khả năng unload, và cách quản lý lifecycle khi chuyển tới plugin isolation. \`ServiceLoader.load(MessagePlugin.class)\` mặc định sử dụng thread context ClassLoader; nếu triển khai loader riêng, truyền loader rõ ràng bằng \`ServiceLoader.load(MessagePlugin.class, pluginClassLoader)\`.
+A common design is for the parent loader to provide the contract and shared types; the plugin's child loader loads the implementation and private dependencies, typically with the standard parent-first mechanism. You must proactively handle duplicate dependencies, package names, native libraries, resources, threads, unloading capability, and lifecycle management when moving to plugin isolation. \`ServiceLoader.load(MessagePlugin.class)\` defaults to using the thread context ClassLoader; if using a custom loader, pass the loader explicitly with \`ServiceLoader.load(MessagePlugin.class, pluginClassLoader)\`.
 
-## Tương thích phiên bản, phát hành và kiểm thử
+## Version Compatibility, Publishing, and Testing
 
-- **Giữ hợp đồng nhỏ và ổn định:** tránh đưa các kiểu implementation, dependency cụ thể của host hoặc trạng thái nội bộ vào API. Ghi rõ quy tắc nullability, exception, thread safety và lifecycle nếu ảnh hưởng provider.
-- **Quản lý thay đổi API:** bổ sung abstract method vào interface có thể làm provider cũ không còn tương thích khi phương thức được gọi; thay đổi chữ ký hoặc xóa phương thức có thể gây lỗi liên kết. Dùng kiểm tra binary compatibility và thử plugin biên dịch với bản API cũ trên host mới. Default method đôi khi hỗ trợ mở rộng, nhưng cũng cần đánh giá xung đột và hành vi.
-- **Tách ba bước build:** build/publish \`plugin-api\` trước; host và plugin compile phụ thuộc artifact API; phát hành plugin mà không rebuild host. Kiểm tra metadata, nội dung JAR và service descriptor sau packaging.
-- **Thử cả hai trạng thái runtime:** thiếu plugin phải có fallback hoặc thông báo rõ; có plugin phải được phát hiện và thực thi đúng. Với nhiều provider, đừng mặc định thứ tự \`ServiceLoader\` là thứ tự ưu tiên nghiệp vụ; sắp xếp hoặc lựa chọn có chủ đích nếu cần.
-- **Bảo vệ host:** validate plugin ID, input/output, lỗi provider và compatibility trước khi kích hoạt; \`ServiceLoader\` có thể ném \`ServiceConfigurationError\`, còn implementation có thể ném exception. Plugin bên thứ ba chạy cùng process có khả năng truy cập nhiều tài nguyên của process; một JAR riêng không phải sandbox bảo mật.
+- **Keep the contract small and stable:** avoid introducing implementation types, host-specific dependencies, or internal state into the API. Document rules for nullability, exceptions, thread safety, and lifecycle if they affect providers.
+- **Manage API changes:** adding an abstract method to an interface can break older providers when the method is called; changing signatures or removing methods can cause linkage errors. Use binary compatibility checks and test plugins compiled against older API versions on the newer host. Default methods can sometimes aid extensibility, but conflicts and behavior must still be evaluated.
+- **Separate the three build steps:** build/publish \`plugin-api\` first; host and plugins compile against the API artifact; release plugins without rebuilding the host. Verify metadata, JAR contents, and service descriptors after packaging.
+- **Test both runtime states:** missing plugins should have a fallback or clear message; present plugins should be discovered and executed properly. With multiple providers, do not assume \`ServiceLoader\` order is business priority order; sort or select intentionally if needed.
+- **Protect the host:** validate plugin IDs, inputs/outputs, provider errors, and compatibility before activation; \`ServiceLoader\` can throw \`ServiceConfigurationError\`, and implementations can throw exceptions. Third-party plugins running in the same process have access to many process resources; a separate JAR is not a security sandbox.
 
-## Những lỗi thiết kế thường gặp
+## Common Design Mistakes
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Solution |
 |---|---|---|
-| Host import \`UppercasePlugin\` | Host bị gắn chặt với một implementation; phải rebuild khi thay plugin | Host chỉ import interface và khám phá implementation |
-| Plugin phụ thuộc \`host.jar\` | Lộ chi tiết host, dễ tạo vòng dependency | Chuyển các kiểu thực sự cần chung về API độc lập |
-| Đóng gói contract lặp trong loader riêng | Các kiểu trùng tên có thể không ép kiểu được | Dùng một contract do parent loader cung cấp |
-| Thiếu \`META-INF/services\` | \`ServiceLoader\` không tìm thấy provider trên classpath | Đặt descriptor đúng tên và đóng gói trong plugin JAR |
-| Chỉ đưa \`plugin.jar\` lên runtime classpath | Host hoặc provider có thể không tìm thấy API | Cung cấp \`contract.jar\` và dependency runtime cần thiết |
-| Cho rằng mọi plugin tương thích mọi API | Có thể xảy ra \`NoSuchMethodError\`, lỗi khởi tạo hoặc thay đổi hành vi | Version hóa API và kiểm thử tương thích |
+| Host imports \`UppercasePlugin\` | Host is tightly coupled to one implementation; must rebuild when changing plugins | Host imports only the interface and discovers implementations |
+| Plugin depends on \`host.jar\` | Exposes host internals, easily creates circular dependencies | Move genuinely shared types into an independent API |
+| Packaging duplicate contracts in separate loaders | Identically named types may fail to cast | Use a single contract supplied by the parent loader |
+| Missing \`META-INF/services\` | \`ServiceLoader\` cannot find providers on the classpath | Name the descriptor properly and package it in the plugin JAR |
+| Putting only \`plugin.jar\` on the runtime classpath | Host or provider may fail to find the API | Supply \`contract.jar\` and required runtime dependencies |
+| Assuming every plugin is compatible with every API | \`NoSuchMethodError\`, initialization failures, or behavioral changes can occur | Version the API and run compatibility tests |
 
-## Checklist trước khi phân phối
+## Pre-Distribution Checklist
 
-1. Contract JAR chỉ chứa API công khai và các kiểu dùng chung được thiết kế ổn định.
-2. Host JAR compile với contract, không compile phụ thuộc implementation.
-3. Plugin JAR compile với contract và chứa provider descriptor/tài nguyên đầy đủ.
-4. Bộ JAR runtime có đúng một phiên bản contract dùng chung trong loader tương thích.
-5. Chạy kiểm chứng có plugin, không plugin, plugin lỗi, và thử tương thích các phiên bản được hỗ trợ.
-6. Tài liệu phát hành chỉ rõ phiên bản Java, phiên bản contract, dependency runtime, cách cài/gỡ plugin và cơ chế chọn provider.
+1. Contract JAR contains only the public API and shared types designed to be stable.
+2. Host JAR compiles against the contract without compile-time dependencies on implementations.
+3. Plugin JAR compiles against the contract and includes complete provider descriptors and resources.
+4. The runtime JAR set contains exactly one shared contract version in a compatible loader.
+5. Run verification with plugins present, without plugins, with faulty plugins, and test compatibility across supported versions.
+6. Release documentation clearly specifies the Java version, contract version, runtime dependencies, how to install/uninstall plugins, and the provider selection mechanism.
 
-**Kết luận:** Tách contract, host và implementation thành ba artifact cho phép phát hành plugin độc lập và giữ host ổn định. Hiệu quả thực tế phụ thuộc vào hướng dependency, cách nạp lớp, metadata provider và quy tắc tương thích được kiểm chứng khi chạy.
+**Conclusion:** Separating the contract, host, and implementation into three artifacts enables independent plugin releases and keeps the host stable. Practical effectiveness depends on dependency direction, class-loading strategy, provider metadata, and compatibility rules verified at runtime.

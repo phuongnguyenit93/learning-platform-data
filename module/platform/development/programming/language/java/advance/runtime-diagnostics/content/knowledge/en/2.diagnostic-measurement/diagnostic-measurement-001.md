@@ -1,242 +1,242 @@
-# 2.1 Xác định tình huống tái hiện, tải đầu vào và tiêu chí hoàn thành chẩn đoán
+# 2.1 Defining Reproduction Scenarios, Input Workload, and Diagnostic Exit Criteria
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Một cuộc điều tra lỗi Java chỉ đáng tin khi người khác có thể hiểu **lỗi xuất hiện trong điều kiện nào**, **hệ thống phải xử lý loại tải gì** và **bằng chứng nào đủ để khép lại việc chẩn đoán**. Bài này hướng dẫn thiết kế ba thành phần đó trước khi thu thập nhiều log, thread dump hay hồ sơ hiệu năng.
+A Java incident investigation is only trustworthy when others can understand **under what conditions the error occurs**, **what kind of load the system must process**, and **what evidence is sufficient to close the diagnosis**. This lesson guides you through designing those three components before collecting large volumes of logs, thread dumps, or performance profiles.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Viết một **hợp đồng tái hiện** (reproduction contract): thao tác kích hoạt, môi trường, dữ liệu, dấu hiệu lỗi, điều kiện kiểm soát và cách lặp lại.
-- Mô tả **workload** bằng tốc độ đến của request, mức đồng thời, cơ cấu thao tác, cỡ payload, thời lượng, dữ liệu và giai đoạn warm-up.
-- Đặt **tiêu chí hoàn thành chẩn đoán** có thể kiểm tra: bằng chứng đủ xác nhận/bác bỏ giả thuyết, mức độ tái hiện, độ tin cậy và bước bàn giao xử lý.
-- Phân biệt **“đã chẩn đoán xong”**, **“đã có biện pháp giảm thiểu”** và **“đã sửa lỗi, kiểm chứng xong”**.
+- Write a **reproduction contract**: trigger operation, environment, data, failure oracle, control conditions, and how to repeat it.
+- Describe a **workload** by request arrival rate, concurrency level, operation mix, payload size, duration, data, and warm-up phase.
+- Set verifiable **diagnostic exit criteria**: evidence sufficient to confirm/refute hypotheses, reproducibility level, confidence level, and handoff steps.
+- Distinguish between **"diagnosis complete"**, **"mitigation verified"**, and **"fix verified"**.
 
-## 1. Bắt đầu bằng một triệu chứng có thể quan sát
+## 1. Start with an Observable Symptom
 
-Các mô tả như “JVM chậm”, “service treo” hoặc “thỉnh thoảng chết” chưa đủ để tạo một phép đo. Chúng không cho biết đối tượng, thời điểm, tác động và điều gì được coi là lỗi.
+Descriptions like "JVM is slow", "service hangs", or "occasionally crashes" are not enough to design a measurement. They do not tell us the subject, timing, impact, or what counts as a failure.
 
-Hãy biến báo cáo thành một phát biểu có thể kiểm tra:
+Turn the report into a testable statement:
 
-> “Trong phiên bản ứng dụng X, khi xử lý khoảng 100 request/giây trong 10 phút, đường đi `POST /checkout` có p95 latency tăng từ khoảng 180 ms lên trên 800 ms; hiện tượng tập trung trên hai instance sau khi tải tăng, được xác định qua request ID và biểu đồ độ trễ.”
+> "In application version X, when handling roughly 100 requests/second for 10 minutes, the `POST /checkout` path shows p95 latency increasing from around 180 ms to over 800 ms; the phenomenon is concentrated on two instances after load increases, identified via request IDs and latency charts."
 
-Các con số trên **chỉ minh họa**. Với một sự cố thực, phải điền số đo, nguồn dữ liệu và cửa sổ thời gian thực.
+The numbers above are **illustrative only**. For a real incident, you must fill in actual measurements, data sources, and time windows.
 
-Một phát biểu đủ dùng thường trả lời:
+A useful symptom statement typically answers:
 
-| Câu hỏi | Thông tin cần ghi |
+| Question | Information to Record |
 | --- | --- |
-| **Cái gì sai?** | Trả kết quả sai, HTTP 5xx, timeout, treo request, throughput sụt, heap tăng sau GC, CPU cao hay restart |
-| **Sai ở đâu?** | Tên service, endpoint/job, instance/pod, vùng triển khai, bản build và JDK |
-| **Bắt đầu khi nào?** | Timestamp có múi giờ, thời lượng, tần suất, có tương quan deploy/cấu hình hay không |
-| **Ảnh hưởng ai và bao nhiêu?** | Nhóm người dùng, request, partition, tenant, tác động nghiệp vụ |
-| **So với điều gì?** | Baseline là cùng loại thao tác, dữ liệu và tải ở trạng thái được coi là khỏe |
-| **Bằng chứng gốc?** | Metric query, trace ID, log có timestamp, test case, thread/JFR snapshot và nguồn lưu trữ |
+| **What is wrong?** | Wrong result returned, HTTP 5xx, timeout, hung request, throughput drop, post-GC heap growth, high CPU, or restart |
+| **Where is it wrong?** | Service name, endpoint/job, instance/pod, deployment region, build version, and JDK |
+| **When did it start?** | Timestamp with timezone, duration, frequency, and whether it correlates with a deploy/config change |
+| **Who and how much is affected?** | User group, requests, partitions, tenants, business impact |
+| **Compared to what?** | A baseline of the same operation type, data, and load in a state considered healthy |
+| **Primary evidence?** | Metric queries, trace IDs, timestamped logs, test cases, thread/JFR snapshots, and storage locations |
 
-**Triệu chứng khác nguyên nhân.** Một request timeout chỉ xác nhận request vượt deadline; nó chưa chứng minh nguồn gốc là GC, database, queue, mạng hay một đoạn code cụ thể. Viết hiện tượng theo cách không “gài sẵn” giả thuyết nguyên nhân.
+**A symptom is not a root cause.** A request timeout only confirms that the request exceeded its deadline; it does not prove the origin is GC, database, queue, network, or a specific piece of code. Write the symptom in a way that does not "bake in" a root-cause hypothesis.
 
-## 2. Tình huống tái hiện (reproduction scenario) là gì?
+## 2. What Is a Reproduction Scenario?
 
-Một tình huống tái hiện là **tập điều kiện và hành động được mô tả đủ rõ để lặp lại hiện tượng**. Nó giống một thí nghiệm có thể thực hiện lại: giữ các yếu tố cần thiết ổn định, thay đổi có chủ đích một yếu tố, quan sát kết quả.
+A reproduction scenario is **a set of conditions and actions described clearly enough to repeat the phenomenon**. It resembles a repeatable experiment: hold the necessary factors constant, intentionally vary one factor, and observe the result.
 
-Nó gồm sáu phần:
+It consists of six parts:
 
-1. **Điểm xuất phát:** artifact/build hash, JDK/JVM, flags quan trọng, hệ điều hành/container, cấu hình, dependency và trạng thái dữ liệu ban đầu.
-2. **Tác nhân kích hoạt:** request, job, lịch tác vụ, input cụ thể, thứ tự thao tác hoặc thời điểm tăng tải.
-3. **Cách thực hiện:** từng bước hoặc kịch bản tạo tải, bao gồm giai đoạn khởi động, warm-up, thời lượng đo và cách dừng.
-4. **Dấu hiệu nhận biết lỗi (failure oracle):** điều kiện có thể xác minh như mã lỗi, kết quả sai, deadline vượt ngưỡng, luồng bị chặn hoặc tiến trình bị thoát.
-5. **Bằng chứng và đối chứng:** request ID, log, trace, biểu đồ, metric, test output và một lần chạy khỏe với điều kiện tương đương.
-6. **Khả năng lặp lại:** lỗi xảy ra ở bao nhiêu lần chạy, có phụ thuộc thời gian/tải/thứ tự/seed không, và còn yếu tố nào chưa kiểm soát.
+1. **Starting point:** artifact/build hash, JDK/JVM, important flags, OS/container, configuration, dependencies, and initial data state.
+2. **Trigger:** request, job, task schedule, specific input, sequence of operations, or load ramp timing.
+3. **Execution procedure:** step-by-step instructions or load-generation script, including startup, warm-up, measurement duration, and stop procedure.
+4. **Failure oracle:** verifiable conditions such as error codes, incorrect output, exceeded deadlines, blocked threads, or process exit.
+5. **Evidence and control:** request IDs, logs, traces, charts, metrics, test output, and a healthy run under equivalent conditions.
+6. **Repeatability:** how many runs out of total attempts exhibit the failure, whether it depends on timing/load/order/seed, and what factors remain uncontrolled.
 
-### 2.1 Ghi đủ ngữ cảnh để người khác tái hiện
+### 2.1 Record Enough Context for Others to Reproduce
 
-Thông tin cần cố định hoặc ghi nhận tùy loại sự cố:
+Information to fix or record depending on the incident type:
 
-- **Mã và JVM:** commit hoặc image digest, phiên bản JDK và vendor, startup flags, `-Xms`/`-Xmx` nếu liên quan, thư viện/driver.
-- **Hệ thống:** số CPU được cấp, giới hạn memory của container, OS, vùng triển khai, topology, DNS, network route.
-- **Ứng dụng:** profile, feature flag, timeout/retry, kích thước thread/connection pool, cache TTL, log sampling.
-- **Dữ liệu:** dữ liệu khởi tạo, kích thước tập dữ liệu, kiểu phân phối, khóa nóng, tình trạng index, schema/migration, tenant/permission cần thiết.
-- **Phụ thuộc:** database, queue, object storage, API ngoài, phiên bản và độ trễ/giới hạn của chúng.
-- **Thời gian và vòng đời:** mới khởi động hay đã warm, cache lạnh hay nóng, thời gian chạy trước khi lỗi xuất hiện, cron/batch chạy đồng thời.
-- **Đầu vào:** method/path, headers có liên quan, request body đã loại bỏ bí mật, số lượng phần tử, kích thước payload, loại request.
+- **Code and JVM:** commit or image digest, JDK version and vendor, startup flags, `-Xms`/`-Xmx` if relevant, libraries/drivers.
+- **System:** allocated CPUs, container memory limit, OS, deployment region, topology, DNS, network route.
+- **Application:** profile, feature flags, timeouts/retries, thread/connection pool sizes, cache TTL, log sampling.
+- **Data:** seed data, dataset size, distribution shape, hot keys, index state, schema/migrations, required tenant/permissions.
+- **Dependencies:** database, queue, object storage, external APIs, their versions, latencies, and limits.
+- **Timing and lifecycle:** freshly started or warmed up, cold or warm cache, uptime before the error appears, concurrent cron/batch jobs.
+- **Input:** method/path, relevant headers, sanitized request body (secrets stripped), item count, payload size, request type.
 
-Không nhất thiết đóng băng **mọi** biến của hệ thống: hãy ghi những biến có thể ảnh hưởng hiện tượng và làm rõ điều gì vẫn chưa biết. Đặc biệt, “cùng source” không đồng nghĩa “cùng binary, JDK, flags, cấu hình và tải”.
+You do not necessarily have to freeze **every** system variable: record those that could affect the phenomenon and make explicit what remains unknown. In particular, "same source code" does not mean "same binary, JDK, flags, configuration, and load".
 
-### 2.2 Phân loại mức tái hiện
+### 2.2 Classify the Reproducibility Level
 
-**Tái hiện xác định (deterministic).** Cùng input và tiền điều kiện, lỗi luôn xảy ra. Ví dụ một input cố định làm hàm Java trả kết quả sai. Dùng unit/integration test và kiểm tra code thường hiệu quả.
+**Deterministic reproduction.** Given the same input and preconditions, the error always occurs. For example, a fixed input causes a Java method to return an incorrect result. Unit/integration tests and code inspection are usually effective here.
 
-**Tái hiện phụ thuộc tải/trạng thái.** Lỗi chỉ xuất hiện khi số kết nối đang dùng tăng, bộ nhớ đầy dần, cache nguội, hàng đợi dài hoặc thứ tự thao tác cụ thể. Cần mô tả cả *lịch sử trạng thái trước khi đo*, không chỉ một request.
+**Load/state-dependent reproduction.** The error only appears when active connections increase, memory fills up over time, cache is cold, queues grow long, or a specific sequence of operations occurs. You must describe the *state history prior to measurement*, not just a single request.
 
-**Tái hiện gián đoạn (intermittent/probabilistic).** Lỗi xuất hiện không đều, có thể do race condition, scheduling, network hay deadline. Thay vì đòi “phải lỗi 100%”, ghi `k/n` lần chạy, thời lượng và điều kiện của mỗi lần. Ví dụ “6/20 lần có timeout trong 10 phút/tần suất tương đương”, chưa đủ để kết luận xác suất thực sự là đúng 30%.
+**Intermittent/probabilistic reproduction.** The error appears irregularly, potentially due to race conditions, scheduling, network, or deadlines. Instead of demanding "must fail 100%", record `k/n` runs, duration, and conditions of each run. For example, "6/20 runs timed out within 10 minutes at equivalent rate" is not enough to conclude the true probability is exactly 30%.
 
-**Không thể tái hiện trong môi trường kiểm soát.** Vẫn có thể chẩn đoán từ evidence production (logs/traces/JFR/metrics) nếu lưu dấu vết đầy đủ. Hãy ghi rõ giới hạn và mức tin cậy, không tuyên bố một giả thuyết đã được chứng minh chỉ vì “test local không bị”.
+**Not reproducible in a controlled environment.** You can still diagnose from production evidence (logs/traces/JFR/metrics) if sufficient traces were captured. Clearly document the limitations and confidence level, and do not claim a hypothesis is disproven just because "local tests didn't fail".
 
-### 2.3 Mẫu hợp đồng tái hiện
+### 2.3 Reproduction Contract Template
 
 ```text
-Sự cố: [triệu chứng định lượng, tác động]
-Run ID / thời gian / múi giờ:
+Incident: [quantified symptom, impact]
+Run ID / time / timezone:
 Service, build, JDK, JVM flags:
-Môi trường: CPU/memory limit, dependency và cấu hình liên quan
-Trạng thái ban đầu: dữ liệu, cache, queue, kết nối, warm/cold
-Input: thao tác, tỉ lệ request, kích thước/kiểu dữ liệu
-Cách kích hoạt: từng bước, seed (nếu có), mức tải và thời lượng
-Dấu hiệu lỗi: oracle rõ ràng, ví dụ timeout > 2 s hay kết quả sai
-Đối chứng: phiên bản/cửa sổ khỏe dưới điều kiện tương đương
-Quan sát: k/n lần hoặc metric p95/p99, lỗi, throughput
-Evidence: tên nguồn, thời gian, request/trace ID, vị trí lưu
-Điều kiện dừng và cách dọn dữ liệu thử:
-Điều chưa kiểm soát / giả thuyết cần kiểm chứng:
+Environment: CPU/memory limits, dependencies, and relevant config
+Initial state: data, cache, queue, connections, warm/cold
+Input: operations, request mix, data size/type
+Trigger: step-by-step, seed (if any), load level, and duration
+Failure oracle: clear oracle, e.g., timeout > 2 s or wrong result
+Control: healthy version/window under equivalent conditions
+Observations: k/n runs or p95/p99 metrics, errors, throughput
+Evidence: source name, timestamp, request/trace ID, storage location
+Stop condition and test data cleanup procedure:
+Uncontrolled factors / hypotheses to verify:
 ```
 
-Một runbook tốt đủ cụ thể để đồng đội chạy lại mà không phải hỏi “gọi endpoint nào?”, “dùng data nào?”, “tạo bao nhiêu request?” hay “thế nào được gọi là lỗi?”.
+A good runbook is specific enough that a teammate can rerun it without asking "which endpoint do I call?", "what data do I use?", "how many requests do I send?", or "what counts as a failure?".
 
-## 3. Tải đầu vào (workload) phải được định nghĩa trước khi đo
+## 3. Input Workload Must Be Defined Before Measuring
 
-**Workload** là phân phối công việc chương trình nhận và xử lý theo thời gian. Hai lần chạy cùng tổng 10.000 request có thể gây trạng thái JVM rất khác nhau nếu một lần dàn đều trong 10 phút và một lần dồn vào 10 giây.
+**Workload** is the distribution of work a program receives and processes over time. Two runs with the same total of 10,000 requests can produce very different JVM states if one spreads them evenly over 10 minutes and the other bursts them into 10 seconds.
 
-### 3.1 Các trục của workload
+### 3.1 Workload Dimensions
 
-| Trục | Cách mô tả có ích |
+| Dimension | Useful Way to Describe |
 | --- | --- |
-| **Tốc độ đến (arrival rate)** | Request/giây (RPS), event/giây, message/giây, có ramp-up và spike không |
-| **Mức đồng thời (concurrency)** | Số request hoặc tác vụ đang xử lý; với client đóng vòng lặp, số virtual users/in-flight tối đa |
-| **Thành phần (mix)** | Ví dụ 70% đọc, 20% tìm kiếm, 10% ghi; phân biệt nhánh nhanh/chậm |
-| **Kích thước/độ khó input** | Payload byte, số record, phân phối kích thước, kiểu truy vấn, key nóng/lạnh |
-| **Thời lượng** | Warm-up, ramp, khoảng đo ổn định, đợt burst, thời gian hồi phục |
-| **Dữ liệu và trạng thái** | Dataset, cache hit/miss, connection pool, số phần tử queue, dữ liệu tích lũy |
-| **Điều kiện phụ thuộc** | Latency database/API, timeout, lỗi giả lập, giới hạn rate và số kết nối |
-| **Điều kiện máy** | Giới hạn CPU/memory, số instance, GC/JVM flags, tác vụ nền |
+| **Arrival rate** | Requests/second (RPS), events/second, messages/second, whether ramp-up and spikes exist |
+| **Concurrency** | Number of requests or tasks actively in progress; for closed-loop clients, max virtual users / in-flight requests |
+| **Mix** | E.g., 70% read, 20% search, 10% write; distinguish fast/slow branches |
+| **Input size/complexity** | Payload bytes, record count, size distribution, query type, hot/cold keys |
+| **Duration** | Warm-up, ramp, steady-state measurement window, bursts, recovery time |
+| **Data and state** | Dataset, cache hit/miss, connection pool, queue depth, accumulated data |
+| **Dependency conditions** | Database/API latency, timeouts, injected errors, rate limits, and connection limits |
+| **Machine conditions** | CPU/memory limits, instance count, GC/JVM flags, background tasks |
 
-**Đừng dùng “100 users” thay cho “100 RPS”.** Một user có thể gửi nhiều hoặc ít request tùy thời gian nghĩ (think time), response time và lịch điều phối. Số tác vụ đang xử lý cũng không nhất thiết bằng số client.
+**Do not use "100 users" as a substitute for "100 RPS".** One user can send more or fewer requests depending on think time, response time, and scheduling. The number of active tasks in flight is also not necessarily equal to the number of clients.
 
-Ví dụ minh họa:
+Illustrative examples:
 
-- **Load mở (open model):** bộ phát chủ động tạo 50 request mới mỗi giây dù server đang chậm; nếu server không theo kịp, queue/backlog có thể tăng.
-- **Load đóng (closed model):** 20 client đồng thời, mỗi client chờ response rồi mới gửi tiếp; khi response chậm, tổng RPS thường giảm theo.
+- **Open load model:** the generator proactively sends 50 new requests per second even if the server is slow; if the server cannot keep up, queues/backlogs can grow.
+- **Closed load model:** 20 concurrent clients, each waiting for a response before sending the next; when responses slow down, total RPS typically drops accordingly.
 
-Hai mô hình trả lời hai câu hỏi khác nhau. Khi kiểm tra năng lực chịu tải trước lưu lượng từ bên ngoài, cần xem mô hình phát tải có giống thực tế không; khi tái hiện race condition, mức đồng thời và lịch tác vụ có thể quan trọng hơn RPS bình quân.
+The two models answer two different questions. When testing capacity against external traffic, check whether the load model matches reality; when reproducing a race condition, concurrency and task scheduling may matter more than average RPS.
 
-Ở trạng thái ổn định, định luật Little cho biết **số công việc trung bình trong hệ thống = tốc độ hoàn thành trung bình × thời gian ở trong hệ thống trung bình** (với ranh giới đo và giả định phù hợp). Đây là quan hệ để kiểm tra tính hợp lý, **không** phải phép quy đổi trực tiếp giữa RPS và số user khi hệ thống đang tắc nghẽn hoặc chưa ổn định.
+In steady state, Little's Law states that **average number of work items in the system = average completion rate × average time spent in the system** (given consistent measurement boundaries and assumptions). This is a relationship for sanity checking, **not** a direct conversion formula between RPS and user count when the system is congested or unstable.
 
-### 3.2 Tách ba giai đoạn của mỗi lần chạy
+### 3.2 Separate Each Run into Three Phases
 
-1. **Chuẩn bị và warm-up:** khởi động hệ thống, làm nóng JIT, class loading, cache hoặc connection pool nếu kịch bản là warm state; ghi rõ nếu đang đo cold start. Không trộn mẫu warm-up vào cửa sổ đo của kịch bản ổn định.
-2. **Giai đoạn đo:** cố định lịch phát tải, tập dữ liệu và cửa sổ thời gian. Thu latency, error rate, throughput thực đạt, backlog, CPU/heap/GC, thread/connection pool, dependency timing theo đúng loại vấn đề.
-3. **Hồi phục và cleanup:** giảm/dừng load, kiểm tra queue có thoát nghẽn không, tài nguyên có trở về mức ổn định không, dọn dữ liệu test và lưu artifact. Với rò rỉ/bất thường tích lũy, cửa sổ quan sát sau tải có thể quyết định.
+1. **Preparation and warm-up:** start the system, warm up JIT, class loading, caches, or connection pools if the scenario is warm-state; explicitly note if measuring cold start. Do not mix warm-up samples into the steady-state measurement window.
+2. **Measurement phase:** fix the load schedule, dataset, and time window. Collect latency, error rate, achieved throughput, backlog, CPU/heap/GC, thread/connection pools, and dependency timing appropriate to the problem type.
+3. **Recovery and cleanup:** reduce/stop load, check whether queues drain, verify whether resources return to steady levels, clean up test data, and save artifacts. For leaks or cumulative anomalies, the post-load observation window can be decisive.
 
-**Đo máy phát tải:** nếu load generator đã quá tải, mất kết nối hoặc lệch lịch gửi, biểu đồ server không còn phản ánh workload dự kiến. Ghi cả **RPS yêu cầu** và **RPS thực sự đạt**, lỗi phía client, timeout client, số in-flight và khả năng đáp ứng của load generator.
+**Measure the load generator:** if the load generator itself is overloaded, dropping connections, or drifting from schedule, server charts no longer reflect the intended workload. Record both **target/offered RPS** and **achieved RPS**, client-side errors, client timeouts, in-flight count, and load generator responsiveness.
 
-### 3.3 Chọn dữ liệu đầu vào đại diện
+### 3.3 Choose Representative Input Data
 
-- Chọn trường hợp điển hình **và** trường hợp biên: payload lớn, khóa nóng, số bản ghi nhiều, cache miss, request có nhiều dependency.
-- Cố định seed khi sinh dữ liệu ngẫu nhiên để có thể tái hiện; đồng thời lưu ý một seed đơn lẻ có thể không đại diện. Có thể dùng nhiều seed được ghi rõ nếu lỗi phụ thuộc phân phối.
-- Với trường hợp cập nhật dữ liệu, đảm bảo mỗi lần chạy bắt đầu từ trạng thái tương đương hoặc có cách reset. Dữ liệu tích lũy có thể khiến lần sau chậm hơn dù code không đổi.
-- Dùng dữ liệu tổng hợp hoặc dữ liệu đã được loại bỏ thông tin nhạy cảm; tránh sao chép token, dữ liệu cá nhân hoặc thông tin production thô vào log và báo cáo.
-- Một kịch bản “request nhỏ, cache nóng” không đủ đại diện cho sự cố chỉ xảy ra ở truy vấn lớn, cache lạnh hoặc dữ liệu skew.
+- Choose both typical cases **and** edge cases: large payloads, hot keys, high record counts, cache misses, and requests hitting many dependencies.
+- Fix the random seed when generating synthetic data for repeatability; also keep in mind a single seed may not be representative. Use multiple documented seeds if the error depends on distribution.
+- For data-mutating scenarios, ensure each run starts from an equivalent state or has a reset mechanism. Accumulated data can make subsequent runs slower even when code has not changed.
+- Use synthetic or sanitized data; avoid copying tokens, personal data, or raw production information into logs and reports.
+- A "small request, hot cache" scenario is not representative of an incident that only happens on large queries, cold caches, or skewed data.
 
-## 4. Đặt baseline và chọn thước đo trước khi chạy
+## 4. Establish a Baseline and Choose Metrics Before Running
 
-**Baseline** là quan sát tham chiếu để so sánh. Nó có thể là môi trường khỏe, bản phát hành trước, hoặc khoảng thời gian khỏe trên cùng môi trường. Baseline đáng tin khi ghi rõ **điều kiện tương đương** về dữ liệu, workload, thời lượng, số instance và cấu hình.
+A **baseline** is a reference observation for comparison. It may be a healthy environment, a previous release, or a healthy time window in the same environment. A baseline is trustworthy when **equivalent conditions** are recorded for data, workload, duration, instance count, and configuration.
 
-Với Java service, thường cần kết hợp:
+For a Java service, you typically need a combination of:
 
-- **Tín hiệu người dùng:** latency p50/p95/p99, error rate, timeout rate, correctness của output.
-- **Khối lượng:** request đến, request hoàn tất, throughput thực tế, số request đang chờ, queue depth.
-- **JVM:** CPU của process, heap used sau GC, allocation rate, GC pause time/frequency, thread count và blocked/waiting threads.
-- **Hạ tầng và dependency:** CPU throttling, memory/container OOM, kết nối DB, pool wait time, network/error, độ trễ downstream.
-- **Bằng chứng định vị:** log có correlation/request ID, trace span, JFR hoặc thread/heap dump khi cần.
+- **User signals:** p50/p95/p99 latency, error rate, timeout rate, output correctness.
+- **Volume:** incoming requests, completed requests, achieved throughput, waiting requests, queue depth.
+- **JVM:** process CPU, heap used after GC, allocation rate, GC pause time/frequency, thread count, and blocked/waiting threads.
+- **Infrastructure and dependencies:** CPU throttling, memory/container OOM, DB connections, pool wait time, network/errors, downstream latency.
+- **Localization evidence:** logs with correlation/request IDs, trace spans, JFR, or thread/heap dumps when needed.
 
-Một metric đơn lẻ hiếm khi đủ. Ví dụ p99 tăng cùng GC pause tăng chỉ tạo **giả thuyết** GC đóng góp vào độ trễ; cần khớp timestamp, đối chiếu request/trace và loại trừ queue/dependency trước khi kết luận.
+A single metric is rarely enough. For example, p99 rising together with GC pauses only forms a **hypothesis** that GC contributes to latency; you must align timestamps, cross-check requests/traces, and rule out queuing/dependencies before concluding.
 
-### 4.1 Định nghĩa metric rõ để tránh đo sai
+### 4.1 Define Metrics Clearly to Avoid Mis-measurement
 
-- **Latency:** đo từ đâu đến đâu? Tại client từ khi gửi đến khi nhận đủ response, tại gateway hay trong handler? Có tính hàng đợi, retry và timeout không? Không so sánh các metric khác ranh giới như thể chúng giống nhau.
-- **Error rate:** mẫu số là mọi request đến, mọi request hoàn tất hay chỉ request hợp lệ? Tử số gồm 5xx, timeout, lỗi nghiệp vụ nào? Ghi rõ cách xử lý 4xx dự kiến.
-- **p95:** phân vị thứ 95 của các quan sát; khác giá trị trung bình. Với ít mẫu, p95/p99 kém ổn định, nên chọn cửa sổ và cỡ mẫu tương xứng, lặp lại khi biến thiên lớn.
-- **Thông lượng:** RPS mà bộ phát yêu cầu khác RPS server hoàn tất. Khi bão hòa, lượng request tồn đọng có thể tăng dù throughput hoàn tất đứng yên.
-- **Ngưỡng:** ngưỡng đưa ra cần xuất phát từ SLO, baseline hoặc mục tiêu điều tra, không tùy tiện chọn sau khi đã thấy kết quả.
+- **Latency:** measured from where to where? At the client from send to full response receipt, at the gateway, or inside the handler? Does it include queuing, retries, and timeouts? Never compare metrics with different boundaries as if they were identical.
+- **Error rate:** is the denominator all incoming requests, all completed requests, or only valid requests? Does the numerator include 5xx, timeouts, or specific business errors? Document how expected 4xx responses are handled.
+- **p95:** the 95th percentile of observations; different from the mean. With few samples, p95/p99 are unstable, so choose an appropriate window and sample size, and repeat runs when variance is high.
+- **Throughput:** RPS requested by the generator differs from RPS completed by the server. Under saturation, backlog can grow even while completed throughput stays flat.
+- **Thresholds:** stated thresholds should derive from SLOs, baselines, or investigation goals—never chosen arbitrarily after seeing the results.
 
-Phải xác định cả cách tính request lỗi trong phân vị độ trễ: có hệ thống chỉ báo latency thành công, nơi khác tính mọi attempt. Nếu bỏ các timeout khỏi histogram thành công, p95 có thể trông rất tốt trong khi error rate tăng mạnh.
+You must also specify how failed requests are counted in latency percentiles: some systems report only successful-request latency, while others include all attempts. If timeouts are excluded from the success histogram, p95 can look great while the error rate climbs sharply.
 
-## 5. Thiết kế các lần chạy so sánh được
+## 5. Design Comparable Runs
 
-Một thiết kế đơn giản dùng **một biến thay đổi có chủ đích** giữa các lần chạy:
+A simple design uses **one intentional variable changed** between runs:
 
-| Run | Artifact | Workload | Cấu hình | Mục tiêu |
+| Run | Artifact | Workload | Configuration | Goal |
 | --- | --- | --- | --- | --- |
-| A – baseline | Bản khỏe đã biết | Cùng mô hình input/tải | Cấu hình tham chiếu | Ghi hành vi ổn định |
-| B – incident | Bản đang điều tra | Giống A ở các trục có liên quan | Giống A, trừ khác biệt đang kiểm tra | Xác minh triệu chứng |
-| C – hypothesis | Bản như B | Giống B | Chỉ thay một yếu tố nghi vấn | Kiểm tra giả thuyết |
-| D – verify | Bản có biện pháp sửa | Giống B | Cấu hình dự định triển khai | Kiểm chứng hiệu quả và hồi quy |
+| A – baseline | Known healthy build | Same input/load model | Reference configuration | Record healthy behavior |
+| B – incident | Build under investigation | Same as A on relevant dimensions | Same as A, except difference under test | Verify symptom |
+| C – hypothesis | Same build as B | Same as B | Change only one suspected factor | Test hypothesis |
+| D – verify | Build with fix/mitigation | Same as B | Intended deployment configuration | Verify effectiveness and regressions |
 
-Nếu không thể chỉ thay một biến (ví dụ môi trường production khác staging), liệt kê khác biệt còn lại và đánh giá chúng có làm yếu kết luận hay không. Đừng gọi khác biệt đó là “đã loại trừ” khi chưa đo.
+If you cannot change just one variable (for example, production differs from staging), list the remaining differences and evaluate whether they weaken the conclusion. Do not call a difference "ruled out" without measuring it.
 
-**Ví dụ giả định:** API xử lý ổn ở 40 RPS nhưng lỗi timeout tăng khi lên 120 RPS. Thử tăng kết nối DB đồng thời thấy timeout giảm có thể ủng hộ giả thuyết pool nghẽn, nhưng cũng cần xem connection wait time, số kết nối sử dụng, query latency và tác động lên DB. Chỉ “tăng pool thì đỡ” chưa đủ chứng minh nguyên nhân gốc.
+**Hypothetical example:** An API runs fine at 40 RPS, but timeouts increase at 120 RPS. Trying a larger DB connection pool reduces timeouts, which supports the pool-contention hypothesis, but you still need to check connection wait time, active connections used, query latency, and impact on the DB. Simply seeing "increasing the pool helped" does not prove the root cause.
 
-Đối với hiện tượng hiếm hoặc race condition, có thể phải thu nhiều thread dump/JFR samples, lặp chạy dài hơn, thử nhiều seed hoặc đồng bộ lịch tác vụ. Khi khó tái hiện, hãy chủ động ghi **mức độ không chắc chắn** và điều kiện quan sát còn thiếu.
+For rare phenomena or race conditions, you may need to collect multiple thread dumps/JFR samples, run longer loops, try multiple seeds, or synchronize task schedules. When reproduction is difficult, explicitly record the **level of uncertainty** and missing observation conditions.
 
-## 6. Tiêu chí hoàn thành chẩn đoán: định nghĩa trước, đánh giá sau
+## 6. Diagnostic Exit Criteria: Define First, Evaluate Later
 
-Một cuộc chẩn đoán có thể kết thúc theo nhiều trạng thái; không nên dùng một chữ “done” để che mất chênh lệch giữa việc hiểu lỗi và việc sửa lỗi.
+An investigation can end in several valid states; do not use a single word "done" to obscure the gap between understanding a bug and fixing it.
 
-### 6.1 Ba mốc khác nhau
+### 6.1 Three Distinct Milestones
 
-| Mốc | Điều gì phải có? | Điều gì chưa được hàm ý? |
+| Milestone | What Must Be Present? | What Is Not Implied? |
 | --- | --- | --- |
-| **Diagnosis complete** | Triệu chứng, ảnh hưởng và điều kiện xảy ra rõ ràng; bằng chứng đủ để xác nhận nguyên nhân hoặc khoanh vùng với mức tin cậy/giới hạn cụ thể; bước tiếp theo có chủ sở hữu | Chưa chắc đã sửa hoặc hết lỗi |
-| **Mitigation verified** | Biện pháp giảm tác động có số đo trước–sau, không tạo sự cố mới rõ ràng; có kế hoạch theo dõi và hoàn tác nếu cần | Chưa chắc nguyên nhân gốc đã được loại bỏ |
-| **Fix verified** | Thay đổi sửa đúng nguyên nhân; bài test/kịch bản gây lỗi và workload liên quan qua cổng chấp nhận; theo dõi sau triển khai và kiểm tra hồi quy phù hợp | Không có nghĩa hệ thống tuyệt đối không bao giờ lỗi |
+| **Diagnosis complete** | Symptom, impact, and trigger conditions are clear; evidence is sufficient to confirm the cause or isolate it with stated confidence/limitations; next steps have an owner | Does not imply the bug is fixed or gone |
+| **Mitigation verified** | Impact-reducing measure has before–after measurements, introduces no obvious new incidents; monitoring and rollback plan exist if needed | Does not imply the root cause has been eliminated |
+| **Fix verified** | Change fixes the actual root cause; failing test/reproduction scenario and related workload pass acceptance gates; post-deploy monitoring and regression checks pass | Does not mean the system can never fail again |
 
-Nếu **chưa xác minh được nguyên nhân**, kết quả hợp lệ có thể là “điều tra đang mở, đã có bằng chứng và giả thuyết ưu tiên”. Không nâng thành `Diagnosis complete` chỉ vì đã hết thời gian hoặc không còn tái hiện được tạm thời.
+If **the cause is not yet verified**, a valid outcome can be "investigation remains open, with collected evidence and prioritized hypotheses". Do not promote it to `Diagnosis complete` merely because time ran out or reproduction temporarily stopped.
 
-### 6.2 Checklist “đủ để khép chẩn đoán”
+### 6.2 Checklist for "Ready to Close Diagnosis"
 
-1. **Phạm vi đã xác định:** tình huống lỗi, môi trường, build và điều kiện kích hoạt được ghi thành runbook.
-2. **Bằng chứng có thể truy vết:** mỗi kết luận quan trọng chỉ tới metric query, trace/log ID, dump/test output, timestamp và run ID.
-3. **Đã tái hiện hoặc giải thích giới hạn tái hiện:** tần suất và điều kiện rõ; nếu chưa tái hiện, evidence hiện trường và độ không chắc chắn được nêu.
-4. **Giả thuyết đã được kiểm chứng:** mô tả phép thử hoặc đối chiếu nào ủng hộ/bác bỏ từng giả thuyết; tránh kết luận chỉ từ tương quan.
-5. **Nguyên nhân và cơ chế được mô tả:** lớp gây lỗi (logic, pool, GC, dependency, input, cấu hình, tài nguyên...) với mức tin cậy phù hợp.
-6. **Tiêu chí kiểm chứng hành động đã có:** ngưỡng, workload, số lần chạy và môi trường cần dùng để xác nhận bản sửa.
-7. **Bàn giao rõ:** người xử lý, thay đổi dự kiến, rủi ro còn lại, quy trình theo dõi hoặc quyết định giữ điều tra mở.
+1. **Scope defined:** failure scenario, environment, build, and trigger conditions are documented as a runbook.
+2. **Traceable evidence:** every major conclusion points to metric queries, trace/log IDs, dump/test outputs, timestamps, and run IDs.
+3. **Reproduced or reproduction limits explained:** frequency and conditions are clear; if not reproduced, field evidence and uncertainty are stated.
+4. **Hypotheses tested:** describes which test or comparison supported/refuted each hypothesis; avoids concluding from correlation alone.
+5. **Root cause and mechanism described:** failing layer (logic, pool, GC, dependency, input, config, resources, etc.) stated with appropriate confidence.
+6. **Action verification criteria defined:** thresholds, workload, repetition count, and environment needed to validate the fix.
+7. **Clear handoff:** owner, planned change, remaining risks, monitoring procedure, or decision to keep investigation open.
 
-Khi mục tiêu chỉ là **xác định nguyên nhân**, không bắt buộc đợi fix triển khai mới đóng bước chẩn đoán; phải ghi trạng thái remediation riêng. Khi mục tiêu là **khôi phục dịch vụ hoàn toàn**, cần thêm cổng xác minh fix và giám sát.
+When the goal is strictly **root-cause identification**, you do not have to wait for a fix to be deployed before closing the diagnosis step; record the remediation status separately. When the goal is **full service recovery**, add fix-verification and monitoring gates.
 
-### 6.3 Tiêu chí định lượng cho một kịch bản đo
+### 6.3 Quantitative Criteria for a Measurement Scenario
 
-Một tiêu chí tốt đủ cụ thể để trả lời PASS/FAIL và có điều kiện áp dụng.
+Good criteria are specific enough to answer PASS/FAIL and include applicability conditions.
 
-Ví dụ **minh họa, không phải SLO khuyến nghị chung**:
+**Illustrative example, not a universal SLO recommendation:**
 
 ```text
-Service: checkout-service, bản build và JDK đã ghi
-Workload: 100 RPS yêu cầu, 70% read / 30% checkout,
-          payload theo bộ dữ liệu mẫu cố định
-Phát tải: open model, ramp 2 phút
-Warm-up: 3 phút; cửa sổ đo: 10 phút
-Lặp lại: tối thiểu 3 lần độc lập, cùng mô hình và trạng thái đầu
-Nguồn đo: client metrics + server metrics + traces gắn run ID
-Cửa kiểm tra: p95 < 300 ms; HTTP 5xx và timeout < 1%
-                 throughput hoàn tất không tụt dưới mục tiêu đo;
-                 không có queue tăng mãi trong khoảng ổn định
-Nguyên tắc tính: latency của request thành công và lỗi
-                 được ghi riêng, lỗi không bị bỏ khỏi error rate
-Điều kiện so sánh: số instance, dữ liệu, JVM flags,
-                   dependency và resource limits tương đương
-Đầu ra: bảng từng run, metric query, trace ID và sai lệch
-Dừng an toàn: ngắt tải khi ảnh hưởng dịch vụ hoặc tài nguyên
-               vượt ngưỡng đã thống nhất
+Service: checkout-service, recorded build and JDK
+Workload: 100 target RPS, 70% read / 30% checkout,
+          payload from fixed sample dataset
+Load generation: open model, 2-minute ramp
+Warm-up: 3 minutes; measurement window: 10 minutes
+Repetitions: minimum 3 independent runs, same model and initial state
+Measurement sources: client metrics + server metrics + traces tagged with run ID
+Acceptance gate: p95 < 300 ms; HTTP 5xx and timeout < 1%
+                 completed throughput does not drop below measurement target;
+                 no unbounded queue growth during steady state
+Counting policy: latency of successful and failed requests
+                 recorded separately, errors not dropped from error rate
+Comparison conditions: equivalent instance count, data, JVM flags,
+                       dependencies, and resource limits
+Output: per-run table, metric queries, trace IDs, and deviations
+Safe stop: abort load if service impact or resources
+           exceed agreed thresholds
 ```
 
-Các giá trị như `100 RPS`, `300 ms`, `1%` phải được thay bằng ngưỡng của hệ thống thực. Nếu không đạt được 100 RPS đầu vào vì bộ phát tải chậm hoặc môi trường không đủ, không nên đánh dấu PASS dựa trên một p95 “đẹp” ở mức tải thấp hơn.
+Values like `100 RPS`, `300 ms`, and `1%` must be replaced with your real system's thresholds. If 100 incoming RPS is not achieved because the load generator is slow or the environment is under-provisioned, do not mark PASS based on a "pretty" p95 at lower load.
 
-**Đừng ép mọi hiện tượng vào tiêu chí latency/error.** Với memory leak, tiêu chí có thể là heap used sau full/major GC hoặc heap ổn định trong một khoảng quan sát đủ dài dưới cùng workload. Với deadlock, tiêu chí có thể là không còn đồ thị chờ khóa theo mẫu tái hiện và toàn bộ tác vụ hoàn tất trong deadline. Với dữ liệu sai, tiêu chí là assertions về correctness, không phải p95.
+**Do not force every phenomenon into latency/error criteria.** For a memory leak, the criterion might be heap used after full/major GC or stable heap over a sufficiently long observation window under the same workload. For a deadlock, the criterion might be absence of the lock-wait cycle under the reproduction pattern and all tasks completing within deadline. For incorrect data, the criteria are correctness assertions, not p95.
 
-## 7. Ví dụ Java 17+: kiểm tra tiêu chí bằng số liệu cố định
+## 7. Java 17+ Example: Checking Criteria with Fixed Data
 
-Ví dụ tự chạy sau đây **không phải công cụ benchmark hay bộ phát tải**. Nó cho thấy cách biến một tiêu chí định lượng thành phép tính có thể kiểm tra, tách trạng thái baseline và incident. Mỗi lần chạy dùng **20 mẫu cố định được mô phỏng trong code**; kết quả hoàn toàn xác định. Hai mươi mẫu quá ít để kết luận p95 có ý nghĩa thống kê cho production.
+The following self-contained example is **not a benchmark tool or load generator**. It demonstrates how to turn quantitative criteria into a verifiable computation, separating baseline and incident states. Each run uses **20 fixed samples simulated in code**; the output is completely deterministic. Twenty samples are far too few to draw statistically meaningful p95 conclusions for production.
 
-Tạo tệp `DiagnosticCriteriaDemo.java`:
+Create `DiagnosticCriteriaDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -297,90 +297,90 @@ public class DiagnosticCriteriaDemo {
 }
 ```
 
-Biên dịch/chạy trên JDK 17 trở lên:
+Compile/run on JDK 17 or higher:
 
 ```bash
 javac DiagnosticCriteriaDemo.java
 java DiagnosticCriteriaDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 baseline: n=20 errors=0 errorRate=0.0% p95=140ms verdict=PASS
 incident: n=20 errors=1 errorRate=5.0% p95=600ms verdict=FAIL
 ```
 
-Vì sao kết quả đúng?
+Why is this result right?
 
-- Baseline có 20 mẫu với độ trễ lần lượt thuộc `100, 110, 120, 130, 140 ms`, mỗi giá trị xuất hiện bốn lần. Vị trí nearest-rank p95 là vị trí thứ 19 (đếm từ 1), bằng `140 ms`; không có lỗi.
-- Incident có 18 mẫu nhỏ và hai mẫu `600 ms`. Vị trí thứ 19 là `600 ms`; một mẫu đánh dấu lỗi nên error rate là `1/20 = 5%`.
-- Quy tắc minh họa đặt `p95 <= 200 ms` **và** `error rate <= 1%`. Baseline PASS, incident FAIL.
-- Chương trình tính latency percentile trên **mọi mẫu, gồm mẫu được đánh dấu error**. Trong hệ thống thực, cần nêu rõ quy tắc này và thường báo thêm latency thành công riêng để không che timeout.
+- Baseline has 20 samples with latencies cycling through `100, 110, 120, 130, 140 ms`, each appearing four times. The nearest-rank p95 position is the 19th position (1-based), equal to `140 ms`; there are zero errors.
+- Incident has 18 small samples and two `600 ms` samples. The 19th position is `600 ms`; one sample is marked as an error, so error rate is `1/20 = 5%`.
+- The illustrative rule sets `p95 <= 200 ms` **and** `error rate <= 1%`. Baseline PASSes, incident FAILs.
+- The program computes latency percentiles over **all samples, including samples marked as error**. In real systems, state this rule explicitly and usually also report successful-request latency separately so timeouts are not masked.
 
-**Giới hạn quan trọng:** code này *không* sinh 100 RPS, không tạo concurrency thật, không đo thời gian xử lý, không mô phỏng JIT, GC hay network. Nó chỉ kiểm tra một tiêu chí trên tập dữ liệu biết trước. Khi chạy benchmark thực, phải thay `samples(...)` bằng dữ liệu được thu từ đúng cửa sổ đo, giữ cả request lỗi, kết hợp evidence JVM/dependency và lặp đủ số lần.
+**Important limitation:** this code does *not* generate 100 RPS, create real concurrency, measure processing time, or simulate JIT, GC, or network. It only checks criteria against a predetermined dataset. In real benchmarks, replace `samples(...)` with data collected from the exact measurement window, include failed requests, combine JVM/dependency evidence, and repeat enough times.
 
-## 8. Ví dụ đầy đủ: đi từ báo cáo timeout tới hợp đồng đo
+## 8. End-to-End Example: Going from a Timeout Report to a Measurement Contract
 
-Giả sử có báo cáo: “Sau khi tăng tải, `POST /checkout` timeout nhiều hơn.” Hãy thực hiện theo thứ tự sau, với các số bên dưới chỉ là **kịch bản minh họa**.
+Suppose there is a report: "After increasing load, `POST /checkout` times out more often." Follow this order, noting that the numbers below are **an illustrative scenario only**.
 
-### Bước 1: Định nghĩa triệu chứng
+### Step 1: Define the Symptom
 
-- API `POST /checkout` trả timeout khi tải tăng; cần xác minh tỷ lệ timeout, latency và giới hạn client deadline.
-- Ghi phiên bản, khu vực, instance và timestamp cụ thể. Gắn request ID để nối client, gateway, application và database trace.
-- Không tự kết luận “GC bị lỗi” hoặc “thiếu connection” ở bước này.
+- `POST /checkout` returns timeouts when load increases; need to verify timeout rate, latency, and client deadline limits.
+- Record specific version, region, instances, and timestamps. Attach request IDs to connect client, gateway, application, and database traces.
+- Do not jump to concluding "GC is broken" or "not enough connections" at this step.
 
-### Bước 2: Dựng tình huống tái hiện
+### Step 2: Build the Reproduction Scenario
 
-- Dùng bộ dữ liệu thử với kích thước đã ghi, không chứa thông tin khách hàng thật.
-- Ghi `JDK 17`, artifact image digest, `-Xmx` và cấu hình timeout/pool nếu có liên quan.
-- Với cùng trạng thái dữ liệu đầu, lần lượt thử 20, 60, 100 RPS, mỗi mức có warm-up và cửa sổ đo được ghi. Nếu đổi workload giữa các lần, ghi rõ sự khác biệt đó.
-- Đo RPS yêu cầu và hoàn tất, p95/p99, 5xx/timeout, connection pool wait, DB latency, GC pause và CPU. Ghi run ID cho từng mức.
+- Use a test dataset of recorded size containing no real customer data.
+- Record `JDK 17`, artifact image digest, `-Xmx`, and timeout/pool configuration if relevant.
+- Starting from the same initial data state, test 20, 60, and 100 RPS sequentially, each with a documented warm-up and measurement window. If workload changes between runs, document the difference explicitly.
+- Measure offered and completed RPS, p95/p99, 5xx/timeouts, connection pool wait, DB latency, GC pauses, and CPU. Record a run ID for each level.
 
-### Bước 3: Kiểm chứng giả thuyết
+### Step 3: Verify Hypotheses
 
-Giả sử ở mức 100 RPS, p95 tăng cùng pool wait và số connection đang dùng chạm giới hạn. Đó là **dấu hiệu ủng hộ** giả thuyết pool nghẽn, chưa phải bằng chứng duy nhất. Kiểm tra thêm query slow, transaction kéo dài, timeout phía DB và queueing; nếu điều chỉnh pool ở test environment, giữ các yếu tố còn lại tương đương và đo tác dụng lên database.
+Suppose at 100 RPS, p95 rises along with pool wait time and active connections hitting the limit. That is **supporting evidence** for the pool-exhaustion hypothesis, not the sole proof. Also check slow queries, long-running transactions, DB-side timeouts, and queuing; if adjusting pool size in the test environment, hold the remaining factors equivalent and measure the effect on the database.
 
-### Bước 4: Khép kết luận có căn cứ
+### Step 4: Close with an Evidence-Backed Conclusion
 
-Một kết luận tốt sẽ ghi:
+A good conclusion records:
 
 ```text
-Triệu chứng: tăng timeout ở POST /checkout khi tải >= [mức đo]
-Điều kiện: build/JDK/config/dataset/run ID cụ thể
-Bằng chứng: trace [ID], pool wait [metric], error rate [metric]
-Giả thuyết được xác nhận/bác bỏ: [kết luận và phép thử]
-Giới hạn: [yếu tố chưa đo hoặc khác biệt môi trường]
-Quyết định: [hướng sửa hoặc mitigation, chủ sở hữu]
-Cửa xác minh: [workload, số lần lặp, latency, lỗi, tài nguyên]
-Trạng thái: diagnosis / mitigation / fix verified, ghi rõ từng mốc
+Symptom: increased timeouts on POST /checkout when load >= [measured level]
+Conditions: specific build/JDK/config/dataset/run ID
+Evidence: trace [ID], pool wait [metric], error rate [metric]
+Hypotheses confirmed/refuted: [conclusion and test]
+Limitations: [unmeasured factors or environment differences]
+Decision: [fix or mitigation direction, owner]
+Verification gate: [workload, repetitions, latency, errors, resources]
+Status: diagnosis / mitigation / fix verified, each milestone stated clearly
 ```
 
-Không nên kết thúc bằng “đã thấy pool đầy nên tăng pool”. Tăng pool có thể che triệu chứng hoặc tạo quá tải cho DB. Mục tiêu là tìm cơ chế gây nghẽn rồi kiểm chứng biện pháp tương ứng.
+Do not conclude with "saw the pool was full so increased the pool". Increasing the pool can mask symptoms or overload the DB. The goal is to find the bottleneck mechanism and then verify the corresponding remedy.
 
-## 9. Các lỗi thường gặp khi xác định kịch bản và tiêu chí
+## 9. Common Mistakes When Defining Scenarios and Criteria
 
-**1. Không có oracle lỗi.** “Chạy xong thì xem có vẻ chậm không” không thể so sánh giữa các run. Định nghĩa mã lỗi, độ trễ, kết quả sai, deadline, hàng đợi hoặc trạng thái thread cụ thể.
+**1. No failure oracle.** "Run it and see if it looks slow" cannot be compared across runs. Define concrete error codes, latency bounds, incorrect outputs, deadlines, queues, or thread states.
 
-**2. Chỉ ghi tổng request.** 10.000 request rải trong 30 phút rất khác burst 10.000 request trong 10 giây. Ghi lịch phát, mix, concurrency, input, warm-up và thời lượng.
+**2. Recording only total requests.** 10,000 requests spread over 30 minutes is very different from a burst of 10,000 requests in 10 seconds. Record arrival schedule, mix, concurrency, input, warm-up, and duration.
 
-**3. Đổi nhiều biến cùng lúc.** Vừa tăng `-Xmx`, đổi query, tăng pool và giảm tải rồi thấy hết lỗi thì không biết yếu tố nào có tác dụng. Dùng các run có kiểm soát và ghi sự khác biệt.
+**3. Changing multiple variables at once.** Increasing `-Xmx`, changing a query, expanding the pool, and lowering load all at once until the error vanishes leaves you not knowing which factor worked. Use controlled runs and document differences.
 
-**4. So baseline khác điều kiện.** Bản khỏe được đo với cache nóng trên máy 8 CPU, bản lỗi dùng cache lạnh trên container 2 CPU; so p95 trực tiếp có thể đưa tới kết luận sai.
+**4. Comparing baselines under different conditions.** The healthy build was measured with a warm cache on an 8-CPU host, while the failing build ran with a cold cache on a 2-CPU container; comparing p95 directly can lead to false conclusions.
 
-**5. Chỉ xem request thành công.** Timeout tăng nhưng histogram chỉ chứa response 200 khiến p95 trông thấp. Báo cả error/timeout và chính sách tính latency.
+**5. Looking only at successful requests.** Timeouts rise, but a histogram containing only 200 responses makes p95 look low. Report both errors/timeouts and the latency inclusion policy.
 
-**6. Nhầm độ đồng thời với tốc độ đến.** Dùng số virtual user làm RPS mà không đo throughput thực tế; kết luận tải tương đương trong khi nó không tương đương.
+**6. Confusing concurrency with arrival rate.** Treating virtual user count as RPS without measuring actual throughput; concluding load is equivalent when it is not.
 
-**7. Thu một lần rồi khái quát.** Hiện tượng phụ thuộc JIT, GC, race, cache hoặc network có độ biến thiên. Lặp lại, ghi phân phối và mức tin cậy, đặc biệt với p99 hay lỗi hiếm.
+**7. Collecting once and generalizing.** Phenomena depending on JIT, GC, races, caches, or networks have variance. Repeat runs, record distributions and confidence levels, especially for p99 or rare errors.
 
-**8. Quên yếu tố gây nhiễu từ công cụ đo.** Profiler, verbose logging, heap dump và load generator đều có thể làm lệch thời gian hoặc tải; ghi cấu hình quan sát và chi phí của nó. Chạy test tải ở môi trường có kiểm soát và dừng khi vượt giới hạn an toàn.
+**8. Forgetting measurement-tool interference.** Profilers, verbose logging, heap dumps, and load generators can skew timing or load; document observation config and its overhead. Run load tests in controlled environments and stop when safety limits are exceeded.
 
-**9. Tuyên bố “đã sửa” vì không còn tái hiện một lần.** Một lần PASS ở workload thấp hơn không chứng minh hết lỗi. Chạy đúng kịch bản kích hoạt, đạt đủ số lần lặp và kiểm tra tác dụng phụ.
+**9. Declaring "fixed" because it failed to reproduce once.** A single PASS at a lower workload does not prove the bug is gone. Run the exact trigger scenario, complete enough repetitions, and check for side effects.
 
-**10. Không lưu bằng chứng.** Kết luận không đi kèm thời điểm, run ID, metric query và trace/log khó được kiểm toán hoặc tái điều tra.
+**10. Failing to save evidence.** Conclusions without timestamps, run IDs, metric queries, and traces/logs are difficult to audit or revisit.
 
-## 10. Mẫu bàn giao ngắn cho một cuộc điều tra
+## 10. Short Handoff Template for an Investigation
 
 ```text
 [SCENARIO]
@@ -407,13 +407,13 @@ Regression checks + monitoring window:
 Owner / decision / remaining risk:
 ```
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-1. Vì sao 100 virtual users không đồng nghĩa 100 request/giây? Hai mô hình phát tải open và closed khác nhau thế nào?
-2. Lỗi chỉ xảy ra trên production sau 30 phút hoạt động, không tái hiện khi khởi động lại local. Những yếu tố trạng thái và vòng đời nào cần bổ sung vào runbook?
-3. Hệ thống báo p95 = 200 ms nhưng 15% request timeout. Vì sao không thể kết luận “đạt mục tiêu latency” nếu không biết mẫu số và cách ghi nhận request lỗi?
-4. Bạn đã thay `-Xmx`, tăng DB pool và sửa query trong cùng một lượt; lỗi biến mất. Bạn còn thiếu điều gì để nói đã tìm thấy nguyên nhân?
-5. Tiêu chí nào cho phép đánh dấu **diagnosis complete** nhưng **chưa** đánh dấu **fix verified**? Trong trường hợp không tái hiện được, phải ghi giới hạn gì?
-6. Nếu một benchmark đặt mục tiêu 100 RPS nhưng server chỉ nhận/hoàn thành 50 RPS, điều gì phải kiểm tra trước khi công nhận kết quả PASS?
+1. Why does 100 virtual users not equal 100 requests/second? How do open and closed load models differ?
+2. An error occurs in production only after 30 minutes of uptime and does not reproduce on local restart. Which state and lifecycle factors need to be added to the runbook?
+3. A system reports p95 = 200 ms, yet 15% of requests time out. Why can you not conclude "latency target met" without knowing the denominator and how failed requests are recorded?
+4. You changed `-Xmx`, increased the DB pool, and modified a query in the same round; the error disappeared. What are you still missing before saying you found the root cause?
+5. What criteria allow marking **diagnosis complete** while **not yet** marking **fix verified**? In an unreproducible case, what limitations must be documented?
+6. If a benchmark targets 100 RPS, yet the server only receives/completes 50 RPS, what must be checked before accepting a PASS result?
 
-**Ghi nhớ:** Trước khi đo, hãy viết rõ **kịch bản và trạng thái tái hiện**, **mô hình tải đầu vào**, **điều kiện xác định lỗi**, **đối chứng tương đương** và **cổng hoàn thành có thể kiểm chứng**. Khi đó log, metrics, traces và dữ liệu JVM mới trở thành bằng chứng giúp ra quyết định, thay vì những ảnh chụp rời rạc.
+**Remember:** Before measuring, explicitly write down **the reproduction scenario and state**, **the input workload model**, **the failure oracle**, **an equivalent baseline**, and **verifiable exit criteria**. Only then do logs, metrics, traces, and JVM data become evidence for decision-making rather than disconnected snapshots.

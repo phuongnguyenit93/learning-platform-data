@@ -1,76 +1,76 @@
-# Mở rộng lúc chạy là gì và vì sao ứng dụng cần điểm mở rộng
+# What Is Runtime Extensibility and Why Do Applications Need Extension Points
 
-## 1. Mở rộng lúc chạy là gì?
+## 1. What Is Runtime Extensibility?
 
-**Mở rộng lúc chạy (runtime extensibility)** là khả năng một ứng dụng tiếp nhận, lựa chọn, nạp hoặc thay đổi thành phần cung cấp hành vi trong khi tiến trình đang hoạt động. Thành phần mở rộng thường tuân theo một hợp đồng (interface/API) đã được ứng dụng định nghĩa từ trước. Tùy kiến trúc, ứng dụng có thể phát hiện plugin mới, cấu hình lại chiến lược, đăng ký handler, hoặc kích hoạt/tắt tính năng mà không cần sửa mã nguồn của lõi ứng dụng.
+**Runtime extensibility** is the ability of an application to accept, select, load, or replace components that provide behavior while the process is running. Extension components typically adhere to a contract (interface/API) defined in advance by the application. Depending on the architecture, the application can discover new plugins, reconfigure strategies, register handlers, or enable/disable features without modifying the application core's source code.
 
-Cần phân biệt ba cấp độ:
+Three levels should be distinguished:
 
-- **Mở rộng ở thời điểm biên dịch:** viết thêm lớp triển khai interface rồi biên dịch và triển khai phiên bản ứng dụng mới. Thiết kế có điểm mở rộng nhưng việc bổ sung hành vi chưa diễn ra trong một tiến trình đang chạy.
-- **Mở rộng ở thời điểm khởi động:** ứng dụng chọn và nạp các triển khai dựa trên cấu hình, classpath hoặc module path. Không phải sửa lõi; muốn thấy plugin mới có thể vẫn phải khởi động lại.
-- **Mở rộng khi tiến trình đang chạy:** một thành phần có thể được phát hiện, nạp, đăng ký hoặc thay thế động. Đây là yêu cầu mạnh nhất, đòi hỏi quản lý vòng đời, cô lập, tương thích và tài nguyên.
+- **Compile-time extensibility:** writing an additional class implementing an interface, then compiling and deploying a new version of the application. The design has an extension point, but adding behavior does not yet happen inside a running process.
+- **Startup-time extensibility:** the application selects and loads implementations based on configuration, the classpath, or the module path. The core does not need to be modified; seeing a new plugin may still require a restart.
+- **Extensibility while the process is running:** a component can be dynamically discovered, loaded, registered, or replaced. This is the strongest requirement, demanding lifecycle, isolation, compatibility, and resource management.
 
-Ví dụ, một hệ thống xuất báo cáo có thể cung cấp định dạng CSV mặc định rồi bổ sung bộ xuất JSON thông qua plugin. Lõi hệ thống chỉ yêu cầu đối tượng thực hiện hợp đồng `ReportExporter`; loại định dạng cụ thể do registry và cơ chế phát hiện quyết định.
+For example, a reporting system might provide a default CSV format and then add a JSON exporter through a plugin. The system core only requires an object implementing the `ReportExporter` contract; the specific format type is determined by the registry and discovery mechanism.
 
-Mở rộng lúc chạy **không đồng nghĩa** với sửa bytecode hoặc tạo class mới bằng reflection. Reflection, `ServiceLoader`, class loader, `ModuleLayer` hay một registry đều có thể góp phần hiện thực, nhưng bản thân chúng không đảm bảo hot-reload hoặc khả năng thay đổi plugin an toàn.
+Runtime extensibility is **not synonymous** with modifying bytecode or creating new classes via reflection. Reflection, `ServiceLoader`, class loaders, `ModuleLayer`, or a registry can each contribute to the implementation, but by themselves they do not guarantee hot-reload or the ability to swap plugins safely.
 
-## 2. Vì sao ứng dụng cần điểm mở rộng?
+## 2. Why Do Applications Need Extension Points?
 
-**Điểm mở rộng (extension point)** là vị trí và hợp đồng được lõi ứng dụng chủ động công bố để thành phần khác cung cấp hành vi. Nó tách phần ổn định của quy trình khỏi phần có thể thay đổi.
+An **extension point** is a location and contract proactively published by the application core so that other components can provide behavior. It separates the stable part of a workflow from the part that can vary.
 
-Giả sử một dịch vụ phải hỗ trợ nhiều kiểu gửi thông báo. Khi không có điểm mở rộng, lõi phải kiểm tra từng loại:
+Suppose a service must support multiple notification delivery types. Without an extension point, the core must check each type:
 
 ```java
 if ("email".equals(channel)) {
-    // gửi email
+    // send email
 } else if ("sms".equals(channel)) {
-    // gửi SMS
+    // send SMS
 } else if ("push".equals(channel)) {
-    // gửi push
+    // send push
 }
 ```
 
-Mỗi kênh mới làm lõi phải sửa, kiểm thử và triển khai lại; luồng xử lý chính dễ bị gắn với chi tiết của từng nhà cung cấp. Một điểm mở rộng chuyển trách nhiệm đó sang các triển khai của hợp đồng `NotificationSender`.
+Every new channel forces the core to be modified, tested, and redeployed; the main processing flow easily becomes coupled to provider-specific details. An extension point shifts that responsibility to implementations of the `NotificationSender` contract.
 
-Các lợi ích chính:
+Key benefits:
 
-1. **Giảm phụ thuộc:** lõi phụ thuộc vào interface và các quy tắc chung, không phụ thuộc trực tiếp vào từng triển khai.
-2. **Cho phép tùy biến:** khách hàng, môi trường hoặc nhà tích hợp bổ sung hành vi theo nhu cầu riêng.
-3. **Giữ lõi ổn định:** thêm định dạng, quy tắc kiểm tra, connector hoặc chiến lược mới với ít thay đổi trong logic chung.
-4. **Hỗ trợ hệ sinh thái plugin:** nhiều nhóm có thể phát triển thành phần độc lập nếu hợp đồng đủ rõ và tương thích.
-5. **Cho phép chọn hành vi theo ngữ cảnh:** registry có thể tìm triển khai theo loại dữ liệu, tenant, phiên bản hoặc cấu hình.
-6. **Khoanh vùng kiểm thử và vận hành:** từng triển khai có thể được kiểm thử theo bộ contract test chung, đo hiệu năng và tắt khi lỗi.
+1. **Reduced coupling:** the core depends on the interface and shared rules, not directly on individual implementations.
+2. **Enables customization:** customers, environments, or integrators can add behavior according to their own needs.
+3. **Keeps the core stable:** add new formats, validation rules, connectors, or strategies with minimal changes to shared logic.
+4. **Supports a plugin ecosystem:** multiple teams can develop components independently if the contract is clear and compatible enough.
+5. **Enables context-based behavior selection:** the registry can look up implementations by data type, tenant, version, or configuration.
+6. **Isolates testing and operations:** individual implementations can be tested against a shared contract test suite, benchmarked, and disabled on failure.
 
-Không phải hệ thống nào cũng cần khả năng nạp nóng. Một interface với các triển khai được chọn lúc khởi động thường đơn giản, an toàn và đủ dùng. Chỉ chọn cơ chế nạp động khi yêu cầu nghiệp vụ thực sự cần thêm/thay đổi chức năng trong lúc tiến trình đang phục vụ.
+Not every system needs hot-loading capability. An interface with implementations selected at startup is often simpler, safer, and sufficient. Choose dynamic loading mechanisms only when business requirements genuinely call for adding/changing functionality while the process is serving requests.
 
-## 3. Một điểm mở rộng gồm những gì?
+## 3. What Does an Extension Point Consist Of?
 
-Một thiết kế thực tế thường có năm thành phần:
+A practical design typically has five components:
 
-| Thành phần | Trách nhiệm | Ví dụ |
+| Component | Responsibility | Example |
 |---|---|---|
-| **Hợp đồng** | Định nghĩa phương thức, kiểu dữ liệu, lỗi và ý nghĩa của hành vi | `ReportExporter.export(Report)` |
-| **Triển khai** | Cung cấp hành vi cụ thể theo hợp đồng | `CsvExporter`, `JsonExporter` |
-| **Cơ chế khám phá** | Tìm thành phần có thể sử dụng | `ServiceLoader`, cấu hình, quét metadata |
-| **Registry/dispatcher** | Đăng ký, tra cứu và lựa chọn triển khai | Map từ `format` đến exporter |
-| **Quản lý vòng đời** | Khởi tạo, kích hoạt, ngừng nhận việc và giải phóng tài nguyên | `start()`, `close()` |
+| **Contract** | Defines methods, data types, errors, and behavioral semantics | `ReportExporter.export(Report)` |
+| **Implementation** | Provides concrete behavior according to the contract | `CsvExporter`, `JsonExporter` |
+| **Discovery mechanism** | Finds usable components | `ServiceLoader`, configuration, metadata scanning |
+| **Registry/dispatcher** | Registers, looks up, and selects implementations | Map from `format` to exporter |
+| **Lifecycle management** | Initializes, activates, stops accepting work, and releases resources | `start()`, `close()` |
 
-Luồng điển hình:
+Typical flow:
 
 ```text
-Yêu cầu từ người dùng
+User request
         |
         v
-Lõi ứng dụng --> Registry --> Triển khai được chọn
-        |                           |
-        +<------ Kết quả -----------+
+Application core --> Registry --> Selected implementation
+        |                                   |
+        +<------------ Result --------------+
 ```
 
-Hợp đồng không chỉ là chữ ký phương thức. Nó nên nói rõ dữ liệu đầu vào hợp lệ, kết quả, mã lỗi hoặc exception, tính thread-safe, thời gian thực thi, quyền truy cập, quản lý tài nguyên và chính sách tương thích phiên bản. Nếu hai plugin cùng nhận một key, registry cũng cần quy tắc xử lý xung đột rõ ràng: từ chối, ưu tiên có chủ đích hoặc yêu cầu cấu hình chọn tường minh.
+A contract is not just method signatures. It should specify valid input data, outputs, error codes or exceptions, thread safety, execution time, access permissions, resource management, and version compatibility policy. If two plugins claim the same key, the registry also needs clear conflict-handling rules: reject, prioritize intentionally, or require explicit selection configuration.
 
-## 4. Ví dụ Java 17+: một điểm mở rộng đơn giản
+## 4. Java 17+ Example: A Simple Extension Point
 
-Ví dụ sau sử dụng interface, hai triển khai và một registry. Toàn bộ mã nằm trong **một tệp `ExtensionDemo.java`**, biên dịch và chạy được với Java 17+.
+The following example uses an interface, two implementations, and a registry. All code resides in **a single file `ExtensionDemo.java`**, which compiles and runs with Java 17+.
 
 ```java
 import java.util.HashMap;
@@ -121,29 +121,29 @@ public class ExtensionDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac ExtensionDemo.java
 java ExtensionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Xin chào, Lan
 Hello, Lan
 ```
 
-Ở đây `GreetingProvider` là hợp đồng, `VietnameseGreeting` và `EnglishGreeting` là triển khai, còn `GreetingRegistry` đóng vai trò đăng ký và lựa chọn. Muốn thêm ngôn ngữ mới, có thể tạo triển khai mới mà không sửa phương thức `greet` của registry. Tuy nhiên ví dụ vẫn đăng ký các triển khai tĩnh trong `main`; **nó minh họa điểm mở rộng, chưa phải nạp plugin từ tệp JAR khi đang chạy**.
+Here `GreetingProvider` is the contract, `VietnameseGreeting` and `EnglishGreeting` are implementations, and `GreetingRegistry` serves as registration and selection. To add a new language, a new implementation can be created without modifying the registry's `greet` method. However, the example still registers implementations statically in `main`; **it illustrates an extension point, not loading plugins from a JAR file at runtime**.
 
-Registry sử dụng `HashMap` nên chỉ phù hợp tình huống đăng ký trước khi nhiều luồng bắt đầu sử dụng. Nếu registry phải thay đổi đồng thời với các request, cần một thiết kế thread-safe, chẳng hạn `ConcurrentHashMap`, snapshot bất biến hoặc đồng bộ hóa có kiểm soát. Sự an toàn của registry không tự làm cho các provider bên trong thread-safe.
+Because the registry uses a `HashMap`, it is only suitable for scenarios where registration completes before multiple threads begin using it. If the registry must be modified concurrently with requests, a thread-safe design is required, such as `ConcurrentHashMap`, an immutable snapshot, or controlled synchronization. Thread safety of the registry does not automatically make the providers inside it thread-safe.
 
-## 5. Từ hợp đồng đến khám phá plugin
+## 5. From Contract to Plugin Discovery
 
-Java cung cấp `java.util.ServiceLoader` để tìm các provider được công bố theo cơ chế service-provider. Nó tách mã tiêu thụ dịch vụ khỏi danh sách lớp triển khai cụ thể.
+Java provides `java.util.ServiceLoader` to locate providers published through the service-provider mechanism. It decouples service-consuming code from the concrete list of implementation classes.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ```java
 ServiceLoader<GreetingProvider> loader = ServiceLoader.load(GreetingProvider.class);
@@ -152,76 +152,76 @@ for (GreetingProvider provider : loader) {
 }
 ```
 
-*Đoạn trên là phần tích hợp vào ứng dụng đã định nghĩa `GreetingProvider` và `registry`, không phải chương trình độc lập.*
+*The snippet above is an integration part for an application that has already defined `GreetingProvider` and `registry`, not a standalone program.*
 
-Với classpath thông thường, JAR cung cấp provider có thể đặt tệp `META-INF/services/<tên interface đầy đủ>`, mỗi dòng ghi tên đầy đủ của lớp triển khai. Với module Java được khai báo tường minh, module tiêu thụ dùng `uses`, module provider dùng `provides ... with ...`. Provider cần đáp ứng quy tắc khởi tạo tương ứng của cơ chế service.
+On a standard classpath, a JAR providing a provider can include the file `META-INF/services/<fully-qualified-interface-name>`, with each line listing the fully qualified name of an implementation class. For explicitly declared Java modules, the consuming module uses `uses`, and the provider module uses `provides ... with ...`. Providers must satisfy the corresponding instantiation rules of the service mechanism.
 
-`ServiceLoader.load(...)` dùng class loader phù hợp để phát hiện provider trong phạm vi nhìn thấy của nó; việc thêm JAR vào thư mục sau khi JVM đã khởi chạy **không tự khiến classpath của JVM cập nhật**. `reload()` làm mới cache provider của loader, nhưng không tự thêm class loader mới, không phát hiện JAR ngoài phạm vi class loader, không gỡ bỏ instance đang được ứng dụng giữ và không bảo đảm nạp nóng. Muốn hỗ trợ plugin JAR thực sự trong lúc chạy, cần thiết kế riêng cho class loader/layer, đường dẫn plugin, vòng đời và chuyển đổi request đang hoạt động.
+`ServiceLoader.load(...)` uses the appropriate class loader to discover providers within its visibility scope; adding a JAR to a directory after the JVM has started **does not automatically update the JVM's classpath**. `reload()` refreshes the loader's provider cache, but does not automatically add new class loaders, does not discover JARs outside the class loader's scope, does not remove instances already held by the application, and does not guarantee hot-loading. To support real JAR plugins at runtime, you need a dedicated design for class loaders/layers, plugin paths, lifecycle, and transitioning active requests.
 
-Các cơ chế mở rộng thường gặp khác gồm:
+Other common extensibility mechanisms include:
 
-- **Dependency injection:** cấu hình nhiều implementation và chọn bean theo qualifier/chiến lược. Thường quyết định tại thời điểm khởi động application context.
-- **Event/listener hooks:** mở rộng phản ứng trước sự kiện mà lõi phát ra. Cần làm rõ thứ tự, xử lý lỗi và chính sách giao dịch.
-- **Scripting hoặc rule engine:** thay đổi quy tắc qua dữ liệu/script. Cần giới hạn quyền truy cập và đánh giá tác động bảo mật.
-- **Plugin API + class loader riêng:** có thể nạp mã từ JAR được cung cấp sau khi triển khai. Phức tạp hơn về class identity, versioning, cô lập và đóng tài nguyên.
-- **Extension qua giao thức:** tiến trình bên ngoài triển khai HTTP/gRPC/event contract, giúp tách vòng đời và giảm yêu cầu nạp mã vào cùng JVM, đổi lại có chi phí mạng và vận hành.
+- **Dependency injection:** configuring multiple implementations and selecting beans by qualifier/strategy. Usually decided when the application context starts.
+- **Event/listener hooks:** extending reactions to events emitted by the core. Requires clarifying ordering, error handling, and transaction policies.
+- **Scripting or rule engine:** changing rules via data/scripts. Requires restricting access permissions and assessing security impact.
+- **Plugin API + dedicated class loader:** can load code from JARs supplied after deployment. More complex regarding class identity, versioning, isolation, and resource closing.
+- **Protocol-based extensions:** an external process implements an HTTP/gRPC/event contract, decoupling lifecycles and reducing the need to load code into the same JVM, at the cost of network and operational overhead.
 
-## 6. Khác biệt giữa mở rộng, cấu hình và cập nhật ứng dụng
+## 6. Differences Between Extensibility, Configuration, and Application Updates
 
-| Tình huống | Có phải điểm mở rộng? | Có cần nạp động? |
+| Scenario | Is it an extension point? | Is dynamic loading needed? |
 |---|---|---|
-| Đổi timeout qua tệp cấu hình | Không nhất thiết; thường chỉ đổi tham số | Không |
-| Thêm `PaymentProvider` rồi build lại ứng dụng | Có | Không |
-| Chọn provider đã có theo tenant khi request đến | Có | Không nhất thiết |
-| Nạp plugin JAR mới vào tiến trình đang phục vụ | Có | Có |
-| Thay hẳn code lõi và deploy phiên bản mới | Không phải mở rộng lúc chạy của tiến trình cũ | Không |
+| Changing a timeout via a config file | Not necessarily; usually just changing a parameter | No |
+| Adding a `PaymentProvider` and rebuilding the application | Yes | No |
+| Selecting an existing provider by tenant on incoming request | Yes | Not necessarily |
+| Loading a new plugin JAR into a running serving process | Yes | Yes |
+| Replacing core code outright and deploying a new version | Not runtime extensibility of the old process | No |
 
-**Open/Closed Principle** khuyến khích thành phần ổn định có thể được mở rộng mà không cần liên tục sửa logic cũ. Điểm mở rộng là một cách hiện thực nguyên tắc đó, nhưng cũng tạo ra hợp đồng mà ứng dụng phải duy trì. Đưa ra quá nhiều điểm mở rộng trước khi có nhu cầu thật khiến hệ thống phức tạp, khó debug và tốn chi phí tương thích.
+The **Open/Closed Principle** encourages stable components to be extensible without continuously modifying existing logic. An extension point is one way to implement that principle, but it also creates a contract that the application must maintain. Introducing too many extension points before real demand exists makes the system complex, harder to debug, and costly in terms of compatibility.
 
-## 7. Thiết kế điểm mở rộng an toàn và bền vững
+## 7. Designing Safe and Sustainable Extension Points
 
-### Hợp đồng và tương thích
+### Contracts and Compatibility
 
-- Chọn API nhỏ, tập trung vào một trách nhiệm. Dùng các kiểu dữ liệu rõ ràng, tránh lộ quá nhiều lớp nội bộ của lõi.
-- Định nghĩa quy tắc versioning. Việc thay đổi phương thức interface có thể phá vỡ khả năng biên dịch hoặc liên kết của plugin cũ; thêm default method cũng cần đánh giá hành vi.
-- Cung cấp test contract cho mọi triển khai; không chỉ test một provider mặc định.
-- Xử lý trường hợp không có provider, trùng key, provider không tương thích hoặc lỗi khởi tạo bằng thông báo cụ thể.
+- Keep the API small and focused on a single responsibility. Use clear data types and avoid exposing too many internal core classes.
+- Define versioning rules. Changing interface methods can break compilation or linking of older plugins; even adding a default method requires behavioral evaluation.
+- Provide contract tests for all implementations; do not test only a default provider.
+- Handle missing providers, duplicate keys, incompatible providers, or initialization errors with specific messages.
 
-### Bảo mật và độ tin cậy
+### Security and Reliability
 
-**Plugin Java chạy cùng JVM thường có quyền thực thi mã của tiến trình**. Class loader riêng là cơ chế phân vùng tên lớp và hỗ trợ vòng đời tải lớp, không phải ranh giới bảo mật đáng tin cậy cho mã không tin cậy. Không coi Java Security Manager là giải pháp sandbox cho hệ Java hiện đại.
+**Java plugins running in the same JVM generally have the code execution privileges of the process.** A dedicated class loader is a mechanism for partitioning class namespaces and supporting class-loading lifecycles, not a reliable security boundary for untrusted code. Do not treat the Java Security Manager as a sandbox solution for modern Java systems.
 
-Nếu plugin đến từ bên thứ ba, cần xác minh nguồn gốc và chữ ký/artifact, quản lý phiên bản dependency, giới hạn người có quyền cài đặt và theo dõi các thành phần đang bật. Với mã không tin cậy, ưu tiên tách sang tiến trình/container với quyền hệ điều hành và kết nối mạng bị giới hạn, kèm xác thực giao thức.
+If plugins come from third parties, verify provenance and signatures/artifacts, manage dependency versions, restrict who has permission to install them, and monitor enabled components. For untrusted code, prefer isolating into a separate process/container with restricted OS permissions and network access, along with protocol authentication.
 
-### Vòng đời và vận hành
+### Lifecycle and Operations
 
-Nạp và gỡ plugin cần trả lời các câu hỏi: request đang dùng plugin cũ sẽ hoàn thành thế nào; callback, thread, scheduler, socket và file handle được đóng ra sao; rollback ra phiên bản nào; plugin lỗi có làm sập lõi hay không?
+Loading and unloading plugins must answer these questions: how will in-flight requests using the old plugin finish; how are callbacks, threads, schedulers, sockets, and file handles closed; which version do we roll back to; can a failing plugin crash the core?
 
-Các lớp đã nạp thường chỉ có khả năng được thu hồi khi class loader của chúng và mọi đối tượng/class liên quan không còn được tham chiếu phù hợp. Không thể mặc nhiên giả định `close()` trên `URLClassLoader` sẽ lập tức dỡ toàn bộ lớp đã nạp; nó chủ yếu đóng tài nguyên liên quan đến loader. Registry và cơ chế khám phá cần ngừng tham chiếu plugin cũ, đồng thời có chiến lược xử lý công việc đang chạy.
+Loaded classes are generally eligible for reclamation only when their class loader and all associated objects/classes are no longer reachable by relevant references. You cannot assume by default that calling `close()` on `URLClassLoader` will immediately unload all loaded classes; it primarily closes resources associated with the loader. The registry and discovery mechanism must drop references to the old plugin while having a strategy for in-flight work.
 
-Bổ sung log/audit cho việc nạp, kích hoạt, từ chối, lỗi và gỡ plugin. Đo thời gian thực thi và tỷ lệ lỗi theo provider; định nghĩa timeout hoặc circuit breaker tại ranh giới gọi phù hợp. Đối với nghiệp vụ quan trọng, đặt chính sách fallback minh bạch, tránh âm thầm chọn plugin khác làm thay đổi ý nghĩa xử lý.
+Add logging/auditing for loading, activation, rejection, errors, and unloading of plugins. Measure execution time and error rates per provider; define timeouts or circuit breakers at appropriate call boundaries. For critical business logic, establish a transparent fallback policy rather than silently picking another plugin that alters processing semantics.
 
-## 8. Khi nào nên dùng và cách bắt đầu?
+## 8. When to Use It and How to Get Started
 
-Một điểm mở rộng phù hợp khi có ít nhất một trục biến thiên rõ ràng: định dạng xuất, bộ xử lý tài liệu, phương thức thanh toán, cổng thông báo, bước xử lý pipeline hoặc quy tắc xác thực. Nếu hệ thống chỉ có một hành vi cố định và chưa có kế hoạch tích hợp, viết mã trực tiếp có thể dễ bảo trì hơn.
+An extension point is appropriate when there is at least one clear axis of variation: export formats, document processors, payment methods, notification gateways, pipeline processing steps, or validation rules. If the system only has one fixed behavior and no integration plans, writing direct code may be easier to maintain.
 
-Lộ trình thực tế:
+Practical roadmap:
 
-1. **Xác định phần thay đổi:** ví dụ chỉ bộ chuyển đổi dữ liệu thay đổi, còn bước nhận request và lưu kết quả ổn định.
-2. **Định nghĩa hợp đồng nhỏ:** dữ liệu vào/ra, lỗi, thread-safety, quyền và lifecycle.
-3. **Viết hai triển khai:** chứng minh hợp đồng không bị bó chặt vào một trường hợp.
-4. **Đưa registry/dispatcher vào lõi:** chọn triển khai bằng key/cấu hình; có cách báo lỗi khi không có lựa chọn hợp lệ.
-5. **Thêm cơ chế khám phá khi cần:** bắt đầu bằng đăng ký tĩnh hoặc `ServiceLoader`; chỉ thêm class loader động khi yêu cầu nạp nóng thực sự tồn tại.
-6. **Kiểm thử và quan sát:** contract test, version compatibility, tải đồng thời, lỗi khởi tạo, rollback và giải phóng tài nguyên.
+1. **Identify what varies:** for example, only the data transformer changes, while receiving requests and persisting results remain stable.
+2. **Define a small contract:** input/output data, errors, thread safety, permissions, and lifecycle.
+3. **Write two implementations:** prove the contract is not tightly coupled to a single case.
+4. **Add a registry/dispatcher to the core:** select implementations by key/configuration; provide clear error reporting when no valid choice exists.
+5. **Add discovery mechanisms when needed:** start with static registration or `ServiceLoader`; only add dynamic class loaders when hot-loading requirements truly exist.
+6. **Test and observe:** contract tests, version compatibility, concurrent load, initialization failures, rollback, and resource cleanup.
 
-### Những lỗi thường gặp
+### Common Pitfalls
 
-- Gọi mọi interface là runtime extensibility dù các triển khai đều đóng cứng trong ứng dụng.
-- Nhầm `ServiceLoader.reload()` với việc JVM tự tìm mọi JAR mới trên đĩa.
-- Công bố interface quá phụ thuộc implementation nội bộ khiến plugin luôn phải cập nhật theo lõi.
-- Đăng ký hoặc thay provider trong `HashMap` khi các luồng khác đang truy cập mà không đồng bộ.
-- Tin rằng class loader riêng cô lập được mã độc trong cùng JVM.
-- Thiếu chính sách lỗi, timeout, rollback và đóng tài nguyên khi muốn hỗ trợ thay plugin nóng.
-- Để plugin quyết định thứ tự xử lý hoặc ghi đè provider khác mà không có quy tắc rõ ràng.
+- Calling every interface runtime extensibility even when all implementations are hardcoded in the application.
+- Confusing `ServiceLoader.reload()` with the JVM automatically discovering any new JAR on disk.
+- Publishing an interface overly dependent on internal implementation details, forcing plugins to constantly update alongside the core.
+- Registering or swapping providers in a `HashMap` while other threads are accessing it without synchronization.
+- Believing a dedicated class loader isolates malicious code within the same JVM.
+- Lacking error, timeout, rollback, and resource-closing policies when trying to support hot plugin replacement.
+- Letting plugins dictate processing order or override other providers without clear rules.
 
-**Ghi nhớ:** một điểm mở rộng tốt là **hợp đồng ổn định + cách tìm/chọn triển khai + quy tắc vận hành rõ ràng**. Khả năng mở rộng lúc chạy được xây trên nền tảng này, nhưng việc có thể nạp/gỡ plugin ngay trong tiến trình là yêu cầu riêng, cần cơ chế và kiểm thử chặt chẽ hơn.
+**Takeaway:** a good extension point is **a stable contract + a way to discover/select implementations + clear operational rules**. Runtime extensibility is built on this foundation, while being able to load/unload plugins inside a running process is a distinct requirement that demands stricter mechanisms and testing.

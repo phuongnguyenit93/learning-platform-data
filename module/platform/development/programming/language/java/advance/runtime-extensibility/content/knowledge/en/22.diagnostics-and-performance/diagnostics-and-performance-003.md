@@ -1,146 +1,146 @@
-# Nhận diện NoSuchMethodError, AbstractMethodError và UnsupportedClassVersionError
+# Identifying NoSuchMethodError, AbstractMethodError, and UnsupportedClassVersionError
 
-## 1. Vì sao ba lỗi này hay xuất hiện trong hệ plugin?
+## 1. Why Do These Three Errors Frequently Appear in Plugin Systems?
 
-Trong kiến trúc mở rộng lúc chạy, plugin thường được biên dịch và đóng gói riêng với ứng dụng host. Mã nguồn của plugin có thể hoàn toàn hợp lệ khi build, nhưng JVM thực tế lại nạp **một phiên bản class/API khác** hoặc chạy trên **JDK quá cũ**. Khi đó lỗi không nhất thiết xuất hiện lúc ứng dụng khởi động mà có thể chỉ nổ ở lần đầu gọi một phương thức hoặc định nghĩa một class.
+In a runtime-extensibility architecture, plugins are typically compiled and packaged separately from the host application. A plugin's source code may be completely valid at build time, yet at runtime the JVM loads **a different class/API version** or runs on **too old a JDK**. In such cases, the failure does not necessarily occur at application startup, and may only blow up the first time a method is invoked or a class is defined.
 
-Ba lỗi quan trọng:
+The three key errors:
 
-| Lỗi | Ý nghĩa chính | Nguyên nhân thường gặp |
+| Error | Core Meaning | Common Causes |
 |---|---|---|
-| \`NoSuchMethodError\` | Một lời gọi đã biên dịch tham chiếu method mà runtime không tìm thấy theo symbolic reference cần thiết | API/library runtime thiếu method đúng tên và descriptor |
-| \`AbstractMethodError\` | Runtime cố gọi một method cần triển khai cụ thể nhưng method đích vẫn abstract hoặc không có implementation phù hợp | Provider cũ không triển khai method của interface/API mới |
-| \`UnsupportedClassVersionError\` | JVM không đọc được class-file version được yêu cầu | Plugin build bằng Java mới hơn JVM đang chạy, hoặc class file có version không được hỗ trợ |
+| `NoSuchMethodError` | A compiled call references a method that the runtime cannot find by the required symbolic reference | Runtime API/library lacks a method with the exact name and descriptor |
+| `AbstractMethodError` | The runtime attempts to invoke a method needing a concrete implementation, but the target method remains abstract or lacks a matching implementation | An older provider does not implement a method from a newer interface/API |
+| `UnsupportedClassVersionError` | The JVM cannot read the requested class-file version | Plugin was built with a newer Java version than the running JVM, or the class file has an unsupported version |
 
-Cả ba thuộc nhóm \`LinkageError\` (trực tiếp hoặc qua \`IncompatibleClassChangeError\`), chứ không phải lỗi cú pháp Java thông thường. Cụ thể, \`NoSuchMethodError\` và \`AbstractMethodError\` đều kế thừa \`IncompatibleClassChangeError\`; \`UnsupportedClassVersionError\` kế thừa \`ClassFormatError\`.
+All three belong to the `LinkageError` family (directly or via `IncompatibleClassChangeError`), rather than ordinary Java syntax errors. Specifically, `NoSuchMethodError` and `AbstractMethodError` both extend `IncompatibleClassChangeError`; `UnsupportedClassVersionError` extends `ClassFormatError`.
 
-**Phân biệt với exception nghiệp vụ:** \`try/catch (Exception)\` không bắt được chúng vì \`LinkageError\` thuộc \`Error\`. Trong plugin host, nên phát hiện tương thích trước khi công bố plugin; tại ranh giới cách ly có thể log/cô lập sự cố linkage, nhưng không nên bắt mọi \`Error\` rồi tiếp tục như không có gì xảy ra.
+**Distinguishing from business exceptions:** `try/catch (Exception)` will not catch them because `LinkageError` extends `Error`. In a plugin host, compatibility should be detected before publishing a plugin; at an isolation boundary you can log/isolate a linkage incident, but you must not catch every `Error` and carry on as if nothing happened.
 
-## 2. Tầng biên dịch khác tầng liên kết/runtime
+## 2. Compilation Layer Differs from Linking/Runtime Layer
 
-\`\`\`text
+```text
 Plugin source + API v2  --javac--> plugin.jar
                                     |
                                     v
-                    Runtime host + API v1 / Java cũ
+                    Runtime host + API v1 / old Java
                                     |
                     class loading / verification / resolution
                                     |
                   invoke bytecode / resolve symbolic method
                                     |
                            LinkageError
-\`\`\`
+```
 
-Java compiler kiểm tra method dựa trên những class nằm ở **compile classpath/module path**. Khi chạy, JVM lại dựa vào **runtime classpath/module path và class loader graph**. Hai môi trường có thể khác nhau do:
+The Java compiler checks methods against the classes on the **compile classpath/module path**. At runtime, the JVM relies on the **runtime classpath/module path and class loader graph**. The two environments can diverge because:
 
-- Build dùng API mới, deployment đóng gói API cũ.
-- Plugin mang theo thư viện riêng gây trùng class hoặc khác loader.
-- Shading/fat JAR làm rơi hoặc ghi đè class.
-- Module layer của plugin đọc API từ parent layer không đúng bản mong đợi.
-- Hot reload giữ instance cũ nhưng công bố contract mới.
-- Build sử dụng \`--release\` hoặc bytecode target không phù hợp runtime.
+- The build used a newer API while deployment packaged an older API.
+- The plugin bundles its own library, causing duplicate classes or loader differences.
+- Shading/fat JARs dropped or overwrote classes.
+- The plugin's module layer reads an API from a parent layer that is not the expected version.
+- Hot reload retained an old instance while publishing a new contract.
+- The build used `--release` or a bytecode target incompatible with the runtime.
 
-Không nên kết luận “compiler bị lỗi” chỉ vì source compile thành công nhưng runtime gặp linkage error. Nguyên nhân thường nằm ở **môi trường kết hợp artifact**.
+Do not conclude "the compiler is broken" just because the source compiles cleanly while runtime hits a linkage error. The root cause usually lies in **how artifacts are combined at runtime**.
 
-## 3. NoSuchMethodError: phương thức không có ở runtime
+## 3. NoSuchMethodError: Method Absent at Runtime
 
-Ví dụ stack trace:
+Example stack trace:
 
-\`\`\`text
+```text
 java.lang.NoSuchMethodError:
   'java.lang.String com.example.api.GreetingService.greet(java.lang.String)'
     at com.example.plugin.GreetingPlugin.run(GreetingPlugin.java:12)
-\`\`\`
+```
 
-JVM đang cố giải quyết lời gọi tới một method có tên và **descriptor bytecode** cụ thể. Descriptor bao gồm kiểu tham số và kiểu trả về; thay đổi kiểu trả về cũng có thể tạo ra lỗi binary compatibility dù tên method và danh sách tham số ở source trông gần giống nhau.
+The JVM is attempting to resolve a call to a method with a specific name and **bytecode descriptor**. The descriptor includes parameter types and the return type; changing the return type alone can break binary compatibility even when the method name and parameter list look nearly identical in source.
 
-Các nguồn gây lỗi:
+Common causes:
 
-1. **Method mới chưa tồn tại ở runtime**: plugin được build theo API v2 có \`greet(String)\`, host cung cấp API v1 chưa có.
-2. **Đổi signature**: \`greet(String)\` thành \`greet(Object)\` hoặc đổi kiểu trả về mà không giữ binary bridge tương ứng.
-3. **Thay dependency phiên bản**: library trên runtime thiếu overload mà bytecode plugin đã gọi.
-4. **Nạp sai class**: cùng FQCN nhưng được lấy từ JAR/version khác theo class loader.
+1. **New method does not yet exist at runtime**: the plugin was built against API v2 containing `greet(String)`, while the host supplies API v1 without it.
+2. **Signature change**: `greet(String)` changed to `greet(Object)` or changed return type without preserving a corresponding binary bridge.
+3. **Dependency version shift**: the runtime library lacks an overload that the plugin bytecode called.
+4. **Wrong class loaded**: same FQCN, but loaded from a different JAR/version by a class loader.
 
-Không phải cứ lỗi \`NoSuchMethodError\` là “không hề có method cùng tên”. Hãy so sánh **tên, parameter types, return type và class thực sự được nạp**. Generic erasure, bridge methods, static/instance change và covariant return types cũng có thể ảnh hưởng đến binary method descriptor.
+`NoSuchMethodError` does not always mean "there is no method with that name at all". Compare **name, parameter types, return type, and the class actually loaded**. Generic erasure, bridge methods, static/instance changes, and covariant return types can also alter binary method descriptors.
 
-### Cách chẩn đoán
+### How to Diagnose
 
-- Đọc dòng đầu của stack trace: owner class, method name, parameter và return type JVM đang yêu cầu.
-- Tìm class có owner đó trong runtime artifact thực tế, không chỉ trong source repository.
-- Dùng \`javap -s -p\` để kiểm tra method descriptor:
+- Read the top line of the stack trace: owner class, method name, parameters, and return type requested by the JVM.
+- Locate the class with that owner in the actual runtime artifact, not merely in the source repository.
+- Use `javap -s -p` to inspect method descriptors:
 
-\`\`\`bash
+```bash
 javap -classpath runtime-api.jar -s -p com.example.api.GreetingService
-\`\`\`
+```
 
-- So sánh với artifact API dùng tại compile time.
-- Bật JVM class loading log khi cần:
+- Compare against the API artifact used at compile time.
+- Enable JVM class loading logs when needed:
 
-\`\`\`bash
+```bash
 java -Xlog:class+load=info -jar host.jar
-\`\`\`
+```
 
-- Kiểm tra dependency tree, classpath/module path, class loader, shaded JAR và phiên bản đã deploy.
+- Inspect the dependency tree, classpath/module path, class loaders, shaded JARs, and deployed versions.
 
-**Sửa đúng gốc:** chọn runtime API tương thích với bytecode plugin, hoặc build lại plugin theo API được host hỗ trợ. Chỉ đổi source rồi không rebuild/deploy đủ artifact sẽ không giải quyết mismatch.
+**Root fix:** align the runtime API so it is compatible with the plugin bytecode, or rebuild the plugin against the API supported by the host. Editing source without rebuilding and deploying the right artifacts will not resolve the mismatch.
 
-## 4. AbstractMethodError: có lời gọi nhưng không có triển khai hợp lệ
+## 4. AbstractMethodError: Call Issued Without a Valid Implementation
 
-Ví dụ tình huống:
+Example scenario:
 
 **API v1**:
 
-\`\`\`java
+```java
 public interface Processor {
     String process(String input);
 }
-\`\`\`
+```
 
-Plugin cũ triển khai \`process\`. Sau đó **API v2** bổ sung:
+An older plugin implements `process`. Later, **API v2** adds:
 
-\`\`\`java
+```java
 public interface Processor {
     String process(String input);
     String description();
 }
-\`\`\`
+```
 
-Một plugin đã được biên dịch với API v1 có thể vẫn được nạp trong môi trường API v2, nhưng nếu host gọi \`description()\` trên instance cũ, runtime có thể ném \`AbstractMethodError\`. Lớp implementation cũ không có bytecode cho method mới; Java không yêu cầu compiler của plugin chạy lại tại thời điểm host deploy.
+A plugin compiled against API v1 can still be loaded in an API v2 environment, but if the host calls `description()` on the old instance, the runtime can throw `AbstractMethodError`. The old implementation class has no bytecode for the new method; Java does not re-run the plugin's compiler when the host deploys.
 
-Thông điệp lỗi thường biểu thị class nhận cuộc gọi không định nghĩa hoặc kế thừa implementation phù hợp cho một method abstract mà JVM phải thực thi.
+The error message typically indicates that the receiver class neither defines nor inherits a suitable implementation for an abstract method the JVM must execute.
 
-Lưu ý:
+Notes:
 
-- Thêm abstract method vào interface có thể làm implementation cũ thất bại **khi method mới được gọi**.
-- Một \`default\` method đôi khi hỗ trợ tương thích ngược, nhưng phải kiểm tra conflict giữa các interface và semantics mới.
-- Thay đổi abstract/concrete method, hierarchy, bridge method hoặc biến đổi dependency có thể dẫn đến các lỗi linkage khác nhau.
-- Không tự suy ra rằng mọi thay đổi interface đều chắc chắn gây \`AbstractMethodError\`; còn phụ thuộc call site và bytecode.
+- Adding an abstract method to an interface can cause older implementations to fail **when the new method is called**.
+- A `default` method can sometimes preserve backward compatibility, though you must check for conflicts between interfaces and new semantics.
+- Changing abstract/concrete methods, hierarchies, bridge methods, or dependency versions can lead to various linkage errors.
+- Do not assume every interface change is guaranteed to throw `AbstractMethodError`; it depends on the call site and bytecode.
 
-### Cách chẩn đoán
+### How to Diagnose
 
-1. Xác định **receiver runtime class** và method bị gọi từ stack trace.
-2. Kiểm tra interface/superclass đang được JVM nạp tại runtime.
-3. Dùng \`javap -p -s\` với plugin JAR để xem implementation thực tế.
-4. So với API compile-time của plugin và API mà host dùng.
-5. Chạy contract test: tạo instance plugin và gọi tất cả method bắt buộc của service interface trước khi đưa plugin vào registry.
+1. Identify the **runtime receiver class** and the invoked method from the stack trace.
+2. Check which interface/superclass the JVM actually loaded at runtime.
+3. Run `javap -p -s` against the plugin JAR to inspect the actual implementation.
+4. Compare with the plugin's compile-time API and the API used by the host.
+5. Run contract tests: instantiate the plugin and invoke all required service interface methods before registering the plugin.
 
-**Sửa đúng gốc:** build lại plugin để triển khai đầy đủ contract mới; hoặc giữ backward-compatible API/adapter có thiết kế rõ. Host không nên chờ đến request thật mới thử gọi method bắt buộc mới.
+**Root fix:** rebuild the plugin to implement the full new contract, or maintain a backward-compatible API/adapter with explicit design. The host should not wait until a live request arrives to invoke a newly required method.
 
-## 5. UnsupportedClassVersionError: class file mới hơn JVM
+## 5. UnsupportedClassVersionError: Class File Newer Than the JVM
 
-Mỗi \`.class\` có class-file major/minor version. Java 17 dùng **major version 61**; Java 21 dùng **major version 65**. Một class build cho Java 21 thường không thể được JVM Java 17 định nghĩa.
+Every `.class` file has a class-file major/minor version. Java 17 uses **major version 61**; Java 21 uses **major version 65**. A class built for Java 21 generally cannot be defined by a Java 17 JVM.
 
-Ví dụ lỗi:
+Example error:
 
-\`\`\`text
+```text
 java.lang.UnsupportedClassVersionError:
   com/example/plugin/ReportPlugin has been compiled by a more recent
   version of the Java Runtime (class file version 65.0),
   this version of the Java Runtime only recognizes class file
   versions up to 61.0
-\`\`\`
+```
 
-Bảng tham khảo:
+Reference table:
 
 | Java release | Class-file major |
 |---|---:|
@@ -149,61 +149,61 @@ Bảng tham khảo:
 | Java 17 | 61 |
 | Java 21 | 65 |
 
-Không nên suy luận target bytecode chỉ từ JDK dùng để chạy lệnh \`javac\`: compiler hiện đại có thể tạo bytecode cho version cũ nếu dùng \`--release\`. Ngược lại, class có major được hỗ trợ vẫn có thể thất bại khi gọi API không tồn tại trên runtime; class-file compatibility và API compatibility là hai bài toán khác nhau.
+Do not infer the bytecode target solely from the JDK used to run `javac`: modern compilers can emit bytecode for older versions via `--release`. Conversely, a class with a supported major version can still fail when calling an API absent from the runtime; class-file compatibility and API compatibility are two separate problems.
 
-### Cách khắc phục
+### How to Fix
 
-- Kiểm tra \`java -version\` **trong đúng process/container đang chạy host**.
-- Kiểm tra \`javac -version\` và cấu hình build như Maven \`maven.compiler.release\` hoặc Gradle Java toolchain.
-- Kiểm tra bytecode artifact thật bằng \`javap -verbose\`:
+- Check `java -version` **inside the exact process/container running the host**.
+- Check `javac -version` and build configuration such as Maven's `maven.compiler.release` or Gradle's Java toolchain.
+- Inspect the actual artifact bytecode with `javap -verbose`:
 
-\`\`\`bash
+```bash
 javap -verbose -classpath plugin.jar com.example.plugin.ReportPlugin
-\`\`\`
+```
 
-Tìm \`major version: ...\`. Nếu Java runtime quá cũ, nâng JDK chạy hoặc rebuild plugin với \`--release\` phù hợp nếu source và dependencies cho phép.
+Look for `major version: ...`. If the Java runtime is too old, upgrade the runtime JDK or rebuild the plugin with an appropriate `--release` if source and dependencies allow.
 
-\`\`\`bash
+```bash
 javac --release 17 -d out src/com/example/plugin/ReportPlugin.java
-\`\`\`
+```
 
-Đoạn lệnh giả định đường dẫn source tồn tại. \`--release 17\` giới hạn ngôn ngữ và public Java API theo Java 17; nó không tự bảo đảm mọi thư viện bên thứ ba runtime tương thích hoặc source plugin hoạt động đúng trên mọi môi trường.
+This snippet assumes the source path exists. `--release 17` restricts the language level and public Java APIs to Java 17; it does not automatically guarantee that all third-party runtime libraries are compatible or that plugin code behaves identically in every environment.
 
-## 6. Demo Java 17+ tái hiện NoSuchMethodError bằng hai API JAR
+## 6. Java 17+ Demo Reproducing NoSuchMethodError with Two API JARs
 
-Ví dụ gồm API v1, API v2 và client được biên dịch với v2 nhưng chạy với v1.
+The example includes API v1, API v2, and a client compiled against v2 but executed against v1.
 
-Cấu trúc:
+Structure:
 
-\`\`\`text
+```text
 demo/
 ├── v1/api/Api.java
 ├── v2/api/Api.java
 └── client/Client.java
-\`\`\`
+```
 
-**\`v1/api/Api.java\`**:
+**`v1/api/Api.java`**:
 
-\`\`\`java
+```java
 package api;
 public class Api {
     public String hello() { return "v1"; }
 }
-\`\`\`
+```
 
-**\`v2/api/Api.java\`**:
+**`v2/api/Api.java`**:
 
-\`\`\`java
+```java
 package api;
 public class Api {
     public String hello() { return "v2"; }
     public String newMethod() { return "new"; }
 }
-\`\`\`
+```
 
-**\`client/Client.java\`**:
+**`client/Client.java`**:
 
-\`\`\`java
+```java
 import api.Api;
 
 public class Client {
@@ -211,81 +211,81 @@ public class Client {
         System.out.println(new Api().newMethod());
     }
 }
-\`\`\`
+```
 
-Từ thư mục \`demo\`, chạy (shell POSIX):
+From the `demo` directory, run (POSIX shell):
 
-\`\`\`bash
+```bash
 javac -d out/v1 v1/api/Api.java
 javac -d out/v2 v2/api/Api.java
 jar --create --file api-v1.jar -C out/v1 .
 jar --create --file api-v2.jar -C out/v2 .
 javac -cp api-v2.jar -d out/client client/Client.java
 java -cp out/client:api-v1.jar Client
-\`\`\`
+```
 
-Trên Windows, dùng \`;\` thay \`:\` làm dấu phân cách classpath.
+On Windows, use `;` instead of `:` as the classpath separator.
 
-Khi chạy với \`api-v1.jar\`, JVM nạp class \`api.Api\` không có \`newMethod()\`. Kết quả là \`NoSuchMethodError\`, với thông điệp có phần tương tự:
+When running with `api-v1.jar`, the JVM loads an `api.Api` class lacking `newMethod()`. The result is `NoSuchMethodError`, with a message similar to:
 
-\`\`\`text
+```text
 Exception in thread "main" java.lang.NoSuchMethodError:
   'java.lang.String api.Api.newMethod()'
     at Client.main(Client.java:5)
-\`\`\`
+```
 
-Kết quả chính xác về số dòng/format phụ thuộc compiler/JDK, nhưng loại lỗi và symbolic reference \`api.Api.newMethod():String\` là trọng tâm của bài.
+Exact line numbers/formatting depend on the compiler/JDK, but the error type and symbolic reference `api.Api.newMethod():String` are the core focus here.
 
-Nếu thay runtime JAR thành \`api-v2.jar\`:
+If you switch the runtime JAR to `api-v2.jar`:
 
-\`\`\`bash
+```bash
 java -cp out/client:api-v2.jar Client
-\`\`\`
+```
 
 Stdout:
 
-\`\`\`text
+```text
 new
-\`\`\`
+```
 
-Bài học: **client build được không đồng nghĩa API runtime tương ứng**.
+Lesson: **a client that compiles cleanly does not guarantee a matching runtime API**.
 
-## 7. Demo Java 17+ tái hiện AbstractMethodError
+## 7. Java 17+ Demo Reproducing AbstractMethodError
 
-Sử dụng cùng mô hình build riêng.
+Using the same separate-build setup.
 
-**\`v1/api/Action.java\`**:
+**`v1/api/Action.java`**:
 
-\`\`\`java
+```java
 package api;
 public interface Action {
     String execute();
 }
-\`\`\`
+```
 
-**\`v1/impl/OldAction.java\`**:
+**`v1/impl/OldAction.java`**:
 
-\`\`\`java
+```java
 package impl;
 import api.Action;
 public class OldAction implements Action {
     public String execute() { return "done"; }
 }
-\`\`\`
+```
 
-**\`v2/api/Action.java\`**:
+**`v2/api/Action.java`**:
 
-\`\`\`java
+```java
 package api;
 public interface Action {
     String execute();
     String description();
 }
-\`\`\`
+```
 
-**\`client/TestAction.java\`**:
+**`client/TestAction.java`**:
 
-\`\`\`java
+```java
 import api.Action;
 import impl.OldAction;
 
@@ -295,144 +295,144 @@ public class TestAction {
         System.out.println(action.description());
     }
 }
-\`\`\`
+```
 
-Trong một thư mục demo riêng với cấu trúc trên, chạy:
+In a dedicated demo directory with the structure above, run:
 
-\`\`\`bash
+```bash
 javac -d out/v1 v1/api/Action.java v1/impl/OldAction.java
 javac -d out/v2 v2/api/Action.java
 javac -cp out/v2:out/v1 -d out/client client/TestAction.java
 java -cp out/client:out/v2:out/v1 TestAction
-\`\`\`
+```
 
-Với Windows, thay \`:\` bằng \`;\`. Runtime sẽ nạp \`api.Action\` từ \`out/v2\` trước, nhưng instance \`OldAction\` được biên dịch trước đó theo v1. Khi gọi \`description()\`, JVM có thể ném:
+On Windows, replace `:` with `;`. The runtime loads `api.Action` from `out/v2` first, whereas the `OldAction` instance was compiled earlier against v1. When calling `description()`, the JVM can throw:
 
-\`\`\`text
+```text
 java.lang.AbstractMethodError: Receiver class impl.OldAction
 does not define or inherit an implementation ...
-\`\`\`
+```
 
-Phần message cụ thể phụ thuộc JDK. Cách sửa là triển khai \`description()\` và build lại \`OldAction\`, hoặc thiết kế hợp đồng API tương thích ngược như một default method có semantics phù hợp.
+Exact message wording depends on the JDK. The fix is to implement `description()` and rebuild `OldAction`, or design a backward-compatible API contract such as a default method with appropriate semantics.
 
-Lưu ý lệnh build \`TestAction\` dùng cả \`out/v2\` và \`out/v1\`; \`out/v2\` đứng trước để compiler thấy interface mới. Đây chỉ là thí nghiệm mô phỏng binary compatibility; dự án thực tế không nên phân phối hai bản API trùng tên trong cùng runtime search path.
+Note that the `TestAction` build command uses both `out/v2` and `out/v1`; `out/v2` comes first so the compiler sees the new interface. This is strictly an experiment simulating binary compatibility; real projects should never distribute two copies of the same API on the same runtime search path.
 
-## 8. Demo UnsupportedClassVersionError có điều kiện môi trường
+## 8. Environment-Dependent Demo for UnsupportedClassVersionError
 
-Để tái hiện chuẩn, cần **hai phiên bản JDK**: một JDK mới để biên dịch và một JVM cũ để chạy. Ví dụ với JDK 21 và JDK 17:
+To reproduce this accurately, **two JDK versions** are needed: a newer JDK to compile and an older JVM to run. For example, JDK 21 and JDK 17:
 
-\`\`\`java
+```java
 public class NewerClass {
     public static void main(String[] args) {
         System.out.println("hello");
     }
 }
-\`\`\`
+```
 
-Biên dịch bằng JDK 21:
+Compile with JDK 21:
 
-\`\`\`bash
+```bash
 /path/to/jdk21/bin/javac NewerClass.java
-\`\`\`
+```
 
-Chạy class này bằng JDK 17:
+Run this class with JDK 17:
 
-\`\`\`bash
+```bash
 /path/to/jdk17/bin/java NewerClass
-\`\`\`
+```
 
-Khi class được biên dịch mặc định cho Java 21, class file mang major 65; JVM 17 chỉ hỗ trợ tới major 61 và ném \`UnsupportedClassVersionError\`. Đường dẫn JDK ở trên là **ký hiệu minh họa**, không phải lệnh chạy nguyên xi trên mọi máy. Không thể tái hiện lỗi này chỉ bằng cách chạy một JDK 17 duy nhất nếu class đang được biên dịch với \`--release 17\` và không có bytecode version cao hơn.
+When compiled by default for Java 21, the class file carries major version 65; JVM 17 supports only up to major version 61 and throws `UnsupportedClassVersionError`. The JDK paths above are **illustrative placeholders**, not literal commands to copy verbatim on every machine. You cannot reproduce this error using only a single JDK 17 installation if the class is compiled with `--release 17` and no higher bytecode version exists.
 
-## 9. Quy trình chẩn đoán nhanh khi nhận stack trace
+## 9. Fast Diagnostic Workflow Upon Receiving a Stack Trace
 
-\`\`\`text
-LinkageError xảy ra
+```text
+LinkageError occurs
       |
       v
-Đọc tên lỗi chính xác
+Read exact error name
       |
       +-- UnsupportedClassVersionError
-      |       -> kiểm tra class major/JVM runtime
+      |       -> check class major/JVM runtime
       |
       +-- NoSuchMethodError
-      |       -> so method descriptor compile-time vs runtime
+      |       -> compare compile-time vs runtime method descriptor
       |
       +-- AbstractMethodError
-              -> tìm receiver class và method abstract còn thiếu
+              -> find receiver class and missing abstract method
       |
       v
-Xác định class/JAR/module/class loader thực tế
+Identify actual class/JAR/module/class loader
       |
       v
-Kiểm tra dependency tree, packaging và API policy
+Inspect dependency tree, packaging, and API policy
       |
       v
-Reproduce từ artifact đã deploy
+Reproduce from deployed artifact
       |
       v
-Sửa version/contract + test lại
-\`\`\`
+Fix version/contract + retest
+```
 
-Checklist tối thiểu:
+Minimum checklist:
 
-1. Ghi **toàn bộ stack trace**, JDK version và artifact version.
-2. Xác định method/class bị lỗi và class loader đã nạp class đó.
-3. So sánh compile-time dependency với runtime dependency thật.
-4. Dùng \`javap\` xem descriptor hoặc major version; không chỉ xem source.
-5. Với plugin, kiểm tra parent delegation, duplicate class và JPMS module graph.
-6. Xác minh bản fix trên **đúng artifact đóng gói cuối cùng**, không chỉ IDE.
-7. Bổ sung contract tests và kiểm tra API compatibility trước khi kích hoạt plugin.
+1. Record the **full stack trace**, JDK version, and artifact version.
+2. Identify the failing method/class and the class loader that loaded that class.
+3. Compare compile-time dependencies with actual runtime dependencies.
+4. Use `javap` to inspect descriptors or major versions; do not inspect source alone.
+5. For plugins, check parent delegation, duplicate classes, and the JPMS module graph.
+6. Verify the fix on the **exact final packaged artifact**, not just inside the IDE.
+7. Add contract tests and API compatibility checks before activating plugins.
 
-Một log chẩn đoán có ích nên bao gồm plugin ID, plugin version, host API version, JDK version, loader identity và nguồn class nếu có. Không ghi dữ liệu người dùng nhạy cảm chỉ để điều tra linkage.
+A useful diagnostic log should include plugin ID, plugin version, host API version, JDK version, loader identity, and class source if available. Do not log sensitive user data solely to investigate linkage issues.
 
-## 10. Phòng ngừa trong hệ plugin runtime
+## 10. Prevention in Runtime Plugin Systems
 
-**Định nghĩa API contract ổn định:** host cung cấp một shared API module/JAR, plugin build theo phiên bản đã công bố. Dùng \`provided\`/\`compileOnly\` khi thích hợp để plugin không đóng gói một bản copy của shared API gây sai class identity.
+**Define a stable API contract:** the host provides a shared API module/JAR, and plugins build against published versions. Use `provided`/`compileOnly` where appropriate so plugins do not bundle their own copy of the shared API and break class identity.
 
-**Kiểm tra phiên bản trước kích hoạt:** module version một mình không đủ. Plugin cần khai báo API requirement và minimum Java version; host phải áp dụng version-range policy, kiểm tra capability và binary compatibility.
+**Verify versions before activation:** a module version alone is insufficient. Plugins should declare API requirements and minimum Java version; the host should enforce version-range policies, capability checks, and binary compatibility.
 
-**Không dùng loader ngẫu nhiên:** xác định package nào được parent-first và package nào được isolate. Host API cần có defining loader thống nhất ở ranh giới giao tiếp.
+**Avoid arbitrary loaders:** define which packages are parent-first and which are isolated. The host API must have a single consistent defining loader across the communication boundary.
 
-**Thử provider trước publish:** chạy health checks và những method bắt buộc trong môi trường staging. Cẩn trọng vì một method chỉ được liên kết khi đường code đó chạy; smoke test không chứng minh mọi path đều an toàn.
+**Exercise providers before publishing:** run health checks and required methods in staging. Be careful because a method is only linked when that code path runs; a smoke test does not prove every path is safe.
 
-**Có lifecycle rollback:** nếu nâng cấp plugin gây linkage failure, dừng cấp request mới, rollback registry/snapshot theo policy và xử lý in-flight requests. Không tự động retry thao tác nghiệp vụ đã có side effect.
+**Provide lifecycle rollback:** if a plugin upgrade causes a linkage failure, stop routing new requests, roll back the registry/snapshot per policy, and drain/handle in-flight requests. Do not automatically retry business operations that already had side effects.
 
-**Quan sát theo build/deployment:** lưu dependency lock, build metadata, runtime API version và JDK release. Đối với plugin không tin cậy, nhớ rằng class loader/module layer không phải sandbox bảo mật.
+**Maintain build/deployment observability:** store dependency locks, build metadata, runtime API versions, and JDK releases. For untrusted plugins, remember that class loaders and module layers are not security sandboxes.
 
-## 11. Phân biệt với những lỗi họ hàng
+## 11. Distinguishing from Related Errors
 
-| Lỗi | Gợi ý khác biệt |
+| Error | Key Distinction |
 |---|---|
-| \`ClassNotFoundException\` | Loader không tìm thấy lớp khi lookup theo tên |
-| \`NoClassDefFoundError\` | JVM không thể định nghĩa/liên kết class cần thiết hoặc class trước đó khởi tạo thất bại |
-| \`ClassCastException\` | Object không thể ép sang expected type; có thể do duplicate class identity |
-| \`NoSuchMethodError\` | Symbolic method reference không được runtime giải quyết đúng |
-| \`AbstractMethodError\` | Không có concrete implementation phù hợp ở receiver |
-| \`IllegalAccessError\` | Truy cập class/method/field không còn hợp lệ theo visibility |
-| \`IncompatibleClassChangeError\` | Thay đổi quan hệ instance/static, inheritance hoặc binary contract |
-| \`UnsupportedClassVersionError\` | Runtime không hỗ trợ version class file |
+| `ClassNotFoundException` | Loader could not find the class during a name-based lookup |
+| `NoClassDefFoundError` | JVM could not define/link a required class or a class previously failed initialization |
+| `ClassCastException` | Object cannot be cast to the expected type; may be caused by duplicate class identity |
+| `NoSuchMethodError` | Symbolic method reference could not be resolved properly at runtime |
+| `AbstractMethodError` | No suitable concrete implementation exists on the receiver |
+| `IllegalAccessError` | Class/method/field access is no longer valid under visibility rules |
+| `IncompatibleClassChangeError` | Change in instance/static relationship, inheritance, or binary contract |
+| `UnsupportedClassVersionError` | Runtime does not support the class-file version |
 
-Không sửa tất cả bằng cách “thêm JAR vào classpath”. Việc thêm JAR có thể khiến class được nạp sai phiên bản và làm lỗi trầm trọng hơn.
+Do not try to fix everything by "adding the JAR to the classpath". Adding a JAR can cause classes to load from the wrong version and make the problem worse.
 
-## 12. Những lỗi thường gặp
+## 12. Common Mistakes
 
-- Nhầm \`NoSuchMethodError\` với \`NoSuchMethodException\`: loại thứ hai là checked exception của reflective API, khác việc JVM liên kết bytecode method call.
-- Nhầm \`AbstractMethodError\` với lỗi source do quên override: compiler có thể ngăn source mới, nhưng binary cũ vẫn có thể được nạp.
-- Cho rằng Java 17 compiler luôn tạo bytecode Java 17 dù dùng target/release khác.
-- Bỏ qua version JDK **thực sự** trong container hoặc service process.
-- Chỉ xem dependency tree build, không nhìn runtime classpath/shaded artifact.
-- Dùng module version như phép bảo đảm binary compatibility.
-- Hot-reload class loader nhưng để object cũ giao tiếp với API/class mới không tương thích.
-- Bắt \`Exception\` rồi kỳ vọng xử lý được mọi \`LinkageError\`.
-- Log “plugin failed” nhưng không lưu owner method, descriptor và class source.
-- Tin rằng chạy thành công một test đơn giản chứng minh toàn bộ code path tương thích.
+- Confusing `NoSuchMethodError` with `NoSuchMethodException`: the latter is a checked exception from reflective APIs, distinct from JVM bytecode method call linkage.
+- Confusing `AbstractMethodError` with a source error for forgetting an override: the compiler prevents this in fresh source, yet older binaries can still be loaded.
+- Assuming a Java 17 compiler always emits Java 17 bytecode regardless of target/release flags.
+- Ignoring the **actual** JDK version inside the container or service process.
+- Looking only at the build dependency tree without inspecting the runtime classpath or shaded artifact.
+- Treating a module version as a guarantee of binary compatibility.
+- Hot-reloading a class loader while leaving old objects communicating with incompatible new APIs/classes.
+- Catching `Exception` and expecting it to handle all `LinkageError`s.
+- Logging "plugin failed" without recording the owner method, descriptor, and class source.
+- Believing a single simple passing test proves every code path is compatible.
 
-## 13. Checklist ghi nhớ
+## 13. Quick-Reference Checklist
 
-Nếu gặp:
+When you encounter:
 
-- **\`NoSuchMethodError\`**: hỏi “bytecode đang yêu cầu **method descriptor nào**, và JAR/module runtime chứa đúng method đó không?”
-- **\`AbstractMethodError\`**: hỏi “instance cụ thể có **implementation của method** mà API runtime yêu cầu không?”
-- **\`UnsupportedClassVersionError\`**: hỏi “class-file major này có được **JVM đang chạy** hỗ trợ không?”
+- **`NoSuchMethodError`**: ask "which **method descriptor** is the bytecode requesting, and does the runtime JAR/module contain that exact method?"
+- **`AbstractMethodError`**: ask "does the concrete instance have an **implementation of the method** required by the runtime API?"
+- **`UnsupportedClassVersionError`**: ask "is this class-file major version supported by the **running JVM**?"
 
-**Kết luận:** trong hệ Java mở rộng lúc chạy, ba lỗi trên thường tiết lộ **lệch hợp đồng giữa build và runtime**. Muốn khắc phục triệt để phải so sánh bytecode thực, dependency và loader thực tế, áp dụng chính sách tương thích trước kích hoạt và kiểm thử trên artifact deployment cuối cùng.
+**Conclusion:** in runtime-extensible Java systems, these three errors typically expose a **contract mismatch between build and runtime**. Resolving them thoroughly requires comparing actual bytecode, dependencies, and loaders, enforcing compatibility policies prior to activation, and testing on the final deployment artifacts.

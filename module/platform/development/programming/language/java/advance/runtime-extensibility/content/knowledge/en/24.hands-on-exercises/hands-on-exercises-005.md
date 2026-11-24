@@ -1,36 +1,36 @@
-# Biên dịch quy tắc Java từ bộ nhớ rồi tích hợp qua cùng hợp đồng
+# Compiling Java Rules from Memory and Integrating Through the Same Contract
 
-Một ứng dụng nghiệp vụ có thể có hai nguồn quy tắc: **quy tắc đóng gói sẵn** trong mã của host/plugin và **quy tắc được tạo hoặc chỉnh sửa lúc hệ thống đang chạy**. Nếu mỗi nguồn sử dụng một kiểu gọi riêng, host sẽ phải duy trì hai đường thực thi, hai định dạng kết quả và hai cơ chế kiểm thử. Thiết kế tốt hơn là quy định **một hợp đồng Java ổn định**, biên dịch các quy tắc động thành class triển khai hợp đồng đó, sau đó đưa cả quy tắc viết sẵn lẫn quy tắc động vào cùng một registry.
+A business application may have two sources of rules: **pre-packaged rules** in host or plugin code and **rules created or edited while the system is running**. If each source uses a different invocation style, the host has to maintain two execution paths, two result formats, and two test mechanisms. A better design is to define **one stable Java contract**, compile dynamic rules into classes implementing that contract, and then place both built-in and dynamic rules into the same registry.
 
-Java 17 cung cấp API **javax.tools.JavaCompiler** (JSR 199) để biên dịch mã nguồn được biểu diễn bằng JavaFileObject. Bằng cách kết hợp **SimpleJavaFileObject**, **ForwardingJavaFileManager** và một **ClassLoader riêng**, ta có thể đưa source code vào compiler từ một String, nhận bytecode .class ở dạng byte[] mà không lưu source hoặc class động thành tệp, rồi nạp implementation qua interface dùng chung.
+Java 17 provides the **javax.tools.JavaCompiler** API (JSR 199) to compile source code represented by JavaFileObject. By combining **SimpleJavaFileObject**, **ForwardingJavaFileManager**, and a **custom ClassLoader**, we can feed source code from a String into the compiler, capture `.class` bytecode as `byte[]` without saving dynamic sources or classes to files, and load implementations via the shared interface.
 
-Bài thực hành này đi từ hợp đồng Rule → source trong bộ nhớ → bytecode trong bộ nhớ → class loader → instance Rule → cùng pipeline đánh giá. Phần cuối xử lý lỗi, ranh giới bảo mật, giới hạn tài nguyên, versioning và các điều kiện để biến nguyên mẫu thành một hệ thống có thể vận hành.
+This exercise walks from the Rule contract → in-memory source → in-memory bytecode → class loader → Rule instance → unified evaluation pipeline. The final sections cover error handling, security boundaries, resource limits, versioning, and what it takes to turn this prototype into a production-ready system.
 
-## 1. Kết quả cần đạt
+## 1. Learning Outcomes
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Định nghĩa một **SPI/hợp đồng Rule** rõ ràng, không phụ thuộc vào nguồn gốc của implementation.
-2. Tạo JavaFileObject cho source dạng String và truyền vào **JavaCompiler.getTask(...)**.
-3. Nhận **tất cả class output** qua JavaFileManager và lưu trong Map<String, byte[]>.
-4. Dùng loader con để nạp bytecode nhưng **ủy quyền interface Rule và DTO Request cho loader của host**.
-5. Kiểm tra một class mới có triển khai đúng Rule và khởi tạo qua constructor công khai.
-6. Đưa quy tắc biên dịch động vào cùng danh sách/registry với quy tắc Java viết sẵn.
-7. Phân biệt **compile failure**, **class loading/linkage failure**, **instantiation failure** và **business execution failure**.
-8. Biết vì sao **khả năng biên dịch Java động không đồng nghĩa an toàn để chạy mã không tin cậy**.
+1. Define a clear **Rule SPI/contract** independent of where implementations originate.
+2. Create a JavaFileObject for String-based source and pass it to **JavaCompiler.getTask(...)**.
+3. Capture **all class outputs** via JavaFileManager and store them in `Map<String, byte[]>`.
+4. Use a child loader to load bytecode while **delegating the Rule interface and Request DTO to the host's loader**.
+5. Verify that a newly compiled class implements Rule properly and instantiate it via a public constructor.
+6. Place dynamically compiled rules into the same list/registry alongside pre-compiled Java rules.
+7. Distinguish **compile failure**, **class loading/linkage failure**, **instantiation failure**, and **business execution failure**.
+8. Understand why **the ability to dynamically compile Java does not mean it is safe to run untrusted code**.
 
-Cả mã host và plugin mẫu sử dụng **Java 17+**, không cần Maven/Gradle hay thư viện bên ngoài. Thí nghiệm chạy trên **classpath**, không dùng module-info.java; khi chuyển sang JPMS phải xét thêm module graph và readability.
+Both host and sample plugin code use **Java 17+**, requiring no Maven/Gradle or external libraries. The experiment runs on the **classpath** without module-info.java; migrating to JPMS requires additionally considering module graphs and readability.
 
-## 2. Kiến trúc tổng thể
+## 2. Overall Architecture
 
 ~~~text
-                     HỢP ĐỒNG CHUNG (API)
+                     SHARED CONTRACT (API)
                  demo.api.Rule + demo.api.Request
                               |
                     +---------+---------+
                     |                   |
-             Quy tắc viết sẵn     Source Java từ String
-             SmallAmountRule               |
+              Built-in rule       Java source from String
+              SmallAmountRule               |
                     |                       v
                     |              SimpleJavaFileObject
                     |                       |
@@ -65,16 +65,16 @@ Cả mã host và plugin mẫu sử dụng **Java 17+**, không cần Maven/Grad
                          boolean decision
 ~~~
 
-Điều đáng chú ý là **hai implementation khác nhau đi vào cùng một danh sách List<Rule>**. Logic quyết định gọi rule.matches(request) chỉ biết interface Rule. Nó không phải hỏi "rule này đến từ file .class, JAR hay String compile lúc runtime?" và không phải thực thi thêm một kênh eval riêng.
+Notably, **two different implementations enter the exact same List<Rule>**. The decision logic calling `rule.matches(request)` knows only the Rule interface. It never has to ask "did this rule come from a .class file, a JAR, or a runtime-compiled String?" and never runs a separate eval channel.
 
-JavaCompiler chỉ sinh bytecode. Nó **không tự động chạy** class, không đăng ký class vào ServiceLoader và không quản lý lifecycle của plugin. Các bước nạp, xác minh contract, khởi tạo, đăng ký và gọi đều do host quyết định.
+JavaCompiler only produces bytecode. It **does not automatically execute** classes, register classes with ServiceLoader, or manage plugin lifecycles. Loading, contract verification, instantiation, registration, and invocation are all controlled by the host.
 
-## 3. Thiết kế hợp đồng trước khi viết compiler
+## 3. Designing the Contract Before Writing the Compiler
 
-Hợp đồng thử nghiệm gồm hai type ổn định:
+The experimental contract consists of two stable types:
 
-- **Request**: record bất biến mang dữ liệu tối thiểu mà mỗi rule được phép quan sát: category và amount.
-- **Rule**: interface có id() để quản lý và matches(Request) trả quyết định boolean.
+- **Request**: an immutable record carrying the minimal data each rule may observe: category and amount.
+- **Rule**: an interface with id() for management and matches(Request) returning a boolean decision.
 
 ~~~java
 package demo.api;
@@ -91,17 +91,17 @@ package demo.api;
 public record Request(String category, int amount) {}
 ~~~
 
-Hai đoạn code trên lần lượt là hai file Rule.java và Request.java; không đặt hai public top-level type trong cùng một file. Trong một hệ thống thực, Request thường là DTO được thiết kế kỹ hơn, có validation/nullability, các giá trị enum/domain được phép và phiên bản schema.
+These two snippets belong in Rule.java and Request.java respectively; do not place two public top-level types in the same file. In a real system, Request is usually a richer DTO with validation/nullability, allowed enum/domain values, and schema versioning.
 
-**Vì sao phải giữ đúng một bản API?** Ở JVM, danh tính của class không chỉ dựa trên tên package + tên class mà còn dựa trên **defining ClassLoader**. Hai bản demo.api.Rule do hai loader khác nhau định nghĩa **không phải một type**, cho dù bytecode có tên giống nhau. Lúc đó kiểm tra Rule.class.isAssignableFrom(generatedClass) hoặc ép kiểu sang Rule có thể thất bại.
+**Why must we keep exactly one copy of the API?** In the JVM, class identity depends not only on package + class name, but also on the **defining ClassLoader**. Two copies of demo.api.Rule defined by two different loaders **are not the same type**, even if their bytecode and names match. When that happens, `Rule.class.isAssignableFrom(generatedClass)` or casting to Rule can fail.
 
-Quy tắc ở đây là: **host tạo và sở hữu Rule/Request; class loader của rule động sử dụng host loader làm parent; không tự compile thêm bản Rule.java bên trong tác vụ động**.
+The rule here is: **the host creates and owns Rule/Request; the dynamic rule's class loader uses the host loader as its parent; never compile another copy of Rule.java inside the dynamic task**.
 
-Một hợp đồng tốt còn xác định rõ matches(...) có được phép side effect không, lỗi nào được ném, thời gian thực thi tối đa, thread-safety, lifecycle của Rule instance và cách lựa chọn nhiều rule. Demo dùng boolean để giữ kết quả tất định; production có thể dùng Decision(status, reason, evidence) nhưng nên giữ DTO thuộc API chung.
+A solid contract also specifies whether `matches(...)` may have side effects, which exceptions may be thrown, maximum execution time, thread-safety, Rule instance lifecycle, and how multiple rules are combined. The demo uses boolean for deterministic output; production systems may use `Decision(status, reason, evidence)` while keeping that DTO in the shared API.
 
-## 4. Cấu trúc project thực hành
+## 4. Hands-On Project Structure
 
-Từ thư mục **rule-lab/**:
+From the **rule-lab/** directory:
 
 ~~~text
 rule-lab/
@@ -114,14 +114,14 @@ rule-lab/
 │   └── host/demo/host/
 │       └── DynamicRulesDemo.java
 └── build/
-    └── classes/                  (được tạo khi build)
+    └── classes/                  (generated during build)
 ~~~
 
-Không cần tạo tệp .java cho quy tắc động: mã của nó sẽ là **Java text block** bên trong host. Sau khi chạy, không có file .class nào của demo.dynamic.TravelRule trong build/classes: nó đi qua bộ nhớ.
+No .java file is needed for the dynamic rule: its source is a **Java text block** inside the host. After running, no .class file for demo.dynamic.TravelRule appears in build/classes: it stays in memory.
 
-### 4.1. API chung: Rule.java
+### 4.1. Shared API: Rule.java
 
-Tạo **src/api/demo/api/Rule.java**:
+Create **src/api/demo/api/Rule.java**:
 
 ~~~java
 package demo.api;
@@ -132,9 +132,9 @@ public interface Rule {
 }
 ~~~
 
-### 4.2. DTO chung: Request.java
+### 4.2. Shared DTO: Request.java
 
-Tạo **src/api/demo/api/Request.java**:
+Create **src/api/demo/api/Request.java**:
 
 ~~~java
 package demo.api;
@@ -142,11 +142,11 @@ package demo.api;
 public record Request(String category, int amount) {}
 ~~~
 
-Record có sẵn từ Java 16. Trong bài này, amount là số nguyên đơn vị quy ước cho lab; sản phẩm tài chính nên dùng đơn vị tiền rõ ràng và kiểu dữ liệu phù hợp (ví dụ BigDecimal hoặc minor units).
+Records have been available since Java 16. In this exercise, amount is an integer in conventional lab units; financial products should use explicit currency units and appropriate types (such as BigDecimal or minor units).
 
-### 4.3. Quy tắc viết sẵn: SmallAmountRule.java
+### 4.3. Built-in rule: SmallAmountRule.java
 
-Tạo **src/builtin/demo/builtin/SmallAmountRule.java**:
+Create **src/builtin/demo/builtin/SmallAmountRule.java**:
 
 ~~~java
 package demo.builtin;
@@ -167,11 +167,11 @@ public final class SmallAmountRule implements Rule {
 }
 ~~~
 
-Đây là implementation Java bình thường, được javac biên dịch trước khi host chạy. Nó không biết JavaCompiler API và không cần ClassLoader tùy chỉnh.
+This is a regular Java implementation compiled by javac before the host runs. It knows nothing about the JavaCompiler API and needs no custom ClassLoader.
 
-### 4.4. Host biên dịch và nạp rule trong bộ nhớ
+### 4.4. Host compiling and loading rules in memory
 
-Tạo **src/host/demo/host/DynamicRulesDemo.java**:
+Create **src/host/demo/host/DynamicRulesDemo.java**:
 
 ~~~java
 package demo.host;
@@ -204,7 +204,7 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 public final class DynamicRulesDemo {
-    // 1. JavaFileObject chứa source nằm trong một String.
+    // 1. JavaFileObject holding source inside a String.
     private static final class SourceText extends SimpleJavaFileObject {
         private final String source;
 
@@ -222,7 +222,7 @@ public final class DynamicRulesDemo {
         }
     }
 
-    // 2. JavaFileObject nhận .class bytes qua OutputStream.
+    // 2. JavaFileObject receiving .class bytes via OutputStream.
     private static final class ClassBytes extends SimpleJavaFileObject {
         private final ByteArrayOutputStream data = new ByteArrayOutputStream();
 
@@ -243,7 +243,7 @@ public final class DynamicRulesDemo {
         }
     }
 
-    // 3. Redirect mọi class output vào Map thay vì đĩa.
+    // 3. Redirect all class outputs to a Map instead of disk.
     private static final class MemoryFileManager
             extends ForwardingJavaFileManager<StandardJavaFileManager> {
         private final Map<String, ClassBytes> compiled = new LinkedHashMap<>();
@@ -276,7 +276,7 @@ public final class DynamicRulesDemo {
         }
     }
 
-    // 4. Nạp class động; Rule/Request vẫn do loader cha định nghĩa.
+    // 4. Load dynamic classes; Rule/Request remain defined by the parent loader.
     private static final class MemoryClassLoader extends ClassLoader {
         private final Map<String, byte[]> bytecodes;
 
@@ -296,7 +296,7 @@ public final class DynamicRulesDemo {
         }
     }
 
-    // Giữ loader cùng instance để quản lý vòng đời rule động.
+    // Keep loader alongside instance to manage dynamic rule lifecycle.
     private record LoadedRule(Rule rule, ClassLoader loader) {}
 
     private static LoadedRule compileAndCreate(
@@ -315,8 +315,8 @@ public final class DynamicRulesDemo {
                 new DiagnosticCollector<>();
         Map<String, byte[]> compiledBytes;
 
-        // Standard manager dùng để ĐỌC classpath của host.
-        // Wrapper của ta thay đường GHI class output thành bộ nhớ.
+        // Standard manager is used to READ the host classpath.
+        // Our wrapper redirects WRITING class outputs into memory.
         try (StandardJavaFileManager standard =
                 compiler.getStandardFileManager(
                         diagnostics, Locale.ROOT, StandardCharsets.UTF_8)) {
@@ -361,8 +361,8 @@ public final class DynamicRulesDemo {
     public static void main(String[] args) throws Exception {
         String binaryName = "demo.dynamic.TravelRule";
 
-        // 5. Đây là TOÀN BỘ source của implementation động.
-        // Không có file TravelRule.java trên đĩa.
+        // 5. This is the ENTIRE source of the dynamic implementation.
+        // There is no TravelRule.java file on disk.
         String javaSource = """
                 package demo.dynamic;
 
@@ -388,7 +388,7 @@ public final class DynamicRulesDemo {
         LoadedRule dynamic = compileAndCreate(binaryName, javaSource);
         Rule builtin = new SmallAmountRule();
 
-        // 6. Cả hai được gọi thông qua CÙNG interface Rule.
+        // 6. Both are invoked through the SAME Rule interface.
         List<Rule> registry = List.of(builtin, dynamic.rule());
 
         System.out.println("contract="
@@ -411,23 +411,23 @@ public final class DynamicRulesDemo {
 }
 ~~~
 
-**Rà soát vai trò từng thành phần:**
+**Reviewing each component's role:**
 
-- SourceText là JavaFileObject có Kind.SOURCE. Hàm getCharContent trả về String đã có trong RAM. URI dạng string:///... chỉ là tên file logic cho compiler, không có nghĩa file được tạo trên đĩa.
-- ClassBytes nhận bytecode qua ByteArrayOutputStream. Compiler có thể tạo **nhiều** .class từ một source (nested class, anonymous class...), nên file manager lưu Map theo **binaryName**, không chỉ một byte[] duy nhất.
-- MemoryFileManager bọc StandardJavaFileManager: standard vẫn đọc class/module từ môi trường compile; output .class qua getJavaFileForOutput được redirect vào memory. Trong demo, không có annotation processor do -proc:none.
-- MemoryClassLoader dùng parent delegation mặc định. Nó tìm class động trong bytecode map khi parent chưa tìm thấy. Parent được chọn là **Rule.class.getClassLoader()**, nhờ đó demo.api.Rule và demo.api.Request có cùng danh tính với host.
-- Class.forName(binaryName, true, loader) không chỉ nạp class mà còn **khởi tạo class** nếu cần; static initializer của rule có thể có side effect. Demo chỉ chạy mã **được tin cậy**, không phải môi trường nhận Java tùy ý của người lạ.
-- asSubclass(Rule.class) xác minh class động thực sự triển khai hợp đồng chung. Đây không phải một phép đổi kiểu lỏng lẻo bằng tên class.
-- getDeclaredConstructor().newInstance() yêu cầu constructor không tham số có thể truy cập theo quyền thông thường; mã nguồn demo khai báo public constructor.
-- LoadedRule giữ cả instance và loader để host quản lý lifecycle. Không có ClassLoader.close() chung bảo đảm unload class; cần kết thúc work và giải phóng reference khi thay thế rule version.
-- List<Rule> registry không phân biệt rule viết sẵn và rule động; cả hai được gọi qua matches(Request).
+- SourceText is a JavaFileObject with Kind.SOURCE. getCharContent returns the String already in RAM. A URI like `string:///...` is merely a logical file name for the compiler; it does not mean a file is created on disk.
+- ClassBytes receives bytecode via ByteArrayOutputStream. The compiler can emit **multiple** `.class` files from one source (nested classes, anonymous classes, etc.), so the file manager stores a Map keyed by **binaryName**, not a single `byte[]`.
+- MemoryFileManager wraps StandardJavaFileManager: standard still reads classes/modules from the compile environment; `.class` output via getJavaFileForOutput is redirected to memory. In the demo, annotation processors are disabled via `-proc:none`.
+- MemoryClassLoader uses default parent delegation. It looks up dynamic classes in the bytecode map when the parent does not find them. The chosen parent is **Rule.class.getClassLoader()**, ensuring demo.api.Rule and demo.api.Request share the same identity as the host.
+- `Class.forName(binaryName, true, loader)` not only loads the class but also **initializes the class** if needed; a rule's static initializer may have side effects. The demo only runs **trusted** code, not arbitrary Java submitted by strangers.
+- `asSubclass(Rule.class)` verifies that the dynamic class actually implements the shared contract. This is not a loose type conversion by class name.
+- `getDeclaredConstructor().newInstance()` requires an accessible no-arg constructor under standard access rules; the demo source declares a public constructor.
+- LoadedRule holds both the instance and its loader so the host can manage lifecycle. There is no universal `ClassLoader.close()` that guarantees immediate class unloading; finish in-flight work and drop references when replacing rule versions.
+- `List<Rule> registry` makes no distinction between built-in and dynamic rules; both are invoked via `matches(Request)`.
 
-**Ranh giới của mẫu:** Đây là mô hình classpath với source và bytecode động trong bộ nhớ. Standard manager vẫn đọc classpath của host từ các class/JAR đã build trên đĩa. Không có ý nghĩa "toàn bộ hoạt động javac không sử dụng filesystem", và mã trên chưa triển khai sandbox, quota tổng output, cache hoặc giới hạn CPU cứng.
+**Pattern boundaries:** This is a classpath model with in-memory dynamic source and bytecode. The standard manager still reads the host classpath from compiled classes/JARs on disk. It does not mean "all javac activity avoids the filesystem", and the code above does not yet implement sandboxing, total output quotas, caching, or hard CPU limits.
 
-## 5. Biên dịch và chạy bài thực hành
+## 5. Compiling and Running the Exercise
 
-Từ thư mục **rule-lab/**, chạy JDK 17+ trong bash:
+From **rule-lab/**, run with JDK 17+ in bash:
 
 ~~~bash
 mkdir -p build/classes
@@ -441,7 +441,7 @@ javac --release 17 -encoding UTF-8 -d build/classes \
 java -cp build/classes demo.host.DynamicRulesDemo
 ~~~
 
-**Stdout kỳ vọng chính xác** khi có JDK compiler và mã giống nguyên bản:
+**Exact expected stdout** when a JDK compiler is available and the code is unmodified:
 
 ~~~text
 contract=true
@@ -454,65 +454,65 @@ request=office/60
   travel-high=false
 ~~~
 
-Phân tích:
+Analysis:
 
-- contract=true chứng tỏ object động là instance của **Rule.class do host giữ**.
-- separate-implementation-loader=true xác nhận class implementation được định nghĩa bởi loader khác, trong khi interface chung vẫn được chia sẻ.
-- Với travel/800, SmallAmountRule trả false, còn TravelRule do runtime compile trả true.
-- Với office/60, SmallAmountRule trả true, TravelRule trả false.
-- Không có nhánh nào trong vòng for cần biết provider đến từ compiler hay class đã build. Đây chính là **cùng hợp đồng** trong thực hành.
+- `contract=true` proves the dynamic object is an instance of **Rule.class held by the host**.
+- `separate-implementation-loader=true` confirms the implementation class is defined by a different loader while the shared interface remains common.
+- For travel/800, SmallAmountRule returns false while runtime-compiled TravelRule returns true.
+- For office/60, SmallAmountRule returns true while TravelRule returns false.
+- No branch in the for loop needs to know whether a provider came from the compiler or a pre-built class. This is **one unified contract** in practice.
 
-**Trên Windows:** khi classpath có nhiều entry, dấu phân cách là dấu ; thay vì :. Trong demo chỉ có một entry build/classes, nên lệnh java có thể dùng giống nhau. mkdir -p và dấu backslash xuống dòng là cú pháp bash; sử dụng Git Bash/WSL hoặc chuyển thành lệnh PowerShell phù hợp.
+**On Windows:** when a classpath has multiple entries, the separator is `;` instead of `:`. In the demo there is only one entry (`build/classes`), so the java command works identically. `mkdir -p` and backslash line continuations are bash syntax; use Git Bash/WSL or translate to the corresponding PowerShell commands.
 
-**Điều kiện môi trường:** ToolProvider.getSystemJavaCompiler() yêu cầu runtime có module/compiler của JDK (jdk.compiler). Một runtime image tối giản không có compiler có thể trả null. JDK 17+ chuẩn dùng để build/run ví dụ thường có sẵn API này.
+**Environment requirement:** `ToolProvider.getSystemJavaCompiler()` requires the runtime to include the JDK compiler module (`jdk.compiler`). A stripped-down runtime image without a compiler may return null. A standard JDK 17+ used to build and run the example normally includes this API.
 
-## 6. Vì sao compilation thành công chưa đủ để đưa vào registry?
+## 6. Why Compilation Success Alone Is Not Enough to Publish to the Registry
 
-Có bốn ranh giới khác nhau:
+There are four distinct boundaries:
 
-| Ranh giới | Điều đã biết | Điều còn có thể sai |
+| Boundary | What is known | What can still go wrong |
 | --- | --- | --- |
-| CompilationTask.call() trả true | Source hợp lệ với compiler options và dependencies hiện tại | Class được nạp sau đó có thể gặp linkage/init error |
-| MemoryFileManager có byte[] | Bytecode đã được sinh vào bộ nhớ | Chưa xác minh class name/type, số lượng output và quyền thực thi |
-| Class.forName(...) thành công | JVM đã định nghĩa/khởi tạo class được chọn | Constructor có thể thất bại; method có thể gây side effect |
-| asSubclass + newInstance thành công | Đã có Rule instance hợp lệ về kiểu | matches(...) vẫn có thể ném RuntimeException, chạy chậm hoặc sai nghiệp vụ |
+| CompilationTask.call() returns true | Source is valid under current compiler options and dependencies | Loading the class later may encounter linkage/init errors |
+| MemoryFileManager holds byte[] | Bytecode has been emitted into memory | Class name/type, output count, and execution permissions are not yet verified |
+| Class.forName(...) succeeds | JVM defined/initialized the target class | Constructor may fail; methods may cause side effects |
+| asSubclass + newInstance succeed | A type-valid Rule instance exists | matches(...) may still throw RuntimeException, run slowly, or have logic bugs |
 
-Host thực tế nên thực hiện **validation trước khi publish**: class name allowlist, interface type, constructor, rule ID không trùng, version/API hash, sanity tests, input/output constraints, khả năng tải dependencies, giới hạn tài nguyên và chính sách logging.
+A real host should perform **pre-publish validation**: class name allowlist, interface type, constructor, unique rule ID, version/API hash, sanity tests, input/output constraints, dependency load checks, resource limits, and logging policy.
 
-Khi một bước thất bại, đừng thêm bytecode hoặc instance lỗi vào registry đang phục vụ traffic. Nên xây candidate hoàn chỉnh ở khu staging, xác nhận rồi **thay snapshot** registry theo cơ chế đồng bộ. Nếu validation thất bại, giữ nguyên bản đang chạy.
+When any step fails, do not insert faulty bytecode or instances into the live registry serving traffic. Build the complete candidate in a staging area, validate it, and then **swap the registry snapshot** using proper synchronization. If validation fails, keep the active version running.
 
-**Một nuance quan trọng:** compiler task thành công với source không có Rule implementation đúng tên vẫn có thể tạo bytecode. Class.forName(binaryName, ...) hoặc asSubclass(...) sau đó mới phát hiện sai phạm. Biên dịch là điều kiện cần, không phải tiêu chí hoàn tất của plugin.
+**An important nuance:** a compilation task can succeed on source that lacks a properly named Rule implementation and still emit bytecode. `Class.forName(binaryName, ...)` or `asSubclass(...)` catches the mismatch afterward. Compilation is a necessary condition, not the completion criterion for a plugin.
 
-## 7. Các lỗi phải phân loại riêng
+## 7. Errors That Must Be Classified Separately
 
-### 7.1. Lỗi biên dịch
+### 7.1. Compilation error
 
-Ví dụ sửa đoạn source động từ:
+For example, change the dynamic source from:
 
 ~~~java
 request.amount() >= 500
 ~~~
 
-thành:
+to:
 
 ~~~java
 request.unknownAmount() >= 500
 ~~~
 
-Đây là **đoạn thay thế trong source text block**, không phải chương trình độc lập. Compiler sẽ không tìm thấy method unknownAmount() trên demo.api.Request. CompilationTask.call() trả false; DiagnosticCollector cung cấp Diagnostic.Kind.ERROR cùng line/column/message và source reference.
+This is a **replacement snippet inside the source text block**, not a standalone program. The compiler will not find `unknownAmount()` on demo.api.Request. `CompilationTask.call()` returns false; DiagnosticCollector provides `Diagnostic.Kind.ERROR` with line/column/message and source reference.
 
-Host demo in diagnostic lên stderr rồi ném IllegalStateException("Compilation failed"). Không cố nạp class từ Map sau khi compilation thất bại. Đầu ra chi tiết của javac có thể khác giữa những build JDK; bài lab **không gán một stdout cố định** cho trường hợp lỗi này.
+The demo host prints diagnostics to stderr and throws `IllegalStateException("Compilation failed")`. It does not attempt to load classes from the Map after compilation fails. Exact javac diagnostic wording can vary across JDK builds; the lab **does not prescribe fixed stdout** for this failure case.
 
-Một biến thể khác là sửa dòng public final class TravelRule thành WrongRule nhưng vẫn truyền binaryName="demo.dynamic.TravelRule". Compiler có thể báo lỗi tên public class/URI không khớp, hoặc nếu source hợp lệ cho tên khác thì bước tìm class sẽ thất bại. Để chẩn đoán, log **binaryName được yêu cầu**, tên source logic và danh sách class output; không sửa lỗi bằng cách cho ClassLoader tải bất kỳ class đầu tiên nó thấy.
+Another variant is changing `public final class TravelRule` to `WrongRule` while still passing `binaryName="demo.dynamic.TravelRule"`. The compiler may report a mismatch between the public class name and URI, or if the source is valid under another name, the class lookup step will fail. For diagnostics, log the **requested binaryName**, logical source name, and list of output classes; never work around this by letting ClassLoader load whatever first class it finds.
 
-### 7.2. Lỗi class identity hoặc loader
+### 7.2. Class identity or loader error
 
-Nếu source động tự chứa thêm bản demo.api.Rule nhưng host muốn gọi Rule.class đã build trước, JVM có thể gặp xung đột class identity. Với parent-first loader của demo, API do parent cung cấp, nhưng không nên cố đưa những binary name thuộc package host API vào Map để dựa vào thứ tự delegate ngẫu nhiên.
+If the dynamic source includes its own copy of demo.api.Rule while the host expects the pre-built `Rule.class`, the JVM can hit class identity conflicts. With the demo's parent-first loader, the API comes from the parent, yet you should still avoid placing binary names belonging to host API packages into the Map and relying on accidental delegation order.
 
-Chẩn đoán:
+Diagnosis:
 
 ~~~java
-// Đoạn minh họa tích hợp: có sẵn biến dynamic và kiểu Rule.
+// Illustrative integration snippet: variable dynamic and type Rule already exist.
 Class<?> type = dynamic.rule().getClass();
 System.out.println(type.getName());
 System.out.println(type.getClassLoader());
@@ -520,188 +520,188 @@ System.out.println(Rule.class.getClassLoader());
 System.out.println(Rule.class.isAssignableFrom(type));
 ~~~
 
-Trong demo, className là demo.dynamic.TravelRule, class loader khác host API loader, nhưng isAssignableFrom trả true. Nếu false, kiểm tra **hai loader đã định nghĩa SPI nào**, module graph, dependency version và package của implementation. Việc hai class cùng tên không đủ để chúng tương thích.
+In the demo, className is demo.dynamic.TravelRule, its class loader differs from the host API loader, yet `isAssignableFrom` returns true. If false, inspect **which two loaders defined the SPI**, the module graph, dependency versions, and the implementation's package. Sharing the same class name does not guarantee type compatibility.
 
-### 7.3. Lỗi khởi tạo
+### 7.3. Initialization error
 
-Class có thể triển khai Rule nhưng thiếu public constructor không tham số, constructor ném IllegalStateException hoặc static initializer làm hỏng trạng thái. Ví dụ nếu source động khai báo constructor chỉ nhận một tham số thì reflection getDeclaredConstructor() có thể ném NoSuchMethodException.
+A class may implement Rule yet lack a public no-arg constructor, its constructor may throw IllegalStateException, or its static initializer may corrupt state. For instance, if the dynamic source declares only a single-parameter constructor, reflection via `getDeclaredConstructor()` throws NoSuchMethodException.
 
-Class.forName(binaryName, true, loader) còn có thể gây ExceptionInInitializerError nếu static initializer ném lỗi. Constructor invocation có thể ném InvocationTargetException (có cause là exception thực sự từ constructor). Phải phân biệt lỗi này với CompilationTask.call() trả false.
+`Class.forName(binaryName, true, loader)` can also throw `ExceptionInInitializerError` if the static initializer fails. Constructor invocation can throw `InvocationTargetException` (whose cause is the actual exception thrown by the constructor). Distinguish these from `CompilationTask.call()` returning false.
 
-**Đừng bắt Throwable rồi coi mọi lỗi là "compile thất bại".** Lỗi linkage (NoClassDefFoundError, VerifyError, IncompatibleClassChangeError...) hoặc runtime initialization cần ghi đúng stage; nếu gặp lỗi JVM nghiêm trọng phải có chính sách fail closed, không tiếp tục tùy tiện.
+**Do not catch Throwable and report every failure as "compilation failed".** Linkage errors (`NoClassDefFoundError`, `VerifyError`, `IncompatibleClassChangeError`, etc.) or runtime initialization errors must record the exact stage; upon serious JVM errors, follow a fail-closed policy instead of continuing arbitrarily.
 
-### 7.4. Lỗi khi chạy quy tắc
+### 7.4. Error while executing a rule
 
-Ngay cả khi Rule instance đã được tạo, matches(request) vẫn có thể ném RuntimeException, tạo thread hoặc chặn I/O nếu implementation được phép gọi những API đó. Một host thực tế cần giới hạn tác động của từng rule, xác định có fallback hay không, và báo **RULE_EXECUTION_ERROR** riêng với **COMPILE_ERROR**.
+Even after a Rule instance is created, `matches(request)` can still throw RuntimeException, spawn threads, or block on I/O if implementations are allowed to call those APIs. A real host must bound each rule's impact, define whether fallback applies, and report **RULE_EXECUTION_ERROR** separately from **COMPILE_ERROR**.
 
-Ví dụ đoạn tích hợp:
+Integration snippet example:
 
 ~~~java
-// Mã minh họa: rule và request đã được xác định.
+// Illustrative code: rule and request are already resolved.
 try {
     boolean matched = rule.matches(request);
-    // Đưa matched vào Decision/registry pipeline.
+    // Feed matched into the Decision/registry pipeline.
 } catch (RuntimeException ex) {
-    // Log rule ID/version và cause; chọn fail closed hay degraded mode.
+    // Log rule ID/version and cause; choose fail-closed or degraded mode.
 }
 ~~~
 
-Không âm thầm trả false trong mọi lỗi. false có nghĩa "quy tắc được thực thi và không khớp"; failure có nghĩa "không xác định được kết quả". Việc nhập hai trạng thái này có thể khiến hệ thống thực hiện quyết định nguy hiểm.
+Never silently return false on every error. `false` means "the rule ran and did not match"; a failure means "the outcome could not be determined". Conflating these two states can cause the system to make dangerous decisions.
 
-## 8. Tích hợp vào cùng registry và ServiceLoader
+## 8. Integrating into a Shared Registry and ServiceLoader
 
-Ở lab, registry chỉ là List.of(...), nhưng một host plugin thật có thể duy trì một registry chung:
+In the lab, the registry is just `List.of(...)`, whereas a real plugin host can maintain a shared registry:
 
 ~~~java
-// Mã minh họa: host đã có Rule API và đối tượng dynamicRule.
+// Illustrative code: host already has Rule API and dynamicRule object.
 List<Rule> rules = new java.util.ArrayList<>();
 
-// Những provider classpath đã đăng ký trong META-INF/services/demo.api.Rule.
+// Classpath providers registered in META-INF/services/demo.api.Rule.
 java.util.ServiceLoader.load(Rule.class).forEach(rules::add);
 
-// Bổ sung implementation runtime compile đã được xác minh.
+// Add verified runtime-compiled implementation.
 rules.add(dynamicRule);
 
-// Từ đây host chỉ cần duyệt và gọi Rule.
+// From here the host simply iterates and invokes Rule.
 ~~~
 
-**Quy tắc động không tự xuất hiện trong ServiceLoader chỉ vì compiler đã sinh class.** ServiceLoader đòi hỏi đăng ký service bằng META-INF/services hoặc module provides theo mô hình deployment. Với rule động được tạo trong bộ nhớ, host có thể **đăng ký trực tiếp instance vào registry** như trên; không cần tạo descriptor giả để bắt ServiceLoader quét một Map bytecode.
+**Dynamic rules do not automatically appear in ServiceLoader just because the compiler generated a class.** ServiceLoader requires service registration via META-INF/services or module `provides` according to the deployment model. For in-memory dynamic rules, the host can **register the instance directly into the registry** as shown above; there is no need to fabricate fake descriptors to make ServiceLoader scan a bytecode Map.
 
-Trong kiến trúc thực:
+In a real architecture:
 
-- **Discovery** quyết định tìm candidate từ JAR, module, database, source code hoặc registry bên ngoài.
-- **Compilation/loading** biến source thành Rule instance hợp lệ, có metadata về version và loader.
-- **Registration** đưa instance đã xác minh vào một danh sách/snapshot dùng chung.
-- **Execution** chỉ nhìn thấy Rule/Request và trả kết quả theo contract.
-- **Lifecycle** ngừng nhận request mới, đợi task đang chạy, hủy reference/loader khi thay thế version.
+- **Discovery** determines how candidates are located from JARs, modules, databases, source code, or external registries.
+- **Compilation/loading** turns source into a valid Rule instance with version and loader metadata.
+- **Registration** places verified instances into a shared list/snapshot.
+- **Execution** sees only Rule/Request and returns results per contract.
+- **Lifecycle** stops accepting new requests, drains active tasks, and drops references/loaders when replacing versions.
 
-Nếu dùng DI container, map of strategies hoặc routing table thay cho ServiceLoader, nguyên tắc không đổi: **một hợp đồng dùng chung và một đường thực thi nhất quán**.
+Whether you use a DI container, a map of strategies, or a routing table instead of ServiceLoader, the principle remains identical: **one shared contract and one consistent execution path**.
 
-## 9. Không đưa class của host vào output động
+## 9. Keeping Host Classes Out of Dynamic Output
 
-Tại compile time, javac cần biết định nghĩa Rule và Request. Tùy chọn:
+At compile time, javac needs the definitions of Rule and Request. The option:
 
 ~~~text
--classpath <giá trị java.class.path của host>
+-classpath <host's java.class.path value>
 ~~~
 
-trong demo giúp compiler tìm các class API đã build ở build/classes. Đây là lựa chọn **cho lab classpath đơn giản**, không phải chính sách nên sao chép nguyên xi vào một dịch vụ nhiều tenant. Nếu classpath host chứa thư viện nội bộ không dành cho rule, compiler có thể tham chiếu các API đó và source động có thể liên kết với chúng.
+in the demo helps the compiler locate the pre-built API classes in `build/classes`. This is a choice **for a simple classpath lab**, not a policy to copy verbatim into a multi-tenant service. If the host classpath contains internal libraries not meant for rules, the compiler can resolve those APIs and dynamic source can link against them.
 
-Trong production, hãy cung cấp một **compile classpath được cho phép rõ ràng**, chỉ gồm API/SPI/DTO và thư viện rule được phê duyệt. Thực thi cần quyền runtime tương ứng và có thể cần cô lập tiến trình. Không cho request điều khiển tùy ý -classpath, --module-path, -processorpath, -d hoặc các compiler options khác.
+In production, supply an **explicitly allowlisted compile classpath**, containing only the approved API/SPI/DTO and rule libraries. Execution needs matching runtime permissions and may require process isolation. Never let requests arbitrarily control `-classpath`, `--module-path`, `-processorpath`, `-d`, or other compiler options.
 
-Cơ chế dùng StandardJavaFileManager đọc dependency từ classpath **không khiến Rule được biên dịch lại**. Trong demo, compile units chỉ có SourceText(TravelRule). Vì vậy output Map chỉ chứa implementation mới và các nested types do chính source đó tạo, không chứa API của host.
+Having StandardJavaFileManager read dependencies from the classpath **does not cause Rule to be recompiled**. In the demo, compile units contain only `SourceText(TravelRule)`. Therefore the output Map holds only the new implementation and any nested types generated by that source, not the host's API.
 
-Với JPMS named modules, cách thêm -classpath như lab có thể không đủ: cần xem module path, readability, exports và API layer. ModuleLayer/uses/provides là các hợp đồng khác; việc tạo một MemoryClassLoader classpath không tự sinh Module object hay thêm module vào layer. Khi chuyển kiến trúc sang named modules, phải thiết kế module resolution và loader mapping riêng.
+With JPMS named modules, merely passing `-classpath` like in the lab may be insufficient: you must consider the module path, readability, exports, and the API layer. ModuleLayer/uses/provides follow different contracts; creating a classpath MemoryClassLoader does not generate a Module object or add a module to a layer. When migrating the architecture to named modules, design module resolution and loader mapping separately.
 
-## 10. Những giới hạn không nên bỏ qua
+## 10. Limitations You Must Not Overlook
 
-Đoạn lab **không phải sandbox**. JavaCompiler có thể cần CPU/heap lớn, và code được biên dịch khi nạp/chạy có toàn bộ khả năng tương ứng với quyền của tiến trình. ClassLoader tách tên class, **không phải ranh giới bảo mật**.
+The lab code **is not a sandbox**. JavaCompiler can consume significant CPU/heap, and compiled code, once loaded and executed, runs with the full privileges of the host process. A ClassLoader separates class namespaces; it **is not a security boundary**.
 
-| Rủi ro | Mã lab đã làm | Việc production còn phải làm |
+| Risk | What the lab code does | What production still needs |
 | --- | --- | --- |
-| Source khổng lồ | Có kiểm tra String.length() 10.000 UTF-16 code units | Kiểm tra **byte input trước khi đọc hết request**, số file, encoding, tổng bytes |
-| Output nhiều class/bytecode | Lưu Map và ByteArrayOutputStream | Chặn **số class và tổng byte ngay trong output stream**, không đợi compile xong |
-| Compiler diagnostics quá nhiều | Dùng DiagnosticCollector | Listener/Writer có quota số lượng/ký tự/byte và logging an toàn |
-| Annotation processor tự chạy | Đã đặt -proc:none | Khóa processor path/options và dependency allowlist |
-| Compiler treo hoặc tốn CPU | Chưa có timeout | Biên dịch trong **process/container có quota CPU/RAM** và hard deadline |
-| Code thực thi có side effect | Chỉ chạy source tin cậy trong lab | Chạy mã không tin cậy trong process riêng, giới hạn file/network/OS privileges |
-| Nạp nhầm ABI | asSubclass kiểm tra Rule type | API version pinning, binary compatibility tests, classpath/module identity |
-| Vòng đời rule cũ | LoadedRule giữ instance và loader | Registry snapshots, dừng task và loại references trước khi unload |
-| Trùng tên rule/version | Demo dùng một tên động cố định | Namespace/version scheme, hash artifact, xác thực ownership |
-| Tải dependency bất ngờ | Parent trỏ loader của host | Compile/runtime dependency policy, tránh đưa toàn host classpath vào worker |
+| Huge source input | Checks `String.length()` against 10,000 UTF-16 code units | Check **input bytes before buffering the full request**, file count, encoding, total bytes |
+| Excessive class/bytecode output | Stores in Map and ByteArrayOutputStream | Enforce **class count and total byte limits inside the output stream**, not after compile finishes |
+| Excessive compiler diagnostics | Uses DiagnosticCollector | Listener/Writer with count/character/byte quotas and safe logging |
+| Automatic annotation processors | Sets `-proc:none` | Lock processor path/options and dependency allowlists |
+| Compiler hangs or burns CPU | No timeout yet | Compile inside a **process/container with CPU/RAM quotas** and hard deadlines |
+| Execution side effects | Only runs trusted source in the lab | Run untrusted code in a separate process with restricted file/network/OS privileges |
+| Loading wrong ABI | `asSubclass` checks Rule type | API version pinning, binary compatibility tests, classpath/module identity |
+| Stale rule lifecycle | LoadedRule keeps instance and loader | Registry snapshots, task draining, and clearing references before unloading |
+| Duplicate rule names/versions | Demo uses a fixed dynamic name | Namespace/versioning scheme, artifact hashing, ownership verification |
+| Unexpected dependency loading | Parent points to host loader | Compile/runtime dependency policy; avoid exposing the entire host classpath to workers |
 
-**Soft timeout không phải hard timeout.** Ví dụ bọc compiler task trong Future.get(timeout) rồi gọi cancel(true) chỉ giới hạn **thời gian caller đợi**; nó không đảm bảo compiler hoặc code rule đã thật sự dừng. Nếu một người dùng không tin cậy gửi source làm compiler tiêu tốn CPU/heap, cần process isolation và cơ chế kill/cleanup thực sự.
+**A soft timeout is not a hard timeout.** For instance, wrapping a compiler task in `Future.get(timeout)` and calling `cancel(true)` only limits **how long the caller waits**; it does not guarantee the compiler or rule code actually stopped. If an untrusted user submits source that exhausts compiler CPU/heap, you need process isolation and real kill/cleanup mechanisms.
 
-**Đừng lấy biên dịch thành công làm tiêu chí an toàn mã nguồn.** Mã Java hợp lệ vẫn có thể gọi System.exit, truy cập file, mở network, tạo threads hoặc gây side effect trong static initializer/constructor/matches. Các bước Class.forName(..., true, loader) và newInstance trong lab **đã bắt đầu thực thi code user**; tách chúng khỏi host là yêu cầu nếu source không tin cậy.
+**Never equate successful compilation with safe source code.** Valid Java code can still call `System.exit`, access files, open network sockets, spawn threads, or trigger side effects in static initializers, constructors, or `matches`. `Class.forName(..., true, loader)` and `newInstance` in the lab **already execute user code**; isolating them from the host is mandatory if sources are untrusted.
 
-Trong bản production còn cần ký số/hash hoặc nguồn xác thực của rule code, audit trail thay đổi, quyền publish, kiểm tra thành phần phụ thuộc và cơ chế rollback.
+Production systems also require digital signatures/hashes or verified origins for rule code, change audit trails, publish permissions, dependency checks, and rollback mechanisms.
 
-## 11. Versioning, caching và hot reload
+## 11. Versioning, Caching, and Hot Reload
 
-Một rule động là một **đơn vị phiên bản của implementation**, không phải thay đổi trực tiếp lên interface Rule đang tồn tại. Khi source thay đổi:
+A dynamic rule is a **versioned unit of implementation**, not an in-place mutation of the existing Rule interface. When source changes:
 
-1. Tạo candidate version mới với source hash, API version, compiler options và dependency set.
-2. Compile thành bytecode mới, lưu output tạm trong bộ nhớ hoặc artifact cache có quota.
-3. Tạo class loader mới (không cố dùng lại loader đã định nghĩa cùng binaryName).
-4. Khởi tạo Rule mới và kiểm tra contract, ID, health/sanity tests.
-5. Chỉ sau khi validation thành công mới publish registry snapshot mới.
-6. Dừng nhận request trên version cũ, đợi request đang dùng instance cũ hoàn tất.
-7. Gỡ references từ registry, thread, ThreadLocal, callbacks và caches tới Rule/loader cũ để GC có thể thu hồi khi không còn tham chiếu.
+1. Create a new candidate version with source hash, API version, compiler options, and dependency set.
+2. Compile into new bytecode and hold output temporarily in memory or a quota-bounded artifact cache.
+3. Create a new class loader (do not try reusing a loader that already defined the same binaryName).
+4. Instantiate the new Rule and run contract, ID, and health/sanity checks.
+5. Publish a new registry snapshot only after validation passes.
+6. Stop routing new requests to the old version and wait for in-flight requests using the old instance to finish.
+7. Clear references from registries, threads, ThreadLocals, callbacks, and caches to the old Rule/loader so GC can reclaim them once unreachable.
 
-**Vì sao phải tạo loader mới?** JVM không định nghĩa lại cùng một class name trong cùng một loader bằng defineClass như một hot-replace bình thường. Nếu gọi defineClass lần nữa cho binaryName đã có, thường sẽ bị LinkageError; tải bytecode khác qua một loader mới là mô hình versioning rõ ràng hơn. Không ép "đổi class ngay trong loader cũ" trong production trừ khi bạn đã chọn cơ chế instrumentation/redefinition chuyên dụng với giới hạn riêng.
+**Why must a new loader be created?** The JVM does not redefine the same class name in the same loader via `defineClass` as a normal hot-replace. Calling `defineClass` again for an existing binaryName typically throws LinkageError; loading different bytecode through a new loader is a much cleaner versioning model. Do not force "in-place class replacement in the old loader" in production unless you have intentionally chosen specialized instrumentation/redefinition mechanisms with their own constraints.
 
-**Cache** có thể giảm chi phí compile đối với source lặp lại. Key nên bao gồm **hash source + Java release + compiler options + phiên bản Rule/Request API + dependency fingerprints**. Nếu chỉ cache theo source text, bytecode cũ có thể tương thích sai khi host API thay đổi. Cache cần TTL/size cap và không lưu dữ liệu tenant này cho tenant khác nếu không có chính sách hợp lệ.
+**Caching** can reduce compile cost for repeated sources. Keys should include **source hash + Java release + compiler options + Rule/Request API version + dependency fingerprints**. Caching solely by source text risks reusing bytecode that is binary-incompatible after host API changes. Caches need TTL/size caps and must not leak data across tenants without an explicit policy.
 
-Một rule version có thể giữ state trong instance. Không dùng lại instance tùy tiện khi nhiều request chạy đồng thời nếu implementation không thread-safe; lựa chọn singleton, per-request instance hoặc actor/serial executor phải thuộc hợp đồng lifecycle.
+A rule version may hold instance state. Do not arbitrarily share a single instance across concurrent requests if the implementation is not thread-safe; choosing singleton, per-request instance, or actor/serial executor belongs in the lifecycle contract.
 
-## 12. Kiểm thử đúng ba tầng
+## 12. Proper Three-Layer Testing
 
 ### 12.1. Contract tests
 
-Với mọi Rule instance (builtin hoặc dynamic), chạy cùng một bộ test:
+For every Rule instance (builtin or dynamic), run the exact same test suite:
 
 ~~~java
-// Mã minh họa: nhận sẵn Rule rule và Request request.
+// Illustrative code: given Rule rule and Request request.
 String id = rule.id();
 if (id == null || id.isBlank()) {
     throw new IllegalArgumentException("Rule ID must not be blank");
 }
 boolean decision = rule.matches(request);
-// Assert decision theo policy của test case.
+// Assert decision per test case policy.
 ~~~
 
-Không kiểm tra bằng nhánh "nếu dynamic thì gọi eval(String)" nữa. Điều này giúp một contract test suite phát hiện behavior mismatch của cả hai nguồn rule.
+Stop testing via a branch like "if dynamic then call eval(String)". This lets one contract test suite catch behavioral mismatches across both rule sources.
 
 ### 12.2. Compilation tests
 
-- Đầu vào hợp lệ đúng binaryName → CompilationTask.call() thành công, bytecode chứa class được yêu cầu.
-- Sai syntax/type → CompilationTask.call() thất bại, diagnostics có vị trí; không publish candidate.
-- Package/class name không đúng → kiểm tra source URI, class file names và bước Class.forName.
-- Source có nested classes → Map chứa **tất cả** outputs cần cho implementation.
-- Source quá hạn mức → từ chối trước khi tạo compilation task.
-- Options, compile classpath hoặc JDK version không phù hợp → ghi lỗi đầy đủ và không thay active registry.
+- Valid input with matching binaryName → `CompilationTask.call()` succeeds and bytecode contains the requested class.
+- Syntax/type error → `CompilationTask.call()` fails with diagnostic locations; candidate is not published.
+- Mismatched package/class name → verify source URI, class file names, and the `Class.forName` step.
+- Source with nested classes → Map captures **all** outputs needed by the implementation.
+- Oversized source → rejected before creating a compilation task.
+- Mismatched options, compile classpath, or JDK version → full error logged and active registry untouched.
 
 ### 12.3. Runtime integration tests
 
-- Parent loader thấy đúng Rule/Request; class động có thể cast sang Rule và gọi matches.
-- Rule viết sẵn và dynamic nhận **cùng đối tượng Request**, cùng mã xử lý kết quả/lỗi.
-- Sai constructor hoặc static initialization → candidate không được publish.
-- matches ném exception → ghi **execution failure**, không tự coi đó là matches=false.
-- Thay source/recompile với loader mới → version mới được chọn sau publish; work đang dùng version cũ được kết thúc đúng lifecycle.
-- Nhiều request đồng thời → registry snapshot nhất quán, không race khi thay loader.
-- Một rule không tin cậy hoặc treo → worker/process bị cách ly và hệ thống tiếp tục phục vụ request khác.
+- Parent loader sees the right Rule/Request; dynamic class casts to Rule and executes `matches`.
+- Built-in and dynamic rules receive **the same Request object** and share result/error handling code.
+- Broken constructor or static initialization → candidate is not published.
+- `matches` throws an exception → recorded as **execution failure**, not treated as `matches=false`.
+- Source update/recompile with a new loader → new version is selected after publish; in-flight work on the old version finishes per lifecycle.
+- Concurrent requests → consistent registry snapshots with no races during loader swaps.
+- Untrusted or hung rule → worker/process is isolated and the system continues serving other requests.
 
-**Đầu ra phải là quyết định có thể kiểm chứng**, không chỉ in String từ compiler. Nếu ứng dụng cần quyết định đa trạng thái, nên định nghĩa một Decision type có mã lỗi/trạng thái riêng thay cho boolean; mọi implementation đều trả loại đó.
+**Output must be verifiable decisions**, not merely Strings printed by the compiler. If the application needs multi-state decisions, define a Decision type with explicit error/status codes instead of boolean; all implementations return that type.
 
-## 13. Bài tập mở rộng
+## 13. Extension Exercises
 
-**Bài A — quy tắc thứ ba:** Viết source String cho class demo.dynamic.OfficeRule triển khai Rule, trả true nếu request.category().equals("office") và amount >= 50. Biên dịch trong cùng quy trình bằng một binaryName khác, đưa nó vào registry rồi in kết quả. Không cần sửa Rule interface.
+**Exercise A — third rule:** Write a source String for `demo.dynamic.OfficeRule` implementing Rule that returns true when `request.category().equals("office")` and `amount >= 50`. Compile it in the same process under a different binaryName, add it to the registry, and print results. No changes to the Rule interface are needed.
 
-**Bài B — kiểm tra lỗi syntax:** Đổi amount() thành amountX() ở source TravelRule. Ghi diagnostic line/kind, xác nhận không có dynamic Rule instance nào được publish nếu compilation thất bại. Đừng coi lỗi nạp class sau đó là phương thức xử lý compile failure.
+**Exercise B — syntax error check:** Change `amount()` to `amountX()` in the TravelRule source. Capture diagnostic line/kind and verify no dynamic Rule instance is published when compilation fails. Do not rely on a subsequent class-loading error as your compilation-failure check.
 
-**Bài C — kiểm tra class identity:** Tạo một loader không chia sẻ Rule API từ parent trong một thử nghiệm có kiểm soát và thử ép type. Phân tích vì sao cùng tên demo.api.Rule chưa đủ; khôi phục cấu trúc parent-first cho host.
+**Exercise C — class identity check:** Create a loader that does not share the Rule API from the parent in a controlled experiment and try casting types. Analyze why matching the name `demo.api.Rule` is insufficient; restore the parent-first setup for the host.
 
-**Bài D — version mới:** Đổi ngưỡng từ 500 sang 900, tạo loader mới, thay registry sau validation. Kiểm tra Request("travel",800) chuyển từ match sang no-match ở version mới, nhưng instance cũ chỉ bị gỡ sau khi không còn request dùng.
+**Exercise D — new version:** Change the threshold from 500 to 900, create a new loader, and swap the registry after validation. Verify `Request("travel", 800)` changes from match to no-match in the new version, while the old instance is retired only after no requests remain using it.
 
-**Bài E — output quota:** Bổ sung vào ClassBytes/MemoryFileManager giới hạn số file và tổng byte write trước khi ghi vào ByteArrayOutputStream. Thử source sinh nested/anonymous classes. Khi vượt hạn mức, không publish bất kỳ output một phần.
+**Exercise E — output quota:** Add file-count and total-byte-write limits to ClassBytes/MemoryFileManager before buffering into ByteArrayOutputStream. Test with source generating nested/anonymous classes. When quotas are exceeded, publish no partial output.
 
-**Bài F — tách process:** Chuyển công việc compile/load/execute của source không tin cậy sang một Java worker process riêng nhận source và Request qua giao thức IPC được giới hạn. So sánh timeout chờ Future trong cùng JVM với việc terminate worker process và dọn tài nguyên.
+**Exercise F — process separation:** Move compiling, loading, and executing untrusted sources to a separate Java worker process that receives source and Request over a bounded IPC protocol. Compare waiting on a `Future` timeout inside the same JVM with terminating the worker process and reclaiming resources.
 
-**Bài G — kết hợp plugin JAR:** Tạo một Rule provider đóng gói JAR kèm META-INF/services/demo.api.Rule; dùng ServiceLoader ở host để đưa nó vào registry, rồi thêm TravelRule từ memory compiler. Xác nhận cả ba implementation đều được gọi thông qua một List<Rule> và cùng Request schema.
+**Exercise G — combining with a plugin JAR:** Create a JAR-packaged Rule provider with `META-INF/services/demo.api.Rule`; use ServiceLoader in the host to load it into the registry, then add TravelRule from the memory compiler. Verify all three implementations are invoked via one `List<Rule>` and the same Request schema.
 
-## 14. Checklist trước khi đưa kỹ thuật vào hệ thống thật
+## 14. Production Readiness Checklist
 
-- **API:** Rule/Request là artifact chung, có version và behavior contract rõ ràng; không bị định nghĩa lại trong loader của implementation.
-- **Source:** nguồn Java được xác minh owner, class/package name, kích thước và encoding; compile classpath và options do server kiểm soát.
-- **Compiler:** kiểm tra ToolProvider.getSystemJavaCompiler(), nhận diagnostics, tắt annotation processing nếu không cho phép; quản lý standard file manager.
-- **Output:** lưu đủ mọi class file trong bộ nhớ, giới hạn class count/bytes, không đăng ký output lỗi hoặc một phần.
-- **Loading:** parent loader thống nhất SPI, class name đúng, subtype check, constructor validation, phân loại lỗi linkage/instantiation.
-- **Registration:** chỉ publish Rule đã pass validation và contract tests; snapshot registry cập nhật atomically theo thiết kế concurrency.
-- **Execution:** mọi Rule dùng cùng invocation path và DTO; timeout, exceptions, retry/fallback được định nghĩa trong policy.
-- **Security:** không dùng ClassLoader như sandbox; biên dịch và chạy source không tin cậy ngoài host JVM với quota/OS isolation.
-- **Lifecycle:** có plugin ID/version, rollback, cleanup callbacks/threads/reference và new loader khi reload.
-- **Observability:** ghi compiler duration, output byte count, diagnostics, loader/version IDs, rule invocation latency, compile/load/execution error tách riêng.
+- **API:** Rule/Request are shared artifacts with clear versioning and behavioral contracts; never redefined inside implementation loaders.
+- **Source:** Java sources have verified owners, class/package names, size, and encoding; compile classpath and options are server-controlled.
+- **Compiler:** check `ToolProvider.getSystemJavaCompiler()`, collect diagnostics, disable annotation processing unless permitted; manage the standard file manager properly.
+- **Output:** retain all emitted class files in memory, enforce class count/byte limits, and never register failed or partial outputs.
+- **Loading:** parent loader unifies the SPI; verify exact class name, subtype check, constructor validation, and classify linkage/instantiation errors.
+- **Registration:** publish only Rules passing validation and contract tests; update registry snapshots atomically per concurrency design.
+- **Execution:** all Rules share the same invocation path and DTO; timeouts, exceptions, and retry/fallback are policy-defined.
+- **Security:** never treat ClassLoader as a sandbox; compile and execute untrusted sources outside the host JVM with quotas and OS isolation.
+- **Lifecycle:** track plugin ID/version, support rollback, clean up callbacks/threads/references, and use a new loader on reload.
+- **Observability:** record compiler duration, output byte count, diagnostics, loader/version IDs, and rule invocation latency, separating compile, load, and execution errors.
 
-Tài liệu tham khảo Java SE 17: [JavaCompiler](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html), [JavaFileManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaFileManager.html), [SimpleJavaFileObject](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/SimpleJavaFileObject.html), [ForwardingJavaFileManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ForwardingJavaFileManager.html), [ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html) và [ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html).
+Java SE 17 references: [JavaCompiler](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html), [JavaFileManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaFileManager.html), [SimpleJavaFileObject](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/SimpleJavaFileObject.html), [ForwardingJavaFileManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ForwardingJavaFileManager.html), [ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html), and [ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html).
 
-**Kết luận:** thành công của runtime extensibility không nằm ở việc tạo được file .class, mà ở việc **mã động tuân thủ cùng hợp đồng mà host đã ổn định**, được nạp bằng loader tôn trọng class identity và chỉ được đưa vào pipeline sau khi kiểm chứng. Khi đó một quy tắc viết sẵn, một provider từ JAR và một quy tắc biên dịch từ String có thể cùng xử lý Request qua Rule — còn compile/load/lifecycle/security vẫn là các trách nhiệm riêng được quản lý rõ ràng.
+**Conclusion:** The success of runtime extensibility does not lie in generating a .class file, but in ensuring **dynamic code adheres to the same contract stabilized by the host**, is loaded via a loader that respects class identity, and enters the pipeline only after verification. Then a built-in rule, a JAR provider, and a rule compiled from a String can all process Requests through Rule — while compilation, loading, lifecycle, and security remain cleanly separated and managed responsibilities.

@@ -1,0 +1,3046 @@
+menu:
+- slug: spel-overview
+  title: Bức tranh tổng thể
+  childs:
+  - slug: spel-overview-001
+    title: Spring Expression Language (SpEL) là gì và giải quyết bài toán nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-overview-002
+    title: Biểu thức, ngữ cảnh đánh giá và kết quả đánh giá liên hệ với nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-overview-003
+    title: Đặt SpEL bên cạnh Java code, placeholder cấu hình và template expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-overview-004
+    title: Những nơi Spring dùng SpEL trong hệ sinh thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-overview-005
+    title: Giá trị của việc tách biểu thức khỏi mã Java cố định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-overview-006
+    title: Khả năng đọc, khả năng kiểm tra và rủi ro khi biểu thức thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-overview-007
+    title: Giới hạn của SpEL so với ngôn ngữ lập trình đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-overview-008
+    title: Lộ trình học từ cú pháp cơ bản đến tích hợp an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-architecture
+  title: Kiến trúc SpEL
+  childs:
+  - slug: spel-architecture-001
+    title: Parser, expression tree và quá trình phân tích cú pháp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-architecture-002
+    title: Expression object và lời gọi getValue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-architecture-003
+    title: EvaluationContext và dữ liệu mà biểu thức được phép nhìn thấy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-architecture-004
+    title: Root object, active context object và biến biểu thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-architecture-005
+    title: PropertyAccessor, MethodResolver và ConstructorResolver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-architecture-006
+    title: TypeLocator, TypeConverter và OperatorOverloader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-architecture-007
+    title: StandardEvaluationContext với đầy đủ khả năng mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-architecture-008
+    title: SimpleEvaluationContext với bề mặt thao tác giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-architecture-009
+    title: Chuỗi xử lý từ văn bản biểu thức đến giá trị cuối cùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-parser-initialization
+  title: Khởi tạo parser
+  childs:
+  - slug: spel-parser-initialization-001
+    title: SpelExpressionParser và cách tạo expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-parser-initialization-002
+    title: Đọc một biểu thức từ chuỗi với parser
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-parser-initialization-003
+    title: ParserContext cho template expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-parser-initialization-004
+    title: TemplateParserContext và phần văn bản bao quanh biểu thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-parser-initialization-005
+    title: Định dạng biểu thức trong chuỗi cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-parser-initialization-006
+    title: Lỗi parse và vị trí lỗi trong biểu thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-parser-initialization-007
+    title: SpringEL compiler mode và ParserConfiguration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-parser-initialization-008
+    title: Auto grow null references và auto grow collections
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-parser-initialization-009
+    title: Đánh đổi giữa linh hoạt, chẩn đoán lỗi và hiệu năng khi cấu hình parser
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-basic-syntax
+  title: Cú pháp cơ bản
+  childs:
+  - slug: spel-basic-syntax-001
+    title: Biểu thức nguyên tử và giá trị trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-basic-syntax-002
+    title: Chuỗi ký tự, dấu nháy đơn và dấu nháy kép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-basic-syntax-003
+    title: Khoảng trắng và cách đọc token trong SpEL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-basic-syntax-004
+    title: Dấu chấm phẩy, dấu ngoặc và cấu trúc lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-basic-syntax-005
+    title: Toán tử truy cập property và method
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-basic-syntax-006
+    title: Biểu thức lồng trong biểu thức lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-basic-syntax-007
+    title: Thứ tự phân tích cú pháp và nhóm bằng dấu ngoặc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-basic-syntax-008
+    title: Phân biệt văn bản nguyên bản với phần được SpEL đánh giá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-literal
+  title: Literal
+  childs:
+  - slug: spel-literal-001
+    title: Literal null, Boolean, số nguyên và số thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-literal-002
+    title: Literal số thập phân và các kiểu số được suy ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-literal-003
+    title: Literal chuỗi và ký tự đặc biệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-literal-004
+    title: Literal số mũ và giá trị lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-literal-005
+    title: Literal mảng, list và map
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-literal-006
+    title: Literal inline collection và kiểu phần tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-literal-007
+    title: Literal không thay đổi với dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-literal-008
+    title: Kiểm tra kiểu runtime của giá trị literal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-arithmetic-operators
+  title: Toán tử số học
+  childs:
+  - slug: spel-arithmetic-operators-001
+    title: Phép cộng, trừ, nhân và chia
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-arithmetic-operators-002
+    title: Phép chia lấy dư và số mũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-arithmetic-operators-003
+    title: Thứ tự ưu tiên của các toán tử số học
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-arithmetic-operators-004
+    title: Chuyển đổi kiểu khi hai toán hạng khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-arithmetic-operators-005
+    title: Số nguyên, số thực và kết quả phép tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-arithmetic-operators-006
+    title: Phép toán với null và trường hợp biểu thức lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-arithmetic-operators-007
+    title: Giới hạn độ chính xác và khả năng tràn số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-arithmetic-operators-008
+    title: Dùng ngoặc để làm rõ ý định của biểu thức số học
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-comparison-operators
+  title: Toán tử so sánh
+  childs:
+  - slug: spel-comparison-operators-001
+    title: Phép bằng và khác trong SpEL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-comparison-operators-002
+    title: So sánh lớn hơn, nhỏ hơn và các biến thể có bằng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-comparison-operators-003
+    title: Semantics so sánh null với giá trị khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-comparison-operators-004
+    title: So sánh chuỗi, số và các kiểu có thể chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-comparison-operators-005
+    title: Phân biệt so sánh giá trị với so sánh identity
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-comparison-operators-006
+    title: Toán tử instanceof và kiểm tra kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-comparison-operators-007
+    title: Toán tử matches với biểu thức chính quy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-comparison-operators-008
+    title: Toán tử between và cách diễn đạt khoảng giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-logical-operators
+  title: Toán tử logic
+  childs:
+  - slug: spel-logical-operators-001
+    title: AND, OR và NOT trong SpEL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-logical-operators-002
+    title: Dạng ký hiệu chữ và dạng ký hiệu toán tử logic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-logical-operators-003
+    title: Thứ tự ưu tiên giữa NOT, AND và OR
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-logical-operators-004
+    title: Short-circuit và ảnh hưởng đến mục tiêu ở vế sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-logical-operators-005
+    title: Biểu thức Boolean có giá trị null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-logical-operators-006
+    title: Phân nhóm điều kiện dài bằng dấu ngoặc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-logical-operators-007
+    title: Tránh lặp điều kiện và điều kiện phủ định khó đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-logical-operators-008
+    title: Kiểm tra bảng chân trị của biểu thức logic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-assignment-operators
+  title: Toán tử gán
+  childs:
+  - slug: spel-assignment-operators-001
+    title: Gán giá trị trong một expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-assignment-operators-002
+    title: Toán tử gán và tác dụng phụ lên object đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-assignment-operators-003
+    title: Gán property đơn và property lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-assignment-operators-004
+    title: Điều kiện để property có thể ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-assignment-operators-005
+    title: Phân biệt gán trong SpEL với bind dữ liệu của framework
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-assignment-operators-006
+    title: Nguy cơ làm thay đổi trạng thái qua biểu thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-assignment-operators-007
+    title: Giới hạn gán trong SimpleEvaluationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-assignment-operators-008
+    title: Chỉ cho phép gán khi hợp đồng ngữ cảnh xác nhận rõ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-conditional-operators
+  title: Toán tử điều kiện
+  childs:
+  - slug: spel-conditional-operators-001
+    title: Toán tử ba ngôi và nhánh đúng hoặc sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-conditional-operators-002
+    title: Toán tử Elvis cho giá trị mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-conditional-operators-003
+    title: Khác biệt giữa Elvis và điều kiện ba ngôi đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-conditional-operators-004
+    title: Elvis với chuỗi rỗng, null và giá trị false
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-conditional-operators-005
+    title: Lồng toán tử điều kiện và cách giữ khả năng đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-conditional-operators-006
+    title: Phân biệt giá trị mặc định với xử lý lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-conditional-operators-007
+    title: Kiểm thử tất cả nhánh của biểu thức điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-conditional-operators-008
+    title: Chuyển điều kiện phức tạp về mã Java khi biểu thức mất rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-property-access
+  title: Truy cập property
+  childs:
+  - slug: spel-property-access-001
+    title: Truy cập property qua getter theo JavaBean convention
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-property-access-002
+    title: Truy cập field và các property được expose
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-property-access-003
+    title: Property lồng nhau bằng chuỗi dấu chấm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-property-access-004
+    title: Property của root object và object trung gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-property-access-005
+    title: Property không tồn tại và lỗi đánh giá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-property-access-006
+    title: Property null giữa đường dẫn truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-property-access-007
+    title: Null-safe navigation bằng toán tử ?.
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-property-access-008
+    title: Indexer null-safe ?.[] và các dạng null-safe liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-property-access-009
+    title: Kiểm soát property được truy cập qua PropertyAccessor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-method-invocation
+  title: Gọi method
+  childs:
+  - slug: spel-method-invocation-001
+    title: Gọi method không tham số và có tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-method-invocation-002
+    title: Method overload và lựa chọn chữ ký phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-method-invocation-003
+    title: Truyền literal, property và expression làm đối số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-method-invocation-004
+    title: Varargs và chuyển đổi đối số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-method-invocation-005
+    title: Method trên root object, property object và collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-method-invocation-006
+    title: Gọi method tĩnh qua type reference
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-method-invocation-007
+    title: Method không tồn tại hoặc không thể truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-method-invocation-008
+    title: MethodResolver và cách giới hạn method được phép gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-method-invocation-009
+    title: Rủi ro tác dụng phụ khi gọi method từ biểu thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-indexer
+  title: Indexer
+  childs:
+  - slug: spel-indexer-001
+    title: Indexer trên mảng và list
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-indexer-002
+    title: Indexer trên map theo key
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-indexer-003
+    title: Indexer trên string và chuỗi ký tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-indexer-004
+    title: Indexer trên object có accessor tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-indexer-005
+    title: Biểu thức chỉ số và giá trị được tính động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-indexer-006
+    title: Chỉ số âm, chỉ số vượt giới hạn và lỗi đánh giá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-indexer-007
+    title: Indexer cho collection có thể null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-indexer-008
+    title: Null-safe collection selection và index access
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-indexer-009
+    title: Chọn indexer hay property theo mô hình dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-inline-collections
+  title: Mảng và collection inline
+  childs:
+  - slug: spel-inline-collections-001
+    title: Tạo mảng inline trong SpEL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-inline-collections-002
+    title: Tạo list inline và danh sách lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-inline-collections-003
+    title: Tạo map inline với key và value
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-inline-collections-004
+    title: List và map rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-inline-collections-005
+    title: Kiểu phần tử của inline collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-inline-collections-006
+    title: Collection literal cố định và biểu thức động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-inline-collections-007
+    title: Inline list được tối ưu thành constant collection khi có thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-inline-collections-008
+    title: Truy cập phần tử sau khi tạo collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-inline-collections-009
+    title: Giới hạn kích thước và dữ liệu do người dùng cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-collection-selection
+  title: Selection collection
+  childs:
+  - slug: spel-collection-selection-001
+    title: Collection selection .?[selectionExpression]
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-selection-002
+    title: 'Lọc phần tử theo điều kiện trên #this'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-selection-003
+    title: 'Biến #this trong ngữ cảnh selection'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-selection-004
+    title: Selection trả về list kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-selection-005
+    title: First selection .^[] và last selection .$[]
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-selection-006
+    title: Phân biệt selection thường với first hoặc last selection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-selection-007
+    title: Selection trên list, map và collection khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-selection-008
+    title: Null-safe selection ?.[]
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-selection-009
+    title: Chi phí duyệt collection và kiểm soát dữ liệu lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-collection-projection
+  title: Projection collection
+  childs:
+  - slug: spel-collection-projection-001
+    title: Collection projection .![projectionExpression]
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-projection-002
+    title: 'Biến #this trong projection'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-projection-003
+    title: Chuyển collection object thành collection giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-projection-004
+    title: Projection trên property lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-projection-005
+    title: Projection kết hợp với selection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-projection-006
+    title: Projection trên map và hình dạng kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-projection-007
+    title: Null-safe projection ?.!
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-projection-008
+    title: Phân biệt projection với mapping trong mã Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-projection-009
+    title: Giữ kiểu kết quả và thứ tự phần tử sau projection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-collection-operations
+  title: Collection operations
+  childs:
+  - slug: spel-collection-operations-001
+    title: Kết hợp selection và projection trong một biểu thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-operations-002
+    title: Truy cập size, empty và các thuộc tính collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-operations-003
+    title: Truy vấn phần tử đầu, cuối và phần tử thỏa điều kiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-operations-004
+    title: Collection lồng nhau và nhiều tầng xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-operations-005
+    title: Thao tác với map entry, key và value
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-operations-006
+    title: Giữ thứ tự khi lọc và chiếu collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-operations-007
+    title: Phân biệt collection mutable với kết quả chỉ đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-collection-operations-008
+    title: Tránh biểu thức collection quá dài và khó kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-bean-reference
+  title: Bean reference
+  childs:
+  - slug: spel-bean-reference-001
+    title: Tham chiếu bean bằng @beanName
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-reference-002
+    title: Tham chiếu bean trong ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-reference-003
+    title: BeanFactoryResolver và cơ chế phân giải bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-reference-004
+    title: Bean name có ký tự đặc biệt và cú pháp tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-reference-005
+    title: Gọi method trên bean được tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-reference-006
+    title: Truy cập property của bean Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-reference-007
+    title: Tham chiếu bean trong annotation và cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-reference-008
+    title: Không expose bean ngoài phạm vi biểu thức cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-reference-009
+    title: Rủi ro khi expression có quyền gọi bean tùy ý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-type-reference
+  title: Type reference
+  childs:
+  - slug: spel-type-reference-001
+    title: Toán tử T(Type) trong SpEL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-reference-002
+    title: Tham chiếu java.lang tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-reference-003
+    title: Tham chiếu kiểu đầy đủ package
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-reference-004
+    title: Gọi method static qua type reference
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-reference-005
+    title: Truy cập hằng static
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-reference-006
+    title: Toán tử instanceof kết hợp với type reference
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-reference-007
+    title: TypeLocator và package import
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-reference-008
+    title: Giới hạn type được phép tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-reference-009
+    title: Rủi ro thực thi code khi cho phép type tùy ý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-constructor
+  title: Constructor
+  childs:
+  - slug: spel-constructor-001
+    title: Toán tử new trong SpEL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-constructor-002
+    title: Khởi tạo kiểu bằng tên đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-constructor-003
+    title: Khởi tạo object với constructor arguments
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-constructor-004
+    title: Khởi tạo mảng và kiểu collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-constructor-005
+    title: ConstructorResolver và việc chọn constructor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-constructor-006
+    title: Kiểu không có constructor phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-constructor-007
+    title: Giới hạn constructor trong SimpleEvaluationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-constructor-008
+    title: Không dùng new thay cho việc kiểm soát dependency
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-constructor-009
+    title: Đánh giá rủi ro khi expression tạo object hoặc tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-variables
+  title: Variables
+  childs:
+  - slug: spel-variables-001
+    title: Khai báo và đọc biến trong EvaluationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-variables-002
+    title: 'setVariable và cú pháp #variable'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-variables-003
+    title: Biến có giá trị null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-variables-004
+    title: Biến dùng chung giữa nhiều phần của expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-variables-005
+    title: Biến trong selection và projection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-variables-006
+    title: Biến truyền từ context của ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-variables-007
+    title: Phân biệt biến SpEL với property của root object
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-variables-008
+    title: Quản lý vòng đời và khả năng thay đổi của biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-variables-009
+    title: Không đưa dữ liệu bí mật vào context nếu biểu thức không cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-root-and-this
+  title: Root và this
+  childs:
+  - slug: spel-root-and-this-001
+    title: Root object trong StandardEvaluationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-root-and-this-002
+    title: '#root và object gốc của phép đánh giá'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-root-and-this-003
+    title: '#this và object hiện tại trong scope'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-root-and-this-004
+    title: Thay đổi active context object trong collection expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-root-and-this-005
+    title: Root object với property và method resolution
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-root-and-this-006
+    title: 'Tránh nhầm #this với #root'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-root-and-this-007
+    title: Root object null và chiến lược xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-root-and-this-008
+    title: Thiết kế root object nhỏ theo mục tiêu biểu thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-root-and-this-009
+    title: Kiểm thử expression với root object giả lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-functions
+  title: Functions
+  childs:
+  - slug: spel-functions-001
+    title: Đăng ký hàm Java vào EvaluationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-functions-002
+    title: Method static dùng làm function
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-functions-003
+    title: 'Cú pháp gọi function bằng #functionName'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-functions-004
+    title: Truyền tham số cho function
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-functions-005
+    title: Function kết hợp với biến và collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-functions-006
+    title: Kiểm soát danh sách function được expose
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-functions-007
+    title: Khác biệt giữa function và method của root object
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-functions-008
+    title: Chữ ký function, chuyển đổi kiểu và lỗi đánh giá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-functions-009
+    title: Tránh function có tác dụng phụ hoặc truy cập tài nguyên ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-type-conversion
+  title: Type conversion
+  childs:
+  - slug: spel-type-conversion-001
+    title: TypeConverter trong quá trình đánh giá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-conversion-002
+    title: ConversionService và tích hợp chuyển đổi kiểu của Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-conversion-003
+    title: Chuyển chuỗi thành số, Boolean và enum
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-conversion-004
+    title: Chuyển collection hoặc map theo yêu cầu kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-conversion-005
+    title: Chuyển đổi khi gán property
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-conversion-006
+    title: Custom converter và phạm vi áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-conversion-007
+    title: Conversion error và thông tin chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-conversion-008
+    title: Phân biệt conversion với validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-type-conversion-009
+    title: Giới hạn implicit conversion để tránh kết quả bất ngờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-evaluation-context
+  title: EvaluationContext
+  childs:
+  - slug: spel-evaluation-context-001
+    title: StandardEvaluationContext và khả năng mở rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-evaluation-context-002
+    title: SimpleEvaluationContext và bề mặt an toàn hơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-evaluation-context-003
+    title: Root object, variables và bean resolver trong context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-evaluation-context-004
+    title: Đăng ký PropertyAccessor, MethodResolver và ConstructorResolver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-evaluation-context-005
+    title: TypeLocator, TypeConverter và operator overloader
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-evaluation-context-006
+    title: Read-only và read-write data binding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-evaluation-context-007
+    title: Xây context theo từng use case thay vì dùng context toàn quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-evaluation-context-008
+    title: Tái sử dụng context và nguy cơ state bị giữ lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-evaluation-context-009
+    title: Kiểm tra quyền truy cập trước khi đưa expression vào runtime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-data-binding
+  title: Data binding
+  childs:
+  - slug: spel-data-binding-001
+    title: SpEL trong binding property của object
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-data-binding-002
+    title: Read-only data binding và dữ liệu nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-data-binding-003
+    title: Read-write data binding và cập nhật object
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-data-binding-004
+    title: DataBinder và vai trò của SpEL trong quá trình bind
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-data-binding-005
+    title: Nested path và property accessor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-data-binding-006
+    title: Auto-grow nested paths và collection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-data-binding-007
+    title: Lỗi bind, conversion và validation cần tách biệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-data-binding-008
+    title: Giới hạn property được phép ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-data-binding-009
+    title: Kiểm thử binding với dữ liệu thiếu, null và sai kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-template-expressions
+  title: Template expression
+  childs:
+  - slug: spel-template-expressions-001
+    title: Phân biệt expression thuần với template expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-template-expressions-002
+    title: ParserContext và delimiter của template
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-template-expressions-003
+    title: Trộn văn bản cố định với biểu thức động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-template-expressions-004
+    title: Chuỗi kết quả khi có nhiều đoạn expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-template-expressions-005
+    title: Template không có expression và hành vi tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-template-expressions-006
+    title: Escape delimiter và văn bản chứa ký hiệu đặc biệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-template-expressions-007
+    title: SpEL template trong message, annotation và cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-template-expressions-008
+    title: Kiểm soát dữ liệu được chèn vào chuỗi kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-template-expressions-009
+    title: Không nhầm SpEL template với Thymeleaf hoặc JSP EL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-spring-annotation
+  title: Spring annotation
+  childs:
+  - slug: spel-spring-annotation-001
+    title: SpEL trong @Value
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-spring-annotation-002
+    title: SpEL trong điều kiện cấu hình và thuộc tính bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-spring-annotation-003
+    title: SpEL trong @Cacheable, @CachePut và @CacheEvict
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-spring-annotation-004
+    title: SpEL trong @PreAuthorize và các annotation bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-spring-annotation-005
+    title: SpEL trong @EventListener condition
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-spring-annotation-006
+    title: SpEL trong @Scheduled và giá trị cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-spring-annotation-007
+    title: SpEL trong test annotation và kiểm tra context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-spring-annotation-008
+    title: Method parameter names và metadata phục vụ expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-spring-annotation-009
+    title: Xác định EvaluationContext do từng module Spring cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-bean-definition
+  title: Bean definition
+  childs:
+  - slug: spel-bean-definition-001
+    title: SpEL trong XML bean definition
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-definition-002
+    title: SpEL trong thuộc tính constructor và property
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-definition-003
+    title: SpEL trong Java configuration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-definition-004
+    title: SpEL trong @Bean method và giá trị khởi tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-definition-005
+    title: Tham chiếu bean trong cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-definition-006
+    title: Thứ tự khởi tạo bean và expression evaluation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-definition-007
+    title: Vòng phụ thuộc khi expression tham chiếu bean khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-definition-008
+    title: Đọc cấu hình từ environment và system property
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-bean-definition-009
+    title: Giới hạn expression trong cấu hình để giữ hệ thống dễ hiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-compiler
+  title: Compiler
+  childs:
+  - slug: spel-compiler-001
+    title: SpEL expression compiler là gì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-compiler-002
+    title: Interpreter mode, immediate mode và mixed mode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-compiler-003
+    title: ParserConfiguration và compiler mode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-compiler-004
+    title: Điều kiện để expression có thể biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-compiler-005
+    title: Expression không hỗ trợ compiler và fallback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-compiler-006
+    title: Hiệu năng warm-up và chi phí biên dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-compiler-007
+    title: Thay đổi kiểu runtime ảnh hưởng compiled expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-compiler-008
+    title: Đo đạc trước khi bật compiler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-compiler-009
+    title: Kiểm thử tương đương giữa interpreted và compiled expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-security
+  title: Security
+  childs:
+  - slug: spel-security-001
+    title: Đe dọa khi đánh giá expression từ dữ liệu không tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-security-002
+    title: Phân biệt expression authored bởi nhà phát triển với expression do người dùng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-security-003
+    title: Giới hạn root object, property accessor và resolver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-security-004
+    title: Chặn type reference, constructor và method nguy hiểm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-security-005
+    title: Không expose ApplicationContext toàn bộ cho expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-security-006
+    title: SimpleEvaluationContext như một lựa chọn giới hạn quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-security-007
+    title: Kiểm tra độ dài, cú pháp và tài nguyên của expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-security-008
+    title: Không dùng parse thành công làm bằng chứng an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-security-009
+    title: Thiết kế allowlist và kiểm thử các trường hợp vượt quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-error-handling
+  title: Error handling
+  childs:
+  - slug: spel-error-handling-001
+    title: ParseException và lỗi cú pháp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-error-handling-002
+    title: EvaluationException và lỗi trong lúc đánh giá
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-error-handling-003
+    title: AccessException từ accessor hoặc resolver
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-error-handling-004
+    title: Lỗi property, method, constructor và conversion
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-error-handling-005
+    title: Thông tin vị trí trong expression bị lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-error-handling-006
+    title: Phân biệt lỗi cấu hình với lỗi dữ liệu runtime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-error-handling-007
+    title: Giữ nguyên nguyên nhân khi bọc lỗi ở tầng Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-error-handling-008
+    title: Thông báo lỗi không làm lộ dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-error-handling-009
+    title: Thiết kế fallback rõ ràng thay vì nuốt lỗi expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-testing
+  title: Testing
+  childs:
+  - slug: spel-testing-001
+    title: Kiểm thử expression độc lập với ApplicationContext lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-testing-002
+    title: Kiểm thử parser với expression hợp lệ và không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-testing-003
+    title: Kiểm thử root object và variables
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-testing-004
+    title: Kiểm thử bean reference bằng context tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-testing-005
+    title: Kiểm thử selection, projection và null-safe navigation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-testing-006
+    title: Kiểm thử conversion, binding và lỗi kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-testing-007
+    title: Kiểm thử cả nhánh điều kiện và trường hợp collection rỗng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-testing-008
+    title: Kiểm thử expression dùng trong annotation của Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-testing-009
+    title: Đối chiếu kết quả SpEL với logic Java tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-testing-010
+    title: Kiểm thử giới hạn quyền và expression không tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-debugging
+  title: Debugging
+  childs:
+  - slug: spel-debugging-001
+    title: Đọc expression string và expression tree khi chẩn đoán lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-debugging-002
+    title: Xác định active object tại điểm truy cập lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-debugging-003
+    title: Kiểm tra tên biến, bean và function đã đăng ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-debugging-004
+    title: Khoanh vùng property path dài bằng expression nhỏ hơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-debugging-005
+    title: Kiểm tra kiểu runtime trước khi chọn toán tử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-debugging-006
+    title: Phân tích lỗi do resolver hoặc converter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-debugging-007
+    title: Phân biệt lỗi parse với lỗi evaluation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-debugging-008
+    title: Thu nhỏ context để phát hiện quyền truy cập dư thừa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-debugging-009
+    title: Chẩn đoán khác biệt giữa môi trường test và runtime
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-performance
+  title: Hiệu năng
+  childs:
+  - slug: spel-performance-001
+    title: Chi phí parse expression và thời điểm tạo parser
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-performance-002
+    title: Tái sử dụng parsed Expression khi biểu thức lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-performance-003
+    title: Chi phí evaluation context và object graph
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-performance-004
+    title: Chi phí selection, projection và method invocation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-performance-005
+    title: Ảnh hưởng của conversion và resolver tùy biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-performance-006
+    title: Expression compiler và tiêu chí đo hiệu quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-performance-007
+    title: Giới hạn kích thước expression và dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-performance-008
+    title: Cache expression theo nguồn và vòng đời cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-performance-009
+    title: Đo độ trễ, cấp phát và thông lượng trước khi tối ưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-expression-design
+  title: Thiết kế biểu thức
+  childs:
+  - slug: spel-expression-design-001
+    title: Giữ expression ngắn và tập trung vào một quyết định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-expression-design-002
+    title: Đặt tên biến và root property để biểu thức tự giải thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-expression-design-003
+    title: Tách logic nghiệp vụ lớn khỏi SpEL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-expression-design-004
+    title: Chọn method Java thay cho chuỗi expression khó đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-expression-design-005
+    title: Không che giấu tác dụng phụ trong expression
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-expression-design-006
+    title: Chuẩn hóa cách viết expression giữa các module
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-expression-design-007
+    title: Ghi tài liệu về context, bean và biến mà expression cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-expression-design-008
+    title: Quản lý expression như mã nguồn có phiên bản và review
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-expression-design-009
+    title: Thiết kế điểm thay thế khi biểu thức không còn phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spel-integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: spel-integrated-practice-001
+    title: Đánh giá property của root object và xử lý null-safe
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-integrated-practice-002
+    title: Lọc và chiếu danh sách object bằng selection và projection
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-integrated-practice-003
+    title: Tham chiếu bean để tính giá trị cấu hình có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-integrated-practice-004
+    title: Xây expression điều kiện với Elvis và toán tử ba ngôi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-integrated-practice-005
+    title: Dùng variable và function trong một EvaluationContext tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-integrated-practice-006
+    title: Bind dữ liệu chuỗi vào object qua conversion và validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-integrated-practice-007
+    title: Tích hợp SpEL vào @Value hoặc annotation cache
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-integrated-practice-008
+    title: Đo interpreted expression và compiled expression trên cùng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-integrated-practice-009
+    title: Thiết kế allowlist cho expression do người dùng cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spel-integrated-practice-010
+    title: 'Hồ sơ hoàn chỉnh: cú pháp, context, kiểm thử, bảo mật và hiệu năng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

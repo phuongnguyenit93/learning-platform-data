@@ -1,102 +1,102 @@
-# 3.6 Phân biệt PID của container với PID trên máy chủ
+# 3.6 Distinguishing Container PIDs from Host PIDs
 
-Khi điều tra một tiến trình Java trong container, cùng một JVM có thể được ghi là **PID 1** trong container nhưng **PID 48210** ở máy chủ Linux. Đây không phải hai tiến trình: đó có thể là **hai số nhận diện của cùng một tiến trình** dưới hai **PID namespace**. Nếu nhập PID ở sai phạm vi, các lệnh **ps**, **jcmd**, **kill**, thao tác **/proc** và quy trình gắn log/trace có thể nhắm nhầm tiến trình hoặc báo không tìm thấy JVM.
+When investigating a Java process inside a container, the same JVM may be recorded as **PID 1** inside the container yet **PID 48210** on the Linux host. These are not two processes: they can be **two identifiers for the exact same process** under two **PID namespaces**. Entering a PID in the wrong scope can cause **ps**, **jcmd**, **kill**, **/proc** operations, and log/trace correlation to target the wrong process or report that no JVM was found.
 
-Bài này giải thích cơ chế PID namespace trên **Linux**, cách đối chiếu PID của container với PID ở máy chủ, những trường hợp không thể giả định Java là PID 1, và cách chọn đúng PID khi chẩn đoán JVM Java 21 với Docker/Kubernetes. Lệnh và ví dụ đầu ra dùng số minh họa; PID thật phải được kiểm chứng tại thời điểm thao tác.
+This lesson explains the **Linux** PID namespace mechanism, how to map container PIDs to host PIDs, cases where Java cannot be assumed to be PID 1, and how to pick the right PID when diagnosing Java 21 JVMs with Docker/Kubernetes. Commands and example outputs use illustrative numbers; real PIDs must be verified at operation time.
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích vì sao một tiến trình có thể có **nhiều PID hợp lệ** khi nhìn từ những PID namespace khác nhau.
-- Phân biệt **PID của JVM**, **PID 1 của container**, **PID mà Docker daemon trả về**, **PID ở Linux host**, và **container ID**.
-- Đọc trường **NStgid** cùng **NSpid** trong **/proc/<pid>/status** và hiểu hướng hiển thị từ namespace ngoài vào namespace trong.
-- Đối chiếu một tiến trình Java trong container với tiến trình tương ứng trên Linux host mà không suy diễn bằng cách cộng/trừ một khoảng PID.
-- Biết chọn PID cho **jcmd, ps, JFR, thread dump** theo môi trường công cụ đang chạy.
-- Nhận ra ngoại lệ **--pid=host**, container cùng namespace, Kubernetes **shareProcessNamespace**, **hostPID**, image tối giản và Docker Desktop.
-- Giảm rủi ro nhắm sai tiến trình sau khi container khởi động lại hoặc PID bị tái sử dụng.
+- Explain why a single process can have **multiple valid PIDs** when viewed from different PID namespaces.
+- Distinguish **JVM PID**, **container PID 1**, **PID returned by the Docker daemon**, **Linux host PID**, and **container ID**.
+- Read **NStgid** alongside **NSpid** in **/proc/<pid>/status** and understand the display order from outer to inner namespaces.
+- Correlate a Java process inside a container with the corresponding process on the Linux host without guessing by adding/subtracting a PID offset.
+- Choose the right PID for **jcmd, ps, JFR, thread dumps** according to where the diagnostic tool runs.
+- Recognize exceptions such as **--pid=host**, shared-namespace containers, Kubernetes **shareProcessNamespace**, **hostPID**, minimal images, and Docker Desktop.
+- Reduce the risk of targeting the wrong process after container restarts or PID reuse.
 
-## 2. PID là số có phạm vi: PID namespace xác định “nhìn từ đâu”
+## 2. PIDs Are Scoped Numbers: PID Namespace Defines “Viewed From Where”
 
-Trong Linux, **process ID (PID)** do kernel quản lý và có nghĩa trong một **PID namespace**. Khi container dùng namespace PID riêng, tiến trình bên trong thường chỉ thấy các tiến trình thuộc namespace đó và những namespace con có thể nhìn thấy; nó không mặc nhiên nhìn thấy toàn bộ tiến trình của Linux host. Ngược lại, namespace tổ tiên có thể nhìn thấy tiến trình của namespace con, nhưng mỗi nơi gọi tiến trình đó bằng một PID phù hợp với chính namespace của mình.
+On Linux, **process IDs (PIDs)** are managed by the kernel and have meaning within a **PID namespace**. When a container uses its own PID namespace, processes inside usually only see processes in that namespace and visible child namespaces; they do not by default see all processes on the Linux host. Conversely, an ancestor namespace can see processes in child namespaces, yet each views the process using a PID belonging to its own namespace.
 
-Ví dụ trong cách triển khai Docker Linux thông thường:
+Example in a typical Linux Docker setup:
 
 ~~~text
-Một tiến trình Java X trong Linux kernel
+A Java process X in the Linux kernel
     |
-    +-- PID namespace ở Linux host : PID 48210
+    +-- Linux host PID namespace : PID 48210
     |
-    +-- PID namespace của container: PID 1
+    +-- Container PID namespace  : PID 1
 
-Hai số 48210 và 1 có thể cùng chỉ tiến trình X.
+Both 48210 and 1 can refer to process X.
 ~~~
 
-**Điểm quyết định:** PID là giá trị gắn với **góc nhìn (namespace)**, không phải mã nhận diện toàn cục, vĩnh viễn cho một tiến trình. Các tiến trình khác nhau, ở những PID namespace khác nhau, đều có thể là **PID 1** mà không xung đột.
+**Decisive point:** a PID is a value tied to a **perspective (namespace)**, not a globally unique, permanent identifier for a process. Different processes in different PID namespaces can all be **PID 1** without conflict.
 
-Một số quy tắc quan trọng:
+Several key rules:
 
-1. Một tiến trình thuộc PID namespace khi nó được tạo. Namespace có thể lồng nhau thành một hệ phân cấp.
-2. Tiến trình trong namespace con có PID tương ứng ở namespace đó và mỗi namespace tổ tiên có thể nhìn thấy nó. Các PID này **không có quy luật chuyển đổi số học đơn giản**.
-3. **getpid()**, tương ứng với **ProcessHandle.current().pid()** trong Java, trả số tiến trình theo góc nhìn runtime nơi JVM chạy. Không dùng kết quả đó như PID toàn cục để ra lệnh từ mọi nơi.
-4. PID namespace con thông thường không thể xem/điều khiển tiến trình chỉ tồn tại ở namespace tổ tiên bằng PID host. Phạm vi hiển thị cũng phụ thuộc **/proc** được mount từ namespace nào.
-5. PID namespace và **cgroup** giải quyết hai bài toán khác nhau: namespace quyết định **PID và khả năng nhìn thấy tiến trình**; cgroup liên quan đến nhóm tiến trình và giới hạn/theo dõi tài nguyên. Có cùng cgroup hoặc container ID không biến hai PID thành cùng một giá trị.
+1. A process belongs to a PID namespace when created. Namespaces can be nested into a hierarchy.
+2. A process in a child namespace has a corresponding PID in that namespace and in every ancestor namespace that can see it. These PIDs **have no simple arithmetic conversion rule**.
+3. **getpid()**, corresponding to **ProcessHandle.current().pid()** in Java, returns the process number from the perspective of the runtime where the JVM executes. Never treat that number as a global PID usable everywhere.
+4. A child PID namespace normally cannot inspect/control processes existing only in an ancestor namespace using host PIDs. Visibility also depends on which namespace **/proc** was mounted from.
+5. PID namespaces and **cgroups** solve two different problems: namespaces govern **PIDs and process visibility**; cgroups handle process grouping and resource limits/accounting. Sharing the same cgroup or container ID does not make two PIDs equal.
 
-**“Host” phải được định nghĩa rõ:** trong Docker Engine chạy trực tiếp trên Linux, host thường là chính kernel Linux nơi Docker daemon chạy. Trong **Docker Desktop trên Windows/macOS**, Linux containers chạy trong một **Linux VM**: PID mà Docker Engine nhìn thấy thuộc môi trường VM, **không phải PID của tiến trình Windows/macOS**. Trong Kubernetes, “host PID” thường là PID theo namespace của **node Linux** chạy Pod, không phải máy trạm đang chạy kubectl.
+**“Host” must be defined clearly:** in Docker Engine running directly on Linux, the host is usually the Linux kernel where the Docker daemon runs. In **Docker Desktop on Windows/macOS**, Linux containers run inside a **Linux VM**: PIDs seen by the Docker Engine belong to the VM environment, **not Windows/macOS process IDs**. In Kubernetes, “host PID” usually means the PID in the namespace of the **Linux node** running the Pod, not the workstation running kubectl.
 
-## 3. Không đồng nhất PID 1, Java PID và host PID
+## 3. Do Not Equate PID 1, Java PID, and Host PID
 
-Một container có thể chạy một hoặc nhiều tiến trình. **PID 1** là tiến trình init trong PID namespace riêng khi container thực sự có namespace đó; PID 1 không có nghĩa “đây chắc chắn là Java”.
+A container can run one or many processes. **PID 1** is the init process inside a dedicated PID namespace when the container actually has one; PID 1 does not mean “this is definitely Java”.
 
-### 3.1. Ba cấu trúc khởi động thường gặp
+### 3.1. Three Common Startup Structures
 
-**Trường hợp A: Java được thực thi trực tiếp**
+**Case A: Java is executed directly**
 
 ~~~text
-Linux host                          Trong container
+Linux host                          Inside container
 PID 48210  java -jar app.jar   <=>   PID 1  java -jar app.jar
 ~~~
 
-Nếu entrypoint khởi động **java** trực tiếp hoặc shell dùng **exec java ...**, Java có thể chính là PID 1. Khi đó giá trị **State.Pid** của Docker container có thể trỏ đến đúng tiến trình Java ở góc nhìn host Linux.
+If the entrypoint starts **java** directly or a shell uses **exec java ...**, Java can indeed be PID 1. In that case, the Docker container's **State.Pid** can point to the actual Java process from the Linux host perspective.
 
-**Trường hợp B: shell/wrapper không dùng exec**
+**Case B: shell/wrapper without exec**
 
 ~~~text
-Linux host                          Trong container
+Linux host                          Inside container
 PID 48210  /bin/sh start.sh    <=>   PID 1  /bin/sh start.sh
 PID 48253  java -jar app.jar   <=>   PID 7  java -jar app.jar
 ~~~
 
-Docker thường biết PID của **tiến trình ban đầu container**, ví dụ **48210**. Nhưng JVM cần chẩn đoán là tiến trình **48253** (PID 7 bên trong). Dùng kết quả Docker inspect của tiến trình khởi đầu làm PID cho **jcmd** có thể nhắm vào shell, không phải JVM.
+Docker usually knows the PID of the **container's initial process**, e.g. **48210**. Yet the JVM to diagnose is process **48253** (PID 7 inside). Passing Docker inspect's initial-process PID to **jcmd** would target the shell, not the JVM.
 
-**Trường hợp C: có init nhỏ hoặc process supervisor**
+**Case C: minimal init or process supervisor**
 
 ~~~text
-Linux host                          Trong container
+Linux host                          Inside container
 PID 48210  tini                 <=>   PID 1  tini
 PID 48253  java -jar app.jar    <=>   PID 7  java -jar app.jar
 ~~~
 
-Sử dụng **docker run --init**, supervisor hoặc một init wrapper có thể giúp chuyển tiếp signal và thu hồi zombie child. Khi đó Java thường là **tiến trình con**, nên **PID 1** vẫn không phải PID cần chỉ định cho JVM diagnostics.
+Using **docker run --init**, a supervisor, or an init wrapper helps forward signals and reap zombie children. Then Java is usually a **child process**, so **PID 1** is still not the PID to pass to JVM diagnostics.
 
-**Hệ quả thực tế:** trước khi dùng **jcmd 1**, phải xác nhận tiến trình có PID 1 trong namespace hiện tại **thực sự là JVM**. Không suy ra chỉ từ tên container, image Java hoặc service name.
+**Practical consequence:** before running **jcmd 1**, verify that PID 1 in the current namespace **is actually the JVM**. Do not infer it from container name, Java image, or service name alone.
 
-### 3.2. PID, PPID, TID, container ID và Pod UID khác nhau
+### 3.2. PID, PPID, TID, Container ID, and Pod UID Differ
 
-| Thuật ngữ | Là gì | Dùng để làm gì |
+| Term | What it is | What it is used for |
 | --- | --- | --- |
-| **PID** | ID của một process trong một PID namespace cụ thể | Chỉ định process cho ps, jcmd, signal, /proc theo góc nhìn caller. |
-| **PPID** | PID của tiến trình cha nhìn từ namespace liên quan | Hiểu cây tiến trình; cha ở namespace ngoài có thể không hiển thị như bạn mong đợi. |
-| **TID / LWP ID** | ID của thread ở mức kernel | Điều tra từng native thread; không trộn với PID process hoặc Java thread ID. |
-| **Container ID** | ID do container runtime quản lý | Chọn container cho docker exec/inspect; **không phải PID**. |
-| **Pod UID / container runtime ID** | Danh tính orchestration/runtime | Xác định chính xác workload/instance, hữu ích khi nhiều container trùng tên logic. |
-| **PID namespace inode** | Danh tính của một đối tượng PID namespace trong cùng kernel | So sánh hai tiến trình có cùng PID namespace hay không. |
+| **PID** | ID of a process within a specific PID namespace | Specifying a process for ps, jcmd, signals, /proc from the caller's view. |
+| **PPID** | PID of the parent process as seen from the relevant namespace | Understanding the process tree; a parent in an outer namespace may not appear as expected. |
+| **TID / LWP ID** | Kernel-level thread ID | Investigating individual native threads; do not mix with process PID or Java thread ID. |
+| **Container ID** | ID managed by the container runtime | Selecting a container for docker exec/inspect; **not a PID**. |
+| **Pod UID / container runtime ID** | Orchestration/runtime identity | Pinpointing the exact workload/instance, useful when multiple containers share a logical name. |
+| **PID namespace inode** | Identity of a PID namespace object in the same kernel | Comparing whether two processes share the same PID namespace. |
 
-Đối với Java, **Thread.currentThread().threadId()** là **Java thread ID**, không phải Linux PID của JVM và cũng không đương nhiên là native TID; càng không dùng làm đối số **jcmd**. Trên Linux, trường **Tgid** là **thread-group ID**, tức process ID của thread group; trường **Pid** trong tệp status của một task là **thread ID**. Với thread-group leader hai giá trị thường trùng nhau.
+In Java, **Thread.currentThread().threadId()** is the **Java thread ID**, not the Linux PID of the JVM and not guaranteed to be the native TID; never pass it as a **jcmd** argument. On Linux, **Tgid** is the **thread-group ID**, i.e., the process ID of the thread group; **Pid** in a task's status file is the **thread ID**. For the thread-group leader, both values usually match.
 
-## 4. Dữ liệu kernel để đối chiếu: /proc/<pid>/status
+## 4. Kernel Data for Cross-Checking: /proc/<pid>/status
 
-Tại Linux host, nếu có quyền đọc tệp **/proc/<host-pid>/status**, bạn có thể xem những dòng sau:
+On a Linux host, if you have permission to read **/proc/<host-pid>/status**, you may see lines like:
 
 ~~~text
 Name:   java
@@ -107,19 +107,19 @@ NStgid: 48210   1
 NSpid:  48210   1
 ~~~
 
-*Đây là dữ liệu minh họa cho trường hợp JVM chính là PID 1 trong container, được đọc từ procfs mount ở namespace host.*
+*This is illustrative data for the case where the JVM itself is PID 1 in the container, read from procfs mounted in the host namespace.*
 
-**Cách đọc NStgid:**
+**How to read NStgid:**
 
-- **NStgid** là danh sách **thread-group ID / process PID** qua các PID namespace mà process có mặt.
-- **Giá trị bên trái** là PID theo namespace của tiến trình **đã mount procfs** đang đọc (thường là namespace host khi dùng **/proc** chuẩn ở Linux host).
-- Các giá trị về bên phải là PID trong các namespace con ngày càng sâu.
-- Ở ví dụ trên, **48210** là PID theo host procfs, **1** là PID theo namespace của container.
-- Nếu namespace lồng sâu, bạn có thể thấy ba hoặc nhiều số, chẳng hạn **NStgid: 48253 301 7**. Không giả định chỉ có đúng hai cột.
+- **NStgid** lists the **thread-group ID / process PID** across the PID namespaces the process belongs to.
+- **The leftmost value** is the PID in the namespace of the process **that mounted the procfs** being read (typically the host namespace when using standard **/proc** on a Linux host).
+- Values further right are PIDs in progressively deeper child namespaces.
+- In the example above, **48210** is the PID per host procfs, and **1** is the PID in the container's namespace.
+- With deeply nested namespaces, you may see three or more numbers, e.g. **NStgid: 48253 301 7**. Do not assume there are always exactly two columns.
 
-**NSpid** có thứ tự tương tự nhưng mô tả **thread ID** trong từng PID namespace. Khi đọc tệp **/proc/<pid>/status** của **thread-group leader**, NSpid thường trùng NStgid. Khi đọc **/proc/<pid>/task/<tid>/status** của thread khác, NSpid chỉ **TID** và có thể khác NStgid. Khi mục tiêu là **PID của JVM như một process**, nên ưu tiên **NStgid**; đừng dùng TID của một Java worker thread làm process PID.
+**NSpid** follows the same order but describes the **thread ID** in each PID namespace. When reading **/proc/<pid>/status** of the **thread-group leader**, NSpid usually equals NStgid. When reading **/proc/<pid>/task/<tid>/status** of another thread, NSpid shows the **TID** and can differ from NStgid. When looking for **the JVM's PID as a process**, prefer **NStgid**; never use a Java worker thread's TID as the process PID.
 
-**Lưu ý chính xác về /proc:** kernel hiển thị các trường namespace trên hệ Linux có hỗ trợ (chúng xuất hiện từ Linux 4.1). Các giá trị bên trái phụ thuộc **procfs được mount từ namespace nào**. Trong container có procfs mount ở namespace chính nó, cùng tiến trình có thể hiển thị chỉ:
+**Exact note on /proc:** the kernel exposes namespace fields on supported Linux kernels (introduced in Linux 4.1). Leftmost values depend on **which namespace mounted procfs**. Inside a container whose procfs is mounted in its own namespace, the same process might show only:
 
 ~~~text
 Name:   java
@@ -127,59 +127,59 @@ NStgid: 1
 NSpid:  1
 ~~~
 
-Điều đó **không có nghĩa** PID host cũng là 1; procfs của container chỉ đang hiển thị từ góc nhìn hẹp hơn. **Không dựa vào /proc/self/status bên trong container để mặc định lấy được PID host**. Nếu các trường không tồn tại hoặc bị hạn chế quyền, dùng cơ chế container runtime/node tương ứng thay vì đoán PID.
+That **does not mean** the host PID is also 1; the container's procfs simply shows a narrower view. **Do not rely on /proc/self/status inside a container expecting to obtain the host PID**. If fields are absent or permission-restricted, use the container runtime/node mechanism rather than guessing the PID.
 
-### 4.1. Kiểm tra namespace inode
+### 4.1. Checking the Namespace Inode
 
-Linux còn cung cấp liên kết biểu diễn namespace, ví dụ:
+Linux also provides a symlink representing the namespace, for example:
 
 ~~~bash
 readlink /proc/48210/ns/pid
 ~~~
 
-Kết quả *minh họa*:
+*Illustrative* output:
 
 ~~~text
 pid:[4026532465]
 ~~~
 
-Nếu hai process đang ở **cùng Linux kernel** và các đường dẫn **/proc/<pid>/ns/pid** có cùng namespace inode, chúng ở cùng PID namespace. Nhưng inode không thay thế **PID mapping**: hai process cùng namespace vẫn có PID khác nhau. So sánh inode giữa các **máy/VM khác nhau** không có ý nghĩa. Đừng suy ra PID bên trong từ số inode.
+If two processes are on **the same Linux kernel** and their **/proc/<pid>/ns/pid** paths resolve to the same namespace inode, they share the same PID namespace. However, an inode does not replace **PID mapping**: two processes in the same namespace still have different PIDs. Comparing inodes across **different machines/VMs** is meaningless. Never deduce an internal PID from the inode number.
 
-**PID namespace inode** còn hữu ích để thấy rằng **PID 1 của host** và **PID 1 của container** có thể thuộc hai namespace khác nhau, dù số cùng bằng 1. Cần biết namespace và ngữ cảnh mới xác định đúng tiến trình.
+**PID namespace inode** is also useful to see that **host PID 1** and **container PID 1** belong to two distinct namespaces even though both equal 1. You need both namespace and context to identify the process accurately.
 
-## 5. Thực hành Docker Engine trên Linux: đối chiếu một container đang chạy
+## 5. Docker Engine Practice on Linux: Cross-Checking a Running Container
 
-Phần này giả định bạn có **Docker CLI truy cập daemon đang quản lý container trên Linux host** và có quyền cần thiết. Giả sử container tên **my-java-app**; thay bằng ID/tên thật. Các lệnh này chỉ kiểm tra thông tin, không dừng process.
+This section assumes you have **Docker CLI access to the daemon managing the container on a Linux host** and required permissions. Assume the container is named **my-java-app**; replace with the real ID/name. These commands only inspect information and do not stop processes.
 
-### Bước 1 — Nhìn tiến trình trong container
+### Step 1 — Look at Processes Inside the Container
 
-Khi image có **sh**, **ps** và **cat**:
+When the image has **sh**, **ps**, and **cat**:
 
 ~~~bash
 docker exec my-java-app sh -c 'ps -eo pid,ppid,comm'
 docker exec my-java-app sh -c 'cat /proc/1/status | grep -E "^(Name|Tgid|Pid|PPid|NStgid|NSpid):"'
 ~~~
 
-Đọc **PID của Java** và **PID của tiến trình 1**, xem chúng có giống nhau không. **docker exec** tạo thêm tiến trình tạm thời khi chạy lệnh nên process list có thể chứa cả shell/ps mới. Nếu container là **distroless**, không có shell/ps, đừng kết luận PID không tồn tại; chuyển sang thông tin từ Docker daemon/runtime hoặc công cụ debug được tổ chức cho phép.
+Check **Java's PID** and **PID of process 1** to see whether they match. **docker exec** spawns temporary processes while running the command, so the process list may include the new shell/ps. If the container is **distroless** without shell/ps, do not conclude no PID exists; switch to Docker daemon/runtime info or organization-approved debugging tools.
 
-**Nếu Java là PID 7:** dùng **7** khi thao tác trong chính PID namespace/container đó, bất kể Docker inspect báo PID của tiến trình 1 là bao nhiêu. Kiểm tra tên process và đường lệnh thay vì chỉ dựa vào số.
+**If Java is PID 7:** use **7** when operating inside that same PID namespace/container, regardless of what PID Docker inspect reports for process 1. Verify process name and command line rather than relying on the number alone.
 
-### Bước 2 — Lấy PID của tiến trình khởi đầu container từ Docker daemon
+### Step 2 — Get the Container Initial Process PID from the Docker Daemon
 
-Chạy ở nơi có Docker CLI và daemon phù hợp:
+Run where Docker CLI and the appropriate daemon are accessible:
 
 ~~~bash
 docker inspect --format '{{.State.Pid}}' my-java-app
 docker inspect --format '{{.HostConfig.PidMode}}' my-java-app
 ~~~
 
-Giả sử kết quả lệnh đầu là **48210**. Trong triển khai **Docker Engine trực tiếp trên Linux**, **State.Pid** thường là PID của **tiến trình khởi đầu container** ở góc nhìn Linux host/daemon. Nó **không phải** ID container và **không nhất thiết** là PID của Java khi Java được shell, tini hay supervisor sinh ra. Giá trị **0** hoặc không có PID khả dụng có thể xuất hiện khi container không còn chạy; cần kiểm tra trạng thái container.
+Suppose the first command outputs **48210**. In **Docker Engine directly on Linux**, **State.Pid** is typically the PID of **the container's initial process** from the Linux host/daemon perspective. It is **not** the container ID and **not necessarily** Java's PID when Java was spawned by a shell, tini, or supervisor. A value of **0** or no available PID can appear when the container is no longer running; check container status.
 
-Giá trị **HostConfig.PidMode** giúp nhận biết container có dùng cấu hình chia sẻ PID đặc biệt hay không, chẳng hạn **host** hoặc **container:<id>**. Trường này không tự thay thế việc nhận diện JVM process đang sống.
+**HostConfig.PidMode** helps detect whether the container uses a special PID sharing mode such as **host** or **container:<id>**. This field does not replace identifying the live JVM process itself.
 
-### Bước 3 — Đọc bản đồ PID ở đúng Linux host
+### Step 3 — Read the PID Map on the Right Linux Host
 
-Trên **cùng Linux host/kernel với Docker daemon**:
+On **the same Linux host/kernel as the Docker daemon**:
 
 ~~~bash
 HOST_PID=$(docker inspect --format '{{.State.Pid}}' my-java-app)
@@ -188,9 +188,9 @@ grep -E '^(Name|Tgid|Pid|PPid|NStgid|NSpid):' /proc/"$HOST_PID"/status
 readlink /proc/"$HOST_PID"/ns/pid
 ~~~
 
-**Điều kiện:** đang chạy ở Linux shell đúng host, có procfs và đủ quyền. Đừng sao chép lệnh **/proc/$HOST_PID** sang Windows PowerShell/macOS rồi hy vọng đọc cùng kernel: khi dùng Docker Desktop, daemon/Linux containers nằm trong VM. Khi Docker CLI kết nối daemon từ xa, PID đó cũng thuộc **máy chạy daemon**, không thuộc máy đang gõ lệnh.
+**Prerequisites:** running in a Linux shell on the right host, with procfs and sufficient permissions. Never copy **/proc/$HOST_PID** commands to Windows PowerShell/macOS expecting to read the same kernel: with Docker Desktop, the daemon/Linux containers live inside a VM. When Docker CLI connects to a remote daemon, that PID also belongs to **the daemon host**, not the machine where you type commands.
 
-**Ví dụ giả định** nếu tiến trình khởi đầu là Java:
+**Hypothetical example** if the initial process is Java:
 
 ~~~text
 Docker init host PID: 48210
@@ -202,25 +202,25 @@ NSpid:  48210   1
 pid:[4026532465]
 ~~~
 
-Dòng **NStgid: 48210 1** là bằng chứng mạnh về cặp PID nếu procfs được mount ở namespace host. Các số là minh họa, không phải đầu ra cố định.
+The line **NStgid: 48210 1** is strong evidence for the PID pair if procfs is mounted in the host namespace. Numbers are illustrative, not fixed output.
 
-### Bước 4 — Nếu Java không phải PID 1, phải tìm chính JVM trên host
+### Step 4 — If Java Is Not PID 1, Locate the JVM Itself on the Host
 
-Giả sử:
+Suppose:
 
 ~~~text
 Docker init: host PID 48210 / container PID 1 / program tini
 Java:        host PID 48253 / container PID 7 / program java
 ~~~
 
-Khi đó **docker inspect State.Pid = 48210** chỉ xác định **tini**. Bạn phải xác định **host PID 48253 của JVM**, ví dụ qua danh sách tiến trình mà Docker/runtime hoặc Linux host cho phép quan sát, rồi xác nhận:
+Here **docker inspect State.Pid = 48210** identifies only **tini**. You must locate **the JVM's host PID 48253**, for instance via process listings visible to Docker/runtime or the Linux host, then confirm:
 
 ~~~bash
 grep -E '^(Name|Tgid|Pid|PPid|NStgid|NSpid):' /proc/48253/status
 readlink /proc/48253/ns/pid
 ~~~
 
-Kết quả minh họa:
+Illustrative output:
 
 ~~~text
 Name:   java
@@ -232,29 +232,29 @@ NSpid:  48253   7
 pid:[4026532465]
 ~~~
 
-Như vậy **48253** là PID host của JVM, **7** là PID container. Không tính **48253 - 48210 = 43** rồi dùng số 43 làm “offset” cho những process khác: mỗi namespace phân phối PID độc lập và có thể tái sử dụng số.
+Thus **48253** is the JVM's host PID, and **7** is its container PID. Do not calculate **48253 - 48210 = 43** and treat 43 as an “offset” for other processes: each namespace assigns PIDs independently and can reuse numbers.
 
-Khi nhiều JVM cùng container hoặc process được restart, kiểm tra thêm command line, thời gian bắt đầu, container ID và namespace. **Một cặp PID hôm qua có thể đã bị thu hồi và tái sử dụng hôm nay.**
+When multiple JVMs share a container or processes restart, also verify command line, start time, container ID, and namespace. **Yesterday's PID pair may have been reclaimed and reused today.**
 
-### Bước 5 — Chọn lệnh theo nơi công cụ chạy
+### Step 5 — Choose Commands Based on Where the Tool Runs
 
-| Vị trí thao tác | PID dùng để xác định JVM | Thao tác điển hình |
+| Execution location | PID used to target the JVM | Typical operations |
 | --- | --- | --- |
-| **Trong container / PID namespace JVM** | **PID container** của Java, ví dụ **7** | **jcmd 7 VM.version**, **ps -p 7**, **/proc/7/status** nếu công cụ và quyền cho phép. |
-| **Tại Linux host chứa Docker daemon** | **PID host** của chính JVM, ví dụ **48253** | **ps -p 48253**, **/proc/48253/status**, thử **jcmd 48253 ...** khi attach hỗ trợ. |
-| **Docker CLI từ laptop kết nối daemon Linux từ xa** | PID theo daemon/remote host, **không phải PID laptop** | **docker inspect/exec** hướng tới daemon; thao tác /proc cần thực hiện trên đúng Linux host. |
-| **Docker Desktop Windows/macOS (Linux containers)** | PID trong container hoặc Linux VM theo góc nhìn daemon | Dùng **docker exec**/khả năng chẩn đoán được hỗ trợ; **tasklist/Activity Monitor** không hiển thị trực tiếp cùng PID Linux. |
-| **Kubernetes container tách PID namespace** | PID trong namespace container khi exec vào container | **kubectl exec** vào đúng container, xác định JVM PID trước khi chạy jcmd; host PID thuộc node Linux. |
+| **Inside the container / JVM PID namespace** | Java's **container PID**, e.g. **7** | **jcmd 7 VM.version**, **ps -p 7**, **/proc/7/status** if tools and permissions allow. |
+| **On the Linux host running the Docker daemon** | The JVM's **host PID**, e.g. **48253** | **ps -p 48253**, **/proc/48253/status**, try **jcmd 48253 ...** when attach is supported. |
+| **Docker CLI from a laptop connected to a remote Linux daemon** | PID on the daemon/remote host, **not laptop PID** | **docker inspect/exec** targets the daemon; /proc checks must run on the exact Linux host. |
+| **Docker Desktop Windows/macOS (Linux containers)** | PID inside container or inside Linux VM from daemon view | Use **docker exec**/supported diagnostics; **tasklist/Activity Monitor** will not directly show Linux PIDs. |
+| **Kubernetes container with isolated PID namespace** | PID in the container namespace when exec'd in | **kubectl exec** into the right container, verify JVM PID before running jcmd; host PID belongs to the Linux node. |
 
-Không chuyển đổi PID bằng cách thêm/bớt một con số, cũng không chọn **PID 1** chỉ vì đây là container Java.
+Do not convert PIDs by adding/subtracting a number, and do not pick **PID 1** just because it is a Java container.
 
-## 6. Ví dụ Java 21 chạy được: xem PID mà chính JVM nhìn thấy
+## 6. Runnable Java 21 Example: Viewing the PID Seen by the JVM Itself
 
-Java cung cấp **ProcessHandle.current().pid()**. Nó rất hữu ích để log **PID theo môi trường chạy JVM** nhưng không có API Java SE nào biến con số này thành “PID Linux host” trên mọi platform.
+Java provides **ProcessHandle.current().pid()**. It is very useful for logging **the PID in the JVM's execution environment**, yet no Java SE API turns that number into a “Linux host PID” across all platforms.
 
-Chương trình sau đọc thêm thông tin **/proc/self/status** trên Linux. Nó vẫn biên dịch trên Java 21 ở platform khác; khi không có **/proc**, phần đó được bỏ qua với thông báo rõ ràng.
+The program below also reads **/proc/self/status** on Linux. It still compiles on Java 21 on other platforms; when **/proc** is absent, that part is skipped with a clear message.
 
-**Tệp PidNamespaceView.java**
+**File PidNamespaceView.java**
 
 ~~~java
 import java.io.IOException;
@@ -296,16 +296,16 @@ public final class PidNamespaceView {
 }
 ~~~
 
-Biên dịch và chạy với JDK 21:
+Compile and run with JDK 21:
 
 ~~~bash
 javac --release 21 PidNamespaceView.java
 java PidNamespaceView
 ~~~
 
-**Diễn giải stdout:** những dòng **Java PID**, **Java parent PID**, **Name**, **Tgid**, **Pid**, **PPid**, **NStgid**, **NSpid** được in theo thứ tự đã viết khi **/proc** đọc được, còn các số cụ thể **khác nhau ở mỗi lần chạy**. Không nên ghi một bộ PID “chuẩn” duy nhất. Nếu **/proc** không đọc được, chương trình sẽ in hai dòng PID Java và dòng **/proc/self/status: unavailable**.
+**Interpreting stdout:** lines **Java PID**, **Java parent PID**, **Name**, **Tgid**, **Pid**, **PPid**, **NStgid**, **NSpid** print in order when **/proc** is readable, while exact numbers **vary per run**. Do not assume a single “standard” set of PIDs. If **/proc** is unreadable, the program prints the two Java PID lines and **/proc/self/status: unavailable**.
 
-Ví dụ hình dung **khi Java thực sự là tiến trình 1** trong container Linux có procfs mount tại namespace container:
+Illustrative visualization **when Java is actually process 1** in a Linux container whose procfs is mounted in the container namespace:
 
 ~~~text
 Java PID: 1
@@ -318,15 +318,15 @@ NStgid: 1
 NSpid: 1
 ~~~
 
-Các dòng trên **chỉ là một khả năng minh họa**, không được bảo đảm cho mọi container. Tên **Name**, cách nhìn cha, procfs mount và JVM launcher có thể khác. Nếu Java là **PID 7**, chương trình thường thấy **Java PID: 7** ở namespace của mình; khi đọc **host procfs** bên ngoài, người vận hành có thể thấy NStgid dạng **48253 7**.
+These lines are **only one illustrative possibility**, not guaranteed for all containers. **Name**, parent visibility, procfs mount, and JVM launcher can vary. If Java is **PID 7**, the program typically sees **Java PID: 7** in its namespace; when reading **host procfs** outside, an operator may see NStgid like **48253 7**.
 
-**Giới hạn quan trọng:** chương trình Java đang đọc **procfs đang được mount tại đường dẫn đó**. Nếu /proc không được mount đúng theo namespace hiện tại, trường NStgid có thể mang góc nhìn khác với **ProcessHandle.current().pid()**. Đừng diễn giải sai lệch đó là lỗi ProcessHandle; hãy xem cấu hình procfs/namespace.
+**Important limitation:** the Java program reads **whatever procfs is mounted at that path**. If /proc is not mounted for the current namespace, NStgid can reflect a different view than **ProcessHandle.current().pid()**. Do not interpret that mismatch as a `ProcessHandle` bug; inspect procfs/namespace configuration.
 
-### 6.1. Ví dụ Java 21 có stdout cố định: đọc NStgid mẫu
+### 6.1. Java 21 Example with Fixed Stdout: Parsing a Sample NStgid
 
-Đoạn này chỉ minh họa cách phân tích **một dòng mẫu đã biết**, không truy vấn tiến trình thật.
+This snippet illustrates parsing **a known sample input**, without querying a real process.
 
-**Tệp PidMappingExample.java**
+**File PidMappingExample.java**
 
 ~~~java
 public final class PidMappingExample {
@@ -358,107 +358,107 @@ javac --release 21 PidMappingExample.java
 java PidMappingExample
 ~~~
 
-**stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 PID at procfs mount: 48253
 PID at innermost namespace: 7
 ~~~
 
-Nếu trường mẫu có ba số **48253 301 7**, mảng **ids** sẽ có ba phần tử; đầu tiên vẫn là theo procfs mount, cuối cùng là namespace sâu nhất. Trong hệ thống thật, cần xác minh tên trường, trạng thái tiến trình và góc nhìn của procfs trước khi coi chúng là host/container PID.
+If the sample field had three numbers **48253 301 7**, the **ids** array would have three elements; the first still reflects the procfs mount, and the last reflects the innermost namespace. In real systems, verify field name, process status, and procfs perspective before treating them as host/container PIDs.
 
-## 7. Khi dùng công cụ chẩn đoán Java: PID sai phạm vi dẫn tới sai JVM
+## 7. When Using Java Diagnostic Tools: Wrong-Scope PID Means Wrong JVM
 
-Với JDK 21, **jcmd** dùng PID tiến trình Java làm đối số. Tài liệu lệnh nêu rằng **jcmd -l** không nhất thiết liệt kê JVM chạy trong Docker process riêng; phải dùng công cụ quản lý tiến trình phù hợp để biết PID. Công cụ attach cần cùng máy chạy JVM và điều kiện quyền, runtime/VM, filesystem và namespace đáp ứng yêu cầu; **biết đúng PID chưa bảo đảm attach thành công**.
+With JDK 21, **jcmd** takes the Java process PID as an argument. Its documentation notes that **jcmd -l** does not necessarily list JVMs running in separate Docker processes; use appropriate process management tools to find the PID. Attaching requires running on the same machine as the JVM and meeting permission, runtime/VM, filesystem, and namespace requirements; **knowing the right PID does not guarantee attach will succeed**.
 
-### 7.1. Chạy jcmd bên trong container
+### 7.1. Running jcmd Inside a Container
 
-Khi container có JDK tools và Java đã được xác nhận là PID 7:
+When the container has JDK tools and Java is confirmed as PID 7:
 
 ~~~bash
 docker exec my-java-app jcmd 7 VM.version
 docker exec my-java-app jcmd 7 help
 ~~~
 
-Hoặc, nếu đã vào một shell **trong đúng PID namespace**, chạy:
+Or, if already in a shell **inside the right PID namespace**, run:
 
 ~~~bash
 jcmd 7 VM.version
 jcmd 7 Thread.print
 ~~~
 
-**Thread.print** chỉ nên dùng khi cần lấy snapshot thread với hiểu biết về overhead. **VM.version** là bước xác minh ít xâm lấn. Nếu Java là PID 1 thì thay **7** bằng **1**, nhưng chỉ **sau khi xác minh** bằng process list hoặc Java PID log.
+**Thread.print** should only be used when a thread snapshot is needed with awareness of overhead. **VM.version** is a minimally intrusive verification step. If Java is PID 1, replace **7** with **1**, but only **after verifying** via process list or Java PID logs.
 
-Lệnh có thể không chạy vì image JRE/jlink/distroless thiếu **jcmd**, thiếu quyền theo effective UID/GID, bị hạn chế attach, container sai, hoặc đường dẫn/file socket bị ngăn. **Không sửa lỗi bằng cách tự động tăng quyền container** khi chưa biết nguyên nhân.
+Commands can fail because a JRE/jlink/distroless image lacks **jcmd**, lacks permissions for effective UID/GID, attach is restricted, wrong container, or socket paths/files are blocked. **Do not fix errors by automatically elevating container privileges** without knowing the cause.
 
-### 7.2. Chạy jcmd từ Linux host
+### 7.2. Running jcmd from the Linux Host
 
-Nếu đã xác nhận chính JVM có **host PID 48253** và công cụ phía host cùng môi trường/kernel có thể attach đúng cách:
+If the JVM's **host PID 48253** is confirmed and host tools/kernel can attach properly:
 
 ~~~bash
 jcmd 48253 VM.version
 ~~~
 
-Lệnh **có thể thất bại** dù PID đúng. Khi JVM nằm trong container, cơ chế attach của HotSpot liên quan đến quyền, PID namespace, đường dẫn tạm và mount namespace; cấu hình bảo mật hoặc bộ công cụ khác nhau có thể cản trở. Việc **jcmd -l không hiển thị** một JVM Docker cũng **không chứng minh** JVM vắng mặt. Ưu tiên chạy công cụ trong môi trường phù hợp của JVM hoặc quy trình debug đã được kiểm chứng.
+The command **can still fail** even with the right PID. When a JVM runs in a container, HotSpot's attach mechanism involves permissions, PID namespaces, temp paths, and mount namespaces; security policies or mismatched toolsets can interfere. **`jcmd -l` not showing** a Docker JVM also **does not prove** the JVM is absent. Prefer running tools in the JVM's appropriate environment or a verified debug workflow.
 
-**Chọn PID cho /proc theo góc nhìn procfs**: đọc **/proc/48253/status** trên host để điều tra JVM đó, nhưng đọc **/proc/7/status** bên trong namespace container thông thường. **Không đưa 48253 vào đường dẫn /proc của container** chỉ vì thấy con số đó trên máy chủ.
+**Pick PID for /proc based on procfs view**: read **/proc/48253/status** on the host to inspect that JVM, yet read **/proc/7/status** inside a normal container namespace. **Never pass 48253 into a container's /proc path** just because you saw that number on the host.
 
-### 7.3. Kết nối sang các tín hiệu chẩn đoán khác
+### 7.3. Connecting to Other Diagnostic Signals
 
-- **Java application logs:** ghi **ProcessHandle.current().pid()** kèm container ID/Pod UID, instance ID, thời điểm khởi động, VM version để người vận hành xác định nguồn log. PID một mình không đủ làm khóa định danh toàn cục.
-- **GC/JFR logs:** tệp được ghi ở filesystem theo môi trường tiến trình JVM; nếu chẩn đoán trên host/container khác, cần biết mount namespace và nơi file thực sự được tạo.
-- **Thread dump:** ID từng native thread trong dump không phải PID của process; Java virtual-thread ID cũng không phải PID Linux. Phải phân biệt thread với process để không dùng nhầm PID cho signal/attach.
-- **Metrics:** một label **pid=7** từ trong container không tự ghép được với **pid=48253** từ node exporter trên host. Cần khóa tương quan gồm container/runtime identity và namespace/cặp mapping đã được xác nhận.
-- **JMX và API quản lý nội bộ:** có thể lấy số liệu qua endpoint mà không cần translate PID thủ công, nhưng quyền truy cập, mạng, chi phí và bảo mật của endpoint vẫn phải được kiểm soát.
+- **Java application logs:** log **ProcessHandle.current().pid()** alongside container ID/Pod UID, instance ID, start timestamp, and VM version so operators can identify the log source. PID alone is not a sufficient global key.
+- **GC/JFR logs:** files are written to the filesystem as seen by the JVM process; when inspecting from the host or another container, account for mount namespaces and where files actually land.
+- **Thread dumps:** native thread IDs in a dump are not process PIDs; Java virtual-thread IDs are not Linux PIDs either. Distinguish threads from processes so you do not pass the wrong ID to signals/attach.
+- **Metrics:** a label **pid=7** from inside a container does not automatically match **pid=48253** from a host node exporter. Use correlation keys containing container/runtime identity and verified namespace/mapping pairs.
+- **JMX and internal management APIs:** can expose metrics via endpoints without manual PID translation, though endpoint access, networking, cost, and security must still be controlled.
 
-## 8. Những ngoại lệ khiến giả định “container có PID riêng, Java là PID 1” sai
+## 8. Exceptions Where “Container Has Its Own PID and Java Is PID 1” Fails
 
 ### 8.1. Docker --pid=host
 
-Tùy chọn Docker:
+The Docker option:
 
 ~~~bash
 docker run --pid=host ...
 ~~~
 
-yêu cầu container **dùng chung PID namespace với Linux host**, thay vì namespace PID riêng mặc định. Khi đó tiến trình bên trong container nhìn PID theo host namespace; **PID 1** thường là init của host và **không phải** tiến trình chính của container. Tuy nhiên container vẫn có các cơ chế cô lập khác (mount, user, network, cgroup...) tùy cấu hình; chia sẻ PID không đồng nghĩa không có mọi dạng cô lập.
+tells the container to **share the Linux host's PID namespace** instead of using its own isolated PID namespace. Processes inside then see PIDs from the host namespace; **PID 1** is usually the host's init and **not** the container's main process. However, the container still keeps other isolation mechanisms (mount, user, network, cgroup...) depending on configuration; sharing PIDs does not remove all isolation.
 
-Không nên bật **--pid=host** chỉ để chữa lỗi quan sát PID: chia sẻ namespace làm thay đổi phạm vi tiến trình nhìn thấy và bề mặt bảo mật. Một số cấu hình user namespace cũng có hạn chế về khả năng dùng tùy chọn này.
+Do not enable **--pid=host** just to work around PID visibility issues: sharing the namespace expands visible processes and the security surface. Some user namespace configurations also restrict using this option.
 
 ### 8.2. Docker --pid=container:<name-or-id>
 
-Hai container có thể chia sẻ cùng một PID namespace:
+Two containers can share a single PID namespace:
 
 ~~~bash
 docker run --pid=container:my-java-app ...
 ~~~
 
-Tiến trình đầu của container thứ hai **không nhất thiết là PID 1**, vì namespace đã có tiến trình init. Công cụ trong container thứ hai có thể nhìn thấy process của container mục tiêu nếu procfs, quyền và cấu hình cho phép. Dùng container ID/namespace để xác định đúng process; không mặc định container nào cũng có PID 1 riêng.
+The first process of the second container **is not necessarily PID 1**, because the namespace already has an init process. Tools in the second container can see processes of the target container if procfs, permissions, and configuration allow. Use container ID/namespace to pinpoint the right process; never assume every container has its own PID 1.
 
-### 8.3. Kubernetes shareProcessNamespace và hostPID
+### 8.3. Kubernetes shareProcessNamespace and hostPID
 
-Thông thường, các container trong một Pod **không nhất thiết** nhìn thấy process của nhau. Khi Pod được cấu hình:
+Normally, containers in a Pod **do not necessarily** see each other's processes. When a Pod is configured with:
 
 ~~~yaml
 spec:
   shareProcessNamespace: true
 ~~~
 
-các container trong Pod chia sẻ một PID namespace. Tiến trình chính của ứng dụng có thể có **PID khác 1**, và **PID 1** có thể là tiến trình của Pod sandbox. Sidecar/debug container có thể thấy các process khác cùng Pod theo quyền thích hợp. Việc này ảnh hưởng đến cách thu thập stack, gửi signal và cấu hình entrypoint.
+containers in the Pod share one PID namespace. The application's main process may have a **PID other than 1**, while **PID 1** may be the Pod sandbox process. Sidecars/debug containers can see other processes in the Pod subject to permissions. This affects stack collection, signal delivery, and entrypoint design.
 
-Với **hostPID: true**, Pod dùng PID namespace của node; tiến trình trong container nhìn các PID theo namespace host tương ứng. Kubernetes không cho đặt **hostPID** và **shareProcessNamespace** đồng thời trong cùng Pod theo API. Những tùy chọn này cần có quyết định triển khai và bảo mật riêng.
+With **hostPID: true**, the Pod uses the node's PID namespace; processes inside containers see PIDs in that host namespace. Kubernetes API does not allow setting both **hostPID** and **shareProcessNamespace** on the same Pod. These options require explicit deployment and security decisions.
 
-Ví dụ đọc PID của Java từ container cụ thể:
+Example reading Java's PID from a specific container:
 
 ~~~bash
 kubectl exec pod-name -c app-container -- ps -eo pid,ppid,comm
 ~~~
 
-Nếu image không có **ps**, dùng debug container/công cụ trên node theo chính sách vận hành. **kubectl** chạy trên laptop không khiến **/proc** của laptop trở thành /proc của node; muốn host PID thật phải kiểm tra từ **node/runtime** đang chạy Pod.
+If the image lacks **ps**, use an ephemeral debug container or node-level tools per operational policy. **kubectl** running on a laptop does not make the laptop's **/proc** equal to the node's /proc; to get real host PIDs, inspect from **the node/runtime** hosting the Pod.
 
-### 8.4. Docker Desktop, VM và daemon từ xa
+### 8.4. Docker Desktop, VMs, and Remote Daemons
 
-Trên Docker Desktop cho Linux containers:
+On Docker Desktop for Linux containers:
 
 ~~~text
 Windows/macOS desktop
@@ -468,109 +468,109 @@ Windows/macOS desktop
              +-- container PID namespace (container PIDs)
 ~~~
 
-Trong sơ đồ này, **Docker inspect State.Pid** phản ánh tiến trình theo góc nhìn Docker Engine/Linux VM; nó không phải số có thể dùng với **taskkill** của Windows hoặc **kill** trên macOS để tác động trực tiếp đến JVM Linux. Khi Docker CLI dùng context trỏ tới daemon từ xa, “host” lại là **máy daemon**, không phải terminal người dùng.
+In this diagram, **Docker inspect State.Pid** reflects the process from the Docker Engine/Linux VM view; it is not a number you can pass to Windows **taskkill** or macOS **kill** to directly target the Linux JVM. When Docker CLI uses a context pointing to a remote daemon, “host” means **the daemon machine**, not the user's terminal.
 
-**Cùng cách viết "host PID" có thể chỉ ba môi trường khác nhau**: physical Linux node, Docker VM hoặc host daemon từ xa. Báo cáo chẩn đoán phải ghi rõ môi trường gốc.
+**The same phrase "host PID" can refer to three different environments**: physical Linux node, Docker VM, or remote daemon host. Diagnostic reports must explicitly state the underlying environment.
 
-### 8.5. Procfs, namespace lồng nhau, rootless và quyền
+### 8.5. Procfs, Nested Namespaces, Rootless, and Permissions
 
-Một container tùy biến có thể không mount procfs như bạn mong đợi; vì vậy **ps**, **/proc/self** hoặc **NStgid** có thể đưa ra góc nhìn bất ngờ. Namespace lồng nhau, container chạy bên trong container, rootless runtime và các chính sách bảo mật có thể thay đổi công cụ và khả năng đọc.
+A customized container may not mount procfs as you expect; thus **ps**, **/proc/self**, or **NStgid** may yield unexpected views. Nested namespaces, containers inside containers, rootless runtimes, and security policies can alter tools and readability.
 
-PID namespace **không tự cấp quyền** đọc mọi /proc hoặc attach mọi JVM. User namespace/UID mapping, quyền truy cập /proc, chính sách của hệ thống và công cụ JVM vẫn quyết định hành động có được phép hay không. **Không yêu cầu --privileged, --pid=host hay vô hiệu hóa bảo vệ như một bước mặc định** của phép đo.
+PID namespaces **do not automatically grant permission** to read every /proc entry or attach to every JVM. User namespace/UID mapping, /proc access permissions, system policies, and JVM tools still govern what is permitted. **Never request --privileged, --pid=host, or disabling protections as a default step** for measurement.
 
-## 9. Tại sao PID 1 đặc biệt quan trọng với vận hành Java
+## 9. Why PID 1 Matters Specially for Java Operations
 
-Tiến trình PID 1 trong PID namespace có vai trò init: quản lý vòng đời và thu hồi các tiến trình con mồ côi. Linux có những quy tắc đặc biệt cho signal nhắm PID 1; ứng dụng Java chạy làm PID 1 có thể không nhận/xử lý signal theo cách bạn tưởng nếu không thiết lập handler và đường truyền signal đúng.
+PID 1 inside a PID namespace serves as init: managing lifecycle and reaping orphaned child processes. Linux applies special signal-handling rules to PID 1; a Java application running as PID 1 may not receive/handle signals the way you expect unless proper handlers and signal forwarding are configured.
 
-Ví dụ về thiết kế entrypoint:
+Example entrypoint design:
 
 ~~~dockerfile
-# Mô tả minh họa, không phải Dockerfile hoàn chỉnh
+# Illustrative snippet, not a complete Dockerfile
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 ~~~
 
-Ở dạng exec-form này (và PID namespace riêng), Java **có thể** là PID 1. Nếu dùng shell-form hoặc một script không **exec** Java, shell có thể là PID 1 và Java là child. Khi Docker dùng **--init** hoặc supervisor, init có thể ở PID 1 để nhận signal, chuyển tiếp và thu hồi zombie.
+In this exec-form (with a separate PID namespace), Java **can** be PID 1. With shell-form or a wrapper script that does not **exec** Java, the shell can be PID 1 with Java as a child. When Docker uses **--init** or a supervisor, init sits at PID 1 to receive signals, forward them, and reap zombies.
 
-Việc container dừng/restart nên được thực hiện theo cơ chế Docker/Kubernetes với timeout và graceful shutdown thích hợp. Tránh dùng **kill -9** hoặc **kill 1** trên một PID suy đoán: **PID 1** ở namespace này có thể không phải JVM mong muốn, và PID có thể đã được tái sử dụng.
+Stopping/restarting containers should follow Docker/Kubernetes mechanisms with proper timeouts and graceful shutdown. Avoid running **kill -9** or **kill 1** on a guessed PID: **PID 1** in that namespace might not be the intended JVM, and PIDs can be reused.
 
-## 10. Công thức xử lý sự cố: chọn đúng PID trước khi debug
+## 10. Troubleshooting Recipe: Picking the Right PID Before Debugging
 
-**Tình huống:** cảnh báo cho biết JVM trong container **orders-api** có CPU cao. Người vận hành chạy **jcmd 1 Thread.print** trong container nhưng nhận lỗi **not a Java process**. Trên host, **ps** lại cho thấy một Java process PID 56432.
+**Scenario:** an alert reports high CPU in the JVM inside container **orders-api**. An operator runs **jcmd 1 Thread.print** inside the container and gets **not a Java process**. On the host, **ps** shows a Java process with PID 56432.
 
-**Cách phân tích:**
+**Analysis:**
 
-1. **Xác định đúng instance:** lấy container ID/Pod UID, node/daemon, trạng thái container và thời điểm bắt đầu. Tránh nhầm với replica khác cùng tên logic.
-2. **Xác nhận PID tại nơi công cụ sẽ chạy:** bên trong container có thể thấy **tini PID 1** và **java PID 7**. Trên host cùng kernel, Java có thể là **PID 56432**.
-3. **Đối chiếu cùng một process:** kiểm tra host **/proc/56432/status**; trường **NStgid** minh họa có thể là **56432 7**. Kiểm tra namespace inode và command line nếu cần. Đừng dùng **State.Pid** của Docker để thay thế PID Java khi có init/wrapper.
-4. **Chạy diagnostic đúng phạm vi:** trong container dùng **jcmd 7 VM.version** trước; tại host, nếu attach được hỗ trợ và quyền phù hợp, dùng **jcmd 56432 VM.version**. Chỉ sau khi xác minh mới yêu cầu thread dump/JFR.
-5. **Giữ chứng cứ gắn danh tính:** ghi container ID, node, thời điểm, cặp host/container PID, JVM version và kết quả lệnh. Nếu container restart, **tra lại mapping** thay vì tái sử dụng cặp PID cũ.
+1. **Identify the exact instance:** capture container ID/Pod UID, node/daemon, container status, and start time. Avoid confusing it with another replica sharing the same logical name.
+2. **Confirm the PID where the tool will run:** inside the container you may see **tini PID 1** and **java PID 7**. On the host sharing the kernel, Java may be **PID 56432**.
+3. **Correlate the same process:** inspect host **/proc/56432/status**; illustrative **NStgid** may be **56432 7**. Verify namespace inode and command line if needed. Do not substitute Docker's **State.Pid** for the Java PID when an init/wrapper is present.
+4. **Run diagnostics in the right scope:** inside the container run **jcmd 7 VM.version** first; on the host, if attach is supported and permissions match, run **jcmd 56432 VM.version**. Only after verification request thread dumps/JFR.
+5. **Keep identity-bound evidence:** record container ID, node, timestamp, host/container PID pair, JVM version, and command outputs. If the container restarts, **re-resolve the mapping** instead of reusing the old PID pair.
 
-**Kết luận có cơ sở:** lỗi ban đầu xuất phát từ việc **chọn PID 1 là init**, không phải Java; phần quan sát cần nhắm đúng PID. Tuy nhiên nếu đã chọn đúng PID mà attach vẫn lỗi, phải tiếp tục kiểm tra quyền, file system, runtime và công cụ. Không kết luận tất cả lỗi attach đều do mapping.
+**Evidence-based conclusion:** the initial error occurred because **PID 1 was init**, not Java; observation must target the right PID. However, if attach still fails with the right PID, continue checking permissions, filesystem, runtime, and tools. Do not blame mapping for every attach failure.
 
-### 10.1. Checklist trước khi dùng jcmd/ps/kill trên container Java
+### 10.1. Checklist Before Running jcmd/ps/kill on a Java Container
 
-| Câu hỏi | Xác minh |
+| Question | Verification |
 | --- | --- |
-| Tôi đang thao tác ở đâu? | Container, node Linux, Docker VM hay laptop kết nối daemon từ xa? |
-| PID namespace được chia sẻ hay riêng? | Docker PidMode, Kubernetes hostPID/shareProcessNamespace, namespace inode. |
-| Tiến trình Java có phải PID 1 không? | Process list, command line, ProcessHandle log, procfs. |
-| Cặp PID được xác minh trên cùng process chưa? | NStgid từ đúng procfs, command/start time/container identity. |
-| Tại nơi chạy tool phải dùng PID nào? | PID theo namespace/procfs của tool (hoặc runtime API tương ứng). |
-| Tool có ở đó và có đủ quyền không? | JDK/JRE image, effective UID/GID, attach policy, procfs/socket, security controls. |
-| PID còn đúng tại thời điểm tác động không? | Kiểm tra process vẫn sống và container chưa restart, tránh PID reuse. |
-| Có thể dùng lệnh đọc trước không? | VM.version, ps, /proc/status; chỉ dùng thao tác gây tác động khi cần thiết. |
+| Where am I operating from? | Container, Linux node, Docker VM, or laptop connected to remote daemon? |
+| Is the PID namespace shared or isolated? | Docker PidMode, Kubernetes hostPID/shareProcessNamespace, namespace inode. |
+| Is the Java process PID 1? | Process list, command line, ProcessHandle logs, procfs. |
+| Is the PID pair verified on the same process? | NStgid from proper procfs, command/start time/container identity. |
+| Which PID must be used where the tool runs? | PID matching the tool's namespace/procfs (or corresponding runtime API). |
+| Are tools present and permissions sufficient? | JDK/JRE image, effective UID/GID, attach policy, procfs/socket, security controls. |
+| Is the PID still valid at action time? | Verify process is alive and container has not restarted, avoiding PID reuse. |
+| Can read-only commands go first? | VM.version, ps, /proc/status; run impactful actions only when necessary. |
 
-## 11. Những lỗi tư duy thường gặp
+## 11. Common Thinking Mistakes
 
-1. **“Java trong container luôn là PID 1.”** Sai khi có shell, tini, supervisor hoặc share PID namespace.
-2. **“docker inspect State.Pid là PID của JVM.”** Nó là PID của tiến trình khởi đầu container theo daemon; JVM có thể là con.
-3. **“PID của container khác PID host một offset cố định.”** PID namespace gán PID độc lập; không có công thức cộng/trừ tổng quát.
-4. **“NSpid là PID process ở mọi chỗ.”** NSpid mô tả thread ID; dùng NStgid để xem process/thread-group ID, và xét bạn đang đọc task nào.
-5. **“NStgid bên trong container luôn chứa PID ngoài host.”** Tùy procfs mount; container mount riêng thường chỉ hiển thị số thuộc góc nhìn nó.
-6. **“Không thấy JVM trong jcmd -l nên JVM đã dừng.”** Docker, phạm vi process, quyền, image và attach có thể khiến công cụ không liệt kê được.
-7. **“docker inspect chạy từ Windows nghĩa là PID Windows.”** Docker Desktop Linux containers chạy trong Linux VM; PID thuộc môi trường Linux daemon.
-8. **“Có root trong container thì attach được mọi JVM.”** Namespace khác user mapping, procfs/mount restrictions, quyền effective UID/GID và công cụ JVM.
-9. **“Kubernetes Pod có một PID 1 nhất định là Java.”** Với shareProcessNamespace, init của Pod và JVM có thể là hai tiến trình khác.
-10. **“PID được ghi tuần trước còn đúng sau deploy.”** PID bị tái sử dụng; luôn kèm thời điểm, container identity và process start.
-11. **“Cùng PID số 7 nghĩa là cùng tiến trình.”** Hai namespace hoặc hai host khác nhau đều có thể chứa PID 7.
-12. **“Dùng host PID với jcmd trong container cho chắc.”** PID phải theo góc nhìn công cụ và cơ chế attach thực tế; host PID có thể không tồn tại trong /proc của container.
+1. **“Java in a container is always PID 1.”** False whenever a shell, tini, supervisor, or shared PID namespace is used.
+2. **“docker inspect State.Pid is the JVM's PID.”** It is the container's initial process PID per the daemon; the JVM may be a child.
+3. **“Container PID differs from host PID by a fixed offset.”** PID namespaces assign PIDs independently; there is no universal add/subtract formula.
+4. **“NSpid is always the process PID everywhere.”** NSpid describes thread IDs; use NStgid for process/thread-group IDs, and check which task you are reading.
+5. **“NStgid inside a container always includes the host PID.”** Depends on procfs mount; a container's own mount usually shows only numbers in its view.
+6. **“JVM missing from jcmd -l means the JVM stopped.”** Docker, process scope, permissions, image, and attach restrictions can hide it from listing.
+7. **“docker inspect run from Windows gives a Windows PID.”** Docker Desktop Linux containers run inside a Linux VM; the PID belongs to the Linux daemon environment.
+8. **“Being root in a container lets you attach to any JVM.”** Namespaces differ in user mapping, procfs/mount restrictions, effective UID/GID, and JVM tooling.
+9. **“A Kubernetes Pod always has Java as PID 1.”** With shareProcessNamespace, Pod init and JVM can be two separate processes.
+10. **“A PID recorded last week is still valid after deploy.”** PIDs are reused; always pair with timestamp, container identity, and process start time.
+11. **“Same PID number 7 means the same process.”** Two namespaces or two hosts can each have a PID 7.
+12. **“Use host PID with jcmd inside the container to be safe.”** PIDs must match the tool's perspective and attach mechanism; the host PID may not even exist in the container's /proc.
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-**Câu 1.** Docker inspect báo **State.Pid = 41000**, trong container **ps** có **tini PID 1** và **java PID 8**. Có thể chạy **jcmd 41000** trên host để lấy thread dump Java chưa?
+**Q1.** Docker inspect reports **State.Pid = 41000**, while inside the container **ps** shows **tini PID 1** and **java PID 8**. Can you run **jcmd 41000** on the host to capture a Java thread dump?
 
-**Trả lời:** chưa có căn cứ. **41000** có thể là host PID của **tini**, không phải Java. Cần tìm host PID của JVM, đối chiếu **NStgid** và kiểm tra khả năng attach. Trong container, sau khi xác nhận, mục tiêu phù hợp là PID **8**.
+**A:** Not justified. **41000** is likely **tini**'s host PID, not Java's. You must find the JVM's host PID, verify **NStgid**, and check attachability. Inside the container, once verified, the right target is PID **8**.
 
-**Câu 2.** Trên host Linux, **/proc/53000/status** có **NStgid: 53000 13**. Nếu host procfs mount ở namespace host và tiến trình nằm trong một namespace con, PID nào dùng khi đọc /proc bên trong container?
+**Q2.** On a Linux host, **/proc/53000/status** shows **NStgid: 53000 13**. If host procfs is mounted in the host namespace and the process sits in a child namespace, which PID applies when reading /proc inside the container?
 
-**Trả lời:** thường **13**, nếu /proc của container mount trong namespace chứa tiến trình tương ứng. Trên host dùng **53000**. Không đổi chiều nếu chưa xác minh góc nhìn procfs.
+**A:** Usually **13**, if the container's /proc is mounted in the namespace containing that process. On the host use **53000**. Do not invert the direction without verifying procfs perspective.
 
-**Câu 3.** JVM in **ProcessHandle.current().pid() = 1**, nhưng **docker inspect** báo **31200**. Có mâu thuẫn không?
+**Q3.** A JVM prints **ProcessHandle.current().pid() = 1**, while **docker inspect** reports **31200**. Is there a contradiction?
 
-**Trả lời:** không. Đây có thể là cùng JVM khi nó là PID 1 trong container và PID 31200 ở host Linux. Kiểm chứng bằng mapping, không chỉ nhìn số.
+**A:** No. They can refer to the same JVM when it is PID 1 inside the container and PID 31200 on the Linux host. Verify via mapping rather than looking at numbers alone.
 
-**Câu 4.** Docker Desktop trên macOS báo **State.Pid = 880**. Có thể chạy **kill 880** ở macOS terminal để dừng chính JVM Linux đó không?
+**Q4.** Docker Desktop on macOS reports **State.Pid = 880**. Can you run **kill 880** in the macOS terminal to stop that Linux JVM?
 
-**Trả lời:** không được suy ra như vậy; PID 880 thuộc Linux VM theo Docker daemon, không phải PID macOS của cùng process. Dùng cơ chế Docker, exec hoặc debug trong môi trường Linux phù hợp.
+**A:** Do not draw that conclusion; PID 880 belongs to the Linux VM per the Docker daemon, not a macOS PID of the same process. Use Docker mechanisms, exec, or debug inside the appropriate Linux environment.
 
-**Câu 5.** Một Pod có **shareProcessNamespace: true**. Có thể mặc định **jcmd 1 VM.version** nhắm Java application không?
+**Q5.** A Pod has **shareProcessNamespace: true**. Can you assume **jcmd 1 VM.version** targets the Java application?
 
-**Trả lời:** không. PID 1 có thể là tiến trình sandbox/init của Pod, trong khi Java nằm ở PID khác. Xem process list và định danh container.
+**A:** No. PID 1 may be the Pod sandbox/init process while Java sits at another PID. Inspect the process list and container identities.
 
-**Câu 6.** Hai lệnh **readlink /proc/A/ns/pid** và **readlink /proc/B/ns/pid** trả cùng inode. Có chứng minh A và B là cùng process không?
+**Q6.** Both **readlink /proc/A/ns/pid** and **readlink /proc/B/ns/pid** return the same inode. Does that prove A and B are the same process?
 
-**Trả lời:** không. Chúng có thể là hai process **khác nhau trong cùng PID namespace**. Cần so PID, namespace, command, start time và container identity.
+**A:** No. They may be two **different processes in the same PID namespace**. Compare PID, namespace, command, start time, and container identity.
 
-## Nguồn tham khảo để đối chiếu
+## Reference Sources for Cross-Checking
 
-- [Linux pid_namespaces(7): quan hệ namespace tổ tiên/con, PID 1 và /proc](https://man7.org/linux/man-pages/man7/pid_namespaces.7.html)
-- [Linux proc_pid_status(5): Tgid, Pid, NStgid và NSpid](https://man7.org/linux/man-pages/man5/proc_pid_status.5.html)
-- [Linux namespaces(7): namespace inode và liên kết trong /proc](https://man7.org/linux/man-pages/man7/namespaces.7.html)
-- [Docker run: các chế độ PID namespace và --pid](https://docs.docker.com/reference/cli/docker/container/run/)
-- [Docker inspect: định dạng và truy vấn metadata container](https://docs.docker.com/reference/cli/docker/inspect/)
-- [Docker Desktop: ranh giới Linux VM và máy desktop](https://docs.docker.com/faqs/platform/)
-- [Kubernetes: chia sẻ PID namespace trong Pod](https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/)
+- [Linux pid_namespaces(7): ancestor/child namespace relationships, PID 1, and /proc](https://man7.org/linux/man-pages/man7/pid_namespaces.7.html)
+- [Linux proc_pid_status(5): Tgid, Pid, NStgid, and NSpid](https://man7.org/linux/man-pages/man5/proc_pid_status.5.html)
+- [Linux namespaces(7): namespace inodes and symlinks in /proc](https://man7.org/linux/man-pages/man7/namespaces.7.html)
+- [Docker run: PID namespace modes and --pid](https://docs.docker.com/reference/cli/docker/container/run/)
+- [Docker inspect: formatting and querying container metadata](https://docs.docker.com/reference/cli/docker/inspect/)
+- [Docker Desktop: boundary between Linux VM and desktop machine](https://docs.docker.com/faqs/platform/)
+- [Kubernetes: sharing PID namespace in a Pod](https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/)
 - [Java SE 21: ProcessHandle API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ProcessHandle.html)
-- [JDK 21: jcmd, PID lookup và điều kiện attach](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
+- [JDK 21: jcmd, PID lookup, and attach prerequisites](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
 
-**Nguyên tắc sử dụng được ngay:** khi thấy một PID liên quan đến Java container, hãy luôn xác định **tiến trình nào, ở PID namespace nào, trên kernel/host nào, vào thời điểm nào và từ vị trí nào chạy công cụ**. Chỉ khi đã xác nhận đủ các yếu tố đó mới dùng số PID để chẩn đoán hoặc điều khiển JVM.
+**Immediately actionable principle:** whenever you see a PID associated with a Java container, always identify **which process, in which PID namespace, on which kernel/host, at what time, and from which position the tool runs**. Only after confirming all of those factors should you use the PID to diagnose or control the JVM.

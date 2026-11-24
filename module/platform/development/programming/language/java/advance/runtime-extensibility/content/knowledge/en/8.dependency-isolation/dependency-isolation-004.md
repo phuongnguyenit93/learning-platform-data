@@ -1,109 +1,109 @@
-# Ưu tiên loader cha hoặc plugin và các ngoại lệ phải ủy quyền
+# Parent-First vs. Plugin-First Delegation and Mandatory Delegation Exceptions
 
-## 1. Bài toán cô lập phụ thuộc của plugin Java
+## 1. The Dependency Isolation Problem for Java Plugins
 
-Giả sử ứng dụng host và một plugin cùng cần lớp có tên `com.acme.lib.Parser`, nhưng host đóng gói thư viện phiên bản 1 trong khi plugin cần phiên bản 2. Hai phiên bản có thể khác chữ ký method, behavior hoặc dependency. Một `ClassLoader` được đặt giữa host và plugin có thể cho phép mỗi phía dùng bản của mình, nhưng quyết định **nạp từ cha trước (parent-first)** hay **nạp từ plugin trước (plugin-first/child-first)** làm thay đổi phiên bản nào được chọn.
+Suppose a host application and a plugin both need a class named `com.acme.lib.Parser`, but the host packages version 1 of the library while the plugin needs version 2. The two versions may differ in method signatures, behavior, or dependencies. Placing a `ClassLoader` between the host and the plugin can let each side use its own copy, yet the decision to **load from the parent first (parent-first)** or **load from the plugin first (plugin-first/child-first)** determines which version gets chosen.
 
-Còn có một giới hạn ngược lại: interface SPI và các kiểu dữ liệu dùng để giao tiếp giữa host với plugin **phải có danh tính Java thống nhất**. Nếu host nạp `com.acme.api.Plugin` bằng class loader A còn plugin nạp *bản sao cùng tên* bằng class loader B, hai `Class<?>` không trở thành một kiểu chỉ vì tên giống nhau. Trong Java, danh tính của một class gắn với **tên nhị phân và defining class loader**; hai lớp có tên y hệt do hai loader khác nhau định nghĩa là hai runtime type khác nhau.
+There is also an opposite constraint: the SPI interface and the data types used to communicate between host and plugin **must have a unified Java identity**. If the host loads `com.acme.api.Plugin` with class loader A while the plugin loads a *same-named copy* with class loader B, the two `Class<?>` objects do not become the same type merely because their names match. In Java, a class's identity is tied to its **binary name and defining class loader**; two identically named classes defined by two different loaders are two distinct runtime types.
 
-Vì vậy, thiết kế class loading cho hệ thống mở rộng thường kết hợp:
+Therefore, class-loading design for an extensible system typically combines:
 
-- **Parent-first** cho những lớp thuộc host, JDK và hợp đồng giao tiếp được chia sẻ.
-- **Plugin-first** cho mã implementation và các dependency riêng mà plugin sở hữu, khi có nhu cầu tránh xung đột phiên bản.
-- **Ngoại lệ bắt buộc ủy quyền cho cha** ngay cả trong chính sách plugin-first, nhất là API/SPI mà host và plugin cùng trao đổi.
+- **Parent-first** for classes belonging to the host, the JDK, and shared communication contracts.
+- **Plugin-first** for implementation code and private dependencies owned by the plugin, when version conflicts must be avoided.
+- **Mandatory parent-delegation exceptions** even under a plugin-first policy, especially for APIs/SPIs exchanged between host and plugin.
 
-Đích đến không chỉ là “plugin load được class”; host còn phải cast, gọi API, nhận callback, truyền DTO, đăng ký `ServiceLoader` và xử lý exception qua ranh giới một cách nhất quán.
+The goal is not merely "the plugin can load classes"; the host must also cast, call APIs, receive callbacks, pass DTOs, register `ServiceLoader` providers, and handle exceptions across the boundary consistently.
 
-## 2. Cơ chế ủy quyền class loader
+## 2. Class Loader Delegation Mechanics
 
-### 2.1. Parent-first là hành vi mặc định của ClassLoader
+### 2.1. Parent-First Is the Default Behavior of ClassLoader
 
-`ClassLoader.loadClass(String)` theo implementation chuẩn ưu tiên theo trình tự:
+In its standard implementation, `ClassLoader.loadClass(String)` prioritizes in the following order:
 
-1. Kiểm tra `findLoadedClass(name)`: lớp đã được **loader hiện tại** nạp/định nghĩa chưa?
-2. Ủy quyền cho **parent loader** (hoặc bootstrap khi không có parent).
-3. Nếu cha không tìm được, thử `findClass(name)` tại loader hiện tại.
-4. Nếu không tìm được ở đâu, báo `ClassNotFoundException`.
+1. Check `findLoadedClass(name)`: has the class already been loaded/defined by the **current loader**?
+2. Delegate to the **parent loader** (or bootstrap when there is no parent).
+3. If the parent cannot find it, try `findClass(name)` in the current loader.
+4. If found nowhere, throw `ClassNotFoundException`.
 
-Trong `loadClass(name, resolve)`, tham số `resolve` quyết định có gọi `resolveClass` hay không sau khi xác định class. Không nên bỏ qua bước kiểm tra cache và cơ chế đồng bộ khi tự viết thuật toán ưu tiên khác.
+In `loadClass(name, resolve)`, the `resolve` parameter decides whether to call `resolveClass` after locating the class. Do not skip the cache check and synchronization mechanism when writing a custom precedence algorithm.
 
-`URLClassLoader` cũng theo delegation mặc định này. Tạo một `URLClassLoader` trỏ tới plugin JAR **chưa đủ** để tách version khi cha đã thấy một class cùng tên: nếu cha tìm thấy trước, class của plugin có thể không được chọn.
+`URLClassLoader` also follows this default delegation. Creating a `URLClassLoader` pointing to a plugin JAR is **not enough** to separate versions when the parent already sees a class with the same name: if the parent finds it first, the plugin's class may not be selected.
 
 ```text
-Parent-first khi yêu cầu tên com.acme.lib.Parser
+Parent-first when requesting com.acme.lib.Parser
 
 pluginLoader.loadClass("com.acme.lib.Parser")
     |
-    +-- đã nạp bởi pluginLoader? -- có --> dùng lại
+    +-- already loaded by pluginLoader? -- yes --> reuse
     |
-    +-- hỏi host/parent ------------ có --> lấy class do parent tìm thấy
+    +-- ask host/parent ------------------ yes --> take class found by parent
     |
-    +-- parent không tìm được ----------> pluginLoader.findClass(...)
+    +-- parent did not find it --------------> pluginLoader.findClass(...)
 ```
 
-### 2.2. Plugin-first đổi thứ tự cho một nhóm class
+### 2.2. Plugin-First Reverses the Order for a Group of Classes
 
-Với nhóm tên mà plugin sở hữu, một loader tùy biến có thể thử `findClass(name)` từ JAR/thư mục của plugin **trước** khi ủy quyền cho parent. Khi plugin có bản riêng của thư viện, class của plugin sẽ thắng; khi plugin không có, vẫn có thể fallback về parent.
+For a set of names owned by a plugin, a custom loader can try `findClass(name)` from the plugin's JARs/directories **before** delegating to the parent. When the plugin has its own copy of the library, the plugin's class wins; when the plugin does not have it, it can still fall back to the parent.
 
 ```text
-Plugin-first cho tên com.acme.plugin.lib.Parser
+Plugin-first for com.acme.plugin.lib.Parser
 
 pluginLoader.loadClass("com.acme.plugin.lib.Parser")
     |
-    +-- đã nạp? ----------------------- có --> dùng lại
+    +-- already loaded? ------------------ yes --> reuse
     |
-    +-- có class trong plugin? -------- có --> define class của plugin
+    +-- class exists in plugin? ---------- yes --> define plugin's class
     |
-    +-- plugin không tìm thấy -------------> thử host/parent
+    +-- not found in plugin -----------------> try host/parent
 ```
 
-**Chính sách nên áp theo nhóm tên có chủ sở hữu**, không theo khẩu hiệu “tất cả child-first”. Trong cùng một loader, cách phân loại thường được quyết định trước khi `loadClass`; không để kết quả phụ thuộc vào thời điểm plugin được khởi tạo.
+**Policies should be applied by owned name groups**, not by a blanket "child-first for everything" slogan. Within a single loader, classification rules are normally decided before `loadClass` runs; do not let results depend on when a plugin happens to be initialized.
 
-### 2.3. “Loading” không đồng nghĩa “Defining”
+### 2.3. "Loading" Does Not Mean "Defining"
 
-Loader nhận yêu cầu có thể **trả về class do parent định nghĩa**; lớp không nhất thiết được định nghĩa bởi loader nhận lời gọi. Điều này giải thích vì sao ta có thể có một `PluginLoader` riêng nhưng `api.Plugin.class.getClassLoader()` vẫn là host loader.
+A loader receiving a request may **return a class defined by its parent**; the class is not necessarily defined by the loader that received the call. This explains why we can have a separate `PluginLoader` while `api.Plugin.class.getClassLoader()` is still the host loader.
 
-Thông tin hữu ích khi chẩn đoán:
+Useful diagnostic information:
 
-- `type.getName()`: tên class.
-- `type.getClassLoader()`: defining class loader (có thể là `null` cho lớp do bootstrap định nghĩa).
-- `type.getModule()`: module chứa class khi dùng Java 9+.
-- `loader.getParent()`: cấu trúc cha của loader; không đồng nghĩa mọi lớp đi qua cha đều thuộc cùng một JAR.
+- `type.getName()`: class name.
+- `type.getClassLoader()`: defining class loader (may be `null` for bootstrap-defined classes).
+- `type.getModule()`: module containing the class on Java 9+.
+- `loader.getParent()`: parent structure of the loader; does not imply all classes coming through the parent belong to a single JAR.
 
-Thứ tự class loading ảnh hưởng tới identity, linking, package access và tầm nhìn của thư viện; nó không tự thay đổi chữ ký Java hay chuyển đổi một đối tượng thuộc hai định nghĩa class khác nhau thành compatible.
+Class-loading order affects identity, linking, package access, and library visibility; it does not by itself change Java signatures or make an object from two different class definitions compatible.
 
-## 3. Chọn parent-first hay plugin-first theo trường hợp
+## 3. Choosing Parent-First vs. Plugin-First by Scenario
 
-| Trường hợp | Ưu tiên hợp lý | Lý do |
+| Scenario | Appropriate priority | Reason |
 | --- | --- | --- |
-| API/SPI host–plugin (interface, DTO, exception dùng chung) | **Parent-first bắt buộc theo hợp đồng** | Giữ một runtime type để cast/gọi callback |
-| Lớp nền tảng Java (`java.*`) | **Ủy quyền cho Java platform/parent** | Không định nghĩa lại lớp nền tảng; JVM ngăn class loader thông thường định nghĩa tên thuộc `java.*` |
-| Runtime bridge, giao diện framework do host quản lý và đi qua ranh giới | Thường **parent-first** | Tránh hai bản khác danh tính cho cùng hợp đồng |
-| Implementation riêng của plugin | Plugin loader định nghĩa (plugin-first hoặc parent fallback khi cha không có) | Mã plugin thuộc vòng đời riêng |
-| Dependency private có version khác host | **Plugin-first** khi policy cho phép | Tránh ép plugin dùng version của host |
-| Dependency phải thực sự dùng chung một instance/type với host | **Parent-first** | Giữ hợp đồng, class identity, object model và lifecycle thống nhất |
-| Thư viện chỉ có một bản, không vượt ranh giới và không có xung đột | Có thể parent-first | Đơn giản hơn nếu chiến lược deploy cho phép |
-| Cấu hình/resource, `META-INF/services` | **Chính sách tìm resource riêng** | `getResource(s)` và `ServiceLoader` không nhất thiết dùng cùng thứ tự như `loadClass` |
+| Host–plugin API/SPI (shared interfaces, DTOs, exceptions) | **Mandatory parent-first by contract** | Preserves a single runtime type for casting/callbacks |
+| Java platform classes (`java.*`) | **Delegate to Java platform/parent** | Do not redefine platform classes; the JVM prevents ordinary class loaders from defining names under `java.*` |
+| Runtime bridges, framework interfaces managed by the host and crossing boundaries | Usually **parent-first** | Avoids two differently identified copies for the same contract |
+| Plugin's private implementation | Plugin loader defines it (plugin-first or parent fallback when absent in parent) | Plugin code has its own lifecycle |
+| Private dependency with a different version from the host | **Plugin-first** when policy allows | Avoids forcing plugins onto the host's version |
+| Dependency that must genuinely share one instance/type with the host | **Parent-first** | Keeps contract, class identity, object model, and lifecycle unified |
+| Library with only one version, not crossing boundaries and having no conflicts | Can be parent-first | Simpler if deployment strategy allows |
+| Config/resources, `META-INF/services` | **Separate resource lookup policy** | `getResource(s)` and `ServiceLoader` do not necessarily follow the same order as `loadClass` |
 
-Parent-first không tự động sai: nó giảm việc tải trùng class, phù hợp cho các API do host kiểm soát và đơn giản hơn trong ứng dụng một classpath. Plugin-first cũng không phải mặc định an toàn hơn: nó có thể tạo hai định nghĩa API và gây `ClassCastException` hoặc `ServiceConfigurationError`.
+Parent-first is not automatically wrong: it reduces duplicate class loading, suits host-controlled APIs, and is simpler in single-classpath applications. Nor is plugin-first inherently safer: it can produce two API definitions and cause `ClassCastException` or `ServiceConfigurationError`.
 
-Nguyên tắc quyết định là: **lớp nào cần cùng danh tính ở hai phía, lớp nào phải được cô lập về version, và lớp nào host sở hữu vòng đời**.
+The decision principle is: **which classes need the same identity on both sides, which classes must be version-isolated, and which classes have their lifecycle owned by the host**.
 
-## 4. Các ngoại lệ phải ủy quyền khi thiết kế plugin-first
+## 4. Mandatory Delegation Exceptions in a Plugin-First Design
 
-### 4.1. Lớp Java platform và các namespace bị bảo vệ
+### 4.1. Java Platform Classes and Protected Namespaces
 
-Không thử nạp/định nghĩa bản sao lớp JDK để ghi đè hành vi nền tảng. Với `java.*`, loader tùy biến phải ủy quyền; JVM còn hạn chế việc một class loader thông thường định nghĩa class có tên bắt đầu bằng `java.`. Các package khác thuộc platform có thể nằm trong module như `java.base`, `java.sql`, `java.logging`, `java.xml`, hoặc có tên `javax.*`/`jdk.*`; hãy phân loại theo module/runtime thực tế và chính sách host.
+Do not attempt to load/define copies of JDK classes to override platform behavior. For `java.*`, custom loaders must delegate; the JVM even restricts ordinary class loaders from defining classes whose names begin with `java.`. Other platform packages may live in modules such as `java.base`, `java.sql`, `java.logging`, `java.xml`, or carry `javax.*`/`jdk.*` names; classify according to actual runtime modules and host policy.
 
-Không áp dụng máy móc “mọi `javax.*` và `jakarta.*` đều là JDK”:
+Do not mechanically assume "all `javax.*` and `jakarta.*` belong to the JDK":
 
-- `jakarta.*` thường là thư viện/framework bên ngoài JDK; khi contract `jakarta.servlet.*` hoặc `jakarta.validation.*` đi qua boundary, host nên chỉ định bản dùng chung.
-- Một dependency private có namespace `javax.*` có thể là thư viện ngoài platform; chính sách phải dựa trên **quyền sở hữu và contract**, không chỉ một prefix đoán mò.
-- Với API Java tiêu chuẩn, vẫn cần cho lớp được nạp từ platform/parent thay vì shadow bằng copy trong plugin.
+- `jakarta.*` is typically external libraries/frameworks outside the JDK; when `jakarta.servlet.*` or `jakarta.validation.*` contracts cross the boundary, the host should designate the shared version.
+- A private dependency with a `javax.*` namespace may be an off-platform library; policy must be based on **ownership and contract**, not just a guessed prefix.
+- For standard Java APIs, classes should still be loaded from the platform/parent rather than shadowed by a copy inside a plugin.
 
-### 4.2. Host API/SPI và kiểu giao tiếp
+### 4.2. Host API/SPI and Communication Types
 
-Giả sử host định nghĩa:
+Suppose the host defines:
 
 ```java
 package com.acme.api;
@@ -113,61 +113,61 @@ public interface Plugin {
 }
 ```
 
-Đây là **đoạn interface minh họa**; `Request` và `Result` cũng thuộc API chung, không phải các lớp có sẵn trong JDK. Nếu plugin bundle bản riêng của `Plugin` hoặc `Request`, host có thể nhìn thấy đối tượng “implements Plugin” trong source nhưng vẫn thất bại tại runtime. Phải **ủy quyền toàn bộ những kiểu Java có thể xuất hiện qua biên**, gồm:
+This is an **illustrative interface snippet**; `Request` and `Result` also belong to the shared API, not built-in JDK classes. If a plugin bundles its own copy of `Plugin` or `Request`, the host may see an object that "implements Plugin" in source yet still fail at runtime. You must **delegate all Java types that can appear across the boundary**, including:
 
-- Interface/abstract class SPI và base class.
-- DTO, enum, record, generic bound, exception và annotation mà host/plugin dùng chung.
-- Callback/listener, service contract, event type và những loại xuất hiện trong chữ ký method.
-- Các API phụ trợ mà những kiểu trên trực tiếp tham chiếu và thực sự thuộc hợp đồng chung.
+- SPI interfaces/abstract classes and base classes.
+- DTOs, enums, records, generic bounds, exceptions, and annotations shared between host and plugin.
+- Callbacks/listeners, service contracts, event types, and types appearing in method signatures.
+- Supporting APIs directly referenced by the types above that genuinely belong to the shared contract.
 
-Không chỉ liệt kê một interface chính rồi quên các kiểu phụ. Một `Plugin.execute(Request)` chỉ ổn nếu cả `Plugin` lẫn `Request` có cùng runtime identity ở phía host và plugin.
+Do not list only one primary interface and forget supporting types. A `Plugin.execute(Request)` signature works only if both `Plugin` and `Request` have the same runtime identity on the host and plugin sides.
 
-Cách đóng gói phù hợp là host cung cấp một **API JAR dùng chung**; plugin biên dịch dựa vào API này nhưng khi chạy không tự định nghĩa bản thứ hai. Có thể khai báo dependency theo kiểu `compileOnly`/`provided` (tùy build tool), kiểm soát nội dung JAR lúc package, và dùng delegation exception cho namespace API.
+The proper packaging approach is for the host to provide a **shared API JAR**; plugins compile against this API without defining a second copy at runtime. You can declare the dependency as `compileOnly`/`provided` (depending on the build tool), inspect JAR contents at packaging time, and enforce delegation exceptions for the API namespace.
 
-**Quan trọng:** parent-first chỉ ưu tiên cha; nếu cha không có API, implementation mặc định có thể fallback về bản copy trong plugin. Hệ thống nên **xác thực trước rằng contract bắt buộc có ở parent** và từ chối plugin thiếu điều kiện, thay vì im lặng chấp nhận một định nghĩa API riêng.
+**Important:** parent-first only tries the parent first; if the parent lacks the API, the default implementation can still fall back to a copy inside the plugin. The system should **validate up front that required contracts exist in the parent** and reject plugins that fail this condition, rather than silently accepting a private API definition.
 
-### 4.3. Các bridge dùng chung do host quản lý
+### 4.3. Shared Bridges Managed by the Host
 
-Tùy kiến trúc, những API như logging facade, tracing/metrics API, dependency injection extension contract hoặc transaction callback cũng có thể cần dùng chung. Ví dụ host và plugin cùng truyền `org.slf4j.Logger` hoặc đăng ký một framework callback được host tiêu thụ: những interface xuất hiện ở cả hai phía nên có một định nghĩa nhất quán. Phần implementation/backend bên trong plugin lại có thể cần tách riêng.
+Depending on the architecture, APIs such as a logging facade, tracing/metrics APIs, dependency injection extension contracts, or transaction callbacks may also need to be shared. For instance, if host and plugin pass `org.slf4j.Logger` or register a framework callback consumed by the host, interfaces appearing on both sides should have one consistent definition. The internal implementation/backend inside the plugin may still need separation.
 
-Đừng đưa mọi thư viện framework vào danh sách parent-first chỉ vì tên quen thuộc. Hãy hỏi:
+Do not put every framework library onto the parent-first list merely because its name is familiar. Ask:
 
-1. Có **đối tượng thuộc kiểu này** đi qua ranh giới host–plugin không?
-2. Ai quản lý lifecycle/registry của kiểu đó?
-3. Bản ABI và version nào host cam kết cấp?
-4. Dependency transitive nào bắt buộc cùng identity để không bị lỗi linking?
+1. Do **objects of this type** cross the host–plugin boundary?
+2. Who manages that type's lifecycle/registry?
+3. Which ABI and version does the host commit to providing?
+4. Which transitive dependencies require matching identity to avoid linkage errors?
 
-Nếu câu trả lời chỉ là “plugin tự dùng thư viện ở bên trong”, plugin-first có thể phù hợp hơn.
+If the answer is merely "the plugin uses the library internally," plugin-first may be more suitable.
 
-## 5. Viết chính sách loadClass đúng và tránh fallback sai
+## 5. Writing a Correct loadClass Policy and Avoiding Bad Fallbacks
 
-Một quyết định thực tế có thể mô tả bằng bảng policy:
+A practical decision can be expressed as a policy table:
 
-| Nhóm class | Quy tắc | Khi thiếu |
+| Class group | Rule | When missing |
 | --- | --- | --- |
-| `java.*` và platform classes | Parent/platform first | Fail nếu platform không có |
-| `com.acme.api.*` (contract dùng chung) | **Chỉ lấy class từ parent đã xác thực** | Báo thiếu shared API; không dùng copy plugin |
-| `com.acme.plugin.*` | Tìm tại plugin trước | Có thể fail-fast nếu đây phải là implementation nội bộ |
-| `com.acme.vendor.private.*` | Plugin-first; fallback theo chính sách explicit | Tránh vô tình lấy host version không compatible |
-| Những package khác | Parent-first theo mặc định, nếu policy chưa cho phép isolate | Tránh shadow class không được khai báo |
+| `java.*` and platform classes | Parent/platform first | Fail if absent from platform |
+| `com.acme.api.*` (shared contract) | **Load only from validated parent** | Report missing shared API; do not use plugin copy |
+| `com.acme.plugin.*` | Look in plugin first | Can fail fast if this must be an internal implementation |
+| `com.acme.vendor.private.*` | Plugin-first; fallback per explicit policy | Avoid accidentally picking an incompatible host version |
+| Other packages | Parent-first by default, unless policy allows isolation | Avoid shadowing undeclared classes |
 
-Đây là policy **minh họa**. Tên package là quy ước của từng hệ thống, không phải danh sách có sẵn trong `ClassLoader`.
+This is an **illustrative** policy. Package names are conventions of each system, not a built-in list inside `ClassLoader`.
 
-Pseudocode của một loader có ngoại lệ:
+Pseudocode of a loader with exceptions:
 
 ```text
 loadClass(name, resolve):
-    lock theo tên class nếu loader hỗ trợ khóa song song
-    if findLoadedClass(name) != null: return class đã nạp
+    lock by class name if loader is parallel-capable
+    if findLoadedClass(name) != null: return already loaded class
 
     if isPlatform(name):
         result = delegateToParent(name)
     else if isSharedHostApi(name):
         result = delegateToParentStrictly(name)
-        # không fallback sang plugin nếu API bắt buộc thiếu
+        # do not fall back to plugin if required API is missing
     else if isPluginOwned(name):
         result = findClassInPlugin(name)
-        # fallback sang parent chỉ nếu policy cho phép và class không có tại plugin
+        # fall back to parent only if policy permits and class is absent in plugin
     else:
         result = delegateToParentThenFindLocal(name)
 
@@ -175,27 +175,27 @@ loadClass(name, resolve):
     return result
 ```
 
-Khi tự implement `loadClass(String, boolean)`:
+When implementing `loadClass(String, boolean)` yourself:
 
-- Luôn kiểm tra `findLoadedClass` trước để tránh định nghĩa lại một class trong cùng loader.
-- Dùng `synchronized (getClassLoadingLock(name))` hoặc cơ chế tương đương để xử lý concurrent load; đặc tính parallel-capable của subclass cần được hiểu rõ.
-- Chỉ fallback parent khi `findClass` ném **`ClassNotFoundException`** cho class vắng mặt. Không nuốt `LinkageError`, `SecurityException` hoặc lỗi verify/init thực sự để thử một version khác âm thầm.
-- Tôn trọng `resolveClass` theo tham số `resolve`.
-- Gọi `super.loadClass(name, false)` trong một class loader kế thừa có thể thực hiện **parent-first rồi tìm tại loader hiện tại**. Nếu cần chế độ **chỉ parent** cho API chung, gọi `getParent().loadClass(name)` với xử lý bootstrap và xác thực rõ, tránh dùng fallback local không mong muốn.
-- Chọn các prefix chuẩn xác; `name.startsWith("com.acme.api.")` khác với `name.startsWith("com.acme.api")`, vì dạng thiếu dấu chấm có thể khớp nhầm `com.acme.application.*`. Khi có class `com.acme.api` chính nó, cần xử lý tên chính xác nếu policy yêu cầu.
-- Class đã nạp không tự chuyển sang loader khác khi sửa policy hoặc thay JAR. Muốn nâng cấp plugin độc lập thường phải tạo **loader mới** và giải phóng mọi tham chiếu đến loader cũ.
+- Always check `findLoadedClass` first to avoid redefining a class in the same loader.
+- Use `synchronized (getClassLoadingLock(name))` or an equivalent mechanism to handle concurrent loads; the subclass's parallel-capable characteristics must be well understood.
+- Fall back to the parent only when `findClass` throws **`ClassNotFoundException`** for an absent class. Do not swallow `LinkageError`, `SecurityException`, or genuine verification/initialization errors to silently try another version.
+- Honor `resolveClass` according to the `resolve` parameter.
+- Calling `super.loadClass(name, false)` in a subclass loader can perform **parent-first followed by local search in the current loader**. If you need **parent-only** mode for a shared API, call `getParent().loadClass(name)` with proper bootstrap handling and explicit validation to avoid unintended local fallbacks.
+- Choose prefixes accurately; `name.startsWith("com.acme.api.")` differs from `name.startsWith("com.acme.api")`, as the version without a trailing dot can accidentally match `com.acme.application.*`. If there is a class named `com.acme.api` itself, handle exact names if policy requires.
+- Already-loaded classes do not automatically move to another loader when policies change or JARs are swapped. Upgrading a plugin independently typically requires creating a **new loader** and releasing all references to the old one.
 
-Nếu cần cô lập mạnh, một loader riêng cho **mỗi plugin** phù hợp hơn một loader chung cho tất cả plugin: hai plugin khi đó có thể dùng hai phiên bản `com.vendor.Json` mà không giẫm lên nhau. Host phải kiểm tra không để kiểu private của plugin A tràn trực tiếp vào API của plugin B.
+If strong isolation is needed, one dedicated loader **per plugin** is better than one shared loader for all plugins: two plugins can then use two versions of `com.vendor.Json` without stepping on each other. The host must verify that plugin A's private types do not leak directly into plugin B's API.
 
-## 6. Ví dụ Java 17+ chạy được: parent-first, plugin-first và ngoại lệ API
+## 6. Runnable Java 17+ Example: Parent-First, Plugin-First, and API Exceptions
 
-Ví dụ sau chạy bằng **một file duy nhất**, tự tạo hai tập class độc lập trong thư mục tạm rồi biên dịch bằng `JavaCompiler` của JDK:
+The following example runs from a **single file**, creating two independent sets of classes in a temporary directory and compiling them using the JDK's `JavaCompiler`:
 
-- **Host classes** có `demo.api.Greeting` và `demo.lib.Message` trả `host-library`.
-- **Plugin classes** cũng có bản sao `demo.api.Greeting` và một `demo.lib.Message` khác trả `plugin-library`, cùng `demo.plugin.Hello` sử dụng chúng.
-- Một `PluginLoader` thử parent hoặc plugin trước theo policy. Với `delegateSharedApi=true`, namespace `demo.api.*` luôn được ủy quyền cho host. Trường hợp cuối cố tình bỏ ngoại lệ này để chứng minh rủi ro.
+- **Host classes** contain `demo.api.Greeting` and `demo.lib.Message` returning `host-library`.
+- **Plugin classes** also contain a copy of `demo.api.Greeting` and a different `demo.lib.Message` returning `plugin-library`, along with `demo.plugin.Hello` using them.
+- A `PluginLoader` tries the parent or plugin first according to policy. With `delegateSharedApi=true`, the `demo.api.*` namespace is always delegated to the host. The last case intentionally omits this exception to demonstrate the risk.
 
-Tệp **`DelegationPolicyDemo.java`**:
+File **`DelegationPolicyDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -349,14 +349,14 @@ public class DelegationPolicyDemo {
 }
 ```
 
-Biên dịch và chạy trên **JDK 17 hoặc mới hơn** (máy cần có `javac` và `java`):
+Compile and run on **JDK 17 or newer** (requires `javac` and `java` on the machine):
 
 ```bash
 javac --release 17 DelegationPolicyDemo.java
 java DelegationPolicyDemo
 ```
 
-Đầu ra chính xác (đã kiểm tra bằng biên dịch và chạy thực tế):
+Exact output (verified by actual compilation and execution):
 
 ```text
 parent-first: host-library
@@ -365,78 +365,78 @@ shared API: true
 no API exception: false
 ```
 
-Giải thích từng dòng:
+Line-by-line explanation:
 
-1. `parent-first`: host đã có `demo.lib.Message` nên loader của plugin nhận class do host định nghĩa; code `Hello` in kết quả từ thư viện host.
-2. `plugin-first`: loader của plugin tự tìm `demo.lib.Message` ở kho bytecode plugin trước; vì vậy dùng bản plugin.
-3. `shared API: true`: dù `Hello` và private library có thể được nạp từ plugin, `demo.api.Greeting` được ủy quyền về host, nên host nhận ra instance là một implementation của **chính kiểu host**.
-4. `no API exception: false`: plugin có bản sao `demo.api.Greeting` và loader nạp bản đó trước; host kiểm tra `isInstance` với interface của host thì thất bại. Một phép cast tương đương có thể gây `ClassCastException`.
+1. `parent-first`: the host already has `demo.lib.Message`, so the plugin's loader receives the class defined by the host; `Hello` prints the result from the host library.
+2. `plugin-first`: the plugin's loader looks up `demo.lib.Message` in the plugin's bytecode repository first; hence the plugin copy is used.
+3. `shared API: true`: even though `Hello` and the private library can be loaded from the plugin, `demo.api.Greeting` is delegated to the host, so the host recognizes the instance as an implementation of **the host's own type**.
+4. `no API exception: false`: the plugin has a copy of `demo.api.Greeting` and the loader loads that copy first; when the host checks `isInstance` against the host's interface, it fails. An equivalent cast would throw `ClassCastException`.
 
-Ví dụ **cố ý** đưa cùng API vào hai bộ class để minh họa lỗi; hệ thống production nên bỏ bản copy API khỏi runtime plugin nếu host cấp API. Trong demo, ngoại lệ `demo.api.*` là policy parent-first đơn giản, **không phải chế độ parent-only nghiêm ngặt** nếu host không có API: `super.loadClass` vẫn có thể fallback sang class của plugin. Với một shared API bắt buộc, hệ thống thực phải kiểm tra API đã tồn tại ở host và từ chối fallback sai.
+The example **intentionally** places the same API into both class sets to illustrate the bug; production systems should remove the duplicate API copy from the plugin runtime if the host supplies the API. In the demo, the `demo.api.*` exception is a simple parent-first policy, **not a strict parent-only mode** if the host lacks the API: `super.loadClass` can still fall back to the plugin's class. For a mandatory shared API, a real system must verify the API exists on the host and reject improper fallbacks.
 
-Cũng lưu ý đây là demo dùng classpath và `URLClassLoader` để tập trung vào **thứ tự tìm class**; nó không mô phỏng toàn bộ quản lý module JPMS, chữ ký artifact, sandbox hay hot-reload production. `JavaCompiler` biên dịch các source tạm tại runtime chỉ để tạo hai bộ class có cùng tên nhưng nội dung khác nhau; khi triển khai thật, các bộ class thường đã được build thành JAR độc lập.
+Also note that this demo uses the classpath and `URLClassLoader` to focus on **class lookup order**; it does not simulate full JPMS module management, artifact signing, sandboxing, or production hot-reload. `JavaCompiler` compiles temporary sources at runtime purely to generate two class sets with identical names but differing contents; in real deployments, the class sets are usually already built into separate JARs.
 
-## 7. Đừng nhầm cơ chế nạp class với cơ chế tìm resource
+## 7. Do Not Confuse Class Loading with Resource Lookup
 
-`ClassLoader.loadClass(...)` và `getResource(...)` / `getResources(...)` là **hai nhóm hành vi riêng**. Đổi sang plugin-first trong `loadClass` không tự động khiến:
+`ClassLoader.loadClass(...)` and `getResource(...)` / `getResources(...)` are **two separate groups of behaviors**. Switching to plugin-first in `loadClass` does not automatically cause:
 
-- `getResource("config.yml")` chọn bản của plugin trước.
-- `getResources("META-INF/services/...")` trả đúng các descriptor cần thiết từ host và plugin.
-- `ServiceLoader` khám phá đúng provider trong mọi class loader hoặc module layer.
-- Một framework đang dùng **thread context class loader (TCCL)** tự chuyển sang plugin loader.
+- `getResource("config.yml")` to pick the plugin's copy first.
+- `getResources("META-INF/services/...")` to return the exact descriptors needed from host and plugin.
+- `ServiceLoader` to discover the right providers across every class loader or module layer.
+- A framework using the **thread context class loader (TCCL)** to automatically switch to the plugin loader.
 
-`URLClassLoader` mặc định đi theo cơ chế tìm resource được kế thừa; nếu kiến trúc muốn resource plugin override host, cần thiết kế **chính sách resource lookup riêng**, kiểm soát cả kết quả đơn và nhiều kết quả, cùng thứ tự/duplicate.
+By default, `URLClassLoader` follows inherited resource lookup behavior; if the architecture wants plugin resources to override the host, you must design a **separate resource lookup policy**, controlling both single and multiple results as well as ordering/duplicates.
 
-Đặc biệt, nhiều plugin sử dụng `META-INF/services`. Việc “plugin-first resources” bỏ qua danh sách provider của parent hoặc gộp trùng bất cẩn có thể làm plugin không được phát hiện, provider API bị lỗi identity, hoặc `ServiceConfigurationError` xuất hiện khi khởi tạo. Không nên áp dụng chung chính sách override resource cho mọi path; tệp cấu hình riêng plugin và service declaration có thể cần hai quy tắc khác nhau.
+In particular, many plugins use `META-INF/services`. Careless "plugin-first resources" that skip parent provider lists or naively merge duplicates can prevent plugins from being discovered, cause provider API identity errors, or trigger `ServiceConfigurationError` at initialization. Do not apply a blanket resource-override policy to every path; plugin-private configuration files and service declarations may need two different rules.
 
-### 7.1. ServiceLoader và shared SPI
+### 7.1. ServiceLoader and Shared SPI
 
-Khi host nạp provider:
+When the host loads providers:
 
 ```java
 ServiceLoader<MySpi> providers =
         ServiceLoader.load(MySpi.class, pluginLoader);
 ```
 
-Đây là **mã minh họa tích hợp**, trong đó `MySpi` là kiểu do host định nghĩa và `pluginLoader` là loader đang quản lý artifact plugin. `ServiceLoader` yêu cầu provider thực sự phù hợp với `MySpi`. Nếu plugin-first định nghĩa bản sao của `MySpi`, provider có thể không assignable và quá trình tìm/khởi tạo có thể thất bại với `ServiceConfigurationError`.
+This is an **integration snippet**, where `MySpi` is a host-defined type and `pluginLoader` is the loader managing the plugin artifact. `ServiceLoader` requires providers to genuinely match `MySpi`. If plugin-first defines a duplicate copy of `MySpi`, the provider may not be assignable and discovery/instantiation can fail with `ServiceConfigurationError`.
 
-Chọn loader rõ ràng giúp tránh tình huống tìm provider bằng một loader nhưng SPI lại được nạp bằng loader khác. Với overload `ServiceLoader.load(MySpi.class)`, Java dùng **thread context class loader** hiện tại; vì vậy thay đổi TCCL có thể ảnh hưởng đường khám phá, dù chính `MySpi.class` vẫn thuộc host.
+Choosing the loader explicitly avoids finding a provider using one loader while the SPI was loaded with another. With the `ServiceLoader.load(MySpi.class)` overload, Java uses the current **thread context class loader**; hence changing TCCL can affect the discovery path, even though `MySpi.class` itself belongs to the host.
 
-### 7.2. TCCL phải được khôi phục
+### 7.2. TCCL Must Be Restored
 
-Một số framework/JDK API tìm class hoặc resource qua `Thread.currentThread().getContextClassLoader()`, không đi thẳng qua loader đã tạo đối tượng plugin. Nếu bắt buộc tạm đặt TCCL để gọi plugin, hãy khôi phục trong `finally`:
+Some frameworks/JDK APIs look up classes or resources via `Thread.currentThread().getContextClassLoader()`, rather than going directly through the loader that created the plugin object. If you must temporarily set the TCCL to call a plugin, restore it in `finally`:
 
 ```java
 Thread thread = Thread.currentThread();
 ClassLoader original = thread.getContextClassLoader();
 try {
     thread.setContextClassLoader(pluginLoader);
-    // Gọi code/plugin framework cần TCCL ở đây.
+    // Invoke code/plugin framework requiring TCCL here.
     invokePlugin();
 } finally {
     thread.setContextClassLoader(original);
 }
 ```
 
-Đây là **mã minh họa tích hợp**, cần `pluginLoader` và `invokePlugin()` do ứng dụng cung cấp. Không giữ TCCL của plugin trên thread pool sau khi trả request: điều đó có thể khiến các tác vụ khác nhìn nhầm dependency của plugin, rò rỉ class loader và cản trở unload. Cần truyền/khôi phục context có chủ đích trong tác vụ bất đồng bộ theo đúng contract; chỉ đặt TCCL cho một thread không tự động đổi toàn bộ luồng thực thi khác.
+This is an **integration snippet**, requiring `pluginLoader` and `invokePlugin()` supplied by the application. Do not leave the plugin's TCCL on a thread pool after returning from a request: doing so can cause other tasks to see the wrong plugin dependencies, leak the class loader, and block unloading. Propagate/restore context intentionally in asynchronous tasks according to the contract; setting TCCL on one thread does not automatically change other execution threads.
 
-## 8. Lỗi thường gặp do chọn thứ tự hoặc ngoại lệ sai
+## 8. Common Errors from Wrong Ordering or Exceptions
 
-| Triệu chứng | Nguyên nhân có thể | Hướng điều tra và sửa |
+| Symptom | Possible cause | Investigation and fix |
 | --- | --- | --- |
-| Plugin gọi method mới nhưng gặp `NoSuchMethodError` | Parent-first lấy nhầm bản lib cũ của host | Kiểm tra defining loader và version; cho phép plugin-first ở dependency private |
-| `ClassCastException` dù hai tên class giống nhau | Host và plugin định nghĩa cùng API/SPI | Chia sẻ API ở parent và ủy quyền bắt buộc; kiểm tra `getClassLoader()` |
-| `ServiceConfigurationError` khi khám phá provider | Provider có thể implement bản SPI riêng; metadata/resource có thể sai | Kiểm tra service class identity, loader, descriptor và root cause |
-| `NoClassDefFoundError` khi chạy | Thiếu dependency transitive hoặc lỗi khởi tạo trước đó | Xem cause chain, closure dependency và layer/classpath thực |
-| `LinkageError`, `loader constraint violation` | Các class cùng tham gia chữ ký runtime không có identity tương thích | Kiểm tra delegation của mọi kiểu đi qua biên |
-| Plugin tải được nhưng callback không được đăng ký | Host registry mong đợi interface/class do host định nghĩa | Cùng SPI và event/annotation contract phải dùng shared class |
-| Thư viện plugin vô tình thay class/framework chung | Plugin-first quá rộng | Giới hạn namespace private và ngoại lệ shared |
-| Plugin không thấy resource/provider | Chỉ override `loadClass` nhưng resource lookup/TCCL khác | Kiểm tra `getResources`, `ServiceLoader` và TCCL |
-| Plugin cũ không unload được | Static cache, thread, listener, TCCL giữ tham chiếu | Gỡ registration, đóng loader, chấm dứt task, dọn cache theo ownership |
+| Plugin calls a new method and hits `NoSuchMethodError` | Parent-first picked up the host's old library copy by mistake | Check defining loader and version; allow plugin-first for private dependencies |
+| `ClassCastException` despite identical class names | Host and plugin both defined the same API/SPI | Share the API in the parent and enforce mandatory delegation; check `getClassLoader()` |
+| `ServiceConfigurationError` when discovering providers | Provider may implement its own SPI copy; metadata/resources may be wrong | Check service class identity, loader, descriptor, and root cause |
+| `NoClassDefFoundError` at runtime | Missing transitive dependency or earlier initialization failure | Inspect cause chain, dependency closure, and actual layer/classpath |
+| `LinkageError`, `loader constraint violation` | Classes participating in a runtime signature lack compatible identities | Check delegation of all types crossing the boundary |
+| Plugin loads, yet callbacks fail to register | Host registry expects host-defined interfaces/classes | Both SPI and event/annotation contracts must use shared classes |
+| Plugin library accidentally replaces shared framework classes | Plugin-first scope is too broad | Restrict private namespaces and shared exceptions |
+| Plugin cannot find resources/providers | Overrode only `loadClass`, while resource lookup/TCCL differs | Inspect `getResources`, `ServiceLoader`, and TCCL |
+| Old plugin fails to unload | Static caches, threads, listeners, or TCCL retain references | Unregister, close loader, terminate tasks, and clear caches per ownership |
 
-**Đừng chữa `NoSuchMethodError` bằng cách đổi tất cả sang plugin-first**. Nếu method thuộc một DTO hoặc SPI đi qua boundary, tạo bản riêng có thể khiến lỗi chuyển thành `ClassCastException` hay `LinkageError`. Hãy xác định chính xác thư viện nào được phép private và thư viện nào bắt buộc shared.
+**Do not fix `NoSuchMethodError` by switching everything to plugin-first**. If the method belongs to a DTO or SPI crossing the boundary, creating a separate copy can turn the error into `ClassCastException` or `LinkageError`. Determine precisely which libraries are allowed to be private and which must be shared.
 
-Khi chẩn đoán, in loader của cả interface host và class implementation:
+When diagnosing, print the loaders of both the host interface and the implementation class:
 
 ```java
 System.out.println(MySpi.class.getClassLoader());
@@ -444,45 +444,45 @@ System.out.println(instance.getClass().getClassLoader());
 System.out.println(MySpi.class.isInstance(instance));
 ```
 
-Đây cũng là **đoạn minh họa tích hợp**. `instance` có thể thuộc plugin loader mà vẫn implement API do parent định nghĩa; điều quan trọng là class/interface trong chuỗi thừa kế và method signature có identity nhất quán.
+This is also an **integration snippet**. `instance` may belong to the plugin loader while still implementing an API defined by the parent; what matters is that classes/interfaces in the inheritance chain and method signatures have consistent identities.
 
-## 9. Vận hành, version và giới hạn cô lập
+## 9. Operations, Versioning, and Isolation Limits
 
-### 9.1. Quy tắc version và phụ thuộc
+### 9.1. Versioning and Dependency Rules
 
-- **Host API/SPI:** công bố version tương thích và kiểm tra khi plugin được nhận. Parent-first chỉ thống nhất type, không chứng minh ABI/behavior tương thích.
-- **Dependency private:** đóng gói với plugin và cho phép plugin-first trong namespace đã chọn; tránh để class private xuất hiện trực tiếp trong method public của SPI.
-- **Dependency shared:** host quyết định version, plugin khai báo khoảng version mình hỗ trợ và được kiểm thử với version host thực sự cấp.
-- **Hai plugin khác nhau:** dùng loader riêng khi cần hai version private song song; tránh static singleton chung nếu không chủ đích chia sẻ.
-- **Shading/relocation:** có thể giảm trùng tên package của dependency private, nhưng cần cập nhật resource như `META-INF/services`, reflection strings và serialization metadata nếu công cụ build không tự xử lý. Shading không thay thế chính sách shared SPI.
+- **Host API/SPI:** publish compatible versions and check them when accepting a plugin. Parent-first only unifies types; it does not prove ABI/behavior compatibility.
+- **Private dependencies:** package with the plugin and allow plugin-first in the chosen namespace; avoid letting private classes appear directly in public SPI methods.
+- **Shared dependencies:** the host decides the version; plugins declare the version range they support and are tested against the exact version the host provides.
+- **Two different plugins:** use separate loaders when two parallel private versions are needed; avoid shared static singletons unless intentionally shared.
+- **Shading/relocation:** can reduce package-name collisions for private dependencies, but resources such as `META-INF/services`, reflection strings, and serialization metadata must be updated if build tools do not handle them automatically. Shading does not replace a shared SPI policy.
 
-Một API đóng gói trùng trong plugin nên được phát hiện bằng kiểm tra build/deploy, chứ không chỉ trông cậy việc parent-first sẽ “che” bản copy.
+A duplicate API packaged inside a plugin should be caught by build/deploy checks, rather than relying solely on parent-first "shadowing" the extra copy.
 
-### 9.2. JPMS và module layers
+### 9.2. JPMS and Module Layers
 
-Trong Java 9+, có thể dùng `ModuleLayer` để triển khai module riêng cho plugin; service có thể được khai báo qua `provides ... with ...` và `uses` thay vì `META-INF/services`. Lúc đó class visibility còn do module resolution, readability, `exports` và `opens` quyết định. Không thể sửa một lỗi `module does not read` hoặc truy cập reflective bằng cách đảo thứ tự parent-first/child-first đơn thuần.
+In Java 9+, you can use `ModuleLayer` to deploy dedicated modules for plugins; services can be declared via `provides ... with ...` and `uses` instead of `META-INF/services`. Class visibility is then also governed by module resolution, readability, `exports`, and `opens`. You cannot fix a `module does not read` or reflective access error merely by flipping parent-first/child-first order.
 
-Một layer có thể gắn với một hay nhiều class loader tùy chiến lược định nghĩa; **class loader isolation** và **module encapsulation** là hai cơ chế liên quan nhưng không đồng nhất. Cần chọn `ServiceLoader.load(layer, service)` hoặc overload khác theo mô hình deployment và kiểm tra lại cả service identity.
+A layer can be associated with one or multiple class loaders depending on the definition strategy; **class loader isolation** and **module encapsulation** are related but distinct mechanisms. Choose `ServiceLoader.load(layer, service)` or another overload according to the deployment model and re-verify service identity as well.
 
-### 9.3. Cô lập dependency không phải sandbox bảo mật
+### 9.3. Dependency Isolation Is Not a Security Sandbox
 
-ClassLoader riêng chủ yếu hỗ trợ namespace, lifecycle và quản lý dependency. Nó **không tự ngăn** plugin đọc file, mở kết nối mạng, dùng reflection hay gọi API host công khai. Java Security Manager đã bị loại bỏ khỏi mô hình bảo vệ được khuyến nghị và không thể xem plugin-first là cơ chế sandbox cho code không tin cậy. Nếu cần ranh giới tin cậy mạnh, cân nhắc tiến trình riêng, quyền hệ điều hành, IPC, môi trường container hoặc cơ chế kiểm soát thích hợp.
+A dedicated ClassLoader primarily supports namespaces, lifecycle, and dependency management. It **does not by itself prevent** plugins from reading files, opening network connections, using reflection, or calling public host APIs. The Java Security Manager has been removed from recommended protection models, and plugin-first cannot be viewed as a sandbox mechanism for untrusted code. If strong trust boundaries are required, consider separate processes, OS permissions, IPC, container environments, or appropriate isolation controls.
 
-### 9.4. Lifecycle và unload
+### 9.4. Lifecycle and Unloading
 
-Một class đã được JVM định nghĩa bởi loader cụ thể không thể “đổi chủ” khi thay policy. Muốn nạp plugin phiên bản mới, thường tạo loader/module layer mới, đăng ký provider mới, hủy listener/task/timer/thread của plugin cũ và bảo đảm không còn tham chiếu mạnh tới class/instance/loader cũ. Đóng `URLClassLoader` giải phóng tài nguyên mà nó quản lý nhưng **không bảo đảm ngay lập tức unload tất cả class** nếu còn tham chiếu khác.
+A class already defined by the JVM via a specific loader cannot "switch owners" when policies change. To load a new version of a plugin, you typically create a new loader/module layer, register the new provider, cancel the old plugin's listeners/tasks/timers/threads, and ensure no strong references remain to old classes/instances/loaders. Closing `URLClassLoader` releases resources it manages, yet **does not guarantee immediate unloading of all classes** if other references remain.
 
-## 10. Checklist kiểm thử trước khi phát hành plugin
+## 10. Pre-Release Plugin Testing Checklist
 
-1. **Parent-first baseline:** khi host và plugin cùng có một dependency, xác nhận version thực tế và defining loader là bản host.
-2. **Plugin-first private dependency:** với hai version khác nhau, xác nhận plugin dùng bản của mình và host vẫn dùng bản host.
-3. **API/SPI luôn shared:** kể cả plugin JAR vô tình chứa bản copy, `HostSpi.class.isInstance(provider)` phải đúng; trong production nên loại bản copy khỏi artifact.
-4. **Bắt buộc có shared API tại parent:** thử host thiếu API và xác nhận bị từ chối, không fallback âm thầm sang bản plugin.
-5. **Kiểu đi qua boundary:** thử các DTO, callback, exception, enum, annotation được dùng chung, không chỉ interface chính.
-6. **Thiếu dependency hoặc lỗi linkage:** không bắt rồi fallback tùy tiện; giữ root cause và xác định artifact/class loader.
-7. **Resource và ServiceLoader:** kiểm tra resource đơn, nhiều resource, service descriptor, TCCL và `ServiceConfigurationError` ở môi trường deploy thật.
-8. **Nhiều plugin song song:** cùng tên thư viện nhưng khác version không xung đột giữa các loader.
-9. **JPMS nếu áp dụng:** kiểm tra `uses`, `provides`, layer, `exports` và `opens`.
-10. **Reload/unload:** bảo đảm không còn thread, TCCL, registry hoặc static cache của host tham chiếu plugin cũ.
+1. **Parent-first baseline:** when host and plugin both contain a dependency, confirm the actual version and defining loader are the host's copy.
+2. **Plugin-first private dependencies:** with two different versions, confirm the plugin uses its own copy and the host still uses the host copy.
+3. **API/SPI always shared:** even if a plugin JAR accidentally contains a copy, `HostSpi.class.isInstance(provider)` must be true; in production, remove the duplicate copy from the artifact.
+4. **Mandatory shared API in parent:** test a host missing the API and confirm it is rejected rather than silently falling back to the plugin's copy.
+5. **Cross-boundary types:** test shared DTOs, callbacks, exceptions, enums, and annotations—not just the main interface.
+6. **Missing dependencies or linkage errors:** do not catch and arbitrarily fall back; preserve the root cause and identify the artifact/class loader.
+7. **Resources and ServiceLoader:** test single resources, multiple resources, service descriptors, TCCL, and `ServiceConfigurationError` in a realistic deployment environment.
+8. **Multiple concurrent plugins:** same-named libraries at different versions do not conflict across loaders.
+9. **JPMS if applicable:** test `uses`, `provides`, layers, `exports`, and `opens`.
+10. **Reload/unload:** ensure no threads, TCCL, registries, or host static caches continue referencing the old plugin.
 
-**Nguyên tắc thiết kế:** dùng parent-first cho các class cần **một danh tính Java chung**, plugin-first cho mã và dependency **thực sự thuộc sở hữu riêng của plugin**, và khai báo các ngoại lệ ủy quyền đủ chặt để API/SPI của host không bị shadow. Phần còn lại của hệ thống—resource lookup, `ServiceLoader`, TCCL, version policy và lifecycle—phải được thiết kế phù hợp với quyết định đó, thay vì mặc định mọi loại tìm kiếm đều tuân cùng một quy tắc.
+**Design principle:** use parent-first for classes needing a **shared Java identity**, plugin-first for code and dependencies **genuinely privately owned by the plugin**, and declare delegation exceptions tightly enough that the host's API/SPI cannot be shadowed. The rest of the system—resource lookup, `ServiceLoader`, TCCL, version policies, and lifecycle—must be designed to align with that decision rather than assuming every kind of lookup follows the same rule.

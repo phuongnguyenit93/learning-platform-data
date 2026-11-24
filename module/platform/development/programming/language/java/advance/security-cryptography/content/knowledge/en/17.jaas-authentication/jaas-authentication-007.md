@@ -1,42 +1,42 @@
-# 17.7 Subject.current, Subject.callAs và cách đọc mã cũ sử dụng doAs
+# 17.7 Subject.current, Subject.callAs, and How to Read Legacy Code Using doAs
 
-Trong **JAAS (Java Authentication and Authorization Service)**, `javax.security.auth.Subject` biểu diễn danh tính đã được xác thực của một người dùng hoặc dịch vụ: nó tập hợp các **`Principal`** và credentials liên quan. Một đoạn code nghiệp vụ có thể cần biết **`Subject` nào đang gắn với phạm vi thực thi** mà không phải truyền đối tượng qua từng hàm. Các API hiện đại phục vụ việc đó là:
+In **JAAS (Java Authentication and Authorization Service)**, `javax.security.auth.Subject` represents the authenticated identity of a user or service: it groups **`Principal`**s and related credentials. Business logic may need to know **which `Subject` is bound to the current execution scope** without passing the object through every method. The modern APIs for that are:
 
-- **`Subject.current()`:** đọc `Subject` đang được gắn với phạm vi thực thi hiện tại; có thể trả về `null`.
-- **`Subject.callAs(subject, callable)`:** chạy một `Callable<T>` với `subject` là `Subject` hiện tại trong khoảng thời gian chạy action; sau đó khôi phục ngữ cảnh trước đó.
+- **`Subject.current()`:** reads the `Subject` bound to the current execution scope; may return `null`.
+- **`Subject.callAs(subject, callable)`:** runs a `Callable<T>` with `subject` as the current `Subject` for the duration of the action, then restores the previous context.
 
-Trong code Java cũ thường gặp **`Subject.doAs(...)`** và **`Subject.getSubject(AccessController.getContext())`**. Chúng xuất hiện trong kiến trúc **Security Manager / AccessControlContext (ACC)**; từ **JDK 24** Security Manager bị **vô hiệu hóa vĩnh viễn** (JEP 486). Vì vậy, khi đọc hoặc nâng cấp một hệ thống JAAS, cần phân biệt **ràng buộc danh tính vào phạm vi chạy**, **xác thực thông tin đăng nhập**, và **cấp phép thao tác nghiệp vụ**: ba vấn đề **không đồng nghĩa**.
+Legacy Java code frequently uses **`Subject.doAs(...)`** and **`Subject.getSubject(AccessController.getContext())`**. They came from the **Security Manager / AccessControlContext (ACC)** architecture; as of **JDK 24**, the Security Manager is **permanently disabled** (JEP 486). Therefore, when reading or upgrading a JAAS system, distinguish **binding an identity to an execution scope**, **authenticating credentials**, and **authorizing business operations**: these three concerns are **not synonymous**.
 
-**Điều kiện phiên bản:** `Subject.current` và `Subject.callAs` có từ **Java 18**, nên chương trình sử dụng chúng **không biên dịch với `--release 17`**. Hai ví dụ đầy đủ trong bài được biên dịch bằng `javac --release 18` và chạy kiểm thử trên JDK 24. Java 17 vẫn có các API legacy, nhưng không có hai phương thức mới. Trong JDK 24–26, `doAs` vẫn có trong API ở trạng thái *deprecated for removal*, còn `getSubject(AccessControlContext)` ném `UnsupportedOperationException`.
+**Version requirement:** `Subject.current` and `Subject.callAs` were introduced in **Java 18**, so programs using them **will not compile with `--release 17`**. Both full examples in this lesson are compiled with `javac --release 18` and tested on JDK 24. Java 17 still has the legacy APIs, but lacks the two new methods. In JDK 24–26, `doAs` remains in the API as *deprecated for removal*, while `getSubject(AccessControlContext)` throws `UnsupportedOperationException`.
 
-## 1. Kết quả học tập
+## 1. Learning Outcomes
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Nhận diện một `Subject`, `Principal` và các bộ credentials trong JAAS; hiểu nguồn `Subject` đáng tin cậy.
-2. Giải thích chính xác **phạm vi động** của `callAs`, cách `current` trả `Subject` hoặc `null`, cách nested scope và exception khôi phục context.
-3. Viết và chạy chương trình Java 18+ dùng `Subject.callAs`, kể cả `Callable` có checked exception.
-4. Đọc được `Subject.doAs(Subject, PrivilegedAction)` và `doAs(Subject, PrivilegedExceptionAction)`, phân biệt exception của code cũ.
-5. Hiểu tại sao `Subject.getSubject(AccessController.getContext())` hỏng từ JDK 24 và tại sao không nên tìm cách bật lại Security Manager.
-6. Migrate code cũ sang `current`/`callAs` và kiểm tra **luồng không đồng bộ/thread pool** tránh làm mất hoặc rò rỉ danh tính.
-7. Giữ ranh giới giữa **JAAS authentication** và **application authorization**: `callAs` không xác thực password hoặc tự cho phép truy cập file/database.
+1. Recognize a `Subject`, `Principal`s, and credential sets in JAAS; understand trusted `Subject` sources.
+2. Accurately explain the **dynamic scope** of `callAs`, how `current` returns a `Subject` or `null`, and how nested scopes and exceptions restore context.
+3. Write and run a Java 18+ program using `Subject.callAs`, including a `Callable` with checked exceptions.
+4. Read `Subject.doAs(Subject, PrivilegedAction)` and `doAs(Subject, PrivilegedExceptionAction)`, distinguishing legacy exception wrappers.
+5. Understand why `Subject.getSubject(AccessController.getContext())` breaks in JDK 24+ and why you should not try to re-enable the Security Manager.
+6. Migrate legacy code to `current`/`callAs` and verify **asynchronous threads/thread pools** to avoid losing or leaking identities.
+7. Maintain the boundary between **JAAS authentication** and **application authorization**: `callAs` neither verifies passwords nor grants file/database access.
 
-## 2. Mô hình `Subject`: danh tính, không phải một lệnh “đăng nhập”
+## 2. The `Subject` Model: Identity, Not a "Login" Command
 
-`javax.security.auth.Subject` là một đối tượng chứa:
+`javax.security.auth.Subject` is a container holding:
 
-- **`Set<Principal>`:** một hoặc nhiều danh tính/định danh, ví dụ tên người dùng, principal Kerberos, DN từ chứng thư hoặc service principal.
-- **Public credentials:** thông tin có thể chia sẻ trong mô hình bảo mật phù hợp, ví dụ certificate.
-- **Private credentials:** thông tin nhạy cảm như tickets, tokens hay khóa bí mật tùy công nghệ xác thực; cần hạn chế đọc và tuyệt đối không log tùy tiện.
+- **`Set<Principal>`:** one or more identities/identifiers, such as a username, Kerberos principal, certificate DN, or service principal.
+- **Public credentials:** information shareable within an appropriate security model, such as a certificate.
+- **Private credentials:** sensitive information such as tickets, tokens, or secret keys depending on the authentication technology; restrict reading and never log arbitrarily.
 
-`Principal` chỉ là interface với phương thức `getName()`. Một `Subject` có thể có **nhiều Principal**; ứng dụng không nên giả định `subject.getPrincipals().iterator().next()` luôn đại diện đúng user hay quyền truy cập.
+`Principal` is merely an interface with a `getName()` method. A `Subject` can hold **multiple Principals**; applications must not assume `subject.getPrincipals().iterator().next()` always represents the right user or access rights.
 
 ```text
                    JAAS LoginContext
-                 login() thành công
+                 login() succeeds
                          |
                          v
-                Subject đã xác thực
+                Authenticated Subject
                /         |         \
            Principals  Public     Private
                        Credentials Credentials
@@ -47,87 +47,87 @@ Sau bài này, bạn có thể:
                          |
                    business code
                          |
-              authorization riêng
+              separate authorization
 ```
 
-### 2.1. `Subject` đến từ đâu?
+### 2.1. Where Does `Subject` Come From?
 
-Trong hệ thống JAAS thông thường, `LoginContext` sử dụng `LoginModule` và `CallbackHandler` để thực hiện **authentication**; sau khi `login()` thành công, `LoginContext.getSubject()` trả `Subject` đã được population bởi các module liên quan.
+In a typical JAAS system, `LoginContext` uses `LoginModule`s and a `CallbackHandler` to perform **authentication**; after `login()` succeeds, `LoginContext.getSubject()` returns the `Subject` populated by the relevant modules.
 
-Một ứng dụng có thể tự gọi `new Subject()` để viết test, nhưng **điều đó không chứng minh người dùng đã đăng nhập**, không chứng minh chứng thư/Kerberos ticket hợp lệ và cũng không chứng minh các `Principal` bên trong đáng tin. Tạo một `Subject` chứa `CN=Admin` không làm người gọi trở thành admin về mặt bảo mật.
+An application can call `new Subject()` directly in tests, but **doing so does not prove a user logged in**, does not prove a certificate/Kerberos ticket is valid, and does not prove the `Principal`s inside are trustworthy. Creating a `Subject` containing `CN=Admin` does not make the caller an administrator in security terms.
 
-### 2.2. Principal không tự là Role/Permission
+### 2.2. A Principal Is Not Automatically a Role or Permission
 
-Một `Principal` có thể là tên tài khoản, DN, service identity hoặc thông tin nhận diện khác. **Không có quy tắc universal** rằng principal tên `"admin"` đã được cấp quyền quản trị. Quyền thật được tính qua **authorization policy/IAM/ACL/resource ownership** của ứng dụng hoặc giao thức.
+A `Principal` may be an account name, DN, service identity, or another identifier. **There is no universal rule** that a principal named `"admin"` has administrative privileges. Actual permissions are evaluated via the application's or protocol's **authorization policy/IAM/ACL/resource ownership**.
 
-Từ JDK 24, cơ chế JAAS authorization dựa trên **Security Manager / policy-file permissions** không còn hoạt động theo nghĩa trước kia. Việc có current subject **không tự thay** các lệnh kiểm tra permission của mô hình cũ.
+As of JDK 24, JAAS authorization based on **Security Manager / policy-file permissions** no longer operates as before. Having a current subject **does not replace** the permission checks of the old model.
 
-### 2.3. `setReadOnly` và bảo vệ credentials
+### 2.3. `setReadOnly` and Credential Protection
 
-`Subject.setReadOnly()` ngăn thêm/bớt `Principal` và credentials khỏi các tập trực tiếp của `Subject`. Nó **không tự đóng băng nội dung mọi đối tượng credential mutable**, không hủy secrets và không giải quyết vấn đề thiếu authentication.
+`Subject.setReadOnly()` prevents adding or removing `Principal`s and credentials directly from the `Subject`'s sets. It **does not freeze the internal contents of mutable credential objects**, does not destroy secrets, and does not solve missing authentication.
 
-Khi không cần chỉnh sửa Subject sau login, ứng dụng có thể cân nhắc read-only theo lifecycle của JAAS; nhưng phải tránh gọi trước khi `LoginModule` cần thêm hoặc xóa principals/credentials trong `commit/logout`. Quản trị vòng đời secret và `logout()` phụ thuộc công nghệ/login module.
+When a Subject does not need modification after login, an application may consider read-only mode according to the JAAS lifecycle; however, avoid calling it before a `LoginModule` needs to add or remove principals/credentials during `commit`/`logout`. Secret lifecycle management and `logout()` depend on the technology and login module.
 
-## 3. `Subject.current()` đọc điều gì?
+## 3. What Does `Subject.current()` Read?
 
-Chữ ký:
+Signature:
 
 ```java
 public static Subject current()
 ```
 
-Nó trả về **`Subject` đang được ràng buộc với phạm vi thực thi hiện tại**. Với JDK 24+, nếu đang ở ngoài mọi `callAs`/`doAs` phù hợp, giá trị thông thường là **`null`**.
+It returns the **`Subject` currently bound to the active execution scope**. On JDK 24+, outside any applicable `callAs`/`doAs`, the normal return value is **`null`**.
 
 ```text
-Subject.current()  -> null                  [ngoài scope]
+Subject.current()  -> null                  [outside scope]
 
 Subject.callAs(alice, action) {
     Subject.current() -> alice
 }
 
-Subject.current()  -> null                  [sau action]
+Subject.current()  -> null                  [after action]
 ```
 
-Đây là sơ đồ minh họa, **không phải cú pháp Java chạy trực tiếp**.
+This is an illustrative diagram, **not directly runnable Java syntax**.
 
-**Không nên dùng `Subject.current()` rồi lập tức gọi `getPrincipals()` mà không xét trường hợp `null`.** Nếu một API yêu cầu identity, nên từ chối một cách rõ ràng theo thiết kế, hoặc nhận một `Subject` đã được authenticate như tham số riêng.
+**Do not call `Subject.current()` and immediately invoke `getPrincipals()` without handling `null`.** If an API requires an identity, fail explicitly by design or accept an authenticated `Subject` as an explicit parameter.
 
-### 3.1. Current subject có phải biến toàn cục?
+### 3.1. Is Current Subject a Global Variable?
 
-**Không.** Nó không có nghĩa tất cả thread trong JVM đang dùng cùng một `Subject`. `current()` phản ánh ràng buộc danh tính trong **phạm vi chạy của thread hiện tại**, và hành vi lan truyền sang child tasks phụ thuộc mô hình concurrency.
+**No.** It does not mean every thread in the JVM shares a single `Subject`. `current()` reflects identity binding within the **current thread's execution scope**, and propagation to child tasks depends on the concurrency model.
 
-- Không dùng một static field kiểu `static Subject activeUser` cho mọi request: request khác có thể nhìn sai danh tính.
-- Không tự giả định task của `ExecutorService` sẽ kế thừa current subject từ thread submit.
-- Không coi `Subject.current()` là bằng chứng identity đã được verify, vì code có thể chủ động gọi `callAs` với `Subject` do chính nó tạo.
+- Do not store a `static Subject activeUser` field for all requests: one request could observe another's identity.
+- Do not assume an `ExecutorService` task inherits the current subject from the submitting thread.
+- Do not treat `Subject.current()` as proof of a verified identity, since code could call `callAs` with a `Subject` it constructed itself.
 
-### 3.2. Khi không có current subject
+### 3.2. When There Is No Current Subject
 
-`Subject.current() == null` có thể có nghĩa:
+`Subject.current() == null` can mean:
 
-- Đoạn code chạy ngoài bất kỳ scope `callAs`/`doAs` nào.
-- `callAs(null, action)` chủ động bind `null` tạm thời.
-- Công việc bị chuyển qua thread/executor mà không truyền context.
-- Một framework đã authenticate user nhưng **không sử dụng `Subject` làm context**; user identity có thể nằm trong đối tượng request hoặc context của framework khác.
+- The code is running outside any `callAs`/`doAs` scope.
+- `callAs(null, action)` explicitly bound `null` temporarily.
+- Work was handed off across a thread/executor without propagating context.
+- A framework authenticated the user yet **does not use `Subject` as its context**; the user identity may live in a request object or another framework context.
 
-Vì thế đừng đánh đồng “current subject null” với “toàn hệ thống chưa authenticate”. Đây là tình trạng của **JAAS Subject binding**, không phải tình trạng xác thực tổng quát.
+Therefore do not equate "current subject is null" with "the system has not authenticated anyone." It reflects the state of **JAAS Subject binding**, not overall authentication status.
 
-## 4. `Subject.callAs(Subject, Callable<T>)`: phạm vi động
+## 4. `Subject.callAs(Subject, Callable<T>)`: Dynamic Scope
 
-Chữ ký API (có từ Java 18):
+API signature (since Java 18):
 
 ```java
 public static <T> T callAs(Subject subject, Callable<T> action)
         throws CompletionException
 ```
 
-`callAs` nhận hai đối số:
+`callAs` takes two arguments:
 
-- `subject` là `Subject` cần gắn trong lúc chạy; **có thể `null`**.
-- `action` là `java.util.concurrent.Callable<T>`; **không thể `null`**.
+- `subject` is the `Subject` to bind during execution; **may be `null`**.
+- `action` is a `java.util.concurrent.Callable<T>`; **cannot be `null`**.
 
-Nó **gọi action ngay trong scope**, lấy kết quả trả về và **khôi phục Subject trước đó** sau khi action kết thúc. Đây không phải API tự enqueue task hoặc tạo thread mới. Bên trong action, `Subject.current()` sẽ trả `subject` theo mô hình hiện đại.
+It **invokes the action immediately within the scope**, returns its result, and **restores the previous Subject** after the action finishes. This is not an API that enqueues tasks or spawns new threads. Inside the action, `Subject.current()` returns `subject` under the modern model.
 
-### 4.1. Phạm vi lồng nhau: Alice → Bob → Alice
+### 4.1. Nested Scopes: Alice → Bob → Alice
 
 ```text
 outside: current=null
@@ -141,105 +141,105 @@ outside: current=null
 outside: current=null
 ```
 
-Khi lồng `callAs`, scope bên trong **che tạm** scope bên ngoài; sau khi kết thúc, scope bên ngoài được khôi phục. Không cần “`Subject.setCurrent`” vì API này **không tồn tại**.
+When nesting `callAs`, the inner scope **temporarily shadows** the outer scope; when it finishes, the outer scope is restored. There is no "`Subject.setCurrent`" because no such API **exists**.
 
-### 4.2. Có thể bind `null` không?
+### 4.2. Can You Bind `null`?
 
-Có. Ví dụ trong scope Alice, gọi `Subject.callAs(null, () -> ...)` sẽ làm `Subject.current()` trả `null` **trong action bên trong**, rồi trả lại Alice sau khi action kết thúc.
+Yes. For example, inside Alice's scope, calling `Subject.callAs(null, () -> ...)` causes `Subject.current()` to return `null` **inside the inner action**, then restores Alice once the action completes.
 
-Điều này không được dùng như “xóa quyền” của Java Security Manager. Nó chỉ là **thay đổi context hiện tại**. Một code path cần principal cụ thể phải có kiểm tra authorization riêng.
+This must not be used as a Java Security Manager "privilege drop." It is only **changing the current context**. Any code path requiring a specific principal must enforce its own authorization checks.
 
-### 4.3. Exception từ `Callable`
+### 4.3. Exceptions from `Callable`
 
-Khác `doAs` legacy, `callAs` nhận `Callable<T>` cho phép `call()` khai báo checked exception. Theo hợp đồng API, nếu action ném exception, `callAs` ném **`CompletionException`**, với `getCause()` là exception gốc. Điều này áp dụng cả khi exception xảy ra sâu trong action: **subject binding vẫn được khôi phục** theo scope.
+Unlike legacy `doAs`, `callAs` accepts `Callable<T>`, allowing `call()` to declare checked exceptions. By the API contract, if the action throws an exception, `callAs` throws **`CompletionException`**, with `getCause()` holding the original exception. This holds even if the exception is thrown deep inside the action: **the subject binding is still restored** per the scope.
 
-Không dùng `catch (Exception e) { return allowed; }` hoặc bỏ qua `CompletionException` như thể action đã chạy thành công. Khi cần gửi lỗi ra API, xem cause và chuyển thành lỗi nghiệp vụ phù hợp mà không làm lộ credentials.
+Do not write `catch (Exception e) { return allowed; }` or ignore `CompletionException` as if the action succeeded. When surfacing errors to an API, inspect the cause and translate it into an appropriate business error without leaking credentials.
 
-### 4.4. `callAs` không nâng đặc quyền
+### 4.4. `callAs` Does Not Elevate Privileges
 
-Tên phương thức có thể khiến người đọc tưởng đây là lệnh impersonation ở cấp hệ điều hành hoặc “elevate privileges”. Không phải: **`callAs` chỉ gắn `Subject` cho code có thể đọc được**. Nó không đổi user của process Windows/Linux, không cấp permission trong hệ điều hành, không tự tạo token, không tự mở kết nối Kerberos và **không tự xác nhận Principal**.
+The method name might mislead readers into thinking it performs OS-level impersonation or "elevates privileges." It does not: **`callAs` only binds a `Subject` for code to read**. It does not change the Windows/Linux process user, does not grant OS permissions, does not mint tokens, does not open Kerberos connections, and **does not verify Principals**.
 
-Các thư viện hỗ trợ JAAS Subject hoặc GSS/Kerberos có thể dùng context này để chọn credentials, nhưng trách nhiệm authentication/authorization và tương thích runtime vẫn thuộc về ứng dụng/thư viện.
+Libraries supporting JAAS Subject or GSS/Kerberos may consult this context to pick credentials, while authentication/authorization and runtime compatibility remain the application's/library's responsibility.
 
-## 5. Vì sao `Subject.doAs(...)` xuất hiện trong code cũ?
+## 5. Why Does `Subject.doAs(...)` Appear in Legacy Code?
 
-Trước mô hình API mới, một mẫu JAAS phổ biến là:
+Before the new API model, a common JAAS pattern was:
 
 ```java
 Subject.doAs(authenticatedSubject,
         (PrivilegedAction<String>) () -> service.call());
 ```
 
-Trong Java cũ có Security Manager, `doAs` tích hợp với **`AccessControlContext`/`SubjectDomainCombiner`** và cơ chế policy permissions để liên hệ `Subject` với các quyền của action. Trong những phiên bản hiện đại, Security Manager đã bị loại khỏi con đường vận hành thông thường, nên cách dùng này không còn ý nghĩa **“tạm chạy với đặc quyền dựa trên Security Manager”**.
+In older Java with a Security Manager, `doAs` integrated with **`AccessControlContext`/`SubjectDomainCombiner`** and policy permissions to associate the `Subject` with permissions for the action. In modern releases, the Security Manager has been removed from normal operation, so this usage no longer means **"temporarily run with Security Manager-based privileges."**
 
-Có hai overload quan trọng:
+There are two main overloads:
 
-| Legacy API | Kiểu action | Kiểu exception điển hình |
+| Legacy API | Action type | Typical exception behavior |
 | --- | --- | --- |
-| `Subject.doAs(Subject, PrivilegedAction<T>)` | `PrivilegedAction<T>.run()` không khai báo checked exception | Runtime exception đi ra theo semantics của action |
-| `Subject.doAs(Subject, PrivilegedExceptionAction<T>)` | `PrivilegedExceptionAction<T>.run()` có thể ném checked exception | `PrivilegedActionException` bọc checked exception |
-| `Subject.doAsPrivileged(..., AccessControlContext)` | Biến thể nhận ACC | **Không có phương thức thay thế nào bảo toàn hành vi phân quyền của Security Manager** |
-| `Subject.getSubject(AccessControlContext)` | Đọc `Subject` gắn với ACC | Trên **JDK 24+ ném `UnsupportedOperationException`** |
+| `Subject.doAs(Subject, PrivilegedAction<T>)` | `PrivilegedAction<T>.run()` declares no checked exceptions | Runtime exceptions propagate per the action's semantics |
+| `Subject.doAs(Subject, PrivilegedExceptionAction<T>)` | `PrivilegedExceptionAction<T>.run()` may throw checked exceptions | `PrivilegedActionException` wraps checked exceptions |
+| `Subject.doAsPrivileged(..., AccessControlContext)` | Variant accepting an ACC | **No replacement method preserves Security Manager permission behavior** |
+| `Subject.getSubject(AccessControlContext)` | Reads the `Subject` tied to an ACC | On **JDK 24+ throws `UnsupportedOperationException`** |
 
-Khi lambda có thể khớp cả `PrivilegedAction` và `PrivilegedExceptionAction`, Java có thể báo **ambiguous method call**. Trong code legacy hãy đọc kỹ cast hoặc kiểu biến:
+When a lambda matches both `PrivilegedAction` and `PrivilegedExceptionAction`, Java can report an **ambiguous method call**. In legacy code, pay close attention to casts or target types:
 
 ```java
 String name = Subject.doAs(s,
         (PrivilegedAction<String>) () -> "Alice");
 ```
 
-Đây là fragment minh họa, `s` là một `Subject` đã được tạo/phê duyệt. Khi migrate sang `callAs`, overload ambiguity không còn vì `Callable<T>` là một dạng tham số duy nhất.
+This is an illustrative fragment where `s` is an already-created/approved `Subject`. When migrating to `callAs`, overload ambiguity disappears because `Callable<T>` is a single parameter form.
 
-### 5.1. `doAs` có bị xóa khỏi JDK 24 không?
+### 5.1. Was `doAs` Removed in JDK 24?
 
-**Chưa.** Tài liệu Java SE 24–26 vẫn liệt kê `doAs`, nhưng đánh dấu **deprecated for removal**. Trên JDK 24+, nó vẫn có thể bind `Subject` cho khoảng thời gian action chạy; **không còn cơ chế nâng đặc quyền Security Manager**. Tuy nhiên, không nên giữ mã mới phụ thuộc API deprecated; chuyển sang `Subject.callAs`.
+**Not yet.** Java SE 24–26 documentation still lists `doAs`, marked **deprecated for removal**. On JDK 24+, it still binds the `Subject` for the duration of the action; **there is no longer any Security Manager privilege elevation**. Still, new code should not depend on a deprecated API; move to `Subject.callAs`.
 
-### 5.2. Cái gì thực sự hỏng từ JDK 24?
+### 5.2. What Actually Breaks in JDK 24?
 
-Mẫu cũ:
+Legacy pattern:
 
 ```java
 AccessControlContext context = AccessController.getContext();
 Subject found = Subject.getSubject(context);
 ```
 
-Trên JDK 24+, `Subject.getSubject(context)` **luôn ném `UnsupportedOperationException`**, kể cả khi gọi bên trong một `Subject.doAs(...)`. Đây là thay đổi API có chủ đích khi Security Manager bị vô hiệu hóa.
+On JDK 24+, `Subject.getSubject(context)` **always throws `UnsupportedOperationException`**, even when called inside `Subject.doAs(...)`. This is an intentional API change as part of permanently disabling the Security Manager.
 
-Thay bằng:
+Replace it with:
 
 ```java
 Subject found = Subject.current();
 ```
 
-Không chuyển `Subject.getSubject(AccessController.getContext())` thành `Subject.getSubject(null)` để thử vượt lỗi: API này **không hỗ trợ nữa**, không phải chỉ sai tham số.
+Do not change `Subject.getSubject(AccessController.getContext())` to `Subject.getSubject(null)` to try to bypass the error: this API is **no longer supported**, not merely rejecting a bad argument.
 
-## 6. Mốc phiên bản Java cần nhớ
+## 6. Java Version Milestones to Remember
 
-| JDK | Tình trạng thực tế | Khuyến nghị khi đọc/nâng cấp |
+| JDK | Actual status | Recommendation when reading/upgrading |
 | --- | --- | --- |
-| **Java 8–17** | Legacy `Subject.doAs`/`getSubject(ACC)` tồn tại; **chưa có `current`/`callAs`** | Với code bắt buộc chạy Java 17, chưa thể viết trực tiếp API mới; tách tương thích runtime hoặc lên JDK hỗ trợ |
-| **Java 18–22** | `Subject.current`/`Subject.callAs` được bổ sung **từ Java 18**; legacy API deprecated | Viết code mới theo API mới, kiểm thử theo phiên bản Security Manager thực tế |
-| **Java 23** | Hành vi `Subject` phụ thuộc trạng thái Security Manager “allowed” hay không; khi không được phép, `getSubject(ACC)` ném UOE và current binding theo scope | Kiểm thử khi không cho phép Security Manager; loại bỏ giả định về ACC và thread inheritance |
-| **Java 24–26** | Security Manager **vô hiệu hóa vĩnh viễn** từ JDK 24; `getSubject(ACC)` ném UOE; `doAs` deprecated vẫn bind theo scope | Dùng `current`/`callAs`; tự thực thi authorization, xử lý async context và migration exception |
+| **Java 8–17** | Legacy `Subject.doAs`/`getSubject(ACC)` exist; **`current`/`callAs` do not exist yet** | For code required to run on Java 17, you cannot use the new API directly yet; isolate runtime compatibility or plan a JDK upgrade |
+| **Java 18–22** | `Subject.current`/`Subject.callAs` added **in Java 18**; legacy APIs deprecated | Write new code with the new APIs; test according to your actual Security Manager setup |
+| **Java 23** | `Subject` behavior depends on whether Security Manager is "allowed"; when disallowed, `getSubject(ACC)` throws UOE and current binding is scoped | Test with Security Manager disallowed; eliminate assumptions about ACC and thread inheritance |
+| **Java 24–26** | Security Manager **permanently disabled** since JDK 24; `getSubject(ACC)` throws UOE; deprecated `doAs` still binds by scope | Use `current`/`callAs`; enforce authorization directly and handle async context and exception migration |
 
-Ở JDK 23 từng có cấu hình tương thích tạm thời `-Djava.security.manager=allow` trong một số trường hợp để giữ hành vi cũ. **Đó không phải giải pháp nâng cấp lâu dài và không khôi phục Security Manager trên JDK 24+.** Không hướng dẫn production bật lại một cơ chế đã vô hiệu hóa để sửa lỗi JAAS.
+In JDK 23 there was a temporary compatibility option `-Djava.security.manager=allow` in certain cases to retain old behavior. **That is not a long-term upgrade solution and does not restore the Security Manager on JDK 24+.** Never instruct production to re-enable a disabled mechanism to fix JAAS errors.
 
-### 6.1. JEP 411 và JEP 486 liên quan thế nào?
+### 6.1. How Do JEP 411 and JEP 486 Relate?
 
-- **JEP 411 (Java 17):** đánh dấu Security Manager **deprecated for removal**.
-- **Java 18:** thêm `Subject.current` và `Subject.callAs` như hướng thay thế các phương thức JAAS Subject phụ thuộc ACC.
-- **Java 23:** điều chỉnh hành vi khi Security Manager không được phép, giúp phát hiện sớm code đang phụ thuộc `getSubject(ACC)` hoặc việc truyền context qua child thread.
-- **JEP 486 (Java 24):** vô hiệu hóa Security Manager vĩnh viễn; authorization dựa trên Security Manager/policy files không còn được hỗ trợ.
+- **JEP 411 (Java 17):** marked the Security Manager **deprecated for removal**.
+- **Java 18:** added `Subject.current` and `Subject.callAs` as replacements for ACC-dependent JAAS Subject methods.
+- **Java 23:** adjusted behavior when the Security Manager is disallowed, helping detect code relying on `getSubject(ACC)` or child-thread context inheritance early.
+- **JEP 486 (Java 24):** permanently disabled the Security Manager; authorization based on Security Manager/policy files is no longer supported.
 
-**Điểm phân biệt:** “đổi tên `doAs` thành `callAs`” chỉ là **một phần** migration. Nếu code trước đây dựa vào Security Manager để chặn truy cập file/network/API, bạn phải **thiết kế lại cơ chế kiểm tra quyền** tương ứng, không chỉ sửa cú pháp.
+**Key distinction:** "renaming `doAs` to `callAs`" is only **part** of migration. If legacy code relied on the Security Manager to block file/network/API access, you must **redesign the permission checks**, not just adjust syntax.
 
-## 7. Ví dụ runnable Java 18+: current, nested callAs và ExecutorService
+## 7. Runnable Java 18+ Example: `current`, Nested `callAs`, and `ExecutorService`
 
-Ví dụ này **tạo Subject giả lập trong memory để học API**, không có JAAS LoginModule hay password thật. Nó kiểm tra: phạm vi rỗng → Alice → Bob → Alice, `callAs(null)`, khôi phục sau exception, và sự khác biệt giữa task thread pool **không được truyền context** so với task **được re-bind tường minh**.
+This example **creates mock `Subject`s in memory to learn the API**, without a real JAAS LoginModule or real passwords. It tests: empty scope → Alice → Bob → Alice, `callAs(null)`, restoration after exceptions, and the difference between a thread pool task **without propagated context** versus one **explicitly rebound**.
 
-Dùng `javax.security.auth.x500.X500Principal` làm kiểu `Principal` có sẵn trong JDK, thay vì viết thêm principal class. Constructor `new Subject(true, ...)` tạo một đối tượng **read-only** theo mục đích demo.
+It uses `javax.security.auth.x500.X500Principal` as a built-in `Principal` type in the JDK instead of writing another principal class. The constructor `new Subject(true, ...)` creates a **read-only** object for demonstration purposes.
 
-Lưu file **SubjectScopeDemo.java**:
+Save as **`SubjectScopeDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -297,7 +297,7 @@ public class SubjectScopeDemo {
 
         ExecutorService pool = Executors.newSingleThreadExecutor();
         try {
-            // Tạo worker trước khi submit trong phạm vi Alice.
+            // Create the worker before submitting inside Alice's scope.
             pool.submit(() -> Subject.current()).get();
 
             Future<Boolean> implicit = Subject.callAs(
@@ -322,14 +322,14 @@ public class SubjectScopeDemo {
 }
 ```
 
-**Phiên bản tối thiểu: Java 18.** Có thể biên dịch với JDK 24 bằng mức tương thích `--release 18`:
+**Minimum version: Java 18.** Can be compiled on JDK 24 with `--release 18` compatibility:
 
 ```bash
 javac --release 18 -encoding UTF-8 SubjectScopeDemo.java
 java SubjectScopeDemo
 ```
 
-Stdout đã xác minh khi chạy trên JDK 24:
+Verified stdout when run on JDK 24:
 
 ```text
 outside null: true
@@ -341,37 +341,37 @@ pool not inherited: true
 explicit propagation works: true
 ```
 
-### 7.1. Giải thích chi tiết kết quả
+### 7.1. Detailed Explanation of the Output
 
-**Trước `callAs`:** demo chưa gắn `Subject`, nên `Subject.current()==null` là `true`.
+**Before `callAs`:** the demo has not bound any `Subject`, so `Subject.current()==null` is `true`.
 
-**Bên trong Alice:** `current()==alice` là `true`; so sánh bằng `==` ở đây chứng minh đúng **cùng object reference** được gắn, không phải so sánh danh tính nghiệp vụ.
+**Inside Alice:** `current()==alice` is `true`; using `==` here proves the **exact same object reference** is bound, not a business identity comparison.
 
-**Trong scope Bob:** `callAs(bob, ...)` tạm thay Subject hiện tại. Khi Bob kết thúc, Alice được phục hồi. Đây là **cấu trúc scope lồng nhau**, không phải thay đổi vĩnh viễn một global singleton.
+**Inside Bob's scope:** `callAs(bob, ...)` temporarily replaces the current Subject. When Bob finishes, Alice is restored. This is a **nested scope structure**, not a permanent change to a global singleton.
 
-**`callAs(null)`:** tạm cho `current()==null`, rồi Alice được phục hồi ngay sau callback.
+**`callAs(null)`:** temporarily yields `current()==null`, then Alice is restored right after the callback.
 
-**Ngoài scope:** `current()==null` lại là `true`; không cần gọi phương thức `setCurrent(null)` không tồn tại.
+**Outside the scope:** `current()==null` is `true` again; there is no need to call a nonexistent `setCurrent(null)` method.
 
-**Checked exception:** `IOException` từ `Callable.call` được chuyển thành nguyên nhân của `CompletionException`. Sau khi catch, current vẫn được khôi phục về `null`.
+**Checked exception:** `IOException` from `Callable.call` becomes the cause of `CompletionException`. After catching it, current is still restored to `null`.
 
-**ExecutorService:** `pool.submit` không tự kế thừa subject đang gắn ở thread gọi. Demo đã **khởi tạo worker trước** để tránh nhầm với bất kỳ cơ chế thread creation nào; task chạy trong worker kiểm tra `current()==null`.
+**ExecutorService:** `pool.submit` does not automatically inherit the subject bound on the calling thread. The demo **creates the worker beforehand** to avoid confusion with any thread-creation mechanics; the task running in the worker checks `current()==null`.
 
-**Truyền tường minh:** capture `Subject` từ scope Alice, gửi object reference đến worker rồi **gọi `Subject.callAs(captured, ...)` trong worker**; task đó nhìn thấy Alice trong đúng phạm vi của chính nó. Hết task, worker được khôi phục context trước đó.
+**Explicit propagation:** capture the `Subject` from Alice's scope, pass the object reference to the worker, and **call `Subject.callAs(captured, ...)` inside the worker**; that task sees Alice within its own scope. Once the task finishes, the worker's previous context is restored.
 
-### 7.2. Những gì demo KHÔNG chứng minh
+### 7.2. What the Demo Does NOT Prove
 
-- Không chứng minh Alice/Bob đã authenticate: hai `Subject` được tạo thủ công chỉ để thử scoped API.
-- Không chứng minh có quyền admin hay quyền file/network: **`callAs` không thực thi quyền Security Manager**.
-- Không chứng minh mọi concurrency framework đều truyền context giống nhau: executor, CompletableFuture, parallel stream, reactive streams và structured concurrency có lifecycle khác nhau.
-- Không bảo đảm worker không thể nhìn thấy một `Subject` ở bối cảnh khác nếu có custom wrapper/framework đặc thù; hãy kiểm thử **runtime và context propagation policy** của ứng dụng.
-- Không chứng minh truyền một `Subject` mutable có private credentials giữa nhiều thread là an toàn; bảo vệ credential và lifetime riêng.
+- It does not prove Alice/Bob authenticated: both `Subject`s were manually created just to exercise the scoped API.
+- It does not prove admin privileges or file/network permissions: **`callAs` does not enforce Security Manager permissions**.
+- It does not prove every concurrency framework propagates context identically: executors, `CompletableFuture`, parallel streams, reactive streams, and structured concurrency have different lifecycles.
+- It does not guarantee a worker could never see a `Subject` from another context if a custom wrapper/framework intervenes; test your application's **runtime and context propagation policy**.
+- It does not prove sharing a mutable `Subject` with private credentials across threads is safe; protect credentials and lifetimes separately.
 
-## 8. Ví dụ runnable: cách đọc legacy `doAs` và lỗi `getSubject` trên JDK 24+
+## 8. Runnable Example: Reading Legacy `doAs` and the `getSubject` Error on JDK 24+
 
-Code cũ thường dùng hai overload `doAs`, và lấy `Subject` thông qua `AccessController.getContext()`. Chương trình này cho thấy **doAs vẫn bind subject trên JDK 24**, nhưng **lối đọc dựa trên ACC không còn dùng được**.
+Legacy code often uses both `doAs` overloads and retrieves `Subject` via `AccessController.getContext()`. This program shows that **`doAs` still binds the subject on JDK 24**, whereas **ACC-based reading no longer works**.
 
-Lưu file **LegacySubjectDemo.java**:
+Save as **`LegacySubjectDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -420,14 +420,14 @@ public class LegacySubjectDemo {
 }
 ```
 
-Biên dịch **Java 18+** vì ví dụ có dùng `Subject.current()`; chạy trên **JDK 24+** để thấy `getSubject` không còn dùng được:
+Compile with **Java 18+** because the example uses `Subject.current()`; run on **JDK 24+** to see `getSubject` no longer works:
 
 ```bash
 javac --release 18 -encoding UTF-8 LegacySubjectDemo.java
 java LegacySubjectDemo
 ```
 
-Stdout kiểm tra trên JDK 24:
+Verified stdout on JDK 24:
 
 ```text
 legacy doAs still binds: Alice
@@ -435,43 +435,43 @@ legacy checked wrapped: true
 getSubject unsupported on JDK 24+: true
 ```
 
-**`@SuppressWarnings("removal")` trong demo chỉ để giữ ví dụ tập trung, không phải khuyến nghị che cảnh báo trong production.** Trong dự án thực, hãy chuyển sang API mới, kiểm tra các phụ thuộc legacy và giữ cảnh báo deprecation trong CI khi có thể.
+**`@SuppressWarnings("removal")` in the demo is only to keep the example focused, not a recommendation to hide warnings in production.** In real projects, migrate to the new APIs, audit legacy dependencies, and keep deprecation warnings visible in CI whenever possible.
 
-### 8.1. Vì sao hai exception wrapper khác nhau?
+### 8.1. Why Are the Two Exception Wrappers Different?
 
-- **`doAs(PrivilegedExceptionAction)`:** checked exception từ `run()` được bọc bằng **`PrivilegedActionException`**; lấy exception thật qua `getException()` hoặc `getCause()`.
-- **`callAs(Callable)`:** exception từ `call()` được bọc bằng **`CompletionException`**; lấy cause qua `getCause()`.
-- **`doAs(PrivilegedAction)`:** bản thân `run()` không khai báo checked exception; cần phân biệt unchecked exception từ nghiệp vụ.
-- **`Subject.getSubject(ACC)`:** ném **`UnsupportedOperationException`** trên JDK 24+, không phải “không có user nên trả `null`”.
+- **`doAs(PrivilegedExceptionAction)`:** checked exceptions from `run()` are wrapped in **`PrivilegedActionException`**; retrieve the real exception via `getException()` or `getCause()`.
+- **`callAs(Callable)`:** exceptions from `call()` are wrapped in **`CompletionException`**; retrieve the cause via `getCause()`.
+- **`doAs(PrivilegedAction)`:** `run()` itself declares no checked exceptions; distinguish unchecked business exceptions.
+- **`Subject.getSubject(ACC)`:** throws **`UnsupportedOperationException`** on JDK 24+, rather than returning `null` for "no user."
 
-Đừng đổi catch từ `PrivilegedActionException` thành `IOException` trực tiếp mà bỏ qua wrapper. Đây là nguồn gây lỗi khi migration code có checked exceptions.
+Do not change a catch from `PrivilegedActionException` directly to `IOException` while ignoring the wrapper. That is a common bug when migrating code with checked exceptions.
 
-## 9. Chuyển đổi code cũ sang API mới
+## 9. Migrating Legacy Code to the New APIs
 
-### 9.1. Bản đồ thay thế
+### 9.1. Replacement Map
 
-| Trong code legacy | Thay thế hiện đại | Điều phải kiểm tra |
+| In legacy code | Modern replacement | What to verify |
 | --- | --- | --- |
-| `Subject.getSubject(AccessController.getContext())` | `Subject.current()` | Có thể `null`; không cần và không nên lấy ACC |
-| `Subject.doAs(subject, PrivilegedAction<T>)` | `Subject.callAs(subject, Callable<T>)` | Bỏ cast `PrivilegedAction`; thay đổi wrapper khi action throw |
+| `Subject.getSubject(AccessController.getContext())` | `Subject.current()` | May be `null`; no need and no reason to fetch ACC |
+| `Subject.doAs(subject, PrivilegedAction<T>)` | `Subject.callAs(subject, Callable<T>)` | Remove `PrivilegedAction` cast; wrapper changes if action throws |
 | `Subject.doAs(subject, PrivilegedExceptionAction<T>)` | `Subject.callAs(subject, Callable<T>)` | `PrivilegedActionException` → `CompletionException` |
-| `Subject.doAsPrivileged(subject, action, acc)` | Gắn context bằng `callAs` nếu chỉ cần identity | Không có thay thế cho **giới hạn/nâng quyền** của Security Manager |
-| `AccessController.doPrivileged(...)` | Thiết kế lại phần authorization nếu phụ thuộc SM | Không đổi tên trực tiếp để khôi phục permission enforcement |
-| ACC chứa Subject được truyền đến child threads | Truyền `Subject` đã authenticate và bind lại trong task | Không kỳ vọng ExecutorService tự kế thừa |
+| `Subject.doAsPrivileged(subject, action, acc)` | Bind context with `callAs` if only identity is needed | No replacement for Security Manager **privilege restriction/elevation** |
+| `AccessController.doPrivileged(...)` | Redesign authorization if dependent on SM | Do not simply rename to restore permission enforcement |
+| ACC carrying Subject passed to child threads | Pass authenticated `Subject` and re-bind inside the task | Do not expect `ExecutorService` to inherit automatically |
 
-### 9.2. Mẫu migrate lấy identity hiện hành
+### 9.2. Migration Pattern for Reading the Current Identity
 
-Trước (cũ, phụ thuộc Security Manager/ACC):
+Before (legacy, tied to Security Manager/ACC):
 
 ```java
-// LEGACY - minh họa; code hiện đại không nên dùng.
+// LEGACY - illustrative; modern code should not use this.
 Subject s = Subject.getSubject(AccessController.getContext());
 if (s == null) {
     throw new SecurityException("Missing JAAS subject");
 }
 ```
 
-Sau (Java 18+):
+After (Java 18+):
 
 ```java
 Subject s = Subject.current();
@@ -480,29 +480,29 @@ if (s == null) {
 }
 ```
 
-Trong cả hai fragment, một `Subject` có mặt **không đảm bảo authentication**: vẫn cần chắc chắn caller chỉ tạo/bind `Subject` từ nguồn đã xác thực và kiểm tra authorization.
+In both fragments, a present `Subject` **does not guarantee authentication**: you must still ensure callers only create/bind `Subject` from an authenticated source and enforce authorization.
 
-### 9.3. Migrate action trả kết quả
+### 9.3. Migrating an Action Returning a Value
 
-Trước:
+Before:
 
 ```java
 String value = Subject.doAs(authenticatedSubject,
         (PrivilegedAction<String>) () -> service.readValue());
 ```
 
-Sau:
+After:
 
 ```java
 String value = Subject.callAs(authenticatedSubject,
         () -> service.readValue());
 ```
 
-Các biến `authenticatedSubject`/`service` là phần phụ thuộc của ứng dụng, nên đây là **fragment**, không phải chương trình độc lập. Khi action chỉ cần thấy `Subject.current`, thay thế về hành vi binding là phù hợp. Nếu code cũ phụ thuộc Security Manager cho phép file/URL/permission, phải xử lý ranh giới đó riêng.
+The `authenticatedSubject`/`service` variables are application dependencies, so this is a **fragment**, not a standalone program. When the action only needs to observe `Subject.current`, replacing the binding behavior is appropriate. If the legacy code relied on the Security Manager to allow file/URL/permission operations, address that boundary separately.
 
-### 9.4. Migrate checked exception an toàn
+### 9.4. Safely Migrating Checked Exceptions
 
-Mẫu cũ:
+Legacy pattern:
 
 ```java
 try {
@@ -511,12 +511,12 @@ try {
                     () -> service.loadFromDisk());
 } catch (PrivilegedActionException e) {
     Throwable original = e.getException();
-    // Phân loại original theo hợp đồng API ứng dụng.
+    // Classify original according to the application API contract.
     throw new IllegalStateException("Operation failed", original);
 }
 ```
 
-Mẫu mới:
+New pattern:
 
 ```java
 try {
@@ -524,12 +524,12 @@ try {
             () -> service.loadFromDisk());
 } catch (CompletionException e) {
     Throwable original = e.getCause();
-    // Không nuốt exception; chọn type/lỗi an toàn theo nghiệp vụ.
+    // Do not swallow the exception; choose a safe business error/type.
     throw new IllegalStateException("Operation failed", original);
 }
 ```
 
-Hai đoạn là **fragments**, cần nằm trong method có return type tương ứng và import `CompletionException`, `PrivilegedExceptionAction`, `PrivilegedActionException`. Với lỗi `IOException` cần giữ nguyên ở API cấp trên, có thể xét:
+Both snippets are **fragments** that must sit inside a method with the matching return type and imports for `CompletionException`, `PrivilegedExceptionAction`, and `PrivilegedActionException`. For an `IOException` that needs to propagate unchanged to a higher-level API, consider:
 
 ```java
 try {
@@ -543,26 +543,26 @@ try {
 }
 ```
 
-Fragment này chỉ compile trong một method `throws IOException` (hoặc xử lý checked exception phù hợp); dùng Java 18+ và các biến dịch vụ đã có.
+This fragment compiles only in a method declaring `throws IOException` (or handling the checked exception appropriately); it uses Java 18+ and existing service variables.
 
-### 9.5. Không sửa code chỉ bằng search-and-replace
+### 9.5. Do Not Migrate Simply with Search-and-Replace
 
-Một migration đúng đòi rà soát:
+A proper migration requires auditing:
 
-1. Chỗ nào lấy `Subject` từ `LoginContext.getSubject()` hoặc nguồn xác thực khác?
-2. Chỗ nào tạo `Subject` giả chỉ bằng `new Subject()` mà code đang nhầm là authenticated?
-3. Các đoạn gọi `doAs` có thật sự chỉ cần **identity binding**, hay còn dựa vào Security Manager policy?
-4. Có code đọc `Subject.getSubject(AccessController.getContext())` trong thư viện/JAR không?
-5. Có code giả định Subject **tự truyền vào thread mới, executor, reactive callback** không?
-6. Các checked exceptions được bắt đúng wrapper mới và audit log không lộ credential không?
-7. Người dùng bị thiếu `Subject` có bị fail closed ở các thao tác yêu cầu authentication không?
-8. Các tests trước/ngoài/sau `callAs`, nested scope và concurrency đã kiểm tra chưa?
+1. Where is `Subject` obtained from `LoginContext.getSubject()` or another authenticated source?
+2. Where is a fake `Subject` created via `new Subject()` and mistakenly treated as authenticated?
+3. Do `doAs` call sites truly only need **identity binding**, or do they also depend on Security Manager policy?
+4. Is any library/JAR calling `Subject.getSubject(AccessController.getContext())`?
+5. Does any code assume `Subject` **automatically propagates to new threads, executors, or reactive callbacks**?
+6. Are checked exceptions caught with the new wrapper, and are audit logs free of credentials?
+7. Do operations requiring authentication fail closed when `Subject` is missing?
+8. Have tests verified before/outside/after `callAs`, nested scopes, and concurrency?
 
-## 10. JAAS `LoginContext` và `Subject.callAs` nối với nhau như thế nào?
+## 10. How Do JAAS `LoginContext` and `Subject.callAs` Connect?
 
-**Authentication** phải hoàn tất trước khi bind một `Subject` để xử lý yêu cầu yêu cầu danh tính.
+**Authentication** must finish before binding a `Subject` to handle an identity-sensitive request.
 
-Ví dụ logic tích hợp (`LoginContext` phải được cấu hình bằng `LoginModule` và `CallbackHandler` thật; fragment không chạy độc lập):
+Conceptual integration example (`LoginContext` must be configured with real `LoginModule`s and `CallbackHandler`; this fragment does not run standalone):
 
 ```java
 LoginContext login = new LoginContext("ApplicationLogin", callbackHandler);
@@ -577,16 +577,16 @@ try {
         return null;
     });
 } finally {
-    // Theo lifecycle thực: logout và cleanup credentials.
+    // Follow actual lifecycle: logout and clean up credentials.
     login.logout();
 }
 ```
 
-Trong hệ thống thật, xử lý `LoginException`, timeout, retry và callback secrets; đồng thời tránh gọi `logout` khi login chưa thành công nếu module không hỗ trợ. Fragment trên mô tả thứ tự ý tưởng, **không thay thế code vận hành đầy đủ**.
+In a real system, handle `LoginException`, timeouts, retries, and callback secrets; also avoid calling `logout` when login did not succeed if the module does not support it. The fragment above illustrates the conceptual order, **not complete production code**.
 
-### 10.1. `callAs` không tự gọi `login`
+### 10.1. `callAs` Does Not Call `login` Automatically
 
-Không có thứ tự ngầm:
+There is no implicit chaining:
 
 ```text
 Subject.callAs(subject, action)
@@ -594,11 +594,11 @@ Subject.callAs(subject, action)
 LoginContext.login() + authorization
 ```
 
-Bạn có thể gọi `callAs` với `Subject` trống hoặc tự tạo. Vì vậy, một service không nên dùng điều kiện `Subject.current()!=null` làm **bằng chứng duy nhất** để cho phép rút tiền, tải dữ liệu cá nhân hoặc gọi API đặc quyền.
+You can call `callAs` with an empty or self-constructed `Subject`. Therefore, a service must never use `Subject.current()!=null` as the **sole proof** to permit withdrawing funds, downloading personal data, or invoking privileged APIs.
 
-### 10.2. Đọc principal một cách có mục đích
+### 10.2. Reading Principals Purposefully
 
-Mã minh họa cho một ứng dụng đã xác thực, muốn đọc X.500 principal:
+Illustrative code for an authenticated application reading an X.500 principal:
 
 ```java
 Subject s = Subject.current();
@@ -612,19 +612,19 @@ for (X500Principal name : names) {
 }
 ```
 
-Đoạn trên chỉ phù hợp nếu X.500 principal thật sự được công nghệ xác thực của ứng dụng sử dụng; không tự cho rằng mọi `Subject` có `X500Principal`. Trong production, không log danh tính nhạy cảm trừ khi policy cho phép và không in private credentials.
+The snippet above only makes sense if the application's authentication technology actually populates X.500 principals; do not assume every `Subject` has an `X500Principal`. In production, do not log sensitive identities unless policy permits, and never print private credentials.
 
-### 10.3. Logout và scope khác nhau
+### 10.3. Logout and Scope Are Different
 
-`callAs` luôn **khôi phục current subject binding** khi action hoàn tất; điều đó **không tự đăng xuất** khỏi KDC, không hủy Kerberos tickets/token và không xóa secrets khỏi `Subject`.
+`callAs` always **restores the current subject binding** when the action completes; that **does not log out** of a KDC, revoke Kerberos tickets/tokens, or wipe secrets from the `Subject`.
 
-`LoginContext.logout()` dùng để yêu cầu các `LoginModule` cleanup theo contract của chúng. Bạn phải quản lý **cả hai vòng đời**: phạm vi thực thi và thời hạn credentials/phiên đăng nhập.
+`LoginContext.logout()` asks the `LoginModule`s to clean up according to their contract. You must manage **both lifecycles**: execution scope and credential/session lifetime.
 
-## 11. Async, executor, virtual threads và context propagation
+## 11. Async, Executors, Virtual Threads, and Context Propagation
 
-### 11.1. Vì sao Subject “biến mất” khi chuyển sang worker?
+### 11.1. Why Does the Subject "Disappear" When Moving to a Worker?
 
-Code phía request thread:
+Request-thread code:
 
 ```java
 Subject.callAs(requestSubject, () -> {
@@ -633,13 +633,13 @@ Subject.callAs(requestSubject, () -> {
 });
 ```
 
-Đây là fragment. Nếu `handleRequest` gọi `Subject.current()` trên một **executor worker thread**, nó **không mặc định** nhận `requestSubject` từ thread submit. Worker có thể được tạo trước đó và phục vụ nhiều request khác nhau; việc mong Java tự sao chép per-thread context sẽ dễ sai.
+This is a fragment. If `handleRequest` calls `Subject.current()` on an **executor worker thread**, it does **not by default** receive `requestSubject` from the submitting thread. The worker may have been created earlier and serve many different requests; expecting Java to automatically copy per-thread context leads to bugs.
 
-Điểm này đặc biệt quan trọng khi hệ thống hiện đại hóa từ Java cũ vốn dựa vào `AccessControlContext` hoặc library propagation đặc thù.
+This is especially important when modernizing older Java systems that relied on `AccessControlContext` or library-specific propagation.
 
-### 11.2. Truyền tường minh và bind theo scope trong worker
+### 11.2. Capture Explicitly and Bind Scoped Inside the Worker
 
-Một mẫu rõ ràng hơn:
+A clearer pattern:
 
 ```java
 Subject captured = Subject.current();
@@ -647,41 +647,41 @@ Future<Result> future = executor.submit(() ->
         Subject.callAs(captured, () -> service.compute()));
 ```
 
-Đây là fragment. Để dùng an toàn:
+This is a fragment. To use it safely:
 
-- Chỉ capture `Subject` **được authenticate/ủy quyền đúng** trong request hiện tại.
-- Hạn chế lifetime của task, không giữ object chứa private credentials quá lâu trong queue.
-- `callAs` đặt context trong **worker** và khôi phục sau khi task kết thúc; đây là cách tránh rò rỉ giữa các request khi dùng thread pool.
-- `Future.get()`/`CompletableFuture` có các wrapper exceptions riêng (`ExecutionException`/`CompletionException`); nhớ xử lý **nhiều tầng cause** thay vì chỉ thay một catch.
-- Nếu task tạo thêm task khác, phải thiết kế chính sách truyền context xuyên qua **toàn bộ cây task**, hoặc dùng framework context propagation đã được kiểm định.
+- Capture only a `Subject` that was **properly authenticated/authorized** for the current request.
+- Bound task lifetimes; do not leave objects containing private credentials sitting in queues too long.
+- `callAs` sets context inside the **worker** and restores it after the task ends; this prevents cross-request leaks in thread pools.
+- `Future.get()`/`CompletableFuture` add their own exception wrappers (`ExecutionException`/`CompletionException`); handle **multiple layers of causes** rather than simply swapping one catch.
+- If a task spawns further tasks, design a propagation policy across the **entire task tree**, or use a vetted context-propagation framework.
 
-### 11.3. Tại sao không tự dùng một `ThreadLocal<Subject>` global?
+### 11.3. Why Not Roll a Global `ThreadLocal<Subject>`?
 
-Có thể có lý do legacy, nhưng một custom `ThreadLocal` dễ bị:
+Legacy reasons aside, a custom `ThreadLocal` is prone to:
 
-- Quên `remove()` trong pool → request sau nhìn danh tính request trước.
-- Copy reference của private credentials vào những thread không có quyền.
-- Dùng một thread cho nhiều request reactive/coroutine mà semantics không đúng.
-- Lẫn với `Subject.current()` của JDK, khiến thư viện đọc một context còn ứng dụng ghi context khác.
+- Forgetting `remove()` in a pool → the next request sees the previous request's identity.
+- Copying references to private credentials into unauthorized threads.
+- Sharing one thread across multiple reactive/coroutine requests with broken semantics.
+- Diverging from the JDK's `Subject.current()`, causing libraries to read one context while the app writes another.
 
-Ưu tiên scope **`Subject.callAs`** nếu thư viện đã tiêu thụ `Subject.current`; đảm bảo context được khôi phục có cấu trúc. Nếu app có framework security context riêng, hãy tích hợp qua API được hỗ trợ, không tự biến mọi identity thành Subject.
+Prefer **`Subject.callAs`** scoping if libraries already consume `Subject.current`; it ensures structured context restoration. If the app has a framework security context of its own, integrate via supported APIs instead of turning every identity into a Subject.
 
-### 11.4. Structured concurrency
+### 11.4. Structured Concurrency
 
-Tài liệu JDK mới mô tả rằng current Subject **có thể được kế thừa bởi child threads khởi chạy và hoàn tất trong scope cha khi sử dụng structured concurrency** phù hợp. Tuy nhiên:
+Recent JDK documentation notes that the current Subject **can be inherited by child threads started and completed within a parent scope when using appropriate structured concurrency**. However:
 
-- Đây **không** là cơ chế tự truyền cho mọi `new Thread` hoặc mọi `ExecutorService`.
-- Structured concurrency có lịch sử **preview API** ở các JDK khác nhau; không đưa mã preview vào ví dụ Java 18+ ở bài này.
-- Nếu một framework dùng structured concurrency, kiểm tra phiên bản JDK, giới hạn scope, cách hủy task và rules inheritance cụ thể.
-- Với thread pool và tác vụ không có quan hệ cha–con có cấu trúc, dùng **truyền tường minh** hoặc adapter context propagation đáng tin.
+- This is **not** automatic propagation for every `new Thread` or every `ExecutorService`.
+- Structured concurrency has gone through **preview API** iterations across JDK versions; no preview code is used in the Java 18+ examples in this lesson.
+- If a framework uses structured concurrency, verify the JDK version, scope boundaries, cancellation behavior, and specific inheritance rules.
+- For thread pools and tasks without structured parent–child lifetimes, use **explicit passing** or a trusted context-propagation adapter.
 
-## 12. Authorization trong thế giới không còn Security Manager
+## 12. Authorization in a World Without the Security Manager
 
-### 12.1. Chỉ bind Subject không đủ
+### 12.1. Binding a Subject Alone Is Not Enough
 
-Trên JDK 24+, `Subject.callAs` gắn thông tin danh tính cho code đọc, nhưng **không có bộ permission file/`SecurityManager.checkPermission` hoạt động như thời cũ**.
+On JDK 24+, `Subject.callAs` binds identity information for code to read, yet **there is no policy file / `SecurityManager.checkPermission` enforcing checks as in older releases**.
 
-Ví dụ conceptual:
+Conceptual flow:
 
 ```text
 User authenticator  -> Subject trusted by application
@@ -691,11 +691,11 @@ Sensitive operation  -> Execute only if policy explicitly allows
 Audit                -> Record safe metadata, not credentials
 ```
 
-Nếu đoạn code cần đọc file hoặc thao tác database, **OS ACL, IAM credentials, DB privileges và authorization logic** vẫn là các lớp kiểm soát thực sự. Không dựa vào lời gọi `callAs` để tự động chống việc một user không được phép đọc dữ liệu.
+If code needs to read files or access a database, **OS ACLs, IAM credentials, DB privileges, and authorization logic** remain the real enforcement layers. Do not rely on calling `callAs` to automatically prevent an unauthorized user from reading data.
 
-### 12.2. `Subject.current` có thể là input cho policy, không phải policy
+### 12.2. `Subject.current` Can Be Policy Input, Not Policy Itself
 
-Một ứng dụng có thể có code kiểu:
+An application might have code like:
 
 ```java
 Subject current = Subject.current();
@@ -706,160 +706,160 @@ authorizationService.requireAccess(
         current, "orders:read", requestedOrderId);
 ```
 
-Đây là fragment: `authorizationService` và `requestedOrderId` phải do ứng dụng cung cấp. Quan trọng là `authorizationService` phải:
+This is a fragment: `authorizationService` and `requestedOrderId` must be supplied by the application. Crucially, `authorizationService` must:
 
-1. Chỉ chấp nhận một `Subject` có **nguồn xác thực đáng tin** từ boundary được kiểm soát.
-2. Phân biệt principal là identity, không tự đọc tên role giả do caller tự thêm.
-3. Kiểm tra **quyền trên tài nguyên cụ thể** (tenant, owner, scope, action).
-4. Fail closed khi không có đủ context, credentials hết hạn hoặc policy không rõ.
-5. Không để caller untrusted tự chọn `Subject` rồi mượn `callAs` để vượt quyền.
+1. Accept only a `Subject` from a **trusted authentication source** at a controlled boundary.
+2. Treat principals as identity, without blindly trusting fake role names added by a caller.
+3. Verify **permissions on the specific resource** (tenant, owner, scope, action).
+4. Fail closed when context is insufficient, credentials have expired, or policy is unclear.
+5. Never allow untrusted callers to choose an arbitrary `Subject` and abuse `callAs` to bypass permissions.
 
-### 12.3. Giải pháp thay `doAsPrivileged`
+### 12.3. Replacing `doAsPrivileged`
 
-Nếu code cũ làm:
+If legacy code did:
 
 ```java
-// LEGACY: từng sử dụng AccessControlContext/policy permissions.
+// LEGACY: previously used AccessControlContext/policy permissions.
 Subject.doAsPrivileged(subject, action, context);
 ```
 
-Bạn **có thể** thay phần “bind identity trong một scope” bằng `Subject.callAs(subject, callable)` nếu service chỉ cần current subject. Nhưng **không có API thay thế tương đương cho việc nâng/quy định permission của Security Manager**. Quyền thao tác file/network/API phải được chuyển sang ranh giới khác (IAM/OS permissions/ACL, service boundary, explicit policy), có kiểm thử regressions và threat model.
+You **can** replace the "bind identity within a scope" aspect with `Subject.callAs(subject, callable)` if services only need the current subject. However, **there is no equivalent API replacement for Security Manager permission elevation/restriction**. File/network/API access rights must move to other boundaries (IAM/OS permissions/ACLs, service boundaries, explicit policies), backed by regression tests and threat modeling.
 
-## 13. Lỗi và triệu chứng hay gặp khi nâng JDK
+## 13. Common Errors and Symptoms When Upgrading the JDK
 
-| Triệu chứng | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common cause | Resolution |
 | --- | --- | --- |
-| `cannot find symbol: Subject.current` ở `javac --release 17` | API chỉ có từ Java 18 | Nâng target JDK hoặc giữ code compatibility riêng, không giả là API Java 17 |
-| `UnsupportedOperationException` trong `Subject.getSubject(...)` JDK 24 | ACC-based reader đã bị vô hiệu hóa | Chuyển sang `Subject.current()` và scope `callAs` |
-| `doAs` warning deprecated for removal | API cũ phụ thuộc Security Manager concept | Migrate sang `callAs`, kiểm thử exception |
-| `reference to doAs is ambiguous` | Hai overload với functional interface gần nhau | Cast `PrivilegedAction`/`PrivilegedExceptionAction` trong legacy; code mới dùng Callable |
-| Catch `PrivilegedActionException` không bắt lỗi sau migrate | `callAs` dùng `CompletionException` | Đổi handling và preserve root cause |
-| `Subject.current()==null` trong executor | Subject không tự kế thừa qua thread pool | Capture trusted subject, bind trong task bằng `callAs` |
-| Subject xuất hiện sai user ở worker | Custom ThreadLocal/context bị rò, thiếu cleanup | Dùng scoped binding; kiểm thử isolation giữa request |
-| `Subject.current()!=null` nhưng API bị truy cập trái phép | Đang coi presence of Subject là authorization | Kiểm tra policy/tenant/action/resource riêng |
-| Kerberos/GSS lỗi sau nâng JDK | Thư viện dùng ACC/getSubject hoặc phụ thuộc inheritance cũ | Nâng dependency, kiểm thử JAAS login, delegation và thread propagation |
-| Dùng `-Djava.security.manager=allow` trên JDK 24 để cứu code | Security Manager đã vô hiệu hóa vĩnh viễn | Sửa code/API, không dùng flag cũ làm giải pháp |
-| Mất private credentials sau `logout` | LoginModule đã cleanup session hoặc code giữ Subject quá lâu | Quản lý lifecycle và tác vụ bất đồng bộ đúng |
-| Nhiều `Principal` nhưng app lấy phần tử đầu tiên | Không có thứ tự/semantics universal của Set | Lọc đúng Principal class và policy của domain |
-| Debug in `Subject.toString()` | Có nguy cơ ghi lộ metadata/credential theo implementation | Log tối thiểu, không in private credentials |
-| Context bị giữ quá lâu trong queue | Captured Subject mang credential đã hết hạn/thu hồi | TTL, hủy task, tái xác minh tại boundary đúng |
+| `cannot find symbol: Subject.current` with `javac --release 17` | API exists only since Java 18 | Raise target JDK or isolate runtime compatibility; do not assume it is Java 17 API |
+| `UnsupportedOperationException` in `Subject.getSubject(...)` on JDK 24 | ACC-based reader has been disabled | Switch to `Subject.current()` and `callAs` scope |
+| `doAs` warning: deprecated for removal | Legacy API tied to Security Manager concepts | Migrate to `callAs`; test exception handling |
+| `reference to doAs is ambiguous` | Two overloads with similar functional interfaces | Cast `PrivilegedAction`/`PrivilegedExceptionAction` in legacy code; new code uses `Callable` |
+| Catch `PrivilegedActionException` misses errors after migration | `callAs` throws `CompletionException` | Update catch handling and preserve root cause |
+| `Subject.current()==null` inside executor | Subject is not inherited across thread pools | Capture trusted subject and bind inside task via `callAs` |
+| Wrong user's Subject appears in a worker | Custom ThreadLocal/context leaked without cleanup | Use scoped binding; test isolation across requests |
+| `Subject.current()!=null` yet API is accessed without permission | Treating Subject presence as authorization | Check policy/tenant/action/resource explicitly |
+| Kerberos/GSS fails after JDK upgrade | Library uses ACC/`getSubject` or old thread inheritance | Upgrade dependencies; test JAAS login, delegation, and thread propagation |
+| Using `-Djava.security.manager=allow` on JDK 24 to rescue code | Security Manager is permanently disabled | Fix code/APIs; do not use legacy flags as a workaround |
+| Private credentials missing after `logout` | LoginModule cleaned up session or code held Subject too long | Manage lifecycle and async tasks properly |
+| Multiple `Principal`s yet app picks first element | Sets have no universal order/semantics | Filter by exact Principal class and domain policy |
+| Debug prints `Subject.toString()` | Risks exposing metadata/credentials depending on implementation | Log minimally; never print private credentials |
+| Context held too long in queue | Captured Subject carries expired/revoked credentials | Enforce TTL, cancel tasks, re-verify at boundaries |
 
-### 13.1. Diagnostic checklist
+### 13.1. Diagnostic Checklist
 
-Khi thấy lỗi “Subject not found” sau nâng JDK:
+When seeing "Subject not found" errors after a JDK upgrade:
 
-1. In phiên bản JDK trong môi trường test (không log thông tin đăng nhập): `java -version`.
-2. Kiểm tra source/classpath có `getSubject(AccessController.getContext())` hay không.
-3. Kiểm tra có `Subject.doAs`/`doAsPrivileged`, hoặc `AccessController.doPrivileged` phụ thuộc permission của Security Manager.
-4. Xem `LoginContext.login()` có thật sự thành công và tạo `Subject` đúng không.
-5. Xác định callback chạy **cùng scope/thread** với `callAs` hay đã chuyển sang executor/async.
-6. Kiểm tra root cause của `CompletionException` và những wrapper khác.
-7. Chạy test trước/ngoài/sau scope, nested calls, exception, executor và many concurrent users.
-8. Kiểm tra các authorization decisions bằng test có Subject đúng, sai, null, hết hạn và giả mạo.
+1. Print the JDK version in the test environment (without logging login credentials): `java -version`.
+2. Search source/classpath for `getSubject(AccessController.getContext())`.
+3. Check for `Subject.doAs`/`doAsPrivileged`, or `AccessController.doPrivileged` relying on Security Manager permissions.
+4. Confirm `LoginContext.login()` actually succeeded and populated the `Subject`.
+5. Determine whether the callback runs in the **same scope/thread** as `callAs` or moved to an executor/async boundary.
+6. Inspect the root cause of `CompletionException` and other wrappers.
+7. Run tests before/outside/after scope, nested calls, exceptions, executors, and many concurrent users.
+8. Verify authorization decisions with valid, invalid, null, expired, and forged `Subject`s.
 
-## 14. Dùng `jdeprscan` để phát hiện API deprecated
+## 14. Using `jdeprscan` to Detect Deprecated APIs
 
-JDK có công cụ **`jdeprscan`** hỗ trợ rà soát class/JAR có gọi API deprecated. Ví dụ:
+The JDK includes **`jdeprscan`** to scan classes/JARs for calls to deprecated APIs. For example:
 
 ```bash
 jdeprscan --release 24 path/to/legacy-app.jar
 ```
 
-Đây là lệnh minh họa; thay đường dẫn JAR bằng **artifact của chính ứng dụng**. Nó có thể chỉ ra các dùng `AccessController`/`Subject.getSubject` hoặc API Java khác deprecated. **Không xem output trống là bằng chứng đã migrate hoàn toàn**, vì không phải mọi đường gọi động/reflection hoặc hành vi Security Manager đều được phát hiện bằng quét bytecode.
+This is an illustrative command; replace the JAR path with **your application's own artifact**. It can flag uses of `AccessController`/`Subject.getSubject` or other deprecated Java APIs. **Do not treat empty output as proof that migration is complete**, because not every dynamic/reflective call or Security Manager behavior is caught by bytecode scanning.
 
-Trong kiểm thử local của chương trình `LegacySubjectDemo`, `jdeprscan --release 24` đã cảnh báo việc dùng `AccessController` và `Subject.getSubject`. Cần kết hợp với tìm kiếm mã nguồn và kiểm thử thực tế.
+In local testing of `LegacySubjectDemo`, `jdeprscan --release 24` warned about using `AccessController` and `Subject.getSubject`. Combine scanning with source search and integration tests.
 
-### 14.1. Các bước migrate cho dự án nhiều module
+### 14.1. Migration Steps for Multi-Module Projects
 
-1. **Inventory:** liệt kê mọi lời gọi `doAs`, `doAsPrivileged`, `getSubject`, `AccessController`; xem dependencies/frameworks có dùng JAAS/GSS không.
-2. **Version policy:** xác định minimum JDK. Nếu vẫn cần Java 17, không đưa thẳng `Subject.callAs` vào source được compile `--release 17`; có thể tách adapter theo runtime hoặc nâng minimum JDK có kế hoạch.
-3. **Authentication boundary:** xác định nguồn `Subject` sau JAAS login; không chấp nhận Subject tự tạo từ user input.
-4. **Context scope:** thay `doAs` bằng `callAs` khi chỉ cần binding, thay `getSubject(ACC)` bằng `current`.
-5. **Authorization boundary:** chuyển mọi logic từng dựa vào Security Manager sang policy/IAM/ACL explicit.
-6. **Concurrency:** rà soát thread pools, `CompletableFuture`, async RPC, reactive flows, structured concurrency; truyền Subject đúng cách, không rò.
-7. **Exceptions:** sửa `PrivilegedActionException` sang `CompletionException`, giữ cause chính xác; test checked/unchecked failure.
-8. **CI:** chạy `javac --release <minimum>`, `jdeprscan`, unit/integration tests trên JDK mục tiêu và negative security tests.
-9. **Production rollout:** quan sát logs an toàn về authentication/authorization failures, bật rollback plan không hạ security policy, nâng dependencies trước khi đổi JDK diện rộng.
+1. **Inventory:** list every call to `doAs`, `doAsPrivileged`, `getSubject`, and `AccessController`; check whether dependencies/frameworks use JAAS/GSS.
+2. **Version policy:** determine minimum JDK. If Java 17 is still required, do not put `Subject.callAs` directly in code compiled with `--release 17`; isolate a runtime adapter or plan a minimum-JDK bump.
+3. **Authentication boundary:** verify `Subject` originates from JAAS login; reject self-created Subjects from user input.
+4. **Context scope:** replace `doAs` with `callAs` when only binding is needed, and replace `getSubject(ACC)` with `current`.
+5. **Authorization boundary:** move all logic previously relying on Security Manager to explicit policy/IAM/ACL checks.
+6. **Concurrency:** audit thread pools, `CompletableFuture`, async RPC, reactive flows, and structured concurrency; propagate Subject explicitly without leaks.
+7. **Exceptions:** update `PrivilegedActionException` to `CompletionException`, preserving causes accurately; test checked and unchecked failures.
+8. **CI:** run `javac --release <minimum>`, `jdeprscan`, unit/integration tests on the target JDK, and negative security tests.
+9. **Production rollout:** monitor safe logs for authentication/authorization failures, prepare rollback plans without weakening security policy, and upgrade dependencies before broad JDK rollout.
 
-## 15. Lưu ý an toàn về credentials, Subject và quyền truy cập
+## 15. Security Notes on Credentials, Subject, and Access Control
 
-### 15.1. `Subject.current()` không phải chứng thực mật mã
+### 15.1. `Subject.current()` Is Not Cryptographic Verification
 
-Không đánh giá một service là trusted chỉ vì nó trả `Subject.current() != null`. Đối tượng đó có thể được tự tạo từ các `Principal` bất kỳ. Authentication phải được tiến hành bởi JAAS LoginModule hoặc boundary tin cậy, và việc cấp quyền phải xét identity/role/scopes đã được verified.
+Do not treat a service call as trusted solely because `Subject.current() != null`. That object could have been constructed manually with arbitrary `Principal`s. Authentication must be performed by a JAAS LoginModule or trusted boundary, and authorization must evaluate verified identity/roles/scopes.
 
-### 15.2. Không lan truyền private credentials một cách tùy tiện
+### 15.2. Do Not Propagate Private Credentials Arbitrarily
 
-`Subject` có thể chứa **Kerberos tickets**, tokens, keys, certificates hoặc credentials khác. Khi capture và gửi `Subject` đến executor:
+A `Subject` can contain **Kerberos tickets**, tokens, keys, certificates, or other credentials. When capturing and passing a `Subject` to an executor:
 
-- Chỉ truyền khi task thật sự cần current subject và được ủy quyền.
-- Không lưu đối tượng trong global static cache hoặc queue không có TTL.
-- Không serialize `Subject` làm payload mạng chỉ để “giữ context”.
-- Không in `Subject` hoặc các credentials trong debug log.
-- Dọn/làm hết hiệu lực credentials đúng theo `LoginModule.logout` hoặc chính sách của technology.
+- Propagate only when the task genuinely needs the current subject and is authorized.
+- Never store the object in global static caches or unbounded queues without TTL.
+- Never serialize `Subject` as a network payload merely to "preserve context."
+- Never print `Subject` or credentials in debug logs.
+- Clean up/invalidate credentials according to `LoginModule.logout` or technology policy.
 
-### 15.3. Quyền không tăng nhờ nesting
+### 15.3. Privileges Do Not Increase via Nesting
 
-Nếu một task không có quyền thực hiện thao tác, `Subject.callAs(adminSubject, ...)` do **code không được tin cậy** thực hiện không nên là cách vượt quyền. Một lớp authorization đúng phải bảo vệ **nguồn Subject, khả năng bind, quyền của workload và chính sách tài nguyên**, không chỉ đọc một chuỗi tên principal.
+If a task lacks permission to perform an operation, `Subject.callAs(adminSubject, ...)` invoked by **untrusted code** must never be a way to escalate privileges. A proper authorization layer protects **the Subject source, binding capability, workload privileges, and resource policies**, not merely a principal name string.
 
-### 15.4. Thông điệp lỗi không được lộ credentials
+### 15.4. Error Messages Must Not Leak Credentials
 
-`CompletionException.getCause()` đôi khi chứa chi tiết service hoặc authentication. Khi trả lỗi ra API, đừng phản hồi nguyên nội dung exception từ JAAS/LDAP/Kerberos vào client. Log an toàn theo correlation ID, trạng thái, module và mã lỗi; hạn chế tên user, tokens, paths và private credentials theo policy.
+`CompletionException.getCause()` can occasionally contain service or authentication details. When returning errors to an API client, never echo raw exception contents from JAAS/LDAP/Kerberos. Log safely using correlation IDs, status, module, and error codes; restrict usernames, tokens, paths, and private credentials per policy.
 
-## 16. Bài tập tự kiểm tra
+## 16. Self-Check Exercises
 
-**Câu 1.** `Subject.current()` được thêm từ Java 17 hay Java 18?  
-**Đáp án:** **Java 18**; `--release 17` không biên dịch code gọi phương thức này.
+**Q1.** Was `Subject.current()` added in Java 17 or Java 18?  
+**Answer:** **Java 18**; `--release 17` will not compile code calling this method.
 
-**Câu 2.** Sau khi `Subject.callAs(alice, action)` hoàn tất, current subject có mặc định vĩnh viễn là Alice không?  
-**Đáp án:** **Không.** Nó được khôi phục về giá trị trước khi gọi, thường `null` nếu ngoài scope.
+**Q2.** After `Subject.callAs(alice, action)` finishes, does Alice permanently remain the current subject?  
+**Answer:** **No.** It is restored to the previous value before the call, typically `null` outside any scope.
 
-**Câu 3.** Lồng `Subject.callAs(bob, action)` vào trong scope Alice thì trong Bob và sau Bob có gì?  
-**Đáp án:** Trong action Bob, `current()==bob`; sau action Bob và trước khi scope Alice kết thúc, `current()==alice`.
+**Q3.** When nesting `Subject.callAs(bob, action)` inside Alice's scope, what is `current()` inside Bob and after Bob?  
+**Answer:** Inside Bob's action, `current()==bob`; after Bob's action and before Alice's scope ends, `current()==alice`.
 
-**Câu 4.** `callAs` có nhận `Subject` là `null` không?  
-**Đáp án:** **Có.** Bên trong action current subject sẽ là `null`; scope bên ngoài được khôi phục sau đó. `action` thì không được `null`.
+**Q4.** Does `callAs` accept a `null` `Subject`?  
+**Answer:** **Yes.** Inside the action `current()` will be `null`; the outer scope is restored afterward. However, `action` cannot be `null`.
 
-**Câu 5.** Một `Callable` ném `IOException`. Caller `callAs` bắt loại exception nào?  
-**Đáp án:** **`CompletionException`** và lấy `IOException` gốc qua `getCause()`.
+**Q5.** A `Callable` throws `IOException`. Which exception type does the caller of `callAs` catch?  
+**Answer:** **`CompletionException`**, retrieving the original `IOException` via `getCause()`.
 
-**Câu 6.** `doAs(PrivilegedExceptionAction)` cũng ném `CompletionException` trên JDK cũ?  
-**Đáp án:** **Không.** Checked exception được bọc bằng `PrivilegedActionException`, đây là khác biệt quan trọng khi migrate.
+**Q6.** Does `doAs(PrivilegedExceptionAction)` also throw `CompletionException` on older JDKs?  
+**Answer:** **No.** Checked exceptions are wrapped in `PrivilegedActionException`, which is an important difference during migration.
 
-**Câu 7.** Trên JDK 24, `Subject.doAs(subject, action)` có còn trong API không?  
-**Đáp án:** **Có**, nhưng deprecated for removal; nó bind current subject theo scope, **không nâng đặc quyền Security Manager**.
+**Q7.** On JDK 24, does `Subject.doAs(subject, action)` still exist in the API?  
+**Answer:** **Yes**, though deprecated for removal; it binds the current subject by scope, **without Security Manager privilege elevation**.
 
-**Câu 8.** Trên JDK 24, code `Subject.getSubject(AccessController.getContext())` nếu chưa có Subject sẽ trả `null`?  
-**Đáp án:** **Không.** API này luôn ném `UnsupportedOperationException`, không phụ thuộc có Subject hay không.
+**Q8.** On JDK 24, if no Subject is present, does `Subject.getSubject(AccessController.getContext())` return `null`?  
+**Answer:** **No.** This API always throws `UnsupportedOperationException`, regardless of whether a Subject exists.
 
-**Câu 9.** Thread pool task submit bên trong `Subject.callAs(alice, ...)` có tự kế thừa Alice không?  
-**Đáp án:** **Không được giả định.** Executor worker thông thường không tự mang current subject từ submitter; capture Subject đáng tin và bind lại khi thực thi.
+**Q9.** Does a thread pool task submitted inside `Subject.callAs(alice, ...)` automatically inherit Alice?  
+**Answer:** **Never assume so.** Standard executor workers do not automatically carry the submitter's current subject; capture a trusted Subject and re-bind it during execution.
 
-**Câu 10.** `Subject.callAs` có đủ để chấp nhận một user truy cập tài khoản ngân hàng không?  
-**Đáp án:** **Không.** Cần authentication chính thống và authorization theo user/tenant/resource/action; context binding chỉ là đầu vào.
+**Q10.** Is `Subject.callAs` enough to allow a user to access a bank account?  
+**Answer:** **No.** Proper authentication and authorization by user/tenant/resource/action are required; context binding is only an input.
 
-**Câu 11.** Một `Subject` có principal tên `"admin"` là tự chứng minh đã được cấp role admin?  
-**Đáp án:** **Không.** Tên principal phải đến từ nguồn đã xác thực và quyền do policy xác định; tạo `new Subject()` không phải login.
+**Q11.** Does a `Subject` containing a principal named `"admin"` prove the admin role was granted?  
+**Answer:** **No.** Principal names must come from an authenticated source and permissions from policy; calling `new Subject()` is not logging in.
 
-**Câu 12.** Khi migrate `doAsPrivileged`, có thể chỉ thay bằng `callAs` rồi coi hệ thống vẫn bảo vệ file bằng Java Security Manager không?  
-**Đáp án:** **Không.** Security Manager không còn hỗ trợ từ JDK 24; phải thiết kế lại authorization/OS permissions/IAM.
+**Q12.** When migrating `doAsPrivileged`, can you simply replace it with `callAs` and assume the Java Security Manager still protects files?  
+**Answer:** **No.** The Security Manager is no longer supported as of JDK 24; redesign authorization/OS permissions/IAM.
 
-**Câu 13.** Tại sao cần thử lỗi trong nested `callAs`?  
-**Đáp án:** Để kiểm tra context được **khôi phục đúng kể cả khi action throw**, không rò danh tính sang request hoặc task khác.
+**Q13.** Why should you test throwing an exception inside nested `callAs`?  
+**Answer:** To verify that the context is **properly restored even when an action throws**, preventing identity leaks to other requests or tasks.
 
-**Câu 14.** Dùng `jdeprscan` không thấy cảnh báo thì có chắc code không còn vấn đề JAAS/Security Manager?  
-**Đáp án:** **Không.** Vẫn phải kiểm tra dynamic/reflection calls, dependencies, permission semantics, concurrency và integration tests.
+**Q14.** If `jdeprscan` reports no warnings, is the codebase guaranteed free of JAAS/Security Manager issues?  
+**Answer:** **No.** You must still inspect dynamic/reflection calls, dependencies, permission semantics, concurrency, and integration tests.
 
-## 17. Nguồn tham khảo chính thức
+## 17. Official References
 
-- [Java SE 26 — Subject API](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/javax/security/auth/Subject.html): `current`, `callAs`, `doAs`, `getSubject`, version và exception semantics.
-- [Oracle — Migrating from Subject.getSubject/Subject.doAs to Subject.current/Subject.callAs](https://docs.oracle.com/en/java/javase/25/security/migrating-from-deprecated-removal-subject-getsubject-subject-doas-methods-subject-current-subject-callas-methods.html): migration và thay đổi sau JDK 24.
-- [Oracle — Java Authentication and Authorization Service Reference Guide](https://docs.oracle.com/en/java/javase/24/security/java-authentication-and-authorization-service-jaas-reference-guide.html): JAAS authentication, Subject/Principals và giới hạn authorization hiện đại.
-- [OpenJDK — JEP 486: Permanently Disable the Security Manager](https://openjdk.org/jeps/486): nguyên nhân thay đổi hành vi Java 24.
-- [OpenJDK — JEP 411: Deprecate the Security Manager for Removal](https://openjdk.org/jeps/411): bối cảnh từ Java 17.
-- [Oracle — JDK 23 Release Notes, Subject API changes](https://www.oracle.com/java/technologies/javase/23-relnote-issues.html): trạng thái Security Manager và cách Subject được truyền sang child threads.
-- [Java SE 26 — LoginContext](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/javax/security/auth/login/LoginContext.html): tạo `Subject` từ cơ chế JAAS login.
-- [Oracle — jdeprscan](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jdeprscan.html): quét bytecode để nhận diện các API deprecated.
+- [Java SE 26 — Subject API](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/javax/security/auth/Subject.html): `current`, `callAs`, `doAs`, `getSubject`, version and exception semantics.
+- [Oracle — Migrating from Subject.getSubject/Subject.doAs to Subject.current/Subject.callAs](https://docs.oracle.com/en/java/javase/25/security/migrating-from-deprecated-removal-subject-getsubject-subject-doas-methods-subject-current-subject-callas-methods.html): migration and post-JDK 24 changes.
+- [Oracle — Java Authentication and Authorization Service Reference Guide](https://docs.oracle.com/en/java/javase/24/security/java-authentication-and-authorization-service-jaas-reference-guide.html): JAAS authentication, Subject/Principals, and modern authorization boundaries.
+- [OpenJDK — JEP 486: Permanently Disable the Security Manager](https://openjdk.org/jeps/486): rationale for Java 24 behavior changes.
+- [OpenJDK — JEP 411: Deprecate the Security Manager for Removal](https://openjdk.org/jeps/411): background starting in Java 17.
+- [Oracle — JDK 23 Release Notes, Subject API changes](https://www.oracle.com/java/technologies/javase/23-relnote-issues.html): Security Manager states and how Subject propagates to child threads.
+- [Java SE 26 — LoginContext](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/javax/security/auth/login/LoginContext.html): obtaining a `Subject` from JAAS login.
+- [Oracle — jdeprscan](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jdeprscan.html): bytecode scanning to detect deprecated APIs.
 
-### Ghi nhớ
+### Key Takeaways
 
-**`Subject.current()` đọc danh tính đang được gắn với scope; `Subject.callAs(subject, action)` chỉ bind trong khoảng chạy action và tự khôi phục sau đó.** Hai API được thêm từ **Java 18**. Code cũ dùng **`doAs`** cần migrate vì deprecated; đặc biệt, **`getSubject(AccessController.getContext())` luôn ném `UnsupportedOperationException` từ JDK 24**. Đừng mang tư duy Security Manager permissions sang `callAs`: **authentication, context propagation và authorization là ba trách nhiệm khác nhau**, cần kiểm soát nguồn `Subject`, ràng buộc thread/task và quyền tài nguyên một cách tường minh.
+**`Subject.current()` reads the identity bound to the scope; `Subject.callAs(subject, action)` binds it only for the duration of the action and restores it afterward.** Both APIs were added in **Java 18**. Legacy code using **`doAs`** needs migration because it is deprecated; in particular, **`getSubject(AccessController.getContext())` always throws `UnsupportedOperationException` starting in JDK 24**. Do not carry Security Manager permission assumptions into `callAs`: **authentication, context propagation, and authorization are three distinct responsibilities**, requiring explicit control over `Subject` origin, thread/task binding, and resource permissions.

@@ -1,0 +1,1516 @@
+menu:
+- slug: transaction-overview
+  title: Tổng quan
+  childs:
+  - slug: transaction-overview-001
+    title: Giao dịch giải quyết vấn đề cập nhật dữ liệu dở dang
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-overview-002
+    title: Ranh giới giao dịch và một đơn vị công việc nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-overview-003
+    title: Vai trò của Spring, driver và hệ quản trị cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-overview-004
+    title: Phân biệt giao dịch cục bộ với giao dịch phân tán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-overview-005
+    title: Quản lý khai báo và quản lý bằng mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-overview-006
+    title: Mô hình mệnh lệnh và mô hình reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-overview-007
+    title: Quan hệ giữa AOP, truy cập dữ liệu và quản lý tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-overview-008
+    title: Những bảo đảm giao dịch không tự cung cấp cho lời gọi từ xa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-overview-009
+    title: Lộ trình từ cơ chế commit, rollback đến kiểm chứng hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transaction-fundamentals
+  title: Nền tảng giao dịch
+  childs:
+  - slug: transaction-fundamentals-001
+    title: Tính nguyên tử, nhất quán, cô lập và bền vững trong ACID
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-fundamentals-002
+    title: Begin, commit, rollback và trạng thái kết thúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-fundamentals-003
+    title: Auto-commit và nhiều câu lệnh trên cùng kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-fundamentals-004
+    title: Phân biệt kết thúc phương thức với hoàn tất commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-fundamentals-005
+    title: Ràng buộc dữ liệu và bất biến nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-fundamentals-006
+    title: Khác biệt giữa ghi bộ nhớ, flush và commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-fundamentals-007
+    title: Savepoint và rollback một phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-fundamentals-008
+    title: Vai trò nhật ký, khóa và MVCC ở mức khái niệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-fundamentals-009
+    title: Lỗi tại thời điểm commit và kết quả có thể chưa xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-transactions
+  title: Mô hình Spring
+  childs:
+  - slug: spring-transactions-001
+    title: TransactionManager và chiến lược quản lý giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-transactions-002
+    title: PlatformTransactionManager cho mã mệnh lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-transactions-003
+    title: ReactiveTransactionManager cho chuỗi reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-transactions-004
+    title: TransactionDefinition và thuộc tính giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-transactions-005
+    title: TransactionStatus, rollback-only và thông tin trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-transactions-006
+    title: TransactionException và lỗi hạ tầng giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-transactions-007
+    title: Đồ thị liên kết manager, DataSource hoặc ConnectionFactory và mã truy cập dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-transactions-008
+    title: Chọn manager theo loại tài nguyên thay vì theo tên annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-transaction
+  title: Giao dịch đầu tiên
+  childs:
+  - slug: first-transaction-001
+    title: Chuẩn bị thư viện Spring và cơ sở dữ liệu tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-transaction-002
+    title: Khai báo DataSource cùng JdbcTransactionManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-transaction-003
+    title: Bật quản lý bằng @EnableTransactionManagement
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-transaction-004
+    title: Đặt @Transactional tại phương thức dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-transaction-005
+    title: Thực hiện hai thao tác ghi trong một luồng nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-transaction-006
+    title: Tạo lỗi giữa luồng và quan sát rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-transaction-007
+    title: Đối chiếu dữ liệu bằng kết nối độc lập sau khi hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-transaction-008
+    title: Quan sát log begin, commit, rollback và giải phóng kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactional
+  title: '@Transactional'
+  childs:
+  - slug: transactional-001
+    title: Annotation chỉ là metadata cần hạ tầng xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-002
+    title: Khai báo ở phương thức, lớp và các quy tắc kế thừa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-003
+    title: Thứ tự ưu tiên cấu hình cụ thể so với cấu hình mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-004
+    title: Giá trị mặc định của propagation, isolation và readOnly
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-005
+    title: Chọn manager bằng transactionManager hoặc value
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-006
+    title: timeout, timeoutString và cấu hình qua placeholder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-007
+    title: label và ý nghĩa phụ thuộc từng manager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-008
+    title: Tạo annotation ghép cho chính sách dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-009
+    title: Phân biệt org.springframework.transaction.annotation.Transactional với jakarta.transaction.Transactional
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-010
+    title: Phạm vi phát hiện annotation trong ApplicationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-transactions
+  title: Cấu hình XML
+  childs:
+  - slug: xml-transactions-001
+    title: Bật annotation bằng tx:annotation-driven
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-transactions-002
+    title: Định nghĩa tx:advice và các thuộc tính tx:method
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-transactions-003
+    title: Gắn transaction advice vào pointcut bằng AOP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-transactions-004
+    title: Chính sách theo tên phương thức và mức ưu tiên mẫu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-transactions-005
+    title: Cấu hình manager, rollback-for và no-rollback-for
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-transactions-006
+    title: Tách chính sách cho các nhóm dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-transactions-007
+    title: Đối chiếu cấu hình XML với annotation cho cùng hành vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transaction-proxies
+  title: Cơ chế proxy
+  childs:
+  - slug: transaction-proxies-001
+    title: TransactionInterceptor bao quanh lời gọi nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-proxies-002
+    title: TransactionAttributeSource và quá trình đọc chính sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-proxies-003
+    title: Luồng lấy giao dịch, gọi phương thức và hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-proxies-004
+    title: Proxy dựa trên giao diện và proxy dựa trên lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-proxies-005
+    title: Self-invocation bỏ qua điểm chặn trong chế độ proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-proxies-006
+    title: Khả năng áp dụng cho public, protected và package-visible theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-proxies-007
+    title: Giới hạn phương thức private, final và static
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-proxies-008
+    title: Đối tượng tạo bằng new và lời gọi ngoài Spring container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-proxies-009
+    title: Thời điểm khởi tạo bean và giới hạn trong @PostConstruct
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-proxies-010
+    title: Chế độ AspectJ và yêu cầu dệt mã thay cho proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-proxies-011
+    title: Thứ tự transaction advice với các advice khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rollback-rules
+  title: Quy tắc rollback
+  childs:
+  - slug: rollback-rules-001
+    title: Mặc định rollback với RuntimeException và Error
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rules-002
+    title: Checked exception và nhu cầu khai báo rollback rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rules-003
+    title: rollbackFor và noRollbackFor theo kiểu ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rules-004
+    title: Rủi ro khớp quá rộng của rollbackForClassName và noRollbackForClassName
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rules-005
+    title: Quy tắc phù hợp nhất khi nhiều khai báo cùng khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rules-006
+    title: Ngoại lệ phải đi qua ranh giới giao dịch để interceptor quan sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rules-007
+    title: Bắt lỗi, nuốt lỗi hoặc đổi loại ngoại lệ làm thay đổi kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rules-008
+    title: Đánh dấu rollback-only khi không ném lại ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rules-009
+    title: Lỗi nghiệp vụ trả về như dữ liệu không tự kích hoạt rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rules-010
+    title: ALL_EXCEPTIONS và thay đổi mặc định toàn cục từ Spring Framework 6.2
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rules-011
+    title: Try hoặc Future thất bại và giới hạn hỗ trợ theo phiên bản, thời điểm trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transaction-scope
+  title: Phạm vi giao dịch
+  childs:
+  - slug: transaction-scope-001
+    title: Phân biệt phạm vi logic với giao dịch vật lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-scope-002
+    title: Lời gọi dịch vụ lồng nhau không luôn tạo giao dịch mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-scope-003
+    title: Tham gia, tạm ngưng và khôi phục giao dịch hiện có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-scope-004
+    title: Thuộc tính nào được áp dụng khi tạo giao dịch mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-scope-005
+    title: Thuộc tính phương thức trong có thể không thay thế cấu hình bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-scope-006
+    title: setValidateExistingTransaction và phát hiện cấu hình không tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-scope-007
+    title: Trạng thái rollback-only cục bộ và toàn cục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-scope-008
+    title: Phân biệt giao dịch đang hoạt động với đồng bộ hóa tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: required-propagation
+  title: REQUIRED
+  childs:
+  - slug: required-propagation-001
+    title: Tạo giao dịch khi chưa có giao dịch hiện hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: required-propagation-002
+    title: Tham gia giao dịch vật lý đang có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: required-propagation-003
+    title: Mỗi lời gọi vẫn có một phạm vi logic riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: required-propagation-004
+    title: Ảnh hưởng của rollback-only trong phạm vi con
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: required-propagation-005
+    title: UnexpectedRollbackException tại ranh giới hoàn tất bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: required-propagation-006
+    title: Vì sao bắt ngoại lệ ở phương thức ngoài chưa bảo đảm commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: required-propagation-007
+    title: Đặt ranh giới ở dịch vụ điều phối thay vì từng thao tác nhỏ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: required-propagation-008
+    title: Kiểm chứng luồng thành công, lỗi lan ra và lỗi bị bắt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requires-new-propagation
+  title: REQUIRES_NEW
+  childs:
+  - slug: requires-new-propagation-001
+    title: Tạm ngưng giao dịch ngoài và tạo giao dịch vật lý độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requires-new-propagation-002
+    title: Commit, rollback và thuộc tính riêng của giao dịch mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requires-new-propagation-003
+    title: Khôi phục tài nguyên giao dịch ngoài sau khi hoàn tất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requires-new-propagation-004
+    title: Dữ liệu bên trong đã commit có thể tồn tại khi bên ngoài rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requires-new-propagation-005
+    title: Nhu cầu thêm kết nối trong connection pool
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requires-new-propagation-006
+    title: Nguy cơ cạn pool hoặc chờ khóa do giao dịch ngoài đang giữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requires-new-propagation-007
+    title: Trường hợp nhật ký độc lập và đánh đổi tính nguyên tử nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requires-new-propagation-008
+    title: Kiểm chứng lựa chọn này so với REQUIRED bằng dữ liệu thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nested-propagation
+  title: NESTED và savepoint
+  childs:
+  - slug: nested-propagation-001
+    title: Một giao dịch vật lý với nhiều điểm khôi phục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-propagation-002
+    title: Rollback phạm vi con về savepoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-propagation-003
+    title: Commit phạm vi con không phải commit độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-propagation-004
+    title: Hành vi khi chưa tồn tại giao dịch bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-propagation-005
+    title: Điều kiện hỗ trợ của manager, driver và cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-propagation-006
+    title: Phân biệt NESTED với REQUIRES_NEW
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-propagation-007
+    title: Giới hạn savepoint đối với trạng thái persistence context JPA
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-propagation-008
+    title: Tạo, khôi phục và giải phóng savepoint bằng TransactionStatus
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: other-propagation
+  title: Propagation khác
+  childs:
+  - slug: other-propagation-001
+    title: SUPPORTS và hành vi có hoặc không có giao dịch hiện hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-propagation-002
+    title: MANDATORY và yêu cầu bên gọi đã mở giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-propagation-003
+    title: NOT_SUPPORTED và thực thi khi giao dịch ngoài bị tạm ngưng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-propagation-004
+    title: NEVER và lỗi khi gặp giao dịch hiện hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-propagation-005
+    title: So sánh bảy propagation trên hai trạng thái đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-propagation-006
+    title: SUPPORTS và đồng bộ hóa tài nguyên khi không có giao dịch vật lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-propagation-007
+    title: Giới hạn tạm ngưng theo chiến lược manager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-propagation-008
+    title: Chọn propagation từ yêu cầu nghiệp vụ thay vì tránh lỗi cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: isolation-levels
+  title: Mức cô lập
+  childs:
+  - slug: isolation-levels-001
+    title: Dirty read, non-repeatable read và phantom read
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-levels-002
+    title: Lost update, write skew và bất biến giữa nhiều bản ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-levels-003
+    title: ISOLATION_DEFAULT sử dụng mặc định của tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-levels-004
+    title: READ_UNCOMMITTED và giới hạn hỗ trợ thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-levels-005
+    title: READ_COMMITTED và ảnh chụp dữ liệu theo từng hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-levels-006
+    title: REPEATABLE_READ và những khác biệt triển khai MVCC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-levels-007
+    title: SERIALIZABLE và khả năng phải thử lại giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-levels-008
+    title: Isolation chỉ có hiệu lực trong điều kiện manager hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-levels-009
+    title: Isolation của lời gọi tham gia so với giao dịch mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-levels-010
+    title: Thiết kế thí nghiệm hai kết nối để quan sát từng hiện tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transaction-concurrency
+  title: Khóa và đồng thời
+  childs:
+  - slug: transaction-concurrency-001
+    title: Phân biệt propagation với isolation và chiến lược khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-concurrency-002
+    title: Khóa bi quan và thời gian giữ khóa trong giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-concurrency-003
+    title: Khóa lạc quan, cột version và phát hiện xung đột
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-concurrency-004
+    title: Ràng buộc unique hoặc check để bảo vệ bất biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-concurrency-005
+    title: Thao tác cập nhật nguyên tử thay cho đọc rồi ghi thiếu bảo vệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-concurrency-006
+    title: Deadlock và thứ tự truy cập tài nguyên nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-concurrency-007
+    title: Lock timeout, transaction timeout và câu lệnh bị hủy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-concurrency-008
+    title: Phạm vi khóa, chỉ mục và ảnh hưởng tới tải đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-concurrency-009
+    title: Đánh giá tính đúng đắn trước khi giảm mức cô lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: read-only-timeout
+  title: Read-only và timeout
+  childs:
+  - slug: read-only-timeout-001
+    title: readOnly là chỉ dẫn có hiệu lực tùy manager, driver và cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-only-timeout-002
+    title: Phân biệt chỉ dẫn read-only với cơ chế chặn thao tác ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-only-timeout-003
+    title: setEnforceReadOnly trong DataSourceTransactionManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-only-timeout-004
+    title: Ảnh hưởng tới flush và tối ưu hóa ORM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-only-timeout-005
+    title: Read-only của phương thức trong khi tham gia giao dịch đọc-ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-only-timeout-006
+    title: Đơn vị timeout và thời điểm thuộc tính được áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-only-timeout-007
+    title: JDBC statement timeout và hỗ trợ của công cụ truy cập dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-only-timeout-008
+    title: Timeout không tương đương hủy mọi công việc Java hoặc lời gọi mạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-only-timeout-009
+    title: Lựa chọn timeout giao dịch, truy vấn và kết nối một cách nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transaction-template
+  title: TransactionTemplate
+  childs:
+  - slug: transaction-template-001
+    title: Khi nào cần ranh giới giao dịch hiển thị trong mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-template-002
+    title: Tạo TransactionTemplate từ PlatformTransactionManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-template-003
+    title: execute và executeWithoutResult
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-template-004
+    title: Trả kết quả từ callback và xử lý ngoại lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-template-005
+    title: setRollbackOnly trong callback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-template-006
+    title: Khai báo propagation, isolation, readOnly và timeout
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-template-007
+    title: Chia một luồng dài thành các đoạn giao dịch rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-template-008
+    title: Dùng lại template và tránh sửa cấu hình dùng chung đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-template-009
+    title: So sánh độ ghép nối với quản lý khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: direct-transaction-api
+  title: API giao dịch trực tiếp
+  childs:
+  - slug: direct-transaction-api-001
+    title: Tạo DefaultTransactionDefinition và đặt tên giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-transaction-api-002
+    title: getTransaction có thể tạo mới hoặc tham gia giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-transaction-api-003
+    title: Quản lý commit, rollback và ngoại lệ ở từng giai đoạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-transaction-api-004
+    title: Kiểm tra isNewTransaction, isRollbackOnly và isCompleted
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-transaction-api-005
+    title: Không hoàn tất hai lần cùng một TransactionStatus
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-transaction-api-006
+    title: Phân biệt lỗi nghiệp vụ với lỗi commit hoặc rollback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: direct-transaction-api-007
+    title: Vì sao thường chọn TransactionTemplate thay cho mã quản lý thủ công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transaction-resources
+  title: Tài nguyên gắn giao dịch
+  childs:
+  - slug: transaction-resources-001
+    title: TransactionSynchronizationManager và tài nguyên gắn với luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-resources-002
+    title: DataSourceUtils, EntityManagerUtils và các hàm truy cập có nhận biết giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-resources-003
+    title: Phân biệt isSynchronizationActive với isActualTransactionActive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-resources-004
+    title: Dùng cùng tài nguyên giữa nhiều lớp truy cập dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-resources-005
+    title: Tạm ngưng, khôi phục và dọn dẹp tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

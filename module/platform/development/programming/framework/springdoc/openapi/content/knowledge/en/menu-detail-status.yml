@@ -1,0 +1,3673 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Springdoc OpenAPI là gì và giải quyết vấn đề tài liệu API như thế nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt đặc tả OpenAPI, Springdoc, Swagger Core và Swagger UI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Tài liệu dạng JSON hoặc YAML và giao diện tương tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Quan hệ giữa mã Spring, siêu dữ liệu và hợp đồng API được sinh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Hướng tiếp cận code-first, design-first và phạm vi của Springdoc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Những thông tin có thể suy ra tự động và những thông tin cần bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Mô tả API khác với cài đặt hành vi hoặc bảo mật API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Vị trí của tài liệu API trong phát triển, kiểm thử và tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: 'Bản đồ thuật ngữ: operation, parameter, request body, schema và response'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Lộ trình học từ API đầu tiên đến kiểm chứng và phát hành hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versions-and-dependencies
+  title: Phiên bản và phụ thuộc
+  childs:
+  - slug: versions-and-dependencies-001
+    title: Phân biệt phiên bản Spring Boot, Springdoc và đặc tả OpenAPI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-002
+    title: Đọc ma trận tương thích trước khi chọn thư viện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-003
+    title: Các nhánh Springdoc v1, v2, v3 và thế hệ Spring Boot tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-004
+    title: Chọn starter cho Spring MVC hoặc WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-005
+    title: Starter chỉ cung cấp đặc tả so với starter kèm giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-006
+    title: Khai báo phụ thuộc bằng Maven hoặc Gradle
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-007
+    title: Vai trò của Swagger annotations, Swagger Core và WebJars
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-008
+    title: Namespace javax và jakarta khi chuyển thế hệ Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-009
+    title: Tránh trộn Springfox, Springdoc và các thư viện Swagger không tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-010
+    title: Khóa phiên bản và kiểm tra cây phụ thuộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-011
+    title: Phân biệt tính năng dùng chung với tính năng chỉ có ở một nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-012
+    title: Chọn tài liệu hướng dẫn đúng phiên bản đang triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-and-api-contracts
+  title: HTTP và hợp đồng API
+  childs:
+  - slug: http-and-api-contracts-001
+    title: Đường dẫn, phương thức HTTP và định danh một operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-contracts-002
+    title: Tham số đường dẫn, truy vấn, header và cookie
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-contracts-003
+    title: Kiểu nội dung qua Content-Type, Accept, consumes và produces
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-contracts-004
+    title: Mã trạng thái và ý nghĩa của phản hồi thành công hoặc thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-contracts-005
+    title: Biểu diễn JSON, form, multipart và dữ liệu nhị phân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-contracts-006
+    title: Hợp đồng kiểu dữ liệu khác với quy tắc nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-contracts-007
+    title: Tính bắt buộc, giá trị rỗng và thuộc tính vắng mặt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-contracts-008
+    title: Quy ước về phân trang, sắp xếp và lọc dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-api-contracts-009
+    title: Tính tương thích của hợp đồng đối với bên gọi API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bootstrap-lifecycle
+  title: Khởi động và vòng đời
+  childs:
+  - slug: bootstrap-lifecycle-001
+    title: Tạo tài liệu cho một REST Controller tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-lifecycle-002
+    title: Đọc đặc tả tại /v3/api-docs
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-lifecycle-003
+    title: Đọc bản YAML tại /v3/api-docs.yaml
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-lifecycle-004
+    title: Mở Swagger UI và xác minh nguồn đặc tả đang được tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-lifecycle-005
+    title: Điều kiện để Springdoc nhận diện Controller và handler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-lifecycle-006
+    title: Suy luận từ mapping, chữ ký phương thức và kiểu trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-lifecycle-007
+    title: Vai trò của cấu hình tự động và các bean tùy biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-lifecycle-008
+    title: Thời điểm xây dựng tài liệu, bộ nhớ đệm và nạp trước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-lifecycle-009
+    title: Chuỗi xử lý từ handler đến operation và schema
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-lifecycle-010
+    title: Kiểm tra đồng thời đặc tả sinh ra với phản hồi HTTP thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bootstrap-lifecycle-011
+    title: Phân biệt đường dẫn API ứng dụng với đường dẫn tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: openapi-structure
+  title: Cấu trúc OpenAPI
+  childs:
+  - slug: openapi-structure-001
+    title: Trường openapi và phiên bản định dạng của đặc tả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-002
+    title: 'Info: title, summary khi được hỗ trợ, description và version'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-003
+    title: Contact, license, termsOfService và thông tin sở hữu API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-004
+    title: Servers và biến cấu hình trong URL máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-005
+    title: Paths, Path Item và Operation Object
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-006
+    title: Tags và cách tổ chức các operation theo chủ đề
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-007
+    title: Components và các thành phần dùng lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-008
+    title: Schema, parameter, response, requestBody và securityScheme trong components
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-009
+    title: Tham chiếu $ref và cách phân giải tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-010
+    title: externalDocs và liên kết đến tài liệu bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-011
+    title: Phần mở rộng x-* và mục đích sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-012
+    title: Phân biệt info.version với phiên bản OpenAPI và phiên bản route
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-structure-013
+    title: Tài liệu JSON hoặc YAML khác cách diễn giải và hiển thị trên giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operation-descriptions
+  title: Mô tả operation
+  childs:
+  - slug: operation-descriptions-001
+    title: '@OpenAPIDefinition và thông tin tài liệu ở phạm vi ứng dụng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-descriptions-002
+    title: '@Tag ở cấp Controller và operation'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-descriptions-003
+    title: '@Operation: summary, description, tags và deprecated'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-descriptions-004
+    title: operationId duy nhất, ổn định và ảnh hưởng đến bộ sinh mã phía gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-descriptions-005
+    title: Mô tả động cơ sử dụng, điều kiện trước và kết quả quan sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-descriptions-006
+    title: Nội dung Markdown, khối mã và giới hạn hiển thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-descriptions-007
+    title: Mô tả nhiều phương thức HTTP hoặc nhiều mapping trên một handler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-descriptions-008
+    title: Các handler dùng chung path nhưng khác consumes hoặc produces
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-descriptions-009
+    title: Ẩn Controller hoặc operation bằng @Hidden
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-descriptions-010
+    title: Ẩn một chi tiết tài liệu khác với vô hiệu hóa endpoint thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-descriptions-011
+    title: Đặt siêu dữ liệu trên interface, lớp cơ sở và phương thức ghi đè
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operation-descriptions-012
+    title: Kiểm tra thứ tự ưu tiên khi cấu hình và annotation cùng tác động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-parameters
+  title: Tham số đầu vào
+  childs:
+  - slug: input-parameters-001
+    title: '@Parameter và mối liên hệ với annotation binding của Spring'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-002
+    title: Mô tả @PathVariable và yêu cầu bắt buộc của path parameter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-003
+    title: Mô tả @RequestParam với giá trị mặc định và tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-004
+    title: Mô tả @RequestHeader và @CookieValue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-005
+    title: Tên hiển thị, tên binding và cơ chế khám phá tên tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-006
+    title: Vai trò của tùy chọn biên dịch -parameters
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-007
+    title: Schema của tham số số, Boolean, chuỗi, enum và ngày giờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-008
+    title: Danh sách giá trị, tham số lặp lại và cách truyền mảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-009
+    title: style, explode và tính tương thích với cơ chế binding thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-010
+    title: Đối tượng truy vấn và @ParameterObject
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-011
+    title: Giới hạn làm phẳng thuộc tính lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-012
+    title: Ẩn tham số hạ tầng như principal hoặc thông tin request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-013
+    title: Tham số dùng lại thông qua components.parameters
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-parameters-014
+    title: Vì sao Authorization không nên chỉ được khai báo như header parameter thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: request-bodies
+  title: Nội dung yêu cầu
+  childs:
+  - slug: request-bodies-001
+    title: Phân biệt @RequestBody của Spring với @RequestBody của Swagger annotations
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-bodies-002
+    title: Request Body Object và cờ required
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-bodies-003
+    title: Mô tả application/json bằng @Content và @Schema
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-bodies-004
+    title: Nhiều kiểu nội dung cho cùng một operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-bodies-005
+    title: Đối tượng, mảng, kiểu nguyên thủy và thân yêu cầu tùy chọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-bodies-006
+    title: application/x-www-form-urlencoded và binding dữ liệu form
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-bodies-007
+    title: Multipart gồm tệp, nhiều tệp và trường dữ liệu thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-bodies-008
+    title: '@RequestPart cho một phần JSON trong multipart'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-bodies-009
+    title: Encoding Object và kiểu nội dung của từng phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-bodies-010
+    title: Ví dụ thân yêu cầu theo từng media type
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-bodies-011
+    title: Giới hạn giữa mô tả cấu trúc đầu vào với kiểm tra dữ liệu ở thời gian chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-bodies-012
+    title: Chọn mô hình tài liệu rõ ràng cho yêu cầu PATCH và cập nhật từng phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-schemas
+  title: Schema cơ bản
+  childs:
+  - slug: basic-schemas-001
+    title: Schema Object và ánh xạ kiểu Java sang kiểu OpenAPI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-002
+    title: '@Schema ở cấp lớp, thuộc tính và tham số'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-003
+    title: Tên schema, mô tả, kiểu và format
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-004
+    title: Số nguyên, số thực, Boolean, chuỗi và kiểu bất kỳ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-005
+    title: Ngày, giờ, thời lượng, UUID và các định dạng cần đối chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-006
+    title: Enum và giá trị được tuần tự hóa thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-007
+    title: Mảng, Collection và @ArraySchema
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-008
+    title: Map, khóa chuỗi và additionalProperties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-009
+    title: Thuộc tính bắt buộc, requiredMode và khả năng nhận null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-010
+    title: Giá trị mặc định khác với ví dụ minh họa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-011
+    title: readOnly, writeOnly, accessMode và dữ liệu chỉ dùng cho một chiều trao đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-012
+    title: Giới hạn độ dài, khoảng số, mẫu chuỗi và kích thước mảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-013
+    title: Ẩn thuộc tính khỏi tài liệu và tác động cần kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-schemas-014
+    title: Tránh trùng tên schema khi nhiều lớp có cùng tên đơn giản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-schemas
+  title: Schema nâng cao
+  childs:
+  - slug: advanced-schemas-001
+    title: DTO lồng nhau và các tham chiếu schema dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-002
+    title: Generic, lớp bao phản hồi và nguy cơ mất thông tin kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-003
+    title: ResponseEntity, Optional và quy tắc bỏ lớp bao khi được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-004
+    title: Record, lớp bất biến và dữ liệu được suy ra từ accessor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-005
+    title: Quan hệ đệ quy, vòng tham chiếu và mô hình cây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-006
+    title: oneOf, anyOf, allOf và not theo điều kiện xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-007
+    title: Phân biệt phép hợp thành schema với kế thừa lớp Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-008
+    title: Đa hình, discriminator và ánh xạ giá trị sang schema
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-009
+    title: Kết hợp annotation với cấu hình Jackson cho các kiểu con
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-010
+    title: Kiểu chứa dữ liệu tự do và chính sách thuộc tính không khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-011
+    title: Thay thế schema suy luận bằng implementation hoặc thành phần dùng lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-012
+    title: Mô tả cấu trúc một cách độc lập với lớp entity lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-schemas-013
+    title: Kiểm tra schema đầu ra trước khi dùng bộ sinh mã phía gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jackson-and-validation
+  title: Jackson và Validation
+  childs:
+  - slug: jackson-and-validation-001
+    title: Tên thuộc tính JSON và chiến lược đặt tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-and-validation-002
+    title: '@JsonProperty, @JsonIgnore và cách đối chiếu với @Schema'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-and-validation-003
+    title: '@JsonValue, @JsonFormat và biểu diễn enum hoặc ngày giờ'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-and-validation-004
+    title: '@JsonView và các hình chiếu dữ liệu theo operation'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-and-validation-005
+    title: Khả năng nhận null trong Java khác với thuộc tính thiếu trong JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-and-validation-006
+    title: '@NotNull, @NotBlank, @Size và thông tin có thể suy ra'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-and-validation-007
+    title: '@Min, @Max, @Pattern và các ràng buộc miền giá trị'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-and-validation-008
+    title: '@Valid và cấu trúc dữ liệu lồng nhau'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-and-validation-009
+    title: Nhóm validation và giới hạn suy luận tự động của tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-and-validation-010
+    title: Serializer hoặc deserializer tùy chỉnh và schema cần bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-and-validation-011
+    title: Giữ nhất quán giữa cấu hình ObjectMapper với dữ liệu được mô tả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jackson-and-validation-012
+    title: Vì sao annotation tài liệu không tự thực thi Bean Validation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: responses-and-errors
+  title: Phản hồi và lỗi
+  childs:
+  - slug: responses-and-errors-001
+    title: '@ApiResponse, @ApiResponses và tập mã trạng thái của operation'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-002
+    title: Suy luận schema từ kiểu trả về của handler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-003
+    title: Mô tả nhiều phản hồi thành công với nội dung khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-004
+    title: Phản hồi không có thân như 204 và cách tránh schema suy luận sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-005
+    title: Header phản hồi như Location, ETag và thông tin phân trang
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-006
+    title: Phản hồi mảng, lớp bao dữ liệu và cấu trúc phân trang
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-007
+    title: Tải tệp, dữ liệu nhị phân và Content-Disposition
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-008
+    title: Phản hồi văn bản, JSON, XML và nhiều media type
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-009
+    title: Mô tả lỗi thống nhất bằng DTO hoặc ProblemDetail
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-010
+    title: '@ControllerAdvice, @ExceptionHandler và giới hạn suy luận lỗi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-011
+    title: Lỗi binding, validation, xác thực và phân quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-012
+    title: Dùng lại responses trong components
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-and-errors-013
+    title: Giữ nhất quán giữa mã trạng thái được ghi trong tài liệu và phản hồi thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: examples-and-links
+  title: Ví dụ và liên kết
+  childs:
+  - slug: examples-and-links-001
+    title: '@ExampleObject và nhiều ví dụ cho một kiểu nội dung'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: examples-and-links-002
+    title: Ví dụ ở cấp tham số, schema và request hoặc response
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: examples-and-links-003
+    title: Phân biệt example, examples và default theo vị trí khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: examples-and-links-004
+    title: Ví dụ thành công, dữ liệu không hợp lệ và trường hợp biên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: examples-and-links-005
+    title: Tệp ví dụ bên ngoài và khả năng truy cập từ công cụ hiển thị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: examples-and-links-006
+    title: Link Object mô tả quan hệ giữa các operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: examples-and-links-007
+    title: Biểu thức thời gian chạy trong liên kết phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: examples-and-links-008
+    title: Callback và webhook theo khả năng của phiên bản đặc tả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: examples-and-links-009
+    title: Đường dẫn tài liệu bổ sung và quy ước giữ ví dụ không chứa bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pagination-and-queries
+  title: Phân trang và truy vấn
+  childs:
+  - slug: pagination-and-queries-001
+    title: Pageable, Sort và cách chúng được thể hiện trong tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-and-queries-002
+    title: Kết hợp @ParameterObject với tham số phân trang
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-and-queries-003
+    title: Tên page, size, sort và giá trị mặc định của ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-and-queries-004
+    title: Chỉ số trang bắt đầu từ 0 hoặc 1 và hợp đồng thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-and-queries-005
+    title: Nhiều tiêu chí sắp xếp và tham số sort lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-and-queries-006
+    title: Mô tả bộ lọc dạng DTO truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-and-queries-007
+    title: Page, Slice và DTO phân trang do ứng dụng sở hữu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-and-queries-008
+    title: Mô tả liên kết hoặc con trỏ cho phân trang cursor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-and-queries-009
+    title: Giới hạn kích thước trang và các ràng buộc lọc cần ghi rõ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-and-queries-010
+    title: Kiểm tra dữ liệu phân trang được tuần tự hóa thay vì dựa vào tên kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-groups
+  title: Nhóm tài liệu
+  childs:
+  - slug: document-groups-001
+    title: Mục tiêu chia hợp đồng theo miền nghiệp vụ hoặc đối tượng sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-groups-002
+    title: GroupedOpenApi và định danh nhóm duy nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-groups-003
+    title: Lọc theo pathsToMatch và pathsToExclude
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-groups-004
+    title: Lọc theo packagesToScan và packagesToExclude
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-groups-005
+    title: Điều kiện về media type hoặc header khi được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-groups-006
+    title: Khai báo nhóm bằng bean hoặc thuộc tính group-configs
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-groups-007
+    title: Đường dẫn đặc tả theo nhóm và lựa chọn nhóm trên Swagger UI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-groups-008
+    title: Phân biệt nhóm tài liệu với @Tag và phiên bản API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-groups-009
+    title: Tùy biến áp dụng riêng cho một nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-groups-010
+    title: Chồng lấn nhóm, operation bị thiếu và cách kiểm tra phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-groups-011
+    title: Giữ siêu dữ liệu dùng chung mà không làm sai hợp đồng từng nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: programmatic-customization
+  title: Tùy biến lập trình
+  childs:
+  - slug: programmatic-customization-001
+    title: OpenAPI bean và mô hình đối tượng của Swagger Core
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-002
+    title: OpenApiCustomizer cho các thay đổi ở cấp tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-003
+    title: Phạm vi của customizer mặc định và customizer gắn với nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-004
+    title: GlobalOpenApiCustomizer khi cần tác động các tài liệu nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-005
+    title: OperationCustomizer và thông tin HandlerMethod
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-006
+    title: Bổ sung header, mã lỗi hoặc extension theo quy ước ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-007
+    title: Tùy biến schema bằng ModelConverter khi suy luận mặc định chưa đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-008
+    title: Thay thế kiểu dùng chung bằng cấu hình SpringDocUtils phù hợp phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-009
+    title: Đọc annotation riêng của ứng dụng để sinh siêu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-010
+    title: Thứ tự thực thi và nguy cơ ghi đè giữa các customizer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-011
+    title: Giữ tên, operationId và tham chiếu ổn định khi sửa mô hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-012
+    title: Đăng ký components đồng bộ với mọi $ref được bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-013
+    title: Tính lặp lại an toàn và tránh nhân đôi dữ liệu khi tài liệu được xây lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: programmatic-customization-014
+    title: Kiểm thử customizer độc lập với việc giao diện có hiển thị đẹp hay không
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: swagger-ui
+  title: Swagger UI
+  childs:
+  - slug: swagger-ui-001
+    title: Vai trò của Swagger UI như công cụ đọc và gọi thử API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-002
+    title: Đường dẫn giao diện, tài nguyên tĩnh và swagger-config
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-003
+    title: Nguồn đặc tả từ một URL hoặc danh sách tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-004
+    title: Chọn nhóm mặc định và tổ chức danh sách nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-005
+    title: Sắp xếp tag, operation và mức mở rộng mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-006
+    title: Tìm kiếm, lọc và hiển thị mô hình schema
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-007
+    title: Try it out và việc tạo yêu cầu HTTP thật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-008
+    title: supportedSubmitMethods và giới hạn gọi thử từ giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-009
+    title: Hiển thị request, cURL, response và thời gian phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-010
+    title: Thiết lập giá trị mặc định khác với ép hành vi của API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-011
+    title: Lưu trạng thái xác thực trên giao diện và rủi ro trên máy dùng chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-012
+    title: Request interceptor, response interceptor và giới hạn tùy biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-013
+    title: Giới hạn đặt cookie và các header do trình duyệt quản lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-014
+    title: Mở rộng giao diện bằng tài nguyên hoặc cấu hình phù hợp phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swagger-ui-015
+    title: Phân biệt lỗi đặc tả với lỗi hiển thị hoặc gửi request của trình duyệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-description
+  title: Mô tả bảo mật
+  childs:
+  - slug: security-description-001
+    title: Security Scheme Object và Security Requirement Object
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-002
+    title: '@SecurityScheme để đăng ký cơ chế xác thực'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-003
+    title: '@SecurityRequirement và tên tham chiếu phải khớp scheme'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-004
+    title: HTTP Basic và HTTP Bearer
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-005
+    title: bearerFormat như thông tin mô tả định dạng token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-006
+    title: API key trong header, query hoặc cookie
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-007
+    title: OAuth2 và OpenID Connect như cơ chế được mô tả trong hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-008
+    title: Yêu cầu bảo mật ở cấp tài liệu và cấp operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-009
+    title: Ghi đè yêu cầu toàn cục cho endpoint công khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-010
+    title: Nhiều scheme cùng bắt buộc so với nhiều phương án thay thế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-011
+    title: Danh sách scope và ý nghĩa đối với operation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-012
+    title: Bảo mật được khai báo không tự tạo SecurityFilterChain hoặc kiểm tra token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-description-013
+    title: Mô tả 401, 403 và các header liên quan đúng hành vi thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oauth2-and-oidc
+  title: OAuth2 và OIDC
+  childs:
+  - slug: oauth2-and-oidc-001
+    title: OAuth Flows Object và các URL thuộc cấu hình mô tả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-002
+    title: Authorization Code và hỗ trợ PKCE của công cụ giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-003
+    title: Client Credentials và bối cảnh sử dụng phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-004
+    title: Luồng cũ hoặc không còn được khuyến nghị cần được nhận diện riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-005
+    title: Scope được công bố, scope được yêu cầu và scope được cấp thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-006
+    title: Khai báo OpenID Connect discovery URL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-007
+    title: Cấu hình OAuth client trên Swagger UI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-008
+    title: OAuth redirect URL khi đổi domain hoặc đường dẫn ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-009
+    title: Ranh giới giữa Swagger UI với authorization server và resource server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-010
+    title: Giới hạn giữ client secret trong ứng dụng chạy trên trình duyệt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-011
+    title: CORS, redirect URI và nguyên nhân đăng nhập thành công nhưng gọi API thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-and-oidc-012
+    title: Kiểm thử token, scope và hết hạn mà không đưa thông tin nhạy cảm vào ví dụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: documentation-protection
+  title: Bảo vệ tài liệu
+  childs:
+  - slug: documentation-protection-001
+    title: Phân biệt quyền đọc đặc tả, quyền mở giao diện và quyền gọi API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-protection-002
+    title: Quy tắc truy cập cho /v3/api-docs, swagger-config và tài nguyên giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-protection-003
+    title: Bảo vệ endpoint đặc tả theo nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-protection-004
+    title: Cấu hình Spring Security tương ứng với Servlet hoặc Reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-protection-005
+    title: Tài liệu công khai so với tài liệu chỉ dùng trong mạng nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-protection-006
+    title: Tắt riêng Swagger UI hoặc endpoint OpenAPI theo môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-protection-007
+    title: Ẩn operation không thay thế xác thực hoặc phân quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-protection-008
+    title: Cookie phiên, CSRF và thao tác gọi thử làm thay đổi trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-protection-009
+    title: CORS chỉ tác động truy cập từ trình duyệt, không thay quyền truy cập máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-protection-010
+    title: Loại bỏ token, dữ liệu cá nhân và địa chỉ hạ tầng khỏi nội dung công bố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-protection-011
+    title: Kiểm tra chính sách truy cập sau khi triển khai thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-flux-and-functional-routes
+  title: WebFlux và route hàm
+  childs:
+  - slug: web-flux-and-functional-routes-001
+    title: Chọn starter WebFlux phù hợp với ứng dụng Reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-and-functional-routes-002
+    title: Mono, Flux và cách biểu diễn kiểu dữ liệu trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-and-functional-routes-003
+    title: Phân biệt danh sách JSON với luồng dữ liệu liên tục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-and-functional-routes-004
+    title: Mô tả text/event-stream hoặc kiểu nội dung luồng phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-and-functional-routes-005
+    title: Giới hạn gọi thử và hiển thị luồng trên giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-and-functional-routes-006
+    title: RouterFunction, handler và lý do cần bổ sung siêu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-and-functional-routes-007
+    title: '@RouterOperation cho một route chức năng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-and-functional-routes-008
+    title: '@RouterOperations cho nhiều route trong một bean'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-and-functional-routes-009
+    title: Liên kết beanClass, beanMethod và chữ ký handler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-and-functional-routes-010
+    title: Nhận diện route bằng path, HTTP method, consumes và produces
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-and-functional-routes-011
+    title: operationId và schema cần khai báo rõ cho route không suy luận đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-flux-and-functional-routes-012
+    title: Kiểm tra tài liệu Reactive với WebTestClient hoặc công cụ tương đương
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-integration
+  title: Tích hợp Spring
+  childs:
+  - slug: spring-integration-001
+    title: Spring Data REST và endpoint được tạo từ repository
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-002
+    title: Kiểm soát những tài nguyên repository xuất hiện trong hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-003
+    title: Spring HATEOAS và các lớp bao chứa liên kết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-004
+    title: Actuator và lựa chọn có công bố endpoint quản trị hay không
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-005
+    title: Management port khác cổng ứng dụng và tác động đến giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-006
+    title: Spring Cloud Function Web và siêu dữ liệu cho hàm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-007
+    title: 'Kotlin: khả năng nhận null, data class và tham số mặc định'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-008
+    title: Javadoc như nguồn bổ sung mô tả khi được cấu hình hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-009
+    title: Điều kiện biên dịch hoặc phụ thuộc cho tính năng đọc Javadoc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-010
+    title: Các annotation trên interface và Controller kế thừa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-integration-011
+    title: Kiểm tra tính năng tích hợp theo đúng thế hệ Springdoc đang sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxy-and-paths
+  title: Proxy và đường dẫn
+  childs:
+  - slug: proxy-and-paths-001
+    title: Context path, servlet path và đường dẫn tài liệu tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-paths-002
+    title: Cấu hình springdoc.api-docs.path và đường dẫn giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-paths-003
+    title: Server URL được suy ra từ request hoặc khai báo tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-paths-004
+    title: Reverse proxy, gateway và đường dẫn bên ngoài khác đường dẫn nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-paths-005
+    title: Forwarded, X-Forwarded-* và thông tin về scheme, host, prefix
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-paths-006
+    title: Chiến lược xử lý forwarded headers của Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-paths-007
+    title: Ranh giới tin cậy đối với header do proxy chuyển tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-paths-008
+    title: HTTPS ở bên ngoài với HTTP giữa proxy và ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-paths-009
+    title: ServerBaseUrlCustomizer khi cần điều chỉnh URL sinh ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-paths-010
+    title: swagger-config và các URL tài nguyên phải cùng truy cập được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-paths-011
+    title: Lỗi mixed content, sai base URL và chuyển hướng lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-and-paths-012
+    title: Đối chiếu đường dẫn trên local, môi trường thử nghiệm và production
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-and-operations
+  title: Cấu hình và vận hành
+  childs:
+  - slug: configuration-and-operations-001
+    title: Tổ chức thuộc tính springdoc trong application.yml hoặc properties
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-002
+    title: Ghi đè cấu hình theo profile và biến môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-003
+    title: Thuộc tính bật hoặc tắt endpoint đặc tả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-004
+    title: Thuộc tính bật hoặc tắt Swagger UI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-005
+    title: Giới hạn package, path, media type và header được đưa vào tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-006
+    title: Thông tin phiên bản ứng dụng và metadata theo môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-007
+    title: Bản địa hóa mô tả và khả năng phân giải placeholder
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-008
+    title: Quy tắc escape, xuống dòng và giữ nội dung Markdown dễ đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-009
+    title: Nạp trước, bộ nhớ đệm và thời điểm cập nhật tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-010
+    title: Tránh phụ thuộc dữ liệu biến động khi xây hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-operations-011
+    title: Ghi nhận cấu hình hiệu lực và đối chiếu đặc tả sau khởi động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: open-api-versions
+  title: OpenAPI theo phiên bản
+  childs:
+  - slug: open-api-versions-001
+    title: Phân biệt khả năng của đặc tả với khả năng của Springdoc và giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-api-versions-002
+    title: Chọn đầu ra OpenAPI 3.0 hoặc 3.1 theo nhánh được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-api-versions-003
+    title: Quan hệ của Schema Object với JSON Schema trong từng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-api-versions-004
+    title: nullable trong 3.0 và biểu diễn kiểu null trong 3.1
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-api-versions-005
+    title: Khác biệt về kiểu kết hợp, ràng buộc số và từ khóa schema
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-api-versions-006
+    title: $ref và các thuộc tính đi kèm theo ngữ cảnh cùng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-api-versions-007
+    title: jsonSchemaDialect và từ khóa JSON Schema cần đối chiếu khi dùng 3.1
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-api-versions-008
+    title: Callback, webhook và các thay đổi trong cấu trúc đặc tả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-api-versions-009
+    title: Đánh giá OpenAPI 3.2 theo hỗ trợ thực tế của toàn bộ bộ công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-api-versions-010
+    title: Kiểm tra tương thích với parser, UI, bộ sinh mã và công cụ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: open-api-versions-011
+    title: Không nâng trường openapi đơn thuần khi nội dung chưa được chuyển đổi đúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specification-export-and-ci
+  title: Xuất đặc tả và CI
+  childs:
+  - slug: specification-export-and-ci-001
+    title: Tải JSON hoặc YAML từ endpoint tài liệu đang chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-002
+    title: Phân biệt xuất hợp đồng với sinh mã phía gọi hoặc mã máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-003
+    title: 'Nguyên lý plugin Springdoc: chạy ứng dụng rồi lấy đặc tả qua HTTP'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-004
+    title: Tích hợp Maven plugin vào giai đoạn phù hợp của vòng đời build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-005
+    title: Tích hợp Gradle plugin và các tác vụ chạy ứng dụng, sinh đặc tả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-006
+    title: Cấu hình địa chỉ tài liệu, thư mục và tên tệp đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-007
+    title: Profile riêng để xuất tài liệu mà vẫn khởi động đủ mapping cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-008
+    title: Cấp cấu hình kiểm thử thay vì phụ thuộc dịch vụ production khi build
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-009
+    title: Xuất từng nhóm và xác minh đúng tập endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-010
+    title: Sắp xếp đầu ra ổn định và xử lý metadata biến động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-011
+    title: Lưu hợp đồng cùng phiên bản phát hành và thông tin nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-012
+    title: Dừng CI khi không lấy được đặc tả hoặc tài liệu không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specification-export-and-ci-013
+    title: Phân biệt hợp đồng được xuất lúc build với tài liệu của ứng dụng đang triển khai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-testing
+  title: Kiểm thử hợp đồng
+  childs:
+  - slug: contract-testing-001
+    title: Kiểm tra endpoint đặc tả trả đúng mã trạng thái và kiểu nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-002
+    title: Đọc đặc tả bằng parser tương thích phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-003
+    title: Xác minh path, HTTP method, operationId và tag
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-004
+    title: Kiểm tra mọi tham chiếu $ref có thể được phân giải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-005
+    title: Xác minh tham số bắt buộc, mặc định và quy tắc tuần tự hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-006
+    title: Kiểm tra request, response và schema lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-007
+    title: Đối chiếu ví dụ với schema mà ví dụ thuộc về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-008
+    title: Kiểm tra hợp đồng sinh ra bằng MockMvc trong ứng dụng Servlet
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-009
+    title: Kiểm tra hợp đồng sinh ra bằng WebTestClient trong ứng dụng Reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-010
+    title: So sánh payload HTTP thực với schema thay vì chỉ kiểm tra annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-011
+    title: Kiểm tra từng nhóm, profile và cấu hình bảo mật tài liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-012
+    title: Ảnh chụp hợp đồng và so sánh ngữ nghĩa thay vì chỉ so sánh định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-013
+    title: Smoke test giao diện và thao tác gọi thử trên môi trường phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-014
+    title: Giới hạn của kiểm tra hợp đồng khi chưa có kiểm thử quy tắc nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility-and-distribution
+  title: Tương thích và phân phối
+  childs:
+  - slug: compatibility-and-distribution-001
+    title: Nhận diện thay đổi phá vỡ hợp đồng đối với bên sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-distribution-002
+    title: Đổi tên, bỏ hoặc thêm thuộc tính bắt buộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-distribution-003
+    title: Thu hẹp enum, đổi kiểu, format hoặc mã trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-distribution-004
+    title: Khác biệt giữa tương thích đầu vào và đầu ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-distribution-005
+    title: Giữ operationId và tên schema ổn định qua các lần phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-distribution-006
+    title: Đánh dấu deprecated và mô tả lộ trình thay thế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-distribution-007
+    title: Phân phối đặc tả tĩnh độc lập với ứng dụng chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-distribution-008
+    title: Công bố nhiều phiên bản hoặc nhiều nhóm trên một giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-distribution-009
+    title: Tổng hợp tài liệu nhiều dịch vụ và xử lý URL máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-distribution-010
+    title: Phân biệt liệt kê nhiều đặc tả với hợp nhất các đặc tả thành một
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-and-distribution-011
+    title: Theo dõi nguồn gốc, quyền sở hữu và phiên bản của tài liệu công bố
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-native-image
+  title: Hiệu năng và native image
+  childs:
+  - slug: performance-and-native-image-001
+    title: Phạm vi quét và ảnh hưởng đến số handler, schema phải xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-native-image-002
+    title: Chi phí xây dựng tài liệu lần đầu và các lần đọc sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-native-image-003
+    title: Bộ nhớ đệm dùng chung và customizer phụ thuộc request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-native-image-004
+    title: Nạp trước theo nhóm hoặc ngôn ngữ khi phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-native-image-005
+    title: Giới hạn kích thước ví dụ và mô tả để giữ tài liệu dễ tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-native-image-006
+    title: Đo hiệu năng endpoint tài liệu riêng với API nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-native-image-007
+    title: GraalVM native image và điều kiện hỗ trợ của phiên bản thư viện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-native-image-008
+    title: AOT, reflection và các kiểu chỉ xuất hiện trong siêu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-native-image-009
+    title: Runtime hints cho phần mở rộng tùy chỉnh khi cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-native-image-010
+    title: Kiểm tra đặc tả và tài nguyên giao diện trên bản native thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-native-image-011
+    title: Đối chiếu kết quả native với bản chạy trên JVM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extension-integration
+  title: Tích hợp mở rộng
+  childs:
+  - slug: extension-integration-001
+    title: Scalar như lựa chọn giao diện bên cạnh Swagger UI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-integration-002
+    title: Chọn starter và thuộc tính Scalar theo nhánh Springdoc hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-integration-003
+    title: Dùng chung đặc tả nhưng kiểm tra riêng khả năng hiển thị của từng giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-integration-004
+    title: Khác biệt giữa cấu hình Springdoc với cấu hình của công cụ giao diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-integration-005
+    title: MCP trong những nhánh Springdoc có cung cấp tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-integration-006
+    title: Điều kiện phụ thuộc và cơ chế bật tường minh của tích hợp MCP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-integration-007
+    title: Ánh xạ operation thành công cụ và yêu cầu metadata rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-integration-008
+    title: Phạm vi endpoint được phép công bố cho bên gọi công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-integration-009
+    title: Xác thực, phân quyền và hành vi gọi API thật qua MCP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-integration-010
+    title: Giới hạn tương thích giữa Springdoc, Spring AI và phiên bản giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extension-integration-011
+    title: Giữ tích hợp mới thành phần tùy chọn có kiểm thử riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-and-upgrades
+  title: Di chuyển và nâng cấp
+  childs:
+  - slug: migration-and-upgrades-001
+    title: Lập đặc tả đối chiếu trước khi đổi thư viện hoặc nâng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-002
+    title: Chuyển cấu hình Docket của Springfox sang GroupedOpenApi khi phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-003
+    title: Thay @Api, @ApiOperation và @ApiParam bằng annotation OpenAPI tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-004
+    title: Thay @ApiModel và @ApiModelProperty bằng mô tả @Schema
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-005
+    title: Đổi annotation response hoặc hidden đúng package và ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-006
+    title: Chuyển artifact và package từ Springdoc v1 sang v2
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-007
+    title: Kiểm tra thay đổi Spring Boot, Jakarta và phụ thuộc Swagger Core
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-008
+    title: Đối chiếu thuộc tính cấu hình và giá trị mặc định sau nâng cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-009
+    title: Giữ operationId, tên schema và đường dẫn tài liệu ổn định khi có thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-010
+    title: So sánh ngữ nghĩa của đặc tả trước và sau khi chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-011
+    title: Kiểm tra lại bảo mật, proxy, UI và xuất đặc tả trong CI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-upgrades-012
+    title: Tách lỗi tương thích thư viện khỏi thay đổi hợp đồng API có chủ ý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Không có endpoint /v3/api-docs do sai starter hoặc cấu hình tắt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Swagger UI trả 404 dù endpoint đặc tả vẫn hoạt động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Giao diện không tải được swagger-config hoặc tài nguyên tĩnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Đặc tả rỗng do điều kiện quét hoặc bộ lọc nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Operation biến mất do @Hidden, kế thừa hoặc mapping không được nhận diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Trùng operationId, path hoặc handler cho cùng HTTP method
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Tham số bị mất tên và cấu hình biên dịch -parameters
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Schema thiếu trường do Jackson, generic hoặc kiểu trả về quá tổng quát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Schema trùng tên hoặc tham chiếu $ref bị hỏng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Mã lỗi hoặc kiểu nội dung bị suy luận khác phản hồi thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Lỗi 401, 403, CSRF hoặc CORS khi gọi thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Sai URL máy chủ sau proxy hoặc khi dùng management port
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Lỗi message converter khi thay cấu hình mặc định của Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: NoSuchMethodError, ClassNotFoundException và xung đột phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-015
+    title: Quy trình thu hẹp lỗi bằng đặc tả JSON, mapping và log liên quan
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Tài liệu hóa một API CRUD với hợp đồng thành công và lỗi đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Mô tả DTO có validation, enum, ngày giờ và thuộc tính chỉ đọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Tạo yêu cầu multipart gồm tệp và thông tin JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Mô tả API phân trang, lọc và sắp xếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Phân nhóm API công khai, nội bộ và quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Bổ sung metadata dùng chung bằng customizer có kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Mô tả Bearer hoặc OAuth2 rồi kiểm chứng bằng cấu hình bảo mật thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Tài liệu hóa cùng một miền API trên MVC và WebFlux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Triển khai sau reverse proxy và kiểm tra đường dẫn gọi thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Xuất đặc tả trong CI và phát hiện thay đổi phá vỡ hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Chẩn đoán một lỗi schema hoặc mapping từ dữ liệu quan sát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Rà soát độ rõ của mô tả, tính đúng của ví dụ và khả năng dùng của bên tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-013
+    title: Bài tập tổng hợp từ Controller đến hợp đồng được kiểm chứng và phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

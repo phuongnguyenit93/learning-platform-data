@@ -1,0 +1,205 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - 'Đồng thời trong Spring: mục đích và các tình huống sử dụng'
+  - Phân biệt đồng bộ, bất đồng bộ, song song và lập lịch
+  - Tác vụ, luồng gọi, luồng xử lý và kết quả
+  - Mối liên hệ giữa TaskExecutor, @Async, TaskScheduler và @Scheduled
+  - Tách thời điểm nhận yêu cầu khỏi thời điểm hoàn thành công việc
+  - Những bảo đảm Spring cung cấp và trách nhiệm của mã nghiệp vụ
+  - 'Ví dụ xuyên suốt: xử lý báo cáo và cập nhật dữ liệu định kỳ'
+  - Lộ trình học và kiến thức Java concurrency cần có
+- level1: Nền tảng luồng
+  level2:
+  - Runnable, Callable, Executor và ExecutorService
+  - Luồng nền tảng, nhóm luồng và luồng ảo
+  - Future và CompletableFuture biểu diễn công việc chưa hoàn tất
+  - Tranh chấp dữ liệu, tính nguyên tử và khả năng nhìn thấy thay đổi
+  - Quan hệ happens-before khi gửi tác vụ và nhận kết quả
+  - Khóa, biến atomic và cấu trúc dữ liệu đồng thời
+  - Chờ tài nguyên khác với sử dụng CPU
+  - Deadlock, cạn luồng và giới hạn của việc tăng số luồng
+- level1: Trạng thái bean
+  level2:
+  - Bean singleton được nhiều luồng sử dụng và không tự trở nên an toàn luồng
+  - Biến cục bộ, trường đối tượng và dữ liệu dùng chung
+  - Đối tượng bất biến và công bố dữ liệu an toàn
+  - Giữ dữ liệu của từng yêu cầu tách khỏi trạng thái bean
+  - Phép kiểm tra rồi cập nhật và thao tác nhiều bước cần bảo vệ
+  - Chọn synchronized, Lock hoặc atomic theo phạm vi bất biến
+  - Không giữ khóa khi chờ nhập xuất hoặc chờ tác vụ phụ thuộc
+  - Phân biệt phạm vi bean với cơ chế đồng bộ
+  - Theo dõi trạng thái bị chia sẻ qua đối số và giá trị trả về
+- level1: TaskExecutor
+  level2:
+  - TaskExecutor là hợp đồng thực thi tác vụ của Spring
+  - execute(Runnable) không mặc nhiên bảo đảm chạy trên luồng khác
+  - AsyncTaskExecutor và các phương thức submit()
+  - Nhận CompletableFuture qua submitCompletable() khi phiên bản hỗ trợ
+  - Tiêm bộ thực thi qua interface để tách khỏi cách triển khai
+  - Phân biệt TaskExecutor với TaskScheduler
+  - TaskRejectedException và hợp đồng khi không nhận được tác vụ
+  - Vai trò của bộ thực thi trong các thành phần Spring khác
+- level1: Chọn bộ thực thi
+  level2:
+  - SyncTaskExecutor chạy ngay trên luồng gọi
+  - SimpleAsyncTaskExecutor tạo luồng cho từng tác vụ và không tái sử dụng luồng
+  - Giới hạn đồng thời của SimpleAsyncTaskExecutor
+  - ThreadPoolTaskExecutor quản lý nhóm luồng tái sử dụng
+  - ConcurrentTaskExecutor thích nghi Executor có sẵn
+  - TaskExecutorAdapter thích nghi hợp đồng Executor của JDK
+  - DefaultManagedTaskExecutor trong môi trường Jakarta EE
+  - Chọn cách thực thi theo tải, môi trường và yêu cầu vòng đời
+- level1: Nhóm luồng
+  level2:
+  - Khai báo ThreadPoolTaskExecutor thành bean do container quản lý
+  - corePoolSize và maxPoolSize
+  - queueCapacity và lựa chọn hàng đợi nội bộ
+  - 'Thứ tự nhận tác vụ: tạo luồng cơ bản, xếp hàng, mở rộng rồi từ chối'
+  - Vì sao hàng đợi không giới hạn làm maxPoolSize khó phát huy tác dụng
+  - queueCapacity bằng 0 và chuyển giao trực tiếp
+  - keepAliveSeconds và allowCoreThreadTimeOut
+  - Khởi động trước luồng cơ bản bằng prestartAllCoreThreads
+  - Đặt tên luồng bằng threadNamePrefix hoặc ThreadFactory
+  - Phân biệt giá trị mặc định của Framework với cấu hình do ứng dụng cung cấp
+- level1: Cấu hình tài nguyên
+  level2:
+  - Tách bộ thực thi cho các nhóm công việc có đặc điểm khác nhau
+  - Chọn số luồng cho tác vụ nặng CPU và tác vụ thường chờ nhập xuất
+  - Giới hạn theo số kết nối cơ sở dữ liệu hoặc dịch vụ đích
+  - Chọn sức chứa hàng đợi theo bộ nhớ và thời gian chờ cho phép
+  - Phân biệt giới hạn đồng thời với giới hạn số yêu cầu theo thời gian
+  - Ước lượng công suất rồi kiểm chứng bằng phép đo tải
+  - Cấu hình bằng @Bean hoặc namespace task trong XML
+  - Đưa tham số ra cấu hình ngoài và kiểm tra giá trị không hợp lệ
+  - Phân biệt cấu hình Spring Framework với tự động cấu hình Spring Boot
+- level1: Quá tải và từ chối
+  level2:
+  - Những tình huống bộ thực thi từ chối tác vụ
+  - RejectedExecutionHandler và TaskRejectedException
+  - AbortPolicy báo lỗi tại điểm gửi tác vụ
+  - CallerRunsPolicy chuyển công việc sang luồng gọi và thay đổi độ trễ
+  - DiscardPolicy, DiscardOldestPolicy và nguy cơ mất công việc
+  - Không để Future chờ vô hạn do chính sách loại bỏ không hoàn tất tác vụ
+  - Chọn trả lỗi, hạn chế nhận thêm hoặc lưu công việc bền vững
+  - Không lặp gửi lại tức thời làm quá tải nghiêm trọng hơn
+  - Thực nghiệm nhóm luồng và hàng đợi cùng đạt giới hạn
+- level1: Gửi và nhận tác vụ
+  level2:
+  - Gửi Runnable không có kết quả bằng execute()
+  - Gửi Runnable hoặc Callable qua submit()
+  - Nhận kết quả, kiểm tra hoàn tất và nhận biết hủy qua Future
+  - get() có giới hạn thời gian chờ
+  - Khác biệt đường truyền ngoại lệ giữa execute() và submit()
+  - Thời điểm gửi tác vụ khác với thời điểm bắt đầu chạy
+  - Chụp dữ liệu đầu vào phù hợp trước khi chuyển sang luồng khác
+  - Không đồng nhất tác vụ đã được nhận với nghiệp vụ đã hoàn thành
+- level1: Bật @Async
+  level2:
+  - Khai báo @EnableAsync trong lớp cấu hình
+  - Bean phải được container quản lý để annotation được xử lý
+  - Đặt @Async trên phương thức hoặc lớp
+  - Kiểu trả về void, Future và CompletableFuture
+  - Giới hạn dùng @Async trên phương thức trong lớp @Configuration
+  - Chọn bộ thực thi mặc định bằng AsyncConfigurer
+  - Cơ chế tìm TaskExecutor hoặc bean taskExecutor khi không cấu hình tường minh
+  - Chỉ định bộ thực thi theo tên hoặc qualifier trong @Async
+  - Vai trò của AsyncAnnotationBeanPostProcessor
+- level1: Proxy và lời gọi
+  level2:
+  - Đường đi lời gọi từ bên gọi qua proxy tới tác vụ bất đồng bộ
+  - Vì sao phương thức tự gọi trong cùng bean không kích hoạt @Async ở chế độ proxy
+  - Phân biệt đối tượng tự tạo bằng new với bean được tiêm
+  - Proxy theo interface và proxy theo lớp
+  - Ảnh hưởng của private, final và khả năng chặn lời gọi
+  - Tách phương thức bất đồng bộ sang bean cộng tác
+  - Không trông cậy @Async trên callback @PostConstruct của chính bean
+  - Giới hạn khởi tạo sớm khi dùng AsyncConfigurer
+  - Nhận diện chế độ AspectJ và yêu cầu weaving khi cần lựa chọn khác
+- level1: Kết quả bất đồng bộ
+  level2:
+  - void phù hợp khi bên gọi không cần nhận kết quả trực tiếp
+  - Future cho phép chờ kết quả hoặc nhận lỗi khi công việc kết thúc
+  - CompletableFuture cho phép kết hợp các bước xử lý
+  - Vai trò giá trị Future tạm từ phương thức đích với Future do proxy trả về
+  - Dùng completedFuture() cho giá trị đã tính trong luồng xử lý
+  - Không dùng kiểu trả về đồng bộ thông thường để giả định vẫn nhận kết quả
+  - Trả về dữ liệu độc lập với tài nguyên đã đóng
+  - Không gọi get() hoặc join() ngay lập tức nếu mục tiêu là chồng lấp công việc
+- level1: Kết hợp CompletableFuture
+  level2:
+  - thenApply() biến đổi kết quả và thenCompose() nối công việc phụ thuộc
+  - thenCombine() kết hợp hai kết quả độc lập
+  - allOf() chờ nhiều công việc và cách thu kết quả có kiểu
+  - anyOf() hoàn tất theo một công việc và giới hạn hủy các công việc còn lại
+  - thenAccept() và thenRun() cho bước không có kết quả
+  - Biến thể Async và lựa chọn bộ thực thi tường minh
+  - Các bước không có hậu tố Async có thể chạy trên luồng hoàn tất
+  - supplyAsync() không chỉ định executor và nguy cơ dùng chung common pool
+  - Tránh gửi tác vụ hai lần khi vừa dùng @Async vừa dùng supplyAsync()
+  - Tránh chờ tác vụ con trên chính nhóm luồng đã cạn
+- level1: Xử lý ngoại lệ
+  level2:
+  - Ngoại lệ xảy ra khi gửi tác vụ khác với ngoại lệ trong lúc chạy
+  - ExecutionException, CompletionException và nguyên nhân gốc
+  - AsyncUncaughtExceptionHandler cho phương thức @Async trả về void
+  - Cấu hình bộ xử lý ngoại lệ bằng AsyncConfigurer
+  - exceptionally(), handle() và whenComplete()
+  - Phân biệt phục hồi bằng giá trị thay thế với chỉ quan sát lỗi
+  - Không bỏ qua Future rồi đánh mất lỗi nghiệp vụ
+  - Giới hạn bắt lỗi bằng TaskDecorator khi tác vụ được bọc trong Future
+  - Xác định chính sách thử lại có giới hạn và tính an toàn khi chạy lại
+- level1: Hết hạn và hủy
+  level2:
+  - Phân biệt thời gian chờ trong hàng đợi, thời gian chạy và thời gian bên gọi chờ
+  - Future.get(timeout) không tự dừng công việc nền
+  - orTimeout() và completeOnTimeout() không mặc nhiên dừng thao tác đang chạy
+  - Future.cancel(true) và cơ chế ngắt có tính hợp tác
+  - CompletableFuture.cancel() không bảo đảm ngắt luồng xử lý
+  - Xử lý InterruptedException và bảo toàn tín hiệu ngắt phù hợp
+  - Đặt timeout riêng cho truy cập cơ sở dữ liệu hoặc lời gọi mạng
+  - Ngăn công việc hết giá trị tiếp tục tạo tác dụng phụ
+  - Kiểm tra hủy trước khi bắt đầu và hủy khi tác vụ đang chạy
+- level1: Ngữ cảnh thực thi
+  level2:
+  - ThreadLocal không tự theo công việc sang nhóm luồng khác
+  - Nguy cơ dữ liệu ngữ cảnh của tác vụ trước bị dùng lại
+  - TaskDecorator bao tác vụ để thiết lập và dọn ngữ cảnh
+  - Chụp ngữ cảnh ở bên gửi rồi khôi phục trạng thái cũ bằng try-finally
+  - Truyền mã liên kết yêu cầu và ngữ cảnh ghi nhật ký
+  - ContextPropagatingTaskDecorator và điều kiện tích hợp thư viện ngữ cảnh
+  - Đánh giá chi phí trang trí với số lượng tác vụ rất nhỏ
+  - Không giữ toàn bộ đối tượng request sau khi yêu cầu đã kết thúc
+  - Phân biệt ngữ cảnh bảo mật cần bộ hỗ trợ riêng với ThreadLocal tùy ý
+  - Không dùng InheritableThreadLocal như giải pháp chung cho nhóm luồng tái sử dụng
+- level1: Giao dịch và sự kiện
+  level2:
+  - Giao dịch thông thường gắn với luồng không tự truyền vào tác vụ @Async
+  - Tạo ranh giới giao dịch mới trong bean xử lý khi nghiệp vụ yêu cầu
+  - Thời điểm commit của bên gửi và nguy cơ bên nhận đọc dữ liệu chưa hoàn tất
+  - Không truyền EntityManager hoặc phiên ORM sang luồng xử lý khác
+  - Truyền mã định danh hoặc dữ liệu bất biến thay cho thực thể đang gắn phiên
+  - '@TransactionalEventListener cho xử lý gắn với kết quả giao dịch'
+  - Sự kiện nội bộ bất đồng bộ không thay thế hàng đợi bền vững
+  - Không giả định hai tác vụ trên hai luồng có thể rollback cùng nhau
+- level1: TaskScheduler
+  level2:
+  - TaskScheduler biểu diễn lập lịch tách khỏi môi trường thực thi
+  - schedule() để chạy một lần tại thời điểm chỉ định
+  - scheduleAtFixedRate() và lịch theo chu kỳ
+  - scheduleWithFixedDelay() và khoảng nghỉ sau khi hoàn tất
+  - ScheduledFuture để theo dõi và hủy lịch
+  - Clock của scheduler và ý nghĩa thời gian sử dụng
+  - Phân biệt luồng kích hoạt lịch với luồng thực thi công việc
+  - Chọn lập lịch trực tiếp hay annotation theo mức cần điều khiển
+- level1: Chọn scheduler
+  level2:
+  - ThreadPoolTaskScheduler dựa trên ScheduledExecutorService
+  - poolSize mặc định và ảnh hưởng của công việc chạy lâu
+  - Công việc thông thường chạy trên luồng của ThreadPoolTaskScheduler
+  - ConcurrentTaskScheduler thích nghi bộ lập lịch JDK
+  - DefaultManagedTaskScheduler trong môi trường Jakarta EE
+  - SimpleAsyncTaskScheduler tách cơ chế kích hoạt với cách chạy tác vụ
+  - Giới hạn fixed-delay chạy trên luồng scheduler của SimpleAsyncTaskScheduler
+  - Tách bộ lập lịch khỏi nhóm luồng xử lý khi cần kiểm soát hai loại tải
+  - Chọn cách theo dõi hoàn tất theo hợp đồng của từng scheduler

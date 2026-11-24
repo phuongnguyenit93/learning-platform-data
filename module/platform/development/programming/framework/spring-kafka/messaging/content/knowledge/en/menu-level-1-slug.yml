@@ -1,0 +1,118 @@
+menu:
+- title: Nền tảng messaging
+  slug: messaging-foundations
+  index: 0
+- title: Mô hình Kafka
+  slug: kafka-model
+  index: 1
+- title: Kiến trúc Spring Kafka
+  slug: spring-kafka-architecture
+  index: 2
+- title: Khởi tạo dự án
+  slug: project-bootstrap
+  index: 3
+- title: Cấu hình kết nối
+  slug: connection-configuration
+  index: 4
+- title: Quản lý topic
+  slug: topic-management
+  index: 5
+- title: Producer
+  slug: producer
+  index: 6
+- title: KafkaTemplate
+  slug: kafkatemplate
+  index: 7
+- title: Consumer
+  slug: consumer
+  index: 8
+- title: Consumer group
+  slug: consumer-group
+  index: 9
+- title: '@KafkaListener'
+  slug: kafkalistener
+  index: 10
+- title: Listener container
+  slug: listener-container
+  index: 11
+- title: Offset và commit
+  slug: offsets-commits
+  index: 12
+- title: Partition và ordering
+  slug: partitions-ordering
+  index: 13
+- title: Serialization
+  slug: serialization
+  index: 14
+- title: Message conversion
+  slug: message-conversion
+  index: 15
+- title: Headers và metadata
+  slug: headers-metadata
+  index: 16
+- title: Batch và throughput
+  slug: batches-throughput
+  index: 17
+- title: Concurrency và scale
+  slug: concurrency-scaling
+  index: 18
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 19
+- title: Retry
+  slug: retry
+  index: 20
+- title: Dead letter và recoverer
+  slug: dead-letter-recovery
+  index: 21
+- title: Non-blocking retry
+  slug: non-blocking-retry
+  index: 22
+- title: Transactions
+  slug: transactions
+  index: 23
+- title: Exactly-once
+  slug: exactly-once
+  index: 24
+- title: Request-reply
+  slug: request-reply
+  index: 25
+- title: Filtering và interceptors
+  slug: filtering-interceptors
+  index: 26
+- title: Dynamic containers
+  slug: dynamic-containers
+  index: 27
+- title: Pause và backpressure
+  slug: pause-backpressure
+  index: 28
+- title: Bảo mật
+  slug: security
+  index: 29
+- title: Schema và tiến hóa dữ liệu
+  slug: schema-evolution
+  index: 30
+- title: Kiểm thử
+  slug: testing
+  index: 31
+- title: Observability
+  slug: observability
+  index: 32
+- title: Hiệu năng
+  slug: performance
+  index: 33
+- title: Vận hành
+  slug: operations
+  index: 34
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 35
+- title: Nâng cấp và tương thích
+  slug: upgrades-compatibility
+  index: 36
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 37
+- title: Checklist messaging
+  slug: checklist-messaging
+  index: 38

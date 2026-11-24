@@ -1,49 +1,49 @@
-# Chẩn đoán ClassCastException dù hai lớp có cùng tên
+# Diagnosing ClassCastException Even When Two Classes Have the Same Name
 
-## 1. Triệu chứng: tên giống nhau nhưng JVM vẫn từ chối ép kiểu
+## 1. Symptom: Same Name Yet the JVM Still Refuses to Cast
 
-Trong một ứng dụng Java có plugin, hai lớp có thể cùng tên đầy đủ, cùng mã nguồn và thậm chí cùng bytecode, nhưng JVM vẫn xem là **hai kiểu khác nhau**. Nguyên nhân thường là chúng được **định nghĩa bởi hai class loader khác nhau**.
+In a Java application with plugins, two classes can have the exact same fully qualified name, the same source code, and even identical bytecode, yet the JVM still treats them as **two distinct types**. The usual cause is that they were **defined by two different class loaders**.
 
-Một ngoại lệ điển hình:
+A typical exception:
 
-\`\`\`text
+```text
 java.lang.ClassCastException:
   class com.example.api.Message cannot be cast to class com.example.api.Message
   (com.example.api.Message is in unnamed module of loader 'plugin-loader' @...;
    com.example.api.Message is in unnamed module of loader 'app'...)
-\`\`\`
+```
 
-Thoạt nhìn, \`Message\` đang được ép thành chính \`Message\`. Nhưng trong JVM, **class identity** được xác định bởi cặp:
+At first glance, `Message` is being cast to `Message` itself. However, in the JVM, **class identity** is determined by the pair:
 
-\`\`\`text
-(tên nhị phân của lớp, class loader định nghĩa lớp)
-\`\`\`
+```text
+(binary name of the class, defining class loader of the class)
+```
 
-Do đó:
+Therefore:
 
-\`\`\`text
+```text
 (com.example.api.Message, HostClassLoader)
     !=
 (com.example.api.Message, PluginClassLoader)
-\`\`\`
+```
 
-Tên lớp giống nhau không đủ để ép kiểu thành công. Đây là vấn đề phổ biến khi host và plugin đóng gói bản sao của cùng thư viện API, hoặc khi hệ thống tạo class loader riêng theo plugin, module, deployment hoặc lần hot reload.
+Having the same class name is not enough for a cast to succeed. This is a common issue when the host and a plugin package copies of the same API library, or when a system creates separate class loaders per plugin, module, deployment, or hot reload.
 
-## 2. Loading class và defining class khác nhau thế nào?
+## 2. How Do Loading a Class and Defining a Class Differ?
 
-Một class loader có thể **nhận yêu cầu nạp lớp** thông qua \`loadClass(name)\`, rồi ủy quyền cho class loader cha. Loader được gọi không nhất thiết là loader **định nghĩa** lớp.
+A class loader can **receive a request to load a class** via `loadClass(name)`, and then delegate to its parent class loader. The loader that was called is not necessarily the loader that **defines** the class.
 
-- **Initiating loader:** loader mà qua đó quá trình nạp lớp được yêu cầu hoặc khởi tạo.
-- **Defining loader:** loader thực sự gọi cơ chế định nghĩa class từ bytecode. \`Class.getClassLoader()\` cho biết defining loader của lớp đó (với bootstrap class loader thường trả \`null\`).
-- **Parent delegation:** \`ClassLoader.loadClass\` mặc định ưu tiên lớp đã nạp, sau đó hỏi parent trước khi tự \`findClass\`. Đây là cơ chế giúp host và plugin chia sẻ API nếu triển khai đúng.
+- **Initiating loader:** the loader through which the class-loading process is requested or initiated.
+- **Defining loader:** the loader that actually invokes the mechanism to define the class from bytecode. `Class.getClassLoader()` reveals the defining loader of that class (for the bootstrap class loader it typically returns `null`).
+- **Parent delegation:** `ClassLoader.loadClass` by default checks for already-loaded classes, then asks its parent before attempting `findClass` itself. This is the mechanism that enables the host and plugins to share an API when implemented properly.
 
-Giả sử host có \`com.example.api.Plugin\` trong classpath chính, plugin cũng đóng gói bản sao \`com.example.api.Plugin\` trong JAR riêng. Nếu loader plugin theo quy tắc child-first cho package API, nó có thể định nghĩa một \`Plugin\` khác. Khi host ép instance plugin sang \`com.example.api.Plugin\` mà host biết, phép ép kiểu thất bại, dù tên interface trong hai phía hoàn toàn giống nhau.
+Suppose the host has `com.example.api.Plugin` on the main classpath, and the plugin also packages a copy of `com.example.api.Plugin` in its own JAR. If the plugin loader follows child-first rules for the API package, it can define a different `Plugin`. When the host casts the plugin instance to the `com.example.api.Plugin` known to the host, the cast fails, even though the interface names on both sides are completely identical.
 
-**Lưu ý:** tên cùng package không tạo ra quan hệ kiểu. JVM vẫn kiểm tra identity của class/interface, cấu trúc kế thừa và các quy tắc liên kết.
+**Note:** having the same package name does not establish a type relationship. The JVM still checks class/interface identity, inheritance hierarchy, and linkage rules.
 
-## 3. Mô hình nguyên nhân trong hệ plugin
+## 3. Cause Model in a Plugin System
 
-\`\`\`text
+```text
                      Host application
                            |
                     AppClassLoader
@@ -57,46 +57,46 @@ Giả sử host có \`com.example.api.Plugin\` trong classpath chính, plugin c�
                  PluginClassLoader
                            |
              com.example.api.Plugin (B)
-\`\`\`
+```
 
-Nếu \`PluginClassLoader\` tự định nghĩa \`Plugin (B)\`, instance triển khai B không nhất thiết là instance của A. Chúng cùng chuỗi tên \`com.example.api.Plugin\`, nhưng không phải cùng đối tượng \`Class<?>\`.
+If `PluginClassLoader` defines `Plugin (B)` itself, an instance implementing B is not necessarily an instance of A. They share the name string `com.example.api.Plugin`, but not the same `Class<?>` object.
 
-Các nguyên nhân thường gặp:
+Common causes:
 
-1. **API JAR bị đóng gói hai lần:** cùng interface tồn tại trong host và trong JAR plugin, và mỗi bên được nạp bởi loader riêng.
-2. **Child-first không chọn lọc:** plugin loader ưu tiên nạp mọi package từ plugin, kể cả package hợp đồng chung.
-3. **Hai phiên bản dependency:** hai loader nạp thư viện cùng tên lớp nhưng khác phiên bản; ngoài \`ClassCastException\` còn có thể phát sinh \`NoSuchMethodError\`, \`AbstractMethodError\` hoặc \`LinkageError\` tùy tình huống.
-4. **Hot reload:** loader mới định nghĩa lại cùng tên lớp; object còn sống từ loader cũ không tương thích với kiểu của loader mới.
-5. **Container hoặc framework:** application server, OSGi, test runner hoặc môi trường module có ranh giới loader riêng.
-6. **Serialization/caching:** object được lưu trong cache hoặc session từ deployment/loader cũ rồi chuyển qua API của loader mới.
+1. **API JAR packaged twice:** the same interface exists in both the host and the plugin JAR, and each side is loaded by a separate loader.
+2. **Unselective child-first:** the plugin loader prioritizes loading all packages from the plugin, including shared contract packages.
+3. **Two dependency versions:** two loaders load libraries with the same class names but different versions; besides `ClassCastException`, this can also produce `NoSuchMethodError`, `AbstractMethodError`, or `LinkageError` depending on the situation.
+4. **Hot reload:** a new loader redefines the same class names; surviving objects from the old loader are incompatible with types in the new loader.
+5. **Containers or frameworks:** application servers, OSGi, test runners, or module environments have their own loader boundaries.
+6. **Serialization/caching:** objects stored in a cache or session from an old deployment/loader are passed through the API of a new loader.
 
-Không phải mọi lỗi \`ClassCastException\` đều do class loader; cũng có trường hợp cast sai hoàn toàn giữa hai kiểu vốn không liên quan. Phải kiểm tra cả tên lớp **và defining loader**.
+Not every `ClassCastException` is caused by class loaders; there are also cases of straightforwardly casting between two unrelated types. Always check both the class name **and the defining loader**.
 
-## 4. Chẩn đoán có hệ thống
+## 4. Systematic Diagnosis
 
-### Bước 1: Đọc chính xác hai phía của lỗi
+### Step 1: Read Both Sides of the Error Accurately
 
-Từ stack trace, xác định:
+From the stack trace, identify:
 
-- Kiểu thực tế của object tại runtime.
-- Kiểu đích mà đoạn code muốn ép.
-- Vị trí dòng code thực hiện cast hoặc vị trí bridge/proxy/framework gây cast.
-- Thông tin module và loader nếu JVM cung cấp.
+- The actual runtime type of the object.
+- The target type the code is attempting to cast to.
+- The code line performing the cast or the bridge/proxy/framework site causing the cast.
+- Module and loader details if provided by the JVM.
 
-Ví dụ:
+For example:
 
-\`\`\`java
+```java
 Plugin plugin = (Plugin) instance;
-\`\`\`
+```
 
-Nếu lỗi xuất hiện tại đây, hai class \`Plugin\` có thể khác identity dù cùng tên. Ngược lại, nếu lỗi là \`Foo cannot be cast to Bar\`, hãy kiểm tra quan hệ \`extends\`/\`implements\` trước khi kết luận do duplicate class.
+If the error occurs here, the two `Plugin` classes may differ in identity despite having the same name. Conversely, if the error is `Foo cannot be cast to Bar`, check the `extends`/`implements` relationship before concluding it is a duplicate class issue.
 
-### Bước 2: Ghi class identity và defining loader
+### Step 2: Log Class Identity and Defining Loader
 
-Đoạn chẩn đoán sau dùng được trong chương trình có \`Object instance\` và \`Class<?> apiType\`:
+The following diagnostic snippet works inside a program that has `Object instance` and `Class<?> apiType`:
 
-\`\`\`java
-// Đoạn tích hợp, không phải chương trình độc lập.
+```java
+// Integration snippet, not a standalone program.
 Class<?> actual = instance.getClass();
 
 System.out.println("actual = " + actual.getName());
@@ -106,55 +106,55 @@ System.out.println("expected loader = " + apiType.getClassLoader());
 System.out.println("same Class object = " + (actual == apiType));
 System.out.println("assignable = " + apiType.isAssignableFrom(actual));
 System.out.println("instanceof expected = " + apiType.isInstance(instance));
-\`\`\`
+```
 
-Hai điểm quan trọng:
+Two important points:
 
-- \`actual == apiType\` chỉ kiểm tra có đúng **cùng một lớp** hay không. Đối với implementation và interface khác tên, phép so sánh này đương nhiên là \`false\`; khi đó hãy dùng \`isAssignableFrom\` hoặc \`isInstance\`.
-- \`ClassLoader.toString()\` có thể được tùy chỉnh và không phải định danh bảo mật duy nhất. Khi cần điều tra sâu, ghi cả \`System.identityHashCode(loader)\` và quan hệ parent, nhưng hash cũng không phải ID toàn cục không trùng.
+- `actual == apiType` only checks whether they are the **exact same class**. For an implementation and an interface with different names, this comparison is naturally `false`; in that case use `isAssignableFrom` or `isInstance`.
+- `ClassLoader.toString()` can be customized and is not a unique security identifier. When deeper investigation is needed, also log `System.identityHashCode(loader)` and parent relationships, though hash codes are not globally unique IDs either.
 
-### Bước 3: Kiểm tra nguồn bytecode
+### Step 3: Check the Bytecode Source
 
-Với class đã nạp, có thể lấy nơi cung cấp code khi metadata cho phép:
+For an already-loaded class, you can retrieve its code origin when metadata permits:
 
-\`\`\`java
-// Đoạn tích hợp, không phải chương trình độc lập.
+```java
+// Integration snippet, not a standalone program.
 java.security.ProtectionDomain domain = actual.getProtectionDomain();
 java.security.CodeSource source = domain == null ? null : domain.getCodeSource();
 System.out.println(source == null ? "<unknown>" : source.getLocation());
-\`\`\`
+```
 
-\`CodeSource\` có thể là \`null\`; URL được trả về không luôn là đường dẫn JAR nguyên gốc. Với \`ClassLoader\` tự định nghĩa, thông tin có thể không đầy đủ. Ngoài ra, \`Class.getResource\` và các resource lookup khác chịu ảnh hưởng của chính sách loader.
+`CodeSource` may be `null`; the returned URL is not always the original JAR path. With custom `ClassLoader` implementations, information may be incomplete. In addition, `Class.getResource` and other resource lookups are affected by loader policies.
 
-### Bước 4: Xác minh dependency và package trùng
+### Step 4: Verify Dependencies and Duplicate Packages
 
-Xem cách plugin được đóng gói:
+Inspect how the plugin is packaged:
 
-\`\`\`bash
+```bash
 jar --list --file plugin.jar
-\`\`\`
+```
 
-Tìm dấu hiệu như \`com/example/api/Plugin.class\` xuất hiện trong cả host API JAR và plugin JAR. Kiểm tra build configuration (Gradle/Maven) có vô tình đưa API chung vào fat JAR hoặc shaded artifact hay không. Nếu plugin cần API do host cung cấp, thường phải khai báo dependency này ở chế độ compile-only/provided phù hợp quy trình đóng gói.
+Look for signs like `com/example/api/Plugin.class` appearing in both the host API JAR and the plugin JAR. Check the build configuration (Gradle/Maven) to see if the shared API was accidentally bundled into a fat JAR or shaded artifact. If the plugin requires an API supplied by the host, you should usually declare this dependency as compile-only/provided to match the packaging workflow.
 
-Lưu ý: chỉ có bản sao class trong hai JAR **chưa đủ** kết luận lỗi sẽ xảy ra; nếu plugin loader delegate về parent cho package API, cả hai phía vẫn có thể dùng cùng \`Class\`.
+Note: merely having a copy of the class in both JARs is **not enough** to conclude an error will happen; if the plugin loader delegates to the parent for the API package, both sides can still share the same `Class`.
 
-### Bước 5: Kiểm tra đường tải lớp
+### Step 5: Inspect the Class-Loading Path
 
-Có thể dùng JVM logging hỗ trợ phân tích nguồn load:
+You can use JVM logging to assist in analyzing load sources:
 
-\`\`\`bash
+```bash
 java -Xlog:class+load=info -jar host.jar
-\`\`\`
+```
 
-Tùy môi trường và phiên bản JVM, log có thể cho biết tên lớp, nguồn class và loader liên quan. Tăng mức log có chọn lọc khi cần, tránh ghi dữ liệu quá lớn trong production. Kết hợp với log định danh class loader mà ứng dụng tự xuất ra để tìm chỗ split identity.
+Depending on the environment and JVM version, logs can reveal class names, class origins, and involved loaders. Increase log levels selectively when needed, avoiding excessive output in production. Combine this with class-loader identity logs emitted by the application itself to pinpoint where identity splits.
 
-## 5. Ví dụ Java 17+ tái hiện lỗi có cùng tên lớp
+## 5. Java 17+ Example Reproducing the Same-Class-Name Error
 
-Ví dụ tạo cùng một tên lớp \`example.Shared\` bằng bytecode giống nhau, rồi định nghĩa hai lần trong hai loader khác nhau. Nó không yêu cầu tải JAR bên ngoài và minh họa trực tiếp bản chất class identity.
+The example creates the same class name `example.Shared` from identical bytecode, then defines it twice in two different loaders. It requires no external JARs and directly demonstrates the nature of class identity.
 
-Tạo file **\`ClassLoaderIdentityDemo.java\`**:
+Create **`ClassLoaderIdentityDemo.java`**:
 
-\`\`\`java
+```java
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -237,122 +237,122 @@ public class ClassLoaderIdentityDemo {
         }
     }
 }
-\`\`\`
+```
 
-Biên dịch và chạy:
+Compile and run:
 
-\`\`\`bash
+```bash
 javac ClassLoaderIdentityDemo.java
 java ClassLoaderIdentityDemo
-\`\`\`
+```
 
-Kết quả:
+Output:
 
-\`\`\`text
+```text
 same name: true
 same class: false
 assignable: false
 host loader == plugin loader: false
 cast failed: ClassCastException
-\`\`\`
+```
 
-Tại sao lỗi xảy ra?
+Why did the error occur?
 
-1. \`Shared.class\` của host được định nghĩa bởi application class loader.
-2. \`IsolatedLoader\` chỉ xử lý đặc biệt tên lớp lồng \`ClassLoaderIdentityDemo$Shared\`; khi có yêu cầu nạp đúng tên đó, nó đọc resource \`.class\` và tự gọi \`defineClass\`.
-3. JVM thấy hai định nghĩa có cùng tên nhị phân nhưng defining loader khác nhau, do đó tạo hai đối tượng \`Class\` khác identity.
-4. \`pluginValue\` là instance của lớp do \`IsolatedLoader\` định nghĩa, nên không thể ép sang \`Shared\` do host loader định nghĩa.
+1. The host's `Shared.class` is defined by the application class loader.
+2. `IsolatedLoader` specifically intercepts the nested class name `ClassLoaderIdentityDemo$Shared`; when asked to load that exact name, it reads the `.class` resource and calls `defineClass` itself.
+3. The JVM sees two definitions with the same binary name but different defining loaders, and thus creates two `Class` objects with distinct identities.
+4. `pluginValue` is an instance of the class defined by `IsolatedLoader`, so it cannot be cast to the `Shared` defined by the host loader.
 
-Đây là ví dụ chủ động **child-first cho đúng một lớp** để tái hiện lỗi. Nó không phải kiến trúc class loader khuyến nghị cho môi trường production.
+This is an example intentionally using **child-first for a single class** to reproduce the error. It is not a recommended class-loader architecture for production environments.
 
-## 6. Cách sửa: chia sẻ API, cô lập implementation
+## 6. How to Fix: Share the API, Isolate Implementations
 
-Nguyên tắc thường dùng trong plugin system:
+A standard principle in plugin systems:
 
-**API chung do loader ổn định của host định nghĩa; implementation và dependency riêng do loader plugin định nghĩa.**
+**The shared API is defined by a stable host loader; implementations and private dependencies are defined by plugin loaders.**
 
-\`\`\`text
+```text
               Bootstrap / Platform
                        |
                 Host API loader
                  |           |
           PluginLoader A  PluginLoader B
           impl + lib A    impl + lib B
-\`\`\`
+```
 
-Cả hai loader plugin **delegate về parent** đối với package API chung như \`com.example.plugin.api.*\`. Nhờ vậy, \`Plugin\`, \`Context\`, các DTO và exception trong hợp đồng được định nghĩa một lần; host có thể cast implementation sang interface của host.
+Both plugin loaders **delegate to the parent** for shared API packages such as `com.example.plugin.api.*`. As a result, `Plugin`, `Context`, DTOs, and contract exceptions are defined once; the host can cast implementations to the host's interface.
 
-Các giải pháp thực tế:
+Practical fixes:
 
-- **Loại bỏ API duplicate** khỏi JAR plugin nếu build system đã cung cấp API từ host.
-- **Thiết lập delegation theo package:** parent-first với \`java.*\`, API dùng chung và thư viện cần chia sẻ; chỉ cô lập implementation/dependency đã xác định.
-- **Version hóa API rõ ràng:** không trộn plugin biên dịch theo API v1 với host API v2 khi không tương thích nhị phân.
-- **Không đưa object nội bộ của plugin qua ranh giới API** trừ khi kiểu đó thuộc shared contract hoặc được chuyển sang DTO thuần đã thống nhất.
-- **Hot reload:** chuyển request mới sang loader mới; tránh dùng trực tiếp object/proxy còn sống từ loader cũ; đóng tài nguyên khi không còn tham chiếu.
-- **Công cụ packaging:** kiểm tra nội dung artifact để ngăn việc nhúng nhầm \`com.example.plugin.api\` từ fat JAR/shading.
+- **Remove duplicate APIs** from plugin JARs if the build system already supplies the API from the host.
+- **Configure per-package delegation:** parent-first for `java.*`, shared APIs, and libraries that must be shared; isolate only identified implementations/dependencies.
+- **Version APIs explicitly:** do not mix a plugin compiled against API v1 with a host running API v2 when they are binary-incompatible.
+- **Do not pass plugin-internal objects across the API boundary** unless that type belongs to the shared contract or is converted to an agreed-upon plain DTO.
+- **Hot reload:** route new requests to the new loader; avoid directly using surviving objects/proxies from the old loader; close resources when no references remain.
+- **Packaging tooling:** inspect artifact contents to prevent accidentally embedding `com.example.plugin.api` via fat JARs/shading.
 
-Ví dụ Gradle (chỉ minh họa cấu hình cho một module plugin):
+Gradle example (illustrating configuration for a plugin module only):
 
-\`\`\`groovy
+```groovy
 dependencies {
     compileOnly project(':plugin-api')
-    // Các thư viện thật sự cần đóng gói riêng phải được xem xét theo runtime.
+    // Libraries that genuinely require separate packaging must be reviewed per runtime.
 }
-\`\`\`
+```
 
-\`compileOnly\` cho phép biên dịch nhưng không tự đưa dependency vào runtime classpath của module plugin. Host/loader triển khai phải cung cấp API chung đúng phiên bản khi chạy. Cấu hình này không tự giải quyết mọi xung đột dependency.
+`compileOnly` enables compilation without automatically placing the dependency onto the plugin module's runtime classpath. The host/deployment loader must provide the shared API at the proper version at runtime. This configuration does not automatically resolve all dependency conflicts.
 
-**Không áp dụng child-first cho toàn bộ classpath một cách mù quáng.** Nếu cả API chung bị định nghĩa lại, lớp plugin có thể không còn implement interface mà host đang kiểm tra.
+**Do not blindly apply child-first to the entire classpath.** If the shared API itself gets redefined, plugin classes may no longer implement the interface the host is checking against.
 
-## 7. Khi hai loader dùng cùng thư viện nhưng cần cách ly phiên bản
+## 7. When Two Loaders Use the Same Library but Need Version Isolation
 
-Đôi khi cô lập dependency là mục tiêu đúng: plugin A dùng \`lib-x\` v1, plugin B dùng \`lib-x\` v2. Có thể nạp các phiên bản vào loader khác nhau, miễn là API trao đổi giữa plugin và host **không làm lộ kiểu của lib-x**.
+Sometimes isolating a dependency is the exact goal: plugin A uses `lib-x` v1, and plugin B uses `lib-x` v2. Versions can be loaded into different loaders, provided the API exchanged between plugin and host **does not expose types from lib-x**.
 
-Ví dụ hợp đồng tốt:
+Example of a good contract:
 
-\`\`\`java
-// Shared API - ý tưởng minh họa, không phải chương trình độc lập.
+```java
+// Shared API - illustrative idea, not a standalone program.
 public interface TextExtractor {
     String extract(byte[] documentBytes);
 }
-\`\`\`
+```
 
-Host và plugin chỉ trao đổi \`String\` và \`byte[]\` (các kiểu JDK được bootstrap/platform/host chia sẻ trong cách nạp thông thường). Plugin có thể dùng parser version khác trong implementation.
+Host and plugin exchange only `String` and `byte[]` (JDK types shared by bootstrap/platform/host in normal loading). Plugins can use different parser versions inside their implementations.
 
-Hợp đồng dễ gây xung đột:
+A conflict-prone contract:
 
-\`\`\`java
-// Không nên dùng nếu Document thuộc thư viện riêng trong loader plugin.
+```java
+// Avoid using if Document belongs to a private library inside the plugin loader.
 public interface TextExtractor {
     third.party.Document extract(byte[] documentBytes);
 }
-\`\`\`
+```
 
-Khi \`third.party.Document\` được định nghĩa riêng ở nhiều loader, chữ ký phương thức, linker và cast có thể gặp vấn đề. Tách ranh giới bằng DTO chung, dữ liệu primitive/JDK, JSON/protobuf được xử lý theo hợp đồng, hoặc thậm chí ranh giới tiến trình nếu cần.
+When `third.party.Document` is defined separately in multiple loaders, method signatures, the linker, and casts can run into trouble. Separate the boundary using shared DTOs, primitives/JDK data, JSON/protobuf processed per contract, or even process boundaries when needed.
 
-## 8. Những lỗi liên quan cần phân biệt
+## 8. Related Errors to Distinguish
 
-| Hiện tượng | Hướng chẩn đoán |
+| Symptom | Diagnostic direction |
 |---|---|
-| \`ClassCastException\` với hai tên giống nhau | Kiểm tra defining loader của cả hai lớp |
-| \`ClassNotFoundException\` | Loader không tìm thấy tên được yêu cầu |
-| \`NoClassDefFoundError\` | JVM không thể định nghĩa/liên kết lớp phụ thuộc hoặc lớp đã lỗi khởi tạo |
-| \`NoSuchMethodError\` | Mã gọi phương thức không hiện diện trong class được liên kết ở runtime |
-| \`AbstractMethodError\` | Triển khai runtime không cung cấp phương thức được yêu cầu theo giao diện nhị phân |
-| \`LinkageError: loader constraint violation\` | Các loader vi phạm ràng buộc identity của kiểu trong quá trình liên kết |
-| \`IllegalAccessError\` hoặc \`InaccessibleObjectException\` | Kiểm tra phạm vi truy cập, JPMS modules và reflective access |
+| `ClassCastException` with two identical names | Check the defining loader of both classes |
+| `ClassNotFoundException` | The loader could not find the requested name |
+| `NoClassDefFoundError` | The JVM could not define/link a dependent class or a class failed initialization earlier |
+| `NoSuchMethodError` | Code invokes a method absent from the class linked at runtime |
+| `AbstractMethodError` | The runtime implementation does not provide a method required by the binary interface |
+| `LinkageError: loader constraint violation` | Loaders violated type identity constraints during linking |
+| `IllegalAccessError` or `InaccessibleObjectException` | Check access scopes, JPMS modules, and reflective access |
 
-Một \`ClassCastException\` không tự chứng minh rằng Java “nạp sai JAR”; lỗi có thể xuất phát từ thiết kế loader, đóng gói API, phiên bản không tương thích, cache hoặc logic lựa chọn provider. Thu thập bằng chứng về defining loader và class source trước khi sửa cấu hình.
+A `ClassCastException` does not by itself prove that Java "loaded the wrong JAR"; the error may stem from loader design, API packaging, incompatible versions, caches, or provider selection logic. Gather evidence on defining loaders and class sources before changing configuration.
 
-## 9. Checklist thực hành khi gặp lỗi
+## 9. Practical Checklist When Encountering the Error
 
-1. Ghi nguyên stack trace và dòng code cast; xác định actual type và expected type.
-2. Log \`getName()\`, \`getClassLoader()\`, \`isAssignableFrom()\` và \`isInstance()\`.
-3. Xác định classloader graph: parent, child-first exceptions, loader nào định nghĩa API và implementation.
-4. Kiểm tra JAR thực tế và class resource; tìm lớp trùng package API hoặc thư viện version khác.
-5. Kiểm tra việc hot reload, cache, static singleton, thread context class loader hoặc proxy lưu giữ object cũ.
-6. Đảm bảo shared API dùng một định nghĩa \`Class\` từ parent/host; giới hạn package được cô lập.
-7. Test đường đi thực sự: nạp plugin, cast sang interface của host, gọi phương thức, giải phóng và thay plugin.
-8. Bổ sung kiểm tra packaging và compatibility ở bước pre-activation để lỗi được phát hiện trước khi phục vụ request.
+1. Record the full stack trace and casting line; identify the actual type and expected type.
+2. Log `getName()`, `getClassLoader()`, `isAssignableFrom()`, and `isInstance()`.
+3. Map out the classloader graph: parent, child-first exceptions, and which loader defines the API vs. implementation.
+4. Inspect the actual JARs and class resources; look for duplicate API package classes or different library versions.
+5. Check hot reloads, caches, static singletons, thread context class loaders, or proxies retaining old objects.
+6. Ensure the shared API uses a single `Class` definition from the parent/host; restrict isolated packages.
+7. Test the real path: load the plugin, cast to the host's interface, invoke methods, release, and replace the plugin.
+8. Add packaging and compatibility checks at the pre-activation step so errors are caught before serving requests.
 
-**Ghi nhớ:** trong JVM, *tên lớp không phải toàn bộ danh tính của kiểu*. Khi hai lớp “cùng tên” không ép kiểu được, hãy so sánh **defining class loader**. Kiến trúc plugin bền vững cần **chia sẻ contract** tại ranh giới host và **cô lập dependency implementation** một cách có chủ đích.
+**Remember:** in the JVM, *a class name is not the entirety of a type's identity*. When two "same-named" classes cannot be cast to one another, compare their **defining class loaders**. A durable plugin architecture **shares the contract** at the host boundary and **isolates implementation dependencies** deliberately.

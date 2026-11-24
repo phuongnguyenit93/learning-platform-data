@@ -1,95 +1,95 @@
-# Thêm lựa chọn provider theo khả năng hỗ trợ và cấu hình người dùng
+# Adding Provider Selection by Supported Capabilities and User Configuration
 
-## 1. Mục tiêu bài thực hành
+## 1. Exercise Objectives
 
-Trong ứng dụng Java có kiến trúc plugin, **ServiceLoader** giúp phát hiện nhiều implementation của cùng một service interface. Nhưng việc phát hiện provider **không đồng nghĩa** có thể chọn bừa provider đầu tiên: một provider có thể chỉ xuất HTML, một provider chỉ hỗ trợ plain text, một provider có tính năng màu sắc, trong khi người dùng có yêu cầu và lựa chọn ưu tiên riêng.
+In a Java application with a plugin architecture, **ServiceLoader** discovers multiple implementations of the same service interface. However, discovering providers **does not mean** you can arbitrarily pick the first one: one provider might output only HTML, another might support only plain text, and another might offer color features, while users have their own requirements and preferences.
 
-Bài thực hành này xây dựng một **ReportProvider** SPI. Host sẽ nạp provider bằng **ServiceLoader**, sau đó lựa chọn dựa trên:
+This exercise builds a **ReportProvider** SPI. The host loads providers using **ServiceLoader**, then selects one based on:
 
-1. **Định dạng đầu ra bắt buộc** từ cấu hình người dùng: text, markdown hoặc html.
-2. **Các capability bắt buộc**: ví dụ unicode, heading, color. Provider chỉ hợp lệ nếu hỗ trợ **tất cả** các capability được yêu cầu.
-3. **Preferred provider**: người dùng có thể yêu cầu ưu tiên một provider có ID ổn định.
-4. **Strict preference**: nếu bật, không được âm thầm dùng provider khác khi provider được chọn không phù hợp.
-5. **Fallback có kiểm soát**: nếu strict tắt, preferred provider không phù hợp thì chọn một provider hợp lệ khác theo chính sách rõ ràng.
-6. **Thứ tự xác định**: khi còn nhiều lựa chọn hợp lệ, dùng priority giảm dần và ID tăng dần thay vì phụ thuộc thứ tự phát hiện service.
+1. **Required output format** from user configuration: text, markdown, or html.
+2. **Required capabilities**: for example, unicode, heading, color. A provider is eligible only if it supports **all** requested capabilities.
+3. **Preferred provider**: the user can request priority for a provider with a stable ID.
+4. **Strict preference**: if enabled, the host must not silently use another provider when the chosen provider is not eligible.
+5. **Controlled fallback**: if strict is disabled and the preferred provider is not eligible, select another eligible provider according to a clear policy.
+6. **Deterministic ordering**: when multiple eligible options remain, use descending priority and ascending ID instead of depending on service discovery order.
 
-Kết thúc bài, chương trình Java 17 sẽ chạy được với ba provider độc lập đóng gói thành một JAR và cấu hình từ command line. Ta cũng kiểm thử các trường hợp không có provider phù hợp, preference xung đột capability, trùng ID và lỗi cấu hình.
+By the end of the exercise, a Java 17 program will run with three independent providers packaged into a JAR and configured from the command line. We will also test cases with no matching provider, preference conflicting with capabilities, duplicate IDs, and configuration errors.
 
-**Phạm vi:** Lựa chọn provider, không phải thay đổi implementation của ServiceLoader. Trong ví dụ, các provider đã được tin cậy và nằm trên classpath. Phần sau giải thích những lưu ý khi chuyển sang JPMS/module path hoặc khi provider đến từ bên ngoài.
+**Scope:** Provider selection, not modifying the ServiceLoader implementation. In this example, providers are already trusted and reside on the classpath. Later sections explain considerations when migrating to JPMS/module path or when providers come from external sources.
 
-## 2. Vì sao không chỉ dùng findFirst()?
+## 2. Why Not Just Use findFirst()?
 
-Đây là cách thường gặp khi mới học SPI:
+This is a common approach when first learning SPI:
 
 ~~~java
-// Mảnh minh họa: không đủ để chọn theo nhu cầu người dùng.
+// Illustrative snippet: insufficient for selecting based on user requirements.
 ReportProvider provider = ServiceLoader.load(ReportProvider.class)
         .findFirst()
         .orElseThrow();
 ~~~
 
-**findFirst()** chọn provider đầu tiên theo quy tắc phát hiện/cache của ServiceLoader. Thứ tự này không phải chính sách kinh doanh: thứ tự giữa các module không nhất thiết xác định; thứ tự resource trên classpath có thể thay đổi khi đóng gói hoặc thay class loader. Provider đầu tiên cũng chưa chắc hỗ trợ format, locale, dữ liệu hoặc capability mà người dùng yêu cầu.
+**findFirst()** picks the first provider according to ServiceLoader's discovery/caching rules. This order is not a business policy: the order across modules is not necessarily deterministic; resource order on the classpath can change when repackaging or changing class loaders. Nor is the first provider guaranteed to support the format, locale, data, or capabilities the user requested.
 
-Thay vào đó, kiến trúc nên là:
+Instead, the architecture should be:
 
 ~~~text
 User config
     |
     v
-Chuẩn hóa + kiểm tra cú pháp
+Normalize + validate syntax
     |
     v
 ServiceLoader<ReportProvider>
     |
     v
-Discovery -> kiểm tra ID -> lấy capability từng provider
+Discovery -> validate ID -> fetch provider capabilities
     |
     v
-Hard filter: định dạng + requiredFeatures
+Hard filter: format + requiredFeatures
     |
-    +-- không provider hợp lệ -> báo lỗi rõ
-    |
-    v
-Ưu tiên preferredId nếu có trong tập hợp hợp lệ
-    |
-    +-- không hợp lệ và strict=true -> báo lỗi, KHÔNG fallback
-    |
-    +-- không hợp lệ và strict=false -> fallback có kiểm soát
+    +-- no eligible provider -> report clear error
     |
     v
-Sort: priority giảm dần, ID tăng dần
+Prefer preferredId if present in eligible set
+    |
+    +-- not eligible and strict=true -> report error, DO NOT fallback
+    |
+    +-- not eligible and strict=false -> controlled fallback
     |
     v
-Provider đã chọn -> render
+Sort: priority descending, ID ascending
+    |
+    v
+Selected provider -> render
 ~~~
 
-**Phân biệt hard constraint và soft preference** là nội dung trọng tâm. Format/capability bắt buộc luôn phải được kiểm tra trước. Preferred provider **không được vượt qua** điều kiện hard constraint; nếu có chế độ strict, thiếu preferred là lỗi chứ không phải lý do bỏ qua yêu cầu.
+**Distinguishing hard constraints from soft preferences** is the core theme. Required format and capabilities must always be checked first. A preferred provider **must never override** hard constraints; in strict mode, an ineligible or missing preferred provider is an error rather than a reason to ignore requirements.
 
-## 3. Thiết kế hợp đồng SPI và cấu hình
+## 3. Designing the SPI Contract and Configuration
 
-Ta xây dựng **ReportProvider** như một service interface. Mỗi implementation khai báo metadata và tạo kết quả:
+We design **ReportProvider** as a service interface. Each implementation declares metadata and produces output:
 
-- **id():** định danh ổn định để người dùng tham chiếu trong cấu hình, ví dụ plain, md, html.
-- **formats():** tập định dạng được hỗ trợ: text, markdown hoặc html.
-- **features():** capability được công bố, ví dụ unicode, heading, color.
-- **priority():** điểm ưu tiên mặc định. Giá trị lớn hơn được chọn trước khi không có preferred hợp lệ.
-- **supports(request):** kiểm tra hard constraints; trong bài dùng default implementation từ formats và features.
-- **render(input, request):** thực hiện nghiệp vụ khi đã được chọn.
+- **id():** a stable identifier for users to reference in configuration, e.g., plain, md, html.
+- **formats():** the set of supported formats: text, markdown, or html.
+- **features():** declared capabilities, e.g., unicode, heading, color.
+- **priority():** default priority score. A higher value is chosen first when there is no eligible preferred provider.
+- **supports(request):** checks hard constraints; in this exercise, a default implementation uses formats and features.
+- **render(input, request):** executes the business logic once selected.
 
-Cấu hình người dùng là một **RenderRequest** bất biến, gồm **format**, **requiredFeatures**, **preferredId** và **strict**.
+User configuration is an immutable **RenderRequest** containing **format**, **requiredFeatures**, **preferredId**, and **strict**.
 
-| Thuộc tính | Ví dụ | Ý nghĩa |
+| Property | Example | Meaning |
 |---|---|---|
-| **format** | markdown | Định dạng bắt buộc |
-| **requiredFeatures** | unicode,heading | Provider phải có đủ hai capability |
-| **preferredId** | plain | Ưu tiên provider có ID plain, nếu hợp lệ |
-| **strict** | true hoặc false | Có cho phép fallback khi preferred không hợp lệ? |
+| **format** | markdown | Required output format |
+| **requiredFeatures** | unicode,heading | Provider must support both capabilities |
+| **preferredId** | plain | Prefer the provider with ID plain, if eligible |
+| **strict** | true or false | Whether fallback is allowed when preferred is ineligible? |
 
-**Quy ước quan trọng:** Chỉ **requiredFeatures** là một tập điều kiện bắt buộc. Chúng ta không dùng “số capability nhiều nhất” để tự suy ra provider tốt nhất, vì provider có nhiều tính năng không nhất thiết đáp ứng ưu tiên về độ trễ, chi phí hoặc khả năng giải thích. Chính sách lựa chọn được viết minh bạch bằng preference, priority và tie-breaker.
+**Important convention:** Only **requiredFeatures** is a mandatory condition set. We do not use "most capabilities" to automatically infer the best provider, because a provider with more features does not necessarily satisfy preferences around latency, cost, or explainability. Selection policy is expressed transparently via preference, priority, and a tie-breaker.
 
-## 4. Đặc tả hành vi mong muốn
+## 4. Expected Behavior Specification
 
-Trong ví dụ có ba provider:
+In this example there are three providers:
 
 | ID | Formats | Features | Priority |
 |---|---|---|---:|
@@ -97,20 +97,20 @@ Trong ví dụ có ba provider:
 | **md** | text, markdown | unicode, heading | 30 |
 | **html** | html | unicode, heading, color | 20 |
 
-Từ bảng này suy ra:
+From this table it follows that:
 
-- Người dùng yêu cầu **format=text, requires=unicode, prefer=plain, strict=true** → chọn plain, dù md có priority cao hơn.
-- Người dùng yêu cầu **format=markdown, requires=heading, prefer=plain, strict=false** → plain không đủ capability, fallback sang md.
-- Yêu cầu **format=html, requires=color, prefer=plain, strict=false** → chọn html, vì plain không hỗ trợ html/color.
-- Yêu cầu **format=text, requires=unicode**, không có preferred → cả plain và md hợp lệ; md thắng nhờ priority 30.
-- Yêu cầu **format=markdown, requires=heading, prefer=plain, strict=true** → báo lỗi, không tự fallback.
-- Yêu cầu **format=pdf** → không có provider đủ điều kiện, báo lỗi.
+- User requests **format=text, requires=unicode, prefer=plain, strict=true** → selects plain, even though md has higher priority.
+- User requests **format=markdown, requires=heading, prefer=plain, strict=false** → plain lacks capabilities, falls back to md.
+- Request **format=html, requires=color, prefer=plain, strict=false** → selects html, because plain does not support html/color.
+- Request **format=text, requires=unicode**, with no preferred → both plain and md are eligible; md wins with priority 30.
+- Request **format=markdown, requires=heading, prefer=plain, strict=true** → reports error, does not auto-fallback.
+- Request **format=pdf** → no provider meets the criteria, reports error.
 
-**Lưu ý tính quyết định:** Trong ví dụ, nếu hai provider cùng priority, ta so **id()** theo thứ tự chữ cái để tránh kết quả phụ thuộc thứ tự ServiceLoader trả về. Nếu trùng ID, chương trình **từ chối** thay vì ngẫu nhiên chọn một implementation.
+**Determinism note:** In this example, if two providers have the same priority, we compare **id()** alphabetically so the result never depends on the order returned by ServiceLoader. If duplicate IDs exist, the program **rejects them** instead of randomly picking one implementation.
 
-## 5. Cấu trúc dự án thực hành Java 17
+## 5. Java 17 Hands-On Project Structure
 
-Tạo thư mục **provider-selection-lab** với các tệp sau:
+Create the **provider-selection-lab** directory with the following files:
 
 ~~~text
 provider-selection-lab/
@@ -127,21 +127,21 @@ provider-selection-lab/
 │       └── demo.spi.ReportProvider
 ├── app/
 │   └── src/demo/app/Main.java
-└── build/             # được tạo bởi các lệnh biên dịch
+└── build/             # created by compilation commands
 ~~~
 
-Ở cấu trúc này:
+In this structure:
 
-- **api/** công bố service contract và kiểu cấu hình dùng chung.
-- **providers/** chứa ba implementation; thông thường chúng được đóng gói JAR riêng.
-- **app/** là host chỉ phụ thuộc vào API, không import trực tiếp lớp provider.
-- **META-INF/services/demo.spi.ReportProvider** là tệp đăng ký provider trong mô hình classpath.
+- **api/** publishes the service contract and shared configuration type.
+- **providers/** contains three implementations; typically they are packaged in separate JARs.
+- **app/** is the host that depends only on the API and does not directly import provider classes.
+- **META-INF/services/demo.spi.ReportProvider** is the provider registration file in the classpath model.
 
-Tên package và đường dẫn nguồn phải khớp nhau. Tệp service descriptor **không có đuôi .java**, và tên của nó là **fully qualified binary name** của service interface.
+Package names and source directory paths must match. The service descriptor file has **no .java extension**, and its name is the **fully qualified binary name** of the service interface.
 
-## 6. Viết hai tệp API
+## 6. Writing the Two API Files
 
-### 6.1. Cấu hình bất biến RenderRequest
+### 6.1. Immutable Configuration RenderRequest
 
 **api/src/demo/spi/RenderRequest.java**
 
@@ -181,17 +181,17 @@ public record RenderRequest(
 }
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-1. Java **record** phù hợp với dữ liệu cấu hình bất biến.
-2. Format và preferred ID được chuẩn hóa thành lowercase theo **Locale.ROOT**, tránh thay đổi theo locale của máy chạy.
-3. **Set.copyOf** chụp một bản tập hợp không thể sửa từ bên ngoài sau khi request được tạo.
-4. Nếu strict=true nhưng không có preferred ID, cấu hình không hợp lý, nên báo lỗi ngay.
-5. Ví dụ cố ý cho phép một format hay feature mới chưa được provider công bố: kết quả selector sẽ là **no eligible provider**, không âm thầm bỏ điều kiện đó.
+1. A Java **record** fits immutable configuration data well.
+2. Format and preferred ID are normalized to lowercase using **Locale.ROOT**, avoiding variations across machine locales.
+3. **Set.copyOf** captures an unmodifiable copy of the set after the request is created.
+4. If strict=true without a preferred ID, the configuration makes no sense, so it fails immediately.
+5. The example intentionally permits a new format or feature not yet declared by any provider: the selector result will be **no eligible provider**, rather than silently dropping that requirement.
 
-Trong hệ thống thực tế, thêm validation cho độ dài, tập ký tự được phép, giá trị null từng phần tử và quota theo nguồn cấu hình. Tên feature phải thống nhất theo quy ước; ví dụ ở đây CLI chuyển feature về lowercase trước khi tạo record.
+In a real system, add validation for length, allowed character sets, null elements, and configuration-source quotas. Feature names must follow a consistent convention; here the CLI lowercases features before constructing the record.
 
-### 6.2. Hợp đồng ReportProvider
+### 6.2. The ReportProvider Contract
 
 **api/src/demo/spi/ReportProvider.java**
 
@@ -219,15 +219,15 @@ public interface ReportProvider {
 }
 ~~~
 
-**Vì sao dùng supports(request)?**
+**Why use supports(request)?**
 
-Trong ví dụ đơn giản, format + capability là đủ để quyết định eligibility. Nhưng với provider thực tế, khả năng hỗ trợ có thể phụ thuộc dữ liệu, phiên bản mô hình, giới hạn kích thước, quyền người dùng hoặc loại nội dung. Khi ấy provider có thể override **supports(request)** và giữ contract chọn lựa nhất quán.
+In a simple example, format + capabilities suffice to determine eligibility. But with real-world providers, support may depend on the data, model version, size limits, user permissions, or content type. In such cases, a provider can override **supports(request)** while keeping the selection contract consistent.
 
-**Tuy nhiên:** Một hàm supports được gọi nhiều lần trong quá trình chọn nên lý tưởng là **nhanh, ổn định và không có side effects**. Không nên để supports âm thầm gửi network request tốn phí, thay đổi database hoặc mở tài nguyên không được đóng. Nếu việc kiểm tra capability đắt tiền, cần metadata/health cache có thời hạn và chính sách fallback rõ.
+**However:** Because supports is called repeatedly during selection, it should ideally be **fast, deterministic, and side-effect-free**. Avoid having supports silently make costly network requests, mutate databases, or open unclosed resources. If capability checks are expensive, use a time-bounded metadata/health cache and a clear fallback policy.
 
-## 7. Viết ba provider
+## 7. Writing the Three Providers
 
-### 7.1. PlainProvider: text đơn giản
+### 7.1. PlainProvider: simple text
 
 **providers/src/demo/providers/PlainProvider.java**
 
@@ -269,9 +269,9 @@ public final class PlainProvider implements ReportProvider {
 }
 ~~~
 
-PlainProvider chỉ cung cấp text và unicode; nó **không** nhận rằng có heading hay color. Đây không phải “provider kém chất lượng” mà là một implementation có phạm vi rõ. Nếu người dùng chọn plain nhưng yêu cầu html, bộ chọn phải từ chối plain.
+PlainProvider only provides text and unicode; it **does not** claim heading or color support. This is not a "low-quality provider" but an implementation with a well-defined scope. If a user chooses plain yet requests html, the selector must reject plain.
 
-### 7.2. MarkdownProvider: text hoặc Markdown có heading
+### 7.2. MarkdownProvider: text or Markdown with heading
 
 **providers/src/demo/providers/MarkdownProvider.java**
 
@@ -316,9 +316,9 @@ public final class MarkdownProvider implements ReportProvider {
 }
 ~~~
 
-Provider này hỗ trợ **hai format**, nhưng output thay đổi theo cấu hình. Nó có priority lớn hơn plain, nên sẽ được chọn mặc định cho text khi không có preferred ID. Đây là **chính sách do ứng dụng định nghĩa**, không phải thuộc tính cố định của ServiceLoader.
+This provider supports **two formats**, and its output varies based on configuration. It has a higher priority than plain, so it will be chosen by default for text when no preferred ID is specified. This is an **application-defined policy**, not a fixed property of ServiceLoader.
 
-### 7.3. HtmlProvider: HTML có heading và màu sắc
+### 7.3. HtmlProvider: HTML with heading and color
 
 **providers/src/demo/providers/HtmlProvider.java**
 
@@ -366,13 +366,13 @@ public final class HtmlProvider implements ReportProvider {
 }
 ~~~
 
-Bài sử dụng chuỗi đầu vào **Hello <Java>** để thấy HTML output có escaping: dấu **<** và **>** được chuyển thành entities. Escaping giúp minh họa rằng format output phải được triển khai đúng ở từng provider; selector không tự chuyển plain text thành HTML an toàn.
+The exercise uses the input string **Hello <Java>** to show HTML output escaping: **<** and **>** are converted to entities. Escaping illustrates that format-specific output must be implemented properly inside each provider; the selector does not automatically convert plain text into safe HTML.
 
-**Giới hạn thực tế:** Hàm escape ở trên đủ cho **nội dung text node** đang được đặt trong h1 ở ví dụ. Nếu chèn dữ liệu vào URL, JavaScript, CSS hoặc HTML attribute theo ngữ cảnh khác, cần encoder phù hợp với **từng ngữ cảnh**, không được dùng lại tùy tiện.
+**Practical limitation:** The escape function above suffices for the **text node content** placed inside h1 in this example. If inserting data into a URL, JavaScript, CSS, or an HTML attribute in other contexts, you need an encoder tailored to **each context** rather than reusing this arbitrarily.
 
-## 8. Đăng ký provider để ServiceLoader tìm thấy
+## 8. Registering Providers for ServiceLoader Discovery
 
-Tạo tệp:
+Create the file:
 
 **providers/resources/META-INF/services/demo.spi.ReportProvider**
 
@@ -382,20 +382,20 @@ demo.providers.MarkdownProvider
 demo.providers.HtmlProvider
 ~~~
 
-Mỗi dòng là tên binary đầy đủ của **provider class**. Tệp dùng UTF-8, có thể có dòng trống hoặc comment bắt đầu bằng **#**; ví dụ giữ nguyên ba dòng đơn giản.
+Each line is the full binary name of a **provider class**. The file uses UTF-8 and may contain blank lines or comments starting with **#**; this example keeps three simple lines.
 
-**Điều kiện của classpath service provider:**
+**Requirements for classpath service providers:**
 
-- Class provider là **public concrete class** và implements **ReportProvider**.
-- Có **public constructor không tham số**, được ServiceLoader dùng để tạo instance.
-- Class và các dependencies được class loader nhìn thấy.
-- Resource phải nằm trong JAR tại **META-INF/services/demo.spi.ReportProvider**; không được bỏ sót khi đóng gói.
+- The provider class is a **public concrete class** and implements **ReportProvider**.
+- It has a **public no-arg constructor**, used by ServiceLoader to instantiate it.
+- The class and its dependencies are visible to the class loader.
+- The resource must reside inside the JAR at **META-INF/services/demo.spi.ReportProvider**; it must not be omitted during packaging.
 
-Đừng ghi tên class vào tệp **META-INF/services/ReportProvider** thiếu package, và đừng đặt **demo.spi.RenderRequest** ở đó: đó không phải service interface cần tìm. Hai API types cần dùng chung giữa host và provider để tránh lỗi class identity khi dùng nhiều class loaders.
+Do not put class names in a package-less **META-INF/services/ReportProvider** file, and do not put **demo.spi.RenderRequest** there: that is not the service interface being looked up. Both API types must be shared between host and providers to prevent class identity errors when multiple class loaders are used.
 
-Trong ví dụ, ba provider được đóng vào một JAR để việc dựng project ngắn. Ở ứng dụng thật, mỗi provider có thể ở JAR riêng miễn là cấu hình service discovery phù hợp.
+In this example, the three providers are packaged into a single JAR to keep project setup brief. In a real application, each provider can live in its own JAR as long as service discovery is configured appropriately.
 
-## 9. Host Main: parse config, lọc capability và chọn provider
+## 9. Host Main: Parsing Config, Filtering Capabilities, and Selecting Providers
 
 **app/src/demo/app/Main.java**
 
@@ -484,8 +484,8 @@ public final class Main {
         ServiceLoader<ReportProvider> loader =
                 ServiceLoader.load(ReportProvider.class);
 
-        // get() khởi tạo provider để supports() có thể
-        // kiểm tra capability thực tế của instance.
+        // get() instantiates the provider so supports() can
+        // inspect the instance's actual capabilities.
         List<ReportProvider> discovered = loader.stream()
                 .map(ServiceLoader.Provider::get)
                 .toList();
@@ -500,7 +500,7 @@ public final class Main {
             }
         }
 
-        // Hard filter luôn thực hiện TRƯỚC preference.
+        // Hard filter always runs BEFORE preference.
         List<ReportProvider> eligible = discovered.stream()
                 .filter(p -> p.supports(request))
                 .sorted(
@@ -554,21 +554,21 @@ public final class Main {
 }
 ~~~
 
-**Lưu ý về source:** Main có các import **ArrayList** và **HashMap** không dùng đến; Java compiler cho phép unused imports, nhưng có thể bỏ chúng để dự án sạch hơn. Các import còn lại tương ứng cấu trúc code. **Không có class implementation provider nào được Main import trực tiếp**: host chỉ dùng service type, còn provider implementations được phát hiện tại runtime.
+**Note on the source:** Main has unused imports **ArrayList** and **HashMap**; the Java compiler allows unused imports, though you can remove them for a cleaner project. The remaining imports match the code structure. **No provider implementation class is directly imported by Main**: the host uses only the service type, while provider implementations are discovered at runtime.
 
-### 9.1. Vì sao không chọn ngay từ ServiceLoader.findFirst()?
+### 9.1. Why not select immediately via ServiceLoader.findFirst()?
 
-Host gom các provider được tìm thấy thành danh sách **discovered**, rồi lọc bằng **supports(request)**. Điều này bảo đảm quyết định dựa trên **capability thực tế** và cấu hình.
+The host collects discovered providers into a **discovered** list, then filters them using **supports(request)**. This ensures the decision is based on **actual capabilities** and configuration.
 
-### 9.2. Vì sao instantiate trước khi kiểm tra supports?
+### 9.2. Why instantiate before checking supports?
 
-**ServiceLoader.stream()** tạo stream của **ServiceLoader.Provider<ReportProvider>**. **Provider.type()** có thể cho phép kiểm tra metadata về class mà chưa khởi tạo service. Nhưng trong bài, capabilities được công bố bởi **method instance formats()/features()/supports()**, vì vậy phải gọi **Provider.get()** trước khi hỏi khả năng hỗ trợ.
+**ServiceLoader.stream()** produces a stream of **ServiceLoader.Provider<ReportProvider>**. **Provider.type()** can allow inspecting class metadata without instantiating the service. However, in this exercise, capabilities are declared by **instance methods formats()/features()/supports()**, so **Provider.get()** must be called before querying support.
 
-Điều này có giá phải trả: **tất cả provider có thể được tạo** dù cuối cùng chỉ một provider được chọn. Nếu constructor đắt hoặc có side effects, hãy chuyển metadata sớm hơn vào một lightweight **factory-as-service**, annotation phù hợp hoặc manifest/registry đáng tin cậy, rồi chỉ tạo tài nguyên nặng sau khi provider được chọn. Không ép **Provider.type()** luôn là class implementation trong mọi trường hợp: với explicit named JPMS module sử dụng public static provider() factory, **type() là declared return type của provider method**.
+This comes with a cost: **all providers may be instantiated** even though only one is ultimately selected. If constructors are expensive or have side effects, move metadata earlier into a lightweight **factory-as-service**, a suitable annotation, or a trusted manifest/registry, and instantiate heavy resources only after a provider is chosen. Do not assume **Provider.type()** is always the implementation class in all cases: with an explicit named JPMS module using a public static provider() factory, **type() is the declared return type of the provider method**.
 
-### 9.3. Vì sao lọc hard constraints trước?
+### 9.3. Why filter hard constraints first?
 
-Ta chỉ cho một provider vào danh sách eligible khi:
+We only allow a provider into the eligible list when:
 
 ~~~java
 provider.formats().contains(request.format())
@@ -576,28 +576,28 @@ provider.formats().contains(request.format())
                 request.requiredFeatures())
 ~~~
 
-Nếu user yêu cầu HTML + color, plain không đủ điều kiện, kể cả khi họ đặt **--prefer=plain**. Đây là nguyên tắc *không được hạ thấp yêu cầu bắt buộc chỉ để đáp ứng preference*.
+If the user requires HTML + color, plain is ineligible even if they pass **--prefer=plain**. This is the principle of *never relaxing mandatory requirements just to satisfy a preference*.
 
-**Lưu ý:** Trong code ví dụ, supports đã là default method trong interface, nên Main gọi **p.supports(request)** thay vì lặp logic; provider sau này có thể override để kiểm tra thêm điều kiện thực tế.
+**Note:** In the example code, supports is already a default method on the interface, so Main calls **p.supports(request)** instead of duplicating logic; providers can later override it to check additional runtime conditions.
 
-### 9.4. Vì sao sort sau khi filter?
+### 9.4. Why sort after filtering?
 
-Nếu không có preferred hợp lệ và strict=false, selector chọn trong tập **đã đủ điều kiện** theo:
+If there is no valid preferred provider and strict=false, the selector chooses from the **eligible** set by:
 
-1. **priority giảm dần**.
-2. Nếu bằng priority, **id tăng dần**.
+1. **priority descending**.
+2. If priorities tie, **id ascending**.
 
-Nhờ vậy việc thêm JAR hoặc thay đổi thứ tự service file không làm tự động thay đổi provider được chọn **trong trường hợp tập provider/priority/ID thực sự không đổi**. Nếu thêm provider mới có priority cao hơn, chọn lựa có thể thay đổi theo chính sách; cần ghi log để giải thích quyết định này.
+As a result, adding a JAR or changing the order of entries in the service file does not automatically change the selected provider **as long as the actual set of providers/priorities/IDs stays unchanged**. If a new provider with a higher priority is added, the selection may change according to policy; log this decision to explain why.
 
-### 9.5. Vì sao strict phải thất bại?
+### 9.5. Why must strict fail?
 
-Strict thể hiện ý định “**chỉ dùng provider ID này**”. Khi preferred không tồn tại hoặc không đáp ứng format/features, tự chuyển sang provider khác sẽ vi phạm cam kết cấu hình. Code vì vậy ném **NoSuchElementException** với thông điệp có ID bị từ chối; Main biến nó thành một dòng ERROR.
+Strict expresses the intent "**use only this provider ID**". When the preferred provider does not exist or fails to meet format/features, silently switching to another provider would violate the configuration contract. The code therefore throws **NoSuchElementException** with a message containing the rejected ID; Main turns it into an ERROR line.
 
-Ở hệ thống production, thường chuyển tình huống này thành một kiểu lỗi domain như **ProviderSelectionException** kèm reason code, thay vì phụ thuộc nội dung text exception.
+In production systems, this situation is usually modeled as a domain error type such as **ProviderSelectionException** with a reason code, rather than relying on exception message text.
 
-## 10. Biên dịch và đóng gói trên Java 17
+## 10. Compiling and Packaging on Java 17
 
-Từ thư mục **provider-selection-lab**, chạy với JDK 17 trở lên.
+From the **provider-selection-lab** directory, run with JDK 17 or newer.
 
 ### 10.1. Linux/macOS (bash)
 
@@ -640,7 +640,7 @@ jar --create --file build/providers.jar -C build/providers .
 javac --release 17 -encoding UTF-8 -cp build/api -d build/app app/src/demo/app/Main.java
 ~~~
 
-JAR cần chứa các class provider và resource:
+The JAR must contain the provider classes and resource:
 
 ~~~text
 META-INF/services/demo.spi.ReportProvider
@@ -649,19 +649,19 @@ demo/providers/MarkdownProvider.class
 demo/providers/HtmlProvider.class
 ~~~
 
-Kiểm tra bằng:
+Inspect with:
 
 ~~~bash
 jar --list --file build/providers.jar
 ~~~
 
-Danh sách JAR cũng có thể có **META-INF/MANIFEST.MF** và các entry thư mục; điều quan trọng là service descriptor và ba class phải tồn tại đúng đường dẫn.
+The JAR listing may also include **META-INF/MANIFEST.MF** and directory entries; what matters is that the service descriptor and the three classes exist at the exact paths.
 
-**Không đóng gói bản duplicate của API trong providers.jar** khi host đã có API cùng phiên bản. Cả hai phía phải tham chiếu cùng kiểu **demo.spi.ReportProvider** theo class identity; sự trùng binary name ở các class loaders khác nhau không có nghĩa là cùng một Java Class.
+**Do not package a duplicate copy of the API inside providers.jar** when the host already has the same API version. Both sides must reference the same **demo.spi.ReportProvider** type by class identity; identical binary names across different class loaders do not constitute the same Java Class.
 
-## 11. Chạy các cấu hình người dùng và đối chiếu kết quả
+## 11. Running User Configurations and Comparing Results
 
-Chương trình cho phép các option:
+The program accepts the options:
 
 ~~~text
 --format=text|markdown|html
@@ -670,9 +670,9 @@ Chương trình cho phép các option:
 --strict=true|false
 ~~~
 
-**Cú pháp là --key=value**, không có dấu cách giữa key và dấu bằng. Không nhập ký tự **|** vào command thực tế; chúng chỉ biểu thị các lựa chọn trong tài liệu. Có thể bỏ option để nhận giá trị mặc định: format=text, requiredFeatures rỗng, preferredId rỗng, strict=false.
+**The syntax is --key=value**, with no spaces around the equals sign. Do not type **|** in actual commands; it merely denotes choices in the documentation. Options can be omitted to use defaults: format=text, requiredFeatures empty, preferredId empty, strict=false.
 
-### 11.1. Ưu tiên plain khi nó đáp ứng đủ
+### 11.1. Prefer plain when it meets all requirements
 
 Linux/macOS:
 
@@ -694,9 +694,9 @@ selected=plain
 rendered=TEXT: Hello <Java>
 ~~~
 
-Dù md có priority 30, **preferred plain** thắng vì nó đã qua hard filter. Đây là cách ưu tiên người dùng mà không phá điều kiện bắt buộc.
+Even though md has priority 30, **preferred plain** wins because it passed the hard filter. This honors user preference without violating mandatory constraints.
 
-### 11.2. Preferred không hỗ trợ Markdown, strict=false cho phép fallback
+### 11.2. Preferred does not support Markdown, strict=false allows fallback
 
 Linux/macOS:
 
@@ -718,9 +718,9 @@ selected=md
 rendered=# Hello <Java>
 ~~~
 
-Plain không có format markdown hoặc feature heading; nó bị loại khỏi danh sách eligible. Vì strict=false theo mặc định, host chọn md là provider hợp lệ.
+Plain lacks the markdown format and heading feature; it is excluded from the eligible list. Because strict=false by default, the host selects md as an eligible provider.
 
-### 11.3. Yêu cầu HTML có màu sắc
+### 11.3. Requesting HTML with color
 
 Linux/macOS:
 
@@ -742,9 +742,9 @@ selected=html
 rendered=<h1 style="color:navy">Hello &lt;Java&gt;</h1>
 ~~~
 
-HtmlProvider là provider duy nhất công bố đủ format html và feature color. Ở đây lựa chọn của người dùng được **thử**, nhưng bị bác vì không đáp ứng hard constraints. HTML provider còn escape đầu vào trước khi tạo HTML output.
+HtmlProvider is the only provider declaring both the html format and color feature. Here the user's preference is **evaluated**, then rejected for failing hard constraints. The HTML provider also escapes input before generating HTML output.
 
-### 11.4. Không có preferred: chọn theo priority
+### 11.4. No preferred provider: select by priority
 
 Linux/macOS:
 
@@ -766,9 +766,9 @@ selected=md
 rendered=MD-TEXT: Hello <Java>
 ~~~
 
-Plain và md đều hợp lệ, nhưng md có priority 30 so với 10. Nếu muốn plain, người dùng có thể đặt **--prefer=plain**.
+Plain and md are both eligible, but md has priority 30 compared to 10. If the user wants plain, they can set **--prefer=plain**.
 
-### 11.5. Strict preference không hợp lệ phải báo lỗi
+### 11.5. Ineligible strict preference must report an error
 
 Linux/macOS:
 
@@ -790,9 +790,9 @@ java -cp "build/api;build/app;build/providers.jar" demo.app.Main --format=markdo
 ERROR=preferred provider not eligible: plain
 ~~~
 
-Đây là hành vi **đúng** của strict mode: không có dòng selected, không chạy render, không tự dùng md dù md đủ điều kiện.
+This is the **correct** behavior of strict mode: no selected line, no render call, and no automatic fallback to md even though md is eligible.
 
-### 11.6. Không có provider nào đáp ứng định dạng
+### 11.6. No provider satisfies the format
 
 Linux/macOS:
 
@@ -813,9 +813,9 @@ java -cp "build/api;build/app;build/providers.jar" demo.app.Main --format=pdf --
 ERROR=no eligible provider
 ~~~
 
-Bộ lọc không tự bỏ qua format=pdf. Nếu yêu cầu bắt buộc không được hỗ trợ, kết quả đúng là “không có provider hợp lệ”.
+The filter does not silently drop format=pdf. If a mandatory requirement is unsupported, the right outcome is "no eligible provider".
 
-### 11.7. Strict=true nhưng không chọn preferred
+### 11.7. Strict=true without choosing a preferred provider
 
 Linux/macOS:
 
@@ -836,34 +836,34 @@ java -cp "build/api;build/app;build/providers.jar" demo.app.Main --strict=true
 ERROR=strict requires --prefer
 ~~~
 
-Đây là lỗi cấu hình được phát hiện **trước service discovery**. Cần phân biệt input sai với lỗi do thiếu provider.
+This is a configuration error detected **before service discovery**. Invalid input must be distinguished from errors caused by missing providers.
 
-## 12. Chọn provider theo capability: thiết kế điều kiện đúng
+## 12. Capability-Based Provider Selection: Designing Conditions Properly
 
-### 12.1. Mô hình AND giữa các required features
+### 12.1. AND model across required features
 
-Code của ReportProvider dùng:
+The ReportProvider code uses:
 
 ~~~java
-// Mảnh minh họa trong ReportProvider.
+// Illustrative snippet inside ReportProvider.
 return formats().contains(request.format())
         && features().containsAll(request.requiredFeatures());
 ~~~
 
-Điều này nghĩa là yêu cầu **requires=unicode,heading** cần có cả unicode và heading. Không phải “có một trong hai”. Nếu nghiệp vụ cần biểu thức OR, NOT hoặc nhóm yêu cầu phức tạp, hãy mô hình hóa điều kiện rõ hơn thay vì giả định Set.containsAll làm mọi việc.
+This means **requires=unicode,heading** demands both unicode and heading, not "either one". If business rules require OR, NOT, or complex grouped conditions, model the criteria explicitly rather than assuming Set.containsAll handles everything.
 
-### 12.2. Phân biệt capability và preference
+### 12.2. Distinguishing capability from preference
 
-**Capability** cho biết *provider có thực hiện được yêu cầu không*. **Preference** cho biết *trong các provider phù hợp, người dùng muốn ưu tiên cái nào*. **Priority** là chính sách fallback của host khi không có preferred hợp lệ.
+**Capability** tells whether *a provider can fulfill the request*. **Preference** tells *which eligible provider the user prefers*. **Priority** is the host's fallback policy when no eligible preferred provider exists.
 
-Các khái niệm này không được trộn với nhau. Một provider có priority rất cao vẫn bị loại nếu thiếu **format** hoặc **requiredFeatures**.
+These concepts must not be mixed. Even a provider with a very high priority is eliminated if it lacks **format** or **requiredFeatures**.
 
-### 12.3. Capability động phụ thuộc request
+### 12.3. Dynamic request-dependent capabilities
 
-Trong ví dụ, capabilities là các Set cố định. Khi mở rộng thực tế, có thể thêm:
+In the example, capabilities are fixed Sets. In real extensions, you can add:
 
 ~~~java
-// Mảnh minh họa: bổ sung một chính sách trong một provider.
+// Illustrative snippet: adding a policy inside a provider.
 @Override
 public boolean supports(RenderRequest request) {
     return ReportProvider.super.supports(request)
@@ -871,26 +871,26 @@ public boolean supports(RenderRequest request) {
 }
 ~~~
 
-**Mảnh trên không chạy độc lập** vì quotaService là dependency của ứng dụng thực. Nó chỉ thể hiện hướng override. Nếu quota thay đổi theo thời gian, kết quả của supports có thể đổi giữa lúc chọn và lúc render; phải có cơ chế reservation/transaction hoặc kiểm tra lại ở bước xử lý. Không nên coi câu trả lời supports là bảo đảm vĩnh viễn nếu có external state.
+**The snippet above does not run standalone** because quotaService is an application dependency. It only shows the override pattern. If quota changes over time, the result of supports may change between selection and rendering; you need a reservation/transaction mechanism or a re-check during execution. Never treat a supports answer as a permanent guarantee when external state is involved.
 
-### 12.4. Cấu hình nên được validate tại ranh giới
+### 12.4. Configuration should be validated at the boundary
 
-Code Main xử lý unknown key, duplicate option, strict không phải true/false, format rỗng và required feature rỗng. Trong ứng dụng thực, có thể thay CLI bằng JSON, YAML, environment variables hoặc UI. Dù lấy nguồn nào, cần chuẩn hóa key/ID, kiểm tra required features và **không silently ignore cấu hình không hiểu**.
+Main handles unknown keys, duplicate options, strict values other than true/false, empty format, and empty required features. In real applications, CLI may be replaced by JSON, YAML, environment variables, or a UI. Regardless of the source, normalize keys/IDs, validate required features, and **never silently ignore unrecognized configuration**.
 
-Ví dụ: người dùng gõ **--requires=colr** thay vì color. Selector phải trả no eligible provider; không được tự bỏ qua colr để chọn bất kỳ renderer nào.
+For example, suppose a user types **--requires=colr** instead of color. The selector must return no eligible provider; it must not drop colr and pick an arbitrary renderer.
 
-## 13. Khi nào nên dùng Provider.type() trước Provider.get()?
+## 13. When to Use Provider.type() Before Provider.get()?
 
-**ServiceLoader.stream()** trả stream của **ServiceLoader.Provider<S>**, khác với **ServiceLoader.iterator()** vốn cung cấp trực tiếp instance service.
+**ServiceLoader.stream()** returns a stream of **ServiceLoader.Provider<S>**, unlike **ServiceLoader.iterator()**, which directly yields service instances.
 
-- **Provider.type()** trả một Class mô tả provider type. Ở classpath constructor route, thường là class implementation. Có thể kiểm tra annotation trên type mà chưa instantiate.
-- **Provider.get()** tạo/nhận service instance, dùng để gọi methods như supports, id, render. Nó có thể phát sinh lỗi cấu hình hoặc chi phí constructor.
-- **ServiceLoader.iterator()** thường instantiate provider khi duyệt, cũng có thể dùng nếu bạn cần metadata instance ngay.
+- **Provider.type()** returns a Class describing the provider type. On the classpath constructor route, this is typically the implementation class. You can inspect annotations on the type without instantiating it.
+- **Provider.get()** creates/retrieves the service instance for calling methods such as supports, id, and render. It may incur configuration errors or constructor overhead.
+- **ServiceLoader.iterator()** generally instantiates providers during iteration and can be used when instance metadata is needed right away.
 
-Ví dụ mảnh lọc theo annotation:
+Example snippet filtering by annotation:
 
 ~~~java
-// Mảnh minh họa, giả sử có annotation @PreferredBackend.
+// Illustrative snippet, assuming @PreferredBackend annotation exists.
 ServiceLoader<ReportProvider> loader =
         ServiceLoader.load(ReportProvider.class);
 
@@ -901,27 +901,27 @@ var candidates = loader.stream()
         .toList();
 ~~~
 
-**Đây không phải chương trình độc lập**: PreferredBackend phải được định nghĩa. Và có một lưu ý quan trọng của JPMS: Nếu explicit named module dùng **public static provider()** làm provider factory, **Provider.type() trả declared return type của provider method**, không nhất thiết là class provider được viết trong module descriptor. Đừng xây chính sách chọn provider dựa trên assumption type() luôn trỏ đến class implementation vật lý.
+**This is not a standalone program**: PreferredBackend must be defined. And there is an important JPMS caveat: if an explicit named module uses **public static provider()** as a provider factory, **Provider.type() returns the declared return type of the provider method**, not necessarily the provider class written in the module descriptor. Do not build a provider selection policy assuming type() always points to the concrete implementation class.
 
-Với tính năng **user preference + dynamic capabilities**, chọn **factory service** nhẹ để đọc metadata, rồi mới tạo renderer/resource tốn kém là một hướng thiết kế mạnh hơn. Ví dụ này chủ động instantiate cả ba provider vì constructor rẻ, nhằm tập trung vào logic lựa chọn.
+For **user preference + dynamic capabilities**, choosing a lightweight **factory service** to read metadata and only then creating expensive renderers/resources is a stronger design. This example intentionally instantiates all three providers because their constructors are cheap, keeping the focus on selection logic.
 
-## 14. Xử lý ServiceConfigurationError đúng cách
+## 14. Handling ServiceConfigurationError Properly
 
-Trong demo, lỗi selection thường là **IllegalArgumentException** hoặc **NoSuchElementException**. Nhưng **ServiceLoader** có thể ném **ServiceConfigurationError** khi:
+In the demo, selection errors are usually **IllegalArgumentException** or **NoSuchElementException**. However, **ServiceLoader** can throw **ServiceConfigurationError** when:
 
-- Resource **META-INF/services** sai format hoặc chỉ đến class không tồn tại.
-- Provider không implements đúng service hoặc thiếu public no-arg constructor ở classpath.
-- Constructor hoặc provider factory ném lỗi.
-- Lỗi I/O hoặc class loading khi ServiceLoader phát hiện provider.
+- The **META-INF/services** resource is malformed or points to a non-existent class.
+- The provider does not properly implement the service or lacks a public no-arg constructor on the classpath.
+- A constructor or provider factory throws an error.
+- An I/O or class loading failure occurs while ServiceLoader discovers providers.
 
-**ServiceConfigurationError là Error**, không nằm trong catch IllegalArgumentException | NoSuchElementException của ví dụ. Điều này **có chủ đích**: cấu hình deployment hỏng không bị biến thành lỗi người dùng “no eligible provider”.
+**ServiceConfigurationError is an Error**, so it is not caught by the example's IllegalArgumentException | NoSuchElementException catch block. This is **intentional**: a broken deployment configuration is not disguised as a user error like "no eligible provider".
 
-Trong hệ thống production có biên giới quản lý plugin, có thể bắt lỗi ở tầng bootstrap/plugin manager để log đầy đủ và cách ly plugin bị lỗi, nhưng không nên âm thầm bỏ qua nó rồi chọn provider khác mà không có chính sách rõ. Nếu provider được cài bởi bên thứ ba, cần quyết định fail-fast hay isolate-one-provider và có thông tin audit.
+In production systems with plugin management boundaries, you can catch it at the bootstrap/plugin-manager layer to log full details and isolate the faulty plugin, but you should not silently ignore it and fall back to another provider without an explicit policy. If providers are installed by third parties, decide between fail-fast or isolate-one-provider and maintain audit information.
 
-**Tránh xử lý kiểu này:**
+**Avoid handling it like this:**
 
 ~~~java
-// Anti-pattern minh họa, không phải code độc lập.
+// Illustrative anti-pattern, not standalone code.
 try {
     return ServiceLoader.load(ReportProvider.class)
             .findFirst().orElse(null);
@@ -930,19 +930,19 @@ try {
 }
 ~~~
 
-Đoạn trên nuốt cả lỗi lập trình/deployment và khiến việc debug cực kỳ khó. Phân biệt:
+The snippet above swallows programming/deployment errors and makes debugging extremely difficult. Distinguish between:
 
-- Không có provider được tìm thấy: danh sách discovered rỗng.
-- Có provider nhưng không đáp ứng yêu cầu: eligible rỗng.
-- Người dùng chọn provider cụ thể nhưng strict thất bại: preferred không eligible.
-- Cấu hình SPI bị hỏng: ServiceConfigurationError.
-- Provider được chọn gặp lỗi render: lỗi thực thi nghiệp vụ hoặc deployment của provider, cần xử lý riêng.
+- No provider found: discovered list is empty.
+- Providers exist but none meet requirements: eligible is empty.
+- User selected a specific provider and strict failed: preferred not eligible.
+- Broken SPI configuration: ServiceConfigurationError.
+- Selected provider fails during render: business execution or provider deployment error, handled separately.
 
-## 15. Đưa thiết kế sang JPMS hoặc module path
+## 15. Adapting the Design to JPMS or Module Path
 
-Ví dụ chính dùng classpath và **META-INF/services**. Khi chuyển sang explicit named modules, service mechanism vẫn là ServiceLoader nhưng cách khai báo provider thay đổi.
+The main example uses the classpath and **META-INF/services**. When moving to explicit named modules, the service mechanism remains ServiceLoader, but provider declarations change.
 
-**Module API** (mảnh minh họa):
+**API module** (illustrative snippet):
 
 ~~~java
 module report.api {
@@ -950,7 +950,7 @@ module report.api {
 }
 ~~~
 
-**Module provider** (mảnh minh họa):
+**Provider module** (illustrative snippet):
 
 ~~~java
 module report.plugins {
@@ -962,7 +962,7 @@ module report.plugins {
 }
 ~~~
 
-**Module host** (mảnh minh họa):
+**Host module** (illustrative snippet):
 
 ~~~java
 module report.host {
@@ -971,158 +971,158 @@ module report.host {
 }
 ~~~
 
-Đây là các **module-info.java minh họa**, không phải yêu cầu chỉnh ví dụ classpath thành module tự động. Khi triển khai JPMS thật, phải compile đúng module layout, resolve provider module và đảm bảo tất cả modules có thể đọc API contract.
+These are **illustrative module-info.java snippets**, not a requirement to automatically convert the classpath example into modules. In a real JPMS deployment, you must compile a proper module layout, resolve provider modules, and ensure all modules can read the API contract.
 
-Với **automatic module** (JAR legacy không có module-info.class trên module path), ServiceLoader có thể sử dụng service metadata suy ra từ META-INF/services, nhưng automatic-module provider phải có **public no-arg constructor**. Không có hỗ trợ cho static provider factory method ở automatic module.
+With an **automatic module** (a legacy JAR without module-info.class on the module path), ServiceLoader can use service metadata derived from META-INF/services, but an automatic-module provider must have a **public no-arg constructor**. Static provider factory methods are not supported in automatic modules.
 
-Với explicit named module, có thể dùng **provides ... with ...** và, nếu khai báo đúng, một **public static provider()** không tham số được ServiceLoader gọi; khi đó **Provider.type()** có thể là return type của method ấy. Đây là lý do phải thiết kế logic chọn capability dựa trên hợp đồng service ổn định, không dựa vào tên implementation class nếu không cần.
+With an explicit named module, you can use **provides ... with ...** and, when properly declared, a no-arg **public static provider()** method invoked by ServiceLoader; in that case **Provider.type()** can be the return type of that method. This is another reason to base capability selection on a stable service contract rather than relying on implementation class names unnecessarily.
 
-**Không dùng ServiceLoader.findFirst() để tự quyết thứ tự ưu tiên giữa các module**, vì thứ tự providers thuộc các module trong cùng layer không được đảm bảo tổng quát. Giữ thuật toán sort theo priority + ID như trong bài.
+**Do not use ServiceLoader.findFirst() to determine priority order across modules**, because provider order across modules in the same layer is not generally guaranteed. Keep the priority + ID sorting algorithm shown in this exercise.
 
-## 16. Cân nhắc cấu hình, bảo mật và vòng đời provider
+## 16. Configuration, Security, and Provider Lifecycle Considerations
 
-### 16.1. Nguồn cấu hình phải rõ ràng
+### 16.1. Configuration sources must be explicit
 
-Cấu hình có thể đến từ CLI, properties file, environment variables hoặc giao diện. Xác định độ ưu tiên giữa chúng (ví dụ CLI ghi đè file), validate từng nguồn và ghi log lựa chọn cuối cùng. Không tự suy đoán preferred provider từ thứ tự file trong JAR.
+Configuration may come from CLI, properties files, environment variables, or a UI. Define precedence among them (e.g., CLI overrides file), validate each source, and log the final choice. Never infer a preferred provider from file order inside a JAR.
 
-### 16.2. ID là hợp đồng người dùng
+### 16.2. IDs are a user-facing contract
 
-Khi user lưu **--prefer=md**, **id()** trở thành public configuration contract. Đừng đổi ID tùy tiện khi rename class. Nếu đổi, cần alias/migration. Nếu hai JAR công bố cùng ID, selector phải từ chối hoặc có chính sách namespace rõ.
+Once a user saves **--prefer=md**, **id()** becomes a public configuration contract. Do not rename IDs arbitrarily when refactoring class names. If an ID changes, provide an alias or migration path. If two JARs declare the same ID, the selector must reject the collision or apply an explicit namespacing policy.
 
-### 16.3. Provider metadata không phải bảo mật
+### 16.3. Provider metadata is not security
 
-**features()** và **supports()** chỉ là lời khai khả năng của provider. Một provider không tin cậy có thể nói sai, và constructor/renderer có thể chạy code tùy ý trong JVM. Không sử dụng capability filter để coi provider là sandbox. Khi thực thi plugin không tin cậy, cần cách ly process/container hoặc cơ chế bảo mật phù hợp và xác minh supply chain.
+**features()** and **supports()** are merely self-reported declarations by a provider. An untrusted provider can lie, and constructors/renderers can execute arbitrary code inside the JVM. Never use a capability filter as a security sandbox. When running untrusted plugins, use process/container isolation or proper security controls along with supply-chain verification.
 
-### 16.4. Lựa chọn không đồng nghĩa đăng ký trọn vòng đời
+### 16.4. Selection is not full lifecycle management
 
-Demo tạo mọi provider một lần để kiểm tra metadata. Trong hệ thống thực tế, provider có thể mở kết nối, thread pool hoặc file handle. Nếu service tạo resource, nên có lifecycle contract rõ ràng (ví dụ Closeable, factory tạo session rồi close), hoặc lazy initialization sau khi chọn. Không để constructor của provider làm tác vụ đắt bất ngờ.
+The demo instantiates every provider once to inspect metadata. In real systems, providers may open connections, thread pools, or file handles. If a service allocates resources, define an explicit lifecycle contract (such as Closeable, or a factory that creates and closes sessions), or lazily initialize resources after selection. Avoid unexpected expensive work inside provider constructors.
 
-### 16.5. Concurrency và cache
+### 16.5. Concurrency and caching
 
-ServiceLoader có cache và **reload()** để phát hiện lại providers, nhưng việc sửa module path/classpath không phải lúc nào cũng làm mọi class loader tự nhận JAR mới. Các cấu hình instance có thể khác giữa request; tránh cache một lựa chọn chỉ theo format nếu còn requiredFeatures, preferred ID hay policy strict khác. Lựa chọn theo external health/quota cũng cần invalidation.
+ServiceLoader caches providers and offers **reload()** to rediscover them, though modifying the module path/classpath does not always cause all class loaders to pick up new JARs automatically. Request configurations can vary per call; avoid caching a selection keyed only by format when requiredFeatures, preferred ID, or strict policy may differ. Selection based on external health/quota also requires invalidation.
 
-**ServiceLoader không phải cấu trúc dùng chung thread-safe cho mọi thao tác**; cần quản lý việc tìm và dùng providers trong runtime đồng thời theo tài liệu và quy tắc class loader. Tránh gọi **reload()** trong lúc đang duyệt stream/iterator khác của cùng ServiceLoader.
+**ServiceLoader is not a thread-safe shared structure for arbitrary concurrent operations**; manage provider lookup and usage in concurrent runtimes according to its documentation and class loader rules. Avoid calling **reload()** while iterating another stream or iterator of the same ServiceLoader.
 
-### 16.6. Độ ổn định của chọn lựa
+### 16.6. Selection stability
 
-Comparator priority rồi ID giúp ổn định khi tập provider không đổi. Nếu thêm một provider có priority cao, kết quả automatic có thể thay đổi. Ghi lại **providerId**, **format**, **requiredFeatures**, **policy version** và lý do fallback trong log giúp truy vết thay đổi.
+Sorting by priority then ID keeps selection stable when the provider set is unchanged. If a new provider with higher priority is added, automatic selection can change. Recording **providerId**, **format**, **requiredFeatures**, **policy version**, and fallback reasons in logs makes changes traceable.
 
-## 17. Kiểm thử chọn provider có hệ thống
+## 17. Systematic Testing of Provider Selection
 
-Nên tách logic chọn khỏi System.out và CLI khi đưa vào production. Viết unit tests cho các tình huống:
+Separate selection logic from System.out and CLI before moving to production. Write unit tests covering:
 
-| Test | Input | Kỳ vọng |
+| Test | Input | Expected |
 |---|---|---|
-| Preferred phù hợp | text, unicode, plain, strict=true | **plain** |
-| Preferred thiếu capability, fallback | markdown, heading, plain, strict=false | **md** |
-| Preferred thiếu capability, strict | markdown, heading, plain, strict=true | **lỗi** |
-| Không preferred, hai provider eligible | text, unicode | **md** theo priority |
-| Chỉ một provider eligible | html, color | **html** |
-| Không có provider format | pdf | **no eligible provider** |
-| Không có feature | text, ocr | **no eligible provider** |
-| Unknown CLI key | --unknown=x | **lỗi cấu hình** |
-| Strict thiếu preferred | --strict=true | **lỗi cấu hình** |
-| Hai provider cùng priority | hai provider eligible | **ID tăng dần** |
-| Hai provider trùng ID | IDs không duy nhất | **fail-fast** |
-| Provider class hỏng | service descriptor sai | **ServiceConfigurationError** |
+| Preferred eligible | text, unicode, plain, strict=true | **plain** |
+| Preferred lacks capability, fallback | markdown, heading, plain, strict=false | **md** |
+| Preferred lacks capability, strict | markdown, heading, plain, strict=true | **error** |
+| No preferred, two eligible providers | text, unicode | **md** by priority |
+| Single eligible provider | html, color | **html** |
+| No provider for format | pdf | **no eligible provider** |
+| Missing feature | text, ocr | **no eligible provider** |
+| Unknown CLI key | --unknown=x | **configuration error** |
+| Strict missing preferred | --strict=true | **configuration error** |
+| Two providers with equal priority | two eligible providers | **ascending ID** |
+| Two providers with duplicate ID | non-unique IDs | **fail-fast** |
+| Broken provider class | invalid service descriptor | **ServiceConfigurationError** |
 
-**Kiểm thử provider thực tế** nên gồm cả khả năng hỗ trợ đầu vào đặc biệt: Unicode, HTML metacharacters, dữ liệu rỗng, độ dài tối đa, locale và giới hạn resource. Capability quảng bá phải đi kèm kiểm thử hành vi, không chỉ kiểm tra Set.contains().
+**Real provider testing** should also cover special inputs: Unicode, HTML metacharacters, empty data, maximum length, locales, and resource limits. Advertised capabilities must be backed by behavioral tests, not just Set.contains() checks.
 
-### Bài tập 1: thêm CsvProvider
+### Exercise 1: Add CsvProvider
 
-Tạo một class provider mới với ID **csv**, format **csv**, feature **unicode** và priority 15, đăng ký trong META-INF/services rồi chạy **--format=csv**. Kiểm tra provider mới xuất hiện mà không cần thay đổi import hoặc switch-case trong host.
+Create a new provider class with ID **csv**, format **csv**, feature **unicode**, and priority 15, register it in META-INF/services, and run **--format=csv**. Verify the new provider appears without modifying imports or switch-case statements in the host.
 
-Gợi ý nghiệp vụ: cần escape các ô CSV đúng quy tắc quote khi chứa comma, quote hoặc newline; đừng coi ghép chuỗi bằng dấu phẩy là CSV parser/serializer hoàn chỉnh.
+Business hint: properly quote and escape CSV cells containing commas, quotes, or newlines; do not treat joining strings with commas as a complete CSV parser/serializer.
 
-### Bài tập 2: thêm capability max-size
+### Exercise 2: Add a max-size capability
 
-Mở rộng RenderRequest với kích thước input dự kiến; provider override supports để từ chối request vượt giới hạn. Kiểm thử rằng preferred provider **không** vượt qua hard limit và strict=true trả lỗi.
+Extend RenderRequest with expected input size; let providers override supports to reject requests exceeding their limit. Test that a preferred provider **cannot** bypass the hard limit and strict=true returns an error.
 
-### Bài tập 3: đổi chính sách fallback
+### Exercise 3: Change fallback policy
 
-Cho phép người dùng chọn một danh sách ID ưu tiên, ví dụ md rồi html rồi plain. Chỉ chọn từ tập eligible theo thứ tự ưu tiên; nếu không có preferred hợp lệ, dùng priority + ID. Ghi rõ “strict” áp dụng cho **toàn bộ preferred list** hay chỉ phần tử đầu tiên trước khi lập trình.
+Allow the user to specify a prioritized list of IDs, e.g., md then html then plain. Select only from the eligible set in preference order; if none of the preferred IDs are eligible, fall back to priority + ID. Clearly specify whether "strict" applies to the **entire preferred list** or only the first entry before coding.
 
-### Bài tập 4: tách factory khỏi renderer nặng
+### Exercise 4: Separate factory from heavy renderer
 
-Thay ReportProvider instance service bằng **ReportProviderFactory** có metadata nhẹ và **create(request)**. ServiceLoader chọn factory hợp lệ trước, rồi mới khởi tạo resource renderer. Kiểm tra constructor của renderer không chạy đối với provider không được chọn.
+Replace the ReportProvider service instance with a **ReportProviderFactory** having lightweight metadata and **create(request)**. ServiceLoader selects a valid factory first, then instantiates the renderer resource. Verify that constructors of unselected renderers never run.
 
-## 18. Lỗi thường gặp và cách sửa
+## 18. Common Mistakes and Fixes
 
-**Lỗi 1: chọn provider đầu tiên.** Sử dụng findFirst() để quyết định logic nghiệp vụ sẽ khiến thứ tự discovery ảnh hưởng kết quả. **Sửa:** hard filter + preferred + priority + tie-breaker.
+**Mistake 1: Picking the first provider.** Using findFirst() for business decisions lets discovery order dictate outcomes. **Fix:** hard filter + preferred + priority + tie-breaker.
 
-**Lỗi 2: coi preferred là yêu cầu bắt buộc ngay cả khi strict=false.** Điều này không cho fallback dù user cho phép. **Sửa:** thử preferred trong eligible, nếu không có thì fallback chỉ khi strict=false.
+**Mistake 2: Treating preferred as mandatory even when strict=false.** This blocks fallback even when the user allows it. **Fix:** try preferred within the eligible set; if absent, fall back only when strict=false.
 
-**Lỗi 3: cho preferred vượt qua capability filter.** Người dùng ưu tiên plain nhưng yêu cầu html; nếu host vẫn chọn plain thì vi phạm yêu cầu. **Sửa:** lọc format/features trước.
+**Mistake 3: Letting preferred bypass the capability filter.** The user prefers plain yet requests html; if the host still selects plain, requirements are violated. **Fix:** filter format/features first.
 
-**Lỗi 4: quên copy META-INF/services vào JAR.** ServiceLoader có thể trả danh sách rỗng dù class đã compile. **Sửa:** kiểm tra **jar --list** và đúng tên service file.
+**Mistake 4: Forgetting to copy META-INF/services into the JAR.** ServiceLoader may return an empty list even when classes compile. **Fix:** inspect with **jar --list** and verify the exact service file name.
 
-**Lỗi 5: thiếu public no-arg constructor.** Classpath provider không thể được ServiceLoader tạo. **Sửa:** triển khai public no-arg constructor và contract đúng, hoặc chuyển sang explicit JPMS provider method khi phù hợp.
+**Mistake 5: Missing public no-arg constructor.** A classpath provider cannot be instantiated by ServiceLoader. **Fix:** implement a public no-arg constructor and valid contract, or switch to an explicit JPMS provider method where appropriate.
 
-**Lỗi 6: ưu tiên theo thứ tự JAR.** Classpath/module resolution có thể thay đổi, không phải policy ổn định. **Sửa:** comparator tường minh.
+**Mistake 6: Prioritizing by JAR order.** Classpath/module resolution order can change and is not a stable policy. **Fix:** use an explicit comparator.
 
-**Lỗi 7: gọi get() quá sớm trong hệ thống đắt đỏ.** Khởi tạo mọi backend chỉ để xem capability gây chậm/side effects. **Sửa:** factory nhẹ hoặc metadata prefilter, sau đó lazy-create resource thực.
+**Mistake 7: Calling get() too early in costly systems.** Instantiating every backend just to inspect capabilities causes slowdowns/side effects. **Fix:** use a lightweight factory or metadata prefilter, then lazily create actual resources.
 
-**Lỗi 8: nuốt ServiceConfigurationError.** Cấu hình JAR sai bị báo như “không có provider phù hợp”. **Sửa:** phân biệt broken deployment với unsupported request và log đủ cause.
+**Mistake 8: Swallowing ServiceConfigurationError.** A broken JAR configuration gets reported as "no eligible provider". **Fix:** distinguish broken deployments from unsupported requests and log the full cause.
 
-**Lỗi 9: cache kết quả mà bỏ quên preference.** Một lựa chọn cho user A bị dùng cho user B dù họ có cấu hình khác. **Sửa:** cache key đủ format/features/preferred/strict/policy, quản lý stale cache.
+**Mistake 9: Caching results while forgetting preferences.** A selection made for user A gets reused for user B despite different configs. **Fix:** include format/features/preferred/strict/policy in the cache key and handle stale cache invalidation.
 
-**Lỗi 10: dùng capability như quyền truy cập.** Plugin có features() khai báo "secure" không có nghĩa được tin cậy. **Sửa:** phân quyền và cách ly là tầng khác.
+**Mistake 10: Treating capabilities as access permissions.** A plugin declaring "secure" in features() does not make it trustworthy. **Fix:** authorization and isolation belong to a separate layer.
 
-## 19. Câu hỏi tự đánh giá
+## 19. Self-Assessment Questions
 
-**Câu 1.** Tại sao không nên chọn ServiceLoader.findFirst() khi người dùng có cấu hình?
+**Question 1.** Why shouldn't you choose ServiceLoader.findFirst() when users supply configuration?
 
-**Đáp án:** Thứ tự discovery không phải chính sách lựa chọn. Provider đầu tiên có thể không đáp ứng format, requiredFeatures hoặc preference; trong các module thứ tự cũng không được bảo đảm tổng quát.
+**Answer:** Discovery order is not a selection policy. The first provider may fail to satisfy format, requiredFeatures, or preference; across modules, order is not generally guaranteed either.
 
-**Câu 2.** Người dùng chọn **prefer=plain**, **format=markdown**, **strict=false**. Chọn gì?
+**Question 2.** The user sets **prefer=plain**, **format=markdown**, **strict=false**. What is selected?
 
-**Đáp án:** Plain không đủ hard constraints. Fallback chọn md vì nó hỗ trợ markdown. Không báo lỗi nếu có provider hợp lệ khác.
+**Answer:** Plain fails the hard constraints. Fallback selects md because it supports markdown. No error is raised when another eligible provider exists.
 
-**Câu 3.** Cùng cấu hình trên nhưng strict=true?
+**Question 3.** Same configuration as above, but strict=true?
 
-**Đáp án:** Báo lỗi preferred provider not eligible, không tự dùng md.
+**Answer:** Reports preferred provider not eligible error, without automatically falling back to md.
 
-**Câu 4.** Hai provider đều hỗ trợ text/unicode; chọn theo quy tắc gì khi không có preferred?
+**Question 4.** Two providers both support text/unicode; which rule selects one when no preferred provider is set?
 
-**Đáp án:** Sort priority giảm dần, rồi ID tăng dần. Với bảng bài thực hành, md có priority 30 nên thắng plain 10.
+**Answer:** Sort by priority descending, then ID ascending. With the exercise table, md has priority 30 and beats plain at 10.
 
-**Câu 5.** Nếu có provider với priority=100 nhưng thiếu color, nó có được chọn cho requires=color không?
+**Question 5.** If a provider has priority=100 but lacks color, will it be selected for requires=color?
 
-**Đáp án:** Không. Priority chỉ áp dụng sau khi provider thỏa mãn mọi hard constraints.
+**Answer:** No. Priority only applies after a provider satisfies all hard constraints.
 
-**Câu 6.** Vì sao ServiceLoader.Provider.type() không phải lúc nào cũng là class triển khai vật lý?
+**Question 6.** Why isn't ServiceLoader.Provider.type() always the concrete implementation class?
 
-**Đáp án:** Với explicit named module dùng static provider() factory, type() có thể trả declared return type của provider method thay vì factory class.
+**Answer:** In an explicit named module using a static provider() factory, type() can return the declared return type of the provider method rather than the factory class.
 
-**Câu 7.** Tại sao cần phát hiện duplicate provider ID?
+**Question 7.** Why is it necessary to detect duplicate provider IDs?
 
-**Đáp án:** PreferredId là một định danh cấu hình công khai. Nếu hai implementation có cùng ID mà host chọn tùy ý, kết quả khó dự đoán và khó audit.
+**Answer:** PreferredId is a public configuration identifier. If two implementations share an ID and the host picks arbitrarily, behavior becomes unpredictable and hard to audit.
 
-**Câu 8.** Không có provider đủ format khác với META-INF/services bị hỏng như thế nào?
+**Question 8.** How does having no provider supporting the format differ from a corrupted META-INF/services?
 
-**Đáp án:** Không có candidate hợp lệ là kết quả bình thường của lọc capability; descriptor/provider hỏng có thể ném ServiceConfigurationError, báo sự cố deployment cần xử lý riêng.
+**Answer:** Having no eligible candidate is a normal outcome of capability filtering; a corrupted descriptor or provider can throw ServiceConfigurationError, signaling a deployment issue that requires separate handling.
 
-## 20. Checklist hoàn thành bài thực hành
+## 20. Exercise Completion Checklist
 
-1. API định nghĩa được **ReportProvider**, **RenderRequest**, các capability và lựa chọn ưu tiên.
-2. Có ít nhất hai provider độc lập với format/features khác nhau; ví dụ này có ba.
-3. **ServiceLoader** tìm thấy provider từ đúng **META-INF/services** trên classpath.
-4. Host **không import implementation class** và không dùng if/else theo class name.
-5. Cấu hình người dùng được parse/normalize/validate rõ ràng.
-6. Selector chỉ chọn trong **eligible providers** thỏa mãn mọi hard constraints.
-7. **Preferred** có quyền ưu tiên trong eligible, không có quyền vượt qua hard constraints.
-8. **Strict=true** trả lỗi khi preferred không đủ điều kiện; strict=false được fallback.
-9. Fallback chọn theo priority giảm dần, ID tăng dần; ID trùng được chặn.
-10. Có test cho format không tồn tại, feature không hỗ trợ, CLI sai và SPI descriptor lỗi.
-11. Không nuốt lỗi discovery như ServiceConfigurationError; không xem metadata là sandbox.
-12. Ghi log lựa chọn cuối cùng và có vòng đời hợp lý cho provider/resource.
+1. The API defines **ReportProvider**, **RenderRequest**, capabilities, and preference options.
+2. There are at least two independent providers with distinct formats/features; this example has three.
+3. **ServiceLoader** locates providers from the proper **META-INF/services** on the classpath.
+4. The host **does not import implementation classes** and avoids if/else chains on class names.
+5. User configuration is parsed, normalized, and validated explicitly.
+6. The selector chooses only among **eligible providers** meeting all hard constraints.
+7. **Preferred** gets priority within eligible providers, never bypassing hard constraints.
+8. **Strict=true** returns an error when preferred is ineligible; strict=false allows fallback.
+9. Fallback selects by descending priority, then ascending ID; duplicate IDs are blocked.
+10. Tests exist for unknown formats, unsupported features, invalid CLI options, and broken SPI descriptors.
+11. Discovery errors such as ServiceConfigurationError are never swallowed; metadata is not treated as a sandbox.
+12. Final selection is logged and providers/resources follow a sound lifecycle.
 
-**Kết luận:** ServiceLoader cung cấp **discovery và instantiation**, còn ứng dụng phải tự định nghĩa **chính sách selection**. Chính sách an toàn và dễ kiểm thử là **lọc theo khả năng hỗ trợ bắt buộc → xét lựa chọn ưu tiên của người dùng → strict hoặc fallback → tie-break deterministic**. Nhờ vậy hệ thống dễ thêm plugin mà không làm mất kiểm soát kết quả cho từng yêu cầu.
+**Conclusion:** ServiceLoader provides **discovery and instantiation**, while the application must define its own **selection policy**. A safe and testable policy is **filter by mandatory capabilities → evaluate user preference → strict or fallback → deterministic tie-breaker**. This makes it easy to add plugins without losing control over per-request outcomes.
 
-### Tài liệu Java SE 17
+### Java SE 17 Documentation
 
 - ServiceLoader: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 - ServiceLoader.Provider: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.Provider.html
-- Java Service Provider framework, ServiceLoader configuration files và JPMS providers: xem mục Developing/Deploying service providers trong trang ServiceLoader ở trên.
-- Set.copyOf và collection bất biến: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html#copyOf(java.util.Collection)
-- Java record classes, Java Language Specification §8.10: https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10
+- Java Service Provider framework, ServiceLoader configuration files, and JPMS providers: see the Developing/Deploying service providers section on the ServiceLoader page above.
+- Set.copyOf and unmodifiable collections: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html#copyOf(java.util.Collection)
+- Java record classes, Java Language Specification §8.10: https://docs.oracle.com/en/java/javase/17/docs/specs/jls/se17/html/jls-8.html#jls-8.10

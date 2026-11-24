@@ -1,90 +1,90 @@
-# 5.5. Thống nhất dữ liệu đầu vào, thứ tự trường và định dạng tag giữa hai bên
+# 5.5. Aligning Input Data, Field Ordering, and Tag Format Between Two Parties
 
-Trong một hệ thống dùng **mã xác thực thông điệp (Message Authentication Code, MAC)**, việc cả hai phía cùng chọn `HmacSHA256` và cùng giữ một khóa bí mật vẫn **chưa đủ** để xác thực thành công. Phía gửi và phía nhận còn phải tính MAC trên **đúng cùng một dãy byte**, theo **cùng quy tắc sắp xếp trường và mã hóa**, rồi thống nhất **cách biểu diễn, truyền và kiểm tra authentication tag**.
+In a system using a **Message Authentication Code (MAC)**, having both parties choose `HmacSHA256` and hold the same secret key is **still not enough** for authentication to succeed. Sender and receiver must also compute the MAC over the **exact same byte sequence**, following the **same field ordering and encoding rules**, and agree on **how the authentication tag is represented, transmitted, and verified**.
 
-Một lỗi tưởng nhỏ như đổi thứ tự hai trường JSON, dùng ký tự xuống dòng khác nhau, ghi số tiền ở định dạng khác, hoặc hiểu nhầm Base64 thường với Base64URL có thể làm hai phía tạo tag khác nhau. Nguy hiểm hơn, quy tắc ghép dữ liệu mơ hồ có thể khiến **hai thông điệp nghiệp vụ khác nhau tạo cùng chuỗi byte trước khi MAC**, dù bản thân HMAC hoàn toàn an toàn.
+A seemingly small mismatch—such as swapping two JSON fields, using different newline characters, formatting monetary amounts differently, or confusing standard Base64 with Base64URL—can cause both sides to compute different tags. More dangerously, an ambiguous concatenation rule can allow **two distinct business messages to produce the same byte sequence before MACing**, even when HMAC itself is completely secure.
 
-Mục tiêu của bài học:
+Lesson objectives:
 
-- Xác định chính xác những byte phải được xác thực, các trường bắt buộc và ý nghĩa nghiệp vụ của từng trường.
-- Thiết kế một định dạng đầu vào **xác định, không nhập nhằng** giữa hai ngôn ngữ/hệ thống.
-- Quy định thứ tự trường, UTF-8, độ dài trường, kiểu số, version, domain và cách xử lý missing/null/empty.
-- Phân biệt **tag thô dạng byte** với chuỗi hex/Base64/Base64URL trên đường truyền.
-- Viết và kiểm tra một hợp đồng HMAC-SHA256 có **test vector tái lập** bằng Java 17+.
-- Nhận diện các lỗi dẫn tới MAC mismatch, algorithm/key confusion, replay và thiếu phân quyền.
+- Identify the exact bytes that must be authenticated, required fields, and the business meaning of each field.
+- Design a **deterministic, unambiguous** input format across two languages/systems.
+- Specify field ordering, UTF-8, field lengths, numeric types, version, domain, and handling of missing/null/empty values.
+- Distinguish **raw byte tags** from hex/Base64/Base64URL strings on the wire.
+- Write and verify an HMAC-SHA-256 contract with **reproducible test vectors** in Java 17+.
+- Recognize bugs leading to MAC mismatches, algorithm/key confusion, replay, and missing authorization.
 
-## 1. MAC tạo tag cho byte, không tạo tag cho “ý nghĩa” trừu tượng
+## 1. A MAC Computes a Tag Over Bytes, Not Abstract "Meaning"
 
-Với khóa đối xứng bí mật `K` và thông điệp ở dạng byte `M`, thao tác có dạng:
+Given a symmetric secret key `K` and a message as bytes `M`, the operation takes the form:
 
 \[
 T = \operatorname{MAC}_{K}(M)
 \]
 
-Đối tác nhận sẽ tự tính `MAC_K(M_received)` rồi kiểm tra kết quả có phù hợp với tag nhận được hay không.
+The receiving partner computes `MAC_K(M_received)` and checks whether the result matches the received tag.
 
 ```text
-Bên gửi                                         Bên nhận
---------                                        --------
-Dữ liệu nghiệp vụ                               Dữ liệu nghiệp vụ
+Sender                                          Receiver
+------                                          --------
+Business data                                   Business data
         |                                               |
-Canonical encoding (quy tắc chung)            Canonical encoding (cùng quy tắc)
+Canonical encoding (shared rules)               Canonical encoding (same rules)
         |                                               |
-Đúng dãy byte M                                Đúng dãy byte M'
+Exact byte sequence M                           Exact byte sequence M'
         |                                               |
-MAC(K, M)                                      MAC(K, M')
+MAC(K, M)                                       MAC(K, M')
         |                                               |
-Tag bytes T -------- wire encoding --------> Giải mã tag -> T'
+Tag bytes T -------- wire encoding ----------> Decode tag -> T'
                                                         |
-                                               So sánh T' với MAC(K, M')
+                                               Compare T' with MAC(K, M')
                                                         |
-                                               Chỉ xử lý khi mọi kiểm tra đạt
+                                               Process only if all checks pass
 ```
 
-Để xác thực thành công một cách có ý nghĩa, hai phía phải thống nhất ít nhất:
+For authentication to succeed meaningfully, both parties must agree on at least:
 
-1. **Khóa và chính sách sử dụng khóa**: byte khóa nào, `keyId` nào, mục đích nào, ai được quyền giữ khóa và định danh nào gắn với khóa.
-2. **Thuật toán và cấu hình**: chẳng hạn `HmacSHA256` cho tag đầy đủ 32 byte; quy tắc truncation nếu có.
-3. **Input/schema**: những trường nào phải được bảo vệ (bao gồm tenant, tài nguyên, hành động, số tiền, requestId), thứ tự và kiểu dữ liệu.
-4. **Canonical encoding**: đúng byte đầu vào, UTF-8, độ dài, integer endian, xử lý Unicode, JSON và null.
-5. **Wire format của tag**: byte thô, hex, Base64 hay Base64URL; padding, độ dài, viết hoa/thường và nơi đặt tag.
-6. **Version, ngữ cảnh và cách từ chối**: bản tin thuộc protocol nào; có chống replay, giới hạn thời gian, kiểm tra quyền và xử lý lỗi không.
+1. **Key and key-usage policy**: which key bytes, which `keyId`, which purpose, who is allowed to hold the key, and which identity is bound to the key.
+2. **Algorithm and configuration**: e.g., `HmacSHA256` producing a full 32-byte tag; truncation rules if any.
+3. **Input/schema**: which fields must be protected (including tenant, resource, action, amount, requestId), their order, and data types.
+4. **Canonical encoding**: exact input bytes, UTF-8, lengths, integer endianness, Unicode handling, JSON, and nulls.
+5. **Tag wire format**: raw bytes, hex, Base64, or Base64URL; padding, length, letter casing, and where the tag is placed.
+6. **Version, context, and rejection rules**: which protocol the message belongs to; whether replay protection, time bounds, authorization checks, and error handling apply.
 
-**Tính xác định của HMAC**: với cùng thuật toán, cùng byte khóa và cùng byte thông điệp, tag sẽ trùng nhau. Nếu tag khác, đừng vội kết luận thuật toán sai; thường nên kiểm tra byte đã đưa vào MAC trước.
+**Determinism of HMAC**: given the same algorithm, same key bytes, and same message bytes, the tag will match. If the tag differs, do not rush to blame the algorithm; inspect the bytes fed into the MAC first.
 
-### 1.1. HMAC khác hash không khóa
+### 1.1. HMAC differs from an unkeyed hash
 
-`SHA-256(M)` là digest công khai; bất kỳ ai biết `M` đều có thể tính lại. `HMAC-SHA256(K, M)` sử dụng **bí mật `K`** theo một phép xây dựng MAC chuẩn, cho phép bên cũng giữ khóa kiểm tra tính toàn vẹn và nguồn tạo tag thuộc nhóm biết khóa.
+`SHA-256(M)` is a public digest; anyone knowing `M` can recompute it. `HMAC-SHA256(K, M)` uses a **secret `K`** in a standardized MAC construction, letting another party holding the same key verify integrity and that the tag originated from the group knowing the key.
 
-Với khóa HMAC được chia sẻ cho nhiều dịch vụ, một tag đúng chứng minh **bản tin tương thích với khóa chia sẻ**, không xác định duy nhất dịch vụ nào đã tính tag. Muốn gắn với danh tính, bên nhận phải có ánh xạ khóa với principal và kiểm tra quyền nghiệp vụ. MAC không phải chữ ký số dùng public key, không có cơ chế xác minh công khai như chữ ký.
+When an HMAC key is shared among multiple services, a valid tag proves **the message is consistent with the shared key**, without uniquely identifying which service computed the tag. To tie it to an identity, the receiver must map the key to a principal and enforce business authorization. A MAC is not a public-key digital signature and has no public verification mechanism like signatures.
 
-**AEAD** như AES-GCM cũng sinh authentication tag, nhưng tag GCM phụ thuộc cả nonce, ciphertext và AAD theo quy tắc AEAD. Không được lấy tag HMAC thay thế tag GCM, hoặc tự nghĩ “tag là một đoạn text nên hai tag nào cũng tương đương”.
+**AEAD** modes such as AES-GCM also produce an authentication tag, but a GCM tag depends on the nonce, ciphertext, and AAD under AEAD rules. Never substitute an HMAC tag for a GCM tag, or assume "a tag is just a piece of text so any two tags are interchangeable."
 
-## 2. “Cùng dữ liệu” nhưng byte khác nhau
+## 2. "Same Data" Yet Different Bytes
 
-MAC nhìn **byte**, không hiểu cấu trúc đối tượng, JSON, ý nghĩa số tiền hoặc người dùng. Các cặp hiển thị “gần giống” dưới đây có thể tạo byte khác nhau:
+A MAC sees **bytes**; it does not understand object structures, JSON, monetary meaning, or users. The "nearly identical" pairs below can yield different bytes:
 
-| Cùng ý định nghiệp vụ nhưng khác biểu diễn | Ví dụ | Tác động |
+| Same Business Intent, Different Representation | Example | Impact |
 | --- | --- | --- |
-| Thứ tự thuộc tính JSON | `{"amount":100,"currency":"USD"}` và `{"currency":"USD","amount":100}` | Nếu ký byte JSON thô, tag khác |
-| Khoảng trắng JSON | `{"a":1}` và `{ "a": 1 }` | Byte khác dù object logic tương đương |
-| Dấu xuống dòng | LF `\n` và CRLF `\r\n` | Hash/MAC khác |
-| Encoding | UTF-8 và UTF-16LE | Byte khác |
-| Unicode tổ hợp | `é` (U+00E9) và `e` + U+0301 | Có thể hiển thị giống nhau nhưng UTF-8 khác |
-| Số tiền | `1`, `1.0`, `01`, `1e0` | String khác; nếu dùng JSON number còn có khác biệt kiểu/làm tròn |
-| Thời gian | `2026-10-31T12:00:00Z` và `2026-10-31T19:00:00+07:00` | Cùng thời điểm nhưng string khác |
-| Base64 | `+`/`/`/`=` so với `-`/`_` không padding | Cùng dữ liệu nhị phân có thể thành wire text khác |
-| Null/missing/empty | Không có trường, `null`, `""` | Thường là ba trạng thái nghiệp vụ khác nhau |
-| URL | `/a%2Fb` và `/a/b`; query order khác | Có thể có semantics khác qua proxy/router |
-| HTTP header | Trình tự, viết hoa tên, khoảng trắng, header được gộp | Canonical string có thể khác |
+| JSON property order | `{"amount":100,"currency":"USD"}` vs `{"currency":"USD","amount":100}` | When signing raw JSON bytes, tags differ |
+| JSON whitespace | `{"a":1}` vs `{ "a": 1 }` | Different bytes despite logically equivalent objects |
+| Line endings | LF `\n` vs CRLF `\r\n` | Different hash/MAC |
+| Encoding | UTF-8 vs UTF-16LE | Different bytes |
+| Combining Unicode | `é` (U+00E9) vs `e` + U+0301 | May render identically yet have different UTF-8 bytes |
+| Monetary numbers | `1`, `1.0`, `01`, `1e0` | Different strings; JSON numbers can also suffer type/rounding differences |
+| Timestamps | `2026-10-31T12:00:00Z` vs `2026-10-31T19:00:00+07:00` | Same instant in time yet different strings |
+| Base64 | `+`/`/`/`=` vs `-`/`_` without padding | Same binary data yields different wire text |
+| Null/missing/empty | Field omitted, `null`, `""` | Usually three distinct business states |
+| URL | `/a%2Fb` vs `/a/b`; different query order | May carry different semantics across proxies/routers |
+| HTTP headers | Ordering, header name casing, whitespace, merged headers | Canonical string may differ |
 
-Ví dụ:
+Example:
 
 ```json
 {"tenant":"shop-1","amount":1299}
 ```
 
-và
+and
 
 ```json
 {
@@ -93,18 +93,18 @@ và
 }
 ```
 
-có thể là cùng object nghiệp vụ, nhưng không là cùng chuỗi byte. Nếu phía gửi MAC trên JSON đã format còn phía nhận parse rồi serialize lại theo thứ tự khác, HMAC sẽ không khớp.
+may represent the same business object, yet they are not the same byte sequence. If the sender computes the MAC over formatted JSON while the receiver parses and re-serializes in a different order, the HMAC will not match.
 
-Có **hai chiến lược đúng** nhưng phải chọn một cách nhất quán:
+There are **two valid strategies**, and you must pick one consistently:
 
-- **MAC đúng byte đã gửi:** bên nhận tính trên đúng payload bytes được truyền và không serialize lại trước khi xác minh. Cần quy định rõ lúc nào byte được lấy, ví dụ trước/sau compression hay content transformation. Cách này tránh phải canonicalize lại JSON nhưng MAC vẫn phải bao phủ đầy đủ ngữ cảnh bên ngoài body nếu nghiệp vụ cần.
-- **MAC trên canonical representation:** cả hai phía chuyển dữ liệu logic thành đúng một encoding theo schema đã công bố. Chọn binary length-prefix, CBOR deterministic profile hoặc quy tắc canonical JSON phù hợp; cả hai bên phải cùng thực hiện.
+- **MAC the exact transmitted bytes:** the receiver computes over the exact transmitted payload bytes without re-serializing before verification. Clearly specify when bytes are captured, e.g., before/after compression or content transformation. This avoids re-canonicalizing JSON, though the MAC must still cover relevant context outside the body if required.
+- **MAC a canonical representation:** both parties transform logical data into a single byte encoding per a published schema. Pick length-prefixed binary, a deterministic CBOR profile, or a suitable canonical JSON rule; both sides must follow the exact same rule.
 
-Không tự pha trộn hai chiến lược, chẳng hạn sender ký raw JSON còn receiver ký object đã parse.
+Never mix the two strategies—for instance, sender signing raw JSON while receiver signs a re-parsed object.
 
-## 3. Thứ tự trường và cách ngăn nhập nhằng
+## 3. Field Ordering and Preventing Ambiguity
 
-Một quy tắc nguy hiểm là nối chuỗi trực tiếp:
+A dangerous rule is direct string concatenation:
 
 ```text
 M = tenantId + requestId
@@ -113,9 +113,9 @@ tenantId = "ab"; requestId = "c"   -> "abc"
 tenantId = "a";  requestId = "bc"  -> "abc"
 ```
 
-Hai bản tin **khác nhau** tạo **cùng byte input**. Vì thế chúng sẽ có cùng HMAC với cùng khóa, **không cần phá HMAC hay tìm collision mật mã**. Đây là lỗi định dạng trước khi tính MAC.
+Two **different** messages produce **the exact same input bytes**. Thus they share the same HMAC under the same key, **without breaking HMAC or finding a cryptographic collision**. This is a formatting bug prior to MAC computation.
 
-Nối trường bằng dấu phân cách đơn giản cũng chưa chắc an toàn nếu dấu ấy có thể xuất hiện trong dữ liệu. Ví dụ:
+Joining fields with a simple delimiter is also unsafe if that delimiter can appear in the data. For example:
 
 ```text
 tenantId + "|" + requestId
@@ -124,35 +124,35 @@ tenantId + "|" + requestId
 ("a", "b|c") -> "a|b|c"
 ```
 
-Những giải pháp tốt:
+Good solutions:
 
-1. **Độ dài trước trường (length prefix):** ghi độ dài byte cố định 4 byte rồi ghi đúng số byte đó; parser có thể đọc lại ranh giới.
-2. **Mã hóa cấu trúc có chuẩn:** dùng deterministic CBOR / canonical JSON profile được chỉ định và kiểm thử chéo.
-3. **Delimiter + escape chặt chẽ:** chỉ nếu protocol công bố escape rules một nghĩa và kiểm thử đầy đủ, tránh tự nghĩ escaping.
-4. **Trường có kiểu/độ rộng cố định:** integer 64-bit, version byte, boolean 0/1, enum có miền giá trị giới hạn.
+1. **Length prefix before each field:** write a fixed 4-byte length followed by that exact number of bytes; a parser can unambiguously recover boundaries.
+2. **Standardized structured encoding:** use a specified deterministic CBOR / canonical JSON profile and cross-test it.
+3. **Strict delimiter + escaping:** only if the protocol publishes unambiguous escape rules and tests them thoroughly; avoid inventing ad-hoc escaping.
+4. **Fixed-type/fixed-width fields:** 64-bit integers, version byte, boolean 0/1, bounded-domain enums.
 
-### 3.1. Hợp đồng binary cụ thể cho ví dụ payment
+### 3.1. Concrete binary contract for a payment example
 
-Ta chọn một profile minh họa `PAYMENTS-HMAC-V1`, bao gồm các trường theo đúng thứ tự:
+Let's choose an illustrative profile `PAYMENTS-HMAC-V1`, containing fields in exact order:
 
-| Vị trí | Trường | Encoding | Ghi chú |
+| Position | Field | Encoding | Notes |
 | --- | --- | --- | --- |
-| 1 | `version` | 1 byte giá trị `0x01` | Cố định theo phiên bản protocol |
-| 2 | `domain` | 4-byte length + UTF-8 bytes của `payments.request` | Không cho dùng cùng tag trong protocol khác |
-| 3 | `tenantId` | 4-byte length + UTF-8 bytes | Ràng buộc tenant |
-| 4 | `requestId` | 4-byte length + UTF-8 bytes | Dùng ở lớp replay/idempotency |
-| 5 | `amountMinor` | Integer signed 64-bit, **big-endian**, chính xác 8 byte | 1299 nghĩa là 12,99 đơn vị khi tiền tệ có 2 chữ số thập phân |
-| 6 | `currency` | 4-byte length + UTF-8 bytes | Ví dụ `USD`, chuẩn hóa/kiểm tra theo policy |
-| 7 | `tag` | **Không** nằm trong MAC input | Tính HMAC sau khi đã serialize 6 trường trên |
+| 1 | `version` | 1 byte with value `0x01` | Fixed per protocol version |
+| 2 | `domain` | 4-byte length + UTF-8 bytes of `payments.request` | Prevents reusing the same tag in another protocol |
+| 3 | `tenantId` | 4-byte length + UTF-8 bytes | Binds the tenant |
+| 4 | `requestId` | 4-byte length + UTF-8 bytes | Used by the replay/idempotency layer |
+| 5 | `amountMinor` | Signed 64-bit integer, **big-endian**, exact 8 bytes | 1299 means 12.99 units when the currency has 2 decimal places |
+| 6 | `currency` | 4-byte length + UTF-8 bytes | e.g. `USD`, validated/normalized per policy |
+| 7 | `tag` | **Not** in MAC input | Compute HMAC after serializing the 6 fields above |
 
-Trong đó:
-- Mỗi length prefix là unsigned không âm được biểu diễn bằng `writeInt` 4 byte big-endian và bị giới hạn tối đa **65.535 byte** ở ví dụ.
-- `writeLong` của Java dùng **8 byte big-endian**. Ngôn ngữ khác phải tuân thủ cùng số byte và signed representation; không gửi số tiền dạng `double` hay chuỗi theo locale.
-- Chuỗi được mã hóa bằng `StandardCharsets.UTF_8`. Trong minh họa, không thực hiện Unicode normalization ngầm. Hệ thống thật phải định nghĩa rõ policy chấp nhận/reject/normalize đầu vào trước khi serialize.
-- `version` và `domain` làm rõ thông điệp này thuộc dạng “payment request, v1”, tránh cùng một chuỗi byte bị hiểu thành thông điệp loại khác (cross-protocol confusion).
-- Các giá trị `tenantId` và `requestId` **phải được phía nhận kiểm tra với danh tính và trạng thái nghiệp vụ đáng tin**, không coi những giá trị client khai báo là tự động có quyền.
+Where:
+- Each length prefix is a non-negative value written via 4-byte big-endian `writeInt` and capped at **65,535 bytes** in this example.
+- Java's `writeLong` uses **8 bytes big-endian**. Other languages must match the exact byte count and signed representation; do not send monetary amounts as `double` or locale-formatted strings.
+- Strings are encoded using `StandardCharsets.UTF_8`. In this illustration, no implicit Unicode normalization is performed. Real systems must clearly specify their input accept/reject/normalize policy prior to serialization.
+- `version` and `domain` make explicit that this message is a "payment request, v1", preventing the same byte sequence from being misinterpreted as another message type (cross-protocol confusion).
+- `tenantId` and `requestId` **must be verified by the receiver against trusted identity and business state**, never treating client-declared values as automatically authorized.
 
-Sơ đồ byte:
+Byte layout:
 
 ```text
 01
@@ -165,9 +165,9 @@ Sơ đồ byte:
    +--> HMAC-SHA256(K, all preceding bytes) => 32 tag bytes
 ```
 
-Độ dài `0x10 = 16` byte cho `payments.request`; `0x08 = 8` cho `tenant-A`; `0x05 = 5` cho `req-7`; `0x0513 = 1299` trong trường số 8 byte.
+Lengths: `0x10 = 16` bytes for `payments.request`; `0x08 = 8` for `tenant-A`; `0x05 = 5` for `req-7`; `0x0513 = 1299` in the 8-byte numeric field.
 
-Cặp input cố định sẽ dùng làm test vector:
+Fixed input pair used as a test vector:
 
 ```text
 version = 1
@@ -182,96 +182,96 @@ Canonical input (hex):
 01000000107061796d656e74732e726571756573740000000874656e616e742d41000000057265712d37000000000000051300000003555344
 ```
 
-**Không dùng khóa cố định công khai này trong sản phẩm.** Nó là fixture để hai phía có thể so sánh từng byte trong bài học, tương tự một test vector.
+**Never use this public fixed key in production.** It is a fixture so both sides can compare byte-for-byte in this lesson, like a test vector.
 
-### 3.2. Nguyên tắc với dữ liệu thiếu và kiểu dữ liệu
+### 3.2. Principles for missing values and data types
 
-Định nghĩa protocol cần trả lời từng trường:
+The protocol definition must answer for every field:
 
-- Trường **bắt buộc** thiếu thì từ chối trước khi tính/kiểm tra; không tự coi bằng chuỗi rỗng.
-- Nếu **nullable** có ý nghĩa, phải thêm byte đánh dấu trạng thái hoặc một encoding quy định rõ khác biệt `absent/null/value`.
-- Nếu cho phép **mảng**, phải ghi count và encoding của từng phần tử, công bố thứ tự có nghĩa hay phải sort. Nếu sort, dùng cùng comparator theo byte/chuẩn, không dựa vào locale mỗi máy.
-- Nếu cho phép **map**, phải quy định thứ tự key, cách xử lý duplicate key và Unicode. Không dùng thứ tự lặp của `HashMap` làm wire contract.
-- Nếu có **số thập phân**, chọn đơn vị nhỏ nhất dạng integer (`amountMinor`) hoặc dạng decimal canonical rõ ràng; không phụ thuộc `BigDecimal.toString()` ở các hệ khác khi chưa có hợp đồng.
-- Với **thời gian**, ưu tiên epoch UTC theo đơn vị xác định, chẳng hạn signed int64 milliseconds; nếu chọn ISO 8601, bắt buộc một dạng chính xác cùng fractional digits/timezone.
+- Missing **required** fields must be rejected before computation/verification; never silently treat them as empty strings.
+- If **nullable** is meaningful, add a state marker byte or an encoding that clearly distinguishes `absent/null/value`.
+- If **arrays** are allowed, write the count and encoding of each element, and specify whether order is significant or must be sorted. If sorted, use the exact same byte/standard comparator, never machine-specific locale.
+- If **maps** are allowed, specify key ordering, duplicate key handling, and Unicode rules. Never rely on `HashMap` iteration order as a wire contract.
+- For **decimals**, choose integer minor units (`amountMinor`) or an explicit canonical decimal format; do not rely on `BigDecimal.toString()` across systems without a contract.
+- For **timestamps**, prefer UTC epoch in a fixed unit, such as signed int64 milliseconds; if choosing ISO 8601, enforce a single exact format including fractional digits and timezone.
 
-Dữ liệu ngoài miền hợp lệ phải bị từ chối có kiểm soát. **Canonicalization không thay thế schema validation hoặc kiểm tra quyền.**
+Out-of-domain data must be rejected cleanly. **Canonicalization does not replace schema validation or authorization checks.**
 
-## 4. Đối với JSON và HTTP, cần quyết định miền byte được ký
+## 4. For JSON and HTTP, Decide the Signed Byte Domain
 
-### 4.1. Có thể dùng JSON, nhưng cần một profile cụ thể
+### 4.1. JSON can be used, but needs a specific profile
 
-Nếu chọn canonical JSON, không chỉ nói chung “sort keys”. Cần công bố cụ thể chuẩn, ví dụ **JSON Canonicalization Scheme (JCS, RFC 8785)** khi phù hợp: quy tắc về property order, serialization của string và number, và các ràng buộc JSON/I-JSON. JSON interop còn cần chú ý độ chính xác số nguyên lớn vượt miền biểu diễn chính xác của IEEE 754, duplicate property, Unicode, escape sequences và kiểu dữ liệu.
+If choosing canonical JSON, do not merely say "sort keys." Publish a specific standard, such as **JSON Canonicalization Scheme (JCS, RFC 8785)** when applicable: rules for property ordering, string and number serialization, and JSON/I-JSON constraints. JSON interoperability also requires attention to large integers beyond IEEE 754 exact precision, duplicate properties, Unicode, escape sequences, and data types.
 
-Ví dụ truyền thống:
+Traditional example:
 
 ```json
 {"currency":"USD","amount":1299,"requestId":"req-7"}
 ```
 
-Tránh giả định một framework serializer Java hoặc JavaScript bất kỳ sẽ tạo byte giống nhau chỉ vì cả hai cho kết quả JSON có vẻ tương đương. Nếu chọn JCS, dùng implementation tuân thủ chuẩn và test vector giao tiếp. Nếu yêu cầu số nguyên 64 bit chính xác giữa Java và JavaScript, có thể phải biểu diễn theo **chuỗi số dạng chuẩn** hoặc dùng định dạng binary có hỗ trợ số nguyên xác định.
+Do not assume an arbitrary Java or JavaScript serializer will emit identical bytes merely because both produce logically equivalent JSON. If choosing JCS, use a compliant implementation and cross-system test vectors. If exact 64-bit integers are needed between Java and JavaScript, you may need **canonical numeric strings** or a binary format supporting deterministic integers.
 
-Đặc biệt, khi verify chữ ký/MAC trên raw JSON, parser ứng dụng **không nên chấp nhận các dạng nhập nhằng** (như duplicate property khác cách xử lý) khiến byte được xác thực và object thực thi có ngữ nghĩa khác nhau.
+Especially when verifying signatures/MACs on raw JSON, the application parser **should not accept ambiguous forms** (such as duplicate properties handled differently) that cause the verified bytes and executed object to carry different semantics.
 
-### 4.2. Đối với HTTP request
+### 4.2. For HTTP requests
 
-Khi xác thực API bằng MAC, “ký body” chỉ là một phần. Hợp đồng cần chỉ rõ những thông tin nào ảnh hưởng đến ý nghĩa request:
+When authenticating APIs with a MAC, "signing the body" is only part of it. The contract must specify which details affect the request's meaning:
 
-- Method (`POST` hay `GET`) và path, route, query parameter nào được bao gồm?
-- Host, tenant, resourceId, user/service principal, content type và body nào phải bảo vệ?
-- Có timestamp, nonce hoặc requestId được bảo vệ bằng MAC không?
-- Chính xác body bytes ở lớp nào: sau parsing, trước compression hay sau reverse proxy transformation?
-- Nếu một proxy đổi header ordering, rewrite URL hay convert line endings, hai bên có còn dùng cùng canonical representation không?
+- Method (`POST` vs `GET`) and which path, route, and query parameters are included?
+- Which host, tenant, resourceId, user/service principal, content type, and body must be protected?
+- Is there a MAC-protected timestamp, nonce, or requestId?
+- At which layer are body bytes captured: after parsing, before compression, or after reverse proxy transformations?
+- If a proxy reorders headers, rewrites URLs, or converts line endings, will both parties still produce the same canonical representation?
 
-Không ký mọi header không kiểm soát rồi hy vọng client/server đồng ý, vì proxy có thể thêm/bớt header. Cũng không ký thiếu dữ liệu có ý nghĩa: nếu MAC chỉ bảo vệ body nhưng route chuyển từ `/orders` sang `/refunds` mà không được ràng buộc, bên nhận có thể hiểu request theo một hành động khác.
+Do not sign arbitrary uncontrolled headers hoping client and server agree, as proxies can add or remove headers. Nor should you omit meaningful data: if a MAC protects only the body while the route changes from `/orders` to `/refunds` without binding, the receiver could interpret the request as a different action.
 
-Với HTTP, nên cân nhắc dùng chuẩn request-signature phù hợp và công bố rõ canonicalization profile. Nếu thiết kế giao thức nội bộ riêng, phải có fixture từ cả hai phía và test các biến thể proxy/HTTP stack.
+For HTTP, consider using an established request-signature standard and clearly publishing the canonicalization profile. If designing an internal protocol, maintain fixtures from both sides and test across proxy/HTTP stack variations.
 
-## 5. Tag bytes và tag trên đường truyền
+## 5. Tag Bytes and Wire Representation of Tags
 
-Với **HMAC-SHA256 đầy đủ**, kết quả `Mac.doFinal(...)` gồm **32 byte = 256 bit**. Các cách biểu diễn cùng tag:
+With **full HMAC-SHA256**, `Mac.doFinal(...)` outputs **32 bytes = 256 bits**. Ways to represent the same tag:
 
-| Cách biểu diễn | Kích thước đối với tag 32 byte | Đặc điểm |
+| Representation | Size for a 32-Byte Tag | Characteristics |
 | --- | --- | --- |
-| Raw bytes | 32 byte | Phù hợp binary protocol; không phải UTF-8 text tùy ý |
-| Hex lowercase | 64 ký tự ASCII | Dễ đọc/debug, tốn dung lượng gấp đôi raw |
-| Base64 chuẩn có padding | 44 ký tự (thường kết thúc `=`) | Dùng ký tự `+` và `/`, có padding |
-| Base64URL không padding | 43 ký tự ASCII | Dùng `-` và `_`, thuận tiện URL/header |
+| Raw bytes | 32 bytes | Suitable for binary protocols; not arbitrary UTF-8 text |
+| Lowercase hex | 64 ASCII characters | Easy to read/debug, twice the size of raw bytes |
+| Standard Base64 with padding | 44 characters (typically ends with `=`) | Uses `+` and `/`, includes padding |
+| Base64URL without padding | 43 ASCII characters | Uses `-` and `_`, convenient for URLs/headers |
 
-Vì **cùng một dãy 32 byte** có nhiều cách mã hóa, hai phía cần thống nhất:
+Because **the exact same 32 bytes** have multiple encodings, both sides must agree on:
 
-1. Dạng wire được phép (ví dụ Base64URL không padding), đúng bảng chữ cái và quy tắc padding.
-2. Case của chuỗi hex; có cho phép chữ hoa không? Nếu có phải quy định nhất quán.
-3. Độ dài tag sau giải mã (ví dụ **đúng 32 byte**). Không so sánh độ dài string để thay thế kiểm tra byte.
-4. Có cho phép whitespace, xuống dòng, tiền tố `0x` hay ký tự phân cách không? Nên chọn dạng canonical duy nhất và từ chối định dạng khác.
-5. Chuỗi tag được truyền ở trường nào, có phần khác cùng tên hoặc duplicate header không, có bị URL/form decoding biến đổi không?
-6. Chính sách từ chối tag sai/hết hạn và phản hồi lỗi không tiết lộ chi tiết nội bộ.
+1. Permitted wire format (e.g., Base64URL without padding), exact alphabet, and padding rules.
+2. Case sensitivity for hex strings; are uppercase letters allowed? If so, specify consistently.
+3. Decoded tag length (e.g., **exactly 32 bytes**). Never compare string lengths instead of validating byte lengths.
+4. Are whitespace, newlines, `0x` prefixes, or separators allowed? Pick a single canonical form and reject all others.
+5. Which field carries the tag, whether duplicate headers/fields with the same name exist, and whether URL/form decoding alters it?
+6. Rejection policy for invalid/expired tags and error responses that do not leak internal details.
 
-**Đừng bao giờ** chuyển raw tag bytes bằng `new String(tagBytes, UTF_8)`: tag là dữ liệu nhị phân không bảo đảm tạo thành UTF-8 hợp lệ. Cũng đừng so sánh chuỗi hex bên gửi với chuỗi Base64 bên nhận: phải decode theo đúng profile trước khi so sánh.
+**Never** convert raw tag bytes using `new String(tagBytes, UTF_8)`: a tag is binary data and is not guaranteed to form valid UTF-8. Nor should you compare a sender's hex string with a receiver's Base64 string: decode according to the profile before comparing.
 
-### 5.1. Có nên rút ngắn HMAC tag?
+### 5.1. Should you truncate an HMAC tag?
 
-Một số protocol quy định tag bị truncate còn `t` bit để tiết kiệm băng thông. Đây là **quyết định protocol** có hậu quả về độ khó giả mạo; không phải chuyện “cắt vài ký tự Base64 cho gọn”. Nếu truncate, phải quy định chính xác số **bit/byte đầu**, quy tắc encoding, độ dài tối thiểu, giới hạn số lần thử và threat model. Với thiết kế mới, ưu tiên **full 32-byte HMAC-SHA256** khi không có lý do chuẩn hóa đặc biệt để rút ngắn.
+Some protocols specify truncating tags to `t` bits to save bandwidth. That is a **protocol decision** with forgery-resistance tradeoffs, not "chopping off a few Base64 characters for brevity." When truncating, specify the exact number of **leading bits/bytes**, encoding rules, minimum length, attempt limits, and threat model. For new designs, prefer **full 32-byte HMAC-SHA256** unless a specific standardization constraint requires truncation.
 
-Nếu đối thủ có nhiều lần thử online với tag ngắn, cơ hội đoán đúng tăng theo số lần thử. Giới hạn rate, timeout, kiểm tra nonce/replay và xử lý thất bại an toàn vẫn cần thiết. Không chấp nhận client tự quyết định độ dài tag rồi server so sánh bao nhiêu byte client cung cấp.
+If an adversary gets many online guesses against a short tag, guessing odds grow with attempts. Rate limits, timeouts, nonce/replay checks, and safe failure handling remain essential. Never let the client choose the tag length and compare only as many bytes as the client sends.
 
-### 5.2. Kiểm tra tag an toàn
+### 5.2. Safe tag verification
 
-Về nguyên tắc, verify:
+In principle, verify by:
 
-1. Kiểm tra framing, format, độ dài, thuật toán/phiên bản được cho phép; từ chối dữ liệu malformed.
-2. Xác định khóa đúng từ nguồn tin cậy và cấu hình chính sách; **không tin keyId tự khai như bằng chứng danh tính**.
-3. Tự serialize đúng canonical bytes từ dữ liệu được phép xử lý.
-4. Tính lại HMAC trên toàn bộ bytes, dùng API so sánh byte theo thời gian ít phụ thuộc nội dung, như `MessageDigest.isEqual(...)`, khi hai digest đã có độ dài mong đợi.
-5. Chỉ sau khi MAC đúng mới xét freshness/replay và quyền nghiệp vụ trước khi tạo side effect.
+1. Validating framing, format, length, and allowed algorithm/version; rejecting malformed data.
+2. Resolving the key from a trusted source and policy configuration; **never trust a self-declared `keyId` as identity proof**.
+3. Re-serializing the exact canonical bytes from validated input data.
+4. Recomputing HMAC over all bytes, using a byte-comparison API with minimal content-dependent timing, such as `MessageDigest.isEqual(...)`, once both digests have the expected length.
+5. Only after the MAC passes, evaluating freshness/replay and business authorization before causing side effects.
 
-Tránh `String.equals(...)` hoặc `Arrays.equals(...)` làm cơ chế so sánh cuối cùng giữa **tag kỳ vọng và tag bí mật do client gửi**, vì timing của phép so sánh thông thường có thể phụ thuộc nội dung/điểm lệch. Vẫn có các yêu cầu khác về xác thực, xử lý lỗi và mạng; một phép so sánh an toàn không bảo đảm toàn bộ giao thức không rò rỉ thông tin.
+Avoid `String.equals(...)` or `Arrays.equals(...)` as the final comparison between **the expected tag and a client-supplied secret tag**, as ordinary comparisons can vary in timing based on content/mismatch position. Other requirements around authentication, error handling, and networking still apply; a safe comparison alone does not guarantee the entire protocol leaks no information.
 
-## 6. Java 17+: test vector HMAC trên binary canonical encoding
+## 6. Java 17+: HMAC Test Vector Over Canonical Binary Encoding
 
-Ví dụ sau cố định thuật toán, thứ tự và format; kết quả HMAC trên một request giống nhau phải tái lập được giữa các hệ triển khai.
+The following example fixes the algorithm, ordering, and format; HMAC results for an identical request must be reproducible across implementations.
 
-Tạo tệp `MacWireDemo.java`:
+Create `MacWireDemo.java`:
 
 ```java
 import java.io.ByteArrayOutputStream;
@@ -349,14 +349,14 @@ public class MacWireDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac MacWireDemo.java
 java MacWireDemo
 ```
 
-Stdout chính xác của ví dụ với JDK 17+:
+Exact stdout of the example on JDK 17+:
 
 ```text
 Input hex: 01000000107061796d656e74732e726571756573740000000874656e616e742d41000000057265712d37000000000000051300000003555344
@@ -369,70 +369,70 @@ Malformed tag verified: false
 Same request replay verified: true
 ```
 
-**Giải thích những điểm thiết yếu:**
+**Explanation of essential points:**
 
-- `canonical()` là **hợp đồng byte**, không phải serialization ngầm của Java record. DataOutputStream ghi theo thứ tự cố định; `writeInt` là length prefix 4 byte, `writeLong` là số 8 byte big-endian.
-- `field()` dùng UTF-8 byte length, **không dùng Java `String.length()`** vì `String.length()` đếm UTF-16 code units. Với các ký tự ngoài ASCII, số byte UTF-8 thường khác độ dài chuỗi Java.
-- `Mac.getInstance("HmacSHA256")` tính **HMAC-SHA256**; `SecretKeySpec` chỉ biểu diễn key bytes và tên thuật toán, không tự bảo vệ khóa khỏi lộ.
-- `base64url()` thống nhất URL-safe alphabet và bỏ padding. Bên nhận decode, kiểm tra đúng 32 byte và mã hóa lại để yêu cầu **canonical wire representation** trước khi so sánh.
-- `MessageDigest.isEqual(...)` so sánh **tag bytes**, không so sánh chuỗi biểu diễn hoặc bản tin text.
-- Thay số tiền từ 1299 thành 1399, hoặc đổi tenant, tạo input MAC khác nên verify `false`.
-- `"invalid+tag"` chứa ký tự `+` không thuộc alphabet Base64URL, bị từ chối. Các dạng wire sai encoding/length cũng phải bị từ chối.
-- **Đáng chú ý:** dòng `Same request replay verified: true` là **đúng**. HMAC không tự chống replay. Hai request giống hệt nhau cho cùng tag; server thật phải xử lý `requestId` theo cơ chế freshness, chống replay hoặc idempotency có trạng thái.
-- Khóa hardcoded, business validation chưa hoàn chỉnh và không có replay store vì ví dụ nhằm chứng minh **byte contract và tag format**. Trong môi trường thật, lấy khóa từ hệ thống quản lý bí mật, kiểm tra miền giá trị đầu vào và áp quyền/giới hạn thời gian.
+- `canonical()` is the **byte contract**, not implicit Java record serialization. DataOutputStream writes in a fixed order; `writeInt` is a 4-byte length prefix, `writeLong` is an 8-byte big-endian integer.
+- `field()` uses the UTF-8 byte length, **never Java's `String.length()`** because `String.length()` counts UTF-16 code units. For non-ASCII characters, the UTF-8 byte count generally differs from Java string length.
+- `Mac.getInstance("HmacSHA256")` computes **HMAC-SHA256**; `SecretKeySpec` only represents key bytes and algorithm name and does not itself protect the key from disclosure.
+- `base64url()` enforces the URL-safe alphabet without padding. The receiver decodes, checks for exact 32 bytes, and re-encodes to require **canonical wire representation** before comparing.
+- `MessageDigest.isEqual(...)` compares **tag bytes**, not encoded strings or plaintext messages.
+- Changing the amount from 1299 to 1399, or changing the tenant, produces different MAC input so `verify` returns `false`.
+- `"invalid+tag"` contains `+`, which is not in the Base64URL alphabet, and is rejected. Other invalid wire encodings/lengths must likewise be rejected.
+- **Worth noting:** the line `Same request replay verified: true` is **expected**. HMAC does not prevent replay on its own. Two identical requests yield the same tag; a real server must enforce `requestId` through freshness, anti-replay, or stateful idempotency.
+- The hardcoded key, incomplete business validation, and lack of a replay store are intentional because the example demonstrates **the byte contract and tag format**. In real environments, load keys from a secret management system, validate input domains, and enforce authorization and time limits.
 
-### 6.1. Cách tạo test vector cho hệ thống thứ hai
+### 6.1. How to create a test vector for a second system
 
-Gửi cho đội implement bằng ngôn ngữ khác **đầy đủ**:
+Send the team implementing in another language **all** of the following:
 
-1. Phiên bản protocol và định dạng byte ở bảng phần 3, gồm byte order và length prefix.
-2. Dữ liệu đầu vào đúng giá trị: `tenant-A`, `req-7`, integer `1299`, `USD`.
-3. Khóa demo đúng **32 ASCII byte**, không phải hex-decoded key: `0123456789abcdef0123456789abcdef`.
-4. Canonical input ở dạng hex: cả chuỗi phải khớp chính xác trước khi tính HMAC.
-5. Tag HMAC-SHA256 ở dạng Base64URL **không padding**: `nEOzXhbbnYCVX0rn1leWKWA-OR9mZLAraX4FJOfZArU`.
-6. Test âm: đổi amount/tenant, sai key, sai version, đảo thứ tự trường, tag sai format và tag sai độ dài.
+1. Protocol version and byte layout from Section 3's table, including byte order and length prefixes.
+2. Exact input values: `tenant-A`, `req-7`, integer `1299`, `USD`.
+3. Demo key of exact **32 ASCII bytes**, not a hex-decoded key: `0123456789abcdef0123456789abcdef`.
+4. Canonical input in hex: the entire string must match byte-for-byte before computing HMAC.
+5. HMAC-SHA256 tag in Base64URL **without padding**: `nEOzXhbbnYCVX0rn1leWKWA-OR9mZLAraX4FJOfZArU`.
+6. Negative tests: changed amount/tenant, wrong key, wrong version, swapped field order, malformed tag, and wrong tag length.
 
-Khi một bên không tạo đúng tag, bước đầu tiên là so sánh **hex của canonical bytes**, rồi mới xét key bytes, thuật toán và tag encoding. Không nên “sửa cho chạy” bằng cách trim, sort hoặc chuyển Base64/hex ngầm trên server.
+When one party fails to produce the right tag, the first step is comparing **hex of the canonical bytes**, then checking key bytes, algorithm, and tag encoding. Never "make it work" by silently trimming, sorting, or converting Base64/hex on the server.
 
-### 6.2. Cùng data model nhưng khác thứ tự = khác MAC input
+### 6.2. Same data model yet different order = different MAC input
 
-Giả sử một client viết các trường theo thứ tự `tenantId, requestId, currency, amountMinor`, trong khi server viết `tenantId, requestId, amountMinor, currency`. Dù chúng có cùng giá trị nghiệp vụ, byte sẽ khác nhau; tag từ client không thể xác minh theo quy tắc server.
+Suppose a client writes fields in the order `tenantId, requestId, currency, amountMinor`, while the server writes `tenantId, requestId, amountMinor, currency`. Even with identical business values, the bytes will differ; the client's tag cannot verify under the server's rules.
 
-Tương tự, nếu client ghi length prefix 4 byte theo little-endian còn server đọc big-endian, parser có thể hiểu độ dài sai hoặc xác minh HMAC trên byte khác. **Endian là một phần của giao thức**, không phải chi tiết để runtime tự chọn.
+Similarly, if the client writes 4-byte length prefixes in little-endian while the server reads big-endian, the parser may misread lengths or verify HMAC over different bytes. **Endianness is part of the protocol**, not a runtime detail left to chance.
 
-Không sửa vấn đề bằng việc cho server thử nhiều thứ tự, nhiều kiểu encoding hoặc nhiều thuật toán đến khi có một tag đúng. Cơ chế “thử mọi cách” có thể mở ra các biểu diễn nhập nhằng và làm mất ý nghĩa version/security policy.
+Do not fix this by having the server try multiple orderings, multiple encodings, or multiple algorithms until one tag passes. A "try everything" mechanism can open ambiguous representations and defeat versioning and security policy.
 
-## 7. Ranh giới giữa canonicalization, integrity, identity và replay
+## 7. Boundaries Between Canonicalization, Integrity, Identity, and Replay
 
-### 7.1. MAC chứng minh những byte được bảo vệ, không chứng minh mọi điều
+### 7.1. A MAC proves the protected bytes, not everything
 
-Tag chỉ có thể bảo vệ **các trường thực sự đã đưa vào input**. Nếu amount được ký nhưng currency không ký, đối thủ có thể tìm cách đổi `USD` sang tiền tệ khác mà tag không phát hiện nếu server không ràng buộc currency bằng nơi khác.
+A tag only protects **the fields actually included in the input**. If amount is signed while currency is not, an adversary may find a way to change `USD` to another currency undetected unless the server binds currency elsewhere.
 
-Ví dụ trong hệ thống nhiều tenant:
-- `tenantId` phải nằm trong input MAC **và** server phải kiểm tra tenant đó được phép dùng khóa/principal hiện tại.
-- `resourceId` hoặc route định hướng quyền cũng nên được ràng buộc nếu chúng ảnh hưởng đến nghiệp vụ.
-- Các thành phần như `keyId` và `algorithm` nếu truyền trong envelope phải đi theo profile tin cậy: keyId dùng tra khóa đã cấp quyền, algorithm được lựa chọn bằng allowlist/chính sách server; không cho client ép giải mã/verify bằng thuật toán khác.
-- `version` phải được xác thực hoặc nằm trong signed/MAC input để ngăn đổi cách diễn giải payload mà vẫn giữ tag.
+For example, in a multi-tenant system:
+- `tenantId` must be inside the MAC input **and** the server must verify that this tenant is permitted to use the current key/principal.
+- `resourceId` or authorization-relevant routes should also be bound when they affect business semantics.
+- Fields like `keyId` and `algorithm`, if carried in the envelope, must follow a trusted profile: `keyId` looks up an authorized key, and algorithm is chosen by server allowlist/policy; never let the client force verification under another algorithm.
+- `version` must be authenticated or included in the signed/MAC input to prevent reinterpreting the payload while keeping the tag.
 
-**Dữ liệu được bảo vệ toàn vẹn chưa chắc là dữ liệu đáng tin về nghiệp vụ.** Nếu client hợp lệ dùng khóa HMAC nhưng không có quyền thanh toán cho tenant khác, MAC vẫn có thể đúng; authorization phải độc lập kiểm tra quyền.
+**Integrity-protected data is not automatically business-trusted data.** If a valid client holds an HMAC key yet has no permission to pay for another tenant, the MAC can still verify; authorization must independently check permissions.
 
-### 7.2. MAC hợp lệ không tự chứng minh request là mới
+### 7.2. A valid MAC does not prove a request is fresh
 
-Hình dung một lệnh chuyển tiền có cùng `tenantId`, `requestId`, `amountMinor` và tag được gửi hai lần. Cả hai lần có thể vượt qua HMAC. Server phải kiểm tra request đã được xử lý hay chưa.
+Imagine a transfer command with the same `tenantId`, `requestId`, `amountMinor`, and tag sent twice. Both can pass HMAC. The server must check whether the request has already been processed.
 
-Các cơ chế thường phối hợp:
-- **Request ID/idempotency key:** ghi nhận trong kho trạng thái với phạm vi principal/tenant; nhiều lần gửi cùng lệnh trả kết quả đã xử lý hoặc bị từ chối theo hợp đồng.
-- **Timestamp + allowed clock skew:** đặt trong MAC input; từ chối request quá hạn nhưng timestamp một mình không ngăn replay bên trong cửa sổ thời gian.
-- **Nonce hoặc sequence number:** đưa vào MAC input; receiver theo dõi tính duy nhất/thứ tự phù hợp (và xử lý retry/chạy nhiều instance).
-- **Token dùng một lần hoặc challenge-response** khi workflow cần bảo đảm freshness mạnh hơn.
+Mechanisms commonly combined:
+- **Request ID/idempotency key:** recorded in a state store scoped to principal/tenant; repeated submissions of the same command return the prior result or are rejected per contract.
+- **Timestamp + allowed clock skew:** included in MAC input; reject expired requests, though timestamp alone does not stop replay within the time window.
+- **Nonce or sequence number:** included in MAC input; receiver tracks uniqueness/order appropriately (handling retries and multi-instance deployments).
+- **One-time tokens or challenge-response** when workflows require stronger freshness guarantees.
 
-Trong hệ thống phân tán, replay store cần atomicity/consistency; nếu hai server xử lý đồng thời một `requestId` mà chỉ kiểm tra bằng cache cục bộ, lệnh có thể chạy hai lần dù MAC đúng.
+In distributed systems, the replay store needs atomicity/consistency; if two servers concurrently handle the same `requestId` using only local caches, the command can execute twice even with a valid MAC.
 
-## 8. Versioning, rotation và tương thích nhiều phiên bản
+## 8. Versioning, Rotation, and Multi-Version Compatibility
 
-Giao thức MAC phải có **định danh phiên bản rõ ràng**. Khi thêm trường `merchantId`, đổi precision của `amountMinor` hoặc chuyển từ text delimiter sang length-prefix, cần tạo profile mới chứ không âm thầm thay encoding của v1.
+A MAC protocol must carry an **explicit version identifier**. When adding `merchantId`, changing `amountMinor` precision, or switching from text delimiters to length-prefixing, create a new profile rather than silently altering v1's encoding.
 
-Ví dụ envelope để mô tả thành phần truyền, không phải byte contract cuối cùng:
+Illustrative envelope showing wire components, not the final byte contract:
 
 ```json
 {
@@ -446,126 +446,126 @@ Ví dụ envelope để mô tả thành phần truyền, không phải byte cont
 }
 ```
 
-Tag ở trên là **test vector cho khóa demo, domain và canonical bytes của phần 6**, không phải tag do khóa production tương ứng với ví dụ `keyId` tạo. Trường `keyId` trong envelope chỉ minh họa metadata định tuyến; trong một profile production có key rotation, phải công bố cách `keyId` được bind vào input MAC và cách receiver ánh xạ nó tới đúng khóa tin cậy. **Không dùng envelope minh họa làm yêu cầu triển khai nguyên xi.**
+The tag above is the **test vector for the demo key, domain, and canonical bytes from Section 6**, not a tag generated by a production key corresponding to the sample `keyId`. The `keyId` field in the envelope merely illustrates routing metadata; in a production profile with key rotation, you must publish how `keyId` is bound into the MAC input and how the receiver maps it to the right trusted key. **Do not treat the illustrative envelope as a verbatim implementation specification.**
 
-Khi chuyển phiên bản:
-1. Ghi hồ sơ độc lập cho v1/v2: algorithms, fields, byte order, domain, tag length, encoding.
-2. Server chỉ chấp nhận các phiên bản được policy cho phép; xác thực version trong MAC input.
-3. Map `keyId` tới khóa có scope, chủ thể, trạng thái và thuật toán được phép; hạn chế đợt chấp nhận đồng thời nhiều key cũ.
-4. Duy trì tập test vectors cho mỗi version và test các trường hợp không hợp lệ.
-5. Có thời điểm kết thúc support version/khóa cũ; tránh fallback tự động khi verify thất bại.
+When migrating versions:
+1. Document v1/v2 profiles independently: algorithms, fields, byte order, domain, tag length, encoding.
+2. Server accepts only policy-permitted versions; validate version inside the MAC input.
+3. Map `keyId` to a key with permitted scope, principal, status, and algorithm; bound the overlap window accepting old keys.
+4. Maintain test vector suites per version and test invalid cases.
+5. Set a sunset date for old versions/keys; avoid automatic fallbacks on verification failure.
 
-Xoay khóa và nâng cấp format là hai việc khác nhau. Một payload v1 có thể còn cần khóa v1 trong cửa sổ tương thích, nhưng server không nên nới lỏng canonicalization để cho “hầu hết client cũ chạy được”.
+Key rotation and format upgrades are separate concerns. A v1 payload may still need a v1 key during a compatibility window, but the server should never relax canonicalization just so "most legacy clients work."
 
-## 9. Kiểm thử giao tiếp hai bên: kiểm tra gì?
+## 9. Cross-Party Interoperability Testing: What to Test?
 
-Tối thiểu nên có test matrix theo nhóm:
+At minimum, maintain a grouped test matrix:
 
-| Nhóm | Tình huống | Kỳ vọng |
+| Group | Scenario | Expected Behavior |
 | --- | --- | --- |
-| Golden vector | Cùng key, cùng input, cùng version | Input hex và tag khớp 100% |
-| Trường/thứ tự | Đảo `tenantId` và `requestId`, đổi amount/currency | Tag không xác minh theo profile v1 |
-| Ranh giới | `("ab","c")` vs `("a","bc")` | Canonical bytes khác |
-| Unicode | NFC/NFD, emoji, chuỗi rỗng, ký tự kết hợp | Theo policy; length tính bằng byte UTF-8 |
-| Encoding | LF/CRLF, UTF-8/UTF-16, BOM | Từ chối/không khớp nếu không đúng profile |
-| Số | Negative, overflow, 1.0 vs 1, big-/little-endian | Parser/schema rõ ràng; không chuyển kiểu âm thầm |
-| Tag format | Hex thay Base64URL, padding, ký tự lạ, whitespace, sai length | Từ chối |
-| Key/algorithm | Sai key, keyId revoked, thuật toán không cho phép | Từ chối |
-| Protocol | Sai version, domain hoặc message type | Từ chối |
-| Replay | Gửi lại request hợp lệ | Từ chối hoặc trả kết quả idempotent theo nghiệp vụ |
-| Authorization | HMAC đúng nhưng tenant/resource không thuộc principal | Từ chối |
-| Concurrency | Hai request cùng ID tới hai instance | Không tạo side effect hai lần |
+| Golden vector | Same key, same input, same version | Input hex and tag match 100% |
+| Fields/ordering | Swap `tenantId` and `requestId`, alter amount/currency | Tag fails verification under v1 profile |
+| Boundaries | `("ab","c")` vs `("a","bc")` | Canonical bytes differ |
+| Unicode | NFC/NFD, emoji, empty string, combining characters | Per policy; length measured in UTF-8 bytes |
+| Encoding | LF/CRLF, UTF-8/UTF-16, BOM | Reject/mismatch if outside profile |
+| Numbers | Negative, overflow, 1.0 vs 1, big-/little-endian | Explicit parser/schema; no silent type coercion |
+| Tag format | Hex instead of Base64URL, padding, invalid chars, whitespace, wrong length | Reject |
+| Key/algorithm | Wrong key, revoked keyId, disallowed algorithm | Reject |
+| Protocol | Wrong version, domain, or message type | Reject |
+| Replay | Resend valid request | Reject or return idempotent result per business rules |
+| Authorization | Valid HMAC but tenant/resource does not belong to principal | Reject |
+| Concurrency | Two requests with same ID hitting two instances | Side effects execute at most once |
 
-**Test giao tiếp chéo ngôn ngữ:** ít nhất một bộ golden vector do hai implementation độc lập tính. Không chỉ kiểm tra rằng client Java tự verify được MAC do chính Java tạo: test này sẽ bỏ sót lỗi mà Java và đối tác dùng cách serialize khác nhau.
+**Cross-language interop testing:** at least one golden vector suite computed independently by both implementations. Do not only test that a Java client verifies MACs produced by the same Java code: that misses bugs where Java and the partner serialize differently.
 
-### 9.1. Phân tích từng byte khi gặp mismatch
+### 9.1. Byte-by-byte debugging on mismatch
 
-Trình tự debug thực dụng, giữ bí mật khóa và dữ liệu nhạy cảm:
+Pragmatic debugging sequence, keeping keys and sensitive data secret:
 
-1. Xác nhận hai phía thực sự dùng **cùng profile** (version, domain, algorithm, tag length, encoding).
-2. So sánh schema/validation và các trường được chọn đưa vào MAC; lưu ý route, tenant và requestId.
-3. So sánh **độ dài và canonical input bytes** trong môi trường thử nghiệm dùng fixture không nhạy cảm. Nếu bytes khác, tìm điểm khác đầu tiên: delimiter, UTF-8, endianness, thứ tự, newline, số, escape.
-4. Nếu bytes trùng, kiểm tra cách nạp khóa (raw text bytes so với hex/Base64 decoded bytes), key version và cách dẫn xuất khóa. **Không log production key** để debug.
-5. Nếu MAC bytes trùng mà tag text không trùng, kiểm tra Base64/Base64URL/hex, padding, chữ hoa/thường và whitespace.
-6. Nếu tag đúng nhưng request bị từ chối, xem chính sách thời gian, replay/idempotency, mapping identity, quyền và validation; đừng bỏ qua kiểm tra chỉ để “qua test”.
+1. Confirm both parties actually use **the same profile** (version, domain, algorithm, tag length, encoding).
+2. Compare schema/validation and the fields selected into the MAC; check route, tenant, and requestId.
+3. Compare **length and canonical input bytes** in a test environment using non-sensitive fixtures. If bytes differ, find the first mismatch: delimiter, UTF-8, endianness, ordering, newlines, numbers, or escaping.
+4. If bytes match, check key loading (raw text bytes vs. hex/Base64 decoded bytes), key version, and key derivation. **Never log production keys** to debug.
+5. If MAC bytes match while tag text differs, check Base64/Base64URL/hex, padding, casing, and whitespace.
+6. If the tag is valid yet the request is rejected, check time policy, replay/idempotency, identity mapping, authorization, and validation; never bypass checks just to "pass the test."
 
-Trong production, chỉ ghi log thông tin cần thiết để định vị lỗi như profile id, độ dài input, tên nhóm trường, mã lỗi, correlation ID. Không log key, tag nhạy cảm khi không cần, body chứa dữ liệu cá nhân hoặc dữ liệu thanh toán. Hash của dữ liệu nhạy cảm cũng có thể lộ thông tin nếu đầu vào ít entropy; không coi logging digest là tự động an toàn.
+In production, log only what is needed to locate failures, such as profile ID, input length, field group names, error code, and correlation ID. Never log keys, sensitive tags unnecessarily, or bodies containing personal or payment data. Even hashes of sensitive data can leak information when input entropy is low; do not assume logging digests is automatically safe.
 
-## 10. Các lỗi điển hình và cách sửa
+## 10. Typical Mistakes and Fixes
 
-| Lỗi | Nguyên nhân | Cách sửa |
+| Mistake | Cause | Fix |
 | --- | --- | --- |
-| Client ký JSON gốc, server ký JSON đã parse rồi serialize lại | Byte khác do thứ tự/spacing | Cùng ký raw bytes hoặc áp canonical profile |
-| Nối `tenantId + requestId` mà không phân cách | Hai cặp trường khác nhau cùng input | Length prefix/serialization không nhập nhằng |
-| Dùng delimiter mà không escape | `a\|b` gây nhập nhằng | Length prefix hoặc quy tắc escape chuẩn |
-| Dùng `String.length()` ghi độ dài cho chuỗi UTF-8 | Độ dài UTF-16 không bằng byte length | Lấy `value.getBytes(UTF_8).length` |
-| Một phía ghi 1299 là 4 byte little-endian, phía kia ghi 8 byte big-endian | Kiểu và thứ tự byte khác | Thống nhất width, signedness, endian |
-| String có Unicode tổ hợp khác | Input bytes khác | Chốt chính sách normalization và canonical encoding |
-| Một phía nhận `null` là trống, phía kia bỏ trường | Schema khác | Định nghĩa absent/null/empty riêng |
-| Server nhận cả truncated tag tùy độ dài client gửi | Tag length không ràng buộc | Kiểm tra độ dài cố định và profile |
-| Phía gửi xuất hex, phía nhận giải Base64 | Wire tag sai codec | Một encoding canonical và test vector |
-| So sánh tag bằng string thông thường | Có thể tạo timing leak | Decode, kiểm tra length, so sánh bytes bằng API phù hợp |
-| Cho phép client tự chọn `alg` hoặc tự gán `keyId` | Algorithm/key confusion | Server allowlist, registry khóa và scope |
-| Chỉ ký body, không ký tenant/action | MAC không bao phủ nghiệp vụ | Bind đủ context vào input, kiểm tra quyền |
-| Nhận tag đúng nhưng xử lý lại giao dịch | Thiếu replay/idempotency | Trạng thái atomic theo principal/requestId |
-| Chọn lại nhiều schema tới khi một tag pass | Fallback nhập nhằng | Version chặt, chỉ thử cấu hình được định nghĩa |
-| Test chỉ toàn positive case | Bỏ lọt tamper, replay, encoding lỗi | Test vector âm và test giao tiếp chéo nền tảng |
+| Client signs original JSON, server signs parsed and re-serialized JSON | Bytes differ due to ordering/spacing | Sign exact raw bytes on both sides or apply a canonical profile |
+| Concatenating `tenantId + requestId` without separation | Two different field pairs yield the same input | Length prefixing / unambiguous serialization |
+| Using a delimiter without escaping | `a\|b` causes ambiguity | Length prefixing or standard escaping rules |
+| Using `String.length()` for UTF-8 string length | UTF-16 length does not equal byte length | Use `value.getBytes(UTF_8).length` |
+| One side writes 1299 as 4-byte little-endian, the other as 8-byte big-endian | Different type and byte order | Standardize width, signedness, endianness |
+| Strings with different Unicode composition | Different input bytes | Pin normalization and canonical encoding policy |
+| One side treats `null` as empty, the other omits the field | Different schemas | Define absent/null/empty separately |
+| Server accepts truncated tags of whatever length client sends | Unconstrained tag length | Enforce fixed length and profile |
+| Sender emits hex, receiver decodes Base64 | Wrong wire tag codec | One canonical encoding and test vector |
+| Comparing tags with ordinary string equality | Can introduce timing leaks | Decode, validate length, compare bytes with appropriate API |
+| Letting client pick `alg` or set `keyId` freely | Algorithm/key confusion | Server allowlist, key registry, and scope |
+| Signing only body, omitting tenant/action | MAC does not cover business context | Bind sufficient context in input, check authorization |
+| Valid tag accepted, transaction re-executed | Missing replay/idempotency | Atomic state keyed by principal/requestId |
+| Trying multiple schemas until one tag passes | Ambiguous fallback | Strict versioning, try only defined configurations |
+| Testing only positive cases | Misses tampering, replay, encoding bugs | Negative test vectors and cross-platform interop tests |
 
-## 11. Checklist thiết kế một profile MAC có thể triển khai
+## 11. Checklist for Designing an Implementable MAC Profile
 
-Trước khi hai đội bắt đầu code, viết thành văn bản **một hợp đồng kiểm chứng được**:
+Before both teams start coding, document a **verifiable contract**:
 
-- **Purpose:** giao thức xác thực loại bản tin nào, danh tính nào, tenant nào, cấp quyền nào; giới hạn những bảo đảm của MAC.
-- **Version/domain:** byte version, domain separation, algorithm, danh sách phiên bản được phép.
-- **Keys:** nguồn sinh/lưu, độ dài byte, danh tính sở hữu, vòng đời, `keyId`, cách chọn key an toàn và policy rotation.
-- **Input fields:** danh sách có thứ tự, bắt buộc/tùy chọn, phạm vi giá trị và các trường nghiệp vụ được bảo vệ.
-- **Canonical encoding:** UTF-8/Unicode policy, length prefix, integer width/endian, decimal/time, null/missing/empty, thứ tự map/list, JSON hoặc binary format.
-- **Tag:** raw length, algorithm, truncation policy, encoding, padding/case và vị trí trong request.
-- **Verification:** chuẩn hóa/validate ở đâu, fail closed khi sai tag, so sánh an toàn, duplicate field/header xử lý ra sao.
-- **Freshness và quyền:** timestamp/nonce/requestId, replay store, idempotency, binding với principal và authorization từng operation.
-- **Conformance:** golden vectors được chạy bởi cả hai phía, negative cases, hành vi version/rotation/error có tài liệu.
+- **Purpose:** which message types, identities, tenants, and permissions the protocol authenticates; boundaries of MAC guarantees.
+- **Version/domain:** version byte, domain separation, algorithm, list of permitted versions.
+- **Keys:** generation/storage source, byte length, owning identity, lifecycle, `keyId`, safe key selection, and rotation policy.
+- **Input fields:** ordered list, required/optional, value ranges, and protected business fields.
+- **Canonical encoding:** UTF-8/Unicode policy, length prefix, integer width/endianness, decimal/time, null/missing/empty, map/list ordering, JSON or binary format.
+- **Tag:** raw length, algorithm, truncation policy, encoding, padding/case, and placement in the request.
+- **Verification:** where canonicalization/validation happens, fail closed on tag mismatch, safe comparison, handling of duplicate fields/headers.
+- **Freshness and authorization:** timestamp/nonce/requestId, replay store, idempotency, binding to principal, and per-operation authorization.
+- **Conformance:** golden vectors run by both sides, negative cases, documented version/rotation/error behavior.
 
-### Câu hỏi ôn tập
+### Review Questions
 
-**1. Hai phía đều dùng đúng HMAC-SHA256 và cùng khóa nhưng tag khác. Có phải HMAC bị lỗi?**
+**1. Both sides use HMAC-SHA256 and the same key, yet produce different tags. Is HMAC broken?**
 
-Không. Hãy kiểm tra canonical input bytes trước: serialization, trường, thứ tự, UTF-8, số, newline, version. Sau đó mới kiểm tra key bytes và wire tag encoding.
+No. Check canonical input bytes first: serialization, fields, order, UTF-8, numbers, newlines, version. Only then check key bytes and wire tag encoding.
 
-**2. Vì sao ký `tenantId + requestId` không có delimiter là nguy hiểm, ngay cả khi HMAC vẫn rất mạnh?**
+**2. Why is signing `tenantId + requestId` without a delimiter dangerous, even though HMAC is very strong?**
 
-Vì các cặp giá trị khác nhau có thể tạo **cùng byte đầu vào** (ví dụ `ab`+`c` và `a`+`bc`). Bản tin khác nhau theo nghiệp vụ lại có MAC bằng nhau theo thiết kế; lỗi ở encoding chứ không phải tấn công HMAC.
+Because different value pairs can produce **the exact same input bytes** (e.g., `ab`+`c` and `a`+`bc`). Business-distinct messages get identical MACs by design; the bug is in encoding, not an attack on HMAC.
 
-**3. Khi hai trường JSON đổi thứ tự, MAC có bắt buộc giống nhau không?**
+**3. When two JSON fields swap order, must the MAC remain the same?**
 
-Nếu MAC tính trên raw JSON bytes thì **khác**. Nếu cả hai dùng đúng một canonical JSON profile đưa về cùng bytes thì **giống** cho dữ liệu được định nghĩa là tương đương. Không có hành vi ngầm định độc lập với profile.
+If the MAC is computed over raw JSON bytes, they **differ**. If both sides use a canonical JSON profile that produces identical bytes, they **match** for data defined as equivalent. There is no implicit profile-independent behavior.
 
-**4. Một tag HMAC-SHA256 đầy đủ dài bao nhiêu? Chuỗi Base64URL không padding dài bao nhiêu?**
+**4. How long is a full HMAC-SHA256 tag? How long is an unpadded Base64URL string?**
 
-Raw tag dài **32 byte**. Với 32 byte, Base64URL không padding dài **43 ký tự ASCII**. Chuỗi hex tương ứng dài **64 ký tự**.
+The raw tag is **32 bytes**. For 32 bytes, unpadded Base64URL is **43 ASCII characters**. The corresponding hex string is **64 characters**.
 
-**5. Vì sao server vẫn phải kiểm tra requestId sau khi MAC hợp lệ?**
+**5. Why must the server still check requestId after the MAC is valid?**
 
-Vì attacker có thể gửi lại **nguyên request và tag**. HMAC không phát hiện tính mới; cần chống replay/idempotency có trạng thái và kiểm tra quyền nghiệp vụ.
+Because an attacker can resend **the exact request and tag**. HMAC does not detect freshness; stateful anti-replay/idempotency and business authorization checks are required.
 
-**6. Có thể chỉ kiểm tra HMAC đúng rồi cho tenant của payload toàn quyền không?**
+**6. Can you simply verify the HMAC and then grant full access to the payload's tenant?**
 
-Không. Một bên có khóa có thể tạo tag hợp lệ cho dữ liệu mà họ không có quyền thực hiện. Server phải ràng buộc khóa với principal tin cậy và kiểm tra authorization của principal trên tenant/action/resource cụ thể.
+No. A party holding a key can create a valid tag for data they are not authorized to act on. The server must bind the key to a trusted principal and verify the principal's authorization for the specific tenant/action/resource.
 
-**7. Trong ví dụ Java, vì sao cần dùng `writeInt(bytes.length)`, không dùng `writeInt(value.length())`?**
+**7. In the Java example, why must we use `writeInt(bytes.length)` instead of `writeInt(value.length())`?**
 
-`DataOutputStream` ghi length theo byte để parser đọc đúng ranh giới. `String.length()` đếm UTF-16 code units và không đồng nhất với số byte UTF-8 khi có ký tự ngoài ASCII.
+`DataOutputStream` writes byte length so the parser can read exact boundaries. `String.length()` counts UTF-16 code units and does not equal the UTF-8 byte count when non-ASCII characters are present.
 
-**8. Muốn thêm trường mới vào thông điệp MAC, có nên thử cả format cũ và format mới cho từng request đến khi verify thành công?**
+**8. When adding a new field to the MAC message, should we try both the old and new formats per request until verification passes?**
 
-Không. Phải công bố version/schema mới, xác thực version trong MAC input, kiểm soát chính sách chấp nhận. Thử nhiều cách tùy tiện dễ gây nhập nhằng và suy yếu protocol.
+No. Publish a new version/schema, authenticate the version inside the MAC input, and strictly control acceptance policies. Trying multiple ad-hoc formats invites ambiguity and weakens the protocol.
 
-## 12. Kết luận
+## 12. Conclusion
 
-Một MAC chỉ xác thực **đúng những byte mà hai bên đã thống nhất**. Độ mạnh của HMAC-SHA256 không bù được việc ghép trường nhập nhằng, serialize JSON khác nhau, mất field nghiệp vụ, nhầm tag encoding hay tin một request hợp lệ được phép thực thi lại.
+A MAC authenticates **only the exact bytes both parties agreed upon**. The strength of HMAC-SHA256 cannot compensate for ambiguous field concatenation, mismatched JSON serialization, missing business fields, tag encoding confusion, or trusting a valid request to execute twice.
 
-Hợp đồng liên thông cần rõ từ **ngữ nghĩa dữ liệu → thứ tự/kiểu trường → canonical byte encoding → thuật toán/khóa → raw tag → wire tag → xác minh và chính sách ứng dụng**. Một test vector ghi đủ **key demo, canonical input hex và expected tag** là cách nhanh nhất để chứng minh hai phía hiểu giống nhau trước khi xử lý dữ liệu thật.
+An interoperability contract must be clear from **data semantics → field ordering/types → canonical byte encoding → algorithm/key → raw tag → wire tag → verification and application policy**. A test vector stating **demo key, canonical input hex, and expected tag** is the fastest way to prove both parties agree before handling real data.
 
-### Tài liệu tham khảo
+### References
 
 - RFC 2104 — *HMAC: Keyed-Hashing for Message Authentication*: https://www.rfc-editor.org/rfc/rfc2104
 - RFC 4231 — *Identifiers and Test Vectors for HMAC-SHA-224, HMAC-SHA-256, HMAC-SHA-384, and HMAC-SHA-512*: https://www.rfc-editor.org/rfc/rfc4231

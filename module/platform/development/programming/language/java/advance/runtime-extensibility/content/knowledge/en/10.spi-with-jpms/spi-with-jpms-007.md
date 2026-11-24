@@ -1,22 +1,22 @@
-# Phân biệt khả năng đọc module, exports và opens cho truy cập phản chiếu
+# Distinguishing Module Readability, `exports`, and `opens` for Reflective Access
 
-Trong **Java Platform Module System (JPMS)**, một class tồn tại trong module khác không có nghĩa là ứng dụng có quyền gọi class đó, và càng không có nghĩa là reflection có thể đọc mọi private field hay gọi private constructor. Để thiết kế SPI, framework tích hợp plugin và hệ thống nạp module đúng, cần phân biệt ba câu hỏi:
+In the **Java Platform Module System (JPMS)**, the fact that a class exists in another module does not mean an application has permission to call that class, and even less does it mean reflection can read every private field or invoke private constructors. To design SPIs, plugin-integrating frameworks, and module-loading systems properly, three questions must be distinguished:
 
-1. **Readability:** Module đang gọi có *đọc* module chứa kiểu cần dùng không?
-2. **Exports:** Package chứa kiểu có *công bố API* cho module đang gọi không?
-3. **Opens:** Package có *cho phép truy cập phản chiếu sâu* từ module đang thực hiện reflection không?
+1. **Readability:** Does the calling module *read* the module containing the target type?
+2. **Exports:** Does the package containing the type *publish its API* to the calling module?
+3. **Opens:** Does the package *permit deep reflective access* from the module performing reflection?
 
-Ba yếu tố liên quan nhưng giải quyết các vấn đề khác nhau. Một câu lệnh requires không tự export các package. Một exports không tự mở private field cho reflection. Một opens không biến package thành API có thể import ở bước biên dịch.
+These three factors are related, yet they solve different problems. A `requires` clause does not automatically export packages. An `exports` clause does not automatically open private fields to reflection. An `opens` clause does not turn a package into an API that can be imported at compile time.
 
-## 1. Readability là quan hệ giữa hai module
+## 1. Readability Is a Relationship Between Two Modules
 
-Giả sử có hai named module:
+Suppose there are two named modules:
 
 ~~~text
 demo.consumer  --requires-->  demo.library
 ~~~
 
-Trong **src/demo.consumer/module-info.java**:
+In **src/demo.consumer/module-info.java**:
 
 ~~~java
 module demo.consumer {
@@ -24,28 +24,28 @@ module demo.consumer {
 }
 ~~~
 
-Khi module graph được giải quyết, module demo.consumer **reads** demo.library. Quan hệ đọc này cho phép compiler và runtime xét quyền sử dụng những kiểu từ demo.library, nhưng vẫn phải thỏa quyền truy cập package và quyền truy cập của Java như public/private.
+When the module graph is resolved, module `demo.consumer` **reads** `demo.library`. This readability relationship allows the compiler and runtime to evaluate permission to use types from `demo.library`, though package accessibility and Java language access rules such as `public`/`private` must still be satisfied.
 
-Ví dụ nếu demo.library **không exports** package demo.library.internal, thì thêm requires demo.library ở consumer vẫn không đủ để viết:
+For instance, if `demo.library` **does not export** the `demo.library.internal` package, adding `requires demo.library` in the consumer is still not enough to write:
 
 ~~~java
-// Minh họa lỗi biên dịch: package internal không được exports.
+// Compile-error illustration: internal package is not exported.
 import demo.library.internal.Secret;
 ~~~
 
-Đây là **dòng minh họa bị cấm bởi biên module**, không phải đoạn source dùng trong chương trình chạy ở phần 5.
+This is an **illustrative line forbidden by the module boundary**, not source code used in the runnable program in Section 5.
 
-Các điểm cần nhớ:
+Key points to remember:
 
-- requires X biểu thị dependency của module hiện tại vào X và tạo cạnh đọc module theo JPMS; named module mặc định có khả năng đọc java.base mà không cần khai báo.
-- requires transitive X làm khả năng đọc X lan tới module khác đang đọc module khai báo requires transitive; nó **không tự động exports** các package trong X.
-- requires static X là dependency lúc biên dịch và tùy chọn lúc runtime; nó cũng không thay thế exports/opens.
-- Module.canRead(other) giúp quan sát readability thực tế ở runtime. Quan hệ có thể được bổ sung động hoặc bằng launcher, nên cần phân biệt module-info.java với đồ thị runtime.
-- Việc một module đọc được module khác không chứng minh class trong package bên kia được truy cập từ mã nguồn.
+- `requires X` expresses the current module's dependency on `X` and creates a module read edge in JPMS; a named module reads `java.base` by default without declaring it.
+- `requires transitive X` propagates readability of `X` to other modules that read the module declaring `requires transitive`; it **does not automatically export** packages in `X`.
+- `requires static X` is a compile-time dependency that is optional at runtime; it likewise does not replace `exports`/`opens`.
+- `Module.canRead(other)` lets you inspect actual readability at runtime. Relationships can be added dynamically or by the launcher, so distinguish `module-info.java` from the runtime graph.
+- The fact that one module can read another does not prove that classes in a package on the other side are accessible from source code.
 
-## 2. Exports công bố package làm API thông thường
+## 2. `exports` Publishes a Package as a Normal API
 
-Ví dụ trong **src/demo.library/module-info.java**:
+Example in **src/demo.library/module-info.java**:
 
 ~~~java
 module demo.library {
@@ -53,17 +53,17 @@ module demo.library {
 }
 ~~~
 
-Directive exports demo.library.api khiến các **public type được phép truy cập** trong package đó, cùng public/protected member theo quy tắc truy cập Java, trở thành API cho những module thích hợp.
+The `exports demo.library.api` directive makes **accessible public types** in that package—along with their `public`/`protected` members under Java access rules—part of the API for eligible modules.
 
-Để mã ở demo.consumer dùng trực tiếp một public class trong demo.library.api, cần đồng thời:
+For code in `demo.consumer` to use a public class in `demo.library.api` directly, all three conditions are needed simultaneously:
 
-- demo.consumer đọc demo.library (ở đây qua requires demo.library);
-- demo.library exports demo.library.api cho demo.consumer;
-- class và member có mức truy cập Java phù hợp.
+- `demo.consumer` reads `demo.library` (here via `requires demo.library`);
+- `demo.library` exports `demo.library.api` to `demo.consumer`;
+- the class and member have appropriate Java access modifiers.
 
-Một public class ở **package không exports** vẫn không tự trở thành public API bên ngoài module. Và exports không biến private field thành public field: private vẫn chịu các kiểm tra thông thường.
+A public class in an **unexported package** does not automatically become public API outside the module. And `exports` does not turn private fields into public fields: `private` members remain subject to normal access checks.
 
-Có thể giới hạn exports theo danh sách module đích:
+You can restrict `exports` to a list of target modules:
 
 ~~~java
 module demo.library {
@@ -71,11 +71,11 @@ module demo.library {
 }
 ~~~
 
-Đây là **qualified export**: công bố package cho demo.consumer nhưng không công bố cho mọi module. Không có nghĩa demo.consumer tự động đọc demo.library; consumer vẫn cần readability hợp lệ khi dùng API trong source.
+This is a **qualified export**: it exposes the package to `demo.consumer` without exposing it to all modules. It does not mean `demo.consumer` automatically reads `demo.library`; the consumer still needs valid readability when using the API in source code.
 
-### Public reflection qua package đã exports
+### Public Reflection Through an Exported Package
 
-Nếu package đã exports cho module phản chiếu, Java reflection thường có thể gọi **public constructor/method trên public class** theo quyền truy cập thông thường. Chẳng hạn:
+If a package is already exported to the reflecting module, Java reflection can typically invoke **public constructors/methods on public classes** under normal access rules. For example:
 
 ~~~java
 Class<?> type = Class.forName("demo.library.api.PublicApi");
@@ -83,13 +83,13 @@ Object object = type.getConstructor().newInstance();
 Object result = type.getMethod("greet").invoke(object);
 ~~~
 
-Đây là **đoạn minh họa đặt bên trong method có xử lý checked exceptions**, không phải chương trình độc lập. Nó giả định PublicApi có public constructor không tham số và public greet(). Nó chỉ sử dụng public member; không cần gọi setAccessible(true).
+This is an **illustrative snippet placed inside a method that handles checked exceptions**, not a standalone program. It assumes `PublicApi` has a public no-arg constructor and a public `greet()` method. It uses only public members; calling `setAccessible(true)` is unnecessary.
 
-Ngược lại, exports **không đủ** để truy cập private constructor, private field hay private method của class nằm trong package ấy từ một module khác. Chuyển sang reflection không làm private access tự biến mất.
+Conversely, `exports` is **not sufficient** to access private constructors, private fields, or private methods of classes in that package from another module. Switching to reflection does not make private access checks disappear.
 
-## 3. Opens cho phép reflection sâu mà không mở API lúc biên dịch
+## 3. `opens` Enables Deep Reflection Without Exposing a Compile-Time API
 
-Directive opens khác exports về mục tiêu:
+The `opens` directive differs from `exports` in its goal:
 
 ~~~java
 module demo.library {
@@ -98,15 +98,15 @@ module demo.library {
 }
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- Package demo.library.api là API công khai cho mã Java thông thường.
-- Package demo.library.internal vẫn không thể được demo.consumer import dùng trực tiếp khi biên dịch, vì package này **không exports theo descriptor**.
-- Nhưng code **thực hiện reflection trong demo.consumer** có thể truy cập sâu vào member của class thuộc demo.library.internal, kể cả private member, thông qua API reflection phù hợp.
+- The `demo.library.api` package is the public API for normal Java code.
+- The `demo.library.internal` package still cannot be directly imported by `demo.consumer` at compile time, because this package is **not exported in the descriptor**.
+- However, code **performing reflection inside `demo.consumer`** can perform deep reflective access on members of classes in `demo.library.internal`, including private members, through the appropriate reflection APIs.
 
-Một opens có thể viết không có to để mở package cho mọi module, hoặc viết opens package to module1,module2 để giới hạn đúng những module cần phản chiếu. Trường hợp package thực sự phải dùng làm API biên dịch **và** cần private reflection, có thể khai báo **cả exports và opens** cho nó.
+An `opens` directive can be written without `to` to open the package to all modules, or written as `opens package to module1,module2` to restrict access strictly to the modules that need reflection. Where a package genuinely must serve as a compile-time API **and** allow private reflection, **both `exports` and `opens`** can be declared for it.
 
-Ngoài ra còn cú pháp mở toàn bộ module:
+There is also syntax to open an entire module:
 
 ~~~java
 open module demo.library {
@@ -114,55 +114,55 @@ open module demo.library {
 }
 ~~~
 
-Khai báo open module làm **mọi package** trong module có thể được phản chiếu sâu ở runtime. Đây là lựa chọn rộng, cần cân nhắc kỹ vì công bố nhiều chi tiết triển khai. Không được đặt từng directive opens bên trong open module vì module đã mở toàn bộ.
+Declaring an `open module` allows **every package** in the module to undergo deep reflection at runtime. This is a broad choice that should be weighed carefully because it exposes many implementation details. Individual `opens` directives are not allowed inside an `open module` because the entire module is already open.
 
-### Exports không đồng nghĩa opens
+### `exports` Is Not Synonymous with `opens`
 
-| Cấu hình module cung cấp | Direct import public API từ module đọc được | Phản chiếu public member theo quyền truy cập thông thường | Phản chiếu sâu vào private member từ module khác |
+| Provider Module Configuration | Direct Import of Public API from a Readable Module | Reflecting Public Members Under Normal Access | Deep Reflection into Private Members from Another Module |
 | --- | --- | --- | --- |
-| Không exports, không opens package | Không | Không được cấp quyền truy cập vào member | Không |
-| exports package | Có | Có đối với public type/member phù hợp | Không chỉ nhờ exports |
-| opens package | Không chỉ nhờ opens | Có ở runtime theo quy tắc reflection | Có đối với module được mở |
-| exports và opens package | Có | Có | Có đối với module được mở |
-| open module | Chỉ các package exports mới là API biên dịch | Các package được mở hỗ trợ reflection runtime | Có cho các package trong module |
+| Neither `exports` nor `opens` on package | No | Access to members is not granted | No |
+| `exports package` | Yes | Yes, for eligible public types/members | Not via `exports` alone |
+| `opens package` | Not via `opens` alone | Yes at runtime under reflection rules | Yes, for modules it is opened to |
+| Both `exports` and `opens` on package | Yes | Yes | Yes, for modules it is opened to |
+| `open module` | Only exported packages are compile-time APIs | Opened packages support runtime reflection | Yes, for packages in the module |
 
-Ở cột *direct import*, cần thêm điều kiện consumer đọc module cung cấp và class/member có Java visibility phù hợp. Ở cột reflection, cần phân biệt **biết tên một class**, **lấy metadata của class**, **gọi public member** và **bỏ kiểm tra truy cập để gọi private member**: đó không phải cùng một quyền.
+In the *direct import* column, the consumer must also read the providing module and the class/member must have appropriate Java visibility. In the reflection columns, distinguish **knowing a class name**, **reading class metadata**, **invoking public members**, and **suppressing access checks to invoke private members**: these are not the same permission.
 
-Một lưu ý quan trọng: exports nói đến việc công bố các **public/protected** thành phần theo những điều kiện Java visibility; không biến protected hoặc package-private thành public đối với mọi code bên ngoài.
+One important note: `exports` concerns exposing **public/protected** elements under Java visibility conditions; it does not turn `protected` or package-private elements into `public` for arbitrary external code.
 
-## 4. Reflection có quy tắc riêng: tìm class không phải được phép truy cập
+## 4. Reflection Has Its Own Rules: Finding a Class Does Not Mean Permission to Access It
 
-Java reflection có thể tìm class bằng tên và trả về Class object, hoặc lấy danh sách member bằng getDeclaredFields/getDeclaredMethods, ngay cả khi các member đó **không truy cập được**. Việc tìm ra tên field không chứng minh có quyền lấy giá trị field.
+Java reflection can look up a class by name and return a `Class` object, or retrieve member lists via `getDeclaredFields`/`getDeclaredMethods`, even when those members are **not accessible**. Discovering a field's name does not prove permission to read the field's value.
 
-Hai API thường bị hiểu sai:
+Two commonly misunderstood APIs:
 
-- AccessibleObject.setAccessible(true) **cố gắng** bỏ kiểm tra access mặc định. Trên JDK 17, nếu module chưa mở package phù hợp và không có điều kiện khác cho phép, lời gọi có thể ném InaccessibleObjectException.
-- AccessibleObject.trySetAccessible() thực hiện cố gắng tương tự, nhưng trong tình huống bị từ chối vì quy tắc module có thể trả false thay vì ném InaccessibleObjectException. Nó vẫn có thể phát sinh những lỗi khác trong một số điều kiện, nên không coi là phương thức "không bao giờ ném lỗi".
+- `AccessibleObject.setAccessible(true)` **attempts** to bypass default access checks. On JDK 17, if the module has not opened the relevant package and no other condition permits it, the call can throw `InaccessibleObjectException`.
+- `AccessibleObject.trySetAccessible()` makes the same attempt, but when denied due to module rules it can return `false` instead of throwing `InaccessibleObjectException`. It can still throw other errors under certain conditions, so do not treat it as a "never throws" method.
 
-Một lời gọi như sau:
+A call such as:
 
 ~~~java
 Field field = PublicApi.class.getDeclaredField("token");
 boolean allowed = field.trySetAccessible();
 ~~~
 
-chỉ cho biết có thể bỏ kiểm tra truy cập **đối với field cụ thể** tại thời điểm gọi, chứ không phải cho biết mọi member trong module đều đã được mở.
+only reports whether access checks can be suppressed **for that specific field** at the time of the call, not whether every member in the module has been opened.
 
-### Readability và reflection: một ngoại lệ cần phân biệt
+### Readability and Reflection: An Exception to Distinguish
 
-Trong Java core reflection, các kiểm tra truy cập phản chiếu có quy tắc **giả định readability** trong một số trường hợp; vì vậy không thể lấy một lời gọi Class.forName hoặc Method.invoke thành công để kết luận module đang gọi có cạnh đọc tĩnh requires tương ứng.
+In Java core reflection, reflective access checks have rules that **assume readability** in certain cases; therefore, you cannot take a successful `Class.forName` or `Method.invoke` call as proof that the calling module has a static `requires` read edge.
 
-Ngược lại, khi biên dịch tham chiếu kiểu theo tên từ module khác, compiler kiểm tra readability cùng exports. Khi đánh giá module graph thực tế, hãy dùng Module.canRead() cho readability; khi đánh giá quyền private reflection, hãy dùng Module.isOpen(packageName, targetModule) và phép thử truy cập thật sự. Đây là các quan sát khác nhau.
+Conversely, when compiling named type references from another module, the compiler checks both readability and `exports`. When evaluating the actual module graph, use `Module.canRead()` for readability; when evaluating private reflection permission, use `Module.isOpen(packageName, targetModule)` and an actual access attempt. These are distinct observations.
 
-Với MethodHandles.privateLookupIn, việc mở package cũng quan trọng và còn có các điều kiện về lookup/readability riêng; không suy luận rằng privateLookupIn và core reflection luôn có cùng tập tiền điều kiện.
+With `MethodHandles.privateLookupIn`, opening the package is also critical, and there are separate lookup/readability conditions; do not infer that `privateLookupIn` and core reflection always share the exact same set of preconditions.
 
-## 5. Ví dụ chạy được: một thư viện modular và một consumer modular
+## 5. Runnable Example: One Modular Library and One Modular Consumer
 
-Ví dụ dùng **JDK 17+**, biên dịch với --release 17, không có dependency ngoài JDK. Nó minh họa đúng một public API package được exports, một internal package không được exports, và hai private field mà host muốn đọc bằng reflection.
+This example uses **JDK 17+**, compiled with `--release 17`, with no dependencies outside the JDK. It illustrates one exported public API package, one unexported internal package, and two private fields that the host attempts to read via reflection.
 
-Ban đầu demo.library **chưa opens package nào**. Ta chạy ba lần: mặc định, mở riêng internal, rồi mở internal và api. Bằng cách này, chỉ thay **tham số launcher** mà không cần sửa mã nguồn hoặc thay bytecode.
+Initially `demo.library` **opens no packages**. We run it three times: default, opening `internal` alone, and then opening both `internal` and `api`. In this way, only **launcher flags** change without modifying source code or bytecode.
 
-### 5.1. Cấu trúc thư mục
+### 5.1. Directory Structure
 
 ~~~text
 src/
@@ -175,11 +175,11 @@ src/
     demo/consumer/Main.java
 
 mods/
-  demo.library/          # kết quả javac
-  demo.consumer/         # kết quả javac
+  demo.library/          # javac output
+  demo.consumer/         # javac output
 ~~~
 
-### 5.2. module-info.java của thư viện
+### 5.2. Library `module-info.java`
 
 **src/demo.library/module-info.java**
 
@@ -189,9 +189,9 @@ module demo.library {
 }
 ~~~
 
-Chỉ package api được exports. Package internal vẫn đóng đối với code ở các module khác; không có opens nào trong phiên bản ban đầu.
+Only the `api` package is exported. The `internal` package remains closed to code in other modules; there is no `opens` in the initial version.
 
-### 5.3. Hai class thuộc hai package
+### 5.3. Two Classes in Two Packages
 
 **src/demo.library/demo/library/api/PublicApi.java**
 
@@ -219,9 +219,9 @@ public final class Secret {
 }
 ~~~
 
-PublicApi là public class thuộc package được exports, có public constructor ngầm định và một private field. Secret thuộc package không exports, có private constructor và một private field. Bên ngoài module, direct source access vào Secret không được phép theo JPMS.
+`PublicApi` is a public class in an exported package, with an implicit public constructor and a private field. `Secret` resides in an unexported package, with a private constructor and a private field. Outside the module, direct source access to `Secret` is disallowed by JPMS.
 
-### 5.4. Consumer khai báo readability
+### 5.4. Consumer Declaring Readability
 
 **src/demo.consumer/module-info.java**
 
@@ -231,9 +231,9 @@ module demo.consumer {
 }
 ~~~
 
-Nhờ requires, consumer đọc library; nhờ exports, consumer được import PublicApi. Không có requires thì mã consumer dùng PublicApi trực tiếp sẽ không biên dịch trong cấu hình named module thông thường.
+Through `requires`, the consumer reads the library; through `exports`, the consumer can import `PublicApi`. Without `requires`, consumer code using `PublicApi` directly will not compile in a normal named-module setup.
 
-### 5.5. Consumer thử gọi trực tiếp và reflection
+### 5.5. Consumer Attempting Direct Calls and Reflection
 
 **src/demo.consumer/demo/consumer/Main.java**
 
@@ -286,11 +286,11 @@ public final class Main {
 }
 ~~~
 
-Code cố ý dùng Class.forName với tên Secret bằng chuỗi. Trong ví dụ có module đã được giải quyết và class loader tìm được Secret, Class.forName trả về Class object. Nhưng muốn gọi private constructor, Main vẫn cần quyền reflection. trySetAccessible trả false nếu quyền đang bị từ chối, nên ứng dụng không cố gọi newInstance khi chưa được phép.
+The code intentionally uses `Class.forName` with `Secret`'s name as a string. Because the module is resolved in the example and the class loader can locate `Secret`, `Class.forName` returns the `Class` object. Yet to invoke the private constructor, `Main` still needs reflection permission. `trySetAccessible` returns `false` when permission is denied, so the application avoids calling `newInstance` when unauthorized.
 
-### 5.6. Biên dịch bằng PowerShell
+### 5.6. Compiling with PowerShell
 
-Chạy từ thư mục chứa src (Windows PowerShell, JDK 17 trở lên):
+Run from the directory containing `src` (Windows PowerShell, JDK 17 or newer):
 
 ~~~powershell
 New-Item -ItemType Directory -Force -Path 'mods/demo.library','mods/demo.consumer' | Out-Null
@@ -300,15 +300,15 @@ javac --release 17 -encoding UTF-8 -d mods/demo.library src/demo.library/module-
 javac --release 17 -encoding UTF-8 --module-path mods -d mods/demo.consumer src/demo.consumer/module-info.java src/demo.consumer/demo/consumer/Main.java
 ~~~
 
-Mỗi module được biên dịch vào một thư mục riêng dưới mods. Với modular application, --module-path là nơi javac/java tìm những module đã biên dịch. Dòng thứ hai cần demo.library trên module path để xử lý requires demo.library và import PublicApi.
+Each module is compiled into its own directory under `mods`. For a modular application, `--module-path` is where `javac`/`java` locate compiled modules. The second line needs `demo.library` on the module path to resolve `requires demo.library` and the `PublicApi` import.
 
-### 5.7. Chạy mặc định: chưa mở reflection sâu
+### 5.7. Default Run: Deep Reflection Not Yet Opened
 
 ~~~powershell
 java --module-path mods -m demo.consumer/demo.consumer.Main
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 reads library: true
@@ -320,22 +320,22 @@ api private accessible: false
 internal ctor accessible: false
 ~~~
 
-Giải thích từng điểm:
+Point-by-point explanation:
 
-- Consumer reads library vì requires demo.library.
-- api exported: true vì thư viện exports demo.library.api.
-- internal exported: false và internal open: false vì package không được exports/opens.
-- Mã Java gọi PublicApi.greet() trực tiếp thành công.
-- private token của PublicApi **không** được truy cập sâu chỉ nhờ exports package api.
-- Class.forName có thể tìm Secret, nhưng không được gọi private constructor từ consumer khi package internal còn đóng.
+- Consumer reads library because of `requires demo.library`.
+- `api exported: true` because the library exports `demo.library.api`.
+- `internal exported: false` and `internal open: false` because the package is neither exported nor opened.
+- Java code calls `PublicApi.greet()` directly and succeeds.
+- `PublicApi`'s private `token` is **not** deeply accessible solely because the `api` package is exported.
+- `Class.forName` can find `Secret`, but the consumer cannot invoke its private constructor while the `internal` package remains closed.
 
-### 5.8. Chỉ mở package internal cho consumer ở runtime
+### 5.8. Opening Only the `internal` Package to the Consumer at Runtime
 
 ~~~powershell
 java --module-path mods --add-opens demo.library/demo.library.internal=demo.consumer -m demo.consumer/demo.consumer.Main
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 reads library: true
@@ -349,19 +349,19 @@ internal field accessible: true
 internal token: internal-private
 ~~~
 
-Lúc này Main được phép gọi private constructor và đọc private field của Secret. **Chỉ package internal được mở**, vì vậy private token thuộc api vẫn không truy cập được.
+Now `Main` is permitted to invoke the private constructor and read the private field of `Secret`. **Only the `internal` package is opened**, so the private `token` in `api` remains inaccessible.
 
-Một chi tiết dễ gây ngạc nhiên: sau --add-opens, **internal exported: true** dù module-info.java vẫn không có exports demo.library.internal. Đây không phải lỗi ví dụ. Theo tài liệu java.lang.Module, **package đang open cho module đích cũng được coi là exported cho module đó ở runtime**, do vậy Module.isExported(package, target) trả true. Điều đó **không** có nghĩa directive opens đã trở thành một exports compile-time trong source module-info.java.
+One detail that often surprises developers: after `--add-opens`, **`internal exported: true`** even though `module-info.java` still lacks `exports demo.library.internal`. This is not a bug in the example. Per the `java.lang.Module` documentation, **a package that is open to a target module is also considered exported to that module at runtime**, so `Module.isExported(package, target)` returns `true`. That does **not** mean an `opens` directive has turned into a compile-time `exports` in `module-info.java` source.
 
-Vì vậy, nếu cần biết **khai báo tĩnh ban đầu**, đọc ModuleDescriptor.exports()/opens(); nếu cần biết **quyền runtime hiện hành**, xem Module.isExported()/isOpen(). Hai nguồn có thể khác nhau do launcher flags hoặc thay đổi module graph động.
+Therefore, if you need to check **original static declarations**, read `ModuleDescriptor.exports()`/`opens()`; if you need to check **current runtime permissions**, inspect `Module.isExported()`/`isOpen()`. The two sources can differ due to launcher flags or dynamic module graph updates.
 
-### 5.9. Mở cả api và internal để kiểm tra private reflection
+### 5.9. Opening Both `api` and `internal` to Verify Private Reflection
 
 ~~~powershell
 java --module-path mods --add-opens demo.library/demo.library.api=demo.consumer --add-opens demo.library/demo.library.internal=demo.consumer -m demo.consumer/demo.consumer.Main
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 reads library: true
@@ -376,13 +376,13 @@ internal field accessible: true
 internal token: internal-private
 ~~~
 
-So với lần chạy mặc định, lần này private field của PublicApi cũng truy cập được. Thay đổi đến từ --add-opens demo.library/demo.library.api=demo.consumer; exports api vốn có từ đầu **chưa đủ** cho deep reflection.
+Compared to the default run, this time `PublicApi`'s private field is also accessible. The change comes from `--add-opens demo.library/demo.library.api=demo.consumer`; having `api` exported from the beginning was **not enough** for deep reflection.
 
-Cả ba lệnh chạy và kết quả stdout ở trên đã được kiểm tra bằng javac --release 17 và chạy JVM trên JDK mới hơn. Ví dụ tự biên dịch và chạy mà không cần thư viện bên thứ ba.
+All three commands and stdout outputs above were verified using `javac --release 17` and executed on a newer JDK. The example compiles and runs on its own without third-party libraries.
 
-## 6. Sử dụng exports và opens trong thiết kế SPI/plugin
+## 6. Using `exports` and `opens` in SPI/Plugin Design
 
-Với plugin dùng JPMS, nên xác định rõ **phần hợp đồng ổn định** và **phần implementation nội bộ**:
+For plugins using JPMS, clearly separate **the stable contract** from **internal implementations**:
 
 ~~~text
 Host module                   Plugin implementation module
@@ -392,13 +392,13 @@ Host module                   Plugin implementation module
             demo.plugin.api
             exports demo.plugin.spi
 
-Host có thể tìm provider qua ServiceLoader và interface chung.
-Plugin implementation không cần exports mọi package nội bộ.
+The host can locate providers via ServiceLoader and the shared interface.
+Plugin implementation does not need to export all internal packages.
 ~~~
 
-Một khai báo điển hình cho named module dùng service là:
+A typical set of declarations for named modules using a service is:
 
-**Module hợp đồng:**
+**Contract module:**
 
 ~~~java
 module demo.plugin.api {
@@ -406,7 +406,7 @@ module demo.plugin.api {
 }
 ~~~
 
-**Module cung cấp plugin:**
+**Plugin provider module:**
 
 ~~~java
 module demo.plugin.provider {
@@ -416,7 +416,7 @@ module demo.plugin.provider {
 }
 ~~~
 
-**Module host:**
+**Host module:**
 
 ~~~java
 module demo.plugin.host {
@@ -425,17 +425,17 @@ module demo.plugin.host {
 }
 ~~~
 
-Đây là **minh họa module-info.java trong ba module khác nhau**; cần có interface Plugin và lớp PluginImpl thực tế mới biên dịch được. Ý chính: khi provider được khai báo bằng provides ... with ... trên module path, **ServiceLoader có cơ chế tìm và khởi tạo provider theo JPMS**, không bắt buộc phải exports hoặc opens package implementation cho host chỉ để khám phá service.
+This is an **illustration of `module-info.java` across three separate modules**; an actual `Plugin` interface and `PluginImpl` class are needed to compile. Key point: when a provider is declared via `provides ... with ...` on the module path, **`ServiceLoader` has a JPMS mechanism to locate and instantiate the provider**, without requiring the implementation package to be exported or opened to the host just for service discovery.
 
-Nếu host còn muốn trực tiếp phản chiếu vào private field/constructor của plugin, đó là yêu cầu **khác** với ServiceLoader discovery. Khi ấy cần cân nhắc một API có phương thức cấu hình công khai, hoặc mở package chính xác cho module thực sự làm reflection.
+If the host also wants to reflect directly into private fields/constructors of a plugin, that is a **separate** requirement from `ServiceLoader` discovery. In that case, consider an API with public configuration methods, or open the package strictly to the module actually performing reflection.
 
-Không nên vì lỗi reflection mà mở toàn bộ module chứa plugin. Mở quá rộng khiến host/framework có quyền phản chiếu sâu vào các cấu trúc không được thiết kế làm hợp đồng, làm tăng coupling và rủi ro khi refactor.
+Do not open an entire module containing plugins just because of a reflection error. Opening too broadly gives the host/framework permission to reflect deeply into structures not designed as contracts, increasing coupling and refactoring risk.
 
-### Module nào thực sự cần được mở?
+### Which Module Actually Needs to Be Opened?
 
-Hãy xác định **module của đoạn code trực tiếp thực hiện access check**. Nếu host gọi một thư viện framework làm reflection, module cần được mở thường là **module của framework**, chẳng hạn một serializer hoặc persistence framework, chứ không nhất thiết chỉ module host. Khai báo qualified opens cần nhắm đúng module sử dụng reflection.
+Identify **the module containing the code directly performing the access check**. If the host calls a framework library that uses reflection, the module that needs to be opened to is usually **the framework's module**—such as a serializer or persistence framework—rather than solely the host module. Qualified `opens` declarations should target the exact module performing reflection.
 
-Ví dụ:
+Example:
 
 ~~~java
 module demo.library {
@@ -444,87 +444,87 @@ module demo.library {
 }
 ~~~
 
-Khi compile module-info.java có qualified target, công cụ build có thể cảnh báo nếu module đích chưa nhìn thấy được; bảo đảm module path và môi trường build được thiết lập nhất quán. Tên module của thư viện/framework phải là **tên module thực tế ở runtime**, không đoán theo package name hoặc tên JAR.
+When compiling `module-info.java` with a qualified target, build tools may warn if the target module is not visible; ensure the module path and build environment are configured consistently. The library/framework module name must be the **actual runtime module name**, not guessed from package names or JAR filenames.
 
-## 7. Runtime options: kiểm tra đúng cánh cửa cần mở
+## 7. Runtime Options: Checking the Exact Door to Open
 
-Java launcher cung cấp các tùy chọn để quan sát/khắc phục một ràng buộc module, thường hữu ích khi chẩn đoán ứng dụng đã đóng gói:
+The Java launcher provides options to observe or work around a module constraint, often useful when diagnosing packaged applications:
 
-| Tùy chọn | Tác dụng chính | Không tự giải quyết |
+| Option | Primary Effect | What It Does Not Solve on Its Own |
 | --- | --- | --- |
-| --add-reads A=B | Bổ sung cạnh readability từ A sang B | Quyền export/open của package |
-| --add-exports B/p=A | Export package p của B cho A tại runtime | Private reflection trong p |
-| --add-opens B/p=A | Mở package p cho deep reflection từ A tại runtime | Source import vào package p ở lúc compile chỉ nhờ opens |
+| `--add-reads A=B` | Adds a readability edge from `A` to `B` | Package export/open permissions |
+| `--add-exports B/p=A` | Exports package `p` of `B` to `A` at runtime | Private reflection inside `p` |
+| `--add-opens B/p=A` | Opens package `p` for deep reflection from `A` at runtime | Compile-time source imports into package `p` via `opens` alone |
 
-Ví dụ khi bị từ chối private reflection từ demo.consumer vào internal:
+Example when private reflection from `demo.consumer` into `internal` is denied:
 
 ~~~text
 --add-opens demo.library/demo.library.internal=demo.consumer
 ~~~
 
-Nếu code phản chiếu nằm trên **classpath / unnamed module**, target thường cần là ALL-UNNAMED thay vì tên module:
+If the reflecting code resides on the **classpath / unnamed module**, the target usually needs to be `ALL-UNNAMED` instead of a module name:
 
 ~~~text
 --add-opens demo.library/demo.library.internal=ALL-UNNAMED
 ~~~
 
-Các tùy chọn này có thể làm chương trình hoạt động tại runtime, nhưng nên xem chúng là **cấu hình triển khai rõ ràng hoặc biện pháp chẩn đoán**, không mặc định mở vô hạn để né thiết kế API. Tránh dùng ALL-UNNAMED khi có thể giới hạn vào named module chính xác.
+These options can make a program run at runtime, but they should be treated as **explicit deployment configurations or diagnostic measures**, not opened unconditionally by default to bypass API design. Avoid `ALL-UNNAMED` when you can narrow the target to an exact named module.
 
-Một điểm quan trọng nữa: --add-exports chỉ tăng quyền truy cập public API runtime; nếu package chứa private field vẫn chưa opens, setAccessible(true) vẫn có thể bị từ chối. Tương tự, --add-opens không làm cho compiler tự chấp nhận một import vốn không được module-info exports.
+Another important point: `--add-exports` only grants runtime public API access; if the package containing private fields is still not open, `setAccessible(true)` can still be rejected. Similarly, `--add-opens` does not make the compiler accept an import that is not exported in `module-info`.
 
-## 8. Lỗi phổ biến và cách đọc thông báo
+## 8. Common Errors and How to Read Messages
 
-| Hiện tượng | Giải thích thường gặp | Cách xử lý |
+| Symptom | Common Explanation | How to Fix |
 | --- | --- | --- |
-| Compiler báo module không đọc dependency | Thiếu requires hoặc cạnh readability phù hợp | Kiểm tra module-info, requires transitive và module path |
-| Compiler báo package không visible / not exported | Có readability nhưng package không exports cho consumer | Chỉ exports đúng package API cần công bố |
-| IllegalAccessException khi invoke/construct qua reflection | Class/member không accessible theo Java visibility hoặc module boundary | Kiểm tra public/exports và nhu cầu opens |
-| InaccessibleObjectException khi setAccessible(true) | Không được phép tắt kiểm tra access với member đó | Kiểm tra opens đúng package và module làm reflection |
-| trySetAccessible() trả false | Quyền deep reflection chưa được cấp | Xem Module.isOpen và thực thể đang truy cập |
-| ClassNotFoundException | Module/JAR chưa được resolve/nạp hoặc class loader không tìm được tên | Kiểm tra module path, layer, tên nhị phân, class loader |
-| isExported() trả true nhưng compile import vẫn thất bại | Package được open ở runtime hoặc quyền động khác với descriptor compile-time | Phân biệt runtime isExported và exports trong module-info |
-| ServiceLoader không tìm thấy plugin | Thiếu uses/provides hoặc module/layer/provider không được discover | Kiểm tra JPMS service declarations và nguồn resolution |
+| Compiler reports module does not read dependency | Missing `requires` or appropriate readability edge | Check `module-info`, `requires transitive`, and module path |
+| Compiler reports package not visible / not exported | Readability exists, but package is not exported to consumer | Export only the API packages meant to be public |
+| `IllegalAccessException` when invoking/constructing via reflection | Class/member is not accessible under Java visibility or module boundaries | Check `public`/`exports` and whether `opens` is needed |
+| `InaccessibleObjectException` on `setAccessible(true)` | Not permitted to suppress access checks for that member | Verify `opens` for the exact package and reflecting module |
+| `trySetAccessible()` returns `false` | Deep reflection permission has not been granted | Inspect `Module.isOpen` and the accessing module |
+| `ClassNotFoundException` | Module/JAR not resolved/loaded or class loader cannot find name | Check module path, layer, binary name, and class loader |
+| `isExported()` returns `true` yet compile-time import fails | Package is opened at runtime or dynamic rights differ from compile-time descriptor | Distinguish runtime `isExported` from `exports` in `module-info` |
+| `ServiceLoader` finds no plugins | Missing `uses`/`provides` or module/layer/provider not discovered | Check JPMS service declarations and resolution sources |
 
-**Không dùng getDeclaredFields() thành công làm phép thử quyền đọc private data.** Phải thử một hành vi thật như trySetAccessible(), Field.get() hoặc Method.invoke() trong chính module thực hiện reflection.
+**Do not treat a successful `getDeclaredFields()` call as proof of permission to read private data.** Test an actual operation such as `trySetAccessible()`, `Field.get()`, or `Method.invoke()` from inside the module performing reflection.
 
-**Không sửa bằng cách exports mọi package.** Exports mở public API, không mở private field. Nếu framework cần private reflection, một qualified opens hẹp thường đúng mục tiêu hơn.
+**Do not fix errors by exporting every package.** `exports` opens public APIs, not private fields. If a framework needs private reflection, a narrow qualified `opens` is usually the right target.
 
-**Không dùng open module như đáp án mặc định.** Open toàn bộ package làm tăng bề mặt reflection. Trên JDK 17, strong encapsulation của named module là một thuộc tính kiến trúc cần chủ động quản lý.
+**Do not use `open module` as a default answer.** Opening every package expands the reflection surface. On JDK 17, strong encapsulation of named modules is an architectural property that should be actively managed.
 
-## 9. Quy trình chẩn đoán một lỗi module thực tế
+## 9. Step-by-Step Workflow to Diagnose a Real Module Error
 
-Khi gặp lỗi module lúc tích hợp plugin/framework:
+When encountering a module error while integrating a plugin/framework:
 
-1. Ghi lại **module nguồn gọi**, **module chứa class**, **package**, **member** và hành động cụ thể (import compile, invoke public method hay đọc private field).
-2. Kiểm tra đồ thị readability: requires, requires transitive, Module.canRead() và việc module có thật sự được resolve vào layer không.
-3. Kiểm tra exports với **target module chính xác**. Module.isExported(package, target) là trạng thái runtime, còn ModuleDescriptor.exports() cho biết declaration.
-4. Nếu hành động là deep reflection, kiểm tra opens với target module thực sự gọi reflection; dùng Module.isOpen(package, target).
-5. Xác nhận Java visibility: public type/member hay private/package-private/protected; quyền JPMS không làm đổi mọi quy tắc Java language access.
-6. Kiểm tra thực tế bằng trySetAccessible() hoặc lời gọi reflection tương ứng, kèm stack trace gốc.
-7. Khi cần dùng --add-opens hoặc --add-exports tạm thời, viết lại policy trong module-info.java hoặc tài liệu deployment một cách tối thiểu và có kiểm thử; tránh mở rộng quyền theo phản xạ.
+1. Record the **calling source module**, **module containing the class**, **package**, **member**, and specific action (compile-time import, invoking a public method, or reading a private field).
+2. Check the readability graph: `requires`, `requires transitive`, `Module.canRead()`, and whether the module is actually resolved in the layer.
+3. Check `exports` for the **exact target module**. `Module.isExported(package, target)` reflects runtime state, while `ModuleDescriptor.exports()` shows the static declaration.
+4. If the action is deep reflection, check `opens` for the target module actually invoking reflection; use `Module.isOpen(package, target)`.
+5. Confirm Java visibility: `public` type/member versus `private`/package-private/`protected`; JPMS permissions do not alter all Java language access rules.
+6. Verify in practice with `trySetAccessible()` or the corresponding reflection call, along with the original stack trace.
+7. When temporary `--add-opens` or `--add-exports` flags are needed, codify a minimal, tested policy in `module-info.java` or deployment docs; avoid reflexively widening permissions.
 
-Một hệ thống SPI ổn định thường chỉ exports những package hợp đồng, dùng requires/uses/provides cho quan hệ module/service và chỉ opens những package cần framework làm reflection sâu. Nhờ đó, plugin có thể được khám phá đúng mà vẫn giữ được encapsulation của các phần implementation.
+A stable SPI system typically exports only contract packages, uses `requires`/`uses`/`provides` for module and service relationships, and opens only packages where a framework requires deep reflection. That way, plugins are discovered cleanly while implementation encapsulation remains intact.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**Consumer đã requires một module nhưng vẫn không import được class public, tại sao?** Vì requires tạo readability; còn module cung cấp phải exports package chứa class đó cho consumer.
+**A consumer already `requires` a module yet still cannot import a public class—why?** Because `requires` establishes readability; the providing module must also `exports` the package containing that class to the consumer.
 
-**Package đã exports, có thể đọc private field bằng setAccessible(true) không?** Không mặc nhiên. Private member từ module khác vẫn cần opens thích hợp (hoặc điều kiện quyền truy cập khác theo đặc tả).
+**If a package is `exports`ed, can private fields be read via `setAccessible(true)`?** Not by default. Private members from another module still require an appropriate `opens` (or another qualifying access condition per the specification).
 
-**Package đã opens mà không exports, consumer có import trực tiếp public class từ package đó không?** Không chỉ nhờ opens. Opens cấp quyền reflection runtime, không cấp quyền import source ở compile time.
+**If a package is `opens`ed without `exports`, can the consumer directly import public classes from that package?** Not via `opens` alone. `opens` grants runtime reflection access, not compile-time source import permission.
 
-**Vì sao Module.isExported() trả true sau --add-opens?** Java coi package đang open cho target module là exported cho target đó ở runtime. Đây là trạng thái động, không phải directive exports trong module descriptor ban đầu.
+**Why does `Module.isExported()` return `true` after `--add-opens`?** Java treats a package open to a target module as exported to that target at runtime. This is a dynamic runtime state, not an `exports` directive in the original module descriptor.
 
-**Phát hiện provider bằng ServiceLoader có cần opens package implementation không?** Thông thường không chỉ vì service discovery trong named module dùng provides ... with ... và uses; deep reflection vào private member của provider là nhu cầu riêng.
+**Does discovering providers with `ServiceLoader` require `opens` on the implementation package?** Normally not for service discovery alone, because named modules use `provides ... with ...` and `uses`; deep reflection into private members of a provider is a separate requirement.
 
-**Khi framework thực hiện reflection thay host thì opens to ai?** Đến module chứa code framework đang thực hiện kiểm tra truy cập, theo module name hiện hành.
+**When a framework performs reflection on behalf of the host, who should `opens ... to` target?** The module containing the framework code executing the access check, using its actual module name.
 
-### Tài liệu chuẩn
+### Standard References
 
 - Java Language Specification 17, §7.7.2 *Exported and Opened Packages*: https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html
-- Java SE 17, java.lang.Module (canRead, isExported, isOpen): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html
-- Java SE 17, java.lang.reflect.AccessibleObject: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html
-- Java SE 17, java.util.ServiceLoader: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+- Java SE 17, `java.lang.Module` (`canRead`, `isExported`, `isOpen`): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html
+- Java SE 17, `java.lang.reflect.AccessibleObject`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html
+- Java SE 17, `java.util.ServiceLoader`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 - Dev.java, *Reflective Access with Open Modules and Open Packages*: https://dev.java/learn/organizing/modules/opening-for-reflection/
 
-**Cách phân biệt cần giữ vững:** readability trả lời "module A có đọc module B không"; exports trả lời "package nào là public API cho consumer"; opens trả lời "module nào được reflection sâu vào package". Để xử lý lỗi chính xác, phải xác định đúng *loại truy cập* và *module đang thực hiện truy cập*, sau đó kiểm tra từng quyền riêng rẽ.
+**Distinction to keep clear:** readability answers "does module A read module B"; `exports` answers "which packages are public API for consumers"; `opens` answers "which modules are permitted deep reflection into a package." To resolve errors accurately, identify the exact *access type* and *accessing module*, then verify each permission separately.

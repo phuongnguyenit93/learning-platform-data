@@ -1,101 +1,101 @@
-# 7.9 Tương thích charset, Unicode và quy tắc chuyển đổi mật khẩu giữa các hệ thống
+# 7.9 Charset Compatibility, Unicode, and Cross-System Password Conversion Rules
 
-Người dùng có thể gõ **cùng một mật khẩu theo cảm nhận** trên web, ứng dụng Java, Python, Node.js hay một hệ thống cũ nhưng bị từ chối đăng nhập. Một nguyên nhân khó phát hiện là các nền tảng tạo ra **những dãy byte khác nhau trước khi chạy hàm dẫn xuất khóa (KDF) hoặc password hash**: charset khác nhau, Unicode có nhiều biểu diễn hợp lệ, chuỗi bị `trim`/chuyển chữ hoa thường, hoặc thư viện có quy tắc riêng cho giới hạn byte.
+Users can type **what feels like the exact same password** on the web, a Java app, Python, Node.js, or a legacy system and still get rejected at login. A subtle cause is that platforms produce **different byte sequences before running the key derivation function (KDF) or password hash**: different charsets, multiple valid Unicode representations, strings getting `trim`med or case-folded, or libraries enforcing their own byte-length rules.
 
-Bài này đi từ ký tự → Unicode → byte → KDF, cách thiết lập hợp đồng tương thích, kiểm thử xuyên hệ thống và di chuyển password verifier cũ. **Chính sách chuyển đổi mật khẩu phải được quy định, có phiên bản và kiểm thử bằng byte thật**; một thay đổi làm người dùng không thể đăng nhập, hoặc khiến hai mật khẩu vốn khác nhau trở thành một, đều là lỗi bảo mật.
+This lesson walks from character → Unicode → bytes → KDF, showing how to establish a compatibility contract, test across systems, and migrate legacy password verifiers. **Password conversion policies must be explicitly specified, versioned, and verified using real bytes**; a change that locks users out, or collapses two distinct passwords into one, is a security bug.
 
-## 1. Mục tiêu học tập
+## 1. Learning objectives
 
-Sau bài học, bạn sẽ:
+After this lesson, you will be able to:
 
-1. Giải thích được sự khác nhau giữa **ký tự hiển thị, Unicode code point, UTF-16 code unit, grapheme cluster và byte**.
-2. Chỉ ra vì sao `"é"` dựng sẵn và `"e"` + dấu tổ hợp có thể trông giống nhưng tạo byte khác; phân biệt **NFC, NFD, NFKC, NFKD**.
-3. Xây dựng một **password profile**: decode, validate, normalize, encode, KDF, salt, tham số, metadata, version và chính sách lỗi.
-4. Sử dụng Java 17+ để kiểm thử UTF-8 strict, `Normalizer`, độ dài Unicode, `PBEKeySpec` và `PBKDF2WithHmacSHA256`.
-5. Thiết kế **golden vectors** để kiểm tương thích Java/Python/JavaScript và kế hoạch chuyển đổi từ password hash cũ mà không mất tài khoản.
+1. Explain the differences among **displayed characters, Unicode code points, UTF-16 code units, grapheme clusters, and bytes**.
+2. Show why precomposed `"é"` and `"e"` + combining mark look alike yet produce different bytes; distinguish **NFC, NFD, NFKC, and NFKD**.
+3. Define a **password profile**: decode, validate, normalize, encode, KDF, salt, parameters, metadata, version, and error policy.
+4. Use Java 17+ to test strict UTF-8, `Normalizer`, Unicode lengths, `PBEKeySpec`, and `PBKDF2WithHmacSHA256`.
+5. Design **golden vectors** to verify Java/Python/JavaScript compatibility and a migration plan from legacy password hashes without losing accounts.
 
-## 2. Phân biệt ba lớp dữ liệu mật khẩu
+## 2. Distinguishing three layers of password data
 
 ~~~text
-Phím gõ / copy-paste / IME
+Keystrokes / copy-paste / IME
           |
           v
-Dãy Unicode người dùng nhập
+User-entered Unicode sequence
           |
-          | validate, policy đã định nghĩa, normalization (nếu có)
+          | validate, defined policy, normalization (if any)
           v
-Dãy Unicode theo password profile
+Profile-normalized Unicode sequence
           |
-          | encode bằng charset quy định (thường UTF-8 strict)
+          | encode with specified charset (usually strict UTF-8)
           v
-Dãy byte password
+Password byte sequence
           |
-          | password KDF/hash + salt + work factor (+ pepper nếu có)
+          | password KDF/hash + salt + work factor (+ pepper if any)
           v
-Verifier lưu trữ: algorithm, profile id, params, salt, hash
+Stored verifier: algorithm, profile id, params, salt, hash
 ~~~
 
-**Ký tự hiển thị** là điều mắt người đọc nhận thấy; **Unicode code point** là mã trừu tượng cho ký tự; **Java `String`** lưu các code point dưới dạng đơn vị UTF-16; còn **KDF** hoạt động theo hợp đồng đầu vào của thư viện, có thể là byte hoặc `char[]`. Đừng gộp cả ba thành một khái niệm “chuỗi password”.
+**Displayed character** is what a human eye perceives; **Unicode code point** is the abstract code for a character; **Java `String`** stores code points as UTF-16 units; and **the KDF** operates under its library's input contract, which may accept bytes or `char[]`. Never conflate all three into a single vague notion of “password string.”
 
-Ví dụ:
+Example:
 
-| Chuỗi theo code point | Byte UTF-8 | Nhìn trên UI |
+| Code point sequence | UTF-8 bytes | Appearance on UI |
 | --- | --- | --- |
 | `U+00E9` (LATIN SMALL LETTER E WITH ACUTE) | `C3 A9` | é |
-| `U+0065 U+0301` (e + COMBINING ACUTE ACCENT) | `65 CC 81` | e + dấu, thường thấy như é |
+| `U+0065 U+0301` (e + COMBINING ACUTE ACCENT) | `65 CC 81` | e + accent, commonly rendered as é |
 
-Hai chuỗi có **byte UTF-8 khác nhau** trước normalization. Vì vậy `hash(passwordBytes)` hoặc KDF trên byte nguyên bản sẽ cho kết quả khác, trừ trường hợp va chạm cực kỳ khó xảy ra của KDF. Khi cùng chọn NFC, cả hai biểu diễn chuyển về cùng một chuỗi Unicode rồi mới encode.
+These two strings have **different UTF-8 bytes** prior to normalization. Consequently, `hash(passwordBytes)` or a KDF on raw bytes yields different outputs, barring an astronomically improbable KDF collision. When both sides apply NFC, both representations converge to the same Unicode sequence before encoding.
 
-**Không dùng SHA-256 thô để lưu mật khẩu**: ví dụ `hash(passwordBytes)` ở đây là minh họa sự phụ thuộc vào byte, không phải khuyến nghị triển khai. Mật khẩu cần password hashing/KDF chuyên dụng như Argon2id, scrypt hoặc PBKDF2 theo tiêu chuẩn và ràng buộc ứng dụng.
+**Do not use raw SHA-256 to store passwords**: `hash(passwordBytes)` here merely illustrates byte sensitivity, not an implementation recommendation. Passwords require a dedicated password hashing/KDF scheme such as Argon2id, scrypt, or PBKDF2 per standards and application constraints.
 
-## 3. Charset: Java String không phải byte UTF-8
+## 3. Charset: a Java `String` is not UTF-8 bytes
 
-**Charset** là quy tắc mã hóa ký tự thành byte và giải mã ngược lại. Cùng chuỗi Unicode có thể sinh byte khác nhau:
+A **charset** defines the rule for encoding characters into bytes and decoding back. The same Unicode string can produce different bytes:
 
-| Charset | Nhận xét |
+| Charset | Notes |
 | --- | --- |
-| **UTF-8** | Mỗi Unicode scalar value mã hóa bằng 1–4 byte; phù hợp cho giao thức mới có tiếng Việt/emoji. |
-| **UTF-16LE / UTF-16BE** | Thứ tự byte khác; ký tự ngoài BMP dùng surrogate pair (4 byte); không giống UTF-8. |
-| **ISO-8859-1** | Bộ mã một byte, không thể biểu diễn toàn bộ tiếng Việt/emoji. |
-| **Windows-1252** | Bộ mã legacy thường thấy; có khác biệt với ISO-8859-1 ở một số mã byte. |
-| **Default charset** | Có thể thay đổi theo JVM version/hệ điều hành/cấu hình. Không đủ làm hợp đồng password lâu dài. |
+| **UTF-8** | Encodes every Unicode scalar value in 1–4 bytes; suitable for modern protocols handling Vietnamese/emojis. |
+| **UTF-16LE / UTF-16BE** | Different byte orders; non-BMP characters use surrogate pairs (4 bytes); not the same as UTF-8. |
+| **ISO-8859-1** | Single-byte encoding; cannot represent all Vietnamese characters or emojis. |
+| **Windows-1252** | Common legacy encoding; differs from ISO-8859-1 on several byte codes. |
+| **Default charset** | Can vary by JVM version, OS, or configuration. Insufficient as a long-term password contract. |
 
-Ví dụ Java sai về khả năng di chuyển:
+A non-portable Java example:
 
 ~~~java
-byte[] raw = password.getBytes(); // dùng charset mặc định của môi trường
+byte[] raw = password.getBytes(); // uses the environment's default charset
 ~~~
 
-Nếu contract là UTF-8 và đầu vào hợp lệ:
+If the contract is UTF-8 and input is valid:
 
 ~~~java
 byte[] raw = password.getBytes(StandardCharsets.UTF_8);
 ~~~
 
-Cách thứ hai dùng đúng charset tường minh, nhưng phải hiểu **unpaired surrogate**: một `String` Java có thể chứa một code unit UTF-16 thuộc dải surrogate nhưng không có cặp đúng. Một số encoder/decoder tiện ích có thể âm thầm **thay** dữ liệu malformed thay vì từ chối. Để kiểm soát byte mật khẩu, hãy dùng `CharsetEncoder`/`CharsetDecoder` với `CodingErrorAction.REPORT` và **reject** chuỗi/byte Unicode không hợp lệ thay vì thay bằng `?` hoặc ký tự U+FFFD.
+The second form specifies the charset explicitly, yet you must understand **unpaired surrogates**: a Java `String` can contain a UTF-16 code unit in the surrogate range without a valid partner. Some convenience encoders/decoders silently **replace** malformed data instead of rejecting it. To control password bytes strictly, use `CharsetEncoder`/`CharsetDecoder` with `CodingErrorAction.REPORT` and **reject** invalid Unicode/byte sequences instead of substituting `?` or `U+FFFD`.
 
-Với HTTP/JSON, bước **transport decode** phải rõ ràng. `%C3%A9` trong URL-form-encoded input là biểu diễn của byte UTF-8; nếu gateway đã decode thành chữ `é` thì ứng dụng **không decode thêm lần nữa** hoặc băm nguyên 6 ký tự `%C3%A9`. Không đưa mật khẩu vào URL query: URL thường bị ghi log, lưu lịch sử hoặc chia sẻ qua hệ thống phân tích. Truyền credential qua TLS và luồng xử lý xác thực phù hợp.
+For HTTP/JSON, the **transport decoding** step must be unambiguous. `%C3%A9` in URL-form-encoded input represents UTF-8 bytes; if a gateway already decoded it to `é`, the application must **not decode a second time** or hash the literal 6 characters `%C3%A9`. Never put passwords in URL query strings: URLs are frequently logged, cached in history, or shared through analytics systems. Transmit credentials over TLS and proper authentication endpoints.
 
-## 4. Unicode normalization và lý do phải chọn đúng form
+## 4. Unicode normalization and why you must pick the right form
 
-Trong Java:
+In Java:
 
 ~~~java
 String normalized = Normalizer.normalize(
         password, Normalizer.Form.NFC);
 ~~~
 
-Unicode đưa ra bốn dạng normalization:
+Unicode defines four normalization forms:
 
-| Form | Cách chuẩn hóa | Tác động tới mật khẩu |
+| Form | Normalization rule | Effect on passwords |
 | --- | --- | --- |
-| **NFC** | Canonical decomposition + composition | Hợp nhất nhiều chuỗi *canonically equivalent* như `é` dựng sẵn và `e` + dấu tổ hợp. |
-| **NFD** | Canonical decomposition | Biểu diễn chuẩn dạng phân rã; khác byte NFC, phải dùng cùng profile. |
-| **NFKC** | Compatibility decomposition + composition | Hợp nhất thêm nhiều khác biệt tương thích/hình thức, ví dụ fullwidth `Ａ` và ASCII `A`. |
-| **NFKD** | Compatibility decomposition | Có tác động tương thích như NFKC nhưng giữ dạng phân rã. |
-| **Không normalize** | Giữ nguyên code point người dùng nhập | Phân biệt cả các chuỗi canonically equivalent; nếu đây là policy lịch sử thì phải giữ khi xác minh hash cũ. |
+| **NFC** | Canonical decomposition + composition | Unifies *canonically equivalent* sequences such as precomposed `é` and `e` + combining accent. |
+| **NFD** | Canonical decomposition | Canonical decomposed representation; differs in bytes from NFC, must match profile. |
+| **NFKC** | Compatibility decomposition + composition | Also collapses compatibility/formatting distinctions, e.g., fullwidth `Ａ` and ASCII `A`. |
+| **NFKD** | Compatibility decomposition | Applies NFKC compatibility folding while remaining decomposed. |
+| **No normalization** | Keeps exact user-entered code points | Distinguishes even canonically equivalent sequences; if this is a legacy policy, preserve it when verifying old hashes. |
 
-Các ví dụ:
+Examples:
 
 ~~~text
 NFC("\u00E9") == NFC("e\u0301")    → true
@@ -103,42 +103,42 @@ NFC("Ａ")     == NFC("A")          → false
 NFKC("Ａ")    == NFKC("A")         → true
 ~~~
 
-`Ａ` là FULLWIDTH LATIN CAPITAL LETTER A (U+FF21). NFKC không phải “NFC mạnh hơn nhưng luôn an toàn hơn”: nó **thay đổi tập cặp mật khẩu được coi là tương đương**, có thể gộp các mật khẩu mà người dùng tưởng khác. NFD/NFKD cũng không tự mang lại an toàn cao hơn; sự phù hợp phụ thuộc chính sách sản phẩm và hợp đồng đã lưu.
+`Ａ` is FULLWIDTH LATIN CAPITAL LETTER A (U+FF21). NFKC is not “a stronger, always-safer NFC”: it **changes which passwords are treated as equivalent**, potentially merging passwords users considered distinct. Neither NFD nor NFKD inherently adds security; suitability depends on product policy and stored contracts.
 
-**NIST SP 800-63B hiện hành khuyến nghị NFC** cho hệ thống chấp nhận Unicode password, trước bước hashing: https://pages.nist.gov/800-63-4/sp800-63b.html . Theo Unicode, NFC xử lý canonical equivalence, trong khi NFKC thêm compatibility equivalence: https://www.unicode.org/faq/normalization.html . Lựa chọn cho hệ thống mới có thể dựa trên khuyến nghị này, nhưng **không được tự động đổi chính sách một cơ sở hash legacy** vì sẽ làm thay byte đầu vào khi login.
+**Current NIST SP 800-63B recommends NFC** for systems accepting Unicode passwords, prior to hashing: https://pages.nist.gov/800-63-4/sp800-63b.html . Per Unicode, NFC handles canonical equivalence whereas NFKC adds compatibility equivalence: https://www.unicode.org/faq/normalization.html . New systems can follow this recommendation, but **never silently change policy for a legacy hash database**, because doing so alters input bytes at login.
 
-### 4.1. Nhìn giống nhau không có nghĩa Unicode tương đương
+### 4.1. Looking alike does not mean Unicode equivalence
 
-- Latin `a` (U+0061) khác Cyrillic `а` (U+0430), dù font có thể khiến chúng khó phân biệt. NFC không tự gộp.
-- Unicode có **variation selector**, dấu tổ hợp, zero-width joiner và emoji nhiều code point; một hình vẽ trên UI có thể ứng với nhiều dãy code point.
-- ASCII space `U+0020` khác non-breaking space `U+00A0` hoặc nhiều loại khoảng trắng Unicode.
-- Bộ gõ tiếng Việt, bàn phím di động và copy-paste có thể sinh dạng Unicode khác nhau; không thể bảo đảm byte giống nhau bằng cách chỉ nhìn màn hình.
-- Normalization không tự bảo đảm mọi chuỗi trông tương tự thành giống nhau, cũng không hợp thức hóa malformed Unicode.
+- Latin `a` (U+0061) differs from Cyrillic `а` (U+0430), even when fonts make them visually indistinguishable. NFC does not merge them.
+- Unicode includes **variation selectors**, combining marks, zero-width joiners, and multi-code-point emojis; one rendered glyph on UI can correspond to multiple code point sequences.
+- ASCII space `U+0020` differs from non-breaking space `U+00A0` and other Unicode whitespace characters.
+- Vietnamese input methods (IME), mobile keyboards, and copy-paste can emit different Unicode forms; identical bytes cannot be guaranteed merely by looking at the screen.
+- Normalization does not guarantee all visually similar strings become identical, nor does it make malformed Unicode valid.
 
-**Chọn một form cho profile mới rồi dùng đúng form đó tại verifier.** Không normalize thêm “cho chắc” ở nhiều tầng theo những quy tắc khác nhau.
+**Pick one form for a new profile and enforce that exact form in the verifier.** Never normalize “just to be safe” at multiple layers using conflicting rules.
 
-## 5. Những biến đổi nguy hiểm ngoài hợp đồng
+## 5. Dangerous transformations outside the contract
 
-Một ứng dụng có thể vô tình đổi password qua các thao tác quen thuộc:
+An application can inadvertently alter passwords through everyday operations:
 
-| Biến đổi | Hậu quả |
+| Transformation | Consequence |
 | --- | --- |
-| `trim()` / `strip()` | Xóa whitespace đầu/cuối: `" secret "` khác `"secret"`. |
-| `toLowerCase()` / `toUpperCase()` | Làm mất phân biệt chữ hoa thường; quy tắc locale có thể khác nhau. |
-| Bỏ dấu tiếng Việt / transliteration | Nhiều chuỗi khác nhau trở thành một; giảm số mật khẩu được phân biệt. |
-| Chuyển sang ISO-8859-1 rồi tự thay ký tự ngoài bảng mã | Có thể làm mất thông tin, gây va chạm password sau chuyển đổi. |
-| Cắt sau N byte hoặc N `char` | Có thể bỏ phần cuối bí mật hoặc làm hỏng surrogate pair. |
-| Thêm BOM, newline, byte NUL kết thúc | Byte input KDF thay đổi; có thể tương tác sai với thư viện legacy. |
-| Decode URL/Base64/JSON escape hai lần | Kết quả không còn là chuỗi người dùng gửi theo hợp đồng. |
-| Normalize ở client NFKC nhưng server NFC | Dữ liệu qua nhiều đường truy cập khác nhau có thể tạo verifier khác nhau. |
+| `trim()` / `strip()` | Strips leading/trailing whitespace: `" secret "` becomes `"secret"`. |
+| `toLowerCase()` / `toUpperCase()` | Destroys case sensitivity; locale rules may vary. |
+| Stripping Vietnamese diacritics / transliteration | Collapses distinct strings into one; shrinks distinct password space. |
+| Converting to ISO-8859-1 and replacing unmappable characters | Loses information and causes post-conversion password collisions. |
+| Truncating after N bytes or N `char`s | Drops the tail of the secret or splits a surrogate pair. |
+| Appending BOM, newline, or terminating NUL byte | Changes KDF input bytes; can misinteract with legacy libraries. |
+| Double-decoding URL/Base64/JSON escapes | Result no longer matches the user's contracted string. |
+| Client normalizes NFKC while server normalizes NFC | Different client paths can produce incompatible verifiers. |
 
-**Một người có quyền dùng khoảng trắng đầu/cuối hoặc chữ viết hoa trong password phải được phân biệt đúng**, trừ khi giao thức được công bố rõ khác đi. Không sử dụng `String.toLowerCase(Locale.ROOT)` hay accent stripping để “ổn định” mật khẩu. Case folding có thể hữu ích với **username**, nhưng là thiết kế khác với password.
+**A user entitled to use leading/trailing spaces or uppercase letters in a password must have them distinguished accurately**, unless an explicitly published protocol specifies otherwise. Never use `String.toLowerCase(Locale.ROOT)` or accent stripping to “stabilize” passwords. Case folding can be useful for **usernames**, which is a separate design from passwords.
 
-Nếu cần **từ chối** một lớp ký tự (ví dụ các control character không được ứng dụng hỗ trợ), công bố/kiểm tra chính sách lúc tạo mật khẩu và áp dụng nhất quán ở login. Từ chối rõ ràng tốt hơn âm thầm đổi dữ liệu. Tránh các quy tắc thành phần bắt buộc không cần thiết làm người dùng khó tạo password mạnh.
+If you must **reject** a character class (e.g., unsupported control characters), publish and check the policy at password creation and enforce it consistently at login. Explicit rejection is far better than silent mutation. Avoid unnecessary composition rules that hinder users from picking strong passwords.
 
-## 6. Độ dài phải đo đúng đơn vị
+## 6. Length must be measured in the right unit
 
-Một emoji khóa `🔒` có:
+A lock emoji `🔒` has:
 
 ~~~text
 Java String.length()                = 2 UTF-16 code units
@@ -146,76 +146,76 @@ String.codePointCount(0, length())  = 1 Unicode code point
 UTF-8 encoded length                = 4 bytes
 ~~~
 
-| Đơn vị | Ý nghĩa | Trong Java |
+| Unit | Meaning | In Java |
 | --- | --- | --- |
-| **UTF-16 code unit** | Đơn vị `char` 16 bit; ký tự ngoài BMP thường dùng một cặp surrogate | `String.length()` |
-| **Unicode code point** | Giá trị U+0000...U+10FFFF đại diện một ký tự mã hóa; có thể nhiều code point cho một cụm hiển thị | `String.codePointCount(0, s.length())` với Unicode hợp lệ |
-| **Grapheme cluster** | Cụm ký tự hiển thị người dùng thường cảm nhận là một đơn vị | Phân đoạn grapheme theo Unicode; không mặc nhiên bằng code point |
-| **UTF-8 byte** | Số byte thực sẽ đưa cho KDF/giao thức có byte interface | `s.getBytes(StandardCharsets.UTF_8).length` khi chuỗi hợp lệ |
+| **UTF-16 code unit** | 16-bit `char` unit; non-BMP characters normally use a surrogate pair | `String.length()` |
+| **Unicode code point** | Value U+0000...U+10FFFF representing an encoded character; multiple code points can form one visible cluster | `String.codePointCount(0, s.length())` on valid Unicode |
+| **Grapheme cluster** | User-perceived character unit displayed on screen | Unicode grapheme segmentation; not automatically equal to code points |
+| **UTF-8 byte** | Actual byte count passed to a KDF/protocol with a byte interface | `s.getBytes(StandardCharsets.UTF_8).length` when valid |
 
-Theo NIST, **độ dài password có Unicode được tính theo Unicode code point**, còn giới hạn của thuật toán có thể theo **byte**; hai quy tắc đều cần được xem xét. Hệ thống phải có trần tài nguyên hợp lý để chống quá tải, nhưng **không được âm thầm truncate** password rồi chỉ hash phần đầu. Ở bước tạo/đổi password, báo lỗi chính sách rõ; ở đăng nhập, xử lý nhất quán với account verifier đã lưu.
+Per NIST, **Unicode password length is measured in Unicode code points**, while algorithm limits may be in **bytes**; both rules must be considered. Systems must enforce a reasonable resource ceiling to prevent overload, yet **must never silently truncate** passwords and hash only the prefix. At creation/change time, return a clear policy error; at login, handle inputs consistently with the stored account verifier.
 
-**bcrypt legacy:** nhiều triển khai bcrypt truyền thống chỉ xử lý **72 byte đầu**, trong khi một số thư viện mới từ chối đầu vào dài hơn thay vì cắt. 72 byte **không phải 72 code point**. Hệ thống cũ còn có thể xử lý byte NUL đặc biệt. Khi di chuyển, phải kiểm thử đúng version/variant/provider và quy tắc xử lý vượt giới hạn; không tự tiếp tục cắt 72 byte trong profile mới.
+**Legacy bcrypt:** many traditional bcrypt implementations process only the **first 72 bytes**, while newer libraries reject longer inputs instead of truncating. 72 bytes is **not 72 code points**. Legacy systems may also handle NUL bytes specially. When migrating, test the exact version/variant/provider and overflow rules; never perpetuate silent 72-byte truncation in a new profile.
 
-## 7. Định nghĩa password profile xuyên hệ thống
+## 7. Defining a cross-system password profile
 
-Để Java, Python, JavaScript và dịch vụ legacy xác minh cùng password, hãy định nghĩa **byte-level contract**. Ví dụ một profile **mới**:
+To make Java, Python, JavaScript, and legacy services verify the same password, define a **byte-level contract**. Example of a **new** profile:
 
 ~~~text
 profile_id: pwd-utf8-nfc-v1
 
 Transport:
-  - Request được giải mã theo protocol xác định, UTF-8 strict.
-  - Reject malformed Unicode/UTF-8; không thay bằng U+FFFD.
+  - Request decoded per defined protocol, strict UTF-8.
+  - Reject malformed Unicode/UTF-8; do not substitute U+FFFD.
 Input policy:
-  - Chấp nhận Unicode hợp lệ, áp dụng giới hạn độ dài đã định nghĩa.
-  - Không trim/casefold/loại dấu, không tự decode lớp escape lần hai.
+  - Accept valid Unicode, enforcing defined length limits.
+  - No trim/casefold/diacritic stripping, no double-decoding of escapes.
 Transform:
   - Unicode normalization = NFC.
-  - Encode UTF-8 strict, không BOM, không NUL terminator.
+  - Strict UTF-8 encode, no BOM, no NUL terminator.
 KDF:
   - Algorithm + implementation/variant + salt bytes + work factor
-    + output length + pepper policy (nếu có) đều được quy định.
+    + output length + pepper policy (if any) are all specified.
 Stored verifier:
   - algorithm, profile_id, cost params, salt, derived verifier;
-    không lưu plaintext hoặc normalized password.
+    never store plaintext or normalized password.
 ~~~
 
-Pipeline phải có **thứ tự rõ ràng**:
+The pipeline must follow a **strict order**:
 
-1. Decode input theo giao thức bằng decoder strict; reject malformed sequences.
-2. Kiểm tra chính sách đầu vào như giới hạn tài nguyên và tập ký tự cho phép.
-3. Normalize đúng form đã ghi trong profile; không dùng form khác khi login.
-4. Encode thành byte UTF-8 strict; xác minh độ dài/limit theo thuật toán.
-5. Thực hiện password KDF với chính xác salt và các tham số tương ứng account.
-6. Gọi bộ xác minh của thư viện chuẩn; trả kết quả, không ghi lại mật khẩu.
+1. Decode transport input using a strict decoder; reject malformed sequences.
+2. Check input policies such as resource bounds and allowed character sets.
+3. Normalize using the exact form recorded in the profile; never use another form at login.
+4. Encode to strict UTF-8 bytes; verify algorithm byte-length limits.
+5. Run the password KDF with the account's exact salt and parameters.
+6. Call the standard library verification function; return the result without logging the password.
 
-**Số lần normalize**: dùng cùng một phép chuẩn hóa cố định là idempotent (áp dụng lại không đổi kết quả), nhưng các tầng không được sử dụng những phép biến đổi **khác nhau** ngoài contract. Chính sách mới cần rõ ai làm việc này: UI có thể hỗ trợ người dùng, nhưng **verifier phía server** phải là nơi quyết định và thực hiện chính sách mật mã.
+**Number of normalizations**: applying the same fixed normalization form is idempotent (re-applying does not change the result), yet different layers must not apply **different** transformations outside the contract. New policies must state clearly who performs this step: the UI may assist users, but **the server-side verifier** must be the authority enforcing the cryptographic policy.
 
-### 7.1. KDF cũng có hợp đồng dữ liệu riêng
+### 7.1. The KDF also has its own data contract
 
-Với PBKDF2, cả hai bên phải thống nhất:
+For PBKDF2, both sides must agree on:
 
-- PRF chính xác: `HmacSHA256` khác `HmacSHA1` hoặc `HmacSHA512`.
-- **Password bytes** hoặc cách provider chuyển `char[]` thành password material.
-- **Salt bytes**, cách giải mã salt hex/Base64 nếu lưu dưới dạng text; salt phải được sinh ngẫu nhiên riêng khi tạo verifier thật.
-- **Iteration count**, length key và đơn vị: `PBEKeySpec(..., keyLength)` nhận **bit**, nhiều thư viện khác dùng byte.
-- Provider/version và định dạng kết quả; xác minh qua **golden vectors Unicode**.
-- Nếu có pepper: secret ngoài DB, pepper version/key ID, vị trí áp dụng trước/sau KDF theo thiết kế được thẩm định.
+- Exact PRF: `HmacSHA256` differs from `HmacSHA1` or `HmacSHA512`.
+- **Password bytes** or how the provider converts `char[]` into password material.
+- **Salt bytes**, and how hex/Base64 salt strings are decoded if stored as text; salts must be freshly and randomly generated per real verifier.
+- **Iteration count**, key length, and units: `PBEKeySpec(..., keyLength)` takes **bits**, whereas many other libraries take bytes.
+- Provider/version and output format; verified with **Unicode golden vectors**.
+- If a pepper is used: secret outside DB, pepper version/key ID, and whether applied pre- or post-KDF per vetted design.
 
-Với Argon2id, hợp đồng còn gồm memory cost, time cost, parallelism, version và length; với bcrypt cần variant `$2a$`/`$2b$`/`$2y$`, cost, giới hạn đầu vào, preprocessing. Không có lý do để tự viết lại KDF nhằm đạt tương thích: sử dụng thư viện chuẩn và kiểm byte chính xác.
+For Argon2id, the contract also includes memory cost, time cost, parallelism, version, and length; for bcrypt, variant `$2a$`/`$2b$`/`$2y$`, cost, input limits, and preprocessing. There is no reason to rewrite a KDF by hand for compatibility: use standard libraries and verify exact bytes.
 
-### 7.2. Ranh giới `PBEKeySpec` của Java
+### 7.2. Boundaries of Java's `PBEKeySpec`
 
-`javax.crypto.spec.PBEKeySpec` nhận password bằng `char[]`, **không nhận byte UTF-8 trực tiếp**. Tài liệu JCA nêu các cơ chế password-based encryption khác nhau có thể sử dụng các phần bit khác nhau của từng `char`; vì vậy **không thể suy từ tên thuật toán rằng tất cả Java providers và thư viện Python/Node chuyển Unicode thành byte như nhau**. Với `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")`, phải biết triển khai thực tế và xác minh các vector trên Unicode.
+`javax.crypto.spec.PBEKeySpec` accepts the password as `char[]`, **not directly as UTF-8 bytes**. JCA documentation notes that different password-based encryption mechanisms may use different bit subsets of each `char`; therefore **you cannot infer from the algorithm name alone that all Java providers and Python/Node libraries convert Unicode to bytes identically**. For `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")`, know the actual implementation and verify vectors on Unicode inputs.
 
-Java `PBEKeySpec` clone mảng password đầu vào; gọi `clearPassword()` xóa bản sao nội bộ, còn chủ sở hữu `char[]` phải xóa mảng của mình. `String` immutable và normalization thường tạo String trung gian nên việc xóa hết mọi bản sao memory không hoàn toàn bảo đảm. Hạn chế thời gian sống của secret, không in log, không cố giữ mật khẩu dưới dạng String lâu dài trong production.
+Java's `PBEKeySpec` clones the input password array; calling `clearPassword()` clears its internal copy, while the `char[]` owner must wipe its own array. Because `String` is immutable and normalization typically allocates intermediate `String` objects, erasing every memory copy is not guaranteed. Keep secret lifetimes short, never log them, and avoid holding passwords as `String` long-term in production.
 
-## 8. Ví dụ Java 17+ chạy được
+## 8. Runnable Java 17+ example
 
-Chương trình dùng **các mẫu vô hại**, không dùng password người thật. Nó minh họa byte UTF-8, normalization, số code unit/code point, kiểm charset lỗi và kết quả PBKDF2 trong **cùng một provider Java**. Phần PBKDF2 đặt **10.000 iteration CHỈ để demo nhanh**; cấu hình production phải theo tiêu chuẩn và benchmark hiện hành với salt mới cho mỗi password.
+This program uses **harmless test samples**, not real user passwords. It demonstrates UTF-8 bytes, normalization, code unit/code point counts, malformed-charset rejection, and PBKDF2 results in **one Java provider**. The PBKDF2 section uses **10,000 iterations ONLY for fast demo execution**; production settings must follow current standards and benchmarks with a fresh salt per password.
 
-Lưu tên file chính xác **`PasswordInteropDemo.java`**:
+Save with the exact filename **`PasswordInteropDemo.java`**:
 
 ~~~java
 import java.nio.ByteBuffer;
@@ -241,7 +241,7 @@ public class PasswordInteropDemo {
         return result;
     }
 
-    // Tham số chỉ cho demo; không dùng 10.000 rounds trong production.
+    // Parameters for demo only; do not use 10,000 rounds in production.
     static byte[] deriveNfc(String password, byte[] salt) throws Exception {
         char[] normalized = Normalizer
                 .normalize(password, Normalizer.Form.NFC).toCharArray();
@@ -311,14 +311,14 @@ public class PasswordInteropDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ~~~bash
 javac PasswordInteropDemo.java
 java PasswordInteropDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 Raw equal           = false
@@ -335,85 +335,85 @@ NFC PBKDF2 equal    = true
 Unpaired rejected   = true
 ~~~
 
-**Đọc kết quả:**
+**Reading the output:**
 
-1. Hai cách biểu diễn `é` khác byte trước NFC; sau NFC chúng cho cùng chuỗi.
-2. NFKC làm fullwidth `Ａ` thành ASCII A, NFC giữ khác biệt.
-3. `String.length()` không phải số Unicode code point hoặc UTF-8 byte; emoji cần 2 code units và 4 byte UTF-8.
-4. Hàm encoder strict từ chối unpaired surrogate; các luồng nhận UTF-8 từ mạng cũng cần **decoder strict** trước khi tạo String.
-5. PBKDF2 bằng nhau vì đầu vào NFC, salt, iteration, keyLength và provider giống nhau. **Chưa chứng minh Java/Python/Node interop**; phải chạy test vector thật trên mọi implementation.
-6. `10_000` iterations và **salt cố định** chỉ phục vụ kiểm thử bài học. Với password thật, tạo **salt mới, đủ dài và ngẫu nhiên bằng SecureRandom cho mỗi password**, chọn password KDF/work factor phù hợp; không in derived key trong log.
+1. The two representations of `é` differ in bytes before NFC; after NFC they yield the same string.
+2. NFKC folds fullwidth `Ａ` to ASCII `A`, whereas NFC preserves the distinction.
+3. `String.length()` is neither Unicode code points nor UTF-8 bytes; the emoji takes 2 code units and 4 UTF-8 bytes.
+4. The strict encoder rejects unpaired surrogates; paths reading UTF-8 from the network also need a **strict decoder** before constructing a `String`.
+5. PBKDF2 outputs match because NFC input, salt, iterations, keyLength, and provider are identical. **This does not yet prove Java/Python/Node interop**; run real test vectors across every implementation.
+6. `10_000` iterations and the **fixed salt** serve solely for lesson testing. For real passwords, generate a **fresh, sufficiently long random salt with `SecureRandom` per password**, choose a suitable password KDF/work factor, and never log derived keys.
 
-Trong demo, `Normalizer.normalize` sinh String trung gian không thể xóa trực tiếp. Các mảng `char[]` do chương trình quản lý được xóa và `PBEKeySpec.clearPassword()` xóa bản sao nội bộ; đây là giảm rủi ro, **không bảo đảm dọn mọi bản sao bí mật khỏi RAM**.
+In the demo, `Normalizer.normalize` creates intermediate `String` objects that cannot be wiped directly. Program-managed `char[]` arrays are wiped and `PBEKeySpec.clearPassword()` wipes the internal copy; this mitigates risk, **without guaranteeing every secret copy is purged from RAM**.
 
-## 9. So sánh Java, Python và JavaScript
+## 9. Comparing Java, Python, and JavaScript
 
-| Nền tảng | Biểu diễn nội bộ | Điểm cần kiểm |
+| Platform | Internal representation | Points to verify |
 | --- | --- | --- |
-| **Java** | `String`/`char[]` chứa UTF-16 code units; `PBEKeySpec` nhận char[] | Charset mặc định, `Normalizer`, strict encoder, provider char→byte. |
-| **Python 3** | `str` Unicode; `unicodedata.normalize`; `encode` | Cùng form Unicode, UTF-8 strict và KDF nhận đúng raw bytes. |
-| **Node.js** | JS String dùng UTF-16; `String.normalize`; `Buffer.from(..., "utf8")` | Đếm `length` là code units, unpaired surrogate cần xử lý và library hash có byte rules riêng. |
-| **Legacy** | Có thể dùng ISO-8859-1, Windows-1252, UTF-16LE hay byte array NUL-terminated | Xác định chính xác bytes trước hash, giới hạn độ dài/loại bỏ ký tự và cách normalize cũ. |
+| **Java** | `String`/`char[]` holding UTF-16 code units; `PBEKeySpec` takes `char[]` | Default charset, `Normalizer`, strict encoder, provider char→byte mapping. |
+| **Python 3** | Unicode `str`; `unicodedata.normalize`; `encode` | Same Unicode form, strict UTF-8, and KDF receiving exact raw bytes. |
+| **Node.js** | JS String uses UTF-16; `String.normalize`; `Buffer.from(..., "utf8")` | `length` counts code units; unpaired surrogates must be handled; hash libraries have distinct byte rules. |
+| **Legacy** | May use ISO-8859-1, Windows-1252, UTF-16LE, or NUL-terminated byte arrays | Determine exact pre-hash bytes, truncation/stripping rules, and old normalization behavior. |
 
-Đoạn chuyển Unicode thành UTF-8 theo profile NFC bên Python:
+Python snippet converting Unicode to UTF-8 under the NFC profile:
 
 ~~~python
 import unicodedata
 
-# password đã được kiểm tra tính hợp lệ theo giao thức.
+# password has been validated according to the protocol.
 password_bytes = unicodedata.normalize("NFC", password).encode(
     "utf-8", errors="strict"
 )
 ~~~
 
-Đoạn tương ứng bên Node.js:
+Corresponding Node.js snippet:
 
 ~~~javascript
-// Phải validate Unicode, đặc biệt unpaired surrogate, trước bước này.
+// Must validate Unicode, especially unpaired surrogates, before this step.
 const passwordBytes = Buffer.from(password.normalize("NFC"), "utf8");
 ~~~
 
-Đó chỉ là **bước tạo byte**, không phải phương thức hash password hoàn chỉnh. Một số API JS sẽ thay surrogate lỗi khi tạo buffer; vì vậy phải có bước kiểm input strict trước đó. Khi Java dùng `PBEKeySpec` nhưng Python nhận raw bytes, hãy so **golden vectors chứa Unicode** để xác nhận provider Java thực sự dẫn xuất từ cùng dãy byte theo hợp đồng; đừng dựa vào tên `PBKDF2WithHmacSHA256` là đủ.
+That is only the **byte-encoding step**, not a complete password-hashing method. Some JS APIs replace invalid surrogates when creating buffers, so strict input validation must precede it. When Java uses `PBEKeySpec` while Python accepts raw bytes, compare **golden vectors containing Unicode** to confirm the Java provider actually derives from the contracted byte sequence; never rely on the name `PBKDF2WithHmacSHA256` alone.
 
-**Bẫy khác:** Bên A đưa byte của password vào KDF, bên B lại đưa **chuỗi hex hoặc Base64 của các byte**. Hex/Base64 là **biểu diễn**, không có lý do để dùng thêm một lớp encode trước KDF trừ khi profile lịch sử quy định chính xác như vậy.
+**Another trap:** Side A passes raw password bytes to the KDF, while Side B passes a **hex or Base64 string of those bytes**. Hex/Base64 are **encodings**, with no reason to add an extra encoding layer before the KDF unless a legacy profile explicitly mandates it.
 
-## 10. Golden vectors: kiểm tương thích bit-for-bit
+## 10. Golden vectors: verifying bit-for-bit compatibility
 
-Dùng mẫu thử cố định **không chứa credential thật** và ghi cả dãy byte sau preprocessing:
+Use fixed test samples **containing no real credentials** and record the exact post-preprocessing byte sequence:
 
-| Vector | Điều kiện kiểm | Kết quả sau profile NFC + UTF-8 |
+| Vector | Test condition | Result after NFC + UTF-8 profile |
 | --- | --- | --- |
 | ASCII `abc` | Baseline | `61 62 63` |
 | `é` = U+00E9 | Precomposed | `C3 A9` |
-| `e` + U+0301 | Decomposed | **Cũng** `C3 A9` |
-| `Ａ` = U+FF21 | NFC không compatibility-fold | **Khác** `A` ASCII |
-| `" pass "` | Không trim | Khác `"pass"` |
-| `🔒` | Ngoài BMP | 1 code point, 2 code units, 4 byte |
-| Latin `a` và Cyrillic `а` | Confusable | Không bị NFC gộp |
+| `e` + U+0301 | Decomposed | **Also** `C3 A9` |
+| `Ａ` = U+FF21 | NFC does not compatibility-fold | **Differs** from ASCII `A` |
+| `" pass "` | No trim | Differs from `"pass"` |
+| `🔒` | Non-BMP | 1 code point, 2 code units, 4 bytes |
+| Latin `a` and Cyrillic `а` | Confusables | Not merged by NFC |
 | Unpaired surrogate | Malformed UTF-16 | Reject |
-| Malformed UTF-8 từ transport | Malformed input | Reject, không thay U+FFFD |
-| Chuỗi vượt giới hạn policy | Không truncate | Trả lỗi theo chính sách |
+| Malformed UTF-8 from transport | Malformed input | Reject, do not substitute U+FFFD |
+| String exceeding policy limit | No truncation | Return policy error |
 
-Golden vectors cho **KDF** còn chứa byte salt, PRF/algorithm, iteration hoặc memory/time cost, output length, variant, pepper giả cho test (nếu có) và **expected derived bytes**. Mỗi implementation phải trả **cùng byte** đối với cùng vector. Đừng chỉ dùng ASCII: UTF-8 và nhiều bộ mã cũ giống nhau trên ASCII, che giấu lỗi với password tiếng Việt.
+Golden vectors for the **KDF** must also specify salt bytes, PRF/algorithm, iteration or memory/time cost, output length, variant, dummy test pepper (if used), and **expected derived bytes**. Every implementation must return **identical bytes** for the same vector. Never test with ASCII alone: UTF-8 and many legacy encodings match on ASCII, hiding bugs with Vietnamese passwords.
 
-Quy trình kiểm:
+Verification workflow:
 
 ~~~text
-1. Parse input theo protocol, reject malformed.
-2. Validate Unicode và policy.
-3. Normalize đúng profile.
-4. Encode UTF-8 strict, so expected passwordBytes.
-5. Gọi KDF với fixed test salt + params.
-6. So derived result/verify với expected value.
-7. Chạy negative tests: khác charset, khác normalization,
-   whitespace, emoji, malformed input, key length, salt, cost.
+1. Parse input per protocol, reject malformed data.
+2. Validate Unicode and policy rules.
+3. Normalize per exact profile.
+4. Strict UTF-8 encode, compare expected passwordBytes.
+5. Invoke KDF with fixed test salt + params.
+6. Compare derived result/verify against expected value.
+7. Run negative tests: wrong charset, wrong normalization,
+   whitespace, emojis, malformed input, key length, salt, cost.
 ~~~
 
-Chạy lại vector khi nâng cấp JVM, JCE provider, Unicode tables, thư viện password hash hoặc thay đổi gateway/API. Một phép round-trip `decode(encode(s)) == s` **chưa đủ** để chứng minh hai hệ thống chọn cùng charset hoặc cùng KDF policy, và chưa phát hiện lỗi decoder thay ký tự đầu vào.
+Rerun vectors whenever upgrading the JVM, JCE providers, Unicode tables, or password-hashing libraries, or when changing gateways/APIs. A `decode(encode(s)) == s` round-trip **is not enough** to prove two systems choose the same charset or KDF policy, nor does it catch decoders that silently replace input characters.
 
-## 11. Lưu hash với profile để tương thích dài hạn
+## 11. Storing hashes with profiles for long-term compatibility
 
-Một verifier lưu trữ nên có đủ metadata để kiểm bằng **đúng phiên bản đã tạo**:
+A stored verifier should carry enough metadata to verify under **the exact version that created it**:
 
 ~~~text
 account_id
@@ -423,20 +423,20 @@ salt                 = binary or documented Base64 form
 cost_parameters      = iterations / memory / time / parallelism
 hash_or_derived_key  = binary or documented encoded form
 algorithm_variant    = ...
-pepper_key_id        = ... (nếu có)
+pepper_key_id        = ... (if used)
 ~~~
 
-Một số thư viện tự chứa thuật toán/cost/salt trong encoded hash, chẳng hạn PHC-format cho Argon2id hoặc modular crypt format cho bcrypt. Tuy vậy, **charset và normalization policy không nhất thiết nằm trong đó**; hãy lưu `password_profile_id` nếu muốn tương thích/migrate rõ ràng.
+Some libraries embed algorithm/cost/salt inside the encoded hash, such as PHC format for Argon2id or modular crypt format for bcrypt. Even so, **charset and normalization policies are not necessarily encoded there**; store `password_profile_id` when clear compatibility and migration matter.
 
-- **Salt** công khai, riêng mỗi password và ngẫu nhiên; không nên dùng salt cố định chung cho mọi người.
-- **Pepper** là bí mật server giữ ngoài DB nếu lựa chọn dùng; cần quản lý key/version, không thay salt.
-- **Work factor** nên được chọn theo tham chiếu bảo mật và benchmark phù hợp hệ thống; nâng cost phải xử lý migration.
-- Không lưu plaintext, normalized text, password bytes hay dấu vết debug của chúng.
-- Không dùng `String.hashCode()`, checksum, SHA-256 thuần hoặc Base64 thay password hashing chuyên dụng.
+- **Salt** is public, per-password, and random; never use a static salt shared across everyone.
+- **Pepper** is a server secret stored outside the DB if used; manage key IDs/versions, and never use it to replace salts.
+- **Work factor** should follow security references and system benchmarks; raising cost requires a migration plan.
+- Never store plaintext, normalized text, password bytes, or debug traces of them.
+- Never use `String.hashCode()`, checksums, raw SHA-256, or Base64 in place of dedicated password hashing.
 
-## 12. Migration từ hệ thống đã có password hash
+## 12. Migrating from existing password-hash systems
 
-**Không thể biến password hash cũ thành hash mới chỉ bằng cách hash hash cũ** để tương ứng với byte Unicode mới: KDF một chiều, không chứa thông tin gốc cần normalize/encode. Cách làm thông dụng là **xác minh theo profile cũ trước**, sau đó rehash **candidate password người dùng vừa cung cấp** theo profile mới.
+**You cannot turn an old password hash into a new hash merely by hashing the old hash** to match new Unicode bytes: KDFs are one-way and lack the original text needed for normalization/encoding. The standard approach is **verifying under the old profile first**, then rehashing **the candidate password the user just supplied** under the new profile.
 
 ~~~text
 login(account, candidate):
@@ -453,88 +453,88 @@ login(account, candidate):
     allowLogin()
 ~~~
 
-Đây là **pseudocode** giải thích luồng, không phải Java độc lập. Cần lưu ý:
+This is **pseudocode** explaining the flow, not standalone Java. Keep in mind:
 
-1. **Chọn đúng một profile theo metadata account** để verify. Không thử hàng loạt encoding/normalization tùy tiện vì có thể **mở rộng tập mật khẩu được chấp nhận** và làm phức tạp audit/timing.
-2. Với legacy chưa có metadata, phải dựa vào bằng chứng cấu hình/thời điểm tạo/tenant hoặc có lộ trình **đặt lại mật khẩu**. Không thể đoán byte password gốc chỉ từ hash.
-3. Sau khi xác thực thành công, rehash bằng profile mới và **salt mới**; cập nhật atomically để không ghi đè lần đổi password đồng thời.
-4. Nếu từ “raw bytes” sang NFC, một số cách gõ trước đây từng là **mật khẩu khác** nay có thể được coi là cùng password. Cần đánh giá tác động với người dùng và quy tắc xác thực.
-5. Với bcrypt cũ có giới hạn 72 byte hoặc xử lý NUL, xác minh chính xác theo thư viện cũ và cân nhắc **yêu cầu đổi password** trước khi chuyển, tránh giữ quy tắc truncate không an toàn.
-6. Không chuyển profile ID của DB khi chưa tạo verifier mới, không lưu plaintext để “migrate hàng loạt”.
+1. **Select exactly one profile from account metadata** to verify. Never blindly try a cascade of encodings/normalizations, which can **widen the set of accepted passwords** and complicate auditing and timing.
+2. For legacy rows lacking metadata, rely on configuration evidence/creation timestamps/tenant records or provide a **password reset path**. You cannot guess original password bytes from the hash alone.
+3. After successful authentication, rehash with the new profile and a **fresh salt**; update atomically so concurrent password changes are not overwritten.
+4. Moving from “raw bytes” to NFC can cause inputs that were previously **distinct passwords** to become identical. Evaluate user impact and authentication rules.
+5. For legacy bcrypt with a 72-byte cap or NUL handling, verify faithfully with the old library and consider **requiring a password change** on migration rather than preserving unsafe truncation rules.
+6. Never change the DB profile ID without generating a new verifier, and never store plaintext for “batch migration.”
 
-Một ví dụ cụ thể: hệ cũ dùng Windows-1252 rồi PBKDF2; Java mới dùng NFC + UTF-8. Password ASCII có thể vẫn chạy. Password có tiếng Việt hoặc dấu tổ hợp có thể thất bại vì Windows-1252 không biểu diễn được. Cách giải quyết không phải **decode hash cũ sang UTF-8**, mà là kiểm đúng account bằng quy tắc cũ đã biết rồi thay verifier sau khi người dùng nhập đúng password, hoặc reset nếu hành vi cũ không thể tái hiện an toàn.
+A concrete example: an old system used Windows-1252 + PBKDF2; the new Java service uses NFC + UTF-8. ASCII passwords may still work. Passwords with Vietnamese characters or combining accents may fail because Windows-1252 could not represent them. The solution is not **“decoding the old hash to UTF-8,”** but checking the account under the known legacy rule and replacing the verifier once the user enters the right password—or resetting if legacy behavior cannot be reproduced safely.
 
-## 13. Lỗi vận hành và an toàn thường gặp
+## 13. Common operational and security errors
 
-| Lỗi | Hậu quả | Cách tránh |
+| Error | Consequence | How to avoid |
 | --- | --- | --- |
-| Dùng `password.getBytes()` với charset mặc định | Kết quả phụ thuộc runtime, đặc biệt hệ cũ | UTF-8 tường minh và test vector. |
-| Đếm `String.length()` như số ký tự hiển thị | Sai giới hạn, emoji bị tính hai | Tách code unit, code point, byte. |
-| `trim` trước hash | Hai password khác nhau bị gộp | Giữ nguyên whitespace trừ policy có chủ ý. |
-| NFKC bất ngờ sau nâng cấp | Compatibility characters bị gộp với ASCII | Dùng profile/version và migration. |
-| Encoder/decoder thay malformed input | Mất byte gốc, hai chuỗi khác thành giống | `CodingErrorAction.REPORT` và reject. |
-| Nhầm hex/Base64 salt text với raw salt bytes | PBKDF2 luôn lệch | Decode salt đúng theo stored format. |
-| Nhầm length 256 bit và 256 byte | Derived key mismatch | Quy định đơn vị tham số rõ ràng. |
-| Băm JSON text chứa password thay vì password value | Byte khác hệ thống kia | Decode đúng JSON, xác định trường value. |
-| Test chỉ `"password123"` | ASCII che giấu charset mismatch | Golden vectors chứa Unicode, emoji, combining mark. |
-| Thử mọi legacy charset trên login | Chấp nhận thêm password ngoài dự kiến, khó kiểm toán | Profile định danh theo record và reset nếu không xác định. |
-| Rehash hash cũ sang profile mới | Không thể tạo verifier của password input mới | Verify candidate rồi rehash, hoặc reset. |
-| Log normalized password/derived key để debug | Rò rỉ credential | Chỉ log mã lỗi, metric không nhạy cảm. |
-| Nhầm salt và pepper | Quản lý key/salt sai | Salt công khai riêng mỗi password; pepper bí mật tách khỏi DB. |
-| Dùng mã SHA-256 thô để lưu password | Băm quá nhanh cho tấn công đoán offline | Dùng password hashing/KDF phù hợp và cost đủ mạnh. |
+| Calling `password.getBytes()` with default charset | Output depends on runtime, especially on legacy hosts | Explicit UTF-8 and test vectors. |
+| Counting `String.length()` as visible characters | Wrong length limits; emojis count as two | Separate code units, code points, and bytes. |
+| `trim` before hashing | Two distinct passwords merge into one | Preserve whitespace unless policy explicitly dictates otherwise. |
+| Unexpected NFKC after an upgrade | Compatibility characters collapse into ASCII | Version profiles and plan migrations. |
+| Encoder/decoder replaces malformed input | Original bytes lost; distinct strings collide | `CodingErrorAction.REPORT` and reject. |
+| Confusing hex/Base64 salt text with raw salt bytes | PBKDF2 always mismatches | Decode salts according to stored format. |
+| Confusing 256-bit vs. 256-byte length | Derived key mismatch | Specify parameter units explicitly. |
+| Hashing JSON text around password instead of password value | Bytes differ from other systems | Parse JSON properly and extract the exact value field. |
+| Testing only `"password123"` | ASCII hides charset mismatches | Golden vectors with Unicode, emojis, and combining marks. |
+| Trying every legacy charset on login | Accepts unintended passwords; hard to audit | Identify profile per record and reset if unknown. |
+| Rehashing old hash under new profile | Fails to produce verifier of new password bytes | Verify candidate then rehash, or reset. |
+| Logging normalized passwords or derived keys for debugging | Credential leakage | Log only error codes and non-sensitive metrics. |
+| Confusing salt and pepper | Broken key/salt management | Public per-password salt; secret pepper isolated from DB. |
+| Using raw SHA-256 to store passwords | Too fast against offline guessing | Use proper password hashing/KDF with strong cost. |
 
-**Ghi nhớ lỗi phổ biến trên HTTP:** Một password đi qua browser, reverse proxy, framework request parser, authentication middleware, thư viện hash rồi DB. Nếu **mỗi tầng tự ý áp charset/normalize**, khó tìm nguyên nhân. Hãy đưa profile tập trung vào verifier và kiểm thử end-to-end cả JSON, form encoding, request length, byte payload, KDF và DB metadata. Không ghi mật khẩu vào trace khi điều tra.
+**Remember this common HTTP bug:** A password travels through browser, reverse proxy, framework request parser, authentication middleware, hashing library, and DB. If **each layer applies its own charset/normalization**, root causes become hard to trace. Centralize the profile inside the verifier and test end-to-end across JSON, form encoding, request lengths, byte payloads, KDF, and DB metadata. Never log passwords into traces while investigating.
 
-## 14. Câu hỏi tự kiểm tra và đáp án
+## 14. Self-check questions and answers
 
-**Câu 1:** `é` (U+00E9) và `e` + U+0301 có chắc cho cùng KDF key không?
+**Question 1:** Will `é` (U+00E9) and `e` + U+0301 always yield the same KDF key?
 
-**Đáp án:** Chỉ khi **cùng profile** (chẳng hạn NFC trước UTF-8), cùng salt/cost/algorithm/provider và cùng input bytes theo định nghĩa KDF. Nếu băm raw UTF-8 bytes thì hai dạng khác nhau.
+**Answer:** Only when using the **same profile** (e.g., NFC before UTF-8), same salt/cost/algorithm/provider, and identical input bytes per KDF definition. Hashing raw UTF-8 bytes keeps them different.
 
-**Câu 2:** `Ａ` và `A` có như nhau theo NFC không? Theo NFKC thì sao?
+**Question 2:** Are `Ａ` and `A` identical under NFC? What about NFKC?
 
-**Đáp án:** NFC giữ khác; NFKC compatibility-fold có thể đưa `Ａ` về ASCII `A`, nên hai mật khẩu trở thành tương đương theo policy NFKC.
+**Answer:** NFC keeps them distinct; NFKC compatibility-folds `Ａ` to ASCII `A`, making the two passwords equivalent under an NFKC policy.
 
-**Câu 3:** Emoji `🔒` có `String.length()==2`. Vậy nó dài 2 byte?
+**Question 3:** The emoji `🔒` has `String.length()==2`. Is it 2 bytes long?
 
-**Đáp án:** Không. Đó là 2 UTF-16 code units, **1 code point** và **4 UTF-8 byte**. Với ký tự tổ hợp, số code point cũng chưa chắc bằng số grapheme cluster hiển thị.
+**Answer:** No. That is 2 UTF-16 code units, **1 code point**, and **4 UTF-8 bytes**. With combining marks, code point count need not equal visible grapheme cluster count either.
 
-**Câu 4:** Có nên `strip()` password cho người dùng dễ nhập?
+**Question 4:** Should you `strip()` passwords to make typing easier for users?
 
-**Đáp án:** Không tự ý. Khoảng trắng có thể là thành phần password, và strip sẽ âm thầm gộp nhiều mật khẩu thành một.
+**Answer:** Not arbitrarily. Spaces can be part of a password, and stripping silently collapses distinct passwords into one.
 
-**Câu 5:** Java và Python đều dùng PBKDF2-HMAC-SHA256 nhưng hash tiếng Việt khác nhau, nên điều tra gì?
+**Question 5:** Both Java and Python use PBKDF2-HMAC-SHA256, yet Vietnamese hashes differ. What should you investigate?
 
-**Đáp án:** Kiểm Unicode code points, normalization, UTF-8/legacy charset, provider char→byte, salt bytes, iteration, derived-key length bit/byte, pepper, version/variant và test vector cụ thể.
+**Answer:** Check Unicode code points, normalization, UTF-8 vs. legacy charsets, provider char→byte conversion, salt bytes, iterations, derived-key bit/byte length, pepper, version/variant, and concrete test vectors.
 
-**Câu 6:** Có thể chuyển tất cả hash cũ từ Latin-1 sang UTF-8/NFC mà không biết password?
+**Question 6:** Can you migrate all old hashes from Latin-1 to UTF-8/NFC without knowing the passwords?
 
-**Đáp án:** Không. Verifier là hàm một chiều. Cần verify theo profile cũ bằng candidate hợp lệ rồi tạo verifier mới, hoặc reset password khi cần.
+**Answer:** No. A verifier is one-way. You must verify under the old profile with a valid candidate and then create a new verifier, or reset passwords where needed.
 
-**Câu 7:** bcrypt cũ nhận tối đa 72 byte, mật khẩu có 60 ký tự tiếng Việt chắc chắn nằm dưới 72 byte?
+**Question 7:** Legacy bcrypt accepts up to 72 bytes. Is a 60-character Vietnamese password guaranteed under 72 bytes?
 
-**Đáp án:** Không. UTF-8 có thể dùng nhiều byte cho mỗi ký tự; phải đo **byte** và xác định hành vi thật của bcrypt implementation. Không âm thầm cắt.
+**Answer:** No. UTF-8 can use multiple bytes per character; measure **bytes** and verify your bcrypt implementation's actual behavior. Never truncate silently.
 
-**Câu 8:** Vì sao encoder strict từ chối unpaired surrogate hữu ích cho tương thích bảo mật?
+**Question 8:** Why does a strict encoder rejecting unpaired surrogates help security interoperability?
 
-**Đáp án:** Nếu một bên thay surrogate lỗi bằng `?`/U+FFFD còn bên kia từ chối hoặc thay khác, dữ liệu mật khẩu bị mất thông tin và tạo byte khác. Reject rõ ràng giúp thống nhất hành vi.
+**Answer:** If one side substitutes `?`/U+FFFD for bad surrogates while the other rejects or substitutes differently, password data loses fidelity and yields diverging bytes. Explicit rejection keeps behavior uniform.
 
-**Câu 9:** Golden vector chứa ASCII và đúng 1 salt có đủ chứng minh Java/Node/legacy tương thích?
+**Question 9:** Is a golden vector with ASCII and 1 salt enough to prove Java/Node/legacy compatibility?
 
-**Đáp án:** Không. Cần vector Unicode (composed/decomposed, fullwidth, emoji, spaces), malformed input, limits, salt/iterations/params và expected derived bytes, chạy cùng bộ test trên mọi runtime.
+**Answer:** No. You need Unicode vectors (composed/decomposed, fullwidth, emojis, spaces), malformed inputs, length limits, salt/iterations/params, and expected derived bytes, running the same suite on every runtime.
 
-## 15. Checklist trước khi đưa vào production
+## 15. Pre-production checklist
 
-- [ ] Có **profile ID/version** cho cách nhận Unicode, normalize, encode và KDF.
-- [ ] HTTP/JSON/transport decode strict, không thay malformed UTF-8/UTF-16 bằng ký tự khác.
-- [ ] NFC/NFD/NFKC/none được chọn rõ; không trim, casefold, loại dấu ngoài contract.
-- [ ] UTF-8 byte input được kiểm bằng test vector; không thêm BOM/NUL/newline ngoài giao thức.
-- [ ] Chiều dài code point, UTF-16 code unit và byte được phân biệt; không truncate password.
-- [ ] Xác nhận giới hạn password KDF/bcrypt và hành vi của provider/version đang dùng.
-- [ ] Salt riêng ngẫu nhiên, cost/algorithm/PRF/length/variant rõ ràng, metadata đủ verify.
-- [ ] Các ngôn ngữ cùng chạy **Unicode golden vectors và negative cases**.
-- [ ] Legacy account được verify theo **đúng policy lúc tạo**, chỉ migrate sau đăng nhập hợp lệ hoặc reset.
-- [ ] Không lưu/log plaintext, normalized password, byte password, derived key hay secrets.
-- [ ] Sử dụng password hashing/KDF theo tiêu chuẩn/thư viện đáng tin và cost production đã được benchmark.
+- [ ] Defined **profile ID/version** for Unicode input, normalization, encoding, and KDF.
+- [ ] HTTP/JSON/transport decoding is strict, never substituting malformed UTF-8/UTF-16.
+- [ ] NFC/NFD/NFKC/none chosen explicitly; no off-contract trim, casefold, or diacritic stripping.
+- [ ] UTF-8 byte inputs verified with test vectors; no stray BOM/NUL/newlines added outside protocol.
+- [ ] Code point, UTF-16 code unit, and byte lengths distinguished; passwords never truncated.
+- [ ] Password KDF/bcrypt limits and exact provider/version behavior verified.
+- [ ] Unique random salt, explicit cost/algorithm/PRF/length/variant, and metadata sufficient to verify.
+- [ ] All languages pass shared **Unicode golden vectors and negative cases**.
+- [ ] Legacy accounts verify under **their creation-time policy**, migrating only after valid login or reset.
+- [ ] Zero storage/logging of plaintext, normalized passwords, password bytes, derived keys, or secrets.
+- [ ] Standards-compliant/trusted password hashing/KDF library used with benchmarked production cost.
 
-**Kết luận:** **Byte đầu vào KDF là kết quả của cả một hợp đồng chuyển đổi**, không chỉ của hàm hash. Muốn password tương thích qua Java và các hệ thống khác, phải cố định và kiểm thử toàn bộ chuỗi **transport → Unicode → normalization → UTF-8 → password KDF + salt/params**, sau đó version hóa để nâng cấp hoặc chuyển đổi mà không phá vỡ cách xác minh của tài khoản cũ.
+**Conclusion:** **KDF input bytes are the result of an entire conversion contract**, not just the hash function. For passwords to interoperate across Java and other systems, fix and test the whole chain **transport → Unicode → normalization → UTF-8 → password KDF + salt/params**, then version it so you can upgrade or migrate without breaking verification for existing accounts.

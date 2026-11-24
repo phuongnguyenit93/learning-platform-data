@@ -1,95 +1,95 @@
-# 13.3 Đọc chứng thư bằng CertificateFactory từ DER hoặc PEM
+# 13.3 Reading Certificates with CertificateFactory from DER or PEM
 
-Trong Java, `java.security.cert.CertificateFactory` là API tiêu chuẩn để **đọc (parse) chứng thư X.509 từ dữ liệu đã mã hóa**. Một chứng thư có thể được cung cấp dưới dạng **DER nhị phân** hoặc **PEM văn bản**; sau khi đọc, Java trả về đối tượng `X509Certificate` để xem subject, issuer, public key, số serial, thời gian hiệu lực và các extension.
+In Java, `java.security.cert.CertificateFactory` is the standard API for **reading (parsing) X.509 certificates from encoded data**. A certificate may be provided in **binary DER** or **text PEM** form; after parsing, Java returns an `X509Certificate` object to inspect the subject, issuer, public key, serial number, validity period, and extensions.
 
-Điểm quan trọng nhất: **đọc được chứng thư không có nghĩa là chứng thư được tin cậy**. `CertificateFactory.generateCertificate(...)` kiểm tra/giải mã cấu trúc chứng thư, nhưng **không tự xác minh chuỗi CA tin cậy, hostname, mục đích sử dụng, thu hồi hoặc chính sách TLS**. Bài này trình bày đúng phạm vi đọc DER/PEM và chỉ rõ ranh giới với kiểm tra trust để tránh nhầm lẫn.
+The most important point: **successfully parsing a certificate does not mean the certificate is trusted**. `CertificateFactory.generateCertificate(...)` checks/decodes the certificate structure, but **does not automatically verify a trusted CA chain, hostname, usage purpose, revocation, or TLS policy**. This lesson covers the exact scope of reading DER/PEM and clarifies the boundary with trust verification to avoid confusion.
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Phân biệt DER (binary ASN.1) và PEM (`BEGIN/END CERTIFICATE` + Base64 DER) về nội dung thực.
-- Dùng `CertificateFactory.getInstance("X.509")` cùng `generateCertificate(InputStream)` để đọc một chứng thư từ file DER hoặc PEM.
-- Sử dụng `generateCertificates(InputStream)` khi một nguồn chứa nhiều chứng thư hoặc bộ chứng thư PKCS#7.
-- Truy xuất trường X.509 một cách an toàn, phân biệt thông tin metadata với kết quả kiểm tra trust.
-- Xử lý `CertificateException` và lỗi I/O đúng tầng, không mặc định rằng đuôi file quyết định định dạng.
-- Kiểm chứng bằng chương trình Java 17+ có thể chạy, bao gồm so sánh cùng một chứng thư sau khi parse qua DER và PEM.
+- Distinguish DER (binary ASN.1) and PEM (`BEGIN/END CERTIFICATE` + Base64 DER) in terms of actual content.
+- Use `CertificateFactory.getInstance("X.509")` with `generateCertificate(InputStream)` to read a certificate from a DER or PEM file.
+- Use `generateCertificates(InputStream)` when a source contains multiple certificates or a PKCS#7 certificate set.
+- Retrieve X.509 fields safely, distinguishing metadata from trust check results.
+- Handle `CertificateException` and I/O errors at the proper layer without assuming file extensions dictate format.
+- Verify with runnable Java 17+ programs, including comparing the same certificate parsed via DER and PEM.
 
-## 1. Chứng thư X.509 là gì và không phải là gì?
+## 1. What Is and Isn't an X.509 Certificate?
 
-Chứng thư X.509 là cấu trúc dữ liệu đã được ký, thường liên kết **public key** với một tập thuộc tính của chủ thể do issuer chứng nhận theo chính sách PKI. Các thành phần điển hình:
+An X.509 certificate is a signed data structure that typically binds a **public key** to a set of subject attributes certified by an issuer under a PKI policy. Typical components:
 
-| Trường / thành phần | Ý nghĩa |
+| Field / component | Meaning |
 | --- | --- |
-| **Subject** | Danh tính được mô tả trong chứng thư (Distinguished Name). Với TLS, tên miền thường được kiểm tra qua **Subject Alternative Name (SAN)**, không chỉ dựa vào CN. |
-| **Issuer** | Danh tính bên phát hành chứng thư (thường là CA); tên issuer một mình chưa chứng minh chứng thư do CA tin cậy cấp. |
-| **Serial number** | Số định danh chứng thư do issuer gán; không phải private key. |
-| **NotBefore / NotAfter** | Khoảng thời gian hiệu lực ghi trong chứng thư. |
-| **Subject Public Key Info** | Public key và thuật toán/bộ tham số liên quan. |
-| **Signature algorithm + signature** | Cách chứng thư được ký và giá trị chữ ký của bên phát hành. |
-| **Extensions** | SAN, KeyUsage, ExtendedKeyUsage, BasicConstraints, Authority Key Identifier, Subject Key Identifier, CRL Distribution Points và các trường khác. |
+| **Subject** | The identity described in the certificate (Distinguished Name). For TLS, domain names are typically checked via **Subject Alternative Name (SAN)**, not solely CN. |
+| **Issuer** | The identity of the issuing entity (typically a CA); the issuer name alone does not prove the certificate was issued by a trusted CA. |
+| **Serial number** | The certificate identifier assigned by the issuer; not a private key. |
+| **NotBefore / NotAfter** | The validity period recorded in the certificate. |
+| **Subject Public Key Info** | The public key and its associated algorithm/parameters. |
+| **Signature algorithm + signature** | How the certificate was signed and the issuer's signature value. |
+| **Extensions** | SAN, KeyUsage, ExtendedKeyUsage, BasicConstraints, Authority Key Identifier, Subject Key Identifier, CRL Distribution Points, and other fields. |
 
-Bên ngoài còn có private key tương ứng public key nhưng **private key không nằm trong chứng thư X.509**. Đọc file `.cer` hoặc `.pem` chứa **CERTIFICATE** không có nghĩa đã lấy được khóa bí mật để ký hay giải mã.
+Externally, there is a private key corresponding to the public key, but **the private key is not inside the X.509 certificate**. Reading a `.cer` or `.pem` file containing a **CERTIFICATE** does not mean you have obtained the secret key for signing or decryption.
 
-Một chứng thư có thể:
-- Được parse hoàn toàn hợp lệ nhưng **hết hạn**.
-- Có chữ ký toán học đúng nhưng chuỗi CA không được tin cậy.
-- Thuộc CA được tin cậy nhưng **không hợp lệ cho hostname hoặc mục đích** của yêu cầu.
-- Là chứng thư tự ký hợp lệ về cú pháp, nhưng không phải trust anchor của hệ thống.
-- Chứa public key dùng được cho kiểm tra chữ ký, nhưng chưa thể dùng để nhận diện một người/service cho tới khi trust policy chấp nhận.
+A certificate can:
+- Parse completely validly yet be **expired**.
+- Have a mathematically valid signature yet have an untrusted CA chain.
+- Belong to a trusted CA yet be **invalid for the hostname or purpose** of the request.
+- Be a syntactically valid self-signed certificate, yet not a system trust anchor.
+- Contain a public key usable for signature verification, yet not usable to identify a person/service until accepted by trust policy.
 
-Do đó cần phân biệt rõ **parse**, **kiểm tra thời gian**, **kiểm tra chữ ký chứng thư**, **xây dựng/kiểm tra cert path**, và **ràng buộc danh tính ứng dụng**.
+Therefore, you must clearly distinguish **parsing**, **validity period checking**, **certificate signature checking**, **cert path building/validation**, and **application identity binding**.
 
-## 2. DER và PEM: cùng dữ liệu X.509, hai hình thức biểu diễn
+## 2. DER and PEM: Same X.509 Data, Two Representations
 
 ### 2.1. DER — binary encoding
 
-**DER (Distinguished Encoding Rules)** là tập quy tắc mã hóa ASN.1 xác định duy nhất biểu diễn nhị phân của một cấu trúc. Một chứng thư X.509 DER là **dãy byte nhị phân**, không phải UTF-8 văn bản có thể đọc bằng mắt.
+**DER (Distinguished Encoding Rules)** is an ASN.1 encoding rule set that uniquely defines the binary representation of a structure. A DER X.509 certificate is a **binary byte sequence**, not human-readable UTF-8 text.
 
 ~~~text
-cert.der hoặc cert.cer
+cert.der or cert.cer
 ┌───────────────────────────────────────────────┐
-│ Các byte ASN.1 DER của X.509 Certificate       │
+│ ASN.1 DER bytes of the X.509 Certificate      │
 │ SEQUENCE { tbsCertificate, signatureAlgorithm, │
 │            signatureValue }                    │
 └───────────────────────────────────────────────┘
 ~~~
 
-Một vài file extension có thể gặp: `.der`, `.cer`, `.crt`. **Đuôi file không có ý nghĩa mật mã bắt buộc**: `.cer` có thể chứa DER hoặc PEM tùy nguồn, còn `.crt` cũng có thể là cả hai. Dựa vào **nội dung và giao thức cung cấp**, không dựa vào đuôi file khi quyết định parser.
+Common file extensions include: `.der`, `.cer`, `.crt`. **A file extension carries no mandatory cryptographic meaning**: `.cer` can hold DER or PEM depending on the source, and `.crt` can also be either. Rely on **content and the delivering protocol**, not the file extension, when choosing a parser.
 
-Sai lầm phổ biến là đọc DER bằng `Files.readString(path)` rồi Base64-decode hoặc cố xử lý bằng regex. Binary DER phải được đưa vào `InputStream`/`byte[]` như dữ liệu nhị phân, không tự ý đổi encoding chữ.
+A common mistake is reading DER with `Files.readString(path)` and then Base64-decoding or trying to process it with regex. Binary DER must be fed into an `InputStream`/`byte[]` as binary data without arbitrary text encoding conversions.
 
-### 2.2. PEM — text armor của DER
+### 2.2. PEM — text armor for DER
 
-**PEM** trong trường hợp chứng thư là biểu diễn Base64 của **cùng byte DER**, được bao bằng đúng marker:
+**PEM** for a certificate is the Base64 representation of **the exact same DER bytes**, wrapped with the proper markers:
 
 ~~~text
 -----BEGIN CERTIFICATE-----
-MIIB...các dòng Base64 DER...ABCD
+MIIB...Base64 DER lines...ABCD
 -----END CERTIFICATE-----
 ~~~
 
-Đây là **sơ đồ minh họa**, chuỗi Base64 bị rút gọn ở trên **không phải chứng thư có thể parse**. PEM đúng thực sự phải chứa toàn bộ DER hợp lệ, được encode Base64; phần đầu và cuối phải đúng.
+This is an **illustrative diagram**; the truncated Base64 string above is **not a parseable certificate**. A real PEM must contain the complete valid DER, Base64-encoded, with exact header and footer markers.
 
-Đặc điểm:
-- PEM chứng thư chứa **DER đã Base64 hóa** và các marker. Nó không biến public key thành private key, không thêm trust.
-- Dấu xuống dòng trong phần Base64 thường dùng độ dài dòng dễ đọc (ví dụ 64 ký tự), không phải trường X.509.
-- File PEM có thể chứa **một hoặc nhiều** khối `BEGIN CERTIFICATE`, tùy định dạng/giao thức.
-- `-----BEGIN PUBLIC KEY-----` là biểu diễn public key riêng, **không phải nguyên một chứng thư**.
-- `-----BEGIN PRIVATE KEY-----`, `-----BEGIN ENCRYPTED PRIVATE KEY-----` hoặc `-----BEGIN RSA PRIVATE KEY-----` chứa khóa private theo định dạng tương ứng, **không được đưa vào CertificateFactory** với kỳ vọng tạo `X509Certificate`.
-- `-----BEGIN CERTIFICATE REQUEST-----` (CSR) cũng không phải chứng thư đã phát hành.
-- `-----BEGIN PKCS7-----` hoặc file PKCS#7/`.p7b` có thể chứa **bộ chứng thư**, cần dùng đúng API/định dạng và không nhầm là DER của một certificate đơn lẻ.
+Characteristics:
+- A certificate PEM contains **Base64-encoded DER** and markers. It does not turn a public key into a private key, nor does it add trust.
+- Line breaks in the Base64 body typically use readable line lengths (e.g., 64 characters) and are not X.509 fields.
+- A PEM file may contain **one or more** `BEGIN CERTIFICATE` blocks, depending on format/protocol.
+- `-----BEGIN PUBLIC KEY-----` represents a standalone public key, **not a full certificate**.
+- `-----BEGIN PRIVATE KEY-----`, `-----BEGIN ENCRYPTED PRIVATE KEY-----`, or `-----BEGIN RSA PRIVATE KEY-----` contain private keys in their respective formats and **must not be passed to CertificateFactory** expecting an `X509Certificate`.
+- `-----BEGIN CERTIFICATE REQUEST-----` (CSR) is also not an issued certificate.
+- `-----BEGIN PKCS7-----` or PKCS#7/`.p7b` files may contain a **certificate set**, requiring the appropriate API/format and should not be mistaken for the DER of a single certificate.
 
-**Quan hệ DER/PEM:**
+**Relationship between DER and PEM:**
 
 ~~~text
 DER bytes
    |
-   | Base64 encode + BEGIN/END CERTIFICATE + xuống dòng
+   | Base64 encode + BEGIN/END CERTIFICATE + line breaks
    v
 PEM text
    |
-   | bỏ armor + Base64 decode theo cấu trúc
+   | strip armor + Base64 decode structurally
    v
-DER bytes ban đầu
+Original DER bytes
 
 CertificateFactory("X.509").generateCertificate(...)
           |
@@ -97,76 +97,76 @@ CertificateFactory("X.509").generateCertificate(...)
 X509Certificate
 ~~~
 
-Không cần tự viết PEM parser thủ công chỉ để đọc chứng thư. Theo hợp đồng Java SE 17, X.509 `CertificateFactory.generateCertificate(InputStream)` phải nhận chứng thư **DER binary** hoặc DER ở dạng **printable Base64** với marker `BEGIN/END CERTIFICATE` chính xác.
+There is no need to write a manual PEM parser just to read a certificate. Per the Java SE 17 contract, an X.509 `CertificateFactory.generateCertificate(InputStream)` accepts either **binary DER** or DER in **printable Base64** with exact `BEGIN/END CERTIFICATE` markers.
 
-### 2.3. Bảng so sánh
+### 2.3. Comparison Table
 
-| Tiêu chí | DER | PEM |
+| Criterion | DER | PEM |
 | --- | --- | --- |
-| Dạng vật lý | Binary ASN.1 DER | ASCII text gồm Base64 DER + marker |
-| Đọc trực tiếp bằng text editor | Không thích hợp | Có thể nhìn marker và Base64, nhưng không thấy ý nghĩa trường X.509 |
-| Hàm đọc X.509 Java | `generateCertificate(InputStream)` | **Cùng hàm** `generateCertificate(InputStream)` |
-| Có cần `Base64.getDecoder()` trước không? | Không | **Không** nếu đưa PEM chuẩn trực tiếp vào `CertificateFactory` |
-| Private key có nằm sẵn không? | Không, nếu file đúng là X.509 certificate | Không, nếu khối đúng là `CERTIFICATE` |
-| Trust được kiểm tra khi parse? | **Không** | **Không** |
-| Dung lượng | Thường nhỏ hơn PEM vì không có Base64/marker | Thường lớn hơn DER vì Base64/marker |
-| Nhiều certificate | Một hoặc nhiều DER theo định dạng/bộ dữ liệu phù hợp | Có thể nối nhiều khối CERTIFICATE trong một nguồn |
+| Physical form | Binary ASN.1 DER | ASCII text with Base64 DER + markers |
+| Reading directly in a text editor | Unsuitable | Markers and Base64 are visible, though X.509 field meanings are not |
+| Java X.509 parsing method | `generateCertificate(InputStream)` | **Same method** `generateCertificate(InputStream)` |
+| Need `Base64.getDecoder()` beforehand? | No | **No** when passing standard PEM directly to `CertificateFactory` |
+| Is a private key included? | No, if the file is properly an X.509 certificate | No, if the block is properly `CERTIFICATE` |
+| Is trust checked during parsing? | **No** | **No** |
+| Size | Usually smaller than PEM (no Base64/markers) | Usually larger than DER due to Base64/markers |
+| Multiple certificates | One or more DERs per suitable format/bundle | Multiple `CERTIFICATE` blocks can be concatenated in one source |
 
-## 3. API chuẩn: `CertificateFactory` và `X509Certificate`
+## 3. Standard API: `CertificateFactory` and `X509Certificate`
 
-Hai import chính:
+Two primary imports:
 
 ~~~java
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 ~~~
 
-Đọc một chứng thư, bất kể DER hay PEM chuẩn:
+Reading one certificate, whether DER or standard PEM:
 
 ~~~java
 CertificateFactory factory = CertificateFactory.getInstance("X.509");
 X509Certificate cert = (X509Certificate) factory.generateCertificate(inputStream);
 ~~~
 
-Đây là **mảnh code minh họa**, cần có `inputStream` thực và xử lý exception. Với factory loại `"X.509"`, chuẩn Java yêu cầu chứng thư trả về có thể biểu diễn bằng `X509Certificate`.
+This is an **illustrative code snippet**; it requires a real `inputStream` and exception handling. For an `"X.509"` factory, Java standards require the returned certificate to be representable as `X509Certificate`.
 
-| API | Vai trò |
+| API | Role |
 | --- | --- |
-| `CertificateFactory.getInstance("X.509")` | Chọn certificate factory theo JCA provider lookup. Java SE yêu cầu hỗ trợ loại X.509. |
-| `getInstance("X.509", providerName)` | Chọn provider theo tên đã đăng ký khi triển khai yêu cầu; không bắt buộc cho ứng dụng thông thường. |
-| `factory.getProvider()` | Cho biết provider xử lý parsing, hữu ích cho kiểm thử tương thích. |
-| `factory.generateCertificate(InputStream)` | Đọc **một chứng thư** từ stream; ném `CertificateException` nếu parse thất bại. |
-| `factory.generateCertificates(InputStream)` | Đọc một **collection** chứng thư từ stream chứa chuỗi các chứng thư/PKCS#7, có thể là collection rỗng. |
-| `factory.generateCertPath(...)` | Tạo đối tượng `CertPath` từ encoding path hoặc danh sách chứng thư; **chưa phải validate trust**. |
-| `cert.getSubjectX500Principal()` | Trả `X500Principal` của subject (ưu tiên hơn API `getSubjectDN()` đã deprecated). |
-| `cert.getIssuerX500Principal()` | Trả `X500Principal` của issuer. |
-| `cert.getNotBefore()/getNotAfter()` | Trả giới hạn thời gian trong chứng thư. |
-| `cert.getPublicKey()` | Trả public key từ chứng thư. |
-| `cert.getEncoded()` | Trả binary DER của certificate; không phải PEM, không phải private key. |
-| `cert.checkValidity()` | Kiểm tra **thời gian hiệu lực hiện tại**; không kiểm tra toàn bộ trust chain. |
-| `cert.verify(issuerPublicKey)` | Kiểm tra chữ ký của chứng thư bằng public key đã cho; không chứng minh issuer được tin cậy. |
+| `CertificateFactory.getInstance("X.509")` | Selects a certificate factory via JCA provider lookup. Java SE requires X.509 support. |
+| `getInstance("X.509", providerName)` | Selects a registered provider by name when deployment requires it; unnecessary for typical apps. |
+| `factory.getProvider()` | Reports the provider handling parsing, useful for compatibility testing. |
+| `factory.generateCertificate(InputStream)` | Reads **one certificate** from the stream; throws `CertificateException` if parsing fails. |
+| `factory.generateCertificates(InputStream)` | Reads a **collection** of certificates from a stream of certificates/PKCS#7; may be an empty collection. |
+| `factory.generateCertPath(...)` | Creates a `CertPath` object from an encoded path or certificate list; **does not validate trust**. |
+| `cert.getSubjectX500Principal()` | Returns the subject's `X500Principal` (preferred over the deprecated `getSubjectDN()` API). |
+| `cert.getIssuerX500Principal()` | Returns the issuer's `X500Principal`. |
+| `cert.getNotBefore()/getNotAfter()` | Returns the validity boundaries in the certificate. |
+| `cert.getPublicKey()` | Returns the public key from the certificate. |
+| `cert.getEncoded()` | Returns the binary DER of the certificate; not PEM, not a private key. |
+| `cert.checkValidity()` | Checks the **current validity period**; does not check the full trust chain. |
+| `cert.verify(issuerPublicKey)` | Checks the certificate's signature using the given public key; does not prove the issuer is trusted. |
 
-### 3.1. Lỗi theo API
+### 3.1. Errors by API
 
-- `getInstance("X.509")` có thể ném `CertificateException` nếu type/provider không tồn tại; `getInstance(type, name)` còn có thể ném `NoSuchProviderException`. X.509 là loại bắt buộc trên Java SE, nhưng provider cụ thể có thể không hỗ trợ.
-- `generateCertificate(...)` ném `CertificateException` khi parse dữ liệu lỗi.
-- `Files.newInputStream` hoặc `Files.size` có thể ném `IOException`, `NoSuchFileException`, `AccessDeniedException` — đây là lỗi **đọc file**, không phải lỗi ASN.1.
-- `cert.checkValidity()` có thể ném `CertificateExpiredException` hoặc `CertificateNotYetValidException` dù việc parse đã thành công.
-- Xử lý PKIX có thể ném `CertPathValidatorException` và lỗi trust/policy khác. Đừng quy mọi lỗi kiểu đó thành “DER/PEM hỏng”.
+- `getInstance("X.509")` can throw `CertificateException` if the type/provider does not exist; `getInstance(type, name)` can also throw `NoSuchProviderException`. X.509 is required on Java SE, though a specific provider might not support it.
+- `generateCertificate(...)` throws `CertificateException` when parsing malformed data.
+- `Files.newInputStream` or `Files.size` can throw `IOException`, `NoSuchFileException`, or `AccessDeniedException` — these are **file I/O** errors, not ASN.1 errors.
+- `cert.checkValidity()` can throw `CertificateExpiredException` or `CertificateNotYetValidException` even when parsing succeeded.
+- PKIX processing can throw `CertPathValidatorException` and other trust/policy errors. Do not attribute all such failures to “corrupted DER/PEM”.
 
-### 3.2. Đọc một file so với bundle
+### 3.2. Reading One File vs. a Bundle
 
-**Một file có một certificate**: `generateCertificate(in)` phù hợp và rõ nghĩa.
+**A file with one certificate**: `generateCertificate(in)` is appropriate and clear.
 
-**Một file có nhiều PEM blocks** hoặc PKCS#7 certificate set: `generateCertificates(in)` thường hợp lý hơn; nó trả collection, **không hứa hẹn** thứ tự đã là chain leaf -> intermediate -> root, cũng không hứa collection đủ để tạo một trust path hợp lệ.
+**A file with multiple PEM blocks** or a PKCS#7 certificate set: `generateCertificates(in)` is generally more appropriate; it returns a collection, **does not guarantee** the order is already leaf -> intermediate -> root, and does not guarantee the collection suffices to form a valid trust path.
 
-**Một cert path cần được xây dựng/validate**: chuẩn bị danh sách/chứng thư đúng thứ tự, trust anchors và chính sách PKIX; việc tạo đối tượng `CertPath` không tương đương kiểm tra thành công `CertPathValidator.validate(...)`.
+**A cert path that needs building/validation**: prepare the certificate list in the right order, trust anchors, and PKIX policy; creating a `CertPath` object is not equivalent to passing `CertPathValidator.validate(...)`.
 
-## 4. Chương trình Java 17+: đọc file DER hoặc PEM bằng cùng một hàm
+## 4. Java 17+ Program: Reading a DER or PEM File with the Same Method
 
-Chương trình dưới đây là ví dụ chính của bài: `ReadX509File.java` chỉ nhận **đường dẫn một file chứa một chứng thư**. Nó không dùng kiểm tra file extension; `CertificateFactory("X.509")` quyết định parse dựa trên nội dung DER/PEM hợp lệ.
+The program below is the main example of this lesson: `ReadX509File.java` takes **the path to a file containing a single certificate**. It does not check file extensions; `CertificateFactory("X.509")` decides how to parse based on valid DER/PEM content.
 
-**Tệp: `ReadX509File.java`**
+**File: `ReadX509File.java`**
 
 ~~~java
 import java.io.BufferedInputStream;
@@ -229,7 +229,7 @@ public class ReadX509File {
 }
 ~~~
 
-### 4.1. Biên dịch và chạy
+### 4.1. Compiling and Running
 
 ~~~bash
 javac ReadX509File.java
@@ -237,53 +237,53 @@ java ReadX509File certificate.der
 java ReadX509File certificate.pem
 ~~~
 
-Các file `certificate.der` và `certificate.pem` phải là chứng thư thực sự do bài tập/hệ thống cung cấp, không phải nội dung placeholder trong README. Nếu hai file chứa **cùng một chứng thư**, các trường đọc được và fingerprint SHA-256 trên **DER chuẩn hóa** sẽ giống nhau.
+The files `certificate.der` and `certificate.pem` must be real certificates provided by the exercise/system, not placeholder content from a README. If both files contain **the exact same certificate**, the parsed fields and the SHA-256 fingerprint over the **canonical DER** will match.
 
-Đầu ra có cấu trúc:
+Output structure:
 
 ~~~text
 Type: X.509
-Version: <phiên bản từ chứng thư, thường là 3>
-Subject: <tên subject từ chứng thư>
-Issuer: <tên issuer từ chứng thư>
-Serial (hex): <serial thực của chứng thư>
-Not before: <thời điểm trong chứng thư>
-Not after: <thời điểm trong chứng thư>
-Public key algorithm: <RSA, EC hoặc thuật toán thực>
-SHA-256 DER fingerprint: <64 ký tự hex của digest SHA-256>
+Version: <version from certificate, usually 3>
+Subject: <subject name from certificate>
+Issuer: <issuer name from certificate>
+Serial (hex): <actual serial of the certificate>
+Not before: <timestamp in the certificate>
+Not after: <timestamp in the certificate>
+Public key algorithm: <RSA, EC, or actual algorithm>
+SHA-256 DER fingerprint: <64 hex characters of the SHA-256 digest>
 ~~~
 
-Các dòng trong dấu `<...>` là **mô tả biến động theo input**, không phải stdout cố định để chép nguyên văn. Trong mọi trường hợp parse thành công bằng X.509 factory, dòng `Type: X.509` là kết quả mong đợi.
+Lines in `<...>` are **input-dependent descriptions**, not fixed stdout to copy verbatim. Whenever parsing succeeds with an X.509 factory, the line `Type: X.509` is expected.
 
-### 4.2. Giải thích cặn kẽ
+### 4.2. Detailed Explanation
 
-1. `CertificateFactory.getInstance("X.509")` tạo engine parse chứng thư, **không cần tạo `KeyFactory`** và không cần private key.
-2. `Files.newInputStream(path)` đọc byte gốc, **không chuyển DER thành `String`**. `BufferedInputStream` hỗ trợ `mark/reset` và dùng `try-with-resources` để đóng file đúng cách.
-3. `generateCertificate(in)` nhận DER binary hoặc PEM Base64 có marker hợp lệ. Khi source chỉ chứa một cert, API này phù hợp.
-4. `X509Certificate` cho phép xem subject/issuer/public key/validity. `getEncoded()` trả **DER**, nên SHA-256 của cùng cert là như nhau dù lúc nhập qua DER hoặc PEM.
-5. SHA-256 fingerprint là **định danh byte của chứng thư**, không phải bằng chứng cert được tin cậy. Nếu dùng pinning, phải so fingerprint với giá trị **được cấp qua kênh tin cậy**, có kế hoạch rotation, không lấy fingerprint từ chính đầu vào chưa xác thực rồi cho rằng an toàn.
-6. `Files.size` chỉ kiểm tra sơ bộ dung lượng; file có thể thay đổi giữa `size` và `open` (TOCTOU). Trong production, cần giới hạn **thực sự** số byte parser nhận, kiểm soát đường dẫn/symlink và nguồn dữ liệu. Ví dụ chủ yếu minh họa API X.509.
-7. Chương trình **không gọi `checkValidity` và không validate PKIX**, vì mục tiêu hiện tại là **đọc/inspect**, không cấp quyết định trust. Nếu ứng dụng cần xác minh, phải có bước riêng.
+1. `CertificateFactory.getInstance("X.509")` creates a certificate parsing engine; it **does not need `KeyFactory`** and does not need a private key.
+2. `Files.newInputStream(path)` reads raw bytes without **converting DER to `String`**. `BufferedInputStream` supports `mark/reset` and uses `try-with-resources` to close the file properly.
+3. `generateCertificate(in)` accepts binary DER or Base64 PEM with valid markers. When the source contains a single cert, this API is suitable.
+4. `X509Certificate` exposes subject/issuer/public key/validity. `getEncoded()` returns **DER**, so the SHA-256 of the same cert is identical whether loaded via DER or PEM.
+5. The SHA-256 fingerprint is a **byte identifier of the certificate**, not proof that the cert is trusted. If pinning is used, compare the fingerprint against a value **provisioned over a trusted channel**, with a rotation plan—never take a fingerprint from untrusted input and assume it is safe.
+6. `Files.size` is only a preliminary size check; the file can change between `size` and `open` (TOCTOU). In production, enforce **actual** byte limits on what the parser reads, and control paths/symlinks and data sources. The example primarily demonstrates X.509 APIs.
+7. The program **does not call `checkValidity` and does not validate PKIX**, because the current goal is **reading/inspecting**, not making a trust decision. If an application needs verification, it must perform separate steps.
 
-### 4.3. Nếu chỉ cần subject và public key thì sao?
+### 4.3. What If You Only Need the Subject and Public Key?
 
-Có thể dùng:
+You can use:
 
 ~~~java
-X509Certificate cert = ...; // Kết quả parse từ CertificateFactory.
+X509Certificate cert = ...; // Parsed result from CertificateFactory.
 System.out.println(cert.getSubjectX500Principal());
 System.out.println(cert.getPublicKey().getAlgorithm());
 ~~~
 
-Nhưng **không được cấp quyền truy cập** chỉ vì subject in ra giống `CN=example.com`. Subject DN là dữ liệu trong cert; kiểm tra tên miền TLS thường dựa trên SAN, và phải có chuỗi trust hợp lệ, hạn chế ExtendedKeyUsage/KeyUsage và các điều kiện chính sách khác.
+However, **never grant access permissions** just because the printed subject looks like `CN=example.com`. Subject DN is certificate data; TLS domain verification typically relies on SAN, and requires a valid trust chain, ExtendedKeyUsage/KeyUsage constraints, and other policy conditions.
 
-## 5. Thử nghiệm không cần file: DER -> PEM -> parse cùng một chứng thư
+## 5. Fileless Experiment: DER -> PEM -> Parse the Same Certificate
 
-Để xác thực trực tiếp cách Java đọc DER và PEM mà không cần mang một chứng thư giả cố định trong mã nguồn, ví dụ tiếp theo sử dụng **một chứng thư CA công khai sẵn có trong trust anchors mặc định của JVM** làm **dữ liệu thử nghiệm**. Mục đích là dùng byte thật của một chứng thư đã parse được để kiểm thử hai dạng encoding. Đây **không phải** ví dụ thiết lập trust policy mới hoặc chứng minh certificate do người dùng cung cấp được tin cậy.
+To directly verify how Java reads DER and PEM without embedding a fixed fake certificate in source code, the next example uses **a public CA certificate already present in the JVM's default trust anchors** as **test data**. The goal is to use real bytes of an already-parseable certificate to test both encodings. This is **not** an example of setting a new trust policy or proving a user-supplied certificate is trusted.
 
-**Điều kiện chạy:** JVM phải có ít nhất một X.509 trusted issuer trong trust manager mặc định. Một JVM dùng truststore trống/custom có thể không thỏa điều kiện này; khi đó dùng cert hợp lệ khác làm fixture test, không bỏ kiểm tra trust.
+**Prerequisites:** the JVM must have at least one X.509 trusted issuer in its default trust manager. A JVM with an empty/custom truststore might not satisfy this condition; in that case use another valid certificate as a test fixture rather than bypassing trust checks.
 
-**Tệp: `CertificateFormatsDemo.java`**
+**File: `CertificateFormatsDemo.java`**
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -360,14 +360,14 @@ public class CertificateFormatsDemo {
 }
 ~~~
 
-Chạy bằng Java 17+ có trust anchors mặc định:
+Run with Java 17+ that has default trust anchors:
 
 ~~~bash
 javac CertificateFormatsDemo.java
 java CertificateFormatsDemo
 ~~~
 
-Stdout đã kiểm chứng trên JVM có default trust anchors:
+Verified stdout on a JVM with default trust anchors:
 
 ~~~text
 DER type: X.509
@@ -377,30 +377,30 @@ PEM bundle count: 2
 Malformed DER rejected: true
 ~~~
 
-### 5.1. Tại sao ví dụ này có giá trị?
+### 5.1. Why Is This Example Valuable?
 
-- `getEncoded()` của `X509Certificate` là DER. Ta tái tạo PEM bằng `Base64.getMimeEncoder(64, new byte[]{'\n'})` và header/footer đúng, rồi đưa thẳng PEM vào `CertificateFactory`.
-- Không cần `Base64.getDecoder()` trước khi gọi `generateCertificate` với PEM chuẩn, tránh lỗi gỡ marker và whitespace.
-- `Arrays.equals(...)` so sánh **DER của chứng thư đã parse**, không so raw bytes của file: PEM và DER raw đương nhiên khác nhau, nhưng X.509 objects mô tả cùng certificate.
-- `generateCertificates` xử lý hai khối PEM nối tiếp, trả số certificate tương ứng trong ví dụ (2). **Nó không tự sắp xếp hai certificate thành chain và không validate trust**.
-- Input `{0,1,2}` không phải DER X.509; provider ném `CertificateException` khi cố parse. Ứng dụng thật cần kiểm soát message lỗi, không trả nội bộ parser cho client.
+- `X509Certificate.getEncoded()` returns DER. We reconstruct PEM using `Base64.getMimeEncoder(64, new byte[]{'\n'})` and the proper header/footer, then pass the PEM directly to `CertificateFactory`.
+- There is no need to call `Base64.getDecoder()` before `generateCertificate` for standard PEM, avoiding marker-stripping and whitespace bugs.
+- `Arrays.equals(...)` compares **the DER of the parsed certificates**, not the raw file bytes: raw PEM and raw DER naturally differ, yet the X.509 objects describe the same certificate.
+- `generateCertificates` processes two concatenated PEM blocks and returns the corresponding certificate count in the example (2). **It does not sort the two certificates into a chain and does not validate trust**.
+- Input `{0,1,2}` is not X.509 DER; the provider throws `CertificateException` when attempting to parse. Real applications should sanitize error messages rather than returning internal parser details to clients.
 
-### 5.2. Có nên dùng cert từ trust manager để đọc file sản xuất?
+### 5.2. Should You Use a Cert from the Trust Manager for Production File Parsing?
 
-Không. Trong bài, cert từ trust manager chỉ là **fixture thuận tiện** để có dữ liệu X.509 hợp lệ, giống như sử dụng sample cert trong test. Chương trình `ReadX509File` mới là ví dụ ứng dụng để đọc file do người dùng chỉ định. Trong hệ thống TLS thực, tin cậy peer certificate phải thông qua cơ chế JSSE/PKIX đã cấu hình, không chọn ngẫu nhiên `getAcceptedIssuers()[0]` làm trust policy.
+No. In this lesson, the cert from the trust manager is merely a **convenient fixture** to obtain valid X.509 data, much like using a sample cert in a test. `ReadX509File` is the application example for reading a user-specified file. In real TLS systems, trusting a peer certificate must go through configured JSSE/PKIX mechanisms, not by arbitrarily picking `getAcceptedIssuers()[0]` as a trust policy.
 
-## 6. Đọc nhiều chứng thư từ PEM bundle hoặc PKCS#7
+## 6. Reading Multiple Certificates from a PEM Bundle or PKCS#7
 
-Một số nguồn cung cấp:
+Common sources provide:
 
-- Một file PEM gồm nhiều đoạn `BEGIN CERTIFICATE`, thường chứa leaf và intermediate certificates.
-- Một DER/PEM gói PKCS#7 SignedData chứa tập chứng thư.
-- File chain do máy chủ TLS hoặc công cụ CA xuất ra; không nhất thiết chứa root CA.
-- Một tập CA certificates dùng để nạp vào kho tin cậy.
+- A PEM file containing multiple `BEGIN CERTIFICATE` sections, usually leaf and intermediate certificates.
+- A DER/PEM-wrapped PKCS#7 SignedData structure containing a set of certificates.
+- A chain file exported by a TLS server or CA tool; does not necessarily contain the root CA.
+- A set of CA certificates to load into a trust store.
 
-**Không mặc định mọi file có nhiều certificate đã được sắp xếp hoặc chứng minh quan hệ issuer/subject.**
+**Never assume every multi-certificate file is already ordered or proves an issuer/subject relationship.**
 
-Với X.509 `CertificateFactory`:
+With an X.509 `CertificateFactory`:
 
 ~~~java
 import java.io.InputStream;
@@ -409,54 +409,54 @@ import java.security.cert.CertificateFactory;
 import java.util.Collection;
 
 CertificateFactory factory = CertificateFactory.getInstance("X.509");
-try (InputStream in = /* stream của bundle đã được kiểm soát */) {
+try (InputStream in = /* controlled bundle stream */) {
     Collection<? extends Certificate> certificates =
             factory.generateCertificates(in);
     for (Certificate item : certificates) {
-        // Mỗi item có thể cast sang X509Certificate sau khi factory X.509 parse.
+        // Each item can be cast to X509Certificate after X.509 factory parsing.
     }
 }
 ~~~
 
-Đây là **mảnh API minh họa**, không phải file Java độc lập vì `in` phụ thuộc nguồn thực. Khi viết code, nên dùng `try-with-resources` với stream đã mở, giới hạn số lượng cert/bytes và loại bỏ input rỗng nếu nghiệp vụ bắt buộc có ít nhất một certificate.
+This is an **illustrative API snippet**, not a standalone Java file since `in` depends on a real source. When writing code, use `try-with-resources` on the opened stream, limit the number of certs/bytes, and reject empty input if business logic requires at least one certificate.
 
-### 6.1. `generateCertificate` trên stream nhiều cert
+### 6.1. `generateCertificate` on a Multi-Cert Stream
 
-JDK mô tả: nếu `InputStream` **không hỗ trợ `mark/reset`**, `generateCertificate` có thể tiêu thụ **toàn bộ stream**; nếu có hỗ trợ `mark/reset`, mỗi lần gọi sẽ đọc một certificate và đưa vị trí đọc tới sau marker kết thúc của certificate đó.
+The JDK specifies: if the `InputStream` **does not support `mark/reset`**, `generateCertificate` may consume the **entire stream**; if it supports `mark/reset`, each call reads one certificate and advances the read position just past that certificate's end marker.
 
-Vì vậy, với nhiều chứng thư:
+Therefore, with multiple certificates:
 
-- Ưu tiên `generateCertificates` nếu mục tiêu là lấy toàn bộ tập chứng thư từ một stream/bundle.
-- Nếu cần đọc tuần tự từng cert bằng nhiều lần `generateCertificate`, dùng `BufferedInputStream` để cung cấp `mark/reset` và thiết kế điểm dừng phù hợp; đừng giả định mỗi lần gọi trên raw `FileInputStream` luôn tiêu thụ đúng một cert.
-- `InputStream.available()` **không phải thước đo tổng kích thước** hoặc cách kiểm tra EOF đáng tin cậy cho mọi stream mạng. Ví dụ đọc file của JDK dùng `available` trên `BufferedInputStream`, nhưng ứng dụng streaming thực nên thiết kế EOF/protocol framing và giới hạn byte rõ ràng.
-- `generateCertificates` có thể trả về collection trống trong trường hợp không có cert; phải xử lý nếu nghiệp vụ yêu cầu một hoặc nhiều certificate.
+- Prefer `generateCertificates` when the goal is to retrieve the whole set of certificates from a stream/bundle.
+- If you need to read one cert sequentially across multiple `generateCertificate` calls, wrap with `BufferedInputStream` to provide `mark/reset` and design proper stopping conditions; do not assume each call on a raw `FileInputStream` consumes exactly one cert.
+- `InputStream.available()` is **not a measure of total size** or a reliable EOF check for general network streams. The JDK's file-reading docs mention `available` on `BufferedInputStream`, but real streaming applications should design explicit EOF/protocol framing and byte limits.
+- `generateCertificates` may return an empty collection when no certs are present; handle this if business logic requires one or more certificates.
 
-### 6.2. `CertPath` và thứ tự chain
+### 6.2. `CertPath` and Chain Order
 
-`CertificateFactory.generateCertPath(List<? extends Certificate>)` tạo một `CertPath` với thứ tự danh sách mà ứng dụng đưa vào. Nếu cần dựng path, ứng dụng phải đảm bảo danh sách đúng **leaf -> intermediate -> ...** theo yêu cầu của PKIX/giao thức, hoặc dùng `CertPathBuilder` để dựng đường chứng thực.
+`CertificateFactory.generateCertPath(List<? extends Certificate>)` creates a `CertPath` in the exact list order supplied by the application. To build a path, the application must ensure the list follows **leaf -> intermediate -> ...** per PKIX/protocol requirements, or use `CertPathBuilder` to construct the certification path.
 
-**Một collection từ `generateCertificates` không mặc nhiên là trust chain hợp lệ.** Có thể có chứng thư không liên quan, trùng nhau, thiếu intermediate hoặc thứ tự khác. Việc kiểm tra chữ ký trên chain và chọn trust anchor là **bước riêng**.
+**A collection from `generateCertificates` is not automatically a valid trust chain.** It may contain unrelated certificates, duplicates, missing intermediates, or a different order. Verifying chain signatures and selecting trust anchors are **separate steps**.
 
-### 6.3. Phân biệt các loại file dễ nhầm
+### 6.3. Distinguishing Easily Confused File Types
 
-| Dữ liệu đầu vào | Marker/đặc điểm | API đúng hướng |
+| Input data | Marker / characteristic | Appropriate API |
 | --- | --- | --- |
-| X.509 certificate DER | Dữ liệu binary ASN.1 DER | `CertificateFactory("X.509").generateCertificate(in)` |
-| X.509 certificate PEM | `BEGIN CERTIFICATE` ... `END CERTIFICATE` | **Cùng API** `generateCertificate(in)` |
-| Nhiều PEM certificates | Nhiều khối `BEGIN CERTIFICATE` | `generateCertificates(in)` |
-| PKCS#7 certificate set | SignedData chứa certificates | `generateCertificates(in)` hoặc `generateCertPath(in, "PKCS7")` tùy mục tiêu |
-| X.509 public key SPKI | `BEGIN PUBLIC KEY` hoặc binary SPKI | `KeyFactory` + `X509EncodedKeySpec` |
-| PKCS#8 private key | `BEGIN PRIVATE KEY` hoặc binary PKCS#8 | API import private key/`KeyFactory` và bảo vệ riêng; không phải CertificateFactory |
-| Certificate signing request (CSR) | `BEGIN CERTIFICATE REQUEST` | Parser CSR phù hợp, không phải `generateCertificate` |
-| Keystore `PKCS12/JKS` | Container lưu key/cert chain | `KeyStore` với đúng store type, credential và policy |
+| DER X.509 certificate | Binary ASN.1 DER data | `CertificateFactory("X.509").generateCertificate(in)` |
+| PEM X.509 certificate | `BEGIN CERTIFICATE` ... `END CERTIFICATE` | **Same API** `generateCertificate(in)` |
+| Multiple PEM certificates | Multiple `BEGIN CERTIFICATE` blocks | `generateCertificates(in)` |
+| PKCS#7 certificate set | SignedData containing certificates | `generateCertificates(in)` or `generateCertPath(in, "PKCS7")` depending on goal |
+| SPKI X.509 public key | `BEGIN PUBLIC KEY` or binary SPKI | `KeyFactory` + `X509EncodedKeySpec` |
+| PKCS#8 private key | `BEGIN PRIVATE KEY` or binary PKCS#8 | Private key import API / `KeyFactory` with separate protection; not CertificateFactory |
+| Certificate signing request (CSR) | `BEGIN CERTIFICATE REQUEST` | Appropriate CSR parser, not `generateCertificate` |
+| Keystore `PKCS12/JKS` | Container storing keys/cert chains | `KeyStore` with the right store type, credentials, and policy |
 
-**Chú ý:** `X509EncodedKeySpec` có tên “X509” nhưng chứa **SubjectPublicKeyInfo**, tức **public key encoding**, không phải nguyên bản X.509 certificate. Thao tác lấy public key từ certificate đã parse là `cert.getPublicKey()`; không dùng `KeyFactory` để “đọc chứng thư” toàn phần.
+**Note:** `X509EncodedKeySpec` has “X509” in its name, yet it holds **SubjectPublicKeyInfo**, i.e., **public key encoding**, not a full X.509 certificate. Extracting the public key from a parsed certificate uses `cert.getPublicKey()`; do not use `KeyFactory` to “parse a full certificate”.
 
-## 7. Đọc metadata X.509 một cách có trách nhiệm
+## 7. Reading X.509 Metadata Responsibly
 
-Sau parse, `X509Certificate` cung cấp nhiều thông tin có ích cho audit và kiểm tra cấu trúc:
+After parsing, `X509Certificate` provides useful information for auditing and structural inspection:
 
-### 7.1. Subject, issuer, serial, version
+### 7.1. Subject, Issuer, Serial, Version
 
 ~~~java
 X509Certificate cert = ...;
@@ -466,68 +466,68 @@ String issuer = cert.getIssuerX500Principal().getName();
 String serialHex = cert.getSerialNumber().toString(16);
 ~~~
 
-Đây là đoạn code minh họa. `getSubjectDN()` / `getIssuerDN()` cũ bị deprecated từ Java 16; nên dùng `getSubjectX500Principal()` / `getIssuerX500Principal()` để làm việc với `X500Principal`. **Không định danh/cho phép truy cập chỉ bằng chuỗi subject** nếu chưa có bước trust.
+This is an illustrative snippet. The older `getSubjectDN()` / `getIssuerDN()` methods were deprecated in Java 16; use `getSubjectX500Principal()` / `getIssuerX500Principal()` to work with `X500Principal`. **Never identify or grant access solely by the subject string** without a trust verification step.
 
-`getVersion()` trong Java X509Certificate trả version theo **cách biểu diễn 1-based** (ví dụ v3 trả 3). `getSerialNumber()` là `BigInteger`, thường hiển thị hex để đối chiếu, nhưng đừng coi serial duy nhất toàn cầu nếu không kết hợp issuer.
+`getVersion()` on Java `X509Certificate` returns the version **1-based** (e.g., v3 returns 3). `getSerialNumber()` is a `BigInteger`, commonly displayed in hex for comparison, though serial numbers must not be treated as globally unique without pairing with the issuer.
 
-### 7.2. Hạn hiệu lực và SAN
+### 7.2. Validity Period and SAN
 
 ~~~java
-cert.checkValidity();    // Chỉ kiểm tra thời gian hiện tại.
+cert.checkValidity();    // Checks only the current time.
 var notBefore = cert.getNotBefore();
 var notAfter = cert.getNotAfter();
 var sans = cert.getSubjectAlternativeNames();
 ~~~
 
-`getSubjectAlternativeNames()` có thể trả `null` nếu extension không có; dữ liệu SAN có nhiều loại như DNS, IP, URI, email. Không lấy một chuỗi subject CN rồi tự so hostname bằng `equals`: TLS hostname verification có quy tắc chứng thư và SAN riêng, bao gồm wildcard/IP/IDNA tùy giao thức. Khi làm TLS, nên để **JSSE endpoint identification/trust manager** đã được cấu hình xử lý.
+`getSubjectAlternativeNames()` can return `null` if the extension is absent; SAN entries cover multiple types such as DNS, IP, URI, and email. Never take a subject CN string and compare hostnames with `equals`: TLS hostname verification has specific certificate and SAN rules, including wildcards/IP/IDNA depending on protocol. For TLS, let properly configured **JSSE endpoint identification/trust managers** handle it.
 
 `cert.checkValidity()`:
-- Ném `CertificateNotYetValidException` nếu thời điểm hiện tại trước `NotBefore`.
-- Ném `CertificateExpiredException` nếu sau `NotAfter`.
-- Không kiểm tra issuer signature, chain trust, revocation, SAN hostname, EKU, policy hay thuật toán yếu.
+- Throws `CertificateNotYetValidException` if the current time is before `NotBefore`.
+- Throws `CertificateExpiredException` if after `NotAfter`.
+- Does not check issuer signature, chain trust, revocation, SAN hostname, EKU, policy, or weak algorithms.
 
-### 7.3. Public key, key usage và basic constraints
+### 7.3. Public Key, Key Usage, and Basic Constraints
 
-Các API đáng biết:
-- `cert.getPublicKey().getAlgorithm()`: tên thuật toán public key (`RSA`, `EC`, ...), không phải trực tiếp tên thuật toán chữ ký certificate.
-- `cert.getSigAlgName()` / `getSigAlgOID()`: thông tin thuật toán **issuer đã dùng để ký certificate**.
-- `cert.getKeyUsage()`: bitmap chính sách key usage, có thể `null`.
-- `cert.getExtendedKeyUsage()`: danh sách OID EKU (hoặc `null`).
-- `cert.getBasicConstraints()`: `-1` nếu không phải CA theo extension; không chỉ cần giá trị này là đủ xác nhận CA được tin cậy.
-- `cert.getCriticalExtensionOIDs()` và `hasUnsupportedCriticalExtension()`: extension quan trọng cần xử lý theo quy tắc PKIX.
+Key APIs to know:
+- `cert.getPublicKey().getAlgorithm()`: public key algorithm name (`RSA`, `EC`, ...), not directly the certificate signature algorithm name.
+- `cert.getSigAlgName()` / `getSigAlgOID()`: algorithm info **used by the issuer to sign the certificate**.
+- `cert.getKeyUsage()`: key usage policy bitmap, may be `null`.
+- `cert.getExtendedKeyUsage()`: list of EKU OIDs (or `null`).
+- `cert.getBasicConstraints()`: `-1` if not a CA per extension; this value alone does not confirm the CA is trusted.
+- `cert.getCriticalExtensionOIDs()` and `hasUnsupportedCriticalExtension()`: critical extensions must be processed per PKIX rules.
 
-Không tự quyết định một chứng thư dùng được cho TLS server, code signing, email signing hoặc client auth chỉ bằng một field; cần kiểm tra **nhiều ràng buộc với chain, trust, policy và context**.
+Do not decide a certificate is usable for TLS server, code signing, email signing, or client auth based on a single field; you must check **multiple constraints across chain, trust, policy, and context**.
 
-### 7.4. Fingerprint SHA-256
+### 7.4. SHA-256 Fingerprint
 
-`SHA-256(cert.getEncoded())` giúp xác định **chính xác certificate DER**. Vì PEM và DER cùng bản chất chứa cùng DER, fingerprint của chứng thư phải giống nhau nếu nội dung thực cùng một certificate.
+`SHA-256(cert.getEncoded())` uniquely identifies **the exact DER certificate**. Since PEM and DER fundamentally carry the same DER, the certificate's fingerprint must be identical if the underlying content is the exact same certificate.
 
-Tuy nhiên:
-- Fingerprint không phải private key, thường có thể công bố; nó vẫn là metadata của đối tượng có thể cần kiểm soát trong hệ thống.
-- Không nhầm fingerprint của **certificate** với fingerprint của **public key (SPKI)**: certificate có thể được cấp lại với cùng public key nhưng serial/validity/issuer khác, dẫn đến certificate fingerprint khác.
-- Pinning fingerprint chỉ an toàn nếu nguồn giá trị kỳ vọng đáng tin cậy và có kế hoạch cập nhật/rotation. “Đọc cert từ đối thủ rồi tính SHA-256 và tin ngay” không có ý nghĩa xác thực.
+However:
+- A fingerprint is not a private key and can typically be shared publicly; it is still object metadata that may need access control in a system.
+- Do not confuse a **certificate** fingerprint with a **public key (SPKI)** fingerprint: a certificate can be re-issued with the same public key but a different serial/validity/issuer, yielding a different certificate fingerprint.
+- Fingerprint pinning is safe only if the expected value comes from a trusted source and has a rotation/update plan. “Reading a cert from an adversary, computing SHA-256, and trusting it immediately” provides no authentication.
 
-## 8. Ranh giới quan trọng nhất: parse thành công KHÔNG bằng trust hợp lệ
+## 8. The Most Important Boundary: Parsing Success Does NOT Equal Valid Trust
 
-Có năm việc dễ bị gộp sai:
+Five distinct tasks are often wrongly conflated:
 
-| Bước | API/cơ chế | Chứng minh được | **Không chứng minh** |
+| Step | API / mechanism | What it proves | **What it does NOT prove** |
 | --- | --- | --- | --- |
-| **Parse DER/PEM** | `CertificateFactory.generateCertificate` | Byte biểu diễn một X.509 certificate có cấu trúc parser chấp nhận. | Không chứng minh issuer đáng tin cậy hoặc cert còn hạn. |
-| **Kiểm tra thời gian** | `X509Certificate.checkValidity` | Thời điểm nằm trong khoảng NotBefore–NotAfter. | Không chứng minh chữ ký/chain/hostname/CA đáng tin. |
-| **Kiểm tra một chữ ký certificate** | `cert.verify(publicKey)` | Certificate đã được ký bằng private key tương ứng public key cung cấp (nếu verify thành công). | Public key cung cấp thuộc CA tin cậy hoặc đủ điều kiện cấp cert. |
-| **Kiểm tra chuỗi chứng thư** | `CertPathValidator("PKIX")` + `PKIXParameters`, trust anchors, path | Đường chứng thực được validate theo tham số/chính sách cung cấp. | Hostname hoặc mọi quy tắc ứng dụng nếu chưa được cấu hình/kiểm tra. |
-| **Xác thực endpoint/ứng dụng** | JSSE hostname verification, authz policy, EKU/SAN/tenant | Cert phù hợp danh tính/mục đích cụ thể sau các bước trust. | Không tự động bảo vệ mọi hành vi nghiệp vụ. |
+| **Parse DER/PEM** | `CertificateFactory.generateCertificate` | Bytes represent an X.509 certificate structurally accepted by the parser. | Does not prove the issuer is trusted or the cert is unexpired. |
+| **Validity check** | `X509Certificate.checkValidity` | Timestamp falls within NotBefore–NotAfter. | Does not prove signature/chain/hostname/CA is trusted. |
+| **Verify one cert signature** | `cert.verify(publicKey)` | Certificate was signed by the private key matching the supplied public key (if verify succeeds). | That the supplied public key belongs to a trusted CA or is eligible to issue certs. |
+| **Validate certificate chain** | `CertPathValidator("PKIX")` + `PKIXParameters`, trust anchors, path | Certification path validates against the provided parameters/policies. | Hostname or any application rules not yet configured/checked. |
+| **Endpoint/app authentication** | JSSE hostname verification, authz policy, EKU/SAN/tenant | Cert matches a specific identity/purpose after trust checks. | Does not automatically protect all business operations. |
 
-Đối với một ứng dụng **TLS/HTTPS**, dùng `SSLContext`, `X509TrustManager` / `TrustManagerFactory` và endpoint identification phù hợp, không tự xây dựng một “trust manager chấp nhận mọi certificate” chỉ để kết nối thành công.
+For a **TLS/HTTPS** application, use `SSLContext`, `X509TrustManager` / `TrustManagerFactory`, and proper endpoint identification; never build a “trust manager that accepts all certificates” just to make connections succeed.
 
-Đối với việc phân tích **certificate chain ngoài TLS**, chuẩn Java có:
+For analyzing **certificate chains outside TLS**, standard Java provides:
 - `CertPathValidator.getInstance("PKIX")`.
-- `PKIXParameters` hoặc `PKIXBuilderParameters` cùng trust anchors được phê duyệt.
-- `CertPathBuilder` để dựng path khi chưa có thứ tự/cert trung gian đầy đủ.
-- Các chính sách kiểm tra key usage, critical extensions, thời gian, revocation/CRL/OCSP và algorithm constraints.
+- `PKIXParameters` or `PKIXBuilderParameters` with approved trust anchors.
+- `CertPathBuilder` to construct a path when ordering/intermediates are incomplete.
+- Policies for checking key usage, critical extensions, validity, revocation/CRL/OCSP, and algorithm constraints.
 
-**Pseudocode**, không phải ví dụ Java độc lập, vì cấu hình trust/chuỗi chứng thư phụ thuộc môi trường:
+**Pseudocode**, not a standalone Java example, because trust/chain configuration depends on the environment:
 
 ~~~text
 certificateBytes = readLimitedBytesFromApprovedSource()
@@ -546,39 +546,39 @@ if all checks pass -> accept trusted certificate for this specific purpose
 else -> reject
 ~~~
 
-Không được gọi `cert.verify(cert.getPublicKey())` trên một chứng thư tự ký rồi suy ra “đáng tin cậy”: phép toán tự xác minh chữ ký không chứng minh chứng thư nằm trong trust store.
+Never call `cert.verify(cert.getPublicKey())` on a self-signed certificate and conclude “it is trusted”: mathematical self-verification does not prove the certificate is in the trust store.
 
-### 8.1. Vì sao file có tên `root-ca.pem` vẫn không phải trust anchor?
+### 8.1. Why Is a File Named `root-ca.pem` Still Not a Trust Anchor?
 
-Tên file, comment PEM, subject `CN=Trusted Root` hay việc chứng thư tự ký đều do người tạo file quyết định. **Trust anchor phải đến từ kho hoặc kênh cấu hình đã tin cậy**, không phải từ file do remote peer vừa gửi. Nếu ứng dụng cho người dùng đưa arbitrary cert vào truststore, họ có thể cấp trust ngoài ý định.
+Filename, PEM comments, subject `CN=Trusted Root`, and self-signing are all chosen by whoever created the file. **A trust anchor must come from a trusted store or configuration channel**, not from a file just sent by a remote peer. If an application lets users insert arbitrary certs into the truststore, they can grant unintended trust.
 
-### 8.2. Vì sao parse PEM chain không đủ cho HTTPS?
+### 8.2. Why Is Parsing a PEM Chain Not Enough for HTTPS?
 
-Một TLS server có thể gửi leaf + intermediates nhưng không gửi root. Các cert này có thể parse đúng; chain trust cần được dựng tới một CA trong truststore client và kiểm tra rằng **SAN phù hợp hostname**, EKU, thời gian và constraints. Kiểm tra số lượng cert là không đủ.
+A TLS server may send leaf + intermediates without sending the root. Those certs may parse fine; a trust chain must still be built to a CA in the client's truststore, verifying that **SAN matches the hostname**, EKU, validity, and constraints. Checking the number of certs is not enough.
 
-## 9. Chi tiết kỹ thuật về InputStream
+## 9. Technical Details About InputStream
 
-### 9.1. `mark/reset` và cách Factory đọc
+### 9.1. `mark/reset` and How the Factory Reads
 
-Java SE 17 mô tả đối với `generateCertificate`:
-- Nếu stream **không hỗ trợ `mark` và `reset`**, phương thức có thể tiêu thụ **toàn bộ InputStream**.
-- Nếu stream hỗ trợ chúng, mỗi lần gọi có thể đọc **một certificate** và đặt vị trí đọc ngay sau dấu kết thúc nội tại của certificate.
-- Nếu dữ liệu không có dấu kết thúc nội tại khác EOF và còn trailing garbage, có thể bị từ chối bằng `CertificateException`.
+Java SE 17 specifies for `generateCertificate`:
+- If the stream **does not support `mark` and `reset`**, the method may consume the **entire InputStream**.
+- If the stream supports them, each call can read **one certificate** and position the stream right after the certificate's intrinsic end marker.
+- If the data has no intrinsic end marker other than EOF and trailing garbage remains, it may be rejected with `CertificateException`.
 
-Vì vậy dùng `BufferedInputStream` là lựa chọn hợp lý khi cần kiểm soát việc đọc một stream chứa nhiều chứng thư, nhưng không biến nó thành parser framing tổng quát cho protocol mạng.
+Thus `BufferedInputStream` is a sensible choice when controlling reads over a multi-certificate stream, though it should not be turned into a general network protocol framing parser.
 
-### 9.2. Không dùng `available()` làm kích thước
+### 9.2. Do Not Use `available()` as Size
 
-`InputStream.available()` phản ánh số byte **có thể đọc ngay mà không bị chặn**, không nhất thiết là tổng số byte còn lại từ file/network/HTTP stream. Không viết:
+`InputStream.available()` reflects the number of bytes **that can be read immediately without blocking**, not necessarily the total bytes remaining in a file/network/HTTP stream. Do not write:
 
 ~~~java
-byte[] bytes = new byte[input.available()]; // SAI cho stream tổng quát.
-input.read(bytes);                            // read() cũng không chắc điền đủ.
+byte[] bytes = new byte[input.available()]; // WRONG for general streams.
+input.read(bytes);                            // read() is also not guaranteed to fill the buffer.
 ~~~
 
-Đoạn trên là ví dụ **anti-pattern**, không phải chương trình chạy độc lập. Với dữ liệu untrusted, đặt **giới hạn kích thước và số lượng** ngay ở tầng HTTP/file/stream, dùng API đọc được kiểm soát, và từ chối input quá lớn trước khi parse ASN.1.
+The snippet above is an **anti-pattern** example, not a runnable program. For untrusted data, enforce **size and count limits** right at the HTTP/file/stream layer, use bounded reading APIs, and reject oversized input before ASN.1 parsing.
 
-### 9.3. Dùng `try-with-resources` và xử lý I/O đúng tầng
+### 9.3. Use `try-with-resources` and Handle I/O at the Right Layer
 
 ~~~java
 try (InputStream in = new BufferedInputStream(
@@ -586,173 +586,173 @@ try (InputStream in = new BufferedInputStream(
     X509Certificate cert = (X509Certificate)
             CertificateFactory.getInstance("X.509")
                     .generateCertificate(in);
-    // Chỉ kiểm tra cấu trúc/metadata tại đây.
+    // Only inspect structure/metadata here.
 }
 ~~~
 
-Đây là mảnh code minh họa; `certPath` là đối tượng `Path` đã được kiểm soát. `try-with-resources` sẽ đóng stream kể cả khi `CertificateException` xảy ra.
+This is an illustrative snippet; `certPath` is a validated `Path` object. `try-with-resources` closes the stream even when `CertificateException` is thrown.
 
-Phân biệt:
-- File không tồn tại, permission denied, I/O lỗi: thường là `IOException` hoặc subclass.
-- Byte file không phải DER/PEM X.509 hợp lệ: `CertificateException`.
-- Chứng thư parse được nhưng hết hạn: `CertificateExpiredException` khi gọi `checkValidity`.
-- Chứng thư parse được nhưng chain không tin cậy: lỗi trong bước PKIX/JSSE, **không phải `generateCertificate`**.
+Distinguish:
+- File missing, permission denied, I/O failure: typically `IOException` or a subclass.
+- File bytes are not valid X.509 DER/PEM: `CertificateException`.
+- Certificate parses but is expired: `CertificateExpiredException` when calling `checkValidity`.
+- Certificate parses but chain is untrusted: failure in the PKIX/JSSE step, **not `generateCertificate`**.
 
-## 10. Sự cố thực tế và cách chẩn đoán
+## 10. Real-World Incidents and Diagnostics
 
-### Tình huống A — File `.cer` không phải lúc nào cũng là DER
+### Scenario A — A `.cer` File Is Not Always DER
 
-Một đối tác gửi `partner.cer`, trong đó có `-----BEGIN CERTIFICATE-----`. Developer tự ép đọc bằng parser DER tự viết vì đuôi `.cer`, dẫn đến lỗi. Giải pháp: cho `CertificateFactory("X.509")` đọc trực tiếp stream; nó hỗ trợ binary DER và Base64 PEM với marker đúng.
+A partner sends `partner.cer` containing `-----BEGIN CERTIFICATE-----`. A developer forces a custom DER parser because of the `.cer` extension, causing an error. Solution: pass the stream directly to `CertificateFactory("X.509")`; it supports both binary DER and Base64 PEM with proper markers.
 
-### Tình huống B — PEM bị cắt một nửa
+### Scenario B — Truncated PEM
 
-File có đầu `BEGIN CERTIFICATE` nhưng thiếu `END CERTIFICATE` hoặc Base64 không đầy đủ. Parser có thể ném `CertificateException`. Giải pháp: kiểm tra luồng truyền file và format, không bỏ qua ngoại lệ rồi coi cert là trusted.
+The file has `BEGIN CERTIFICATE` but is missing `END CERTIFICATE` or has incomplete Base64. The parser may throw `CertificateException`. Solution: inspect the file transfer pipeline and format; never swallow the exception and treat the cert as trusted.
 
-### Tình huống C — Chỉ có `BEGIN PUBLIC KEY`
+### Scenario C — Only `BEGIN PUBLIC KEY` Is Present
 
-Đó là public key dạng SPKI, không phải chứng thư X.509. Cần `KeyFactory` + `X509EncodedKeySpec` nếu mục tiêu là đọc khóa; không dùng `CertificateFactory.generateCertificate` để đọc raw public key.
+That is an SPKI public key, not an X.509 certificate. Use `KeyFactory` + `X509EncodedKeySpec` if the goal is reading a key; do not use `CertificateFactory.generateCertificate` to read a raw public key.
 
-### Tình huống D — PEM bundle chứa ba cert, nhưng `generateCertificate` chỉ lấy một
+### Scenario D — PEM Bundle Contains Three Certs, Yet `generateCertificate` Only Reads One
 
-Hệ thống bỏ sót intermediates, path validation thất bại. Dùng `generateCertificates` để lấy collection rồi xử lý chain theo giao thức; hoặc parse từng certificate theo stream hỗ trợ mark/reset. **Không tin rằng thứ tự/chain đã được validate** vì parse thành công.
+The system misses intermediates and path validation fails. Use `generateCertificates` to obtain the collection and process the chain per protocol; or parse each certificate sequentially on a stream supporting mark/reset. **Never assume order/chain is already validated** just because parsing succeeded.
 
-### Tình huống E — Chứng thư parse được nhưng trình duyệt báo “unknown CA”
+### Scenario E — Certificate Parses, Yet Browser Reports “unknown CA”
 
-Không có mâu thuẫn: parse chỉ kiểm tra cấu trúc. Client không tìm thấy trust anchor thích hợp hoặc chain có lỗi; phải xử lý CA trust, intermediates, policies, hostname và các ràng buộc chứng thư.
+There is no contradiction: parsing only checks structure. The client could not find a suitable trust anchor or the chain has an issue; address CA trust, intermediates, policies, hostname, and certificate constraints.
 
-### Tình huống F — `checkValidity()` thành công, HTTPS vẫn không an toàn
+### Scenario F — `checkValidity()` Succeeds, Yet HTTPS Is Still Unsafe
 
-Chứng thư trong thời gian hiệu lực nhưng có thể được ký bởi CA không tin cậy, SAN không khớp host hoặc bị revoke. `checkValidity` không thay PKIX/hostname verification.
+The certificate is within its validity window, yet it could be signed by an untrusted CA, have a mismatched SAN, or be revoked. `checkValidity` does not replace PKIX/hostname verification.
 
-### Tình huống G — SHA-256 fingerprint từ file DER khác PEM
+### Scenario G — SHA-256 Fingerprint of DER File Differs from PEM File
 
-Nếu hai file chứa **cùng một chứng thư**, fingerprint tính từ `cert.getEncoded()` phải giống nhau. Nếu fingerprint **raw file bytes** thì khác là bình thường vì PEM có ASCII armor. Nếu fingerprint DER chuẩn hóa của parsed objects khác, chúng không hoàn toàn là cùng một certificate hoặc dữ liệu đã bị thay đổi.
+If both files contain **the same certificate**, the fingerprint computed from `cert.getEncoded()` must match. If you hashed the **raw file bytes**, differing hashes are normal because PEM has ASCII armor. If the canonical DER fingerprints of the parsed objects differ, they are not the exact same certificate or the data was altered.
 
-### Tình huống H — Chuyển DER thành String rồi đọc lỗi
+### Scenario H — Converting DER to String Causes Parse Errors
 
-Binary DER không phải UTF-8. `new String(derBytes, UTF_8)` rồi `getBytes(UTF_8)` có thể làm biến đổi byte không hợp lệ. Đọc binary qua `InputStream` hoặc byte[] gốc; chỉ PEM là dạng text/Base64. Không tự sửa input tới khi parser “đồng ý”.
+Binary DER is not UTF-8. `new String(derBytes, UTF_8)` followed by `getBytes(UTF_8)` can corrupt invalid byte sequences. Read binary via `InputStream` or raw `byte[]`; only PEM is text/Base64. Never mutate input until the parser “accepts” it.
 
-### Tình huống I — Đọc file từ HTTP request do client chỉ định
+### Scenario I — Reading a File from a Client-Specified HTTP Request
 
-Một API nhận đường dẫn file tùy ý, rồi `Files.newInputStream(Path.of(request.path))`. Đây là nguy cơ path traversal/local file disclosure. Không dùng đường dẫn tùy ý từ request; dùng allowlisted path, sandboxed upload, kích thước/loại nội dung được kiểm soát và quyền tối thiểu.
+An API accepts an arbitrary file path and runs `Files.newInputStream(Path.of(request.path))`. This is a path traversal / local file disclosure risk. Do not use arbitrary paths from requests; use allowlisted paths, sandboxed uploads, validated content sizes/types, and least privilege.
 
-### Tình huống J — In mọi chi tiết chứng thư vào public log
+### Scenario J — Printing All Certificate Details to Public Logs
 
-Certificate về bản chất thường có thể chia sẻ công khai nhưng Subject/SAN có thể chứa thông tin tổ chức, host nội bộ hay identifier nhạy cảm. Chỉ log những metadata cần thiết, bảo vệ log và tránh ghi raw certificate/payload nếu không có nhu cầu audit hợp lệ.
+Certificates are generally safe to share publicly, yet Subject/SAN fields can reveal organizational details, internal hostnames, or sensitive identifiers. Log only necessary metadata, protect logs, and avoid writing raw certificates/payloads without a legitimate audit need.
 
-## 11. Bảng lỗi thường gặp
+## 11. Common Mistakes Table
 
-| Sai lầm | Hậu quả | Cách đúng |
+| Mistake | Consequence | Correct approach |
 | --- | --- | --- |
-| Dùng `Files.readString()` cho DER | Binary bị đọc sai/biến đổi. | Đưa file qua `InputStream` nhị phân. |
-| Tự Base64-decode một PEM gồm marker bằng decoder sai | Lỗi cú pháp Base64 hoặc không tách đúng nhiều blocks. | Dùng trực tiếp `CertificateFactory.generateCertificate` cho PEM chuẩn. |
-| Kỳ vọng `BEGIN PUBLIC KEY` là certificate | `CertificateException` vì không đúng cấu trúc X.509 certificate. | `KeyFactory` + `X509EncodedKeySpec` nếu mục tiêu là raw public key. |
-| Dùng `getInstance("RSA")` để tạo CertificateFactory | Không phải tên certificate type. | `CertificateFactory.getInstance("X.509")`. |
-| Quên cast sang `X509Certificate` | Chỉ dùng được API base `Certificate`. | Cast khi factory là X.509, sau đó truy xuất metadata. |
-| Gọi `generateCertificate` cho cả PEM chain rồi nghĩ đã đọc toàn bộ | Có thể chỉ lấy một cert hoặc tiêu thụ stream theo contract. | Dùng `generateCertificates` cho collection/bundle. |
-| Tin collection là path đã hợp lệ | Không có kiểm tra CA trust hoặc thứ tự. | Dùng `CertPathBuilder/Validator` với trust anchors được phê duyệt. |
-| `cert.checkValidity()` coi là xác thực thành công | Chỉ kiểm tra ngày hiệu lực. | Kiểm tra PKIX, host identity, EKU, revocation/policy. |
-| `cert.verify(cert.getPublicKey())` rồi tự tin cậy self-signed cert | Tự kiểm tra chữ ký không chứng minh trust. | Trust anchor phải được cấp từ nguồn đáng tin. |
-| Dùng extension `.cer` để tự chọn DER/PEM | Tên file không quyết định encoding. | Kiểm tra nội dung qua chuẩn certificate factory. |
-| Dùng `getSubjectDN()` đã deprecated cho API mới | Kiểu/format phụ thuộc provider. | `getSubjectX500Principal()`. |
-| Log full `cert.toString()` vào log không kiểm soát | Có thể lộ metadata và làm log rất lớn. | Log các trường đã được cho phép hoặc fingerprint/hash có policy. |
-| Không giới hạn input size, number of certs | CPU/memory denial-of-service do parser và collection. | Giới hạn bytes, cert count, timeout và nguồn dữ liệu. |
-| Nhầm `CertificateException` với lỗi file không tồn tại | Chẩn đoán sai tầng. | Phân biệt IOException, CertificateException, PKIX exception. |
-| Dùng parser tự chế để “chấp nhận mọi PEM lỗi” | Có thể chấp nhận encoding mơ hồ/malformed. | Theo định dạng X.509/PEM chuẩn, từ chối đầu vào bất thường. |
-| Suy ra private key từ `cert.getPublicKey()` | Không khả thi; certificate chỉ chứa public key. | Quản lý private key riêng qua keystore/HSM/KMS. |
+| Using `Files.readString()` for DER | Binary data is misread/corrupted. | Pass the file via a binary `InputStream`. |
+| Manually Base64-decoding a PEM with markers using the wrong decoder | Base64 syntax errors or failure to split multiple blocks. | Pass standard PEM directly to `CertificateFactory.generateCertificate`. |
+| Expecting `BEGIN PUBLIC KEY` to be a certificate | `CertificateException` because it is not an X.509 certificate structure. | `KeyFactory` + `X509EncodedKeySpec` if the target is a raw public key. |
+| Calling `getInstance("RSA")` for CertificateFactory | Not a certificate type name. | `CertificateFactory.getInstance("X.509")`. |
+| Forgetting to cast to `X509Certificate` | Limited to the base `Certificate` API. | Cast when the factory is X.509, then access metadata. |
+| Calling `generateCertificate` on a whole PEM chain and assuming all certs were read | May read only one cert or consume the stream per contract. | Use `generateCertificates` for collections/bundles. |
+| Treating the collection as an already-validated path | No CA trust or ordering checks performed. | Use `CertPathBuilder/Validator` with approved trust anchors. |
+| Treating `cert.checkValidity()` as full validation | Only checks validity dates. | Check PKIX, host identity, EKU, revocation/policy. |
+| Calling `cert.verify(cert.getPublicKey())` and trusting a self-signed cert | Self-verifying a signature does not prove trust. | Trust anchors must be provisioned from a trusted source. |
+| Using `.cer` extension to pick DER vs. PEM | Filename does not dictate encoding. | Let the standard certificate factory inspect the content. |
+| Using deprecated `getSubjectDN()` in new APIs | Type/format is provider-dependent. | `getSubjectX500Principal()`. |
+| Logging full `cert.toString()` to uncontrolled logs | May expose metadata and bloat logs. | Log permitted fields or policy-compliant fingerprints/hashes. |
+| Not bounding input size or certificate count | CPU/memory denial-of-service from parser and collection. | Bound bytes, cert count, timeouts, and data sources. |
+| Confusing `CertificateException` with file-not-found errors | Diagnosing the wrong layer. | Distinguish `IOException`, `CertificateException`, and PKIX exceptions. |
+| Writing a custom parser to “accept any malformed PEM” | Can accept ambiguous/malformed encodings. | Follow standard X.509/PEM formats and reject anomalous inputs. |
+| Deriving a private key from `cert.getPublicKey()` | Impossible; a certificate only holds the public key. | Manage private keys separately via keystore/HSM/KMS. |
 
-## 12. Thực hành kiểm tra đầu vào và QA
+## 12. Input Validation and QA Practices
 
-Khi xây dựng chức năng import chứng thư trong service:
+When building a certificate import feature in a service:
 
-- [ ] Xác định API nhận **chứng thư đơn lẻ** hay **certificate bundle/PKCS#7**.
-- [ ] Giới hạn kích thước file/stream **thật sự**, số certificate và tổng thời gian xử lý.
-- [ ] Không tin path do client đưa trực tiếp; chuẩn hóa và kiểm soát upload/permission.
-- [ ] Dùng `CertificateFactory.getInstance("X.509")` trên binary stream hoặc PEM text bytes; không tự sửa encoding.
-- [ ] Nếu là certificate đơn lẻ, phải rõ liệu trailing bytes/các khối khác có được chấp nhận hay không theo giao thức.
-- [ ] Ghi nhận loại lỗi ở đúng tầng (`IOException`, `CertificateException`, PKIX), không in nguyên input ra log.
-- [ ] Sau parse, kiểm tra các trường cần thiết (SAN, EKU, KeyUsage, BasicConstraints, issuer/subject, signature algorithm) **theo mục đích**, không chỉ lấy subject.
-- [ ] Nếu quyết định trust, dùng truststore/trust anchor từ nguồn phê duyệt và kiểm tra path; không chấp nhận self-signed tùy ý.
-- [ ] Nếu là TLS, giữ hostname verification và JSSE trust manager đúng cấu hình.
-- [ ] Test cùng một cert DER/PEM cho cùng `cert.getEncoded()` và fingerprint.
-- [ ] Test PEM nhiều cert, DER hỏng, PEM marker sai, file rỗng, file quá lớn, parser provider khác nhau.
-- [ ] Phân biệt một chứng thư hết hạn nhưng parse được với chứng thư DER hỏng không parse được.
+- [ ] Determine whether the API accepts a **single certificate** or a **certificate bundle/PKCS#7**.
+- [ ] Enforce **real** limits on file/stream size, certificate count, and total processing time.
+- [ ] Never trust client-supplied paths directly; canonicalize and enforce upload/permission controls.
+- [ ] Use `CertificateFactory.getInstance("X.509")` on a binary stream or PEM text bytes; do not alter encodings manually.
+- [ ] For a single certificate, clarify whether trailing bytes or additional blocks are permitted by the protocol.
+- [ ] Record error types at the proper layer (`IOException`, `CertificateException`, PKIX) without logging raw inputs verbatim.
+- [ ] After parsing, verify required fields (SAN, EKU, KeyUsage, BasicConstraints, issuer/subject, signature algorithm) **for the intended purpose**, not just the subject.
+- [ ] When making trust decisions, use a truststore/trust anchors from an approved source and validate the path; never accept arbitrary self-signed certs.
+- [ ] For TLS, keep hostname verification and JSSE trust managers properly configured.
+- [ ] Test that DER and PEM of the same cert yield identical `cert.getEncoded()` and fingerprints.
+- [ ] Test multi-cert PEMs, malformed DER, bad PEM markers, empty files, oversized files, and different parser providers.
+- [ ] Distinguish an expired but parseable certificate from malformed DER that fails parsing.
 
-### Gợi ý test case
+### Suggested Test Cases
 
-| Test | Input | Kỳ vọng |
+| Test | Input | Expected result |
 | --- | --- | --- |
-| DER chuẩn | Binary DER X.509 hợp lệ | `generateCertificate` trả `X509Certificate`. |
-| PEM chuẩn | `BEGIN/END CERTIFICATE` chứa DER Base64 hợp lệ | Trả cùng certificate với DER tương ứng. |
-| DER và PEM của cùng cert | Hai luồng cùng nội dung X.509 | `Arrays.equals(certDER.getEncoded(), certPEM.getEncoded()) == true`. |
-| Nhiều PEM blocks | Hai hoặc nhiều CERTIFICATE liên tiếp | `generateCertificates` lấy collection phù hợp. |
-| DER hỏng | Byte không thể decode thành certificate | `CertificateException`. |
-| PEM thiếu marker | Base64/armor không đúng | `CertificateException` theo nhà cung cấp. |
-| File không tồn tại | Path sai | `IOException`/`NoSuchFileException`, trước parse. |
-| Raw public key PEM | `BEGIN PUBLIC KEY` | Không phải X.509 certificate; từ chối hoặc dùng KeyFactory phù hợp. |
-| Cert hết hạn nhưng hợp lệ ASN.1 | X.509 parse được, thời gian ngoài hạn | Parse thành công; `checkValidity()` ném lỗi hạn. |
-| Chứng thư CA không tin cậy | DER/PEM hợp lệ nhưng không có trust path | Parse thành công; PKIX trust validation thất bại. |
-| Cert có subject đúng nhưng SAN sai | X.509 parse được | TLS hostname verification vẫn thất bại. |
+| Standard DER | Valid binary X.509 DER | `generateCertificate` returns `X509Certificate`. |
+| Standard PEM | `BEGIN/END CERTIFICATE` with valid Base64 DER | Returns the same certificate as the corresponding DER. |
+| DER and PEM of same cert | Two streams with identical X.509 content | `Arrays.equals(certDER.getEncoded(), certPEM.getEncoded()) == true`. |
+| Multiple PEM blocks | Two or more consecutive CERTIFICATE blocks | `generateCertificates` returns the matching collection. |
+| Malformed DER | Bytes that cannot decode as a certificate | `CertificateException`. |
+| PEM missing markers | Invalid Base64/armor | `CertificateException` per provider. |
+| Non-existent file | Wrong path | `IOException`/`NoSuchFileException`, before parsing. |
+| Raw public key PEM | `BEGIN PUBLIC KEY` | Not an X.509 certificate; reject or use appropriate `KeyFactory`. |
+| Expired cert, valid ASN.1 | Parseable X.509 with dates outside window | Parsing succeeds; `checkValidity()` throws expiration error. |
+| Untrusted CA certificate | Valid DER/PEM with no trust path | Parsing succeeds; PKIX trust validation fails. |
+| Right subject, wrong SAN | Parseable X.509 | TLS hostname verification still fails. |
 
-**Lưu ý khi test trên provider khác:** các thông điệp `CertificateException` có thể không giống nhau; chỉ khẳng định điều contract API bảo đảm, không kiểm tra bằng cách so nguyên chuỗi lỗi Java. Chương trình `CertificateFormatsDemo` đã thử DER/PEM/bundle/malformed trên một JVM phổ biến; với môi trường production hãy chạy thêm trên JDK/provider thực tế.
+**Note when testing across providers:** `CertificateException` messages may vary; assert only what the API contract guarantees rather than matching exact Java error strings. `CertificateFormatsDemo` tests DER/PEM/bundle/malformed cases on a standard JVM; for production environments, also test on your actual target JDK/provider.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-**Câu 1.** Khi có file `server.der` và `server.pem` mô tả **cùng chứng thư**, Java cần hai loại CertificateFactory không?
+**Question 1.** Given `server.der` and `server.pem` describing **the same certificate**, does Java need two different `CertificateFactory` types?
 
-**Đáp án:** Không. `CertificateFactory.getInstance("X.509")` và `generateCertificate(InputStream)` xử lý được DER binary và PEM certificate Base64 có marker chuẩn.
+**Answer:** No. `CertificateFactory.getInstance("X.509")` and `generateCertificate(InputStream)` handle both binary DER and Base64 PEM certificates with standard markers.
 
-**Câu 2.** PEM chứng thư có chứa private key không?
+**Question 2.** Does a certificate PEM contain a private key?
 
-**Đáp án:** Không, nếu khối là `BEGIN CERTIFICATE`. PEM là format text armor; nó còn có thể dùng để biểu diễn private key, CSR hoặc public key **trong các loại khối khác**, nên phải kiểm tra header/footer.
+**Answer:** No, if the block is `BEGIN CERTIFICATE`. PEM is a text armor format; it can also represent private keys, CSRs, or public keys **in other block types**, so you must check headers/footers.
 
-**Câu 3.** `generateCertificate` chạy thành công. Certificate có đáng tin cậy để dùng cho HTTPS không?
+**Question 3.** `generateCertificate` succeeds. Is the certificate trustworthy for HTTPS?
 
-**Đáp án:** Chưa biết. Thành công chỉ chứng minh dữ liệu parse thành X.509. Cần validate PKIX chain đến trust anchor đã duyệt, thời gian, mục đích, SAN/hostname và các policy liên quan.
+**Answer:** Unknown yet. Success only proves the data parses as X.509. You must validate the PKIX chain to an approved trust anchor, validity period, purpose, SAN/hostname, and relevant policies.
 
-**Câu 4.** `cert.checkValidity()` chạy thành công nhưng certificate tự ký bởi kẻ lạ. Có được xác nhận trust không?
+**Question 4.** `cert.checkValidity()` succeeds, yet the certificate is self-signed by a stranger. Should trust be granted?
 
-**Đáp án:** Không. `checkValidity` chỉ xét `NotBefore` và `NotAfter`; tự ký không làm một chứng thư trở thành trust anchor.
+**Answer:** No. `checkValidity` only checks `NotBefore` and `NotAfter`; self-signing does not make a certificate a trust anchor.
 
-**Câu 5.** Làm sao đọc PEM có ba khối `BEGIN CERTIFICATE` thành collection?
+**Question 5.** How do you read a PEM containing three `BEGIN CERTIFICATE` blocks into a collection?
 
-**Đáp án:** Dùng `factory.generateCertificates(in)`. Sau đó xác định loại, số lượng, thứ tự/quan hệ chain và validate nếu mục đích yêu cầu; không chỉ lấy cert đầu tiên.
+**Answer:** Use `factory.generateCertificates(in)`. Then determine types, count, order/chain relationships, and validate if required by the use case; never simply take the first cert.
 
-**Câu 6.** Tại sao raw file SHA-256 của PEM khác DER nhưng `SHA256(cert.getEncoded())` lại giống?
+**Question 6.** Why does the raw file SHA-256 of PEM differ from DER, while `SHA256(cert.getEncoded())` is identical?
 
-**Đáp án:** Raw PEM có marker, Base64 và xuống dòng, raw DER là binary; chúng không cùng byte file. `cert.getEncoded()` trả DER của certificate đã parse nên giống cho cùng nội dung X.509.
+**Answer:** Raw PEM has markers, Base64, and line breaks, while raw DER is binary; their file bytes differ. `cert.getEncoded()` returns the DER of the parsed certificate, so it matches for identical X.509 content.
 
-**Câu 7.** `X509EncodedKeySpec` có dùng để đọc nguyên một X.509 certificate không?
+**Question 7.** Is `X509EncodedKeySpec` used to read a complete X.509 certificate?
 
-**Đáp án:** Không. Nó biểu diễn public key `SubjectPublicKeyInfo`. Để đọc chứng thư dùng `CertificateFactory`; để nhập raw public key dùng `KeyFactory`.
+**Answer:** No. It represents a `SubjectPublicKeyInfo` public key. To read a certificate, use `CertificateFactory`; to import a raw public key, use `KeyFactory`.
 
-**Câu 8.** `CertificateException` có chắc chắn nghĩa là CA không được tin cậy không?
+**Question 8.** Does `CertificateException` always mean the CA is untrusted?
 
-**Đáp án:** Không. Nó thường là lỗi parse/construct certificate ở factory. CA trust/PKIX validation là bước khác với các ngoại lệ/chính sách riêng.
+**Answer:** No. It is usually a parsing/certificate construction error in the factory. CA trust/PKIX validation is a separate step with its own exceptions and policies.
 
-**Câu 9.** Có được lấy first cert từ một PEM bundle rồi dùng ngay như trust anchor không?
+**Question 9.** Can you take the first cert from a PEM bundle and immediately use it as a trust anchor?
 
-**Đáp án:** Không. Thứ tự bundle không bảo đảm trust; trust anchors phải đến từ truststore/kênh đã được phê duyệt.
+**Answer:** No. Bundle order does not guarantee trust; trust anchors must come from an approved truststore/channel.
 
-**Câu 10.** Nếu dùng `FileInputStream` trên nguồn có nhiều cert rồi gọi `generateCertificate` nhiều lần, có chắc mỗi lần đọc một cert không?
+**Question 10.** If you use `FileInputStream` on a multi-cert source and call `generateCertificate` multiple times, is each call guaranteed to read one cert?
 
-**Đáp án:** Không. API mô tả cách tiêu thụ stream khác nhau tùy `mark/reset`. Dùng `generateCertificates` hoặc `BufferedInputStream` với framing/boundary đúng.
+**Answer:** No. The API specifies different stream consumption behavior depending on `mark/reset`. Use `generateCertificates` or `BufferedInputStream` with proper framing/boundaries.
 
-**Câu 11.** Chứng thư parse được có thể không có SAN không?
+**Question 11.** Can a parseable certificate have no SAN?
 
-**Đáp án:** Có. `getSubjectAlternativeNames()` có thể trả `null`. Với xác thực tên miền TLS, phải áp dụng quy tắc danh tính/giao thức và không mặc định subject CN là đủ.
+**Answer:** Yes. `getSubjectAlternativeNames()` can return `null`. For TLS domain authentication, apply proper identity/protocol rules and never assume subject CN is sufficient.
 
-**Câu 12.** Java đọc được file có đuôi `.crt` thì có nghĩa chắc chắn là PEM hay DER không?
+**Question 12.** If Java reads a `.crt` file, does that mean it is definitely PEM or definitely DER?
 
-**Đáp án:** Không. Đuôi là quy ước người đặt, không thay cho kiểm tra định dạng thực.
+**Answer:** No. Extensions are naming conventions, not substitutes for inspecting the actual format.
 
-## 14. Tài liệu chính thức
+## 14. Official Documentation
 
-- [Java SE 17 — CertificateFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateFactory.html): hợp đồng hỗ trợ X.509 DER binary và Base64 PEM với marker, `generateCertificate`, `generateCertificates`, `mark/reset` và `generateCertPath`.
-- [Java SE 17 — X509Certificate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html): subject/issuer, validity, public key, SAN, KeyUsage, BasicConstraints và chữ ký chứng thư.
-- [Java SE 17 — CertificateException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateException.html): họ ngoại lệ liên quan certificate parsing.
-- [Java SE 17 — CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): API kiểm tra đường chứng thực, tách khỏi parsing.
-- [Java SE 17 — PKIXParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors và policy cho PKIX.
-- [Java SE 17 — TrustManagerFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/TrustManagerFactory.html): tạo trust manager phục vụ TLS.
-- [Oracle Java PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-pki-programmers-guide.html): xây dựng, validate certificate path và các thuật ngữ PKI.
-- [RFC 5280 — Internet X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): cấu trúc X.509, phần mở rộng và PKIX certificate profile.
+- [Java SE 17 — CertificateFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateFactory.html): contract supporting binary X.509 DER and Base64 PEM with markers, `generateCertificate`, `generateCertificates`, `mark/reset`, and `generateCertPath`.
+- [Java SE 17 — X509Certificate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html): subject/issuer, validity, public key, SAN, KeyUsage, BasicConstraints, and certificate signatures.
+- [Java SE 17 — CertificateException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateException.html): exception hierarchy for certificate parsing.
+- [Java SE 17 — CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): API for validating certification paths, separate from parsing.
+- [Java SE 17 — PKIXParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors and policies for PKIX.
+- [Java SE 17 — TrustManagerFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/TrustManagerFactory.html): creating trust managers for TLS.
+- [Oracle Java PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-pki-programmers-guide.html): building, validating certificate paths, and PKI terminology.
+- [RFC 5280 — Internet X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): X.509 structure, extensions, and PKIX certificate profile.

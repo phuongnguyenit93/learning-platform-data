@@ -1,0 +1,3 @@
+menuLevel1: Bảo vệ CSRF
+menuLevel2: Giới hạn phạm vi bỏ qua CSRF bằng matcher và kiểm chứng bằng kiểm thử
+status: WRITTEN

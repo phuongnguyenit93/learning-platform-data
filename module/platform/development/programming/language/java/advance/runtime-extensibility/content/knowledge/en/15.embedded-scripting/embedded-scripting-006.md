@@ -1,29 +1,29 @@
-# Chạy mã từ String hoặc Reader bằng ScriptEngine.eval trong Java
+# Executing Code from String or Reader Using ScriptEngine.eval in Java
 
-## 1. ScriptEngine.eval giải quyết bài toán gì?
+## 1. What Problem Does ScriptEngine.eval Solve?
 
-Java cung cấp **JSR 223 (Scripting API for Java)** trong package **javax.script** và module **java.scripting**. API này giúp ứng dụng Java nhúng một ngôn ngữ kịch bản do **ScriptEngine** thực thi. Host có thể tạo script động, đọc script từ tệp hoặc nhận một nguồn dữ liệu ký tự rồi gọi **eval** để thực thi theo quy tắc của *engine được cài đặt*.
+Java provides **JSR 223 (Scripting API for Java)** in the **javax.script** package and **java.scripting** module. This API lets a Java application embed a scripting language executed by a **ScriptEngine**. The host can generate scripts dynamically, read scripts from a file, or receive a character stream and invoke **eval** to execute them according to the rules of the *installed engine*.
 
-Ví dụ, một ứng dụng có thể:
-- Gọi quy tắc xử lý nhỏ được cung cấp dưới dạng văn bản, thay vì viết một Java class mới cho mỗi thay đổi.
-- Đọc script đã được lưu và kiểm soát phiên bản từ một file **Reader**.
-- Truyền dữ liệu vào môi trường script qua **Bindings** hoặc **ScriptContext**.
-- Lấy giá trị trả về, hoặc bắt **ScriptException** để báo lỗi của ngôn ngữ script.
+For example, an application can:
+- Invoke a small processing rule supplied as text instead of writing a new Java class for every change.
+- Read a stored, version-controlled script from a file **Reader**.
+- Pass data into the script environment via **Bindings** or **ScriptContext**.
+- Retrieve a return value, or catch **ScriptException** to report script-language errors.
 
-**Điều quan trọng:** ScriptEngine là một **giao diện trừu tượng**, không phải trình thông dịch chung cho mọi cú pháp. Java 17 có API **javax.script**, nhưng **không kèm sẵn Nashorn JavaScript engine** (Nashorn bị loại khỏi JDK từ Java 15). Muốn chạy JavaScript, Groovy hoặc ngôn ngữ thực tế khác qua JSR 223, cần cài đúng **ScriptEngine provider** tương thích rồi xác minh tên được engine công bố. Không được giả định **getEngineByName("JavaScript")** luôn trả về engine khác null.
+**Important:** ScriptEngine is an **abstract interface**, not a universal interpreter for arbitrary syntax. Java 17 includes the **javax.script** API, but **does not ship a built-in Nashorn JavaScript engine** (Nashorn was removed from the JDK in Java 15). To run JavaScript, Groovy, or another real language via JSR 223, you must install a compatible **ScriptEngine provider** and verify the name advertised by the engine. Never assume **getEngineByName("JavaScript")** always returns a non-null engine.
 
-Cũng không được nhầm **eval("mã Java")** với **biên dịch mã nguồn Java**. JSR 223 chỉ chạy cú pháp của ngôn ngữ mà ScriptEngine cụ thể hiểu; muốn biên dịch .java thành .class, dùng JavaCompiler/build pipeline hoặc công cụ thích hợp khác.
+Also do not confuse **eval("Java code")** with **compiling Java source code**. JSR 223 only runs the syntax of the language understood by a specific ScriptEngine; to compile .java into .class, use JavaCompiler/build pipelines or another appropriate tool.
 
-## 2. Hai kiểu đầu vào của eval: String và Reader
+## 2. Two Input Forms for eval: String and Reader
 
-Hai overload căn bản của **ScriptEngine**:
+The two foundational overloads of **ScriptEngine**:
 
 ~~~java
 Object eval(String script) throws ScriptException;
 Object eval(Reader reader) throws ScriptException;
 ~~~
 
-Cả hai đều thực thi nội dung script trong **default ScriptContext** của engine. Các overload khác cho phép truyền môi trường riêng:
+Both execute script content in the engine's **default ScriptContext**. Other overloads allow passing a separate environment:
 
 ~~~java
 Object eval(String script, Bindings bindings) throws ScriptException;
@@ -32,99 +32,99 @@ Object eval(String script, ScriptContext context) throws ScriptException;
 Object eval(Reader reader, ScriptContext context) throws ScriptException;
 ~~~
 
-Các khai báo trên là **chữ ký API minh họa**, không phải một chương trình Java độc lập.
+The declarations above are **illustrative API signatures**, not a standalone Java program.
 
-| Khía cạnh | **eval(String)** | **eval(Reader)** |
+| Aspect | **eval(String)** | **eval(Reader)** |
 | --- | --- | --- |
-| Dữ liệu đầu vào | Một chuỗi chứa toàn bộ script | Một nguồn ký tự do Reader cung cấp |
-| Khi phù hợp | Script ngắn, template đã dựng thành chuỗi, đoạn script đã được xác minh | File script, nguồn từ stream ký tự, thư viện sinh Reader |
-| Ai quyết định encoding? | Người tạo String phải decode đúng từ trước | Lớp tạo Reader, chẳng hạn Files.newBufferedReader(..., UTF_8) |
-| Quản lý tài nguyên | Không có Reader riêng để đóng | Caller nên đóng Reader mà mình mở, thường với try-with-resources |
-| Giá trị trả về | **Object**, có thể null tùy ngôn ngữ/câu lệnh | **Object**, cùng quy tắc kết quả của engine |
-| Lỗi | **ScriptException**, và có thể có lỗi Java liên quan | **ScriptException**; lỗi đọc Reader được engine xử lý/báo theo implementation |
-| Hiệu năng/bộ nhớ | Toàn bộ script đã nằm trong String | Không có cam kết engine parse streaming hoặc không buffer toàn bộ |
+| Input data | A string containing the full script | A character source supplied by a Reader |
+| When suitable | Short scripts, templates already rendered to strings, verified script snippets | Script files, character stream sources, libraries producing a Reader |
+| Who decides encoding? | Whoever created the String must have decoded it properly beforehand | The code creating the Reader, such as Files.newBufferedReader(..., UTF_8) |
+| Resource management | No separate Reader to close | The caller should close the Reader it opened, typically with try-with-resources |
+| Return value | **Object**, possibly null depending on language/statement | **Object**, following the same engine result rules |
+| Errors | **ScriptException**, plus possible related Java errors | **ScriptException**; Reader read errors are handled/reported per engine implementation |
+| Performance/memory | The entire script is already in a String | No guarantee the engine parses in streaming mode or avoids buffering the whole input |
 
-**Reader không mặc nhiên nhanh hơn hay tiết kiệm RAM.** Nó chỉ là giao diện lấy ký tự. Engine hoàn toàn có thể đọc hết Reader vào một String trước khi parse, giống engine minh họa trong bài. Kích thước script lớn hay nhỏ phải được đo với provider và workload thực tế.
+**A Reader is not automatically faster or more memory-efficient.** It is simply a character-reading interface. An engine can easily read the entire Reader into a String before parsing, just like the demo engine in this article. Script size behavior must be measured with the actual provider and workload.
 
-Nếu cùng nội dung, cùng trạng thái và cùng provider, hai overload thường phục vụ cùng mục tiêu thực thi. Nhưng hành vi cụ thể—giá trị trả về, vị trí lỗi, tác dụng phụ, caching—thuộc ngôn ngữ/engine chứ không do String hay Reader tự quyết định.
+Given the same content, same state, and same provider, both overloads serve the same execution goal. Yet specific behavior—return value, error location, side effects, caching—belongs to the language/engine rather than being determined by String vs. Reader.
 
-## 3. Tìm ScriptEngine trước khi eval
+## 3. Finding a ScriptEngine Before Calling eval
 
-Cách dùng thường thấy:
+Common usage pattern:
 
 ~~~java
-// Mảnh minh họa: cần có ScriptEngineFactory tương ứng trên runtime.
+// Illustrative snippet: requires a corresponding ScriptEngineFactory at runtime.
 javax.script.ScriptEngineManager manager =
         new javax.script.ScriptEngineManager();
 
 javax.script.ScriptEngine engine =
-        manager.getEngineByName("ten-ngon-ngu");
+        manager.getEngineByName("language-name");
 
 if (engine == null) {
     throw new IllegalStateException("Scripting engine is not installed");
 }
 
-Object result = engine.eval("cu-phap-hop-le-cua-ngon-ngu");
+Object result = engine.eval("valid-language-syntax");
 ~~~
 
-**"ten-ngon-ngu"** phải là một trong các tên do provider đăng ký; **"cu-phap-hop-le-cua-ngon-ngu"** phải được thay bằng script thật của ngôn ngữ đó. Đoạn trên không độc lập nếu chưa cài engine.
+**"language-name"** must be one of the names registered by the provider; **"valid-language-syntax"** must be replaced with real script syntax for that language. The snippet above is not standalone if no engine is installed.
 
-ScriptEngineManager thường tìm các **ScriptEngineFactory** qua cơ chế service provider. Với classpath, provider JAR có thể chứa tài nguyên **META-INF/services/javax.script.ScriptEngineFactory**; với explicit named module, khai báo provider qua **provides javax.script.ScriptEngineFactory with ...**. Chi tiết discovery và khả năng nhìn thấy module/JAR phụ thuộc class loader/module layer và cấu hình ứng dụng. Nếu không có provider, **getEngineByName() trả về null**, không có engine nào để gọi eval.
+ScriptEngineManager typically locates **ScriptEngineFactory** implementations via the service provider mechanism. For classpath JARs, the provider JAR may contain the resource **META-INF/services/javax.script.ScriptEngineFactory**; for explicit named modules, the provider is declared with **provides javax.script.ScriptEngineFactory with ...**. Discovery details and JAR/module visibility depend on the class loader/module layer and application configuration. If no provider exists, **getEngineByName() returns null**, leaving no engine to call eval on.
 
-Có thể quan sát engine đang được phát hiện:
+You can inspect which engines are currently discovered:
 
 ~~~java
-// Mảnh minh họa trong phương thức đã có biến manager.
+// Illustrative snippet inside a method that already has a manager variable.
 for (javax.script.ScriptEngineFactory factory : manager.getEngineFactories()) {
     System.out.println(factory.getEngineName() + ": " + factory.getNames());
 }
 ~~~
 
-**Không hardcode tên "js", "javascript", "groovy"... khi chưa đọc tên thực tế** do phiên bản provider công bố. Trong một ứng dụng có nhiều loader, factory tồn tại trong một JAR chưa chắc đã được manager tìm thấy; có thể cần cấp class loader thích hợp cho ScriptEngineManager.
+**Do not hard-code names like "js", "javascript", or "groovy" without checking the actual names** advertised by the provider version. In an application with multiple loaders, a factory present inside a JAR is not guaranteed to be found by the manager; you may need to pass the appropriate class loader to ScriptEngineManager.
 
-**Không nhầm module java.scripting với module của một engine**: java.scripting cung cấp API; engine do nhà cung cấp thực thi. Việc thấy package javax.script trong IDE không chứng minh JavaScript engine đã được cài.
+**Do not confuse the java.scripting module with an engine's module**: java.scripting supplies the API; the engine is implemented by a provider. Seeing the javax.script package in an IDE does not prove a JavaScript engine is installed.
 
-## 4. Luồng thực thi từ đầu vào đến kết quả
+## 4. Execution Flow from Input to Result
 
 ~~~text
-String hoặc Reader
+String or Reader
         |
         v
-Validate nguồn / chọn ngôn ngữ / chọn engine
+Validate source / select language / select engine
         |
         v
-ScriptEngine.eval(source, Bindings hoặc ScriptContext)
+ScriptEngine.eval(source, Bindings or ScriptContext)
         |
         v
-Engine parse và thực thi cú pháp riêng
+Engine parses and executes its own syntax
         |
-        +--- trả Object (hoặc null nếu engine quy định)
+        +--- returns Object (or null if defined by engine)
         |
-        +--- ném ScriptException khi engine báo lỗi script
+        +--- throws ScriptException when engine reports script error
         |
-        +--- có thể gây side effect theo năng lực của script/provider
+        +--- may cause side effects per script/provider capabilities
 ~~~
 
-Một host không nên gọi eval chỉ vì script "parse được"; cần xác minh kết quả có đúng kiểu mong đợi, không null nếu contract cấm null, và kiểm soát mọi side effect được phép. Không nên suy luận rằng dòng **print** trong một script cũng là giá trị trả về của **eval**. Một engine có thể ghi ra Writer trong ScriptContext nhưng trả **null** hoặc một đối tượng khác.
+A host should not call eval merely because a script "parses"; it must verify that the result has the expected type, is non-null if the contract forbids null, and control any permitted side effects. Do not infer that a **print** statement inside a script is also the return value of **eval**. An engine may write to the Writer in ScriptContext while returning **null** or a different object.
 
-Có ba lớp trách nhiệm:
-1. **Caller Java**: xác thực input, giới hạn kích thước, quản lý Reader, chọn provider, cấp Bindings/Context, bắt lỗi và chuyển kết quả sang hợp đồng ứng dụng.
-2. **Script engine**: định nghĩa ngôn ngữ, parse/evaluate, binding semantics, import/interoperability, loại result và diagnostics.
-3. **Môi trường runtime**: class loader, module, quyền file/network, phiên bản dependency, tài nguyên CPU/memory và vòng đời.
+There are three layers of responsibility:
+1. **Java caller**: validates inputs, limits size, manages the Reader, selects the provider, supplies Bindings/Context, catches errors, and maps results to the application contract.
+2. **Script engine**: defines the language, parsing/evaluation, binding semantics, imports/interoperability, result types, and diagnostics.
+3. **Runtime environment**: class loaders, modules, file/network permissions, dependency versions, CPU/memory resources, and lifecycle.
 
-Vì vậy API eval đơn giản nhưng khi đưa vào hệ thống mở rộng thực tế phải thiết kế đủ ba phần.
+Thus the eval API looks simple, but integrating it into a real extensible system requires designing all three parts.
 
-## 5. Ví dụ Java 17 hoàn chỉnh không cần thư viện ngoài
+## 5. Complete Java 17 Example Without External Libraries
 
-Để bài chạy được trên **JDK 17 chuẩn**, ví dụ tự cung cấp một **ScriptEngine nhỏ tên Mini** cùng một **ScriptEngineFactory**. Nó không phải JavaScript hay Groovy: chỉ hiểu hai lệnh:
-- **greet**: lấy biến **name** từ ScriptContext và trả một chuỗi lời chào.
-- **add <a> <b>**: nhận hai số nguyên và trả tổng.
+So that this article runs on **standard JDK 17**, the example supplies its own **small ScriptEngine named Mini** along with a **ScriptEngineFactory**. It is not JavaScript or Groovy; it understands only two commands:
+- **greet**: reads the **name** variable from ScriptContext and returns a greeting string.
+- **add <a> <b>**: takes two integers and returns their sum.
 
-Ví dụ có giá trị vì nó minh họa đúng hợp đồng **ScriptEngine.eval(String)**, **eval(Reader)**, **Bindings**, **ScriptException**. Trong ứng dụng thực, thường bạn sẽ cài provider ngôn ngữ có sẵn thay vì viết ScriptEngine của riêng mình.
+This example is valuable because it demonstrates the exact **ScriptEngine.eval(String)**, **eval(Reader)**, **Bindings**, and **ScriptException** contracts. In real applications, you will normally install an existing language provider rather than writing your own ScriptEngine.
 
-### 5.1. Tạo một file Java
+### 5.1. Create One Java File
 
-Tạo **src/demo/EvalDemo.java**:
+Create **src/demo/EvalDemo.java**:
 
 ~~~java
 package demo;
@@ -183,7 +183,7 @@ public final class EvalDemo {
                 if (name == null) {
                     throw new ScriptException("Missing name binding");
                 }
-                return "Xin chao, " + name + "!";
+                return "Hello, " + name + "!";
             }
 
             String[] parts = command.split("\\s+");
@@ -247,10 +247,10 @@ public final class EvalDemo {
         }
         @Override public String getMethodCallSyntax(
                 String obj, String method, String... args) {
-            return null; // Ngon ngu Mini khong co cu phap goi method.
+            return null; // Mini language has no method call syntax.
         }
         @Override public String getOutputStatement(String toDisplay) {
-            return null; // Ngon ngu Mini khong co lenh in.
+            return null; // Mini language has no print statement.
         }
         @Override public String getProgram(String... statements) {
             return statements.length == 1 ? statements[0] : null;
@@ -262,55 +262,55 @@ public final class EvalDemo {
 }
 ~~~
 
-Điểm cần chú ý:
+Key points to note:
 
-1. **manager.registerEngineName("mini", new MiniFactory())** đăng ký factory **trực tiếp trên manager này**, để chương trình không phụ thuộc engine bên ngoài. Đây **không phải** tự động discovery qua META-INF/services; thực tế có thể dùng cả hai kiểu đăng ký theo thiết kế.
-2. **manager.getEngineByName("mini")** tìm factory vừa được đăng ký rồi trả ScriptEngine. Trong ví dụ này biến engine không null vì đã chủ động đăng ký đúng factory.
-3. **engine.put("name", "Lan")** thiết lập biến **name** ở **ENGINE_SCOPE** của default ScriptContext.
-4. **engine.eval("greet")** lấy source từ String. MiniEngine đọc biến **name** và trả "Xin chao, Lan!".
-5. **engine.eval(source)** với **StringReader("add 2 3")** đi vào overload nhận Reader. MiniEngine đọc ký tự rồi gọi logic xử lý từ String.
-6. **engine.eval("greet", temporary)** dùng một Bindings khác chứa **name = "Mai"**. Overload này không thay thế vĩnh viễn bindings gốc; lời gọi tiếp theo trả lời chào "Lan".
-7. **engine.eval("invalid")** tạo **ScriptException** vì ngôn ngữ Mini không định nghĩa lệnh đó; ứng dụng bắt và ghi loại exception.
-8. **MiniFactory** triển khai các metadata cơ bản của **ScriptEngineFactory**, gồm tên engine, ngôn ngữ, extension và cách tạo MiniEngine. Một ngôn ngữ đồ chơi không hỗ trợ cú pháp gọi method/print nên các method sinh cú pháp tương ứng trả null; đây không phải tính năng JavaScript.
+1. **manager.registerEngineName("mini", new MiniFactory())** registers the factory **directly on this manager**, so the program does not depend on an external engine. This is **not** automatic discovery via META-INF/services; in practice either registration style can be used depending on design.
+2. **manager.getEngineByName("mini")** finds the newly registered factory and returns a ScriptEngine. In this example the engine variable is non-null because the right factory was explicitly registered.
+3. **engine.put("name", "Lan")** sets the **name** variable in **ENGINE_SCOPE** of the default ScriptContext.
+4. **engine.eval("greet")** takes its source from a String. MiniEngine reads the **name** variable and returns "Hello, Lan!".
+5. **engine.eval(source)** with **StringReader("add 2 3")** enters the Reader overload. MiniEngine reads the characters and delegates to the String processing logic.
+6. **engine.eval("greet", temporary)** uses a different Bindings containing **name = "Mai"**. This overload does not permanently replace the original bindings; the next call returns the greeting for "Lan".
+7. **engine.eval("invalid")** throws **ScriptException** because the Mini language does not define that command; the application catches and prints the exception type.
+8. **MiniFactory** implements the basic metadata of **ScriptEngineFactory**, including engine name, language, extension, and how to create MiniEngine. A toy language that does not support method call/print syntax returns null from the corresponding syntax-generation methods; this is not a JavaScript feature.
 
-MiniEngine triển khai **eval(String, ScriptContext)** và **eval(Reader, ScriptContext)** thông qua **AbstractScriptEngine**. AbstractScriptEngine hỗ trợ những overload tương ứng với default context hoặc Bindings do caller truyền, giảm công việc lặp lại so với tự viết trọn ScriptEngine interface. **createBindings()** trả SimpleBindings, còn **getFactory()** trả metadata factory đúng đối tượng.
+MiniEngine implements **eval(String, ScriptContext)** and **eval(Reader, ScriptContext)** via **AbstractScriptEngine**. AbstractScriptEngine supports the overloads corresponding to the default context or caller-supplied Bindings, reducing boilerplate compared to implementing the entire ScriptEngine interface directly. **createBindings()** returns SimpleBindings, and **getFactory()** returns the right metadata factory object.
 
-### 5.2. Biên dịch và chạy
+### 5.2. Compile and Run
 
-Từ thư mục có **src/**, tạo thư mục **out**:
+From the directory containing **src/**, create the **out** directory:
 
 ~~~bash
 mkdir -p out
 ~~~
 
-Trên Windows PowerShell, dùng **New-Item -ItemType Directory -Force out** nếu chưa có out. Sau đó:
+On Windows PowerShell, use **New-Item -ItemType Directory -Force out** if out does not yet exist. Then:
 
 ~~~bash
 javac --release 17 -d out src/demo/EvalDemo.java
 java -cp out demo.EvalDemo
 ~~~
 
-**Standard output chính xác**:
+**Exact standard output**:
 
 ~~~text
-String: Xin chao, Lan!
+String: Hello, Lan!
 Reader: 5
-Bindings: Xin chao, Mai!
-Original: Xin chao, Lan!
+Bindings: Hello, Mai!
+Original: Hello, Lan!
 Error: ScriptException
 ~~~
 
-Kết quả cho thấy cả hai overload thực sự chạy qua engine; eval(String) trả một String, eval(Reader) trả một Integer (nên khi nối với chuỗi thì thành "5"), Bindings tạm cho phép đổi biến của một lần thực thi, và script không hợp lệ được báo bằng ScriptException.
+The output shows that both overloads genuinely run through the engine; eval(String) returns a String, eval(Reader) returns an Integer (which becomes "5" when concatenated with a string), temporary Bindings allow changing a variable for a single execution, and invalid scripts are reported via ScriptException.
 
-**Lưu ý về tính runnable:** mã dùng các API chuẩn Java và không dựa vào việc JDK có cài Nashorn hoặc GraalJS. Trình biên dịch cần hỗ trợ **--release 17**, và module **java.scripting** phải có trong runtime image nếu dùng jlink tùy chỉnh.
+**Note on runnability:** the code uses standard Java APIs and does not depend on whether the JDK has Nashorn or GraalJS installed. The compiler must support **--release 17**, and the **java.scripting** module must be included in the runtime image if using a custom jlink build.
 
-## 6. Ví dụ dùng Reader từ một file ngoài
+## 6. Example Using Reader from an External File
 
-Thay vì StringReader, ứng dụng thường đọc từ file theo encoding được xác định rõ:
+Instead of StringReader, applications commonly read from a file with a clearly specified encoding:
 
 ~~~java
-// Mảnh minh họa: engine là ScriptEngine hợp lệ đã lấy được,
-// path là một Path trỏ đến file script có nguồn đáng tin.
+// Illustrative snippet: engine is a valid obtained ScriptEngine,
+// path is a Path pointing to a script file from a trusted source.
 try (java.io.Reader reader = java.nio.file.Files.newBufferedReader(
         path, java.nio.charset.StandardCharsets.UTF_8)) {
     Object result = engine.eval(reader);
@@ -318,46 +318,46 @@ try (java.io.Reader reader = java.nio.file.Files.newBufferedReader(
 }
 ~~~
 
-Đây là **mảnh code minh họa**, không phải chương trình độc lập vì cần biến **engine** và **path**. Nội dung của file phải sử dụng cú pháp mà engine đã chọn chấp nhận. Nếu dùng MiniEngine ở phần 5, file chứa **add 2 3** là hợp lệ; nếu dùng JavaScript provider, cần viết cú pháp JavaScript thay thế.
+This is an **illustrative code snippet**, not a standalone program because it requires **engine** and **path** variables. The file's content must use syntax accepted by the chosen engine. With MiniEngine from section 5, a file containing **add 2 3** is valid; with a JavaScript provider, JavaScript syntax must be used instead.
 
-Cần phân biệt hai nhóm lỗi:
-- **IOException** có thể xảy ra khi mở file, và ở một số cấu hình khi đọc/đóng Reader ở phía caller.
-- **ScriptException** có thể phát sinh khi engine parse/evaluate hoặc khi engine quyết định bọc lỗi Reader.
+Distinguish two error groups:
+- **IOException** can occur when opening the file, and in some setups when reading/closing the Reader on the caller side.
+- **ScriptException** can occur when the engine parses/evaluates or when the engine chooses to wrap a Reader error.
 
-Không mặc định rằng **eval(Reader)** sẽ tự đóng Reader; theo quy ước quản lý tài nguyên, **caller mở thì caller đóng**, dùng try-with-resources kể cả khi eval ném lỗi.
+Do not assume **eval(Reader)** will automatically close the Reader; by resource-management convention, **whoever opens it closes it**, using try-with-resources even if eval throws an error.
 
-**Reader khác InputStream**: Reader cung cấp ký tự đã được giải mã, còn InputStream cung cấp byte. Khi nguồn là InputStream, phải dùng InputStreamReader với Charset rõ ràng hoặc APIs tương đương. Tránh phụ thuộc vào default charset ngầm nếu script cần chạy nhất quán trên nhiều hệ điều hành.
+**Reader differs from InputStream**: a Reader supplies already decoded characters, while an InputStream supplies bytes. When the source is an InputStream, use an InputStreamReader with an explicit Charset or equivalent APIs. Avoid relying on an implicit default charset if scripts must run consistently across operating systems.
 
-## 7. Chọn Bindings và ScriptContext để trao đổi dữ liệu
+## 7. Choosing Bindings and ScriptContext to Exchange Data
 
-### 7.1. ENGINE_SCOPE và GLOBAL_SCOPE
+### 7.1. ENGINE_SCOPE and GLOBAL_SCOPE
 
-Một **ScriptContext** có các phạm vi chuẩn:
+A **ScriptContext** has standard scopes:
 
-| Phạm vi | Ý nghĩa | Cách dùng |
+| Scope | Meaning | Usage |
 | --- | --- | --- |
-| **ScriptContext.ENGINE_SCOPE** | Variables gắn với engine/context cụ thể; được ưu tiên khi lookup | Input và state cho việc eval hiện tại |
-| **ScriptContext.GLOBAL_SCOPE** | Variables chung có thể được cung cấp trong context | Cấu hình chia sẻ khi được thiết kế rõ |
+| **ScriptContext.ENGINE_SCOPE** | Variables bound to the specific engine/context; prioritized on lookup | Inputs and state for the current eval |
+| **ScriptContext.GLOBAL_SCOPE** | Shared variables that may be exposed across contexts | Shared configuration when explicitly designed |
 
-Khi gọi **engine.put(key, value)**, JSR 223 đặt giá trị vào ENGINE_SCOPE của default context. Khi gọi **engine.get(key)**, API tìm giá trị trong phạm vi engine như quy ước của engine. Nếu muốn chỉ cung cấp đầu vào cho một lần eval, thường tạo **Bindings** riêng:
+When calling **engine.put(key, value)**, JSR 223 places the value into ENGINE_SCOPE of the default context. When calling **engine.get(key)**, the API looks up the value in engine scope per the engine's conventions. If you want to supply inputs only for one eval call, typically create a separate **Bindings**:
 
 ~~~java
-// Mảnh minh họa; engine đã được tạo và script đúng cú pháp provider.
+// Illustrative snippet; engine is already created and script matches provider syntax.
 javax.script.Bindings input = engine.createBindings();
 input.put("name", "Mai");
 Object result = engine.eval("greet", input);
 ~~~
 
-Trong ví dụ Mini, đoạn trên chạy được vì ngôn ngữ Mini hiểu lệnh **greet**. Với ngôn ngữ khác, tên variable có thể được ánh xạ sang global variables/objects theo cách khác. **Bindings là bản đồ tên → Object**, không phải bảo đảm mọi engine đều có cùng quy tắc chuyển kiểu Java/script.
+In the Mini example, the snippet above runs because the Mini language understands the **greet** command. With other languages, variable names may map to global variables/objects differently. **Bindings is a name → Object map**, not a guarantee that every engine follows the same Java/script type-conversion rules.
 
-Khi dùng **eval(script, bindings)**, AbstractScriptEngine tạo context tạm sử dụng bindings đó ở ENGINE_SCOPE và có thể chia sẻ GLOBAL_SCOPE từ default context. Vì thế **tách ENGINE_SCOPE không mặc nhiên cô lập toàn bộ trạng thái bên ngoài**: objects được truyền vào Bindings vẫn có thể mutable, còn engine cũng có thể giữ state riêng.
+When using **eval(script, bindings)**, AbstractScriptEngine creates a temporary context using that bindings at ENGINE_SCOPE and may share GLOBAL_SCOPE from the default context. Thus **separating ENGINE_SCOPE does not automatically isolate all external state**: objects passed into Bindings can still be mutable, and the engine itself may retain internal state.
 
-### 7.2. Dùng ScriptContext khi cần điều khiển nhiều hơn
+### 7.2. Using ScriptContext When Finer Control Is Needed
 
-**ScriptContext** cho phép cấu hình Reader đầu vào, Writer đầu ra, Writer lỗi và các attributes:
+**ScriptContext** allows configuring the input Reader, output Writer, error Writer, and attributes:
 
 ~~~java
-// Mảnh minh họa: engine hợp lệ đã được tạo.
+// Illustrative snippet: a valid engine has already been created.
 javax.script.SimpleScriptContext context =
         new javax.script.SimpleScriptContext();
 context.setBindings(engine.createBindings(),
@@ -369,33 +369,33 @@ context.setWriter(new java.io.StringWriter());
 Object result = engine.eval("greet", context);
 ~~~
 
-Đoạn này cho thấy cách truyền context riêng. MiniEngine phần 5 lấy **name** từ context; vì vậy kết quả là **"Xin chao, An!"** khi engine đó được dùng. Nhưng writer chỉ hữu ích nếu provider/cú pháp có hành vi ghi output—đừng cho rằng mọi engine sẽ tự động in giá trị trả về của eval vào writer.
+This snippet shows how to pass a custom context. MiniEngine in section 5 reads **name** from the context, so the result is **"Hello, An!"** when using that engine. However, the writer is only useful if the provider/syntax actually writes output—do not assume every engine automatically prints eval's return value to the writer.
 
-Một số engine dùng attribute chuẩn như **ScriptEngine.FILENAME** để hiển thị tên file trong diagnostics. Có thể đặt attribute trước eval, nhưng việc hỗ trợ file/line/column và định dạng lỗi là **engine-specific**. Nếu một file được nạp qua Reader, engine không tự biết đường dẫn file trừ khi caller/protocol cung cấp thông tin đó.
+Some engines use standard attributes like **ScriptEngine.FILENAME** to show the filename in diagnostics. You can set this attribute before eval, though file/line/column support and error formatting are **engine-specific**. If a file is loaded via a Reader, the engine does not automatically know the file path unless the caller/protocol provides that information.
 
-### 7.3. Không biến Bindings thành hộp chứa quyền hệ thống
+### 7.3. Do Not Turn Bindings into a System-Privilege Container
 
-Truyền vào Bindings một object Java giàu quyền truy cập, ví dụ **DataSource**, filesystem handler hoặc HTTP client, có thể cấp cho script khả năng thao tác tương ứng nếu engine hỗ trợ gọi method Java. Không nên truyền nguyên đối tượng ứng dụng hoặc secrets khi script chỉ cần một giá trị tính toán.
+Passing a richly privileged Java object into Bindings, such as a **DataSource**, filesystem handler, or HTTP client, can grant the script corresponding capabilities if the engine supports Java method invocation. Do not pass whole application objects or secrets when the script only needs a computed value.
 
-Với script không tin cậy, việc đổi scope hoặc đặt biến bằng Bindings **không đủ để sandbox**. Các cơ chế interop, class lookup và quyền tiến trình vẫn có thể mở rộng bề mặt nguy hiểm.
+For untrusted scripts, changing scopes or placing variables via Bindings **is not enough to sandbox**. Interop mechanisms, class lookups, and process privileges can still expand the attack surface.
 
-## 8. Kết quả trả về và ngoại lệ
+## 8. Return Values and Exceptions
 
-### 8.1. Object result không bảo đảm là String
+### 8.1. Object result Is Not Guaranteed to Be a String
 
-Cả **eval(String)** và **eval(Reader)** trả về **Object**. Ví dụ Mini trả chuỗi từ **greet** và số nguyên từ **add**. JavaScript hoặc engine khác có thể trả Number, Boolean, String, đối tượng của ngôn ngữ script, wrapper Java hoặc null, tùy cú pháp và engine.
+Both **eval(String)** and **eval(Reader)** return **Object**. The Mini example returns a string from **greet** and an integer from **add**. JavaScript or other engines may return a Number, Boolean, String, script-language object, Java wrapper, or null, depending on syntax and engine.
 
-Đừng cast thẳng:
+Do not cast blindly:
 
 ~~~java
-// Mảnh minh họa hành vi không an toàn nếu result không phải String.
+// Illustrative snippet of unsafe behavior if result is not a String.
 String text = (String) engine.eval("add 2 3");
 ~~~
 
-Với MiniEngine, dòng trên sẽ gây **ClassCastException** vì result là Integer. Cách an toàn hơn là kiểm tra kiểu hoặc dùng hợp đồng dữ liệu cụ thể:
+With MiniEngine, the line above will throw **ClassCastException** because result is an Integer. A safer approach is checking the type or enforcing an explicit data contract:
 
 ~~~java
-// Mảnh minh họa; dùng sau khi đã có engine và đã xác định contract.
+// Illustrative snippet; use after obtaining an engine and defining the contract.
 Object value = engine.eval("add 2 3");
 if (!(value instanceof Number number)) {
     throw new IllegalStateException("Expected numeric result");
@@ -403,16 +403,16 @@ if (!(value instanceof Number number)) {
 int sum = number.intValue();
 ~~~
 
-Khi engine trả null, phải phân biệt **null là kết quả hợp lệ** với **không có kết quả/hợp đồng bị vi phạm**. Không tự coi null là 0 hoặc chuỗi rỗng.
+When the engine returns null, distinguish **null as a valid result** from **missing result/contract violation**. Do not silently treat null as 0 or an empty string.
 
-### 8.2. ScriptException và các loại lỗi khác
+### 8.2. ScriptException and Other Error Types
 
-**ScriptException** là loại checked exception chính dành cho lỗi xử lý script. Nó có thể chứa message, **fileName**, **lineNumber**, **columnNumber** và cause theo thông tin mà provider có thể cung cấp; nhiều engine không có đủ dữ liệu nên không được giả định mọi field đều khác null hoặc có giá trị dương.
+**ScriptException** is the primary checked exception for script processing errors. It may contain a message, **fileName**, **lineNumber**, **columnNumber**, and cause depending on what information the provider can supply; many engines lack full location info, so do not assume every field is non-null or positive.
 
-Ví dụ bắt lỗi:
+Error handling example:
 
 ~~~java
-// Mảnh minh họa; engine đã được cấu hình.
+// Illustrative snippet; engine has already been configured.
 try {
     Object result = engine.eval("invalid");
     System.out.println(result);
@@ -421,45 +421,45 @@ try {
 }
 ~~~
 
-Đây không phải một lớp Java độc lập; trong ví dụ MiniEngine phần 5, "invalid" là lệnh không hỗ trợ nên luôn ném ScriptException. Khi báo lỗi cho người dùng, nên chuyển thành thông báo không lộ các thông tin nhạy cảm, đồng thời lưu **script version**, **engine name/version** và **correlation ID** để điều tra.
+This is not a standalone Java class; in the MiniEngine example in section 5, "invalid" is an unsupported command and therefore always throws ScriptException. When reporting errors to users, translate them into messages that do not leak sensitive details, while recording **script version**, **engine name/version**, and **correlation ID** for investigation.
 
-Các lỗi khác:
-- **NullPointerException/IllegalArgumentException** do caller truyền đối số không hợp lệ hoặc không tuân thủ precondition.
-- **IOException** khi caller tự mở/đóng Reader, hoặc lỗi I/O do provider bọc.
-- **RuntimeException/Error** từ host/engine hoặc đối tượng Java được script gọi. Không coi mọi Throwable là lỗi cú pháp.
-- **Không có engine**: manager trả null từ getEngineByName; khi đó chưa gọi eval được.
+Other errors:
+- **NullPointerException/IllegalArgumentException** when the caller passes invalid arguments or violates preconditions.
+- **IOException** when the caller opens/closes the Reader, or I/O errors wrapped by the provider.
+- **RuntimeException/Error** from the host/engine or Java objects invoked by the script. Do not treat every Throwable as a syntax error.
+- **No engine**: manager returns null from getEngineByName; eval cannot even be called yet.
 
-Nên phân loại **ENGINE_NOT_FOUND**, **INPUT_ERROR**, **SCRIPT_ERROR**, **RESULT_CONTRACT_ERROR** và **EXECUTION_FAILURE** trong log/metrics thay vì bắt mọi lỗi rồi trả chuỗi "error".
+Classify **ENGINE_NOT_FOUND**, **INPUT_ERROR**, **SCRIPT_ERROR**, **RESULT_CONTRACT_ERROR**, and **EXECUTION_FAILURE** in logs/metrics instead of catching every error and returning the string "error".
 
-## 9. String hay Reader: lựa chọn trong hệ thống thực tế
+## 9. String or Reader: Choosing in Real-World Systems
 
-**Chọn String** khi script đã ở sẵn dạng chuỗi—ví dụ sinh từ template đã kiểm soát, lưu trong database rồi đọc thành String, hoặc một biểu thức ngắn đã được review. Code đơn giản và dễ tính hash/ghi nhận version của source trước eval.
+**Choose String** when the script is already in string form—for example, rendered from a controlled template, stored in a database and read as a String, or a short reviewed expression. The code is simple and makes it easy to compute a hash or record the source version before eval.
 
-**Chọn Reader** khi nguồn là file, một luồng ký tự hoặc API bên ngoài đã đưa Reader. Không cần tự đọc file vào String để rồi tạo StringReader chỉ cho có Reader; với nguồn file, dùng **Files.newBufferedReader** và kiểm soát charset/close.
+**Choose Reader** when the source is a file, a character stream, or an external API that already gives you a Reader. There is no need to read a file into a String only to wrap it in a StringReader for the sake of using Reader; for file sources, use **Files.newBufferedReader** and control charset/closing.
 
-| Tình huống | Đầu vào phù hợp | Lý do |
+| Scenario | Suitable Input | Reason |
 | --- | --- | --- |
-| Quy tắc vài dòng sinh từ cấu hình | String | Đã có đầy đủ script và dễ version |
-| Một script UTF-8 ở thư mục cấu hình | Reader | Đọc trực tiếp qua file Reader, đóng đúng vòng đời |
-| Nội dung đã nằm trong String | String | Tránh lớp Reader không cần thiết |
-| Library bên ngoài cung cấp Reader | Reader | Dùng ngay contract của library |
-| Script quá lớn | Không quyết định chỉ theo loại đầu vào | Engine có thể buffer toàn bộ, phải benchmark và áp quota |
-| Chạy lại cùng script nhiều lần | Xem **Compilable** nếu provider hỗ trợ | Có thể giảm parse overhead; không phải engine nào cũng có |
-| Không có provider ngôn ngữ phù hợp | Không overload nào giúp được | Cần cài engine hoặc chọn giải pháp khác |
+| A few lines of rules generated from configuration | String | Full script is already available and easy to version |
+| A UTF-8 script in a configuration directory | Reader | Read directly via file Reader, close properly per lifecycle |
+| Content already in a String | String | Avoids unnecessary Reader wrapper |
+| External library supplies a Reader | Reader | Uses the library's contract directly |
+| Very large script | Do not decide by input type alone | Engine may buffer the whole source; benchmark and apply quotas |
+| Running the same script many times | Check **Compilable** if provider supports it | Can reduce parse overhead; not every engine supports it |
+| No suitable language provider | Neither overload helps | Must install an engine or choose another solution |
 
-**Không áp dụng StringReader để né validation:** việc script đi qua Reader không thay đổi quyền hay mức độ nguy hiểm của code được eval.
+**Do not use StringReader to bypass validation:** passing a script through a Reader does not change the permissions or danger level of the evaluated code.
 
-## 10. Tối ưu đánh giá lại script: Compilable và Invocable
+## 10. Optimizing Re-evaluation: Compilable and Invocable
 
-Hai interface mở rộng **không phải ScriptEngine nào cũng triển khai**:
+Two extension interfaces **not implemented by every ScriptEngine**:
 
-- **Compilable**: cho phép engine compile script một lần thành **CompiledScript**, rồi eval nhiều lần. Cần đo chi phí parse/compile, đồng thời kiểm soát phiên bản script và trạng thái/context.
-- **Invocable**: có thể gọi function/method được xác định bởi script đã eval, thay vì eval lại toàn bộ source mỗi lần.
+- **Compilable**: lets the engine compile a script once into a **CompiledScript**, then eval it multiple times. Measure parse/compile cost while also tracking script version and state/context.
+- **Invocable**: can call functions/methods defined by an already evaluated script instead of re-evaluating the entire source each time.
 
-Mẫu kiểm tra khả năng compile:
+Pattern for checking compilation support:
 
 ~~~java
-// Mảnh minh họa: engine và sourceScript có sẵn; cú pháp phụ thuộc engine.
+// Illustrative snippet: engine and sourceScript are available; syntax depends on engine.
 if (engine instanceof javax.script.Compilable compilable) {
     javax.script.CompiledScript compiled =
             compilable.compile(sourceScript);
@@ -467,71 +467,71 @@ if (engine instanceof javax.script.Compilable compilable) {
 }
 ~~~
 
-Đừng ép kiểu nếu provider không hỗ trợ interface. Compile script không có nghĩa JavaCompiler; **Compilable** là khả năng parse/compile nội bộ của engine ngôn ngữ script, khác với tạo Java bytecode từ file .java.
+Do not cast if the provider does not support the interface. Compiling a script does not mean JavaCompiler; **Compilable** is the script engine's internal parse/compile capability, distinct from generating Java bytecode from .java files.
 
-**Versioning/cache:** nếu nguồn script được thay đổi, không được tái sử dụng compiled object của phiên bản cũ mà không có chính sách. Cache key nên xét source hash, engine/version, options/context và dependency khi chúng làm thay đổi ngữ nghĩa. Cần xác định xem compiled script và engine có cho phép dùng đồng thời trên nhiều thread không.
+**Versioning/caching:** if the script source changes, do not reuse the compiled object from an old version without an explicit policy. Cache keys should consider source hash, engine/version, options/context, and dependencies whenever they alter semantics. Determine whether compiled scripts and the engine permit concurrent use across multiple threads.
 
-## 11. Thread safety, lifecycle và ràng buộc trạng thái
+## 11. Thread Safety, Lifecycle, and State Constraints
 
-Một ScriptEngine có thể giữ trạng thái trong:
-- **Default ScriptContext** và ENGINE_SCOPE Bindings.
-- Global bindings được chia sẻ.
-- Các biến/function đã được script tạo.
-- Caches, module/script imports và objects được engine giữ lại.
+A ScriptEngine can retain state in:
+- **Default ScriptContext** and ENGINE_SCOPE Bindings.
+- Shared global bindings.
+- Variables/functions created by scripts.
+- Caches, module/script imports, and objects retained by the engine.
 
-**Không mặc định một ScriptEngine thread-safe.** ScriptEngineFactory có thể công bố tham số **"THREADING"** qua getParameter để mô tả hỗ trợ concurrent execution theo quy ước JSR 223. Nếu tham số null hoặc không rõ, hãy xử lý engine như **không an toàn để eval song song**, hoặc kiểm tra tài liệu provider; cách tạo một instance cho mỗi request/worker, pool có kiểm soát hoặc đồng bộ cần được thiết kế theo engine thực tế.
+**Never assume a ScriptEngine is thread-safe by default.** A ScriptEngineFactory may advertise the **"THREADING"** parameter via getParameter to describe concurrent execution support under JSR 223 conventions. If the parameter is null or unknown, treat the engine as **unsafe for parallel eval**, or consult the provider's documentation; whether to create one instance per request/worker, use a controlled pool, or synchronize must be designed around the actual engine.
 
-Tách **Bindings** cho mỗi eval giúp giảm rò rỉ variables giữa tenant, nhưng không đảm bảo cách ly khi provider có shared internals hoặc object references chung. Với môi trường multi-tenant, cần đặc biệt cẩn trọng với globalScope, Java interop và reference giữ lại sau evaluation.
+Separating **Bindings** per eval helps reduce variable leakage between tenants, but does not guarantee isolation when the provider has shared internals or shared object references. In multi-tenant environments, be especially careful with globalScope, Java interop, and references retained after evaluation.
 
-Không bỏ quên lifecycle: Reader do caller mở phải đóng; engine/provider có thể quản lý resource riêng; loader giữ JAR dependency có thể cần đóng và gỡ reference khi unload plugin. Đừng hiểu rằng gọi eval xong là mọi tài nguyên hoặc thread do script tạo sẽ tự biến mất.
+Do not neglect lifecycle: Readers opened by the caller must be closed; engines/providers may manage their own resources; loaders holding JAR dependencies may need closing and dereferencing when unloading plugins. Do not assume that once eval returns, every resource or thread created by the script disappears automatically.
 
-## 12. Bảo mật: eval là chạy mã, không phải xử lý chuỗi vô hại
+## 12. Security: eval Is Code Execution, Not Harmless String Processing
 
-**Bất kỳ đoạn script nào có khả năng chạy đều có thể có side effect** theo quyền mà engine cung cấp. Đặc biệt nếu engine cho phép tương tác với Java objects/classes, script có thể gọi method gây I/O, gửi network request hoặc truy cập dữ liệu nội bộ mà host đã cấp.
+**Any script capable of running can have side effects** according to the permissions granted by the engine. In particular, if the engine allows interacting with Java objects/classes, scripts can invoke methods that perform I/O, send network requests, or access internal data exposed by the host.
 
-Một số nguyên tắc:
-1. **Chỉ chạy nguồn đáng tin hoặc đã qua quy trình kiểm soát phù hợp.** Không đưa nguyên input từ web form vào eval nếu ngôn ngữ của engine có khả năng thực thi tổng quát.
-2. **Không nội suy dữ liệu người dùng vào source tùy tiện.** Hãy truyền dữ liệu qua Bindings/parameters nếu ngôn ngữ hỗ trợ, đồng thời áp dụng validation phù hợp. Không coi Bindings là biện pháp sandbox.
-3. **Giới hạn input size, execution time, CPU/memory, I/O, số lần eval**, và kiểm soát vòng đời. Timeout bằng Future.cancel không đảm bảo dừng được mọi code đang chạy trong cùng JVM.
-4. **Không cấp Java object quyền cao** cho script nếu không cần thiết; giới hạn class access theo cơ chế được engine hỗ trợ, nhưng đừng nhầm cấu hình interop với cô lập tiến trình hoàn chỉnh.
-5. **Với script không tin cậy**, cân nhắc DSL có năng lực hạn chế hoặc chạy trong một tiến trình/container cách ly thật sự, áp quyền và quota hệ điều hành.
-6. **Ghi version/hash nguồn và engine phiên bản**, nhưng lọc diagnostics để tránh ghi bí mật hoặc toàn bộ source nhạy cảm vào log.
+Several principles:
+1. **Only run trusted sources or sources that passed an appropriate vetting process.** Do not pass raw web-form input to eval if the engine's language has general-purpose execution capabilities.
+2. **Do not interpolate user data directly into script source arbitrarily.** Pass data via Bindings/parameters if the language supports it, while still validating inputs. Do not treat Bindings as a sandboxing measure.
+3. **Limit input size, execution time, CPU/memory, I/O, evaluation count**, and control lifecycle. Timeouts via Future.cancel are not guaranteed to stop arbitrary code running inside the same JVM.
+4. **Do not expose high-privilege Java objects** to scripts unnecessarily; restrict class access using engine-supported mechanisms, without mistaking interop configuration for full process isolation.
+5. **For untrusted scripts**, consider a restricted-capability DSL or running inside a genuinely isolated process/container with OS permissions and quotas.
+6. **Log source version/hash and engine version**, while filtering diagnostics to avoid writing secrets or sensitive full scripts to logs.
 
-Java 17 không cung cấp một sandbox an toàn tự động chỉ nhờ javax.script. **SecurityManager** đã bị đánh dấu deprecated for removal từ Java 17 và không nên xem là phương án mặc định để thực thi code không tin cậy.
+Java 17 does not provide an automatic secure sandbox via javax.script alone. **SecurityManager** was marked deprecated for removal in Java 17 and should not be treated as a default strategy for executing untrusted code.
 
-## 13. Những lỗi thường gặp và cách khắc phục
+## 13. Common Errors and How to Fix Them
 
-| Hiện tượng | Nguyên nhân có thể | Hướng xử lý |
+| Symptom | Possible Cause | Resolution |
 | --- | --- | --- |
-| manager.getEngineByName("JavaScript") trả null | JDK 17 không còn Nashorn mặc định; chưa cài JS engine | Cài provider phù hợp, kiểm tra factories/names và loader |
-| eval("class X {}") không chạy Java như mong đợi | Engine đang hiểu cú pháp ngôn ngữ script, không phải javac | Dùng JavaCompiler nếu muốn biên dịch Java source |
-| Script chạy với String nhưng lỗi với Reader | Reader đã bị consume/đóng, charset sai, nội dung khác | Kiểm tra Reader ownership, encoding, nội dung nguồn, version |
-| eval(Reader) không tiết kiệm RAM | Provider buffer toàn bộ source | Benchmark và giới hạn size, đừng giả định streaming |
-| Biến giữa các lần chạy bị lẫn | Dùng chung ENGINE_SCOPE/global objects, engine state | Bindings/context riêng, kiểm soát engine lifecycle |
-| Cast result ném ClassCastException | eval trả kiểu khác dự kiến | Kiểm tra instanceof và chuẩn hóa kết quả theo contract |
-| ScriptException thiếu line/column | Provider không báo location hoặc không nhận metadata file | Kiểm tra diagnostics engine; thêm filename context nếu hỗ trợ |
-| Engine gặp lỗi qua class loader | Provider JAR không hiện diện/không tương thích | Kiểm tra loader dùng bởi ScriptEngineManager, dependencies và module graph |
-| Nhiều request dùng chung engine gây kết quả lạ | Engine không hỗ trợ đồng thời | Xem THREADING docs, cô lập instance hoặc đồng bộ |
-| Script input không đáng tin gây rủi ro | eval có quyền chạy code/Java interop | Thiết kế isolation, whitelist API và giới hạn runtime |
+| manager.getEngineByName("JavaScript") returns null | JDK 17 no longer bundles Nashorn by default; no JS engine installed | Install a compatible provider, check factories/names and loader |
+| eval("class X {}") does not run Java as expected | The engine parses the scripting language syntax, not javac | Use JavaCompiler if you want to compile Java source |
+| Script works with String but fails with Reader | Reader already consumed/closed, wrong charset, different content | Check Reader ownership, encoding, source content, version |
+| eval(Reader) does not save RAM | Provider buffers the entire source | Benchmark and limit size; do not assume streaming |
+| Variables leak between runs | Shared ENGINE_SCOPE/global objects, engine state | Use separate Bindings/context, control engine lifecycle |
+| Casting result throws ClassCastException | eval returned a different type than expected | Check instanceof and normalize results per contract |
+| ScriptException lacks line/column | Provider does not report location or did not receive file metadata | Check engine diagnostics; add filename context if supported |
+| Engine fails across class loaders | Provider JAR missing/incompatible | Check the loader used by ScriptEngineManager, dependencies, and module graph |
+| Multiple requests share an engine and produce erratic results | Engine does not support concurrency | Check THREADING docs, isolate instances, or synchronize |
+| Untrusted script input creates risk | eval can execute code/Java interop | Design isolation, API allowlists, and runtime limits |
 
-**Cảnh báo thực tế:** ScriptEngine.eval không được thiết kế để thay thế bộ máy xử lý dữ liệu đầu vào. Nếu yêu cầu chỉ là xác thực một số, so khớp regex hoặc ánh xạ JSON đơn giản, Java code/DSL có giới hạn thường dễ kiểm toán và an toàn hơn script engine tổng quát.
+**Practical warning:** ScriptEngine.eval is not designed to replace an input-validation parser. If the requirement is merely validating a number, matching a regex, or mapping simple JSON, plain Java code or a constrained DSL is usually easier to audit and safer than a general-purpose script engine.
 
-## 14. Checklist áp dụng trong hệ thống mở rộng lúc chạy
+## 14. Checklist for Runtime-Extensible Systems
 
-- Đã xác định **ngôn ngữ script** và provider tương ứng, không dựa vào một engine bị loại khỏi JDK.
-- Đã xác minh **ScriptEngineManager** tìm được factory đúng tên và đúng class loader/module.
-- Đã chọn **String** khi có sẵn chuỗi hoặc **Reader** khi nguồn ký tự đến từ file/stream, và xác định rõ encoding/ownership.
-- Đã hiểu eval trả **Object**, có thể null; có chuẩn hóa và validate kết quả.
-- Đã dùng **Bindings/ScriptContext** để truyền dữ liệu, không nội suy thẳng dữ liệu chưa kiểm soát vào source.
-- Đã phân loại **ScriptException**, IOException khi mở Reader và lỗi runtime/type contract.
-- Đã xác minh thread safety/state và khả năng **Compilable/Invocable** trước khi tối ưu/cache.
-- Đã quyết định rõ script được chạy trong trust boundary nào; nếu không tin cậy, không dựa vào eval/Bindings làm sandbox.
-- Đã có giới hạn tài nguyên, version/hash source, log/diagnostics đã lọc và cơ chế rollback.
-- Đã thử cả **eval(String)** và **eval(Reader)** bằng nội dung tương đương với đúng provider sẽ chạy production.
+- Identified the **scripting language** and corresponding provider, without relying on an engine removed from the JDK.
+- Verified **ScriptEngineManager** finds the factory with the right name and class loader/module.
+- Chose **String** when the text is already in memory or **Reader** when character input comes from a file/stream, with explicit encoding/ownership.
+- Understood that eval returns **Object**, possibly null; normalized and validated results.
+- Used **Bindings/ScriptContext** to pass data instead of interpolating unvalidated input directly into source.
+- Categorized **ScriptException**, IOException when opening a Reader, and runtime/type-contract errors.
+- Verified thread safety/state and **Compilable/Invocable** support before optimizing/caching.
+- Clearly decided which trust boundary scripts execute inside; if untrusted, did not rely on eval/Bindings as a sandbox.
+- Put in place resource limits, source version/hash tracking, filtered logs/diagnostics, and rollback mechanisms.
+- Tested both **eval(String)** and **eval(Reader)** with equivalent content against the exact provider used in production.
 
-**Kết luận:** **eval(String)** và **eval(Reader)** là hai cách đưa *mã của một ngôn ngữ script* vào cùng giao diện JSR 223. String thuận tiện khi đã có source dạng văn bản; Reader thuận tiện khi source là luồng ký tự. Sự khác nhau về nguồn không thay đổi yêu cầu phải có **ScriptEngine provider**, kiểm soát Bindings, xử lý lỗi và bảo vệ ranh giới thực thi.
+**Conclusion:** **eval(String)** and **eval(Reader)** are two ways to feed *code of a scripting language* into the same JSR 223 interface. String is convenient when source is already text; Reader is convenient when source is a character stream. The difference in input form does not change the requirement for a **ScriptEngine provider**, Bindings control, error handling, and protecting the execution boundary.
 
-## Tài liệu Java 17 chính thức
+## Official Java 17 Documentation
 
 - ScriptEngine: https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngine.html
 - AbstractScriptEngine: https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/AbstractScriptEngine.html

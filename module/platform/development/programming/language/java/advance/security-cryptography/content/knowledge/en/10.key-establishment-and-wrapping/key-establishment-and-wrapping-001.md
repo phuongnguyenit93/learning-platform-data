@@ -1,98 +1,98 @@
-# 10.1 Phân biệt trao đổi khóa, thỏa thuận khóa, bọc khóa và đóng gói khóa
+# 10.1 Distinguishing Key Exchange, Key Agreement, Key Wrapping, and Key Encapsulation
 
-## Mục tiêu
+## Objectives
 
-Khi xây dựng một ứng dụng Java dùng AES-GCM, TLS, kho khóa hoặc mã hóa tài liệu cho người nhận, bạn cần biết **bí mật được tạo ra hay đã tồn tại**, **bên nào sở hữu khóa**, **thứ gì được truyền qua mạng** và **API nào giải quyết đúng bài toán**. Bốn thuật ngữ dễ lẫn là *trao đổi khóa* (key exchange), *thỏa thuận khóa* (key agreement), *bọc khóa* (key wrapping) và *đóng gói khóa* (key encapsulation, KEM).
+When building a Java application using AES-GCM, TLS, a key store, or encrypting documents for a recipient, you need to know **whether the secret is generated or already exists**, **which party owns the key**, **what is transmitted over the network**, and **which API solves the right problem**. Four easily confused terms are *key exchange*, *key agreement*, *key wrapping*, and *key encapsulation* (KEM).
 
-Bài này là **bản đồ khái niệm và lựa chọn cơ chế**: học cách nhận diện yêu cầu trước khi triển khai, hiểu đường đi của khóa và những bảo đảm còn thiếu. Các thao tác chuyên sâu được trình bày trong các bài riêng về DH/ECDH/X25519/X448, vòng đời `KeyAgreement`, HKDF, xác thực đối tác, `Cipher.WRAP_MODE`, API KEM Java 21 và thiết kế giao thức.
+This lesson is a **concept map and mechanism selection guide**: learn how to identify requirements before implementing, understand how keys flow, and recognize what guarantees are missing. In-depth operations are covered in dedicated lessons on DH/ECDH/X25519/X448, the `KeyAgreement` lifecycle, HKDF, peer authentication, `Cipher.WRAP_MODE`, the Java 21 KEM API, and protocol design.
 
-Sau khi đọc, bạn cần phân loại được một hệ thống theo **key có sẵn hay key mới**, **khóa đối xứng hay bất đối xứng**, **người gửi/nhận biết gì**, và **xác thực danh tính nằm ở bước nào**.
+After reading, you should be able to classify a system by **existing key vs. new key**, **symmetric vs. asymmetric key**, **what the sender/recipient knows**, and **which step performs identity authentication**.
 
-## 1. Bốn khái niệm không đồng nghĩa
+## 1. Four Non-Synonymous Concepts
 
-| Thuật ngữ | Câu hỏi mà cơ chế giải quyết | Vật liệu bí mật | Đầu ra nổi bật | Java API điển hình |
+| Term | Question the mechanism solves | Secret material | Notable output | Typical Java API |
 | --- | --- | --- | --- | --- |
-| **Key exchange — trao đổi khóa** | Làm thế nào hai đầu thiết lập được khóa để giao tiếp? | Tùy giao thức; có thể phối hợp nhiều primitive | Các khóa phiên và bằng chứng theo giao thức | Một chuỗi `KeyAgreement`, `KEM`, KDF, chữ ký/MAC, AEAD |
-| **Key agreement — thỏa thuận khóa** | Hai bên có thể **tự tính chung một secret** từ private key của mình và public key đối tác không? | Mỗi bên có private key riêng; không gửi secret | **Raw shared secret** (thường đưa qua KDF) | `javax.crypto.KeyAgreement` |
-| **Key wrapping — bọc khóa** | Làm thế nào bảo vệ **một khóa đã tồn tại** để lưu/chuyển nó? | Data Encryption Key (DEK) đã có; Key Encryption Key (KEK) hoặc khóa nhận được phép | **Wrapped key bytes**, mở ra lại key cũ | `Cipher.WRAP_MODE`, `Cipher.UNWRAP_MODE`, AESWrap/KMS |
-| **Key encapsulation — đóng gói khóa/KEM** | Làm sao sender dùng public key recipient tạo **shared secret mới** để recipient khôi phục? | Recipient giữ private key; sender tạo secret mới nội bộ | **Secret + encapsulation bytes** | `javax.crypto.KEM` (**Java 21+**) |
+| **Key exchange** | How do two endpoints establish keys to communicate? | Depends on the protocol; may combine multiple primitives | Session keys and protocol proofs | A chain of `KeyAgreement`, `KEM`, KDF, signatures/MAC, AEAD |
+| **Key agreement** | Can two parties **independently compute a shared secret** from their own private key and the peer's public key? | Each party has its own private key; the secret is not sent | **Raw shared secret** (usually passed through a KDF) | `javax.crypto.KeyAgreement` |
+| **Key wrapping** | How do you protect **an existing key** for storage or transport? | Existing Data Encryption Key (DEK); Key Encryption Key (KEK) or authorized recipient key | **Wrapped key bytes**, unwrapped back into the old key | `Cipher.WRAP_MODE`, `Cipher.UNWRAP_MODE`, AESWrap/KMS |
+| **Key encapsulation (KEM)** | How does a sender use a recipient's public key to generate a **new shared secret** that the recipient can recover? | Recipient holds the private key; sender generates a new secret internally | **Secret + encapsulation bytes** | `javax.crypto.KEM` (**Java 21+**) |
 
-**Key exchange** thường là tên của **mục tiêu hoặc một giao thức đầy đủ**. Nó có thể sử dụng key agreement, KEM, vận chuyển/bọc khóa hoặc nhiều thành phần cùng lúc. Không nên dịch “key exchange” thành tên riêng duy nhất của Diffie–Hellman.
+**Key exchange** is usually the name of an **objective or a complete protocol**. It may use key agreement, KEM, key transport/wrapping, or multiple components together. Do not treat “key exchange” as a synonym exclusively for Diffie–Hellman.
 
-**Key agreement** dùng đóng góp của *hai phía*, thí dụ X25519/ECDH. **Key wrapping** xuất phát từ *một DEK đã có* và bảo vệ nó dưới KEK. **KEM encapsulation** tạo **secret mới** và **thông điệp đóng gói** cho public key của người nhận; nó không có phương thức mặc định để nhận một DEK tùy ý làm input. Đây là điểm phân biệt quan trọng nhất khi đọc API Java.
+**Key agreement** uses contributions from *both sides*, such as X25519/ECDH. **Key wrapping** starts from *an existing DEK* and protects it under a KEK. **KEM encapsulation** creates a **new secret** and an **encapsulation message** for the recipient's public key; it does not have a default method to accept an arbitrary DEK as input. This is the most important distinction when reading Java APIs.
 
-## 2. Gọi đúng tên các loại khóa
+## 2. Naming the Key Types Correctly
 
-- **DEK (Data Encryption Key):** khóa dùng để mã hóa **nội dung** của file hoặc bản ghi, ví dụ AES-256 cho AES-GCM.
-- **KEK (Key Encryption Key):** khóa dùng để **wrap/unwrap DEK**; thường được quản lý bởi Key Management Service (KMS), Hardware Security Module (HSM) hoặc một hệ thống key hierarchy.
-- **Public/private key pair:** cặp khóa bất đối xứng dùng cho DH, KEM, RSA transport hoặc chữ ký, tùy thuật toán. Private key phải được bảo vệ; public key **có thể công khai nhưng phải xác thực đúng chủ sở hữu** trước khi tin.
-- **Raw shared secret:** kết quả của DH hoặc bí mật do KEM khôi phục; đây là **vật liệu dẫn xuất khóa**, chưa mặc nhiên là AES key cho một phiên.
-- **Session/traffic key:** khóa đã được dẫn xuất cho một thuật toán, chiều truyền, phiên bản và ngữ cảnh cụ thể; ví dụ client→server AES-GCM key.
+- **DEK (Data Encryption Key):** the key used to encrypt the **content** of a file or record, for example AES-256 for AES-GCM.
+- **KEK (Key Encryption Key):** the key used to **wrap/unwrap a DEK**; typically managed by a Key Management Service (KMS), Hardware Security Module (HSM), or a key hierarchy system.
+- **Public/private key pair:** an asymmetric key pair used for DH, KEM, RSA transport, or signatures, depending on the algorithm. The private key must be protected; the public key **can be public, but its true owner must be authenticated** before trusting it.
+- **Raw shared secret:** the result of DH or the secret recovered by a KEM; this is **key derivation material**, not automatically an AES key for a session.
+- **Session/traffic key:** a key derived for a specific algorithm, direction, version, and context; for example, a client→server AES-GCM key.
 
-Một secret dài 32 byte **không mặc nhiên** là AES-256 key phù hợp về mặt giao thức. Cần thiết kế **KDF** như HKDF với context/labels, đồng thời xác minh nguồn key và bảo vệ việc tái sử dụng khóa/nonce. Đừng lấy raw secret hoặc một wrapped blob rồi trực tiếp biến nó thành dữ liệu gửi cho client nếu chưa hiểu tính chất của cơ chế.
+A 32-byte secret is **not automatically** a protocol-appropriate AES-256 key. You need to design a **KDF** such as HKDF with context/labels, while verifying the key source and protecting against key/nonce reuse. Do not take a raw secret or a wrapped blob and directly turn it into data sent to the client without understanding the properties of the mechanism.
 
-## 3. Key agreement: hai bên tự tính cùng bí mật
+## 3. Key Agreement: Two Parties Independently Compute the Same Secret
 
-Mô hình X25519 hai bên:
+Two-party X25519 model:
 
 ~~~text
-Alice                            Mạng                             Bob
+Alice                           Network                           Bob
 private a, public A                                               private b, public B
 
         A ----------------------->                                  |
         | <------------------------ B                               |
         |                                                           |
 Z_A = X25519(a, B)                                     Z_B = X25519(b, A)
-                  Z_A == Z_B, nếu đúng khóa và tham số
+                  Z_A == Z_B, if keys and parameters match
         |                                                           |
     HKDF(context)                                             HKDF(context)
         |                                                           |
-          traffic key giống nhau theo từng vai trò/nhãn
+           identical traffic keys per role/label
 ~~~
 
-Alice và Bob **không truyền Z** qua mạng. Mỗi phía chỉ gửi public key theo định dạng quy định, rồi dùng private key **của chính mình** kết hợp với public key đối tác.
+Alice and Bob **do not transmit Z** over the network. Each side only sends its public key in the specified format, then uses **its own** private key combined with the peer's public key.
 
-Java dùng state machine:
+Java uses a state machine:
 
 ~~~java
-// Snippet trong phương thức có PrivateKey myPrivate,
-// PublicKey peerPublic và xử lý GeneralSecurityException.
+// Snippet inside a method with PrivateKey myPrivate,
+// PublicKey peerPublic and GeneralSecurityException handling.
 KeyAgreement agreement = KeyAgreement.getInstance("X25519");
 agreement.init(myPrivate);
 agreement.doPhase(peerPublic, true);
 byte[] rawSecret = agreement.generateSecret();
 ~~~
 
-- Với hai bên, `doPhase(peerPublic, true)` đánh dấu pha cuối.
-- `generateSecret()` trả **secret bytes**, không tự mã hóa payload, không chứng minh peer là ai và không áp KDF theo mục đích.
-- DH hữu hạn cần nhóm `p, g` tin cậy và tương thích; ECDH P-256 cần đúng curve; X25519/X448 là nhóm thuật toán/format khác, không hoán đổi bừa bãi.
-- Phải kiểm tra key encoding, type/curve/group, public input theo provider/chuẩn, và **xác thực peer identity** từ trust anchor/pinning/chữ ký/giao thức.
+- For two parties, `doPhase(peerPublic, true)` marks the final phase.
+- `generateSecret()` returns **secret bytes**; it does not encrypt payloads on its own, does not prove who the peer is, and does not apply a purpose-specific KDF.
+- Finite-field DH requires trusted and compatible `p, g` group parameters; ECDH P-256 requires matching curves; X25519/X448 belong to a different algorithm/format family and must not be swapped arbitrarily.
+- You must validate key encoding, type/curve/group, and public inputs according to the provider/standard, and **authenticate peer identity** via a trust anchor/pinning/signature/protocol.
 
-Nếu một người ở giữa tráo public key, cả hai phía vẫn có thể tính secret **với attacker** mà API không báo lỗi. X25519 giải bài toán tính toán bí mật, **không tự giải bài toán tin cậy danh tính**.
+If an attacker in the middle swaps the public keys, both sides can still compute a secret **with the attacker** without the API throwing an error. X25519 solves the secret computation problem; it **does not solve the identity trust problem on its own**.
 
-## 4. Key transport và key wrapping: DEK được chọn trước
+## 4. Key Transport and Key Wrapping: Pre-Selected DEK
 
-Giả sử một file đã được mã hóa bằng DEK. Ứng dụng cần lưu file lâu dài nhưng không thể lưu DEK dạng thô cùng ciphertext:
+Suppose a file has already been encrypted with a DEK. The application needs to store the file long-term, but cannot store the DEK in plaintext alongside the ciphertext:
 
 ~~~text
-DEK được sinh ngẫu nhiên
+DEK randomly generated
      |                    +---------------------------+
      +--> AES-GCM(file) -> | dataCiphertext + tag      |
      |                    +---------------------------+
      |
      +--> AES-KW(KEK, DEK) --> wrappedDEK
                                |
-                        lưu kèm keyId, phiên bản
+                        stored with keyId, version
                                |
-                được cấp quyền --> unwrap bằng KEK --> DEK cũ
+                authorized --> unwrap with KEK --> original DEK
 ~~~
 
-Đây là **envelope encryption**. `AESWrap` (AES Key Wrap, RFC 3394) bảo vệ **key bytes**; nó không có AAD cho metadata như tenant, record ID hoặc thời hạn. Trường hợp đầu vào dài không phù hợp AES-KW có thể cần AESWrapPad (AES-KWP) nếu provider hỗ trợ. Các field metadata phải được **ràng buộc/kiểm tra ở lớp record/giao thức**.
+This is **envelope encryption**. `AESWrap` (AES Key Wrap, RFC 3394) protects **key bytes**; it has no AAD for metadata such as tenant, record ID, or expiration time. Cases where input lengths do not fit AES-KW may require AESWrapPad (AES-KWP) if supported by the provider. Metadata fields must be **bound/verified at the record/protocol layer**.
 
-Trong Java, `Cipher.WRAP_MODE` và `UNWRAP_MODE` là **chế độ hoạt động**, chưa phải tên thuật toán:
+In Java, `Cipher.WRAP_MODE` and `UNWRAP_MODE` are **modes of operation**, not algorithm names:
 
 ~~~java
-// Snippet với SecretKey kek và SecretKey dek có sẵn:
+// Snippet with existing SecretKey kek and SecretKey dek:
 Cipher wrap = Cipher.getInstance("AESWrap");
 wrap.init(Cipher.WRAP_MODE, kek);
 byte[] wrappedDek = wrap.wrap(dek);
@@ -103,15 +103,15 @@ Key originalDek = unwrap.unwrap(
         wrappedDek, "AES", Cipher.SECRET_KEY);
 ~~~
 
-Ở lệnh `unwrap(...)`, `"AES"` là **thuật toán của khóa được khôi phục**, khác với thuật toán bọc `"AESWrap"`. Với software key, `getEncoded()` có thể trả raw bytes; với HSM/KMS, key có thể **non-extractable** và phải thao tác qua provider/key handle. Đừng cố export KEK chỉ để dùng đoạn demo.
+In the `unwrap(...)` call, `"AES"` is the **algorithm of the recovered key**, which differs from the wrapping algorithm `"AESWrap"`. With software keys, `getEncoded()` may return raw bytes; with HSM/KMS, the key may be **non-extractable** and must be operated on through a provider/key handle. Do not try to export a KEK just to use a demo snippet.
 
-**Key transport** chỉ trường hợp bên gửi **chọn một DEK trước** rồi chuyển nó cho người nhận đã xác thực, ví dụ mã hóa DEK bằng public key RSA của người nhận theo **RSA-OAEP**. Bên nhận dùng private key tương ứng để khôi phục. Đây cũng là một cách *bảo vệ/vận chuyển khóa đã có*, nhưng khác key agreement và KEM: sender chọn key trước và không cần một phép đóng góp DH tạm từ cả hai bên.
+**Key transport** refers to the case where the sender **chooses a DEK beforehand** and transfers it to an authenticated recipient, for example encrypting the DEK with the recipient's RSA public key using **RSA-OAEP**. The recipient uses the corresponding private key to recover it. This is also a way to *protect/transport an existing key*, but it differs from key agreement and KEM: the sender selects the key in advance and does not need an ephemeral DH contribution from both sides.
 
-**RSA-OAEP và AESWrap bảo vệ khóa, không tự chứng minh người gửi là ai.** Người biết RSA public key đều có thể mã hóa một DEK cho người nhận. Với lưu trữ, phải phân quyền unwrap, quản lý KEK, rotation/rewrap và chống tráo key giữa object/tenant. Với truyền nhận, phải xác thực **đúng public key recipient**.
+**RSA-OAEP and AESWrap protect the key, not prove who the sender is.** Anyone who knows the RSA public key can encrypt a DEK for the recipient. For storage, you must enforce unwrap permissions, manage KEKs, handle rotation/rewrap, and prevent key swapping across objects/tenants. For transmission, you must authenticate the **exact recipient public key**.
 
-## 5. KEM: secret mới, thông điệp encapsulation công khai
+## 5. KEM: New Secret, Public Encapsulation Message
 
-KEM dùng public key người nhận để tạo **hai kết quả**:
+KEM uses the recipient's public key to produce **two outputs**:
 
 ~~~text
 Recipient Bob: (pkR, skR)
@@ -119,7 +119,7 @@ Recipient Bob: (pkR, skR)
 Sender Alice: Encap(pkR)
              /          \
   sharedSecret_A      encapsulation = enc   ---> Bob
-       (BÍ MẬT)               (CÔNG KHAI)       |
+       (SECRET)               (PUBLIC)          |
                                               Decap(skR, enc)
                                                     |
                                                sharedSecret_B
@@ -127,34 +127,34 @@ Sender Alice: Encap(pkR)
                     sharedSecret_A == sharedSecret_B
 ~~~
 
-- **Secret:** không gửi, không log; cần đưa qua **KDF theo ngữ cảnh** để lấy key thực sự dùng cho AES-GCM/MAC.
-- **Encapsulation (hay KEM ciphertext):** dữ liệu công khai cần gửi; với **DHKEM trên X25519**, nó thường là biểu diễn **ephemeral public key** theo định dạng KEM (32 byte), **không phải raw secret** hoặc ciphertext file.
-- KEM không tự mã hóa nội dung lớn, không tự xác thực sender và không chống replay. Base-mode KEM cho **bất kỳ ai có pkR** tạo thông điệp gửi recipient.
-- Java 21 mới có `javax.crypto.KEM`. Java 17 có `KeyAgreement` X25519 nhưng không tự có `KEM` hoặc quy tắc DHKEM của RFC 9180.
+- **Secret:** never send, never log; must be passed through a **context-bound KDF** to obtain the actual keys used for AES-GCM/MAC.
+- **Encapsulation (or KEM ciphertext):** the public data that must be sent; with **DHKEM over X25519**, it is typically the representation of the **ephemeral public key** in KEM format (32 bytes), **not the raw secret** or the file ciphertext.
+- KEM does not encrypt large payloads on its own, does not authenticate the sender, and does not prevent replay. Base-mode KEM allows **anyone with pkR** to create a message for the recipient.
+- Java 21 introduced `javax.crypto.KEM`. Java 17 has `KeyAgreement` X25519, but does not automatically include `KEM` or the DHKEM rules of RFC 9180.
 
-Snippet Java 21+:
+Java 21+ snippet:
 
 ~~~java
-// Snippet: public key Bob phải được xác thực trước.
+// Snippet: Bob's public key must be authenticated beforehand.
 // recipientPublic: PublicKey, recipientPrivate: PrivateKey.
 KEM kem = KEM.getInstance("DHKEM");
 KEM.Encapsulated result =
         kem.newEncapsulator(recipientPublic).encapsulate();
-SecretKey localSecret = result.key();        // giữ bí mật
-byte[] message = result.encapsulation();     // gửi cho Bob
+SecretKey localSecret = result.key();        // keep secret
+byte[] message = result.encapsulation();     // send to Bob
 
 SecretKey recipientSecret =
         kem.newDecapsulator(recipientPrivate)
            .decapsulate(message);
 ~~~
 
-Đừng dùng `message` làm key AES dù nó có thể có cùng độ dài với secret; đây là **public transport data**. Một message KEM đủ độ dài nhưng bị sửa có thể làm bên nhận sinh **secret khác**, không nhất thiết ném exception. Khi dùng KEM → KDF → AEAD, **tag AEAD** mới phải xác nhận payload và AAD; một KEM hợp lệ không đương nhiên có sender authentication.
+Do not use `message` as an AES key even though it may have the same length as the secret; this is **public transport data**. A KEM message with a valid length that has been modified may cause the recipient to derive a **different secret**, without necessarily throwing an exception. When using KEM → KDF → AEAD, the **AEAD tag** is what must verify the payload and AAD; a valid KEM does not inherently provide sender authentication.
 
-## 6. Một chương trình Java 21 so sánh ba cơ chế trên cùng dữ liệu thử
+## 6. A Java 21 Program Comparing Three Mechanisms on the Same Test Data
 
-Chương trình dưới đây chỉ thử **hình dạng đầu vào/đầu ra** của KeyAgreement, AES Key Wrap và DHKEM, giúp thấy một thao tác tạo secret, một thao tác bảo vệ key **đã có**, và một thao tác tạo secret cùng encapsulation. Chương trình không tạo giao thức mạng, không dẫn xuất traffic key, không xác minh danh tính và không dùng key để mã hóa payload. Trong sản phẩm thực, ưu tiên giao thức tiêu chuẩn, KDF và AEAD đúng thiết kế.
+The program below only tests the **input/output shape** of KeyAgreement, AES Key Wrap, and DHKEM, helping show one operation that creates a secret, one operation that protects an **existing** key, and one operation that creates a secret together with an encapsulation. The program does not create a network protocol, does not derive traffic keys, does not verify identities, and does not use keys to encrypt payloads. In production, prefer standard protocols, KDFs, and properly designed AEAD.
 
-Tạo file **MechanismComparisonDemo.java**:
+Create file **MechanismComparisonDemo.java**:
 
 ~~~java
 import java.security.Key;
@@ -174,7 +174,7 @@ public final class MechanismComparisonDemo {
         KeyPair alice = x.generateKeyPair();
         KeyPair bob = x.generateKeyPair();
 
-        // 1. Agreement: private của mình + public của đối tác.
+        // 1. Agreement: own private + peer's public.
         KeyAgreement a = KeyAgreement.getInstance("X25519");
         a.init(alice.getPrivate());
         a.doPhase(bob.getPublic(), true);
@@ -187,7 +187,7 @@ public final class MechanismComparisonDemo {
         System.out.println("Agreement secret equal: "
                 + MessageDigest.isEqual(za, zb));
 
-        // 2. Wrap: bảo vệ chính một DEK đã có bằng KEK.
+        // 2. Wrap: protect an existing DEK using a KEK.
         KeyGenerator aes = KeyGenerator.getInstance("AES");
         aes.init(128);
         SecretKey dek = aes.generateKey();
@@ -204,7 +204,7 @@ public final class MechanismComparisonDemo {
                 + MessageDigest.isEqual(
                         dek.getEncoded(), restored.getEncoded()));
 
-        // 3. KEM: tạo secret mới và encapsulation công khai.
+        // 3. KEM: generate a new secret and public encapsulation.
         KeyPair recipient = x.generateKeyPair();
         KEM kem = KEM.getInstance("DHKEM");
         KEM.Encapsulated enc =
@@ -224,7 +224,7 @@ public final class MechanismComparisonDemo {
 }
 ~~~
 
-Chạy bằng **JDK 21+** có provider hỗ trợ DHKEM/X25519 và AESWrap:
+Run with **JDK 21+** with a provider supporting DHKEM/X25519 and AESWrap:
 
 ~~~bash
 javac --release 21 -encoding UTF-8 MechanismComparisonDemo.java
@@ -240,66 +240,66 @@ KEM secret equal: true
 KEM message present: true
 ~~~
 
-Kết quả này chứng minh **ba contract API khác nhau** trong một tiến trình. `Arrays.fill` chỉ giảm thời gian tồn tại của các mảng tự sở hữu; không chứng minh xóa mọi secret bên trong provider/JVM. `getEncoded()` được dùng trong demo với khóa phần mềm xuất được; HSM/provider có thể trả `null`. Chưa có xác thực danh tính, key confirmation, nonce, chống replay hoặc policy, nên không coi đoạn mã là một secure channel.
+This result demonstrates **three distinct API contracts** in a single process. `Arrays.fill` only reduces the lifetime of self-owned arrays; it does not prove every secret inside the provider/JVM is wiped. `getEncoded()` is used in the demo with exportable software keys; an HSM/provider may return `null`. There is no identity authentication, key confirmation, nonce, replay protection, or policy yet, so do not treat this code as a secure channel.
 
-## 7. Chọn cơ chế theo bài toán thực tế
+## 7. Choosing a Mechanism for Real-World Problems
 
-| Yêu cầu | Cơ chế thường phù hợp | Điều phải làm thêm |
+| Requirement | Typically suitable mechanism | What else must be done |
 | --- | --- | --- |
-| Hai service cần tự thiết lập bí mật phiên trên kết nối | Key agreement/KEM **bên trong giao thức chuẩn** như TLS 1.3 | Xác thực danh tính, transcript, KDF, traffic keys, nonce, policy |
-| Một bên đã tạo AES-DEK và cần Bob có lại đúng key đó | Key transport, RSA-OAEP hoặc wrap qua KEK phù hợp | Xác thực đúng public key/key owner, metadata, quyền |
-| Mã hóa file lớn và lưu key dài hạn | DEK + AEAD, bọc DEK dưới KEK trong KMS/HSM | Key ID, quyền unwrap, rotation/backup, tenant/object binding |
-| Gửi file cho recipient có public key, tạo session secret mới | KEM + KDF + AEAD; cân nhắc HPKE | Xác thực recipient, sender auth khi yêu cầu, replay, wire format |
-| Thay KEK mà vẫn giữ DEK | Unwrap/rewrap DEK | Quyền KMS, cập nhật phiên bản nguyên tử và rollback policy |
-| Giao tiếp tương thích nhiều ngôn ngữ/provider | Một protocol/suite đã đặc tả và test vectors | Định dạng public key, OAEP parameters, HKDF info, AEAD AAD/nonce |
+| Two services need to establish session secrets over a connection | Key agreement/KEM **inside a standard protocol** such as TLS 1.3 | Identity authentication, transcript, KDF, traffic keys, nonce, policy |
+| One side has created an AES-DEK and needs Bob to obtain that exact key | Key transport, RSA-OAEP, or wrapping via an appropriate KEK | Authenticate the exact public key/key owner, metadata, permissions |
+| Encrypt large files and store keys long-term | DEK + AEAD, wrap DEK under a KEK in KMS/HSM | Key ID, unwrap permissions, rotation/backup, tenant/object binding |
+| Send a file to a recipient with a public key, generating a new session secret | KEM + KDF + AEAD; consider HPKE | Authenticate recipient, sender auth when required, replay, wire format |
+| Replace KEK while keeping the DEK | Unwrap/rewrap DEK | KMS permissions, atomic version update, and rollback policy |
+| Interoperate across multiple languages/providers | A specified protocol/suite and test vectors | Public key format, OAEP parameters, HKDF info, AEAD AAD/nonce |
 
-**Cần xác thực public key ở cả key agreement, KEM và public-key transport.** Nếu attacker tráo public key, bạn có thể chia sẻ secret hoặc bọc DEK **cho chính attacker** dù phép toán hoàn tất hợp lệ. Certificate, pin đáng tin, chữ ký trên transcript và các cơ chế được giao thức chuẩn hóa mới ràng buộc khóa với identity.
+**Public keys must be authenticated in key agreement, KEM, and public-key transport alike.** If an attacker swaps the public key, you may end up sharing a secret or wrapping a DEK **for the attacker** even though the mathematical operation completes validly. Certificates, trusted pins, signatures over the transcript, and standardized protocol mechanisms are what bind keys to an identity.
 
-## 8. Những điều dễ nhầm và hậu quả
+## 8. Common Misconceptions and Consequences
 
-1. **“Key exchange = thuật toán DH duy nhất.”** Sai: đây là mục tiêu/giao thức, có thể kết hợp nhiều primitive.
-2. **“Shared secret X25519 đủ dài nên dùng trực tiếp làm mọi AES/MAC key.”** Thiếu KDF và key-purpose/role separation.
-3. **“Wrap và encapsulate đều mã hóa một DEK chọn trước.”** Không: wrap nhận key có sẵn, còn KEM mặc định sinh secret mới.
-4. **“Encapsulation 32 byte là AES-256 key.”** Không: dù cùng kích thước, encapsulation là dữ liệu công khai.
-5. **“AESWrap có AAD tenant giống AES-GCM.”** Không: AES-KW xác thực key material theo thuật toán riêng, metadata cần cơ chế khác.
-6. **“Nhận public key là đã biết người gửi.”** Không: phải kiểm chứng nguồn/danh tính; base KEM không xác thực sender.
-7. **“Bọc DEK thành công tức ciphertext file đã xác thực.”** Không: file cần tag/MAC theo thuật toán mã hóa payload.
-8. **“Có secret chung là không thể bị MITM.”** Không: kẻ đứng giữa có thể lập hai phiên thỏa thuận với khóa của mình.
-9. **“Java 17 có KEM vì đã có X25519.”** Không: API `javax.crypto.KEM` xuất hiện từ Java 21.
-10. **“SecretKey.getEncoded() luôn cho bytes.”** Không: khóa trong HSM/KMS có thể non-extractable.
-11. **“DHKEM + HKDF + AES-GCM tự viết = HPKE chuẩn.”** Không: HPKE còn định nghĩa key schedule, suite, mode, record context và serialization.
-12. **“Wrapped key hợp lệ không thể bị tráo sang file khác.”** Không: cần authorization, policy, record binding và chống replay/rollback.
+1. **“Key exchange = the single DH algorithm.”** False: it is an objective/protocol that may combine multiple primitives.
+2. **“An X25519 shared secret is long enough, so it can be used directly as any AES/MAC key.”** Missing KDF and key-purpose/role separation.
+3. **“Both wrap and encapsulate encrypt a pre-selected DEK.”** No: wrap takes an existing key, whereas KEM by default generates a new secret.
+4. **“A 32-byte encapsulation is an AES-256 key.”** No: despite having the same size, an encapsulation is public data.
+5. **“AESWrap has tenant AAD like AES-GCM.”** No: AES-KW authenticates key material according to its own algorithm; metadata requires a different mechanism.
+6. **“Receiving a public key means you know the sender.”** No: you must verify the source/identity; base KEM does not authenticate the sender.
+7. **“Wrapping the DEK successfully means the file ciphertext is authenticated.”** No: the file needs a tag/MAC according to the payload encryption algorithm.
+8. **“Having a shared secret means MITM is impossible.”** No: an attacker in the middle can establish two agreement sessions using their own keys.
+9. **“Java 17 has KEM because it already has X25519.”** No: the `javax.crypto.KEM` API appeared in Java 21.
+10. **“SecretKey.getEncoded() always returns bytes.”** No: keys in an HSM/KMS may be non-extractable.
+11. **“Hand-rolled DHKEM + HKDF + AES-GCM = standard HPKE.”** No: HPKE also defines the key schedule, suite, mode, record context, and serialization.
+12. **“A valid wrapped key cannot be swapped onto another file.”** No: you need authorization, policy, record binding, and replay/rollback protection.
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-Check Exercises
 
-**1.** Một file đã có DEK AES-256. Cần bảo vệ DEK trong KMS để sau này mở đúng DEK cũ. Cơ chế nào phù hợp, và vì sao KEM không phải một lời gọi `encapsulate(existingDek)`?
+**1.** A file already has an AES-256 DEK. You need to protect the DEK in a KMS so that the exact old DEK can be recovered later. Which mechanism is appropriate, and why is KEM not an `encapsulate(existingDek)` call?
 
-**2.** Alice và Bob tạo cùng bí mật bằng X25519. Dữ liệu nào được gửi qua mạng, và bước nào còn thiếu để Alice biết đó thật sự là Bob?
+**2.** Alice and Bob derive the same secret using X25519. What data is sent over the network, and what step is still missing for Alice to know it is truly Bob?
 
-**3.** Đối với một thông điệp KEM, phần nào được gửi công khai, phần nào giữ bí mật và phần nào là ciphertext của dữ liệu ứng dụng?
+**3.** For a KEM message, which part is sent publicly, which part is kept secret, and which part is the ciphertext of the application data?
 
-**4.** Tại sao `unwrap(bytes, "AES", SECRET_KEY)` yêu cầu chuỗi `"AES"` dù transformation đã là `"AESWrap"`?
+**4.** Why does `unwrap(bytes, "AES", SECRET_KEY)` require the string `"AES"` even though the transformation is already `"AESWrap"`?
 
-**5.** Nếu recipient RSA private key dài hạn bị lộ, dữ liệu khóa được vận chuyển bằng RSA-OAEP trước đây có thuộc tính forward secrecy mặc nhiên không? Giải thích.
+**5.** If the recipient's long-term RSA private key is compromised, does key data previously transported via RSA-OAEP have forward secrecy by default? Explain.
 
-**6.** Một DEK được unwrap hợp lệ nhưng người dùng không thuộc tenant của bản ghi. Hệ thống có được phép giải mã và trả plaintext không? Lớp nào phải từ chối?
+**6.** A DEK is unwrapped validly, but the user does not belong to the record's tenant. Is the system allowed to decrypt and return the plaintext? Which layer must reject it?
 
-**7.** Một encapsulation DHKEM bị sửa nhưng có độ dài hợp lệ. Vì sao chỉ kiểm exception của `decapsulate()` chưa đủ để bảo vệ payload?
+**7.** A DHKEM encapsulation is modified while keeping a valid length. Why is merely checking for exceptions from `decapsulate()` not enough to protect the payload?
 
-**8.** Khi nào nên dùng TLS/HPKE được kiểm chứng thay vì tự ghép `KeyAgreement`, `KEM`, `Cipher` và HKDF?
+**8.** When should you use proven TLS/HPKE instead of assembling `KeyAgreement`, `KEM`, `Cipher`, and HKDF yourself?
 
-## 10. Checklist triển khai
+## 10. Implementation Checklist
 
-- [ ] Xác định key **sinh mới** hay **đã có**; cần trao đổi secret, bảo vệ DEK hay mã hóa payload.
-- [ ] Chọn đúng primitive và API, ghi rõ JDK version, provider, thuật toán và key types.
-- [ ] Public key người nhận/peer phải được xác thực theo policy; raw shared secret phải qua KDF phù hợp.
-- [ ] Bảo vệ payload bằng AEAD với nonce/tag/AAD đúng; bọc khóa không thay xác thực dữ liệu.
-- [ ] Với DEK/KEK, quản lý key ID, quyền wrap/unwrap, HSM/KMS, rewrap, backup và rotation.
-- [ ] Chống MITM, replay, downgrade và nhầm context bằng **giao thức đã đặc tả và được kiểm thử**, không chỉ một phép toán thành công.
-- [ ] Không log private key, shared secret, traffic key, KEK/DEK; kiểm tra provider có key non-exportable hay không.
-- [ ] Test lỗi sai key/suite, public key bị thay, tampered capsule/ciphertext, metadata tráo và phiên bản không được phép.
+- [ ] Determine whether the key is **newly generated** or **already exists**; whether you need to exchange a secret, protect a DEK, or encrypt a payload.
+- [ ] Choose the right primitive and API, explicitly specifying JDK version, provider, algorithm, and key types.
+- [ ] Recipient/peer public keys must be authenticated according to policy; raw shared secrets must go through an appropriate KDF.
+- [ ] Protect payloads with AEAD using proper nonce/tag/AAD; key wrapping does not replace data authentication.
+- [ ] For DEK/KEK, manage key IDs, wrap/unwrap permissions, HSM/KMS, rewrap, backup, and rotation.
+- [ ] Defend against MITM, replay, downgrade, and context confusion using a **specified and tested protocol**, not just a single succeeding operation.
+- [ ] Never log private keys, shared secrets, traffic keys, or KEK/DEKs; check whether the provider has non-exportable keys.
+- [ ] Test invalid key/suite errors, substituted public keys, tampered capsules/ciphertexts, swapped metadata, and disallowed versions.
 
-## Tài liệu chuẩn
+## Reference Standards
 
 - [Java SE 17 — KeyAgreement](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/KeyAgreement.html)
 - [Java SE 17 — Cipher wrap/unwrap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html)

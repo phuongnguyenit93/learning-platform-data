@@ -1,70 +1,70 @@
-# Tạo thế hệ loader hoặc layer mới cho phiên bản plugin mới
+# Creating a New Loader or Layer Generation for a New Plugin Version
 
-## 1. Vì sao phải tạo “thế hệ” mới?
+## 1. Why create a new “generation”?
 
-Một hệ Java mở rộng tại runtime có thể đang phục vụ request bằng plugin `report:v1` trong lúc có bản phát hành `report:v2`. Mục tiêu là nạp và kiểm thử v2 mà không làm đứt các request v1, sau đó chuyển request mới sang v2, cho v1 hoàn thành công việc rồi giải phóng tài nguyên.
+A Java system extensible at runtime may be serving requests with plugin `report:v1` when release `report:v2` arrives. The goal is to load and test v2 without breaking v1 requests, then route new requests to v2, let v1 finish its work, and release resources.
 
-**Không thể chỉ copy đè JAR rồi gọi lại `Class.forName`.** JVM định danh runtime class bằng **binary name và defining ClassLoader**. Nếu loader L1 đã định nghĩa `com.example.report.ReportPlugin` từ v1, class đó không biến thành bytecode v2 khi file JAR trên đĩa đổi. Cơ chế triển khai thông thường là tạo **defining loader mới L2**, hoặc tạo **ModuleLayer mới với các loader mới**, để cùng binary name có thể tồn tại song song dưới hai runtime identities.
+**You cannot simply copy over the JAR and call `Class.forName` again.** The JVM identifies a runtime class by **its binary name and its defining ClassLoader**. If loader L1 already defined `com.example.report.ReportPlugin` from v1, that class does not turn into v2 bytecode when the JAR file on disk changes. The standard deployment mechanism is to create a **new defining loader L2**, or create a **new ModuleLayer with new loaders**, so the same binary name can coexist under two runtime identities.
 
 ~~~text
 Host API / parent loader H
        |
-       +-- Generation g101 → Loader L1 → Plugin v1 → request cũ R1
+       +-- Generation g101 → Loader L1 → Plugin v1 → old request R1
        |
-       +-- Generation g102 → Loader L2 → Plugin v2 → request mới R2
+       +-- Generation g102 → Loader L2 → Plugin v2 → new request R2
 
-Tên implementation có thể giống nhau;
+Implementation names may be identical;
 (typeName, definingLoader L1) != (typeName, definingLoader L2).
-Host API được H định nghĩa, nên cả v1 và v2 cùng implement hợp đồng H.
+Host API is defined by H, so both v1 and v2 implement contract H.
 ~~~
 
-**Thế hệ (generation)** không chỉ là số version. Một generation phải mô tả một tập nhất quán: plugin artifact, dependency versions, classloader hoặc module layer, class/provider instances, cấu hình, state, các resource và lifecycle. Hai lần deploy lại **cùng** `2.0.0` có thể có generation ID khác nhau.
+**A generation** is not just a version number. A generation must describe a consistent set: plugin artifact, dependency versions, classloader or module layer, class/provider instances, configuration, state, resources, and lifecycle. Two redeployments of **the same** `2.0.0` can have different generation IDs.
 
-### Bốn thao tác dễ nhầm
+### Four easily confused operations
 
-| Thao tác | Tạo runtime class identity mới? | Thay thế request routing? | Dừng plugin cũ? |
+| Operation | Creates new runtime class identity? | Switches request routing? | Stops old plugin? |
 | --- | --- | --- | --- |
-| Thay JAR trên đĩa | Không đối với class đã define | Không | Không |
-| `ServiceLoader.reload()` trên service loader cũ | Không: chỉ xóa provider cache | Không | Không |
-| `new URLClassLoader(...)` rồi nạp bản mới | Có nếu class được loader mới định nghĩa | Không, phải tự publish | Không |
-| `ModuleLayer.defineModulesWithOneLoader(...)` / `ManyLoaders(...)` trên cấu hình mới | Có với modules/classes được define bởi loaders mới | Không, phải tự publish | Không |
+| Replacing JAR on disk | No for already-defined classes | No | No |
+| `ServiceLoader.reload()` on old service loader | No: only clears provider cache | No | No |
+| `new URLClassLoader(...)` then loading new version | Yes if class is defined by new loader | No, must publish manually | No |
+| `ModuleLayer.defineModulesWithOneLoader(...)` / `ManyLoaders(...)` on new configuration | Yes for modules/classes defined by new loaders | No, must publish manually | No |
 
-Muốn **hot replacement an toàn**, cần cả class identity, API boundary, candidate validation, atomic publication, request draining, rollback và cleanup.
+Achieving **safe hot replacement** requires class identity, API boundaries, candidate validation, atomic publication, request draining, rollback, and cleanup.
 
-## 2. Những điều kiện đầu vào phải chốt trước khi nâng cấp
+## 2. Preconditions to lock down before upgrading
 
-Trước khi nạp v2, host nên biết rõ:
+Before loading v2, the host should explicitly know:
 
-- **Plugin ID và artifact:** tên, version, digest/signature, đường dẫn JAR/module path **bất biến**. Không thay bytes ngay trong JAR mà loader cũ đang đọc.
-- **Host contract:** `Plugin` API, các DTO, exception và event types phải được định nghĩa ở parent loader hoặc API module chung; không trộn các bản sao contract trong plugin-private loaders.
-- **Dependency graph:** những library nào dùng chung, những library nào thuộc riêng từng generation. Tránh để parent có thư viện v1 nếu v2 cần một bản khác mà parent-first sẽ chọn v1.
-- **Config/state:** v2 cần config schema mới không, dữ liệu cũ có backward compatibility không, ai thực hiện migration?
-- **Health/capability:** phải kiểm tra điều kiện nào trước khi publish? Ví dụ API version, provider ID, dependency presence, constructor, database migration dry-run, warmup.
-- **Lifecycle:** generation là stateless hay giữ connection, thread pool, timer, listener, thread-local, cache và native resources?
-- **Traffic:** có thể chờ các request v1 kết thúc không; nếu timeout thì cancel, giữ v1 tạm thời hay rollback?
-- **Trust:** plugin có được tin cậy không; classloader/module layer **không** phải sandbox để thực thi mã ác ý.
+- **Plugin ID and artifact:** name, version, digest/signature, and **immutable** JAR/module path. Do not mutate bytes in a JAR currently read by the old loader.
+- **Host contract:** `Plugin` API, DTOs, exceptions, and event types must be defined in the parent loader or shared API module; do not mix duplicate contract copies inside plugin-private loaders.
+- **Dependency graph:** which libraries are shared and which belong privately to each generation. Avoid placing library v1 in the parent if v2 needs a different version that parent-first delegation would override with v1.
+- **Config/state:** does v2 need a new config schema, is old data backward compatible, and who performs migration?
+- **Health/capability:** what conditions must be verified before publishing? E.g., API version, provider ID, dependency presence, constructor, database migration dry-run, warmup.
+- **Lifecycle:** is the generation stateless or does it hold connections, thread pools, timers, listeners, thread-locals, caches, and native resources?
+- **Traffic:** can we wait for v1 requests to finish; if a timeout occurs, do we cancel, keep v1 temporarily, or roll back?
+- **Trust:** is the plugin trusted; classloaders/module layers are **not** a sandbox for executing malicious code.
 
-Một record generation gợi ý:
+A suggested generation record:
 
 ~~~text
 Generation
   pluginId: report
   pluginVersion: 2.0.0
   generationId: report-2.0.0-iteration-4
-  artifactDigest: SHA-256 của JAR thực
-  dependencyManifest: danh sách version/digest đã khóa
-  loaderOrLayer: đối tượng định nghĩa class cho generation
-  providerInstances: các service được chọn
+  artifactDigest: SHA-256 of the actual JAR
+  dependencyManifest: locked list of versions/digests
+  loaderOrLayer: object defining classes for the generation
+  providerInstances: selected services
   state: CREATED / READY / ACTIVE / RETIRING / STOPPED
-  inFlight: số request đang giữ lease
-  resources: executors, connections, listeners thuộc generation
+  inFlight: number of requests holding a lease
+  resources: executors, connections, listeners owned by the generation
 ~~~
 
-**Tách plugin version khỏi generation ID:** cùng version có thể nạp lại nhiều lần sau rollback hoặc đổi cấu hình. Khi log và troubleshoot, cần cả artifact digest, generation, loader/layer identity.
+**Separate plugin version from generation ID:** the same version can be reloaded multiple times after a rollback or config change. For logging and troubleshooting, record artifact digest, generation, and loader/layer identity.
 
-## 3. Căn bản: class identity, parent-first và shared API
+## 3. Fundamentals: class identity, parent-first, and shared API
 
-`ClassLoader` mặc định ủy quyền lên parent trước khi tự định nghĩa class. `URLClassLoader` dùng mô hình này đối với classpath loading thông thường.
+By default, `ClassLoader` delegates to its parent before defining a class itself. `URLClassLoader` uses this model for standard classpath loading.
 
 ~~~text
 HostApiLoader H:   com.example.spi.Plugin, Request, Result
@@ -76,32 +76,32 @@ HostApiLoader H:   com.example.spi.Plugin, Request, Result
           report-v2.jar, json-lib-v2.jar
 ~~~
 
-Khi cả hai plugin code implement đúng interface do H định nghĩa, host có thể gọi v1/v2 qua `Plugin`. Ngược lại, nếu plugin đóng gói và tự định nghĩa bản sao `com.example.spi.Plugin` bằng child-first không kiểm soát, object có thể không cast được sang `Plugin` ở host dù `getName()` giống hệt. **Type identity là tên class + defining loader, không chỉ tên class.**
+When both plugin implementations implement the exact interface defined by H, the host can invoke v1/v2 through `Plugin`. Conversely, if a plugin bundles and defines its own copy of `com.example.spi.Plugin` via uncontrolled child-first loading, the object may fail to cast to the host's `Plugin` even though `getName()` is identical. **Type identity is class name + defining loader, not class name alone.**
 
-Không nên đặt `report-v1.jar` hoặc dependency private v1 trong host parent classpath. Nếu parent đã định nghĩa cùng tên class, L2 sẽ nhìn thấy class cũ qua delegation, vô hiệu hóa mục đích cô lập. Dùng các plugin-private JAR theo generation; chỉ giữ API/DTO đủ ổn định ở parent.
+Do not place `report-v1.jar` or private v1 dependencies on the host parent classpath. If the parent has already defined the same class name, L2 will see the old class via delegation, defeating isolation. Use plugin-private JARs per generation; keep only sufficiently stable APIs/DTOs in the parent.
 
-### 3.1. Không truyền đối tượng private trực tiếp giữa hai version
+### 3.1. Do not pass private objects directly between two versions
 
-Dù v1 và v2 cùng có class `com.vendor.JsonNode`, nếu hai loaders định nghĩa chúng độc lập, runtime types khác nhau. Một object `JsonNode` v1 không tự cast được sang v2. Khi chuyển state hoặc dữ liệu, dùng stable DTO do host sở hữu, serialized payload có schema, hoặc gateway API tường minh. Không xem Java serialization của object private giữa hai generation là migration an toàn mặc định.
+Even if both v1 and v2 have a class `com.vendor.JsonNode`, if two loaders define them independently, their runtime types differ. A v1 `JsonNode` object cannot automatically be cast to v2. When transferring state or data, use host-owned stable DTOs, schema-governed serialized payloads, or explicit gateway APIs. Do not treat Java serialization of private objects across generations as safe migration by default.
 
-### 3.2. Những gì bị tách và không bị tách
+### 3.2. What is isolated and what is not
 
-Hai loaders có thể có class metadata/static fields/cache riêng cho class tự định nghĩa; v1 và v2 có thể cùng sống trong JVM. Nhưng heap, CPU, native process resources, security permissions và JVM crash vẫn chung. Muốn giới hạn lỗi/tài nguyên ở cấp process, dùng plugin worker process/container riêng.
+Two loaders can have separate class metadata/static fields/caches for self-defined classes; v1 and v2 can coexist in the JVM. However, heap, CPU, native process resources, security permissions, and JVM crashes remain shared. To bound faults/resources at process level, use separate plugin worker processes/containers.
 
-## 4. Quy trình tạo generation mới với URLClassLoader
+## 4. Workflow to create a new generation with URLClassLoader
 
-Dành cho plugin JAR trên class path hoặc JAR không dùng named module layer:
+For plugin JARs on the classpath or JARs not using named module layers:
 
-1. **Stage artifact:** ghi v2 ra path riêng `plugins/report-v2.jar`, xác thực checksum/signature và khóa dependency files. Tránh ghi đè artifact đang được loader v1 sử dụng.
-2. **Create loader:** `new URLClassLoader(urlsOfV2, hostApiLoader)`. URL list phải chứa v2 và các dependency private đúng version.
-3. **Discover entrypoint:** `Class.forName(entryBinaryName, true, loader)` hoặc `ServiceLoader.load(Plugin.class, loader)` nếu JAR khai báo SPI.
-4. **Instantiate:** khởi tạo provider v2, chỉ cast qua shared API parent.
-5. **Validate/warm up:** kiểm tra ABI/API version, config, health, functionality và các resources. Nếu fail, stop/close candidate rồi giữ active generation v1.
-6. **Publish:** host thay active registry/snapshot sang v2 bằng cơ chế đồng bộ hóa chọn generation và cấp lease.
-7. **Drain v1:** request cũ vẫn dùng v1 đến khi kết thúc hoặc theo timeout/cancellation policy.
-8. **Release v1:** stop provider, unregister listeners, dừng executor/thread, restore TCCL, close URLClassLoader và bỏ mọi strong reference.
+1. **Stage artifact:** write v2 to a separate path `plugins/report-v2.jar`, verify checksum/signature, and lock dependency files. Avoid overwriting artifacts being read by loader v1.
+2. **Create loader:** `new URLClassLoader(urlsOfV2, hostApiLoader)`. The URL list must contain v2 and the exact versions of private dependencies.
+3. **Discover entrypoint:** `Class.forName(entryBinaryName, true, loader)` or `ServiceLoader.load(Plugin.class, loader)` if the JAR declares an SPI.
+4. **Instantiate:** instantiate the v2 provider, casting only through the parent's shared API.
+5. **Validate/warm up:** check ABI/API version, config, health, functionality, and resources. If validation fails, stop/close the candidate and keep generation v1 active.
+6. **Publish:** the host updates the active registry/snapshot to v2 via a synchronization mechanism that selects the generation and issues leases.
+7. **Drain v1:** old requests keep using v1 until completion or according to timeout/cancellation policy.
+8. **Release v1:** stop the provider, unregister listeners, shut down executors/threads, restore TCCL, close `URLClassLoader`, and drop all strong references.
 
-Ví dụ **đoạn minh họa, không độc lập**:
+**Illustrative snippet, not standalone**:
 
 ~~~java
 URLClassLoader candidateLoader = new URLClassLoader(
@@ -112,23 +112,23 @@ Class<?> impl = Class.forName(
         "com.example.report.ReportPlugin", true, candidateLoader);
 Plugin instance = (Plugin) impl.getConstructor().newInstance();
 
-// Validate instance trước khi publish.
-// Ở nhánh thất bại hoặc khi generation dừng: cleanup instance + loader.
+// Validate instance before publishing.
+// On failure branch or when stopping the generation: clean up instance + loader.
 ~~~
 
-Tạo loader không nhất thiết load tất cả class ngay; phần lớn hoạt động loading là **lazy**. Vì thế validation không chỉ kiểm tra constructor: phải gọi một số đường thực thi đại diện để phát hiện `NoClassDefFoundError`/`NoSuchMethodError` sớm thay vì đợi đến request đầu tiên.
+Creating a loader does not necessarily load all classes immediately; most loading is **lazy**. Therefore, validation must not check only the constructor: invoke representative execution paths to catch `NoClassDefFoundError`/`NoSuchMethodError` early rather than waiting for the first request.
 
-### 4.1. close() không phải lệnh unload class
+### 4.1. close() is not a class-unloading command
 
-`URLClassLoader.close()` đóng các file/resource handles mà loader đã mở theo API. Những class đã được định nghĩa và còn reference vẫn tồn tại. `close()` không tự ngắt thread, gọi `Plugin.stop()` hoặc ép GC/class unloading. Nếu thread khác đang load class đồng thời khi `close()` diễn ra, kết quả load đó không được bảo đảm. **Chỉ close sau khi không còn công việc cần class/resource từ generation cũ.**
+`URLClassLoader.close()` closes file/resource handles opened by the loader per the API. Classes already defined and still referenced remain alive. `close()` does not automatically interrupt threads, call `Plugin.stop()`, or force GC/class unloading. If another thread is concurrently loading classes when `close()` occurs, the outcome of that load is undefined. **Close only after no work still needs classes/resources from the old generation.**
 
-## 5. Lab Java 17+ chạy được: cùng binary name, hai generation độc lập
+## 5. Runnable Java 17+ lab: same binary name, two independent generations
 
-Lab này có hai JAR riêng nhưng **cùng class name `demo.impl.Greeter`**, một bản trả `v1` và bản kia `v2`. Host dùng một interface `demo.api.Plugin` duy nhất, tạo hai URLClassLoader và đổi active pointer.
+This lab has two separate JARs yet **the same class name `demo.impl.Greeter`**, one returning `v1` and the other `v2`. The host uses a single `demo.api.Plugin` interface, creates two `URLClassLoader`s, and swaps the active pointer.
 
-**Phạm vi lab:** chạy tuần tự để minh họa class identity và publish; `AtomicReference.getAndSet` trong lab **không** là giải pháp đóng generation an toàn cho server có request concurrent (xem mục 7).
+**Lab scope:** runs sequentially to demonstrate class identity and publishing; `AtomicReference.getAndSet` in the lab is **not** a safe generation-closing solution for servers with concurrent requests (see Section 7).
 
-### 5.1. Cấu trúc thư mục
+### 5.1. Directory layout
 
 ~~~text
 hot-swap-demo/
@@ -137,11 +137,11 @@ hot-swap-demo/
 │   ├── host/HotSwapDemo.java
 │   ├── v1/demo/impl/Greeter.java
 │   └── v2/demo/impl/Greeter.java
-├── out/                   # sinh khi compile
-└── jars/                  # sinh khi tạo JAR
+├── out/                   # generated on compile
+└── jars/                  # generated when creating JARs
 ~~~
 
-Tệp `src/api/demo/api/Plugin.java`:
+File `src/api/demo/api/Plugin.java`:
 
 ~~~java
 package demo.api;
@@ -152,12 +152,12 @@ public interface Plugin extends AutoCloseable {
 
     @Override
     default void close() throws Exception {
-        // Hook cho generation thực tế; demo không giữ resources.
+        // Hook for real generations; demo holds no resources.
     }
 }
 ~~~
 
-Tệp `src/v1/demo/impl/Greeter.java`:
+File `src/v1/demo/impl/Greeter.java`:
 
 ~~~java
 package demo.impl;
@@ -177,7 +177,7 @@ public final class Greeter implements Plugin {
 }
 ~~~
 
-Tệp `src/v2/demo/impl/Greeter.java` có **cùng binary name**:
+File `src/v2/demo/impl/Greeter.java` has **the same binary name**:
 
 ~~~java
 package demo.impl;
@@ -197,7 +197,7 @@ public final class Greeter implements Plugin {
 }
 ~~~
 
-Tệp `src/host/HotSwapDemo.java`:
+File `src/host/HotSwapDemo.java`:
 
 ~~~java
 import demo.api.Plugin;
@@ -251,7 +251,7 @@ public final class HotSwapDemo {
                     + active.get().plugin().greet("Lan"));
 
             try (Generation g2 = prepare("v2", Path.of(args[1]))) {
-                // Kiểm tra candidate trước khi đổi active pointer.
+                // Verify candidate before switching the active pointer.
                 System.out.println("candidate="
                         + g2.plugin().greet("Lan"));
 
@@ -267,28 +267,28 @@ public final class HotSwapDemo {
                         + (old.plugin() instanceof Plugin
                                 && g2.plugin() instanceof Plugin));
 
-                // Lab không có request đồng thời; bỏ active pointer
-                // trước khi g2 đóng ở cuối try.
+                // Lab has no concurrent requests; clear active pointer
+                // before g2 closes at the end of try.
                 active.compareAndSet(g2, null);
             }
-            // g1 được giữ tới hết outer try rồi mới đóng.
+            // g1 is kept until the end of the outer try before closing.
         }
     }
 }
 ~~~
 
-Giải thích những chi tiết then chốt:
+Explanation of key details:
 
-- Host classpath `out\host` chứa API và `HotSwapDemo`, **không** chứa class `demo.impl.Greeter`. Vì vậy L1 và L2 có thể định nghĩa implementation riêng.
-- `Plugin.class.getClassLoader()` là parent chung: cả v1 lẫn v2 dùng cùng runtime `Plugin` type, nên cast hợp lệ.
-- `prepare` tạo loader, load class, instantiate và validate `version()` **trước** khi trả `Generation`. Nếu load/validation lỗi, cleanup loader candidate.
-- `AtomicReference.getAndSet` làm active pointer đổi từ g1 sang g2. Vẫn có `old.plugin()` do object cũ chưa bị giải phóng, minh họa hai generation cùng tồn tại.
-- `old.plugin().getClass() == g2.plugin().getClass()` là `false` dù cùng binary name: defining loaders khác nhau. Nhưng cả hai đều là `Plugin` của parent.
-- Đóng g1/g2 chỉ diễn ra sau các lời gọi minh họa; lab không có thread background. Production phải dùng lease/drain.
+- Host classpath `out\host` contains the API and `HotSwapDemo`, and **does not** contain `demo.impl.Greeter`. Therefore L1 and L2 can define separate implementations.
+- `Plugin.class.getClassLoader()` is the shared parent: both v1 and v2 use the same runtime `Plugin` type, so casting is valid.
+- `prepare` creates the loader, loads the class, instantiates it, and validates `version()` **before** returning `Generation`. If loading/validation fails, it cleans up the candidate loader.
+- `AtomicReference.getAndSet` swaps the active pointer from g1 to g2. `old.plugin()` still exists because the old object has not been released yet, illustrating two coexisting generations.
+- `old.plugin().getClass() == g2.plugin().getClass()` is `false` despite identical binary names: their defining loaders differ. Yet both are `Plugin` from the parent.
+- Closing g1/g2 happens only after the illustrative calls; the lab has no background threads. Production must use leases/draining.
 
-### 5.2. Lệnh biên dịch và chạy
+### 5.2. Compile and run commands
 
-Chạy các lệnh trong **PowerShell** tại thư mục `hot-swap-demo` với **JDK 17+**:
+Run the commands in **PowerShell** inside the `hot-swap-demo` directory with **JDK 17+**:
 
 ~~~powershell
 New-Item -ItemType Directory -Force out\host,out\v1,out\v2,jars | Out-Null
@@ -303,7 +303,7 @@ jar --create --file jars\plugin-v2.jar -C out\v2 .
 java -cp out\host HotSwapDemo jars\plugin-v1.jar jars\plugin-v2.jar
 ~~~
 
-Kết quả stdout dự kiến:
+Expected stdout:
 
 ~~~text
 active-before=Xin chao Lan tu v1
@@ -314,31 +314,31 @@ same-impl-class=false
 shared-contract=true
 ~~~
 
-Những kết quả này phụ thuộc việc chỉ đưa `out\host` vào host classpath, hai JAR thực sự được tạo từ đúng source và parent không chứa implementation. Nếu cả hai implementation identity bị trùng, hãy kiểm tra classpath của process và parent delegation trước khi kết luận JVM đã “dùng chung” class giữa các plugin.
+These results depend on putting only `out\host` on the host classpath, building the two JARs from the proper sources, and ensuring the parent contains no implementation. If both implementation identities match, inspect the process classpath and parent delegation before concluding the JVM “shared” a class across plugins.
 
-### 5.3. Vì sao không hot-replace bằng classloader cũ?
+### 5.3. Why not hot-replace using the old classloader?
 
-Nếu gọi `Class.forName("demo.impl.Greeter", true, g1.loader())` lần nữa sau khi đã load v1, loader cũ vẫn dùng class identity v1. Thay nội dung `plugin-v1.jar` trên đĩa trong lúc JVM đang chạy không phải cách update đáng tin: class đã load không đổi và resource lookup có thể bị ảnh hưởng. **Dùng artifact path mới, loader mới và một generation lifecycle mới.**
+If `Class.forName("demo.impl.Greeter", true, g1.loader())` is called again after v1 is already loaded, the old loader still uses the v1 class identity. Replacing the contents of `plugin-v1.jar` on disk while the JVM is running is not a reliable update method: already-loaded classes do not change and resource lookups can be affected. **Use a new artifact path, a new loader, and a new generation lifecycle.**
 
-## 6. JPMS: tạo ModuleLayer mới cho phiên bản modular plugin
+## 6. JPMS: creating a new ModuleLayer for modular plugin versions
 
-Plugin dùng **named modules** có metadata `module-info.java`, `requires`, `exports`, `opens`, `uses`, `provides`. Để đưa phiên bản mới vào JVM, host có thể tạo một `Configuration` mới từ `ModuleFinder` rồi define **ModuleLayer mới** với loader mapping tương ứng.
+Plugins using **named modules** have `module-info.java` metadata with `requires`, `exports`, `opens`, `uses`, and `provides`. To bring a new version into the JVM, the host can build a new `Configuration` from a `ModuleFinder` and then define a **new ModuleLayer** with the corresponding loader mapping.
 
-### 6.1. Dòng chảy JPMS
+### 6.1. JPMS flow
 
 ~~~text
-plugin-v2 modular JAR(s), module path riêng
+plugin-v2 modular JAR(s), separate module path
                |
         ModuleFinder.of(path)
                |
- stable parent layer (chứa host API module)
+ stable parent layer (contains host API module)
                |
  parent.configuration().resolve(finder, afterFinder, roots)
                |
         Configuration v2 (module graph)
                |
  parent.defineModulesWithOneLoader(cf, parentLoader)
-                HOẶC
+                OR
  parent.defineModulesWithManyLoaders(cf, parentLoader)
                |
          ModuleLayer v2 + loader(s)
@@ -348,7 +348,7 @@ plugin-v2 modular JAR(s), module path riêng
      registry publish + drain old layer
 ~~~
 
-Hàm Java minh họa **không phải chương trình độc lập**; cần imports và module path thực:
+Illustrative Java method, **not a standalone program**; requires imports and a real module path:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -372,13 +372,13 @@ static ModuleLayer createPluginLayer(
 }
 ~~~
 
-**Điều kiện:** host API module mà plugin `requires` phải có trong parent configuration hoặc được resolve đúng. Nếu host dùng parent layer tùy biến, thay `ModuleLayer.boot()` bằng parent ổn định thực tế. `ModuleFinder.of` chỉ thấy những module được chỉ trong path; nó không tự làm động tác deploy.
+**Precondition:** the host API module that the plugin `requires` must exist in the parent configuration or be properly resolved. If the host uses a custom parent layer, replace `ModuleLayer.boot()` with the actual stable parent. `ModuleFinder.of` sees only the modules pointed to by the path; it does not perform deployment by itself.
 
-`defineModulesWithOneLoader` tạo một loader cho các modules trong configuration mới; `defineModulesWithManyLoaders` tạo một loader mỗi module. Cả hai giúp tạo mapping **mới**; phương thức `defineModules` với custom mapping thích hợp cho trường hợp advanced và đòi hỏi kiểm soát delegation/readability chặt chẽ.
+`defineModulesWithOneLoader` creates one loader for the modules in the new configuration; `defineModulesWithManyLoaders` creates one loader per module. Both create **new** mappings; `defineModules` with a custom mapping suits advanced cases and requires tight control over delegation/readability.
 
-### 6.2. Sibling layers thay vì coi v1 là parent của v2
+### 6.2. Sibling layers instead of making v1 the parent of v2
 
-Khi v1 và v2 dùng **cùng module name** `com.example.greeter`, nên đặt hai phiên bản ở **hai module paths riêng** rồi tạo **hai sibling layers** từ parent API ổn định:
+When v1 and v2 use **the same module name** `com.example.greeter`, place both versions in **two separate module paths** and create **two sibling layers** from the stable API parent:
 
 ~~~text
            Stable parent layer (API)
@@ -388,14 +388,14 @@ Khi v1 và v2 dùng **cùng module name** `com.example.greeter`, nên đặt hai
        Loader(s) L1        Loader(s) L2
 ~~~
 
-Nếu tạo v2 như child layer có **v1 layer là parent**, resolution có thể nhìn thấy module đã tồn tại trong parent và không đưa version v2 vào configuration như mong muốn. Parent phải đại diện phần dùng chung **không bao gồm version mà ta muốn thay**. Đừng nhét hai module cùng tên vào một configuration rồi kỳ vọng JPMS chọn version theo request: module resolution không phải Maven dependency resolver.
+If v2 is created as a child layer whose **parent is the v1 layer**, resolution may see the module already present in the parent and fail to bring v2 into the configuration as intended. The parent must represent the shared portion **excluding the version you want to replace**. Do not cram two modules of the same name into one configuration expecting JPMS to pick a version per request: module resolution is not a Maven dependency resolver.
 
-### 6.3. Provider trong modular plugin
+### 6.3. Providers in a modular plugin
 
-Ví dụ module descriptor của provider:
+Example provider module descriptor:
 
 ~~~java
-// module-info.java — ví dụ mô tả, chưa độc lập.
+// module-info.java — descriptive example, not standalone.
 module com.example.greeter {
     requires com.example.api;
     provides com.example.api.Plugin
@@ -403,60 +403,60 @@ module com.example.greeter {
 }
 ~~~
 
-Nếu shared API là named module trong parent, host có thể khám phá providers qua candidate layer:
+If the shared API is a named module in the parent, the host can discover providers through the candidate layer:
 
 ~~~java
-// Đoạn minh họa, chưa độc lập; Plugin là host API,
-// candidateLayer đã được define và validate.
+// Illustrative snippet, not standalone; Plugin is the host API,
+// candidateLayer has been defined and validated.
 ServiceLoader<Plugin> loader =
         ServiceLoader.load(candidateLayer, Plugin.class);
 Plugin candidate = loader.findFirst().orElseThrow();
 ~~~
 
-Một caller module sử dụng `ServiceLoader` cần khai báo `uses <service>` theo JPMS. `ServiceLoader.load(layer, service)` có thể quan sát providers ở layer và ancestor layers; **không dùng `findFirst()` làm chính sách bảo đảm chọn v2** nếu có nhiều providers. Hãy kiểm tra provider module, ID/version và ownership của candidate sau khi tìm.
+A caller module using `ServiceLoader` must declare `uses <service>` per JPMS. `ServiceLoader.load(layer, service)` can see providers in the layer and ancestor layers; **do not use `findFirst()` as a guaranteed policy to select v2** if multiple providers exist. Verify the provider module, ID/version, and ownership of the candidate after discovery.
 
-Một `ModuleLayer` **không có phương thức `close()` chung**. Muốn generation JPMS cũ đủ điều kiện GC/unload, phải dừng provider, giải phóng thread/resources, bỏ references tới `ModuleLayer`, `Module`, loader và classes/instances. Không suy ra class unload tức thì chỉ vì đã bỏ layer khỏi active registry.
+A `ModuleLayer` **has no general `close()` method**. For an old JPMS generation to become eligible for GC/unloading, you must stop providers, release threads/resources, and drop references to the `ModuleLayer`, `Module`, loaders, and classes/instances. Do not infer immediate class unloading merely from removing the layer from the active registry.
 
-### 6.4. Khi nào chọn OneLoader vs ManyLoaders?
+### 6.4. When to choose OneLoader vs ManyLoaders?
 
-| Tiêu chí | `defineModulesWithOneLoader` | `defineModulesWithManyLoaders` |
+| Criterion | `defineModulesWithOneLoader` | `defineModulesWithManyLoaders` |
 | --- | --- | --- |
-| Loader cho mỗi layer | Một loader mới cho tất cả module của configuration | Một loader mới cho mỗi module |
-| Quản lý type/shared state | Các module chia sẻ loader nhưng vẫn có JPMS boundaries | Các module có runtime loader identities khác |
-| Module package constraints | Có thể lỗi nếu overlapping packages/split delegation không hợp lệ | Phân tách loader hơn, nhưng vẫn phải thỏa module graph |
-| Cấu hình/lifecycle | Đơn giản nếu nhiều module được release chung | Linh hoạt hơn theo module, nhưng thêm complexity |
-| Plugin version isolation | Tạo **layer generation mới** | Tạo **layer generation mới** |
+| Loaders per layer | One new loader for all modules of the configuration | One new loader per module |
+| Type/shared state management | Modules share a loader yet still have JPMS boundaries | Modules have distinct runtime loader identities |
+| Module package constraints | Can fail on invalid overlapping packages/split delegation | Greater loader separation, yet must still satisfy the module graph |
+| Configuration/lifecycle | Simpler when multiple modules are released together | More flexible per module, but adds complexity |
+| Plugin version isolation | Creates **new layer generation** | Creates **new layer generation** |
 
-**Một layer không đồng nghĩa một plugin:** layer có thể gồm nhiều module plugin và dependency. Khi muốn chỉ thay một plugin trong nhóm, phải biết configuration/loader group nào cần được tạo lại. JPMS module readability không thay thế state migration hay request routing.
+**One layer does not necessarily mean one plugin:** a layer can contain multiple plugin modules and dependencies. When replacing only one plugin in a group, you must know which configuration/loader group needs to be recreated. JPMS module readability does not replace state migration or request routing.
 
-## 7. Chuyển traffic bằng lease để tránh đóng generation đang được dùng
+## 7. Shifting traffic with leases to avoid closing an in-use generation
 
-### 7.1. AtomicReference chưa đủ khi có request đồng thời
+### 7.1. AtomicReference is not enough with concurrent requests
 
-Mẫu code tưởng đúng:
+Deceptively simple code:
 
 ~~~java
-// Minh họa race, KHÔNG dùng nguyên mẫu trong production.
+// Illustrates a race, DO NOT use as-is in production.
 Generation g = active.get();
 g.plugin().handle(request);
 
-// Thread triển khai chạy trong lúc request còn xử lý:
+// Deployment thread runs while the request is still processing:
 Generation old = active.getAndSet(candidate);
-old.close(); // Có thể đóng resources ngay dưới request của thread khác!
+old.close(); // May close resources right underneath another thread's request!
 ~~~
 
-Dù `getAndSet` đổi pointer nguyên tử, có khoảng thời gian giữa request đọc `g` và đăng ký sử dụng. Vì thế nếu deploy đóng old ngay, request có thể thấy connection/executor đã đóng.
+Even though `getAndSet` swaps the pointer atomically, there is a window between the request reading `g` and registering usage. Thus if deployment closes `old` immediately, the request may encounter an already-closed connection/executor.
 
-### 7.2. Thiết kế cấp lease nhất quán với swap
+### 7.2. Designing lease issuance consistent with the swap
 
-Phải đồng bộ **việc chọn active generation và tăng bộ đếm active-use** với việc swap active pointer. Một thiết kế dễ suy luận là read/write gate:
+You must synchronize **selecting the active generation and incrementing the active-use counter** with swapping the active pointer. An easy-to-reason-about design is a read/write gate:
 
 ~~~text
 Request thread                        Deploy coordinator
 -----------------------------         ------------------------------
 acquire read gate
   g = active
-  g.inFlight++ (đăng ký lease)
+  g.inFlight++ (register lease)
 release read gate
 run g.plugin()                        build/validate candidate v2
                                       acquire write gate
@@ -464,17 +464,17 @@ run g.plugin()                        build/validate candidate v2
                                         active = v2
                                         old.state = RETIRING
                                       release write gate
-request hoàn tất
+request finishes
   g.inFlight--
                                       await old.inFlight == 0
                                       stop old background tasks/resources
-                                      close old loader nếu thích hợp
-                                      bỏ strong references tới old
+                                      close old loader if appropriate
+                                      drop strong references to old
 ~~~
 
-Đây là **thuật toán, không phải chương trình Java độc lập**. Có thể dùng `ReentrantReadWriteLock` bảo vệ pointer và lease acquisition, còn invocation chạy **ngoài** read lock để deploy không bị chặn suốt thời gian request. Counter/state cần synchronization hoặc atomic state machine đủ chặt chẽ. Khi một generation đã đánh dấu `RETIRING`, không cấp **lease mới** cho nó.
+This is an **algorithm, not a standalone Java program**. A `ReentrantReadWriteLock` can guard the pointer and lease acquisition, while the invocation itself runs **outside** the read lock so deployments are not blocked for the duration of requests. Counters/state require sufficiently strict synchronization or an atomic state machine. Once a generation is marked `RETIRING`, issue **no new leases** for it.
 
-Mỗi lease nên được close trong `finally` hoặc try-with-resources; nếu request ném exception/cancel cũng phải release. Không chỉ đếm request HTTP: plugin có thể giữ timer, queue consumer, scheduler, subscription, JMX registration hoặc callback dài hạn. Những resource ấy có lifecycle và ownership riêng.
+Every lease should be closed in `finally` or try-with-resources; if a request throws an exception or is cancelled, it must still release. Do not count only HTTP requests: plugins may hold timers, queue consumers, schedulers, subscriptions, JMX registrations, or long-lived callbacks. Those resources have their own lifecycles and ownership.
 
 ### 7.3. State machine
 
@@ -493,7 +493,7 @@ ACTIVE
    v
 RETIRING
    |
-   +---- inFlight > 0 → WAIT/DRAIN (có timeout policy)
+   +---- inFlight > 0 → WAIT/DRAIN (with timeout policy)
    |
    v
 STOPPED
@@ -502,33 +502,33 @@ STOPPED
 RELEASED
 ~~~
 
-Các invariants:
+Invariants:
 
-- Chỉ `READY` candidate mới được publish.
-- Swap cho request mới phải có một điểm tuyến tính hóa rõ ràng; không publish nửa v1/nửa v2 trong cùng registry snapshot.
-- Old generation vẫn tồn tại cho work đã nhận trước swap.
-- Đóng old chỉ sau khi bảo đảm không còn workload cần dùng nó; timeout phải có cách xử lý an toàn, không mặc định `close()` cưỡng bức.
-- Nếu các plugin dùng chung dependency group resources, phải quản lý reference counts/lifecycle ở **cấp group**, không đóng parent dependency loader khi child khác còn dùng.
+- Only a `READY` candidate may be published.
+- The swap for new requests must have a clear linearization point; do not publish half v1/half v2 in the same registry snapshot.
+- The old generation remains alive for work accepted prior to the swap.
+- Close the old generation only after ensuring no workload still needs it; timeouts must have safe handling rather than defaulting to forced `close()`.
+- If plugins share dependency group resources, manage reference counts/lifecycles at **the group level**, and do not close a parent dependency loader while other children still use it.
 
-## 8. Rollback: trước publish dễ hơn sau publish
+## 8. Rollback: easier before publish than after publish
 
-| Giai đoạn | Nếu lỗi | Hành động |
+| Stage | On failure | Action |
 | --- | --- | --- |
-| Check artifact/config | JAR thiếu, signature hoặc API version sai | Reject ngay, không tạo candidate |
-| Create loader/layer | Dependency/package resolution lỗi | Cleanup candidate, v1 vẫn active |
-| Instantiate/warm-up | Provider health hoặc constructor lỗi | Abort candidate, v1 vẫn active |
-| Publish | Registry update không nhất quán | Không chấp nhận partial state; áp dụng atomic transaction/snapshot |
-| Sau publish | v2 tăng error rate hoặc latency | Có thể chuyển về v1 **nếu v1 còn hợp lệ và dữ liệu tương thích** |
-| V1 đã đóng | Cần quay lại version v1 | Tạo **generation v1 mới**, không “hồi sinh” closed loader |
-| V2 đã ghi dữ liệu mới | V1 không đọc được schema mới | State/data migration hoặc rollback policy chuyên biệt, không chỉ đổi pointer |
+| Check artifact/config | Missing JAR, wrong signature or API version | Reject immediately, do not create candidate |
+| Create loader/layer | Dependency/package resolution failure | Clean up candidate, v1 stays active |
+| Instantiate/warm-up | Provider health or constructor failure | Abort candidate, v1 stays active |
+| Publish | Inconsistent registry update | Do not accept partial state; apply atomic transaction/snapshot |
+| After publish | v2 increases error rate or latency | Can switch back to v1 **if v1 is still valid and data is compatible** |
+| v1 already closed | Need to revert to version v1 | Create a **new v1 generation**, do not “resurrect” a closed loader |
+| v2 already wrote new data | v1 cannot read new schema | State/data migration or dedicated rollback policy, not just swapping pointers |
 
-**Rollback không hoàn nguyên side effects.** Plugin v2 có thể đã ghi database, gửi event, thay schema, tạo file hoặc gọi external APIs. Trước khi deploy cần nêu rõ backward compatibility, idempotency, transactional boundaries và data migration strategy. Nếu phải duy trì rollback window, có thể giữ old generation trong trạng thái chờ sau khi đã drain, nhưng không nên giữ vô hạn vì memory/resource pressure.
+**Rollback does not undo side effects.** Plugin v2 may have written to databases, sent events, altered schemas, created files, or called external APIs. Before deploying, establish backward compatibility, idempotency, transactional boundaries, and a data migration strategy. If a rollback window must be maintained, the old generation can be kept in a standby state after draining, though not indefinitely due to memory/resource pressure.
 
-### 8.1. State migration giữa hai thế hệ
+### 8.1. State migration between two generations
 
 ~~~text
 Plugin v1 state
-   │ export qua DTO/schema do host sở hữu
+   │ export via host-owned DTO/schema
    ▼
 Stable serialized snapshot
    │ validate/transform versioned schema
@@ -539,16 +539,16 @@ Plugin v2 import
 Publish v2 → drain v1 → retire v1
 ~~~
 
-Không truyền trực tiếp object thuộc class private L1 sang L2 rồi cast: có thể `ClassCastException`. Tùy nghiệp vụ, migration cần snapshot version, replay event, dual-read/dual-write hoặc external state storage. Nếu không thể đưa hai version hoạt động trên cùng dữ liệu, không nên hứa “zero-downtime”.
+Do not pass objects of L1-private classes directly to L2 and cast them: `ClassCastException` may occur. Depending on business needs, migration requires versioned snapshots, event replay, dual-read/dual-write, or external state storage. If two versions cannot operate on the same data, do not promise “zero-downtime.”
 
-## 9. ServiceLoader, TCCL và dependency visibility
+## 9. ServiceLoader, TCCL, and dependency visibility
 
-### 9.1. ServiceLoader của generation mới
+### 9.1. ServiceLoader of the new generation
 
-Với plugin classpath đăng ký `META-INF/services/<serviceFQCN>`:
+For classpath plugins registering `META-INF/services/<serviceFQCN>`:
 
 ~~~java
-// Đoạn minh họa, chưa độc lập.
+// Illustrative snippet, not standalone.
 ServiceLoader<Plugin> discovered =
         ServiceLoader.load(Plugin.class, candidateLoader);
 
@@ -557,16 +557,16 @@ List<Plugin> candidates = discovered.stream()
         .toList();
 ~~~
 
-Với JPMS, dùng `ServiceLoader.load(candidateLayer, Plugin.class)` nếu service và provider modules được khai báo phù hợp. Cần xác thực provider **thuộc generation nào**; parent classloader/layer có thể lộ thêm providers từ vùng chia sẻ. Nếu có nhiều provider, `findFirst()` không phải cơ chế xếp ưu tiên ổn định theo business policy.
+For JPMS, use `ServiceLoader.load(candidateLayer, Plugin.class)` when service and provider modules are declared appropriately. Verify **which generation a provider belongs to**; parent classloaders/layers may expose additional providers from shared scopes. When multiple providers exist, `findFirst()` is not a stable priority mechanism under business policy.
 
-**`ServiceLoader.reload()` chỉ clear provider cache** của service loader đó; nó không thay JAR URLs, không định nghĩa class v2 thay v1, không dừng provider instance cũ. Muốn v2 thật sự, dùng **ServiceLoader gắn với loader/layer mới** và tạo provider instance mới theo lifecycle.
+**`ServiceLoader.reload()` only clears the provider cache** of that service loader; it does not change JAR URLs, define v2 classes over v1, or stop old provider instances. To truly get v2, use a **ServiceLoader bound to the new loader/layer** and create new provider instances per lifecycle.
 
 ### 9.2. Thread Context ClassLoader
 
-Một số frameworks/SPI sử dụng `Thread.currentThread().getContextClassLoader()`. Khi gọi plugin, host có thể cần TCCL của generation đó:
+Some frameworks/SPIs use `Thread.currentThread().getContextClassLoader()`. When invoking a plugin, the host may need that generation's TCCL:
 
 ~~~java
-// Minh họa, chưa độc lập: candidateLoader và task đã tồn tại.
+// Illustrative, not standalone: candidateLoader and task already exist.
 Thread thread = Thread.currentThread();
 ClassLoader previous = thread.getContextClassLoader();
 try {
@@ -577,42 +577,42 @@ try {
 }
 ~~~
 
-**Nhất thiết restore trong finally** khi thread quay về pool. Nếu plugin tự tạo thread hoặc `ExecutorService`, thread có thể giữ TCCL của loader cũ, pin nó trong memory. Stop generation phải dừng tasks và xử lý những resource đã đăng ký trong host/global registries.
+**Always restore in `finally`** when the thread returns to a pool. If a plugin spawns its own threads or `ExecutorService`, those threads can retain the old loader's TCCL, pinning it in memory. Stopping a generation must stop tasks and clean up resources registered in host/global registries.
 
-### 9.3. Dependency private
+### 9.3. Private dependencies
 
-Nếu v1 cần `json-lib:1.x` còn v2 cần `json-lib:2.x`, hai generation loaders chỉ nên chứa đúng dependency riêng. Nếu `json-lib` v1 đã nằm trong host parent, parent-first có thể làm v2 vẫn dùng v1. Giữ API parent **không chứa các type private version-specific**; nếu public API dùng type đó, nó trở thành ranh giới version chung và cần versioning/adapter.
+If v1 needs `json-lib:1.x` while v2 needs `json-lib:2.x`, the two generation loaders should contain only their own specific dependencies. If `json-lib` v1 is already in the host parent, parent-first delegation may cause v2 to still use v1. Keep the parent API **free of version-specific private types**; if the public API uses such a type, it becomes a shared version boundary requiring versioning/adapters.
 
-Với JPMS, build configurations cho từng generation từ module path riêng và parent ổn định. Không giả định module version field trong `ModuleDescriptor` có khả năng tự giải xung đột kiểu Maven; giải dependency graph trước khi define layer.
+With JPMS, build configurations for each generation from separate module paths and a stable parent. Do not assume the module version field in `ModuleDescriptor` can resolve Maven-style conflicts automatically; resolve the dependency graph before defining the layer.
 
-## 10. Giải phóng thế hệ cũ và lỗi rò class loader
+## 10. Releasing the old generation and class loader leak bugs
 
-Một URLClassLoader hoặc JPMS layer đã bị loại khỏi active pointer **vẫn có thể tồn tại** khi còn strong references tới bất kỳ object/class/loader tương ứng.
+A `URLClassLoader` or JPMS layer removed from the active pointer **can still stay alive** while strong references remain to any corresponding object/class/loader.
 
-Những nguồn leak thường gặp:
+Common leak sources:
 
-- request/snapshot/registry còn giữ provider v1;
-- `Thread.contextClassLoader`, `ThreadLocal`, daemon thread, executor, timer, scheduled jobs;
-- event listener/observer/callback đăng ký trong singleton của host;
-- JDBC drivers/JMX/logging providers/native libraries không unregister;
-- `Class<?>`, `Method`, proxy, `MethodHandle`, reflection cache hoặc static global map;
-- dependency group loader còn được dùng bởi plugin khác;
-- open resources và in-flight class loading lúc gọi `URLClassLoader.close()`.
+- requests/snapshots/registries still holding the v1 provider;
+- `Thread.contextClassLoader`, `ThreadLocal`, daemon threads, executors, timers, scheduled jobs;
+- event listeners/observers/callbacks registered in host singletons;
+- unregistered JDBC drivers/JMX/logging providers/native libraries;
+- `Class<?>`, `Method`, proxies, `MethodHandle`, reflection caches, or static global maps;
+- dependency group loaders still in use by other plugins;
+- open resources and in-flight class loading when `URLClassLoader.close()` is called.
 
-### Thứ tự cleanup gợi ý
+### Recommended cleanup order
 
-1. Đánh dấu `RETIRING`, ngăn cấp lease mới.
-2. Chờ requests/background activities đã xác định; xử lý timeout theo policy.
-3. Gọi `Plugin.stop()/close()` và shutdown executors, cancel timers, unregister listeners.
-4. Giải phóng connections/files/sessions, restore TCCL ở thread pools.
-5. Clear registry/snapshots/caches của host đang giữ reference tới instance hoặc `Class<?>`.
-6. Với classpath URLClassLoader: gọi `close()` khi không còn thread load class/resources qua nó.
-7. Bỏ mọi reference tới loader/layer/module/provider và các class private từ thế hệ cũ.
-8. Quan sát heap, Metaspace, loaded/unloaded classes và reference graph. **Không** khẳng định GC/unload tức thì.
+1. Mark `RETIRING`, blocking new lease issuance.
+2. Wait for identified requests/background activities; handle timeouts per policy.
+3. Call `Plugin.stop()/close()` and shut down executors, cancel timers, and unregister listeners.
+4. Release connections/files/sessions, restore TCCL in thread pools.
+5. Clear host registries/snapshots/caches holding references to instances or `Class<?>`.
+6. For classpath `URLClassLoader`: call `close()` once no thread is loading classes/resources through it.
+7. Drop all references to the old generation's loader/layer/modules/providers and private classes.
+8. Observe heap, Metaspace, loaded/unloaded classes, and the reference graph. **Do not** assert immediate GC/unloading.
 
-`ModuleLayer` không có `close()` tương đương URLClassLoader; việc lifecycle shutdown do host/plugin thực hiện, còn việc reclaim classes phụ thuộc JVM/GC và references.
+`ModuleLayer` has no `close()` equivalent to `URLClassLoader`; lifecycle shutdown is performed by the host/plugin, while reclaiming classes depends on the JVM/GC and references.
 
-### Quan sát bằng JDK tools
+### Observing with JDK tools
 
 ~~~powershell
 jar tf jars\plugin-v2.jar
@@ -620,51 +620,51 @@ jar --describe-module --file jars\plugin-v2.jar
 
 java -Xlog:class+load=info -cp out\host HotSwapDemo jars\plugin-v1.jar jars\plugin-v2.jar
 
-# Với tiến trình Java đang chạy; thay PID thật trước khi gọi:
+# For a running Java process; substitute the real PID before calling:
 jcmd 12345 help
 jcmd 12345 VM.classloaders
 ~~~
 
-Đây là các lệnh **chẩn đoán minh họa**. `jar --describe-module` có thể báo automatic module cho non-modular JAR hoặc hiển thị thông tin phụ thuộc JDK; các option của `jcmd` khác tùy JVM. Heap dump và thread dump giúp tìm strong references/TCCL đang giữ generation cũ.
+These are **illustrative diagnostic commands**. `jar --describe-module` may report an automatic module for non-modular JARs or show JDK dependency info; `jcmd` options vary by JVM. Heap dumps and thread dumps help locate strong references/TCCL retaining the old generation.
 
-## 11. Bảng so sánh và lỗi thường gặp
+## 11. Comparison table and common mistakes
 
-| Tình huống | Cách hiểu sai | Cách làm đúng |
+| Situation | Misconception | Correct approach |
 | --- | --- | --- |
-| v2 có cùng class name với v1 | Gọi `Class.forName` trên L1 lần nữa | Loader/layer generation mới L2 |
-| Copy đè JAR cũ | Sẽ hot swap class đã load | Lưu artifact v2 bất biến, trỏ loader/layer mới vào v2 |
-| Parent chứa implementation v1 | Plugin L2 tự ưu tiên class trong JAR v2 | Parent-first có thể lấy class v1; sửa loader boundary |
-| Provider ở v2 không được tìm thấy | Gọi `ServiceLoader.reload()` trên v1 liên tục | Tạo service loader với L2/layer v2 và kiểm SPI/module metadata |
-| Một thread đang dùng v1, deploy đóng ngay | Atomic swap đủ bảo đảm an toàn | Lease/refcount + drain/stop |
-| Class cast lỗi dù cùng tên type | Chắc JVM lỗi | So sánh defining loader, thống nhất API ở parent |
-| v2 dùng dependency ABI khác | JVM tự resolve đúng version | Kiểm classpath/module graph, API compatibility trước publish |
-| JPMS v2 trùng module name v1 | Define v2 child của layer v1 là ổn | Sibling layers từ parent API ổn định |
-| V2 startup lỗi | Chuyển routing trước rồi thử | Validate/warm up candidate trước publish |
-| Rollback sau DB migration | Đổi pointer về v1 là đủ | Kiểm dữ liệu/side effects; có migration/compat plan |
-| `URLClassLoader.close()` được gọi | Class phải unload ngay | Bỏ references, theo dõi GC/Metaspace, stop threads |
-| Plugin của người dùng không tin cậy | Classloader đủ cách ly bảo mật | Process/container isolation và quyền OS |
+| v2 has same class name as v1 | Call `Class.forName` on L1 again | New loader/layer generation L2 |
+| Overwrite old JAR | Will hot-swap loaded classes | Store immutable v2 artifact, point new loader/layer to v2 |
+| Parent contains v1 implementation | L2 plugin prefers classes in v2 JAR | Parent-first may pick v1 class; fix loader boundary |
+| Provider in v2 not found | Repeatedly call `ServiceLoader.reload()` on v1 | Create a service loader with L2/v2 layer and check SPI/module metadata |
+| A thread is using v1, deploy closes immediately | Atomic swap is safe enough | Lease/refcount + drain/stop |
+| Class cast fails despite same type name | Must be a JVM bug | Compare defining loaders, unify API in parent |
+| v2 uses a dependency with a different ABI | JVM resolves the right version automatically | Verify classpath/module graph and API compatibility before publish |
+| JPMS v2 has same module name as v1 | Defining v2 as a child of layer v1 is fine | Sibling layers from a stable API parent |
+| v2 startup fails | Switch routing first then test | Validate/warm up candidate before publish |
+| Rollback after DB migration | Switching pointer back to v1 is enough | Check data/side effects; have a migration/compat plan |
+| `URLClassLoader.close()` is called | Classes must unload immediately | Drop references, monitor GC/Metaspace, stop threads |
+| Untrusted user plugin | Classloader is sufficient security isolation | Process/container isolation and OS permissions |
 
-## 12. Test matrix và quy trình triển khai
+## 12. Test matrix and deployment workflow
 
-Một kiến trúc generation-based nên vượt qua các kiểm thử sau:
+A generation-based architecture should pass the following tests:
 
-| Test | Thiết lập | Điều kiện PASS |
+| Test | Setup | PASS condition |
 | --- | --- | --- |
-| Load song song | Nạp v1 và v2 cùng binary name | Hai implementation classes khác loader; API parent chung |
-| Candidate fail | V2 thiếu class, dependency hoặc config | V1 vẫn active; candidate được cleanup |
-| Health/warm-up | Kiểm API version, gọi representative methods | Chỉ publish khi candidate READY |
-| Atomic routing | Deploy khi nhiều request đồng thời | Mỗi request gắn một generation nhất quán |
-| Drain | Giữ request v1 chưa kết thúc lúc swap | Không đóng v1 trước khi lease release |
-| Background task | V1 có scheduler hoặc listener | Stop/unregister theo generation ownership |
-| Rollback sớm | V2 lỗi ngay sau publish | Quay lại v1 còn hợp lệ, không rơi request |
-| Rollback muộn | V1 đã stop/close | Tạo lại generation v1; dữ liệu vẫn tương thích |
-| Dependency versions | V1 và v2 dùng thư viện khác version | Không nhầm API/private classes |
-| TCCL/SPI | Provider discovery dưới thread pool | Provider đúng generation, restore TCCL |
-| JPMS sibling layers | Cùng module name, v1/v2 ở hai layer riêng | Graph/layer/loader context chính xác |
-| Repeated updates | V1 → V2 → V3 → V4 | Không leak threads, resource handles hoặc retained loaders |
-| Cluster rollout | Nhiều JVM instances | Routing/version labels rõ trên từng instance |
+| Parallel load | Load v1 and v2 with same binary name | Two implementation classes with different loaders; shared parent API |
+| Candidate fail | v2 missing class, dependency, or config | v1 remains active; candidate is cleaned up |
+| Health/warm-up | Check API version, call representative methods | Publish only when candidate is READY |
+| Atomic routing | Deploy under many concurrent requests | Each request sticks to a consistent generation |
+| Drain | Hold an unfinished v1 request during swap | Do not close v1 before lease release |
+| Background task | v1 has a scheduler or listener | Stopped/unregistered by generation ownership |
+| Early rollback | v2 fails immediately after publish | Revert to still-valid v1 without dropping requests |
+| Late rollback | v1 already stopped/closed | Recreate v1 generation; data remains compatible |
+| Dependency versions | v1 and v2 use different library versions | No confusion of API/private classes |
+| TCCL/SPI | Provider discovery under a thread pool | Provider from right generation, TCCL restored |
+| JPMS sibling layers | Same module name, v1/v2 in two separate layers | Accurate graph/layer/loader context |
+| Repeated updates | V1 → V2 → V3 → V4 | No leaked threads, resource handles, or retained loaders |
+| Cluster rollout | Multiple JVM instances | Clear routing/version labels on every instance |
 
-### Quy trình triển khai thực tế
+### Production deployment workflow
 
 ~~~text
 1. Artifact verified (v2 + dependencies)
@@ -678,36 +678,36 @@ Một kiến trúc generation-based nên vượt qua các kiểm thử sau:
 9. Mark old generation RETIRED; monitor leaks
 ~~~
 
-**Canary/rollback:** nếu yêu cầu an toàn cao, có thể route một phần traffic tới v2 rồi nâng tỷ lệ; khi đó registry phải hỗ trợ nhiều active generation theo rule và lease cho mỗi generation, không chỉ một con trỏ duy nhất. Khi v2 ảnh hưởng schema dữ liệu, rollback còn cần tương thích ở storage/protocol level.
+**Canary/rollback:** if high safety is required, a portion of traffic can be routed to v2 and the ratio gradually increased; in that case the registry must support multiple active generations by rule and leases per generation, not a single pointer. When v2 affects data schemas, rollback also requires compatibility at the storage/protocol level.
 
-### Những chỉ số hữu ích
+### Useful metrics
 
-Nên gắn `pluginId`, `version`, `generationId`, artifact digest và loader/layer identity vào log của request. Theo dõi in-flight leases, startup/validation duration, error rate, p95/p99 latency, active background tasks, thread count, open file handles, heap, Metaspace và class unloading. Nếu có nhiều JVM, việc swap trong một process không tự làm các process còn lại đồng bộ; phải có rollout coordinator ngoài process.
+Tag request logs with `pluginId`, `version`, `generationId`, artifact digest, and loader/layer identity. Track in-flight leases, startup/validation duration, error rate, p95/p99 latency, active background tasks, thread count, open file handles, heap, Metaspace, and class unloading. Across multiple JVMs, swapping in one process does not synchronize the remaining processes; an out-of-process rollout coordinator is needed.
 
-## 13. Checklist trước khi đánh dấu hoàn tất bản nâng cấp
+## 13. Checklist before marking an upgrade complete
 
-1. **Artifact:** version và dependency manifests đã được khóa, JAR bất biến/checksum hợp lệ.
-2. **Boundary:** API/DTO được định nghĩa ở parent; private classes không rò sang parent classpath.
-3. **Generation:** loader/layer mới thật sự định nghĩa classes mới; không vô tình lấy implementation cũ từ ancestor.
-4. **Validation:** constructor, SPI/service discovery, API compatibility, health, config và representative methods đạt.
-5. **State:** import/export data qua stable schema; rollback có điều kiện rõ, không bỏ qua side effects.
-6. **Publication:** routing nhất quán, cấp request lease atomically với việc chọn generation.
-7. **Drain:** request cũ/background work được theo dõi, timeout policy không làm hỏng dữ liệu.
-8. **Cleanup:** dừng plugin, unregister resources, restore TCCL; đóng URLClassLoader nếu có; bỏ references.
-9. **JPMS:** module configuration/layer parent và loader mapping đúng; hiểu giới hạn `ModuleLayer.close()` không tồn tại.
-10. **Monitoring:** log và metrics theo generation đủ để phát hiện leak hoặc mismatch.
-11. **Security:** chỉ chạy mã đáng tin trong JVM; không dùng classloader như sandbox.
-12. **Evidence:** kiểm thử repeated deploy, rollback và concurrency trước khi tuyên bố thay thế plugin an toàn.
+1. **Artifact:** version and dependency manifests locked, immutable JAR/valid checksum.
+2. **Boundary:** API/DTOs defined in parent; private classes do not leak into parent classpath.
+3. **Generation:** new loader/layer actually defines new classes; does not accidentally pick old implementation from ancestor.
+4. **Validation:** constructor, SPI/service discovery, API compatibility, health, config, and representative methods pass.
+5. **State:** import/export data via stable schema; rollback has clear conditions, without ignoring side effects.
+6. **Publication:** consistent routing, request leases issued atomically with generation selection.
+7. **Drain:** old requests/background work tracked, timeout policy does not corrupt data.
+8. **Cleanup:** stop plugin, unregister resources, restore TCCL; close URLClassLoader if applicable; drop references.
+9. **JPMS:** module configuration/parent layer and loader mapping correct; understand the limitation that `ModuleLayer.close()` does not exist.
+10. **Monitoring:** per-generation logs and metrics sufficient to detect leaks or mismatches.
+11. **Security:** run only trusted code in the JVM; do not use classloaders as a sandbox.
+12. **Evidence:** test repeated deployments, rollbacks, and concurrency before declaring plugin replacement safe.
 
-**Kết luận:** để một phiên bản plugin mới thực sự xuất hiện trong JVM, cần tạo **ClassLoader hoặc ModuleLayer generation mới**, chuẩn bị và kiểm thử trước khi publish, điều phối request theo generation, rồi drain/stop phiên bản cũ. `ServiceLoader.reload()` không thay bytecode đã được define; `URLClassLoader.close()` không ép unload class; ModuleLayer cũng không tự quản lý lifecycle. Cơ chế hot replacement an toàn là tổng hợp của **class identity, dependency isolation, routing, rollback và resource ownership**.
+**Conclusion:** for a new plugin version to truly appear in the JVM, you must create a **new ClassLoader or ModuleLayer generation**, prepare and verify before publishing, coordinate requests by generation, and then drain/stop the old version. `ServiceLoader.reload()` does not replace already-defined bytecode; `URLClassLoader.close()` does not force class unloading; nor does `ModuleLayer` manage lifecycle automatically. Safe hot replacement is the combination of **class identity, dependency isolation, routing, rollback, and resource ownership**.
 
-## 14. Tài liệu tham khảo Java SE 17
+## 14. Java SE 17 References
 
 - ClassLoader — delegation/class identity: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html
-- URLClassLoader — parent loader và close semantics: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html
+- URLClassLoader — parent loader and close semantics: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html
 - ModuleLayer — layer definition, OneLoader/ManyLoaders: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html
-- ModuleFinder — khám phá modular JAR: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleFinder.html
+- ModuleFinder — discovering modular JARs: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleFinder.html
 - Configuration — module resolution: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/Configuration.html
-- ServiceLoader — lookup theo ClassLoader/ModuleLayer, reload: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+- ServiceLoader — ClassLoader/ModuleLayer lookup, reload: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 - Module — runtime JPMS readability: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html
 - JVM Specification 17, chapter 5 — Loading/Linking/Initializing: https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html

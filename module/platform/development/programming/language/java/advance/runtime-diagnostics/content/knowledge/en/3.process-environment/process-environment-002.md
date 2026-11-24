@@ -1,66 +1,66 @@
-# 3.2 Dùng jcmd, jps và ProcessHandle để khám phá tiến trình; hiểu giới hạn thông tin trả về
+# 3.2 Using jcmd, jps, and ProcessHandle for Process Discovery; Understanding Output Limitations
 
-Trong chẩn đoán Java, câu hỏi đầu tiên thường là: **JVM nào thực sự đang chạy ứng dụng cần điều tra, PID của nó là gì và mình có quyền nhìn thấy những thông tin nào?** Một máy có thể đồng thời chạy nhiều dịch vụ Java, một tiến trình build, một IDE và chính các công cụ chẩn đoán. Trong container, PID nhìn từ host còn có thể khác PID nhìn từ bên trong container. Chọn sai tiến trình dẫn đến đọc sai cấu hình, kết luận sai hoặc tác động lên dịch vụ khác.
+In Java diagnostics, the first question is usually: **Which JVM is actually running the application under investigation, what is its PID, and what information do I have permission to see?** A single machine can simultaneously run multiple Java services, a build process, an IDE, and the diagnostic tools themselves. In containers, the PID seen from the host can also differ from the PID seen inside the container. Picking the wrong process leads to reading the wrong configuration, drawing false conclusions, or impacting another service.
 
-Ba công cụ giải quyết các phần khác nhau của vấn đề:
+Three tools address different parts of the problem:
 
-- `jps` liệt kê **JVM được instrumentation của công cụ Java nhận diện** trong phạm vi có thể truy cập.
-- `jcmd` có chế độ **liệt kê JVM** và có thể **gửi diagnostic command** tới một JVM tương thích, được phép attach.
-- `ProcessHandle` là **Java API để nhận diện và xem tiến trình hệ điều hành**, bao gồm cả tiến trình không chạy JVM. API không tự cung cấp heap dump, GC history hay đảm bảo đọc được đầy đủ lệnh khởi động.
+- `jps` lists **JVMs detected by Java tool instrumentation** within the accessible scope.
+- `jcmd` has a mode to **list JVMs** and can **send diagnostic commands** to a compatible JVM that allows attaching.
+- `ProcessHandle` is a **Java API for identifying and inspecting operating system processes**, including non-JVM processes. The API does not inherently provide heap dumps, GC history, or guaranteed access to the full launch command.
 
-Mục tiêu là biết cách dùng đúng từng công cụ, kết hợp bằng chứng và giải thích **vì sao một tiến trình có thể xuất hiện trong công cụ này nhưng vắng mặt ở công cụ khác**. Phần nội dung tập trung vào nhận diện tiến trình, giới hạn dữ liệu và độ tin cậy; các diagnostic command chuyên sâu chỉ được nhắc đến như bước tiếp theo.
+The goal is to know how to use each tool properly, combine evidence, and explain **why a process may appear in one tool yet be absent from another**. The content focuses on process identification, data limitations, and reliability; advanced diagnostic commands are only mentioned as next steps.
 
-## 1. Phân biệt đối tượng được khám phá
+## 1. Distinguishing What Is Being Discovered
 
-### 1.1 Native process, JVM process và Java application không đồng nghĩa
+### 1.1 Native Process, JVM Process, and Java Application Are Not Synonymous
 
-Một ứng dụng Java thông thường chạy trong **một tiến trình hệ điều hành** chứa JVM. Tiến trình có một PID trong phạm vi định danh của hệ điều hành/namespace; JVM thực thi mã Java, quản lý heap, GC, JIT và giao tiếp với OS.
+A typical Java application runs inside **an operating system process** hosting the JVM. The process has a PID within the OS/namespace identification scope; the JVM executes Java code, manages the heap, GC, JIT, and interacts with the OS.
 
-Không phải mọi native process là JVM: `ps`, trình duyệt, cơ sở dữ liệu hay load generator cũng là tiến trình OS. Ngược lại, không nên mặc định mỗi ứng dụng Java là đúng một PID: một hệ thống có thể có nhiều worker JVM, launcher, supervisor hoặc tiến trình con. Một JVM nhúng bằng launcher riêng cũng có thể không trình bày tên main class như ứng dụng chạy bằng `java -jar`.
+Not every native process is a JVM: `ps`, browsers, databases, or load generators are also OS processes. Conversely, do not assume each Java application is strictly one PID: a system may have multiple worker JVMs, launchers, supervisors, or child processes. A JVM embedded via a custom launcher may also not expose a main class name the way an application started with `java -jar` does.
 
-Khi điều tra, cần nhận diện ít nhất:
+During an investigation, identify at least:
 
-| Danh tính | Điều gì được xác định? | Giới hạn |
+| Identity | What is identified? | Limitations |
 | --- | --- | --- |
-| PID / native process ID | Tiến trình OS ở một thời điểm trong namespace cụ thể | PID có thể được tái sử dụng sau khi tiến trình kết thúc |
-| LVMID của `jps` | Định danh JVM cục bộ do công cụ báo | Thường là PID, **không được bảo đảm luôn bằng PID OS** |
-| Main class / JAR | Entry point launcher hoặc mô tả mà công cụ thu được | Có thể là tên bootstrap, launcher framework hoặc `Unknown` |
-| Executable path | Lệnh thực thi, chẳng hạn đường dẫn tới `java` | Không bảo đảm chỉ ra đúng artifact nghiệp vụ hoặc đủ đường dẫn |
-| Start time | Thời điểm bắt đầu khi OS/API cung cấp được | Có thể thiếu và đồng hồ/thông tin thu được có giới hạn |
-| Host, container, namespace | Phạm vi PID, quyền quan sát và giới hạn tài nguyên | PID trong container không nhất thiết trùng PID trên host |
+| PID / native process ID | OS process at a point in time within a specific namespace | PIDs can be reused after a process terminates |
+| `jps` LVMID | Local JVM identifier reported by the tool | Usually the PID, **not guaranteed to always equal the OS PID** |
+| Main class / JAR | Launcher entry point or description obtained by the tool | May be a bootstrap name, framework launcher, or `Unknown` |
+| Executable path | Executable command, such as the path to `java` | Does not guarantee pointing to the business artifact or full path |
+| Start time | Start timestamp when provided by OS/API | May be missing, and available clocks/metadata have limits |
+| Host, container, namespace | PID scope, observation permissions, and resource boundaries | Container PID does not necessarily match host PID |
 
-**PID là một chỉ dấu để tra cứu, không phải định danh bền vững tuyệt đối.** Với service dài hạn, nên lưu thêm mốc thời gian khởi động, tên workload, container/pod instance, build/image ID và môi trường. Một lần nhìn thấy PID 4242 hôm qua không bảo đảm hôm nay PID ấy vẫn là JVM cũ.
+**A PID is a lookup pointer, not a permanently durable identity.** For long-lived services, also record the startup timestamp, workload name, container/pod instance, build/image ID, and environment. Seeing PID 4242 yesterday does not guarantee PID 4242 today is still the same JVM.
 
-### 1.2 Danh sách tiến trình là ảnh chụp, không phải lịch sử
+### 1.2 A Process List Is a Snapshot, Not a History
 
-Các tiến trình có thể khởi động, kết thúc hoặc thay PID giữa hai câu lệnh liên tiếp. Do đó:
+Processes can start, exit, or change PID between two consecutive commands. Therefore:
 
-- “Không thấy trong danh sách” không chứng minh JVM chưa từng chạy.
-- “Có PID trong danh sách” không đảm bảo tiến trình còn sống khi lệnh tiếp theo chạy.
-- “Không hiện command line” không đồng nghĩa tiến trình không có command line.
-- “PID không đổi” cũng chưa đủ chứng minh một tiến trình vẫn là phiên bản đã quan sát trước, vì PID có thể tái sử dụng.
+- “Not seen in the list” does not prove the JVM never ran.
+- “PID present in the list” does not guarantee the process is still alive when the next command runs.
+- “Command line not shown” does not mean the process has no command line.
+- “Unchanged PID” alone is not enough to prove a process is still the previously observed instance, because PIDs can be reused.
 
-Khám phá tiến trình chủ yếu trả lời **tình trạng hiện thấy trong phạm vi được phép**; nó không tự cung cấp lịch sử restart, nguyên nhân crash, mức CPU trong nhiều giờ hay trạng thái GC. Với dữ liệu thời gian dài, cần log, event và metrics có timestamp.
+Process discovery mainly answers **what is currently visible within the permitted scope**; it does not by itself provide restart history, crash causes, multi-hour CPU levels, or GC state. For longitudinal data, you need timestamped logs, events, and metrics.
 
-## 2. Chọn công cụ theo câu hỏi
+## 2. Choosing Tools by Question
 
-| Câu hỏi | `jps` | `jcmd` | `ProcessHandle` |
+| Question | `jps` | `jcmd` | `ProcessHandle` |
 | --- | --- | --- | --- |
-| Có JVM instrumented nào công cụ nhìn thấy? | Phù hợp | `jcmd -l` cũng phù hợp, với giới hạn riêng | Không phân biệt JVM nếu chỉ dùng API |
-| Liệt kê native process, kể cả không chạy Java? | Không | Không phải mục tiêu | `allProcesses()` liệt kê những process OS nhìn thấy được |
-| Lấy main class/JAR và thông tin launcher? | `-l`, `-m`, `-v` ở mức mà tool báo được | `-l` hoặc `VM.command_line` nếu attach được | `Info.commandLine()`/`arguments()` có thể thiếu hoặc không đầy đủ |
-| Xác minh runtime flags của JVM đích? | `-v` cho các JVM arguments mà `jps` thu được | `VM.flags` và `VM.command_line` để điều tra sâu hơn | Không có API tiêu chuẩn để lấy effective JVM flags của process khác |
-| Xem parent/children và start time của OS process? | Không trực tiếp | Không phải mục tiêu chính | `parent()`, `children()`, `descendants()`, `Info.startInstant()` |
-| Truy vấn trạng thái GC/thread của JVM tương thích? | Không | Có diagnostic commands nếu được hỗ trợ và có quyền | Không bằng các phương thức ProcessHandle |
-| Bảo đảm thấy **mọi** process/JVM trên máy? | Không | Không | Cũng không: quyền, OS, container/namespace và thời điểm giới hạn |
+| Which instrumented JVMs are visible to the tool? | Suitable | `jcmd -l` is also suitable, with its own limits | Does not distinguish JVMs using the API alone |
+| List native processes, including non-Java ones? | No | Not its purpose | `allProcesses()` lists OS-visible processes |
+| Get main class/JAR and launcher info? | `-l`, `-m`, `-v` to the extent the tool reports | `-l` or `VM.command_line` if attachable | `Info.commandLine()`/`arguments()` may be missing or incomplete |
+| Verify runtime flags of the target JVM? | `-v` for JVM arguments detected by `jps` | `VM.flags` and `VM.command_line` for deeper inspection | No standard API to get effective JVM flags of another process |
+| View parent/children and start time of an OS process? | Not directly | Not its primary purpose | `parent()`, `children()`, `descendants()`, `Info.startInstant()` |
+| Query GC/thread state of a compatible JVM? | No | Has diagnostic commands if supported and permitted | Not via `ProcessHandle` methods |
+| Guaranteed to see **every** process/JVM on the machine? | No | No | Also no: permissions, OS, container/namespace, and timing limit visibility |
 
-Từ bảng này, một chiến lược đúng là **phát hiện ứng viên → xác minh danh tính và phạm vi PID → chọn lệnh quan sát đủ nhẹ → đối chiếu chéo**. Không cần chạy thao tác nặng nếu mới chỉ muốn tìm PID.
+From this table, the right strategy is **discover candidates → verify identity and PID scope → pick sufficiently lightweight observation commands → cross-check**. There is no need to run heavy operations when you only want to find the PID.
 
-## 3. Dùng jps để tìm các JVM instrumented
+## 3. Using jps to Find Instrumented JVMs
 
-### 3.1 Các lệnh cơ bản
+### 3.1 Basic Commands
 
-`jps` là công cụ đi kèm nhiều bản phân phối JDK. Trên một máy có JDK và quyền phù hợp:
+`jps` comes bundled with many JDK distributions. On a machine with a JDK and appropriate permissions:
 
 ```bash
 jps
@@ -70,18 +70,18 @@ jps -v
 jps -q
 ```
 
-Ý nghĩa cần nhớ:
+Key options to remember:
 
-| Lệnh/option | Kết quả mong đợi | Lưu ý |
+| Command/option | Expected output | Notes |
 | --- | --- | --- |
-| `jps` | LVMID và tên ngắn main class hoặc JAR của JVM nhìn thấy | Tên chưa chắc là tên dịch vụ |
-| `jps -l` | Tên package đầy đủ của main class hoặc đường dẫn JAR nếu biết | Launcher tùy biến có thể làm tên không có sẵn |
-| `jps -m` | Thêm những đối số được truyền vào `main` theo khả năng công cụ | Có thể hiển thị `null` hoặc `Unknown` tùy JVM/launcher |
-| `jps -v` | Thêm JVM arguments mà công cụ nhận diện được | Có thể lộ tham số nhạy cảm trong stdout |
-| `jps -q` | Chỉ liệt kê LVMID | Không xác minh được danh tính ứng dụng từ mỗi số |
-| `jps -lm` | Kết hợp tên dài và main arguments | Chuỗi chứa khoảng trắng có thể khó phân tách bằng script |
+| `jps` | LVMID and short main class or JAR name of visible JVMs | Name is not necessarily the service name |
+| `jps -l` | Full package name of main class or JAR path if known | Custom launchers may leave the name unavailable |
+| `jps -m` | Adds arguments passed to `main` as available to the tool | May display `null` or `Unknown` depending on JVM/launcher |
+| `jps -v` | Adds JVM arguments recognized by the tool | May expose sensitive parameters to stdout |
+| `jps -q` | Lists only LVMIDs | Cannot verify application identity from numbers alone |
+| `jps -lm` | Combines full name and main arguments | Strings containing spaces can be hard for scripts to split |
 
-Một đầu ra **minh họa giả định** của `jps -l`:
+A **hypothetical illustrative** output of `jps -l`:
 
 ```text
 4120 com.example.orders.OrderApplication
@@ -89,48 +89,48 @@ Một đầu ra **minh họa giả định** của `jps -l`:
 4512 jdk.jcmd/sun.tools.jps.Jps
 ```
 
-Các số PID/tên trong khối trên chỉ minh họa **dạng thông tin**, không phải bằng chứng máy nào đang chạy. `jps` có thể tự xuất hiện trong danh sách vì bản thân công cụ là một chương trình Java chạy trong JVM.
+The PIDs/names in the block above only illustrate the **output shape**, not evidence of any running machine. `jps` can appear in its own list because the tool itself is a Java program running in a JVM.
 
-### 3.2 jps thực sự nhìn thấy cái gì?
+### 3.2 What Does jps Actually See?
 
-Theo tài liệu JDK, `jps` liệt kê **instrumented Java HotSpot VMs** có thể truy cập; nó không phải bộ phát hiện mọi chương trình Java, mọi JVM implementation hay mọi tiến trình OS. Danh sách bị giới hạn bởi các cơ chế khám phá và quyền truy cập của môi trường.
+According to JDK documentation, `jps` lists accessible **instrumented Java HotSpot VMs**; it is not a detector for every Java program, every JVM implementation, or every OS process. The list is constrained by discovery mechanisms and environment permissions.
 
-Một số trường hợp không thấy JVM dù process còn tồn tại:
+Common reasons a JVM is not shown even though the process exists:
 
-1. **Quyền:** principal đang chạy `jps` không đủ quyền xem JVM của người dùng khác.
-2. **Namespace/container:** công cụ ở host hoặc container khác không có cùng phạm vi quan sát/đường dữ liệu instrumentation.
-3. **JVM/launcher không tương thích:** JVM không hỗ trợ hay không cung cấp đầy đủ cơ chế mà `jps` cần; launcher tùy biến có thể không công bố main class/JAR.
-4. **Vòng đời ngắn:** process đã kết thúc trước khi `jps` quét.
-5. **Môi trường chạy tối giản:** không cài `jps`, hoặc JDK tool không phù hợp với runtime/kiến trúc của đích.
+1. **Permissions:** the principal running `jps` lacks permission to view another user's JVM.
+2. **Namespace/container:** a tool on the host or in another container does not share the same observation scope or instrumentation data path.
+3. **Incompatible JVM/launcher:** the JVM does not support or expose the mechanism `jps` relies on; custom launchers may not publish main class/JAR.
+4. **Short lifetime:** the process exited before `jps` scanned.
+5. **Minimal runtime environment:** `jps` is not installed, or the JDK tool does not match the target's runtime/architecture.
 
-Điểm khác biệt có tính nguyên tắc: **`jps` không được định nghĩa như API inventory có độ đầy đủ tuyệt đối**. Tài liệu Oracle còn đánh dấu đây là công cụ experimental/unsupported và khuyến cáo **không viết script phụ thuộc chặt vào định dạng dòng output**, vì định dạng có thể thay đổi.
+A foundational distinction: **`jps` is not defined as a complete-inventory API**. Oracle documentation even marks it as experimental/unsupported and advises **against writing scripts that tightly depend on its line output format**, as the format may change.
 
-LVMID **thường** bằng PID OS khi khám phá JVM trên máy cục bộ, nhưng không được mặc định như định luật khi xử lý môi trường remote, custom configuration hoặc implementation khác. Nếu cần tác động vào một PID cụ thể, kiểm tra thêm bằng công cụ OS và thời điểm khởi động.
+LVMID **usually** equals the OS PID when discovering JVMs on a local machine, but should not be treated as an absolute law in remote environments, custom configurations, or other implementations. When acting on a specific PID, verify further with OS tools and start time.
 
-### 3.3 Tránh rủi ro khi đọc tên và tham số
+### 3.3 Avoiding Risks When Reading Names and Arguments
 
-Lệnh `jps -v` hoặc `-m` có thể lộ giá trị như JVM system properties, key, token hoặc connection string nếu chúng được truyền trên command line. Không đưa raw output chưa lọc vào ticket công khai hay log chia sẻ. Với báo cáo điều tra, chỉ trích các flag cần thiết, ẩn giá trị bí mật và lưu bằng chứng theo quyền truy cập.
+`jps -v` or `-m` can reveal values such as JVM system properties, keys, tokens, or connection strings if passed on the command line. Do not paste unfiltered raw output into public tickets or shared logs. For investigation reports, extract only needed flags, mask secret values, and store evidence with appropriate access controls.
 
-Nếu script cần danh sách PID đáng tin cho orchestration, nên dùng API/endpoint chuyên dụng hoặc nguồn từ platform quản lý tiến trình, kết hợp kiểm tra identity. Không parse token thứ hai của `jps` để suy ra tên dịch vụ bất biến.
+If a script needs a reliable PID list for orchestration, use a dedicated API/endpoint or process-management platform source combined with identity verification. Do not parse the second token of `jps` to infer an immutable service name.
 
-## 4. Dùng jcmd: từ liệt kê đến hỏi trực tiếp JVM đích
+## 4. Using jcmd: From Listing to Querying the Target JVM Directly
 
-### 4.1 Liệt kê JVM cục bộ
+### 4.1 Listing Local JVMs
 
 ```bash
 jcmd
 jcmd -l
 ```
 
-Theo tài liệu JDK, không truyền đối số tương đương `jcmd -l`: hiển thị các JVM process identifier mà cơ chế liệt kê của công cụ nhìn thấy, cùng main class và tham số launcher tương ứng nếu có.
+According to JDK documentation, passing no arguments is equivalent to `jcmd -l`: it displays the JVM process identifiers visible to the tool's listing mechanism, along with the corresponding main class and launcher arguments if available.
 
-**Lưu ý riêng rất quan trọng với Docker:** tài liệu `jcmd` ghi rõ `-l` không liệt kê JVM đang chạy trong một Docker process riêng biệt theo cách công cụ dò tìm. Khi gặp tình huống ấy, phải dùng nguồn khác, ví dụ `ps` tại đúng namespace hoặc công cụ quản lý container, để xác định PID. **`jcmd -l` không thấy không chứng minh JVM bị tắt.**
+**Very important note regarding Docker:** `jcmd` documentation explicitly states that `-l` does not list JVMs running inside separate Docker processes through its discovery mechanism. In that situation, you must use another source—such as `ps` in the proper namespace or container management tools—to identify the PID. **`jcmd -l` not seeing it does not prove the JVM is down.**
 
-Trong môi trường nhiều JVM, cần kiểm tra cả tên class/JAR, command line, host/container, phiên bản runtime và thời gian bắt đầu. Không chọn theo số PID “gần giống” ở lần điều tra trước.
+In multi-JVM environments, verify class/JAR name, command line, host/container, runtime version, and start time. Do not choose a PID because it looks “similar” to one from a previous investigation.
 
-### 4.2 Truy vấn khả năng diagnostic của đúng JVM
+### 4.2 Querying Diagnostic Capabilities of the Right JVM
 
-Sau khi xác định PID, ví dụ **PID 4242 chỉ để minh họa cú pháp**:
+After identifying the PID, for example **PID 4242 purely to illustrate syntax**:
 
 ```bash
 jcmd 4242 help
@@ -140,80 +140,80 @@ jcmd 4242 VM.flags
 jcmd 4242 VM.uptime
 ```
 
-- `help` liệt kê các diagnostic command mà JVM đích công bố. Có thể dùng `jcmd 4242 help VM.command_line` để xem thông tin về một lệnh cụ thể.
-- `VM.command_line` trả thông tin lệnh khởi chạy JVM mà implementation hỗ trợ.
-- `VM.version` cho biết phiên bản VM đích; giá trị này có ý nghĩa hơn `java -version` ở một terminal khác nếu cần xác nhận service đang chạy.
-- `VM.flags` cho biết những VM flags được JVM báo; cách hiển thị và độ đầy đủ phụ thuộc command/implementation.
-- `VM.uptime` đưa thời gian JVM chạy theo nguồn của VM; kết hợp timestamp/identity để tránh đọc nhầm tiến trình đã restart.
+- `help` lists the diagnostic commands advertised by the target JVM. You can use `jcmd 4242 help VM.command_line` to inspect details about a specific command.
+- `VM.command_line` returns the JVM launch command information supported by the implementation.
+- `VM.version` shows the target VM's version; this is more meaningful than running `java -version` in another terminal when confirming what the service is running.
+- `VM.flags` shows the VM flags reported by the JVM; presentation and completeness depend on the command/implementation.
+- `VM.uptime` provides the JVM's running time from the VM's perspective; combine with timestamps/identity to avoid misreading a restarted process.
 
-Ở bước khám phá, **không cần** lập tức chạy `Thread.print` hay tạo dump. Các lệnh thông tin đơn giản thường nhẹ hơn, trong khi số lệnh khác có chi phí rất khác nhau tùy tải và số đối tượng/thread. Luôn đọc mô tả/impact của command trong `help` và chọn đúng mục tiêu.
+During discovery, **there is no need** to immediately run `Thread.print` or trigger dumps. Simple informational commands are usually lighter, whereas other commands vary greatly in cost depending on load and object/thread counts. Always read a command's description/impact in `help` and target precisely.
 
-Một số diagnostic command khác như `GC.heap_info`, `Thread.print`, `JFR.*` có thể hữu ích **sau khi đã xác định chính xác JVM** và mục đích thu thập. Chúng không thay thế kiểm tra PID, và không phải thành phần bắt buộc của bước discovery.
+Other diagnostic commands like `GC.heap_info`, `Thread.print`, and `JFR.*` can be useful **after you have accurately identified the JVM** and collection objective. They do not replace PID verification and are not mandatory in the discovery step.
 
-### 4.3 jcmd có những điều kiện tiên quyết nào?
+### 4.3 What Prerequisites Does jcmd Have?
 
-- Công cụ thường cần chạy **trên cùng máy** với JVM đích và với effective user/group IDs tương ứng theo yêu cầu của implementation được tài liệu hóa; quyền OS và chính sách attach vẫn có hiệu lực.
-- JVM cần hỗ trợ diagnostic/attach tương ứng; cấu hình như `-XX:+DisableAttachMechanism` trên HotSpot có thể làm attach không khả dụng.
-- Đường nhìn PID phải đúng với môi trường thực thi. Một PID nhìn ở host không được giả định bằng PID trong namespace của container.
-- Container image chỉ gồm Java runtime có thể không có `jcmd`. Việc công cụ **không có trong PATH** khác với JVM **không thể được chẩn đoán**.
-- Đích có thể thoát, treo hoặc đổi trạng thái giữa lúc xác định PID và lúc attach; lệnh có thể thất bại hoặc timeout tùy công cụ.
-- Một diagnostic command có thể không tồn tại ở phiên bản JVM cụ thể. `jcmd PID help` là cách xác nhận hỗ trợ trước khi dùng.
+- The tool typically needs to run **on the same machine** as the target JVM with matching effective user/group IDs as documented by the implementation; OS permissions and attach policies still apply.
+- The JVM must support the corresponding diagnostic/attach mechanism; settings like `-XX:+DisableAttachMechanism` on HotSpot can disable attach.
+- The PID view must match the execution environment. A PID seen on the host must not be assumed equal to a PID inside a container namespace.
+- Container images containing only a Java runtime may lack `jcmd`. The tool **not being in PATH** is different from the JVM **being undiagnosable**.
+- The target may exit, hang, or change state between identifying the PID and attaching; commands may fail or time out depending on the tool.
+- A diagnostic command might not exist in a specific JVM version. `jcmd PID help` is the way to verify support before running it.
 
-Không kết luận “JVM lỗi” chỉ từ một thông báo attach thất bại. Cần phân biệt *không tìm thấy process*, *không đủ quyền*, *không cùng namespace*, *attach bị vô hiệu*, *tool/runtime không tương thích*, *JVM không phản hồi* và *command không được hỗ trợ*.
+Do not conclude “the JVM is broken” from a single attach failure message. Distinguish among *process not found*, *insufficient permissions*, *different namespace*, *attach disabled*, *incompatible tool/runtime*, *unresponsive JVM*, and *unsupported command*.
 
-### 4.4 Các lệnh có thể tiết lộ dữ liệu nhạy cảm hoặc làm thay đổi trạng thái
+### 4.4 Commands That May Expose Sensitive Data or Mutate State
 
-`jcmd PID VM.system_properties` có thể in system properties chứa dữ liệu nhạy cảm; `VM.command_line` cũng có thể in tham số khởi chạy có secret. Một số diagnostic command không chỉ đọc: có lệnh thay flags hoặc điều khiển recording/management agent. Vì vậy chỉ chạy **đúng lệnh đọc cần dùng**, xem mô tả trước và tránh dùng `jcmd 0 ...` hoặc nhắm theo main class khi mục tiêu chỉ là một JVM: các cách đó có thể nhắm **nhiều** JVM.
+`jcmd PID VM.system_properties` can print system properties containing sensitive data; `VM.command_line` can also print launch arguments containing secrets. Some diagnostic commands are not read-only: there are commands that modify flags or control recordings/management agents. Therefore, run **only the specific read commands needed**, inspect descriptions beforehand, and avoid using `jcmd 0 ...` or targeting by main class when intending to inspect a single JVM: those forms can target **multiple** JVMs.
 
-Khi đưa output vào báo cáo, luôn ghi PID, host/container, thời điểm, command đã chạy và bộ lọc/redaction áp dụng. Đừng đưa token, password hay nguyên chuỗi command line không kiểm soát vào kho lưu rộng quyền.
+When including output in a report, always record the PID, host/container, timestamp, command executed, and applied filters/redaction. Do not place tokens, passwords, or unfiltered command-line strings in broadly accessible storage.
 
-## 5. Dùng ProcessHandle để khám phá tiến trình từ mã Java
+## 5. Using ProcessHandle to Discover Processes from Java Code
 
-`ProcessHandle` (có từ Java 9) thuộc `java.lang`, cho phép thao tác với **native process** theo những khả năng hệ điều hành và quyền cung cấp. Không cần thêm dependency ngoài JDK để dùng API này. ProcessHandle có các phương thức điều khiển tiến trình như `destroy()`, nhưng bài này chỉ sử dụng API **đọc**.
+`ProcessHandle` (available since Java 9) resides in `java.lang` and allows interacting with **native processes** according to what the OS and permissions allow. No external dependencies beyond the JDK are needed to use this API. `ProcessHandle` includes process-control methods such as `destroy()`, but this lesson uses only the **read-only** API.
 
-### 5.1 API thường dùng
+### 5.1 Commonly Used APIs
 
-| API | Ý nghĩa | Điều cần nhớ |
+| API | Meaning | Things to remember |
 | --- | --- | --- |
-| `ProcessHandle.current()` | Lấy handle của process Java đang gọi | Chỉ mô tả **tiến trình hiện tại** |
-| `ProcessHandle.of(pid)` | Tìm handle theo PID, trả `Optional<ProcessHandle>` | Có thể rỗng khi PID không tồn tại; quyền/OS có thể gây exception |
-| `ProcessHandle.allProcesses()` | Trả stream snapshot của những native processes nhìn thấy được | Gồm non-Java processes, không có guarantee toàn bộ host |
-| `handle.pid()` | Trả native process ID | PID tái sử dụng; ngữ cảnh namespace quan trọng |
-| `handle.info()` | Trả `ProcessHandle.Info` snapshot | Các trường bên trong là `Optional` |
-| `handle.parent()` | Tìm parent process, nếu có thể xác định | Có thể rỗng do không có parent hoặc OS limitations |
-| `handle.children()` | Snapshot các process con trực tiếp | Process có thể kết thúc/đổi quan hệ ngay sau snapshot |
-| `handle.descendants()` | Snapshot con, cháu và các cấp dưới | Không phải cây ổn định qua thời gian |
-| `handle.isAlive()` | Kiểm tra trạng thái sống hiện tại | Là ảnh chụp; không bảo đảm process còn sống ở thao tác tiếp theo |
-| `handle.onExit()` | Future hoàn thành khi process kết thúc | Hữu ích khi theo dõi vòng đời; **không** là log lịch sử restart |
+| `ProcessHandle.current()` | Gets the handle of the calling Java process | Describes only **the current process** |
+| `ProcessHandle.of(pid)` | Looks up a handle by PID, returning `Optional<ProcessHandle>` | May be empty if the PID does not exist; OS/permissions may throw an exception |
+| `ProcessHandle.allProcesses()` | Returns a snapshot stream of visible native processes | Includes non-Java processes; no guarantee of the entire host |
+| `handle.pid()` | Returns the native process ID | PIDs are reused; namespace context matters |
+| `handle.info()` | Returns a `ProcessHandle.Info` snapshot | Fields inside are `Optional` |
+| `handle.parent()` | Finds the parent process, if determinable | May be empty if no parent or due to OS limitations |
+| `handle.children()` | Snapshot of direct child processes | Processes can exit or change relationships right after the snapshot |
+| `handle.descendants()` | Snapshot of children, grandchildren, and lower levels | Not a stable tree over time |
+| `handle.isAlive()` | Checks current liveness | A snapshot; does not guarantee the process remains alive for the next action |
+| `handle.onExit()` | Future that completes when the process exits | Useful for lifecycle monitoring; **not** a restart history log |
 
-`allProcesses()` là stream tiến trình OS mà runtime có thể nhìn thấy tại thời điểm chụp; **không tự phân loại Java hay HotSpot**. Tìm tên executable chứa `java` chỉ là heuristic: có thể bỏ sót custom launcher, sai khi đường dẫn bị rút ngắn hoặc chứa tên tương tự.
+`allProcesses()` is a stream of OS processes visible to the runtime at snapshot time; **it does not automatically classify Java or HotSpot processes**. Searching for executable names containing `java` is only a heuristic: it can miss custom launchers, or misidentify shortened or similarly named paths.
 
-### 5.2 ProcessHandle.Info cung cấp thông tin nào?
+### 5.2 What Information Does ProcessHandle.Info Provide?
 
-`ProcessHandle.Info` có các accessor chính:
+`ProcessHandle.Info` has the main accessors:
 
-| Trường | Kiểu trả về | Ý nghĩa và giới hạn |
+| Field | Return type | Meaning and limitations |
 | --- | --- | --- |
-| `command()` | `Optional<String>` | Đường dẫn/name executable; có thể thiếu hoặc bị cắt ngắn |
-| `commandLine()` | `Optional<String>` | Biểu diễn best-effort của command line; không nhất thiết khôi phục chuẩn quoting/argv |
-| `arguments()` | `Optional<String[]>` | Các đối số process nếu OS cung cấp; có thể thiếu, bị đổi hoặc không đầy đủ |
-| `startInstant()` | `Optional<Instant>` | Thời điểm process bắt đầu nếu có |
-| `totalCpuDuration()` | `Optional<Duration>` | Thời gian CPU tích lũy nếu có; không phải CPU % tức thời |
-| `user()` | `Optional<String>` | Tên user mà OS/API cho phép đọc, nếu có |
+| `command()` | `Optional<String>` | Executable path/name; may be missing or truncated |
+| `commandLine()` | `Optional<String>` | Best-effort representation of the command line; may not preserve exact quoting/argv |
+| `arguments()` | `Optional<String[]>` | Process arguments if provided by the OS; may be missing, altered, or incomplete |
+| `startInstant()` | `Optional<Instant>` | Process start time if available |
+| `totalCpuDuration()` | `Optional<Duration>` | Cumulative CPU time if available; not instantaneous CPU % |
+| `user()` | `Optional<String>` | Username readable via OS/API, if available |
 
-**Optional rỗng là kết quả bình thường cần xử lý.** Nó không chứng minh giá trị thực tế bằng rỗng, bằng 0 hay bằng “unknown Java”. Trên một số hệ điều hành, `commandLine()` chỉ được tạo từ `command()` và `arguments()` ghép bằng dấu cách; cách biểu diễn đó không thể tái tạo chắc chắn ranh giới argument chứa dấu cách hoặc cách shell đã quote.
+**An empty `Optional` is a normal result that must be handled.** It does not prove the actual value is blank, zero, or “unknown Java”. On some operating systems, `commandLine()` is simply built by joining `command()` and `arguments()` with spaces; that representation cannot reliably reconstruct boundaries of arguments containing spaces or how the shell quoted them.
 
-Đừng dùng `arguments().get()` khi chưa kiểm tra present; đừng tin rằng tài khoản không đặc quyền có thể lấy owner/command line của mọi process. Với process đã thoát, dữ liệu từng trường có thể đã biến mất.
+Do not call `arguments().get()` without checking presence; do not assume an unprivileged account can retrieve the owner/command line of every process. For an exited process, per-field data may already be gone.
 
-### 5.3 CPU time và process tree có dễ suy luận không?
+### 5.3 Are CPU Time and Process Trees Easy to Interpret?
 
-`totalCpuDuration()` là **CPU time tích lũy** của process, không phải phần trăm CPU hay thời gian chạy đồng hồ. Muốn ước lượng CPU utilization cần tối thiểu hai mẫu CPU duration và elapsed wall time, định nghĩa cách chuẩn hóa theo số lõi/quota, đồng thời xử lý reset/restart. Hai process có cùng CPU duration không có nghĩa mức tải hiện tại giống nhau.
+`totalCpuDuration()` is **cumulative CPU time** of the process, not CPU percentage or wall-clock uptime. Estimating CPU utilization requires at least two samples of CPU duration and elapsed wall time, a defined normalization against core count/quota, and handling resets/restarts. Two processes having the same CPU duration does not mean they currently have the same load.
 
-`children()` và `descendants()` biểu diễn cấu trúc parent-child **ở lúc truy vấn**, không phải tập các request worker thread. Thread của một JVM không xuất hiện như những “Java child processes” trong API này. Nếu ứng dụng gọi `ProcessBuilder` để chạy command ngoài, những command ấy **có thể** là native child processes; còn các thread trong cùng JVM vẫn thuộc một tiến trình.
+`children()` and `descendants()` represent the parent-child structure **at query time**, not the set of request worker threads. A JVM's threads do not appear as “Java child processes” in this API. If an application uses `ProcessBuilder` to run external commands, those commands **can** be native child processes; threads within the same JVM remain inside one process.
 
-## 6. Ví dụ Java 17+ chạy độc lập: kiểm tra self, parent, PID tùy chọn và phạm vi nhìn thấy
+## 6. Standalone Java 17+ Example: Inspecting Self, Parent, Optional PID, and Visibility Scope
 
-Lưu đoạn mã sau trong tệp `ProcessDiscoveryDemo.java`. Chương trình **chỉ đọc thông tin**, không kill process, không quét command line để lọc keyword và không đụng tới dữ liệu heap/JVM ngoài tiến trình.
+Save the following code in `ProcessDiscoveryDemo.java`. The program **only reads information**, does not kill processes, does not scan command lines for keywords, and does not touch heap/JVM internals outside the process.
 
 ```java
 import java.util.stream.Stream;
@@ -266,7 +266,7 @@ public class ProcessDiscoveryDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac ProcessDiscoveryDemo.java
@@ -274,56 +274,56 @@ java ProcessDiscoveryDemo
 java ProcessDiscoveryDemo 4242
 ```
 
-- Lệnh thứ hai chỉ hỏi tiến trình Java hiện tại, parent, số children tại thời điểm lấy mẫu và số process OS đang nhìn thấy.
-- Lệnh cuối thêm truy vấn **PID ví dụ 4242**; số này không khẳng định đang tồn tại. Nếu không có process ấy, dòng `TARGET (not found)` là kết quả hợp lệ, không phải lỗi Java.
-- Các giá trị PID, command, start time, parent và số process **phụ thuộc máy, container, thời điểm và quyền**, nên không có stdout số cụ thể cố định. Mọi dòng đều có prefix như `SELF`, `PARENT`, `DIRECT_CHILDREN_SNAPSHOT=`, `VISIBLE_OS_PROCESSES_SNAPSHOT=` và khi có đối số thì `TARGET`.
-- Các phép đếm dùng `Stream.count()`; `try-with-resources` bảo đảm stream được đóng đúng cách, dù việc đóng stream ở đây không đồng nghĩa giải phóng một tài nguyên hệ thống nặng.
-- `ProcessHandle.of` trả về optional; chương trình không gọi `get()` trên optional rỗng. Nó không tự nhận “mọi Java process” từ `allProcesses()`.
+- The second command queries only the current Java process, its parent, the count of direct children at sampling time, and the count of visible OS processes.
+- The last command additionally queries **example PID 4242**; this number does not assert that such a process exists. If no such process exists, `TARGET (not found)` is a valid result, not a Java error.
+- PID, command, start time, parent, and process count values **depend on the machine, container, timing, and permissions**, so there is no fixed numeric stdout. Every line has a prefix such as `SELF`, `PARENT`, `DIRECT_CHILDREN_SNAPSHOT=`, `VISIBLE_OS_PROCESSES_SNAPSHOT=`, and `TARGET` when an argument is provided.
+- Counts use `Stream.count()`; `try-with-resources` ensures streams are properly closed, even though closing a stream here does not necessarily imply releasing a heavy OS resource.
+- `ProcessHandle.of` returns an `Optional`; the program does not call `get()` on an empty optional. It does not claim “all Java processes” from `allProcesses()`.
 
-Nếu hệ điều hành, policy hoặc SecurityManager (trên các runtime còn hỗ trợ) cấm thao tác, có thể nhận `SecurityException` hoặc `UnsupportedOperationException`. Đây là ứng dụng đo đơn giản, không tự vượt cơ chế quyền. Nó không thay thế inventory của platform hoặc `jcmd` khi mục tiêu là JVM internals.
+If the OS, policy, or `SecurityManager` (on runtimes that still support it) forbids the operation, you may receive a `SecurityException` or `UnsupportedOperationException`. This is a simple measurement app and does not bypass permission controls. It does not replace platform inventory or `jcmd` when the goal is JVM internals.
 
-### 6.1 Nhìn process khác không có nghĩa đã attach JVM
+### 6.1 Seeing Another Process Does Not Mean You Can Attach to a JVM
 
-Một chương trình Java chạy `ProcessHandle.of(4242)` có thể tìm thấy process Python, shell hoặc database bình thường. Điều này chỉ nói process OS có handle khả dụng. **Không thể suy ra process ấy là HotSpot, có heap hoặc nhận được `jcmd`**. Ngược lại, nếu `ProcessHandle.Info.command()` rỗng, process vẫn có thể là JVM mà công cụ jcmd nhận diện.
+A Java program calling `ProcessHandle.of(4242)` can find a Python, shell, or database process normally. This only means the OS process has an accessible handle. **You cannot infer that the process is HotSpot, has a Java heap, or accepts `jcmd`**. Conversely, if `ProcessHandle.Info.command()` is empty, the process may still be a JVM recognized by `jcmd`.
 
-### 6.2 Dùng PID + startInstant để giảm nguy cơ nhận nhầm
+### 6.2 Using PID + startInstant to Reduce Misidentification Risk
 
-Nếu có `startInstant()`, ghi cả PID lẫn timestamp. Trước và sau khi thu bằng chứng, xác minh cặp danh tính này vẫn phù hợp. Khi timestamp không có, cần đối chiếu thêm container instance, uptime, artifact/build identity và event từ orchestration. Đây là biện pháp giảm nhầm lẫn do PID reuse, **không phải giao thức nguyên tử đảm bảo không có race**: process vẫn có thể kết thúc giữa bước kiểm tra và bước quan sát.
+If `startInstant()` is available, record both the PID and timestamp. Before and after collecting evidence, verify that this identity pair still matches. When the timestamp is unavailable, cross-check container instance, uptime, artifact/build identity, and orchestration events. This reduces confusion from PID reuse, **not an atomic race-free protocol**: a process can still exit between the check and the observation step.
 
-## 7. Quy trình điều tra thực tế: tìm đúng JVM trước khi truy vấn
+## 7. Practical Investigation Workflow: Finding the Right JVM Before Querying
 
-Một quy trình read-only có thể thực hiện như sau.
+A read-only workflow can proceed as follows.
 
-### Bước 1 — Xác định môi trường bạn đang đứng
+### Step 1 — Identify the Environment You Are Standing In
 
-Đang chạy công cụ ở host, VM, container, pod hay development terminal? Ghi namespace PID, quyền account, đường dẫn executable JDK và thời gian. Nếu dự định so nhiều lệnh, bảo đảm chúng chạy cùng phạm vi quan sát hoặc ghi rõ mapping PID.
+Are you running the tool on a host, VM, container, pod, or development terminal? Record the PID namespace, account permissions, JDK executable path, and time. If you plan to compare multiple commands, ensure they run in the same observation scope or explicitly document the PID mapping.
 
-### Bước 2 — Thu danh sách ứng viên từ nhiều nguồn
+### Step 2 — Collect Candidate Lists from Multiple Sources
 
-Trên môi trường có JDK:
+In an environment with a JDK:
 
 ```bash
 jps -l
 jcmd -l
 ```
 
-Trên Linux, bổ sung nguồn native process của đúng namespace:
+On Linux, supplement with the native process source in the proper namespace:
 
 ```bash
 ps -eo pid,ppid,comm,args
 ```
 
-Trên Windows, có thể dùng PowerShell `Get-Process` hoặc công cụ OS; không copy lệnh `ps` Linux sang Windows mà coi kết quả tương đương. Một Java service chạy trong container nên được đối chiếu với tên pod/container và process list tương ứng của chính container.
+On Windows, you can use PowerShell `Get-Process` or OS tools; do not copy Linux `ps` commands to Windows expecting equivalent results. A Java service running in a container should be matched against the pod/container name and that container's own process list.
 
-**Không lấy union của các kết quả rồi kết luận tất cả đều là JVM.** `ps` hiển thị process OS, `jps` và `jcmd` có phương pháp phát hiện JVM riêng. Sự khác biệt là dữ kiện về *phạm vi quan sát*, chưa phải dấu hiệu lỗi.
+**Do not take the union of results and conclude all of them are JVMs.** `ps` shows OS processes, while `jps` and `jcmd` have their own JVM discovery mechanisms. Differences reflect *observation scope*, not necessarily an error.
 
-### Bước 3 — Khóa danh tính ứng viên trước khi đào sâu
+### Step 3 — Lock Down the Candidate's Identity Before Drilling Deeper
 
-Ghi PID ở đúng namespace, command/executable nếu có, main class/JAR, start time, service instance, runtime version và owner. Nếu có nhiều bản `report-worker.jar`, dùng instance/container/port/runtime/config để phân biệt thay vì chọn dòng đầu tiên.
+Record the PID in the proper namespace, command/executable if available, main class/JAR, start time, service instance, runtime version, and owner. If there are multiple instances of `report-worker.jar`, use instance/container/port/runtime/config to distinguish them rather than picking the first line.
 
-### Bước 4 — Thăm dò diagnostic nhẹ, nhắm PID cụ thể
+### Step 4 — Lightweight Diagnostic Probing, Targeting a Specific PID
 
-Chỉ khi chắc chắn PID và quyền:
+Only once PID and permissions are confirmed:
 
 ```bash
 jcmd 4242 help
@@ -332,132 +332,132 @@ jcmd 4242 VM.version
 jcmd 4242 VM.uptime
 ```
 
-PID 4242 chỉ minh họa. Lưu timestamp, stdout/stderr và exit status; che các tham số nhạy cảm trước khi chia sẻ. Nếu không attach được, ghi lỗi thực tế và quay lại kiểm tra quyền/namespace/version/attach support, không đổi đại PID khác.
+PID 4242 is illustrative only. Save timestamps, stdout/stderr, and exit status; redact sensitive arguments before sharing. If attaching fails, record the actual error and re-check permissions/namespace/version/attach support—do not randomly try another PID.
 
-### Bước 5 — Xác minh điều bạn đã biết và điều còn chưa biết
+### Step 5 — Verify What You Know and What Remains Unknown
 
-Sau một vòng discovery, nên trả lời được:
+After a discovery round, you should be able to answer:
 
-- JVM/process ứng viên nào đang tồn tại và mình nhìn từ host/namespace nào?
-- Lệnh nào chứng minh danh tính, phiên bản runtime, launcher và thời gian chạy?
-- Trường nào không được cung cấp do `Optional.empty()`, quyền hoặc giới hạn tool?
-- Có thể kiểm tra chéo OS process với JVM liveness và orchestration metadata chưa?
-- Chỉ số runtime chuyên sâu nào cần thu **tiếp theo** cho giả thuyết điều tra?
+- Which candidate JVMs/processes exist, and from which host/namespace am I observing?
+- Which commands prove the identity, runtime version, launcher, and running time?
+- Which fields were unavailable due to `Optional.empty()`, permissions, or tool limits?
+- Have OS process checks been cross-verified with JVM liveness and orchestration metadata?
+- Which deeper runtime metrics need to be collected **next** for the investigation hypothesis?
 
-Khi một mảnh thông tin thiếu, ghi “không quan sát được bằng phương pháp này” thay vì tự điền giá trị.
+When a piece of information is missing, record “not observable with this method” instead of filling in a value by guessing.
 
-## 8. Vì sao kết quả ba công cụ khác nhau?
+## 8. Why Do the Three Tools Produce Different Results?
 
-| Hiện tượng | Giải thích có thể xảy ra | Bước kiểm tra phù hợp |
+| Observation | Possible explanation | Appropriate verification step |
 | --- | --- | --- |
-| `ps` thấy Java process, `jps` không thấy | Quyền, instrumentation, namespace, VM implementation, process quá ngắn | Xác định PID/owner/namespace, đối chiếu tool ở đúng môi trường |
-| `jcmd -l` không thấy JVM trong Docker | Giới hạn liệt kê Docker process được tài liệu jcmd nêu | Dùng process list của đúng container/host và mapping PID |
-| `jps` thấy app nhưng `jcmd PID ...` thất bại | Attach bị chặn, quyền khác, PID đổi, JVM không phản hồi hoặc command không được hỗ trợ | Kiểm tra effective UID/GID, PID/start time, `help`, stderr |
-| `ProcessHandle.allProcesses()` thấy rất nhiều dòng hơn `jps` | API liệt kê native processes, cả non-Java | Không dùng count đó làm số JVM |
-| `Info.commandLine()` rỗng, `pid()` có giá trị | OS/permission không cung cấp trường command line | Xem `Optional`, dùng nguồn process/launcher hợp lệ khác |
-| `Info.command()` chỉ thấy `java` | Đây là executable, không nhất thiết là tên app | Đối chiếu JAR/main class, container metadata và jcmd |
-| `jps -l` hiện `Unknown` | Custom launcher/JVM không báo được entry point | Xác minh bằng VM command line hoặc runtime metadata, nếu có |
-| `ProcessHandle.of(pid)` rỗng sau khi `jps` vừa in PID | Process đã kết thúc, namespace khác hoặc lookup không thấy | Đọc mốc thời gian, kiểm tra lại danh tính/sự kiện |
-| Hai lần chạy báo cùng PID nhưng runtime khác | PID đã tái sử dụng sau restart | Kèm startInstant/uptime và instance ID khi lưu bằng chứng |
+| `ps` sees a Java process, `jps` does not | Permissions, instrumentation, namespace, VM implementation, process too short-lived | Check PID/owner/namespace, verify tool in the right environment |
+| `jcmd -l` does not see a JVM inside Docker | Docker process listing limitation documented by `jcmd` | Use the process list of the right container/host and PID mapping |
+| `jps` sees the app, but `jcmd PID ...` fails | Attach blocked, different user, PID changed, unresponsive JVM, or unsupported command | Check effective UID/GID, PID/start time, `help`, stderr |
+| `ProcessHandle.allProcesses()` shows far more lines than `jps` | API lists native processes, including non-Java ones | Do not use that count as the number of JVMs |
+| `Info.commandLine()` is empty, `pid()` has a value | OS/permissions do not expose the command line field | Check `Optional`, use another valid process/launcher source |
+| `Info.command()` shows only `java` | That is the executable, not necessarily the app name | Cross-check JAR/main class, container metadata, and `jcmd` |
+| `jps -l` shows `Unknown` | Custom launcher/JVM did not publish an entry point | Verify via VM command line or runtime metadata, if available |
+| `ProcessHandle.of(pid)` is empty right after `jps` printed the PID | Process exited, different namespace, or lookup failed to see it | Check timestamps, re-verify identity/events |
+| Two runs report the same PID but a different runtime | PID was reused after a restart | Include `startInstant`/uptime and instance ID when saving evidence |
 
-Bảng là **các giả thuyết để kiểm tra**, không phải chẩn đoán chắc chắn. Một trường hợp có thể có nhiều nguyên nhân đồng thời.
+This table lists **hypotheses to test**, not definitive diagnoses. A single case can have multiple causes simultaneously.
 
-## 9. Bốn giới hạn quan trọng cần hiểu sâu
+## 9. Four Important Limitations to Understand Deeply
 
-### 9.1 Giới hạn quyền và phạm vi quan sát
+### 9.1 Permission and Observation Scope Limits
 
-Dù có quyền chạy một chương trình Java, người dùng hiện tại không nhất thiết có quyền đọc các tiến trình của tài khoản khác. Hệ điều hành, container runtime, namespace, sandbox, security policy và cấu hình JVM đều tham gia quyết định.
+Even with permission to run a Java program, the current user does not necessarily have permission to read processes owned by other accounts. Operating system, container runtime, namespaces, sandboxes, security policies, and JVM settings all participate in the decision.
 
-Một quy trình kiểm tra an toàn:
+A safe checking workflow:
 
-1. Ghi process owner và account thực thi lệnh công cụ.
-2. Xác nhận cùng host/namespace và có đường đi phù hợp tới process đích.
-3. Xem stderr và mã thoát thay vì chỉ đếm số dòng stdout.
-4. Chỉ nâng quyền qua quy trình vận hành đã được phép; không mặc định chạy mọi công cụ bằng root.
+1. Record the process owner and the account running the diagnostic command.
+2. Confirm the same host/namespace and a valid path to the target process.
+3. Inspect stderr and exit codes rather than just counting stdout lines.
+4. Escalate privileges only through approved operational procedures; do not run every tool as root by default.
 
-Đặc biệt, `jcmd` không phải một giao thức giám sát từ xa tổng quát. Tài liệu của nó yêu cầu thao tác trên cùng máy và quyền tương ứng để gửi command. `jps` có thể mô tả tùy chọn host identifier trong môi trường dùng `jstatd`, nhưng điều đó **không biến mọi JVM từ xa thành mục tiêu có thể truy vấn mặc định**.
+In particular, `jcmd` is not a general remote monitoring protocol. Its documentation requires operating on the same machine with matching permissions to send commands. `jps` describes an optional host identifier for environments using `jstatd`, but that **does not make every remote JVM queryable by default**.
 
-### 9.2 Giới hạn container và PID namespace
+### 9.2 Container and PID Namespace Limits
 
-Khi một JVM là PID 1 bên trong container, trên host nó có thể có PID khác. Nếu chạy `ProcessHandle.current()` bên trong, `pid()` phản ánh view của process đó. Gửi PID bên trong vào `jcmd` đang chạy ngoài container có thể nhắm sai process hoặc thất bại. Ngoài PID, khác filesystem namespace và user mapping cũng có thể làm attach gặp vấn đề.
+When a JVM is PID 1 inside a container, it can have a different PID on the host. If `ProcessHandle.current()` runs inside, `pid()` reflects that process's view. Passing the internal PID to `jcmd` running outside the container can target the wrong process or fail. Beyond PIDs, different filesystem namespaces and user mappings can also cause attach problems.
 
-Tài liệu `jcmd -l` nêu hạn chế với JVM trong Docker process riêng biệt. Vì thế, một checklist thực tế là ghi **tool chạy ở đâu, target chạy ở đâu, PID lấy từ namespace nào và có mapping nào hợp lệ**. Không đổi/chỉnh namespace chỉ vì thiếu output mà chưa xác định phạm vi.
+`jcmd -l` documentation notes the limitation with JVMs in separate Docker processes. Thus, a practical checklist is to record **where the tool runs, where the target runs, which namespace the PID came from, and whether a valid mapping exists**. Do not switch/alter namespaces just because output is missing without first establishing scope.
 
-### 9.3 Giới hạn thông tin và tính nhạy cảm
+### 9.3 Information Completeness and Sensitivity Limits
 
-`jps` có thể trả tên ngắn, tên dài hoặc `Unknown`. `ProcessHandle.Info` có thể trả Optional rỗng và command line không giữ nguyên cách trích dẫn đối số. `jcmd VM.command_line` có thể cho góc nhìn JVM rõ hơn nhưng chỉ khi attach được.
+`jps` may return a short name, long name, or `Unknown`. `ProcessHandle.Info` may return empty `Optional`s, and `commandLine()` may not preserve argument quoting. `jcmd VM.command_line` can give a clearer JVM view, but only when attaching succeeds.
 
-Command line và system properties có thể chứa password, API key hoặc đường dẫn nội bộ. **Đầy đủ hơn không luôn là an toàn hơn**: nội dung báo cáo chỉ cần trường phù hợp để xác định tiến trình. Không ghi raw output nhạy cảm vào bảng công khai; nếu cần dữ liệu chi tiết hãy lưu ở chỗ có quyền truy cập hạn chế và quy tắc redaction rõ ràng.
+Command lines and system properties can contain passwords, API keys, or internal paths. **More complete is not always safer**: a report only needs the fields necessary to identify the process. Do not paste sensitive raw output into public boards; if detailed data is needed, store it in restricted-access locations with clear redaction rules.
 
-### 9.4 Giới hạn thời điểm và tính nhất quán
+### 9.4 Timing and Consistency Limits
 
-`jps` lúc T1, `jcmd` lúc T2 và `ProcessHandle.info()` lúc T3 không phải một snapshot nguyên tử. Giữa T1–T3 có thể có restart, PID reuse, đổi parent hoặc kết thúc process. Vì vậy, timestamp của evidence và thông tin start/uptime có giá trị kiểm chứng.
+`jps` at T1, `jcmd` at T2, and `ProcessHandle.info()` at T3 do not form an atomic snapshot. Between T1 and T3, restarts, PID reuse, parent changes, or process termination can occur. Therefore, evidence timestamps and start/uptime values are essential for verification.
 
-Các trường `isAlive`, `parent`, `children` hoặc `descendants` phản ánh quan sát gần thời điểm gọi; không bảo đảm tính đồng thời tuyệt đối. Không viết automation kiểu “nếu `isAlive()` đúng thì mọi command tiếp theo chắc chắn thành công”.
+Fields like `isAlive`, `parent`, `children`, or `descendants` reflect observations near call time; they do not guarantee strict simultaneity. Do not write automation assuming “if `isAlive()` is true, every subsequent command will definitely succeed”.
 
-## 10. Những kết luận không được suy ra từ mỗi công cụ
+## 10. Conclusions You Must Not Draw from Each Tool
 
-- **Thấy PID trong `jps` ⇒ không có nghĩa JVM khỏe.** Process tồn tại có thể đang deadlock, bị nghẽn CPU hoặc không phục vụ request.
-- **Không thấy PID trong `jcmd -l` ⇒ không có nghĩa JVM tắt.** Có giới hạn phát hiện, đặc biệt trong môi trường Docker riêng.
-- **`jps -v` có vài flags ⇒ không có nghĩa đã biết toàn bộ effective JVM configuration.** Còn runtime ergonomics, flags tự chọn và nguồn cấu hình khác; cần kiểm tra theo JVM thực tế.
-- **`ProcessHandle.Info.totalCpuDuration()` lớn ⇒ không có nghĩa CPU hiện đang cao.** Đây là tích lũy; cần hai điểm đo theo thời gian, so quota/cpu count để tính rate.
-- **`ProcessHandle.allProcesses().count()` ⇒ không phải số Java process hoặc thread.** Nó đếm native processes nhìn thấy; nhiều Java threads vẫn thuộc một PID.
-- **`Info.commandLine()` có chuỗi “java” ⇒ không chứng minh tiến trình đang chứa JVM tương thích `jcmd`.** Một process/script/native launcher có thể mang tên hoặc argument tương tự.
-- **`Info.startInstant()` rỗng ⇒ không phải start time bằng epoch.** Đó là không có thông tin qua API.
-- **PID giống nhau qua hai lần đo ⇒ không chắc là cùng instance.** Cần liên hệ start/uptime và nhận dạng workload.
-- **`jcmd PID help` thành công ⇒ không bảo đảm mọi diagnostic command đều được hỗ trợ hoặc có chi phí bằng nhau.** Mỗi command có hỗ trợ và impact riêng.
+- **Seeing a PID in `jps` ⇒ does not mean the JVM is healthy.** An existing process may be deadlocked, CPU-starved, or failing to serve requests.
+- **Not seeing a PID in `jcmd -l` ⇒ does not mean the JVM is down.** Discovery limits exist, especially in separate Docker environments.
+- **`jps -v` shows a few flags ⇒ does not mean you know the full effective JVM configuration.** Runtime ergonomics, auto-selected flags, and other config sources remain; check against the live JVM.
+- **Large `ProcessHandle.Info.totalCpuDuration()` ⇒ does not mean CPU is currently high.** It is cumulative; you need two timed samples compared against quotas/CPU count to compute a rate.
+- **`ProcessHandle.allProcesses().count()` ⇒ is not the number of Java processes or threads.** It counts visible native processes; many Java threads still belong to one PID.
+- **`Info.commandLine()` contains the string “java” ⇒ does not prove the process hosts a `jcmd`-compatible JVM.** A script/process/native launcher can have a similar name or argument.
+- **Empty `Info.startInstant()` ⇒ does not mean start time equals epoch.** It means the information is unavailable via the API.
+- **Same PID across two measurements ⇒ does not ensure the same instance.** Correlate start/uptime and workload identity.
+- **`jcmd PID help` succeeds ⇒ does not guarantee every diagnostic command is supported or has equal cost.** Each command has its own support and impact.
 
-## 11. Bài tập ứng dụng
+## 11. Practice Exercises
 
-### Bài tập A — Xem tiến trình của chính mình
+### Exercise A — Inspecting Your Own Process
 
-1. Biên dịch `ProcessDiscoveryDemo.java` bằng JDK 17+.
-2. Chạy `java ProcessDiscoveryDemo` và ghi PID, parent, start time, command và số process OS nhìn thấy.
-3. Khi JVM demo đang chạy, dùng `jps -l` và `jcmd -l` trên cùng máy/namespace, nếu các tool tồn tại, để tìm nó. Vì demo chạy rất nhanh, có thể nó đã kết thúc trước khi bạn gõ lệnh; **đó chính là giới hạn thời điểm**, không phải bằng chứng công cụ hỏng. Muốn quan sát một JVM lâu hơn, dùng một service hợp lệ đang chạy lâu hoặc một quy trình thực nghiệm riêng có kiểm soát.
-4. Ghi lại kết quả nào thực sự quan sát được và kết quả nào không thể đối chiếu vì process đã thoát.
+1. Compile `ProcessDiscoveryDemo.java` with JDK 17+.
+2. Run `java ProcessDiscoveryDemo` and record PID, parent, start time, command, and visible OS process count.
+3. While the demo JVM is running, use `jps -l` and `jcmd -l` on the same machine/namespace, if available, to find it. Because the demo exits very quickly, it may finish before you type the command; **that itself is a timing limitation**, not proof the tool is broken. To observe a JVM longer, use an authorized long-running service or a separate controlled experiment.
+4. Record which results were actually observed and which could not be cross-checked because the process exited.
 
-### Bài tập B — Trường hợp production nhiều JVM
+### Exercise B — Multi-JVM Production Scenario
 
-Giả định host hiển thị ba Java processes: một API service, một batch worker và một build daemon. Nhiệm vụ là định danh đúng API service mà **không** thu dump hay thay đổi trạng thái:
+Suppose a host shows three Java processes: an API service, a batch worker, and a build daemon. Your task is to identify the right API service **without** capturing dumps or mutating state:
 
-1. Dùng tên workload/host/container đã biết để giới hạn ứng viên.
-2. Lấy danh sách `jps -l`, `jcmd -l` và native process list của phạm vi phù hợp.
-3. Đối chiếu PID, entry point, command, runtime version, start/uptime và instance identity.
-4. Nếu `jcmd -l` thiếu một process, ghi giới hạn quan sát rồi tiếp tục bằng nguồn OS/container, không bỏ qua process chỉ vì thiếu dòng.
-5. Sau khi xác minh, mới chạy một command read-only nhẹ theo PID cụ thể và lưu thời gian cùng output đã làm sạch.
+1. Use the known workload/host/container name to narrow down candidates.
+2. Gather `jps -l`, `jcmd -l`, and the native process list for the appropriate scope.
+3. Cross-check PID, entry point, command, runtime version, start/uptime, and instance identity.
+4. If `jcmd -l` misses a process, note the observation limit and continue via OS/container sources—do not ignore a process just because a line is missing.
+5. Only after verification, run a lightweight read-only command against the specific PID and save the timestamp along with sanitized output.
 
-Bản ghi kết quả nên có dạng:
+The result record should follow this structure:
 
 ```text
-Quan sát: service, host/container, timestamp, PID scope
-Nguồn: jps / jcmd / ProcessHandle / OS tool
-Đã xác minh: PID, runtime/launcher, start time hoặc uptime
-Chưa xác minh: trường Optional rỗng, quyền thiếu, namespace chưa map
-Giới hạn: dữ liệu chỉ là snapshot; process có thể restart
-Hành động tiếp: command đọc cụ thể nếu có căn cứ
+Observed: service, host/container, timestamp, PID scope
+Source: jps / jcmd / ProcessHandle / OS tool
+Verified: PID, runtime/launcher, start time or uptime
+Unverified: empty Optional fields, missing permissions, unmapped namespace
+Limitations: data is only a snapshot; process may restart
+Next action: specific read command if justified
 ```
 
-Đây là **cấu trúc báo cáo**, không phải output của lệnh; nó giúp phân biệt bằng chứng và suy đoán.
+This is a **report structure**, not command output; it helps separate evidence from speculation.
 
-## 12. Checklist trước khi tuyên bố “đã tìm đúng JVM”
+## 12. Checklist Before Declaring “Found the Right JVM”
 
-- [ ] Đã ghi đúng máy/VM/container, user và namespace thực thi công cụ.
-- [ ] Đã biết nguồn cung cấp PID là OS, `jps` LVMID hay namespace bên trong container.
-- [ ] Đã đối chiếu tên service/main class/JAR với workload thực và bản build nếu có.
-- [ ] Đã kiểm tra phiên bản JVM đang chạy thay vì chỉ `java -version` của shell khác.
-- [ ] Đã thu start time/uptime hoặc metadata tương đương để giảm nhầm PID reuse.
-- [ ] Đã ghi rõ command nào nhìn thấy hoặc không nhìn thấy process và nguyên nhân **đã kiểm chứng**.
-- [ ] Đã xử lý `Optional.empty()` và command line có thể bị rút gọn/sai quoting.
-- [ ] Đã cân nhắc attach permission, container boundary và lệnh jcmd hỗ trợ.
-- [ ] Chỉ dùng thao tác read-only phù hợp mục tiêu, tránh scan/heap dump không cần thiết.
-- [ ] Mọi output chia sẻ đều đã rà soát dữ liệu nhạy cảm.
-- [ ] Kết luận có timestamp, scope và giới hạn quan sát; không coi snapshot là lịch sử.
+- [ ] Recorded the exact machine/VM/container, user, and namespace where the tool ran.
+- [ ] Identified whether the PID source is the OS, `jps` LVMID, or inside a container namespace.
+- [ ] Cross-checked service/main class/JAR name with the actual workload and build if available.
+- [ ] Verified the running JVM version rather than just `java -version` from another shell.
+- [ ] Captured start time/uptime or equivalent metadata to reduce PID reuse confusion.
+- [ ] Explicitly noted which commands saw or missed the process and the **verified** cause.
+- [ ] Handled `Optional.empty()` and potentially truncated/misquoted command lines.
+- [ ] Accounted for attach permissions, container boundaries, and supported `jcmd` commands.
+- [ ] Used only goal-appropriate read-only operations, avoiding unnecessary scans or heap dumps.
+- [ ] Reviewed all shared output for sensitive data.
+- [ ] Included timestamps, scope, and observation limits in conclusions; did not treat a snapshot as history.
 
-## Tài liệu tra cứu
+## Reference Documentation
 
-- [Oracle JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): cú pháp liệt kê, điều kiện gửi diagnostic command, các lệnh và impact.
-- [Oracle JDK 21 — jps](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jps.html): JVM instrumented, các tùy chọn `-l`/`-m`/`-v`, LVMID, lưu ý định dạng output.
-- [Java SE 21 API — ProcessHandle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ProcessHandle.html): snapshot, process identity, parent/children, liveness và quyền.
-- [Java SE 21 API — ProcessHandle.Info](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ProcessHandle.Info.html): command, arguments, start time, total CPU duration và tính tùy chọn của dữ liệu.
+- [Oracle JDK 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): listing syntax, prerequisites for sending diagnostic commands, commands, and impact.
+- [Oracle JDK 21 — jps](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jps.html): instrumented JVMs, `-l`/`-m`/`-v` options, LVMID, output format notes.
+- [Java SE 21 API — ProcessHandle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ProcessHandle.html): snapshots, process identity, parent/children, liveness, and permissions.
+- [Java SE 21 API — ProcessHandle.Info](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ProcessHandle.Info.html): command, arguments, start time, total CPU duration, and data optionality.
 
-**Ghi nhớ:** `jps` giúp phát hiện những JVM mà cơ chế instrumentation nhìn thấy; `jcmd` cho phép hỏi một JVM cụ thể khi có quyền và attach được; `ProcessHandle` cho góc nhìn **native process** của OS từ Java. Ba nguồn có phạm vi khác nhau. Chẩn đoán đáng tin phải xác minh đúng PID/namespace/instance và hiểu rằng dữ liệu có thể thiếu, thay đổi theo thời điểm hoặc bị giới hạn bởi quyền.
+**Key takeaway:** `jps` helps discover JVMs visible to the instrumentation mechanism; `jcmd` lets you query a specific JVM when permitted and attachable; `ProcessHandle` gives Java an **OS native process** view. The three sources have different scopes. Reliable diagnostics require verifying the right PID/namespace/instance and understanding that data can be incomplete, time-sensitive, or constrained by permissions.

@@ -1,52 +1,52 @@
-# Thiết kế API Java được đưa vào kịch bản với quyền hạn tối thiểu
+# Designing Java APIs Exposed to Scripts with Least Privilege
 
-Ứng dụng Java có thể cho phép các đoạn **kịch bản (script)** tính toán quy tắc, tạo báo cáo, tùy biến quy trình hoặc gọi một số chức năng được host cung cấp. Một cách tích hợp phổ biến là đưa đối tượng Java vào môi trường script, để script gọi phương thức của đối tượng ấy. Ví dụ: script chỉ được phép đọc danh sách ghi chú thuộc tenant hiện tại và tạo một ghi chú mới, **không** được nhận toàn bộ `DataSource`, `EntityManager`, `ApplicationContext`, `HttpClient`, `ClassLoader` hay quyền truy cập filesystem.
+A Java application can allow **script** snippets to evaluate rules, generate reports, customize workflows, or invoke selected host-provided capabilities. A common integration pattern is exposing a Java object to the scripting environment so the script can call methods on that object. For example, a script may only be permitted to read notes belonging to the current tenant and create a new note, **not** receive an entire `DataSource`, `EntityManager`, `ApplicationContext`, `HttpClient`, `ClassLoader`, or filesystem access.
 
-Câu hỏi thiết kế cốt lõi là: **đối tượng nào được công bố, từng phương thức cấp quyền gì, ai xác thực quyền và giới hạn tài nguyên, và động cơ script có thật sự ngăn script đi vòng qua API đó không?**
+The core design questions are: **which objects are exposed, what permissions does each method grant, who enforces authorization and resource limits, and does the script engine genuinely prevent the script from bypassing that API?**
 
-Phương châm: **cung cấp các capability nhỏ, theo tác vụ; mặc định không cấp quyền; kiểm tra ở phía Java mỗi lần gọi; và không nhầm interface hẹp với sandbox an toàn.**
+Guiding principle: **provide small, task-scoped capabilities; deny by default; validate on the Java side on every call; and never mistake a narrow interface for a security sandbox.**
 
-## 1. Xác định mô hình tin cậy trước khi viết API
+## 1. Define the Trust Model Before Writing the API
 
-Có ít nhất ba trường hợp khác nhau:
+There are at least three distinct scenarios:
 
-| Nguồn script | Mức tin cậy | Cách tiếp cận |
+| Script Source | Trust Level | Approach |
 |---|---|---|
-| Script do nhóm phát triển viết, review và triển khai cùng ứng dụng | Tương đương mã nội bộ sau khi đã kiểm soát quy trình phát hành | API hẹp giúp giảm coupling và lỗi vận hành; vẫn kiểm soát logic và version |
-| Script do quản trị viên/đối tác cấu hình trong sản phẩm | Tin cậy **một phần**; có thể sai hoặc vượt phạm vi dự định | Capability riêng, kiểm tra tenant/quyền, kiểm toán, quota, hạn chế engine host interop |
-| Script do người dùng không tin cậy gửi lên | Đầu vào **không tin cậy** | Không xem `Bindings` hay interface Java là ranh giới bảo mật; dùng môi trường thực thi cô lập và gateway kiểm soát capability |
+| Scripts written, reviewed, and deployed by the dev team alongside the app | Equivalent to internal code once release controls are applied | Narrow APIs reduce coupling and operational bugs; still enforce logic and versioning |
+| Scripts configured in the product by admins or partners | **Partially** trusted; may be buggy or exceed intended scope | Dedicated capabilities, tenant/permission checks, auditing, quotas, restricted engine host interop |
+| Scripts submitted by untrusted users | **Untrusted** input | Do not treat `Bindings` or Java interfaces as a security boundary; use an isolated execution environment and a capability-checking gateway |
 
-**Phân biệt “giới hạn API” với “sandbox”:**
+**Distinguishing "API restriction" from a "sandbox":**
 
-- Interface Java nhỏ chỉ mô tả những thao tác ứng dụng **muốn** công bố.
-- Script engine có thể cho phép truy cập Java class, reflection, method có sẵn, global bindings, runtime internals hoặc thư viện khác. Nếu vậy, script **không cần** đi qua interface mà bạn dự tính.
-- Mã chạy cùng JVM có thể dùng cùng heap, thread, process identity và quyền hệ điều hành, trừ khi có một cơ chế cô lập thực sự. `ClassLoader`/JPMS không phải sandbox cho mã không tin cậy.
-- Một engine cấm host interop có thể giúp thu hẹp quyền truy cập theo cấu hình cụ thể, nhưng phải kiểm tra chính xác phiên bản/engine và toàn bộ đường thoát (callbacks, objects, globals, imports, native access). Chỉ gọi `engine.put("api", facade)` không chứng minh sandbox.
-- Với script không tin cậy, nên chạy trong **tiến trình/container cô lập**, có giới hạn CPU, bộ nhớ, thời gian, mạng, filesystem, secrets; chỉ trao đổi với host qua giao thức yêu cầu đã được xác thực.
+- A small Java interface only describes the operations the application **intends** to expose.
+- A script engine may allow access to Java classes, reflection, built-in methods, global bindings, runtime internals, or other libraries. If so, the script **does not need** to go through the interface you designed.
+- Code running in the same JVM shares the heap, threads, process identity, and OS privileges unless a real isolation mechanism is in place. `ClassLoader`/JPMS is not a sandbox for untrusted code.
+- An engine that disables host interop can help narrow access under specific configurations, but you must verify the exact engine/version and all escape hatches (callbacks, objects, globals, imports, native access). Merely calling `engine.put("api", facade)` does not prove sandboxing.
+- For untrusted scripts, run inside an **isolated process/container** with CPU, memory, time, network, filesystem, and secret restrictions; communicate with the host only through a validated request protocol.
 
-**Bài này chủ yếu thiết kế bề mặt capability Java và cách đưa vào script.** Biện pháp cô lập ở mức hệ điều hành là tầng bảo vệ bổ sung bắt buộc khi mô hình đe dọa yêu cầu, chứ không thể thay bằng việc viết interface đẹp.
+**This lesson focuses on designing the Java capability surface and exposing it to scripts.** OS-level isolation is a mandatory additional defense layer when the threat model demands it, and cannot be replaced by writing clean interfaces.
 
-## 2. Khác nhau giữa API nghiệp vụ và quyền truy cập vào host
+## 2. Difference Between a Business API and Host Access
 
-Một tích hợp quá rộng dễ thấy:
+An overly broad integration is easy to spot:
 
 ```java
-// Minh họa thiết kế KHÔNG NÊN dùng cho script hạn chế quyền:
+// Illustrates a design that MUST NOT be used for least-privilege scripts:
 bindings.put("app", applicationContext);
 bindings.put("database", dataSource);
 bindings.put("fileSystem", fileService);
 bindings.put("http", httpClient);
 ```
 
-Đoạn trên chỉ minh họa ý tưởng, **không phải chương trình chạy độc lập**. Việc đưa service tổng quát vào script thường gây rủi ro:
+The snippet above only illustrates the anti-pattern and is **not a standalone runnable program**. Exposing general-purpose services to scripts typically introduces severe risks:
 
-- `applicationContext` cho phép lấy thêm bean/service ngoài mục đích đã được phê duyệt.
-- `dataSource` hoặc repository tổng quát có thể đọc/sửa nhiều bảng, bỏ qua tầng phân quyền nghiệp vụ.
-- `fileService` với đường dẫn tùy ý mở cửa cho path traversal, đọc secrets hoặc ghi file ngoài phạm vi.
-- `httpClient` nhận URL tùy ý có thể tạo yêu cầu tới endpoint nội bộ hoặc tài nguyên nhạy cảm (SSRF).
-- Trả về entity có quan hệ lazy, object manager hoặc đối tượng runtime có thể để lộ nhiều chức năng hơn ý định ban đầu.
+- `applicationContext` allows retrieving additional beans/services beyond the approved purpose.
+- `dataSource` or a generic repository can read/modify multiple tables, bypassing business authorization layers.
+- `fileService` accepting arbitrary paths opens the door to path traversal, reading secrets, or writing out-of-scope files.
+- `httpClient` accepting arbitrary URLs can make requests to internal endpoints or sensitive resources (SSRF).
+- Returning entities with lazy relationships, object managers, or runtime objects can expose far more functionality than originally intended.
 
-Thay vào đó, công bố API theo **động từ nghiệp vụ có phạm vi rõ ràng**:
+Instead, publish APIs around **explicitly scoped business verbs**:
 
 ```text
 Script
@@ -54,7 +54,7 @@ Script
   +-- notesRead.list(limit)
   +-- notesRead.find(id)
   |
-  +-- notesWrite.add(text)    [chỉ khi được cấp quyền]
+  +-- notesWrite.add(text)    [only when granted]
   |
   X-- database.query(sql)
   X-- files.read(path)
@@ -62,70 +62,70 @@ Script
   X-- runtime.getClassLoader()
 ```
 
-Bề mặt API tốt **không** chỉ là interface `NotesService` chứa mọi thao tác rồi kiểm tra bằng cờ `admin`. Hãy tách các capability độc lập để script chỉ nhận chức năng được phép ở lượt thực thi hiện tại.
+A well-designed API surface is **not** a single `NotesService` interface containing every operation gated by an `admin` flag. Split capabilities independently so the script receives only the functions permitted for the current execution.
 
-## 3. Thiết kế capability hẹp và theo nguyên tắc deny-by-default
+## 3. Designing Narrow Capabilities Following Deny-by-Default
 
-### 3.1. Hợp đồng đầu vào/đầu ra
+### 3.1. Input/Output Contract
 
-Ví dụ cho nghiệp vụ ghi chú:
+Example for a notes domain:
 
-| Capability | Phương thức | Quyền được cấp | Giới hạn |
+| Capability | Method | Granted Permission | Constraints |
 |---|---|---|---|
-| `NotesRead` | `list(int limit)` | Xem ghi chú **của tenant hiện tại** | `1 <= limit <= 5` trong demo |
-| `NotesRead` | `find(String id)` | Tra cứu **một ID thuộc tenant hiện tại** | Không lộ liệu ID có tồn tại ở tenant khác |
-| `NotesWrite` | `add(String text)` | Tạo ghi chú **cho tenant hiện tại** | Validate text, hạn mức ghi và audit |
-| **Không công bố** | `deleteAll()` | Không có | Không expose phương thức nguy hiểm |
-| **Không công bố** | `findByTenant(String tenantId)` | Không có | Tenant do host quyết định, không do script đưa vào |
-| **Không công bố** | `executeSql(String sql)` | Không có | Không truyền lệnh SQL tùy ý |
+| `NotesRead` | `list(int limit)` | View notes **of the current tenant** | `1 <= limit <= 5` in the demo |
+| `NotesRead` | `find(String id)` | Look up **an ID belonging to the current tenant** | Do not reveal whether the ID exists in another tenant |
+| `NotesWrite` | `add(String text)` | Create a note **for the current tenant** | Validate text, write quota, and audit |
+| **Not exposed** | `deleteAll()` | None | Never expose destructive operations |
+| **Not exposed** | `findByTenant(String tenantId)` | None | Tenant is determined by the host, not supplied by the script |
+| **Not exposed** | `executeSql(String sql)` | None | Never accept arbitrary SQL statements |
 
-Một script chỉ đọc phải nhận **reader**, không mặc định nhận writer. Nếu cần ghi, host chỉ cấp **writer trong bối cảnh đã được ủy quyền**; bên triển khai writer vẫn kiểm tra quota, phạm vi và điều kiện nghiệp vụ.
+A read-only script must receive only a **reader**, not a writer by default. If writing is required, the host supplies a **writer only within an authorized context**; the writer implementation still enforces quotas, scope, and business rules.
 
-API trả về các **DTO nhỏ và bất biến** (record chứa String/số/boolean, danh sách bất biến), thay vì entity/repository/`Connection` hoặc object chứa handle, callback, stream mở. DTO chỉ nên gồm những trường script thực sự cần. Không tiết lộ token, cấu hình bí mật, đường dẫn máy chủ hoặc đối tượng principal đầy đủ.
+APIs should return **small, immutable DTOs** (records containing Strings/numbers/booleans, immutable lists) rather than entities, repositories, `Connection` objects, or objects holding handles, callbacks, or open streams. DTOs should include only fields the script genuinely needs. Never expose tokens, secret configs, server paths, or full principal objects.
 
-### 3.2. Thông tin quyền phải do host tạo
+### 3.2. Authorization Context Must Be Created by the Host
 
-Không làm:
+Do not do this:
 
 ```java
-// SAI: script được quyết định tenant của dữ liệu.
+// WRONG: the script gets to decide the data's tenant.
 List<NoteView> listNotes(String tenantId);
 ```
 
-Nên tạo capability đã gắn với context được xác thực:
+Instead, create capabilities already bound to the authenticated context:
 
 ```java
-// Ý tưởng: host dựng context từ request đã xác thực,
-// sau đó cung cấp API không cho script truyền tenantId.
+// Idea: the host builds a context from the authenticated request,
+// then exposes an API that does not let the script pass tenantId.
 NotesRead read = capabilityFactory.readFor(authenticatedTenant);
 ```
 
-Hai đoạn là **minh họa hợp đồng**. `authenticatedTenant` không được lấy từ biến tự khai báo trong script; `capabilityFactory` chỉ là tên minh họa cho lớp host thực tế.
+Both snippets are **contract illustrations**. `authenticatedTenant` must not come from a script-declared variable; `capabilityFactory` is merely an illustrative name for a real host class.
 
-Một execution context đáng tin cậy thường gồm: `runId`, `actorId`, `tenantId`, tập operation được cấp, hạn mức và deadline. Nguyên tắc quan trọng là **mọi phương thức có quyền thực hiện side effect đều tự kiểm tra context tại thời điểm gọi**, không coi việc đưa object vào `Bindings` là bước phân quyền đủ dùng cho cả vòng đời.
+A trustworthy execution context typically includes: `runId`, `actorId`, `tenantId`, the granted operation set, quotas, and deadlines. A crucial rule is that **every method capable of performing side effects checks the context at invocation time**, rather than treating placing an object into `Bindings` as sufficient authorization for the entire lifecycle.
 
-### 3.3. Quyền tối thiểu theo bốn chiều
+### 3.3. Least Privilege Across Four Dimensions
 
-1. **Hành động**: cho phép đọc, ghi mới hay gửi event, không tự mở rộng sang xóa/chuyển quyền/quản trị.
-2. **Dữ liệu**: tenant, owner, tập ID, field nào đọc được; áp dụng ngay trong truy vấn repository ở phía host.
-3. **Tài nguyên**: số lần gọi, số bản ghi, byte dữ liệu, thời gian, concurrency, budget external API.
-4. **Thời gian**: capability có hiệu lực trong một lượt chạy hoặc thời gian ngắn; có cơ chế thu hồi, và không sử dụng lại object gắn quyền cũ giữa các request.
+1. **Actions**: allow reading, creating new records, or emitting events without expanding to deleting, transferring ownership, or admin actions.
+2. **Data**: tenant, owner, ID set, readable fields; enforce directly in host-side repository queries.
+3. **Resources**: call counts, record counts, data bytes, duration, concurrency, external API budgets.
+4. **Time**: capabilities are valid for a single run or short window; support revocation, and never reuse permission-bound objects across requests.
 
-Đừng đánh đồng “script nhìn thấy phương thức” với “script được phép thực hiện phương thức”. Một kiểm tra quyền được lưu bên trong service/gateway và được thực hiện lặp lại tại ranh giới thao tác là điểm quan trọng cho defense in depth.
+Do not equate "the script can see the method" with "the script is allowed to execute the method." An authorization check held inside the service/gateway and re-verified at the operation boundary is vital for defense in depth.
 
-## 4. Ví dụ Java 17 chạy được: chỉ công bố reader/writer có phạm vi
+## 4. Runnable Java 17 Example: Exposing Only Scoped Reader/Writer
 
-Ví dụ này tập trung vào **Java API phía host**. Nó **không cần JavaScript engine**: `main` đóng vai một lượt gọi thử từ môi trường script để kiểm tra hợp đồng và stdout trên JDK 17. Trong ứng dụng thật, host mới quyết định có đưa `NotesRead` và `NotesWrite` vào script hay không.
+This example focuses on the **host-side Java API**. It **does not require a JavaScript engine**: `main` stands in for a script-environment call to verify the contract and stdout on JDK 17. In a real application, the host decides whether to inject `NotesRead` and `NotesWrite` into the script.
 
-Các chính sách:
+Policies:
 
-- Reader tự cố định tenant `acme`, không có hàm tìm theo tenant do script chỉ định.
-- `find` trả `Optional.empty()` cho ID ở tenant khác **giống như ID không tồn tại**, tránh tiết lộ sự tồn tại qua phản hồi.
-- `list` chỉ cho tối đa 5 bản ghi.
-- Writer chỉ có `add`; kiểm tra input, số lượt ghi và tự gắn tenant khi lưu.
-- DTO `NoteView` là Java record chứa hai String; dữ liệu nội bộ `StoredNote` không bị trả trực tiếp.
+- The reader fixes the tenant to `acme`, with no method allowing the script to specify a tenant.
+- `find` returns `Optional.empty()` for an ID in another tenant **just like a non-existent ID**, avoiding existence leaks via responses.
+- `list` allows at most 5 records.
+- The writer only exposes `add`; it validates input, enforces write budget, and attaches the tenant automatically on save.
+- The `NoteView` DTO is a Java record containing two Strings; internal `StoredNote` data is never returned directly.
 
-Lưu thành **`ScriptApiDemo.java`**:
+Save as **`ScriptApiDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -136,7 +136,7 @@ public final class ScriptApiDemo {
 
     private record StoredNote(String id, String tenant, String text) {}
 
-    // DTO bất biến: chỉ dữ liệu được phép trả cho script.
+    // Immutable DTO: only data allowed to be returned to the script.
     public record NoteView(String id, String text) {}
 
     public interface NotesRead {
@@ -148,7 +148,7 @@ public final class ScriptApiDemo {
         String add(String text);
     }
 
-    // Giả lập kho dữ liệu phía host, không công bố cho script.
+    // Simulated host-side data store, not exposed to the script.
     private static final class Store {
         final List<StoredNote> notes = new ArrayList<>(List.of(
                 new StoredNote("n1", "acme", "Alpha"),
@@ -220,7 +220,7 @@ public final class ScriptApiDemo {
     public static void main(String[] args) {
         Store store = new Store();
 
-        // Trong ứng dụng thật: tenant phải lấy từ host đã xác thực.
+        // In a real application: the tenant must come from the authenticated host.
         NotesRead read = new ScopedRead(store, "acme");
         NotesWrite write = new ScopedWrite(store, "acme", 1);
 
@@ -245,14 +245,14 @@ public final class ScriptApiDemo {
 }
 ```
 
-Biên dịch/chạy bằng **JDK 17+**:
+Compile and run with **JDK 17+**:
 
 ```bash
 javac -encoding UTF-8 ScriptApiDemo.java
 java ScriptApiDemo
 ```
 
-Stdout đã kiểm tra với JDK có hỗ trợ Java 17:
+Stdout verified on a JDK supporting Java 17:
 
 ```text
 before=[NoteView[id=n1, text=Alpha]]
@@ -263,23 +263,23 @@ after=[NoteView[id=n1, text=Alpha], NoteView[id=n3, text=Beta]]
 blocked=WRITE_BUDGET_EXCEEDED
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `before` chỉ chứa `n1` của tenant `acme`; dữ liệu `n2` thuộc tenant `other` không xuất hiện.
-- `otherTenant=false` chứng minh lookup bằng ID `n2` không làm lộ nội dung hoặc xác nhận ID của tenant khác.
-- Một text toàn khoảng trắng bị từ chối trước khi tạo dữ liệu; không tiêu hao hạn mức ghi.
-- `created=n3` và `after` chứng minh một thao tác ghi hợp lệ được gắn với tenant hiện tại.
-- Khi đã dùng hết một quyền ghi, lời gọi tiếp theo bị từ chối.
+- `before` contains only `n1` for tenant `acme`; `n2` belonging to tenant `other` does not appear.
+- `otherTenant=false` demonstrates that looking up ID `n2` neither leaks content nor confirms whether the ID exists in another tenant.
+- A whitespace-only text is rejected before creating data and does not consume the write budget.
+- `created=n3` and `after` confirm a valid write is bound to the current tenant.
+- Once the single write allowance is exhausted, the subsequent call is rejected.
 
-**Ranh giới của ví dụ:** dữ liệu nằm trong `ArrayList`, mã giả lập chỉ chạy một thread và quota là một số nguyên trong instance. Đây **không phải** repository, authorization framework hay sandbox production. Trong hệ thống nhiều luồng/nhiều instance, quyền truy cập, ID, số lượng ghi và quota phải được kiểm soát **nguyên tử** trong transaction/store/gateway; không cấp quyền bằng biến cục bộ dễ bị nhân bản hoặc dùng lại ngoài lượt chạy.
+**Boundaries of the example:** data lives in an `ArrayList`, the simulation runs single-threaded, and the quota is an integer inside the instance. This is **not** a production repository, authorization framework, or sandbox. In a multi-threaded or multi-instance system, access permissions, IDs, write counts, and quotas must be enforced **atomically** in transactions/stores/gateways; do not grant permissions via local variables that could be cloned or reused outside a run.
 
-**Quan trọng:** ngay cả khi chỉ đưa object dưới kiểu `NotesRead` vào một script engine, điều đó **không đảm bảo** engine không thể introspect lớp triển khai, truy cập `getClass()` hoặc sử dụng khả năng Java interop khác. Việc giới hạn Java interface mô tả API được phê duyệt; để chống script độc hại cần kiểm soát cơ chế gọi host và quyền thực thi ở tầng engine/tiến trình.
+**Important:** even when exposing an object strictly typed as `NotesRead` to a script engine, that **does not guarantee** the engine cannot introspect the implementation class, invoke `getClass()`, or leverage other Java interop features. Narrowing Java interfaces defines the approved API; defending against malicious scripts requires controlling host invocation mechanisms and execution privileges at the engine/process layer.
 
-## 5. Đưa capability vào kịch bản qua javax.script: chỉ là cơ chế binding
+## 5. Injecting Capabilities into Scripts via javax.script: Just a Binding Mechanism
 
-`javax.script` (JSR 223, module `java.scripting`) có `ScriptEngine`, `ScriptEngineManager` và `Bindings`. Cơ chế này cho phép ứng dụng truyền giá trị vào môi trường kịch bản, nhưng **không mặc nhiên cung cấp sandbox**.
+`javax.script` (JSR 223, `java.scripting` module) provides `ScriptEngine`, `ScriptEngineManager`, and `Bindings`. This mechanism lets an application pass values into a scripting environment, but **does not inherently provide a sandbox**.
 
-Đoạn sau là **mã minh họa trong phương thức** với các biến `engine`, `scriptSource`, `notesRead`, `notesWrite` và `canWrite` đã được host cung cấp:
+The following is an **illustrative snippet inside a method** with `engine`, `scriptSource`, `notesRead`, `notesWrite`, and `canWrite` already supplied by the host:
 
 ```java
 Bindings bindings = engine.createBindings();
@@ -292,17 +292,17 @@ if (canWrite) {
 Object result = engine.eval(scriptSource, bindings);
 ```
 
-Muốn dùng cần import `javax.script.Bindings`, `javax.script.ScriptEngine`, `javax.script.ScriptException` và chọn/khởi tạo một engine phù hợp. Đây là **ví dụ cho script đã được tin cậy và engine được cấu hình/đánh giá riêng**, không phải biện pháp bảo vệ script không tin cậy.
+To use it, import `javax.script.Bindings`, `javax.script.ScriptEngine`, and `javax.script.ScriptException`, and select/initialize a suitable engine. This is an **example for trusted scripts with a separately configured and audited engine**, not a defense for untrusted scripts.
 
-### 5.1. Lưu ý quan trọng về engine và Java 17
+### 5.1. Important Notes on Engines and Java 17
 
-- **JDK 17 không còn Nashorn JavaScript engine đi kèm** (Nashorn được loại khỏi JDK từ phiên bản 15). Vì vậy `new ScriptEngineManager().getEngineByName("JavaScript")` có thể trả `null` nếu ứng dụng chưa đưa một script engine phù hợp vào classpath/module path.
-- JSR 223 là API tích hợp; quy tắc host access, class lookup, reflection, thread behavior, timeouts và những builtin khả dụng **phụ thuộc vào engine cụ thể**, không thể suy ra chỉ từ `Bindings`.
-- Nếu sử dụng engine bên ngoài (ví dụ một JS engine tương thích JSR 223 hoặc runtime scripting khác), phải đọc tài liệu của **đúng engine/phiên bản** và cấu hình host access theo allowlist. Đừng giả định rằng mọi engine tôn trọng Java interface dưới dạng giới hạn quyền.
-- `engine.createBindings()` tạo map binding cho một lượt đánh giá, nhưng các **global bindings, objects được engine giữ lại, thư viện/extension và bộ nhớ engine tái sử dụng** vẫn có thể ảnh hưởng tới isolation. Không tái sử dụng engine/context giữa những tenant khác nhau nếu không có bảo đảm isolation rõ ràng.
-- `engine.eval(...)` có thể ném `ScriptException`; một script còn có thể trigger các lỗi runtime từ Java capability được gọi. Phân biệt lỗi script với `PERMISSION_DENIED` hoặc lỗi hạ tầng.
+- **JDK 17 no longer bundles the Nashorn JavaScript engine** (Nashorn was removed from the JDK in version 15). Thus `new ScriptEngineManager().getEngineByName("JavaScript")` can return `null` unless the application places a compatible script engine on the classpath or module path.
+- JSR 223 is an integration API; rules for host access, class lookup, reflection, thread behavior, timeouts, and available builtins **depend on the specific engine** and cannot be inferred from `Bindings` alone.
+- If using an external engine (e.g., a JSR 223-compatible JS engine or another scripting runtime), read the documentation for that **exact engine and version** and configure host access with an allowlist. Never assume every engine honors Java interfaces as permission boundaries.
+- `engine.createBindings()` creates a binding map for a single evaluation, yet **global bindings, objects retained by the engine, libraries/extensions, and reused engine memory** can still undermine isolation. Never reuse an engine or context across different tenants without explicit isolation guarantees.
+- `engine.eval(...)` can throw `ScriptException`; a script can also trigger runtime errors from the Java capabilities it calls. Distinguish script errors from `PERMISSION_DENIED` or infrastructure failures.
 
-Một đoạn kiểm tra khả năng có engine, **không thực thi script**:
+A snippet to check engine availability **without executing a script**:
 
 ```java
 ScriptEngine engine =
@@ -313,126 +313,126 @@ if (engine == null) {
 }
 ```
 
-Đoạn này là minh họa, cần import `javax.script.ScriptEngine` và `javax.script.ScriptEngineManager`. **Không tự động cài/tải engine** ở thời điểm request để sửa lỗi; engine và các dependency phải được quản lý, xác minh và triển khai theo quy trình tin cậy.
+This is an illustrative snippet requiring imports for `javax.script.ScriptEngine` and `javax.script.ScriptEngineManager`. **Do not automatically install/download engines** at request time to recover from errors; engines and dependencies must be managed, verified, and deployed through a trusted pipeline.
 
-### 5.2. Nếu script không tin cậy: gửi command thay vì Java object
+### 5.2. For Untrusted Scripts: Send Commands Instead of Java Objects
 
-Kiến trúc phòng thủ mạnh hơn:
+A stronger defensive architecture:
 
 ```text
-Client / script không tin cậy
+Untrusted client / script
              |
              v
-     Sandbox process
- (không có host Java classpath,
-  không secrets, mạng/FS bị giới hạn)
+      Sandbox process
+ (no host Java classpath,
+  no secrets, restricted network/FS)
              |
              | JSON/IPC: op + arguments
              v
       Host capability gateway
-    - xác thực caller/run/tenant
+    - authenticate caller/run/tenant
     - allowlist operation
-    - kiểm tra input và quota
+    - validate input and quota
     - enforce ACL/row-level scope
-    - audit và giới hạn output
+    - audit and cap output
              |
              v
-        Nghiệp vụ Java
+        Java business logic
              |
              v
-      DTO đã được lọc
+       Filtered DTO
 ```
 
-Ví dụ giao thức yêu cầu:
+Example request protocol:
 
 ```json
 {"op":"notes.list","args":{"limit":3}}
 ```
 
-hoặc:
+or:
 
 ```json
-{"op":"notes.add","args":{"text":"Chào nhóm"}}
+{"op":"notes.add","args":{"text":"Hello team"}}
 ```
 
-Đây là **ví dụ dữ liệu giao thức**, không phải yêu cầu mạng thực tế trong chương trình demo. Gateway chỉ chấp nhận `op` đã đăng ký. Nó **không** có `className`, `methodName`, `javaExpression` hoặc `url` tùy ý để script yêu cầu host gọi reflection hoặc đọc tài nguyên.
+These are **protocol payload examples**, not live network requests in the demo program. The gateway accepts only registered `op` names. It has **no** arbitrary `className`, `methodName`, `javaExpression`, or `url` letting the script ask the host to run reflection or read arbitrary resources.
 
-Các quyền tenant/actor được gắn bằng danh tính xác thực trên kênh IPC/session/token giới hạn quyền do **host** kiểm soát, không tin trường `tenantId` tự gửi trong JSON. Với thay đổi dữ liệu có side effect, dùng operation ID/idempotency key và log kiểm toán phù hợp. Nên tránh trả nguyên stack trace hoặc thông tin nội bộ qua gateway.
+Tenant/actor permissions are bound to an authenticated identity on the IPC channel/session/scoped token controlled by the **host**, never trusting a self-asserted `tenantId` field in JSON. For data changes with side effects, use operation IDs/idempotency keys and appropriate audit logs. Avoid returning raw stack traces or internal details across the gateway.
 
-## 6. Chặn đường mở rộng quyền qua tham số, giá trị trả về và lỗi
+## 6. Closing Privilege-Escalation Paths Through Parameters, Return Values, and Errors
 
-### 6.1. Kiểm tra tham số ở mọi lời gọi
+### 6.1. Validate Parameters on Every Call
 
-API theo nguyên tắc least privilege không nhận các tham số quá tổng quát. Ví dụ:
+An API following least privilege never accepts overly generic parameters. For example:
 
-- Thay `readFile(String path)` bằng `readApprovedTemplate(TemplateId id)`; host map ID sang template đã đăng ký.
-- Thay `httpGet(String arbitraryUrl)` bằng `fetchExchangeRate(CurrencyCode code)` qua endpoint cố định.
-- Thay `runSql(String sql)` bằng `getSalesTotal(ReportScope scope)` đã kiểm tra phân quyền.
-- Thay `sendEmail(String to, String body)` bằng `requestApprovedNotification(RecipientId id, TemplateId template, Variables vars)` với phạm vi gửi và hạn mức.
-- Thay `queryUsers(String tenant)` bằng `listVisibleUsers(int limit)`, lấy tenant/actor từ context máy chủ.
+- Replace `readFile(String path)` with `readApprovedTemplate(TemplateId id)`; the host maps the ID to a registered template.
+- Replace `httpGet(String arbitraryUrl)` with `fetchExchangeRate(CurrencyCode code)` targeting a fixed endpoint.
+- Replace `runSql(String sql)` with `getSalesTotal(ReportScope scope)` with built-in authorization checks.
+- Replace `sendEmail(String to, String body)` with `requestApprovedNotification(RecipientId id, TemplateId template, Variables vars)` with delivery scope and rate limits.
+- Replace `queryUsers(String tenant)` with `listVisibleUsers(int limit)`, deriving tenant/actor from the server-side context.
 
-Validator phải kiểm tra format/độ dài/range/enums và điều kiện nghiệp vụ. Với tên tài nguyên, hãy tránh ghép trực tiếp chuỗi script vào path, URL hoặc câu lệnh truy vấn. Kiểm tra theo **allowlist** sau khi chuẩn hóa thích hợp; chỉ dùng escaping/parameterized queries như một lớp phòng vệ, không thay cho phân quyền.
+Validators must verify format/length/range/enums and business preconditions. For resource names, avoid concatenating script strings into paths, URLs, or query statements. Validate against an **allowlist** after appropriate normalization; treat escaping/parameterized queries as a defense-in-depth layer, not a replacement for authorization.
 
-### 6.2. Không trả về đối tượng có quyền
+### 6.2. Do Not Return Privileged Objects
 
-Ngay cả khi API chỉ có một phương thức đọc, kiểu trả về có thể mở rộng khả năng thực tế của script:
+Even when an API exposes only a single read method, the return type can expand what the script can actually do:
 
-| Kiểu trả về | Vấn đề | Lựa chọn tốt hơn |
+| Return Type | Problem | Better Alternative |
 |---|---|---|
-| `DataSource` / `Connection` | Toàn quyền truy vấn hoặc transaction không mong muốn | Số liệu hoặc DTO đã tính toán |
-| Entity ORM có lazy reference | Có thể lộ graph, trigger truy vấn ngầm | Record/projection bất biến |
-| `InputStream` / `Path` / `File` | Vòng đời I/O và thông tin filesystem | Byte/string giới hạn kích thước hoặc ID đã kiểm duyệt |
-| `HttpClient` / client SDK | Cho gọi endpoint tùy ý | Hàm nghiệp vụ sử dụng endpoint cố định |
-| `Class` / `ClassLoader` | Mở rộng cơ chế reflection/class lookup | Không trả host runtime internals |
-| `Throwable` đầy đủ | Có thể chứa stack trace, path, thông tin nhạy cảm | Lỗi đã chuẩn hóa: mã, mô tả an toàn, correlation ID |
+| `DataSource` / `Connection` | Full query power or unintended transactions | Computed metrics or DTOs |
+| ORM entity with lazy references | Can expose object graphs and trigger hidden queries | Immutable record/projection |
+| `InputStream` / `Path` / `File` | I/O lifecycle issues and filesystem disclosure | Size-bounded bytes/strings or vetted IDs |
+| `HttpClient` / client SDK | Enables calling arbitrary endpoints | Business method using a fixed endpoint |
+| `Class` / `ClassLoader` | Opens reflection/class-lookup mechanisms | Never return host runtime internals |
+| Full `Throwable` | May contain stack traces, paths, sensitive details | Normalized error: code, safe message, correlation ID |
 
-Ngay cả DTO “vô hại” vẫn là Java object nếu engine có host interop. Hạn chế của engine phải được cấu hình/kiểm thử độc lập; nếu isolation không đáng tin, **trao đổi qua JSON/IPC** với các kiểu dữ liệu đơn giản.
+Even "harmless" DTOs are still Java objects if the engine allows host interop. Engine restrictions must be configured and tested independently; if isolation cannot be trusted, **communicate over JSON/IPC** with simple data types.
 
-### 6.3. Không tiết lộ tenant qua phản hồi
+### 6.3. Do Not Leak Tenant Existence via Responses
 
-Khi tìm một ID không thuộc phạm vi, việc trả lỗi khác nhau “ID tồn tại nhưng không có quyền” và “ID không tồn tại” có thể bị dùng để dò dữ liệu. Nhiều API nên trả cùng `NOT_FOUND` cho hai tình huống, trong khi audit nội bộ vẫn ghi lý do thật. Quyết định chi tiết tùy hợp đồng sản phẩm, nhưng không để script tự truy vấn một namespace dữ liệu rộng rồi lọc ở phía client.
+When looking up an out-of-scope ID, returning distinct errors for "ID exists but unauthorized" versus "ID does not exist" can be abused to probe data. Many APIs should return the same `NOT_FOUND` for both cases while internal audit logs record the real reason. Exact behavior depends on product contracts, but never let scripts query a wide data namespace and filter on the client side.
 
-### 6.4. Xử lý side effect và retry
+### 6.4. Handling Side Effects and Retries
 
-Một lệnh `notes.add` có thể hoàn thành trên server nhưng đường truyền IPC trả timeout. Nếu script tự retry vô hạn, ghi chú có thể bị tạo nhiều lần. Với thao tác side effect cần cân nhắc:
+A `notes.add` command may succeed on the server while the IPC transport times out. If the script retries indefinitely, duplicate notes may be created. For operations with side effects, address:
 
-- Idempotency key do host gắn hoặc chấp nhận theo run/request đã xác thực.
-- Giới hạn số lần thử, deadline và trạng thái chưa rõ.
-- Transaction/unique constraint hoặc deduplication phù hợp.
-- Không cho script tùy ý thay principal/tenant khi retry.
-- Budget được tiêu hao theo định nghĩa nhất quán: request, tác vụ thành công hay side effect đã commit.
+- Idempotency keys attached or accepted by the host per authenticated run/request.
+- Limits on retry counts, deadlines, and ambiguous states.
+- Transactions/unique constraints or appropriate deduplication.
+- Preventing scripts from changing principal/tenant across retries.
+- Consistent budget accounting: per request, per successful task, or per committed side effect.
 
-## 7. Quota, thời gian, concurrency và vòng đời
+## 7. Quotas, Time, Concurrency, and Lifecycle
 
-Một API hẹp vẫn có thể bị lạm dụng bằng cách gọi liên tục hoặc yêu cầu quá nhiều dữ liệu. Cần giới hạn **cả bên trong capability lẫn môi trường thực thi**.
+Even a narrow API can be abused by calling it in a tight loop or requesting excessive data. Enforce limits **both inside the capability and in the execution environment**.
 
-| Rủi ro | Chỗ kiểm soát |
+| Risk | Enforcement Point |
 |---|---|
-| `list(1_000_000)` | Giới hạn `limit` trong API và truy vấn DB; pagination có maximum page |
-| Gọi `add` hàng nghìn lần | Quota tại gateway/store và rate limiter theo actor/tenant |
-| Vòng lặp vô hạn trong script | Deadline ở sandbox process; giới hạn CPU và khả năng kết thúc tiến trình |
-| Tạo object rất lớn | Giới hạn bộ nhớ và output bytes ở process/IPC |
-| Truy xuất mạng tùy ý | Network policy/egress allowlist ở sandbox, không inject HTTP client |
-| Giữ capability sau khi phiên làm việc kết thúc | Scope theo run, kiểm tra expiry/revocation tại mỗi lần gọi |
-| Parallel script race | Quota, transaction và counter an toàn concurrent ở storage/gateway |
-| Log chứa bí mật | Redaction, giới hạn field và chính sách retention |
+| `list(1_000_000)` | Cap `limit` in the API and DB query; paginated access with a maximum page size |
+| Calling `add` thousands of times | Quotas at the gateway/store and per-actor/tenant rate limiters |
+| Infinite loop in script | Deadline in the sandbox process; CPU limits and ability to terminate the process |
+| Allocating huge objects | Memory and output-byte limits at the process/IPC boundary |
+| Arbitrary network access | Network policy/egress allowlist in the sandbox; never inject an HTTP client |
+| Retaining a capability after session end | Run-scoped lifetime; check expiry/revocation on every call |
+| Parallel script races | Concurrency-safe quotas, transactions, and counters in storage/gateway |
+| Secrets in logs | Redaction, field allowlists, and retention policies |
 
-**Không coi `Future.cancel(true)` hoặc `Thread.interrupt()` là cách “giết” mọi script độc hại.** Interrupt thường mang tính hợp tác; mã CPU-bound có thể bỏ qua, và Java thread trong cùng JVM không phải ranh giới giới hạn tài nguyên cứng. Khi cần chặn mã không tin cậy, sử dụng **process isolation và timeout do host/OS kiểm soát**, với chính sách dọn dẹp sau khi kết thúc.
+**Do not rely on `Future.cancel(true)` or `Thread.interrupt()` as a way to "kill" malicious scripts.** Interrupts are cooperative; CPU-bound code can ignore them, and Java threads inside the same JVM are not a hard resource boundary. When untrusted code must be stopped, use **process isolation and host/OS-enforced timeouts** with post-termination cleanup policies.
 
-**Không chia sẻ nhầm facade/state giữa lượt chạy.** Một `NotesRead` mang tenant A không nên bị lưu thành global object rồi dùng cho script của tenant B. Khởi tạo capability theo run, đảm bảo instance/cache/thread local không rò dữ liệu và quyền khi pooling engine hoặc worker.
+**Do not accidentally share facades/state across runs.** A `NotesRead` bound to tenant A must never be stored as a global object and reused by tenant B's script. Instantiate capabilities per run, and verify that instances, caches, and thread-locals do not leak data or permissions when pooling engines or workers.
 
-## 8. Phân quyền và kiểm toán theo từng thao tác
+## 8. Per-Operation Authorization and Auditing
 
-Quy trình khuyến nghị cho một lời gọi capability:
+Recommended flow for a capability call:
 
 ```text
 script asks notes.add("Beta")
              |
              v
-[1] Run còn hợp lệ? actor/tenant xác thực?
+[1] Run still valid? actor/tenant authenticated?
              |
              v
-[2] Operation notes.add có được cấp?
+[2] Is operation notes.add granted?
              |
              v
 [3] Validate text + size + schema
@@ -441,13 +441,13 @@ script asks notes.add("Beta")
 [4] Enforce scope, quota, deadline
              |
              v
-[5] Thực thi qua service/repository với transaction
+[5] Execute via service/repository with transaction
              |
              v
-[6] Audit + trả DTO / mã lỗi an toàn
+[6] Audit + return DTO / safe error code
 ```
 
-Một hệ thống có thể theo dõi các trường sau ở server:
+A system can record the following fields server-side:
 
 ```json
 {
@@ -461,85 +461,85 @@ Một hệ thống có thể theo dõi các trường sau ở server:
 }
 ```
 
-Đây chỉ là log mẫu; **không cần lưu nội dung ghi chú, SQL, tokens hoặc stack trace** để xác định một quyết định phân quyền. Trường `runId` và `scriptId` nên lấy từ điều phối của host, không từ tên tự khai trong script nếu log dùng cho audit.
+This is only a sample log; **you do not need to store note contents, SQL, tokens, or stack traces** to record an authorization decision. `runId` and `scriptId` should come from host orchestration rather than self-declared script fields when logs are used for auditing.
 
-Lỗi trả lại cho script nên có hợp đồng rõ ràng:
+Errors returned to scripts should follow an explicit contract:
 
-| Mã lỗi | Ý nghĩa | Phản ứng của script |
+| Error Code | Meaning | Script Reaction |
 |---|---|---|
-| `OPERATION_NOT_GRANTED` | Script/run không được phép gọi capability | Dừng hoặc yêu cầu cấu hình quyền, không retry |
-| `VALIDATION_FAILED` | Sai kiểu, độ dài hoặc format đầu vào | Sửa tham số |
-| `NOT_FOUND` | Tài nguyên không tồn tại trong phạm vi truy cập | Không tự suy đoán ID ở tenant khác |
-| `QUOTA_EXCEEDED` | Vượt giới hạn một lượt hoặc tổng theo tenant | Dừng, chờ lượt mới nếu chính sách cho phép |
-| `RUN_EXPIRED` | Execution context hết hạn hoặc bị thu hồi | Dừng dùng capability |
-| `OPERATION_CONFLICT` | Idempotency/transaction conflict | Theo chính sách nghiệp vụ |
-| `SCRIPT_ENGINE_UNAVAILABLE` | Engine không tồn tại hoặc không được phép | Lỗi triển khai; không thay engine tùy ý |
-| `SCRIPT_EXECUTION_FAILED` | Script chạy lỗi | Ghi correlation ID, không lộ thông tin host |
+| `OPERATION_NOT_GRANTED` | Script/run is not permitted to call the capability | Stop or request permission configuration; do not retry |
+| `VALIDATION_FAILED` | Invalid input type, length, or format | Fix parameters |
+| `NOT_FOUND` | Resource does not exist within the accessible scope | Do not probe IDs in other tenants |
+| `QUOTA_EXCEEDED` | Exceeded per-run or tenant-wide limit | Stop; wait for a new run if policy allows |
+| `RUN_EXPIRED` | Execution context expired or was revoked | Stop using the capability |
+| `OPERATION_CONFLICT` | Idempotency/transaction conflict | Follow business policy |
+| `SCRIPT_ENGINE_UNAVAILABLE` | Engine does not exist or is disallowed | Deployment error; do not swap engines arbitrarily |
+| `SCRIPT_EXECUTION_FAILED` | Script failed during execution | Record correlation ID; do not leak host details |
 
-Nếu thiếu quyền, phải **fail closed** và không tự động tạo writer với quyền cao hơn, không chuyển sang admin credential để “giúp script chạy xong”.
+If permission is missing, **fail closed**—never auto-create a higher-privilege writer or fall back to admin credentials to "help the script finish."
 
-## 9. Kiểm thử API và ranh giới bảo mật
+## 9. Testing APIs and Security Boundaries
 
-Có hai nhóm test **khác nhau**: test facade Java có đúng luật nghiệp vụ và test engine/sandbox có thể vượt facade hay không.
+There are two **distinct** test groups: testing whether the Java facade enforces business rules, and testing whether the engine/sandbox allows bypassing the facade.
 
-| Tình huống kiểm thử | Kết quả mong đợi |
+| Test Scenario | Expected Outcome |
 |---|---|
-| Reader của tenant A gọi `list(5)` | Chỉ thấy ghi chú A |
-| Reader A tìm ID của tenant B | Không trả nội dung B; thường `NOT_FOUND` |
-| Script chỉ đọc cố gọi operation ghi | Operation không tồn tại trong capability được cấp hoặc gateway từ chối |
-| Gửi `list(0)`, `list(-1)` hoặc `list(1000)` | Từ chối do giới hạn tham số |
-| `add(null)`, chuỗi rỗng, nội dung quá dài | Từ chối validation |
-| Gọi `add` quá budget | Từ chối, không có side effect bổ sung |
-| Cố truyền tenant khác vào yêu cầu | Tenant do host xác định, không thể đổi bằng input script |
-| Script bị giữ lại sau khi run hết hạn | Capability không còn thực thi được |
-| Engine có reflection/Java class access | Test để chắc chính sách host access thực thi thật; nếu không, không nhận script không tin cậy |
-| Khôi phục engine từ pool sang tenant khác | Không còn bindings, globals và capability của tenant cũ |
-| Script chạy vòng lặp vô hạn | Sandbox bị kết thúc đúng deadline, không làm treo host |
-| Hai yêu cầu ghi đồng thời | Quota/ID/transaction không race hoặc nhân đôi side effect |
-| Script đọc file/URL nội bộ ngoài quyền | Bị chặn bởi sandbox OS/network và gateway |
-| Lỗi service chứa đường dẫn/secret trong exception | Script nhận mã lỗi an toàn, server log được redacted |
-| Script giả mạo `runId`/`tenantId` trong JSON | Host bỏ qua hoặc từ chối, không nâng quyền |
-| ScriptEngine bị thiếu trong JDK | Lỗi xác định, không cố chạy code bằng engine khác ngoài allowlist |
+| Tenant A's reader calls `list(5)` | Sees only Tenant A's notes |
+| Reader A looks up Tenant B's ID | Returns no content from B; typically `NOT_FOUND` |
+| Read-only script tries to call a write operation | Operation is absent from granted capabilities or rejected by gateway |
+| Passing `list(0)`, `list(-1)`, or `list(1000)` | Rejected by parameter bounds |
+| `add(null)`, blank string, oversized content | Rejected by validation |
+| Calling `add` beyond budget | Rejected with no additional side effects |
+| Attempting to pass another tenant in the request | Tenant is host-determined and cannot be altered by script input |
+| Script retained after the run expires | Capability can no longer execute |
+| Engine with reflection/Java class access | Test to verify host access policy truly blocks it; otherwise reject untrusted scripts |
+| Reusing an engine from a pool for another tenant | No leftover bindings, globals, or capabilities from the previous tenant |
+| Script enters an infinite loop | Sandbox is terminated at deadline without hanging the host |
+| Two concurrent write requests | Quotas, IDs, and transactions do not race or duplicate side effects |
+| Script tries to read unauthorized files or internal URLs | Blocked by OS/network sandbox and gateway |
+| Service error contains paths/secrets in exception | Script receives a safe error code; server logs are redacted |
+| Script spoofs `runId`/`tenantId` in JSON | Host ignores or rejects it without elevating privileges |
+| ScriptEngine missing in JDK | Deterministic error; never falls back to an engine outside the allowlist |
 
-Test unit có thể dùng các implementation fake như `Store` ở ví dụ Java; test integration phải chạy trên **đúng engine**, đúng dependency, đúng cấu hình host access và môi trường deployment. Đừng coi test đi qua facade thành công là bằng chứng không thể bypass qua reflection.
+Unit tests can use fake implementations like `Store` in the Java example; integration tests must run on the **exact engine**, exact dependencies, exact host access config, and deployment environment. Never treat tests passing through the facade as proof that bypassing via reflection is impossible.
 
-## 10. Các lỗi thiết kế thường gặp
+## 10. Common Design Mistakes
 
-1. **Đưa `ApplicationContext` hoặc service container vào script.** Điều đó thường trao nhiều quyền hơn nhu cầu nghiệp vụ.
-2. **Chỉ dùng một interface lớn có cờ `isAdmin`.** Tách capability chỉ đọc/ghi và giới hạn quyền theo run sẽ dễ review và thử nghiệm hơn.
-3. **Cho script truyền `tenantId`, `userId` hoặc connection string.** Các giá trị quyết định quyền phải xuất phát từ context host đáng tin.
-4. **Trả entity ORM, `Path`, `File`, `Connection` hoặc `ClassLoader`.** Object trả về có thể mang chức năng và metadata rộng hơn hợp đồng.
-5. **Tin rằng `Bindings.put("api", facade)` là sandbox.** Script engine có thể còn Java interop, global bindings và đường truy cập khác.
-6. **Tưởng Java 17 luôn có JavaScript engine.** JDK 17 không còn Nashorn mặc định; cần engine tương thích được quản lý riêng.
-7. **Chặn class loading bằng class loader đơn giản rồi tin đã cô lập mã độc.** ClassLoader/JPMS không tự giới hạn mạng, file và CPU của mã cùng JVM.
-8. **Giới hạn số phương thức nhưng không giới hạn số lần gọi.** API `list(1)` có thể bị gọi vô tận; phải có budget, deadline và rate limit.
-9. **Chỉ kiểm quyền ở lúc cấp facade.** Quyền có thể hết hạn, thu hồi hoặc bị race; enforce tại từng operation/transaction quan trọng.
-10. **Chỉ kiểm tra đầu vào trên UI.** Script có thể gọi host API trực tiếp; validation phải nằm ở phía Java/gateway.
-11. **Sửa lỗi script bằng cách tự retry thao tác side effect.** Timeout không chứng minh server chưa commit; cần idempotency.
-12. **Dùng `Thread.interrupt()` làm ranh giới bảo mật.** Không đủ cho code không hợp tác; cần process isolation và quota OS.
-13. **Dùng cùng script engine/context cho nhiều tenant mà không kiểm tra rò state.** Bindings hoặc global objects từ lượt trước có thể bị giữ lại.
-14. **Đưa stack trace hoặc secret vào thông điệp trả về.** Trả mã lỗi và correlation ID; chi tiết nhạy cảm chỉ ở log đã kiểm soát.
+1. **Injecting `ApplicationContext` or a service container into scripts.** That usually grants far more privilege than business needs require.
+2. **Using a single large interface with an `isAdmin` flag.** Separating read/write capabilities and scoping permissions per run is far easier to review and test.
+3. **Letting scripts pass `tenantId`, `userId`, or connection strings.** Authorization-determining values must originate from the trusted host context.
+4. **Returning ORM entities, `Path`, `File`, `Connection`, or `ClassLoader`.** Returned objects can carry broader functionality and metadata than intended.
+5. **Believing `Bindings.put("api", facade)` is a sandbox.** Script engines may still allow Java interop, global bindings, and other access paths.
+6. **Assuming Java 17 always includes a JavaScript engine.** JDK 17 no longer bundles Nashorn by default; compatible engines must be managed explicitly.
+7. **Blocking class loading with a simple class loader and thinking malicious code is isolated.** ClassLoader/JPMS does not automatically restrict network, file, and CPU access for code in the same JVM.
+8. **Limiting methods without limiting call counts.** Even `list(1)` can be called endlessly; enforce budgets, deadlines, and rate limits.
+9. **Checking permissions only when creating the facade.** Permissions can expire, be revoked, or race; enforce on every critical operation/transaction.
+10. **Validating inputs only in the UI.** Scripts can call host APIs directly; validation must live on the Java/gateway side.
+11. **Fixing script errors by blindly retrying side-effecting operations.** A timeout does not prove the server never committed; use idempotency.
+12. **Using `Thread.interrupt()` as a security boundary.** Insufficient for uncooperative code; use process isolation and OS quotas.
+13. **Sharing the same script engine/context across multiple tenants without checking for state leaks.** Bindings or global objects from prior runs may linger.
+14. **Including stack traces or secrets in returned error messages.** Return error codes and correlation IDs; keep sensitive details in controlled logs only.
 
-## 11. Checklist trước khi công bố API cho script
+## 11. Checklist Before Exposing an API to Scripts
 
-- **Trust model:** script là nội bộ được review, đối tác tin một phần hay mã người dùng không tin cậy?
-- **Danh sách operation:** chỉ công bố các động từ nghiệp vụ cần thiết; không cung cấp reflection, SQL, file/HTTP tự do.
-- **Quyền nguồn:** host xác định actor, tenant và grant; script không được tùy ý khai báo danh tính.
-- **Đầu vào:** schema, kiểu, giới hạn độ dài, bộ lọc và allowlist được thực thi phía host.
-- **Đầu ra:** DTO nhỏ, immutable, không chứa privileged host object hoặc dữ liệu không thuộc scope.
-- **Kiểm quyền theo lượt gọi:** enforce grant, tenant, thời hạn, quota và transaction mỗi operation.
-- **Trạng thái thực thi:** capability không tái sử dụng sai tenant/run; chú ý engine pooling và globals.
-- **Đặc tính side effect:** audit, idempotency, retry, conflict và rollback có chính sách rõ ràng.
-- **Engine:** version, JS/DSL semantics và host interop được đánh giá/khóa cấu hình.
-- **Cô lập:** nếu không tin script, dùng sandbox process/OS, hạn chế mạng, file, secrets, CPU và RAM.
-- **Khả năng quan sát:** log kết quả allow/deny, error code, latency, run ID; không ghi payload nhạy cảm.
-- **Kiểm thử vượt quyền:** chạy negative tests với script cố truy cập object/operation không được cấp, không chỉ happy path.
+- **Trust model:** is the script internal and reviewed, partially trusted from a partner, or untrusted user code?
+- **Operation list:** expose only required business verbs; never provide reflection or arbitrary SQL, file, or HTTP access.
+- **Permission source:** the host determines actor, tenant, and grants; scripts cannot self-declare identity.
+- **Inputs:** schemas, types, length limits, filters, and allowlists are enforced host-side.
+- **Outputs:** small, immutable DTOs containing no privileged host objects or out-of-scope data.
+- **Per-call authorization:** enforce grants, tenant, expiration, quotas, and transactions on every operation.
+- **Execution state:** capabilities are never reused across wrong tenants/runs; watch out for engine pooling and globals.
+- **Side-effect semantics:** auditing, idempotency, retries, conflicts, and rollbacks have explicit policies.
+- **Engine:** version, JS/DSL semantics, and host interop are evaluated and configuration-locked.
+- **Isolation:** if scripts are untrusted, use process/OS sandboxing restricting network, files, secrets, CPU, and RAM.
+- **Observability:** log allow/deny decisions, error codes, latency, and run IDs; do not log sensitive payloads.
+- **Privilege-escalation testing:** run negative tests where scripts attempt to access ungranted objects/operations, not just happy paths.
 
-### Tài liệu API tham khảo (Java SE 17)
+### Reference API Documentation (Java SE 17)
 
 - [ScriptEngine — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngine.html)
 - [ScriptEngineManager — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngineManager.html)
 - [Bindings — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/Bindings.html)
 - [ScriptException — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptException.html)
 
-**Kết luận:** thiết kế API Java cho script theo **least privilege** nghĩa là mỗi script chỉ nhận những capability cần thiết cho đúng người dùng/tenant, trong đúng khoảng thời gian và hạn mức; method Java tự kiểm tra đầu vào, phạm vi quyền và tác động. **Một facade tối giản giúp kiểm soát nghiệp vụ, nhưng không phải ranh giới bảo mật độc lập**: với script không tin cậy, phải kết hợp cấu hình engine an toàn với cô lập tiến trình/hệ điều hành và gateway xác thực, kiểm soát từng thao tác.
+**Conclusion:** designing a Java API for scripts with **least privilege** means each script receives only the capabilities needed for the exact user/tenant, within the exact timeframe and quota; Java methods validate inputs, authorization scope, and impact themselves. **A minimal facade helps control business logic, but is not a standalone security boundary**: for untrusted scripts, combine secure engine configuration with process/OS-level isolation and an authenticating, per-operation gateway.

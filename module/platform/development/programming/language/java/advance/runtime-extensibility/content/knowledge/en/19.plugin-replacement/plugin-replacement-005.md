@@ -1,79 +1,79 @@
-# Xử lý yêu cầu đang chạy, chuyển trạng thái và quay lại phiên bản trước khi thay thế plugin
+# Handling In-Flight Requests, State Transitions, and Rollback During Plugin Replacement
 
-Thay một plugin trong ứng dụng Java đang phục vụ lưu lượng **không đơn giản là gỡ JAR cũ và nạp JAR mới**. Thời điểm chuyển phiên bản, một số request có thể đã lấy tham chiếu đến plugin cũ, một số request còn đang xếp hàng, một số tác vụ chạy bất đồng bộ hoặc giữ kết nối lâu dài. Phiên bản mới có thể vượt qua kiểm thử khởi động nhưng lỗi khi nhận lưu lượng thật; khi đó host cần **rollback**, tức đưa các request mới quay về phiên bản trước **mà không làm hỏng những request và dữ liệu đã đi qua phiên bản mới**.
+Replacing a plugin in a Java application serving live traffic **is not as simple as unloading the old JAR and loading the new JAR**. At the moment of version cutover, some requests may already hold references to the old plugin, some may still be queued, and some tasks may run asynchronously or hold long-lived connections. A new version may pass startup checks yet fail under real traffic; the host then needs to **roll back**, routing new requests back to the previous version **without corrupting requests and data that already passed through the new version**.
 
-Đối với mô-đun runtime extensibility, phải giải quyết đồng thời ba câu hỏi:
+For the runtime extensibility module, three questions must be solved simultaneously:
 
-1. **Yêu cầu đang chạy xử lý thế nào?** Để nó hoàn tất trên thế hệ plugin mà nó đã chọn, hoặc hủy có kiểm soát theo chính sách, thay vì đóng class loader hoặc phá tài nguyên đang được dùng.
-2. **Chuyển trạng thái thế nào?** Chuẩn bị, thử nghiệm, kích hoạt, ngừng nhận mới, chờ xả tải và thu hồi phiên bản cũ bằng các trạng thái và ranh giới đồng bộ hóa rõ ràng.
-3. **Quay lại phiên bản trước thế nào?** Giữ một thế hệ plugin cũ còn khả dụng trong một khoảng rollback window, chuyển tuyến một cách nguyên tử và kiểm tra tương thích trạng thái, dữ liệu, API và side effects.
+1. **How are in-flight requests handled?** Let them finish on the plugin generation they selected, or cancel them cleanly under policy, rather than closing the class loader or destroying resources currently in use.
+2. **How are state transitions handled?** Prepare, validate, activate, stop admitting new work, wait to drain, and retire the old version using clear states and synchronization boundaries.
+3. **How is rollback handled?** Keep an older plugin generation usable within a rollback window, switch routing atomically, and verify compatibility of state, data, APIs, and side effects.
 
-Bài học trình bày mô hình **generation + request lease + atomic cutover + graceful drain + controlled rollback**, minh họa bằng chương trình Java 17 độc lập, sau đó mở rộng sang hệ thống thật có HTTP, hàng đợi, long-running jobs, database và các plugin class loaders.
+This lesson presents the **generation + request lease + atomic cutover + graceful drain + controlled rollback** model, illustrated with a standalone Java 17 program, then extends it to real systems with HTTP, queues, long-running jobs, databases, and plugin class loaders.
 
-## 1. Vì sao thay nóng plugin dễ làm mất request?
+## 1. Why does hot-swapping a plugin easily drop requests?
 
-Giả sử host cung cấp service **Formatter**. Thế hệ đang chạy là v1, chuẩn bị thay bằng v2. Tại một thời điểm có thể tồn tại những yêu cầu như sau:
+Suppose the host provides a **Formatter** service. The running generation is v1, and we are preparing to replace it with v2. At a given moment, the following requests may exist:
 
 ~~~text
-                        +--------------------+
-Yêu cầu đã vào v1 ------>| Plugin v1 đang chạy |----->
-                        +--------------------+
-                                 ^
-                                 | giữ tham chiếu/lease
-                                 |
-            thời điểm cutover -----|--------------------
-                                 |
-Yêu cầu mới --------->+--------------------+
-                      | Plugin v2 đang chạy |----->
-                      +--------------------+
+                                    +--------------------+
+Request already entered v1 -------->| Plugin v1 running  |----->
+                                    +--------------------+
+                                             ^
+                                             | holds reference/lease
+                                             |
+                        cutover point -------|--------------------
+                                             |
+New request --------------------->+--------------------+
+                                  | Plugin v2 running  |----->
+                                  +--------------------+
 ~~~
 
-Nếu host chỉ thay một biến currentPlugin bằng v2 rồi lập tức gọi stop/close trên v1, một request đã bắt đầu với v1 có thể truy cập một file, pool, service hoặc module đã bị dỡ. Lỗi xuất hiện giữa chừng dù thao tác chuyển biến currentPlugin nhìn bề ngoài đã thành công.
+If the host merely replaces a `currentPlugin` variable with v2 and immediately calls stop/close on v1, a request that already started with v1 may hit an unloaded file, pool, service, or module. Failures appear mid-flight even though reassigning `currentPlugin` looked successful on the surface.
 
-Ngược lại, nếu host khóa toàn bộ ứng dụng trong lúc đợi mọi request hoàn thành rồi mới thay plugin, request dài hoặc luồng streaming có thể làm triển khai bị treo, gây ngừng dịch vụ kéo dài. Hệ thống cần **chặn nhận mới ở phiên bản cũ nhưng cho tác vụ đã nhận quyền sử dụng tiếp tục**, có deadline và cơ chế xử lý task không chịu hoàn tất.
+Conversely, if the host locks the entire application while waiting for every request to finish before swapping the plugin, long requests or streaming connections can stall deployments and cause prolonged outages. The system needs to **stop admitting new work to the old version while allowing already-admitted work to proceed**, backed by deadlines and handling for tasks that fail to finish.
 
-Điểm phân biệt cốt lõi là:
+The core distinction is:
 
-- **Request admission**: tại thời điểm tiếp nhận, chọn đúng generation đang ACTIVE.
-- **Request execution**: thực thi trên generation đã chọn, ngay cả khi biến current sau đó chuyển sang generation khác.
-- **Completion/release**: trả lại lease khi toàn bộ xử lý thật sự kết thúc, để generation cũ chỉ được dọn khi không còn người dùng.
+- **Request admission**: at acceptance time, pick the currently `ACTIVE` generation.
+- **Request execution**: execute on the selected generation, even if the `current` variable later moves to another generation.
+- **Completion/release**: return the lease once all processing has truly finished, so the old generation is cleaned up only when no consumers remain.
 
-Chỉ đổi pointer mà không quản lý request đang chạy, trạng thái và dữ liệu thường là **hot switch thiếu an toàn**, không phải hot replacement hoàn chỉnh.
+Swapping a pointer without managing in-flight requests, state, and data is usually an **unsafe hot switch**, not a complete hot replacement.
 
-## 2. Những đối tượng cần có trong thiết kế
+## 2. Objects needed in the design
 
-Một host có thể dùng các khái niệm sau:
+A host can use the following concepts:
 
-| Thành phần | Trách nhiệm | Ví dụ |
+| Component | Responsibility | Example |
 | --- | --- | --- |
-| **Plugin generation** | Một lần nạp cụ thể của plugin, có ID/version, instance, class loader, cấu hình, tài nguyên và trạng thái | formatter-v2 / generation-42 |
-| **Routing pointer** | Chọn generation nhận request **mới** | activeGeneration |
-| **Lease / in-flight counter** | Ghi nhận có request đang dùng generation nào; chỉ release khi thực sự hoàn thành | v1.inFlight = 3 |
-| **Lifecycle controller** | Quy định trạng thái, guard, timeout và quyết định activate/rollback/retire | PREPARED → ACTIVE → DRAINING |
-| **Readiness/health gate** | Xác minh plugin sẵn sàng nhận tải, phụ thuộc đủ và đáp ứng tiêu chí vận hành | health checks, error rate |
-| **Rollback candidate** | Generation cũ vẫn tồn tại và còn tương thích để kích hoạt lại khi cần | v1 giữ ở STANDBY |
-| **State/data compatibility plan** | Bảo đảm kết quả do v2 viết không làm v1 không đọc được khi quay lại | expand–contract migration, versioned events |
+| **Plugin generation** | One specific load of a plugin, with ID/version, instance, class loader, configuration, resources, and state | formatter-v2 / generation-42 |
+| **Routing pointer** | Selects the generation receiving **new** requests | activeGeneration |
+| **Lease / in-flight counter** | Tracks which requests are using which generation; released only upon actual completion | v1.inFlight = 3 |
+| **Lifecycle controller** | Defines states, guards, timeouts, and activate/rollback/retire decisions | PREPARED → ACTIVE → DRAINING |
+| **Readiness/health gate** | Verifies the plugin is ready for traffic, dependencies exist, and operational metrics pass | health checks, error rate |
+| **Rollback candidate** | Older generation kept alive and compatible for reactivation when needed | v1 held in STANDBY |
+| **State/data compatibility plan** | Ensures outputs written by v2 do not make v1 unreadable on rollback | expand–contract migration, versioned events |
 
-Một **generation** không đồng nghĩa một phiên bản semantic version duy nhất. Cùng v2 có thể được nạp lại thành nhiều generation với class loader khác nhau, tài nguyên khác nhau hoặc cấu hình khác nhau. Điều cần quản lý là **danh tính thế hệ đang được các request giữ**, không chỉ chuỗi "2.0".
+A **generation** is not synonymous with a single semantic version. The same v2 may be reloaded into multiple generations with different class loaders, different resources, or different configurations. What must be managed is **the generation identity held by requests**, not just the string `"2.0"`.
 
-### In-flight là gì?
+### What counts as in-flight?
 
-Một request được tính là in-flight từ lúc **host cấp lease** để bắt đầu dùng generation, cho tới lúc tất cả hoạt động của request đã hoàn tất và lease được giải phóng. Tùy ứng dụng, đó có thể là:
+A request is considered in-flight from the moment **the host grants a lease** to begin using a generation until all work for that request finishes and the lease is released. Depending on the application, this can be:
 
-- HTTP request đồng bộ: từ khi route chọn plugin tới khi trả response và cleanup hoàn tất.
-- CompletableFuture: cho tới khi future hoàn thành hoặc kết thúc bằng lỗi/hủy theo chính sách.
-- Message consumer: cho tới khi xử lý và commit/ack hoặc đưa vào retry/DLQ theo quy tắc.
-- Streaming/gRPC/WebSocket: có thể kéo dài toàn bộ session nếu session giữ tài nguyên/logic plugin.
-- Scheduled job hoặc workflow dài: nhiều phút hoặc hàng giờ, có thể phải checkpoint và tiếp tục ở thế hệ khác theo giao thức được thiết kế riêng.
+- Synchronous HTTP request: from when routing picks the plugin until the response is sent and cleanup completes.
+- `CompletableFuture`: until the future completes or finishes via error/cancellation per policy.
+- Message consumer: until processing and commit/ack or dead-letter/retry routing per rules.
+- Streaming/gRPC/WebSocket: may span the entire session if the session holds plugin resources/logic.
+- Scheduled job or long workflow: minutes or hours, potentially needing checkpoints and handoff to another generation under a custom protocol.
 
-**Không** release lease ngay sau khi gọi một phương thức trả Future nếu callback bất đồng bộ vẫn còn truy cập plugin. Tương tự, không chỉ đo số kết nối HTTP nếu một kết nối có thể gửi nhiều request; phải đếm đúng công việc đang dùng generation.
+**Never** release a lease right after calling a method returning a `Future` if asynchronous callbacks still access the plugin. Similarly, do not count only HTTP connections if a single connection can send multiple requests; count the actual work using the generation.
 
-## 3. Máy trạng thái thay thế plugin
+## 3. Plugin replacement state machine
 
-Một mô hình đơn giản có thể dùng:
+A straightforward model to use:
 
 ~~~text
-         tải JAR + cấu hình + dependency
+         load JAR + config + dependencies
                      |
                      v
                  PREPARED
@@ -88,127 +88,127 @@ Một mô hình đơn giản có thể dùng:
                      v
                    ACTIVE
                      |
-          có generation khác thay thế
+          another generation replaces it
                      |
                      v
                   DRAINING
                      |
-             inFlight về 0
+             inFlight drops to 0
                      |
                      v
                   STANDBY
                   /     \
-       rollback     /       \ hết rollback window
+       rollback     /       \ rollback window expires
                   v           v
                 ACTIVE       CLOSED
                               |
-                       đóng tài nguyên,
-                      bỏ strong references
+                       close resources,
+                      drop strong references
 ~~~
 
-Đây là **mô hình thiết kế tham khảo**. Không có enum trạng thái nào được JDK mặc định quản lý sẵn cho plugin của ứng dụng; host phải hiện thực, lưu audit và kiểm tra chuyển trạng thái.
+This is a **reference design model**. No built-in JDK enum manages states for application plugins; the host must implement, audit, and validate state transitions.
 
-Ý nghĩa từng trạng thái:
+Meaning of each state:
 
-- **PREPARED**: artifact đã được tìm, kiểm tra chữ ký/nguồn tin cậy, cấu hình, API compatibility và nạp trong scope riêng; **chưa** nhận request sản xuất.
-- **ACTIVATING**: đang thực hiện các guard cần thiết và chuẩn bị xuất bản route; không mở public admission vào generation trước khi sẵn sàng.
-- **ACTIVE**: là thế hệ hợp lệ để nhận **request mới**; mọi request lấy lease ở đây.
-- **DRAINING**: không nhận request mới, nhưng request đã nhận trước đó tiếp tục sử dụng instance và tài nguyên cũ.
-- **STANDBY**: không còn request đang chạy, tài nguyên cần cho rollback vẫn được giữ lại; generation có thể được kích hoạt lại nếu tương thích.
-- **CLOSED**: không nhận request mới, không còn lease, tài nguyên được đóng theo hợp đồng và generation không được kích hoạt lại theo đường rollback nhanh.
+- **PREPARED**: artifact located, signature/trusted origin verified, configuration and API compatibility checked, and loaded in its own scope; **not** yet receiving production requests.
+- **ACTIVATING**: running required guards and preparing to publish the route; public admission into the generation is not open before readiness.
+- **ACTIVE**: valid generation for admitting **new requests**; all incoming requests acquire leases here.
+- **DRAINING**: admits no new requests, while previously admitted requests continue using the old instance and resources.
+- **STANDBY**: no requests are running, resources required for rollback are kept intact; the generation can be reactivated if compatible.
+- **CLOSED**: admits no new requests, no leases remain, resources are closed per contract, and the generation cannot be reactivated via fast rollback.
 
-Trong ví dụ Java chạy được ở phần 6, **ACTIVATING** được gộp vào thao tác activate giữ khóa ngắn để đơn giản hóa. Trong ứng dụng thật có health checks và distributed coordination, quá trình chuẩn bị và xác minh thường kéo dài ngoài critical section; chỉ đoạn **xuất bản pointer/routing rule** cần nguyên tử.
+In the runnable Java example in Section 6, **ACTIVATING** is folded into a short-locked `activate` operation for simplicity. In real systems with health checks and distributed coordination, preparation and verification run outside critical sections; only **publishing the pointer/routing rule** needs to be atomic.
 
-### Bất biến phải luôn đúng
+### Invariants that must always hold
 
-1. **Một generation CLOSED không bao giờ được cấp lease mới.**
-2. **Tại một route/tenant và một thời điểm, chỉ generation được chính sách admission cho phép mới nhận request mới.** Với canary có thể là nhiều generation ACTIVE theo trọng số; phải quy định rõ.
-3. **Mỗi lease gắn bất biến với một generation**, không đổi nửa chừng khi pointer cutover.
-4. **Không đóng generation có inFlight lớn hơn 0**, trừ tình huống khẩn cấp với chính sách hủy/ép dừng đã được xác định.
-5. **Không rollback vào generation đã CLOSED hoặc không tương thích với state hiện tại.**
-6. **Thay route và nhận lease phải phối hợp đồng bộ**, không có cửa sổ race khiến request mới được nhận vào generation đã ngừng admission.
-7. **Rollback không xóa được side effects** đã tạo ra bởi phiên bản bị lỗi; phải đánh giá dữ liệu và giao dịch riêng.
+1. **A `CLOSED` generation must never issue a new lease.**
+2. **For a given route/tenant at any point in time, only generations allowed by admission policy accept new requests.** With canary releases, multiple weighted `ACTIVE` generations may exist; this must be specified explicitly.
+3. **Every lease is immutably pinned to one generation**, never switching mid-flight when the pointer cuts over.
+4. **Never close a generation with `inFlight > 0`**, except in emergency situations with a defined cancellation/forced-stop policy.
+5. **Never roll back to a generation that is `CLOSED` or incompatible with current state.**
+6. **Route switching and lease acquisition must coordinate synchronously**, leaving no race window where new requests enter a generation whose admission already stopped.
+7. **Rollback does not erase side effects** already produced by the faulty version; data and transactions must be assessed separately.
 
-Nếu không bảo vệ những bất biến này, hệ thống có thể có memory/resource leak, lỗi dùng plugin đã đóng, mất request hoặc rollback tạo dữ liệu không đọc được.
+Failing to protect these invariants can cause memory/resource leaks, calls against closed plugins, dropped requests, or rollbacks producing unreadable data.
 
-## 4. Bốn giai đoạn của một lần thay thế có kiểm soát
+## 4. Four phases of a controlled replacement
 
-### Giai đoạn A — Prepare, chưa động vào lưu lượng thật
+### Phase A — Prepare, without touching live traffic
 
-- Tải version mới vào **generation mới**, không thay trực tiếp class/instance ở generation cũ.
-- Kiểm tra artifact provenance, phiên bản API, dependency graph, cấu hình và các capability được phép dùng.
-- Khởi tạo instance và tài nguyên cần thiết; nếu plugin có start(), chạy theo hợp đồng startup đã thiết kế.
-- Thực hiện readiness/smoke tests trên dữ liệu kiểm thử có kiểm soát. Có thể thử synthetic traffic hoặc shadow requests, nhưng **shadow không được ghi side effects thật** nếu có nguy cơ lặp giao dịch.
-- Kiểm tra plugin có thể đọc schema dữ liệu hiện tại, tạo event phù hợp với consumer cũ/mới, và không yêu cầu migration phá hủy đường rollback.
-- Đặt generation mới ở PREPARED/READY và ghi nhận generation ID, config hash, artifact checksum, health baseline.
+- Load the new version into a **new generation**, without directly modifying classes/instances in the old generation.
+- Verify artifact provenance, API version, dependency graph, configuration, and permitted capabilities.
+- Instantiate objects and required resources; if the plugin has `start()`, invoke it per startup contract.
+- Run readiness/smoke tests on controlled test data. Synthetic traffic or shadow requests may be tried, provided **shadowing does not write real side effects** where duplicate transactions are dangerous.
+- Verify the plugin can read the current data schema, emit events compatible with old/new consumers, and does not require migrations that destroy the rollback path.
+- Mark the new generation `PREPARED`/`READY` and record generation ID, config hash, artifact checksum, and health baseline.
 
-Nếu chuẩn bị thất bại, **không chuyển tuyến**: đóng tài nguyên của generation mới đã khởi tạo một phần, giữ v1 ACTIVE và báo lỗi triển khai. Đây là cách rollback đơn giản nhất: **chưa commit cutover**.
+If preparation fails, **do not switch routes**: close the partially initialized resources of the new generation, keep v1 `ACTIVE`, and report the deployment error. This is the simplest rollback: **cutover never committed**.
 
-### Giai đoạn B — Activate/cutover
+### Phase B — Activate/cutover
 
-Trong một ranh giới đồng bộ hóa ngắn:
+Within a brief synchronization boundary:
 
-1. Đảm bảo candidate đã sẵn sàng và chưa bị đóng.
-2. Đọc generation đang ACTIVE.
-3. Đánh dấu thế hệ cũ không còn nhận yêu cầu mới.
-4. Xuất bản route/pointer sang thế hệ mới.
-5. Đánh dấu thế hệ mới ACTIVE và ghi nhận cutover ID/thời điểm.
+1. Ensure the candidate is ready and not closed.
+2. Read the currently `ACTIVE` generation.
+3. Mark the old generation as no longer accepting new requests.
+4. Publish the route/pointer to the new generation.
+5. Mark the new generation `ACTIVE` and record the cutover ID/timestamp.
 
-Bước chọn generation và tăng inFlight của một request **phải dùng cùng giao thức đồng bộ hóa** với bước cutover. Ví dụ dùng synchronized trên một monitor chung hoặc một cơ chế CAS+refcount được thiết kế chính xác. **AtomicReference.set(newGeneration) đơn độc không đủ** nếu request đọc pointer trước cutover rồi tăng refcount sau khi hệ thống đã đóng v1; phải có bước xác thực/đảm bảo admission sau khi tăng lease.
+Selecting a generation and incrementing `inFlight` for a request **must share the same synchronization protocol** as the cutover step. For example, use `synchronized` on a shared monitor or a properly designed CAS+refcount protocol. **`AtomicReference.set(newGeneration)` alone is not enough** if a request reads the pointer before cutover and increments refcount after the system closed v1; admission must be verified/enforced after acquiring the lease.
 
-Kết quả cần đạt là **yêu cầu đã nhận lease v1 vẫn chạy ở v1**, còn **yêu cầu mới sau cutover nhận lease v2**. Hệ thống không buộc những request cũ đổi business logic ở giữa giao dịch.
+The desired outcome is that **requests already holding a v1 lease keep running on v1**, while **new requests after cutover receive a v2 lease**. The system does not force old requests to swap business logic mid-transaction.
 
-### Giai đoạn C — Drain thế hệ cũ
+### Phase C — Drain the old generation
 
-v1 chuyển sang DRAINING, nhưng chưa đóng class loader, thread pool, connection pool hoặc state mà request của v1 đang dùng. In-flight counter giảm khi từng request kết thúc. Khi về 0, v1 có thể vào STANDBY trong thời hạn rollback.
+v1 moves to `DRAINING`, without closing the class loader, thread pool, connection pool, or state still used by v1 requests. The in-flight counter decreases as each request completes. Once at 0, v1 can enter `STANDBY` for the rollback window.
 
-Trong lúc drain cần theo dõi:
+During draining, monitor:
 
-- v1.inFlight, v2.inFlight theo generation, route và tenant.
-- Thời gian request cũ còn tồn tại, loại request và độ trễ của generation cũ.
-- Các future/callback/timer/consumer hoặc stream còn giữ tham chiếu đến v1.
-- Deadline tổng của rollout và cơ chế escalation cho request bị treo.
+- `v1.inFlight`, `v2.inFlight` per generation, route, and tenant.
+- Age of lingering old requests, request types, and latency on the old generation.
+- Futures/callbacks/timers/consumers or streams still holding references to v1.
+- Overall rollout deadline and escalation mechanism for hung requests.
 
-Nếu drain quá lâu, các lựa chọn phụ thuộc hợp đồng:
+If draining takes too long, options depend on the contract:
 
-- **Chờ thêm có deadline** khi request hợp lệ và hệ thống có đủ tài nguyên.
-- **Ngừng admission vào workload dài hoặc chuyển session mới** theo chính sách draining rõ.
-- **Cancel với xác nhận kết thúc** cho job cho phép hủy; phải giải phóng tài nguyên sau khi tác vụ thực sự dừng.
-- **Checkpoint/retry** ở ranh giới idempotent khi plugin hỗ trợ chuyển tiến độ giữa version.
-- **Restart worker/process riêng** theo quy trình cưỡng bức nếu plugin không hợp tác; không coi thao tác đóng class loader trong cùng JVM là cách giết thread an toàn.
+- **Wait longer up to a deadline** when requests are valid and the system has sufficient resources.
+- **Stop admitting into long-lived workloads or migrate new sessions** under an explicit draining policy.
+- **Cancel with confirmed termination** for cancellable jobs; release resources only after work actually stops.
+- **Checkpoint/retry** at idempotent boundaries when plugins support progress handoff across versions.
+- **Restart a dedicated worker/process** via a forced procedure if the plugin is uncooperative; do not treat closing a class loader inside the same JVM as a safe way to kill threads.
 
-### Giai đoạn D — Commit hoặc rollback
+### Phase D — Commit or rollback
 
-Sau cutover, quan sát v2 theo cửa sổ được chọn: latency, lỗi, timeout, memory, resource usage, tác động nghiệp vụ và sự tương thích dữ liệu. Nếu v2 ổn định và hết rollback window, thu hồi v1 khi không còn in-flight/rollback dependence.
+After cutover, observe v2 over the chosen window: latency, errors, timeouts, memory, resource usage, business outcomes, and data compatibility. If v2 is stable and the rollback window expires, retire v1 once no in-flight or rollback dependencies remain.
 
-Nếu phát hiện vấn đề ở v2, **rollback route** về một generation tương thích (v1 còn sống), đưa v2 vào DRAINING, tiếp tục cho những request đã nhận lease v2 hoàn tất hoặc hủy có kiểm soát, rồi mới dọn v2. Rollback không nhất thiết quay lại toàn bộ thế giới về trạng thái trước khi v2 nhận request: **ghi DB, gửi email, charge/payment, publish event, update cache** có thể đã xảy ra.
+If problems appear in v2, **roll back the route** to a compatible generation (v1 still alive), move v2 into `DRAINING`, let requests already holding v2 leases finish or cancel cleanly, and only then clean up v2. Rollback does not automatically revert the entire world to its state before v2 served traffic: **DB writes, sent emails, charges/payments, published events, and cache updates** may already have occurred.
 
-## 5. Timeline minh họa ba request
+## 5. Timeline illustrating three requests
 
 ~~~text
-Thời gian   Ứng dụng / route         Request A         Request B         Request C
+Time        App / route              Request A         Request B         Request C
 ----------  -----------------------  ----------------  ----------------  ---------------
 t0          active = v1              acquire v1
-t1          chuẩn bị v2              đang xử lý v1
-t2          cutover: active = v2     vẫn xử lý v1
-t3          v1 DRAINING              hoàn tất v1      acquire v2
-t4          v1 inFlight = 0                            xử lý v2
-t5          v1 STANDBY                                  hoàn tất v2
-t6          health v2 xấu            --                --                --
+t1          prepare v2               processing v1
+t2          cutover: active = v2     still processing v1
+t3          v1 DRAINING              complete v1       acquire v2
+t4          v1 inFlight = 0                            processing v2
+t5          v1 STANDBY                                 complete v2
+t6          v2 health bad            --                --                --
 t7          rollback: active = v1                                        acquire v1
-t8          v2 DRAINING/STANDBY                                          hoàn tất v1
-t9          v2 CLOSED sau drain
+t8          v2 DRAINING/STANDBY                                          complete v1
+t9          v2 CLOSED after drain
 ~~~
 
-Ở t2, không chuyển request A sang v2. Ở t7, những request đã được cấp lease v2 trước rollback tiếp tục xử lý v2 theo chính sách mặc định, còn request C được cấp lease v1. Khi đường nghiệp vụ không cho phép v2 tiếp tục tạo side effects nguy hiểm, cần thêm policy **stop/cancel/quarantine**, không chỉ đổi pointer.
+At t2, request A is not switched to v2. At t7, requests that already received a v2 lease before rollback continue processing on v2 under the default policy, while request C gets a v1 lease. When a business path cannot allow v2 to continue producing hazardous side effects, an additional **stop/cancel/quarantine** policy is required beyond just swapping the pointer.
 
-Bảng này là **diễn tiến logic**, không phải cam kết rằng các request luôn hoàn tất theo thứ tự cố định. Với nhiều worker/process, các thời điểm t0–t9 phải được phối hợp bằng cơ chế điều phối triển khai và định danh epoch.
+This table shows **logical progression**, not a guarantee that requests always finish in a fixed order. Across multiple workers/processes, timestamps t0–t9 must be coordinated via a deployment coordinator and epoch identifiers.
 
-## 6. Ví dụ Java 17 chạy được: lease, cutover, draining và rollback
+## 6. Runnable Java 17 example: lease, cutover, draining, and rollback
 
-Ví dụ độc lập mô hình hóa hai generation v1/v2 của một plugin. Mục đích là chứng minh thứ tự trạng thái và khả năng giữ request cũ qua cutover **mà không phụ thuộc web server, database hoặc file JAR bên ngoài**.
+This standalone example models two generations v1/v2 of a plugin. Its purpose is to prove state ordering and preservation of old requests across cutover **without depending on a web server, database, or external JAR files**.
 
-**Lưu ý phạm vi:** ví dụ mô phỏng xử lý yêu cầu bằng hàm String và điều khiển tiến trình tuần tự để stdout xác định. Nó sử dụng một monitor chung nhằm minh họa sự phối hợp nguyên tử giữa **admission và cutover**; chưa phải plugin manager sản xuất, không tự dừng thread, không tích hợp network health check và chưa có cleanup thật của URLClassLoader. Phần sau giải thích cách nâng cấp.
+**Scope note:** the example simulates request processing with `String` functions and controls progress sequentially so stdout is deterministic. It uses a shared monitor to illustrate atomic coordination between **admission and cutover**; it is not yet a production plugin manager, does not stop threads automatically, integrates no network health checks, and has no real `URLClassLoader` cleanup yet. Subsequent sections explain how to expand it.
 
 ### 6.1. File PluginCutoverDemo.java
 
@@ -361,14 +361,14 @@ public final class PluginCutoverDemo {
 
         Router router = new Router(v1);
 
-        // Request A đã acquire lease v1 trước cutover.
+        // Request A acquired v1 lease before cutover.
         try (Lease pending = router.acquire()) {
             router.activate(v2);
 
             System.out.println(
                     "ongoing=" + pending.execute("A"));
 
-            // Request B đến sau cutover, được route sang v2.
+            // Request B arrives after cutover and is routed to v2.
             try (Lease newer = router.acquire()) {
                 System.out.println(
                         "new=" + newer.execute("B"));
@@ -378,11 +378,11 @@ public final class PluginCutoverDemo {
                     "old-while-inflight=" + router.stateOf(v1));
         }
 
-        // Request A kết thúc, lease v1 được trả.
+        // Request A finishes, v1 lease is released.
         System.out.println(
                 "old-after-drain=" + router.stateOf(v1));
 
-        // Giả định health gate quyết định v2 không đạt.
+        // Assume health gate decides v2 fails.
         router.rollbackTo(v1);
 
         try (Lease after = router.acquire()) {
@@ -400,16 +400,16 @@ public final class PluginCutoverDemo {
 }
 ~~~
 
-### 6.2. Biên dịch và chạy trên Java 17+
+### 6.2. Compiling and running on Java 17+
 
-Lưu đúng tên **PluginCutoverDemo.java** ở encoding UTF-8, rồi dùng JDK 17 trở lên:
+Save as **PluginCutoverDemo.java** in UTF-8 encoding, then use JDK 17 or newer:
 
 ~~~bash
 javac -encoding UTF-8 PluginCutoverDemo.java
 java PluginCutoverDemo
 ~~~
 
-**Stdout xác định:**
+**Deterministic stdout:**
 
 ~~~text
 ongoing=v1:A
@@ -421,48 +421,48 @@ v2-after-rollback=STANDBY
 v2-after-retire=CLOSED
 ~~~
 
-### 6.3. Vì sao ví dụ đúng về admission/drain?
+### 6.3. Why is the example right about admission/drain?
 
-**Giai đoạn đầu:** router trỏ v1. Request A lấy Lease cho v1 và tăng v1.inFlight trong cùng gate. Sau đó activate(v2) chuyển pointer, nhưng Lease A vẫn giữ tham chiếu pinned=v1.
+**Initial stage:** the router points to v1. Request A acquires a `Lease` for v1 and increments `v1.inFlight` inside the same gate. Then `activate(v2)` switches the pointer, yet Lease A keeps holding the reference `pinned=v1`.
 
-**Sau cutover:** Request B gọi acquire và nhìn thấy v2 ACTIVE, nên execute trả v2:B. Request A tiếp tục chạy v1:A; v1 đang DRAINING, không nhận request mới nhưng vẫn còn inFlight=1.
+**After cutover:** Request B calls `acquire` and sees v2 `ACTIVE`, so `execute` returns `v2:B`. Request A continues running `v1:A`; v1 is `DRAINING`, accepting no new requests yet still has `inFlight=1`.
 
-**Khi A kết thúc:** try-with-resources gọi Lease.close(), giảm inFlight của v1 từ 1 xuống 0. release chuyển v1 từ DRAINING sang STANDBY. Bài học là **đóng lease sau công việc**, không đóng plugin ngay sau khi thay pointer.
+**When A finishes:** try-with-resources invokes `Lease.close()`, decrementing v1's `inFlight` from 1 to 0. `release` transitions v1 from `DRAINING` to `STANDBY`. The lesson is to **close the lease after the work**, not close the plugin immediately upon switching the pointer.
 
-**Khi rollback:** rollbackTo(v1) đặt v2 vào STANDBY (vì request B đã hoàn tất), tái kích hoạt v1 và chuyển pointer về v1. Request C nhận v1 và trả v1:C.
+**On rollback:** `rollbackTo(v1)` moves v2 to `STANDBY` (since Request B already finished), reactivates v1, and switches the pointer back to v1. Request C gets v1 and returns `v1:C`.
 
-**Khi retire:** markClosed(v2) chỉ đổi **trạng thái mô phỏng** sang CLOSED sau khi v2 không còn in-flight và không còn là pointer ACTIVE. Trong hệ thống thật, còn phải gọi stop/close các tài nguyên thực tế (sau khi không còn users hoặc rollback dependencies) và xử lý exception từ cleanup.
+**On retire:** `markClosed(v2)` transitions only the **modeled state** to `CLOSED` once v2 has no in-flight requests and is no longer the `ACTIVE` pointer. In a real system, you must also call stop/close on actual resources (once no consumers or rollback dependencies remain) and handle cleanup exceptions.
 
-### 6.4. Giới hạn được chủ ý của demo
+### 6.4. Intentional limitations of the demo
 
-- Demo không khởi động hai Java thread cùng lúc; nó chứng minh bằng trình tự logic rằng request đã giữ v1 trước cutover vẫn dùng v1 sau cutover. Kiểm thử concurrency thật phải có thread pool, barrier và timeout riêng.
-- Mỗi Lease trong demo thuộc sở hữu **một flow xử lý**. Trường closed là boolean thường, không có giao thức cho nhiều thread đóng/call đồng thời trên cùng Lease. Host production cần quy tắc ownership hoặc triển khai lease an toàn thread.
-- Handler ở đây không nắm tài nguyên hoặc side effects. Production cần giữ cả DB connections, SDK handles, background jobs và callback theo scope generation.
-- Router chỉ quản lý **một process**. Chuyển nhiều instance trong cluster cần bộ điều phối phiên bản/epoch, health gating và rollback đồng bộ.
-- rollbackTo chỉ kiểm tra trạng thái mô phỏng. Production còn cần **tương thích schema**, tính tin cậy artifact, quyền sử dụng, trạng thái dữ liệu và chính sách rollback window.
-- Không sử dụng Thread.stop, không trực tiếp unload class và không đóng class loader giữa lúc request chạy.
+- The demo does not launch two concurrent Java threads; it proves by logical sequencing that a request already holding v1 before cutover still uses v1 after cutover. Real concurrency tests must use thread pools, barriers, and dedicated timeouts.
+- Each `Lease` in the demo is owned by **a single processing flow**. The `closed` field is a plain boolean with no protocol for multiple threads closing/calling concurrently on the same `Lease`. A production host needs ownership rules or a thread-safe lease implementation.
+- Handlers here hold no resources or side effects. Production must scope DB connections, SDK handles, background jobs, and callbacks to the generation.
+- `Router` manages only **a single process**. Switching multiple instances in a cluster requires a version/epoch coordinator, health gating, and synchronized rollback.
+- `rollbackTo` checks only the modeled state. Production also needs **schema compatibility**, artifact trust, permissions, data state, and a rollback window policy.
+- Never use `Thread.stop`, directly unload classes, or close a class loader while requests are running.
 
-Đây là chương trình **học bất biến lifecycle**, không phải giải pháp thay nóng plugin đầy đủ với tất cả điều kiện vận hành.
+This program is for **learning lifecycle invariants**, not a complete hot-replacement solution with all operational conditions.
 
-## 7. Khi có tác vụ bất đồng bộ, lease phải sống tới khi hoàn thành thật
+## 7. With async tasks, leases must stay alive until true completion
 
-Sự khác biệt giữa API đồng bộ và async rất dễ gây lỗi. Với một phương thức trả CompletableFuture, code sau **sai về lifecycle**:
+The difference between synchronous and async APIs easily causes bugs. For a method returning `CompletableFuture`, the following code is **broken with respect to lifecycle**:
 
 ~~~java
-// Ví dụ NGUY HIỂM: logic minh họa; không phải chương trình đứng riêng.
+// DANGEROUS example: illustrative logic; not a standalone program.
 try (PluginLease lease = router.acquire()) {
     return lease.plugin().startAsync(input);
 }
-// Lease đóng ngay khi trả future, trong khi plugin vẫn chạy.
+// Lease closes immediately when returning future, while plugin is still running.
 ~~~
 
-PluginLease là interface giả định do host định nghĩa, không phải Java API sẵn có. Trong đoạn trên, try-with-resources gọi close **trước khi future hoàn thành**; host có thể thấy inFlight=0, đóng generation và làm công việc bất đồng bộ thất bại.
+`PluginLease` is a hypothetical host-defined interface, not a built-in Java API. In the snippet above, try-with-resources calls `close` **before the future completes**; the host may see `inFlight=0`, close the generation, and break the async work.
 
-Một cấu trúc thích hợp hơn:
+A more appropriate pattern:
 
 ~~~java
-// MÃ MINH HỌA: giả định lease, router, input, Response đã được định nghĩa.
-// CompletionStage<Response> là kết quả plugin trả về.
+// ILLUSTRATIVE CODE: assumes lease, router, input, Response are already defined.
+// CompletionStage<Response> is the result returned by the plugin.
 PluginLease lease = router.acquire();
 
 try {
@@ -475,103 +475,103 @@ try {
 }
 ~~~
 
-Giữ lease cho đến khi completion stage kết thúc, cả success lẫn exception. Nhưng cần quan sát các điểm phụ:
+Hold the lease until the completion stage finishes, on both success and exception. However, watch these subtleties:
 
-1. **Cancellation** không nhất thiết làm tác vụ ở sâu bên dưới ngừng ngay; chỉ release khi chính sách đã xác nhận plugin không còn sử dụng tài nguyên generation, hoặc khi wrapper chịu trách nhiệm mọi hoạt động được gọi hoàn thành.
-2. Completion callback có thể chạy trên thread bất kỳ; bản production cần **close idempotent và thread-safe** để tránh counter giảm hai lần nếu cancellation, timeout và completion đến gần nhau.
-3. Nếu stage hoàn tất nhưng còn side effects bất đồng bộ không được stage đại diện (fire-and-forget), lease vẫn bị trả sớm. Phải gắn toàn bộ công việc thật với lifecycle.
-4. Nếu close ném exception trong callback, cần ghi nhận và xử lý theo API nhưng không vô tình biến đổi hoặc che lỗi nghiệp vụ ban đầu.
-5. Có thể dùng executor và scope/context để giữ thông tin generation, request ID và tenant xuyên thread.
+1. **Cancellation** does not necessarily stop underlying work immediately; release only when policy confirms the plugin is no longer using generation resources, or when a wrapper owning all invoked work finishes.
+2. Completion callbacks can run on any thread; production needs **idempotent and thread-safe `close`** to avoid decrementing counters twice if cancellation, timeout, and completion arrive together.
+3. If the stage completes while fire-and-forget async side effects remain unrepresented by the stage, the lease still releases early. Tie all real work to the lifecycle.
+4. If `close` throws an exception inside the callback, log and handle it per API without accidentally overwriting or masking the original business error.
+5. Executors and scopes/contexts can propagate generation, request ID, and tenant information across threads.
 
-Không chuyển request đang chạy sang phiên bản mới bằng cách gọi lại handler trên v2 trong một callback bất kỳ. Điều đó có thể thực thi cùng nghiệp vụ hai lần nếu v1 đã tạo một phần side effects.
+Do not migrate an in-flight request to the new version by re-invoking the handler on v2 inside an arbitrary callback. That could execute the same business logic twice if v1 already produced partial side effects.
 
-## 8. Khi nào hủy yêu cầu và khi nào để hoàn tất?
+## 8. When to cancel requests and when to let them finish?
 
-Một chính sách thay thế tốt cần phân loại workload thay vì áp dụng một timeout duy nhất.
+A good replacement policy classifies workloads rather than applying a single uniform timeout.
 
-| Loại công việc | Chính sách drain thường phù hợp | Điều cần bảo toàn |
+| Workload type | Usually suitable drain policy | What must be preserved |
 | --- | --- | --- |
-| HTTP request ngắn | Cho hoàn tất trong grace period | Trả response đúng với phiên bản đã nhận |
-| Tác vụ đọc idempotent | Có thể cancel/retry nếu timeout rõ ràng | Không gây phản hồi trùng hoặc dữ liệu sai |
-| Ghi DB hoặc thanh toán | Ưu tiên hoàn tất/đảm bảo transaction; retry có idempotency key | Không double-charge/double-write |
-| Message queue consumer | Pause lấy message mới, hoàn tất/ack đang xử lý; dùng retry/DLQ phù hợp | At-least-once semantics và deduplication |
-| Batch job nhiều giờ | Checkpoint ở ranh giới ổn định, resume có protocol | Không mất tiến độ hoặc thực hiện lại một phần vô kiểm soát |
-| WebSocket/gRPC stream dài | Drain phiên, thông báo reconnect hoặc giữ generation cũ tới deadline | Không cắt kết nối tùy tiện |
-| Background timers/scheduled callbacks | Ngừng lên lịch mới, chờ callback đã phát động và dọn handle | Không giữ loader cũ sau khi plugin retire |
-| Plugin không tin cậy/không hợp tác | Cách ly trong worker process có thể restart/cancel | Không treo host JVM hoặc làm hỏng toàn hệ |
+| Short HTTP request | Let complete within grace period | Return response matching the admitted version |
+| Idempotent read | Can cancel/retry on clear timeout | Avoid duplicate responses or wrong data |
+| DB write or payment | Prefer completing/committing transaction; retry with idempotency key | Avoid double-charge/double-write |
+| Message queue consumer | Pause fetching new messages, finish/ack in-flight; use retry/DLQ appropriately | At-least-once semantics and deduplication |
+| Multi-hour batch job | Checkpoint at stable boundary, resume with protocol | No lost progress or uncontrolled partial re-runs |
+| Long-lived WebSocket/gRPC stream | Drain session, signal reconnect, or keep old generation until deadline | Do not sever connections arbitrarily |
+| Background timers/scheduled callbacks | Stop scheduling new runs, wait for active callbacks and clean handles | Do not retain old loader after plugin retires |
+| Untrusted/uncooperative plugin | Isolate in a restartable/cancellable worker process | Do not hang host JVM or crash the whole system |
 
-**In-flight=0 chỉ đáng tin nếu bạn đếm đủ mọi dạng sử dụng.** Các handle do plugin cung cấp mà host lưu trong cache, event listeners, thread locals, timer tasks hoặc static registries có thể tiếp tục giữ tham chiếu ngay cả khi không còn HTTP request. Chúng phải được liệt kê và đưa vào giao thức dừng/tháo đăng ký.
+**`inFlight=0` is trustworthy only if you count every form of usage.** Plugin-supplied handles stored by the host in caches, event listeners, thread locals, timer tasks, or static registries can continue holding references even when zero HTTP requests remain. They must be inventoried and included in the stop/unregister protocol.
 
-### Quy tắc cho timeout và graceful shutdown
+### Rules for timeouts and graceful shutdown
 
-- Đặt deadline ở cấp request và ở cấp rollout. Khi hết deadline, phân biệt những tác vụ **có thể hủy an toàn** với tác vụ đang ở pha commit không thể hủy tùy ý.
-- Không dùng Thread.stop để ép dừng code plugin trong cùng JVM: nó có thể làm hỏng monitor và trạng thái chia sẻ.
-- Việc Thread.interrupt() hoặc cancel(true) chỉ gửi tín hiệu/hủy theo cơ chế hỗ trợ; không bảo đảm code plugin đã dừng ngay.
-- Với plugin chứa native code, I/O bất định hoặc thực thi script không tin cậy, worker process có giới hạn CPU/RAM/time và khả năng kill/restart thường dễ bảo đảm isolation hơn.
-- Sau deadline, nếu còn in-flight chưa dừng, không được đánh dấu CLOSED một cách giả tạo rồi đóng loader. Thay vào đó đưa rollout vào trạng thái **BLOCKED/DEGRADED**, tiếp tục giám sát hoặc dùng chính sách cưỡng bức ở biên process.
+- Set deadlines both per request and per rollout. When the deadline expires, distinguish tasks that **can be safely cancelled** from tasks in a commit phase that cannot be cancelled arbitrarily.
+- Do not use `Thread.stop` to forcibly halt plugin code in the same JVM: it can corrupt monitors and shared state.
+- `Thread.interrupt()` or `cancel(true)` only sends a cooperative signal; it does not guarantee plugin code stops immediately.
+- For plugins with native code, unbounded I/O, or untrusted scripts, a worker process with CPU/RAM/time limits and kill/restart capability usually provides stronger isolation.
+- Past the deadline, if in-flight work has not stopped, never falsely mark `CLOSED` and close the loader. Instead move the rollout to **BLOCKED/DEGRADED**, continue monitoring, or apply forced termination at a process boundary.
 
-## 9. Rollback route không đồng nghĩa rollback dữ liệu
+## 9. Route rollback is not data rollback
 
-Đây là giới hạn quan trọng nhất của hot replacement. Khi v2 từng ACTIVE, nó có thể đã:
+This is the most important limitation of hot replacement. While v2 was `ACTIVE`, it may have:
 
-- Ghi row mới vào database theo schema v2.
-- Publish event mà consumer v1 không hiểu.
-- Đánh dấu một giao dịch đã được xử lý hoặc gửi notification.
-- Tạo cache entries với định dạng mới.
-- Gọi API bên thứ ba thực hiện side effects khó đảo ngược.
-- Thay đổi trạng thái file hoặc session nằm ngoài plugin class loader.
+- Written new rows to the database under the v2 schema.
+- Published events that v1 consumers do not understand.
+- Marked a transaction as processed or sent notifications.
+- Created cache entries in a new format.
+- Called third-party APIs causing hard-to-reverse side effects.
+- Mutated file or session state outside the plugin class loader.
 
-Chuyển pointer về v1 **chỉ quyết định nơi xử lý request mới**. Nó **không hoàn tác** những thay đổi đó.
+Switching the pointer back to v1 **only decides where new requests go**. It **does not undo** those changes.
 
 ### 9.1. Expand–contract migration
 
-Trong khoảng cho phép rollback, ưu tiên thay đổi dữ liệu có tính **backward/forward compatibility**:
+During the rollback window, prefer data changes with **backward/forward compatibility**:
 
-1. **Expand**: thêm cột hoặc trường mới tùy chọn; cả v1/v2 vẫn đọc được định dạng chung.
-2. **Transition**: v2 ghi dạng tương thích hoặc dual-write/dual-read có kiểm soát; versioned payload và consumer thích ứng.
-3. **Observe**: xác minh cả v1 và v2 xử lý dữ liệu/event quan trọng trong cửa sổ rollback.
-4. **Contract**: chỉ xóa cột/trường cũ hoặc áp dụng migration phá vỡ tương thích **sau khi** hết cửa sổ rollback và không còn cần v1.
+1. **Expand**: add new optional columns or fields; both v1 and v2 can still read the shared format.
+2. **Transition**: v2 writes a compatible format or performs controlled dual-write/dual-read; versioned payloads and adaptive consumers.
+3. **Observe**: verify both v1 and v2 handle critical data/events during the rollback window.
+4. **Contract**: remove old columns/fields or apply breaking migrations **only after** the rollback window ends and v1 is no longer needed.
 
-Ví dụ: v1 hiểu payload JSON gồm id và amount, v2 thêm trường optional currency. Nếu v1 bỏ qua field không biết và hợp đồng dữ liệu cho phép, rollback dễ hơn. Nếu v2 đổi amount từ số sang object có schema không tương thích và ghi dữ liệu sản xuất, v1 có thể không đọc được sau rollback; phải có kế hoạch down-migration có kiểm chứng hoặc chặn rollback tự động.
+For example: v1 understands a JSON payload with `id` and `amount`, and v2 adds an optional `currency` field. If v1 ignores unknown fields and the data contract allows it, rollback is easier. If v2 changes `amount` from a number to an incompatible object schema and writes production data, v1 may fail to read it after rollback; a verified down-migration plan is required or automatic rollback must be blocked.
 
-**Migrations giảm rủi ro, không phải bảo đảm:** tính tương thích tùy ORM, validation, API schema, query, sự kiện và hành vi business thực tế. Đừng chỉ chạy schema migration SQL rồi kết luận rollback an toàn.
+**Migrations reduce risk; they are not a guarantee:** compatibility depends on ORMs, validation, API schemas, queries, events, and actual business behavior. Do not simply run a SQL schema migration and conclude rollback is safe.
 
-### 9.2. Idempotency và xử lý request trong vùng giao nhau
+### 9.2. Idempotency and request handling in the overlap zone
 
-Trong giai đoạn cutover/rollback, retries có thể đến generation khác. Nếu một request đã ghi DB qua v2 nhưng client không nhận phản hồi rồi retry vào v1, host phải tránh thực hiện lại cùng transaction.
+During cutover/rollback, retries may hit a different generation. If a request already wrote to the DB via v2 yet the client missed the response and retried into v1, the host must prevent executing the same transaction again.
 
-Biện pháp điển hình:
+Typical measures:
 
-- Gán request ID / idempotency key có phạm vi rõ ràng.
-- Lưu trạng thái giao dịch/deduplication ở một nơi chia sẻ giữa các generation, không chỉ trong bộ nhớ của plugin.
-- Sử dụng transactional outbox hoặc giao thức bền vững khi cần nhất quán DB và event.
-- Áp dụng versioned events, bảo đảm consumer cũ chịu được loại event phát sinh trong rollback window.
-- Phân biệt retry an toàn, compensation/saga và giao dịch không thể đảo ngược.
+- Assign a clearly scoped request ID / idempotency key.
+- Store transaction/deduplication state in a store shared across generations, not solely in plugin memory.
+- Use a transactional outbox or durable protocol when DB and event consistency are required.
+- Apply versioned events, ensuring old consumers tolerate event types emitted during the rollback window.
+- Distinguish safe retries, compensation/sagas, and irreversible transactions.
 
-Một retry **không phải** rollback. Compensation (nếu nghiệp vụ cho phép) cần được thiết kế và kiểm chứng riêng, có audit.
+A retry **is not** a rollback. Compensation (if business rules permit) must be designed and verified separately with auditing.
 
-### 9.3. Stateful plugin và chuyển trạng thái
+### 9.3. Stateful plugins and state handoff
 
-Nếu plugin chỉ là hàm thuần trên input, rollback khá đơn giản. Nếu plugin giữ state trong RAM, session, cache, connection hoặc actor, cần quyết định:
+If a plugin is a pure function over inputs, rollback is fairly straightforward. If the plugin keeps state in RAM, sessions, caches, connections, or actors, you must decide:
 
-- **Sticky/pinned sessions**: session cũ tiếp tục ở v1 cho tới khi kết thúc, session mới đi v2; rollback có thể cần đưa session mới về version được hỗ trợ.
-- **State snapshot**: serialize state theo schema có phiên bản, khôi phục vào thế hệ khác theo quy trình thử nghiệm.
-- **Shared external state**: cả v1/v2 truy cập store tương thích, có khóa/transaction version để tránh race.
-- **Dual-run/shadow**: v2 được cấp bản sao input để đánh giá kết quả nhưng không thực hiện side effects thật; không thể tùy tiện shadow cho giao dịch ghi.
-- **Irreversible state**: nếu v2 thay đổi trạng thái mà v1 không phục hồi được, tắt rollback tự động và chuyển sang phương án khắc phục phù hợp.
+- **Sticky/pinned sessions**: old sessions continue on v1 until they end, new sessions go to v2; rollback may need to route new sessions back to a supported version.
+- **State snapshot**: serialize state under a versioned schema and restore into another generation following a tested procedure.
+- **Shared external state**: both v1 and v2 access a compatible store with locking/versioned transactions to avoid races.
+- **Dual-run/shadow**: v2 receives copies of inputs to evaluate outputs without performing real side effects; do not arbitrarily shadow write transactions.
+- **Irreversible state**: if v2 changed state in a way v1 cannot recover from, disable automatic rollback and fall back to an appropriate remediation runbook.
 
-Không được serialize object của class loader v2 rồi deserialize trực tiếp trong v1 nếu class identity hoặc schema Java đã khác. Nên dùng DTO/JSON/Protobuf hoặc định dạng bền vững có kiểm soát phiên bản thay vì nội suy rằng Java Serializable giải quyết hot swap.
+Never serialize objects from class loader v2 and deserialize them directly in v1 if class identities or Java schemas differ. Use DTOs/JSON/Protobuf or version-controlled durable formats rather than assuming Java `Serializable` solves hot swapping.
 
-## 10. Readiness, health gate, canary và tiêu chí quyết định
+## 10. Readiness, health gates, canary, and decision criteria
 
-Có hai loại kiểm tra khác nhau:
+There are two distinct kinds of checks:
 
-- **Readiness trước cutover**: plugin khởi tạo đúng, dependency có sẵn, contract API hợp lệ, kết nối cần thiết hoạt động, smoke test không gây side effects ngoài ý muốn.
-- **Health sau cutover**: phiên bản mới chịu được lưu lượng thật và có tỷ lệ lỗi/độ trễ, mức tài nguyên, tỷ lệ thành công nghiệp vụ trong ngưỡng đã định.
+- **Pre-cutover readiness**: plugin initializes cleanly, dependencies are available, API contract is valid, required connections work, and smoke tests cause no unintended side effects.
+- **Post-cutover health**: the new version withstands live traffic with error rates, latencies, resource levels, and business success rates within defined thresholds.
 
-Một plugin có thể vượt qua readiness nhưng thất bại sau khi nhận một loại request hiếm hoặc một mức concurrency lớn. Vì thế nên dùng health window và tiêu chí rollback đã xác định **trước khi triển khai**.
+A plugin can pass readiness and still fail upon receiving a rare request type or high concurrency. Therefore use a health window and rollback criteria defined **before deployment**.
 
-Ví dụ chính sách (giá trị chỉ là minh họa, phải hiệu chỉnh theo SLO thực tế):
+Example policy (numbers are illustrative only; tune to real SLOs):
 
 ~~~text
 PREPARE:
@@ -600,28 +600,28 @@ RETIRE:
   zero leases and dependency checks
 ~~~
 
-**Canary** nghĩa là có thể có hai generation nhận request mới theo chính sách trọng số; máy trạng thái phải mở rộng từ một active pointer đơn sang **routing table có version/epoch**, đồng thời mỗi request vẫn chỉ lấy **một lease của một generation**. Những yêu cầu trong cùng session/transaction có thể cần sticky routing; random 5% từng message không luôn đúng.
+**Canary** means two generations may accept new requests concurrently under weighted policies; the state machine must expand from a single active pointer to a **versioned/epoch-based routing table**, while each request still acquires **a single lease on one generation**. Requests in the same session/transaction may require sticky routing; random 5% per-message splitting is not always valid.
 
-### Gợi ý thước đo và audit
+### Suggested telemetry and audit records
 
-Ghi tối thiểu:
+Record at a minimum:
 
 - plugin ID, generation ID, artifact hash, config revision, host API version;
-- generation được route vào từng request, idempotency key và rollout/cutover epoch;
-- số in-flight, số request mới theo thế hệ, độ trễ, lỗi, timeout, cancel;
-- kích hoạt/rollback/retire: thời điểm, người hay policy ra quyết định, lý do;
-- hiệu quả nghiệp vụ và dấu hiệu data compatibility;
-- số tài nguyên chưa dọn, class loader references, background tasks còn sống.
+- generation routed for each request, idempotency key, and rollout/cutover epoch;
+- in-flight count, new request count per generation, latency, errors, timeouts, cancellations;
+- activation/rollback/retirement: timestamp, deciding actor or policy, reason;
+- business effectiveness and data compatibility signals;
+- uncleaned resource counts, class loader references, live background tasks.
 
-Không thu thập payload bí mật chỉ để debug nếu không cần; kiểm soát quyền truy cập log. Bằng chứng vận hành phải đủ để phân biệt lỗi plugin mới, lỗi phụ thuộc bên ngoài và lỗi chính cơ chế cutover.
+Do not collect sensitive payloads solely for debugging unless necessary; control log access. Operational evidence must be sufficient to distinguish a new-plugin bug, an external dependency outage, and a bug in the cutover mechanism itself.
 
-## 11. Ranh giới class loader và tài nguyên khi rollback
+## 11. Class loader and resource boundaries during rollback
 
-Trong Java, mỗi generation của plugin thường được nạp bằng **class loader riêng** hoặc ModuleLayer phù hợp. Nếu muốn giữ v1 cho rollback, host phải giữ reference có chủ đích tới instance, loader, config và tài nguyên cần dùng, nhưng **không để các reference đó rò rỉ vô hạn** sau khi hết rollback window.
+In Java, each plugin generation is typically loaded by its **own class loader** or an appropriate `ModuleLayer`. To keep v1 available for rollback, the host must intentionally retain references to its instance, loader, config, and required resources, while **preventing those references from leaking forever** once the rollback window ends.
 
-### Giữ chung API, tách implementation
+### Share the API, isolate the implementation
 
-Ví dụ kiến trúc:
+Architectural example:
 
 ~~~text
 Host / parent loader
@@ -638,145 +638,145 @@ Host router:
   leases(v2) = 3
 ~~~
 
-Interface service cần có cùng **Class identity** giữa host và provider; tránh để child-first plugin loader định nghĩa bản sao API tách biệt khiến ClassCastException hoặc ServiceConfigurationError. Host không nên giữ tham chiếu static đến implementation class của v1 sau khi đã retire nếu muốn class loader được GC.
+The service interface must share the exact same **Class identity** between host and provider; avoid letting a child-first plugin loader define a separate API copy that triggers `ClassCastException` or `ServiceConfigurationError`. The host should not retain static references to v1 implementation classes after retirement if the class loader is meant to be garbage-collected.
 
-### URLClassLoader.close() có ý nghĩa gì?
+### What does URLClassLoader.close() mean?
 
-Ở Java 17, **URLClassLoader.close()** đóng các tài nguyên file/JAR mà loader mở theo hợp đồng, ngừng hỗ trợ nạp những **class/resource mới** được xác định bởi loader đó; các class đã được định nghĩa trước vẫn tồn tại và có thể truy cập. **close() không unload class ngay lập tức** và không tự dừng threads đang chạy code của plugin.
+In Java 17, **`URLClassLoader.close()`** closes file/JAR resources opened by the loader per contract and stops supporting loading **new classes/resources** resolved by that loader; previously defined classes remain alive and accessible. **`close()` does not unload classes immediately** and does not automatically stop threads executing plugin code.
 
-Một lớp có thể vẫn tồn tại nếu còn strong references đến Class, instance, thread context class loader, ThreadLocal, callback, listener, scheduled task hoặc singleton cache. Không đóng loader đang có thread nạp class, vì kết quả của class loading đồng thời với close có thể không xác định theo hợp đồng. Chỉ close sau khi đã kiểm soát mọi công việc và đường nạp liên quan.
+A class can stay alive if strong references remain to the `Class`, instances, thread context class loader, `ThreadLocal`, callbacks, listeners, scheduled tasks, or singleton caches. Never close a loader while a thread is actively loading classes through it, as the outcome of concurrent class loading during close is unspecified under the contract. Close only after all work and loading paths are controlled.
 
-Tương tự, **ServiceLoader.reload()** chỉ xóa cache provider của chính đối tượng ServiceLoader; nó không tự chuyển route, không chờ in-flight, không hoàn tác side effects và không đảm bảo unload một generation. Hot replacement ở mức sản xuất cần lifecycle manager phía host.
+Similarly, **`ServiceLoader.reload()`** only clears the provider cache of that `ServiceLoader` object; it does not switch routes, wait for in-flight requests, undo side effects, or guarantee unloading a generation. Production hot replacement requires a host-side lifecycle manager.
 
-### Thứ tự thu hồi có kiểm soát
+### Controlled retirement order
 
-1. Ngừng admission mới vào generation được retire.
-2. Chờ leases về 0 hoặc áp dụng chính sách hủy có xác nhận.
-3. Hủy đăng ký listeners, timers, scheduled jobs và những callback riêng của generation.
-4. Gọi plugin.stop()/close() có timeout/chính sách lỗi phù hợp, ngoài các khóa route quan trọng.
-5. Đóng resources và class loader khi không còn load operation.
-6. Xóa tham chiếu trong router, registry, cache và ThreadLocal; kiểm tra memory/classloader leak.
-7. Đánh dấu CLOSED và ghi kết quả cleanup/audit. Nếu cleanup thất bại, ghi **cleanup pending/failed** thay vì báo đóng thành công giả tạo.
+1. Stop new admissions to the retiring generation.
+2. Wait for leases to reach 0 or apply a confirmed cancellation policy.
+3. Unregister listeners, timers, scheduled jobs, and generation-specific callbacks.
+4. Invoke `plugin.stop()/close()` with an appropriate timeout/error policy, outside critical routing locks.
+5. Close resources and the class loader once no loading operations remain.
+6. Clear references in the router, registry, caches, and `ThreadLocal`; check for memory/classloader leaks.
+7. Mark `CLOSED` and record cleanup/audit results. If cleanup fails, record **cleanup pending/failed** rather than falsely reporting a clean close.
 
-Ở production, các bước có thể có cơ chế prepare/commit và failure handling riêng; ví dụ Java chỉ mô phỏng guard trước khi đánh dấu CLOSED, không triển khai tất cả bước resource teardown.
+In production, steps may have their own prepare/commit mechanisms and failure handling; the Java example only models the guard before marking `CLOSED`, without implementing full resource teardown.
 
-## 12. Đa instance, nhiều luồng và rollback trong cluster
+## 12. Multi-instance, multi-thread, and cluster rollback
 
-Mã Java ví dụ dùng một monitor trong một JVM. Nếu ứng dụng có nhiều replica, mỗi replica có active pointer riêng thì một lần cập nhật một instance không đủ để tạo cutover nhất quán toàn cluster. Cần định nghĩa:
+The Java example uses one monitor in one JVM. If an application runs multiple replicas, each replica holds its own active pointer, so updating a single instance does not produce a cluster-wide consistent cutover. You must define:
 
-- **Rollout epoch/generation** trong một nơi quản lý cấu hình hoặc control plane.
-- Các instance **prepare cùng artifact và config**, ghi readiness riêng trước khi chấp nhận traffic.
-- Load balancer/router phân luồng theo version, tenant/session hoặc nhãn deployment; tránh lẫn kết quả khi không tương thích.
-- Quy tắc **fencing** nếu có nhiều tác nhân cùng ra lệnh activate/rollback, không cho một lệnh deploy cũ ghi đè chỉ đạo mới.
-- Health window và metrics theo replica/version để tránh bỏ sót một instance lỗi.
-- Quản lý in-flight ở mỗi instance; **global in-flight=0** chỉ được kết luận sau khi có bằng chứng đủ từ các instance cần xét.
-- Khi rollout một phần thất bại, chính sách dừng hoặc rollback phần đã chuyển và cách phục hồi traffic.
+- **Rollout epoch/generation** in a central config store or control plane.
+- Instances **prepare the same artifact and config**, reporting readiness individually before taking traffic.
+- Load balancers/routers direct traffic by version, tenant/session, or deployment labels; avoid mixing incompatible results.
+- **Fencing rules** when multiple actors issue activate/rollback commands, preventing a stale deploy command from overriding a newer directive.
+- Health windows and metrics per replica/version so a single failing instance is not missed.
+- Per-instance in-flight tracking; **global `inFlight=0`** may be concluded only with sufficient evidence across all relevant instances.
+- When a partial rollout fails, a policy for halting or rolling back the already-switched portion and restoring traffic.
 
-### Vì sao pointer atomic chưa đủ trong cluster?
+### Why is an atomic pointer not enough in a cluster?
 
-AtomicReference chỉ tạo một lựa chọn nguyên tử **trong JVM đã thực hiện thao tác**. Nó không thay đổi routing ở các process khác và không tự đồng bộ những side effects trong database. Với rollback, phải thực hiện theo control plane và xác nhận từng instance hoặc load balancer đã áp dụng phiên bản mong muốn; cần xử lý replica mất kết nối, retry lệnh và lệnh đến sai thứ tự.
+`AtomicReference` creates an atomic selection **only inside the JVM that executed it**. It does not alter routing in other processes and does not synchronize side effects in databases. For rollback, drive it through the control plane and verify each instance or load balancer has applied the target version; handle disconnected replicas, command retries, and out-of-order commands.
 
-Khi có hai controller, mỗi thao tác chuyển trạng thái nên mang **expected epoch** và **new epoch**; controller chỉ commit nếu trạng thái hiện tại khớp. Cơ chế này giúp tránh một rollback lỗi thời đưa hệ thống quay về phiên bản không còn được chấp nhận.
+When two controllers exist, every state transition command should carry **expected epoch** and **new epoch**; a controller commits only if the current state matches. This mechanism prevents a stale rollback from reverting the system to an unapproved version.
 
-### Không đợi task dài trong khóa routing
+### Do not wait on long tasks inside the routing lock
 
-Thao tác lấy lease và cutover nên cực ngắn. Đừng giữ synchronized(gate) trong khi:
+Acquiring a lease and cutting over should be extremely brief. Never hold `synchronized(gate)` while:
 
-- gọi plugin.processRequest, plugin.stop hoặc plugin.close;
-- thực hiện database query, remote health check, network I/O;
-- chờ Thread.join, Future.get hoặc đợi inFlight về 0;
-- thực hiện migration hoặc rollback dữ liệu.
+- calling `plugin.processRequest`, `plugin.stop`, or `plugin.close`;
+- running database queries, remote health checks, or network I/O;
+- waiting on `Thread.join`, `Future.get`, or `inFlight` reaching 0;
+- performing data migrations or data rollbacks.
 
-Giữ khóa quá lâu có thể làm kẹt admission toàn hệ thống và tạo deadlock khi plugin callback ngược về registry. Bản mẫu giải quyết bằng cách **chỉ giữ gate để thay pointer/counter/state**, còn Handler.handle chạy ngoài khóa.
+Holding the lock too long can stall admission system-wide and cause deadlocks if a plugin calls back into the registry. The sample resolves this by **holding the gate only to swap pointers/counters/state**, while `Handler.handle` runs outside the lock.
 
-## 13. Thiết kế rollback có kiểm chứng
+## 13. Designing verifiable rollback
 
-Rollback đáng tin cậy cần trả lời ít nhất bốn nhóm điều kiện:
+Reliable rollback must answer at least four groups of conditions:
 
-1. **Còn code cũ không?** Generation v1 chưa CLOSED, artifact và phụ thuộc chưa bị xóa, instance vẫn sẵn sàng/khởi động lại được.
-2. **Dữ liệu vẫn tương thích không?** Database schema, event, cache và session từ v2 có thể được v1 xử lý hoặc có đường phục hồi được kiểm chứng.
-3. **Request đang chạy thế nào?** Những lease v2 còn mở sẽ hoàn tất, hủy hoặc được checkpoint ra sao? Liệu nó còn tạo side effects nguy hiểm khi traffic đã quay v1?
-4. **Tuyến đã thực sự đổi chưa?** Router và load balancer của mọi replica dùng đúng epoch/generation, không còn một node âm thầm nhận request mới cho v2.
+1. **Is the old code still available?** Generation v1 is not `CLOSED`, artifacts and dependencies have not been deleted, and the instance remains ready/restartable.
+2. **Is the data still compatible?** Database schemas, events, caches, and sessions from v2 can be handled by v1 or have a verified recovery path.
+3. **What happens to in-flight requests?** How will remaining open v2 leases finish, cancel, or checkpoint? Could they still cause dangerous side effects once traffic returns to v1?
+4. **Have routes actually switched?** Routers and load balancers on every replica use the right epoch/generation, with no node quietly admitting new requests to v2.
 
-Nếu điều kiện rollback không đạt, **không tự kích hoạt v1 chỉ vì health v2 xấu**. Có thể cần pause traffic, chuyển sang chế độ read-only, dùng bản vá tương thích v2, thực hiện restore/compensation theo runbook, hoặc điều phối rollback nhiều bước. Phải báo rõ rollback bị chặn vì data schema, state hoặc in-flight chưa an toàn.
+If rollback prerequisites are unmet, **do not blindly activate v1 just because v2 health looks bad**. You may need to pause traffic, switch to read-only mode, ship a compatible v2 patch, execute restore/compensation per runbook, or orchestrate a multi-step rollback. Clearly report that rollback was blocked due to unsafe data schema, state, or in-flight status.
 
-### Rollback tự động và thủ công
+### Automatic vs manual rollback
 
-- **Tự động** phù hợp khi health gates có tín hiệu đáng tin, việc quay route đã thử nghiệm, state tương thích và không có side effects không đảo ngược cần quyết định con người.
-- **Thủ công** phù hợp khi có giao dịch nhạy cảm, migration phá vỡ tương thích, cần phối hợp bên thứ ba hoặc rủi ro hủy task lớn.
+- **Automatic** fits when health gates give trustworthy signals, route reversal is tested, state is compatible, and there are no irreversible side effects requiring human judgment.
+- **Manual** fits sensitive transactions, breaking migrations, third-party coordination, or high-impact task cancellations.
 
-Dù theo hướng nào, mỗi lần rollback phải có reason code, version/epoch nguồn–đích, audit và kế hoạch tiếp tục sau rollback. Tránh vòng auto-rollback/auto-promote lặp vô hạn do health dao động; cần cooldown và chính sách retry.
+Either way, every rollback must have a reason code, source–target version/epoch, audit trail, and post-rollback continuation plan. Avoid endless auto-rollback/auto-promote oscillation from flapping health; use cooldowns and retry policies.
 
-## 14. Những lỗi thường gặp
+## 14. Common mistakes
 
-| Triệu chứng | Nguyên nhân có thể | Cách phòng tránh/khắc phục |
+| Symptom | Possible cause | Prevention / fix |
 | --- | --- | --- |
-| Request cũ lỗi ngay sau cutover | Đóng instance/loader v1 trước khi lease kết thúc | Pin request theo generation, đợi drain rồi mới close |
-| inFlight về 0 dù task vẫn đang chạy | Release lease khi trả Future thay vì khi hoàn tất | Liên kết lease với completion thực sự, kể cả cancellation |
-| Request mới vẫn vào v1 sau cutover | Đọc current và tăng refcount thiếu phối hợp | Dùng cùng admission gate hoặc giao thức CAS/refcount chuẩn |
-| Không thể rollback dù v1 còn artifact | Đã stop/close resources hoặc xóa state v1 | Giữ v1 STANDBY trong rollback window |
-| Rollback route thành công nhưng v1 lỗi DB | v2 ghi schema/data không tương thích | Expand–contract, versioned payload, kiểm thử backward compatibility |
-| Retry tạo giao dịch trùng | Request đi lại qua v1/v2 không có key chung | Idempotency key và dedupe store dùng chung |
-| Drain treo vô thời hạn | Streaming/job lâu, orphan callbacks hoặc lease leak | Deadline, metrics per generation, cancellation/checkpoint policy |
-| Dùng ServiceLoader.reload() rồi tưởng đã hot swap | Cache reload không thay routing/lifecycle | Quản lý generation, loader và admission riêng |
-| OOM/metaspace tăng sau nhiều lần thay | ThreadLocal/listener/class cache giữ loader cũ | Cleanup toàn bộ references, test unload và memory leak |
-| Lệnh rollback cũ ghi đè deploy mới | Thiếu epoch/fencing | Versioned control-plane commands và expected-state check |
-| Plugin v2 được bật trước readiness | Routing nhận request trước khi dependencies sẵn sàng | Prepare/warmup và health gate trước cutover |
-| Rollback che lỗi nhưng side effects đã tồn tại | Hiểu rollback là khôi phục tất cả dữ liệu | Tách route rollback khỏi compensation/DB restore |
+| Old requests fail right after cutover | Closed v1 instance/loader before leases finished | Pin requests to generation, drain before closing |
+| `inFlight` hits 0 while task still runs | Released lease when returning `Future` instead of on completion | Tie lease to actual completion, including cancellation |
+| New requests still enter v1 after cutover | Uncoordinated reading of `current` and incrementing refcount | Share the same admission gate or standard CAS/refcount protocol |
+| Cannot roll back despite v1 artifact existing | Already stopped/closed resources or deleted v1 state | Keep v1 `STANDBY` during rollback window |
+| Route rollback succeeds yet v1 hits DB errors | v2 wrote incompatible schema/data | Expand–contract, versioned payloads, backward-compatibility tests |
+| Retries create duplicate transactions | Request retried across v1/v2 without a shared key | Shared idempotency keys and deduplication store |
+| Drain hangs indefinitely | Long streams/jobs, orphan callbacks, or lease leaks | Deadlines, per-generation metrics, cancellation/checkpoint policy |
+| Used `ServiceLoader.reload()` thinking hot swap happened | Reloading cache does not change routing/lifecycle | Manage generations, loaders, and admission separately |
+| OOM/metaspace grows after repeated swaps | `ThreadLocal`/listeners/class caches retain old loaders | Clean up all references, test unloading and memory leaks |
+| Stale rollback command overwrites new deploy | Missing epoch/fencing | Versioned control-plane commands and expected-state checks |
+| Plugin v2 enabled before readiness | Routing admits requests before dependencies are ready | Prepare/warmup and health gates before cutover |
+| Rollback hides error yet side effects persist | Assuming rollback restores all data | Separate route rollback from compensation/DB restore |
 
-### Những điều không nên làm
+### Things you should never do
 
-- Thay trực tiếp object singleton v1 bằng object v2 rồi xóa ngay mọi tham chiếu v1 trong khi request cũ còn sử dụng.
-- Gọi plugin.stop() dưới một khóa mà request đang chạy cần để kết thúc hoặc release lease.
-- Dùng sleep vài giây như bằng chứng inFlight đã về 0; đo bằng bộ đếm và trạng thái có ownership rõ.
-- Ép đổi logic của một request đang thực thi từ v1 sang v2 nếu chưa có state transfer protocol.
-- Xem việc rollback code là khả năng rollback mọi transaction, event và schema.
-- Giữ mọi plugin loader cũ vô hạn để “an toàn rollback”; đặt rollback TTL và quy trình thu hồi.
-- Sử dụng Thread.stop hoặc URLClassLoader.close để cưỡng bức dừng request đang xử lý.
+- Directly replace singleton object v1 with v2 and immediately drop all v1 references while old requests still use it.
+- Call `plugin.stop()` while holding a lock that in-flight requests need to finish or release their leases.
+- Use a multi-second sleep as proof that `inFlight` reached 0; measure with counters and states that have clear ownership.
+- Force a running request to switch business logic from v1 to v2 mid-execution without a state transfer protocol.
+- Treat code rollback as the ability to roll back all transactions, events, and schemas.
+- Keep every old plugin loader forever “just to be safe for rollback”; set a rollback TTL and retirement procedure.
+- Use `Thread.stop` or `URLClassLoader.close` to forcibly kill in-flight request execution.
 
-## 15. Chiến lược kiểm thử trước khi phát hành
+## 15. Testing strategy before release
 
-Một hệ hot replacement tốt phải kiểm thử cạnh tranh và lỗi, không chỉ ví dụ happy path:
+A good hot-replacement system tests concurrency and failure, not just the happy path:
 
-1. **Concurrent admission và cutover:** nhiều thread acquire trong lúc đổi pointer; tất cả lease thuộc một generation hợp lệ, counter không âm và không có request mới vào thế hệ đã ngừng admission sau thời điểm commit.
-2. **Request giữ v1 lâu:** cutover v2 trong khi v1.inFlight > 0; v1 không được CLOSED khi lease chưa release.
-3. **Future hoàn tất muộn:** async request vẫn tính inFlight tới kết thúc; callback exception/cancellation không release hai lần.
-4. **Kích hoạt thất bại trước cutover:** v1 vẫn ACTIVE, candidate được cleanup, không có route trỏ vào generation chưa sẵn sàng.
-5. **v2 lỗi sau cutover:** rollback về v1 còn sống; request mới dùng v1; request v2 đã được cấp lease xử lý theo chính sách drain/cancel rõ.
-6. **Rollback khi v1 còn DRAINING:** controller phải có quy tắc cho phép tái admission hoặc chặn nếu tài nguyên v1 đã bị đóng một phần.
-7. **Rollback bị chặn vì schema không tương thích:** không silently chuyển v1; phát status và đưa ứng dụng vào chiến lược phục hồi.
-8. **Two-controller race:** hai lệnh activate/rollback với epoch khác nhau, lệnh stale bị từ chối.
-9. **Drain timeout và leaked lease:** metrics, cảnh báo, chính sách escalation; không giả báo zero khi thực tế vẫn có task.
-10. **Tài nguyên sau retire:** thread pool, listeners, timer, class loader, JAR handles và references được giải phóng, không có memory leak kéo dài.
-11. **Idempotency xuyên generation:** client retry sau timeout không tạo side effects trùng khi route thay.
-12. **Canary và sticky sessions:** đúng tỷ lệ chọn phiên bản và các yêu cầu liên quan cùng session dùng policy nhất quán.
+1. **Concurrent admission and cutover:** multiple threads acquire while the pointer swaps; every lease belongs to a valid generation, counters never go negative, and no new request enters a generation whose admission stopped after commit time.
+2. **Long-held v1 request:** cut over to v2 while `v1.inFlight > 0`; v1 must not become `CLOSED` before leases release.
+3. **Late-completing Future:** async requests keep counting toward `inFlight` until completion; exception/cancellation callbacks never double-release.
+4. **Pre-cutover activation failure:** v1 stays `ACTIVE`, candidate is cleaned up, no route points to an unready generation.
+5. **v2 fails after cutover:** roll back to live v1; new requests use v1; already-leased v2 requests follow an explicit drain/cancel policy.
+6. **Rollback while v1 is still `DRAINING`:** the controller must have rules allowing re-admission or blocking if v1 resources were partially closed.
+7. **Rollback blocked by incompatible schema:** do not silently switch to v1; emit status and transition the application to a recovery strategy.
+8. **Two-controller race:** two activate/rollback commands with different epochs; the stale command is rejected.
+9. **Drain timeout and leaked lease:** metrics, alerts, and escalation policies; never falsely report zero when tasks actually remain.
+10. **Resources after retirement:** thread pools, listeners, timers, class loaders, JAR handles, and references are released with no persistent memory leaks.
+11. **Cross-generation idempotency:** client retries after timeout do not create duplicate side effects when routes change.
+12. **Canary and sticky sessions:** accurate version selection ratios and consistent policy across related requests in the same session.
 
-Với test concurrency, dùng CountDownLatch, CyclicBarrier, ExecutorService và timeout có kiểm soát để tạo ra các liên lịch khó xảy ra, tránh kiểm tra bằng Thread.sleep đơn thuần. Khi test plugin có thể treo, chạy trong worker JVM/process để không làm kẹt toàn bộ bộ kiểm thử.
+For concurrency tests, use `CountDownLatch`, `CyclicBarrier`, `ExecutorService`, and controlled timeouts to induce rare interleavings, rather than relying purely on `Thread.sleep`. When testing plugins that might hang, run them in a worker JVM/process so the entire test suite does not stall.
 
-Kiểm thử rollback tối thiểu gồm hai phía: **route/lease state** và **data compatibility/side effects**. Pass một test chuyển pointer không đủ để kết luận có thể rollback sản phẩm.
+Minimum rollback testing covers two sides: **route/lease state** and **data compatibility/side effects**. Passing a pointer-switch test alone is insufficient to declare production rollback ready.
 
-## 16. Checklist khi chuẩn bị thay thế plugin
+## 16. Checklist when preparing plugin replacement
 
-- **Generation identity**: mỗi lần nạp có ID, artifact hash, config và resource scope riêng.
-- **Prepare**: kiểm tra dependency, API type identity, quyền, compatibility và readiness trước khi nhận tải.
-- **Admission**: request mới được cấp lease theo routing policy một cách nguyên tử với cutover.
-- **Pinning**: request đã bắt đầu tiếp tục dùng đúng generation của nó.
-- **Async lifecycle**: lease chỉ kết thúc khi toàn bộ công việc thật hoàn tất hoặc hủy có xác nhận.
-- **Drain**: thế hệ cũ ngừng nhận mới nhưng giữ tài nguyên khi inFlight > 0; có timeout và escalation.
-- **Rollback candidate**: giữ v1 STANDBY đủ lâu, không close/garbage-collect trước khi hết rollback window.
-- **Rollback guard**: schema/data/event/cache/session có tương thích với v1 không, side effects v2 xử lý thế nào.
-- **Health gates**: định nghĩa ngưỡng lỗi, latency, business metrics, canary và audit trước rollout.
-- **Concurrency/cluster**: không dùng pointer cục bộ để suy ra toàn cluster đã chuyển; có epoch/fencing.
-- **Retire**: khi không còn lease/rollback dependence, ngắt callback/timer và đóng resources ngoài khóa route.
-- **Observability**: metric và log có generation ID, request ID, trạng thái, cutover epoch, lỗi, drain time.
-- **Tests**: luyện tập cutover + rollback thật trong môi trường có tải và dữ liệu tương thích.
+- **Generation identity**: each load has its own ID, artifact hash, config, and resource scope.
+- **Prepare**: verify dependencies, API type identity, permissions, compatibility, and readiness before accepting load.
+- **Admission**: new requests receive leases per routing policy atomically with cutover.
+- **Pinning**: already-started requests continue using their assigned generation.
+- **Async lifecycle**: leases end only when all underlying work completes or cancels with confirmation.
+- **Drain**: old generation stops accepting new work yet keeps resources while `inFlight > 0`; enforce timeouts and escalation.
+- **Rollback candidate**: keep v1 `STANDBY` long enough without closing/GC-ing before the rollback window expires.
+- **Rollback guard**: check whether schemas/data/events/caches/sessions are compatible with v1, and how v2 side effects are handled.
+- **Health gates**: define error thresholds, latency, business metrics, canary rules, and audit logging before rollout.
+- **Concurrency/cluster**: never use a local pointer to infer cluster-wide cutover; use epochs/fencing.
+- **Retire**: once no leases or rollback dependencies remain, cancel callbacks/timers and close resources outside routing locks.
+- **Observability**: metrics and logs include generation ID, request ID, state, cutover epoch, errors, and drain time.
+- **Tests**: rehearse real cutover + rollback under load with compatible data.
 
-**Kết luận:** Thay thế plugin an toàn là **quản lý vòng đời thế hệ và những request đang sở hữu nó**, không chỉ nạp class mới. Dùng lease để pin request, cutover nguyên tử để chuyển yêu cầu mới, drain có deadline để giữ request cũ tới lúc hoàn tất, và rollback có guard để đưa traffic quay lại phiên bản còn tương thích. Trong hệ thống có trạng thái, **khả năng rollback dữ liệu và side effects phải được thiết kế trước lần bật v2**, không thể tạo ra chỉ bằng việc đổi pointer sau khi sự cố xảy ra.
+**Conclusion:** Safe plugin replacement is **managing generation lifecycles and the requests holding them**, not merely loading new classes. Use leases to pin requests, atomic cutovers to switch new requests, bounded draining to preserve in-flight requests until completion, and guarded rollback to route traffic back to a compatible version. In stateful systems, **data and side-effect rollback capability must be designed before enabling v2**, and cannot be conjured simply by swapping a pointer after an incident occurs.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): danh tính class/loader và hợp đồng nạp lớp.
-- [Java SE 17 — URLClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html): close() và giới hạn đối với class đã nạp.
-- [Java SE 17 — ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html): cache/reload, class loader và khả năng khám phá provider.
-- [Java SE 17 — AutoCloseable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AutoCloseable.html): giải phóng lease với try-with-resources.
-- [Java SE 17 — CompletableFuture](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html): completion stage và whenComplete cho async lifecycle.
+- [Java SE 17 — ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): class/loader identity and class-loading contract.
+- [Java SE 17 — URLClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html): `close()` and limitations regarding already-loaded classes.
+- [Java SE 17 — ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html): cache/reload, class loader, and provider discovery.
+- [Java SE 17 — AutoCloseable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AutoCloseable.html): releasing leases with try-with-resources.
+- [Java SE 17 — CompletableFuture](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html): completion stages and `whenComplete` for async lifecycles.

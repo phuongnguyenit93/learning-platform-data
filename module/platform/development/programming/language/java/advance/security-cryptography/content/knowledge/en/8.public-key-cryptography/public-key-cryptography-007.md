@@ -1,62 +1,62 @@
-# 8.7. RSA-OAEP, giới hạn kích thước bản rõ và mô hình mã hóa lai
+# 8.7. RSA-OAEP, Plaintext Size Limits, and the Hybrid Encryption Model
 
-RSA là một thuật toán khóa công khai có thể dùng trong nhiều cơ chế khác nhau. Khi muốn mã hóa bằng RSA hiện đại, không lấy phép tính RSA “thuần” hay padding PKCS#1 v1.5 rồi tự áp dụng cho dữ liệu lớn. Cần dùng một **encryption scheme được chuẩn hóa**, điển hình là **RSAES-OAEP (Optimal Asymmetric Encryption Padding)**, với thuật toán băm, MGF1 và nhãn OAEP được xác định rõ.
+RSA is a public-key algorithm usable in multiple mechanisms. When encrypting with modern RSA, do not take "raw" RSA math or PKCS#1 v1.5 padding and apply it directly to large data. You must use a **standardized encryption scheme**, typically **RSAES-OAEP (Optimal Asymmetric Encryption Padding)**, with an explicitly defined hash algorithm, MGF1, and OAEP label.
 
-Tuy nhiên, ngay cả RSA-OAEP đúng chuẩn cũng **không phải công cụ mã hóa trực tiếp tệp hoặc message dài**. Nó giới hạn kích thước bản rõ chỉ vài trăm byte tùy độ dài modulus và hash. Vì vậy mô hình ứng dụng thông dụng là **mã hóa lai (hybrid encryption)**: sinh một khóa đối xứng ngẫu nhiên để mã hóa dữ liệu bằng AEAD (như AES-GCM), rồi dùng RSA-OAEP **mã hóa/gói khóa đối xứng** cho người nhận.
+However, even properly configured RSA-OAEP is **not a tool for directly encrypting files or long messages**. It limits plaintext size to only a few hundred bytes depending on modulus length and hash. Therefore, the standard application pattern is **hybrid encryption**: generate a random symmetric key to encrypt the data with AEAD (such as AES-GCM), and use RSA-OAEP to **encrypt/wrap the symmetric key** for the recipient.
 
-Bài này giúp bạn trả lời bốn câu hỏi thực tế:
+This lesson helps you answer four practical questions:
 
-1. Vì sao RSA-OAEP chỉ mã hóa được payload ngắn, và tính được giới hạn chính xác?
-2. OAEP gồm những tham số nào, tại sao **OAEP hash** và **MGF1 hash** phải được hai bên thống nhất?
-3. Trong mã hóa lai, RSA làm gì, AES-GCM làm gì, và định dạng envelope cần lưu gì để bên nhận giải mã?
-4. Cách viết Java 17+ sử dụng JCA/JCE chuẩn, xử lý lỗi khi bản rõ quá dài, sai label OAEP hoặc bị sửa ciphertext?
+1. Why can RSA-OAEP only encrypt short payloads, and how do you compute the exact limit?
+2. Which parameters make up OAEP, and why must both sides agree on both the **OAEP hash** and the **MGF1 hash**?
+3. In hybrid encryption, what does RSA do, what does AES-GCM do, and what must the envelope format store so the recipient can decrypt?
+4. How do you write Java 17+ code using standard JCA/JCE and handle errors when plaintext is too long, the OAEP label mismatches, or ciphertext is modified?
 
-Sau bài học, bạn nên tự tính được `mLen ≤ k − 2hLen − 2`, thiết kế được một hybrid envelope có version/metadata rõ ràng, hiểu sự khác biệt giữa **tính bí mật**, **tính toàn vẹn** và **xác thực người gửi**, cũng như kiểm tra được một luồng encrypt/decrypt thực thi trong Java.
+After this lesson, you should be able to compute `mLen ≤ k − 2hLen − 2`, design a hybrid envelope with explicit version/metadata, distinguish **confidentiality**, **integrity**, and **sender authentication**, and test a working encrypt/decrypt flow in Java.
 
-## 1. RSA khóa công khai: cặp khóa và mục đích
+## 1. Public-Key RSA: Key Pair and Purpose
 
-RSA dùng một cặp khóa:
+RSA uses a key pair:
 
-- **Public key**: có thể công bố cho bên gửi; trong RSA encryption, dùng để mã hóa khóa hoặc dữ liệu ngắn dành cho người giữ private key.
-- **Private key**: phải được bảo vệ; trong RSA decryption, dùng để khôi phục giá trị đã mã hóa bằng public key tương ứng.
+- **Public key:** may be shared with senders; in RSA encryption, used to encrypt a key or short data intended for the private-key holder.
+- **Private key:** must be protected; in RSA decryption, used to recover a value encrypted with the corresponding public key.
 
-Ở tầng toán học, RSA liên quan đến lũy thừa modulo `n`, nhưng một phép toán modular exponentiation **không phải scheme mã hóa an toàn** nếu thiếu encoding/padding và quy tắc kiểm tra phù hợp. Hãy sử dụng **RSAES-OAEP** từ thư viện crypto tin cậy, không tự ghép byte hay tự cài OAEP.
+At the mathematical layer, RSA involves modular exponentiation modulo `n`, yet modular exponentiation alone is **not a secure encryption scheme** without proper encoding/padding and validation rules. Always use **RSAES-OAEP** from a trusted crypto library rather than concatenating bytes or implementing OAEP yourself.
 
 ```text
              Recipient
            +--------------+
-           | RSA public   |----> chia sẻ sau khi xác minh nguồn/định danh
-           | RSA private  |----> lưu bí mật, chỉ môi trường nhận sử dụng
+           | RSA public   |----> shared after verifying origin/identity
+           | RSA private  |----> stored secretly, used only in recipient environment
            +--------------+
 
 Sender: data/key -- RSA-OAEP(public) --> RSA ciphertext
 Recipient: RSA ciphertext -- RSA-OAEP(private) --> data/key
 ```
 
-Chỉ vì bạn có một “public key” không có nghĩa nó thực sự thuộc người nhận mong đợi. Nếu đối thủ thay được public key trong quá trình phân phối, họ có thể khiến bạn mã hóa dữ liệu cho **khóa của đối thủ**. Mọi triển khai thật đều phải kiểm tra đường tin cậy: certificate chain và tên máy/chủ thể phù hợp, khóa đã pin có chính sách rotation, hoặc một kênh phân phối khóa công khai đã xác thực.
+Simply having a "public key" does not mean it actually belongs to the intended recipient. If an adversary can substitute the public key during distribution, they can make you encrypt data for **the adversary's key**. Every real deployment must verify the trust path: certificate chain and matching hostname/subject, pinned keys with a rotation policy, or an authenticated public-key distribution channel.
 
-**RSA encryption khác RSA signature.** RSA-OAEP bảo vệ tính bí mật của plaintext cho người sở hữu private key; không tự tạo một chữ ký để người nhận biết ai đã gửi. Dùng RSA-PSS (hoặc scheme ký phù hợp) khi cần chữ ký số; không coi kết quả RSA-OAEP là “chữ ký ngược”.
+**RSA encryption is different from RSA signature.** RSA-OAEP protects plaintext confidentiality for the private-key holder; it does not create a signature letting the recipient know who sent it. Use RSA-PSS (or a suitable signature scheme) when digital signatures are required; never treat RSA-OAEP output as a "reverse signature".
 
-## 2. RSA-OAEP là gì?
+## 2. What Is RSA-OAEP?
 
-RSAES-OAEP được mô tả trong **RFC 8017 / PKCS #1 v2.2**. OAEP mã hóa thông điệp đầu vào thành một block có cấu trúc, sử dụng hash, mask generation function (thường là MGF1), seed ngẫu nhiên và một **label** tùy chọn, rồi mới áp dụng RSA public-key operation.
+RSAES-OAEP is specified in **RFC 8017 / PKCS #1 v2.2**. OAEP encodes the input message into a structured block using a hash, a mask generation function (typically MGF1), a random seed, and an optional **label**, before applying the RSA public-key operation.
 
-Các thành phần liên quan:
+Relevant components:
 
-| Thành phần | Vai trò | Điều cần thống nhất |
+| Component | Role | What must be agreed upon |
 | --- | --- | --- |
-| Modulus RSA `n` | Quy định kích thước block RSA | Public/private key tương ứng, kích cỡ modulus |
-| OAEP digest `Hash` | Hash trong OAEP, quyết định `hLen` | Ví dụ `SHA-256` với 32 byte digest |
-| Mask generation function | Sinh mặt nạ bên trong OAEP | Thường `MGF1` |
-| Digest của MGF1 | Hash dùng bên trong MGF1 | Ví dụ cũng là `SHA-256`, phải cấu hình rõ |
-| Label `L` | Chuỗi byte ngữ cảnh tùy chọn | Hai bên dùng chính xác cùng byte label |
-| Random seed | Làm mã hóa xác suất | Thư viện sinh ngẫu nhiên phù hợp |
-| RSA public/private key | Mã hóa/giải mã | Key phải đúng người nhận |
+| RSA modulus `n` | Determines RSA block size | Matching public/private key, modulus size |
+| OAEP digest `Hash` | Hash inside OAEP, determines `hLen` | E.g., `SHA-256` with 32-byte digest |
+| Mask generation function | Generates mask inside OAEP | Typically `MGF1` |
+| MGF1 digest | Hash used inside MGF1 | E.g., also `SHA-256`, must be explicitly configured |
+| Label `L` | Optional context byte string | Both sides use the exact same label bytes |
+| Random seed | Makes encryption probabilistic | Appropriate library RNG |
+| RSA public/private key | Encryption / decryption | Key must belong to the intended recipient |
 
-Một cách nhìn khái niệm:
+Conceptual view:
 
 ```text
-Message M (byte[≤ max]) + Label L
+Message M (byte[<= max]) + Label L
                  |
           OAEP Encoding
       (Hash, MGF1, random seed)
@@ -72,32 +72,32 @@ Message M (byte[≤ max]) + Label L
             Message M
 ```
 
-Sơ đồ trên diễn tả ý tưởng; không dùng để tự implement padding.
+The diagram above conveys the idea; do not use it to implement padding yourself.
 
-### 2.1. OAEP là randomized encryption
+### 2.1. OAEP Is Randomized Encryption
 
-Hai lần mã hóa **cùng một plaintext và cùng public key** bằng RSA-OAEP có thể tạo **ciphertext khác nhau** vì OAEP có randomness. Đây là hành vi mong muốn. Đừng kiểm thử RSA-OAEP bằng cách đòi ciphertext hai lần phải bằng nhau.
+Encrypting **the same plaintext with the same public key** twice using RSA-OAEP can yield **different ciphertexts** because OAEP uses randomness. This is expected behavior. Never test RSA-OAEP by asserting that two ciphertexts are equal.
 
-Bài kiểm tra đúng phải là:
-- Sau khi encrypt rồi decrypt bằng đúng private key và tham số OAEP, plaintext khôi phục khớp byte ban đầu.
-- Nếu làm sai private key, label hoặc dữ liệu ciphertext, thao tác decryption bị từ chối.
-- Bản rõ dài hơn giới hạn sẽ bị từ chối **trước hoặc khi encrypt**, không được cắt bớt dữ liệu.
+The proper test checks that:
+- After encrypting and decrypting with the matching private key and OAEP parameters, the recovered plaintext matches the original bytes.
+- If the private key, label, or ciphertext bytes are wrong, decryption is rejected.
+- Plaintext longer than the limit is rejected **before or during encryption**, never truncated.
 
-### 2.2. Label OAEP là gì và có bí mật không?
+### 2.2. What Is the OAEP Label and Is It Secret?
 
-OAEP nhận một byte string nhãn `L`. Nó có thể để rỗng (một lựa chọn chuẩn) hoặc quy định rõ trong protocol, ví dụ:
+OAEP takes a label byte string `L`. It can be empty (a standard choice) or explicitly defined in the protocol, for example:
 
 ```text
 L = UTF-8("hybrid-demo:v1|CEK")
 ```
 
-Label **không cần bí mật**. Nó giúp ràng buộc scheme với một miền sử dụng cụ thể nếu các bên định nghĩa thống nhất. Khi encrypt dùng label `L1`, phía decrypt phải dùng đúng byte `L1`; thay thành `L2` thường khiến kiểm tra OAEP thất bại.
+The label **does not need to be secret**. It binds the scheme to a specific domain of use when all parties agree on its definition. When encrypting with label `L1`, decryption must use the exact bytes `L1`; changing to `L2` typically causes OAEP verification to fail.
 
-Không tự động coi OAEP label là hệ thống authorization. Người nhận vẫn phải xác minh key/certificate, envelope version, ai được phép gửi, và những trường metadata nào được xác thực. Nếu dùng label trong giao thức, phải công bố rõ byte/encoding và giữ ổn định theo version.
+Do not automatically treat the OAEP label as an authorization system. The recipient must still validate keys/certificates, envelope version, who is permitted to send, and which metadata fields are authenticated. If a label is used in a protocol, publish its exact bytes/encoding and keep it stable per version.
 
-### 2.3. Hai hash trong OAEP: thông số dễ bị bỏ qua
+### 2.3. Two Hashes in OAEP: An Easily Overlooked Parameter
 
-Khi cấu hình:
+When configuring:
 
 ```text
 OAEP digest:   SHA-256
@@ -106,9 +106,9 @@ MGF1 digest:   SHA-256
 Label:         "hybrid-demo:v1|CEK" (UTF-8)
 ```
 
-đây là **một bộ tham số cụ thể**. Có thể một thư viện dùng OAEP digest SHA-256 nhưng ngầm chọn digest khác cho MGF1 nếu không chỉ định rõ. Hai implementation “cùng RSA-OAEP SHA-256” theo tên gọi nhưng khác MGF1 digest có thể **không giải mã được cho nhau**.
+this is **one specific parameter set**. A library might use SHA-256 for the OAEP digest while implicitly choosing a different digest for MGF1 if not explicitly specified. Two implementations nominally both using "RSA-OAEP SHA-256" yet differing in MGF1 digest can **fail to decrypt each other's ciphertexts**.
 
-Trong Java 17, dùng `OAEPParameterSpec` để cấu hình minh bạch:
+In Java 17, use `OAEPParameterSpec` for transparent configuration:
 
 ```java
 OAEPParameterSpec oaep = new OAEPParameterSpec(
@@ -121,70 +121,70 @@ OAEPParameterSpec oaep = new OAEPParameterSpec(
 );
 ```
 
-Khi đưa `OAEPParameterSpec` vào `Cipher.init(...)`, cả OAEP digest, MGF1 digest và label được quy định. Mô tả `"RSA/ECB/OAEPPadding"` là tên transformation JCA thường được hỗ trợ; chữ `ECB` ở đây là một thành phần tên transformation của provider, **không có nghĩa RSA đang mã hóa nhiều block ở chế độ ECB như AES**.
+When passing `OAEPParameterSpec` into `Cipher.init(...)`, the OAEP digest, MGF1 digest, and label are all specified. `"RSA/ECB/OAEPPadding"` is a widely supported JCA transformation name; the `ECB` token is a provider transformation naming convention and **does not mean RSA is encrypting multiple blocks in ECB mode like AES**.
 
-Không tự phỏng đoán tham số chỉ dựa vào tên transformation `"RSA/ECB/OAEPWithSHA-256AndMGF1Padding"`. Nếu cần tương thích chéo Java, .NET, OpenSSL hoặc HSM, gửi đầy đủ test vector/schema và so sánh từng tham số.
+Never guess parameters solely from the transformation string `"RSA/ECB/OAEPWithSHA-256AndMGF1Padding"`. For cross-interoperability across Java, .NET, OpenSSL, or HSMs, share full test vectors/schemas and verify every parameter.
 
-## 3. Giới hạn kích thước bản rõ RSA-OAEP
+## 3. RSA-OAEP Plaintext Size Limit
 
-Điều quan trọng nhất của bài học là công thức từ RSAES-OAEP (RFC 8017):
+The most important takeaway of this lesson is the RSAES-OAEP formula (RFC 8017):
 
 \[
 \boxed{\text{mLen} \le k - 2\,\text{hLen} - 2}
 \]
 
-Trong đó:
-- `mLen` là **số byte** của bản rõ muốn mã hóa bằng RSA-OAEP, không phải số ký tự Java `String.length()`.
-- `k` là **độ dài RSA modulus tính bằng byte**: `k = ceil(bitLength(n) / 8)`.
-- `hLen` là **độ dài kết quả OAEP hash tính bằng byte**. Với SHA-256, `hLen = 32`; SHA-384 là 48; SHA-512 là 64.
-- Hai số `2hLen` và `2` là overhead cấu trúc OAEP; không thể lấy toàn bộ `k` byte làm bản rõ.
-- MGF1 hash phải được cấu hình thống nhất; trong công thức này `hLen` chỉ kết quả của **OAEP Hash**, không lấy độ dài ciphertext hay key byte để thay.
+Where:
+- `mLen` is the **byte count** of the plaintext to encrypt with RSA-OAEP, not the Java `String.length()` character count.
+- `k` is the **RSA modulus length in bytes**: `k = ceil(bitLength(n) / 8)`.
+- `hLen` is the **OAEP hash output length in bytes**. For SHA-256, `hLen = 32`; SHA-384 is 48; SHA-512 is 64.
+- The `2hLen` and `2` terms are OAEP structural overhead; you cannot use all `k` bytes for plaintext.
+- The MGF1 hash must be configured consistently; in this formula `hLen` refers specifically to the **OAEP Hash** output length, not ciphertext length or key bytes.
 
-**Ví dụ RSA-2048 + OAEP SHA-256:**
+**Example: RSA-2048 + OAEP SHA-256:**
 
 \[
-k = 2048/8 = 256 \text{ byte}
+k = 2048/8 = 256 \text{ bytes}
 \]
 
 \[
-\text{maxM} = 256 - 2(32) - 2 = \boxed{190\text{ byte}}
+\text{maxM} = 256 - 2(32) - 2 = \boxed{190\text{ bytes}}
 \]
 
-Nếu input là 191 byte thì **không thể mã hóa trực tiếp** bằng chính cấu hình RSAES-OAEP này. Đây là giới hạn scheme, không phải lỗi “Java không nhận được chuỗi dài”.
+If the input is 191 bytes, it **cannot be directly encrypted** with this exact RSAES-OAEP configuration. This is a scheme limit, not a bug where "Java fails on long strings".
 
-### 3.1. Bảng kích thước minh họa
+### 3.1. Illustrative Size Table
 
-| RSA modulus | `k` (byte) | OAEP hash | `hLen` | Bản rõ tối đa | RSA ciphertext mỗi lần |
+| RSA modulus | `k` (bytes) | OAEP hash | `hLen` | Max plaintext | RSA ciphertext per op |
 | --- | ---: | --- | ---: | ---: | ---: |
-| 2048 bit | 256 | SHA-256 | 32 | **190 byte** | 256 byte |
-| 3072 bit | 384 | SHA-256 | 32 | **318 byte** | 384 byte |
-| 4096 bit | 512 | SHA-256 | 32 | **446 byte** | 512 byte |
-| 2048 bit | 256 | SHA-384 | 48 | **158 byte** | 256 byte |
-| 2048 bit | 256 | SHA-512 | 64 | **126 byte** | 256 byte |
-| 3072 bit | 384 | SHA-512 | 64 | **254 byte** | 384 byte |
+| 2048-bit | 256 | SHA-256 | 32 | **190 bytes** | 256 bytes |
+| 3072-bit | 384 | SHA-256 | 32 | **318 bytes** | 384 bytes |
+| 4096-bit | 512 | SHA-256 | 32 | **446 bytes** | 512 bytes |
+| 2048-bit | 256 | SHA-384 | 48 | **158 bytes** | 256 bytes |
+| 2048-bit | 256 | SHA-512 | 64 | **126 bytes** | 256 bytes |
+| 3072-bit | 384 | SHA-512 | 64 | **254 bytes** | 384 bytes |
 
-Bảng chỉ nói **dung lượng dữ liệu trên một phép mã hóa OAEP**, không đánh giá một khóa RSA đủ mạnh cho mọi threat model. Việc chọn RSA-2048/3072/4096 cần tuân thủ chính sách và độ dài vòng đời dữ liệu; khóa càng lớn cũng ảnh hưởng hiệu năng, ciphertext và độ dài tối đa.
+This table only shows **data capacity per single OAEP operation**, not whether an RSA key is strong enough for every threat model. Choosing RSA-2048/3072/4096 must follow policy and data lifetime; larger keys also affect performance, ciphertext size, and maximum payload length.
 
-Đặc biệt: khi tăng modulus từ 2048 lên 4096 bit, dung lượng OAEP SHA-256 chỉ tăng từ **190 lên 446 byte**. Nó vẫn rất nhỏ so với tệp ảnh, JSON request hoặc dữ liệu kinh doanh thực tế.
+Notably: increasing the modulus from 2048 to 4096 bits only raises OAEP SHA-256 capacity from **190 to 446 bytes**. That is still tiny compared to image files, JSON requests, or typical business payloads.
 
-### 3.2. Byte length khác độ dài chuỗi
+### 3.2. Byte Length Differs from String Length
 
-Trong Java, một chuỗi tiếng Việt có thể nhiều byte UTF-8 cho một ký tự. Ví dụ, `"A"` là 1 byte UTF-8, nhưng nhiều ký tự ngoài ASCII thường cần 2–4 byte. RSA-OAEP xem **byte array**, không thấy “190 ký tự”.
+In Java, a Vietnamese string can take multiple UTF-8 bytes per character. For example, `"A"` is 1 UTF-8 byte, whereas many non-ASCII characters typically require 2–4 bytes. RSA-OAEP sees a **byte array**, not "190 characters".
 
-Khi dữ liệu là text:
+When data is text:
 
 ```java
 byte[] plaintext = value.getBytes(StandardCharsets.UTF_8);
 int lengthBytes = plaintext.length;
 ```
 
-Không dùng `value.length()` làm độ dài OAEP. Java `String.length()` đếm UTF-16 code units, còn OAEP limit tính theo byte.
+Do not use `value.length()` as the OAEP length. Java `String.length()` counts UTF-16 code units, whereas the OAEP limit is measured in bytes.
 
-### 3.3. Điều gì xảy ra khi vượt giới hạn?
+### 3.3. What Happens When the Limit Is Exceeded?
 
-Một provider JCA thường ném `IllegalBlockSizeException` hoặc một ngoại lệ thuộc `GeneralSecurityException` khi `Cipher.doFinal(...)` nhận OAEP plaintext quá dài. Không được “tự sửa” bằng cách cắt bớt input hoặc biến đổi thành nhiều phép RSA theo kinh nghiệm.
+A JCA provider typically throws `IllegalBlockSizeException` or a `GeneralSecurityException` subclass when `Cipher.doFinal(...)` receives an oversized OAEP plaintext. Never "fix" this by truncating input or splitting into multiple RSA operations ad hoc.
 
-Đoạn logic để tính giới hạn:
+Logic to compute the limit:
 
 ```java
 int modulusBits = rsaPublicKey.getModulus().bitLength();
@@ -193,56 +193,56 @@ int hLen = 32; // SHA-256 output length
 int maximumOaepPlaintext = k - 2 * hLen - 2;
 ```
 
-Nếu `maximumOaepPlaintext` âm, bộ tham số không có đủ chỗ để encode thông điệp, cần chọn key/hash và scheme phù hợp. Không suy ra “RSA key 2048 bit” thì có thể mã hóa 256 byte dữ liệu gốc; **256 byte là chiều dài RSA ciphertext**, không phải giới hạn plaintext OAEP.
+If `maximumOaepPlaintext` is negative, the parameter set lacks space to encode any message, so you must select a compatible key/hash and scheme. Never infer that a "2048-bit RSA key" can encrypt 256 bytes of original data; **256 bytes is the RSA ciphertext length**, not the OAEP plaintext limit.
 
-## 4. Vì sao không chia tệp thành các khối nhỏ để RSA mã hóa từng khối?
+## 4. Why Not Split a File into Small Chunks and Encrypt Each with RSA?
 
-Một cách làm sai thường thấy:
+A common mistaken approach:
 
 ```text
-File dài 1 MiB
+1 MiB file
    |
-chia thành khối 190 byte
+split into 190-byte chunks
    |
 RSA-OAEP encrypt(block0)
 RSA-OAEP encrypt(block1)
 ...
 RSA-OAEP encrypt(blockN)
    |
-nối các RSA ciphertext
+concatenate RSA ciphertexts
 ```
 
-Dù từng block có thể mã hóa hợp lệ, thiết kế này thường **không nên dùng**:
+Even if each chunk encrypts validly, this design should generally **not be used**:
 
-1. **Rất kém hiệu năng:** RSA public-key operations tốn CPU hơn AES trong bulk encryption; giải mã private-key còn đắt hơn. Mã hóa một tệp lớn có thể tạo ra hàng nghìn phép RSA.
-2. **Dung lượng phình mạnh:** với RSA-2048 + OAEP SHA-256, mỗi 190 byte plaintext thành 256 byte ciphertext, chưa tính metadata, index và protection.
-3. **Thiếu giao thức xác thực tổng thể:** OAEP là scheme mã hóa bất đối xứng, không phải AEAD cho dòng các block. Nếu thiếu cơ chế bổ sung, thay thế/đảo thứ tự/bỏ block có thể không được phát hiện đúng ý nghĩa của toàn bộ tệp.
-4. **Không rõ canonical framing:** phải định nghĩa số lượng/độ dài/chỉ số của từng block, chống chèn/tráo/trùng/lặp và xử lý lỗi.
-5. **Không có ưu điểm quản lý khóa:** nhiều RSA decrypt vẫn dùng cùng private key; không tận dụng được tốc độ AES và khóa ngẫu nhiên độc lập cho mỗi đối tượng.
+1. **Very poor performance:** RSA public-key operations cost far more CPU than AES for bulk encryption; private-key decryption is even slower. Encrypting a large file can require thousands of RSA operations.
+2. **Severe size bloat:** with RSA-2048 + OAEP SHA-256, every 190 bytes of plaintext expands to 256 bytes of ciphertext, before even adding metadata, indices, and protection.
+3. **Lack of whole-message authentication:** OAEP is an asymmetric encryption scheme, not an AEAD stream over blocks. Without extra mechanisms, swapping, reordering, or dropping blocks may go undetected relative to the whole file.
+4. **No canonical framing:** you would have to define block counts, lengths, and indices, prevent insertion/swapping/duplication, and handle errors consistently.
+5. **No key-management benefit:** multiple RSA decrypts still hit the same private key; you miss out on AES speed and an independent random key per object.
 
-Cách đúng cho payload dài là **mã hóa lai**: **RSA-OAEP một lần cho khóa ngẫu nhiên ngắn**, **AEAD cho toàn bộ dữ liệu** theo format chuẩn.
+The right approach for large payloads is **hybrid encryption**: **RSA-OAEP once for a short random key**, and **AEAD for the entire payload** in a standard format.
 
-## 5. Mô hình hybrid encryption: khóa phiên + dữ liệu
+## 5. Hybrid Encryption Model: Session Key + Data
 
-Tách hai trách nhiệm:
+Separate two responsibilities:
 
-- **RSA-OAEP:** bảo vệ một **content-encryption key (CEK)** ngẫu nhiên. Ví dụ CEK 32 byte để dùng làm AES-256 key. Public key bên nhận mã hóa CEK; private key bên nhận giải mã CEK.
-- **AES-GCM:** dùng CEK để mã hóa nội dung với nonce độc lập, tạo **ciphertext và authentication tag**. Bên nhận kiểm tra tag khi giải mã để xác định dữ liệu/AAD/khóa/nonce phù hợp.
+- **RSA-OAEP:** protects a random **content-encryption key (CEK)**, e.g., a 32-byte CEK used as an AES-256 key. The recipient's public key encrypts the CEK; the recipient's private key decrypts the CEK.
+- **AES-GCM:** uses the CEK to encrypt content with an independent nonce, producing **ciphertext and authentication tag**. The recipient verifies the tag during decryption to confirm data/AAD/key/nonce consistency.
 
 ```text
-BÊN GỬI                                      BÊN NHẬN
+SENDER                                        RECIPIENT
 ---------                                     ---------
-Public RSA key đã xác thực                    Private RSA key an toàn
+Authenticated RSA public key                  Secure RSA private key
        |                                           |
-SecureRandom: CEK 32 byte                           |
+SecureRandom: 32-byte CEK                          |
        |                                           |
        +---- RSA-OAEP(public, CEK) --> wrappedCEK ---+--> RSA-OAEP(private)
        |                                                  |
-       |                                                  +--> CEK 32 byte
+       |                                                  +--> 32-byte CEK
        v                                                          |
-SecureRandom: nonce 12 byte                                       |
+SecureRandom: 12-byte nonce                                       |
        |                                                          |
-AES-256-GCM(CEK, nonce, AAD, plaintext)                            |
+AES-256-GCM(CEK, nonce, AAD, plaintext)                           |
        |                                                          |
        +--> ciphertext + tag -----------------------------> AES-GCM decrypt
                          |                                    |
@@ -253,43 +253,43 @@ AES-256-GCM(CEK, nonce, AAD, plaintext)                            |
               version, algorithms, keyId, AAD context
 ```
 
-Một đối tác nhận cần **private key RSA khớp với wrappedCEK**, **các tham số OAEP khớp**, rồi dùng CEK đã giải mã để kiểm tra AES-GCM tag. Nếu password/login hay danh tính người dùng có liên quan, đó là lớp xác thực/quản lý quyền riêng và không thể thay bằng việc mã hóa thành công.
+A recipient needs the **RSA private key matching `wrappedCEK`**, **matching OAEP parameters**, and then uses the decrypted CEK to verify the AES-GCM tag. If passwords/logins or user identity are involved, that is a separate authentication/authorization layer and cannot be replaced by successful decryption.
 
-### 5.1. Phân biệt CEK, KEK và RSA key
+### 5.1. Distinguishing CEK, KEK, and RSA Keys
 
-Trong nhiều tài liệu:
-- **CEK/DEK:** khóa đối xứng mã hóa dữ liệu (content/data encryption key).
-- **KEK:** khóa mã hóa một khóa khác (key-encryption key); trong mô hình này, RSA public key được dùng trong **scheme key transport/wrapping bằng RSA-OAEP**, không phải một chuỗi 32 byte dùng làm AES KEK.
-- **Wrapped key:** bản mã RSA của CEK, không phải chính CEK.
+In much of the literature:
+- **CEK/DEK:** symmetric key encrypting data (content/data encryption key).
+- **KEK:** a key encrypting another key (key-encryption key); in this model, the RSA public key is used in an **RSA-OAEP key transport/wrapping scheme**, not as a 32-byte AES KEK.
+- **Wrapped key:** the RSA ciphertext of the CEK, not the CEK itself.
 
-RSA-OAEP wrapping CEK **không phải** thuật toán **RSA-KEM**. Cả hai có thể thuộc họ thiết kế bảo vệ khóa/hybrid, nhưng scheme và cấu trúc byte khác nhau; không gọi RSA-OAEP là RSA-KEM hoặc cho một bên dùng RSA-KEM rồi trông chờ OAEP giải mã được.
+RSA-OAEP wrapping a CEK is **not** the **RSA-KEM** algorithm. Both belong to key-protection/hybrid design families, yet their schemes and byte structures differ; never call RSA-OAEP "RSA-KEM" or expect one side using RSA-KEM to be decrypted by OAEP.
 
-### 5.2. Vì sao dùng AES-GCM thay AES-CBC tự thiết kế?
+### 5.2. Why Use AES-GCM Instead of Homegrown AES-CBC?
 
-AES-GCM là **AEAD (Authenticated Encryption with Associated Data)**. Nó vừa mã hóa plaintext, vừa cho phép phát hiện sửa đổi ciphertext và dữ liệu AAD. Thay vì tự ghép AES-CBC + padding + MAC theo thứ tự không rõ ràng, dùng AEAD đã chuẩn hóa dễ giảm nhiều lớp lỗi.
+AES-GCM is **AEAD (Authenticated Encryption with Associated Data)**. It both encrypts plaintext and detects tampering with ciphertext and AAD. Instead of assembling AES-CBC + padding + MAC in an ambiguous order, standardized AEAD reduces entire classes of bugs.
 
-Các thông số mẫu của bài học:
-- CEK: **32 byte** (AES-256).
-- GCM nonce: **12 byte** (96 bit), mới cho mỗi lần encrypt với cùng CEK.
-- Tag: **16 byte** (128 bit).
-- Ciphertext + tag: với plaintext `N` byte trong JCA demo, thường là `N + 16` byte.
-- AAD: byte mô tả ngữ cảnh, ví dụ `"hybrid-demo:v1|AES-256-GCM"`. AAD **được xác thực nhưng không được mã hóa**.
+Sample parameters in this lesson:
+- CEK: **32 bytes** (AES-256).
+- GCM nonce: **12 bytes** (96 bits), fresh for every encryption under the same CEK.
+- Tag: **16 bytes** (128 bits).
+- Ciphertext + tag: for `N`-byte plaintext in a JCA demo, typically `N + 16` bytes.
+- AAD: context-describing bytes, e.g., `"hybrid-demo:v1|AES-256-GCM"`. AAD **is authenticated but not encrypted**.
 
-Không được tái sử dụng cùng cặp `(CEK, nonce)` trong AES-GCM. Một CEK mới ngẫu nhiên cho mỗi object giúp cô lập các object, nhưng vẫn cần cơ chế nonce phù hợp và chính sách giới hạn số lần encrypt nếu reuse key. Không dùng salt/password KDF làm nonce một cách tùy tiện.
+Never reuse the same `(CEK, nonce)` pair in AES-GCM. A fresh random CEK per object helps isolate objects, yet you still need a sound nonce mechanism and a limit on encryptions if keys are ever reused. Never arbitrarily use a password KDF salt as a nonce.
 
-### 5.3. Authentication tag bảo vệ điều gì?
+### 5.3. What Does the Authentication Tag Protect?
 
-Ở phía nhận, AES-GCM decryption kiểm tra tag với **khóa, nonce, AAD và ciphertext**. Nếu dữ liệu bị thay đổi, giải mã sẽ từ chối với lỗi tag trong trường hợp điển hình. Tuy nhiên:
+On the receiving side, AES-GCM decryption checks the tag against **the key, nonce, AAD, and ciphertext**. If data is altered, decryption typically fails with a tag error. However:
 
-- Không được đưa plaintext chưa xác minh vào hệ thống nghiệp vụ.
-- Nếu ciphertext bị sửa, key sai, nonce sai hoặc AAD sai, tag có thể đều thất bại; không khẳng định exception chỉ ra nguyên nhân duy nhất.
-- Tag đảm bảo tính toàn vẹn trong khuôn khổ CEK; **không chứng minh danh tính người gửi**, vì bất kỳ ai có public key người nhận đều có thể tự sinh CEK mới, tạo AES-GCM ciphertext/tag hợp lệ rồi wrap CEK bằng RSA-OAEP.
+- Never pass unverified plaintext into business logic.
+- If ciphertext is altered, the key is wrong, the nonce is wrong, or the AAD is wrong, the tag check fails identically; do not assume an exception pinpoints a single root cause.
+- The tag proves integrity under the CEK; **it does not prove sender identity**, because anyone with the recipient's public key can generate a fresh CEK, create a valid AES-GCM ciphertext/tag, and wrap the CEK with RSA-OAEP.
 
-Khi cần **xác thực tác giả**, phải tích hợp chữ ký số (ví dụ Ed25519 hoặc RSA-PSS theo chính sách), một MAC đã phân phối khóa có xác thực, hoặc một giao thức bảo mật đã định nghĩa identity binding. Chữ ký nên xác thực **envelope hoặc nội dung ngữ nghĩa đầy đủ** (gồm version, thuật toán, keyId, wrappedKey, nonce, ciphertext/tag và context) theo serialization canonical rõ ràng.
+When **author authentication** is required, integrate a digital signature (such as Ed25519 or RSA-PSS per policy), an authenticated key-distributed MAC, or a security protocol with explicit identity binding. The signature should authenticate **the envelope or full semantic payload** (including version, algorithms, keyId, wrappedKey, nonce, ciphertext/tag, and context) using clear canonical serialization.
 
-## 6. Định dạng hybrid envelope cần lưu và truyền
+## 6. What the Hybrid Envelope Format Must Store and Transmit
 
-Một envelope có thể mô tả logic như sau:
+An envelope can be described logically as:
 
 ```json
 {
@@ -313,58 +313,58 @@ Một envelope có thể mô tả logic như sau:
 }
 ```
 
-Đây là **sơ đồ JSON mô tả**, không phải một wire format được chuẩn hóa hay blob có thể giải mã ngay. Các token đặt trong dấu ngoặc nhọn chỉ là mô tả kiểu dữ liệu, không phải khóa thật. Một giao thức sản xuất phải chỉ định chính xác encoding, parser, quy tắc canonicalization và trường nào được xác thực.
+This is a **descriptive JSON sketch**, not a standardized wire format or an immediately decryptable blob. Tokens in angle brackets describe data types, not real keys. A production protocol must specify exact encoding, parsers, canonicalization rules, and which fields are authenticated.
 
-Những mục tối thiểu cần nhất quán:
+Minimum items that must stay consistent:
 
-| Trường | Mục đích | Bí mật? | Quy tắc quan trọng |
+| Field | Purpose | Secret? | Critical rule |
 | --- | --- | --- | --- |
-| `formatVersion` | Chọn một profile chính xác | Không | Không thử nhiều version tùy tiện |
-| `recipientKeyId` | Tra private key theo chính sách tin cậy | Không | Không để client tự buộc thuật toán yếu |
-| OAEP hash/MGF1 hash/label | Giải RSA đúng thông số | Không | Giá trị byte phải khớp hoàn toàn |
-| `wrappedCEK` | Bảo vệ CEK khi truyền/lưu | Không phải CEK thuần | Ciphertext RSA có độ dài modulus |
-| GCM nonce | Tham số AES-GCM | Không | Không trùng với cùng CEK |
-| `ciphertextAndTag` | Dữ liệu đã mã hóa + tag | Không cần bí mật riêng nếu crypto đúng | Phải giữ trọn tag; kiểm tra trước sử dụng |
-| `AAD` hoặc profile tạo AAD | Ràng buộc metadata/ngữ cảnh | Không | Encrypt/decrypt dùng cùng byte AAD |
-| CEK trước/sau unwrap | Khóa đối xứng dùng AES | **Có** | Không ghi plaintext key vào log, JSON, DB |
-| RSA private key | Khôi phục CEK | **Có** | Bảo vệ quyền truy cập, lưu/chạy an toàn |
+| `formatVersion` | Select an exact profile | No | Never arbitrarily try multiple versions |
+| `recipientKeyId` | Look up private key per trust policy | No | Never let clients force weak algorithms |
+| OAEP hash/MGF1 hash/label | Decrypt RSA with matching parameters | No | Byte values must match identically |
+| `wrappedCEK` | Protect CEK in transit/at rest | Not raw CEK | RSA ciphertext has modulus length |
+| GCM nonce | AES-GCM parameter | No | Must not repeat under the same CEK |
+| `ciphertextAndTag` | Encrypted data + tag | Not separately secret if crypto is sound | Must keep full tag; verify before use |
+| `AAD` or AAD profile | Bind metadata/context | No | Encrypt/decrypt must use exact same AAD bytes |
+| CEK before/after unwrap | Symmetric key for AES | **Yes** | Never write plaintext key to logs, JSON, DB |
+| RSA private key | Recover CEK | **Yes** | Restrict access; store/execute securely |
 
-**Không thể chỉ lưu ciphertext rồi bỏ nonce hoặc OAEP parameters**; không có đủ dữ liệu và quy tắc để decrypt sau này. Khi format thay đổi, cần version để phân biệt.
+**You cannot store only the ciphertext and drop the nonce or OAEP parameters**; there would not be enough data and rules to decrypt later. When formats evolve, version them clearly.
 
-### 6.1. AAD nên bao phủ metadata nào?
+### 6.1. What Metadata Should AAD Cover?
 
-Trong ví dụ Java, AAD là hằng `"hybrid-demo:v1|AES-256-GCM"` để dễ kiểm chứng. Trong giao thức thật, nên xây dựng AAD theo một **canonical byte format** ràng buộc đủ những thuộc tính ảnh hưởng đến ý nghĩa dữ liệu, chẳng hạn:
-- `formatVersion`, algorithm suite, lựa chọn digest, độ dài tag.
-- `recipientKeyId`/id khóa tin cậy, domain của ứng dụng.
-- Tenant, resourceId/documentId, loại nội dung, quyền sở hữu logic.
-- Các header/framing field cần bảo vệ, gồm wrappedKey hoặc một hash/framing được quy định rõ nếu thiết kế yêu cầu.
+In the Java example, AAD is the constant `"hybrid-demo:v1|AES-256-GCM"` for easy verification. In a real protocol, build AAD in a **canonical byte format** binding every attribute that affects data semantics, such as:
+- `formatVersion`, algorithm suite, digest selection, tag length.
+- `recipientKeyId`/trusted key ID, application domain.
+- Tenant, resourceId/documentId, content type, logical ownership.
+- Header/framing fields needing protection, including wrappedKey or a well-defined hash/framing if required by design.
 
-Bên nhận phải tự tái tạo **đúng AAD bytes**, không lấy toàn bộ metadata không đáng tin rồi coi nó tự xác thực. Hợp đồng cần tránh ngụy biện “tag đã kiểm tra body” trong khi route, tenant hay algorithm version nằm ngoài miền bảo vệ.
+The recipient must reconstruct the **exact AAD bytes** independently rather than blindly trusting unverified metadata as self-authenticating. The contract must avoid the fallacy that "the tag checked the body" while routes, tenants, or algorithm versions sit outside the protected boundary.
 
-Với protocol nhiều bên nhận, cần thiết kế key-wrap entries, binding recipient và xác thực danh sách các người nhận một cách rõ ràng. Không tự động cho thay thế wrappedKey hoặc chuyển recipient chỉ vì ciphertext data “trông giống”.
+For multi-recipient protocols, design key-wrap entries, recipient binding, and authentication of the recipient list explicitly. Never automatically swap wrappedKey or redirect recipients simply because the ciphertext data "looks right".
 
-### 6.2. Nonce, label và salt không cùng vai trò
+### 6.2. Nonce, Label, and Salt Serve Different Roles
 
-Ở đây:
-- **OAEP label:** context byte ảnh hưởng đến OAEP decoding, không phải IV và không cần ngẫu nhiên.
-- **GCM nonce:** tham số độc lập, với yêu cầu không được lặp dưới cùng AES key.
-- **Salt:** thường xuất hiện trong KDF từ password hoặc secret khác; hybrid RSA-OAEP + CEK ngẫu nhiên **không bắt buộc salt KDF**. Đừng thêm salt chỉ vì nhìn thấy nó trong ví dụ password-based encryption.
-- **Authentication tag:** thông tin kiểm tra AEAD, không phải một key và không thể bỏ qua để trả plaintext.
+Here:
+- **OAEP label:** context bytes affecting OAEP decoding, not an IV and does not need to be random.
+- **GCM nonce:** an independent parameter required never to repeat under the same AES key.
+- **Salt:** usually appears in password KDFs or other key derivation; random-CEK RSA-OAEP hybrid **does not require a KDF salt**. Do not add a salt merely because you saw one in password-based encryption examples.
+- **Authentication tag:** AEAD verification data, not a key, and cannot be ignored to release plaintext.
 
-Tạo CEK và nonce bằng `SecureRandom`; không dùng `Random` hoặc thời gian hiện tại làm nguồn cho CEK. Không lấy một số từ `System.currentTimeMillis()` để làm “random secret”.
+Generate CEK and nonce with `SecureRandom`; never use `Random` or current time as the CEK source. Never take a number from `System.currentTimeMillis()` as a "random secret".
 
-## 7. Java 17+: ví dụ hybrid encryption chạy được
+## 7. Java 17+: Runnable Hybrid Encryption Example
 
-Ví dụ này dùng toàn bộ JDK chuẩn:
+This example uses purely standard JDK APIs:
 
-- `KeyPairGenerator` sinh RSA key pair **2048 bit cho mục đích demo**.
-- `Cipher` với `RSA/ECB/OAEPPadding` và **`OAEPParameterSpec` tường minh**: OAEP digest SHA-256, MGF1 digest SHA-256, label `hybrid-demo:v1|CEK`.
-- `SecureRandom` tạo CEK AES-256 32 byte và nonce GCM 12 byte.
-- `Cipher` với `AES/GCM/NoPadding`, tag 128 bit, AAD không đổi.
-- Một plaintext **2.000 byte** được mã hóa bằng AES-GCM; RSA-OAEP chỉ mã hóa CEK 32 byte.
-- Kiểm tra round-trip, phát hiện sửa ciphertext, từ chối sai OAEP label và từ chối RSA-OAEP mã hóa trực tiếp payload quá dài.
+- `KeyPairGenerator` generates a **2048-bit RSA key pair for demo purposes**.
+- `Cipher` with `RSA/ECB/OAEPPadding` and **explicit `OAEPParameterSpec`**: OAEP digest SHA-256, MGF1 digest SHA-256, label `hybrid-demo:v1|CEK`.
+- `SecureRandom` creates a 32-byte AES-256 CEK and 12-byte GCM nonce.
+- `Cipher` with `AES/GCM/NoPadding`, 128-bit tag, constant AAD.
+- A **2,000-byte** plaintext is encrypted with AES-GCM; RSA-OAEP only encrypts the 32-byte CEK.
+- Verifies round-trip, detects ciphertext tampering, rejects wrong OAEP label, and rejects encrypting an oversized payload directly with RSA-OAEP.
 
-Tạo tệp **`HybridEncryptionDemo.java`**:
+Create the file **`HybridEncryptionDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -516,14 +516,14 @@ public class HybridEncryptionDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac HybridEncryptionDemo.java
 java HybridEncryptionDemo
 ```
 
-**Kết quả stdout:** (đã kiểm tra với JDK 24 qua JShell trên API tương thích Java 17; do RSA key pair, CEK và nonce đều sinh ngẫu nhiên nên không in ciphertext cụ thể):
+**Stdout output:** (verified with JDK 24 via JShell on Java 17-compatible APIs; because the RSA key pair, CEK, and nonce are randomly generated, specific ciphertexts are not printed):
 
 ```text
 RSA modulus bytes: 256
@@ -538,18 +538,18 @@ Wrong OAEP label rejected: true
 Oversized direct RSA rejected: true
 ```
 
-Trong đó:
-- `OAEP-SHA-256 plaintext limit: 190` đến từ công thức `256 − 2 × 32 − 2`.
-- `wrappedKey` có **256 byte** vì RSA modulus 2048 bit, dù CEK ban đầu chỉ 32 byte.
-- `Ciphertext plus tag bytes: 2016` vì plaintext 2.000 byte và AES-GCM tag 16 byte; đây là output của `Cipher.doFinal` cho một bản tin không có padding thêm.
-- `Round trip: true` chứng minh với cùng key pair, OAEP params, nonce/AAD và ciphertext hợp lệ thì nhận lại cùng byte plaintext.
-- Sửa một bit của AES-GCM ciphertext dẫn đến **authentication tag không còn hợp lệ**, do đó việc giải mã bị từ chối.
-- Dùng OAEP label `wrong-context` trong lúc decrypt không trùng label encrypt và không giải mã được wrapped CEK.
-- Thử encrypt **toàn bộ 2.000 byte bằng RSA-OAEP** gây lỗi và được ghi nhận `true` ở dòng cuối. **Không** tự động cắt đầu vào thành 190 byte.
+Where:
+- `OAEP-SHA-256 plaintext limit: 190` comes from `256 − 2 × 32 − 2`.
+- `wrappedKey` is **256 bytes** due to the 2048-bit RSA modulus, even though the original CEK is only 32 bytes.
+- `Ciphertext plus tag bytes: 2016` comes from 2,000 bytes of plaintext plus the 16-byte AES-GCM tag; this is the output of `Cipher.doFinal` for a single unpadded message.
+- `Round trip: true` proves that with the matching key pair, OAEP params, nonce/AAD, and valid ciphertext, the exact plaintext bytes are recovered.
+- Flipping one bit of the AES-GCM ciphertext invalidates the **authentication tag**, so decryption is rejected.
+- Using OAEP label `wrong-context` during decryption does not match the encryption label and fails to decrypt the wrapped CEK.
+- Attempting to encrypt **all 2,000 bytes with RSA-OAEP** throws an error, recorded as `true` on the final line. **Never** silently truncate input to 190 bytes.
 
-### 7.1. Những điểm Java quan trọng
+### 7.1. Key Java Details
 
-**Khởi tạo RSA-OAEP với tham số tường minh:**
+**Initializing RSA-OAEP with explicit parameters:**
 
 ```java
 Cipher rsa = Cipher.getInstance("RSA/ECB/OAEPPadding");
@@ -557,9 +557,9 @@ rsa.init(Cipher.ENCRYPT_MODE, publicKey, OAEP);
 byte[] wrapped = rsa.doFinal(cek);
 ```
 
-Hãy giữ cùng cấu hình OAEP khi decrypt. Trong Java, cấu hình bằng `OAEPParameterSpec` rõ ràng giúp tránh nhầm default giữa provider. MGF1-SHA-256 là một tham số độc lập với OAEP SHA-256 dù bài học chọn cùng hash.
+Keep the exact same OAEP configuration when decrypting. In Java, explicit `OAEPParameterSpec` prevents provider default mismatches. MGF1-SHA-256 is an independent parameter from OAEP SHA-256 even though the lesson chooses the same hash.
 
-**AES-GCM phải có nonce và tag:**
+**AES-GCM must have a nonce and tag:**
 
 ```java
 Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
@@ -572,207 +572,207 @@ aes.updateAAD(AAD);
 byte[] ciphertextAndTag = aes.doFinal(plaintext);
 ```
 
-`GCMParameterSpec(128, nonce)` chỉ định **tag length 128 bit**, không chỉ định AES key length. AES-256 tới từ CEK 32 byte. Không nhầm tham số 128 của tag với việc dùng AES-128.
+`GCMParameterSpec(128, nonce)` specifies a **128-bit tag length**, not the AES key length. AES-256 comes from the 32-byte CEK. Do not confuse the tag parameter 128 with using AES-128.
 
-**Private key chỉ dùng ở receiver:**
+**Private key is used only on the receiver:**
 
 ```java
 rsa.init(Cipher.DECRYPT_MODE, privateKey, OAEP);
 byte[] cek = rsa.doFinal(packet.wrappedKey());
 ```
 
-Không gửi private key qua network hoặc ghi cùng envelope. Public key phải được xác thực trước encrypt. Với hệ thống thật, private key có thể nằm trong KeyStore, HSM hoặc KMS và không nhất thiết export được ra byte.
+Never send private keys over the network or embed them in envelopes. Public keys must be authenticated before encryption. In production, private keys may live in a KeyStore, HSM, or KMS and may not be exportable as bytes.
 
-**So sánh lỗi:** nếu OAEP unwrap thất bại, không có CEK để giải AES-GCM. Nếu unwrap thành công nhưng ciphertext/tag/AAD không phù hợp, AEAD sẽ từ chối. Đừng làm API public trả chi tiết có thể tạo padding oracle hoặc lộ thông tin về khả năng giải mã; cần xử lý lỗi và rate limit theo threat model.
+**Comparing errors:** if OAEP unwrap fails, there is no CEK to decrypt AES-GCM. If unwrap succeeds yet ciphertext/tag/AAD mismatch, AEAD rejects. Do not build public APIs returning granular errors that create padding oracles or leak decryption behavior; design error handling and rate limiting according to your threat model.
 
-### 7.2. Ranh giới demo và production
+### 7.2. Boundary Between Demo and Production
 
-Ví dụ deliberately tối giản để học đúng hai trách nhiệm RSA-OAEP và AES-GCM; khi đem vào sản phẩm, cần xử lý thêm:
+The example is deliberately minimal to teach the two responsibilities of RSA-OAEP and AES-GCM; for production, address these additional concerns:
 
-1. **Khóa RSA:** không tạo mỗi lần khởi động rồi mất private key nếu muốn giải mã dữ liệu lưu trữ lâu dài. Dùng keystore/HSM/KMS và chiến lược backup, rotation, hủy khóa theo chính sách.
-2. **Chọn kích thước khóa:** 2048 bit nhằm demo nhanh; chọn 3072 bit hoặc profile khác khi chính sách/độ dài an ninh dữ liệu yêu cầu, dựa trên hướng dẫn cập nhật thay vì copy cứng số bit.
-3. **Serialization:** `record Packet` mang `byte[]` có thể bị thay đổi từ bên ngoài. Trong hệ thống thật, dùng immutable copies, validate kích thước, encode/decode theo format chuẩn và giới hạn độ dài payload/envelope.
-4. **AAD:** bài demo dùng hằng; nếu có header thay đổi (recipientKeyId, tenantId, resourceId), phải đưa vào AAD theo canonical schema hoặc bảo vệ toàn envelope bằng cơ chế tương đương.
-5. **Độ dài/tag:** reader cần kiểm tra wrappedKey length khớp `k`, nonce 12 byte theo profile, có tag đủ độ dài, algorithm suite/version allowlist và không giải mã trước xác minh.
-6. **Nonce lifecycle:** sinh nonce mới khi encrypt; tránh lặp cùng CEK. Nếu tái sử dụng CEK và gửi nhiều bản tin, quản lý uniqueness có trạng thái hoặc theo chuẩn phù hợp.
-7. **Khóa tạm:** `Arrays.fill(cek,(byte)0)` giảm thời gian giữ bản sao mảng do chương trình sở hữu, nhưng không bảo đảm xóa mọi bản sao nằm trong provider/JVM. Không in CEK, plaintext bí mật, private key hoặc dump bộ nhớ vào log.
-8. **Authenticated sender:** RSA-OAEP và AES-GCM trong ví dụ **không xác thực người gửi**. Bổ sung chữ ký/protocol với identity binding nếu yêu cầu.
-9. **Đối tượng lớn và streaming:** không đưa toàn bộ file nhiều GB vào một mảng; cần API chunking/streaming được thiết kế đúng cho AEAD, giới hạn nonce/sequence, authentication của từng chunk và bảo vệ thứ tự/tổng số chunk. Không tự biến ví dụ một khối thành một scheme streaming không có spec.
-10. **Lỗi từ bên ngoài:** validate framing/version/length trước crypto, trả lỗi không tiết lộ nguyên nhân nhạy cảm và không thử fallback xuống RSA PKCS#1 v1.5 chỉ vì OAEP failed.
+1. **RSA keys:** do not regenerate keys on every startup and lose the private key if long-term stored data must be decrypted. Use a keystore/HSM/KMS with policy-driven backup, rotation, and destruction.
+2. **Key size choice:** 2048-bit is for fast demo runs; choose 3072-bit or another profile when policy/data-security lifetime requires it, based on current guidance rather than blindly copying bit counts.
+3. **Serialization:** `record Packet` holds mutable `byte[]` arrays. In production, make defensive/immutable copies, validate sizes, encode/decode in a standard format, and enforce payload/envelope size limits.
+4. **AAD:** the demo uses a constant; if variable headers exist (`recipientKeyId`, `tenantId`, `resourceId`), include them in AAD via a canonical schema or protect the whole envelope equivalently.
+5. **Lengths/tag:** readers must verify `wrappedKey` length equals `k`, nonce is 12 bytes per profile, tag has full length, algorithm suite/version are allowlisted, and never decrypt before verification.
+6. **Nonce lifecycle:** generate fresh nonces on encryption; never repeat under the same CEK. If reusing a CEK across multiple messages, enforce uniqueness statefully or per standard.
+7. **Ephemeral keys:** `Arrays.fill(cek,(byte)0)` reduces retention time of program-owned arrays, yet cannot guarantee erasing copies inside the provider/JVM. Never log CEKs, confidential plaintexts, private keys, or memory dumps.
+8. **Authenticated sender:** RSA-OAEP and AES-GCM in the example **do not authenticate the sender**. Add signatures/protocol with identity binding if required.
+9. **Large objects and streaming:** do not load multi-GB files into a single array; use properly designed AEAD chunking/streaming APIs with bounded nonces/sequences, per-chunk authentication, and ordering/total-chunk protection. Never turn a single-shot demo into an ad-hoc unverified streaming scheme.
+10. **External errors:** validate framing/version/length before crypto, return opaque errors without sensitive root causes, and never fall back to RSA PKCS#1 v1.5 simply because OAEP failed.
 
-## 8. Một ví dụ thiết kế ứng dụng gửi tệp cho người nhận
+## 8. Design Example: Sending a File to a Recipient
 
-Giả sử ứng dụng upload một file 10 MiB chỉ người dùng B được đọc.
+Suppose an application uploads a 10 MiB file readable only by user B.
 
-### 8.1. Quy trình đề xuất
+### 8.1. Recommended Workflow
 
-**Bước 1: Xác minh public key của B.** Lấy certificate hoặc public-key mapping từ nguồn đáng tin; kiểm tra identity/keyId và policy. Nếu key bị tráo, tất cả bảo vệ của các bước sau có thể vẫn hoạt động **đối với kẻ tấn công**, không phải B.
+**Step 1: Verify B's public key.** Fetch the certificate or public-key mapping from a trusted source; verify identity/`keyId` and policy. If the key is swapped, every subsequent protection may still succeed **for the attacker**, not B.
 
-**Bước 2: Sinh CEK mới.** Sender dùng CSPRNG tạo 32 byte CEK; không dùng password ngắn hay thời gian để thay CEK.
+**Step 2: Generate a fresh CEK.** The sender uses a CSPRNG to generate a 32-byte CEK; never use a short password or timestamp instead of a CEK.
 
-**Bước 3: Sinh nonce AEAD.** Tạo nonce theo profile AES-GCM; nếu mỗi file có CEK riêng, một nonce ngẫu nhiên 96 bit cho một message là pattern demo hợp lý, nhưng độ bảo đảm uniqueness phải được đánh giá theo số lượng encrypt và chính sách.
+**Step 3: Generate an AEAD nonce.** Generate a nonce per the AES-GCM profile; if each file has its own CEK, a 96-bit random nonce per message is a reasonable demo pattern, though uniqueness guarantees must still be evaluated against encryption volume and policy.
 
-**Bước 4: Mã hóa file bằng AES-GCM.** Chọn AAD ràng buộc format version, fileId, chủ sở hữu, context. Nhận ciphertext + tag. Với file lớn, dùng thư viện streaming AEAD có spec phù hợp, không tự mã hóa từng chunk rồi ghép một cách không xác thực.
+**Step 4: Encrypt the file with AES-GCM.** Choose AAD binding format version, fileId, owner, and context. Obtain ciphertext + tag. For large files, use a properly specified streaming AEAD library rather than encrypting chunks and concatenating them unauthenticated.
 
-**Bước 5: Wrap CEK cho B bằng RSA-OAEP.** Khóa cần wrap là 32 byte, thấp hơn giới hạn 190 byte của RSA-2048 OAEP SHA-256. Chuẩn hóa OAEP digest, MGF1 digest và label.
+**Step 5: Wrap the CEK for B using RSA-OAEP.** The key to wrap is 32 bytes, well under the 190-byte limit of RSA-2048 OAEP SHA-256. Standardize OAEP digest, MGF1 digest, and label.
 
-**Bước 6: Lưu một envelope.** Bao gồm metadata cần thiết, wrappedCEK, nonce, ciphertext/tag, version và AAD profile. Không lưu CEK thuần hoặc private key cùng envelope.
+**Step 6: Store an envelope.** Include required metadata, wrappedCEK, nonce, ciphertext/tag, version, and AAD profile. Never store the raw CEK or private key inside the envelope.
 
-**Bước 7: Recipient B giải mã.** B chọn private key đáng tin, unwrap CEK qua RSA-OAEP, decrypt AES-GCM, kiểm tra tag rồi mới sử dụng plaintext. Nếu sai, từ chối; không bỏ qua tag hoặc “thử một cipher khác” tùy tiện.
+**Step 7: Recipient B decrypts.** B selects the trusted private key, unwraps the CEK via RSA-OAEP, decrypts AES-GCM, verifies the tag, and only then uses the plaintext. On failure, reject; never skip the tag or "try another cipher" arbitrarily.
 
-**Bước 8: Kiểm tra người gửi nếu có yêu cầu.** Nếu ứng dụng còn muốn B biết file thực sự do A gửi, bổ sung chữ ký A trên envelope được canonicalize và xác minh chứng thư/key của A, hoặc tích hợp một giao thức authenticated encryption dành cho nhiều bên theo chuẩn.
+**Step 8: Verify sender if required.** If the app also needs B to know the file truly came from A, add A's signature over the canonicalized envelope and verify A's certificate/key, or adopt a standard authenticated multi-party encryption protocol.
 
-### 8.2. Chi phí kích thước
+### 8.2. Size Overhead
 
-Với file 10 MiB (10 × 1.048.576 byte), AES-GCM với tag 16 byte thêm lượng nhỏ cho một bản tin (chưa tính nonce/header). RSA-OAEP ciphertext wrap một CEK chỉ thêm **256 byte** nếu modulus là 2048 bit.
+For a 10 MiB file (10 × 1,048,576 bytes), AES-GCM with a 16-byte tag adds negligible overhead for a single message (excluding nonce/header). RSA-OAEP wrapping one CEK adds only **256 bytes** with a 2048-bit modulus.
 
-Ngược lại, chia một file thành các block OAEP 190 byte và encrypt mỗi block sẽ phải tạo rất nhiều RSA ciphertext 256 byte, vừa tốn CPU vừa tăng overhead lớn. Không có lý do vận hành tốt để chọn block-RSA thay cho CEK + AES-GCM trong ứng dụng mã hóa tệp thông thường.
+By contrast, splitting a file into 190-byte OAEP blocks and encrypting each block would produce tens of thousands of 256-byte RSA ciphertexts, wasting CPU and inflating size. There is no sound operational reason to pick block-RSA over CEK + AES-GCM for normal file encryption.
 
-## 9. RSA-OAEP không cung cấp tất cả bảo đảm của một kênh an toàn
+## 9. RSA-OAEP Does Not Provide All Guarantees of a Secure Channel
 
-### 9.1. Confidentiality không đồng nghĩa sender authentication
+### 9.1. Confidentiality Does Not Mean Sender Authentication
 
-RSA-OAEP giúp chỉ private key tương ứng có thể lấy lại CEK (theo giả định an ninh và quản lý khóa đúng). Tuy nhiên ai biết public key đều có thể:
-- tự sinh CEK,
-- tự mã hóa thông điệp với AES-GCM,
-- tự wrap CEK bằng public key,
-- gửi một envelope giải mã hợp lệ.
+RSA-OAEP ensures only the matching private key can recover the CEK (assuming sound security and key management). However, anyone knowing the public key can:
+- generate their own CEK,
+- encrypt a message with AES-GCM,
+- wrap their CEK with the recipient's public key,
+- send a validly decryptable envelope.
 
-Vì vậy, người nhận không thể suy ra “A chắc chắn đã gửi” chỉ từ việc decrypt thành công. Thêm chữ ký số/cert/identity binding, hoặc sử dụng một protocol hoàn chỉnh có tính xác thực nguồn.
+Thus, the recipient cannot infer "A definitely sent this" merely from successful decryption. Add digital signatures/certs/identity binding, or use a complete protocol with origin authentication.
 
-Một hybrid envelope không có chữ ký cũng không phải “bảo đảm chống replay”. Đối thủ có thể lưu lại một envelope hợp lệ rồi gửi lại; phía nhận cần id, timestamp, nonce/replay tracking và policy nghiệp vụ nếu hành động lặp nguy hiểm.
+An unsigned hybrid envelope also does not guarantee "replay protection". An adversary can capture a valid envelope and resend it; the receiver needs IDs, timestamps, nonce/replay tracking, and business policies if duplicate execution is dangerous.
 
-### 9.2. Forward secrecy và lộ private key sau này
+### 9.2. Forward Secrecy and Future Private-Key Compromise
 
-Trong mô hình **RSA-OAEP wrap CEK** lưu kèm ciphertext, nếu một ngày RSA private key của B bị lộ, attacker đã thu thập được các wrappedCEK trước đó có thể unwrap CEK rồi giải mã các ciphertext lịch sử. Đây **không phải** một mô hình mặc nhiên có perfect forward secrecy.
+In the **RSA-OAEP wrapping CEK** model stored alongside ciphertext, if B's RSA private key is compromised one day, an attacker who captured earlier `wrappedCEK` values can unwrap those CEKs and decrypt historical ciphertexts. This model does **not** inherently provide perfect forward secrecy.
 
-Nếu hệ thống cần bảo vệ quá khứ trước việc lộ long-term key, cần một thiết kế **ephemeral key agreement/authenticated KEM** hoặc giao thức có forward secrecy được chứng minh và quản lý vòng đời khóa phù hợp. Không gắn nhãn “PFS” cho RSA-OAEP hybrid chỉ vì CEK ngẫu nhiên mỗi file.
+If a system must protect past data against long-term key compromise, use an **ephemeral key agreement / authenticated KEM** design or a protocol with proven forward secrecy and proper key lifecycle management. Never label RSA-OAEP hybrid as "PFS" just because each file uses a random CEK.
 
-### 9.3. Chống thay thế public key là một yêu cầu riêng
+### 9.3. Preventing Public-Key Substitution Is a Separate Requirement
 
-Một attacker làm giả kho public key có thể thay key B bằng key của attacker trước lúc sender encrypt. Khi đó ciphertext được mã hóa đúng bằng một key RSA, AES-GCM vẫn hợp lệ, nhưng attacker chính là người có thể unwrap. Không có phương trình OAEP nào tự kiểm tra tên B. Key authenticity phải đến từ PKI hoặc cơ chế tin cậy ngoài RSA encryption.
+An attacker who compromises a public-key store can replace B's key with the attacker's key before the sender encrypts. The ciphertext will encrypt cleanly under an RSA key and AES-GCM will validate, yet the attacker will be the one able to unwrap it. No OAEP equation verifies B's name. Key authenticity must come from PKI or a trust mechanism external to RSA encryption.
 
-### 9.4. RSA-OAEP decryption cần xử lý lỗi kín
+### 9.4. RSA-OAEP Decryption Requires Quiet Error Handling
 
-Không thiết kế endpoint cho phép người lạ gửi vô hạn wrappedKey rồi quan sát những lỗi quá chi tiết, thời gian phản hồi hoặc việc server có tiếp tục tới AES-GCM hay không. Chỉ dùng provider crypto đã có các biện pháp thích hợp, giới hạn request và thống nhất mức thông tin lỗi trong API public.
+Never expose an endpoint allowing strangers to submit unlimited `wrappedKey` values and observe granular errors, timing differences, or whether the server proceeded to AES-GCM. Use crypto providers with proper mitigations, enforce rate limits, and unify public API error responses.
 
-Không tự viết RSA raw modular exponentiation để “debug padding” trên input không tin cậy; không chuyển qua `RSA/ECB/PKCS1Padding` khi OAEP thất bại. Các kiểu oracle kiểu Bleichenbacher/padding oracle là lý do phải nghiêm túc với việc dùng API và giao thức phù hợp.
+Never write raw RSA modular exponentiation to "debug padding" on untrusted input; never fall back to `RSA/ECB/PKCS1Padding` when OAEP fails. Bleichenbacher-style / padding-oracle attacks are precisely why strict APIs and protocols must be respected.
 
-## 10. Các lỗi phổ biến và cách sửa
+## 10. Common Mistakes and Fixes
 
-| Ngộ nhận/thiết kế | Tại sao sai | Hướng đúng |
+| Misconception / design | Why it is wrong | Right direction |
 | --- | --- | --- |
-| “RSA-2048 mã hóa trực tiếp 256 byte plaintext” | 256 là ciphertext/modulus byte count; OAEP SHA-256 còn overhead | Dùng `max = k - 2hLen - 2`, ví dụ 190 byte |
-| “String có 190 ký tự là dưới giới hạn” | OAEP nhận UTF-8 bytes, không phải Java UTF-16 length | Tính `getBytes(UTF_8).length` |
-| “Chia file thành nhiều RSA blocks rồi ghép” | Chậm, phình kích thước, không bảo vệ framing/integrity file đúng cách | RSA-OAEP wrap CEK, AES-GCM encrypt bulk |
-| “Dùng raw RSA/no padding cho nhanh” | Không phải encryption scheme an toàn | RSAES-OAEP qua thư viện chuẩn |
-| “Hai bên cùng nói SHA-256 OAEP là đủ” | MGF1 digest/label có thể khác | Ghi rõ `OAEPParameterSpec`, test interop |
-| “OAEP label là IV ngẫu nhiên” | Label là context công khai; IV/nonce của AEAD là tham số khác | Giữ đúng label byte và nonce riêng |
-| “Dùng RSA OAEP encryption để chứng minh A gửi” | Bất cứ ai có public key B đều encrypt được | Dùng chữ ký/identity binding riêng |
-| “AES-GCM không cần tag nếu plaintext trông đúng” | Mất kiểm tra toàn vẹn, dễ chấp nhận bản rõ bị sửa | Kiểm tra tag bắt buộc, fail closed |
-| “Có GCM tag nên mọi envelope metadata đều an toàn” | Chỉ dữ liệu được bind vào AAD/ciphertext mới được kiểm tra | Canonicalize/bind các field có ý nghĩa |
-| “AES-GCM có thể lặp nonce miễn plaintext khác” | Reuse cùng key/nonce là lỗi nghiêm trọng | Enforce nonce uniqueness dưới cùng key |
-| “Mã hóa file bằng public key bất kỳ là đủ” | Attacker tráo public key → decrypt được | Xác thực key thuộc người nhận |
-| “Tạo key pair mỗi lần chạy vẫn mở được file cũ” | Mất private key → không unwrap được CEK | Persist bảo vệ và backup/rotation theo policy |
-| “Sai OAEP thì thử PKCS1 v1.5 fallback” | Làm yếu chính sách, có thể tạo oracle | Từ chối rõ theo version, không downgrade |
-| “Random CEK nghĩa là có forward secrecy” | Long-term RSA private key bị lộ có thể unwrap quá khứ | Chọn protocol ephemeral phù hợp nếu cần PFS |
-| “WrappedCEK là bí mật không được lưu” | Wrapped key là RSA ciphertext cần lưu/truyền | Lưu wrappedCEK, không lưu CEK thuần |
-| “GCMParameterSpec(128) nghĩa là AES-128” | 128 là tag bit length; key length do CEK | Dùng CEK 32 byte cho AES-256 |
-| “RSA có thể streaming trực tiếp dữ liệu lớn” | Một OAEP operation chỉ chứa payload rất nhỏ | Streaming/AEAD format chuẩn cho file |
-| “Mã hóa lai là RSA-KEM bất kể scheme nào” | OAEP key transport khác RSA-KEM | Gọi đúng scheme, không trộn byte format |
+| "RSA-2048 directly encrypts 256 bytes of plaintext" | 256 is the ciphertext/modulus byte count; OAEP SHA-256 adds overhead | Use `max = k - 2hLen - 2`, e.g., 190 bytes |
+| "A 190-character string is under the limit" | OAEP takes UTF-8 bytes, not Java UTF-16 length | Compute `getBytes(UTF_8).length` |
+| "Split file into RSA blocks and concatenate" | Slow, bloated, lacks proper whole-file framing/integrity | RSA-OAEP wraps CEK, AES-GCM encrypts bulk data |
+| "Use raw RSA/no padding for speed" | Not a secure encryption scheme | RSAES-OAEP via standard library |
+| "Both sides saying SHA-256 OAEP is enough" | MGF1 digest/label may still differ | Specify `OAEPParameterSpec` explicitly, test interop |
+| "OAEP label is a random IV" | Label is public context; AEAD IV/nonce is a separate parameter | Keep matching label bytes and separate nonce |
+| "Use RSA OAEP encryption to prove A sent it" | Anyone with B's public key can encrypt | Use separate signatures/identity binding |
+| "AES-GCM needs no tag if plaintext looks right" | Loses integrity check, risks accepting tampered plaintext | Enforce tag verification, fail closed |
+| "With a GCM tag, all envelope metadata is safe" | Only data bound into AAD/ciphertext is authenticated | Canonicalize/bind meaningful fields |
+| "AES-GCM can repeat nonces as long as plaintext differs" | Reusing key/nonce is a catastrophic flaw | Enforce nonce uniqueness under the same key |
+| "Encrypting a file with any public key suffices" | Attacker swaps public key → attacker decrypts | Authenticate key belongs to recipient |
+| "Generating a key pair each run still opens old files" | Lost private key → cannot unwrap CEK | Persist securely and manage backup/rotation per policy |
+| "If OAEP fails, fall back to PKCS1 v1.5" | Weakens policy, risks creating an oracle | Reject strictly per version, never downgrade |
+| "Random CEK means forward secrecy" | Compromised long-term RSA private key unwraps past keys | Pick an ephemeral protocol if PFS is required |
+| "WrappedCEK is a secret that cannot be stored" | Wrapped key is RSA ciphertext meant to be stored/transmitted | Store `wrappedCEK`, never store raw CEK |
+| "`GCMParameterSpec(128)` means AES-128" | 128 is tag bit length; key length comes from CEK | Use 32-byte CEK for AES-256 |
+| "RSA can directly stream large data" | One OAEP operation holds only a tiny payload | Standard AEAD streaming/format for files |
+| "Hybrid encryption is RSA-KEM regardless of scheme" | OAEP key transport differs from RSA-KEM | Name exact scheme; never mix byte formats |
 
-## 11. Các tình huống thực hành để phân loại
+## 11. Practice Scenarios to Classify
 
-**Tình huống A — API payload 8 KiB cần lưu bí mật cho một người nhận.** RSA-2048 OAEP SHA-256 giới hạn 190 byte, nên không encrypt payload trực tiếp. Hãy tạo CEK AES ngẫu nhiên, mã hóa JSON bằng AES-GCM và wrap CEK bằng RSA-OAEP. Bảo vệ AAD của context, xác thực recipient public key.
+**Scenario A — An 8 KiB API payload must be stored confidentially for one recipient.** RSA-2048 OAEP SHA-256 is limited to 190 bytes, so do not encrypt the payload directly. Generate a random AES CEK, encrypt the JSON with AES-GCM, and wrap the CEK with RSA-OAEP. Protect context in AAD and authenticate the recipient public key.
 
-**Tình huống B — Client muốn gửi khóa AES-256 (32 byte) cho server.** RSA-OAEP có thể encrypt 32 byte CEK vì 32 ≤ 190. Cần đúng OAEP hash/MGF1/label, public key đã xác thực, envelope version và giải AES-GCM an toàn. Nhưng nếu mục đích là truyền API qua mạng thông thường, hãy cân nhắc **TLS được cấu hình đúng** thay vì tự xây application protocol nếu không cần encryption at rest riêng.
+**Scenario B — A client wants to send an AES-256 key (32 bytes) to a server.** RSA-OAEP can encrypt the 32-byte CEK because 32 ≤ 190. You need matching OAEP hash/MGF1/label, an authenticated public key, envelope version, and secure AES-GCM decryption. However, if the goal is ordinary API transport over a network, consider **properly configured TLS** instead of inventing an application protocol unless encryption at rest is specifically needed.
 
-**Tình huống C — Sender và recipient đều dùng RSA-OAEP SHA-256 nhưng decryption thất bại.** Hãy kiểm tra MGF1 digest, OAEP label bytes, key pair, ciphertext encoding (hex/Base64/byte length), provider restrictions và format version. Không tự động đổi về SHA-1 hoặc RSA PKCS1 v1.5 để “thử”.
+**Scenario C — Sender and recipient both use RSA-OAEP SHA-256, yet decryption fails.** Check MGF1 digest, OAEP label bytes, key pair, ciphertext encoding (hex/Base64/byte length), provider restrictions, and format version. Never switch to SHA-1 or RSA PKCS1 v1.5 just to "try it".
 
-**Tình huống D — Ciphertext GCM bị sửa một byte.** Receiver vẫn có thể unwrap CEK hợp lệ, nhưng AES-GCM tag sẽ không khớp khi decrypt, nên reject. Không dùng plaintext chưa verify; không suy ra chính xác ai đã sửa và khi nào chỉ từ tag.
+**Scenario D — One byte of the GCM ciphertext is modified.** The receiver can still unwrap a valid CEK, yet the AES-GCM tag will mismatch on decryption and reject. Never use unverified plaintext; never infer who modified it or when solely from a tag failure.
 
-**Tình huống E — Wrapped CEK bị sửa một byte.** OAEP decryption rất có thể bị từ chối; hoặc nếu nhận được một CEK không phù hợp theo giả định cực hiếm, AES-GCM tag vẫn không khớp. Không nên dựa vào lỗi OAEP chi tiết để trả thông tin về private key cho client.
+**Scenario E — One byte of the wrapped CEK is modified.** OAEP decryption will almost certainly reject; or in the vanishingly rare event an unsuitable CEK were produced, the AES-GCM tag would still mismatch. Never rely on detailed OAEP errors to return private-key information to clients.
 
-**Tình huống F — Lộ private key B sau năm năm.** Attacker đã lưu hybrid envelopes cũ có thể giải mã lại các wrappedCEK bằng key đó, nên dữ liệu lịch sử có thể bị ảnh hưởng. Các envelope chỉ dùng RSA-OAEP không tự có forward secrecy.
+**Scenario F — B's private key leaks five years later.** An attacker who saved old hybrid envelopes can decrypt the old `wrappedCEK` values with that key, exposing historical data. Envelopes using RSA-OAEP alone do not automatically provide forward secrecy.
 
-**Tình huống G — B nhận được một hybrid envelope decrypt hợp lệ, không có chữ ký.** B biết ciphertext/AAD phù hợp với CEK và định dạng, không biết chắc nguồn gửi A; mọi bên có public key B cũng có thể tạo một envelope như vậy.
+**Scenario G — B receives a validly decrypting hybrid envelope with no signature.** B knows the ciphertext/AAD matches the CEK and format, not whether A sent it; anyone possessing B's public key could build such an envelope.
 
-**Tình huống H — Một file 50 GiB, muốn mã hóa theo chunks.** Không lặp RSA-OAEP cho từng chunk; xây dựng protocol AEAD streaming đã chuẩn hóa, mỗi chunk có nonce/sequence riêng, xác thực thứ tự và điểm kết thúc, rồi wrap một hoặc nhiều CEK theo đúng cấu trúc khóa. Không lấy code demo byte[] làm giải pháp streaming hoàn chỉnh.
+**Scenario H — A 50 GiB file to encrypt in chunks.** Do not repeat RSA-OAEP per chunk; build a standardized streaming AEAD protocol where each chunk has its own nonce/sequence, authenticates order and end-of-stream, and wrap one or more CEKs per the key structure. Never treat an in-memory `byte[]` demo as a complete streaming solution.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-**1. RSA-2048, OAEP SHA-256, plaintext tối đa là bao nhiêu byte?**  
-**Đáp án:** `k=256`, `hLen=32` nên `mLen ≤ 256−64−2 = 190` byte.
+**1. With RSA-2048 and OAEP SHA-256, what is the maximum plaintext in bytes?**  
+**Answer:** `k=256`, `hLen=32`, so `mLen ≤ 256−64−2 = 190` bytes.
 
-**2. RSA-3072 với OAEP SHA-512 thì giới hạn là bao nhiêu?**  
-**Đáp án:** `k=384`, `hLen=64`, giới hạn `384−128−2 = 254` byte.
+**2. With RSA-3072 and OAEP SHA-512, what is the limit?**  
+**Answer:** `k=384`, `hLen=64`, limit `384−128−2 = 254` bytes.
 
-**3. RSA ciphertext của CEK 32 byte dưới RSA-2048 dài bao nhiêu?**  
-**Đáp án:** 256 byte; chiều dài ciphertext OAEP theo modulus, không bằng chiều dài CEK.
+**3. How long is the RSA ciphertext of a 32-byte CEK under RSA-2048?**  
+**Answer:** 256 bytes; OAEP ciphertext length equals the modulus length, not the CEK length.
 
-**4. Vì sao RSA-OAEP không được dùng để encrypt thẳng file 1 MiB?**  
-**Đáp án:** Mỗi operation OAEP chỉ chứa payload ngắn, RSA tốn CPU và không thay thế AEAD bảo vệ toàn tệp. Dùng CEK ngẫu nhiên và AES-GCM cho dữ liệu, RSA-OAEP wrap CEK.
+**4. Why must RSA-OAEP not be used to directly encrypt a 1 MiB file?**  
+**Answer:** Each OAEP operation holds only a short payload, RSA is CPU-expensive, and it does not replace whole-file AEAD authentication. Use a random CEK and AES-GCM for data, with RSA-OAEP wrapping the CEK.
 
-**5. Hai bên chọn OAEP hash SHA-256, nhưng sender MGF1-SHA-256 còn receiver MGF1-SHA-1. Có giải mã được không?**  
-**Đáp án:** Không theo cùng bộ tham số. OAEP và MGF1 digest cần trùng đúng; chỉ nói “OAEP SHA-256” có thể chưa đủ mô tả interoperable spec.
+**5. Both sides choose OAEP hash SHA-256, yet sender uses MGF1-SHA-256 and receiver uses MGF1-SHA-1. Can it decrypt?**  
+**Answer:** Not under the same parameter set. OAEP and MGF1 digests must match exactly; saying only "OAEP SHA-256" is insufficient for an interoperable spec.
 
-**6. OAEP label `L` có phải được giữ bí mật?**  
-**Đáp án:** Không; nó là context byte tùy chọn. Tuy nhiên encrypt và decrypt phải dùng cùng label và cùng encoding.
+**6. Must the OAEP label `L` be kept secret?**  
+**Answer:** No; it is optional context bytes. However, encryption and decryption must use the exact same label and encoding.
 
-**7. RSA-OAEP + AES-GCM có chứng minh A là người gửi không?**  
-**Đáp án:** Không. Người có public key B bất kỳ cũng tạo được envelope cho B. Muốn sender authentication cần ký/chứng thực nguồn hoặc protocol phù hợp.
+**7. Does RSA-OAEP + AES-GCM prove A is the sender?**  
+**Answer:** No. Anyone holding B's public key can create an envelope for B. Sender authentication requires signing/origin certification or an appropriate protocol.
 
-**8. Mất GCM nonce nhưng còn private RSA key và wrapped CEK, có giải mã được file không?**  
-**Đáp án:** Không thể khôi phục đúng bằng quy trình chuẩn nếu thiếu nonce cần cho GCM decryption; phải lưu nonce/metadata cần thiết.
+**8. If the GCM nonce is lost while the RSA private key and wrapped CEK remain, can the file be decrypted?**  
+**Answer:** Not via the standard decryption flow without the nonce required by GCM; the nonce and required metadata must be stored.
 
-**9. Nếu RSA private key bị lộ trong tương lai, dữ liệu cũ có PFS chỉ vì mỗi file dùng CEK mới không?**  
-**Đáp án:** Không. WrappedCEK cũ được encrypt bằng cùng RSA public key có thể bị unwrap bởi private key bị lộ; cần ephemeral protocol phù hợp nếu yêu cầu forward secrecy.
+**9. If the RSA private key leaks in the future, does old data have PFS merely because each file used a fresh CEK?**  
+**Answer:** No. Old `wrappedCEK` values encrypted under the same RSA public key can be unwrapped by the compromised private key; an ephemeral protocol is needed if forward secrecy is required.
 
-**10. Trong Java, tại sao `GCMParameterSpec(128, nonce)` không nói rằng AES-128 đang được dùng?**  
-**Đáp án:** `128` là độ dài tag tính bằng bit. Khóa AES được quyết định bởi số byte CEK; CEK 32 byte nghĩa là AES-256.
+**10. In Java, why doesn't `GCMParameterSpec(128, nonce)` mean AES-128 is being used?**  
+**Answer:** `128` is the tag length in bits. The AES key size is determined by the CEK byte count; a 32-byte CEK means AES-256.
 
-**11. Nếu encrypt cùng CEK với cùng GCM nonce cho hai plaintext khác nhau thì sao?**  
-**Đáp án:** Vi phạm nghiêm trọng yêu cầu nonce uniqueness của GCM và có thể làm suy yếu tính bí mật/toàn vẹn; cần thiết kế quản lý nonce đúng.
+**11. What happens if the same CEK and same GCM nonce encrypt two different plaintexts?**  
+**Answer:** It severely violates GCM's nonce-uniqueness requirement and can compromise confidentiality and integrity; design proper nonce management.
 
-**12. Có thể đổi algorithm từ OAEP sang PKCS#1 v1.5 nếu một bản tin giải mã thất bại không?**  
-**Đáp án:** Không. Hợp đồng algorithm/version phải cố định, có allowlist, chống downgrade và xử lý lỗi an toàn.
+**12. Can you fall back from OAEP to PKCS#1 v1.5 if a message fails to decrypt?**  
+**Answer:** No. Algorithm/version contracts must be fixed, allowlisted, downgrade-resistant, and fail safely.
 
-## 13. Checklist triển khai RSA-OAEP hybrid trước khi phát hành
+## 13. Pre-Release RSA-OAEP Hybrid Implementation Checklist
 
-### Bên gửi
+### Sender
 
-- [ ] Đã xác thực public key thuộc đúng recipient, kiểm tra vòng đời/thu hồi/algorithm policy.
-- [ ] Đã thống nhất RSA modulus, OAEP hash, MGF1 digest, label encoding và version.
-- [ ] Dùng `SecureRandom` tạo **CEK ngẫu nhiên 32 byte** hoặc key size theo cipher được phép.
-- [ ] Dùng AEAD phù hợp (ví dụ AES-GCM) với nonce policy an toàn, AAD đã ràng buộc context.
-- [ ] RSA-OAEP chỉ encrypt CEK/payload ngắn trong giới hạn `k - 2hLen - 2`.
-- [ ] Lưu/truyền wrappedCEK, nonce, ciphertext, tag, version, keyId và metadata cần thiết.
-- [ ] Không log CEK/private data; xóa bản sao mảng byte có thể xóa theo best effort.
-- [ ] Nếu cần biết tác giả, đã có chữ ký/identity binding bên ngoài confidentiality.
+- [ ] Verified public key belongs to the intended recipient; checked lifecycle/revocation/algorithm policy.
+- [ ] Agreed on RSA modulus, OAEP hash, MGF1 digest, label encoding, and version.
+- [ ] Used `SecureRandom` to generate a **random 32-byte CEK** or policy-approved cipher key size.
+- [ ] Used an appropriate AEAD (e.g., AES-GCM) with a safe nonce policy and context-bound AAD.
+- [ ] RSA-OAEP encrypts only CEK/short payload within `k - 2hLen - 2`.
+- [ ] Stored/transmitted wrappedCEK, nonce, ciphertext, tag, version, keyId, and required metadata.
+- [ ] Never logged CEK/private data; zeroed erasable byte array copies on a best-effort basis.
+- [ ] If authorship is required, added signatures/identity binding outside confidentiality.
 
-### Bên nhận
+### Recipient
 
-- [ ] Áp allowlist version/cipher/keyId, kích thước envelope, và không downgrade khi lỗi.
-- [ ] Lấy đúng private key đã cấp phép từ KeyStore/KMS/HSM, không nhận private key từ payload.
-- [ ] Kiểm tra đúng OAEP digest + MGF1 digest + label; xem xét opaque error responses.
-- [ ] Unwrap CEK, kiểm tra key length và data encryption algorithm đúng profile.
-- [ ] Kiểm tra nonce, AAD và authentication tag; không dùng plaintext khi tag chưa hợp lệ.
-- [ ] Kiểm tra sender/tenant/resource/authorization/replay theo yêu cầu nghiệp vụ.
-- [ ] Không trả lỗi giải mã quá chi tiết tạo oracle hoặc rò rỉ metadata nhạy cảm.
-- [ ] Có kế hoạch key rotation, backup và khả năng giải mã dữ liệu lịch sử theo quyền.
+- [ ] Enforced version/cipher/keyId allowlist, envelope size caps, and no downgrade on failure.
+- [ ] Retrieved authorized private key from KeyStore/KMS/HSM; never accepted private keys from payloads.
+- [ ] Enforced matching OAEP digest + MGF1 digest + label; considered opaque error responses.
+- [ ] Unwrapped CEK, verified key length and data encryption algorithm against profile.
+- [ ] Verified nonce, AAD, and authentication tag; never used plaintext until tag is valid.
+- [ ] Checked sender/tenant/resource/authorization/replay per business requirements.
+- [ ] Avoided granular decryption errors that create oracles or leak sensitive metadata.
+- [ ] Planned key rotation, backup, and authorized decryption of historical data.
 
-### Kiểm thử liên thông và security regression
+### Interoperability and Security Regression Testing
 
-- [ ] RSA 2048 OAEP SHA-256: encrypt CEK 32 byte thành công; thử plaintext 190 byte thành công, 191 byte bị từ chối.
-- [ ] Wrong label / wrong MGF1 digest / wrong private key / malformed wrappedKey bị từ chối.
-- [ ] Sai/cắt tag AES-GCM, thay đổi AAD/nonce/ciphertext bị từ chối.
-- [ ] Cùng plaintext encrypt hai lần có thể tạo ciphertext khác do randomness.
-- [ ] Key rotation và giải mã dữ liệu lưu trữ xử lý đúng version/keyId.
-- [ ] JSON/CBOR/binary encoding, Base64URL, byte order, nonce/tag lengths có golden vectors giữa hai bên.
-- [ ] Kiểm tra flow danh tính, quyền, key substitution và replay riêng khỏi việc cryptography “pass test”.
-- [ ] Kiểm tra giới hạn file, streaming/chunk framing, áp lực memory/CPU và side-channel/error behavior.
+- [ ] RSA 2048 OAEP SHA-256: encrypting 32-byte CEK succeeds; 190-byte plaintext succeeds, 191 bytes rejected.
+- [ ] Wrong label / wrong MGF1 digest / wrong private key / malformed wrappedKey rejected.
+- [ ] Corrupted/truncated AES-GCM tag or modified AAD/nonce/ciphertext rejected.
+- [ ] Encrypting the same plaintext twice produces different ciphertexts due to randomness.
+- [ ] Key rotation and historical decryption handle version/keyId properly.
+- [ ] JSON/CBOR/binary encoding, Base64URL, byte order, and nonce/tag lengths have golden vectors across peers.
+- [ ] Tested identity, authorization, key substitution, and replay separately from crypto "passing tests".
+- [ ] Tested file size limits, streaming/chunk framing, memory/CPU pressure, and side-channel/error behavior.
 
-## 14. Ghi nhớ bằng một sơ đồ
+## 14. Remember with One Diagram
 
 ```text
                   RSA-OAEP SHA-256 (RSA-2048)
@@ -804,14 +804,14 @@ Không tự viết RSA raw modular exponentiation để “debug padding” trê
   Neither alone proves who sent the message.
 ```
 
-**Kết luận:** RSA-OAEP có giới hạn bản rõ nhỏ và được dùng đúng nhất cho **thông điệp ngắn hoặc khóa đối xứng**, không phải để mã hóa hàng nghìn khối dữ liệu trực tiếp. Với RSA-2048/OAEP SHA-256, giới hạn là **190 byte**, đủ để wrap một CEK AES-256 dài 32 byte. Mã hóa lai kết hợp **RSA-OAEP cho khóa** và **AEAD cho dữ liệu** giải quyết tốt yêu cầu dung lượng, hiệu năng và toàn vẹn. Một thiết kế hoàn chỉnh còn phải có **định dạng, tham số OAEP, trust của public key, binding metadata, quản lý nonce và chính sách xác thực/ngăn replay** rõ ràng.
+**Conclusion:** RSA-OAEP has a small plaintext limit and is best used for **short messages or symmetric keys**, not for encrypting thousands of data blocks directly. With RSA-2048/OAEP SHA-256, the limit is **190 bytes**, plenty to wrap a 32-byte AES-256 CEK. Hybrid encryption combining **RSA-OAEP for the key** and **AEAD for the data** solves size, performance, and integrity requirements. A complete design must also clearly define **format, OAEP parameters, public-key trust, metadata binding, nonce management, and authentication/anti-replay policies**.
 
-### Tài liệu tham khảo
+### References
 
-- RFC 8017, *PKCS #1: RSA Cryptography Specifications Version 2.2* — RSAES-OAEP, công thức `mLen ≤ k−2hLen−2` và encoding: https://www.rfc-editor.org/rfc/rfc8017
-- NIST SP 800-56B Rev. 2 — các phương pháp thiết lập khóa dựa trên integer-factorization cryptography: https://csrc.nist.gov/pubs/sp/800/56/b/r2/final
-- NIST SP 800-38D — GCM/GMAC, AEAD nonce và tag: https://csrc.nist.gov/pubs/sp/800/38/d/final
-- NIST SP 800-57 Part 1 Rev. 5 — quản lý khóa và ước lượng độ mạnh khóa: https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final
+- RFC 8017, *PKCS #1: RSA Cryptography Specifications Version 2.2* — RSAES-OAEP, `mLen ≤ k−2hLen−2` formula, and encoding: https://www.rfc-editor.org/rfc/rfc8017
+- NIST SP 800-56B Rev. 2 — key establishment methods using integer-factorization cryptography: https://csrc.nist.gov/pubs/sp/800/56/b/r2/final
+- NIST SP 800-38D — GCM/GMAC, AEAD nonces and tags: https://csrc.nist.gov/pubs/sp/800/38/d/final
+- NIST SP 800-57 Part 1 Rev. 5 — key management and key strength estimation: https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final
 - Java SE 17, `OAEPParameterSpec`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/OAEPParameterSpec.html
 - Java SE 17, `MGF1ParameterSpec`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/spec/MGF1ParameterSpec.html
 - Java SE 17, `Cipher`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html

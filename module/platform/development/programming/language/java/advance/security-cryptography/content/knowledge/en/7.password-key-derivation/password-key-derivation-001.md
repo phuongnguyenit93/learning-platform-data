@@ -1,80 +1,80 @@
-# 7.1. Phân biệt lưu bộ kiểm tra mật khẩu với mã hóa dữ liệu bằng khóa từ mật khẩu
+# 7.1. Distinguishing Password Verifier Storage from Password-Based Data Encryption
 
-**Mật khẩu có thể tham gia hai bài toán bảo mật rất khác nhau:**
+**Passwords can participate in two very different security problems:**
 
-1. **Lưu bộ kiểm tra mật khẩu (password verifier):** hệ thống muốn biết người đăng nhập có đưa ra đúng mật khẩu đã đăng ký hay không. Hệ thống **không cần khôi phục mật khẩu gốc** để làm việc này.
-2. **Mã hóa dữ liệu bằng khóa dẫn xuất từ mật khẩu (password-based encryption, PBE):** hệ thống muốn bảo vệ dữ liệu sao cho người có mật khẩu thích hợp **có thể tạo lại khóa giải mã** và lấy lại plaintext.
+1. **Storing a password verifier:** the system wants to know whether the user logging in provided the right registered password. The system **does not need to recover the original password** to do this.
+2. **Encrypting data with a password-derived key (password-based encryption, PBE):** the system wants to protect data so that someone with the appropriate password **can regenerate the decryption key** and recover the plaintext.
 
-Hai bài toán thường dùng một hàm dẫn xuất khóa từ mật khẩu, salt và tham số chi phí, nhưng **giá trị đầu ra, cách lưu, vòng đời, hậu quả quên mật khẩu và cơ chế xác minh hoàn toàn khác nhau**. Trộn lẫn chúng dễ dẫn đến những lỗi nghiêm trọng: lưu mật khẩu dưới dạng có thể giải mã, dùng verifier trực tiếp làm khóa mã hóa, tái sử dụng một khóa cho nhiều mục đích, hoặc làm mất khả năng giải mã dữ liệu sau khi đổi mật khẩu.
+Both problems often use a password-based key derivation function, a salt, and cost parameters, but **their output values, storage format, lifecycle, password-loss consequences, and verification mechanisms are completely different**. Mixing them up easily leads to severe flaws: storing passwords in a decryptable form, using the verifier directly as an encryption key, reusing one key for multiple purposes, or losing the ability to decrypt data after a password change.
 
-Bài này tập trung vào **phân biệt và kết nối đúng hai mô hình**, không tự thiết kế thuật toán mật mã mới. Sau khi học, bạn có thể:
+This lesson focuses on **distinguishing and properly connecting the two models**, not on designing new cryptographic algorithms from scratch. After studying it, you will be able to:
 
-- Giải thích password verifier, password hashing, password-based key derivation, encryption key và authentication tag bằng đúng vai trò của chúng.
-- Thiết kế hồ sơ lưu verifier có salt, thuật toán, tham số chi phí và kết quả dẫn xuất; xác minh mật khẩu nhập lại mà không cần lưu plaintext.
-- Thiết kế envelope lưu dữ liệu mã hóa có KDF salt, nonce/IV, ciphertext và authentication tag; khôi phục dữ liệu bằng mật khẩu và kiểm tra toàn vẹn.
-- Phân biệt **salt của KDF**, **nonce của AEAD**, **pepper**, **master key/DEK**, và lý do chúng không thể thay thế nhau.
-- Nhận diện rủi ro tấn công đoán mật khẩu ngoại tuyến, đổi/reset mật khẩu, mất khóa, replay, format/version, và triển khai Java 17+ với API tiêu chuẩn.
+- Explain password verifiers, password hashing, password-based key derivation, encryption keys, and authentication tags according to their exact roles.
+- Design a verifier storage record with salt, algorithm, cost parameters, and derived result; verify re-entered passwords without storing plaintext.
+- Design an encrypted data storage envelope with KDF salt, nonce/IV, ciphertext, and authentication tag; recover data using the password and verify integrity.
+- Distinguish **KDF salt**, **AEAD nonce**, **pepper**, and **master key/DEK**, and explain why they cannot substitute for one another.
+- Recognize risks of offline password guessing attacks, password changes/resets, key loss, replay, format/version issues, and implement them in Java 17+ using standard APIs.
 
-## 1. Đặt đúng câu hỏi: “xác minh bí mật” hay “khôi phục dữ liệu”?
+## 1. Ask the right question: “verify a secret” or “recover data”?
 
-Hãy xét cùng một người dùng đặt mật khẩu `p`, nhưng hai hệ thống dùng nó theo hai mục đích:
+Consider the same user setting password `p`, while two systems use it for two different purposes:
 
-**Hệ thống A — đăng nhập:** ứng dụng chỉ cần trả lời *mật khẩu vừa nhập có phù hợp với tài khoản không?* Khi đăng ký, hệ thống tính một bộ kiểm tra từ mật khẩu và lưu bộ kiểm tra đó. Khi đăng nhập, nó tính lại theo cùng quy tắc và so sánh. Hệ thống không có bước “giải mã password verifier”.
+**System A — login:** the application only needs to answer *does the password just entered match the account?* On registration, the system computes a verifier from the password and stores that verifier. On login, it recomputes using the same rules and compares. The system has no “decrypt password verifier” step.
 
-**Hệ thống B — mở két dữ liệu:** người dùng có một tài liệu đã mã hóa. Muốn lấy lại nội dung, hệ thống phải tái tạo đúng khóa (hoặc khóa dùng mở khóa dữ liệu), giải mã ciphertext và **xác minh authentication tag**. Nếu quên mật khẩu và không có một phương án recovery khác, dữ liệu có thể mất khả năng truy cập vĩnh viễn.
+**System B — unlock a data vault:** the user has an encrypted document. To recover the contents, the system must recreate the exact key (or the key used to unlock the data key), decrypt the ciphertext, and **verify the authentication tag**. If the password is forgotten and no other recovery path exists, access to the data can be permanently lost.
 
-| Câu hỏi | Lưu password verifier | Mã hóa dữ liệu với khóa từ mật khẩu |
+| Question | Store password verifier | Encrypt data with password-derived key |
 | --- | --- | --- |
-| Mục tiêu | **Xác thực mật khẩu** đã đăng ký | **Giữ bí mật và khôi phục plaintext** |
-| Đầu vào nhạy cảm | Password người dùng cung cấp | Password/secret dùng để mở dữ liệu |
-| KDF/password hashing | Tạo bộ kiểm tra khó đoán offline | Dẫn xuất khóa mã hóa hoặc key-encryption key |
-| Thứ được lưu | Salt, thuật toán, tham số, verifier | Salt KDF, tham số, nonce, ciphertext, tag; có thể wrapped DEK |
-| Có lưu mật khẩu gốc? | Không | Không |
-| Có cần giải mã verifier? | Không, chỉ tính lại và so sánh | Không; phải giải mã **ciphertext** bằng khóa dẫn xuất |
-| Kết quả khi nhập đúng | Login được chấp nhận **sau các kiểm tra khác** | Plaintext được giải mã và tag hợp lệ |
-| Kết quả khi nhập sai | Verifier không khớp | Không tạo được khóa đúng; AEAD tag thường không hợp lệ |
-| Quên mật khẩu | Có thể tạo lại verifier bằng quy trình reset đã xác thực | Không thể tự khôi phục dữ liệu cũ nếu không có khóa/recovery path |
-| Lộ database | Verifier có thể bị đoán mật khẩu offline | Ciphertext có thể bị đoán password offline để thử giải mã |
-| Bảo vệ chính | Password hashing có chi phí phù hợp + chống tấn công online | KDF phù hợp + AEAD + quản lý khóa + chiến lược recovery |
-| Danh tính/quyền | Phải kết hợp account identity, rate limiting, MFA, authorization | Cần kiểm soát quyền truy cập ciphertext, đúng chủ sở hữu dữ liệu |
+| Goal | **Authenticate** the registered password | **Keep confidential and recover plaintext** |
+| Sensitive input | Password supplied by the user | Password/secret used to unlock the data |
+| KDF/password hashing | Produce a verifier resistant to offline guessing | Derive an encryption key or key-encryption key |
+| What is stored | Salt, algorithm, parameters, verifier | KDF salt, parameters, nonce, ciphertext, tag; optionally wrapped DEK |
+| Store original password? | No | No |
+| Need to decrypt verifier? | No, only recompute and compare | No; must decrypt **ciphertext** using the derived key |
+| Result when entered correctly | Login accepted **after other checks** | Plaintext is decrypted and tag is valid |
+| Result when entered incorrectly | Verifier does not match | Wrong key derived; AEAD tag is typically invalid |
+| Forgotten password | Can regenerate verifier via authenticated reset flow | Cannot automatically recover old data without a key/recovery path |
+| Database leak | Verifier can be attacked with offline password guessing | Ciphertext can be attacked with offline password guessing to attempt decryption |
+| Primary defense | Password hashing with appropriate cost + online attack defenses | Suitable KDF + AEAD + key management + recovery strategy |
+| Identity/authorization | Must combine with account identity, rate limiting, MFA, authorization | Needs access control on ciphertext and verification of the data owner |
 
-**Mật khẩu không phải sẵn một khóa AES.** Mật khẩu do người dùng nhớ thường ít entropy, có độ dài/encoding bất kỳ. Không được `new SecretKeySpec(password.getBytes(UTF_8), "AES")` rồi xem đó là thiết kế an toàn. Cần một cơ chế chuyên dụng để xử lý password, salt, tham số chi phí và mục đích sử dụng.
+**A password is not ready to use as an AES key.** Passwords remembered by humans typically have low entropy and arbitrary length/encoding. Never do `new SecretKeySpec(password.getBytes(UTF_8), "AES")` and treat it as a secure design. A dedicated mechanism is required to handle the password, salt, cost parameters, and intended purpose.
 
-## 2. Lưu bộ kiểm tra mật khẩu: Password hashing
+## 2. Storing a password verifier: Password hashing
 
-### 2.1. Luồng đăng ký và đăng nhập
+### 2.1. Registration and login flow
 
-Ký hiệu:
+Notation:
 
-- `P`: mật khẩu gốc do người dùng nhập.
-- `S_v`: salt ngẫu nhiên riêng cho một verifier.
-- `params_v`: thuật toán/phiên bản và chi phí tính toán.
-- `V = PasswordHash(P, S_v, params_v)`: bộ kiểm tra được lưu.
+- `P`: original password entered by the user.
+- `S_v`: random salt unique to a single verifier.
+- `params_v`: algorithm/version and computational cost parameters.
+- `V = PasswordHash(P, S_v, params_v)`: stored verifier.
 
 ```text
-Đăng ký / đổi mật khẩu hợp lệ              Đăng nhập
------------------------------              ----------------------------
-Password P nhập qua kênh an toàn            Password P' vừa nhập
+Registration / valid password change         Login
+------------------------------------         ----------------------------
+Password P entered over secure channel       Newly entered password P'
              |                                         |
-    Sinh salt S_v ngẫu nhiên                      Đọc record người dùng
+    Generate random salt S_v                      Read user record
              |                                  (salt, params, verifier)
  PasswordHash(P, S_v, params_v)                        |
              |                              PasswordHash(P', S_v, params_v)
              v                                         |
- Lưu: algorithm, params, salt, verifier                v
- Không lưu password P                      So sánh verifier theo API an toàn
+ Store: algorithm, params, salt, verifier              v
+ Do not store password P                    Compare verifier with safe API
                                                        |
-                                               Trùng -> qua bước xác thực mật khẩu
-                                               Sai   -> từ chối
+                                               Match    -> pass password check
+                                               Mismatch -> reject
 ```
 
-Đối với mật khẩu, nên chọn **password-hashing/KDF có chi phí điều chỉnh được**, ví dụ **Argon2id** qua thư viện được thẩm định (thường ưu tiên khi chính sách cho phép), hoặc **scrypt/bcrypt/PBKDF2** tùy yêu cầu tương thích và quy định. Argon2id có khả năng yêu cầu chi phí bộ nhớ; PBKDF2 dùng nhiều lượt tính toán và phổ biến trong môi trường yêu cầu tương thích/FIPS. Không chọn `SHA-256(password)` trực tiếp, vì nó quá nhanh để chống tấn công thử nhiều mật khẩu.
+For passwords, choose a **tunable-cost password-hashing/KDF scheme**, such as **Argon2id** via a vetted library (often preferred when policy permits), or **scrypt/bcrypt/PBKDF2** depending on compatibility and compliance requirements. Argon2id can enforce memory cost; PBKDF2 uses many computation iterations and is common in environments requiring compatibility/FIPS. Do not choose raw `SHA-256(password)`, because it is far too fast to resist password-guessing attacks.
 
-Trong Java 17, JCA/JCE có `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")`. Đây là ví dụ **tương thích với thư viện chuẩn**, không có nghĩa PBKDF2 luôn là lựa chọn tối ưu hơn Argon2id trong mọi hệ thống. Argon2id cần một implementation thư viện bảo mật phù hợp; không tự lập trình Argon2 từ đầu.
+In Java 17, JCA/JCE provides `SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")`. This is an example of **standard library compatibility**, not a claim that PBKDF2 is always preferable to Argon2id in every system. Argon2id requires a suitable security library implementation; do not implement Argon2 from scratch.
 
-### 2.2. Record password verifier chứa những gì?
+### 2.2. What does a password verifier record contain?
 
-Mẫu logic:
+Logical template:
 
 ```json
 {
@@ -88,22 +88,22 @@ Mẫu logic:
 }
 ```
 
-Các giá trị `base64-of-...` minh họa vị trí dữ liệu nhị phân, **không phải record hợp lệ dùng ngay**. Trong production, định dạng có thể là chuỗi PHC hoặc một object được version hóa tùy scheme.
+The `base64-of-...` values illustrate where binary data belongs, **not a ready-to-use valid record**. In production, the format may be a PHC string or a versioned object depending on the scheme.
 
-- **Salt:** mỗi bản ghi có salt độc lập do CSPRNG sinh, thông thường 16 byte hoặc hơn. Salt **không cần giữ bí mật**; cùng một password nhưng salt khác sẽ tạo verifier khác.
-- **Cost:** iterations/memory/time/parallelism (tùy thuật toán) được lưu để hệ thống biết cách kiểm tra và có kế hoạch nâng cấp. Cần chọn theo khuyến nghị hiện hành, benchmark trên phần cứng triển khai và kiểm soát tải DoS.
-- **Verifier:** kết quả được lưu để đối chiếu; không nên dùng nó như mật khẩu, API token, AES key hoặc bí mật phải gửi lại client.
-- **Pepper (tùy thiết kế):** bí mật cấp hệ thống được giữ riêng khỏi database, ví dụ trong vault/HSM, có thể bổ sung bảo vệ khi database chỉ bị lộ. Pepper **không thay thế** salt hoặc password hashing; phải có chính sách rotation/recovery riêng.
+- **Salt:** each record has an independent salt generated by a CSPRNG, typically 16 bytes or more. A salt **does not need to be kept secret**; the same password with different salts produces different verifiers.
+- **Cost:** iterations/memory/time/parallelism (depending on the algorithm) are stored so the system knows how to verify and plan upgrades. Choose according to current recommendations, benchmark on deployment hardware, and bound DoS load.
+- **Verifier:** the stored result used for comparison; do not use it as a password, API token, AES key, or a secret sent back to the client.
+- **Pepper (design-dependent):** a system-wide secret stored separately from the database, e.g., in a vault/HSM, which can add protection if only the database leaks. Pepper **does not replace** salt or password hashing; it requires its own rotation/recovery policy.
 
-Nếu hệ thống dùng một thư viện có định dạng password-hash chuẩn, hãy để thư viện quản lý record, verify, phiên bản và upgrade nếu phù hợp. Đừng viết parser tự chế dễ chấp nhận tham số quá lớn, giá trị malformed hoặc thuật toán yếu. Việc lưu verifier riêng cho từng user không tự kiểm soát việc ai được phép đặt lại mật khẩu.
+If the system uses a library with a standard password-hash format, let the library manage records, verification, versioning, and upgrades where appropriate. Do not write a custom parser that might accept overly large parameters, malformed values, or weak algorithms. Storing per-user verifiers does not by itself control who is authorized to reset a password.
 
-### 2.3. Vì sao verifier “một chiều” vẫn có thể bị đoán?
+### 2.3. Why can a “one-way” verifier still be guessed?
 
-Hàm password-hashing không phải phép biến đổi bất khả đảo về mặt tuyệt đối. Khi đối thủ lấy được `S_v`, `params_v` và `V`, họ có thể chọn ứng viên `P_i`, tính `PasswordHash(P_i, S_v, params_v)` rồi so sánh với `V`. Đây là **offline guessing**; mật khẩu yếu vẫn có thể bị tìm ra.
+A password-hashing function is not an unconditionally uninvertible transformation. When an adversary obtains `S_v`, `params_v`, and `V`, they can pick a candidate `P_i`, compute `PasswordHash(P_i, S_v, params_v)`, and compare with `V`. This is **offline guessing**; weak passwords can still be discovered.
 
-Năng lực bảo vệ đến từ **chi phí mỗi lần đoán**, salt riêng và độ mạnh mật khẩu thực tế, cộng với việc giảm quyền đọc dữ liệu và bảo vệ pepper khi dùng. Với tấn công **online** qua màn hình login, còn cần rate limiting, giám sát, khóa/ràng buộc phiên phù hợp, MFA và phản hồi không tiết lộ tài khoản có tồn tại hay không. KDF chậm một mình không hạn chế vô số request online.
+Protection comes from the **cost per guess**, per-record salt, and actual password strength, combined with restricting data read access and protecting any pepper used. Against **online** attacks on the login endpoint, you also need rate limiting, monitoring, proper session binding/locking, MFA, and responses that do not leak whether an account exists. A slow KDF alone does not prevent high-volume online requests.
 
-Một ví dụ rất dễ nhầm:
+A commonly misunderstood example:
 
 ```text
 Password = "123456"
@@ -111,11 +111,11 @@ Salt random 128-bit
 Verifier = PBKDF2(password, salt, cost)
 ```
 
-Salt tốt khiến record của người khác không có cùng verifier, nhưng không biến `123456` thành một mật khẩu entropy cao. Kẻ có record vẫn có thể thử `123456` trong tập đoán của họ.
+A good salt ensures other users' records do not share the same verifier, but it does not turn `123456` into a high-entropy password. Someone who has the record can still try `123456` in their guess list.
 
-### 2.4. Chức năng reset password
+### 2.4. Password reset functionality
 
-Khi người dùng quên mật khẩu đăng nhập, ứng dụng có thể dùng quy trình khôi phục tài khoản đã xác thực để **thay bộ kiểm tra**:
+When a user forgets their login password, the application can use an authenticated account recovery flow to **replace the verifier**:
 
 ```text
 User proves recovery identity
@@ -126,13 +126,13 @@ User proves recovery identity
         -> revoke sessions/tokens as policy requires
 ```
 
-Ứng dụng không cần biết lại mật khẩu cũ. Đây là lợi ích thiết kế của verifier: **chỉ cần xác minh đúng/sai**, không cần bí mật cũ để tạo record mới.
+The application does not need to know the old password again. This is the design benefit of a verifier: **it only needs to verify true/false**, without needing the old secret to create a new record.
 
-Tuy nhiên, thay verifier **không tự đổi** dữ liệu đã mã hóa bằng khóa từ mật khẩu cũ. Đây là ranh giới quan trọng tiếp theo.
+However, replacing the verifier **does not automatically re-encrypt** data encrypted with a key derived from the old password. This is the next critical boundary.
 
-## 3. Mã hóa dữ liệu: Dẫn xuất khóa từ mật khẩu rồi dùng AEAD
+## 3. Encrypting data: Derive a key from the password, then use AEAD
 
-Mô hình đơn giản hóa:
+Simplified model:
 
 \[
 K_e = KDF(P, S_e, params_e)
@@ -142,30 +142,30 @@ K_e = KDF(P, S_e, params_e)
 (C,T) = AEAD.Encrypt(K_e, nonce, plaintext, AAD)
 \]
 
-Bên giải mã phải có `P`, `S_e` và `params_e` để tái tạo đúng `K_e`, rồi đưa `C`, `T`, `nonce` và `AAD` vào AEAD decryption. **Chỉ chấp nhận plaintext sau khi tag xác thực thành công.**
+The decrypting side must have `P`, `S_e`, and `params_e` to recreate the exact `K_e`, then pass `C`, `T`, `nonce`, and `AAD` into AEAD decryption. **Accept the plaintext only after tag verification succeeds.**
 
 ```text
-MÃ HÓA DỮ LIỆU                                    GIẢI MÃ DỮ LIỆU
-----------------                                    ----------------
+DATA ENCRYPTION                                     DATA DECRYPTION
+---------------                                     ---------------
 Password P                                          Password P'
-   +-- KDF salt S_e / params_e                         +-- Đọc S_e / params_e
+   +-- KDF salt S_e / params_e                         +-- Read S_e / params_e
    |                                                       |
    +----> KDF --------> Encryption key K_e                 +----> KDF ---> K'_e
                              |                                             |
 Plaintext -----> AES-GCM(K_e, fresh nonce, AAD)     Ciphertext+tag --> AES-GCM decrypt
                              |                                             |
-         Lưu envelope (salt, params, nonce,          Auth tag đúng và metadata đúng?
+         Store envelope (salt, params, nonce,          Auth tag valid and metadata valid?
          ciphertext, tag, version...)                    /              \
-                                                       Đúng             Sai
+                                                       Valid           Invalid
                                                         |                |
                                                     Plaintext           Reject
 ```
 
-Nên dùng một AEAD chuẩn như **AES-GCM** hoặc ChaCha20-Poly1305 theo thư viện và chính sách triển khai. AES-GCM cung cấp bí mật cho plaintext và kiểm tra tính toàn vẹn của ciphertext/AAD qua tag. Nếu giải mã trả `AEADBadTagException`, có thể do mật khẩu/khóa sai, nonce/AAD sai hoặc ciphertext/tag bị sửa: ứng dụng thường **không thể kết luận chắc chắn riêng nguyên nhân nào** chỉ từ exception đó.
+Use a standard AEAD such as **AES-GCM** or ChaCha20-Poly1305 depending on library and deployment policy. AES-GCM provides confidentiality for plaintext and integrity checks for ciphertext/AAD via the tag. If decryption throws `AEADBadTagException`, it could be due to a wrong password/key, wrong nonce/AAD, or modified ciphertext/tag: the application usually **cannot reliably conclude which specific cause occurred** from that exception alone.
 
-### 3.1. Những gì phải lưu để có thể mở lại ciphertext
+### 3.1. What must be stored so ciphertext can be reopened
 
-Một envelope minh họa (mang tính mô tả schema, không phải chuẩn wire chính thức):
+An illustrative envelope (schema illustration, not an official wire standard):
 
 ```json
 {
@@ -184,42 +184,42 @@ Một envelope minh họa (mang tính mô tả schema, không phải chuẩn wir
 }
 ```
 
-Trong Java `Cipher.doFinal` với AES-GCM thường trả ciphertext kèm tag trong cùng mảng; định dạng trao đổi phải **quy định cụ thể** tag đặt ở đâu, độ dài bao nhiêu và encoding nào. Không được tùy tiện cắt/bỏ tag.
+In Java, `Cipher.doFinal` with AES-GCM typically returns ciphertext with the tag appended in the same byte array; the interchange format must **explicitly specify** where the tag goes, its length, and its encoding. Do not arbitrarily truncate or drop the tag.
 
-Thông tin như thuật toán, salt, tham số và nonce **không nhất thiết bí mật**. Tính an toàn dựa vào password có đủ entropy, KDF không dễ đoán quá nhanh, khóa đúng và xác thực dữ liệu đúng. **Bắt buộc giữ metadata cần để giải mã**: mất salt/nonce/format có thể khiến không thể mở lại ciphertext dù vẫn nhớ đúng password.
+Information such as algorithm, salt, parameters, and nonce **does not necessarily have to be secret**. Security relies on a password with sufficient entropy, a KDF that is not too fast to guess, the correct key, and proper data authentication. **You must preserve all metadata needed for decryption**: losing the salt/nonce/format can make it impossible to reopen the ciphertext even with the right password.
 
-Một envelope do nguồn không tin cậy cung cấp không được tự động điều khiển thuật toán hoặc chi phí tính toán không giới hạn. Reader phải dùng allowlist phiên bản/thuật toán, kiểm tra kích thước/trường bắt buộc, giới hạn iteration và payload, và ràng buộc metadata an ninh trong AAD/format được xác thực khi phù hợp.
+An envelope supplied by an untrusted source must not automatically dictate arbitrary algorithms or unbounded computation costs. The reader must enforce a version/algorithm allowlist, validate required fields and sizes, cap iterations and payload sizes, and bind security metadata into authenticated AAD/format where appropriate.
 
-### 3.2. Salt của KDF không phải nonce của AES-GCM
+### 3.2. KDF salt is not the AES-GCM nonce
 
-| Giá trị | Dùng tại đâu? | Yêu cầu then chốt | Có thể công khai? |
+| Value | Where is it used? | Key requirement | Can it be public? |
 | --- | --- | --- | --- |
-| `S_v` — salt verifier | Password hashing để lưu bộ kiểm tra | Ngẫu nhiên, riêng cho verifier | Có |
-| `S_e` — salt encryption KDF | Dẫn xuất khóa từ password cho dữ liệu | Tách biệt mục đích; lưu để dẫn xuất lại | Có |
-| `nonce/IV` của GCM | Một lần mã hóa bằng khóa AEAD | **Không được dùng lại cùng (khóa, nonce)** | Có |
-| `AAD` | AEAD trước khi mã hóa/giải mã | Cùng byte/ngữ cảnh ở hai phía; được kiểm tra toàn vẹn | Có |
-| `authentication tag` | AEAD xác nhận ciphertext/AAD | Kiểm tra trước khi dùng plaintext | Có |
-| `pepper` nếu có | Bảo vệ thêm credential/server policy | Bí mật, lưu riêng database | Không |
-| `K_e` — encryption key | AES-GCM hoặc key wrap | Bí mật; đúng scope, vòng đời và bảo vệ | Không |
+| `S_v` — verifier salt | Password hashing to store verifier | Random, unique per verifier | Yes |
+| `S_e` — encryption KDF salt | Deriving key from password for data | Separate purpose; stored for re-derivation | Yes |
+| `nonce/IV` of GCM | One encryption operation under an AEAD key | **Never reuse the same (key, nonce) pair** | Yes |
+| `AAD` | AEAD before encryption/decryption | Identical bytes/context on both sides; integrity-checked | Yes |
+| `authentication tag` | AEAD verification of ciphertext/AAD | Must be verified before using plaintext | Yes |
+| `pepper` if present | Additional credential/server policy defense | Secret, stored separately from database | No |
+| `K_e` — encryption key | AES-GCM or key wrap | Secret; proper scope, lifecycle, and protection | No |
 
-Salt được sinh lại khi tạo **một key derivation context mới**; nonce được sinh/cấp **cho mỗi lần mã hóa với cùng key** theo quy tắc mode. Không được lấy salt rồi dùng luôn làm nonce chỉ vì cả hai đều là byte ngẫu nhiên.
+A salt is generated when creating **a new key derivation context**; a nonce is generated/assigned **for each encryption under the same key** according to the mode's rules. Do not take a salt and reuse it directly as the nonce merely because both are random bytes.
 
-Nếu muốn mã hóa nhiều thông điệp bằng cùng password và salt (tức cùng khóa), phải quản lý **nonce duy nhất với khóa** và giới hạn số bản tin theo khuyến nghị của AEAD; hệ thống có nhiều instance cần cơ chế tránh collision. Nếu thiết kế luôn sinh salt mới cho mỗi envelope, khóa dẫn xuất thường khác; vẫn phải tạo nonce theo đúng yêu cầu của thuật toán và không được giả định salt luôn bảo đảm mọi thuộc tính của nonce.
+If you want to encrypt multiple messages with the same password and salt (i.e., the same key), you must manage a **unique nonce per key** and stay within AEAD message limits; multi-instance systems need a collision-avoidance mechanism. If the design always generates a fresh salt for every envelope, the derived key generally differs; you must still generate the nonce according to the algorithm's requirements and never assume salt guarantees all nonce properties.
 
-### 3.3. “Có mật khẩu là giải mã được” chỉ đúng trong phạm vi nào?
+### 3.3. Within what scope is “having the password lets you decrypt” true?
 
-Phải phân biệt **access control** với **cryptographic confidentiality**:
+Distinguish **access control** from **cryptographic confidentiality**:
 
-- Nếu server tự nắm khóa giải mã dữ liệu (KMS/DEK) và chỉ dùng password verifier để cấp quyền truy cập, **server vẫn có thể giải mã mà không cần password người dùng** theo chính sách.
-- Nếu dữ liệu thực sự được mã hóa bằng khóa chỉ người dùng có thể tái tạo, thì server muốn giải mã cần password hoặc một khóa/recovery path có quyền tương đương.
-- Nếu ứng dụng gửi password qua backend để derive key, backend có thể nhìn thấy password tại thời điểm xử lý. Không tuyên bố “zero knowledge” chỉ vì mật khẩu không được lưu vào database.
-- Nếu chọn client-side encryption, cần xem xét nơi password đi qua, thiết bị nào giữ key, cách chia sẻ và phục hồi, cách lưu dữ liệu ở server.
+- If the server holds the data decryption key itself (KMS/DEK) and only uses the password verifier to grant access, **the server can still decrypt without the user's password** according to policy.
+- If data is genuinely encrypted under a key only the user can recreate, then for the server to decrypt it needs the password or an equivalent-privilege key/recovery path.
+- If the application sends the password to the backend to derive the key, the backend can see the password during processing. Do not claim “zero knowledge” merely because the password is not saved in the database.
+- If choosing client-side encryption, evaluate where the password travels, which devices hold keys, how sharing and recovery work, and how data is stored on the server.
 
-Không có một mô hình mặc định nào vừa cho phép server đọc mọi dữ liệu vừa bảo đảm server không bao giờ có quyền giải mã. Cần ghi rõ **ai được tin cậy để sở hữu plaintext/key** trong threat model.
+There is no default model that simultaneously lets the server read all data and guarantees the server can never decrypt it. Document clearly **who is trusted to possess plaintext/keys** in the threat model.
 
-## 4. Vì sao không dùng cùng verifier làm khóa mã hóa?
+## 4. Why not use the verifier itself as the encryption key?
 
-Một thiết kế sai phổ biến:
+A common flawed design:
 
 ```text
 storedVerifier = PBKDF2(password, salt, cost)
@@ -227,13 +227,13 @@ encryptionKey  = storedVerifier
 ciphertext     = AES-GCM(encryptionKey, data)
 ```
 
-Nếu attacker đọc được database chứa `storedVerifier`, họ đã có **chính khóa mã hóa**, không cần biết password. Mục đích password verifier bị đảo ngược: bộ kiểm tra mật khẩu vốn phải có thể lưu để kiểm tra, không được đồng thời trở thành bí mật mở dữ liệu.
+If an attacker reads the database containing `storedVerifier`, they already hold **the encryption key itself** without needing to know the password. The purpose of a password verifier is inverted: a verifier is meant to be stored for checking, and must never simultaneously be the secret that unlocks data.
 
-Một thiết kế sai khác là lấy `SHA-256(password)` làm verifier và AES key, rồi dùng cùng khóa cho HMAC, cookie signing và mã hóa. Việc tái sử dụng làm tăng phạm vi thiệt hại khi một giá trị bị lộ, gây nhầm vai trò khóa và khó xoay/thu hồi.
+Another flawed design takes `SHA-256(password)` as both the verifier and AES key, then reuses that same key for HMAC, cookie signing, and encryption. Such reuse expands the blast radius when one value leaks, blurs key roles, and makes rotation/revocation difficult.
 
-**Nguyên tắc:** tách **credential-verification material** khỏi **encryption key material**. Hai mục đích có thể cùng xuất phát từ một password nếu threat model cho phép, nhưng phải dùng **salt, tham số và ngữ cảnh dẫn xuất độc lập**, không bao giờ tái sử dụng giá trị verifier có thể đọc được làm key.
+**Principle:** separate **credential-verification material** from **encryption key material**. Both purposes may originate from the same password if the threat model permits, but they must use **independent salts, parameters, and derivation contexts**, and never reuse a readable verifier value as a key.
 
-Một cách trình bày:
+One way to visualize this:
 
 ```text
                          Password P
@@ -250,15 +250,15 @@ Một cách trình bày:
           Compare at login          AES-GCM / wrap DEK
 ```
 
-Nhiều hệ thống còn không nên dùng password đăng nhập làm password mã hóa dữ liệu. Có thể sử dụng một khóa dữ liệu ngẫu nhiên được quản lý độc lập (KMS/HSM), hoặc một passphrase riêng cho encryption, tùy mục tiêu an ninh và usability.
+Many systems should not even use the login password as the data encryption password. They can use an independently managed random data key (KMS/HSM), or a separate passphrase for encryption, depending on security and usability goals.
 
-## 5. Mô hình tốt hơn cho dữ liệu dài hạn: DEK và KEK
+## 5. A better model for long-lived data: DEK and KEK
 
-Để tránh mã hóa lại toàn bộ dữ liệu khi thay password, thường dùng **envelope encryption**:
+To avoid re-encrypting all data when changing a password, systems commonly use **envelope encryption**:
 
-- **DEK (Data Encryption Key):** khóa ngẫu nhiên đủ mạnh, sinh độc lập với password; dùng AEAD mã hóa dữ liệu.
-- **KEK (Key Encryption Key):** khóa dẫn xuất từ password bằng password KDF, hoặc do hệ thống KMS cấp; dùng **wrap/mã hóa DEK** bằng một cơ chế xác thực.
-- **Wrapped DEK:** DEK đã được mã hóa bảo vệ bằng KEK; lưu cùng metadata cho phép unwrap an toàn.
+- **DEK (Data Encryption Key):** a sufficiently strong random key generated independently of the password; used with AEAD to encrypt data.
+- **KEK (Key Encryption Key):** a key derived from the password via a password KDF, or issued by a KMS; used to **wrap/encrypt the DEK** via an authenticated mechanism.
+- **Wrapped DEK:** the DEK encrypted under the KEK; stored alongside metadata enabling safe unwrapping.
 
 ```text
 Random DEK ────────────────> AEAD encrypt data ──> ciphertext + data nonce/tag
@@ -271,34 +271,34 @@ Open data:
 password -> KDF -> KEK -> verify/unwrap DEK -> verify/decrypt ciphertext
 ```
 
-Khi người dùng **biết cả password cũ và password mới**, ứng dụng có thể dùng password cũ unwrap DEK, sinh KEK mới từ password mới với salt mới, rồi **rewrap đúng DEK**. Ciphertext dữ liệu lớn có thể giữ nguyên nếu DEK không đổi. Cần bảo đảm thao tác update nguyên tử, metadata/version nhất quán và key không bị lộ.
+When the user **knows both the old password and the new password**, the application can use the old password to unwrap the DEK, derive a new KEK from the new password with a fresh salt, and **rewrap the same DEK**. Large data ciphertexts can remain untouched if the DEK does not change. Ensure atomic updates, consistent metadata/versions, and no key leakage.
 
-Điểm này không có nghĩa password reset không biết mật khẩu cũ cũng làm được như vậy. Nếu **không còn password cũ hoặc recovery key**, không thể tạo lại KEK cũ để unwrap DEK chỉ từ verifier và ciphertext.
+This does not mean a password reset without the old password can do the same. Without **the old password or a recovery key**, you cannot recreate the old KEK to unwrap the DEK solely from the verifier and ciphertext.
 
-### 5.1. Đổi mật khẩu và reset mật khẩu không giống nhau
+### 5.1. Password change and password reset are not the same
 
-| Sự kiện | Verifier đăng nhập | Dữ liệu trực tiếp mã hóa từ password | Dữ liệu qua DEK/KEK |
+| Event | Login verifier | Data encrypted directly from password | Data via DEK/KEK |
 | --- | --- | --- | --- |
-| Đổi mật khẩu, biết password cũ | Tạo verifier mới | Phải giải mã bằng khóa cũ rồi mã hóa lại bằng khóa mới | Unwrap DEK bằng KEK cũ, rewrap bằng KEK mới |
-| Quên password cũ, chỉ có quyền reset account | Có thể thay verifier sau quy trình recovery | **Không thể tự giải mã dữ liệu cũ** nếu không có recovery | Không unwrap được DEK nếu không có recovery path |
-| Có recovery key được cấp trước | Reset verifier theo chính sách | Có thể giải mã nếu recovery key thực sự có đường mở dữ liệu | Có thể unwrap/rewrap DEK bằng recovery key/wrapped copy |
-| Server giữ DEK trong KMS | Reset verifier độc lập | Phụ thuộc kiến trúc | Server có thể rewrap theo quyền KMS, nhưng không còn mô hình chỉ người dùng biết key |
+| Password change, old password known | Generate new verifier | Must decrypt with old key, then re-encrypt with new key | Unwrap DEK with old KEK, rewrap with new KEK |
+| Forgot old password, only account reset privilege | Can replace verifier after recovery flow | **Cannot automatically decrypt old data** without recovery | Cannot unwrap DEK without a recovery path |
+| Pre-issued recovery key available | Reset verifier per policy | Can decrypt if recovery key actually has a path to unlock data | Can unwrap/rewrap DEK via recovery key/wrapped copy |
+| Server holds DEK in KMS | Reset verifier independently | Architecture-dependent | Server can rewrap under KMS permissions, no longer user-only key model |
 
-**Reset account thành công không đồng nghĩa với khôi phục được dữ liệu mã hóa**. UX của sản phẩm cần thông báo rõ trước khi người dùng dựa vào password-only encryption. Nếu có recovery key, escrow, hoặc tổ chức có quyền khôi phục, phải nói rõ ai nắm quyền tương đương giải mã.
+**A successful account reset does not mean encrypted data is recoverable.** Product UX must inform users clearly before they rely on password-only encryption. If a recovery key, escrow, or organizational recovery privilege exists, explicitly state who holds decryption-equivalent authority.
 
-## 6. Java 17+: thực hiện cả hai luồng một cách tách biệt
+## 6. Java 17+: implementing both flows separately
 
-Ví dụ sau sử dụng đúng **các API có sẵn trong Java 17+**:
+The following example uses **standard APIs built into Java 17+**:
 
-- `SecretKeyFactory` + `PBEKeySpec` với `PBKDF2WithHmacSHA256` làm KDF có salt và chi phí.
-- `SecureRandom` để tạo salt và nonce.
-- `MessageDigest.isEqual` để so sánh verifier đã dẫn xuất.
-- `Cipher` `AES/GCM/NoPadding` để mã hóa xác thực và kiểm tra tag trước khi lấy plaintext.
-- **Hai salt độc lập:** một cho password verifier, một cho khóa mã hóa.
+- `SecretKeyFactory` + `PBEKeySpec` with `PBKDF2WithHmacSHA256` as a salted, cost-tunable KDF.
+- `SecureRandom` to generate salts and nonces.
+- `MessageDigest.isEqual` to compare the derived verifier.
+- `Cipher` `AES/GCM/NoPadding` for authenticated encryption and tag verification before returning plaintext.
+- **Two independent salts:** one for the password verifier, one for the encryption key.
 
-Đây là bản minh họa **PBKDF2 dùng để quan sát hai mục đích**. Với hệ thống thiết kế mới, hãy đánh giá Argon2id qua thư viện được kiểm toán và quy định hiện hành; không suy ra con số iteration trong demo là tham số an toàn vĩnh viễn. Mật khẩu trong code là dữ liệu demo công khai, **không phải secret để tái sử dụng**.
+This is a demonstration of **PBKDF2 illustrating both purposes**. For new system designs, evaluate Argon2id via an audited library and current regulations; do not assume the iteration count in this demo is permanently secure. Passwords in the code are public demo data, **not secrets to reuse**.
 
-Tệp `PasswordVerifierVsEncryptionDemo.java`:
+File `PasswordVerifierVsEncryptionDemo.java`:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -377,7 +377,7 @@ public class PasswordVerifierVsEncryptionDemo {
         char[] password = "example demo password".toCharArray();
         char[] incorrect = "incorrect".toCharArray();
 
-        // Mục đích A: lưu verifier; không cần giải mã mật khẩu.
+        // Purpose A: store verifier; no password decryption needed.
         byte[] verifierSalt = randomBytes(16);
         byte[] storedVerifier = derive(password, verifierSalt);
         System.out.println("Correct login: "
@@ -385,8 +385,8 @@ public class PasswordVerifierVsEncryptionDemo {
         System.out.println("Wrong login: "
                 + verify(incorrect, verifierSalt, storedVerifier));
 
-        // Mục đích B: mã hóa rồi khôi phục plaintext với password.
-        // Salt này độc lập với verifierSalt.
+        // Purpose B: encrypt and recover plaintext with the password.
+        // This salt is independent of verifierSalt.
         byte[] fileSalt = randomBytes(16);
         byte[] nonce = randomBytes(12);
         byte[] ciphertext = encrypt(password, fileSalt, nonce,
@@ -420,14 +420,14 @@ public class PasswordVerifierVsEncryptionDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac PasswordVerifierVsEncryptionDemo.java
 java PasswordVerifierVsEncryptionDemo
 ```
 
-**Stdout** (các salt, nonce và ciphertext được sinh ngẫu nhiên nhưng không in ra, nên các dòng kết quả vẫn như nhau):
+**Stdout** (salts, nonces, and ciphertexts are randomly generated and not printed, so the output lines remain the same):
 
 ```text
 Correct login: true
@@ -437,9 +437,9 @@ Wrong decryption password rejected: true
 Tampering rejected: true
 ```
 
-### 6.1. Giải thích chi tiết từng phần
+### 6.1. Detailed explanation of each part
 
-**Phần verifier:**
+**Verifier part:**
 
 ```java
 byte[] verifierSalt = randomBytes(16);
@@ -447,9 +447,9 @@ byte[] storedVerifier = derive(password, verifierSalt);
 boolean ok = verify(password, verifierSalt, storedVerifier);
 ```
 
-`storedVerifier` là giá trị **dùng để so sánh khi xác thực**. Nếu lưu vào database, phải lưu kèm `verifierSalt`, `ITERATIONS` và id KDF. Dữ liệu cần giữ bí mật trong quá trình xử lý là password; record verifier/salt không được xem là tài liệu cho phép giải mã, nhưng vẫn là dữ liệu bảo mật nhạy cảm vì có thể hỗ trợ tấn công offline.
+`storedVerifier` is the value **used for comparison during authentication**. When saved to a database, it must be stored alongside `verifierSalt`, `ITERATIONS`, and the KDF id. The data that must be kept secret during processing is the password; the verifier/salt record must not be treated as material enabling decryption, though it remains sensitive security data because it can aid offline attacks.
 
-**Phần encryption:**
+**Encryption part:**
 
 ```java
 byte[] fileSalt = randomBytes(16);
@@ -458,23 +458,23 @@ byte[] ciphertext = encrypt(password, fileSalt, nonce, plaintext);
 byte[] restored = decrypt(password, fileSalt, nonce, ciphertext);
 ```
 
-Trong thực tế phải lưu ít nhất `fileSalt`, nonce, ciphertext kèm tag, profile version/KDF params và ngữ cảnh AAD cần thiết. Demo dùng AAD cố định `private-note:v1` để ràng buộc **kiểu dữ liệu/phiên bản**; khi thiết kế đa người dùng/tệp, nên ràng buộc cả id/tenant/resource với AAD theo schema rõ ràng và kiểm tra quyền tương ứng.
+In practice, you must store at least `fileSalt`, nonce, ciphertext with tag, profile version/KDF params, and any necessary AAD context. The demo uses a fixed AAD `private-note:v1` to bind **data type/version**; in multi-user/multi-file designs, bind id/tenant/resource into AAD under a clear schema and enforce corresponding authorization checks.
 
-**Tại sao cùng password có thể cho ra hai giá trị KDF khác nhau?** `verifierSalt` và `fileSalt` được tạo độc lập. Ngay cả khi tình cờ cùng password, dữ liệu đầu vào KDF khác nên thường tạo kết quả khác. Trong thiết kế nâng cao nên có **domain separation** rành mạch cho verifier và encryption, chứ không chỉ trông chờ các call site dùng nhầm hay không. Với password hashing và password-based encryption, cũng có thể dùng các thuật toán/profile khác nhau.
+**Why can the same password yield two different KDF outputs?** `verifierSalt` and `fileSalt` are generated independently. Even when using the same password, differing KDF inputs generally produce different outputs. In advanced designs, enforce explicit **domain separation** between verifier and encryption rather than relying only on call sites not mixing them up. For password hashing and password-based encryption, you can also use different algorithms/profiles.
 
-**Xử lý sai password và dữ liệu bị sửa:** AEAD khi kiểm tra tag không khớp sẽ từ chối. Hệ thống không nên đưa plaintext được trả từ hoạt động chưa xác thực vào nghiệp vụ. Ngoài sai password, nguyên nhân tag sai còn có thể do dữ liệu, metadata, nonce hay AAD bị thay đổi. Không dùng ngoại lệ để tiết lộ cho client rằng phần nào của ciphertext đã bị chỉnh sửa.
+**Handling wrong passwords and modified data:** AEAD rejects when tag verification fails. The system must never pass plaintext from an unauthenticated operation into business logic. Besides a wrong password, tag failure can also result from modified data, metadata, nonce, or AAD. Do not use exceptions to leak to clients which specific part of the ciphertext was altered.
 
-### 6.2. Những giới hạn cố ý của demo
+### 6.2. Intentional limitations of the demo
 
-- Mật khẩu được viết trực tiếp trong source chỉ nhằm chạy lại bài; ứng dụng thật cần nhận qua kênh an toàn, không log và không hardcode.
-- `PBKDF2WithHmacSHA256` với 600.000 lượt là **giá trị minh họa**, chưa thay thế benchmark/kế hoạch tham số hiện hành theo môi trường và chính sách. Thời gian chạy phụ thuộc CPU, quy mô dịch vụ và giới hạn DoS.
-- `derive()` dùng một profile cố định, không serialize metadata. Sản phẩm thật phải lưu/version hóa thuật toán, cost, salt, nonce, AAD policy và ciphertext; áp kiểm tra input size và giới hạn cost khi đọc file từ bên ngoài.
-- Mỗi lần mã hóa của demo sinh salt/nonce mới. Khi tái sử dụng một khóa dẫn xuất cho nhiều bản tin, phải có cơ chế cấp nonce duy nhất phù hợp với mode và quy mô lưu lượng. Việc AES-GCM nonce không được tái sử dụng với cùng khóa là yêu cầu riêng, **không được xem như được giải quyết vì có salt ở verifier**.
-- Mảng `byte[]` được cố gắng xóa sau khi dùng và `PBEKeySpec.clearPassword()` được gọi; điều này **không bảo đảm tuyệt đối** mọi bản copy bên trong JCE/JVM được xóa ngay. Tránh tạo nhiều bản sao `String` của password trong code production khi có lựa chọn phù hợp.
-- `SecretKeySpec` và `Cipher` có thể tạo bản sao key nội bộ; không coi Java heap làm vùng lưu khóa an toàn phần cứng. Với yêu cầu cao, cần xem xét KMS/HSM hoặc key service có chính sách phù hợp.
-- Demo mã hóa dữ liệu nhỏ trực tiếp bằng khóa từ password để chỉ ra cơ chế. Dữ liệu dài hạn thường nên dùng **random DEK và KEK** như phần 5 để dễ quản lý key và hỗ trợ rotation.
+- The password is written directly in source solely to make the lesson runnable; real applications must receive it over a secure channel, never log it, and never hardcode it.
+- `PBKDF2WithHmacSHA256` with 600,000 iterations is an **illustrative value**, not a substitute for benchmarking/current parameter planning under your environment and policy. Execution time depends on CPU, service scale, and DoS limits.
+- `derive()` uses a fixed profile and does not serialize metadata. Real products must store/version the algorithm, cost, salt, nonce, AAD policy, and ciphertext; enforce input size checks and cost caps when reading external files.
+- Each encryption in the demo generates a fresh salt and nonce. When reusing a derived key across multiple messages, you must have a unique nonce allocation mechanism suited to the mode and traffic scale. Never reusing an AES-GCM nonce with the same key is an independent requirement, **not solved by having a verifier salt**.
+- `byte[]` arrays are zeroed after use and `PBEKeySpec.clearPassword()` is called; this **does not absolutely guarantee** every internal copy inside JCE/JVM is cleared immediately. Avoid creating multiple `String` copies of the password in production code where alternatives exist.
+- `SecretKeySpec` and `Cipher` may create internal copies of keys; do not treat the Java heap as hardware-secure key storage. For high-security requirements, consider a KMS/HSM or a key service with appropriate policies.
+- The demo encrypts small data directly with the password-derived key to illustrate the mechanism. Long-lived data should generally use a **random DEK and KEK** as in section 5 to simplify key management and support rotation.
 
-## 7. So sánh hai cách lưu để tránh nhầm data model
+## 7. Comparing the two storage models to avoid data-model confusion
 
 ### 7.1. Account credential record
 
@@ -489,9 +489,9 @@ users
   passwordChangedAt
 ```
 
-Record này phục vụ **xác thực tài khoản**. Không có `nonce`, `ciphertext` hay `authenticationTag` vì chúng không phải thành phần của password verifier. Một hệ thống có thể lưu verifier dưới dạng chuỗi tự mô tả của thư viện password hash thay vì tách trường; schema lựa chọn phải nhất quán.
+This record serves **account authentication**. It has no `nonce`, `ciphertext`, or `authenticationTag` because those are not components of a password verifier. A system may store the verifier as a self-describing string from a password-hash library instead of separate columns; the chosen schema must be consistent.
 
-Việc có `passwordChangedAt` không tự động tạo quyền truy cập tệp được mã hóa bằng password trước đó. Nếu password thay đổi, logic encryption có kế hoạch chuyển khóa riêng.
+Having `passwordChangedAt` does not automatically grant access to files encrypted under a previous password. If the password changes, encryption logic requires a separate key migration plan.
 
 ### 7.2. Password-encrypted file envelope
 
@@ -508,11 +508,11 @@ encryptedFiles
   authenticatedContext
 ```
 
-Record này phục vụ **khôi phục dữ liệu**. `ownerId` và `authenticatedContext` là ngữ cảnh được ràng buộc vào format/AAD khi cần, không đồng nghĩa user đã đăng nhập là có quyền. Phía nhận phải kiểm tra authorization riêng.
+This record serves **data recovery**. `ownerId` and `authenticatedContext` are context bound into the format/AAD when needed, which does not automatically mean a logged-in user is authorized. The receiving side must enforce authorization separately.
 
-Không có password verifier ở đây vẫn có thể giải mã bằng thử password rồi xem tag có đúng không. Trên thực tế, chính authentication tag của ciphertext tạo ra một kiểm tra offline cho mỗi password ứng viên: **encryption không xóa được nguy cơ đoán password nếu password yếu**.
+Even without a password verifier here, decryption can still be attempted by trying passwords and checking whether the tag validates. In effect, the ciphertext's authentication tag itself creates an offline check for each candidate password: **encryption does not eliminate password-guessing risk if the password is weak**.
 
-### 7.3. Envelope encryption có wrapped DEK
+### 7.3. Envelope encryption with wrapped DEK
 
 ```text
 encryptedFiles
@@ -528,116 +528,116 @@ encryptedFiles
   versionedAAD
 ```
 
-Chủ thể có password/recovery key tương ứng có thể unwrap DEK rồi giải mã dữ liệu. Nếu hỗ trợ nhiều thiết bị hoặc chia sẻ nhiều người, có thể lưu **nhiều wrapped copy của cùng DEK** cho các người nhận hợp lệ, nhưng việc phân phối và thu hồi quyền phải được thiết kế cẩn thận. Thu hồi quyền với dữ liệu đã được người nhận tải/giải mã trước đó không thể đảm bảo chỉ bằng xóa một wrapped key.
+A principal holding the corresponding password/recovery key can unwrap the DEK and then decrypt the data. To support multiple devices or multi-user sharing, you can store **multiple wrapped copies of the same DEK** for authorized recipients, though distribution and revocation must be designed carefully. Revoking access to data that a recipient has already downloaded/decrypted cannot be guaranteed merely by deleting a wrapped key.
 
-## 8. Threat model và những trường hợp phải kiểm thử
+## 8. Threat model and cases that must be tested
 
-### 8.1. Đối thủ chỉ có khả năng thử login online
+### 8.1. Adversary limited to online login attempts
 
-- **Verifier:** áp rate limit, kiểm soát session, phát hiện credential stuffing, MFA theo nguy cơ, thông báo lỗi phù hợp. Password hashing có chi phí thích hợp nhưng phải có giới hạn tài nguyên để không tạo DoS.
-- **Dữ liệu PBE:** nếu có API “thử password để decrypt”, API đó cũng có thể trở thành oracle thử đoán online. Cần giới hạn request và quyền truy cập, không trả thông tin giúp phân biệt lỗi cụ thể quá mức.
+- **Verifier:** apply rate limiting, session controls, credential stuffing detection, risk-based MFA, and appropriate error messages. Password hashing needs suitable cost while enforcing resource limits to prevent DoS.
+- **PBE data:** if an API exists to “try password to decrypt”, that API can also become an online guessing oracle. Rate-limit requests, restrict access, and avoid returning overly specific error distinctions.
 
-### 8.2. Đối thủ lấy được database hoặc file mã hóa
+### 8.2. Adversary obtains the database or encrypted files
 
-- **Verifier bị lộ:** có thể đoán offline theo `password + salt + cost`. Salt làm bảng tra dùng lại khó hơn; cost tăng công việc; không bảo đảm mật khẩu yếu tránh bị đoán.
-- **Ciphertext PBE bị lộ:** có thể đoán offline bằng cách dẫn xuất khóa rồi thử AEAD tag, ngay cả khi không có một trường verifier tường minh.
-- **Random DEK được wrap bởi KEK từ password:** nếu file chứa wrapped DEK và tag đủ kiểm tra, đối thủ cũng có thể thử password offline để unwrap. Random DEK giúp quản lý vòng đời, nhưng không tự làm passphrase yếu mạnh lên.
+- **Leaked verifier:** can be guessed offline using `password + salt + cost`. Salt defeats precomputed lookup tables; cost increases work; neither protects weak passwords from being guessed.
+- **Leaked PBE ciphertext:** can be guessed offline by deriving keys and checking the AEAD tag, even without an explicit verifier field.
+- **Random DEK wrapped by a password-derived KEK:** if the file contains a wrapped DEK and a verifiable tag, an adversary can also try passwords offline to unwrap it. A random DEK aids lifecycle management, but does not make a weak passphrase stronger.
 
-Không nên quảng cáo “ciphertext có AES-256 nên mật khẩu yếu cũng an toàn”. Khóa hiệu dụng từ password phụ thuộc vào **entropy của password**, chi phí KDF và mức độ kẻ tấn công có thể thử.
+Never advertise that “the ciphertext uses AES-256 so weak passwords are safe too.” Effective key strength from a password depends on **password entropy**, KDF cost, and how fast an attacker can test candidates.
 
-### 8.3. Đối thủ đọc được verifier lẫn encrypted file
+### 8.3. Adversary can read both the verifier and encrypted files
 
-Nếu hệ thống dùng **storedVerifier làm key**, attacker có thể giải mã ngay khi đọc DB. Nếu verifier và encryption material được tách đúng, attacker vẫn phải vượt qua các cơ chế riêng; tuy nhiên nếu cùng password được dùng, việc đoán thành công password từ một trong hai tài sản có thể làm lộ tài sản còn lại. Tốt nhất cân nhắc secret độc lập cho các mục đích hoặc dùng quản lý khóa server/KMS phù hợp threat model.
+If the system uses **`storedVerifier` as the key**, an attacker can decrypt immediately upon reading the DB. If verifier and encryption material are properly separated, the attacker still has to work against separate derivations; however, if the same password is used, successfully guessing the password from one asset compromises the other. Preferably consider independent secrets per purpose or server/KMS key management aligned with your threat model.
 
-### 8.4. Password được đổi
+### 8.4. Password changes
 
-Kiểm thử cả:
-1. Biết password cũ, đổi password mới: verifier cũ ngừng nhận; encrypted data vẫn mở được theo kế hoạch re-encrypt/rewrap.
-2. Reset mà không biết password cũ: login hoạt động, nhưng dữ liệu cũ phải **được báo mất quyền truy cập** hoặc có recovery path đã định; không hứa hẹn tự giải mã được.
-3. Rotate KDF parameters: verifier có thể nâng cấp vào lúc login thành công; encrypted file phải được migrate/re-encrypt/rewrap theo quy trình thích hợp, không chỉ sửa metadata iterations rồi mong decrypt vẫn được.
-4. Di chuyển môi trường/thư viện: bảo toàn salt, nonce, KDF id, encoding, iterations, tag format, AAD. Cần golden vectors để tránh lỗi interop.
+Test all of the following:
+1. Old password known, changed to new password: old verifier stops validating; encrypted data remains accessible per the re-encrypt/rewrap plan.
+2. Reset without knowing old password: login works, but old data must be **reported as inaccessible** or use a predefined recovery path; never promise automatic decryption.
+3. Rotate KDF parameters: verifiers can be upgraded on successful login; encrypted files must be migrated/re-encrypted/rewrapped via proper workflow, not by merely editing metadata iterations and expecting decryption to keep working.
+4. Environment/library migration: preserve salt, nonce, KDF id, encoding, iterations, tag format, and AAD. Golden vectors are essential to avoid interop bugs.
 
-## 9. Checklist thực hành thiết kế
+## 9. Practical design checklist
 
-### Khi thiết kế password verifier
+### When designing a password verifier
 
-- Chọn password-hashing scheme chuyên dụng có thư viện an toàn và chính sách tham số hiện hành; ưu tiên Argon2id khi phù hợp, PBKDF2 khi cần tương thích/FIPS theo chuẩn áp dụng.
-- Sinh salt độc lập cho mỗi verifier, lưu salt + algorithm/version + cost + verifier. Không lưu password, không lưu reversible encryption của password.
-- Thực hiện verification qua API chuyên dụng hoặc so sánh byte phù hợp sau khi dẫn xuất cùng tham số. Giới hạn đầu vào và chi phí, không cho dữ liệu client tùy ý chọn thuật toán yếu.
-- Áp chính sách đăng nhập: rate limiting, MFA, bảo vệ reset token, session revocation, audit và kiểm tra danh tính/quyền.
-- Có chiến lược rehash/upgrade sau khi người dùng login thành công, lưu ý migration không phá tài khoản.
+- Choose a dedicated password-hashing scheme with a vetted library and current parameter policy; prefer Argon2id where suitable, PBKDF2 where compatibility/FIPS is required by applicable standards.
+- Generate an independent salt per verifier; store salt + algorithm/version + cost + verifier. Never store plaintext passwords or reversible encryption of passwords.
+- Perform verification via a dedicated library API or constant-time byte comparison after deriving with the same parameters. Bound inputs and costs; never let client data arbitrarily select weak algorithms.
+- Apply login defenses: rate limiting, MFA, reset token protection, session revocation, auditing, and identity/authorization checks.
+- Have a rehash/upgrade strategy upon successful login, ensuring migration does not break existing accounts.
 
-### Khi thiết kế password-based encryption
+### When designing password-based encryption
 
-- Xác định ai thực sự cần giải mã, ở đâu password xuất hiện, ai sở hữu key, có cần server/recovery access không.
-- Chọn password KDF và cost phù hợp, salt ngẫu nhiên riêng cho encryption context. Dẫn xuất key length đúng yêu cầu thuật toán (ví dụ AES-256 cần 32 byte key).
-- Mã hóa bằng AEAD đã được kiểm chứng, nonce duy nhất theo khóa; bảo vệ metadata/context trong AAD và kiểm tra tag trước khi dùng plaintext.
-- Lưu tất cả tham số cần để giải mã (salt, KDF id/cost, nonce, ciphertext, tag, version), kiểm tra file/envelope format có giới hạn và policy.
-- Nếu dữ liệu dài hạn/nhiều file, cân nhắc random DEK với KEK được dẫn xuất từ password, thiết kế rewrap và recovery trước khi sản phẩm có người dùng.
-- Quy định rõ quá trình đổi/reset password, quên password, mất metadata/backup, rotate key, chia sẻ và thu hồi truy cập.
-- Không lưu verifier như encryption key; không dùng password bytes trực tiếp làm AES key; không dùng `AES/ECB/PKCS5Padding` hay mã hóa không xác thực cho dữ liệu cần bảo vệ khỏi sửa đổi.
+- Define who actually needs to decrypt, where the password appears, who holds keys, and whether server/recovery access is needed.
+- Choose a suitable password KDF and cost, with a random salt dedicated to the encryption context. Derive the exact key length required by the algorithm (e.g., 32 bytes for AES-256).
+- Encrypt with a proven AEAD and a unique nonce per key; bind metadata/context into AAD and verify the tag before using plaintext.
+- Store all parameters needed for decryption (salt, KDF id/cost, nonce, ciphertext, tag, version), validating file/envelope format with strict limits and policy.
+- For long-lived or multi-file data, consider a random DEK with a password-derived KEK, and design rewrapping and recovery before users onboard.
+- Explicitly define flows for password change/reset, forgotten password, lost metadata/backups, key rotation, sharing, and access revocation.
+- Never store a verifier as an encryption key; never use raw password bytes directly as an AES key; never use `AES/ECB/PKCS5Padding` or unauthenticated encryption for data requiring tamper protection.
 
-## 10. Những ngộ nhận nguy hiểm
+## 10. Dangerous misconceptions
 
-| Nhận định sai | Thực tế |
+| False claim | Reality |
 | --- | --- |
-| “Đã hash password thì muốn cũng decrypt được” | Password verifier không có phép giải mã khôi phục password; chỉ có thể thử đoán |
-| “Muốn đọc lại password để login nên phải mã hóa password” | Login chỉ cần verify, không cần đọc lại password; không lưu reversible password |
-| “Verifier PBKDF2 là 256 bit, dùng làm AES-256 key luôn” | Nếu DB lộ verifier thì attacker có ngay key; phải tách mục đích/secret |
-| “Salt là bí mật, nên phải giấu cùng với key” | Salt thường công khai; bí mật thực sự là password/secret và key |
-| “Salt mới nghĩa là không cần nonce GCM” | Nonce là tham số AEAD có quy tắc duy nhất theo key, khác vai trò KDF salt |
-| “AES-GCM sai password sẽ cho ra rác, mình tự kiểm tra UTF-8 là đủ” | Phải xác minh tag; AEAD fail thì từ chối, không xử lý plaintext |
-| “Mã hóa bằng password nên quên password có thể gửi email reset là đọc lại dữ liệu” | Reset verifier không khôi phục KEK/DEK cũ nếu không có recovery path |
-| “Hash/password KDF tăng entropy của password” | KDF chỉ tăng chi phí mỗi lần thử; entropy đầu vào không tăng |
-| “Pepper thay thế salt và password hashing” | Pepper là lớp bổ sung với vòng đời riêng, không thay salt/hash |
-| “Lộ ciphertext thì an toàn tuyệt đối vì dùng AES-256” | Đối thủ có thể đoán password offline rồi kiểm tra tag nếu password yếu |
-| “Đổi iterations trong envelope là đủ để migrate” | KDF output thay đổi; phải re-encrypt hoặc rewrap theo quy trình |
-| “Dùng cùng password thì verifier và encryption bắt buộc cùng salt/key” | Phải tách context và key, có thể dùng salt riêng hoặc secret riêng |
-| “Java `String` xóa password khỏi RAM khi đặt null” | Memory management có thể giữ bản sao; dùng API phù hợp, tránh log và giảm thời gian tồn tại của secret |
-| “Password đúng là đủ quyền xem mọi file” | Xác thực không thay authorization đối với owner, tenant, resource |
+| “Once a password is hashed, you can still decrypt it if you want” | A password verifier has no decryption operation to recover the password; it can only be guessed |
+| “Login needs to read the password back, so we must encrypt passwords” | Login only needs verification, not reading the password back; never store reversible passwords |
+| “The PBKDF2 verifier is 256 bits, so let’s use it directly as the AES-256 key” | If the DB verifier leaks, the attacker immediately has the key; separate purposes/secrets |
+| “Salt is a secret, so hide it alongside the key” | Salt is typically public; the real secrets are the password/secret and key |
+| “A fresh salt means we don’t need a GCM nonce” | Nonce is an AEAD parameter with per-key uniqueness rules, distinct from KDF salt |
+| “Wrong password in AES-GCM produces garbage, so checking UTF-8 is enough” | You must verify the tag; if AEAD fails, reject and never process plaintext |
+| “Since it’s password-encrypted, resetting via email lets you read old data” | Resetting the verifier does not restore old KEK/DEK without a recovery path |
+| “Hashing/password KDF increases password entropy” | A KDF only increases the cost per guess; input entropy does not increase |
+| “Pepper replaces salt and password hashing” | Pepper is an extra layer with its own lifecycle, not a replacement for salt/hash |
+| “Leaked ciphertext is 100% safe because it uses AES-256” | An adversary can guess passwords offline and check the tag if the password is weak |
+| “Updating iterations in the envelope is enough to migrate” | Changing cost changes the KDF output; you must re-encrypt or rewrap properly |
+| “Using the same password forces verifier and encryption to share salt/key” | Contexts and keys must be separated, using distinct salts or distinct secrets |
+| “Java `String` erases the password from RAM when set to null” | Memory management may retain copies; use appropriate APIs, avoid logging, and minimize secret lifetime |
+| “Having the right password grants access to all files” | Authentication does not replace authorization checks for owner, tenant, and resource |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-check exercises
 
-**Câu 1.** Hệ thống chỉ cần xác định password login có đúng không. Nên lưu gì?
+**Question 1.** A system only needs to determine whether a login password is correct. What should it store?
 
-**Trả lời:** Lưu **password verifier** do password-hashing scheme tạo ra, kèm salt, cost, version/algorithm. Không cần lưu password hay dữ liệu mã hóa để có thể “giải mã password”.
+**Answer:** Store a **password verifier** produced by a password-hashing scheme, along with salt, cost, and version/algorithm. Do not store the password or encrypted data that allows “decrypting the password.”
 
-**Câu 2.** Một người có file đã mã hóa bằng khóa dẫn xuất từ password. Tại sao họ cần lưu salt và nonce?
+**Question 2.** Someone has a file encrypted with a password-derived key. Why must they store the salt and nonce?
 
-**Trả lời:** Salt KDF là input để tái tạo đúng key; nonce là input AEAD để giải mã/verify tag. Mất metadata cần thiết có thể khiến không mở lại file dù password đúng.
+**Answer:** The KDF salt is an input needed to regenerate the exact key; the nonce is an AEAD input needed to decrypt/verify the tag. Losing required metadata can make the file unopenable even with the correct password.
 
-**Câu 3.** Nếu `storedVerifier = PBKDF2(password, salt)`, có nên làm `AES-GCM(storedVerifier, data)` không?
+**Question 3.** If `storedVerifier = PBKDF2(password, salt)`, should you do `AES-GCM(storedVerifier, data)`?
 
-**Trả lời:** Không. Verifier được lưu nhằm xác minh và có thể lộ khi database bị rò rỉ; nếu cũng dùng làm key, attacker đọc verifier có thể giải mã trực tiếp. Dùng key material riêng và quản lý đúng scope.
+**Answer:** No. The verifier is stored for authentication and may leak in a database breach; if also used as a key, an attacker reading the verifier can decrypt directly. Use separate key material and manage it with proper scope.
 
-**Câu 4.** Vì sao PBE có thể bị tấn công đoán password offline dù không lưu verifier?
+**Question 4.** Why is PBE vulnerable to offline password guessing even when no verifier is stored?
 
-**Trả lời:** Đối thủ có salt, params, nonce, ciphertext+tag có thể thử password ứng viên, derive key, rồi xác minh AEAD tag. Password yếu có thể bị đoán; KDF chậm làm tăng chi phí nhưng không xóa bỏ khả năng thử.
+**Answer:** An adversary with salt, params, nonce, and ciphertext+tag can test candidate passwords, derive the key, and check the AEAD tag. Weak passwords can be guessed; a slow KDF raises cost but does not eliminate guessing.
 
-**Câu 5.** Người dùng quên password đăng nhập nhưng chứng minh được quyền tài khoản qua recovery email. Có thể reset login không? Có luôn đọc được file mã hóa bằng password cũ không?
+**Question 5.** A user forgets their login password but proves account ownership via a recovery email. Can login be reset? Can files encrypted under the old password always be read?
 
-**Trả lời:** Có thể reset verifier theo quy trình tài khoản; không tự giải mã file cũ nếu không có password cũ, DEK escrow/recovery key hoặc đường khôi phục khác đã thiết kế trước.
+**Answer:** The verifier can be reset via the account recovery flow; old files cannot be automatically decrypted without the old password, a DEK escrow/recovery key, or another pre-designed recovery path.
 
-**Câu 6.** Tại sao đổi password với KEK/DEK có thể tiết kiệm hơn mã hóa trực tiếp?
+**Question 6.** Why can changing a password with KEK/DEK be cheaper than direct encryption?
 
-**Trả lời:** Có thể unwrap một DEK ngẫu nhiên bằng KEK cũ rồi rewrap bằng KEK mới, giữ nguyên ciphertext dữ liệu lớn. Nhưng thao tác vẫn cần quyền truy cập DEK qua password cũ hoặc recovery path.
+**Answer:** You can unwrap a random DEK with the old KEK and rewrap it with the new KEK, leaving large data ciphertexts untouched. However, this still requires access to the DEK via the old password or a recovery path.
 
-**Câu 7.** Trong ví dụ Java, tại sao sai password hoặc sửa byte ciphertext đều cho `AEADBadTagException`?
+**Question 7.** In the Java example, why do both a wrong password and a modified ciphertext byte throw `AEADBadTagException`?
 
-**Trả lời:** Cả hai có thể khiến tag không hợp lệ; AEAD chỉ xác nhận input/khóa/nonce/AAD tương thích với tag hoặc từ chối, không phân loại nguyên nhân một cách đáng tin cho ứng dụng.
+**Answer:** Both cause tag verification to fail; AEAD only confirms whether the inputs/key/nonce/AAD match the tag or rejects, without reliably classifying the cause for the application.
 
-**Câu 8.** Mã hóa dữ liệu dưới KMS server-controlled và lưu password verifier cho login có phải mô hình password-only encryption không?
+**Question 8.** Is encrypting data under a server-controlled KMS and storing a password verifier for login a password-only encryption model?
 
-**Trả lời:** Không. Server có thể mở data qua KMS mà không cần biết password người dùng; password chỉ là một phương tiện xác thực quyền truy cập, không phải secret duy nhất giải mã data.
+**Answer:** No. The server can open the data via KMS without knowing the user's password; the password is only a means of authenticating access, not the sole secret protecting data decryption.
 
-## 12. Ghi nhớ ranh giới kiến trúc
+## 12. Remember the architectural boundary
 
 ```text
                     PASSWORD
                        |
            +-----------+-------------+
            |                         |
-       XÁC THỰC                   MỞ DỮ LIỆU
+      AUTHENTICATE              UNLOCK DATA
            |                         |
   Password hashing              Password KDF
   + verifier salt               + encryption salt
@@ -653,15 +653,15 @@ Kiểm thử cả:
    then AUTHORIZATION               verify tag
 ```
 
-**Password verifier trả lời “mật khẩu này có đúng không?”; password-derived encryption key trả lời “với mật khẩu này có thể mở bản mã được không?”.** Cả hai dùng mật khẩu nhưng phục vụ mục tiêu, hồ sơ lưu trữ và cơ chế khôi phục khác nhau. Thiết kế vững chắc tách vai trò khóa, lưu metadata đúng mục đích, dùng thuật toán chuẩn và nói rõ hậu quả của việc quên/reset mật khẩu trước khi hệ thống lưu dữ liệu thực tế.
+**A password verifier answers “is this password right?”; a password-derived encryption key answers “can this password unlock the ciphertext?”.** Both involve a password, yet serve different goals, storage records, and recovery mechanisms. Solid design separates key roles, stores metadata for the right purpose, uses standard algorithms, and makes the consequences of forgetting/resetting a password explicit before real user data is stored.
 
-### Tài liệu tham khảo
+### References
 
-- OWASP Password Storage Cheat Sheet — password hashing, salt, pepper, tham số chi phí: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+- OWASP Password Storage Cheat Sheet — password hashing, salt, pepper, cost parameters: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 - RFC 9106 — Argon2 Memory-Hard Function: https://www.rfc-editor.org/rfc/rfc9106
 - RFC 8018 — PKCS #5 Password-Based Cryptography Specification, PBKDF2: https://www.rfc-editor.org/rfc/rfc8018
 - NIST SP 800-132 — Recommendation for Password-Based Key Derivation, Part 1: https://csrc.nist.gov/pubs/sp/800/132/final
-- NIST SP 800-38D — Galois/Counter Mode (GCM) và IV/nonce: https://csrc.nist.gov/pubs/sp/800/38/d/final
+- NIST SP 800-38D — Galois/Counter Mode (GCM) and IV/nonce: https://csrc.nist.gov/pubs/sp/800/38/d/final
 - Java SE 17 `PBEKeySpec`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html
 - Java SE 17 `SecretKeyFactory`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/SecretKeyFactory.html
 - Java SE 17 `Cipher`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/Cipher.html

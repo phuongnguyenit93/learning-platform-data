@@ -1,38 +1,38 @@
-# 22.7 Thu và phân tích GC log cùng JFR trong một giai đoạn cấp phát mạnh
+# 22.7 Capturing and Analyzing GC Logs Together with JFR During a Heavy Allocation Phase
 
-## Mục tiêu và kết quả đầu ra
+## Objectives and Outputs
 
-Một ứng dụng Java có thể **cấp phát rất nhiều object tạm thời** mà không hề bị memory leak. Khi allocation rate tăng, bộ thu gom rác (GC) thường hoạt động nhiều hơn, nhưng cần phân biệt **chính xác workload cấp phát**, **lần GC và thời gian pause**, **đối tượng/call site đóng góp nhiều allocation**, và **dữ liệu còn sống sau GC**.
+A Java application can **allocate massive numbers of temporary objects** without having any memory leak. As the allocation rate climbs, the Garbage Collector (GC) works harder, yet you must clearly distinguish **the exact allocation workload**, **GC cycles and pause durations**, **the objects/call sites contributing most allocations**, and **data remaining live after GC**.
 
-Bài thực hành kết hợp hai công cụ có góc nhìn bổ sung:
+This practice lab combines two tools with complementary views:
 
-- **Unified GC log** của HotSpot: ghi quá trình GC theo thời gian, ví dụ collector, GC ID, lý do, heap used trước/sau collection, thời lượng pause, các pha nếu được bật.
-- **Java Flight Recorder (JFR):** thu event có timestamp cho GC, heap, CPU và *mẫu* allocation kèm class/stack; có thể thêm event tự định nghĩa để đánh dấu thời điểm bắt đầu/kết thúc phép thử.
+- **HotSpot Unified GC log**: records GC progress over time, such as collector, GC ID, cause, heap used before/after collection, pause duration, and sub-phases when enabled.
+- **Java Flight Recorder (JFR):** captures timestamped events for GC, heap, CPU, and allocation *samples* with class/stack trace; you can also add custom events marking start/end points of the experiment.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Chuẩn bị một chương trình **Java 17+ chạy được**, tạo một đợt allocation mạnh nhưng giữ rất ít dữ liệu sống lâu, không cần gây OOME.
-2. Khởi động **cùng một tiến trình JVM** với GC unified logging và JFR, thu đủ hai artifact từ một lượt chạy.
-3. Đọc `GC(n)`, `48M->4M(128M)`, `Pause Young`, thời lượng pause; tránh cộng trùng log của cùng GC.
-4. Dùng `jfr summary`, `jfr print` và JDK Mission Control để xem các event `jdk.GarbageCollection`, `jdk.GCPhasePause`, `jdk.GCHeapSummary`, `jdk.ObjectAllocationSample` và event đánh dấu pha.
-5. Ghép theo **timestamp và GC ID** để tạo timeline giữa pha cấp phát, allocation sample, GC pause và heap sau GC.
-6. Phân biệt **allocation pressure**, **GC overhead**, **working set hợp lệ** và **giữ tham chiếu ngoài ý muốn**, với kết luận có điều kiện và công cụ kiểm chứng tiếp.
+1. Build a **runnable Java 17+ program** that drives a heavy allocation burst while retaining very little long-lived data, without needing to trigger an OOME.
+2. Launch **the same JVM process** with unified GC logging and JFR, collecting both artifacts from a single run.
+3. Read `GC(n)`, `48M->4M(128M)`, `Pause Young`, and pause durations while avoiding double-counting logs of the same GC.
+4. Use `jfr summary`, `jfr print`, and JDK Mission Control to inspect `jdk.GarbageCollection`, `jdk.GCPhasePause`, `jdk.GCHeapSummary`, `jdk.ObjectAllocationSample`, and custom phase-marker events.
+5. Join by **timestamp and GC ID** to construct a timeline linking allocation phases, allocation samples, GC pauses, and post-GC heap.
+6. Distinguish **allocation pressure**, **GC overhead**, **valid working set**, and **unintended reference retention**, forming conditional conclusions with follow-up verification tools.
 
-**Phạm vi:** HotSpot/OpenJDK Java 17+ với **G1GC** trong bài lab. Ví dụ và lệnh đã được chạy/kiểm tra với OpenJDK 24; nội dung nền áp dụng JDK 17/21 nhưng số lượng GC, symbol, event count và thời lượng thay đổi theo máy và bản JDK. Không lấy một lần chạy minh họa làm số chuẩn hiệu năng production.
+**Scope:** HotSpot/OpenJDK Java 17+ using **G1GC** in the lab. Commands and examples were run/verified on OpenJDK 24; core concepts apply to JDK 17/21, while GC counts, symbols, event counts, and durations vary by machine and JDK build. Never take one illustrative run as a production performance baseline.
 
-## 1. Câu hỏi điều tra: allocation, GC hay leak?
+## 1. Investigation Question: Allocation, GC, or Leak?
 
-Hãy đặt ba giả thuyết riêng trước khi thu dữ liệu:
+Frame three distinct hypotheses before collecting data:
 
-| Giả thuyết | Dấu hiệu có thể quan sát | Chưa đủ để kết luận |
+| Hypothesis | Observable Signs | Insufficient to Conclude Alone |
 | --- | --- | --- |
-| **Allocation churn** — nhiều object ngắn hạn | Allocation samples tập trung ở một call site; GC young xảy ra thường xuyên; heap used sau young GC trở về gần nền | Không tự chứng minh bug hoặc leak |
-| **GC overhead ảnh hưởng latency** | Tổng/số lần stop-the-world pause tăng ở giai đoạn nóng; p95/p99 trùng hoặc gần những pause | Chỉ thấy GC hoạt động không chứng minh chính GC làm request chậm |
-| **Retention / leak nghi vấn** | Heap used *sau các GC tương đương* tiếp tục tăng qua nhiều chu kỳ tải-hạ tải, kể cả khi công việc kết thúc | Không thể xác nhận leak chỉ từ số lần GC hoặc một ảnh chụp heap |
+| **Allocation churn** — many short-lived objects | Allocation samples cluster at one call site; young GCs run frequently; post-young-GC heap used returns near baseline | Does not by itself prove a bug or leak |
+| **GC overhead hurting latency** | Total/count of stop-the-world pauses rises during hot windows; p95/p99 spikes align with or sit near pauses | Seeing GC activity does not prove GC itself slowed down requests |
+| **Suspected retention / leak** | Heap used *after comparable GCs* keeps climbing across multiple load/unload cycles, even after work stops | Cannot confirm a leak solely from GC count or one heap snapshot |
 
-**Allocation rate** là lượng bộ nhớ được cấp phát trong một đơn vị thời gian. **Live set/retention** là lượng object vẫn còn reachable ở các thời điểm phù hợp. Hai khái niệm độc lập: một chương trình có thể cấp phát hàng gigabyte nhưng giữ lại rất ít, hoặc cấp phát chậm mà tích lũy hàng triệu object sống lâu.
+**Allocation rate** is memory allocated per unit of time. **Live set/retention** is the volume of objects still reachable at comparable points. These are independent concepts: a program can allocate gigabytes while retaining very little, or allocate slowly while accumulating millions of long-lived objects.
 
-Đọc hai nguồn cùng nhau:
+Reading both sources together:
 
 ```text
 Application workload / object allocation
@@ -49,22 +49,22 @@ Heap occupancy / GC triggers      |
          +----> JFR GC / heap events
                   startTime, gcId, pause, heap
          
-Ghép theo timestamp + gcId + mốc pha của ứng dụng
-=> giải thích khi nào, vì sao và ở đâu GC tăng
+Join by timestamp + gcId + application phase markers
+=> explain when, why, and where GC increased
 ```
 
-**Không đồng nhất** lượng byte chương trình yêu cầu tạo array với toàn bộ allocation mà JVM thực tế ghi nhận: ngoài object payload còn có header, alignment, các cấp phát khác, JIT/escape analysis và hoạt động nội bộ JVM.
+**Do not equate** the byte payload requested by array creations in code with total allocations recorded by the JVM: beyond payload bytes, there are object headers, alignment, other allocations, JIT/escape analysis, and internal JVM activity.
 
-## 2. Chuẩn bị môi trường đo an toàn
+## 2. Setting Up a Safe Measurement Environment
 
-### Điều kiện cần
+### Prerequisites
 
-- JDK 17 trở lên có đủ `java`, `javac` và `jfr`. Ví dụ dùng JDK 24; với JDK 21 nên kiểm tra các tùy chọn bằng `java -Xlog:help` và `jfr help`.
-- Một thư mục lab **riêng, có quyền ghi** để nhận `gc.log` và `burst.jfr`. Đặt tên/thư mục riêng cho mỗi lượt để không trộn artifact.
-- Khoảng **128 MiB Java heap** cho JVM ví dụ cùng bộ nhớ ngoài heap hợp lý. Lượng cấp phát cộng dồn lớn hơn heap vì object cũ được thu gom liên tục; phép thử sẽ không cố giữ 468,75 MiB sống cùng lúc.
-- Không chạy workload tạo hàng trăm MB allocation trên production hoặc môi trường có ít bộ nhớ/quota không rõ. Đây là **thí nghiệm kiểm soát trong máy phát triển/CI**.
+- JDK 17 or newer with `java`, `javac`, and `jfr`. Examples used JDK 24; on JDK 21 verify flags with `java -Xlog:help` and `jfr help`.
+- A **dedicated, writable** lab directory to hold `gc.log` and `burst.jfr`. Use separate directories/filenames per run so artifacts do not mix.
+- Around **128 MiB Java heap** for the sample JVM plus reasonable off-heap headroom. Cumulative allocation exceeds heap size because older objects are continuously reclaimed; the test will not try to keep 468.75 MiB alive simultaneously.
+- Never run a workload allocating hundreds of MB in production or environments with scarce memory/unclear quotas. This is a **controlled experiment on a dev/CI machine**.
 
-Kiểm tra runtime:
+Check the runtime:
 
 ```bash
 java -version
@@ -73,34 +73,34 @@ jfr help
 java -Xlog:help
 ```
 
-Dùng chung một bộ `java`/`javac`/`jfr` của JDK khi có thể. Ghi JDK vendor/version, OS, heap flags, GC, CPU quota và timestamp trước mỗi lần chạy. Nếu không dùng HotSpot hoặc đang dùng collector khác, định dạng log/JFR và chu kỳ GC có thể khác.
+Use a matching `java`/`javac`/`jfr` toolchain from the same JDK when possible. Record JDK vendor/version, OS, heap flags, GC, CPU quota, and timestamp before each run. On non-HotSpot JVMs or other collectors, log/JFR formats and GC cycles can differ.
 
-### Các artifact mục tiêu
+### Target Artifacts
 
-| Artifact | Nguồn | Công dụng |
+| Artifact | Source | Purpose |
 | --- | --- | --- |
-| `GcJfrBurstLab.java` | Mã ví dụ bên dưới | Tạo pha baseline, burst và recovery; ghi event đánh dấu |
-| `gc.log` | `-Xlog` của JVM | Các lần GC, heap trước/sau, pause và timestamps |
-| `burst.jfr` | JFR khởi động cùng JVM | GC events, allocation samples, custom phase markers |
-| `stdout` của chương trình | `System.out.println` | Xác nhận workload đã chạy và byte payload dự kiến |
-| Nhật ký phân tích | Ghi tay hoặc công cụ riêng | Timeline/correlated findings và giới hạn phép đo |
+| `GcJfrBurstLab.java` | Sample code below | Drives baseline, burst, and recovery phases; emits marker events |
+| `gc.log` | JVM `-Xlog` | GC cycles, pre/post heap, pauses, and timestamps |
+| `burst.jfr` | JFR started with the JVM | GC events, allocation samples, custom phase markers |
+| Program `stdout` | `System.out.println` | Confirms workload ran and expected nominal payload bytes |
+| Analysis log | Manual notes or separate tooling | Timeline/correlated findings and measurement limits |
 
-Khi so các lượt, giữ cả artifacts của **cùng một PID/JVM**, không lấy GC log từ lượt A ghép JFR của lượt B.
+When comparing runs, keep artifacts from **the exact same PID/JVM** together; never mix `gc.log` from run A with JFR from run B.
 
-## 3. Chương trình Java 17+ tạo pha cấp phát mạnh
+## 3. Java 17+ Program Creating a Heavy Allocation Phase
 
-Chương trình tạo 30.000 mảng `byte[]`, mỗi mảng chứa **16 KiB payload**. Mảng mới liên tục thay thế vị trí trong một vòng đệm chỉ **32 mảng**, nên hầu hết mảng cũ sẽ không còn được giữ sau khi vị trí bị ghi đè. Cuối pha, chương trình đọc lại dữ liệu trong ring để đảm bảo mảng có công dụng quan sát được; điều này hạn chế khả năng phép đo chỉ là mã đã bị compiler loại bỏ.
+The program allocates 30,000 `byte[]` arrays, each holding **16 KiB payload**. New arrays continuously overwrite slots in a ring buffer of only **32 arrays**, so most older arrays lose references once overwritten. At the end of the phase, the program reads data from the ring so the arrays have an observable effect, reducing the chance the compiler eliminates the loop as dead code.
 
-Bốn mốc tùy chỉnh `lab.AllocationPhase`:
+Four custom `lab.AllocationPhase` checkpoints:
 
-- `baseline`: sau khi chương trình vào `main`.
-- `burst-start`: ngay trước vòng cấp phát mạnh.
-- `burst-end`: ngay sau vòng cấp phát; ghi tổng payload yêu cầu.
-- `recovery`: sau một khoảng nghỉ để nhìn phần hoạt động sau burst.
+- `baseline`: right after entering `main`.
+- `burst-start`: right before the heavy allocation loop.
+- `burst-end`: right after the allocation loop; records total nominal payload requested.
+- `recovery`: after a pause to observe post-burst behavior.
 
-**Lưu ý:** nghỉ 600 ms trước/sau chỉ tạo khoảng thời gian quan sát, không cam kết có GC trong lúc nghỉ và không thay thế đo leak qua nhiều chu kỳ.
+**Note:** sleeping 600 ms before/after only creates an observation window; it does not guarantee a GC runs during sleep and does not replace multi-cycle leak testing.
 
-### Mã hoàn chỉnh: `GcJfrBurstLab.java`
+### Complete Code: `GcJfrBurstLab.java`
 
 ```java
 import jdk.jfr.Event;
@@ -158,20 +158,20 @@ public class GcJfrBurstLab {
 }
 ```
 
-Giải thích về tính an toàn và ý nghĩa dữ liệu:
+Explanation of safety and data semantics:
 
-1. `byte[][] ring = new byte[32][]` giữ tối đa 32 array cùng lúc trong scope, nên không cố giữ tất cả 30.000 mảng. Phần ring có khoảng 32 × 16 KiB = 512 KiB **payload cuối**, cộng overhead object và các object khác.
-2. `(long) BLOCKS * BLOCK_BYTES` tính ra **491.520.000 byte = 468,75 MiB payload danh nghĩa** được yêu cầu trong vòng lặp. Đây **không phải** kích thước live heap cuối cùng và cũng không phải tổng allocation của cả JVM.
-3. Mốc JFR `phase("burst-start")`/`phase("burst-end")` giúp tìm đúng khoảng thời gian trong timeline; custom event không phải một lời gọi `System.gc()` và không tự ép thu gom rác.
-4. `retainedChecksum` là field `volatile` và kết quả được in; phép tính có hiệu ứng quan sát. Nó không phải biện pháp thay thế JMH cho microbenchmark.
-5. `Thread.sleep(600)` giúp phân chia pha rõ hơn trên timeline, nhưng scheduler có thể làm thời gian thực tế khác 600 ms.
-6. Dữ liệu được tạo để quan sát **allocation churn**, không phải mô phỏng memory leak. Thay đổi chương trình để cố giữ vô hạn object hoặc tăng `-Xmx` có thể tạo một thí nghiệm hoàn toàn khác.
+1. `byte[][] ring = new byte[32][]` retains at most 32 arrays simultaneously in scope, rather than trying to hold all 30,000 arrays. The ring keeps roughly `32 × 16 KiB = 512 KiB` of **final payload**, plus object headers and other objects.
+2. `(long) BLOCKS * BLOCK_BYTES` yields **491,520,000 bytes = 468.75 MiB nominal payload** requested across the loop. This is **not** the final live heap size nor the JVM's total allocated bytes.
+3. JFR markers `phase("burst-start")`/`phase("burst-end")` help pinpoint the exact window on the timeline; a custom event is not a `System.gc()` call and does not trigger garbage collection.
+4. `retainedChecksum` is a `volatile` field and its result is printed; the computation has observable side effects. It is not a substitute for JMH in microbenchmarking.
+5. `Thread.sleep(600)` separates phases clearly on the timeline, though scheduling can make actual duration differ from 600 ms.
+6. The workload is built to observe **allocation churn**, not simulate a memory leak. Modifying it to hold unbounded objects or raise `-Xmx` creates a completely different experiment.
 
-## 4. Thu GC log và JFR trong cùng một lượt JVM
+## 4. Capturing GC Logs and JFR in the Same JVM Run
 
-### 4.1. Lệnh khởi động đã kiểm chứng
+### 4.1. Verified Launch Commands
 
-Tại thư mục chứa source, dùng Bash/Linux/macOS:
+In the directory containing the source file, using Bash/Linux/macOS:
 
 ```bash
 javac GcJfrBurstLab.java
@@ -182,32 +182,32 @@ java -Xms128m -Xmx128m -XX:+UseG1GC \
   GcJfrBurstLab
 ```
 
-Trong **Windows PowerShell**, có thể chạy câu lệnh Java trên **một dòng**, tránh dùng dấu `\` nối dòng của Bash:
+In **Windows PowerShell**, run the Java command on **one line**, avoiding Bash's `\` line continuation:
 
 ```powershell
 javac GcJfrBurstLab.java
 java -Xms128m -Xmx128m -XX:+UseG1GC '-Xlog:gc*=info,safepoint=info:file=gc.log:time,uptime,level,tags:filecount=1,filesize=20m' '-XX:StartFlightRecording=filename=burst.jfr,settings=profile,dumponexit=true' GcJfrBurstLab
 ```
 
-Lệnh chạy tốt với **OpenJDK 24 trên Windows** trong một phép kiểm tra thực. Với Java 17/21, syntax unified logging và Startup Flight Recording này có sẵn trên HotSpot, nhưng các event/default recording và số kết quả có thể khác; xác minh trên bản JDK của bạn.
+This ran cleanly on **OpenJDK 24 on Windows** during testing. On Java 17/21, this unified logging and Startup Flight Recording syntax is available on HotSpot, though default/profile events and counts may differ; verify on your JDK version.
 
-**Từng flag làm gì?**
+**What does each flag do?**
 
-| Flag | Vai trò |
+| Flag | Role |
 | --- | --- |
-| `-Xms128m -Xmx128m` | Đặt heap initial/max cùng 128 MiB để phần heap capacity ổn định hơn; không hạn chế tổng process RSS bằng 128 MiB |
-| `-XX:+UseG1GC` | Cố định G1 để ví dụ `Pause Young (G1 Evacuation Pause)` có ý nghĩa |
-| `-Xlog:gc*=info,safepoint=info` | Thu thông điệp có tag GC (kể cả tổ hợp GC tags) và safepoint ở level info |
-| `file=gc.log` | Ghi GC log ra file; chạy ở thư mục mới để tránh nhầm file cũ |
-| `time,uptime,level,tags` | Hiển thị wall-clock timestamp (có múi giờ), JVM uptime và nhãn để đối chiếu JFR |
-| `filecount=1,filesize=20m` | Cho phép log rotation có giới hạn trong demo; **phải kiểm tra tất cả file rotated** nếu chạy dài |
-| `-XX:StartFlightRecording=...` | Khởi động JFR cùng tiến trình, tránh bỏ lỡ burst đầu tiên |
-| `settings=profile` | Template có thêm dữ liệu profiling; tốn tài nguyên hơn `default` và không hứa mọi event đã bật |
-| `filename=burst.jfr,dumponexit=true` | Ghi JFR ra file khi JVM thoát bình thường; không cam kết cứu đầy đủ khi `SIGKILL`/crash |
+| `-Xms128m -Xmx128m` | Sets initial/max heap both to 128 MiB so heap capacity stays steadier; does not cap total process RSS to 128 MiB |
+| `-XX:+UseG1GC` | Fixes G1 so examples like `Pause Young (G1 Evacuation Pause)` apply |
+| `-Xlog:gc*=info,safepoint=info` | Captures messages tagged with `gc` (including composite GC tags) and `safepoint` at `info` level |
+| `file=gc.log` | Writes GC log to a file; run in a fresh directory to avoid mixing old files |
+| `time,uptime,level,tags` | Prints wall-clock timestamp (with timezone offset), JVM uptime, and tags for aligning with JFR |
+| `filecount=1,filesize=20m` | Enables bounded log rotation in the demo; **inspect all rotated files** on longer runs |
+| `-XX:StartFlightRecording=...` | Starts JFR with the process so the initial burst is not missed |
+| `settings=profile` | Template capturing richer profiling data; heavier than `default` and does not promise every event is enabled |
+| `filename=burst.jfr,dumponexit=true` | Writes JFR to disk on normal JVM exit; does not guarantee full capture on `SIGKILL`/crash |
 
-**Không chạy lại trong cùng thư mục** nếu còn cần so artifact cũ: `gc.log` hoặc `burst.jfr` có thể bị ghi đè. Trong dịch vụ/CI, dùng thư mục hoặc tên file riêng theo run ID và có chính sách retention. Nếu buộc phải giữ toàn bộ GC log dài hạn, chọn rotation size/count đủ cho cửa sổ cần điều tra; không chỉ nhìn file mới nhất khi có nhiều file xoay vòng.
+**Do not re-run in the same directory** if you still need old artifacts: `gc.log` or `burst.jfr` may be overwritten. In services/CI, use separate directories or filenames keyed by run ID with a retention policy. When long-term GC logs are required, size rotation count/filesize to cover the full investigation window; never read only the newest file when multiple rotated files exist.
 
-### 4.2. Stdout đúng của chương trình
+### 4.2. Exact Program Stdout
 
 ```text
 phase=baseline
@@ -220,33 +220,33 @@ nominalBytes=491520000
 checksum=1008
 ```
 
-Đây là **stdout xác định của ví dụ**, đã được biên dịch và chạy kiểm chứng bằng JDK 24. JVM còn có thể in thông báo khởi động JFR **riêng** ra console; thông tin startup như PID, filename và maxsize thay đổi. Số lượng GC, pause, allocation samples, thời điểm, dung lượng file và độ trễ cũng thay đổi giữa các lượt chạy.
+This is the **deterministic stdout of the example**, verified by compiling and running on JDK 24. The JVM may also print **separate** JFR startup messages to the console; startup details such as PID, filename, and maxsize vary. GC counts, pauses, allocation samples, timestamps, file sizes, and latencies also vary between runs.
 
-### 4.3. Xác nhận đủ hai artifact
+### 4.3. Verifying Both Artifacts
 
-Sau khi Java process **kết thúc thành công**, kiểm tra:
+After the Java process **exits successfully**, check:
 
 ```bash
 ls -lh gc.log burst.jfr
 jfr summary burst.jfr
 ```
 
-PowerShell tương đương:
+PowerShell equivalent:
 
 ```powershell
 Get-Item .\gc.log, .\burst.jfr | Select-Object Name,Length
 jfr summary burst.jfr
 ```
 
-Nếu `burst.jfr` không xuất hiện, kiểm tra exit code, JFR startup message, quyền ghi và việc tiến trình có thoát bình thường không. Nếu `gc.log` thiếu các event dự kiến, kiểm tra JVM có thực chạy với `-Xlog` không, collector/heap flags và log rotation. **Không đọc file tồn tại từ lần trước rồi tuyên bố phép thu lần này thành công.**
+If `burst.jfr` is missing, check exit code, JFR startup messages, write permissions, and whether the process exited normally. If `gc.log` lacks expected events, verify the JVM actually ran with `-Xlog`, collector/heap flags, and log rotation. **Never inspect a leftover file from a previous run and declare this run's capture successful.**
 
-Có thể thu một recording trên JVM đã chạy bằng `jcmd <PID> JFR.start settings=profile ...` và dump khi cần; tuy nhiên cho bài này khởi động cả GC log/JFR **ngay từ đầu cùng một PID** giúp tránh lệch cửa sổ. Khi phải attach vào dịch vụ, đọc `jcmd <PID> help JFR.start`, `JFR.check` và kế hoạch vận hành riêng; JFR attach sau burst không thể phục hồi event đã qua.
+You can start a recording on an already running JVM via `jcmd <PID> JFR.start settings=profile ...` and dump when needed; however, for this lab starting GC logging and JFR **from launch on the same PID** avoids window skew. When attaching to a live service, consult `jcmd <PID> help JFR.start`, `JFR.check`, and your operational runbook; JFR attached after a burst cannot recover past events.
 
-## 5. Phân tích GC log: số lần GC, heap trước/sau, pause
+## 5. Analyzing the GC Log: GC Count, Pre/Post Heap, Pauses
 
-### 5.1. Đọc header khởi động của JVM
+### 5.1. Reading the JVM Startup Header
 
-Vì bật `gc*=info`, phần đầu file có thể liệt kê collector và các thông số:
+Because `gc*=info` is enabled, the start of the file lists the collector and parameters:
 
 ```text
 [...][info][gc     ] Using G1
@@ -254,47 +254,47 @@ Vì bật `gc*=info`, phần đầu file có thể liệt kê collector và các
 [...][info][gc,init] Heap Max Capacity: 128M
 ```
 
-Các dòng trên được rút gọn từ **một lần chạy ví dụ**. Chúng xác nhận collector và heap limit, giúp tránh nhầm JVM thực tế dùng collector khác. `128M` là Java heap cap, **không phải toàn bộ RSS**, không bao gồm metaspace, thread stacks, code cache và nhiều vùng native.
+These lines are abbreviated from **one example run**. They confirm the collector and heap limit, preventing mistaking a JVM actually running another collector. `128M` is the Java heap cap, **not total RSS**, excluding metaspace, thread stacks, code cache, and many native areas.
 
-### 5.2. Đọc một dòng Pause Young
+### 5.2. Reading a `Pause Young` Line
 
-Trong lần kiểm chứng với OpenJDK 24, có dòng:
+During verification on OpenJDK 24, a line read:
 
 ```text
 [2026-10-29T18:19:02.690+0700][0.835s][info][gc] GC(0) Pause Young (Normal) (G1 Evacuation Pause) 48M->4M(128M) 2.355ms
 ```
 
-Ý nghĩa từng phần:
+Breakdown of each part:
 
-| Phần | Giải nghĩa |
+| Part | Explanation |
 | --- | --- |
-| `2026-10-29T18:19:02.690+0700` | Thời điểm log hiển thị theo wall-clock, gồm UTC offset |
-| `0.835s` | Uptime của chính JVM tại thời điểm log; không phải số giây từ khi burst bắt đầu |
-| `info` và `gc` | Log level và GC tag |
-| `GC(0)` | GC ID của VM trong lượt chạy đó, có ích khi nối event JFR cùng `gcId` |
-| `Pause Young (Normal)` | Một lần thu gom young generation có stop-the-world pause |
-| `G1 Evacuation Pause` | Pha evacuation của G1 |
-| `48M->4M(128M)` | Heap used **trước/sau** GC, và heap capacity được hiển thị (với flags demo là 128 MiB) |
-| `2.355ms` | Thời lượng pause mà GC log báo cho lần thu gom này |
+| `2026-10-29T18:19:02.690+0700` | Wall-clock log timestamp, including UTC offset |
+| `0.835s` | JVM's own uptime at log time; not seconds since the burst started |
+| `info` and `gc` | Log level and GC tag |
+| `GC(0)` | VM GC ID for this run, useful for joining with JFR events by `gcId` |
+| `Pause Young (Normal)` | A young-generation collection with a stop-the-world pause |
+| `G1 Evacuation Pause` | G1 evacuation phase |
+| `48M->4M(128M)` | Heap used **before/after** GC, and displayed heap capacity (128 MiB with demo flags) |
+| `2.355ms` | Pause duration reported in the GC log for this collection |
 
-**Không đọc `48M->4M` thành “JVM đã giải phóng đúng 44 MiB object leak”.** Nó cho thấy heap used giảm ròng qua một lần young GC; phân tích nguyên nhân còn phụ thuộc allocation rate, vùng tuổi của object, promotions và collector.
+**Do not read `48M->4M` as "the JVM freed exactly 44 MiB of leaked objects."** It shows net heap used dropped across one young GC; diagnosing causes still depends on allocation rate, object ages, promotions, and collector behavior.
 
-### 5.3. Phân biệt log bắt đầu, kết thúc và pha chi tiết
+### 5.3. Distinguishing Start, Completion, and Detailed Sub-Phase Logs
 
-Với `gc*=info`, cùng một GC có thể có nhiều dòng:
+With `gc*=info`, one GC can emit multiple lines:
 
 ```text
 [...][info][gc,start] GC(0) Pause Young (Normal) (G1 Evacuation Pause)
 [...][info][gc]       GC(0) Pause Young (Normal) (G1 Evacuation Pause) 48M->4M(128M) 2.355ms
 ```
 
-Cộng số dòng có chữ `Pause Young` thành số lần GC là **đếm trùng**. Chỉ đếm một dòng tóm tắt hoàn thành cho mỗi `GC(n)`; các dòng tag `gc,phases`, `gc,heap`, `gc,cpu` có thể mô tả chi tiết của cùng GC đó. Không cộng toàn bộ thời lượng pha con vào tổng pause nếu pha đã nằm bên trong pause tổng.
+Counting every line containing `Pause Young` as a separate GC **double-counts**. Count only one completion summary line per `GC(n)`; lines tagged `gc,phases`, `gc,heap`, `gc,cpu` describe details of that same GC. Never add all sub-phase durations onto the total pause when those phases already sit inside the total pause.
 
-### 5.4. Kết quả GC thực nghiệm của một lần chạy
+### 5.4. Observed GC Results from One Run
 
-Đây là số liệu **đã thu trong một lượt ví dụ trên OpenJDK 24**, không phải output cố định cho mọi máy:
+These numbers were **collected in one example run on OpenJDK 24**, not fixed output across all machines:
 
-| GC ID | Heap used trước → sau (capacity) | Pause |
+| GC ID | Heap used before → after (capacity) | Pause |
 | --- | --- | ---: |
 | `GC(0)` | 48M → 4M (128M) | 2.355 ms |
 | `GC(1)` | 59M → 4M (128M) | 1.651 ms |
@@ -303,31 +303,31 @@ Cộng số dòng có chữ `Pause Young` thành số lần GC là **đếm trù
 | `GC(4)` | 76M → 4M (128M) | 1.549 ms |
 | `GC(5)` | 76M → 4M (128M) | 1.722 ms |
 | `GC(6)` | 76M → 4M (128M) | 1.494 ms |
-| **Tổng 7 pause** | — | **12.609 ms** |
+| **Total 7 pauses** | — | **12.609 ms** |
 
-Cách tính tổng trên là cộng **bảy thời lượng trên bảy dòng GC hoàn thành**, không phải cộng lại cả dòng `gc,start` hay các GC phase con. Số liệu dùng để học cách đọc; kết quả chạy của bạn có thể có ít/nhiều lần GC, mức heap sau GC khác, hoặc không cùng khoảng pause.
+The total above sums **the seven durations on the seven completed GC lines**, without re-adding `gc,start` lines or nested GC sub-phases. Use these numbers to practice reading; your run may show fewer or more GCs, a different post-GC heap floor, or different pause ranges.
 
-**Nhận xét hợp lệ của lượt này:** trong pha cấp phát mạnh, heap used tăng giữa các young GC nhưng giảm trở lại gần 4M sau từng lần; điều này **phù hợp với nhiều object ngắn hạn**. Nó không chứng minh toàn bộ ứng dụng không có leak, nhất là nếu phép thử quá ngắn hoặc chưa chạy các chu kỳ tải khác.
+**Valid observation for this run:** during the heavy allocation phase, heap used rose between young GCs yet fell back near 4M after each cycle; this **is consistent with short-lived objects**. It does not prove the entire application is leak-free, especially if the test was brief or missed other load cycles.
 
-### 5.5. Các metrics cần rút ra
+### 5.5. Metrics to Extract
 
-| Metric | Cách lấy | Giới hạn |
+| Metric | How to Obtain | Limitation |
 | --- | --- | --- |
-| Số GC trong burst | Đếm GC IDs duy nhất có timestamp trong cửa sổ burst | Cần loại log bắt đầu/pha con và GC ngoài cửa sổ |
-| Tổng GC pause | Cộng pause **tổng** của các GC thuộc cửa sổ | Không cộng các cấp GCPhasePauseLevel1/2/... như thể độc lập |
-| Pause ratio trong cửa sổ | `sum(STW pause duration) / wall duration` | Không trực tiếp bằng %CPU GC; concurrent GC và queue latency khác |
-| GC frequency | `số GC / thời gian quan sát` | Phụ thuộc heap size, workload, collector; không tự cho biết bug |
-| Heap used sau GC | So các mốc **sau GC tương đương** | Young GC không loại bỏ mọi object old generation |
-| Độ lớn vùng heap trước/sau | GC log occupancy | Không phải lượng byte phân bổ bởi tất cả objects trong kỳ |
-| Throughput/latency ứng dụng | Metrics độc lập hoặc load-test | Không suy ra trực tiếp chỉ từ `gc.log` |
+| GCs during burst | Count unique GC IDs timestamped in the burst window | Exclude start/sub-phase lines and GCs outside the window |
+| Total GC pause | Sum **total** pauses of GCs inside the window | Never add `GCPhasePauseLevel1/2/...` as independent pauses |
+| Pause ratio in window | `sum(STW pause duration) / wall duration` | Not directly equal to GC %CPU; concurrent GC and queue latency differ |
+| GC frequency | `GC count / observation duration` | Depends on heap size, workload, collector; does not prove a bug on its own |
+| Post-GC heap used | Compare points **after comparable GCs** | Young GC does not collect all old-generation objects |
+| Pre/post heap occupancy | GC log occupancy | Not equal to total bytes allocated by all objects in the interval |
+| App throughput/latency | Independent metrics or load tests | Cannot be inferred from `gc.log` alone |
 
-Nếu mục tiêu là latency người dùng, cần thêm request traces/metrics ở cùng timeline. Không có metric latency thì chỉ kết luận về **GC behavior trong lab**, không gọi GC pause là nguyên nhân của một SLO violation.
+If user latency is the concern, correlate request traces/metrics on the same timeline. Without latency metrics, restrict conclusions to **GC behavior in the lab**, never blaming GC pauses for an SLO violation without timing overlap.
 
-## 6. Đọc JFR: event GC và allocation sample
+## 6. Reading JFR: GC Events and Allocation Samples
 
-### 6.1. Kiểm tra danh mục/số event
+### 6.1. Checking Event Types and Counts
 
-Trong thư mục lab:
+Inside the lab directory:
 
 ```bash
 jfr summary burst.jfr
@@ -335,9 +335,9 @@ jfr metadata --events jdk.ObjectAllocationSample burst.jfr
 jfr metadata --events lab.AllocationPhase burst.jfr
 ```
 
-`jfr summary` cho số instance mỗi event type **đã được lưu trong file**; `metadata` mô tả schema, không phải bằng chứng đã có event instance. Ví dụ, một file có định nghĩa `jdk.ObjectAllocationSample` nhưng 0 instance có thể do chưa bật, không đủ activity, sampling/throttle hoặc cửa sổ không bao trùm burst.
+`jfr summary` reports instance counts per event type **actually written to the file**; `metadata` describes the schema, not proof that instances occurred. For instance, a file defining `jdk.ObjectAllocationSample` with 0 instances could result from being disabled, insufficient activity, sampling/throttling, or a recording window missing the burst.
 
-**Một lần chạy được kiểm chứng** có các số sau:
+**One verified run** produced these counts:
 
 ```text
 jdk.ObjectAllocationSample       120
@@ -347,15 +347,15 @@ jdk.GarbageCollection              7
 lab.AllocationPhase                4
 ```
 
-Đây chỉ là **trích lược hai cột tên event và count** từ output `jfr summary`, không phải stdout nguyên văn của lệnh. 120 allocation samples **không có nghĩa chỉ có 120 object được cấp phát**; ứng dụng đã yêu cầu 30.000 array. Hai phép đếm có ý nghĩa hoàn toàn khác nhau.
+This is only an **excerpt of two columns (event name and count)** from `jfr summary`, not verbatim full stdout. 120 allocation samples **does not mean only 120 objects were allocated**; the program requested 30,000 arrays. Those two counts mean entirely different things.
 
-### 6.2. Xem phase markers để xác định cửa sổ
+### 6.2. Inspecting Phase Markers to Bound the Window
 
 ```bash
 jfr print --events lab.AllocationPhase burst.jfr
 ```
 
-Trích một số dòng **từ lượt kiểm chứng**:
+Excerpt **from the verified run**:
 
 ```text
 lab.AllocationPhase {
@@ -380,11 +380,11 @@ lab.AllocationPhase {
 }
 ```
 
-Các mốc này cho biết chính chương trình bắt đầu/kết thúc vòng cấp phát; **không phải bốn GC**. `nominalBytes=491520000` là dữ liệu nghiệp vụ do code tự báo, không phải số byte JFR tự đo.
+These markers show when the program itself started/ended the allocation loop; **they are not four GCs**. `nominalBytes=491520000` is application-reported data, not bytes measured independently by JFR.
 
-Trong dữ liệu này, khoảng `burst-start` → `burst-end` là **xấp xỉ 58 ms**, nhưng không dùng độ dài đó để tuyên bố throughput production. JIT, CPU, OS, GC, nền tảng và overhead từ JFR ảnh hưởng thời lượng. Nếu cần phân tích GC theo một pha, chọn đúng cửa sổ markers thay vì nhìn toàn bộ file.
+In this dataset, `burst-start` → `burst-end` spans **approximately 58 ms**, yet do not cite that duration as a production throughput figure. JIT, CPU, OS, GC, platform, and JFR overhead all affect timing. When analyzing GC for a specific phase, filter to the marker window instead of the whole file.
 
-### 6.3. Xem GC events và so với GC log
+### 6.3. Inspecting GC Events and Comparing with the GC Log
 
 ```bash
 jfr print --events jdk.GarbageCollection burst.jfr
@@ -392,7 +392,7 @@ jfr print --events jdk.GCPhasePause burst.jfr
 jfr print --events jdk.GCHeapSummary burst.jfr
 ```
 
-Ví dụ `GCPhasePause` cho `gcId=0`:
+Example `GCPhasePause` for `gcId=0`:
 
 ```text
 jdk.GCPhasePause {
@@ -404,27 +404,27 @@ jdk.GCPhasePause {
 }
 ```
 
-Cùng lần GC có dòng GC log `GC(0) ... 2.355ms` với timestamp gần nhau. **gcId và cửa sổ thời gian** củng cố rằng hai nguồn đang nói về cùng GC; sai khác nhỏ do vị trí đặt mốc, độ phân giải, rounding và định nghĩa thời lượng, không tự chứng minh log sai.
+For the same GC, the GC log has `GC(0) ... 2.355ms` at a matching timestamp. **`gcId` and the time window** confirm both sources describe the same GC; small differences arise from measurement boundaries, resolution, rounding, and duration definitions — not proof that the log is wrong.
 
-Phân biệt loại event:
+Distinguish event types:
 
-| JFR event | Diễn giải | Không nên làm |
+| JFR Event | Interpretation | What Not to Do |
 | --- | --- | --- |
-| `jdk.GarbageCollection` | Thông tin về một lần collection, có `gcId`, name, cause và thời lượng/phần pause tùy JDK | Coi duration của concurrent cycle là toàn bộ STW pause |
-| `jdk.GCPhasePause` | Một stop-the-world GC pause, có `gcId` và duration | Cộng thêm pha con `GCPhasePauseLevel1/2/3/4` vào tổng |
-| `jdk.GCHeapSummary` | Heap snapshot tương ứng trước/sau GC, có `gcId`/`when`, dữ liệu heap | Coi heap committed là heap used hoặc RSS |
-| `jdk.ObjectAllocationSample` | Mẫu allocation có object class, weight, thread, stack trace nếu được thu | Đếm sample như đếm chính xác số object |
-| `lab.AllocationPhase` | Event tự định nghĩa để đánh dấu bước của bài lab | Coi custom marker là dữ liệu GC/JVM tự phát hiện |
+| `jdk.GarbageCollection` | Collection summary with `gcId`, name, cause, and duration/pause depending on JDK | Treat a concurrent cycle's duration as total STW pause |
+| `jdk.GCPhasePause` | A stop-the-world GC pause, with `gcId` and duration | Add sub-phases `GCPhasePauseLevel1/2/3/4` onto total |
+| `jdk.GCHeapSummary` | Pre/post-GC heap snapshot with `gcId`/`when` and heap stats | Confuse heap committed with heap used or RSS |
+| `jdk.ObjectAllocationSample` | Allocation sample with object class, weight, thread, and stack trace if captured | Count samples as exact object counts |
+| `lab.AllocationPhase` | Custom event marking lab steps | Mistake custom markers for JVM-detected GC data |
 
-Nếu `jdk.GCHeapSummary` có `when=Before GC` và `After GC`, so với occupancy của **cùng `gcId`**. Thuộc tính và cách hiển thị có thể đổi theo JDK/collector; kiểm tra schema bằng `jfr metadata` thay vì giả định mọi field xuất hiện.
+When `jdk.GCHeapSummary` includes `when=Before GC` and `After GC`, match occupancy by **the same `gcId`**. Fields and presentation can change across JDKs/collectors; inspect schema with `jfr metadata` instead of assuming every field exists.
 
-### 6.4. Xem allocation samples để tìm class và call site
+### 6.4. Inspecting Allocation Samples for Classes and Call Sites
 
 ```bash
 jfr print --events jdk.ObjectAllocationSample --stack-depth 8 burst.jfr
 ```
 
-Ví dụ event trong lần chạy thử:
+Sample event from the test run:
 
 ```text
 jdk.ObjectAllocationSample {
@@ -439,31 +439,31 @@ jdk.ObjectAllocationSample {
 }
 ```
 
-Diễn giải:
+Interpretation:
 
-- **`objectClass=byte[]`**: loại object được lấy mẫu. Trong lab, chúng ta biết mảng được tạo trong `allocateBurst()`.
-- **`stackTrace`**: giúp liên hệ allocation với call path; nếu thiếu, kiểm tra event settings/stackTrace và dữ liệu recorder.
-- **`weight`**: **trọng số của mẫu** dùng cho ước lượng áp lực cấp phát khi tổng hợp đủ mẫu, không phải kích thước object đơn lẻ và cũng không phải số byte thực tế ứng dụng đã cấp phát ở thời điểm đó.
-- **`eventThread=main`**: thread tại mẫu, không nói mọi allocation đều xảy ra từ một thread.
+- **`objectClass=byte[]`**: the sampled object class. In the lab, we know arrays were created inside `allocateBurst()`.
+- **`stackTrace`**: ties the allocation to a call path; if missing, verify event `stackTrace` settings and recorder data.
+- **`weight`**: **sample weight** used to estimate allocation pressure when aggregated over enough samples — neither a single object's size nor the exact bytes allocated by the application at that instant.
+- **`eventThread=main`**: thread at sample time, without implying every allocation came from one thread.
 
-JFR allocation sampling là **thống kê**. Những event `jdk.ObjectAllocationInNewTLAB`/`OutsideTLAB` (nếu có/bật) có semantics khác và cũng không mặc định mô tả **mọi** object. Đừng cộng mọi loại event allocation với nhau như các nguồn đo độc lập rồi báo tổng byte chính xác. Nếu muốn biết class chiếm allocation nhiều nhất, dùng **weighted samples được tổng hợp đúng** trong JDK Mission Control hoặc công cụ hỗ trợ, sau đó kiểm tra call stacks.
+JFR allocation sampling is **statistical**. Events like `jdk.ObjectAllocationInNewTLAB`/`OutsideTLAB` (if available/enabled) have different semantics and also do not capture **every** object by default. Never sum all allocation event types together as independent meters to claim exact total bytes. To rank top allocating classes, use **properly aggregated weighted samples** in JDK Mission Control or compatible tools, then inspect call stacks.
 
-Ngoài ra, 30.000 lần tạo `byte[]` trong mã Java không đảm bảo có đúng 30.000 allocation event: tùy compiler, JFR throttle/sampling, cache, framework và đường thu. Số **120 samples** không phải thiếu 29.880 event theo định nghĩa; nó là kết quả sampling.
+Moreover, 30,000 `byte[]` creations in Java code do not guarantee 30,000 allocation events: compiler optimizations, JFR throttling/sampling, caches, frameworks, and capture paths all affect counts. Having **120 samples** is not "missing 29,880 events" by definition; it is how sampling works.
 
-## 7. Ghép GC log và JFR trên cùng timeline
+## 7. Aligning GC Log and JFR on One Timeline
 
-Một báo cáo tốt cần thể hiện **mốc pha → allocation stack → GC event → heap/pauses → trạng thái sau burst**.
+A strong report connects **phase marker → allocation stack → GC event → heap/pauses → post-burst state**.
 
-### 7.1. Chọn một hệ thời gian chung
+### 7.1. Choosing One Common Time System
 
-GC log đã bật hai decorator:
+The GC log enabled two decorators:
 
-- **`time`:** thời gian tuyệt đối có UTC offset, ví dụ `2026-10-29T18:19:02.690+0700`.
-- **`uptime`:** số giây kể từ lúc JVM start, ví dụ `0.835s`.
+- **`time`:** absolute wall-clock timestamp with UTC offset, e.g., `2026-10-29T18:19:02.690+0700`.
+- **`uptime`:** seconds since JVM start, e.g., `0.835s`.
 
-JFR `jfr print` hiển thị `startTime` theo local timezone và có thể dùng timezone/format phụ thuộc công cụ. Khi ghép, cần kiểm tra **múi giờ, ngày, PID và JVM start time**. Không ghép các event chỉ vì có số giây giống nhau nhưng một bên là uptime và bên kia là wall-clock.
+`jfr print` displays `startTime` in local timezone and may format per tool settings. When joining, verify **timezone, date, PID, and JVM start time**. Never match events merely because seconds digits look similar when one is uptime and the other is wall-clock time.
 
-Trong lab này:
+In this lab:
 
 ```text
 JFR marker: burst-start          18:19:02.683
@@ -476,178 +476,178 @@ JFR marker: burst-end            18:19:02.741
 JFR marker: recovery             18:19:03.342
 ```
 
-Đây là timeline **trích từ một lượt kiểm chứng**. Bảy lần young GC khớp cửa sổ burst được đánh dấu. JFR và GC log dùng thời gian/gcId để làm **cross-check**, không chỉ một nguồn tự xác nhận chính nó.
+This timeline is **extracted from one verified run**. Seven young GCs align with the marked burst window. JFR and the GC log act as a **cross-check** via timestamps/`gcId`, rather than relying on one source validating itself.
 
-### 7.2. Bảng phân tích giai đoạn
+### 7.2. Phase Analysis Table
 
-| Pha | Kỳ vọng ở chương trình | GC log | JFR |
+| Phase | Program Expectation | GC Log | JFR |
 | --- | --- | --- | --- |
-| **Baseline** | Chưa bắt đầu vòng tạo 30.000 array | Có thể vẫn có hoạt động JVM startup/GC khác | Marker `baseline`; event trước pha nóng không tính vào burst |
-| **Burst-start → burst-end** | Tạo byte arrays ngắn hạn, yêu cầu 491.520.000 byte payload | Thường nhiều young GC và heap occupancy tăng-giảm; phải đo thật | Allocation samples `byte[]` ở `allocateBurst()`; `GarbageCollection`/`GCPhasePause` gần cùng timestamp |
-| **Recovery** | Vòng tạo object đã kết thúc, ứng dụng nghỉ ngắn | Có thể không có GC mới; heap used chưa chắc tự giảm nếu GC không chạy | Marker `recovery` và GC/heap events nào được thu |
-| **Sau khi kết thúc process** | Chương trình thoát bình thường | `gc.log` đã được flush theo cơ chế log | `burst.jfr` được dump nhờ `dumponexit=true` |
+| **Baseline** | Loop of 30,000 arrays not yet started | May still show JVM startup/other GC activity | `baseline` marker; pre-burst events excluded from burst totals |
+| **Burst-start → burst-end** | Allocates short-lived byte arrays, requesting 491,520,000 bytes payload | Typically multiple young GCs with rising/falling heap occupancy; measure actuals | `byte[]` allocation samples in `allocateBurst()`; `GarbageCollection`/`GCPhasePause` near matching timestamps |
+| **Recovery** | Allocation loop finished, short idle | May show no new GC; heap used may not drop on its own if no GC runs | `recovery` marker and any captured GC/heap events |
+| **After process exit** | Program exits cleanly | `gc.log` flushed per log settings | `burst.jfr` dumped via `dumponexit=true` |
 
-**Đừng suy “heap còn cao ở recovery ⇒ leak”** nếu chưa có một GC thích hợp sau recovery. Heap usage có thể đang chứa garbage chưa thu và memory đã committed chưa nhất thiết trả ngay về OS. Cần so các mốc sau GC tương đương qua nhiều chu kỳ, không yêu cầu JVM phải luôn trả heap used bằng 0 sau khi ứng dụng nghỉ.
+**Do not conclude "heap still high in recovery ⇒ leak"** if no suitable GC ran after recovery. Heap usage may hold uncollected garbage, and committed memory need not return immediately to the OS. Compare post-GC points across comparable cycles rather than demanding heap used return to 0 whenever the app idles.
 
-### 7.3. Đối chiếu theo `gcId`
+### 7.3. Correlating by `gcId`
 
-Trong một HotSpot JVM, các event GC cùng một collection thường chia sẻ `gcId`, tương ứng nhãn `GC(n)` của GC log. Với demo, `GC(0)` đi cùng `jdk.GCPhasePause gcId=0`. Tuy nhiên nếu JFR được bật muộn, event bị lọc/mất, snapshot trích cửa sổ hẹp, hoặc collector có concurrent phases, **tổng số event không bắt buộc bằng số dòng log**.
+Within one HotSpot JVM, GC events belonging to the same collection usually share `gcId`, matching `GC(n)` in the GC log. In the demo, `GC(0)` matches `jdk.GCPhasePause gcId=0`. However, if JFR started late, events were filtered/dropped, snapshots cover a narrower window, or the collector uses concurrent phases, **event counts need not equal log line counts**.
 
-Quy trình thủ công đáng tin:
+Reliable manual workflow:
 
-1. Lấy thời gian của `burst-start` và `burst-end`.
-2. Lọc các dòng **GC hoàn thành** trong khoảng đó; ghi `GC(n)`, type, before/after và pause duration.
-3. Trong JFR, lọc `jdk.GarbageCollection`/`GCPhasePause` theo thời gian; ghi `gcId`, duration.
-4. Nối trên `gcId` và đối chiếu timestamp; không nối theo thứ tự các dòng in ra nếu số event khác.
-5. Từ JFR allocation samples trong **cùng khoảng pha**, chọn class và call stacks có trọng số cao, thay vì đọc tất cả sample trên toàn recording.
-6. Từ `GCHeapSummary`/log after GC, xem heap có trở về gần baseline hay tăng bền qua nhiều pha.
+1. Read timestamps of `burst-start` and `burst-end`.
+2. Filter **completed GC lines** within that interval; record `GC(n)`, type, before/after, and pause duration.
+3. In JFR, filter `jdk.GarbageCollection`/`GCPhasePause` by time; record `gcId` and duration.
+4. Join on `gcId` and cross-check timestamps; never zip by print order if counts differ.
+5. From JFR allocation samples in **the same phase window**, rank top classes and call stacks by weight rather than reading every sample across the whole recording.
+6. From `GCHeapSummary`/post-GC logs, check whether heap returns near baseline or climbs steadily across cycles.
 
-### 7.4. Cách đọc khi số liệu hai nguồn không khớp
+### 7.4. What to Check When Both Sources Disagree
 
-| Hiện tượng | Kiểm tra trước |
+| Observation | Check First |
 | --- | --- |
-| GC log có 7 young GC, JFR chỉ thấy 5 | JFR start/end, retention, enabled, event types, thời gian export |
-| GC log 2.355ms, JFR pause 2.30ms | Độ phân giải, rounding, thời điểm bắt đầu/kết thúc event; GC ID |
-| JFR allocation sample 120, chương trình tạo 30.000 array | Sampling, throttle/weight, không phải nhật ký từng allocation |
-| `jdk.GCHeapSummary` thấy heap lớn nhưng GC log after nhỏ | Đúng `when=Before/After`, `gcId`, đơn vị, heap used hay committed, collector |
-| Có high allocation nhưng không có GC đáng kể | Heap đủ rộng, allocation nằm ngoài cửa sổ, JFR sample thiếu; kiểm tra data trước |
-| Sau recovery heap chưa giảm | Không có GC ở recovery, object còn reachable hoặc GC policy giữ heap committed |
-| JFR không có custom marker | Kiểm tra đúng file, event settings, JFR bắt đầu trước main và quá trình dump |
+| GC log shows 7 young GCs, JFR shows only 5 | JFR start/end, retention, enabled flags, event types, export timing |
+| GC log 2.355ms, JFR pause 2.30ms | Clock resolution, rounding, event start/end hooks; `gcId` |
+| 120 JFR allocation samples vs. 30,000 created arrays | Sampling, throttling/weights — not an allocation-by-allocation log |
+| `jdk.GCHeapSummary` shows large heap while GC log `after` is small | Check `when=Before/After`, `gcId`, units, heap used vs. committed, collector |
+| High allocation yet barely any GC | Heap large enough, allocation outside window, missing JFR samples; verify data first |
+| Heap did not drop during recovery | No GC ran in recovery, objects still reachable, or GC policy keeps heap committed |
+| JFR lacks custom markers | Verify right file, event settings, JFR started before `main`, and clean dump |
 
-## 8. Đọc trong JDK Mission Control (JMC)
+## 8. Reading in JDK Mission Control (JMC)
 
-Nếu có JDK Mission Control, mở `burst.jfr` và kiểm tra theo thứ tự:
+If JDK Mission Control is available, open `burst.jfr` and inspect in order:
 
-1. **General/Recording information:** start/end, duration, JVM/JDK, recording settings để chắc đây là file của lượt đo.
-2. **Event Browser:** tìm `lab.AllocationPhase`, đọc bốn mốc, chọn **cửa sổ burst**.
-3. **Memory/Allocations:** xem allocation pressure theo thời gian; group theo class và allocation stack. `byte[]` và `GcJfrBurstLab.allocateBurst` là đường dự kiến trong demo.
-4. **Garbage Collections / GC Pauses:** đối chiếu số lần, loại GC, longest/sum of pauses, `gcId`/timestamp với file `gc.log`.
-5. **Heap statistics/usage:** phân biệt used, committed, before/after GC; nếu event heap summary có nhiều snapshot, dùng cùng gcId.
-6. **CPU and Threads:** xem workload có CPU saturation khác hoặc compiler/GC worker activity gây nhiễu không.
-7. **Export notes:** lưu bảng timeline/các screenshot cần thiết, luôn ghi JDK/event settings và time range. Đồ thị tổng quan chỉ là diễn giải; giữ file gốc để kiểm toán.
+1. **General/Recording information:** start/end, duration, JVM/JDK, and recording settings to verify this is the right run's file.
+2. **Event Browser:** find `lab.AllocationPhase`, read the four checkpoints, and select **the burst window**.
+3. **Memory/Allocations:** view allocation pressure over time; group by class and allocation stack. `byte[]` and `GcJfrBurstLab.allocateBurst` are the expected path in the demo.
+4. **Garbage Collections / GC Pauses:** compare count, GC type, longest/sum of pauses, and `gcId`/timestamps against `gc.log`.
+5. **Heap statistics/usage:** distinguish used, committed, before/after GC; when heap summary has multiple snapshots, match by `gcId`.
+6. **CPU and Threads:** check whether other CPU saturation or compiler/GC worker activity adds noise.
+7. **Export notes:** save timeline tables/needed screenshots, always recording JDK/event settings and time ranges. Overview charts are interpretive aids; keep the raw file for auditing.
 
-**Không giả định mọi máy đều có JMC**, vì JMC là công cụ có thể cài riêng. Các lệnh `jfr summary`/`jfr print` của JDK vẫn cho phép làm bài. Nếu JMC đặt timezone/filter khác, đừng so từng nhãn giờ một cách máy móc; chuẩn hóa timezone trước.
+**Do not assume every machine has JMC**, as JMC may be installed separately. JDK's `jfr summary`/`jfr print` commands still allow completing the lab. If JMC uses a different timezone/filter, never compare time labels blindly; normalize timezones first.
 
-## 9. Phân tích: allocation churn không phải memory leak
+## 9. Analysis: Allocation Churn Is Not a Memory Leak
 
-Trong lượt thực nghiệm:
+In this experimental run:
 
-- Chương trình yêu cầu tạo khoảng **468,75 MiB array payload** trong một đợt rất ngắn.
-- Heap cap chỉ **128 MiB**.
-- GC log ghi **7 lần young GC**; mức used sau mỗi young GC quan sát gần **4 MiB**, trong khi trước GC thường tăng đến vài chục MiB.
-- JFR có **120 `jdk.ObjectAllocationSample`** và các sample `byte[]` từ `GcJfrBurstLab.allocateBurst()`.
-- Bốn marker ghi rõ khi nào burst bắt đầu và kết thúc.
+- The program requested roughly **468.75 MiB of array payloads** in a very short burst.
+- The heap cap was only **128 MiB**.
+- The GC log recorded **7 young GCs**; post-young-GC used settled near **4 MiB**, while pre-GC usage climbed into tens of MiB.
+- JFR captured **120 `jdk.ObjectAllocationSample`** events showing `byte[]` samples from `GcJfrBurstLab.allocateBurst()`.
+- Four markers clearly bounded when the burst started and ended.
 
-Dữ liệu trên **ủng hộ mạnh** nhận định rằng đợt cấp phát này chủ yếu tạo ra mảng ngắn hạn và GC có thể thu hồi phần lớn ở các lần young collection. **Chưa có bằng chứng leak từ phép thử ngắn này.** Nhưng không thể khẳng định mọi loại object đều ngắn hạn hay production chắc chắn không leak nếu không có thêm workload và thời gian đo.
+This data **strongly supports** the conclusion that the burst mainly created short-lived arrays and GC reclaimed most of them in young collections. **There is no evidence of a leak in this short test.** Still, you cannot declare every object class short-lived or guarantee production is leak-free without further workload and longer observation.
 
-### Để nghi retention/leak, cần thử thêm gì?
+### What Extra Testing Is Needed When Retention/Leak Is Suspected?
 
-Thiết kế nhiều vòng **tăng tải → hạ tải → lặp lại**, với workload và concurrency đã cố định:
+Design multiple **ramp-up → ramp-down → repeat** cycles with fixed workload and concurrency:
 
-- Đo heap used sau các điểm GC có thể so sánh, không chỉ heap used trước GC.
-- So lần trước và sau warm-up; tách cache/connection pool/session/index hợp lệ khỏi object không cần nữa.
-- Nếu sau mỗi vòng số object reachable không còn cần thiết vẫn tăng, lấy heap dump/histogram và phân tích dominator/GC roots **theo chính sách vận hành**.
-- Không ép `System.gc()` vô điều kiện như một “kiểm tra leak chuẩn”: nó thay đổi hành vi ứng dụng và tùy JVM có thể không chạy như mong đợi. Chỉ thực hiện phép thử GC có kiểm soát ở môi trường được phép.
-- Kiểm tra direct buffers, JNI/native memory, metaspace và RSS nếu memory của process tăng mà Java heap/JFR object allocations không giải thích được.
+- Measure heap used after comparable GC points, not just pre-GC heap used.
+- Compare before and after warm-up; separate valid caches/connection pools/sessions/indexes from obsolete objects.
+- If unreachable-in-logic yet retained objects grow after every cycle, capture a heap dump/histogram and analyze dominators/GC roots **per operational policy**.
+- Do not blindly force `System.gc()` as a "standard leak test": it perturbs application behavior and may not run as expected depending on JVM flags. Run controlled GC experiments only in authorized environments.
+- Inspect direct buffers, JNI/native memory, metaspace, and RSS if process memory climbs while Java heap/JFR object allocations do not explain it.
 
-### Khi nào gọi là GC performance problem?
+### When Is GC Actually a Performance Problem?
 
-Một hệ thống có allocation mạnh **chỉ thành vấn đề** nếu gây tác động đáng kể lên latency/throughput, CPU hoặc chi phí mà mục tiêu sản phẩm quan tâm. Cần thêm:
+Heavy allocation **becomes a problem only** when it noticeably impacts latency/throughput, CPU, or costs that matter to product goals. You also need:
 
-- **Request latency và SLO** cùng timestamp; có request overlap với GC STW pause không?
-- **Sum of pauses / wall duration**, longest pause, GC frequency và GC CPU time nếu có. GC concurrent work không giống stop-the-world pause.
-- **Allocation rate theo endpoint hoặc class/call stack** từ JFR weighted samples và metrics độc lập.
-- **Cùng tải và cấu hình** để so trước/sau tối ưu: JDK, GC, heap, flags, payload, cache, RPS, concurrency, quota.
-- **Can thiệp xác minh**: giảm allocation trong hot path, pool/cache hợp lý hoặc điều chỉnh cấu trúc dữ liệu, rồi đo lại p95/GC/alloc. Không bắt đầu bằng đổi GC flags theo cảm giác.
+- **Request latency and SLOs** on the same timestamps; do slow requests overlap with GC STW pauses?
+- **Sum of pauses / wall duration**, longest pause, GC frequency, and GC CPU time if available. Concurrent GC work differs from stop-the-world pauses.
+- **Allocation rate by endpoint or class/call stack** from JFR weighted samples and independent metrics.
+- **Matched load and config** for before/after optimization comparisons: JDK, GC, heap, flags, payloads, caches, RPS, concurrency, quotas.
+- **Verification changes**: trim allocations on hot paths, size pools/caches sensibly, or adjust data structures, then re-measure p95/GC/alloc. Do not start by tweaking GC flags on gut feeling.
 
-## 10. Các lỗi đo và diễn giải thường gặp
+## 10. Common Measurement and Interpretation Mistakes
 
-**1. Đếm hai dòng `GC(0)` thành hai collection.** Dòng `gc,start` và dòng tóm tắt hoàn thành có cùng GC ID. Đếm một lần theo ID và mục tiêu báo cáo.
+**1. Counting two `GC(0)` lines as two collections.** `gc,start` and the completion summary share the same GC ID. Count once per ID per reporting goal.
 
-**2. Cộng GC phase con lặp vào pause tổng.** `GCPhasePauseLevel1/2/3/4` có thể là các pha lồng nhau. Đừng cộng chúng vào `GCPhasePause` rồi kết luận ứng dụng dừng lâu hơn thực tế.
+**2. Adding nested GC sub-phases onto total pause.** `GCPhasePauseLevel1/2/3/4` can be nested phases. Never add them onto `GCPhasePause` and conclude the app paused longer than reality.
 
-**3. Coi `48M->4M(128M)` là allocation chính xác 44 MiB.** Đây là heap occupancy trước/sau GC, không phải lượng đã cấp phát giữa hai GC hay số byte bị leak.
+**3. Reading `48M->4M(128M)` as exactly 44 MiB allocated.** That is pre/post-GC heap occupancy, not total bytes allocated between GCs or bytes leaked.
 
-**4. Coi JFR allocation sample count là object count.** Sampling weight đại diện phép ước lượng; 120 samples không phủ định 30.000 lần tạo mảng.
+**4. Treating JFR allocation sample count as object count.** Sampling weights represent statistical estimates; 120 samples do not contradict 30,000 array allocations.
 
-**5. Cộng tất cả `weight` mà không kiểm tra cửa sổ và phương pháp tổng hợp.** Trọng số chỉ có ý nghĩa thống kê trong đúng event type/setting. Nếu JFR throttle hay sampling thay đổi, phép so giữa lượt A/B dễ sai.
+**5. Summing all `weight` values without checking windows and aggregation rules.** Weights are statistically meaningful only within matching event types/settings. If JFR throttling or sampling changes, A/B run comparisons break.
 
-**6. Coi `nominalBytes=491520000` là heap live size.** Đây là tổng payload yêu cầu bởi mã ví dụ; các array cũ bị ghi đè khỏi ring, GC có thể thu hồi liên tục.
+**6. Treating `nominalBytes=491520000` as live heap size.** That is cumulative payload requested by the demo; old arrays overwritten in the ring are continuously reclaimed by GC.
 
-**7. Ghép sai GC log và JFR từ hai lần chạy.** Phải giữ cùng JVM/PID, clock/timezone, file và runtime build; dùng marker/gcId và timestamp.
+**7. Mixing GC log and JFR from two different runs.** Keep identical JVM/PID, clock/timezone, files, and runtime build; align with markers/`gcId` and timestamps.
 
-**8. So trực tiếp `uptime` GC log với thời gian JFR local.** Một bên là khoảng từ start, một bên là wall-clock. Phải quy về cùng hệ thời gian.
+**8. Comparing GC log `uptime` directly against JFR local time.** One is elapsed time since start, the other is wall-clock time. Convert to a common time axis.
 
-**9. Đọc file JFR trước khi process có cơ hội dump khi exit.** `dumponexit=true` của demo xuất khi thoát bình thường; nếu muốn snapshot giữa chương trình dài, dùng `jcmd JFR.dump` và xác minh file.
+**9. Reading the JFR file before the process exits to dump.** The demo's `dumponexit=true` writes on clean exit; for mid-run snapshots on long processes, use `jcmd JFR.dump` and verify the file.
 
-**10. Kết luận không có leak vì sau một young GC còn 4 MiB.** Old gen, cache hợp lệ hoặc leak chậm có thể không lộ ra trong một đợt ngắn. Cần theo dõi sau GC cùng điều kiện qua nhiều chu kỳ.
+**10. Concluding no leak because 4 MiB remained after one young GC.** Old gen, valid caches, or slow leaks may not appear in a short burst. Track post-GC baselines under identical conditions across many cycles.
 
-**11. Kết luận GC gây p95 cao khi chưa thu latency.** GC có pause nhưng chưa chắc trùng request bị chậm; cần metric/tracing ứng dụng và time alignment.
+**11. Blaming GC for high p95 without latency telemetry.** GC had pauses, yet they may not overlap the slow requests; correlate application metrics/tracing and timestamps.
 
-**12. Gắn `gc*=debug` hay full allocation tracing không giới hạn trên production.** Log rất chi tiết, JFR sampling dày và nhiều stack traces có overhead/file growth; đặt time window và storage budget.
+**12. Turning on `gc*=debug` or unbounded full allocation tracing in production.** Verbose logs, dense JFR sampling, and deep stack traces add overhead/disk growth; bound time windows and storage budgets.
 
-**13. Bật JFR muộn khi burst đã qua.** Không thể hồi phục event đã xảy ra trước recording. Đặt JFR từ startup hoặc schedule capture đủ sớm.
+**13. Starting JFR too late after the burst passed.** Events before recording started cannot be recovered. Configure JFR from startup or schedule capture early enough.
 
-**14. So kết quả với collector/heap khác mà không ghi nhận.** Cùng workload với G1/Parallel/ZGC có log types, pause distribution và event counts khác; đây là biến độc lập cần được kiểm soát.
+**14. Comparing runs with different collectors or heap sizes without noting it.** Identical workloads under G1/Parallel/ZGC yield different log formats, pause distributions, and event counts; treat that as an independent variable.
 
-**15. Chỉ xem Java heap mà bỏ RSS/native.** GC/JFR object allocation không đại diện mọi bộ nhớ ngoài heap. Metaspace, thread stacks, direct/native buffers và JNI có đường đo khác.
+**15. Watching only Java heap and ignoring RSS/native.** GC/JFR object allocations do not reflect all off-heap memory. Metaspace, thread stacks, direct/native buffers, and JNI require separate views.
 
-## 11. Thực hành mở rộng có đối chứng
+## 11. Controlled Extended Practice
 
-Sau khi chạy đúng ví dụ gốc, có thể tạo ba lượt **trong thư mục riêng**, chỉ đổi một biến ở mỗi lượt:
+After running the baseline example cleanly, create three runs **in separate directories**, changing only one variable per run:
 
-| Lượt | Biến thay đổi | Dự đoán cần kiểm chứng |
+| Run | Changed Variable | Prediction to Verify |
 | --- | --- | --- |
-| A | `-Xms128m -Xmx128m`, code gốc | Nhiều young GC trong burst, JFR samples ở `byte[]` |
-| B | Tăng heap phù hợp tài nguyên máy, giữ code/collector | Có thể ít GC hơn; không bảo đảm allocation payload giảm |
-| C | Giảm `BLOCKS` theo hệ số xác định, giữ heap | Tổng payload giảm, GC pressure thường giảm; cần đo thật |
+| A | `-Xms128m -Xmx128m`, original code | Multiple young GCs during burst; JFR samples on `byte[]` |
+| B | Larger heap within host limits, same code/collector | Likely fewer GCs; does not guarantee allocation payload drops |
+| C | Reduce `BLOCKS` by a fixed factor, same heap | Total payload drops, GC pressure usually drops; measure actuals |
 
-Nếu sửa source, phải biên dịch lại; so đúng cùng Java/JFR flags, workload và thời điểm. **Không dự đoán cứng số GC** vì collector heuristics và môi trường. Ghi output của từng lượt cùng `GC(n)`, pause sum, JFR allocation samples và phase timestamps.
+If modifying source code, recompile; keep Java/JFR flags, workload, and timing comparable. **Never hardcode predicted GC counts**, as collector heuristics and environments vary. Record each run's `GC(n)`, pause sum, JFR allocation samples, and phase timestamps.
 
-### Bảng ghi kết quả
+### Result Recording Table
 
-| Thông số | Lượt A | Lượt B | Lượt C |
+| Metric | Run A | Run B | Run C |
 | --- | --- | --- | --- |
 | JDK/OS/G1/heap flags | | | |
 | `BLOCKS` × `BLOCK_BYTES`, nominal bytes | | | |
-| Marker burst-start/burst-end | | | |
-| Số GC IDs trong burst | | | |
-| Tổng STW pause trong burst | | | |
+| Markers `burst-start`/`burst-end` | | | |
+| GC ID count during burst | | | |
+| Total STW pause during burst | | | |
 | Longest pause | | | |
-| Heap used after GC cuối thuộc burst | | | |
-| Event count `jdk.ObjectAllocationSample` | | | |
-| Top allocation classes/call sites theo weights | | | |
-| Ý nghĩa/giới hạn | | | |
+| Heap used after last GC in burst | | | |
+| `jdk.ObjectAllocationSample` count | | | |
+| Top allocation classes/call sites by weight | | | |
+| Meaning/limitations | | | |
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-1. Có 30.000 lần `new byte[]` nhưng JFR chỉ có 120 allocation samples; có mất 29.880 object không? **Không thể suy thế.** Đây là sampled events, không phải log mỗi lần cấp phát.
-2. `GC(0) 48M->4M(128M)` nói gì? **Heap used trước/sau một GC**, với heap capacity hiển thị 128 MiB; không phải 44 MiB leak.
-3. Vì sao JFR `GCPhasePause gcId=0` và log `GC(0)` có thể có duration hơi khác? **Vì độ phân giải, rounding và điểm đánh dấu/định nghĩa**; cần xác nhận cùng GC và thời gian.
-4. Nếu recovery marker đã xuất hiện nhưng heap chưa tự giảm, có leak không? **Chưa đủ.** Có thể chưa có GC sau recovery; cần các thời điểm sau collection so sánh được.
-5. Vì sao phải lấy timestamp của burst thay vì xem toàn JFR? **Để loại hoạt động startup/background**, tập trung đúng khoảng cấp phát mạnh.
-6. Vì sao tổng pause không bằng tổng CPU dùng cho GC? **Concurrent GC có CPU work ngoài stop-the-world pause**, và nhiều pha nằm trong pause tổng.
-7. Nếu JFR không có `jdk.ObjectAllocationSample`, có nghĩa không cấp phát? **Không.** Xem profile/settings, sampling/throttle, recording window và artifact.
-8. Khi nào cần heap dump? **Khi nghi retention kéo dài và cần tìm GC roots/owner**, không phải mặc định mỗi khi GC xảy ra nhiều.
+1. There were 30,000 `new byte[]` calls yet JFR only has 120 allocation samples; were 29,880 objects lost? **You cannot infer that.** These are sampled events, not a log of every allocation.
+2. What does `GC(0) 48M->4M(128M)` mean? **Heap used before/after one GC**, with 128 MiB displayed heap capacity; not a 44 MiB leak.
+3. Why might JFR `GCPhasePause gcId=0` and log `GC(0)` show slightly different durations? **Resolution, rounding, and hook boundaries/definitions**; confirm matching GC ID and time.
+4. If the `recovery` marker appeared yet heap has not dropped on its own, is there a leak? **Insufficient evidence.** No GC may have run after recovery; compare post-collection checkpoints.
+5. Why use burst timestamps instead of viewing the whole JFR file? **To exclude startup/background noise** and isolate the heavy allocation interval.
+6. Why doesn't total pause equal total CPU spent on GC? **Concurrent GC performs CPU work outside stop-the-world pauses**, and sub-phases overlap inside total pauses.
+7. If JFR contains zero `jdk.ObjectAllocationSample` events, does that mean zero allocations? **No.** Check profile/settings, sampling/throttling, recording window, and artifact integrity.
+8. When do you need a heap dump? **When suspecting sustained retention and needing GC roots/owners**, not automatically whenever GC runs frequently.
 
-## 12. Checklist trước khi chốt báo cáo
+## 12. Checklist Before Finalizing Your Report
 
-- [ ] Đúng một JVM run, ghi JDK build, collector, heap flags, PID, clock/timezone và thư mục artifact riêng.
-- [ ] Cả `gc.log` và `burst.jfr` có thật, đọc được; kiểm tra exit status và log rotation.
-- [ ] Có đủ bốn marker `baseline`, `burst-start`, `burst-end`, `recovery` ở đúng khoảng thời gian.
-- [ ] GC log được đọc theo **GC ID duy nhất**, không đếm lặp dòng start/phase.
-- [ ] Đã tách **heap used**, **heap capacity**, **total allocated payload**, **object sample weight** và **RSS**.
-- [ ] Tổng pause được tính từ các STW pauses không lặp; không cộng nested phase.
-- [ ] JFR event names/số instances, event enabled và sampling đã được kiểm chứng.
-- [ ] Đã nối `GC(n)` với JFR `gcId` và timestamp trong cùng cửa sổ burst.
-- [ ] Top allocation classes/call sites đến từ JFR; tránh coi sample count là object count.
-- [ ] Không gọi leak từ một burst; nếu nghi giữ tham chiếu, có chu kỳ so sau GC và điều tra owner.
-- [ ] Nếu kết luận tác động hiệu năng, có request latency/throughput metrics độc lập và bằng chứng thời gian.
-- [ ] Đã ghi rõ **quan sát**, **giả thuyết**, **cách kiểm chứng** và giới hạn của demo.
+- [ ] Single JVM run; recorded JDK build, collector, heap flags, PID, clock/timezone, and dedicated artifact folder.
+- [ ] Both `gc.log` and `burst.jfr` exist and are readable; verified exit status and log rotation.
+- [ ] All four markers (`baseline`, `burst-start`, `burst-end`, `recovery`) present at the right timestamps.
+- [ ] GC log parsed by **unique GC ID**, without double-counting start/sub-phase lines.
+- [ ] Separated **heap used**, **heap capacity**, **total allocated payload**, **object sample weight**, and **RSS**.
+- [ ] Total pause summed from non-overlapping STW pauses; nested sub-phases not added.
+- [ ] JFR event names/counts, enabled state, and sampling behavior verified.
+- [ ] Joined `GC(n)` with JFR `gcId` and timestamps in the same burst window.
+- [ ] Top allocation classes/call sites taken from JFR; avoided treating sample count as object count.
+- [ ] Avoided declaring a leak from one burst; if retention is suspected, compared across post-GC cycles and investigated owners.
+- [ ] When claiming performance impact, backed by independent request latency/throughput metrics and aligned timestamps.
+- [ ] Documented **observations**, **hypotheses**, **verification steps**, and demo limitations clearly.
 
-**Kết luận:** Unified GC log cho biết *GC nào xảy ra, khi nào, heap used thay đổi ra sao và dừng JVM bao lâu*. JFR cho biết *sự kiện GC cùng gcId, mẫu object nào được cấp phát ở call stack nào và các mốc workload*. Khi ghép **GC ID + timestamp + phase markers** trong cùng một JVM, bạn có thể mô tả đợt **allocation churn mạnh** bằng bằng chứng hai nguồn mà không nhầm nó với **memory leak** hoặc một lỗi GC đã được chứng minh.
+**Conclusion:** Unified GC logs tell you *which GC happened, when, how heap used changed, and how long the JVM paused*. JFR tells you *GC events sharing `gcId`, which object types were sampled at which call stacks, and workload phase markers*. Joining **GC ID + timestamp + phase markers** on the same JVM lets you characterize a **heavy allocation churn** episode with two-source evidence without mistaking it for a **memory leak** or a proven GC bug.
 
-## Tài liệu tham khảo chính thức
+## Official References
 
 - Oracle JDK 21 — `java`, Unified Logging, `-Xlog`, log decorators/rotation: https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
 - Oracle JDK 21 — `jcmd`, `JFR.start`/`JFR.check`/`JFR.dump`: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html

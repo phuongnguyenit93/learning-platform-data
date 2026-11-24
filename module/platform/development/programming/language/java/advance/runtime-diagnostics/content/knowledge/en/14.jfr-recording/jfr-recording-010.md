@@ -1,26 +1,26 @@
-# 14.10 Khôi phục các chunk hoàn chỉnh khi cần phân tích sau sự cố
+# 14.10 Recovering Complete Chunks for Post-Incident Analysis
 
-> **Bối cảnh:** Java Flight Recorder (JFR) trên HotSpot/JDK 17+ ghi một recording theo các **chunk**. Khi JVM dừng đột ngột trước lúc xuất được file `.jfr` cuối cùng, đôi khi vẫn còn các chunk hoàn chỉnh trong **disk repository**. Công cụ `jfr assemble` có thể ghép chúng lại để phục vụ điều tra. Đây là **khôi phục phần dữ liệu đã ghi hoàn chỉnh**, không phải phục hồi toàn bộ những gì JVM từng thấy trước khi chết.
+> **Context:** Java Flight Recorder (JFR) on HotSpot/JDK 17+ writes a recording in **chunks**. When the JVM terminates abruptly before exporting a final `.jfr` file, complete chunks may still remain in the **disk repository**. The `jfr assemble` tool can stitch them together for investigation. This recovers **data already written cleanly to disk**, not everything the JVM ever saw before dying.
 
-## 1. Kết quả học tập và tình huống cần xử lý
+## 1. Learning Outcomes and Scenario to Handle
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích mối quan hệ giữa **JFR memory buffers**, **disk repository**, **chunk hoàn chỉnh (`.jfr`)**, **chunk đang ghi (`.part`)** và file recording xuất ra sau cùng.
-2. Xác định khi nào có thể khôi phục bằng `jfr assemble`, khi nào phải dùng `jcmd JFR.dump`, khi nào không còn dữ liệu để khôi phục.
-3. Thu thập **bản sao** repository sau sự cố mà không làm thay đổi chứng cứ gốc, chọn đúng thư mục chứa chunk của **một JVM**.
-4. Ghép chunk, xác minh recording bằng `jfr summary`, `jfr metadata`, `jfr print`, và giải thích những khoảng dữ liệu bị thiếu.
-5. Chủ động cấu hình lưu trữ để tăng khả năng giữ lại dữ liệu khi JVM crash/container bị kill, nhưng không đánh đồng cấu hình này với bảo đảm không mất sự kiện.
+1. Explain the relationship between **JFR memory buffers**, **disk repository**, **complete chunks (`.jfr`)**, **in-progress chunks (`.part`)**, and the final exported recording file.
+2. Determine when recovery is possible via `jfr assemble`, when you must use `jcmd JFR.dump`, and when no recoverable data remains.
+3. Collect a **copy** of the post-incident repository without altering original evidence, selecting the exact chunk directory of **a single JVM**.
+4. Assemble chunks, verify the recording with `jfr summary`, `jfr metadata`, and `jfr print`, and explain missing intervals.
+5. Proactively configure storage to improve data survival on JVM crash/container kill, without equating that config with a zero-loss guarantee.
 
-**Tình huống ví dụ:** service Java đang ghi JFR để điều tra những lần treo ngắn. Container đột ngột bị `OOMKilled`/JVM gặp lỗi fatal nên không tạo được `incident.jfr` hoàn chỉnh. Disk repository còn một số file chunk. Người vận hành cần tập hợp **những chunk đã hoàn tất**, đọc stack trace và event trước thời điểm lỗi, rồi đối chiếu với log, metrics và `hs_err_pid` nếu có.
+**Example scenario:** a Java service was recording JFR to investigate brief hangs. The container was suddenly `OOMKilled` or the JVM hit a fatal error, preventing creation of a complete `incident.jfr`. Several chunk files remain in the disk repository. The operator needs to gather **completed chunks**, inspect stack traces and events prior to failure, and correlate them with logs, metrics, and `hs_err_pid` if available.
 
-Không nên bắt đầu bằng cách sửa đuôi `.part` thành `.jfr`, nối byte thủ công, hoặc chạy lại service để “thử” khi chưa bảo quản được repository cũ: đó là các thao tác dễ đánh mất hoặc làm rối chứng cứ.
+Never start by renaming `.part` to `.jfr`, concatenating bytes manually, or restarting the service to "test" before preserving the old repository: those actions easily destroy or corrupt evidence.
 
-## 2. JFR thực sự lưu dữ liệu ở đâu?
+## 2. Where Does JFR Actually Store Data?
 
-### 2.1. Luồng ghi event
+### 2.1. Event Writing Flow
 
-Một sơ đồ giản lược:
+A simplified diagram:
 
 ```text
 Java/JVM events
@@ -28,52 +28,52 @@ Java/JVM events
      v
 JFR thread-local / global memory buffers
      |
-     | ghi/flush vào disk repository khi recording dùng disk=true
+     | written/flushed to disk repository when recording uses disk=true
      v
-Disk repository của JVM
-     +-- chunk hoàn chỉnh: ... .jfr
-     +-- chunk đang ghi:  ... .part
+JVM disk repository
+     +-- complete chunks:    ... .jfr
+     +-- in-progress chunks: ... .part
      |
-     | dump/stop/exit bình thường hoặc khôi phục offline
+     | normal dump/stop/exit or offline recovery
      v
-File recording hoàn chỉnh: incident.jfr
+Complete recording file: incident.jfr
      |
      +-- jfr summary / jfr print / jfr metadata
      +-- JDK Mission Control (JMC)
 ```
 
-Một **JFR chunk** chứa dữ liệu và metadata cần thiết để bộ đọc phân tích chunk đó; đây là đơn vị có thể ghép lại. Trong disk repository, file chunk **đã hoàn chỉnh** mang phần mở rộng `.jfr`; file đang viết thường có phần mở rộng `.part`. Theo mô tả của công cụ JDK, `jfr assemble` **xếp các chunk hoàn chỉnh theo thời gian** và **bỏ qua các `.part` chưa hoàn tất**.
+A **JFR chunk** contains the event data and metadata needed for a reader to parse that chunk; it is the unit that can be reassembled. In the disk repository, **completed** chunk files carry the `.jfr` extension; files currently being written typically carry the `.part` extension. Per JDK tool documentation, `jfr assemble` **orders completed chunks chronologically** and **ignores incomplete `.part` files**.
 
-Điều đó tạo ra một ranh giới quan trọng:
+This establishes an important boundary:
 
-- **Có thể khôi phục:** chunk hoàn chỉnh còn tồn tại, còn đọc được, thuộc đúng recording/repository cần điều tra.
-- **Không được hứa sẽ khôi phục:** các event còn trong JFR memory buffers chưa flush, chunk `.part` chưa hoàn tất, chunk đã bị retention xóa, dữ liệu trong repository đã bị xóa hoặc mất cùng container/volume.
-- **File `.jfr` cuối chưa có không đồng nghĩa toàn bộ dữ liệu đã mất:** repository có thể vẫn còn các chunk dùng được.
+- **Recoverable:** complete chunks that still exist, remain readable, and belong to the target recording/repository under investigation.
+- **Not guaranteed recoverable:** events still sitting unflushed in JFR memory buffers, incomplete `.part` chunks, chunks evicted by retention, or repository data deleted or lost with the container/volume.
+- **No final `.jfr` file does not mean all data is lost:** the repository may still hold usable chunks.
 
-JFR được thiết kế có overhead thấp và không bảo đảm mọi event đều được giữ khi hệ thống quá tải, ghi đĩa lỗi hoặc JVM bị kill. Vì thế, “assemble thành công” chỉ xác nhận **file có thể đọc được**, không chứng minh recording chứa mọi thời điểm của sự cố.
+JFR is designed for low overhead and does not guarantee every event is retained under system overload, disk write failures, or JVM kills. Therefore, "assemble succeeded" confirms only that **the file is readable**, not that the recording covers every moment of the incident.
 
-### 2.2. `disk=true` khác `disk=false`
+### 2.2. `disk=true` vs. `disk=false`
 
-Một recording với `disk=true` liên tục chuyển dữ liệu từ buffer tới **disk repository** theo chính sách JFR; đây là điều kiện quan trọng cho khôi phục chunk sau sự cố.
+A recording with `disk=true` continuously flushes data from buffers to the **disk repository** per JFR policy; this is a key prerequisite for post-incident chunk recovery.
 
-Với `disk=false`, dữ liệu còn chủ yếu trong **memory buffers** của JVM; nếu tiến trình chết trước khi dump thì `jfr assemble` **không có các chunk disk cần thiết để phục hồi**. `dumponexit=true` không thay thế được dữ liệu đã mất do `SIGKILL`, container kill, mất nguồn hoặc JVM crash quá nặng.
+With `disk=false`, data remains primarily in the JVM's **memory buffers**; if the process dies before a dump, `jfr assemble` **lacks the disk chunks required for recovery**. `dumponexit=true` cannot substitute for data lost to `SIGKILL`, container kills, power loss, or severe JVM crashes.
 
-| Tình huống | Hướng xử lý phù hợp |
+| Situation | Appropriate Action |
 | --- | --- |
-| JVM **còn chạy**, cần lấy bản ghi ngay | `jcmd <PID> JFR.dump ...` để xuất snapshot mà không dừng recording (nếu attach được). |
-| JVM đã dừng **bình thường**, file `.jfr` hoàn chỉnh tồn tại | Dùng chính file đó; chạy `jfr summary` kiểm tra. Không cần `assemble`. |
-| JVM chết đột ngột, còn repository chứa `.jfr` chunks | Sao chép repository và chạy `jfr assemble` **offline** trên bản sao. |
-| Chỉ còn `.part`, không có chunk `.jfr` hoàn chỉnh | `assemble` không lấy được chunk chưa hoàn tất; không tự đổi tên hoặc giả định recoverable. |
-| Recording chạy `disk=false`, JVM chết, không có dump | Không thể dùng `assemble` để dựng dữ liệu chỉ còn trong RAM đã mất. |
-| Repository bị xóa, nằm trên ephemeral volume đã mất, hoặc chunk cũ đã bị loại | Phục hồi phải dựa vào snapshot/backup khác; `jfr assemble` không tạo lại dữ liệu không còn. |
+| JVM **still running**, need recording right now | `jcmd <PID> JFR.dump ...` to export a snapshot without stopping the recording (if attach works). |
+| JVM stopped **normally**, complete `.jfr` file exists | Use that file directly; verify with `jfr summary`. No `assemble` needed. |
+| JVM died abruptly, repository still holds `.jfr` chunks | Copy the repository and run `jfr assemble` **offline** on the copy. |
+| Only `.part` files exist, no complete `.jfr` chunks | `assemble` cannot recover incomplete chunks; do not rename or assume recoverability. |
+| Recording ran with `disk=false`, JVM died without a dump | Cannot use `assemble` to reconstruct data lost in RAM. |
+| Repository was deleted, lived on a lost ephemeral volume, or old chunks were evicted | Recovery must rely on other snapshots/backups; `jfr assemble` cannot recreate missing data. |
 
-## 3. Chuẩn bị từ trước để tăng cơ hội khôi phục
+## 3. Preparing in Advance to Improve Recovery Chances
 
-Đây là các lựa chọn **trước khi có sự cố**. Trong ứng dụng thực tế, chọn đường dẫn nằm trên storage có dung lượng và thời gian lưu phù hợp, đồng thời xem xét quyền truy cập vì JFR có thể chứa stack trace, class/method names, đường dẫn và thông tin runtime nhạy cảm.
+These are choices made **before an incident occurs**. In production, pick paths on storage with suitable capacity and retention, and review access permissions because JFR can contain stack traces, class/method names, paths, and sensitive runtime details.
 
-### 3.1. Đặt repository ở nơi biết rõ
+### 3.1. Place the Repository in a Known Location
 
-Ví dụ lệnh khởi động Linux (các thư mục phải tồn tại và tài khoản chạy JVM phải có quyền ghi):
+Example Linux startup command (directories must exist and the JVM account must have write permissions):
 
 ```bash
 java \
@@ -82,21 +82,21 @@ java \
   -jar app.jar
 ```
 
-Giải thích:
+Explanation:
 
-- `-XX:FlightRecorderOptions=repository=...` chỉ định **thư mục gốc chứa các chunk tạm của JFR**; JFR có thể tạo các thư mục con cho từng tiến trình hoặc phiên.
-- `-XX:StartFlightRecording=...` bắt đầu recording từ lúc JVM khởi động.
-- `disk=true` giúp recording dùng disk repository; mặc định thường đã là `true`, nhưng ghi rõ giúp đọc cấu hình và kiểm tra nguyên nhân.
-- `settings=default` dùng profile JFR mặc định; có thể thay bằng `.jfc` đã được xác minh nếu cần event chuyên biệt.
-- `maxage=30m`/`maxsize=256m` giới hạn dữ liệu được giữ trong repository; chunk quá cũ có thể bị loại. Các con số ở đây **chỉ là ví dụ thiết kế**, phải chọn theo tần suất event, dung lượng đĩa, thời gian điều tra và kích thước chunk.
-- `dumponexit=true` yêu cầu dump khi JVM **shutdown theo luồng có xử lý exit**; không thể coi là bảo đảm cho crash/`SIGKILL`.
-- `filename=/var/log/myapp/incident.jfr` là đường dẫn **file recording xuất ra**, không phải đường dẫn **repository**. Đây là hai vị trí có nhiệm vụ khác nhau.
+- `-XX:FlightRecorderOptions=repository=...` specifies the **base directory for temporary JFR chunks**; JFR may create subdirectories per process or session.
+- `-XX:StartFlightRecording=...` starts a recording at JVM launch.
+- `disk=true` ensures the recording uses the disk repository; it is usually `true` by default, but stating it explicitly aids config reading and root-cause checks.
+- `settings=default` uses the default JFR profile; swap in a verified `.jfc` if specialized events are needed.
+- `maxage=30m`/`maxsize=256m` bound retained data in the repository; older chunks may be evicted. These numbers are **design examples only**; choose based on event rate, disk capacity, investigation window, and chunk size.
+- `dumponexit=true` requests a dump when the JVM **shuts down through a normal exit path**; it is no guarantee against crashes or `SIGKILL`.
+- `filename=/var/log/myapp/incident.jfr` is the **exported recording file** path, not the **repository** path. These are two locations with different roles.
 
-Trong Kubernetes/container, `repository` mặc định thường ở vùng tạm của JVM/OS. Nếu pod hoặc filesystem bị xóa khi restart, các chunk có thể mất ngay. Muốn điều tra hậu sự cố, phải lên kế hoạch volume và quy trình trích xuất phù hợp; đừng mặc định `/tmp` tồn tại sau pod recreation.
+In Kubernetes/containers, the default `repository` typically sits in JVM/OS temporary space. If a pod or filesystem is wiped on restart, chunks vanish immediately. For post-incident forensics, plan volumes and extraction workflows ahead of time; never assume `/tmp` survives pod recreation.
 
-### 3.2. Kiểm tra trước khi sự cố xảy ra
+### 3.2. Checks Before an Incident Happens
 
-Khi JVM còn sống, có thể dùng:
+While the JVM is alive, you can run:
 
 ```bash
 jcmd -l
@@ -104,53 +104,53 @@ jcmd 12345 JFR.check name=incident verbose=true
 jcmd 12345 JFR.configure
 ```
 
-`12345` là **PID minh họa**: thay bằng PID thật lấy từ `jcmd -l` hoặc công cụ OS. Các lệnh `jcmd` cần attach được vào JVM cùng máy/container với quyền thích hợp; môi trường bảo mật hoặc namespace khác có thể chặn attach.
+`12345` is an **illustrative PID**: replace it with the real PID from `jcmd -l` or OS tools. `jcmd` requires attach access to the JVM on the same machine/container with appropriate permissions; security policies or different namespaces can block attach.
 
-Ở JDK có hỗ trợ, lệnh:
+On supporting JDKs, the command:
 
 ```bash
 jcmd 12345 JFR.configure preserve-repository=true
 ```
 
-yêu cầu JFR giữ lại các file trong disk repository khi JVM kết thúc **bình thường** thay vì dọn chúng theo mặc định. **Phải cấu hình trong lúc process còn sống**; không thể gọi `JFR.configure` sau khi process đã chết. Cơ chế preserve không bù lại việc storage bị xóa/ghi đè hoặc chunk chưa hoàn chỉnh, và không biến `.part` thành chunk hợp lệ.
+tells JFR to keep files in the disk repository when the JVM exits **normally** instead of cleaning them up by default. **Must be configured while the process is alive**; you cannot invoke `JFR.configure` after the process has died. Preservation does not compensate for wiped/overwritten storage or incomplete chunks, nor does it turn `.part` into valid chunks.
 
-Lưu ý hai tên setting dễ nhầm:
+Note two easily confused setting names:
 
-- `repository=` trong `-XX:FlightRecorderOptions` là **cờ JVM lúc khởi động**.
-- `repositorypath=` trong `jcmd ... JFR.configure` là **tham số diagnostic command khi JVM còn sống**. Dùng `jcmd ... JFR.configure` để kiểm tra khả năng hỗ trợ và trạng thái thực trên JDK đang chạy.
+- `repository=` in `-XX:FlightRecorderOptions` is a **JVM startup flag**.
+- `repositorypath=` in `jcmd ... JFR.configure` is a **diagnostic command parameter while the JVM is alive**. Run `jcmd ... JFR.configure` to verify support and current state on the running JDK.
 
-Thư mục repository phục vụ làm việc của recorder; **không nên biến nó thành kho backup dài hạn**. Chính sách bảo quản sự cố nên sao chép bản gốc vào nơi riêng, kiểm soát quyền và vòng đời file.
+The repository directory serves as the recorder's working space; **do not turn it into a long-term backup archive**. Incident preservation policies should copy raw artifacts to a dedicated location with controlled permissions and retention.
 
-## 4. Quy trình khôi phục hậu sự cố: từ repository tới `.jfr`
+## 4. Post-Incident Recovery Runbook: From Repository to `.jfr`
 
-Đây là runbook chính. Các lệnh dưới đây giả định Linux/macOS với shell tương thích Bash. Đường dẫn chỉ minh họa; phải thay theo cấu hình triển khai và đúng **thư mục trực tiếp chứa chunk** của JVM gặp sự cố.
+This is the main runbook. Commands below assume Linux/macOS with a Bash-compatible shell. Paths are illustrative; adjust to your deployment config and the **exact directory directly holding chunks** for the failed JVM.
 
-### Bước 1 — Giữ trạng thái chứng cứ và xác nhận JVM đã dừng
+### Step 1 — Preserve Evidence State and Confirm the JVM Has Stopped
 
-Thu thập PID trước khi chết, thời điểm sự cố (có múi giờ), version của JDK, logs, container ID/pod ID, vị trí mount và lựa chọn `disk`/`repository`. Nếu process thực sự **còn chạy**, ưu tiên:
+Record the pre-crash PID, incident time (with time zone), JDK version, logs, container/pod ID, mount locations, and `disk`/`repository` settings. If the process is actually **still running**, prefer:
 
 ```bash
 jcmd 12345 JFR.dump name=incident filename=/var/log/myapp/live-snapshot.jfr
 ```
 
-Đây là lựa chọn an toàn hơn việc chụp thư mục mà recorder đang thay đổi. `JFR.dump` xuất file từ recording đang chạy và không dừng recording. Nếu process đã chết, không thể dùng `jcmd` để lấy sự kiện từ nó.
+This is safer than copying a directory while the recorder is actively mutating it. `JFR.dump` exports a file from the running recording without stopping it. If the process is already dead, `jcmd` cannot extract events from it.
 
-### Bước 2 — Xác định đúng repository của một JVM
+### Step 2 — Locate the Exact Repository of a Single JVM
 
-Ví dụ repo gốc được cấu hình ở `/var/lib/myapp/jfr-repository`:
+Suppose the base repository was configured at `/var/lib/myapp/jfr-repository`:
 
 ```bash
 find /var/lib/myapp/jfr-repository -type f \
   \( -name '*.jfr' -o -name '*.part' \) -print
 ```
 
-Chọn **thư mục con chứa các chunk của tiến trình/phiên ghi cần khôi phục**. Một service có nhiều process, nhiều đợt restart hoặc nhiều phiên recording có thể để lại các nhóm file khác nhau; **không trộn chunk từ các process khác nhau** chỉ vì chúng có cùng phần mở rộng.
+Select the **subdirectory containing the chunks of the specific process/session to recover**. A service with multiple processes, restarts, or recording sessions may leave distinct file groups; **do not mix chunks from different processes** just because they share the same extension.
 
-Nếu trên hiện trường file `.jfr` chunk nằm trực tiếp trong thư mục repo gốc thì có thể dùng chính thư mục đó. Nếu chúng nằm trong một thư mục con, phải dùng **đúng thư mục con** làm input cho `assemble`. Khi chỉ nhìn thấy `.part`, hãy ghi nhận rõ không có `.jfr` hoàn chỉnh, tránh suy diễn.
+If `.jfr` chunk files lie directly in the base repo directory, you can use that directory directly. If they lie inside a subdirectory, you must pass that **exact subdirectory** as input to `assemble`. When only `.part` files appear, explicitly document that no complete `.jfr` chunks exist rather than guessing.
 
-### Bước 3 — Sao chép để bảo toàn bản gốc
+### Step 3 — Copy to Preserve the Original
 
-Ví dụ sau giả định `/var/lib/myapp/jfr-repository/recording-001` là **thư mục vừa xác minh có các chunk `.jfr`**, và `/srv/incidents/incident-001` là nơi lưu kết quả **nằm ngoài repository nguồn**:
+The example below assumes `/var/lib/myapp/jfr-repository/recording-001` is the **verified directory holding `.jfr` chunks**, and `/srv/incidents/incident-001` is the output location **outside the source repository**:
 
 ```bash
 SOURCE_DIR=/var/lib/myapp/jfr-repository/recording-001
@@ -163,38 +163,38 @@ find "$CASE_DIR/repository-copy" -maxdepth 1 -type f \
   \( -name '*.jfr' -o -name '*.part' \) -print
 ```
 
-`cp -a` giữ bản sao file cùng nhiều metadata hệ thống trên Linux; quyền và filesystem đích có thể ảnh hưởng mức độ bảo toàn metadata. Hãy ghi nhận thời điểm sao chép, nguồn, PID, JDK version và chính sách lưu trữ để người khác tái dựng cuộc điều tra.
+`cp -a` copies files while preserving much system metadata on Linux; target permissions and filesystem may affect metadata preservation. Record the copy timestamp, source, PID, JDK version, and storage policy so others can reproduce the investigation.
 
-Nên lưu checksum riêng cho **bản sao**, ví dụ:
+It is good practice to save checksums for the **copy**, for example:
 
 ```bash
 find "$CASE_DIR/repository-copy" -maxdepth 1 -type f -name '*.jfr' \
   -exec sha256sum {} \;
 ```
 
-Hash giúp chứng minh các bản sao được giữ nguyên giữa các lần phân tích. Không cần sửa file chunk, loại `.part` hay đổi tên thủ công trong bản gốc. Nơi chứa output phải **khác** thư mục input để tránh vô tình đưa kết quả assemble vào cùng nguồn.
+Hashes prove copies remained unaltered across analysis passes. Do not edit chunk files, delete `.part` files, or rename files manually in the original. The output path must be **outside** the input directory so you do not accidentally feed the assembled file back into the source.
 
-### Bước 4 — Ghép các chunk hoàn chỉnh
+### Step 4 — Assemble Complete Chunks
 
-Dùng đúng cú pháp command của JDK:
+Use the exact JDK command syntax:
 
 ```bash
 jfr assemble "$CASE_DIR/repository-copy" "$CASE_DIR/recovered.jfr"
 ```
 
-Hai đối số lần lượt là **thư mục chứa chunk** và **đường dẫn file recording mới**. `jfr assemble` chọn các chunk hoàn chỉnh, xếp theo thứ tự thời gian và ghi ra file `.jfr`. Theo đặc tả của công cụ JDK, các file `.part` đang dở sẽ bị **loại**.
+The two arguments are the **chunk directory** and the **new recording file path**. `jfr assemble` picks complete chunks, orders them chronologically, and writes them to the `.jfr` file. Per the JDK tool spec, incomplete `.part` files are **skipped**.
 
-**Không** thực hiện các thao tác sau để “cứu” dữ liệu:
+Do **not** do any of the following to "rescue" data:
 
-- Đổi đuôi `.part` thành `.jfr` và coi nó là chunk hoàn chỉnh.
-- Nối file theo thứ tự tên bằng `cat`/`copy /b` khi chưa xác nhận đó là các JFR chunks thuộc cùng repository.
-- Dùng `jfr assemble` trên thư mục gốc vô tình chứa nhiều repository từ nhiều process/restart.
-- Chạy lại ghi JFR vào đúng repo chưa sao chép, khiến housekeeping hoặc retention có thể xóa chunk cần thiết.
-- Xóa file chunk vì tưởng là “file tạm” trước khi lưu bản sao.
+- Rename `.part` to `.jfr` and treat it as a complete chunk.
+- Concatenate files in name order with `cat`/`copy /b` without verifying they are valid JFR chunks from the same repository.
+- Run `jfr assemble` on a parent directory accidentally holding multiple repositories from different processes or restarts.
+- Start writing new JFR recordings into an uncopied repository, letting housekeeping or retention delete needed chunks.
+- Delete chunk files mistaking them for "temp files" before saving a copy.
 
-Nếu công cụ báo không có chunk, không truy cập được đường dẫn, hoặc một chunk bị hỏng, **giữ nguyên bản sao chứng cứ** và kiểm tra điều kiện đầu vào. Không tự tuyên bố đã recover khi câu lệnh thất bại.
+If the tool reports no chunks found, inaccessible path, or a corrupt chunk, **preserve the evidence copy intact** and inspect inputs. Never claim recovery succeeded when the command failed.
 
-### Bước 5 — Xác minh file khôi phục
+### Step 5 — Verify the Recovered File
 
 ```bash
 jfr summary "$CASE_DIR/recovered.jfr"
@@ -203,38 +203,38 @@ jfr print --events jdk.GarbageCollection,jdk.ExecutionSample \
   "$CASE_DIR/recovered.jfr"
 ```
 
-- `jfr summary`: cần đọc được file, cho biết **version/chunk count/khoảng thời gian recording** cùng số sự kiện theo event type. Những con số này giúp nhận ra file rỗng, sai process hoặc khác cửa sổ sự cố.
-- `jfr metadata`: xác nhận cấu trúc event schema có thể đọc được, nhất là khi JVM thu thập và công cụ phân tích khác phiên bản.
-- `jfr print --events`: lọc event theo chủ đề đang điều tra. Các loại `jdk.GarbageCollection`, `jdk.ExecutionSample` có thể không xuất hiện nếu chúng không được bật/thu trong cửa sổ tương ứng; output trống **không có nghĩa lệnh assemble thất bại**.
-- Có thể mở `recovered.jfr` trong **JDK Mission Control (JMC)** để quan sát timeline, stack traces, các sự kiện GC, locks, CPU, threads và biểu đồ tương quan.
+- `jfr summary`: must parse cleanly, showing **version/chunk count/recording time span** plus counts per event type. These numbers help spot empty files, wrong processes, or mismatched incident windows.
+- `jfr metadata`: confirms event schemas are readable, especially when the collecting JVM and analysis tool differ in version.
+- `jfr print --events`: filters events relevant to your investigation. `jdk.GarbageCollection` or `jdk.ExecutionSample` may be absent if they were not enabled/captured during that window; empty output **does not mean `assemble` failed**.
+- You can open `recovered.jfr` in **JDK Mission Control (JMC)** to inspect timelines, stack traces, GC events, locks, CPU, threads, and correlated charts.
 
-**Kiểm tra dữ liệu theo thời gian:** ghi lại start/end time của recording khôi phục, khoảng thời gian sự cố từ logs, số chunk, các khoảng trống đáng ngờ và event cần điều tra. Nếu mất chunk cuối hoặc event vẫn ở buffer, những giây sát crash có thể **không còn**. Một file khôi phục hoàn chỉnh về mặt format vẫn có thể **không bao phủ nguyên nhân cuối cùng** của sự cố.
+**Check temporal coverage:** note start/end times of the recovered recording, incident timestamps from logs, chunk count, suspicious gaps, and target events. If the final chunk was lost or events remained in buffers, the final seconds right before the crash may **be missing**. A format-valid recovered file may still **not cover the final root cause** of the incident.
 
-## 5. Vì sao không thể “khôi phục tất cả”?
+## 5. Why Can You Not "Recover Everything"?
 
-### 5.1. Ba mức độ mất dữ liệu
+### 5.1. Three Degrees of Data Loss
 
-1. **Chưa flush khỏi buffers:** dữ liệu vẫn trong RAM khi JVM chết; JFR offline không có nguyên liệu để khôi phục.
-2. **Đang ghi chunk `.part`:** file chưa hoàn tất nên `jfr assemble` bỏ qua. Không dựa vào việc đổi extension hoặc sửa vài bytes để tuyên bố đã recover một chunk hợp lệ.
-3. **Chunk đã hoàn tất nhưng không còn trên disk:** có thể bị xóa do `maxage`/`maxsize`, shutdown cleanup, filesystem tạm, disk failure hoặc thao tác vận hành. `jfr assemble` không khôi phục được file vật lý đã mất.
+1. **Unflushed from buffers:** data remained in RAM when the JVM died; offline JFR tools have no material to recover it.
+2. **In-progress `.part` chunk:** incomplete file, so `jfr assemble` skips it. Never rely on renaming extensions or patching a few bytes to claim a valid chunk was recovered.
+3. **Completed chunk missing from disk:** may have been deleted by `maxage`/`maxsize`, shutdown cleanup, ephemeral filesystems, disk failure, or operational actions. `jfr assemble` cannot restore physically deleted files.
 
-Ngoài ra, event có thể **không được bật**, chịu threshold/sample rate hoặc bị drop dưới áp lực cao ngay từ đầu. Không thể lấy lại một event **chưa bao giờ được lưu** dù có đầy đủ mọi chunk.
+Additionally, events may have been **disabled**, filtered by threshold/sample rate, or dropped under heavy pressure in the first place. You cannot recover an event that was **never saved**, even if all chunks survive.
 
-### 5.2. Hiểu đúng `maxage`, `maxsize` và chunk rollover
+### 5.2. Understanding `maxage`, `maxsize`, and Chunk Rollover
 
-`maxage`/`maxsize` là chính sách **retention của recording trên disk**. Khi đạt ngưỡng, JVM có thể xóa các chunk cũ để dành chỗ; vì vậy repo còn lại chỉ có thể phản ánh **cửa sổ gần nhất**, không phải toàn bộ uptime.
+`maxage`/`maxsize` are **on-disk retention policies for the recording**. Once thresholds are hit, the JVM may delete older chunks to make room; thus the remaining repo may reflect only the **most recent window**, not total uptime.
 
-`-XX:FlightRecorderOptions=maxchunksize=...` điều chỉnh kích thước tối đa/định hướng chunk theo HotSpot, **không** có nghĩa một chunk bắt buộc đúng số bytes đó, hay mỗi `maxage` phút sẽ sinh một chunk. `maxsize` của recording phải tương thích với giới hạn chunk; chọn ngưỡng đủ lớn để giữ lại chu kỳ quan sát có ý nghĩa.
+`-XX:FlightRecorderOptions=maxchunksize=...` tunes HotSpot's target/max chunk size; it does **not** mean every chunk is forced to that exact byte size, nor that a chunk is created every `maxage` minutes. A recording's `maxsize` must be compatible with chunk limits; pick thresholds large enough to retain a meaningful observation cycle.
 
-Nếu cần recovery gần thời điểm sự cố, hãy cân nhắc **disk persistence** và chính sách retention từ trước. Cấu hình này chỉ làm tăng cơ hội, vẫn có thể mất phần dữ liệu cuối.
+If recovery close to an incident is important, plan **disk persistence** and retention policies upfront. This configuration raises your odds, yet the very final slice of data can still be lost.
 
-## 6. Lab Java 17+: dựng lại recording từ các chunk hoàn chỉnh
+## 6. Java 17+ Lab: Reconstructing a Recording from Complete Chunks
 
-Lab dùng **recording hợp lệ**, chủ động tách thành nhiều chunk bằng `jfr disassemble`, rồi ghép lại bằng `jfr assemble`. Đây là phép kiểm tra cú pháp, định dạng và quy trình ghép; nó **không mô phỏng đầy đủ** sự cố `SIGKILL` hoặc việc mất `.part`.
+This lab uses a **valid recording**, deliberately splits it into multiple chunks with `jfr disassemble`, and reassembles them with `jfr assemble`. It tests syntax, format, and the assembly workflow; it **does not fully simulate** a `SIGKILL` crash or lost `.part` files.
 
-### 6.1. Chương trình tạo nhiều JFR events
+### 6.1. Program Generating Many JFR Events
 
-Tạo file `JfrChunkLab.java`:
+Create `JfrChunkLab.java`:
 
 ```java
 import jdk.jfr.Enabled;
@@ -264,9 +264,9 @@ public class JfrChunkLab {
 }
 ```
 
-Đây là Java 17+ hoàn chỉnh, không dùng API nội bộ. `Checkpoint` là custom JFR event; `@Name("lab.Checkpoint")` tạo event type dễ nhận trong `jfr summary`. `@Enabled(true)` bật event type mặc định cho recording; JFR phải đang chạy trước khi vòng lặp phát event. Không áp dụng số lượng sự kiện này trong production vì 350.000 events có thể gây overhead đáng kể; đây chỉ là lab ngắn.
+This is standard Java 17+ code using no internal APIs. `Checkpoint` is a custom JFR event; `@Name("lab.Checkpoint")` creates an easily recognizable type in `jfr summary`. `@Enabled(true)` enables the event type by default for recordings; JFR must be running before the loop emits events. Do not emit this event volume in production, as 350,000 events can cause noticeable overhead; this is strictly a short lab.
 
-### 6.2. Biên dịch và thu file `.jfr`
+### 6.2. Compile and Capture the `.jfr` File
 
 ```bash
 javac JfrChunkLab.java
@@ -276,17 +276,17 @@ java \
   JfrChunkLab
 ```
 
-**Stdout từ chương trình Java**:
+**Stdout from the Java program**:
 
 ```text
 markers=350000
 ```
 
-Ngoài dòng trên, JVM có thể in thêm thông báo `[jfr,startup]` về recording. `maxchunksize=1m` được đặt nhỏ cho lab nhằm dễ tạo nhiều chunk; JFR vẫn có quyền ghi kích thước chunk thực lớn hơn mốc cấu hình tùy hoàn cảnh runtime. Số chunk không cố định giữa các bản JDK hoặc máy.
+Beyond the line above, the JVM may print `[jfr,startup]` messages about the recording. `maxchunksize=1m` is kept small for the lab to encourage multiple chunks; JFR may still write chunks larger than the configured target depending on runtime conditions. Chunk counts are not fixed across JDK versions or machines.
 
-### 6.3. Tách rồi ghép lại
+### 6.3. Disassemble and Reassemble
 
-Trên Linux/macOS:
+On Linux/macOS:
 
 ```bash
 mkdir -p chunks
@@ -296,7 +296,7 @@ jfr assemble chunks recovered-lab.jfr
 jfr summary recovered-lab.jfr
 ```
 
-Trên Windows PowerShell, thay lệnh `mkdir` bằng:
+On Windows PowerShell, replace the `mkdir` command with:
 
 ```powershell
 New-Item -ItemType Directory -Path .\chunks -Force
@@ -305,90 +305,90 @@ jfr assemble .\chunks .\recovered-lab.jfr
 jfr summary .\recovered-lab.jfr
 ```
 
-`jfr disassemble` tạo các file nhỏ hơn có thứ tự; với `--max-chunks 1`, mỗi file output chứa tối đa một chunk. Nếu recording **chỉ có một chunk**, công cụ có thể báo **không cần disassemble**; hãy tạo recording lớn hơn hoặc nhiều events hơn rồi thử lại. Không dùng cảnh báo đó để kết luận file bị hỏng.
+`jfr disassemble` creates smaller numbered files; with `--max-chunks 1`, each output file contains at most one chunk. If the recording has **only one chunk**, the tool may report **no need to disassemble**; generate a larger recording or more events and try again. Do not take that notice to mean the file is corrupt.
 
-**Kết quả thực nghiệm đã kiểm tra trên OpenJDK 24:** với 350.000 custom events và cấu hình trên, recording tạo ra **3 chunks**; `jfr disassemble` tạo 3 file, `jfr assemble` tạo file có **350.000 `lab.Checkpoint`**, và SHA-256 của recording ghép trùng file trước khi tách. Đó là một kết quả tham khảo của lần chạy này, **không phải cam kết** số chunk cố định trên JDK 17/21 hoặc các môi trường khác.
+**Experimental results verified on OpenJDK 24:** with 350,000 custom events and the configuration above, the recording produced **3 chunks**; `jfr disassemble` produced 3 files, `jfr assemble` produced a file with **350,000 `lab.Checkpoint`** events, and the SHA-256 of the reassembled recording matched the pre-split file. That is a reference result from that single run, **not a guarantee** of identical chunk counts on JDK 17/21 or other environments.
 
-Dùng:
+Use:
 
 ```bash
 jfr summary recovered-lab.jfr
 ```
 
-để tìm event type `lab.Checkpoint`, xem số events và chunk count. Nếu event count khác kỳ vọng, trước hết kiểm tra recording có khởi động trước khi vòng lặp chạy, event có được bật, sampling/retention và thông báo JFR. **Một event được `commit()` trong code cũng không đồng nghĩa mọi event chắc chắn vào file khi hệ thống có áp lực hoặc mất dữ liệu**.
+to find event type `lab.Checkpoint` and check its event and chunk counts. If the event count differs from expectations, first verify the recording started before the loop ran, the event was enabled, sampling/retention settings, and JFR messages. **Calling `event.commit()` in code does not guarantee every event reaches the file under system pressure or data loss.**
 
-### 6.4. Lab liên quan gì đến cứu dữ liệu sau crash?
+### 6.4. How Does the Lab Relate to Post-Crash Data Recovery?
 
-Trong lab, `jfr disassemble` cố ý tạo những file `.jfr` hoàn chỉnh từ một recording hợp lệ. Sau crash thật, các chunk `.jfr` còn sót lại trong disk repository đóng vai trò **đầu vào** cho cùng công cụ `jfr assemble`; không cần trước đó đã chạy `disassemble`.
+In the lab, `jfr disassemble` intentionally produces complete `.jfr` files from a valid recording. After a real crash, surviving `.jfr` chunks in the disk repository serve as the **input** to the exact same `jfr assemble` tool—you do not need to have run `disassemble` beforehand.
 
-Đừng đảo ngược quy trình thành “phải có file recording nguyên vẹn rồi mới recover”: `disassemble` chỉ dùng để học/kiểm tra hoặc tách **một recording đã đọc được**. Sau crash, nếu file đích chưa từng được dump, nguồn khôi phục có thể chính là **repository còn các chunk hoàn chỉnh**.
+Do not invert the workflow into "you must have an intact recording file before recovering": `disassemble` is only for learning/testing or splitting an **already-readable recording**. After a crash, if the target file was never dumped, the recovery source can be the **repository holding complete chunks**.
 
-## 7. Khi file `.jfr` đã tồn tại nhưng có dấu hiệu hỏng
+## 7. When a `.jfr` File Exists but Shows Signs of Corruption
 
-Trước tiên **sao chép file lỗi** và giữ bản gốc. Sau đó chạy:
+First **copy the broken file** and preserve the original. Then run:
 
 ```bash
 jfr summary suspicious.jfr
 jfr metadata suspicious.jfr
 ```
 
-Nếu hai lệnh đọc thành công, file có thể vẫn chứa các chunk hợp lệ; hãy tiếp tục điều tra theo thời gian và event types. Nếu file lớn và **đọc được**, `jfr disassemble --max-chunks 1` có thể tách từng chunk để định vị phần dữ liệu phục vụ phân tích. Nếu chỉ một đoạn chunk hỏng, có thể thử ghép **các chunk được xác nhận hợp lệ** trong một thư mục mới; luôn ghi rõ phạm vi thời gian đã bỏ mất.
+If both read successfully, the file may still hold valid chunks; proceed to inspect time ranges and event types. If the file is large and **readable**, `jfr disassemble --max-chunks 1` can split chunks individually to isolate usable portions for analysis. If only one chunk segment is damaged, you can try assembling **verified valid chunks** in a new directory; always document the excluded time span.
 
-Ngược lại, nếu `jfr disassemble` cũng báo lỗi parse, **không có bảo đảm** công cụ JDK sẽ tự cứu một file nhị phân bị cắt byte ở giữa hoặc bị corrupt. Có thể cần snapshot/backup khác hoặc công cụ forensics chuyên sâu, nhưng không nên hứa có thể biến mọi `.part`/file hỏng thành recording đầy đủ.
+Conversely, if `jfr disassemble` also fails to parse, **there is no guarantee** JDK tools can rescue a binary file truncated mid-stream or corrupted. You may need other snapshots/backups or specialized forensic tools, and should never promise to turn every `.part` or corrupt file into a complete recording.
 
-## 8. Chẩn đoán lỗi trong quá trình khôi phục
+## 8. Diagnosing Errors During Recovery
 
-| Hiện tượng | Cách hiểu | Hành động |
+| Symptom | Interpretation | Action |
 | --- | --- | --- |
-| `jfr assemble` không tìm thấy chunk | Sai directory, repo đã bị dọn, chỉ còn `.part`, hoặc không có disk recording | Xác nhận `disk=true` trước sự cố, kiểm tra cây thư mục/volume/backup, chọn đúng leaf directory. |
-| Có nhiều thư mục PID/recording | Nhiều JVM hoặc phiên ghi chia sẻ cùng repo gốc | Xác định PID, thời điểm, nhóm file; xử lý **riêng từng repository**. |
-| Có nhiều `.part` nhưng không có `.jfr` | Không còn chunk hoàn chỉnh để ghép | Bảo quản file hiện có; đừng đổi đuôi hoặc công bố “khôi phục thành công”. |
-| `jfr summary recovered.jfr` không đọc được | Output thiếu/hỏng, input không đúng loại, hoặc vấn đề tương thích công cụ | Đọc lỗi thực, kiểm tra danh sách input, thử JDK tool version phù hợp với JVM tạo recording. |
-| File đọc được nhưng không thấy event cần tìm | Event không được bật, threshold/sample, khoảng recording không khớp, chunk đã mất | So sánh `.jfc`, logs, `jfr summary`, timestamps; không quy mọi thiếu hụt cho `assemble`. |
-| Không có dữ liệu ngay trước crash | Buffers chưa flush, `.part` bị bỏ qua, retention/gap | Ghi rõ khoảng dữ liệu chưa bao phủ; đối chiếu `hs_err_pid`, GC logs, application logs và OS metrics. |
-| `jcmd JFR.dump` báo attach denied | Quyền, process namespace hoặc chính sách môi trường | Dùng quyền/context thích hợp **khi JVM còn sống**; không dùng `jcmd` sau khi PID chết. |
-| Pod restart khiến `/tmp` cũ biến mất | Storage ephemeral/lifecycle cleanup | Tìm volume/snapshot/backup; thiết kế đường lưu bền và trích xuất chứng cứ cho lần sau. |
-| Tên file có thứ tự khác timestamp | Rename, copy, đồng hồ, hoặc tên do công cụ tạo | Để `jfr assemble` sắp chunk theo metadata; không tự nối theo tên file nếu chưa kiểm chứng. |
-| File recovered có duration ít hơn uptime | Recording chỉ chạy trong một cửa sổ, `maxage`/`maxsize` loại cũ hoặc thiếu chunks | Báo đúng cửa sổ có bằng chứng thay vì gọi đó là toàn bộ lịch sử JVM. |
+| `jfr assemble` finds no chunks | Wrong directory, repo cleaned up, only `.part` files remain, or not a disk recording | Confirm `disk=true` pre-incident, inspect directory tree/volumes/backups, pick exact leaf directory. |
+| Multiple PID/recording directories exist | Multiple JVMs or recording sessions shared the same base repo | Identify PID, timestamps, and file groups; process **each repository separately**. |
+| Multiple `.part` files exist but zero `.jfr` files | No completed chunks remain to assemble | Preserve existing files; do not rename extensions or claim "recovery succeeded." |
+| `jfr summary recovered.jfr` fails to read | Missing/corrupt output, wrong input types, or tool compatibility mismatch | Read actual error, verify input list, try a JDK tool version matching the recording JVM. |
+| File reads cleanly yet target events are missing | Event disabled, threshold/sampling, mismatched recording window, lost chunk | Compare `.jfc`, logs, `jfr summary`, timestamps; do not blame `assemble` for every gap. |
+| No data immediately before crash | Unflushed buffers, skipped `.part`, retention/gaps | Clearly report uncovered time span; cross-check `hs_err_pid`, GC logs, app logs, and OS metrics. |
+| `jcmd JFR.dump` reports attach denied | Permissions, process namespace, or environment policy | Use proper permissions/context **while the JVM is alive**; do not run `jcmd` after PID dies. |
+| Pod restart wiped old `/tmp` | Ephemeral storage / lifecycle cleanup | Check volumes/snapshots/backups; design durable storage and pre-restart evidence extraction next time. |
+| Filenames ordered differently from timestamps | Renaming, copying, clock skew, or tool-generated names | Let `jfr assemble` sort chunks by metadata; do not concatenate by filename without verification. |
+| Recovered file duration is shorter than uptime | Recording ran only for a window, `maxage`/`maxsize` evicted old chunks, or chunks missing | Report the exact evidenced window instead of calling it the entire JVM history. |
 
-### Không nhầm các công cụ
+### Do Not Confuse the Tools
 
-| Lệnh | Đầu vào/đầu ra | Dùng khi |
+| Command | Input / Output | When to Use |
 | --- | --- | --- |
-| `jcmd PID JFR.dump ...` | JVM **đang sống** → `.jfr` snapshot | Lấy dữ liệu trước khi stop/restart, không phải công cụ offline. |
-| `jcmd PID JFR.stop ...` | JVM **đang sống** → dừng recording và có thể ghi `.jfr` | Kết thúc một recording còn đang chạy. |
-| `jfr assemble REPO OUT.jfr` | Directory chứa **complete chunks** → recording `.jfr` | Khôi phục offline khi chỉ còn chunk sau sự cố. |
-| `jfr disassemble FILE.jfr` | Recording **đọc được** → các file chunk/segment | Lab, chia file lớn, xác định các phần hợp lệ. |
-| `jfr summary FILE.jfr` | Recording `.jfr` → số chunk, event counts, metadata tổng quan | Xác thực và đánh giá kết quả. |
-| `jfr print --events ... FILE.jfr` | Recording `.jfr` → event detail dạng text | Tra stack/timestamp/field sau khi xác thực file. |
-| JMC | Recording `.jfr` → timeline, chart, tương quan | Điều tra sự cố dựa trên những event còn lại. |
+| `jcmd PID JFR.dump ...` | **Live** JVM → `.jfr` snapshot | Capture data before stop/restart; not an offline tool. |
+| `jcmd PID JFR.stop ...` | **Live** JVM → stops recording and optionally writes `.jfr` | End an active recording. |
+| `jfr assemble REPO OUT.jfr` | Directory of **complete chunks** → `.jfr` recording | Offline recovery when only chunks remain after an incident. |
+| `jfr disassemble FILE.jfr` | **Readable** recording → chunk/segment files | Labs, splitting large files, isolating valid segments. |
+| `jfr summary FILE.jfr` | `.jfr` recording → chunk count, event counts, summary metadata | Validate and assess results. |
+| `jfr print --events ... FILE.jfr` | `.jfr` recording → text event details | Inspect stacks/timestamps/fields after validating the file. |
+| JMC | `.jfr` recording → timeline, charts, correlations | Investigate incidents from surviving events. |
 
-## 9. Quy tắc bảo toàn, tính đầy đủ và tính riêng tư
+## 9. Rules for Preservation, Completeness, and Privacy
 
-**Bảo toàn chứng cứ:** đánh dấu đường dẫn gốc, PID/host/container ID, thời điểm lấy dữ liệu và JDK build; tạo bản sao riêng trước khi thao tác. Với nhiều file, checksum từng file `.jfr` giúp kiểm tra chúng có thay đổi giữa các bước. Giữ cả `.part` trong bản lưu gốc dù `assemble` không dùng được, vì đây vẫn là chứng cứ về trạng thái ghi dở lúc sự cố.
+**Preserve evidence:** record original paths, PID/host/container IDs, collection timestamps, and JDK build; make a separate copy before working on it. With multiple files, checksum each `.jfr` file to verify nothing changed between steps. Keep `.part` files in the raw archive even though `assemble` cannot use them, as they are still evidence of mid-write state at failure time.
 
-**Không đánh đồng “file parse được” với “sự cố đã được ghi đủ”:** `jfr summary` xác nhận cấu trúc và loại event; điều tra vẫn cần khoảng thời gian, event setting, buffer/retention behavior và dữ liệu bên ngoài JVM. Ví dụ nếu GC logs/OS report OOM lúc 10:00:05 nhưng recording cuối lúc 10:00:01, kết luận đúng là **JFR khôi phục tới 10:00:01**, không được nói không có GC/OOM sau đó.
+**Do not equate "file parses" with "incident fully captured":** `jfr summary` validates structure and event types; investigation still requires time spans, event settings, buffer/retention behavior, and external JVM data. For example, if GC logs/OS report OOM at 10:00:05 yet the recovered recording ends at 10:00:01, the accurate conclusion is **JFR recovered up to 10:00:01**—never claim there was no GC or OOM afterward.
 
-**Đọc timestamps đúng múi giờ:** JFR tool có thể hiển thị UTC hoặc thời gian local tùy command/version. Khi đối chiếu ứng dụng, container, tracing, log OS, hãy chuyển về một chuẩn thời gian và ghi rõ đơn vị (ms/ns) để tránh suy luận sai quan hệ nhân quả.
+**Read timestamps in the right time zone:** JFR tools may display UTC or local time depending on command/version. When correlating application, container, tracing, and OS logs, normalize to a single time standard and state units (ms/ns) clearly to avoid false causal inferences.
 
-**Kiểm soát truy cập:** JFR có thể chứa tên thread, class, method, frame, đường dẫn, thông tin system/environment và payload của custom events; không upload lên dịch vụ công khai hoặc đưa vào ticket không có kiểm soát nếu chưa kiểm tra chính sách dữ liệu. File recovered cần được bảo vệ như một artifact chẩn đoán hệ thống.
+**Control access:** JFR can hold thread, class, method, and frame names, paths, system/environment info, and custom event payloads; never upload to public services or attach to uncontrolled tickets without checking data policies. Treat recovered files as sensitive system diagnostic artifacts.
 
-**Tính đúng môi trường:** chạy `jfr` từ JDK tương thích với phiên bản đã ghi; dùng `jfr metadata` để xác nhận schema thật. Nếu tool quá cũ không đọc được recording mới, hãy thử bản JDK phù hợp thay vì sửa bytes.
+**Match environments:** run `jfr` from a JDK compatible with the recording version; use `jfr metadata` to inspect actual schemas. If an older tool cannot parse a newer recording, upgrade the analysis JDK rather than patching bytes.
 
-## 10. Checklist thao tác thực tế
+## 10. Practical Operations Checklist
 
-- [ ] Xác định **JVM đã chết hay còn chạy**; nếu còn sống, ưu tiên `jcmd JFR.dump` với quyền thích hợp.
-- [ ] Tìm đúng **disk repository** và nhóm chunk của **một JVM/phiên**; xác nhận có ít nhất một chunk `.jfr` hoàn chỉnh.
-- [ ] Bảo quản bản gốc, sao chép toàn bộ thư mục relevant gồm cả `.part`, ghi nhận metadata và checksum.
-- [ ] Đặt **output ngoài repository input**, chạy `jfr assemble` trên bản sao.
-- [ ] Chạy `jfr summary` và `jfr metadata` để xác nhận file parse được, xem số chunk, start/end time, event counts.
-- [ ] Mở trong JMC hoặc dùng `jfr print` để phân tích; so timeline với logs, GC, container/OS metrics và các bằng chứng crash.
-- [ ] Báo rõ **dữ liệu còn, dữ liệu thiếu và điều gì không thể suy ra** (buffers, `.part`, retention, event settings).
-- [ ] Với lần sau, kiểm tra `disk=true`, repository path, khả năng lưu bền của volume, quyền, retention và quy trình snapshot trước restart.
+- [ ] Determine whether the **JVM is dead or still running**; if alive, prefer `jcmd JFR.dump` with proper permissions.
+- [ ] Locate the exact **disk repository** and chunk group for **one JVM/session**; confirm at least one complete `.jfr` chunk exists.
+- [ ] Preserve the original, copy the entire relevant directory including `.part` files, and record metadata and checksums.
+- [ ] Place **output outside the input repository**, and run `jfr assemble` on the copy.
+- [ ] Run `jfr summary` and `jfr metadata` to verify the file parses cleanly, checking chunk count, start/end times, and event counts.
+- [ ] Open in JMC or use `jfr print` to analyze; align timelines with logs, GC, container/OS metrics, and crash artifacts.
+- [ ] Explicitly report **surviving data, missing data, and what cannot be inferred** (buffers, `.part`, retention, event settings).
+- [ ] For next time, verify `disk=true`, repository path, volume durability, permissions, retention, and pre-restart snapshot procedures.
 
-**Kết luận:** sau sự cố, `jfr assemble` là công cụ dành cho **những JFR chunks đã hoàn tất và còn trên đĩa**. Nó có thể cứu phần lịch sử hữu ích dù file recording cuối cùng chưa được dump, nhưng không thể tái tạo event đã mất trong RAM, chunk `.part` chưa hoàn tất, hoặc chunk đã bị xóa. Khôi phục thành công phải đi cùng **xác minh nội dung và công bố giới hạn thời gian**.
+**Conclusion:** after an incident, `jfr assemble` is the tool for **completed JFR chunks still on disk**. It can rescue useful history even when a final recording file was never dumped, yet it cannot recreate events lost in RAM, incomplete `.part` chunks, or deleted chunks. Successful recovery must be paired with **content verification and explicit disclosure of time-range limits**.
 
-## Tài liệu tham khảo
+## References
 
 - [Oracle JDK 21 — `jfr` command: `assemble`, `disassemble`, `summary`, `metadata`, `print`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
 - [Oracle JDK 21 — `jcmd`: JFR.configure, JFR.start, JFR.check, JFR.dump](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)

@@ -1,259 +1,259 @@
-# 18.9 Kiểm chứng thay đổi bằng phân bố độ trễ và số thao tác thành công dưới cùng tải
+# 18.9 Verifying Changes Using Latency Distributions and Successful Operations Under Identical Load
 
-## 1. Mục tiêu của bài
+## 1. Purpose of this lesson
 
-Sau khi chỉnh code I/O, connection pool, batching, asynchronous execution, buffer size, cache hoặc timeout, một số đo trung bình đẹp hơn **không đủ chứng minh hệ thống tốt hơn**. Thay đổi có thể giảm thời gian của các thao tác thành công nhưng đồng thời làm tăng timeout, bỏ request hoặc trả sai dữ liệu. Để kết luận, cần đo **phân bố độ trễ** và **số thao tác thực sự thành công** với **cùng mức tải được yêu cầu**.
+After modifying I/O code, connection pools, batching, asynchronous execution, buffer sizes, caches, or timeouts, a prettier average **is not enough to prove the system improved**. A change can speed up successful operations while simultaneously increasing timeouts, dropping requests, or returning corrupted data. To draw a valid conclusion, measure **the latency distribution** and **the count of genuinely successful operations** under **the same demanded load**.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt **offered load**, issued rate, completed throughput, **goodput**, success rate, errors, timeouts, dropped và in-flight requests.
-2. Đọc và so sánh **p50, p90, p95, p99, p99.9**, histogram/CDF, max, mean và tỷ lệ vượt deadline; hiểu giới hạn về sample size.
-3. Thiết kế thử nghiệm A/B đúng: cùng workload, arrival rate, trạng thái cache, data size, tài nguyên, timeouts, điều kiện warm-up và cách định nghĩa success.
-4. Tránh **coordinated omission** và sai lệch khi test closed-loop tự giảm tốc độ phát request lúc server chậm.
-5. Đối chiếu client end-to-end latency với số liệu JVM, JFR SocketRead/SocketWrite/FileRead/FileWrite, queue, CPU/GC và metrics hệ điều hành.
-6. Đặt tiêu chí **PASS / FAIL / INCONCLUSIVE** trước khi chạy, thay vì chỉ chọn chỉ số có lợi sau khi biết kết quả.
+1. Distinguish **offered load**, issued rate, completed throughput, **goodput**, success rate, errors, timeouts, dropped, and in-flight requests.
+2. Read and compare **p50, p90, p95, p99, p99.9**, histograms/CDFs, max, mean, and deadline breach rates; understand sample-size limits.
+3. Design clean A/B experiments: identical workload, arrival rate, cache state, data size, resources, timeouts, warm-up conditions, and success predicate.
+4. Avoid **coordinated omission** and bias when closed-loop tests automatically slow down request generation as the server slows down.
+5. Correlate client end-to-end latency with JVM data, JFR `SocketRead`/`SocketWrite`/`FileRead`/`FileWrite`, queues, CPU/GC, and OS metrics.
+6. Define **PASS / FAIL / INCONCLUSIVE** criteria before running, rather than cherry-picking favorable metrics after seeing the numbers.
 
-**Thông điệp cốt lõi:** thay đổi là cải thiện khi dưới **cùng tải có thể kiểm chứng**, số thao tác **đúng và thành công/giây** không bị đánh đổi lấy con số p95 đẹp, và tail latency cùng các guardrail đều đạt mục tiêu.
+**Core message:** a change is an improvement when, under **the same verifiable load**, **correct and successful operations per second** are not traded away for a nicer p95, and both tail latency and guardrails meet their targets.
 
-## 2. Định nghĩa thao tác, điểm đo và deadline
+## 2. Defining the operation, measurement points, and deadline
 
-Trước phép thử, xác định **một operation** là gì: một HTTP request, một transaction nghiệp vụ, một database query, một lần đọc/ghi file, một batch hay một message được xác nhận. Nếu A báo throughput theo batch còn B theo row, hai giá trị không so sánh trực tiếp được.
+Before running a test, define what **one operation** is: an HTTP request, a business transaction, a database query, a file read/write, a batch, or an acknowledged message. If A reports throughput per batch while B reports per row, the two numbers cannot be compared directly.
 
-Ví dụ thao tác HTTP gọi database:
+Example of an HTTP operation calling a database:
 
 ~~~text
-Load generator có kế hoạch phát request ở t0
+Load generator plans to issue request at t0
         |
-        +-- có thể trễ lịch hoặc dropped vì generator thiếu resources
+        +-- may fall behind schedule or drop if generator lacks resources
         v
-Client thực sự bắt đầu gửi request
+Client actually begins sending request
         |
         +-- network / connection pool / TLS
         v
-Server nhận request
+Server receives request
         |
         +-- queue / thread scheduling / GC
         +-- application CPU / database / file / socket I/O
         v
-Server hoàn tất response
+Server completes response
         |
         +-- network / client decode / validate payload
         v
-Client xác định SUCCESS / ERROR / TIMEOUT ở t1
+Client determines SUCCESS / ERROR / TIMEOUT at t1
 ~~~
 
-Cần quyết định đo khoảng nào:
+Decide which interval to measure:
 
-| Tên | Phạm vi | Mục đích |
+| Name | Scope | Purpose |
 | --- | --- | --- |
-| **Client end-to-end** | Từ lúc client gửi đến nhận kết quả hoặc deadline | Trải nghiệm bên gọi |
-| **Scheduled-to-completion** | Từ **thời điểm dự kiến** phát đến khi hoàn tất | Phản ánh queueing/missed schedule trong bài test arrival-rate |
-| **Server request duration** | Khi server nhận đến khi hoàn tất theo instrumentation | Phân tích server, không gồm toàn bộ client network |
-| **Downstream I/O duration** | Lúc code chờ đọc/ghi socket/file/database | Tìm thành phần gây chậm, không phải tổng request |
-| **Queue wait** | Lúc enqueued đến lúc bắt đầu xử lý | Phát hiện backlog và giới hạn worker/pool |
+| **Client end-to-end** | From client send until result receipt or deadline | Caller experience |
+| **Scheduled-to-completion** | From **intended scheduled** issue time until completion | Reflects queuing/missed schedule in arrival-rate tests |
+| **Server request duration** | From server receipt until completion per instrumentation | Server analysis; excludes full client network |
+| **Downstream I/O duration** | While code waits on socket/file/database read/write | Pinpoints slow component; not total request time |
+| **Queue wait** | From enqueue until processing starts | Detects backlogs and worker/pool limits |
 
-**Không đối chiếu client p99 của A với server p99 của B.** Chúng đo khoảng khác nhau. Với Java, dùng **System.nanoTime()** và hiệu hai mốc để đo duration bên trong cùng process; System.currentTimeMillis() phù hợp với mốc wall-clock/log nhưng đồng hồ hệ thống có thể điều chỉnh.
+**Never compare client p99 of A against server p99 of B.** They measure different spans. In Java, use **`System.nanoTime()`** differences to measure durations within the same process; `System.currentTimeMillis()` is fine for wall-clock/log timestamps, but the system clock can jump.
 
-Đặt **deadline** trước khi chạy, ví dụ 250 ms. Một operation timeout sau 250 ms là một **kết quả thất bại**, cần được đếm và lưu thời gian chờ tới timeout theo định nghĩa test. Không âm thầm xóa nó khỏi thống kê. Nếu request chưa được generator phát, đó là **dropped/not issued**, không phải một latency đã đo được.
+Set the **deadline** before running—for example, 250 ms. An operation timing out after 250 ms is a **failed outcome** that must be counted and have its wait-to-timeout recorded per test definition. Never quietly drop timeouts from statistics. If the generator failed to issue a request, that is **dropped/not issued**, not a measured latency.
 
-Một HTTP 200 chỉ là thành công nếu **nội dung và hậu điều kiện nghiệp vụ** đúng. Một job ghi dữ liệu báo OK nhưng làm mất record, ghi trùng không hợp lệ hoặc chưa bền vững theo contract thì không tính là useful success.
+An HTTP 200 counts as success only if **payload content and business postconditions** are valid. A write job returning OK while losing records, writing invalid duplicates, or violating durability contracts is not useful success.
 
-## 3. Bộ đếm phải cân đối
+## 3. Counters must balance
 
-Trong một cửa sổ test, ký hiệu:
+In a test window, define:
 
-- **P / planned**: số operation đã được lập lịch gửi.
-- **I / issued**: số operation thực sự được phát đi.
-- **D / dropped**: đã có lịch nhưng generator không phát được.
-- **C / completed**: đã có kết quả cuối cùng, kể cả lỗi và timeout.
-- **S / success**: completed operation đúng cả protocol và nghiệp vụ.
-- **F / failed**: completed operation lỗi, timeout, rejected, sai dữ liệu hoặc bị hủy theo contract.
-- **O / outstanding**: issued nhưng chưa có kết quả khi chốt số liệu.
+- **P / planned**: operations scheduled to be sent.
+- **I / issued**: operations actually sent.
+- **D / dropped**: scheduled operations the generator failed to issue.
+- **C / completed**: operations with a final outcome, including errors and timeouts.
+- **S / success**: completed operations valid at both protocol and business levels.
+- **F / failed**: completed operations that errored, timed out, were rejected, returned wrong data, or cancelled per contract.
+- **O / outstanding**: issued operations with no final outcome yet at cutoff.
 
-Nếu mỗi logical operation được ghi nhận đúng một lần:
+If each logical operation is accounted for exactly once:
 
 ~~~text
 P = I + D
 I = C + O
 C = S + F
 
-issued_rate           = I / thời_gian_đo
-completed_throughput  = C / thời_gian_đo
-goodput               = S / thời_gian_đo
-success_rate_finished = S / C      (chỉ khi C > 0)
-success_per_planned   = S / P      (chỉ khi P > 0)
+issued_rate           = I / measurement_duration
+completed_throughput  = C / measurement_duration
+goodput               = S / measurement_duration
+success_rate_finished = S / C      (only when C > 0)
+success_per_planned   = S / P      (only when P > 0)
 ~~~
 
-**Goodput** là số thao tác thành công và hữu ích/giây, không phải số attempts/giây. Nếu một request retry ba lần rồi hoàn tất một nghiệp vụ, hãy đếm **một logical success** và ghi **ba physical attempts** trong metric riêng. Đếm retries thành successes khiến throughput bị phóng đại và che chi phí I/O.
+**Goodput** is useful, successful operations/second—not attempts/second. If one request retries three times to complete one business operation, count **one logical success** and track **three physical attempts** in a separate metric. Counting retries as successes inflates throughput and hides I/O cost.
 
-**S/C đẹp chưa đủ**: nếu generator chỉ gửi 100 trong 1.000 requests dự kiến và cả 100 thành công, S/C = 100% nhưng S/P = 10%. Vì vậy báo cả P, I, D, C, S, F và O. Với asynchronous work, phải ghi rõ thời gian **drain** và công việc còn outstanding để không so A có queue dài với B đã drain hết.
+**A high S/C alone is not enough:** if the generator only issued 100 of 1,000 planned requests and all 100 succeeded, S/C = 100% while S/P = 10%. Therefore report all of P, I, D, C, S, F, and O. With asynchronous work, document the **drain** period and remaining outstanding work so you do not compare A with a deep backlog against fully drained B.
 
-Ví dụ planned = 60.000, issued = 59.500, dropped = 500, completed = 59.400, outstanding = 100, success = 58.000 và failed = 1.400. Những số này cân đối. Goodput sau 120 giây đo là 58.000/120 ≈ 483,33 successful operations/s. Không được dùng 59.400/120 rồi gọi là goodput.
+For example, planned = 60,000, issued = 59,500, dropped = 500, completed = 59,400, outstanding = 100, success = 58,000, and failed = 1,400. These numbers balance. Goodput over 120 seconds is 58,000/120 ≈ 483.33 successful operations/s. Never use 59,400/120 and call it goodput.
 
-### Mối quan hệ với năng lực phục vụ
+### Relationship to serving capacity
 
-Nếu server nhận 500 ops/s nhưng chỉ hoàn tất 400 ops/s trong thời gian dài, **backlog tăng**; tổng requests nhận cao không chứng minh hệ thống khỏe. Trong trạng thái ổn định, Little's Law liên hệ lượng công việc trung bình đang nằm trong hệ thống với arrival/completion rate và average response time, nhưng không thay thế phép đo queue và không đúng máy móc khi hệ thống đang tăng backlog không ổn định.
+If the server accepts 500 ops/s while completing only 400 ops/s over a sustained period, **the backlog grows**; high accepted request counts do not mean the system is healthy. In steady state, Little's Law links average work in the system to arrival/completion rate and average response time, yet it does not replace measuring queues and breaks down mechanically when an unstable backlog keeps growing.
 
-## 4. Tại sao phải xem cả phân bố?
+## 4. Why inspect the entire distribution?
 
-**Average** có thể che outliers. **p50** mô tả phần giữa, **p95** phần đuôi, **p99/p99.9** phần rất chậm. Một tối ưu giúp số đông nhanh hơn nhưng làm 1% request chờ rất lâu vẫn có thể phá SLO.
+**Averages** hide outliers. **p50** describes the median, **p95** the common tail, and **p99/p99.9** the slowest tail. An optimization that speeds up the majority while making 1% of requests wait far longer can still break the SLO.
 
-Với các quan sát đã sắp tăng dần:
+Over observations sorted ascending:
 
-| Chỉ số | Diễn giải |
+| Metric | Interpretation |
 | --- | --- |
-| **p50** | Khoảng 50% observations không vượt mức này |
-| **p90/p95** | Thấy phần đuôi thường gặp |
-| **p99/p99.9** | Thấy slow tail hiếm, cần nhiều observations |
-| **max** | Chậm nhất đã quan sát, nhạy với outlier và cỡ mẫu |
-| **Mean** | Trung bình, hữu ích cho capacity math nhưng không thay thế tail |
-| **Deadline breach rate** | Tỷ lệ chậm hơn ngưỡng SLO đã định trước |
-| **Histogram / CDF / CCDF** | Hình dạng toàn bộ phân bố và tỷ lệ vượt từng ngưỡng |
+| **p50** | Roughly 50% of observations do not exceed this value |
+| **p90/p95** | Reveals the common tail |
+| **p99/p99.9** | Reveals rare slow tails; requires many observations |
+| **max** | Slowest observed value; sensitive to outliers and sample size |
+| **Mean** | Average; useful for capacity math, not a substitute for tails |
+| **Deadline breach rate** | Fraction slower than the predefined SLO threshold |
+| **Histogram / CDF / CCDF** | Full distribution shape and fraction exceeding each threshold |
 
-**p99 không nhất thiết là request chậm nhất.** Cách tính nearest-rank cho N=100 quan sát dùng observation thứ 99, còn max là thứ 100. Histogram systems có thể dùng interpolation, nên A/B phải cùng thuật toán và bucket boundaries.
+**p99 is not necessarily the slowest request.** Nearest-rank for N=100 observations picks the 99th observation, while max is the 100th. Histogram systems may interpolate, so A and B must use the same algorithm and bucket boundaries.
 
-**p99.9 với 1.000 observations gần giá trị lớn nhất** và dễ biến động mạnh. Cần số mẫu lớn và lặp lại nhiều lần cho tail. Không có một mức mẫu tối thiểu đúng cho mọi workload; độ tin cậy phụ thuộc effect size, variability, serial correlation và số run độc lập.
+**p99.9 over 1,000 observations sits near the maximum** and fluctuates wildly. Tails require large sample sizes and repeated runs. There is no single universal minimum sample count for every workload; confidence depends on effect size, variance, serial correlation, and independent run count.
 
-**Không lấy trung bình p99 của từng pod hoặc từng phút rồi coi là p99 của toàn bộ requests.** Percentiles không cộng gộp tuyến tính. Với Prometheus classic histograms, cần **cộng bucket counts** của các nguồn tương thích trước, rồi dùng histogram_quantile. Với summary quantiles được tính sẵn ở mỗi instance, trung bình các quantiles không tạo ra global quantile.
+**Never average per-pod or per-minute p99s and call it the overall p99.** Percentiles do not aggregate linearly. With Prometheus classic histograms, **sum the bucket counts** across compatible sources first, then apply `histogram_quantile`. With pre-computed per-instance summary quantiles, averaging quantiles never yields the global quantile.
 
-### CDF và CCDF làm rõ phần đuôi
+### CDF and CCDF clarify the tail
 
-- **CDF(x)** = tỷ lệ observations có latency ≤ x.
-- **CCDF(x)** = 1 − CDF(x) = tỷ lệ observations có latency > x.
-- Ở ngưỡng 200 ms, CCDF=0,03 nghĩa là khoảng 3% observations đã đo vượt 200 ms.
-- Nếu failures/timeouts không được instrument vào tập latency đó, phải tách số vi phạm/censoring và không được gọi CCDF của successes là CCDF của mọi operations.
+- **CDF(x)** = fraction of observations with latency ≤ x.
+- **CCDF(x)** = 1 − CDF(x) = fraction of observations with latency > x.
+- At a 200 ms threshold, CCDF=0.03 means roughly 3% of measured observations exceeded 200 ms.
+- If failures/timeouts were excluded from that latency set, report breach/censoring rates separately and never label the CCDF of successes as the CCDF of all operations.
 
-Với I/O, thường cần xem **tail-over-time** nữa: một p99 cho toàn bộ 30 phút có thể che một spike kéo dài 20 giây đủ gây incident.
+For I/O, also watch **tail-over-time**: one p99 over 30 minutes can hide a 20-second spike severe enough to trigger an incident.
 
-## 5. “Cùng tải” không có nghĩa “cùng 100 threads”
+## 5. "Same load" does not mean "same 100 threads"
 
-Một bài test **closed-loop** thường tạo N clients, mỗi client gửi request kế tiếp **sau khi response trước hoàn tất**. Nếu server chậm đi, clients gửi ít requests hơn. Hai run đều có “100 virtual users” nhưng hệ thống có thể nhận tải khác nhau.
+A **closed-loop** test typically spawns N clients, each sending the next request **after the previous response completes**. If the server slows down, clients send fewer requests. Both runs can have "100 virtual users" while applying completely different loads.
 
 ~~~text
-Run A: 100 clients → khoảng 1.000 requests/s được phát
-Run B: 100 clients → khoảng 450 requests/s được phát
+Run A: 100 clients → ~1,000 requests/s issued
+Run B: 100 clients → ~450 requests/s issued
 ~~~
 
-Không thể kết luận B có latency tốt hơn **ở cùng 1.000 requests/s** nếu B thực tế chỉ nhận 450/s. “Cùng số connections” cũng không bảo đảm cùng offered load.
+You cannot conclude B has lower latency **at 1,000 requests/s** when B only received 450/s. "Same connection count" likewise does not guarantee identical offered load.
 
-Trong mô hình **open-loop/arrival-rate**, generator lập lịch request độc lập với completion của request trước, chẳng hạn 500 requests/s. Tuy nhiên generator có thể trễ lịch nếu thiếu worker, CPU, sockets hoặc connections. Vì vậy phải đo:
+In an **open-loop/arrival-rate** model, the generator schedules requests independently of previous completions—for instance, 500 requests/s. However, the generator can still fall behind if it runs short on workers, CPU, sockets, or connections. Therefore measure:
 
-1. **Target arrival rate** được cấu hình.
-2. **Scheduled/issued rate** theo timestamps thực tế.
-3. **Late starts/dropped iterations** do generator không theo kịp.
-4. **Server arrival rate** có thực sự khớp điều client phát không.
-5. **Actual goodput** và errors/timeouts.
+1. Configured **target arrival rate**.
+2. Actual **scheduled/issued rate** by timestamps.
+3. **Late starts/dropped iterations** when the generator cannot keep up.
+4. **Server arrival rate** to confirm it matches what the client sent.
+5. **Actual goodput** and errors/timeouts.
 
 ### Coordinated omission
 
-Nếu hệ thống bị stall 1 giây, một closed-loop client đang chờ response không tạo các request kế tiếp đáng lẽ phải đến theo nhịp người dùng. Histogram của các request *đã thực sự phát* bỏ sót những lượt đến bị chặn đó, khiến tail latency trông quá lạc quan.
+If the system stalls for 1 second, a closed-loop client waiting for a response fails to emit subsequent requests that real independent users would have sent. A histogram of *actually issued* requests omits those delayed arrivals, making tail latency look artificially rosy.
 
-**Coordinated omission** là thiên lệch đo do không quan sát đủ các requests mà một mô hình arrivals độc lập lẽ ra sẽ đưa vào. Để giảm sai lệch, dùng load generator hỗ trợ rate schedule và đo latency dựa trên **intended start time**; đồng thời kiểm tra generator có theo kịp không. Nếu không, báo missed schedule riêng và **không tự điền số liệu giả thành latency có thật**.
+**Coordinated omission** is measurement bias from failing to record requests that an independent arrival process would have submitted. To reduce this bias, use a rate-scheduled load generator and measure latency from **intended start time**, while verifying the generator kept up. If it fell behind, report missed schedules separately and **never fabricate synthetic latency numbers as real observations**.
 
-Công cụ **wrk2** dùng lịch constant throughput và ghi latency có cân nhắc thời điểm request đáng lẽ phải được phát. Điều này giúp so sánh cùng offered rate, nhưng không thay thế việc đếm business successes và kiểm tra generator saturation.
+The **wrk2** tool uses a constant-throughput schedule and records latency accounting for when requests were supposed to be sent. This aids comparisons at equal offered rates, though it does not replace counting business successes or checking generator saturation.
 
-### Cố định các biến gây nhiễu
+### Controlling confounding variables
 
-| Nhóm | Cần tương đương A/B |
+| Group | Must match between A and B |
 | --- | --- |
-| **Input** | Tỷ lệ đọc/ghi, payload size, số key, data distribution, request route mix, random seed |
+| **Input** | Read/write ratio, payload size, key count, data distribution, route mix, random seed |
 | **Arrival schedule** | Offered RPS, duration, ramp-up, burst pattern, steady-state windows |
-| **State** | Warm/cold cache theo kế hoạch, database size/index, connection reuse và pool warm-up |
+| **State** | Planned warm/cold cache state, DB size/indexes, connection reuse and pool warm-up |
 | **Resources** | CPU quota, memory, replicas, disk/network tier, JVM/JDK/GC, limits, autoscaling policy |
-| **Network** | RTT, TLS, HTTP version, load balancer, keep-alive, pool sizing ngoài treatment |
-| **Failure policy** | Timeout, retry budget, rate-limit, circuit breaker, validation và success predicate |
+| **Network** | RTT, TLS, HTTP version, load balancer, keep-alive, pool sizing outside treatment |
+| **Failure policy** | Timeouts, retry budgets, rate limits, circuit breakers, validation and success predicate |
 | **Measurement** | Client/server instrumentation, sampling, histogram buckets, units, generator version |
-| **Environment** | Noisy neighbors, background jobs, data reset, clock skew, observability overhead |
+| **Environment** | Noisy neighbors, background jobs, data resets, clock skew, observability overhead |
 
-Nếu thay đổi **có chủ ý** là tăng connection pool 32→64, phải ghi đó là **treatment**; không bắt pool bằng nhau rồi nói đã kiểm chứng đúng thay đổi. Nhưng CPU quota, DB capacity và offered load vẫn cần so sánh được. Nếu B dùng gấp đôi số replicas, phải đưa **chi phí tài nguyên** vào quyết định.
+If the **intentional** change is raising the connection pool from 32→64, record that as the **treatment**; do not force pools equal and claim you tested the pool change. Still keep CPU quota, DB capacity, and offered load comparable. If B uses twice as many replicas, factor **resource cost** into the decision.
 
-## 6. Thiết kế một thử nghiệm trước–sau có thể lặp lại
+## 6. Designing a repeatable before–after experiment
 
-### Bước 1. Chốt giả thuyết và guardrails trước khi chạy
+### Step 1. Lock hypothesis and guardrails before running
 
-Ví dụ: “Batched I/O cải thiện p99 client latency mà không làm giảm successful throughput”. Đặt tiêu chí minh họa:
+Example: "Batched I/O improves client p99 latency without reducing successful throughput." Illustrative pass criteria:
 
-- Offered load: **500 planned ops/s** trong 120 giây steady-state.
+- Offered load: **500 planned ops/s** for 120 seconds steady-state.
 - Goodput ≥ **495 successful ops/s**.
-- Success/planned ≥ **99,9%**.
-- p99 end-to-end ≤ **250 ms**.
-- Data correctness = **100%** theo validator.
-- Timeout/reject/dropped không tăng ngoài ngân sách đã quy định.
-- CPU/memory/connection usage không vượt capacity budget.
+- Success/planned ≥ **99.9%**.
+- End-to-end p99 ≤ **250 ms**.
+- Data correctness = **100%** per validator.
+- Timeouts/rejects/drops do not rise beyond predefined budgets.
+- CPU/memory/connection usage stays within capacity budgets.
 
-Không phải hệ thống nào cũng cần các con số trên; đó là **ví dụ cách định nghĩa pass/fail**, không phải chuẩn chung.
+Not every system needs these exact numbers; they are an **example of defining pass/fail**, not a universal standard.
 
-### Bước 2. Warm-up theo workload cần đo
+### Step 2. Warm up with the target workload
 
-Java có JIT, class loading, GC, pool creation và cache warm-up. Đo A cold, B warm rồi kết luận B nhanh hơn sẽ sai. Warm-up cùng loại traffic hoặc **tách hẳn cold-start benchmark** nếu đó mới là SLO cần kiểm tra.
+Java has JIT compilation, class loading, GC, pool creation, and cache warm-up. Measuring A cold and B warm and calling B faster is invalid. Warm up with matching traffic, or **run a dedicated cold-start benchmark** if cold-start is the actual SLO under test.
 
-### Bước 3. Thử một đường cong tải
+### Step 3. Test a load curve
 
-Chạy ở nhiều mức như **100, 300, 500, 650 ops/s** với cùng payload mix. Đo p95/p99 và goodput tại mỗi mức. Điểm “knee” khi hệ thống gần bão hòa quan trọng hơn giá trị tại một RPS quá thấp.
+Run multiple levels such as **100, 300, 500, 650 ops/s** with the same payload mix. Measure p95/p99 and goodput at each step. The "knee" as the system nears saturation matters far more than numbers at low RPS.
 
-Khi quá tải, kiểm tra **queue depth, in-flight, rejected, timeout và phục hồi sau tải**. Một hệ thống biết từ chối có kiểm soát có thể an toàn hơn hệ thống queue vô hạn, nhưng success/planned vẫn phải báo trung thực.
+Under overload, inspect **queue depth, in-flight, rejected, timeouts, and post-load recovery**. A system that rejects in a controlled manner may be safer than an unbounded queue, though success/planned must still be reported honestly.
 
-### Bước 4. Bảo vệ benchmark khỏi generator bottleneck
+### Step 4. Protect the benchmark from generator bottlenecks
 
-Dùng máy phát tải có đủ CPU/network/file descriptors; theo dõi CPU, socket errors, missed arrivals, actual rate và client-side throttling. Nếu generator bão hòa, kết quả **INCONCLUSIVE**, không thể gắn khác biệt cho server.
+Use load-generator machines with ample CPU/network/file descriptors; monitor CPU, socket errors, missed arrivals, actual rate, and client-side throttling. If the generator saturates, the run is **INCONCLUSIVE**—differences cannot be attributed to the server.
 
-### Bước 5. Lặp và kiểm soát drift
+### Step 5. Repeat runs and control drift
 
-Ưu tiên nhiều runs A/B, có thể xếp **A–B–B–A** hoặc random hóa thứ tự theo block, reset data, cooldown và giữ cùng resource tier. Không chạy A lúc hệ thống vắng, B lúc database bị batch job chiếm tài nguyên rồi coi là thí nghiệm so sánh sạch.
+Prefer multiple A/B runs—such as **A–B–B–A** or randomized block order—with data resets, cooldowns, and identical resource tiers. Never run A when the system is quiet and B while a batch job hammers the database, then treat it as a clean comparison.
 
-### Bước 6. Chốt window, drain và artifacts
+### Step 6. Freeze windows, drain, and preserve artifacts
 
-Ghi riêng warm-up, steady state, cooldown/drain. Không chấm p99 cho B trước khi các slow requests hoàn tất còn A đã drain. Bảo quản run ID, config, metric snapshots, histogram, JFR và số lượng planned/issued/completed/failed.
+Separate warm-up, steady state, and cooldown/drain. Never score B's p99 before slow requests finish while A drained completely. Preserve run IDs, configs, metric snapshots, histograms, JFR files, and planned/issued/completed/failed counts.
 
-### Bước 7. Quan sát độ bất định
+### Step 7. Account for uncertainty
 
-Nếu p99 giữa các lần chạy dao động 200–450 ms, chênh lệch “210→205 ms” trong một run chưa đủ căn cứ. Dùng repeated runs, CI/uncertainty phù hợp, bootstrap theo run/block nếu có serial correlation. **Không bootstrap ngây thơ từng request liên quan chặt theo thời gian** rồi tuyên bố confidence quá hẹp.
+If p99 across runs swings between 200–450 ms, a "210→205 ms" difference in a single run proves nothing. Use repeated runs, appropriate CIs/uncertainty bounds, or block/run-level bootstrapping when serial correlation exists. **Never naively bootstrap tightly time-correlated individual requests** and claim overly narrow confidence intervals.
 
-## 7. Ví dụ kết luận đúng từ bảng trước/sau
+## 7. Example of drawing the right conclusion from a before/after table
 
-Cùng offered **500 ops/s trong 120 giây**, planned = **60.000** thao tác; tất cả số dưới đây **giả định**:
+Same offered **500 ops/s for 120 seconds**, planned = **60,000** operations; all figures below are **hypothetical**:
 
 | Metric | Baseline A | Candidate B |
 | --- | ---: | ---: |
-| Planned | 60.000 | 60.000 |
-| Issued | 59.950 | 59.900 |
+| Planned | 60,000 | 60,000 |
+| Issued | 59,950 | 59,900 |
 | Dropped by generator | 50 | 100 |
-| Completed after drain | 59.950 | 59.900 |
-| Business successes | 59.880 | 58.800 |
-| Failed / timeout | 70 | 1.100 |
-| Goodput | **499,0/s** | **490,0/s** |
-| Success / planned | **99,80%** | **98,00%** |
+| Completed after drain | 59,950 | 59,900 |
+| Business successes | 59,880 | 58,800 |
+| Failed / timeout | 70 | 1,100 |
+| Goodput | **499.0/s** | **490.0/s** |
+| Success / planned | **99.80%** | **98.00%** |
 | Client p50 | 42 ms | **32 ms** |
 | Client p95 | 140 ms | **95 ms** |
 | Client p99 | **380 ms** | **540 ms** |
 
-Kiểm tra:
+Check the math:
 
-- A: **59.880/120 = 499 successful ops/s**.
-- B: **58.800/120 = 490 successful ops/s**.
-- Mỗi bản đều thỏa P=I+D, C=S+F và không còn outstanding sau drain.
+- A: **59,880/120 = 499 successful ops/s**.
+- B: **58,800/120 = 490 successful ops/s**.
+- Both satisfy `P=I+D`, `C=S+F`, and zero outstanding after drain.
 
-B có p50/p95 đẹp hơn nhưng **p99, errors, dropped và goodput đều tệ hơn**. Nếu guardrail yêu cầu p99 ≤250 ms, success/planned ≥99,9% và goodput ≥495/s, cả hai chưa đạt đầy đủ; đặc biệt **B không đạt**, không thể công bố “tối ưu thành công” chỉ dựa vào p95.
+B has better p50/p95, yet **p99, errors, drops, and goodput are all worse**. If guardrails require p99 ≤250 ms, success/planned ≥99.9%, and goodput ≥495/s, neither fully passes—and **B clearly fails**, so you cannot declare "optimization succeeded" based on p95 alone.
 
-Giải thích có thể là B trả lỗi sớm, overload, mất request hoặc một nhóm operations bị queue lâu. Nhưng **bảng chưa chứng minh nguyên nhân**: cần timeline và dữ liệu JFR/metrics.
+Possible causes include B failing fast, overloading, dropping requests, or queuing a subset of operations heavily. However, **the table alone does not prove the cause**: timelines and JFR/metrics are required.
 
-## 8. Histogram, OpenTelemetry và Prometheus
+## 8. Histograms, OpenTelemetry, and Prometheus
 
-### Đo đúng đơn vị và nhãn
+### Measure with accurate units and labels
 
-Trong OpenTelemetry HTTP semantic conventions, **http.server.request.duration** và **http.client.request.duration** là histogram đo bằng **seconds**. Server/client khác phạm vi, không so trực tiếp nếu chưa thống nhất điểm đo.
+In OpenTelemetry HTTP semantic conventions, **`http.server.request.duration`** and **`http.client.request.duration`** are histograms measured in **seconds**. Server and client cover different scopes and cannot be compared directly without aligning measurement points.
 
-Một bộ custom metrics ví dụ:
+An example set of custom metrics:
 
-- **api_operation_seconds**: classic histogram durations của logical operation, ghi rõ có bao gồm failures/timeouts không.
-- **api_operations_total{operation,result}**: counter mỗi logical operation hoàn tất một lần; result=success/failure/timeout.
-- **api_operations_scheduled_total**, **api_operations_dropped_total**: counters từ load generator nếu có.
-- **api_inflight_operations**: gauge công việc chưa kết thúc.
-- **api_retries_total**: physical retries để thấy overhead ẩn.
+- **`api_operation_seconds`**: classic histogram of logical operation durations, explicitly noting whether failures/timeouts are included.
+- **`api_operations_total{operation,result}`**: counter incremented once per completed logical operation; `result=success/failure/timeout`.
+- **`api_operations_scheduled_total`**, **`api_operations_dropped_total`**: load-generator counters if available.
+- **`api_inflight_operations`**: gauge of unfinished work.
+- **`api_retries_total`**: physical retries to expose hidden overhead.
 
-Không dùng **request ID, user ID, full URL động, raw error message** làm metric labels: cardinality có thể tăng bùng nổ. Route template và loại lỗi giới hạn là lựa chọn hợp lý hơn.
+Never use **request ID, user ID, dynamic full URL, or raw error message** as metric labels: cardinality will explode. Route templates and bounded error categories are much safer.
 
-### Tính p99 từ classic histogram
+### Computing p99 from a classic histogram
 
 ~~~promql
 histogram_quantile(
@@ -264,17 +264,17 @@ histogram_quantile(
 )
 ~~~
 
-Đây là **ước lượng p99 bằng seconds** cho một classic histogram có các bucket ranh giới nhất quán. Nếu histogram có buckets quá thô (ví dụ 0.1s rồi 1s), p99 quanh 0.25s có thể có độ bất định lớn.
+This estimates **p99 in seconds** for a classic histogram with consistent bucket boundaries. If buckets are too coarse around the target (e.g., 0.1 s then 1 s), a p99 near 0.25 s carries large interpolation error.
 
-**Sai:** lấy trung bình percentiles của nhiều instances:
+**Wrong:** averaging percentiles across instances:
 
 ~~~promql
 avg(instance_request_p99{operation="read"})
 ~~~
 
-Nó không cho p99 thực của toàn bộ requests. Native histogram có syntax tương ứng khác; không tự thêm **le** vào metric native histogram không có label đó.
+That does not produce the true p99 of all requests. Native histograms use their own syntax; never inject **`le`** onto a native histogram metric lacking that label.
 
-### Goodput từ success counter
+### Goodput from a success counter
 
 ~~~promql
 sum(
@@ -284,9 +284,9 @@ sum(
 )
 ~~~
 
-Counter này chỉ là goodput khi app **đếm một lần trên mỗi logical success**. Nếu instrumentation đếm mỗi retry attempt hoặc completion từ callback nhiều lần, query vẫn trả số đẹp nhưng sai ngữ nghĩa.
+This counter gives true goodput only when the app **increments once per logical success**. If instrumentation increments per retry attempt or fires multiple times from callbacks, the query still returns a clean-looking number with the wrong meaning.
 
-Success rate among completed:
+Success rate among completed operations:
 
 ~~~promql
 sum(rate(api_operations_total{operation="read",result="success"}[5m]))
@@ -294,11 +294,11 @@ sum(rate(api_operations_total{operation="read",result="success"}[5m]))
 sum(rate(api_operations_total{operation="read"}[5m]))
 ~~~
 
-Không thay nó cho **success/planned** nếu generator dropped operations hoặc còn outstanding.
+Never substitute this for **success/planned** when the generator dropped operations or work remains outstanding.
 
-### Tỷ lệ trong giới hạn 250 ms
+### Fraction within the 250 ms bound
 
-Nếu bucket **le="0.25"** có thật:
+If bucket **`le="0.25"`** actually exists:
 
 ~~~promql
 sum(rate(api_operation_seconds_bucket{
@@ -310,36 +310,36 @@ sum(rate(api_operation_seconds_count{
 }[5m]))
 ~~~
 
-Nếu histogram chỉ ghi **successful responses**, tỷ lệ này **không phản ánh failures/timeouts** và chỉ là SLO đối với nhóm đã thành công. Cần thêm error accounting ở phía client và tỷ lệ thành công trên planned load.
+If the histogram records **only successful responses**, this ratio **ignores failures/timeouts** and reflects only the SLO among succeeded operations. Pair it with client-side error accounting and success rate over planned load.
 
-Các exporters có thể đổi tên metrics hoặc dùng labels khác; xác nhận **actual exposed metric** trước khi chạy query. Giữ histogram boundaries và sampling đồng nhất giữa các phiên bản A/B.
+Exporters can rename metrics or alter labels; verify the **actual exposed metric** before running queries. Keep histogram boundaries and sampling identical between A and B.
 
-## 9. Ví dụ load test theo constant arrival rate
+## 9. Example constant-arrival-rate load test
 
-Với **wrk2** (executable thường tên **wrk**):
+Using **wrk2** (executable typically named **wrk**):
 
 ~~~bash
-# Chỉ chạy trên hệ thống thử nghiệm được cấp quyền.
-# -R là target rate, không phải throughput thực tế.
+# Run only on authorized test systems.
+# -R is the target rate, not actual throughput.
 wrk -t4 -c100 -d3m -R500 --latency \
   http://127.0.0.1:8080/api/items
 ~~~
 
-- **-t4**: 4 worker threads trên generator.
+- **-t4**: 4 worker threads on the generator.
 - **-c100**: 100 connections.
-- **-d3m**: 3 phút đo.
-- **-R500**: target 500 requests/giây.
-- **--latency**: in thống kê latency.
+- **-d3m**: 3-minute measurement.
+- **-R500**: target 500 requests/second.
+- **--latency**: print latency statistics.
 
-wrk2 tính latency với lịch request dự kiến để hạn chế coordinated omission. Tuy nhiên phải **đối chiếu actual arrival rate**, errors, status validation và generator saturation. Một công cụ HTTP benchmark không tự biết mọi ràng buộc nghiệp vụ; với write API, cần validator đọc lại dữ liệu, xác nhận số records, idempotency hoặc checksum.
+wrk2 computes latency against intended schedule times to mitigate coordinated omission. Even so, **cross-check actual arrival rate**, errors, status validation, and generator saturation. An HTTP benchmark tool does not understand business invariants; for write APIs, add a validator that reads back data and checks record counts, idempotency, or checksums.
 
-Đừng thử tải nặng lên production không được phép. Phải có giới hạn, khả năng stop/rollback và lưu ý side effects của các requests ghi.
+Never run heavy load tests against unauthorized production targets. Enforce limits, stop/rollback controls, and watch out for write side effects.
 
-## 10. Java 17+ runnable: minh họa quyết định bằng số liệu tất định
+## 10. Java 17+ runnable: deterministic decision illustration
 
-Chương trình dưới đây là **so sánh số liệu giả lập** có thể biên dịch và chạy độc lập. Nó không phát HTTP hay đo I/O thật; mục tiêu là minh họa cách tính **success count, goodput, p50/p95/p99** cho **cùng 20 planned operations trong 2 giây**. Để test production, phải đo arrival schedule và ghi nhận đủ operations với histogram/số mẫu thực.
+The program below is a **simulated comparison** that compiles and runs standalone. It does not send HTTP traffic or measure real I/O; its goal is to demonstrate computing **success count, goodput, and p50/p95/p99** for **the same 20 planned operations over 2 seconds**. For real production tests, measure the arrival schedule and record actual operations with real histograms and sample sizes.
 
-Tạo file **SameLoadLatencyCheck.java**:
+Create **`SameLoadLatencyCheck.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -417,36 +417,36 @@ public final class SameLoadLatencyCheck {
 }
 ~~~
 
-Chạy với JDK 17+:
+Run with JDK 17+:
 
 ~~~bash
 javac SameLoadLatencyCheck.java
 java SameLoadLatencyCheck
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 baseline scheduled=20 completed=20 success=20 failed=0 goodput=10.0/s p50=10ms p95=20ms p99=100ms
 candidate scheduled=20 completed=20 success=18 failed=2 goodput=9.0/s p50=8ms p95=12ms p99=200ms
 ~~~
 
-Lý do:
+Why:
 
-- Baseline có 18 mẫu **10 ms**, một **20 ms**, một **100 ms**. Với nearest-rank, p95 là mẫu thứ **ceil(0,95×20)=19** → 20 ms; p99 là mẫu thứ 20 → 100 ms.
-- Candidate có 15 mẫu **8 ms**, bốn **12 ms** và một **200 ms**. p95=12 ms nhưng p99=200 ms.
-- Candidate chỉ có 18 successes (ba mẫu 12 ms đầu trong nhóm cuối thành công, một mẫu 12 ms và mẫu 200 ms thất bại). Goodput giảm từ **20/2=10,0/s** xuống **18/2=9,0/s**.
+- Baseline has 18 samples at **10 ms**, one at **20 ms**, and one at **100 ms**. With nearest-rank, p95 is the **ceil(0.95×20)=19th** sample → 20 ms; p99 is the 20th → 100 ms.
+- Candidate has 15 samples at **8 ms**, four at **12 ms**, and one at **200 ms**. p95=12 ms yet p99=200 ms.
+- Candidate has only 18 successes (the first three 12 ms samples succeed, while one 12 ms sample and the 200 ms sample fail). Goodput drops from **20/2=10.0/s** to **18/2=9.0/s**.
 
-Bài demo cố tình cho p95 tốt hơn nhưng goodput/p99 tệ hơn. **20 observations quá ít cho ước lượng p99 production**; đây là minh họa thuật toán, không phải benchmark thực.
+The demo deliberately gives candidate a better p95 while degrading goodput and p99. **20 observations is far too few for production p99 estimation**; this illustrates the math, not a real benchmark.
 
-### Instrumentation Java cho một operation thực
+### Java instrumentation for a real operation
 
-Đo duration tại client qua nanoTime, ghi outcome và thời gian **cả khi có lỗi**:
+Measure client-side duration with `nanoTime`, recording outcome and elapsed time **even on failures**:
 
 ~~~java
-// Fragment, chưa phải chương trình độc lập.
-// Giả định đã có HttpClient client, HttpRequest request,
-// hàm validatePayload và recordResult do ứng dụng định nghĩa.
+// Fragment, not a standalone program.
+// Assumes HttpClient client, HttpRequest request,
+// and application-defined validatePayload and recordResult exist.
 long beginNanos = System.nanoTime();
 boolean success = false;
 try {
@@ -461,27 +461,27 @@ try {
 }
 ~~~
 
-Đoạn này cần đặt trong method xử lý **IOException/InterruptedException** theo hợp đồng API. Không nuốt interrupt; nếu code chủ động bắt InterruptedException thì khôi phục interrupt status hoặc truyền lên phù hợp. **recordResult** phải đếm chính xác một logical completion và duration; nếu chưa gửi request do generator thiếu tài nguyên, cần đếm dropped ở cơ chế scheduler.
+Place this inside a method handling `IOException`/`InterruptedException` per the API contract. Do not swallow interrupts; if catching `InterruptedException`, restore the interrupt status or propagate appropriately. `recordResult` must count exactly one logical completion and duration; if the generator drops a request before sending due to resource exhaustion, increment the dropped counter in the scheduler.
 
-**Lưu ý:** một chương trình gọi **client.send tuần tự trong vòng lặp** vẫn là closed-loop. Muốn test cùng arrival rate, phải có scheduler/concurrency độc lập với kết quả request trước và đủ worker.
+**Note:** a program calling `client.send` sequentially in a loop is still closed-loop. Testing at constant arrival rate requires a scheduler/concurrency model decoupled from prior request completion, with sufficient workers.
 
-## 11. Khi latency khác, đối chiếu bằng JFR và JVM/OS
+## 11. When latency diverges, cross-check with JFR and JVM/OS
 
-Độ trễ của operation gồm nhiều tầng. Khi B p99 xấu đi, JFR và JVM metrics giúp **kiểm tra giả thuyết**, không phải thay thế end-to-end latency từ client.
+Operation latency spans multiple layers. When B's p99 degrades, JFR and JVM metrics help **test hypotheses**, not replace client end-to-end latency.
 
-| Dấu hiệu | Nguồn quan sát | Ý nghĩa |
+| Symptom | Observation source | Meaning |
 | --- | --- | --- |
-| Đọc socket chậm | **jdk.SocketRead** | Thời lượng đọc/network/downstream khi event được thu |
-| Ghi socket chậm | **jdk.SocketWrite** | Phần thời gian ghi và khả năng backpressure |
-| File/disk I/O | **jdk.FileRead**, **jdk.FileWrite** | Operations file có duration và bytes liên quan |
-| Thread chờ | **jdk.ThreadPark**, **jdk.JavaMonitorEnter** | Đợi queue/lock/park |
-| GC pause | **jdk.GarbageCollection**, GC phase events | Có trùng latency spike không |
-| CPU | **jdk.ExecutionSample**, CPULoad | CPU có bị dùng ở một method/path cụ thể không |
-| Allocation | **jdk.ObjectAllocationSample** | Allocation pressure có gây GC/overhead không |
-| Backlog/pool | Metrics thread pool, queue depth, active/pending connections | Có chuyển bottleneck sang queue không |
-| OS/container | CPU throttle, disk utilization, network retransmit, RSS | Có khác giới hạn tài nguyên không |
+| Slow socket read | **`jdk.SocketRead`** | Duration of read/network/downstream when recorded |
+| Slow socket write | **`jdk.SocketWrite`** | Write phase duration and potential backpressure |
+| File/disk I/O | **`jdk.FileRead`**, **`jdk.FileWrite`** | File operations with durations and bytes |
+| Thread waits | **`jdk.ThreadPark`**, **`jdk.JavaMonitorEnter`** | Waiting on queues/locks/parks |
+| GC pauses | **`jdk.GarbageCollection`**, GC phase events | Whether pauses align with latency spikes |
+| CPU | **`jdk.ExecutionSample`**, `CPULoad` | Whether CPU is concentrated in a specific method/path |
+| Allocation | **`jdk.ObjectAllocationSample`** | Whether allocation pressure drives GC/overhead |
+| Backlog/pool | Thread-pool metrics, queue depth, active/pending connections | Whether the bottleneck shifted into a queue |
+| OS/container | CPU throttling, disk utilization, network retransmits, RSS | Whether resource limits differ |
 
-Ví dụ CLI:
+CLI example:
 
 ~~~bash
 jfr summary before.jfr
@@ -493,88 +493,88 @@ jfr metadata --events jdk.SocketRead,jdk.SocketWrite,jdk.FileRead,jdk.FileWrite 
 jfr print --events jdk.SocketRead,jdk.SocketWrite after.jfr
 ~~~
 
-JFR có threshold, settings, sampling và khoảng recording riêng. **Count=0 không chứng minh operation chưa xảy ra**. JFR SocketRead duration **không phải toàn bộ end-to-end client latency**; còn queue, CPU, GC, network phần khác, connection pool và payload parsing. Quan sát cùng timestamps mới có thể nối chứng cứ.
+JFR has its own thresholds, settings, sampling, and recording windows. **Count=0 does not prove the operation never ran.** JFR `SocketRead` duration **is not total client end-to-end latency**; queues, CPU, GC, other network segments, connection pools, and payload parsing remain outside it. Only aligned timestamps let you link the evidence.
 
-Trường hợp hay gặp: B giảm latency của SocketRead nhưng tăng số ThreadPark hoặc queue wait, dẫn tới p99 request xấu. Như vậy thay đổi có thể đã **dời bottleneck**, không phải giải quyết nó.
+A common pattern: B shortens `SocketRead` latency while increasing `ThreadPark` or queue waits, hurting request p99. The change merely **shifted the bottleneck** rather than removing it.
 
-## 12. Cách đọc kết quả và quyết định rollout
+## 12. Reading results and making the rollout decision
 
-Một báo cáo đầy đủ nên chia ba lớp:
+A complete report should have three sections:
 
-**A. Chất lượng phép đo**
+**A. Measurement quality**
 
-- Có cùng offered rate và arrival schedule thực tế không?
-- Dữ liệu, resource budgets, GC/JDK, cache state, connection reuse, warm-up và window có phù hợp không?
-- Generator có theo kịp lịch và không bị CPU/network bottleneck không?
-- Mỗi run có đủ số scheduled/issued/dropped/completed/success/failure/outstanding không?
-- Histograms có cùng đơn vị, bucket boundaries và measurement points không?
+- Were offered rate and actual arrival schedule equivalent?
+- Were data, resource budgets, GC/JDK, cache state, connection reuse, warm-up, and windows consistent?
+- Did the generator keep up without CPU/network saturation?
+- Does each run account for all scheduled/issued/dropped/completed/success/failure/outstanding counts?
+- Do histograms share units, bucket boundaries, and measurement points?
 
-**B. Kết quả**
+**B. Results**
 
-- Bảng goodput, success/planned, error/timeout/retry, p50/p95/p99, tỷ lệ vượt deadline, max và CPU/IO.
-- Time-series và distribution curves; không chỉ trung bình toàn run.
-- Repeated runs, độ biến động, confidence/uncertainty phù hợp.
-- Tài liệu tương quan JFR/metrics tại cùng mốc; ghi rõ phần dữ liệu thiếu.
+- Table of goodput, success/planned, errors/timeouts/retries, p50/p95/p99, deadline breach rate, max, and CPU/IO.
+- Time-series and distribution curves, not only run-wide averages.
+- Repeated runs, variance, and appropriate confidence/uncertainty bounds.
+- Aligned JFR/metric correlations at matching timestamps, explicitly noting gaps.
 
-**C. Quyết định đã định trước**
+**C. Predefined decision**
 
-| Trạng thái | Điều kiện |
+| Status | Criteria |
 | --- | --- |
-| **PASS** | Goodput, correctness, failures, p99/tail latency và resource guardrails đạt ở các mức tải quan trọng |
-| **FAIL / ROLLBACK** | Giảm goodput, tăng lỗi/timeout/drops, mất dữ liệu, tail xấu hoặc vượt resource budget |
-| **INCONCLUSIVE** | Load generator không theo kịp, thiếu dữ liệu, sample quá ít, môi trường khác, results biến động hơn hiệu ứng cần kiểm chứng |
+| **PASS** | Goodput, correctness, failures, p99/tail latency, and resource guardrails pass across target load levels |
+| **FAIL / ROLLBACK** | Goodput drops, errors/timeouts/drops rise, data is lost, tail worsens, or resource budgets are exceeded |
+| **INCONCLUSIVE** | Generator fell behind, data missing, too few samples, mismatched environments, or run noise exceeds the effect being tested |
 
-Tối ưu latency có thể có trade-off hợp lệ, nhưng phải được nêu rõ và **được chấp nhận theo SLO nghiệp vụ**, không thể tự gọi là cải thiện toàn diện khi số thao tác thành công giảm. Giữ mọi runs, gồm runs thất bại, để tránh chọn số đẹp (cherry-picking).
+Latency optimizations can involve legitimate trade-offs, yet they must be stated explicitly and **approved against business SLOs**—never claim an overall win when successful operations drop. Keep all runs, including failed ones, to avoid cherry-picking.
 
-## 13. Những lỗi dễ mắc
+## 13. Common mistakes
 
-1. Chỉ xem average hoặc p50; bỏ qua p99 và số timeout.
-2. Chỉ lưu latencies của successes; errors nhanh hay timeouts biến mất khỏi biểu đồ.
-3. Giữ cùng số threads/connections rồi tuyên bố cùng offered load.
-4. Bỏ qua dropped/late starts gây coordinated omission.
-5. So issued RPS với completed RPS hoặc coi attempts là successful operations.
-6. Đếm retry attempts thành logical success, che duplicate side effects.
-7. Chạy baseline cold còn candidate warm.
-8. Dùng workload khác route mix/payload/cache/data state.
-9. Dùng timeout khác mà không ghi lại, khiến B trả lỗi nhanh hơn và p95 đẹp hơn.
-10. Kết thúc test trước khi các in-flight requests có kết quả.
-11. Gộp trung bình p99 từng instance hoặc từng phút.
-12. Dùng bucket quá rộng quanh SLO rồi kết luận cải thiện 2–3 ms.
-13. So client end-to-end của A với server-only latency của B.
-14. Quên độ bền dữ liệu: HTTP 200 có thể không tương đương operation hoàn tất đúng.
-15. Generator bị nghẽn CPU/network nhưng không có metric riêng.
-16. Chỉ chạy một lần và bỏ qua GC/JIT/DB-cache variability.
-17. Candidate dùng nhiều CPU/memory/replicas hơn nhưng báo hiệu năng mà không tính cost.
-18. Kết luận I/O cải thiện từ một vài JFR events không phủ toàn bộ request.
+1. Looking only at averages or p50, ignoring p99 and timeouts.
+2. Recording latencies only for successes so fast errors and timeouts disappear from charts.
+3. Holding thread/connection count constant and claiming identical offered load.
+4. Ignoring dropped/late starts that introduce coordinated omission.
+5. Comparing issued RPS to completed RPS, or counting attempts as successful operations.
+6. Counting retry attempts as logical successes, hiding duplicate side effects.
+7. Running baseline cold and candidate warm.
+8. Using a different route mix, payload, cache state, or dataset.
+9. Using shorter timeouts without noting it, making B fail faster with a prettier p95.
+10. Ending the test before in-flight requests finish.
+11. Averaging per-instance or per-minute p99s.
+12. Using overly wide buckets near the SLO and claiming a 2–3 ms gain.
+13. Comparing client end-to-end latency of A with server-only latency of B.
+14. Forgetting data durability: HTTP 200 may not mean the operation persisted safely.
+15. Letting the generator hit CPU/network saturation with no generator metrics.
+16. Running only once and ignoring GC/JIT/DB-cache variance.
+17. Reporting higher performance when candidate uses more CPU/memory/replicas without noting cost.
+18. Concluding I/O improved from a handful of JFR events that do not cover the whole request.
 
-## 14. Tự kiểm tra
+## 14. Self-check
 
-**Câu 1:** cùng 100 clients, A issue 600 RPS nhưng B chỉ issue 350 RPS. p95 của B thấp hơn. Đã chứng minh B nhanh hơn dưới cùng tải chưa?  
-**Đáp án:** Chưa. Closed-loop có thể tự giảm tải khi latency tăng. Cần giữ offered arrival rate và kiểm tra actual issue/dropped/goodput.
+**Question 1:** With 100 clients, A issues 600 RPS while B issues only 350 RPS. B's p95 is lower. Have you proven B is faster under identical load?  
+**Answer:** No. Closed-loop clients automatically throttle down when latency rises. Hold offered arrival rate constant and check actual issued/dropped/goodput.
 
-**Câu 2:** A có 9.990 successes trên 10.000 planned, B có 9.000; B p99 thấp hơn. Nếu SLO yêu cầu success/planned ≥99,9%, chọn B được không?  
-**Đáp án:** Không. B vi phạm correctness/availability guardrail dù p99 của nhóm đã đo thấp hơn.
+**Question 2:** A gets 9,990 successes out of 10,000 planned, B gets 9,000; B has a lower p99. If the SLO requires success/planned ≥99.9%, can you pick B?  
+**Answer:** No. B violates the correctness/availability guardrail even though its measured subset has lower p99.
 
-**Câu 3:** Tại sao không tính trung bình p99 của ba pods?  
-**Đáp án:** Percentile không cộng gộp được như counter. Cần raw samples hoặc gộp histogram buckets tương thích trước khi tính global percentile.
+**Question 3:** Why not average the p99 of three pods?  
+**Answer:** Percentiles do not aggregate linearly like counters. Combine raw samples or compatible histogram buckets before computing the global percentile.
 
-**Câu 4:** Client p99 tăng nhưng JFR SocketRead duration giảm. Có mâu thuẫn không?  
-**Đáp án:** Không. Queue wait, ThreadPark, CPU, GC, connection pool, retry hoặc network khác có thể tăng; JFR SocketRead chỉ đo một phần và còn phụ thuộc threshold.
+**Question 4:** Client p99 rose while JFR `SocketRead` duration dropped. Is that a contradiction?  
+**Answer:** No. Queue wait, `ThreadPark`, CPU, GC, connection pools, retries, or other network segments may have grown; JFR `SocketRead` covers only part of the path and depends on thresholds.
 
-**Câu 5:** Target 500/s trong 120 giây nhưng generator chỉ issue 50.000 trong 60.000 planned. Có thể kết luận đạt p99 SLO tại 500/s không?  
-**Đáp án:** Chưa. Test không duy trì tải yêu cầu; phải báo khoảng 10.000 scheduled operations không được phát, sửa generator và đo lại.
+**Question 5:** Target is 500/s for 120 seconds, yet the generator issued only 50,000 of 60,000 planned. Can you conclude the p99 SLO passes at 500/s?  
+**Answer:** No. The test failed to sustain the required load; report the 10,000 unissued scheduled operations, fix the generator, and re-run.
 
-**Câu 6:** Một histogram chỉ có bucket 100 ms và 1 s, p99 ước lượng 280 ms. Có nên so với 275 ms và công bố tiết kiệm 5 ms không?  
-**Đáp án:** Không. Bucket resolution quá thô; cần buckets phù hợp hoặc nguồn mẫu chính xác hơn.
+**Question 6:** A histogram has buckets only at 100 ms and 1 s, yielding an estimated p99 of 280 ms. Should you compare it to 275 ms and announce a 5 ms savings?  
+**Answer:** No. Bucket resolution is far too coarse; add finer buckets or a more accurate sample source.
 
-**Câu 7:** Candidate p50 giảm 25%, p99.9 tăng 3 lần, errors tăng và CPU tăng 40%. Kết luận?  
-**Đáp án:** Không được gọi là cải thiện toàn diện. Đối chiếu guardrails, lặp test tương đương, tìm bottleneck và tính budget trước rollout.
+**Question 7:** Candidate p50 drops 25%, p99.9 triples, errors rise, and CPU rises 40%. Verdict?  
+**Answer:** Cannot be called an overall improvement. Check guardrails, repeat matched tests, isolate the bottleneck, and evaluate resource budgets before rollout.
 
-## Tài liệu tham khảo
+## References
 
-- [Prometheus — Histograms and summaries](https://prometheus.io/docs/practices/histograms/): percentiles, histogram aggregation và lỗi trung bình quantiles.
+- [Prometheus — Histograms and summaries](https://prometheus.io/docs/practices/histograms/): percentiles, histogram aggregation, and why averaging quantiles is wrong.
 - [OpenTelemetry — HTTP metrics semantic conventions](https://opentelemetry.io/docs/specs/semconv/http/http-metrics/): client/server request duration, seconds, HTTP error attributes.
-- [OpenTelemetry — Metrics API](https://opentelemetry.io/docs/specs/otel/metrics/api/): histogram, counter và metric semantics.
-- [wrk2 — Constant throughput, correct latency recording](https://github.com/giltene/wrk2): arrival-rate schedule, coordinated omission và ghi latency.
-- [Oracle JDK 21 — Troubleshooting Guide, I/O với JFR](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-guide.pdf): SocketRead/SocketWrite/FileRead/FileWrite.
-- [Oracle JDK 21 — jfr CLI](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): summary, metadata và lọc sự kiện.
+- [OpenTelemetry — Metrics API](https://opentelemetry.io/docs/specs/otel/metrics/api/): histograms, counters, and metric semantics.
+- [wrk2 — Constant throughput, correct latency recording](https://github.com/giltene/wrk2): arrival-rate schedules, coordinated omission, and latency recording.
+- [Oracle JDK 21 — Troubleshooting Guide, I/O with JFR](https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-guide.pdf): `SocketRead`/`SocketWrite`/`FileRead`/`FileWrite`.
+- [Oracle JDK 21 — jfr CLI](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): summary, metadata, and event filtering.

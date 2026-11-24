@@ -1,25 +1,25 @@
-# Duyệt Iterator và thời điểm provider được nạp, khởi tạo theo nhu cầu
+# Iterator Traversal and When Providers Are Loaded and Instantiated on Demand
 
-## 1. Vấn đề cần hiểu
+## 1. The Problem to Understand
 
-Trong hệ thống Java hỗ trợ plugin, \`ServiceLoader<S>\` là công cụ khám phá provider của một service type \`S\` mà không yêu cầu ứng dụng liệt kê các implementation khi biên dịch. Điểm quan trọng là **tạo \`ServiceLoader\` không đồng nghĩa với tạo tất cả provider**. \`ServiceLoader\` thực hiện khám phá và tạo provider theo nhu cầu khi chương trình duyệt iterator hoặc stream của nó.
+In plugin-capable Java systems, `ServiceLoader<S>` is the tool for discovering providers of a service type `S` without requiring the application to list implementations at compile time. The key point is that **creating a `ServiceLoader` does not mean creating all providers**. `ServiceLoader` performs discovery and creates providers on demand as the program traverses its iterator or stream.
 
-Cần phân biệt bốn sự kiện:
+Four events must be distinguished:
 
-1. **Tạo loader:** gọi \`ServiceLoader.load(S.class)\` hoặc overload nhận classloader.
-2. **Khám phá metadata:** đọc thông tin provider từ \`META-INF/services/<service-binary-name>\` trên classpath hoặc từ module descriptors thích hợp trên module path.
-3. **Nạp và liên kết class:** JVM cần truy cập/kiểm tra class provider khi tiến hành khám phá hoặc khởi tạo; chính xác thời điểm JVM load/link/initialize từng class không nên suy luận từ việc chỉ tạo loader.
-4. **Tạo đối tượng provider:** constructor hoặc provider factory được gọi khi iterator phải cung cấp một instance mới. Đối với stream, đọc \`Provider.type()\` và gọi \`Provider.get()\` là hai thao tác khác nhau.
+1. **Creating the loader:** calling `ServiceLoader.load(S.class)` or an overload taking a classloader.
+2. **Metadata discovery:** reading provider information from `META-INF/services/<service-binary-name>` on the classpath or from appropriate module descriptors on the module path.
+3. **Loading and linking classes:** the JVM needs to access/verify the provider class when performing discovery or instantiation; the exact moment the JVM loads/links/initializes each class should not be inferred merely from creating the loader.
+4. **Creating the provider object:** the constructor or provider factory is invoked when the iterator must supply a new instance. For streams, reading `Provider.type()` and calling `Provider.get()` are two distinct operations.
 
-Nhầm lẫn giữa các bước này dễ dẫn đến việc cho rằng mọi plugin đã sẵn sàng chỉ vì có một \`ServiceLoader\`, hoặc cho rằng một lần \`hasNext()\` luôn tạo instance. Hành vi phải được xét theo API cụ thể.
+Confusing these steps easily leads to assuming every plugin is already ready just because a `ServiceLoader` exists, or assuming a single `hasNext()` call always creates an instance. Behavior must be evaluated according to the specific API.
 
-## 2. Ví dụ chạy được với Java 17+: quan sát \`Iterator\`
+## 2. Runnable Java 17+ Example: Observing `Iterator`
 
-Ví dụ gồm một interface, hai provider, tệp đăng ký SPI và một class chạy. Hai provider in thông báo trong static initializer và constructor để quan sát thời điểm tương ứng.
+The example consists of an interface, two providers, an SPI registration file, and a runner class. Both providers print messages in their static initializer and constructor to observe the corresponding timing.
 
-Cấu trúc:
+Structure:
 
-\`\`\`text
+```text
 example/
 ├── src/
 │   ├── demo/spi/Greeter.java
@@ -28,21 +28,21 @@ example/
 │   └── demo/Main.java
 └── resources/
     └── META-INF/services/demo.spi.Greeter
-\`\`\`
+```
 
-\`src/demo/spi/Greeter.java\`:
+`src/demo/spi/Greeter.java`:
 
-\`\`\`java
+```java
 package demo.spi;
 
 public interface Greeter {
     String greet();
 }
-\`\`\`
+```
 
-\`src/demo/plugins/EnglishGreeter.java\`:
+`src/demo/plugins/EnglishGreeter.java`:
 
-\`\`\`java
+```java
 package demo.plugins;
 
 import demo.spi.Greeter;
@@ -61,11 +61,11 @@ public final class EnglishGreeter implements Greeter {
         return "Hello";
     }
 }
-\`\`\`
+```
 
-\`src/demo/plugins/VietnameseGreeter.java\`:
+`src/demo/plugins/VietnameseGreeter.java`:
 
-\`\`\`java
+```java
 package demo.plugins;
 
 import demo.spi.Greeter;
@@ -84,18 +84,18 @@ public final class VietnameseGreeter implements Greeter {
         return "Xin chào";
     }
 }
-\`\`\`
+```
 
-\`resources/META-INF/services/demo.spi.Greeter\`:
+`resources/META-INF/services/demo.spi.Greeter`:
 
-\`\`\`text
+```text
 demo.plugins.EnglishGreeter
 demo.plugins.VietnameseGreeter
-\`\`\`
+```
 
-\`src/demo/Main.java\`:
+`src/demo/Main.java`:
 
-\`\`\`java
+```java
 package demo;
 
 import demo.spi.Greeter;
@@ -122,20 +122,20 @@ public class Main {
         System.out.println("9. Second result=" + second.greet());
     }
 }
-\`\`\`
+```
 
-Tại thư mục \`example\`, chạy trên shell có lệnh \`cp\` và \`find\` (ví dụ bash):
+From the `example` directory, run in a shell with `cp` and `find` (e.g. bash):
 
-\`\`\`bash
+```bash
 mkdir -p out
 javac -d out src/demo/spi/Greeter.java src/demo/plugins/EnglishGreeter.java src/demo/plugins/VietnameseGreeter.java src/demo/Main.java
 cp -R resources/. out/
 java -cp out demo.Main
-\`\`\`
+```
 
-Một output điển hình với chính hai provider và thứ tự khai báo ở ví dụ:
+A typical output with the exact two providers and declaration order in the example:
 
-\`\`\`text
+```text
 1. Before load
 2. Loader created
 3. Iterator created
@@ -149,92 +149,92 @@ English: constructor
 Vietnamese: static initializer
 Vietnamese: constructor
 9. Second result=Xin chào
-\`\`\`
+```
 
-Quan sát:
+Observations:
 
-- Không có constructor nào được gọi tại \`ServiceLoader.load(...)\` hoặc \`loader.iterator()\`.
-- \`hasNext()\` trả lời liệu còn provider có thể được lấy ra; với ví dụ classpath đơn giản này, nó không gọi constructor.
-- Mỗi lần \`next()\` cần một provider mới, provider tương ứng được tạo và đưa vào cache.
-- Static initializer xuất hiện trước constructor khi class được khởi tạo bởi JVM. Đó là hệ quả của việc tạo instance; không phải cam kết mọi thao tác \`hasNext()\` sẽ không bao giờ có hoạt động load/link class.
+- No constructor is called at `ServiceLoader.load(...)` or `loader.iterator()`.
+- `hasNext()` answers whether another provider can be retrieved; in this simple classpath example, it does not invoke the constructor.
+- Whenever `next()` needs a new provider, the corresponding provider is created and placed into the cache.
+- The static initializer appears before the constructor when the class is initialized by the JVM. That is a consequence of creating an instance; it is not a promise that every `hasNext()` call will never perform class loading/linking.
 
-**Giới hạn của phép quan sát:** ví dụ chạy trên classpath, service configuration hợp lệ, không dùng provider factory của named module, không có provider nào đã bị tạo trước đó. Trên JPMS, stream và kiểm tra metadata có thể tạo ra thứ tự hoạt động khác, nhưng vẫn phải tuân theo hợp đồng công khai của \`ServiceLoader\`.
+**Limits of this observation:** the example runs on the classpath, with valid service configuration, without using a named-module provider factory, and with no previously created providers. Under JPMS, streams and metadata verification may produce a different sequence of operations, while still adhering to the public contract of `ServiceLoader`.
 
-## 3. \`hasNext()\`, \`next()\` và sự khác nhau giữa khám phá với khởi tạo
+## 3. `hasNext()`, `next()`, and the Difference Between Discovery and Instantiation
 
-\`ServiceLoader.iterator()\` trả iterator dùng cơ chế khám phá và cache nội bộ. Các thao tác có vai trò khác nhau:
+`ServiceLoader.iterator()` returns an iterator that uses an internal discovery and caching mechanism. The operations have distinct roles:
 
-| Thao tác | Ý nghĩa | Có bảo đảm tạo provider mới? |
+| Operation | Meaning | Guaranteed to create a new provider? |
 | --- | --- | --- |
-| \`ServiceLoader.load(S.class)\` | Tạo loader phục vụ khám phá | Không |
-| \`loader.iterator()\` | Lấy iterator duyệt provider | Không |
-| \`iterator.hasNext()\` | Kiểm tra có phần tử kế tiếp; có thể cần đọc/kiểm tra metadata | Không |
-| \`iterator.next()\` | Lấy instance provider kế tiếp | Có thể: tạo mới nếu chưa được cache; không nếu trả instance đã cache |
-| \`loader.reload()\` | Xóa cache provider của loader để khám phá lại | Không tự tạo provider |
-| \`loader.stream()\` | Tạo stream các đối tượng \`Provider<S>\` | Không trực tiếp tạo mọi provider |
-| \`Provider.type()\` | Cho biết class/type của provider theo API stream | Không yêu cầu một instance provider |
-| \`Provider.get()\` | Yêu cầu một provider instance | Có thể tạo instance; mỗi lần gọi có thể tạo instance mới |
+| `ServiceLoader.load(S.class)` | Creates a loader for discovery | No |
+| `loader.iterator()` | Obtains an iterator to traverse providers | No |
+| `iterator.hasNext()` | Checks if a next element exists; may need to read/verify metadata | No |
+| `iterator.next()` | Retrieves the next provider instance | Maybe: creates a new one if not cached; no if returning a cached instance |
+| `loader.reload()` | Clears the loader's provider cache to rediscover | Does not create providers by itself |
+| `loader.stream()` | Creates a stream of `Provider<S>` objects | Does not directly create all providers |
+| `Provider.type()` | Reports the provider's class/type per the stream API | Does not require a provider instance |
+| `Provider.get()` | Requests a provider instance | May create an instance; each call may create a new instance |
 
-**Không đồng nhất \`hasNext()\` với \`next()\`.** Việc biết metadata của một provider chưa chứng minh provider đó khởi tạo thành công. Chẳng hạn, file đăng ký tham chiếu tên không tồn tại hoặc provider có constructor ném exception: lỗi có thể chỉ lộ ra trong quá trình khám phá hoặc khi yêu cầu instance. Không nên dựa vào một loại exception/điểm phát sinh cố định; tùy lỗi, \`ServiceConfigurationError\` có thể xuất hiện ở các bước duyệt khác nhau.
+**Do not equate `hasNext()` with `next()`.** Knowing a provider's metadata does not prove that provider initializes successfully. For instance, if the registration file references a nonexistent name or the provider has a throwing constructor: the failure may only surface during discovery or when requesting an instance. Do not rely on a fixed exception type/throw site; depending on the error, `ServiceConfigurationError` can appear at different traversal steps.
 
-Nếu mục đích là kiểm tra mọi provider có dùng được hay không, phải **duyệt và sử dụng thực sự** từng instance thay vì chỉ tạo loader hay nhìn thấy tệp đăng ký.
+If the goal is to verify that every provider is usable, you must **actually traverse and use** each instance rather than just creating the loader or seeing the registration file.
 
-## 4. Cache của \`ServiceLoader\` ảnh hưởng đến tính lazy như thế nào?
+## 4. How Does `ServiceLoader`'s Cache Affect Laziness?
 
-Một \`ServiceLoader\` lưu cache các provider instance đã được tạo qua iterator. Các lần duyệt sau có thể lấy lại instance từ cache trước khi tìm/khởi tạo provider còn lại.
+A `ServiceLoader` caches provider instances already created through the iterator. Subsequent traversals may pull instances from the cache before discovering/instantiating remaining providers.
 
-Ví dụ sau tiếp tục dùng \`loader\` đã tạo ở phần trước:
+The following snippet continues using the `loader` created in the previous section:
 
-\`\`\`java
+```java
 for (Greeter greeter : loader) {
     System.out.println(greeter.greet());
 }
-\`\`\`
+```
 
-Vì hai provider đã được tạo trong lần duyệt trước, lần duyệt lại có thể sử dụng hai instance đã cache mà **không gọi constructor thêm lần nữa**.
+Because both providers were already created during the previous traversal, the second traversal can reuse both cached instances **without calling the constructors again**.
 
-Có hai hệ quả:
+There are two consequences:
 
-- Lazy initialization là đặc tính của **mỗi loader và trạng thái cache**. Câu “\`next()\` luôn gọi constructor” sai nếu phần tử đó đã ở trong cache.
-- Cache của \`ServiceLoader\` không đồng nghĩa với singleton toàn ứng dụng. Tạo \`ServiceLoader\` khác hoặc gọi \`Provider.get()\` qua stream có thể dẫn tới instance khác, tùy provider và kiểu triển khai.
+- Lazy initialization is a property of **each loader and its cache state**. The statement "`next()` always calls the constructor" is false if that element is already in the cache.
+- `ServiceLoader`'s cache does not equal an application-wide singleton. Creating another `ServiceLoader` or calling `Provider.get()` via a stream can yield different instances, depending on the provider and implementation style.
 
-Mô hình suy nghĩ phù hợp:
+An appropriate mental model:
 
-\`\`\`text
-ServiceLoader được tạo
+```text
+ServiceLoader created
       |
 iterator() / stream()
       |
-phát hiện thông tin provider khi cần
+discover provider info on demand
       |
-yêu cầu provider instance
+request provider instance
       |
-đã cache? ---- Có ----> trả instance trong cache (iterator)
+cached? ---- Yes ----> return cached instance (iterator)
       |
-     Không
+     No
       |
-xác minh/khởi tạo provider
+verify/instantiate provider
       |
-lưu cache (iterator)
+store in cache (iterator)
       |
-trả instance
-\`\`\`
+return instance
+```
 
-Sơ đồ là mô hình khái niệm cho iterator. Không dùng nó để suy diễn rằng \`stream().map(Provider::get)\` nhất thiết có cùng chính sách cache instance như \`iterator()\`.
+This diagram is a conceptual model for the iterator. Do not use it to infer that `stream().map(Provider::get)` necessarily shares the exact same instance-caching policy as `iterator()`.
 
-## 5. Iterator duyệt dở và tác dụng của \`reload()\`
+## 5. Partially Traversed Iterators and the Effect of `reload()`
 
-Giả sử một plugin directory được thay đổi sau khi tạo loader, hoặc code gọi:
+Suppose a plugin directory changes after creating the loader, or code calls:
 
-\`\`\`java
+```java
 loader.reload();
-\`\`\`
+```
 
-\`reload()\` xóa cache hiện có. Iterator hoặc stream đã lấy ra trước lần \`reload()\` có thể trở nên không hợp lệ; với API này, việc sử dụng iterator cũ sau reload có thể gây \`ConcurrentModificationException\`. Hãy lấy iterator/stream mới từ loader sau reload.
+`reload()` clears the existing cache. Iterators or streams obtained before the `reload()` call may become invalid; with this API, using an old iterator after a reload can cause `ConcurrentModificationException`. Obtain a fresh iterator/stream from the loader after reloading.
 
-Ví dụ độc lập trong method:
+Standalone in-method example:
 
-\`\`\`java
+```java
 ServiceLoader<Greeter> loader = ServiceLoader.load(Greeter.class);
 Iterator<Greeter> oldIterator = loader.iterator();
 loader.reload();
@@ -244,59 +244,59 @@ while (freshIterator.hasNext()) {
     Greeter greeter = freshIterator.next();
     System.out.println(greeter.greet());
 }
-\`\`\`
+```
 
-**Quan trọng:** \`reload()\` không tự thêm JAR vào classpath/classloader, không chữa descriptor sai và không tự dỡ class đã nạp khỏi JVM. Nó chỉ làm loader bỏ cache để việc khám phá lại được tiến hành khi duyệt tiếp. Nếu classloader không nhìn thấy JAR mới, reload vẫn không giúp tìm được plugin đó. Với hệ thống hỗ trợ hot deployment, cần phối hợp quản lý loader, file JAR và vòng đời instance của plugin.
+**Important:** `reload()` does not automatically add JARs to the classpath/classloader, does not fix broken descriptors, and does not unload already-loaded classes from the JVM. It only makes the loader drop its cache so rediscovery runs on the next traversal. If the classloader cannot see a new JAR, reloading still will not find that plugin. For systems supporting hot deployment, you must coordinate management of the loader, JAR files, and plugin instance lifecycle.
 
-## 6. \`stream()\` cung cấp mức lazy khác với \`iterator()\`
+## 6. `stream()` Provides a Different Level of Laziness than `iterator()`
 
-Từ Java 9, \`ServiceLoader.stream()\` trả một stream các \`ServiceLoader.Provider<S>\`. Mỗi \`Provider\` cung cấp:
+Since Java 9, `ServiceLoader.stream()` returns a stream of `ServiceLoader.Provider<S>`. Each `Provider` exposes:
 
-- \`type()\`: thông tin type của provider để lọc theo annotation hoặc metadata trên class.
-- \`get()\`: lấy provider instance; việc gọi \`get()\` có thể dẫn tới tạo mới và chạy initialization.
+- `type()`: type information for the provider to filter by annotations or class metadata.
+- `get()`: retrieves a provider instance; calling `get()` can trigger instantiation and initialization.
 
-Ví dụ lọc theo tên class trước khi tạo instance:
+Example filtering by class name before creating an instance:
 
-\`\`\`java
+```java
 ServiceLoader<Greeter> loader = ServiceLoader.load(Greeter.class);
 loader.stream()
     .filter(provider -> provider.type().getSimpleName().equals("EnglishGreeter"))
     .map(ServiceLoader.Provider::get)
     .forEach(greeter -> System.out.println(greeter.greet()));
-\`\`\`
+```
 
-Kết quả với các provider của ví dụ và một loader mới:
+Output with the example's providers and a fresh loader:
 
-\`\`\`text
+```text
 English: static initializer
 English: constructor
 Hello
-\`\`\`
+```
 
-Ví dụ trên là **đoạn code trong method có import \`Greeter\`, \`ServiceLoader\`**. Đặt trong ứng dụng mẫu và chạy cùng classpath trước đó để xem kết quả. Provider không vượt qua filter không bị gọi \`get()\`; tuy nhiên thao tác \`type()\` có thể khiến JVM load/link class hoặc thực hiện xác minh metadata. Vì thế \`type()\` không có nghĩa là “không động đến class” mà là “không yêu cầu tạo instance provider”.
+The snippet above is **code inside a method with `Greeter` and `ServiceLoader` imported**. Place it in the sample app and run with the same classpath as before to observe the output. Providers that do not pass the filter do not have `get()` called; however, `type()` may cause the JVM to load/link the class or perform metadata verification. Thus `type()` does not mean "never touches the class" — it means "does not request creating a provider instance".
 
-Trong named module, provider có thể được khai báo bằng \`provides ... with ...\` và có provider method. Khi đó type do \`Provider.type()\` cung cấp có thể là return type của provider method, không nhất thiết là class factory được ghi trong module descriptor. Không giả định tương đồng tuyệt đối với provider class trên classpath.
+In a named module, a provider can be declared with `provides ... with ...` and have a provider method. In that case, the type supplied by `Provider.type()` may be the return type of the provider method, not necessarily the factory class named in the module descriptor. Do not assume strict equivalence with classpath provider classes.
 
-**Khi chọn API nào?**
+**When to choose which API?**
 
-- Dùng \`iterator()\` hoặc enhanced \`for\` nếu muốn lấy instance tuần tự và sử dụng ngay.
-- Dùng \`stream()\` nếu muốn sàng lọc qua metadata/type trước khi gọi \`Provider.get()\`, hoặc tổ chức pipeline khám phá provider có điều kiện.
-- Không dùng \`ServiceLoader\` như một công cụ sandbox, policy enforcement hoặc bảo đảm performance; plugin code có thể thực thi khi provider được khởi tạo.
+- Use `iterator()` or enhanced `for` if you want instances sequentially and will use them immediately.
+- Use `stream()` if you want to screen via metadata/type before calling `Provider.get()`, or build a conditional provider discovery pipeline.
+- Do not use `ServiceLoader` as a sandbox tool, policy enforcement mechanism, or performance guarantee; plugin code can execute when the provider is initialized.
 
-## 7. Lỗi và quan sát runtime
+## 7. Errors and Runtime Observability
 
-### Lỗi cấu hình khác lỗi khởi tạo
+### Configuration Errors vs. Initialization Errors
 
-Một số lỗi có thể được bọc trong \`ServiceConfigurationError\`, ví dụ:
+Several errors can be wrapped in `ServiceConfigurationError`, for example:
 
-- Descriptor \`META-INF/services/\` sai định dạng hoặc trỏ đến class không có.
-- Provider không tương thích với service type.
-- Provider không đáp ứng yêu cầu tạo instance, hoặc constructor/provider method gây lỗi.
-- Không thể truy cập provider do vấn đề module accessibility hoặc classloader.
+- A malformed `META-INF/services/` descriptor or one pointing to a nonexistent class.
+- A provider incompatible with the service type.
+- A provider that fails instantiation requirements, or whose constructor/provider method throws an exception.
+- A provider inaccessible due to module accessibility or classloader issues.
 
-Không nên bắt rộng rồi bỏ qua mọi lỗi:
+Do not catch broadly and ignore all errors:
 
-\`\`\`java
+```java
 try {
     for (Greeter greeter : ServiceLoader.load(Greeter.class)) {
         System.out.println(greeter.greet());
@@ -304,46 +304,46 @@ try {
 } catch (java.util.ServiceConfigurationError error) {
     throw new IllegalStateException("Invalid plugin deployment", error);
 }
-\`\`\`
+```
 
-Đây là đoạn dùng trong method. Nó giữ nguyên nguyên nhân để vận hành tìm được provider lỗi. Với hệ thống có cơ chế cô lập plugin cụ thể, có thể quyết định tiếp tục sau khi ghi log lỗi, nhưng cần xử lý rõ ràng theo yêu cầu sản phẩm; không nên nuốt lỗi mặc định.
+This is a snippet for use inside a method. It preserves the root cause so operations can locate the failing provider. In a system with specific plugin isolation, you may decide to continue after logging the error, but it must be handled explicitly per product requirements; never swallow errors by default.
 
-### Instrumentation nên đo đúng điều gì?
+### What Should Instrumentation Actually Measure?
 
-Khi benchmark hay debug lazy loading:
+When benchmarking or debugging lazy loading:
 
-1. Đặt điểm đo ngay trước/sau \`ServiceLoader.load\`, \`iterator()\`, \`hasNext()\`, \`next()\`, \`Provider.type()\` và \`Provider.get()\`.
-2. Ghi nhận thời điểm gọi constructor, static initialization, đọc tài nguyên, kết nối ngoài hoặc đọc file config.
-3. Chạy lần đầu và lần lặp lại để so sánh trạng thái cache/JIT/warmup; không cộng gộp hai kết quả.
-4. Nếu muốn kiểm tra tính lazy, dùng provider có hiệu ứng quan sát được ở constructor, đồng thời xác nhận phương thức nạp chưa được gọi trước lúc đo.
-5. Chạy bằng artifact và classloader phân phối thật; classpath của IDE có thể che giấu thiếu metadata.
+1. Place measurement probes immediately before/after `ServiceLoader.load`, `iterator()`, `hasNext()`, `next()`, `Provider.type()`, and `Provider.get()`.
+2. Record timestamps for constructor calls, static initialization, resource reads, external connections, or config file reads.
+3. Run both cold and repeated passes to compare cache/JIT/warmup state; do not merge the two results.
+4. To verify laziness, use a provider with an observable side effect in its constructor, and confirm the loading method was not called before the measurement.
+5. Run with real distribution artifacts and classloaders; an IDE classpath can hide missing metadata.
 
-Không suy ra tốc độ từ khái niệm “lazy”: khởi tạo trễ giúp tránh trả chi phí trước khi cần, nhưng có thể đưa độ trễ vào request đầu tiên. Cần đo trong tải thực tế.
+Do not infer speed from the word "lazy": deferred initialization avoids paying costs before needed, but can push latency onto the first request. Measure under realistic load.
 
-## 8. Một vài tình huống thiết kế
+## 8. Several Design Scenarios
 
-### Trì hoãn plugin đắt đỏ
+### Deferring Expensive Plugins
 
-Nếu plugin khởi tạo client kết nối hoặc đọc cấu hình lớn trong constructor, iterator cho phép chỉ tạo provider khi thực sự duyệt đến nó. Tuy nhiên **gọi \`for (Greeter g : loader)\` đến hết danh sách sẽ tạo toàn bộ provider**, nên không đạt mục tiêu chỉ dùng một plugin. Có thể dùng stream để lọc qua type trước khi gọi \`get()\`, hoặc thiết kế registry metadata riêng nếu lựa chọn dựa trên ID chỉ có thể biết qua instance.
+If a plugin initializes a connection client or reads large configs in its constructor, an iterator lets you create each provider only when actually reached. However, **iterating `for (Greeter g : loader)` to the end of the list creates every provider**, failing the goal of using only one plugin. You can use a stream to filter by type before calling `get()`, or design a separate metadata registry if selection depends on an ID only obtainable from an instance.
 
-### Provider không thread-safe
+### Non-Thread-Safe Providers
 
-\`ServiceLoader\` **không an toàn để dùng đồng thời bởi nhiều thread**. Không chia sẻ một instance loader rồi gọi các thao tác duyệt/reload từ nhiều thread mà không có chiến lược đồng bộ phù hợp. Cache provider cũng không tự bảo đảm implementation thread-safe: phải quản lý vòng đời và truy cập provider theo hợp đồng riêng.
+`ServiceLoader` **is not safe for concurrent use by multiple threads**. Do not share a loader instance and call traversal/reload operations from multiple threads without a proper synchronization strategy. Provider caching also does not automatically make implementations thread-safe: lifecycle and provider access must be governed by their own contract.
 
-### Plugin cập nhật khi ứng dụng chạy
+### Updating Plugins While the Application Runs
 
-Nếu plugin archive thay đổi trên đĩa, classloader cũ có thể vẫn giữ class đã nạp; \`reload()\` không bảo đảm đọc bytecode mới. Để thay phiên bản, thường cần tạo classloader/module layer mới phù hợp, chuyển reference và dọn vòng đời loader cũ. Cần kiểm soát shutdown resource của provider để tránh rò rỉ thread, file handle hoặc classloader.
+If a plugin archive changes on disk, the old classloader may still retain already-loaded classes; `reload()` is not guaranteed to read new bytecode. To swap versions, you typically need to create a new appropriate classloader/module layer, swap references, and clean up the old loader's lifecycle. Provider resource shutdown must be controlled to avoid leaking threads, file handles, or classloaders.
 
-## 9. Checklist để sử dụng \`ServiceLoader\` đúng
+## 9. Checklist for Using `ServiceLoader` Correctly
 
-- [ ] Xác minh tên service type, descriptor \`META-INF/services\` hoặc \`module-info.java\`.
-- [ ] Duyệt bằng iterator khi cần instance; dùng stream khi cần lọc thông tin provider trước \`get()\`.
-- [ ] Phân biệt đọc metadata, load/link class, class initialization và tạo provider instance.
-- [ ] Hiểu \`hasNext()\` không chứng minh provider khởi tạo thành công; \`next()\` có thể dùng cache.
-- [ ] Không giả định gọi \`load(...)\` tạo sẵn tất cả plugin.
-- [ ] Nếu gọi \`reload()\`, tạo iterator/stream mới và quản lý việc thay classloader riêng.
-- [ ] Test thời điểm khởi tạo bằng output/side effects có kiểm soát, không dựa vào suy đoán.
-- [ ] Kiểm tra plugin thực trên artifact phát hành và đúng runtime classloader.
-- [ ] Xử lý \`ServiceConfigurationError\` có logging/cause và chính sách lỗi rõ ràng.
+- [ ] Verify the service type name and the `META-INF/services` or `module-info.java` descriptor.
+- [ ] Traverse with an iterator when instances are needed; use a stream when filtering provider info before `get()`.
+- [ ] Distinguish reading metadata, loading/linking classes, class initialization, and creating provider instances.
+- [ ] Understand that `hasNext()` does not prove a provider initializes successfully; `next()` may return a cached instance.
+- [ ] Do not assume calling `load(...)` eagerly creates all plugins.
+- [ ] If calling `reload()`, create a fresh iterator/stream and manage classloader replacement separately.
+- [ ] Test initialization timing using controlled output/side effects rather than guessing.
+- [ ] Test real plugins on release artifacts and with the actual runtime classloader.
+- [ ] Handle `ServiceConfigurationError` with logging/cause and a clear error policy.
 
-**Điểm cốt lõi:** \`ServiceLoader\` cho phép phát hiện và khởi tạo provider theo nhu cầu; iterator là nơi một provider có thể được yêu cầu tạo instance, còn cache có thể làm lần duyệt sau trả lại instance đã tạo. Muốn chỉ tạo plugin được chọn, hãy phân biệt duyệt metadata bằng \`stream()\` và gọi \`Provider.get()\`, đồng thời kiểm chứng thời điểm khởi tạo trong môi trường chạy thật.
+**Core point:** `ServiceLoader` enables on-demand discovery and instantiation of providers; the iterator is where a provider may be asked to create an instance, and caching can make later traversals return already-created instances. To instantiate only the selected plugin, separate inspecting metadata via `stream()` from calling `Provider.get()`, and verify initialization timing in the real runtime environment.

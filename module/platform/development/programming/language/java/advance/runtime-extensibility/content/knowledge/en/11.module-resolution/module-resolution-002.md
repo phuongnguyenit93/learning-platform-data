@@ -1,32 +1,32 @@
-# Xem ModuleReference, ModuleDescriptor và các phụ thuộc được khai báo
+# Inspecting ModuleReference, ModuleDescriptor, and Declared Dependencies
 
-## 1. Mục tiêu: đọc được “module nói gì” trước khi JVM nối các module
+## 1. Goal: Reading “What a Module Says” Before the JVM Connects Modules
 
-Trong Java Platform Module System (JPMS, Java 9+), một module có **tên**, chứa các package/class/resource và khai báo quan hệ với module khác. Khi xây hệ thống plugin có module path hoặc `ModuleLayer` riêng, ta thường cần trả lời:
+In the Java Platform Module System (JPMS, Java 9+), a module has a **name**, contains packages/classes/resources, and declares relationships with other modules. When building a plugin system with a module path or custom `ModuleLayer`, we often need to answer:
 
-- Tệp JAR/module đang tìm được có **module name** nào? Là explicit module hay automatic module?
-- Module **khai báo** `requires` tới những module nào, với `transitive` hay `static`?
-- Module `exports`/`opens` package nào, `uses` service nào và `provides` implementation nào?
-- JVM đã **resolve** những module nào và thiết lập quan hệ **readability** thực tế ra sao?
-- Nếu thiếu dependency, cần nhìn vào metadata, vị trí module, lỗi resolution hay class loader?
+- What **module name** does the discovered JAR/module file have? Is it an explicit module or an automatic module?
+- Which modules does the module **declare** in `requires`, and with `transitive` or `static`?
+- Which packages does the module `exports`/`opens`, which services does it `uses`, and which implementations does it `provides`?
+- Which modules has the JVM **resolved**, and what actual **readability** relationships has it established?
+- If a dependency is missing, should we look at metadata, module location, resolution errors, or class loaders?
 
-Ba API chính của bài:
+Three core APIs in this guide:
 
-| API | Đại diện cho | Dùng khi |
+| API | Represents | Used When |
 | --- | --- | --- |
-| `ModuleFinder` | Cơ chế tìm các module quan sát được theo system image hoặc đường dẫn | Xác định có thể tìm module nào ở đâu |
-| `ModuleReference` | Tham chiếu đến **nội dung** một module và descriptor của nó | Lấy descriptor, location (nếu biết), đọc nội dung module |
-| `ModuleDescriptor` | Metadata khai báo của module | Đọc tên, `requires`, `exports`, `opens`, `uses`, `provides` và thuộc tính module |
+| `ModuleFinder` | Mechanism for finding observable modules from a system image or paths | Determining which modules can be found where |
+| `ModuleReference` | Reference to a module's **contents** and its descriptor | Retrieving the descriptor, location (if known), and reading module contents |
+| `ModuleDescriptor` | Declared metadata of a module | Reading name, `requires`, `exports`, `opens`, `uses`, `provides`, and module attributes |
 
-Để so sánh **khai báo** với **kết quả phân giải**, học thêm `Configuration` và `ResolvedModule`:
+To compare **declarations** with **resolution results**, also learn `Configuration` and `ResolvedModule`:
 
-- `Configuration`: đồ thị các module đã được phân giải (resolution), gồm các cạnh readability.
-- `ResolvedModule`: một đỉnh trong đồ thị ấy; `reads()` cho biết các module mà nó đọc được trong configuration.
-- `java.lang.Module`: module **runtime** đã được JVM định nghĩa trong một layer; dùng `getDescriptor()`, `canRead(...)`, `isExported(...)`, v.v. để kiểm tra tình trạng lúc chạy.
+- `Configuration`: the graph of resolved modules (resolution), including readability edges.
+- `ResolvedModule`: a node in that graph; `reads()` reports the modules it can read within the configuration.
+- `java.lang.Module`: a **runtime** module already defined by the JVM in a layer; use `getDescriptor()`, `canRead(...)`, `isExported(...)`, etc. to inspect runtime state.
 
-**Phân biệt quan trọng:** `ModuleDescriptor.requires()` là các phụ thuộc **được khai báo trong descriptor** (kể cả một số dependency ngầm định); nó **không** tương đương danh sách tất cả module mà module có thể đọc sau resolution. `ResolvedModule.reads()` diễn tả đồ thị đã phân giải. Và `Module.canRead(...)` có thể phản ánh thay đổi động như `addReads` sau khi layer được định nghĩa.
+**Important distinction:** `ModuleDescriptor.requires()` consists of the dependencies **declared in the descriptor** (including certain implicit dependencies); it is **not** equivalent to the list of all modules a module can read after resolution. `ResolvedModule.reads()` describes the resolved graph. And `Module.canRead(...)` can reflect dynamic changes such as `addReads` after a layer is defined.
 
-## 2. Sơ đồ luồng quan sát và phân giải
+## 2. Observation and Resolution Flow Diagram
 
 ~~~text
 module-info.java
@@ -35,58 +35,58 @@ module-info.java
 module-info.class + classes + resources
    │  (exploded module / modular JAR / runtime image)
    ▼
-ModuleFinder.of(path...) hoặc ModuleFinder.ofSystem()
+ModuleFinder.of(path...) or ModuleFinder.ofSystem()
    │ find("demo.app") / findAll()
    ▼
 ModuleReference
    ├── descriptor() ──> ModuleDescriptor
    │                      ├── name()
-   │                      ├── requires()  [phụ thuộc khai báo]
+   │                      ├── requires()  [declared dependencies]
    │                      ├── exports() / opens()
    │                      └── uses() / provides()
    ├── location() ────> Optional<URI>
    └── open() ────────> ModuleReader
    │
-   │  Khi thực sự thực hiện resolution từ roots + finder + parents
+   │  When actually performing resolution from roots + finder + parents
    ▼
 Configuration
    └── ResolvedModule
          ├── reference() ──> ModuleReference
-         └── reads() ─────> Set<ResolvedModule> [cạnh readability]
+         └── reads() ─────> Set<ResolvedModule> [readability edges]
    │
-   │  Khi định nghĩa module layer
+   │  When defining the module layer
    ▼
 ModuleLayer / java.lang.Module (runtime)
 ~~~
 
-**Không nhảy bước:** việc `finder.find(name)` trả về `ModuleReference` chứng minh module **được finder nhìn thấy**, chưa chứng minh nó là một phần của cấu hình đã resolve hay runtime layer hiện tại. Một module có thể được tìm thấy trên module path nhưng không được chọn là root hoặc transitive dependency để đưa vào cấu hình.
+**Do not skip steps:** `finder.find(name)` returning a `ModuleReference` proves the module is **visible to the finder**; it does not prove the module is part of the resolved configuration or current runtime layer. A module can be found on the module path without being selected as a root or transitive dependency to be included in the configuration.
 
-## 3. ModuleReference: “tay nắm” tới nội dung của module
+## 3. ModuleReference: A “Handle” to a Module's Contents
 
-`java.lang.module.ModuleReference` là abstract class mà hệ thống cung cấp concrete implementation. Những thao tác chủ yếu:
+`java.lang.module.ModuleReference` is an abstract class for which the system provides concrete implementations. Primary operations:
 
 ~~~java
-// Đoạn minh họa: finder đã là ModuleFinder hợp lệ.
+// Illustrative snippet: finder is already a valid ModuleFinder.
 ModuleReference reference = finder.find("demo.app").orElseThrow();
 
 ModuleDescriptor descriptor = reference.descriptor();
 Optional<java.net.URI> uri = reference.location();
 try (java.lang.module.ModuleReader reader = reference.open()) {
-    // Đọc tài nguyên của module khi thực sự cần.
+    // Read module resources when actually needed.
 }
 ~~~
 
-Đây là **đoạn mã minh họa, chưa phải chương trình độc lập**, dùng các type thuộc `java.lang.module` và `java.util.Optional`. Ý nghĩa:
+This is an **illustrative code snippet, not a standalone program**, using types from `java.lang.module` and `java.util.Optional`. Meaning:
 
-1. `descriptor()`: luôn trả metadata của module mà reference mô tả.
-2. `location()`: `Optional<URI>`; có thể là `file:` của exploded module/modular JAR, `jrt:` cho system module, hoặc rỗng nếu finder không cung cấp vị trí. **Không ép** nó thành `Path` bằng `Path.of(uri)` khi chưa kiểm tra URI scheme và file system provider.
-3. `open()`: tạo `ModuleReader` để đọc nội dung, có thể ném `IOException`. Đóng reader bằng try-with-resources; không phải thao tác bắt buộc chỉ để xem dependency.
+1. `descriptor()`: always returns the metadata of the module described by the reference.
+2. `location()`: `Optional<URI>`; may be `file:` for an exploded module/modular JAR, `jrt:` for a system module, or empty if the finder does not provide a location. **Do not force** it into a `Path` via `Path.of(uri)` without first checking the URI scheme and file system provider.
+3. `open()`: creates a `ModuleReader` to read contents, which may throw `IOException`. Close the reader with try-with-resources; it is not a required operation just to inspect dependencies.
 
-`ModuleReference` **không** có nghĩa class của module đã được initialize, không quản lý instance/plugin lifecycle và không tự thiết lập quan hệ `requires` cho ứng dụng. Nó là một đối tượng dùng cho lookup/inspection và resolution.
+`ModuleReference` does **not** mean the module's classes have been initialized, does not manage instance/plugin lifecycles, and does not automatically establish `requires` relationships for the application. It is an object used for lookup/inspection and resolution.
 
-### 3.1. Tìm một module hệ thống
+### 3.1. Finding a System Module
 
-Ví dụ độc lập, lưu thành `InspectSystemModule.java`:
+Standalone example, saved as `InspectSystemModule.java`:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -106,14 +106,14 @@ public class InspectSystemModule {
 }
 ~~~
 
-Biên dịch/chạy từ thư mục chứa tệp với JDK 17+:
+Compile/run from the directory containing the file with JDK 17+:
 
 ~~~powershell
 javac --release 17 InspectSystemModule.java
 java InspectSystemModule
 ~~~
 
-Các dòng **ổn định cho module `java.base`**:
+Lines that are **stable for module `java.base`**:
 
 ~~~text
 name=java.base
@@ -121,14 +121,14 @@ automatic=false
 requires=0
 ~~~
 
-Dòng `locationKnown=...` được in tiếp theo và **tùy runtime image/finder**; trên nhiều JDK là `true` với `jrt:/java.base`. Không coi URI cụ thể là public path của JAR trên đĩa. Chọn `java.base` vì nó là module nền tảng luôn có và không cần `requires java.base` lên chính nó.
+The `locationKnown=...` line is printed next and **depends on the runtime image/finder**; on many JDKs it is `true` with `jrt:/java.base`. Do not treat the specific URI as a public path to a JAR on disk. `java.base` is chosen because it is the foundational module that is always present and does not need `requires java.base` on itself.
 
-### 3.2. ModuleFinder: tập module có thể tìm, không phải tập đã nạp
+### 3.2. ModuleFinder: Set of Findable Modules, Not Loaded Modules
 
-Các nguồn thường gặp:
+Common sources:
 
 ~~~java
-// Các đoạn minh họa, không phải chương trình độc lập.
+// Illustrative snippets, not a standalone program.
 ModuleFinder system = ModuleFinder.ofSystem();
 ModuleFinder plugins = ModuleFinder.of(Path.of("plugins"));
 ModuleFinder merged = ModuleFinder.compose(plugins, system);
@@ -137,68 +137,68 @@ Optional<ModuleReference> found = merged.find("com.example.plugin");
 Set<ModuleReference> candidates = merged.findAll();
 ~~~
 
-- `ofSystem()` tìm module trong **runtime image** của JDK.
-- `of(Path...)` tìm module từ đường dẫn được truyền: thư mục chứa modular JAR/automatic JAR, hoặc exploded module; không tự duyệt tùy ý mọi thư mục con.
-- `compose(...)` hợp nhiều finder theo **thứ tự ưu tiên**. Finder tạo từ một chuỗi directory cũng có quy tắc chọn module cùng tên; khi hai module cùng tên xuất hiện **trong một directory**, thao tác có thể ném `FindException`.
-- `findAll()` trả một `Set` không có thứ tự giao diện bảo đảm để trình bày. **Sort theo `descriptor().name()`** nếu cần output/tệp báo cáo tái lập.
-- Finder không bắt buộc thread-safe; đừng truy cập và thay nội dung module path đồng thời rồi kỳ vọng một snapshot cập nhật an toàn.
+- `ofSystem()` finds modules in the JDK's **runtime image**.
+- `of(Path...)` finds modules from the passed paths: directories containing modular JARs/automatic JARs, or exploded modules; it does not arbitrarily traverse every subdirectory.
+- `compose(...)` combines multiple finders in **priority order**. A finder created from a sequence of directories also has rules for selecting same-named modules; when two modules with the same name appear **in a single directory**, the operation may throw `FindException`.
+- `findAll()` returns a `Set` with no guaranteed iteration order for display. **Sort by `descriptor().name()`** if reproducible output/report files are needed.
+- A finder is not required to be thread-safe; do not access and modify module path contents concurrently while expecting a safely updated snapshot.
 
-`ModuleFinder` tìm module theo **module name**, không theo Maven coordinates. Tên module, version JAR và artifact name là ba thứ khác nhau; đặc biệt automatic module có thể lấy tên từ manifest `Automatic-Module-Name` hoặc từ tên JAR theo quy tắc tự động.
+`ModuleFinder` looks up modules by **module name**, not by Maven coordinates. Module name, JAR version, and artifact name are three different things; in particular, an automatic module can derive its name from manifest `Automatic-Module-Name` or from the JAR filename according to automatic naming rules.
 
-## 4. ModuleDescriptor: đọc chính xác thông tin module khai báo
+## 4. ModuleDescriptor: Accurately Reading Declared Module Information
 
-`java.lang.module.ModuleDescriptor` mô tả module, được biên dịch vào `module-info.class` với **explicit named module**, hoặc được dựng tương ứng cho **automatic module**. Đây là metadata, không phải một `Class<?>` đại diện cho class implementation.
+`java.lang.module.ModuleDescriptor` describes a module, compiled into `module-info.class` for an **explicit named module**, or synthesized correspondingly for an **automatic module**. It is metadata, not a `Class<?>` representing an implementation class.
 
-Các API cần nhớ:
+APIs to remember:
 
-| API trên ModuleDescriptor | Ý nghĩa |
+| API on ModuleDescriptor | Meaning |
 | --- | --- |
-| `name()` | Tên module, ví dụ `demo.app` |
-| `isAutomatic()` | Có phải automatic module không |
-| `isOpen()` | Có phải `open module` không |
-| `version()` / `rawVersion()` | Version module nếu được ghi nhận, không đồng nghĩa phiên bản runtime đang được enforce |
-| `mainClass()` | Main class trong descriptor, nếu có |
-| `requires()` | Tập `ModuleDescriptor.Requires`: các phụ thuộc khai báo và ngầm định |
-| `exports()` | Các package xuất API, gồm unqualified/qualified exports |
-| `opens()` | Các package mở cho deep reflection |
-| `uses()` | Tên những service types mà module khai báo sử dụng |
-| `provides()` | Service types và tên provider implementations |
-| `packages()` | Các package thuộc module theo descriptor |
-| `modifiers()` | Tập module modifiers (ví dụ `OPEN` hoặc `AUTOMATIC`) |
+| `name()` | Module name, e.g. `demo.app` |
+| `isAutomatic()` | Whether it is an automatic module |
+| `isOpen()` | Whether it is an `open module` |
+| `version()` / `rawVersion()` | Module version if recorded; does not mean a runtime version is being enforced |
+| `mainClass()` | Main class in the descriptor, if present |
+| `requires()` | Set of `ModuleDescriptor.Requires`: declared and implicit dependencies |
+| `exports()` | Exported API packages, including unqualified/qualified exports |
+| `opens()` | Packages opened for deep reflection |
+| `uses()` | Names of service types the module declares it uses |
+| `provides()` | Service types and provider implementation names |
+| `packages()` | Packages belonging to the module according to the descriptor |
+| `modifiers()` | Set of module modifiers (e.g. `OPEN` or `AUTOMATIC`) |
 
-Lưu ý: `exports`, `opens` và `uses/provides` **không phải** “dependencies” trong `requires()`. Chúng chi phối các luật truy cập, reflection và service binding, có thể ảnh hưởng đến resolution hoặc cách dùng sau đó, nhưng cần đọc **các tập riêng** thay vì gộp lại như Maven dependencies.
+Note: `exports`, `opens`, and `uses/provides` are **not** “dependencies” in `requires()`. They govern access rules, reflection, and service binding, which can affect resolution or subsequent usage, so they must be read from **separate sets** rather than lumped together like Maven dependencies.
 
-### 4.1. ModuleDescriptor.Requires là nơi đọc dependency chính
+### 4.1. ModuleDescriptor.Requires Is Where Primary Dependencies Are Read
 
-Mỗi phần tử `ModuleDescriptor.Requires` chứa:
+Each `ModuleDescriptor.Requires` element contains:
 
-- `name()`: tên module đích.
-- `modifiers()`: tập `ModuleDescriptor.Requires.Modifier`.
-- `compiledVersion()`: `Optional<ModuleDescriptor.Version>` nếu có version được ghi nhận lúc biên dịch và parse được.
-- `rawCompiledVersion()`: `Optional<String>` cho chuỗi version thô, nếu tồn tại.
+- `name()`: target module name.
+- `modifiers()`: set of `ModuleDescriptor.Requires.Modifier`.
+- `compiledVersion()`: `Optional<ModuleDescriptor.Version>` if a version was recorded at compile time and can be parsed.
+- `rawCompiledVersion()`: `Optional<String>` for the raw version string, if present.
 
-Bốn modifier quan trọng:
+Four important modifiers:
 
-| Modifier | Hình thức/tình huống | Ý nghĩa |
+| Modifier | Form/Scenario | Meaning |
 | --- | --- | --- |
-| `TRANSITIVE` | `requires transitive demo.api;` | Module khác đọc module hiện tại sẽ có quan hệ đọc ngầm tới `demo.api` theo quy tắc JPMS |
-| `STATIC` | `requires static java.logging;` | Dependency bắt buộc ở thời điểm biên dịch, **tùy chọn lúc chạy**; nếu không được resolve thì không có runtime readability edge tới nó |
-| `MANDATED` | `requires java.base` được compiler/descriptor tự thêm | Dependency được khai báo **ngầm định** trong module declaration |
-| `SYNTHETIC` | Metadata được tạo ngoài khai báo tường minh/ngầm định | Dependency được thêm ở dạng tổng hợp; không phải từ khóa viết trong `module-info.java` |
+| `TRANSITIVE` | `requires transitive demo.api;` | Other modules reading the current module gain an implicit read edge to `demo.api` per JPMS rules |
+| `STATIC` | `requires static java.logging;` | Dependency required at compile time, **optional at runtime**; if not resolved, there is no runtime readability edge to it |
+| `MANDATED` | `requires java.base` automatically added by compiler/descriptor | Dependency declared **implicitly** in the module declaration |
+| `SYNTHETIC` | Metadata generated outside explicit/implicit declarations | Dependency added synthetically; not a keyword written in `module-info.java` |
 
-Một `requires foo;` thông thường có tập modifier rỗng `[]`. Một directive cũng có thể có nhiều modifier (chẳng hạn static + transitive theo ngữ cảnh cho phép); **không giả định tập chỉ chứa một**. Khi in ra cho máy so sánh, sort tên modifier.
+A normal `requires foo;` has an empty modifier set `[]`. A directive can also have multiple modifiers (such as static + transitive where permitted); **do not assume the set contains only one**. When printing for machine comparison, sort modifier names.
 
-**`java.base` là trường hợp đặc biệt:** với các named module khác `java.base`, descriptor thường có dependency ngầm định tới `java.base`, mang `MANDATED` khi không khai báo tường minh. Vì vậy bảng “số lượng requires” lấy từ API có thể lớn hơn số directive `requires` bạn nhìn thấy trong source.
+**`java.base` is a special case:** for named modules other than `java.base`, the descriptor usually has an implicit dependency on `java.base`, carrying `MANDATED` when not explicitly declared. Therefore, the “number of requires” obtained from the API may be greater than the number of `requires` directives you see in source.
 
-### 4.2. Version không phải dependency resolver của Maven/Gradle
+### 4.2. Version Is Not a Maven/Gradle Dependency Resolver
 
-`ModuleDescriptor.version()` là version gắn với **module đang mô tả** nếu có. `Requires.compiledVersion()` có thể biểu thị version của module được ghi lúc biên dịch. Cả hai đều có thể trống. `module-info.java` của Java **không** có cú pháp trực tiếp kiểu `requires lib@1.2`, và JPMS không tự resolve Maven group/artifact/version ranges như Maven/Gradle.
+`ModuleDescriptor.version()` is the version attached to **the module being described**, if present. `Requires.compiledVersion()` can represent the version of a required module recorded at compile time. Both can be empty. Java's `module-info.java` has **no** direct syntax like `requires lib@1.2`, and JPMS does not automatically resolve Maven group/artifact/version ranges like Maven/Gradle.
 
-Do đó khi kiểm tra mismatch giữa compile-time và runtime, không được kết luận “version được enforce” chỉ từ các `Optional` này. Phải kiểm tra JAR thực tế, module path, build dependency graph và binary compatibility.
+Therefore, when checking for compile-time vs. runtime mismatches, you cannot conclude “versions are enforced” solely from these `Optional` values. You must inspect the actual JARs, module path, build dependency graph, and binary compatibility.
 
-## 5. Bài thực hành Java 17+: tự tạo ba module và soi ModuleReference/ModuleDescriptor
+## 5. Java 17+ Hands-On Lab: Creating Three Modules and Inspecting ModuleReference/ModuleDescriptor
 
-Lab tạo một quan hệ cụ thể:
+The lab creates a concrete relationship:
 
 ~~~text
 demo.app
@@ -209,15 +209,15 @@ demo.util
     ▼
 demo.api
 
-demo.app còn khai báo requires static java.logging
-Mọi module trên ngầm định đọc java.base.
+demo.app also declares requires static java.logging
+All modules above implicitly read java.base.
 ~~~
 
-Điều cần quan sát: descriptor của `demo.app` **không có** `requires demo.api`, nhưng sau resolution `demo.app` **đọc được `demo.api`** nhờ `demo.util` khai báo `requires transitive demo.api`.
+What to observe: `demo.app`'s descriptor **does not have** `requires demo.api`, yet after resolution `demo.app` **can read `demo.api`** because `demo.util` declares `requires transitive demo.api`.
 
-### 5.1. Cấu trúc project
+### 5.1. Project Structure
 
-Tạo cấu trúc:
+Create the structure:
 
 ~~~text
 jpms-inspector/
@@ -231,12 +231,12 @@ jpms-inspector/
 │   └── demo.app/
 │       ├── module-info.java
 │       └── demo/app/ModuleReport.java
-└── mods/                # được javac tạo ra
+└── mods/                # generated by javac
 ~~~
 
-Tên thư mục dưới `src` **trùng module name**; đây là convention của `javac --module-source-path`. Mỗi named module có riêng một `module-info.java`.
+Directory names under `src` **match the module name**; this is the convention of `javac --module-source-path`. Each named module has its own `module-info.java`.
 
-Tệp `src/demo.api/module-info.java`:
+File `src/demo.api/module-info.java`:
 
 ~~~java
 module demo.api {
@@ -244,7 +244,7 @@ module demo.api {
 }
 ~~~
 
-Tệp `src/demo.api/demo/api/Message.java`:
+File `src/demo.api/demo/api/Message.java`:
 
 ~~~java
 package demo.api;
@@ -252,7 +252,7 @@ package demo.api;
 public record Message(String text) {}
 ~~~
 
-Tệp `src/demo.util/module-info.java`:
+File `src/demo.util/module-info.java`:
 
 ~~~java
 module demo.util {
@@ -261,7 +261,7 @@ module demo.util {
 }
 ~~~
 
-Tệp `src/demo.util/demo/util/Greeter.java`:
+File `src/demo.util/demo/util/Greeter.java`:
 
 ~~~java
 package demo.util;
@@ -277,7 +277,7 @@ public final class Greeter {
 }
 ~~~
 
-Tệp `src/demo.app/module-info.java`:
+File `src/demo.app/module-info.java`:
 
 ~~~java
 module demo.app {
@@ -286,11 +286,11 @@ module demo.app {
 }
 ~~~
 
-`demo.app` có **hai directive tường minh**: `demo.util` và `java.logging`. Modifier `static` biểu thị `java.logging` cần thiết khi biên dịch nhưng dependency ấy **không bắt buộc có trong resolution lúc chạy**. Lab không dùng class của `java.logging`, nên chỉ trình bày nó trong descriptor.
+`demo.app` has **two explicit directives**: `demo.util` and `java.logging`. The `static` modifier indicates `java.logging` is needed at compile time, but that dependency **is not required to be present during runtime resolution**. The lab does not use any classes from `java.logging`, so it only demonstrates it in the descriptor.
 
-### 5.2. Viết chương trình inspect chạy trong demo.app
+### 5.2. Writing the Inspector Program Running Inside demo.app
 
-Tệp `src/demo.app/demo/app/ModuleReport.java`:
+File `src/demo.app/demo/app/ModuleReport.java`:
 
 ~~~java
 package demo.app;
@@ -345,18 +345,18 @@ public final class ModuleReport {
 }
 ~~~
 
-Giải thích từng phần:
+Line-by-line explanation:
 
-1. `ModuleFinder.of(Path.of("mods"))` quan sát các exploded modules đã biên dịch.
-2. `find(name).orElseThrow()` lấy `ModuleReference` của từng module. Nếu không tìm thấy, bài thực hành dừng rõ ràng thay vì bỏ qua.
-3. `reference.descriptor().requires()` trả **direct declared requirements** cùng `java.base` ngầm định; sort theo tên để stdout không phụ thuộc thứ tự duyệt `Set`.
-4. `required.modifiers()` được sort và join; chuỗi `[]` nghĩa là dependency bình thường, không có modifier.
-5. `ModuleLayer.boot().configuration().findModule("demo.app")` lấy **resolved module của ứng dụng thực sự đang chạy**. `reads()` phản ánh readability sau resolution.
-6. `Greeter.greeting()` trả một `Message` thuộc `demo.api`. Mã `demo.app` compile và chạy được dù không trực tiếp khai báo `requires demo.api` vì `demo.util` đã khai báo `requires transitive demo.api`. Đây là minh họa ngắn về hiệu ứng transitive.
+1. `ModuleFinder.of(Path.of("mods"))` observes the compiled exploded modules.
+2. `find(name).orElseThrow()` retrieves each module's `ModuleReference`. If not found, the lab stops explicitly rather than ignoring it.
+3. `reference.descriptor().requires()` returns **direct declared requirements** along with the implicit `java.base`; sorting by name ensures stdout does not depend on `Set` iteration order.
+4. `required.modifiers()` is sorted and joined; `[]` means a normal dependency with no modifiers.
+5. `ModuleLayer.boot().configuration().findModule("demo.app")` retrieves the **resolved module of the actually running application**. `reads()` reflects readability after resolution.
+6. `Greeter.greeting()` returns a `Message` belonging to `demo.api`. `demo.app`'s code compiles and runs even without directly declaring `requires demo.api` because `demo.util` declared `requires transitive demo.api`. This is a concise illustration of the transitive effect.
 
-### 5.3. Lệnh biên dịch và chạy
+### 5.3. Compile and Run Commands
 
-Mở PowerShell tại thư mục `jpms-inspector`, máy có **JDK 17+**:
+Open PowerShell in the `jpms-inspector` directory on a machine with **JDK 17+**:
 
 ~~~powershell
 New-Item -ItemType Directory -Force mods | Out-Null
@@ -364,7 +364,7 @@ javac --release 17 -encoding UTF-8 --module-source-path src -d mods -m demo.api,
 java --module-path mods --module demo.app/demo.app.ModuleReport
 ~~~
 
-Stdout của chương trình (với đúng các source file trên):
+Program stdout (with the exact source files above):
 
 ~~~text
 MODULE demo.api
@@ -384,18 +384,18 @@ READS demo.util=true
 MESSAGE hello-jpms
 ~~~
 
-Hai dòng `READS` cho thấy app đọc được cả `demo.util` (phụ thuộc trực tiếp) **và** `demo.api` (nhờ transitive). Nhưng khi đọc `requires()` của **chính app**, `demo.api` không xuất hiện. Không được viết code suy ra tất cả runtime readable modules chỉ từ `app.descriptor().requires()`.
+The two `READS` lines show that the app can read both `demo.util` (direct dependency) **and** `demo.api` (via transitive). Yet when inspecting `requires()` on **the app itself**, `demo.api` does not appear. Do not write code that infers all runtime-readable modules solely from `app.descriptor().requires()`.
 
-Nếu báo lỗi `module demo.app not found` hoặc `module demo.util not found`, kiểm tra command đang chạy từ **đúng working directory** và `mods` có cấu trúc `mods/demo.app/module-info.class`, `mods/demo.util/module-info.class`, `mods/demo.api/module-info.class` sau khi biên dịch.
+If you get `module demo.app not found` or `module demo.util not found`, verify the command is running from the **correct working directory** and `mods` has the structure `mods/demo.app/module-info.class`, `mods/demo.util/module-info.class`, `mods/demo.api/module-info.class` after compilation.
 
-## 6. Dùng ModuleDescriptor để duyệt exports, opens, uses, provides
+## 6. Using ModuleDescriptor to Inspect exports, opens, uses, and provides
 
-Ngoài `requires`, hãy đọc các thành phần khác để hiểu **tại sao một module được đọc nhưng class vẫn không truy cập được**, hoặc **tại sao một provider được đưa vào graph**.
+Beyond `requires`, inspect the other components to understand **why a module is readable yet a class remains inaccessible**, or **why a provider was brought into the graph**.
 
-Trong module descriptor:
+In a module descriptor:
 
 ~~~java
-// Minh họa module-info.java của một module ứng dụng khác.
+// Illustrative module-info.java of another application module.
 module example.host {
     requires example.api;
     uses example.api.Task;
@@ -403,22 +403,22 @@ module example.host {
 }
 ~~~
 
-Và một module provider:
+And a provider module:
 
 ~~~java
-// Minh họa module-info.java của một provider module.
+// Illustrative module-info.java of a provider module.
 module example.provider {
     requires example.api;
     provides example.api.Task with example.provider.TaskImpl;
 }
 ~~~
 
-**Đây là hai descriptor minh họa thuộc hai module khác nhau, không phải chương trình độc lập.** Các package/module/type cần được tạo tương ứng mới biên dịch được.
+**These are two illustrative descriptors belonging to two different modules, not a standalone program.** The corresponding packages/modules/types must be created for them to compile.
 
-Với `ModuleDescriptor d`:
+Given `ModuleDescriptor d`:
 
 ~~~java
-// Đoạn Java minh họa, cần biến d thuộc kiểu ModuleDescriptor.
+// Illustrative Java snippet, requires variable d of type ModuleDescriptor.
 d.exports().forEach(e -> {
     System.out.println(e.source() + " -> " + e.targets());
 });
@@ -431,16 +431,16 @@ d.provides().forEach(p -> {
 });
 ~~~
 
-- `exports()`: trả các `ModuleDescriptor.Exports`. `source()` là package; `isQualified()` và `targets()` cho biết có giới hạn module nhận quyền hay không. **Unqualified export** không đồng nghĩa package được mở cho deep reflection.
-- `opens()`: trả các `ModuleDescriptor.Opens`, hỗ trợ framework reflection theo phạm vi module. Với `open module`, kiểm tra thêm `descriptor.isOpen()` vì các package được mở theo tính chất của module, dù set `opens()` không liệt kê từng package.
-- `uses()`: tập tên service interfaces module yêu cầu.
-- `provides()`: tập mapping từ service type sang tên implementations. Đây là **service binding metadata**, không phải các phụ thuộc `requires` trực tiếp.
+- `exports()`: returns `ModuleDescriptor.Exports`. `source()` is the package; `isQualified()` and `targets()` indicate whether target modules are restricted. An **unqualified export** does not mean the package is open for deep reflection.
+- `opens()`: returns `ModuleDescriptor.Opens`, supporting framework reflection at module scope. For an `open module`, also check `descriptor.isOpen()` because packages are opened by the module's nature even though the `opens()` set does not list each package individually.
+- `uses()`: set of service interface names required by the module.
+- `provides()`: set of mappings from service type to implementation names. This is **service binding metadata**, not direct `requires` dependencies.
 
-**Điểm kiểm tra:** một module có thể khai báo `uses` và được resolution có service binding đưa thêm provider modules vào graph, dù không viết `requires providerModule`. Vì vậy nếu bạn muốn dựng **dependency closure thực tế**, phải biết đã dùng `resolve(...)` hay `resolveAndBind(...)` và có các provider nào được quan sát.
+**Checkpoint:** a module may declare `uses` and have resolution with service binding add provider modules into the graph, even without writing `requires providerModule`. Therefore, if you want to build the **actual dependency closure**, you must know whether `resolve(...)` or `resolveAndBind(...)` was used and which providers were observed.
 
-## 7. Direct dependencies, transitive readability và resolved graph khác nhau thế nào?
+## 7. How Direct Dependencies, Transitive Readability, and Resolved Graph Differ
 
-Xét đúng ba module trong lab:
+Consider the exact three modules in the lab:
 
 ~~~text
 Declared requires of demo.app:
@@ -452,54 +452,54 @@ Declared requires of demo.util:
   demo.api           [TRANSITIVE]
   java.base          [MANDATED]
 
-Sau resolution của ứng dụng đang chạy:
+After resolution of the running application:
   demo.app READS demo.util
-  demo.app READS demo.api  (qua requires transitive)
+  demo.app READS demo.api  (via requires transitive)
   demo.app READS java.base
-  java.logging có thể không nằm trong graph nếu chỉ được yêu cầu qua requires static.
+  java.logging may not be in the graph if only requested via requires static.
 ~~~
 
-### 7.1. requires thường: phụ thuộc trực tiếp
+### 7.1. Regular requires: Direct Dependency
 
-`requires demo.util;` cho phép app đọc `demo.util` khi nó được resolve. Điều này **không tự truyền** khả năng đọc tất cả dependencies của `demo.util` sang app. Để app đọc `demo.api` qua util, util phải khai báo `requires transitive demo.api;` (hoặc app khai báo dependency phù hợp theo cách khác).
+`requires demo.util;` allows the app to read `demo.util` when resolved. This **does not automatically propagate** readability of all `demo.util`'s dependencies to the app. For the app to read `demo.api` through util, util must declare `requires transitive demo.api;` (or the app must declare an appropriate dependency another way).
 
-**Readability khác accessibility:** đọc được module chưa đảm bảo truy cập được mọi class. Package của target phải được `exports` cho caller, public class/method phải đủ điều kiện Java access; reflective access sâu còn chịu `opens`.
+**Readability differs from accessibility:** being able to read a module does not guarantee access to all classes. The target's package must be `exports`ed to the caller, and the public class/method must meet Java access rules; deep reflective access is further governed by `opens`.
 
-### 7.2. requires transitive: quan hệ đọc được truyền qua
+### 7.2. requires transitive: Propagated Readability
 
-Ví dụ:
+Example:
 
 ~~~java
-// module-info.java của demo.util trong lab:
+// module-info.java of demo.util in the lab:
 module demo.util {
     requires transitive demo.api;
     exports demo.util;
 }
 ~~~
 
-Khi app `requires demo.util`, nó đọc được `demo.api` nhờ directive transitive trong util. Nói “app trực tiếp declares `requires demo.api`” là **sai**: direct descriptor app vẫn chỉ có đúng các directive của app và các ngầm định như `java.base`.
+When the app `requires demo.util`, it can read `demo.api` thanks to the transitive directive in util. Saying “the app directly declares `requires demo.api`” is **wrong**: the app's direct descriptor still only contains the app's own directives and implicit ones like `java.base`.
 
-`requires transitive` không có nghĩa “tự động xuất toàn bộ package”: `demo.api` vẫn phải export package mà app muốn dùng. Nếu library module có code public cần trả về type thuộc `demo.api`, dùng `requires transitive` thường giúp API consumer đọc được type đó.
+`requires transitive` does not mean “automatically export every package”: `demo.api` must still export the packages the app wants to use. If a library module has public code that returns a type from `demo.api`, using `requires transitive` generally helps API consumers read that type.
 
-### 7.3. requires static: có trong descriptor nhưng không bắt buộc resolve khi chạy
+### 7.3. requires static: Present in Descriptor but Not Required to Resolve at Runtime
 
-`requires static java.logging;` được lưu trong `ModuleDescriptor.Requires` với modifier `STATIC`, dù module `java.logging` **không nhất thiết được runtime resolution kéo vào** chỉ từ directive ấy. Nếu `java.logging` được resolve vì lý do khác, app có thể đọc nó theo quy tắc JPMS; nếu không, sự có mặt của directive static không tạo ra module runtime để dùng.
+`requires static java.logging;` is stored in `ModuleDescriptor.Requires` with modifier `STATIC`, even though module `java.logging` is **not necessarily pulled in by runtime resolution** solely from that directive. If `java.logging` is resolved for another reason, the app can read it per JPMS rules; otherwise, the presence of a static directive does not create a runtime module to use.
 
-Đây là lý do `requires()` không phải câu trả lời cho “các module được load tại thời điểm này là gì?”. Khi code thực sự sử dụng class trong module optional, cần xử lý trường hợp module không có trên runtime graph. Các kiểu lỗi/runtime behavior cụ thể phụ thuộc việc class được tham chiếu và liên kết ở đâu; đừng mặc định `requires static` tự cung cấp fallback.
+This is why `requires()` is not the answer to “which modules are loaded right now?”. When code actually uses a class in an optional module, you must handle the case where the module is absent from the runtime graph. Specific error types/runtime behaviors depend on where the class is referenced and linked; do not assume `requires static` automatically provides a fallback.
 
-### 7.4. requires java.base: phụ thuộc được bổ sung ngầm
+### 7.4. requires java.base: Implicitly Added Dependency
 
-Các named module (trừ `java.base`) có dependency tới `java.base` ngay cả khi source `module-info.java` không ghi. API descriptor hiển thị `MANDATED` cho dependency ngầm này. Vì thế khi đếm “một module có bao nhiêu requires”, phải quyết định báo cáo có gồm `MANDATED` hay không:
+Named modules (except `java.base`) have a dependency on `java.base` even when `module-info.java` source does not write it. The descriptor API displays `MANDATED` for this implicit dependency. Thus, when counting “how many requires a module has”, you must decide whether the report includes `MANDATED`:
 
-- **Báo cáo cấu trúc classfile/descriptor:** nên giữ `MANDATED` để minh bạch.
-- **Báo cáo directive do tác giả viết:** lọc phụ thuộc ngầm định và ghi rõ cách lọc, tránh diễn giải rằng source có thêm `requires java.base;`.
-- **Báo cáo graph đã resolve:** không dùng count trực tiếp của `requires()`; đọc `ResolvedModule.reads()`.
+- **Classfile/descriptor structure report:** keep `MANDATED` for transparency.
+- **Author-written directives report:** filter out implicit dependencies and document the filter clearly, avoiding the misinterpretation that the source added `requires java.base;`.
+- **Resolved graph report:** do not use the raw count of `requires()`; read `ResolvedModule.reads()`.
 
-## 8. Tạo Configuration mới để xem kết quả resolution trước khi chạy plugin
+## 8. Creating a New Configuration to Preview Resolution Results Before Running a Plugin
 
-`ModuleLayer.boot().configuration()` cho biết graph của boot layer. Nếu đang xây plugin platform, bạn còn có thể **thử resolution trên một finder** trước khi định nghĩa module layer thực.
+`ModuleLayer.boot().configuration()` shows the boot layer's graph. If you are building a plugin platform, you can also **test resolution against a finder** before defining an actual module layer.
 
-Ví dụ **minh họa không độc lập** (giả định `pluginModulePath` là `Path` chỉ tới những module plugin đã chuẩn bị và `rootName` là tên module gốc):
+**Non-standalone illustrative** example (assuming `pluginModulePath` is a `Path` pointing to prepared plugin modules and `rootName` is the root module name):
 
 ~~~java
 import java.lang.module.Configuration;
@@ -512,7 +512,7 @@ Configuration parent = ModuleLayer.boot().configuration();
 
 Configuration candidate = parent.resolve(
         finder,
-        ModuleFinder.of(),       // after finder rỗng
+        ModuleFinder.of(),       // empty after finder
         Set.of(rootName));
 
 candidate.modules().stream()
@@ -526,57 +526,57 @@ candidate.modules().stream()
         });
 ~~~
 
-Đây là **bước giải resolution, chưa định nghĩa module layer mới**. Trong cấu hình có parent:
+This is a **resolution step, without defining a new module layer yet**. In a configuration with a parent:
 
-- Tìm roots và dependencies theo thứ tự `before finder`, các parent configurations, rồi `after finder` (theo quy tắc API).
-- Module đã có trong parent configuration có thể được dùng lại và **không xuất hiện lại trong `candidate.modules()`**. Nếu muốn toàn bộ graph bao gồm parent, phải duyệt cả `parents()`/`findModule(name)` phù hợp.
-- `candidate.modules()` chỉ là các module được thêm ở configuration mới, không nhất thiết là tất cả những module mà plugin có thể đọc.
-- Nếu dependency thiếu, có thể ném `FindException`; nếu graph vi phạm consistency (cycle hoặc package conflict, v.v.), có thể ném `ResolutionException`.
-- `resolveAndBind(...)` mở rộng resolution với service binding: nó có thể đưa thêm provider modules cho các `uses` được phát hiện. Điều đó làm graph thực tế khác tập `requires` trực tiếp.
+- Roots and dependencies are searched in the order `before finder`, parent configurations, and then `after finder` (per API rules).
+- Modules already in the parent configuration can be reused and **do not reappear in `candidate.modules()`**. If you want the entire graph including parents, you must traverse `parents()`/`findModule(name)` appropriately.
+- `candidate.modules()` contains only the modules added in the new configuration, not necessarily all modules the plugin can read.
+- If a dependency is missing, `FindException` may be thrown; if the graph violates consistency (cycles or package conflicts, etc.), `ResolutionException` may be thrown.
+- `resolveAndBind(...)` extends resolution with service binding: it can add provider modules for discovered `uses`. That makes the actual graph differ from the direct `requires` set.
 
-**Không tự đoán loader:** việc tạo `Configuration` chưa tự nạp/định nghĩa class. Khi định nghĩa `ModuleLayer`, phải chọn đúng mapping từ module sang class loader, ví dụ `defineModulesWithOneLoader` hoặc `defineModulesWithManyLoaders` với ràng buộc package/class loading. Không được suy ra “một module = một loader” chỉ từ `ModuleReference`.
+**Do not guess loaders:** creating a `Configuration` does not load/define classes yet. When defining a `ModuleLayer`, you must choose the proper module-to-class-loader mapping, such as `defineModulesWithOneLoader` or `defineModulesWithManyLoaders` with package/class loading constraints. Do not infer “one module = one loader” solely from `ModuleReference`.
 
-### 8.1. So sánh ba mức quan sát trong một ứng dụng modular
+### 8.1. Comparing Observation Levels in a Modular Application
 
-| Mức | API | Câu hỏi trả lời được |
+| Level | API | Question Answered |
 | --- | --- | --- |
-| Có thể tìm thấy | `ModuleFinder.find(name)` | Có module mang tên này ở nguồn mà finder quan sát không? |
-| Được khai báo | `ModuleReference.descriptor().requires()` | Descriptor nói có những dependency nào và modifier ra sao? |
-| Đã phân giải | `Configuration.findModule(name)`, `ResolvedModule.reads()` | Đồ thị readability sau resolution có những cạnh nào? |
-| Đã định nghĩa runtime | `ModuleLayer.findModule(name)`, `Module.canRead(...)` | Module đang chạy thuộc layer nào, có đọc được module kia tại runtime không? |
+| Findable | `ModuleFinder.find(name)` | Is there a module with this name in the source observed by the finder? |
+| Declared | `ModuleReference.descriptor().requires()` | What dependencies and modifiers does the descriptor state? |
+| Resolved | `Configuration.findModule(name)`, `ResolvedModule.reads()` | What edges exist in the readability graph after resolution? |
+| Defined at runtime | `ModuleLayer.findModule(name)`, `Module.canRead(...)` | Which layer does the running module belong to, and can it read that other module at runtime? |
 
-Một hệ thống thực tế đôi khi có **nhiều layers** và module name trùng nhau ở các layer khác nhau. Khi kiểm tra, lưu cả **layer/configuration/loader context**, không tra module name như một khóa toàn JVM.
+A real-world system sometimes has **multiple layers** and duplicate module names across different layers. When inspecting, record the **layer/configuration/loader context** as well—do not look up module names as a JVM-wide key.
 
-## 9. Kiểm tra module descriptor bằng công cụ dòng lệnh
+## 9. Inspecting Module Descriptors with Command-Line Tools
 
-Không phải lúc nào cũng cần viết Java inspector. Những lệnh hữu ích trên JDK 17+:
+You do not always need to write a Java inspector. Useful commands on JDK 17+:
 
 ~~~powershell
-# Xem module trong runtime image:
+# List modules in the runtime image:
 java --list-modules
 
-# Xem thông tin một module có thể quan sát từ runtime:
+# Inspect a module observable from runtime:
 java --describe-module java.sql
 
-# Với project demo đã biên dịch:
+# With the compiled demo project:
 java --module-path mods --describe-module demo.app
 
-# Quan sát resolution trong một lần khởi chạy:
+# Observe resolution during a launch:
 java --show-module-resolution --module-path mods --module demo.app/demo.app.ModuleReport
 
-# Xem Module attribute trong class file (tùy đường dẫn):
+# Inspect the Module attribute in the class file (depending on path):
 javap -v mods/demo.app/module-info.class
 ~~~
 
-- `java --describe-module` hiển thị module declaration theo cách trình bày của JDK, không đảm bảo cùng format với `ModuleDescriptor.toString()`.
-- `java --show-module-resolution` giúp đối chiếu roots, resolved modules và các quan hệ graph lúc launch; output có thể nhiều dòng, khác theo runtime image và flags.
-- `javap -v` xem cấu trúc classfile, gồm `Module` attribute. Đây là nguồn gần bytecode nhất khi nghi ngờ packaging sai.
-- `jdeps` giúp phát hiện class/package dependencies từ bytecode, nhưng **đồ thị dependency theo bytecode** không luôn đồng nhất với `requires` được khai báo (đặc biệt với reflection, optional modules và service binding).
+- `java --describe-module` displays the module declaration in the JDK's presentation format, not guaranteed to match `ModuleDescriptor.toString()`.
+- `java --show-module-resolution` helps cross-check roots, resolved modules, and graph relationships at launch; output can span many lines and varies by runtime image and flags.
+- `javap -v` inspects classfile structure, including the `Module` attribute. This is the source closest to bytecode when suspecting packaging issues.
+- `jdeps` helps detect class/package dependencies from bytecode, but the **bytecode dependency graph** does not always match declared `requires` (especially with reflection, optional modules, and service binding).
 
-Một cách kiểm tra nhanh trong chương trình Java nếu **chỉ có object runtime module**:
+A quick check inside a Java program if you **only have a runtime module object**:
 
 ~~~java
-// Đoạn minh họa độc lập về cú pháp, cần chọn module runtime phù hợp.
+// Syntax-illustrative snippet; choose an appropriate runtime module.
 Module module = String.class.getModule();
 System.out.println(module.getName());
 System.out.println(module.getDescriptor().name());
@@ -589,55 +589,55 @@ java.base
 java.base
 ~~~
 
-`Class.getModule()` gắn với module **định nghĩa class** đó. Với class trên class path, bạn nhận unnamed module; `getDescriptor()` của unnamed module trả `null`, nên **không gọi `.requires()` trực tiếp mà không kiểm tra**.
+`Class.getModule()` is tied to the module that **defined** that class. For a class on the classpath, you get an unnamed module; `getDescriptor()` on an unnamed module returns `null`, so **do not call `.requires()` directly without checking**.
 
-## 10. Các sai lầm khi đọc descriptor và dependency
+## 10. Common Pitfalls When Reading Descriptors and Dependencies
 
-### 10.1. “Có ModuleReference là module đã được resolve”
+### 10.1. “Having a ModuleReference means the module is resolved”
 
-Sai. `ModuleFinder.find` có thể trả module candidate không nằm trong `Configuration` hiện tại. Khi runtime báo module không thể truy cập, cần kiểm tra roots, visibility và graph thực tế. **Một finder thấy module** không đảm bảo host JVM đang chạy đã định nghĩa module ấy.
+Wrong. `ModuleFinder.find` can return a candidate module that is not in the current `Configuration`. When runtime reports a module is inaccessible, check roots, visibility, and the actual graph. **A finder seeing a module** does not guarantee the running host JVM has defined that module.
 
-### 10.2. “requires() là tất cả module tôi đọc được”
+### 10.2. “requires() is every module I can read”
 
-Sai vì `requires transitive` tạo readability thêm; `requires static` có thể không dẫn tới runtime module; runtime có thể có service binding hoặc dynamic reads. Đọc `ResolvedModule.reads()` / `Module.canRead` theo đúng tầng muốn quan sát.
+Wrong because `requires transitive` creates additional readability; `requires static` may not lead to a runtime module; runtime may involve service binding or dynamic reads. Read `ResolvedModule.reads()` / `Module.canRead` at the exact layer you want to observe.
 
-### 10.3. “requires transitive có nghĩa export mọi package”
+### 10.3. “requires transitive means exporting every package”
 
-Sai. `requires transitive` nói về **readability**; `exports` nói về quyền truy cập các public type; `opens` về deep reflection. Cả ba cần được kiểm tra khi module đã hiện diện mà caller vẫn không dùng được class/package.
+Wrong. `requires transitive` is about **readability**; `exports` is about access rights to public types; `opens` is about deep reflection. All three must be checked when a module is present yet the caller still cannot use a class/package.
 
-### 10.4. “Module descriptor bắt buộc ghi version”
+### 10.4. “Module descriptors are required to specify a version”
 
-Sai. `version()` và `compiledVersion()` là các `Optional`, không nên gọi `get()` hoặc `orElseThrow()` nếu không có chính sách rõ. JPMS module names không phải Maven coordinates và không tự tải dependencies từ kho artifact.
+Wrong. `version()` and `compiledVersion()` are `Optional`s; do not call `get()` or `orElseThrow()` without an explicit policy. JPMS module names are not Maven coordinates and do not automatically download dependencies from artifact repositories.
 
-### 10.5. “Thứ tự requires()/findAll() là thứ tự đồ thị”
+### 10.5. “The order of requires()/findAll() is the graph order”
 
-Sai. Đây là các `Set` không có thứ tự trình bày đáng dựa vào. Nếu tạo báo cáo để diff hoặc kiểm thử, **sort theo module name rồi modifier**. Đừng suy luận thứ tự class loading từ thứ tự in metadata.
+Wrong. These are `Set`s with no reliable display order. If generating reports for diffing or testing, **sort by module name then modifier**. Do not infer class-loading order from metadata print order.
 
-### 10.6. “Automatic module có requires() trống thì không đọc module khác”
+### 10.6. “An automatic module with empty requires() reads no other modules”
 
-Sai. Automatic module có quy tắc readability/exports đặc biệt. Descriptor của automatic module thường chỉ ghi dependency `java.base`; điều này **không** mô tả đầy đủ runtime readability. Kiểm tra `isAutomatic()` trước khi diễn giải kết quả và dùng resolved graph khi muốn biết các cạnh.
+Wrong. Automatic modules have special readability/exports rules. An automatic module's descriptor typically lists only the `java.base` dependency; this does **not** fully describe runtime readability. Check `isAutomatic()` before interpreting results and use the resolved graph when you want to know the edges.
 
-### 10.7. “Lỗi module-info.class là do thiếu JAR”
+### 10.7. “A module-info.class error is caused by a missing JAR”
 
-Có thể là `InvalidModuleDescriptorException`/`FindException` vì module descriptor lỗi, module names trùng, package metadata không hợp lệ, hoặc runtime không tương thích; cũng có thể là `ResolutionException` khi graph vi phạm constraint. Đọc exception cause và log của finder/resolver. Thay JAR ngẫu nhiên có thể che một lỗi version/package khác.
+It could be `InvalidModuleDescriptorException`/`FindException` due to a malformed module descriptor, duplicate module names, invalid package metadata, or runtime incompatibility; it could also be `ResolutionException` when the graph violates constraints. Read the exception cause and finder/resolver logs. Swapping JARs randomly can mask another version/package error.
 
-### 10.8. “Đọc metadata bằng ModuleReader luôn an toàn để giữ lâu”
+### 10.8. “Reading metadata with ModuleReader is always safe to keep open long-term”
 
-`ModuleReader` là tài nguyên phải được đóng; giữ reader/stream mở lâu có thể giữ file handles hoặc resources từ runtime/module image. Với mục tiêu chỉ xem `requires`, hãy dùng `reference.descriptor()`, không mở reader trừ khi thực sự cần xem file bên trong module.
+`ModuleReader` is a resource that must be closed; keeping readers/streams open long-term can hold file handles or resources from the runtime/module image. When the goal is only to inspect `requires`, use `reference.descriptor()` and do not open a reader unless you truly need to read files inside the module.
 
-## 11. Quy trình chẩn đoán cho plugin/module resolution
+## 11. Diagnostic Workflow for Plugin/Module Resolution
 
-Giả sử plugin `com.example.report` không chạy được. Một luồng điều tra có thứ tự:
+Suppose plugin `com.example.report` fails to run. An ordered investigation flow:
 
-1. **Quan sát:** ModuleFinder trên đúng module path/layer candidate có tìm thấy module name không? Nếu không, kiểm tra artifact, tên module, path, automatic module naming.
-2. **Khai báo:** Lấy `ModuleReference.descriptor()`. Ghi `name`, `isAutomatic`, `requires` cùng modifiers, `exports/opens/uses/provides`.
-3. **Đối chiếu dependency hiện hữu:** Với mỗi required module bắt buộc, kiểm tra nó ở finder/parent configuration nào. Riêng `STATIC` phải hiểu semantics optional lúc chạy.
-4. **Resolution:** Dùng `Configuration.resolve(...)` hoặc cấu hình runtime đã có; ghi tập resolved modules và các cạnh `ResolvedModule.reads()`. Bắt `FindException`/`ResolutionException` với cause cụ thể.
-5. **Layer/runtime:** Nếu đã define layer, kiểm tra `ModuleLayer.findModule`, `Module.canRead`, `isExported`/`isOpen`. Chú ý layer cha và dynamic additions.
-6. **Class loading:** Nếu class vẫn không dùng được, đối chiếu class loader, class/package visibility và binary signature. JPMS resolution thành công **không** bảo đảm class implementation không bị `NoClassDefFoundError` khi được dùng.
-7. **Kết quả:** Báo cáo rõ “thiếu module quan sát được”, “module không được resolve”, “readability/accessibility sai” hay “lỗi classloading/bytecode” để sửa đúng nguyên nhân.
+1. **Observation:** Does `ModuleFinder` on the right module path/candidate layer find the module name? If not, check the artifact, module name, path, and automatic module naming.
+2. **Declaration:** Retrieve `ModuleReference.descriptor()`. Record `name`, `isAutomatic`, `requires` with modifiers, and `exports/opens/uses/provides`.
+3. **Cross-check existing dependencies:** For each mandatory required module, check which finder/parent configuration contains it. Specifically for `STATIC`, understand its runtime-optional semantics.
+4. **Resolution:** Use `Configuration.resolve(...)` or the existing runtime configuration; record the set of resolved modules and `ResolvedModule.reads()` edges. Catch `FindException`/`ResolutionException` with the specific cause.
+5. **Layer/runtime:** If a layer is already defined, check `ModuleLayer.findModule`, `Module.canRead`, `isExported`/`isOpen`. Pay attention to parent layers and dynamic additions.
+6. **Class loading:** If a class still cannot be used, cross-check class loaders, class/package visibility, and binary signatures. Successful JPMS resolution does **not** guarantee an implementation class will not hit `NoClassDefFoundError` when used.
+7. **Result:** Report clearly whether it is a “missing observable module”, “unresolved module”, “wrong readability/accessibility”, or “classloading/bytecode error” so the right root cause is fixed.
 
-### Dạng báo cáo gợi ý
+### Suggested Report Format
 
 ~~~text
 Root module: demo.app
@@ -653,54 +653,54 @@ Conclusion:
   demo.api is readable via requires transitive in demo.util.
 ~~~
 
-Đây là **bản minh họa định dạng báo cáo**, không phải stdout chính thức của API. Phần `...` biểu thị có thể còn các module đọc được tùy cấu hình đã resolve. Không chép nguyên danh sách từ ví dụ này như kết quả trên một JDK bất kỳ.
+This is an **illustrative report format**, not official API stdout. The `...` indicates there may be additional readable modules depending on the resolved configuration. Do not copy the exact list from this example as the output on any given JDK.
 
-## 12. Bài tập và tiêu chí hoàn thành
+## 12. Exercises and Completion Criteria
 
-### Bài tập A — Đổi requires transitive thành requires thường
+### Exercise A — Change requires transitive to regular requires
 
-Trong `demo.util/module-info.java`, đổi:
+In `demo.util/module-info.java`, change:
 
 ~~~java
 requires transitive demo.api;
 ~~~
 
-thành:
+to:
 
 ~~~java
 requires demo.api;
 ~~~
 
-Đây là **đoạn trích descriptor**, không phải chương trình độc lập. Giữ `demo.app` chỉ requires `demo.util`. Vì `ModuleReport` chỉ trực tiếp import `demo.util.Greeter` và dùng suy luận `var`/method chains trong bản hiện tại, ứng dụng có thể vẫn biên dịch tùy cách sử dụng type của API; để kiểm chứng rõ quan hệ readability, thêm một **dòng import trực tiếp** `demo.api.Message` cùng khai báo biến kiểu `Message` trong app. Khi đó app sẽ không được phép dùng public type từ `demo.api` qua quan hệ transitive đã bị bỏ; cần thêm `requires demo.api;` vào `demo.app/module-info.java` hoặc khôi phục `requires transitive demo.api;` ở util.
+This is a **descriptor snippet**, not a standalone program. Keep `demo.app` only requiring `demo.util`. Because `ModuleReport` only directly imports `demo.util.Greeter` and uses `var` inference/method chains in the current version, the application might still compile depending on how the API type is used; to clearly verify the readability relationship, add a **direct import line** `demo.api.Message` along with a variable declaration of type `Message` in the app. At that point the app will not be permitted to use public types from `demo.api` through the removed transitive relationship; you will need to add `requires demo.api;` to `demo.app/module-info.java` or restore `requires transitive demo.api;` in util.
 
-### Bài tập B — Nhìn thấy và sử dụng khác nhau
+### Exercise B — Visibility and Usage Differ
 
-Tạo một module `demo.hidden` nằm trong module path nhưng không được root `demo.app` yêu cầu và không phải provider được bind. Kiểm tra `ModuleFinder.of(Path.of("mods")).find("demo.hidden")` có thể trả `ModuleReference`, trong khi `ModuleLayer.boot().configuration().findModule("demo.hidden")` có thể rỗng khi launch chỉ với `demo.app`. Đây là khác biệt giữa **observable** và **resolved**.
+Create a module `demo.hidden` on the module path that is not required by root `demo.app` and is not a bound provider. Verify that `ModuleFinder.of(Path.of("mods")).find("demo.hidden")` can return a `ModuleReference`, whereas `ModuleLayer.boot().configuration().findModule("demo.hidden")` can be empty when launching with only `demo.app`. This is the difference between **observable** and **resolved**.
 
-### Bài tập C — Thử requires static
+### Exercise C — Try requires static
 
-Giữ `requires static java.logging` trong app. Quan sát descriptor còn phần tử `STATIC`. Đối chiếu `--show-module-resolution` và khả năng `java.logging` được resolve bởi runtime/root khác. Rút ra: **declared static dependency != bắt buộc tồn tại runtime**.
+Keep `requires static java.logging` in the app. Observe that the descriptor still contains the `STATIC` element. Cross-check `--show-module-resolution` and whether `java.logging` is resolved by the runtime or another root. Takeaway: **declared static dependency != guaranteed runtime presence**.
 
-### Bài tập D — Thử service binding
+### Exercise D — Try Service Binding
 
-Tạo service interface trong module API, khai báo `uses` ở host, `provides ... with ...` ở provider. So sánh kết quả của `resolve` và `resolveAndBind` trên cùng finders/roots (nhớ tính cả parent configurations). Hãy báo cáo provider nào được thêm do service binding, thay vì tự cho rằng có `requires provider`.
+Create a service interface in the API module, declare `uses` in the host, and `provides ... with ...` in a provider. Compare the results of `resolve` and `resolveAndBind` on the same finders/roots (remembering to account for parent configurations). Report which providers were added due to service binding, rather than assuming there was a `requires provider`.
 
-### Checklist kết quả
+### Outcome Checklist
 
-Bạn đã nắm vững chủ đề khi có thể giải thích và kiểm chứng:
+You have mastered this topic when you can explain and verify:
 
-- `ModuleFinder.find` trả gì và vì sao chưa chắc module được resolve.
-- `ModuleReference.descriptor()` khác `ModuleReference.open()` ở vai trò nào.
-- `ModuleDescriptor.requires()` chứa các dependency khai báo và cả `java.base [MANDATED]`.
-- `Requires.Modifier.STATIC` và `TRANSITIVE` tác động khác nhau thế nào.
-- Tại sao module app đọc được `demo.api` dù không trực tiếp `requires demo.api`.
-- `ResolvedModule.reads()` cho thông tin nào mà `requires()` chưa cung cấp.
-- Vì sao `exports`, `opens`, `uses`, `provides` phải đọc riêng.
-- Tại sao version trên module descriptor không thay Maven/Gradle version resolution.
-- Cách tránh sai do unnamed/automatic module, multiple layers và thứ tự Set.
-- Cách tái hiện lỗi bằng `java --describe-module`, `--show-module-resolution` và chương trình Java 17+.
+- What `ModuleFinder.find` returns and why a module is not guaranteed to be resolved.
+- How `ModuleReference.descriptor()` differs in role from `ModuleReference.open()`.
+- That `ModuleDescriptor.requires()` contains declared dependencies as well as `java.base [MANDATED]`.
+- How `Requires.Modifier.STATIC` and `TRANSITIVE` behave differently.
+- Why the app module can read `demo.api` despite not directly declaring `requires demo.api`.
+- What information `ResolvedModule.reads()` provides that `requires()` does not.
+- Why `exports`, `opens`, `uses`, and `provides` must be inspected separately.
+- Why the version on a module descriptor does not replace Maven/Gradle version resolution.
+- How to avoid pitfalls from unnamed/automatic modules, multiple layers, and Set iteration order.
+- How to reproduce issues using `java --describe-module`, `--show-module-resolution`, and a Java 17+ program.
 
-## 13. Tài liệu chuẩn để tra cứu
+## 13. Authoritative References
 
 - Java SE 17 — ModuleFinder: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleFinder.html
 - Java SE 17 — ModuleReference: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleReference.html

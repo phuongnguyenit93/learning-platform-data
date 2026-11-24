@@ -1,26 +1,26 @@
-# Tạo ModuleLayer với defineModulesWithManyLoaders hoặc ánh xạ ClassLoader tùy chỉnh
+# Creating a ModuleLayer with defineModulesWithManyLoaders or Custom ClassLoader Mapping
 
-Khi một ứng dụng Java cần nạp thêm các **named module** sau khi JVM đã khởi động, Java Platform Module System (JPMS) cho phép ứng dụng tạo **ModuleLayer** mới từ cấu hình module đã được giải quyết. Lựa chọn quan trọng là **mỗi module sẽ được ClassLoader nào định nghĩa**. Java cung cấp cách tiện lợi là defineModulesWithManyLoaders để tạo loader riêng cho mỗi module, đồng thời cho phép tự ánh xạ tên module → loader bằng defineModules.
+When a Java application needs to load additional **named modules** after the JVM has started, the Java Platform Module System (JPMS) allows the application to create a new **ModuleLayer** from a resolved module configuration. A key decision is **which ClassLoader will define each module**. Java provides the convenient `defineModulesWithManyLoaders` to create a separate loader for each module, while also allowing custom module-name-to-loader mapping via `defineModules`.
 
-Bài này giải thích các API trên Java 17+, trình tự ModuleFinder → Configuration → ModuleLayer, sự khác nhau giữa ánh xạ tự động và tùy chỉnh, một lab chạy được với hai modular JAR, các giới hạn về readability, exports, resource, class identity và cách xử lý vòng đời của plugin.
+This article explains the APIs on Java 17+, the `ModuleFinder` → `Configuration` → `ModuleLayer` sequence, the difference between automatic and custom mapping, a runnable lab with two modular JARs, limitations regarding readability, exports, resources, and class identity, and how to handle plugin lifecycles.
 
-## 1. Một layer là gì, và nó không phải là gì?
+## 1. What Is a Layer, and What Is It Not?
 
-**ModuleLayer** là một tập các Module object được JVM định nghĩa từ đồ thị resolved module trong một Configuration, cùng quan hệ với một hoặc nhiều parent layer. Một layer có thể được tạo lúc runtime để host nhìn thấy plugin mới mà không đưa tất cả plugin lên module path của tiến trình khi khởi động.
+A **ModuleLayer** is a set of `Module` objects defined by the JVM from a graph of resolved modules in a `Configuration`, along with relationships to one or more parent layers. A layer can be created at runtime so the host can see new plugins without placing all plugins on the process's startup module path.
 
-Cần phân biệt các đối tượng:
+Distinguish the participating objects:
 
-| Đối tượng | Chức năng | Điều không tự làm |
+| Object | Function | What It Does Not Do Automatically |
 | --- | --- | --- |
-| ModuleFinder | Tìm mô tả module trong JAR/JMOD/thư mục module | Không nạp hay khởi tạo class |
-| Configuration | Giải quyết đồ thị requires, xác định tập resolved module | Chưa tạo Module object hay loader tại runtime |
-| ModuleLayer | Định nghĩa các runtime Module và gắn module vào loader | Không tự gọi main, constructor hay service provider |
-| ClassLoader | Định nghĩa/tra cứu class; tham gia delegation | Không tự tạo cạnh requires/exports/opens |
-| ModuleLayer.Controller | Cung cấp quyền điều chỉnh một số quan hệ reads/exports/opens khi dùng static factory | Không giải quyết lại dependency graph hay biến class loader thành sandbox |
+| ModuleFinder | Discovers module descriptors in JAR/JMOD/module directories | Does not load or initialize classes |
+| Configuration | Resolves the `requires` graph, determines the set of resolved modules | Does not yet create runtime `Module` objects or loaders |
+| ModuleLayer | Defines runtime `Module` instances and binds modules to loaders | Does not automatically invoke `main`, constructors, or service providers |
+| ClassLoader | Defines/looks up classes; participates in delegation | Does not automatically create `requires`/`exports`/`opens` edges |
+| ModuleLayer.Controller | Provides authority to adjust certain reads/exports/opens relationships when using static factories | Does not re-resolve the dependency graph or turn a class loader into a sandbox |
 
-Một Module thuộc **một layer** và được gắn với **một class loader**. Ngược lại, **một class loader có thể phục vụ nhiều module** nếu đáp ứng điều kiện package và mô hình nạp. Class identity vẫn dựa trên **tên binary + defining class loader**; module readability và exports là những kiểm tra truy cập **bổ sung**.
+A `Module` belongs to **one layer** and is bound to **one class loader**. Conversely, **one class loader can serve multiple modules** if package and loading model conditions are met. Class identity is still based on **binary name + defining class loader**; module readability and exports are **additional** access checks.
 
-Mô hình cơ bản:
+Basic model:
 
 ~~~text
 ModuleFinder.of(pluginDirectory)
@@ -29,13 +29,13 @@ ModuleFinder.of(pluginDirectory)
 parent.configuration().resolve(finder, before, roots)
          |
          v
-Configuration (đã xác định module nào đọc module nào)
+Configuration (determines which module reads which)
          |
          +---- defineModulesWithManyLoaders(cf, parentLoader)
-         |           mỗi module → loader do JDK tạo
+         |           each module → JDK-created loader
          |
          +---- defineModules(cf, moduleName -> loader)
-                     mỗi module → loader do host lựa chọn
+                     each module → host-selected loader
          |
          v
 ModuleLayer
@@ -44,90 +44,90 @@ ModuleLayer
          +---- findLoader("demo.alpha")
 ~~~
 
-**ModuleLayer không bảo đảm an toàn cho mã không tin cậy.** Các module/plugin trong cùng JVM vẫn thực thi trong tiến trình JVM đó; layer và class loader giúp tổ chức namespace/kiểm soát khả năng truy cập, không thay thế cô lập tiến trình, xác thực artifact hay kiểm soát quyền hệ điều hành.
+**ModuleLayer does not guarantee safety for untrusted code.** Modules/plugins in the same JVM still execute within that JVM process; layers and class loaders organize namespaces and control access, rather than replacing process isolation, artifact verification, or OS-level permission controls.
 
-## 2. Các API Java 17 quan trọng
+## 2. Important Java 17 APIs
 
-Các phương thức đều thuộc java.lang.ModuleLayer:
+All methods belong to `java.lang.ModuleLayer`:
 
-| Cách tạo | Phương thức | Giá trị trả về | Ý nghĩa |
+| Creation Mode | Method | Return Value | Meaning |
 | --- | --- | --- | --- |
-| Nhiều loader, một parent layer | parent.defineModulesWithManyLoaders(cf, parentLoader) | ModuleLayer | JDK tạo **một loader riêng cho mỗi module** trong cf |
-| Nhiều loader, nhiều parent hoặc cần controller | ModuleLayer.defineModulesWithManyLoaders(cf, parentLayers, parentLoader) | ModuleLayer.Controller | Factory tĩnh; gọi controller.layer() để lấy layer |
-| Tự ánh xạ, một parent layer | parent.defineModules(cf, nameToLoader) | ModuleLayer | Function<String, ClassLoader> chọn loader theo tên module |
-| Tự ánh xạ, nhiều parent hoặc cần controller | ModuleLayer.defineModules(cf, parentLayers, nameToLoader) | ModuleLayer.Controller | Host sở hữu mapping và có Controller |
-| Một loader chung do JDK tạo | parent.defineModulesWithOneLoader(cf, parentLoader) | ModuleLayer | Tất cả module trong cf dùng chung một loader mới |
+| Many loaders, one parent layer | parent.defineModulesWithManyLoaders(cf, parentLoader) | ModuleLayer | JDK creates **a separate loader for each module** in `cf` |
+| Many loaders, multiple parents or controller needed | ModuleLayer.defineModulesWithManyLoaders(cf, parentLayers, parentLoader) | ModuleLayer.Controller | Static factory; call `controller.layer()` to get the layer |
+| Custom mapping, one parent layer | parent.defineModules(cf, nameToLoader) | ModuleLayer | `Function<String, ClassLoader>` selects a loader by module name |
+| Custom mapping, multiple parents or controller needed | ModuleLayer.defineModules(cf, parentLayers, nameToLoader) | ModuleLayer.Controller | Host owns the mapping and gets a `Controller` |
+| One shared JDK-created loader | parent.defineModulesWithOneLoader(cf, parentLoader) | ModuleLayer | All modules in `cf` share one new loader |
 
-**Dễ nhầm:** tham số parentLoader của defineModulesWithManyLoaders là **ClassLoader cha của các loader mới**, không phải loader dùng chung để **định nghĩa** tất cả module. Để lấy loader thực sự định nghĩa một module, gọi layer.findLoader(moduleName), không lấy parentLoader rồi suy đoán.
+**Easy to confuse:** the `parentLoader` parameter of `defineModulesWithManyLoaders` is the **parent ClassLoader of the new loaders**, not a shared loader that **defines** all modules. To get the loader that actually defines a module, call `layer.findLoader(moduleName)` rather than grabbing `parentLoader` and guessing.
 
-Factory dạng instance yêu cầu Configuration có đúng một parent configuration khớp với configuration của layer nhận lời gọi. Factory static nhận danh sách parentLayers theo đúng thứ tự các parent configuration của cf; sai thứ tự/không khớp có thể gây IllegalArgumentException. Trong lab ta chỉ dùng ModuleLayer.boot() làm parent nên chọn dạng instance để code dễ đọc.
+Instance factories require `Configuration` to have exactly one parent configuration matching the configuration of the receiver layer. Static factories accept a `parentLayers` list in the exact order of `cf`'s parent configurations; a mismatch or wrong order can throw `IllegalArgumentException`. In this lab we only use `ModuleLayer.boot()` as the parent, so we choose the instance form for readability.
 
-**ModuleLayer.Controller** là handle quản lý layer từ các factory tĩnh, hữu ích khi framework cần addReads, addExports hoặc addOpens theo quyền của controller. Những hành động này có điều kiện và cần quản trị rõ ràng, không tự sửa nội dung module-info.java, không được coi là cách bỏ qua mọi kiểm tra module.
+**ModuleLayer.Controller** is the management handle returned by static factories, useful when a framework needs `addReads`, `addExports`, or `addOpens` under controller authority. These operations have preconditions and require explicit governance; they do not modify `module-info.java` on disk and must not be treated as a way to bypass all module checks.
 
-## 3. Chọn mô hình loader theo nhu cầu
+## 3. Choosing a Loader Model Based on Needs
 
-### 3.1. defineModulesWithManyLoaders: một loader mỗi module
+### 3.1. defineModulesWithManyLoaders: One Loader per Module
 
-JDK tự tạo loader tương ứng với từng module trong Configuration. Các loader mới có parent là parentLoader đã truyền. Loader do JDK cung cấp biết **direct delegation** theo package/module: khi code cần type thuộc module khác mà quan hệ đọc/exports phù hợp, nó có thể chuyển yêu cầu đến loader chứa module ấy. Do đó một module không nhất thiết bị cô lập hoàn toàn khỏi các module mà nó được phép đọc.
+The JDK automatically creates a corresponding loader for each module in `Configuration`. The new loaders have the passed `parentLoader` as their parent. Loaders provided by the JDK know **direct delegation** by package/module: when code needs a type from another module where read/export edges permit, it can forward the request to the loader containing that module. Thus, a module is not necessarily completely isolated from modules it is allowed to read.
 
-Ưu điểm:
+Advantages:
 
-- Host không phải tự viết loader hiểu module path, resource lookup và delegation giữa những named module.
-- Dễ quan sát layer.findLoader(name), xác định ranh giới tên package/class của từng module.
-- Tránh buộc nhiều module dùng chung một defining loader, có ích khi các module muốn tách class identity và vòng đời.
+- The host does not have to write its own loader that understands the module path, resource lookup, and delegation between named modules.
+- Easy to inspect `layer.findLoader(name)` and identify package/class boundaries per module.
+- Avoids forcing multiple modules to share one defining loader, useful when modules want separate class identity and lifecycles.
 
-Giới hạn:
+Limitations:
 
-- Tạo thêm loader có chi phí bộ nhớ, metadata và vận hành; số module lớn cần quản trị.
-- Module readability/exports vẫn áp dụng. Có loader riêng **không cho phép** một module truy cập package chưa được exports.
-- Các loader có parent chung, và loader do JDK tạo có thể delegate tới module readable; đây **không phải** cách ly bảo mật hoặc một cơ chế versioning dependency hoàn toàn tự động.
-- Mỗi module có loader riêng **không có nghĩa** tự động unload/reload khi thay JAR; còn reference sống sẽ giữ loader/module tồn tại.
+- Creating extra loaders incurs memory, metadata, and operational overhead; large module counts require management.
+- Module readability/exports still apply. Having a separate loader **does not allow** a module to access unexported packages.
+- The loaders share a parent, and JDK-created loaders can delegate to readable modules; this is **not** security isolation or a fully automatic dependency versioning mechanism.
+- Each module having its own loader **does not mean** automatic unload/reload when replacing JARs; live references will keep the loader/module alive.
 
-### 3.2. defineModules: ánh xạ tùy chỉnh
+### 3.2. defineModules: Custom Mapping
 
-Khi gọi defineModules(cf, name -> loader), JVM **không tạo loader thay host**. Hàm phải trả một ClassLoader hợp lệ cho từng tên module trong Configuration. Ví dụ host muốn:
+When calling `defineModules(cf, name -> loader)`, the JVM **does not create loaders on the host's behalf**. The function must return a valid `ClassLoader` for each module name in `Configuration`. For example, the host may want to:
 
-- Chọn loader riêng của từng plugin theo chính sách;
-- Ánh xạ một nhóm module vào cùng loader khi package không xung đột;
-- Kết hợp loader sẵn có với loader của hệ thống quản lý plugin;
-- Kiểm soát riêng việc tra cứu resource, bytecode instrumentation, delegation hoặc thống kê.
+- Pick per-plugin loaders according to policy;
+- Map a group of modules to the same loader when packages do not conflict;
+- Combine existing loaders with loaders from a plugin management system;
+- Custom-control resource lookup, bytecode instrumentation, delegation, or metrics.
 
-Đổi lại, **trách nhiệm về class loading và module delegation chuyển sang host**. Tài liệu Java 17 yêu cầu loader do host triển khai tôn trọng module readability; các loader nên được đăng ký **parallel-capable** để tránh deadlock khi nạp class song song. Trước khi module bị sử dụng, loader phải sẵn sàng đọc class/resource của module được ánh xạ.
+In return, **responsibility for class loading and module delegation shifts to the host**. The Java 17 documentation requires host-implemented loaders to respect module readability; loaders should be registered as **parallel-capable** to avoid deadlocks during concurrent class loading. Before a module is used, the loader must be ready to read classes and resources of the mapped module.
 
-Hàm ánh xạ trả null hoặc platform class loader là không hợp lệ; ánh xạ nhiều module có **cùng package** vào cùng loader, dùng loader đã định nghĩa module cùng tên, hoặc dùng loader đã định nghĩa type trong package thuộc module mới có thể gây LayerInstantiationException. **Không tạo mapping bằng cách đoán loader theo thứ tự resolve**; tên module là khóa bắt buộc.
+Returning `null` or the platform class loader from the mapping function is invalid; mapping multiple modules with the **same package** to the same loader, using a loader that already defined a module of the same name, or using a loader that already defined a type in a package belonging to a new module can cause `LayerInstantiationException`. **Do not build the mapping by guessing loaders by resolution order**; the module name is the mandatory key.
 
-## 4. Quy trình từ modular JAR tới layer
+## 4. Workflow from Modular JARs to a Layer
 
-Host cần một tập artifact chứa **module-info.class** hoặc module descriptors hợp lệ. Với explicit named module:
+The host needs artifacts containing **module-info.class** or valid module descriptors. For explicit named modules:
 
-1. Đóng các module thành modular JAR trong thư mục plugin.
-2. Dùng ModuleFinder.of(pathToDirectory) để host đọc các module descriptor.
-3. Chọn parent layer (thường là ModuleLayer.boot()).
-4. Giải quyết từ parent.configuration().resolve(finder, ModuleFinder.of(), roots), trong đó roots là tên module muốn đưa vào graph.
-5. Chọn defineModulesWithManyLoaders hoặc defineModules với mapping đã chuẩn bị.
-6. Lấy loader bằng layer.findLoader(moduleName), nạp class/khởi tạo provider qua hợp đồng của host.
-7. Quản lý lifecycle, exception, task, resource và reference trong suốt thời gian plugin còn hoạt động.
+1. Package modules into modular JARs in a plugin directory.
+2. Use `ModuleFinder.of(pathToDirectory)` so the host reads the module descriptors.
+3. Choose a parent layer (usually `ModuleLayer.boot()`).
+4. Resolve from `parent.configuration().resolve(finder, ModuleFinder.of(), roots)`, where `roots` are the module names to bring into the graph.
+5. Choose `defineModulesWithManyLoaders` or `defineModules` with a prepared mapping.
+6. Obtain loaders via `layer.findLoader(moduleName)`, load classes/instantiate providers via the host's contract.
+7. Manage lifecycle, exceptions, tasks, resources, and references while the plugin remains active.
 
-**ModuleFinder không quét mọi JAR tùy ý trên classpath rồi biến chúng thành module trong layer.** Nó đọc các đường dẫn host truyền vào. Module path của process và runtime ClassLoader URL search là những cơ chế riêng; đừng trộn lẫn classpath-based SPI với explicit module declarations.
+**ModuleFinder does not scan arbitrary JARs on the classpath and turn them into modules in a layer.** It reads the paths supplied by the host. The process module path and runtime `ClassLoader` URL search are separate mechanisms; do not mix classpath-based SPI with explicit module declarations.
 
-Phân biệt lỗi:
+Distinguishing errors:
 
-| Giai đoạn | Ví dụ lỗi | Hướng kiểm tra |
+| Stage | Example Error | What to Check |
 | --- | --- | --- |
-| Finder | Không đọc được artifact, module descriptor không hợp lệ, tên trùng | File JAR, module-info.class, nội dung thư mục, ModuleFinder |
-| Resolution | Thiếu requires hoặc đồ thị không giải quyết được | Tên module, requires, ModuleFinder parent/before |
-| Define layer | Mapping không hợp lệ, loader chứa package đã định nghĩa, xung đột package | Ánh xạ tên → loader, package ownership và quan hệ với parent |
-| Load class | Class không nằm trong module/loader hoặc sai tên | layer.findLoader, đường dẫn JAR, package |
-| Link/access | NoClassDefFoundError, IllegalAccessError hoặc lỗi truy cập phản chiếu | requires, exports/opens, dependency/version và class identity |
-| Invoke | Constructor hoặc phương thức của plugin ném exception | Plugin lifecycle, cấu hình, resource và business logic |
+| Finder | Unreadable artifact, invalid module descriptor, duplicate name | JAR files, `module-info.class`, directory contents, `ModuleFinder` |
+| Resolution | Missing `requires` or unresolvable graph | Module names, `requires`, parent/before `ModuleFinder` |
+| Define layer | Invalid mapping, loader contains already-defined package, package conflict | Name → loader mapping, package ownership, and relationship with parent |
+| Load class | Class not in module/loader or wrong name | `layer.findLoader`, JAR path, package |
+| Link/access | `NoClassDefFoundError`, `IllegalAccessError`, or reflective access error | `requires`, `exports`/`opens`, dependencies/versions, and class identity |
+| Invoke | Plugin constructor or method throws exception | Plugin lifecycle, configuration, resources, and business logic |
 
-Điểm quan trọng là **Configuration thành công chưa đồng nghĩa code plugin đã nạp thành công**. Phần lớn việc nạp class vẫn có thể là lazy và chỉ xảy ra khi host lần đầu dùng implementation.
+An important point is that **successful `Configuration` resolution does not mean plugin code has loaded successfully**. Much of class loading can remain lazy and occur only when the host first uses the implementation.
 
-## 5. Lab Java 17+ với hai named module độc lập
+## 5. Java 17+ Lab with Two Independent Named Modules
 
-Lab sẽ tạo hai modular JAR: demo.alpha.jar và demo.beta.jar. Chúng chỉ dùng java.base ngầm định, **không requires lẫn nhau**. Đây là lựa chọn có chủ đích để mô hình ánh xạ bằng URLClassLoader trong lab dễ hiểu; khi có phụ thuộc liên module phức tạp, host phải triển khai delegation phù hợp thay vì sao chép máy móc mẫu loader tối giản.
+The lab builds two modular JARs: `demo.alpha.jar` and `demo.beta.jar`. They only depend implicitly on `java.base`, with **no `requires` between each other**. This is an intentional choice so the `URLClassLoader` mapping model in the lab is easy to follow; when complex inter-module dependencies exist, the host must implement proper delegation instead of mechanically copying a minimal loader snippet.
 
-Cấu trúc:
+Structure:
 
 ~~~text
 lab/
@@ -139,8 +139,8 @@ lab/
 │   │   ├── module-info.java
 │   │   └── demo/beta/api/Beta.java
 │   └── host/LayerDemo.java
-├── build/               (tạo khi biên dịch)
-└── modules/             (chứa hai modular JAR)
+├── build/               (created during compilation)
+└── modules/             (contains the two modular JARs)
 ~~~
 
 ### 5.1. Module demo.alpha
@@ -167,7 +167,7 @@ public final class Alpha {
 }
 ~~~
 
-Khai báo exports demo.alpha.api để code ở unnamed module của host có quyền truy cập **public type và public method** trong package này. Nếu không exports, việc gọi reflection công khai như getMethod(...).invoke(...) từ host có thể gặp IllegalAccessException ngay cả khi class đã được loader tìm thấy.
+Declaring `exports demo.alpha.api` grants code in the host's unnamed module access to **public types and public methods** in this package. Without `exports`, public reflective calls such as `getMethod(...).invoke(...)` from the host can fail with `IllegalAccessException` even when the class was found by the loader.
 
 ### 5.2. Module demo.beta
 
@@ -193,9 +193,9 @@ public final class Beta {
 }
 ~~~
 
-Hai module dùng hai package không trùng nhau, giúp lab minh họa rõ cách ánh xạ module sang loader. Chúng không phải module tự động suy ra từ tên file; module-info.java xác định tên demo.alpha và demo.beta.
+The two modules use non-overlapping packages, helping the lab clearly illustrate module-to-loader mapping. They are not automatic modules inferred from filenames; `module-info.java` defines the names `demo.alpha` and `demo.beta`.
 
-### 5.3. Host tạo hai layer bằng hai cách
+### 5.3. Host Creating Two Layers in Two Ways
 
 File **src/host/LayerDemo.java**:
 
@@ -223,12 +223,12 @@ public final class LayerDemo {
                 .resolve(finder, ModuleFinder.of(),
                         Set.of("demo.alpha", "demo.beta"));
 
-        // Cách 1: để JDK tạo một ClassLoader riêng cho mỗi module.
+        // Approach 1: let the JDK create a separate ClassLoader for each module.
         ModuleLayer many = parent.defineModulesWithManyLoaders(
                 configuration, ClassLoader.getSystemClassLoader());
         show("many", many);
 
-        // Cách 2: host tự chọn loader cho từng tên module.
+        // Approach 2: host selects a loader per module name.
         URL alphaUrl = dir.resolve("demo.alpha.jar").toUri().toURL();
         URL betaUrl = dir.resolve("demo.beta.jar").toUri().toURL();
 
@@ -278,22 +278,22 @@ public final class LayerDemo {
 }
 ~~~
 
-Giải thích:
+Explanation:
 
-- ModuleFinder.of(dir) tìm hai modular JAR đã đóng gói trong modules/.
-- configuration() của boot layer là parent Configuration; resolve dùng cả hai tên module làm roots.
-- many tạo hai loader mới; layer.findLoader("demo.alpha") và layer.findLoader("demo.beta") trả các loader thực sự gắn với module.
-- custom map **đúng tên module** sang hai URLClassLoader độc lập, được tạo và cấu hình URL trước khi định nghĩa layer. Để minh họa mapping, mỗi loader chỉ chứa JAR của module tương ứng.
-- Host không compile-time import Alpha/Beta: nó lấy class bằng tên binary và loader được trả từ layer rồi gọi public static method qua reflection.
-- Các package demo.alpha.api và demo.beta.api đã được exports từ module-info; vì vậy host có thể gọi public member qua reflection thông thường.
-- Hai layer được tạo từ **cùng Configuration**, nhưng với **những loader khác nhau**. Các Module object của hai layer khác nhau; không chia sẻ instance implementation qua hai loader khi không có hợp đồng chung.
-- try-with-resources đóng các URLClassLoader của **ví dụ custom** sau khi gọi xong. Loader do JDK tạo bởi many không phải là URLClassLoader do ứng dụng trực tiếp sở hữu; không tự giả định có thể đóng nó bằng cách ép kiểu.
+- `ModuleFinder.of(dir)` finds the two modular JARs packaged inside `modules/`.
+- The boot layer's `configuration()` is the parent `Configuration`; `resolve` uses both module names as roots.
+- `many` creates two new loaders; `layer.findLoader("demo.alpha")` and `layer.findLoader("demo.beta")` return the loaders actually bound to the modules.
+- `custom` maps **exact module names** to two independent `URLClassLoader` instances, created and configured with URLs before defining the layer. To illustrate mapping, each loader contains only its respective module JAR.
+- The host does not compile-time import `Alpha`/`Beta`: it loads classes by binary name and the loader returned from the layer, then invokes the public static methods via reflection.
+- Packages `demo.alpha.api` and `demo.beta.api` are exported in `module-info`; therefore the host can invoke public members via ordinary reflection.
+- Both layers are created from the **same Configuration**, yet with **different loaders**. The `Module` objects of the two layers are distinct; do not share implementation instances across two loaders without a common contract.
+- `try-with-resources` closes the `URLClassLoader` instances of the **custom example** after finishing. The JDK-created loaders in `many` are not application-owned `URLClassLoader` instances; do not assume you can close them by casting.
 
-**Quan trọng về phạm vi ví dụ custom:** hai module chỉ cần java.base nên parent system loader đủ giải quyết những type JDK được dùng. Nếu demo.beta có requires demo.alpha và cần load trực tiếp class Alpha, hai URLClassLoader đơn giản với hai URL tách biệt **không tự bảo đảm delegation chéo theo module readability**; với bài toán thực, hãy sử dụng các loader do JDK tạo, hoặc viết loader/module routing thích hợp và kiểm thử đầy đủ.
+**Important note on custom example scope:** the two modules only need `java.base`, so the system parent loader suffices to resolve the JDK types used. If `demo.beta` had `requires demo.alpha` and needed to load `Alpha` directly, two simple `URLClassLoader`s with separate URLs **do not automatically guarantee cross-delegation according to module readability**; for real problems, use JDK-created loaders or write proper loader/module routing and test thoroughly.
 
-### 5.4. Biên dịch modular JAR và host
+### 5.4. Compiling Modular JARs and the Host
 
-Chạy từ thư mục lab/ trên bash/POSIX với JDK 17 trở lên:
+Run from the `lab/` directory on bash/POSIX with JDK 17 or higher:
 
 ~~~bash
 mkdir -p build/alpha build/beta build/host modules
@@ -308,9 +308,9 @@ javac -encoding UTF-8 -d build/host src/host/LayerDemo.java
 java -cp build/host LayerDemo modules
 ~~~
 
-Đây là **hai explicit named modules**; jar được đóng với module-info.class và class implementation. Host chạy trên classpath chỉ gồm build/host và nhận thư mục chứa modular JAR bằng đối số. Không đưa modules/*.jar vào host -cp; host sẽ tìm chúng thông qua ModuleFinder ở runtime.
+These are **two explicit named modules**; the JARs are packaged with `module-info.class` and implementation classes. The host runs on a classpath containing only `build/host` and receives the directory of modular JARs as an argument. Do not place `modules/*.jar` onto the host `-cp`; the host finds them via `ModuleFinder` at runtime.
 
-Stdout kỳ vọng khi các file và lệnh đúng như trên:
+Expected stdout when files and commands match the above:
 
 ~~~text
 many alpha=alpha
@@ -323,26 +323,26 @@ custom distinct=true
 custom named=true
 ~~~
 
-Các dòng distinct=true chứng minh **trong từng layer**, hai module sử dụng hai loader khác nhau. named=true cho thấy những class được nạp thuộc named module, thay vì chỉ tồn tại trong unnamed module của classpath.
+The `distinct=true` lines prove that **within each layer**, the two modules use two different loaders. `named=true` shows the loaded classes belong to named modules rather than merely residing in the classpath's unnamed module.
 
-Để kiểm tra artifact:
+To inspect the artifacts:
 
 ~~~bash
 jar --describe-module --file modules/demo.alpha.jar
 jar --describe-module --file modules/demo.beta.jar
 ~~~
 
-Đầu ra của jar --describe-module có thể gồm tên module, packages, exports và requires java.base; không nên sao chép nguyên văn stdout của công cụ giữa những bản JDK khác nhau rồi coi định dạng là hợp đồng ổn định. Phần cần xác minh là tên demo.alpha/demo.beta, package exports và module-info.class thực sự được đóng trong JAR.
+The output of `jar --describe-module` can include module name, packages, exports, and `requires java.base`; do not copy tool stdout verbatim across different JDK versions and treat the formatting as a stable contract. What needs verification is that `demo.alpha`/`demo.beta`, exported packages, and `module-info.class` are indeed packaged in the JARs.
 
-Trên Windows dùng dấu **;** nếu tham số -cp có nhiều phần; trong lệnh host ở trên chỉ có một entry nên không cần đổi. mkdir -p là cú pháp bash; với PowerShell có thể tạo thư mục bằng New-Item -ItemType Directory -Force.
+On Windows use **;** if `-cp` has multiple entries; in the host command above there is only one entry so no change is needed. `mkdir -p` is bash syntax; in PowerShell you can create directories with `New-Item -ItemType Directory -Force`.
 
-## 6. Khi muốn gom module vào cùng loader bằng mapping tùy chỉnh
+## 6. Grouping Modules into the Same Loader with Custom Mapping
 
-Một lý do thực tế để dùng defineModules là nhóm những module có package tách biệt vào loader chung do host quản lý. Ví dụ **mã minh họa, không phải chương trình hoàn chỉnh**:
+A practical reason to use `defineModules` is grouping modules with separate packages into a shared host-managed loader. Example **illustrative code, not a complete program**:
 
 ~~~java
-// Giả định parent, configuration, alphaJar, betaJar đã xác định.
-// Host phải đóng sharedLoader sau khi tất cả module ngừng dùng.
+// Assumes parent, configuration, alphaJar, and betaJar are already defined.
+// The host must close sharedLoader after all modules stop using it.
 URLClassLoader sharedLoader = new URLClassLoader(
         new URL[] {alphaJar.toUri().toURL(), betaJar.toUri().toURL()},
         ClassLoader.getSystemClassLoader());
@@ -354,26 +354,26 @@ ModuleLayer shared = parent.defineModules(configuration,
         });
 ~~~
 
-Cách này dùng **một loader** cho hai module có package khác nhau. Nếu mục tiêu chỉ là "một loader mới cho mọi module" và không cần xử lý custom riêng, defineModulesWithOneLoader thường đơn giản hơn và thực thi direct delegation do JDK cung cấp. Đừng dùng mapping thủ công chỉ vì muốn mô phỏng API đã có sẵn.
+This approach uses **one loader** for two modules with distinct packages. If the goal is simply "one new loader for all modules" without needing custom handling, `defineModulesWithOneLoader` is usually simpler and performs JDK-provided direct delegation. Do not use manual mapping merely to mimic an already-provided API.
 
-**Ràng buộc package:** hai module có cùng một package mà được ánh xạ vào **cùng ClassLoader** sẽ không thể được định nghĩa hợp lệ. Đây là một lý do nên phân tách namespace của plugin rõ ràng. Mapping khác loader có thể thay đổi điều kiện về xung đột trong loader, nhưng không sửa được sai lệch của requires, exports, opens hay class identity.
+**Package constraint:** two modules sharing a package cannot be validly defined when mapped to the **same ClassLoader**. This is one reason to keep plugin namespaces clearly separated. Mapping to different loaders can change intra-loader conflict conditions, yet does not fix mismatches in `requires`, `exports`, `opens`, or class identity.
 
-**Dữ liệu sống của plugin:** dù định nghĩa layer thành công, khi host gọi close() trên URLClassLoader, việc nạp thêm class/resource từ URL có thể không hoạt động nữa. Vì vậy plugin manager cần giữ loader đến hết phiên hoạt động; chỉ đóng sau khi dừng task, provider, listener và resource có liên quan. Close không chứng minh class đã unload ngay.
+**Live plugin data:** even when layer definition succeeds, once the host calls `close()` on a `URLClassLoader`, loading additional classes/resources from the URLs may stop working. Therefore, the plugin manager must keep the loader alive for the duration of the active session; close it only after stopping related tasks, providers, listeners, and resources. Calling `close()` does not prove classes are immediately unloaded.
 
-## 7. Readability, exports, opens và delegation
+## 7. Readability, Exports, Opens, and Delegation
 
-Có loader khác nhau là một nửa bài toán. JPMS còn kiểm soát **module nào được đọc module nào** và **package nào được công khai**:
+Having separate loaders is only half the problem. JPMS also controls **which module may read which module** and **which packages are exported**:
 
-| Cơ chế | Ý nghĩa thực tế | Cách kiểm tra |
+| Mechanism | Practical Meaning | How to Verify |
 | --- | --- | --- |
-| requires demo.alpha trong module-info của demo.beta | demo.beta đọc demo.alpha ở compile/runtime module graph | Configuration resolution và Module.canRead |
-| exports demo.alpha.api | Cho các module khác truy cập public types trong package được export | Module.isExported và lỗi access |
-| exports demo.alpha.api to demo.beta | Chỉ cấp exports có điều kiện cho module được nêu | Không mặc định public với host khác |
-| opens demo.alpha.internal | Cho deep reflection phù hợp tới package; không đồng nghĩa exports type tại compile time | Module.isOpen và quyền phản chiếu |
-| loader delegation | Nếu type thuộc module readable khác, loader phải biết chuyển tới loader thực sự định nghĩa type | Kiểm thử Class.forName và invokes ở nhiều module |
-| layer.findLoader(name) | Tìm loader gắn với module được định nghĩa trong layer hoặc các parent layer | Không đồng nhất nó với TCCL hoặc system loader |
+| `requires demo.alpha` in `demo.beta`'s `module-info` | `demo.beta` reads `demo.alpha` in compile/runtime module graph | Configuration resolution and `Module.canRead` |
+| `exports demo.alpha.api` | Allows other modules to access public types in the exported package | `Module.isExported` and access errors |
+| `exports demo.alpha.api to demo.beta` | Grants qualified exports only to the named module | Not public to other hosts by default |
+| `opens demo.alpha.internal` | Grants appropriate deep reflection to the package; not the same as exporting types at compile time | `Module.isOpen` and reflection permissions |
+| loader delegation | If a type belongs to another readable module, the loader must know to delegate to the loader actually defining that type | Testing `Class.forName` and cross-module invocations |
+| `layer.findLoader(name)` | Finds the loader bound to a module defined in the layer or parent layers | Do not equate it with TCCL or system loader |
 
-Ví dụ khi demo.beta cần public type từ demo.alpha, chỉnh module-info.java của beta thành:
+For example, when `demo.beta` needs a public type from `demo.alpha`, update beta's `module-info.java` to:
 
 ~~~java
 module demo.beta {
@@ -382,15 +382,15 @@ module demo.beta {
 }
 ~~~
 
-Đây là **đoạn minh họa thay đổi descriptor**, chưa phải lab runnable hoàn chỉnh: còn cần cập nhật class của beta, biên dịch với module path chứa demo.alpha, và thực hiện kiểm thử delegation. Với defineModulesWithManyLoaders, loader do JDK tạo hỗ trợ direct delegation cho các package/module readable. Với loader custom, host phải thiết kế đường ủy quyền tương ứng và tránh vòng ủy quyền gây deadlock.
+This is an **illustrative descriptor change**, not a complete runnable lab yet: you still need to update beta's classes, compile with a module path containing `demo.alpha`, and test delegation. With `defineModulesWithManyLoaders`, JDK-created loaders support direct delegation for readable packages/modules. With custom loaders, the host must design the corresponding delegation paths and avoid delegation cycles that cause deadlocks.
 
-**Đừng nhầm TCCL với defining loader.** Thread.currentThread().setContextClassLoader(...) chỉ thay context class loader của thread cho những API có sử dụng nó; nó không thay ModuleLayer mapping hay class identity của class đã định nghĩa. Để lấy đúng loader của named module, hãy sử dụng layer.findLoader(moduleName).
+**Do not confuse TCCL with the defining loader.** `Thread.currentThread().setContextClassLoader(...)` only changes the thread's context class loader for APIs that use it; it does not alter `ModuleLayer` mappings or the class identity of already-defined classes. To obtain the exact loader of a named module, use `layer.findLoader(moduleName)`.
 
-**Đừng nhầm opens với exports.** Deep reflection vào non-public member cần quyền opens tương ứng, còn truy cập public API của module trong lab đã được hỗ trợ bằng exports. Việc host lấy được Class object không bảo đảm mọi phương thức đều có thể được invoke nếu module không mở/xuất package.
+**Do not confuse `opens` with `exports`.** Deep reflection into non-public members requires corresponding `opens` permissions, whereas accessing public module APIs in the lab is supported via `exports`. Obtaining a `Class` object by the host does not guarantee every method can be invoked if the module does not open/export the package.
 
-## 8. ServiceLoader trong layer plugin
+## 8. ServiceLoader in a Plugin Layer
 
-Nếu ứng dụng dùng SPI thay vì reflection để chọn class theo tên, named module thường khai báo service bằng module-info.java:
+If an application uses SPI instead of reflection to select classes by name, a named module usually declares the service in `module-info.java`:
 
 ~~~java
 module demo.plugin {
@@ -399,10 +399,10 @@ module demo.plugin {
 }
 ~~~
 
-Ở phía consumer named module, khai báo uses demo.api.PluginService khi cần dùng cơ chế service binding. Với một layer đã định nghĩa xong, host có thể dùng overload có layer tường minh:
+On the consumer named module side, declare `uses demo.api.PluginService` when using service binding. With a defined layer, the host can use the explicit layer overload:
 
 ~~~java
-// Minh họa tích hợp: giả định layer và PluginService đã tồn tại.
+// Integration illustration: assumes layer and PluginService already exist.
 ServiceLoader<PluginService> providers =
         ServiceLoader.load(layer, PluginService.class);
 for (PluginService provider : providers) {
@@ -410,65 +410,65 @@ for (PluginService provider : providers) {
 }
 ~~~
 
-Các đoạn code ở đây **không thuộc lab build đầy đủ** vì lab dùng reflection và không định nghĩa demo.api.PluginService. Chúng làm rõ đường mở rộng khi tích hợp plugin SPI thực tế.
+The snippets here **are not part of the full lab build** because the lab uses reflection and does not define `demo.api.PluginService`. They clarify the extension path for real SPI plugin integration.
 
-ServiceLoader.load(layer, service) tìm provider theo cơ chế module layer, khác với ServiceLoader.load(service) dùng thread context class loader. Cần xem đúng phạm vi module graph, uses/provides, cùng danh tính class của SPI, và kiểm tra việc provider được mở rộng trong layer phụ thuộc. Không đưa JAR lên một module layer rồi cho rằng ServiceLoader sẽ quét mọi class triển khai interface mà không có cấu hình dịch vụ.
+`ServiceLoader.load(layer, service)` finds providers via the module layer mechanism, differing from `ServiceLoader.load(service)` which uses the thread context class loader. Pay attention to module graph scope, `uses`/`provides`, shared SPI class identity, and checking providers extended in dependent layers. Do not drop a JAR into a module layer and assume `ServiceLoader` will scan every class implementing an interface without service configuration.
 
-Với hệ thống chứa cả plugin trên classpath lẫn named module, phải phân biệt **META-INF/services trên classpath** với provides trong explicit named module; cách định danh và tìm provider phụ thuộc kiểu module/loader. Đừng trộn ngẫu nhiên hai cơ chế discovery.
+In systems containing both classpath plugins and named modules, distinguish **`META-INF/services` on the classpath** from `provides` in explicit named modules; provider identification and discovery depend on module/loader type. Do not mix the two discovery mechanisms haphazardly.
 
-## 9. Lỗi dễ mắc với custom loader mapping
+## 9. Common Mistakes with Custom Loader Mapping
 
-**Lỗi 1 — nhầm parentLoader với loader của module.**
+**Mistake 1 — confusing `parentLoader` with the module's loader.**
 
 ~~~java
-// Không đúng khi cần kiểm tra loader định nghĩa module:
+// Incorrect when checking the loader that defines the module:
 ClassLoader assumed = ClassLoader.getSystemClassLoader();
 
-// Đúng:
+// Correct:
 ClassLoader actual = layer.findLoader("demo.alpha");
 ~~~
 
-Trong many-loader mode, loader actual là loader mới do JDK tạo; system loader chỉ là parent được truyền vào.
+In many-loader mode, `actual` is the new loader created by the JDK; the system loader is only the parent passed in.
 
-**Lỗi 2 — chỉ trả một URLClassLoader có URL thiếu dependency.** Nếu module yêu cầu class từ module khác, Java phải vừa cho phép quan hệ requires/exports, vừa tìm được class qua delegation thích hợp. Một URLClassLoader chỉ chứa JAR của nó không tự điều phối mọi named module dependency. Đừng xem LayerInstantiationException hoặc NoClassDefFoundError là bằng chứng phải bỏ JPMS; hãy kiểm tra graph và mapping.
+**Mistake 2 — merely returning a `URLClassLoader` whose URLs lack dependencies.** If a module requires classes from another module, Java must both permit the `requires`/`exports` relationship and locate the class via proper delegation. A `URLClassLoader` containing only its own JAR does not automatically coordinate every named module dependency. Do not treat `LayerInstantiationException` or `NoClassDefFoundError` as proof to abandon JPMS; inspect the graph and mapping.
 
-**Lỗi 3 — mapping không đủ mọi module của Configuration.** Function<String,ClassLoader> nhận tên module được JVM yêu cầu. Nếu thiếu mapping, trả null sẽ bị từ chối; nếu chủ động ném IllegalArgumentException, lỗi sẽ nổi lên ngay lúc defineModules. Nên xây map đầy đủ từ module names đã resolve, trước khi định nghĩa layer.
+**Mistake 3 — incomplete mapping across all modules in the `Configuration`.** `Function<String, ClassLoader>` receives module names requested by the JVM. If a mapping is missing, returning `null` will be rejected; if you proactively throw `IllegalArgumentException`, the error surfaces immediately during `defineModules`. Build a complete map from resolved module names before defining the layer.
 
-**Lỗi 4 — dùng lại loader đã định nghĩa class trong package sắp gán.** Runtime package identity theo defining loader/module có thể khiến việc định nghĩa module mới không hợp lệ. Chuẩn bị loader mới trước khi tải class plugin và không thêm cùng module vào một loader đã có module cùng tên.
+**Mistake 4 — reusing a loader that has already defined classes in a package about to be assigned.** Runtime package identity by defining loader/module can render the new module definition invalid. Prepare fresh loaders before loading plugin classes and do not add a module to a loader that already has a module of the same name.
 
-**Lỗi 5 — đọc được module nhưng package không exports.** Reflection có thể thấy tên class nhưng gọi method fail. Kiểm tra exports/opens thay vì chỉ sửa URL của loader.
+**Mistake 5 — module is readable, but package is not exported.** Reflection may see the class name yet fail when invoking methods. Check `exports`/`opens` instead of just tweaking loader URLs.
 
-**Lỗi 6 — đóng loader quá sớm.** close() của URLClassLoader hạn chế khả năng tải class/resource mới từ URL, trong khi code đang dùng có thể vẫn chạy. Khi cập nhật plugin, dừng work, cleanup reference, tạo layer/loader thế hệ mới rồi mới đổi registry; không hứa "hot swap class" trong chính layer hiện hữu.
+**Mistake 6 — closing a loader too early.** `URLClassLoader.close()` restricts loading new classes/resources from its URLs while running code may still be active. When updating a plugin, stop work, clean up references, create a next-generation layer/loader, and only then switch the registry; do not promise "in-place class hot swap" inside the existing layer.
 
-**Lỗi 7 — nghĩ class loader là sandbox.** Mã plugin vẫn có thể thực thi với quyền tiến trình. Đối với plugin không tin cậy cần chính sách nguồn artifact và cô lập tiến trình/container phù hợp.
+**Mistake 7 — thinking a class loader is a sandbox.** Plugin code can still execute with the process's privileges. Untrusted plugins require artifact provenance policies and proper process/container isolation.
 
-**Lỗi 8 — bỏ qua rủi ro partial failure khi custom mapping.** Tài liệu Java 17 nói việc defineModules với mapping tùy chỉnh có thể **không atomic tùy implementation**: một số module có thể đã được định nghĩa vào JVM dù method thất bại ở module khác. Không retry với nguyên loader sau lỗi mà không đánh giá trạng thái; thiết kế tạo loader mới và rollback quyền sở hữu tài nguyên ở tầng plugin manager.
+**Mistake 8 — ignoring the risk of partial failure with custom mapping.** The Java 17 documentation notes that `defineModules` with a custom mapping may **not be atomic depending on implementation**: some modules may already be defined in the JVM even if the method fails on another module. Do not retry with the same loaders after a failure without assessing state; design to allocate fresh loaders and roll back resource ownership at the plugin manager layer.
 
-## 10. Chọn giải pháp, validate và vận hành
+## 10. Choosing a Solution, Validation, and Operations
 
-| Tiêu chí | withManyLoaders | defineModules với mapping |
+| Criterion | withManyLoaders | defineModules with mapping |
 | --- | --- | --- |
-| Ai tạo loader? | JDK | Host |
-| Mỗi module một loader? | Có | Tùy mapping |
-| Delegation theo module graph | Loader do JDK cung cấp thực hiện direct delegation | Host chịu trách nhiệm triển khai phù hợp |
-| Lựa chọn parent loader | Truyền parentLoader cho các loader mới | Chọn parent khi host tạo loader |
-| Quyền kiểm soát findClass/resource | Theo hành vi loader do JDK tạo | Có thể tùy biến nếu host thực sự triển khai |
-| Chi phí bảo trì | Thường thấp hơn | Cao hơn, cần kiểm thử concurrency và linkage |
-| Use case điển hình | Nạp nhiều named module plugin có dependencies theo JPMS | Plugin manager có loader/route/policy riêng |
-| Vòng đời | Vẫn phải quản lý reference/provider/task | Host còn quản lý close() của loader do mình tạo |
+| Who creates the loaders? | JDK | Host |
+| One loader per module? | Yes | Depends on mapping |
+| Delegation per module graph | JDK-provided loaders perform direct delegation | Host is responsible for implementing it properly |
+| Choosing parent loader | Pass `parentLoader` for the new loaders | Choose parent when host creates loaders |
+| Control over `findClass`/resources | Follows JDK-created loader behavior | Customizable if host truly implements it |
+| Maintenance cost | Usually lower | Higher; requires concurrency and linkage testing |
+| Typical use case | Loading multiple named plugin modules with JPMS dependencies | Plugin manager with custom loaders/routing/policies |
+| Lifecycle | Still must manage references/providers/tasks | Host also manages `close()` on loaders it created |
 
-Khi lập hệ thống thật, nên bổ sung:
+When building a real system, add:
 
-1. **Preflight artifact:** danh tính module, phiên bản, source/checksum, module-info, package trùng, danh sách requires và các dependency runtime.
-2. **Resolution trước definition:** báo rõ FindException/ResolutionException và tên module gây lỗi; tránh dùng cùng tên module khác phiên bản trong graph không kiểm soát.
-3. **Mapping kiểm chứng được:** bảng module → loader, classpath/resource của loader, parent chain, đường delegation cho required module và chính sách package ownership.
-4. **Startup validation:** tạo layer, kiểm tra findModule/findLoader, nạp class/provide service thực tế, xác nhận exports/opens và phép gọi API quan trọng.
-5. **Failure isolation:** phân biệt lỗi resolve, define, class loading, reflection và provider runtime. Nếu custom definition thất bại, không mặc định thao tác có thể rollback atomic.
-6. **Lifecycle:** giữ loader sống khi plugin hoạt động; ngừng tiếp nhận task, dừng thread/callback, giải phóng reference rồi mới close loader do host sở hữu.
-7. **Cô lập và bảo mật:** kiểm tra độ tin cậy của plugin và xem xét thực thi ngoài JVM khi cần sandbox thực sự; module layer không phải cơ chế cấp quyền OS.
+1. **Artifact preflight:** module identity, version, source/checksum, `module-info`, overlapping packages, `requires` list, and runtime dependencies.
+2. **Resolution before definition:** clearly report `FindException`/`ResolutionException` and the offending module name; avoid uncontrolled duplicate module names at different versions in the graph.
+3. **Verifiable mapping:** module → loader table, loader classpath/resources, parent chain, delegation paths for required modules, and package ownership policy.
+4. **Startup validation:** create the layer, verify `findModule`/`findLoader`, actually load classes/provide services, and confirm `exports`/`opens` and key API calls.
+5. **Failure isolation:** distinguish resolve, define, class loading, reflection, and provider runtime errors. If custom definition fails, do not assume the operation rolled back atomically.
+6. **Lifecycle:** keep loaders alive while the plugin is active; stop accepting tasks, stop threads/callbacks, release references, and only then close host-owned loaders.
+7. **Isolation and security:** verify plugin trust and consider out-of-JVM execution when true sandboxing is needed; a module layer is not an OS permission mechanism.
 
-**Bài tập mở rộng:** (a) thay mapping của beta sang cùng alphaLoader sau khi đảm bảo URLClassLoader có đủ hai JAR và hai package tách biệt; so sánh distinct; (b) thêm requires demo.alpha vào beta, rồi thiết kế loader custom có delegation chính xác và so sánh với withManyLoaders; (c) bỏ exports demo.alpha.api và quan sát lỗi reflection; (d) thử define hai module có cùng package vào một loader custom; (e) theo dõi vòng đời hai thế hệ plugin loader khi cập nhật artifact.
+**Extension exercises:** (a) change `beta`'s mapping to the same `alphaLoader` after ensuring `URLClassLoader` has both JARs and two separate packages, then compare `distinct`; (b) add `requires demo.alpha` to `beta`, design a custom loader with accurate delegation, and compare with `withManyLoaders`; (c) remove `exports demo.alpha.api` and observe the reflection error; (d) try defining two modules with the same package into one custom loader; (e) trace the lifecycle of two generations of plugin loaders during an artifact update.
 
-**Nguồn API:** [Java SE 17 — ModuleLayer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html), [Java SE 17 — ModuleFinder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleFinder.html), [Java SE 17 — Configuration](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/Configuration.html).
+**API Sources:** [Java SE 17 — ModuleLayer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html), [Java SE 17 — ModuleFinder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleFinder.html), [Java SE 17 — Configuration](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/Configuration.html).
 
-Nguyên tắc kỹ thuật: **dùng defineModulesWithManyLoaders khi cần một loader do JDK quản lý cho từng module; dùng defineModules khi thực sự cần chính sách ánh xạ riêng và sẵn sàng chịu trách nhiệm về loading/delegation, package ownership, concurrency và lifecycle**. Cả hai đều phải bắt đầu từ Configuration hợp lệ và được kiểm chứng bằng hành vi nạp class thực tế.
+Technical principle: **use `defineModulesWithManyLoaders` when you need a JDK-managed loader per module; use `defineModules` when you genuinely need a custom mapping policy and are ready to own loading/delegation, package ownership, concurrency, and lifecycle**. Both must start from a valid `Configuration` and be verified with actual class-loading behavior.

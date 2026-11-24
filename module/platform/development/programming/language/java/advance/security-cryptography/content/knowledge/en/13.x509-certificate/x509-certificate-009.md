@@ -1,99 +1,99 @@
-# 13.9 Lập bộ CA thử nghiệm và giữ ranh giới giữa chứng thư thử nghiệm với môi trường thật
+# 13.9 Setting Up a Test CA and Isolating Test Certificates from Production
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-1. Giải thích **Certificate Authority (CA)**, **root CA**, **chứng thư đầu cuối (leaf/end-entity certificate)**, **Certificate Signing Request (CSR)**, **trust anchor**, **certificate chain** và cơ chế kiểm tra X.509.
-2. Dùng **keytool trong JDK 17+** để lập một root CA phục vụ thực hành, sinh khóa server, tạo CSR, cấp chứng thư server có **Subject Alternative Name (SAN)** và **Extended Key Usage (EKU)**, lưu chứng thư vào **PKCS12** và tạo **truststore thử nghiệm riêng biệt**.
-3. Phân biệt **chứng thư được CA ký** với **chứng thư đã được một client tin cậy**. Chữ ký hợp lệ chưa đủ: còn phải có trust anchor được cấp quyền tin cậy, chuỗi hợp lệ, thời hạn đúng, hostname đúng và chính sách sử dụng phù hợp.
-4. Đọc, kiểm tra chứng thư bằng keytool và dùng **Java CertPathValidator/PKIX** để thử đường dẫn chứng thực tới **duy nhất root CA lab**.
-5. Giữ ranh giới không thể nhầm giữa **lab/test** với **production**: không đưa CA thử nghiệm vào cacerts, hệ điều hành, thiết bị người dùng, container production hoặc shared truststore; không dùng private key thử nghiệm trong môi trường thật; không tắt xác thực TLS để vượt lỗi.
-6. Thiết kế test âm (untrusted CA, sai hostname, sai EKU, chứng thư hết hạn hoặc bị thay), quy trình hủy/rotation và checklist trước khi triển khai.
+1. Explain **Certificate Authority (CA)**, **root CA**, **end-entity (leaf) certificate**, **Certificate Signing Request (CSR)**, **trust anchor**, **certificate chain**, and X.509 verification mechanics.
+2. Use **`keytool` in JDK 17+** to set up a practice root CA, generate server keys, create a CSR, issue a server certificate with **Subject Alternative Name (SAN)** and **Extended Key Usage (EKU)**, store the certificate in **PKCS12**, and create a **separate test truststore**.
+3. Distinguish **a certificate signed by a CA** from **a certificate trusted by a client**. A valid signature is not enough: you also need an authorized trust anchor, a valid chain, valid dates, matching hostname, and suitable usage policy.
+4. Read and inspect certificates with `keytool` and use **Java `CertPathValidator`/PKIX** to test certification paths solely to **the lab root CA**.
+5. Maintain an unmistakable boundary between **lab/test** and **production**: never place test CAs into `cacerts`, OS trust, user devices, production containers, or shared truststores; never use test private keys in production; never disable TLS verification to bypass errors.
+6. Design negative tests (untrusted CA, wrong hostname, wrong EKU, expired or tampered certificate), revocation/rotation procedures, and pre-deployment checklists.
 
-**Thông điệp quan trọng:** Tự tạo một CA thử nghiệm là cách tốt để học cơ chế **PKI/X.509/TLS**, nhưng đồng thời tạo ra quyền lực rất lớn: bất kỳ client nào tin CA đó có thể tin những chứng thư mà CA cấp **theo chính sách kiểm tra của client**. Vì vậy CA lab phải có **phạm vi tin cậy riêng, thời hạn ngắn, định danh chỉ dành cho lab và không bao giờ được đẩy sang production**.
+**Key message:** Creating your own test CA is a great way to learn **PKI/X.509/TLS**, yet it simultaneously creates significant power: any client that trusts that CA can trust certificates issued by it **according to the client's verification policy**. Therefore, a lab CA must have **a dedicated trust scope, short lifetimes, lab-only identifiers, and must never be pushed to production**.
 
-## 1. CA làm gì, và điều gì khiến một chứng thư được tin?
+## 1. What Does a CA Do, and What Makes a Certificate Trusted?
 
-Trong PKI, **CA** sở hữu một cặp khóa. Private key của CA dùng để **ký** chứng thư X.509 cho các subject/khóa công khai khác; certificate của CA chứa public key và thông tin nhận dạng. Khi một TLS client nhận chứng thư server, client có thể kiểm tra chữ ký và đường dẫn chứng thực đến một **trust anchor** mà nó đã chủ động cấu hình tin.
+In PKI, a **CA** owns a key pair. The CA's private key is used to **sign** X.509 certificates for other subjects/public keys; the CA's certificate contains its public key and identifying info. When a TLS client receives a server certificate, it verifies signatures and the certification path up to a **trust anchor** it has explicitly configured as trusted.
 
 ~~~text
-                       TRUST ANCHOR (được client chọn)
+                       TRUST ANCHOR (chosen by client)
                            Lab Root CA certificate
-                           Public key của Lab Root CA
+                           Lab Root CA public key
                                       |
-                               ký leaf certificate
+                               signs leaf certificate
                                       v
 Server key pair ---> CSR ----> Lab Server certificate
-(private key chỉ ở server)     SAN=DNS:localhost,IP:127.0.0.1
+(private key stays on server)  SAN=DNS:localhost,IP:127.0.0.1
                                EKU=serverAuth
                                       |
                                   TLS handshake
                                       |
-Client kiểm tra:
-   chứng thư server phù hợp public/private key đang sử dụng?
-   đường dẫn chữ ký có đến CA mà client TIN không?
-   còn hạn? extensions và key usage đúng?
-   hostname/IP có khớp SAN?
-   có vi phạm chính sách trust hoặc revocation không?
+Client checks:
+   does server cert match the public/private key in use?
+   does the signature path reach a CA the client TRUSTS?
+   unexpired? valid extensions and key usage?
+   does hostname/IP match SAN?
+   any trust policy or revocation violations?
 ~~~
 
-**Tự ký (self-signed)** chỉ nói rằng chứng thư được ký bằng private key tương ứng public key trong chính chứng thư ấy. Nó **không tự được mọi máy tin cậy**. Chỉ khi một client chủ động tin chứng thư CA đó (hoặc cơ chế trust tương đương), nó mới trở thành **trust anchor** cho quá trình xác minh.
+**Self-signed** merely states that the certificate was signed with the private key matching the public key inside that certificate itself. It is **not automatically trusted by every machine**. Only when a client explicitly trusts that CA certificate (or an equivalent trust mechanism) does it become a **trust anchor** for verification.
 
-### 1.1 “Được ký” khác “được tin”
+### 1.1 “Signed” Differs from “Trusted”
 
-Giả sử root của lab cấp chứng thư server.example.com. Bằng cách nào đó attacker đưa root lab vào truststore production của một ứng dụng. Khi ấy attacker giữ private key CA lab có thể phát hành chứng thư cho tên miền mà ứng dụng truy cập. Nếu ứng dụng không có kiểm soát khác, **chuỗi cert có thể được xem là tin cậy**, tạo rủi ro giả mạo endpoint/MITM.
+Suppose the lab root issues a certificate for `server.example.com`. Somehow an attacker inserts the lab root into a production application's truststore. Then anyone holding the lab CA private key can issue certificates for domains the application accesses. Without other controls, **the cert chain can be treated as trusted**, creating endpoint impersonation / MITM risk.
 
-Vì thế, **ranh giới truststore** là ranh giới an ninh quan trọng: thêm một root CA không đơn giản là “thêm một file cert cho hết lỗi”, mà là **trao quyền phát hành chứng thư được tin** trong phạm vi sử dụng của truststore đó.
+Therefore, the **truststore boundary** is a critical security boundary: adding a root CA is not simply “adding a cert file to make an error go away”—it **grants authority to issue trusted certificates** within the usage scope of that truststore.
 
-### 1.2 Những thành phần cần phân biệt
+### 1.2 Components to Distinguish
 
-| Thành phần | Chức năng | Có private key không? | Có nên đưa vào production? |
+| Component | Function | Has private key? | Put into production? |
 | --- | --- | --- | --- |
-| **Root CA private key của lab** | Ký các leaf certificate trong bài thực hành | **Có, cực kỳ nhạy cảm** | **Không bao giờ** |
-| **Root CA certificate của lab** | Cung cấp public key để kiểm tra chữ ký và có thể làm trust anchor | Không | **Không được cài làm trusted root production** |
-| **CSR** | Đề nghị cấp chứng thư, chứa public key và chủ thể đề nghị | Không chứa private key | Chỉ dùng theo luồng cấp chứng thư đã kiểm soát |
-| **Leaf private key của lab server** | Server chứng minh quyền giữ khóa trong TLS | Có | Không dùng cho production identity |
-| **Leaf certificate của lab** | Gắn public key server với tên/thuộc tính do lab CA chứng nhận | Không | Không phải chứng thư production đáng tin |
-| **Server keystore** | Lưu keypair và certificate chain cho server | Thường có private key | Chỉ dùng trong lab |
-| **Client truststore riêng** | Chứa root certificate lab được client thực hành chủ động tin | Thường chỉ có public cert | Không được dùng làm truststore chung/prod |
+| **Lab root CA private key** | Signs leaf certificates in the lab | **Yes, extremely sensitive** | **Never** |
+| **Lab root CA certificate** | Supplies public key for signature checks and can serve as trust anchor | No | **Must not be installed as a production trusted root** |
+| **CSR** | Certificate request holding public key and proposed subject | Contains no private key | Only via controlled issuance workflows |
+| **Lab server leaf private key** | Server proves key possession in TLS | Yes | Never use for production identity |
+| **Lab leaf certificate** | Binds server public key to name/attributes certified by lab CA | No | Not a trusted production certificate |
+| **Server keystore** | Stores keypair and certificate chain for server | Usually has private key | Lab use only |
+| **Dedicated client truststore** | Holds lab root certificate explicitly trusted by practice client | Usually public certs only | Must not be used as shared/prod truststore |
 
-**Keystore và truststore đều có thể dùng PKCS12**. Khác biệt là **vai trò**: server cần khóa định danh, client cần những trust anchor nó có chủ đích tin tưởng.
+**Both keystores and truststores can use PKCS12**. The difference is **role**: the server needs identity keys, while the client needs trust anchors it intentionally trusts.
 
-## 2. Ngôn ngữ X.509 quan trọng trước khi phát hành
+## 2. Essential X.509 Terminology Before Issuance
 
-### 2.1 BasicConstraints: CA hay end entity?
+### 2.1 BasicConstraints: CA or End Entity?
 
-X.509 extension **BasicConstraints** xác định subject có thể đóng vai CA hay không, kèm tùy chọn path length.
+The X.509 **BasicConstraints** extension specifies whether the subject may act as a CA, with an optional path length.
 
-- **Root CA thử nghiệm:** BasicConstraints **CA=true**, đánh dấu **critical** theo chính sách phù hợp. Một CA có thể ký leaf; trong lab này dùng **pathLen=0** để không tạo chuỗi CA trung gian không cần thiết.
-- **Server leaf:** BasicConstraints **CA=false**. Nó là end entity, **không được cấp quyền phát hành chứng thư CA**.
-- **pathLen=0** là giới hạn số intermediate CA tiếp theo trong đường chứng thực, **không có nghĩa CA không được ký leaf certificate**.
+- **Test root CA:** BasicConstraints **`CA=true`**, marked **critical** per proper policy. A CA can sign leaves; this lab uses **`pathLen=0`** to avoid creating unnecessary intermediate CA chains.
+- **Server leaf:** BasicConstraints **`CA=false`**. It is an end entity, **not granted CA certificate-issuance rights**.
+- **`pathLen=0`** caps the number of subsequent intermediate CAs in the certification path; it **does not mean the CA cannot sign leaf certificates**.
 
-Nếu một leaf có CA=false nhưng lại có KeyUsage keyCertSign, cấu hình là sai về mục đích và không được xem là CA hợp lệ theo profile. Đừng vô tình tạo CA certificate làm certificate server.
+If a leaf has `CA=false` yet carries `KeyUsage keyCertSign`, the configuration is inconsistent in purpose and must not be treated as a valid CA per profile. Never accidentally make a CA certificate into a server certificate.
 
-### 2.2 KeyUsage và ExtendedKeyUsage
+### 2.2 KeyUsage and ExtendedKeyUsage
 
-**KeyUsage (KU)** giới hạn các hành vi dùng public key trong chứng thư:
+**KeyUsage (KU)** restricts cryptographic operations permitted for the public key in the certificate:
 
-- CA: **keyCertSign**; có thể thêm **cRLSign** nếu thiết kế xử lý danh sách thu hồi.
-- TLS server với RSA: thường cần **digitalSignature** (đặc biệt TLS hiện đại); tùy giao thức/cấu hình có thể có **keyEncipherment** cho các trường hợp tương thích legacy.
-- Không đặt **keyCertSign** trên leaf.
+- CA: **`keyCertSign`**; may add **`cRLSign`** if designed to sign revocation lists.
+- TLS server with RSA: typically needs **`digitalSignature`** (especially modern TLS); depending on protocol/config, may include **`keyEncipherment`** for legacy compatibility.
+- Never set **`keyCertSign`** on a leaf.
 
-**ExtendedKeyUsage (EKU)** diễn đạt mục đích ứng dụng ở mức cao hơn. Với leaf của HTTPS server, bài lab dùng:
+**ExtendedKeyUsage (EKU)** expresses higher-level application purposes. For an HTTPS server leaf, this lab uses:
 
 ~~~text
 EKU = serverAuth
 OID = 1.3.6.1.5.5.7.3.1
 ~~~
 
-Nếu muốn cấp chứng thư cho client mTLS, EKU **clientAuth** là mục đích khác; không cho rằng mọi leaf đều tự động dùng được để xác thực cả server lẫn client.
+To issue a certificate for an mTLS client, EKU **`clientAuth`** is a different purpose; never assume every leaf automatically works for authenticating both servers and clients.
 
-### 2.3 Subject Alternative Name và hostname verification
+### 2.3 Subject Alternative Name and Hostname Verification
 
-Ngày nay HTTPS client dùng **Subject Alternative Name (SAN)** để kiểm tra danh tính máy chủ theo quy tắc phù hợp. CN của subject **không thay thế** SAN cho một cấu hình TLS hiện đại.
+Today's HTTPS clients use **Subject Alternative Name (SAN)** to verify server identity under appropriate rules. Subject CN **does not replace** SAN for a modern TLS configuration.
 
-Trong bài lab sẽ cấp leaf với:
+In this lab, we issue the leaf with:
 
 ~~~text
 Subject: CN=localhost, O=Local Training, C=VN
@@ -102,217 +102,217 @@ EKU: serverAuth
 BasicConstraints: CA=false
 ~~~
 
-Điều này phục vụ truy cập **https://localhost** hoặc **https://127.0.0.1** trong lab tùy server/client cấu hình. **Không thêm SAN của domain công ty thật hoặc domain production**. Nếu hostname bạn truy cập là service.prod.example.com, chứng thư lab cho localhost phải **không** khớp; đừng tắt hostname verification để che lỗi.
+This serves accessing **`https://localhost`** or **`https://127.0.0.1`** in the lab depending on server/client setup. **Never add SANs for real company domains or production domains**. If the hostname you access is `service.prod.example.com`, a lab certificate for `localhost` must **not** match; never disable hostname verification to hide the error.
 
-### 2.4 Thời hạn, serial number, issuer và trust
+### 2.4 Validity, Serial Number, Issuer, and Trust
 
-Mỗi X.509 certificate có:
+Every X.509 certificate has:
 
-- **Subject:** danh tính được chứng nhận, ví dụ CN=localhost; không phải toàn bộ quy tắc kiểm tra hostname.
-- **Issuer:** tên CA ký.
-- **Validity:** Not Before và Not After, phụ thuộc đồng hồ và chính sách.
-- **Serial number:** định danh trong phạm vi issuer.
-- **Signature algorithm và chữ ký CA:** dùng để xác nhận certificate bytes được CA ký.
-- **Public key:** khóa công khai của subject.
-- **Extensions:** SAN, KU, EKU, BasicConstraints, SKI/AKI, policy, CRL/OCSP tùy thiết kế.
+- **Subject:** certified identity, e.g., `CN=localhost`; not the entire hostname-checking rule set.
+- **Issuer:** signing CA's name.
+- **Validity:** Not Before and Not After, subject to clock and policy.
+- **Serial number:** identifier within the issuer's scope.
+- **Signature algorithm and CA signature:** used to confirm the certificate bytes were signed by the CA.
+- **Public key:** the subject's public key.
+- **Extensions:** SAN, KU, EKU, BasicConstraints, SKI/AKI, policy, CRL/OCSP depending on design.
 
-**Có chữ ký hợp lệ không đồng nghĩa thuộc một chuỗi chứng thực được tin cậy**. Client cần trust anchor, kiểm tra đường dẫn, thời gian, mục đích, hostname, trạng thái thu hồi theo chính sách và ứng dụng.
+**Having a valid signature does not mean belonging to a trusted certification path**. The client needs a trust anchor, path validation, validity, purpose, hostname, and revocation status per policy and application.
 
-## 3. Phạm vi lab và luật cách ly ngay từ đầu
+## 3. Lab Scope and Isolation Rules Upfront
 
-**Mô hình lab dùng trong bài:**
+**Lab model used in this lesson:**
 
-- Một thư mục riêng **ca-lab/**, **không đồng bộ vào repo/CI artifacts**.
-- Một root CA tự ký, chỉ phát hành leaf cho **localhost**.
-- Root validity **30 ngày**, leaf validity **7 ngày**.
-- Khóa RSA **3072 bit**, chữ ký **SHA256withRSA** cho demo, không phụ thuộc công cụ bên ngoài JDK.
-- Mọi keystore/truststore do lab tạo dùng **PKCS12**.
-- Mật khẩu được nhập tương tác; **không nhúng vào shell history, script, README, Dockerfile, command line**.
-- Không gửi bất cứ chứng thư lab nào tới production truststore, **$JAVA_HOME/lib/security/cacerts**, OS/system trust, browser profile chung hoặc service account không thuộc lab.
-- Root private key không nằm trong máy/container đang chạy server thật. Bài lab dùng chung thư mục để dễ học; thiết kế thực tế phải tách máy CA và runtime service.
-- Không cấp phép public DNS domain, IP công ty hoặc SAN tùy ý từ CSR lạ.
+- A separate directory **`ca-lab/`**, **never synced to repos or CI artifacts**.
+- One self-signed root CA, issuing leaves **only for `localhost`**.
+- Root validity **30 days**, leaf validity **7 days**.
+- **3072-bit** RSA keys, **`SHA256withRSA`** signatures for demo, requiring no tools outside the JDK.
+- All keystores/truststores created by the lab use **PKCS12**.
+- Passwords entered interactively; **never embedded in shell history, scripts, READMEs, Dockerfiles, or command lines**.
+- Never copy any lab certificate to production truststores, **`$JAVA_HOME/lib/security/cacerts`**, OS/system trust, shared browser profiles, or non-lab service accounts.
+- Root private key does not reside on any host/container running a real server. The lab uses one directory for learning convenience; real designs separate the CA host from runtime services.
+- Never authorize public DNS domains, company IPs, or arbitrary SANs from unfamiliar CSRs.
 
-**Giới hạn của lab:** Đây là môi trường học certificate issuance, không phải vận hành một Public CA hay Internal PKI đúng quy mô. Nó **không thiết lập** CRL/OCSP responder, CA audit, certificate transparency, HSM, approval workflow hay high availability. Không xem root của lab là CA production đủ chuẩn chỉ vì keytool đã tạo nó.
+**Lab limitations:** This is a learning environment for certificate issuance, not operating a full-scale Public CA or Internal PKI. It **does not set up** CRL/OCSP responders, CA audits, certificate transparency, HSMs, approval workflows, or high availability. Never treat the lab root as a production-grade CA simply because `keytool` generated it.
 
-## 4. Thực hành bằng keytool JDK 17+: root → CSR → leaf → truststore
+## 4. Hands-On with JDK 17+ `keytool`: Root → CSR → Leaf → Truststore
 
-Các lệnh **keytool** dưới đây là lệnh đầy đủ, mỗi lệnh nằm trên **một dòng**, nên có thể gõ trong Bash, PowerShell hoặc terminal có keytool trên PATH. Nếu chưa có JDK 17+, cần cài JDK thích hợp; **java -version** và **keytool -help** có thể dùng để kiểm tra công cụ đang chạy.
+The **`keytool`** commands below are complete, each on **a single line**, so you can type them in Bash, PowerShell, or any terminal with `keytool` on `PATH`. If JDK 17+ is not installed, install an appropriate JDK; **`java -version`** and **`keytool -help`** verify the active tools.
 
-**Không chạy các lệnh trong thư mục đang chứa keystore production**. Tên file cố ý chứa chữ lab. Không dùng giá trị mật khẩu mẫu cố định trong tài liệu; khi keytool hỏi, hãy nhập mật khẩu đủ mạnh chỉ sử dụng cho lab này. Không cần dùng chung một mật khẩu cho root, server và truststore.
+**Never run these commands in a directory containing production keystores**. Filenames intentionally include `lab`. Never use a fixed sample password from documentation; when `keytool` prompts, enter a strong password used solely for this lab. You do not need to reuse one password across root, server, and truststore.
 
-### 4.1 Tạo không gian riêng
+### 4.1 Create an Isolated Workspace
 
 ~~~bash
 mkdir ca-lab
 cd ca-lab
 ~~~
 
-Đảm bảo thư mục nằm ngoài repo/shared drive và có quyền truy cập hạn chế. Các file sắp tạo gồm **lab-root.p12**, **lab-root.pem**, **lab-server.p12**, **lab-server.csr**, **lab-server.pem**, **lab-client-trust.p12**. Khi chạy lại từ đầu nên tạo thư mục lab khác; không overwrite những file đang chứa khóa hoặc chứng thư có giá trị.
+Ensure the directory is outside repositories/shared drives with restricted permissions. The files to be created are **`lab-root.p12`**, **`lab-root.pem`**, **`lab-server.p12`**, **`lab-server.csr`**, **`lab-server.pem`**, and **`lab-client-trust.p12`**. When starting over, use a fresh lab directory; never overwrite files containing valuable keys or certificates.
 
-### 4.2 Tạo root CA thử nghiệm, không phải server certificate
+### 4.2 Create a Test Root CA, Not a Server Certificate
 
 ~~~bash
 keytool -genkeypair -alias lab-root -keyalg RSA -keysize 3072 -sigalg SHA256withRSA -dname "CN=Lab Root CA, O=Local Training, C=VN" -validity 30 -ext BC:critical=ca:true,pathlen:0 -ext KU:critical=keyCertSign,cRLSign -keystore lab-root.p12 -storetype PKCS12
 ~~~
 
-Lệnh sinh một **PrivateKeyEntry** có private key RSA 3072 bit và một **self-signed X.509 root CA certificate** trong lab-root.p12.
+This generates a **`PrivateKeyEntry`** with a 3072-bit RSA private key and a **self-signed X.509 root CA certificate** in `lab-root.p12`.
 
-Giải thích quan trọng:
+Key explanations:
 
-- **BC:critical=ca:true,pathlen:0:** thể hiện certificate được dùng làm CA, không cho intermediate CA tiếp theo theo đường chứng thực thông thường.
-- **KU:critical=keyCertSign,cRLSign:** root có quyền ký certificate và CRL theo bit KU, nhưng lab **chưa vận hành CRL**, không được coi là có kiểm soát revocation.
-- **-validity 30:** tuổi chứng thư root 30 ngày; không có ý nghĩa thời hạn mặc định hợp lệ cho CA production.
-- **-sigalg SHA256withRSA:** chỉ định thuật toán ký trong ví dụ.
-- **lab-root.p12:** chứa **private key CA**; bảo vệ cẩn thận, không gửi cho client/server và không commit vào Git.
+- **`BC:critical=ca:true,pathlen:0`:** indicates the certificate acts as a CA, disallowing subsequent intermediate CAs in a normal certification path.
+- **`KU:critical=keyCertSign,cRLSign`:** grants the root permission to sign certificates and CRLs per KU bits, though the lab **does not yet run CRLs** and must not be treated as having revocation controls.
+- **`-validity 30`:** 30-day root certificate lifetime; implies no default production CA lifetime standard.
+- **`-sigalg SHA256withRSA`:** specifies the signing algorithm for the example.
+- **`lab-root.p12`:** contains the **CA private key**; protect carefully, never send to clients/servers, and never commit to Git.
 
-Quan sát root certificate trong keystore:
+Inspect the root certificate in the keystore:
 
 ~~~bash
 keytool -list -v -alias lab-root -keystore lab-root.p12 -storetype PKCS12
 ~~~
 
-Kỳ vọng thấy **Entry type: PrivateKeyEntry**, issuer/subject là root lab, BasicConstraints CA:true và KeyUsage có keyCertSign. Keytool sẽ hiển thị fingerprint, serial và validity cụ thể phụ thuộc vào lần sinh.
+Expect **`Entry type: PrivateKeyEntry`**, issuer/subject as the lab root, `BasicConstraints CA:true`, and `KeyUsage` containing `keyCertSign`. `keytool` displays a fingerprint, serial, and validity specific to that generation run.
 
-### 4.3 Xuất **chỉ chứng thư công khai** của root
+### 4.3 Export **Only the Public Certificate** of the Root
 
 ~~~bash
 keytool -exportcert -rfc -alias lab-root -file lab-root.pem -keystore lab-root.p12 -storetype PKCS12
 ~~~
 
-**lab-root.pem** là certificate PEM công khai, **không chứa private key**. Nó có thể được phân phối cho **client lab được cấp phép**, sau khi client xác minh fingerprint từ kênh tin cậy. Không nhầm một bản copy PEM bất kỳ với một trust anchor đã xác minh nguồn.
+**`lab-root.pem`** is a public PEM certificate **containing no private key**. It can be distributed to **authorized lab clients** once the client verifies its fingerprint over a trusted channel. Never confuse an arbitrary PEM copy with an origin-verified trust anchor.
 
-Kiểm tra:
+Inspect:
 
 ~~~bash
 keytool -printcert -file lab-root.pem
 ~~~
 
-Nhìn vào subject, issuer, validity, BasicConstraints, KU và **SHA-256 fingerprint**. Khi nhập root này vào một truststore, người quản trị cần so sánh fingerprint với giá trị được chuyển qua **kênh xác thực độc lập**, không chỉ tin file vừa được gửi qua một kênh không đáng tin.
+Examine subject, issuer, validity, `BasicConstraints`, KU, and **SHA-256 fingerprint**. When importing this root into a truststore, the administrator must compare the fingerprint against a value delivered via an **independent authenticated channel**, never blindly trusting a file sent over an untrusted channel.
 
-### 4.4 Sinh khóa server và chứng thư self-signed tạm thời
+### 4.4 Generate the Server Key and Temporary Self-Signed Certificate
 
 ~~~bash
 keytool -genkeypair -alias lab-server -keyalg RSA -keysize 3072 -sigalg SHA256withRSA -dname "CN=localhost, O=Local Training, C=VN" -validity 7 -keystore lab-server.p12 -storetype PKCS12
 ~~~
 
-Keytool tạo private key và một self-signed certificate tạm thời trong **lab-server.p12**. **Đây chưa phải chứng thư do lab-root ký.** Khi import certificate reply từ lab-root, entry dưới alias lab-server sẽ được cập nhật để mang certificate chain tương ứng.
+`keytool` generates a private key and a temporary self-signed certificate in **`lab-server.p12`**. **This is not yet a certificate signed by `lab-root`.** When you import the certificate reply from `lab-root`, the entry under alias `lab-server` is updated to hold the corresponding certificate chain.
 
-**Private key server** ở lab-server.p12 phải được giữ trong phạm vi server lab. Bên CA cần biết **CSR**, không cần và không được lấy raw private key server.
+The **server private key** in `lab-server.p12` must stay within the lab server's boundary. The CA needs **the CSR**, never the raw server private key.
 
-### 4.5 Tạo Certificate Signing Request (CSR)
+### 4.5 Create a Certificate Signing Request (CSR)
 
 ~~~bash
 keytool -certreq -alias lab-server -file lab-server.csr -keystore lab-server.p12 -storetype PKCS12
 ~~~
 
-CSR được ký bằng **private key của lab-server** và mang public key cùng thông tin subject yêu cầu. CSR **không chứa private key server**. Một CA chân chính còn phải kiểm tra requestor có quyền xin những danh tính/SAN nào.
+The CSR is signed with **`lab-server`'s private key** and carries the public key and requested subject info. The CSR **does not contain the server private key**. A real CA must also check which identities/SANs the requester is authorized to request.
 
-Để xem nội dung CSR:
+To view CSR contents:
 
 ~~~bash
 keytool -printcertreq -file lab-server.csr -v
 ~~~
 
-**Cảnh báo bảo mật:** Không tự động cấp cho mọi tên miền mà CSR khai báo. Trong bài lab, **CA ký với SAN do chính quy trình cấp chứng thư quy định**, không dùng **-ext honored=all** để chấp nhận toàn bộ extension do một CSR không tin cậy yêu cầu.
+**Security warning:** Never automatically grant every domain name claimed in a CSR. In this lab, **the CA signs with SANs explicitly set by the issuance command**, never using **`-ext honored=all`** to accept all extensions requested by an untrusted CSR.
 
-### 4.6 CA ký CSR thành leaf cho localhost, có SAN và serverAuth
+### 4.6 CA Signs the CSR into a Leaf for `localhost`, with SAN and `serverAuth`
 
 ~~~bash
 keytool -gencert -alias lab-root -keystore lab-root.p12 -storetype PKCS12 -infile lab-server.csr -outfile lab-server.pem -rfc -validity 7 -ext BC:critical=ca:false -ext KU:critical=digitalSignature,keyEncipherment -ext EKU=serverAuth -ext SAN=dns:localhost,ip:127.0.0.1
 ~~~
 
-Điểm quan trọng:
+Key points:
 
-- **-alias lab-root:** dùng private key của CA để ký certificate reply cho subject trong CSR.
-- **-rfc:** đầu ra PEM Base64 thay vì DER.
-- **-validity 7:** leaf có thời hạn ngắn; root validity nên bao phủ thời hạn leaf trong lab.
-- **BC:critical=ca:false:** leaf là end entity, không thể trở thành CA.
-- **KU:critical=digitalSignature,keyEncipherment:** ràng buộc mục đích sử dụng public key RSA theo các khả năng được khai báo; TLS hiện đại phụ thuộc digitalSignature.
-- **EKU=serverAuth:** đánh dấu mục đích xác thực TLS server.
-- **SAN=dns:localhost,ip:127.0.0.1:** danh tính chỉ thuộc local lab, không cấp chứng thư cho domain thật.
+- **`-alias lab-root`:** uses the CA's private key to sign the certificate reply for the CSR's subject.
+- **`-rfc`:** Base64 PEM output instead of DER.
+- **`-validity 7`:** short-lived leaf; root validity should cover the leaf's lifetime in the lab.
+- **`BC:critical=ca:false`:** leaf is an end entity and cannot act as a CA.
+- **`KU:critical=digitalSignature,keyEncipherment`:** restricts RSA public key usage to declared capabilities; modern TLS relies on `digitalSignature`.
+- **`EKU=serverAuth`:** marks the TLS server authentication purpose.
+- **`SAN=dns:localhost,ip:127.0.0.1`:** local-lab-only identities; never issue certificates for real domains.
 
-**Trong thực tế**, CA cần quy trình xác minh danh tính, giới hạn SAN, quản lý serial, kiểm soát private key, CRL/OCSP và audit. Một keytool gencert local không tạo ra các chức năng vận hành đó.
+**In practice**, a CA requires identity verification workflows, SAN restrictions, serial management, private-key controls, CRL/OCSP, and auditing. A local `keytool -gencert` does not create those operational controls.
 
-Kiểm tra leaf đã ký:
+Inspect the signed leaf:
 
 ~~~bash
 keytool -printcert -file lab-server.pem
 ~~~
 
-Quan sát và so sánh: **Issuer = Lab Root CA**, **Subject = localhost**, SAN có localhost/127.0.0.1, BasicConstraints CA:false, KU và EKU tương ứng.
+Observe and verify: **`Issuer = Lab Root CA`**, **`Subject = localhost`**, SAN has `localhost`/`127.0.0.1`, `BasicConstraints CA:false`, and matching KU and EKU.
 
-### 4.7 Thêm root công khai vào server keystore để xây certificate chain
+### 4.7 Add the Public Root to the Server Keystore to Build the Certificate Chain
 
-Trước khi nhập reply của leaf, nhập **bản root certificate đã xác minh** vào keystore server, dưới alias khác alias private key:
+Before importing the leaf reply, import **the verified root certificate** into the server keystore under a different alias from the private key:
 
 ~~~bash
 keytool -importcert -alias lab-root-trust -file lab-root.pem -keystore lab-server.p12 -storetype PKCS12
 ~~~
 
-Keytool có thể hỏi có tin root certificate này không. **Chỉ trả lời đồng ý sau khi kiểm tra đúng fingerprint lab root**. Trong keystore server dùng để thực hành, bản public certificate này hỗ trợ keytool dựng chain cho leaf. Nó **không** có nghĩa server nên đồng thời dùng keystore identity làm truststore chung.
+`keytool` may ask whether you trust this root certificate. **Answer yes only after verifying the exact lab root fingerprint**. In the practice server keystore, this public certificate lets `keytool` build the chain for the leaf. It does **not** mean the server should simultaneously use its identity keystore as a general truststore.
 
-Sau đó nhập certificate reply vào **đúng alias lab-server**, để thay chứng thư self-signed tạm thời:
+Then import the certificate reply into **the exact `lab-server` alias** to replace the temporary self-signed certificate:
 
 ~~~bash
 keytool -importcert -alias lab-server -file lab-server.pem -keystore lab-server.p12 -storetype PKCS12
 ~~~
 
-**Thứ tự import quan trọng**: phải có issuer root mà keytool có thể dùng để dựng chain trước khi nhập leaf reply đơn lẻ. Kiểm tra kết quả:
+**Import order matters**: the issuer root must be available for `keytool` to build the chain before importing a standalone leaf reply. Verify the result:
 
 ~~~bash
 keytool -list -v -alias lab-server -keystore lab-server.p12 -storetype PKCS12
 ~~~
 
-Kỳ vọng là **PrivateKeyEntry** với **certificate chain length = 2** trong bài lab một root + một leaf: chứng thư đầu là lab-server do root ký; chứng thư tiếp theo là root CA. Kết quả số lượng/format có thể phụ thuộc vào cách import hoặc provider; nếu không thấy chain đúng, phải chẩn đoán thay vì bỏ qua kiểm tra.
+Expect **`PrivateKeyEntry`** with **certificate chain length = 2** in this single-root + single-leaf lab: the first cert is `lab-server` signed by root; the next is the root CA. Exact counts/formatting can vary by import method or provider; if the expected chain does not appear, diagnose rather than skipping verification.
 
-**Không copy lab-root.p12 sang máy server**. Server chỉ cần **private key của chính server** và public cert chain; CA signing key phải tách biệt.
+**Never copy `lab-root.p12` onto the server machine**. The server needs only **its own private key** and public cert chain; the CA signing key must remain isolated.
 
-### 4.8 Lập truststore riêng cho client thử nghiệm
+### 4.8 Create a Dedicated Truststore for the Test Client
 
 ~~~bash
 keytool -importcert -alias lab-root-trust -file lab-root.pem -keystore lab-client-trust.p12 -storetype PKCS12
 ~~~
 
-Nếu truststore chưa tồn tại, keytool có thể tạo file mới và hỏi mật khẩu. Khi hỏi có tin cert không, chỉ xác nhận sau khi xem và đối chiếu SHA-256 fingerprint của lab-root.pem qua kênh độc lập.
+If the truststore does not exist yet, `keytool` creates a new file and prompts for a password. When asked whether to trust the cert, confirm only after checking and comparing the SHA-256 fingerprint of `lab-root.pem` via an independent channel.
 
-Kiểm tra:
+Inspect:
 
 ~~~bash
 keytool -list -v -keystore lab-client-trust.p12 -storetype PKCS12
 ~~~
 
-**Kỳ vọng:** truststore có **TrustedCertificateEntry** cho alias lab-root-trust, chứa đúng root CA public certificate, **không chứa private key** và **không chứa certificate root bất kỳ khác**. Giữ truststore này độc lập với production và với truststore chung của doanh nghiệp.
+**Expected:** the truststore has a **`TrustedCertificateEntry`** for alias `lab-root-trust`, containing the exact root CA public certificate, **no private key**, and **no other root certificates**. Keep this truststore isolated from production and enterprise-wide truststores.
 
-### 4.9 Danh sách file cuối cùng
+### 4.9 Final File Inventory
 
-| File | Có gì? | Ai có thể dùng? | Quy tắc bảo vệ |
+| File | Contents | Who may use it? | Protection rules |
 | --- | --- | --- | --- |
-| **lab-root.p12** | Root CA private key + root certificate | Chỉ người vận hành CA lab | Giữ bí mật, không ship sang client/server/production |
-| **lab-root.pem** | Root CA public certificate | Client lab sau xác minh fingerprint | Không được cài làm root trusted toàn máy |
-| **lab-server.p12** | Server private key + leaf cert chain (và root trusted entry phục vụ dựng chain) | Chỉ server lab | Hạn chế quyền file/password |
-| **lab-server.csr** | CSR với public key/subject | CA lab | Không chứa private key, vẫn phải xác minh requestor/SAN |
-| **lab-server.pem** | Leaf public certificate do root lab ký | Client/server lab | Không bí mật nhưng không chứng minh tự tin cậy |
-| **lab-client-trust.p12** | TrustedCertificateEntry của root lab | Chỉ client tiến trình lab | Không thay cacerts/OS trust store |
+| **`lab-root.p12`** | Root CA private key + root certificate | Lab CA operator only | Keep secret; never ship to clients/servers/production |
+| **`lab-root.pem`** | Root CA public certificate | Lab client after fingerprint check | Must not be installed as a machine-wide trusted root |
+| **`lab-server.p12`** | Server private key + leaf cert chain (plus root trusted entry for chain building) | Lab server only | Restrict file permissions/password |
+| **`lab-server.csr`** | CSR with public key/subject | Lab CA | Contains no private key; still verify requester/SAN |
+| **`lab-server.pem`** | Leaf public certificate signed by lab root | Lab client/server | Not secret, yet does not prove self-trust |
+| **`lab-client-trust.p12`** | `TrustedCertificateEntry` for lab root | Lab client process only | Never replace `cacerts`/OS trust store |
 
-**Tuyệt đối không** đưa lab-root.p12 vào nơi có ứng dụng production. Root private key là tài sản nhạy cảm nhất trong mô hình này vì nó có khả năng cấp chứng thư mới được client tin.
+**Absolutely never** place `lab-root.p12` anywhere near production applications. The root private key is the most sensitive asset in this model because it can issue new certificates trusted by clients.
 
-## 5. Java 17+: đọc và xác minh đường dẫn tới đúng CA của lab
+## 5. Java 17+: Reading and Verifying the Path to the Exact Lab CA
 
-Lệnh keytool cho thấy nội dung store và certificate, nhưng để hiểu JCA, hãy xây một chương trình đọc hai file đã tạo và chạy **PKIX certificate path validation**.
+`keytool` commands inspect store and certificate contents, yet to understand JCA, write a program that reads the two created files and runs **PKIX certificate path validation**.
 
-Chương trình **LabCaCheck.java** này:
+This **`LabCaCheck.java`** program:
 
-- Nhập mật khẩu keystore và truststore qua **Console.readPassword()** (không để mật khẩu trong command line).
-- Load **lab-server.p12** và **lab-client-trust.p12** theo PKCS12.
-- Lấy leaf từ alias lab-server và root certificate từ alias lab-root-trust.
-- Kiểm tra root có BasicConstraints CA=true, leaf có CA=false, leaf có EKU serverAuth và có SAN DNS localhost.
-- Gọi **CertPathValidator.getInstance("PKIX")** với **duy nhất root certificate lab** làm TrustAnchor.
-- **Không** tắt hoặc thay thế PKIX signature/path validation; chỉ đặt **revocationEnabled(false)** trong lab vì ví dụ chưa triển khai CRL/OCSP.
-- Không dùng truststore mặc định/cacerts và không cấp trust rộng cho toàn bộ JVM.
+- Reads keystore and truststore passwords via **`Console.readPassword()`** (keeping passwords off the command line).
+- Loads **`lab-server.p12`** and **`lab-client-trust.p12`** as PKCS12.
+- Retrieves the leaf from alias `lab-server` and the root certificate from alias `lab-root-trust`.
+- Checks that root has `BasicConstraints CA=true`, leaf has `CA=false`, leaf has EKU `serverAuth`, and leaf has DNS SAN `localhost`.
+- Calls **`CertPathValidator.getInstance("PKIX")`** with **only the lab root certificate** as `TrustAnchor`.
+- Does **not** disable or replace PKIX signature/path validation; sets **`revocationEnabled(false)`** only in the lab because the example runs no CRL/OCSP.
+- Does not use the default truststore/`cacerts` and does not grant JVM-wide trust.
 
-**Đây là ví dụ thực hành certificate path; không phải một TLS client hoàn chỉnh.** Kiểm tra SAN bằng tay ở đây chỉ chứng minh dữ liệu SAN tồn tại, không thay thế bộ quy tắc hostname verification của HTTPS; server certificate sẽ còn phải được TLS stack kiểm tra theo endpoint thật.
+**This is a certificate path practice example, not a complete TLS client.** Checking SAN manually here only proves SAN data exists; it does not replace HTTPS hostname verification rules; server certificates must still be checked by the TLS stack against the actual endpoint.
 
-Tệp **LabCaCheck.java**:
+File **`LabCaCheck.java`**:
 
 ~~~java
 import java.io.Console;
@@ -420,8 +420,8 @@ public class LabCaCheck {
             PKIXParameters parameters = new PKIXParameters(
                     Set.of(new TrustAnchor(root, null)));
 
-            // Lab chỉ kiểm tra chain; CHƯA vận hành CRL/OCSP.
-            // Production phải cấu hình revocation theo PKI policy.
+            // Lab checks only the chain; CRL/OCSP is NOT yet operated.
+            // Production must configure revocation per PKI policy.
             parameters.setRevocationEnabled(false);
 
             CertPathValidator.getInstance("PKIX")
@@ -435,14 +435,14 @@ public class LabCaCheck {
 }
 ~~~
 
-Biên dịch và chạy **từ thư mục ca-lab** sau khi tạo các file ở mục 4:
+Compile and run **from the `ca-lab` directory** after creating the files in Section 4:
 
 ~~~bash
 javac -encoding UTF-8 LabCaCheck.java
 java LabCaCheck
 ~~~
 
-Chương trình hỏi hai mật khẩu tương tác. Nếu các file/alias/extension/chain đã đúng và chứng thư chưa hết hạn, phần **stdout sau hai lời nhắc** sẽ là:
+The program prompts interactively for two passwords. If all files/aliases/extensions/chains are valid and unexpired, the **stdout after the two prompts** will be:
 
 ~~~text
 Root is CA: true
@@ -452,48 +452,48 @@ Leaf SAN includes localhost: true
 PKIX chain to lab root: VALID
 ~~~
 
-Chương trình chủ động **ném exception** khi password sai, không thấy alias, certificate hết hạn, profile không phù hợp hoặc đường dẫn PKIX không xác minh được. Đây là hành vi **fail closed**, tốt hơn trả true trong mọi trường hợp.
+The program intentionally **throws an exception** on a wrong password, missing alias, expired certificate, policy mismatch, or failed PKIX path validation. This is **fail-closed** behavior, far better than returning true unconditionally.
 
-### 5.1 Tại sao CertPath chỉ chứa leaf?
+### 5.1 Why Does `CertPath` Contain Only the Leaf?
 
-Certificate path **không cần nhét root trust anchor vào danh sách certificate cần chứng minh**; root đã được khai báo riêng qua **PKIXParameters(Set<TrustAnchor>)**. Lab này không có intermediate CA, nên đường dẫn chỉ có **leaf**. Với PKI nhiều cấp, path phải có các intermediate đúng thứ tự hoặc dùng CertPathBuilder phù hợp để tìm chain.
+A certificate path **does not need the root trust anchor inside the certificate list to be validated**; the root is declared separately via **`PKIXParameters(Set<TrustAnchor>)`**. This lab has no intermediate CA, so the path contains only **the leaf**. In multi-tier PKIs, the path must list intermediates in order or use `CertPathBuilder` appropriately to find the chain.
 
-**TrustAnchor là đầu vào được ứng dụng tin từ trước**. Đưa bất kỳ root certificate do mạng gửi vào Set.of(new TrustAnchor(...)) mà không xác minh nguồn **sẽ phá ranh giới trust**. Trong ví dụ, root được load từ truststore riêng đã được cấp quyền và kiểm tra fingerprint.
+**`TrustAnchor` is a pre-trusted application input**. Putting any network-supplied root certificate into `Set.of(new TrustAnchor(...))` without verifying its origin **breaks the trust boundary**. In the example, the root is loaded from a dedicated, authorized, fingerprint-verified truststore.
 
-### 5.2 Vì sao revocationEnabled(false) chỉ chấp nhận trong lab?
+### 5.2 Why Is `revocationEnabled(false)` Acceptable Only in the Lab?
 
-Chứng thư có thể cần bị thu hồi trước NotAfter do private key bị lộ, server đã nghỉ hoạt động hoặc CA phát hiện cấp sai. Trong PKI production, kiểm tra thu hồi theo chính sách có thể dùng **CRL, OCSP, cơ chế TLS được triển khai phù hợp và kiểm soát vòng đời**.
+A certificate may need to be revoked before `NotAfter` due to private-key compromise, server decommissioning, or CA misissuance. In production PKI, policy-compliant revocation checks use **CRL, OCSP, properly implemented TLS mechanisms, and lifecycle controls**.
 
-Ví dụ lab **không cung cấp CRL/OCSP**, nên nó cố ý tắt revocation trong chương trình chỉ để tập trung vào chain/signature/path validation. **Không sao chép dòng này làm mặc định bảo mật production**, và cũng không cho rằng bật một boolean là đủ nếu PKI không có cơ chế trạng thái thu hồi đúng.
+This lab **provides no CRL/OCSP**, so it intentionally disables revocation in the program solely to focus on chain/signature/path validation. **Never copy this line as a production security default**, and never assume toggling a boolean suffices if the PKI lacks proper revocation status infrastructure.
 
-### 5.3 Code có xác minh hostname đầy đủ chưa?
+### 5.3 Does This Code Fully Verify Hostnames?
 
-**Chưa.** Hàm hasLocalhostSan chỉ kiểm tra **một SAN DNS** đúng với mục tiêu lab. Nó **không** thực hiện đầy đủ các quy tắc HTTPS hostname verification (wildcards, IP SAN, IDN, normalization, policy). Khi dùng HTTPS, cần để **HTTPS/TLS library chính thống** xác minh hostname. Nếu tự dùng SSLSocket, phải cấu hình endpoint identification phù hợp.
+**Not yet.** `hasLocalhostSan` checks only **one DNS SAN** matching the lab's goal. It does **not** implement full HTTPS hostname verification rules (wildcards, IP SAN, IDN, normalization, policy). For HTTPS, let a **reputable HTTPS/TLS library** verify the hostname. If using `SSLSocket` directly, configure endpoint identification appropriately.
 
-## 6. Dùng truststore lab trong JSSE mà không mở rộng trust cho production
+## 6. Using a Lab Truststore in JSSE Without Expanding Trust to Production
 
-### 6.1 Không đưa root lab vào cacerts
+### 6.1 Never Put the Lab Root into `cacerts`
 
-**Không chạy** các biến thể nhập root lab với mục tiêu:
+**Never run** any variant of importing the lab root targeting:
 
 ~~~text
 $JAVA_HOME/lib/security/cacerts
 keytool -importcert -cacerts ...
 Windows Trusted Root Certification Authorities
 macOS System Keychain trust
-Browser/OS trust profile dùng chung
-Container image hoặc trust bundle production
+Shared browser/OS trust profiles
+Production container images or trust bundles
 ~~~
 
-Các dòng trên là **danh sách nơi cấm đưa CA lab vào**, không phải lệnh chạy. Việc nhập root vào truststore chung sẽ khiến nhiều ứng dụng ngoài lab **có thể** tin các leaf do CA lab phát hành. Đây là loại thay đổi có thể vượt quá phạm vi thử nghiệm và tạo rủi ro MITM.
+The lines above are a **list of places forbidden for the lab CA**, not commands to run. Importing the root into a shared truststore allows many applications outside the lab **to potentially** trust leaves issued by the lab CA. That change exceeds the test scope and creates MITM risk.
 
-**Điểm phân biệt:** Root certificate công khai không nhất thiết bí mật, nhưng **đặt nó vào danh sách trusted roots** là một hành động cấp quyền tin cậy có tác động bảo mật lớn.
+**Key distinction:** A public root certificate is not necessarily secret, yet **placing it in the trusted roots list** is a trust-granting action with major security impact.
 
-### 6.2 Cách dùng per-process: chỉ đưa truststore cho ứng dụng lab
+### 6.2 Per-Process Usage: Supply the Truststore Only to the Lab App
 
-Đối với một tiến trình Java chuyên để học TLS, có thể đặt **javax.net.ssl.trustStore** trỏ đến **lab-client-trust.p12**, kèm **javax.net.ssl.trustStoreType=PKCS12**, theo cấu hình test chuyên biệt. Nhưng **không đưa password plaintext vào command line hoặc log** trong hệ thống thật. Cách có kiểm soát hơn là **nạp truststore bằng Java và tạo SSLContext riêng** cho HTTP/TLS client lab.
+For a dedicated Java process used to study TLS, you can point **`javax.net.ssl.trustStore`** to **`lab-client-trust.p12`** with **`javax.net.ssl.trustStoreType=PKCS12`** under a dedicated test configuration. However, **never put plaintext passwords on the command line or in logs** in real systems. A more controlled approach is **loading the truststore in Java and creating a dedicated `SSLContext`** for the lab HTTP/TLS client.
 
-Mẫu Java sau **không phải chương trình độc lập**: giả định biến **labTrust** đã load PKCS12 bằng mật khẩu đúng, và URL lab endpoint có TLS server đang chạy.
+The Java snippet below **is not a standalone program**: it assumes **`labTrust`** has been loaded from PKCS12 with the right password and the lab endpoint URL has a running TLS server.
 
 ~~~java
 TrustManagerFactory factory = TrustManagerFactory.getInstance(
@@ -507,109 +507,109 @@ HttpsURLConnection conn = (HttpsURLConnection)
         new URL("https://localhost:8443/").openConnection();
 conn.setSSLSocketFactory(labTls.getSocketFactory());
 conn.connect();
-// Không thay HostnameVerifier; HTTPS tiếp tục kiểm tra hostname.
+// Never replace HostnameVerifier; HTTPS continues checking the hostname.
 ~~~
 
-Để biên dịch đoạn trên thành chương trình, cần các import **javax.net.ssl.TrustManagerFactory**, **javax.net.ssl.SSLContext**, **javax.net.ssl.HttpsURLConnection**, **java.net.URL** và phần nạp labTrust. Mẫu này minh họa **SSLContext cho riêng một connection lab**; không tạo kết nối nếu chưa có server TLS lab nghe ở cổng 8443.
+To compile this snippet into a program, you need imports for **`javax.net.ssl.TrustManagerFactory`**, **`javax.net.ssl.SSLContext`**, **`javax.net.ssl.HttpsURLConnection`**, **`java.net.URL`**, and code loading `labTrust`. This snippet illustrates an **`SSLContext` scoped to a single lab connection**; do not run it without a lab TLS server listening on port 8443.
 
-**Không làm điều sau:**
+**Never do the following:**
 
 ~~~java
-// ANTI-PATTERN: Không dùng trong lab hoặc production.
+// ANTI-PATTERN: Never use in lab or production.
 HttpsURLConnection.setDefaultHostnameVerifier(
         (hostname, session) -> true);
 ~~~
 
-Thao tác đó tắt kiểm tra danh tính host cho nhiều kết nối của lớp API, làm mất một lớp bảo vệ quan trọng. Một “trust-all X509TrustManager” cũng nguy hiểm tương tự. **Sửa lỗi certificate bằng cách thêm đúng root CA vào truststore lab được cấp phép**, không bằng cách bỏ xác thực.
+That disables host identity verification for many connections using that API class, removing an essential safeguard. A “trust-all `X509TrustManager`” is equally dangerous. **Fix certificate errors by adding the right root CA to an authorized lab truststore**, never by disabling verification.
 
-### 6.3 Cần nhớ: truststore và hostname validation là hai bước khác nhau
+### 6.3 Remember: Truststore and Hostname Validation Are Two Separate Steps
 
-Ngay cả khi **PKIX path** đúng:
+Even when **the PKIX path** is valid:
 
-- Nếu client truy cập **https://service.company.example** nhưng cert chỉ có SAN=localhost, **hostname phải bị từ chối**.
-- Nếu cert có SAN đúng nhưng không chain tới root mà client tin, **path validation phải thất bại**.
-- Nếu cert hết hạn hoặc chưa có hiệu lực, **time validation phải thất bại**.
-- Nếu EKU/KU không phù hợp hoặc TLS stack không chấp nhận thuật toán/chữ ký, **handshake có thể thất bại**.
-- Nếu kiểm tra thu hồi được yêu cầu nhưng không thể thực hiện đúng theo policy, xử lý phải theo chính sách; không âm thầm bỏ qua.
+- If the client accesses **`https://service.company.example`** while the cert only has `SAN=localhost`, **the hostname must be rejected**.
+- If the cert has the right SAN yet does not chain to a client-trusted root, **path validation must fail**.
+- If the cert is expired or not yet valid, **time validation must fail**.
+- If EKU/KU does not match or the TLS stack rejects the algorithm/signature, **the handshake must fail**.
+- If revocation checks are required but cannot be completed per policy, handle per policy; never silently skip.
 
-Không nhầm “tôi có thể in ra certificate” với “TLS đã xác thực đúng đối tác”.
+Never confuse “I can print the certificate” with “TLS authenticated the right peer”.
 
-### 6.4 Keystore server và truststore client không nên tráo vai trò
+### 6.4 Server Keystore and Client Truststore Must Not Swap Roles
 
-Một server cần **KeyManagerFactory** truy cập private key và chain để chứng minh danh tính với TLS peer. Client cần **TrustManagerFactory** với CA roots/anchors để kiểm tra chứng chỉ server. Trong **mutual TLS (mTLS)**, cả hai phía có thể vừa có identity keystore vừa có truststore, nhưng trách nhiệm và quyền khác nhau.
+A server needs **`KeyManagerFactory`** accessing its private key and chain to prove identity to TLS peers. A client needs **`TrustManagerFactory`** with CA roots/anchors to verify server certificates. In **mutual TLS (mTLS)**, both sides may have both an identity keystore and a truststore, yet responsibilities and permissions remain distinct.
 
-Không nên dùng **lab-root.p12** làm server keystore: như vậy server nắm **CA signing private key**, tạo rủi ro rất lớn. Server chỉ dùng lab-server.p12 chứa private key của **leaf server**. Client chỉ nhận lab-root.pem/lab-client-trust.p12, **không nhận private key server/CA**.
+Never use **`lab-root.p12`** as a server keystore: that puts **the CA signing private key** on the server, creating huge risk. The server must use only `lab-server.p12` containing the **server leaf** private key. The client receives only `lab-root.pem`/`lab-client-trust.p12`, **never server/CA private keys**.
 
-## 7. Bộ kiểm thử âm để chứng minh ranh giới thực sự tồn tại
+## 7. Negative Test Suite to Prove the Boundary Truly Exists
 
-Một CA lab hoàn thành bài không phải vì “có file và chain”, mà vì **chỉ client lab được phép tin nó; các đối tượng không được phép vẫn phải từ chối**.
+A lab CA succeeds not because “we have files and a chain”, but because **only authorized lab clients trust it; unauthorized parties still reject it**.
 
-| Tình huống | Kết quả kỳ vọng | Điểm được kiểm chứng |
+| Scenario | Expected result | What is verified |
 | --- | --- | --- |
-| Client lab dùng đúng truststore lab và kết nối tới localhost của server lab | Handshake thành công nếu server/protocol cấu hình đúng | CA trust + SAN + key usage + thời gian |
-| Client khác dùng truststore mặc định không chứa lab root | **Không tin được lab server certificate** | Không rò trust sang phạm vi ngoài lab |
-| Client lab truy cập server bằng hostname không có trong SAN | **Từ chối hostname** | Không tắt hostname verification |
-| Client lab tin một root test khác nhưng không tin root bài này | **Từ chối chain** | Trust anchor không phải bất kỳ self-signed cert nào |
-| Thay leaf bằng cert ký bởi key không thuộc root lab | **Từ chối path** | Chữ ký và đường dẫn phải xác minh |
-| Đổi byte trong nội dung chứng thư đã ký | **Từ chối** | Không thể sửa cert mà không phá chữ ký |
-| Leaf hết hạn, chưa tới NotBefore hoặc đồng hồ sai đáng kể | **Từ chối theo chính sách** | Kiểm tra validity |
-| Leaf thiếu EKU serverAuth khi policy yêu cầu | **Từ chối** | Kiểm tra mục đích |
-| Leaf CA=true dùng làm server identity | **Không dùng cho lab server** | Phân biệt CA và end entity |
-| Root CA private key xuất hiện trong container/app runtime | **Lỗi kiến trúc phải sửa** | CA signing key không phân phối |
-| Có người đề nghị nhập root lab vào production cacerts | **Từ chối thay đổi** | Chặn mở rộng trust ngoài phạm vi |
-| Certificate bị thu hồi nhưng vẫn còn hạn | Phải xử lý qua revocation policy khi production | Validity date không thay thế revocation |
-| Gỡ truststore lab khỏi tiến trình lab | Lab certificate không còn được tin nếu không có trust từ nơi khác | Trust có thể được thu hồi theo phạm vi |
+| Lab client uses right lab truststore and connects to lab server's `localhost` | Handshake succeeds if server/protocol are properly configured | CA trust + SAN + key usage + validity |
+| Another client uses default truststore lacking the lab root | **Does not trust lab server certificate** | No trust leakage outside lab scope |
+| Lab client accesses server using a hostname absent from SAN | **Rejects hostname** | Hostname verification not disabled |
+| Lab client trusts a different test root but not this lesson's root | **Rejects chain** | Trust anchor is not just any self-signed cert |
+| Leaf replaced with cert signed by a key not belonging to lab root | **Rejects path** | Signatures and path must verify |
+| Byte modified in signed certificate contents | **Rejects** | Cannot tamper with cert without breaking signature |
+| Leaf expired, before `NotBefore`, or major clock skew | **Rejects per policy** | Validity checks |
+| Leaf lacks `serverAuth` EKU when required by policy | **Rejects** | Purpose checks |
+| `CA=true` leaf used as server identity | **Do not use for lab server** | Distinguishes CA from end entity |
+| Root CA private key appears inside container/app runtime | **Architectural bug to fix** | CA signing keys are never distributed |
+| Someone proposes importing lab root into production `cacerts` | **Reject change** | Blocks out-of-scope trust expansion |
+| Revoked certificate yet still unexpired | Must be handled via revocation policy in production | Validity dates do not replace revocation |
+| Remove lab truststore from lab process | Lab certificate is no longer trusted without external trust | Trust can be revoked by scope |
 
-**Quan trọng:** Để làm test “truststore mặc định không tin CA lab”, phải xác định môi trường thật chưa cài CA lab trước đó. Không thể khẳng định mọi máy đều từ chối nếu CA lab đã bị import vào truststore chung từ một lần thử trước.
+**Important:** To test “default truststore does not trust lab CA”, confirm the environment has not had the lab CA installed previously. You cannot claim every machine rejects it if the lab CA was imported into a shared truststore during an earlier test.
 
-### 7.1 Kiểm thử danh tính sai không phải lý do để bỏ HTTPS
+### 7.1 Failing Identity Checks Are No Reason to Bypass HTTPS
 
-Một lỗi quen thuộc:
+A familiar mistake:
 
 ~~~text
 SSLHandshakeException: PKIX path building failed
                    |
-Developer: "Chắc chứng thư tự ký, bật trust-all thôi"
+Developer: "Probably self-signed cert, let's enable trust-all"
                    |
-           Tất cả endpoint giả cũng có thể được chấp nhận
+           All fake endpoints can now be accepted too
 ~~~
 
-Cách sửa đúng:
+The right fix:
 
-1. Phân loại lỗi: **untrusted issuer**, **hostname mismatch**, **expired cert**, **EKU/KU mismatch**, **chain thiếu**, **sai key**, **revocation**.
-2. Với **CA lab**, kiểm tra file truststore của **duy nhất client test**, xác minh fingerprint.
-3. Với domain production, dùng chứng thư/chains được CA tin cậy theo chính sách production; **không đưa CA lab vào production để chữa lỗi**.
-4. Giữ hostname verification, PKIX path validation và TLS phiên bản/cipher suites phù hợp.
-5. Tạo test âm để bảo đảm sửa lỗi không làm mở rộng trust ngoài ý muốn.
+1. Classify the error: **untrusted issuer**, **hostname mismatch**, **expired cert**, **EKU/KU mismatch**, **missing chain**, **wrong key**, or **revocation**.
+2. For a **lab CA**, verify the truststore file of **only the test client** and check the fingerprint.
+3. For production domains, use certificates/chains from CAs trusted under production policy; **never put a lab CA into production to silence errors**.
+4. Keep hostname verification, PKIX path validation, and proper TLS versions/cipher suites enabled.
+5. Add negative tests to ensure fixes do not unintentionally widen trust.
 
-### 7.2 Không cấp SAN tùy ý theo CSR
+### 7.2 Never Issue Arbitrary SANs from a CSR
 
-CSR chứng minh quyền kiểm soát **private key của keypair đang yêu cầu** thông qua chữ ký CSR, **không tự chứng minh quyền sở hữu DNS name/IP**. Nếu CA cứ chấp nhận -ext honored=all và bất kỳ SAN client đòi hỏi, nó có thể ký cho tên miền không thuộc phạm vi lab.
+A CSR proves control over **the requesting keypair's private key** via the CSR signature; it **does not prove ownership of DNS names/IPs**. If a CA blindly accepts `-ext honored=all` and whatever SAN a client requests, it could sign certificates for domains outside lab scope.
 
-Trong bài, CA ký với SAN **localhost/127.0.0.1** bằng lệnh -gencert được quản trị rõ. Một CA nội bộ thật phải có quy trình kiểm tra danh tính, phê duyệt domain/namespace và giới hạn cấu hình issuer.
+In this lesson, the CA signs with SANs **`localhost`/`127.0.0.1`** via a tightly controlled `-gencert` command. A real internal CA must enforce identity verification, domain/namespace approvals, and issuer configuration limits.
 
-## 8. Những ranh giới buộc phải giữ giữa test và production
+## 8. Boundaries That Must Be Maintained Between Test and Production
 
-### 8.1 Tách biệt key material
+### 8.1 Separate Key Material
 
-**Không dùng cùng khóa CA hoặc leaf** giữa lab và production.
+**Never share CA or leaf keys** between lab and production.
 
-- **Lab root private key** chỉ tồn tại trong kho/tài khoản lab được phép.
-- **Production CA/private key** phải được cấp phát qua CA/KMS/HSM/quy trình được phê duyệt, không lấy từ bài tập.
-- Không đặt lab root key trong source, environment variable chia sẻ, artifact CI, Docker image hoặc backup production.
-- Nếu cần demo mTLS qua nhiều nhóm, dùng **CA riêng theo môi trường/team hoặc namespace được phê duyệt**, không dựng một lab root toàn doanh nghiệp.
+- **Lab root private key** exists only in authorized lab storage/accounts.
+- **Production CA/private keys** must be provisioned via approved CA/KMS/HSM workflows, never taken from an exercise.
+- Never place lab root keys in source code, shared environment variables, CI artifacts, Docker images, or production backups.
+- If demoing mTLS across multiple teams, use **dedicated per-environment/per-team CAs or approved namespaces**, never an enterprise-wide lab root.
 
-### 8.2 Tách biệt trust anchor và truststore
+### 8.2 Separate Trust Anchors and Truststores
 
-**Truststore production không chứa lab root**. Client test chỉ tin lab root trong phạm vi runtime test; tiến trình production chỉ dùng roots theo chính sách production.
+**Production truststores must not contain lab roots**. Test clients trust the lab root only within test runtime scope; production processes use only roots approved by production policy.
 
-Một truststore tách file nhưng được mount vào mọi service vẫn là **truststore chung về mặt tác động**. Cần tách cả **đường triển khai, quyền, tài khoản, CI/CD variables, container mounts và môi trường runtime**.
+A separate truststore file that gets mounted into every service is still a **shared truststore in impact**. Separate **deployment paths, permissions, accounts, CI/CD variables, container mounts, and runtime environments** as well.
 
-### 8.3 Tách biệt tên định danh và hạ tầng
+### 8.3 Separate Identifiers and Infrastructure
 
-Chỉ dùng **localhost, loopback hoặc DNS namespace được tổ chức dành riêng cho test**. Không đặt SAN là public company domain, không tạo root với tên giống CA thật, không cấp subject có vẻ như production để dễ copy nhầm.
+Use only **`localhost`, loopback, or DNS namespaces reserved by your organization for testing**. Never put public company domains in SANs, never name a root similarly to a real CA, and never issue production-looking subjects that could easily be copied by mistake.
 
-Đặt tên file có prefix rõ:
+Prefix filenames clearly:
 
 ~~~text
 lab-root.p12
@@ -620,155 +620,155 @@ lab-server.pem
 lab-client-trust.p12
 ~~~
 
-Tên file chỉ là **tín hiệu vận hành**, không phải hàng rào bảo mật. Chặn rò rỉ thực tế bằng IAM, policy, review và kiểm thử truststore.
+Filenames are only **operational signals**, not security barriers. Enforce actual isolation with IAM, policies, code reviews, and truststore checks.
 
-### 8.4 Thời hạn ngắn không thay thế giới hạn quyền
+### 8.4 Short Lifetimes Do Not Replace Scope Limits
 
-Certificate leaf sống 7 ngày vẫn có thể được lạm dụng nếu client production đã tin lab root. Thời hạn ngắn làm giảm thời gian rủi ro nhưng **không triệt tiêu khả năng giả mạo** trước khi hết hạn.
+A 7-day leaf certificate can still be abused if production clients already trust the lab root. Short lifetimes shrink the exposure window, yet **do not eliminate impersonation** before expiration.
 
-Root hết hạn 30 ngày cũng không bảo vệ trước mọi lỗ hổng vận hành, đặc biệt khi process không kiểm tra đúng policy hoặc vẫn giữ trust anchor cũ. Cần quản lý hiệu lực, thu hồi trust, xóa deployment sai và giám sát.
+A 30-day root expiration likewise does not protect against all operational flaws, especially when processes fail to enforce policies or retain old trust anchors. Manage validity, revoke trust, remove bad deployments, and monitor.
 
-### 8.5 Không biến chứng thư lab thành production bằng cách import
+### 8.5 Never Turn a Lab Certificate into Production by Importing It
 
-**Quy trình hợp lệ để đi production không phải:**
+**A valid path to production is NOT:**
 
 ~~~text
 lab-root.pem
        |
-import vào $JAVA_HOME/lib/security/cacerts
+import into $JAVA_HOME/lib/security/cacerts
        |
-"Prod dùng được"  <- LỖI PHÂN TÁCH TRUST
+"Works in prod"  <- TRUST SEPARATION FAILURE
 ~~~
 
-**Quy trình đúng:**
+**The right workflow:**
 
 ~~~text
-Tài liệu/prototype lab
+Lab documentation/prototype
        |
-Rà soát yêu cầu PKI production
+Review production PKI requirements
        |
-Xin/cấp key và certificate qua CA được phép
+Request/issue keys and certificates via an authorized CA
        |
-Xác minh danh tính, SAN, EKU, chain, validity
+Verify identity, SAN, EKU, chain, validity
        |
-Cấp trust theo production policy
+Provision trust per production policy
        |
-Kiểm thử, audit, rotation và giám sát
+Test, audit, rotate, and monitor
 ~~~
 
-Đảm bảo production không thừa hưởng lab root dưới dạng image layer, mounted volume, keystore, secret, env var hoặc config bundle.
+Ensure production never inherits a lab root via image layers, mounted volumes, keystores, secrets, env vars, or config bundles.
 
-## 9. Thu hồi, rotation và kết thúc lab
+## 9. Revocation, Rotation, and Decommissioning the Lab
 
-### 9.1 Khác nhau giữa xóa leaf và thu hồi trust root
+### 9.1 Difference Between Deleting a Leaf and Revoking Root Trust
 
-Nếu chỉ xóa lab-server.p12, client lab vẫn tin root và root private key còn có thể cấp một leaf mới. **Muốn ngừng tin toàn bộ CA lab**, phải **gỡ root khỏi truststore của tất cả client lab đã cấp quyền** và thu hồi quyền phân phối truststore.
+Deleting only `lab-server.p12` still leaves lab clients trusting the root, and the root private key can still issue a new leaf. **To stop trusting the entire lab CA**, you must **remove the root from the truststores of every authorized lab client** and revoke truststore distribution access.
 
-Nếu root key bị lộ, không thể “đổi password PKCS12” rồi xem mọi chứng thư CA đã cấp vẫn an toàn. Phải **ngừng tin root đó**, xây root mới nếu còn cần lab, cấp lại leaf, cập nhật truststore và đánh giá phạm vi ảnh hưởng.
+If the root key is compromised, you cannot “change the PKCS12 password” and consider all issued CA certificates safe. You must **stop trusting that root**, build a new root if the lab is still needed, re-issue leaves, update truststores, and assess the blast radius.
 
-### 9.2 Thu hồi chứng thư và kiểm tra trạng thái
+### 9.2 Certificate Revocation and Status Checking
 
-**CRL và OCSP** là các cơ chế thường gặp để công bố/kiểm tra trạng thái certificate. Một CA lab keytool tạo bằng lệnh trên **không tự vận hành** cơ chế revocation. KeyUsage cRLSign chỉ mô tả **khả năng/quyền dùng khóa để ký CRL**, không tự tạo CRL.
+**CRL and OCSP** are common mechanisms for publishing/checking certificate status. A lab CA created with the `keytool` command above **does not automatically run** revocation infrastructure. `KeyUsage cRLSign` only describes **the key's permission/capability to sign CRLs**; it does not generate CRLs by itself.
 
-Đối với production, cần chính sách rõ: có kiểm tra trạng thái hay không, responder/CRL ở đâu, hành vi khi offline, log và SLA thu hồi. Đừng dùng **PKIXParameters.setRevocationEnabled(false)** từ ví dụ lab để mặc định bỏ qua revocation trong hệ thống thật.
+For production, establish clear policies: whether status is checked, where responders/CRLs live, offline behavior, logging, and revocation SLAs. Never take **`PKIXParameters.setRevocationEnabled(false)`** from the lab example to skip revocation by default in real systems.
 
-### 9.3 Checklist dọn dẹp sau bài học
+### 9.3 Post-Lesson Cleanup Checklist
 
-1. Dừng tiến trình TLS server/client của lab.
-2. Xác minh **không có CA lab** trong cacerts, OS trust, browser profile chung, image hoặc deployment production.
-3. Thu hồi/cắt quyền truy cập tới truststore lab khi không còn dùng.
-4. Xóa hoặc lưu trữ có kiểm soát **lab-root.p12/lab-server.p12**, password/backup liên quan theo chính sách tổ chức. Không upload file khóa vào ticket/chat.
-5. Gỡ config per-process/truststore mount đã dùng để chạy bài.
-6. Kiểm tra không còn môi trường test đang dùng certificate hết hạn/hỏng như một lý do để tắt TLS verification.
-7. Nếu đã vô tình đưa root lab vào production trust, coi đây là **sự cố bảo mật cần xử lý**, lập danh sách hệ thống bị ảnh hưởng, loại root, luân chuyển thông tin cần thiết và đánh giá rủi ro giả mạo.
+1. Stop lab TLS server/client processes.
+2. Verify **no lab CA exists** in `cacerts`, OS trust, shared browser profiles, images, or production deployments.
+3. Revoke/remove access to the lab truststore when no longer needed.
+4. Securely delete or archive **`lab-root.p12`/`lab-server.p12`** and related passwords/backups per organizational policy. Never upload key files to tickets/chat.
+5. Remove per-process configs and truststore mounts used for the lesson.
+6. Verify no test environment is using expired/broken certificates as an excuse to disable TLS verification.
+7. If a lab root was accidentally added to production trust, treat it as a **security incident**, inventory affected systems, remove the root, rotate affected credentials, and assess impersonation risk.
 
-**Lưu ý:** Không xóa bừa cacerts hoặc truststore chung để “dọn lab”; chỉ gỡ đúng root lab **nếu đã được cài và theo quy trình thay đổi được cho phép**.
+**Note:** Never blindly delete `cacerts` or shared truststores to “clean up the lab”; remove only the specific lab root **if it was installed, following approved change procedures**.
 
-## 10. Những lỗi thường gặp cần tránh
+## 10. Common Mistakes to Avoid
 
-1. **“CA do keytool tạo nên mặc nhiên được tất cả Java client tin.”** Sai: self-signed root chưa có trust anchor trong client.
-2. **“Chỉ cần chữ ký leaf đúng là TLS an toàn.”** Sai: còn trust anchor, hostname, EKU/KU, thời gian, thuật toán, trạng thái thu hồi và policy.
-3. **“Leaf CN=localhost là đủ, không cần SAN.”** Không phù hợp với HTTPS hostname verification hiện đại; cung cấp SAN đúng kiểu DNS/IP.
-4. **“Root CA có thể dùng làm server identity.”** Không: server cần leaf private key/cert đúng mục đích; không đưa CA signing key vào server.
-5. **“Root CA cho lab đã nằm trong truststore thì cho production dùng chung để tiện test.”** Sai nghiêm trọng: mở rộng quyền cấp chứng thư được tin.
-6. **“Mật khẩu CA ngắn vì chỉ dùng 7 ngày không sao.”** Sai: CA signing key vẫn có thể bị lạm dụng và bị dò offline nếu file bị sao chép.
-7. **“CSR đã yêu cầu SAN nào thì CA bắt buộc ký SAN đó.”** Sai: CA phải kiểm tra và quyết định cấp danh tính.
-8. **“Đặt CA=true trên leaf để tiện dùng nhiều chỗ.”** Sai: làm sai ranh giới CA/end entity.
-9. **“Có cRLSign nghĩa là đã tự động kiểm tra CRL.”** Sai: cần cơ chế phát hành và kiểm tra trạng thái.
-10. **“PKIX demo không bật revocation, vậy production cũng tắt.”** Sai: demo không triển khai CRL/OCSP; production phải theo policy.
-11. **“Dùng trust-all giải quyết lỗi SSLHandshakeException nhanh mà không ảnh hưởng bảo mật.”** Sai: bỏ xác minh identity/trust.
-12. **“HostnameVerifier trả true mọi nơi là hợp lý trên localhost.”** Sai: dễ rò vào runtime khác và làm mất bảo vệ.
-13. **“Nhập lab-root.pem vào cacerts chỉ ảnh hưởng app của tôi.”** Sai: có thể ảnh hưởng mọi app dùng kho trust đó.
-14. **“Private key CA có thể copy vào server vì nó cùng một nhóm test.”** Sai: server bị chiếm sẽ trao cho attacker quyền phát hành certificate.
-15. **“Dùng root validity 30 ngày bảo đảm root an toàn.”** Sai: expiry không giải quyết việc root key bị lộ trước khi hết hạn.
-16. **“Tên file demo.p12 nói lên đây là test, không thể dùng nhầm.”** Sai: phải dùng kiểm soát IAM/deployment/trust policy.
-17. **“Đã import leaf reply nên không cần kiểm tra chain.”** Sai: xác minh alias, chain, issuer, SAN, EKU và signature.
-18. **“Một máy tin CA lab nghĩa là một máy khác cũng tin.”** Sai: trust configuration nằm tại từng runtime/system/profile.
-19. **“Có thể dùng cùng root lab để ký cert cho domain production nhằm test staging.”** Sai: cấp theo namespace test và quy trình được phê duyệt.
-20. **“Certificate hết hạn thì không cần gỡ trust root.”** Sai: root được tin vẫn có thể có tác dụng đối với certificate khác nếu còn hợp lệ hoặc các client có chính sách xử lý khác.
+1. **“The CA was created by `keytool`, so all Java clients automatically trust it.”** False: a self-signed root has no trust anchor in clients yet.
+2. **“A valid leaf signature alone makes TLS secure.”** False: trust anchor, hostname, EKU/KU, validity, algorithms, revocation status, and policy also apply.
+3. **“Leaf `CN=localhost` is enough; no SAN needed.”** Violates modern HTTPS hostname verification; supply properly typed DNS/IP SANs.
+4. **“The root CA can be used as the server identity.”** No: the server needs a purpose-built leaf private key/cert; never put the CA signing key on servers.
+5. **“The lab root CA is already in a truststore, so share it with production for convenient testing.”** Serious mistake: widens trusted certificate issuance authority.
+6. **“A short CA password is fine since it's only used for 7 days.”** False: the CA signing key can still be abused and cracked offline if the file is copied.
+7. **“Whatever SAN the CSR requested, the CA must sign it.”** False: the CA must verify and decide which identities to issue.
+8. **“Set `CA=true` on the leaf so it can be reused in many places.”** False: breaks the CA/end-entity boundary.
+9. **“Having `cRLSign` means CRL checking happens automatically.”** False: requires publishing and status-checking infrastructure.
+10. **“The PKIX demo disables revocation, so disable it in production too.”** False: the demo runs no CRL/OCSP; production must follow policy.
+11. **“Using trust-all fixes `SSLHandshakeException` quickly without hurting security.”** False: removes identity/trust verification.
+12. **“A `HostnameVerifier` returning true everywhere is reasonable for `localhost`.”** False: easily leaks into other runtimes and removes protection.
+13. **“Importing `lab-root.pem` into `cacerts` affects only my app.”** False: can affect every app sharing that trust store.
+14. **“The CA private key can be copied to the server since it's in the same test group.”** False: compromising the server gives attackers certificate-issuance power.
+15. **“Using a 30-day root validity guarantees the root is safe.”** False: expiration does not mitigate root key compromise prior to expiry.
+16. **“The filename `demo.p12` makes it obvious it's for testing, so it won't be misused.”** False: enforce isolation with IAM, deployment controls, and trust policies.
+17. **“The leaf reply was imported, so no need to inspect the chain.”** False: verify alias, chain, issuer, SAN, EKU, and signatures.
+18. **“One machine trusts the lab CA, so another machine trusts it too.”** False: trust configuration is per runtime/system/profile.
+19. **“The same lab root can sign certs for production domains to test staging.”** False: issue under test namespaces and approved processes.
+20. **“Once the certificate expires, there's no need to remove the trusted root.”** False: a trusted root can still validate other certificates if still valid, or be handled differently across clients.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-**Câu 1.** Một root CA self-signed có tự trở thành trusted root trên mọi Java runtime không?
+**Question 1.** Does a self-signed root CA automatically become a trusted root on every Java runtime?
 
-**Trả lời:** Không. Client phải được cấp quyền tin một trust anchor xác thực nguồn gốc; tự ký không tự tạo trust.
+**Answer:** No. Clients must be authorized to trust an origin-verified trust anchor; self-signing does not create trust on its own.
 
-**Câu 2.** Tại sao truststore lab phải tách khỏi cacerts hoặc truststore production?
+**Question 2.** Why must a lab truststore be kept separate from `cacerts` or production truststores?
 
-**Trả lời:** Vì thêm root lab vào truststore sản xuất cho phép client production tin các cert do CA lab phát hành trong phạm vi quy tắc xác minh, tạo bề mặt giả mạo endpoint.
+**Answer:** Because adding a lab root to a production truststore lets production clients trust certs issued by the lab CA under verification rules, creating an endpoint impersonation surface.
 
-**Câu 3.** CA lab khác leaf server ở BasicConstraints và KeyUsage thế nào?
+**Question 3.** How does a lab CA differ from a server leaf in `BasicConstraints` and `KeyUsage`?
 
-**Trả lời:** CA cần CA=true và keyCertSign phù hợp; leaf cần CA=false và key usage/EKU phù hợp với TLS server, không có quyền ký chứng thư CA.
+**Answer:** The CA needs `CA=true` and appropriate `keyCertSign`; the leaf needs `CA=false` and key usage/EKU suited for a TLS server, with no CA certificate-signing authority.
 
-**Câu 4.** Trong bài, tại sao root có pathLen=0 mà vẫn ký được leaf?
+**Question 4.** In this lesson, why can the root with `pathLen=0` still sign a leaf?
 
-**Trả lời:** pathLen giới hạn số intermediate CA không self-issued theo sau CA trong một certification path; nó không chặn cấp end-entity certificate.
+**Answer:** `pathLen` caps the number of non-self-issued intermediate CAs following that CA in a certification path; it does not prevent issuing end-entity certificates.
 
-**Câu 5.** Chứng thư server có CN=localhost nhưng SAN chỉ chứa địa chỉ khác; HTTPS đến localhost có nên được chấp nhận không?
+**Question 5.** A server certificate has `CN=localhost` yet its SAN contains only another address; should HTTPS to `localhost` be accepted?
 
-**Trả lời:** Không theo chính sách hostname validation hiện đại. Phải có SAN DNS:localhost phù hợp và trust/path vẫn phải đúng.
+**Answer:** No under modern hostname validation policies. It must have an appropriate `DNS:localhost` SAN, and trust/path must also pass.
 
-**Câu 6.** CSR chứa SAN của domain thật có tự chứng minh quyền sở hữu domain đó không?
+**Question 6.** Does a CSR containing a real domain's SAN prove ownership of that domain?
 
-**Trả lời:** Không. Chữ ký CSR chỉ thể hiện quyền giữ private key CSR; CA phải xác minh quyền sở hữu/tên trước khi phát hành.
+**Answer:** No. The CSR signature only proves possession of the CSR's private key; the CA must verify domain/name ownership before issuance.
 
-**Câu 7.** Keytool tạo server keystore với self-signed certificate. Khi nào nó có chain root→leaf?
+**Question 7.** `keytool` creates a server keystore with a self-signed certificate. When does it have a root→leaf chain?
 
-**Trả lời:** Khi CA ký CSR, root public certificate được import để dựng chain và certificate reply được import vào đúng alias private key, rồi kiểm tra chain.
+**Answer:** Once the CA signs the CSR, the root public certificate is imported for chain building, and the certificate reply is imported into the exact private-key alias, followed by verifying the chain.
 
-**Câu 8.** Trong Java code, việc đưa lab root vào TrustAnchor mang ý nghĩa gì?
+**Question 8.** In Java code, what does placing the lab root into `TrustAnchor` signify?
 
-**Trả lời:** Ứng dụng chủ động tin CA đó; PKIX validator kiểm tra đường dẫn tới anchor. Không thể dùng root tùy ý lấy từ mạng mà không xác minh danh tính/fingerprint.
+**Answer:** The application explicitly trusts that CA; the PKIX validator checks the path up to that anchor. Never use an arbitrary root fetched from the network without verifying its identity/fingerprint.
 
-**Câu 9.** Lab chưa có CRL/OCSP nên setRevocationEnabled(false). Điều này có chứng minh revocation an toàn không?
+**Question 9.** The lab has no CRL/OCSP so it calls `setRevocationEnabled(false)`. Does this prove revocation is safe to skip?
 
-**Trả lời:** Không. Đó là giới hạn cố ý của lab; production cần vận hành revocation theo policy và đánh giá hành vi khi dịch vụ trạng thái lỗi.
+**Answer:** No. That is an intentional lab limitation; production must operate revocation per policy and evaluate behavior when status services fail.
 
-**Câu 10.** Nếu CA private key bị lộ, chỉ thay store password là đủ chưa?
+**Question 10.** If the CA private key is compromised, is changing the store password enough?
 
-**Trả lời:** Chưa. Kẻ tấn công có thể có private key và phát hành certificate. Cần ngừng tin CA bị lộ, cấp CA/leaf mới và đánh giá sự cố.
+**Answer:** No. The attacker may already hold the private key and issue certificates. You must stop trusting the compromised CA, issue a new CA/leaves, and assess the incident.
 
-**Câu 11.** Đã có lab-root.pem là client có thể dùng nó như identity keystore không?
+**Question 11.** Once you have `lab-root.pem`, can the client use it as an identity keystore?
 
-**Trả lời:** Không. PEM public root certificate không có private key; client identity (nếu mTLS) cần private key và cert chain riêng.
+**Answer:** No. A public PEM root certificate has no private key; client identity (for mTLS) requires its own private key and cert chain.
 
-**Câu 12.** Một HTTPS client truy cập localhost nhưng truststore sai, có nên tắt certificate verification không?
+**Question 12.** An HTTPS client connects to `localhost` with the wrong truststore; should you disable certificate verification?
 
-**Trả lời:** Không. Phải tải đúng truststore lab, xác minh root fingerprint, chain, SAN và chính sách TLS; fail closed nếu không xác thực được.
+**Answer:** No. Load the right lab truststore, verify the root fingerprint, chain, SAN, and TLS policy; fail closed if authentication fails.
 
-## 12. Tài liệu chính thức và tiêu chuẩn
+## 12. Official Documentation and Standards
 
-- [Oracle Java SE 17 — keytool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): các lệnh genkeypair, certreq, gencert, importcert, exportcert, extension BC/KU/EKU/SAN và thứ tự import chain.
-- [Oracle Java SE 17 — KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): API file keystore/truststore, PKCS12, alias, certificate chain.
-- [Oracle Java SE 17 — PKIXParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): TrustAnchor và tham số kiểm tra certification path.
-- [Oracle Java SE 17 — CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): xây và kiểm tra đường dẫn chứng thực theo PKIX.
-- [Oracle Java SE 17 — Java PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-pki-programmers-guide.html): cơ chế trust anchors, PKIX và extension/checker.
-- [Oracle Java SE 17 — JSSE Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): KeyManager/TrustManager, TLS và truststore.
-- [RFC 5280 — Internet X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280.html): BasicConstraints, KeyUsage, EKU, SAN, path validation, revocation và trust model.
+- [Oracle Java SE 17 — keytool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): `genkeypair`, `certreq`, `gencert`, `importcert`, `exportcert`, BC/KU/EKU/SAN extensions, and chain import ordering.
+- [Oracle Java SE 17 — KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): keystore/truststore file API, PKCS12, aliases, certificate chains.
+- [Oracle Java SE 17 — PKIXParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): `TrustAnchor` and certification path validation parameters.
+- [Oracle Java SE 17 — CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): building and validating certification paths per PKIX.
+- [Oracle Java SE 17 — Java PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/17/security/java-pki-programmers-guide.html): trust anchor mechanics, PKIX, and extensions/checkers.
+- [Oracle Java SE 17 — JSSE Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-secure-socket-extension-jsse-reference-guide.html): `KeyManager`/`TrustManager`, TLS, and truststores.
+- [RFC 5280 — Internet X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280.html): BasicConstraints, KeyUsage, EKU, SAN, path validation, revocation, and trust model.
 
-## Kết luận
+## Conclusion
 
-**Lập một CA thử nghiệm không khó về mặt lệnh keytool, nhưng quyết định CA đó được tin ở đâu mới là nội dung bảo mật cốt lõi.** Một bộ lab đúng gồm: root CA có CA=true và khóa riêng được giữ kín; leaf có CA=false, SAN=localhost, EKU=serverAuth và được ký từ CSR; server keystore chứa **private key leaf + certificate chain**; client có **truststore PKCS12 độc lập** chỉ chứa public root certificate đã xác minh fingerprint. Java có thể kiểm tra path bằng PKIX; HTTPS còn phải kiểm tra hostname, mục đích và các điều kiện TLS.
+**Setting up a test CA is easy in terms of `keytool` commands, yet deciding where that CA is trusted is the core security matter.** A proper lab setup comprises: a root CA with `CA=true` and a closely guarded private key; a leaf with `CA=false`, `SAN=localhost`, `EKU=serverAuth` signed from a CSR; a server keystore holding **the leaf private key + certificate chain**; and a client with an **isolated PKCS12 truststore** holding only the fingerprint-verified public root certificate. Java can validate the path via PKIX; HTTPS must still verify hostname, purpose, and TLS conditions.
 
-**Tuyệt đối giữ CA/truststore/key thử nghiệm ra khỏi production, không sửa cacerts hệ thống để tránh lỗi, không tắt xác thực TLS và không lấy lab root làm trust anchor chung.** Khi lên production phải dùng quy trình PKI được phê duyệt, danh tính được xác minh, chứng thư/khóa riêng và quản lý vòng đời, audit, revocation phù hợp.
+**Strictly keep test CAs, truststores, and keys out of production, never edit system `cacerts` to silence errors, never disable TLS verification, and never treat a lab root as a general trust anchor.** Moving to production requires approved PKI workflows, verified identities, proper certificate/key custody, and lifecycle, audit, and revocation management.

@@ -1,32 +1,32 @@
-# So sánh cấu hình, plugin Java, biên dịch động, kịch bản và JShell
+# Comparing Configuration, Java Plugins, Dynamic Compilation, Scripting, and JShell
 
-Trong một ứng dụng Java, “mở rộng lúc chạy” có thể có nghĩa rất khác nhau: đổi một tham số, chọn một cách xử lý đã viết sẵn, bổ sung một thư viện mới, nhận mã Java để biên dịch, thực thi một ngôn ngữ kịch bản, hoặc thử nhanh vài dòng lệnh trong JShell. Năm cách này giải quyết những nhu cầu khác nhau và có ranh giới triển khai, kiểm thử, bảo mật khác nhau.
+In a Java application, "runtime extensibility" can mean very different things: changing a parameter, picking a pre-written handler, adding a new library, receiving Java source code to compile, executing a scripting language, or quickly testing a few lines in JShell. These five approaches solve different needs and have different deployment, testing, and security boundaries.
 
-## 1. Bức tranh tổng thể: thứ gì thực sự được thay đổi?
+## 1. The Big Picture: What Actually Changes?
 
-| Cách tiếp cận | Đầu vào làm thay đổi hành vi | Cơ chế Java tiêu biểu | Có thêm logic mới mà không biên dịch lại ứng dụng chính? | Phù hợp nhất |
+| Approach | Input That Changes Behavior | Typical Java Mechanism | Adds New Logic Without Recompiling the Main App? | Best Suited For |
 |---|---|---|---|---|
-| **Cấu hình (configuration)** | Giá trị, cờ, tham số, tên chiến lược | Properties/YAML, biến môi trường, system properties, cấu hình do ứng dụng tự đọc | **Không**, nếu chỉ chọn trong những nhánh đã có | Đổi timeout, giới hạn, feature flag, chọn implementation có sẵn |
-| **Plugin Java** | JAR chứa class đã biên dịch và hợp đồng mở rộng | Interface/SPI, §ServiceLoader§, class loader, JPMS | **Có**: thêm implementation đã build, miễn tương thích API | Tích hợp adapter, định dạng, provider, tính năng độc lập |
-| **Biên dịch Java động** | Mã nguồn §.java§ nhận khi ứng dụng đang chạy | §javax.tools.JavaCompiler§, §java.compiler§, class loader | **Có**: tạo class từ nguồn Java mới | Code generation, công cụ học tập, rule đặc biệt cần Java |
-| **Kịch bản (scripting)** | Nội dung script của một ngôn ngữ được engine hỗ trợ | §javax.script§ / JSR 223 hoặc API engine riêng | **Có**, trong phạm vi ngôn ngữ/engine được cài | Quy tắc thay đổi thường xuyên, automation, DSL, glue code |
-| **JShell** | Snippet Java nhập tương tác | Công cụ §jshell§, module/API §jdk.jshell§ | **Có** trong phiên đánh giá snippet; không mặc nhiên là plugin sản phẩm | Khám phá API, chẩn đoán, dạy học, prototype |
+| **Configuration** | Values, flags, parameters, strategy names | Properties/YAML, environment variables, system properties, app-read config | **No**, if only choosing among existing branches | Changing timeouts, limits, feature flags, selecting existing implementations |
+| **Java Plugin** | JAR containing compiled classes and extension contract | Interface/SPI, §ServiceLoader§, class loaders, JPMS | **Yes**: adds built implementations, provided API compatibility holds | Integrating adapters, formats, providers, independent features |
+| **Dynamic Java Compilation** | §.java§ source code received while the app is running | §javax.tools.JavaCompiler§, §java.compiler§, class loaders | **Yes**: creates classes from new Java source | Code generation, educational tools, specialized rules needing Java |
+| **Scripting** | Script content of an engine-supported language | §javax.script§ / JSR 223 or engine-specific API | **Yes**, within the scope of the installed language/engine | Frequently changing rules, automation, DSLs, glue code |
+| **JShell** | Interactively entered Java snippets | §jshell§ tool, §jdk.jshell§ module/API | **Yes** within an evaluation session; not a production plugin by default | Exploring APIs, diagnostics, teaching, prototyping |
 
-**Cần phân biệt ba loại linh hoạt:**
+**Three types of flexibility should be distinguished:**
 
-- **Đổi dữ liệu điều khiển:** cấu hình chọn hành vi đã được lập trình và phát hành.
-- **Bổ sung mã thực thi:** plugin, biên dịch động hoặc scripting đưa thêm logic chạy vào hệ thống; sự khác nhau nằm ở nguồn mã, cách đóng gói và thời điểm kiểm tra lỗi.
-- **Thử nghiệm tương tác:** JShell giúp con người đánh giá Java ngay trong phiên làm việc; không tự cung cấp vòng đời, triển khai hay hợp đồng cho plugin production.
+- **Changing control data:** configuration selects behavior that has already been coded and released.
+- **Adding executable code:** plugins, dynamic compilation, or scripting introduce additional runtime logic into the system; the differences lie in code origin, packaging, and when errors are checked.
+- **Interactive experimentation:** JShell lets humans evaluate Java immediately within a working session; it does not by itself provide lifecycle, deployment, or contracts for production plugins.
 
-Không phương án nào tự động bảo đảm “hot reload”. Việc phát hiện thay đổi, tạo đối tượng mới, chuyển trạng thái, đóng tài nguyên và khôi phục khi lỗi phải được thiết kế riêng.
+None of these options automatically guarantees "hot reload". Detecting changes, creating new objects, transitioning states, closing resources, and recovering from errors must be designed explicitly.
 
-## 2. Cấu hình: thay đổi quyết định, không tự tạo thuật toán mới
+## 2. Configuration: Changing Decisions, Not Creating New Algorithms
 
-Cấu hình là lựa chọn ít phức tạp nhất khi ứng dụng đã biết những cách xử lý có thể dùng. Giá trị cấu hình có thể được đọc khi khởi động, tại mỗi yêu cầu, theo lịch làm mới, hoặc được đẩy qua một cơ chế cập nhật. **Một file cấu hình thay đổi không đồng nghĩa chương trình đang chạy tự tải lại nó.**
+Configuration is the least complex option when the application already knows the possible handlers. Configuration values can be read at startup, per request, on a refresh schedule, or pushed through an update mechanism. **A configuration file changing does not mean the running program automatically reloads it.**
 
-Ví dụ Java 17: chọn cách chuẩn hóa chuỗi bằng system property; cả hai cách xử lý đều đã được biên dịch.
+Java 17 example: selecting a string normalization approach via a system property; both handlers are already compiled.
 
-Tệp §ConfigDemo.java§:
+File §ConfigDemo.java§:
 
 ```java
 import java.util.Locale;
@@ -52,7 +52,7 @@ public class ConfigDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ConfigDemo.java
@@ -60,24 +60,24 @@ java ConfigDemo
 java -Dformat.mode=upper ConfigDemo
 ```
 
-Hai lần chạy lần lượt in ra:
+The two runs print respectively:
 
 ```text
 java
 JAVA
 ```
 
-Ở đây §-Dformat.mode=upper§ chỉ chọn nhánh §upper§. Thêm thuật toán dịch ngôn ngữ, kết nối hệ thống mới, hay xử lý một định dạng chưa biết vẫn cần mã đã được triển khai (trực tiếp hoặc qua một cơ chế mở rộng khác).
+Here §-Dformat.mode=upper§ only selects the §upper§ branch. Adding a language translation algorithm, connecting to a new system, or handling an unknown format still requires deployed code (directly or through another extensibility mechanism).
 
-**Thiết kế tốt:** có schema/default rõ ràng; từ chối giá trị không hợp lệ; ghi nhận phiên bản cấu hình; làm mới một cách nguyên tử nếu cho phép reload; tránh dùng giá trị cấu hình làm tên class hoặc câu lệnh tùy ý mà không kiểm soát. Cấu hình là dữ liệu điều khiển, không phải vùng chạy mã tùy tiện.
+**Good design:** have clear schemas/defaults; reject invalid values; record configuration versions; refresh atomically if reloading is allowed; avoid using configuration values as arbitrary class names or commands without validation. Configuration is control data, not an arbitrary code execution zone.
 
-## 3. Plugin Java: thêm implementation đã biên dịch qua hợp đồng ổn định
+## 3. Java Plugins: Adding Compiled Implementations Through a Stable Contract
 
-Một plugin thực hiện **extension point** mà ứng dụng chủ công bố: interface, dữ liệu đầu vào/đầu ra, quy tắc lỗi, phiên bản API và vòng đời. §ServiceLoader§ là cơ chế SPI có sẵn của Java để phát hiện provider. Thư viện như PF4J hoặc framework plugin riêng có thể bổ sung quản lý vòng đời, phiên bản và cô lập, nhưng hợp đồng với ứng dụng vẫn là vấn đề cốt lõi.
+A plugin implements an **extension point** published by the host application: interfaces, input/output data, error rules, API versioning, and lifecycle. §ServiceLoader§ is Java's built-in SPI mechanism for discovering providers. Libraries such as PF4J or custom plugin frameworks can add lifecycle, version, and isolation management, yet the contract with the application remains the core concern.
 
-### Ví dụ chạy được: nạp plugin từ JAR qua §ServiceLoader§
+### Runnable Example: Loading a Plugin from a JAR via §ServiceLoader§
 
-Tạo các tệp theo cấu trúc:
+Create the files with this structure:
 
 ```text
 src/
@@ -145,13 +145,13 @@ public class Main {
 }
 ```
 
-Nội dung tệp **§resources/META-INF/services/demo.api.TextPlugin§** chính xác là tên class provider:
+The content of **§resources/META-INF/services/demo.api.TextPlugin§** is literally the provider class name:
 
 ```text
 demo.plugins.UppercasePlugin
 ```
 
-Từ thư mục chứa §src§ và §resources§, dùng JDK 17+:
+From the directory containing §src§ and §resources§, using JDK 17+:
 
 ```bash
 javac -d app-out src/demo/api/TextPlugin.java src/demo/app/Main.java
@@ -159,47 +159,47 @@ javac -cp app-out -d plugin-out src/demo/plugins/UppercasePlugin.java
 jar --create --file plugin.jar -C plugin-out . -C resources META-INF/services
 ```
 
-Chạy trên Windows (classpath dùng dấu chấm phẩy):
+Run on Windows (classpath uses a semicolon):
 
 ```powershell
 java -cp "app-out;plugin.jar" demo.app.Main
 ```
 
-Trên Linux/macOS (classpath dùng dấu hai chấm):
+On Linux/macOS (classpath uses a colon):
 
 ```bash
 java -cp "app-out:plugin.jar" demo.app.Main
 ```
 
-Cả hai cách chạy đều in:
+Both runs print:
 
 ```text
 uppercase = JAVA PLUGIN
 ```
 
-**Điểm mấu chốt:** ứng dụng §Main§ chỉ biết §TextPlugin§; JAR mang implementation và descriptor ở §META-INF/services§. Provider phải truy cập được từ class loader mà §ServiceLoader§ dùng. Với project theo Java Platform Module System, có thể khai báo §uses§ và §provides ... with ...§ trong §module-info.java§ thay cho file service của cơ chế classpath; việc resolve module và cấp quyền §exports§/§opens§ phải được xét riêng.
+**Key point:** the §Main§ application only knows §TextPlugin§; the JAR carries the implementation and the descriptor under §META-INF/services§. The provider must be accessible from the class loader used by §ServiceLoader§. For projects using the Java Platform Module System, you can declare §uses§ and §provides ... with ...§ in §module-info.java§ instead of the classpath service file; module resolution and §exports§/§opens§ grants must be handled separately.
 
-**Giới hạn thực tế:**
+**Practical limits:**
 
-- §ServiceLoader.load(TextPlugin.class)§ phát hiện provider đang khả dụng qua class loader được chọn; nó **không tự theo dõi thư mục JAR**, tải JAR mới liên tục hoặc thay class đã load.
-- Nạp JAR sau khi ứng dụng đã chạy thường đòi hỏi thiết kế class loader riêng và gọi §ServiceLoader.load(TextPlugin.class, pluginLoader)§. Muốn cập nhật implementation phải tạo loader/instance mới và chuyển người dùng sang phiên bản mới; class cùng tên do hai class loader khác nhau định nghĩa vẫn là **hai kiểu khác nhau**.
-- Giữ API chung ở phía class loader cha, quản lý version/compatibility, dependency conflict, khởi tạo/hủy, thread, kết nối và tham chiếu tĩnh; loader không được thu gom nếu còn tham chiếu sống.
-- Plugin bên thứ ba là **mã Java có toàn bộ quyền của tiến trình**, trừ khi có cô lập ngoài JVM. Kiểm tra nguồn cung, chữ ký/hash artifact và cân nhắc chạy tiến trình riêng cho plugin không đáng tin.
+- §ServiceLoader.load(TextPlugin.class)§ discovers providers currently available through the chosen class loader; it **does not automatically watch a JAR folder**, continuously load new JARs, or replace already-loaded classes.
+- Loading JARs after the application has started typically requires a custom class loader design and calling §ServiceLoader.load(TextPlugin.class, pluginLoader)§. Updating an implementation requires creating a new loader/instance and routing users to the new version; classes with the same name defined by two different class loaders are still **two distinct types**.
+- Keep shared APIs on the parent class loader side, and manage version/compatibility, dependency conflicts, initialization/shutdown, threads, connections, and static references; a loader cannot be garbage-collected while live references remain.
+- Third-party plugins are **Java code with full process privileges**, unless isolated outside the JVM. Verify provenance and artifact signatures/hashes, and consider running untrusted plugins in separate processes.
 
-## 4. Biên dịch động: nhận Java source, tạo bytecode và nạp class mới
+## 4. Dynamic Compilation: Receiving Java Source, Generating Bytecode, and Loading New Classes
 
-Biên dịch động phù hợp khi logic mới được biểu diễn bằng **mã nguồn Java**, không chỉ là tham số và chưa tồn tại dưới dạng class/JAR. Pipeline khái quát:
+Dynamic compilation fits when new logic is expressed as **Java source code**, is more than just parameters, and does not yet exist as classes/JARs. High-level pipeline:
 
 ```text
 Java source -> JavaCompiler -> .class (bytecode)
-            -> class loader -> liên kết với API/hợp đồng -> thực thi
+            -> class loader -> link with API/contract -> execute
 ```
 
-§javax.tools.JavaCompiler§ thuộc module §java.compiler§, cho phép gọi compiler từ chương trình Java. §ToolProvider.getSystemJavaCompiler()§ có thể trả §null§ nếu runtime image không có trình biên dịch; cần môi trường JDK phù hợp. Biên dịch thành công chưa bảo đảm class an toàn, tương thích API hoặc không gây lỗi runtime.
+§javax.tools.JavaCompiler§ belongs to the §java.compiler§ module, allowing the compiler to be invoked from a Java program. §ToolProvider.getSystemJavaCompiler()§ can return §null§ if the runtime image lacks a compiler; an appropriate JDK environment is required. Successful compilation does not guarantee the class is safe, API-compatible, or free of runtime errors.
 
-### Ví dụ Java 17 chạy được: biên dịch một class lúc chương trình đang chạy
+### Runnable Java 17 Example: Compiling a Class While the Program Is Running
 
-Tệp §CompileDemo.java§:
+File §CompileDemo.java§:
 
 ```java
 import java.net.URL;
@@ -246,30 +246,30 @@ public class CompileDemo {
 }
 ```
 
-Chạy bằng JDK 17+:
+Run with JDK 17+:
 
 ```bash
 javac CompileDemo.java
 java CompileDemo
 ```
 
-Stdout khi biên dịch thành công:
+Stdout on successful compilation:
 
 ```text
 Compiled at runtime
 ```
 
-Ví dụ tạo file nguồn và class trong thư mục tạm, rồi gọi phương thức public bằng reflection. Mẫu thật thường cần §JavaFileManager§, chẩn đoán lỗi qua §DiagnosticCollector§, classpath/module path xác định, API chung, cache theo phiên bản và cơ chế dọn artefact tạm. Có thể biên dịch hoàn toàn trong bộ nhớ bằng file manager tùy chỉnh, nhưng JavaCompiler không tự thực hiện bước nạp/chạy class.
+The example creates source and class files in a temporary directory, then calls the public method via reflection. Real implementations typically need §JavaFileManager§, error diagnostics via §DiagnosticCollector§, a well-defined classpath/module path, shared APIs, versioned caching, and cleanup of temporary artifacts. Compilation can be done entirely in memory using a custom file manager, though JavaCompiler does not perform the class-loading/execution step itself.
 
-**Không coi “biên dịch được” là “an toàn để chạy”:** mã do người dùng gửi có thể đọc file, gọi mạng, tạo thread hoặc gọi native code theo quyền tiến trình. Class loader, kiểm tra cú pháp, timeout của một method hay §SecurityManager§ không phải hàng rào đáng tin cho mã không tin cậy. Nếu thật sự phải chạy Java tùy ý, dùng tiến trình/container có giới hạn quyền, CPU, bộ nhớ, thời gian và mạng ở mức hệ điều hành; thiết kế đường dừng và thu hồi tài nguyên.
+**Do not equate "compiles cleanly" with "safe to run":** user-submitted code can read files, make network calls, spawn threads, or invoke native code with process privileges. Class loaders, syntax checks, per-method timeouts, or §SecurityManager§ are not reliable barriers for untrusted code. If arbitrary Java truly must run, use a process/container with OS-level restrictions on permissions, CPU, memory, time, and network; design stop paths and resource reclamation.
 
-## 5. Scripting: diễn giải/chạy kịch bản thông qua một engine
+## 5. Scripting: Interpreting/Running Scripts Through an Engine
 
-Scripting thích hợp khi người biên soạn cần sửa quy tắc hay công thức thường xuyên mà không muốn build JAR cho mỗi thay đổi. Java cung cấp API chung §javax.script§ (JSR 223): tìm engine, truyền biến qua §Bindings§, gọi §eval§ và nhận kết quả. **API không đồng nghĩa có sẵn engine cho mọi ngôn ngữ.**
+Scripting is suitable when authors need to edit rules or formulas frequently without building a JAR for every change. Java provides the standard §javax.script§ (JSR 223) API: look up an engine, pass variables via §Bindings§, call §eval§, and receive the result. **Having the API does not mean an engine is built in for every language.**
 
-Đặc biệt, **Nashorn JavaScript engine đã bị loại khỏi JDK kể từ JDK 15**. Một JDK 17 chuẩn không tự có engine tên §JavaScript§ để §ScriptEngineManager§ tìm thấy. Muốn chạy JavaScript, Groovy hay ngôn ngữ khác, phải bổ sung engine tương thích và các dependency cần thiết, hoặc dùng API riêng của engine.
+Specifically, **the Nashorn JavaScript engine was removed from the JDK as of JDK 15**. A standard JDK 17 does not include an engine named §JavaScript§ for §ScriptEngineManager§ to find. To run JavaScript, Groovy, or other languages, you must add a compatible engine and its required dependencies, or use the engine's native API.
 
-Tệp §ScriptDemo.java§:
+File §ScriptDemo.java§:
 
 ```java
 import javax.script.ScriptEngine;
@@ -293,28 +293,28 @@ public class ScriptDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac ScriptDemo.java
 java ScriptDemo
 ```
 
-Trên JDK 17 **không cài engine bổ sung**, stdout:
+On JDK 17 **without an additional engine installed**, stdout:
 
 ```text
 No JavaScript engine installed
 ```
 
-Nếu thêm engine JavaScript tương thích, nhánh §eval§ được chạy; kiểu trả về và cách hiển thị số tùy engine nên không giả định một stdout chung cho mọi engine. Với script thực tế nên quy định rõ API được phép gọi, kiểu dữ liệu vào/ra, phiên bản engine, chính sách lỗi, timeout, audit và cách cập nhật script. Nếu chỉ cần một ngôn ngữ luật hẹp, một DSL/biểu thức có cú pháp và phép toán giới hạn thường dễ kiểm soát hơn cho người dùng cuối.
+If a compatible JavaScript engine is added, the §eval§ branch executes; return types and number formatting depend on the engine, so do not assume uniform stdout across all engines. For production scripts, clearly specify allowed APIs, input/output types, engine version, error policies, timeouts, auditing, and script update procedures. If only a narrow rule language is needed, a DSL/expression evaluator with restricted syntax and operators is often easier to control for end users.
 
-**Cảnh báo vận hành:** script có quyền gọi Java/IO hay API host tùy engine và cấu hình thì có thể mạnh như mã plugin. Chỉ giới hạn biến đưa vào §Bindings§ không đủ làm sandbox. Không chạy script không đáng tin trong tiến trình nghiệp vụ có quyền nhạy cảm nếu chưa có cô lập phù hợp.
+**Operational warning:** depending on the engine and configuration, scripts allowed to call Java/IO or host APIs can be as powerful as plugin code. Restricting variables passed into §Bindings§ alone is not a sufficient sandbox. Do not run untrusted scripts inside a business process holding sensitive privileges without proper isolation.
 
-## 6. JShell: Java REPL để thử nghiệm, không phải engine kịch bản mặc định
+## 6. JShell: Java REPL for Experimentation, Not a Default Script Engine
 
-§jshell§ là công cụ **Read–Eval–Print Loop** xuất hiện từ Java 9: nhập biểu thức, khai báo biến, method hoặc class, rồi nhận phản hồi mà không tạo trước một project Java. Khác JavaScript script engine, JShell đánh giá **snippet Java**. Nó hữu ích khi học API, kiểm tra giả thuyết và debug nhanh.
+§jshell§ is the **Read–Eval–Print Loop** tool introduced in Java 9: enter expressions, variable declarations, methods, or classes and receive feedback without creating a Java project beforehand. Unlike a JavaScript script engine, JShell evaluates **Java snippets**. It is useful for learning APIs, testing hypotheses, and quick debugging.
 
-Ví dụ trong terminal có JDK 17+:
+Example in a terminal with JDK 17+:
 
 ```text
 $ jshell
@@ -324,98 +324,98 @@ jshell> System.out.println(base + 2);
 jshell> /exit
 ```
 
-Dòng §42§ là stdout từ §System.out.println§; phần prompt/feedback của JShell có thể khác theo cấu hình và phiên. JShell còn có các lệnh §/help§, §/vars§, §/methods§, §/open§, §/save§. Khi cần nhúng vào ứng dụng, module §jdk.jshell§ cung cấp API §jdk.jshell.JShell§ để đánh giá snippet và theo dõi kết quả/sự kiện.
+The line §42§ is stdout from §System.out.println§; JShell's prompts/feedback may vary by configuration and version. JShell also provides commands like §/help§, §/vars§, §/methods§, §/open§, and §/save§. When embedding into an application is needed, the §jdk.jshell§ module provides the §jdk.jshell.JShell§ API to evaluate snippets and observe results/events.
 
-Điểm khác biệt với biên dịch Java động bằng §JavaCompiler§: JShell hỗ trợ vòng tương tác và trạng thái snippet qua nhiều lượt nhập, với quy tắc riêng cho khai báo/chỉnh sửa/thay thế snippet. Nó không thay cho một hệ thống build, kho version, hợp đồng plugin, dependency resolution hoặc cơ chế cập nhật an toàn. Dùng JShell làm “cho khách hàng nhập Java rồi chạy” vẫn đặt ra cùng vấn đề tin cậy mã như biên dịch và thực thi Java động.
+How it differs from dynamic Java compilation with §JavaCompiler§: JShell supports an interactive loop and snippet state across multiple inputs, with its own rules for declaring/modifying/replacing snippets. It does not replace a build system, version repository, plugin contract, dependency resolution, or safe update mechanism. Using JShell to "let customers enter Java and run it" still raises the same code-trust issues as dynamic compilation and execution.
 
-## 7. Chọn cách nào theo nhu cầu?
+## 7. Which One Should You Choose Based on Need?
 
-| Tình huống | Ưu tiên | Lý do và điều kiện |
+| Scenario | Preferred Choice | Reason and Conditions |
 |---|---|---|
-| Thay endpoint, timeout, mức log, bật một tính năng đã có | **Cấu hình** | Thay dữ liệu; có thể cần restart/reload theo cách ứng dụng thiết kế |
-| Chọn một trong các thuật toán đã code sẵn theo tenant | **Cấu hình + Strategy** | Không cần plugin nếu tập thuật toán đóng và ít thay |
-| Bên thứ ba cung cấp adapter xuất dữ liệu dưới dạng JAR | **Plugin Java** | Công bố interface/SPI, version API, quy trình đóng gói và kiểm thử |
-| Nạp provider mới trong hệ thống đang phục vụ request | **Plugin + loader/vòng đời riêng** | §ServiceLoader§ đơn lẻ không giải quyết hot reload, chuyển phiên bản hoặc leak |
-| Công cụ tạo class Java từ schema tại runtime | **Biên dịch động** | Có Java source, cần xử lý lỗi compiler và class loading |
-| Người vận hành chỉnh quy tắc nghiệp vụ ngắn nhiều lần mỗi ngày | **Scripting hoặc DSL có kiểm soát** | Cần ngôn ngữ nhỏ, cập nhật/version/audit; không nhất thiết cần toàn bộ Java |
-| Kỹ sư muốn thử API và quan sát kết quả vài dòng code | **JShell** | Phù hợp với phiên tương tác và học tập |
-| Cho mã từ người dùng không đáng tin chạy trên server | **Đặt ranh giới an toàn trước khi chọn cơ chế** | Không cách nào trong năm cách tự cung cấp sandbox đáng tin |
+| Changing endpoints, timeouts, log levels, toggling an existing feature | **Configuration** | Changes data; may need restart/reload depending on app design |
+| Picking one of several pre-coded algorithms per tenant | **Configuration + Strategy** | No plugin needed if the algorithm set is closed and rarely changes |
+| Third party supplies a data-export adapter as a JAR | **Java Plugin** | Publish interface/SPI, API versioning, packaging and testing workflow |
+| Loading new providers in a live request-serving system | **Plugin + custom loader/lifecycle** | §ServiceLoader§ alone does not solve hot reload, version switching, or leaks |
+| Tool generating Java classes from a schema at runtime | **Dynamic Compilation** | Has Java source; must handle compiler errors and class loading |
+| Operators tweaking short business rules multiple times a day | **Scripting or controlled DSL** | Needs a small language, updates/versioning/auditing; full Java not necessarily needed |
+| Engineer wants to try an API and inspect results of a few lines | **JShell** | Suited for interactive sessions and learning |
+| Letting untrusted users run code on a server | **Establish security boundaries before picking a mechanism** | None of the five approaches provides a reliable sandbox on its own |
 
-Một sơ đồ quyết định ngắn:
+A short decision tree:
 
 ```text
-Có cần thêm thuật toán chưa được đóng gói?
-├─ Không -> Cấu hình; có thể chọn Strategy đã biên dịch
-└─ Có
-   ├─ Đã có JAR theo extension API -> Plugin Java
-   ├─ Có Java source cần biên dịch -> JavaCompiler + class loader
-   ├─ Có script theo engine/DSL -> Scripting
-   └─ Chỉ thử nghiệm Java tương tác -> JShell
+Need to add unpackaged algorithms?
+├─ No -> Configuration; can choose a compiled Strategy
+└─ Yes
+   ├─ Already have a JAR following an extension API -> Java Plugin
+   ├─ Have Java source needing compilation -> JavaCompiler + class loader
+   ├─ Have a script for an engine/DSL -> Scripting
+   └─ Only interactive Java experimentation -> JShell
 ```
 
-Sơ đồ lựa chọn theo bản chất đầu vào; mức độ tin cậy và yêu cầu cô lập có thể khiến phương án phải thay đổi dù cùng loại đầu vào.
+This decision tree categorizes by input nature; trust level and isolation requirements may force a different choice even for the same input type.
 
-## 8. Kết hợp trong một kiến trúc mở rộng
+## 8. Combining Them in an Extensible Architecture
 
-Trong sản phẩm lớn, các cách trên có thể **bổ sung cho nhau**:
+In large products, these approaches can **complement one another**:
 
-1. Ứng dụng công bố §TextPlugin§ (API ổn định); một số implementation tích hợp sẵn, một số đến từ JAR ngoài.
-2. §ServiceLoader§ hoặc plugin registry phát hiện các provider và quản lý phiên bản, trạng thái sẵn sàng.
-3. Cấu hình §transform.provider=uppercase§ chọn provider đang có. Đổi cấu hình chỉ thay lựa chọn; thêm một provider mới vẫn đòi hỏi JAR và quy trình nạp.
-4. Khi nghiệp vụ thật sự cần quy tắc mềm dẻo, một provider riêng có thể gọi DSL/script engine đã được quản trị. Điều đó không biến mọi plugin thành script.
-5. JShell dành cho kỹ sư thử API hoặc điều tra lỗi trong môi trường được kiểm soát, không nằm trên đường chạy request của người dùng cuối.
-6. Nếu nhận Java source, biên dịch động là pipeline riêng; kiểm thử và cách ly artifact trước khi cho bản biên dịch tham gia hệ thống thực.
+1. The application publishes §TextPlugin§ (a stable API); some implementations are built in, while others come from external JARs.
+2. §ServiceLoader§ or a plugin registry discovers providers and manages versions and readiness states.
+3. Configuration §transform.provider=uppercase§ selects an available provider. Changing configuration only changes the selection; adding a new provider still requires a JAR and loading workflow.
+4. When business needs genuinely demand flexible rules, a dedicated provider can invoke a managed DSL/script engine. That does not turn every plugin into a script.
+5. JShell is for engineers testing APIs or investigating issues in controlled environments, not on the end-user request path.
+6. If Java source is accepted, dynamic compilation is a separate pipeline; test and isolate artifacts before letting compiled output participate in the live system.
 
-Ví dụ luồng triển khai:
+Example deployment flow:
 
 ```text
-Cấu hình chọn provider
+Configuration selects provider
         |
         v
-Plugin registry --(SPI/API chung)--> Java plugin đã build
+Plugin registry --(shared SPI/API)--> Built Java plugin
         |                               |
-        |                               +--> xử lý nghiệp vụ
-        +--> provider chạy DSL (nếu có engine)
+        |                               +--> business processing
+        +--> provider running DSL (if engine exists)
         |
-        +--> provider sinh từ Java source (nếu có pipeline compile riêng)
+        +--> provider generated from Java source (if separate compile pipeline exists)
 
-JShell: công cụ thăm dò/diagnostics ngoài luồng xử lý chính
+JShell: exploratory/diagnostics tool outside the main processing flow
 ```
 
-Muốn “thay hành vi không restart”, cần thêm cơ chế quản trị phiên bản: xây phiên bản mới bên cạnh bản cũ, kiểm tra sức khỏe, chuyển request mới sang bản mới, để request cũ hoàn thành, đóng tài nguyên và có rollback. Không sửa trực tiếp class đã load hay kỳ vọng thay JAR trên đĩa lập tức thay bytecode đang chạy.
+To "swap behavior without restarting", you also need version-management mechanics: build the new version alongside the old one, run health checks, route new requests to the new version, let old requests finish, close resources, and support rollback. Do not directly mutate loaded classes or expect replacing a JAR on disk to immediately replace running bytecode.
 
-## 9. Các trục đánh đổi quan trọng
+## 9. Important Trade-Off Axes
 
-### Độ phức tạp và hiệu năng
+### Complexity and Performance
 
-- **Cấu hình:** rẻ nhất để triển khai và test; thay đổi thường chỉ ảnh hưởng đến chọn nhánh/giá trị, nhưng cơ chế reload cần đồng bộ và xử lý cấu hình lỗi.
-- **Plugin:** chi phí nạp class/khởi tạo phụ thuộc số provider và dependency; khi đã nạp, lời gọi interface thông thường gần với code Java khác. Cần bảo đảm compatibility và vòng đời.
-- **Biên dịch động:** tốn CPU/bộ nhớ cho biên dịch, có lỗi compile, quản lý file/class loader. Không nên compile lại cùng nguồn cho mỗi request; dùng hash/phiên bản để cache và công bố artifact đã kiểm thử.
-- **Scripting:** phụ thuộc engine, phương thức eval/compile/cache và tương tác với JVM. Có thể tốn chi phí parse/interpret; không thể kết luận mọi script đều chậm hơn Java mà không benchmark workload thực.
-- **JShell:** tối ưu cho phản hồi tương tác của người dùng, không nhằm làm đường thực thi giao dịch có throughput cao; duy trì state/snippet cũng cần kiểm soát tài nguyên.
+- **Configuration:** cheapest to deploy and test; changes typically affect only branch/value selection, though reload mechanisms must be synchronized and handle malformed configs.
+- **Plugins:** class-loading/initialization cost depends on provider count and dependencies; once loaded, regular interface calls perform comparably to other Java code. Compatibility and lifecycle must be maintained.
+- **Dynamic compilation:** incurs CPU/memory cost for compilation, compiler errors, and file/class-loader management. Do not recompile the same source on every request; cache by hash/version and publish tested artifacts.
+- **Scripting:** depends on the engine, eval/compile/cache mode, and JVM interaction. Can incur parsing/interpretation overhead; one cannot conclude every script is slower than Java without benchmarking actual workloads.
+- **JShell:** optimized for interactive user feedback, not intended as a high-throughput transactional execution path; maintaining snippet state also requires resource control.
 
-### Bảo mật, kiểm thử và quản trị
+### Security, Testing, and Governance
 
-| Cần kiểm tra | Cấu hình | Plugin | Biên dịch động | Scripting | JShell |
+| Area to Check | Configuration | Plugin | Dynamic Compilation | Scripting | JShell |
 |---|---|---|---|---|---|
-| Xác thực dữ liệu đầu vào | Schema, kiểu, giới hạn | Manifest, API, provenance | Source/policy/diagnostics | Script/policy/engine | Người dùng/phiên/snippet |
-| Tương thích phiên bản | Schema config | API/ABI, dependency, JPMS | Compiler options, classpath | Engine + host API | Phiên bản JDK/module |
-| Rollback | Cấu hình trước | JAR/registry trước | Artifact/class loader trước | Script version trước | Khởi tạo lại session |
-| Cô lập mã không tin cậy | Thường không phát sinh mã mới | Cần process isolation | Cần process isolation | Cần process isolation nếu script mạnh | Cần process isolation |
-| Quan sát lỗi | Validation/reload logs | Provider id, init, timeout | Diagnostic + runtime trace | Script id, engine, stack trace | Snippet status/event |
+| Input validation | Schema, types, bounds | Manifest, API, provenance | Source/policy/diagnostics | Script/policy/engine | User/session/snippet |
+| Version compatibility | Config schema | API/ABI, dependencies, JPMS | Compiler options, classpath | Engine + host API | JDK/module version |
+| Rollback | Previous config | Previous JAR/registry | Previous artifact/class loader | Previous script version | Reinitialize session |
+| Untrusted code isolation | Usually introduces no new code | Needs process isolation | Needs process isolation | Needs process isolation if scripts are powerful | Needs process isolation |
+| Error observability | Validation/reload logs | Provider id, init, timeout | Diagnostics + runtime trace | Script id, engine, stack trace | Snippet status/events |
 
-**Quy tắc thiết kế:** ghi log *phiên bản cụ thể đang thực thi* (config revision, plugin id/version, hash source/class, script id/version); giới hạn tài nguyên; có circuit breaker/timeout phù hợp; không để nhà cung cấp plugin giữ bí mật hoặc dependency nội bộ ngoài hợp đồng; phân biệt lỗi nạp, lỗi compile và lỗi khi thực thi.
+**Design rule:** log the *exact executing version* (config revision, plugin id/version, source/class hash, script id/version); bound resources; apply appropriate circuit breakers/timeouts; do not let plugin suppliers hold secrets or internal dependencies outside the contract; separate loading errors, compilation errors, and execution errors.
 
-## 10. Những nhầm lẫn thường gặp
+## 10. Common Misconceptions
 
-1. **“Đổi YAML là có logic mới.”** Sai: YAML chỉ chứa dữ liệu; logic mới phải được build/nạp hoặc được một engine có khả năng thực thi xử lý.
-2. **“ServiceLoader là hot swap.”** Sai: SPI giúp tìm provider, không tự cập nhật JAR, đổi implementation của object đang dùng hoặc thu hồi class loader.
-3. **“Class loader là sandbox.”** Sai: nó cô lập namespace và hỗ trợ nạp class; không mặc nhiên chặn file, mạng, thread hay native access của mã được nạp.
-4. **“JavaCompiler chạy code ngay.”** Sai: compiler tạo class/diagnostics; để thực thi cần bước nạp class và gọi method theo một hợp đồng.
-5. **“Java 17 có sẵn JavaScript qua javax.script.”** Sai với JDK 17 tiêu chuẩn: API tồn tại nhưng Nashorn không còn; phải cài engine tương ứng.
-6. **“JShell và JavaScript là một.”** Sai: JShell xử lý snippet **Java**, còn JavaScript là một ngôn ngữ khác cần runtime/engine riêng.
-7. **“Chạy script hoặc snippet là vô hại hơn plugin.”** Sai: mức rủi ro phụ thuộc quyền thực tế và khả năng truy cập host; phần mở rộng có thể gây lỗi, rò dữ liệu hoặc làm cạn tài nguyên.
-8. **“Thêm plugin là không cần deploy.”** Không nhất thiết: nếu app chỉ scan classpath lúc startup thì phải triển khai JAR và khởi động lại; live plugin loader là tính năng phải chủ động xây.
-9. **“Chọn phương án linh hoạt nhất sẽ tốt nhất.”** Không: mỗi cơ chế thêm bề mặt lỗi, quản trị phiên bản và bảo mật. Chọn cơ chế đơn giản nhất vẫn đáp ứng loại thay đổi cần hỗ trợ.
+1. **"Changing YAML adds new logic."** False: YAML only holds data; new logic must be built/loaded or processed by an executable engine.
+2. **"`ServiceLoader` is hot swap."** False: SPI discovers providers; it does not update JARs, swap implementations of live objects, or reclaim class loaders.
+3. **"Class loaders are a sandbox."** False: they isolate namespaces and support class loading; they do not inherently block file, network, thread, or native access by loaded code.
+4. **"`JavaCompiler` runs code immediately."** False: the compiler produces classes/diagnostics; execution requires loading the class and invoking a method under a contract.
+5. **"Java 17 includes JavaScript out of the box via `javax.script`."** False for standard JDK 17: the API exists, but Nashorn is gone; a corresponding engine must be installed.
+6. **"JShell and JavaScript are the same thing."** False: JShell evaluates **Java** snippets, whereas JavaScript is a different language requiring its own runtime/engine.
+7. **"Running scripts or snippets is harmless compared to plugins."** False: risk depends on actual privileges and host access; extensions can cause errors, leak data, or exhaust resources.
+8. **"Adding plugins means no deployment is needed."** Not necessarily: if the app only scans the classpath at startup, you must deploy the JAR and restart; live plugin loading is a feature you must actively build.
+9. **"The most flexible option is always best."** No: every mechanism adds error surface, version governance, and security burden. Choose the simplest mechanism that still supports the needed axis of change.
 
-**Ghi nhớ:** cấu hình **chọn** hành vi có sẵn; plugin **cắm thêm** Java bytecode đã build qua API; biên dịch động **tạo** bytecode từ Java source; scripting **đánh giá** chương trình bằng một engine; JShell **thử** Java tương tác. Xác định đầu vào thay đổi và ranh giới tin cậy trước khi chọn công cụ.
+**Takeaway:** configuration **selects** existing behavior; plugins **plug in** pre-built Java bytecode via an API; dynamic compilation **produces** bytecode from Java source; scripting **evaluates** programs with an engine; JShell **experiments** with Java interactively. Identify the changing input and trust boundaries before choosing the tool.

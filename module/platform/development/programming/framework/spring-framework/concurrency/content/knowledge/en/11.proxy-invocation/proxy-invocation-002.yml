@@ -1,0 +1,3 @@
+menuLevel1: Proxy và lời gọi
+menuLevel2: Vì sao phương thức tự gọi trong cùng bean không kích hoạt @Async ở chế độ proxy
+status: WRITTEN

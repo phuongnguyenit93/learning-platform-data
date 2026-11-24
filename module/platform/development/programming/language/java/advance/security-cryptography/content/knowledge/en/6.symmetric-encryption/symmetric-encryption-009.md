@@ -1,64 +1,64 @@
-# 6.9 ChaCha20, ChaCha20-Poly1305 và quản lý nonce
+# 6.9 ChaCha20, ChaCha20-Poly1305, and Nonce Management
 
-**ChaCha20** là stream cipher hiện đại dùng khóa bí mật 256 bit để tạo luồng byte giả ngẫu nhiên (*keystream*) rồi XOR với dữ liệu cần mã hóa. **ChaCha20-Poly1305** kết hợp ChaCha20 với cơ chế xác thực Poly1305 để tạo **AEAD** (*Authenticated Encryption with Associated Data*): vừa bảo vệ bí mật bản rõ, vừa phát hiện nội dung và metadata được xác thực bị thay đổi. Cả hai đòi hỏi quản lý **nonce** cẩn thận. Lặp nonce với cùng khóa có thể làm lộ thông tin bản rõ; với ChaCha20-Poly1305 còn phá vỡ các giả định bảo mật của thẻ xác thực.
+**ChaCha20** is a modern stream cipher that uses a 256-bit secret key to generate a pseudorandom byte stream (*keystream*) and XORs it with the data to encrypt. **ChaCha20-Poly1305** combines ChaCha20 with the Poly1305 authenticator to form an **AEAD** (*Authenticated Encryption with Associated Data*): it both protects plaintext confidentiality and detects modifications to the content and authenticated metadata. Both require careful **nonce** management. Repeating a nonce with the same key can leak plaintext information; with ChaCha20-Poly1305 it also breaks the security assumptions of the authentication tag.
 
-Bài học thuộc phần **mã hóa đối xứng** của Java Cryptography Architecture/Extension (JCA/JCE). Mục tiêu là hiểu thuật toán, dùng đúng API Java 17+, và thiết kế vòng đời nonce an toàn khi ứng dụng có nhiều bản tin, luồng, tiến trình hoặc phải phục hồi sau sự cố.
+This lesson belongs to the **symmetric encryption** section of the Java Cryptography Architecture/Extension (JCA/JCE). The goal is to understand the algorithm, use the Java 17+ APIs properly, and design a safe nonce lifecycle when an application handles multiple messages, threads, processes, or crash recovery.
 
-## 1. Phân biệt rõ ba khái niệm
+## 1. Clearly Distinguish Three Concepts
 
-| Thành phần | Chức năng | Kích thước theo biến thể IETF/RFC 8439 | Điều không được nhầm |
+| Component | Function | Sizes in IETF/RFC 8439 Variant | What Not to Confuse |
 | --- | --- | --- | --- |
-| **ChaCha20** | Mã hóa/giải mã bằng XOR với keystream | Khóa **256 bit**; nonce **96 bit**; bộ đếm block **32 bit**; block keystream **64 byte** | Chỉ bảo mật nội dung; **không tự phát hiện sửa ciphertext**. |
-| **Poly1305** | Bộ xác thực thông điệp với **khóa dùng một lần** | Tag **128 bit (16 byte)** | Không dùng Poly1305 độc lập với một khóa dùng đi dùng lại cho nhiều thông điệp. |
-| **ChaCha20-Poly1305** | AEAD: mã hóa và kiểm tra tính toàn vẹn/xác thực | Khóa **256 bit**; nonce **96 bit (12 byte)**; tag **128 bit (16 byte)** | Tag được kiểm tra khi giải mã; **nonce vẫn phải duy nhất với mỗi khóa mã hóa**. |
+| **ChaCha20** | Encrypt/decrypt by XORing with a keystream | **256-bit** key; **96-bit** nonce; **32-bit** block counter; **64-byte** keystream block | Protects content secrecy only; **does not detect ciphertext modification**. |
+| **Poly1305** | Message authenticator using a **one-time key** | **128-bit (16-byte)** tag | Never use standalone Poly1305 with a single key reused across multiple messages. |
+| **ChaCha20-Poly1305** | AEAD: encryption plus integrity/authenticity check | **256-bit** key; **96-bit (12-byte)** nonce; **128-bit (16-byte)** tag | Tag is verified on decryption; **the nonce must still be unique per encryption key**. |
 
-Trong cả hai chế độ, nonce là giá trị phân biệt một lần sử dụng khóa; nó **không bắt buộc bí mật**. Có thể gửi nonce cùng ciphertext để bên nhận giải mã. Tuy nhiên, từ “không cần bí mật” **không** đồng nghĩa “được phép lặp lại”.
+In both modes, the nonce is a value distinguishing one invocation of the key; it **need not be secret**. You can transmit the nonce alongside the ciphertext so the receiver can decrypt. However, "need not be secret" **does not** mean "may be repeated".
 
-Đối với AEAD, dữ liệu phụ trợ **AAD** (ví dụ phiên bản định dạng, mã bản ghi, tenant, thứ tự bản tin) được **xác thực nhưng không mã hóa**. Chúng vẫn nhìn thấy được nếu gửi rõ. Cùng một AAD phải được sử dụng dưới dạng **các byte giống hệt nhau** lúc mã hóa và giải mã.
+For AEAD, **AAD** auxiliary data (e.g., format version, record ID, tenant, message sequence) is **authenticated but not encrypted**. It remains visible if sent in cleartext. The exact same AAD must be supplied as **identical bytes** during encryption and decryption.
 
-**Chọn đúng lớp bảo vệ:** khi chỉ dùng `ChaCha20`, người nhận không có bằng chứng ciphertext được giữ nguyên. Với nội dung có thể bị tấn công, ưu tiên `ChaCha20-Poly1305` hoặc một AEAD được phê duyệt, thay vì tự ghép stream cipher với một checksum như SHA-256.
+**Choosing the right protection layer:** using `ChaCha20` alone gives the receiver no proof that the ciphertext is intact. For content exposed to tampering, prefer `ChaCha20-Poly1305` or an approved AEAD rather than combining a stream cipher with a checksum like SHA-256.
 
-## 2. ChaCha20 hoạt động như thế nào?
+## 2. How Does ChaCha20 Work?
 
-ChaCha20 là một ARX cipher (*addition, rotation, XOR*). Lõi của thuật toán xử lý một trạng thái 16 từ 32 bit, thực hiện **20 vòng** biến đổi bằng các phép cộng modulo `2^32`, xoay bit và XOR. Mỗi lần xử lý block sinh **64 byte keystream** từ:
+ChaCha20 is an ARX cipher (*addition, rotation, XOR*). The algorithm's core operates on a state of sixteen 32-bit words, running **20 rounds** of transformations using addition modulo `2^32`, bit rotations, and XOR. Each block evaluation generates **64 bytes of keystream** from:
 
-- Một **key 32 byte**;
-- Một **nonce 12 byte**;
-- Một **block counter 32 bit**.
+- A **32-byte key**;
+- A **12-byte nonce**;
+- A **32-bit block counter**.
 
-Đối với một block, phép mã hóa có thể hình dung:
+For a single block, encryption can be visualized as:
 
 ```text
-                         key 256 bit
-                             |
-nonce 96 bit ----------> ChaCha20 block function <---------- block counter 32 bit
-                             |
-                       keystream 64 byte
-                             |
+                          256-bit key
+                              |
+96-bit nonce -----------> ChaCha20 block function <---------- 32-bit block counter
+                              |
+                        64-byte keystream
+                              |
 plaintext block -------------XOR---------------------------> ciphertext block
 ```
 
-Giải mã cũng là XOR cùng keystream:
+Decryption is also an XOR with the exact same keystream:
 
 ```text
 C = P XOR KS(key, nonce, counter)
 P = C XOR KS(key, nonce, counter)
 ```
 
-Bởi `x XOR y XOR y = x`, cùng khóa, nonce và counter phải được dùng để khôi phục bản rõ. **Bộ đếm block** tăng khi xử lý các block liên tiếp của *cùng một thông điệp*. Điều đó khác với **bộ đếm thông điệp** mà hệ thống dùng để tạo một nonce mới cho thông điệp kế tiếp.
+Because `x XOR y XOR y = x`, the same key, nonce, and counter must be used to recover the plaintext. The **block counter** increments when processing consecutive blocks of *the same message*. That differs from the **message counter** a system uses to generate a fresh nonce for the next message.
 
-### 2.1 Hai bộ đếm khác nhau
+### 2.1 Two Different Counters
 
-| Bộ đếm | Nằm ở đâu? | Nhiệm vụ |
+| Counter | Where It Lives | Responsibility |
 | --- | --- | --- |
-| **ChaCha20 block counter (32 bit)** | Bên trong thao tác mã hóa một thông điệp | Chọn block keystream tiếp theo của cùng cặp key/nonce; phải tránh wrap và chồng vùng keystream. |
-| **Message sequence / nonce counter** | Do ứng dụng hoặc giao thức quản lý | Cấp **nonce 96 bit mới** cho mỗi lần mã hóa dùng cùng key; phải được cấp phát duy nhất, kể cả khi chạy đồng thời và khởi động lại. |
+| **ChaCha20 block counter (32-bit)** | Inside the encryption of one message | Selects the next keystream block for the same key/nonce pair; must avoid wrapping and overlapping keystream ranges. |
+| **Message sequence / nonce counter** | Managed by the application or protocol | Allocates a **fresh 96-bit nonce** for each encryption under the same key; must be uniquely allocated across concurrency and restarts. |
 
-Trong biến thể IETF, mỗi cặp `(key, nonce)` có không gian block counter hữu hạn, xấp xỉ tối đa 256 GiB keystream nếu tính `2^32 × 64` byte, và AEAD còn dành block counter 0 cho khóa Poly1305. Không thiết kế một bản tin lớn vô hạn dựa vào việc counter tự wrap. Thực tế nên chia thành **bản ghi có kích thước giới hạn**, mỗi bản ghi dùng nonce mới, và áp dụng giới hạn nhỏ hơn theo giao thức/provider.
+In the IETF variant, each `(key, nonce)` pair has a finite block counter space—roughly 256 GiB of keystream maximum given `2^32 × 64` bytes, and AEAD additionally reserves block counter 0 for the Poly1305 key. Never design an unboundedly large message relying on counter wraparound. In practice, split data into **bounded-size records**, give each record a fresh nonce, and apply tighter limits per protocol/provider.
 
-### 2.2 Vì sao tái sử dụng nonce nguy hiểm?
+### 2.2 Why Is Nonce Reuse Dangerous?
 
-Nếu hai thông điệp được mã hóa bằng **cùng key, cùng nonce và vùng counter trùng nhau**, keystream tương ứng bị lặp:
+If two messages are encrypted with the **same key, same nonce, and overlapping counter ranges**, the corresponding keystream repeats:
 
 ```text
 C1 = P1 XOR KS
@@ -67,88 +67,88 @@ C2 = P2 XOR KS
 C1 XOR C2 = P1 XOR P2
 ```
 
-Kẻ quan sát có thể tính XOR của hai bản rõ từ hai bản mã. Nếu biết một bản rõ, họ khôi phục được phần tương ứng của bản rõ còn lại. Nếu thông điệp có cấu trúc dự đoán được, mức rò rỉ có thể nghiêm trọng. Đây **không** phải chuyện nonce “ít ngẫu nhiên” theo cảm giác; lỗi cốt lõi là **dùng lại vùng keystream**.
+An observer can compute the XOR of the two plaintexts from the two ciphertexts. If one plaintext is known, they recover the corresponding portion of the other plaintext. If messages have predictable structure, the leakage can be severe. This is **not** a vague matter of a nonce feeling "less random"; the core flaw is **reusing a keystream region**.
 
-Thay đổi `counter` không được coi là một cách tùy tiện để “cứu” nonce lặp. Nếu ứng dụng tự chia vùng counter thì phải bảo đảm các vùng keystream không chồng, theo dõi giới hạn block và nhất quán giao thức; trong hệ thống thông thường, quy tắc đơn giản và an toàn hơn là **mỗi thông điệp có nonce riêng**.
+Changing `counter` must not be treated as a casual trick to "rescue" a repeated nonce. If an application manually partitions counter ranges, it must guarantee keystream regions never overlap, track block limits, and maintain protocol consistency; in typical systems, the simpler and safer rule is **one unique nonce per message**.
 
-## 3. ChaCha20-Poly1305 bổ sung điều gì?
+## 3. What Does ChaCha20-Poly1305 Add?
 
-ChaCha20-Poly1305 theo RFC 8439 là một dạng **AEAD**. Một lần mã hóa dùng:
+ChaCha20-Poly1305 per RFC 8439 is an **AEAD** construction. One encryption uses:
 
 ```text
 Input:
-  key       = 32 byte
-  nonce     = 12 byte, không lặp với key này
-  plaintext = byte[] cần giữ bí mật
-  AAD       = byte[] cần xác thực nhưng không cần giấu
+  key       = 32 bytes
+  nonce     = 12 bytes, non-repeating under this key
+  plaintext = byte[] to keep confidential
+  AAD       = byte[] to authenticate without hiding
 
 Output:
   ciphertext
-  authentication tag = 16 byte
+  authentication tag = 16 bytes
 ```
 
-Quy trình khái quát:
+High-level flow:
 
-1. Dùng ChaCha20 với `counter = 0` để **dẫn xuất khóa Poly1305 dùng một lần** từ cặp key/nonce. Khóa này không phải một khóa lâu dài độc lập.
-2. Dùng ChaCha20 từ `counter = 1` để mã hóa plaintext thành ciphertext.
-3. Tính tag Poly1305 trên **AAD, ciphertext, phần đệm và độ dài được mã hóa theo RFC 8439**. Tag 16 byte được gửi cùng ciphertext.
-4. Khi giải mã, kiểm tra tag theo đúng AAD và ciphertext. Nếu sai, **từ chối bản tin**; không sử dụng plaintext chưa được xác thực.
+1. Run ChaCha20 with `counter = 0` to **derive a one-time Poly1305 key** from the key/nonce pair. This key is not an independent long-term key.
+2. Run ChaCha20 starting at `counter = 1` to encrypt plaintext into ciphertext.
+3. Compute the Poly1305 tag over **AAD, ciphertext, padding, and encoded lengths per RFC 8439**. The 16-byte tag is sent with the ciphertext.
+4. On decryption, verify the tag against the exact AAD and ciphertext. If invalid, **reject the message**; never use unauthenticated plaintext.
 
 ```text
-                      (key, nonce)
-                            |
-                +-----------+-----------+
-                |                       |
-        ChaCha20 counter=0      ChaCha20 counter=1,2,...
-                |                       |
-        one-time Poly1305 key       ciphertext
-                |                       |
-                +-----------+-----------+
-                            |
-             Poly1305 xác thực AAD + ciphertext
-                            |
-                       tag 16 byte
+                       (key, nonce)
+                             |
+                 +-----------+-----------+
+                 |                       |
+         ChaCha20 counter=0      ChaCha20 counter=1,2,...
+                 |                       |
+         one-time Poly1305 key       ciphertext
+                 |                       |
+                 +-----------+-----------+
+                             |
+              Poly1305 authenticates AAD + ciphertext
+                             |
+                         16-byte tag
 ```
 
-Từ góc nhìn Java, ta **không cần tự triển khai** phép lấy khóa Poly1305, sắp xếp phần đệm hay kiểm tra tag. `Cipher.getInstance("ChaCha20-Poly1305")` làm các bước này. Tự ghép `ChaCha20` với `Poly1305` rất dễ sai ranh giới dữ liệu, counter, độ dài và xử lý lỗi.
+From a Java perspective, you **do not manually implement** Poly1305 key derivation, padding alignment, or tag verification. `Cipher.getInstance("ChaCha20-Poly1305")` performs these steps. Manually gluing `ChaCha20` and `Poly1305` together easily breaks data boundaries, counters, lengths, and error handling.
 
-### 3.1 AAD mang ý nghĩa gì?
+### 3.1 What Does AAD Mean?
 
-Giả sử một bản ghi có:
+Suppose a record contains:
 
-- `version`: phiên bản định dạng;
-- `recordId`: định danh bản ghi;
-- `tenantId`: phạm vi sở hữu;
-- `ciphertext`: dữ liệu thực tế.
+- `version`: format version;
+- `recordId`: record identifier;
+- `tenantId`: ownership scope;
+- `ciphertext`: actual data.
 
-Ứng dụng có thể đưa `version`, `recordId`, `tenantId` đã được mã hóa thành byte theo chuẩn nhất quán vào **AAD**. Nếu ai đó sửa `tenantId` hoặc `recordId` trong metadata được xác thực, giải mã với AAD khác sẽ thất bại. Tuy nhiên, nếu phần metadata đó không được đưa vào AAD, AEAD **không tự biết** ứng dụng muốn bảo vệ trường nào.
+The application can encode `version`, `recordId`, and `tenantId` deterministically into bytes and pass them into **AAD**. If someone alters `tenantId` or `recordId` in the authenticated metadata, decryption with the mismatched AAD fails. However, if that metadata is omitted from AAD, AEAD **does not automatically know** which fields the application intended to protect.
 
-AAD không bí mật; không đặt mật khẩu/khóa vào đó. Tránh ghép chuỗi bằng dấu phân cách mơ hồ (`a|bc` so với `ab|c`) hoặc phụ thuộc thứ tự trường không cố định. Chọn encoding cố định (ví dụ dạng nhị phân gồm field ID + độ dài + bytes, hoặc cấu trúc canonical đã quy định) và giữ cả hai phía thống nhất.
+AAD is not secret; never put passwords/keys into it. Avoid concatenating strings with ambiguous delimiters (`a|bc` vs. `ab|c`) or relying on unstable field ordering. Pick a fixed encoding (e.g., binary field ID + length + bytes, or a defined canonical structure) and keep both sides consistent.
 
-### 3.2 AEAD không tự chống replay
+### 3.2 AEAD Does Not Prevent Replay on Its Own
 
-Nếu một ciphertext, nonce, AAD, tag **hợp lệ** được gửi lại nguyên vẹn, kiểm tra tag vẫn có thể thành công. AEAD bảo vệ tính xác thực của dữ liệu, không tự ghi nhớ rằng thông điệp đã từng được xử lý. Với giao thức có trạng thái, cần thêm `messageId`, sequence hoặc timestamp **được xác thực** và một cơ chế chống replay/rollback ở đầu nhận.
+If a **valid** ciphertext, nonce, AAD, and tag are re-sent verbatim, tag verification will still succeed. AEAD protects data authenticity—it does not remember whether a message was already processed. Stateful protocols need an **authenticated** `messageId`, sequence, or timestamp plus anti-replay/anti-rollback tracking on the receiving side.
 
-## 4. API Java 17+: gọi đúng thuật toán và ParameterSpec
+## 4. Java 17+ API: Using the Right Algorithm Name and ParameterSpec
 
-JCA/JCE cung cấp hai tên `Cipher` có liên quan nhưng contract khác nhau:
+JCA/JCE provides two related `Cipher` names with distinct contracts:
 
-| Tác vụ | JCA/JCE | Key | Tham số khởi tạo |
+| Task | JCA/JCE | Key | Initialization Parameters |
 | --- | --- | --- | --- |
-| Stream cipher thuần | `Cipher.getInstance("ChaCha20")` | `SecretKeySpec(rawKey32, "ChaCha20")` | `new ChaCha20ParameterSpec(nonce12, initialBlockCounter)` |
+| Raw stream cipher | `Cipher.getInstance("ChaCha20")` | `SecretKeySpec(rawKey32, "ChaCha20")` | `new ChaCha20ParameterSpec(nonce12, initialBlockCounter)` |
 | AEAD | `Cipher.getInstance("ChaCha20-Poly1305")` | `SecretKeySpec(rawKey32, "ChaCha20")` | `new IvParameterSpec(nonce12)` |
-| AAD cho AEAD | `cipher.updateAAD(aad)` | Dùng key đã `init` | **Phải gọi trước** `update`/`doFinal` của dữ liệu |
-| Hoàn tất | `cipher.doFinal(input)` | Dùng key đã `init` | AEAD khi mã hóa trả `ciphertext || tag`; khi giải mã kiểm tra tag |
+| AAD for AEAD | `cipher.updateAAD(aad)` | Uses `init` key | **Must be called before** payload `update`/`doFinal` |
+| Finalize | `cipher.doFinal(input)` | Uses `init` key | AEAD returns `ciphertext \|\| tag` on encrypt; verifies tag on decrypt |
 
-**Chi tiết quan trọng:** `ChaCha20ParameterSpec` là tham số của **ChaCha20 thuần**, chứa nonce 12 byte và counter 32 bit. Với **ChaCha20-Poly1305** trên provider JDK thông thường, dùng `IvParameterSpec` chứa nonce 12 byte; counter được AEAD quản lý bên trong. Đừng lấy `GCMParameterSpec` của AES-GCM để khởi tạo ChaCha20-Poly1305, cũng đừng ghép `/GCM/NoPadding` vào tên ChaCha20.
+**Important detail:** `ChaCha20ParameterSpec` is for **raw ChaCha20**, holding a 12-byte nonce and a 32-bit counter. For **ChaCha20-Poly1305** on standard JDK providers, use `IvParameterSpec` with the 12-byte nonce; the counter is managed internally by AEAD. Do not pass AES-GCM's `GCMParameterSpec` to initialize ChaCha20-Poly1305, and do not append `/GCM/NoPadding` to ChaCha20 names.
 
-Java 17+ có các lớp `javax.crypto.Cipher`, `javax.crypto.AEADBadTagException`, `javax.crypto.spec.ChaCha20ParameterSpec`, `javax.crypto.spec.IvParameterSpec` và `javax.crypto.spec.SecretKeySpec`. Các provider phải được kiểm tra trong **JDK mà ứng dụng thực tế triển khai**; provider ngoài JDK/HSM có thể khác về cách hỗ trợ thuật toán, khóa và tham số.
+Java 17+ includes `javax.crypto.Cipher`, `javax.crypto.AEADBadTagException`, `javax.crypto.spec.ChaCha20ParameterSpec`, `javax.crypto.spec.IvParameterSpec`, and `javax.crypto.spec.SecretKeySpec`. Providers must be verified on the **actual JDK where the application deploys**; third-party/HSM providers may differ in algorithm, key, and parameter support.
 
-Khi `Cipher.init(..., key, params)` được gọi, phía giải mã **phải biết nonce và các byte AAD chính xác**. Nonce thường được truyền bên ngoài ciphertext; bảo vệ và xác thực các metadata quan trọng bằng AAD hoặc định dạng giao thức.
+When `Cipher.init(..., key, params)` is called, the decryptor **must know the exact nonce and AAD bytes**. The nonce is usually transmitted outside the ciphertext; protect and authenticate critical metadata via AAD or protocol framing.
 
-## 5. Chương trình chạy được: ChaCha20 thuần không xác thực bản mã
+## 5. Runnable Program: Raw ChaCha20 Does Not Authenticate Ciphertext
 
-Lưu nguyên đoạn sau thành **`ChaCha20StreamDemo.java`**. Chương trình sinh khóa/nonce cho một lượt demo, mã hóa một thông điệp và giải mã lại. Sau đó nó sửa một bit ciphertext, giải mã lần nữa và cho thấy phép giải mã **vẫn trả bytes** dù dữ liệu đã đổi.
+Save the following as **`ChaCha20StreamDemo.java`**. The program generates a key/nonce for one demo run, encrypts a message, and decrypts it back. It then flips one bit of the ciphertext, decrypts again, and shows that decryption **still returns bytes** even though the data was altered.
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -177,19 +177,19 @@ public final class ChaCha20StreamDemo {
         Cipher decryptor = Cipher.getInstance("ChaCha20");
         decryptor.init(Cipher.DECRYPT_MODE, key, params);
         byte[] recovered = decryptor.doFinal(ciphertext);
-        System.out.println("Giai ma: "
+        System.out.println("Decrypted: "
                 + new String(recovered, StandardCharsets.UTF_8));
 
-        // Chỉ sửa bản mã để minh họa thiếu tính toàn vẹn; không mã hóa
-        // một thông điệp thứ hai bằng cùng cặp key/nonce.
+        // Only tamper with ciphertext to demonstrate lack of integrity;
+        // do not encrypt a second message using the same key/nonce pair.
         byte[] tampered = ciphertext.clone();
         tampered[0] ^= 1;
 
         Cipher decryptor2 = Cipher.getInstance("ChaCha20");
         decryptor2.init(Cipher.DECRYPT_MODE, key, params);
         byte[] altered = decryptor2.doFinal(tampered);
-        System.out.println("Giai ma ban ma bi sua: thanh cong");
-        System.out.println("Noi dung con giong: "
+        System.out.println("Tampered ciphertext decrypted: succeeded");
+        System.out.println("Content still identical: "
                 + Arrays.equals(plaintext, altered));
 
         Arrays.fill(rawKey, (byte) 0);
@@ -202,21 +202,21 @@ javac -encoding UTF-8 ChaCha20StreamDemo.java
 java ChaCha20StreamDemo
 ```
 
-Stdout trên JDK có provider hỗ trợ ChaCha20:
+Stdout on a JDK with a provider supporting ChaCha20:
 
 ```text
-Giai ma: Hello ChaCha20
-Giai ma ban ma bi sua: thanh cong
-Noi dung con giong: false
+Decrypted: Hello ChaCha20
+Tampered ciphertext decrypted: succeeded
+Content still identical: false
 ```
 
-Hai thao tác giải mã cùng cặp key/nonce là hành vi **đọc lại bản mã**, không phải hai lần sinh keystream cho hai plaintext mới. Đầu ra khác sau khi sửa ciphertext chứng minh ChaCha20 đơn thuần không phát hiện sửa đổi: thư viện không ném ngoại lệ xác thực, vì vốn không có tag.
+Running two decryptions with the same key/nonce pair is **re-reading ciphertext**, not generating two keystreams for two new plaintexts. The altered output after flipping a ciphertext bit proves raw ChaCha20 does not detect tampering: the library throws no authentication exception because there is no tag.
 
-**Không dùng ví dụ này như một định dạng lưu trữ dữ liệu chống giả mạo.** Nếu yêu cầu có toàn vẹn/xác thực, chuyển sang AEAD. Việc `Arrays.fill(rawKey,...)` xóa buffer do chương trình nắm giữ, không bảo đảm mọi bản sao khóa trong `SecretKeySpec`, `Cipher` hoặc bộ nhớ JVM đã bị xóa.
+**Never use this example as a tamper-resistant storage format.** Whenever integrity/authenticity is required, switch to AEAD. `Arrays.fill(rawKey,...)` clears the buffer held by the program, without guaranteeing every key copy inside `SecretKeySpec`, `Cipher`, or JVM memory is erased.
 
-## 6. Chương trình chạy được: ChaCha20-Poly1305, AAD và tag thất bại
+## 6. Runnable Program: ChaCha20-Poly1305, AAD, and Tag Failure
 
-Lưu nguyên đoạn sau thành **`ChaCha20Poly1305Demo.java`**. Đây là một ví dụ tự chứa, dùng một khóa/nonce mới trong đúng một phép mã hóa. Để tập trung vào API, nonce được sinh ngẫu nhiên **chỉ cho một thông điệp demo**. Mục 7–9 sẽ đưa ra cách cấp phát nonce bảo đảm không lặp cho dịch vụ sản xuất.
+Save the following as **`ChaCha20Poly1305Demo.java`**. This is a self-contained example using a fresh key/nonce for exactly one encryption. To keep focus on the API, the nonce is randomly generated **solely for one demo message**. Sections 7–9 cover non-repeating nonce allocation for production services.
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -233,11 +233,11 @@ public final class ChaCha20Poly1305Demo {
             SecretKeySpec key, byte[] nonce, byte[] aad, byte[] plaintext)
             throws GeneralSecurityException {
         if (nonce.length != 12) {
-            throw new IllegalArgumentException("Nonce phai 12 byte");
+            throw new IllegalArgumentException("Nonce must be 12 bytes");
         }
         Cipher cipher = Cipher.getInstance("ChaCha20-Poly1305");
         cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(nonce));
-        cipher.updateAAD(aad); // Luon truoc thao tac tren plaintext.
+        cipher.updateAAD(aad); // Always before operations on plaintext.
         return cipher.doFinal(plaintext); // ciphertext || 16-byte tag
     }
 
@@ -245,12 +245,12 @@ public final class ChaCha20Poly1305Demo {
             SecretKeySpec key, byte[] nonce, byte[] aad,
             byte[] ciphertextAndTag) throws GeneralSecurityException {
         if (nonce.length != 12 || ciphertextAndTag.length < 16) {
-            throw new IllegalArgumentException("Khung du lieu khong hop le");
+            throw new IllegalArgumentException("Invalid data frame");
         }
         Cipher cipher = Cipher.getInstance("ChaCha20-Poly1305");
         cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(nonce));
         cipher.updateAAD(aad);
-        return cipher.doFinal(ciphertextAndTag); // Kiem tra tag.
+        return cipher.doFinal(ciphertextAndTag); // Verifies tag.
     }
 
     public static void main(String[] args) throws GeneralSecurityException {
@@ -266,7 +266,7 @@ public final class ChaCha20Poly1305Demo {
         try {
             byte[] ciphertextAndTag = encrypt(key, nonce, aad, plaintext);
             byte[] recovered = decrypt(key, nonce, aad, ciphertextAndTag);
-            System.out.println("Giai ma: "
+            System.out.println("Decrypted: "
                     + new String(recovered, StandardCharsets.UTF_8));
             System.out.println("Tag bytes: "
                     + (ciphertextAndTag.length - plaintext.length));
@@ -275,17 +275,17 @@ public final class ChaCha20Poly1305Demo {
             tampered[tampered.length - 1] ^= 1;
             try {
                 decrypt(key, nonce, aad, tampered);
-                throw new AssertionError("Da chap nhan tag sai");
+                throw new AssertionError("Accepted invalid tag");
             } catch (AEADBadTagException expected) {
-                System.out.println("Tag bi sua: tu choi");
+                System.out.println("Tampered tag: rejected");
             }
 
             byte[] wrongAad = "record=v2".getBytes(StandardCharsets.UTF_8);
             try {
                 decrypt(key, nonce, wrongAad, ciphertextAndTag);
-                throw new AssertionError("Da chap nhan AAD sai");
+                throw new AssertionError("Accepted wrong AAD");
             } catch (AEADBadTagException expected) {
-                System.out.println("AAD bi sua: tu choi");
+                System.out.println("Tampered AAD: rejected");
             }
         } finally {
             Arrays.fill(rawKey, (byte) 0);
@@ -299,58 +299,58 @@ javac -encoding UTF-8 ChaCha20Poly1305Demo.java
 java ChaCha20Poly1305Demo
 ```
 
-Stdout trên provider JDK phổ biến:
+Stdout on common JDK providers:
 
 ```text
-Giai ma: Hello AEAD
+Decrypted: Hello AEAD
 Tag bytes: 16
-Tag bi sua: tu choi
-AAD bi sua: tu choi
+Tampered tag: rejected
+Tampered AAD: rejected
 ```
 
-**Giải thích từng kiểm tra:**
+**Explanation of each check:**
 
-1. `Cipher.getInstance("ChaCha20-Poly1305")` chọn AEAD; `IvParameterSpec` truyền đúng nonce 12 byte. Bộ đếm block và cách dẫn xuất khóa Poly1305 được provider quản lý.
-2. `updateAAD(aad)` chạy trước `doFinal`. Khi giải mã, AAD phải giống hệt byte-for-byte.
-3. `encrypt` trả `ciphertext || tag` nên dài hơn plaintext **16 byte**. Ví dụ không mã hóa nonce vào mảng output; hệ thống thật phải lưu/truyền nonce cùng bản ghi.
-4. Sửa một bit tag dẫn tới `AEADBadTagException`; thay AAD mà giữ ciphertext/tag cũ cũng bị từ chối.
-5. `decrypt` không trả plaintext khi tag thất bại. Không dùng `catch (AEADBadTagException)` để bỏ tag rồi giải mã bằng ChaCha20 thường.
+1. `Cipher.getInstance("ChaCha20-Poly1305")` selects AEAD; `IvParameterSpec` passes the 12-byte nonce. The block counter and Poly1305 key derivation are handled by the provider.
+2. `updateAAD(aad)` runs before `doFinal`. On decryption, AAD must match byte-for-byte.
+3. `encrypt` returns `ciphertext || tag`, which is **16 bytes** longer than plaintext. The example does not prepend the nonce to the output array; real systems must persist/transmit the nonce alongside the record.
+4. Flipping one tag bit triggers `AEADBadTagException`; changing AAD while keeping old ciphertext/tag is likewise rejected.
+5. `decrypt` returns no plaintext when the tag fails. Never `catch (AEADBadTagException)` to strip the tag and decrypt with raw ChaCha20.
 
-**Giới hạn demo:** sinh nonce ngẫu nhiên cho một thông điệp minh họa không phải cơ chế cấp phát nonces dài hạn; nếu khóa được tái sử dụng cho nhiều bản tin, toàn hệ thống phải thực thi chính sách nonce **không trùng**. Không lưu raw key trong source code, log, cơ sở dữ liệu plaintext hoặc response của dịch vụ.
+**Demo limitation:** generating a random nonce for one demo message is not a long-term nonce allocation mechanism; if a key is reused across multiple messages, the entire system must enforce a **non-repeating** nonce policy. Never store raw keys in source code, logs, plaintext databases, or service responses.
 
-## 7. Quy tắc quan trọng nhất: nonce phải duy nhất theo khóa
+## 7. The Most Important Rule: Nonces Must Be Unique Per Key
 
-Với IETF ChaCha20-Poly1305, mỗi lần **mã hóa** bằng một khóa `K` phải dùng nonce `N` chưa từng được dùng để mã hóa trước đó cùng `K`. Đó là điều kiện về **tính duy nhất**, không phải yêu cầu nonce phải bí mật hoặc không thể đoán.
+With IETF ChaCha20-Poly1305, each **encryption** under a key `K` must use a nonce `N` never previously used to encrypt under `K`. This is a **uniqueness** requirement, not a requirement that the nonce be secret or unpredictable.
 
 ```text
-(key K, nonce N0) -> message 0    HOP LE
-(key K, nonce N1) -> message 1    HOP LE  (N1 != N0)
-(key K, nonce N0) -> message 2    SAI!   (N0 da dung voi K)
-(key K2, nonce N0) -> message 3   Co the hop le, neu K2 thuc su la key khac
+(key K, nonce N0) -> message 0    VALID
+(key K, nonce N1) -> message 1    VALID  (N1 != N0)
+(key K, nonce N0) -> message 2    WRONG! (N0 already used with K)
+(key K2, nonce N0) -> message 3   Potentially valid, if K2 is genuinely a different key
 ```
 
-Dùng lại `(K,N)` làm ChaCha20 lặp keystream và làm Poly1305 lặp khóa xác thực dùng một lần. Hậu quả không chỉ là để lộ quan hệ XOR giữa plaintext; các bảo đảm về xác thực cũng bị tổn hại. **Tuyệt đối không “khắc phục” lỗi trùng nonce bằng cách tăng counter nội bộ của Cipher hoặc bỏ tag.** Nếu hệ thống phát hiện nghi ngờ trùng nonce, cần dừng ghi với key đó, điều tra phạm vi và xử lý rủi ro/đổi khóa theo chính sách.
+Reusing `(K, N)` causes ChaCha20 to repeat its keystream and Poly1305 to reuse its one-time authentication key. Consequences extend beyond leaking the XOR of plaintexts; authenticity guarantees are also compromised. **Never "fix" a nonce collision by advancing Cipher's internal counter or dropping the tag.** If a system detects suspected nonce reuse, halt writes under that key, investigate scope, and remediate/rotate keys per policy.
 
-### 7.1 Nonce 96 bit: có thể random hay nên dùng counter?
+### 7.1 96-Bit Nonce: Random or Counter?
 
-Có hai họ chiến lược thường được nhắc tới:
+Two strategy families are commonly discussed:
 
-| Cách cấp nonce | Ưu điểm | Giới hạn/rủi ro |
+| Nonce Allocation Method | Advantages | Limitations / Risks |
 | --- | --- | --- |
-| **12 byte từ `SecureRandom`** | Dễ dùng trong demo/lưu lượng nhỏ, ít trạng thái. | Ngẫu nhiên **không bảo đảm duy nhất tuyệt đối**; xác suất va chạm tăng khi số message cùng key tăng; khó chứng minh không trùng trong nhiều writer. |
-| **Nonce xác định và duy nhất**: prefix phân miền + bộ đếm liên tục | Có thể bảo đảm không lặp nếu cấp phát phối hợp, trạng thái bền vững và không wrap. | Cần quản lý phân miền, restart, concurrency, cấp phát số thứ tự và key rotation chính xác. |
+| **12 bytes from `SecureRandom`** | Easy in demos/low traffic, minimal state. | Randomness **does not guarantee absolute uniqueness**; collision odds grow with message count under one key; hard to prove non-collision across multiple writers. |
+| **Deterministic unique nonce**: partitioned prefix + monotonic counter | Can guarantee zero repetition with coordinated allocation, durable state, and no wraparound. | Requires careful partition management, restarts, concurrency, sequence allocation, and key rotation. |
 
-Với `n` nonce được chọn đều ngẫu nhiên trong không gian `2^96`, xác suất có va chạm gần đúng khi `n` nhỏ so với căn bậc hai của không gian là:
+For `n` nonces chosen uniformly at random in a `2^96` space, the approximate collision probability when `n` is small relative to the square root of the space is:
 
 ```text
 P(collision) ~ n(n - 1) / (2 * 2^96)
 ```
 
-Công thức chỉ dùng để **đánh giá rủi ro**, không biến random nonce thành một cơ chế chứng minh duy nhất. RFC 8439 nhấn mạnh việc mỗi lần gọi với cùng key phải có nonce duy nhất; đối với thiết kế dài hạn/multiwriter, ưu tiên **counter và phân hoạch không gian nonce** theo chính sách giao thức. Ví dụ random nonce ở mục 6 chỉ tập trung minh họa Java API.
+This formula is solely for **risk assessment**—it does not turn random nonces into a deterministic uniqueness proof. RFC 8439 emphasizes that every invocation under the same key must have a unique nonce; for long-lived/multi-writer designs, prefer **counters and nonce-space partitioning** per protocol policy. The random nonce in Section 6 focuses solely on demonstrating the Java API.
 
-### 7.2 Mẫu phân hoạch nonce theo writer + sequence
+### 7.2 Writer + Sequence Nonce Partitioning Pattern
 
-Một cách mô tả cấu trúc 96 bit là:
+One way to structure 96 bits is:
 
 ```text
         12 bytes / 96 bits
@@ -358,22 +358,22 @@ Một cách mô tả cấu trúc 96 bit là:
 | writerId/prefix| monotonically increasing seq   |
 | 4 bytes        | 8 bytes                        |
 +----------------+--------------------------------+
-         hai phần phải được phân bổ nhất quán theo scope một key
+         both parts must be allocated consistently per key scope
 ```
 
-- `writerId`/prefix **phải duy nhất giữa các writer đang dùng cùng key**, được cấp một cách có kiểm soát; không giả định prefix 4 byte chọn random chắc chắn không trùng.
-- `seq` phải tăng **không lặp lại** trong cùng prefix và key. Hai thread không được cùng nhận một số. Không wrap về 0 khi đạt giới hạn.
-- Sau crash/restart, writer phải phục hồi từ trạng thái **bền vững** chưa từng cấp lại; chỉ dùng `AtomicLong` trong RAM là **không đủ**.
-- Một nonce đã **cấp phát và dùng** phải được coi là tiêu thụ, kể cả thao tác ghi dữ liệu thất bại hoặc response gửi lại bị mất. Retry một phép mã hóa mới phải lấy nonce **mới**, hoặc gửi lại đúng ciphertext đã lưu mà không mã hóa lại.
-- Nếu có nhiều tiến trình, container, vùng địa lý hoặc shard dùng cùng key, phải có cơ chế cấp miền/sequence duy nhất toàn hệ thống. Một process tự đếm từ 0 là không đủ.
+- `writerId`/prefix **must be unique among writers sharing the same key**, assigned in a controlled way; never assume a random 4-byte prefix cannot collide.
+- `seq` must increment **without repeating** within the same prefix and key. Two threads must never receive the same number. Never wrap back to 0 when hitting the limit.
+- After a crash/restart, a writer must recover from **durable state** that has never been re-issued; an in-RAM `AtomicLong` alone is **insufficient**.
+- A nonce that was **allocated and used** must be treated as consumed, even if the write operation failed or the response was lost. Retrying a new encryption must acquire a **fresh** nonce, or resend the exact already-saved ciphertext without re-encrypting.
+- If multiple processes, containers, regions, or shards share a key, a system-wide unique partition/sequence allocator is required. Each process counting from 0 on its own is insufficient.
 
-Đây là **một ví dụ bố trí bit**, không phải định dạng bắt buộc của mọi giao thức. Những hệ thống như TLS có cách tạo nonce riêng gắn với số thứ tự và bí mật phiên; **không** tự thay thế quy tắc của giao thức bằng mẫu tự chế này.
+This is **one bit-layout example**, not a universal mandatory format for all protocols. Protocols like TLS construct nonces in their own way tied to sequence numbers and session secrets; **never** replace standard protocol rules with a homegrown pattern.
 
-## 8. Chương trình chạy được: minh họa bộ cấp nonce dạng counter
+## 8. Runnable Program: Counter-Based Nonce Allocator Illustration
 
-Ví dụ này chỉ minh họa cách ghép prefix 4 byte với sequence 8 byte và cấp số atomically trong **một JVM**. Nó không có lưu trữ bền vững hay cơ chế phân quyền prefix, vì vậy **không phải allocator production**. Prefix `01 02 03 04` được cố định để stdout dễ kiểm chứng; tuyệt đối không sao chép prefix và khởi tạo counter bằng 0 vào nhiều worker cùng key trong thực tế.
+This example solely illustrates combining a 4-byte prefix with an 8-byte sequence and issuing values atomically within **one JVM**. It has no durable persistence or prefix authority, so it is **not a production allocator**. Prefix `01 02 03 04` is fixed so stdout is deterministic; never copy a fixed prefix and zero initial counter across multiple workers sharing a key in real life.
 
-Lưu thành **`NonceCounterDemo.java`**:
+Save as **`NonceCounterDemo.java`**:
 
 ```java
 import java.nio.ByteBuffer;
@@ -387,7 +387,7 @@ public final class NonceCounterDemo {
     NonceCounterDemo(byte[] prefix, long initialSequence) {
         if (prefix == null || prefix.length != 4 || initialSequence < 0) {
             throw new IllegalArgumentException(
-                    "Prefix hoac sequence khong hop le");
+                    "Invalid prefix or sequence");
         }
         this.prefix = prefix.clone();
         this.nextSequence = new AtomicLong(initialSequence);
@@ -398,13 +398,13 @@ public final class NonceCounterDemo {
         do {
             current = nextSequence.get();
             if (current == Long.MAX_VALUE) {
-                throw new IllegalStateException("Het vung nonce");
+                throw new IllegalStateException("Nonce space exhausted");
             }
         } while (!nextSequence.compareAndSet(current, current + 1));
 
         return ByteBuffer.allocate(12)
                 .put(prefix)
-                .putLong(current) // Quy uoc big-endian cho sequence trong demo.
+                .putLong(current) // Big-endian convention for sequence in demo.
                 .array();
     }
 
@@ -429,48 +429,48 @@ Stdout:
 010203040000000000000001
 ```
 
-Điều cần hiểu trong ví dụ:
+Key takeaways from the example:
 
-- `compareAndSet` giúp các thread chia sẻ **một** `AtomicLong` không nhận cùng số do race trong JVM.
-- Dùng `ByteBuffer.putLong` theo byte order mặc định big-endian cho **định dạng message sequence**, không phải đang mô tả endian của từ bên trong ChaCha20. ChaCha20 nhận nonce dưới dạng **12 byte**; tính duy nhất là vấn đề chính.
-- Để đơn giản, ví dụ chỉ sử dụng miền sequence không âm `0..Long.MAX_VALUE-1` và từ chối khi tới giới hạn, tránh lỗi wrap của `long`. Không bắt buộc dùng hết không gian 64 bit.
-- Mỗi lần chạy lại `new NonceCounterDemo(..., 0)` sẽ trả **nonce cũ**. Nếu dùng lại key, đây là lỗi nghiêm trọng. Production phải có trạng thái persistent/atomic hoặc cơ chế phân biệt khóa/miền đã được thiết kế.
+- `compareAndSet` prevents threads sharing **one** `AtomicLong` from receiving duplicate numbers due to an in-JVM race.
+- Using `ByteBuffer.putLong` in default big-endian byte order defines the **message sequence layout**, not ChaCha20's internal word endianness. ChaCha20 takes the nonce as **12 bytes**; uniqueness is the primary requirement.
+- For simplicity, the example uses only non-negative sequence values `0..Long.MAX_VALUE-1` and throws upon exhaustion, avoiding `long` wraparound bugs. Exhausting the full 64-bit space is not required.
+- Running `new NonceCounterDemo(..., 0)` again emits **old nonces**. If the key is reused, that is a critical bug. Production requires persistent/atomic state or designed key/domain separation.
 
-**Trường hợp nhiều writer:** phân bổ prefix không trùng cho từng writer cùng key; hoặc cấp dải sequence tập trung; hoặc tách khóa theo sender qua KDF thích hợp rồi quản lý nonce trong từng miền key. Mỗi phương án phải có cách chứng minh không trùng khi scale, failover, rollback và redeploy.
+**Multi-writer cases:** assign non-overlapping prefixes per writer sharing a key; or allocate sequence ranges centrally; or derive per-sender keys via a proper KDF and manage nonces within each key domain. Every approach must prove non-repetition across scaling, failover, rollback, and redeployment.
 
-## 9. Kiến trúc quản lý nonce trong ứng dụng thực tế
+## 9. Nonce Management Architecture in Real Applications
 
-Đây là một thiết kế tham chiếu có các thành phần bắt buộc; **không** phải đoạn mã triển khai đầy đủ cho cơ sở dữ liệu/phân tán.
+This is a reference architecture showing required components; it is **not** a complete database/distributed implementation.
 
 ```text
-          Kho khóa/KMS                          Durable allocator
-              |                                (per keyId + writer)
-      keyId -> secret key                            |
-              |                            cấp nonce không trùng
-              +---------------+---------------------+
-                              |
-                        Encrypt service
-                              |
-          header(version, keyId, nonce, flags) + AAD
-                              |
-                  ChaCha20-Poly1305 encrypt
-                              |
-              ciphertext || authentication tag
-                              |
-          Lưu/truyền một record theo format đã version hóa
+           Key Vault/KMS                         Durable allocator
+               |                                (per keyId + writer)
+       keyId -> secret key                           |
+               |                            issues unique nonces
+               +---------------+---------------------+
+                               |
+                         Encrypt service
+                               |
+           header(version, keyId, nonce, flags) + AAD
+                               |
+                   ChaCha20-Poly1305 encrypt
+                               |
+               ciphertext || authentication tag
+                               |
+           Store/transmit record in a versioned format
 ```
 
-### 9.1 Ràng buộc khóa và nonce
+### 9.1 Key and Nonce Constraints
 
-**Khóa:** sinh ngẫu nhiên 32 byte bằng bộ sinh số ngẫu nhiên mật mã phù hợp, hoặc lấy từ KMS/keystore qua cơ chế tạo khóa đã phê duyệt. Không dùng `new Random()`, timestamp, username hay `password.getBytes()` như một khóa ChaCha20 trực tiếp. Nếu nguồn là password/shared secret cần dùng KDF đúng mục tiêu và quản lý salt/tham số theo thiết kế; không tự lắp hash để tạo khóa. Tránh dùng chung một khóa cho những mục đích khác nhau nếu giao thức không chứng minh tương thích.
+**Key:** generate 32 random bytes using an approved cryptographic RNG, or obtain from KMS/keystore via an approved key generation flow. Never use `new Random()`, timestamps, usernames, or `password.getBytes()` directly as a ChaCha20 key. If the source is a password/shared secret, use an appropriate KDF and manage salt/parameters by design; never cobble together hashes to make keys. Avoid sharing one key across unrelated purposes unless the protocol proves compatibility.
 
-**Key ID:** bản ghi cần chỉ ra khóa nào dùng để giải mã; khi xoay khóa, bản ghi cũ vẫn cần khả năng tìm khóa cũ cho đến khi được chuyển đổi hoặc hết hạn. Key ID có thể công khai, nhưng phải nằm trong miền tin cậy; nên xác thực metadata nhạy cảm bằng AAD.
+**Key ID:** records must identify which key decrypts them; during key rotation, old records still need to resolve the old key until migrated or expired. Key IDs can be public, yet must come from a trusted domain; authenticate sensitive metadata with AAD.
 
-**Nonce uniqueness domain:** khóa và nonce phải được quản lý như một cặp. Bộ đếm có thể bắt đầu lại **với khóa mới thực sự độc lập**, nhưng không được reset rồi dùng lại key cũ. KMS/rotation và allocator cần thống nhất lifecycle `keyId` để tránh cấp phát lại vùng nonce.
+**Nonce uniqueness domain:** keys and nonces must be managed as a pair. Counters may restart **with a genuinely independent new key**, but must never reset while reusing an old key. KMS/rotation and the allocator must coordinate `keyId` lifecycles to prevent re-issuing nonce ranges.
 
-### 9.2 Bản ghi có phiên bản
+### 9.2 Versioned Records
 
-Một format có thể là:
+A possible format:
 
 ```text
 version (1 byte)
@@ -479,124 +479,124 @@ nonce (12 bytes)
 ciphertextLength + ciphertext
 tag (16 bytes)
 
-AAD = encoding chinh xac cua version + keyId + recordId/tenant/context
+AAD = exact encoding of version + keyId + recordId/tenant/context
 ```
 
-Các trường độ dài và encoding phải được định nghĩa **không mơ hồ**, có giới hạn chặn payload bất thường; đoạn minh họa trên chỉ là phác thảo schema. Java `Cipher.doFinal` với ChaCha20-Poly1305 thường trả `ciphertext || tag` trong **một byte array**, do đó khi serialize cần biết nonce 12 byte ở đâu và tag 16 byte ở đâu. Không coi tag hay nonce là secret, và không được để phía nhận tự đoán key/nonce/version.
+Length fields and encodings must be **unambiguously** defined, with bounds rejecting anomalous payloads; the sketch above is only a schema outline. Java `Cipher.doFinal` with ChaCha20-Poly1305 typically returns `ciphertext || tag` in **one byte array**, so serialization must know where the 12-byte nonce and 16-byte tag sit. Never treat tags or nonces as secrets, and never let the receiver guess key/nonce/version.
 
-Nếu `recordId` hay `tenant` là thuộc tính kiểm soát quyền truy cập, hãy đưa chúng vào AAD và đồng thời **kiểm tra authorization** ở lớp ứng dụng; AEAD không thay thế kiểm soát quyền. Không dùng AAD để giấu dữ liệu nhạy cảm vì AAD vẫn nhìn thấy được.
+If `recordId` or `tenant` drives access control, include them in AAD and simultaneously **enforce authorization** at the application layer; AEAD does not replace access control. Never put sensitive data in AAD to hide it, because AAD remains visible.
 
-### 9.3 Cấp phát bền vững trước khi mã hóa
+### 9.3 Durable Allocation Before Encryption
 
-Một hệ thống với khóa sống lâu có thể áp dụng chiến lược:
+A system with long-lived keys can follow this strategy:
 
-1. Xác định duy nhất `(keyId, writerId)` và miền sequence dành riêng cho nó.
-2. **Reserve** sequence hoặc một khoảng sequence trong một kho giao dịch/allocator đáng tin, theo kiểu atomic, **commit dấu mốc đã cấp trước khi sử dụng**.
-3. Tạo nonce từ prefix đã phân bổ + số sequence vừa cấp, chưa bao giờ lặp lại.
-4. Mã hóa một record bằng AEAD rồi lưu `(keyId, nonce, AAD schema, ciphertext, tag)` theo định dạng ổn định.
-5. Nếu process chết sau cấp nonce nhưng trước khi ghi record, **bỏ qua** nonce đã cấp; không lấy lại chỉ vì không thấy ciphertext trong DB.
-6. Nếu response bị mất sau khi record đã lưu, **trả lại record ciphertext cũ** theo idempotency key. Nếu cần mã hóa lại dữ liệu, reserve **nonce mới**.
-7. Không cho sequence wrap; cảnh báo khi tới ngưỡng định trước và xoay key theo chính sách.
+1. Uniquely identify `(keyId, writerId)` and its dedicated sequence range.
+2. Atomically **reserve** a sequence number or range in a trusted transactional store/allocator, **committing the issued high-water mark before use**.
+3. Build the nonce from the assigned prefix + newly issued sequence number, never repeating.
+4. Encrypt one record with AEAD and persist `(keyId, nonce, AAD schema, ciphertext, tag)` in a stable format.
+5. If the process crashes after allocating a nonce but before saving the record, **burn** the issued nonce; never reclaim it just because no ciphertext appears in the DB.
+6. If a response is lost after the record is saved, **return the previously saved ciphertext record** by idempotency key. If re-encryption is truly needed, reserve a **fresh nonce**.
+7. Never let sequences wrap; alert at a threshold and rotate keys per policy.
 
-Không thể chứng minh không trùng chỉ bằng `synchronized`, `AtomicLong`, khóa mutex trong một pod hay Redis key không được bảo toàn qua failover. Hệ thống cần xác minh tính bền vững và các trường hợp network partition, rollback DB, restore backup, autoscaling và di chuyển workload.
+Uniqueness cannot be guaranteed solely by `synchronized`, `AtomicLong`, an in-pod mutex, or a Redis key that does not survive failover. Systems must verify durability and handle network partitions, DB rollbacks, backup restores, autoscaling, and workload migrations.
 
-### 9.4 Các lỗi nonce phổ biến
+### 9.4 Common Nonce Mistakes
 
-| Lỗi | Vì sao sai | Cách phòng tránh |
+| Mistake | Why It Is Wrong | How to Prevent |
 | --- | --- | --- |
-| Mọi lần encrypt dùng `new byte[12]` (toàn số 0) với khóa sống lâu | Lặp `(key,nonce)` từ lần thứ hai. | Chỉ nonce duy nhất cho mỗi lần encrypt; zero nonce chỉ có thể phù hợp nếu key thật sự mới mỗi bản tin theo giao thức đã thiết kế. |
-| Dùng `System.currentTimeMillis()` hoặc `Random` | Dễ trùng/đoán được và không có bảo đảm duy nhất; `Random` không phải CSPRNG. | Counter phối hợp bền vững, hoặc chính sách random có chứng minh rủi ro được phê duyệt. |
-| Mỗi pod tự đếm từ 0 với cùng key/prefix | Các pod tạo cùng nonce. | Cấp prefix/miền độc quyền hoặc bộ cấp sequence tập trung. |
-| Restart từ counter 0 | Tạo lại nonce đã dùng trước crash. | Lưu high-water mark trước khi dùng, không cấp lại sau rollback. |
-| Retry mã hóa bản ghi với nonce cũ nhưng payload/AAD thay đổi | Cặp `(key,nonce)` bị dùng lại cho một phép mã hóa mới. | Retry ciphertext đã lưu hoặc xin nonce mới cho lần encrypt mới. |
-| Coi nonce là secret; không truyền nonce | Bên nhận không biết tham số giải mã, dễ phải suy đoán. | Lưu/truyền nonce rõ ràng cùng bản ghi, đồng thời kiểm soát key. |
-| Cho phép counter wrap hoặc xử lý một message vô hạn | Lặp block keystream/đụng giới hạn thuật toán. | Giới hạn kích thước record, kiểm tra overflow, xoay key/nonce. |
-| Cố “sửa” AEAD tag sai bằng cách giải mã stream thường | Bỏ qua xác thực, có nguy cơ đưa dữ liệu giả vào xử lý nghiệp vụ. | Từ chối toàn bộ record; điều tra key/nonce/AAD/tag. |
+| Every encryption uses `new byte[12]` (all zeros) with a long-lived key | Repeats `(key,nonce)` starting on the second message. | Use unique nonces per encryption; a zero nonce is valid only if the key itself is genuinely fresh per message per protocol design. |
+| Using `System.currentTimeMillis()` or `Random` | Predictable/collision-prone with no uniqueness guarantee; `Random` is not a CSPRNG. | Durable coordinated counters, or an approved random policy with proven risk bounds. |
+| Each pod counts from 0 with the same key/prefix | Pods emit identical nonces. | Assign exclusive prefixes/domains or use a centralized sequence allocator. |
+| Restarting counter from 0 | Re-issues nonces already used before crash. | Persist high-water mark before use; never re-issue after rollback. |
+| Retrying record encryption with the same nonce after payload/AAD changes | Reuses `(key,nonce)` for a different encryption. | Retry the saved ciphertext or allocate a fresh nonce for a new encryption. |
+| Treating nonce as secret; omitting it from transmission | Receiver lacks decryption parameters and resorts to guessing. | Store/transmit nonce explicitly with the record while protecting the key. |
+| Allowing counter wraparound or processing an unbounded message | Repeats keystream blocks / hits algorithm limits. | Cap record sizes, check overflow, rotate keys/nonces. |
+| Trying to "work around" a bad AEAD tag by decrypting as raw stream cipher | Bypasses authentication, risking forged data in business logic. | Reject the entire record; investigate key/nonce/AAD/tag. |
 
-## 10. Xử lý lỗi Java và những điều cần tránh
+## 10. Java Error Handling and Things to Avoid
 
-| Lỗi hoặc tình huống | Thường xảy ra khi | Cách xử lý |
+| Error or Symptom | Typically Occurs When | Resolution |
 | --- | --- | --- |
-| `NoSuchAlgorithmException` | `Cipher.getInstance("ChaCha20")` hoặc `getInstance("ChaCha20-Poly1305")` không có implementation | Kiểm tra JDK/provider, cấu hình và thuật toán; phát hiện sớm lúc startup. |
-| `InvalidKeyException` | `Cipher.init` nhận khóa không đúng thuật toán/kích thước hoặc bị provider từ chối | Kiểm tra key 256 bit và nguồn cấp khóa; không thử khóa yếu/tự chuyển thuật toán. |
-| `InvalidAlgorithmParameterException` | Nonce sai kích thước hoặc tham số không đúng với engine/provider | Đối chiếu `ChaCha20ParameterSpec` với stream cipher, `IvParameterSpec` với AEAD; nonce 12 byte. |
-| `IllegalArgumentException` | Constructor `ChaCha20ParameterSpec` nhận nonce dài khác 12 byte hoặc validation của ứng dụng | Sửa đầu vào, không coi là xác thực bản mã thất bại. |
-| `IllegalStateException` | `updateAAD` sai thứ tự/trạng thái; tái sử dụng cipher hoặc khởi tạo lại với nonce không an toàn theo kiểm tra provider | Tạo phép toán mới, cấp nonce mới; không dựa vào việc provider sẽ phát hiện mọi lần reuse ở các tiến trình. |
-| `AEADBadTagException` | `doFinal` khi giải mã thấy ciphertext/tag/AAD/key/nonce không khớp | **Từ chối thông điệp**, không trả plaintext. Xử lý response tránh tạo oracle chi tiết. |
+| `NoSuchAlgorithmException` | `Cipher.getInstance("ChaCha20")` or `getInstance("ChaCha20-Poly1305")` has no implementation | Verify JDK/provider, configuration, and algorithm name; fail fast at startup. |
+| `InvalidKeyException` | `Cipher.init` receives wrong algorithm/size key or provider rejects it | Verify 256-bit key and key source; never fall back to weak keys/other algorithms. |
+| `InvalidAlgorithmParameterException` | Wrong nonce size or parameter spec mismatched with engine/provider | Match `ChaCha20ParameterSpec` with stream cipher, `IvParameterSpec` with AEAD; 12-byte nonce. |
+| `IllegalArgumentException` | `ChaCha20ParameterSpec` constructor receives non-12-byte nonce or app validation fails | Fix input; do not confuse with ciphertext authentication failure. |
+| `IllegalStateException` | `updateAAD` in wrong order/state; reusing cipher or re-initializing with unsafe nonce per provider check | Create a fresh operation and fresh nonce; never rely on providers detecting all cross-process reuse. |
+| `AEADBadTagException` | `doFinal` on decryption sees mismatched ciphertext/tag/AAD/key/nonce | **Reject the message**, return no plaintext. Keep responses uniform to avoid detailed oracles. |
 
-`AEADBadTagException` không có nghĩa chắc chắn “sai mật khẩu” hay “nonce bị trùng”: cùng ngoại lệ có thể xuất hiện khi ciphertext bị sửa, key sai, nonce sai, tag sai hoặc AAD không khớp. Đầu nhận nên trả thông báo xác thực thất bại thống nhất và ghi chẩn đoán giới hạn trong log bảo vệ; không log key, plaintext hay secret từ KMS.
+`AEADBadTagException` does not specifically mean "wrong password" or "reused nonce": the exact same exception occurs when ciphertext is altered, key is wrong, nonce is wrong, tag is wrong, or AAD mismatches. Receivers should return a uniform authentication-failure response and log bounded diagnostics securely; never log keys, plaintext, or KMS secrets.
 
-**Không tái sử dụng cùng `Cipher` để mã hóa lần nữa bằng key/nonce cũ.** Một số provider từ chối tái sử dụng trên cùng instance, nhưng bộ nhớ chống trùng của một `Cipher` không bảo vệ các instance/process khác. Cần bộ cấp nonce ở lớp thiết kế.
+**Never reuse the same `Cipher` to encrypt again with an old key/nonce.** Some providers reject reuse on the same instance, yet a single `Cipher`'s duplicate guard does not protect other instances or processes. Nonce allocation belongs in system design.
 
-### 10.1 Kiểm tra cấu hình tại startup
+### 10.1 Startup Configuration Check
 
-Đoạn dưới đây chỉ minh họa khả năng lookup (không phải một chương trình độc lập):
+The snippet below illustrates only provider lookup (not a standalone program):
 
 ```java
-// Đoạn mã ở trong phương thức đã khai báo throws GeneralSecurityException.
+// Snippet inside a method declaring throws GeneralSecurityException.
 Cipher cipher = Cipher.getInstance("ChaCha20-Poly1305");
 System.out.println(cipher.getProvider().getName());
 ```
 
-Nếu provider cụ thể được yêu cầu (ví dụ policy/FIPS), dùng overload thích hợp và không tự động fallback khi provider không sẵn có. Việc một JDK có ChaCha20-Poly1305 **không đồng nghĩa** provider hay mô-đun đó được chứng nhận theo chính sách của hệ thống; kiểm tra yêu cầu tuân thủ riêng.
+If a specific provider is mandated (e.g., policy/FIPS), use the appropriate overload and do not silently fall back when that provider is missing. A JDK having ChaCha20-Poly1305 **does not mean** that provider or module is certified under your system's policy; verify compliance requirements separately.
 
-## 11. ChaCha20-Poly1305, AES-GCM và XChaCha20-Poly1305
+## 11. ChaCha20-Poly1305, AES-GCM, and XChaCha20-Poly1305
 
-| Tiêu chí | ChaCha20-Poly1305 (IETF) | AES-GCM | XChaCha20-Poly1305 |
+| Criterion | ChaCha20-Poly1305 (IETF) | AES-GCM | XChaCha20-Poly1305 |
 | --- | --- | --- | --- |
-| Loại | AEAD | AEAD | AEAD dùng biến thể mở rộng nonce của ChaCha |
-| Key | 256 bit | 128/192/256 bit tùy triển khai và policy | Thường 256 bit |
-| Nonce | **96 bit** trong RFC 8439 | **96 bit** phổ biến/được khuyến nghị | **192 bit** |
-| Tag | 128 bit | Thường 128 bit (có cấu hình khác được phép theo policy) | 128 bit |
-| Java JCA/JCE | `ChaCha20-Poly1305` trên JDK hỗ trợ | `AES/GCM/NoPadding` | **Không** giả định là tên thuật toán JCA chuẩn có sẵn; cần thư viện/provider tương ứng |
-| Cảnh báo chính | Không trùng nonce với key | Không trùng IV/nonce với key | Khác định dạng/nonce; không tự thay một tên bằng tên khác |
+| Type | AEAD | AEAD | AEAD using ChaCha's extended-nonce variant |
+| Key | 256 bits | 128/192/256 bits per implementation and policy | Typically 256 bits |
+| Nonce | **96 bits** in RFC 8439 | **96 bits** common/recommended | **192 bits** |
+| Tag | 128 bits | Typically 128 bits (other lengths allowed per policy) | 128 bits |
+| Java JCA/JCE | `ChaCha20-Poly1305` on supporting JDKs | `AES/GCM/NoPadding` | Do **not** assume a built-in standard JCA name; requires supporting library/provider |
+| Primary warning | Never repeat nonce per key | Never repeat IV/nonce per key | Different format/nonce; never substitute one name for another |
 
-Không kết luận thuật toán nào **luôn** nhanh hơn; hiệu năng tùy CPU, tăng tốc phần cứng, provider và workload. AES-GCM và ChaCha20-Poly1305 đều là lựa chọn AEAD mạnh nếu sử dụng đúng chính sách, khóa, nonce, AAD và quản lý lỗi. Chọn dựa trên giao thức tương tác, yêu cầu compliance, thư viện sẵn có và benchmark của môi trường thật.
+Never claim one algorithm is **always** faster; performance depends on CPU, hardware acceleration, provider, and workload. Both AES-GCM and ChaCha20-Poly1305 are strong AEAD choices when used with proper policies, keys, nonces, AAD, and error handling. Choose based on protocol interoperability, compliance requirements, library availability, and real-environment benchmarks.
 
-**XChaCha20-Poly1305 không tương thích trực tiếp với IETF ChaCha20-Poly1305**: nonce 24 byte không thể truyền vào `IvParameterSpec` 12 byte rồi gọi cùng tên để tự có XChaCha. Nếu dùng XChaCha, cần thư viện/định dạng tương ứng và quy tắc quản lý nonce của nó, không tự chế bước dẫn xuất.
+**XChaCha20-Poly1305 is not wire-compatible with IETF ChaCha20-Poly1305**: you cannot pass a 24-byte nonce into a 12-byte `IvParameterSpec` under the same name and expect XChaCha. Using XChaCha requires its specific library/format and nonce rules—never invent a custom subkey derivation step.
 
-## 12. Tình huống tự kiểm tra
+## 12. Self-Check Scenarios
 
-**Tình huống A — Hai thread cùng key, mỗi thread `AtomicLong(0)`:** Có an toàn không?  
-**Trả lời:** Không. Mỗi thread có counter riêng nên cùng prefix có thể tạo cùng nonce. Cần một allocator chia sẻ có cấp phát nguyên tử hoặc các prefix/miền được phân bổ duy nhất.
+**Scenario A — Two threads share a key, each with its own `AtomicLong(0)`:** Is this safe?  
+**Answer:** No. Each thread has its own counter, so sharing a prefix produces identical nonces. You need a shared atomic allocator or uniquely assigned prefixes/domains.
 
-**Tình huống B — Tăng block counter lên 2 cho message thứ hai nhưng giữ key/nonce:** Có giải quyết được nonce reuse không?  
-**Trả lời:** Không phải chính sách an toàn cho message mới. Nếu vùng keystream trùng, hai plaintext rò rỉ XOR; cần một thiết kế quản lý range và giới hạn rất chặt chẽ. Mặc định bắt buộc **nonce mới** cho mỗi lần mã hóa độc lập.
+**Scenario B — Incrementing block counter to 2 for a second message while keeping the same key/nonce:** Does this solve nonce reuse?  
+**Answer:** Not a safe policy for new messages. If keystream regions overlap, the two plaintexts leak their XOR; manual range partitioning demands strict bounds and tracking. By default, require a **fresh nonce** for each independent encryption.
 
-**Tình huống C — Thay AAD `tenant=alpha` thành `tenant=beta`, giữ nonce/ciphertext/tag:** Kết quả?  
-**Trả lời:** AEAD từ chối do tag không khớp (nếu chuỗi byte AAD thay đổi). Điều đó không thay thế kiểm soát phân quyền tenant ở lớp ứng dụng.
+**Scenario C — Changing AAD from `tenant=alpha` to `tenant=beta` while keeping nonce/ciphertext/tag:** Result?  
+**Answer:** AEAD rejects due to tag mismatch (when AAD bytes change). That does not replace application-layer tenant authorization checks.
 
-**Tình huống D — Đồng bộ DB từ backup cũ khiến allocator cấp lại sequence đã dùng:** Có thể tiếp tục dùng cùng key?  
-**Trả lời:** Không nên. Phải bảo đảm khôi phục trạng thái cấp nonce không bị lùi, hoặc thay key/miền trước khi mã hóa tiếp; xác định phạm vi các nonce đã có thể trùng và xử lý sự cố.
+**Scenario D — Restoring a DB from an old backup causes the allocator to re-issue previously used sequences:** Can the same key keep being used?  
+**Answer:** No. You must ensure allocator state never rolls back, or rotate to a new key/domain before encrypting again; scope any potentially collided nonces and handle as an incident.
 
-**Tình huống E — Tag hợp lệ nhưng message cũ bị gửi lại:** AEAD có tự chặn?  
-**Trả lời:** Không. Cần deduplication, sequence/timestamp được xác thực và trạng thái chống replay theo giao thức.
+**Scenario E — Valid tag, yet an old message is re-sent:** Does AEAD block it automatically?  
+**Answer:** No. You need deduplication, authenticated sequence/timestamp checks, and protocol-level anti-replay state.
 
-**Tình huống F — Một file lớn được mã hóa bằng ChaCha20 với counter 32 bit và xử lý không giới hạn:** Vấn đề?  
-**Trả lời:** Block counter hữu hạn; khi wrap có nguy cơ lặp keystream. Chia record hữu hạn, dùng nonce mới cho record mới, giới hạn kích thước theo giao thức/provider.
+**Scenario F — Encrypting a huge file with ChaCha20's 32-bit counter without size limits:** Issue?  
+**Answer:** The block counter is finite; wrapping risks keystream repetition. Split into bounded records, use a fresh nonce per record, and enforce protocol/provider size limits.
 
-**Tình huống G — Người lập trình gọi `cipher.update(plaintext)` rồi `cipher.updateAAD(header)`:** Có đúng?  
-**Trả lời:** Không. Với AEAD, AAD phải được đưa vào trước phần plaintext/ciphertext; provider có thể ném `IllegalStateException`. Hãy xác thực toàn bộ header trước khi xử lý payload.
+**Scenario G — A developer calls `cipher.update(plaintext)` then `cipher.updateAAD(header)`:** Is this valid?  
+**Answer:** No. For AEAD, AAD must be fed before plaintext/ciphertext; providers may throw `IllegalStateException`. Authenticate the entire header before processing payload.
 
-## 13. Checklist khi thiết kế và review
+## 13. Design and Review Checklist
 
-- **Mục tiêu bảo mật:** cần tính bí mật **và** xác thực? Dùng AEAD thay vì ChaCha20 thuần.
-- **Đúng API:** `ChaCha20ParameterSpec(nonce12, counter)` cho `ChaCha20`; `IvParameterSpec(nonce12)` cho `ChaCha20-Poly1305`.
-- **Khóa:** 32 byte đủ ngẫu nhiên, quản lý trong KMS/keystore hoặc cơ chế an toàn tương ứng, không hardcode.
-- **Nonce:** không lặp cho cùng key; định rõ scope, cấp phát duy nhất trong multiwriter, trạng thái bền vững qua restart/crash, không wrap.
-- **AAD:** cố định encoding, có version/định danh/context liên quan nếu cần; cung cấp trước phần dữ liệu và kiểm tra lại đúng byte.
-- **Record:** lưu/truyền version, keyId, nonce, ciphertext và tag theo định dạng không mơ hồ; có giới hạn độ dài.
-- **Giải mã:** từ chối nếu tag sai; không trả plaintext chưa được xác thực, không log secret hoặc fallback sang stream cipher thuần.
-- **Replay:** nếu nghiệp vụ cần, kiểm tra thứ tự/ID/timestamp trên dữ liệu được xác thực và lưu trạng thái ở đầu nhận.
-- **Lifecycle:** phối hợp key rotation với allocator, backup/restore và xử lý sự cố trùng nonce; kiểm tra tải trọng/trần counter.
-- **Kiểm thử:** test round-trip, sửa ciphertext, sửa tag, sửa AAD, sai key/nonce, record thiếu trường, restart allocator và hai writer cấp đồng thời.
+- **Security goal:** need both confidentiality **and** authenticity? Use AEAD instead of raw ChaCha20.
+- **Right API:** `ChaCha20ParameterSpec(nonce12, counter)` for `ChaCha20`; `IvParameterSpec(nonce12)` for `ChaCha20-Poly1305`.
+- **Key:** 32 sufficiently random bytes managed in KMS/keystore or equivalent secure store, never hardcoded.
+- **Nonce:** non-repeating per key; clear scope, unique across multi-writers, durable across restarts/crashes, no wraparound.
+- **AAD:** fixed encoding, includes version/identifiers/relevant context if needed; supplied before payload and re-checked byte-for-byte.
+- **Record:** store/transmit version, keyId, nonce, ciphertext, and tag in an unambiguous format with length bounds.
+- **Decryption:** reject on tag failure; never return unauthenticated plaintext, log secrets, or fall back to raw stream cipher.
+- **Replay:** if business logic requires it, verify sequence/ID/timestamp on authenticated data and maintain receiver state.
+- **Lifecycle:** coordinate key rotation with the allocator, backup/restore, and nonce-collision incident response; verify payload/counter ceilings.
+- **Testing:** test round-trip, tampered ciphertext, tampered tag, tampered AAD, wrong key/nonce, truncated records, allocator restarts, and concurrent multi-writer allocation.
 
-## Tài liệu chính thức
+## Official References
 
-1. [RFC 8439 — ChaCha20 and Poly1305 for IETF Protocols](https://www.rfc-editor.org/rfc/rfc8439.html): cấu trúc ChaCha20, nonce 96 bit, block counter, dẫn xuất khóa Poly1305, AEAD, cảnh báo reuse.
-2. [Java SE 21 — `ChaCha20ParameterSpec`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/spec/ChaCha20ParameterSpec.html): nonce 12 byte và initial counter 32 bit.
-3. [Java SE 21 — `Cipher`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html): `getInstance`, `init`, `updateAAD`, `doFinal`, ngoại lệ và AEAD.
-4. [Java SE 21 — `AEADBadTagException`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/AEADBadTagException.html): lỗi xác thực tag khi giải mã.
-5. [Java SE 21 — Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html): tên chuẩn `ChaCha20` và `ChaCha20-Poly1305` trong JCA/JCE.
+1. [RFC 8439 — ChaCha20 and Poly1305 for IETF Protocols](https://www.rfc-editor.org/rfc/rfc8439.html): ChaCha20 structure, 96-bit nonce, block counter, Poly1305 key derivation, AEAD, reuse warnings.
+2. [Java SE 21 — `ChaCha20ParameterSpec`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/spec/ChaCha20ParameterSpec.html): 12-byte nonce and 32-bit initial counter.
+3. [Java SE 21 — `Cipher`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html): `getInstance`, `init`, `updateAAD`, `doFinal`, exceptions, and AEAD.
+4. [Java SE 21 — `AEADBadTagException`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/AEADBadTagException.html): tag verification failure on decryption.
+5. [Java SE 21 — Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html): standard names `ChaCha20` and `ChaCha20-Poly1305` in JCA/JCE.
 
-**Kết luận kỹ thuật:** ChaCha20 biến khóa và nonce thành keystream để mã hóa; ChaCha20-Poly1305 thêm tag xác thực và AAD. Sự an toàn của cả hai phụ thuộc vào **không tái sử dụng nonce với cùng khóa**. Trong Java, dùng đúng `Cipher`/`ParameterSpec`, còn ở cấp hệ thống phải quản lý nonce bền vững, duy nhất giữa các writer và sống sót qua crash/restart.
+**Technical conclusion:** ChaCha20 turns a key and nonce into a keystream for encryption; ChaCha20-Poly1305 adds an authentication tag and AAD. Both depend on **never reusing a nonce under the same key**. In Java, use the proper `Cipher`/`ParameterSpec`, while at the system level manage nonces durably, uniquely across writers, and resiliently across crashes/restarts.

@@ -1,94 +1,94 @@
-# Ứng dụng chủ, hợp đồng dịch vụ và phần mở rộng (plugin) liên hệ như thế nào?
+# How Do the Host Application, Service Contract, and Extensions (Plugins) Relate?
 
-## 1. Nhìn toàn cảnh
+## 1. The Big Picture
 
-Một hệ thống có khả năng mở rộng lúc chạy (runtime extensibility) thường có ba vai trò:
+A system with runtime extensibility typically has three roles:
 
-- **Ứng dụng chủ (host application):** chương trình sở hữu luồng nghiệp vụ, giao diện, dữ liệu, cấu hình và quyết định khi nào cần một khả năng mở rộng.
-- **Hợp đồng dịch vụ (service contract/SPI):** tập kiểu và quy tắc công khai xác định plugin có thể cung cấp khả năng gì, host được phép gọi gì và hai bên phải tuân thủ điều kiện nào.
-- **Phần mở rộng (plugin/service provider):** thành phần triển khai hợp đồng đó, thường đóng gói riêng, có thể bổ sung hoặc thay thế cách thực hiện một chức năng mà không phải sửa mã nghiệp vụ của host.
+- **Host application:** the program that owns the business workflow, UI, data, configuration, and decides when an extension capability is needed.
+- **Service contract (SPI):** the public set of types and rules defining what capability a plugin can provide, what the host is allowed to invoke, and what conditions both sides must satisfy.
+- **Extension (plugin/service provider):** the component implementing that contract, usually packaged separately, that can add or replace how a feature works without modifying the host's business code.
 
-Có thể hình dung mối quan hệ:
+You can visualize the relationship as:
 
 ```text
-                       gọi theo hợp đồng
+                       calls via contract
    +------------------+ -------------------> +----------------------+
-   | Ứng dụng chủ      |                      | Hợp đồng dịch vụ     |
-   | chọn, điều phối,  |                      | Formatter (API/SPI)  |
-   | quản lý lỗi       |                      +-----------+----------+
+   | Host application |                      | Service contract     |
+   | selects, orchestrates,                  | Formatter (API/SPI)  |
+   | manages errors   |                      +-----------+----------+
    +--------+---------+                                  ^
             |                                            | implements
-            | khám phá, tải, chọn                        |
+            | discovers, loads, selects                  |
             +------------------------------------> +-----+--------------+
                                                   | Plugin A / Plugin B |
-                                                  | các triển khai cụ thể|
+                                                  | concrete impls      |
                                                   +---------------------+
 ```
 
-Mũi tên `gọi theo hợp đồng` diễn tả host làm việc qua giao diện đã biết. Plugin **triển khai** giao diện đó. Bước **khám phá và nạp** là cơ chế để host tìm được đối tượng triển khai; nó có thể dựa trên cấu hình, đăng ký thủ công, `ServiceLoader`, dependency injection hoặc một bộ quản lý plugin riêng.
+The `calls via contract` arrow shows that the host works through a known interface. The plugin **implements** that interface. The **discovery and loading** step is the mechanism the host uses to obtain the implementing object; it can be based on configuration, manual registration, `ServiceLoader`, dependency injection, or a custom plugin manager.
 
-Điểm cốt lõi: **host biết khả năng cần dùng và hợp đồng cần tuân thủ; host không cần biết trước tên lớp triển khai của từng plugin**. Vì vậy, có thể đưa thêm triển khai vào hệ thống mà vẫn giữ ổn định mã gọi dịch vụ.
+Core point: **the host knows the capability it needs and the contract to follow; the host does not need to know the concrete implementation class name of each plugin in advance**. Therefore, new implementations can be introduced into the system while keeping the service-calling code stable.
 
-## 2. Trách nhiệm và ranh giới của từng thành phần
+## 2. Responsibilities and Boundaries of Each Component
 
-| Thành phần | Sở hữu điều gì? | Không nên phụ thuộc trực tiếp vào điều gì? |
+| Component | What does it own? | What should it avoid depending on directly? |
 |---|---|---|
-| Host | Luồng nghiệp vụ, lựa chọn plugin, cấu hình, dữ liệu, kiểm soát lỗi và quyền truy cập | Lớp triển khai cụ thể của plugin nếu có thể gọi qua hợp đồng |
-| Service contract | Tên thao tác, kiểu tham số/kết quả, tiền điều kiện, hậu điều kiện, ngoại lệ, phiên bản tương thích | Chi tiết nội bộ hoặc thư viện riêng của một plugin |
-| Plugin | Thuật toán/khả năng cụ thể, tài nguyên và phụ thuộc riêng, hành vi đáp ứng hợp đồng | Cấu trúc nội bộ không công khai của host |
+| Host | Business flow, plugin selection, configuration, data, error control, and access permissions | Concrete plugin implementation classes when they can be called via the contract |
+| Service contract | Operation names, parameter/return types, preconditions, postconditions, exceptions, version compatibility | Internal details or private libraries of a specific plugin |
+| Plugin | Specific algorithms/capabilities, its own resources and dependencies, behavior fulfilling the contract | Unexposed internal structures of the host |
 
-**Hợp đồng không chỉ là một `interface`.** Ví dụ một dịch vụ chuyển đổi văn bản có thể phải quy định thêm mã định danh duy nhất, cách xử lý giá trị `null`, định dạng đầu ra, khả năng an toàn khi gọi đồng thời, trạng thái và vòng đời. Nếu hai bên chỉ khớp chữ ký phương thức nhưng hiểu khác ý nghĩa, plugin vẫn có thể gây lỗi nghiệp vụ.
+**A contract is more than just an `interface`.** For example, a text-conversion service may also need to specify a unique identifier, `null`-value handling, output format, concurrency safety, state, and lifecycle. If both sides match method signatures but interpret semantics differently, the plugin can still cause business errors.
 
-Thuật ngữ cần phân biệt:
+Terminology to distinguish:
 
-- **Service** là khả năng trừu tượng được mô tả bằng kiểu/hợp đồng, chẳng hạn `Formatter`.
-- **Provider** là lớp/đối tượng thực thi service; với Java SPI, provider thường được tìm qua `ServiceLoader`.
-- **Plugin** là đơn vị mở rộng có thể được phân phối, bật/tắt hoặc quản lý riêng. Một plugin có thể cung cấp nhiều provider và có mã phụ trợ; không phải mọi provider đều là một hệ plugin đầy đủ.
-- **API** là phần lập trình công khai; **SPI** (Service Provider Interface) nhấn mạnh hợp đồng dành cho bên thứ ba triển khai. Cùng một giao diện Java có thể đóng cả hai vai trò trong ví dụ đơn giản.
+- **Service** is an abstract capability described by a type/contract, such as `Formatter`.
+- **Provider** is a class/object that implements the service; in Java SPI, providers are typically located via `ServiceLoader`.
+- **Plugin** is an extension unit that can be distributed, enabled/disabled, or managed independently. One plugin can provide multiple providers and contain supporting code; not every provider constitutes a full plugin system.
+- **API** is the public programming surface; **SPI** (Service Provider Interface) emphasizes the contract intended for third parties to implement. The same Java interface can play both roles in simple examples.
 
-## 3. Quan hệ phụ thuộc: ai biết ai?
+## 3. Dependency Relationships: Who Knows Whom?
 
-Thiết kế phổ biến tách hợp đồng ra một thư viện nhỏ:
+A common design extracts the contract into a small library:
 
 ```text
              +------------------------+
              | shared-contract.jar    |
-             | Formatter, kiểu dữ liệu|
+             | Formatter, data types  |
              +------------+-----------+
                           ^
-                phụ thuộc | phụ thuộc
+                  depends | depends
                  +--------+--------+
                  |                 |
        +---------+------+  +-------+-----------+
        | host.jar       |  | upper-plugin.jar  |
-       | chỉ gọi        |  | implements        |
+       | only calls     |  | implements        |
        | Formatter      |  | Formatter         |
        +----------------+  +-------------------+
 ```
 
-Ở **thời điểm biên dịch**, cả host và plugin biết chung hợp đồng, nhưng host không phải `import demo.plugin.UpperFormatter`. Ở **thời điểm chạy**, hệ thống cần thêm cách tìm và kết nối triển khai với hợp đồng. Việc nạp JAR không tự làm cho một lớp trở thành plugin; host phải có quy tắc đăng ký/khám phá và gọi nó.
+At **compile time**, both the host and the plugin know the shared contract, but the host does not need to `import demo.plugin.UpperFormatter`. At **runtime**, the system also needs a way to discover and bind implementations to the contract. Loading a JAR does not automatically turn a class into a plugin; the host must have rules to register/discover and invoke it.
 
-Đây là ứng dụng của **đảo chiều phụ thuộc (Dependency Inversion)**: mã điều phối cấp cao không phụ thuộc vào chi tiết của thuật toán cụ thể; hai bên cùng dựa trên một hợp đồng ổn định. Host vẫn kiểm soát việc **chọn** provider, thứ tự xử lý, dữ liệu cấp cho plugin và hành vi khi không có provider phù hợp.
+This is an application of **Dependency Inversion**: high-level orchestration code does not depend on the details of concrete algorithms; both sides rely on a stable contract. The host still controls **selecting** the provider, processing order, data passed to the plugin, and behavior when no suitable provider exists.
 
-Ví dụ thực tế: một ứng dụng xuất báo cáo có hợp đồng `ReportExporter`. Plugin CSV và plugin JSON đều triển khai hợp đồng; host dựa vào định dạng người dùng chọn để gọi provider thích hợp. Bổ sung plugin PDF là bổ sung một triển khai và đăng ký mới, không phải viết nhánh `if/else` gắn chặt với một lớp PDF trong lõi ứng dụng.
+Practical example: a report-export application has a `ReportExporter` contract. Both the CSV plugin and the JSON plugin implement the contract; the host calls the appropriate provider based on the format chosen by the user. Adding a PDF plugin means adding a new implementation and registration, rather than writing `if/else` branches tightly coupled to a PDF class inside the application core.
 
-## 4. Chuỗi hoạt động từ khởi động đến sử dụng
+## 4. Execution Sequence from Startup to Use
 
-1. **Định nghĩa hợp đồng:** host hoặc nhóm sở hữu nền tảng công bố service type và quy tắc tương thích.
-2. **Triển khai:** tác giả plugin viết lớp thực thi đúng hợp đồng, đóng gói phụ thuộc và siêu dữ liệu đăng ký.
-3. **Triển khai plugin (deployment):** cung cấp artifact tại vị trí mà cơ chế nạp có thể nhìn thấy, ví dụ JAR trên classpath hoặc module path.
-4. **Khám phá:** host lấy danh sách provider qua `ServiceLoader`, registry hoặc cơ chế khác.
-5. **Kiểm tra và chọn:** host kiểm tra khả năng, cấu hình, phiên bản và các điều kiện cần trước khi sử dụng.
-6. **Thực thi:** host truyền dữ liệu đầu vào theo hợp đồng và xử lý đầu ra/lỗi của provider.
-7. **Quản lý vòng đời:** nếu hợp đồng có khởi tạo, đóng hoặc giải phóng tài nguyên, host điều phối các bước đó.
+1. **Contract definition:** the host or platform-owning team publishes the service type and compatibility rules.
+2. **Implementation:** the plugin author writes a class that fulfills the contract, packaging dependencies and registration metadata.
+3. **Plugin deployment:** placing the artifact where the loading mechanism can see it, such as a JAR on the classpath or module path.
+4. **Discovery:** the host retrieves the list of providers via `ServiceLoader`, a registry, or another mechanism.
+5. **Validation and selection:** the host checks capabilities, configuration, version, and prerequisites before use.
+6. **Execution:** the host passes input data according to the contract and handles the provider's output/errors.
+7. **Lifecycle management:** if the contract includes initialization, closing, or resource cleanup, the host coordinates those steps.
 
-Ba vai trò trên là **mô hình kiến trúc**. `ServiceLoader` chỉ là một **công cụ khám phá provider** mà Java cung cấp; nó không tự giải quyết phân quyền, cách ly tiến trình, cập nhật nóng, quản lý phiên bản hay đóng tài nguyên.
+The three roles above form an **architectural model**. `ServiceLoader` is merely a **provider discovery tool** supplied by Java; it does not by itself solve authorization, process isolation, hot updates, version management, or resource closing.
 
-## 5. Ví dụ Java 17+: host gọi plugin qua ServiceLoader
+## 5. Java 17+ Example: Host Calling a Plugin via ServiceLoader
 
-Ta xây dựng một dịch vụ định dạng chuỗi. Host chỉ biết `Formatter`; plugin cung cấp định dạng chữ hoa. Ví dụ dùng **classpath** để thể hiện rõ hai bên biên dịch riêng.
+We will build a string-formatting service. The host only knows `Formatter`; the plugin provides uppercase formatting. The example uses the **classpath** to clearly demonstrate compiling both sides separately.
 
-Cấu trúc tệp cần tạo:
+File structure to create:
 
 ```text
 demo/
@@ -99,7 +99,7 @@ demo/
     └── resources/META-INF/services/demo.spi.Formatter
 ```
 
-**Hợp đồng** — `api/src/demo/spi/Formatter.java`:
+**Contract** — `api/src/demo/spi/Formatter.java`:
 
 ```java
 package demo.spi;
@@ -110,7 +110,7 @@ public interface Formatter {
 }
 ```
 
-`id()` là mã để host nhận diện khả năng; `format(String)` là thao tác host được phép gọi. Trong hệ thống thật, nên quy định `id` có duy nhất không và cách xử lý đầu vào bất thường.
+`id()` is the identifier for the host to recognize the capability; `format(String)` is the operation the host is allowed to call. In a real system, you should specify whether `id` must be unique and how abnormal inputs are handled.
 
 **Plugin** — `plugin-upper/src/demo/plugin/UpperFormatter.java`:
 
@@ -136,15 +136,15 @@ public final class UpperFormatter implements Formatter {
 }
 ```
 
-Provider `UpperFormatter` triển khai hợp đồng và có constructor công khai không tham số, phù hợp với cách tạo provider trên classpath của Java `ServiceLoader`. `Locale.ROOT` giúp phép đổi chữ hoa có kết quả ổn định, không dựa trên locale mặc định của máy.
+The `UpperFormatter` provider implements the contract and has a public no-argument constructor, matching how Java's `ServiceLoader` instantiates providers on the classpath. `Locale.ROOT` ensures consistent uppercase conversion rather than relying on the machine's default locale.
 
-**Đăng ký provider** — tệp văn bản UTF-8 tên chính xác là `plugin-upper/resources/META-INF/services/demo.spi.Formatter`:
+**Provider registration** — a UTF-8 text file named exactly `plugin-upper/resources/META-INF/services/demo.spi.Formatter`:
 
 ```text
 demo.plugin.UpperFormatter
 ```
 
-Tên **tệp** bằng tên đầy đủ của service interface; **nội dung** là tên lớp provider. Khi đóng gói JAR, phải giữ nguyên đường dẫn `META-INF/services/demo.spi.Formatter` trong JAR. Đây là cầu nối để `ServiceLoader` tìm được plugin trên classpath; chỉ triển khai `implements Formatter` mà thiếu tệp đăng ký thì ví dụ này không tự phát hiện provider.
+The **file name** equals the fully qualified name of the service interface; the **content** is the provider class name. When packaging the JAR, the path `META-INF/services/demo.spi.Formatter` must be preserved inside the JAR. This is the bridge enabling `ServiceLoader` to locate the plugin on the classpath; merely implementing `implements Formatter` without the registration file will not auto-discover the provider in this example.
 
 **Host** — `host/src/demo/host/Main.java`:
 
@@ -172,9 +172,9 @@ public final class Main {
 }
 ```
 
-Host không `import` lớp `UpperFormatter` hay gọi `new UpperFormatter()`. Host yêu cầu một service kiểu `Formatter`, duyệt các provider được tìm thấy và gọi chúng qua cùng hợp đồng.
+The host does not `import` the `UpperFormatter` class or call `new UpperFormatter()`. The host requests a service of type `Formatter`, iterates over discovered providers, and invokes them through the same contract.
 
-**Biên dịch và chạy từ thư mục `demo` bằng PowerShell (Windows, JDK 17+):**
+**Compile and run from the `demo` directory using PowerShell (Windows, JDK 17+):**
 
 ```powershell
 New-Item -ItemType Directory -Force -Path out\api,out\host,out\plugin | Out-Null
@@ -189,41 +189,41 @@ jar --create --file out\upper.jar -C out\plugin .
 java -cp "out\api;out\host;out\upper.jar" demo.host.Main
 ```
 
-Kết quả chuẩn với đúng một provider:
+Standard output with exactly one provider:
 
 ```text
 upper -> HELLO PLUGIN
 ```
 
-Thử chạy lại mà **bỏ plugin JAR khỏi classpath**:
+Try running again while **removing the plugin JAR from the classpath**:
 
 ```powershell
 java -cp "out\api;out\host" demo.host.Main
 ```
 
-Kết quả:
+Output:
 
 ```text
 No formatter provider found
 ```
 
-Trên macOS/Linux, thay dấu phân cách classpath `;` bằng `:`; dùng đường dẫn `/` và lệnh tạo thư mục/sao chép tương đương. Các lệnh Java `javac` và `jar` vẫn cùng ý nghĩa.
+On macOS/Linux, replace the classpath separator `;` with `:`; use `/` paths and equivalent directory-creation/copy commands. The Java `javac` and `jar` commands carry the same meaning.
 
-**Điều ví dụ chứng minh:** mã host vẫn vậy trong cả hai lần chạy; sự khác biệt do provider có được triển khai và phát hiện hay không. Muốn thêm định dạng khác, viết thêm một provider thực thi `Formatter`, đăng ký và đưa JAR của nó vào môi trường chạy. Host chỉ cần thay đổi nếu yêu cầu nghiệp vụ về cách **chọn** plugin thay đổi.
+**What the example proves:** the host code remains identical across both runs; the difference comes from whether the provider is deployed and discovered. To add another format, write another provider implementing `Formatter`, register it, and place its JAR in the runtime environment. The host only needs to change if the business requirements for **how** to select plugins change.
 
-## 6. Classpath, JPMS và giới hạn của việc khám phá
+## 6. Classpath, JPMS, and Discovery Limits
 
-Với Java 9+ và **Java Platform Module System (JPMS)**, một provider nằm trong named module thường được công bố qua `provides ... with ...`; module sử dụng service khai báo `uses ...`. Ví dụ cấu trúc ý tưởng, **tách biệt với chương trình classpath ở mục 5**:
+With Java 9+ and the **Java Platform Module System (JPMS)**, a provider residing in a named module is typically declared via `provides ... with ...`; the service-consuming module declares `uses ...`. Conceptual structure example, **separate from the classpath program in section 5**:
 
 ```java
-// module-info.java trong module hợp đồng
+// module-info.java in the contract module
 module demo.api {
     exports demo.spi;
 }
 ```
 
 ```java
-// module-info.java trong module host
+// module-info.java in the host module
 module demo.host {
     requires demo.api;
     uses demo.spi.Formatter;
@@ -231,71 +231,71 @@ module demo.host {
 ```
 
 ```java
-// module-info.java trong module provider
+// module-info.java in the provider module
 module demo.upper {
     requires demo.api;
     provides demo.spi.Formatter with demo.plugin.UpperFormatter;
 }
 ```
 
-Các file `module-info.java` trên minh họa cấu hình module; muốn chạy theo JPMS phải tổ chức và biên dịch lại thành các module tương ứng, đặt chúng trên module path. Với provider thuộc **named module tường minh**, khai báo `provides` mới là cơ chế đăng ký chính; tệp `META-INF/services` của ví dụ classpath không thay thế cho khai báo đó.
+The `module-info.java` files above illustrate module configuration; to run under JPMS, the code must be organized and recompiled into the corresponding modules and placed on the module path. For providers belonging to an **explicit named module**, the `provides` declaration is the primary registration mechanism; the `META-INF/services` file from the classpath example does not replace that declaration.
 
-Những đặc tính đáng nhớ của `ServiceLoader`:
+Key characteristics of `ServiceLoader` to remember:
 
-- Provider thường được **tìm và khởi tạo lười** khi duyệt loader, không có nghĩa tất cả plugin khởi tạo ngay tại lời gọi `load`.
-- Một đối tượng `ServiceLoader` có thể lưu cache các provider đã được nạp. `reload()` làm mới bộ nhớ đệm/việc tìm kiếm của loader; **không bảo đảm** JAR mới được đưa vào classloader, không tự gỡ lớp đã nạp, và không tạo cơ chế hot-reload hoàn chỉnh.
-- Provider lỗi, không tìm thấy lớp, sai kiểu hoặc không thể khởi tạo có thể gây `ServiceConfigurationError`. Host cần có chiến lược báo lỗi và cách xử lý phù hợp.
-- Khi có nhiều provider, không nên mặc định thứ tự duyệt chính là thứ tự ưu tiên nghiệp vụ. Nếu cần chọn một provider, nên định nghĩa mã/khả năng, quy tắc phát hiện trùng, điều kiện chọn và chính sách fallback.
+- Providers are usually **discovered and instantiated lazily** while iterating the loader, meaning not all plugins are instantiated immediately when `load` is called.
+- A `ServiceLoader` instance can cache loaded providers. `reload()` refreshes the loader's cache/lookup; it **does not guarantee** that new JARs are added to the classloader, does not automatically unload already-loaded classes, and does not create a complete hot-reload mechanism.
+- Faulty providers, missing classes, wrong types, or instantiation failures can throw `ServiceConfigurationError`. The host needs an appropriate error-reporting and handling strategy.
+- When multiple providers exist, you should not assume iteration order equals business priority order. If a single provider must be selected, define identifiers/capabilities, duplicate-detection rules, selection conditions, and a fallback policy.
 
-Nếu yêu cầu nạp JAR **sau khi host đã khởi động**, thay thế plugin mà không khởi động lại, hoặc cách ly các phiên bản thư viện, thường cần quản lý `ClassLoader`/`ModuleLayer` và vòng đời rõ ràng, hoặc một framework plugin phù hợp. Không nên suy diễn rằng có `ServiceLoader` là có thể cập nhật nóng an toàn.
+If requirements call for loading JARs **after the host has started**, replacing plugins without restarting, or isolating library versions, you typically need explicit `ClassLoader`/`ModuleLayer` and lifecycle management, or a suitable plugin framework. Do not assume that having `ServiceLoader` provides safe hot updates.
 
-## 7. Thiết kế hợp đồng để plugin có thể sống lâu
+## 7. Designing Contracts So Plugins Can Last
 
-**Ổn định kiểu và ngữ nghĩa.** Cả hai bên phải dùng phiên bản hợp đồng tương thích. Đổi tên phương thức, đổi kiểu trả về hoặc thêm phương thức trừu tượng có thể làm plugin cũ không còn tương thích. Nên ưu tiên thay đổi có chủ đích, có phiên bản và thử nghiệm tương thích; không coi `default method` là giải pháp cho mọi thay đổi ngữ nghĩa.
+**Type and semantic stability.** Both sides must use compatible contract versions. Renaming methods, changing return types, or adding abstract methods can make old plugins incompatible. Prefer intentional, versioned changes with compatibility testing; do not treat `default method` as a cure-all for every semantic change.
 
-**Giảm rò rỉ phụ thuộc.** Tránh đưa kiểu nội bộ của host hoặc kiểu từ thư viện triển khai riêng vào chữ ký service. Một hợp đồng nhỏ với kiểu dữ liệu ổn định dễ được plugin bên ngoài triển khai hơn.
+**Minimize dependency leakage.** Avoid putting internal host types or types from private implementation libraries into service signatures. A small contract with stable data types is easier for external plugins to implement.
 
-**Xác định rõ khả năng.** Nếu có nhiều plugin cùng cung cấp một service, host có thể cần mã nhận diện, tên hiển thị, phiên bản, danh sách định dạng hỗ trợ và khả năng hoạt động. Dữ liệu này nên được cung cấp qua hợp đồng/siêu dữ liệu rõ ràng; tránh dựa vào tên lớp Java hoặc thứ tự tình cờ của classpath.
+**Clearly specify capabilities.** If multiple plugins provide the same service, the host may need an identifier, display name, version, list of supported formats, and operational capabilities. This data should be exposed via a clear contract/metadata; avoid relying on Java class names or accidental classpath order.
 
-**Phân định quyền kiểm soát.** Plugin thực thi chức năng được giao; host quyết định dữ liệu và quyền hạn được chuyển vào, số lần gọi, timeout, retry, ghi log, lựa chọn provider và cách xử lý khi plugin thất bại. Không nên để plugin tự ý điều khiển toàn bộ luồng nghiệp vụ chỉ vì nó được nạp vào JVM.
+**Define control boundaries.** The plugin executes the assigned function; the host decides what data and permissions are passed in, call counts, timeouts, retries, logging, provider selection, and how to handle plugin failures. Do not let a plugin arbitrarily take over the entire business flow simply because it was loaded into the JVM.
 
-**Quản lý tài nguyên.** Nếu plugin mở tệp, socket, thread hoặc kết nối, hợp đồng nên có cơ chế khởi tạo/đóng rõ ràng, chẳng hạn phương thức `close()` hoặc `AutoCloseable`. Ví dụ `Formatter` không cần bước đóng vì nó không giữ tài nguyên. Host phải xác định có dùng chung một instance giữa nhiều thread không; tính an toàn khi gọi đồng thời phải là phần của hợp đồng.
+**Resource management.** If a plugin opens files, sockets, threads, or connections, the contract should include explicit initialization/closing mechanisms, such as a `close()` method or `AutoCloseable`. The `Formatter` example needs no close step because it holds no resources. The host must determine whether a single instance is shared across multiple threads; concurrency safety must be part of the contract.
 
-**Kiểm soát lỗi và quan sát.** Ghi nhận provider nào đang chạy, phiên bản nào, lỗi ở thao tác nào. Một plugin hỏng không nên khiến host hiểu nhầm rằng toàn bộ hệ thống không có provider; lỗi tải provider, lỗi khởi tạo và lỗi khi gọi hàm là các trường hợp khác nhau.
+**Error control and observability.** Record which provider is running, which version, and which operation failed. A broken plugin should not mislead the host into thinking the entire system has no providers; provider loading errors, initialization errors, and invocation errors are distinct cases.
 
-## 8. Tính mở rộng không đồng nghĩa với cách ly an toàn
+## 8. Extensibility Does Not Equal Safe Isolation
 
-Plugin Java được chạy trong cùng JVM thường có khả năng thực thi mã với quyền của tiến trình host. `ServiceLoader` **không phải cơ chế sandbox**. Chỉ nạp plugin từ nguồn tin cậy, kiểm soát phụ thuộc và quyền truy cập; nếu cần chạy mã bên thứ ba không đáng tin, nên cân nhắc cách ly bằng tiến trình/container và giao thức giao tiếp riêng.
+Java plugins running in the same JVM generally have the ability to execute code with the host process's privileges. `ServiceLoader` **is not a sandbox mechanism**. Only load plugins from trusted sources, and control dependencies and access permissions; if untrusted third-party code must run, consider isolating via separate processes/containers and a dedicated communication protocol.
 
-Classloader tạo một ranh giới nạp lớp, nhưng không mặc nhiên là ranh giới bảo mật. Hai lớp có cùng tên đầy đủ nhưng do hai classloader khác nhau định nghĩa có thể là **hai kiểu khác nhau** ở JVM; điều này gây `ClassCastException` nếu host và plugin nạp bản sao tách biệt của chính interface hợp đồng. Thiết kế nạp động cần đảm bảo hai bên nhìn thấy **cùng định danh lớp của service contract**, thường bằng cách chia sẻ API từ một classloader cha thích hợp.
+A classloader establishes a class-loading boundary, but is not inherently a security boundary. Two classes with the same fully qualified name defined by two different classloaders can be **two distinct types** in the JVM; this causes `ClassCastException` if the host and plugin load separate copies of the contract interface itself. A dynamic loading design must ensure both sides see the **same class identity for the service contract**, usually by sharing the API from an appropriate parent classloader.
 
-Plugin còn có thể có phụ thuộc thư viện xung đột phiên bản, chiếm nhiều CPU/bộ nhớ, tạo thread không kết thúc hoặc chặn I/O. Đó là trách nhiệm kiến trúc của host/plugin manager chứ không phải việc `interface` tự bảo vệ được.
+Plugins can also have conflicting library dependency versions, consume excessive CPU/memory, spawn non-terminating threads, or block I/O. Managing those is the architectural responsibility of the host/plugin manager rather than something an `interface` can protect against on its own.
 
-## 9. Lỗi thiết kế thường gặp
+## 9. Common Design Mistakes
 
-| Dấu hiệu | Nguyên nhân thường gặp | Cách sửa |
+| Symptom | Common Cause | Fix |
 |---|---|---|
-| Host gọi `new ConcretePlugin()` ở nhiều nơi | Lõi bị buộc vào triển khai cụ thể | Gọi qua service type và cơ chế lựa chọn provider |
-| Có lớp `implements` nhưng không phát hiện được plugin | Thiếu/sai tệp `META-INF/services` hoặc khai báo `provides`, JAR không nằm ở nơi loader thấy | Kiểm tra đúng tên đầy đủ, đường dẫn đóng gói và môi trường chạy |
-| Đổi interface làm plugin cũ lỗi | Hợp đồng thay đổi thiếu chính sách tương thích | Quản lý phiên bản API, kiểm thử plugin trên nhiều phiên bản host |
-| Chọn provider đầu tiên được tìm thấy | Không có quy tắc ưu tiên nghiệp vụ | Chọn bằng mã/cấu hình/khả năng; kiểm tra trùng và thiếu |
-| Gọi `reload()` rồi kỳ vọng hot-swap hoàn chỉnh | Nhầm quét lại service với thay classloader và giải phóng tài nguyên | Thiết kế cơ chế nạp/gỡ và vòng đời riêng |
-| Plugin giữ tài nguyên sau khi ngừng dùng | Hợp đồng không có trách nhiệm đóng | Thêm lifecycle và chủ sở hữu việc đóng |
-| Tin rằng plugin trong cùng JVM được cách ly an toàn | Nhầm cơ chế nạp lớp với ranh giới bảo mật | Chỉ dùng plugin tin cậy hoặc chuyển sang tiến trình tách biệt |
+| Host calls `new ConcretePlugin()` in many places | Core is coupled to concrete implementations | Call through the service type and a provider-selection mechanism |
+| Class `implements` the interface but plugin is not discovered | Missing/incorrect `META-INF/services` file or `provides` declaration, or JAR not visible to loader | Verify exact full name, packaging path, and runtime environment |
+| Interface change breaks old plugins | Contract changed without a compatibility policy | Manage API versions, test plugins across multiple host versions |
+| Picking the first provider found | No business priority rules | Select by ID/config/capability; check for duplicates and missing providers |
+| Calling `reload()` expecting full hot-swap | Confusing service rescanning with swapping classloaders and freeing resources | Design dedicated load/unload and lifecycle mechanisms |
+| Plugin holds resources after being retired | Contract lacks closing responsibility | Add lifecycle and ownership of closing |
+| Believing plugins in the same JVM are safely isolated | Confusing class-loading mechanisms with security boundaries | Use only trusted plugins or move to separate processes |
 
-## 10. Tự kiểm tra hiểu biết
+## 10. Check Your Understanding
 
-1. **Vì sao host nên import `Formatter` thay vì `UpperFormatter`?** Vì hợp đồng cho phép thay triển khai mà giữ nguyên mã gọi.
-2. **Plugin có thể hoạt động nếu chỉ có JAR chứa lớp triển khai?** Chưa chắc. Host còn cần phát hiện/đăng ký và nạp provider theo đúng cơ chế đã chọn.
-3. **Nếu bỏ `upper.jar` khỏi classpath ví dụ, điều gì thay đổi?** Host chạy được nhưng không tìm thấy provider, nên in `No formatter provider found`.
-4. **Thêm một plugin có tự giải quyết xung đột ưu tiên không?** Không. Host cần quy tắc chọn provider nếu có nhiều kết quả phù hợp.
-5. **`ServiceLoader` có tự bảo vệ host khỏi plugin độc hại hay cập nhật nóng JAR không?** Không. Bảo mật, quản lý phiên bản, vòng đời và nạp động là các vấn đề thiết kế bổ sung.
+1. **Why should the host import `Formatter` instead of `UpperFormatter`?** Because the contract allows swapping implementations while keeping the calling code unchanged.
+2. **Can a plugin work if only a JAR containing the implementation class is present?** Not necessarily. The host still needs to discover/register and load the provider via the chosen mechanism.
+3. **If `upper.jar` is removed from the example classpath, what changes?** The host still runs but finds no providers, so it prints `No formatter provider found`.
+4. **Does adding a plugin automatically resolve priority conflicts?** No. The host needs provider-selection rules if multiple matching results exist.
+5. **Does `ServiceLoader` automatically protect the host from malicious plugins or hot-update JARs?** No. Security, version management, lifecycle, and dynamic loading are additional design concerns.
 
-**Bài tập nhỏ:** Viết thêm `LowerFormatter` trả về chữ thường, đặt vào JAR riêng và đăng ký cùng service `demo.spi.Formatter`. Chạy host với một hoặc hai plugin JAR; quan sát mỗi provider được khám phá rồi bổ sung quy tắc chọn theo `id`. Việc này giúp thấy rõ ranh giới giữa **hợp đồng ổn định**, **nhiều triển khai** và **chính sách của host**.
+**Mini exercise:** Write an additional `LowerFormatter` that returns lowercase text, place it in a separate JAR, and register it under the same `demo.spi.Formatter` service. Run the host with one or two plugin JARs; observe each discovered provider, then add a selection rule by `id`. This helps clearly see the boundary between a **stable contract**, **multiple implementations**, and **host policy**.
 
-## Tài liệu tham khảo
+## References
 
 - Java SE 17, `ServiceLoader`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 - Oracle Java Tutorials, `Creating Extensible Applications`: https://docs.oracle.com/javase/tutorial/ext/basics/spi.html
 
-Khi đọc tài liệu Java cũ, chú ý cơ chế thư mục extensions trong những phiên bản JDK trước đây đã lỗi thời; ví dụ trên chủ động dùng classpath/JAR và JPMS của Java 17+.
+When reading older Java documentation, note that the extensions directory mechanism in earlier JDK versions is obsolete; the examples above intentionally use Java 17+ classpath/JAR and JPMS.

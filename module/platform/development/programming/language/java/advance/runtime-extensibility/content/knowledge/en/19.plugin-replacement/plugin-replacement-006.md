@@ -1,151 +1,151 @@
-# Đóng URLClassLoader giải phóng tệp nhưng không hủy lớp đã nạp
+# Closing URLClassLoader Releases Files Without Destroying Already-Loaded Classes
 
-## 1. Vấn đề khi thay thế plugin trong một JVM
+## 1. The problem of replacing plugins inside a single JVM
 
-Một host Java có thể tạo `URLClassLoader` để nạp một plugin từ JAR, gọi mã của plugin, rồi thay thế plugin bằng bản mới. Khi dừng plugin cũ, host nên gọi `URLClassLoader.close()` để đóng các file được loader mở. Nhưng **đóng classloader không có nghĩa xóa class khỏi JVM hoặc vô hiệu hóa mọi đối tượng đã tạo từ class ấy**.
+A Java host can create a `URLClassLoader` to load a plugin from a JAR, invoke plugin code, and later replace the plugin with a new version. When stopping the old plugin, the host should call `URLClassLoader.close()` to close files opened by the loader. However, **closing a classloader does not remove classes from the JVM or invalidate every object already created from those classes**.
 
-Đây là sự khác biệt quan trọng giữa hai khái niệm:
+This is an important distinction between two concepts:
 
-- **Giải phóng tài nguyên I/O:** đóng các file/JAR handle mà `URLClassLoader` đã mở, để không tiếp tục giữ những tài nguyên đó vô thời hạn. Việc có thể đổi tên, xóa hoặc thay file trên đĩa vẫn phụ thuộc hệ điều hành, quyền truy cập và những tiến trình/stream khác đang dùng file.
-- **Class unloading:** JVM chỉ có thể thu hồi các lớp được định nghĩa bởi một classloader khi các điều kiện về khả năng thu hồi, tham chiếu và garbage collection được thỏa mãn. Gọi `close()` không ép quá trình này xảy ra tức thì.
+- **I/O resource release:** closing the file/JAR handles opened by `URLClassLoader` so those resources are not held open indefinitely. Whether the file on disk can be renamed, deleted, or replaced still depends on the operating system, permissions, and any other processes/streams using the file.
+- **Class unloading:** the JVM can reclaim classes defined by a classloader only when reachability, reference, and garbage collection conditions are satisfied. Calling `close()` does not force this to happen immediately.
 
-Theo hợp đồng Java SE 17, sau `close()`, loader không thể định nghĩa thêm **lớp hoặc resource mới do chính nó cung cấp**. Các lớp/resource đã nạp và những thứ đến từ parent loader vẫn có thể truy cập. Nếu một thread khác đang nạp lớp cùng lúc với `close()`, kết quả của lượt nạp đó là **không xác định**, nên host phải tự đồng bộ vòng đời.
+Per the Java SE 17 contract, after `close()`, the loader cannot define additional **new classes or resources provided by itself**. Already-loaded classes/resources and anything coming from the parent loader remain accessible. If another thread is loading a class concurrently with `close()`, the outcome of that load is **undefined**, so the host must synchronize the lifecycle itself.
 
-Bài này hướng dẫn hiểu đúng `close()`, viết chương trình Java 17 quan sát việc đối tượng cũ vẫn hoạt động, phân biệt hai phiên bản cùng tên class và tổ chức thay thế plugin không rò rỉ file handle, thread hoặc tham chiếu tới loader cũ.
+This lesson walks through understanding `close()` accurately, writing a Java 17 program to observe old objects continuing to work, distinguishing two versions with the same class name, and organizing plugin replacement without leaking file handles, threads, or references to the old loader.
 
-## 2. URLClassLoader thực sự quản lý những gì?
+## 2. What does URLClassLoader actually manage?
 
-`java.net.URLClassLoader` là một classloader biết tìm lớp và tài nguyên từ danh sách URL, thường là:
+`java.net.URLClassLoader` is a classloader that locates classes and resources from a list of URLs, typically:
 
-- URL của một **JAR**: `file:/.../plugin-v1.jar`.
-- URL của thư mục chứa `.class` đã biên dịch: `file:/.../classes/`, thường kết thúc bằng dấu `/`.
-- Một đường tìm kiếm có nhiều URL theo thứ tự chỉ định, sau khi đã xét parent trong mô hình delegation mặc định.
+- The URL of a **JAR**: `file:/.../plugin-v1.jar`.
+- The URL of a directory containing compiled `.class` files: `file:/.../classes/`, usually ending with `/`.
+- A search path with multiple URLs in a specified order, after checking the parent under the default delegation model.
 
-Cách tạo loader điển hình:
+Typical loader creation:
 
 ~~~java
-// Đoạn minh họa: giả sử jarPath đã là Path tới JAR tồn tại.
+// Illustrative snippet: assume jarPath is already a Path to an existing JAR.
 URLClassLoader loader = new URLClassLoader(
         new URL[]{jarPath.toUri().toURL()},
         HostApp.class.getClassLoader()
 );
 ~~~
 
-`jarPath` và `HostApp` trong đoạn này chỉ là ký hiệu minh họa; ví dụ đầy đủ ở mục 5 có file thật và lệnh chạy. Loader có thể mở `JarFile` khi tìm lớp hoặc resource. Việc tạo đối tượng `URLClassLoader` không đồng nghĩa tất cả JAR đã được mở hay mọi class đã được tải.
+`jarPath` and `HostApp` here are illustrative symbols; the full example in Section 5 has real files and run commands. The loader may open a `JarFile` when looking up classes or resources. Merely instantiating `URLClassLoader` does not mean all JARs are opened or all classes are loaded.
 
-### 2.1. close() làm gì?
+### 2.1. What does close() do?
 
-`URLClassLoader` triển khai `Closeable` và `AutoCloseable`, vì vậy có thể đóng bằng `try-with-resources`. Theo API Java 17:
+`URLClassLoader` implements `Closeable` and `AutoCloseable`, so it can be closed using try-with-resources. According to the Java 17 API:
 
-1. `close()` ngừng việc tìm/nạp **các class và resource mới được định nghĩa bởi loader đó**.
-2. Với URL kiểu `jar:` và `file:`, nó cố gắng đóng những file mà loader đã mở trong lúc nạp class hoặc resource.
-3. Các class đã được nạp, các resource đã có và class/resource có thể tìm qua **parent** không bị hủy chỉ vì loader được đóng.
-4. Gọi `close()` trên một loader đã đóng là không có tác động mới (idempotent theo hợp đồng).
-5. Đây là nỗ lực đóng các file theo kiểu **best effort**: method có thể ném `IOException` nếu đóng file gặp lỗi, các lỗi I/O bổ sung được ghi như suppressed exceptions.
-6. Nếu `close()` chạy đồng thời với một thread đang nạp class qua loader, kết quả lượt nạp đó không được bảo đảm; không dùng việc đóng loader làm primitive đồng bộ với các tác vụ còn chạy.
+1. `close()` stops locating/loading **new classes and resources defined by that loader**.
+2. For `jar:` and `file:` URLs, it attempts to close files opened by the loader while loading classes or resources.
+3. Already-loaded classes, already-obtained resources, and classes/resources reachable via the **parent** are not destroyed merely because the loader was closed.
+4. Calling `close()` on an already-closed loader has no further effect (idempotent by contract).
+5. Closing files is **best effort**: the method can throw `IOException` if closing a file fails, with additional I/O errors recorded as suppressed exceptions.
+6. If `close()` runs concurrently with a thread loading a class through the loader, the outcome of that load is not guaranteed; do not use closing the loader as a synchronization primitive with running tasks.
 
-Ví dụ phạm vi ngắn:
+Short-scoped example:
 
 ~~~java
 try (URLClassLoader loader = new URLClassLoader(
         new URL[]{jarPath.toUri().toURL()},
         getClass().getClassLoader())) {
-    // Sử dụng các lớp/tài nguyên mà loader tìm thấy.
+    // Use classes/resources found by the loader.
 }
-// close() được gọi cả khi thoát khối do IOException/RuntimeException.
+// close() is called even when exiting the block due to IOException/RuntimeException.
 ~~~
 
-Đây là **đoạn minh họa nằm trong một phương thức instance**, không phải chương trình độc lập. Khi một plugin hoạt động lâu, loader thường sống dài hơn một block code ngắn; lúc đó plugin manager phải giữ reference và gọi `close()` ở bước dừng có kiểm soát.
+This is an **illustrative snippet inside an instance method**, not a standalone program. When a plugin runs long-term, the loader typically outlives a short code block; the plugin manager must retain the reference and call `close()` during a controlled stop step.
 
-### 2.2. close() không làm gì?
+### 2.2. What does close() NOT do?
 
-`close()` **không**:
+`close()` does **not**:
 
-- Gọi destructor hay “unload method” tự động cho mọi lớp.
-- Đặt tất cả đối tượng plugin đã tạo về `null`, hoặc ném exception trên mọi lần gọi method của chúng.
-- Thu hồi một đối tượng `Class<?>` hoặc `Method` mà host còn giữ.
-- Dừng thread, executor, timer, scheduled task hay listener do plugin tạo.
-- Xóa `ThreadLocal` hay khôi phục `Thread.currentThread().getContextClassLoader()`.
-- Đóng một `JarFile` được **code khác** mở độc lập, hoặc tự động dọn mọi socket/client/stream bên ngoài quyền quản lý của loader.
-- Xóa, thay thế hoặc đổi tên JAR trên đĩa, hay bảo đảm GC/class unloading xảy ra ngay lập tức.
-- Thay đổi classpath của system/application classloader đã hoạt động.
+- Invoke an automatic destructor or “unload method” for every class.
+- Set all created plugin objects to `null`, or throw exceptions on every method call to them.
+- Reclaim a `Class<?>` or `Method` object still held by the host.
+- Stop threads, executors, timers, scheduled tasks, or listeners created by the plugin.
+- Clear `ThreadLocal` or restore `Thread.currentThread().getContextClassLoader()`.
+- Close a `JarFile` opened independently by **other code**, or automatically clean up every socket/client/stream outside the loader's ownership.
+- Delete, replace, or rename the JAR on disk, or guarantee GC/class unloading occurs immediately.
+- Modify the classpath of an already-running system/application classloader.
 
-Vì vậy câu “đóng URLClassLoader để gỡ plugin” là cách nói tắt **không đầy đủ**. Chính xác hơn: host dừng công việc của plugin, dọn các tham chiếu và resource do plugin sở hữu, rồi đóng loader; sau đó JVM **có thể** thu hồi loader và các lớp khi không còn bị giữ.
+Hence “close `URLClassLoader` to unload the plugin” is an **incomplete** shorthand. More accurately: the host stops plugin work, cleans up plugin-owned references and resources, and then closes the loader; afterwards the JVM **may** reclaim the loader and classes once nothing retains them.
 
-## 3. Tại sao các lớp đã nạp vẫn dùng được?
+## 3. Why do already-loaded classes still work?
 
-Trong JVM, một lớp được xác định bởi **tên nhị phân** cùng **defining classloader**. Hai loader khác nhau có thể định nghĩa hai phiên bản của `demo.plugin.GreetingPlugin` và tạo ra **hai class identity khác nhau**, mặc dù tên chuỗi giống hệt.
+In the JVM, a class is identified by its **binary name** together with its **defining classloader**. Two different loaders can define two versions of `demo.plugin.GreetingPlugin` and create **two distinct class identities**, even though the string names are identical.
 
-Khi bytecode đã được nạp và định nghĩa thành `Class<?>`, method code của lớp không phụ thuộc vào việc `URLClassLoader` còn mở JAR để đọc lại **chính các byte đã nạp**. Một instance cũ có thể tiếp tục gọi method đã sẵn sàng, miễn là lệnh đó không cần loader cũ tìm thêm một class/resource mới và các điều kiện liên kết khác đã được đáp ứng.
+Once bytecode has been loaded and defined as `Class<?>`, the class's method code does not depend on `URLClassLoader` keeping the JAR open to re-read **those already-loaded bytes**. An old instance can continue invoking ready methods, provided those instructions do not require the old loader to resolve additional new classes/resources and other linking conditions are met.
 
-Hãy phân biệt:
+Distinguish the cases:
 
-| Thao tác sau `close()` | Điều có thể xảy ra |
+| Operation after `close()` | What can happen |
 | --- | --- |
-| Gọi method của instance đã tạo, chỉ dùng những lớp đã sẵn sàng | **Vẫn có thể thành công**; demo mục 5 chứng minh trường hợp này |
-| Gọi method khiến JVM phải nạp thêm một class của plugin chưa được loader định nghĩa | Có thể thất bại, thường là lỗi liên kết/nạp lớp; không dựa vào đó để chạy plugin đã dừng |
-| Gọi `loader.loadClass(name)` với class đã nạp hoặc class từ parent | Có thể vẫn trả class đã có do cơ chế cache/delegation |
-| Gọi `loader.loadClass(name)` với class chưa được nạp, chỉ tồn tại trong JAR của loader đã đóng | Không thể tìm class mới từ JAR ấy; thường `ClassNotFoundException` |
-| Tạo `URLClassLoader` mới trỏ tới JAR phiên bản mới | Có thể định nghĩa class phiên bản mới có **identity khác**, nếu parent không “giành” tên đó |
-| Gọi `System.gc()` sau `close()` | **Không bảo đảm** GC diễn ra hoặc loader/class cũ bị unload |
+| Calling a method on an already-created instance using only ready classes | **Can still succeed**; Section 5's demo proves this case |
+| Calling a method that causes the JVM to load an as-yet-undefined plugin class | May fail, often with a linking/class-loading error; do not rely on this to run stopped plugins |
+| Calling `loader.loadClass(name)` for an already-loaded class or parent class | May still return the existing class due to caching/delegation |
+| Calling `loader.loadClass(name)` for an unloaded class existing only in the closed loader's JAR | Cannot locate the new class from that JAR; typically throws `ClassNotFoundException` |
+| Creating a new `URLClassLoader` pointing to a new-version JAR | Can define a new-version class with **a different identity**, if the parent does not “claim” that name |
+| Calling `System.gc()` after `close()` | **Does not guarantee** GC runs or the old loader/classes are unloaded |
 
-Trường hợp method cũ chạy sau `close()` **không** có nghĩa host **nên tiếp tục gọi** plugin đã stop. Nó chỉ cho thấy việc đóng loader không phải một cơ chế thu hồi capability của instance còn sống. Một plugin manager tốt cần ngăn các lời gọi mới bằng state/lifecycle riêng.
+The fact that an old method runs after `close()` does **not** mean the host **should keep calling** a stopped plugin. It only shows that closing a loader is not a mechanism to revoke capabilities of live instances. A good plugin manager must prevent new calls via explicit state/lifecycle controls.
 
-### 3.1. Parent delegation và API chung
+### 3.1. Parent delegation and shared API
 
-`URLClassLoader` thông thường tìm lớp qua parent trước, rồi mới tìm trong các URL của chính mình. Nếu host vô tình đặt `plugin-v1.jar` lên application classpath, parent có thể đã định nghĩa `demo.plugin.GreetingPlugin` trước. Khi tạo loader phiên bản 2, lời gọi `loadClass` vẫn có thể trả **class của parent**, không phải bản mới.
+A standard `URLClassLoader` searches through its parent first before searching its own URLs. If the host accidentally places `plugin-v1.jar` on the application classpath, the parent may define `demo.plugin.GreetingPlugin` first. When creating the v2 loader, calling `loadClass` may still return **the parent's class**, not the new version.
 
-Đối với hệ thống plugin thật:
+For real plugin systems:
 
-- **Host và plugin** nên chia sẻ một API/SPI chung (ví dụ `Plugin`, `PluginContext`) do loader cha định nghĩa.
-- **Implementation plugin** chỉ nằm trong loader của phiên bản plugin; không đặt implementation trên application classpath.
-- Hạn chế mang các kiểu implementation/plugin-private qua ranh giới host; dùng API type và DTO do host sở hữu.
-- Nếu cần child-first cho một số package, phải thiết kế riêng và bảo vệ các package API dùng chung; đừng tự override `loadClass` vô điều kiện.
+- **Host and plugin** should share a common API/SPI (such as `Plugin`, `PluginContext`) defined by a parent loader.
+- **Plugin implementations** reside only in the plugin version's loader; never put implementations on the application classpath.
+- Avoid passing implementation/plugin-private types across the host boundary; use host-owned API types and DTOs.
+- If child-first loading is needed for specific packages, design it deliberately and protect shared API packages; never override `loadClass` unconditionally.
 
-Ví dụ ở mục 5 cố ý sử dụng reflection thay vì một API JAR riêng để tập trung quan sát hành vi đóng classloader. Hệ thống sản xuất vẫn nên có SPI nhỏ và ổn định.
+Section 5's example intentionally uses reflection instead of a separate API JAR to focus on observing classloader close behavior. Production systems should still use a small, stable SPI.
 
-## 4. File handle khác với bytecode đã nạp
+## 4. File handles differ from already-loaded bytecode
 
-Giả sử loader 1 mở `plugin-v1.jar` và nạp `GreetingPlugin.class`. JAR có thể còn được loader giữ mở để tìm các lớp/resource tiếp theo. `loader.close()` giúp đóng file mà nó đã mở, nhưng bytecode của `GreetingPlugin` đã được JVM định nghĩa và instance vẫn có thể tồn tại trong heap.
+Suppose loader 1 opens `plugin-v1.jar` and loads `GreetingPlugin.class`. The JAR may remain held open by the loader to locate subsequent classes/resources. `loader.close()` closes the files it opened, yet the bytecode of `GreetingPlugin` is already defined by the JVM and instances can still live on the heap.
 
 ~~~text
-Trước khi close:
+Before close:
     plugin-v1.jar --[file handle]--> URLClassLoader v1
                                         |
                                         +--> Class<demo.plugin.GreetingPlugin>
                                                    |
-                                                   +--> instance đang được host giữ
+                                                   +--> instance held by host
 
-Sau khi close:
-    plugin-v1.jar --X [file handle do loader quản lý đã được đóng]
-    URLClassLoader v1 --X [khả năng tìm lớp mới từ URL của nó]
-    Class<demo.plugin.GreetingPlugin> ----> instance cũ vẫn được tham chiếu
+After close:
+    plugin-v1.jar --X [file handle managed by loader has been closed]
+    URLClassLoader v1 --X [ability to locate new classes from its URLs]
+    Class<demo.plugin.GreetingPlugin> ----> old instance is still referenced
 
-Sau khi stop + bỏ mọi tham chiếu:
-    loader/class/instance có thể đủ điều kiện GC và class unloading
-    (không có thời điểm unload được JVM bảo đảm)
+After stop + dropping all references:
+    loader/class/instance may become eligible for GC and class unloading
+    (no unload timing guaranteed by the JVM)
 ~~~
 
-Hình trên minh họa **hai loại quan hệ khác nhau**. Nó không chứng minh mọi file handle đã đóng trong mọi trạng thái: file có thể vẫn được một `JarFile` khác, stream, tool giám sát, JVM khác hoặc tiến trình khác mở. Khi thử đổi JAR trên Windows, đặc biệt cần quan sát các handle còn mở; trên Linux/macOS, việc unlink/rename một file đang mở có thể thành công nhưng handle cũ vẫn trỏ đến inode trước đó.
+The diagram above illustrates **two different kinds of relationships**. It does not prove every file handle is closed in every situation: a file might still be kept open by another `JarFile`, stream, monitoring tool, another JVM, or another process. When trying to replace JARs on Windows, watch closely for open handles; on Linux/macOS, unlinking/renaming an open file may succeed while the old handle still points to the previous inode.
 
-Với stream mở qua `URLClassLoader.getResourceAsStream`, tài liệu API mô tả các stream ấy sẽ được đóng khi loader đóng. Dù vậy, **người tiêu thụ stream nên tự dùng try-with-resources** và đóng ngay sau khi đọc, thay vì giữ đến lúc dừng plugin. Không coi `URLClassLoader.close()` là cách dọn mọi tài nguyên I/O của các thư viện bên thứ ba.
+For streams opened via `URLClassLoader.getResourceAsStream`, the API documentation notes that those streams are closed when the loader closes. Even so, **stream consumers should use try-with-resources themselves** and close promptly after reading rather than holding them until plugin shutdown. Do not treat `URLClassLoader.close()` as a way to clean up all third-party I/O resources.
 
-## 5. Ví dụ Java 17 hoàn chỉnh: đóng loader cũ nhưng method cũ vẫn chạy
+## 5. Complete Java 17 example: old loader closed, old method still runs
 
-Ví dụ gồm hai JAR implementation có **cùng tên lớp** nhưng trả hai thông điệp khác nhau, cộng với một lớp chỉ nằm trong JAR v1 mà **chưa từng được nạp**. Host thực hiện:
+The example uses two implementation JARs with **the same class name** returning two different messages, plus a class present only in JAR v1 that **has never been loaded**. The host performs:
 
-1. Tạo loader v1, tải `GreetingPlugin` và gọi `message()`.
-2. Đóng loader v1.
-3. Gọi lại `message()` trên **instance đã tạo** để quan sát vẫn hoạt động.
-4. Thử tìm `ExtraPlugin` chưa được nạp qua loader v1 đã đóng; không tìm thấy.
-5. Tạo loader v2, tải class cùng tên từ JAR v2 và so sánh danh tính lớp với v1.
-6. Xác nhận instance v1 vẫn giữ hành vi v1 vì host còn tham chiếu đến nó.
+1. Create loader v1, load `GreetingPlugin`, and call `message()`.
+2. Close loader v1.
+3. Call `message()` again on **the created instance** to observe it still works.
+4. Try loading the unloaded `ExtraPlugin` via the closed loader v1; not found.
+5. Create loader v2, load the same-named class from JAR v2, and compare class identity with v1.
+6. Confirm the v1 instance still keeps v1 behavior because the host retains a reference to it.
 
-**Đây là demo về cơ chế JVM, không phải mẫu lifecycle sản phẩm.** Trong sản phẩm thật, sau khi dừng v1, host không nên tiếp tục gọi nó.
+**This is a demo of JVM mechanics, not a production lifecycle pattern.** In a real product, after stopping v1, the host should not keep calling it.
 
-### 5.1. Cấu trúc thư mục
+### 5.1. Directory layout
 
-Tạo các file sau dưới thư mục làm việc `loader-close-demo`:
+Create the following files under the working directory `loader-close-demo`:
 
 ~~~text
 loader-close-demo/
@@ -161,9 +161,9 @@ loader-close-demo/
     jars/
 ~~~
 
-Các thư mục `build` được tạo bởi lệnh biên dịch. Host **không** biên dịch cùng source plugin và **không** thêm hai JAR plugin vào classpath của mình.
+The `build` directories are created by the compile commands. The host is **not** compiled together with plugin sources and does **not** add the two plugin JARs to its own classpath.
 
-### 5.2. Plugin phiên bản 1
+### 5.2. Plugin version 1
 
 **File `src/v1/demo/plugin/GreetingPlugin.java`:**
 
@@ -192,9 +192,9 @@ public final class ExtraPlugin {
 }
 ~~~
 
-`ExtraPlugin` chỉ phục vụ kiểm tra nạp class **mới** sau khi loader đã đóng. Trong đoạn code host, không dùng class literal, reflection hay lời gọi nào khiến nó được nạp sớm.
+`ExtraPlugin` serves solely to test loading a **new** class after the loader is closed. In the host code, no class literal, reflection, or call loads it prematurely.
 
-### 5.3. Plugin phiên bản 2
+### 5.3. Plugin version 2
 
 **File `src/v2/demo/plugin/GreetingPlugin.java`:**
 
@@ -211,9 +211,9 @@ public final class GreetingPlugin {
 }
 ~~~
 
-Dù cùng tên `demo.plugin.GreetingPlugin`, bản v2 sẽ được định nghĩa bởi một loader khác và trả một chuỗi khác. Việc đặt hai JAR ở hai path khác nhau giúp ví dụ không cần ghi đè một JAR đang mở.
+Despite sharing the name `demo.plugin.GreetingPlugin`, v2 will be defined by a different loader and return a different string. Putting the two JARs at two different paths avoids overwriting an already-open JAR in the example.
 
-### 5.4. Chương trình host
+### 5.4. Host program
 
 **File `src/host/demo/host/LoaderCloseDemo.java`:**
 
@@ -245,7 +245,7 @@ public final class LoaderCloseDemo {
         Object instance1;
         Method message1;
 
-        // try-with-resources sẽ close loader1 khi rời block.
+        // try-with-resources will close loader1 when leaving the block.
         try (loader1) {
             type1 = loader1.loadClass("demo.plugin.GreetingPlugin");
             instance1 = type1.getDeclaredConstructor().newInstance();
@@ -255,11 +255,11 @@ public final class LoaderCloseDemo {
                     "v1-before-close=" + message1.invoke(instance1));
         }
 
-        // Instance và Method đã có vẫn có thể dùng được.
+        // Already-obtained Instance and Method can still be used.
         System.out.println(
                 "v1-after-close=" + message1.invoke(instance1));
 
-        // Class này có trong JAR v1 nhưng chưa được nạp.
+        // This class is in JAR v1 but has not been loaded yet.
         try {
             loader1.loadClass("demo.plugin.ExtraPlugin");
             System.out.println("unexpected");
@@ -280,31 +280,31 @@ public final class LoaderCloseDemo {
             System.out.println("same-class=" + (type1 == type2));
         }
 
-        // Host vẫn giữ v1 nên close không đồng nghĩa vô hiệu hóa nó.
+        // Host still retains v1, so close does not mean invalidating it.
         System.out.println(
                 "v1-still=" + message1.invoke(instance1));
     }
 }
 ~~~
 
-Giải thích:
+Explanation:
 
-- `URLClassLoader loader1` được tạo với parent là application loader của host. Trong lệnh chạy, parent **không chứa** `demo.plugin.*`, nên bản v1 được loader1 định nghĩa.
-- `type1`, `instance1` và `message1` là các tham chiếu được giữ ngoài khối `try`. Vì thế chúng vẫn dùng được khi `loader1.close()` đã chạy.
-- `message()` chỉ trả string literal, không cần tìm thêm một class riêng của plugin. Do đó hai lần gọi sau khi đóng loader1 vẫn thành công trong demo.
-- `ExtraPlugin` có trong JAR v1, nhưng không được nạp trước khi đóng; `loader1.loadClass` không thể đọc định nghĩa mới từ JAR đó. Parent cũng không có class cùng tên, nên nhận `ClassNotFoundException`.
-- `loader2` được tạo mới và nhìn thấy `plugin-v2.jar`. Nó định nghĩa một class cùng tên nhị phân với `type1` nhưng **khác defining loader**, vì vậy `type1 == type2` là `false`.
-- Không hề gọi GC hoặc khẳng định file v1 đã bị xóa. Dòng output chứng minh **khả năng tiếp tục sử dụng bytecode đã được nạp**, không chứng minh loader đã được giải phóng khỏi heap.
+- `URLClassLoader loader1` is created with the host's application loader as parent. In the run command, the parent **does not contain** `demo.plugin.*`, so v1 is defined by `loader1`.
+- `type1`, `instance1`, and `message1` are references kept outside the `try` block. Thus they remain usable after `loader1.close()` has run.
+- `message()` only returns a string literal and needs no additional plugin-private classes. Hence both calls after closing `loader1` succeed in the demo.
+- `ExtraPlugin` exists in JAR v1, yet was not loaded prior to closing; `loader1.loadClass` cannot read the new definition from that JAR. Nor does the parent have a class with that name, so `ClassNotFoundException` is thrown.
+- `loader2` is newly created and sees `plugin-v2.jar`. It defines a class with the same binary name as `type1` but a **different defining loader**, so `type1 == type2` is `false`.
+- No GC is invoked, nor is it claimed that the v1 file was deleted. The output lines prove **the ability to continue using already-loaded bytecode**, not that the loader was freed from the heap.
 
-### 5.5. Biên dịch và đóng gói JAR
+### 5.5. Compiling and packaging JARs
 
-Tại thư mục `loader-close-demo`, dùng Bash với JDK 17+:
+In `loader-close-demo`, using Bash with JDK 17+:
 
 ~~~bash
 mkdir -p build/classes/v1 build/classes/v2 \
          build/classes/host build/jars
 
-# Hai class của v1, đóng gói thành JAR riêng.
+# Two classes of v1, packaged into a separate JAR.
 javac --release 17 -encoding UTF-8 \
   -d build/classes/v1 \
   src/v1/demo/plugin/GreetingPlugin.java \
@@ -312,13 +312,13 @@ javac --release 17 -encoding UTF-8 \
 jar --create --file build/jars/plugin-v1.jar \
   -C build/classes/v1 .
 
-# Class cùng tên nhưng implementation khác của v2.
+# Class with same name but different implementation for v2.
 javac --release 17 -encoding UTF-8 \
   -d build/classes/v2 src/v2/demo/plugin/GreetingPlugin.java
 jar --create --file build/jars/plugin-v2.jar \
   -C build/classes/v2 .
 
-# Host chỉ dùng Java standard library; không đưa plugin JAR vào -cp.
+# Host uses only the Java standard library; do not put plugin JARs on -cp.
 javac --release 17 -encoding UTF-8 \
   -d build/classes/host \
   src/host/demo/host/LoaderCloseDemo.java
@@ -326,7 +326,7 @@ javac --release 17 -encoding UTF-8 \
 java -cp build/classes/host demo.host.LoaderCloseDemo
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 v1-before-close=hello-v1
@@ -337,75 +337,75 @@ same-class=false
 v1-still=hello-v1
 ~~~
 
-Khi dùng PowerShell trên Windows, sau khi biên dịch và tạo JAR, lệnh khởi chạy tương đương là:
+When using PowerShell on Windows, after compiling and creating the JARs, the equivalent launch command is:
 
 ~~~powershell
 java -cp build/classes/host demo.host.LoaderCloseDemo
 ~~~
 
-Trong ví dụ này classpath chỉ có một directory, nên không có vấn đề phân cách `:` hoặc `;`. Các lệnh Bash dùng dấu backslash để nối dòng; trong PowerShell, viết `javac`/`jar` thành dòng đầy đủ hoặc dùng cú pháp nối dòng riêng.
+In this example the classpath has only one directory, so there is no `:` vs `;` separator issue. The Bash commands use backslashes for line continuation; in PowerShell, write `javac`/`jar` on full lines or use PowerShell's line-continuation syntax.
 
-Để xác nhận JAR được tạo đúng:
+To confirm the JARs were built properly:
 
 ~~~bash
 jar --list --file build/jars/plugin-v1.jar
 jar --list --file build/jars/plugin-v2.jar
 ~~~
 
-Trong JAR v1 cần có `demo/plugin/GreetingPlugin.class` **và** `demo/plugin/ExtraPlugin.class`; JAR v2 cần có `demo/plugin/GreetingPlugin.class`. Nếu thêm JAR plugin vào classpath của host, parent delegation có thể thay đổi kết quả ví dụ: tránh làm vậy.
+JAR v1 must contain `demo/plugin/GreetingPlugin.class` **and** `demo/plugin/ExtraPlugin.class`; JAR v2 must contain `demo/plugin/GreetingPlugin.class`. Adding plugin JARs to the host's classpath can alter the example results via parent delegation: avoid doing so.
 
-### 5.6. Diễn giải giới hạn của demo
+### 5.6. Interpreting the limits of the demo
 
-Ví dụ chứng minh ba điều độc lập:
+The example proves three independent points:
 
-| Quan sát | Kết luận đúng |
+| Observation | Correct conclusion |
 | --- | --- |
-| Gọi `message1.invoke(instance1)` được sau `loader1.close()` | Code của class đã nạp vẫn có thể chạy; close không làm instance bị hủy |
-| Nạp `ExtraPlugin` lần đầu sau close thất bại | Loader đã đóng không định nghĩa class mới từ JAR v1 |
-| `type1 != type2` và thông điệp khác | Cùng tên nhị phân nhưng hai defining loaders cho hai class identity riêng |
+| `message1.invoke(instance1)` succeeds after `loader1.close()` | Already-loaded class code can still execute; close does not destroy instances |
+| First load of `ExtraPlugin` after close fails | Closed loader does not define new classes from JAR v1 |
+| `type1 != type2` and different messages | Same binary name yet two defining loaders produce two distinct class identities |
 
-Ví dụ **không** đo trực tiếp file descriptor, số class đã unload hay điều kiện GC. Vì host vẫn giữ `type1`, `instance1` và `message1`, bản v1 vẫn bị tham chiếu đến. Nếu muốn kiểm tra khả năng GC/unload trong một bài thử khác, phải đưa mọi tham chiếu mạnh ra khỏi phạm vi, ngừng thread/tác vụ, thu dọn registry/cache và quan sát bằng công cụ JVM; `System.gc()` vẫn không phải bằng chứng chắc chắn.
+The example does **not** directly measure file descriptors, unloaded class counts, or GC conditions. Because the host still keeps `type1`, `instance1`, and `message1`, v1 remains referenced. To test GC/unloading eligibility in a separate experiment, move all strong references out of scope, stop threads/tasks, clean registries/caches, and observe with JVM tools; `System.gc()` is still not a guaranteed proof.
 
-## 6. Tại sao gọi method sau close đôi khi lại lỗi?
+## 6. Why do method calls after close sometimes fail?
 
-Bài học không phải “đóng loader rồi cứ gọi plugin bình thường”. Có sự khác biệt giữa **chạy mã đã nạp đủ dependency** và **đụng một lớp/tài nguyên chưa được nạp**.
+The takeaway is not “close the loader and keep calling the plugin normally.” There is a difference between **running code whose dependencies are already loaded** and **touching an as-yet-unloaded class/resource**.
 
-Ví dụ về một method của plugin:
+Consider a plugin method:
 
 ~~~java
-// Minh họa: đây chỉ là một method trong plugin, không phải file độc lập.
+// Illustrative: this is only a method inside a plugin, not a standalone file.
 public String format() {
     return new PluginFormatter().format("text");
 }
 ~~~
 
-Giả sử `PluginFormatter` chỉ có trong JAR plugin và chưa được nạp trước `loader.close()`. Lần đầu gọi `format()` sau close có thể khiến JVM phải resolve/nạp `PluginFormatter` và thất bại, thường biểu hiện qua một `LinkageError` như `NoClassDefFoundError`, dù instance ban đầu vẫn tồn tại.
+Suppose `PluginFormatter` resides only in the plugin JAR and was never loaded before `loader.close()`. The first call to `format()` after close may force the JVM to resolve/load `PluginFormatter` and fail, commonly manifesting as a `LinkageError` such as `NoClassDefFoundError`, even though the initial instance still exists.
 
-Tương tự, gọi `getResourceAsStream` để đọc một resource mới sau close có thể không tìm thấy resource từ URL của loader. Điều này rất nguy hiểm nếu plugin còn thread nền hay callback nhưng host đã đóng loader.
+Likewise, calling `getResourceAsStream` to read a new resource after close may fail to locate the resource from the loader's URLs. This is very dangerous if the plugin still has background threads or callbacks running after the host closed the loader.
 
-Vì thế khi **dừng plugin**, đừng dựa vào việc lỗi tự phát sinh sau close để ngăn gọi; hãy dùng state/lifecycle rõ ràng nhằm chặn mọi thao tác mới, chờ các thao tác cũ xong, rồi mới close.
+Therefore when **stopping a plugin**, do not rely on errors naturally occurring after close to block calls; use explicit state/lifecycle checks to reject new operations, wait for old operations to finish, and only then close.
 
-## 7. Quy trình thay thế plugin an toàn
+## 7. Safe plugin replacement workflow
 
-Trong hệ thống sản xuất, thay plugin cần quản lý **hai đối tượng**: bản đang hoạt động và bản chuẩn bị kích hoạt.
+In production systems, replacing a plugin requires managing **two entities**: the active version and the version being prepared for activation.
 
-Một trình tự tham khảo:
+A reference sequence:
 
-1. **Chuẩn bị phiên bản mới:** tải JAR mới ở **đường dẫn riêng** (ví dụ theo ID/version), kiểm tra checksum/chữ ký theo chính sách và compatibility của API.
-2. **Khởi tạo loader v2:** dùng một `URLClassLoader` mới (hoặc cơ chế module layer phù hợp), tìm implementation và tạo instance, chạy bước validate/start. Nếu thất bại, đóng v2 và giữ v1 đang phục vụ.
-3. **Chuyển định tuyến:** chuyển registry/entry point của host sang v2 bằng thao tác có đồng bộ. Trong hệ thống cần zero-downtime, điều phối in-flight calls và khả năng retry theo hợp đồng thay vì chỉ thay một biến.
-4. **Quiesce v1:** ngừng nhận request mới, để các request đang chạy kết thúc hoặc hủy đúng cách; dừng scheduled tasks và executor của v1.
-5. **Dọn tài nguyên v1:** gọi lifecycle hook `stop()/close()`, hủy listener, callback, timer, registration; khôi phục TCCL/ThreadLocal ở đúng thread và đóng các stream/JarFile/plugin-owned resources.
-6. **Đóng loader v1:** khi không còn thread nào đang dùng loader để nạp thêm class hoặc resource, gọi `URLClassLoader.close()`. Xử lý `IOException` và suppressed exceptions thay vì coi mọi lần close đều thành công.
-7. **Bỏ tham chiếu:** xóa instance, provider, `Class<?>`, `Method`, `ServiceLoader`, lambda, callback và cache gắn với v1 khỏi registry của host. Khi không còn tham chiếu giữ, loader/class có thể trở thành ứng viên thu hồi.
-8. **Dọn artifact cũ:** sau khi các handle đã đóng và không còn thành phần dùng JAR cũ, áp dụng quy trình xóa hoặc lưu trữ. Không ghi đè một JAR đang hoạt động; giữ đường rollback cho phiên bản đã kiểm tra.
+1. **Prepare new version:** load the new JAR at **a separate path** (e.g., by ID/version), verify checksums/signatures per policy and API compatibility.
+2. **Initialize v2 loader:** create a new `URLClassLoader` (or appropriate module layer mechanism), locate the implementation and instantiate it, and run validate/start steps. On failure, close v2 and keep v1 serving.
+3. **Switch routing:** update the host's registry/entry point to v2 via a synchronized operation. In systems requiring zero downtime, coordinate in-flight calls and retryability per contract rather than simply swapping a variable.
+4. **Quiesce v1:** stop admitting new requests, let running requests finish or cancel cleanly; stop v1 scheduled tasks and executors.
+5. **Clean up v1 resources:** call `stop()/close()` lifecycle hooks, cancel listeners, callbacks, timers, and registrations; restore TCCL/`ThreadLocal` on the right threads and close streams/JarFiles/plugin-owned resources.
+6. **Close v1 loader:** when no thread is using the loader to load more classes or resources, call `URLClassLoader.close()`. Handle `IOException` and suppressed exceptions instead of assuming every close succeeds.
+7. **Drop references:** remove instances, providers, `Class<?>`, `Method`, `ServiceLoader`, lambdas, callbacks, and caches tied to v1 from host registries. Once no retaining references exist, the loader/classes become candidates for reclamation.
+8. **Clean up old artifacts:** once handles are closed and nothing uses the old JAR, apply a deletion or archival procedure. Never overwrite an active JAR; keep a rollback path for verified versions.
 
-Trình tự này không bắt buộc v2 phải phục vụ trước khi v1 quiesce trong mọi thiết kế; nếu có state migration hoặc tài nguyên độc quyền, có thể cần dừng v1 trước khi start v2. Nhưng điều bất biến là **không đóng loader khi còn tác vụ có thể cần nó**.
+This sequence does not require v2 to serve before v1 quiesces in every design; if state migration or exclusive resources exist, v1 may need to stop before v2 starts. Yet the invariant holds: **never close a loader while tasks might still need it**.
 
-### 7.1. Phác thảo plugin manager (mã minh họa)
+### 7.1. Plugin manager sketch (illustrative code)
 
 ~~~java
-// Pseudocode - phụ thuộc vào các class lifecycle do ứng dụng định nghĩa.
+// Pseudocode - depends on lifecycle classes defined by the application.
 PluginHandle candidate = prepareAndValidate(newJar);
 PluginHandle previous = registry.switchTo(candidate);
 
@@ -419,21 +419,21 @@ previous.closeClassLoader();
 registry.forget(previous);
 ~~~
 
-Đây là **mã mô hình**, không phải chương trình Java độc lập. Những method trên không thuộc JDK; cần hiện thực dựa theo hợp đồng ứng dụng. Trong hệ thống thực, thứ tự các bước được điều chỉnh theo quan hệ phụ thuộc, timeout, rollback và chính sách lỗi. Nếu candidate thất bại trước khi switch, phải close candidate và giữ previous còn hoạt động; nếu stop previous thất bại, báo trạng thái chưa thu hồi hoàn toàn.
+This is **model code**, not a standalone Java program. These methods are not part of the JDK; implement them according to your application contract. In real systems, step ordering adapts to dependency relationships, timeouts, rollback, and error policies. If the candidate fails before switching, close the candidate and keep `previous` running; if stopping `previous` fails, report an incomplete cleanup state.
 
-### 7.2. Đóng stream và tài nguyên của plugin trước loader
+### 7.2. Closing plugin streams and resources before the loader
 
-Nếu plugin mở `JarFile` riêng:
+If a plugin opens its own `JarFile`:
 
 ~~~java
 try (JarFile jar = new JarFile(jarPath.toFile())) {
-    // Đọc entry của plugin rồi đóng ngay khi đọc xong.
+    // Read the plugin entry then close immediately once done reading.
 }
 ~~~
 
-Đây là **mã minh họa** với `JarFile` được import từ `java.util.jar` và `jarPath` là `Path`. File này không phải do `URLClassLoader` trực tiếp mở, nên **không thể trông chờ `URLClassLoader.close()` đóng hộ**. Tương tự với stream do HTTP client, database connection, watch service, zip reader, file reader... Chủ thể mở/được giao ownership phải đóng.
+This is **illustrative code** with `JarFile` imported from `java.util.jar` and `jarPath` as a `Path`. This file was not opened directly by `URLClassLoader`, so **you cannot expect `URLClassLoader.close()` to close it for you**. The same goes for streams from HTTP clients, database connections, watch services, zip readers, file readers, etc. Whoever opens or owns the resource must close it.
 
-Đối với resource lấy từ loader, nên đóng sớm:
+For resources obtained from a loader, close them promptly:
 
 ~~~java
 try (InputStream in =
@@ -442,29 +442,29 @@ try (InputStream in =
         throw new IllegalStateException("Resource not found");
     }
     byte[] content = in.readAllBytes();
-    // Xử lý content trong phạm vi nguồn còn mở.
+    // Process content while the source remains open.
 }
 ~~~
 
-Đây là **mã minh họa**: `pluginLoader` phải tồn tại và `InputStream` được import từ `java.io`. `readAllBytes()` chỉ phù hợp với file nhỏ có giới hạn; dữ liệu lớn phải đọc có buffer/limit. Đừng giữ stream hay `URL` trỏ vào JAR cũ trong cache sống qua phiên plugin.
+This is **illustrative code**: `pluginLoader` must exist and `InputStream` is imported from `java.io`. `readAllBytes()` suits only small, bounded files; large data must be read with buffers/limits. Never keep streams or `URL`s pointing into an old JAR inside caches that outlive the plugin session.
 
-## 8. Những tham chiếu ngăn classloader được thu hồi
+## 8. References that prevent a classloader from being reclaimed
 
-Ngay cả khi đã đóng toàn bộ file handle, loader cũ vẫn có thể còn sống vì bị **tham chiếu mạnh** từ các phần khác của ứng dụng.
+Even after closing every file handle, an old loader can stay alive due to **strong references** from other parts of the application.
 
-| Nguồn giữ | Vì sao nguy hiểm | Cách xử lý |
+| Retaining source | Why it is dangerous | Remediation |
 | --- | --- | --- |
-| `Map<String, Object>` lưu instance plugin | Host giữ đối tượng có class do loader cũ định nghĩa | Gỡ provider/instance khỏi registry khi stop |
-| `Class<?>`, `Method`, `Constructor<?>` trong static cache | Giữ thông tin reflective của class phiên bản cũ | Xóa cache theo plugin ID/loader identity |
-| `ServiceLoader` và provider list | Cache provider/instance; `reload()` không xóa object ở list khác | Bỏ tham chiếu vào service loader/provider cũ |
-| `Thread.contextClassLoader` | Thread pool của host còn trỏ đến loader plugin | Khôi phục TCCL bằng `finally` trên chính thread |
-| `ThreadLocal` chứa plugin context hoặc instance | Worker thread còn giữ value sau khi request kết thúc | `remove()` trong `finally` trên chính thread |
-| Thread, executor, scheduler của plugin | Thread sống lâu có thể giữ class, TCCL, stack frame | Cancel/stop/shutdown/await termination trước khi close |
-| Listener, callback, timer registration | Singleton/event bus của host giữ lambda hoặc instance plugin | Hủy đăng ký và giải phóng registration handle |
-| Lazy resource URL, stream, JarFile | File handle/connection có thể tồn tại ngoài loader | Đóng đúng owner; không giữ resource sau stop |
-| Stack frame đang thực thi code plugin | Lời gọi chưa xong vẫn tham chiếu đến class/loader | Quiesce và chờ in-flight calls |
+| `Map<String, Object>` storing plugin instances | Host retains objects whose classes were defined by old loader | Remove providers/instances from registry on stop |
+| `Class<?>`, `Method`, `Constructor<?>` in static cache | Retains reflective metadata of old-version classes | Evict cache by plugin ID/loader identity |
+| `ServiceLoader` and provider lists | Caches providers/instances; `reload()` does not clear objects in other lists | Drop references to old service loaders/providers |
+| `Thread.contextClassLoader` | Host thread pool still points to plugin loader | Restore TCCL in `finally` on that exact thread |
+| `ThreadLocal` containing plugin context or instance | Worker thread retains value after request ends | `remove()` in `finally` on that exact thread |
+| Plugin-owned threads, executors, schedulers | Long-lived threads retain classes, TCCL, stack frames | Cancel/stop/shutdown/await termination before close |
+| Listeners, callbacks, timer registrations | Host singletons/event buses retain lambdas or plugin instances | Unregister and release registration handles |
+| Lazy resource URLs, streams, JarFiles | File handles/connections can persist outside loader | Close by proper owner; retain no resources past stop |
+| Stack frames executing plugin code | Unfinished calls still reference classes/loader | Quiesce and wait for in-flight calls |
 
-Ví dụ **khôi phục TCCL đúng phạm vi**:
+Example of **properly scoped TCCL restoration**:
 
 ~~~java
 ClassLoader original =
@@ -477,12 +477,12 @@ try {
 }
 ~~~
 
-Đây là mã minh họa; `pluginLoader`, `plugin` và `context` là các biến của hệ thống thật. TCCL phải được khôi phục trên **chính thread được thay đổi**, không thể sửa TCCL của thread A bằng cách đặt lại TCCL trên thread B.
+This is illustrative code; `pluginLoader`, `plugin`, and `context` are variables from a real system. TCCL must be restored on **the exact thread that was modified**; you cannot fix thread A's TCCL by resetting TCCL on thread B.
 
-Nếu plugin có `ThreadLocal`:
+If a plugin uses `ThreadLocal`:
 
 ~~~java
-// Minh họa: REQUEST_CONTEXT là ThreadLocal<?> của ứng dụng.
+// Illustrative: REQUEST_CONTEXT is the application's ThreadLocal<?>.
 REQUEST_CONTEXT.set(context);
 try {
     usePlugin(context);
@@ -491,62 +491,62 @@ try {
 }
 ~~~
 
-Một `static` field hoặc cache do **host** sở hữu có thể giữ loader cũ suốt đời JVM. Ngược lại, static field thuộc class plugin không tự động là leak nếu toàn bộ classloader/class/instance đã hết tham chiếu; cần xét **đường tham chiếu từ GC roots** thay vì chỉ nhìn thấy chữ `static`.
+A `static` field or cache owned by **the host** can pin an old loader for the lifetime of the JVM. Conversely, a static field inside a plugin class is not automatically a leak if the entire classloader/classes/instances have no remaining external references; inspect **reference paths from GC roots** rather than merely spotting the `static` keyword.
 
-## 9. Lỗi thường gặp và cách chẩn đoán
+## 9. Common errors and how to diagnose them
 
-| Hiện tượng | Nguyên nhân có thể | Cách kiểm tra |
+| Symptom | Possible cause | How to check |
 | --- | --- | --- |
-| Đóng loader rồi nhưng method cũ vẫn chạy | Class/instance/method đã nạp vẫn còn tham chiếu | Đây là hành vi hợp lệ; cần lifecycle để chặn gọi mới |
-| `ClassNotFoundException` khi nạp lớp mới sau close | Lớp chưa nạp chỉ nằm trong URL của loader đã đóng | Dùng loader mới; không tái sử dụng loader đóng |
-| `NoClassDefFoundError` khi gọi instance cũ | Method cần class chưa được loader cũ nạp hoặc runtime dependency thiếu | Xem stack trace, thứ tự stop và dependency đã nạp |
-| Plugin v2 vẫn trả kết quả v1 | Host để implementation ở parent classpath, hoặc vẫn gọi instance/cache v1 | Kiểm tra defining loader, routing và artifact version |
-| JAR không xóa/đổi tên được trên Windows | File/stream/JarFile/loader còn giữ handle | Kiểm tra open handles, resource ownership và close errors |
-| Số classloader sống tăng sau reload | Cache, TCCL, thread, callback, in-flight requests còn giữ loader | Xem heap dominators, thread dump, registry, số loader |
-| Không tìm được resource sau close | Resource thuộc URL của loader đã đóng, chưa được mở/đọc trước | Đọc xong và đóng stream trước stop, không mở mới sau close |
-| Nạp class đồng thời close cho lỗi không ổn định | Race giữa lifecycle stop và class loading | Đồng bộ quiesce; đừng close trước khi mọi lượt nạp hoàn tất |
-| `close()` ném `IOException` | Một hoặc nhiều file được loader mở không đóng được | Log cả suppressed exceptions, xử lý trạng thái cleanup |
+| Loader closed yet old method still runs | Loaded classes/instances/methods remain referenced | Valid JVM behavior; lifecycle gates needed to block new calls |
+| `ClassNotFoundException` loading new class after close | Unloaded class exists only in closed loader's URLs | Use a new loader; do not reuse a closed loader |
+| `NoClassDefFoundError` calling old instance | Method needs class not yet loaded by old loader, or missing runtime dependency | Inspect stack trace, stop ordering, and loaded dependencies |
+| v2 plugin still returns v1 results | Host left implementation on parent classpath, or still calls v1 instance/cache | Check defining loader, routing, and artifact version |
+| JAR cannot be deleted/renamed on Windows | Files/streams/JarFiles/loader still hold handles | Check open handles, resource ownership, and close errors |
+| Live classloader count grows after reload | Caches, TCCL, threads, callbacks, in-flight requests retain loader | Inspect heap dominators, thread dumps, registries, loader counts |
+| Resource not found after close | Resource lives in closed loader's URLs and wasn't opened/read earlier | Read completely and close stream before stop; do not open after close |
+| Class loading concurrent with close gives flaky errors | Race between lifecycle stop and class loading | Synchronize quiescing; never close before all loads complete |
+| `close()` throws `IOException` | One or more files opened by loader failed to close | Log suppressed exceptions too; handle cleanup status |
 
-Một số công cụ chẩn đoán hữu ích:
+Useful diagnostic tools:
 
-- **Thread dump** và heap dump: tìm thread, `ThreadLocal`, callbacks và GC roots giữ instance/classloader.
-- **JFR** hoặc JVM logging về class loading/unloading: xem classloader cụ thể có được unload hay không. Trên HotSpot, `-Xlog:class+unload=info` có thể ghi sự kiện unload; không phải lời hứa lúc nào GC sẽ unload.
-- **`jcmd`** (nếu JVM hỗ trợ các diagnostic commands tương ứng): kiểm tra classloader statistics hoặc heap histogram tùy phiên bản. Xem `jcmd <pid> help` trên đúng môi trường trước khi sử dụng.
-- **OS handle/file descriptor monitoring:** kiểm tra file JAR có đang được tiến trình giữ mở, thay vì lấy khả năng gọi method làm chỉ báo.
+- **Thread dumps** and heap dumps: find threads, `ThreadLocal`s, callbacks, and GC roots retaining instances/classloaders.
+- **JFR** or JVM class-loading/unloading logs: see whether specific classloaders get unloaded. On HotSpot, `-Xlog:class+unload=info` logs unload events; it is not a promise of when GC will unload.
+- **`jcmd`** (if the JVM supports the corresponding diagnostic commands): inspect classloader statistics or heap histograms depending on version. Run `jcmd <pid> help` in the exact environment before using.
+- **OS handle/file descriptor monitoring:** check whether JAR files are held open by the process, rather than using method-call success as an indicator.
 
-Không đánh giá rò rỉ classloader chỉ bằng việc tổng heap/metaspace chưa giảm sau một lần GC: JVM có thể giữ vùng nhớ đã cấp để tái sử dụng. Quan sát nhiều vòng start/stop và chuỗi tham chiếu giữ thực tế.
+Do not judge a classloader leak solely because total heap/metaspace failed to drop after one GC: the JVM may retain committed regions for reuse. Observe across multiple start/stop cycles and trace actual retaining paths.
 
-## 10. Giới hạn bảo mật và tính độc lập phiên bản
+## 10. Security limitations and version independence
 
-`URLClassLoader` là cơ chế nạp code vào **cùng JVM**, không tự tạo sandbox bảo mật đáng tin cậy cho plugin không tin cậy. Một plugin có thể tạo thread, sửa state chung hoặc gọi API mà tiến trình có quyền. Việc đóng loader sau đó không “undo” các tác dụng phụ ấy.
+`URLClassLoader` is a mechanism to load code into **the same JVM**, and does not automatically create a trustworthy security sandbox for untrusted plugins. A plugin can spawn threads, mutate shared state, or invoke APIs permitted to the process. Closing the loader later does not “undo” those side effects.
 
-Cần thêm chính sách về nguồn JAR, chữ ký/checksum, compatibility, dependency isolation và kiểm soát vòng đời. Nếu hai plugin dùng các phiên bản thư viện xung đột, classloader riêng có thể giúp quản lý namespace, nhưng phải chia sẻ hợp đồng API đúng cách. Một loader đóng không giải quyết việc rò rỉ tham chiếu xuyên loader, quyền truy cập của plugin hay cleanup của native code.
+Additional policies are needed for JAR provenance, signatures/checksums, compatibility, dependency isolation, and lifecycle control. When two plugins use conflicting library versions, separate classloaders can help manage namespaces, provided the API contract is shared properly. A closed loader does not solve cross-loader reference leaks, plugin permissions, or native code cleanup.
 
-Trong ứng dụng dùng **JPMS module layers**, tên module, khả năng đọc/export và lifecycle module layer khác với classpath URL loader. Không giả định `URLClassLoader.close()` có thể “gỡ” cả module layer; đây là chủ đề riêng. Bài này tập trung classpath JAR và URLClassLoader.
+In applications using **JPMS module layers**, module names, readability/exports, and module layer lifecycles differ from classpath URL loaders. Do not assume `URLClassLoader.close()` can “unload” an entire module layer; that is a separate topic. This lesson focuses on classpath JARs and `URLClassLoader`.
 
-## 11. Checklist trước khi thay thế JAR
+## 11. Checklist before replacing a JAR
 
-- [ ] JAR v2 được build và kiểm tra ở đường dẫn version riêng, không ghi đè file đang được loader v1 đọc.
-- [ ] API dùng chung nằm ở loader cha; implementation không bị tải nhầm từ parent classpath.
-- [ ] Plugin mới được tạo, validate/start và sẵn sàng trước khi chuyển routing (hoặc dùng quy trình stop/start rõ ràng khi có tài nguyên độc quyền).
-- [ ] Host chặn lời gọi mới tới v1 và chờ/hủy các lời gọi đang chạy theo hợp đồng.
-- [ ] Plugin đã shutdown executor, scheduler, thread, listener, callback, connection, watcher và stream do nó sở hữu.
-- [ ] TCCL và ThreadLocal được phục hồi/xóa trên đúng thread.
-- [ ] `URLClassLoader.close()` được gọi sau khi plugin quiesce; xử lý `IOException` và suppressed exceptions.
-- [ ] Host bỏ hết instance, `Class<?>`, reflection metadata và registry/cache của v1.
-- [ ] File cũ chỉ được xóa/lưu trữ khi không còn handle, không dựa vào việc loader đã bị GC.
-- [ ] Test nhiều chu kỳ v1→v2→v3, cả nhánh lỗi và call song song, theo dõi loader/resource retention.
-- [ ] Không diễn giải một lời gọi method cũ sau close là bằng chứng plugin đã unload hoặc loader có thể tái sử dụng.
+- [ ] JAR v2 is built and verified at a separate versioned path, without overwriting the file read by loader v1.
+- [ ] Shared API resides in the parent loader; implementations are never loaded accidentally from the parent classpath.
+- [ ] New plugin is created, validated/started, and ready before switching routing (or uses an explicit stop/start sequence for exclusive resources).
+- [ ] Host blocks new calls to v1 and waits/cancels running calls per contract.
+- [ ] Plugin has shut down all owned executors, schedulers, threads, listeners, callbacks, connections, watchers, and streams.
+- [ ] TCCL and `ThreadLocal` are restored/cleared on the exact threads used.
+- [ ] `URLClassLoader.close()` is called after the plugin quiesces; handle `IOException` and suppressed exceptions.
+- [ ] Host drops all v1 instances, `Class<?>`, reflection metadata, and registries/caches.
+- [ ] Old files are deleted/archived only once no handles remain, without relying on loader GC.
+- [ ] Test multiple v1→v2→v3 cycles, including failure branches and concurrent calls, monitoring loader/resource retention.
+- [ ] Never interpret a post-close old method call as proof the plugin unloaded or that the loader can be reused.
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-1. Nếu gọi `URLClassLoader.close()`, chuyện gì xảy ra với file JAR do loader đã mở? **Loader cố đóng các file ấy**; việc đổi/xóa file còn phụ thuộc handle khác và hệ điều hành.
-2. Instance `GreetingPlugin` đã được tạo có ngừng hoạt động ngay sau close không? **Không.** Khi còn tham chiếu và method không cần nạp thêm dependency mới, code đã nạp vẫn có thể chạy.
-3. Sau close có thể gọi `loadClass` cho một class mới chỉ nằm trong JAR cũ không? **Không**, loader đã đóng không định nghĩa class mới từ URL của nó. Các class đã có hoặc class từ parent là trường hợp khác.
-4. Tại sao v1 và v2 cùng tên class có thể cùng tồn tại? **Defining classloader khác nhau** tạo class identity khác nhau.
-5. Vì sao `System.gc()` không phải công cụ “unload plugin”? **GC không được bảo đảm xảy ra theo yêu cầu**, và loader còn tham chiếu sẽ không đủ điều kiện thu hồi.
-6. Có nên đóng loader ngay sau khi chuyển routing sang v2? **Chưa chắc**; phải chờ v1 không còn in-flight calls hoặc task còn cần class/resource của nó.
-7. Nếu host cache `Method` hoặc giữ `Thread.contextClassLoader` của v1, close có làm hết leak không? **Không**; phải xóa cache và khôi phục context có chủ đích.
-8. Vì sao demo sau close vẫn in `hello-v1`? Nó chỉ gọi method đã nạp, không phải chứng minh loader đã unload.
+1. When `URLClassLoader.close()` is called, what happens to JAR files opened by the loader? **The loader attempts to close those files**; renaming/deleting the files still depends on other handles and the OS.
+2. Does an already-created `GreetingPlugin` instance stop working immediately after close? **No.** While references remain and the method needs no new dependencies loaded, already-loaded code can still execute.
+3. After close, can `loadClass` be called for a new class residing only in the old JAR? **No**, a closed loader does not define new classes from its URLs. Already-loaded classes or parent classes are different cases.
+4. Why can v1 and v2 with the same class name coexist? **Different defining classloaders** produce distinct class identities.
+5. Why is `System.gc()` not a “unload plugin” tool? **GC is not guaranteed to run on demand**, and a still-referenced loader is ineligible for collection.
+6. Should the loader be closed immediately after routing switches to v2? **Not necessarily**; wait until v1 has no remaining in-flight calls or tasks needing its classes/resources.
+7. If the host caches `Method` or retains v1's `Thread.contextClassLoader`, will `close()` eliminate the leak? **No**; caches must be cleared and contexts explicitly restored.
+8. Why did the demo still print `hello-v1` after close? It only invoked an already-loaded method, not proving the loader was unloaded.
 
-**Kết luận:** `URLClassLoader.close()` là **bước dọn tài nguyên nạp lớp/I-O**, không phải một phép hủy class. Để thay thế plugin đúng cách, host cần ngừng công việc, thu hồi các tài nguyên và tham chiếu do plugin sở hữu, đóng loader, rồi mới kỳ vọng JVM có thể thu hồi các lớp cũ khi GC phù hợp. Việc class đã nạp còn tồn tại sau close là hành vi Java hợp lệ và cần được thiết kế vào quy trình lifecycle thay plugin.
+**Conclusion:** `URLClassLoader.close()` is **a class-loading/I/O resource cleanup step**, not a class-destruction command. To replace plugins properly, the host must stop work, reclaim plugin-owned resources and references, close the loader, and only then expect the JVM to reclaim old classes when GC runs appropriately. Loaded classes remaining usable after close is valid Java behavior and must be designed into the plugin replacement lifecycle.

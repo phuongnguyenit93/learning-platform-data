@@ -1,37 +1,37 @@
-# 11.9. Giới hạn giữ bí mật trong byte[], String, heap dump và thông báo lỗi
+# 11.9. Limitations of Keeping Secrets in `byte[]`, `String`, Heap Dumps, and Error Messages
 
-Trong mật mã ứng dụng Java, rất nhiều lỗi bảo mật **không nằm ở AES, RSA hay HMAC** mà xảy ra sau khi một khóa, mật khẩu hoặc plaintext đã đi vào tiến trình: giá trị bí mật bị chuyển thành `String`, bị sao chép vào những mảng khó kiểm soát, ở lại trên heap lâu hơn dự kiến, xuất hiện trong heap dump hoặc vô tình bị ghi ra log/thông báo lỗi.
+In Java application cryptography, many security failures **do not lie in AES, RSA, or HMAC**, but occur after a key, password, or plaintext enters the process: the secret value gets converted into a `String`, copied into hard-to-control arrays, lingers on the heap longer than intended, appears in a heap dump, or is accidentally written to logs or error messages.
 
-Một chương trình có thể dùng thuật toán mật mã đúng chuẩn mà vẫn làm lộ khóa qua câu lệnh:
+A program can use textbook-correct cryptographic algorithms and still expose its key via a statement like:
 
 ```java
 logger.debug("AES key: " + keyAsHex);
 ```
 
-Hoặc làm mất bí mật khi tạo lỗi từ dữ liệu do người dùng gửi:
+Or leak a secret when constructing an error from user-submitted data:
 
 ```java
 throw new IllegalArgumentException("Invalid token: " + token);
 ```
 
-**Nguyên tắc cốt lõi:** trong JVM quản lý bộ nhớ tự động, chúng ta có thể **giảm số bản sao, thời gian tồn tại và bề mặt phơi lộ** của bí mật, nhưng không thể tuyên bố “xóa hoàn toàn mọi dấu vết” chỉ vì đã gọi `Arrays.fill(secret, 0)` hoặc bỏ tham chiếu. Bảo mật thực tế cần kết hợp quản lý vòng đời, API phù hợp, cấu hình runtime/observability, phân quyền vận hành, kiểm soát sự cố và threat model.
+**Core principle:** in a JVM with automatic memory management, we can **reduce the number of copies, lifetime, and exposure surface** of secrets, yet we cannot claim “all traces are completely erased” merely by calling `Arrays.fill(secret, 0)` or dropping a reference. Practical security combines lifecycle management, appropriate APIs, runtime/observability configuration, operational permissions, incident controls, and a threat model.
 
-## 1. Mục tiêu học tập và phạm vi
+## 1. Learning Objectives and Scope
 
-Sau bài học, bạn có thể:
-- Phân biệt **biểu diễn bí mật** trong `byte[]`, `char[]`, `String`, `SecretKeySpec`, `ByteBuffer` và các object của JCA/JCE.
-- Giải thích tại sao `String` là lựa chọn không phù hợp khi ứng dụng muốn chủ động xóa một giá trị bí mật khỏi một buffer.
-- Biết chính xác `Arrays.fill(...)` và `PBEKeySpec.clearPassword()` xóa **buffer nào**, nhưng cũng nhận diện những copy không thuộc quyền kiểm soát của caller.
-- Xác định dữ liệu nào có thể bị thu thập bởi **heap dump, crash dump, core dump, profiler, debugger, log, tracing, error reporting và telemetry**.
-- Thiết kế đường đi của password, AES key, token, ciphertext, plaintext với **mức quyền tối thiểu, vòng đời tối thiểu và báo lỗi an toàn**.
-- Phân biệt **public error response** với **internal diagnostic**; tránh rò rỉ khóa, secret, token và lỗi kiểu oracle qua thông báo hoặc thời gian đáp ứng.
-- Chạy một ví dụ Java 17+ cho thấy **xóa mảng của caller khác với xóa mọi bản sao bí mật**, và áp dụng checklist kiểm thử/vận hành.
+After this lesson, you will be able to:
+- Distinguish **secret representations** across `byte[]`, `char[]`, `String`, `SecretKeySpec`, `ByteBuffer`, and JCA/JCE objects.
+- Explain why `String` is unsuitable when an application wants to actively clear a secret value from a buffer.
+- Know exactly **which buffer** `Arrays.fill(...)` and `PBEKeySpec.clearPassword()` clear, while recognizing copies outside the caller's control.
+- Identify data that can be captured by **heap dumps, crash dumps, core dumps, profilers, debuggers, logs, tracing, error reporting, and telemetry**.
+- Design paths for passwords, AES keys, tokens, ciphertexts, and plaintexts with **least privilege, minimal lifetime, and safe error handling**.
+- Distinguish **public error responses** from **internal diagnostics**; avoid leaking keys, secrets, tokens, and oracle-style flaws via messages or response timing.
+- Run a Java 17+ example demonstrating that **clearing a caller's array differs from erasing every secret copy**, and apply a testing/operations checklist.
 
-Bài học này thuộc chủ đề **vòng đời khóa**: từ lúc tạo/nhận khóa, sử dụng, dẫn xuất, sao chép, lưu tạm, ghi log, xử lý lỗi, cho đến khi hết nhu cầu. Đây không phải hướng dẫn xây một secure-memory allocator mới hoặc tuyên bố Java/JVM tự bảo đảm zeroization ở mọi tầng.
+This lesson belongs to the **key lifecycle** topic: from key creation/receipt, usage, derivation, copying, temporary storage, logging, and error handling until no longer needed. It is not a guide to building a custom secure-memory allocator or claiming Java/JVM automatically guarantees zeroization at every layer.
 
-## 2. Vì sao bí mật dễ rời khỏi “vị trí ta nghĩ”?
+## 2. Why Do Secrets Easily Escape “Where We Think They Are”?
 
-Một khóa có thể đi qua nhiều lớp:
+A key can travel through multiple layers:
 
 ```text
 Secret source                  Java application                 JVM / Infrastructure
@@ -46,73 +46,73 @@ Random key generator ---+       SecretKeySpec / PBEKeySpec ---> JCE/provider cop
                                Retry / cache / queue -------> longer lifetime and replicas
 ```
 
-Ứng dụng thường chỉ biết chắc nó đang giữ một tham chiếu như `byte[] secret`. Nhưng sau khi gọi `SecretKeySpec`, `Cipher.init`, thư viện HTTP, JSON serializer hay logger, có thể tồn tại **những bản sao khác** ở nhiều vùng nhớ và hệ thống khác nhau.
+An application often only knows for sure that it holds a reference such as `byte[] secret`. Yet after calling `SecretKeySpec`, `Cipher.init`, an HTTP library, a JSON serializer, or a logger, **additional copies** may exist across multiple memory regions and systems.
 
-Ví dụ: phía client nhận một token dưới dạng header text; ứng dụng có thể giữ:
-1. Buffer byte của network.
-2. `String` do HTTP framework tạo.
-3. Một `String` mới khi trim/substring hoặc nối header.
-4. Một object request mang token.
-5. Một log message hoặc stack trace chứa token.
-6. Một bản copy trong trace collector.
+For example, when receiving a token from a client as header text, the application may end up holding:
+1. Network byte buffers.
+2. A `String` created by the HTTP framework.
+3. A new `String` from trimming/substringing or concatenating headers.
+4. A request object carrying the token.
+5. A log message or stack trace containing the token.
+6. A copy inside a trace collector.
 
-Xóa một biến ở bước 4 **không đồng nghĩa** đã xóa các bản sao 1, 2, 3, 5 và 6. Vì vậy, nguyên tắc thực dụng là **hạn chế nhập bí mật vào tầng không cần bí mật**, đặc biệt logging, tracing, exception message và data serialization.
+Clearing a variable at step 4 **does not mean** copies 1, 2, 3, 5, and 6 were erased. Therefore, the pragmatic rule is **keeping secrets out of layers that do not need secrets**, especially logging, tracing, exception messages, and data serialization.
 
-### 2.1. Có những gì được xem là bí mật?
+### 2.1. What Counts as a Secret?
 
-| Dữ liệu | Mức nhạy cảm | Rủi ro khi lộ |
+| Data | Sensitivity | Risk If Exposed |
 | --- | --- | --- |
-| AES key, HMAC key, RSA private key, seed khóa | **Secret** | Có thể giải mã, giả MAC/chữ ký theo phạm vi khóa |
-| Password/passphrase, PIN, recovery code | **Secret** | Đăng nhập, đoán khóa, truy cập tài khoản |
-| Access token, refresh token, session cookie, API key | **Bearer secret** | Có thể chiếm phiên hoặc gọi API |
-| CEK/DEK đã unwrap, traffic/session key | **Secret** | Truy cập dữ liệu được bảo vệ theo phiên/tệp |
-| Plaintext sau giải mã | **Nhạy cảm theo dữ liệu** | Rò rỉ nội dung người dùng/doanh nghiệp |
-| Salt, IV/nonce, public key, public certificate | Thường **không bí mật** | Vẫn cần kiểm soát tính đúng và ràng buộc ngữ cảnh |
-| Password verifier, encrypted file, metadata KDF | Không phải plaintext secret, nhưng **security-sensitive** | Hỗ trợ tấn công đoán offline, phá quyền riêng tư |
-| Log/trace có identifier | Tùy threat model và dữ liệu cá nhân | Liên kết hành vi, thông tin nhạy cảm, lộ metadata |
+| AES key, HMAC key, RSA private key, key seed | **Secret** | Enables decryption or MAC/signature forgery within key scope |
+| Password/passphrase, PIN, recovery code | **Secret** | Login, key guessing, account takeover |
+| Access token, refresh token, session cookie, API key | **Bearer secret** | Session hijacking or API abuse |
+| Unwrapped CEK/DEK, traffic/session key | **Secret** | Access to session/file-protected data |
+| Decrypted plaintext | **Data-sensitive** | Leakage of user/business content |
+| Salt, IV/nonce, public key, public certificate | Usually **non-secret** | Still requires correctness checks and context binding |
+| Password verifier, encrypted file, KDF metadata | Not a plaintext secret, yet **security-sensitive** | Aids offline guessing attacks and privacy leaks |
+| Logs/traces with identifiers | Depends on threat model and personal data | Activity correlation, sensitive inference, metadata leaks |
 
-Không đơn giản nói “đã băm rồi thì không còn nhạy cảm”, hoặc “nonce công khai nên mọi log chứa nonce đều an toàn”. Việc bảo vệ còn phụ thuộc tập dữ liệu, quy mô lưu trữ và khả năng liên kết record.
+Never assume “it is hashed so it is no longer sensitive,” or “nonces are public so every log containing nonces is harmless.” Protection also depends on dataset context, storage scale, and record linkability.
 
-## 3. `String`: tiện dụng nhưng không thể xóa có chủ đích
+## 3. `String`: Convenient Yet Impossible to Erase Intentionally
 
-`String` trong Java là một kiểu **immutable** (bất biến về mặt API). Khi bạn có:
+In Java, `String` is an **immutable** type (at the API level). When you have:
 
 ```java
 String password = "...";
 ```
 
-bạn không có một API công khai an toàn để ghi đè các byte chứa nội dung string bên trong JVM. Gán:
+you have no safe public API to overwrite the underlying string bytes inside the JVM. Assigning:
 
 ```java
 password = null;
 ```
 
-chỉ làm mất một tham chiếu trong chương trình. Nó **không bảo đảm** vùng nhớ cũ đã bị ghi bằng zero ngay lập tức; garbage collector quản lý thời điểm thu hồi và bộ nhớ có thể còn dấu vết hoặc bản sao.
+only drops one reference in your code. It **does not guarantee** the old memory is zeroed immediately; the garbage collector governs reclamation timing, and memory may retain traces or copies.
 
-### 3.1. Tại sao `String` tạo thêm khó khăn?
+### 3.1. Why Does `String` Create Extra Difficulties?
 
-- `String` bất biến nên không có cơ chế “xóa password” theo API công khai.
-- Chuỗi được nối, format, parse, encode, log hoặc truyền qua framework có thể phát sinh **nhiều object/buffer bổ sung**.
-- String literal trong source có thể vào constant pool/interning; tuyệt đối **không hardcode production secret** thành literal.
-- Các phiên bản JVM hiện đại có tối ưu lưu trữ string, ví dụ Compact Strings ở HotSpot, nhưng chi tiết nội bộ có thể khác nhau. Không nên dựa vào việc `String` dùng `char[]` hay `byte[]` bên trong để tìm cách sửa bằng reflection hoặc `Unsafe`.
-- `StringBuilder` có thể giữ backing buffer và phát sinh `String` mới khi gọi `toString()`; dùng builder để “dễ xóa” không tự giải quyết toàn bộ vấn đề.
-- Khi một thư viện chỉ nhận `String`, việc bạn tạo string từ `char[]` có thể đã tạo thêm bản sao khó xóa. Cần đánh giá API boundary thay vì cho rằng một bước chuyển đổi là vô hại.
+- `String` is immutable, so there is no public API to “erase a password.”
+- Concatenating, formatting, parsing, encoding, logging, or passing strings through frameworks can spawn **many extra objects/buffers**.
+- String literals in source can enter the constant pool/interning table; **never hard-code production secrets** as literals.
+- Modern JVMs optimize string storage, such as Compact Strings in HotSpot, and internal representations can vary. Never rely on whether `String` holds `char[]` or `byte[]` internally to mutate it via reflection or `Unsafe`.
+- `StringBuilder` can retain a backing buffer and allocate a new `String` on `toString()`; using a builder for “easier clearing” does not solve the whole problem.
+- When a library only accepts `String`, converting from `char[]` already creates a hard-to-erase copy. Evaluate API boundaries instead of assuming one conversion step is harmless.
 
-**Tránh các thao tác sau với secret:**
+**Avoid these operations with secrets:**
 
 ```java
-// KHÔNG DÙNG trong code production:
+// DO NOT USE in production code:
 String passwordText = new String(passwordChars);
 String secretAsHex = java.util.HexFormat.of().formatHex(aesKeyBytes);
 System.out.println("Authorization: Bearer " + token);
 throw new RuntimeException("Failed with password=" + passwordText);
 ```
 
-Đây là các **anti-pattern** để nhận biết, không phải ví dụ cần chạy. In/log/format secret ra text làm tăng nguy cơ persistence và exfiltration.
+These are **anti-patterns** to recognize, not examples to run. Printing/logging/formatting secrets to text increases persistence and exfiltration risk.
 
-### 3.2. `char[]` tốt hơn `String` đến mức nào?
+### 3.2. How Much Better Is `char[]` Than `String`?
 
-`char[]` cho phép caller chủ động ghi đè các phần tử:
+`char[]` lets the caller actively overwrite its elements:
 
 ```java
 char[] password = /* input from controlled source */;
@@ -123,17 +123,17 @@ try {
 }
 ```
 
-Điều này đem lại một lợi thế thực tế: **mảng mà bạn sở hữu** có thể được ghi đè sau khi dùng. Tuy nhiên, nó không bảo đảm:
-- Thư viện đã không sao chép mảng.
-- JIT/compiler, GC hoặc hệ điều hành không giữ dấu vết ở nơi khác.
-- Mật khẩu chưa từng tồn tại dưới dạng `String` trong một tầng trước đó.
-- Một heap dump hoặc logger đã không giữ bản sao trước thời điểm xóa.
+This offers a real practical benefit: **the array you own** can be overwritten after use. However, it does not guarantee:
+- That a library did not copy the array.
+- That JIT/compiler, GC, or OS did not retain traces elsewhere.
+- That the password never existed as a `String` in an earlier layer.
+- That a heap dump or logger did not capture a copy before clearing.
 
-`char[]` chủ yếu có ích khi **toàn bộ đường xử lý** hạn chế biến bí mật thành string hoặc log và dùng đúng lifetime. Một password đầu tiên đã đọc bằng `String` rồi chuyển qua `char[]` không “xóa” được `String` ban đầu.
+`char[]` helps primarily when **the entire processing path** avoids converting the secret into strings or logs and bounds lifetimes properly. A password read first as a `String` and then converted to `char[]` does not “erase” the original `String`.
 
-### 3.3. Input password trong Java
+### 3.3. Password Input in Java
 
-Trong ứng dụng dòng lệnh có console thực, `Console.readPassword()` trả `char[]`, giúp tránh một số đường tạo `String` thông thường:
+In a command-line app with a real console, `Console.readPassword()` returns `char[]`, avoiding some common `String` creation paths:
 
 ```java
 java.io.Console console = System.console();
@@ -151,13 +151,13 @@ try {
 }
 ```
 
-Đây là một **đoạn minh họa API**, không phải chương trình độc lập; `System.console()` thường là `null` trong IDE, nhiều môi trường container hoặc pipe. Không nên tự động fallback sang đọc password bằng `Scanner.nextLine()` mà không xem xét yêu cầu an ninh của ứng dụng.
+This is an **API illustration snippet**, not a standalone program; `System.console()` is often `null` inside IDEs, many container environments, or piped streams. Do not automatically fall back to reading passwords with `Scanner.nextLine()` without reviewing application security requirements.
 
-Với HTTP, mobile, desktop UI hoặc SDK, dữ liệu thường có thể đã được framework decode vào `String`. Hãy kiểm soát **request logging, tracing, retention, memory lifetime** và tầng vận chuyển; không thể khẳng định caller đã “never held String” nếu framework ở phía trước đã tạo nó.
+With HTTP, mobile, desktop UIs, or SDKs, frameworks have often already decoded inputs into `String`. Control **request logging, tracing, retention, memory lifetimes**, and transport layers; you cannot claim the caller “never held a `String`” if an upstream framework created it.
 
-## 4. `byte[]`: có thể ghi đè, nhưng không đồng nghĩa xóa mọi bản sao
+## 4. `byte[]`: Overwritable, Yet Not Equivalent to Erasing All Copies
 
-`byte[]` là dạng phổ biến cho AES key, nonce, plaintext, ciphertext, HMAC output và key derivation output. Với một secret byte array do chương trình sở hữu:
+`byte[]` is the common representation for AES keys, nonces, plaintext, ciphertext, HMAC outputs, and key derivation outputs. For a program-owned secret byte array:
 
 ```java
 byte[] secret = /* securely obtained secret bytes */;
@@ -168,31 +168,31 @@ try {
 }
 ```
 
-Sau khi `Arrays.fill` hoàn tất, phần tử của **chính mảng được truyền vào** đã được gán zero theo mô hình Java bình thường. Nhưng đây không phải cam kết xóa hết bí mật trên toàn hệ thống.
+Once `Arrays.fill` finishes, elements of **that exact passed array** are set to zero under the normal Java memory model. Yet this is not a system-wide guarantee that all secret material is gone.
 
-### 4.1. Những lý do vẫn còn bản sao
+### 4.1. Reasons Copies Can Still Exist
 
-1. **Constructor có thể copy.** Ví dụ `SecretKeySpec(byte[], algorithm)` lưu bản copy của key bytes. Zero hóa mảng đầu vào không phá hủy object secret key đã tạo.
-2. **`getEncoded()` có thể trả bản sao** của khóa mã hóa được; một caller phải quản lý/xóa mảng trả về. Với một số key provider/HSM, `getEncoded()` có thể trả `null` vì khóa không exportable.
-3. **Cipher, Mac, KeyAgreement, provider** có thể lưu dữ liệu trong object hoặc native memory; API không hứa xóa mọi bản copy khi caller xóa mảng.
-4. **`Arrays.copyOf`, `clone`, `ByteArrayOutputStream.toByteArray()`** tạo mảng khác. `toByteArray()` thường tạo bản copy, còn buffer nội bộ của stream có thể tiếp tục tồn tại.
-5. **String/hex/Base64 encoding** tạo text object có thể sống lâu hơn buffer ban đầu. Không dùng encoding này chỉ để “debug xem khóa có đúng không”.
-6. **GC, stack và JIT** có quyền sắp xếp/di chuyển/ghi đè dữ liệu bên trong quy tắc runtime. Zeroization best-effort ở Java không cung cấp bảo đảm chống đối thủ có quyền đọc memory dump ở mọi thời điểm.
+1. **Constructors may copy.** For example, `SecretKeySpec(byte[], algorithm)` stores a copy of the key bytes. Zeroing the input array does not destroy the created secret key object.
+2. **`getEncoded()` may return a copy** of exportable keys; callers must manage/clear the returned array. For some providers/HSMs, `getEncoded()` returns `null` because the key is non-exportable.
+3. **`Cipher`, `Mac`, `KeyAgreement`, and providers** may retain data inside objects or native memory; APIs do not promise to wipe every copy when the caller clears its array.
+4. **`Arrays.copyOf`, `clone`, `ByteArrayOutputStream.toByteArray()`** allocate new arrays. `toByteArray()` normally creates a copy while the stream's internal buffer can persist.
+5. **String/hex/Base64 encoding** creates text objects that can outlive the original buffer. Never use such encodings just to “debug whether the key looks right.”
+6. **GC, stack, and JIT** may relocate, rearrange, or retain data under runtime rules. Best-effort zeroization in Java does not defend against an adversary able to read arbitrary memory dumps at any time.
 
-**Mệnh đề đúng:** “Tôi đã zeroize mảng `secret` do mình nắm giữ.”  
-**Mệnh đề không có căn cứ:** “Sau đó không còn bất kỳ byte khóa nào trong tiến trình, swap, heap dump hay bộ nhớ provider.”
+**True statement:** “I zeroized the `secret` array I held.”  
+**Unsupported claim:** “Afterward, zero key bytes remain anywhere in the process, swap, heap dumps, or provider memory.”
 
-### 4.2. Cần dùng `finally` để giảm cửa sổ phơi lộ
+### 4.2. Use `finally` to Shrink the Exposure Window
 
-Đừng chỉ xóa secret ở cuối happy path:
+Do not clear secrets only at the end of the happy path:
 
 ```java
 byte[] keyBytes = loadSensitiveKeyBytes();
-doCrypto(keyBytes); // Có thể throw exception.
+doCrypto(keyBytes); // May throw an exception.
 java.util.Arrays.fill(keyBytes, (byte) 0);
 ```
 
-Nếu `doCrypto` ném ngoại lệ, việc xóa ở cuối sẽ không chạy. Pattern an toàn hơn:
+If `doCrypto` throws an exception, the trailing clear never runs. Safer pattern:
 
 ```java
 byte[] keyBytes = loadSensitiveKeyBytes();
@@ -203,26 +203,26 @@ try {
 }
 ```
 
-Đây vẫn là **pseudocode dùng các hàm minh họa** `loadSensitiveKeyBytes()` và `doCrypto()`, không phải Java class độc lập. Nội dung hữu ích là cách đặt cleanup vào `finally`.
+This remains **pseudocode using illustrative functions** `loadSensitiveKeyBytes()` and `doCrypto()`, not a standalone Java class. The useful takeaway is placing cleanup inside `finally`.
 
-Nên kiểm soát thêm lifetime:
-- Lấy key **gần nhất có thể** trước thời điểm dùng.
-- Tránh giữ key trong static field, singleton lâu dài, session object hoặc global cache trừ khi có threat model và vòng đời cụ thể.
-- Tránh tạo quá nhiều bản copy; giới hạn phạm vi secret qua các lớp service.
-- Khi không cần key nữa, đóng session/handle của provider theo API được hỗ trợ.
-- Xóa cả plaintext buffers cần thiết theo chính sách, không chỉ key bytes.
+Also manage lifetimes tightly:
+- Fetch keys **as late as possible** right before use.
+- Avoid holding keys in static fields, long-lived singletons, session objects, or global caches unless backed by an explicit threat model and lifecycle.
+- Avoid creating unnecessary copies; restrict secret propagation across service layers.
+- When a key is no longer needed, close provider sessions/handles per supported APIs.
+- Clear sensitive plaintext buffers per policy too, not just key bytes.
 
-### 4.3. `Arrays.fill` là best effort chứ không phải secure erase có chứng minh
+### 4.3. `Arrays.fill` Is Best Effort, Not Provable Secure Erasure
 
-Trong một JVM managed runtime, ngoài mảng thấy được, dữ liệu có thể còn ở bản copy, register, stack, native state, swap hoặc dump đã chụp trước đó. Tối ưu compiler/JIT và cơ chế garbage collector còn khiến cam kết về **physical memory erasure** khó có thể đưa ra với Java thuần.
+In a managed JVM runtime, beyond visible arrays, data can linger in copies, registers, stacks, native state, swap, or earlier dumps. Compiler/JIT optimizations and garbage collection further prevent pure Java from guaranteeing **physical memory erasure**.
 
-Khi threat model yêu cầu zeroization ở mức phần cứng/OS, không nên bịa rằng `Arrays.fill` bảo đảm được. Cần đánh giá secure-memory facilities, HSM/KMS, provider phù hợp, memory-locking nếu khả thi, quyền debug/dump và thiết kế không export secret. Các giải pháp native cũng không xóa được các bản sao mà ứng dụng từng tạo hoặc những secret đã xuất vào log.
+When a threat model demands OS/hardware-level zeroization, do not pretend `Arrays.fill` provides it. Evaluate secure-memory facilities, HSM/KMS, suitable providers, memory locking where feasible, debug/dump permissions, and non-exportable key designs. Native solutions still cannot erase copies the application already created or secrets already written to logs.
 
-Một số API có tên `Destroyable.destroy()` hoặc `isDestroyed()`, nhưng **không phải mọi loại `SecretKey`, `PrivateKey` hay provider đều hỗ trợ destroy thực sự theo cùng cách**. Phải kiểm tra tài liệu/behavior của implementation, xử lý lỗi và không đồng nhất `destroy()` với xóa một khóa nằm trong HSM hoặc bản backup.
+Some APIs expose `Destroyable.destroy()` or `isDestroyed()`, yet **not every `SecretKey`, `PrivateKey`, or provider implements real destruction the same way**. Check implementation docs and behavior, handle errors, and never equate `destroy()` with destroying a key inside an HSM or backup.
 
-## 5. `SecretKeySpec` và sao chép key material
+## 5. `SecretKeySpec` and Copying Key Material
 
-Trong JCA/JCE, một mẫu thường gặp:
+In JCA/JCE, a common pattern is:
 
 ```java
 byte[] keyBytes = /* AES or HMAC key bytes */;
@@ -231,19 +231,19 @@ javax.crypto.spec.SecretKeySpec key =
 java.util.Arrays.fill(keyBytes, (byte) 0);
 ```
 
-Lúc này **caller key array có thể đã được xóa**, nhưng `SecretKeySpec` vẫn cần chứa thông tin khóa để thực hiện phép mã hóa. Đó không phải bug: constructor đã quản lý key material riêng.
+At this point **the caller's key array has been cleared**, yet `SecretKeySpec` still holds the key material needed to run cryptographic operations. That is not a bug: its constructor maintains its own copy of the key material.
 
-Hệ quả:
+Consequences:
 
-- Không xem zero hóa `keyBytes` là đã hủy toàn bộ `SecretKeySpec`/provider state.
-- Tránh giữ `SecretKeySpec` lâu hơn cần thiết, đặc biệt trong object có vòng đời toàn ứng dụng.
-- Không gọi `key.getEncoded()` chỉ để in hex hoặc so sánh; nó làm xuất thêm bản copy byte của secret.
-- Nếu cần khóa không xuất được, dùng cơ chế provider, KeyStore, PKCS#11/HSM hoặc KMS có API handle phù hợp. **Không giả định** mọi `SecretKey` Java đều thực sự non-extractable; `SecretKeySpec` không phải khóa HSM.
-- Quản lý rotation/expiration/revocation và backup của key theo hệ thống lưu khóa, không dựa vào việc GC thu hồi object.
+- Do not treat zeroing `keyBytes` as destroying all `SecretKeySpec`/provider state.
+- Avoid keeping `SecretKeySpec` alive longer than necessary, especially in application-scoped objects.
+- Never call `key.getEncoded()` just to print hex or compare; it allocates yet another byte copy of the secret.
+- If non-exportable keys are required, use provider mechanisms, `KeyStore`, PKCS#11/HSM, or KMS with proper handle APIs. **Never assume** every Java `SecretKey` is non-extractable; `SecretKeySpec` is not an HSM key.
+- Govern rotation, expiration, revocation, and backups via your key management system, never by relying on GC reclaiming objects.
 
-### 5.1. Vì sao xóa mảng gốc không làm `Mac` ngừng hoạt động?
+### 5.1. Why Does Clearing the Source Array Not Stop `Mac` from Working?
 
-`SecretKeySpec` được tạo từ giá trị khóa đầu vào. Nếu ứng dụng xóa mảng gốc rồi gọi:
+`SecretKeySpec` copies the input key value. If the application clears the original array and then runs:
 
 ```java
 javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
@@ -251,13 +251,13 @@ mac.init(secretKeySpec);
 byte[] tag = mac.doFinal(messageBytes);
 ```
 
-MAC vẫn có thể hoạt động bình thường vì object khóa còn giữ vật liệu cần thiết. Đây là điểm quan trọng trong ví dụ runnable ở phần 10: **còn dùng được key object** đồng nghĩa không thể kết luận rằng “mọi bản sao khóa đã bị xóa”.
+MAC computation still works normally because the key object retains the required material. This is a key point in the runnable example in Section 10: **a still-usable key object** proves you cannot claim “all copies of the key were erased.”
 
-Mặt khác, việc `Mac` có thể dùng object khóa sau đó **không chứng minh** bản thân MAC lưu khóa vô thời hạn. Lifetime phụ thuộc scope, implementation và cách ứng dụng giữ tham chiếu.
+Conversely, the fact that `Mac` can use the key object afterward **does not prove** `Mac` itself caches the key forever. Lifetime depends on scope, implementation, and how the application holds references.
 
-## 6. `PBEKeySpec` và password KDF: các bản sao thường bị bỏ qua
+## 6. `PBEKeySpec` and Password KDFs: Frequently Overlooked Copies
 
-Java có `PBEKeySpec` để dùng password dạng `char[]` cùng salt và tham số dẫn xuất khóa:
+Java provides `PBEKeySpec` for using a `char[]` password with a salt and key-derivation parameters:
 
 ```java
 char[] password = /* user input */;
@@ -266,15 +266,15 @@ javax.crypto.spec.PBEKeySpec spec =
     new javax.crypto.spec.PBEKeySpec(password, salt, 100_000, 256);
 ```
 
-Constructor `PBEKeySpec` tạo bản sao thông tin password theo hợp đồng API. Vì vậy:
-- Zero hóa mảng `password` của caller **không đồng nghĩa** `spec` đã mất khả năng dẫn xuất.
-- Khi dùng xong, gọi `spec.clearPassword()` để xóa bản sao password do `PBEKeySpec` sở hữu.
-- `spec.getPassword()` trả một **bản copy mới**; caller phải quản lý/xóa copy này nếu gọi.
-- `SecretKeyFactory.generateSecret(spec)` và `getEncoded()` có thể tạo output/key material khác; quản lý lifetime của từng đối tượng và mảng output, không chỉ mảng password đầu vào.
-- `PBEKeySpec` nhận `char[]`, nhưng provider có thể mã hóa password thành byte nội bộ; xóa `spec` không chứng minh tất cả bản sao provider đã bị xóa.
-- Dữ liệu salt thường không bí mật, nhưng vẫn phải lưu/giữ đúng để verify password hoặc giải mã theo KDF profile.
+Per API contract, the `PBEKeySpec` constructor copies the password data. Therefore:
+- Zeroing the caller's `password` array **does not prevent** `spec` from deriving keys.
+- Once finished, call `spec.clearPassword()` to clear the copy owned by `PBEKeySpec`.
+- `spec.getPassword()` returns a **fresh copy**; the caller must manage/clear that copy if called.
+- `SecretKeyFactory.generateSecret(spec)` and `getEncoded()` create additional outputs/key material; manage the lifetime of every output object and array, not just the input password array.
+- `PBEKeySpec` takes `char[]`, yet a provider may convert the password into internal bytes; clearing `spec` does not prove all provider copies are wiped.
+- Salts are usually non-secret, yet must be stored/preserved accurately to verify passwords or re-derive keys per KDF profile.
 
-Một ví dụ vòng đời:
+Lifecycle illustration:
 
 ```text
 Caller char[] password
@@ -292,117 +292,117 @@ Own array cleared                              Must separately scope/clear as su
                           spec.clearPassword() for spec's copy
 ```
 
-Đối với lưu mật khẩu, dùng password-hashing scheme chuyên dụng và thư viện được thẩm định theo yêu cầu triển khai; `PBKDF2WithHmacSHA256` trong ví dụ chỉ giúp minh họa API và các bản sao. Không dùng direct SHA-256 như password verifier và không coi một giá trị PBKDF2 được lưu công khai là khóa AES có thể dùng lại.
+For password storage, use dedicated password-hashing schemes and vetted libraries per deployment requirements; `PBKDF2WithHmacSHA256` in the example only illustrates the API and copies. Never use plain SHA-256 as a password verifier, and never treat a publicly stored PBKDF2 verifier as a reusable AES key.
 
-### 6.1. Password từ framework đã là `String` thì sao?
+### 6.1. What If the Password Arrives from the Framework as a `String`?
 
-Nếu HTTP framework trả password dạng `String`, việc chuyển sang `char[]` rồi xóa mảng **không xóa bản string đã sinh**. Khi không thể kiểm soát hết đường đi, giảm rủi ro bằng:
-- Không log request body, form field hoặc authorization header chứa password.
-- Không lưu password trong user/session DTO sống lâu, exception object hoặc async task queue.
-- Không đưa password vào template/error message, metrics labels hay tracing span attributes.
-- Thực hiện verify/dẫn xuất ngay trong scope ngắn, tránh lưu vào cache.
-- Giới hạn quyền đọc heap dump, debugger và process memory.
-- Tách dữ liệu cần audit khỏi dữ liệu bí mật; log trạng thái, correlation ID và loại lỗi thay vì giá trị password.
+If an HTTP framework delivers a password as a `String`, converting it to `char[]` and wiping the array **does not wipe the already-allocated `String`**. When you cannot control the entire upstream path, mitigate risk by:
+- Never logging request bodies, form fields, or Authorization headers containing passwords.
+- Never storing passwords in long-lived user/session DTOs, exception objects, or async task queues.
+- Never placing passwords in templates/error messages, metrics labels, or tracing span attributes.
+- Performing verification/derivation immediately in a narrow scope, avoiding caches.
+- Restricting access to heap dumps, debuggers, and process memory.
+- Separating auditable metadata from secret data; log status, correlation IDs, and error categories instead of password values.
 
-Việc thiết kế boundary phù hợp thường quan trọng hơn tranh luận “String hay char[]” nếu cả pipeline đã nhân bản bí mật qua nhiều nơi.
+Designing clean boundaries usually matters far more than debating “`String` vs. `char[]`” if the surrounding pipeline replicates the secret everywhere.
 
-## 7. `ByteBuffer`, off-heap và native memory: không phải vùng an toàn mặc định
+## 7. `ByteBuffer`, Off-Heap, and Native Memory: Not Safe by Default
 
-`ByteBuffer` có thể là heap-backed hoặc direct/off-heap. Cả hai cần phân biệt **position management** với **ghi đè dữ liệu**.
+`ByteBuffer` can be heap-backed or direct/off-heap. Both require distinguishing **position management** from **overwriting data**.
 
-Ví dụ:
+Example:
 
 ```java
 java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocateDirect(1024);
 buffer.put(secretBytes);
-buffer.clear(); // Chỉ đặt lại position/limit. KHÔNG zero memory!
+buffer.clear(); // Resets position/limit only. Does NOT zero memory!
 ```
 
-`clear()` trong API buffer **không** có nghĩa xóa nội dung; nó chuẩn bị buffer để ghi/đọc theo vị trí mới. Tương tự, `flip()` và `rewind()` là thao tác con trỏ/giới hạn, không có bảo đảm wipe.
+`clear()` in the buffer API **does not** erase contents; it prepares the buffer for writing/reading from the start. Similarly, `flip()` and `rewind()` manipulate cursors/bounds with zero wiping guarantees.
 
-Nếu ứng dụng sở hữu một buffer mutable và muốn ghi zero:
-- Phải ghi đè **đúng toàn bộ miền buffer nhạy cảm** bằng thao tác được hỗ trợ, chú ý position/limit/slice và các view cùng chia sẻ memory.
-- Phải kiểm soát bản sao trong heap, native allocation, JNI/FFI, provider state.
-- Phải xử lý lifetime deallocation; off-heap không tự chống crash dump, đọc process memory, swap hoặc privileged debugger.
-- Không dựa vào reflection/`Unsafe` để sửa nội bộ `String` hoặc lớp JCE.
-- Với yêu cầu bảo mật cao, đánh giá thư viện/native API đã được kiểm toán và chính sách hệ điều hành; bản chất direct memory **không biến nó thành HSM**.
+If an app owns a mutable buffer and wants to zero it:
+- Overwrite **the exact full sensitive region** via supported operations, accounting for position, limit, slices, and shared-memory views.
+- Account for copies in heap, native allocations, JNI/FFI, and provider state.
+- Handle deallocation lifetimes; off-heap memory does not defend against crash dumps, process memory reads, swap, or privileged debuggers.
+- Never rely on reflection/`Unsafe` to mutate `String` or JCE class internals.
+- For high-assurance needs, evaluate audited native/secure-memory libraries and OS policies; being direct memory **does not turn RAM into an HSM**.
 
-Kể cả khi direct buffer được zero, secret có thể từng đi qua `byte[]` để gọi API hoặc được provider copy; do đó hãy nhìn toàn bộ **data flow**.
+Even when a direct buffer is zeroed, the secret may have passed through a `byte[]` to call an API or been copied by a provider; always trace the full **data flow**.
 
-## 8. Heap dump, crash dump, profiler và các bản sao hạ tầng
+## 8. Heap Dumps, Crash Dumps, Profilers, and Infrastructure Copies
 
-### 8.1. Heap dump có thể chứa những gì?
+### 8.1. What Can a Heap Dump Contain?
 
-Heap dump là ảnh chụp của các object Java trên heap vào một thời điểm. Tùy JVM/trạng thái runtime, có thể chứa:
-- `String` còn giữ token/password/secret đã được chuyển sang text.
-- `byte[]` và `char[]` chứa key, password, nonce, plaintext hoặc dữ liệu nhạy cảm khác.
-- DTO request/response, cache entry, message payload, HTTP headers, exception object.
-- Object `SecretKeySpec`, KDF context, buffers và các structure còn sống.
-- Dữ liệu gián tiếp liên kết người dùng, session, tenant, hostname và hoạt động bảo mật.
+A heap dump is a point-in-time snapshot of Java objects on the heap. Depending on the JVM and runtime state, it can contain:
+- `String` instances still holding tokens, passwords, or text-encoded secrets.
+- `byte[]` and `char[]` arrays containing keys, passwords, nonces, plaintexts, or other sensitive data.
+- Request/response DTOs, cache entries, message payloads, HTTP headers, and exception objects.
+- `SecretKeySpec` objects, KDF contexts, buffers, and live data structures.
+- Indirect data linking users, sessions, tenants, hostnames, and security operations.
 
-Heap dump **không nhất thiết** phản ánh toàn bộ native memory/register/stack hoặc mọi bản sao trong hệ thống, nhưng chỉ riêng phần có thể chứa đã đủ để xem nó như một **tài sản nhạy cảm**. Không nên gửi heap dump production vào ticket, chat hoặc công cụ bên ngoài khi chưa có quyền, quy trình bảo vệ và redaction thích hợp.
+A heap dump **does not necessarily** capture native memory, registers, stacks, or all system copies, yet what it can hold is more than enough to classify it as a **sensitive asset**. Never attach production heap dumps to tickets, chat, or external tools without authorization, protection workflows, and proper redaction.
 
-### 8.2. Điều kiện tạo dump
+### 8.2. Conditions That Trigger Dumps
 
-Một số JVM có thể được cấu hình tạo heap dump khi out-of-memory, ví dụ `-XX:+HeapDumpOnOutOfMemoryError` và đường dẫn `-XX:HeapDumpPath=...`. Công cụ quản trị/diagnostic cũng có thể yêu cầu heap dump theo quyền tương ứng. Crash dump, core dump hoặc OS memory snapshot có phạm vi khác nhau và **có thể** chứa dữ liệu ngoài Java heap.
+JVMs may be configured to emit heap dumps on out-of-memory errors, e.g., `-XX:+HeapDumpOnOutOfMemoryError` and `-XX:HeapDumpPath=...`. Admin/diagnostic tools can also trigger heap dumps with sufficient privileges. Crash dumps, core dumps, or OS memory snapshots have broader scopes and **can** include memory outside the Java heap.
 
-Rủi ro thực tế:
-- Container ghi dump ra volume dùng chung, object store hoặc thư mục được backup tự động.
-- Crash reporting/telemetry upload artifact lên dịch vụ ngoài vùng tin cậy.
-- Một developer có quyền debug production tải dump về laptop không mã hóa.
-- Dump tồn tại sau incident, không có TTL, access audit hoặc cơ chế xóa.
-- Log file/ticket kèm stack trace hoặc command-line args lộ cấu hình/credentials.
+Practical risks:
+- Containers writing dumps onto shared volumes, object stores, or auto-backed-up directories.
+- Crash reporting/telemetry uploading artifacts to services outside the trust boundary.
+- A developer with prod debug access downloading a dump onto an unencrypted laptop.
+- Dumps lingering post-incident with no TTL, access auditing, or deletion process.
+- Log files/tickets carrying stack traces or command-line arguments exposing configs/credentials.
 
-**Không cần coi dump là “xấu” để cấm mọi debugging.** Heap dump có giá trị điều tra memory leak và incident. Điều đúng là phải có chính sách xử lý nó như dữ liệu nhạy cảm: quyền truy cập tối thiểu, lưu có mã hóa, retention ngắn, theo dõi truy cập, đường truyền được xác thực, redaction khi khả thi, xóa theo quy trình và không xuất ra môi trường không được phép.
+**Do not treat dumps as “evil” and ban all debugging.** Heap dumps are valuable for diagnosing memory leaks and incidents. The right approach is treating them as sensitive data: least-privilege access, encrypted storage, short retention, access auditing, authenticated transfer, redaction where feasible, controlled deletion, and never exporting to unauthorized environments.
 
-### 8.3. Cấu hình vận hành nên cân nhắc
+### 8.3. Operational Configurations to Consider
 
-1. **Access:** giới hạn ai có quyền attach debugger/profiler, tạo hoặc download dump; đánh giá quyền hệ điều hành/container/hypervisor.
-2. **Storage:** dump directory/volume với quyền hệ thống tệp chặt, mã hóa at rest và key management riêng nếu phù hợp.
-3. **Transfer:** kênh vận chuyển bảo mật; tránh URL dump có quyền công khai hoặc link lâu hạn.
-4. **Retention:** thời gian giữ đủ cho điều tra, tự động xóa theo policy, có audit.
-5. **Automation:** biết rõ agent nào có thể kích hoạt và upload diagnostic bundles; vô hiệu hóa thu thập nhạy cảm không cần thiết.
-6. **Incident response:** nếu có bằng chứng key/password/token đã xuất vào dump không kiểm soát, đánh giá **rotation/revocation** và ảnh hưởng dữ liệu theo scope.
-7. **Backups:** kiểm tra dump bị copy sang hệ backup hoặc DR không; xóa primary file không nhất thiết xóa mọi bản backup.
-8. **Testing:** dùng canary giả, môi trường staging và công cụ được phê duyệt để kiểm tra rủi ro; không cần thu thập secret production thật để chứng minh.
+1. **Access:** restrict who can attach debuggers/profilers or trigger/download dumps; review OS/container/hypervisor privileges.
+2. **Storage:** store dumps in directories/volumes with tight filesystem permissions, encryption at rest, and dedicated key management where appropriate.
+3. **Transfer:** use authenticated encrypted channels; avoid public dump URLs or long-lived links.
+4. **Retention:** retain only as long as needed for investigation; enforce automated deletion and auditing.
+5. **Automation:** know which agents can capture and upload diagnostic bundles; disable unnecessary sensitive collection.
+6. **Incident response:** if evidence shows keys/passwords/tokens entered an uncontrolled dump, evaluate **rotation/revocation** and data impact per scope.
+7. **Backups:** check whether dumps are swept into backups or DR snapshots; deleting the primary file does not always delete backup copies.
+8. **Testing:** use fake canaries, staging environments, and approved tools to test exposure risk; never capture real production secrets just to prove a point.
 
-Heap dump là một **snapshot theo thời gian**. Xóa `byte[]` sau snapshot không xóa được artifact đã chụp. Một lỗi logging hoặc export dump có thể kéo dài tuổi thọ secret từ vài mili giây trong RAM thành nhiều tháng trên storage.
+A heap dump is a **point-in-time snapshot**. Zeroing a `byte[]` after the snapshot does not erase the captured artifact. One logging bug or dump export can stretch a secret's lifetime from milliseconds in RAM to months on storage.
 
-### 8.4. Heap dump khác với log và stack trace
+### 8.4. Heap Dumps vs. Logs and Stack Traces
 
-- **Heap dump:** có thể chứa trạng thái object thô ngay cả khi code không chủ động log key.
-- **Log:** do ứng dụng/framework tạo ra khi log request, error, object `toString()` hoặc diagnostic.
-- **Stack trace:** chứa stack frames và exception messages/causes; nếu exception chứa thông tin nhạy cảm trong message, log stack trace sẽ phát tán nó.
-- **Distributed tracing/APM:** có thể copy HTTP headers/body, SQL parameters và baggage/span attributes vào hệ thống khác.
-- **Metrics:** label/tag có cardinality cao hoặc chứa token/user identifiers có thể rò rỉ ra dashboards và lưu rất lâu.
+- **Heap dumps:** can capture raw object state even when code never intentionally logs keys.
+- **Logs:** emitted by apps/frameworks logging requests, errors, `toString()` outputs, or diagnostics.
+- **Stack traces:** include stack frames and exception messages/causes; if an exception embeds sensitive data in its message, logging the stack trace broadcasts it.
+- **Distributed tracing/APM:** can copy HTTP headers/bodies, SQL parameters, and baggage/span attributes into external systems.
+- **Metrics:** high-cardinality labels/tags or labels carrying tokens/user IDs can leak onto dashboards and persist long-term.
 
-Thực tế phải có chính sách cho **từng loại dữ liệu quan sát**; chỉ tắt một logger không loại bỏ đường leak từ tracing, error reporting hoặc crash artifact.
+In practice, define policies for **every observability channel**; silencing one logger does not close leak paths through tracing, error reporting, or crash artifacts.
 
-## 9. Thông báo lỗi: nơi secret thường bị đưa ra khỏi tiến trình
+## 9. Error Messages: Where Secrets Often Escape the Process
 
-### 9.1. Error message không nên chứa secret
+### 9.1. Error Messages Must Never Contain Secrets
 
-Không nên làm:
+Never do this:
 
 ```java
-// Anti-pattern: KHÔNG sử dụng.
+// Anti-pattern: DO NOT use.
 throw new IllegalArgumentException("Invalid API key: " + apiKey);
 throw new SecurityException("Expected=" + expectedMac + ", actual=" + receivedMac);
 logger.error("Failed to decrypt " + plaintext, exception);
 ```
 
-Rủi ro:
-- Exception message có thể đi vào access log, app log, APM, alert, support ticket.
-- Framework có thể tự chuyển exception message thành HTTP response.
-- Exception `toString()` và stack trace có thể bao gồm message/causes.
-- Khi log một object bằng `{}`, `toString()` của nó có thể tiết lộ các field nhạy cảm.
-- Exception được ném trong async/retry/queue có thể được lưu hoặc serialize bởi infrastructure.
+Risks:
+- Exception messages flow into access logs, app logs, APM, alerts, and support tickets.
+- Frameworks may serialize exception messages directly into HTTP responses.
+- Exception `toString()` and stack traces include messages and nested causes.
+- Logging an object via `{}` can invoke a `toString()` exposing sensitive fields.
+- Exceptions thrown inside async tasks, retries, or queues may be persisted or serialized by infrastructure.
 
-**Đừng đưa secret vào exception ngay từ đầu.** “Log nội bộ thì được” không phải lý do để gắn password/key/token vào message rồi hy vọng không bị lộ.
+**Keep secrets out of exceptions from the start.** “It is only an internal log” is never an excuse to embed passwords, keys, or tokens in exception messages and hope they stay contained.
 
-### 9.2. Phân tách public error với internal diagnosis
+### 9.2. Separate Public Errors from Internal Diagnostics
 
-Đối với client chưa tin cậy, trả một **mã lỗi ổn định và thông điệp chung**:
+To untrusted clients, return a **stable error code and generic message**:
 
 ```json
 {
@@ -411,53 +411,53 @@ Rủi ro:
 }
 ```
 
-Với logic đăng nhập, có thể cần một thông điệp chung kiểu `AUTHENTICATION_FAILED` khi credential sai. Với mã hóa/giải mã, đừng trả “khóa AES đúng nhưng GCM tag sai tại byte X”, “private key đã unwrap được” hoặc giá trị tham số nhạy cảm cho caller bên ngoài.
+For login logic, a uniform message like `AUTHENTICATION_FAILED` is appropriate on wrong credentials. For encryption/decryption, never return “AES key valid but GCM tag failed at byte X,” “private key unwrapped successfully,” or sensitive parameter values to external callers.
 
-Trong **internal telemetry có phân quyền**, có thể ghi:
-- Correlation/request ID ngẫu nhiên.
-- Tên component/op không nhạy cảm (ví dụ `decrypt-document`).
-- Mã lỗi được whitelist (ví dụ `AUTH_TAG_INVALID`), mức độ nghiêm trọng và số lần xảy ra.
-- Thời gian, phiên bản protocol, key identifier không nhạy cảm **nếu chính sách cho phép**.
-- Stack trace đã được đánh giá, không chứa token/password hoặc dữ liệu decrypted.
+In **access-controlled internal telemetry**, you may record:
+- Random correlation/request ID.
+- Non-sensitive component/operation name (e.g., `decrypt-document`).
+- Allowlisted error code (e.g., `AUTH_TAG_INVALID`), severity, and occurrence count.
+- Timestamp, protocol version, and non-sensitive key identifier **if policy allows**.
+- Reviewed stack traces containing zero tokens, passwords, or decrypted data.
 
-Không log:
-- AES/private/HMAC/traffic keys, seed, session cookie, bearer token, refresh token, password.
-- Raw headers `Authorization`, `Cookie`, `Set-Cookie`, secret form fields.
-- Plaintext từ tệp bí mật, KDF derived key, key wrap material chưa mã hóa.
-- Exception cause hoặc object dump khi chưa biết chắc message và `toString()` không mang bí mật.
+Never log:
+- AES/private/HMAC/traffic keys, seeds, session cookies, bearer tokens, refresh tokens, passwords.
+- Raw `Authorization`, `Cookie`, `Set-Cookie` headers, or secret form fields.
+- Plaintext from confidential files, KDF-derived keys, or unencrypted key-wrap material.
+- Exception causes or object dumps unless verified that messages and `toString()` contain no secrets.
 
-Đừng biến `keyId` hoặc hash một field nhạy cảm thành định danh công khai một cách tự động: chúng vẫn có thể lộ metadata, tương quan hoạt động hoặc hỗ trợ đoán nếu đầu vào ít entropy.
+Never automatically turn `keyId` or hashes of sensitive fields into public identifiers: they can still leak metadata, correlate activity, or assist guessing on low-entropy inputs.
 
-### 9.3. Phân biệt mã lỗi để vận hành nhưng không tạo oracle
+### 9.3. Distinguish Errors for Operations Without Creating Oracles
 
-Một API cần đủ thông tin cho bảo trì, nhưng lỗi mật mã có thể trở thành **oracle** nếu attacker quan sát được khác biệt về:
-- Thông báo trả ra: “RSA unwrap succeeded” vs “AES tag invalid”.
-- HTTP status/body tùy password tồn tại, token có prefix đúng, private key nào được chọn.
-- Thời gian phản hồi phụ thuộc mức kiểm tra/chỗ thất bại.
-- Kích thước response, đóng kết nối hay số lần retry khác nhau.
-- Timing của so sánh secret bằng string thông thường.
+An API needs enough signal for maintenance, yet cryptographic errors can become an **oracle** if an attacker can observe differences in:
+- Returned messages: “RSA unwrap succeeded” vs. “AES tag invalid.”
+- HTTP status/body depending on whether a password exists, a token prefix matches, or which private key was chosen.
+- Response timing varying by validation stage or failure point.
+- Response size, connection resets, or retry counts.
+- Timing of secret comparison via standard string equality.
 
-Vì vậy, thiết kế error mapping cần theo **threat model của giao thức**, không chỉ ẩn text trong response. Các nhóm lỗi nhạy cảm có thể cần hợp nhất ở public API, giới hạn request, giữ thời gian hành vi hợp lý, áp rate limiting và kiểm tra khóa theo policy. Điều này **không có nghĩa** có thể dễ dàng bảo đảm constant-time cho toàn bộ HTTP stack; cần dùng thư viện mật mã đã được kiểm tra và tránh tạo nhánh tiết lộ secret rõ ràng.
+Therefore, design error mapping around the **protocol's threat model**, not merely hiding text in responses. Sensitive failure classes may need collapsing at public APIs, request bounds, consistent handling timing, rate limiting, and policy-enforced key checks. This **does not mean** you can trivially make an entire HTTP stack constant-time; use vetted cryptographic libraries and avoid obvious secret-dependent branches.
 
-Ví dụ, nếu một API kiểm tra HMAC và dùng:
+For example, if an API checks an HMAC and uses:
 
 ```java
 if (expectedTagHex.equals(receivedTagHex)) { ... }
 ```
 
-thì cách so sánh text thông thường không được thiết kế là phép so sánh authentication tag bí mật chống timing leak. Nên **decode đúng wire format, kiểm tra độ dài và dùng API so sánh byte dành cho bảo mật** như `MessageDigest.isEqual(...)` khi thích hợp. Cũng không dùng “thử nhiều thuật toán/khóa tới khi đúng” mà thiếu version/policy, vì dễ có algorithm/key confusion và tạo nhiều đường quan sát lỗi.
+standard string comparison is not designed as a timing-safe secret tag comparison. **Decode the exact wire format, check lengths, and use a constant-time byte comparison API** such as `MessageDigest.isEqual(...)` where appropriate. Likewise, never “try multiple algorithms/keys until one works” without version/policy, as that invites algorithm/key confusion and multiple observable failure paths.
 
-## 10. Java 17+: kiểm chứng những giới hạn bộ nhớ và báo lỗi an toàn
+## 10. Java 17+: Verifying Memory Limitations and Safe Error Reporting
 
-Ví dụ runnable này **không cố đo nội dung heap dump** (vốn phụ thuộc JVM/GC/thời điểm), mà kiểm chứng những mệnh đề có thể quan sát qua API:
+This runnable example **does not attempt to inspect heap dump contents** (which vary by JVM, GC, and timing), but verifies assertions observable through the API:
 
-1. Mảng `char[]` password của caller được xóa; `PBEKeySpec` vẫn có thể cho KDF chạy vì đã sở hữu một bản copy.
-2. `PBEKeySpec.clearPassword()` ngăn đọc password qua `getPassword()` sau khi đã clear.
-3. Mảng chứa derived KDF output được ghi zero trong `finally`.
-4. Mảng byte nguồn dùng tạo `SecretKeySpec` đã bị xóa, nhưng **key object vẫn dùng được** cho HMAC. Đây là minh chứng rằng việc xóa buffer nguồn không xóa hết key material.
-5. Một thông báo public error chỉ trả **mã lỗi được allowlist**, không đưa nguyên văn message provider ra ngoài.
+1. The caller's `char[]` password array is cleared; `PBEKeySpec` can still run the KDF because it owns a copy.
+2. `PBEKeySpec.clearPassword()` blocks reading the password via `getPassword()` afterward.
+3. The array holding the derived KDF output is zeroed in `finally`.
+4. The source byte array passed to `SecretKeySpec` is cleared, yet **the key object remains usable** for HMAC. This proves clearing a source buffer does not erase all key material.
+5. A public error helper returns only an **allowlisted error code**, never leaking raw provider messages externally.
 
-Tạo file **`SecretMemoryDemo.java`**:
+Create file **`SecretMemoryDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -560,14 +560,14 @@ public class SecretMemoryDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac SecretMemoryDemo.java
 java SecretMemoryDemo
 ```
 
-**Kết quả stdout đã kiểm chứng qua JDK tương thích Java 17:**
+**Verified stdout on a Java 17-compatible JDK:**
 
 ```text
 Caller password cleared: true
@@ -580,272 +580,272 @@ Tag buffer cleared: true
 Public error: CRYPTO_OPERATION_FAILED
 ```
 
-### 10.1. Diễn giải đúng các dòng output
+### 10.1. Interpreting Each Output Line Accurately
 
-**“Caller password cleared: true”** chỉ nói mảng `password` của chương trình đã được ghi toàn `'\0'`. Nó không nói password chưa từng có ở một object khác.
+**“Caller password cleared: true”** states only that the program's `password` array was overwritten with `'\0'`. It does not state the password never existed in another object.
 
-**“KDF still worked after caller clear: true”** cho thấy `PBEKeySpec` có dữ liệu password cần thiết dù caller đã xóa mảng input. Nếu code chỉ xóa caller `char[]` nhưng quên `spec.clearPassword()`, bản copy trong spec có thể còn tồn tại cho đến khi object được thu hồi. Một số bước trong provider có thể tạo thêm bản sao không được kiểm soát bởi `clearPassword()`.
+**“KDF still worked after caller clear: true”** shows `PBEKeySpec` retains the needed password data even after the caller wiped its input array. If code wipes only the caller's `char[]` and forgets `spec.clearPassword()`, the copy inside `spec` persists until collected. Some provider steps may also create copies outside `clearPassword()` control.
 
-**“PBEKeySpec password access rejected: true”** kiểm tra hợp đồng API: sau `clearPassword()`, gọi `getPassword()` bị từ chối. Điều này **không** chứng minh toàn bộ RAM đã được wipe.
+**“PBEKeySpec password access rejected: true”** verifies the API contract: after `clearPassword()`, calling `getPassword()` throws. This **does not** prove all of RAM was wiped.
 
-**“Derived buffer cleared: true”** xác nhận ứng dụng ghi zero vào chính mảng `derived` trong `finally`. Nội bộ provider, object secret key hoặc JVM có thể còn bản sao. Mỗi buffer có lifetime và cleanup khác nhau.
+**“Derived buffer cleared: true”** confirms the application zeroed the `derived` array in `finally`. Provider internals, key objects, or the JVM may still hold copies. Every buffer has its own lifetime and cleanup.
 
-**“Original key array cleared: true” + “Key object still usable: true”** là điểm quan trọng: `SecretKeySpec` có key material riêng; xóa mảng nguồn không hủy key object. Không nên tuyên bố “key đã được hủy an toàn” chỉ dựa trên mảng gốc đã zero.
+**“Original key array cleared: true” + “Key object still usable: true”** is the central point: `SecretKeySpec` owns its own key material; wiping the source array does not destroy the key object. Never claim “the key was safely destroyed” solely because the source array was zeroed.
 
-**“Tag buffer cleared: true”** minh họa có thể quản lý output buffer. Một HMAC tag thông thường không nhất thiết là secret như key, nhưng rủi ro logging, context và chính sách retention vẫn cần xét. Đây là mẫu quản lý mảng, không phải bắt buộc mọi ứng dụng phải zero tất cả tag công khai.
+**“Tag buffer cleared: true”** illustrates that output buffers can also be managed. A typical HMAC tag is not as secret as a key, though logging, context, and retention policies still apply. This shows array hygiene, not a mandate that every app zero every public tag.
 
-**“Public error: CRYPTO_OPERATION_FAILED”** minh họa API trả một **mã lỗi ổn định**. Trong production, cần thêm correlation ID, telemetry có phân quyền và quy tắc error mapping theo threat model.
+**“Public error: CRYPTO_OPERATION_FAILED”** illustrates an API returning a **stable error code**. In production, pair this with correlation IDs, permissioned internal telemetry, and threat-model-driven error mapping.
 
-### 10.2. Những giới hạn cố ý của demo
+### 10.2. Intentional Limitations of the Demo
 
-- Password demo được viết trong source bằng các ký tự riêng lẻ. **Không** viết secret thực vào source/config/version control; đây là fixture công khai và không chứng minh input an toàn ở một hệ thống nhận password thực.
-- `PBKDF2WithHmacSHA256` với 100.000 iterations **chỉ phục vụ demo memory lifecycle**, không phải tham số production khuyến nghị để lưu mật khẩu. Khi triển khai thật, chọn password-hashing/KDF scheme và cost theo chính sách/benchmark hiện hành, ưu tiên Argon2id khi phù hợp và thư viện tin cậy.
-- `SecretKeySpec` tiếp tục tồn tại đến khi hết scope; demo không có API để wipe key material nội bộ của nó. Không suy ra “mảng nguồn zero là process hết secret”.
-- Dữ liệu provider, JIT/GC, native heap, swap, profiler và dump **không thể kiểm tra đầy đủ** chỉ bằng unit test này.
-- `Arrays.fill` ở cuối không ngăn một heap dump được chụp **trước đó** chứa bí mật.
-- Mẫu `publicError` không tự cung cấp security logging, rate limiting, chống timing oracle, access control hoặc incident response.
-- Nếu muốn chứng minh hệ thống **không hề log secret**, cần test cả framework, filters, tracing, APM, logging encoder và exception handler.
+- The demo password is written in source as individual characters. **Never** write real secrets into source, config, or version control; this is a public fixture and does not prove safe password input in a real system.
+- `PBKDF2WithHmacSHA256` with 100,000 iterations **is solely for demonstrating memory lifecycle**, not a recommended production parameter set for password storage. In production, select password-hashing/KDF schemes and costs per current policy and benchmarks, preferring Argon2id with a trusted library where appropriate.
+- `SecretKeySpec` persists until out of scope; the demo has no API to wipe its internal key material. Never infer “source array zeroed means zero secrets in the process.”
+- Provider internals, JIT/GC, native heaps, swap, profilers, and dumps **cannot be fully verified** by a unit test alone.
+- `Arrays.fill` at the end does not prevent a heap dump captured **earlier** from containing the secret.
+- The `publicError` helper does not by itself supply security logging, rate limiting, timing-oracle defenses, access control, or incident response.
+- To prove a system **never logs secrets**, test frameworks, filters, tracing, APM, log encoders, and exception handlers end-to-end.
 
-## 11. Thiết kế một vòng đời bí mật trong ứng dụng Java
+## 11. Designing a Secret Lifecycle in a Java Application
 
-Hãy thiết kế “đường đi của secret” thay vì chỉ chọn một container.
+Design the “path of the secret” rather than merely picking one container.
 
-### 11.1. Nhận secret
+### 11.1. Receiving Secrets
 
-- Lấy secret qua TLS/authenticated channel hoặc KMS/Vault API đã xác thực, không qua query string/URL/cmdline có thể được ghi log.
-- Nếu password được nhập bởi người dùng, ưu tiên API nhận `char[]` khi khả thi; với HTTP, kiểm soát logging/DTO và thời gian tồn tại.
-- Nếu key ngẫu nhiên do ứng dụng tạo, dùng `SecureRandom` và key-size/scheme đúng chuẩn. Không dùng `java.util.Random` cho khóa.
-- Đừng biến secret thành `String`, hex/Base64 hoặc JSON text chỉ để truyền giữa các lớp; nếu phải có text vì wire format, hạn chế các bản sao và tắt logging nhạy cảm.
+- Fetch secrets over TLS/authenticated channels or authenticated KMS/Vault APIs, never via query strings, URLs, or command lines that can be logged.
+- When passwords are user-entered, prefer `char[]` APIs where feasible; for HTTP, control logging, DTOs, and lifetimes.
+- When the application generates random keys, use `SecureRandom` and standard key sizes/schemes. Never use `java.util.Random` for keys.
+- Never convert secrets to `String`, hex/Base64, or JSON text just to pass between internal layers; if wire formats require text, minimize copies and disable sensitive logging.
 
-### 11.2. Sử dụng secret
+### 11.2. Using Secrets
 
-- Phân biệt key được quản lý dưới dạng byte và **key handle không exportable** từ HSM/KMS; ưu tiên hạn chế việc xuất raw key khi threat model yêu cầu.
-- Chỉ cấp quyền truy cập key cho component thực sự cần.
-- Tránh lưu key trong field static, cache tổng quát, `toString()` hay DTO có thể serialize.
-- Với cryptography, dùng JCA/JCE provider hoặc thư viện thẩm định; không tự viết AES, HMAC hoặc thao tác padding.
-- Bảo đảm authorization của hành động dùng key, không chỉ “key tồn tại trong RAM”.
+- Distinguish byte-managed keys from **non-exportable key handles** in an HSM/KMS; prefer restricting raw key export whenever your threat model calls for it.
+- Grant key access only to components that genuinely need it.
+- Avoid holding keys in static fields, generic caches, `toString()`, or serializable DTOs.
+- For cryptography, use JCA/JCE providers or vetted libraries; never roll your own AES, HMAC, or padding logic.
+- Enforce authorization for key-using actions, not merely “the key is in RAM.”
 
-### 11.3. Kết thúc thao tác
+### 11.3. Ending Operations
 
-- Dùng `try/finally` để clear caller-owned mutable secret buffers kể cả khi lỗi.
-- Gọi API cleanup/close/destroy phù hợp cho secret holder và key session nếu implementation hỗ trợ; kiểm tra behavior cụ thể.
-- Đừng giữ reference lâu hơn cần thiết. Tránh capture secret trong lambda, callback, async continuation hoặc thread-local không được clear.
-- Với borrowed buffers/shared arrays, không tự zero hóa dữ liệu đang còn được phía khác sử dụng; thiết kế ownership rõ ràng ngay từ đầu.
-- Giữ lifecycle của plaintext output và decrypted records ngắn; quyền/retention của plaintext cũng quan trọng như key.
+- Use `try/finally` to clear caller-owned mutable secret buffers even on exceptions.
+- Invoke appropriate cleanup/close/destroy APIs on secret holders and key sessions where implementations support them; verify exact behavior.
+- Never retain references longer than needed. Avoid capturing secrets in lambdas, callbacks, async continuations, or uncleared `ThreadLocal`s.
+- For borrowed buffers or shared arrays, do not zero data still needed by another caller; define clear ownership upfront.
+- Keep lifetimes of decrypted plaintext outputs and records short; plaintext access control and retention matter as much as keys.
 
-### 11.4. Vận hành
+### 11.4. Operations
 
-- Kiểm soát heap-dump/crash-dump locations và quyền debugger/profiler.
-- Chặn logging/tracing secret ở tầng ingress và response filters.
-- Đặt retention cho diagnostic artifacts và có thủ tục xóa/thu hồi/rotation khi leak.
-- Định kỳ kiểm tra cấu hình APM, exception reporting, HTTP logging, access logs và secret redaction.
-- Bảo vệ cache, backup và snapshot chứa memory artifact hoặc plaintext.
-- Kiểm thử không làm rơi secret từ lỗi bất thường như timeout, retry, OOM hoặc provider error.
+- Lock down heap-dump/crash-dump locations and debugger/profiler privileges.
+- Block secret logging/tracing at ingress and response filters.
+- Enforce retention on diagnostic artifacts and maintain rotation/revocation/deletion playbooks for leaks.
+- Periodically audit APM configs, exception reporting, HTTP logging, access logs, and secret redaction.
+- Protect caches, backups, and snapshots that may hold memory artifacts or plaintext.
+- Test that unexpected failures—timeouts, retries, OOMs, or provider errors—do not drop secrets into logs or responses.
 
-## 12. Ranh giới quan trọng: giữ secret trong tiến trình hay không đưa secret vào đó?
+## 12. Critical Boundary: Keep Secrets In-Process or Never Load Them There?
 
-Đối với các hệ thống mức độ nhạy cảm cao, hướng giảm rủi ro tốt nhất đôi khi là **không đưa raw long-term key vào Java heap**.
+For high-sensitivity systems, the strongest risk reduction is often **never loading raw long-term keys into the Java heap**.
 
-### 12.1. Khóa trong phần mềm
+### 12.1. Software Keys
 
-Một Java service tải AES key từ secret manager, giữ dưới dạng `byte[]` rồi `SecretKeySpec` để gọi `Cipher`. Đây là mô hình phổ biến, nhưng service process sẽ có khả năng sử dụng key và đôi khi có material thô trong heap/provider memory. Nếu process bị xâm nhập đủ sâu, các biện pháp memory hygiene không thể bảo đảm key vẫn bí mật.
+A Java service loads an AES key from a secret manager, holds it as `byte[]`, and wraps it in `SecretKeySpec` for `Cipher`. This is common, yet the service process holds full key-usage capability and sometimes raw bytes in heap/provider memory. If the process is compromised deeply enough, memory hygiene alone cannot keep the key secret.
 
-### 12.2. Khóa không xuất qua HSM/KMS
+### 12.2. Non-Exportable Keys via HSM/KMS
 
-Một service có thể gọi `Encrypt/Decrypt/Sign/Verify` qua KMS/HSM hoặc dùng một provider với key handle, để long-term private/key bytes không được export vào Java heap. Lợi ích:
-- Giảm số bản sao long-term key trong app memory.
-- Dễ phân quyền theo key/purpose và audit hoạt động sử dụng key.
-- Hỗ trợ rotation, disable/revoke và chính sách truy cập tập trung.
+A service can invoke `Encrypt/Decrypt/Sign/Verify` via KMS/HSM or a key-handle provider so long-term private/key bytes are never exported to the Java heap. Benefits:
+- Fewer copies of long-term keys in app memory.
+- Cleaner authorization by key/purpose and centralized auditing of key usage.
+- Centralized rotation, disable/revoke, and access policy enforcement.
 
-**Nhưng không có ma thuật:** dịch vụ vẫn có thể đọc plaintext đầu vào/đầu ra và có thể **lạm dụng quyền gọi KMS** nếu bị chiếm. Nếu KMS trả một data key plaintext để app mã hóa dữ liệu, **data key đó vẫn ở process memory**. Cần thiết kế key usage scope, IAM, rate limits, encryption context, audit, blast radius và phòng vệ ứng dụng.
+**Yet there is no magic:** the service still sees input/output plaintext and can **abuse its KMS call permissions** if compromised. If KMS returns a plaintext data key for local app encryption, **that data key still enters process memory**. Design key usage scopes, IAM, rate limits, encryption contexts, auditing, blast radius, and application hardening.
 
-### 12.3. Tránh tuyên bố “secret chưa từng ở RAM”
+### 12.3. Avoid Claiming “Secrets Were Never in RAM”
 
-Một API có thể giấu secret phía client nhưng thư viện TLS, KMS SDK hoặc OS vẫn xử lý dữ liệu trong buffer. Chỉ đưa ra bảo đảm đúng theo threat model và tài liệu provider. “Non-exportable” áp dụng cho **key object/handle cụ thể** không đồng nghĩa mọi plaintext hay derived key của quy trình đều non-exportable.
+An API may hide a secret from the client layer while TLS libraries, KMS SDKs, or the OS still buffer data. Make only claims backed by your threat model and provider documentation. “Non-exportable” applying to a **specific key object/handle** does not mean every plaintext or derived key in the workflow is non-exportable.
 
-## 13. Bảng đối chiếu các chiến thuật bảo vệ
+## 13. Comparison Table of Protection Tactics
 
-| Chiến thuật | Giảm được gì? | Không bảo đảm được gì? |
+| Tactic | What Does It Reduce? | What Does It Not Guarantee? |
 | --- | --- | --- |
-| Dùng `char[]`/`byte[]` thay `String` khi khả thi | Caller có thể ghi đè buffer đang sở hữu | Không xóa các bản sao trước/ngoài buffer |
-| `Arrays.fill` trong `finally` | Xóa mảng cụ thể kể cả khi throw | Không xóa `SecretKeySpec`/provider/dump cũ |
-| `PBEKeySpec.clearPassword()` | Xóa password copy của `PBEKeySpec` theo API | Không xóa password từng ở `String` hay native provider |
-| Giảm lifetime/scope của key | Giảm cửa sổ và số component có quyền thấy secret | Không ngăn attacker với process privilege đủ lớn |
-| Tránh hex/Base64/String của key | Giảm object, log và bản sao text | Không loại hết secret material nội bộ JCE |
-| HSM/KMS non-exportable key | Giảm việc đưa long-term key bytes vào app | Không ngăn service bị lạm dụng để ký/giải mã |
-| Disable/redact request logging | Giảm secret trong log/trace | Không tự kiểm soát heap dump/crash artifact |
-| Access controls + mã hóa dump | Giảm người có thể đọc snapshot | Không biến snapshot thành dữ liệu công khai an toàn |
-| Error codes ổn định | Giảm lộ secret/diagnostic qua public API | Không tự loại timing oracle/rate-limit issues |
-| Security tests/log scanning | Phát hiện nhiều đường rò rỉ quan sát được | Không chứng minh tuyệt đối không có bản sao trong RAM |
+| Using `char[]`/`byte[]` instead of `String` when feasible | Caller can overwrite the buffer it owns | Does not erase prior or external copies |
+| `Arrays.fill` in `finally` | Clears that specific array even on throws | Does not clear `SecretKeySpec`, providers, or earlier dumps |
+| `PBEKeySpec.clearPassword()` | Clears `PBEKeySpec`'s copy per API | Does not clear prior `String`s or native provider copies |
+| Shortening key lifetime/scope | Shrinks window and number of components seeing secrets | Does not stop an attacker with full process privileges |
+| Avoiding hex/Base64/`String` key forms | Reduces objects, log exposure, and text copies | Does not eliminate internal JCE secret material |
+| HSM/KMS non-exportable keys | Keeps long-term key bytes out of app memory | Does not stop a compromised service from calling sign/decrypt |
+| Disabling/redacting request logging | Reduces secrets in logs/traces | Does not control heap dumps or crash artifacts |
+| Access controls + encrypting dumps | Limits who can read snapshots | Does not make snapshots safe for public sharing |
+| Stable error codes | Reduces secret/diagnostic leaks in public APIs | Does not automatically fix timing oracles or rate-limit gaps |
+| Security tests / log scanning | Catches many observable leak paths | Cannot prove absolute absence of copies in RAM |
 
-### 13.1. Nên ưu tiên thế nào?
+### 13.1. How Should You Prioritize?
 
-Nếu có một ngày để cải thiện hệ thống:
-1. Ngừng log request headers/body chứa credential, ngừng log raw key/plaintext; rà soát APM/error reporting.
-2. Bảo đảm credential, key và decrypted data chỉ được giữ trong scope cần thiết; thêm `finally` để clear mutable buffers.
-3. Kiểm tra các API tạo bản sao (`String`, `PBEKeySpec`, `getEncoded()`, stream, serialization).
-4. Kiểm soát quyền tạo/download heap dump và chính sách retention.
-5. Tách public error khỏi internal diagnostic, giảm oracle trên endpoint nhạy cảm.
-6. Đối với khóa lâu dài có tác động lớn, đánh giá non-exportable key/KMS/HSM và điều chỉnh blast radius.
+If you have one day to harden a system:
+1. Stop logging request headers/bodies containing credentials and stop logging raw keys/plaintext; audit APM/error reporting.
+2. Ensure credentials, keys, and decrypted data are scoped tightly; add `finally` blocks to clear mutable buffers.
+3. Audit APIs that create copies (`String`, `PBEKeySpec`, `getEncoded()`, streams, serialization).
+4. Lock down privileges to trigger/download heap dumps and enforce retention.
+5. Separate public errors from internal diagnostics, mitigating oracles on sensitive endpoints.
+6. For high-impact long-term keys, evaluate non-exportable KMS/HSM keys and tighten blast radius.
 
-Không nên đầu tư trước vào mẹo sửa nội bộ `String` bằng reflection, pin memory không được hỗ trợ hoặc “trộn byte cho khó đọc” trong khi vẫn công khai key qua logs và stack traces.
+Do not waste time first on reflection hacks to mutate `String` internals, unsupported memory pinning, or “byte scrambling to look unreadable” while still leaking keys in logs and stack traces.
 
-## 14. Tình huống thực tế
+## 14. Practical Scenarios
 
-### Tình huống A — mật khẩu trên REST API
+### Scenario A — Password on a REST API
 
-Endpoint nhận password để login. Framework bind JSON field thành `String`. Dev chuyển qua `char[]` và zero sau verify, nhưng middleware đang log request body.
+An endpoint receives a login password. The framework binds the JSON field into a `String`. The developer converts it to `char[]` and zeroes it after verification, yet middleware logs the full request body.
 
-**Kết luận:** mảng caller được xóa không ngăn password bị ghi ra log, cũng không xóa `String` từ parser. Khắc phục ở ingress/logging, hạn chế DTO retention, dùng password-hashing chuẩn, áp rate limit, xem xét API xử lý secret theo framework.
+**Conclusion:** clearing the caller's array neither prevents the password from reaching logs nor erases the parser's `String`. Fix ingress/logging first, limit DTO retention, use standard password hashing, apply rate limits, and review framework secret handling.
 
-### Tình huống B — mã hóa tài liệu bằng AES-GCM
+### Scenario B — Encrypting Documents with AES-GCM
 
-Service nhận CEK từ KMS, tạo `SecretKeySpec`, xóa byte[] CEK rồi lưu `SecretKeySpec` vào singleton “để tránh gọi KMS nhiều lần”. Trong thời gian đó heap dump được upload lên ticket.
+A service fetches a CEK from KMS, constructs a `SecretKeySpec`, zeroes the `byte[]` CEK, and caches the `SecretKeySpec` in a singleton “to avoid calling KMS repeatedly.” Meanwhile, a heap dump gets uploaded to a support ticket.
 
-**Kết luận:** CEK có thể còn trong key object và provider; xóa mảng gốc không đủ. Cần cân nhắc phạm vi/lifetime key, kiểm soát dump và cách dùng KMS/DEK; không đăng dump nhạy cảm ra hệ không tin cậy.
+**Conclusion:** the CEK can still reside in the key object and provider; zeroing the source array is not enough. Revisit key scope/lifetime, dump controls, and KMS/DEK usage; never upload sensitive dumps to untrusted systems.
 
-### Tình huống C — lỗi giải mã
+### Scenario C — Decryption Failure
 
-Server giải mã AES-GCM thất bại và trả `"Tag failed for keyId X with input token Y"` cho client. Debugging trở nên dễ hơn nhưng error phản hồi lộ metadata hoặc secret và có thể phân biệt trạng thái giải mã.
+A server fails AES-GCM decryption and returns `"Tag failed for keyId X with input token Y"` to the client. Debugging gets easier, yet the error leaks metadata or secrets and distinguishes decryption states.
 
-**Kết luận:** public response dùng code tổng quát; internal telemetry ghi correlation ID và nhóm lỗi an toàn, không chèn secret/token. Cần xem xét oracle/timing và rate limit.
+**Conclusion:** public responses must return a generic code; internal telemetry records a correlation ID and safe error category without embedding secrets/tokens. Also check oracle/timing behavior and rate limits.
 
-### Tình huống D — debug bằng `toString()`
+### Scenario D — Debugging via `toString()`
 
-Một class `ApiRequest` sinh `toString()` chứa `authorizationHeader`; khi exception xảy ra, logger ghi toàn request.
+An `ApiRequest` class generates a `toString()` containing `authorizationHeader`; when an exception occurs, the logger prints the entire request.
 
-**Kết luận:** sửa DTO/toString, serializer, log filters và test bảo đảm bí mật không xuất hiện; tránh dựa riêng vào regex redaction cuối pipeline vì có thể bỏ sót encoding/format.
+**Conclusion:** fix the DTO/`toString()`, serializers, and log filters, and test that secrets never appear; avoid relying solely on late-pipeline regex redaction, which can miss encodings/formats.
 
-### Tình huống E — direct `ByteBuffer.clear()`
+### Scenario E — Direct `ByteBuffer.clear()`
 
-Một developer gọi `directBuffer.clear()` rồi tin rằng dữ liệu private key đã bị zero. Một native diagnostic vẫn đọc được buffer.
+A developer calls `directBuffer.clear()` and believes private key data was zeroed. A native diagnostic tool still reads the buffer.
 
-**Kết luận:** `clear()` không xóa nội dung, chỉ reset position/limit. Cần ghi đè vùng nhạy cảm theo API được hỗ trợ và hiểu những bản sao khác; direct memory không phải vault.
+**Conclusion:** `clear()` does not erase contents; it only resets position/limit. Explicitly overwrite sensitive regions via supported APIs while tracking other copies; direct memory is not a vault.
 
-### Tình huống F — mật khẩu có trong stack trace
+### Scenario F — Password Inside a Stack Trace
 
-`InvalidCredentialsException("password="+p)` được ném ở tầng auth; global handler in `exception.printStackTrace()` rồi trả 500.
+`InvalidCredentialsException("password="+p)` is thrown in the auth layer; a global handler calls `exception.printStackTrace()` and returns 500.
 
-**Kết luận:** secret đã được nhúng trong message ngay khi tạo exception. Chỉ dùng mã lỗi an toàn, tránh secret trong exception object, kiểm soát logging/cause/response và áp chính sách auth thống nhất.
+**Conclusion:** the secret was baked into the exception message at instantiation. Use safe error codes only, keep secrets out of exception objects, govern logging/causes/responses, and apply uniform auth error handling.
 
-### Tình huống G — khóa private trong HSM
+### Scenario G — Private Key Inside an HSM
 
-Java nhận handle `PrivateKey` non-exportable, ký qua provider. App không nhìn thấy raw private key, nhưng vẫn có quyền gửi dữ liệu tới ký.
+Java receives a non-exportable `PrivateKey` handle and signs via the provider. The app never sees the raw private key, yet holds permission to submit data for signing.
 
-**Kết luận:** giảm leak của private-key material, nhưng phải ràng buộc quyền ký, nội dung/format ký, rate, tenant, audit và phát hiện lạm dụng. Trộm quyền gọi ký cũng rất nguy hiểm dù không export được key.
+**Conclusion:** this reduces leakage of private-key material, yet you must still constrain signing permissions, allowed payloads/formats, rate limits, tenants, audits, and abuse detection. Hijacking signing capability is still dangerous even without exporting the key.
 
-## 15. Kiểm thử bảo mật và vận hành có thể chứng minh điều gì?
+## 15. What Can Security and Operational Testing Actually Prove?
 
-### 15.1. Unit tests
+### 15.1. Unit Tests
 
-- Đặt dữ liệu secret giả/fixture, gọi code đúng/sai; assert secret không xuất hiện trong exception message và public response.
-- Dùng log-capture test để khẳng định một số đường lỗi không log password/token/khóa giả.
-- Kiểm tra cleanup trong `finally` khi API throw.
-- Kiểm tra `PBEKeySpec.clearPassword()` sau derive và việc xóa derived buffer do caller sở hữu.
-- Kiểm tra DTO `toString()` không in các field nhạy cảm.
-- Kiểm tra các phương thức base64/hex serialization chỉ xử lý dữ liệu được phép công bố.
+- Supply dummy/fixture secrets, run valid and invalid paths, and assert the secret never appears in exception messages or public responses.
+- Use log-capture tests to verify failure paths never log dummy passwords/tokens/keys.
+- Verify cleanup in `finally` when APIs throw exceptions.
+- Verify `PBEKeySpec.clearPassword()` after derivation and clearing of caller-owned derived buffers.
+- Verify DTO `toString()` methods omit sensitive fields.
+- Verify Base64/hex serialization helpers only process data permitted for output.
 
-### 15.2. Integration/security tests
+### 15.2. Integration / Security Tests
 
-- Giả lập HTTP pipeline có proxy, access logging, exception handler, APM instrumentation; tìm marker giả trong log/trace/metrics.
-- Gây lỗi mật mã có kiểm soát như sai tag và sai credential; đảm bảo public error không tiết lộ nguyên nhân nhạy cảm, internal logs không chứa secret.
-- Kiểm thử quyền tạo/download heap dump theo vai trò vận hành.
-- Kiểm tra dump staging bằng marker **không phải secret thật** nếu được phê duyệt; chú ý một snapshot không có marker **không chứng minh** không thể leak ở thời điểm khác.
-- Kiểm tra cấu hình container/runtime, core dump/heap dump upload/retention trong CI và production.
-- Kiểm tra rotation/revocation nếu nghi ngờ secret xuất hiện trong artifact không an toàn.
+- Simulate an HTTP pipeline with proxies, access logging, exception handlers, and APM instrumentation; search logs/traces/metrics for dummy markers.
+- Trigger controlled cryptographic failures like bad tags and bad credentials; ensure public errors leak no sensitive cause and internal logs contain no secrets.
+- Test privileges to create/download heap dumps across operational roles.
+- Inspect staging dumps using **non-real dummy markers** if approved; note that a clean snapshot **does not prove** leaks cannot occur at another instant.
+- Audit container/runtime settings and core/heap dump upload/retention in CI and production.
+- Exercise rotation/revocation if a secret is suspected of entering an unsafe artifact.
 
-### 15.3. Security QA không thể kết luận tuyệt đối
+### 15.3. What Security QA Cannot Prove Absolutely
 
-Một unit test cho thấy `byte[]` bằng zero không chứng minh:
-- Không có key trong JIT register/stack/native heap.
-- Không có `String` được framework tạo trước đó.
-- Không có APM hoặc crash dump giữ snapshot cũ.
-- Không có secret đã bị log sang server trung tâm.
-- Không có copy nằm trong backing buffer của thư viện.
+A unit test showing `byte[]` is zeroed does not prove:
+- Zero key bytes in JIT registers, stacks, or native heap.
+- Zero `String` instances created earlier by a framework.
+- Zero old snapshots retained in APM or crash dumps.
+- Zero secrets already shipped to central log servers.
+- Zero copies inside library backing buffers.
 
-Do đó, báo cáo nên dùng ngôn ngữ chính xác: **“caller-owned buffer cleared”, “public error sanitized”, “no secret found in tested log paths”** thay vì “all secrets permanently erased from RAM”.
+Therefore, reports should use accurate phrasing: **“caller-owned buffer cleared,” “public error sanitized,” “no secret found in tested log paths”** rather than “all secrets permanently erased from RAM.”
 
-## 16. Checklist review code cho một khóa hoặc mật khẩu
+## 16. Code Review Checklist for a Key or Password
 
-### Input / representation
-- [ ] Secret đến từ nguồn/truyền tải đã xác thực, không hardcode trong source.
-- [ ] Dùng container mutable theo API phù hợp khi cần zeroization; tránh tạo `String` không cần thiết.
-- [ ] Không chuyển khóa sang hex/Base64/debug text trừ khi bắt buộc bởi wire format và được bảo vệ.
-- [ ] Có giới hạn độ dài input và quy tắc parse để tránh tạo object/bản sao không kiểm soát.
+### Input / Representation
+- [ ] Secret originates from an authenticated source/channel, never hard-coded in source.
+- [ ] Mutable containers matching APIs are used where zeroization is needed; avoid unnecessary `String` creation.
+- [ ] Keys are not converted to hex/Base64/debug text unless required by wire format and protected.
+- [ ] Input length limits and parsing rules prevent uncontrolled objects/copies.
 
-### Usage / lifetime
-- [ ] Lifetime của `byte[]`, `char[]`, `SecretKey`, `PBEKeySpec`, `Cipher/Mac` và provider session được ghi nhận.
-- [ ] Cleanup nằm trong `finally` hoặc lifecycle đúng API; có xử lý đường exception.
-- [ ] Nếu gọi `getEncoded()` hoặc tạo bản copy, caller quản lý/xóa output thích hợp.
-- [ ] Key không bị giữ lâu trong static field, cache hoặc DTO mà không có lý do và chính sách.
-- [ ] Có ràng buộc IAM/authorization cho việc dùng key và nguyên tắc least privilege.
-- [ ] Nếu KMS/HSM, hiểu rõ dữ liệu nào vẫn được đưa vào Java heap và những key nào không exportable.
+### Usage / Lifetime
+- [ ] Lifetimes of `byte[]`, `char[]`, `SecretKey`, `PBEKeySpec`, `Cipher/Mac`, and provider sessions are documented.
+- [ ] Cleanup sits in `finally` or API-appropriate lifecycle hooks, covering exception paths.
+- [ ] If `getEncoded()` or copies are created, the caller manages/clears outputs appropriately.
+- [ ] Keys are not retained long-term in static fields, caches, or DTOs without justification and policy.
+- [ ] IAM/authorization binds key usage under least privilege.
+- [ ] For KMS/HSM, it is clear what data still enters the Java heap and which keys are non-exportable.
 
-### Observability / errors
-- [ ] Không log `Authorization`, `Cookie`, password, private key, CEK/DEK hoặc plaintext nhạy cảm.
-- [ ] `toString()`, JSON serialization và exception message đã được rà soát.
-- [ ] Public error dùng mã lỗi phù hợp, không echo secret/provider diagnostics.
-- [ ] Trace/APM/metrics/coredump/heap dump không vô tình thu secret.
-- [ ] Có rate limiting và đánh giá padding/tag/timing oracle trên API crypto công khai.
+### Observability / Errors
+- [ ] Zero logging of `Authorization`, `Cookie`, passwords, private keys, CEKs/DEKs, or sensitive plaintext.
+- [ ] `toString()`, JSON serialization, and exception messages have been audited.
+- [ ] Public errors use appropriate codes without echoing secrets or provider diagnostics.
+- [ ] Traces/APM/metrics/core dumps/heap dumps do not inadvertently capture secrets.
+- [ ] Rate limiting and padding/tag/timing oracle assessments exist for public crypto APIs.
 
-### Operations / incidents
-- [ ] Quyền debugger/profiler/dump chỉ dành cho người/công cụ được cấp phép.
-- [ ] Dump/log có encryption, access audit, storage policy và retention/xóa phù hợp.
-- [ ] Có kịch bản rotate/revoke key/token nếu artifact nhạy cảm bị lộ.
-- [ ] Incident response bao gồm log backups, object stores, tickets, telemetry vendors, máy developer và tài khoản hỗ trợ.
-- [ ] Kiểm thử bằng fixture/canary giả, không tự ý đưa production secret vào test.
+### Operations / Incidents
+- [ ] Debugger/profiler/dump access is limited to authorized personnel/tools.
+- [ ] Dumps/logs have encryption, access auditing, storage policies, and proper retention/deletion.
+- [ ] Rotation/revocation playbooks exist if sensitive artifacts leak.
+- [ ] Incident response covers log backups, object stores, tickets, telemetry vendors, developer machines, and support accounts.
+- [ ] Testing uses dummy fixtures/canaries, never production secrets.
 
-## 17. Câu hỏi tự kiểm tra
+## 17. Self-Check Questions
 
-**Câu 1.** Gán `secretString = null` có bảo đảm mật khẩu đã bị xóa khỏi heap chưa?
+**Question 1.** Does setting `secretString = null` guarantee the password was erased from the heap?
 
-**Đáp án:** Không. Chỉ bỏ tham chiếu; `String` bất biến, GC quản lý thu hồi và có thể có nhiều bản sao khác.
+**Answer:** No. It only drops the reference; `String` is immutable, GC governs reclamation, and multiple copies may exist.
 
-**Câu 2.** Nếu gọi `Arrays.fill(keyBytes, (byte)0)` ngay sau tạo `SecretKeySpec(keyBytes,"AES")`, khóa trong `SecretKeySpec` có chắc bị xóa không?
+**Question 2.** If `Arrays.fill(keyBytes, (byte)0)` is called right after creating `SecretKeySpec(keyBytes,"AES")`, is the key inside `SecretKeySpec` guaranteed erased?
 
-**Đáp án:** Không. `SecretKeySpec` giữ key material riêng theo API; khóa vẫn có thể dùng. Phải quản lý lifetime/key provider và không kết luận xóa mọi bản sao.
+**Answer:** No. `SecretKeySpec` keeps its own copy of key material per API contract; the key remains usable. Manage object/provider lifetimes and never claim all copies are gone.
 
-**Câu 3.** Sau khi gọi `spec.clearPassword()` trên `PBEKeySpec`, còn có thể gọi `spec.getPassword()` không?
+**Question 3.** After calling `spec.clearPassword()` on `PBEKeySpec`, can `spec.getPassword()` still be called?
 
-**Đáp án:** Không theo hợp đồng API; việc truy cập bị từ chối. Điều đó không nói mọi bản sao password khác đều đã biến mất.
+**Answer:** No per API contract; access is rejected. That does not mean all other password copies elsewhere vanished.
 
-**Câu 4.** Vì sao dùng `ByteBuffer.clear()` không phải zeroization?
+**Question 4.** Why is `ByteBuffer.clear()` not zeroization?
 
-**Đáp án:** Nó chỉ thiết lập lại position/limit, không ghi zero vào vùng dữ liệu.
+**Answer:** It only resets position and limit without writing zeroes to the data region.
 
-**Câu 5.** Heap dump được chụp trước khi ứng dụng zero byte[]; sau đó ứng dụng zero thành công. Dump có tự an toàn không?
+**Question 5.** A heap dump is captured before the app zeroes a `byte[]`; afterward the app zeroes it successfully. Is the dump automatically safe?
 
-**Đáp án:** Không. Snapshot cũ có thể giữ dữ liệu như lúc chụp. Phải bảo vệ artifact bằng access, encryption, retention và incident process.
+**Answer:** No. An earlier snapshot retains data as of capture time. Protect dump artifacts via access controls, encryption, retention, and incident response.
 
-**Câu 6.** Có nên trả `"AES tag invalid, unwrap RSA successful"` cho caller không xác thực?
+**Question 6.** Should `"AES tag invalid, unwrap RSA successful"` be returned to an unauthenticated caller?
 
-**Đáp án:** Tránh làm vậy; thông điệp có thể tạo oracle và lộ trạng thái xử lý. Dùng public error được thiết kế theo threat model, internal diagnostic an toàn và rate limits.
+**Answer:** Avoid this; such messages can create an oracle and leak internal processing states. Use threat-model-aligned public errors, safe internal diagnostics, and rate limits.
 
-**Câu 7.** Dùng HSM non-exportable private key có nghĩa plaintext không bao giờ đi qua Java heap?
+**Question 7.** Does using an HSM non-exportable private key mean plaintext never touches the Java heap?
 
-**Đáp án:** Không. Nó giới hạn đường xuất private key cụ thể; plaintext/hashed input/output và các key khác vẫn có thể xuất hiện trong process tùy thiết kế.
+**Answer:** No. It restricts exporting that specific private key; plaintext/hashed inputs/outputs and other keys can still appear in process memory depending on design.
 
-**Câu 8.** Một unit test không tìm thấy key giả trong dump staging có chứng minh production không bao giờ leak secret?
+**Question 8.** Does one test finding zero dummy keys in a staging dump prove production will never leak secrets?
 
-**Đáp án:** Không. Dump chỉ là một snapshot; GC, thời điểm và data flow khác có thể làm thay đổi kết quả. Cần threat model, kiểm thử nhiều tầng và vận hành tốt.
+**Answer:** No. A dump is only one snapshot; GC, timing, and differing data flows can change outcomes. You need threat modeling, multi-layer testing, and sound operations.
 
-**Câu 9.** Tại sao không nên đưa access token vào log, dù log chỉ được đọc bởi nhân viên nội bộ?
+**Question 9.** Why should access tokens never be logged even if only internal staff read the logs?
 
-**Đáp án:** Token có thể là bearer credential. Log có nhiều bản sao, retention, tài khoản đọc và đường export; lộ log có thể tương đương lộ quyền truy cập token.
+**Answer:** Tokens can be bearer credentials. Logs have multiple replicas, retention windows, readers, and export paths; leaking logs can equal leaking token access.
 
-**Câu 10.** Lý do chính để dùng `finally` khi xử lý secret mutable?
+**Question 10.** What is the primary reason to use `finally` when handling mutable secrets?
 
-**Đáp án:** Đảm bảo logic cleanup của caller chạy cả khi thao tác mật mã/parse/IO throw, giảm thời gian buffer do caller sở hữu chứa secret.
+**Answer:** To guarantee caller cleanup logic runs even when crypto, parsing, or I/O throws, shrinking how long caller-owned buffers hold secrets.
 
-**Câu 11.** Secret đã được mã hóa ở database có thể xuất hiện dưới dạng plaintext trong memory dump không?
+**Question 11.** Can a secret encrypted in a database appear in plaintext inside a memory dump?
 
-**Đáp án:** Có, nếu app giải mã để xử lý rồi giữ plaintext trong heap hoặc native buffer. Encryption at rest không đồng nghĩa mã hóa trong memory của ứng dụng đang sử dụng dữ liệu.
+**Answer:** Yes, if the app decrypts it for processing and holds plaintext on the heap or in native buffers. Encryption at rest does not mean encrypted inside active application memory.
 
-**Câu 12.** Câu nào chính xác hơn: “đã xóa hết password khỏi RAM” hay “đã zero caller char[] và clear PBEKeySpec theo API”?
+**Question 12.** Which statement is more accurate: “erased the entire password from RAM” or “zeroed caller `char[]` and cleared `PBEKeySpec` per API”?
 
-**Đáp án:** Câu thứ hai kiểm chứng được và giới hạn rõ đối tượng; câu thứ nhất vượt quá bảo đảm của Java managed memory.
+**Answer:** The second is verifiable and accurately scoped; the first overstates what Java managed memory guarantees.
 
-## 18. Sơ đồ ghi nhớ
+## 18. Summary Diagram
 
 ```text
                  SECRET / PASSWORD / KEY
@@ -871,13 +871,13 @@ Do đó, báo cáo nên dùng ngôn ngữ chính xác: **“caller-owned buffer 
              least privilege and incident response
 ```
 
-**Kết luận:** Trong Java, `byte[]` và `char[]` cho phép giảm thời gian tồn tại của dữ liệu **ở đúng mảng mà ứng dụng sở hữu**; `String` không có API xóa nội dung trực tiếp; `SecretKeySpec`, `PBEKeySpec`, provider và các framework có thể tạo bản sao. Heap dump, profiler, log, trace và exception có thể đưa secret ra khỏi vòng đời dự kiến. Một hệ thống an toàn không tuyên bố “RAM đã sạch tuyệt đối”, mà thiết kế **giảm sao chép, giới hạn quyền và lifetime, có cleanup best-effort, bảo vệ diagnostic artifacts, trả lỗi không lộ secret và lập kế hoạch thay khóa khi sự cố xảy ra**.
+**Conclusion:** In Java, `byte[]` and `char[]` let you shrink data lifetime **in the exact arrays your application owns**; `String` has no direct content-wiping API; `SecretKeySpec`, `PBEKeySpec`, providers, and frameworks can allocate copies. Heap dumps, profilers, logs, traces, and exceptions can carry secrets outside their intended lifecycle. A secure system never claims “RAM is completely clean,” but designs to **minimize copying, restrict permissions and lifetimes, perform best-effort cleanup, protect diagnostic artifacts, return secret-free errors, and plan key replacement when incidents occur**.
 
-### Tài liệu tham khảo
+### References
 
 - Java SE 17, `String`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
 - Java SE 17, `Arrays.fill`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html
-- Java SE 17, `PBEKeySpec` và `clearPassword()`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html
+- Java SE 17, `PBEKeySpec` and `clearPassword()`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/PBEKeySpec.html
 - Java SE 17, `SecretKeySpec`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/spec/SecretKeySpec.html
 - Java SE 17, `SecretKeyFactory`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/crypto/SecretKeyFactory.html
 - Java SE 17, `ByteBuffer`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html

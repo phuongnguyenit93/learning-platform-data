@@ -1,18 +1,18 @@
-# Vòng đời plugin: dừng nhận yêu cầu, chờ công việc đang chạy và hủy hợp tác
+# Plugin Lifecycle: Quiescing New Requests, Draining In-Flight Work, and Cooperative Cancellation
 
-Khi một plugin Java cần **disable, hot-reload, nâng cấp phiên bản hoặc gỡ bỏ**, không thể chỉ đổi một cờ `enabled=false` rồi đóng `ClassLoader`. Plugin có thể đang xử lý request, giữ callback trong host, chạy background jobs, sử dụng thread pool hoặc còn tham gia các chuỗi `CompletionStage` chưa kết thúc. Nếu đóng resource quá sớm, các yêu cầu đã được chấp nhận có thể lỗi giữa chừng, dữ liệu bị ghi một phần, class loader cũ bị giữ mãi hoặc tác vụ cũ tiếp tục can thiệp phiên bản mới.
+When a Java plugin needs to be **disabled, hot-reloaded, upgraded, or removed**, you cannot simply flip an `enabled=false` flag and close the `ClassLoader`. The plugin may still be processing requests, holding callbacks registered with the host, running background jobs, using thread pools, or participating in unfinished `CompletionStage` chains. Closing resources too early can cause already-accepted requests to fail midway, leave data half-written, keep the old class loader alive forever, or let old tasks continue interfering with the new version.
 
-Một quy trình shutdown đúng phải tách ba việc:
+A proper shutdown workflow must separate three actions:
 
-1. **Dừng nhận việc mới (quiesce/admission stop):** quyết định ngăn yêu cầu mới tiếp cận plugin theo một điểm đồng bộ rõ ràng.
-2. **Chờ công việc đang chạy (graceful drain):** cho các tác vụ đã nhận cơ hội hoàn tất và giải phóng tài nguyên, nhưng có giới hạn thời gian.
-3. **Hủy hợp tác (cooperative cancellation):** nếu hết thời gian chờ, phát tín hiệu hủy để các task tự dừng an toàn, chờ chúng **thực sự** thoát rồi mới hoàn tất cleanup. `Thread.interrupt()`, `Future.cancel(true)` và `ExecutorService.shutdownNow()` chỉ là **yêu cầu hủy**, không phải lệnh ép chấm dứt ngay lập tức.
+1. **Stopping new work (quiesce / admission stop):** deciding to block new requests from reaching the plugin at a clear synchronization point.
+2. **Waiting for in-flight work (graceful drain):** giving already-accepted tasks a chance to complete and release resources, within a bounded time limit.
+3. **Cooperative cancellation:** if the wait expires, signaling cancellation so tasks can stop safely on their own, waiting until they **actually** exit, and only then completing cleanup. `Thread.interrupt()`, `Future.cancel(true)`, and `ExecutorService.shutdownNow()` are only **cancellation requests**, not commands that forcibly terminate execution instantaneously.
 
-Chủ đề thuộc **vòng đời plugin**: trọng tâm không phải dừng toàn bộ JVM, mà là ngừng một thế hệ plugin mà không làm gián đoạn vô lý host hay các plugin khác. Những invariant, ví dụ Java 17, giới hạn và checklist sau có thể áp dụng cho plugin tải bằng `ServiceLoader`, custom `ClassLoader`, `ModuleLayer` hoặc kiến trúc extension point riêng.
+This topic belongs to the **plugin lifecycle**: the goal is not stopping the entire JVM, but retiring one plugin generation without unreasonably disrupting the host or other plugins. The following invariants, Java 17 examples, boundaries, and checklists apply to plugins loaded via `ServiceLoader`, custom `ClassLoader`s, `ModuleLayer`s, or custom extension point architectures.
 
-## 1. Định nghĩa chính xác “ngừng plugin”
+## 1. Precisely Defining “Stopping a Plugin”
 
-Hãy phân biệt **không nhận thêm công việc** với **đã kết thúc toàn bộ công việc**. Đây là hai mốc khác nhau.
+Distinguish **not accepting more work** from **having finished all work**. These are two different milestones.
 
 ~~~text
             host routes requests / events
@@ -22,7 +22,7 @@ Hãy phân biệt **không nhận thêm công việc** với **đã kết thúc 
                   /              \
            ACCEPT                REJECT
              |                      |
-             v                      +--> lỗi có kiểm soát / chuyển sang plugin mới
+             v                      +--> controlled error / route to new plugin
       register in-flight
              |
              v
@@ -43,43 +43,43 @@ Hãy phân biệt **không nhận thêm công việc** với **đã kết thúc 
            STOPPED
 ~~~
 
-Các trạng thái thường có ý nghĩa:
+Meaningful logical states typically include:
 
-| Trạng thái logic | Nhận yêu cầu mới? | Công việc đã nhận | Điều được phép làm |
+| Logical State | Accept New Requests? | Already-Accepted Work | Permitted Actions |
 | --- | --- | --- | --- |
-| `ACTIVE` / `RUNNING` | Có | Đang chạy | Tiếp nhận và thực thi bình thường |
-| `QUIESCING` | **Không** | Tiếp tục chạy | Chờ hoàn tất, giữ resource cần thiết |
-| `CANCELLING` | Không | Được yêu cầu dừng | Đặt cancellation token, cancel task/Future, interrupt nếu an toàn |
-| `STOPPING` / `CLEANUP` | Không | Phải đã thoát hoặc đã được cách ly bằng chiến lược rõ ràng | Gỡ callback, đóng executor/resource, dọn registry |
-| `STOPPED` | Không | **Không còn sử dụng tài nguyên plugin** | Có thể bỏ tham chiếu đến thế hệ loader/layer cũ |
-| `FAILED_TO_STOP` / `QUARANTINED` | Không | Có task không chịu dừng hoặc cleanup thất bại | Giữ cách ly, báo lỗi, tiếp tục xử lý theo chính sách |
+| `ACTIVE` / `RUNNING` | Yes | Running | Admit and execute normally |
+| `QUIESCING` | **No** | Continues running | Wait for completion, keep required resources alive |
+| `CANCELLING` | No | Requested to stop | Set cancellation token, cancel tasks/Futures, interrupt if safe |
+| `STOPPING` / `CLEANUP` | No | Must have exited or been isolated via an explicit strategy | Detach callbacks, close executors/resources, clean up registry |
+| `STOPPED` | No | **No longer using plugin resources** | Safe to drop references to the old loader/layer generation |
+| `FAILED_TO_STOP` / `QUARANTINED` | No | Some task refuses to stop or cleanup failed | Keep isolated, report error, proceed per policy |
 
-Đây là **mô hình khái niệm**; không bắt buộc mọi implementation phải có đủ sáu enum. Ví dụ runnable ở mục 5 dùng ba trạng thái `ACTIVE`, `QUIESCING`, `STOPPED` và cờ hủy, đủ để chứng minh logic lõi. Trong production, có thể cần trạng thái lỗi và escalation riêng.
+This is a **conceptual model**; not every implementation needs all six enum values. The runnable example in Section 5 uses three states—`ACTIVE`, `QUIESCING`, `STOPPED`—plus a cancellation flag, which suffices to demonstrate the core logic. In production, dedicated failure and escalation states may be needed.
 
-### Bốn bất biến quan trọng
+### Four Critical Invariants
 
-1. **Không có admission mới sau điểm đóng cổng.** Nếu hai thao tác `accept` và `quiesce` chạy đồng thời, phải có một điểm *linearization*: request chỉ được tính là “đã nhận” nếu nó thắng trước thời điểm đóng cổng.
-2. **Mỗi đơn vị công việc được nhận có một lần đăng ký và một lần hoàn tất.** Bộ đếm `inFlight` không được âm hoặc rò rỉ khi callback ném `Exception` hay `Error`.
-3. **Không tuyên bố `STOPPED` khi plugin vẫn được sử dụng.** Việc `Future` báo cancelled, `ExecutorService.shutdownNow()` trả về hoặc thời gian chờ hết không chứng minh worker đã kết thúc.
-4. **Cleanup có owner và thứ tự rõ ràng.** Chỉ đóng những tài nguyên thuộc thế hệ plugin đó; không đóng thread pool, HTTP client hoặc class loader dùng chung của host/plugin khác.
+1. **No new admissions after the gate closes.** If `accept` and `quiesce` race concurrently, there must be a *linearization* point: a request counts as “admitted” only if it wins before the gate-closing point.
+2. **Every admitted unit of work is registered once and completed once.** The `inFlight` counter must never go negative or leak when a callback throws an `Exception` or `Error`.
+3. **Never declare `STOPPED` while the plugin is still in use.** A `Future` reporting cancelled, `ExecutorService.shutdownNow()` returning, or a timeout expiring does not prove the worker has exited.
+4. **Cleanup has explicit ownership and ordering.** Close only resources owned by that plugin generation; never close shared host/cross-plugin thread pools, HTTP clients, or class loaders.
 
-Nếu các điều kiện này không được giữ, một ứng dụng vẫn có thể in “plugin unloaded” trong khi worker cũ tiếp tục thao tác lên database hoặc callback cũ gọi vào lớp đã thay thế.
+If these invariants are violated, an application can still log “plugin unloaded” while an old worker continues mutating the database or an old callback calls into replaced classes.
 
-## 2. Đóng cổng admission trước khi chờ
+## 2. Closing the Admission Gate Before Waiting
 
-Một lỗi cạnh tranh phổ biến:
+A common race bug:
 
 ~~~java
-// Minh họa sai: check và tăng bộ đếm không cùng thao tác đồng bộ.
+// Wrong illustration: checking and incrementing counter are not under the same synchronization.
 if (running) {
     inFlight++;
     executePlugin();
 }
 ~~~
 
-Nếu thread shutdown đặt `running=false` **giữa** bước kiểm tra và bước tăng `inFlight`, thread drain có thể thấy `inFlight==0` rồi đóng resource, sau đó một request cũ mới bắt đầu gọi plugin.
+If the shutdown thread sets `running=false` **between** the check and `inFlight++`, the drain thread may observe `inFlight==0` and close resources, right before an old request enters the plugin.
 
-Giải pháp là một **cổng tiếp nhận đồng bộ**. Trong ví dụ Java 17, `call(...)` và `quiesce()` đều cập nhật trạng thái dưới **cùng `ReentrantLock`**:
+The solution is a **synchronized admission gate**. In the Java 17 example, both `call(...)` and `quiesce()` update state under **the same `ReentrantLock`**:
 
 ~~~text
 Request thread                        Shutdown thread
@@ -91,55 +91,55 @@ release lock
 execute operation
 finally inFlight-- / signal
 
-=> hai bên không thể cùng "thắng" sau cùng một thời điểm đóng cổng.
+=> both sides cannot "win" across the same gate-closing point.
 ~~~
 
-Cả hai thứ tự đều an toàn:
+Either ordering is safe:
 
-- Nếu request lấy lock trước và được accept, `inFlight` tăng trước khi shutdown nhìn thấy trạng thái; shutdown phải **đợi** request đó.
-- Nếu shutdown lấy lock trước và đổi thành `QUIESCING`, request đến sau sẽ nhận `RejectedExecutionException`, không chạm đến plugin.
+- If the request acquires the lock first and is admitted, `inFlight` increments before shutdown observes the state; shutdown must **wait** for that request.
+- If shutdown acquires the lock first and transitions to `QUIESCING`, any later request receives `RejectedExecutionException` and never touches the plugin.
 
-**Không giữ khóa trạng thái trong toàn bộ lúc gọi code plugin**: callback có thể chờ I/O, dùng lock riêng hoặc gọi ngược host; giữ lock suốt thời gian thực thi dễ gây tắc nghẽn và deadlock. Lock chỉ bao bọc **admission/counting/transition**, còn plugin work chạy bên ngoài lock.
+**Do not hold the state lock across the entire plugin call**: callbacks may wait on I/O, acquire their own locks, or call back into the host; holding the lock throughout execution easily causes contention and deadlocks. The lock wraps only **admission/counting/transitions**, while plugin work runs outside the lock.
 
-### 2.1. Cổng phải nằm đúng nơi có thể tạo công việc mới
+### 2.1. The Gate Must Cover Every Entry Point That Creates Work
 
-Đóng giao diện HTTP mà quên event consumer, scheduler, listener hoặc task queue thì plugin vẫn nhận việc. Một plugin thực tế có thể có nhiều ingress:
+Closing an HTTP route while forgetting event consumers, schedulers, listeners, or task queues allows the plugin to keep receiving work. A real plugin may have multiple ingress paths:
 
-- Router/gateway: REST/gRPC request, WebSocket handler.
-- Subscription: event bus, message consumer, database change streams.
-- Scheduler: cron job, timer, retry queue.
-- Callback/capability: extension registry, hooks, listener, completion callback.
-- Async continuation: một request đã nhận có thể phát sinh tác vụ phụ sau khi handler chính trả về.
+- Router/gateway: REST/gRPC requests, WebSocket handlers.
+- Subscriptions: event bus, message consumers, database change streams.
+- Schedulers: cron jobs, timers, retry queues.
+- Callbacks/capabilities: extension registries, hooks, listeners, completion callbacks.
+- Async continuations: an admitted request may spawn secondary tasks after the main handler returns.
 
-**Admission gate cần bao phủ tất cả ingress vào thế hệ plugin** hoặc mỗi nguồn phải ngừng nhận và được theo dõi cùng một shutdown coordinator. Trong hot reload, chuyển route sang thế hệ plugin mới và đóng cổng thế hệ cũ nên là một thao tác điều phối có tính nhất quán, không để request “rơi” giữa hai registry.
+**The admission gate must cover every ingress into the plugin generation**, or each source must stop admitting and be tracked by the same shutdown coordinator. During hot reload, switching routing to the new plugin generation and closing the old generation's gate should be coordinated consistently so requests do not “fall between” two registries.
 
-### 2.2. Phân biệt accepted, queued và running
+### 2.2. Distinguishing Accepted, Queued, and Running
 
-`inFlight` phải phản ánh đúng hợp đồng:
+`inFlight` must accurately reflect the contract:
 
-| Loại công việc | Có nên tính? | Lưu ý |
+| Work Type | Should It Be Counted? | Notes |
 | --- | --- | --- |
-| Request đang chạy code plugin | Có | Chỉ giảm khi code plugin thực sự thoát |
-| Request đã được host **accept** và nằm trong queue | Nếu hợp đồng cam kết phục vụ, **có** hoặc theo dõi ở bộ đếm riêng | Khi bị loại khỏi queue/cancel trước khi chạy vẫn phải giải phóng đúng một lần |
-| Callback đã schedule nhưng chưa chạy | Nếu callback sẽ truy cập plugin cũ | Đóng ingress và quản lý queue/lifecycle của callback |
-| Async task được sinh ra rồi handler trả về | Có, theo **vòng đời async thực tế** | Đếm mỗi task hoặc giữ lease đến khi toàn bộ chuỗi công việc kết thúc |
-| Thread đang ngủ nhưng chỉ thuộc host và không dùng plugin | Không nhất thiết | Không được ngăn plugin unload vì resource không thuộc plugin |
+| Request currently executing plugin code | Yes | Decrement only when plugin code actually exits |
+| Request **accepted** by the host and sitting in a queue | If the contract commits to serving it, **yes** or track in a separate counter | If evicted/canceled before running, still release exactly once |
+| Scheduled callback that has not run yet | Yes if the callback will access the old plugin | Close ingress and manage the callback's queue/lifecycle |
+| Async task spawned before the handler returns | Yes, per **actual async lifetime** | Count each task or hold a lease until the entire work chain ends |
+| Sleeping thread belonging only to the host and not using the plugin | Not necessarily | Must not block plugin unloading due to non-plugin resources |
 
-Một lỗi khác là tăng `inFlight` lúc `submit` vào executor, nhưng chỉ giảm trong `Runnable.finally`. Nếu `shutdownNow()` trả về task **chưa hề chạy**, `finally` không bao giờ được thực thi và bộ đếm bị treo. Có thể quản lý accepted/queued/running tách biệt, hoặc hủy/giải phóng lease của task chưa bắt đầu một cách chính xác.
+Another bug is incrementing `inFlight` upon `submit` to an executor, yet decrementing only inside `Runnable.finally`. If `shutdownNow()` returns tasks that **never ran**, `finally` never executes and the counter hangs. Manage accepted/queued/running counts separately, or cancel and release leases cleanly for tasks that never started.
 
-## 3. Graceful drain: chờ công việc hoàn tất có giới hạn
+## 3. Graceful Drain: Bounded Waiting for In-Flight Work
 
-Sau khi đóng cổng:
+After closing the gate:
 
-1. Để các request đã nhận có thời gian hoàn tất nghiệp vụ và trả kết quả.
-2. Quan sát số lượng `inFlight`; chỉ khi về 0 mới chắc những vùng công việc đã được đo lường đã thoát.
-3. Đặt **deadline hữu hạn**: không chờ vô tận vì một task mất kết nối, deadlock hoặc bị block ở I/O.
-4. Khi hết hạn, không coi timeout là “đã dừng”; chuyển sang nhánh **hủy hợp tác** hoặc chính sách escalation.
+1. Give already-admitted requests time to complete business logic and return results.
+2. Observe `inFlight`; only when it reaches 0 can you be sure the tracked execution regions have exited.
+3. Set a **finite deadline**: do not wait forever because a task lost connectivity, deadlocked, or blocked on I/O.
+4. When the deadline expires, do not treat a timeout as “stopped”; move to the **cooperative cancellation** branch or escalation policy.
 
-Với `ReentrantLock`, `Condition.awaitNanos(...)` là cách tự nhiên để đợi: thao tác `await` **tạm nhả lock trong khi đợi** và lấy lại lock khi thức dậy. Luôn kiểm tra điều kiện bằng vòng `while` vì có thể nhận tín hiệu ngoài ý muốn (*spurious wakeup*) hoặc bị đánh thức nhưng còn công việc khác.
+With `ReentrantLock`, `Condition.awaitNanos(...)` is the natural way to wait: `await` **temporarily releases the lock while waiting** and reacquires it on wakeup. Always check the condition in a `while` loop because of *spurious wakeups* or waking while other work remains.
 
 ~~~java
-// Snippet logic minh họa, đặt trong class đang giữ lock và Condition.
+// Illustrative logic snippet, placed inside a class holding lock and Condition.
 lock.lockInterruptibly();
 try {
     while (inFlight > 0 && remainingNanos > 0) {
@@ -151,20 +151,20 @@ try {
 }
 ~~~
 
-Một implementation dùng `synchronized`/`wait`/`notifyAll`, `Phaser` hoặc counter với `CompletableFuture` cũng có thể đúng, miễn là bảo đảm **admission và completion được đồng bộ với transition đóng cổng**, tránh lost notification và double release.
+An implementation using `synchronized`/`wait`/`notifyAll`, `Phaser`, or a counter with `CompletableFuture` can also be correct, provided **admission and completion are synchronized with the gate-closing transition**, avoiding lost notifications and double releases.
 
-### 3.1. Vì sao không dùng `Thread.sleep` để “chờ đủ lâu”?
+### 3.1. Why Not Use `Thread.sleep` to “Wait Long Enough”?
 
-Chờ một số mili-giây rồi đoán mọi công việc đã kết thúc sẽ bị race. `sleep` không gắn với tiến độ thực và không bảo đảm tính đúng đắn. Hãy chờ **điều kiện thực tế** (`inFlight==0` hoặc executor `isTerminated()`) với deadline.
+Sleeping a fixed number of milliseconds and guessing all work is finished invites races. `sleep` is unrelated to actual progress and gives no correctness guarantee. Wait on the **actual condition** (`inFlight==0` or executor `isTerminated()`) with a deadline.
 
-Tránh dùng `Thread.join(0)` nếu mong timeout 0 nghĩa là “không chờ”: trong Java, `join(0)` là **chờ vô hạn**. Các API khác cũng có khác biệt về giá trị 0; đọc đúng hợp đồng từng API.
+Avoid `Thread.join(0)` if you expect a 0 timeout to mean “don't wait”: in Java, `join(0)` means **wait forever**. Other APIs also treat 0 differently; read each API's exact contract.
 
-### 3.2. Deadline và thời gian đơn điệu
+### 3.2. Deadlines and Monotonic Time
 
-Với thời gian chờ, ưu tiên phép tính còn lại bằng `System.nanoTime()` hoặc `Condition.awaitNanos` để tránh sai lệch đồng hồ tường. Một budget tổng có thể chia:
+For wait budgets, prefer computing remaining time with `System.nanoTime()` or `Condition.awaitNanos` to avoid wall-clock drift. A total budget can be partitioned:
 
 ~~~text
-T0: đóng ingress
+T0: close ingress
 |---- graceful drain budget ----|
                                  |---- cooperative cancel grace ----|
                                                                        |---- cleanup budget ----|
@@ -172,15 +172,15 @@ T0: đóng ingress
                                                                       final outcome
 ~~~
 
-Trong thực tế, shutdown phải bị ràng buộc bởi deadline của host/process (Kubernetes termination grace period, application server, quy trình deploy...). Không dùng mỗi task một deadline đầy đủ rồi cộng vô hạn khiến tổng thời gian stop vượt ngân sách vận hành.
+In practice, shutdown must be bounded by the host/process deadline (Kubernetes termination grace period, application server, deploy pipeline). Do not give every task a full deadline sequentially so that total stop time exceeds the operational budget.
 
-## 4. Hủy hợp tác: yêu cầu dừng, không ép dừng
+## 4. Cooperative Cancellation: Requesting Stop, Not Forcing Stop
 
-Khi grace period hết, host có thể gọi `cancel` để mọi công việc đang chạy biết cần sớm kết thúc. **Cooperative** có nghĩa code tác vụ **chủ động kiểm tra tín hiệu và tự đi ra theo đường an toàn**, không bị host tùy tiện giết giữa một thao tác đang giữ lock hoặc giữa transaction.
+When the grace period expires, the host can trigger `cancel` so all running work knows it must wrap up quickly. **Cooperative** means task code **actively checks the signal and exits along a safe path**, rather than being arbitrarily killed by the host mid-lock or mid-transaction.
 
-### 4.1. Cancellation token cho vòng lặp CPU hoặc workflow nhiều bước
+### 4.1. Cancellation Token for CPU Loops or Multi-Step Workflows
 
-Một mô hình tối thiểu:
+A minimal model:
 
 ~~~java
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -193,71 +193,71 @@ final class CancellationToken {
 }
 ~~~
 
-Đây là class hoàn chỉnh nhưng **không có `main`**. Mỗi tác vụ nhận token thuộc vòng đời request hoặc plugin rồi kiểm tra tại các điểm an toàn:
+This is a complete class, though **without a `main`**. Each task receives a token scoped to the request or plugin lifecycle and checks it at safe points:
 
 ~~~java
 for (Item item : items) {
     if (token.isCancelled()) {
-        // Dừng tại boundary an toàn; cleanup/rollback qua finally hoặc policy riêng.
+        // Stop at a safe boundary; cleanup/rollback via finally or explicit policy.
         break;
     }
     process(item);
 }
 ~~~
 
-Vòng trên là **minh họa giả định** `items`/`process` và `token` đã được định nghĩa. Token không tự phá được tác vụ đang kẹt ở blocking I/O; nếu không có điểm kiểm tra, nó chỉ là một cờ không được quan sát.
+The loop above is an **illustration assuming** `items`/`process` and `token` are already defined. A token cannot by itself break a task stuck in blocking I/O; without checkpoints, it is merely an unobserved flag.
 
-### 4.2. Thread interruption cho tác vụ đang chờ
+### 4.2. Thread Interruption for Waiting Tasks
 
-`Thread.interrupt()` đặt interrupt status và đánh thức nhiều thao tác blocking chuẩn như `CountDownLatch.await()`, `Thread.sleep()` và `Object.wait()` bằng `InterruptedException`. Nó không phải `Thread.stop()` và không bảo đảm mọi đoạn code hoặc native I/O đều dừng.
+`Thread.interrupt()` sets the interrupt status and wakes many standard blocking operations such as `CountDownLatch.await()`, `Thread.sleep()`, and `Object.wait()` with `InterruptedException`. It is not `Thread.stop()` and does not guarantee every piece of code or native I/O stops.
 
-Ví dụ xử lý đúng ở boundary có trách nhiệm:
+Example of proper handling at a responsible boundary:
 
 ~~~java
 try {
     blockingOperation();
 } catch (InterruptedException ex) {
-    Thread.currentThread().interrupt(); // Khôi phục trạng thái nếu không ném tiếp.
-    return; // Thoát, sau đó finally sẽ dọn tài nguyên.
+    Thread.currentThread().interrupt(); // Restore status if not propagating.
+    return; // Exit; finally will clean up resources.
 }
 ~~~
 
-Đây là snippet, chưa có method `blockingOperation`. Nếu method cho phép `throws InterruptedException`, **ưu tiên truyền exception lên trên** thay vì catch rồi tiếp tục làm việc như bình thường. Khi `InterruptedException` được ném bởi nhiều blocking API, interrupt status đã được xóa; khôi phục bằng `Thread.currentThread().interrupt()` trước khi rời tầng không ném tiếp là quy ước quan trọng.
+This is a snippet; `blockingOperation` is not defined here. If the method signature permits `throws InterruptedException`, **prefer propagating the exception upward** rather than catching it and continuing as normal. When `InterruptedException` is thrown by standard blocking APIs, the interrupt status is cleared; restoring it with `Thread.currentThread().interrupt()` before leaving a layer that does not rethrow is an important convention.
 
-**Sai:** bắt `InterruptedException` rồi bỏ qua và tiếp tục vòng lặp, hoặc gọi `Thread.interrupted()` chỉ để in log mà vô tình xóa trạng thái. `Thread.currentThread().isInterrupted()` đọc cờ mà **không xóa**.
+**Wrong:** catching `InterruptedException`, ignoring it, and continuing the loop, or calling `Thread.interrupted()` just to log it while accidentally clearing the status. `Thread.currentThread().isInterrupted()` reads the flag **without clearing** it.
 
-### 4.3. `Future.cancel(true)` và `shutdownNow()` có giới hạn gì?
+### 4.3. What Are the Limits of `Future.cancel(true)` and `shutdownNow()`?
 
-- `Future.cancel(true)` **thử** hủy task, có thể yêu cầu interrupt nếu task đang chạy; việc Future có `isCancelled()==true` hoặc `isDone()==true` không chứng minh code task đã ra khỏi `finally`.
-- `ExecutorService.shutdown()` ngừng nhận task mới, cho task đã submit cơ hội hoàn tất; nó **không tự chờ**. Cần gọi `awaitTermination(timeout, unit)`.
-- `ExecutorService.shutdownNow()` thử dừng task đang chạy, ngăn task còn trong queue bắt đầu và trả về các `Runnable` chưa khởi chạy; cách làm thường dựa vào interrupt, **best effort**, không có bảo đảm thread kết thúc.
-- Với `CompletableFuture.cancel(boolean)`, API nêu tham số `mayInterruptIfRunning` **không ảnh hưởng đến implementation** của `CompletableFuture`, nên không dựa vào lời gọi đó để khẳng định worker thread bị interrupt.
-- `Thread.stop()`/`Thread.suspend()` là các cơ chế nguy hiểm, deprecated, có thể làm hỏng invariant/lock; **không** dùng để ép ngừng plugin.
+- `Future.cancel(true)` **attempts** to cancel the task, potentially requesting an interrupt if running; a Future having `isCancelled()==true` or `isDone()==true` does not prove task code has exited `finally`.
+- `ExecutorService.shutdown()` stops accepting new tasks and lets submitted tasks finish; it **does not wait**. You must call `awaitTermination(timeout, unit)`.
+- `ExecutorService.shutdownNow()` attempts to stop running tasks, prevents queued tasks from starting, and returns unstarted `Runnable`s; it generally relies on interruption, is **best effort**, and gives no guarantee that threads have exited.
+- For `CompletableFuture.cancel(boolean)`, the API states the `mayInterruptIfRunning` parameter **has no effect in the `CompletableFuture` implementation**, so do not rely on that call to assume a worker thread was interrupted.
+- `Thread.stop()`/`Thread.suspend()` are dangerous, deprecated mechanisms that can corrupt invariants/locks; **never** use them to force-stop a plugin.
 
-Nếu task thực hiện database transaction, host phải quy định ranh giới commit/rollback và cơ chế idempotency. Hủy request không có nghĩa thao tác bên ngoài JVM (HTTP API, transaction, message publish) chắc chắn đã được đảo ngược.
+If a task executes a database transaction, the host must define commit/rollback boundaries and idempotency mechanisms. Canceling a request does not mean operations outside the JVM (HTTP APIs, transactions, published messages) were necessarily rolled back.
 
-### 4.4. Tránh interrupt sai thread trong shared pool
+### 4.4. Avoiding Interrupting the Wrong Thread in Shared Pools
 
-Đối với **thread được tạo riêng cho request/plugin**, host có thể giữ tham chiếu và gửi interrupt trong ví dụ. Nhưng **không nên** lưu `Thread` của các task chạy trên pool dùng chung rồi interrupt không có điều kiện: task có thể đã kết thúc và thread được tái sử dụng cho công việc plugin khác/host khi tín hiệu đến muộn.
+For **threads created exclusively for a request/plugin**, the host can hold a reference and send an interrupt as in the example. However, **never** store `Thread` references of tasks running on a shared pool and interrupt them unconditionally: the task may have finished and the thread may have been reused for another plugin or host job by the time the signal arrives.
 
-Trong production, nên:
+In production, you should:
 
-- Quản lý `Future`/cancellation handle riêng cho **từng task** và token riêng cho generation.
-- Dùng executor thuộc sở hữu plugin nếu muốn gọi `shutdown()/shutdownNow()` mà không ảnh hưởng host.
-- Gắn version/generation ID khi đăng ký tác vụ để không gửi cancel nhầm sang thế hệ mới.
-- Bảo đảm mã task kiểm tra token/interrupt và hoàn tất cleanup rồi mới được tính là quiesced.
-- Tách cancellation **logical** của Future khỏi completion **physical** của công việc plugin.
+- Track a separate `Future`/cancellation handle per **individual task** and a token scoped per generation.
+- Use a plugin-owned executor if you want to call `shutdown()/shutdownNow()` without affecting the host.
+- Attach a version/generation ID when registering tasks so cancellation is never sent to a new generation by mistake.
+- Ensure task code checks tokens/interrupts and finishes cleanup before being counted as quiesced.
+- Separate **logical** cancellation of a Future from **physical** completion of plugin work.
 
-## 5. Ví dụ Java 17 đầy đủ: cổng tiếp nhận, drain và cancel
+## 5. Complete Java 17 Example: Admission Gate, Drain, and Cancel
 
-Ví dụ độc lập sau đây mô tả hai tình huống:
+The standalone example below demonstrates two scenarios:
 
-- **Graceful:** plugin đã chấp nhận một công việc; host quiesce, chờ, rồi worker tự hoàn tất; không cần cancel.
-- **Timeout/abort:** plugin đã chấp nhận một công việc đang chờ latch; host quiesce, từ chối request mới, xác nhận chưa drain, phát interrupt hợp tác, đợi worker thoát rồi đánh dấu `STOPPED`.
+- **Graceful:** the plugin has admitted one job; the host quiesces, waits, and the worker finishes on its own; no cancellation needed.
+- **Timeout/abort:** the plugin has admitted one job waiting on a latch; the host quiesces, rejects a new request, confirms drain has not completed, issues cooperative interruption, waits for the worker to exit, and marks `STOPPED`.
 
-Vì là bài học về shutdown, code cố ý dùng `CountDownLatch` thay cho network/database để **stdout ổn định**, không phụ thuộc vào tốc độ máy. Đây là mô hình cổng đồng bộ; nó không tự đăng ký HTTP routes, message subscriptions hay `ExecutorService`. Ví dụ cũng chưa có tài nguyên plugin thật để đóng; với plugin thực tế phải cleanup **sau khi drain** và **trước khi công bố stop hoàn tất**.
+Because this is a shutdown lesson, the code intentionally uses `CountDownLatch` instead of network/database I/O so **stdout is deterministic**, independent of machine speed. This is an admission-gate model; it does not register HTTP routes, message subscriptions, or an `ExecutorService`. The example also has no real plugin resources to close; in real plugins, cleanup must run **after draining** and **before declaring stop complete**.
 
-### 5.1. Một tệp PluginShutdownDemo.java
+### 5.1. Single File `PluginShutdownDemo.java`
 
 ~~~java
 import java.time.Duration;
@@ -452,20 +452,20 @@ public final class PluginShutdownDemo {
 }
 ~~~
 
-Tại sao `activeThreads` là `Map<Thread,Integer>` thay vì `Set<Thread>`? Một thread có thể gọi lồng `gate.call(...)`; map giữ số lần đăng ký theo thread để việc thoát inner call không xóa nhầm thread vẫn còn outer call. `inFlight` được tăng/giảm theo mỗi lần vào/ra. Mọi cập nhật bộ đếm và map đều nằm dưới lock; gọi `operation.call()` nằm **ngoài** lock.
+Why is `activeThreads` a `Map<Thread,Integer>` instead of a `Set<Thread>`? A thread may make nested `gate.call(...)` calls; the map tracks entry depth per thread so exiting an inner call does not remove a thread that still has an active outer call. `inFlight` increments/decrements on each entry/exit. All updates to the counter and map occur under the lock; calling `operation.call()` runs **outside** the lock.
 
-Trong ví dụ, mỗi task dùng **thread chuyên biệt** và không tái sử dụng thread đó cho task khác. `requestCancellation` snapshot các thread đang thực hiện plugin và gửi interrupt **sau khi nhả lock** để tránh giữ mutex trong lúc tác động lên task. Với pool dùng chung/async task, phải thay cách tracking bằng task-specific cancellation handles như mục 4.4.
+In the example, each task uses a **dedicated thread** and never reuses that thread for another task. `requestCancellation` takes a snapshot of currently executing plugin threads and sends interrupts **after releasing the lock** to avoid holding the mutex while signaling tasks. With shared pools or async tasks, replace thread tracking with task-specific cancellation handles as described in Section 4.4.
 
-### 5.2. Biên dịch và chạy
+### 5.2. Compiling and Running
 
-Lưu đúng tệp `PluginShutdownDemo.java` trong thư mục hiện tại. Với Java 17 trở lên:
+Save as `PluginShutdownDemo.java` in the current directory. With Java 17 or later:
 
 ~~~bash
 javac --release 17 PluginShutdownDemo.java
 java -cp . PluginShutdownDemo
 ~~~
 
-**Stdout đã kiểm chứng bằng Amazon Corretto JDK 17.0.15:**
+**Stdout verified with Amazon Corretto JDK 17.0.15:**
 
 ~~~text
 gracefulBeforeRelease=false
@@ -482,39 +482,39 @@ drainedAfterCancel=true
 state=STOPPED
 ~~~
 
-### 5.3. Phân tích nhánh graceful
+### 5.3. Analyzing the Graceful Branch
 
-1. `normalWorker` vào `normal.call(...)` trước: bộ đếm tăng lên 1 và latch `normalEntered` thông báo đã được accept.
-2. `normal.quiesce()` đóng cổng; request này **vẫn được phép hoàn thành** vì nó đã đi qua admission.
-3. `awaitDrained(Duration.ZERO)` trả ngay `false` do worker vẫn chờ `normalRelease`.
-4. Host mở latch, worker hoàn tất bình thường. `finally` của `call` giảm bộ đếm về 0 và `signalAll()`.
-5. `normalWorker.join()` bảo đảm thread kết thúc trong fixture; `awaitDrained(Duration.ofSeconds(1))` trả `true`; host mới gọi `markStopped()`.
+1. `normalWorker` enters `normal.call(...)` first: the counter increments to 1 and `normalEntered` signals that it was admitted.
+2. `normal.quiesce()` closes the gate; this request **is still allowed to finish** because it already passed admission.
+3. `awaitDrained(Duration.ZERO)` immediately returns `false` since the worker is still waiting on `normalRelease`.
+4. The host releases the latch and the worker finishes normally. The `finally` block in `call` decrements the counter to 0 and calls `signalAll()`.
+5. `normalWorker.join()` ensures the thread exits in the test fixture; `awaitDrained(Duration.ofSeconds(1))` returns `true`; only then does the host call `markStopped()`.
 
-Điều quan trọng: **không cần hủy** nếu các task hoàn tất trong thời gian grace. Đóng cổng không nên mặc định phá tất cả request đã được nhận.
+Key point: **no cancellation is needed** if tasks complete within the grace window. Closing the gate should not by default abort requests that were already admitted.
 
-### 5.4. Phân tích nhánh cancel
+### 5.4. Analyzing the Cancellation Branch
 
-1. `worker` được accept, `inFlight=1`, rồi block ở `CountDownLatch.await()`.
-2. Host đổi `state=QUIESCING`; một `gate.call(...)` mới bị từ chối bằng `RejectedExecutionException`.
-3. `awaitDrained(Duration.ZERO)` trả `false`; không được bỏ qua tình trạng này để chuyển thẳng sang `STOPPED`.
-4. `requestCancellation()` đặt volatile token và gọi `interrupt()` tới thread chuyên biệt của fixture.
-5. `blocked.await()` phản ứng bằng `InterruptedException`. Worker catch, khôi phục interrupt status và thoát; `finally` trong `gate.call` **vẫn chạy** để giảm `inFlight`.
-6. Host gọi `worker.join()`; sau đó `awaitDrained(...)` trở thành `true` và `markStopped()` thành công.
+1. `worker` is admitted, `inFlight=1`, and then blocks on `CountDownLatch.await()`.
+2. The host sets `state=QUIESCING`; a new `gate.call(...)` is rejected with `RejectedExecutionException`.
+3. `awaitDrained(Duration.ZERO)` returns `false`; you must not ignore this and jump straight to `STOPPED`.
+4. `requestCancellation()` sets the volatile token and calls `interrupt()` on the fixture's dedicated thread.
+5. `blocked.await()` responds with `InterruptedException`. The worker catches it, restores the interrupt status, and exits; the `finally` block inside `gate.call` **still runs** to decrement `inFlight`.
+6. The host calls `worker.join()`; afterward `awaitDrained(...)` becomes `true` and `markStopped()` succeeds.
 
-Kết quả này chứng minh **tín hiệu hủy** và **xác nhận công việc đã kết thúc** phải được xử lý thành hai bước độc lập. Trong chương trình này `join()` không có timeout vì test fixture biết chắc latch hỗ trợ interrupt; production không được giả định mọi plugin sẽ phản ứng nhanh như vậy.
+This proves that **the cancellation signal** and **confirming work has exited** must be handled as two independent steps. In this program `join()` has no timeout because the test fixture knows for certain the latch supports interruption; production code must never assume every plugin reacts that quickly.
 
-### 5.5. Những ranh giới của demo
+### 5.5. Boundaries of the Demo
 
-- `PluginGate.call` chạy đồng bộ trong thread gọi nó; nếu plugin gọi `executor.submit(...)` rồi trả ngay, phải giữ lease hoặc theo dõi **task async thật** đến khi nó thoát.
-- `blocked` cố ý không bao giờ được `countDown()`; nó dùng để minh họa interrupt của task đang chờ. Thực tế nên có deadline để host không kẹt vô hạn.
-- `requestCancellation()` giữ bản snapshot thread đã đăng ký và interrupt; phù hợp **thread dành riêng cho công việc của ví dụ**, không phải pattern an toàn mặc định cho thread pool dùng chung.
-- `markStopped()` ở demo chỉ đổi state vì không sở hữu DB connection/HTTP client/executor. Khi có tài nguyên thật, phải đóng/cleanup chúng theo thứ tự và ghi nhận lỗi trước khi đánh dấu hoàn tất.
-- Mô hình xử lý `InterruptedException` phía trong callback là trách nhiệm tác vụ; host không thể ép code plugin phản ứng nếu callback bỏ qua tín hiệu.
-- `Duration.toNanos()` có thể ném lỗi với duration âm/quá lớn; production nên validate ngân sách tổng và xử lý overflow khi dựng deadline.
+- `PluginGate.call` runs synchronously on the calling thread; if a plugin calls `executor.submit(...)` and returns immediately, you must hold a lease or track the **actual async task** until it exits.
+- `blocked` intentionally never receives `countDown()`; it serves to illustrate interrupting a waiting task. Real systems need a deadline so the host does not hang forever.
+- `requestCancellation()` snapshots registered threads and interrupts them; this suits **threads dedicated to the example's work**, and is not a safe default pattern for shared thread pools.
+- `markStopped()` in the demo only changes state because it owns no DB connections/HTTP clients/executors. When real resources exist, close/clean them up in order and record failures before marking completion.
+- How `InterruptedException` is handled inside a callback is the task's responsibility; the host cannot force plugin code to react if the callback ignores the signal.
+- `Duration.toNanos()` can throw on negative or overly large durations; production code should validate total budgets and handle overflow when computing deadlines.
 
-## 6. Khi plugin dùng ExecutorService hoặc Future
+## 6. When a Plugin Uses ExecutorService or Future
 
-Nhiều plugin sử dụng background executor riêng. Nếu **executor là tài nguyên thuộc plugin**, API `ExecutorService` đã hỗ trợ một shutdown hai pha:
+Many plugins use their own background executor. If **the executor is a resource owned by the plugin**, the `ExecutorService` API already supports a two-phase shutdown:
 
 ~~~java
 import java.util.concurrent.ExecutorService;
@@ -522,7 +522,7 @@ import java.util.concurrent.TimeUnit;
 
 static boolean stopOwnedExecutor(ExecutorService executor)
         throws InterruptedException {
-    executor.shutdown(); // Ngừng nhận task mới trong executor này.
+    executor.shutdown(); // Stop accepting new tasks in this executor.
     if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
         executor.shutdownNow(); // Best effort: cancel queued/running tasks.
         return executor.awaitTermination(3, TimeUnit.SECONDS);
@@ -531,65 +531,65 @@ static boolean stopOwnedExecutor(ExecutorService executor)
 }
 ~~~
 
-Đây là **method minh họa**, phải đặt trong một class. Các timeout là ví dụ chính sách, không phải thời lượng mặc định của JDK.
+This is an **illustrative method** that must sit inside a class. The timeout values are policy examples, not JDK defaults.
 
-**Thứ tự thực tế cần thực hiện:**
+**Practical sequence to follow:**
 
-1. Đóng cổng plugin ở router/registry/consumer trước, để callback không tiếp tục tạo task mới.
-2. Chỉ gọi `executor.shutdown()` nếu executor **thuộc quyền sở hữu riêng của plugin**.
-3. Chờ `awaitTermination` với giới hạn cụ thể. Nếu timeout, gọi `shutdownNow()` rồi chờ lần nữa.
-4. Nếu executor vẫn chưa terminate, **không** coi `shutdownNow()` là thành công; báo stop-incomplete, quarantine plugin hoặc để cấp điều phối cao hơn quyết định restart process.
-5. Ngoài executor này còn có thread, subscription hoặc continuation độc lập không? Chúng phải được theo dõi riêng.
+1. Close the plugin gate at the router/registry/consumer first so callbacks cannot keep submitting new tasks.
+2. Call `executor.shutdown()` only if the executor **is exclusively owned by the plugin**.
+3. Wait with `awaitTermination` using a bounded timeout. On timeout, call `shutdownNow()` and wait again.
+4. If the executor still has not terminated, do **not** treat `shutdownNow()` as success; report stop-incomplete, quarantine the plugin, or let a higher-level coordinator decide whether to restart the process.
+5. Are there any independent threads, subscriptions, or continuations outside this executor? Track them separately.
 
-`shutdownNow()` trả về list những task chưa chạy. Nếu hệ thống có bộ đếm task pending/accepted, cần cập nhật chúng nhất quán sau khi queue bị hủy. Đối với `Future.cancel(true)`, đừng dùng `Future.isDone()` làm thay thế chắc chắn cho việc **worker đã ra khỏi plugin code**.
+`shutdownNow()` returns a list of unstarted tasks. If the system tracks pending/accepted task counts, update them consistently after the queue is canceled. For `Future.cancel(true)`, do not use `Future.isDone()` as a reliable substitute for **the worker having exited plugin code**.
 
-**Lưu ý khi bị interrupt trong shutdown:** Nếu thread điều phối bị `InterruptedException` khi đợi, nó phải bảo toàn yêu cầu hủy, áp dụng chính sách cấp trên và thường khôi phục interrupt status ở tầng không ném tiếp. Không “nuốt” interruption rồi ghi log `STOPPED` dù công việc vẫn đang chạy.
+**Note on interruption during shutdown:** If the coordinating thread receives `InterruptedException` while waiting, it must preserve the cancellation request, apply upper-level policy, and usually restore the interrupt status if not rethrowing. Never swallow the interruption and log `STOPPED` while work is still running.
 
-## 7. Khi request sinh ra công việc bất đồng bộ
+## 7. When a Request Spawns Asynchronous Work
 
-Một handler có thể trông như đã xong nhưng vẫn có tác vụ plugin tồn tại:
+A handler can look finished while plugin tasks remain alive:
 
 ~~~java
-// Minh họa lỗi vòng đời nếu chỉ đếm thời gian handler chạy:
+// Illustrates lifecycle bug if only handler execution time is counted:
 CompletionStage<Result> handle(Request request) {
     return remoteCall(request).thenApply(this::transform);
 }
 ~~~
 
-Nếu `handle` trả lại `CompletionStage` ngay và admission lease được release tại thời điểm **trả stage**, việc drain có thể về 0 trong khi continuation `transform` chưa chạy. Để đúng, một hướng là:
+If `handle` returns a `CompletionStage` immediately and the admission lease is released when **returning the stage**, drain can drop to 0 while the `transform` continuation has not even run yet. To make this right, one approach is:
 
 ~~~java
-// Mã minh họa: lease và stage được định nghĩa bởi host.
+// Illustrative code: lease and stage are defined by the host.
 CompletionStage<Result> stage = startPluginWork(request);
 return stage.whenComplete((value, failure) -> lease.close());
 ~~~
 
-`lease.close()` trong callback `whenComplete` phải được thiết kế **idempotent**, bảo đảm đúng một lần decrement, và không bỏ sót khi `startPluginWork` ném lỗi trước khi trả stage. Có thể dùng `try/catch` cho nhánh submit thất bại và một `AtomicBoolean` guard cho việc release; quan trọng là không đếm đôi.
+`lease.close()` in the `whenComplete` callback must be **idempotent**, guarantee decrementing exactly once, and not be missed if `startPluginWork` throws before returning a stage. Use `try/catch` for the failed-submit path and an `AtomicBoolean` guard on release; avoiding double-decrement is essential.
 
-**Phân biệt thêm:** một future/stage có thể hoàn tất **trước khi mọi công việc bên ngoài nó dừng thật sự**, đặc biệt khi cancellation chỉ đổi trạng thái logical. Nếu plugin khởi chạy thread/process phụ mà stage không theo dõi, host vẫn cần tracking độc lập.
+**Further distinction:** a future/stage can complete **before all external work behind it actually stops**, especially when cancellation only flips a logical state. If the plugin spawns auxiliary threads/processes that the stage does not track, the host still needs independent tracking.
 
-### 7.1. Task tiếp tục sinh task sau khi quiesce
+### 7.1. Tasks Spawning More Tasks After Quiesce
 
-Một request đã được accept có thể muốn phát sinh job con. Hãy định nghĩa chính sách:
+An already-admitted request may try to spawn child jobs. Define a policy:
 
-- **Không chấp nhận task con mới** sau quiesce (đơn giản và an toàn nếu handler có thể tự kết thúc).
-- Hoặc cho phép task con thuộc request đã được accept và **kế thừa cùng request lease**, nhưng phải bảo đảm deadline/cancellation được truyền và drain chờ cả cây task.
+- **Disallow new child tasks** after quiesce (simple and safe if handlers can exit cleanly).
+- Or allow child tasks belonging to an already-admitted request and **inherit the same request lease**, while ensuring deadlines/cancellation propagate and drain waits for the entire task tree.
 
-Không nên để request cũ mở cổng lại hoặc đăng ký background timer mới vô thời hạn. Vì vậy token nên được propagate qua RPC, callback chain và executor wrapper, thay vì một cờ boolean ở root không ai kiểm tra.
+Never let an old request reopen the gate or register new unbounded background timers. Tokens should therefore propagate across RPCs, callback chains, and executor wrappers, rather than sitting as an unchecked boolean flag at the root.
 
-### 7.2. Điều phối hủy với side effects
+### 7.2. Coordinating Cancellation with Side Effects
 
-Nếu plugin thực hiện chuỗi:
+If a plugin executes a pipeline:
 
 ~~~text
 read input -> update database -> publish event -> acknowledge message
 ~~~
 
-dừng hợp tác giữa hai bước có thể để lại trạng thái “DB đã ghi, message chưa publish”. Cancellation không tự đảo ngược side effect đã commit. Cần transaction ở phạm vi hỗ trợ, outbox pattern, idempotency key, checkpoint/retry và xử lý duplicate theo hợp đồng nghiệp vụ. Đặc biệt trong message consumer, đừng ack sớm khi handler chưa thực sự thành công; shutdown phải có chính sách requeue/dead-letter hoặc retry rõ ràng.
+cooperatively stopping between two steps can leave a “DB written, event not published” state. Cancellation does not automatically undo committed side effects. You need transactions where supported, the outbox pattern, idempotency keys, checkpoints/retries, and duplicate handling per business contract. Especially in message consumers, never ack early before the handler truly succeeds; shutdown needs explicit requeue, dead-letter, or retry policies.
 
-## 8. Hot reload: một thế hệ plugin mới và một thế hệ cũ
+## 8. Hot Reload: One New Plugin Generation and One Old Generation
 
-Một cách triển khai an toàn hơn “đóng rồi load lại ngay”:
+A safer rollout than “close and immediately reload”:
 
 ~~~text
 Version/generation V1                  Version/generation V2
@@ -609,152 +609,152 @@ ACTIVE: accepts traffic                LOADING + health check
       +-- STOPPED; release strong references to V1
 ~~~
 
-Chỉ chuyển route sang V2 khi V2 đã được nạp, đăng ký và kiểm tra sức khỏe phù hợp. Nếu phiên bản mới fail initialization, giữ V1 phục vụ (nếu chưa quiesce) hoặc rollback routing theo chính sách rõ ràng; không mặc nhiên kéo state V1 từ QUIESCING về ACTIVE nếu việc đó có thể tái sử dụng tài nguyên đang bị cleanup.
+Switch routing to V2 only after V2 is loaded, registered, and passes appropriate health checks. If the new version fails initialization, keep V1 serving (if not yet quiesced) or roll back routing under an explicit policy; do not arbitrarily pull V1's state from `QUIESCING` back to `ACTIVE` if doing so could reuse resources already being torn down.
 
-### 8.1. Detach callback phải có thứ tự
+### 8.1. Detaching Callbacks Must Be Ordered
 
-Một shutdown thông thường gồm:
+A typical shutdown includes:
 
-1. **Disable/quiesce ingress:** ngăn route mới, deregister service discovery đối với generation cũ, pause message consumer nếu API hỗ trợ.
-2. **Stop producers:** dừng timer/cron/retry producers tạo thêm work.
-3. **Drain hoặc cancel:** chờ active requests, long-running tasks, queue và continuations.
-4. **Detach extension hooks:** unregister event listeners, callbacks, MBeans, service handles, observers, thread-local references liên quan.
-5. **Close owned resources:** plugin-owned executor, HTTP/DB client, file handles, sockets, cache, classloader/JAR handles theo ownership.
-6. **Remove registry strong refs:** bỏ instance, `Class<?>`, provider factory, `ModuleLayer` và loader của V1 khỏi các registry/cache khi không còn sử dụng.
-7. **Report terminal outcome:** STOPPED hoặc trạng thái lỗi/needs escalation nếu vẫn có work không chịu dừng.
+1. **Disable/quiesce ingress:** block new routes, deregister service discovery for the old generation, pause message consumers if supported by the API.
+2. **Stop producers:** stop timers/crons/retry producers that generate additional work.
+3. **Drain or cancel:** wait for active requests, long-running tasks, queues, and continuations.
+4. **Detach extension hooks:** unregister event listeners, callbacks, MBeans, service handles, observers, and related thread-local references.
+5. **Close owned resources:** plugin-owned executors, HTTP/DB clients, file handles, sockets, caches, and classloader/JAR handles according to ownership.
+6. **Remove registry strong refs:** remove V1 instances, `Class<?>`, provider factories, `ModuleLayer`s, and loaders from registries/caches once no longer in use.
+7. **Report terminal outcome:** `STOPPED`, or an error/needs-escalation state if work still refuses to stop.
 
-Không đóng resources theo một thứ tự cứng chung cho mọi plugin. Chẳng hạn worker cần DB connection để hoàn tất rollback thì đóng pool DB trước khi worker thoát là sai; ngược lại scheduler producer phải dừng sớm để không tạo task mới.
+Do not close resources in one rigid order for every plugin. For instance, if a worker needs a DB connection to finish rollback, closing the DB pool before the worker exits is wrong; conversely, scheduler producers must stop early so they do not create new tasks.
 
-### 8.2. Closing ClassLoader không có nghĩa unloading class ngay
+### 8.2. Closing a ClassLoader Does Not Mean Immediate Class Unloading
 
-`URLClassLoader.close()` giải phóng tài nguyên của loader như handles đến các JAR được quản lý, nhưng nó **không** cưỡng bức JVM unload mọi class đã từng được loader đó định nghĩa và không hủy instance còn tồn tại. Còn tham chiếu từ thread, thread context class loader (TCCL), static registry trong host, cache, listener hoặc đang chạy method của plugin thì generation cũ có thể không được thu hồi.
+`URLClassLoader.close()` releases loader resources such as handles to managed JARs, but it **does not** force the JVM to unload all classes defined by that loader and does not destroy remaining instances. As long as references remain from threads, thread context class loaders (TCCL), static host registries, caches, listeners, or executing plugin methods, the old generation may never be reclaimed.
 
-Nếu dùng custom `ModuleLayer`, module graph/classloader cũng tuân theo khả năng truy cập object và cơ chế thu gom. Không có `ModuleLayer.close()` chuẩn để chấm dứt mọi tác vụ trong layer. Chủ động gỡ references/callbacks và để GC quyết định khả năng thu hồi sau khi hết sử dụng.
+When using a custom `ModuleLayer`, the module graph/classloaders likewise follow object reachability and garbage collection rules. There is no standard `ModuleLayer.close()` to terminate all tasks in a layer. Proactively clear references/callbacks and let GC decide reclaimability once usage ends.
 
-### 8.3. Không cancel nhầm V2 khi đang stop V1
+### 8.3. Do Not Accidentally Cancel V2 While Stopping V1
 
-Mọi task cancellation handle, token, lease và registry entry nên gắn với **generation ID**, không chỉ plugin logical name. Ví dụ `payments:v12` khác `payments:v13`, dù cả hai cùng implement `PaymentPlugin`. Hành động “stop v12” chỉ được đóng gate và cancel task của generation v12.
+Every task cancellation handle, token, lease, and registry entry should be tagged with a **generation ID**, not just the logical plugin name. For example, `payments:v12` differs from `payments:v13`, even though both implement `PaymentPlugin`. “Stop v12” must close only the gate and cancel tasks belonging to generation v12.
 
-Nếu tất cả phiên bản dùng chung executor, chỉ cancel **task handles của V1**, không `shutdownNow()` pool chung. Nếu dùng TCCL để nạp plugin, restore TCCL của worker trong `finally` ngay sau tác vụ, tránh giữ classloader cũ trên thread pool.
+If all versions share a common executor, cancel only **V1's task handles**; never call `shutdownNow()` on the shared pool. If TCCL is used to load plugins, restore the worker's TCCL in `finally` right after the task so old classloaders are not retained on thread pools.
 
-## 9. Phương án khi một plugin không chịu hủy
+## 9. Options When a Plugin Refuses to Cancel
 
-Có task không phản ứng với interrupt: đang chạy vòng lặp CPU không kiểm tra token, mắc kẹt ở native call, bị lock deadlock hoặc chờ I/O không có timeout. Sau grace period và cancel grace period, **không nói đã dừng thành công** khi chưa có chứng cứ.
+Some tasks do not respond to interrupts: CPU loops that never check tokens, stuck native calls, lock deadlocks, or I/O waits without timeouts. After both the graceful period and cancellation grace period expire, **do not claim stop succeeded** without evidence.
 
-| Trạng thái quan sát | Phản ứng nên chọn |
+| Observed State | Recommended Response |
 | --- | --- |
-| `inFlight==0`, resource cleanup thành công | Chuyển `STOPPED` |
-| Task chưa thoát nhưng vẫn phản hồi cancel | Chờ trong ngân sách còn lại, cập nhật progress |
-| Task không phản hồi, không thể isolate | Giữ `FAILED_TO_STOP`/`QUARANTINED`, không tái sử dụng resource có nguy cơ |
-| Task đang giữ side effect/transaction nguy hiểm | Không đóng connection/loader một cách mù quáng; kích hoạt recovery policy |
-| Process shutdown có deadline cứng | Điều phối cấp process có thể phải terminate/restart instance và khôi phục công việc bền vững sau đó |
+| `inFlight==0`, resource cleanup succeeded | Transition to `STOPPED` |
+| Task has not exited yet but still responds to cancel | Wait within remaining budget, update progress |
+| Task unresponsive, cannot be isolated | Keep `FAILED_TO_STOP`/`QUARANTINED`; do not reuse risky resources |
+| Task holds dangerous side effects/transactions | Do not blindly close connections/loaders; trigger recovery policy |
+| Process shutdown has a hard deadline | Process-level orchestration may have to terminate/restart the instance and recover durable work afterward |
 
-Đối với plugin chạy **trong cùng một JVM**, không có primitive Java SE an toàn để “cưỡng bức kết thúc riêng một plugin bất kỳ” mà chắc chắn không làm hỏng host. Nếu yêu cầu cách ly cứng cho mã không hợp tác, nên chạy plugin không tin cậy trong **process/container riêng** và dùng IPC/RPC; khi đó cấp điều phối hệ điều hành có thể terminate process sau deadline với cơ chế phục hồi thích hợp.
+For plugins running **in the same JVM**, there is no safe Java SE primitive to “forcibly terminate a single arbitrary plugin” guaranteed not to corrupt the host. If hard isolation is required for uncooperative code, run untrusted plugins in **separate processes/containers** over IPC/RPC; then OS-level orchestration can terminate the process past its deadline with proper recovery mechanisms.
 
-Shutdown coordinator phải ghi nhận **quá hạn** và trả kết quả không thành công khi cần. Đánh dấu `STOPPED` chỉ để làm dashboard đẹp là lỗi vận hành nghiêm trọng.
+The shutdown coordinator must record **deadline expiration** and return an unsuccessful outcome when necessary. Marking `STOPPED` merely to make a dashboard look clean is a serious operational bug.
 
-## 10. Chính sách timeout, retry và dữ liệu cần quan sát
+## 10. Timeout Policies, Retries, and Observability Data
 
-Đặt một chính sách shutdown cụ thể, ví dụ:
+Define a concrete shutdown policy, for example:
 
-| Giai đoạn | Ví dụ thời lượng | Quy tắc |
+| Phase | Example Duration | Rules |
 | --- | --- | --- |
-| Quiesce admission | Ngay khi bắt đầu stop | Không accept request mới sau điểm đồng bộ đóng gate |
-| Graceful drain | 10 giây | Chờ có điều kiện, không interrupt sớm các task sắp hoàn tất |
-| Cooperative cancel grace | 5 giây tiếp theo | Gửi token/cancel handles, interrupt đúng những task hỗ trợ |
-| Cleanup | Theo budget còn lại | Gỡ listener, close đúng resource đã sở hữu |
-| Escalation | Khi hết tổng deadline | Báo non-terminal/incomplete hoặc restart process theo policy |
+| Quiesce admission | Immediate on stop start | Admit no new requests past the synchronized gate-closing point |
+| Graceful drain | 10 seconds | Wait conditionally; do not interrupt soon-to-finish tasks early |
+| Cooperative cancel grace | Next 5 seconds | Send tokens/cancel handles, interrupt tasks that support it |
+| Cleanup | Within remaining budget | Detach listeners, close owned resources |
+| Escalation | When total deadline expires | Report non-terminal/incomplete or restart process per policy |
 
-Các giá trị chỉ là **ví dụ vận hành**, không phải timeout chuẩn của `ServiceLoader`/JPMS/JDK. Cấu hình thời gian phụ thuộc giao ước SLA, loại task và deadline của platform.
+These values are **operational examples**, not standard timeouts of `ServiceLoader`/JPMS/JDK. Timeouts depend on SLAs, task types, and platform deadlines.
 
-Nên đo và ghi log:
+Measure and log:
 
-- `pluginId`, `generationId`, state trước/sau, lý do stop (deploy, disable, crash, timeout).
-- Thời điểm đóng ingress, active/queued requests lúc bắt đầu và còn lại theo từng giai đoạn.
-- Số tác vụ hoàn tất tự nhiên, thất bại, bị cancel, bỏ qua interrupt hoặc còn treo.
-- Thời gian drain, thời gian cancel, thời gian cleanup, tổng thời gian đến terminal outcome.
-- Những tài nguyên không đóng được, stack traces, nguyên nhân thực của `InterruptedException`/`CancellationException`.
-- Tỷ lệ late requests rejected và hành vi trả response/fallback cho caller.
+- `pluginId`, `generationId`, before/after states, stop reason (deploy, disable, crash, timeout).
+- Ingress-closed timestamp, active/queued requests at start and remaining at each stage.
+- Counts of tasks completed naturally, failed, canceled, ignoring interrupts, or still hung.
+- Drain duration, cancel duration, cleanup duration, and total time to terminal outcome.
+- Resources that failed to close, stack traces, and root causes of `InterruptedException`/`CancellationException`.
+- Late-request rejection rate and caller response/fallback behavior.
 
-Không cần log dữ liệu nhạy cảm từ request hoặc toàn bộ script/plugin payload để theo dõi shutdown. Log định danh tác vụ và lỗi có chủ đích, hạn chế leakage.
+Do not log sensitive request data or entire script/plugin payloads to monitor shutdown. Log task identifiers and intentional error details to limit leakage.
 
-## 11. Những lỗi thường gặp và cách sửa
+## 11. Common Mistakes and How to Fix Them
 
-| Sai lầm | Vì sao nguy hiểm | Cách đúng |
+| Mistake | Why It Is Dangerous | Right Approach |
 | --- | --- | --- |
-| Đặt boolean `enabled=false` không có đồng bộ với nhận task | Race: request vượt qua check trước khi gate đóng | Admission state và `inFlight++` phải atomic dưới cùng lock/CAS protocol |
-| `inFlight++` lúc submit, decrement chỉ trong `Runnable.finally` | Task bị hủy khi còn trong queue không chạy finally | Có lease cho queued/cancel-before-start, giải phóng đúng một lần |
-| Dùng `Future.isDone()` để chứng minh plugin idle | Future canceled có thể complete trước khi code worker thoát | Theo dõi completion vật lý/owned executor termination |
-| `shutdownNow()` rồi đóng plugin ngay | Interrupt chỉ best effort | Chờ `awaitTermination`/drain xác nhận, report failure nếu không dừng |
-| Catch `InterruptedException` rồi bỏ qua | Task tiếp tục chạy khi host tưởng đã hủy | Truyền lên hoặc khôi phục interrupt rồi thoát ở điểm an toàn |
-| Gọi `Thread.stop()` | Phá invariants/locks và trạng thái chia sẻ | Cancellation token và interruption tự nguyện |
-| Giữ lock trong lúc chạy callback plugin | Deadlock, shutdown không lấy được lock | Lock chỉ quản lý state/counter, release trước callback |
-| Đóng DB client/JAR loader trước drain | Task đang dùng resource lỗi giữa chừng | Đợi task dừng/rollback phù hợp rồi close |
-| Chỉ gỡ router, quên event listener/timer | Plugin vẫn được gọi ngoài HTTP | Inventory mọi ingress và async continuation |
-| Dùng cùng ID để cancel V1 và V2 | Có thể hủy request phiên bản mới | Gắn generation ID và ownership vào task handles |
-| Không đặt deadline | Shutdown treo mãi nếu plugin không hợp tác | Grace budget, cancel budget, escalate rõ ràng |
-| Bắt mọi `Throwable` rồi báo thành công | Nuốt lỗi cleanup/stop nghiêm trọng | Tập hợp lỗi, giữ trạng thái failed/incomplete nếu cần |
-| Đóng executor chia sẻ giữa plugins | Làm hỏng host hoặc plugin khác | Chỉ shutdown resource plugin sở hữu |
-| Xóa registry nhưng còn TCCL/callback | Giữ classloader cũ, leak | Cleanup callback/TCCL/threads/cache và kiểm tra heap khi cần |
+| Setting boolean `enabled=false` without synchronizing with task admission | Race: request slips past check before gate closes | Admission state and `inFlight++` must be atomic under the same lock/CAS protocol |
+| `inFlight++` on submit, decrement only in `Runnable.finally` | Tasks canceled while still queued never run `finally` | Issue leases for queued/cancel-before-start, release exactly once |
+| Using `Future.isDone()` to prove the plugin is idle | A canceled Future can complete before worker code exits | Track physical completion / owned executor termination |
+| `shutdownNow()` then immediately closing the plugin | Interruption is best effort only | Wait for `awaitTermination`/drain confirmation; report failure if not stopped |
+| Catching `InterruptedException` and ignoring it | Task keeps running while host thinks it canceled | Propagate or restore interrupt and exit at a safe point |
+| Calling `Thread.stop()` | Corrupts invariants/locks and shared state | Cancellation tokens and voluntary interruption |
+| Holding locks while running plugin callbacks | Deadlocks; shutdown cannot acquire the lock | Locks manage only state/counters; release before callbacks |
+| Closing DB client/JAR loader before drain | In-flight tasks fail mid-execution | Wait for tasks to stop/roll back properly, then close |
+| Removing only the router while forgetting event listeners/timers | Plugin still gets invoked outside HTTP | Inventory all ingress paths and async continuations |
+| Using the same ID to cancel V1 and V2 | Can cancel requests on the new version | Attach generation ID and ownership to task handles |
+| Setting no deadline | Shutdown hangs forever if a plugin does not cooperate | Explicit grace budget, cancel budget, and escalation |
+| Catching all `Throwable` and reporting success | Swallows critical cleanup/stop errors | Aggregate errors; retain failed/incomplete state when needed |
+| Shutting down an executor shared across plugins | Breaks the host or other plugins | Shut down only plugin-owned resources |
+| Clearing the registry while TCCL/callbacks remain | Retains the old classloader, leaking memory | Clean up callbacks/TCCL/threads/caches and inspect heap when needed |
 
-Một điều dễ nhầm: `ServiceLoader.reload()` chỉ làm mới cache provider của một đối tượng loader; nó **không** ngừng các request đang chạy, cancel tác vụ, đóng instance, đóng thread pool hoặc unload plugin. Đừng sử dụng `reload()` như một lệnh shutdown.
+One easy confusion: `ServiceLoader.reload()` only refreshes the provider cache of one loader object; it **does not** stop in-flight requests, cancel tasks, close instances, shut down thread pools, or unload plugins. Do not use `reload()` as a shutdown command.
 
-## 12. Kiểm thử và tiêu chí chấp nhận
+## 12. Testing and Acceptance Criteria
 
-Một triển khai lifecycle đáng tin cậy nên có bộ kiểm thử tự động:
+A reliable lifecycle implementation should have an automated test suite:
 
-### 12.1. Admission race
+### 12.1. Admission Race
 
-Chạy nhiều request cạnh tranh với `quiesce`. Xác minh sau điểm quiesce không có request nào **được accept mới** vào generation đó. Những request đã accept trước mốc phải được ghi nhận trong active/queued counters. Không chỉ kiểm tra giá trị cuối; thử bơm request liên tục trong lúc stop.
+Run many requests racing against `quiesce`. Verify that after the quiesce point, **no new requests are admitted** into that generation. Requests admitted before the cutoff must be accounted for in active/queued counters. Do not check only final totals; continuously pump requests while stopping.
 
-### 12.2. Graceful completion
+### 12.2. Graceful Completion
 
-Tạo một task bị chặn bởi latch; chuyển gate sang QUIESCING; xác minh drain chưa xong; mở latch và xác minh drain thành công. Không có cancellation cần thiết. Nhánh này được minh họa ở `gracefulBeforeRelease=false` / `gracefulAfterRelease=true` của code mục 5.
+Create a task blocked on a latch; transition the gate to `QUIESCING`; verify drain is not done; release the latch and verify drain succeeds. No cancellation is needed. This branch is illustrated by `gracefulBeforeRelease=false` / `gracefulAfterRelease=true` in Section 5's code.
 
-### 12.3. Cooperative cancellation
+### 12.3. Cooperative Cancellation
 
-Dùng task blocking trong `await` hoặc `sleep` và task CPU có token checks. Phát cancel; kiểm tra worker nhận tín hiệu, chạy `finally`, giảm counter đúng một lần. Nhánh `worker=cancelled` của code mẫu thể hiện chờ interruptible. Thêm test một task bỏ qua interrupt để kiểm tra **timeout dẫn đến FAILED_TO_STOP**, không báo `STOPPED`.
+Use both a task blocking in `await`/`sleep` and a CPU task with token checks. Trigger cancel; verify workers observe the signal, run `finally`, and decrement counters exactly once. The `worker=cancelled` branch of the sample code demonstrates interruptible waiting. Add a test with a task ignoring interrupts to verify **timeout leads to `FAILED_TO_STOP`**, never reporting `STOPPED`.
 
-### 12.4. Queued task bị hủy trước khi chạy
+### 12.4. Queued Task Canceled Before Running
 
-Đưa task vào bounded queue, quiesce rồi cancel pending tasks. Kiểm tra task chưa bắt đầu vẫn được release khỏi accepted/queued count; không chờ một `finally` chưa từng chạy. Nếu giữ `Future`, phân biệt isCancelled với task cleanup thực tế.
+Submit tasks to a bounded queue, quiesce, then cancel pending tasks. Verify tasks that never started are still released from accepted/queued counts without waiting on a `finally` that never runs. If holding `Future`s, distinguish `isCancelled` from actual task cleanup.
 
-### 12.5. Async continuation và callbacks
+### 12.5. Async Continuations and Callbacks
 
-Task gốc trả `CompletionStage` sớm; stage vẫn đang xử lý. Đảm bảo drain chưa hoàn tất; sau khi stage/child tasks kết thúc mới release generation lease. Ngừng timer/scheduler và unregister hook để không phát sinh lại work.
+Have the initial task return a `CompletionStage` early while the stage is still processing. Ensure drain is not marked complete; only after the stage/child tasks finish is the generation lease released. Stop timers/schedulers and unregister hooks so no new work is generated.
 
-### 12.6. Cleanup lỗi và reload
+### 12.6. Cleanup Errors and Reload
 
-Giả lập lỗi `AutoCloseable.close()`; hệ thống phải log lỗi, xử lý các resource còn lại theo chính sách, không che là thành công tuyệt đối. Nạp generation mới song song với generation cũ đang drain; bảo đảm task V1 không gọi nhầm V2 và việc stop V1 không shutdown shared executor.
+Simulate an `AutoCloseable.close()` failure; the system must log the error, handle remaining resources per policy, and not disguise it as complete success. Load a new generation concurrently while the old generation drains; ensure V1 tasks never accidentally invoke V2 and stopping V1 does not shut down a shared executor.
 
-### 12.7. Thread interruption của coordinator
+### 12.7. Coordinator Thread Interruption
 
-Cắt ngang thread đang `awaitDrained`. Đảm bảo quy trình shutdown không lén bỏ dở mà công bố STOPPED; trạng thái quiesce vẫn được bảo toàn, interruption được truyền/khôi phục đúng theo ownership, coordinator cấp trên biết tác vụ stop chưa hoàn tất.
+Interrupt the thread inside `awaitDrained`. Ensure the shutdown workflow does not silently bail out and declare `STOPPED`; quiesce state remains preserved, interruption is propagated/restored per ownership, and the upper coordinator knows the stop did not complete.
 
-### 12.8. Metrics và memory leak
+### 12.8. Metrics and Memory Leaks
 
-Sau nhiều vòng load/quiesce/unload, theo dõi threads, executor, active listener, open handles và retained classloaders. Không hứa classloader sẽ GC ngay; có thể dùng heap dump và weak references để điều tra các strong references còn tồn tại sau một thời gian hợp lý.
+Across repeated load/quiesce/unload cycles, monitor threads, executors, active listeners, open handles, and retained classloaders. Do not promise immediate classloader GC; use heap dumps and weak references to investigate strong references lingering after a reasonable period.
 
-**Tiêu chí `STOPPED`:** cổng không nhận request mới; mọi công việc generation đã chấm dứt theo định nghĩa đã thống nhất; callback/subscription và resource sở hữu đã cleanup; không còn đường host cố tình gọi lại plugin cũ; không có lỗi stop chưa được giải quyết hoặc bị che giấu.
+**`STOPPED` criteria:** the gate admits no new requests; all work for that generation has terminated per the agreed definition; callbacks/subscriptions and owned resources are cleaned up; no host path intentionally calls the old plugin again; and no unresolved stop errors are hidden.
 
-## 13. Checklist triển khai trong hệ plugin thật
+## 13. Implementation Checklist for Real Plugin Systems
 
-Trước khi đưa feature hot reload/disable vào production, trả lời rõ:
+Before shipping hot reload/disable to production, answer clearly:
 
-1. **Tất cả ingress nào có thể gọi plugin?** Router, event bus, scheduler, message consumer, callback registry, async tasks.
-2. **Admission ở đâu?** Có một điểm đồng bộ bảo đảm `accept` và `quiesce` không race không?
-3. **Đếm cái gì?** In-flight call, task đang queue, future/continuation hay tất cả? Có release đúng một lần ngay cả khi exceptional completion/cancel trước lúc chạy?
-4. **Grace budget bao nhiêu?** Ai sở hữu deadline tổng, có ưu tiên hoàn tất request hợp lệ không?
-5. **Cơ chế cancel cụ thể?** Task có token checks, interruptible waits, timeout cho I/O, rollback/idempotency không?
-6. **Xác nhận task thực sự dừng ở đâu?** Không nhầm Future canceled với worker exited.
-7. **Khi task không chịu dừng thì sao?** Có state incomplete/quarantine, alarm, process isolation hoặc restart policy không?
-8. **Tài nguyên nào thuộc plugin?** Executor, connections, cache, listeners, class loader; không đóng đồ host chia sẻ.
-9. **Hot reload quản lý generation thế nào?** Routing mới, cancel riêng V1, loại bỏ refs cũ, không ảnh hưởng V2.
-10. **Kiểm thử khó gồm gì?** Concurrent requests, queued cancellation, async continuation, delayed interrupt, timeout, cleanup failure và leak.
-11. **Dữ liệu nghiệp vụ sau cancel?** Có transaction/compensation, idempotency, retry và cơ chế bảo toàn kết quả cho request đã nhận không?
-12. **Ai được phép công bố STOPPED?** Chỉ coordinator đã xác minh điều kiện dừng thật sự, không dựa vào timeout hoặc chỉ một tín hiệu cancel.
+1. **What are all ingress points that can invoke the plugin?** Routers, event buses, schedulers, message consumers, callback registries, async tasks.
+2. **Where is admission?** Is there a synchronization point guaranteeing `accept` and `quiesce` cannot race?
+3. **What is counted?** In-flight calls, queued tasks, futures/continuations, or all of them? Is release guaranteed exactly once even on exceptional completion or pre-run cancellation?
+4. **What is the grace budget?** Who owns the overall deadline, and is finishing valid requests prioritized?
+5. **What is the concrete cancellation mechanism?** Do tasks have token checks, interruptible waits, I/O timeouts, and rollback/idempotency?
+6. **Where is actual task exit confirmed?** Never confuse a canceled `Future` with an exited worker.
+7. **What if a task refuses to stop?** Are there incomplete/quarantine states, alerts, process isolation, or restart policies?
+8. **Which resources belong to the plugin?** Executors, connections, caches, listeners, class loaders; never close shared host resources.
+9. **How does hot reload manage generations?** New routing, V1-scoped cancellation, dropping old refs, without affecting V2.
+10. **What are the hard tests?** Concurrent requests, queued cancellation, async continuations, delayed interrupts, timeouts, cleanup failures, and leaks.
+11. **What about business data after cancellation?** Are there transactions/compensation, idempotency, retries, and preservation of results for already-admitted requests?
+12. **Who is allowed to declare `STOPPED`?** Only the coordinator that verified actual stop conditions, never based solely on a timeout or a cancel signal.
 
-## 14. Ghi nhớ nhanh
+## 14. Quick Reference
 
 ~~~text
 RUNNING
@@ -780,14 +780,14 @@ QUIESCING
                                                             / escalation
 ~~~
 
-**Nguyên tắc kết luận:** **Dừng nhận yêu cầu** là thay đổi chính sách admission; **chờ công việc đang chạy** là một sự kiện thực tế phải đo được; **hủy hợp tác** chỉ là tín hiệu đề nghị task tự dừng. Ba việc này không thể thay thế nhau. Một plugin chỉ hoàn tất vòng đời shutdown khi không còn đường vào thế hệ cũ, các tác vụ thực sự không còn dùng tài nguyên của nó và cleanup đã được thực hiện theo ownership.
+**Concluding principle:** **Stopping new requests** is an admission-policy change; **waiting for in-flight work** is a measurable runtime fact; **cooperative cancellation** is only a signal asking tasks to stop cleanly. None of these three steps can substitute for another. A plugin finishes its shutdown lifecycle only when no entry paths remain into the old generation, tasks are genuinely no longer using its resources, and cleanup has been performed according to ownership.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
-- [Java SE 17 – ExecutorService](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html): `shutdown`, `shutdownNow`, `awaitTermination` và mẫu shutdown hai pha.
-- [Java SE 17 – Thread](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html): `interrupt`, `join`, trạng thái interruption, lý do `Thread.stop()` không an toàn.
-- [Java SE 17 – InterruptedException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/InterruptedException.html): phản ứng khi đợi/chờ bị ngắt và status.
-- [Java SE 17 – Future](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html): yêu cầu cancel và trạng thái Future.
-- [Java SE 17 – CompletableFuture](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html): ngữ nghĩa cancel trong implementation.
-- [Java SE 17 – Condition](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/locks/Condition.html): `awaitNanos`, condition wait và spurious wakeups.
-- [Java SE 17 – URLClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html): `close()` và phạm vi giải phóng tài nguyên của class loader.
+- [Java SE 17 – ExecutorService](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html): `shutdown`, `shutdownNow`, `awaitTermination`, and the two-phase shutdown pattern.
+- [Java SE 17 – Thread](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html): `interrupt`, `join`, interruption status, and why `Thread.stop()` is unsafe.
+- [Java SE 17 – InterruptedException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/InterruptedException.html): responding to interrupted waits and interrupt status.
+- [Java SE 17 – Future](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html): cancellation requests and Future state.
+- [Java SE 17 – CompletableFuture](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html): cancellation semantics in the implementation.
+- [Java SE 17 – Condition](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/locks/Condition.html): `awaitNanos`, condition waits, and spurious wakeups.
+- [Java SE 17 – URLClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html): `close()` and the scope of class loader resource release.

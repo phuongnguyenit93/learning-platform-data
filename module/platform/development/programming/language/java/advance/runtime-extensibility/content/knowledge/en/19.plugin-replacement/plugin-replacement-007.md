@@ -1,22 +1,22 @@
-# Điều kiện lớp có thể được thu hồi và giới hạn bảo đảm của GC
+# Conditions for Class Reclamation and Limits of GC Guarantees
 
-## 1. Vì sao thay plugin không đồng nghĩa với giải phóng class?
+## 1. Why replacing a plugin does not mean unloading classes
 
-Trong ứng dụng Java hỗ trợ plugin, mỗi lần nạp một phiên bản plugin có thể tạo thêm class loader, class và metadata tương ứng trong JVM. Khi cập nhật plugin, host thường chuyển request mới sang phiên bản mới và đóng phiên bản cũ. Nhưng việc gọi \`close()\`, xóa JAR hay bỏ một phần tử khỏi registry **không đồng nghĩa với các class cũ được JVM thu hồi ngay lập tức**.
+In a Java application supporting plugins, each load of a plugin version can create additional class loaders, classes, and corresponding metadata in the JVM. When updating a plugin, the host typically routes new requests to the new version and closes the old version. However, calling \`close()\`, deleting the JAR, or removing an entry from a registry **does not mean the old classes are immediately reclaimed by the JVM**.
 
-Cần phân biệt ba việc:
+Three actions must be distinguished:
 
-1. **Ngừng sử dụng logic**: không cấp request mới cho plugin cũ; hoàn thành hoặc hủy tác vụ đang chạy.
-2. **Giải phóng tài nguyên ứng dụng**: đóng socket, executor, file, listener, timer, connection pool và những thứ plugin đang sở hữu.
-3. **Class unloading**: JVM có thể loại bỏ metadata của những class không còn cần thiết sau khi chúng và class loader liên quan đủ điều kiện thu hồi.
+1. **Stopping logical usage**: issuing no new requests to the old plugin; completing or cancelling in-flight tasks.
+2. **Releasing application resources**: closing sockets, executors, files, listeners, timers, connection pools, and anything owned by the plugin.
+3. **Class unloading**: the JVM can discard metadata of classes that are no longer needed once they and their associated class loader become eligible for reclamation.
 
-Bước thứ ba phụ thuộc vào trạng thái reachable của toàn bộ object graph và quyết định của garbage collector, không chỉ vào code gọi \`close()\`.
+The third step depends on reachability across the entire object graph and the garbage collector's decisions, not solely on code calling \`close()\`.
 
-Trong hệ thống plugin chạy lâu ngày, nếu loader cũ vẫn bị giữ lại qua thread, callback, cache hoặc registry, việc hot reload lặp lại có thể làm bộ nhớ class metadata tăng dần và cuối cùng dẫn đến áp lực Metaspace.
+In a long-running plugin system, if old loaders stay retained via threads, callbacks, caches, or registries, repeated hot reloads can steadily grow class metadata memory and eventually lead to Metaspace pressure.
 
-## 2. Class identity và class loader trong thay thế plugin
+## 2. Class identity and class loaders in plugin replacement
 
-Trong JVM, một kiểu được xác định bởi cặp **(tên nhị phân, defining class loader)**. Vì thế hai phiên bản plugin cùng khai báo \`com.example.plugin.ReportPlugin\`, nhưng được định nghĩa bởi hai loader khác nhau, vẫn là hai lớp riêng biệt.
+In the JVM, a type is identified by the pair **(binary name, defining class loader)**. Thus two plugin versions that both declare \`com.example.plugin.ReportPlugin\`, yet are defined by two different loaders, are still two distinct classes.
 
 \`\`\`text
 Host/API Loader
@@ -26,39 +26,39 @@ Host/API Loader
       +-- PluginLoader V2 --> ReportPlugin V2
 \`\`\`
 
-Khi V2 được công bố, V1 không tự biến mất. Nếu một object V1 vẫn được một phần của host giữ lại, defining loader V1 có thể vẫn reachable và các lớp được loader đó định nghĩa vẫn chưa đủ điều kiện unloading.
+When V2 is published, V1 does not vanish automatically. If a V1 object remains retained by some part of the host, defining loader V1 can remain reachable and the classes defined by that loader are not yet eligible for unloading.
 
-Ngược lại, một plugin dùng **application class loader chung** không có khả năng unload riêng các class của plugin theo kiểu “gỡ JAR rồi class biến mất”. Những class được loader dùng chung định nghĩa thường tồn tại theo vòng đời của loader đó. Đây là một lý do phải thiết kế ranh giới class loader **trước khi** triển khai hot reload.
+Conversely, a plugin using **a shared application class loader** cannot independently unload plugin classes as if “delete the JAR and the classes disappear.” Classes defined by a shared loader typically live for the lifetime of that loader. This is one reason class loader boundaries must be designed **before** implementing hot reload.
 
-Class loader riêng giúp tổ chức và có thể tạo cơ hội unload theo vòng đời loader, nhưng **không phải sandbox bảo mật** cho code không đáng tin.
+A dedicated class loader helps organize code and can create the opportunity to unload by loader lifetime, yet it is **not a security sandbox** for untrusted code.
 
-## 3. Điều kiện để class có thể được unload
+## 3. Conditions for a class to be unloadable
 
-Mô tả thực dụng: với các class được định nghĩa bởi class loader có thể thu hồi, JVM chỉ có thể unload chúng khi không còn trạng thái sống nào đòi hỏi giữ class và loader ấy.
+Pragmatically: for classes defined by a reclaimable class loader, the JVM can unload them only when no live state requires keeping those classes and that loader alive.
 
-Các nguồn giữ sống có thể bao gồm:
+Retaining sources can include:
 
-- Instance của class plugin còn reachable từ root của JVM.
-- Object \`Class<?>\`, \`Method\`, \`Field\`, \`Constructor\`, method handle hoặc proxy liên quan đến class/plugin còn được giữ.
-- Static field và các mối liên hệ giữa class, instance, loader trong object graph.
-- Thread đang thực thi mã plugin; stack frame và các biến còn sử dụng object/plugin class.
-- Thread còn sống với **thread context class loader (TCCL)** trỏ vào loader plugin.
-- \`ThreadLocal\` trên worker thread giữ instance plugin, callback hoặc class loader.
-- Listener, subscriber, scheduled task, executor, timer, cache, DI container hay singleton của host giữ object từ plugin.
-- Một class loader khác giữ tham chiếu đến plugin loader, class, instance hoặc resource của nó.
-- JNI/native code hay cơ chế framework giữ global reference và trạng thái liên quan.
+- Instances of plugin classes still reachable from a JVM root.
+- Retained \`Class<?>\`, \`Method\`, \`Field\`, \`Constructor\`, method handle, or proxy objects associated with the plugin/class.
+- Static fields and relationships among classes, instances, and loaders in the object graph.
+- Threads executing plugin code; stack frames and variables still using plugin objects/classes.
+- Live threads whose **thread context class loader (TCCL)** points to the plugin loader.
+- \`ThreadLocal\` values on worker threads holding plugin instances, callbacks, or class loaders.
+- Listeners, subscribers, scheduled tasks, executors, timers, caches, DI containers, or host singletons retaining plugin objects.
+- Another class loader holding references to the plugin loader, its classes, instances, or resources.
+- JNI/native code or framework mechanisms holding global references and related state.
 
-Điều kiện thu hồi thực tế phức tạp hơn một quy tắc đếm reference đơn giản. JVM có thể lưu metadata, tối ưu hóa JIT và tổ chức class-loader data theo implementation; thời điểm unload chịu ảnh hưởng garbage collector và các safepoint/chu kỳ GC. Không có lệnh chuẩn nào bảo đảm “unload chính xác class X ngay bây giờ”.
+Actual reclamation conditions are more complex than a simple reference-counting rule. The JVM may retain metadata, JIT optimizations, and internal class-loader data structures according to its implementation; unload timing is affected by the garbage collector and safepoints/GC cycles. There is no standard command guaranteeing “unload exact class X right now.”
 
-Một bất biến hữu ích ở cấp kiến trúc:
+A useful architectural invariant:
 
-> Sau khi plugin cũ ngừng phục vụ và hoàn tất cleanup, **host không còn strong reference** nào tới loader, class hoặc instance riêng của phiên bản plugin đó.
+> Once the old plugin stops serving and completes cleanup, **the host holds no strong references** to that plugin version's loader, classes, or private instances.
 
-Bất biến này không bảo đảm thời điểm JVM thực hiện unloading, nhưng là điều kiện thiết kế cốt lõi để nó có cơ hội xảy ra.
+This invariant does not guarantee when the JVM performs unloading, but it is the core design precondition for unloading to have a chance of occurring.
 
-## 4. Reachability: vì sao một reference nhỏ có thể giữ cả loader?
+## 4. Reachability: why one small reference can keep an entire loader alive
 
-Xét ví dụ:
+Consider an example:
 
 \`\`\`text
 GC Root
@@ -79,68 +79,68 @@ Plugin implementation class
 Plugin defining ClassLoader
 \`\`\`
 
-Ngay cả khi \`activePlugins.remove("old")\`, đường tham chiếu từ singleton qua callback vẫn tồn tại. Loader V1 vẫn sống.
+Even after \`activePlugins.remove("old")\`, the reference path from the singleton through the callback still exists. Loader V1 stays alive.
 
-Một ví dụ khác:
+Another example:
 
 \`\`\`text
-Worker Thread (được host tái sử dụng)
+Worker Thread (reused by host)
    |
    +--> Thread.contextClassLoader --> PluginLoader V1
    |
    +--> ThreadLocalMap --> PluginRequestContext V1
 \`\`\`
 
-Nếu host từng đặt TCCL hoặc ThreadLocal cho V1 và không khôi phục trong \`finally\`, loader có thể bị giữ sống suốt thời gian worker thread tồn tại.
+If the host ever set TCCL or a \`ThreadLocal\` for V1 and failed to restore it in \`finally\`, the loader can remain alive as long as the worker thread exists.
 
-**Không chỉ tìm reference trực tiếp tới \`ClassLoader\`.** Một object thường của plugin được host giữ trong event bus cũng có thể đủ để ngăn unloading.
+**Do not look only for direct references to \`ClassLoader\`.** An ordinary plugin object held by the host inside an event bus can be enough to prevent unloading.
 
-## 5. Quy trình thay thế plugin đúng thứ tự
+## 5. Properly ordered plugin replacement workflow
 
-Một hot-reload lifecycle có thể được tổ chức:
+A hot-reload lifecycle can be structured as:
 
 \`\`\`text
-Plugin V1 đang ACTIVE
+Plugin V1 is ACTIVE
          |
          v
-Chuẩn bị / kiểm tra / khởi động V2
+Prepare / validate / start V2
          |
          v
-Công bố snapshot registry V2
+Publish V2 registry snapshot
          |
          v
-Ngừng cấp lease mới cho V1
+Stop issuing new leases to V1
          |
          v
-Chờ request / callback V1 đang chạy kết thúc
+Wait for running V1 requests / callbacks to finish
          |
          v
-Hủy subscription, task, timer; đóng resource V1
+Cancel subscriptions, tasks, timers; close V1 resources
          |
          v
-Gỡ reference tới V1 khỏi host registry và cache
+Remove references to V1 from host registries and caches
          |
          v
-Đóng class loader có hỗ trợ close
+Close class loader if close is supported
          |
          v
-V1 đủ điều kiện GC? (chỉ nếu không còn đường giữ sống)
+Is V1 eligible for GC? (only if no retaining paths remain)
          |
          v
-JVM có thể thu hồi loader và class metadata về sau
+The JVM may reclaim the loader and class metadata later
 \`\`\`
 
-Nếu dùng \`URLClassLoader\`, \`close()\` giải phóng tài nguyên mở JAR/URL theo contract của nó và ngăn tải resource/class mới theo các điều kiện tương ứng; **nó không cưỡng bức unload class đã định nghĩa**.
+When using \`URLClassLoader\`, \`close()\` releases opened JAR/URL resources per its contract and blocks loading new resources/classes under the corresponding rules; **it does not force unloading already-defined classes**.
 
-Cần làm rõ ai sở hữu resource: một instance plugin được nhiều snapshot chia sẻ không thể tùy tiện bị đóng khi chỉ một snapshot ngừng dùng. Có thể sử dụng lease/ref-count hoặc một protocol drain được đồng bộ đúng để ngăn “close trong lúc reader còn gọi”.
+Clarify who owns resources: a plugin instance shared across multiple snapshots cannot be arbitrarily closed when only one snapshot stops using it. A lease/ref-count or a properly synchronized draining protocol can prevent “closing while a reader is still calling.”
 
-Khi unload không chắc chắn, ứng dụng vẫn phải duy trì tính đúng đắn: registry mới không được định tuyến request sang plugin cũ; còn nếu plugin cũ chưa thu hồi được thì đó là vấn đề tài nguyên cần quan sát và xử lý riêng.
+When unloading is uncertain, the application must still maintain correctness: the new registry must not route requests to the old plugin; if the old plugin has not yet been reclaimed, that is a resource issue to monitor and address separately.
 
-## 6. Ví dụ Java 17+: quan sát class loader được GC thu hồi
+## 6. Java 17+ example: observing a class loader reclaimed by GC
 
-Để kiểm tra nguyên tắc **không còn strong reference**, có thể dùng \`WeakReference\` theo dõi một class loader. Chương trình bên dưới cố ý **không dựa vào một GC event chắc chắn**, vì GC được phép không chạy hoặc không thu hồi ngay.
+To test the **no remaining strong references** principle, a \`WeakReference\` can track a class loader. The program below intentionally **does not depend on a guaranteed GC event**, because GC is allowed not to run or not to reclaim immediately.
 
-Tạo file **\`LoaderGcDemo.java\`**:
+Create file **\`LoaderGcDemo.java\`**:
 
 \`\`\`java
 import java.lang.ref.WeakReference;
@@ -149,15 +149,15 @@ import java.net.URLClassLoader;
 
 public class LoaderGcDemo {
     private static WeakReference<ClassLoader> makeLoader() throws Exception {
-        // Không cần JAR: mục đích là quan sát lifetime của loader.
+        // No JAR needed: the goal is to observe loader lifetime.
         URLClassLoader loader = new URLClassLoader(
                 new URL[0],
                 LoaderGcDemo.class.getClassLoader()
         );
         WeakReference<ClassLoader> weak = new WeakReference<>(loader);
 
-        loader.close();  // Đóng resource của loader, không ép GC/unload.
-        return weak;     // Sau khi thoát, không cố giữ strong ref.
+        loader.close();  // Close loader resources; does not force GC/unload.
+        return weak;     // After returning, do not hold a strong ref.
     }
 
     public static void main(String[] args) throws Exception {
@@ -165,7 +165,7 @@ public class LoaderGcDemo {
         System.out.println("weak reference created: true");
 
         for (int i = 0; i < 5 && weak.get() != null; i++) {
-            System.gc(); // Chỉ là lời gợi ý; JVM không có nghĩa vụ đáp ứng.
+            System.gc(); // Merely a hint; the JVM has no obligation to comply.
             Thread.sleep(100);
         }
 
@@ -174,74 +174,74 @@ public class LoaderGcDemo {
 }
 \`\`\`
 
-Chạy:
+Run:
 
 \`\`\`bash
 javac LoaderGcDemo.java
 java LoaderGcDemo
 \`\`\`
 
-Dòng đầu luôn là:
+The first line is always:
 
 \`\`\`text
 weak reference created: true
 \`\`\`
 
-Dòng cuối có thể là **\`loader collected: true\` hoặc \`loader collected: false\`** tùy JVM, GC, timing và tùy chọn khởi chạy. Không nên viết unit test yêu cầu kết quả phải là \`true\` trong thời hạn cố định.
+The last line may be **\`loader collected: true\` or \`loader collected: false\`** depending on the JVM, GC, timing, and launch options. Do not write unit tests requiring the result to be \`true\` within a fixed deadline.
 
-Ví dụ này chứng minh cách theo dõi *loader reachability* qua weak reference, **không trực tiếp chứng minh một class riêng đã được unload**, vì loader mẫu không định nghĩa class plugin. Để quan sát class unloading thực tế cần tạo loader nạp một class từ plugin JAR, gỡ toàn bộ strong reference và kết hợp JVM class-unload logging hoặc profiling.
+This example demonstrates tracking *loader reachability* via a weak reference, **without directly proving a specific class was unloaded**, because the sample loader defines no plugin classes. To observe real class unloading, create a loader that loads a class from a plugin JAR, drop all strong references, and combine with JVM class-unload logging or profiling.
 
-## 7. WeakReference, ReferenceQueue và giới hạn kiểm chứng
+## 7. WeakReference, ReferenceQueue, and verification limits
 
-\`WeakReference<ClassLoader>\` thường hữu ích trong test/diagnostics:
+\`WeakReference<ClassLoader>\` is often useful in tests/diagnostics:
 
 \`\`\`java
 WeakReference<ClassLoader> oldLoader =
         new WeakReference<>(pluginLoader);
 \`\`\`
 
-Sau khi gỡ mọi strong reference, \`oldLoader.get()\` **có thể** trở thành \`null\` khi GC xử lý đối tượng. Nếu đối tượng vẫn còn reachable mạnh, weak reference sẽ không bị clear bởi một GC thông thường có xét reachability đó.
+After dropping all strong references, \`oldLoader.get()\` **may** become \`null\` when GC processes the object. If the object remains strongly reachable, the weak reference will not be cleared by a normal GC evaluating that reachability.
 
-Có thể dùng \`ReferenceQueue\` để nhận tín hiệu khi weak reference được enqueue, nhưng vẫn không có thời hạn chuẩn cho thông báo. \`PhantomReference\` cũng có thể giúp theo dõi một giai đoạn lifecycle tham chiếu; không có nghĩa JVM cung cấp một callback “class unload hoàn tất” có thời gian xác định.
+\`ReferenceQueue\` can signal when a weak reference is enqueued, yet still has no standard notification deadline. \`PhantomReference\` can also help track a reference lifecycle phase; neither means the JVM provides a deterministic “class unload complete” callback.
 
-Các hạn chế cần ghi nhớ:
+Limitations to keep in mind:
 
-- Weak reference chỉ theo dõi object mà nó tham chiếu, không trực tiếp xác nhận toàn bộ class metadata liên quan đã giải phóng.
-- \`System.gc()\` là gợi ý cho JVM, không phải mệnh lệnh bắt buộc. JVM có thể vô hiệu hóa explicit GC hoặc chọn không làm full collection.
-- JIT và tối ưu hóa lifetime của biến local có thể khiến kết quả thí nghiệm khác nhau, kể cả cùng mã nguồn.
-- GC log và heap/metaspace metrics chịu ảnh hưởng runtime, workload và cơ chế cấp phát lại.
-- **Metaspace usage giảm hay không giảm ngay** không là bằng chứng duy nhất cho việc class unloading; JVM có thể giữ vùng bộ nhớ đã cấp để tái sử dụng.
+- A weak reference tracks only the object it points to, not directly confirming all associated class metadata has been freed.
+- \`System.gc()\` is a hint to the JVM, not an enforceable command. The JVM may disable explicit GC or decline to run a full collection.
+- JIT and local-variable lifetime optimizations can cause experimental results to vary even with identical source code.
+- GC logs and heap/metaspace metrics are influenced by runtime, workload, and reallocation policies.
+- **Whether Metaspace usage drops immediately or not** is not sole proof of class unloading; the JVM can retain committed memory regions for reuse.
 
-Vì thế cần kết hợp nhiều công cụ thay vì một phép thử GC duy nhất.
+Therefore combine multiple tools rather than relying on a single GC test.
 
-## 8. Dùng JVM logs và công cụ chẩn đoán
+## 8. Using JVM logs and diagnostic tools
 
-Trên HotSpot/JDK hiện đại có thể dùng Unified Logging để quan sát load/unload:
+On modern HotSpot/JDK builds, Unified Logging can observe loading/unloading:
 
 \`\`\`bash
 java -Xlog:class+load=info,class+unload=info -jar host.jar
 \`\`\`
 
-Log sẽ nhiều; trong production nên giới hạn mức và đích ghi phù hợp, tránh tạo áp lực I/O hoặc lộ thông tin đường dẫn. Các event unload chỉ xuất hiện khi JVM thực sự unload class; không có event trong một khoảng thời gian ngắn không tự chứng minh leak.
+Logs will be verbose; in production limit log levels and destinations appropriately to avoid I/O pressure or exposing paths. Unload events appear only when the JVM actually unloads classes; absence of events over a short window does not by itself prove a leak.
 
-Những công cụ hữu ích:
+Useful tools:
 
-- **JFR (Java Flight Recorder)**: theo dõi class loading, allocation, GC và biến động runtime tùy event đã bật.
-- **\`jcmd <pid> VM.classloader_stats\`** trên các phiên bản HotSpot hỗ trợ: thống kê class loader và metadata, hữu ích để xem nhiều loader phiên bản cũ có tồn tại.
-- **\`jcmd <pid> GC.class_histogram\`**, heap dump và memory analyzer: tìm object còn giữ plugin instance/class loader. Một số lệnh có thể gây stop-the-world hoặc overhead; chọn thời điểm phù hợp.
-- **Metaspace metrics** (qua JMX/MemoryPoolMXBean, JFR hoặc monitoring): theo dõi xu hướng khi hot reload lặp lại.
+- **JFR (Java Flight Recorder)**: tracks class loading, allocations, GC, and runtime activity depending on enabled events.
+- **\`jcmd <pid> VM.classloader_stats\`** on supporting HotSpot versions: summarizes class loaders and metadata, helpful for seeing whether multiple old-version loaders persist.
+- **\`jcmd <pid> GC.class_histogram\`**, heap dumps, and memory analyzers: find objects still retaining plugin instances/class loaders. Some commands trigger stop-the-world pauses or overhead; choose timing carefully.
+- **Metaspace metrics** (via JMX/\`MemoryPoolMXBean\`, JFR, or monitoring): observe trends across repeated hot reloads.
 
-Để điều tra leak, chụp heap dump và lần theo **path to GC roots** từ plugin loader hoặc instance. Hãy xác minh đó là strong reference thực sự; soft/weak/phantom references có semantics khác nhau.
+To investigate leaks, capture a heap dump and follow **paths to GC roots** from the plugin loader or instance. Verify the path consists of real strong references; soft/weak/phantom references have different semantics.
 
-## 9. Những nguồn leak phổ biến trong plugin host
+## 9. Common leak sources in a plugin host
 
-### 9.1 Thread không dừng
+### 9.1 Unstopped threads
 
-Plugin tự tạo thread/executor và quên shutdown. Thread còn chạy có stack/context hoặc runnable của plugin, giữ class loader.
+A plugin spawns threads/executors and forgets to shut them down. Running threads hold stacks/contexts or plugin runnables, keeping the class loader alive.
 
-Giải pháp: thread/executor phải có owner rõ; \`shutdown()\`/\`shutdownNow()\` theo policy, chờ kết thúc với timeout, và cảnh báo nếu không dừng.
+Solution: threads/executors must have a clear owner; \`shutdown()\`/\`shutdownNow()\` per policy, await termination with a timeout, and alert if they fail to stop.
 
-### 9.2 Thread context class loader không được khôi phục
+### 9.2 Thread context class loader not restored
 
 \`\`\`java
 Thread t = Thread.currentThread();
@@ -254,93 +254,93 @@ try {
 }
 \`\`\`
 
-Đây là đoạn tích hợp; khôi phục TCCL kể cả khi invocation lỗi. Không gán loader plugin lên thread pool vĩnh viễn.
+This is an integration snippet; restore TCCL even when invocation throws. Never leave a plugin loader permanently attached to a thread pool.
 
-### 9.3 ThreadLocal và MDC
+### 9.3 ThreadLocal and MDC
 
-Worker thread của host tồn tại lâu hơn plugin; một \`ThreadLocal\` chứa instance của plugin có thể giữ object graph cũ. Dọn hoặc phục hồi trong \`finally\` tại đúng luồng đã set. Gọi \`remove()\` từ thread khác không xóa giá trị của worker thread.
+Host worker threads outlive plugins; a \`ThreadLocal\` holding a plugin instance can retain the old object graph. Clear or restore it in \`finally\` on the exact thread where it was set. Calling \`remove()\` from another thread does not clear the worker thread's value.
 
-### 9.4 Listener/subscription và callback
+### 9.4 Listeners/subscriptions and callbacks
 
-Event bus, scheduler, metrics registry, JMX MBean, shutdown hook hoặc DI scope có thể giữ callback/plugin class. Dùng registration handle và \`unsubscribe()\`/\`close()\` trong \`stop()\`.
+Event buses, schedulers, metrics registries, JMX MBeans, shutdown hooks, or DI scopes can retain callbacks/plugin classes. Use registration handles and \`unsubscribe()\`/\`close()\` during \`stop()\`.
 
-### 9.5 Cache tĩnh hoặc singleton của host
+### 9.5 Static caches or host singletons
 
-Cache chứa \`Class<?>\`, reflective \`Method\`, method handle, lambda, dynamic proxy hay serialized metadata trỏ đến class plugin. Clear cache theo \`pluginId\` và version; đừng dùng \`ClassLoader\` làm key trong một global map không có eviction.
+Caches holding \`Class<?>\`, reflective \`Method\`s, method handles, lambdas, dynamic proxies, or serialized metadata pointing to plugin classes. Evict caches by \`pluginId\` and version; never use \`ClassLoader\` as a key in an unbounded global map without eviction.
 
-### 9.6 Native/JNI và thư viện bên ngoài
+### 9.6 Native/JNI and external libraries
 
-JNI global reference, native thread, logging bridge hoặc framework cache có thể giữ class/plugin loader. Một số thư viện không hỗ trợ unload sạch trong cùng JVM. Khi yêu cầu thu hồi đáng tin hơn, cân nhắc tách plugin sang process riêng.
+JNI global references, native threads, logging bridges, or framework caches can retain classes/plugin loaders. Some libraries do not support clean unloading inside the same JVM. When reliable reclamation is required, consider isolating plugins in separate processes.
 
-## 10. Những tình huống không bảo đảm unload được
+## 10. Situations where unloading is not guaranteed
 
-Có những giới hạn thuộc về kiến trúc hoặc runtime:
+Some limitations are architectural or runtime-inherent:
 
-- **Không có unload theo tên class:** Java không cung cấp API \`unloadClass("...")\`.
-- **Class trong loader còn sống:** không thể kỳ vọng JVM thu hồi độc lập một class bất kỳ mà loader đang được sử dụng, chỉ vì host không gọi class đó nữa.
-- **Class loader chung:** không thể gỡ một plugin riêng như gỡ module class loader nếu tất cả được nạp chung vào application loader.
-- **GC không có thời hạn xác định:** ngay cả khi đối tượng đã unreachable, thời điểm GC/unload vẫn do JVM quyết định.
-- **Close không ép unload:** \`URLClassLoader.close()\`, \`JShell.close()\`, \`ModuleLayer\` hoặc tháo registry đều không phải lệnh unload tức thì.
-- **Class/static/stack/native references:** các liên kết runtime vẫn có thể giữ định nghĩa còn cần thiết.
-- **JPMS layer không có lệnh unload:** cần để layer, loader và mọi tham chiếu của chúng trở nên unreachable; việc tạo layer mới không tự thu hồi layer cũ.
+- **No unloading by class name:** Java provides no \`unloadClass("...")\` API.
+- **Classes inside a still-living loader:** you cannot expect the JVM to independently reclaim an arbitrary class while its loader remains in use merely because the host stopped calling that class.
+- **Shared class loader:** you cannot unload an individual plugin like a module class loader if everything was loaded together into the application loader.
+- **No deterministic GC deadline:** even once objects become unreachable, GC/unload timing remains up to the JVM.
+- **Close does not force unloading:** \`URLClassLoader.close()\`, \`JShell.close()\`, \`ModuleLayer\`, or removing from a registry are not immediate unload commands.
+- **Class/static/stack/native references:** runtime links can continue keeping definitions needed.
+- **JPMS layers have no unload command:** the layer, loaders, and all their references must become unreachable; creating a new layer does not automatically reclaim the old layer.
 
-Một collector/JVM cụ thể có thể có chiến lược unload khác nhau; nên kiểm chứng trên đúng JDK, GC và cấu hình production thay vì hứa hẹn theo kết quả máy phát triển.
+Different collectors/JVMs may use different unloading strategies; verify on the exact target JDK, GC, and production configuration rather than promising results based on a developer machine.
 
-## 11. Bảo đảm được điều gì ở cấp ứng dụng?
+## 11. What can be guaranteed at the application level?
 
-Thay vì cam kết “class V1 sẽ unload trong 500 ms”, hãy định nghĩa **các bảo đảm mà host tự kiểm soát**:
+Instead of promising “V1 classes will unload within 500 ms,” define **guarantees the host itself controls**:
 
-1. Sau điểm publish V2, request mới không chọn V1.
-2. Không gọi \`stop/close\` V1 khi còn lease/in-flight request của V1.
-3. Khi V1 stop, mọi subscription/task/resource thuộc ownership của nó được cleanup hoặc được đánh dấu lỗi rõ ràng.
-4. Registry và cache của host không còn tham chiếu mạnh tới V1.
-5. Host không giữ TCCL/ThreadLocal/plugin object V1 vượt quá scope.
-6. Có giới hạn số phiên bản/plugin loader cùng tồn tại và chính sách xử lý nếu cleanup thất bại.
-7. Có metrics, log và cảnh báo khi loader/metaspace không trở về xu hướng ổn định qua nhiều chu kỳ reload.
+1. After V2's publish point, new requests never select V1.
+2. Never call V1's \`stop/close\` while V1 leases/in-flight requests remain.
+3. When V1 stops, all subscriptions/tasks/resources it owns are cleaned up or clearly flagged on failure.
+4. Host registries and caches retain no strong references to V1.
+5. Host retains no V1 TCCL/\`ThreadLocal\`/plugin objects beyond scope.
+6. Cap the number of coexisting plugin/loader versions and define a policy when cleanup fails.
+7. Emit metrics, logs, and alerts if loader/metaspace counts fail to stabilize across reload cycles.
 
-Những điều này **tăng khả năng** loader/class đủ điều kiện thu hồi, nhưng không ấn định thời điểm GC hay lượng memory thực tế được trả về hệ điều hành.
+These practices **increase the likelihood** that loaders/classes become eligible for reclamation, without dictating GC timing or how much memory is returned to the OS.
 
-Nếu yêu cầu nghiệp vụ cần bảo đảm tài nguyên được thu hồi sau một deadline rõ ràng, **cô lập plugin bằng tiến trình riêng** thường cung cấp ranh giới kết thúc tài nguyên mạnh hơn việc dựa vào class unloading trong một JVM chia sẻ. Việc kết thúc process vẫn phải tuân thủ chính sách graceful shutdown và giới hạn thời gian.
+If business requirements demand guaranteed resource reclamation after a hard deadline, **isolating plugins in separate OS processes** usually provides a far stronger resource-termination boundary than relying on class unloading inside a shared JVM. Process termination must still follow graceful shutdown policies and time bounds.
 
-## 12. Kiểm thử hot reload và class unloading
+## 12. Testing hot reload and class unloading
 
-Một test integration nên:
+An integration test should:
 
-1. Nạp V1 qua loader riêng và ghi nhận weak reference tới loader đó.
-2. Đưa V1 vào registry, chạy một số lời gọi thật.
-3. Chuẩn bị V2, chuyển request mới sang V2 theo snapshot atomic.
-4. Drain V1, hủy callback, đóng executor/resource và bỏ mọi strong reference do test/host nắm.
-5. Gợi ý GC hoặc chờ theo giới hạn kiểm thử hợp lý nhưng **không dùng việc GC chắc chắn trong deadline ngắn làm assertion về tính đúng đắn**.
-6. Kiểm tra không còn V1 trong active registry và không còn in-flight lease.
-7. Dùng JFR/logs/heap dump để chẩn đoán nếu nhiều vòng reload tạo xu hướng giữ loader cũ.
+1. Load V1 through a dedicated loader and record a weak reference to that loader.
+2. Register V1 and run several real invocations.
+3. Prepare V2 and switch new requests to V2 via an atomic snapshot.
+4. Drain V1, cancel callbacks, close executors/resources, and drop every strong reference held by the test/host.
+5. Hint GC or wait within reasonable test bounds, **never making guaranteed GC within a short deadline a correctness assertion**.
+6. Assert V1 is absent from the active registry and zero in-flight leases remain.
+7. Use JFR/logs/heap dumps to diagnose if repeated reload cycles show a trend of retaining old loaders.
 
-Kiểm thử nghiêm túc cần thêm trường hợp thất bại: callback không được gỡ, thread treo, resource \`close()\` lỗi, request dài, rollback V2 → V1 và plugin chứa native library. Quan sát số loader theo phiên bản qua hàng trăm vòng reload hữu ích hơn chỉ chạy một lần rồi gọi \`System.gc()\`.
+Rigorous testing should also cover failure cases: unremoved callbacks, hung threads, \`close()\` throwing errors, long-running requests, V2 → V1 rollback, and plugins with native libraries. Observing loader counts per version across hundreds of reload cycles is more informative than running once and calling \`System.gc()\`.
 
-## 13. Lỗi phổ biến
+## 13. Common mistakes
 
-- Nghĩ \`URLClassLoader.close()\` sẽ gỡ ngay class đã tải.
-- Xóa JAR trên ổ đĩa rồi kết luận code plugin đã biến mất khỏi JVM.
-- Chỉ remove plugin khỏi một map nhưng bỏ quên event listeners và executors.
-- Dùng static cache lưu \`Class\` hoặc method handle của plugin vô thời hạn.
-- Quên phục hồi TCCL/ThreadLocal sau callback.
-- Đóng plugin cũ trước khi request cũ hoàn thành.
-- Giữ \`ModuleLayer\`, \`ServiceLoader\` hoặc \`CompiledScript\` của phiên bản cũ trong cache mà không có eviction.
-- Kỳ vọng \`System.gc()\` làm một unit test class unloading ổn định.
-- Dùng Metaspace usage tức thời làm bằng chứng duy nhất về leak.
-- Không phân biệt class loader leak với resource leak hoặc heap leak.
-- Quá tin vào class loader isolation như sandbox cho code không đáng tin.
+- Assuming \`URLClassLoader.close()\` immediately unloads loaded classes.
+- Deleting a JAR on disk and concluding plugin code vanished from the JVM.
+- Removing a plugin from one map while forgetting event listeners and executors.
+- Using static caches storing plugin \`Class\` or method handles indefinitely.
+- Forgetting to restore TCCL/\`ThreadLocal\` after callbacks.
+- Closing the old plugin before old requests finish.
+- Keeping \`ModuleLayer\`, \`ServiceLoader\`, or \`CompiledScript\` of older versions in caches without eviction.
+- Expecting \`System.gc()\` to make a class-unloading unit test deterministic.
+- Treating instantaneous Metaspace usage as sole proof of a leak.
+- Failing to distinguish class loader leaks from resource leaks or heap leaks.
+- Over-trusting class loader isolation as a sandbox for untrusted code.
 
-## 14. Checklist trước khi triển khai thay thế plugin
+## 14. Checklist before deploying plugin replacement
 
-- Plugin mỗi phiên bản có loader/layer riêng nếu mục tiêu là hỗ trợ unload theo vòng đời?
-- Shared API được định nghĩa ở parent loader ổn định, tránh class identity conflict?
-- Plugin V2 đã khởi tạo/kiểm tra trước khi chuyển request?
-- Snapshot registry bảo đảm request mới không chọn V1?
-- Có cơ chế drain và quản lý lease trước khi đóng V1?
-- Executor, thread, callback, timer, listener, cache, JNI reference và TCCL/ThreadLocal đã được cleanup?
-- Mọi strong reference từ host tới V1 được gỡ khi kết thúc?
-- \`close()\` được gọi với các resource thích hợp, nhưng không nhầm với GC?
-- Có giới hạn phiên bản cùng tồn tại và cảnh báo Metaspace/loader growth?
-- Test và vận hành có công cụ quan sát class unloading trên đúng JVM?
+- Does each plugin version have its own loader/layer if lifecycle-based unloading is a goal?
+- Is the shared API defined in a stable parent loader to avoid class identity conflicts?
+- Is plugin V2 initialized/validated before shifting requests?
+- Does the registry snapshot ensure new requests never select V1?
+- Are draining and lease management in place before closing V1?
+- Have executors, threads, callbacks, timers, listeners, caches, JNI references, and TCCL/\`ThreadLocal\` been cleaned up?
+- Are all strong references from the host to V1 dropped on retirement?
+- Is \`close()\` called on appropriate resources without confusing it with GC?
+- Are coexisting version limits and Metaspace/loader growth alerts configured?
+- Do testing and operations have tools to observe class unloading on the target JVM?
 
-**Ghi nhớ:** để class/plugin cũ có thể được thu hồi, trước hết phải **chấm dứt mọi đường tham chiếu mạnh và thực thi còn giữ class loader cũ**, sau đó để JVM quyết định việc garbage collection và class unloading. **Đủ điều kiện thu hồi không đồng nghĩa với được thu hồi ngay hay được bảo đảm trong một thời hạn cụ thể.**
+**Remember:** for old classes/plugins to become reclaimable, first **sever all strong reference paths and execution keeping the old class loader alive**, then let the JVM decide when garbage collection and class unloading occur. **Eligibility for reclamation does not mean immediate reclamation or a guaranteed deadline.**

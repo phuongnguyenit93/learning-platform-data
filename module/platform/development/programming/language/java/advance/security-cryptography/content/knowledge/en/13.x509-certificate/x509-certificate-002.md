@@ -1,122 +1,122 @@
-# 13.2 Phân biệt root, intermediate, leaf và chứng thư tự ký
+# 13.2 Distinguishing Root, Intermediate, Leaf, and Self-Signed Certificates
 
-## Mục tiêu
+## Objectives
 
-Bài học thuộc **13. Chứng thư X.509** trong Java Advance – security-cryptography. Bạn sẽ:
+This lesson belongs to **13. X.509 Certificates** in Java Advance – security-cryptography. You will:
 
-1. Phân biệt đúng **root CA certificate**, **intermediate CA certificate**, **leaf/end-entity certificate** và **self-signed certificate** theo vai trò của chúng trong một chuỗi tin cậy.
-2. Hiểu sự khác nhau giữa **“chứng thư có chữ ký hợp lệ”**, **“chuỗi được xác minh tới một trust anchor”** và **“chứng thư thuộc đúng máy chủ/người dùng/dịch vụ mà ứng dụng mong đợi”**.
-3. Đọc các trường X.509 quan trọng: `Subject`, `Issuer`, `BasicConstraints`, `KeyUsage`, `ExtendedKeyUsage` (EKU), `SubjectAlternativeName` (SAN), `NotBefore/NotAfter`, `SubjectKeyIdentifier` (SKI) và `AuthorityKeyIdentifier` (AKI).
-4. Dùng **`keytool` và Java 17+** dựng một chuỗi giả lập root → intermediate → leaf, kiểm chứng chữ ký và chạy `CertPathValidator("PKIX")` với một trust anchor đúng/sai.
-5. Nhận diện các lỗi phổ biến trong Java TLS, mTLS, PKIX và việc tin chứng thư tự ký mà chưa kiểm tra nguồn gốc.
+1. Accurately distinguish **root CA certificates**, **intermediate CA certificates**, **leaf/end-entity certificates**, and **self-signed certificates** by their roles in a trust chain.
+2. Understand the difference between **“a certificate with a valid signature”**, **“a chain verified to a trust anchor”**, and **“a certificate belonging to the exact server/user/service the application expects”**.
+3. Read important X.509 fields: `Subject`, `Issuer`, `BasicConstraints`, `KeyUsage`, `ExtendedKeyUsage` (EKU), `SubjectAlternativeName` (SAN), `NotBefore/NotAfter`, `SubjectKeyIdentifier` (SKI), and `AuthorityKeyIdentifier` (AKI).
+4. Use **`keytool` and Java 17+** to build a simulated root → intermediate → leaf chain, verify signatures, and run `CertPathValidator("PKIX")` with a valid/invalid trust anchor.
+5. Identify common bugs in Java TLS, mTLS, PKIX, and trusting self-signed certificates without verifying their origin.
 
-> **Ý chính:** `self-signed` mô tả **cách chứng thư được ký**; `root`, `intermediate`, `leaf` mô tả **vai trò trong đường dẫn chứng thực**; `trusted` mô tả **chính sách tin cậy của ứng dụng**. Đó là các khái niệm liên quan, nhưng không đồng nghĩa.
+> **Key takeaway:** `self-signed` describes **how a certificate is signed**; `root`, `intermediate`, and `leaf` describe **roles in a certification path**; `trusted` describes **the application's trust policy**. These are related concepts, not synonyms.
 
-## 1. Một chứng thư X.509 chứa thông tin gì?
+## 1. What Information Does an X.509 Certificate Contain?
 
-**Chứng thư số X.509 (certificate)** là cấu trúc dữ liệu đã được ký, thường chứa:
+An **X.509 digital certificate** is a signed data structure that typically contains:
 
-- **Subject:** định danh chủ thể mà chứng thư mô tả; trong các use case TLS hiện đại, danh tính DNS/IP được kiểm tra chủ yếu theo **SAN**, không chỉ nhìn vào `CN`.
-- **Subject public key information (SPKI):** public key và thuật toán liên quan của chủ thể; **không chứa private key**.
-- **Issuer:** tên chủ thể được nêu là bên phát hành (ký) chứng thư.
-- **Serial number:** số sê-ri do issuer gán trong phạm vi issuer.
-- **Validity:** `NotBefore` và `NotAfter`, khoảng thời gian chứng thư dự kiến có hiệu lực.
-- **Signature algorithm và signature value:** thuật toán/chữ ký của issuer lên phần **tbsCertificate** (*to-be-signed certificate*).
-- **Extensions:** ví dụ `BasicConstraints`, `KeyUsage`, `ExtendedKeyUsage`, `SubjectAlternativeName`, `NameConstraints`, SKI/AKI và Certificate Policies.
+- **Subject:** identifier of the entity the certificate describes; in modern TLS use cases, DNS/IP identity is checked primarily by **SAN**, not just by looking at `CN`.
+- **Subject public key information (SPKI):** the subject's public key and associated algorithm; **does not contain the private key**.
+- **Issuer:** the entity name stated as the issuer (signer) of the certificate.
+- **Serial number:** serial number assigned by the issuer within the issuer's scope.
+- **Validity:** `NotBefore` and `NotAfter`, the time interval during which the certificate is intended to be valid.
+- **Signature algorithm and signature value:** the issuer's algorithm/signature over the **tbsCertificate** (*to-be-signed certificate*) portion.
+- **Extensions:** for example `BasicConstraints`, `KeyUsage`, `ExtendedKeyUsage`, `SubjectAlternativeName`, `NameConstraints`, SKI/AKI, and Certificate Policies.
 
-Mỗi chứng thư có **public key của subject**, nhưng chữ ký chứng thư được xác minh bằng **public key của issuer**, ngoại trừ trường hợp tự ký thì hai khóa đó có thể trùng.
+Every certificate holds the **subject's public key**, but the certificate's signature is verified using the **issuer's public key**, except in the self-signed case where the two keys may be the same.
 
-Khi một trình duyệt thấy chứng thư với subject là `service.example.test`, nó không chỉ kiểm tra “có chữ ký” mà cần xây dựng đường dẫn tin cậy và kiểm tra **đúng hostname**, thời hạn, mục đích sử dụng, policy, thuật toán và trạng thái thu hồi theo chính sách.
+When a browser sees a certificate with subject `service.example.test`, it does not merely check “there is a signature”; it must build a trust path and check **the exact hostname**, validity period, usage purpose, policy, algorithms, and revocation status per policy.
 
-Chứng thư không phải khóa bí mật. Bạn có thể gửi chứng thư cho bên khác; **private key tương ứng phải được giữ kín** và không nằm trong PEM certificate. Đừng nhầm file `.crt/.cer/.pem` có certificate với keystore chứa private key hoặc PKCS#8 private-key file.
+A certificate is not a secret key. You can send a certificate to other parties; **the corresponding private key must be kept secret** and is not inside a PEM certificate. Do not confuse a `.crt/.cer/.pem` certificate file with a keystore containing a private key or a PKCS#8 private-key file.
 
-## 2. Sơ đồ chuỗi root → intermediate → leaf
+## 2. Diagram of a Root → Intermediate → Leaf Chain
 
-Một cấu hình PKI phổ biến:
+A common PKI configuration:
 
 ```text
-                     TRUST STORE CỦA ỨNG DỤNG
+                     APPLICATION TRUST STORE
                      +-----------------------+
                      | Root CA / Trust Anchor|
-                     | ĐÃ được tin cậy trước |
+                     | ALREADY pre-trusted   |
                      +-----------+-----------+
                                  |
-           Root private key ký certificate của Intermediate
+           Root private key signs the Intermediate certificate
                                  |
                                  v
                      +-----------------------+
                      | Intermediate CA       |
                      | BasicConstraints CA=1 |
-                     | được Root xác nhận    |
+                     | attested by Root      |
                      +-----------+-----------+
                                  |
-             Intermediate private key ký certificate của Leaf
+             Intermediate private key signs the Leaf certificate
                                  |
                                  v
                      +-----------------------+
                      | Leaf / End Entity     |
                      | service.example.test  |
-                     | CA=0, SAN và EKU      |
+                     | CA=0, SAN and EKU     |
                      +-----------------------+
                                  |
-                      Leaf private key dùng
-                     cho TLS hoặc chữ ký app
+                      Leaf private key used
+                     for TLS or app signing
 ```
 
-Trong mạng TLS thông thường, máy chủ gửi **leaf và các intermediate cần thiết**; root tin cậy thường đã có sẵn trong trust store phía client và **không cần được máy chủ gửi**. Chuỗi mà server gửi chưa chắc chính là đường dẫn cuối cùng được validator chọn (ví dụ khi có cross-sign); trình kiểm tra có thể phải xây hoặc chọn một path phù hợp với tập trust anchors tại client.
+In typical TLS networking, the server sends **the leaf and necessary intermediates**; the trusted root is usually already present in the client's trust store and **does not need to be sent by the server**. The chain sent by the server is not necessarily the final path chosen by the validator (for example, when cross-signing exists); the verifier may have to build or select a path matching the client's trust anchors.
 
-### Vai trò khác nhau
+### Distinct Roles
 
-| Loại | Nhiệm vụ trong chuỗi | Thường ký cho ai? | Extension thường cần | Có cần là self-signed? |
+| Type | Role in the chain | Typically signs for whom? | Typical extensions needed | Must it be self-signed? |
 | --- | --- | --- | --- | --- |
-| **Root CA** | Điểm bắt đầu tin cậy (*trust anchor*) của một hệ thống PKI | Intermediate hoặc các CA khác | `BasicConstraints: CA=true`, `KeyUsage: keyCertSign` | **Không bắt buộc về mặt khái niệm trust anchor**; các root CA certificate thường tự ký |
-| **Intermediate CA** | Cấp/chứng thực certificate ở tầng thấp hơn; phân quyền từ root | Intermediate khác hoặc leaf | `CA=true`, `keyCertSign`, `pathLenConstraint` nếu có | **Thường không**; nó được issuer phía trên ký |
-| **Leaf / End-Entity** | Gắn public key với máy chủ, người dùng, dịch vụ hoặc ứng dụng cuối | Không đóng vai trò CA trong path đó | `CA=false`, SAN, EKU, KeyUsage phù hợp mục đích | **Thường không**; tuy nhiên có thể tự ký trong một số môi trường |
-| **Self-signed certificate** | Mô tả **đặc tính chữ ký**, không phải một tầng cụ thể | Subject ký certificate của chính mình | Có thể `CA=true` hoặc `CA=false` tùy mục đích | **Theo định nghĩa là tự ký** |
+| **Root CA** | Starting point of trust (*trust anchor*) of a PKI system | Intermediates or other CAs | `BasicConstraints: CA=true`, `KeyUsage: keyCertSign` | **Not required by the trust anchor concept**; root CA certificates are usually self-signed |
+| **Intermediate CA** | Issues/certifies lower-tier certificates; delegated from root | Other intermediates or leaves | `CA=true`, `keyCertSign`, `pathLenConstraint` if any | **Usually not**; it is signed by an upper issuer |
+| **Leaf / End-Entity** | Binds a public key to a host, user, service, or end application | Does not act as a CA in that path | `CA=false`, SAN, EKU, KeyUsage suited to purpose | **Usually not**; however, can be self-signed in some environments |
+| **Self-signed certificate** | Describes a **signature property**, not a specific tier | Subject signs its own certificate | May have `CA=true` or `CA=false` depending on purpose | **By definition, self-signed** |
 
-Một **root CA** là vai trò theo *trust anchor được chọn*, không phải “mọi certificate có `Subject=Issuer`”. Một certificate tự ký có `CA=true` vẫn **không trở thành trust anchor chỉ vì nó tự ký**. Ngược lại, một tổ chức có thể chủ động tin một certificate/khóa không tự ký làm trust anchor nội bộ hoặc tin một intermediate làm anchor theo chính sách; `TrustAnchor` trong Java hỗ trợ cả certificate hoặc CA name/public key.
+A **root CA** is a role defined by *the chosen trust anchor*, not “any certificate with `Subject=Issuer`”. A self-signed certificate with `CA=true` still **does not become a trust anchor merely by being self-signed**. Conversely, an organization can explicitly trust a non-self-signed certificate/key as an internal trust anchor or trust an intermediate as an anchor by policy; `TrustAnchor` in Java supports either a certificate or a CA name/public key.
 
-### CA khác với end entity ở đâu?
+### How Does a CA Differ from an End Entity?
 
-Certificate có `BasicConstraints` **CA=true** có thể đóng vai trò CA nếu các điều kiện path/KeyUsage/policy phù hợp. Một **leaf** thông thường có `BasicConstraints CA=false` hoặc không có quyền CA. Với Java `X509Certificate.getBasicConstraints()`:
+A certificate with `BasicConstraints` **CA=true** can act as a CA if path/KeyUsage/policy conditions match. A typical **leaf** has `BasicConstraints CA=false` or no CA authority. With Java `X509Certificate.getBasicConstraints()`:
 
-- Trả **`-1`** nếu certificate không phải CA.
-- Trả số **`>=0`** nếu certificate là CA; số này phản ánh mức `pathLenConstraint` được khai báo hoặc một giá trị đại diện khi không giới hạn.
-- `pathLenConstraint=0` với intermediate nghĩa là không cho phép **CA trung gian không tự phát hành thêm** nằm dưới intermediate đó trong đường dẫn, nhưng vẫn có thể cấp certificate cho **leaf**.
-- Trong path validation, ý nghĩa path length cần tuân theo RFC 5280, gồm quy tắc về các CA self-issued. Không tự kiểm tra path length bằng cách đếm tất cả certificate trong một mảng.
+- Returns **`-1`** if the certificate is not a CA.
+- Returns a number **`>=0`** if the certificate is a CA; this number reflects the declared `pathLenConstraint` or a representative value when unconstrained.
+- `pathLenConstraint=0` on an intermediate means no **additional non-self-issued intermediate CAs** are allowed below that intermediate in the path, though it can still issue certificates for **leaves**.
+- In path validation, path length semantics must follow RFC 5280, including rules for self-issued CAs. Do not implement path length checks manually by counting all certificates in an array.
 
-Một CA certificate còn thường có bit **`KeyUsage.keyCertSign`**, và validator phải áp dụng các constraint phù hợp. **`CA=true` đơn độc không có nghĩa ứng dụng phải tin hoặc certificate đó chắc chắn được phép cấp mọi loại certificate.**
+A CA certificate also commonly has the **`KeyUsage.keyCertSign`** bit, and the validator must enforce the appropriate constraints. **`CA=true` alone does not mean the application should trust it or that the certificate is necessarily authorized to issue every type of certificate.**
 
-## 3. Self-issued và self-signed không hoàn toàn giống nhau
+## 3. Self-Issued and Self-Signed Are Not Exactly the Same
 
-Đây là sự phân biệt dễ bị bỏ qua:
+This is a distinction easily overlooked:
 
-- **Self-issued:** `Subject` và `Issuer` có cùng Distinguished Name (DN). Đó là một so sánh **tên**, không phải bằng chứng chữ ký.
-- **Self-signed:** chữ ký trên certificate được tạo bằng private key tương ứng với **public key chứa trong chính certificate**, và chữ ký có thể được xác minh bằng public key đó. Thông thường subject và issuer cũng trùng tên.
+- **Self-issued:** `Subject` and `Issuer` have the same Distinguished Name (DN). That is a **name** comparison, not signature proof.
+- **Self-signed:** the signature on the certificate was created with the private key corresponding to the **public key contained in the certificate itself**, and the signature can be verified with that public key. Usually the subject and issuer also share the same name.
 
-Một certificate **self-issued nhưng không self-signed** có thể xuất hiện trong quá trình chuyển khóa (*CA key rollover*): tên CA không đổi nhưng certificate được ký bởi một khóa khác của cùng CA. Vì vậy không được coi `subject.equals(issuer)` là phép kiểm tra self-signed đầy đủ.
+A **self-issued but non-self-signed** certificate can appear during key transition (*CA key rollover*): the CA name does not change, but the certificate is signed by another key of the same CA. Therefore, `subject.equals(issuer)` must not be treated as a complete self-signed check.
 
-**Self-signed không đồng nghĩa self-trusted.** Ví dụ:
+**Self-signed does not mean self-trusted.** For example:
 
 ```text
-Root-A tự ký hợp lệ. Client đã cài Root-A làm trust anchor.
-=> Một path kết thúc ở Root-A có THỂ được tin nếu còn các policy khác.
+Root-A is validly self-signed. Client has installed Root-A as a trust anchor.
+=> A path terminating at Root-A CAN be trusted if other policies pass.
 
-Root-B tự ký hợp lệ. Client chưa hề phê duyệt/cài Root-B.
-=> Root-B KHÔNG được tin chỉ vì chữ ký tự ký đúng.
+Root-B is validly self-signed. Client has never approved/installed Root-B.
+=> Root-B is NOT trusted merely because its self-signature is valid.
 ```
 
-Đối thủ có thể sinh vô số cặp khóa và certificate tự ký có chữ ký hợp lệ. Không có bài toán mật mã nào ngăn họ làm việc đó. Chính **phân phối trust anchor từ nguồn đã được kiểm soát** mới quyết định root nào đáng tin với ứng dụng.
+An adversary can generate countless key pairs and self-signed certificates with valid signatures. No mathematical problem stops them from doing so. Only **distributing trust anchors from a controlled source** determines which roots are trusted by the application.
 
-### Vì sao root CA thường self-signed?
+### Why Are Root CAs Usually Self-Signed?
 
-Đường dẫn certificate phải có điểm dừng. Root certificate tự ký tạo một định dạng đóng gói tiện lợi cho **public key và metadata của điểm tin cậy**; tuy nhiên **niềm tin không đến từ chữ ký của root lên chính nó**. Nó đến từ việc ứng dụng/hệ điều hành/tổ chức **đã chọn khóa/certificate đó làm trust anchor** thông qua cơ chế tin cậy bên ngoài.
+A certificate path must have a stopping point. A self-signed root certificate provides a convenient packaging format for **the public key and metadata of the trust point**; however, **trust does not come from the root's signature on itself**. It comes from the application/OS/organization **having selected that key/certificate as a trust anchor** via an out-of-band trust mechanism.
 
-Trong nhiều PKI, private key root được giữ offline hoặc trong HSM, intermediate thực hiện việc ký certificate thường ngày. Nếu intermediate bị lộ, nhà quản trị có thể thu hồi/thay intermediate mà không bắt buộc thay toàn bộ root; nhưng đó vẫn là sự cố nghiêm trọng ảnh hưởng các leaf đã cấp và yêu cầu quy trình revocation/rotation.
+In many PKIs, the root private key is kept offline or in an HSM, while intermediates handle day-to-day certificate signing. If an intermediate is compromised, administrators can revoke/replace the intermediate without necessarily replacing the entire root; yet it remains a serious incident affecting issued leaves and requiring revocation/rotation procedures.
 
-## 4. Signature link khác với một path tin cậy
+## 4. A Signature Link Differs from a Trusted Path
 
-Xem ba chứng thư:
+Consider three certificates:
 
 ```text
 Root:         Subject = CN=Training Root CA
@@ -127,105 +127,105 @@ Leaf:         Subject = CN=service.example.test
               Issuer  = CN=Training Intermediate CA
 ```
 
-Các đường liên kết mật mã có thể kiểm tra:
+The cryptographic links that can be checked:
 
-- `intermediate.verify(root.getPublicKey())`: chữ ký của intermediate phù hợp public key root.
-- `leaf.verify(intermediate.getPublicKey())`: chữ ký leaf phù hợp public key intermediate.
-- `root.verify(root.getPublicKey())`: chữ ký root tự xác minh được nếu root là self-signed.
+- `intermediate.verify(root.getPublicKey())`: intermediate's signature matches root's public key.
+- `leaf.verify(intermediate.getPublicKey())`: leaf's signature matches intermediate's public key.
+- `root.verify(root.getPublicKey())`: root's signature self-verifies if root is self-signed.
 
-**Nhưng chỉ ba lời gọi `verify` trên chưa thiết lập được trust**:
+**However, those three `verify` calls alone do not establish trust**:
 
-- Bạn có thể đã lấy `root.pem` từ chính attacker. Cả ba chữ ký có thể đúng, nhưng root chưa được **tin cậy**.
-- Có thể có intermediate `CA=false` hoặc `keyCertSign` không được cho phép. Từng chữ ký vẫn có thể khớp nhưng **đường dẫn không đạt constraint**.
-- Certificate có thể hết hạn, chưa có hiệu lực, bị thu hồi hoặc dùng thuật toán không được policy cho phép.
-- Leaf có thể hợp lệ cho hostname `service-b.example.test`, nhưng client cần kết nối `service-a.example.test`.
-- Root được tin trong một **purpose/namespace** không đồng nghĩa có quyền cấp certificate cho mọi mục đích hoặc tenant.
+- You may have obtained `root.pem` from the attacker. All three signatures may be valid, yet the root is not **trusted**.
+- An intermediate might have `CA=false` or `keyCertSign` disallowed. Individual signatures can still match while **the path fails constraints**.
+- A certificate may be expired, not yet valid, revoked, or use an algorithm disallowed by policy.
+- The leaf may be valid for hostname `service-b.example.test`, while the client needs to connect to `service-a.example.test`.
+- A root trusted in one **purpose/namespace** does not imply authority to issue certificates for all purposes or tenants.
 
-**Xác minh một certificate signature** là thao tác cục bộ. **PKIX path validation** xét một đường dẫn certificate trong ngữ cảnh trust anchors và các constraints. **Xác minh danh tính dịch vụ/người dùng** là ràng buộc tiếp theo của ứng dụng/TLS.
+**Verifying a certificate signature** is a local operation. **PKIX path validation** evaluates a certificate path in the context of trust anchors and constraints. **Verifying service/user identity** is the subsequent application/TLS constraint.
 
-## 5. Các trường X.509 nên đọc để xác định vai trò
+## 5. X.509 Fields to Read to Determine Roles
 
-| Field / extension | Vai trò | Điều không được suy diễn |
+| Field / extension | Role | What must not be inferred |
 | --- | --- | --- |
-| `Subject` | Tên chủ thể | Tên có thể được tự khai, không tự chứng minh danh tính |
-| `Issuer` | Tên bên phát hành được khai báo | Trùng tên root không chứng minh certificate được root ký |
-| `AuthorityKeyIdentifier` (AKI) | Hỗ trợ tìm public key/certificate của issuer thích hợp | AKI không tự là trust anchor hoặc bằng chứng path hợp lệ |
-| `SubjectKeyIdentifier` (SKI) | Định danh khóa chủ thể, hỗ trợ dựng path | Cùng một SKI không chứng minh đã được tin cậy |
-| `BasicConstraints` | Phân biệt CA, ràng buộc số CA ở dưới | `CA=true` không tự cấp niềm tin |
-| `KeyUsage` | Các mục đích khóa như `digitalSignature`, `keyCertSign`, `keyEncipherment` | Một certificate chỉ có public key RSA không mặc nhiên cho phép mọi usage |
-| `ExtendedKeyUsage` (EKU) | Mục đích như `serverAuth`, `clientAuth`, `codeSigning` | `serverAuth` không tự cấp quyền ký bản cập nhật ứng dụng |
-| `SubjectAlternativeName` (SAN) | Danh tính DNS/IP/email/URI theo profile | Chỉ nhìn CN hoặc một SAN bất kỳ không đủ để khớp hostname |
-| `NotBefore` / `NotAfter` | Khoảng thời gian hiệu lực | Trong hạn không đồng nghĩa chưa bị thu hồi |
-| `CRLDistributionPoints` / `AuthorityInfoAccess` | Gợi ý điểm lấy CRL/OCSP/certificate issuer | Có URL trong extension không đảm bảo client đã thực hiện revocation checks |
-| `CertificatePolicies` / `NameConstraints` | Ràng buộc policy, namespace | Không thể bỏ qua critical extension không hiểu mà vẫn coi path hợp lệ |
+| `Subject` | Subject name | The name can be self-asserted; does not prove identity by itself |
+| `Issuer` | Declared issuer name | Matching a root's name does not prove the certificate was signed by that root |
+| `AuthorityKeyIdentifier` (AKI) | Helps locate the appropriate issuer public key/certificate | AKI is not itself a trust anchor or proof of a valid path |
+| `SubjectKeyIdentifier` (SKI) | Identifies the subject key, assists path building | Having the same SKI does not prove trust |
+| `BasicConstraints` | Distinguishes CA, constrains number of CAs below | `CA=true` does not automatically grant trust |
+| `KeyUsage` | Key purposes such as `digitalSignature`, `keyCertSign`, `keyEncipherment` | A certificate simply holding an RSA public key does not automatically allow every usage |
+| `ExtendedKeyUsage` (EKU) | Purposes such as `serverAuth`, `clientAuth`, `codeSigning` | `serverAuth` does not grant permission to sign application updates |
+| `SubjectAlternativeName` (SAN) | DNS/IP/email/URI identity per profile | Looking only at CN or an arbitrary SAN is insufficient to match a hostname |
+| `NotBefore` / `NotAfter` | Validity interval | Being within the interval does not mean it has not been revoked |
+| `CRLDistributionPoints` / `AuthorityInfoAccess` | Hints where to fetch CRL/OCSP/issuer certificate | Having a URL in an extension does not guarantee the client performed revocation checks |
+| `CertificatePolicies` / `NameConstraints` | Policy and namespace constraints | Cannot ignore an unrecognized critical extension and still treat the path as valid |
 
-Một chain phù hợp còn phải có **chữ ký đúng giữa từng tầng**, **issuer/subject linkage**, hỗ trợ thuật toán phù hợp, các critical extensions được xử lý đúng, BasicConstraints/KeyUsage/policy và **trust anchor đã chọn**.
+A proper chain must also have **valid signatures between every tier**, **issuer/subject linkage**, supported algorithms, properly processed critical extensions, BasicConstraints/KeyUsage/policy compliance, and a **selected trust anchor**.
 
-### Root / intermediate không chỉ dựa vào tên
+### Root / Intermediate Is Not Determined by Name Alone
 
-Thấy subject chứa chữ `Root` không có nghĩa certificate đó là root. Thấy `Issuer=Subject` không chắc nó self-signed. Thấy một certificate `CA=true` không chắc nó nằm ở tầng intermediate; **cùng certificate CA có thể là intermediate trong một path, nhưng được tổ chức khác chủ động dùng làm trust anchor trong một path khác**. Vai trò phụ thuộc **đường dẫn/chính sách**, không phải nhãn trong DN.
+Seeing the word `Root` in a subject does not mean that certificate is a root. Seeing `Issuer=Subject` does not guarantee it is self-signed. Seeing a certificate with `CA=true` does not guarantee it sits at the intermediate tier; **the same CA certificate can be an intermediate in one path, yet actively used as a trust anchor by another organization in a different path**. Role depends on **path/policy**, not labels in the DN.
 
-### Leaf không nhất thiết là chứng thư server TLS
+### A Leaf Is Not Necessarily a TLS Server Certificate
 
-Leaf có thể là certificate cho **client mTLS**, ký code, ký tài liệu, xác thực người dùng hoặc thiết bị. EKU/KeyUsage và quy tắc định danh cần phù hợp đúng use case. Ví dụ `serverAuth` thuộc OID **`1.3.6.1.5.5.7.3.1`**, còn `clientAuth` là **`1.3.6.1.5.5.7.3.2`**. Một leaf có thể có hoặc không có một EKU cụ thể theo profile; không tự coi “leaf” là “web server”.
+A leaf can be a certificate for an **mTLS client**, code signing, document signing, user authentication, or device authentication. EKU/KeyUsage and identification rules must match the specific use case. For example, `serverAuth` has OID **`1.3.6.1.5.5.7.3.1`**, while `clientAuth` is **`1.3.6.1.5.5.7.3.2`**. A leaf may or may not have a specific EKU depending on profile; do not automatically assume “leaf” means “web server”.
 
-## 6. PKIX path validation trong Java
+## 6. PKIX Path Validation in Java
 
-Java cung cấp API chuẩn để parse certificate và xác thực đường dẫn:
+Java provides standard APIs to parse certificates and validate paths:
 
-- `CertificateFactory.getInstance("X.509")`: parse PEM/DER certificate, hoặc tạo `CertPath` từ danh sách certificate.
-- `X509Certificate`: đọc `getSubjectX500Principal()`, `getIssuerX500Principal()`, `getBasicConstraints()`, `getKeyUsage()`, `getExtendedKeyUsage()`, `getSubjectAlternativeNames()`, `getNotBefore()/getNotAfter()`.
-- `X509Certificate.verify(issuerPublicKey)`: kiểm tra chữ ký **của certificate** bằng public key issuer; **không** kiểm tra path, trust, hostname hay revocation đầy đủ.
-- `CertPathValidator.getInstance("PKIX")`: validate một **đường dẫn certificate đã có** với `PKIXParameters`.
-- `CertPathBuilder.getInstance("PKIX")`: thử **xây một path** từ certificate/CertStore và trust anchor theo cấu hình; không đồng nghĩa “luôn tự lấy được intermediate trên Internet”.
-- `TrustAnchor`: certificate/CA key mà ứng dụng **đã quyết định tin**, không phải certificate chỉ vì nó self-signed.
-- `KeyStore` và `TrustManagerFactory`: lưu/provision trust anchors và tích hợp JSSE/TLS; không nhầm **truststore** với **keystore private key**.
+- `CertificateFactory.getInstance("X.509")`: parses PEM/DER certificates, or creates a `CertPath` from a list of certificates.
+- `X509Certificate`: reads `getSubjectX500Principal()`, `getIssuerX500Principal()`, `getBasicConstraints()`, `getKeyUsage()`, `getExtendedKeyUsage()`, `getSubjectAlternativeNames()`, `getNotBefore()/getNotAfter()`.
+- `X509Certificate.verify(issuerPublicKey)`: checks the signature **of the certificate** with the issuer public key; does **not** check path, trust, hostname, or full revocation.
+- `CertPathValidator.getInstance("PKIX")`: validates an **existing certificate path** with `PKIXParameters`.
+- `CertPathBuilder.getInstance("PKIX")`: attempts to **build a path** from certificates/CertStores and configured trust anchors; does not mean “always fetches intermediates automatically from the Internet”.
+- `TrustAnchor`: a certificate/CA key that the application **has decided to trust**, not a certificate merely because it is self-signed.
+- `KeyStore` and `TrustManagerFactory`: stores/provisions trust anchors and integrates with JSSE/TLS; do not confuse a **truststore** with a **private-key keystore**.
 
-**Thứ tự `CertPath` cho PKIX thông thường:** leaf trước, các intermediate tiếp theo, và **trust anchor thường không nằm trong danh sách certificate của path** vì đã được cung cấp riêng trong `PKIXParameters`. Một số hệ thống server gửi root certificate thừa; việc root có trong handshake không có nghĩa client coi nó đáng tin.
+**Typical `CertPath` order for PKIX:** leaf first, followed by intermediates, and **the trust anchor is usually omitted from the path's certificate list** because it is supplied separately in `PKIXParameters`. Some servers send an extra root certificate; the root's presence in the handshake does not mean the client considers it trusted.
 
-### Ba kiểm tra độc lập
+### Three Independent Checks
 
 ```text
 X509Certificate.verify(issuerKey)
          |
          v
-[Certificate signature hợp lệ?]
+[Certificate signature valid?]
          |
          v
-PKIX path validation với trust anchors của client
+PKIX path validation with client's trust anchors
          |
          v
-[Root tin cậy? CA constraints? time/policy? revocation policy?]
+[Trusted root? CA constraints? time/policy? revocation policy?]
          |
          v
 Endpoint / identity verification
          |
          v
-[DNS SAN/IP/issuer identity/role đúng expected target?]
+[DNS SAN/IP/issuer identity/role matches expected target?]
          |
          v
 Authorization / application policy
          |
          v
-[Được phép truy cập resource/hành động này?]
+[Allowed to access this resource/action?]
 ```
 
-Nếu thiếu bước **endpoint identity**, một certificate hợp lệ trong chuỗi CA có thể bị chấp nhận cho **sai máy chủ**. Nếu thiếu bước **trust anchor**, kẻ tấn công có thể tự cấp chain cho chính mình. Nếu thiếu bước **authorization**, chứng thư hợp lệ vẫn có thể thực hiện hành động vượt quyền.
+If the **endpoint identity** step is missing, a valid certificate in the CA chain may be accepted for the **wrong server**. If the **trust anchor** step is missing, an attacker can issue a chain to themselves. If the **authorization** step is missing, a valid certificate can still perform unauthorized actions.
 
-## 7. Thực hành Java 17: dựng root → intermediate → leaf và một root không được tin
+## 7. Java 17 Hands-On: Building Root → Intermediate → Leaf and an Untrusted Root
 
-Bài thực hành dùng **`keytool` đi kèm JDK** và **Java 17**. Bạn tạo bốn cặp khóa **chỉ dành cho thử nghiệm**:
+This lab uses **`keytool` bundled with the JDK** and **Java 17**. You create four key pairs **strictly for testing**:
 
-1. `root`: CA tự ký với `BasicConstraints CA=true` và `pathLen=1`.
-2. `intermediate`: lúc sinh keypair có certificate tạm tự ký; sau đó tạo CSR, **root ký certificate mới** và import certificate reply vào cùng alias. Kết quả **không còn self-signed**.
-3. `leaf`: tương tự, certificate cuối do **intermediate ký**, có `SAN=dns:service.example.test` và `EKU=serverAuth`. Leaf **không phải CA**.
-4. `rogue`: CA tự ký độc lập có chữ ký hoàn toàn đúng, nhưng **không phải trust anchor được chọn** khi xác minh chain root → intermediate → leaf.
+1. `root`: self-signed CA with `BasicConstraints CA=true` and `pathLen=1`.
+2. `intermediate`: initially has a temporary self-signed certificate upon keypair generation; then you create a CSR, **root signs the new certificate**, and you import the certificate reply into the same alias. The result is **no longer self-signed**.
+3. `leaf`: similarly, the end certificate is signed by **intermediate**, with `SAN=dns:service.example.test` and `EKU=serverAuth`. The leaf is **not a CA**.
+4. `rogue`: an independent self-signed CA with a completely valid signature, but **not a selected trust anchor** when verifying the root → intermediate → leaf chain.
 
-**Không dùng keystore thử nghiệm, mật khẩu `changeit`, root giả lập hoặc private key của lab trong production.** Chỉ làm trong một thư mục dùng riêng, có thể xóa sau khi kiểm thử.
+**Do not use test keystores, the password `changeit`, mock roots, or lab private keys in production.** Work only in a dedicated directory that can be deleted after testing.
 
-### 7.1 Tạo certificate bằng PowerShell trên Windows
+### 7.1 Creating Certificates with PowerShell on Windows
 
-Mở PowerShell trong terminal có `keytool.exe` từ JDK và chạy **toàn bộ đoạn** dưới đây. Script tạo thư mục riêng trong `%TEMP%`, keystore PKCS#12 `chain.p12` và bốn file PEM. Nó không truy cập internet. Nếu chạy lại, keystore của **lab** trong thư mục tạm được tạo lại; tránh đặt tài liệu cá nhân vào cùng thư mục.
+Open PowerShell in a terminal that has `keytool.exe` from the JDK and run the **entire snippet** below. The script creates a dedicated directory in `%TEMP%`, a PKCS#12 keystore `chain.p12`, and four PEM files. It does not access the internet. If re-run, the **lab** keystore in the temp directory is recreated; avoid placing personal documents in the same directory.
 
 ```powershell
 $ErrorActionPreference = "Continue"
@@ -315,7 +315,7 @@ foreach ($alias in @("root","intermediate","leaf","rogue")) {
 Get-ChildItem -Name '*.pem'
 ```
 
-Kết quả cần có các file:
+The output should list the files:
 
 ```text
 intermediate-signed.pem
@@ -326,15 +326,15 @@ leaf.pem
 rogue.pem
 ```
 
-Tên file được liệt kê theo cách sắp xếp của hệ thống; **không** cần tin vào thứ tự hiển thị. `intermediate-signed.pem` và `leaf-signed.pem` là certificate replies trung gian; bốn file `root.pem`, `intermediate.pem`, `leaf.pem` và `rogue.pem` được lớp Java bên dưới đọc. Phần output “Generating...”, “Certificate reply was installed...” của `keytool` phụ thuộc JDK/OS và không phải stdout cố định của bài.
+Filenames are listed according to filesystem sorting; do **not** rely on the display order. `intermediate-signed.pem` and `leaf-signed.pem` are intermediate certificate replies; the four files `root.pem`, `intermediate.pem`, `leaf.pem`, and `rogue.pem` are read by the Java class below. Output such as “Generating...” or “Certificate reply was installed...” from `keytool` depends on the JDK/OS and is not fixed stdout for this lesson.
 
-**Lưu ý:** Trong bài thực hành, root/intermediate/leaf ban đầu được tạo với keystore chứa **private key** để có thể ký CSR. Sau khi thay certificate reply, private key của từng alias vẫn do keystore lưu. **Certificate PEM xuất bằng `-exportcert` chỉ chứa public certificate**, không chứa private key. Một CA thực phải có kiểm soát nghiêm ngặt riêng cho khóa root/intermediate (HSM, role, key ceremony, phát hành và revoke).
+**Note:** In this lab, root/intermediate/leaf are initially created in a keystore containing **private keys** so they can sign CSRs. After replacing the certificate reply, each alias's private key remains stored in the keystore. **PEM certificates exported with `-exportcert` contain only public certificates**, not private keys. A real CA must enforce strict controls over root/intermediate keys (HSM, roles, key ceremonies, issuance, and revocation).
 
-Trên Linux/macOS, ý tưởng tương tự với `keytool` và câu lệnh shell tương đương; khối bên trên là script **PowerShell dành cho Windows** nên không thể dán nguyên vào Bash.
+On Linux/macOS, the idea is the same using `keytool` and equivalent shell commands; the block above is a **PowerShell script for Windows** and cannot be pasted verbatim into Bash.
 
-### 7.2 Java 17: đọc certificate, kiểm tra CA và validate PKIX
+### 7.2 Java 17: Reading Certificates, Checking CA Status, and Validating PKIX
 
-Tại chính thư mục chứa bốn file PEM, tạo file **`CertificateRolesDemo.java`** có nội dung:
+In the same directory containing the four PEM files, create **`CertificateRolesDemo.java`** with the following content:
 
 ```java
 import java.io.InputStream;
@@ -428,14 +428,14 @@ public final class CertificateRolesDemo {
 }
 ```
 
-Biên dịch/chạy ở PowerShell (vẫn ở thư mục `x509-roles-training`):
+Compile and run in PowerShell (still in the `x509-roles-training` directory):
 
 ```powershell
 javac --release 17 CertificateRolesDemo.java
 java -cp . CertificateRolesDemo
 ```
 
-**Stdout Java đã được kiểm thử trên fixture `keytool` tạo như trên:**
+**Java stdout tested on the `keytool` fixture created above:**
 
 ```text
 Root self-signed: true
@@ -453,177 +453,177 @@ Leaf SAN contains expected DNS: true
 Leaf EKU allows serverAuth: true
 ```
 
-Lưu ý kết quả phụ thuộc JDK/provider hỗ trợ RSA, X.509, PKIX, keytool options và độ hiệu lực của certificates trong ví dụ; các certificate được tạo mới với thời hạn 90/600/3650 ngày nên bình thường sẽ còn hiệu lực khi chạy ngay. Bài thực hành **không** kết nối tới domain `service.example.test` và **không** đăng ký root giả lập này với hệ điều hành.
+Note that results depend on JDK/provider support for RSA, X.509, PKIX, keytool options, and the validity of the certificates in the example; the newly generated certificates have 90/600/3650-day validity periods, so they will normally be valid when run immediately. This lab does **not** connect to the domain `service.example.test` and does **not** register this mock root with the operating system.
 
-### 7.3 Vì sao mỗi dòng quan trọng?
+### 7.3 Why Does Each Line Matter?
 
-1. **`Root self-signed: true`**: root có subject/issuer cùng tên **và** chữ ký xác minh được bằng public key của chính root. Đây là sự kiện mật mã, **không phải nguyên nhân root đáng tin**.
-2. **`Intermediate self-signed: false` và `Leaf self-signed: false`**: sau khi import certificate replies, chúng được cấp bởi CA phía trên, dù lúc tạo keypair trước đó `keytool` đã tạo các certificate placeholder tự ký.
-3. **`Other root self-signed: true`**: root “rogue” tự ký có chữ ký đúng; bản thân chữ ký tự ký không phân biệt được một CA được ứng dụng phê duyệt với một CA do người khác tự sinh.
-4. **`Root is CA: true`; `Intermediate is CA: true`; `Leaf is CA: false`**: `getBasicConstraints()` phản ánh quyền CA trong certificate, không căn cứ vào chữ “root/intermediate/leaf” trong subject.
-5. **`Intermediate signature by root: true`; `Leaf signature by intermediate: true`**: hai lời gọi `verify` đơn chứng minh *certificate signature links*, **không đủ để thay cho PKIX**.
-6. **`PKIX with trusted root: true`**: path `leaf → intermediate` đạt kiểm tra PKIX khi `root` được **ứng dụng chủ động chọn** làm `TrustAnchor`.
-7. **`PKIX with unrelated root: false`**: vẫn chính path đó nhưng trust anchor được thay bằng một CA tự ký khác; path không kết thúc ở root được tin, nên bị từ chối. Đây là bằng chứng bài học quan trọng nhất.
-8. **`Leaf SAN contains expected DNS: true` và `Leaf EKU allows serverAuth: true`**: đọc riêng hai extension liên quan use case TLS. **Chúng không phải một bộ kiểm tra hostname/endpoint hoàn chỉnh**; code chỉ kiểm tra một DNS literal trong fixture.
+1. **`Root self-signed: true`**: the root has matching subject/issuer names **and** a signature verifiable with the root's own public key. This is a cryptographic fact, **not the reason the root is trusted**.
+2. **`Intermediate self-signed: false` and `Leaf self-signed: false`**: after importing certificate replies, they are issued by the upper CA, even though `keytool` initially generated self-signed placeholder certificates during keypair creation.
+3. **`Other root self-signed: true`**: the self-signed “rogue” root has a valid signature; self-signature alone cannot distinguish an application-approved CA from a CA generated by someone else.
+4. **`Root is CA: true`; `Intermediate is CA: true`; `Leaf is CA: false`**: `getBasicConstraints()` reflects CA authority in the certificate, rather than relying on the words “root/intermediate/leaf” in the subject.
+5. **`Intermediate signature by root: true`; `Leaf signature by intermediate: true`**: two individual `verify` calls prove *certificate signature links*, **insufficient to replace PKIX**.
+6. **`PKIX with trusted root: true`**: the `leaf → intermediate` path passes PKIX validation when `root` is **explicitly chosen by the application** as the `TrustAnchor`.
+7. **`PKIX with unrelated root: false`**: the exact same path fails when the trust anchor is swapped for another self-signed CA; the path does not terminate at the trusted root, so it is rejected. This is the most important proof in the lesson.
+8. **`Leaf SAN contains expected DNS: true` and `Leaf EKU allows serverAuth: true`**: reads two extensions relevant to the TLS use case individually. **They are not a complete hostname/endpoint verifier**; the code only checks one literal DNS name in the fixture.
 
-**Quan trọng với `selfSigned`:** hàm ví dụ yêu cầu `Subject DN=Issuer DN` rồi gọi `certificate.verify(certificate.getPublicKey())`. Việc kiểm tra đúng sự tự ký về mặt mật mã **không** tạo trust. Với các certificate/provider có cách biểu diễn DN/khóa đặc biệt hoặc signature algorithm không được hỗ trợ, có thể cần xử lý thêm lỗi; đây là phương pháp minh họa chuẩn cho fixture đã tạo.
+**Important note on `selfSigned`:** the example method requires `Subject DN=Issuer DN` and then calls `certificate.verify(certificate.getPublicKey())`. Verifying cryptographic self-signing does **not** create trust. For certificates/providers with special DN/key representations or unsupported signature algorithms, additional error handling may be needed; this is a standard illustrative method for the created fixture.
 
-### 7.4 Vì sao bài thực hành tắt revocation?
+### 7.4 Why Does the Lab Disable Revocation?
 
-Lệnh `params.setRevocationEnabled(false)` chỉ dùng để demo **offline** vì các certificate tự tạo ở đây không có hệ thống CRL/OCSP thật. Nó **không phải khuyến nghị production**. Trong môi trường thực, định nghĩa chính sách kiểm tra thu hồi phù hợp, các nguồn CRL/OCSP, timeout, cache, chế độ fail-open/fail-closed theo threat model, cũng như xử lý sự cố CA/key bị thu hồi. Mọi bước path/identity/role/freshness đều cần quyết định rõ ràng; một mã demo có `PKIX validates==true` **không tự đạt đủ tất cả yêu cầu TLS**.
+The call `params.setRevocationEnabled(false)` is only for an **offline** demo because the self-generated certificates here have no real CRL/OCSP infrastructure. It is **not a production recommendation**. In real environments, define an appropriate revocation checking policy, CRL/OCSP sources, timeouts, caching, fail-open/fail-closed modes according to the threat model, as well as incident handling for revoked CAs/keys. Every step—path, identity, role, and freshness—requires explicit decisions; demo code with `PKIX validates==true` **does not automatically satisfy all TLS requirements**.
 
-**Trust anchor validity:** root certificate trong code được gọi `root.checkValidity()` tường minh. Trust anchor là đầu vào được tin cậy từ trước của `CertPathValidator`; không mặc định nó được kiểm tra tất cả các trường/điều kiện theo cùng quy tắc như certificate nằm trong path. Vòng đời root/trust store là policy riêng của ứng dụng.
+**Trust anchor validity:** the root certificate in the code has `root.checkValidity()` called explicitly. A trust anchor is a pre-trusted input to `CertPathValidator`; do not assume it is checked for all fields/conditions under the same rules as certificates inside the path. Root/trust store lifecycle is a separate application policy.
 
-## 8. Java API nào trả lời câu hỏi nào?
+## 8. Which Java API Answers Which Question?
 
-| API | Nó kiểm tra/làm gì? | Nó **không** làm gì? |
+| API | What does it check/do? | What does it **not** do? |
 | --- | --- | --- |
-| `CertificateFactory.generateCertificate` | Parse PEM/DER X.509 thành object | Không xác thực issuer hoặc trust |
-| `X509Certificate.getSubjectX500Principal` | Trả subject DN | Không chứng minh subject là danh tính đúng |
-| `X509Certificate.getIssuerX500Principal` | Trả issuer DN | Không chứng minh issuer thực sự ký |
-| `X509Certificate.getBasicConstraints` | Trả CA/path length constraint, hoặc `-1` | Không quyết định CA có đáng tin |
-| `X509Certificate.getKeyUsage/getExtendedKeyUsage` | Trả mục đích được extension khai báo | Không thay thế validation toàn bộ chain/policy |
-| `X509Certificate.getSubjectAlternativeNames` | Đọc SAN entries theo kiểu | Không tự so hostname theo quy tắc TLS |
-| `X509Certificate.checkValidity` | Kiểm tra NotBefore/NotAfter ở thời điểm xét | Không kiểm tra chữ ký, revocation, trust hoặc identity |
-| `X509Certificate.verify(issuerKey)` | Kiểm tra chữ ký certificate bằng khóa issuer | Không tự dựng/validate chuỗi hoặc chọn trust anchor |
-| `CertPathValidator.validate(path, params)` | Áp dụng thuật toán PKIX lên path với trust anchors/params | Không tự là bộ kiểm tra hostname, app authorization hoặc tự tạo trust |
-| `CertPathBuilder.build(params)` | Tìm một path phù hợp theo chứng thư/cert stores/constraints được cấu hình | Không cam kết lấy được mọi issuer qua mạng |
-| `TrustManagerFactory` / JSSE | Liên kết chính sách tin certificate chain vào TLS | Vẫn cần cấu hình endpoint identification và policy service đúng use case |
+| `CertificateFactory.generateCertificate` | Parses PEM/DER X.509 into an object | Does not validate issuer or trust |
+| `X509Certificate.getSubjectX500Principal` | Returns the subject DN | Does not prove the subject is the true identity |
+| `X509Certificate.getIssuerX500Principal` | Returns the issuer DN | Does not prove the issuer actually signed it |
+| `X509Certificate.getBasicConstraints` | Returns CA/path length constraint, or `-1` | Does not decide whether the CA is trusted |
+| `X509Certificate.getKeyUsage/getExtendedKeyUsage` | Returns purposes declared by the extensions | Does not replace full chain/policy validation |
+| `X509Certificate.getSubjectAlternativeNames` | Reads SAN entries by type | Does not match hostnames per TLS rules automatically |
+| `X509Certificate.checkValidity` | Checks NotBefore/NotAfter at the time of evaluation | Does not check signature, revocation, trust, or identity |
+| `X509Certificate.verify(issuerKey)` | Checks the certificate's signature with the issuer key | Does not build/validate a chain or select a trust anchor |
+| `CertPathValidator.validate(path, params)` | Applies the PKIX algorithm to a path with trust anchors/params | Is not a hostname checker, app authorization, or trust generator |
+| `CertPathBuilder.build(params)` | Finds a valid path from configured certificates/cert stores/constraints | Does not guarantee fetching every issuer over the network |
+| `TrustManagerFactory` / JSSE | Integrates certificate chain trust policy into TLS | Still requires configuring endpoint identification and service policy per use case |
 
-Đoạn dưới đây **chỉ minh họa khởi tạo PKIX validator**, không độc lập và chưa thực hiện đường dẫn:
+The snippet below **only illustrates initializing a PKIX validator**; it is not standalone and does not execute path validation yet:
 
 ```java
 CertPathValidator validator = CertPathValidator.getInstance("PKIX");
-// Cần CertPath, PKIXParameters và trust anchors được chuẩn bị đáng tin.
-// Cũng cần identity/hostname, purpose, revocation policy theo use case.
+// Requires a CertPath, PKIXParameters, and reliably prepared trust anchors.
+// Also requires identity/hostname, purpose, and revocation policy per use case.
 ```
 
-Không tạo `new TrustAnchor(certFromNetwork, null)` rồi dùng nó để “xác minh” chính certificate do network gửi: như vậy đưa **dữ liệu chưa tin cậy** thành điểm tin cậy và vô hiệu hóa mục đích của PKI.
+Never create `new TrustAnchor(certFromNetwork, null)` and use it to “verify” the certificate sent from the network: doing so turns **untrusted data** into a trust point and defeats the purpose of PKI.
 
-## 9. TLS, mTLS và danh tính certificate
+## 9. TLS, mTLS, and Certificate Identity
 
-### 9.1 HTTPS server: chain hợp lệ chưa đủ
+### 9.1 HTTPS Server: A Valid Chain Is Not Enough
 
-Client HTTPS có thể gặp hai certificate đều được root đáng tin ký:
+An HTTPS client may encounter two certificates both signed by a trusted root:
 
 ```text
 CN=service-a.example.test, SAN=DNS:service-a.example.test
 CN=service-b.example.test, SAN=DNS:service-b.example.test
 ```
 
-Cả hai có thể có path PKIX hợp lệ. Nhưng khi client kết nối tới **`service-a.example.test`**, certificate của **service-b** không được chấp nhận chỉ vì cùng CA. **Endpoint identity verification** phải khớp DNS/IP từ URL/kết nối tới SAN với quy tắc theo chuẩn áp dụng; không chỉ so raw `CN`.
+Both can have valid PKIX paths. Yet when the client connects to **`service-a.example.test`**, **service-b**'s certificate must not be accepted merely because it shares the same CA. **Endpoint identity verification** must match the DNS/IP from the URL/connection against the SAN according to applicable standards; do not simply compare raw `CN`.
 
-Trong JSSE, cách thực hiện endpoint identification phụ thuộc API/socket/engine và cấu hình client. Ví dụ snippet dưới đây dành cho **client `SSLSocket` hoặc `SSLEngine` đã có**, không phải chương trình độc lập:
+In JSSE, how endpoint identification is configured depends on the API/socket/engine and client setup. The snippet below is for an **existing client `SSLSocket` or `SSLEngine`**, not a standalone program:
 
 ```java
 SSLParameters parameters = sslSocket.getSSLParameters();
 parameters.setEndpointIdentificationAlgorithm("HTTPS");
 sslSocket.setSSLParameters(parameters);
-// Sau đó thực hiện TLS handshake với trust manager đúng policy.
+// Then perform the TLS handshake with a policy-compliant trust manager.
 ```
 
-Cần import `javax.net.ssl.SSLParameters`, có `sslSocket` hợp lệ và truststore an toàn. Các HTTP client tiêu chuẩn thường đã có hành vi xác thực hostname riêng; **không tắt hostname verification/trust manager để sửa lỗi certificate**. Nếu dùng hostname verifier tùy chỉnh, nó phải tuân thủ giao thức thay vì `return true`.
+You must import `javax.net.ssl.SSLParameters` and have a valid `sslSocket` and secure truststore. Standard HTTP clients usually have built-in hostname verification behavior; **never disable hostname verification or the trust manager to fix certificate errors**. If a custom hostname verifier is used, it must conform to the protocol instead of `return true`.
 
-### 9.2 mTLS client: cert chain hợp lệ không tự cấp quyền
+### 9.2 mTLS Client: A Valid Cert Chain Does Not Grant Permissions
 
-mTLS xác thực chứng thư ở **cả hai phía** khi cấu hình yêu cầu client certificate. Dù client cert có path hợp lệ, server vẫn phải ánh xạ danh tính được phép từ SAN/subject/PKI policy sang **tài khoản, service, role, tenant và quyền tài nguyên**. Một client có cert hợp lệ từ cùng CA không mặc nhiên được đọc dữ liệu của tenant khác.
+mTLS authenticates certificates on **both sides** when configured to require a client certificate. Even when a client cert has a valid path, the server must still map the permitted identity from SAN/subject/PKI policy to **an account, service, role, tenant, and resource permissions**. A client with a valid cert from the same CA is not automatically allowed to read another tenant's data.
 
-Tương tự, `ExtendedKeyUsage=serverAuth` dùng cho TLS server khác `clientAuth` dành cho client. Một certificate chỉ phù hợp với một mục đích không tự được chấp nhận trong mục đích khác. Cần dùng trust manager/certificate policy đúng theo role, không chỉ “bất kỳ cert nào chain tới CA chung”.
+Similarly, `ExtendedKeyUsage=serverAuth` for a TLS server differs from `clientAuth` for a client. A certificate suited only for one purpose is not automatically accepted for another. Use a trust manager and certificate policy tailored to the role, not just “any cert chaining to a common CA”.
 
-### 9.3 Self-signed cert trong môi trường dev
+### 9.3 Self-Signed Certs in Dev Environments
 
-Certificate tự ký cho localhost/dev có thể chấp nhận trong **một trust model hẹp** nếu fingerprint/public key đã được phân phối đáng tin và ứng dụng cố ý tin nó. Nhưng:
+A self-signed certificate for localhost/dev can be acceptable within **a narrow trust model** if its fingerprint/public key has been reliably distributed and the application intentionally trusts it. However:
 
-- Không dùng `X509TrustManager` luôn chấp nhận mọi chain.
-- Không tắt hostname check toàn cục.
-- Không import bừa certificate từ email/URL do người gửi chưa được xác thực.
-- Phải giới hạn trust theo môi trường, hostname/purpose; tránh đưa CA test vào trust store production.
+- Do not use an `X509TrustManager` that always accepts every chain.
+- Do not disable hostname checking globally.
+- Do not blindly import certificates from emails/URLs sent by an unauthenticated party.
+- Restrict trust by environment and hostname/purpose; avoid putting test CAs into production trust stores.
 
-## 10. Chẩn đoán lỗi certificate và chain
+## 10. Diagnosing Certificate and Chain Errors
 
-| Triệu chứng | Nguồn gốc cần xem | Hành động phù hợp |
+| Symptom | Root cause to inspect | Appropriate action |
 | --- | --- | --- |
-| `PKIX path building failed` hoặc `unable to find valid certification path` | Client không tìm được path về trust anchor đã cài; intermediate thiếu/issuer sai hoặc policy | Kiểm tra truststore/trust anchors, intermediate được gửi, path constraints và log chẩn đoán; **không** tự tin root do server gửi |
-| `CertPathValidatorException` với path cụ thể | Signature, validity, constraints, policies, revocation hoặc trust mismatch | Đọc lý do/`index` để debug nội bộ; xác minh chuỗi và chính sách |
-| `CertificateExpiredException` / `CertificateNotYetValidException` | Thời gian `NotAfter/NotBefore` không hợp lệ với thời điểm xét | Kiểm tra hệ thống đồng hồ, renew/replace cert đúng quy trình |
-| Certificate là self-signed nhưng `verify(selfPublicKey)` pass | Certificate tự ký có chữ ký đúng | **Chưa đủ để tin**; phải có pin/trust anchor được provision hợp lệ |
-| `CA=false` ở intermediate | Extension BasicConstraints không cho phép cấp chứng thư tầng dưới | Phát hành lại intermediate hợp lệ; không bỏ qua constraints |
-| CA có `KeyUsage` nhưng thiếu `keyCertSign` khi bị yêu cầu | Key không được cấp đúng vai trò CA | Sửa profile CA, không chỉ thêm ca vào truststore |
-| Root đáng tin nhưng hostname mismatch | Certificate có SAN khác hostname đích | Sửa cấp phát SAN hoặc hostname truy cập, không tắt endpoint identification |
-| Chain OK nhưng leaf không có `serverAuth` khi policy yêu cầu | EKU/mục đích sử dụng không phù hợp | Cấp leaf theo profile đúng, không coi chain là đủ |
-| Chain đúng nhưng thiếu CRL/OCSP trong môi trường yêu cầu | Revocation data không khả dụng hoặc cấu hình không nhất quán | Thiết kế policy, mạng/cache/timeouts, không tự tắt toàn bộ xác minh |
-| Máy khác validate, máy này không | Truststore khác, clock skew, provider, thuật toán, intermediates hoặc policy khác | So sánh JDK, trust anchors, endpoint, version/chain; không log private keys |
-| Self-issued có `Subject=Issuer` nhưng `verify(selfKey)` lỗi | Không phải self-signed hoặc dữ liệu/chữ ký khác | Xét rollover/cross-sign, không kết luận chỉ từ chuỗi DN |
+| `PKIX path building failed` or `unable to find valid certification path` | Client cannot find a path to an installed trust anchor; missing intermediate, wrong issuer, or policy issue | Check truststore/trust anchors, sent intermediates, path constraints, and diagnostic logs; **do not** automatically trust a server-sent root |
+| `CertPathValidatorException` on a specific path | Signature, validity, constraints, policies, revocation, or trust mismatch | Inspect the reason/`index` for internal debugging; verify the chain and policy |
+| `CertificateExpiredException` / `CertificateNotYetValidException` | `NotAfter/NotBefore` timestamps invalid for the evaluation time | Check system clock; renew/replace the cert through proper procedures |
+| Certificate is self-signed and `verify(selfPublicKey)` passes | Self-signed certificate has a valid signature | **Not enough to trust**; must have a properly provisioned pin/trust anchor |
+| `CA=false` on an intermediate | BasicConstraints extension does not allow issuing lower-tier certificates | Re-issue a valid intermediate; do not bypass constraints |
+| CA has `KeyUsage` but lacks `keyCertSign` when required | Key was not issued with the proper CA role | Fix the CA profile rather than merely adding the CA to the truststore |
+| Trusted root but hostname mismatch | Certificate has a SAN different from the target hostname | Fix SAN issuance or the accessed hostname; do not disable endpoint identification |
+| Chain OK but leaf lacks `serverAuth` when policy requires it | EKU/usage purpose is inappropriate | Issue the leaf with the proper profile; do not treat the chain alone as sufficient |
+| Valid chain but missing CRL/OCSP in a required environment | Revocation data unavailable or misconfigured | Design policy, network/cache/timeouts; do not disable all verification |
+| Works on another machine, fails on this one | Different truststore, clock skew, provider, algorithms, intermediates, or policy | Compare JDK, trust anchors, endpoint, versions/chain; never log private keys |
+| Self-issued with `Subject=Issuer` but `verify(selfKey)` fails | Not self-signed, or different data/signature | Consider rollover/cross-sign; do not conclude from DN strings alone |
 
-**Đừng trả thông tin bí mật hoặc bật tính năng “trust all” trên môi trường thật.** Log nên chứa certificate fingerprint (không phải private key), issuer/subject ở mức phù hợp, key ID, expected hostname, failure category và correlation ID. Cẩn thận với log chứa danh tính hoặc metadata nhạy cảm; làm sạch và kiểm soát quyền xem log.
+**Never return secret information or enable “trust all” features in real environments.** Logs should include certificate fingerprints (never private keys), appropriate issuer/subject details, key IDs, expected hostnames, failure categories, and correlation IDs. Be careful with logs containing sensitive identities or metadata; sanitize and control access to logs.
 
-## 11. Cross-signing, root rollover và trust anchor mới
+## 11. Cross-Signing, Root Rollover, and New Trust Anchors
 
-Một tổ chức có thể cấp certificate cho **cùng một intermediate public key** dưới nhiều issuer khác nhau (*cross-signing*) hoặc phát hành certificate self-issued để **chuyển đổi khóa CA**. Hệ quả:
+An organization can issue certificates for **the same intermediate public key** under multiple different issuers (*cross-signing*) or issue self-issued certificates for **CA key rollover**. Consequences:
 
-- **Không phải lúc nào cũng có một đường path duy nhất** từ leaf tới root. Các client có trust stores khác nhau có thể chọn các path hợp lệ khác nhau.
-- Root có thể được thay thế qua cập nhật truststore của OS/JDK hoặc qua quá trình phân phối policy của tổ chức. Việc phân phối đó **phải đáng tin**, không dựa trên một root tự ký mới do peer bất kỳ gửi.
-- Một CA **có thể đóng vai intermediate trong path A nhưng được coi là trust anchor trong path B** vì tổ chức B trực tiếp tin CA đó. Trust anchor là **đầu vào policy của validator**.
-- SKI/AKI giúp chọn issuer nhưng không bảo đảm chữ ký/trust; subject/issuer DN có thể giống nhau trong key rollover. Phải xác minh đúng key và signature.
-- Việc root/intermediate đổi certificate, key hay thuật toán có thể khiến thiết bị cũ chưa cập nhật truststore không xây được path, dù server vẫn có một chain hợp lệ cho client khác.
-- **Chứng thư cross-signed không đồng nghĩa “hai CA được tin như nhau”**; chỉ những trust anchors thực sự được cấu hình ở client mới có quyền kết thúc path.
+- **There is not always a single unique path** from leaf to root. Clients with different trust stores may select different valid paths.
+- A root can be replaced via OS/JDK truststore updates or an organization's policy distribution process. That distribution **must be trustworthy**, never based on a new self-signed root sent by an arbitrary peer.
+- A CA **can act as an intermediate in path A yet be treated as a trust anchor in path B** because organization B directly trusts that CA. A trust anchor is **a policy input to the validator**.
+- SKI/AKI help select an issuer but do not guarantee signature or trust; subject/issuer DNs may be identical during key rollover. The exact key and signature must still be verified.
+- Changing a root/intermediate's certificate, key, or algorithm can prevent older devices with un-updated truststores from building a path, even while the server still has a valid chain for other clients.
+- **Cross-signed certificates do not mean “both CAs are trusted equally”**; only trust anchors actually configured on the client are permitted to terminate a path.
 
-Khi triển khai thay CA hoặc intermediate, cần thử nhiều client/JDK/truststore, expiration và thuật toán yếu trong path, sắp xếp intermediate, backup và rollback; đừng thử nghiệm bằng cách vô hiệu hóa kiểm tra certificate rồi phát hành production.
+When deploying a CA or intermediate replacement, test across multiple clients/JDKs/truststores, check expirations and weak algorithms in the path, order intermediates properly, and prepare backups and rollbacks; never test by disabling certificate checks and shipping to production.
 
-## 12. Những lỗi nhận thức cần tránh
+## 12. Conceptual Errors to Avoid
 
-1. **“Subject=Issuer nên đây là root đáng tin.”** Sai: đó chỉ là dấu hiệu self-issued. Chữ ký tự ký phải kiểm tra riêng; trust anchor phải do ứng dụng chọn.
-2. **“Certificate tự ký thì luôn nguy hiểm hoặc luôn không hợp lệ.”** Không chính xác: nó có thể được tin có chủ đích sau provisioning an toàn; nguy hiểm là *tự động tin một certificate mới nhận*.
-3. **“Intermediate chứng nhận được leaf thì intermediate là root.”** Sai: intermediate có quyền do CA phía trên cấp, chịu path constraints; root là trust anchor theo policy.
-4. **“Leaf không có quyền cấp cert thì không ký gì được.”** Sai: leaf có thể dùng private key **ký thông điệp/TLS handshake** theo KeyUsage/EKU, nhưng không được dùng như CA phát hành certificate nếu `CA=false`.
-5. **“Nếu chữ ký leaf.verify(intermediateKey) đúng thì HTTPS an toàn.”** Sai: thiếu trust root, path constraints, hostname, EKU, validity, revocation và đúng chính sách ứng dụng.
-6. **“Root nằm trong certificate chain server gửi nên nó là trusted root.”** Sai: trust không đến từ server. Root phải xuất phát từ truststore/policy đã được provision.
-7. **“CertPathValidator kiểm tra hostname giúp tôi.”** Sai trong cách dùng API tổng quát: path validation không thay thế JSSE endpoint identification hoặc hostname verifier đúng.
-8. **“`getBasicConstraints() >= 0` là đủ để CA cấp bất kỳ cert nào.”** Sai: còn KeyUsage, pathLen, name constraints, policies, signature, validity và trust.
-9. **“Nếu thấy path validation fail, cứ nhập certificate lạ vào cacerts.”** Sai: việc thay đổi trust anchors là quyết định bảo mật cao, phải xác minh nguồn gốc và phạm vi tin cậy.
-10. **“Thấy revocation gây lỗi thì tắt vĩnh viễn.”** Sai: đó là chính sách có rủi ro và phải được thiết kế/đánh giá, không phải cách sửa tự động.
-11. **“Có cert PEM thì ứng dụng đã có private key để ký.”** Sai: public certificate không chứa private key; key material được lưu nơi khác.
-12. **“X.509 certificate giống public key SPKI.”** Sai: certificate có thêm issuer, validity, signature/extensions; public key SPKI chỉ mang khóa và thông số thuật toán.
-13. **“Wildcard SAN/DNS chỉ cần so chuỗi đơn giản.”** Sai: hostname verification dùng quy tắc cụ thể về DNS/IP, wildcard, encoding, IDNA; đừng tự thay thế bằng `String.contains(...)`.
-14. **“Một certificate root tự ký có chữ ký hợp lệ chứng minh danh tính tổ chức.”** Sai: bất kỳ bên nào cũng có thể sinh certificate tự ký với `O`/`CN` tùy ý; nguồn trust anchor mới tạo niềm tin.
+1. **“Subject=Issuer, so this is a trusted root.”** False: that is only a self-issued indicator. Self-signing must be verified separately; the trust anchor must be chosen by the application.
+2. **“Self-signed certificates are always dangerous or always invalid.”** Inaccurate: they can be trusted intentionally after secure provisioning; the danger is *automatically trusting a newly received certificate*.
+3. **“The intermediate certifies the leaf, so the intermediate is the root.”** False: an intermediate has authority granted by an upper CA and is subject to path constraints; a root is a trust anchor per policy.
+4. **“A leaf cannot issue certs, so it cannot sign anything.”** False: a leaf can use its private key to **sign messages/TLS handshakes** per KeyUsage/EKU, but must not be used as a CA to issue certificates if `CA=false`.
+5. **“If `leaf.verify(intermediateKey)` succeeds, HTTPS is safe.”** False: it lacks root trust, path constraints, hostname, EKU, validity, revocation, and proper application policy.
+6. **“The root is in the certificate chain sent by the server, so it is a trusted root.”** False: trust does not come from the server. The root must come from a provisioned truststore/policy.
+7. **“`CertPathValidator` checks the hostname for me.”** False in general API usage: path validation does not replace JSSE endpoint identification or a proper hostname verifier.
+8. **“`getBasicConstraints() >= 0` is enough for a CA to issue any cert.”** False: KeyUsage, pathLen, name constraints, policies, signature, validity, and trust also apply.
+9. **“If path validation fails, just import the unfamiliar certificate into `cacerts`.”** False: modifying trust anchors is a high-impact security decision that requires verifying origin and trust scope.
+10. **“Revocation causes errors, so disable it permanently.”** False: that is a risky policy choice that must be designed and evaluated, not an automatic fix.
+11. **“Having a PEM cert means the application has the private key to sign.”** False: a public certificate does not contain the private key; key material is stored elsewhere.
+12. **“An X.509 certificate is the same as an SPKI public key.”** False: a certificate adds issuer, validity, signature/extensions; an SPKI public key carries only the key and algorithm parameters.
+13. **“Wildcard SAN/DNS just needs simple string matching.”** False: hostname verification uses specific rules for DNS/IP, wildcards, encoding, and IDNA; never replace it with `String.contains(...)`.
+14. **“A self-signed root certificate with a valid signature proves the organization's identity.”** False: any party can generate a self-signed certificate with arbitrary `O`/`CN`; only the trust anchor source establishes trust.
 
-## 13. Checklist dùng trong ứng dụng Java
+## 13. Checklist for Java Applications
 
-- [ ] Xác định **expected identity** (hostname, service name, client identity) từ ngữ cảnh đáng tin, không từ certificate/claim chưa được xác minh.
-- [ ] Trust anchors đến từ truststore/policy được phân phối và quản lý đáng tin, không lấy trực tiếp từ chain peer.
-- [ ] Leaf và các intermediate được parse đúng và xây path phù hợp; root/trust anchor không được tự gán theo subject string.
-- [ ] Đánh giá chữ ký từng link, `BasicConstraints`, `KeyUsage`, `pathLenConstraint`, name/policy constraints và thuật toán.
-- [ ] Kiểm tra `NotBefore/NotAfter` theo thời gian, kế hoạch renew và policy revocation.
-- [ ] TLS server: xác thực SAN của **hostname thực sự kết nối**; không tắt JSSE endpoint identification.
-- [ ] mTLS: phân biệt `serverAuth`/`clientAuth` và gắn identity đã xác thực vào tenant/role/authorization.
-- [ ] Kiểm tra quy trình root/intermediate rotation, cross-sign, thay truststore giữa các client/JDK.
-- [ ] Không tin certificate tự ký chỉ vì `cert.verify(cert.getPublicKey())` trả thành công.
-- [ ] Không cho ứng dụng tự thêm root vào truststore từ một URL, request body hoặc chứng thư do attacker tự cung cấp.
-- [ ] Kiểm tra CRL/OCSP/short-lived certificates theo chính sách, không dùng cài đặt offline demo để thay production.
-- [ ] Bảo vệ khóa CA, root offline/HSM, phân quyền phát hành leaf, quản lý audit, backup, revocation và response khi key lộ.
+- [ ] Determine the **expected identity** (hostname, service name, client identity) from a trusted context, not from an unverified certificate or claim.
+- [ ] Trust anchors come from a reliably distributed and managed truststore/policy, never directly from the peer's chain.
+- [ ] Leaves and intermediates are parsed properly and a valid path is built; roots/trust anchors are never assigned solely by subject string.
+- [ ] Evaluate link signatures, `BasicConstraints`, `KeyUsage`, `pathLenConstraint`, name/policy constraints, and algorithms.
+- [ ] Check `NotBefore/NotAfter` against current time, renewal plans, and revocation policy.
+- [ ] TLS server: verify the SAN for the **actual connected hostname**; do not disable JSSE endpoint identification.
+- [ ] mTLS: distinguish `serverAuth`/`clientAuth` and map the authenticated identity to tenant/role/authorization.
+- [ ] Test root/intermediate rotation, cross-signing, and truststore updates across clients/JDKs.
+- [ ] Never trust a self-signed certificate merely because `cert.verify(cert.getPublicKey())` succeeds.
+- [ ] Never let the application dynamically add roots to the truststore from a URL, request body, or attacker-supplied certificate.
+- [ ] Check CRL/OCSP/short-lived certificates per policy; do not use offline demo settings in production.
+- [ ] Protect CA keys, keep roots offline/in HSMs, enforce separation of duties for leaf issuance, and manage audits, backups, revocation, and key-compromise response.
 
-## 14. Bài tập thực hành
+## 14. Practice Exercises
 
-1. Chạy script `keytool` và `CertificateRolesDemo`. Vì sao **`Other root self-signed: true`** vẫn đồng thời cho **`PKIX with unrelated root: false`**? Đây là minh họa cho sự khác nhau nào?
-2. Sau khi tạo certificate tạm cho `intermediate` bằng `-genkeypair`, trước khi import certificate reply, nó có self-signed không? Vì sao sau khi root ký và import lại, câu trả lời đổi thành `false`?
-3. Kiểm tra `root.getBasicConstraints()`, `intermediate.getBasicConstraints()` và `leaf.getBasicConstraints()`. Giải thích ý nghĩa pathLen root 1, intermediate 0, leaf -1. Vì sao intermediate vẫn có thể ký leaf?
-4. Thử dùng `leaf.verify(root.getPublicKey())` thay cho intermediate public key. Dự đoán kết quả và giải thích vì sao tên issuer/link chữ ký phải khớp khóa phát hành.
-5. Đổi trust anchor từ root sang một certificate tự ký mới do bạn tạo. Vì sao path validation fail dù root mới `verify(selfKey)` thành công?
-6. Đổi `SAN=dns:service.example.test` thành một tên khác khi phát hành leaf. Giữ nguyên root/intermediate và kiểm tra riêng path PKIX và expected hostname; vì sao **hai kết luận khác nhau**?
-7. Thử phát hành intermediate **không có BasicConstraints CA=true** rồi yêu cầu nó ký leaf. PKIX cần bảo vệ điều gì và vì sao chỉ `leaf.verify(intermediateKey)` chưa đủ?
-8. Thiết kế một mTLS service cấp client cert từ cùng CA. Những bước nào biến “path hợp lệ” thành “client được phép gọi API quản trị”?
-9. Viết một bản ghi trust anchor inventory gồm owner, fingerprint SPKI/cert, algorithm, mục đích, ngày hết hạn, rotation plan, cách cập nhật tin cậy và cách thu hồi.
-10. Mô tả quá trình đổi intermediate trong hệ thống có hàng nghìn service và nhiều JDK: certificate chain phục vụ, truststore, compatibility, CRL/OCSP, version, thời điểm cutover và quy trình rollback.
+1. Run the `keytool` script and `CertificateRolesDemo`. Why does **`Other root self-signed: true`** simultaneously produce **`PKIX with unrelated root: false`**? Which distinction does this illustrate?
+2. After generating the temporary certificate for `intermediate` with `-genkeypair`, before importing the certificate reply, is it self-signed? Why does the answer change to `false` after the root signs and you import the reply?
+3. Inspect `root.getBasicConstraints()`, `intermediate.getBasicConstraints()`, and `leaf.getBasicConstraints()`. Explain the meaning of pathLen root 1, intermediate 0, leaf -1. Why can the intermediate still sign the leaf?
+4. Try calling `leaf.verify(root.getPublicKey())` instead of the intermediate public key. Predict the result and explain why the issuer name and signature link must match the issuing key.
+5. Change the trust anchor from `root` to a new self-signed certificate you create. Why does path validation fail even though the new root's `verify(selfKey)` succeeds?
+6. Change `SAN=dns:service.example.test` to a different name when issuing the leaf. Keep the same root/intermediate and check PKIX path validation and expected hostname separately; why do **the two conclusions differ**?
+7. Try issuing an intermediate **without BasicConstraints CA=true** and have it sign the leaf. What does PKIX protect against, and why is `leaf.verify(intermediateKey)` alone insufficient?
+8. Design an mTLS service issuing client certs from the same CA. What steps turn a “valid path” into “client is authorized to call the admin API”?
+9. Write a trust anchor inventory record including owner, SPKI/cert fingerprint, algorithm, purpose, expiration date, rotation plan, how trust is updated, and how it is revoked.
+10. Describe the process of rotating an intermediate in a system with thousands of services and multiple JDKs: served certificate chain, truststore, compatibility, CRL/OCSP, versions, cutover timing, and rollback procedure.
 
-## Tài liệu tham khảo
+## References
 
-- [RFC 5280 — Internet X.509 Public Key Infrastructure Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): định nghĩa BasicConstraints, KeyUsage, CA/pathLen, path validation, self-issued/self-signed.
+- [RFC 5280 — Internet X.509 Public Key Infrastructure Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): defines BasicConstraints, KeyUsage, CA/pathLen, path validation, self-issued/self-signed.
 - [Java SE 17 — X509Certificate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html): `getBasicConstraints`, `verify`, SAN, KeyUsage, EKU, validity.
-- [Java SE 17 — CertificateFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateFactory.html): parse certificate và tạo `CertPath`.
-- [Java SE 17 — CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): kiểm tra một đường dẫn với thuật toán PKIX.
-- [Java SE 17 — CertPathBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathBuilder.html): dựng đường dẫn chứng chỉ.
-- [Java SE 17 — PKIXParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors, revocation và tham số path validation.
-- [Java SE 17 — TrustAnchor](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/TrustAnchor.html): biểu diễn điểm tin cậy do ứng dụng cấu hình.
-- [Java SE 17 — KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): lưu trữ certificate/trust material và key entries.
-- [Java SE 17 — SSLParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): cấu hình endpoint identification.
-- [JDK `keytool` reference](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): `-genkeypair`, `-certreq`, `-gencert`, `-importcert` và `-exportcert`.
+- [Java SE 17 — CertificateFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateFactory.html): parsing certificates and creating `CertPath`.
+- [Java SE 17 — CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): validating a path with the PKIX algorithm.
+- [Java SE 17 — CertPathBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathBuilder.html): building certificate paths.
+- [Java SE 17 — PKIXParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors, revocation, and path validation parameters.
+- [Java SE 17 — TrustAnchor](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/TrustAnchor.html): representing an application-configured trust point.
+- [Java SE 17 — KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html): storing certificates/trust material and key entries.
+- [Java SE 17 — SSLParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): configuring endpoint identification.
+- [JDK `keytool` reference](https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html): `-genkeypair`, `-certreq`, `-gencert`, `-importcert`, and `-exportcert`.

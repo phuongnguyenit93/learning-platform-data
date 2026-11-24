@@ -1,64 +1,64 @@
-# Kiểm thử không có, có một, có nhiều và có provider cấu hình lỗi
+# Testing Zero, One, Many, and Misconfigured Providers
 
-## 1. Vì sao bốn tình huống này là tối thiểu?
+## 1. Why Are These Four Scenarios the Minimum?
 
-Trong một hệ thống Java hỗ trợ plugin, cơ chế khám phá provider có thể đến từ \`ServiceLoader\`, registry, dependency injection hoặc \`ModuleLayer\`. Việc tìm được danh sách provider **không đồng nghĩa** rằng danh sách đó có đúng số lượng, tương thích API, được cấu hình hợp lệ hoặc an toàn để kích hoạt.
+In a Java system that supports plugins, provider discovery may come from `ServiceLoader`, a registry, dependency injection, or `ModuleLayer`. Finding a list of providers **does not mean** that the list has the right count, is API-compatible, is validly configured, or is safe to activate.
 
-Tối thiểu, một plugin manager phải được kiểm thử với bốn trạng thái:
+At minimum, a plugin manager must be tested against four states:
 
-1. **Không có provider:** cơ chế khám phá trả về rỗng hoặc không có ứng viên đáp ứng yêu cầu.
-2. **Có đúng một provider:** có thể chọn và gọi provider theo hợp đồng.
-3. **Có nhiều provider:** áp dụng chính sách chọn một, gọi tất cả hoặc xây pipeline; không để thứ tự khám phá quyết định ngầm.
-4. **Có provider cấu hình lỗi:** metadata, dependency, constructor, factory hoặc lifecycle không hợp lệ; host phải xử lý lỗi có kiểm soát.
+1. **Zero providers:** discovery returns empty or no candidate satisfies the requirement.
+2. **Exactly one provider:** the provider can be selected and invoked according to contract.
+3. **Many providers:** apply a policy to pick one, invoke all, or build a pipeline; never let discovery order decide implicitly.
+4. **Misconfigured provider:** metadata, dependency, constructor, factory, or lifecycle is invalid; the host must handle the failure cleanly.
 
-Bốn nhóm này kiểm tra cả *discovery*, *validation*, *selection* và *activation*. Chúng giúp ngăn một số lỗi phổ biến: gọi \`iterator().next()\` khi rỗng, lựa chọn ngẫu nhiên giữa nhiều provider, khởi tạo một plugin hỏng làm sập toàn bộ host hoặc công bố một registry chứa provider chưa sẵn sàng.
+These four groups exercise *discovery*, *validation*, *selection*, and *activation*. They help prevent common bugs: calling `iterator().next()` on an empty result, picking randomly among multiple providers, initializing a broken plugin that crashes the whole host, or publishing a registry containing an unready provider.
 
-## 2. Xác định hợp đồng trước khi viết test
+## 2. Define the Contract Before Writing Tests
 
-Giả sử host có service:
+Suppose the host defines a service:
 
-\`\`\`java
+```java
 public interface ExportProvider {
     String id();
     boolean supports(String format);
     String export(String payload);
 }
-\`\`\`
+```
 
-Host cần một **selection policy** cụ thể. Ví dụ trong bài này: với một định dạng yêu cầu, phải có **đúng một** provider hỗ trợ; không có thì báo thiếu; nhiều hơn một thì báo mơ hồ; provider khởi tạo lỗi phải bị từ chối, không âm thầm đưa vào registry.
+The host needs an explicit **selection policy**. For example, in this lesson: for a requested format, there must be **exactly one** supporting provider; zero reports missing; more than one reports ambiguous; a provider that fails initialization must be rejected and never silently added to the registry.
 
-Quy tắc này không phải bắt buộc cho mọi kiến trúc:
+This rule is not mandatory for every architecture:
 
-| Mục đích | Chính sách có thể phù hợp |
+| Purpose | Potentially Suitable Policy |
 |---|---|
-| Chọn một bộ xuất dữ liệu | Exactly-one provider hoặc priority tường minh |
-| Gửi sự kiện cho logger, audit, metrics | All-providers/broadcast với aggregate result |
-| Chạy bước validate → transform → persist | Pipeline có thứ tự và fail policy |
-| Tìm handler đầu tiên chấp nhận request | Chain of Responsibility/fallback có điều kiện dừng |
+| Choose a single data exporter | Exactly-one provider or explicit priority |
+| Send events to logger, audit, metrics | All-providers/broadcast with aggregated result |
+| Run validate → transform → persist steps | Ordered pipeline with failure policy |
+| Find first handler that accepts request | Chain of Responsibility/fallback with stop condition |
 
-**Trước khi test, phải viết rõ chính sách.** Nếu không, tình huống “nhiều provider” sẽ không có kết quả mong đợi xác định. Không nên lấy thứ tự \`ServiceLoader\` hay \`HashMap\` làm ưu tiên nghiệp vụ.
+**Before testing, write down the policy explicitly.** Otherwise, the "many providers" scenario has no deterministic expected outcome. Never treat `ServiceLoader` or `HashMap` iteration order as business priority.
 
-## 3. Ma trận kiểm thử trọng tâm
+## 3. Core Test Matrix
 
-| Tình huống | Dữ liệu thiết lập | Kỳ vọng |
+| Scenario | Setup Data | Expectation |
 |---|---|---|
-| Không có provider | Registry rỗng | Báo lỗi \`NO_PROVIDER\` hoặc degraded mode đã quy định |
-| Một provider | Một implementation hợp lệ | Chọn đúng và gọi đúng một lần |
-| Nhiều provider cùng hỗ trợ | Hai implementation cùng \`supports("csv")\` | Báo \`AMBIGUOUS_PROVIDER\` nếu áp dụng exactly-one |
-| Nhiều provider khác khả năng | CSV provider và JSON provider | Chọn đúng provider theo format |
-| Provider cấu hình lỗi | Thiếu ID, duplicate ID, sai API version | Từ chối trước khi công bố |
-| Provider tạo instance lỗi | Factory/constructor ném exception | Ghi nguyên nhân; không publish instance hỏng |
-| Provider thực thi lỗi | \`export\` ném exception | Phân loại runtime failure và giữ registry nhất quán |
-| Plugin được thay thế | V1 hoạt động, V2 được chuẩn bị | Chỉ publish V2 sau validation/health check |
-| Thử lại sau lỗi | Có side effect từ lần thử đầu | Không retry mù quáng gây lặp tác động |
+| Zero providers | Empty registry | Report `NO_PROVIDER` error or configured degraded mode |
+| One provider | One valid implementation | Select properly and invoke exactly once |
+| Many providers with same capability | Two implementations both returning `supports("csv")` | Report `AMBIGUOUS_PROVIDER` if using exactly-one |
+| Many providers with different capabilities | CSV provider and JSON provider | Select the right provider by format |
+| Misconfigured provider | Missing ID, duplicate ID, wrong API version | Reject before publication |
+| Provider instantiation failure | Factory/constructor throws exception | Record root cause; do not publish broken instance |
+| Provider execution failure | `export` throws exception | Classify runtime failure and keep registry consistent |
+| Replaced plugin | V1 active, V2 being prepared | Publish V2 only after validation/health check |
+| Retry after failure | Side effects from first attempt | Do not blindly retry and duplicate side effects |
 
-Nhóm bốn trường hợp cốt lõi nên được mở rộng thành các ca âm như trùng ID, thứ tự không ổn định và rollback. Test không chỉ kiểm tra “có exception hay không”; còn phải kiểm tra **không có side effect không mong muốn**, registry không bị thay đổi một phần và log/diagnostic đủ rõ.
+These four core cases should be expanded into negative cases such as duplicate IDs, unstable ordering, and rollback. Tests must not only check "whether an exception is thrown"; they must also verify **no unwanted side effects**, no partial registry mutation, and clear logs/diagnostics.
 
-## 4. Tình huống không có provider
+## 4. Zero Providers Scenario
 
-Khi discovery không tìm được provider:
+When discovery finds no provider:
 
-\`\`\`text
+```text
 Request(format=csv)
        |
        v
@@ -66,85 +66,85 @@ Discovery / Registry: []
        |
        v
 NO_PROVIDER
-\`\`\`
+```
 
-Có ít nhất ba cách xử lý hợp lệ tùy yêu cầu:
+There are at least three valid ways to handle this depending on requirements:
 
-- **Bắt buộc phải có provider:** từ chối startup hoặc request bằng lỗi có mã ổn định.
-- **Tính năng tùy chọn:** đánh dấu unavailable/degraded, không để tính năng không liên quan bị ảnh hưởng.
-- **Fallback được phê duyệt:** chọn một implementation mặc định thực sự tương thích, không tự động “đoán” provider.
+- **Provider is mandatory:** reject startup or the request with a stable error code.
+- **Optional feature:** mark unavailable/degraded without affecting unrelated features.
+- **Approved fallback:** pick a truly compatible default implementation, rather than automatically "guessing" a provider.
 
-Kiểm thử nên xác nhận không có \`NoSuchElementException\`, \`NullPointerException\` hoặc message mơ hồ. Với \`ServiceLoader\`, \`findFirst()\` trả \`Optional\`; dùng \`orElseThrow\` với lỗi có ngữ nghĩa ứng dụng thay vì \`get()\` không kiểm tra.
+Tests should verify there is no `NoSuchElementException`, `NullPointerException`, or vague error message. With `ServiceLoader`, `findFirst()` returns `Optional`; use `orElseThrow` with an application-meaningful error instead of an unchecked `get()`.
 
-**Không được giả định danh sách rỗng nghĩa là không có JAR:** JAR có thể tồn tại nhưng thiếu service registration, module chưa được resolve, factory không công bố service hoặc class loader không nhìn thấy provider. Unit test registry rỗng và integration test discovery thật giải quyết hai lớp lỗi khác nhau.
+**Do not assume an empty list means no JAR exists:** the JAR may exist while lacking service registration, its module may not be resolved, its factory may not publish the service, or the class loader may not see the provider. Unit testing an empty registry and integration testing real discovery address two different classes of bugs.
 
-## 5. Tình huống đúng một provider
+## 5. Exactly One Provider Scenario
 
-Với một provider hợp lệ, kiểm thử nên xác nhận:
+With one valid provider, tests should confirm:
 
-1. Provider được discover/đăng ký.
-2. Metadata và compatibility được kiểm tra trước activation.
-3. \`supports\` áp dụng đúng loại yêu cầu.
-4. Provider được gọi **một lần**, nhận đúng input và trả đúng output.
-5. Lifecycle \`start\`/\`stop\` hoặc \`close\` được quản lý theo contract.
-6. Instance được chọn có đúng ID, version và class loader dự kiến.
+1. The provider is discovered/registered.
+2. Metadata and compatibility are checked before activation.
+3. `supports` matches the right request type.
+4. The provider is invoked **once**, receiving the right input and returning the right output.
+5. Lifecycle `start`/`stop` or `close` is managed per contract.
+6. The selected instance has the expected ID, version, and class loader.
 
-Đừng chỉ assert output nếu nhiều provider có thể tạo cùng output; cần xác minh provider **thực sự được gọi**. Với mocks/fakes có thể đếm số lời gọi; với integration test, dùng log, metrics hoặc một side effect kiểm soát được.
+Do not assert only output if multiple providers could produce the same output; verify the provider was **actually invoked**. With mocks/fakes you can count invocations; in integration tests, use logs, metrics, or a controlled side effect.
 
-Một provider hợp lệ nhưng trả \`supports=false\` với request hiện tại phải được coi là **không có ứng viên phù hợp**, không phải mặc nhiên dùng nó vì registry chỉ có một phần tử.
+A valid provider that returns `supports=false` for the current request must be treated as **no matching candidate**, not used by default merely because the registry has only one entry.
 
-## 6. Tình huống nhiều provider
+## 6. Many Providers Scenario
 
-Có nhiều provider không nhất thiết là lỗi. Câu hỏi là **chính sách nào đang được kiểm thử**.
+Having multiple providers is not inherently an error. The question is **which policy is being tested**.
 
 ### Exactly-one
 
-Nếu hai provider cùng hỗ trợ \`csv\` nhưng host yêu cầu một nơi chịu trách nhiệm, nên phát hiện mơ hồ và từ chối thay vì chọn “phần tử đầu tiên”.
+If two providers both support `csv` when the host requires a single responsible handler, detect the ambiguity and reject instead of picking the "first element".
 
-\`\`\`text
+```text
 providers = [CsvA, CsvB]
 request = csv
 matches = [CsvA, CsvB]
 => AMBIGUOUS_PROVIDER
-\`\`\`
+```
 
 ### Fan-out
 
-Nếu cả audit và metrics cần nhận một event, test phải xác nhận mỗi bên được gọi đúng một lần. Cần quy tắc rõ khi một handler thất bại: fail-fast hay best-effort; nếu bất đồng bộ, test thêm timeout, backpressure và idempotency.
+If both audit and metrics must receive an event, tests must verify each side is invoked exactly once. Define clear rules when one handler fails: fail-fast or best-effort; if asynchronous, also test timeouts, backpressure, and idempotency.
 
 ### Pipeline
 
-Nếu các bước tạo output nối tiếp, test phải kiểm tra thứ tự và việc output bước trước trở thành input bước sau. Một implementation duyệt \`Set\` không có order ổn định không phù hợp nếu thứ tự ảnh hưởng kết quả.
+If steps produce output sequentially, tests must verify order and that the output of the previous step becomes the input of the next. An implementation iterating an unordered `Set` is unsuitable when order affects the result.
 
 ### Priority
 
-Nếu host dùng priority, test cần cả trường hợp priority khác nhau và **bằng nhau**. Khi tie, phải có tie-breaker được công bố hoặc trả lỗi cấu hình. Test không nên dựa trên thứ tự discovery tình cờ.
+If the host uses priority, tests need cases with both distinct and **equal** priorities. On a tie, there must be a documented tie-breaker or a configuration error returned. Tests must never rely on accidental discovery order.
 
-## 7. Tình huống provider cấu hình lỗi
+## 7. Misconfigured Provider Scenario
 
-“Provider cấu hình lỗi” có thể xảy ra ở nhiều giai đoạn:
+A "misconfigured provider" can occur at multiple stages:
 
-| Giai đoạn | Ví dụ lỗi | Kỳ vọng |
+| Stage | Error Example | Expectation |
 |---|---|---|
-| Metadata | Thiếu \`Plugin-Id\`, ID không hợp lệ, sai schema | Reject artifact, không gọi mã provider |
-| Version | API host không thỏa requirement | Reject trước activation |
-| Dependency | Module/service dependency thiếu | Không publish; báo dependency cụ thể |
-| Factory | Constructor ném exception | Phân loại startup failure; cleanup phần đã mở |
-| Registration | Hai provider dùng cùng ID | Reject theo duplicate policy |
-| Health check | Khởi tạo xong nhưng kiểm tra không đạt | Giữ registry cũ; đóng instance mới |
-| Runtime | Method provider ném exception | Báo lỗi invocation, không mặc nhiên xóa toàn bộ registry |
+| Metadata | Missing `Plugin-Id`, invalid ID, bad schema | Reject artifact without running provider code |
+| Version | Host API does not satisfy requirement | Reject before activation |
+| Dependency | Missing module/service dependency | Do not publish; report the specific dependency |
+| Factory | Constructor throws exception | Classify startup failure; clean up opened parts |
+| Registration | Two providers share the same ID | Reject per duplicate policy |
+| Health check | Instantiated but check fails | Keep old registry; close new instance |
+| Runtime | Provider method throws exception | Report invocation failure; do not blindly clear whole registry |
 
-Không nên đưa tất cả về một \`catch (Exception) { return emptyList(); }\`: như vậy cấu hình sai bị ngụy trang thành “không có provider”, làm chẩn đoán cực khó.
+Do not collapse everything into `catch (Exception) { return emptyList(); }`: doing so disguises misconfiguration as "no provider", making diagnostics extremely difficult.
 
-Trong \`ServiceLoader\`, quá trình duyệt có thể khởi tạo provider và ném \`ServiceConfigurationError\` khi declaration hoặc provider lỗi. Lỗi linkage cũng có thể xảy ra; cần ghi nhận nguyên nhân. Chính sách bắt lỗi tại ranh giới plugin phải tránh che giấu lỗi JVM nghiêm trọng hoặc tiếp tục sau khi trạng thái host không còn đáng tin.
+In `ServiceLoader`, iteration may instantiate providers and throw `ServiceConfigurationError` when a declaration or provider is broken. Linkage errors can also occur; record the root cause. Exception handling at the plugin boundary must avoid masking serious JVM errors or continuing when host state is no longer trustworthy.
 
-## 8. Ví dụ Java 17+ độc lập: kiểm thử cả bốn tình huống
+## 8. Standalone Java 17+ Example: Testing All Four Scenarios
 
-Ví dụ dưới đây dùng một registry trong bộ nhớ để cô lập **logic lựa chọn và validation** khỏi cơ chế discovery. Chạy được trên JDK 17+ mà không cần JUnit hay dependency ngoài.
+The example below uses an in-memory registry to isolate **selection and validation logic** from the discovery mechanism. It runs on JDK 17+ with no JUnit or external dependencies.
 
-Lưu thành **\`ProviderScenarios.java\`**:
+Save as **`ProviderScenarios.java`**:
 
-\`\`\`java
+```java
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -217,12 +217,12 @@ public class ProviderScenarios {
     }
 
     public static void main(String[] args) {
-        // 1. Không có provider.
+        // 1. No provider.
         expectFailure("NO_PROVIDER",
                 () -> selectOne(validate(List.of()), "csv"));
         System.out.println("empty: PASS");
 
-        // 2. Đúng một provider.
+        // 2. Exactly one provider.
         List<Provider> single = validate(List.of(
                 new SimpleProvider("csv-main", "csv")));
         String result = selectOne(single, "csv").run("report");
@@ -231,7 +231,7 @@ public class ProviderScenarios {
         }
         System.out.println("single: PASS");
 
-        // 3. Nhiều provider cùng hỗ trợ một format.
+        // 3. Multiple providers supporting the same format.
         List<Provider> multiple = validate(List.of(
                 new SimpleProvider("csv-a", "csv"),
                 new SimpleProvider("csv-b", "csv")));
@@ -239,95 +239,95 @@ public class ProviderScenarios {
                 () -> selectOne(multiple, "csv"));
         System.out.println("multiple: PASS");
 
-        // 4. Provider cấu hình lỗi: ID trống.
+        // 4. Misconfigured provider: blank ID.
         expectFailure("INVALID_PROVIDER",
                 () -> validate(List.of(
                         new SimpleProvider(" ", "csv"))));
         System.out.println("invalid: PASS");
     }
 }
-\`\`\`
+```
 
-Biên dịch và chạy:
+Compile and run:
 
-\`\`\`bash
+```bash
 javac ProviderScenarios.java
 java ProviderScenarios
-\`\`\`
+```
 
-Stdout chính xác:
+Exact stdout:
 
-\`\`\`text
+```text
 empty: PASS
 single: PASS
 multiple: PASS
 invalid: PASS
-\`\`\`
+```
 
-Giải thích:
+Explanation:
 
-- Mỗi \`expectFailure\` xác minh **mã lỗi dự kiến**; nếu action không lỗi hoặc lỗi sai, test thất bại bằng \`AssertionError\`.
-- Registry validate trước khi chọn, và \`List.copyOf\` tạo danh sách không thể sửa qua API.
-- Một provider thành công trả output để xác minh đường gọi.
-- Trường hợp nhiều provider áp dụng policy **exactly-one**, nên lỗi mơ hồ là hành vi mong đợi.
-- Trường hợp cấu hình lỗi chỉ kiểm tra ID trống; để test đủ lifecycle cần thêm fake factory và health check.
+- Each `expectFailure` verifies the **expected error code**; if the action does not fail or fails with the wrong error, the test fails with `AssertionError`.
+- The registry validates before selection, and `List.copyOf` produces a list that cannot be mutated through the API.
+- The single-provider case returns output to verify the invocation path.
+- The multi-provider case applies the **exactly-one** policy, so an ambiguity error is the expected behavior.
+- The misconfigured case only checks a blank ID; full lifecycle testing requires adding a fake factory and health check.
 
-**Giới hạn của ví dụ:** không có \`ServiceLoader\`, không có class loader động và không tự mô phỏng lỗi factory. Đây là unit test cấp selection/validation, không thay thế integration test plugin packaging.
+**Limitation of this example:** there is no `ServiceLoader`, no dynamic class loader, and no automatic simulation of factory failures. This is a selection/validation unit test and does not replace plugin packaging integration tests.
 
-## 9. Integration test với ServiceLoader: kiểm tra đúng artifact
+## 9. Integration Testing with ServiceLoader: Verifying the Real Artifact
 
-Sau khi logic selection ổn định, phải kiểm thử cơ chế khám phá thật:
+Once selection logic is solid, test the real discovery mechanism:
 
-\`\`\`java
-// Đoạn tích hợp: Provider là service interface đã công bố;
-// classpath/module path phải được test fixture chuẩn bị.
+```java
+// Integration snippet: Provider is the published service interface;
+// classpath/module path must be prepared by the test fixture.
 ServiceLoader<Provider> loader = ServiceLoader.load(Provider.class);
 List<Provider> discovered = new ArrayList<>();
 for (Provider provider : loader) {
     discovered.add(provider);
 }
 List<Provider> ready = validate(discovered);
-\`\`\`
+```
 
-Đây không phải chương trình độc lập; cần interface \`Provider\` và provider registration thật.
+This is not a standalone program; it requires the real `Provider` interface and provider registration.
 
-**Classpath provider:** JAR khai báo file:
+**Classpath provider:** the JAR declares the file:
 
-\`\`\`text
+```text
 META-INF/services/com.example.spi.Provider
-\`\`\`
+```
 
-với nội dung là tên đầy đủ của implementation. **JPMS provider:** explicit module khai báo:
+containing the fully qualified name of the implementation. **JPMS provider:** an explicit module declares:
 
-\`\`\`java
+```java
 provides com.example.spi.Provider with com.example.plugin.CsvProvider;
-\`\`\`
+```
 
-Module host tiêu thụ service cần khai báo \`uses com.example.spi.Provider\` theo thiết kế JPMS; API service phải được chia sẻ đúng class identity giữa host và plugin.
+The consuming host module must declare `uses com.example.spi.Provider` per JPMS design; the service API must share the exact same class identity between host and plugin.
 
-Các fixture integration nên tách biệt để tránh tình trạng test này làm ảnh hưởng test khác:
+Integration fixtures should be separated so one test cannot interfere with another:
 
-1. Fixture không có service registration.
-2. Fixture một provider hợp lệ.
-3. Fixture hai provider hợp lệ, bao gồm trùng format và khác format.
-4. Fixture broken registration, missing dependency hoặc constructor/factory lỗi.
+1. Fixture with no service registration.
+2. Fixture with one valid provider.
+3. Fixture with two valid providers, including matching format and differing formats.
+4. Fixture with broken registration, missing dependency, or failing constructor/factory.
 
-Việc tạo **class loader hoặc ModuleLayer mới cho từng fixture** giúp kiểm thử cô lập và tránh cache/discovery ngoài dự kiến. Tuy nhiên, fixture cũng phải mô phỏng cơ chế loader thực tế của host để phát hiện vấn đề parent delegation và API duplicate.
+Creating a **new class loader or ModuleLayer per fixture** isolates tests and avoids unintended caching/discovery. However, fixtures must also mirror the host's actual loader mechanism to catch parent delegation and duplicate-API issues.
 
-## 10. Kiểm tra lỗi thực khi duyệt ServiceLoader
+## 10. Testing Real Errors While Iterating ServiceLoader
 
-\`ServiceLoader\` có thể phát sinh \`ServiceConfigurationError\` trong các tình huống như provider declaration không hợp lệ, class provider không tồn tại hoặc không thể tạo instance. Nếu code:
+`ServiceLoader` can throw `ServiceConfigurationError` in situations such as an invalid provider declaration, a missing provider class, or failure to instantiate. If code runs:
 
-\`\`\`java
+```java
 ServiceLoader.load(Provider.class).stream().toList()
-\`\`\`
+```
 
-thì việc thu thập danh sách provider metadata không giống việc gọi mọi \`Provider.get()\`; tùy API và cơ chế, lỗi có thể xuất hiện ở thời điểm tạo \`Provider\` wrapper, đọc \`type()\` hoặc khởi tạo instance. Hãy thử **đúng đường code mà production sử dụng**, bao gồm \`Provider.get()\`, constructor và lifecycle start.
+collecting provider metadata is not the same as calling `Provider.get()` on every entry; depending on the API and mechanism, failures may surface when creating the `Provider` wrapper, reading `type()`, or instantiating the implementation. Test **the exact code path production uses**, including `Provider.get()`, constructor execution, and lifecycle start.
 
-Một nguyên tắc kiểm thử:
+A testing principle:
 
-\`\`\`text
-Artifact chưa được duyệt
+```text
+Unverified artifact
         |
   manifest/module descriptor validation
         |
@@ -338,88 +338,88 @@ Artifact chưa được duyệt
   initialization + health check
         |
     publish registry
-\`\`\`
+```
 
-Nếu gói lỗi, registry hoạt động phải giữ snapshot cũ. Không được publish từng provider dở dang rồi phát hiện một provider khác lỗi giữa chừng.
+If a package fails, the active registry must retain the old snapshot. Never publish providers incrementally one by one only to discover another provider fails midway.
 
-Với lỗi dự đoán được ở một plugin tùy chọn, host có thể quarantine plugin đó và cho các plugin khác hoạt động theo policy; với service bắt buộc, startup có thể phải thất bại. Test cần phản ánh policy, không mặc định mọi lỗi đều phải shutdown toàn bộ ứng dụng.
+For predictable failures in an optional plugin, the host can quarantine that plugin and let others run according to policy; for a mandatory service, startup may have to fail. Tests must reflect the policy rather than assuming every error must shut down the entire application.
 
-## 11. Test lifecycle và công bố registry nguyên tử
+## 11. Testing Lifecycle and Atomic Registry Publication
 
-Nếu host hỗ trợ hot reload, test bốn tình huống còn liên quan đến state transition.
+If the host supports hot reload, testing the four scenarios also involves state transitions.
 
-Ví dụ:
+Example:
 
-\`\`\`text
-Registry V1 (đang ACTIVE)
+```text
+Registry V1 (currently ACTIVE)
         |
 Prepare Registry V2
    |-- validate metadata
    |-- construct providers
    |-- start + health check
    |
-   +-- lỗi --> close V2 partial, V1 vẫn ACTIVE
+   +-- error --> close partial V2, V1 remains ACTIVE
    |
    +-- PASS --> atomic publish V2
                    |
                   drain V1
                    |
                   close V1
-\`\`\`
+```
 
-Những assertion quan trọng:
+Key assertions:
 
-- Trước publish, reader chỉ thấy V1; sau publish, reader mới thấy V2.
-- Không có snapshot chứa nửa V1 nửa V2 nếu ứng dụng yêu cầu atomic registry version.
-- Provider lỗi lúc start không được xuất hiện trong active registry.
-- Nếu reader cũ đang gọi V1, writer không đóng V1 quá sớm.
-- Resource của provider khởi tạo một phần phải được dọn ngay cả khi startup thất bại.
+- Before publication, readers see only V1; after publication, new readers see V2.
+- No snapshot ever contains half V1 and half V2 when the application requires an atomic registry version.
+- A provider that fails during start never appears in the active registry.
+- If an existing reader is still calling V1, the writer does not close V1 prematurely.
+- Resources of a partially initialized provider are cleaned up even when startup fails.
 
-\`AtomicReference<ImmutableRegistry>\` hữu ích cho atomic publication; còn an toàn của \`stop/close\` cần lease/drain hoặc đồng bộ lifecycle khác. Unit test với fake providers có thể đếm \`start\`, \`run\`, \`stop\` và chèn lỗi có kiểm soát.
+`AtomicReference<ImmutableRegistry>` is useful for atomic publication; safe `stop/close` requires a lease/drain or another lifecycle synchronization mechanism. Unit tests with fake providers can count `start`, `run`, and `stop` calls and inject controlled failures.
 
-## 12. Test lỗi và khả năng quan sát
+## 12. Testing Errors and Observability
 
-Kiểm tra không chỉ API response mà còn thông tin vận hành:
+Check not only the API response but also operational telemetry:
 
-| Kiểm thử | Điều cần quan sát |
+| Test Case | What to Observe |
 |---|---|
-| Không provider | Error code, service/format yêu cầu, môi trường discovery |
-| Một provider | Provider ID/version được chọn và invocation count |
-| Nhiều provider | Danh sách ID trùng điều kiện, chính sách resolution |
-| Config sai | Plugin ID, trường lỗi, validation reason |
-| Factory lỗi | Error class, root cause, resource cleanup |
-| Startup lỗi | Registry không đổi, không còn resource tạm |
-| Runtime lỗi | Request failure isolation, không retry side effect mù quáng |
+| Zero providers | Error code, requested service/format, discovery environment |
+| One provider | Selected provider ID/version and invocation count |
+| Many providers | List of matching IDs, resolution policy |
+| Bad config | Plugin ID, invalid field, validation reason |
+| Factory failure | Error class, root cause, resource cleanup |
+| Startup failure | Registry unchanged, no lingering temporary resources |
+| Runtime failure | Request failure isolation, no blind side-effect retries |
 
-Không log secret, credential hoặc payload nhạy cảm. Nếu một plugin không đáng tin, constructor hoặc static initializer của nó có thể có side effect; integration test nên chạy trong môi trường cách ly, với dữ liệu giả và quyền hạn tối thiểu.
+Never log secrets, credentials, or sensitive payloads. If a plugin is untrusted, its constructor or static initializer may trigger side effects; integration tests should run in an isolated environment with synthetic data and least privilege.
 
-## 13. Các lỗi phổ biến khi thiết kế test
+## 13. Common Mistakes in Test Design
 
-- Chỉ test một provider thành công rồi coi hệ plugin đã ổn.
-- Không test danh sách rỗng hoặc thiếu service registration.
-- Dùng \`findFirst()\` mà không kiểm tra trường hợp nhiều provider trùng khả năng.
-- Test dựa trên thứ tự \`ServiceLoader\` mà không có ordering policy.
-- Coi “không có provider” và “provider cấu hình hỏng” là cùng một lỗi.
-- Gọi constructor thật của plugin bên thứ ba trong unit test không có sandbox.
-- Test một \`HashMap\` đơn giản rồi giả định JPMS/module path sẽ hoạt động.
-- Chỉ assert exception type mà không kiểm tra registry và resource sau thất bại.
-- Coi việc tạo provider thành công là đã kiểm tra toàn bộ lifecycle.
-- Cho nhiều test dùng chung loader/registry và rò state giữa các fixture.
-- Không có kiểm thử race khi thay snapshot plugin trong lúc request đang chạy.
+- Testing only one successful provider and assuming the plugin system is solid.
+- Failing to test an empty list or missing service registration.
+- Using `findFirst()` without testing multiple providers with overlapping capabilities.
+- Writing tests that depend on `ServiceLoader` order without an ordering policy.
+- Treating "zero providers" and "broken provider configuration" as the same error.
+- Calling real third-party plugin constructors in unit tests without sandboxing.
+- Testing a simple `HashMap` and assuming JPMS/module path will work.
+- Asserting only the exception type without checking registry state and resource cleanup after failure.
+- Treating successful provider instantiation as covering the entire lifecycle.
+- Sharing a loader/registry across tests and leaking state between fixtures.
+- Lacking race tests when swapping plugin snapshots while requests are in flight.
 
-## 14. Checklist trước triển khai
+## 14. Pre-Deployment Checklist
 
-Trước khi phát hành hệ thống plugin:
+Before shipping a plugin system:
 
-- Có test **zero / one / many / invalid** với kết quả tường minh?
-- Có chính sách chọn provider khi nhiều ứng viên, bao gồm duplicate/tie?
-- Có test provider supports sai format và provider ID trùng?
-- Có integration test service metadata/classloader/module layer của artifact cuối cùng?
-- Có kiểm tra version/API/capability trước startup?
-- Có test constructor/start/health failure và cleanup?
-- Có kiểm tra atomic registry publish, drain và rollback?
-- Có kiểm tra runtime failure, timeout và idempotency?
-- Có log/metrics đủ để phân biệt discovery, selection, configuration và invocation failures?
-- Có giới hạn quyền và tài nguyên khi test plugin thiếu tin cậy?
+- Are **zero / one / many / invalid** cases tested with explicit outcomes?
+- Is there a provider selection policy for multiple candidates, including duplicates and ties?
+- Are providers supporting the wrong format and duplicate provider IDs tested?
+- Are there integration tests for service metadata/classloader/module layer of the final artifact?
+- Are version/API/capability checks run before startup?
+- Are constructor/start/health failures and cleanup tested?
+- Are atomic registry publication, draining, and rollback tested?
+- Are runtime failures, timeouts, and idempotency tested?
+- Are logs/metrics sufficient to distinguish discovery, selection, configuration, and invocation failures?
+- Are permissions and resources restricted when testing untrusted plugins?
 
-**Ghi nhớ:** bốn ca **không có, một, nhiều và cấu hình lỗi** là nền tảng để chứng minh plugin manager không chỉ hoạt động trong “happy path”. Test tốt phải xác minh **hành vi lựa chọn, lỗi rõ ràng, trạng thái registry nhất quán và lifecycle an toàn** trên cả unit test lẫn artifact thực tế.
+**Remember:** the four cases—**zero, one, many, and misconfigured**—form the baseline for proving a plugin manager works beyond the "happy path". Good tests verify **selection behavior, clear errors, consistent registry state, and safe lifecycle** across both unit tests and real packaged artifacts.

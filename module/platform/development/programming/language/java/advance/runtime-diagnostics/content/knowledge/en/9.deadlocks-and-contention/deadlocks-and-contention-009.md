@@ -1,38 +1,38 @@
-# 9.9 Kiểm chứng tiến triển sau sửa lỗi bằng số thao tác hoàn thành và thời gian chờ
+# 9.9 Verifying Post-Fix Progress via Completed Operations and Wait Time
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sửa lỗi deadlock, livelock, starvation hoặc một thao tác chờ quá lâu **không kết thúc ở chỗ ứng dụng hết báo lỗi, thread dump trông “đẹp hơn”, hay process khởi động lại thành công**. Câu hỏi cuối cùng là: **công việc có thực sự tiến triển trở lại, đúng thời hạn và dưới tải tương đương hay không?**
+Fixing a deadlock, livelock, starvation, or long-wait bug **does not end when the application stops logging errors, thread dumps look “cleaner,” or the process restarts successfully**. The ultimate question is: **is work genuinely progressing again, on time, and under comparable load?**
 
-Một luồng có thể ở trạng thái `RUNNABLE` nhưng chỉ retry mà không hoàn tất giao dịch. CPU có thể giảm sau một thay đổi nhưng hàng đợi vẫn dài dần. Thread dump không còn chu trình monitor deadlock nhưng service vẫn chờ database. Vì vậy cần đo **thao tác đã hoàn thành**, **thời gian chờ** và **tác động trên toàn đường xử lý**, so sánh trước–sau một cách có kiểm soát.
+A thread can be `RUNNABLE` yet merely retry without completing any transaction. CPU can drop after a change while the queue keeps growing. A thread dump may show no monitor deadlock cycle while the service still waits on the database. You must therefore measure **completed operations**, **wait times**, and **end-to-end processing impact**, comparing before and after in a controlled way.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Định nghĩa “progress hữu ích” bằng terminal business outcomes: succeeded, failed, timed out, cancelled; không nhầm attempts, accepted, started với completed.
-2. Tạo các bộ đếm tích lũy, tính **delta/completion rate**, success throughput, error rate và phát hiện counter reset.
-3. Đo **queue wait**, **lock acquisition wait**, **dependency wait**, **total operation latency**, **oldest queued/in-flight age** bằng mốc thời gian và đơn vị đúng.
-4. Phân tích p50/p95/p99 cùng sample count, phân biệt trung bình với tail, tránh nhầm `ThreadInfo.getBlockedTime()` thành toàn bộ thời gian chờ nghiệp vụ.
-5. Thiết kế phép so sánh trước–sau ở **cùng tải, cùng cửa sổ, cùng định nghĩa**, có warm-up, baseline, repeat runs, guardrails và giới hạn kết luận.
-6. Chạy ví dụ **Java 17+ độc lập** với chế độ fixture cho stdout cố định và chế độ mô phỏng một executor có queue để thấy counters/queue wait thực.
-7. Thiết lập tiêu chí PASS/FAIL cho sửa lỗi deadlock, livelock, starvation, long wait, bao gồm phát hiện hồi quy trong production.
-8. Viết báo cáo kỹ thuật rõ đã quan sát gì, chỉ là giả thuyết gì và bước kiểm chứng tiếp theo.
+1. Define “useful progress” using terminal business outcomes: succeeded, failed, timed out, cancelled; never confuse attempts, accepted, or started with completed.
+2. Build cumulative counters, compute **deltas/completion rates**, success throughput, error rates, and detect counter resets.
+3. Measure **queue wait**, **lock acquisition wait**, **dependency wait**, **total operation latency**, and **oldest queued/in-flight age** using proper time bases and units.
+4. Analyze p50/p95/p99 alongside sample counts, distinguish means from tails, and avoid mistaking `ThreadInfo.getBlockedTime()` for total business wait time.
+5. Design a before–after comparison under **comparable load, same window, and same definitions**, with warm-up, baseline, repeat runs, guardrails, and conclusion boundaries.
+6. Run a **standalone Java 17+** example featuring a fixture mode with deterministic stdout and a mode simulating an executor with a queue to observe real counters and queue waits.
+7. Define PASS/FAIL criteria for deadlock, livelock, starvation, and long-wait fixes, including regression detection in production.
+8. Write a technical report distinguishing what was observed, what remains hypothesized, and the next verification step.
 
 ---
 
-## 1. “Tiến triển” không đồng nghĩa “hoạt động”
+## 1. “Progress” Does Not Equal “Activity”
 
-Giả sử một Java service có hai thay đổi sau sửa lỗi:
+Suppose a Java service shows two changes after a fix:
 
-- Trước sửa: CPU ở 95%, retry 10.000 lần/phút, completed business orders bằng 0.
-- Sau sửa: CPU còn 30%, retry 100 lần/phút, completed orders tăng thành 200/phút.
+- Before fix: CPU at 95%, 10,000 retries/minute, completed business orders equal 0.
+- After fix: CPU drops to 30%, 100 retries/minute, completed orders rise to 200/minute.
 
-Tín hiệu thứ hai tốt hơn **về tiến độ hữu ích**, nhưng vẫn cần xem latency, failure rate, queue và tải có giống nhau không. Nếu sau sửa chỉ có 1/10 lưu lượng, completed orders giảm hay CPU giảm **không tự chứng minh** cải thiện.
+The second signal is better **in terms of useful progress**, yet you still need to verify whether latency, failure rate, queues, and offered load match. If post-fix traffic is only 1/10 of baseline, lower CPU or fewer completed orders **proves no improvement on its own**.
 
-Một ví dụ khác: sau khi restart, `ThreadMXBean.findDeadlockedThreads()` trả `null` và request đầu tiên thành công. Điều này xác nhận snapshot mới không phát hiện lock cycle, nhưng **chưa chứng minh** nguyên nhân gốc đã bị loại bỏ: thread ordering lỗi có thể tái xuất hiện sau hàng giờ đồng thời cao.
+Another example: after a restart, `ThreadMXBean.findDeadlockedThreads()` returns `null` and the first request succeeds. That confirms the fresh snapshot detects no lock cycle, yet **does not prove** the root cause was eliminated: buggy lock ordering can resurface after hours of high concurrency.
 
-**Định nghĩa thực dụng:** Một hệ thống có progress nếu các đơn vị công việc được nhận/đủ điều kiện xử lý chuyển thành **trạng thái kết thúc có thể kiểm chứng**, với tỷ lệ và thời gian phù hợp SLO và độ lớn hàng đợi không tăng vô hạn ở mức tải đã thỏa thuận.
+**Pragmatic definition:** A system makes progress when accepted/eligible units of work transition to **verifiable terminal states**, at rates and latencies meeting SLOs, without unbounded queue growth at the agreed load.
 
-### 1.1 Những mốc vòng đời cần tách bạch
+### 1.1 Lifecycle Milestones to Keep Separate
 
 ```text
 RECEIVED / OFFERED
@@ -50,45 +50,45 @@ STARTED / IN_FLIGHT
 SUCCESS | FAILED | TIMED_OUT | CANCELLED
 ```
 
-Không phải mọi dịch vụ đều dùng đúng sơ đồ này; có thể có retry, dead-letter queue, ack/requeue, transaction rollback, deduplication và trạng thái chưa biết. Hãy chọn một mô hình vòng đời **phù hợp nghiệp vụ** rồi định nghĩa từng metric bằng sự kiện thực.
+Not every service uses this exact diagram; there may be retries, dead-letter queues, ack/requeue, transaction rollbacks, deduplication, and unknown states. Choose a lifecycle model **fitting the business domain**, then define every metric by concrete events.
 
-Ví dụ:
+For example:
 
-- `accepted_total`: số yêu cầu được hệ thống **chấp nhận** theo một quyết định rõ ràng.
-- `started_total`: số yêu cầu đã bắt đầu thực thi; không phải nhận vào queue.
-- `completed_total`: số yêu cầu đã đạt terminal outcome (trong phạm vi đã định).
-- `succeeded_total`: số yêu cầu đã hoàn tất **thành công về nghiệp vụ**.
-- `failed_total`: số yêu cầu kết thúc thất bại; có thể tách timeout/cancel theo chính sách.
-- `retried_total`: số lần thử lại; **không** tự biểu thị số yêu cầu duy nhất đã hoàn tất.
-- `in_flight`: gauge số đơn vị công việc đã bắt đầu, chưa kết thúc.
-- `queue_depth`: gauge số đơn vị đang chờ chưa bắt đầu.
-- `oldest_queued_age_ms`: tuổi của phần tử cũ nhất tại thời điểm quan sát.
+- `accepted_total`: requests **accepted** by an explicit admission decision.
+- `started_total`: requests that began execution; not merely enqueued.
+- `completed_total`: requests reaching a terminal outcome (within the defined scope).
+- `succeeded_total`: requests completing **business-successfully**.
+- `failed_total`: requests ending in failure; timeouts/cancellations may be separated per policy.
+- `retried_total`: retry attempts; **does not** represent unique completed requests.
+- `in_flight`: gauge of work units started and not yet finished.
+- `queue_depth`: gauge of work units waiting and not yet started.
+- `oldest_queued_age_ms`: age of the oldest queued item at observation time.
 
-Nếu một job được retry ba lần rồi success, business outcome có thể là **1 success**, trong khi attempts là 4; đừng trộn hai cấp đo.
+If a job retries three times and then succeeds, the business outcome may be **1 success** while attempts are 4; never mix these two measurement levels.
 
-## 2. Bộ chỉ số tối thiểu để xác nhận sửa lỗi
+## 2. Minimal Metric Set to Confirm a Fix
 
-| Chỉ số | Loại | Ý nghĩa | Cảnh báo khi dùng |
+| Metric | Type | Meaning | Caution When Using |
 | --- | --- | --- | --- |
-| `completed_total` | Counter `long` | Số công việc đạt terminal outcome từ lúc instance start | Bao gồm cả thất bại nếu hợp đồng quy định |
-| `succeeded_total` | Counter `long` | Progress hữu ích đã commit/ack thành công | Không cộng trùng retry |
-| `failed_total` | Counter `long` | Công việc kết thúc lỗi | Lỗi không tự chứng minh đã xử lý an toàn |
-| `accepted_total` | Counter `long` | Lưu lượng được chấp nhận | Không phải completed |
-| `retry_attempts_total` | Counter `long` | Hoạt động thử lại | Có thể tăng khi progress bằng 0 |
-| `queue_depth` | Gauge `long/int` | Số phần tử chờ hiện tại | Một snapshot có thể thiếu transient spikes |
-| `in_flight` | Gauge `long/int` | Số công việc đang chạy chưa kết thúc | Có thể cao vì dependency chậm |
-| `oldest_queued_age_ms` | Gauge `long` | Công việc chờ lâu nhất | Rất có ích để phát hiện starvation |
-| `queue_wait_ms` | Distribution | Từ accepted/enqueued tới start | Không bao gồm service time |
-| `lock_wait_ms` | Distribution | Từ bắt đầu yêu cầu lock tới giành được lock | Không phải thời gian **giữ** khóa |
-| `dependency_wait_ms` | Distribution | Chờ DB/RPC/HTTP hoặc tín hiệu cụ thể | Phải ghi loại dependency và timeout |
-| `end_to_end_latency_ms` | Distribution | Từ ranh giới đầu đến terminal outcome | Cần ghi có gồm thời gian queue không |
-| `deadline_exceeded_total` | Counter `long` | Operation quá thời hạn đã định | Timeout caller không đảm bảo remote work đã dừng |
+| `completed_total` | `long` counter | Work units reaching a terminal outcome since instance start | Includes failures if contract defines it so |
+| `succeeded_total` | `long` counter | Useful progress committed/acked successfully | Do not double-count retries |
+| `failed_total` | `long` counter | Work ending in error | Failure does not prove safe handling |
+| `accepted_total` | `long` counter | Traffic admitted | Not completed |
+| `retry_attempts_total` | `long` counter | Retry activity | Can climb while progress is 0 |
+| `queue_depth` | `long/int` gauge | Current waiting items | A snapshot can miss transient spikes |
+| `in_flight` | `long/int` gauge | Running unfinished items | Can be high due to slow dependencies |
+| `oldest_queued_age_ms` | `long` gauge | Longest-waiting item | Very useful for spotting starvation |
+| `queue_wait_ms` | Distribution | Accepted/enqueued to start | Excludes service time |
+| `lock_wait_ms` | Distribution | Requesting lock to acquiring lock | Not lock **hold** duration |
+| `dependency_wait_ms` | Distribution | Waiting on DB/RPC/HTTP or specific signal | Must tag dependency type and timeout |
+| `end_to_end_latency_ms` | Distribution | Entry boundary to terminal outcome | State whether queue time is included |
+| `deadline_exceeded_total` | `long` counter | Operations exceeding configured deadline | Caller timeout does not guarantee remote work stopped |
 
-Không nhất thiết xuất mọi metric ngay lập tức. Chọn **ít nhưng đủ để trả lời câu hỏi**. Ví dụ nếu sửa lỗi một queue không tiến triển, completed/succeeded rate và oldest queue age là cốt lõi; thread count/CPU chỉ là chứng cứ phụ trợ.
+You do not have to emit every metric immediately. Pick **few enough yet sufficient to answer the question**. For instance, when fixing a stalled queue, completed/succeeded rates and oldest queue age are core; thread counts/CPU are supporting evidence.
 
-### 2.1 Counter và gauge khác nhau
+### 2.1 Counters vs. Gauges
 
-Counter thường tăng trong vòng đời instance; gauge có thể tăng/giảm:
+Counters normally grow over an instance’s lifetime; gauges rise and fall:
 
 ```text
 Time       completed_total  queue_depth  in_flight
@@ -97,22 +97,22 @@ T2                1040           80         8
 T3                1120           30         5
 ```
 
-`completed_total` tăng 40 rồi tăng 80; `queue_depth` lúc đầu **tăng**, sau **giảm**; `in_flight` không nhất thiết tương quan tuyến tính với số hoàn tất. Cần thêm received/accepted và elapsed time mới biết tốc độ xử lý có bắt kịp offered load không.
+`completed_total` grew by 40 and then 80; `queue_depth` first **rose** then **fell**; `in_flight` does not necessarily correlate linearly with completions. You also need received/accepted counts and elapsed time to tell whether processing keeps pace with offered load.
 
-Đối với JVM restart, counter có thể reset về 0: không lấy `completed(T2)-completed(T1)` xuyên qua hai process làm số âm rồi báo “tiến độ đảo ngược”. Gắn `process_start_time`, instance ID/pod, build và timestamp.
+Across a JVM restart, counters can reset to 0: never subtract `completed(T2) - completed(T1)` across two processes to get a negative number and claim “progress went backward.” Attach `process_start_time`, instance ID/pod, build, and timestamp.
 
-### 2.2 Chỉ đếm tasks “đã chạy xong” chưa chắc phản ánh nghiệp vụ
+### 2.2 Counting “Finished” Executor Tasks Does Not Reflect Business Outcomes
 
-`ThreadPoolExecutor.getCompletedTaskCount()` theo Javadoc Java 17 là **số tác vụ đã hoàn tất thực thi mà executor ước lượng**, không phải “đơn hàng giao thành công”, và trong khi workers thay đổi thì kết quả là **xấp xỉ**. Một `FutureTask` có thể chứa exception nhưng task vẫn hoàn tất ở góc nhìn executor.
+Per the Java 17 Javadoc, `ThreadPoolExecutor.getCompletedTaskCount()` is the **approximate total number of tasks that have completed execution**, not “orders delivered successfully,” and while workers change it is **approximate**. A `FutureTask` can hold an exception while still counting as completed from the executor’s perspective.
 
-Vì thế, khi xác nhận sửa lỗi:
-- Dùng executor metrics cho **công suất và trạng thái pool**.
-- Dùng **business counters** ở thời điểm commit/ack/terminal event để chứng minh tiến độ đúng nghĩa.
-- Đối chiếu `Future.get()`/exceptional completion, retry, transaction outcome và idempotency để không đếm thất bại là thành công.
+Thus, when verifying a fix:
+- Use executor metrics for **pool capacity and state**.
+- Use **business counters** at commit/ack/terminal events to prove genuine progress.
+- Check `Future.get()`/exceptional completions, retries, transaction outcomes, and idempotency so failures are never counted as successes.
 
-## 3. Công thức completion rate và progress rate
+## 3. Completion Rate and Progress Rate Formulas
 
-Cho hai mẫu trên **cùng instance**, không reset counter, tại thời điểm `T1`, `T2`:
+Given two samples on the **same instance**, with no counter reset, at times `T1` and `T2`:
 
 ```text
 elapsedSeconds = (monotonicTimeT2 - monotonicTimeT1) / 1e9
@@ -126,55 +126,55 @@ successRate    = successDelta / elapsedSeconds
 failureRate    = failureDelta / elapsedSeconds
 ```
 
-Đơn vị các rate là **operations/second**. `completionRate` trả lời “bao nhiêu operation đi tới trạng thái kết thúc mỗi giây”; `successRate` trả lời “bao nhiêu operation thực sự thành công mỗi giây”.
+Rate units are **operations/second**. `completionRate` answers “how many operations reach a terminal state per second”; `successRate` answers “how many operations actually succeed per second.”
 
-**Cần cả hai.** Nếu một bản sửa thay xử lý có lỗi bằng việc trả thất bại cực nhanh, `completionRate` có thể tăng đáng kể trong khi `successRate` không cải thiện. Sửa lỗi tiến triển hữu ích phải giữ đúng ý nghĩa và tiêu chí thành công.
+**Both are needed.** If a fix replaces buggy processing with returning failures ultra-fast, `completionRate` may jump while `successRate` stays flat. A useful-progress fix must preserve business semantics and success criteria.
 
-### 3.1 Một ví dụ định lượng trước–sau
+### 3.1 Quantitative Before–After Example
 
-Giả định hai cửa sổ **30 giây**, offered/accepted load trong mỗi cửa sổ đều **240 yêu cầu**, cùng phần cứng, build khác nhau theo đúng một sửa lỗi:
+Assume two **30-second** windows, both with **240** offered/accepted requests, identical hardware, and builds differing only by one fix:
 
-| Metric trên cửa sổ 30s | Trước | Sau |
+| Metric Over 30s Window | Before | After |
 | --- | ---: | ---: |
 | Accepted | 240 | 240 |
 | Completed terminal outcomes | 60 | 240 |
 | Succeeded | 57 | 237 |
 | Failed | 3 | 3 |
-| Completion rate | 2,00/s | 8,00/s |
-| Success rate | 1,90/s | 7,90/s |
-| p95 queue wait | 1.200 ms | 90 ms |
-| Accepted trừ completed trong cửa sổ | 180 | 0 |
+| Completion rate | 2.00/s | 8.00/s |
+| Success rate | 1.90/s | 7.90/s |
+| p95 queue wait | 1,200 ms | 90 ms |
+| Accepted minus completed in window | 180 | 0 |
 
-Công thức:
+Formulas:
 
 ```text
-completionRateGain = 8.00 / 2.00 = 4.00 lần
+completionRateGain = 8.00 / 2.00 = 4.00x
 
 p95WaitReduction =
     (1200 ms - 90 ms) / 1200 ms * 100 = 92.50%
 ```
 
-Các con số này là **fixture giả định**, không phải dữ liệu từ production. Chúng gợi ý dịch vụ sau sửa hoàn tất được nhiều operation hơn và giảm tail queue wait. **Chưa** đủ kết luận nhân quả tuyệt đối vì còn phải đối chiếu điều kiện tải, kiểu request, dữ liệu, cache, warm-up, số lần đo và các guardrails về correctness.
+These numbers are a **hypothetical fixture**, not production data. They suggest the fixed service completes more operations and cuts tail queue wait. They are **not yet** absolute causal proof until you verify load conditions, request mix, data, caches, warm-up, repeat runs, and correctness guardrails.
 
-**Một nuance quan trọng:** `acceptedDelta - completedDelta = 180` biểu thị sự chênh lệch dòng vào/ra trong cửa sổ, **không tự động bằng queue depth cuối cửa sổ**. Một số operation có thể đang in-flight, queue đầu kỳ không bằng 0, có huỷ/retry/requeue, hoặc snapshots không nguyên tử. Chỉ khi đã có mô hình cân bằng trạng thái đầy đủ mới suy được backlog cụ thể.
+**Important nuance:** `acceptedDelta - completedDelta = 180` reflects the inflow/outflow imbalance in that window, **not automatically the end-of-window queue depth**. Some operations may be in-flight, the initial queue may have been non-zero, cancellations/retries/requeues may exist, or snapshots may be non-atomic. Only with a full state-balance model can exact backlog be derived.
 
-### 3.2 Công thức tỷ lệ lỗi của một cửa sổ
+### 3.2 Window Failure Fraction Formula
 
 ```text
 windowFailureFraction =
     failureDelta / completedDelta
 ```
 
-Chỉ tính khi `completedDelta > 0`, cùng mẫu số/định nghĩa và không reset. Trong fixture:
+Compute only when `completedDelta > 0`, with matching denominators/definitions and no resets. In the fixture:
 
-- Trước: 3 / 60 = **5%** terminal outcomes thất bại.
-- Sau: 3 / 240 = **1,25%** terminal outcomes thất bại.
+- Before: 3 / 60 = **5%** of terminal outcomes failed.
+- After: 3 / 240 = **1.25%** of terminal outcomes failed.
 
-Số thất bại tuyệt đối **không thay đổi**; fraction giảm một phần vì mẫu số completed tăng. Không tuyên bố đã xử lý nguyên nhân lỗi nghiệp vụ chỉ vì fraction nhỏ hơn, đặc biệt khi tập request/độ khó có thể đã thay đổi.
+The absolute failure count **did not change**; the fraction dropped partly because the `completed` denominator grew. Never claim a business-error root cause was fixed solely because the fraction shrunk, especially if the request mix or difficulty changed.
 
-## 4. Đo thời gian chờ ở đúng ranh giới
+## 4. Measuring Wait Times at the Right Boundaries
 
-“Wait time” không phải một số duy nhất. Trong một quy trình xử lý:
+“Wait time” is not a single number. Inside a processing pipeline:
 
 ```text
 accepted
@@ -188,40 +188,40 @@ accepted
 accepted |---------------- end-to-end latency -------------------> terminal outcome
 ```
 
-**Tách ranh giới trước khi đo:**
+**Separate boundaries before measuring:**
 
-| Thành phần | Bắt đầu | Kết thúc | Ngữ nghĩa |
+| Component | Start | End | Semantics |
 | --- | --- | --- | --- |
-| `queue_wait` | Yêu cầu được accepted/enqueued | Worker thực sự lấy task để chạy | Thời gian **chờ được phục vụ** |
-| `lock_wait` | Bắt đầu yêu cầu giành lock | Giành được lock hoặc timeout | Chi phí **chờ khóa** |
-| `lock_hold` | Giành được lock | Release lock | Thời gian **giữ khóa**, khác lock_wait |
-| `dependency_wait` | Bắt đầu lời gọi DB/HTTP/RPC hoặc await | Có response/failure/timeout | Thời gian của dependency cụ thể |
-| `service_time` | Worker bắt đầu xử lý | Terminal outcome | Có thể bao gồm lock/dependency waits |
-| `end_to_end` | Accepted hoặc received theo hợp đồng | Terminal outcome | Có thể bao gồm queue wait và service time |
+| `queue_wait` | Request accepted/enqueued | Worker actually pulls task to run | Time **waiting to be served** |
+| `lock_wait` | Requesting the lock | Lock acquired or timed out | Cost of **waiting for lock** |
+| `lock_hold` | Lock acquired | Lock released | Time **holding lock**, distinct from `lock_wait` |
+| `dependency_wait` | Calling DB/HTTP/RPC or await | Response/failure/timeout received | Time of that specific dependency |
+| `service_time` | Worker starts processing | Terminal outcome | May include internal lock/dependency waits |
+| `end_to_end` | Accepted or received per contract | Terminal outcome | May include queue wait and service time |
 
-Đừng cộng một cách cơ học `lock_wait + dependency_wait + service_time`: `service_time` thường đã **bao gồm** các thành phần wait bên trong, nên cộng sẽ đếm trùng.
+Never mechanically sum `lock_wait + dependency_wait + service_time`: `service_time` usually already **includes** internal wait components, so adding them double-counts.
 
-### 4.1 Chọn đồng hồ: `System.nanoTime()` cho elapsed
+### 4.1 Choosing the Clock: `System.nanoTime()` for Elapsed Time
 
-Đối với thời lượng trong cùng JVM:
+For durations within the same JVM:
 
 ```java
 long before = System.nanoTime();
 try {
-    // Lời gọi cần đo thời lượng.
+    // Call whose duration needs measurement.
 } finally {
     long elapsedNanos = System.nanoTime() - before;
-    // Ghi duration vào histogram/timer thích hợp.
+    // Record duration into an appropriate histogram/timer.
 }
 ```
 
-Đây là **đoạn minh họa tích hợp**, không phải chương trình độc lập. `System.nanoTime()` trả mốc tham chiếu tùy ý phù hợp để tính **chênh lệch trong một JVM**, không phải epoch timestamp. Muốn ghép event với logs/trace của nhiều máy, ghi timestamp UTC như `Instant.now()` **riêng**.
+This is an **integration illustration snippet**, not a standalone program. `System.nanoTime()` uses an arbitrary reference suitable for computing **elapsed deltas within one JVM**, not epoch timestamps. To align events with logs/traces across machines, record UTC timestamps like `Instant.now()` **separately**.
 
-Đo thời gian bằng `System.currentTimeMillis()` có thể bị ảnh hưởng bởi điều chỉnh wall clock; dùng cho thời điểm diễn ra sự kiện, không ưu tiên cho tính elapsed chính xác. Cần cùng nguồn clock và một cặp start/end cho mỗi operation.
+Measuring elapsed time with `System.currentTimeMillis()` can be skewed by wall-clock adjustments; use it for event timestamps rather than precise elapsed measurement. Keep the same clock source and paired start/end points for every operation.
 
-### 4.2 Đo queue wait
+### 4.2 Measuring Queue Wait
 
-Đặt timestamp **trước khi enqueue** và ghi lần worker bắt đầu chạy:
+Capture a timestamp **before enqueueing** and record when the worker begins running:
 
 ```java
 long enqueuedAt = System.nanoTime();
@@ -232,13 +232,13 @@ executor.execute(() -> {
 });
 ```
 
-Đây là đoạn mã **tích hợp**, `executor` và `runBusinessWork()` phải được định nghĩa. Trong production, cần xử lý rejection: một request bị từ chối không nên biến thành accepted thành công; đếm `rejected_total` và thống nhất khi nào accepted thật sự được ghi.
+This is an **integration snippet**; `executor` and `runBusinessWork()` must be defined. In production, handle rejections: a rejected request must not be counted as accepted; increment `rejected_total` and define explicitly when `accepted` is recorded.
 
-Với framework có scheduler, batch consumer hoặc message broker, “enqueued” có thể nằm ở hệ thống khác. `System.nanoTime()` **không thể được trừ trực tiếp giữa hai JVM**, vì origin tùy từng process. Đối với queue phân tán, dùng timestamp sự kiện có clock sync, broker metrics/traces và hiểu sai lệch đồng hồ.
+With frameworks using schedulers, batch consumers, or message brokers, “enqueued” may occur in another system. `System.nanoTime()` values **cannot be subtracted directly across two JVMs**, since origins are per-process. For distributed queues, use clock-synced event timestamps, broker metrics/traces, and account for clock skew.
 
-### 4.3 Đo lock acquisition wait
+### 4.3 Measuring Lock Acquisition Wait
 
-Với `ReentrantLock`:
+With `ReentrantLock`:
 
 ```java
 long waitingSince = System.nanoTime();
@@ -252,74 +252,74 @@ try {
 }
 ```
 
-Đây cũng là đoạn mã tích hợp. Đo khoảng chờ lấy lock **khác** đo khoảng giữ lock. Phải đảm bảo unlock trong `finally`; nếu dùng `tryLock`/`lockInterruptibly`, còn cần ghi timeout/interrupted attempts riêng và không `unlock` khi chưa giành được lock.
+This is also an integration snippet. Measuring lock acquisition wait **differs from** measuring lock hold duration. Always unlock in `finally`; if using `tryLock`/`lockInterruptibly`, record timed-out/interrupted attempts separately and never `unlock` without holding the lock.
 
-Với `synchronized`, việc instrument chính xác thời điểm trước/sau block thường phải thiết kế cẩn thận:
+With `synchronized`, instrumenting right before/after the block requires care:
 
 ```java
 long start = System.nanoTime();
 synchronized (sharedMonitor) {
     long acquired = System.nanoTime();
-    // Đo elapsed trước khi vào monitor và cập nhật metric phù hợp.
+    // Measure elapsed before entering the monitor and update the metric appropriately.
 }
 ```
 
-**Không** ghi metrics bằng code gây blocking lâu bên trong vùng lock để tránh tạo contention mới trong quá trình giám sát.
+**Never** record metrics using slow blocking code inside the lock region, lest monitoring introduce new contention.
 
-### 4.4 Đo chờ dependency và timeout
+### 4.4 Measuring Dependency Waits and Timeouts
 
-Một HTTP client có thể trải qua DNS, connect, TLS, pool acquisition và response read. “HTTP latency” là tổng hay chỉ một phần cần được xác định. Với JDBC có connection pool, thời gian **chờ lấy connection** khác thời gian thực thi query.
+An HTTP client may traverse DNS, connect, TLS, pool acquisition, and response read. Define whether “HTTP latency” means total time or a slice. With JDBC connection pools, time spent **waiting for a connection** differs from query execution time.
 
-Đặt timestamps, trace spans và deadline ở đúng ranh giới:
+Place timestamps, trace spans, and deadlines at the proper boundaries:
 
-- Caller đã chờ bao lâu?
-- Downstream đã nhận request chưa?
-- Có timeout ở tầng connect/read/query/overall?
-- Caller timeout có **hủy được** tác vụ phía remote không?
-- Có retry làm request phát sinh nhiều lần không?
+- How long did the caller wait?
+- Did downstream receive the request?
+- Are timeouts set at connect/read/query/overall layers?
+- Does caller timeout **cancel** remote work?
+- Did retries multiply the request?
 
-Khi request chậm nhưng queue wait thấp, nguyên nhân có thể nằm trong service time/dependency. Khi queue wait cao nhưng service time ổn, có thể là thiếu workers, scheduling starvation hoặc offered load vượt capacity.
+When requests are slow while queue wait is low, the cause likely lies in service time / dependencies. When queue wait is high while service time is steady, look for insufficient workers, scheduling starvation, or offered load exceeding capacity.
 
-## 5. Histogram, p50/p95/p99 và số mẫu
+## 5. Histograms, p50/p95/p99, and Sample Counts
 
-Average latency thấp **không** loại trừ tail latency rất xấu. Giả sử 99 request mất 10 ms, 1 request mất 20 giây, thì average vẫn không kể đầy đủ trải nghiệm của phần request chậm nhất.
+A low average latency **does not** rule out terrible tail latency. If 99 requests take 10 ms and 1 takes 20 seconds, the mean still hides the worst-request experience.
 
-Theo dõi **distribution** của queue wait, lock wait và end-to-end latency, không chỉ một tổng thời gian.
+Track **distributions** of queue wait, lock wait, and end-to-end latency, not just sums.
 
-### 5.1 Ý nghĩa percentile
+### 5.1 Percentile Meaning
 
-- **p50:** median gần trung vị, nửa mẫu có wait không vượt quá ngưỡng này theo định nghĩa percentile dùng.
-- **p95:** khoảng 95% mẫu trong cửa sổ có wait không vượt ngưỡng p95.
-- **p99:** khoảng 99% mẫu tương tự; nhạy với tail và cần số mẫu đủ lớn.
+- **p50:** median; half of samples have waits at or below this threshold per the percentile definition used.
+- **p95:** roughly 95% of samples in the window do not exceed the p95 threshold.
+- **p99:** roughly 99% similarly; sensitive to tails and requires a sufficiently large sample count.
 
-Percentile phụ thuộc thuật toán ước lượng, interpolation/nearestrank, histogram bucket layout, cỡ mẫu và cửa sổ. Nếu lab có **8 samples**, nearest-rank p95 sẽ thường là **giá trị lớn nhất**, rất nhiễu. Không dùng số p95 của một lab nhỏ để tuyên bố SLO production.
+Percentiles depend on estimation algorithms, interpolation vs. nearest-rank, histogram bucket layout, sample count, and window. If a lab has **8 samples**, nearest-rank p95 will usually equal the **maximum sample**, which is very noisy. Never use a small lab’s p95 to claim production SLO compliance.
 
-### 5.2 Không tính p95 toàn cluster bằng trung bình p95
+### 5.2 Never Compute Cluster p95 by Averaging Replicas’ p95
 
-Nếu replica A có p95 = 50 ms và B có p95 = 500 ms, `(50+500)/2 = 275 ms` **không** là p95 chung. Cần dữ liệu phân phối/histogram được tổng hợp đúng hoặc traces/raw samples có phương pháp phù hợp.
+If replica A has p95 = 50 ms and B has p95 = 500 ms, `(50+500)/2 = 275 ms` is **not** the cluster p95. You need properly mergeable distribution/histogram data or raw traces/samples aggregated properly.
 
-Ngoài ra, so sánh p95 trước–sau phải dùng **cùng percentile algorithm**, window duration, sampling strategy và loại operations. Nếu sau sửa chỉ đo các request thành công, nhưng trước sửa đo cả timeout, việc giảm p95 có thể chỉ là thay đổi population.
+Furthermore, before–after p95 comparisons must use the **same percentile algorithm**, window duration, sampling strategy, and operation population. If post-fix measures only successful requests while baseline included timeouts, a lower p95 may simply reflect changing the population.
 
-### 5.3 Kiểm tra số lượng mẫu và no-data
+### 5.3 Check Sample Counts and No-Data Cases
 
-Một thời gian chờ “0 ms” khác với **chưa có sample**. Nếu hoàn toàn không có request trong một phút, p95 của cửa sổ đó có thể **không xác định**, không nên mặc định 0 rồi kết luận mọi request phản hồi tức thì.
+A “0 ms” wait differs from **no samples**. If zero requests arrived in one minute, that window’s p95 may be **undefined**—never default it to 0 and conclude all requests responded instantaneously.
 
-Báo `sampleCount` bên cạnh distribution/quantiles, và phân biệt:
+Report `sampleCount` alongside distributions/quantiles, distinguishing:
 
-- 0 samples: không đủ dữ liệu;
-- measured zero: thực sự có sample xấp xỉ 0 theo độ phân giải;
-- metric missing: exporter không đo/không truy cập được;
-- timeout/cancelled: đã ghi với ngữ nghĩa phù hợp, không loại khỏi mọi biểu đồ mà không nói.
+- 0 samples: insufficient data;
+- measured zero: actual samples near 0 within timer resolution;
+- metric missing: exporter failed to measure/scrape;
+- timeout/cancelled: recorded with proper semantics rather than silently stripped from charts.
 
-Một ứng dụng chưa có request không nhất thiết bị “stalled”; phát hiện stall cần điều kiện **offered/accepted work > 0** và không có progress trong một khoảng vượt ngưỡng.
+An idle application receiving zero requests is not “stalled”; stall detection requires **offered/accepted work > 0** with no progress over a threshold window.
 
-## 6. Công cụ JVM: dùng để giải thích, không thay thế business progress
+## 6. JVM Tools: For Explanation, Not Replacing Business Progress
 
-`ThreadMXBean`, `ThreadInfo`, `jcmd Thread.print` và JFR là nguồn chứng cứ runtime. Chúng giúp xác định *vì sao* waits thay đổi, nhưng không tự xác nhận business operation đã thành công.
+`ThreadMXBean`, `ThreadInfo`, `jcmd Thread.print`, and JFR provide runtime evidence. They help explain *why* waits changed, yet do not themselves confirm business operations succeeded.
 
-### 6.1 ThreadMXBean và contention
+### 6.1 ThreadMXBean and Contention
 
-Java 17 có:
+Java 17 provides:
 
 ```java
 ThreadMXBean mx = ManagementFactory.getThreadMXBean();
@@ -332,109 +332,109 @@ if (supported && mx.isThreadContentionMonitoringEnabled()) {
         long blockedCount = info.getBlockedCount();
         long blockedMs = info.getBlockedTime();
         long waitedMs = info.getWaitedTime();
-        // Chỉ phân tích cùng thread và cùng cửa sổ.
+        // Analyze only within the same thread and same window.
     }
 }
 ```
 
-Đoạn trên **không độc lập**: cần `ThreadMXBean`, `ThreadInfo`, `ManagementFactory` imports và một `threadId` dương hợp lệ. Mặc định contention monitoring của nhiều JVM **tắt**; khi không enabled, `getBlockedTime()` / `getWaitedTime()` có thể trả **`-1`**, không phải 0.
+This snippet is **not standalone**: it needs `ThreadMXBean`, `ThreadInfo`, and `ManagementFactory` imports plus a valid positive `threadId`. On many JVMs, contention monitoring is **off by default**; when disabled, `getBlockedTime()` / `getWaitedTime()` can return **`-1`**, not 0.
 
-**Các giới hạn cốt lõi:**
+**Core limitations:**
 
-- `getBlockedTime()` là thời gian tích lũy ước lượng chờ **intrinsic monitor** (`BLOCKED`), không phải tất cả waits của `ReentrantLock`, HTTP, database hay queue.
-- `getWaitedTime()` phản ánh thời gian ở trạng thái waiting/timed waiting theo ngữ nghĩa API, không thay cho transaction-level latency.
-- Counter/time thuộc một thread; worker trong pool có thể xử lý nhiều business operations, vì vậy không thể trực tiếp gán mỗi millisecond chờ của thread cho một request.
-- Thống kê thời gian có thể reset khi monitoring được bật lại; không tính delta băng qua thay đổi cấu hình theo dõi.
-- `setThreadContentionMonitoringEnabled(true)` là **thao tác thay đổi trạng thái quan sát của JVM** và có overhead; muốn bật trong production phải được phép, ghi timestamp và so chi phí.
+- `getBlockedTime()` is an approximate cumulative time waiting on **intrinsic monitors** (`BLOCKED`), not all waits on `ReentrantLock`, HTTP, databases, or queues.
+- `getWaitedTime()` reflects time in waiting/timed-waiting states per API semantics, not transaction-level latency.
+- Counts/times belong to a thread; a pool worker handles many business operations, so thread wait milliseconds cannot be directly assigned to one request.
+- Timing stats may reset when monitoring is toggled; never compute deltas across monitoring config changes.
+- `setThreadContentionMonitoringEnabled(true)` **mutates JVM observability state** and incurs overhead; enabling it in production requires authorization, timestamping, and weighing cost.
 
-### 6.2 Thread dump và deadlock detection
+### 6.2 Thread Dumps and Deadlock Detection
 
-Một vài mẫu thread dumps sau sửa có thể kiểm tra lock graph và call paths có còn vấn đề. Với HotSpot và quyền hợp lệ:
+A few post-fix thread dumps can verify whether lock graphs and call paths still exhibit issues. On HotSpot with proper permissions:
 
 ```bash
 jcmd 12345 Thread.print -l
 ```
 
-`12345` trong lệnh là **PID minh họa**, phải thay bằng PID target JVM thật. Kiểm tra `jcmd 12345 help Thread.print` nếu không chắc options trên JDK hiện tại.
+`12345` is an **illustrative PID**; replace it with the real target JVM PID. Run `jcmd 12345 help Thread.print` if unsure of options on that JDK.
 
-`ThreadMXBean.findMonitorDeadlockedThreads()` và `findDeadlockedThreads()` có thể tìm chu trình monitor/ownable synchronizer theo phạm vi được hỗ trợ. Kết quả `null` sau sửa chỉ có nghĩa **không phát hiện loại cycle ấy tại thời điểm đo**, không chứng minh hệ thống đã xử lý xong request hoặc hết pool starvation.
+`ThreadMXBean.findMonitorDeadlockedThreads()` and `findDeadlockedThreads()` check monitor/ownable-synchronizer cycles within supported scope. Returning `null` post-fix only means **no cycle of that type was detected at measurement time**, not that requests finished or pool starvation disappeared.
 
-**Thứ tự ưu tiên:** đo progress business trước, sau đó dùng stacks/lock owner/CPU/JFR để giải thích nguyên nhân. Không lấy một thread state `RUNNABLE` hoặc `WAITING` làm tiêu chí PASS duy nhất.
+**Priority order:** measure business progress first, then use stacks/lock owners/CPU/JFR to explain causes. Never use a single `RUNNABLE` or `WAITING` thread state as the sole PASS criterion.
 
-### 6.3 CPU thay đổi không đồng nghĩa throughput tốt hơn
+### 6.3 CPU Changes Do Not Automatically Mean Better Throughput
 
-Sửa livelock bằng cách thêm `Thread.sleep(100)` có thể làm CPU giảm, retries giảm nhưng **completed work vẫn bằng 0**; đó không phải sửa lỗi thành công. Ngược lại, sau khi bỏ lock contention, CPU có thể tăng vì workers giờ thực sự xử lý nhiều requests hơn.
+“Fixing” a livelock by adding `Thread.sleep(100)` can lower CPU and retries while **completed work remains 0**; that is not a successful fix. Conversely, removing lock contention can raise CPU because workers are now actually processing more requests.
 
-Vì vậy cần so CPU cùng **completed/succeeded rate, p95/p99 wait, queue age, errors** dưới cùng workload. CPU là **guardrail và tín hiệu phụ trợ**, không phải mục tiêu cuối cùng nếu SLO hướng đến nghiệp vụ.
+Compare CPU alongside **completed/succeeded rates, p95/p99 wait, queue age, and errors** under the same workload. CPU is a **guardrail and supporting signal**, not the final goal for business-oriented SLOs.
 
-## 7. Thiết kế phép thử trước–sau đáng tin
+## 7. Designing a Reliable Before–After Experiment
 
-Một phép so sánh gồm **baseline → thay đổi → xác minh**. Nếu thay workload, process identity, số workers, cache và định nghĩa counter đồng thời, bạn không còn biết nguyên nhân cải thiện.
+A comparison consists of **baseline → change → verification**. Changing workload, process identity, worker counts, caches, and counter definitions all at once makes it impossible to tell what caused the improvement.
 
-### 7.1 Ghi một “measurement contract”
+### 7.1 Write a “Measurement Contract”
 
-Trước khi chạy, xác nhận:
+Before running, lock down:
 
-| Thành phần | Nội dung phải cố định hoặc ghi lại |
+| Element | What Must Be Fixed or Recorded |
 | --- | --- |
-| Scope | Service/component, endpoint/job class, JVM/instance và build |
-| Load | Arrival rate, concurrency, mix, payload size, dữ liệu đầu vào |
+| Scope | Service/component, endpoint/job class, JVM/instance, and build |
+| Load | Arrival rate, concurrency, mix, payload size, input data |
 | Duration | Warm-up, steady-state window, measurement interval |
-| Metric definition | Accepted/started/completed/succeeded/failed/retry semantics |
+| Metric definitions | Accepted/started/completed/succeeded/failed/retry semantics |
 | Units | operations/s, milliseconds, percentages, queue depth |
 | Sampling | Histogram buckets, quantile method, sample count, missing data |
-| Runtime | JDK/GC/CPU quota/memory, number of workers, pool/queue sizes |
+| Runtime | JDK/GC/CPU quota/memory, worker count, pool/queue sizes |
 | Environment | Downstream versions/availability, DB state, caches, network |
-| Pass criteria | Completion and success rate, maximum age/p95 wait, timeout/error guardrails |
-| Failure protocol | Nếu không tiến triển, thời điểm dừng test và thu evidence an toàn |
+| Pass criteria | Completion and success rates, max age/p95 wait, timeout/error guardrails |
+| Failure protocol | If progress stalls, when to stop the test and safely capture evidence |
 
-Nếu trước sửa chạy 1.000 concurrent requests mà sau sửa chỉ 10, sự thay đổi không phải đối chứng phù hợp cho kết luận “đã giải quyết starvation dưới tải 1.000”.
+If pre-fix ran at 1,000 concurrent requests while post-fix ran at 10, that is not a valid control to claim “starvation solved under 1,000-concurrency load.”
 
-### 7.2 Warm-up và nhiều lần chạy
+### 7.2 Warm-Up and Multiple Runs
 
-JIT compilation, class loading, lazy initialization, cache warm-up, connection pooling và GC có thể làm lần đầu chậm khác lần sau. Thực hành:
+JIT compilation, class loading, lazy initialization, cache warm-up, connection pooling, and GC can make initial runs behave differently from later runs. Practice:
 
-1. Khởi chạy baseline đủ lâu để tiến tới trạng thái gần ổn định khi có thể.
-2. Tách **warm-up interval** ra khỏi measurement window.
-3. Lấy nhiều cửa sổ liên tiếp (hoặc nhiều run) với timestamp và sample count.
-4. Lặp lại dưới đúng tình huống đã kích hoạt lỗi trước đây, không chỉ tải trung bình.
-5. Deploy một sửa lỗi cụ thể; giữ các cấu hình khác ổn định trong phạm vi có thể.
-6. Lấy dữ liệu sau sửa bằng cùng công cụ, cùng contract và cùng số lượng/tần suất mẫu.
-7. So cả trung tâm lẫn đuôi phân phối (p50/p95/p99), rate và backlog.
-8. Nếu kết quả biến động mạnh, ghi khoảng dao động và giả thuyết; không chọn duy nhất một run tốt nhất.
+1. Run baseline long enough to reach near-steady state where possible.
+2. Exclude the **warm-up interval** from the measurement window.
+3. Capture multiple consecutive windows (or repeat runs) with timestamps and sample counts.
+4. Repeat under the exact conditions that previously triggered the failure, not merely average load.
+5. Deploy one focused fix; keep other configs stable as far as possible.
+6. Collect post-fix data with the same tools, contract, and sample count/cadence.
+7. Compare both center and tails (p50/p95/p99), rates, and backlogs.
+8. If results vary widely, report the range and hypotheses; never cherry-pick the single best run.
 
-**Đừng tự sửa số liệu** bằng cách bỏ các khoảng thất bại hoặc timeout khỏi tập đo rồi so với baseline có đủ thất bại. Nếu có sample bị loại, quy tắc phải được công bố giống nhau trước và sau.
+**Never massage numbers** by excluding timed-out or failed intervals post-fix while comparing against a baseline that included failures. If any samples are excluded, the exact same exclusion rule must apply before and after.
 
-### 7.3 So sánh đúng cửa sổ và đúng instance
+### 7.3 Compare Matching Windows and Matching Instances
 
-Với counters tích lũy, mỗi rate cần **hai mốc thuộc cùng instance**, không có reset. Nếu một lần rollout thay pod, hãy bắt đầu series mới hoặc dùng công cụ hiểu reset.
+For cumulative counters, each rate needs **two timestamps on the same instance** without resets. If a rollout replaces a pod, start a fresh series or use reset-aware tooling.
 
-Với histograms rolling, cần cùng window và population. Với log/traces, cần thống nhất timestamp/timezone và clock skew khi liên quan nhiều máy. Một số times đo bằng `nanoTime` trong JVM này **không so trực tiếp tuyệt đối** với `nanoTime` của JVM khác.
+For rolling histograms, match window duration and population. For logs/traces, align timezones and account for clock skew across hosts. `System.nanoTime()` values from one JVM **cannot be compared directly in absolute terms** with `nanoTime` from another JVM.
 
-### 7.4 Một phép thử PASS cần cả hiệu quả và correctness
+### 7.4 A Passing Test Needs Both Efficiency and Correctness
 
-Ví dụ tiêu chí giả định cho job queue:
+Hypothetical criteria example for a job queue:
 
-- Sau warm-up, offered load 8 jobs/s, duy trì 10 phút.
-- Success throughput tối thiểu 7,8 jobs/s; completions theo dõi đủ.
-- p95 queue wait nhỏ hơn 200 ms; p99 hoặc oldest queue age không vượt ngân sách đã định.
-- Failure/timeout/cancellation rate không tăng so với baseline bất thường.
-- Queue depth không tăng có xu hướng vô hạn; no stuck oldest task.
-- Không tái hiện lock cycle/đường không tiến triển trong stress test.
-- CPU/RSS/GC/connection pool/DB latency vẫn trong guardrails.
+- Post-warm-up, offered load 8 jobs/s sustained for 10 minutes.
+- Success throughput at least 7.8 jobs/s; completions fully tracked.
+- p95 queue wait under 200 ms; p99 and oldest queue age within configured budget.
+- Failure/timeout/cancellation rates show no abnormal rise vs. baseline.
+- Queue depth shows no unbounded upward trend; no stuck oldest task.
+- Stress tests reproduce no lock cycles or stalled execution paths.
+- CPU/RSS/GC/connection pools/DB latency stay within guardrails.
 
-Các con số ở trên **chỉ là ví dụ** để minh họa cách viết acceptance criteria; phải thay bằng SLO và workload thật. Nếu không đạt, kết luận `NOT_VERIFIED`/`FAIL` theo định nghĩa, không cố suy từ một vài request thành công.
+The numbers above **are examples only** to illustrate writing acceptance criteria; replace them with real SLOs and workloads. If criteria are missed, report `NOT_VERIFIED`/`FAIL` per definition rather than extrapolating from a handful of successful requests.
 
-## 8. Java 17: chương trình đo hoàn tất và queue wait
+## 8. Java 17: Program Measuring Completions and Queue Wait
 
-Chương trình **`ProgressVerificationLab.java`** có hai chế độ:
+**`ProgressVerificationLab.java`** has two modes:
 
-- `fixture`: dùng dữ liệu giả định trước–sau ở phần 3 để tính rate, hệ số cải thiện và mức giảm p95 queue wait; stdout **cố định**, không chạy tasks thật.
-- `observe`: tạo một **ThreadPoolExecutor hai workers**, nộp tám tasks mô phỏng, trong đó một task chủ động thất bại; thu accepted/started/completed/succeeded/failed và queue wait. Tổng số outcome có thể kiểm tra; **elapsed time, queue p95 và thứ tự chạy phụ thuộc máy**. Đây chỉ là lab nhỏ, không phải benchmark production.
+- `fixture`: uses the hypothetical before–after data from section 3 to compute rates, improvement factor, and p95 queue wait reduction; **deterministic** stdout, runs no real tasks.
+- `observe`: creates a **two-worker ThreadPoolExecutor**, submits eight simulated tasks where one intentionally fails, and collects accepted/started/completed/succeeded/failed and queue wait. Outcome totals are verifiable; **elapsed time, queue p95, and execution order are machine-dependent**. This is a small lab, not a production benchmark.
 
-Dùng Java 17 hoặc mới hơn, không cần thư viện ngoài.
+Requires Java 17 or newer, with no external libraries.
 
-Tạo tệp **`ProgressVerificationLab.java`**:
+Create file **`ProgressVerificationLab.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -492,8 +492,8 @@ public class ProgressVerificationLab {
         final AtomicLong failed = new AtomicLong();
         final AtomicInteger inFlight = new AtomicInteger();
 
-        // Chỉ dành cho lab nhỏ; production nên dùng histogram
-        // giới hạn bộ nhớ thay vì giữ mọi thời lượng.
+        // For small labs only; production should use a memory-bounded
+        // histogram instead of retaining every duration.
         final List<Long> queueWaitNanos =
                 Collections.synchronizedList(new ArrayList<>());
 
@@ -520,7 +520,7 @@ public class ProgressVerificationLab {
                 copy = new ArrayList<>(queueWaitNanos);
             }
             if (copy.isEmpty()) {
-                return -1; // Chưa có mẫu, không phải 0 ms.
+                return -1; // No samples yet, not 0 ms.
             }
             Collections.sort(copy);
             int index = (int) Math.ceil(0.95 * copy.size()) - 1;
@@ -562,7 +562,7 @@ public class ProgressVerificationLab {
                     }
                 });
 
-                // Đã được pool chấp nhận; không đếm rejected.
+                // Accepted by pool; do not count as rejected.
                 metrics.accepted.incrementAndGet();
                 futures.add(future);
             }
@@ -616,14 +616,14 @@ public class ProgressVerificationLab {
 }
 ```
 
-### 8.1 Biên dịch và chạy fixture
+### 8.1 Compile and Run fixture
 
 ```bash
 javac ProgressVerificationLab.java
 java ProgressVerificationLab fixture
 ```
 
-Stdout **chính xác** của chế độ `fixture`:
+**Exact** stdout of `fixture` mode:
 
 ```text
 before accepted=240 completed=60 succeeded=57 failed=3 rate=2.00/s queueP95=1200ms
@@ -631,151 +631,151 @@ after accepted=240 completed=240 succeeded=237 failed=3 rate=8.00/s queueP95=90m
 completionRateGain=4.00x queueP95Reduction=92.50%
 ```
 
-**Giải thích:** `60 / 30 = 2.00` và `240 / 30 = 8.00`; `8/2 = 4.00`; `(1200-90)/1200*100=92.50`. Code dùng `Locale.ROOT` để định dạng thập phân bằng dấu chấm, không phụ thuộc locale máy.
+**Explanation:** `60 / 30 = 2.00` and `240 / 30 = 8.00`; `8/2 = 4.00`; `(1200-90)/1200*100=92.50`. The code uses `Locale.ROOT` to format decimals with a dot regardless of machine locale.
 
-Hai giá trị p95 trong fixture **được cung cấp sẵn** như dữ liệu giả định, không phải percentile mà chương trình tính từ request timestamps. Đây là **đối chứng toán học của báo cáo**, không chứng minh một bản sửa thật đã hoạt động.
+The two p95 values in `fixture` **are pre-supplied** as hypothetical data, not percentiles calculated by the program from request timestamps. This is a **mathematical verification of reporting logic**, not proof a real fix worked.
 
-### 8.2 Chạy một workload thật trong JVM lab
+### 8.2 Running a Real Workload in the Lab JVM
 
 ```bash
 java ProgressVerificationLab observe
 ```
 
-Khi các tasks hoàn tất trong khoảng timeout của lab và không có can thiệp ngoài, **dòng counters** dự kiến:
+When tasks complete within the lab timeout without external interference, the expected **counters line** is:
 
 ```text
 accepted=8 started=8 completed=8 succeeded=7 failed=1 futureFailures=1 inFlight=0
 ```
 
-Dòng timing có dạng:
+The timing line takes the form:
 
 ```text
-elapsedMs=<số đo thực tế> queueP95Ms=<số đo thực tế>
+elapsedMs=<actual measured value> queueP95Ms=<actual measured value>
 ```
 
-**Hai chỗ trong dấu ngoặc nhọn ở trên là mô tả định dạng, không phải stdout cố định.** Máy bận, OS scheduling, JIT, độ phân giải clock và việc các tasks xếp queue sẽ thay đổi thời lượng. Trong khi đó một task có `jobId==3` ném `IllegalStateException` có chủ đích; `submit()` lưu exception trong `Future`, nên code bắt `ExecutionException` trong loop và tăng `futureFailures`. Nó vẫn được tính là **completed terminal outcome nhưng failed**, không phải success.
+**Both bracketed placeholders above describe the format, not fixed stdout.** Busy machines, OS scheduling, JIT, clock resolution, and task queueing vary durations. Meanwhile the task with `jobId==3` intentionally throws `IllegalStateException`; `submit()` captures the exception in the `Future`, so the loop catches `ExecutionException` and increments `futureFailures`. It still counts as a **completed terminal outcome that failed**, not a success.
 
-Điều này trực tiếp kiểm chứng một bẫy vận hành: **nếu chỉ đếm tasks đã kết thúc, một sửa lỗi có thể trông thành công dù toàn bộ tasks trả failure**. Phải giữ riêng success/failure và business correctness.
+This directly demonstrates an operational trap: **if you only count finished tasks, a fix can look successful even while all tasks return failures**. Keep success/failure and business correctness separate.
 
-### 8.3 Hạn chế của lab observe
+### 8.3 Limitations of the observe Lab
 
-- Chỉ có tám tasks; p95 nearest-rank hầu như là **max sample**, không phù hợp chứng minh SLO.
-- `queueWaitNanos` được giữ trong một `List` để dễ hiểu; **không dùng** với hàng triệu requests production vì memory tăng không giới hạn. Trong sản phẩm thật dùng bounded histogram/reservoir hoặc metrics library có hành vi được kiểm chứng.
-- Các counters là atomic độc lập, không có **snapshot nguyên tử giữa nhiều thuộc tính** trong lúc công việc đang chạy. Sau khi chờ tất cả futures và pool terminate thì số liệu lab đã ổn định.
-- Queue của lab được giới hạn ở 16; số tasks là 8, nên không cố tình test `RejectedExecutionException`. Trong production phải ghi **rejections và admission** đúng, không đếm task bị từ chối là accepted.
-- Timing đo queue wait từ trước submit đến lúc Runnable bắt đầu; bao gồm một phần overhead submit/scheduling, khác định nghĩa queue wait nội bộ của một message broker. Ghi contract của hệ thống thật.
-- `Thread.sleep(80)` chỉ giả lập operation chờ, không phải nguyên nhân thực của contention. Thay thời gian sleep rồi thấy throughput tăng không chứng minh sửa lỗi deadlock.
-- `pool.shutdownNow()` trong `finally` là cleanup lab. Không áp dụng vô điều kiện trên pool production đang phục vụ user requests.
+- Only eight tasks; nearest-rank p95 is essentially the **max sample**, unsuitable for proving production SLOs.
+- `queueWaitNanos` is kept in a `List` for readability; **never use this** for millions of production requests due to unbounded memory growth. In real production, use bounded histograms/reservoirs or proven metrics libraries.
+- Counters are independent atomics, lacking an **atomic multi-property snapshot** while work is running. After waiting for all futures and pool termination, lab counts stabilize.
+- The lab’s queue is bounded at 16 with 8 tasks, so it does not intentionally test `RejectedExecutionException`. Production must track **rejections and admission** accurately rather than counting rejected tasks as accepted.
+- Timing measures queue wait from before `submit` to when `Runnable` starts; this includes some submit/scheduling overhead, differing from internal queue wait definitions of a message broker. Document your real system’s contract.
+- `Thread.sleep(80)` only simulates a waiting operation, not a real contention cause. Reducing sleep time and seeing higher throughput does not prove a deadlock was fixed.
+- `pool.shutdownNow()` in `finally` is lab cleanup. Never apply it unconditionally to a production pool serving live user requests.
 
-## 9. Vì sao một cửa sổ tốt chưa đủ chứng minh đã sửa lỗi?
+## 9. Why One Good Window Is Not Enough to Prove a Fix
 
-Một lần sau sửa đạt completion rate cao có thể do:
+High post-fix completion rate in one window may happen because:
 
-- Workload thấp hơn baseline, ít request cạnh tranh tài nguyên.
-- Cache đã warm, DB vừa purge/compact hoặc downstream đã phục hồi độc lập.
-- Sửa lỗi chỉ che biểu hiện bằng retry nhanh, nhưng thất bại vẫn tiếp diễn.
-- Service restart đã phá lock/dependency cycle trong memory, bug vẫn còn trong code.
-- Metrics đổi định nghĩa: “accepted” hay “completed” không còn tính các retries/timeouts như trước.
-- Collector bỏ mất samples khi CPU overload hoặc agent restart.
-- Đang thấy **backlog drain**: completed rate tạm thời cao hơn offered rate, sau đó trở lại mức cũ.
-- Chưa chạy đủ lâu để tái hiện race condition hiếm hoặc starvation nhiều phút.
-- Một nhóm requests khác bị ảnh hưởng xấu hơn; tổng throughput che tail của nhóm nhỏ.
-- Người đo đã chọn đúng run nhanh nhất để báo cáo mà bỏ các run kém.
+- Workload was lighter than baseline with fewer requests competing for resources.
+- Caches warmed up, DB just purged/compacted, or downstream recovered independently.
+- The fix only masked symptoms with fast retries while failures persisted.
+- Service restart broke an in-memory lock/dependency cycle while the bug remained in code.
+- Metric definitions changed: “accepted” or “completed” stopped counting retries/timeouts the old way.
+- Collectors dropped samples under CPU overload or agent restarts.
+- You are observing **backlog drain**: completion rate temporarily exceeds offered rate, then settles back down.
+- The test did not run long enough to trigger a rare race condition or multi-minute starvation.
+- Another request group suffered worse; aggregate throughput hid a small group’s tail.
+- The observer picked the fastest run to report and discarded poor runs.
 
-### 9.1 Thiết kế phép thử lặp lại
+### 9.1 Designing a Repeatable Experiment
 
-Một cách thực hành:
+A practical procedure:
 
-1. Tái hiện failure với controlled test và lấy baseline nhiều lần.
-2. Xác nhận reproducibility: sau bao lâu progress dừng, điều kiện nào kích hoạt.
-3. Chỉ áp dụng một fix hoặc một nhóm thay đổi có quan hệ chặt.
-4. Chạy lại với cùng arrival pattern, payload/data, pool size, JVM flags, quotas, dependencies và duration.
-5. So công việc hoàn thành **mỗi cửa sổ**, success rate, wait p95/p99, oldest pending age và errors.
-6. Thử overload giới hạn, cancellation/timeout, repeated runs và rollback/canary nếu cần.
-7. Lấy thread dump/JFR khi symptom tái hiện; không chỉ khi mọi thứ bình thường.
-8. Ghi kết luận có độ tin cậy, mẫu số, khoảng quan sát và những thứ chưa kiểm tra.
+1. Reproduce the failure with a controlled test and capture multiple baseline runs.
+2. Confirm reproducibility: after how long progress stalls, and what conditions trigger it.
+3. Apply only one fix or one tightly coupled set of changes.
+4. Re-run with the exact same arrival pattern, payload/data, pool sizes, JVM flags, quotas, dependencies, and duration.
+5. Compare completed work **per window**, success rate, p95/p99 wait, oldest pending age, and errors.
+6. Test bounded overload, cancellation/timeouts, repeated runs, and rollback/canary as needed.
+7. Capture thread dumps/JFR when symptoms reproduce, not only when everything looks healthy.
+8. State conclusions with confidence level, denominators, observation windows, and untested gaps.
 
-Một change có thể thật sự cải thiện contention nhưng làm fairness kém hơn: cần kiểm tra cả throughput tổng lẫn **per-class oldest wait** và tail latency.
+A change can genuinely reduce contention yet worsen fairness: verify both aggregate throughput and **per-class oldest wait** plus tail latency.
 
-## 10. Bộ tiêu chí theo từng loại lỗi đã sửa
+## 10. Criteria per Fixed Failure Type
 
-### 10.1 Sau sửa deadlock
+### 10.1 After Fixing a Deadlock
 
-**Trước:** một số threads giữ khóa chéo, không hoàn tất nghiệp vụ; lock graph cho thấy chu trình.
+**Before:** several threads held crossed locks, completing no business work; lock graph showed a cycle.
 
-**Sau:** ở workload tái hiện, accepted vẫn đến; completed và succeeded tăng ổn định; các locks được cấp phát/nhả đúng, không còn cycle trong các mẫu có ý nghĩa; p95/p99 lock/queue wait nằm trong ngân sách; không có request tồn tại mãi.
+**After:** under reproduction load, accepted work keeps arriving; completed and succeeded rise steadily; locks are acquired/released properly with no cycles across meaningful samples; p95/p99 lock/queue waits stay within budget; no request lingers forever.
 
-**Cần kiểm tra:**
+**What to verify:**
 
-- Các code paths lấy locks theo thứ tự toàn cục nhất quán, kể cả error paths.
-- Bằng chứng thu bằng `ThreadMXBean` nếu dùng đúng loại synchronizer và JVM hỗ trợ.
-- Không đơn giản bỏ một lock gây race/data corruption để tăng throughput.
-- Tải cao/contended paths không tái tạo cycle.
+- Code paths acquire locks in a consistent global order, including error paths.
+- Evidence collected via `ThreadMXBean` if using matching synchronizer types and supported by the JVM.
+- Did not simply delete a lock and introduce races/data corruption to boost throughput.
+- High-load / contended paths do not recreate the cycle.
 
-**Giới hạn:** `findDeadlockedThreads()==null` ở một thời điểm không chứng minh không còn mọi logical/distributed deadlock. Business completion và thời gian chờ qua nhiều mẫu là chứng cứ bổ sung cần thiết.
+**Limitations:** `findDeadlockedThreads()==null` at one instant does not prove no logical/distributed deadlocks exist anywhere. Business completions and wait times across multiple samples are necessary additional evidence.
 
-### 10.2 Sau sửa livelock
+### 10.2 After Fixing a Livelock
 
-**Trước:** retry/attempt count tăng nhanh, có activity/CPU nhưng committed operations gần bằng 0.
+**Before:** retry/attempt counts climbed fast with activity/CPU yet committed operations stayed near 0.
 
-**Sau:** số **successfully committed operations** tăng; tỷ lệ `successDelta / attemptDelta` được cải thiện; retries được giới hạn và có backoff/deadline; queue oldest age không tăng mãi; latency không vượt budget.
+**After:** **successfully committed operations** increase; `successDelta / attemptDelta` improves; retries are bounded with backoff/deadlines; oldest queue age stops growing forever; latency stays within budget.
 
-**Cần kiểm tra:**
+**What to verify:**
 
-- `retried_total` giảm có phải do code bỏ retry và trả failure ngay không?
-- `succeeded_total` có tăng dưới cùng loại xung đột không?
-- Retry jitter/backoff không làm p99 quá cao hoặc làm task bị starvation.
-- Khi downstream thật sự down, có bounded failure thay vì infinite retry loop.
+- Did `retried_total` drop merely because code removed retries and failed immediately?
+- Did `succeeded_total` rise under the same conflict rate?
+- Do retry jitter/backoff keep p99 within bounds without starving tasks?
+- When downstream is genuinely down, does it fail boundedly rather than spinning in an infinite retry loop?
 
-CPU giảm nhưng successDelta vẫn bằng 0: **chưa thể PASS**.
+Lower CPU while `successDelta` stays 0: **cannot PASS**.
 
-### 10.3 Sau sửa starvation
+### 10.3 After Fixing Starvation
 
-**Trước:** một class task bị bỏ đói, oldest queue age tăng trong khi task khác vẫn có progress.
+**Before:** one task class was starved and oldest queue age climbed while other tasks kept progressing.
 
-**Sau:** tất cả các class công việc có cơ hội được phục vụ theo policy; per-class completion rate và oldest wait nằm trong deadline; không có nhóm bị trì hoãn vô hạn dưới tải dự kiến.
+**After:** all work classes receive service per policy; per-class completion rates and oldest waits meet deadlines; no group is delayed indefinitely under expected load.
 
-**Cần kiểm tra:**
+**What to verify:**
 
-- Tổng completed/s tăng nhưng low-priority p99/oldest age có cải thiện không?
-- Fair lock/priority aging có làm throughput quá thấp không?
-- Bounded queue/rejections có được báo minh bạch không?
-- Một số task có cần capacity reservation/bulkhead riêng để không bị long-running tasks chiếm slot?
+- Aggregate completed/s rose, yet did low-priority p99 / oldest age actually improve?
+- Did fair locks / priority aging depress throughput too severely?
+- Are bounded queues/rejections reported transparently?
+- Do certain tasks need dedicated capacity reservation/bulkheads so long-running tasks cannot monopolize slots?
 
-Một nhóm request quan trọng có queue wait 10 phút trong khi service tổng 1.000 RPS vẫn có thể là starvation nghiêm trọng.
+An important request group having a 10-minute queue wait while total service throughput is 1,000 RPS can still be severe starvation.
 
-### 10.4 Sau sửa thao tác chờ quá lâu
+### 10.4 After Fixing a Long Wait
 
-**Trước:** request chờ `Future.get`, network, DB, lock, condition hoặc latch không giới hạn, chiếm worker quá deadline.
+**Before:** requests waited unboundedly on `Future.get`, network, DB, locks, conditions, or latches, holding workers past deadlines.
 
-**Sau:** có deadline/timeout hợp lý, request được trả terminal outcome rõ; active waits/queue age không tăng vô hạn; tỷ lệ success đúng SLO; cancellation/cleanup hoạt động theo semantics; downstream/worker hồi phục.
+**After:** sensible deadlines/timeouts exist and return explicit terminal outcomes; active waits / queue age do not grow unboundedly; success rates meet SLOs; cancellation/cleanup work per semantics; downstream/workers recover.
 
-**Cần kiểm tra:**
+**What to verify:**
 
-- Timeout tăng nhưng success giảm? Đây có thể là fail-fast hữu ích để bảo vệ tài nguyên, **không đồng nghĩa nghiệp vụ đã được phục hồi**.
-- Caller đã timeout nhưng remote job vẫn chạy và tạo tác dụng phụ? Cần kiểm tra idempotency/cancellation.
-- Thời gian trong queue có được trừ khỏi tổng budget hay chỉ timeout từ lúc task bắt đầu?
-- Có mất dữ liệu/duplicate processing do retry hay không?
+- Timeouts rose while successes fell? This may be useful fail-fast resource protection, **not synonymous with business recovery**.
+- Caller timed out yet remote job kept running and caused side effects? Verify idempotency/cancellation.
+- Is queue time subtracted from the overall budget, or does timeout only start once the worker begins?
+- Is there data loss or duplicate processing due to retries?
 
-## 11. Kiểm chứng không làm nhiễu hệ thống
+## 11. Verifying Without Disrupting the System
 
-Thu số liệu có chi phí. Nếu cứ mỗi 100 ms chụp full thread dump hoặc bật contention monitoring không đánh giá overhead, phép đo có thể làm tình hình xấu hơn.
+Measurement has cost. Taking full thread dumps every 100 ms or enabling contention monitoring without assessing overhead can worsen the incident.
 
-**Ưu tiên thứ tự ít xâm lấn:**
+**Prefer least-intrusive order:**
 
-1. Counters, histograms, request traces và queue metrics ứng dụng **đã instrument**.
-2. JVM/process/container metrics có sẵn: CPU, GC, memory, thread count, cgroup throttling.
-3. Chụp một số thread dumps có timestamp khi cần khóa/stack evidence.
-4. JFR sampling hoặc contention monitoring có kiểm soát và ghi thời gian bật/tắt.
-5. Chỉ thu snapshot nặng khi câu hỏi chẩn đoán không được giải bằng số nhẹ.
+1. Already-instrumented application counters, histograms, request traces, and queue metrics.
+2. Existing JVM/process/container metrics: CPU, GC, memory, thread counts, cgroup throttling.
+3. A few timestamped thread dumps when lock/stack evidence is needed.
+4. Controlled JFR sampling or contention monitoring with start/stop timestamps logged.
+5. Heavy snapshots only when lightweight metrics cannot answer the diagnostic question.
 
-Nhớ đọc trạng thái khả dụng của `ThreadMXBean` trước khi dùng CPU/blocked/waited time; `-1` hoặc `null` có thể là chưa đo/không có thread/tính năng không hỗ trợ, **không** phải measured zero.
+Remember to check `ThreadMXBean` availability flags before using CPU/blocked/waited times; `-1` or `null` may mean unmeasured, missing thread, or unsupported feature—**not** measured zero.
 
-Khi ghi log/traces, hạn chế request payload, secrets và dữ liệu nhạy cảm; kiểm soát retention và quyền truy cập. Không tạo một metric label mới cho mỗi request/user/trace ID, vì cardinality bùng nổ và có nguy cơ lộ thông tin.
+When recording logs/traces, limit request payloads, secrets, and sensitive data; enforce retention and access controls. Never create a new metric label per request/user/trace ID, as cardinality explodes and privacy risks rise.
 
-## 12. Kiểm chứng “hết kẹt” cần xét cả backlog và arrival rate
+## 12. Verifying “Unstuck” Requires Checking Both Backlog and Arrival Rate
 
-Giả sử sau sửa:
+Suppose post-fix shows:
 
 ```text
 Offered load:    100 jobs/s
@@ -783,9 +783,9 @@ Completed rate:   80 jobs/s
 Queue depth:      1,000 → 1,200 → 1,400 ...
 ```
 
-Dịch vụ **có tiến triển** (80 jobs/s) nhưng **không theo kịp tải** (100 jobs/s), backlog vẫn lớn dần. Không nên gọi là phục hồi đầy đủ.
+The service **is making progress** (80 jobs/s), yet **is not keeping up with load** (100 jobs/s), so backlog keeps growing. Do not call this full recovery.
 
-Một ví dụ khác:
+Another example:
 
 ```text
 Offered load:     80 jobs/s
@@ -793,9 +793,9 @@ Completed rate:  100 jobs/s
 Queue depth:    1,000 → 700 → 400 ...
 ```
 
-Hệ thống có thể đang **xả backlog**: completed tạm thời lớn hơn offered, queue giảm. Đây là dấu hiệu tích cực nếu success/correctness còn đảm bảo, nhưng cần tiếp tục đo **sau khi backlog ổn định**, vì completion rate có thể giảm khi queue cạn.
+The system may be **draining backlog**: completed temporarily exceeds offered while the queue shrinks. That is a positive sign if success/correctness hold, yet keep measuring **after backlog stabilizes**, because completion rate may drop once the queue empties.
 
-Với mẫu số đúng, quan hệ trực giác:
+With matching denominators, the intuitive relation is:
 
 ```text
 changeInBacklog ≈ acceptedDuringWindow
@@ -804,24 +804,24 @@ changeInBacklog ≈ acceptedDuringWindow
                   - removedQueuedItems
 ```
 
-Đây là **mô hình minh họa**, không phải invariant áp dụng cho mọi queue; cần tính cả worker transfers, cancellations, failures, transaction retries và snapshot consistency. Đừng lấy `accepted - completed` làm queue depth nếu chưa ghi rõ `inFlight` và những trạng thái trung gian.
+This is an **illustrative model**, not a universal invariant for every queue; worker transfers, cancellations, failures, transaction retries, and snapshot consistency all matter. Never treat `accepted - completed` as queue depth without accounting for `inFlight` and intermediate states.
 
-### 12.1 Oldest age bổ sung điều gì?
+### 12.1 What Does Oldest Age Add?
 
-Queue depth ổn định không bảo đảm fairness. Một priority scheduler có thể liên tục nhận và hoàn tất high-priority tasks, trong khi một low-priority job bị kẹt suốt hàng giờ. Tổng queue depth gần như không đổi, nhưng **oldest age của nhóm nạn nhân tăng mãi**.
+A steady queue depth does not guarantee fairness. A priority scheduler can keep accepting and finishing high-priority tasks while one low-priority job sits stuck for hours. Total queue depth barely moves, yet **oldest age of the victim group climbs forever**.
 
-Vì vậy khi sửa starvation, ngoài throughput tổng phải đo:
+Therefore when fixing starvation, beyond aggregate throughput, measure:
 - accepted/completed per class;
 - waiting age per class;
 - oldest unserved job duration;
-- p95/p99 queue wait cho đúng group;
-- rejected/cancelled/deadline exceeded per class.
+- p95/p99 queue wait for the affected group;
+- rejected/cancelled/deadline-exceeded per class.
 
-Không cần biến mỗi job ID thành metric label; aggregation hữu hạn theo priority/class đủ cho dashboard, ID chi tiết ở logs/traces.
+You do not need every job ID in a metric label; bounded aggregation by priority/class works for dashboards while detailed IDs live in logs/traces.
 
-### 12.2 Little's Law: quan hệ hỗ trợ diễn giải, không phải phán quyết
+### 12.2 Little's Law: Interpretive Aid, Not Verdict
 
-Trong một **hệ thống ổn định** với các giả thiết phù hợp, Little's Law viết:
+In a **steady-state system** meeting appropriate assumptions, Little's Law states:
 
 ```text
 Average number of jobs in system
@@ -830,39 +830,39 @@ Average number of jobs in system
 L ≈ λ × W
 ```
 
-Ví dụ hệ thống hoàn tất 10 jobs/s và thời gian trung bình trong hệ thống khoảng 2 s, mức WIP trung bình theo quan hệ xấp xỉ 20 jobs. Nhưng không dùng công thức để suy “đang bị deadlock” từ một snapshot: nó dựa trên averages và điều kiện ổn định, không phản ánh p99 hoặc tình trạng hệ thống đang tăng backlog vô hạn.
+For example, if a system completes 10 jobs/s and average time in system is ~2 s, average WIP is roughly 20 jobs. Never use this formula to declare “deadlocked” from one snapshot: it relies on averages and steady state, not p99 or a system experiencing unbounded backlog growth.
 
-## 13. Không đánh tráo correctness lấy completion rate
+## 13. Never Trade Correctness for Completion Rate
 
-Một số cách làm throughput tăng nhưng sản phẩm sai:
+Ways throughput can rise while the product breaks:
 
-- Bỏ xác thực/validation để request trả success nhanh hơn.
-- Bỏ ghi transaction/commit hoặc bỏ chờ kết quả DB trước khi ack.
-- Nuốt exception rồi tăng `succeeded_total` dù nghiệp vụ chưa hoàn tất.
-- Timeout caller nhưng retry lại nhiều lần gây duplicate payments.
-- Nới lock/ordering mà không giữ invariant, tạo race condition.
-- Loại nhóm request chậm ra khỏi báo cáo sau sửa để p95 đẹp hơn.
+- Skipping auth/validation so requests return success faster.
+- Skipping transaction writes/commits or DB result waits before acking.
+- Swallowing exceptions and incrementing `succeeded_total` despite unfinished business work.
+- Timing out at caller while retrying repeatedly and causing duplicate payments.
+- Relaxing locks/ordering without preserving invariants, introducing race conditions.
+- Dropping slow request classes from post-fix reporting to make p95 look prettier.
 
-**Business progress** phải được xác minh bằng kết quả thực: record đã commit, job ack sau khi xử lý đúng, response đáp ứng contract, không mất/nhân bản dữ liệu. Vì vậy acceptance criteria phải bao gồm **correctness**, success/failure semantics, idempotency và reconciliation khi cần.
+**Business progress** must be verified by real outcomes: records committed, jobs acked only after valid processing, responses honoring contracts, and no lost/duplicated data. Acceptance criteria must therefore include **correctness**, success/failure semantics, idempotency, and reconciliation where needed.
 
-Nếu số `completed` tăng vì thêm 1.000 failures nhanh thì hệ thống có thể **fail-fast tốt hơn** (bảo vệ tài nguyên) nhưng chưa thể gọi là nghiệp vụ đã hồi phục. Báo đúng hai kết luận riêng: *đã giới hạn thời gian chờ* và *tỷ lệ thành công còn chưa đạt mục tiêu*.
+If `completed` rose due to 1,000 fast failures, the system may **fail-fast better** (protecting resources) yet cannot be declared business-recovered. Report both facts separately: *wait time was bounded* and *success rate has not yet met target*.
 
-## 14. Một ma trận đọc bằng chứng nhanh
+## 14. Quick Evidence-Reading Matrix
 
-| Quan sát sau sửa | Có thể kết luận | Chưa thể kết luận |
+| Post-Fix Observation | What Can Be Concluded | What Cannot Yet Be Concluded |
 | --- | --- | --- |
-| Completed rate > 0, trước đó bằng 0 | Có dấu hiệu tiến triển trở lại | Đã đạt SLO/correctness dưới mọi tải |
-| Succeeded rate ổn định, failures thấp hơn | Business progress cải thiện ở cửa sổ đo | Nguyên nhân thay đổi chắc chắn chỉ do code fix |
-| Queue p95 giảm, oldest age giảm | Chờ trong queue có tín hiệu tốt hơn | Không có request cá biệt bị bỏ đói |
-| Retry rate giảm, success rate tăng | Giảm retries vô ích, cải thiện output | Livelock không tái xuất dưới tải biên |
-| ThreadMXBean không thấy deadlock cycle | Không phát hiện cycle thuộc loại API hỗ trợ lúc đo | Không có deadlock logic/phân tán/ở thời điểm khác |
-| CPU giảm nhưng completed=0 | Không chứng minh đã có progress | Vấn đề đã được sửa |
-| `Future.get(timeout)` báo timeout | Caller đã hết ngân sách chờ | Remote task đã dừng |
-| Pool `getCompletedTaskCount` tăng | Executor có tasks kết thúc | Business operations đều thành công |
-| p99 latency tăng, trung bình giảm | Tail bị xấu đi cho một số công việc | Fix chắc chắn thành công về SLO |
-| Một run đạt mục tiêu, các run khác thất bại | Có điều kiện mà fix hoạt động | Đã loại bỏ bug concurrency một cách tin cậy |
+| Completed rate > 0, previously 0 | Signs of resumed progress | SLO/correctness met under all loads |
+| Steady succeeded rate, lower failures | Business progress improved in measured window | Change was caused solely by the code fix |
+| Queue p95 dropped, oldest age dropped | Queue waiting improved | No individual request class is still starved |
+| Retry rate dropped, success rate rose | Fewer wasted retries, better output | Livelock will not recur under edge loads |
+| `ThreadMXBean` finds no deadlock cycle | No cycle of API-supported types found at measurement time | No logical/distributed deadlocks or deadlocks at other times |
+| CPU dropped while completed=0 | Proves no progress yet | Issue is fixed |
+| `Future.get(timeout)` throws timeout | Caller exhausted wait budget | Remote task stopped |
+| Pool `getCompletedTaskCount` rose | Executor finished tasks | All business operations succeeded |
+| p99 latency rose, mean dropped | Tail worsened for some work | Fix definitely met SLO |
+| One run passed, others failed | Fix works under some conditions | Concurrency bug reliably eliminated |
 
-## 15. Mẫu báo cáo kiểm chứng trước–sau
+## 15. Before–After Verification Report Template
 
 ```text
 IDENTITY
@@ -900,73 +900,73 @@ QA / UNCERTAINTY
 - Remaining risk, regression tests, rollout/canary owner:
 ```
 
-Mẫu trên nên được điền bằng **số liệu có timestamp và nguồn rõ**. Nếu thiếu khả năng đo một metric, ghi `not measured`, `unsupported` hoặc `insufficient samples` thay vì tự điền 0.
+The template above should be filled with **timestamped numbers and clear sources**. If a metric cannot be measured, write `not measured`, `unsupported`, or `insufficient samples` rather than filling in 0.
 
-Một báo cáo đáng tin có thể nêu:
+A credible report might state:
 
-> “Ở 5 cửa sổ 30 giây dưới workload 8 accepted requests/s, sau sửa completion rate tăng từ khoảng 2 lên 8/s, p95 queue wait giảm, tỷ lệ success không xấu đi và oldest queue age không còn tăng. Trong phạm vi test có kiểm soát, các tiêu chí PASS; vẫn cần theo dõi canary trong peak traffic và tải có conflict hiếm.”
+> “Across five 30-second windows under 8 accepted requests/s, post-fix completion rate rose from ~2 to 8/s, p95 queue wait dropped, success rate did not degrade, and oldest queue age stopped climbing. Within controlled test scope, criteria PASS; canary monitoring during peak traffic and rare-conflict loads remains necessary.”
 
-Đây là **mẫu cách viết nhận định**, không phải kết quả đã thu từ hệ thống thật. Luôn phân biệt “phép thử đạt” với “đã chứng minh không thể xảy ra race condition ở mọi lịch chạy”.
+This is an **example of phrasing findings**, not data collected from a real system. Always distinguish “test passed” from “proven impossible for a race condition to occur under any schedule.”
 
-## 16. Các sai lầm thường gặp
+## 16. Common Mistakes
 
-1. **Đếm attempts thay completed.** Livelock có thể có vô số retries nhưng 0 progress.
-2. **Đếm completed executor tasks thành thành công nghiệp vụ.** Tasks có thể kết thúc do exception.
-3. **Chỉ so CPU.** CPU giảm có thể đơn giản vì workers ngủ/chờ nhiều hơn.
-4. **Chỉ so live thread count.** Ít thread hơn không chứng minh queue được phục vụ.
-5. **Lấy một điểm counter tích lũy làm throughput.** Phải tính delta trên cùng instance/cửa sổ.
-6. **Không xử lý counter reset sau restart.** Có thể tính rate âm hoặc kết luận sai.
-7. **Gộp accepted, started và completed.** Không phân biệt queue wait và service time.
-8. **Nhầm queue wait với end-to-end latency.** Chỉ giảm một thành phần chưa chắc giảm toàn bộ.
-9. **Cộng service time và dependency wait khi dependency đã nằm trong service time.** Đếm trùng.
-10. **Dùng `System.nanoTime` như UTC timestamp.** Nó đo elapsed, không phải wall-clock.
-11. **So timestamps nanoTime giữa các JVM.** Origin khác nhau.
-12. **Không ghi sample count cho p95/p99.** Percentile của 8 mẫu rất nhiễu.
-13. **Tính trung bình p95 giữa replicas.** Không cho p95 toàn cluster.
-14. **Biến missing sample thành 0 ms.** Che lỗi exporter và false improvement.
-15. **Loại timeout/failure khỏi tập đo sau sửa nhưng không loại ở baseline.** Population không còn giống nhau.
-16. **So trước–sau với tải khác nhau.** Không còn đối chứng nhân quả hợp lệ.
-17. **Quên warm-up/JIT/cache.** Một run đầu có thể chậm bất thường.
-18. **Chọn run tốt nhất.** Che variance và bug race hiếm.
-19. **Chỉ chạy một lần.** Chưa đủ chứng cứ với deadlock/starvation chỉ xuất hiện dưới lịch chạy đặc biệt.
-20. **Không đo oldest queue age.** Tổng throughput có thể cao nhưng một nhóm vẫn bị starvation.
-21. **Tin deadlock detector trả null là sửa xong.** API chỉ quan sát loại cycle hỗ trợ tại một thời điểm.
-22. **Bật contention monitoring mà không ghi thời điểm.** Dữ liệu time có thể reset, overhead đổi kết quả.
-23. **Biến `-1` của ThreadInfo thành 0.** `-1` thường là chưa có đo hợp lệ.
-24. **Báo completion rate tăng khi chỉ tăng failures nhanh.** Không phân biệt success/correctness.
-25. **Chỉ kiểm tra lúc backlog drain.** Cần đo tiếp khi steady state mới hình thành.
-26. **Không đo deadline trong queue.** Task có thể hết ngân sách trước khi worker bắt đầu.
-27. **Quên cancellation/idempotency.** Timeout caller không hủy tác dụng phụ phía remote.
-28. **Instrumentation quá nặng.** Getter/tracing/dumps có thể tạo contention mới.
-29. **Đặt user IDs vào labels.** Cardinality và privacy risk lớn.
-30. **Restart trước khi thu evidence.** Có thể mất thread graph, queue age và timeline gốc.
-31. **Tuyên bố “không có treo” vì một request thành công.** Cần cả tail/population và stress reproduction.
-32. **Không có tiêu chí PASS được định nghĩa trước.** Dễ chọn metric thuận lợi để kể chuyện sau khi xem kết quả.
+1. **Counting attempts instead of completed.** Livelocks can have endless retries with 0 progress.
+2. **Counting completed executor tasks as business successes.** Tasks can finish by throwing exceptions.
+3. **Comparing only CPU.** Lower CPU can simply mean workers are sleeping/waiting more.
+4. **Comparing only live thread counts.** Fewer threads do not prove queues are being served.
+5. **Treating one cumulative counter point as throughput.** You must compute deltas on the same instance/window.
+6. **Ignoring counter resets after restarts.** Can produce negative rates or wrong conclusions.
+7. **Lumping accepted, started, and completed together.** Fails to separate queue wait from service time.
+8. **Confusing queue wait with end-to-end latency.** Reducing one piece may not reduce the whole.
+9. **Adding service time and dependency wait when dependency is already inside service time.** Double-counts.
+10. **Using `System.nanoTime` as a UTC timestamp.** It measures elapsed time, not wall-clock time.
+11. **Comparing `nanoTime` timestamps across JVMs.** Different origins.
+12. **Omitting sample counts for p95/p99.** Percentiles over 8 samples are very noisy.
+13. **Averaging p95 across replicas.** Does not yield cluster p95.
+14. **Turning missing samples into 0 ms.** Masks exporter faults and creates fake improvements.
+15. **Dropping timeouts/failures post-fix without dropping them in baseline.** Populations no longer match.
+16. **Comparing before–after under different loads.** Invalidates causal comparison.
+17. **Forgetting warm-up/JIT/caches.** First runs can be abnormally slow.
+18. **Cherry-picking the best run.** Hides variance and rare race bugs.
+19. **Running only once.** Insufficient evidence for deadlocks/starvation requiring specific schedules.
+20. **Not measuring oldest queue age.** Total throughput can look high while one group starves.
+21. **Trusting a null deadlock detector means the fix is done.** The API only checks supported cycle types at one instant.
+22. **Enabling contention monitoring without recording timestamps.** Times may reset and overhead shifts results.
+23. **Converting `ThreadInfo`'s `-1` into 0.** `-1` usually means no valid measurement available.
+24. **Reporting higher completion rate when only fast failures increased.** Fails to separate success/correctness.
+25. **Testing only during backlog drain.** Keep measuring once the new steady state settles.
+26. **Not measuring queue deadlines.** Tasks may exhaust budgets before workers ever start them.
+27. **Forgetting cancellation/idempotency.** Caller timeout does not cancel remote side effects.
+28. **Overly heavy instrumentation.** Getters/tracing/dumps can introduce new contention.
+29. **Putting user IDs into metric labels.** High cardinality and major privacy risks.
+30. **Restarting before collecting evidence.** Destroys thread graphs, queue ages, and original timelines.
+31. **Declaring “no hangs” from one succeeding request.** Tails, full populations, and stress reproduction are needed.
+32. **Having no pre-defined PASS criteria.** Makes it easy to pick favorable metrics after seeing results.
 
-## 17. Tự kiểm tra kiến thức
+## 17. Knowledge Self-Check
 
-1. Tại sao một counter retry tăng không đủ chứng minh hệ thống có progress?
-2. Phân biệt `accepted_total`, `started_total`, `completed_total`, `succeeded_total` với ví dụ một request retry ba lần.
-3. Từ 60 lên 240 completed operations trong hai cửa sổ 30 giây, completion rate tăng bao nhiêu lần?
-4. Nếu sau sửa `completedRate` tăng nhưng `succeededRate` không tăng, bạn phải xem những outcome nào?
-5. `System.nanoTime()` dùng cho elapsed hay timestamp giữa nhiều hosts? Vì sao?
-6. Đo queue wait bắt đầu/kết thúc ở đâu? Có cần bao gồm thời gian worker đang thực thi không?
-7. Vì sao `getBlockedTime()` của ThreadInfo không phải toàn bộ thời gian chờ DB/RPC?
-8. `ThreadMXBean.findDeadlockedThreads()` trả null, liệu đã xác nhận hết starvation chưa?
-9. Vì sao p99 queue wait có thể tăng dù mean giảm? Bạn cần thêm loại dữ liệu gì?
-10. Tại sao một p95 trên 8 mẫu không đủ để kiểm chứng SLO production?
-11. Có thể lấy trung bình p95 của hai replicas để có p95 toàn cluster không?
-12. Nếu accepted rate 100/s nhưng completed rate 80/s duy trì, backlog sẽ thế nào trong mô hình đơn giản?
-13. Tại sao queue depth ổn định vẫn có thể che starvation của low-priority jobs?
-14. Cách nào phân biệt một spike completed rate do backlog drain với một cải thiện steady-state?
-15. Trước/sau tải khác nhau 10 lần thì báo cáo nên ghi giới hạn gì?
-16. Sau sửa có timeout nhanh hơn nhưng success giảm: nên kết luận sửa lỗi thành công hay chỉ fail-fast?
-17. `Future.get(timeout)` có tự đảm bảo task đã bị hủy chưa? Cần kiểm tra gì?
-18. Những guardrails nào nên đo cùng completion rate để bảo đảm không đánh đổi correctness?
-19. Khi nào dùng repeated tests, canary và chaos/failure injection có kiểm soát?
-20. Viết một acceptance criterion đo được cho việc khắc phục queue starvation và một tiêu chí cho deadlock.
+1. Why is a rising retry counter insufficient to prove the system is making progress?
+2. Distinguish `accepted_total`, `started_total`, `completed_total`, and `succeeded_total` using an example of a request retried three times.
+3. Going from 60 to 240 completed operations in two 30-second windows, by what factor did completion rate increase?
+4. If post-fix `completedRate` rises while `succeededRate` stays flat, which outcomes must you inspect?
+5. Is `System.nanoTime()` for elapsed time or cross-host timestamps? Why?
+6. Where does queue wait start and end? Should it include worker execution time?
+7. Why is `ThreadInfo.getBlockedTime()` not total DB/RPC wait time?
+8. If `ThreadMXBean.findDeadlockedThreads()` returns `null`, does that confirm starvation is gone?
+9. Why can p99 queue wait rise even when the mean drops? What extra data do you need?
+10. Why is p95 over 8 samples insufficient to verify a production SLO?
+11. Can you average the p95 of two replicas to obtain cluster-wide p95?
+12. If accepted rate stays 100/s while completed rate stays 80/s, what happens to backlog in a simple model?
+13. Why can a steady queue depth still hide starvation of low-priority jobs?
+14. How do you distinguish a completion-rate spike from backlog draining vs. a steady-state improvement?
+15. If before and after loads differed by 10x, what limitation must the report state?
+16. Post-fix shows faster timeouts yet fewer successes: should you conclude the fix succeeded or merely failed fast?
+17. Does `Future.get(timeout)` guarantee the task was canceled? What must be checked?
+18. Which guardrails should be measured alongside completion rate to ensure correctness was not traded away?
+19. When should you use repeat tests, canaries, and controlled chaos/failure injection?
+20. Write one measurable acceptance criterion for fixing queue starvation and one for deadlock.
 
-## Nguồn tham khảo
+## References
 
 - Oracle Java SE 17 — `System.nanoTime()`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html
 - Oracle Java SE 17 — `ThreadMXBean`: https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html
@@ -976,4 +976,4 @@ Một báo cáo đáng tin có thể nêu:
 - Oracle Java SE 17 — `LongAdder`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html
 - Oracle Java SE 17 — `jcmd`: https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html
 
-**Ghi nhớ:** xác nhận sửa lỗi treo/tranh chấp bằng **công việc kết thúc đúng nghĩa**, **thông lượng thành công**, **thời gian chờ và tail latency**, **queue age** cùng **correctness/guardrails** dưới tải tương đương. CPU, thread states hay không thấy lock cycle chỉ là dữ liệu hỗ trợ. Một bản sửa được coi là kiểm chứng trong phạm vi bài test khi các tiêu chí đã định đạt qua nhiều cửa sổ phù hợp và không tạo ra tác dụng phụ hoặc mất tiến độ ở nhóm công việc khác.
+**Takeaway:** verify hang/contention fixes using **meaningfully completed work**, **success throughput**, **wait times and tail latency**, **queue age**, and **correctness/guardrails** under comparable load. CPU, thread states, or absence of lock cycles are only supporting evidence. A fix is considered verified within test scope when pre-defined criteria pass across multiple suitable windows without introducing side effects or stalling other work groups.

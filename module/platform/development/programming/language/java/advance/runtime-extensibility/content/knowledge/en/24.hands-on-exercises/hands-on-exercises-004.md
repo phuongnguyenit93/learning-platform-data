@@ -1,31 +1,31 @@
-# Chuyển hệ thống sang module tường minh và khám phá trong ModuleLayer con
+# Migrating a System to Explicit Modules and Discovering Providers in a Child ModuleLayer
 
-## 1. Mục tiêu của bài thực hành
+## 1. Exercise Objectives
 
-Một ứng dụng Java có thể bắt đầu với **classpath**, nạp plugin JAR qua **URLClassLoader** và tìm implementation bằng **ServiceLoader** với các file **META-INF/services**. Khi hệ thống lớn lên, chúng ta muốn tổ chức ranh giới module rõ ràng hơn: SPI ở module công khai, host ở module riêng và implementation plugin trong **explicit named module** mà host không cần import. Đồng thời plugin được nạp vào một **ModuleLayer con** để có thể bổ sung hoặc thay phiên bản mà không đưa mọi plugin vào boot layer của JVM.
+A Java application may start with the **classpath**, loading plugin JARs via **URLClassLoader** and discovering implementations with **ServiceLoader** using **META-INF/services** files. As the system grows, we want clearer module boundaries: the SPI in a public module, the host in its own module, and the plugin implementation inside an **explicit named module** that the host does not need to import. At the same time, the plugin is loaded into a **child ModuleLayer** so versions can be added or replaced without placing every plugin into the JVM boot layer.
 
-Bài này xây dựng một ví dụ **Java 17+ có thể chạy từ đầu đến cuối**, gồm ba named modules:
+This exercise builds an **end-to-end runnable Java 17+ example** consisting of three named modules:
 
-- **lab.api**: chứa interface SPI **lab.api.Greeting**, được dùng chung.
-- **lab.host**: ứng dụng chủ, dùng SPI và gọi **ServiceLoader.load(layer, Greeting.class)**.
-- **lab.provider**: plugin triển khai SPI, công bố provider bằng **provides ... with ...** và **không exports package implementation**.
+- **lab.api**: contains the shared SPI interface **lab.api.Greeting**.
+- **lab.host**: the host application, which uses the SPI and calls **ServiceLoader.load(layer, Greeting.class)**.
+- **lab.provider**: the plugin implementing the SPI, declaring its provider with **provides ... with ...** and **without exporting its implementation package**.
 
-Chúng ta sẽ compile ba module bằng javac, đóng **lab.provider** thành JAR, **chỉ đặt lab.api và lab.host trên module path để khởi chạy host**, sau đó để host tự tạo một child ModuleLayer từ JAR plugin. Cuối bài, bạn sẽ phân biệt được **discovery** với **module resolution**, kiểm tra đúng lớp và module đang chạy, xử lý lỗi module graph và hiểu cách phát triển kiến trúc để nâng cấp plugin.
+We will compile all three modules with javac, package **lab.provider** into a JAR, **place only lab.api and lab.host on the module path to launch the host**, and then have the host construct a child ModuleLayer from the plugin JAR. By the end, you will distinguish **discovery** from **module resolution**, verify the actual runtime classes and modules, handle module graph errors, and understand how to evolve the architecture for plugin upgrades.
 
-Kết quả mong đợi:
+Expected outcomes:
 
-1. Plugin **không nằm trong boot layer**.
-2. Host tự tạo được **child ModuleLayer** chứa lab.provider.
-3. **ServiceLoader** tìm được implementation từ child layer.
-4. Host gọi SPI thành công, không phụ thuộc source class implementation.
-5. Package implementation **không cần exports hay opens** cho host.
-6. Interface SPI vẫn dùng **một bản Class identity** ở parent/boot layer.
+1. The plugin **is not in the boot layer**.
+2. The host dynamically creates a **child ModuleLayer** containing lab.provider.
+3. **ServiceLoader** discovers the implementation from the child layer.
+4. The host invokes the SPI successfully without source dependencies on the implementation class.
+5. The implementation package **does not need exports or opens** to the host.
+6. The SPI interface still uses a **single Class identity** in the parent/boot layer.
 
-**Phạm vi:** bài tập tập trung vào chuyển đổi, cách build/launch và khám phá module trong layer con; không coi ModuleLayer là sandbox hay hệ quản lý vòng đời plugin đầy đủ.
+**Scope:** This exercise focuses on migration, build/launch steps, and module discovery in a child layer; it does not treat ModuleLayer as a security sandbox or a complete plugin lifecycle management system.
 
-## 2. Trước và sau chuyển đổi
+## 2. Before and After Migration
 
-### 2.1. Kiến trúc classpath truyền thống
+### 2.1. Traditional classpath architecture
 
 ~~~text
 app.jar + api.jar + provider.jar   (classpath)
@@ -35,21 +35,21 @@ app.jar + api.jar + provider.jar   (classpath)
   +-- META-INF/services/lab.api.Greeting
   |
   +-- ServiceLoader.load(Greeting.class)
-          -> tìm provider theo service configuration resource
+          -> finds provider via service configuration resource
 ~~~
 
-Đăng ký provider trên classpath thường nằm trong file văn bản **META-INF/services/lab.api.Greeting** với nội dung **lab.provider.internal.SimpleGreeting**. Host có thể dùng ClassLoader phù hợp để đưa provider JAR vào phạm vi tìm kiếm.
+Provider registration on the classpath typically lives in a text file **META-INF/services/lab.api.Greeting** containing **lab.provider.internal.SimpleGreeting**. The host can use an appropriate ClassLoader to bring the provider JAR into discovery scope.
 
-Điểm hạn chế của một classpath chung:
-- Không có module descriptor để quy định rõ **requires, exports, uses, provides**.
-- Public class có thể bị consumer khác import trực tiếp, dù nhà phát triển chỉ muốn công khai SPI.
-- Các JAR phụ thuộc có thể va chạm phiên bản trên classpath.
-- Thêm plugin JAR vào một thư mục không đồng nghĩa application class loader đang chạy đã nhìn thấy nó.
-- Việc thay class definition của plugin đã được load vẫn đòi hỏi quản lý class loader, cache và lifecycle.
+Limitations of a shared classpath:
+- No module descriptor to explicitly specify **requires, exports, uses, provides**.
+- Public classes can be imported directly by other consumers even if the author only intended to expose the SPI.
+- Dependency JARs can collide across versions on the classpath.
+- Dropping a plugin JAR into a directory does not mean the running application class loader sees it.
+- Replacing class definitions of an already-loaded plugin still requires managing class loaders, caches, and lifecycle.
 
-**Classpath không sai**: với ứng dụng nhỏ hoặc SPI ổn định, ServiceLoader + JAR trên classpath là một giải pháp hợp lý. Chuyển sang JPMS là một quyết định kiến trúc cần điều kiện build/deploy tương ứng.
+**Classpath is not wrong**: for small applications or stable SPIs, ServiceLoader + JARs on the classpath is a reasonable choice. Moving to JPMS is an architectural decision that requires matching build/deployment practices.
 
-### 2.2. Kiến trúc explicit named modules và child layer
+### 2.2. Explicit named modules and child layer architecture
 
 ~~~text
 BOOT LAYER
@@ -65,46 +65,46 @@ BOOT LAYER
      v
 CHILD MODULE LAYER
   lab.provider
-    requires lab.api ---------------> dùng API từ BOOT LAYER
+    requires lab.api ---------------> uses API from BOOT LAYER
     provides lab.api.Greeting
        with lab.provider.internal.SimpleGreeting
-    [không exports lab.provider.internal]
+    [does not export lab.provider.internal]
 
   ServiceLoader.load(childLayer, Greeting.class)
      -> provider object
-     -> host sử dụng qua Greeting
+     -> host uses via Greeting
 ~~~
 
-**Lab.api** chỉ được định nghĩa trong boot layer, không copy vào child layer. Lab.provider thuộc layer mới, phụ thuộc API từ parent. Vì vậy khi host nhận một instance **Greeting** từ provider, nó có thể dùng chung đúng interface và không cần truy cập package implementation.
+**lab.api** is defined only in the boot layer, not copied into the child layer. lab.provider belongs to the new layer and depends on the API from the parent. Thus, when the host receives a **Greeting** instance from the provider, it shares the exact same interface without needing access to the implementation package.
 
-**Cảnh báo khái niệm:** ModuleLayer là một nhóm named modules đã được resolve cùng ánh xạ class loader. Nó không phải một thư mục JAR, cũng không phải một class loader duy nhất trong mọi chiến lược. ModuleLayer có parent layers; module trong child có thể phụ thuộc module ở parent, nhưng parent không tự có quyền import các implementation ở child.
+**Conceptual warning:** A ModuleLayer is a group of resolved named modules along with their class loader mappings. It is neither a directory of JARs nor necessarily a single class loader under every strategy. A ModuleLayer has parent layers; modules in a child can depend on modules in a parent, but the parent does not automatically gain access to import implementations in a child.
 
-## 3. Danh sách thay đổi khi chuyển từ classpath sang JPMS
+## 3. Checklist of Changes When Migrating from Classpath to JPMS
 
-| Vấn đề | Trước (classpath) | Sau (explicit named modules) |
+| Concern | Before (classpath) | After (explicit named modules) |
 | --- | --- | --- |
-| API/SPI | Một JAR hoặc package dùng chung | Module **lab.api** với **exports lab.api** |
-| Host | Class dùng SPI, loader/truy cập jar tùy thiết kế | Module **lab.host** với **requires lab.api** và **uses lab.api.Greeting** |
-| Provider registration | **META-INF/services/lab.api.Greeting** | **provides lab.api.Greeting with ...** trong module-info.java |
-| Provider dependencies | Phụ thuộc compile/runtime classpath | **requires lab.api** và module dependencies cần thiết |
-| Implementation visibility | Public class có thể bị import nếu nằm trên classpath | Package implementation không exports/opens |
-| Plugin discovery | ServiceLoader dùng class loader hoặc TCCL | **ServiceLoader.load(childLayer, Greeting.class)** |
-| Runtime visibility | JAR được loader nhìn thấy | Module được **finder tìm, resolve, định nghĩa** trong layer |
-| Thay plugin | Quản lý JAR và loader mới nếu class đã load | Quản lý JAR, layer/loader mới và cutover; không tự hot swap |
-| Quản trị lỗi | ClassNotFoundException, ServiceConfigurationError và linkage | Thêm FindException, ResolutionException, LayerInstantiationException, access checks |
-| Kiểm thử | Chỉ classpath có thể che lỗi modules | Biên dịch và chạy **module path thật** |
+| API/SPI | A shared JAR or package | Module **lab.api** with **exports lab.api** |
+| Host | Classes using SPI; loader/JAR access depends on design | Module **lab.host** with **requires lab.api** and **uses lab.api.Greeting** |
+| Provider registration | **META-INF/services/lab.api.Greeting** | **provides lab.api.Greeting with ...** in module-info.java |
+| Provider dependencies | Compile/runtime classpath dependencies | **requires lab.api** and needed module dependencies |
+| Implementation visibility | Public classes can be imported if on classpath | Implementation package is not exported or opened |
+| Plugin discovery | ServiceLoader using class loader or TCCL | **ServiceLoader.load(childLayer, Greeting.class)** |
+| Runtime visibility | JAR visible to the loader | Module **found by finder, resolved, defined** in layer |
+| Plugin replacement | Manage JARs and new loaders if classes already loaded | Manage JARs, new layers/loaders, and cutover; no automatic hot swap |
+| Error management | ClassNotFoundException, ServiceConfigurationError, and linkage | Also FindException, ResolutionException, LayerInstantiationException, access checks |
+| Testing | Classpath-only tests can hide module errors | Compile and run on a **real module path** |
 
-**Không cần duy trì hai nguồn đăng ký song song** cho cùng provider chỉ để hỗ trợ explicit module. Với explicit named module, **provides** là nguồn khai báo provider chính. Một JAR không có module-info.class nhưng được đặt trên module path có thể thành **automatic module**; automatic module không tương đương explicit module và không cho cùng mức đóng gói.
+**There is no need to maintain two parallel registration sources** for the same provider just to support explicit modules. For explicit named modules, **provides** is the primary provider declaration. A JAR lacking module-info.class placed on the module path becomes an **automatic module**; automatic modules are not equivalent to explicit modules and do not provide the same encapsulation.
 
-## 4. Chuẩn bị môi trường
+## 4. Preparing the Environment
 
-Ví dụ yêu cầu:
-- **JDK 17 hoặc mới hơn** có công cụ **java**, **javac** và **jar** trên PATH.
-- Quyền tạo file trong một thư mục demo.
-- Terminal bash trên Linux/macOS hoặc PowerShell trên Windows.
-- Không dùng Maven/Gradle và không yêu cầu dependency ngoài JDK.
+This example requires:
+- **JDK 17 or newer** with **java**, **javac**, and **jar** on PATH.
+- Permission to create files in a demo directory.
+- A bash terminal on Linux/macOS or PowerShell on Windows.
+- No Maven/Gradle and no dependencies outside the JDK.
 
-Xác nhận toolchain:
+Verify the toolchain:
 
 ~~~bash
 java -version
@@ -112,9 +112,9 @@ javac -version
 jar --version
 ~~~
 
-**Mục tiêu build** là Java 17 thông qua **javac --release 17**, kể cả khi compiler trên máy bạn mới hơn. Cờ này kiểm soát language/class-file/platform API release, nhưng bản demo được vận hành trong môi trường có hỗ trợ module system và các API Java 17.
+**The build target** is Java 17 via **javac --release 17**, even if your local compiler is newer. This flag controls language/class-file/platform API compatibility, while the demo runs in an environment supporting the module system and Java 17 APIs.
 
-Tạo cấu trúc tệp như sau (các đường dẫn là tương đối so với thư mục **demo**):
+Create the following file layout (paths are relative to the **demo** directory):
 
 ~~~text
 demo/
@@ -128,17 +128,17 @@ demo/
 │   └── lab.host/
 │       ├── module-info.java
 │       └── lab/host/Main.java
-├── mods/                    # Sinh khi biên dịch
+├── mods/                    # Generated during compilation
 │   ├── lab.api/
 │   ├── lab.provider/
 │   └── lab.host/
-└── plugins/                 # Sinh khi đóng gói
+└── plugins/                 # Generated during packaging
     └── lab.provider.jar
 ~~~
 
-**Tên thư mục dưới src là tên module** tương ứng với cách dùng **--module-source-path src**. Mỗi module có một **module-info.java** ở gốc thư mục module. File lab.provider.jar được đặt riêng ngoài module path của host lúc startup để plugin được resolve trong child layer.
+**Directory names under src are module names**, matching **--module-source-path src**. Each module has a **module-info.java** at its module root. The lab.provider.jar file is kept outside the host's startup module path so the plugin is resolved inside the child layer.
 
-## 5. Viết module API: lab.api
+## 5. Writing the API Module: lab.api
 
 File **src/lab.api/module-info.java**:
 
@@ -158,15 +158,15 @@ public interface Greeting {
 }
 ~~~
 
-Giải thích:
-- **exports lab.api** cho các module khác truy cập các public types của package API.
-- **Greeting** là hợp đồng mà cả host lẫn provider đều dùng.
-- Không đưa logic triển khai vào lab.api.
-- Version và behavioral contract của Greeting cần do nền tảng công bố; việc module hóa không thay thế quản lý binary compatibility.
+Explanation:
+- **exports lab.api** grants other modules access to the public types in the API package.
+- **Greeting** is the contract shared by both host and providers.
+- Keep implementation logic out of lab.api.
+- Greeting's versioning and behavioral contract must be published by the platform; modularization does not replace binary compatibility management.
 
-Nếu lab.api có nội bộ implementation/helper, hãy đặt chúng ở package không export. Nếu SPI dùng DTO trong signature, các DTO và package cần thiết cũng phải accessible theo thiết kế.
+If lab.api has internal implementation/helpers, place them in an unexported package. If the SPI uses DTOs in its signatures, those DTOs and their packages must also be accessible by design.
 
-## 6. Viết module provider: lab.provider
+## 6. Writing the Provider Module: lab.provider
 
 File **src/lab.provider/module-info.java**:
 
@@ -194,19 +194,19 @@ public final class SimpleGreeting implements Greeting {
 }
 ~~~
 
-Ý nghĩa các chỉ thị:
-- **requires lab.api**: module provider đọc được module chứa SPI.
-- **provides lab.api.Greeting with lab.provider.internal.SimpleGreeting**: provider registration được ghi trong **module descriptor**, không còn phụ thuộc việc tìm một META-INF/services resource trên classpath.
-- **Không có exports lab.provider.internal**: mã lab.host không thể import class implementation như một API công khai.
-- **Không có opens lab.provider.internal**: không mở package nội bộ cho deep reflection của host.
+Meaning of the directives:
+- **requires lab.api**: allows the provider module to read the module containing the SPI.
+- **provides lab.api.Greeting with lab.provider.internal.SimpleGreeting**: provider registration is declared in the **module descriptor**, no longer relying on locating a META-INF/services resource on the classpath.
+- **No exports lab.provider.internal**: lab.host code cannot import the implementation class as public API.
+- **No opens lab.provider.internal**: does not open the internal package for deep reflection by the host.
 
-Lớp **SimpleGreeting** vẫn là public và có **public constructor không tham số**, đúng yêu cầu của đường provider constructor trong explicit named module. ServiceLoader có cơ chế riêng để tạo provider đã khai báo trong module descriptor mà không yêu cầu package implementation export cho consumer.
+The **SimpleGreeting** class remains public and has a **public no-arg constructor**, satisfying the constructor-based provider requirement in an explicit named module. ServiceLoader has built-in support for instantiating providers declared in a module descriptor without requiring the implementation package to be exported to consumers.
 
-**Một điểm rất dễ nhầm:** “Không export package” và “provider class không public” là hai vấn đề khác nhau. Không export package là ranh giới giữa modules; class được ghi trực tiếp sau **with** vẫn phải đáp ứng điều kiện provider type. Với Java 17, explicit named module cũng có mô hình public static **provider()** hợp lệ cho provider factory, nhưng ví dụ này cố ý chọn constructor để dễ theo dõi.
+**A very common misconception:** "Not exporting a package" and "a non-public provider class" are two separate things. Not exporting a package is a boundary between modules; the class listed directly after **with** must still satisfy provider-type rules. In Java 17, explicit named modules also allow a valid public static **provider()** factory method, though this example intentionally uses a constructor for clarity.
 
-Không cần thêm **exports lab.provider.internal to lab.host** chỉ để ServiceLoader hoạt động; làm vậy sẽ làm mất ranh giới API mà chúng ta đang muốn giữ.
+Do not add **exports lab.provider.internal to lab.host** just to make ServiceLoader work; doing so breaks the API boundary we are trying to preserve.
 
-## 7. Viết module host: lab.host
+## 7. Writing the Host Module: lab.host
 
 File **src/lab.host/module-info.java**:
 
@@ -267,30 +267,30 @@ public final class Main {
 }
 ~~~
 
-Đọc từng bước trong Main:
+Step-by-step walkthrough of Main:
 
-1. **ModuleLayer.boot()** lấy layer ban đầu chứa lab.host, lab.api và các module Java đã được resolve khi launch.
-2. **Path.of(args[0])** lấy đường dẫn thư mục **plugins** do caller truyền; ở đây thư mục chứa **lab.provider.jar** đã được đóng gói.
-3. **ModuleFinder.of(Path.of(args[0]))** xây module finder, nhìn thấy những modular JAR hoặc exploded modules trên đường dẫn đó.
-4. **boot.configuration().resolve(finder, ModuleFinder.of(), Set.of("lab.provider"))** tạo một **Configuration mới**, với parent configuration là boot và root module **lab.provider** phải tìm được. Vì lab.provider **requires lab.api**, quá trình resolution nhìn thấy lab.api đã được resolve trong parent configuration.
-5. **boot.defineModulesWithOneLoader(config, ClassLoader.getSystemClassLoader())** định nghĩa các module trong configuration mới thuộc một child ModuleLayer. Chiến lược này dùng **một new class loader cho modules được định nghĩa trong layer mới**, với class loader cha được truyền vào. Nó không di chuyển lab.api khỏi boot layer.
-6. **ServiceLoader.load(child, Greeting.class)** tìm service provider trong child layer và các parent layers theo quy tắc API, rồi trả các provider để host duyệt.
-7. Host gọi **greet()** qua interface, in tên module thực tế và xác minh package implementation không export cho host.
-8. Nếu không tìm thấy provider, host ném IllegalStateException để bài thực hành thất bại rõ ràng thay vì âm thầm kết thúc.
+1. **ModuleLayer.boot()** retrieves the initial layer containing lab.host, lab.api, and the Java modules resolved at launch.
+2. **Path.of(args[0])** retrieves the **plugins** directory path supplied by the caller; here it holds the packaged **lab.provider.jar**.
+3. **ModuleFinder.of(Path.of(args[0]))** builds a module finder that locates modular JARs or exploded modules at that path.
+4. **boot.configuration().resolve(finder, ModuleFinder.of(), Set.of("lab.provider"))** creates a **new Configuration** with boot as its parent configuration and **lab.provider** as the required root module. Because lab.provider **requires lab.api**, resolution finds lab.api already resolved in the parent configuration.
+5. **boot.defineModulesWithOneLoader(config, ClassLoader.getSystemClassLoader())** defines the modules in the new configuration within a child ModuleLayer. This strategy uses **one new class loader for the modules defined in the new layer**, with the supplied parent class loader. It does not move lab.api out of the boot layer.
+6. **ServiceLoader.load(child, Greeting.class)** discovers service providers in the child layer and parent layers according to the API rules, returning providers for the host to iterate.
+7. The host calls **greet()** through the interface, prints the actual module name, and verifies that the implementation package is not exported to the host.
+8. If no provider is found, the host throws IllegalStateException so the exercise fails loudly instead of exiting silently.
 
-**Vì sao lab.host có uses?** Khi module có code gọi ServiceLoader cho một service, khai báo **uses lab.api.Greeting** là một phần hợp đồng JPMS. **requires lab.api** chỉ cho host tham chiếu kiểu Greeting; nó **không thay** cho uses.
+**Why does lab.host have uses?** When a module invokes ServiceLoader for a service, declaring **uses lab.api.Greeting** is part of the JPMS contract. **requires lab.api** only lets the host reference the Greeting type; it **does not replace** uses.
 
-**Vì sao lab.host không requires lab.provider?** Host không nên tạo dependency tĩnh tới implementation plugin. Host chỉ requires API. Module provider là root mà host chọn khi resolve child layer, nên code host không cần import hoặc requires provider module.
+**Why does lab.host not require lab.provider?** The host must not create a static dependency on a plugin implementation. The host only requires the API. The provider module is the root chosen by the host when resolving the child layer, so host code never imports or requires the provider module.
 
-**Điểm tinh tế:** **child.findModule("lab.provider")** có thể tìm module trong child hoặc parent layers; riêng trong ví dụ, boot không có lab.provider, nên hai dòng “in boot: false” và “in child: true” chứng minh provider được đưa vào layer mới. Nếu cần liệt kê đúng những module trực tiếp thuộc child, dùng **child.modules()**.
+**Subtle detail:** **child.findModule("lab.provider")** searches both the child and parent layers; in this example, boot does not have lab.provider, so the two lines "in boot: false" and "in child: true" prove the provider was placed in the new layer. If you need to list only the modules defined directly in the child, use **child.modules()**.
 
-**Kiểm tra an toàn:** ModuleFinder đọc metadata module, nhưng đó không phải bước xác minh chữ ký, nguồn gốc hay độ an toàn của plugin. Trong production, hãy kiểm tra file JAR và quyền trước khi build layer hoặc instantiate provider.
+**Security check:** ModuleFinder reads module metadata, which is not a verification of signature, origin, or plugin safety. In production, verify JAR files and permissions before building a layer or instantiating providers.
 
-## 8. Biên dịch ba module với javac
+## 8. Compiling the Three Modules with javac
 
-### 8.1. Lệnh chung trên Linux/macOS
+### 8.1. Standard commands on Linux/macOS
 
-Đứng trong thư mục **demo** (nơi chứa src/), chạy:
+From the **demo** directory (containing src/), run:
 
 ~~~bash
 mkdir -p plugins
@@ -299,9 +299,9 @@ javac --release 17 --module-source-path src -d mods \
 jar --create --file plugins/lab.provider.jar -C mods/lab.provider .
 ~~~
 
-Lệnh **javac** dùng module-source-path để hiểu các thư mục theo module name và sinh tệp **module-info.class** cùng các class files. Lệnh **jar** gói output của lab.provider thành JAR tường minh.
+**javac** uses module-source-path to map directories to module names and generates **module-info.class** along with the class files. **jar** packages lab.provider's compiled output into an explicit modular JAR.
 
-### 8.2. Lệnh tương đương trên Windows PowerShell
+### 8.2. Equivalent commands on Windows PowerShell
 
 ~~~powershell
 New-Item -ItemType Directory -Force plugins | Out-Null
@@ -309,15 +309,15 @@ javac --release 17 --module-source-path src -d mods -m lab.api,lab.provider,lab.
 jar --create --file plugins/lab.provider.jar -C mods/lab.provider .
 ~~~
 
-Các lệnh dùng dấu phân cách thư mục tương đối mà Java tools có thể xử lý trên Windows. Lưu ý PowerShell không dùng dấu **\\** của bash để nối dòng lệnh; trong ví dụ Windows mỗi lệnh javac nằm trên một dòng.
+These commands use relative directory separators that Java tools handle on Windows. Note that PowerShell does not use bash's **\\** for line continuation; in the Windows example each javac command is on a single line.
 
-### 8.3. Xác minh plugin.jar thật sự là explicit named module
+### 8.3. Verify plugin.jar is truly an explicit named module
 
 ~~~bash
 jar --describe-module --file plugins/lab.provider.jar
 ~~~
 
-Output có thể chứa đường dẫn artifact tuyệt đối khác nhau theo máy, nhưng những phần quan trọng cần nhìn thấy là:
+Output may contain machine-specific absolute artifact paths, while the essential parts to verify are:
 
 ~~~text
 lab.provider
@@ -327,13 +327,13 @@ provides lab.api.Greeting with lab.provider.internal.SimpleGreeting
 contains lab.provider.internal
 ~~~
 
-**lab.provider** phải có descriptor và chỉ thị **provides**. Nếu jar --describe-module cho biết **automatic module** hoặc không thấy provides, hãy kiểm tra quá trình build và module-info.class trong JAR, không tiếp tục giả định mọi thứ đã được module hóa.
+**lab.provider** must show a descriptor and the **provides** directive. If jar --describe-module reports an **automatic module** or omits provides, inspect your build and the module-info.class inside the JAR instead of assuming everything is modularized.
 
-Vì lab.provider.internal không exports/opens, descriptor thường có dòng **contains lab.provider.internal** thay vì dòng exports cho package đó. Điều này là có chủ đích.
+Because lab.provider.internal is neither exported nor opened, the descriptor typically shows **contains lab.provider.internal** rather than an exports line for that package. This is intentional.
 
-## 9. Khởi chạy host mà không resolve plugin ở boot
+## 9. Launching the Host Without Resolving the Plugin in Boot
 
-Đây là **bước then chốt** của bài. Khi launch, chỉ đưa hai module **lab.api** và **lab.host** vào **--module-path**; plugin JAR nằm riêng trong thư mục **plugins** để **ModuleFinder** của host tìm và tạo layer mới.
+This is the **pivotal step** of the exercise. At launch, place only **lab.api** and **lab.host** on **--module-path**; the plugin JAR sits separately in the **plugins** directory for the host's **ModuleFinder** to locate and load into a new layer.
 
 **Linux/macOS:**
 
@@ -348,9 +348,9 @@ java --module-path "mods/lab.api:mods/lab.host" \
 java --module-path "mods/lab.api;mods/lab.host" -m lab.host/lab.host.Main plugins
 ~~~
 
-Dấu phân cách giữa hai module-path entries là **:** trên Linux/macOS và **;** trên Windows. Đường dẫn **plugins** là **argument của chương trình Main**, không phải một phần --module-path của boot.
+The separator between module-path entries is **:** on Linux/macOS and **;** on Windows. The **plugins** path is an **argument to Main**, not part of boot's --module-path.
 
-**Output chính xác của ví dụ:**
+**Exact output of the example:**
 
 ~~~text
 Provider in boot: false
@@ -362,331 +362,331 @@ Implementation exported: false
 Providers found: 1
 ~~~
 
-Giải thích từng kết quả:
-- **Provider in boot: false**: JVM khởi chạy không resolve lab.provider vào boot layer.
-- **Provider in child: true**: host tự resolve và define lab.provider trong child layer.
-- **Provider module: lab.provider**: object được tạo từ named module của plugin, không phải classpath/unnamed module.
-- **Greeting: Hello, Java!**: host gọi interface lab.api.Greeting và nhận kết quả từ implementation.
-- **API in boot layer: true**: SPI được dùng từ parent/boot layer, không có một bản định nghĩa API bị nhân đôi trong child.
-- **Implementation exported: false**: package provider không export cho lab.host mà ServiceLoader vẫn hoạt động.
-- **Providers found: 1**: chỉ có một provider được đăng ký theo cấu hình ví dụ.
+Explanation of each line:
+- **Provider in boot: false**: JVM startup did not resolve lab.provider into the boot layer.
+- **Provider in child: true**: the host resolved and defined lab.provider in the child layer.
+- **Provider module: lab.provider**: the object comes from the plugin's named module, not the classpath/unnamed module.
+- **Greeting: Hello, Java!**: the host invokes the lab.api.Greeting interface and gets the result from the implementation.
+- **API in boot layer: true**: the SPI comes from the parent/boot layer, with no duplicated API definition in the child.
+- **Implementation exported: false**: the provider package is not exported to lab.host, yet ServiceLoader still works.
+- **Providers found: 1**: one provider is registered per the example configuration.
 
-**Quan sát thêm:** Output không chứa tên đường dẫn tuyệt đối hoặc địa chỉ class loader, vì các giá trị đó thay đổi tùy máy. Các câu lệnh in có chủ đích dùng những giá trị boolean và tên module ổn định để có thể đối chiếu trên nhiều hệ điều hành.
+**Additional observation:** Output prints no absolute file paths or class loader addresses, as those vary across machines. The print statements intentionally use stable booleans and module names so results can be compared across operating systems.
 
-## 10. Nối các bước lại với nhau: ai chịu trách nhiệm phần nào?
+## 10. Putting the Pieces Together: Who Is Responsible for What?
 
-| Bước | API/cơ chế | Ai chịu trách nhiệm? |
+| Step | API/Mechanism | Who is responsible? |
 | --- | --- | --- |
-| Phát hành lab.provider.jar | javac, jar, build pipeline | Nhà phát triển provider/build system |
-| Kiểm tra JAR/version/trust | Registry, checksum, chính sách | Host/deployment pipeline |
-| Chọn thư mục plugins | Path và cấu hình ứng dụng | Host |
-| Tìm module artifact | ModuleFinder.of(...) | Java API cung cấp; host chọn path |
-| Giải quyết module graph | Configuration.resolve(...) | Module system; host chọn root/finder |
-| Định nghĩa layer/loader | ModuleLayer.defineModulesWithOneLoader(...) | Module system theo cấu hình của host |
-| Khám phá provider | ServiceLoader.load(child, Greeting.class) | ServiceLoader, với layer mà host cấp |
-| Tạo provider | Provider constructor hoặc provider method | ServiceLoader khi được duyệt/yêu cầu |
-| Chọn plugin theo ID/version/policy | Registry và business rules | Host |
-| start(), health, handle(), stop() | SPI lifecycle do ứng dụng định nghĩa | Host |
-| Cập nhật version và rollback | Layer mới, routing, cleanup | Host |
-| Kiểm soát mã không đáng tin | Process/container isolation, permissions | Host/platform |
+| Publish lab.provider.jar | javac, jar, build pipeline | Provider developer / build system |
+| Verify JAR/version/trust | Registry, checksum, policy | Host / deployment pipeline |
+| Choose plugins directory | Path and application configuration | Host |
+| Locate module artifacts | ModuleFinder.of(...) | Provided by Java API; host picks the path |
+| Resolve module graph | Configuration.resolve(...) | Module system; host chooses roots/finder |
+| Define layer/loader | ModuleLayer.defineModulesWithOneLoader(...) | Module system per host configuration |
+| Discover providers | ServiceLoader.load(child, Greeting.class) | ServiceLoader, given the layer by the host |
+| Instantiate provider | Provider constructor or provider method | ServiceLoader when iterated/requested |
+| Select plugin by ID/version/policy | Registry and business rules | Host |
+| start(), health, handle(), stop() | Application-defined SPI lifecycle | Host |
+| Version upgrades and rollback | New layer, routing, cleanup | Host |
+| Contain untrusted code | Process/container isolation, permissions | Host / platform |
 
-**ModuleLayer không thay thế ServiceLoader** và ServiceLoader cũng **không tự resolve hoặc define ModuleLayer từ thư mục plugins**. Đó là hai nửa khác nhau của quy trình: host có một graph module hợp lệ, sau đó yêu cầu ServiceLoader khám phá providers trong graph ấy.
+**ModuleLayer does not replace ServiceLoader**, and ServiceLoader **does not automatically resolve or define a ModuleLayer from a plugins directory**. They are two halves of the workflow: the host builds a valid module graph, then asks ServiceLoader to discover providers within that graph.
 
-## 11. Vì sao dùng ModuleFinder, resolve và define theo thứ tự này?
+## 11. Why Use ModuleFinder, resolve, and define in This Order?
 
-### 11.1. ModuleFinder chỉ tìm metadata khả dụng
+### 11.1. ModuleFinder only discovers available metadata
 
 ~~~java
-// Mảnh minh họa; path là Path đã được kiểm chứng.
+// Illustrative snippet; path is a validated Path.
 ModuleFinder finder = ModuleFinder.of(path);
 ~~~
 
-Finder có thể tìm module descriptor trong modular JAR, exploded module và automatic modules ở những vị trí được hỗ trợ. **Tìm thấy JAR** không có nghĩa nó đã được resolve, class đã được load hoặc provider đã được khởi tạo. Muốn xem tên module có thể tìm thấy, có thể dùng **finder.findAll()** theo chính sách validation của host.
+A finder locates module descriptors in modular JARs, exploded modules, and automatic modules in supported locations. **Finding a JAR** does not mean it has been resolved, its classes loaded, or its providers instantiated. To inspect discoverable module names, you can use **finder.findAll()** according to host validation policies.
 
-Một JAR legacy không chứa module-info.class nhưng được đưa lên module path có thể được xem là automatic module. Bài thực hành yêu cầu explicit module, nên kiểm tra descriptor thay vì coi mọi tên do ModuleFinder trả về là một cuộc chuyển đổi thành công.
+A legacy JAR lacking module-info.class placed on the module path may be treated as an automatic module. This exercise requires an explicit module, so inspect the descriptor rather than assuming every name returned by ModuleFinder represents a completed migration.
 
-### 11.2. Configuration.resolve kiểm tra phụ thuộc
+### 11.2. Configuration.resolve validates dependencies
 
 ~~~java
-// Mảnh minh họa sau khi đã có parent configuration và finder.
+// Illustrative snippet given an existing parent configuration and finder.
 Configuration config = parent.configuration().resolve(
         finder, ModuleFinder.of(), Set.of("lab.provider"));
 ~~~
 
-**Set.of("lab.provider")** chỉ rõ root module cần resolve. Các phụ thuộc **requires** sẽ được giải quyết từ finder và parent configurations theo quy tắc JPMS. Nếu thiếu lab.api hoặc đặt sai module name, resolution sẽ thất bại trước khi có provider để gọi.
+**Set.of("lab.provider")** specifies the root module to resolve. **requires** dependencies are resolved from the finder and parent configurations according to JPMS rules. If lab.api is missing or a module name is wrong, resolution fails before any provider can be invoked.
 
-Trong demo, lab.api đã được resolve vào boot. Điều này quan trọng cho type identity: **đừng tạo bản lab.api mới trong child nếu định dùng Greeting.class của host từ boot**. Nếu một plugin có dependency riêng, mô hình version resolution cần được thiết kế cẩn thận; JPMS không phải bộ giải quyết version theo kiểu Maven/Gradle.
+In the demo, lab.api is already resolved in boot. This matters for type identity: **do not create a new copy of lab.api in the child if you intend to use the host's Greeting.class from boot**. If a plugin has private dependencies, version resolution must be designed carefully; JPMS is not a Maven/Gradle-style version solver.
 
-**resolve** và **resolveAndBind** không giống nhau. **resolveAndBind** có thêm service binding trong quá trình resolution để thêm modules cung cấp các services được sử dụng theo quy tắc API; demo dùng **resolve** cùng một root provider rõ ràng để giải thích rành mạch và có kết quả xác định. Khi có nhiều plugin hoặc module dùng service khác, cân nhắc cách resolution phù hợp với yêu cầu của hệ thống.
+**resolve** and **resolveAndBind** are not the same. **resolveAndBind** performs service binding during resolution to pull in modules providing services used according to API rules; the demo uses **resolve** with an explicit provider root for clarity and deterministic results. When multiple plugins or modules use other services, choose the resolution mode that fits your system's requirements.
 
-### 11.3. defineModulesWithOneLoader định nghĩa module và loader
+### 11.3. defineModulesWithOneLoader defines modules and loader
 
 ~~~java
-// Mảnh minh họa; config đã được resolve theo parent.
+// Illustrative snippet; config has already been resolved against parent.
 ModuleLayer child = parent.defineModulesWithOneLoader(
         config, ClassLoader.getSystemClassLoader());
 ~~~
 
-Cấu hình này định nghĩa các modules trong config bằng một loader mới phù hợp với parent loader được chỉ định. Trong ví dụ chỉ có module provider mới, nên cách này đủ đơn giản.
+This call defines the modules in config using one new loader paired with the specified parent loader. Since the example has only one new provider module, this is simple enough.
 
-Với nhiều plugins có dependencies xung đột hoặc yêu cầu cô lập khác nhau:
-- Cân nhắc **defineModulesWithManyLoaders** hoặc nhiều child layers độc lập.
-- Đặt API/SPI chung ở parent layer, không để một plugin tự tạo bản API với identity khác.
-- Xem kỹ quy tắc packages trong một module graph và các trường hợp trùng/split package.
-- Không dựa vào class loader như một biện pháp sandbox cho mã không đáng tin.
-- Test thực tế class identity và ServiceLoader visibility khi thêm layer lồng nhau.
+For multiple plugins with conflicting dependencies or differing isolation needs:
+- Consider **defineModulesWithManyLoaders** or multiple independent child layers.
+- Place shared API/SPI in a parent layer rather than letting a plugin create a separate API with a different identity.
+- Carefully review package rules within a module graph and duplicate/split package cases.
+- Do not rely on class loaders as a sandbox for untrusted code.
+- Test actual class identity and ServiceLoader visibility when adding nested layers.
 
-Một ModuleLayer có thể được garbage collected khi không còn reachable, nhưng **không có một thao tác ModuleLayer.close() tiêu chuẩn để chủ động unload toàn bộ class ngay lập tức**. Quản lý vòng đời plugin là trách nhiệm của host.
+A ModuleLayer can be garbage-collected once unreachable, but **there is no standard ModuleLayer.close() operation to proactively unload all classes immediately**. Managing plugin lifecycles is the host's responsibility.
 
-## 12. ServiceLoader.load(layer, service) hoạt động ra sao?
+## 12. How Does ServiceLoader.load(layer, service) Work?
 
-Với JPMS, **ServiceLoader.load(childLayer, Greeting.class)** khám phá providers trong child layer và các ancestor layers theo contract API. Điều này có hai hệ quả:
+With JPMS, **ServiceLoader.load(childLayer, Greeting.class)** discovers providers in the child layer and ancestor layers according to the API contract. This has two consequences:
 
-1. **Provider của parent layer cũng có thể xuất hiện**. Không giả định kết quả luôn chỉ gồm các modules được định nghĩa trực tiếp trong child. Nếu cần “chỉ plugin trong child”, host phải đặt chính sách lọc theo module/layer/registry.
-2. **Provider được khai báo bởi module descriptor** qua provides, không phải vì host import implementation class. Class provider có thể nằm trong package không export.
+1. **Providers from parent layers can also appear**. Do not assume the result contains only modules defined directly in the child. If you need "only plugins in the child", the host must enforce a filter policy by module/layer/registry.
+2. **Providers are declared in the module descriptor** via provides, not by the host importing the implementation class. The provider class can reside in an unexported package.
 
-**Provider discovery và instantiation thường lazy.** Tạo ServiceLoader chưa đồng nghĩa mọi provider đã được khởi tạo. Khi duyệt iterator hoặc lấy Provider.get(), JDK có thể nạp và khởi tạo; lỗi cấu hình có thể xuất hiện tại bước duyệt thay vì khi tạo ServiceLoader.
+**Provider discovery and instantiation are usually lazy.** Creating a ServiceLoader does not mean all providers have been instantiated. While iterating or calling Provider.get(), the JDK may load and instantiate them; configuration errors may surface during iteration rather than at ServiceLoader creation.
 
-Một cách quan sát provider type trước khi lấy instance là **ServiceLoader.stream()**:
+One way to inspect provider types before obtaining instances is **ServiceLoader.stream()**:
 
 ~~~java
-// Mảnh Java minh họa: child và Greeting đã có.
-// Cần thực hiện trong module khai báo uses lab.api.Greeting.
+// Illustrative Java snippet: child and Greeting are already available.
+// Must run inside a module declaring uses lab.api.Greeting.
 ServiceLoader<Greeting> services = ServiceLoader.load(child, Greeting.class);
 for (ServiceLoader.Provider<Greeting> entry : services.stream().toList()) {
     System.out.println(entry.type().getName());
 }
 ~~~
 
-**type()** có thể giúp đọc kiểu mà không gọi constructor provider ngay; **get()** yêu cầu lấy provider instance. Với explicit module có factory provider() hợp lệ, kiểu từ Provider.type() có thể là kiểu trả về, không phải bản thân factory. **Không coi type() là kiểm toán độ an toàn** của bytecode.
+**type()** lets you inspect the type without immediately invoking the provider constructor; **get()** requests the provider instance. For an explicit module with a valid provider() factory, the type from Provider.type() can be the return type rather than the factory itself. **Do not treat type() as a security audit** of the bytecode.
 
-Nếu muốn chỉ nhận providers thuộc layer mới và đã có object:
+If you want to accept only providers belonging to the new layer once instantiated:
 ~~~java
-// Mảnh minh họa sau khi chọn đúng child; không phải chương trình riêng.
+// Illustrative snippet after selecting the right child; not a standalone program.
 for (Greeting item : ServiceLoader.load(child, Greeting.class)) {
     if (item.getClass().getModule().getLayer() != child) {
         continue;
     }
-    // Host xác minh ID, version, hợp đồng và quyền trước activation.
+    // Host verifies ID, version, contract, and permissions before activation.
 }
 ~~~
 
-Cách lọc trên **có thể đã instantiate provider trước khi kiểm tra**. Với nguồn không đáng tin, hãy kiểm tra artifact/metadata trước khi resolve hoặc gọi ServiceLoader, không dựa vào filter sau constructor để phòng side effects.
+The filter above **may have already instantiated the provider before checking**. For untrusted sources, validate artifacts/metadata before resolving or calling ServiceLoader, rather than relying on post-constructor filtering to prevent side effects.
 
-## 13. Vì sao uses và provides là điều kiện khác với requires?
+## 13. Why Are uses and provides Different Requirements from requires?
 
-**requires lab.api** trong host/provider cho phép mã tham chiếu kiểu Greeting theo module readability. **exports lab.api** công bố public interface cho module khác. Hai chỉ thị này chưa nói rằng mã trong host dùng dịch vụ động hoặc module provider đăng ký implementation.
+**requires lab.api** in host/provider lets code reference the Greeting type via module readability. **exports lab.api** exposes the public interface to other modules. Neither directive states that host code consumes the service dynamically or that the provider module registers an implementation.
 
-**uses lab.api.Greeting** ghi rõ module **lab.host** là consumer của service. ServiceLoader khi được gọi từ named module phải tuân thủ điều kiện uses theo quy tắc JSR 376/JPMS.
+**uses lab.api.Greeting** states that **lab.host** is a consumer of the service. Calling ServiceLoader from a named module must satisfy the uses requirement under JSR 376/JPMS rules.
 
-**provides lab.api.Greeting with lab.provider.internal.SimpleGreeting** ghi rõ module **lab.provider** cung cấp implementation. Chỉ thị **with** phải trỏ tới provider type nằm trong đúng module provider và đáp ứng điều kiện mà JPMS/ServiceLoader yêu cầu.
+**provides lab.api.Greeting with lab.provider.internal.SimpleGreeting** states that **lab.provider** supplies an implementation. The **with** target must name a provider type located inside that provider module and meeting the requirements of JPMS/ServiceLoader.
 
-Một phản ví dụ thường gặp:
+A common counterexample:
 
 ~~~java
-// Mảnh module-info.java sai về ý đồ: KHÔNG thay cho uses.
+// Intentionally wrong module-info.java snippet: DOES NOT replace uses.
 module lab.host {
     requires lab.api;
-    // thiếu uses lab.api.Greeting;
+    // missing uses lab.api.Greeting;
 }
 ~~~
 
-Ngay cả khi host compile được code sử dụng class Greeting, thiếu uses có thể khiến **service loading từ named module bị từ chối**. Sửa **module-info.java**, không phải thêm requires lab.provider hoặc export package nội bộ.
+Even if the host compiles code referencing the Greeting class, omitting uses can cause **service loading from the named module to be rejected**. Fix **module-info.java** rather than adding requires lab.provider or exporting internal packages.
 
-**Một phản ví dụ khác:** module provider có class implements Greeting nhưng không có provides. JVM không tự quét mọi .class trong một named module để tìm implementation. Cần đăng ký provider theo module descriptor; với automatic/classpath providers quy tắc khác.
+**Another counterexample:** a provider module has a class implementing Greeting but omits provides. The JVM does not scan every .class file in a named module to look for implementations. Providers must be registered in the module descriptor; automatic/classpath providers follow different rules.
 
-**Không sửa bằng cách exports lab.provider.internal** chỉ để host gọi reflection vào provider constructor. Việc đó thường phá encapsulation và che đi lỗi thiết kế discovery.
+**Do not fix this by adding exports lab.provider.internal** just so the host can call the provider constructor via reflection. That breaks encapsulation and masks a discovery design error.
 
-## 14. Bài tập xác minh và các lỗi chủ động
+## 14. Verification Exercises and Intentional Failure Modes
 
-### 14.1. Bỏ plugin.jar khỏi thư mục plugins
+### 14.1. Removing plugin.jar from the plugins directory
 
-Nếu **ModuleFinder.of** không thấy lab.provider và **Set.of("lab.provider")** vẫn được dùng làm root, resolution thất bại vì root module không được tìm thấy. Đây không giống tình huống “ServiceLoader duyệt được nhưng trả zero providers”.
+If **ModuleFinder.of** cannot find lab.provider while **Set.of("lab.provider")** is still passed as the root, resolution fails because the root module is not found. This is distinct from "ServiceLoader runs and returns zero providers".
 
-**Phân biệt:**
-- Không tìm thấy module root → lỗi ở **module discovery/resolution**.
-- Có module root nhưng không có provides → có thể **không có provider** tương ứng.
-- Có provides nhưng provider class không hợp lệ → **ServiceConfigurationError** khi service loading.
-- Có instance nhưng greet() lỗi → lỗi ở **application contract/runtime**, không phải ModuleFinder.
+**Distinguish:**
+- Root module not found → error in **module discovery/resolution**.
+- Root module present without provides → may yield **no matching provider**.
+- provides present but provider class invalid → **ServiceConfigurationError** during service loading.
+- Instance exists but greet() fails → error in **application contract/runtime**, not ModuleFinder.
 
-### 14.2. Đổi tên module trong provider descriptor
+### 14.2. Renaming the module in the provider descriptor
 
-Nếu module-info.java ghi **module lab.other** nhưng host vẫn resolve root **lab.provider**, module finder không có root lab.provider. Hãy chọn module name có chủ đích, đồng bộ build, registry và code resolution.
+If module-info.java declares **module lab.other** while the host still resolves root **lab.provider**, the module finder lacks root lab.provider. Choose module names deliberately and keep build, registry, and resolution code synchronized.
 
-### 14.3. Bỏ requires lab.api ở provider
+### 14.3. Removing requires lab.api from the provider
 
-Provider source cần type lab.api.Greeting; không có readability hợp lệ sẽ gây lỗi khi compile named module. Hãy thêm đúng requires thay vì chuyển interface sang package implementation.
+Provider source needs the lab.api.Greeting type; without valid readability, compiling the named module fails. Add the proper requires directive rather than copying the interface into the implementation package.
 
-### 14.4. Bỏ uses khỏi host
+### 14.4. Removing uses from the host
 
-Host vẫn có thể tham chiếu Greeting qua requires, nhưng module chứa lời gọi ServiceLoader thiếu khai báo sử dụng service. Kiểm tra lỗi service loading và module descriptor. **requires không thay uses**.
+The host can still reference Greeting through requires, but the module calling ServiceLoader lacks the service consumption declaration. Inspect the service loading error and module descriptor. **requires does not replace uses**.
 
-### 14.5. Bỏ provides khỏi provider
+### 14.5. Removing provides from the provider
 
-Provider vẫn có thể compile như một class bình thường, nhưng ServiceLoader không nhận thông tin rằng module ấy cung cấp Greeting. Dù module đã resolve trong child, **được resolve không đồng nghĩa được đăng ký làm service provider**.
+The provider still compiles as a normal class, but ServiceLoader is never informed that this module supplies Greeting. Even though the module resolves in the child, **being resolved does not mean being registered as a service provider**.
 
-### 14.6. Đưa cả provider.jar lên boot module path
+### 14.6. Putting provider.jar on the boot module path as well
 
-Nếu đưa lab.provider.jar vào module path của boot và nó được resolve ở launch (qua roots hoặc service binding), provider có thể nằm trong boot layer. Khi đó bài thực hành không còn kiểm chứng mô hình “provider chỉ ở child”, và việc định nghĩa lại cùng module vào child có thể gây những hệ quả module graph/layer khác với ý định.
+If lab.provider.jar is placed on the boot module path and resolved at launch (via roots or service binding), the provider may end up in the boot layer. The exercise then no longer tests "provider only in child", and redefining the same module in a child can produce unintended module graph/layer behavior.
 
-Để giữ phép thử rõ ràng: **boot chỉ có lab.api và lab.host; thư mục plugins được tìm qua ModuleFinder ở runtime**.
+To keep the test clean: **boot has only lab.api and lab.host; the plugins directory is searched via ModuleFinder at runtime**.
 
-### 14.7. Đưa một bản lab.api khác vào child layer
+### 14.7. Placing a different copy of lab.api in the child layer
 
-Nếu plugin mang bản sao API/SPI và graph/loader để class đó được định nghĩa riêng, host có thể gặp class identity mismatch, linkage hoặc ClassCastException. Nên đặt API ổn định ở parent và chỉ đưa provider + dependency riêng vào child, có kiểm tra hợp đồng phiên bản.
+If a plugin ships its own copy of the API/SPI and the graph/loader defines that class separately, the host can encounter class identity mismatches, linkage errors, or ClassCastException. Keep the stable API in the parent and place only the provider + private dependencies in the child, with contract version checks.
 
-### 14.8. Đổi package implementation sang package-private
+### 14.8. Making the implementation class package-private
 
-Class provider được ghi trực tiếp sau with cần thỏa điều kiện visibility/provider constructor/factory method của JPMS. Không export package không đồng nghĩa class provider được phép tùy tiện package-private. Với ví dụ này, SimpleGreeting là **public class** với public no-arg constructor; việc package vẫn không exports chỉ hạn chế truy cập từ module khác.
+The provider class named directly after with must satisfy JPMS visibility and provider constructor/factory method requirements. Not exporting a package does not mean the provider class can arbitrarily be package-private. In this example, SimpleGreeting is a **public class** with a public no-arg constructor; keeping the package unexported simply restricts access from other modules.
 
-## 15. Các loại lỗi cần theo dõi
+## 15. Error Types to Watch For
 
-| Triệu chứng/exception | Thường xuất hiện ở đâu? | Cách xử lý |
+| Symptom/Exception | Where does it usually occur? | How to handle |
 | --- | --- | --- |
-| **FindException** | ModuleFinder / resolve không tìm được hoặc không đọc được module | Kiểm tra đường dẫn, tên module, file JAR và descriptor |
-| **ResolutionException** | Configuration không giải quyết được graph | Kiểm tra requires, module dependencies, constraints và packages |
-| **LayerInstantiationException** | Define layer/loader thất bại | Kiểm tra cấu trúc module graph, loader và package conflicts |
-| **ServiceConfigurationError** | ServiceLoader đọc provides và tạo provider thất bại | Kiểm tra uses/provides, constructor/provider method, cause |
-| **NoClassDefFoundError** | Link/load provider hoặc dependency | Kiểm tra class thực tế trên module path, JNI/dependency và cause |
-| **IllegalAccessError** | Module access hoặc Java member visibility | Kiểm tra exports/opens/readability và API contract |
-| **ClassCastException** | API identity không trùng hoặc kiểu sai | Kiểm tra defining loader, module và SPI shared |
-| **NoSuchMethodError** | Plugin bytecode gọi binary API không có ở runtime | Khóa version SPI/dependency và test contract |
-| Có provider nhưng không gọi được nghiệp vụ | Host lifecycle hoặc API behavior | Kiểm tra version, thread safety, config và tests |
-| Layer cũ còn giữ bộ nhớ | Provider/loader/thread/callback vẫn reachable | Host quản lý stop/close/remove references |
+| **FindException** | ModuleFinder / resolve cannot find or read a module | Check paths, module name, JAR file, and descriptor |
+| **ResolutionException** | Configuration cannot solve the module graph | Check requires, module dependencies, constraints, and packages |
+| **LayerInstantiationException** | Defining layer/loader fails | Check module graph structure, loader, and package conflicts |
+| **ServiceConfigurationError** | ServiceLoader fails reading provides or instantiating provider | Check uses/provides, constructor/provider method, cause |
+| **NoClassDefFoundError** | Linking/loading provider or dependency | Check actual classes on module path, JNI/dependencies, and cause |
+| **IllegalAccessError** | Module access or Java member visibility | Check exports/opens/readability and API contract |
+| **ClassCastException** | API identity mismatch or wrong type | Check defining loader, module, and shared SPI |
+| **NoSuchMethodError** | Plugin bytecode calls binary API missing at runtime | Pin SPI/dependency versions and run contract tests |
+| Provider exists but business call fails | Host lifecycle or API behavior | Check version, thread safety, config, and tests |
+| Old layer retains memory | Provider/loader/thread/callback remains reachable | Host manages stop/close/reference cleanup |
 
-**ServiceConfigurationError là một Error**, không phải checked exception; nên bắt có chủ đích ở ranh giới discovery và quyết định quarantine/reject plugin, không nuốt mọi Throwable. Exception của **greet()**, **start()** hoặc **stop()** do host xử lý theo hợp đồng ứng dụng, không tự chuyển thành chính sách fallback của ServiceLoader.
+**ServiceConfigurationError is an Error**, not a checked exception; catch it intentionally at the discovery boundary to quarantine/reject the plugin rather than swallowing every Throwable. Exceptions from **greet()**, **start()**, or **stop()** are handled by the host according to the application contract, not silently turned into a ServiceLoader fallback policy.
 
-Có thể dùng công cụ:
-- **jar --describe-module --file plugins/lab.provider.jar**: kiểm tra module descriptor và provides.
-- **jar --list --file plugins/lab.provider.jar**: kiểm tra module-info.class và class files được đóng gói.
-- **jdeps --module-path ... plugins/lab.provider.jar**: quan sát static module/library dependencies theo cách phù hợp với artifact.
-- **ModuleLayer.boot().modules()** và **child.modules()**: xem modules trực tiếp trong mỗi layer.
-- **provider.getClass().getModule()**: xác định module của provider thật sự được trả về.
-- **provider.getClass().getClassLoader()**: kiểm tra loader mà JVM dùng.
-- **ServiceLoader.load(child, Greeting.class)**: kiểm tra discovery gắn với đúng layer.
+Diagnostic tools you can use:
+- **jar --describe-module --file plugins/lab.provider.jar**: inspect the module descriptor and provides.
+- **jar --list --file plugins/lab.provider.jar**: inspect packaged module-info.class and class files.
+- **jdeps --module-path ... plugins/lab.provider.jar**: inspect static module/library dependencies appropriately for the artifact.
+- **ModuleLayer.boot().modules()** and **child.modules()**: inspect modules directly inside each layer.
+- **provider.getClass().getModule()**: identify the module of the returned provider.
+- **provider.getClass().getClassLoader()**: inspect the loader used by the JVM.
+- **ServiceLoader.load(child, Greeting.class)**: verify discovery bound to the right layer.
 
-Những công cụ trên bổ sung cho nhau; không có một lệnh nào thay thế được integration tests.
+These tools complement one another; no single command replaces integration tests.
 
-## 16. Nâng cấp plugin trong mô hình child ModuleLayer
+## 16. Upgrading Plugins in the Child ModuleLayer Model
 
-Ví dụ này nạp một plugin lần đầu. Trong production, hot update là một **quy trình do host điều phối**, không phải chỉ thay file JAR rồi gọi **ServiceLoader.reload()**:
+This exercise loads a plugin once initially. In production, hot updates are a **host-orchestrated workflow**, not merely replacing a JAR file and calling **ServiceLoader.reload()**:
 
 ~~~text
 Plugin v1 ACTIVE (child layer L1)
       |
-      +--> Nhận plugin-v2.jar, verify signature/hash/version/permissions
+      +--> Receive plugin-v2.jar, verify signature/hash/version/permissions
       |
       v
-Host tạo ModuleFinder cho artifact v2
+Host creates ModuleFinder for artifact v2
       |
       v
-Resolve Configuration v2 và define ModuleLayer L2 riêng
+Resolve Configuration v2 and define separate ModuleLayer L2
       |
       v
 ServiceLoader.load(L2, SPI) + contract checks
       |
       v
-Host cấu hình, start và health-check provider v2
+Host configures, starts, and health-checks provider v2
       |
-      +-- FAIL --> Giữ v1, dọn resource v2, báo lỗi
-      |
-      v
-Chuyển traffic mới sang v2
+      +-- FAIL --> Keep v1, clean up v2 resources, report error
       |
       v
-Drain request cũ, stop v1, gỡ callback/thread/TCCL/reference
+Route new traffic to v2
       |
       v
-Cho phép layer L1 và loader của nó được GC khi không còn tham chiếu
+Drain old requests, stop v1, remove callbacks/threads/TCCL/references
+      |
+      v
+Allow layer L1 and its loader to be GC'd when no longer referenced
 ~~~
 
-**ModuleLayer không có hàm close/unload tổng quát**. Thư viện/plugin có thể giữ thread, scheduler, connection, static callbacks hoặc context class loader, khiến object cũ không được thu gom. Host cần chính sách lifecycle, timeout, rollback và leak detection. ServiceLoader.reload() chỉ xóa cache của một ServiceLoader; nó không định nghĩa lại module code đã load trong layer cũ.
+**ModuleLayer has no general close/unload method.** Libraries/plugins may hold threads, schedulers, connections, static callbacks, or the thread context class loader, preventing old objects from being collected. The host needs lifecycle policies, timeouts, rollback, and leak detection. ServiceLoader.reload() only clears one ServiceLoader's cache; it does not redefine module code already loaded in an existing layer.
 
-Mỗi child layer có thể cùng khai báo **module name** của plugin ở các phiên bản khác nhau nếu được tạo thành các graph/layer riêng phù hợp, nhưng phải quản lý isolation và version routing cẩn thận. Đừng đặt hai JAR cùng module name và packages xung đột vào cùng một finder/configuration rồi hy vọng JPMS tự chọn bản “mới nhất”.
+Multiple child layers can declare the same plugin **module name** at different versions if constructed as separate graphs/layers properly, though isolation and version routing must be managed carefully. Do not place two JARs with the same module name and conflicting packages into a single finder/configuration hoping JPMS will pick the "newest" one.
 
-Với hệ thống đa tenant hoặc plugin độc lập, cân nhắc một layer/loader riêng cho mỗi nhóm plugin khi có lý do cô lập dependency. Tránh lạm dụng nhiều layers nếu chỉ có một vài extension ổn định; complexity vận hành có thể vượt lợi ích.
+In multi-tenant systems or with independent plugins, consider a separate layer/loader per plugin group when dependency isolation warrants it. Avoid overusing layers for a handful of stable extensions; operational complexity can outweigh the benefits.
 
-## 17. Kiến trúc migration tăng dần, không cần chuyển mọi JAR cùng lúc
+## 17. Incremental Migration Architecture Without Converting Every JAR at Once
 
-Một ứng dụng lớn có thể chuyển theo từng bước:
+A large application can migrate step by step:
 
-1. **Tách API/SPI ra module ổn định** và giảm những class implementation bị host import trực tiếp.
-2. **Chuyển host sang named module** có requires + uses, xác nhận khởi chạy với module path.
-3. **Chuyển từng provider JAR sang explicit module**, viết requires + provides, giữ package implementation không export.
-4. **Giữ API ở parent boot layer**, không copy SPI vào mỗi plugin artifact.
-5. **Thêm một plugin resolver/layer builder** vào host, trước hết chỉ hỗ trợ một provider đã kiểm thử như bài này.
-6. **Thêm validation và registry**: module name, version, artifact hash, API range, dependency policy.
-7. **Thêm lifecycle manager**: start/health/stop, update/rollback, routing và leak detection.
-8. **Di chuyển thêm plugin**, có test cùng lúc nhiều providers, lỗi dependency và lớp/module visibility.
-9. **Gỡ đường classpath cũ** khi tất cả những plugin cần hỗ trợ đã qua migration, hoặc duy trì một compatibility bridge được thiết kế có chủ đích.
+1. **Extract the API/SPI into a stable module** and eliminate implementation classes directly imported by the host.
+2. **Convert the host to a named module** with requires + uses, and verify launching via the module path.
+3. **Convert each provider JAR to an explicit module**, declaring requires + provides while keeping implementation packages unexported.
+4. **Keep the API in the parent boot layer**, avoiding copying the SPI into each plugin artifact.
+5. **Add a plugin resolver/layer builder** to the host, initially supporting a single tested provider as in this exercise.
+6. **Add validation and a registry**: module name, version, artifact hash, API range, and dependency policy.
+7. **Add a lifecycle manager**: start/health/stop, update/rollback, routing, and leak detection.
+8. **Migrate remaining plugins**, testing multiple concurrent providers, dependency failures, and class/module visibility.
+9. **Remove the legacy classpath path** once all supported plugins have migrated, or maintain an intentionally designed compatibility bridge.
 
-Nếu thư viện bên thứ ba chưa có module-info.java, automatic modules có thể giúp chuyển tiếp trên module path, nhưng không cung cấp cùng sự đóng gói chặt như explicit modules. Đừng nhầm việc “đặt JAR lên module path” với việc nhà phát triển đã thật sự mô tả requires/exports/uses/provides.
+If third-party libraries lack module-info.java, automatic modules can ease migration onto the module path, though they do not offer the strong encapsulation of explicit modules. Do not confuse "putting a JAR on the module path" with authors explicitly declaring requires/exports/uses/provides.
 
-Với những plugin legacy chỉ có service configuration file, một hướng thực tế là build lại với module-info.java và đăng ký **provides** chính xác. Khi chuyển, kiểm tra bằng cả **jar --describe-module** và test discovery trong **ModuleLayer con**, vì lỗi không được phát hiện nếu các bài test vẫn chạy hoàn toàn trên classpath.
+For legacy plugins that only ship service configuration files, a practical path is rebuilding with module-info.java and accurate **provides** declarations. When migrating, verify with both **jar --describe-module** and discovery tests inside a **child ModuleLayer**, since module bugs go undetected if tests still run purely on the classpath.
 
-## 18. Các tiêu chí nghiệm thu của bài thực hành
+## 18. Exercise Acceptance Criteria
 
-| Kiểm tra | Kết quả đạt yêu cầu |
+| Check | Passing Criterion |
 | --- | --- |
-| javac --release 17 biên dịch cả ba explicit modules | Không lỗi compiler |
-| lab.provider.jar chứa module-info.class | jar --describe-module hiển thị lab.provider |
-| lab.provider descriptor có requires lab.api | Phụ thuộc SPI rõ ràng |
-| lab.provider descriptor có provides Greeting with SimpleGreeting | Service registration đúng |
-| lab.host descriptor có uses lab.api.Greeting | Consumer khai báo use |
-| Launch module path chỉ có lab.api và lab.host | lab.provider không resolve trong boot |
-| ModuleFinder nhìn thấy lab.provider.jar | Có module root cần resolve |
-| Configuration.resolve + defineModulesWithOneLoader thành công | child layer có lab.provider |
-| ServiceLoader.load(child, Greeting.class) có provider | Có ít nhất một instance trong ví dụ |
-| Greeting trả “Hello, Java!” | Host dùng API chung thành công |
-| Greeting.class có module trong boot layer | Không duplicate SPI ở child |
-| Package provider.internal không export cho host | Implementation đóng gói đúng |
-| Không thay đổi source khi thêm provider mới phù hợp SPI | Host phụ thuộc hợp đồng, không phụ thuộc implementation |
+| javac --release 17 compiles all three explicit modules | No compiler errors |
+| lab.provider.jar contains module-info.class | jar --describe-module shows lab.provider |
+| lab.provider descriptor has requires lab.api | Explicit SPI dependency |
+| lab.provider descriptor has provides Greeting with SimpleGreeting | Valid service registration |
+| lab.host descriptor has uses lab.api.Greeting | Consumer declares service usage |
+| Launch module path contains only lab.api and lab.host | lab.provider is not resolved in boot |
+| ModuleFinder sees lab.provider.jar | Root module available for resolution |
+| Configuration.resolve + defineModulesWithOneLoader succeed | child layer contains lab.provider |
+| ServiceLoader.load(child, Greeting.class) finds a provider | At least one instance in the example |
+| Greeting returns "Hello, Java!" | Host uses shared API successfully |
+| Greeting.class belongs to a module in boot layer | No duplicated SPI in child |
+| provider.internal package is not exported to host | Implementation properly encapsulated |
+| No source changes needed when adding a compliant new provider | Host depends on contract, not implementation |
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-**1. Tại sao host phải dùng ServiceLoader.load(childLayer, Greeting.class) thay vì mặc định load(Greeting.class)?**  
-Vì một plugin được resolve trong layer con có thể không nằm trong phạm vi tra cứu mà overload mặc định dùng qua thread context class loader. Chỉ định layer giúp host chủ động xác định nơi khám phá dịch vụ.
+**1. Why must the host call ServiceLoader.load(childLayer, Greeting.class) instead of the default load(Greeting.class)?**  
+Because a plugin resolved in a child layer may not be within the lookup scope used by the default overload via the thread context class loader. Specifying the layer lets the host explicitly target where services are discovered.
 
-**2. Tại sao phải có uses trong module host?**  
-requires chỉ tạo readability đối với API. uses công bố module host tiêu thụ service động, để ServiceLoader kiểm tra đúng hợp đồng JPMS.
+**2. Why is uses required in the host module?**  
+requires only establishes readability to the API. uses declares that the host module dynamically consumes the service, enabling ServiceLoader to enforce the JPMS contract.
 
-**3. Tại sao package implementation không exports mà host vẫn gọi được greet()?**  
-Host gọi phương thức của interface **lab.api.Greeting** vốn được export từ parent. ServiceLoader có cơ chế tạo provider hợp lệ trong named module dù package implementation không export cho host.
+**3. Why can the host still call greet() when the implementation package is not exported?**  
+The host invokes the method on the **lab.api.Greeting** interface exported by the parent. ServiceLoader has built-in privileges to instantiate valid providers in a named module even when the implementation package is not exported to the host.
 
-**4. Tại sao chỉ copy lab.provider.jar vào thư mục plugins chưa đủ?**  
-Chưa có module được resolved hoặc layer/loader được define; host phải dùng ModuleFinder/Configuration/ModuleLayer và khám phá qua ServiceLoader được gắn với layer thích hợp.
+**4. Why is merely copying lab.provider.jar into the plugins directory not enough?**  
+No module has been resolved or layer/loader defined yet; the host must use ModuleFinder/Configuration/ModuleLayer and discover via ServiceLoader bound to the proper layer.
 
-**5. resolve có tự gọi constructor provider không?**  
-Không. resolve xây module configuration; việc định nghĩa class/lấy provider và thực thi constructor là giai đoạn khác, thường lazy theo ServiceLoader.
+**5. Does resolve automatically call the provider constructor?**  
+No. resolve constructs the module configuration; defining classes, obtaining providers, and invoking constructors happen in a separate phase, typically lazily via ServiceLoader.
 
-**6. Có thể dùng reload() để đổi lab.provider.jar bản v1 thành v2 không?**  
-Không. reload() xóa cache ServiceLoader, không thay module/class definition trong layer cũ. Host cần workflow phiên bản, layer/loader mới và cutover.
+**6. Can reload() upgrade lab.provider.jar from v1 to v2?**  
+No. reload() clears the ServiceLoader cache without replacing module/class definitions in the old layer. The host needs a versioning workflow, a new layer/loader, and cutover.
 
-**7. Khi ServiceLoader.load(childLayer, ...) trả nhiều providers, có phải tất cả đều thuộc child không?**  
-Không nhất thiết; theo API nó có thể khám phá providers trong cả ancestors. Host phải áp dụng policy chọn provider, xác minh module/layer nếu cần.
+**7. When ServiceLoader.load(childLayer, ...) returns multiple providers, do all of them belong to the child?**  
+Not necessarily; per the API, it can discover providers in ancestor layers as well. The host must apply a selection policy and verify module/layer if needed.
 
-## 19. Checklist dùng trong dự án thật
+## 19. Production Project Checklist
 
-- [ ] Đã xác định SPI nằm ở module API chung, versioned, export package cần thiết.
-- [ ] Host là named module và khai báo **requires + uses** chính xác.
-- [ ] Provider là **explicit named module**, có **requires + provides**, không export package implementation nếu không cần.
-- [ ] Host không requires/import implementation module.
-- [ ] Provider artifact có module-info.class và được kiểm tra descriptor sau packaging.
-- [ ] Plugin JAR nằm ngoài boot module path nếu mục tiêu là nạp vào child layer.
-- [ ] Host xác minh nguồn artifact/version/hash trước khi đưa JAR vào module finder.
-- [ ] ModuleFinder, resolution roots và module dependencies được quản lý minh bạch.
-- [ ] Parent API được dùng chung để tránh nhân đôi Class identity của SPI.
-- [ ] Host dùng **ServiceLoader.load(layer, SPI.class)** để khám phá đúng phạm vi.
-- [ ] Host xử lý **không có provider**, lỗi cấu hình và lỗi khởi tạo theo policy.
-- [ ] Host chọn provider theo ID/capability/version, không coi thứ tự duyệt là ranking nghiệp vụ.
-- [ ] Có kiểm thử trên module path thật và cả Windows/Linux nếu công bố hỗ trợ.
-- [ ] Có kế hoạch nhiều modules, xung đột dependency, class loader/layer và service visibility.
-- [ ] Có lifecycle start/health/stop/rollback, quản lý TCCL và reference để tránh leaks.
-- [ ] Không coi ModuleLayer, ServiceLoader hay Java module encapsulation là security sandbox.
+- [ ] SPI resides in a shared, versioned API module exporting the necessary packages.
+- [ ] Host is a named module declaring **requires + uses** accurately.
+- [ ] Provider is an **explicit named module** with **requires + provides**, keeping implementation packages unexported unless needed.
+- [ ] Host does not require or import implementation modules.
+- [ ] Provider artifacts include module-info.class and descriptors are verified after packaging.
+- [ ] Plugin JARs stay off the boot module path when intended for child-layer loading.
+- [ ] Host verifies artifact origin/version/hash before passing JARs to ModuleFinder.
+- [ ] ModuleFinder, resolution roots, and module dependencies are managed explicitly.
+- [ ] Parent API is shared to avoid duplicating SPI Class identity.
+- [ ] Host uses **ServiceLoader.load(layer, SPI.class)** to discover in the proper scope.
+- [ ] Host handles **missing providers**, configuration errors, and initialization failures per policy.
+- [ ] Host selects providers by ID/capability/version rather than treating iteration order as business ranking.
+- [ ] Tests run on a real module path and across Windows/Linux if both are supported.
+- [ ] Plans exist for multiple modules, dependency conflicts, class loaders/layers, and service visibility.
+- [ ] Lifecycle covers start/health/stop/rollback, TCCL hygiene, and reference cleanup to prevent leaks.
+- [ ] ModuleLayer, ServiceLoader, and Java module encapsulation are not treated as a security sandbox.
 
-**Kết luận:** Chuyển sang explicit named modules không chỉ là thêm **module-info.java**. Muốn khám phá plugin trong ModuleLayer con, host phải **tách SPI chung ở parent**, **đăng ký uses/provides đúng nơi**, **tìm và resolve plugin module**, **định nghĩa child layer bằng chiến lược loader phù hợp** và **gọi ServiceLoader theo layer mới**. Bài thực hành cho thấy boot layer vẫn chỉ chứa API/host, implementation plugin được nạp riêng mà không cần export package nội bộ.
+**Conclusion:** Migrating to explicit named modules is more than adding **module-info.java**. To discover plugins in a child ModuleLayer, the host must **isolate the shared SPI in the parent**, **declare uses/provides in the right places**, **find and resolve plugin modules**, **define the child layer with a suitable loader strategy**, and **call ServiceLoader against the new layer**. This exercise demonstrates that the boot layer retains only API/host while plugin implementations load separately without exporting internal packages.
 
-## Tài liệu Java 17 tham khảo
+## Java 17 Reference Documentation
 
 - ModuleLayer: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html
 - ModuleFinder: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleFinder.html

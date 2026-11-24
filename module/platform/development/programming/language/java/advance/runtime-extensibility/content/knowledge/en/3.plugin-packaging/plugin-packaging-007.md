@@ -1,10 +1,10 @@
-# Kiểm tra gói plugin thực tế thay vì chỉ chạy trên classpath của IDE
+# Testing Actual Plugin Packages Instead of Running Only on the IDE Classpath
 
-## 1. Vấn đề: chạy được trong IDE chưa chứng minh artifact sẽ hoạt động
+## 1. The Problem: Working in the IDE Does Not Prove the Artifact Will Work
 
-Trong một ứng dụng Java có khả năng mở rộng tại runtime, plugin thường được phân phối dưới dạng JAR. Khi chạy thử trong IntelliJ IDEA, Eclipse hoặc bài unit test, IDE dựng classpath từ thư mục `build/classes`, `target/classes`, `resources` và các dependency đã được giải quyết. Môi trường này có thể **khác hẳn nội dung và cách nạp JAR cuối cùng**.
+In a Java application extensible at runtime, plugins are typically distributed as JARs. When running tests in IntelliJ IDEA, Eclipse, or unit test suites, the IDE constructs a classpath from `build/classes`, `target/classes`, `resources`, and resolved dependencies. This environment can **differ drastically from the contents and loading behavior of the final JAR**.
 
-Ví dụ, IDE nhìn thấy:
+For example, the IDE sees:
 
 ```text
 app/build/classes/java/main/
@@ -13,44 +13,44 @@ plugin/build/resources/main/META-INF/services/com.example.spi.Plugin
 ~/.gradle/caches/.../helper-library.jar
 ```
 
-Nhưng ứng dụng thật được giao hai tệp:
+Whereas the real application ships two files:
 
 ```text
 dist/app.jar
 dist/plugins/my-plugin.jar
 ```
 
-Một bài kiểm tra chạy trên classpath của IDE có thể thành công mặc dù artifact phát hành thiếu `META-INF/services`, thiếu thư viện runtime, chứa tên package cũ sau relocation, đặt dependency sai vị trí hoặc không thể đọc được từ classloader thực tế.
+A test running on the IDE's classpath can pass even if the release artifact is missing `META-INF/services`, missing runtime libraries, contains old package names after relocation, places dependencies in the wrong location, or is unreadable by the actual classloader.
 
-**Mục tiêu kiểm thử đúng:** chứng minh rằng các byte của artifact được giao, với cấu hình nạp và Java runtime dự kiến, đủ để tìm, khởi tạo và sử dụng plugin. Đây là kiểm tra đầu ra của quá trình build, không chỉ kiểm tra mã nguồn.
+**The right testing goal:** prove that the bytes of the delivered artifact, under the intended loading configuration and Java runtime, are sufficient to locate, instantiate, and invoke the plugin. This tests the output of the build process, not merely the source code.
 
-## 2. Phân biệt ba mức kiểm tra
+## 2. Distinguishing Three Levels of Testing
 
-| Mức | Đầu vào | Chứng minh được | Chưa chứng minh được |
+| Level | Input | What It Proves | What It Does Not Prove |
 | --- | --- | --- | --- |
-| Unit test | Class compile và test dependencies | Logic độc lập, xử lý đầu vào/đầu ra | Plugin có nằm trong JAR và được host tìm thấy hay không |
-| Integration test trên classpath phát triển | Classes và resources do IDE/Gradle/Maven dựng | Hợp đồng API và tích hợp trong môi trường build | Đúng nội dung archive, manifest, đường dẫn plugin và runtime dependencies |
-| Artifact smoke/integration test | JAR sau `package`/`jar`/`shadowJar` cùng cách chạy lúc triển khai | Class/resource, SPI metadata, cách nạp và hành vi ở artifact thực | Mọi môi trường production, trừ khi mô phỏng đủ cấu hình liên quan |
+| Unit test | Compiled classes and test dependencies | Isolated logic, input/output handling | Whether the plugin is inside the JAR and discoverable by the host |
+| Integration test on dev classpath | Classes and resources built by IDE/Gradle/Maven | API contract and integration in the build environment | Correct archive contents, manifest, plugin paths, and runtime dependencies |
+| Artifact smoke/integration test | JAR after `package`/`jar`/`shadowJar` with the deployment launch command | Classes/resources, SPI metadata, loading, and behavior in the real artifact | All production environments, unless relevant configurations are simulated |
 
-Ba mức kiểm thử bổ trợ nhau. Không nên bỏ unit test; chỉ cần **thêm bước kiểm tra artifact cuối** cho các khả năng phụ thuộc vào đóng gói.
+These three testing levels complement each other. Do not drop unit tests; simply **add a final-artifact verification step** for capabilities that depend on packaging.
 
-## 3. Định nghĩa hợp đồng phân phối trước khi test
+## 3. Defining the Distribution Contract Before Testing
 
-Trước khi viết lệnh kiểm tra, xác định:
+Before writing test commands, determine:
 
-1. **Artifact nào được phát hành?** JAR thường, executable/fat JAR, shaded JAR, tập JAR trong `plugins/`, hay module JAR trên module path.
-2. **Ai sở hữu SPI API?** Host cung cấp `com.example.spi.Plugin` hay plugin tự đóng gói? Nếu hai classloader nạp hai bản sao của một class cùng tên, có thể xuất hiện lỗi `not a subtype` hoặc `ClassCastException`.
-3. **Cách khám phá plugin?** `ServiceLoader`, tên class trong file cấu hình, phản chiếu, hay framework-specific registry? Đừng tìm `META-INF/services` khi hệ thống không sử dụng SPI.
-4. **Dependency được cấp thế nào?** Bundled bên trong fat JAR, đi kèm `lib/`, hay do host cung cấp? `compileOnly`/`provided` phải thực sự do môi trường runtime đáp ứng.
-5. **Classloader và runtime nào?** `URLClassLoader`, thread context classloader, application classloader, module layer, Java 17/21, hệ điều hành, đường dẫn plugin ngoài ứng dụng.
+1. **Which artifact is distributed?** Regular JAR, executable/fat JAR, shaded JAR, a set of JARs in `plugins/`, or module JARs on the module path.
+2. **Who owns the SPI API?** Does the host provide `com.example.spi.Plugin` or does the plugin package it? If two classloaders load two copies of an identically named class, `not a subtype` or `ClassCastException` errors can occur.
+3. **How are plugins discovered?** `ServiceLoader`, class names in a config file, reflection, or a framework-specific registry? Do not check `META-INF/services` if the system does not use SPI.
+4. **How are dependencies supplied?** Bundled inside a fat JAR, placed alongside in `lib/`, or provided by the host? `compileOnly`/`provided` dependencies must actually be satisfied by the runtime environment.
+5. **Which classloader and runtime are used?** `URLClassLoader`, thread context classloader, application classloader, module layer, Java 17/21, operating system, external plugin paths.
 
-Kết quả kiểm tra phải gắn với **một cách phân phối cụ thể**. Không được lấy việc `java -cp "build/classes:..."` thành công làm bằng chứng cho `java -jar dist/app.jar`.
+Test results must be tied to **one specific distribution method**. Passing `java -cp "build/classes:..."` must not be taken as proof for `java -jar dist/app.jar`.
 
-## 4. Ví dụ đầy đủ: tạo và kiểm thử một plugin JAR thực sự
+## 4. Complete Example: Creating and Testing an Actual Plugin JAR
 
-Ví dụ này dùng Java 17+, một host sở hữu interface `ToolPlugin` và plugin riêng được tải bằng `URLClassLoader`. Không cần Gradle/Maven để nhìn rõ quá trình đóng gói; khi dùng hệ build thực tế, thay lệnh tạo JAR bằng artifact mà pipeline tạo ra.
+This example uses Java 17+, a host owning the `ToolPlugin` interface, and a separate plugin loaded via `URLClassLoader`. No Gradle/Maven is needed to see the packaging steps clearly; when using a real build system, replace the JAR creation commands with the artifacts produced by your pipeline.
 
-Cấu trúc tệp:
+File structure:
 
 ```text
 sample/
@@ -94,7 +94,7 @@ public final class UppercasePlugin implements ToolPlugin {
 }
 ```
 
-Nội dung `plugin-resources/META-INF/services/com.example.spi.ToolPlugin`:
+Contents of `plugin-resources/META-INF/services/com.example.spi.ToolPlugin`:
 
 ```text
 com.example.plugins.UppercasePlugin
@@ -120,7 +120,7 @@ public final class Host {
         Path pluginJar = Path.of(args[0]).toAbsolutePath();
         URL url = pluginJar.toUri().toURL();
 
-        // Parent thấy ToolPlugin API; child chứa implementation và SPI resource.
+        // Parent sees ToolPlugin API; child contains implementation and SPI resource.
         try (URLClassLoader loader = new URLClassLoader(
                 new URL[] {url}, Host.class.getClassLoader())) {
 
@@ -128,7 +128,7 @@ public final class Host {
                     ServiceLoader.load(ToolPlugin.class, loader);
             List<ToolPlugin> plugins = new ArrayList<>();
             for (ToolPlugin plugin : services) {
-                plugins.add(plugin); // Thực sự khởi tạo provider, không chỉ đếm metadata.
+                plugins.add(plugin); // Actually instantiate the provider, not just count metadata.
             }
 
             if (plugins.size() != 1) {
@@ -150,7 +150,7 @@ public final class Host {
 }
 ```
 
-Trong thư mục `sample`, build **hai JAR riêng**:
+Inside the `sample` directory, build **two separate JARs**:
 
 ```bash
 mkdir -p out/api out/plugin out/host dist
@@ -162,34 +162,34 @@ jar --create --file dist/host.jar -C out/api . -C out/host .
 java -cp dist/host.jar Host dist/plugin.jar
 ```
 
-Kết quả:
+Output:
 
 ```text
 uppercase: ARTIFACT TEST
 ```
 
-Với Windows PowerShell, `mkdir -p` là cú pháp shell Unix; có thể tạo các thư mục trước bằng `New-Item -ItemType Directory -Force`. Các lệnh `javac`, `jar` và `java` còn lại có cùng ý nghĩa.
+In Windows PowerShell, `mkdir -p` is Unix shell syntax; you can create directories beforehand with `New-Item -ItemType Directory -Force`. The remaining `javac`, `jar`, and `java` commands have the same meaning.
 
-Điểm quan trọng: host chạy bằng **`dist/host.jar`**, plugin được nạp từ **`dist/plugin.jar`**; không đưa `out/plugin` hoặc `plugin-resources` lên classpath của lệnh chạy. Nếu đóng gói thiếu tài nguyên:
+Key point: the host runs from **`dist/host.jar`** and the plugin is loaded from **`dist/plugin.jar`**; neither `out/plugin` nor `plugin-resources` is placed on the launch command's classpath. If packaged without the resource:
 
 ```bash
 jar --create --file dist/plugin-broken.jar -C out/plugin .
 java -cp dist/host.jar Host dist/plugin-broken.jar
 ```
 
-Host sẽ ném `AssertionError` với thông điệp `Expected 1 plugin, found 0`. Đây là lỗi mà bài test chỉ chạy `out/plugin` với `plugin-resources` riêng trên classpath có thể bỏ sót.
+The host throws an `AssertionError` with the message `Expected 1 plugin, found 0`. This is the kind of bug that a test running `out/plugin` with `plugin-resources` separately on the classpath would miss.
 
-**Giới hạn của ví dụ:** `URLClassLoader` trong ví dụ nạp một plugin tin cậy và không tạo ranh giới bảo mật. Plugin code chạy với quyền của JVM host. Trong hệ thống có plugin không tin cậy, cần mô hình cách ly riêng như process/container; classloader không phải sandbox. Trong ứng dụng thực tế, hãy kiểm soát danh sách JAR và API được chia sẻ.
+**Limitation of the example:** `URLClassLoader` here loads a trusted plugin and creates no security boundary. Plugin code runs with the permissions of the host JVM. In systems with untrusted plugins, a dedicated isolation model such as a separate process/container is required; a classloader is not a sandbox. In real applications, restrict the allowed JAR list and shared APIs.
 
-## 5. Kiểm tra cấu trúc JAR bằng công cụ JDK
+## 5. Inspecting JAR Structure with JDK Tools
 
-### Kiểm tra các entry có thực sự tồn tại
+### Verifying Entries Actually Exist
 
 ```bash
 jar --list --file dist/plugin.jar
 ```
 
-Đầu ra phải có ít nhất:
+The output should contain at least:
 
 ```text
 META-INF/
@@ -202,40 +202,40 @@ com/example/plugins/
 com/example/plugins/UppercasePlugin.class
 ```
 
-Thứ tự các entry trong output có thể khác; **sự hiện diện và đường dẫn** mới là điều quan trọng. Chữ hoa, chữ thường và tên package trong đường dẫn là đáng kể.
+The order of entries in the output may vary; **presence and exact paths** are what matter. Case sensitivity and package names in paths are significant.
 
-Đối với artifact thực tế, kiểm tra:
+For real artifacts, verify:
 
-- `META-INF/services/<fully.qualified.ServiceName>` và nội dung descriptor khi dùng classpath SPI.
-- `.class` của provider, dependencies và API nếu chúng cần được đóng gói.
-- `META-INF/MANIFEST.MF`: `Main-Class`, `Class-Path`, `Multi-Release` hoặc các thuộc tính liên quan nếu cách chạy sử dụng chúng.
-- Các tài nguyên config/schema/template mà plugin đọc bằng `getResource`/`getResourceAsStream`.
-- Đường dẫn và chữ ký native library nếu plugin dùng JNI; kiểm thử trên OS/architecture phù hợp.
-- `module-info.class` và module descriptors nếu chạy trên module path.
+- `META-INF/services/<fully.qualified.ServiceName>` and descriptor contents when using classpath SPI.
+- `.class` files for providers, dependencies, and the API if they are meant to be packaged.
+- `META-INF/MANIFEST.MF`: `Main-Class`, `Class-Path`, `Multi-Release`, or relevant attributes if the launch mode uses them.
+- Configuration/schema/template resources read by the plugin via `getResource`/`getResourceAsStream`.
+- Native library paths and signatures if the plugin uses JNI; test on the target OS/architecture.
+- `module-info.class` and module descriptors if running on the module path.
 
-Một JAR hợp lệ về định dạng ZIP không bảo đảm Java nạp được plugin. `jar --describe-module --file dist/plugin.jar` giúp kiểm tra thông tin module khi áp dụng; kết quả cần được diễn giải theo việc đây là named, automatic hay classpath JAR.
+A ZIP-valid JAR does not guarantee Java can load the plugin. `jar --describe-module --file dist/plugin.jar` helps inspect module information when applicable; interpret its output according to whether it is a named, automatic, or classpath JAR.
 
-### Kiểm tra nội dung service descriptor
+### Inspecting Service Descriptor Contents
 
-Với môi trường có `unzip`:
+In environments with `unzip`:
 
 ```bash
 unzip -p dist/plugin.jar META-INF/services/com.example.spi.ToolPlugin
 ```
 
-Kết quả kỳ vọng:
+Expected output:
 
 ```text
 com.example.plugins.UppercasePlugin
 ```
 
-Dùng `jar --extract --file dist/plugin.jar META-INF/services/com.example.spi.ToolPlugin` khi cần trích xuất bằng JDK, nhưng chú ý lệnh extract ghi file vào working directory; nên chạy trong một thư mục tạm.
+Use `jar --extract --file dist/plugin.jar META-INF/services/com.example.spi.ToolPlugin` when extracting with the JDK, but note that extract writes files into the working directory; run it inside a temporary directory.
 
-Đường dẫn descriptor dựa trên **tên nhị phân đầy đủ của service interface**, không phải tên artifact hay implementation. Nội dung phải trỏ đến provider sau quá trình relocation/shading, không trỏ tên class trước khi đổi package.
+The descriptor path is based on the **fully qualified binary name of the service interface**, not the artifact name or implementation name. Its contents must point to the provider after relocation/shading, not the pre-relocation class name.
 
-## 6. Dependency runtime: thử môi trường tối thiểu
+## 6. Runtime Dependencies: Testing a Minimal Environment
 
-Một plugin có thể compile được bởi vì IDE hoặc test runner chứa thư viện hỗ trợ mà JAR phát hành không mang theo. Ví dụ:
+A plugin may compile because the IDE or test runner includes supporting libraries that the release JAR does not carry. For example:
 
 ```text
 plugin.jar
@@ -246,63 +246,63 @@ IDE runtime:
   plugin.jar + report-utils.jar
 
 Production:
-  plugin.jar             # thiếu report-utils.jar
+  plugin.jar             # missing report-utils.jar
 ```
 
-Tùy nơi class cần được load, runtime có thể ném `NoClassDefFoundError`, `ClassNotFoundException`, `ServiceConfigurationError` hoặc lỗi khởi tạo provider. Không có một exception duy nhất cho mọi kiểu thiếu dependency.
+Depending on where the class is loaded, the runtime may throw `NoClassDefFoundError`, `ClassNotFoundException`, `ServiceConfigurationError`, or a provider initialization error. There is no single exception for every kind of missing dependency.
 
-Cách kiểm:
+How to verify:
 
-1. Đặt artifact đầu ra trong thư mục phát hành sạch (`dist/`), không thêm `build/classes`, `target/classes` hay các thư viện IDE vô tình cung cấp.
-2. Chạy đúng command production: `java -cp`, `java -jar`, launcher script hoặc module path.
-3. Chỉ đặt các dependency **được hợp đồng phân phối cho phép** vào classpath/module path.
-4. Tập trung vào load, instantiate và lời gọi thật có thể chạm đến class phụ thuộc; việc chỉ thấy tên provider chưa chứng minh toàn bộ đường thực thi hoạt động.
-5. Nếu hỗ trợ nhiều phiên bản Java/OS, chạy smoke test trên các môi trường hỗ trợ trong CI.
+1. Place output artifacts in a clean distribution directory (`dist/`), without adding `build/classes`, `target/classes`, or libraries incidentally supplied by the IDE.
+2. Run the exact production command: `java -cp`, `java -jar`, launcher script, or module path.
+3. Place only dependencies **permitted by the distribution contract** on the classpath/module path.
+4. Exercise loading, instantiation, and real calls that reach dependent classes; merely seeing the provider name does not prove the entire execution path works.
+5. If multiple Java/OS versions are supported, run smoke tests across supported environments in CI.
 
-Với thin JAR, các dependency có thể phải đứng cạnh artifact ở `lib/`; với fat JAR, kiểm tra thư viện đã được gộp/nhúng theo launcher tương ứng. Không giả định rằng lệnh `java -jar` tự động đọc mọi JAR nằm cùng thư mục. Khi dùng `java -jar`, tùy cơ chế launcher/manifest mà classpath bên ngoài được xử lý khác; `-cp` đặt trên command line không thay thế cơ chế classpath của `-jar`.
+For thin JARs, dependencies may need to sit alongside the artifact in `lib/`; for fat JARs, verify libraries are merged/embedded according to the launcher's expectations. Do not assume `java -jar` automatically reads every JAR in the same directory. With `java -jar`, external classpaths are handled differently depending on the launcher/manifest; `-cp` on the command line does not override `-jar`'s classpath handling.
 
-## 7. Thử đúng classloader và ServiceLoader
+## 7. Testing the Exact Classloader and ServiceLoader
 
-`ServiceLoader.load(Service.class)` mặc định dùng **thread context classloader**; `ServiceLoader.load(Service.class, loader)` dùng loader truyền vào. Bài test chạy trên IDE có thể có context loader rộng hơn runtime thực tế. Vì vậy smoke test phải dùng cách gọi giống host.
+`ServiceLoader.load(Service.class)` defaults to the **thread context classloader**; `ServiceLoader.load(Service.class, loader)` uses the supplied loader. Tests run inside an IDE may have a broader context loader than the real runtime. Therefore, smoke tests must invoke it the same way the host does.
 
-Các tình huống cần test khi có liên quan:
+Scenarios to test when applicable:
 
-| Tình huống | Kiểm tra |
+| Scenario | Verification |
 | --- | --- |
-| Plugin JAR được thêm động | Tạo loader trỏ chính xác JAR phân phối; load qua loader đó |
-| API service do host sở hữu | Provider tương thích với **cùng một `Class<?> ` service type** mà host sử dụng |
-| Nhiều plugin từ nhiều JAR | Mọi provider đều được tìm thấy, không bị ghi đè `META-INF/services` |
-| Package relocation | Descriptor, provider name và bytecode cuối cùng đồng bộ |
-| Thêm/bớt JAR lúc runtime | Lifecycle loader, `ServiceLoader.reload()` khi phù hợp; không kỳ vọng thay file là tự cập nhật |
-| JPMS named modules | `uses`/`provides` hợp lệ và service được tìm trong module layer đúng |
+| Plugin JAR added dynamically | Create a loader pointing directly to the distributed JAR; load through that loader |
+| Service API owned by the host | Provider is compatible with **the exact same `Class<?>` service type** used by the host |
+| Multiple plugins from multiple JARs | All providers are found without `META-INF/services` overwriting each other |
+| Package relocation | Descriptor, provider name, and final bytecode stay synchronized |
+| Adding/removing JARs at runtime | Loader lifecycle, `ServiceLoader.reload()` when appropriate; do not expect replacing files to auto-update |
+| JPMS named modules | Valid `uses`/`provides` and services discovered in the proper module layer |
 
-Tránh khẳng định `Class.forName("...")` thành công là đủ: lệnh đó không xác minh `ServiceLoader` có tìm thấy provider hay không; cũng chưa chắc class có thể khởi tạo hoặc thực hiện hợp đồng plugin.
+Avoid treating a successful `Class.forName("...")` as sufficient: it does not verify whether `ServiceLoader` finds the provider, nor whether the class can be instantiated or fulfill the plugin contract.
 
-### Thất bại cần phát hiện sớm
+### Catching Failures Early
 
-Khi yêu cầu ít nhất một plugin, coi danh sách provider rỗng là **test fail**. `ServiceLoader` trả collection trống có thể là hành vi hợp lệ của API, nên phải có assertion theo yêu cầu sản phẩm.
+When at least one plugin is required, treat an empty provider list as a **test failure**. `ServiceLoader` returning an empty collection can be valid API behavior, so an assertion matching product requirements is necessary.
 
-Nếu plugin được chọn theo `id()`, nên kiểm tra **tập ID kỳ vọng** thay vì chỉ `count()`: số lượng đúng vẫn có thể chứa sai provider. Gọi một operation thực tế của mỗi plugin để phát hiện lỗi liên kết và lỗi resource chỉ xuất hiện khi thực thi.
+If plugins are selected by `id()`, check the **expected set of IDs** rather than just `count()`: the right count can still contain the wrong providers. Invoke an actual operation on each plugin to surface linkage and resource errors that only appear during execution.
 
-## 8. Kiểm thử đúng build output với Gradle và Maven
+## 8. Testing the Exact Build Output with Gradle and Maven
 
 ### Gradle
 
-Với Gradle, hãy chạy tác vụ build được dùng để phát hành rồi test chính file output của tác vụ đó:
+With Gradle, run the build task used for release and then test that task's exact output file:
 
 ```bash
 ./gradlew clean jar
 jar --list --file build/libs/your-plugin.jar
 ```
 
-Đây là ví dụ cho project dùng Gradle Wrapper trên Unix; trên Windows là `gradlew.bat`. Tên JAR cụ thể tùy `archiveBaseName`, version và classifier. Với Shadow, dùng `shadowJar` và kiểm tra **Shadow JAR**, không nhầm với JAR thường:
+This example is for projects using the Gradle Wrapper on Unix; on Windows it is `gradlew.bat`. The specific JAR name depends on `archiveBaseName`, version, and classifier. With Shadow, run `shadowJar` and inspect the **Shadow JAR**, not the regular JAR by mistake:
 
 ```bash
 ./gradlew shadowJar
 jar --list --file build/libs/your-plugin-all.jar
 ```
 
-Ví dụ lệnh `jar` dùng tên output phổ biến; cần thay bằng **đường dẫn artifact đã được task tạo thật**. Khi task đã tạo JAR, không lấy kết quả của `test` tự động thay cho smoke test sau đóng gói. Gradle task kiểm thử có thể dùng runtimeClasspath của dự án, vốn rộng hơn classpath phân phối.
+The example `jar` commands use common output names; replace them with the **artifact path actually produced by the task**. Once a task creates a JAR, do not treat `test` results as a substitute for post-packaging smoke tests. Gradle test tasks can use the project's runtimeClasspath, which is broader than the distribution classpath.
 
 ### Maven
 
@@ -311,57 +311,57 @@ mvn clean package
 jar --list --file target/your-plugin.jar
 ```
 
-Tên output phụ thuộc `artifactId`, `version`, finalName và cấu hình Shade/Assembly. Nếu dùng Shade/Assembly, kiểm tra artifact được triển khai, tránh chọn nhầm original JAR. `mvn test` không tương đương kiểm thử `mvn package` bởi tài nguyên có thể được biến đổi tại package phase.
+The output name depends on `artifactId`, `version`, finalName, and Shade/Assembly settings. When using Shade/Assembly, inspect the deployed artifact and avoid mistakenly picking the original JAR. `mvn test` is not equivalent to testing `mvn package`, because resources may be transformed during the package phase.
 
-### Quy tắc CI
+### CI Rules
 
-Sắp xếp pipeline:
+Order the pipeline as:
 
 ```text
 Compile → Unit tests → Package → Inspect artifact → Launch artifact → Assert plugin discovery/behavior → Publish
 ```
 
-Smoke test cần chạy **trước khi xuất bản** và thất bại với exit code khác 0. Ví dụ `Host` ở trên ném `AssertionError` khi provider thiếu/sai, nên command `java` trả non-zero và CI có thể chặn publish.
+Smoke tests must run **before publishing** and fail with a non-zero exit code. The `Host` example above throws `AssertionError` when providers are missing or wrong, so the `java` command returns non-zero and CI can block publishing.
 
-Đặc biệt khi có bước `minimize`, shading, relocation, obfuscation, resource filtering hoặc post-processing, artifact cần test phải là **file sau bước biến đổi cuối cùng**.
+Especially when steps like `minimize`, shading, relocation, obfuscation, resource filtering, or post-processing exist, the artifact tested must be **the file after the final transformation step**.
 
-## 9. Các lỗi điển hình và cách chẩn đoán
+## 9. Typical Errors and Diagnostics
 
-| Triệu chứng sau package | Bằng chứng cần tìm | Hướng xử lý |
+| Post-Package Symptom | Evidence to Look For | Resolution |
 | --- | --- | --- |
-| 0 plugin, IDE vẫn tìm được | Descriptor bị thiếu hoặc sai vị trí trong JAR | Bổ sung resource theo cấu trúc `META-INF/services/`; kiểm tra resource processing |
-| Thiếu một vài plugin sau merge JAR | Hai dependency có cùng tên descriptor, một bản bị ghi đè | Dùng transformer hợp nhất service files |
-| `ServiceConfigurationError: Provider ... not found` | Descriptor ghi tên cũ hoặc class provider không có trong artifact | Đồng bộ relocation và metadata; kiểm tra minimizer |
-| `not a subtype` / `ClassCastException` | API SPI bị đóng gói trùng hoặc nạp bởi loader khác | Chia sẻ cùng service API từ host; kiểm soát parent/child loader |
-| `NoClassDefFoundError` khi chạy provider | Dependency có ở IDE nhưng thiếu trong distribution | Đóng gói dependency hoặc cung cấp trên runtime path đúng hợp đồng |
-| Resource loading trả `null` | Resource không được copy vào JAR hoặc đường dẫn bị đổi | Kiểm tra entries và đường dẫn `getResource` |
-| `java -jar` khác `java -cp` | Manifest/launcher/classpath packaging khác | Chạy đúng command phân phối, kiểm tra `Main-Class` và launcher |
-| Plugin chạy ở máy phát triển nhưng lỗi tại Linux | Chữ hoa/thường, path, permission, JNI binary hoặc encoding | Kiểm tra trên môi trường tương thích production |
-| JPMS module không được phát hiện | `module-info` hoặc module layer không khớp | Xác minh `uses`/`provides`, module path và layer |
+| 0 plugins, though IDE finds them | Descriptor missing or misplaced inside the JAR | Add resource under `META-INF/services/`; check resource processing |
+| Some plugins missing after merging JARs | Two dependencies share the same descriptor name and one overwrote the other | Use a service-file merging transformer |
+| `ServiceConfigurationError: Provider ... not found` | Descriptor lists old name or provider class is absent from artifact | Synchronize relocation and metadata; check minimizer rules |
+| `not a subtype` / `ClassCastException` | SPI API packaged twice or loaded by different loaders | Share the single service API from the host; control parent/child loaders |
+| `NoClassDefFoundError` when running provider | Dependency present in IDE but missing in distribution | Bundle the dependency or supply it on the runtime path per contract |
+| Resource loading returns `null` | Resource was not copied into JAR or path changed | Check JAR entries and `getResource` paths |
+| `java -jar` behaves differently from `java -cp` | Different manifest/launcher/classpath packaging | Run the exact distribution command, verify `Main-Class` and launcher |
+| Plugin works on dev machine but fails on Linux | Case sensitivity, paths, permissions, JNI binaries, or encoding | Test in a production-compatible environment |
+| JPMS module not discovered | `module-info` or module layer mismatch | Verify `uses`/`provides`, module path, and layer |
 
-Không nên chữa lỗi bằng cách đưa toàn bộ dependency của IDE vào production classpath: cách đó có thể che giấu thiếu sót của bản phân phối và gây xung đột phiên bản.
+Do not fix failures by dumping every IDE dependency onto the production classpath: that hides distribution defects and invites version conflicts.
 
-## 10. Kiểm soát tính tái lập và provenance của artifact
+## 10. Controlling Reproducibility and Artifact Provenance
 
-Một rủi ro khác là kiểm thử **file khác** file sẽ phát hành. Ví dụ pipeline build nhiều biến thể, test `plugin.jar` nhưng upload `plugin-all.jar`. Để bảo đảm tính liên kết:
+Another risk is testing a **different file** from the one that gets published. For instance, a pipeline builds multiple variants, tests `plugin.jar`, yet uploads `plugin-all.jar`. To ensure traceability:
 
-- Ghi nhận đường dẫn và SHA-256 của artifact đã kiểm thử (`sha256sum dist/plugin.jar` hoặc PowerShell `Get-FileHash dist/plugin.jar -Algorithm SHA256`).
-- Dùng chính artifact đó cho bước publish; nếu ký lại, tối ưu hoặc đóng gói lại sau test, cần xác minh và kiểm thử artifact sau biến đổi.
-- Build trong môi trường CI kiểm soát được Java, dependency và phiên bản plugin build; tránh dùng file cũ còn sót từ lần build trước.
-- Với plugin load từ thư mục `plugins/`, kiểm tra cả cấu trúc phân phối và file cấu hình/launcher tương ứng.
+- Record the path and SHA-256 of the tested artifact (`sha256sum dist/plugin.jar` or PowerShell `Get-FileHash dist/plugin.jar -Algorithm SHA256`).
+- Publish that exact artifact; if it is re-signed, optimized, or repackaged after testing, verify and test the post-transformation artifact.
+- Build in a CI environment where Java, dependencies, and build plugin versions are controlled; avoid stale files left over from previous builds.
+- For plugins loaded from `plugins/`, verify the distribution directory layout and corresponding configuration/launcher files as well.
 
-Hash giúp xác nhận **cùng nội dung byte** đã được test và phát hành; nó không tự chứng minh plugin đúng. Kết luận chỉ có giá trị khi đi cùng smoke test đúng môi trường.
+Hashes confirm **the exact same bytes** were tested and published; they do not prove the plugin works on their own. Confidence only comes when paired with smoke tests in the right environment.
 
-## 11. Checklist trước phát hành
+## 11. Pre-Release Checklist
 
-- [ ] Build đúng task/profile tạo artifact phát hành.
-- [ ] Mở JAR cuối và xác minh có class, resources, SPI descriptors, manifest/module metadata cần thiết.
-- [ ] Đối chiếu provider names trong service descriptors với class thực sự được đóng gói, kể cả sau relocate.
-- [ ] Không để test runtime âm thầm dùng `build/classes`, `target/classes`, test dependencies hoặc IDE-managed classpath.
-- [ ] Chạy host/launcher bằng command và Java version được hỗ trợ; nạp plugin từ đúng file JAR phân phối.
-- [ ] Assert số lượng và danh tính provider, khởi tạo provider và gọi operation thật.
-- [ ] Chạy trường hợp thiếu resource/dependency khi có thể, để xác nhận kiểm thử có khả năng phát hiện lỗi.
-- [ ] Kiểm thử mọi biến thể đáng phát hành, gồm regular JAR, shaded JAR hoặc module JAR theo hợp đồng thực tế.
-- [ ] Gắn artifact đã kiểm thử với artifact được publish bằng hash hoặc cùng đầu ra pipeline.
+- [ ] Build using the exact task/profile that produces the release artifact.
+- [ ] Open the final JAR and verify required classes, resources, SPI descriptors, and manifest/module metadata are present.
+- [ ] Cross-check provider names in service descriptors against the classes actually packaged, including after relocation.
+- [ ] Do not let runtime tests silently use `build/classes`, `target/classes`, test dependencies, or an IDE-managed classpath.
+- [ ] Run the host/launcher using the supported command and Java version; load the plugin from the exact distributed JAR file.
+- [ ] Assert provider count and identities, instantiate providers, and invoke a real operation.
+- [ ] Run missing-resource/dependency failure cases where possible to confirm tests catch defects.
+- [ ] Test every distributable variant, including regular JAR, shaded JAR, or module JAR per the actual contract.
+- [ ] Bind the tested artifact to the published artifact via hash or shared pipeline output.
 
-**Kết luận kỹ thuật:** kiểm thử plugin trên classpath IDE chứng minh code hoạt động trong môi trường phát triển. Chỉ việc **mở và chạy đúng artifact sau đóng gói**, dưới đúng classloader, dependency set và runtime command, mới chứng minh bản phân phối có thể khám phá, khởi tạo và thực thi plugin như kỳ vọng.
+**Technical conclusion:** testing plugins on the IDE classpath proves code works in a development environment. Only **opening and running the exact packaged artifact** under the true classloader, dependency set, and runtime command proves the distribution can discover, instantiate, and execute plugins as expected.

@@ -1,20 +1,20 @@
-# Phát hành plugin theo phiên bản, kiểm tra gói và giữ đường quay lại bản trước
+# Releasing Versioned Plugins, Validating Packages, and Keeping a Rollback Path
 
-## 1. Mục tiêu của quy trình phát hành plugin
+## 1. Goal of the Plugin Release Process
 
-Trong hệ thống Java hỗ trợ mở rộng lúc chạy, phát hành plugin không đơn giản là biên dịch một JAR rồi chép vào thư mục \`plugins/\`. Plugin là mã thực thi bên trong (hoặc bên cạnh) host, thường có hợp đồng API, dependency, cấu hình, quyền truy cập và vòng đời độc lập. Một bản phát hành chỉ nên được kích hoạt khi **artifact đúng phiên bản, hợp lệ, tương thích và có thể phục hồi** nếu gặp sự cố.
+In a Java system that supports runtime extensibility, releasing a plugin is not as simple as compiling a JAR and copying it into a `plugins/` directory. A plugin is executable code running inside (or alongside) the host, typically with its own API contract, dependencies, configuration, permissions, and independent lifecycle. A release should only be activated when **the artifact has the right version, is valid, is compatible, and can be recovered** if something goes wrong.
 
-Ba mục tiêu cần đạt đồng thời:
+Three goals must be met simultaneously:
 
-1. **Phát hành có thể nhận diện và tái lập**: mỗi phiên bản có định danh, source revision, build settings, checksum/signature và artifact bất biến.
-2. **Kiểm tra gói trước khi chạy**: kiểm tra manifest/descriptor, nội dung JAR, dependency, contract, class-file version, cấu hình và tính toàn vẹn.
-3. **Có đường rollback được kiểm chứng**: bản trước được giữ sẵn cùng cấu hình tương thích; chuyển hướng request và dọn vòng đời không làm mất trạng thái hoặc đóng plugin đang xử lý.
+1. **Identifiable and reproducible releases**: every version has an identifier, source revision, build settings, checksum/signature, and immutable artifact.
+2. **Pre-execution package validation**: verify manifest/descriptor, JAR contents, dependencies, contracts, class-file version, configuration, and integrity.
+3. **A verified rollback path**: the previous version is retained with compatible configuration; redirecting requests and cleaning up lifecycle do not lose state or close a plugin that is still handling traffic.
 
-\`\`\`text
+```text
 Source + tests
       |
       v
-Build artifact bất biến (pluginId, version)
+Build immutable artifact (pluginId, version)
       |
       v
 Validate: hash/signature, descriptor, API/JVM, dependencies
@@ -27,41 +27,41 @@ Publish active registry (atomic switch)
       |
       +-- OK --> observe + drain old version
       |
-      +-- FAILURE --> rollback sang release an toàn
+      +-- FAILURE --> rollback to safe release
                            |
                            v
                     observe + incident report
-\`\`\`
+```
 
-Chú ý hai khái niệm: **deploy** là chuẩn bị bản phát hành có thể chạy; **activate** là cho request sử dụng bản đó. Tách hai bước giúp có chỗ kiểm tra và rollback trước khi ảnh hưởng người dùng.
+Note two distinct concepts: **deploy** means preparing a runnable release; **activate** means routing live requests to that version. Separating the two steps provides room for validation and rollback before impacting users.
 
-## 2. Định danh và chính sách phiên bản
+## 2. Identification and Versioning Policy
 
-Một plugin nên có metadata tường minh, tối thiểu:
+A plugin should carry explicit metadata, at minimum:
 
-| Trường | Ví dụ | Mục đích |
+| Field | Example | Purpose |
 |---|---|---|
-| \`pluginId\` | \`csv-exporter\` | Định danh ổn định của plugin |
-| \`pluginVersion\` | \`1.8.2\` | Định danh bản phát hành |
-| \`requiredApiRange\` | \`[2.2.0,3.0.0)\` | Phạm vi API host được hỗ trợ |
-| \`minimumJava\` | \`17\` | Runtime Java tối thiểu |
-| \`entryPoint\` / \`service\` | \`com.example.spi.Exporter\` | Điểm mở rộng cần tìm |
-| \`artifactSha256\` | SHA-256 xác thực riêng | Xác định đúng nội dung artifact |
-| \`dependencies\` | Module/JAR + version | Xác định runtime closure |
-| \`permissions\` | Capability được phép | Kiểm soát quyền truy cập |
-| \`buildRevision\` | Commit/build ID | Truy vết nguồn phát hành |
+| `pluginId` | `csv-exporter` | Stable identifier of the plugin |
+| `pluginVersion` | `1.8.2` | Release identifier |
+| `requiredApiRange` | `[2.2.0,3.0.0)` | Supported host API range |
+| `minimumJava` | `17` | Minimum Java runtime |
+| `entryPoint` / `service` | `com.example.spi.Exporter` | Extension point to locate |
+| `artifactSha256` | Separately verified SHA-256 | Uniquely identifies artifact bytes |
+| `dependencies` | Module/JAR + version | Defines runtime closure |
+| `permissions` | Allowed capabilities | Controls access privileges |
+| `buildRevision` | Commit/build ID | Traceability to release source |
 
-Những trường này có thể nằm trong JAR manifest, descriptor JSON/YAML hoặc bản release metadata được bảo vệ. Đây là **quy ước của hệ thống plugin**, không phải các trường chuẩn bắt buộc của JPMS.
+These fields may live in a JAR manifest, a JSON/YAML descriptor, or a protected release metadata record. They are **conventions of the plugin system**, not mandatory standard JPMS fields.
 
-Với Semantic Versioning (\`MAJOR.MINOR.PATCH\`), tăng \`MAJOR\` khi phá hợp đồng tương thích, \`MINOR\` cho tính năng tương thích ngược và \`PATCH\` cho thay đổi sửa lỗi theo hợp đồng dự án. Tuy nhiên, chỉ dựa vào chữ số phiên bản không đủ chứng minh compatibility: một thay đổi hành vi, concurrency, serialization hoặc permission có thể phá chức năng dù method signature giữ nguyên.
+With Semantic Versioning (`MAJOR.MINOR.PATCH`), increment `MAJOR` when breaking compatibility contracts, `MINOR` for backward-compatible features, and `PATCH` for bug-fix changes under the project's contract. However, version digits alone do not prove compatibility: a change in behavior, concurrency, serialization, or permissions can break functionality even if method signatures stay identical.
 
-**Không ghi đè một artifact đang mang cùng plugin ID + version bằng byte khác.** Việc dùng lại version khiến rollback, cache và truy vết trở nên không đáng tin. Nếu cần sửa bản \`1.8.2\`, phát hành \`1.8.3\` hoặc một định danh release mới theo policy.
+**Never overwrite an artifact bearing the same plugin ID + version with different bytes.** Reusing versions makes rollback, caching, and traceability unreliable. If `1.8.2` needs a fix, release `1.8.3` or a new release identifier per policy.
 
-## 3. Đóng gói artifact bất biến
+## 3. Immutable Artifact Packaging
 
-Một layout phát hành minh họa:
+An illustrative release layout:
 
-\`\`\`text
+```text
 releases/
 └── csv-exporter/
     ├── 1.8.1/
@@ -72,67 +72,67 @@ releases/
         ├── csv-exporter.jar
         ├── release.json
         └── SHA256SUMS
-\`\`\`
+```
 
-Thư mục phiên bản là **immutable** sau khi được duyệt. Nếu repository/artifact storage hỗ trợ content-addressable storage thì khóa theo digest còn làm việc xác minh rõ hơn.
+A version directory is **immutable** once approved. If the repository/artifact store supports content-addressable storage, keying by digest makes verification even clearer.
 
-Ví dụ JAR manifest do host quy ước:
+Example JAR manifest defined by host convention:
 
-\`\`\`text
+```text
 Manifest-Version: 1.0
 Plugin-Id: csv-exporter
 Plugin-Version: 1.8.2
 Plugin-Api-Version: 2
 Plugin-Class: com.example.csv.CsvExportPlugin
-\`\`\`
+```
 
-Các thuộc tính \`Plugin-*\` không phải chuẩn JAR bắt buộc. Host tự định nghĩa cách parse và so sánh. Với JPMS, \`module-info.class\` và \`ModuleDescriptor.version()\` có thể mang metadata module version, nhưng JPMS không tự giải quyết semantic version ranges hay chọn bản mới nhất.
+These `Plugin-*` attributes are not mandatory JAR standards. The host defines how to parse and compare them. In JPMS, `module-info.class` and `ModuleDescriptor.version()` can carry module version metadata, but JPMS does not automatically resolve semantic version ranges or pick the newest version.
 
-Khi build, nên cố định toolchain, dependencies và cấu hình; tạo SBOM/provenance khi quy trình tổ chức yêu cầu. **Reproducible build** giúp so sánh artifact từ cùng input, nhưng digest khác nhau chưa đủ chứng minh có xâm nhập và digest giống nhau không thay thế việc xác minh nhà phát hành.
+During builds, pin the toolchain, dependencies, and configuration; generate SBOM/provenance when organizational processes require it. **Reproducible builds** let you compare artifacts from identical inputs, though a differing digest does not by itself prove tampering and a matching digest does not replace publisher verification.
 
-## 4. Những gì phải kiểm tra trong gói plugin
+## 4. What Must Be Validated in a Plugin Package
 
-Tách kiểm tra thành các cổng rõ ràng.
+Split validation into explicit gates.
 
-### Cổng A — Artifact và nguồn gốc
+### Gate A — Artifact and Provenance
 
-- Tệp có tồn tại, kích thước nằm trong giới hạn, định dạng JAR/ZIP có thể đọc?
-- Đường dẫn đã chuẩn hóa, không trỏ ra ngoài vùng cho phép qua symlink/traversal?
-- SHA-256 có khớp với digest lấy từ **nguồn đáng tin**?
-- Chữ ký số/publisher identity có thỏa policy và danh sách tin cậy?
-- Có biện pháp chống **TOCTOU**: artifact đã kiểm tra có phải chính byte sẽ được nạp?
-- Archive có số entry, kích thước giải nén và tài nguyên xử lý phù hợp?
+- Does the file exist, stay within size limits, and parse as a readable JAR/ZIP?
+- Is the path canonicalized, not escaping allowed directories via symlinks or traversal?
+- Does the SHA-256 match the digest obtained from a **trusted source**?
+- Does the digital signature/publisher identity satisfy policy and trust lists?
+- Are **TOCTOU** protections in place: are the validated bytes the exact bytes later loaded?
+- Are the archive's entry count, uncompressed size, and processing resources within bounds?
 
-Đọc metadata chưa phải chạy code plugin, nhưng JAR vẫn là đầu vào không tin cậy. Để an toàn hơn, đưa artifact vào staging không cho sửa sau validation và chỉ nạp từ bản sao được phê duyệt.
+Reading metadata is not executing plugin code, yet a JAR is still untrusted input. For stronger safety, copy the artifact to an immutable staging location after validation and load only from that approved copy.
 
-### Cổng B — Metadata và compatibility
+### Gate B — Metadata and Compatibility
 
-- \`pluginId\`, version, entry point, API range, Java minimum có hợp lệ?
-- ID có trùng với plugin khác hoặc phiên bản không phù hợp chính sách?
-- Host API nằm trong range plugin hỗ trợ và các capability cần thiết hiện có?
-- Class-file major có được runtime hỗ trợ? Java 17 dùng major 61, Java 21 dùng major 65.
-- Dependency closure có đầy đủ, version conflict và split-package/duplicate module name được xử lý?
-- Shared API có cùng class identity qua parent loader/layer?
-- Provider có đúng service contract, \`provides\` / \`META-INF/services\` đã cấu hình?
+- Are `pluginId`, version, entry point, API range, and minimum Java version valid?
+- Does the ID collide with another plugin or does the version violate policy?
+- Is the host API within the range the plugin supports, and are required capabilities present?
+- Is the class-file major version supported by the runtime? Java 17 uses major 61, Java 21 uses major 65.
+- Is the dependency closure complete, with version conflicts and split-package/duplicate module names handled?
+- Does the shared API preserve class identity via the parent loader/layer?
+- Does the provider match the service contract, with `provides` / `META-INF/services` properly configured?
 
-**Module version không phải compatibility policy.** Có module \`2.1.0\` không tự chứng minh plugin dùng được API v2.1 hoặc mọi binary method vẫn hợp lệ.
+**A module version is not a compatibility policy.** Having module `2.1.0` does not prove a plugin can use API v2.1 or that every binary method remains valid.
 
-### Cổng C — Thử trong môi trường staging
+### Gate C — Verification in a Staging Environment
 
-- Tạo class loader hoặc \`ModuleLayer\` theo đúng kiến trúc host.
-- Khám phá provider; phân biệt không có/một/nhiều/provider lỗi.
-- Khởi tạo và gọi lifecycle \`start\` hoặc \`initialize\`.
-- Thực hiện smoke test và các contract methods bắt buộc.
-- Kiểm tra health, config, resource quota, timeout và security policy.
-- Nếu lỗi, không publish plugin; cleanup mọi resource đã khởi tạo.
+- Create the class loader or `ModuleLayer` matching the host's exact architecture.
+- Discover providers; distinguish zero/one/many/broken providers.
+- Instantiate and invoke lifecycle `start` or `initialize`.
+- Execute smoke tests and mandatory contract methods.
+- Check health, config, resource quotas, timeouts, and security policy.
+- On failure, do not publish the plugin; clean up all initialized resources.
 
-**Lưu ý:** chạy constructor, static initializer hoặc \`ServiceLoader.Provider.get()\` có thể thực thi mã plugin. Không đưa mã thiếu tin cậy vào cùng JVM để “kiểm tra thử” khi chính sách bảo mật yêu cầu isolation mạnh.
+**Note:** running constructors, static initializers, or `ServiceLoader.Provider.get()` can execute plugin code. Do not load untrusted code into the same JVM to "test it out" when security policy requires strong isolation.
 
-## 5. Ví dụ Java 17+: kiểm tra manifest và digest mà chưa kích hoạt
+## 5. Java 17+ Example: Checking Manifest and Digest Before Activation
 
-Tạo file **\`PluginPackageInspector.java\`**. Chương trình kiểm tra các trường manifest cơ bản, cấu trúc version minh họa và SHA-256 của chính JAR; nó không nạp entry-point class. Digest được **in để đối chiếu** với nguồn phân phối đáng tin, không tự chứng minh artifact an toàn.
+Create **`PluginPackageInspector.java`**. The program validates basic manifest fields, an illustrative version format, and the SHA-256 of the JAR itself; it does not load the entry-point class. The digest is **printed for comparison** against a trusted distribution source and does not by itself prove the artifact is safe.
 
-\`\`\`java
+```java
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -216,51 +216,51 @@ public final class PluginPackageInspector {
         }
     }
 }
-\`\`\`
+```
 
-Tạo một JAR mẫu metadata-only để kiểm tra. Lưu manifest **\`plugin.mf\`** và kết thúc bằng một dòng trống:
+Create a metadata-only sample JAR to test. Save manifest **`plugin.mf`** ending with a blank line:
 
-\`\`\`text
+```text
 Manifest-Version: 1.0
 Plugin-Id: csv-exporter
 Plugin-Version: 1.8.2
 Plugin-Api-Version: 2
 
-\`\`\`
+```
 
-Chạy trên JDK 17+:
+Run on JDK 17+:
 
-\`\`\`bash
+```bash
 javac PluginPackageInspector.java
 jar --create --file sample-plugin.jar --manifest plugin.mf
 java PluginPackageInspector sample-plugin.jar
-\`\`\`
+```
 
-Stdout có dạng:
+Stdout looks like:
 
-\`\`\`text
+```text
 VALID csv-exporter@1.8.2
 API 2
-SHA-256 <64 ký tự hex của artifact thực tế>
-\`\`\`
+SHA-256 <64 hex characters of the actual artifact>
+```
 
-Dòng SHA-256 được biểu diễn theo mẫu vì nội dung bytes của JAR thay đổi theo metadata và môi trường build. **Không được hard-code digest này làm giá trị bảo mật**. Chương trình minh họa chưa kiểm tra publisher signature, giới hạn archive, toàn bộ class files, dependency, service declaration hay race giữa hai lần mở file. Ở production, hãy áp dụng allowlist và xác minh bản sao immutable được nạp sau đó.
+The SHA-256 line is shown as a placeholder because JAR bytes vary with metadata and build environment. **Never hard-code this digest as a security value.** This illustrative program does not check publisher signatures, archive limits, full class files, dependencies, service declarations, or races between two file opens. In production, enforce an allowlist and verify the immutable copy that gets loaded afterward.
 
-Để kiểm thử nhánh từ chối, đổi \`Plugin-Api-Version: 2\` thành \`3\`, tạo lại JAR; chương trình in stderr:
+To test the rejection branch, change `Plugin-Api-Version: 2` to `3` and rebuild the JAR; the program prints to stderr:
 
-\`\`\`text
+```text
 REJECTED: Unsupported API 3
-\`\`\`
+```
 
-## 6. Quy trình release có kiểm soát
+## 6. Controlled Release Pipeline
 
-Một pipeline CI/CD thực dụng:
+A practical CI/CD pipeline:
 
-\`\`\`text
+```text
 Commit / release tag
     |
     v
-Build bằng toolchain & dependency lock
+Build with locked toolchain & dependencies
     |
     v
 Unit tests + compatibility tests
@@ -272,56 +272,56 @@ Package JAR + descriptor + checksum + provenance
 Artifact validation / signature verification
     |
     v
-Publish release immutable (không ghi đè version)
+Publish immutable release (never overwrite version)
     |
     v
-Stage trong host, resolve dependency và run smoke tests
+Stage in host, resolve dependencies, and run smoke tests
     |
     v
-Canary hoặc rollout theo nhóm request/tenant
+Canary or rollout by request/tenant cohort
     |
     v
 Atomic activate + monitoring
     |
     v
 Stable / rollback
-\`\`\`
+```
 
-Những điều phải được ghi lại ở mỗi release: \`pluginId\`, version, exact digest, release ID, API requirement, Java requirement, publisher/signature status, dependency list, host deployment ID, timestamp và người/phê duyệt tự động theo policy.
+What must be recorded for every release: `pluginId`, version, exact digest, release ID, API requirement, Java requirement, publisher/signature status, dependency list, host deployment ID, timestamp, and human/automated approver per policy.
 
-**Phê duyệt deploy và phê duyệt activate có thể khác nhau.** Tách hai bước tránh trường hợp artifact được tải lên repository thì lập tức chạy ở production chưa qua compatibility check.
+**Deploy approval and activate approval can be separate.** Splitting the two prevents an artifact uploaded to a repository from immediately running in production before compatibility checks pass.
 
-## 7. Tách staged, active và previous
+## 7. Separating Staged, Active, and Previous
 
-Một quản lý plugin nên có trạng thái rõ ràng:
+A plugin manager should track explicit states:
 
-| State | Ý nghĩa | Có nhận request mới? |
+| State | Meaning | Accepts New Requests? |
 |---|---|---|
-| \`DISCOVERED\` | Gói mới xuất hiện, chưa duyệt | Không |
-| \`VALIDATED\` | Artifact và metadata hợp lệ | Không |
-| \`STAGED\` | Đã resolve, khởi tạo trong môi trường kiểm tra | Không |
-| \`ACTIVE\` | Được registry hiện hành chọn | Có |
-| \`DRAINING\` | Ngừng cấp request mới, đợi request cũ | Không |
-| \`STOPPED\` | Đã đóng resource theo lifecycle | Không |
-| \`FAILED\` / \`QUARANTINED\` | Không đáp ứng policy hoặc startup thất bại | Không |
+| `DISCOVERED` | New package appeared, unverified | No |
+| `VALIDATED` | Artifact and metadata valid | No |
+| `STAGED` | Resolved and initialized in verification environment | No |
+| `ACTIVE` | Selected by current active registry | Yes |
+| `DRAINING` | Stopped receiving new requests, waiting on existing ones | No |
+| `STOPPED` | Resources closed per lifecycle | No |
+| `FAILED` / `QUARANTINED` | Violates policy or failed startup | No |
 
-Có thể giữ một **release manifest** của bản được phép rollback:
+You can maintain a **release manifest** of the rollback-eligible version:
 
-\`\`\`text
+```text
 active  -> csv-exporter@1.8.2 (sha256:...)
 previous-> csv-exporter@1.8.1 (sha256:...)
-\`\`\`
+```
 
-Nhưng “previous” không nhất thiết là object đang còn chạy. Có thể chỉ giữ artifact đã kiểm chứng, dependency closure và cấu hình tương thích. Nếu plugin V1 đã bị đóng hoặc class loader đã giải phóng, rollback đòi hỏi **khởi tạo lại V1**, không đơn giản là sửa một con trỏ tới instance cũ.
+However, "previous" is not necessarily a still-running object. It may simply preserve the verified artifact, dependency closure, and compatible configuration. If V1 has already been closed or its class loader released, rolling back requires **re-initializing V1**, not merely repointing a reference to an old instance.
 
-Nếu plugin có state persistent, phải xác định schema migration và backward compatibility từ đầu. Nếu V2 đã ghi dữ liệu theo schema V2 không đọc được bởi V1, việc chuyển JAR về V1 **không bảo đảm rollback nghiệp vụ thành công**.
+If the plugin maintains persistent state, define schema migration and backward compatibility from the start. If V2 has written data using a V2 schema unreadable by V1, switching the JAR back to V1 **does not guarantee business rollback succeeds**.
 
-## 8. Atomic publication và không đóng phiên bản cũ quá sớm
+## 8. Atomic Publication and Not Closing the Old Version Too Early
 
-Trong hệ đọc nhiều, writer có thể chuẩn bị một immutable registry mới và công bố qua \`AtomicReference\`:
+In read-heavy systems, a writer can prepare a new immutable registry and publish it via `AtomicReference`:
 
-\`\`\`java
-// Đoạn tích hợp, không phải chương trình độc lập.
+```java
+// Integration snippet, not a standalone program.
 record Registry(long revision, Map<String, Plugin> plugins) {
     Registry {
         plugins = Map.copyOf(plugins);
@@ -330,121 +330,121 @@ record Registry(long revision, Map<String, Plugin> plugins) {
 
 AtomicReference<Registry> active =
         new AtomicReference<>(new Registry(0, Map.of()));
-\`\`\`
+```
 
-Sau khi V2 đạt kiểm tra, writer xây snapshot mới và \`active.set(newRegistry)\`. Reader lấy một snapshot và giữ cho toàn bộ tác vụ logic để tránh chọn lẫn hai phiên bản.
+After V2 passes checks, the writer builds a new snapshot and calls `active.set(newRegistry)`. Readers capture a single snapshot and hold it for an entire logical operation to avoid mixing two versions.
 
-Tuy nhiên, atomic swap **không cho phép đóng V1 ngay**: request đã lấy snapshot cũ vẫn có thể đang gọi V1.
+However, an atomic swap **does not permit closing V1 immediately**: requests that captured the old snapshot may still be invoking V1.
 
-\`\`\`text
-Reader A đã giữ V1
+```text
+Reader A already holds V1
       |
-Writer publish V2
+Writer publishes V2
       |
-Request mới dùng V2
+New requests use V2
       |
-Reader A tiếp tục dùng V1
+Reader A continues using V1
       |
-Drain V1 / đợi lease kết thúc
+Drain V1 / wait for leases to end
       |
 Close V1
-\`\`\`
+```
 
-Có thể dùng lease/reference counting với protocol acquire không race với draining, hoặc read/write lock bảo vệ lifetime. Chỉ tăng ref-count sau khi đọc snapshot mà không đồng bộ với thao tác close là chưa đủ; có race acquire-after-close.
+You can use lease/reference counting with an acquire protocol that does not race with draining, or a read/write lock protecting lifetime. Simply incrementing a ref-count after reading the snapshot without synchronizing against close is insufficient; it suffers from an acquire-after-close race.
 
-Nếu nhiều writer cùng cập nhật registry, dùng single-writer executor, lock hoặc CAS đúng cách để tránh lost update. Không đặt \`plugin.start()\` trong hàm CAS có thể chạy lại.
+If multiple writers update the registry concurrently, use a single-writer executor, lock, or proper CAS to avoid lost updates. Never put `plugin.start()` inside a CAS retry loop that might re-run.
 
-## 9. Rollback: chuyển phiên bản không giống hoàn tác dữ liệu
+## 9. Rollback: Switching Versions Is Not Undoing Data
 
-Rollback cần định nghĩa phạm vi:
+Rollback must define its scope:
 
-- **Traffic rollback:** định tuyến request mới trở lại bản ổn định.
-- **Code/artifact rollback:** nạp lại binary và dependency của release trước.
-- **Config rollback:** phục hồi đúng cấu hình/feature flags tương thích.
-- **Data rollback:** xử lý dữ liệu/schema do release lỗi đã thay đổi.
-- **Operational rollback:** dừng canary, thu hồi quyền, đóng callback/task và cleanup resource.
+- **Traffic rollback:** route new requests back to the stable version.
+- **Code/artifact rollback:** reload the binary and dependencies of the prior release.
+- **Config rollback:** restore the compatible configuration/feature flags.
+- **Data rollback:** handle data/schemas altered by the faulty release.
+- **Operational rollback:** stop canary, revoke permissions, close callbacks/tasks, and clean up resources.
 
-Không phải mọi thứ đều hoàn tác tự động. Nếu V2 đã gửi email, ghi thanh toán hoặc thay schema dữ liệu, chuyển lại V1 không đảo ngược những side effect đó. Cần idempotency, compensation hoặc migration ngược đã được kiểm chứng.
+Not everything reverts automatically. If V2 has sent emails, recorded payments, or migrated data schemas, switching back to V1 does not undo those side effects. Idempotency, compensation, or tested reverse migrations are required.
 
-### Playbook rollback tối thiểu
+### Minimum Rollback Playbook
 
-1. **Xác định trigger:** error rate, latency, health check, compatibility failures hoặc sự cố bảo mật vượt ngưỡng chính sách.
-2. **Đóng băng rollout:** ngừng kích hoạt V2 thêm trên node/tenant khác.
-3. **Xác nhận release rollback target:** artifact digest, dependency và config trước đó vẫn có và hợp lệ.
-4. **Khởi tạo phiên bản trước trong staging** nếu instance cũ đã dừng.
-5. **Chuyển traffic/registry nguyên tử** theo chính sách; request đang chạy phải được drain/cancel an toàn.
-6. **Kiểm tra hậu rollback:** health, error rate, dữ liệu và các capability thiết yếu.
-7. **Cleanup V2:** dừng task/listener, đóng resource và gỡ references/class loader theo lifecycle.
-8. **Ghi incident:** version, digest, lý do, thời điểm, kết quả và các bước xử lý dữ liệu còn lại.
+1. **Identify trigger:** error rate, latency, health checks, compatibility failures, or security incident exceeding policy thresholds.
+2. **Freeze rollout:** halt activating V2 on further nodes/tenants.
+3. **Verify rollback target release:** confirm the previous artifact digest, dependencies, and config are still available and valid.
+4. **Initialize previous version in staging** if the old instance was stopped.
+5. **Switch traffic/registry atomically** per policy; drain/cancel in-flight requests safely.
+6. **Post-rollback verification:** check health, error rates, data integrity, and essential capabilities.
+7. **Clean up V2:** stop tasks/listeners, close resources, and drop references/class loaders per lifecycle.
+8. **Record incident:** version, digest, reason, timestamp, outcome, and any remaining data remediation steps.
 
-**Không rollback tự động vô hạn** nếu bản trước cũng lỗi hoặc state schema đã không còn tương thích. Có thể cần đưa feature vào degraded mode và chặn tác vụ gây side effect.
+**Do not auto-rollback indefinitely** if the prior version is also failing or the state schema is no longer compatible. You may need to put the feature into degraded mode and block side-effecting operations.
 
-## 10. Canary và rollout tăng dần
+## 10. Canary and Progressive Rollout
 
-Đối với plugin thay đổi hành vi quan trọng, nên đưa vào môi trường staging rồi rollout theo cohort/tenant hoặc phần trăm traffic có kiểm soát. Cần chú ý **routing ổn định** khi một request có nhiều bước: một luồng công việc không nên bắt đầu ở V1 rồi vô tình kết thúc ở V2 nếu contract yêu cầu pin phiên bản.
+For plugins with major behavioral changes, stage them first and then roll out to controlled cohorts/tenants or traffic percentages. Pay attention to **sticky routing** for multi-step requests: a workflow should not start on V1 and accidentally finish on V2 if the contract requires pinning a version.
 
-Những tín hiệu cần theo dõi:
+Signals to monitor:
 
-| Tín hiệu | Gợi ý phát hiện |
+| Signal | Detection Hint |
 |---|---|
-| Startup/health failure | Plugin không thể activate |
-| LinkageError | Binary/API mismatch hoặc class loader conflict |
-| Request error rate | Hành vi plugin thay đổi/hỏng |
-| Latency p95/p99 | Chậm do dependency, cache hoặc tài nguyên |
-| Resource/Metaspace | Loader, thread, callback hoặc resource leak |
-| Duplicate side effects | Retry/rollback làm lặp nghiệp vụ |
-| Plugin-specific metrics | Kết quả xuất dữ liệu, tỷ lệ lỗi định dạng |
+| Startup/health failure | Plugin cannot activate |
+| `LinkageError` | Binary/API mismatch or class loader conflict |
+| Request error rate | Changed/broken plugin behavior |
+| Latency p95/p99 | Slowdowns from dependencies, cache, or resources |
+| Resource/Metaspace | Loader, thread, callback, or resource leak |
+| Duplicate side effects | Retries/rollbacks repeating business actions |
+| Plugin-specific metrics | Export output quality, formatting error rate |
 
-Canary phải đủ dài và có khối lượng phù hợp để lộ lỗi representative. Nếu chỉ có một request demo, không thể kết luận an toàn cho toàn bộ traffic.
+Canaries must run long enough and carry enough representative traffic to expose real failures. A single demo request cannot prove safety for all production traffic.
 
-## 11. Test release và rollback trước production
+## 11. Testing Releases and Rollback Before Production
 
-Bộ test nên có:
+The test suite should cover:
 
-1. Không có provider: host trả lỗi có ngữ nghĩa.
-2. Có một provider hợp lệ: gọi đúng implementation.
-3. Có nhiều provider: áp dụng selection policy và xử lý trùng.
-4. Provider cấu hình lỗi: bị reject trước activation.
-5. Artifact sai digest hoặc signature: không được nạp.
-6. Module/API requirement không thỏa: từ chối có nguyên nhân.
-7. Factory/constructor hoặc health check thất bại: không publish snapshot lỗi.
-8. V2 hoạt động, V1 còn in-flight: V1 không bị close sớm.
-9. Rollback sau publish V2: traffic mới chọn V1 đã được kiểm chứng.
-10. Persistent data đã được V2 ghi: V1 có đọc/xử lý được theo migration policy?
-11. Nhiều lần reload: class loader, callback, thread, Metaspace không tăng không giới hạn.
-12. Shutdown giữa rollout hoặc rollback: tài nguyên được dọn và trạng thái không mơ hồ.
+1. Zero providers: host returns a meaningful error.
+2. One valid provider: invokes the right implementation.
+3. Many providers: applies selection policy and handles duplicates.
+4. Misconfigured provider: rejected before activation.
+5. Artifact with wrong digest or signature: not loaded.
+6. Unsatisfied module/API requirement: rejected with clear reason.
+7. Factory/constructor or health check failure: broken snapshot is not published.
+8. V2 active while V1 still in-flight: V1 is not closed prematurely.
+9. Rollback after V2 publication: new traffic selects verified V1.
+10. Persistent data written by V2: can V1 read/handle it per migration policy?
+11. Multiple reloads: class loaders, callbacks, threads, and Metaspace do not grow unboundedly.
+12. Shutdown mid-rollout or mid-rollback: resources are cleaned up and state is unambiguous.
 
-Có thể sử dụng test fixture JAR nhiều version, integration tests với class loader/module layer thực và giả lập failure có kiểm soát. Khi kiểm thử concurrent publication, dùng latch/barrier thay vì \`Thread.sleep\` làm bằng chứng thứ tự.
+Use multi-version JAR test fixtures, integration tests with real class loaders/module layers, and controlled failure injection. When testing concurrent publication, use latches/barriers rather than `Thread.sleep` as ordering proof.
 
-## 12. Những lỗi phát hành phổ biến
+## 12. Common Release Mistakes
 
-- Ghi đè artifact cùng version khiến checksum và rollback target không đáng tin.
-- Chỉ kiểm tra JAR tồn tại, không kiểm tra signature, dependency và compatibility.
-- Tin \`ModuleDescriptor.version()\` sẽ tự kiểm tra API version ranges.
-- Dùng JAR đang thay đổi trên filesystem làm nguồn class loading sau validation.
-- Activate plugin trước khi kiểm tra constructor/provider và health.
-- Công bố từng provider dở dang thay vì một registry snapshot hoàn chỉnh.
-- Đóng V1 ngay sau V2 publish dù request V1 còn chạy.
-- Giữ chỉ tên version mà không giữ exact artifact + digest + config cũ.
-- Nghĩ rollback JAR sẽ đảo ngược schema migration và side effect.
-- Không chuẩn bị cách xử lý khi rollback target đã bị xóa hoặc không còn chạy trên JDK mới.
-- Không quan sát loader leak, thread leak và resource leak sau nhiều lần deploy.
-- Để plugin không tin cậy chạy cùng JVM mà không có ranh giới bảo mật phù hợp.
+- Overwriting artifacts with the same version, making checksums and rollback targets untrustworthy.
+- Checking only that a JAR exists without verifying signature, dependencies, and compatibility.
+- Assuming `ModuleDescriptor.version()` automatically enforces API version ranges.
+- Using a mutable JAR on the filesystem as the class-loading source after validation.
+- Activating a plugin before verifying constructor/provider and health checks.
+- Publishing providers piecemeal instead of a complete registry snapshot.
+- Closing V1 immediately after V2 publishes while V1 requests are still running.
+- Retaining only a version string without keeping the exact old artifact + digest + config.
+- Thinking rolling back a JAR reverses schema migrations and side effects.
+- Failing to plan when the rollback target was deleted or no longer runs on a newer JDK.
+- Ignoring loader leaks, thread leaks, and resource leaks across repeated deployments.
+- Running untrusted plugins in the same JVM without appropriate security boundaries.
 
-## 13. Checklist phát hành và đường quay lại
+## 13. Release and Rollback Checklist
 
-Trước khi bật plugin version mới:
+Before enabling a new plugin version:
 
-- Artifact có ID/version **bất biến**, digest và provenance phù hợp?
-- Manifest/descriptor có schema, API requirement, Java requirement và service entry đúng?
-- Artifact đã được kiểm tra integrity/signature theo nguồn tin cậy?
-- Dependencies/JAR/modules đúng, không trùng module/class gây conflict?
-- Plugin đã qua unit, contract, integration, smoke và health checks?
-- Registry chỉ được công bố sau khi toàn bộ provider cần thiết sẵn sàng?
-- Có lease/drain protocol để tránh đóng plugin in-flight?
-- Có lưu exact release trước cùng config, dependency và rollback guide?
-- Có kiểm tra migration/schema có tương thích rollback không?
-- Có canary, metrics, ngưỡng dừng, timeout và người chịu trách nhiệm vận hành?
-- Có quy trình cleanup resource/class loader và log quyết định release?
+- Does the artifact have an **immutable** ID/version, matching digest, and provenance?
+- Do manifest/descriptors carry valid schema, API requirement, Java requirement, and service entry?
+- Has artifact integrity/signature been verified against a trusted source?
+- Are dependencies/JARs/modules right, with no duplicate modules/classes causing conflicts?
+- Has the plugin passed unit, contract, integration, smoke, and health checks?
+- Is the registry published only after all required providers are ready?
+- Is there a lease/drain protocol to avoid closing in-flight plugins?
+- Are the exact prior release, its config, dependencies, and rollback guide preserved?
+- Have migrations/schemas been checked for rollback compatibility?
+- Are canary, metrics, stop thresholds, timeouts, and operational owners defined?
+- Are resource/class-loader cleanup procedures and release decision logs in place?
 
-**Ghi nhớ:** phát hành plugin an toàn là **đóng gói bất biến theo phiên bản → xác minh artifact và hợp đồng → staging → công bố có kiểm soát → quan sát → rollback đã được thử trước**. Một bản JAR cũ được giữ lại chỉ là điều kiện cần; **đường quay lại thực sự** đòi hỏi cả dependency, cấu hình, dữ liệu, lifecycle và traffic routing đều hỗ trợ.
+**Remember:** safe plugin releasing is **immutable versioned packaging → artifact and contract verification → staging → controlled publication → observability → pre-tested rollback**. Keeping an old JAR is only a necessary condition; a **true rollback path** requires dependencies, configuration, data, lifecycle, and traffic routing all to support it.

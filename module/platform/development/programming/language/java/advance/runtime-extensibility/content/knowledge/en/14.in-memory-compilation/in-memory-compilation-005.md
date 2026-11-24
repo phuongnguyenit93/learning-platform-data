@@ -1,10 +1,10 @@
-# Kiểm tra khả năng gán kiểu rồi tạo đối tượng qua constructor phù hợp
+# Checking Assignability and Instantiating Objects via an Appropriate Constructor
 
-## 1. Vấn đề trong quy trình biên dịch Java trong bộ nhớ
+## 1. The Problem in an In-Memory Java Compilation Pipeline
 
-Khi ứng dụng nhận mã nguồn Java dưới dạng chuỗi, biên dịch bằng `JavaCompiler` và nạp bytecode thông qua một `ClassLoader` riêng, kết quả thường chỉ là một đối tượng `Class<?>`. **Biên dịch thành công** nghĩa là mã hợp lệ đối với compiler và các dependency nhìn thấy được; nó **không đảm bảo** lớp đã biên dịch là implementation mà host mong đợi, có thể tạo instance được hay có constructor đúng giao thức của host.
+When an application receives Java source code as a string, compiles it using `JavaCompiler`, and loads the bytecode through a dedicated `ClassLoader`, the result is usually just a `Class<?>` object. **Successful compilation** means the code is valid with respect to the compiler and visible dependencies; it **does not guarantee** that the compiled class is the implementation expected by the host, can be instantiated, or has a constructor matching the host's protocol.
 
-Ví dụ host định nghĩa hợp đồng:
+For example, the host defines a contract:
 
 ~~~java
 public interface Plugin {
@@ -12,82 +12,82 @@ public interface Plugin {
 }
 ~~~
 
-Host muốn tạo plugin từ tên nhị phân như `demo.generated.WithPrefix`, với một tham số cấu hình `String prefix` nếu lớp có constructor đó, hoặc constructor không tham số nếu không có. Những câu hỏi phải được xử lý đúng thứ tự:
+The host wants to create a plugin from a binary name such as `demo.generated.WithPrefix`, passing a configuration parameter `String prefix` if the class has that constructor, or a no-argument constructor if it does not. These questions must be handled in the proper order:
 
-1. Compilation có trả về thành công và sinh ra bytecode thật hay không?
-2. Loader nào định nghĩa lớp từ bytecode? Nó có chia sẻ **đúng class/interface Plugin của host** không?
-3. `Class<?>` vừa tải có **gán được** cho `Plugin` không?
-4. Lớp đó có thể khởi tạo không (ví dụ không phải interface, abstract class hoặc enum không thể khởi tạo reflectively)?
-5. Constructor nào khớp **chữ ký mong đợi**, có thể truy cập và được phép gọi?
-6. `Constructor.newInstance(...)` có chạy thành công không, và instance cuối cùng có thể sử dụng theo hợp đồng hay không?
+1. Did compilation succeed and actually produce bytecode?
+2. Which loader defined the class from the bytecode? Does it share **the host's exact `Plugin` class/interface**?
+3. Is the loaded `Class<?>` **assignable** to `Plugin`?
+4. Can that class be instantiated (for instance, is it not an interface, abstract class, or enum that cannot be instantiated reflectively)?
+5. Which constructor matches the **expected signature**, is accessible, and is permitted to be invoked?
+6. Does `Constructor.newInstance(...)` execute successfully, and can the resulting instance be used according to the contract?
 
-Quy trình an toàn về mặt kiểu là:
+The type-safe workflow is:
 
 ~~~text
 Source String
     │
     ▼
 JavaCompiler + JavaFileManager
-    │ thành công và có byte[]
+    │ succeeds and produces byte[]
     ▼
-Memory ClassLoader (parent chia sẻ API Plugin)
+Memory ClassLoader (parent shares the Plugin API)
     │
     ▼
-Class<?> candidate (tải nhưng chưa chủ động khởi tạo)
+Class<?> candidate (loaded but not eagerly initialized)
     │
-    ├── không tương thích Plugin → từ chối
-    ├── interface/abstract/không thể khởi tạo → từ chối
+    ├── incompatible with Plugin → reject
+    ├── interface/abstract/non-instantiable → reject
     ▼
 Class<? extends Plugin> (asSubclass)
     │
-    ├── chọn public constructor(String.class), nếu có
-    └── nếu không có mới chọn public constructor()
+    ├── select public constructor(String.class), if present
+    └── otherwise select public constructor()
     │
     ▼
 Constructor.newInstance(...)
     │
     ▼
-Plugin instance → chạy phương thức qua SPI chung
+Plugin instance → invoke methods via shared SPI
 ~~~
 
-**Phạm vi bài học:** cách kiểm tra gán kiểu và khởi tạo phù hợp **sau khi compile/load bytecode trong bộ nhớ**. Compiler, file manager và loader được trình bày đủ để chạy ví dụ nhưng trọng tâm là ranh giới `Class<?>` → `Class<? extends Plugin>` → `Constructor` → instance.
+**Lesson scope:** how to check assignability and perform appropriate instantiation **after compiling/loading bytecode in memory**. The compiler, file manager, and loader are shown sufficiently to run the example, while the focus is the boundary `Class<?>` → `Class<? extends Plugin>` → `Constructor` → instance.
 
-## 2. Kiểm tra khả năng gán kiểu trước khi ép kiểu
+## 2. Checking Assignability Before Casting
 
-### 2.1. Thứ tự của `isAssignableFrom`
+### 2.1. Argument Order of `isAssignableFrom`
 
-Biểu thức đúng khi cần một implementation của `Plugin`:
+The right expression when you need an implementation of `Plugin`:
 
 ~~~java
 boolean accepted = Plugin.class.isAssignableFrom(candidate);
 ~~~
 
-Ý nghĩa: một giá trị có runtime type `candidate` có thể được gán cho biến kiểu `Plugin` bằng phép chuyển đổi reference hợp lệ không? Nếu `candidate` implement `Plugin`, thừa kế lớp đã implement `Plugin`, hoặc chính là `Plugin`, kết quả là `true`. Trường hợp `candidate` **chính là interface Plugin** phải được kiểm tra thêm vì interface không khởi tạo được.
+Meaning: can a value of runtime type `candidate` be assigned to a variable of type `Plugin` via a valid reference conversion? If `candidate` implements `Plugin`, extends a class that implements `Plugin`, or is `Plugin` itself, the result is `true`. The case where `candidate` **is the `Plugin` interface itself** must be checked separately because an interface cannot be instantiated.
 
-Dễ viết ngược:
+It is easy to write it backwards:
 
 ~~~java
-boolean reversed = candidate.isAssignableFrom(Plugin.class); // Không đúng mục tiêu
+boolean reversed = candidate.isAssignableFrom(Plugin.class); // Wrong goal
 ~~~
 
-Phép đảo chiều hỏi “giá trị kiểu `Plugin` có gán được cho kiểu `candidate` không?”, thường không đúng khi candidate là implementation cụ thể. Một kiểm tra kiểu sai có thể cho kết quả từ chối implementation hợp lệ hoặc chấp nhận nhầm một superclass như `Object`.
+The reversed call asks "can a value of type `Plugin` be assigned to type `candidate`?", which is usually wrong when `candidate` is a concrete implementation. A reversed type check can reject valid implementations or mistakenly accept a superclass like `Object`.
 
-So sánh:
+Comparison:
 
-| `candidate` | `Plugin.class.isAssignableFrom(candidate)` | Có thể trực tiếp tạo instance? |
+| `candidate` | `Plugin.class.isAssignableFrom(candidate)` | Can an instance be created directly? |
 |---|---|---|
-| `WithPrefix implements Plugin` | `true` | Có, nếu class/constructor hợp lệ |
-| `Defaulted implements Plugin` | `true` | Có, nếu class/constructor hợp lệ |
-| `Unrelated`, không implement `Plugin` | `false` | Không được đưa vào nhánh khởi tạo plugin |
-| `Plugin` interface | `true` | Không, interface không thể `new` |
-| Abstract class implement `Plugin` | `true` | Không, class trừu tượng không thể khởi tạo |
-| Enum implement `Plugin` | `true` | Không thể tạo enum bằng phản chiếu constructor |
+| `WithPrefix implements Plugin` | `true` | Yes, if class/constructor are valid |
+| `Defaulted implements Plugin` | `true` | Yes, if class/constructor are valid |
+| `Unrelated`, does not implement `Plugin` | `false` | Must not enter the plugin instantiation branch |
+| `Plugin` interface | `true` | No, an interface cannot be instantiated with `new` |
+| Abstract class implementing `Plugin` | `true` | No, an abstract class cannot be instantiated |
+| Enum implementing `Plugin` | `true` | An enum cannot be instantiated reflectively via a constructor |
 
-`Class.isAssignableFrom` kiểm tra **quan hệ type ở JVM runtime**, không chỉ so tên class hoặc package. Nó không đảm bảo constructor phù hợp, các dependency đã hoạt động hoặc việc khởi tạo sẽ không có side effect.
+`Class.isAssignableFrom` checks the **type relationship at JVM runtime**, not merely comparing class or package names. It does not guarantee a suitable constructor exists, that dependencies are working, or that instantiation will be free of side effects.
 
-### 2.2. `asSubclass` tạo lớp được giới hạn kiểu
+### 2.2. `asSubclass` Produces a Type-Bounded Class
 
-Sau khi xác nhận:
+After confirming:
 
 ~~~java
 if (!Plugin.class.isAssignableFrom(candidate)) {
@@ -97,13 +97,13 @@ Class<? extends Plugin> implementation =
         candidate.asSubclass(Plugin.class);
 ~~~
 
-`Class.asSubclass(Plugin.class)` xác nhận runtime và trả về `Class<? extends Plugin>`, nhờ đó có thể lấy `Constructor<? extends Plugin>` và tạo instance có kiểu phù hợp **không cần cast generic unchecked**. Nếu không tương thích, `asSubclass` ném `ClassCastException`. Kiểm tra `isAssignableFrom` trước giúp trả lỗi có chủ đích và phân biệt chính sách của host với lỗi ép kiểu.
+`Class.asSubclass(Plugin.class)` verifies at runtime and returns `Class<? extends Plugin>`, allowing you to obtain `Constructor<? extends Plugin>` and create a properly typed instance **without unchecked generic casts**. If incompatible, `asSubclass` throws `ClassCastException`. Checking `isAssignableFrom` first helps return an intentional error and distinguish host policy from a cast error.
 
-Nếu đã có **đối tượng** thay vì `Class<?>`, có thể dùng `Plugin.class.isInstance(value)` và `Plugin.class.cast(value)`. Nhưng `isInstance` yêu cầu instance đã tồn tại; trong bài này phải đánh giá class **trước khi gọi constructor**.
+If you already have an **object** instead of a `Class<?>`, you can use `Plugin.class.isInstance(value)` and `Plugin.class.cast(value)`. However, `isInstance` requires an existing instance; in this lesson, we must evaluate the class **before calling the constructor**.
 
-### 2.3. Class loader quyết định định danh kiểu
+### 2.3. The Class Loader Determines Type Identity
 
-Trong JVM, định danh runtime của một lớp gồm **binary class name** và **defining class loader**. Hai interface đều có tên `demo.api.Plugin` nhưng được định nghĩa bởi hai loader khác nhau có thể là hai kiểu không tương thích:
+In the JVM, a class's runtime identity consists of its **binary class name** and **defining class loader**. Two interfaces both named `demo.api.Plugin` but defined by two different loaders can be two incompatible types:
 
 ~~~text
 Host parent loader:  demo.api.Plugin  (type A)
@@ -111,23 +111,23 @@ Plugin child loader: demo.api.Plugin  (type B)
                                  A != B
 ~~~
 
-Nếu `candidate` implement “Plugin type B”, còn host kiểm tra “Plugin type A”, `Plugin.class.isAssignableFrom(candidate)` trả `false` dù `candidate.getInterfaces()[0].getName()` trông giống nhau. Vì vậy **không** xác thực bằng `getName().equals(...)`.
+If `candidate` implements "Plugin type B" while the host checks "Plugin type A", `Plugin.class.isAssignableFrom(candidate)` returns `false` even though `candidate.getInterfaces()[0].getName()` looks identical. Therefore, **do not** validate using `getName().equals(...)`.
 
-Trong hệ thống plugin thông thường, parent loader của loader biên dịch trong bộ nhớ nên trỏ tới loader đã định nghĩa **API/SPI của host** (ví dụ `Plugin.class.getClassLoader()`). Host tránh tự compile/định nghĩa một bản sao của interface hợp đồng trong memory loader, trừ khi đã chủ động thiết kế cầu nối giữa hai identity khác nhau.
+In typical plugin systems, the parent loader of the in-memory compilation loader should point to the loader that defined the **host's API/SPI** (for example, `Plugin.class.getClassLoader()`). The host avoids compiling/defining a duplicate copy of the contract interface inside the memory loader unless it has explicitly designed a bridge between two distinct identities.
 
-## 3. Tải class đúng thời điểm, tránh khởi tạo quá sớm
+## 3. Loading Classes at the Right Time, Avoiding Premature Initialization
 
-Sau khi compile, host thường biết `binaryName` và có `ClassLoader` mới. Có thể dùng:
+After compilation, the host usually knows `binaryName` and has a new `ClassLoader`. You can use:
 
 ~~~java
 Class<?> raw = Class.forName(binaryName, false, memoryLoader);
 ~~~
 
-Tham số `false` yêu cầu **không chủ động khởi tạo class** tại lời gọi này. Điều đó cho phép kiểm tra type, modifiers và constructor trước khi kích hoạt static initializer của implementation qua bước tạo instance sau đó. Nó **không** biến thao tác nạp/link thành vô hại: verification, resolution, lookup và class-loader code vẫn có thể gặp lỗi hoặc có hành vi riêng.
+The `false` argument requests **not eagerly initializing the class** on this call. That lets you inspect the type, modifiers, and constructors before triggering the implementation's static initializer in the later instantiation step. It does **not** render loading/linking harmless: verification, resolution, lookup, and class-loader code can still fail or exhibit side effects.
 
-Một lựa chọn khác là `memoryLoader.loadClass(binaryName)`, thường cũng chưa khởi tạo class ngay. Đừng dùng `Class.forName(binaryName)` không truyền loader khi ứng dụng đang quản lý plugin trong loader riêng: overload này dùng **defining loader của caller** và yêu cầu initialize mặc định, có thể tìm nhầm lớp hoặc ném lỗi vì loader không nhìn thấy bytecode.
+Another option is `memoryLoader.loadClass(binaryName)`, which also typically does not initialize the class immediately. Do not use `Class.forName(binaryName)` without passing a loader when the application manages plugins in separate loaders: that overload uses the **caller's defining loader** and requests initialization by default, which can look up the wrong class or throw an error because that loader cannot see the bytecode.
 
-Đọc metadata trước khi tạo instance:
+Reading metadata before instantiating:
 
 ~~~java
 if (raw.isInterface()
@@ -136,13 +136,13 @@ if (raw.isInterface()
 }
 ~~~
 
-Hệ thống production cũng nên xem xét từ chối `isEnum()`, anonymous/local class, implementation không public nếu hợp đồng chỉ nhận public class, hoặc kiểu không nằm trong tập package/module được cho phép. **Một check assignability thành công không thay thế kiểm tra chính sách khởi tạo.**
+Production systems should also consider rejecting `isEnum()`, anonymous/local classes, non-public implementations if the contract accepts only public classes, or types outside allowed packages/modules. **A passing assignability check does not replace instantiation policy checks.**
 
-## 4. Chọn constructor phù hợp với hợp đồng
+## 4. Choosing a Constructor Matching the Contract
 
-### 4.1. `getConstructor` tìm public constructor theo chữ ký *chính xác*
+### 4.1. `getConstructor` Finds a Public Constructor with an *Exact* Signature
 
-Nếu host ưu tiên constructor nhận `String`:
+If the host prefers a constructor taking `String`:
 
 ~~~java
 Constructor<? extends Plugin> constructor =
@@ -151,9 +151,9 @@ Constructor<? extends Plugin> constructor =
 Plugin plugin = constructor.newInstance("Xin chao");
 ~~~
 
-`getConstructor(String.class)` tìm constructor **public** có đúng một tham số khai báo kiểu `java.lang.String`. Nó không tự suy luận các overload theo quy tắc Java compiler dùng khi bạn viết lệnh `new` trong mã nguồn.
+`getConstructor(String.class)` looks up a **public** constructor with a single parameter declared as `java.lang.String`. It does not perform overload resolution according to the rules the Java compiler uses when you write a `new` expression in source code.
 
-Ví dụ:
+For example:
 
 ~~~java
 public WithPrefix(String prefix) { ... }
@@ -161,11 +161,11 @@ public WithPrefix(CharSequence text) { ... }
 public WithPrefix(int count) { ... }
 ~~~
 
-Ba constructor trên là ba chữ ký khác nhau. `getConstructor(String.class)` chọn đúng nhánh `String`. `getConstructor(CharSequence.class)` không đồng nghĩa tìm constructor `String`, và `getConstructor()` tìm constructor **không tham số**, không tự truyền giá trị mặc định.
+Those three constructors are three distinct signatures. `getConstructor(String.class)` picks the exact `String` branch. `getConstructor(CharSequence.class)` is not equivalent to finding the `String` constructor, and `getConstructor()` finds the **no-arg** constructor without supplying default arguments automatically.
 
-`Constructor.newInstance(args...)` gọi constructor đã chọn và chuyển đối số theo các quy tắc reflection tương ứng; nếu sai số lượng/kiểu đối số, có thể ném `IllegalArgumentException`. Tốt nhất host xác lập trước một **hợp đồng constructor cụ thể** (ví dụ `(Config)`, `(String)` hoặc `()`) và tra cứu chữ ký đó, thay vì tùy tiện lấy constructor đầu tiên từ `getConstructors()`.
+`Constructor.newInstance(args...)` invokes the chosen constructor and converts arguments according to reflection rules; if the argument count or types are wrong, it can throw `IllegalArgumentException`. Ideally, the host establishes a **specific constructor contract** upfront (e.g., `(Config)`, `(String)`, or `()`) and looks up that exact signature, rather than arbitrarily picking the first constructor from `getConstructors()`.
 
-### 4.2. Fallback hợp lý: chỉ khi *không có* constructor ưu tiên
+### 4.2. Reasonable Fallback: Only When the Preferred Constructor *Does Not Exist*
 
 ~~~java
 try {
@@ -179,33 +179,33 @@ try {
 }
 ~~~
 
-Điểm quan trọng: khối `catch` chỉ bắt **`NoSuchMethodException`** từ việc **không tìm được chữ ký**. Nếu constructor `String` có tồn tại nhưng thực thi thất bại (ví dụ ném exception), **không nên im lặng gọi constructor mặc định** vì sẽ che giấu lỗi thật và có thể lặp side effect.
+Key point: the `catch` block catches only **`NoSuchMethodException`** from **not finding the signature**. If the `String` constructor exists but fails during execution (for instance, throws an exception), **do not silently fall back to calling the default constructor**, because doing so masks the real error and can repeat side effects.
 
-`getConstructor()` cũng có thể ném `NoSuchMethodException` nếu không có public no-arg constructor. Khi đó host nên trả lỗi rõ “không có constructor phù hợp”, thay vì chuyển sang `Class.newInstance()`.
+`getConstructor()` can also throw `NoSuchMethodException` if there is no public no-arg constructor. In that case, the host should return a clear "no matching constructor" error rather than falling back to `Class.newInstance()`.
 
-### 4.3. `getDeclaredConstructor` và module access
+### 4.3. `getDeclaredConstructor` and Module Access
 
-`getDeclaredConstructor(...)` tìm constructor **được khai báo** ở class, kể cả private/package-private; việc tìm được descriptor không tự có quyền gọi nó. `getConstructor(...)` chỉ tìm public constructor theo chữ ký. Trong mô hình plugin public SPI, nên ưu tiên **public class + public constructor** để giảm phụ thuộc reflection phá encapsulation.
+`getDeclaredConstructor(...)` finds constructors **declared** on the class, including private/package-private ones; obtaining the descriptor does not automatically grant permission to invoke it. `getConstructor(...)` finds only public constructors by signature. In a public-SPI plugin model, prefer **public class + public constructor** to reduce reliance on reflection that breaks encapsulation.
 
-`setAccessible(true)` hoặc `trySetAccessible()` không phải cách chung để sửa lỗi quyền truy cập. Với named modules JPMS, deep reflection còn bị giới hạn bởi `opens`, caller module và các quy tắc access; thiếu quyền có thể gây `InaccessibleObjectException` hoặc `IllegalAccessException`. Đừng tự động mở mọi package chỉ vì có lỗi nạp plugin.
+`setAccessible(true)` or `trySetAccessible()` is not a universal fix for access errors. With JPMS named modules, deep reflection is also constrained by `opens`, caller modules, and access rules; missing permissions can raise `InaccessibleObjectException` or `IllegalAccessException`. Do not automatically open every package just because a plugin load failed.
 
-### 4.4. Vì sao không dùng `Class.newInstance()`?
+### 4.4. Why Not Use `Class.newInstance()`?
 
-`Class.newInstance()` đã deprecated từ Java 9. Nó chỉ dùng constructor không tham số và có hành vi xử lý checked exception kém rõ ràng hơn. API được khuyến nghị là `clazz.getDeclaredConstructor().newInstance()` khi phù hợp, hoặc `getConstructor(signature...).newInstance(args...)` theo hợp đồng. Với bài toán cần chọn constructor thích hợp, `Constructor` API thể hiện chính xác yêu cầu hơn.
+`Class.newInstance()` has been deprecated since Java 9. It only invokes the no-arg constructor and handles checked exceptions less cleanly. The recommended APIs are `clazz.getDeclaredConstructor().newInstance()` when appropriate, or `getConstructor(signature...).newInstance(args...)` per contract. When you need to select an appropriate constructor, the `Constructor` API expresses the requirement far more accurately.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: compile bytecode vào memory, kiểm tra type và khởi tạo
+## 5. Complete Java 17+ Example: Compile Bytecode in Memory, Check Types, and Instantiate
 
-Ví dụ sau **biên dịch và chạy độc lập** khi có JDK 17+. Nó tạo ba class động từ chuỗi nguồn:
+The following example **compiles and runs standalone** with JDK 17+. It creates three dynamic classes from source strings:
 
-1. `WithPrefix` implement `Plugin` và có public constructor `(String)`.
-2. `Defaulted` implement `Plugin` và chỉ có public constructor không tham số.
-3. `Unrelated` không implement `Plugin` và phải bị từ chối **trước khi gọi constructor**.
+1. `WithPrefix` implements `Plugin` and has a public `(String)` constructor.
+2. `Defaulted` implements `Plugin` and has only a public no-arg constructor.
+3. `Unrelated` does not implement `Plugin` and must be rejected **before calling any constructor**.
 
-Mã host `InMemoryCtorDemo` được biên dịch bình thường vào thư mục `out`; **ba class động** được compiler đưa bytecode vào `ByteArrayOutputStream` và được loader tự định nghĩa, không phải viết ra `.class` trên đĩa.
+The host code `InMemoryCtorDemo` is compiled normally into the `out` directory; **the three dynamic classes** have their bytecode emitted into `ByteArrayOutputStream` by the compiler and defined by a custom loader, without writing `.class` files to disk.
 
-### 5.1. Tạo file
+### 5.1. Create the File
 
-Lưu toàn bộ mã sau trong **`demo/InMemoryCtorDemo.java`** (thư mục `demo` khớp khai báo package `demo`). Java text blocks dùng ở đây có từ Java 15 và tương thích Java 17.
+Save the entire code below into **`demo/InMemoryCtorDemo.java`** (the `demo` directory matches the `package demo` declaration). Java text blocks used here exist since Java 15 and are compatible with Java 17.
 
 ~~~java
 package demo;
@@ -397,9 +397,9 @@ public final class InMemoryCtorDemo {
 }
 ~~~
 
-### 5.2. Biên dịch và chạy
+### 5.2. Compile and Run
 
-Từ thư mục **cha của `demo/`**, chạy trên Bash (Linux/macOS hoặc Git Bash trên Windows):
+From the **parent directory of `demo/`**, run in Bash (Linux/macOS or Git Bash on Windows):
 
 ~~~bash
 mkdir -p out
@@ -407,9 +407,9 @@ javac --release 17 -d out demo/InMemoryCtorDemo.java
 java -cp out demo.InMemoryCtorDemo
 ~~~
 
-Trên PowerShell, tạo `out` bằng `New-Item -ItemType Directory -Force out`; hai lệnh `javac`/`java` phía trên cũng chạy được nếu JDK nằm trên `PATH`. `--release 17` kiểm tra cú pháp và API của host theo Java 17; trong mã, compiler động cũng được truyền `--release 17`.
+In PowerShell, create `out` with `New-Item -ItemType Directory -Force out`; the same two `javac`/`java` commands above also work if the JDK is on `PATH`. `--release 17` checks the host's syntax and API against Java 17; in the code, the dynamic compiler is also passed `--release 17`.
 
-Kết quả chuẩn của chương trình:
+Standard output of the program:
 
 ~~~text
 WithPrefixAssignable=true
@@ -422,25 +422,25 @@ UnrelatedAssignable=false
 UnrelatedRejected=true
 ~~~
 
-Đã kiểm tra ví dụ bằng `javac --release 17` và chạy trên OpenJDK 24: kết quả đúng **từng dòng** như trên. Nếu dùng runtime chỉ cung cấp các module tối thiểu và không có compiler, `ToolProvider.getSystemJavaCompiler()` có thể trả `null`; ví dụ yêu cầu một JDK/runtime image có module `jdk.compiler`.
+Verified by compiling with `javac --release 17` and running on OpenJDK 24: the output matches **line for line** as above. On a runtime providing only minimal modules without a compiler, `ToolProvider.getSystemJavaCompiler()` can return `null`; the example requires a JDK/runtime image containing the `jdk.compiler` module.
 
-### 5.3. Nối từng thành phần của mã với cơ chế Java
+### 5.3. Connecting Each Code Component to Java Mechanics
 
-**`Source`** mở rộng `SimpleJavaFileObject` kiểu `Kind.SOURCE`. Nó cung cấp nội dung source bằng `getCharContent` từ chuỗi, nên compiler không phải đọc `WithPrefix.java` hoặc `Defaulted.java` từ đĩa.
+**`Source`** extends `SimpleJavaFileObject` with kind `Kind.SOURCE`. It supplies source content via `getCharContent` from a string, so the compiler does not have to read `WithPrefix.java` or `Defaulted.java` from disk.
 
-**`ByteCode`** là `JavaFileObject` kiểu output, trả `ByteArrayOutputStream` khi compiler cần ghi class bytes. **`MemoryManager`** là `ForwardingJavaFileManager` chặn `getJavaFileForOutput` rồi giữ các `ByteCode` theo **binary name**. Nếu một source sinh thêm class phụ (inner/anonymous class), file manager có thể nhận thêm các output tương ứng; loader cần giữ các bytecode này, không chỉ class top-level.
+**`ByteCode`** is an output `JavaFileObject`, returning a `ByteArrayOutputStream` when the compiler needs to write class bytes. **`MemoryManager`** is a `ForwardingJavaFileManager` that intercepts `getJavaFileForOutput` and stores `ByteCode` entries by **binary name**. If a source emits auxiliary classes (inner/anonymous classes), the file manager can receive additional corresponding outputs; the loader needs to retain those bytecodes, not just the top-level class.
 
-**`compiler.getTask(...).call()`** chạy compiler. Kiểm tra `Boolean.TRUE.equals(ok)` trước khi nạp bất kỳ class nào. Trong một hệ thống thật, còn cần xem `DiagnosticCollector` để trả lỗi có vị trí dòng/cột cho người viết source; không được bỏ qua compile failure hoặc tiếp tục với bytecode cũ từ lần biên dịch trước.
+**`compiler.getTask(...).call()`** runs the compiler. Check `Boolean.TRUE.equals(ok)` before loading any class. In a real system, you also inspect `DiagnosticCollector` to return line/column-located errors to the source author; never ignore compile failures or proceed with stale bytecode from an earlier compilation.
 
-**`MemoryClassLoader`** giữ bản sao map tên binary → bytecode và override `findClass`. Nó dùng parent là `Plugin.class.getClassLoader()`, nhờ đó ba class động nhìn thấy **cùng interface Plugin** mà host sử dụng. `ClassLoader.loadClass` mặc định thử parent trước; `findClass` chỉ định nghĩa class từ bytes khi parent không có class đó.
+**`MemoryClassLoader`** holds a copy of the binary-name → bytecode map and overrides `findClass`. Its parent is `Plugin.class.getClassLoader()`, so the three dynamic classes see **the exact same `Plugin` interface** used by the host. `ClassLoader.loadClass` tries the parent first by default; `findClass` defines the class from bytes only when the parent does not have that class.
 
-**`Class.forName(name, false, loader)`** cho host một `Class<?>` của class động trong memory loader mà chưa chủ động initialize. Host gọi `Plugin.class.isAssignableFrom(raw)` để kiểm tra trước khi dùng `asSubclass`; sau đó chọn public constructor. Với `WithPrefix`, nó dùng `(String)`, với `Defaulted` fallback `()`, còn `Unrelated` bị từ chối trước khi dùng reflection constructor.
+**`Class.forName(name, false, loader)`** gives the host a `Class<?>` for the dynamic class in the memory loader without eagerly initializing it. The host calls `Plugin.class.isAssignableFrom(raw)` to verify before calling `asSubclass`, then selects a public constructor. For `WithPrefix`, it uses `(String)`; for `Defaulted`, it falls back to `()`; and `Unrelated` is rejected before constructor reflection is used.
 
-**`-classpath System.getProperty("java.class.path")`** trong compiler động giúp compiler thấy bytecode interface `demo.InMemoryCtorDemo.Plugin` đã biên dịch trong `out`. Đây là một cách đơn giản và phù hợp với ví dụ **classpath**; ứng dụng thực tế sử dụng module path, nhiều loader hay annotation processor cần cấu hình compiler/module path/file manager rõ ràng hơn. Cờ `-proc:none` tắt annotation processing trong ví dụ; không nên mặc định cho compiler thực thi processor không tin cậy trong tiến trình host.
+**`-classpath System.getProperty("java.class.path")`** in the dynamic compiler lets the compiler see the compiled bytecode of `demo.InMemoryCtorDemo.Plugin` in `out`. This is a simple approach suited to a **classpath** example; real applications using the module path, multiple loaders, or annotation processors need more explicit compiler/module-path/file-manager configuration. The `-proc:none` flag disables annotation processing in the example; you should not let the compiler execute untrusted processors inside the host process by default.
 
-### 5.4. Tại sao nên viết generic `Class<? extends Plugin>`?
+### 5.4. Why Write Generic `Class<? extends Plugin>`?
 
-Một cách làm nguy hiểm là:
+A dangerous pattern is:
 
 ~~~java
 Class<?> raw = loader.loadClass(binaryName);
@@ -448,9 +448,9 @@ Object value = raw.getDeclaredConstructor().newInstance();
 Plugin plugin = (Plugin) value;
 ~~~
 
-Đoạn minh họa này có hai vấn đề: nó **không xác thực class theo SPI trước khi khởi tạo**, và **chỉ dùng no-arg constructor** dù provider có thể yêu cầu cấu hình. Nếu class không tương thích, constructor có thể đã chạy rồi mới ném `ClassCastException` ở bước ép kiểu. Với plugin không mong muốn, side effect của constructor có thể xảy ra trước khi host kịp từ chối.
+This illustrative snippet has two problems: it **does not validate the class against the SPI before instantiating**, and it **only tries the no-arg constructor** even when a provider may require configuration. If the class is incompatible, the constructor may already have executed before throwing `ClassCastException` at the cast step. With an unintended plugin, constructor side effects could happen before the host can reject it.
 
-Quy trình đúng ưu tiên:
+The right workflow prefers:
 
 ~~~java
 if (!Plugin.class.isAssignableFrom(raw)) {
@@ -461,96 +461,96 @@ Constructor<? extends Plugin> ctor = type.getConstructor(String.class);
 Plugin plugin = ctor.newInstance("Xin chao");
 ~~~
 
-Đây là **đoạn minh họa rút gọn** cho trường hợp constructor `String` tồn tại; chương trình hoàn chỉnh có nhánh fallback khi constructor này không có.
+This is an **abbreviated illustrative snippet** for the case where the `String` constructor exists; the complete program includes the fallback branch when that constructor is absent.
 
-## 6. Những lỗi cần phân biệt đúng giai đoạn
+## 6. Errors to Distinguish by Stage
 
-| Vấn đề | Dấu hiệu/lỗi thường gặp | Cách xử lý |
+| Issue | Common symptom/error | Resolution |
 |---|---|---|
-| Source Java không hợp lệ | Compiler trả `false`, có `Diagnostic.Kind.ERROR` | Đọc diagnostics, không nạp bytecode của lần biên dịch lỗi |
-| Compiler không sẵn có | `ToolProvider.getSystemJavaCompiler() == null` | Chạy trên JDK/runtime image có `jdk.compiler` |
-| Loader không có bytecode hoặc dependency | `ClassNotFoundException` | Kiểm tra binary name, map bytecode và parent/classpath |
-| Một dependency chỉ thiếu khi linking | `NoClassDefFoundError`/`LinkageError` | Xem cause, loader, class/module path và dependency |
-| Interface cùng tên nhưng khác defining loader | `isAssignableFrom == false` hoặc `ClassCastException` về sau | Chia sẻ đúng class object `Plugin` giữa host/plugin |
-| Candidate không implements SPI | `isAssignableFrom == false` | Từ chối trước khi tìm constructor |
-| Candidate là interface/abstract | `isAssignableFrom` có thể `true` nhưng không thể tạo instance | Kiểm tra modifiers; không chỉ dựa vào quan hệ kiểu |
-| Thiếu constructor có chữ ký yêu cầu | `NoSuchMethodException` | Chọn fallback được định nghĩa rõ, nếu không có thì báo lỗi hợp đồng |
-| Public constructor nhưng class/package không truy cập được | `IllegalAccessException` hoặc lỗi access JPMS | Kiểm tra public class, exports/opens phù hợp và caller module |
-| Sai kiểu/số đối số khi gọi constructor | `IllegalArgumentException` | Chọn chữ ký đúng, kiểm tra arguments đúng thứ tự và kiểu |
-| Constructor tự ném exception | `InvocationTargetException`; dùng `getCause()` | Ghi cause thật, coi đây là lỗi khi khởi tạo; không fallback im lặng |
-| Static initializer thất bại | `ExceptionInInitializerError`, có thể dẫn đến `NoClassDefFoundError` ở lần sau | Phân tích initializer/cause và trạng thái loader, không tái sử dụng class lỗi tùy tiện |
-| Tên lớp đã định nghĩa trùng trong cùng loader | `LinkageError` trong tình huống define trùng | Quản lý map bytecode, generation/version và tạo loader mới khi thay implementation |
-| Dùng JAR/plugin từ nguồn không tin cậy | Không có lỗi đảm bảo trước khi thực thi | Cách ly ở cấp process/container; không coi type check là sandbox |
+| Invalid Java source | Compiler returns `false`, with `Diagnostic.Kind.ERROR` | Read diagnostics; do not load bytecode from a failed compilation |
+| Compiler unavailable | `ToolProvider.getSystemJavaCompiler() == null` | Run on a JDK/runtime image containing `jdk.compiler` |
+| Loader lacks bytecode or dependency | `ClassNotFoundException` | Check binary name, bytecode map, and parent/classpath |
+| A dependency is missing only during linking | `NoClassDefFoundError`/`LinkageError` | Inspect cause, loader, class/module path, and dependencies |
+| Same-named interface with different defining loader | `isAssignableFrom == false` or `ClassCastException` later | Share the exact same `Plugin` class object between host and plugin |
+| Candidate does not implement the SPI | `isAssignableFrom == false` | Reject before looking up constructors |
+| Candidate is an interface/abstract class | `isAssignableFrom` may be `true` yet cannot be instantiated | Check modifiers; do not rely solely on type relationship |
+| Missing constructor with required signature | `NoSuchMethodException` | Choose a well-defined fallback, or report a contract error if none |
+| Public constructor, but class/package inaccessible | `IllegalAccessException` or JPMS access error | Verify public class, proper exports/opens, and caller module |
+| Wrong argument types/count when invoking constructor | `IllegalArgumentException` | Pick the exact signature; verify arguments in order and type |
+| Constructor itself throws an exception | `InvocationTargetException`; use `getCause()` | Log the real cause, treat as instantiation failure; do not fall back silently |
+| Static initializer fails | `ExceptionInInitializerError`, possibly leading to `NoClassDefFoundError` later | Analyze initializer/cause and loader state; do not arbitrarily reuse a broken class |
+| Class name defined twice in the same loader | `LinkageError` on duplicate definition | Manage bytecode maps, generations/versions, and create a new loader when swapping implementations |
+| Using JARs/plugins from untrusted sources | No error guaranteed before execution | Isolate at process/container level; do not treat type checking as a sandbox |
 
-### `InvocationTargetException`: xem lỗi gốc
+### `InvocationTargetException`: Inspect the Root Cause
 
-Khi constructor **đã được chọn và gọi**, exception do code constructor ném thường được bọc trong `InvocationTargetException`. Một ví dụ xử lý riêng ở tầng host:
+When a constructor **has been selected and invoked**, exceptions thrown by the constructor's code are normally wrapped in `InvocationTargetException`. An example of handling this specifically at the host layer:
 
 ~~~java
 try {
     return constructor.newInstance(arguments);
 } catch (java.lang.reflect.InvocationTargetException e) {
     Throwable original = e.getCause();
-    // Ghi log hoặc chuyển thành lỗi domain có gắn nguyên nhân gốc.
+    // Log or translate into a domain error preserving the root cause.
     throw e;
 }
 ~~~
 
-Đây là đoạn **minh họa tích hợp**: giả định đã có `Constructor<?> constructor` và `Object[] arguments`. Phải giữ original cause để chẩn đoán. Không được lấy việc constructor ném lỗi làm tín hiệu để thử một constructor khác một cách vô điều kiện, vì constructor có thể đã thay đổi state trước khi thất bại.
+This is an **integration snippet**: it assumes `Constructor<?> constructor` and `Object[] arguments` are already available. You must preserve the original cause for diagnostics. Never treat a constructor throwing an error as a signal to unconditionally try another constructor, because the constructor may already have mutated state before failing.
 
-### `getDeclaredConstructor` không tự vượt qua JPMS
+### `getDeclaredConstructor` Does Not Automatically Bypass JPMS
 
-Một class thuộc named module có package không `exports` hoặc `opens` cho module host có thể từ chối truy cập phản chiếu sâu. Việc lấy được object `Constructor` chưa có nghĩa được phép `newInstance`. Khi thiết kế plugin hợp đồng public, cung cấp public constructor trong class public thuộc module/package có access policy phù hợp; nếu cần private constructor do framework quản lý, phải thiết kế `opens` và quyền truy cập tường minh.
+A class belonging to a named module whose package is not `exports` or `opens` to the host module can deny deep reflective access. Obtaining a `Constructor` object does not mean `newInstance` is allowed. When designing a public-contract plugin, provide a public constructor on a public class in a module/package with an appropriate access policy; if a framework-managed private constructor is required, design `opens` and access permissions explicitly.
 
-## 7. Chọn constructor khi hệ thống thực tế phức tạp hơn
+## 7. Choosing Constructors When Real Systems Are More Complex
 
-Một host production thường có nhiều dependency injection và cấu hình; không nên phản chiếu “constructor đầu tiên” rồi chọn đối số theo cảm tính.
+A production host typically has extensive dependency injection and configuration; you should not reflectively pick "the first constructor" and guess arguments.
 
-- **Quy ước một chữ ký**: interface provider yêu cầu public constructor `(PluginConfig)` hoặc factory method, host biết chính xác cách cung cấp `PluginConfig`. Ưu điểm: lỗi rõ ở deployment.
-- **Quy ước thứ tự ưu tiên**: thử `(PluginConfig)`, nếu *không tìm thấy* mới thử `()`; áp dụng chính sách cố định và log constructor được chọn. Bài chạy được minh họa với `(String)` và `()`.
-- **Chọn theo metadata**: plugin descriptor công bố kiểu constructor/định danh factory được hỗ trợ, nhưng cần kiểm tra metadata bằng reflection trước khi invoke.
-- **Dùng factory/SPI**: nếu khởi tạo phức tạp hoặc cần nhiều dependency, có thể để plugin cung cấp factory được đăng ký qua `ServiceLoader`; đừng tạo phụ thuộc vào public constructor chỉ vì reflection dễ viết.
-- **Constructor varargs hoặc primitive/wrapper**: `getConstructor` tra cứu **chính xác danh sách kiểu khai báo**, không thực hiện overload resolution như javac. Ví dụ `getConstructor(int.class)` khác `getConstructor(Integer.class)`; xử lý chuyển đổi args khi invoke là một bước khác.
-- **Nested non-static classes**: constructor phản chiếu của inner class không static còn có tham số instance bao ngoài; nếu không có quy ước rõ thì plugin nên là top-level class hoặc static nested class.
-- **Records/enums**: record có thể có public canonical constructor đúng chữ ký, nhưng enum không thể được tạo bằng cách gọi constructor reflectively; API service nên quy định loại provider được chấp nhận.
+- **Single-signature convention:** the provider interface requires a public constructor `(PluginConfig)` or factory method, and the host knows exactly how to supply `PluginConfig`. Advantage: clear deployment-time errors.
+- **Priority-order convention:** try `(PluginConfig)`, and if *not found*, try `()`; enforce a fixed policy and log which constructor was chosen. The runnable lesson demonstrated this with `(String)` and `()`.
+- **Metadata-driven selection:** a plugin descriptor declares the supported constructor style/factory identifier, though metadata must still be verified via reflection before invoking.
+- **Use a factory/SPI:** if initialization is complex or needs many dependencies, let the plugin provide a factory registered via `ServiceLoader`; avoid forcing reliance on public constructors just because reflection is easy to write.
+- **Varargs or primitive/wrapper constructors:** `getConstructor` looks up the **exact declared parameter type list**, without performing javac-style overload resolution. For example, `getConstructor(int.class)` differs from `getConstructor(Integer.class)`; handling argument conversion at invocation time is a separate step.
+- **Non-static nested classes:** the reflective constructor of a non-static inner class also includes the enclosing outer instance parameter; without an explicit convention, plugins should be top-level classes or static nested classes.
+- **Records/enums:** a record can have a public canonical constructor matching its signature, whereas an enum cannot be instantiated reflectively via a constructor; the service API should specify which provider kinds are accepted.
 
-Nếu cần hỗ trợ non-public constructor, hãy nêu rõ yêu cầu về module access thay vì tự động `setAccessible(true)` cho mọi thứ. Nếu phải reload plugin, dùng class loader/layer mới; thay chuỗi source hoặc map bytecode của một loader đã định nghĩa class không tự làm JVM thay class cũ.
+If you must support non-public constructors, state the module access requirements explicitly rather than calling `setAccessible(true)` indiscriminately on everything. If plugins must be reloaded, use a new class loader/layer; mutating the source string or bytecode map of a loader that already defined a class does not make the JVM replace the old class.
 
-## 8. Bộ quy tắc kiểm tra trước khi kích hoạt plugin
+## 8. Validation Rules Before Activating a Plugin
 
-Đối với một bước biên dịch trong bộ nhớ và tạo plugin tự động, host có thể xây một pipeline như sau:
+For an in-memory compilation and automatic plugin creation step, a host can build a pipeline like this:
 
-1. **Source hợp lệ:** giới hạn class name, source size, dependencies và compilation options được chấp nhận; thông báo lỗi từ `DiagnosticCollector`.
-2. **Compile thành công:** xác nhận `getTask().call()` là `true`; biết bytecode nào được sinh và class nào là entry point.
-3. **Loader đồng nhất:** tạo loader đúng parent cho SPI; không định nghĩa trùng interface host trong loader con.
-4. **Tải class đúng tên:** dùng binary name đã biết và loader cụ thể, ưu tiên chưa initialize khi kiểm tra.
-5. **Type check:** `ExpectedService.class.isAssignableFrom(candidate)` theo đúng thứ tự.
-6. **Instantiation policy:** class không phải interface/abstract/enum; visibility/module access phù hợp; chọn constructor theo quy ước.
-7. **Instantiate:** gọi `Constructor.newInstance(...)`, giữ nguyên cause khi exception và không retry nhánh khác nếu constructor đã được gọi nhưng thất bại.
-8. **Register/lifecycle:** kiểm tra instance thực hiện hợp đồng, sau đó mới đăng ký vào host; có quy trình stop/dispose khi thay phiên bản.
+1. **Valid source:** class name, source size, dependencies, and compilation options pass policy checks; report errors from `DiagnosticCollector`.
+2. **Compilation succeeds:** verify `getTask().call()` is `true`; know which bytecode was generated and which class is the entry point.
+3. **Consistent loader:** create a loader with the right parent for the SPI; do not define duplicate copies of host interfaces in the child loader.
+4. **Load class by exact name:** use the known binary name and specific loader, preferring not to initialize eagerly during validation.
+5. **Type check:** `ExpectedService.class.isAssignableFrom(candidate)` in the right argument order.
+6. **Instantiation policy:** class is not an interface/abstract/enum; visibility/module access is appropriate; select constructor per convention.
+7. **Instantiate:** call `Constructor.newInstance(...)`, preserve the cause on exception, and do not retry another branch if the invoked constructor failed.
+8. **Register/lifecycle:** verify the instance fulfills the contract before registering it with the host; have a stop/dispose flow when swapping versions.
 
-Type checking **không tạo ranh giới bảo mật**. Java compiler, class loader và constructor có thể xử lý mã mà sau này được chạy với quyền của tiến trình. Với mã do người dùng hoặc bên thứ ba không tin cậy gửi lên, cần cơ chế cô lập riêng, giới hạn tài nguyên, chính sách dependency và đánh giá quyền truy cập.
+Type checking **does not create a security boundary**. The Java compiler, class loader, and constructor can process code that later executes with the host process's privileges. For code submitted by untrusted users or third parties, you need separate isolation mechanisms, resource limits, dependency policies, and access evaluations.
 
-Ngoài ra, compiler/file manager cần được đóng sau khi sử dụng. Với hệ thống biên dịch nhiều lần, quản lý cache và class loader theo mỗi generation để tránh giữ bytecode, class objects, static state, threads hoặc listener vô hạn. Việc loại bỏ các tham chiếu và để JVM thu gom class loader là điều kiện để class của generation cũ có thể được dọn.
+In addition, the compiler/file manager must be closed after use. In systems compiling repeatedly, manage caches and class loaders per generation to avoid retaining bytecode, class objects, static state, threads, or listeners indefinitely. Dropping references so the JVM can garbage-collect the class loader is required for classes from old generations to be reclaimed.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-1. **Tại sao compile thành công chưa đủ để ép `Class<?>` thành `Plugin`?** Vì compiler chỉ xác nhận source hợp lệ; implementation có thể không implements SPI hoặc dùng interface có runtime identity khác.
-2. **Biểu thức nào đúng: `Plugin.class.isAssignableFrom(raw)` hay `raw.isAssignableFrom(Plugin.class)`?** Biểu thức đầu, vì cần xác minh candidate có thể gán vào biến `Plugin`.
-3. **`isAssignableFrom == true` có đảm bảo tạo instance được không?** Không. Class có thể abstract/interface, thiếu constructor, bị hạn chế quyền hoặc constructor có thể thất bại.
-4. **Vì sao dùng `raw.asSubclass(Plugin.class)`?** Để nhận `Class<? extends Plugin>` đã được xác thực runtime, giảm cast generic không an toàn.
-5. **Khi nào được thử constructor không tham số?** Khi hợp đồng cho phép fallback và constructor ưu tiên **không tồn tại** (`NoSuchMethodException`), không phải khi invocation đã thất bại.
-6. **`getConstructor(String.class)` có tự tìm constructor `(CharSequence)` hay `(Object)` không?** Không; tra cứu chữ ký chính xác, khác với overload resolution của javac.
-7. **Đổi `Class.forName(name, true, loader)` thành `Class.forName(name, false, loader)` giúp gì?** Cho phép kiểm tra class metadata trước khi chủ động initialize class; không biến mã untrusted thành an toàn.
-8. **Hai interface cùng binary name nhưng do hai loader khác nhau định nghĩa có giống nhau không?** Không. Class identity phụ thuộc defining loader.
-9. **Nếu `Constructor.newInstance` ném `InvocationTargetException`, nên làm gì?** Đọc `getCause()`, thông báo lỗi khởi tạo; không tự động chạy constructor khác.
-10. **Khi đổi source và compile lại, có thể dùng cùng loader đã định nghĩa class cũ để thay bytecode không?** Không thể chỉ thay map bytes rồi mong class đã định nghĩa đổi theo. Thường cần loader/layer mới và quản lý generation rõ ràng.
+1. **Why is successful compilation not enough to cast `Class<?>` to `Plugin`?** Because the compiler only confirms the source is valid; the implementation may not implement the SPI or may use an interface with a different runtime identity.
+2. **Which expression is right: `Plugin.class.isAssignableFrom(raw)` or `raw.isAssignableFrom(Plugin.class)`?** The first one, because you need to verify whether `candidate` can be assigned to a `Plugin` variable.
+3. **Does `isAssignableFrom == true` guarantee instantiation will succeed?** No. The class might be abstract/an interface, lack a matching constructor, be access-restricted, or fail inside the constructor.
+4. **Why use `raw.asSubclass(Plugin.class)`?** To obtain a runtime-verified `Class<? extends Plugin>`, eliminating unsafe generic casts.
+5. **When is it valid to try the no-arg constructor?** When the contract allows a fallback and the preferred constructor **does not exist** (`NoSuchMethodException`), not when invoking it already failed.
+6. **Does `getConstructor(String.class)` automatically match `(CharSequence)` or `(Object)` constructors?** No; it looks up the exact signature, unlike javac's overload resolution.
+7. **What does changing `Class.forName(name, true, loader)` to `Class.forName(name, false, loader)` achieve?** It allows inspecting class metadata before eagerly initializing the class; it does not make untrusted code safe.
+8. **Are two interfaces with the same binary name but defined by two different loaders equal?** No. Class identity depends on the defining loader.
+9. **If `Constructor.newInstance` throws `InvocationTargetException`, what should you do?** Inspect `getCause()` and report an initialization error; do not automatically try another constructor.
+10. **When changing source and recompiling, can you reuse the same loader that defined the old class to replace its bytecode?** You cannot just update the byte map and expect the already-defined class to change. You usually need a new loader/layer and explicit generation management.
 
-**Ghi nhớ:** sau biên dịch trong bộ nhớ, hãy **xác nhận type compatibility trước khi khởi tạo**, dùng **`asSubclass`** để thu hẹp `Class<?>` một cách an toàn, **chọn đúng public constructor theo chữ ký đã cam kết** và xử lý riêng lỗi thiếu constructor với lỗi constructor thực thi thất bại. Đồng thời, host và implementation phải dùng **cùng runtime identity của SPI**, nếu không những class cùng tên vẫn có thể không gán kiểu được.
+**Key takeaway:** after in-memory compilation, **verify type compatibility before instantiation**, use **`asSubclass`** to safely narrow `Class<?>`, **select the right public constructor matching the agreed signature**, and handle missing-constructor errors separately from constructor execution failures. At the same time, the host and implementation must share **the exact same runtime identity of the SPI**, otherwise identically named classes still may not be assignable.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — `Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): `isAssignableFrom`, `asSubclass`, `getConstructor`, `getDeclaredConstructor` và `Class.forName`.
-- [Java SE 17 — `Constructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html): `newInstance` và các exception khi reflection.
-- [Java SE 17 — `JavaCompiler`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html) và [`ForwardingJavaFileManager`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ForwardingJavaFileManager.html): compiler task và ghi output trong bộ nhớ.
-- [Java SE 17 — `ClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): `loadClass`, `findClass`, `defineClass` và class identity.
+- [Java SE 17 — `Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): `isAssignableFrom`, `asSubclass`, `getConstructor`, `getDeclaredConstructor`, and `Class.forName`.
+- [Java SE 17 — `Constructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html): `newInstance` and reflection exceptions.
+- [Java SE 17 — `JavaCompiler`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html) and [`ForwardingJavaFileManager`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/ForwardingJavaFileManager.html): compiler tasks and in-memory output capture.
+- [Java SE 17 — `ClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): `loadClass`, `findClass`, `defineClass`, and class identity.

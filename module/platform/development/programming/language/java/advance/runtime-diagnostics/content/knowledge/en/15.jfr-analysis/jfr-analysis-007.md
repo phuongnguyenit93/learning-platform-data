@@ -1,49 +1,49 @@
-# 15.7. Phân tích allocation sample, GC, heap summary và OldObjectSample bằng JFR
+# 15.7. Analyzing allocation samples, GC, heap summary, and OldObjectSample with JFR
 
-Khi một dịch vụ Java tăng sử dụng bộ nhớ hoặc tốn nhiều thời gian cho garbage collection, câu hỏi đầu tiên thường là “class nào tạo nhiều object?”. Nhưng **tạo nhiều object (allocation pressure)**, **GC hoạt động mạnh**, **dung lượng heap sau GC cao** và **đối tượng bị giữ lâu (retention)** là bốn hiện tượng khác nhau. Java Flight Recorder (JFR) cung cấp các nhóm event để điều tra theo thứ tự thay vì nhìn một bảng số liệu rồi vội kết luận rò rỉ bộ nhớ.
+When a Java service uses more memory or spends significant time in garbage collection, the first question is often "which class is creating so many objects?". However, **creating many objects (allocation pressure)**, **heavy GC activity**, **high post-GC heap occupancy**, and **long-lived object retention** are four distinct phenomena. Java Flight Recorder (JFR) provides event groups to investigate them in order instead of looking at one table and jumping to a memory leak conclusion.
 
-Bài này tập trung vào bốn lớp bằng chứng trên HotSpot/JDK hiện đại:
+This lesson focuses on four layers of evidence in modern HotSpot/JDK:
 
-1. **Allocation sample:** `jdk.ObjectAllocationSample` giúp xác định loại object, thread và call stack tạo áp lực cấp phát.
-2. **GC:** `jdk.GarbageCollection` cùng các event pause/phase cho thấy tần suất, loại collector và chi phí thu gom.
-3. **Heap summary:** `jdk.GCHeapSummary` theo dõi lượng heap trước/sau GC, giúp nhận diện live set hoặc mức chiếm dụng tồn dư tăng.
-4. **OldObjectSample:** `jdk.OldObjectSample` đưa ra mẫu những object tồn tại lâu, thông tin thời điểm cấp phát và, khi được thu thập, đường tham chiếu về GC roots.
+1. **Allocation samples:** `jdk.ObjectAllocationSample` helps identify object types, threads, and call stacks driving allocation pressure.
+2. **GC:** `jdk.GarbageCollection` together with pause/phase events show frequency, collector type, and collection cost.
+3. **Heap summary:** `jdk.GCHeapSummary` tracks heap usage before and after GC, helping identify a rising live set or residual occupancy.
+4. **OldObjectSample:** `jdk.OldObjectSample` provides samples of long-lived objects, allocation timestamps, and—when collected—reference paths back to GC roots.
 
-Đầu ra đúng của một cuộc điều tra không phải “có nhiều `byte[]` nên leak”, mà là **một giả thuyết cụ thể được hỗ trợ bởi các sự kiện cùng khoảng thời gian**, ví dụ: request parsing tạo phần lớn allocation → GC xảy ra dày → heap sau GC vẫn ổn định → đây là **churn tạm thời**, không phải leak; hoặc cache giữ object từ nhiều chu kỳ tải → đáy heap sau GC tăng → `OldObjectSample` cho thấy đối tượng còn reachable từ một cache không giới hạn.
+The right output of an investigation is not "there is a lot of `byte[]`, so it's a leak," but a **concrete hypothesis supported by events from the same time window**—for example: request parsing drives most allocations → GCs run frequently → post-GC heap remains stable → this is **temporary churn**, not a leak; or a cache holds objects across load cycles → post-GC heap floor rises → `OldObjectSample` shows objects reachable from an unbounded cache.
 
-## 1. Bốn góc nhìn, bốn câu hỏi khác nhau
+## 1. Four perspectives, four different questions
 
-| Event/góc nhìn | Câu hỏi nó giúp trả lời | Dữ liệu thường quan sát | Không được suy ra trực tiếp |
+| Event / perspective | Question it helps answer | Data typically observed | What must not be inferred directly |
 | --- | --- | --- | --- |
-| `jdk.ObjectAllocationSample` | Object **được tạo ở đâu**? Thành phần nào tạo áp lực cấp phát? | `objectClass`, `weight`, event thread, stack trace nếu bật | Số instance chính xác; những instance đó vẫn sống; retained heap |
-| `jdk.GarbageCollection` và pause/phase events | GC diễn ra lúc nào, bao lâu, vì nguyên nhân nào? | `gcId`, `name`/`cause` khi có, `duration`, các GC phase | Mọi `duration` là thời gian stop-the-world; nguyên nhân gốc của leak |
-| `jdk.GCHeapSummary` | Heap dùng bao nhiêu **trước/sau một GC**? | `gcId`, `when`, `heapUsed`, `heapSpace` (reserved/committed) | Phần heap sau GC đều là leak; riêng event này đã phân loại retained object |
-| `jdk.OldObjectSample` | Object nào **sống đủ lâu để đáng điều tra**, được cấp phát khi nào và ai có thể đang giữ? | `allocationTime`, `objectAge`, `object`, `root`, stack trace khi có | Danh sách tất cả object đang sống; heap histogram đầy đủ; bằng chứng leak chắc chắn |
+| `jdk.ObjectAllocationSample` | **Where** are objects created? Which component creates allocation pressure? | `objectClass`, `weight`, event thread, stack trace if enabled | Exact instance counts; that those instances are still alive; retained heap |
+| `jdk.GarbageCollection` and pause/phase events | When did GC run, for how long, and why? | `gcId`, `name`/`cause` when present, `duration`, GC phases | That every `duration` is stop-the-world time; the root cause of a leak |
+| `jdk.GCHeapSummary` | How much heap is used **before/after a GC**? | `gcId`, `when`, `heapUsed`, `heapSpace` (reserved/committed) | That post-GC heap is all leaked; or that this event alone classifies retained objects |
+| `jdk.OldObjectSample` | Which objects **lived long enough to investigate**, when were they allocated, and who might hold them? | `allocationTime`, `objectAge`, `object`, `root`, stack trace when available | List of all live objects; full heap histogram; definitive proof of a leak |
 
-**Ghi nhớ sự khác biệt cốt lõi:**
+**Remember the core distinctions:**
 
-- **Allocation rate cao**: nhiều byte/object được tạo mỗi giây; nhiều object có thể chết rất nhanh.
-- **GC pressure**: GC phải chạy thường xuyên hoặc gây pause đáng kể; có thể do allocation churn, heap nhỏ, live set cao hay cấu hình GC.
-- **Heap occupancy**: mức đang sử dụng tại thời điểm đo; chu kỳ tăng/giảm dạng “răng cưa” là bình thường.
-- **Retention**: các object còn reachable sau thời gian/chu kỳ GC; chỉ đáng nghi khi vòng đời vượt quá nhu cầu thiết kế và làm live set tăng không kiểm soát.
+- **High allocation rate**: many bytes/objects created per second; many objects may die very quickly.
+- **GC pressure**: GC has to run frequently or causes noticeable pauses; may stem from allocation churn, small heap, large live set, or GC tuning.
+- **Heap occupancy**: amount currently in use at measurement time; a "sawtooth" rise/drop cycle is normal.
+- **Retention**: objects remaining reachable over time/GC cycles; only suspicious when lifetimes exceed design intent and cause the live set to grow uncontrollably.
 
-JFR là **dòng sự kiện được lấy mẫu hoặc phát theo thời điểm**, không phải dump toàn bộ object graph. Khi cần chứng minh đúng cấu trúc các object bị giữ và retained sizes, HPROF/heap dump và công cụ như Eclipse MAT thường bổ sung giá trị.
+JFR is a **stream of sampled or point-in-time events**, not a full dump of the entire object graph. When you need to prove the exact retained object structure and retained sizes, HPROF/heap dumps and tools like Eclipse MAT add essential value.
 
-## 2. Chuẩn bị và kiểm tra recording có dữ liệu phù hợp
+## 2. Preparing and verifying a recording with suitable data
 
-Giả sử đã có một file tên `memory-investigation.jfr`. Trước khi phân tích, dùng JDK tương thích để kiểm tra:
+Suppose you have a file named `memory-investigation.jfr`. Before analyzing, use a compatible JDK to inspect it:
 
 ~~~bash
 jfr summary memory-investigation.jfr
 jfr metadata --events jdk.ObjectAllocationSample,jdk.GarbageCollection,jdk.GCHeapSummary,jdk.OldObjectSample memory-investigation.jfr
 ~~~
 
-- `jfr summary` cho biết khoảng thời gian ghi, kích thước và số lượng từng loại event có trong file; **event không xuất hiện có thể do không bật, không phát sinh hoặc không được thu trong khoảng thời gian này**.
-- `jfr metadata` mô tả tên và kiểu field, tránh đoán schema khi so file từ các bản JDK khác nhau.
-- Đối chiếu thời gian ghi với **thời điểm xảy ra spike**, tốc độ request, tải, deploy, mức `-Xmx` và phiên bản JVM/collector. File nhỏ hoặc khoảng thu quá ngắn có thể bỏ qua vấn đề cần quan sát.
-- Nếu có nhiều recording song song, xác minh tên recording và scope khi dump; đừng mặc định file chứa chính xác một phiên nếu khi dump không chỉ định `name`.
+- `jfr summary` shows the recording time span, sizes, and counts per event type; **an absent event may mean it was disabled, did not occur, or was not captured in this window**.
+- `jfr metadata` describes field names and types, avoiding schema guesswork when comparing files from different JDK versions.
+- Correlate the recording window with **spike timestamps**, request rate, load, deployments, `-Xmx` setting, and JVM/collector version. A tiny file or short capture window can miss the issue.
+- If multiple recordings run concurrently, verify the recording name and scope when dumping; do not assume a file holds exactly one session if `name` was omitted on dump.
 
-Khi cần thu mới trên HotSpot JDK 21, xác nhận đúng PID qua `jcmd -l` và PID của ứng dụng, ví dụ **12345** (đây chỉ là PID minh họa, thay bằng PID thật):
+When capturing fresh data on HotSpot JDK 21, confirm the right PID via `jcmd -l` and the app's PID, e.g., **12345** (illustrative PID only; replace with the actual PID):
 
 ~~~bash
 jcmd 12345 help JFR.start
@@ -52,53 +52,53 @@ jcmd 12345 JFR.start name=memory-investigation settings=profile disk=true maxage
 jcmd 12345 JFR.check name=memory-investigation verbose=true
 ~~~
 
-Chờ ứng dụng trải qua tải cần nghiên cứu và dùng **đường dẫn ghi được bởi JVM đích** để xuất:
+Wait for the application to experience the workload under study, then dump using a **path writable by the target JVM**:
 
 ~~~bash
 jcmd 12345 JFR.dump name=memory-investigation filename=/var/tmp/jfr/memory-investigation.jfr
 jcmd 12345 JFR.check name=memory-investigation
 ~~~
 
-Lệnh `JFR.dump` tạo snapshot **mà không tự dừng recording**. `settings=profile` thường có thông tin allocation/stack chi tiết hơn `default` và có thể tốn thêm tài nguyên. Giới hạn `maxage`/`maxsize` là chính sách **giữ dữ liệu**, không khôi phục được những khoảng đã mất.
+`JFR.dump` creates a snapshot **without stopping the recording**. `settings=profile` generally provides more detailed allocation/stack info than `default` and may consume extra resources. `maxage`/`maxsize` limits are **retention policies**; evicted intervals cannot be recovered.
 
-Khi không cần ghi nữa, lưu dữ liệu cuối rồi dừng đúng phiên:
+When no longer needed, save final data and stop the specific session:
 
 ~~~bash
 jcmd 12345 JFR.stop name=memory-investigation filename=/var/tmp/jfr/memory-investigation-final.jfr
 ~~~
 
-Không nên dùng tên file trùng giữa các lần dump/stop. Nếu ứng dụng chạy trong container, file được tạo tại filesystem của **JVM đích**, có thể khác máy người gọi. Hãy kiểm tra attach permissions, quota, dung lượng đĩa, nơi lưu artifact và độ nhạy dữ liệu trước khi thu ở production.
+Avoid reusing the same filename across dump/stop calls. If the app runs in a container, files are written in the **target JVM's** filesystem, which may differ from the caller's host. Check attach permissions, quotas, disk space, artifact storage, and data sensitivity before capturing in production.
 
-### Bật event đúng phạm vi
+### Enabling events with the right scope
 
-JFR có các cấu hình mặc định `default.jfc` và `profile.jfc` trong JDK; event settings có thể được bật/tắt hoặc đổi sampling threshold. Để biết **thực tế** event nào đang được ghi, xem `JFR.check ... verbose=true` hoặc file `.jfc`. Với JDK 17+, có thể truyền event settings qua tham số khởi tạo/`JFR.start`; khi cần chính xác, kiểm tra tài liệu của JVM đích trước khi cấu hình.
+JFR ships with default configs `default.jfc` and `profile.jfc` in the JDK; event settings can be toggled or their sampling thresholds adjusted. To see which events are **actually** being recorded, inspect `JFR.check ... verbose=true` or the `.jfc` file. On JDK 17+, event settings can be passed via startup options/`JFR.start`; for precision, check the target JVM's documentation before configuring.
 
-Cần phân biệt:
+Distinguish carefully:
 
-- `jdk.ObjectAllocationSample` là **mẫu phân bố cấp phát**. Nó thường phù hợp hơn để phân tích nơi tạo object với overhead có thể kiểm soát. Các event `jdk.ObjectAllocationInNewTLAB` và `jdk.ObjectAllocationOutsideTLAB` cũng tồn tại trong nhiều HotSpot JDK nhưng ý nghĩa lấy mẫu và cấu hình khác; không cộng số event như thể mỗi event tương đương một object.
-- `jdk.GarbageCollection` và `jdk.GCHeapSummary` thường có trong các profile JFR phổ biến; các event chi tiết theo collector như `jdk.G1HeapSummary` phụ thuộc collector/JDK. Nếu không thấy `G1...` khi đang dùng collector khác, đó không phải lỗi.
-- `jdk.OldObjectSample` cần điều kiện lấy mẫu/thời gian sống của đối tượng; **không thể bảo đảm luôn có event** chỉ bằng việc bật JFR. Thông tin `root` có thể thiếu nếu chưa yêu cầu thu đường đến GC roots.
+- `jdk.ObjectAllocationSample` is a **sampled allocation distribution**. It is generally better suited for analyzing where objects are created with controllable overhead. `jdk.ObjectAllocationInNewTLAB` and `jdk.ObjectAllocationOutsideTLAB` also exist in many HotSpot JDKs, with different sampling semantics and configurations; never count events as if one event equals one object.
+- `jdk.GarbageCollection` and `jdk.GCHeapSummary` are commonly present in standard JFR profiles; collector-specific events like `jdk.G1HeapSummary` depend on the collector/JDK. Not seeing `G1...` while running a different collector is not an error.
+- `jdk.OldObjectSample` relies on sampling conditions and object lifetimes; **simply enabling JFR does not guarantee events will be emitted**. `root` info may be absent unless GC root path collection was requested.
 
-## 3. Allocation sample: xác định “ai tạo áp lực cấp phát”
+## 3. Allocation samples: identifying "who creates allocation pressure"
 
-Trích các event sample:
+Extract the sample events:
 
 ~~~bash
 jfr print --events jdk.ObjectAllocationSample --stack-depth 15 memory-investigation.jfr
 ~~~
 
-Trên HotSpot JDK 21, event `jdk.ObjectAllocationSample` có các trường đáng chú ý:
+On HotSpot JDK 21, `jdk.ObjectAllocationSample` has notable fields:
 
-- `objectClass`: class của đối tượng được chọn làm mẫu, chẳng hạn `byte[]`, `java.lang.String` hoặc đối tượng của ứng dụng.
-- `weight`: **trọng số mẫu** biểu thị một lượng allocation được đại diện thống kê. Tổng các weight trong nhiều sample theo class/thread/stack giúp **ước lượng xu thế allocation pressure**, nhưng **weight của một sample không nhất thiết bằng kích thước chính object được chọn**.
-- `eventThread`: thread liên quan đến mẫu, khi có.
-- `stackTrace`: vị trí cấp phát, khi collection settings cho phép ghi stack.
+- `objectClass`: class of the sampled object, such as `byte[]`, `java.lang.String`, or an application class.
+- `weight`: **sample weight** representing a statistically sampled allocation amount. Summing weights across many samples by class/thread/stack helps **estimate allocation pressure trends**, though **a single sample's weight does not necessarily equal the size of the sampled object itself**.
+- `eventThread`: thread associated with the sample, when available.
+- `stackTrace`: allocation site, when collection settings allow saving stacks.
 
-**Tránh nhầm đếm sample với đếm object:** 150 sample không đồng nghĩa có đúng 150 object được tạo. Cũng không thể lấy số sample nhân “kích thước instance trung bình” rồi khẳng định byte cấp phát thực tế. Nếu so các lần chạy, phải dùng khoảng thời gian và chính sách sampling tương đương, đồng thời xem throughput.
+**Avoid confusing sample counts with object counts:** 150 samples does not mean exactly 150 objects were created. Nor can you multiply sample count by "average instance size" to claim actual bytes allocated. When comparing runs, use equivalent time spans and sampling policies, and account for throughput.
 
-### 3.1. Cách đọc stack trace
+### 3.1. How to read the stack trace
 
-Giả sử (dữ liệu **minh họa**) nhiều sample `byte[]` có stack:
+Suppose (**illustrative** data) many `byte[]` samples show the stack:
 
 ~~~text
 HttpDecoder.decode(...)
@@ -106,135 +106,135 @@ HttpDecoder.decode(...)
      -> Arrays.copyOf(...)
 ~~~
 
-Điều đó chỉ ra **điểm cấp phát**: code parse payload tạo mảng sao chép thường xuyên. Nó **không** cho biết các mảng có đang bị giữ lâu hay không. Có thể đa số đã bị GC giải phóng ngay sau request. Bước tiếp theo là xem GC frequency, mức heap sau GC và, nếu nghi retention, `OldObjectSample`/heap dump.
+This points to an **allocation site**: payload-parsing code copies arrays frequently. It does **not** tell you whether those arrays are retained for long. Most may be reclaimed by GC right after the request. The next step is checking GC frequency, post-GC heap levels, and—if retention is suspected—`OldObjectSample`/heap dump.
 
-Trong JDK 21, `jfr view` có thể tổng hợp nhiều loại event thành bảng:
+In JDK 21, `jfr view` can aggregate several event types into tables:
 
 ~~~bash
 jfr --help view
 jfr view types memory-investigation.jfr
 ~~~
 
-Chọn **view có thật** trong kết quả help của phiên JDK đó, vì tên view và khả năng tổng hợp thay đổi theo phiên bản. Không nên giả định một tên view bất kỳ có sẵn trên tất cả JDK 17/21. Ngoài CLI, Java Mission Control (JMC) giúp nhóm allocation samples theo **class, thread, stack trace** và xem heat map qua thời gian.
+Pick **views that actually exist** in that JDK version's help output, because view names and aggregation capabilities change across versions. Do not assume an arbitrary view name is available across all JDK 17/21 builds. Beyond the CLI, Java Mission Control (JMC) groups allocation samples by **class, thread, and stack trace** and plots heat maps over time.
 
-### 3.2. Kết luận hợp lệ từ allocation samples
+### 3.2. Valid conclusions from allocation samples
 
-Có thể nói: “Trong cùng tải, stack `PayloadParser.parse` chiếm phần lớn *estimated allocation weight*, tương ứng với nhiều lần tạo `byte[]`”. Chưa thể nói: “`PayloadParser.parse` giữ các mảng đó trong heap” trừ khi có bằng chứng retention độc lập.
+You can state: "Under the same load, the `PayloadParser.parse` stack accounts for most of the *estimated allocation weight*, corresponding to heavy `byte[]` creation." You cannot yet state: "`PayloadParser.parse` retains those arrays in the heap" unless independent retention evidence exists.
 
-Một tỷ lệ allocation cao có thể làm GC bận dù **đáy heap sau GC ổn định**. Tối ưu trường hợp này có thể tập trung vào reuse buffer, giảm copy, batching hợp lý hoặc hạn chế tạo object trung gian; cần đo lại latency/throughput sau thay đổi để tránh tối ưu vô ích.
+A high allocation rate can keep GC busy even when **the post-GC heap floor is stable**. Optimizing this case may focus on buffer reuse, reducing copies, sensible batching, or avoiding intermediate objects; re-measure latency/throughput after changes to avoid futile optimizations.
 
-## 4. GC events: xem tần suất, thời gian và loại GC
+## 4. GC events: inspecting frequency, duration, and GC type
 
-Các event thường dùng:
+Commonly used events:
 
 ~~~bash
 jfr print --events jdk.GarbageCollection memory-investigation.jfr
 jfr print --events jdk.GCPhasePause memory-investigation.jfr
 ~~~
 
-`jdk.GarbageCollection` thể hiện một hoạt động GC được JVM ghi nhận, thường có `gcId`, collector name/cause và `duration`. `jdk.GCPhasePause` bổ sung thông tin về những pha pause liên quan. Phân biệt **thời lượng hoạt động GC** với **thời gian ứng dụng thật sự bị stop-the-world**: với collector concurrent, toàn bộ hoạt động GC có thể gồm các pha chạy đồng thời cùng application threads; không lấy mọi `GarbageCollection.duration` làm tổng STW pause.
+`jdk.GarbageCollection` represents a GC operation recorded by the JVM, usually with `gcId`, collector name/cause, and `duration`. `jdk.GCPhasePause` adds details on associated pause phases. Distinguish **GC operation duration** from **actual stop-the-world application pause time**: with concurrent collectors, the total GC operation includes phases running concurrently alongside application threads; never treat every `GarbageCollection.duration` as total STW pause.
 
-Điểm cần đọc theo thời gian:
+What to inspect over time:
 
-1. GC có **lặp dày** đúng khi traffic hay allocation weight tăng không?
-2. Pause p95/max có tăng, kéo theo tail latency của request không? Cần xem các pause cụ thể, không chỉ trung bình.
-3. `gcId` nào tương ứng với bước giảm heap trong `GCHeapSummary`?
-4. Collector có tạo thêm các concurrent cycle, full/old collection hoặc thay đổi kiểu hành vi? Tên event và loại collection phụ thuộc JDK/collector.
-5. Có nhiều GC nhưng heap sau GC xuống thấp và ổn định không? Khi đó allocation churn là nghi phạm hơn retention leak.
+1. Do GCs **repeat more densely** right when traffic or allocation weight rises?
+2. Do p95/max pauses increase, driving request tail latency? Inspect individual pauses, not just averages.
+3. Which `gcId` corresponds to heap drops in `GCHeapSummary`?
+4. Does the collector trigger more concurrent cycles, full/old collections, or change behavior? Event names and collection types depend on JDK/collector.
+5. Are there frequent GCs while post-GC heap drops low and stays flat? Then allocation churn is a stronger suspect than a retention leak.
 
-**Ví dụ giả định:**
+**Hypothetical example:**
 
-| Phút | Allocation pressure | GC count/phút | Heap sau GC | Cách hiểu ban đầu |
+| Minute | Allocation pressure | GC count/min | Post-GC heap | Initial interpretation |
 | --- | ---: | ---: | ---: | --- |
-| 10:00 | Thấp | 2 | 180 MiB | Bình thường |
-| 10:01 | Cao | 13 | 185 MiB | Nhiều object tạm, GC đang xử lý được |
-| 10:02 | Cao | 15 | 184 MiB | Churn còn cao, chưa thấy live set tăng |
-| 10:03 | Thấp | 2 | 181 MiB | Tải giảm, đáy heap quay lại bình thường |
+| 10:00 | Low | 2 | 180 MiB | Normal |
+| 10:01 | High | 13 | 185 MiB | Many short-lived objects; GC is keeping up |
+| 10:02 | High | 15 | 184 MiB | Churn still high; no live-set growth seen yet |
+| 10:03 | Low | 2 | 181 MiB | Load drops; heap floor returns to normal |
 
-Dữ liệu như vậy **không chứng minh leak**, dù tổng byte cấp phát rất lớn. Nếu latency xấu ở 10:01–10:02, ta có thể ưu tiên vị trí allocation nóng và pause metrics.
+Data like this **does not prove a leak**, even if total allocated bytes are huge. If latency degrades at 10:01–10:02, prioritize hot allocation sites and pause metrics.
 
-### GC ID và đối chiếu sự kiện
+### GC ID and event correlation
 
-Các event GC/heap có thể cùng `gcId` để nối *trước GC → quá trình GC → sau GC*. Phân tích phải dựa trên ID và timestamp của recording cụ thể, đừng ghép tùy tiện mọi “before” và “after” liền kề nếu có event bị thiếu hay các cycle concurrent.
+GC/heap events can share a `gcId` linking *before GC → GC progress → after GC*. Base analysis on IDs and timestamps from the specific recording; do not blindly pair adjacent "before" and "after" events if events are missing or cycles run concurrently.
 
-## 5. Heap summary: nhận diện xu hướng “đáy heap sau GC”
+## 5. Heap summary: spotting trends in the "post-GC heap floor"
 
-Lệnh xem:
+Command to inspect:
 
 ~~~bash
 jfr print --events jdk.GCHeapSummary memory-investigation.jfr
 ~~~
 
-Với `jdk.GCHeapSummary` trên HotSpot, các field đáng quan tâm:
+For `jdk.GCHeapSummary` on HotSpot, key fields are:
 
-- `gcId`: mã nhận diện một GC cycle/collection trong dữ liệu.
-- `when`: biểu thị thời điểm **Before GC** hay **After GC**.
-- `heapUsed`: số byte heap đang được JVM báo sử dụng tại điểm snapshot.
-- `heapSpace`: thông tin không gian heap, bao gồm vùng reserved và committed theo model của event.
+- `gcId`: identifier of a GC cycle/collection in the data.
+- `when`: indicates **Before GC** or **After GC**.
+- `heapUsed`: heap bytes reported in use by the JVM at that snapshot point.
+- `heapSpace`: heap space info, including reserved and committed regions per the event model.
 
-Phân tích đúng cách là **ghép các cặp before/after theo `gcId`**. Ví dụ hoàn toàn giả định:
+The right analysis is **pairing before/after entries by `gcId`**. Purely hypothetical example:
 
-| GC ID | Heap trước GC | Heap sau GC | Chênh lệch | Ý nghĩa ban đầu |
+| GC ID | Heap before GC | Heap after GC | Delta | Initial meaning |
 | --- | ---: | ---: | ---: | --- |
-| 41 | 730 MiB | 260 MiB | 470 MiB | Nhiều dung lượng được thu hồi |
-| 42 | 740 MiB | 262 MiB | 478 MiB | Live set có vẻ ổn định |
-| 43 | 780 MiB | 320 MiB | 460 MiB | Cần kiểm tra vì đáy tăng |
-| 44 | 820 MiB | 390 MiB | 430 MiB | Có thể retention hoặc workload khác |
+| 41 | 730 MiB | 260 MiB | 470 MiB | Large amount reclaimed |
+| 42 | 740 MiB | 262 MiB | 478 MiB | Live set appears stable |
+| 43 | 780 MiB | 320 MiB | 460 MiB | Worth checking as floor rose |
+| 44 | 820 MiB | 390 MiB | 430 MiB | Possible retention or changed workload |
 
-Số giảm giữa before/after phản ánh thay đổi occupancy trong một collection, **không phải** phép đo chính xác “số object đã chết” hay “số byte leak”. Heap committed có thể thay đổi độc lập; một số GC chỉ thu gom **một phần heap**, nên `After GC` của collection trẻ không tương đương “toàn heap đã được quét sạch”. Với G1 hoặc collector concurrent, cần hiểu phạm vi GC và trạng thái ứng dụng; đừng kết luận old generation tăng chỉ từ một vài young GC.
+The drop between before/after reflects occupancy change during one collection, **not** an exact count of "dead objects" or "leaked bytes." Committed heap can vary independently; some GCs only collect **part of the heap**, so `After GC` of a young collection is not "the entire heap was swept clean." With G1 or concurrent collectors, understand collection scope and application state; do not conclude old gen is growing from just a few young GCs.
 
-### 5.1. Phân biệt used, committed, reserved và max
+### 5.1. Distinguish used, committed, reserved, and max
 
-- **Used:** dung lượng heap đang dùng theo phép đo tại thời điểm event.
-- **Committed:** dung lượng JVM đã cam kết cho heap; không nhất thiết trùng với used hoặc RSS.
-- **Reserved:** không gian địa chỉ ảo dành cho heap; không có nghĩa toàn bộ đang resident trong RAM.
-- **Max heap:** giới hạn cấu hình JVM, thường liên hệ `-Xmx`; không đồng nhất với used/committed/reserved.
+- **Used:** heap space currently in use as measured at the event timestamp.
+- **Committed:** heap memory the JVM has committed; not necessarily equal to `used` or RSS.
+- **Reserved:** virtual address space reserved for the heap; does not mean all of it is resident in RAM.
+- **Max heap:** configured JVM limit, typically tied to `-Xmx`; distinct from used/committed/reserved.
 
-Cả `jdk.GCHeapSummary` và JFR metadata đều không phải thay thế cho việc kiểm tra `-Xmx` thực tế, non-heap, native memory và container memory. Khi process RSS tăng nhưng heap used sau GC không tăng, hãy kiểm tra thread stack, direct buffer, Metaspace, NMT/OS metrics thay vì gọi đó là Java heap leak.
+Neither `jdk.GCHeapSummary` nor JFR metadata replaces checking actual `-Xmx`, non-heap, native memory, and container memory. When process RSS rises while post-GC `heapUsed` stays flat, check thread stacks, direct buffers, Metaspace, and NMT/OS metrics instead of calling it a Java heap leak.
 
-### 5.2. “Đáy sau GC tăng” có ý nghĩa gì?
+### 5.2. What does a "rising post-GC floor" mean?
 
-Nếu các lần Full GC/mixed/old GC ở tải tương đương cho thấy **after-GC heap** tăng dần và không giảm sau khi tải hạ, đây là dấu hiệu đáng kiểm tra của **retention**. Nhưng cũng có thể do cache warm-up hợp lệ, thêm connection/session, thay đổi dataset, request backlog hoặc collector chưa thu toàn bộ các vùng. Cần tìm ai giữ object rồi so với giới hạn/vòng đời thiết kế.
+If Full/mixed/old GCs under comparable load show **after-GC heap** rising steadily and not dropping after load subsides, that is a suspicious sign of **retention**. However, it could also stem from legitimate cache warm-up, more connections/sessions, dataset changes, request backlogs, or collectors not having swept all regions yet. Find what retains the objects and compare against design limits/lifetimes.
 
-GC heap summary **không phải** histogram theo class; nó chưa chỉ ra class hay đường tới GC root. Đó là lý do cần kết hợp allocation sample, OldObjectSample và có thể HPROF.
+GC heap summary is **not** a per-class histogram; it does not identify classes or paths to GC roots. That is why you combine it with allocation samples, `OldObjectSample`, and potentially HPROF.
 
-## 6. OldObjectSample: điều tra object sống lâu và gốc tham chiếu
+## 6. OldObjectSample: investigating long-lived objects and reference roots
 
-In các sự kiện:
+Print the events:
 
 ~~~bash
 jfr print --events jdk.OldObjectSample --stack-depth 20 memory-investigation.jfr
 ~~~
 
-Một `jdk.OldObjectSample` có thể chứa:
+A `jdk.OldObjectSample` may contain:
 
-| Trường | Cách hiểu |
+| Field | Interpretation |
 | --- | --- |
-| `allocationTime` | Thời điểm object được cấp phát, giúp phân biệt object cũ với object mới xuất hiện |
-| `objectAge` | Tuổi của object mẫu khi JVM ghi nhận sự kiện |
-| `object` | Đối tượng và một phần chain tham chiếu được công cụ mô tả; không phải toàn bộ heap graph |
-| `root` | Thông tin gốc GC nếu việc thu đường GC root được bật và có dữ liệu |
-| `stackTrace` | Stack tại nơi cấp phát khi profile/settings hỗ trợ |
-| `lastKnownHeapUsage` | Mức heap usage gần nhất gắn với mẫu; xem theo xu hướng, không coi là retained size của riêng object |
-| `eventThread` | Thread ghi nhận sự kiện, hỗ trợ truy dấu bối cảnh |
+| `allocationTime` | When the object was allocated, helping distinguish old objects from newly created ones |
+| `objectAge` | Age of the sampled object when the JVM recorded the event |
+| `object` | The object and part of its reference chain as described by the tool; not the full heap graph |
+| `root` | GC root information if GC root path collection was enabled and data exists |
+| `stackTrace` | Allocation-site stack when profile/settings support it |
+| `lastKnownHeapUsage` | Most recent heap usage associated with the sample; read as a trend, not the retained size of this single object |
+| `eventThread` | Thread that recorded the event, aiding context tracing |
 
-**Object sống lâu không đồng nghĩa leak.** Singleton, cache có giới hạn, dữ liệu cấu hình, class metadata liên quan đến runtime và các object dùng trọn vòng đời ứng dụng thường phải tồn tại lâu. Leak là **retention không còn phục vụ mục đích nhưng tiếp tục làm tăng live set**.
+**A long-lived object is not automatically a leak.** Singletons, bounded caches, configuration data, runtime class metadata, and application-lifetime objects are meant to live long. A leak is **retention that no longer serves a purpose yet continues growing the live set**.
 
-### 6.1. Muốn có đường tới GC roots: thu đúng thời điểm
+### 6.1. To get paths to GC roots: capture at the right time
 
-Theo `jcmd` của **JDK 21**, tham số đúng trên lệnh dump là **`path-to-gc-root=true`** (dạng số ít `root`):
+Per **JDK 21** `jcmd`, the exact dump option is **`path-to-gc-root=true`** (singular `root`):
 
 ~~~bash
 jcmd 12345 JFR.dump name=memory-investigation filename=/var/tmp/jfr/memory-roots.jfr path-to-gc-root=true
 ~~~
 
-Thu đường tới GC roots có thể gây tạm dừng đáng kể và làm tăng chi phí xử lý. Chỉ bật khi có giả thuyết leak cụ thể, ở đúng recording và cửa sổ vận hành thích hợp. Tài liệu cấu hình JVM có thể dùng tên tùy chọn khác trong ngữ cảnh khởi động và giữa phiên bản; **luôn kiểm tra `jcmd 12345 help JFR.dump` trên JVM đích**, không sao chép nguyên xi tham số từ nguồn khác.
+Collecting paths to GC roots can cause noticeable pauses and processing overhead. Enable it only when you have a concrete leak hypothesis, on the right recording, and in an appropriate operational window. JVM startup docs or other versions may use different option names across contexts; **always check `jcmd 12345 help JFR.dump` on the target JVM** rather than copying flags verbatim from elsewhere.
 
-Nếu file không có `OldObjectSample`, không có nghĩa “không có leak”. Nguyên nhân có thể là recording quá ngắn, không đủ mẫu còn sống, collector/JDK không hỗ trợ trường hợp cần đo, profile chưa bật event, hoặc snapshot không đúng thời điểm. Cũng không thể tạo lại allocation stack đã bỏ lỡ trước lúc JFR bắt đầu ghi.
+If the file has no `OldObjectSample`, it does not mean "no leak." Causes can include too short a recording, too few surviving samples, collector/JDK limitations for that case, disabled event in the profile, or a poorly timed snapshot. Nor can it reconstruct allocation stacks missed before JFR started recording.
 
-### 6.2. Đọc chuỗi tham chiếu
+### 6.2. Reading reference chains
 
-Ví dụ **minh họa** một sample của `com.example.Session` được giữ qua:
+**Illustrative** example of a `com.example.Session` sample held via:
 
 ~~~text
 GC Root (static field)
@@ -243,55 +243,55 @@ GC Root (static field)
   -> Session(id=...)
 ~~~
 
-Đường đi này gợi ý `SessionRegistry` đang giữ session sau khi user đã logout, nhưng mới là **giả thuyết**. Cần xác minh chính sách cleanup/TTL, số session đang hợp lệ, xu hướng kích thước map và đường dẫn GC roots của nhiều mẫu. Nếu cùng một registry tăng đều theo giờ và after-GC heap tăng cùng chiều, bằng chứng retention thuyết phục hơn.
+This path suggests `SessionRegistry` holds sessions after users log out, though it is still a **hypothesis**. Verify cleanup/TTL policies, valid session counts, map size trends, and GC root paths across multiple samples. If the same registry grows steadily hour over hour alongside rising after-GC heap, retention evidence becomes much stronger.
 
-Ngược lại, nếu một sample lớn được giữ bởi cache có giới hạn số entry và memory được thu hồi khi eviction, objectAge cao không tạo thành leak. Không dùng `OldObjectSample` như bảng kê chính xác số instance mỗi class; sampling sẽ bỏ sót object.
+Conversely, if a large sample is held by a size-bounded cache and memory is reclaimed on eviction, high `objectAge` is not a leak. Do not treat `OldObjectSample` as an exact per-class instance table; sampling omits objects.
 
-### 6.3. Phân biệt OldObjectSample với heap dump
+### 6.3. Comparing OldObjectSample with a heap dump
 
-| Tiêu chí | JFR `OldObjectSample` | HPROF heap dump |
+| Criterion | JFR `OldObjectSample` | HPROF heap dump |
 | --- | --- | --- |
-| Tập đối tượng | Mẫu các object sống lâu/có khả năng giữ | Ảnh chụp phạm vi lớn của Java heap tại một thời điểm |
-| Dữ liệu về thời gian | Có thể gồm allocation time, tuổi object và bối cảnh ghi | Chủ yếu đồ thị trạng thái tại thời điểm chụp |
-| Đường tới GC root | Có thể ghi khi yêu cầu và JVM hỗ trợ | Công cụ như MAT phân tích từ toàn bộ snapshot |
-| Mức độ chi tiết | Mẫu, có thể không thấy thủ phạm | Có thể tính histogram và retained graph rộng hơn |
-| Tác động | Thu mẫu thường nhẹ hơn heap dump nhưng tính GC roots có thể tốn kém | Heap dump thường nặng, có thể gây pause dài và tạo file rất lớn |
+| Object coverage | Sample of long-lived/potentially retained objects | Broad point-in-time snapshot of the Java heap |
+| Time information | Can include allocation time, object age, and capture context | Primarily state graph at dump time |
+| Path to GC root | Can be recorded when requested and supported by the JVM | Tools like MAT analyze from the full snapshot |
+| Level of detail | Sampled; may miss the culprit | Computes full histograms and broader retained graphs |
+| Impact | Sampling is usually lighter than a heap dump, though computing GC roots can be costly | Heap dumps are often heavy, can cause long pauses, and create huge files |
 
-Nếu JFR cho thấy class/cache đáng nghi nhưng không đủ chứng cứ, dùng heap dump có thời điểm phù hợp để xem dominator tree/retained size. Đừng cộng `weight` từ allocation samples với `lastKnownHeapUsage` rồi gọi đó là retained heap.
+If JFR points to a suspicious class or cache without conclusive proof, take a well-timed heap dump to inspect dominator trees/retained sizes. Never add `weight` from allocation samples to `lastKnownHeapUsage` and call it retained heap.
 
-## 7. Quy trình điều tra liên kết cả bốn nguồn bằng chứng
+## 7. Investigation workflow linking all four evidence sources
 
-**Bước 1 — xác nhận symptom và thời gian.** Ghi lại latency, throughput, heap occupancy, GC pause, container memory và mốc release. Một spike allocation do warm-up có thể hoàn toàn hợp lệ.
+**Step 1 — confirm symptom and timing.** Record latency, throughput, heap occupancy, GC pauses, container memory, and release timestamps. An allocation spike during warm-up may be completely benign.
 
-**Bước 2 — đọc `jfr summary`.** Xác minh khoảng thời gian có chứa sự cố; kiểm tra đủ `ObjectAllocationSample`, `GarbageCollection`, `GCHeapSummary` và (khi cần) `OldObjectSample`. Số event 0 không phải kết luận về hành vi ứng dụng trước khi kiểm tra settings và sampling.
+**Step 2 — read `jfr summary`.** Verify the recording window covers the incident; check for sufficient `ObjectAllocationSample`, `GarbageCollection`, `GCHeapSummary`, and (when needed) `OldObjectSample`. Zero events is not a conclusion about app behavior until settings and sampling are checked.
 
-**Bước 3 — tìm allocation hot spots.** Nhóm sample theo stack/class/thread, ưu tiên **tổng weight đã được lấy mẫu trên cùng cửa sổ thời gian** hơn số event thô. Xác định code path cấp phát và biến động khi tải đổi.
+**Step 3 — locate allocation hotspots.** Group samples by stack/class/thread, prioritizing **total sampled weight over the same time window** rather than raw event counts. Identify allocating code paths and how they vary with load.
 
-**Bước 4 — đối chiếu GC.** Đếm GC theo đơn vị thời gian, xem causes, collector phases và **pause durations**; xác định load spike có trùng với tăng allocation, GC hoặc latency không.
+**Step 4 — cross-check GC.** Count GCs per unit time, inspect causes, collector phases, and **pause durations**; check whether load spikes align with rising allocation, GC, or latency.
 
-**Bước 5 — ghép heap trước/sau theo `gcId`.** Nếu after-GC ổn định, nghi churn tạm; nếu sau các GC phù hợp mà live set tăng không kiểm soát, chuyển sang retention.
+**Step 5 — pair heap before/after by `gcId`.** If after-GC is stable, suspect temporary churn; if the live set climbs uncontrollably after appropriate GCs, shift focus to retention.
 
-**Bước 6 — xem `OldObjectSample` và GC roots.** Chú ý objectAge, allocationTime, object class, owner chain, root, cùng chính sách vòng đời ứng dụng. Nếu thiếu root data, lên kế hoạch dump có `path-to-gc-root=true`; cân nhắc tác động pause.
+**Step 6 — inspect `OldObjectSample` and GC roots.** Examine `objectAge`, `allocationTime`, object class, owner chain, `root`, and app lifecycle policies. If root data is missing, plan a dump with `path-to-gc-root=true` after weighing pause impact.
 
-**Bước 7 — kiểm chứng giả thuyết.** Xem metric của queue/cache/session, source code liên quan, heap dump khi cần; thay đổi logic lưu trữ, TTL, giới hạn cache hoặc giảm allocation và **đo lại cùng tải**. Nếu sau thay đổi allocation weight giảm nhưng after-GC không đổi, đó là cải thiện churn, không nhất thiết là sửa leak.
+**Step 7 — test the hypothesis.** Inspect queue/cache/session metrics, relevant source code, and a heap dump if needed; change storage logic, TTLs, cache bounds, or reduce allocations and **re-measure under the same load**. If allocation weight drops afterward while after-GC heap stays unchanged, you improved churn, not necessarily fixed a leak.
 
-### Ma trận kết luận theo dạng bằng chứng
+### Evidence-pattern decision matrix
 
-| Allocation weight | GC frequency/pause | Heap sau GC | Old objects/roots | Cách ưu tiên điều tra |
+| Allocation weight | GC frequency/pauses | Post-GC heap | Old objects/roots | How to prioritize investigation |
 | --- | --- | --- | --- | --- |
-| Cao | Tăng | Ổn định | Không có bằng chứng retention | Tìm allocation churn; tối ưu copy/object trung gian |
-| Bình thường | Tăng, pause dài | Gần max | Object sống lâu tăng và root giữ trái kỳ vọng | Nghi retention/leak hoặc live set lớn |
-| Cao | Cao | Tăng nhưng trở lại khi tải giảm | Object còn sống đúng vòng đời request/cache | Tải hoặc sizing; đừng gán leak khi chưa đủ bằng chứng |
-| Không tăng | Không tăng | Ổn định | Không thấy nghi phạm | Nếu RSS vẫn tăng, điều tra native/off-heap |
-| Thấp | Ít GC | Tăng dần | Có root tới map/list không giới hạn | Nghi cache/collection giữ object dù cấp phát mới không quá nhiều |
+| High | Rising | Stable | No retention evidence | Look for allocation churn; optimize copies/intermediate objects |
+| Normal | Rising, long pauses | Near max | Rising old objects and unexpected retaining roots | Suspect retention/leak or large live set |
+| High | High | Rises, then returns when load drops | Surviving objects match request/cache lifetime | Load or heap sizing; do not call it a leak without proof |
+| Not rising | Not rising | Stable | No suspects visible | If RSS still climbs, investigate native/off-heap |
+| Low | Few GCs | Climbing steadily | Roots into unbounded map/list | Suspect cache/collection retaining objects despite modest new allocation |
 
-Các dòng chỉ là **mô hình suy luận**, không phải luật tuyệt đối. Trong thực tế GC có thể thu từng vùng, các kiểu collector có semantics khác nhau và sampling có sai số.
+These rows are **reasoning patterns**, not rigid laws. In practice, GCs may collect regionally, collectors differ in semantics, and sampling has variance.
 
-## 8. Thực hành Java 17+: tạo tải cấp phát và giữ một phần object
+## 8. Java 17+ hands-on: generate allocation load and retain some objects
 
-Ví dụ sau tạo mảng tạm thời và giữ một số mảng trong danh sách static để minh họa **allocation** và **retention**. Nó không mô phỏng đầy đủ một memory leak sản xuất, và dữ liệu được cố ý giới hạn để không làm cạn heap.
+The following example creates temporary arrays and retains a few arrays in a static list to illustrate **allocation** vs. **retention**. It does not fully simulate a production memory leak, and data size is intentionally bounded to avoid exhausting the heap.
 
-Tạo file **`JfrMemoryLab.java`**:
+Create **`JfrMemoryLab.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -327,24 +327,24 @@ public final class JfrMemoryLab {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17+ (HotSpot có JFR):
+Compile and run with JDK 17+ (HotSpot with JFR):
 
 ~~~bash
 javac JfrMemoryLab.java
 java -Xms32m -Xmx96m -XX:StartFlightRecording=name=memlab,settings=profile,filename=memlab.jfr,dumponexit=true JfrMemoryLab
 ~~~
 
-Các dòng stdout do **chính chương trình** in:
+Stdout lines printed by the **program itself**:
 
 ~~~text
-PID=<PID thực tế tại lần chạy>
+PID=<actual PID for this run>
 Retained arrays=15
 Finished
 ~~~
 
-Mỗi lần khởi chạy PID khác nhau; dòng `Retained arrays=15` là xác định vì các giá trị `i=0,100,...,1400` thỏa điều kiện giữ mảng. `Finished` xuất hiện sau khoảng 30 giây chờ, trừ khi JVM bị ngắt. Tổng số mảng tạm được tạo là 1.500, nhưng JFR **không nhất thiết ghi 1.500 `ObjectAllocationSample`** vì đó là event lấy mẫu. Cấu hình `-Xmx96m` làm ví dụ trong phạm vi heap nhỏ, nhưng không bảo đảm một số lượng GC cố định trên mọi JVM.
+PID differs on every launch; `Retained arrays=15` is deterministic because `i=0,100,...,1400` satisfy the retention condition. `Finished` appears after roughly a 30-second sleep unless the JVM is interrupted. Total temporary arrays created is 1,500, though JFR **does not necessarily record 1,500 `ObjectAllocationSample` events** since it is a sampled event. `-Xmx96m` sets a small-heap example without guaranteeing a fixed GC count across all JVMs.
 
-Sau khi chương trình kết thúc bình thường, kiểm tra:
+After the program exits normally, inspect:
 
 ~~~bash
 jfr summary memlab.jfr
@@ -353,14 +353,14 @@ jfr print --events jdk.GarbageCollection,jdk.GCHeapSummary memlab.jfr
 jfr print --events jdk.OldObjectSample memlab.jfr
 ~~~
 
-- File `memlab.jfr` được yêu cầu ghi khi kết thúc bởi `dumponexit=true`; tên tệp được tính theo working directory của JVM.
-- Tùy GC, JDK, event settings và thời gian lấy mẫu, **không có tập event hay con số sample/GC xác định chung**. Nếu `OldObjectSample` trống, đây không phải lỗi test.
-- Trong 30 giây JVM còn chạy, có thể dùng `jcmd <PID> JFR.check` và chủ động `JFR.dump` với `path-to-gc-root=true` nếu thật sự cần thử root capture; cân nhắc chi phí và dùng file name khác.
-- Sau khi exit, không thể attach vào PID cũ; hãy chạy lần mới nếu muốn thao tác tiếp.
+- `memlab.jfr` is written at exit due to `dumponexit=true`; the path is resolved against the JVM's working directory.
+- Depending on GC, JDK, event settings, and sampling timing, **there is no single fixed event set or sample/GC count**. If `OldObjectSample` is empty, that is not a test failure.
+- During the 30 seconds while the JVM is still running, you can run `jcmd <PID> JFR.check` and trigger `JFR.dump` with `path-to-gc-root=true` if you want to test root capture; weigh the cost and use a different filename.
+- After exit, you cannot attach to the old PID; launch a new run if you want further live actions.
 
-### 8.1. Phân tích file bằng JFR Consumer API
+### 8.1. Analyzing the file with the JFR Consumer API
 
-Đây là chương trình **độc lập thứ hai**, không phụ thuộc class `JfrMemoryLab`. Nó đọc tuần tự event thay vì nạp toàn bộ một file lớn vào bộ nhớ, và in số mẫu theo nhóm event. Tạo file **`JfrMemoryReport.java`**:
+This is a **second standalone program** with no dependency on `JfrMemoryLab`. It streams events sequentially instead of loading a large file into memory and prints counts by event group. Create **`JfrMemoryReport.java`**:
 
 ~~~java
 import java.nio.file.Path;
@@ -421,55 +421,55 @@ public final class JfrMemoryReport {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile and run:
 
 ~~~bash
 javac JfrMemoryReport.java
 java JfrMemoryReport memlab.jfr
 ~~~
 
-Chương trình in các nhãn `Allocation samples=...`, `GC events=...` cùng top 5 class. **Các con số và tên class là dữ liệu runtime**, nên không có stdout số cố định đáng tin. Tổng `Sample weight (bytes)` chỉ là cách **cộng trọng số mẫu để so áp lực allocation**, không phải chính xác “số byte còn sống” hay tổng byte được cấp phát; nếu dùng để so hai build cần cùng profile, cửa sổ ghi và khối lượng công việc.
+The program prints labels `Allocation samples=...`, `GC events=...` along with the top 5 classes. **Counts and class names are runtime data**, so no fixed numeric stdout is guaranteed. `Sample weight (bytes)` is simply a way to **sum sample weights to compare allocation pressure**, not exact "live bytes" or exact total bytes allocated; when comparing two builds, keep profile, capture window, and workload identical.
 
-Lưu ý: ví dụ báo cáo đơn giản mới **đếm** event GC và heap; để phân tích nghiêm túc phải đọc thêm `getDuration()` của event GC, `gcId`/`when`/`heapUsed` của `GCHeapSummary`, timestamp và stack trace. Dữ liệu input phải là file JFR đáng tin cậy; không mở các file đến từ nguồn không rõ trong tool có quyền cao.
+Note: this simple report only **counts** GC and heap events; serious analysis also reads `getDuration()` on GC events, `gcId`/`when`/`heapUsed` on `GCHeapSummary`, timestamps, and stack traces. Input must be a trusted JFR file; do not open files from untrusted sources in privileged tools.
 
-## 9. Ba tình huống chẩn đoán và cách tránh kết luận vội
+## 9. Three diagnostic scenarios and how to avoid premature conclusions
 
-### A. Allocation cao, GC nhiều nhưng heap sau GC ổn định
+### A. High allocation, frequent GC, but stable post-GC heap
 
-Bảng JMC cho thấy `byte[]` allocation weight rất lớn tại một HTTP decoder. Số GC/phút tăng khi request throughput tăng, song after-GC heap vẫn quanh 250 MiB. `OldObjectSample` không chỉ ra object giữ bất thường. Đây giống **allocation churn**. Đo lượng copy mỗi request, batch parsing, buffer management; thử tối ưu rồi so throughput, GC pause và allocation weight trên cùng tải.
+JMC shows huge `byte[]` allocation weight in an HTTP decoder. GCs/min climb as request throughput rises, yet after-GC heap stays around 250 MiB. `OldObjectSample` shows no abnormal object retention. This looks like **allocation churn**. Measure per-request copying, batch parsing, and buffer management; test optimizations and compare throughput, GC pauses, and allocation weight under matched load.
 
-### B. Allocation không vượt trội, after-GC heap tăng liên tục
+### B. Unremarkable allocation, steadily rising post-GC heap
 
-Tổng sample weight của request handler không lớn hơn trước, nhưng heap sau các GC phù hợp tăng từ 200 → 400 → 650 MiB khi số người dùng thực tế không đổi. `OldObjectSample` nhiều lần dẫn tới một static `ConcurrentHashMap` giữ dữ liệu session cũ. Đây là **nghi vấn retention**: xem TTL, cleanup job, key cardinality, số map entry, thao tác remove và xác minh bằng heap dump/MAT nếu cần. Không gọi chắc chắn leak nếu chưa phân biệt cache warming với session không còn hợp lệ.
+Total sample weight in request handlers is no higher than before, yet heap after relevant GCs climbs 200 → 400 → 650 MiB while active user count is unchanged. `OldObjectSample` repeatedly traces to a static `ConcurrentHashMap` holding old session data. This is a **retention suspect**: inspect TTLs, cleanup jobs, key cardinality, map entry counts, and removals, verifying with a heap dump/MAT if needed. Do not declare a definite leak before distinguishing cache warming from invalid sessions.
 
-### C. RSS tăng, heap sau GC không đổi
+### C. RSS climbing, post-GC heap unchanged
 
-Khi JFR cho thấy after-GC heap ổn định và allocation pressure không tăng, nhưng OS/container báo memory tiến trình ngày càng lớn, chưa có chứng cứ Java heap leak. Hãy xem **direct buffers, thread stacks, Metaspace, JNI/native allocations** với NMT/OS/cgroup, không bắt `OldObjectSample` giải thích mọi loại memory.
+When JFR shows flat after-GC heap and steady allocation pressure while OS/container metrics report growing process memory, there is no evidence of a Java heap leak. Inspect **direct buffers, thread stacks, Metaspace, and JNI/native allocations** using NMT/OS/cgroup tools instead of expecting `OldObjectSample` to explain every kind of memory.
 
-## 10. Lỗi và giới hạn thường gặp
+## 10. Common mistakes and limitations
 
-| Dấu hiệu | Giải thích/cách xử lý |
+| Symptom | Explanation / handling |
 | --- | --- |
-| Không có `ObjectAllocationSample` | Chưa bật event, cửa sổ quá ngắn, workload không đủ mẫu hoặc recording không chứa thời điểm cần đo. Xem `jfr summary` và settings |
-| Có sample nhưng không thấy stack | Event stack trace có thể bị tắt/rút ngắn; xem `verbose` settings hoặc `jfr print --stack-depth` |
-| `ObjectAllocationSample.weight` khác kích thước object | Đúng thiết kế: weight biểu thị allocation được đại diện thống kê; không lấy làm kích thước chính object |
-| Nhiều `GCHeapSummary` nhưng không ghép được | Cần `gcId` và `when`; một số cặp missing do recording boundary/lọc, hoặc loại GC chỉ báo một phần |
-| After-GC heap cao sau young GC | Young GC có thể không thu các đối tượng old; cần xem loại GC và xu hướng qua các lần collection phù hợp |
-| `GarbageCollection.duration` lớn | Với collector concurrent, duration không phải hoàn toàn STW; xem thêm pause/phase events |
-| `OldObjectSample` trống | Không đủ mẫu sống lâu, event không bật, runtime/collector không hỗ trợ hoặc ghi sai thời điểm; không suy ra “không có leak” |
-| `OldObjectSample.root` thiếu | Chưa yêu cầu GC roots hoặc chưa thu được; cân nhắc `JFR.dump ... path-to-gc-root=true` và chi phí pause |
-| File `.jfr` lớn/thiếu lịch sử | Cân bằng profile, duration, retention `maxage`/`maxsize`; lịch sử đã bị loại không thể tạo lại |
-| `jcmd` không attach được | Kiểm tra PID, user/group, container namespace, runtime và việc JVM còn sống; dùng JFR flag khi start nếu không thể attach |
-| Đọc `.jfr` nhầm là HPROF | JFR là event timeline; HPROF là heap snapshot. Dùng công cụ thích hợp cho từng loại |
-| Đếm số event rồi suy ra hiệu năng | Sampling và điều kiện kích hoạt khác nhau; cần chuẩn hóa theo thời gian, workload và settings |
+| No `ObjectAllocationSample` | Event disabled, window too short, insufficient workload samples, or recording missed the target period. Check `jfr summary` and settings |
+| Samples exist but no stack traces | Event stack trace may be disabled/truncated; check `verbose` settings or `jfr print --stack-depth` |
+| `ObjectAllocationSample.weight` differs from object size | By design: weight represents statistically sampled allocation; do not treat it as the object's exact size |
+| Many `GCHeapSummary` events but cannot pair them | Need `gcId` and `when`; some pairs are missing due to recording boundaries/filtering, or partial-heap GC reporting |
+| High after-GC heap after young GC | Young GC may not collect old objects; check GC type and trends across appropriate collections |
+| Large `GarbageCollection.duration` | With concurrent collectors, duration is not purely STW; also inspect pause/phase events |
+| `OldObjectSample` empty | Insufficient long-lived samples, event disabled, unsupported runtime/collector, or mistimed capture; do not infer "no leak" |
+| `OldObjectSample.root` missing | GC roots not requested or not captured; consider `JFR.dump ... path-to-gc-root=true` and pause cost |
+| `.jfr` file huge / missing history | Balance profile, duration, and `maxage`/`maxsize` retention; evicted history cannot be recovered |
+| `jcmd` cannot attach | Check PID, user/group, container namespace, runtime, and whether JVM is alive; use startup JFR flags if attach is blocked |
+| Mistaking `.jfr` for HPROF | JFR is an event timeline; HPROF is a heap snapshot. Use the right tool for each |
+| Counting raw events to infer performance | Sampling and trigger conditions vary; normalize by time, workload, and settings |
 
-**Quy tắc quyết định cuối:** hỏi **“ai cấp phát?”** bằng allocation sample; **“GC làm gì và tốn bao lâu?”** bằng GC events; **“bao nhiêu heap còn lại sau GC?”** bằng heap summary; **“ai còn giữ object sống lâu?”** bằng OldObjectSample và GC roots. Kết hợp các góc nhìn trên cùng timeline mới giúp phân biệt allocation churn, GC pressure và memory retention.
+**Final decision rule:** ask **"who allocates?"** using allocation samples; **"what did GC do and how long did it take?"** using GC events; **"how much heap remains after GC?"** using heap summary; **"who still holds long-lived objects?"** using `OldObjectSample` and GC roots. Combining these views on the same timeline is what separates allocation churn, GC pressure, and memory retention.
 
-## Tài liệu tham khảo
+## References
 
 - Oracle Java SE 21 — *The jfr Command* (summary, print, metadata, view): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html
 - Oracle Java SE 21 — *The jcmd Command* (JFR.start/JFR.dump, `path-to-gc-root`): https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
-- Oracle Java SE 21 — *Troubleshoot Memory Leaks* (giải thích `OldObjectSample`, allocation time, GC roots): https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html
-- Oracle Java SE 21 — *Diagnostic Tools* (phân tích GC, allocation, JMC): https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
-- Java SE 21 — *RecordingFile* trong JFR Consumer API: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html
-- Dev.java — *Configuring the JDK Flight Recorder* (`default.jfc`, `profile.jfc`, event settings và GC roots): https://dev.java/learn/jvm/jfr/configure/
+- Oracle Java SE 21 — *Troubleshoot Memory Leaks* (explaining `OldObjectSample`, allocation time, GC roots): https://docs.oracle.com/en/java/javase/21/troubleshoot/troubleshooting-memory-leaks.html
+- Oracle Java SE 21 — *Diagnostic Tools* (GC, allocation, JMC analysis): https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html
+- Java SE 21 — *RecordingFile* in the JFR Consumer API: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingFile.html
+- Dev.java — *Configuring the JDK Flight Recorder* (`default.jfc`, `profile.jfc`, event settings, and GC roots): https://dev.java/learn/jvm/jfr/configure/

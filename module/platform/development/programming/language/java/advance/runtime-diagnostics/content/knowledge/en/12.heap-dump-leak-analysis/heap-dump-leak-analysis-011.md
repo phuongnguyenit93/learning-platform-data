@@ -1,212 +1,212 @@
-# 12.11 Phân loại OutOfMemoryError theo thông báo và vùng tài nguyên thực sự cạn
+# 12.11 Classifying OutOfMemoryError by Message and Actually Exhausted Resource Region
 
-## Mục tiêu và nguyên tắc chẩn đoán
+## Objectives and Diagnostic Principles
 
-Cùng là hiện tượng “hết bộ nhớ”, nhưng ứng dụng Java có thể thất bại ở nhiều tài nguyên khác nhau: Java heap, vùng metadata của class, direct buffer, bộ nhớ native, giới hạn số thread/process, không gian địa chỉ hoặc giới hạn bộ nhớ container. Chỉ khi xác định đúng **thông báo lỗi**, **nguồn tài nguyên bị cạn** và **bằng chứng ở thời điểm xảy ra sự cố** mới có thể chọn cách xử lý phù hợp.
+Although they share the symptom of "running out of memory," a Java application can fail across several distinct resources: the Java heap, class metadata area, direct buffers, native memory, OS thread/process limits, address space, or container memory limits. Only by identifying the exact **error message**, the **exhausted resource**, and **evidence at the time of failure** can you choose the right remediation.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân loại các thông báo java.lang.OutOfMemoryError thường gặp trên HotSpot/OpenJDK.
-2. Phân biệt lỗi OOME được JVM ném ra, JVM chết vì lỗi cấp phát native và tiến trình bị hệ điều hành/container giết.
-3. Liên kết thông báo với vùng tài nguyên liên quan, từ đó chọn metrics, dump, log và lệnh kiểm tra đúng.
-4. Phân biệt **triệu chứng cạn tài nguyên** với **nguyên nhân gốc** như memory leak, retention hợp lệ, allocation burst, tăng classloader hay giới hạn thread.
-5. Tránh xử lý sai kiểu “tăng -Xmx cho mọi OOME”, và lập hồ sơ chứng cứ để kiểm tra giả thuyết.
+1. Classify common `java.lang.OutOfMemoryError` messages on HotSpot/OpenJDK.
+2. Distinguish a JVM-thrown OOME, a JVM fatal native allocation failure, and an OS/container process kill.
+3. Map each message to its corresponding resource region, and select the right metrics, dumps, logs, and inspection commands.
+4. Separate **resource exhaustion symptoms** from **root causes** such as memory leaks, legitimate retention, allocation bursts, class loader growth, or thread limits.
+5. Avoid the wrong reflex of "bump `-Xmx` for every OOME," and assemble an evidence record to test hypotheses.
 
-**Phạm vi:** Java 17+ trên HotSpot/OpenJDK; nhiều ví dụ áp dụng JDK 21. Thông điệp cụ thể có thể khác giữa JVM vendor, JDK version, collector, OS và API dẫn tới lỗi. Các chuỗi dưới đây là dấu hiệu chẩn đoán, **không phải giao thức ổn định dùng để xác định nguyên nhân cuối cùng**.
+**Scope:** Java 17+ on HotSpot/OpenJDK; many examples apply to JDK 21. Exact messages vary across JVM vendors, JDK versions, collectors, OSes, and erroring APIs. The strings below are diagnostic signals, **not a fixed protocol sufficient to determine the final root cause**.
 
-## 1. Hiểu OutOfMemoryError đúng bản chất
+## 1. Understanding the True Nature of `OutOfMemoryError`
 
-java.lang.OutOfMemoryError kế thừa VirtualMachineError và là một Error: JVM hoặc thư viện có thể ném ra khi không thể đáp ứng yêu cầu cấp phát tài nguyên liên quan đến bộ nhớ. Tên “OutOfMemory” **không đồng nghĩa** với “Java heap đã đầy”, và OOME **không đồng nghĩa** với “memory leak”.
+`java.lang.OutOfMemoryError` extends `VirtualMachineError` and is an `Error`: the JVM or a library can throw it when unable to satisfy a memory-related resource allocation. The name "OutOfMemory" **does not mean** "the Java heap is full," and OOME **does not mean** "memory leak."
 
-Ba lớp cần phân biệt:
+Three layers to distinguish:
 
-| Lớp | Tình huống | Dấu hiệu điển hình | Hướng bằng chứng |
+| Layer | Situation | Typical signs | Evidence direction |
 | --- | --- | --- | --- |
-| **Java-level OOME** | JVM/thư viện tạo java.lang.OutOfMemoryError | Stack trace hoặc log có tên class và thông báo | Message, call stack, GC/JFR/heap/native/thread metrics |
-| **JVM fatal native allocation** | JVM không cấp phát được bộ nhớ native và dừng với fatal error | Thông báo “There is insufficient memory for the Java Runtime Environment to continue”, file hs_err_pid..., exit bất thường | Error log JVM, OS memory, native allocations, limits |
-| **OS/container kill** | Kernel/cgroup hoặc orchestrator chấm dứt process do áp lực hay giới hạn tài nguyên | SIGKILL, sự kiện OOMKilled, cgroup memory.events/oom_kill; có thể không có stack trace Java | Kernel/cgroup/Kubernetes events, memory.current, RSS/working set |
+| **Java-level OOME** | JVM/library throws `java.lang.OutOfMemoryError` | Stack trace or log with class name and message | Message, call stack, GC/JFR/heap/native/thread metrics |
+| **JVM fatal native allocation** | JVM fails to allocate native memory and aborts with a fatal error | Message "There is insufficient memory for the Java Runtime Environment to continue", `hs_err_pid...` file, abnormal exit | JVM error log, OS memory, native allocations, limits |
+| **OS/container kill** | Kernel/cgroup or orchestrator terminates the process due to memory pressure or limits | `SIGKILL`, `OOMKilled` event, cgroup `memory.events`/`oom_kill`; possibly no Java stack trace | Kernel/cgroup/Kubernetes events, `memory.current`, RSS/working set |
 
-Exit code 137 trên Linux/container thường có nghĩa process bị SIGKILL (128 + 9), **không tự chứng minh** OOMKilled: phải tìm lý do trong orchestrator, cgroup events hoặc kernel logs. Tương tự, process không sinh heap dump sau khi chết không chứng minh rằng JVM không gặp vấn đề bộ nhớ: bị kill từ OS có thể xảy ra trước khi Java kịp ném OOME.
+Exit code `137` on Linux/containers usually indicates `SIGKILL` (`128 + 9`), which **does not prove** `OOMKilled` by itself: confirm the reason in orchestrator events, cgroup events, or kernel logs. Similarly, a dead process producing no heap dump does not prove the JVM had no memory issue: an OS kill can strike before Java ever throws an OOME.
 
-**Vùng xảy ra thất bại ≠ nguyên nhân gốc.** Chẳng hạn, lỗi Java heap space cho biết yêu cầu cấp phát trên heap thất bại; nguyên nhân có thể là một collection giữ reference quá lâu, cache được thiết kế không giới hạn, tải hợp lệ lớn hơn dung lượng heap hoặc một allocation đột biến. Stack trace tại điểm ném lỗi thường chỉ tới **nơi cấp phát cuối cùng thất bại**, không chắc là nơi tạo ra object giữ bộ nhớ.
+**Where allocation fails ≠ root cause.** For instance, `Java heap space` indicates a heap allocation request failed; the root cause could be a collection retaining references too long, an unbounded cache, legitimate load exceeding heap size, or a sudden allocation burst. The stack trace at the throw site points to **the last allocation that failed**, not necessarily the code allocating the objects retaining memory.
 
-## 2. Bản đồ thông báo → vùng tài nguyên → dấu hiệu cần xác minh
+## 2. Map: Message → Resource Region → Evidence to Verify
 
-| Thông báo / sự kiện thường thấy | Tài nguyên liên quan | Hỏi thêm trước khi kết luận |
+| Common message / event | Associated resource | Follow-up questions before concluding |
 | --- | --- | --- |
-| OutOfMemoryError: **Java heap space** | Java heap (object/array allocation không thành công) | Heap used/max, GC trước lỗi, post-GC live set, retained objects, allocation rate, -Xmx |
-| OutOfMemoryError: **GC overhead limit exceeded** | Heap với GC tốn công nhưng thu hồi quá ít theo chính sách của JVM/collector | Tổng thời gian GC, mức thu hồi, allocation rate, collector, chính sách giới hạn có bật không |
-| OutOfMemoryError: **Requested array size exceeds VM limit** | Giới hạn kích thước array/object mà VM cho phép, có thể trước khi thử cấp phát heap | Giá trị kích thước array, tính toán kích thước, dữ liệu đầu vào, integer arithmetic |
-| OutOfMemoryError: **Metaspace** | Metadata class trong native memory/giới hạn metaspace | Class count, classloaders, class unloading, Metaspace used/committed/max, -XX:MaxMetaspaceSize |
-| OutOfMemoryError: **Compressed class space** | Vùng chứa metadata Klass khi sử dụng compressed class pointers | Compressed class space usage/limit, classloaders/classes, cấu hình CCS |
-| OutOfMemoryError: **Direct buffer memory** hoặc **Cannot reserve ... bytes of direct buffer memory** | Giới hạn/reservation của direct ByteBuffer, liên quan native memory | BufferPoolMXBean direct, -XX:MaxDirectMemorySize, buffer lifecycle, allocation hotspots |
-| OutOfMemoryError: **Map failed** hoặc thông báo mapping tương tự | Memory-mapped file/khả năng mmap, vùng địa chỉ, OS limit và tài nguyên mapping | FileChannel.map, kích thước mapping, address space, mappings, OS/cgroup constraints |
-| OutOfMemoryError: **unable to create native thread** | Tạo thread OS: native stack, PID/thread limit hoặc OS/native memory | Số thread, pids.current/max, ulimit, RSS/native, chính sách thread pool |
-| **Out of swap space?** hoặc thông báo native allocation cụ thể | Native/OS virtual memory hoặc swap (phụ thuộc JVM/OS) | JVM fatal logs, commit limit, swap, memory maps, limits; xác minh đó là OOME hay VM fatal error |
-| **Native memory allocation (malloc/mmap) failed** trong hs_err | Bộ nhớ native mà JVM không thể cấp phát | hs_err, OS/cgroup memory, NMT khi đã bật, thread count, JVM/native library usage |
-| **OOMKilled**, cgroup oom_kill, Kubernetes reason OOMKilled | Giới hạn bộ nhớ ở cấp container/OS, không nhất thiết heap | Container memory limit, peak working set/RSS, cgroup memory.events, native/off-heap |
-| **CodeCache is full**, compiler disabled... | Code cache có thể đầy | Đây thường là cảnh báo/sự cố biên dịch JIT, **không tự động là OutOfMemoryError**; đọc thông điệp thực tế |
+| `OutOfMemoryError:` **Java heap space** | Java heap (object/array allocation failed) | Heap used/max, pre-error GC, post-GC live set, retained objects, allocation rate, `-Xmx` |
+| `OutOfMemoryError:` **GC overhead limit exceeded** | Heap where GC spends excessive effort recovering too little under JVM/collector policy | Total GC time, reclamation ratio, allocation rate, collector, whether limit policy is active |
+| `OutOfMemoryError:` **Requested array size exceeds VM limit** | VM-allowed array/object size limit, potentially checked before heap allocation | Requested array size, size calculation, input data, integer arithmetic |
+| `OutOfMemoryError:` **Metaspace** | Class metadata in native memory / Metaspace cap | Class count, class loaders, class unloading, Metaspace used/committed/max, `-XX:MaxMetaspaceSize` |
+| `OutOfMemoryError:` **Compressed class space** | Region holding `Klass` metadata when compressed class pointers are enabled | Compressed class space usage/limit, class loaders/classes, CCS configuration |
+| `OutOfMemoryError:` **Direct buffer memory** or **Cannot reserve ... bytes of direct buffer memory** | Direct `ByteBuffer` limit/reservation, backed by native memory | `BufferPoolMXBean` direct, `-XX:MaxDirectMemorySize`, buffer lifecycle, allocation hotspots |
+| `OutOfMemoryError:` **Map failed** or similar mapping message | Memory-mapped files / `mmap` capacity, address space, OS limits, mapping resources | `FileChannel.map`, mapping sizes, address space, mappings, OS/cgroup constraints |
+| `OutOfMemoryError:` **unable to create native thread** | OS thread creation: native stack, PID/thread limit, or OS/native memory | Thread count, `pids.current/max`, `ulimit`, RSS/native, thread pool policy |
+| **Out of swap space?** or specific native allocation notice | Native/OS virtual memory or swap (JVM/OS dependent) | JVM fatal logs, commit limit, swap, memory maps, limits; verify OOME vs. VM fatal error |
+| **Native memory allocation (malloc/mmap) failed** in `hs_err` | Native memory the JVM failed to allocate | `hs_err`, OS/cgroup memory, NMT if enabled, thread count, JVM/native library usage |
+| **OOMKilled**, cgroup `oom_kill`, Kubernetes reason `OOMKilled` | Container/OS-level memory limit, not necessarily heap | Container memory limit, peak working set/RSS, cgroup `memory.events`, native/off-heap |
+| **CodeCache is full**, compiler disabled... | Code cache may be full | Usually a JIT compilation warning/issue, **not automatically an `OutOfMemoryError`**; read the exact message |
 
-Đọc nguyên văn **exception class + message + stack trace + timestamp**. Đừng gom tất cả thành nhãn “heap OOM” trong dashboard. Một số lỗi có message khác nhau giữa JDK/vendor, nên trường hợp không khớp bảng cần xếp **chưa xác định** và quay lại bằng chứng chứ không đoán.
+Read the verbatim **exception class + message + stack trace + timestamp**. Never collapse everything under a single "heap OOM" dashboard label. Some errors have varying wording across JDKs/vendors, so mark unmatched cases as **unclassified** and return to primary evidence instead of guessing.
 
-### Cách đọc nhanh theo nhánh
+### Quick branch-based triage
 
-1. Có **java.lang.OutOfMemoryError** trong log không? Nếu có, trích nguyên văn message và điểm ném; xác minh process có bị kill/fatal error tiếp theo hay không.
-2. Có chuỗi **Java heap space / GC overhead**? Ưu tiên heap và GC evidence, sau đó phân biệt retention, allocation burst và heap quá nhỏ.
-3. Có **Metaspace / Compressed class space**? Kiểm tra class metadata, classloader, unloading và giới hạn tương ứng.
-4. Có **direct buffer / native thread / map**? Thu thập tài nguyên ngoài heap và giới hạn OS, không bắt đầu bằng tăng -Xmx.
-5. Không có Java exception nhưng có **OOMKilled / hs_err**? Điều tra sự kiện OS/container hoặc fatal native allocation theo nguồn ghi nhận; heap dump có thể không tồn tại.
-6. Nếu chỉ thấy một chuỗi không rõ nguồn, trước tiên xác minh process, JVM, version, timestamp và toàn bộ thông điệp; không vội gán nhóm.
+1. Is **`java.lang.OutOfMemoryError`** in the logs? If yes, extract the verbatim message and throw site; check whether a process kill or fatal error followed.
+2. Does it say **Java heap space / GC overhead**? Prioritize heap and GC evidence, then separate retention, allocation bursts, and undersized heap.
+3. Does it say **Metaspace / Compressed class space**? Inspect class metadata, class loaders, unloading, and the corresponding limits.
+4. Does it say **direct buffer / native thread / map**? Collect off-heap resource metrics and OS limits rather than starting by raising `-Xmx`.
+5. No Java exception, yet **`OOMKilled` / `hs_err`** appeared? Investigate OS/container events or fatal native allocations via their respective logs; a heap dump may not exist.
+6. If you only see an ambiguous snippet without context, first verify process, JVM, version, timestamp, and full message before assigning a category.
 
-## 3. Nhóm Java heap: cùng vùng, nhiều cơ chế khác nhau
+## 3. Java Heap Group: Same Region, Different Mechanisms
 
-### 3.1. java.lang.OutOfMemoryError: Java heap space
+### 3.1. `java.lang.OutOfMemoryError: Java heap space`
 
-**Ý nghĩa:** JVM không đáp ứng được một yêu cầu cấp phát object/array trong heap, ngay cả sau những hành động thu hồi được phép tại thời điểm đó. Đây là mô tả **allocation failure**, không phải phép đo rằng mọi byte heap đều là object sống.
+**Meaning:** the JVM could not satisfy an object or array allocation on the heap even after permissible reclamation steps at that point. This describes an **allocation failure**, not a statement that every byte of heap holds live objects.
 
-Các giả thuyết thường gặp:
+Common hypotheses:
 
-- **Retention/leak:** object còn reachable qua static field, cache không giới hạn, listener, queue, collection, ThreadLocal, classloader hoặc vòng đời session. Post-GC occupancy/lượng object retained có xu hướng tăng khi so sánh cùng tải.
-- **Live set hợp lệ quá lớn:** ứng dụng cần giữ dữ liệu thật sự (ví dụ batch tải cả tập dữ liệu vào RAM), nhưng heap tối đa không đủ.
-- **Allocation burst:** tạo nhiều object/array lớn trong một khoảng ngắn; heap chạm giới hạn khi traffic/parallelism tăng.
-- **Object/array rất lớn:** một lần cấp phát cần vùng heap lớn, gặp giới hạn kích thước object, fragmentation hoặc chính sách collector; không nhất thiết do hàng triệu object nhỏ.
-- **Cấu hình không đúng với dự kiến:** -Xmx thực tế thấp hơn kế hoạch; container-aware heap sizing, script hoặc deployment overrides khiến JVM nhận giới hạn khác.
+- **Retention/leak:** objects remain reachable via static fields, unbounded caches, listeners, queues, collections, `ThreadLocal`, class loaders, or session lifecycles. Post-GC occupancy and retained counts trend upward under comparable load.
+- **Legitimately large live set:** the application genuinely needs to hold data in RAM (e.g., loading an entire dataset in batch), and max heap is too small.
+- **Allocation burst:** allocating many large objects/arrays in a short window; heap hits its limit when traffic/concurrency spikes.
+- **Very large object/array:** a single allocation needs a huge region, hitting object-size limits, fragmentation, or collector policies—not necessarily millions of small objects.
+- **Unexpected configuration:** effective `-Xmx` is lower than planned; container-aware sizing, wrapper scripts, or deployment overrides gave the JVM a different cap.
 
-**Bằng chứng ưu tiên:** -Xmx có hiệu lực, heap occupancy trước/sau GC theo thời gian, GC logs, heap dump nếu có và an toàn, dominator tree, retained size, GC roots, allocation profile, sự biến động workload. Heap dump giúp tìm **ai đang giữ object**; allocation profile giúp tìm **ai tạo object mới**. Hai câu hỏi khác nhau, cần tránh dùng một số liệu thay cho số liệu kia.
+**Priority evidence:** effective `-Xmx`, pre/post-GC heap occupancy over time, GC logs, heap dump if available and safe, dominator tree, retained size, GC roots, allocation profile, and workload changes. Heap dumps reveal **who retains objects**; allocation profiles reveal **who creates new objects**. They answer different questions—do not substitute one for the other.
 
-**Không nên kết luận:** “Thấy Java heap space thì tăng Xmx là sửa được leak.” Heap lớn hơn có thể chỉ kéo dài thời gian tới lỗi; cũng có thể đẩy container tới OOMKilled do giảm headroom cho phần native.
+**Do not conclude:** "Seeing `Java heap space` means raising `-Xmx` fixes the leak." A larger heap may only delay the crash, or push the container into `OOMKilled` by shrinking native headroom.
 
-### 3.2. java.lang.OutOfMemoryError: GC overhead limit exceeded
+### 3.2. `java.lang.OutOfMemoryError: GC overhead limit exceeded`
 
-**Ý nghĩa:** JVM phát hiện tình trạng dành quá nhiều thời gian cho GC nhưng thu hồi quá ít bộ nhớ theo heuristic/chính sách giới hạn GC overhead áp dụng ở collector/cấu hình đó. Nó phản ánh **GC không giúp tiến trình tiếp tục hiệu quả**, thường liên quan heap pressure. Không đồng nhất với một pause duy nhất quá dài.
+**Meaning:** the JVM detected spending too much time in GC while reclaiming too little memory according to the GC overhead limit heuristic/policy active for that collector/config. It signals **GC can no longer keep the process making useful progress**, typically due to heap pressure. Do not confuse it with a single long pause.
 
-Cần xem:
+What to inspect:
 
-- GC đang chạy bao nhiêu lần, tổng thời gian GC trên cửa sổ xảy ra lỗi; mức thu hồi trước/sau mỗi lần phù hợp.
-- Heap sau GC còn rất cao vì object vẫn reachable hay do tải tạo object liên tục?
-- Collector và option GC overhead limit có áp dụng hay không; không lấy một ngưỡng phần trăm bất biến áp cho mọi JVM.
-- GC CPU, throughput, p99 latency, Full GC và allocation pressure trong cùng timeline.
+- How often GC runs and total GC time across the failure window; pre/post reclamation per cycle.
+- Is post-GC heap still very high because objects stay reachable, or because traffic continuously allocates?
+- Whether the collector and GC overhead limit option actually apply; never assume one fixed percentage threshold across all JVMs.
+- GC CPU, throughput, p99 latency, Full GCs, and allocation pressure on the same timeline.
 
-**Xử lý hướng nguyên nhân:** kiểm tra retention, memory footprint hợp lệ, size/batch/concurrency, sau đó mới thiết kế thử nghiệm heap/GC. Vô hiệu hóa giới hạn GC overhead chỉ để “hết exception” có thể khiến ứng dụng tiếp tục quay cuồng trong GC mà không khôi phục được khả năng phục vụ; không làm như một giải pháp mặc định.
+**Cause-driven action:** check retention, legitimate live footprint, batch sizes, and concurrency before experimenting with heap/GC flags. Disabling the GC overhead limit just to "silence the exception" can leave the app thrashing in GC with zero useful throughput; never treat that as a default fix.
 
-### 3.3. java.lang.OutOfMemoryError: Requested array size exceeds VM limit
+### 3.3. `java.lang.OutOfMemoryError: Requested array size exceeds VM limit`
 
-**Ý nghĩa:** yêu cầu tạo array vượt ngưỡng kích thước mà JVM hỗ trợ. Giới hạn array không đơn giản bằng Integer.MAX_VALUE phần tử cho mọi loại array/JVM; overhead, object header và quy tắc VM có ảnh hưởng.
+**Meaning:** a request to allocate an array exceeds the maximum size supported by the JVM. The array limit is not simply `Integer.MAX_VALUE` elements for every array type and JVM; overhead, object headers, and VM rules apply.
 
-Ví dụ nguyên nhân: chuyển dữ liệu cực lớn thành một byte[], tính nhầm kích thước từ file/stream, cộng/trừ integer không kiểm tra, cố cấp phát tập dữ liệu vào một array duy nhất.
+Example causes: reading massive data into a single `byte[]`, miscomputing size from a file/stream, unchecked integer arithmetic, or trying to materialize an entire dataset in one array.
 
-**Bằng chứng:** giá trị length yêu cầu, loại array, phép tính dẫn tới length, dữ liệu đầu vào, API và đoạn code cấp phát. Ưu tiên streaming, phân đoạn/chunking, validate kích thước, tránh ép toàn bộ payload thành một array. **Tăng -Xmx không vượt được giới hạn kích thước array của VM.**
+**Evidence:** requested length, array type, calculation producing that length, input data, API, and allocating code. Prefer streaming, chunking, input-size validation, and avoiding forcing entire payloads into one array. **Increasing `-Xmx` cannot bypass the VM's array size limit.**
 
-Đừng đánh đồng với NegativeArraySizeException (kích thước âm) hoặc với Java heap space (cấp phát heap thất bại sau khi kích thước array hợp lệ).
+Do not confuse with `NegativeArraySizeException` (negative length) or `Java heap space` (heap allocation failure for a valid array size).
 
-## 4. Nhóm metadata: Metaspace và Compressed class space
+## 4. Metadata Group: Metaspace and Compressed Class Space
 
-### 4.1. OutOfMemoryError: Metaspace
+### 4.1. `OutOfMemoryError: Metaspace`
 
-Trên HotSpot hiện đại, metadata class chủ yếu ở **Metaspace**, một vùng quản lý bằng native memory (không phải Java object heap). Java 8+ không dùng PermGen theo mô hình HotSpot cũ. Vì vậy khi gặp Metaspace OOME, tăng -Xmx **không trực tiếp** mở rộng metaspace.
+On modern HotSpot, class metadata lives primarily in **Metaspace**, managed in native memory (not the Java object heap). Java 8+ no longer uses the old HotSpot PermGen model. Thus, when hitting a Metaspace OOME, increasing `-Xmx` **does not directly** expand Metaspace.
 
-Khả năng thường gặp:
+Common possibilities:
 
-- Tải/sinh quá nhiều class hoặc classloader: dynamic proxies, bytecode generation, framework/plugin, hot reload, instrumentation.
-- **Classloader leak:** classloader cũ vẫn reachable nên class và metadata liên quan không unload được, thường thấy classloader/class count tăng qua các lần redeploy.
-- Giới hạn -XX:MaxMetaspaceSize quá thấp so với workload hợp lệ.
-- Native/container memory pressure gây thiếu khả năng cấp phát ngay cả khi không giới hạn metaspace nhỏ.
+- Loading/generating too many classes or class loaders: dynamic proxies, bytecode generation, frameworks/plugins, hot reloads, instrumentation.
+- **Class loader leak:** old class loaders remain reachable so their classes and metadata cannot unload, often seen as rising class loader/class counts across redeploys.
+- `-XX:MaxMetaspaceSize` set too low for legitimate workload.
+- Native/container memory pressure blocking native allocation even without a tight Metaspace cap.
 
-Cần đo classloader statistics, loaded/unloaded classes, metaspace used/committed, class metadata theo thời gian, NMT (nếu có), memory limit/RSS. Một lượng class lớn **không tự chứng minh leak**: cần chứng minh classloader đáng lẽ hết vòng đời vẫn bị giữ. Class unloading phụ thuộc GC/classloader reachability và thời điểm collection; số class không giảm ngay sau một young GC là bình thường.
+Measure class loader statistics, loaded/unloaded classes, Metaspace used/committed, class metadata over time, NMT (if enabled), and container memory/RSS. High class counts alone **do not prove a leak**: you must show class loaders past their lifecycle remain pinned. Class unloading depends on GC/class-loader reachability and collection timing; class count not dropping right after a young GC is normal.
 
-### 4.2. OutOfMemoryError: Compressed class space
+### 4.2. `OutOfMemoryError: Compressed class space`
 
-Với cấu hình HotSpot dùng compressed class pointers, **Compressed Class Space (CCS)** chứa phần metadata cần địa chỉ nén của class và có giới hạn/cơ chế quản lý riêng. Lỗi “Compressed class space” định vị khác với “Metaspace”, dù đều thuộc miền class metadata.
+When HotSpot uses compressed class pointers, **Compressed Class Space (CCS)** stores the subset of metadata requiring compressed addresses and has its own limit and management. "Compressed class space" pinpoints a different area than "Metaspace," even though both belong to class metadata.
 
-Cần xác minh compressed class pointers đang bật, giới hạn -XX:CompressedClassSpaceSize nếu cấu hình có dùng, chỉ số CCS used/committed/reserved và sự tăng class/classloader. Điều chỉnh giới hạn riêng chỉ sau khi hiểu lớp nào/classloader nào tăng và container có đủ memory headroom.
+Verify that compressed class pointers are enabled, check `-XX:CompressedClassSpaceSize` if configured, inspect CCS used/committed/reserved metrics, and track class/class-loader growth. Adjust the specific limit only after understanding which classes/loaders grow and confirming container memory headroom.
 
-**Sai lầm thường gặp:** tăng Xmx, thay GC hoặc tăng MaxMetaspaceSize đơn thuần mà không kiểm tra CCS. Tham số đúng để thử nghiệm tùy chính xác vùng giới hạn được ghi nhận và có dữ liệu thực nghiệm.
+**Common mistake:** raising `-Xmx`, swapping GCs, or increasing `MaxMetaspaceSize` blindly without checking CCS. The right flag to test depends on the exact region hitting its limit and empirical data.
 
-### 4.3. Dấu hiệu classloader leak trong heap dump
+### 4.3. Class loader leak clues inside a heap dump
 
-Metaspace nằm ngoài Java heap nhưng **đường tham chiếu giữ classloader** thường có thể thấy trong heap dump: static references, Thread.contextClassLoader, cache registry, thread còn sống, listener/driver không deregister, plugin manager giữ handle. Xem cả retained paths của classloader và xu hướng tăng metaspace; đừng tìm “object Metaspace” trong Java heap như một object bình thường.
+Metaspace lives outside the Java heap, yet **reference paths pinning a class loader** often appear in a heap dump: static references, `Thread.contextClassLoader`, cache registries, live threads, unremoved listeners/drivers, or plugin managers holding handles. Inspect both class loader retention paths and Metaspace growth trends; do not search for "Metaspace objects" in the Java heap like regular instances.
 
-## 5. Nhóm off-heap/direct buffer và memory mapping
+## 5. Off-Heap / Direct Buffer and Memory Mapping Group
 
 ### 5.1. Direct buffer memory
 
-Thông báo có thể là:
+Messages may appear as:
 
 ~~~text
 java.lang.OutOfMemoryError: Direct buffer memory
 ~~~
 
-hoặc trong một số JDK:
+or on some JDKs:
 
 ~~~text
 java.lang.OutOfMemoryError: Cannot reserve 1048576 bytes of direct buffer memory (allocated: ..., limit: ...)
 ~~~
 
-Đây là nhóm cấp phát/quản lý **direct ByteBuffer**: vùng dữ liệu buffer nằm ngoài heap. Direct buffer thường có một Java wrapper trên heap, trong khi bộ nhớ thực chứa dữ liệu do cơ chế native quản lý.
+This covers **direct `ByteBuffer`** allocation/management: buffer payloads residing off-heap. A direct buffer usually has a Java wrapper on the heap, while the underlying data memory is managed natively.
 
-Cần tách ba đại lượng:
+Separate three quantities:
 
-- **Java heap:** chứa wrapper/đối tượng tham chiếu tới buffer.
-- **Direct buffer reservation/limit:** giới hạn do -XX:MaxDirectMemorySize và cơ chế JVM áp dụng cho một số direct buffer allocations; message có thể nêu “allocated/limit”.
-- **Native/RSS:** tổng bộ nhớ ngoài heap của tiến trình rộng hơn direct buffer, gồm threads, class metadata, code cache, native libraries và những vùng không thuộc direct buffer counter.
+- **Java heap:** holds the wrapper/objects referencing the buffer.
+- **Direct buffer reservation/limit:** limit governed by `-XX:MaxDirectMemorySize` and JVM tracking for direct buffer allocations; messages may show "allocated/limit."
+- **Native/RSS:** total off-heap process memory, broader than direct buffers—including threads, class metadata, code cache, native libraries, and allocations outside the direct-buffer counter.
 
-**Bằng chứng:** java.nio.BufferPoolMXBean cho pool direct (Count, MemoryUsed, TotalCapacity; tên/khả năng tùy implementation), NMT nếu đã bật, allocation profile, số kết nối và kích thước buffers, vòng đời cleanup, RSS/container limit. Khi MemoryUsed, TotalCapacity và số buffers tăng theo tải, cần phân biệt cache hợp lệ với retention/leak.
+**Evidence:** `java.nio.BufferPoolMXBean` for the direct pool (`Count`, `MemoryUsed`, `TotalCapacity`; exact names/behavior vary by implementation), NMT if enabled, allocation profiles, connection counts and buffer sizes, cleanup lifecycle, and RSS/container limits. When `MemoryUsed`, `TotalCapacity`, and buffer counts climb with load, distinguish valid pooling/caching from retention/leaks.
 
-Direct buffer giới hạn đạt trần **không đồng nghĩa** toàn bộ hệ điều hành hết RAM. Ngược lại, direct buffer còn dưới giới hạn không chứng minh native memory đủ cho các thành phần khác. Tăng MaxDirectMemorySize phải đi kèm budget native/container, nếu không có thể chuyển lỗi thành OOMKilled.
+Hitting the direct buffer limit **does not mean** the entire OS is out of RAM. Conversely, direct buffers sitting below their cap do not prove native memory is sufficient for everything else. Raising `MaxDirectMemorySize` must fit inside the native/container budget, or it can turn the error into `OOMKilled`.
 
-### 5.2. MappedByteBuffer và lỗi map
+### 5.2. `MappedByteBuffer` and map failures
 
-FileChannel.map và memory-mapped I/O sử dụng OS memory mappings và **không hoàn toàn có cùng vòng đời/giới hạn** như direct ByteBuffer thông thường. Một OOME có message liên quan “Map failed”/mmap không đủ để suy ra lỗi do MaxDirectMemorySize.
+`FileChannel.map` and memory-mapped I/O use OS memory mappings and **do not share the exact same lifecycle or limits** as ordinary direct `ByteBuffer`s. An OOME mentioning "Map failed"/`mmap` is not sufficient to blame `MaxDirectMemorySize`.
 
-Kiểm tra loại mapping, file size, số lượng mappings, address space, OS vm.max_map_count (nếu phù hợp), limits, file-backed mappings và cách ứng dụng quản lý lifecycle. Lỗi map có thể liên quan không gian địa chỉ hoặc nguồn lực của OS; cũng phải đọc nguyên nhân hệ thống cụ thể. Không đề xuất tăng -Xmx khi thấy map failure; heap lớn hơn có thể chiếm thêm địa chỉ/bộ nhớ.
+Check mapping type, file sizes, mapping count, address space, OS `vm.max_map_count` (where applicable), limits, file-backed mappings, and how the app manages lifecycles. Map failures can stem from address space or OS resource limits; inspect the underlying OS error as well. Never recommend raising `-Xmx` for map failures; a larger heap can consume even more address space/memory.
 
-### 5.3. Những vùng native khác
+### 5.3. Other native regions
 
-Ngoài direct/mapped buffers còn có native allocations của thư viện JNI/FFM, thread stacks, JIT code cache, GC metadata, arenas, runtime internals và memory-mapped libraries. NMT phân loại phần **do JVM theo dõi**, không đảm bảo bao phủ mọi allocation của thư viện native ngoài JVM; các số reserved/committed của NMT cũng **không bằng RSS**.
+Beyond direct/mapped buffers, native allocations include JNI/FFM libraries, thread stacks, JIT code cache, GC metadata, arenas, runtime internals, and memory-mapped libraries. NMT categorizes memory **tracked by the JVM**, with no guarantee of covering external native libraries; NMT reserved/committed figures **do not equal RSS** either.
 
-Nếu RSS/working set tăng nhưng heap used tương đối ổn định, cần kiểm tra native breakdown, direct buffer pools, thread count, metaspace, memory mappings, cgroup limit và native profiler khi thật cần.
+If RSS/working set grows while `heap used` stays flat, inspect the native breakdown, direct buffer pools, thread count, Metaspace, memory mappings, cgroup limits, and native profilers when truly needed.
 
-## 6. Nhóm native thread: không tạo được thread mới
+## 6. Native Thread Group: Unable to Create New Threads
 
-Một thông báo HotSpot thường thấy:
+A common HotSpot message:
 
 ~~~text
 java.lang.OutOfMemoryError: unable to create native thread: possibly out of memory or process/resource limits reached
 ~~~
 
-JVM phải tạo một thread hệ điều hành tương ứng với platform thread. Việc tạo thread có thể thất bại do:
+The JVM must create an OS thread backing each platform thread. Thread creation can fail due to:
 
-- Cạn giới hạn số process/thread trong OS hoặc cgroup pids.max.
-- Không còn đủ memory/address space để đặt native thread stack và cấu trúc liên quan.
-- Tạo quá nhiều thread vì thread pool không giới hạn, mỗi request tạo thread mới, thread bị giữ hoặc nhiều thư viện cùng lập pool.
-- Giới hạn per-user/process như ulimit và chính sách runtime/container.
+- Exhausting OS or cgroup `pids.max` process/thread limits.
+- Insufficient memory or address space for the native thread stack and related structures.
+- Spawning too many threads from unbounded pools, thread-per-request patterns, leaked threads, or multiple libraries each creating pools.
+- Per-user/process limits like `ulimit` and runtime/container policies.
 
-**Bằng chứng cần thu:** số thread đang sống (JVM và OS), xu hướng tăng, thread names/states, thread dump khi an toàn, pids.current/pids.max, ulimit, stack size thực tế, OS/RSS/native memory. Đọc “unable to create native thread” để điều tra **thread/resource limits**, không tự cho rằng heap đầy.
+**Evidence to collect:** live thread counts (JVM and OS), growth trends, thread names/states, a thread dump when safe, `pids.current/pids.max`, `ulimit`, actual stack size, and OS/RSS/native memory. Read "unable to create native thread" as a prompt to investigate **thread/resource limits**, not assuming a full heap.
 
-Các biện pháp dựa trên nguyên nhân có thể là bounded thread pool, giới hạn concurrency/queue, đóng executor khi hết vòng đời, xử lý blocking I/O, điều chỉnh PID limit theo năng lực hệ thống. Chỉ chỉnh -Xss khi hiểu tác động đến call depth/StackOverflowError, tài nguyên và số thread; hạ Xss không sửa nguyên nhân tạo vô hạn thread.
+Cause-based fixes include bounded thread pools, concurrency/queue caps, closing executors at end of lifecycle, resolving blocking I/O, and adjusting PID limits within system capacity. Adjust `-Xss` only after understanding impacts on call depth/`StackOverflowError`, resources, and thread counts; shrinking `-Xss` does not fix unbounded thread creation.
 
-**Lưu ý:** Java virtual threads (JDK 21) được quản lý khác platform threads; số lượng virtual threads không đồng nhất với số thread OS. Native-thread OOME vẫn liên quan tài nguyên platform/carrier threads hoặc những luồng OS khác.
+**Note:** Java virtual threads (JDK 21) are managed differently from platform threads; virtual thread counts do not equal OS thread counts. Native-thread OOME still relates to platform/carrier threads or other OS threads.
 
-## 7. Native allocation fatal và container OOMKilled
+## 7. Fatal Native Allocations and Container `OOMKilled`
 
-### 7.1. JVM fatal error khi không cấp phát native memory
+### 7.1. JVM fatal error when native memory allocation fails
 
-Ví dụ thông điệp startup/runtime:
+Example startup/runtime message:
 
 ~~~text
 There is insufficient memory for the Java Runtime Environment to continue.
 Native memory allocation (malloc) failed to allocate ... bytes ...
 ~~~
 
-Cũng có thể thấy mmap/commit failures hoặc thông báo không thể reserve heap lúc khởi động. Các chuỗi này thường xuất hiện trong **VM fatal error report** (ví dụ hs_err_pid*.log), không nhất thiết là java.lang.OutOfMemoryError đã được ném và bắt bởi ứng dụng.
+You may also see `mmap`/commit failures or failure to reserve the heap at startup. These lines typically appear in a **VM fatal error report** (such as `hs_err_pid*.log`), not necessarily as a `java.lang.OutOfMemoryError` thrown and caught by application code.
 
-Đọc file hs_err đầy đủ: allocation type, bytes requested, native stack, process/thread information, VM flags, OS memory/swap và cgroup limits. Đối chiếu với giám sát process trước khi chết. **Không xử lý** chỉ bằng heap dump của một process đã chết hoặc bằng cách đổi Xmx mà chưa hiểu bộ nhớ native cần bao nhiêu.
+Read the complete `hs_err` file: allocation type, bytes requested, native stack, process/thread info, VM flags, OS memory/swap, and cgroup limits. Correlate with process telemetry before death. **Do not** try to solve this with only a dead process's heap dump or by changing `-Xmx` without understanding native memory demand.
 
-### 7.2. Container OOMKilled và tín hiệu từ kernel
+### 7.2. Container `OOMKilled` and kernel signals
 
-Trong Kubernetes, trạng thái container có thể ghi reason **OOMKilled** với exit code 137 và restart count tăng. JVM có thể bị kill tức thì nên không kịp ghi Java stack trace, heap dump hoặc shutdown hook. Cũng cần loại trừ SIGKILL do tác nhân khác khi chỉ có exit 137.
+In Kubernetes, container status may show reason **`OOMKilled`** with exit code `137` and rising restart counts. The JVM can be terminated instantly before writing any Java stack trace, heap dump, or running shutdown hooks. Also rule out `SIGKILL` from other actors when seeing only exit code `137`.
 
-Xem sự kiện/termination reason từ container runtime và orchestrator; trên Linux cgroup v2, đọc đúng cgroup của process/container:
+Check termination events/reasons from the container runtime and orchestrator; on Linux cgroup v2, read the target process/container's cgroup:
 
 ~~~bash
 cat /sys/fs/cgroup/memory.max
@@ -216,38 +216,38 @@ cat /sys/fs/cgroup/pids.current
 cat /sys/fs/cgroup/pids.max
 ~~~
 
-Đường dẫn trên chỉ minh họa một cách mount cgroup v2 phổ biến. Trong container khác, cgroup v1 hoặc cấu hình mount đặc biệt, phải định vị cgroup thực tế; không coi các lệnh này luôn chỉ về ứng dụng đang điều tra. memory.events có các counters như oom/oom_kill; đối chiếu theo thời điểm/cgroup, không lấy counters tích lũy rồi kết luận rằng sự kiện mới nhất do ứng dụng.
+These paths illustrate one common cgroup v2 mount layout. In other containers, cgroup v1, or custom mounts, locate the actual cgroup first; do not assume these files always reflect the app under investigation. `memory.events` contains counters such as `oom` and `oom_kill`; correlate by timestamp and cgroup rather than reading cumulative counters and assuming the latest event belonged to your app.
 
-**Ngân sách memory container** bao gồm heap + metaspace + thread stacks + direct buffers + code cache + GC/native allocations + các thành phần khác. Đừng tính “limit = -Xmx” hay “RSS = heap used”. Cờ MaxRAMPercentage chỉ ảnh hưởng quy tắc chọn heap trong những hoàn cảnh tương ứng, không cấp toàn bộ memory cho heap.
+A **container memory budget** includes heap + Metaspace + thread stacks + direct buffers + code cache + GC/native allocations + other components. Never equate "limit = `-Xmx`" or "RSS = `heap used`." `MaxRAMPercentage` only influences heap sizing rules in applicable setups; it does not grant all memory exclusively to the heap.
 
-### 7.3. Đừng nhầm với StackOverflowError
+### 7.3. Do not confuse with `StackOverflowError`
 
-java.lang.StackOverflowError thường xảy ra khi stack của một thread không chứa thêm frame do đệ quy sâu/vô hạn; đó là **một Error khác**. Không phân loại thành Java heap OOME. Native-thread OOME có thể liên quan memory dành cho stack, nhưng là lỗi **tạo thread**, không đồng nhất với tràn stack khi thực thi.
+`java.lang.StackOverflowError` typically occurs when a thread's stack cannot fit another frame due to deep or infinite recursion; it is **a different `Error`**. Never classify it as a Java heap OOME. Native-thread OOME can involve memory needed for stacks, yet it is a **thread creation failure**, distinct from overflowing a stack during execution.
 
-## 8. Thu thập chứng cứ: đúng tiến trình, đúng thời điểm, đúng công cụ
+## 8. Gathering Evidence: Right Process, Right Time, Right Tool
 
-### 8.1. Chụp hồ sơ lỗi khi process còn sống
+### 8.1. Capturing an error profile while the process is alive
 
-Các ví dụ sau dành cho HotSpot/OpenJDK 17+ trên môi trường có jcmd/jstat (JDK tools), với quyền attach hợp lệ; nhiều minimal container không đóng gói đủ công cụ. Thay PID theo process cụ thể:
+The examples below target HotSpot/OpenJDK 17+ in environments with `jcmd`/`jstat` (JDK tools) and valid attach permissions; many minimal containers omit these tools. Substitute the specific PID:
 
 ~~~bash
 java -version
 jcmd -l
-PID=12345  # Thay bằng PID thực tế
+PID=12345  # Replace with actual PID
 jcmd "$PID" VM.command_line
 jcmd "$PID" VM.flags
 jcmd "$PID" GC.heap_info
 jstat -gcutil "$PID" 1000 20
 ~~~
 
-Giải thích:
+Explanation:
 
-- VM.command_line/VM.flags xác nhận JVM và options **đang chạy**, không dựa vào giá trị trong chart hoặc manifest đã cũ.
-- GC.heap_info cung cấp ảnh chụp heap/metaspace tùy implementation, không thay được chuỗi thời gian trước lúc OOME.
-- jstat -gcutil lấy 20 mẫu cách nhau 1 giây, giúp nhận diện xu hướng GC; một snapshot sau restart **không đại diện** cho lúc process trước đó bị chết.
-- VM.command_line có thể lộ arguments nhạy cảm: loại bỏ secret trước khi chia sẻ log.
+- `VM.command_line`/`VM.flags` confirm the **running** JVM and options rather than relying on stale Helm charts or manifests.
+- `GC.heap_info` gives a heap/Metaspace snapshot depending on implementation, not a substitute for the pre-OOME timeline.
+- `jstat -gcutil` takes 20 samples 1 second apart to reveal GC trends; a snapshot after restart **does not represent** the dead process prior to crash.
+- `VM.command_line` can expose sensitive arguments: redact secrets before sharing logs.
 
-Nếu nghi classloader/thread issue, trước tiên kiểm tra lệnh có được JVM hỗ trợ:
+If suspecting class loader/thread issues, verify command support on the JVM first:
 
 ~~~bash
 jcmd "$PID" help
@@ -255,90 +255,90 @@ jcmd "$PID" Thread.print -l
 jcmd "$PID" VM.classloader_stats
 ~~~
 
-Thread.print có thể tạo file/log lớn hoặc gây overhead với ứng dụng rất nhiều thread; áp dụng theo giới hạn vận hành. VM.classloader_stats có trên một số HotSpot versions/configurations; nếu command không có, dùng classloading metrics/JFR hoặc công cụ thay thế phù hợp.
+`Thread.print` can produce huge logs or overhead on apps with thousands of threads; apply within operational limits. `VM.classloader_stats` exists on certain HotSpot versions/configs; if unavailable, use class-loading metrics/JFR or suitable alternatives.
 
-Trên Linux, số thread và RSS ở cấp process có thể tham khảo:
+On Linux, check process-level thread counts and RSS via:
 
 ~~~bash
 ps -o pid,nlwp,rss,vsz,cmd -p "$PID"
 ~~~
 
-RSS từ ps thường tính KiB trên Linux, VSZ là virtual memory size; không đồng nhất với heap size. Cột và đơn vị phụ thuộc OS.
+RSS from `ps` is typically in KiB on Linux, and VSZ is virtual memory size; neither equals heap size. Columns and units depend on OS.
 
-### 8.2. Quan sát native memory (NMT) có điều kiện
+### 8.2. Conditional native memory observation (NMT)
 
-HotSpot Native Memory Tracking cần được bật từ lúc khởi động nếu muốn dùng các lệnh NMT; ví dụ:
+HotSpot Native Memory Tracking must be enabled at startup to use NMT commands; for example:
 
 ~~~text
 -XX:NativeMemoryTracking=summary
 ~~~
 
-Sau đó:
+Then:
 
 ~~~bash
 jcmd "$PID" VM.native_memory summary
 jcmd "$PID" VM.native_memory baseline
-# Sau một khoảng tải đại diện:
+# After a representative load window:
 jcmd "$PID" VM.native_memory summary.diff
 ~~~
 
-NMT có chi phí theo dõi và phạm vi quan sát riêng; chỉ dùng trên production khi đã đánh giá overhead. Không thể kỳ vọng bật NMT hồi tố sau khi process chết. Summary/diff cho thấy nhóm memory do JVM quản lý tăng/giảm, **không thay được** process RSS, cgroup memory hoặc native profiler khi thư viện ngoài JVM cấp phát.
+NMT carries tracking overhead and its own observation scope; use in production only after evaluating overhead. You cannot enable NMT retroactively after a process dies. `summary`/`diff` show growth/shrinkage in JVM-managed memory categories, **not** replacing process RSS, cgroup memory, or native profilers when external libraries allocate natively.
 
-### 8.3. GC logs và JFR
+### 8.3. GC logs and JFR
 
-Khi có thể cấu hình từ startup với phạm vi logging phù hợp:
+When startup logging can be configured with appropriate scope:
 
 ~~~bash
 java '-Xlog:gc*,safepoint=info:file=gc.log:time,uptime,level,tags:filecount=5,filesize=20M' -jar app.jar
 ~~~
 
-Lệnh minh họa cần app.jar thật, quyền ghi file và dung lượng/rotation phù hợp. GC logs nên được liên kết với application p99/throughput/errors, CPU và memory tại **cùng timestamp**. Nếu được phép, một JFR recording với cấu hình có GC/classloading/allocation events có thể hỗ trợ điều tra:
+This illustrative command requires a real `app.jar`, file write permissions, and proper space/rotation. Correlate GC logs with application p99/throughput/errors, CPU, and memory at **matching timestamps**. Where permitted, a JFR recording covering GC/class-loading/allocation events can aid investigation:
 
 ~~~bash
 jcmd "$PID" JFR.start name=oome_probe settings=profile duration=5m filename=oome-probe.jfr
 jcmd "$PID" JFR.check
 ~~~
 
-Duration 5 phút chỉ minh họa; event coverage tùy cấu hình, và profile có overhead. Không khẳng định recording này sẽ chứng minh leak hoặc capture đầy đủ mọi native allocation. Bảo vệ log/recording vì có thể chứa thông tin nhạy cảm.
+The 5-minute duration is illustrative; event coverage depends on configuration, and the `profile` setting adds overhead. Do not claim such a recording will prove a leak or capture every native allocation. Protect logs/recordings as they can contain sensitive data.
 
-### 8.4. Heap dump: giá trị và giới hạn
+### 8.4. Heap dumps: value and limits
 
-Các tùy chọn HotSpot thường dùng khi cần ghi dump tại một Java OOME:
+Common HotSpot flags for capturing a dump on a Java OOME:
 
 ~~~text
 -XX:+HeapDumpOnOutOfMemoryError
 -XX:HeapDumpPath=/path/with/space/and/permissions
 ~~~
 
-Chúng phải được cấu hình và kiểm tra từ trước, gồm dung lượng disk, quyền file, chính sách dữ liệu nhạy cảm. Heap dump có thể rất lớn và tạo thêm áp lực I/O; không chắc được sinh khi process bị OOMKilled, native fatal error hoặc không đủ disk. Đặt path ngoài volume nhỏ thường giúp tránh làm đầy container.
+These must be configured and tested ahead of time, including disk capacity, file permissions, and sensitive-data policies. Heap dumps can be huge and add I/O pressure; they are not guaranteed on `OOMKilled`, native fatal errors, or full disks. Pointing the path outside small container volumes helps avoid filling the container filesystem.
 
-Heap dump chỉ mô tả **Java heap tại thời điểm dump**. Nó hữu ích cho retained objects và GC roots nhưng không chứa toàn bộ native allocations. Với Metaspace leak, dùng heap dump để lần theo classloader references kết hợp class metadata/NMT; với direct buffer, tìm wrapper/retention trên heap nhưng xác minh dung lượng direct bằng buffer pool/native metrics.
+A heap dump describes only the **Java heap at dump time**. It is valuable for retained objects and GC roots, yet lacks full native allocations. For Metaspace leaks, use the heap dump to trace class loader references alongside class metadata/NMT; for direct buffers, inspect wrappers/retention on heap while verifying direct capacity via buffer pool/native metrics.
 
-**Không tự chạy heap dump trên production để “thử xem”** nếu chưa biết tác động: một số lệnh heap inspection gây pause lớn, có thể kích hoạt GC, chiếm đĩa và chứa dữ liệu nhạy cảm.
+**Never run ad-hoc heap dumps in production just to "take a look"** without assessing impact: heap inspection commands can trigger long pauses, request GC, fill disks, and expose sensitive data.
 
-### 8.5. Khi process đã chết
+### 8.5. When the process is already dead
 
-Nếu không thể attach, dùng dữ liệu được thu từ trước: ứng dụng stderr/stdout, structured exception logs, GC logs, JFR/heap dump đã cấu hình, hs_err file, APM metrics, Prometheus time series, Kubernetes events, kernel/cgroup events, restart reason, deployment/JDK flags. Tách ID của process/container **trước và sau restart**: không dùng measurements của process mới làm evidence cho process cũ.
+If attaching is impossible, rely on pre-collected evidence: application stderr/stdout, structured exception logs, GC logs, configured JFR/heap dumps, `hs_err` files, APM metrics, Prometheus time series, Kubernetes events, kernel/cgroup events, restart reasons, and deployment/JDK flags. Separate process/container IDs **before vs. after restart**: never use measurements from the new process as evidence for the old one.
 
-## 9. Bảng điều tra theo vùng và quyết định thử nghiệm
+## 9. Region-by-Region Investigation Table and Experimental Decisions
 
-| Kết quả đã xác minh | Bằng chứng tiếp theo | Giả thuyết/can thiệp có thể thử | Không nên làm ngay |
+| Verified finding | Next evidence | Hypothesis / intervention to test | What not to do immediately |
 | --- | --- | --- | --- |
-| Heap OOME + retained set tăng dù workload tương tự | Heap dump, dominator tree, GC roots, cache/queue | Sửa reference retention, giới hạn cache/queue | Chỉ tăng heap để che leak |
-| Heap OOME + live set ổn định nhưng burst vượt headroom | GC log, allocation rate, peak concurrency, memory budget | Streaming/chunking, giới hạn concurrency, thử Xmx phù hợp budget | Tăng Xmx vượt memory limit |
-| GC overhead OOME + GC tốn CPU và thu hồi rất ít | GC time, post-GC heap, allocation/retention | Giảm churn/retention; thử heap/GC trong benchmark | Tắt kiểm tra GC overhead để dập exception |
-| Requested array size exceeds VM limit | Requested length/loại array/công thức size | Chunking/streaming, validate input, sửa phép tính | Tăng Xmx như lời giải duy nhất |
-| Metaspace/CCS OOME + classloader count tăng | Classloader stats, unloading, references, class gen | Sửa classloader leak/stop generation; điều chỉnh đúng cap nếu hợp lệ | Đổi heap size thay cho metadata |
-| Direct buffer OOME + direct pool tiến gần cap | BufferPoolMXBean, peak allocation, cleanup, RSS | Giảm/giới hạn buffer retention, tối ưu pool, cân nhắc direct cap có budget | Tăng -Xmx hoặc direct cap mù quáng |
-| Unable to create native thread + pids gần cap | Thread dump, pids.max/current, OS limit | Bounded pool, xử lý thread leak, tăng limit có căn cứ | Tự động giảm Xss mà không hiểu thread growth |
-| OOMKilled + heap không gần Xmx | cgroup, process RSS, NMT/native, direct/thread/meta | Tìm bộ nhớ ngoài heap; cân lại limit/replica/budget | Gắn nhãn “Java heap leak” |
-| Fatal native malloc failure | hs_err, native breakdown, system commit/memory | Giảm native pressure, sửa leak, xử lý OS constraints | Chỉ phân tích Java heap dump |
+| Heap OOME + retained set grows at steady load | Heap dump, dominator tree, GC roots, caches/queues | Fix reference retention, bound caches/queues | Simply bump heap to hide a leak |
+| Heap OOME + steady live set, burst exceeds headroom | GC log, allocation rate, peak concurrency, memory budget | Streaming/chunking, cap concurrency, test `-Xmx` within budget | Bump `-Xmx` past container memory limit |
+| GC overhead OOME + high GC CPU, tiny reclamation | GC time, post-GC heap, allocation/retention | Reduce churn/retention; benchmark heap/GC sizing | Disable GC overhead check to suppress exception |
+| Requested array size exceeds VM limit | Requested length / array type / size formula | Chunking/streaming, validate input, fix arithmetic | Raise `-Xmx` as the sole answer |
+| Metaspace/CCS OOME + rising class loader count | Class loader stats, unloading, references, class gen | Fix class loader leak / stop generation; tune cap if valid | Resize heap instead of metadata |
+| Direct buffer OOME + direct pool near cap | `BufferPoolMXBean`, peak allocation, cleanup, RSS | Reduce/bound buffer retention, tune pools, budget direct cap | Blindly raise `-Xmx` or direct cap |
+| Unable to create native thread + `pids` near cap | Thread dump, `pids.max/current`, OS limits | Bounded pools, fix thread leak, raise limits with justification | Blindly shrink `-Xss` without understanding thread growth |
+| `OOMKilled` + heap nowhere near `-Xmx` | cgroup, process RSS, NMT/native, direct/thread/meta | Locate off-heap usage; rebalance limits/replicas/budget | Label it a "Java heap leak" |
+| Fatal native malloc failure | `hs_err`, native breakdown, system commit/memory | Reduce native pressure, fix leaks, address OS constraints | Inspect only a Java heap dump |
 
-Các nhánh cần xét **đồng thời** nếu ứng dụng có nhiều áp lực: một ứng dụng có thể có cả leak trên heap và native thread growth. Chỉ số tốt hơn ở một vùng chưa có nghĩa tiến trình đã an toàn.
+Evaluate branches **concurrently** when an application faces multiple pressures: one service can suffer both a heap leak and native thread growth. Healthy numbers in one area do not mean the whole process is safe.
 
-## 10. Ví dụ Java 17+ để tránh phân loại quá tự tin
+## 10. Java 17+ Example to Avoid Overconfident Classification
 
-Đoạn sau là **chương trình độc lập chạy được**, minh họa cách biến một số message thành **giả thuyết tài nguyên đầu tiên**, chưa phải bằng chứng nguyên nhân. Đặt file tên OomeTriage.java:
+The following is a **runnable standalone program** illustrating how to turn sample messages into an **initial resource hypothesis**, not root-cause proof. Save as `OomeTriage.java`:
 
 ~~~java
 import java.util.Locale;
@@ -346,14 +346,14 @@ import java.util.Locale;
 public class OomeTriage {
     static String suspectedArea(String message) {
         if (message == null || message.isBlank()) {
-            return "Chưa đủ thông tin";
+            return "Insufficient information";
         }
         String m = message.toLowerCase(Locale.ROOT);
         if (m.contains("requested array size exceeds vm limit")) {
-            return "Giới hạn kích thước array của VM";
+            return "VM array size limit";
         }
         if (m.contains("gc overhead limit exceeded")) {
-            return "Heap và tiến độ thu hồi của GC";
+            return "Heap and GC reclamation progress";
         }
         if (m.contains("java heap space")) {
             return "Java heap";
@@ -368,12 +368,12 @@ public class OomeTriage {
             return "Direct buffer / native allocation";
         }
         if (m.contains("native thread")) {
-            return "Thread OS, PID limit hoặc native stack";
+            return "OS thread, PID limit, or native stack";
         }
         if (m.contains("map failed")) {
-            return "Memory mapping / tài nguyên OS";
+            return "Memory mapping / OS resources";
         }
-        return "Chưa phân loại; cần nguyên văn lỗi và telemetry";
+        return "Unclassified; requires exact error text and telemetry";
     }
 
     public static void main(String[] args) {
@@ -391,94 +391,94 @@ public class OomeTriage {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac OomeTriage.java
 java OomeTriage
 ~~~
 
-Kết quả chuẩn của chương trình trên (chuỗi input đã cố định):
+Exact output of the program above (with fixed input strings):
 
 ~~~text
 Java heap space => Java heap
-GC overhead limit exceeded => Heap và tiến độ thu hồi của GC
+GC overhead limit exceeded => Heap and GC reclamation progress
 Metaspace => Metaspace
 Cannot reserve 1048576 bytes of direct buffer memory => Direct buffer / native allocation
-unable to create native thread: possibly out of memory => Thread OS, PID limit hoặc native stack
+unable to create native thread: possibly out of memory => OS thread, PID limit, or native stack
 ~~~
 
-**Giới hạn cố ý của ví dụ:** chỉ so chuỗi mẫu, không tạo OOME thật và không phân tích runtime. Phân loại production phải lấy cả exception type, JVM vendor/version, log và số liệu tương ứng. Ví dụ, message “native memory allocation failed” từ hs_err có thể là fatal JVM event chứ không phải một java.lang.OutOfMemoryError.
+**Intentional limitation of the example:** it merely matches sample strings without triggering real OOMEs or analyzing runtime state. Production classification must capture full exception type, JVM vendor/version, logs, and corresponding telemetry. For example, `"native memory allocation failed"` from `hs_err` can be a fatal JVM event rather than a `java.lang.OutOfMemoryError`.
 
-### Mẫu thu thập nhanh để kiểm chứng giả thuyết
+### Quick collection template for testing hypotheses
 
-Ghi theo cấu trúc sau trong incident/ticket:
+Record the following structure in an incident/ticket:
 
-| Trường | Nội dung cần ghi |
+| Field | What to record |
 | --- | --- |
-| Service/process | Tên service, pod/container, PID, deploy version |
-| Thời điểm | Timestamp với timezone, thời điểm restart và thời điểm lỗi |
-| Loại thất bại | Java OOME, VM fatal, OS OOMKilled hay chưa xác định |
-| Thông điệp | Exception class + message nguyên văn, stack trace/hs_err/termination reason |
-| JVM và giới hạn | JDK/vendor, GC, -Xmx/-Xms, MaxMetaspaceSize/MaxDirectMemorySize nếu có, cgroup memory/pids limits |
-| Tài nguyên nghi cạn | Heap, metaspace, CCS, direct, mapped, native thread, native memory, container |
-| Chứng cứ thời điểm lỗi | Heap used/post-GC, GC events, RSS, thread/classloader/buffer counters, kernel/cgroup events |
-| Giả thuyết | Một phát biểu có thể bác bỏ được, kèm điều kiện và loại trừ nguyên nhân khác |
-| Thử nghiệm và guardrails | Thay đổi nhỏ nhất, workload tương đương, p99/errors/throughput, RSS/CPU, kế hoạch rollback |
+| Service/process | Service name, pod/container, PID, deploy version |
+| Timestamp | Timestamp with timezone, restart time, failure time |
+| Failure type | Java OOME, VM fatal, OS `OOMKilled`, or unclassified |
+| Message | Exception class + verbatim message, stack trace/`hs_err`/termination reason |
+| JVM and limits | JDK/vendor, GC, `-Xmx`/`-Xms`, `MaxMetaspaceSize`/`MaxDirectMemorySize` if set, cgroup memory/pids limits |
+| Suspected exhausted resource | Heap, Metaspace, CCS, direct, mapped, native thread, native memory, container |
+| Evidence at failure | Heap used/post-GC, GC events, RSS, thread/classloader/buffer counters, kernel/cgroup events |
+| Hypothesis | A falsifiable statement with conditions and excluded alternatives |
+| Experiment and guardrails | Minimal change, equivalent load, p99/errors/throughput, RSS/CPU, rollback plan |
 
-## 11. Ba tình huống dễ chẩn đoán nhầm
+## 11. Three Frequently Misdiagnosed Scenarios
 
-### Tình huống A — Heap OOME nhưng vấn đề là giữ object
+### Scenario A — Heap OOME, yet the issue is object retention
 
-Sau mỗi batch, heap used tăng. Sau các collection tương đương ở cùng workload, mức used “đáy” cũng tăng. Cuối cùng xuất hiện Java heap space. Heap dump cho thấy một static map giữ hàng triệu record của các batch đã hoàn tất qua GC root. **Nguyên nhân gốc là retention của map**; phương án là thiết kế lại vòng đời/cache/eviction hoặc streaming. Tăng -Xmx có thể kéo dài thời gian trước khi thất bại, nhưng không giải quyết reference còn sống.
+After every batch, heap used rises. Across comparable collections under identical traffic, the post-GC "floor" also rises. Eventually `Java heap space` appears. A heap dump reveals a static map retaining millions of records from completed batches via a GC root. **The root cause is map retention**; the fix is redesigning lifecycle/caching/eviction or streaming. Raising `-Xmx` only delays failure without eliminating live references.
 
-### Tình huống B — Không có Java heap OOME nhưng container OOMKilled
+### Scenario B — No Java heap OOME, yet container is `OOMKilled`
 
-Pod memory limit 1 GiB, -Xmx 512 MiB. Heap used quanh 300 MiB, nhưng direct buffers + metaspace + thread stacks + các allocations khác khiến working set vượt limit khi tải tăng. Kubernetes ghi OOMKilled, không có Java exception. **Không thể kết luận heap thiếu**; cần memory budget đầy đủ, direct pool/thread trends và cgroup events. Tăng -Xmx từ 512 lên 768 MiB mà giữ nguyên limit có thể làm rủi ro lớn hơn.
+Pod memory limit is 1 GiB, `-Xmx` is 512 MiB. Heap used stays around 300 MiB, yet direct buffers + Metaspace + thread stacks + other allocations push the working set past the limit under higher traffic. Kubernetes reports `OOMKilled` with no Java exception. **You cannot conclude the heap was too small**; inspect the full memory budget, direct pool/thread trends, and cgroup events. Raising `-Xmx` from 512 to 768 MiB under the same limit would increase risk.
 
-Các số là ví dụ giả định, không phải khuyến nghị cấu hình.
+Numbers are hypothetical examples, not configuration recommendations.
 
-### Tình huống C — Metaspace OOME sau nhiều lần hot reload
+### Scenario C — Metaspace OOME after repeated hot reloads
 
-Sau mỗi lần reload plugin, số classloader tăng và không giảm; Metaspace usage tăng đều cho tới OutOfMemoryError: Metaspace. Heap dump tìm được thread do plugin cũ tạo, vẫn giữ context classloader. **Classloader retention** là giả thuyết mạnh vì có chuỗi reference và trend; cần dừng thread/đóng plugin đúng lifecycle, chứ không chỉ tăng MaxMetaspaceSize. Xác nhận bằng số classloader, unload events và metaspace ổn định qua nhiều vòng reload.
+After each plugin reload, class loader count rises without dropping; Metaspace usage climbs steadily until `OutOfMemoryError: Metaspace`. A heap dump reveals threads spawned by old plugins still holding their context class loader. **Class loader retention** is a strong hypothesis backed by reference chains and trends; stop threads and close plugins properly per lifecycle rather than just bumping `MaxMetaspaceSize`. Confirm via class loader counts, unload events, and flat Metaspace across reload cycles.
 
-## 12. Những lỗi điều tra thường gặp
+## 12. Common Investigation Mistakes
 
-- **Chỉ nhìn message, bỏ qua môi trường:** cùng Java heap space nhưng nguyên nhân có thể là leak, burst hay Xmx thấp. Message định vị bước đầu, không thay chứng cứ.
-- **Đồng nhất heap used, committed, max và RSS:** bốn giá trị khác nghĩa; memory limit container quản lý nhiều vùng ngoài heap.
-- **Dùng heap dump để “đo toàn bộ native RAM”:** dump chứa Java objects và reference, không đo đầy đủ metaspace, direct allocations, thread stacks hay memory-mapped files.
-- **Diễn giải stack trace allocation failure là vị trí leak:** object bị giữ có thể do nơi khác tạo reference lâu dài; cần retained paths/GC roots.
-- **Nhìn Full GC nhiều rồi đổi collector ngay:** phải xác định Full GC do thiếu headroom, retention, fragmentation, metadata hay allocation burst; collector không chữa leak.
-- **Chạy lệnh nặng trong sự cố mà không đánh giá tác động:** heap dump/class histogram/JFR profiling và attachment có thể gây overhead, pause và I/O; không phải mọi lệnh đều an toàn ở mọi tải.
-- **So số đo trước và sau restart:** PID khác, heap khác, classloader khác. Ghi lại thông tin process cũ.
-- **Chỉ dựa vào exit 137:** cần OOMKilled reason hoặc kernel/cgroup event; SIGKILL có thể đến từ tác nhân khác.
-- **Tăng -Xmx trong container có memory limit cố định:** native headroom giảm, có thể chuyển Java OOME thành OOMKilled.
-- **Trông chờ -XX:+HeapDumpOnOutOfMemoryError cho mọi failure:** VM fatal/native kill không bảo đảm sinh dump; phải chuẩn bị GC logs, container telemetry và crash logs từ trước.
-- **Thay nhiều tham số cùng lúc:** không biết gì gây cải thiện hoặc regression; thử từng giả thuyết, giữ baseline và rollback rõ ràng.
+- **Reading only the message while ignoring the environment:** `Java heap space` can mean a leak, burst, or low `-Xmx`. The message guides initial triage, not final proof.
+- **Equating heap used, committed, max, and RSS:** all four mean different things; container memory limits govern many regions outside the heap.
+- **Using a heap dump to "measure total native RAM":** dumps contain Java objects and references, not full Metaspace, direct allocations, thread stacks, or memory-mapped files.
+- **Treating the allocation-failure stack trace as the leak site:** objects may be retained by long-lived references elsewhere; inspect retained paths and GC roots.
+- **Seeing many Full GCs and immediately switching collectors:** determine whether Full GCs stem from low headroom, retention, fragmentation, metadata, or allocation bursts; a collector swap will not fix a leak.
+- **Running heavy commands during an incident without assessing impact:** heap dumps, class histograms, JFR profiling, and attaching incur overhead, pauses, and I/O; not every command is safe at all traffic levels.
+- **Comparing metrics before and after a restart:** different PID, heap, and class loaders. Preserve telemetry from the old process.
+- **Relying solely on exit `137`:** confirm the `OOMKilled` reason or kernel/cgroup events; `SIGKILL` can come from other actors.
+- **Raising `-Xmx` inside a fixed-limit container:** native headroom shrinks, potentially turning a Java OOME into `OOMKilled`.
+- **Counting on `-XX:+HeapDumpOnOutOfMemoryError` for every failure:** VM fatal/native kills are not guaranteed to produce dumps; set up GC logs, container telemetry, and crash logs beforehand.
+- **Changing multiple knobs at once:** you will not know what helped or caused a regression; test one hypothesis at a time with clear baselines and rollbacks.
 
-## 13. Checklist ra quyết định cuối cùng
+## 13. Final Decision-Making Checklist
 
-- [ ] Tôi đã ghi nguyên văn class/message, stack trace hoặc hs_err/termination reason và timestamp.
-- [ ] Tôi phân biệt Java OOME với VM fatal native error và process bị OOMKilled.
-- [ ] Tôi xác nhận chính xác JVM version/vendor, flags và giới hạn OS/cgroup thực tế.
-- [ ] Tôi xác định vùng tài nguyên **nghi cạn**, kèm metrics phù hợp để chứng minh hoặc bác bỏ.
-- [ ] Tôi đã đối chiếu tình trạng trước, trong, sau sự cố ở đúng PID/pod và dưới workload tương đương.
-- [ ] Với heap: xem live set/retained paths, allocation rate, GC behavior và peak load.
-- [ ] Với Metaspace/CCS: xem classloader/classes/unloading và giới hạn metadata.
-- [ ] Với direct/native/thread: xem buffer pools, NMT khi có, RSS, pids/thread limits và lifecycle tài nguyên.
-- [ ] Với container kill: có OOMKilled/cgroup/kernel evidence; không suy diễn từ exit 137 đơn lẻ.
-- [ ] Tôi viết được giả thuyết nguyên nhân gốc và lựa chọn can thiệp đúng vùng: sửa retention, giới hạn tải/thread, streaming/chunking, sửa classloader/direct lifecycle hoặc tuning có kiểm chứng.
-- [ ] Có baseline, điều kiện chấp nhận, guardrails và rollback; không chỉnh heap/GC/OS limits mù quáng.
+- [ ] I recorded the verbatim class/message, stack trace or `hs_err`/termination reason, and timestamp.
+- [ ] I distinguished Java OOME from VM fatal native errors and `OOMKilled` kills.
+- [ ] I verified the exact JVM version/vendor, flags, and actual OS/cgroup limits.
+- [ ] I identified the **suspected exhausted resource** with matching metrics to support or refute it.
+- [ ] I compared before, during, and after states on the right PID/pod under equivalent load.
+- [ ] For heap: checked live set/retained paths, allocation rate, GC behavior, and peak load.
+- [ ] For Metaspace/CCS: checked class loaders/classes/unloading and metadata limits.
+- [ ] For direct/native/threads: checked buffer pools, NMT when available, RSS, pids/thread limits, and resource lifecycles.
+- [ ] For container kills: obtained `OOMKilled`/cgroup/kernel evidence rather than inferring from exit `137` alone.
+- [ ] I formulated a root-cause hypothesis and targeted intervention: fix retention, cap load/threads, stream/chunk, fix class loader/direct lifecycle, or perform validated tuning.
+- [ ] I have a baseline, acceptance criteria, guardrails, and rollback plan—no blind heap/GC/OS limit edits.
 
-## 14. Kết luận
+## 14. Conclusion
 
-**OutOfMemoryError là điểm bắt đầu của chẩn đoán, không phải tên một nguyên nhân gốc duy nhất.** Quy trình đúng là:
+**`OutOfMemoryError` is the starting point of diagnosis, never the name of a single root cause.** The right workflow is:
 
-**Đọc nguyên văn lỗi → xác định loại thất bại (Java/VM fatal/OS kill) → ánh xạ vùng tài nguyên → thu thập chứng cứ cùng thời điểm → phân biệt leak với tải hợp lệ/giới hạn cấu hình → thử nghiệm can thiệp và kiểm chứng.**
+**Read the verbatim error → classify failure type (Java / VM fatal / OS kill) → map to resource region → gather same-time evidence → separate leaks from valid load or config limits → test intervention and verify.**
 
-Đừng để chữ “memory” khiến bạn tự động tăng Java heap. Chính vùng tài nguyên **thực sự không thể cấp phát được** cùng với dữ liệu đối chiếu mới quyết định nên kiểm tra heap dump, classloader, direct buffer, native thread, memory maps hay giới hạn container.
+Never let the word "memory" make you raise the Java heap automatically. Only the **resource that actually failed to allocate**, paired with cross-checked evidence, determines whether to examine heap dumps, class loaders, direct buffers, native threads, memory maps, or container limits.
 
-### Tài liệu chính thức để tra cứu theo môi trường
+### Official Environment Reference Documentation
 
 - Java 21 API — OutOfMemoryError: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/OutOfMemoryError.html
 - Java 21 — jcmd: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html

@@ -1,24 +1,24 @@
-# Phiên bản module cung cấp thông tin gì và vì sao cần chính sách phiên bản riêng
+# What Information Module Versions Provide and Why a Separate Versioning Policy Is Needed
 
-## 1. Vấn đề: có version trong module chưa đủ để quản lý tương thích
+## 1. The problem: having a version in a module is not enough to manage compatibility
 
-Java Platform Module System (JPMS) hỗ trợ gắn **phiên bản tùy chọn** cho một module. Ví dụ module \`com.example.plugin.api\` có thể mang phiên bản \`2.1.0\`, và chương trình có thể đọc thông tin đó qua \`ModuleDescriptor.version()\`.
+The Java Platform Module System (JPMS) supports attaching an **optional version** to a module. For example, module \`com.example.plugin.api\` may carry version \`2.1.0\`, and a program can read that information via \`ModuleDescriptor.version()\`.
 
-Nhưng **module version chỉ là metadata**, không phải một cơ chế quản lý dependency đầy đủ như Maven hoặc Gradle. Bộ phân giải JPMS không tự diễn giải một version range như \`[2.0,3.0)\` để tìm bản phát hành phù hợp, không tự tải bản mới nhất từ repository và không tự quyết định việc nâng cấp module là an toàn về tương thích API.
+However, **a module version is only metadata**, not a full dependency management mechanism like Maven or Gradle. The JPMS resolver does not interpret version ranges such as \`[2.0,3.0)\` to locate a compatible release, does not download the latest version from a repository, and does not decide whether upgrading a module is API-compatibility-safe.
 
-Trong kiến trúc plugin, cần phân biệt:
+In a plugin architecture, distinguish:
 
-- **Module name**: định danh module JPMS dùng cho \`requires\` và resolution, ví dụ \`com.example.plugin.api\`.
-- **Module version**: thông tin phiên bản tùy chọn trong descriptor, ví dụ \`2.1.0\`.
-- **API compatibility policy**: các quy tắc do host và plugin framework đặt ra để quyết định plugin nào được phép kết nối với API nào.
-- **Artifact/dependency version**: phiên bản phát hành JAR hay thư viện do build/deployment system quản lý.
-- **Runtime requirement**: phiên bản Java tối thiểu, đặc tính module, class-file version và khả năng thực thi.
+- **Module name**: the JPMS module identifier used for \`requires\` and resolution, e.g., \`com.example.plugin.api\`.
+- **Module version**: optional version information in the descriptor, e.g., \`2.1.0\`.
+- **API compatibility policy**: rules defined by the host and plugin framework deciding which plugins are allowed to connect to which APIs.
+- **Artifact/dependency version**: the JAR or library release version managed by the build/deployment system.
+- **Runtime requirement**: minimum Java version, module capabilities, class-file version, and execution capabilities.
 
-Một host đáng tin cậy **đọc version, nhưng không chỉ tin version**: nó phải kiểm tra hợp đồng được hỗ trợ, binary compatibility, dependency graph, tính năng cần thiết và hành vi runtime.
+A reliable host **reads the version, yet does not trust the version alone**: it must verify the supported contract, binary compatibility, dependency graph, required features, and runtime behavior.
 
-## 2. Module version được khai báo ở đâu?
+## 2. Where is a module version declared?
 
-Trong JPMS, một explicit module có \`module-info.java\`:
+In JPMS, an explicit module has \`module-info.java\`:
 
 \`\`\`java
 module com.example.plugin.api {
@@ -26,46 +26,46 @@ module com.example.plugin.api {
 }
 \`\`\`
 
-Cú pháp Java \`module-info.java\` **không có** mệnh đề \`version\`. Phiên bản được gắn khi biên dịch/đóng gói hoặc thông qua các công cụ hỗ trợ. Ví dụ:
+Java's \`module-info.java\` syntax **has no** \`version\` clause. Versions are attached during compilation/packaging or through supporting tools. For example:
 
 \`\`\`bash
 javac -d out/api src/api/module-info.java src/api/com/example/plugin/api/Plugin.java
 jar --create --file plugin-api.jar --module-version 2.1.0 -C out/api .
 \`\`\`
 
-Đoạn lệnh giả định các file nguồn tồn tại ở đường dẫn đã nêu. \`--module-version\` thêm phiên bản vào module descriptor của JAR được tạo. Đây là thông tin của module, **không phải** một chỉ thị source \`requires com.example.plugin.api >= 2.0\`; JPMS không hỗ trợ cú pháp version-range đó trong \`module-info.java\`.
+These commands assume the source files exist at the stated paths. \`--module-version\` adds the version into the generated JAR's module descriptor. This is module metadata, **not** a source directive \`requires com.example.plugin.api >= 2.0\`; JPMS does not support such version-range syntax in \`module-info.java\`.
 
-Các module trên module path có thể là **explicit**, **automatic** hoặc **exploded**. Cách xác định phiên bản khả dụng phụ thuộc descriptor/artifact và công cụ tạo nó. Không nên suy luận chắc chắn version chỉ từ tên file \`foo-2.1.jar\`; \`ModuleDescriptor.version()\` mới là dữ liệu do JPMS trình bày và nó có thể trống.
+Modules on the module path may be **explicit**, **automatic**, or **exploded**. How an available version is determined depends on the descriptor/artifact and the tool that built it. Do not infer a reliable version merely from a filename like \`foo-2.1.jar\`; \`ModuleDescriptor.version()\` is the data presented by JPMS, and it can be empty.
 
-## 3. Đọc ModuleDescriptor.version()
+## 3. Reading ModuleDescriptor.version()
 
-API quan trọng:
+Key API:
 
 \`\`\`java
 ModuleDescriptor descriptor = reference.descriptor();
 Optional<ModuleDescriptor.Version> version = descriptor.version();
 \`\`\`
 
-\`ModuleDescriptor.Version\` là kiểu biểu diễn và so sánh phiên bản của JPMS; nó không đồng nghĩa hoàn toàn với Semantic Versioning. Một số chuỗi phiên bản được parse theo quy tắc JPMS, và định dạng/so sánh có thể khác chính sách phát hành riêng của hệ plugin. Nếu ứng dụng tuân theo SemVer, phải dùng quy tắc parser và range riêng phù hợp SemVer.
+\`ModuleDescriptor.Version\` is JPMS's type for representing and comparing versions; it is not strictly synonymous with Semantic Versioning. Version strings are parsed according to JPMS rules, and formatting/ordering may differ from a plugin system's own release policy. If an application follows SemVer, it must use a dedicated SemVer-compliant parser and range rules.
 
-Module version là tùy chọn: \`version()\` có thể trả \`Optional.empty()\`. Ứng dụng không nên tự gán mặc định \`0.0.0\` hoặc coi missing version là bản mới nhất khi chưa có policy.
+Module versions are optional: \`version()\` may return \`Optional.empty()\`. An application should not silently default to \`0.0.0\` or treat a missing version as the latest release without an explicit policy.
 
-Các trường metadata khác thường cần xem cùng version:
+Other metadata fields typically inspected alongside the version:
 
-| Metadata | Ý nghĩa | Điều không tự bảo đảm |
+| Metadata | Meaning | What it does not guarantee by itself |
 |---|---|---|
-| \`descriptor.name()\` | Tên JPMS module | Nhà phát hành đáng tin |
-| \`descriptor.version()\` | Phiên bản được khai báo | Tương thích với host |
-| \`descriptor.requires()\` | Những module cần để liên kết | Phiên bản dependency phù hợp |
-| \`descriptor.exports()\` | Package có thể truy cập | API semantic stability |
-| \`descriptor.uses()\` | Service mà module sử dụng | Service được cài sẵn |
-| \`descriptor.provides()\` | Service provider được công bố | Provider an toàn/khởi tạo thành công |
+| \`descriptor.name()\` | JPMS module name | Trusted publisher |
+| \`descriptor.version()\` | Declared version | Compatibility with the host |
+| \`descriptor.requires()\` | Modules needed for linking | Compatible dependency versions |
+| \`descriptor.exports()\` | Accessible packages | API semantic stability |
+| \`descriptor.uses()\` | Services used by the module | Services are installed |
+| \`descriptor.provides()\` | Advertised service providers | Provider is safe or initializes cleanly |
 
-## 4. Ví dụ Java 17+: đọc version của module đã đóng gói
+## 4. Java 17+ example: reading the version of a packaged module
 
-Ví dụ này tạo một module nhỏ rồi dùng \`ModuleFinder\` để đọc descriptor trước khi kích hoạt bất kỳ mã plugin nào.
+This example creates a small module and uses \`ModuleFinder\` to read its descriptor before activating any plugin code.
 
-Cấu trúc:
+Layout:
 
 \`\`\`text
 project/
@@ -76,7 +76,7 @@ project/
 └── InspectModuleVersion.java
 \`\`\`
 
-Nội dung **\`src/demo.plugin/module-info.java\`**:
+Contents of **\`src/demo.plugin/module-info.java\`**:
 
 \`\`\`java
 module demo.plugin {
@@ -84,7 +84,7 @@ module demo.plugin {
 }
 \`\`\`
 
-Nội dung **\`src/demo.plugin/demo/plugin/Greeter.java\`**:
+Contents of **\`src/demo.plugin/demo/plugin/Greeter.java\`**:
 
 \`\`\`java
 package demo.plugin;
@@ -96,7 +96,7 @@ public final class Greeter {
 }
 \`\`\`
 
-Nội dung **\`InspectModuleVersion.java\`**:
+Contents of **\`InspectModuleVersion.java\`**:
 
 \`\`\`java
 import java.lang.module.ModuleDescriptor;
@@ -133,7 +133,7 @@ public class InspectModuleVersion {
 }
 \`\`\`
 
-Tại thư mục \`project\`, chạy trên JDK 17+ (shell POSIX):
+In the \`project\` directory, run on JDK 17+ (POSIX shell):
 
 \`\`\`bash
 javac -d mods/demo.plugin \
@@ -157,13 +157,13 @@ automatic=false
 requires=[java.base]
 \`\`\`
 
-\`java.base\` là dependency ngầm định. Nếu đóng gói module mà không đặt \`--module-version\`, trường \`version\` có thể là \`<none>\`.
+\`java.base\` is an implicit dependency. If the module is packaged without \`--module-version\`, the \`version\` field may be \`<none>\`.
 
-Lệnh \`ModuleFinder.of(Path.of(args[0]))\` chỉ đọc thông tin về module từ đường dẫn; chương trình không gọi class \`Greeter\`, không tạo \`ModuleLayer\` và không kích hoạt plugin. Trường hợp đường dẫn lỗi, artifact không hợp lệ hoặc module trùng/xung đột có thể dẫn tới \`FindException\`/lỗi I/O tương ứng, cần phân loại khi triển khai production.
+\`ModuleFinder.of(Path.of(args[0]))\` only reads module metadata from the path; the program never calls \`Greeter\`, creates a \`ModuleLayer\`, or activates the plugin. Bad paths, invalid artifacts, or duplicate/conflicting modules can cause \`FindException\` or related I/O errors, which must be classified in production deployments.
 
-## 5. JPMS resolution dùng version như thế nào?
+## 5. How does JPMS resolution use versions?
 
-Hãy xem:
+Consider:
 
 \`\`\`java
 module com.example.report.plugin {
@@ -171,31 +171,31 @@ module com.example.report.plugin {
 }
 \`\`\`
 
-Lệnh \`requires\` nêu **tên module**, không khai báo version tối thiểu/tối đa. Bộ phân giải JPMS dùng \`ModuleFinder\` và parent configuration để tìm module theo tên và thỏa các quy tắc dependency/readability. Nó **không thương lượng version range** như dependency resolver của build tool.
+The \`requires\` directive names a **module**, without declaring minimum or maximum versions. The JPMS resolver uses \`ModuleFinder\` and parent configurations to locate modules by name and satisfy dependency/readability rules. It **does not negotiate version ranges** like a build tool's dependency resolver.
 
-Điều này dẫn đến ba hệ quả:
+This leads to three consequences:
 
-1. Nếu có \`com.example.plugin.api\` version \`1.0.0\` trên module path, cú pháp \`requires com.example.plugin.api;\` không tự từ chối chỉ vì plugin cần một API mới hơn.
-2. Nếu có nhiều phiên bản JAR cùng tên module trong cùng phạm vi tìm kiếm, không được kỳ vọng JPMS chọn phiên bản cao nhất theo SemVer.
-3. Khi thiếu dependency phiên bản cần thiết, JPMS không tự tải bản mới từ Maven Central hay một plugin repository.
+1. If \`com.example.plugin.api\` version \`1.0.0\` is on the module path, \`requires com.example.plugin.api;\` does not automatically reject it simply because the plugin needs a newer API.
+2. If multiple JAR versions with the same module name appear in the same search scope, do not expect JPMS to pick the highest version according to SemVer.
+3. When a required dependency version is missing, JPMS does not download a newer release from Maven Central or a plugin repository.
 
-Module version là metadata hữu ích cho diagnostics và policy ở tầng host, **không phải phép thay thế cho kiểm tra tương thích nhị phân, semantic hoặc khả năng của provider**.
+Module version is useful metadata for diagnostics and host-level policies, **not a substitute for checking binary, semantic, or provider capability compatibility**.
 
-## 6. Vì sao cần chính sách phiên bản riêng?
+## 6. Why is a separate versioning policy needed?
 
-Một hệ plugin cần trả lời những câu hỏi mà JPMS không tự giải quyết:
+A plugin system must answer questions that JPMS does not solve on its own:
 
-- Plugin \`csv-exporter 3.2.0\` có tương thích với host API \`2.4.0\` không?
-- Có cho phép plugin yêu cầu API \`2.x\` chạy trên API \`3.0.0\` không?
-- Khi phát hiện hai plugin cùng ID nhưng khác version, sẽ chọn bản nào?
-- Một module không có version có được cho chạy không?
-- Khi host cập nhật API, những provider nào phải build lại hoặc chạy integration test?
-- Tính năng nào thực sự có mặt trong runtime, bất kể module version khai báo?
-- Khi rollback, host có cần giữ nhiều phiên bản plugin song song hay không?
+- Is plugin \`csv-exporter 3.2.0\` compatible with host API \`2.4.0\`?
+- Should a plugin requesting API \`2.x\` be allowed to run on API \`3.0.0\`?
+- When two plugins share an ID yet have different versions, which one is selected?
+- Is a module without a version allowed to run?
+- When the host updates its API, which providers must rebuild or pass integration tests?
+- Which features are actually present at runtime, regardless of declared module version?
+- During rollback, does the host need to retain multiple plugin versions side by side?
 
-JPMS không thể tự suy ra compatibility từ số phiên bản. Host phải xây một **policy** tường minh và áp dụng trước khi nạp/kích hoạt plugin.
+JPMS cannot infer compatibility from version numbers. The host must establish an explicit **policy** and enforce it before loading/activating plugins.
 
-Ví dụ một policy đơn giản:
+Example simple policy:
 
 \`\`\`text
 Host API version: 2.4.0
@@ -205,23 +205,23 @@ Plugin requires API major: 3 -> rejected
 Unknown API major -> rejected until reviewed
 \`\`\`
 
-Đây chỉ là **bộ lọc compatibility ban đầu**. Cùng major vẫn không bảo đảm mọi phương thức/behavior tương thích nếu nhà phát triển phá vỡ hợp đồng hoặc dùng API đã bị loại bỏ. Cần thêm contract tests, kiểm tra method/class có mặt, feature negotiation và kiểm thử runtime.
+This is only an **initial compatibility filter**. Sharing the same major version still does not guarantee every method/behavior is compatible if developers broke the contract or used removed APIs. You still need contract tests, checks for present methods/classes, feature negotiation, and runtime testing.
 
-## 7. Phân biệt các loại phiên bản trong plugin ecosystem
+## 7. Distinguishing version types in a plugin ecosystem
 
-| Loại | Ví dụ | Chủ thể quyết định |
+| Type | Example | Authority |
 |---|---|---|
 | JPMS module version | \`com.example.plugin.api@2.4.0\` | Build/packaging metadata |
-| Plugin implementation version | \`csv-exporter 1.7.0\` | Nhà phát hành plugin |
-| Host API version | \`2.4.0\` | Chủ sở hữu hợp đồng extension |
-| Plugin API requirement | \`>=2.2,<3.0\` | Metadata/descriptor của plugin + policy host |
-| JVM/runtime requirement | Java 17+ | Bản build, bytecode và tính năng sử dụng |
+| Plugin implementation version | \`csv-exporter 1.7.0\` | Plugin publisher |
+| Host API version | \`2.4.0\` | Extension contract owner |
+| Plugin API requirement | \`>=2.2,<3.0\` | Plugin metadata/descriptor + host policy |
+| JVM/runtime requirement | Java 17+ | Build target, bytecode, and used features |
 | Artifact dependency version | \`library-x:4.1.2\` | Build/deployment resolution |
 | Capability version | \`export.csv.v2\` | Protocol/feature negotiation |
 
-Không nên dùng một chuỗi version duy nhất cho tất cả. Một plugin phiên bản \`5.0.0\` vẫn có thể sử dụng API host \`2.x\`; ngược lại, plugin version \`1.0.0\` có thể yêu cầu API host \`3.x\`.
+Do not reuse a single version string for everything. A plugin at version \`5.0.0\` may still target host API \`2.x\`; conversely, a plugin at version \`1.0.0\` may require host API \`3.x\`.
 
-Nếu module descriptor chỉ chứa \`version=1.7.0\`, host vẫn chưa biết plugin cần API nào. Có thể dùng metadata riêng trong manifest hoặc descriptor plugin:
+If the module descriptor only contains \`version=1.7.0\`, the host still does not know which API the plugin requires. Custom metadata can live in a manifest or plugin descriptor:
 
 \`\`\`text
 Plugin-Id: csv-exporter
@@ -230,66 +230,66 @@ Plugin-Api-Range: [2.2.0,3.0.0)
 Required-Java-Version: 17
 \`\`\`
 
-Các trường \`Plugin-*\` ở đây là quy ước ứng dụng, **không phải thuộc tính JPMS chuẩn**; range chỉ được phép dùng khi host tự định nghĩa và hiện thực parser/chính sách.
+These \`Plugin-*\` fields are application conventions, **not standard JPMS attributes**; ranges work only when the host defines and implements its own parser and policy.
 
-## 8. Semantic Versioning và tương thích thực tế
+## 8. Semantic Versioning and practical compatibility
 
-Semantic Versioning thường biểu diễn \`MAJOR.MINOR.PATCH\` với ý nghĩa:
+Semantic Versioning is typically written \`MAJOR.MINOR.PATCH\` with the meaning:
 
-- **MAJOR** khi có thay đổi API không tương thích.
-- **MINOR** khi thêm chức năng tương thích ngược.
-- **PATCH** khi sửa lỗi không phá compatibility theo contract.
+- **MAJOR** for incompatible API changes.
+- **MINOR** when adding backward-compatible functionality.
+- **PATCH** for contract-preserving bug fixes.
 
-Tuy nhiên, SemVer **chỉ đáng tin khi dự án tuân thủ kỷ luật phát hành và định nghĩa rõ public API**. Đặc biệt, thay đổi hành vi, serialization format, threading hoặc security policy có thể phá tương thích dù method signature vẫn tồn tại.
+However, SemVer is **reliable only when a project follows release discipline and clearly defines its public API**. In particular, changes to behavior, serialization formats, threading, or security policies can break compatibility even when method signatures remain intact.
 
-Những lỗi so sánh version phổ biến:
+Common version-comparison mistakes:
 
-- So sánh bằng \`String.compareTo\`: \`"2.10.0"\` có thứ tự từ điển khác kỳ vọng khi so với \`"2.9.0"\`.
-- Chỉ tách dấu chấm rồi so \`int\`: bỏ qua prerelease như \`2.0.0-rc.1\`, build metadata và quy tắc SemVer.
-- Tin rằng \`ModuleDescriptor.Version\` luôn chính là một parser/comparator SemVer đầy đủ.
-- Dùng rule “cùng major là an toàn tuyệt đối” mà không kiểm thử contract.
+- Comparing with \`String.compareTo\`: \`"2.10.0"\` sorts differently lexicographically compared to \`"2.9.0"\`.
+- Splitting on dots and comparing \`int\`s only: ignores prereleases like \`2.0.0-rc.1\`, build metadata, and SemVer precedence rules.
+- Assuming \`ModuleDescriptor.Version\` is always a full SemVer parser/comparator.
+- Relying on “same major means completely safe” without contract testing.
 
-Nên dùng một thư viện version-range đáng tin hoặc tự hiện thực một parser được kiểm thử nghiêm ngặt theo specification mà hệ plugin đã chọn. Đặt policy cho prerelease, snapshot, phiên bản thiếu hoặc không hợp lệ.
+Use a trustworthy version-range library or implement a strictly tested parser matching the specification chosen by your plugin system. Define policies for prereleases, snapshots, and missing or invalid versions.
 
-## 9. Quy trình kiểm tra compatibility trước kích hoạt
+## 9. Pre-activation compatibility verification flow
 
-Một quy trình pre-activation thực tế:
+A practical pre-activation pipeline:
 
 \`\`\`text
-Plugin artifact chưa tin cậy
+Untrusted plugin artifact
         |
         v
-Kiểm tra nguồn, hash/signature, metadata/schema
+Verify source, hash/signature, metadata/schema
         |
         v
-Đọc module descriptor + plugin descriptor
+Read module descriptor + plugin descriptor
         |
         v
-Xác định plugin ID/version, API requirement, Java requirement
+Determine plugin ID/version, API requirement, Java requirement
         |
         v
-Kiểm tra version policy và feature/capability requirements
+Check version policy and feature/capability requirements
         |
         v
-Kiểm tra module/dependency graph, duplicate module names
+Check module/dependency graph, duplicate module names
         |
         v
 Resolution + layer/class loader
         |
         v
-Kiểm tra service provider contract + khởi tạo/health check
+Verify service provider contract + init/health check
         |
         v
-Công bố plugin active
+Publish plugin active
 \`\`\`
 
-**Từ chối trước khi khởi tạo** nếu policy không được thỏa. Không nên dùng \`Class.forName\` để “kiểm tra metadata” của plugin chưa được phê duyệt vì class loading/initialization có thể chạy code hoặc gây tác dụng phụ.
+**Reject before initialization** if the policy is not met. Do not use \`Class.forName\` to “inspect metadata” of an unapproved plugin, because class loading/initialization can execute static code or cause side effects.
 
-Trường hợp cần hỗ trợ nhiều API major cùng lúc, có thể phát hành adapter hoặc nhiều module API riêng, nhưng phải thiết kế cẩn thận class identity và compatibility. Không thể chỉ đặt hai JAR trùng tên module khác version cùng một module graph rồi kỳ vọng JPMS tự chọn đúng cho từng plugin.
+If multiple major APIs must be supported simultaneously, you can ship adapters or separate API modules, yet class identity and compatibility must be designed carefully. You cannot simply place two JARs with the same module name and different versions in the same module graph and expect JPMS to pick the right one per plugin.
 
-## 10. Binary compatibility khác với module version
+## 10. Binary compatibility differs from module version
 
-Hai bản API có thể cùng module name nhưng khác class/method. Ví dụ:
+Two API builds can share the exact same module name while having different classes/methods. For example:
 
 \`\`\`java
 // API v1
@@ -299,38 +299,38 @@ public interface Exporter {
 \`\`\`
 
 \`\`\`java
-// API v2 - thay đổi chữ ký, có khả năng phá tương thích
+// API v2 - signature changed, potentially breaking compatibility
 public interface Exporter {
     byte[] export(String input, String format);
 }
 \`\`\`
 
-Nếu plugin build theo API v1 nhưng runtime host dùng API v2, có thể phát sinh \`NoSuchMethodError\`, \`AbstractMethodError\` hoặc lỗi linkage khác tùy call site và cách plugin được biên dịch/triển khai. Chỉ nhìn module version không chứng minh compatibility.
+If a plugin was built against API v1 yet the runtime host runs API v2, \`NoSuchMethodError\`, \`AbstractMethodError\`, or other linkage errors can arise depending on call sites and how the plugin was compiled/deployed. Looking at the module version alone does not prove compatibility.
 
-Ngay cả việc thêm abstract method vào interface có thể làm các implementation cũ thất bại khi method mới được gọi. Thêm \`default\` method có thể thân thiện hơn trong một số trường hợp nhưng vẫn cần đánh giá xung đột method và semantics.
+Even adding an abstract method to an interface can cause old implementations to fail when the new method is called. Adding a \`default\` method can be friendlier in some cases, yet method conflicts and semantics must still be assessed.
 
-Các công cụ so sánh API, kiểm thử binary compatibility và integration tests giúp bổ sung policy dựa trên version. Với plugin interface, nên thiết kế hợp đồng có khả năng mở rộng, phân nhóm capability và quy tắc deprecation rõ ràng.
+API comparison tools, binary compatibility checks, and integration tests complement version-based policies. For plugin interfaces, design extensible contracts, grouped capabilities, and clear deprecation rules.
 
-## 11. Versioning trong ModuleLayer và hot reload
+## 11. Versioning in ModuleLayer and hot reload
 
-Một \`ModuleLayer\` là cấu hình runtime được tạo từ graph module đã resolve. Sau khi layer tồn tại, thay một JAR bằng bản version mới trên filesystem **không tự cập nhật module đang chạy**.
+A \`ModuleLayer\` is a runtime configuration built from a resolved module graph. Once a layer exists, replacing a JAR on the filesystem with a newer version **does not update running modules**.
 
-Khi nâng cấp plugin:
+When upgrading a plugin:
 
-1. Chọn artifact phiên bản mới theo policy, kiểm tra integrity và compatibility.
-2. Tạo finder/configuration/layer mới theo thiết kế class loader.
-3. Nạp và kiểm tra provider mới.
-4. Công bố snapshot registry mới để request tiếp theo dùng phiên bản mới.
-5. Drain request cũ, đóng tài nguyên và gỡ reference tới loader/layer cũ.
-6. Theo dõi class unloading/Metaspace, không giả định GC sẽ thu hồi ngay.
+1. Select the new versioned artifact per policy; verify integrity and compatibility.
+2. Create a new finder/configuration/layer according to the class loader design.
+3. Load and verify the new provider.
+4. Publish the new registry snapshot so subsequent requests use the new version.
+5. Drain old requests, close resources, and drop references to the old loader/layer.
+6. Monitor class unloading/Metaspace without assuming GC will reclaim immediately.
 
-Với rollback, “quay lại version trước” có thể yêu cầu khởi tạo lại từ artifact được lưu trữ, vì loader/layer cũ có thể đã đóng hoặc object state không thể dùng lại.
+For rollback, “reverting to the previous version” may require re-instantiating from the stored artifact, because the old loader/layer may already be closed or object state cannot be reused.
 
-Đừng nhầm version pinning với class loading isolation: pin một artifact đúng version vẫn chưa đủ nếu hai plugin cùng dùng các dependency không tương thích và buộc chạy trong một loader chung.
+Do not confuse version pinning with class loading isolation: pinning an artifact to the right version is not enough if two plugins rely on incompatible dependencies and are forced into a shared loader.
 
-## 12. Chính sách ví dụ cho host/plugin
+## 12. Example host/plugin policy
 
-Một policy đơn giản nhưng rõ ràng:
+A simple yet explicit policy:
 
 \`\`\`text
 Host:
@@ -348,45 +348,45 @@ Plugin:
   requiredCapabilities: [export.csv.v2]
 \`\`\`
 
-Đây là cấu hình khái niệm, không phải cú pháp chuẩn của \`module-info.java\` hoặc \`ModuleDescriptor\`. Host phải kiểm tra cả hai điều kiện: API hiện hành nằm trong range plugin yêu cầu, và policy host cho phép plugin/capability này. Tính đúng đắn còn tùy các capability hiện có và kết quả contract test.
+This is a conceptual configuration, not standard \`module-info.java\` or \`ModuleDescriptor\` syntax. The host must verify both conditions: the active API lies within the plugin's required range, and host policy allows this plugin/capability. Correctness still depends on actual capabilities and contract test results.
 
-Một bảng quyết định minh họa:
+An illustrative decision table:
 
-| Plugin yêu cầu | Host API hiện hành | Kết quả policy |
+| Plugin requires | Active host API | Policy outcome |
 |---|---|---|
-| \`>=2.3,<3.0\` | \`2.4.1\` | Có thể chấp nhận nếu contract/capability đạt |
-| \`>=3.0,<4.0\` | \`2.4.1\` | Từ chối vì không nằm trong range |
-| \`>=2.0,<2.4\` | \`2.4.1\` | Từ chối theo range plugin khai báo |
-| Không khai báo | \`2.4.1\` | Từ chối hoặc yêu cầu migration theo policy |
+| \`>=2.3,<3.0\` | \`2.4.1\` | Acceptable if contract/capabilities pass |
+| \`>=3.0,<4.0\` | \`2.4.1\` | Rejected because outside range |
+| \`>=2.0,<2.4\` | \`2.4.1\` | Rejected per plugin's declared range |
+| Undeclared | \`2.4.1\` | Rejected or requires migration per policy |
 
-Không nên âm thầm “nới” range do plugin đã khai báo hoặc bỏ qua phiên bản thiếu mà không ghi lý do. Khi kiểm tra bằng máy, mọi quyết định nên được log với \`pluginId\`, version, API requirement, selected API và policy revision.
+Do not silently “widen” a range declared by a plugin or ignore a missing version without logging a reason. When automated checks run, log every decision with \`pluginId\`, version, API requirement, selected API, and policy revision.
 
-## 13. Lỗi phổ biến
+## 13. Common mistakes
 
-- Đọc \`ModuleDescriptor.version()\` rồi nghĩ JPMS sẽ tự kiểm tra version range.
-- Đặt version trực tiếp trong \`requires\` của \`module-info.java\` như syntax Maven.
-- Cho rằng tên JAR đủ để xác định module version đáng tin.
-- Dùng \`ModuleDescriptor.Version\` thay hẳn một chính sách SemVer mà không kiểm tra khác biệt.
-- Coi số version “cao hơn” luôn tương thích với plugin cũ.
-- Chỉ nhìn source compatibility mà bỏ qua binary/behavior compatibility.
-- Không định nghĩa cách xử lý bản không có version hoặc prerelease.
-- Để module trùng tên với version khác nhau và kỳ vọng JPMS tự chọn mới nhất.
-- Đánh đồng version plugin, version API, version JDK và version dependency.
-- Không kiểm tra artifact, capabilities và service contract trước khi kích hoạt.
+- Reading \`ModuleDescriptor.version()\` and assuming JPMS enforces version ranges automatically.
+- Putting a version directly inside \`requires\` in \`module-info.java\` like Maven syntax.
+- Assuming a JAR filename reliably identifies its module version.
+- Using \`ModuleDescriptor.Version\` as a full SemVer policy replacement without checking differences.
+- Treating a “higher” version number as always compatible with old plugins.
+- Checking only source compatibility while ignoring binary/behavioral compatibility.
+- Failing to define how unversioned builds or prereleases are handled.
+- Leaving duplicate module names with different versions and expecting JPMS to auto-select the newest.
+- Conflating plugin version, API version, JDK version, and dependency versions.
+- Failing to verify artifacts, capabilities, and service contracts before activation.
 
-## 14. Checklist thực hành
+## 14. Practical checklist
 
-Trước khi đưa module/plugin vào runtime:
+Before admitting a module/plugin into runtime:
 
-1. Đã đọc đúng \`ModuleDescriptor.name()\` và \`version()\`, xử lý version thiếu?
-2. Đã phân biệt module version và plugin/API/runtime requirement?
-3. Đã định nghĩa parser/range policy, prerelease và cơ chế compatibility?
-4. Đã kiểm tra API hiện hành nằm trong range mà plugin hỗ trợ?
-5. Đã kiểm tra Java version, dependency graph và capability bắt buộc?
-6. Đã so sánh binary compatibility/contract và test behavior quan trọng?
-7. Đã loại duplicate module names và xung đột dependency?
-8. Đã xác minh nguồn gốc/integrity trước khi load code?
-9. Đã có policy rollback, hot reload, drain và cleanup?
-10. Đã log quyết định accept/reject có nguyên nhân rõ ràng?
+1. Did you properly read \`ModuleDescriptor.name()\` and \`version()\`, and handle missing versions?
+2. Did you separate module version from plugin/API/runtime requirements?
+3. Did you define a range parser/policy, prerelease handling, and compatibility rules?
+4. Did you check that the active API lies within the range the plugin supports?
+5. Did you check the Java version, dependency graph, and required capabilities?
+6. Did you compare binary compatibility/contracts and test critical behavior?
+7. Did you eliminate duplicate module names and dependency conflicts?
+8. Did you verify provenance/integrity before loading code?
+9. Do you have policies for rollback, hot reload, draining, and cleanup?
+10. Did you log accept/reject decisions with clear reasons?
 
-**Ghi nhớ:** **JPMS module version trả lời “module tự khai báo phiên bản nào?”**, nhưng không trả lời “plugin này chạy an toàn và tương thích với host hiện tại không?”. Câu hỏi thứ hai đòi hỏi **chính sách phiên bản, kiểm tra dependency, capability và contract** do ứng dụng chủ động thiết kế.
+**Takeaway:** **JPMS module version answers “which version does this module declare for itself?”**, not “will this plugin run safely and compatibly with the current host?”. The second question requires **explicit versioning, dependency, capability, and contract policies** actively designed by the application.

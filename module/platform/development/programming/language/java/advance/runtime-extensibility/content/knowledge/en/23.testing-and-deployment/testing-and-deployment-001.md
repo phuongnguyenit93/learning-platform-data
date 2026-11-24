@@ -1,38 +1,38 @@
-# Kiểm thử cùng một bộ hợp đồng với mọi provider được hỗ trợ
+# Testing the Same Contract Suite Against Every Supported Provider
 
-## 1. Vì sao phải dùng một bộ contract tests chung?
+## 1. Why Use a Shared Contract Test Suite?
 
-Trong hệ Java có khả năng mở rộng ở runtime, host định nghĩa một **service contract** (interface hoặc abstract class), còn nhiều nhà cung cấp (provider) viết các implementation. Ví dụ cùng một `Slugifier` có hai implementation: một xử lý bằng vòng lặp, một dùng regular expression. Host không nên cần biết thuật toán nào đang chạy; host cần tin rằng **mọi provider được hỗ trợ đều giữ lời hứa của service API**.
+In a Java system that supports runtime extensibility, the host defines a **service contract** (an interface or abstract class), while multiple providers supply implementations. For example, the same `Slugifier` service might have two implementations: one using a character loop and another using regular expressions. The host should not care which algorithm runs; the host needs confidence that **every supported provider honors the promises of the service API**.
 
-Một lỗi dễ mắc là kiểm thử rất kỹ provider mặc định, còn provider do plugin khác cung cấp chỉ được thử “khởi tạo được”. Nếu provider thứ hai xử lý dữ liệu trống khác, ném exception không đúng, hoặc không an toàn khi gọi đồng thời, host có thể hoạt động tốt ở môi trường A nhưng lỗi ở môi trường B.
+A common mistake is thoroughly testing the default provider while only checking that other plugin-supplied providers "can be instantiated". If a second provider handles empty input differently, throws the wrong exception, or is unsafe under concurrent calls, the host may work fine in environment A yet fail in environment B.
 
-**Contract testing** giải quyết bằng cách biến mô tả hành vi của service thành **một bộ assertions giống nhau** và chạy nó với **tất cả provider trong danh mục hỗ trợ**, độc lập với cách provider được cài đặt. Đây là lớp kiểm thử bổ sung cho unit test riêng của từng implementation; nó không thay thế kiểm thử nội bộ, integration hay security test.
+**Contract testing** solves this by turning the service's behavioral specification into **one uniform set of assertions** and running it against **all providers in the supported catalog**, independent of how each provider is implemented. It complements each implementation's own unit tests; it does not replace internal implementation tests, integration tests, or security tests.
 
-Một công thức tổ chức:
+An organizational model:
 
 ~~~text
-Shared service API + phiên bản hợp đồng
+Shared service API + contract version
                 |
                 v
        Shared Contract Suite
-       - input hợp lệ / kết quả
-       - input không hợp lệ / lỗi
+       - valid inputs / outputs
+       - invalid inputs / errors
        - invariants / repeatability
-       - concurrency nếu được hứa
+       - concurrency if promised
        - lifecycle/resource semantics
                 |
         +-------+-------+
         |       |       |
     Provider A  B       C ... (discovered/catalogued)
         |       |       |
-       PASS    PASS    FAIL → không hỗ trợ deploy phiên bản C này
+       PASS    PASS    FAIL → do not support deploying this version C
 ~~~
 
-**Mục tiêu bài:** thiết kế hợp đồng có thể kiểm thử, chạy cùng một suite cho mọi provider, ngăn “test xanh” khi provider bị thiếu, chuẩn hóa fixture/lifecycle, phân biệt test áp dụng cho mọi provider với capability tùy chọn, và đưa kiểm thử vào CI/deployment gate.
+**Goal of this lesson:** design a testable contract, run the exact same suite for every provider, prevent "green tests" when providers are missing, standardize fixtures/lifecycle, distinguish tests that apply to all providers from optional capabilities, and wire the suite into CI/deployment gates.
 
-## 2. Bắt đầu từ hợp đồng quan sát được, không từ thuật toán
+## 2. Start from Observable Contract Behavior, Not Algorithms
 
-Một interface chỉ nêu **chữ ký**, chưa mô tả đầy đủ hành vi:
+An interface only states **signatures**; it does not fully specify behavior:
 
 ~~~java
 public interface Slugifier {
@@ -41,93 +41,93 @@ public interface Slugifier {
 }
 ~~~
 
-Đoạn trên chỉ minh họa chữ ký; chưa có package hay chương trình chạy độc lập. Muốn mọi provider có thể được thay thế cho nhau, tài liệu API cần xác định **preconditions, postconditions, lỗi, state và concurrency**.
+The snippet above only illustrates signatures; it has no package or standalone runnable program. For providers to be interchangeable, API documentation must define **preconditions, postconditions, errors, state, and concurrency**.
 
-Ví dụ ta công bố hợp đồng `Slugifier` như sau:
+For example, suppose we publish the `Slugifier` contract as follows:
 
-| Khía cạnh | Hợp đồng bắt buộc |
+| Aspect | Required Contract |
 | --- | --- |
-| Input hợp lệ | Chuỗi gồm **ASCII letters** A–Z/a–z, digits 0–9 và các separator ASCII: dấu cách, `_`, `-` |
-| Đầu ra | Chỉ còn ASCII lowercase letters/digits, nối các cụm bằng một dấu `-` |
-| Chuẩn hóa | Gộp nhiều separator liền nhau; bỏ separator ở đầu/cuối |
-| Input `null` | Ném `NullPointerException` |
-| Input rỗng hoặc chỉ toàn separator | Ném `IllegalArgumentException` |
-| Ký tự ngoài miền cho phép, kể cả Unicode ngoài ASCII hoặc dấu câu | Ném `IllegalArgumentException` |
-| Repeatability | Cùng input và cùng trạng thái hợp lệ phải cho cùng kết quả |
-| Thread safety | Các lời gọi `slugify` đồng thời trên **một instance** phải an toàn; implementation mẫu là stateless |
-| `id()` | Trả về ID không rỗng, ổn định trong vòng đời instance, duy nhất giữa các provider trong catalog đang kiểm thử |
+| Valid input | String consisting of **ASCII letters** A–Z/a–z, digits 0–9, and ASCII separators: space, `_`, `-` |
+| Output | Only ASCII lowercase letters/digits, joining groups with a single `-` |
+| Normalization | Collapse consecutive separators; trim leading/trailing separators |
+| `null` input | Throws `NullPointerException` |
+| Empty or separator-only input | Throws `IllegalArgumentException` |
+| Out-of-domain characters, including non-ASCII Unicode or punctuation | Throws `IllegalArgumentException` |
+| Repeatability | Same input and valid state must produce the same result |
+| Thread safety | Concurrent calls to `slugify` on **a single instance** must be safe; sample implementations are stateless |
+| `id()` | Returns a non-blank ID, stable over the instance's lifetime, unique across providers in the catalog under test |
 
-Đây là **hợp đồng của ví dụ**; ứng dụng thật có thể chọn quy tắc Unicode khác. Không tự đánh giá provider sai chỉ vì nó khác sở thích của người viết test: chuẩn hành vi phải đến từ tài liệu/chính sách API đã thống nhất.
+This is the **example's contract**; real applications may choose different Unicode rules. Never judge a provider as wrong merely because it differs from the test author's preference: behavioral standards must come from agreed API documentation/policy.
 
-### 2.1. Contract test khác implementation test
+### 2.1. Contract Tests Differ from Implementation Tests
 
-| Kiểu kiểm thử | Điều khẳng định | Phạm vi |
+| Test Type | What It Asserts | Scope |
 | --- | --- | --- |
-| Contract | `slugify("Hello WORLD")` trả `"hello-world"` với **mọi** implementation | Mọi provider được hỗ trợ |
-| Implementation unit | Hàm regex riêng dùng đúng pattern hoặc loop xử lý đúng nhánh nội bộ | Chỉ provider tương ứng |
-| Discovery/packaging | Provider được tìm qua SPI/module layer, metadata và dependency đúng | Một artifact hoặc runtime catalog |
-| Integration | Provider hoạt động với DB/network/config thực hoặc fake tương ứng | Môi trường host cụ thể |
-| Compatibility | Provider build với API version X chạy trong host hỗ trợ X | Cặp host–provider versions |
-| Performance/security | SLO, tài nguyên, trust boundary, input không đáng tin | Theo chính sách hệ thống |
+| Contract | `slugify("Hello WORLD")` returns `"hello-world"` for **every** implementation | All supported providers |
+| Implementation unit | Private regex helper uses the right pattern or loop handles an internal branch | Only that specific provider |
+| Discovery/packaging | Provider is found via SPI/module layer with valid metadata and dependencies | A single artifact or runtime catalog |
+| Integration | Provider works with real or fake DB/network/config | Specific host environment |
+| Compatibility | Provider built against API version X runs in a host supporting X | Host–provider version pairs |
+| Performance/security | SLOs, resource usage, trust boundaries, untrusted input | Per system policy |
 
-**Đừng đưa chi tiết thuật toán** (dùng vòng lặp hay regex, cấu trúc private field, class name nội bộ) vào suite dùng chung. Chỉ assert những gì caller có quyền kỳ vọng từ contract.
+**Never put algorithmic details** (loop vs. regex, private field layout, internal class names) into the shared suite. Assert only what callers are entitled to expect from the contract.
 
-### 2.2. Contract cần có khả năng đo được
+### 2.2. Contracts Must Be Measurable
 
-Một câu chung như “provider xử lý nhanh và đúng” khó biến thành test ổn định. Thay bằng:
-- ví dụ input/output chuẩn và edge cases;
-- exception class/cause khi input không hợp lệ;
-- invariants, ví dụ output không chứa separator trùng và có thể đưa qua bộ validate;
-- semantics về trạng thái, idempotence/determinism khi đã cam kết;
-- concurrency guarantee nếu thực sự là một phần API;
-- resource/close contract khi service có lifecycle.
+A vague statement like "the provider handles requests quickly and accurately" is hard to turn into stable tests. Replace it with:
+- canonical input/output examples and edge cases;
+- exception classes/causes for invalid input;
+- invariants, such as outputs having no duplicate separators and passing validation;
+- state, idempotence, and determinism semantics when promised;
+- concurrency guarantees if truly part of the API;
+- resource/close contracts when the service has a lifecycle.
 
-Chỉ thêm timeout hoặc throughput vào common contract khi có ngân sách và môi trường đo cụ thể. Benchmark trên CI không ổn định có thể tạo false failures; performance thường cần tier riêng.
+Add timeouts or throughput assertions to the common contract only when backed by a concrete budget and measurement environment. Flaky CI benchmarks create false failures; performance usually belongs in a separate tier.
 
-## 3. Danh mục provider: không được “test xanh” khi không tìm thấy ai
+## 3. Provider Catalog: Never Report "Green Tests" When None Are Found
 
-Một anti-pattern:
+An anti-pattern:
 
 ~~~java
-// Minh họa code sai về coverage:
+// Illustration of broken coverage code:
 ServiceLoader.load(Slugifier.class).forEach(provider -> {
     // verify(provider)
 });
-// Nếu không tìm thấy provider nào, không có assertion nào chạy mà job vẫn xanh.
+// If no provider is found, no assertions run yet the job still passes.
 ~~~
 
-Một suite đúng phải chứng minh:
-1. **Có provider** được tìm thấy.
-2. **Tập provider tìm thấy đúng với tập hỗ trợ mong đợi**, hoặc tuân thủ policy rõ ràng về required/optional.
-3. Mỗi provider có **ID hợp lệ, duy nhất**, đúng API/version/capability metadata.
-4. **Mọi provider mong đợi đều được instantiate và chạy cùng suite**; lỗi của bất kỳ provider nào làm job fail.
-5. Provider không mong đợi không được im lặng bỏ qua khi điều đó vi phạm deployment catalog.
+A proper suite must prove:
+1. **Providers are actually found.**
+2. **The discovered set matches the expected supported set**, or follows an explicit required/optional policy.
+3. Each provider has a **valid, unique ID** and matching API/version/capability metadata.
+4. **Every expected provider is instantiated and runs the exact same suite**; any provider failing causes the job to fail.
+5. Unexpected providers are never silently ignored when doing so violates the deployment catalog.
 
-Ví dụ build fixture hỗ trợ hai ID `loop` và `regex`; test phải fail nếu chỉ phát hiện một hoặc có thêm provider không được duyệt theo chính sách.
+For example, a build fixture supports two IDs `loop` and `regex`; the test must fail if only one is discovered or if an unapproved provider appears.
 
-### 3.1. ServiceLoader có phạm vi tìm kiếm
+### 3.1. ServiceLoader Has a Discovery Scope
 
-- Với class path: provider đăng ký trong `META-INF/services/<binary-name-service>`; dùng `ServiceLoader.load(Service.class, classLoader)` và bảo đảm resource/JAR ở đúng lookup scope.
-- Với named JPMS modules: consumer khai báo `uses demo.api.Slugifier;`; provider khai báo `provides demo.api.Slugifier with ...;`; có thể dùng `ServiceLoader.load(layer, Slugifier.class)`.
-- `ServiceLoader.load(service)` dùng **thread context class loader (TCCL)** tại thời điểm tạo loader. Nếu test runner TCCL khác runtime plugin, có thể bỏ sót provider.
-- Layer-based discovery tìm provider ở layer và parent layers; classloader-based discovery cũng có thể thấy cấu hình ở parent. Vì thế “đã tìm thấy hai provider” chưa chắc là hai provider **thuộc đúng generation** cần kiểm thử.
+- On the classpath: providers register in `META-INF/services/<binary-service-name>`; use `ServiceLoader.load(Service.class, classLoader)` and ensure resources/JARs are in the right lookup scope.
+- With named JPMS modules: the consumer declares `uses demo.api.Slugifier;`; the provider declares `provides demo.api.Slugifier with ...;`; you can use `ServiceLoader.load(layer, Slugifier.class)`.
+- `ServiceLoader.load(service)` uses the **thread context class loader (TCCL)** at the time the loader is created. If the test runner's TCCL differs from the plugin runtime's, providers can be missed.
+- Layer-based discovery searches the layer and its parent layers; classloader-based discovery can also see configurations in parents. Thus "found two providers" does not necessarily mean two providers **from the intended generation** under test.
 
-Nên tạo một **test catalog** từ bản kê artifact/version được deploy, rồi so sánh chính xác tập provider thực tế với catalog kỳ vọng. Đừng dùng `findFirst()`: nó chỉ chứng minh provider đầu tiên hoạt động, không cho coverage toàn bộ.
+Build a **test catalog** from the deployed artifact/version manifest, then compare the actual discovered provider set against the expected catalog. Never use `findFirst()`: it only proves the first provider works and gives no coverage of the rest.
 
-### 3.2. Metadata trước, instance sau
+### 3.2. Metadata First, Instantiation Second
 
-`ServiceLoader.stream()` trả `Stream<ServiceLoader.Provider<S>>`, nên có thể kiểm tra `Provider.type()`, module/class metadata trước khi gọi `Provider.get()`. Cần lưu ý:
-- `Provider.type()` không đồng nghĩa provider instance đã được khởi tạo.
-- `Provider.get()` không có cam kết luôn trả cùng object identity cho mọi lần gọi; đừng dùng nó như API singleton.
-- Với named module dùng static `provider()` factory method, `Provider.type()` là return type của method, không nhất thiết là implementation holder class.
-- `ServiceConfigurationError` có thể phát sinh khi tìm/instantiate provider; **phải làm test fail** chứ không bỏ qua provider lỗi.
-- `ServiceLoader` không được công bố là thread-safe; không chia sẻ chính đối tượng loader để discovery song song mà không điều phối. Contract về provider concurrency khác với thread safety của `ServiceLoader`.
+`ServiceLoader.stream()` returns `Stream<ServiceLoader.Provider<S>>`, allowing you to inspect `Provider.type()` and module/class metadata before calling `Provider.get()`. Keep in mind:
+- `Provider.type()` does not mean the provider instance has been initialized.
+- `Provider.get()` does not promise to return the same object identity on every call; do not treat it as a singleton API.
+- For named modules using a static `provider()` factory method, `Provider.type()` is the method's return type, not necessarily the implementation holder class.
+- `ServiceConfigurationError` may be thrown when locating/instantiating a provider; it **must fail the test** rather than skipping the broken provider.
+- `ServiceLoader` is not documented as thread-safe; do not share the same loader instance for parallel discovery without synchronization. A provider's concurrency contract is separate from `ServiceLoader` thread safety.
 
-## 4. Lab Java 17+: hai provider, cùng một contract suite, không cần JUnit
+## 4. Java 17+ Lab: Two Providers, One Contract Suite, No JUnit Required
 
-Lab này chạy được bằng JDK 17+, không cần dependency ngoài. Hai provider hiện thực **cùng một interface** theo hai thuật toán khác nhau. `ContractSuite` khám phá toàn bộ provider bằng `ServiceLoader`, xác nhận chính xác catalog được hỗ trợ, rồi gọi **cùng một phương thức `verifyContract`** cho từng provider.
+This lab runs on JDK 17+ with no external dependencies. Two providers implement **the same interface** using two different algorithms. `ContractSuite` discovers all providers via `ServiceLoader`, verifies the exact supported catalog, and then calls **the exact same `verifyContract` method** for each provider.
 
-### 4.1. Cấu trúc thư mục
+### 4.1. Directory Structure
 
 ~~~text
 provider-contract-demo/
@@ -140,22 +140,22 @@ provider-contract-demo/
 │   └── META-INF/
 │       └── services/
 │           └── demo.api.Slugifier
-└── out/                     # tạo khi biên dịch
+└── out/                     # created upon compilation
 ~~~
 
-Các đường dẫn và package names dưới đây phải khớp **từng ký tự**. File `META-INF/services/demo.api.Slugifier` là resource SPI, không phải source Java.
+The paths and package names below must match **character for character**. The file `META-INF/services/demo.api.Slugifier` is an SPI resource, not Java source.
 
-### 4.2. Tệp src/demo/api/Slugifier.java
+### 4.2. File src/demo/api/Slugifier.java
 
 ~~~java
 package demo.api;
 
 /**
- * Chỉ nhận ASCII letters, digits và separators ' ', '_' hoặc '-'.
+ * Accepts only ASCII letters, digits, and separators ' ', '_', or '-'.
  * Null -> NullPointerException.
- * Empty, chỉ separator, ký tự ngoài miền -> IllegalArgumentException.
- * Trả slug lowercase, gộp separator thành '-', bỏ separator ở hai đầu.
- * slugify an toàn khi gọi đồng thời trên cùng instance.
+ * Empty, separator-only, or out-of-domain chars -> IllegalArgumentException.
+ * Returns lowercase slug, collapses separators to '-', trims both ends.
+ * slugify is safe for concurrent calls on the same instance.
  */
 public interface Slugifier {
     String id();
@@ -163,9 +163,9 @@ public interface Slugifier {
 }
 ~~~
 
-JavaDoc mô tả **hành vi quan sát được**. Implementation không bắt buộc dùng cùng regex/vòng lặp, miễn đạt contract.
+The Javadoc describes **observable behavior**. Implementations do not have to use the same regex/loop, provided they honor the contract.
 
-### 4.3. Provider A — vòng lặp: src/demo/providers/LoopSlugifier.java
+### 4.3. Provider A — Loop: src/demo/providers/LoopSlugifier.java
 
 ~~~java
 package demo.providers;
@@ -215,9 +215,9 @@ public final class LoopSlugifier implements Slugifier {
 }
 ~~~
 
-Implementation A có local `StringBuilder`/flag cho từng lời gọi, không giữ mutable state trong instance. Những dấu phân tách đầu/cuối bị bỏ; nhiều dấu giữa hai cụm chỉ thành một `-`.
+Implementation A uses a local `StringBuilder`/flag per invocation and keeps no mutable instance state. Leading/trailing separators are dropped; multiple separators between two groups become a single `-`.
 
-### 4.4. Provider B — regex: src/demo/providers/RegexSlugifier.java
+### 4.4. Provider B — Regex: src/demo/providers/RegexSlugifier.java
 
 ~~~java
 package demo.providers;
@@ -252,20 +252,20 @@ public final class RegexSlugifier implements Slugifier {
 }
 ~~~
 
-Implementation B dùng cách tiếp cận khác nhưng cam kết cùng kết quả và loại exception. `Locale.ROOT` ngăn output thay đổi theo locale của máy, còn miền ký tự được giới hạn ASCII nên không có giả định không rõ ràng về Unicode. Cả hai class đều public và có public no-argument constructor ngầm định, phù hợp class-path SPI.
+Implementation B takes a different approach yet guarantees the same outputs and exception types. `Locale.ROOT` prevents output from varying by machine locale, and the character domain is restricted to ASCII so there are no ambiguous Unicode assumptions. Both classes are public with an implicit public no-argument constructor, suitable for classpath SPI.
 
-### 4.5. Tệp SPI đăng ký hai provider
+### 4.5. SPI File Registering Both Providers
 
-Nội dung chính xác của `src/META-INF/services/demo.api.Slugifier`:
+Exact content of `src/META-INF/services/demo.api.Slugifier`:
 
 ~~~text
 demo.providers.LoopSlugifier
 demo.providers.RegexSlugifier
 ~~~
 
-Không đặt dấu ngoặc kép hay tên JAR trong file. Resource phải được copy vào **runtime class path**. Trong sản phẩm thực tế, mỗi provider có thể được đóng gói ở một JAR riêng; lab dùng một output directory để dễ chạy và kiểm chứng.
+Do not include quotes or JAR names in the file. The resource must be copied onto the **runtime class path**. In real products, each provider may be packaged in its own JAR; the lab uses a single output directory for ease of execution and verification.
 
-### 4.6. Tệp src/demo/test/ContractSuite.java
+### 4.6. File src/demo/test/ContractSuite.java
 
 ~~~java
 package demo.test;
@@ -307,7 +307,7 @@ public final class ContractSuite {
                 "expected exception: " + expected.getName());
     }
 
-    // Mọi provider phải chạy chính xác CÙNG bộ luật.
+    // Every provider must run the EXACT SAME rule set.
     private static void verifyContract(Slugifier provider) throws Exception {
         equal("hello-world", provider.slugify(" Hello  WORLD "));
         equal("xml-parser", provider.slugify("XML_parser"));
@@ -334,7 +334,7 @@ public final class ContractSuite {
         throwsType(IllegalArgumentException.class,
                 () -> provider.slugify("hello!"));
 
-        // Chạy song song trên CHÍNH provider instance; là yêu cầu contract.
+        // Run concurrently on the SAME provider instance; required by contract.
         ExecutorService pool = Executors.newFixedThreadPool(4);
         try {
             List<Callable<String>> tasks = new ArrayList<>();
@@ -369,7 +369,7 @@ public final class ContractSuite {
             }
         }
 
-        // Danh mục hỗ trợ này độc lập với kết quả ServiceLoader.
+        // This supported catalog is independent of ServiceLoader output.
         Set<String> expectedIds = Set.of("loop", "regex");
         equal(expectedIds, ids);
 
@@ -385,21 +385,21 @@ public final class ContractSuite {
 }
 ~~~
 
-**Cơ chế của bộ test:**
+**How the test suite works:**
 
-1. `ServiceLoader.load(Slugifier.class, testClassLoader)` dùng một loader tường minh, tránh phụ thuộc TCCL tình cờ.
-2. `stream().map(Provider::get).toList()` **buộc khám phá và instantiate tất cả providers** nhìn thấy được, chứ không chỉ `findFirst()`.
-3. Nếu không có provider, ID null/trống/trùng, hoặc tập ID khác catalog `{"loop","regex"}`, test fail **trước khi** đánh dấu toàn bộ contract đạt.
-4. Dùng `sorted(Comparator.comparing(Slugifier::id))` chỉ để **ổn định thứ tự hiển thị**. Không dựa vào discovery order làm thứ tự ưu tiên nghiệp vụ.
-5. `verifyContract` chứa **chung một bộ** input/output, exception, repeatability và concurrent calls. Nó không rẽ nhánh “nếu regex thì test ít hơn”.
-6. Provider nào không giữ contract sẽ ném `AssertionError` hoặc lỗi test, khiến process trả exit code khác zero; CI có thể chặn phát hành.
-7. Pool dùng cho kiểm thử concurrency được đóng ở `finally`. Demo provider không nắm tài nguyên cần stop; nếu service API có lifecycle, fixture phải đóng từng provider theo policy.
+1. `ServiceLoader.load(Slugifier.class, testClassLoader)` uses an explicit loader, avoiding accidental TCCL dependence.
+2. `stream().map(Provider::get).toList()` **forces discovery and instantiation of all visible providers**, not just `findFirst()`.
+3. If there are no providers, null/blank/duplicate IDs, or the ID set differs from catalog `{"loop","regex"}`, the test fails **before** marking the contract suite as passed.
+4. `sorted(Comparator.comparing(Slugifier::id))` is used only to **stabilize display order**. Never rely on discovery order as business priority.
+5. `verifyContract` contains **one shared set** of inputs/outputs, exceptions, repeatability, and concurrent calls. It never branches with "if regex, test less".
+6. Any provider breaking the contract throws `AssertionError` or fails the test, causing the process to exit nonzero; CI can block release.
+7. The pool used for concurrency testing is shut down in `finally`. The demo providers hold no resources requiring stop; if a service API has a lifecycle, the fixture must close each provider per policy.
 
-**Không suy diễn:** chương trình chỉ kiểm tra thread safety của `slugify` theo các cuộc gọi trong test; nó không chứng minh tuyệt đối an toàn trong mọi interleaving. Unit/concurrency stress test nên có thêm workload dài hơn, repeat runs và công cụ chuyên dụng nếu đây là yêu cầu trọng yếu.
+**Do not over-extrapolate:** the program only checks `slugify` thread safety under the calls in the test; it does not mathematically prove absolute safety across every interleaving. Unit/concurrency stress tests should use longer workloads, repeated runs, and dedicated tools when thread safety is a critical requirement.
 
-### 4.7. Biên dịch và chạy
+### 4.7. Compiling and Running
 
-Chạy tại thư mục `provider-contract-demo` bằng PowerShell với JDK 17+:
+Run inside `provider-contract-demo` using PowerShell with JDK 17+:
 
 ~~~powershell
 New-Item -ItemType Directory -Force out | Out-Null
@@ -411,7 +411,7 @@ Copy-Item -Recurse -Force src/META-INF out
 java -cp out demo.test.ContractSuite
 ~~~
 
-**Stdout dự kiến chính xác** khi chỉ có hai provider của demo ở class path:
+**Exact expected stdout** when only the two demo providers are on the classpath:
 
 ~~~text
 PASS loop
@@ -420,9 +420,9 @@ providers=2
 ALL CONTRACTS PASSED
 ~~~
 
-Tại sao `PASS loop` trước `PASS regex`? Vì test **sort theo ID** trước khi in; `ServiceLoader` không được coi là có discovery order ổn định trong mọi cấu hình/module.
+Why does `PASS loop` print before `PASS regex`? Because the test **sorts by ID** before printing; `ServiceLoader` must not be assumed to have a deterministic discovery order across configurations/modules.
 
-Có thể kiểm tra thêm việc đóng gói SPI file:
+You can also verify SPI file packaging:
 
 ~~~powershell
 jar --create --file demo-all.jar -C out .
@@ -430,23 +430,23 @@ jar tf demo-all.jar
 java -cp demo-all.jar demo.test.ContractSuite
 ~~~
 
-Lệnh `jar tf` in nhiều file, không có stdout cố định được nêu ở đây. Hãy kiểm tra file `META-INF/services/demo.api.Slugifier` thật sự nằm trong JAR; lệnh `java` sau đó sẽ cho cùng bốn dòng PASS ở trên khi JAR chứa đúng các class và resources.
+`jar tf` prints many entries, so no fixed stdout is listed here. Verify that `META-INF/services/demo.api.Slugifier` actually exists inside the JAR; the subsequent `java` command will produce the same four PASS lines above when the JAR contains the right classes and resources.
 
-### 4.8. Thử tạo lỗi để thấy suite bắt được gì
+### 4.8. Injecting Faults to See What the Suite Catches
 
-- Bỏ `demo.providers.RegexSlugifier` khỏi file `META-INF/services/demo.api.Slugifier`, copy lại resource, chạy suite. Provider list có thể vẫn không rỗng nhưng phép so `expectedIds` sẽ fail vì thiếu `regex`. Đây là bảo vệ **không false green**.
-- Sửa `RegexSlugifier` để `slugify("  ")` trả chuỗi rỗng thay vì ném `IllegalArgumentException`. Suite fail ở case lỗi; implementation test nào cũng không được phép tự bỏ case này.
-- Thay `RegexSlugifier.id()` thành `"loop"`. Suite fail vì **trùng ID**.
-- Thêm provider mới vào SPI nhưng không cập nhật catalog dự kiến. Suite fail, buộc chủ sở hữu review và công nhận provider mới trước khi tuyên bố được hỗ trợ.
-- Cho `LoopSlugifier` giữ một mutable `StringBuilder` trong field rồi tái sử dụng không đồng bộ giữa các lời gọi. Test concurrent có khả năng phát hiện race, nhưng race không phải lúc nào cũng tái hiện; cần stress và review thiết kế để bảo đảm chắc chắn.
+- Remove `demo.providers.RegexSlugifier` from `META-INF/services/demo.api.Slugifier`, recopy the resource, and run the suite. The provider list is still non-empty, yet the `expectedIds` comparison fails because `regex` is missing. This guards against **false greens**.
+- Modify `RegexSlugifier` so `slugify("  ")` returns an empty string instead of throwing `IllegalArgumentException`. The suite fails on the error case; no implementation test is allowed to drop this case.
+- Change `RegexSlugifier.id()` to `"loop"`. The suite fails due to **duplicate ID**.
+- Add a new provider to SPI without updating the expected catalog. The suite fails, forcing owners to review and recognize the new provider before claiming support.
+- Make `LoopSlugifier` store a mutable `StringBuilder` field and reuse it unsynchronized across calls. The concurrency test will likely catch the race, though races do not always reproduce deterministically; stress testing and design review are needed for certainty.
 
-## 5. Chuyển sang JUnit Jupiter mà vẫn giữ chung một bộ contract
+## 5. Moving to JUnit Jupiter While Keeping One Shared Contract
 
-Ví dụ thuần JDK ở trên hoạt động tốt làm smoke gate. Trong dự án thật, JUnit Jupiter giúp CI có báo cáo từng provider/từng case và tích hợp build tool. Hai cách thường dùng là:
-- **Parameterized tests** (`@ParameterizedTest` + `@MethodSource`): mỗi provider/fixture trở thành một invocation của cùng test.
-- **Dynamic tests** (`@TestFactory` + `DynamicTest`): tạo danh sách test dựa trên provider runtime catalog.
+The pure-JDK example above works well as a smoke gate. In real projects, JUnit Jupiter gives CI per-provider/per-case reporting and build tool integration. Two common approaches are:
+- **Parameterized tests** (`@ParameterizedTest` + `@MethodSource`): each provider/fixture becomes an invocation of the same test.
+- **Dynamic tests** (`@TestFactory` + `DynamicTest`): generates test cases from the runtime provider catalog.
 
-Ví dụ **minh họa dùng JUnit Jupiter, không chạy độc lập nếu chưa thêm dependency `junit-jupiter`, test engine và các provider vào test runtime classpath**:
+Illustrative example **using JUnit Jupiter; it will not run standalone without adding `junit-jupiter`, the test engine, and providers to the test runtime classpath**:
 
 ~~~java
 import demo.api.Slugifier;
@@ -476,16 +476,16 @@ class SlugifierJupiterTest {
 }
 ~~~
 
-Đây chỉ minh họa **cách sinh test theo provider**, không thay thế toàn bộ suite. Trong production, hãy đưa assertions chung vào `SlugifierContract.assertAll(provider)` hoặc, tốt hơn, sinh dynamic test **cho từng contract rule** với tên dễ tìm trên CI: `providerId/empty-input`, `providerId/concurrency`, `providerId/normalization` v.v. Vẫn cần **expected provider catalog check**, vì `assertFalse(all.isEmpty())` không phát hiện trường hợp còn một nhưng thiếu ba providers.
+This only illustrates **how to generate tests per provider**, not a replacement for the full suite. In production, place shared assertions in `SlugifierContract.assertAll(provider)` or, even better, generate a dynamic test **for each contract rule** with CI-searchable names: `providerId/empty-input`, `providerId/concurrency`, `providerId/normalization`, etc. You still need the **expected provider catalog check**, because `assertFalse(all.isEmpty())` does not detect when one provider is present and three are missing.
 
-**Cẩn thận lifecycle của dynamic tests:** với JUnit Jupiter, callback `@BeforeEach`/`@AfterEach` áp dụng cho lần chạy **factory method**, không tự động chạy trước/sau từng dynamic test được tạo ra. Nếu mỗi test cần instance mới, transaction rollback, temp directory hoặc resource close, hãy quản lý fixture trong lambda hoặc dùng parameterized test với lifecycle tương ứng. Đừng chia sẻ một provider mutable giữa nhiều dynamic tests chạy parallel nếu contract không hứa thread safety.
+**Watch out for dynamic test lifecycle:** in JUnit Jupiter, `@BeforeEach`/`@AfterEach` callbacks apply to the **factory method** execution, not automatically before/after each generated dynamic test. If each test needs a fresh instance, transaction rollback, temp directory, or resource close, manage the fixture inside the lambda or use parameterized tests with appropriate lifecycle. Never share a mutable provider across parallel dynamic tests unless the contract promises thread safety.
 
-### 5.1. Thiết kế fixture bằng provider factory
+### 5.1. Designing Fixtures with a Provider Factory
 
-Với service có state mutable, cùng một instance cho tất cả case có thể tạo lỗi phụ thuộc thứ tự (test A sửa trạng thái rồi test B fail). Contract suite nên nhận một **factory tạo fixture hợp lệ**, ví dụ:
+For services with mutable state, reusing one instance across all cases can introduce order-dependent bugs (test A mutates state and test B fails). The contract suite should accept a **factory creating valid fixtures**, for example:
 
 ~~~java
-// Sơ đồ API minh họa, chưa độc lập:
+// Illustrative API sketch, not standalone:
 interface ProviderFixture<S> extends AutoCloseable {
     String id();
     S createFreshService() throws Exception;
@@ -494,69 +494,69 @@ interface ProviderFixture<S> extends AutoCloseable {
 }
 ~~~
 
-Mỗi invocation:
-1. tạo fixture/provider theo lifecycle đã định;
-2. chuẩn bị fake/stub/external test resource;
-3. chạy assertion dùng chung;
-4. dọn resource bằng `finally`/`AutoCloseable` dù test pass/fail.
+For each invocation:
+1. create the fixture/provider per the defined lifecycle;
+2. prepare fakes/stubs/external test resources;
+3. run the shared assertions;
+4. clean up resources in `finally`/`AutoCloseable` regardless of pass or fail.
 
-**Không giả định `ServiceLoader.Provider.get()` luôn trả instance mới.** API cho phép các cơ chế provider khác nhau, đặc biệt khi module dùng factory method; nếu cần fresh service per case, contract/fixture factory phải đảm bảo điều đó theo cách rõ ràng.
+**Do not assume `ServiceLoader.Provider.get()` always returns a new instance.** The API allows different provider mechanisms, especially when a module uses a factory method; if a fresh service per case is needed, the contract/fixture factory must enforce it explicitly.
 
-## 6. Thiết kế bộ hợp đồng theo nhóm quy tắc
+## 6. Organizing the Contract Suite by Rule Category
 
-Một suite tốt không chỉ có vài “happy path” examples. Tối thiểu nên phân nhóm:
+A good suite goes beyond a few "happy path" examples. At minimum, group tests into:
 
-| Nhóm | Nội dung assert | Ví dụ cho Slugifier |
+| Category | What Is Asserted | Example for Slugifier |
 | --- | --- | --- |
-| Khám phá | Provider tồn tại, đúng danh mục, đúng loader/layer/API | `loop`, `regex` được tìm; không trùng ID |
-| Chuẩn hóa hợp lệ | Đúng output trên tập mẫu chuẩn | `"Hello WORLD" → "hello-world"` |
-| Biên/empty | Chuỗi trống, chỉ separator, có separator đầu/cuối | `"___"` bị từ chối; `"__A__" → "a"` |
-| Miền ký tự | ASCII vs Unicode/punctuation | `"café"` và `"hello!"` ném lỗi |
-| Exception contract | Lỗi đúng kiểu, không phát sinh side effect | `null → NullPointerException` |
-| Invariant | Output lowercase, không có separator trùng | Output phù hợp `[a-z0-9]+(-[a-z0-9]+)*` |
-| Repeatability | Cùng input → cùng output | Lặp nhiều lần trên cùng instance |
-| Concurrency | Nhiều thread cùng gọi khi API hứa thread-safe | Các concurrent calls cho cùng kết quả |
-| Lifecycle | `start`, `close`, idempotence/ownership theo API | Chỉ nếu service định nghĩa hooks |
-| Compatibility | Provider triển khai đúng API version và capabilities | Catalog/API compatibility matrix |
+| Discovery | Provider exists, matches catalog, right loader/layer/API | `loop`, `regex` found; no duplicate IDs |
+| Valid normalization | Exact output on canonical sample set | `"Hello WORLD" → "hello-world"` |
+| Boundary/empty | Empty strings, separator-only, leading/trailing separators | `"___"` rejected; `"__A__" → "a"` |
+| Character domain | ASCII vs. Unicode/punctuation | `"café"` and `"hello!"` throw |
+| Exception contract | Right exception type, no side effects | `null → NullPointerException` |
+| Invariant | Output lowercase, no consecutive separators | Output matches `[a-z0-9]+(-[a-z0-9]+)*` |
+| Repeatability | Same input → same output | Repeated calls on same instance |
+| Concurrency | Multiple threads calling concurrently when API promises thread safety | Concurrent calls return identical results |
+| Lifecycle | `start`, `close`, idempotence/ownership per API | Only if service defines hooks |
+| Compatibility | Provider implements expected API version and capabilities | Catalog/API compatibility matrix |
 
-**Đừng lạm dụng exact output** với contract cố tình cho phép nhiều đáp án. Ví dụ một service tìm kiếm có thể không hứa thứ tự kết quả; khi ấy assert **tập kết quả/invariant** thay vì ép một thứ tự. Tương tự, test exception class phải phản ánh hợp đồng: nếu API chỉ hứa subtype `RuntimeException`, không tự siết thành một class cụ thể.
+**Do not overuse exact output assertions** for contracts that intentionally permit multiple valid answers. For instance, a search service might not guarantee result order; assert **set equality/invariants** instead of forcing one order. Similarly, exception tests must match the contract: if the API promises only a `RuntimeException` subtype, do not tighten it arbitrarily to one concrete class.
 
-### 6.1. Contract invariants và property-based testing
+### 6.1. Contract Invariants and Property-Based Testing
 
-Với slugifier có thể viết invariant:
+For a slugifier, we can write invariants:
 
 ~~~text
-valid input → slug không rỗng
+valid input → non-empty slug
 slug matches "[a-z0-9]+(-[a-z0-9]+)*"
-slug không bắt đầu/kết thúc bằng '-'
-slug không chứa "--"
+slug does not start/end with '-'
+slug does not contain "--"
 same input → same output
 invalid input → documented exception
 ~~~
 
-Có thể tạo input ngẫu nhiên **có seed cố định** để kiểm tra trên tất cả provider, và khi fail log seed cùng input để tái hiện. Chọn generator đúng miền đầu vào; tránh một test fuzz chỉ sinh dữ liệu quá dễ. Nếu sinh Unicode/invalid input, phải phân tách expected behavior theo contract.
+You can generate random inputs **with a fixed seed** to test across all providers, logging the seed and input on failure for reproduction. Choose a generator matching the input domain; avoid fuzz tests that only produce trivial inputs. When generating Unicode/invalid inputs, separate expected behavior per contract.
 
-Không dùng một provider cụ thể làm **oracle tuyệt đối** nếu cả hai có thể sai cùng một cách. Expected results nên dựa trên chuẩn API, reference implementation được review hoặc một specification-independent oracle.
+Never use one specific provider as an **absolute oracle** when both could fail in the same way. Expected results should come from the API specification, a reviewed reference implementation, or a specification-independent oracle.
 
-### 6.2. Metamorphic tests
+### 6.2. Metamorphic Tests
 
-Khi khó biết output chính xác với mọi input, có thể kiểm tra quan hệ giữa các lần gọi. Ví dụ cho Slugifier:
-- với một input hợp lệ, thêm separator ở đầu/cuối không đổi slug;
-- thay ASCII uppercase thành lowercase không đổi slug;
-- thay một chuỗi nhiều separator bằng một separator duy nhất không đổi slug.
+When exact outputs are hard to know for arbitrary inputs, test relationships across calls. For `Slugifier`:
+- for a valid input, adding leading/trailing separators does not change the slug;
+- converting ASCII uppercase to lowercase does not change the slug;
+- replacing a run of multiple separators with a single separator does not change the slug.
 
-Đây là các **tính chất chỉ đúng vì hợp đồng đã công bố chúng**; không tự áp dụng cho service khác như mã hóa/băm/chữ ký số nếu chưa xác định toán học tương ứng.
+These are **properties valid solely because the contract publishes them**; do not blindly apply them to other services such as encryption, hashing, or digital signatures without verifying the corresponding mathematics.
 
-## 7. Contract baseline và tính năng tùy chọn
+## 7. Baseline Contract vs. Optional Features
 
-Trong hệ plugin thực tế, không phải mọi provider đều có cùng capabilities. Ví dụ một `StorageProvider` có contract tối thiểu `put/get/delete` nhưng một số plugin hỗ trợ transaction, streaming hoặc server-side encryption.
+In real plugin systems, not every provider has identical capabilities. For example, a `StorageProvider` has a minimum contract `put/get/delete`, while some plugins additionally support transactions, streaming, or server-side encryption.
 
-Nên chia:
-- **Core contract:** mọi provider được tuyên bố hỗ trợ service đều phải pass; không có `assumeTrue(provider.supports...)` để âm thầm bỏ core cases.
-- **Capability contracts:** chỉ provider **tự khai báo và được catalog xác nhận** hỗ trợ capability X mới chạy test X. Nếu khai báo `supportsTransactions=true` mà test transaction fail, phải fail job.
-- **Environment constraints:** kiểm thử phụ thuộc external service (cloud credentials, container runtime, hardware) nằm ở tier riêng, nhưng cần có release gate thích hợp. Một provider chưa test không thể tự động được coi là “supported”.
+Split tests into:
+- **Core contract:** every provider declared to support the service must pass; never use `assumeTrue(provider.supports...)` to silently skip core cases.
+- **Capability contracts:** only providers **declaring and confirmed by the catalog** to support capability X run tests for X. If `supportsTransactions=true` is declared and the transaction test fails, the job must fail.
+- **Environment constraints:** tests requiring external services (cloud credentials, container runtimes, hardware) belong in a separate tier, still gated appropriately before release. An untested provider cannot automatically be marked "supported".
 
-Một cách biểu diễn catalog minh họa:
+An illustrative catalog representation:
 
 ~~~text
 provider loop:
@@ -569,95 +569,95 @@ provider regex:
   capabilities: [ascii-slug, thread-safe]
 ~~~
 
-Đây là **metadata minh họa**, không phải cú pháp tiêu chuẩn của `ServiceLoader`. `ServiceLoader` không tự cung cấp provider ID, semantic version hay capabilities. Host/plugin platform phải định nghĩa metadata/registry riêng, validate nó và gắn với artifact digest.
+This is **illustrative metadata**, not standard `ServiceLoader` syntax. `ServiceLoader` does not provide provider IDs, semantic versions, or capabilities on its own. The host/plugin platform must define its own metadata/registry, validate it, and bind it to the artifact digest.
 
-### 7.1. Không dùng skip để che thiếu provider
+### 7.1. Never Use Skips to Hide Missing Providers
 
-Một báo cáo kiểu “12 passed, 8 skipped” chưa chứng minh 20 providers đã đạt. Phải biết **8 skipped vì sao**, dựa trên capability hay vì discovery bị lỗi. Các trạng thái nên phân biệt:
-- `PASS`: provider đã chạy và đạt core contract;
-- `FAIL`: đã chạy nhưng vi phạm;
-- `MISSING`: catalog yêu cầu nhưng không tìm thấy;
-- `UNEXPECTED`: tìm thấy nhưng không nằm trong bản kê được phê duyệt;
-- `NOT_APPLICABLE`: capability contract không áp dụng theo metadata được xác thực;
-- `BLOCKED`: môi trường test không đủ điều kiện, không được báo thành pass.
+A report saying "12 passed, 8 skipped" does not prove 20 providers succeeded. You must know **why 8 were skipped**, whether by capability or broken discovery. Distinguish statuses:
+- `PASS`: provider ran and passed the core contract;
+- `FAIL`: ran and violated the contract;
+- `MISSING`: required by catalog but not found;
+- `UNEXPECTED`: found but absent from the approved manifest;
+- `NOT_APPLICABLE`: capability contract does not apply per verified metadata;
+- `BLOCKED`: test environment lacked prerequisites; must not be reported as pass.
 
-## 8. Kiểm thử ServiceLoader và packaging riêng với business contract
+## 8. Testing ServiceLoader and Packaging Separately from Business Contracts
 
-Một implementation có thể tự pass `verifyContract` khi tạo bằng `new` nhưng thất bại khi được triển khai qua SPI vì sai metadata, sai public constructor, classloader visibility hoặc xung đột phiên bản. Vì vậy cần **hai lớp kiểm thử**:
+An implementation may pass `verifyContract` when instantiated via `new` yet fail when deployed via SPI due to bad metadata, missing public constructor, classloader visibility, or version conflicts. Therefore, use **two test layers**:
 
-1. **Direct fixture contract test:** provider factory tạo instance được rồi kiểm thử hành vi. Tập trung business semantics.
-2. **Packaged discovery test:** nạp artifact phát hành **thực** trong môi trường host/layer tương đương production, verify catalog, instantiate rồi chạy lại core suite.
+1. **Direct fixture contract test:** a provider factory instantiates the provider and tests behavior. Focuses on business semantics.
+2. **Packaged discovery test:** loads the **actual** release artifact in a host/layer environment matching production, verifies the catalog, instantiates providers, and re-runs the core suite.
 
-Với classpath SPI:
-- resource tên chính xác `META-INF/services/demo.api.Slugifier`;
-- mỗi dòng chứa fully-qualified provider class;
-- provider class phải visible và assignable vào service API dùng chung;
-- public no-arg constructor cho classpath provider thông thường;
-- fat JAR/shading phải merge service files thay vì ghi đè;
-- trong nhiều plugin JAR, kiểm tra cả tình huống nhiều service files được tìm.
+For classpath SPI:
+- resource is named exactly `META-INF/services/demo.api.Slugifier`;
+- each line contains a fully qualified provider class name;
+- provider class is visible and assignable to the shared service API;
+- public no-arg constructor for typical classpath providers;
+- fat JAR/shading must merge service files instead of overwriting them;
+- across multiple plugin JARs, also test discovering multiple service files.
 
-Với JPMS:
-- consumer module khai báo `uses`;
-- provider module khai báo `provides ... with ...` và `requires` tới API;
-- test bằng `ModuleLayer`/`Configuration` đúng với module path release;
-- nếu nhiều sibling layers chứa cùng module name/version khác, không gộp những providers vào cùng catalog một cách vô ý;
-- `Provider.type()` và `Provider.get()` có semantics riêng với provider factory method.
+For JPMS:
+- consumer module declares `uses`;
+- provider module declares `provides ... with ...` and `requires` on the API;
+- test with `ModuleLayer`/`Configuration` matching the release module path;
+- if multiple sibling layers contain the same module name/different versions, do not accidentally merge those providers into one catalog;
+- `Provider.type()` and `Provider.get()` have specific semantics with provider factory methods.
 
-**Tuyệt đối không nuốt `ServiceConfigurationError`** rồi bỏ provider đó khỏi danh sách để suite “xanh”. Đó là lỗi discovery/deployment cần được CI phát hiện.
+**Never swallow `ServiceConfigurationError`** and drop that provider from the list so the suite stays "green". That is a discovery/deployment bug CI must catch.
 
-### 8.1. Isolation theo generation
+### 8.1. Isolation by Generation
 
-Một provider có thể hoạt động khi chạy trong application class loader nhưng lỗi khi nạp qua plugin loader riêng vì API JAR trùng hoặc thiếu transitive dependency. Test host thực tế nên dùng **chính classloader/module-layer boundary dự kiến trong production**:
-- shared API được define ở parent;
-- implementation/dependency-private ở child;
-- expected provider metadata được ràng buộc với generation/artifact digest;
-- kiểm tra class identity, missing class, `NoSuchMethodError`, `ClassCastException`;
-- tạo generation mới cho v2, không chỉ gọi `ServiceLoader.reload()` trên loader v1.
+A provider may work on the application class loader yet fail when loaded in its own plugin loader due to a duplicate API JAR or missing transitive dependency. Real host tests should use **the exact classloader/module-layer boundaries intended for production**:
+- shared API defined in parent;
+- implementation/private dependencies in child;
+- expected provider metadata bound to generation/artifact digest;
+- check class identity, missing classes, `NoSuchMethodError`, `ClassCastException`;
+- create a new generation for v2 rather than merely calling `ServiceLoader.reload()` on the v1 loader.
 
-Một job có thể chạy toàn bộ core contracts **cho mỗi generation candidate trước khi publish**. Nếu tất cả pass, host mới cho request dùng version ấy; request cũ và provider cũ vẫn theo lifecycle của thế hệ trước.
+A job can run the full core contracts **for each candidate generation before publication**. Only if all pass does the host route requests to that version; older requests and older providers follow the previous generation's lifecycle.
 
-## 9. Fixture sạch, lifecycle và tránh test nhiễm chéo
+## 9. Clean Fixtures, Lifecycle, and Avoiding Cross-Test Contamination
 
-Trong một suite đa-provider, test không được phụ thuộc thứ tự provider A rồi B, hoặc thời điểm một provider cũ để lại state.
+In a multi-provider suite, tests must not depend on running provider A before B, or on leftover state from an earlier provider.
 
-### 9.1. Những biến gây nhiễm
+### 9.1. Sources of Contamination
 
-- mutable static singleton dùng chung trong class loader;
-- provider cache, transaction hoặc database table không reset;
-- file/resource temporary path bị chia sẻ;
-- TCCL không restore trên thread pool;
-- listener/logging registry chưa unregister;
-- timing/randomness/network service không ổn định;
-- stateful provider instance được reuse giữa test;
-- thread/executor do provider tạo không được shutdown.
+- mutable static singletons shared inside a class loader;
+- unreset provider caches, transactions, or database tables;
+- shared temporary file/resource paths;
+- TCCL not restored on thread pools;
+- unregistered listeners/logging registries;
+- unstable timing/randomness/network services;
+- stateful provider instances reused across tests;
+- provider-created threads/executors never shut down.
 
-Đối với service stateful, hãy tạo **namespace test riêng mỗi provider** (tenant/database schema/tmp directory/prefix), reset state theo contract và dọn bằng `try/finally`. Nếu chạy provider A và B song song, không dùng cùng database key mà không cách ly.
+For stateful services, allocate **a dedicated test namespace per provider** (tenant/database schema/tmp directory/prefix), reset state per contract, and clean up via `try/finally`. When running providers A and B in parallel, never share database keys without isolation.
 
-### 9.2. Test lifecycle của AutoCloseable
+### 9.2. Testing AutoCloseable Lifecycle
 
-Nếu contract có `close()`, phải định nghĩa:
-- gọi khi nào và ai sở hữu;
-- có được gọi nhiều lần không;
-- operation sau close ném gì;
-- có chờ in-flight operations không;
-- thread/resource còn tồn tại sau close có được phép không.
+If the contract includes `close()`, define:
+- when it is called and who owns it;
+- whether calling it multiple times is allowed;
+- what operations after close throw;
+- whether it waits for in-flight operations;
+- whether threads/resources remaining after close are permitted.
 
-Chỉ test **điều đã cam kết**; đừng giả định mọi provider có `AutoCloseable` giống nhau. Với plugin có loader riêng, sau khi hoàn thành fixture: stop service, đóng resources, restore TCCL, đóng `URLClassLoader` khi an toàn, bỏ strong refs và kiểm tra leak bằng test tier riêng. `URLClassLoader.close()` không ép class unload ngay lập tức.
+Test only **what is promised**; do not assume all `AutoCloseable` providers behave identically. For plugins with dedicated loaders, after finishing a fixture: stop the service, close resources, restore TCCL, close `URLClassLoader` when safe, drop strong references, and verify against leaks in a dedicated test tier. `URLClassLoader.close()` does not force immediate class unloading.
 
-### 9.3. Test exception và cancellation
+### 9.3. Testing Exceptions and Cancellation
 
-Không chỉ assert kết quả thành công. Kiểm tra input xấu hoặc dependency fail có:
-- exception type/status theo contract;
-- dữ liệu không bị ghi một phần ngoài policy;
-- resource/transaction được dọn;
-- retry/idempotence đúng nếu API hứa;
-- timeout/cancellation xử lý thống nhất.
+Do not assert only successful results. Verify whether bad inputs or dependency failures produce:
+- exception types/statuses matching the contract;
+- no partial data writes violating policy;
+- cleaned-up resources/transactions;
+- proper retry/idempotence if promised by the API;
+- consistent timeout/cancellation handling.
 
-Với provider gọi network, dùng fake HTTP server/test database và fault injection để chủ động tạo timeout, 5xx, partial result hoặc connection reset. Đừng chạy lỗi mạng thật ngẫu nhiên làm suite chập chờn.
+For providers calling the network, use a fake HTTP server/test database and fault injection to deterministically trigger timeouts, 5xx responses, partial results, or connection resets. Do not rely on real intermittent network errors that make the suite flaky.
 
-## 10. Cross-provider comparison: có ích nhưng không được dùng làm chuẩn duy nhất
+## 10. Cross-Provider Comparison: Useful, Never the Sole Oracle
 
-Khi output của các provider là hoàn toàn tương đương theo contract, **differential testing** có thể gửi cùng input tới A/B/C rồi so kết quả:
+When provider outputs are strictly equivalent under the contract, **differential testing** can send the same input to A/B/C and compare results:
 
 ~~~text
 Input vector X
@@ -665,48 +665,48 @@ Input vector X
   ├── provider B → output B
   └── provider C → output C
 
-Nếu contract hứa kết quả canonical giống nhau:
+If the contract promises identical canonical output:
   assert(output A == output B == output C)
 ~~~
 
-Nó có thể phát hiện một provider lệch khi test vectors chưa bao hết. Nhưng nếu cả ba sai giống nhau, phép so vẫn pass. Vì thế giữ **specification-based tests** (known expected outputs/invariants) làm nguồn tin cậy.
+This can catch a diverging provider where test vectors are incomplete. However, if all three have the same bug, the comparison still passes. Therefore keep **specification-based tests** (known expected outputs/invariants) as the source of truth.
 
-Nếu contract chỉ cho phép **tương đương về ý nghĩa**, cần canonicalize theo đúng đặc tả trước khi so:
-- `Set` equality thay vì array order;
-- numeric tolerance chỉ khi API có error bound;
-- normalized timestamp/timezone theo contract;
-- không so internal IDs, logging hoặc nondeterministic metadata nếu API không hứa chúng ổn định.
+If the contract promises only **semantic equivalence**, canonicalize per specification before comparing:
+- `Set` equality instead of array order;
+- numeric tolerance only when the API defines an error bound;
+- normalized timestamps/timezones per contract;
+- exclude internal IDs, logging, or nondeterministic metadata unless the API promises stability.
 
-**Không so performance giữa providers bằng yêu cầu output giống nhau**; throughput/latency là tier khác với SLO/hardware test policy riêng.
+**Do not compare performance across providers by requiring identical timings**; throughput/latency belong in a separate tier with dedicated SLO/hardware test policies.
 
-## 11. Chạy cùng một suite qua ma trận phiên bản và môi trường
+## 11. Running the Same Suite Across a Version and Environment Matrix
 
-Một provider “hỗ trợ” không chỉ là source code; cần xác định artifact và compatibility matrix.
+A "supported" provider is not just source code; define the artifact and compatibility matrix.
 
-| Chiều test | Ví dụ | Mục đích |
+| Test Dimension | Example | Purpose |
 | --- | --- | --- |
-| Provider ID/artifact digest | loop v1, regex v1, provider ngoài | Bao phủ toàn bộ bản hỗ trợ |
+| Provider ID/artifact digest | loop v1, regex v1, external provider | Cover all supported builds |
 | Service API version | API 1.x/2.x | Binary/semantic compatibility |
-| Host version | host current và bản còn hỗ trợ | Tránh regression với host cũ |
-| JDK target/runtime | compile `--release 17`; chạy các JDK được hỗ trợ | Bytecode, module, runtime behavior |
-| ClassLoader scope | application, per-plugin loader | Phát hiện API/private dependency collision |
-| JPMS layer | boot/custom/sibling layers | Phát hiện `uses/provides/requires` sai |
-| Config/capability profile | baseline, optional modes | Không bỏ qua contract optional đã khai báo |
-| OS/locale/charset/timezone | các môi trường quan trọng | Phát hiện phụ thuộc môi trường ngầm |
-| Concurrency/workload | single, multithread, repeated | State, race, resource lifecycle |
-| Artifact packaging | exploded classes, JAR, shaded JAR | SPI metadata và dependency completeness |
+| Host version | current host and still-supported versions | Prevent regressions on older hosts |
+| JDK target/runtime | compile `--release 17`; run supported JDKs | Bytecode, module, runtime behavior |
+| ClassLoader scope | application, per-plugin loader | Catch API/private dependency collisions |
+| JPMS layer | boot/custom/sibling layers | Catch bad `uses/provides/requires` |
+| Config/capability profile | baseline, optional modes | Never skip declared optional contracts |
+| OS/locale/charset/timezone | key target environments | Catch implicit environment dependencies |
+| Concurrency/workload | single, multithread, repeated | State, races, resource lifecycle |
+| Artifact packaging | exploded classes, JAR, shaded JAR | SPI metadata and dependency completeness |
 
-Không nhất thiết chạy **mọi tổ hợp tích Descartes** trên mỗi commit nếu chi phí quá cao. Có thể chia CI tiers:
-- PR: nhanh, core contract suite trên mỗi provider artifact đang thay.
-- Merge/release: full supported-provider catalog và packaged discovery.
-- Nightly: multi-JDK/OS, concurrency/stress, compatibility matrix rộng.
-- Pre-deploy/canary: candidate generation trong host tương đương production, health + core contract subset đủ mạnh; failure dừng rollout.
+You do not need to run **every Cartesian combination** on every commit if cost is prohibitive. Split CI tiers:
+- PR: fast, core contract suite on every modified provider artifact.
+- Merge/release: full supported-provider catalog and packaged discovery.
+- Nightly: multi-JDK/OS, concurrency/stress, wide compatibility matrix.
+- Pre-deploy/canary: candidate generation inside a production-like host, health + strong core contract subset; failures halt rollout.
 
-Quan trọng: dù chia tier, **không được công bố một provider là được hỗ trợ** nếu artifact tương ứng chưa vượt qua release gate đã định.
+Crucially, regardless of tiering, **never declare a provider supported** if its exact artifact has not passed the defined release gate.
 
-## 12. CI/CD: điều kiện để kết quả có giá trị
+## 12. CI/CD: Conditions for Meaningful Results
 
-Một pipeline phù hợp:
+A suitable pipeline:
 
 ~~~text
 Build host API and provider artifacts
@@ -732,9 +732,9 @@ All mandatory gates PASS?
    └── Yes → mark candidate READY; allow deploy/canary
 ~~~
 
-### 12.1. Báo cáo theo provider, không chỉ tổng số test
+### 12.1. Report Per Provider, Not Just Total Test Counts
 
-Nên có report dạng:
+Generate a report like:
 
 ~~~text
 service=demo.api.Slugifier contractVersion=1
@@ -746,100 +746,100 @@ missing=[] unexpected=[] duplicateIds=[]
 releaseGate=PASS
 ~~~
 
-Đây là **mẫu báo cáo thiết kế**, không phải stdout của chương trình demo; chương trình mẫu chỉ in bốn dòng `PASS`/`providers`/`ALL CONTRACTS PASSED`. Nếu một provider fail, CI nên in **provider ID, contract rule, test input, expected vs actual, exception cause, artifact digest**, không chỉ “ServiceLoader error”.
+This is a **design report template**, not the stdout of the demo program; the sample program prints only the four `PASS`/`providers`/`ALL CONTRACTS PASSED` lines. When a provider fails, CI should print **provider ID, contract rule, test input, expected vs actual, exception cause, and artifact digest**, not merely "ServiceLoader error".
 
-### 12.2. Tiêu chí fail rõ ràng
+### 12.2. Explicit Failure Criteria
 
-Release gate phải fail khi:
-- expected provider thiếu, duplicate ID, sai API version;
-- unexpected provider làm vi phạm catalog/trust policy;
-- SPI/resource/module descriptor không load được;
-- provider vi phạm core rule hoặc khai báo capability mà không pass capability contract;
-- fixture/resource cleanup fail theo release policy;
-- test bị skipped/blocked không có chứng nhận cho phép;
-- compatibility test bắt buộc hoặc JDK platform test fail.
+The release gate must fail when:
+- an expected provider is missing, has a duplicate ID, or has the wrong API version;
+- an unexpected provider violates catalog/trust policy;
+- an SPI/resource/module descriptor fails to load;
+- a provider violates a core rule or declares a capability whose capability contract fails;
+- fixture/resource cleanup fails per release policy;
+- tests are skipped/blocked without approved waiver;
+- mandatory compatibility tests or JDK platform tests fail.
 
-Một test suite “không chạy được vì môi trường thiếu credentials” phải được ghi **BLOCKED**, không được tự xem là pass. Có thể dùng mocks cho PR và test integration có credentials trong môi trường CI an toàn.
+A test suite that "could not run because the environment lacked credentials" must be recorded as **BLOCKED**, never treated as passed. Use mocks for PRs and credentialed integration tests in a secure CI environment.
 
-## 13. Những lỗi phổ biến và cách khắc phục
+## 13. Common Mistakes and How to Fix Them
 
-### 13.1. Chỉ kiểm `findFirst()`
+### 13.1. Checking Only `findFirst()`
 
-Provider đầu tiên pass không nói gì về những provider còn lại. **Duyệt toàn bộ catalog**, buộc instantiate và chạy cùng suite. Validate tập IDs kỳ vọng, không chỉ đếm số.
+The first provider passing says nothing about the remaining providers. **Iterate the entire catalog**, force instantiation, and run the same suite. Validate the expected ID set, not just the count.
 
-### 13.2. Kiểm thử bằng `new MyDefaultProvider()` nhưng không test packaging
+### 13.2. Testing with `new MyDefaultProvider()` Without Testing Packaging
 
-Provider source code đúng nhưng plugin JAR có thể thiếu `META-INF/services` hoặc `provides`. Dùng cả direct fixture test **và** packaged ServiceLoader test với artifact thực.
+Provider source code can be correct while the plugin JAR lacks `META-INF/services` or `provides`. Run both direct fixture tests **and** packaged `ServiceLoader` tests against the real artifact.
 
-### 13.3. Hardcode nhánh theo class implementation
+### 13.3. Hardcoding Branches by Concrete Implementation Class
 
 ~~~java
-// Anti-pattern minh họa:
+// Illustrative anti-pattern:
 if (provider instanceof SomeConcreteProvider) {
-    // Chỉ provider này mới chạy đầy đủ case.
+    // Only this provider runs the full test cases.
 }
 ~~~
 
-Hãy dùng interface/capability hợp đồng; core suite áp dụng cho mọi provider. Một test không thể “chung” nếu có nhánh bỏ các quy tắc bắt buộc của provider ít được dùng.
+Program against the contract interface/capabilities; the core suite applies to every provider. A test is not "shared" if a branch skips mandatory rules for less-used providers.
 
-### 13.4. Bỏ qua provider lỗi bằng catch-all
+### 13.4. Ignoring Broken Providers with a Catch-All
 
 ~~~java
-// Anti-pattern minh họa:
+// Illustrative anti-pattern:
 try {
     // ServiceLoader ... instantiate
 } catch (Throwable ignored) {
-    // tiếp tục với những provider còn lại, job vẫn thành công
+    // continue with remaining providers, job still succeeds
 }
 ~~~
 
-Đây là cách **che lỗi discovery**. Với release test, fail và ghi cause. Trong production host có thể có policy cô lập provider lỗi để service vẫn chạy, nhưng kết quả test phải phản ánh provider ấy **không đạt hỗ trợ**.
+This **masks discovery failures**. In release tests, fail and log the cause. A production host may have a policy to quarantine a broken provider so the service stays up, yet test results must reflect that the provider **failed support**.
 
-### 13.5. Test output quá cụ thể hoặc không đủ cụ thể
+### 13.5. Over-Specifying or Under-Specifying Test Outputs
 
-Đối với API không hứa thứ tự, assert list exact order là test sai. Ngược lại, nếu contract yêu cầu normalization chính xác, chỉ assert output “không null” là quá yếu. Mức assertion phải bám đúng đặc tả quan sát được.
+For APIs that do not promise ordering, asserting exact list order is a buggy test. Conversely, when a contract requires exact normalization, asserting only "non-null" output is too weak. Assertion strictness must match the observable specification.
 
-### 13.6. Dùng shared state khiến test phụ thuộc thứ tự
+### 13.6. Shared State Causing Order-Dependent Tests
 
-Một provider pass khi chạy riêng nhưng fail sau provider khác có thể do database/static cache/timer/TCCL. Tạo fixture/namespace riêng, reset state và dọn theo lifecycle; khi CI chạy parallel, kiểm soát cả instance và external state.
+A provider passing in isolation yet failing after another provider can stem from databases, static caches, timers, or TCCL. Create dedicated fixtures/namespaces, reset state, and clean up per lifecycle; when CI runs in parallel, isolate both instances and external state.
 
-### 13.7. Cho rằng concurrency pass một lần là chứng minh thread-safe
+### 13.7. Assuming One Passing Concurrency Run Proves Thread Safety
 
-Race có thể không tái hiện. Dùng stress/repeat/specialized concurrent tests nếu contract thread-safe quan trọng, đồng thời review khả năng chia sẻ mutable state. Không tự thêm yêu cầu thread-safe nếu API thực sự chỉ hứa single-threaded use.
+Races may not reproduce on every run. Use stress/repeat/specialized concurrency tests when a thread-safety contract matters, and review shared mutable state. Never impose thread-safety requirements if the API actually promises only single-threaded use.
 
-### 13.8. Dùng thứ tự discovery để xác định provider quan trọng
+### 13.8. Using Discovery Order to Determine Provider Importance
 
-Thứ tự provider phụ thuộc cách lookup module/classpath resources. Test và host nên dùng provider ID/priority metadata rõ ràng; sort ID cho báo cáo deterministic, không ép thứ tự file SPI thành business priority.
+Provider order depends on module/classpath resource lookup. Tests and hosts should use explicit provider IDs/priority metadata; sort IDs for deterministic reporting, never turning SPI file order into business priority.
 
-### 13.9. Trộn API classes giữa các loader
+### 13.9. Mixing API Classes Across Loaders
 
-Một implementation và host có thể chứa hai bản service interface cùng binary name nhưng khác defining loader, gây `ClassCastException` hoặc `ServiceConfigurationError`. Đặt shared API ở parent/layer chung, kiểm tra artifact không nhúng bản sao ngoài chủ ý.
+An implementation and the host can end up with two copies of a service interface sharing the same binary name but defined by different loaders, causing `ClassCastException` or `ServiceConfigurationError`. Place the shared API in a common parent/layer and verify artifacts do not accidentally embed duplicates.
 
-### 13.10. Quên test version mới trước khi chuyển traffic
+### 13.10. Forgetting to Test New Versions Before Shifting Traffic
 
-Candidate plugin v2 có thể load thành công nhưng vi phạm một edge case của core contract. Chạy suite với candidate **loader/layer generation thật** trước publish, dùng health/canary bổ sung và giữ rollback policy. `ServiceLoader.reload()` không thay thế kiểm thử hoặc tạo classloader generation mới.
+A candidate plugin v2 may load cleanly yet violate an edge case of the core contract. Run the suite against the **real candidate loader/layer generation** before publishing, add health/canary checks, and keep a rollback policy. `ServiceLoader.reload()` is no substitute for testing or creating a fresh classloader generation.
 
-## 14. Checklist triển khai contract suite dùng chung
+## 14. Checklist for Implementing a Shared Contract Suite
 
-1. **Định nghĩa contract** độc lập implementation, kèm input domain, output semantics, exception, state, concurrency và lifecycle.
-2. **Version hóa contract** và quy tắc compatibility với host/provider.
-3. **Duy trì supported-provider catalog** có ID, artifact digest, version, capabilities, loader/layer scope.
-4. **Không cho false green:** fail khi catalog rỗng/thiếu/ngoài dự kiến/trùng ID; đừng chỉ thử provider đầu tiên.
-5. **Dùng cùng assertion set** cho mọi provider, không có nhánh bypass core rules.
-6. **Tạo fixture sạch** cho provider stateful; reset external state và dọn resource kể cả khi assertion fail.
-7. **Chạy packaged discovery** qua SPI/module layer bên cạnh unit tests trực tiếp.
-8. **Tách capability contracts** dựa trên metadata được xác thực; skipped ≠ passed.
-9. **Kiểm thử non-happy paths**, property-based/invariants, concurrency và resource lifecycle đúng theo API.
-10. **Báo cáo theo provider/rule** để biết chính xác implementation nào vi phạm.
-11. **Gắn vào release gate** của CI và candidate generation trước triển khai.
-12. **Lặp lại theo compatibility matrix** JDK/API/host/config/artifact cho những môi trường được công bố hỗ trợ.
+1. **Define the contract** independently of implementations, including input domain, output semantics, exceptions, state, concurrency, and lifecycle.
+2. **Version the contract** and compatibility rules for host/provider.
+3. **Maintain a supported-provider catalog** with IDs, artifact digests, versions, capabilities, and loader/layer scope.
+4. **Prevent false greens:** fail on empty/missing/unexpected/duplicate-ID catalogs; never test only the first provider.
+5. **Use the same assertion set** for all providers, with no branches bypassing core rules.
+6. **Build clean fixtures** for stateful providers; reset external state and clean up resources even when assertions fail.
+7. **Run packaged discovery** through SPI/module layers alongside direct unit tests.
+8. **Separate capability contracts** based on verified metadata; skipped ≠ passed.
+9. **Test non-happy paths**, property-based/invariants, concurrency, and resource lifecycle per API.
+10. **Report by provider/rule** so you know exactly which implementation violated the spec.
+11. **Wire into CI release gates** and candidate generations before deployment.
+12. **Repeat across the compatibility matrix** of JDK/API/host/config/artifact for all declared supported environments.
 
-**Kết luận:** một plugin platform đáng tin không chỉ có interface chung mà còn có **bộ bằng chứng hành vi chung**. Mỗi provider được tuyên bố hỗ trợ phải được tìm thấy trong đúng phạm vi loader/layer, được định danh rõ và chạy **cùng contract assertions**. Sự khác biệt thuật toán là quyền của provider; sự tương đương về kết quả, lỗi và lifecycle theo đặc tả là nghĩa vụ để host có thể thay thế provider một cách an toàn.
+**Conclusion:** a trustworthy plugin platform has not just a shared interface, but **shared behavioral proof**. Every provider claimed as supported must be discovered in the right loader/layer scope, uniquely identified, and run against **the exact same contract assertions**. Algorithmic freedom belongs to the provider; equivalence of outputs, errors, and lifecycle under the specification is the obligation that lets the host swap providers safely.
 
-## 15. Tài liệu tham khảo
+## 15. References
 
-- Java SE 17 — `ServiceLoader`, `ServiceLoader.Provider`, `iterator()`, `stream()` và lỗi discovery: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
-- Java SE 17 — `ModuleLayer` và provider discovery trong named modules: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html
-- Java SE 17 — `ClassLoader` và class identity/delegation: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html
-- JUnit 5 User Guide — Dynamic Tests (`@TestFactory`) và Parameterized Tests: https://docs.junit.org/5.13.1/user-guide/index.html
-- Java SE 17 — `ExecutorService` và `Future` trong concurrency test: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html
+- Java SE 17 — `ServiceLoader`, `ServiceLoader.Provider`, `iterator()`, `stream()`, and discovery errors: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+- Java SE 17 — `ModuleLayer` and provider discovery in named modules: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html
+- Java SE 17 — `ClassLoader` and class identity/delegation: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html
+- JUnit 5 User Guide — Dynamic Tests (`@TestFactory`) and Parameterized Tests: https://docs.junit.org/5.13.1/user-guide/index.html
+- Java SE 17 — `ExecutorService` and `Future` in concurrency tests: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html

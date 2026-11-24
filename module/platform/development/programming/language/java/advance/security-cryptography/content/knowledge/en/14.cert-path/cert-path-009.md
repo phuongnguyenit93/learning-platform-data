@@ -1,45 +1,45 @@
-# 14.9. Giới hạn của PKIX: kiểm tra danh tính máy chủ là một bước riêng
+# 14.9. Limits of PKIX: Hostname Verification Is a Separate Step
 
-## 1. Bài toán: chứng thư có CA tin cậy chưa chắc thuộc đúng server
+## 1. The Problem: A Certificate from a Trusted CA May Not Belong to the Right Server
 
-Giả sử một ứng dụng Java định gọi API tại `https://billing.example.test`. Trên đường truyền, máy chủ trình ra một chứng thư X.509:
+Suppose a Java application intends to call an API at `https://billing.example.test`. Over the wire, the server presents an X.509 certificate:
 
-- Do một CA hợp lệ, nằm trong tập trust anchors mà client đã cấu hình, ký.
-- Chưa hết hạn, đường dẫn chứng thư và chữ ký đều có thể được kiểm tra thành công theo PKIX.
-- Nhưng **Subject Alternative Name (SAN)** của chứng thư chỉ chứa `DNS:service.example.test`, **không** chứa `billing.example.test`.
+- Signed by a valid CA present in the client's configured set of trust anchors.
+- Unexpired, with a certificate path and signatures that pass PKIX validation.
+- Yet the certificate's **Subject Alternative Name (SAN)** contains only `DNS:service.example.test`, **not** `billing.example.test`.
 
-Nếu lập trình viên chỉ gọi `CertPathValidator.getInstance("PKIX").validate(...)` rồi kết luận “đúng server”, ứng dụng có thể bị kết nối đến **sai danh tính**. Đây là lỗi ghép hai bài toán khác nhau thành một:
+If the developer merely calls `CertPathValidator.getInstance("PKIX").validate(...)` and concludes “right server”, the application can end up connected to **the wrong identity**. This is the mistake of collapsing two distinct problems into one:
 
-1. **Path validation (PKIX):** chuỗi chứng thư có xây dựng được một đường tin cậy hợp lệ đến một trust anchor được chấp nhận, thỏa các ràng buộc và chính sách PKIX hay không?
-2. **Endpoint identification / hostname verification:** chứng thư được chấp nhận đó có **ràng buộc với tên DNS hoặc địa chỉ IP mà ứng dụng thực sự dự định kết nối** hay không?
+1. **Path validation (PKIX):** can the certificate chain form a valid trust path to an accepted trust anchor while satisfying PKIX constraints and policies?
+2. **Endpoint identification / hostname verification:** is that accepted certificate **bound to the DNS name or IP address the application actually intends to connect to**?
 
-**Kết luận cốt lõi:** `PKIX path valid = true` **không kéo theo** `hostname matches = true`. Một kết nối TLS đúng phải thỏa **cả hai điều kiện** theo giao thức, đồng thời bắt tay TLS chứng minh server dùng được private key tương ứng với chứng thư được chấp nhận.
+**Core takeaway:** `PKIX path valid = true` **does not imply** `hostname matches = true`. A valid TLS connection must satisfy **both conditions** per protocol, while the TLS handshake proves the server possesses the private key corresponding to the accepted certificate.
 
-### Mục tiêu học tập
+### Learning Objectives
 
-Sau bài này, bạn sẽ biết:
+After this lesson, you will know how to:
 
-- Phân biệt `CertPathBuilder`, `CertPathValidator`, `PKIXParameters`, `TrustAnchor` với bước xác minh tên máy chủ.
-- Hiểu vì sao đường tin cậy hợp lệ vẫn có thể bị dùng cho **sai hostname**.
-- Nhận diện SAN `dNSName` (type 2), `iPAddress` (type 7), wildcard và giới hạn của `Common Name (CN)`.
-- Viết ví dụ Java 17+ **thực sự xác minh PKIX chain** nhưng chỉ có SAN của một hostname khác, rồi thấy giới hạn của kết quả.
-- Cấu hình `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` khi sử dụng JSSE trực tiếp, và không vô hiệu hóa hostname/trust verification.
-- Xây test matrix có đủ **đường tin cậy đúng/sai** và **danh tính đúng/sai**, phân biệt lỗi issuer với name mismatch.
+- Distinguish `CertPathBuilder`, `CertPathValidator`, `PKIXParameters`, and `TrustAnchor` from the hostname verification step.
+- Understand why a valid trust path can still be presented for the **wrong hostname**.
+- Identify SAN `dNSName` (type 2), `iPAddress` (type 7), wildcards, and the limits of `Common Name (CN)`.
+- Write a Java 17+ example that **genuinely validates a PKIX chain** carrying only another hostname's SAN, and observe the boundary of that result.
+- Configure `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` when using JSSE directly, without disabling hostname/trust verification.
+- Build a test matrix covering **valid/invalid trust paths** and **matching/mismatching identities**, separating issuer errors from name mismatches.
 
-## 2. Hai câu hỏi khác nhau trong xác thực TLS
+## 2. Two Different Questions in TLS Authentication
 
-### 2.1. PKIX xác minh đường tin cậy là gì?
+### 2.1. What Does PKIX Path Validation Verify?
 
-**PKIX** (*Public Key Infrastructure using X.509*) là tập tiêu chuẩn dùng để xây dựng và xác minh chứng thư. Đối với một chuỗi chứng thư server thường gặp:
+**PKIX** (*Public Key Infrastructure using X.509*) is the suite of standards for building and validating certificates. For a typical server certificate chain:
 
 ```text
-Trust anchor / Root CA được client tin từ trước
+Trust anchor / Root CA pre-trusted by client
            |
-           | ký hoặc ủy quyền theo cấu trúc CA
+           | signs or delegates per CA hierarchy
            v
-Intermediate CA (có thể không có)
+Intermediate CA (optional)
            |
-           | ký leaf certificate
+           | signs leaf certificate
            v
 Server leaf certificate
            |
@@ -49,57 +49,57 @@ Server leaf certificate
            +-- Validity / signature algorithm / extensions
 ```
 
-Một quá trình **PKIX path validation** với chính sách phù hợp có thể xét các khía cạnh như:
+A **PKIX path validation** run with appropriate policy can inspect aspects such as:
 
-- Chữ ký từng chứng thư và mối quan hệ issuer/subject trong đường dẫn.
-- Đường dẫn kết thúc tại **trust anchor mà ứng dụng chủ động tin**, không phải một CA ngẫu nhiên bất kỳ.
-- Hiệu lực thời gian (`notBefore`/`notAfter`) theo thời điểm kiểm tra.
-- `BasicConstraints`, độ sâu CA, `KeyUsage` cho chức năng chứng thực của CA.
-- Các ràng buộc tên (`NameConstraints`), certificate policies, thuật toán/độ mạnh khóa theo cấu hình và provider.
-- Tình trạng thu hồi (CRL/OCSP) nếu đã cấu hình đúng và cơ chế kiểm tra tương ứng được kích hoạt.
+- Each certificate's signature and issuer/subject linkage in the path.
+- Path termination at a **trust anchor explicitly trusted by the application**, not an arbitrary random CA.
+- Time validity (`notBefore`/`notAfter`) at the evaluation instant.
+- `BasicConstraints`, CA depth, and `KeyUsage` for CA certification roles.
+- Name constraints (`NameConstraints`), certificate policies, and algorithm/key strength per configuration and provider.
+- Revocation status (CRL/OCSP) when properly configured and enabled.
 
-**Không có một tập bảo đảm duy nhất cho mọi lần gọi `validate`:** kết quả phụ thuộc trust anchors, PKIX parameters, cert stores, chính sách thu hồi, thời gian, implementation/provider và ngữ cảnh ứng dụng. Trong Java, cấu hình mà bạn chọn là một phần của yêu cầu bảo mật.
+**There is no single fixed set of guarantees for every `validate` call:** outcomes depend on trust anchors, PKIX parameters, cert stores, revocation policy, validation time, implementation/provider, and application context. In Java, the configuration you choose is part of your security requirements.
 
-### 2.2. Endpoint identification kiểm tra điều gì?
+### 2.2. What Does Endpoint Identification Check?
 
-Khi ứng dụng **muốn** kết nối `billing.example.test`, client phải xác minh certificate chứa **reference identity** phù hợp với tên đó. Thông thường HTTPS sử dụng:
+When the application **intends** to connect to `billing.example.test`, the client must verify that the certificate contains a matching **reference identity**. HTTPS typically uses:
 
-- **DNS-ID:** `subjectAltName` dạng `dNSName` cho hostname DNS.
-- **IP-ID:** `subjectAltName` dạng `iPAddress` cho địa chỉ IP literal.
-- Các quy tắc về wildcard/IDNA/so khớp được profile giao thức quy định.
+- **DNS-ID:** `subjectAltName` of type `dNSName` for a DNS hostname.
+- **IP-ID:** `subjectAltName` of type `iPAddress` for a literal IP address.
+- Matching rules for wildcards/IDNA defined by the protocol profile.
 
-**Tên mong đợi phải đến từ phía ứng dụng/giao thức đáng tin**, ví dụ hostname trong URI mà client đã chọn hoặc danh tính peer đã cấu hình. Không lấy tên mong đợi từ chứng thư vừa nhận rồi kiểm tra chứng thư ấy “có chứa tên đó” — phép kiểm sẽ trở thành vòng lặp tự xác nhận và không bảo vệ đích mà người dùng muốn gọi.
+**The expected name must come from the trusted application/protocol side**, such as the hostname in the client-selected URI or a configured peer identity. Never take the expected name from the received certificate and check whether the certificate “contains that name”—that turns the check into a self-referential loop and fails to protect the destination the user intended to reach.
 
-### 2.3. Điều kiện kết nối an toàn
+### 2.3. Conditions for a Secure Connection
 
 ```text
-Khởi tạo kết nối tới hostname H do client tin
+Initiate connection to client-trusted hostname H
                     |
                     v
-Nhận certificate chain của TLS peer
+Receive TLS peer's certificate chain
                     |
                     v
-[1] Validate PKIX path đến trust anchor được phép?
-       | không --> FAIL: không tin đường chứng thư
-       | có
+[1] Validate PKIX path to an allowed trust anchor?
+       | no  --> FAIL: untrusted certificate path
+       | yes
        v
-[2] Xác minh endpoint identity H khớp SAN đúng kiểu?
-       | không --> FAIL: sai server identity
-       | có
+[2] Verify endpoint identity H matches right SAN type?
+       | no  --> FAIL: wrong server identity
+       | yes
        v
-[3] TLS handshake/chính sách/algorithm/key proof thành công?
-       | không --> FAIL
-       | có
+[3] TLS handshake/policy/algorithms/key proof succeed?
+       | no  --> FAIL
+       | yes
        v
-Chỉ lúc này mới chấp nhận kênh TLS theo chính sách
-và tiếp tục kiểm tra authorization nghiệp vụ.
+Only now accept the TLS channel per policy
+and proceed to business authorization checks.
 ```
 
-Sơ đồ mô tả **các điều kiện logic**, không áp đặt thứ tự gọi nội bộ của tất cả TLS providers. JSSE có thể phối hợp kiểm tra path, endpoint và các tham số handshake trong cùng một quá trình. Không nên tự chia thao tác thành ba bước bằng tay nếu API TLS cấp cao đã kiểm tra chúng an toàn.
+The diagram depicts **logical conditions**, without prescribing internal call ordering across all TLS providers. JSSE may coordinate path, endpoint, and handshake parameters together. Never split these manually into three separate steps when a high-level TLS API already enforces them safely.
 
-## 3. Vì sao một certificate hợp lệ lại có thể thuộc sai host?
+## 3. Why Can a Valid Certificate Belong to the Wrong Host?
 
-Ví dụ ba dịch vụ:
+Consider three services:
 
 ```text
 api.example.test
@@ -107,100 +107,100 @@ billing.example.test
 files.example.test
 ```
 
-Một CA có thể cấp **ba chứng thư đều hợp lệ** cho ba dịch vụ này. Việc client tin CA không có nghĩa mọi chứng thư CA đó cấp đều đại diện cho **mọi tên**.
+A CA can issue **three individually valid certificates** for these three services. The fact that the client trusts the CA does not mean every certificate that CA issues represents **every name**.
 
-Tình huống lỗi:
+Failure scenario:
 
-1. Java client kết nối `billing.example.test`.
-2. Attacker có chứng thư hợp lệ cho `api.example.test` từ một CA mà client cũng tin hoặc có thể can thiệp định tuyến/địa chỉ peer.
-3. Client chỉ xác thực chain: chữ ký hợp lệ, anchor được tin, validity và ràng buộc PKIX đều đạt.
-4. Client **bỏ qua hostname verification** nên chấp nhận chứng thư có `DNS:api.example.test` như thể nó dùng được cho `billing.example.test`.
+1. A Java client connects to `billing.example.test`.
+2. An attacker holds a valid certificate for `api.example.test` from a CA the client also trusts, or intercepts routing/peer addressing.
+3. The client checks only the chain: signatures are valid, anchor is trusted, validity and PKIX constraints pass.
+4. The client **skips hostname verification** and accepts a certificate with `DNS:api.example.test` as if it were valid for `billing.example.test`.
 
-Ngay cả khi attacker **không thể tạo certificate giả cho billing**, họ vẫn có thể lạm dụng một certificate thật của **tên khác** nếu ứng dụng chỉ kiểm chain. Với hostname verification, client phải từ chối vì danh tính mục tiêu không khớp SAN.
+Even when an attacker **cannot obtain a forged certificate for billing**, they can misuse a genuine certificate for **another name** if the application checks only the chain. With hostname verification, the client must reject because the target identity does not match the SAN.
 
-**Không chỉ là vấn đề “CA giả”:** việc kiểm CA *đúng* vẫn chưa đủ nếu bạn không kiểm tên. Và việc tự pin một public key cũng phải có policy ràng buộc key với đúng endpoint và scope, không biến bất kỳ key đã pin nào thành danh tính chung cho mọi dịch vụ.
+**Not merely a “rogue CA” issue:** checking the *right* CA is still insufficient without checking the name. And pinning a public key likewise requires a policy binding that key to the exact endpoint and scope, never turning any pinned key into a universal identity across all services.
 
-## 4. PKIX trong Java: API nào có và không có chức năng gì?
+## 4. PKIX in Java: Which API Does—and Does Not—Do What?
 
-| API | Chức năng | Không thể suy ra chỉ từ lời gọi này |
+| API | Capability | Cannot be inferred from this call alone |
 | --- | --- | --- |
-| `CertificateFactory.getInstance("X.509")` | Parse DER/PEM, tạo `X509Certificate` hoặc `CertPath` | Chưa xác minh trust chain hoặc hostname. |
-| `X509Certificate.checkValidity()` | Kiểm tra ngày hiệu lực của đúng certificate | Không xác minh issuer, policy hoặc server identity. |
-| `X509Certificate.verify(PublicKey)` | Kiểm chữ ký certificate bằng key đã cung cấp | Không tự chứng minh key đưa vào được tin, không kiểm hostname. |
-| `X509Certificate.getSubjectAlternativeNames()` | Đọc danh sách GeneralName ở SAN extension | Chỉ là **getter**, không phải hostname verifier. |
-| `CertPathBuilder.getInstance("PKIX")` | Tìm đường chứng thư đáp ứng tham số/target selector và trust policy | Không mặc nhiên lấy hostname URL cần bảo vệ. |
-| `CertPathValidator.getInstance("PKIX")` | Xác minh đường `CertPath` cụ thể theo tham số PKIX | Không mặc nhiên so hostname/IP của kết nối TLS với SAN. |
-| `PKIXParameters` / `PKIXBuilderParameters` | Cấu hình trust anchors, date, policy, revocation, cert stores, v.v. | Không có cơ chế mặc định “đây là URL billing của tôi” trong `validate`. |
-| `TrustAnchor` | Biểu diễn root/CA tin cậy mà policy đã cho phép | Không tự xác minh rằng anchor do bên đáng tin cấp phát. |
-| `X509ExtendedTrustManager` + JSSE endpoint algorithm | Trong TLS handshake có đủ ngữ cảnh, có thể phối hợp trust và endpoint identification | Không an toàn nếu trust manager tự viết luôn cho qua, hoặc không bật endpoint identification khi cần. |
-| `HttpClient` / `HttpsURLConnection` (HTTPS) | Client TLS cấp cao với xác minh certificate/hostname theo cấu hình an toàn | Mất bảo đảm nếu custom SSL/trust/hostname configuration bỏ qua kiểm tra. |
+| `CertificateFactory.getInstance("X.509")` | Parses DER/PEM, creates `X509Certificate` or `CertPath` | Does not verify trust chain or hostname. |
+| `X509Certificate.checkValidity()` | Checks the certificate's own validity dates | Does not verify issuer, policy, or server identity. |
+| `X509Certificate.verify(PublicKey)` | Checks certificate signature with a supplied key | Does not prove the key is trusted; does not check hostname. |
+| `X509Certificate.getSubjectAlternativeNames()` | Reads the GeneralName list in the SAN extension | Only a **getter**, not a hostname verifier. |
+| `CertPathBuilder.getInstance("PKIX")` | Finds a certificate path matching parameters/target selector and trust policy | Does not automatically take the target URL hostname to protect. |
+| `CertPathValidator.getInstance("PKIX")` | Validates a specific `CertPath` under PKIX parameters | Does not automatically compare TLS connection hostname/IP with SAN. |
+| `PKIXParameters` / `PKIXBuilderParameters` | Configures trust anchors, date, policy, revocation, cert stores, etc. | Has no built-in “this is my billing URL” check inside `validate`. |
+| `TrustAnchor` | Represents a policy-permitted trusted CA/root | Does not verify that the anchor was provisioned by a trusted source. |
+| `X509ExtendedTrustManager` + JSSE endpoint algorithm | Has full context during TLS handshake to coordinate trust and endpoint identification | Unsafe if a custom trust manager always passes, or if endpoint identification is left disabled. |
+| `HttpClient` / `HttpsURLConnection` (HTTPS) | High-level TLS clients with certificate/hostname verification when safely configured | Loses guarantees if custom SSL/trust/hostname configuration bypasses checks. |
 
-**Điểm phân biệt giữa CertPathBuilder và CertPathValidator:** `Builder` tìm đường phù hợp từ những certificates/`CertStore` có sẵn; `Validator` kiểm **đường cụ thể** đã được cung cấp. Dù tự build hay validate, kết quả “đường hợp lệ” không tự biến thành “đúng DNS host”.
+**Distinction between CertPathBuilder and CertPathValidator:** `Builder` discovers a valid path from available certificates/`CertStore`; `Validator` checks a **specific** supplied path. Whether built or validated, “valid path” never turns into “right DNS host” on its own.
 
-### 4.1. Trust anchor là một quyết định bảo mật
+### 4.1. A Trust Anchor Is a Security Decision
 
-Trong ví dụ Java, chương trình sẽ tạo `new TrustAnchor(demoRootCertificate, null)`. Nghĩa là **chính chương trình tuyên bố** root đó là một anchor tin cậy. PKIX validator đánh giá chain dưới điều kiện đã cho; nó **không** xác minh bằng phép màu vì sao chương trình lại chọn root này.
+In the Java example, the program executes `new TrustAnchor(demoRootCertificate, null)`. That means **the program itself declares** that root to be a trusted anchor. The PKIX validator evaluates the chain under that given assumption; it **does not** magically verify why the program chose that root.
 
-Trong production, trust anchors đến từ truststore/PKI policy được quản trị: JDK/system CA store, một truststore nội bộ được provision an toàn hoặc cơ chế xác thực/pinning được duyệt. Nếu attacker có quyền thêm root CA của mình vào truststore, đường dẫn đến root đó có thể hợp lệ và phá vỡ giả định tin cậy. **Quản lý truststore** là một phần của mô hình an ninh.
+In production, trust anchors come from managed truststores/PKI policies: the JDK/system CA store, a securely provisioned internal truststore, or an approved verification/pinning mechanism. If an attacker can insert their own root CA into the truststore, paths to that root validate and break the trust model. **Truststore governance** is part of the security boundary.
 
-### 4.2. PKIX thu hồi chứng thư không có nghĩa lúc nào cũng bật sẵn
+### 4.2. PKIX Certificate Revocation Is Not Always Enabled Out of the Box
 
-Trong Java, `PKIXParameters` có tùy chọn `setRevocationEnabled(boolean)`. Một bài lab offline có thể vô hiệu hóa revocation vì không cung cấp CRL/OCSP và không có PKI thật; cách đó **không phải** policy phù hợp cho mọi ứng dụng production.
+In Java, `PKIXParameters` exposes `setRevocationEnabled(boolean)`. An offline lab may disable revocation because it supplies no CRL/OCSP and has no real PKI; that approach is **not** a blanket policy for production applications.
 
-Khi deploy, cần quyết định rõ chế độ CRL/OCSP, nguồn trả lời, thời hạn cache, xử lý lỗi mạng, yêu cầu must-staple/nội bộ nếu áp dụng, và fail-open/fail-closed theo chính sách. Không khái quát rằng một lần `CertPathValidator.validate` thành công chắc chắn đã tra đầy đủ mọi trạng thái thu hồi trong thực tế.
+At deployment, explicitly decide CRL/OCSP mode, responder sources, cache lifetimes, network failure handling, must-staple/internal requirements if applicable, and fail-open vs fail-closed policy. Never generalize that one successful `CertPathValidator.validate` call checked all live revocation states.
 
-### 4.3. PKIX path validation và TLS usage constraints
+### 4.3. PKIX Path Validation and TLS Usage Constraints
 
-Generic `CertPathValidator` không biết **tất cả ngữ cảnh giao thức TLS**: hostname đang kết nối, SNI, có dùng serverAuth hay clientAuth, TLS version, handshake purpose, authType, application authorization. JSSE trust manager theo ngữ cảnh có thể áp dụng additional checks như extended key usage, thuật toán và danh tính endpoint.
+A generic `CertPathValidator` does not know **all TLS protocol context**: target hostname, SNI, `serverAuth` vs `clientAuth`, TLS version, handshake purpose, `authType`, or application authorization. Context-aware JSSE trust managers can apply additional checks such as extended key usage, algorithms, and endpoint identity.
 
-Ví dụ chứng thư ký code hoặc client certificate có chain hợp lệ không tự động trở thành server certificate phù hợp cho mọi hostname. Phải kết hợp đúng **KeyUsage/EKU**, giao thức và identity verification.
+For instance, a code-signing or client certificate with a valid chain does not become a valid server certificate for arbitrary hostnames. You must combine proper **KeyUsage/EKU**, protocol, and identity verification.
 
-## 5. Endpoint identity: DNS SAN và IP SAN là hai kiểu khác nhau
+## 5. Endpoint Identity: DNS SAN and IP SAN Are Two Distinct Types
 
-### 5.1. DNS hostname → dNSName (type 2)
+### 5.1. DNS Hostname → dNSName (type 2)
 
-Với URI `https://billing.example.test`, tên tham chiếu bình thường là `billing.example.test`, so với SAN `dNSName` của chứng thư server.
+For URI `https://billing.example.test`, the normal reference name is `billing.example.test`, matched against the server certificate's `dNSName` SAN.
 
-Ví dụ chứng thư chứa `DNS:service.example.test`. Chứng thư này **không** hợp lệ cho `billing.example.test` chỉ vì cùng suffix `example.test`. Một dNSName chính xác hoặc wildcard hợp lệ theo tiêu chuẩn phải khớp.
+Suppose a certificate contains `DNS:service.example.test`. That certificate is **not** valid for `billing.example.test` merely because both share the suffix `example.test`. An exact `dNSName` or standard-compliant wildcard must match.
 
-Các so sánh DNS-ID cần tuân thủ profile: tên DNS không phân biệt chữ hoa/chữ thường theo quy tắc, dạng IDN/IDNA ASCII A-label, các giới hạn wildcard; **không tự viết regex tùy tiện** để thay verifier của TLS stack.
+DNS-ID comparisons must follow profile rules: case-insensitive DNS matching per standard, IDN/IDNA ASCII A-labels, and wildcard limits; **never write ad-hoc regexes** to replace the TLS stack's verifier.
 
-### 5.2. IP literal → iPAddress (type 7)
+### 5.2. IP Literal → iPAddress (type 7)
 
-Với `https://192.0.2.10` hoặc `https://[2001:db8::10]`, reference identity là IP address. Certificate cần SAN `iPAddress` có giá trị nhị phân tương ứng (4 octet cho IPv4, 16 octet cho IPv6). Dùng `DNS:192.0.2.10` không tự trở thành `IP Address:192.0.2.10`.
+For `https://192.0.2.10` or `https://[2001:db8::10]`, the reference identity is an IP address. The certificate needs an `iPAddress` SAN with matching binary octets (4 octets for IPv4, 16 octets for IPv6). Putting `DNS:192.0.2.10` does not turn it into `IP Address:192.0.2.10`.
 
-Không lấy kết quả reverse DNS để đổi yêu cầu kiểm IP-ID thành DNS-ID. Hai địa chỉ IPv6 có biểu diễn text khác nhau nhưng cùng 16 octet phải được hiểu theo giá trị IP; so text thuần có thể sai.
+Never use reverse DNS results to turn an IP-ID check into a DNS-ID check. Two IPv6 addresses with different text spellings representing the same 16 octets must be compared as IP values; naive string matching can fail.
 
-### 5.3. Common Name (CN) không thay cho SAN
+### 5.3. Common Name (CN) Does Not Replace SAN
 
-Trước đây một số TLS clients có thể dùng `Subject CN` làm fallback nếu chứng thư thiếu dNSName. **RFC 9525**, thay thế RFC 6125, quy định không dùng Common Name RDN làm danh tính dịch vụ. Với thiết kế mới: cấp chứng thư có SAN phù hợp và không dựa vào fallback CN.
+Historically, some TLS clients fell back to `Subject CN` when a certificate lacked `dNSName`. **RFC 9525**, obsoleting RFC 6125, specifies that Common Name RDNs must not be used for service identity. For modern designs: issue certificates with proper SANs and do not rely on CN fallback.
 
-Một `Subject: CN=billing.example.test` **không nên** được xem là lý do cho qua khi SAN chỉ chứa `DNS:service.example.test`. Một certificate có CN đúng và SAN sai vẫn không bảo vệ danh tính cần thiết.
+A `Subject: CN=billing.example.test` **must not** be accepted as an excuse when the SAN holds only `DNS:service.example.test`. A certificate with a matching CN and wrong SAN still fails to protect the intended identity.
 
-### 5.4. Wildcard không được tự mở rộng vô hạn
+### 5.4. Wildcards Must Not Expand Unboundedly
 
-Theo profile DNS-ID, wildcard hợp lệ được giới hạn (ví dụ nguyên nhãn bên trái `*.example.test`), thông thường chỉ khớp **một nhãn**. Nó không khớp `example.test` và không khớp `a.b.example.test`. Một số hệ thống còn có chính sách hạn chế wildcard nghiêm ngặt hơn; phải theo RFC 9525 và profile đang áp dụng.
+Per DNS-ID profiles, valid wildcards are constrained (e.g., an entire leftmost label `*.example.test`) and normally match only **one label**. It does not match `example.test` and does not match `a.b.example.test`. Some systems enforce even stricter wildcard policies; follow RFC 9525 and your active profile.
 
-Không dùng `endsWith(".example.test")` hoặc `replace("*",".*")` để tự xác minh host. Một lỗi xử lý label, dấu chấm, Unicode/IDNA hoặc wildcard có thể tạo ra lỗ hổng xác thực endpoint.
+Never use `endsWith(".example.test")` or `replace("*",".*")` as a DIY host verifier. A bug in label, dot, Unicode/IDNA, or wildcard handling creates an endpoint verification vulnerability.
 
-## 6. Demo Java 17+: PKIX chain hợp lệ nhưng hostname cần kiểm tra riêng
+## 6. Java 17+ Demo: PKIX Chain Valid Yet Hostname Needs Separate Checking
 
-### 6.1. Mục tiêu và ranh giới của demo
+### 6.1. Goal and Boundaries of the Demo
 
-Chương trình sử dụng **hai chứng thư X.509 thử nghiệm công khai**:
+The program uses **two public test X.509 certificates**:
 
-- **Demo Root CA:** self-signed, với CA BasicConstraints và KeyUsage phù hợp, được chương trình chọn làm trust anchor chỉ cho bài học.
-- **Leaf certificate:** được Demo Root CA ký, có SAN `DNS:service.example.test`; phần `Subject CN` là `legacy.example.test`.
+- **Demo Root CA:** self-signed, with appropriate CA BasicConstraints and KeyUsage, chosen by the program as its trust anchor solely for this lesson.
+- **Leaf certificate:** signed by the Demo Root CA, with SAN `DNS:service.example.test`; `Subject CN` is `legacy.example.test`.
 
-Java `CertPathValidator` sẽ xác minh một đường có **leaf certificate** dẫn đến **root CA** đã được chương trình tin. Kết quả thành công **không** chứa hoặc nhận tham số `billing.example.test`; vì vậy nó không thể trả lời trực tiếp liệu hostname đó có đúng không.
+Java's `CertPathValidator` will validate a path containing the **leaf certificate** up to the **root CA** trusted by the program. A successful result **neither contains nor accepts** the parameter `billing.example.test`; therefore it cannot directly answer whether that hostname matches.
 
-Sau đó chương trình đọc SAN để **minh họa** rằng tên `service.example.test` có trong certificate, nhưng `billing.example.test` thì không. Phép tìm phần tử `List.contains` trong demo chỉ dùng vì test certificate chứa **một DNS-ID chính xác, không có wildcard hoặc IDN**. **Nó không phải hàm xác minh HTTPS hostname tổng quát.** Trong ứng dụng thật, để JSSE kiểm tra endpoint theo thuật toán `HTTPS` và PKIX trust manager thích hợp.
+The program then reads the SAN to **illustrate** that `service.example.test` is present in the certificate while `billing.example.test` is not. `List.contains` in the demo is used solely because the test certificate contains **a single exact DNS-ID without wildcards or IDNs**. **It is not a general HTTPS hostname verifier.** In real applications, let JSSE verify the endpoint using the `HTTPS` algorithm and an appropriate PKIX trust manager.
 
-Certificate fixture được tạo cho mục đích học tập, chỉ có **public certificates**, **không nhúng private key**. Nó có hiệu lực dự kiến từ **31/10/2026 đến 28/10/2036** theo thời gian ghi trong certificate. Sau thời hạn đó, ví dụ PKIX **cần certificate mới**, không được tắt kiểm tra thời gian để ép pass.
+The certificate fixture was generated for learning purposes with **public certificates only**, **embedding no private keys**. Its validity runs from **2026-10-31 to 2036-10-28** per the timestamps in the certificates. Past that window, the PKIX example **needs fresh certificates**—never disable validity checks to force a pass.
 
-Chương trình **không mở kết nối mạng** và không làm TLS handshake; nó minh họa sự khác nhau giữa hai câu hỏi ở lớp certificate.
+The program **opens no network connections** and performs no TLS handshake; it illustrates the difference between the two questions at the certificate layer.
 
-### 6.2. Mã hoàn chỉnh PkixHostnameDemo.java
+### 6.2. Complete Source PkixHostnameDemo.java
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -305,16 +305,16 @@ public final class PkixHostnameDemo {
 }
 ```
 
-### 6.3. Biên dịch, chạy và stdout
+### 6.3. Compile, Run, and Stdout
 
-Dùng Java 17 trở lên, không cần kết nối mạng hay file khóa riêng:
+Requires Java 17 or higher, with no network connection or private key files:
 
 ```bash
 javac PkixHostnameDemo.java
 java PkixHostnameDemo
 ```
 
-Stdout đã kiểm thử trên JDK có hỗ trợ PKIX thông thường, trong thời hạn hiệu lực certificate fixture:
+Verified stdout on a standard PKIX-supporting JDK within the fixture certificate validity window:
 
 ```text
 PKIX path valid: true
@@ -324,24 +324,24 @@ Different target DNS listed: false
 Legacy CN in DNS SAN: false
 ```
 
-**Đọc kết quả đúng cách:**
+**Reading the output properly:**
 
-1. `PKIX path valid: true` cho thấy `CertPathValidator` đã kiểm tra **leaf do demo CA ký** theo trust anchor/chính sách đã chỉ định, không phải chỉ so fingerprint hoặc parse PEM.
-2. `DNS SANs` chứa `service.example.test` là dữ liệu **được đọc** từ leaf certificate. Chưa thực hiện hostname matching theo RFC 9525/JSSE trong demo này.
-3. `Different target DNS listed: false` minh họa hostname `billing.example.test` **không được chứng thư đại diện**. Điều này **không làm** cho `CertPathValidator.validate` ném exception, bởi vì không có tên `billing.example.test` nào được đưa vào yêu cầu path validation.
-4. `Legacy CN in DNS SAN: false` là do CN được đặt khác DNS SAN. Không được dùng CN để “cứu” một name mismatch trong chính sách hiện đại.
-5. Việc `setRevocationEnabled(false)` chỉ được dùng cho **fixture offline**. Từ ví dụ không được suy ra production có thể bỏ kiểm tra thu hồi hoặc rằng demo root là một public trusted root.
-6. Tập PEM gồm **root và leaf public certificates**; nếu người dùng chỉ thay `SERVER_PEM` bằng một leaf không được root này ký, PKIX sẽ thất bại trừ khi có đường tin cậy hợp lệ khác được cấu hình. Thay nội dung SAN không thể làm một certificate ký sẵn vẫn có chữ ký hợp lệ.
+1. `PKIX path valid: true` shows `CertPathValidator` verified the **demo-CA-signed leaf** against the specified trust anchor and policy, not merely comparing fingerprints or parsing PEM.
+2. `DNS SANs` containing `service.example.test` is data **read** from the leaf certificate. No RFC 9525/JSSE hostname matching has occurred in this demo.
+3. `Different target DNS listed: false` illustrates that hostname `billing.example.test` **is not represented by the certificate**. This **did not** cause `CertPathValidator.validate` to throw an exception, because `billing.example.test` was never passed into path validation.
+4. `Legacy CN in DNS SAN: false` is because CN was set differently from the DNS SAN. Never use CN to “rescue” a name mismatch in modern policy.
+5. `setRevocationEnabled(false)` is used solely for **offline fixtures**. Never conclude from the example that production can skip revocation checking or that the demo root is publicly trusted.
+6. The PEM pair consists of **public root and leaf certificates**; replacing `SERVER_PEM` with a leaf not signed by this root causes PKIX to fail unless another valid trust path is configured. Altering SAN contents cannot preserve a valid signature on an already-signed certificate.
 
-**Điều demo không làm:** chưa có TLS network handshake, chưa có kiểm proof-of-possession từ remote server, chưa có kiểm tên bằng hostname verifier của JSSE, chưa kiểm TLS server usage profile/authorization và không chứng minh một máy chủ thực tế đang hiện diện. Đây là bài kiểm tra **ranh giới của PKIX**, không phải ví dụ khuyến khích tự kiểm tra SAN với `contains` trong production.
+**What the demo does not do:** no TLS network handshake, no proof-of-possession check from a remote server, no JSSE hostname verifier check, no TLS server usage profile/authorization check, and no proof of a live server. This tests **the boundary of PKIX**, not an example encouraging manual SAN `contains` checks in production.
 
-## 7. Cách làm đúng trong Java TLS: đưa endpoint identity vào handshake
+## 7. Doing It Right in Java TLS: Bring Endpoint Identity into the Handshake
 
-### 7.1. Dùng HttpClient/HTTPS API cấp cao trước
+### 7.1. Prefer High-Level HttpClient/HTTPS APIs First
 
-Trong Java, khi dùng `java.net.http.HttpClient` với URL HTTPS, cấu hình mặc định phù hợp của client thực hiện kiểm tra TLS và danh tính máy chủ. Với ứng dụng mới, ưu tiên client cấp cao có truststore chuẩn, chính sách TLS được quản lý, không thay bằng `SSLContext` tùy tiện tin mọi chứng thư.
+In Java, when using `java.net.http.HttpClient` with HTTPS URLs, the client's standard configuration performs TLS and server identity verification. For new applications, prefer high-level clients with standard truststores and managed TLS policies rather than swapping in an arbitrary `SSLContext` that trusts every certificate.
 
-Đoạn mã dưới đây **chỉ minh họa cấu hình client**; hostname `.test` là ví dụ tài liệu, không có giả định tồn tại server Internet:
+The snippet below **only illustrates client usage**; the `.test` hostname is a documentation example with no assumption of a live Internet server:
 
 ```java
 import java.net.URI;
@@ -356,13 +356,13 @@ HttpResponse<String> response =
         client.send(request, HttpResponse.BodyHandlers.ofString());
 ```
 
-Đây **không phải chương trình Java độc lập**, chỉ là đoạn mã đặt trong một phương thức có thể ném `Exception`. `HttpClient` vẫn cần DNS/network hợp lệ và server certificate được PKIX + endpoint verification chấp nhận. Chương trình `PkixHostnameDemo` ở trên không kết nối host này.
+This is **not a standalone Java program**, only a fragment placed inside a method that can throw `Exception`. `HttpClient` still requires valid DNS/networking and a server certificate accepted by PKIX + endpoint verification. `PkixHostnameDemo` above does not connect to this host.
 
-**Không** chỉnh hệ thống để tắt hostname verification khi gặp mismatch, không thay trust manager bằng “accept-all”, không dùng custom `SSLContext` hoặc property nội bộ vô hiệu hóa kiểm tra tên để làm test pass.
+**Never** alter system settings to turn off hostname verification on mismatch, replace the trust manager with “accept-all”, or use custom `SSLContext` / internal properties disabling name checks just to make tests pass.
 
-### 7.2. Với SSLSocket, bật endpoint identification
+### 7.2. With SSLSocket, Enable Endpoint Identification
 
-API `SSLSocket` cấp thấp đòi hỏi lập trình viên kiểm soát cấu hình xác minh tên. Một cách được JDK hỗ trợ là `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`:
+The lower-level `SSLSocket` API requires the developer to configure name verification explicitly. One JDK-supported way is `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`:
 
 ```java
 import javax.net.ssl.SSLParameters;
@@ -376,39 +376,39 @@ try (SSLSocket socket =
     parameters.setEndpointIdentificationAlgorithm("HTTPS");
     socket.setSSLParameters(parameters);
     socket.startHandshake();
-    // Chỉ xử lý dữ liệu nếu TLS handshake và endpoint verification thành công.
+    // Process data only if the TLS handshake and endpoint verification succeed.
 }
 ```
 
-Đây là **snippet minh họa**, không phải một class độc lập. Host `billing.example.test` là tài liệu, không phải server có thật. Với SSL/TLS triển khai thực tế, phải dùng trust manager có **PKIX trust validation** đúng; một trust manager luôn chấp nhận certificate hoặc các cấu hình vô hiệu hóa check có thể làm suy yếu/triệt tiêu bảo đảm, ngay cả khi đã chỉ định endpoint algorithm.
+This is an **illustrative snippet**, not a standalone class. Host `billing.example.test` is documentation data, not a live server. In real SSL/TLS deployments, you must use a trust manager performing proper **PKIX trust validation**; an always-accepting trust manager or check-disabling config undermines or nullifies guarantees even when an endpoint algorithm is set.
 
-Đặt `"HTTPS"` là yêu cầu áp dụng cơ chế tên theo kiểu HTTPS trong JSSE. Không đặt thuật toán `null` hoặc `""` chỉ để đi qua lỗi tên. Nếu chứng thư có SAN sai, sửa hostname đích hoặc phát hành lại certificate có SAN đúng, không “tạm cho qua”.
+Setting `"HTTPS"` requests HTTPS-style name matching in JSSE. Never set the algorithm to `null` or `""` just to get past name errors. If a certificate has the wrong SAN, fix the target hostname or reissue the certificate with the right SAN—never “let it slide temporarily”.
 
-### 7.3. SSLEngine, X509ExtendedTrustManager và ngữ cảnh TLS
+### 7.3. SSLEngine, X509ExtendedTrustManager, and TLS Context
 
-Ở mức `SSLEngine`, cần cung cấp **peerHost** có ý nghĩa khi tạo engine và bật endpoint identification trên `SSLParameters`, đồng thời cấu hình trust manager đúng và thực hiện handshake qua transport với trạng thái SSL đầy đủ.
+At the `SSLEngine` level, supply a meaningful **peerHost** when creating the engine, enable endpoint identification on `SSLParameters`, configure the right trust manager, and drive the handshake over transport with full SSL state.
 
-Một `X509ExtendedTrustManager` có phương thức `checkServerTrusted(chain, authType, SSLEngine)` và phiên bản nhận `Socket` để dùng **ngữ cảnh TLS** (khi được dùng đúng trong handshake). Điều này khác với việc gọi `X509TrustManager.checkServerTrusted(chain, "RSA")` trực tiếp ở code nghiệp vụ mà không truyền host/context: một lời gọi chỉ có `chain` và `authType` **không** tự biết URL được yêu cầu là gì.
+An `X509ExtendedTrustManager` provides `checkServerTrusted(chain, authType, SSLEngine)` and a `Socket` overload to access **TLS context** (when used properly in a handshake). That differs from calling `X509TrustManager.checkServerTrusted(chain, "RSA")` directly in business code without host/context: a call passing only `chain` and `authType` **cannot** know which URL was requested.
 
-**Sai lầm:** tự tạo `X509TrustManager` luôn chấp nhận mọi chain rồi dùng `HttpsURLConnection.setDefaultHostnameVerifier((host,session) -> true)`. Khi đó cả trust và danh tính có thể bị bỏ qua, mở đường MITM.
+**Mistake:** writing a custom `X509TrustManager` that accepts every chain and setting `HttpsURLConnection.setDefaultHostnameVerifier((host,session) -> true)`. Both trust and identity are bypassed, opening the door to MITM attacks.
 
-### 7.4. SNI không thay endpoint verification
+### 7.4. SNI Does Not Replace Endpoint Verification
 
-**Server Name Indication (SNI)** là extension trong TLS ClientHello giúp server biết client muốn virtual host nào để chọn certificate phù hợp. SNI **không** thay thế bước client xác minh rằng certificate thực nhận có đúng SAN và trust chain.
+**Server Name Indication (SNI)** is a TLS ClientHello extension helping the server pick the right certificate for a virtual host. SNI **does not** replace the client's check that the received certificate actually carries the right SAN and trust chain.
 
-Không sử dụng SNI do kẻ khác điều khiển như một nguồn danh tính thay cho URI đáng tin. Với reverse proxy, load balancer hoặc kết nối socket trực tiếp tới IP nhưng danh tính dịch vụ là DNS, cần cấu hình TLS peer host/reference identity sao cho **không đánh mất** tên DNS mà client thực sự muốn xác thực.
+Never use attacker-controlled SNI as an identity source instead of a trusted URI. With reverse proxies, load balancers, or sockets connecting directly to an IP while the service identity is DNS, configure TLS peer host/reference identity so you **never lose** the DNS name the client truly intends to verify.
 
-## 8. Khi truy cập bằng IP hoặc hệ thống có nhiều hostname
+## 8. When Connecting by IP or Systems with Multiple Hostnames
 
-### 8.1. DNS đến IP không làm biến đổi reference identity
+### 8.1. DNS Resolution to IP Does Not Change Reference Identity
 
-Nếu `billing.example.test` được DNS resolve thành `192.0.2.10`, nhưng client vẫn gọi URL theo hostname, danh tính để xác minh là `billing.example.test`, không phải số IP được resolver trả về. Bản ghi DNS có thể đổi IP theo thời gian mà certificate có SAN DNS vẫn đúng.
+If `billing.example.test` resolves via DNS to `192.0.2.10` while the client calls the URL by hostname, the identity to verify is `billing.example.test`, not the IP address returned by the resolver. DNS records can change IPs over time while the DNS-SAN certificate remains valid.
 
-Nếu ứng dụng chủ động dùng `https://192.0.2.10` thì client kỳ vọng `iPAddress` SAN cho IP literal. Tên `DNS:billing.example.test` **không tự khớp** với một reference identity dạng IP. Bản ghi iPAddress dùng octet (IPv4 4, IPv6 16), không phải chuỗi text DNS.
+If an application explicitly uses `https://192.0.2.10`, the client expects an `iPAddress` SAN for the IP literal. `DNS:billing.example.test` **does not match** an IP reference identity. `iPAddress` records store raw octets (4 for IPv4, 16 for IPv6), not DNS text strings.
 
-### 8.2. Wildcard SAN và nhiều tên
+### 8.2. Wildcard SANs and Multiple Names
 
-Chứng thư có thể có nhiều `dNSName`:
+A certificate can hold multiple `dNSName` entries:
 
 ```text
 DNS:billing.example.test
@@ -417,174 +417,174 @@ DNS:*.svc.example.test
 IP Address:192.0.2.10
 ```
 
-Chỉ tên nào khớp với **reference identity được yêu cầu** theo profile giao thức mới được chấp nhận. Wildcard `*.svc.example.test` không tự khớp `svc.example.test` hoặc `a.b.svc.example.test`. Một certificate chứa nhiều tên hợp lệ có thể được dùng cho nhiều endpoints, nhưng **private key leak** làm tăng phạm vi ảnh hưởng; cần quản lý provisioning, quyền phát hành và rotation.
+Only a name matching the **requested reference identity** per the protocol profile is accepted. Wildcard `*.svc.example.test` does not match `svc.example.test` or `a.b.svc.example.test`. One certificate holding many valid names can serve multiple endpoints, yet a **private key leak** expands the blast radius; govern provisioning, issuance authority, and rotation.
 
 ### 8.3. Internationalized Domain Names (IDN)
 
-Domain quốc tế hóa có Unicode ở giao diện người dùng, nhưng dữ liệu `dNSName` trong X.509 theo profile chứa ASCII IA5String (IDNA A-label như `xn--...` khi cần). Đảm bảo client, thư viện URI và TLS stack sử dụng cách chuẩn hóa/so khớp phù hợp với chuẩn. Không lấy `String.toLowerCase()` theo locale hoặc chỉ so suffix làm verifier.
+Internationalized domains show Unicode in UIs, whereas X.509 `dNSName` entries per profile store ASCII IA5String (IDNA A-labels like `xn--...` where needed). Ensure clients, URI libraries, and TLS stacks normalize/match per standard. Never use locale-dependent `String.toLowerCase()` or suffix matching as a verifier.
 
-### 8.4. Đừng lấy SAN của đối tác làm hostname để kết nối
+### 8.4. Never Take the Peer's SAN as the Hostname to Connect To
 
-Không nên xử lý như sau: “certificate có DNS SAN `api.example.test`, vậy ta coi đích hiện tại chính là `api.example.test`”, trong khi ứng dụng thực tế định gọi `billing.example.test`. Đây là đảo chiều của kiểm tra danh tính, biến claim trong chứng thư thành yêu cầu mà không so sánh với identity bên ngoài chứng thư.
+Never handle it as: “the certificate has DNS SAN `api.example.test`, so let's treat our target as `api.example.test`”, when the application actually meant to call `billing.example.test`. That inverts identity verification, turning a claim inside the certificate into the requirement without checking an external expected identity.
 
-## 9. Những yếu tố ngoài PKIX và hostname matching vẫn phải tính
+## 9. Factors Outside PKIX and Hostname Matching That Still Matter
 
-### 9.1. Authorization và nhận diện dịch vụ
+### 9.1. Authorization and Service Identity
 
-Ngay cả khi `billing.example.test` được chứng thư đại diện chính xác và TLS handshake an toàn, ứng dụng vẫn phải xác minh đối tác có **quyền thực hiện thao tác nghiệp vụ**: API scope, tenant, JWT audience, mutual TLS client identity, hạn mức, quyền đọc dữ liệu, chống replay/idempotency. Hostname verification không thay thế authorization.
+Even when `billing.example.test` is accurately represented by the certificate and the TLS handshake is secure, the application must still verify the peer is **authorized for the business operation**: API scopes, tenant, JWT audience, mutual TLS client identity, quotas, data read permissions, replay/idempotency protection. Hostname verification never replaces authorization.
 
-### 9.2. mTLS và các dạng định danh khác
+### 9.2. mTLS and Other Identity Forms
 
-Với **mutual TLS**, server cũng kiểm chứng certificate của client. Identity của client có thể theo profile nội bộ: DNS SAN, URI SAN (chẳng hạn mô hình service identity), chứng thư người dùng hoặc ràng buộc khác được tổ chức định nghĩa. Không lấy một hostname ngẫu nhiên trong SAN của client certificate làm “người dùng được phép truy cập tất cả API”.
+In **mutual TLS**, the server also verifies the client's certificate. Client identity may follow internal profiles: DNS SAN, URI SAN (such as service identity models), user certificates, or other organization-defined bindings. Never treat an arbitrary hostname in a client certificate's SAN as “a user allowed to access all APIs”.
 
-Hostname verification server HTTPS và xác thực danh tính **client mTLS** là hai hướng khác nhau của trust. PKIX chain vẫn là nền tảng, nhưng mỗi hướng cần **identity và authorization policy riêng**.
+HTTPS server hostname verification and **mTLS client** identity verification are two different trust directions. A PKIX chain remains foundational, yet each direction requires **its own identity and authorization policy**.
 
-### 9.3. Certificate pinning có phải thay thế PKIX không?
+### 9.3. Does Certificate Pinning Replace PKIX?
 
-Pinning chứng thư hoặc SPKI có thể bổ sung giới hạn tin cậy khi được provisioning qua kênh đáng tin, nhưng tạo bài toán rollover/cert renewal và backup pins. Không dùng “pin công khai” thu từ kết nối chưa xác thực như thể nó đã xác thực lần kết nối đầu tiên. Một pin cho tổ chức cũng không có nghĩa key được phép đại diện cho **mọi hostname/tenant**; vẫn cần binding hợp lệ theo policy.
+Certificate or SPKI pinning can add extra trust constraints when provisioned over a trusted channel, yet introduces rollover/renewal challenges and requires backup pins. Never treat a “public pin” captured on an unverified connection as authenticating that first connection. Pinning for an organization also does not mean the key may represent **every hostname/tenant**; valid policy binding is still needed.
 
-### 9.4. Revocation và thời điểm đánh giá
+### 9.4. Revocation and Evaluation Time
 
-Khi một private key server bị lộ, certificate còn hạn sử dụng và SAN có thể vẫn khớp. Nếu client không có cơ chế phát hiện thu hồi/compromise theo chính sách, hai kiểm tra “chain và hostname” có thể không đủ để phát hiện hiện trạng mới. Cần quản lý vòng đời chứng thư, trust updates, CRL/OCSP khi áp dụng và incident response.
+When a server private key is compromised, the certificate may still be unexpired and have a matching SAN. If the client lacks policy-compliant revocation/compromise detection, checking only “chain and hostname” may miss the new state. Maintain certificate lifecycle management, trust updates, CRL/OCSP where applicable, and incident response.
 
-### 9.5. Redirects, proxy và DNS cache
+### 9.5. Redirects, Proxies, and DNS Caches
 
-Khi HTTP client theo redirect từ `billing.example.test` sang một origin khác, phải có xác minh TLS đúng với **hostname mới**; đồng thời ứng dụng cần kiểm soát chính sách **được phép redirect sang đâu**. DNS caching, split-horizon DNS, service mesh hoặc proxy không phải lý do bỏ endpoint validation.
+When an HTTP client follows a redirect from `billing.example.test` to another origin, TLS verification must apply to the **new hostname**; meanwhile, the application must govern **where redirects are allowed to go**. DNS caching, split-horizon DNS, service meshes, or proxies are never excuses to skip endpoint validation.
 
-**Tách layer:** TLS xác nhận *endpoint identity*; ứng dụng quyết định có tin endpoint đó để xử lý dữ liệu/credentials hay không. Một redirect đến server có certificate hoàn toàn hợp lệ vẫn có thể không phù hợp chính sách gửi bearer token của ứng dụng.
+**Separate layers:** TLS verifies *endpoint identity*; the application decides whether to trust that endpoint with sensitive data/credentials. Redirecting to a server with a completely valid certificate may still violate the application's policy for sending bearer tokens.
 
-## 10. Bảng quyết định: path và hostname là hai phép kiểm độc lập
+## 10. Decision Table: Path and Hostname Are Two Independent Checks
 
-| PKIX trust/path | Hostname/IP identity | Kết quả phải xử lý | Ý nghĩa |
+| PKIX trust/path | Hostname/IP identity | Required outcome | Meaning |
 | --- | --- | --- | --- |
-| **Đạt** | **Khớp** | Có thể chấp nhận **nếu** các điều kiện TLS/policy khác đạt | Cả nguồn trust và đúng endpoint đã được kiểm. |
-| **Đạt** | **Không khớp** | **Từ chối** | Certificate hợp lệ nhưng thuộc server khác. |
-| **Không đạt** | **Khớp** | **Từ chối** | SAN đúng nhưng chứng thư không được tin/đã hết hạn/bị lỗi path/policy. |
-| **Không đạt** | **Không khớp** | **Từ chối** | Cả trust và identity đều không đạt. |
-| **Không kiểm** | **Khớp** | **Từ chối** | So hostname trên certificate chưa được tin là không đủ. |
-| **Đạt** | **Không kiểm** | **Từ chối** | Bỏ hostname verification không được thay bằng PKIX. |
+| **Pass** | **Match** | Acceptable **if** remaining TLS/policy conditions hold | Both trust source and exact endpoint were verified. |
+| **Pass** | **Mismatch** | **Reject** | Valid certificate, yet belongs to a different server. |
+| **Fail** | **Match** | **Reject** | Right SAN, yet certificate is untrusted/expired/invalid path/policy. |
+| **Fail** | **Mismatch** | **Reject** | Both trust and identity fail. |
+| **Unchecked** | **Match** | **Reject** | Matching hostname on an untrusted certificate is insufficient. |
+| **Pass** | **Unchecked** | **Reject** | Skipping hostname verification cannot be compensated by PKIX. |
 
-Không dùng cờ `ignoreSslErrors` hoặc một trust manager luôn true để chuyển các ô “từ chối” thành “chấp nhận”. Trong bài test, phải dùng CA test và server test cô lập thay vì làm yếu cấu hình toàn cục của JVM.
+Never use `ignoreSslErrors` flags or an always-true trust manager to turn “Reject” cells into “Accept”. In tests, use an isolated test CA and test server instead of weakening global JVM settings.
 
-## 11. Trường hợp sai thường gặp khi viết Java
+## 11. Common Mistakes When Writing Java
 
-| Triệu chứng / anti-pattern | Vì sao chưa đúng | Cách xử lý |
+| Symptom / anti-pattern | Why it is wrong | Resolution |
 | --- | --- | --- |
-| Gọi `CertPathValidator.validate` xong rồi coi đúng server | Validator không nhận reference hostname HTTPS | Kết hợp endpoint verification của JSSE. |
-| Gọi `X509Certificate.verify(caKey)` rồi chấp nhận | Chỉ kiểm chữ ký certificate bằng key caller đưa vào | Xác minh chain, trust anchor, usage, hostname. |
-| `new TrustAnchor(anyCert, null)` với cert do remote gửi | Client tự tin một root do attacker kiểm soát | Trust anchors phải được provision đáng tin. |
-| `CertificateFactory` parse được certificate | Parse không xác minh certificate chain hay name | Dùng JSSE/PKIX phù hợp, không dùng parser làm trust verifier. |
-| `getSubjectAlternativeNames()` thấy một DNS name rồi chấp nhận | Chỉ liệt kê SAN, chưa so với hostname mong đợi | Sử dụng endpoint matcher theo profile. |
-| SAN đúng nhưng chain fail | Root/intermediate thiếu, bị thu hồi, hết hạn, sai policy | Sửa PKI/truststore/cert chain; không tắt trust. |
-| Chain đúng nhưng hostname fail | Leaf cho DNS/IP khác, wildcard không phù hợp | Sửa SAN certificate hoặc tên endpoint tin cậy. |
-| Chỉ có `CN=billing.example.test` | CN không phải reference identity hợp lệ theo RFC 9525 | Phát hành SAN dNSName đúng. |
-| URL dùng IP nhưng certificate chỉ có `DNS:IP-text` | Không đúng type `iPAddress` | Thêm IP SAN hoặc dùng hostname được xác thực đúng cách. |
-| Gọi `SSLSocket.startHandshake` không bật endpoint identification | TLS thấp tầng có thể không so hostname mặc định | Dùng `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`. |
-| Cài custom `HostnameVerifier` luôn true | Bỏ qua mismatch, gây MITM | Gỡ bypass, sửa chứng thư và endpoint. |
-| Tắt revocation trong production “vì demo chạy” | Thay đổi độ an toàn theo policy, bỏ kiểm trạng thái thu hồi | Định nghĩa CRL/OCSP và failure behavior phù hợp. |
-| Dùng SNI như bằng chứng endpoint identity | SNI giúp server chọn cert, không kiểm cert phía client | Vẫn phải xác minh SAN sau handshake. |
-| Coi mTLS client certificate là quyền truy cập tự động | Trust/identity khác authorization | Kiểm tra role/scope/tenant sau mTLS. |
-| Kết nối đến proxy/IP và không giữ hostname logic | Peer identity sai hoặc không được kiểm | Cấu hình reference identity đáng tin cho TLS. |
+| Calling `CertPathValidator.validate` and assuming right server | Validator takes no HTTPS reference hostname | Pair with JSSE endpoint verification. |
+| Calling `X509Certificate.verify(caKey)` and accepting | Checks only one signature against caller-supplied key | Verify chain, trust anchor, usage, and hostname. |
+| `new TrustAnchor(anyCert, null)` with a peer-sent cert | Client self-trusts an attacker-controlled root | Trust anchors must be securely provisioned. |
+| `CertificateFactory` parses the certificate | Parsing verifies neither chain nor name | Use proper JSSE/PKIX, never a parser as a trust verifier. |
+| Seeing a DNS name in `getSubjectAlternativeNames()` and accepting | Only lists SANs; does not match against expected hostname | Use a profile-compliant endpoint matcher. |
+| SAN matches yet chain fails | Missing root/intermediate, revoked, expired, policy error | Fix PKI/truststore/cert chain; never disable trust. |
+| Chain passes yet hostname fails | Leaf is for another DNS/IP or mismatched wildcard | Fix certificate SAN or trusted endpoint name. |
+| Only `CN=billing.example.test` present | CN is not a valid reference identity per RFC 9525 | Issue a proper `dNSName` SAN. |
+| URL uses IP yet certificate only has `DNS:IP-text` | Wrong type `iPAddress` | Add IP SAN or use a properly verified hostname. |
+| Calling `SSLSocket.startHandshake` without endpoint identification | Low-level TLS may skip hostname checking by default | Use `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")`. |
+| Installing custom `HostnameVerifier` returning true | Ignores mismatch, enabling MITM | Remove bypass; fix certificate and endpoint. |
+| Disabling revocation in production “because demo ran” | Weakens policy security, skips revocation status checks | Define appropriate CRL/OCSP and failure behavior. |
+| Using SNI as proof of endpoint identity | SNI helps server pick a cert; does not verify cert on client | Still verify SAN after handshake. |
+| Treating mTLS client certificate as automatic access | Trust/identity differs from authorization | Enforce role/scope/tenant checks after mTLS. |
+| Connecting to proxy/IP and losing logical hostname | Wrong peer identity or unchecked identity | Configure trusted reference identity for TLS. |
 
-### 11.1. Lỗi và dấu hiệu cụ thể
+### 11.1. Concrete Errors and Signals
 
-- `CertPathValidatorException` với nguyên nhân path validation: có thể do signature, validity, policy, trust anchor hoặc revocation. Không tự kết luận đây là hostname mismatch.
-- `SSLHandshakeException` trong JSSE: có thể bọc lỗi PKIX **hoặc** lỗi endpoint identity. Đọc root cause và diagnostics không tiết lộ secret.
-- `CertificateException` với thông tin kiểu “No subject alternative DNS name matching ...” hoặc “No subject alternative names present”: thường hướng tới lỗi tên/loại SAN, nhưng thông điệp chính xác phụ thuộc JDK/provider.
-- Lỗi kiểu “unable to find valid certification path”: thường hướng tới trust anchors/chain building, **không phải** bằng chứng hostname đúng/sai.
-- Nếu test chỉ gọi `CertPathValidator` và trả thành công, **không** có bằng chứng rằng hostname verification đã chạy.
+- `CertPathValidatorException` with path-validation reason: can stem from signature, validity, policy, trust anchor, or revocation. Do not automatically assume hostname mismatch.
+- `SSLHandshakeException` in JSSE: can wrap a PKIX error **or** an endpoint identity error. Inspect root cause and diagnostics without leaking secrets.
+- `CertificateException` mentioning something like “No subject alternative DNS name matching ...” or “No subject alternative names present”: usually points to a SAN name/type error, though exact wording varies by JDK/provider.
+- Errors like “unable to find valid certification path”: usually indicate trust anchors/chain building, **not** whether the hostname matched.
+- If a test calls only `CertPathValidator` and succeeds, there is **no** evidence hostname verification ever ran.
 
-Debug nên ghi **hostname/IP tham chiếu đã được chọn**, dạng SAN công khai, issuer/trust policy, trạng thái chứng thư và exception category; không log private keys, session secrets, bearer tokens hoặc dữ liệu riêng tư.
+Debug logs should record **chosen reference hostname/IP**, public SAN types, issuer/trust policy, certificate status, and exception category; never log private keys, session secrets, bearer tokens, or private data.
 
-## 12. Kiểm thử hai chiều để không bỏ sót lỗ hổng
+## 12. Two-Way Testing So Vulnerabilities Do Not Slip Through
 
-### 12.1. Test matrix tối thiểu
+### 12.1. Minimum Test Matrix
 
-Dùng một test CA được tin **chỉ trong môi trường test** và các leaf certificates tùy biến. Không thêm CA test vào production truststore.
+Use a test CA trusted **only in the test environment** with tailored leaf certificates. Never add test CAs to production truststores.
 
-| Ca | Certificate chain | DNS/IP SAN của leaf | Đích client mong đợi | Kỳ vọng |
+| Case | Certificate chain | Leaf DNS/IP SAN | Expected client target | Expected outcome |
 | --- | --- | --- | --- | --- |
-| 1 | Trust hợp lệ | `DNS:billing.example.test` | `billing.example.test` | TLS được chấp nhận nếu các policy khác đạt |
-| 2 | Trust hợp lệ | `DNS:service.example.test` | `billing.example.test` | TLS phải từ chối **name mismatch** |
-| 3 | Self-signed không tin cậy | `DNS:billing.example.test` | `billing.example.test` | TLS phải từ chối **untrusted chain** |
-| 4 | Hết hạn | `DNS:billing.example.test` | `billing.example.test` | TLS phải từ chối |
-| 5 | Trust hợp lệ | `IP:192.0.2.10` | `192.0.2.10` | Khớp IP-ID nếu policy khác hợp lệ |
-| 6 | Trust hợp lệ | `DNS:192.0.2.10` | `192.0.2.10` | Từ chối vì sai loại SAN |
-| 7 | Trust hợp lệ | `DNS:*.svc.example.test` | `a.svc.example.test` | Có thể khớp một nhãn theo RFC/profile |
-| 8 | Trust hợp lệ | `DNS:*.svc.example.test` | `a.b.svc.example.test` | Từ chối vì wildcard vượt một nhãn |
-| 9 | Trust hợp lệ | Chỉ CN đúng, không có SAN | `billing.example.test` | Từ chối theo RFC 9525 |
-| 10 | Chain hợp lệ cho đúng hostname | Certificate sai EKU/KeyUsage TLS server | `billing.example.test` | Từ chối theo TLS policy |
+| 1 | Valid trust | `DNS:billing.example.test` | `billing.example.test` | TLS accepted if other policies pass |
+| 2 | Valid trust | `DNS:service.example.test` | `billing.example.test` | TLS must reject **name mismatch** |
+| 3 | Untrusted self-signed | `DNS:billing.example.test` | `billing.example.test` | TLS must reject **untrusted chain** |
+| 4 | Expired | `DNS:billing.example.test` | `billing.example.test` | TLS must reject |
+| 5 | Valid trust | `IP:192.0.2.10` | `192.0.2.10` | IP-ID matches if remaining policy holds |
+| 6 | Valid trust | `DNS:192.0.2.10` | `192.0.2.10` | Reject due to wrong SAN type |
+| 7 | Valid trust | `DNS:*.svc.example.test` | `a.svc.example.test` | Can match one label per RFC/profile |
+| 8 | Valid trust | `DNS:*.svc.example.test` | `a.b.svc.example.test` | Reject because wildcard spans beyond one label |
+| 9 | Valid trust | Matching CN only, no SAN | `billing.example.test` | Reject per RFC 9525 |
+| 10 | Valid chain for right hostname | Wrong TLS server EKU/KeyUsage | `billing.example.test` | Reject per TLS policy |
 
-**Điểm test quan trọng nhất của bài:** tạo một chain **đạt PKIX** nhưng SAN **không** khớp hostname. Đây là ca mà unit test chỉ gọi `CertPathValidator` thường bỏ qua. Demo Java ở trên tạo ra tình huống này ở lớp certificate; integration test qua JSSE cần xác nhận handshake **bị từ chối**.
+**Most important test point of this lesson:** build a chain that **passes PKIX** yet whose SAN **does not** match the hostname. That is the case unit tests calling only `CertPathValidator` commonly miss. The Java demo above creates that scenario at the certificate layer; an integration test over JSSE must confirm the handshake **is rejected**.
 
-### 12.2. Test qua JSSE thật, không chỉ qua getter
+### 12.2. Testing Over Real JSSE, Not Just Getters
 
-Một integration test đúng phải chạy một **local TLS server có private key tương ứng leaf certificate**, đồng thời client có truststore chỉ tin test CA và hostname reference được cấu hình đúng. Khi client kết nối bằng hostname cố định trong kịch bản, kiểm tra:
+A proper integration test should run a **local TLS server with the leaf certificate's private key**, paired with a client configured with a truststore trusting only the test CA and the right reference hostname. When the client connects using the scenario's fixed hostname, verify:
 
-- Chain đúng + hostname đúng → handshake được chấp nhận.
-- Chain đúng + hostname sai → `SSLHandshakeException`/`CertificateException` tùy provider.
-- Chain sai + hostname đúng → phải từ chối.
-- Khi thử `SSLSocket`, bật `setEndpointIdentificationAlgorithm("HTTPS")` để kiểm tra mục tiêu của bài.
+- Right chain + right hostname → handshake accepted.
+- Right chain + wrong hostname → `SSLHandshakeException`/`CertificateException` depending on provider.
+- Wrong chain + right hostname → must reject.
+- When testing `SSLSocket`, enable `setEndpointIdentificationAlgorithm("HTTPS")` to verify this lesson's goal.
 
-Dùng DNS test host mapping/local resolver thích hợp hoặc cấu hình peer host đúng trong SSLEngine/SSLSocket; không dùng một chứng thư self-signed không được tin để chứng minh lỗi hostname vì khi đó handshake đã có thể bị chặn **trước** name comparison.
+Use appropriate test DNS host mapping/local resolvers or configure peer host properly on `SSLEngine`/`SSLSocket`; never use an untrusted self-signed certificate to demonstrate a hostname error, because the handshake may fail **before** name comparison runs.
 
-### 12.3. Các câu hỏi bắt buộc khi QA bảo mật
+### 12.3. Mandatory Security QA Questions
 
-- Hostname để verify đến từ đâu? Có phải đích mà ứng dụng lựa chọn, không phải field từ attacker?
-- Client có sử dụng TLS trust manager đáng tin và anchor đúng không?
-- Endpoint identification có thực sự bật cho từng loại client, từng đường code, từng môi trường không?
-- Các API có retry/fallback sang “insecure mode” khi gặp lỗi SSL không?
-- Proxy/redirect/reverse proxy có làm thay đổi reference identity hoặc gửi credentials sang origin khác không?
-- Có kiểm SAN DNS type 2 và IP type 7 đúng cách không?
-- Có tránh CN fallback, wildcard quá rộng, IDNA không nhất quán không?
-- Có kiểm certificate validity/revocation/algorithm/EKU theo policy không?
-- Có test negative chain-valid-but-host-wrong, cùng với negative host-right-but-chain-invalid không?
+- Where does the hostname to verify come from? Is it the application's chosen destination, not an attacker-supplied field?
+- Does the client use a trusted TLS trust manager and the right anchors?
+- Is endpoint identification actually enabled across every client type, every code path, and every environment?
+- Do any APIs retry/fall back to “insecure mode” upon SSL errors?
+- Do proxies/redirects/reverse proxies alter reference identity or send credentials to a different origin?
+- Are SAN DNS type 2 and IP type 7 checked properly?
+- Are CN fallback, overly broad wildcards, and inconsistent IDNA avoided?
+- Are certificate validity/revocation/algorithms/EKU checked per policy?
+- Do negative tests cover both chain-valid-but-host-wrong and host-right-but-chain-invalid?
 
-## 13. Bài tập và câu hỏi tự kiểm tra
+## 13. Exercises and Self-Check Questions
 
-1. `CertPathValidator.validate` nhận những loại input nào? Vì sao nó không thể tự biết bạn đang gọi URL `billing.example.test`?
-2. Trong demo, vì sao `PKIX path valid: true` đồng thời với `Different target DNS listed: false`?
-3. Nếu đưa một leaf certificate được CA tin cậy ký cho `other.example.test` vào HTTPS client kết nối `billing.example.test`, phải chấp nhận hay từ chối?
-4. Phân biệt `X509Certificate.verify`, `CertPathBuilder`, `CertPathValidator`, `X509Certificate.getSubjectAlternativeNames` và JSSE endpoint identification.
-5. `TrustAnchor` do ai lựa chọn? Vì sao “client tự tin root do server gửi” là sai?
-6. Nếu `PKIXParameters.setRevocationEnabled(false)` dùng trong demo offline, điều đó có nói gì về an toàn khi triển khai thật?
-7. Với `https://192.0.2.10`, hostname identity được kiểm với SAN loại nào? Vì sao `DNS:192.0.2.10` không thay thế?
-8. Khi nào một wildcard DNS-ID có thể khớp một hostname? Vì sao không dùng `String.endsWith`?
-9. `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` phải được dùng ở đâu trong luồng `SSLSocket`?
-10. Nếu dùng HTTP client cấp cao mà lập trình viên gắn trust manager luôn true và hostname verifier luôn true, còn bảo đảm gì từ PKIX/hostname?
-11. Vì sao SNI không chứng minh chứng thư đã được xác minh danh tính?
-12. Khi cấu hình mTLS, bước PKIX của client certificate có tự đủ để gán mọi quyền nghiệp vụ không?
+1. What inputs does `CertPathValidator.validate` take? Why can it not automatically know you are calling `billing.example.test`?
+2. In the demo, why is `PKIX path valid: true` at the same time `Different target DNS listed: false`?
+3. If a leaf certificate signed by a trusted CA for `other.example.test` is presented to an HTTPS client connecting to `billing.example.test`, should it be accepted or rejected?
+4. Distinguish `X509Certificate.verify`, `CertPathBuilder`, `CertPathValidator`, `X509Certificate.getSubjectAlternativeNames`, and JSSE endpoint identification.
+5. Who selects `TrustAnchor`? Why is “client auto-trusts server-sent root” wrong?
+6. If `PKIXParameters.setRevocationEnabled(false)` is used in an offline demo, what does that imply about safety in real deployments?
+7. For `https://192.0.2.10`, against which SAN type is hostname identity checked? Why does `DNS:192.0.2.10` not substitute?
+8. When can a DNS-ID wildcard match a hostname? Why not use `String.endsWith`?
+9. Where in an `SSLSocket` flow must `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` be applied?
+10. If a high-level HTTP client has an always-true trust manager and always-true hostname verifier attached, what guarantees remain from PKIX/hostname checks?
+11. Why does SNI not prove a certificate's identity was verified?
+12. When configuring mTLS, is the PKIX step on the client certificate enough to grant all business permissions?
 
-**Bài tập A:** chạy `PkixHostnameDemo` và ghi lại hai kết quả `PKIX path valid`, `Different target DNS listed`. Giải thích “thành công ở lớp certificate path” và “không thỏa hostname” không hề mâu thuẫn.
+**Exercise A:** run `PkixHostnameDemo` and record `PKIX path valid` and `Different target DNS listed`. Explain why “passing at the certificate path layer” and “failing hostname match” do not contradict each other.
 
-**Bài tập B:** giữ nguyên test CA/leaf, nhưng giả sử endpoint khác là `service.example.test`. Mô tả vì sao bước **reference identity** thay đổi trong khi PKIX path validation vẫn như cũ. Không lấy SAN từ certificate làm URL mong muốn.
+**Exercise B:** keep the test CA/leaf unchanged, and suppose the target endpoint is `service.example.test`. Describe why the **reference identity** step changes while PKIX path validation stays identical. Never take the desired URL from the certificate's SAN.
 
-**Bài tập C:** dùng local TLS server/truststore test để tạo tình huống PKIX hợp lệ nhưng hostname sai, rồi bật/tắt `setEndpointIdentificationAlgorithm("HTTPS")` trong **môi trường lab cô lập**. Đối chiếu sự khác biệt, sau đó luôn trả cấu hình về an toàn. Không đưa chế độ tắt kiểm tra vào production.
+**Exercise C:** use a local TLS test server/truststore to create a PKIX-valid yet hostname-mismatching case, then toggle `setEndpointIdentificationAlgorithm("HTTPS")` in an **isolated lab environment**. Compare the difference, then always restore the secure setting. Never ship check-disabling modes to production.
 
-**Bài tập D:** thiết kế test matrix có chứng thư chỉ có CN, certificate có IP SAN, cert hết hạn và certificate chain từ CA không được trust. Chỉ một trong hai điều kiện PKIX/name đạt vẫn phải bị từ chối.
+**Exercise D:** design a test matrix with a CN-only certificate, an IP SAN certificate, an expired cert, and a chain from an untrusted CA. Passing only one of PKIX or name matching must still reject.
 
-## 14. Checklist trước khi deploy
+## 14. Pre-Deployment Checklist
 
-- [ ] Chỉ tin các root/intermediate/trust anchors theo PKI policy của tổ chức.
-- [ ] Dùng HTTPS client/JSSE tin cậy, có endpoint identification hoạt động trên **mọi** đường code cần TLS server authentication.
-- [ ] Reference hostname/IP được chọn từ endpoint đáng tin, không phải từ thông tin certificate/server tự gửi.
-- [ ] SAN dNSName/iPAddress đúng kiểu, wildcard đúng quy tắc, không dựa vào CN fallback.
-- [ ] Không có trust-all manager, `HostnameVerifier` luôn true, insecure fallback hoặc flags vô hiệu hóa identity verification.
-- [ ] Kiểm thuật toán, độ mạnh khóa, validity, usage, policies, revocation theo chuẩn và chính sách.
-- [ ] Có negative test PKIX-pass/hostname-fail cùng hostname-pass/PKIX-fail.
-- [ ] Phân biệt hostname verification, TLS cryptographic authentication và **authorization** nghiệp vụ.
-- [ ] Có quy trình certificate rotation, cấu hình truststore, quản lý proxy/redirect/SNI và test nhiều environment.
-- [ ] Không dùng root/leaf demo của bài học làm chứng thư hoặc trust anchor production.
+- [ ] Trust only roots/intermediates/trust anchors per organizational PKI policy.
+- [ ] Use trusted HTTPS clients/JSSE with endpoint identification active on **every** code path needing TLS server authentication.
+- [ ] Reference hostname/IP comes from a trusted endpoint source, never from peer-sent certificate/server data.
+- [ ] SAN `dNSName`/`iPAddress` have the right type, wildcards follow rules, and CN fallback is not relied upon.
+- [ ] No trust-all managers, always-true `HostnameVerifier`, insecure fallbacks, or identity-verification-disabling flags.
+- [ ] Check algorithms, key strengths, validity, usage, policies, and revocation per standards and policy.
+- [ ] Include negative tests for both PKIX-pass/hostname-fail and hostname-pass/PKIX-fail.
+- [ ] Separate hostname verification, TLS cryptographic authentication, and business **authorization**.
+- [ ] Maintain procedures for certificate rotation, truststore config, proxy/redirect/SNI handling, and multi-environment testing.
+- [ ] Never use the lesson's demo root/leaf as production certificates or trust anchors.
 
-## 15. Tài liệu chính thức
+## 15. Official References
 
-- [RFC 5280 — Internet X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): đường chứng thư, trust anchors, extensions, policies và tên trong SAN.
-- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): đối chiếu reference identity với presented identity, DNS-ID/IP-ID, wildcard, không dùng Common Name RDN.
+- [RFC 5280 — Internet X.509 PKI Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): certificate paths, trust anchors, extensions, policies, and SAN names.
+- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): matching reference identity against presented identity, DNS-ID/IP-ID, wildcards, deprecating Common Name RDN.
 - [CertPathValidator — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): `getInstance("PKIX")`, `validate(CertPath, CertPathParameters)`.
-- [CertPathBuilder — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathBuilder.html): tìm đường chứng thư theo policy.
-- [PKIXParameters — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors, revocation, date và các chính sách path.
-- [TrustAnchor — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/TrustAnchor.html): biểu diễn CA/root tin cậy.
-- [X509Certificate — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html): SAN và metadata chứng thư.
+- [CertPathBuilder — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathBuilder.html): discovering certificate paths per policy.
+- [PKIXParameters — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors, revocation, date, and path policies.
+- [TrustAnchor — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/TrustAnchor.html): representing trusted CAs/roots.
+- [X509Certificate — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html): SAN and certificate metadata.
 - [SSLParameters — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): `setEndpointIdentificationAlgorithm("HTTPS")`.
-- [X509ExtendedTrustManager — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/X509ExtendedTrustManager.html): trust checks với ngữ cảnh `Socket` hoặc `SSLEngine`.
-- [HttpClient — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpClient.html): HTTPS client và cấu hình TLS.
+- [X509ExtendedTrustManager — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/X509ExtendedTrustManager.html): trust checks with `Socket` or `SSLEngine` context.
+- [HttpClient — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpClient.html): HTTPS client and TLS configuration.

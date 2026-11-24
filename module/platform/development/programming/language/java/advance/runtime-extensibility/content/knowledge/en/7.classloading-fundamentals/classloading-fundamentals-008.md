@@ -1,43 +1,43 @@
-# Khóa nạp lớp, loader hỗ trợ song song và nguy cơ bế tắc
+# Class Loading Locks, Parallel-Capable Loaders, and Deadlock Risks
 
-Trong ứng dụng Java có cơ chế mở rộng lúc chạy (runtime extensibility), nhiều luồng có thể yêu cầu nạp các lớp từ cùng một plugin hoặc các plugin khác nhau. JVM phải bảo đảm một class loader không định nghĩa trùng một lớp, nhưng đồng bộ hóa quá rộng có thể khiến việc nạp các lớp độc lập bị nối đuôi nhau. Khi hai class loader phụ thuộc chéo, việc giữ khóa trong lúc gọi sang loader khác còn có thể gây **deadlock**: mỗi luồng giữ một khóa mà luồng kia đang chờ.
+In a Java application with runtime extensibility, multiple threads can request loading classes from the same plugin or from different plugins concurrently. The JVM must guarantee a class loader never defines the same class twice, yet overly broad synchronization can serialize independent class loads. When two class loaders cross-depend on each other, holding a lock while calling into another loader can even cause a **deadlock**: each thread holds a lock the other thread is waiting for.
 
-Bài học tập trung vào ba vấn đề có quan hệ trực tiếp:
+This lesson focuses on three directly related issues:
 
-1. **Khóa nạp lớp là gì?** ClassLoader khóa đoạn tìm lớp đã nạp, ủy quyền, tìm định nghĩa và liên kết khi cần để bảo vệ tính nhất quán.
-2. **Loader hỗ trợ song song (parallel-capable) thay đổi điều gì?** Các yêu cầu nạp tên lớp khác nhau có thể dùng những khóa khác nhau, trong khi các yêu cầu cùng một tên vẫn được phối hợp an toàn.
-3. **Deadlock hình thành và được xử lý ra sao?** Đặc biệt khi tùy biến class loader, dùng ủy quyền qua lại giữa plugin, hoặc trộn khóa loader với khóa ứng dụng.
+1. **What is a class loading lock?** `ClassLoader` locks the sequence of checking already-loaded classes, delegating, finding/defining, and linking when needed to preserve consistency.
+2. **What does a parallel-capable loader change?** Requests for different class names can use different locks, while requests for the same name still coordinate safely.
+3. **How do deadlocks form and how are they handled?** Especially when customizing class loaders, using mutual delegation between plugins, or mixing loader locks with application locks.
 
-Mục tiêu thực hành là hiểu đúng hợp đồng của **ClassLoader.loadClass**, **getClassLoadingLock** và **registerAsParallelCapable** trong Java 17+, biết thiết kế plugin loader an toàn hơn và chẩn đoán sự cố thay vì chỉ thêm synchronized.
+The practical goal is to thoroughly understand the contract of **ClassLoader.loadClass**, **getClassLoadingLock**, and **registerAsParallelCapable** in Java 17+, design safer plugin loaders, and diagnose incidents instead of blindly adding `synchronized`.
 
-## 1. Vì sao nạp lớp cần khóa?
+## 1. Why Does Class Loading Need Locking?
 
-Trong JVM, một lớp được nhận diện không chỉ bởi tên nhị phân như app.plugins.Parser mà còn bởi **class loader định nghĩa lớp đó**. Hai loader có thể định nghĩa hai lớp cùng tên và tạo ra hai đối tượng Class khác nhau. Tuy nhiên, một loader không được vô tình định nghĩa cùng một tên hai lần do hai luồng đua nhau.
+In the JVM, a class is identified not only by its binary name such as `app.plugins.Parser` but also by **the class loader that defined it**. Two loaders can define two classes with the same name and produce two different `Class` objects. However, a single loader must never accidentally define the same name twice because two threads raced.
 
-Tưởng tượng hai thread cùng yêu cầu tải demo.plugin.Task qua một loader:
+Imagine two threads simultaneously requesting `demo.plugin.Task` through one loader:
 
 ~~~text
 Thread T1                  Loader L                    Thread T2
     |                         |                            |
     |--- loadClass(Task) ---->|<---- loadClass(Task) -------|
     |                         |                            |
-    |                Kiểm tra findLoadedClass               |
-    |                Tìm và định nghĩa lớp (nếu cần)        |
-    |                Lưu Class đã tải, resolve khi yêu cầu   |
+    |                Check findLoadedClass                 |
+    |                Locate and define class (if needed)   |
+    |                Record loaded Class, resolve if asked |
     |                         |                            |
-    |<-------- cùng một Class hợp lệ, không define trùng ---|
+    |<-------- same valid Class, no duplicate define ------|
 ~~~
 
-Nếu cả T1 và T2 đều thấy lớp chưa nạp và cùng gọi defineClass cho cùng một tên trong cùng loader, sẽ dẫn đến cạnh tranh và có thể phát sinh LinkageError do định nghĩa trùng, ngoài các vấn đề bất nhất khác. Khóa giúp bao bọc thao tác **check–then–load/define** để chỉ một luồng thực hiện đường đi tạo lớp cần thiết cho tên đó.
+If both T1 and T2 see the class as unloaded and both call `defineClass` for the same name in the same loader, a race occurs and can throw `LinkageError` for duplicate definition, alongside other inconsistencies. Locking wraps the **check–then–load/define** sequence so only one thread executes the class-creation path for that name.
 
-Đồng bộ hóa còn liên quan đến việc ủy quyền cho loader cha hoặc tìm class của chính loader. ClassLoader không thể chỉ khóa mỗi lệnh defineClass mà bỏ qua việc kiểm tra trạng thái và phân nhánh trước đó; một custom loader phải giữ tính nhất quán của toàn bộ quy trình.
+Synchronization also interacts with delegating to the parent loader or looking up classes in the loader itself. A `ClassLoader` cannot simply lock around `defineClass` alone while leaving prior state checks and branching unprotected; a custom loader must preserve consistency across the entire sequence.
 
-### Khóa ở đâu trong cài đặt mặc định?
+### Where Is the Lock in the Default Implementation?
 
-Với cơ chế ủy quyền chuẩn của Java, đường đi của ClassLoader.loadClass(String, boolean) có dạng khái quát:
+Under Java's standard delegation mechanism, the general flow of `ClassLoader.loadClass(String, boolean)` looks conceptually like:
 
 ~~~java
-// MÃ MINH HỌA CƠ CHẾ; KHÔNG PHẢI CẢI BIÊN NGUYÊN VĂN JDK
+// ILLUSTRATIVE CODE OF THE MECHANISM; NOT A VERBATIM JDK REPRODUCTION
 protected Class<?> loadClass(String name, boolean resolve)
         throws ClassNotFoundException {
     synchronized (getClassLoadingLock(name)) {
@@ -59,47 +59,47 @@ protected Class<?> loadClass(String name, boolean resolve)
 }
 ~~~
 
-Đoạn trên **chỉ diễn giải ý tưởng**, không thể biên dịch trực tiếp vì findBootstrapClassOrNullIllustration là tên giả để biểu diễn bước tìm lớp bootstrap. Không chép đoạn này làm bản override sản xuất. Đường đi thực tế của ClassLoader bao gồm những chi tiết xử lý bootstrap và exception theo JDK; điều quan trọng là **synchronized(getClassLoadingLock(name))**, **findLoadedClass**, ủy quyền cho parent rồi mới **findClass** khi phù hợp.
+The snippet above **only illustrates the idea** and cannot compile directly because `findBootstrapClassOrNullIllustration` is a placeholder name representing the bootstrap lookup step. Do not copy this snippet as a production override. The actual `ClassLoader` path includes JDK-specific bootstrap handling and exception details; the essential points are **`synchronized(getClassLoadingLock(name))`**, **`findLoadedClass`**, delegating to the parent, and then **`findClass`** when appropriate.
 
-Một custom loader thường chỉ cần **override findClass(String)** để tự tìm bytecode. Kế thừa loadClass mặc định giúp giữ quy tắc parent-first và khóa do JDK quản lý. Chỉ override loadClass khi thực sự cần một chính sách ủy quyền khác và đã kiểm tra kỹ tương tác đồng thời.
+A custom loader normally only needs to **override `findClass(String)`** to read bytecode from its own source. Inheriting the default `loadClass` preserves parent-first rules and JDK-managed locking. Override `loadClass` only when you genuinely need a different delegation policy and have carefully verified concurrency interactions.
 
-## 2. Khóa của loader thông thường và loader parallel-capable
+## 2. Locks of Normal Loaders vs. Parallel-Capable Loaders
 
-Phương thức được bảo vệ **getClassLoadingLock(String className)** là nơi ClassLoader chọn đối tượng khóa phục vụ nạp tên lớp.
+The protected method **getClassLoadingLock(String className)** is where `ClassLoader` selects the lock object used for loading a class name.
 
-- **Loader chưa đăng ký parallel-capable:** mọi tên lớp cùng trả về **chính đối tượng loader** (this). Nghĩa là T1 nạp A sẽ chặn T2 nạp B qua loader đó, dù A và B độc lập.
-- **Loader đã đăng ký parallel-capable:** loader duy trì một đối tượng khóa cho **từng tên lớp**. T1 nạp A và T2 nạp B có thể đồng thời tiến hành; nếu cả hai cùng nạp A thì vẫn dùng chung khóa của A.
-- Các tên lớp khác nhau không có nghĩa là mọi công việc diễn ra song song: cả hai có thể chờ parent, đọc chung kho JAR, đụng khóa của cache, khóa ứng dụng hoặc phụ thuộc lẫn nhau.
+- **Non-parallel-capable loader:** every class name returns **the loader instance itself** (`this`). That means T1 loading A blocks T2 loading B through that loader, even when A and B are independent.
+- **Parallel-capable loader:** the loader maintains a distinct lock object for **each class name**. T1 loading A and T2 loading B can proceed concurrently; if both load A, they still share A's lock.
+- Different class names do not mean all work runs in parallel: both threads may still wait on the parent, read from a shared JAR store, hit cache locks, hit application locks, or depend on one another.
 
-Bảng sau phân biệt cơ chế:
+The table below distinguishes the mechanisms:
 
-| Điều kiện | Loader không parallel-capable | Loader parallel-capable |
+| Condition | Non-parallel-capable loader | Parallel-capable loader |
 | --- | --- | --- |
-| Hai thread nạp **cùng tên A** trên cùng loader | Cùng khóa this | Cùng khóa dành cho A |
-| Hai thread nạp **A và B** trên cùng loader | Vẫn cùng khóa this | Hai khóa theo tên khác nhau |
-| Nạp A qua loader L1, B qua loader L2 | Mỗi loader có đối tượng khóa riêng | Khóa gắn với từng loader và tên |
-| Vòng ủy quyền L1 → L2 → L1 | Có nguy cơ deadlock | **Vẫn có nguy cơ**, tùy tên/khóa và thứ tự |
-| Tính an toàn của cache/URL/JAR tùy biến | Phải tự bảo đảm | **Vẫn phải tự bảo đảm** |
-| Việc khởi tạo tĩnh của lớp | Theo cơ chế JVM riêng | Theo cơ chế JVM riêng |
+| Two threads load **the same name A** on the same loader | Same `this` lock | Same lock dedicated to A |
+| Two threads load **A and B** on the same loader | Still the same `this` lock | Two different per-name locks |
+| Loading A via loader L1, B via loader L2 | Each loader has its own lock object | Locks are scoped per loader and name |
+| Delegation cycle L1 → L2 → L1 | Risk of deadlock | **Still at risk**, depending on names/locks and ordering |
+| Safety of custom caches/URLs/JARs | Must be ensured by author | **Still must be ensured by author** |
+| Static class initialization | Separate JVM mechanism | Separate JVM mechanism |
 
-Với loader thông thường, một synchronized method như loadClass được đồng bộ trên this cũng tạo ra mô hình khóa toàn loader. Với parallel-capable, hợp đồng quan trọng là **giữ khóa của getClassLoadingLock(name)**, chứ không vô tình thêm một khóa chung bao quanh cả thao tác.
+With an ordinary loader, a `synchronized` method like `loadClass` synchronizes on `this`, creating a loader-wide lock. With parallel-capable, the vital contract is **holding the lock from `getClassLoadingLock(name)`**, without accidentally wrapping the operation in a shared outer lock.
 
-### Tại sao không bỏ khóa hoàn toàn?
+### Why Not Remove Locking Entirely?
 
-Parallel-capable **không** đồng nghĩa nhiều luồng được phép define cùng tên tùy ý. Khóa theo tên vẫn phối hợp findLoadedClass, ủy quyền và findClass. Nếu custom loadClass bỏ khóa hoặc tự gọi defineClass cạnh tranh, đăng ký parallel-capable không tự sửa được các lỗi race hay LinkageError.
+Parallel-capable **does not** mean multiple threads are free to define the same name at will. Per-name locks still coordinate `findLoadedClass`, delegation, and `findClass`. If a custom `loadClass` drops locking or calls `defineClass` competitively, registering as parallel-capable will not automatically fix races or `LinkageError`.
 
-Nói cách khác, parallel-capable là **thay đổi độ mịn của đồng bộ hóa**: từ một khóa cho cả loader thành nhiều khóa theo tên. Nó không miễn trừ trách nhiệm đồng bộ, không thay thế hợp đồng class loading và không tự quyết định cấu trúc phụ thuộc của plugin.
+In other words, parallel-capable is **a change in synchronization granularity**: from one lock per loader to multiple per-name locks. It does not waive synchronization responsibilities, replace the class-loading contract, or magically resolve plugin dependency structures.
 
-## 3. Đăng ký parallel-capable đúng cách
+## 3. Registering as Parallel-Capable Properly
 
-ClassLoader có phương thức protected static **registerAsParallelCapable()**. Một lớp loader tùy biến muốn hỗ trợ song song phải gọi phương thức này trong **static initializer của chính lớp loader**. Việc đăng ký cần xảy ra trước khi lớp được sử dụng để tạo các instance theo vòng đời bình thường.
+`ClassLoader` provides the protected static method **registerAsParallelCapable()**. A custom loader class that wants parallel support must invoke this method inside **its own static initializer**. Registration must happen before the class is used to construct instances in its normal lifecycle.
 
 ~~~java
 public final class PluginClassLoader extends ClassLoader {
     static {
         if (!registerAsParallelCapable()) {
             throw new ExceptionInInitializerError(
-                    "Không đăng ký được parallel-capable class loader");
+                    "Failed to register parallel-capable class loader");
         }
     }
 
@@ -107,19 +107,19 @@ public final class PluginClassLoader extends ClassLoader {
         super(parent);
     }
 
-    // Override findClass khi có nguồn bytecode riêng.
-    // Ở đây kế thừa loadClass mặc định để bảo toàn parent-first và khóa JDK.
+    // Override findClass when using a custom bytecode source.
+    // Here we inherit default loadClass to preserve parent-first and JDK locking.
 }
 ~~~
 
-**Đây là ví dụ cấu trúc loader**, có thể biên dịch nếu lưu đúng tên tệp PluginClassLoader.java; nó chưa thêm chức năng tìm bytecode mới. Cơ chế đăng ký được áp dụng cho **lớp ClassLoader cụ thể**, không phải một cờ bật toàn JVM cho mọi instance hay mọi subclass.
+**This is a loader structure example** that compiles if saved as `PluginClassLoader.java`; it does not yet add custom bytecode lookup. Registration applies to **the specific `ClassLoader` class**, not as a JVM-wide flag for all instances or all subclasses.
 
-Điều kiện quan trọng là **toàn bộ chuỗi superclass có liên quan phải đã đăng ký parallel-capable**. Nếu một lớp loader cha do bạn viết không đăng ký, lớp con không thể đơn giản gọi registerAsParallelCapable() để vượt qua giới hạn đó. Trong một hệ thống plugin nhiều tầng loader, hãy kiểm tra lớp gốc trung gian thay vì chỉ nhìn lớp con cuối cùng.
+A crucial requirement is that **the entire relevant superclass chain must already be registered as parallel-capable**. If an intermediate loader superclass you wrote did not register, a subclass cannot simply call `registerAsParallelCapable()` to bypass that limitation. In multi-layer plugin loader hierarchies, check intermediate base classes rather than looking only at the leaf subclass.
 
-### Các trường hợp cần tránh
+### Cases to Avoid
 
 ~~~java
-// MÃ MINH HỌA LỖI THIẾT KẾ, KHÔNG DÙNG TRONG SẢN PHẨM
+// CODE ILLUSTRATING A DESIGN MISTAKE, DO NOT USE IN PRODUCTION
 public final class SlowPluginClassLoader extends ClassLoader {
     static {
         registerAsParallelCapable();
@@ -133,17 +133,17 @@ public final class SlowPluginClassLoader extends ClassLoader {
 }
 ~~~
 
-Mặc dù lớp đã thử đăng ký, từ khóa **synchronized** gắn trên phương thức override khóa **toàn bộ this**. Hai yêu cầu nạp A và B sẽ vẫn phải vào phương thức lần lượt. Gọi super.loadClass bên trong không xóa được khóa ngoài. Lỗi phổ biến khác là **synchronized(this)** bao cả khối loadClass, hoặc dùng cùng một static/global lock cho mọi plugin.
+Even though the class attempted to register, the **`synchronized` keyword on the overridden method locks all of `this`**. Two requests to load A and B will still enter the method one at a time. Calling `super.loadClass` inside does not remove the outer lock. Other common mistakes include wrapping `loadClass` in `synchronized(this)` or sharing a single static/global lock across all plugins.
 
-Một cách khác cũng sai là thêm registerAsParallelCapable() nhưng viết custom loadClass bỏ qua synchronized(getClassLoadingLock(name)). Đăng ký không bảo đảm tự động rằng code tùy biến của bạn an toàn; class loader phải áp dụng đúng cơ chế khóa trong đường đi của mình.
+Another mistake is adding `registerAsParallelCapable()` yet writing a custom `loadClass` that omits `synchronized(getClassLoadingLock(name))`. Registration does not automatically make custom code safe; the class loader must apply the proper locking in its own loading path.
 
-**Ưu tiên thực tế:** nếu mục đích duy nhất là tải bytecode từ một nguồn khác, hãy override findClass và kế thừa loadClass. Chỉ thay cơ chế ủy quyền khi có yêu cầu về plugin isolation hoặc namespace rõ ràng.
+**Practical priority:** if your sole goal is loading bytecode from a different source, override `findClass` and inherit `loadClass`. Only replace delegation when there is a clear requirement for plugin isolation or namespaces.
 
-## 4. Ví dụ Java 17 chạy được: kiểm tra khóa theo tên lớp
+## 4. Runnable Java 17 Example: Checking Per-Class-Name Locks
 
-Ví dụ này chạy độc lập, không tải mã độc hoặc cố gây deadlock. Nó dùng **getClassLoadingLock** để quan sát trực tiếp sự khác biệt về **identity của đối tượng khóa** mà JDK trả về; vì chỉ so sánh tham chiếu nên không có nondeterminism từ lịch chạy thread.
+This example runs standalone without loading malicious code or trying to cause a deadlock. It uses **getClassLoadingLock** to directly observe the difference in **lock object identity** returned by the JVM; because it compares references only, there is no thread-scheduling nondeterminism.
 
-Tạo tệp **ClassLoadingLockDemo.java**:
+Create file **ClassLoadingLockDemo.java**:
 
 ~~~java
 public class ClassLoadingLockDemo {
@@ -199,134 +199,134 @@ public class ClassLoadingLockDemo {
 }
 ~~~
 
-Lưu với mã hóa UTF-8, mở terminal trong thư mục chứa tệp và chạy bằng **JDK 17 hoặc mới hơn**:
+Save with UTF-8 encoding, open a terminal in the file's directory, and run with **JDK 17 or newer**:
 
 ~~~bash
 javac -encoding UTF-8 ClassLoadingLockDemo.java
 java ClassLoadingLockDemo
 ~~~
 
-Đầu ra xác định:
+Deterministic output:
 
 ~~~text
 Serial: same-name=true, different-names-share-lock=true
 Parallel: same-name=true, different-names-share-lock=false
 ~~~
 
-**Giải thích từng kết quả:**
+**Explanation of each result:**
 
-1. Với SerialLoader (không đăng ký), getClassLoadingLock("demo.A") và getClassLoadingLock("demo.B") đều trả về this, nên cả so sánh cùng tên và khác tên đều true.
-2. Với ParallelLoader, phương thức được đăng ký trong static initializer. Tên demo.A được ánh xạ ổn định tới một khóa; hai lần hỏi A trả cùng tham chiếu, còn demo.B nhận khóa khác.
-3. Hai lớp này là hai lớp con trực tiếp của ClassLoader, nên SerialLoader **không** tự hưởng trạng thái parallel-capable của lớp cha; một subclass phải đăng ký chính nó. ClassLoader nền của JDK là một lớp đã hỗ trợ hợp đồng song song.
-4. Ví dụ đo **identity của khóa**, không đo tốc độ. Nó không chứng minh rằng hệ thống I/O hay parent loader có thể thực sự nạp hai class nhanh gấp đôi. Những phần đó phải được benchmark hoặc kiểm thử đồng thời riêng.
+1. For `SerialLoader` (unregistered), `getClassLoadingLock("demo.A")` and `getClassLoadingLock("demo.B")` both return `this`, so both same-name and different-name comparisons are `true`.
+2. For `ParallelLoader`, registration occurred in the static initializer. The name `demo.A` maps consistently to one lock; two queries for A return the same reference, whereas `demo.B` gets a different lock.
+3. These two classes are direct subclasses of `ClassLoader`, so `SerialLoader` does **not** inherit parallel-capable status from its parent class; each subclass must register itself. The JDK's base `ClassLoader` already supports the parallel-capable contract.
+4. The example measures **lock identity**, not speed. It does not prove I/O or parent loaders can actually load two classes twice as fast. Those aspects must be benchmarked or concurrency-tested separately.
 
-Trong một lớp loader thực tế, những khóa được quan sát là thứ mà triển khai chuẩn loadClass dùng để đồng bộ khi xử lý yêu cầu.
+In a real loader class, the observed locks are the exact monitors the standard `loadClass` implementation uses to synchronize request handling.
 
-## 5. Deadlock giữa hai class loader diễn ra như thế nào?
+## 5. How Does a Deadlock Between Two Class Loaders Happen?
 
-Một deadlock cổ điển có hai loader riêng **L_A** và **L_B**, đều sử dụng khóa toàn loader. Giả sử L_A cần hỏi L_B về lớp B, trong khi L_B cần hỏi L_A về lớp A. Hai thread hoạt động song song:
+A classic deadlock involves two separate loaders **L_A** and **L_B**, both using loader-wide locks. Suppose `L_A` needs to ask `L_B` for class B, while `L_B` needs to ask `L_A` for class A. Two threads run concurrently:
 
 ~~~text
 Thread T1                                  Thread T2
 ---------                                  ---------
-Giữ lock(L_A) khi load A                    Giữ lock(L_B) khi load B
+Holds lock(L_A) loading A                  Holds lock(L_B) loading B
     |                                            |
-    |  Gọi L_B.loadClass(B)                      |  Gọi L_A.loadClass(A)
+    |  Calls L_B.loadClass(B)                    |  Calls L_A.loadClass(A)
     v                                            v
-Chờ lock(L_B)  <-------------------------->  Chờ lock(L_A)
+Waits for lock(L_B) <----------------------> Waits for lock(L_A)
     |                                            |
-Không thể nhả lock(L_A)                   Không thể nhả lock(L_B)
+Cannot release lock(L_A)                   Cannot release lock(L_B)
                      DEADLOCK
 ~~~
 
-Cả hai luồng đều chờ một khóa mà luồng còn lại đang giữ. Không luồng nào có thể hoàn thành lời gọi nạp lớp hiện tại để nhả khóa của mình. Đây là **vòng chờ tài nguyên** (*circular wait*); tăng số lượng thread, sửa timeout của yêu cầu HTTP hay thêm synchronized khác thường không giải quyết nguyên nhân.
+Both threads wait on a lock held by the other. Neither thread can finish its current load call to release its own lock. This is a **circular wait**; increasing thread counts, tweaking HTTP request timeouts, or adding more `synchronized` blocks usually fails to address the root cause.
 
-Trong một hệ plugin, nguyên nhân có thể là:
+In a plugin system, causes can include:
 
-- Plugin A dùng class loader A để nạp lớp và fallback sang loader của plugin B.
-- Plugin B cũng fallback sang loader A để giải quyết dependency.
-- Hai lệnh nạp chạy đồng thời, các loader giữ khóa trong khi ủy quyền.
-- Hoặc code plugin tùy biến giữ một monitor riêng quanh quá trình load, rồi gọi sang loader khác tạo thành vòng chờ tương tự.
+- Plugin A uses class loader A to load a class and falls back to plugin B's loader.
+- Plugin B likewise falls back to loader A to resolve a dependency.
+- Two load calls run concurrently while the loaders hold their locks across delegation.
+- Or custom plugin code holds its own monitor around loading, then invokes another loader, forming a similar wait cycle.
 
-**Lưu ý phạm vi:** ví dụ trên là mô hình khóa toàn loader. Với parallel-capable, L_A và L_B có thể giữ các khóa theo **tên lớp** khác nhau; tình huống deadlock cụ thể này có thể giảm hoặc biến mất nếu hai luồng không yêu cầu trùng tên và không có khóa bổ sung. Tuy nhiên, một vòng chờ có thể vẫn xuất hiện nếu hai bên cần cùng những khóa theo tên, chờ tải phụ thuộc, giữ monitor của plugin hoặc chạy khởi tạo lớp. Không thể kết luận “đã đăng ký parallel-capable thì hết deadlock”.
+**Scope note:** the diagram above shows a loader-wide locking model. With parallel-capable, `L_A` and `L_B` can hold **per-class-name** locks; this specific deadlock scenario can shrink or disappear if the two threads do not request colliding names and no extra locks are held. However, a wait cycle can still occur if both sides need the same per-name locks, wait on dependent loads, hold plugin monitors, or run class initialization. You cannot conclude "registered parallel-capable, therefore deadlocks are impossible."
 
-### Vì sao cross-delegation dễ tạo vòng lặp?
+### Why Does Cross-Delegation Easily Create Cycles?
 
-Cơ chế ủy quyền mặc định thường đi từ loader con sang loader cha theo một quan hệ có hướng, không tạo chu kỳ. Khi thiết kế plugin loader tùy biến, người triển khai đôi khi bổ sung logic:
+Default delegation normally flows from child loader to parent loader along a directed relationship without cycles. When designing custom plugin loaders, implementers sometimes add logic like:
 
 ~~~text
 Plugin A loader
-   -> nếu không thấy class thì hỏi Plugin B loader
-   -> Plugin B loader lại hỏi Plugin A loader
+   -> if class not found, ask Plugin B loader
+   -> Plugin B loader asks Plugin A loader back
 ~~~
 
-Ngay cả khi chỉ có một thread, vòng ủy quyền thiếu điều kiện dừng có thể dẫn đến đệ quy vô hạn/StackOverflowError hoặc lỗi nạp lớp tùy tình huống. Khi có nhiều thread và các loader giữ khóa khác nhau, nó có thể trở thành deadlock. Hai triệu chứng này có chung nguyên nhân kiến trúc: **đường phân giải lớp không có hướng phụ thuộc nhất quán**.
+Even with a single thread, a delegation loop lacking termination conditions can lead to infinite recursion/`StackOverflowError` or class-loading failures depending on the situation. With multiple threads and loaders holding different locks, it can turn into a deadlock. Both symptoms share one architectural root cause: **a class resolution path without a consistent dependency direction**.
 
-Giải pháp bền vững không phải thử mọi loader cho tới khi có kết quả; phải định nghĩa rõ mỗi namespace do loader nào sở hữu, nhóm API nào do parent quản lý và quan hệ phụ thuộc được phép của plugin.
+The sustainable solution is not trying every loader until something succeeds; clearly define which loader owns each namespace, which API groups the parent manages, and which plugin dependencies are permitted.
 
-## 6. Parallel-capable giúp gì, và điều gì vẫn có thể bị khóa?
+## 6. What Parallel-Capable Helps With, and What Can Still Block?
 
-Giả sử một loader L xử lý đồng thời yêu cầu nạp hai lớp độc lập demo.plugin.JsonCodec và demo.plugin.XmlCodec.
+Suppose loader L concurrently handles requests to load two independent classes `demo.plugin.JsonCodec` and `demo.plugin.XmlCodec`.
 
-**Loader không parallel-capable:**
+**Non-parallel-capable loader:**
 
 ~~~text
 T1: acquire lock(L) ---- load JsonCodec ---- release
 T2:                      wait lock(L)        ---- load XmlCodec ----
 ~~~
 
-**Loader parallel-capable:**
+**Parallel-capable loader:**
 
 ~~~text
 T1: acquire lock(L, JsonCodec) ---- load JsonCodec ---- release
 T2: acquire lock(L, XmlCodec)  ---- load XmlCodec  ---- release
 ~~~
 
-Đây là sơ đồ **khả năng tiến hành đồng thời**, không phải cam kết tốc độ hay timeline chính xác của JVM. Khi cả hai tên lớp cùng cần loader cha, đọc chung JAR hoặc truy cập cache có khóa, vẫn có điểm chờ chung.
+This diagram shows **concurrency potential**, not a speed promise or exact JVM timeline. When both class names need the parent loader, read a shared JAR, or touch a locked cache, shared wait points still exist.
 
-Đối với hai lời gọi **cùng tên**, dù loader parallel-capable, cả hai sẽ dùng cùng khóa cho tên đó. Điều này giữ an toàn cho findLoadedClass/defineClass. Một loader không thể hy sinh điều kiện “định nghĩa một lần” chỉ để tăng concurrency.
+For two calls with **the same name**, even in a parallel-capable loader, both use the same lock for that name. This protects `findLoadedClass`/`defineClass`. A loader cannot sacrifice the "define once" invariant merely to increase concurrency.
 
-### Những khóa khác không biến mất
+### Other Locks Do Not Disappear
 
-| Nguồn chờ | Vì sao parallel-capable không tự giải quyết? |
+| Source of waiting | Why doesn't parallel-capable solve it automatically? |
 | --- | --- |
-| Loader cha không parallel-capable | Loader cha vẫn khóa toàn instance khi phân giải các lớp qua nó |
-| Cache hoặc kho bytecode riêng | Nếu cache dùng synchronized/global lock, các lời gọi vẫn tuần tự |
-| Khóa trên đối tượng plugin hoặc registry | Những monitor ngoài getClassLoadingLock không đổi |
-| Giao thức cross-delegation có chu kỳ | Một vòng phụ thuộc vẫn có thể gây chờ lẫn nhau |
-| Khởi tạo tĩnh của class | JVM quản lý đồng bộ khởi tạo lớp theo một cơ chế khác |
-| Tác vụ I/O hoặc mạng chậm | Có thể làm tăng thời gian giữ khóa, không phụ thuộc loại khóa |
-| Tải cùng một tên class | Đúng mục đích vẫn phải phối hợp bằng cùng khóa |
+| Non-parallel-capable parent loader | The parent still locks its entire instance while resolving classes through it |
+| Custom caches or bytecode stores | If the cache uses `synchronized`/a global lock, calls still serialize |
+| Locks on plugin objects or registries | Monitors outside `getClassLoadingLock` are unchanged |
+| Cyclic cross-delegation protocols | A dependency cycle can still cause mutual waiting |
+| Static class initialization | The JVM manages class-initialization synchronization via a separate mechanism |
+| Slow I/O or network tasks | Can lengthen lock hold times regardless of lock granularity |
+| Loading the same class name | Intentionally still coordinates using the same lock |
 
-Điều này đặc biệt quan trọng khi có loader theo tenant, theo plugin hoặc cơ chế reload. Không nên dùng một khóa global “để an toàn” bao tất cả plugin, bởi nó làm mất lợi ích đồng thời và dễ mở rộng vòng chờ giữa các plugin.
+This matters especially with per-tenant loaders, per-plugin loaders, or reload mechanisms. Avoid wrapping all plugins in one global lock "to be safe," as it negates concurrency benefits and widens potential wait cycles across plugins.
 
-## 7. Phân biệt nạp lớp (loading), liên kết (linking) và khởi tạo (initialization)
+## 7. Distinguishing Loading, Linking, and Initialization
 
-Một tình huống treo trong quá trình tải plugin có thể đến từ **khóa class loader**, nhưng cũng có thể do **khởi tạo tĩnh của lớp**, cần xác định đúng.
+A hang during plugin startup may come from **a class loader lock**, yet it can also come from **static class initialization**; pinpoint which one it is.
 
-- **Loading:** tìm bytecode và tạo ra đối tượng Class gắn với defining loader; ClassLoader.loadClass là điểm vào quen thuộc.
-- **Linking:** xác minh, chuẩn bị và phân giải tham chiếu khi cần. resolveClass có thể yêu cầu liên kết một lớp đã nạp, không phải khởi tạo nó.
-- **Initialization:** chạy các static field initializer và khối static initialization của lớp khi có tác nhân kích hoạt, ví dụ new, gọi phương thức static không hằng theo ngữ nghĩa JVM hoặc Class.forName(name, true, loader).
+- **Loading:** finding bytecode and creating the `Class` object bound to a defining loader; `ClassLoader.loadClass` is the familiar entry point.
+- **Linking:** verifying, preparing, and resolving references as needed. `resolveClass` can request linking an already-loaded class, not initializing it.
+- **Initialization:** running static field initializers and static initialization blocks when triggered—e.g. by `new`, calling a non-constant static method per JVM semantics, or `Class.forName(name, true, loader)`.
 
-ClassLoader.loadClass("demo.Plugin") thông thường **không tự chạy static initializer của demo.Plugin**. Trong khi đó Class.forName("demo.Plugin", true, loader) yêu cầu khởi tạo lớp. Nếu class A và class B có quá trình khởi tạo tĩnh đan chéo, hai thread có thể chờ nhau ở khóa khởi tạo nội bộ JVM, ngay cả khi các loader đều parallel-capable.
+`ClassLoader.loadClass("demo.Plugin")` normally **does not automatically run `demo.Plugin`'s static initializer**. In contrast, `Class.forName("demo.Plugin", true, loader)` requests initialization. If class A and class B have cross-dependent static initializers, two threads can wait on each other at the JVM's internal initialization lock, even if all loaders are parallel-capable.
 
 ~~~text
-T1: đang khởi tạo class A -> trong <clinit> cần dùng class B
-T2: đang khởi tạo class B -> trong <clinit> cần dùng class A
-T1 chờ B khởi tạo; T2 chờ A khởi tạo -> có thể deadlock
+T1: initializing class A -> inside <clinit> needs class B
+T2: initializing class B -> inside <clinit> needs class A
+T1 waits for B to initialize; T2 waits for A to initialize -> possible deadlock
 ~~~
 
-Không nên nhìn thấy một stack trace chứa tên ClassLoader rồi mặc định lỗi nằm ở getClassLoadingLock. Hãy xem thread đang **BLOCKED chờ monitor loader**, đang chờ class initialization, hay đơn giản là đọc JAR/đợi I/O.
+Do not see `ClassLoader` in a stack trace and automatically assume the bug is in `getClassLoadingLock`. Inspect whether the thread is **BLOCKED waiting on a loader monitor**, waiting on class initialization, or simply reading a JAR/waiting on I/O.
 
-Một lỗi dễ gặp khác là làm công việc nặng hoặc kích hoạt plugin từ static initializer của lớp loader: vừa khó chẩn đoán vừa có thể tái nhập cơ chế nạp lớp đúng lúc các thành phần chưa sẵn sàng. Static initializer của custom loader nên chỉ thực hiện các thao tác đăng ký/cấu hình rất nhỏ và chắc chắn.
+Another common mistake is doing heavy work or activating plugins inside a loader class's static initializer: it is both hard to diagnose and risks re-entering class loading while components are not yet ready. A custom loader's static initializer should perform only minimal, reliable registration/setup.
 
-## 8. Cách triển khai class loader tùy biến an toàn hơn
+## 8. Safer Ways to Implement a Custom Class Loader
 
-### 8.1. Giữ đường đi mặc định nếu có thể
+### 8.1. Keep the Default Path When Possible
 
-Nếu host chỉ cần tải bytecode từ thư mục plugin, JAR hay kho mã riêng, hãy ưu tiên **override findClass** hoặc dùng loader có sẵn phù hợp. Đừng viết lại toàn bộ loadClass chỉ để đọc thêm một nguồn class: đường đi mặc định đã xử lý cache, ủy quyền và đồng bộ hóa.
+If the host only needs to load bytecode from a plugin directory, JAR, or private store, prefer **overriding `findClass`** or using an existing built-in loader. Do not rewrite all of `loadClass` merely to read from an extra class source: the default path already handles caching, delegation, and synchronization.
 
-Ví dụ khung API minh họa (không phải chương trình độc lập, vì ClassBytesRepository là thành phần do ứng dụng phải cài đặt):
+Illustrative API skeleton (not a standalone program, because `ClassBytesRepository` must be implemented by the application):
 
 ~~~java
 final class RepositoryClassLoader extends ClassLoader {
@@ -354,165 +354,165 @@ final class RepositoryClassLoader extends ClassLoader {
 }
 ~~~
 
-Mã khung chưa định nghĩa ClassBytesRepository, chưa kiểm tra code source/signing/package sealing và chưa bàn về độ tin cậy bytecode; nó **chỉ cho thấy điểm override**. Trong sản phẩm, repository phải có hành vi thread-safe khi findClass có thể chạy song song cho các tên khác nhau, kiểm tra bytecode và đóng gói đúng quy tắc của loader.
+The skeleton does not define `ClassBytesRepository`, does not check code source/signing/package sealing, and does not cover bytecode trust; it **only shows the override point**. In production, the repository must behave thread-safely when `findClass` runs concurrently for different names, validate bytecode, and package properly per loader rules.
 
-### 8.2. Nếu phải override loadClass, dùng khóa theo tên và quy tắc rõ ràng
+### 8.2. If You Must Override loadClass, Use Per-Name Locks and Explicit Rules
 
-Một loader child-first cho namespace riêng của plugin có thể cần override loadClass. Khi đó:
+A child-first loader for plugin-private namespaces may need to override `loadClass`. In that case:
 
-1. Dùng **synchronized(getClassLoadingLock(name))** quanh phần findLoadedClass/ủy quyền/findClass và resolve nếu cần.
-2. Kiểm tra **findLoadedClass(name)** trước khi cố định nghĩa lớp.
-3. Xác định rõ namespace nào **parent-first** (java.*, javax.*, jakarta.*, API host, giao diện SPI chung) và namespace nào thuộc plugin; không cố tự định nghĩa lớp java.*.
-4. Có fallback có kiểm soát và ném **ClassNotFoundException** khi không tìm được, không thử tìm vòng tròn giữa mọi loader.
-5. Chỉ gọi **resolveClass** theo hợp đồng, không tự ép mọi lớp khởi tạo tĩnh trong lúc giữ khóa.
-6. Tránh giữ thêm một synchronized(this), static/global monitor hoặc khóa registry xuyên qua lời gọi sang loader khác.
-7. Với nhiều plugin, thiết lập đồ thị phụ thuộc **không có chu kỳ** hoặc kiến trúc chia sẻ API qua loader cha; coi quan hệ phụ thuộc là đầu vào được kiểm tra lúc kích hoạt plugin.
+1. Wrap `findLoadedClass`/delegation/`findClass` and optional resolution in **`synchronized(getClassLoadingLock(name))`**.
+2. Check **`findLoadedClass(name)`** before attempting to define the class.
+3. Explicitly specify which namespaces are **parent-first** (`java.*`, `javax.*`, `jakarta.*`, host APIs, shared SPI interfaces) and which belong to the plugin; never attempt to define `java.*` classes yourself.
+4. Provide a controlled fallback and throw **ClassNotFoundException** when absent, rather than searching in circles across all loaders.
+5. Call **resolveClass** only per contract; do not force static initialization of every class while holding locks.
+6. Avoid holding an extra `synchronized(this)`, static/global monitor, or registry lock across calls to another loader.
+7. With multiple plugins, enforce an **acyclic** dependency graph or share APIs through a parent loader; treat dependency relationships as inputs validated when enabling plugins.
 
-Việc gọi getClassLoadingLock(name) bên trong một custom loader **không tự khiến nó parallel-capable**: nếu chưa đăng ký thành công, phương thức vẫn trả về this. Vì vậy phải kết hợp **đăng ký đúng lớp, chuỗi superclass hợp lệ và code tải lớp tuân thủ khóa**.
+Calling `getClassLoadingLock(name)` inside a custom loader **does not automatically make it parallel-capable**: if registration failed or was omitted, it still returns `this`. Therefore combine **proper class registration, valid superclass chain, and lock-compliant loading code**.
 
-### 8.3. Không giữ khóa ứng dụng trong khi gọi loader tùy biến
+### 8.3. Do Not Hold Application Locks While Calling a Custom Loader
 
-Ví dụ nguy hiểm:
+Dangerous example:
 
 ~~~java
-// MÃ MINH HỌA RỦI RO: pluginRegistry là đối tượng do host quản lý.
+// CODE ILLUSTRATING RISK: pluginRegistry is an object managed by the host.
 synchronized (pluginRegistry) {
-    // Loader có thể gọi ngược mã ứng dụng hoặc loader khác.
+    // The loader might call back into application code or another loader.
     pluginLoader.loadClass(pluginName);
 }
 ~~~
 
-Nếu luồng khác đang giữ khóa class loader mà cần truy cập pluginRegistry, cặp thao tác có thể hình thành vòng chờ. Hãy lấy cấu hình/snapshot cần thiết trước, nhả khóa registry, rồi mới gọi loader theo chính sách an toàn của hệ thống. Nếu cần ghi nhận kết quả, kiểm tra lại trạng thái/version khi quay vào registry.
+If another thread holds a class loader lock and needs to access `pluginRegistry`, the pair of operations can form a wait cycle. Take the needed configuration/snapshot first, release the registry lock, and then invoke the loader under the system's safety policy. If you need to record results afterward, re-check state/version when re-entering the registry.
 
-Tương tự, không gọi callback plugin, dependency resolver có thể chạy code người dùng hoặc I/O không kiểm soát trong một critical section rộng. Thời gian giữ khóa lớn tăng xác suất gặp lỗi đồng thời và làm việc dừng plugin khó đoán.
+Similarly, avoid invoking plugin callbacks, dependency resolvers that may execute user code, or uncontrolled I/O inside a broad critical section. Long lock hold times increase concurrency failure odds and make plugin shutdown unpredictable.
 
-## 9. Chẩn đoán deadlock và nghẽn nạp lớp
+## 9. Diagnosing Deadlocks and Class-Loading Bottlenecks
 
-Một JVM có vẻ treo khi bật plugin có thể rơi vào một trong ba trạng thái:
+A JVM that appears hung while enabling a plugin can be in one of three states:
 
-1. **Deadlock thật:** vòng chờ khóa giữa hai hay nhiều thread, không thể tự tiến triển.
-2. **Lock contention:** các thread chờ một loader đang xử lý class chậm, nhưng cuối cùng có thể hoàn thành.
-3. **I/O wait hoặc class initialization wait:** stack nằm trong đường nạp/khởi tạo nhưng nguyên nhân không phải monitor class loader.
+1. **True deadlock:** a lock wait cycle among two or more threads that cannot make progress.
+2. **Lock contention:** threads waiting on a loader processing classes slowly, which can eventually finish.
+3. **I/O wait or class initialization wait:** stacks sit inside loading/initialization paths yet the cause is not a class loader monitor.
 
-Cần chứng cứ thread dump ở **thời điểm sự cố**; không kết luận chỉ từ thời gian chờ hoặc từ việc CPU thấp.
+You need thread dump evidence taken **at the time of the incident**; do not conclude from wait duration or low CPU alone.
 
-### Bước 1 — lấy thread dump
+### Step 1 — Capture Thread Dumps
 
-Tìm PID của tiến trình, dùng lệnh phù hợp với JDK và quyền thực thi. Với JDK có công cụ diagnostic:
+Find the process PID and run a command suited to the JDK and permissions. With JDK diagnostic tools:
 
 ~~~bash
 jcmd <pid> Thread.print -l
 ~~~
 
-Hoặc:
+Or:
 
 ~~~bash
 jstack -l <pid>
 ~~~
 
-Trong lệnh thực tế, **thay <pid> bằng số PID**, chẳng hạn 12345; hai dòng trên là mẫu lệnh không chạy nguyên văn. Trong môi trường container cần chạy ở namespace/process thích hợp và có quyền attach. Thu thập nhiều dump cách nhau một khoảng ngắn có ích để phân biệt tiến trình đang thay đổi với vòng chờ cố định.
+In real commands, **replace `<pid>` with the numeric PID**, such as `12345`; the two lines above are templates, not literal commands. In container environments, run in the appropriate namespace/process with attach permissions. Capturing several dumps a short interval apart helps distinguish progressing work from a stuck wait cycle.
 
-### Bước 2 — đọc quan hệ giữ và chờ khóa
+### Step 2 — Read Lock Ownership and Wait Relationships
 
-Quan sát các trường:
+Look for:
 
-- Thread **BLOCKED (on object monitor)** hoặc thông tin waiting-to-lock/locked trên cùng monitor loader hay đối tượng khóa tên lớp.
-- Stack frame liên quan tới ClassLoader.loadClass, getClassLoadingLock, findClass, defineClass, URLClassLoader, loader framework hoặc custom plugin loader.
-- Dòng **waiting to lock** của T1 trỏ tới monitor mà T2 đang giữ, đồng thời T2 chờ monitor mà T1 đang giữ: đây là bằng chứng vòng chờ.
-- Nếu là parallel-capable, monitor khóa theo tên có thể là một đối tượng **java.lang.Object**, không hiển thị ngay tên lớp; cần kết hợp stack và log của resolver để ánh xạ.
-- Nếu là class initialization, chú ý frame khởi tạo tĩnh và trạng thái thread chờ lớp; không vội kết luận getClassLoadingLock là nguồn gốc.
+- Threads **BLOCKED (on object monitor)** or `waiting-to-lock`/`locked` entries on the same loader monitor or per-name lock object.
+- Stack frames involving `ClassLoader.loadClass`, `getClassLoadingLock`, `findClass`, `defineClass`, `URLClassLoader`, framework loaders, or custom plugin loaders.
+- T1's **waiting to lock** pointing to a monitor held by T2 while T2 waits on a monitor held by T1: that is evidence of a circular wait.
+- For parallel-capable loaders, a per-name lock monitor may show up simply as a **`java.lang.Object`**, without directly displaying the class name; correlate with stack frames and resolver logs to map it.
+- For class initialization, watch for static initialization frames and threads waiting on a class; do not jump to blaming `getClassLoadingLock`.
 
-Ví dụ minh họa từ góc nhìn điều tra (không phải stdout thật của một JDK cụ thể):
+Illustrative example from an investigation perspective (not literal stdout of a specific JDK):
 
 ~~~text
-T1: giữ monitor khóa L_A, chờ monitor khóa L_B
-T2: giữ monitor khóa L_B, chờ monitor khóa L_A
+T1: holds monitor lock L_A, waits for monitor lock L_B
+T2: holds monitor lock L_B, waits for monitor lock L_A
 => circular wait: class-loader deadlock
 
-T3: chờ monitor khóa L_C
-T4: giữ monitor khóa L_C và đang đọc JAR chậm
-=> contention/I-O: chưa đủ bằng chứng deadlock
+T3: waits for monitor lock L_C
+T4: holds monitor lock L_C and is slowly reading a JAR
+=> contention/I-O: insufficient evidence of deadlock
 ~~~
 
-JVM có thể phát hiện và in một số Java-level deadlock tự động. Tuy vậy, một số dạng chờ liên quan tới class initialization hoặc native/I/O có thể không xuất hiện trong danh sách deadlock tự động; vẫn cần phân tích stack và trạng thái thực tế.
+The JVM can detect and print certain Java-level deadlocks automatically. Even so, some waits involving class initialization or native/I/O may not appear in automatic deadlock reports; you still need to inspect the actual stacks and states.
 
-### Bước 3 — bổ sung quan sát có kiểm soát
+### Step 3 — Add Controlled Observability
 
-- Ghi **loader identity** (tên, loại, parent, plugin/tenant ID) và **binary class name** lúc bắt đầu/tìm/fallback/kết thúc, đặc biệt trước khi gọi loader khác.
-- Log trạng thái đăng ký parallel-capable ở giai đoạn khởi tạo và xác nhận code override dùng getClassLoadingLock(name). Đừng suy luận từ tên lớp loader.
-- Kiểm tra đường phân giải class có chu kỳ: A → B → A, fallback qua mọi loader, hay khóa registry nắm giữ lúc cross-delegation.
-- Dùng các công cụ JVM/JFR phù hợp để đo lock contention, số lần/độ trễ class load, nhưng hiểu rõ giới hạn dữ liệu do từng JDK và cấu hình ghi sự kiện cung cấp.
-- Đối chiếu thời điểm phát hành plugin, thay đổi classpath, hot reload và policy loader. Một bản nâng cấp có thể thêm dependency khiến hai plugin vốn độc lập trở nên phụ thuộc chéo.
+- Log **loader identity** (name, kind, parent, plugin/tenant ID) and **binary class name** at start/lookup/fallback/finish, especially before calling another loader.
+- Log parallel-capable registration status at startup and verify override code uses `getClassLoadingLock(name)`. Do not infer it from the loader's class name.
+- Check class-resolution paths for cycles: A → B → A, fallback across all loaders, or registry locks held during cross-delegation.
+- Use appropriate JVM/JFR tools to measure lock contention and class-load counts/latency, while understanding the limits of event data provided by each JDK and configuration.
+- Correlate with plugin release timestamps, classpath changes, hot reloads, and loader policies. An upgrade can introduce a dependency that makes two formerly independent plugins cross-dependent.
 
-Java có **ThreadMXBean.findDeadlockedThreads()** để hỗ trợ dò deadlock ở mức monitor và ownable synchronizer mà JVM hỗ trợ; nó không phải bằng chứng duy nhất và không nhận diện mọi kiểu chờ tài nguyên. Hãy xem thread dump thực tế trước khi chọn biện pháp sửa.
+Java provides **ThreadMXBean.findDeadlockedThreads()** to assist in detecting monitor and ownable-synchronizer deadlocks supported by the JVM; it is not sole proof and does not catch every form of resource wait. Inspect the actual thread dump before choosing a fix.
 
-## 10. Thiết kế phòng tránh theo từng nguyên nhân
+## 10. Preventive Design by Root Cause
 
-| Nguyên nhân | Cách sửa ưu tiên | Lưu ý |
+| Root cause | Preferred fix | Notes |
 | --- | --- | --- |
-| Tất cả tên lớp bị tuần tự hóa trên một custom loader | Đăng ký parallel-capable đúng cách, dùng getClassLoadingLock(name) | Cần an toàn cho cache/nguồn bytecode dùng chung |
-| Override synchronized loadClass giữ khóa this | Bỏ khóa bao ngoài và tuân thủ khóa theo tên | Không bỏ đồng bộ hóa check–load–define |
-| Hai plugin loader gọi qua lại không có thứ tự | Thiết kế đồ thị phụ thuộc có hướng, loại chu kỳ | Parallel-capable không sửa được kiến trúc vòng |
-| Loader con tự nạp bản sao service API của host | Dùng parent-first cho API chung | Tránh hai định danh Class cho cùng giao diện |
-| Giữ khóa plugin registry khi gọi loadClass | Tách snapshot cấu hình khỏi thời gian nạp lớp | Kiểm tra phiên bản/trạng thái khi cập nhật lại |
-| Static initializer kích hoạt dependency vòng | Giảm side effect, tách init thành lifecycle có kiểm soát | Đây có thể là initialization deadlock riêng |
-| Đọc JAR/remote source dưới khóa lâu | Cache hoặc chuẩn bị dữ liệu có kiểm soát, tránh blocking không cần thiết | Giữ nguyên kiểm tra quyền/độ tin cậy và define-once |
-| Lỗi khó tái hiện | Dựng test concurrent load + timeout, thu thread dump | Không coi test chạy một lần là bảo đảm không deadlock |
+| All class names serialized on one custom loader | Register parallel-capable properly, use `getClassLoadingLock(name)` | Shared caches/bytecode sources must still be thread-safe |
+| Overridden `synchronized loadClass` locking `this` | Remove outer lock and follow per-name locking | Do not remove check–load–define synchronization |
+| Two plugin loaders calling each other without ordering | Design a directed dependency graph, eliminate cycles | Parallel-capable cannot fix circular architecture |
+| Child loader loading its own copy of host service API | Use parent-first for shared APIs | Avoids two `Class` identities for the same interface |
+| Holding plugin registry lock while calling `loadClass` | Separate config snapshot from class loading | Re-verify version/state when updating back |
+| Static initializers triggering cyclic dependencies | Minimize side effects, move init to controlled lifecycle | This can be a separate initialization deadlock |
+| Reading JARs/remote sources under long-held locks | Cache or stage data carefully, avoid unnecessary blocking | Preserve trust/permission checks and define-once |
+| Hard-to-reproduce bug | Build concurrent load tests + timeouts, capture thread dumps | Never treat one passing test run as proof of no deadlock |
 
-### Với hệ plugin cần hot reload
+### For Plugin Systems Needing Hot Reload
 
-Một phiên plugin mới thường có class loader mới. Những thread/instance từ phiên cũ có thể giữ tham chiếu tới loader cũ, dẫn đến chờ hoặc leak nếu không dọn đúng vòng đời. Khi stop/reload, quản lý rõ:
+A new plugin version typically receives a new class loader. Threads/instances from the old version can keep references to the old loader, causing waits or leaks if lifecycle cleanup is sloppy. On stop/reload, manage explicitly:
 
-- Trạng thái **ACTIVE → STOPPING → CLOSED**, từ chối công việc mới khi đang dừng.
-- Kết thúc hoặc hủy công việc đang chạy theo chính sách; không giữ monitor của plugin manager rồi chờ thread khác join trong khi thread đó cần chính monitor ấy.
-- Đóng URLClassLoader hoặc nguồn tài nguyên khi không còn sử dụng, giải phóng strong references để class có cơ hội unload.
-- Không dùng một registry toàn cục có khóa lớn để đồng thời nạp, dừng và kích hoạt plugin; tách giai đoạn quyết định trạng thái khỏi các thao tác có thể chờ hoặc gọi ra ngoài.
+- States **ACTIVE → STOPPING → CLOSED**, rejecting new work while stopping.
+- Finish or cancel running tasks per policy; do not hold the plugin manager's monitor while joining a thread that needs that same monitor.
+- Close `URLClassLoader` or resource handles once unused, dropping strong references so classes have a chance to unload.
+- Do not use a single coarse-grained global registry lock to load, stop, and activate plugins simultaneously; separate state transitions from operations that can block or call outward.
 
-Việc gọi **URLClassLoader.close()** giải phóng tài nguyên mà loader sở hữu theo hợp đồng nhưng không tự unload các class đã định nghĩa; unload còn phụ thuộc các tham chiếu tới class, instance và loader. Tương tự, registerAsParallelCapable() không phải cơ chế unload hay điều phối lifecycle.
+Calling **URLClassLoader.close()** releases resources owned by the loader per contract, yet does not by itself unload defined classes; unloading still depends on references to classes, instances, and the loader. Likewise, `registerAsParallelCapable()` is neither an unloading mechanism nor a lifecycle coordinator.
 
-## 11. Kiểm thử concurrency có ý nghĩa
+## 11. Meaningful Concurrency Testing
 
-Bài kiểm tra khóa theo tên trong phần 4 xác nhận cơ chế mà API cung cấp, nhưng hệ thống plugin thực cần kiểm thử đúng đường tải class của mình.
+The per-name lock test in section 4 verifies what the API provides, yet a real plugin system needs tests along its actual class-loading paths.
 
-Các tình huống cần thử:
+Scenarios to test:
 
-1. **Cùng một tên trên cùng một loader, nhiều thread:** mọi thread nhận cùng Class hoặc lỗi nạp hợp lệ theo cùng nguyên nhân; không có định nghĩa lặp hay race gây LinkageError.
-2. **Hai tên độc lập trên cùng loader:** không bị tuần tự hóa do khóa toàn loader nếu đã đăng ký parallel-capable; dùng instrument/quan sát, tránh khẳng định từ một phép đo thời gian đơn lẻ.
-3. **Loader cha và loader con:** API chung phải có cùng Class identity; provider class có thể ở child, API ở parent.
-4. **Hai plugin phụ thuộc có hướng:** lớp dùng chung được phân giải đúng theo graph cho phép, không fallback vòng tròn.
-5. **Hai thread cùng kích hoạt plugin:** trạng thái registry/lifecycle không tạo thêm khóa vòng hoặc hai lần đăng ký cùng một tài nguyên.
-6. **Dừng plugin trong lúc tải:** host xử lý lỗi và cleanup hợp lệ, không đóng dữ liệu nguồn ngay khi một thread còn đang dùng nếu hợp đồng không cho phép.
-7. **Lỗi nguồn bytecode/URL/JAR:** các thread chờ khóa được giải phóng qua exception; trạng thái cache vẫn nhất quán, không có luồng treo vô thời hạn.
-8. **Class initialization chéo:** test riêng phần <clinit> nếu hệ plugin có static initializer phức tạp; phân biệt lỗi đó với khóa class loader.
+1. **Same name on the same loader, multiple threads:** every thread receives the exact same `Class` or a valid loading error with the same cause; no duplicate definitions or races causing `LinkageError`.
+2. **Two independent names on the same loader:** not serialized by a loader-wide lock when registered parallel-capable; use instrumentation/observation rather than asserting from a single timing measurement.
+3. **Parent loader and child loader:** shared API must keep the same `Class` identity; provider classes can live in child, API in parent.
+4. **Two plugins with directed dependency:** shared code resolves strictly along the allowed graph without circular fallback.
+5. **Two threads activating a plugin concurrently:** registry/lifecycle states do not introduce extra lock cycles or double-register a resource.
+6. **Stopping a plugin mid-load:** host handles errors and cleans up validly, not closing backing data while another thread is still using it if forbidden by contract.
+7. **Bytecode/URL/JAR source errors:** threads waiting on locks are released via exceptions; cache state stays consistent, leaving no threads hung indefinitely.
+8. **Cross-class initialization:** test `<clinit>` separately if plugins have complex static initializers; distinguish those errors from class loader locks.
 
-Khi viết test mô phỏng deadlock, dùng timeout và cơ chế dọn thread/process; nếu cố tạo deadlock thật nên chạy trong **JVM con** để test có thể kết thúc, tránh làm treo toàn bộ test runner. Dùng CountDownLatch/CyclicBarrier để điều khiển thứ tự thử nghiệm, nhưng không đồng nhất một test có thời gian chờ nhỏ với chứng cứ không có lỗi đồng thời.
+When writing tests that simulate deadlocks, use timeouts and thread/process cleanup; if deliberately triggering a true deadlock, run it in a **child JVM** so the test can terminate instead of hanging the entire test runner. Use `CountDownLatch`/`CyclicBarrier` to coordinate execution order, yet never equate a short-timeout test pass with proof that no concurrency bug exists.
 
-Mỗi kiểm thử nên chứng minh một bất biến rõ ràng: define-once theo tên/loader, không có chờ vòng, cấu hình loader không bị bỏ qua, cùng API Class identity và unload/lifecycle đúng điều kiện.
+Each test should prove a clear invariant: define-once per name/loader, no circular waits, loader configuration not bypassed, shared API `Class` identity, and proper unload/lifecycle conditions.
 
-## 12. Các sai lầm thường gặp
+## 12. Common Mistakes
 
-1. **Cho rằng synchronized toàn loadClass luôn an toàn hơn:** nó có thể ngăn race cùng tên nhưng cũng chặn mọi tên khác và tạo điều kiện cho deadlock khi ủy quyền chéo.
-2. **Gọi registerAsParallelCapable() nhưng quên kiểm tra lớp cha:** đăng ký có thể thất bại nếu một superclass chưa parallel-capable; kiểm tra kết quả và thứ tự khởi tạo lớp.
-3. **Gắn cờ parallel-capable nhưng tự bỏ khóa trong override:** vẫn có nguy cơ hai thread gọi defineClass trùng; khóa theo tên là phần cốt lõi của hợp đồng.
-4. **Đặt synchronized trên override loadClass:** tiếp tục serialize qua this dù đã đăng ký parallel-capable.
-5. **Nhầm lock theo tên với lock theo package/JAR:** hai tên có thể chạy song song nhưng vẫn tranh chấp tài nguyên chung; phải thiết kế cache và I/O thread-safe.
-6. **Cho phép plugin loader fallback vòng tròn:** có thể gây đệ quy vô tận hoặc deadlock xuyên thread; quy định một hướng phụ thuộc rõ.
-7. **Giữ lock registry/manager khi gọi plugin loader hoặc callback:** vòng chờ có thể hình thành giữa monitor ứng dụng và monitor loader.
-8. **Quy lỗi mọi tình huống treo cho ClassLoader:** class initialization, I/O và loader cache có cơ chế chờ khác; xem thread dump trước khi sửa.
-9. **Tin rằng timeout sẽ phá được synchronized deadlock:** timeout phía caller không tự giải phóng monitor của một thread đang chờ khóa; cần sửa đồ thị khóa và đường ủy quyền.
-10. **Coi parallel-capable là tăng hiệu năng chắc chắn:** việc tải lớp có thể bị giới hạn bởi parent loader, đĩa, ZIP/JAR handling, verification hoặc cache; cần đo trên workload thật.
+1. **Assuming `synchronized` on all of `loadClass` is always safer:** it prevents same-name races yet blocks all other names and invites deadlocks under cross-delegation.
+2. **Calling `registerAsParallelCapable()` while forgetting superclasses:** registration can silently fail if a superclass is not parallel-capable; check the return value and class initialization order.
+3. **Setting parallel-capable while dropping locks in an override:** two threads can still race into duplicate `defineClass`; per-name locking is core to the contract.
+4. **Putting `synchronized` on an overridden `loadClass`:** continues serializing on `this` despite parallel-capable registration.
+5. **Confusing per-name locks with per-package/JAR locks:** two names can run in parallel yet still contend on shared resources; caches and I/O must be thread-safe.
+6. **Allowing circular fallback among plugin loaders:** causes infinite recursion or cross-thread deadlocks; enforce a single dependency direction.
+7. **Holding registry/manager locks while calling plugin loaders or callbacks:** wait cycles can form between application monitors and loader monitors.
+8. **Blaming every hang on `ClassLoader`:** class initialization, I/O, and loader caches have separate waiting mechanisms; inspect thread dumps before fixing.
+9. **Believing timeouts break `synchronized` deadlocks:** a caller timeout does not release a monitor held by a thread blocked on a lock; fix the lock graph and delegation path.
+10. **Treating parallel-capable as guaranteed speedup:** class loading can still be bottlenecked by the parent loader, disk, ZIP/JAR handling, verification, or caches; measure under realistic workloads.
 
-## 13. Checklist trước khi phát hành class loader dùng cho extension
+## 13. Pre-Release Checklist for Extension Class Loaders
 
-- **Lớp loader và superclass:** nếu cần parallel-capable, mọi superclass cần thiết đều hỗ trợ; đăng ký từ static initializer của đúng lớp và kiểm tra trả về.
-- **Cơ chế khóa:** sử dụng getClassLoadingLock(name) khi viết loadClass, đồng bộ quá trình findLoadedClass → ủy quyền/tìm lớp → resolve; tránh monitor bao ngoài trên this.
-- **Định danh lớp:** service API và host API dùng parent-first/shared class identity; không đưa các bản sao API không tương thích vào child-first.
-- **Đồ thị phụ thuộc:** không có chu kỳ ủy quyền giữa loader; nếu phải chia sẻ code thì định nghĩa loader sở hữu và thứ tự phân giải cụ thể.
-- **Tài nguyên và cache:** mọi dữ liệu dùng trong findClass có hành vi an toàn khi nhiều tên được tải đồng thời; rõ quy tắc về đóng/đổi nguồn bytecode.
-- **Vòng đời:** không giữ khóa class loader hoặc plugin registry khi chờ stop/join/callback bên ngoài; có quy trình cleanup/rollback.
-- **Chẩn đoán:** log tên lớp, loader identity, đường parent/fallback và thread; có cách thu thread dump ở thời điểm lỗi.
-- **Kiểm thử:** cùng tên, khác tên, nhiều loader, plugin reload, lỗi I/O và static initializer đều có kịch bản phù hợp.
+- **Loader class and superclasses:** if parallel-capable is needed, all required superclasses support it; register in the right class's static initializer and check the return value.
+- **Locking mechanism:** use `getClassLoadingLock(name)` when writing `loadClass`, synchronizing `findLoadedClass` → delegation/lookup → resolution; avoid outer monitors on `this`.
+- **Class identity:** service APIs and host APIs use parent-first/shared `Class` identity; do not allow incompatible API copies into child-first paths.
+- **Dependency graph:** no delegation cycles among loaders; if code must be shared, define the owning loader and explicit resolution order.
+- **Resources and caches:** all data accessed in `findClass` behaves safely when multiple names load concurrently; define clear rules for closing/swapping bytecode sources.
+- **Lifecycle:** never hold class loader or plugin registry locks while waiting on external stop/join/callbacks; include cleanup/rollback flows.
+- **Diagnostics:** log class name, loader identity, parent/fallback path, and thread; provide a way to capture thread dumps on failure.
+- **Testing:** same name, different names, multiple loaders, plugin reload, I/O errors, and static initializers all have dedicated scenarios.
 
-**Kết luận kỹ thuật:** ClassLoader phải bảo vệ việc nạp một tên lớp vào cùng loader. Khả năng parallel-capable cho phép các **tên khác nhau** có **khóa nạp lớp khác nhau**; nó giúp giảm tuần tự hóa không cần thiết nhưng không thể tự phá vòng phụ thuộc giữa loader, khóa registry và quá trình khởi tạo lớp. Muốn tránh bế tắc trong runtime extensibility, cần cả **độ mịn của khóa đúng**, **đường ủy quyền không có chu kỳ** và **quản lý vòng đời plugin có kiểm soát**.
+**Technical conclusion:** `ClassLoader` must protect loading a single class name within a single loader. Parallel capability lets **different names** use **different class-loading locks**; it reduces unnecessary serialization yet cannot break circular loader dependencies, registry locks, or class initialization cycles on its own. Preventing deadlocks in runtime extensibility requires **the right lock granularity**, **acyclic delegation paths**, and **controlled plugin lifecycle management**.
 
-**Tham khảo API:** [Java SE 17 — ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html), đặc biệt các thành viên loadClass, getClassLoadingLock và registerAsParallelCapable.
+**API reference:** [Java SE 17 — ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html), especially `loadClass`, `getClassLoadingLock`, and `registerAsParallelCapable`.

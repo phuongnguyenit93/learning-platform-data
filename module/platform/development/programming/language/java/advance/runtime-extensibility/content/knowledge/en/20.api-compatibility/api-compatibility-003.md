@@ -1,60 +1,60 @@
-# Phương thức default, xung đột kế thừa và tiến hóa hợp đồng dịch vụ
+# Default Methods, Inheritance Conflicts, and Service Contract Evolution
 
-Trong một nền tảng plugin Java, **host và các provider thường được phát hành độc lập**. Host định nghĩa interface dịch vụ, còn các plugin bên thứ ba triển khai interface ấy rồi được nạp thông qua ServiceLoader hoặc một plugin manager riêng. Khi interface cần thêm khả năng, sửa hợp đồng tưởng như đơn giản có thể khiến plugin cũ không biên dịch được, hành vi thay đổi âm thầm hoặc thậm chí gây lỗi liên kết khi chạy.
+In a Java plugin platform, **the host and providers are often released independently**. The host defines the service interface, while third-party plugins implement that interface and are loaded via `ServiceLoader` or a custom plugin manager. When an interface needs new capabilities, seemingly simple contract edits can break old plugin compilation, silently alter behavior, or even trigger linkage errors at runtime.
 
-Java hỗ trợ **default method** trong interface để cung cấp hành vi mặc định cho cả những class không tự cài đặt phương thức đó. Đây là công cụ tiến hóa API hữu ích, nhưng **không đồng nghĩa thêm default method luôn an toàn**. Xung đột kế thừa giữa các interface, khác biệt giữa tương thích source/binary/behavior và class identity vẫn phải được xem xét.
+Java supports **`default` methods** in interfaces to supply default behavior for classes that do not implement the method themselves. This is a useful API evolution tool, yet **adding a default method is not unconditionally safe**. Inheritance conflicts between interfaces, differences among source/binary/behavioral compatibility, and class identity must still be accounted for.
 
-Bài này giải thích quy tắc phân giải method trên Java 17+, xây hai thí nghiệm có thể biên dịch: một chương trình cho các quy tắc kế thừa và một plugin JAR **được biên dịch với API v1** nhưng chạy cùng host **biên dịch với API v2**. Một thí nghiệm cuối tái hiện tình huống mã nhị phân cũ gặp xung đột default ở runtime.
+This lesson explains method resolution rules in Java 17+, builds two compilable experiments: one program demonstrating inheritance rules, and one plugin JAR **compiled against API v1** running with a host **compiled against API v2**. A final experiment reproduces a scenario where old binary code hits a default conflict at runtime.
 
-## 1. Hiểu đúng ba lớp tương thích API
+## 1. Properly understanding the three layers of API compatibility
 
-Khi nâng cấp SPI/interface, cần phân biệt:
+When upgrading an SPI/interface, distinguish:
 
-| Loại tương thích | Câu hỏi cần trả lời | Ví dụ |
+| Compatibility type | Question to answer | Example |
 | --- | --- | --- |
-| **Source compatibility** | Mã nguồn plugin cũ có biên dịch lại được với API mới không? | Class cũ implements hai interface nay đều có default cùng signature có thể bị javac từ chối |
-| **Binary compatibility** | File .class đã biên dịch với API cũ có thể liên kết với API mới theo quy tắc JVM không? | Thêm default method là thay đổi tương thích nhị phân theo JLS, nhưng một invocation có thể gặp IncompatibleClassChangeError |
-| **Behavioral compatibility** | Dù nạp và gọi được, kết quả/side effect/error contract có còn đúng kỳ vọng? | Default supports(...) quá rộng khiến host chọn provider cũ cho khả năng nó chưa thực sự hỗ trợ |
+| **Source compatibility** | Does old plugin source code still compile against the new API? | An old class implementing two interfaces that now both have defaults with the same signature may be rejected by `javac` |
+| **Binary compatibility** | Can `.class` files compiled against the old API link with the new API under JVM rules? | Adding a default method is a binary-compatible change per the JLS, yet an invocation may hit `IncompatibleClassChangeError` |
+| **Behavioral compatibility** | Even when loaded and invoked, do results/side effects/error contracts still match expectations? | An overly broad default `supports(...)` causes the host to select an old provider for a capability it does not actually support |
 
-**Binary-compatible không phải là lời hứa mọi invocation sẽ thành công.** Đặc biệt, JLS §13.5.7 nêu rõ việc thêm default method hoặc đổi abstract thành default thường giữ tương thích nhị phân với class đã có, nhưng trong một số xung đột thừa kế có thể gây IncompatibleClassChangeError **khi phương thức được gọi**. Mã nguồn tương ứng khi biên dịch lại có thể báo lỗi sớm hơn.
+**Binary-compatible is not a promise that every invocation will succeed.** Specifically, JLS §13.5.7 states that adding a default method or changing an abstract method to default generally preserves binary compatibility with existing classes, yet in certain inheritance conflicts can throw `IncompatibleClassChangeError` **when the method is invoked**. Corresponding source code may report the error earlier upon recompilation.
 
-**Source-compatible cũng không đảm bảo behavioral-compatible.** Nếu API v2 tự mặc định một thao tác ghi dữ liệu mà API v1 chưa từng hứa, plugin cũ có thể "chạy được" nhưng làm sai nghiệp vụ. Vì vậy nên đánh giá default method bằng cả ba tầng, không chỉ kiểm tra javac không báo lỗi.
+**Source-compatible also does not guarantee behavioral-compatible.** If API v2 defaults a data-writing operation that API v1 never promised, old plugins may "run" yet corrupt business logic. Therefore, evaluate default methods across all three layers, not merely by checking that `javac` reports no errors.
 
-## 2. Default method hoạt động như thế nào?
+## 2. How do default methods work?
 
-Interface có thể khai báo một phương thức instance với **default** và phần thân:
+An interface can declare an instance method with **`default`** and a body:
 
 ~~~java
 public interface MessageService {
-    String transform(String input); // Phương thức abstract bắt buộc.
+    String transform(String input); // Mandatory abstract method.
 
     default boolean supportsAdvanced() {
-        return false;               // Hành vi bảo thủ dành cho provider cũ.
+        return false;               // Conservative behavior for old providers.
     }
 }
 ~~~
 
-Đoạn trên là interface độc lập về cú pháp, chưa phải toàn bộ chương trình chạy. Một class triển khai MessageService chỉ bắt buộc viết transform(String). Nếu không tự override supportsAdvanced(), nó được hưởng implementation mặc định trả false.
+The snippet above is a syntactically standalone interface, not a complete runnable program. A class implementing `MessageService` is only required to write `transform(String)`. If it does not override `supportsAdvanced()`, it inherits the default implementation returning `false`.
 
-Default method có những thuộc tính quan trọng:
+Key properties of default methods:
 
-- Là **instance method** thuộc interface, không phải static utility method và không phải constructor.
-- Có phần thân và có thể gọi các phương thức abstract khác của interface qua this, miễn kiểu/kết quả phù hợp.
-- Khi class cung cấp một implementation override hợp lệ, class đó được dùng thay cho default.
-- **Không thêm một abstract method mới vào nghĩa vụ của provider cũ** như cách thêm phương thức abstract thông thường.
-- Có thể bị override trong subinterface hoặc concrete class; cú pháp InterfaceName.super.method() dùng được ở nơi có direct superinterface phù hợp để gọi một implementation default đã biết.
-- Không thể định nghĩa default method có signature override-equivalent với một public instance method của Object, ví dụ default String toString() hoặc default boolean equals(Object). Interface vẫn có thể khai báo phương thức abstract tương ứng hoặc phương thức helper với tên khác theo quy tắc ngôn ngữ.
-- Method static của interface và private helper method (Java 9+) có vai trò riêng; static method không trở thành instance method được kế thừa như default.
+- They are **instance methods** belonging to the interface, not static utility methods and not constructors.
+- They have a body and can invoke other abstract methods of the interface via `this`, provided types/results match.
+- When a class provides a valid overriding implementation, the class method is used instead of the default.
+- They **do not add a new abstract method obligation onto old providers** the way a regular abstract method does.
+- They can be overridden in subinterfaces or concrete classes; the syntax `InterfaceName.super.method()` works where a suitable direct superinterface exists to call a known default implementation.
+- You cannot define a default method whose signature is override-equivalent to a public instance method of `Object`, such as `default String toString()` or `default boolean equals(Object)`. An interface can still declare the corresponding abstract method or a helper method with a different name per language rules.
+- Interface `static` methods and `private` helper methods (Java 9+) serve separate roles; `static` methods do not become inherited instance methods like `default` methods.
 
-Một lựa chọn mặc định như **supportsAdvanced() = false** có giá trị chiến lược: provider chưa chủ động nâng cấp sẽ không quảng cáo một capability mới. Mặc định **true** có thể dễ viết hơn nhưng chỉ an toàn khi chắc chắn tất cả implementation hiện có đều thực sự đáp ứng hành vi đó.
+A conservative default like **`supportsAdvanced() = false`** has strategic value: providers that have not opted into an upgrade will not advertise a new capability. Defaulting to **`true`** may be convenient to write, yet is safe only when you are certain all existing implementations genuinely support that behavior.
 
-## 3. Quy tắc phân giải kế thừa default
+## 3. Default inheritance resolution rules
 
-Khi nhiều nguồn có phương thức cùng signature, Java không đơn giản "lấy interface đứng trước". Có bốn tình huống nền tảng.
+When multiple sources define methods with the same signature, Java does not simply "pick the first interface listed." There are four foundational cases.
 
-### 3.1. Phương thức từ class thắng default của interface
+### 3.1. A class method wins over an interface default
 
-Nếu superclass đã có instance method phù hợp, class method có ưu tiên cao hơn default method được kế thừa từ interface.
+If a superclass already has a matching instance method, the class method takes priority over a default method inherited from an interface.
 
 ~~~java
 class Base {
@@ -70,15 +70,15 @@ interface Named {
 }
 
 class Concrete extends Base implements Named {
-    // Không cần override name().
+    // No need to override name().
 }
 ~~~
 
-Ở đây new Concrete().name() cho kết quả **base**. Quy tắc này thường gọi ngắn gọn là **class wins**. Với abstract class method cùng signature, không được hiểu rằng default của interface tự động xóa nghĩa vụ implement abstract method của class; concrete subclass vẫn phải thỏa các quy tắc override của Java.
+Here `new Concrete().name()` returns **`base`**. This rule is commonly summarized as **class wins**. For an abstract class method with the same signature, do not assume an interface default automatically removes the obligation to implement the class's abstract method; concrete subclasses must still satisfy Java overriding rules.
 
-Điểm cần kiểm tra khi nâng cấp API: một plugin class có public method trùng signature với default mới **có thể vô tình override** default ấy và dùng hành vi riêng đã có từ trước. Không có xung đột compile-time chưa chắc hành vi mới đúng ý tác giả interface.
+Watch out when upgrading an API: a plugin class that already has a public method matching a new default's signature **can accidentally override** that default and run its pre-existing behavior. The absence of a compile-time conflict does not guarantee the new behavior matches the interface author's intent.
 
-### 3.2. Subinterface chuyên biệt hơn có quyền override
+### 3.2. A more specific subinterface is allowed to override
 
 ~~~java
 interface ParentName {
@@ -95,11 +95,11 @@ interface ChildName extends ParentName {
 class Specific implements ChildName {}
 ~~~
 
-new Specific().name() trả **child**. ChildName là subinterface chuyên biệt hơn và đã override default của ParentName; đây không phải xung đột giữa hai interface không liên quan.
+`new Specific().name()` returns **`child`**. `ChildName` is a more specific subinterface and overrode `ParentName`'s default; this is not a conflict between two unrelated interfaces.
 
-Nếu một interface được kế thừa qua hai đường nhưng cùng đi tới **một khai báo default duy nhất**, bản thân hình thoi kế thừa không nhất thiết gây lỗi. Vấn đề là **những khai báo khác nhau có signature tương đương mà không có quan hệ override rõ ràng**.
+If an interface is inherited along two paths that converge on **one single default declaration**, diamond inheritance itself does not necessarily cause an error. The problem is **distinct declarations with equivalent signatures and no clear override relationship**.
 
-### 3.3. Hai default không liên quan gây lỗi biên dịch
+### 3.3. Two unrelated defaults cause a compile error
 
 ~~~java
 interface AuditName {
@@ -113,13 +113,13 @@ interface MetricName {
     }
 }
 
-// MÃ CỐ TÌNH SAI, KHÔNG biên dịch:
+// INTENTIONALLY BROKEN CODE, DOES NOT compile:
 class Conflicted implements AuditName, MetricName {}
 ~~~
 
-Cả AuditName và MetricName khai báo default name() cùng signature, không interface nào chuyên biệt hơn interface kia. Concrete class Conflicted phải chủ động giải quyết, thay vì Java chọn tùy thứ tự implements.
+Both `AuditName` and `MetricName` declare `default name()` with the same signature, and neither interface is more specific than the other. Concrete class `Conflicted` must resolve this explicitly rather than Java picking based on `implements` order.
 
-Cách sửa đúng:
+Proper fix:
 
 ~~~java
 class Resolved implements AuditName, MetricName {
@@ -131,11 +131,11 @@ class Resolved implements AuditName, MetricName {
 }
 ~~~
 
-Đây là code thay thế cho Conflicted trong cùng ngữ cảnh đã khai báo AuditName và MetricName; không để cả class lỗi biên dịch trong chương trình build. Ở Resolved, lời gọi đến từng default được viết rõ, rồi host tự quyết định cách kết hợp. Hoàn toàn có thể chọn chỉ một default hoặc triển khai logic mới, miễn đáp ứng hợp đồng.
+This replaces `Conflicted` in the same context where `AuditName` and `MetricName` are declared; do not keep the uncompilable class in a built program. In `Resolved`, calls to each default are written explicitly, and the class decides how to combine them. You can equally choose just one default or implement new logic, provided the contract is satisfied.
 
-**Không thể sửa bằng cách đảo thứ tự implements**. Java không dùng vị trí của interface trong danh sách để phân xử hai default xung đột.
+**You cannot fix this by reordering `implements`**. Java does not use interface position in the list to arbitrate between two conflicting defaults.
 
-### 3.4. Một abstract và một default không liên quan vẫn có thể xung đột
+### 3.4. One abstract and one unrelated default can still conflict
 
 ~~~java
 interface A {
@@ -145,11 +145,11 @@ interface B {
     void execute();
 }
 
-// MÃ CỐ TÌNH SAI: cần giải quyết xung đột kế thừa.
+// INTENTIONALLY BROKEN CODE: inheritance conflict must be resolved.
 abstract class Unresolved implements A, B {}
 ~~~
 
-Khi một interface/class kế thừa đồng thời các phương thức override-equivalent từ hai superinterface không liên quan, một bên default và bên kia abstract **không được giả định default tự động làm implementation cho abstract kia**. Đây cũng là tình huống cần override rõ ràng:
+When an interface or class simultaneously inherits override-equivalent methods from two unrelated superinterfaces—one default and the other abstract—**you cannot assume the default automatically satisfies the abstract one**. This also requires an explicit override:
 
 ~~~java
 class Fixed implements A, B {
@@ -160,13 +160,13 @@ class Fixed implements A, B {
 }
 ~~~
 
-Việc lựa chọn delegate cho A.super.execute() là **quyết định semantic**. Đôi khi B đặt ra điều kiện mà implementation của A không đáp ứng; khi ấy cần viết logic riêng chứ không gọi default chỉ để javac chấp nhận.
+Choosing to delegate to `A.super.execute()` is a **semantic decision**. Sometimes `B` imposes requirements that `A`'s implementation does not fulfill; in that case write custom logic rather than delegating to the default merely to satisfy `javac`.
 
-JLS §9.4.1.3 mô tả quy tắc tương đương chữ ký khi kế thừa nhiều phương thức. Những tình huống phức tạp hơn còn phụ thuộc erasure, covariant returns, generic methods, bridge methods và accessibility; phải kiểm tra actual signature ở cả source lẫn bytecode trước khi thay API.
+JLS §9.4.1.3 specifies signature equivalence rules when inheriting multiple methods. More complex cases also depend on erasure, covariant returns, generic methods, bridge methods, and accessibility; verify actual signatures in both source and bytecode before changing an API.
 
-## 4. Chương trình Java 17+ thực nghiệm các quy tắc
+## 4. Java 17+ program demonstrating the rules
 
-Tạo file **DefaultRulesDemo.java** với nội dung hoàn chỉnh sau:
+Create **`DefaultRulesDemo.java`** with the following complete contents:
 
 ~~~java
 import java.util.Locale;
@@ -261,14 +261,14 @@ public final class DefaultRulesDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 DefaultRulesDemo.java
 java DefaultRulesDemo
 ~~~
 
-**Stdout kỳ vọng chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 legacy=HELLO
@@ -280,19 +280,19 @@ class-wins=class
 specific=child
 ~~~
 
-Giải thích từng nhóm kết quả:
+Explanation of each output group:
 
-- LegacyPlugin chỉ implement transform, nhưng gọi supportsAdvanced được qua default. Nó nhận false, không tự tuyên bố hỗ trợ tính năng mới.
-- NewPlugin kế thừa implementation transform và override supportsAdvanced thành true. Đây là **opt-in rõ ràng**.
-- Combined bắt buộc quyết định giữa Audit và Metric, rồi gọi hai default bằng Audit.super và Metric.super.
-- ClassWins kế thừa label() của ParentClass; phương thức class được chọn thay vì Tagged.default.
-- MostSpecific nhận label() từ Child vì Child override Parent.
+- `LegacyPlugin` implements only `transform`, yet `supportsAdvanced` can be called via the default. It returns `false`, not claiming support for the new feature.
+- `NewPlugin` inherits `transform`'s implementation and overrides `supportsAdvanced` to return `true`. This is **explicit opt-in**.
+- `Combined` is forced to arbitrate between `Audit` and `Metric`, calling both defaults via `Audit.super` and `Metric.super`.
+- `ClassWins` inherits `ParentClass.label()`; the class method is chosen over `Tagged`'s default.
+- `MostSpecific` receives `label()` from `Child` because `Child` overrides `Parent`.
 
-Chương trình này chạy trong một compilation unit với các interface và class là **nested types**, thuận tiện thử nghiệm. Trong plugin thật, interface API nên là public top-level type thuộc artifact chung, không đặt bên trong class demo.
+This program runs in a single compilation unit with interfaces and classes as **nested types** for convenient experimentation. In real plugins, API interfaces should be public top-level types in a shared artifact, not nested inside a demo class.
 
-## 5. Vì sao default có thể giúp tiến hóa hợp đồng dịch vụ?
+## 5. Why defaults help evolve a service contract
 
-Giả sử một platform ban đầu chỉ định nghĩa:
+Suppose a platform initially defines only:
 
 ~~~java
 // API v1: demo.api.TextService
@@ -303,7 +303,7 @@ public interface TextService {
 }
 ~~~
 
-Các plugin v1 đã build cung cấp apply. Đến API v2, host muốn hỏi provider có hỗ trợ chế độ nâng cao hay không. Nếu thêm:
+Prebuilt v1 plugins provide `apply`. In API v2, the host wants to ask providers whether they support an advanced mode. If it adds:
 
 ~~~java
 // API v2: demo.api.TextService
@@ -318,23 +318,23 @@ public interface TextService {
 }
 ~~~
 
-Đối với class provider v1 **không bị xung đột phương thức**, default cho phép host v2 gọi supportsAdvanced() dù plugin class chưa từng được biên dịch lại. Host có thể tiếp tục dùng apply(...) cho những provider cũ. Đây là lợi ích quan trọng khi triển khai plugin độc lập.
+For v1 provider classes **with no method conflict**, the default allows host v2 to invoke `supportsAdvanced()` even though the plugin class was never recompiled. The host can continue calling `apply(...)` on old providers. This is a major advantage when deploying plugins independently.
 
-Tuy nhiên, có ba câu hỏi phải trả lời:
+However, three questions must be answered:
 
-1. **Tên/signature mới có xung đột với method public nào của provider hoặc interface khác không?** Nếu provider có phương thức cùng tên nhưng kiểu trả về không tương thích, compile lại có thể lỗi; nếu thêm một default tương đương trong interface không liên quan, có thể xảy ra conflict.
-2. **Mặc định có đúng nghiệp vụ không?** Với capability mới, trả false hoặc một hành vi no-op có contract rất rõ thường an toàn hơn tự ý bật tính năng.
-3. **API v2 có thực sự được nạp tại runtime không?** Một plugin manager/class loader có thể tải nhầm API v1 từ JAR khác; client v2 gọi phương thức không tồn tại trong interface runtime sẽ có nguy cơ NoSuchMethodError. Default không sửa được lỗi classpath/class identity.
+1. **Does the new name/signature conflict with any public method on providers or other interfaces?** If a provider has a method of the same name with an incompatible return type, recompiling can fail; if an unrelated interface adds an equivalent default, a conflict can arise.
+2. **Is the default semantically valid?** For a new capability, returning `false` or a strictly specified no-op is usually safer than turning the feature on automatically.
+3. **Is API v2 actually loaded at runtime?** A plugin manager/class loader might accidentally load API v1 from another JAR; a v2 client calling a method absent from the runtime interface risks `NoSuchMethodError`. Defaults cannot fix classpath/class identity bugs.
 
-Cần giữ nguyên **binary name** của interface, tên method và descriptor của method hiện có để không phá caller cũ. Đổi kiểu tham số, kiểu trả về, static/instance hoặc xóa một method không phải chuyện "tăng minor version" đơn giản; phải có kế hoạch migration và kiểm chứng bytecode.
+Preserve the interface's **binary name**, method names, and descriptors of existing methods so old callers do not break. Changing parameter types, return types, static/instance kinds, or removing a method is not a simple "minor version bump"; it requires a migration plan and bytecode verification.
 
-## 6. Thí nghiệm hai phiên bản: plugin cũ, host mới
+## 6. Two-version experiment: old plugin, new host
 
-Thí nghiệm sau thật sự biên dịch **plugin-old.jar dựa vào api-v1.jar**, rồi không build lại plugin. Tiếp đó chỉ biên dịch host bằng api-v2.jar và chạy với bản API v2. Nhờ vậy ta kiểm tra compatibility của **binary cũ**, không chỉ việc cùng compile source một lần.
+The following experiment genuinely compiles **`plugin-old.jar` against `api-v1.jar`**, then never rebuilds the plugin. Next, it compiles only the host against `api-v2.jar` and runs with the v2 API. That tests compatibility of **an old binary**, not merely compiling all source together once.
 
-### 6.1. Cây file
+### 6.1. File tree
 
-Các đường dẫn tính từ thư mục **spi-evolution/**:
+Paths relative to **`spi-evolution/`**:
 
 ~~~text
 spi-evolution/
@@ -343,15 +343,15 @@ spi-evolution/
 ├── plugin/demo/plugin/UpperPlugin.java
 ├── host/demo/host/Host.java
 ├── resources/META-INF/services/demo.api.TextService
-├── build/                          (tạo bởi javac)
-└── dist/                           (tạo bởi jar)
+├── build/                          (created by javac)
+└── dist/                           (created by jar)
 ~~~
 
-Hai file TextService.java có **cùng package và binary name**, nhưng ở hai thư mục độc lập. Ta chỉ đưa **một version API tại một thời điểm** lên classpath biên dịch hoặc runtime. Không đóng gói cả api-v1.jar và api-v2.jar cùng lúc để "Java tự chọn bản mới".
+Both `TextService.java` files share the **same package and binary name**, living in independent directories. Put **only one API version at a time** on the compile or runtime classpath. Do not bundle both `api-v1.jar` and `api-v2.jar` together expecting "Java to pick the newer one automatically."
 
 ### 6.2. API v1
 
-File **api-v1/demo/api/TextService.java**:
+File **`api-v1/demo/api/TextService.java`**:
 
 ~~~java
 package demo.api;
@@ -361,9 +361,9 @@ public interface TextService {
 }
 ~~~
 
-### 6.3. API v2 bổ sung default
+### 6.3. API v2 adding a default
 
-File **api-v2/demo/api/TextService.java**:
+File **`api-v2/demo/api/TextService.java`**:
 
 ~~~java
 package demo.api;
@@ -377,11 +377,11 @@ public interface TextService {
 }
 ~~~
 
-Lưu ý **apply(String)** không đổi signature giữa hai version. V2 chỉ bổ sung một method instance có implementation mặc định.
+Note that **`apply(String)`** keeps the exact same signature across both versions. V2 only adds an instance method with a default implementation.
 
-### 6.4. Provider được build duy nhất với API v1
+### 6.4. Provider built exclusively against API v1
 
-File **plugin/demo/plugin/UpperPlugin.java**:
+File **`plugin/demo/plugin/UpperPlugin.java`**:
 
 ~~~java
 package demo.plugin;
@@ -399,17 +399,17 @@ public final class UpperPlugin implements TextService {
 }
 ~~~
 
-File **resources/META-INF/services/demo.api.TextService** chứa một dòng:
+File **`resources/META-INF/services/demo.api.TextService`** contains one line:
 
 ~~~text
 demo.plugin.UpperPlugin
 ~~~
 
-Descriptor SPI classpath có tên **đầy đủ của interface**; nội dung là tên binary của implementation. Plugin JAR **không chứa bản sao TextService.class**: API phải được cung cấp từ classpath chung của host. Constructor public không tham số cho phép ServiceLoader trên classpath tạo provider.
+The classpath SPI descriptor is named after the **fully qualified name of the interface**; its content is the binary name of the implementation. The plugin JAR **contains no copy of `TextService.class`**: the API must come from the host's shared classpath. The public no-arg constructor lets `ServiceLoader` on the classpath instantiate the provider.
 
-### 6.5. Host biên dịch với API v2
+### 6.5. Host compiled against API v2
 
-File **host/demo/host/Host.java**:
+File **`host/demo/host/Host.java`**:
 
 ~~~java
 package demo.host;
@@ -435,11 +435,11 @@ public final class Host {
 }
 ~~~
 
-Host chỉ biết interface TextService v2. Nó không compile-time import UpperPlugin và không gọi class implementation bằng tên cụ thể.
+The host knows only the v2 `TextService` interface. It does not import `UpperPlugin` at compile time and does not reference the implementation class by name.
 
-### 6.6. Các lệnh build theo đúng thứ tự version
+### 6.6. Build commands in exact version order
 
-Dùng JDK 17+ và shell bash/POSIX, đứng tại **spi-evolution/**:
+Using JDK 17+ and a bash/POSIX shell, inside **`spi-evolution/`**:
 
 ~~~bash
 mkdir -p build/api-v1 build/api-v2 build/plugin build/host dist
@@ -447,20 +447,20 @@ mkdir -p build/api-v1 build/api-v2 build/plugin build/host dist
 javac --release 17 -encoding UTF-8 -d build/api-v1 api-v1/demo/api/TextService.java
 jar --create --file dist/api-v1.jar -C build/api-v1 .
 
-# Plugin cũ: biên dịch với API v1.
+# Old plugin: compiled against API v1.
 javac --release 17 -encoding UTF-8 -cp dist/api-v1.jar -d build/plugin plugin/demo/plugin/UpperPlugin.java
 jar --create --file dist/plugin-old.jar -C build/plugin . -C resources .
 
-# API mới và host mới: không biên dịch lại plugin-old.jar.
+# New API and new host: do NOT recompile plugin-old.jar.
 javac --release 17 -encoding UTF-8 -d build/api-v2 api-v2/demo/api/TextService.java
 jar --create --file dist/api-v2.jar -C build/api-v2 .
 javac --release 17 -encoding UTF-8 -cp dist/api-v2.jar -d build/host host/demo/host/Host.java
 
-# Runtime chỉ có API v2 và JAR plugin cũ.
+# Runtime has only API v2 and the old plugin JAR.
 java -cp "build/host:dist/api-v2.jar:dist/plugin-old.jar" demo.host.Host
 ~~~
 
-**Stdout kỳ vọng chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 provider=demo.plugin.UpperPlugin
@@ -469,11 +469,11 @@ advanced=false
 count=1
 ~~~
 
-Ở thời điểm biên dịch UpperPlugin, method supportsAdvanced() **chưa tồn tại**. Tại runtime, JVM thấy TextService API v2 và provider đã compile từ v1. Provider không override method mới, nên lời gọi lấy implementation default trả false.
+When `UpperPlugin` was compiled, `supportsAdvanced()` **did not yet exist**. At runtime, the JVM sees the v2 `TextService` API and the provider compiled against v1. Because the provider does not override the new method, the call resolves to the default implementation returning `false`.
 
-Trên Windows trong PowerShell/CMD, dấu phân cách classpath là dấu **;** thay vì **:**; các lệnh mkdir -p là cú pháp bash. Thư mục và file phải đúng các đường dẫn đã nêu; không thêm một bản TextService.class trùng lặp trong plugin-old.jar.
+On Windows in PowerShell/CMD, the classpath separator is **;** instead of **:**; `mkdir -p` is bash syntax. Directories and files must match the stated paths; do not include a duplicate copy of `TextService.class` inside `plugin-old.jar`.
 
-Lệnh kiểm tra:
+Inspection commands:
 
 ~~~bash
 jar --list --file dist/api-v2.jar
@@ -482,15 +482,15 @@ javap -public -classpath dist/api-v2.jar demo.api.TextService
 javap -public -classpath dist/plugin-old.jar demo.plugin.UpperPlugin
 ~~~
 
-Tìm TextService.class trong **api-v2.jar**, UpperPlugin.class và META-INF/services/demo.api.TextService trong **plugin-old.jar**. javap ở API v2 cho thấy supportsAdvanced(); javap ở plugin-old không liệt kê một implementation mới do compiler tự chèn vào plugin, vì default thuộc **interface runtime**.
+Look for `TextService.class` in **`api-v2.jar`**, and `UpperPlugin.class` plus `META-INF/services/demo.api.TextService` in **`plugin-old.jar`**. `javap` on API v2 shows `supportsAdvanced()`; `javap` on `plugin-old` does not list a compiler-injected implementation inside the plugin, because the default resides on the **runtime interface**.
 
-Đây là thí nghiệm **binary reuse**, không phải chứng minh tất cả thay đổi default của mọi API đều an toàn. Nó cố ý chỉ có một interface, không có conflict tên phương thức và không có dependencies khác.
+This is a **binary reuse** experiment, not a proof that every default change on every API is safe. It intentionally uses a single interface with no method name conflicts and no other dependencies.
 
-## 7. Default collision khi nâng cấp: tình huống nguy hiểm hơn
+## 7. Default collision during upgrades: a more dangerous scenario
 
 ### 7.1. Source collision
 
-Xem plugin từ bên thứ ba:
+Consider a third-party plugin:
 
 ~~~java
 interface Red {
@@ -504,19 +504,19 @@ interface Blue {
     }
 }
 
-// Không biên dịch được nếu Red và Blue không có quan hệ override.
+// Does not compile if Red and Blue have no override relationship.
 class Dual implements Red, Blue {}
 ~~~
 
-Nếu trước đây Blue không có label(), class Dual cũ có thể đã biên dịch hợp lệ và sử dụng Red.label(). Khi tác giả Blue **thêm default label()**, việc biên dịch lại Dual có thể bị lỗi vì class kế thừa hai method không tương thích từ hai interface không liên quan.
+If `Blue` previously lacked `label()`, the old `Dual` class may have compiled cleanly and used `Red.label()`. When `Blue`'s author **adds `default label()`**, recompiling `Dual` fails because the class inherits two conflicting methods from two unrelated interfaces.
 
-Điều tương tự có thể xảy ra với một public method trong thư viện khác có signature giống method vừa được thêm. Kiểm thử migration phải có các tổ hợp interface thực tế mà plugin của bên thứ ba đang implements, không chỉ class mẫu do host sở hữu.
+The same can happen with a public method in another library sharing the signature of a newly added method. Migration testing must cover realistic combinations of interfaces that third-party plugins implement, not just host-owned sample classes.
 
-### 7.2. Binary collision với plugin class chưa biên dịch lại
+### 7.2. Binary collision with an un-recompiled plugin class
 
-Java SE 17 JLS §13.5.7 đưa ví dụ: **thêm default method** được định nghĩa là thay đổi binary-compatible, nhưng khi binary cũ tham chiếu method trong một tình huống tồn tại hai default xung đột, invocation có thể ném **IncompatibleClassChangeError**.
+Java SE 17 JLS §13.5.7 gives an example: **adding a default method** is defined as a binary-compatible change, yet when an old binary invokes a method in a situation with two conflicting defaults, the invocation can throw **`IncompatibleClassChangeError`**.
 
-Bài lab tái hiện độc lập bằng việc thay duy nhất Right.class ở runtime, để **Both.class và Run.class vẫn là binary cũ**. Thư mục gốc ví dụ **binary-clash/**:
+The standalone lab reproduces this by replacing only `Right.class` at runtime while keeping **`Both.class` and `Run.class` as old binaries**. Example root directory **`binary-clash/`**:
 
 ~~~text
 binary-clash/
@@ -525,10 +525,10 @@ binary-clash/
 ├── old/Both.java
 ├── old/Run.java
 ├── new/Right.java
-└── build/                (tạo khi biên dịch)
+└── build/                (created on compile)
 ~~~
 
-File **old/Left.java**:
+File **`old/Left.java`**:
 
 ~~~java
 public interface Left {
@@ -538,21 +538,21 @@ public interface Left {
 }
 ~~~
 
-File **old/Right.java**:
+File **`old/Right.java`**:
 
 ~~~java
 public interface Right {
 }
 ~~~
 
-File **old/Both.java**:
+File **`old/Both.java`**:
 
 ~~~java
 public final class Both implements Left, Right {
 }
 ~~~
 
-File **old/Run.java**:
+File **`old/Run.java`**:
 
 ~~~java
 public final class Run {
@@ -562,7 +562,7 @@ public final class Run {
 }
 ~~~
 
-File **new/Right.java**:
+File **`new/Right.java`**:
 
 ~~~java
 public interface Right {
@@ -572,9 +572,9 @@ public interface Right {
 }
 ~~~
 
-Các file này đặt trong **default package** chỉ để giữ ví dụ ngắn và dễ nhìn binary upgrade; sản phẩm thực nên dùng package theo namespace ổn định.
+These files sit in the **default package** only to keep the example short and the binary upgrade easy to observe; real products should use packages under a stable namespace.
 
-Biên dịch bản cũ trước, sau đó biên dịch **chỉ một interface bản mới**:
+Compile the old version first, then compile **only the new interface**:
 
 ~~~bash
 mkdir -p build/old build/new
@@ -586,28 +586,28 @@ javac --release 17 -encoding UTF-8 -d build/new new/Right.java
 java -cp "build/new:build/old" Run
 ~~~
 
-Lần chạy đầu in chính xác:
+The first run prints exactly:
 
 ~~~text
 left
 ~~~
 
-Lần chạy thứ hai **dự kiến thất bại với IncompatibleClassChangeError tại invocation** khi JVM phải phân giải các default name() từ Left và Right không có quan hệ ưu tiên. Thông điệp chi tiết và stack trace của lỗi có thể khác giữa các bản JDK, nên **không có stdout cố định** cho lần chạy lỗi. Tên Right.class mới nằm ở đầu classpath, còn Both.class và Run.class cũ giữ nguyên.
+The second run is **expected to fail with `IncompatibleClassChangeError` at invocation** when the JVM has to resolve `name()` defaults from `Left` and `Right` with no precedence relationship. Exact error messages and stack traces vary across JDK versions, so there is **no fixed stdout** for the failing run. The new `Right.class` is first on the classpath while old `Both.class` and `Run.class` remain untouched.
 
-Nếu thay vì giữ binary cũ bạn thử **biên dịch lại Both.java với Right mới**, javac sẽ báo xung đột kế thừa sớm hơn. Đây là khác biệt quan trọng giữa **source compatibility** và **binary compatibility có lỗi ở lúc gọi**.
+If instead of keeping old binaries you try **recompiling `Both.java` against the new `Right`**, `javac` reports the inheritance conflict earlier. This is a crucial distinction between **source compatibility** and **binary compatibility that fails at call time**.
 
-Có một cách sửa chính thức: sửa code của Both để triển khai/override name() một cách minh bạch, rồi rebuild provider. Nếu không kiểm soát source của plugin cũ, nhà phát triển API phải cân nhắc **đổi tên method mới, dùng extension interface riêng hoặc rollback default đã gây conflict**. Không nên giải quyết bằng cách đảo thứ tự classpath không kiểm soát, vì điều đó chỉ chọn nhầm API version khác.
+There is one canonical fix: update `Both`'s code to explicitly implement/override `name()`, and rebuild the provider. If you do not control the old plugin's source, the API author must consider **renaming the new method, using a separate extension interface, or rolling back the conflicting default**. Do not attempt to work around it by haphazardly reordering the classpath, as that merely picks the wrong API version.
 
-## 8. Chọn cách tiến hóa SPI: default hay extension interface?
+## 8. Choosing how to evolve an SPI: default or extension interface?
 
-Một service contract có thể tăng chức năng theo nhiều phương án:
+A service contract can grow capabilities in several ways:
 
-**Cách A — thêm default bảo thủ:** dùng khi có fallback **đúng semantics** và host có thể hoạt động hợp lệ với plugin chưa nâng cấp. Ví dụ supportsAdvanced() trả false. Ưu điểm là giữ runtime compatibility cho provider cũ ở các trường hợp không có method collision.
+**Approach A — add a conservative default:** use when a **semantically valid** fallback exists and the host can operate validly with un-upgraded plugins. For instance, `supportsAdvanced()` returning `false`. The advantage is preserving runtime compatibility for old providers when no method collision exists.
 
-**Cách B — tạo extension interface:** nếu capability thật sự mới, không thể cung cấp implementation mặc định an toàn, có thể khai báo interface mới kế thừa interface gốc:
+**Approach B — create an extension interface:** if a capability is genuinely new and cannot have a safe default implementation, declare a new interface extending the original:
 
 ~~~java
-// Mã minh họa: đây là các top-level interface ở các file riêng.
+// Illustrative code: these are top-level interfaces in separate files.
 public interface TextService {
     String apply(String input);
 }
@@ -618,76 +618,76 @@ public interface BatchTextService extends TextService {
 }
 ~~~
 
-Đoạn trên chỉ minh họa **hai file khác nhau**, không thể đặt nguyên cả hai public top-level interface vào cùng một file .java. Một plugin cũ chỉ implements TextService vẫn dùng chức năng cơ bản. Một plugin mới implements BatchTextService có nghĩa vụ cung cấp applyBatch(...).
+The snippet above illustrates **two separate files**; you cannot place both public top-level interfaces verbatim into a single `.java` file. An old plugin implementing only `TextService` keeps using basic functionality. A new plugin implementing `BatchTextService` is obligated to provide `applyBatch(...)`.
 
-Khi host tìm provider, phải kiểm tra khả năng một cách tường minh, ví dụ:
+When the host looks up providers, it must check the capability explicitly, for example:
 
 ~~~java
-// Mã tích hợp: giả định provider là TextService đã được tạo.
+// Integration code: assumes provider is an already-instantiated TextService.
 if (provider instanceof BatchTextService batch) {
     var outputs = batch.applyBatch(java.util.List.of("a", "b"));
-    // Xử lý kết quả batch theo contract.
+    // Handle batch results per contract.
 }
 ~~~
 
-Điều kiện ở đây dùng type identity của BatchTextService. Nếu plugin và host dùng hai bản API do những ClassLoader khác nhau định nghĩa, ngay cả cùng tên đầy đủ cũng **không nhất thiết là cùng kiểu**; phải chia sẻ API ổn định ở loader chung. Với SPI có registry riêng, host có thể tách service type cũ/mới và discovery theo version.
+This condition relies on `BatchTextService`'s type identity. If plugin and host load two copies of the API via different `ClassLoader`s, even the same fully qualified name is **not necessarily the same type**; the stable API must be shared in a common loader. For SPIs with custom registries, the host can separate old/new service types and perform versioned discovery.
 
-**Cách C — interface version mới hoặc adapter:** khi semantics cơ bản thay đổi (kiểu dữ liệu, error model, đồng bộ/bất đồng bộ, bảo mật), hãy tạo V2 contract riêng và adapter có kiểm thử. Đừng ép mọi plugin phải nhận một default no-op nhưng lại quảng cáo version V2 đã đầy đủ.
+**Approach C — new interface version or adapter:** when core semantics change (data types, error model, sync/async, security), create a separate V2 contract and a tested adapter. Do not force every plugin to receive a no-op default while advertising full V2 compliance.
 
-**Cách D — thêm abstract method:** có thể giữ binary compatibility theo JLS đối với file .class cũ, nhưng source provider cũ thường **không biên dịch lại được** nếu không cài đặt method; và nếu host gọi abstract method mới trên provider cũ chưa có implementation, có thể gặp **AbstractMethodError**. Không nhầm binary compatibility của việc "thêm abstract declaration" với tính khả dụng thực tế của plugin.
+**Approach D — add an abstract method:** can preserve JLS binary compatibility for old `.class` files, yet old provider source usually **cannot recompile** without implementing the method; and if the host invokes the new abstract method on an old provider lacking an implementation, **`AbstractMethodError`** can occur. Do not confuse the binary compatibility of "adding an abstract declaration" with actual runtime usability of plugins.
 
-## 9. Những thay đổi khác cũng ảnh hưởng hợp đồng dù không liên quan default
+## 9. Other changes that also affect contracts even without defaults
 
-| Thay đổi | Nguy cơ | Cách quản lý |
+| Change | Risk | How to manage |
 | --- | --- | --- |
-| Thêm default method | Xung đột signature hoặc thay đổi semantics khi provider không override | Dùng tên ít va chạm, behavior bảo thủ, matrix test |
-| Thêm abstract method | Provider cũ thiếu implementation lúc compile/invoke | Extension interface hoặc adapter/version mới |
-| Xóa/đổi tên method | Caller cũ có thể gặp NoSuchMethodError | Giữ wrapper/deprecation, migration theo giai đoạn |
-| Đổi tham số hoặc kiểu trả về | Thay JVM descriptor, overload/override có thể thay đổi | Xây method mới, duy trì method cũ qua adapter |
-| Đổi instance thành static hoặc ngược lại | Có thể gây IncompatibleClassChangeError | Không đổi bản chất method trong API ổn định |
-| Đổi checked exception được khai báo | Ảnh hưởng source compatibility, dù JVM không dùng throws giống descriptor | Xác định migration, test compile client |
-| Đổi semantics mặc định | Plugin cũ chạy nhưng hành vi nghiệp vụ sai | Contract tests trên phiên bản cũ |
-| Thêm method trùng Object như toString dưới dạng default | Java không cho phép khai báo default đó | Dùng tên helper hoặc override trong class |
-| Thêm method có erasure/return mâu thuẫn | Lỗi compile, bridge/generic incompatibility | Kiểm thử generic subtyping và bytecode descriptor |
-| Đưa thêm một bản API vào plugin JAR | Class identity khác nếu loader khác nhau | API chung do host/parent loader cung cấp |
-| Đổi Java target/runtime requirement | Plugin/host không dùng được trên JRE cũ | Công khai JDK baseline, build với --release phù hợp |
+| Add default method | Signature collision or changed semantics when provider does not override | Choose low-collision names, conservative behavior, matrix testing |
+| Add abstract method | Old providers lack implementation at compile/invoke time | Extension interface or new adapter/version |
+| Remove/rename method | Old callers may hit `NoSuchMethodError` | Keep wrapper/deprecation, phased migration |
+| Change parameters or return type | Alters JVM descriptor; overload/override behavior may change | Build new method, retain old method via adapter |
+| Change instance to static or vice versa | Can cause `IncompatibleClassChangeError` | Do not change method kind in a stable API |
+| Change declared checked exceptions | Affects source compatibility, though JVM does not put `throws` in descriptor | Define migration, compile-test clients |
+| Change default semantics | Old plugins run yet business behavior is wrong | Contract tests on old versions |
+| Add default matching `Object` methods like `toString` | Java forbids declaring such defaults | Use a helper name or override in a class |
+| Add method with conflicting erasure/return | Compile errors, bridge/generic incompatibility | Test generic subtyping and bytecode descriptors |
+| Bundle another copy of API in plugin JAR | Different class identity if loaders differ | Shared API provided by host/parent loader |
+| Change Java target/runtime requirement | Plugin/host cannot run on older JRE | Publish JDK baseline, build with appropriate `--release` |
 
-**Đừng kết luận một exception chỉ từ tên.** NoSuchMethodError thường gợi ý method reference không tìm thấy theo runtime ABI; AbstractMethodError thường gợi ý đã tìm được abstract contract nhưng implementation không có body phù hợp; IncompatibleClassChangeError có nhiều nguyên nhân, trong đó có conflict default và sai kỳ vọng static/instance. Cần giữ stack trace, kiểm tra API JAR runtime, class loader và source/bytecode versions trước khi quyết định sửa.
+**Do not diagnose an exception by name alone.** `NoSuchMethodError` usually suggests a method reference could not be found in the runtime ABI; `AbstractMethodError` usually suggests an abstract contract was found yet the implementation lacked a suitable body; `IncompatibleClassChangeError` has multiple causes, including default conflicts and static/instance mismatches. Preserve stack traces, inspect the runtime API JAR, class loaders, and source/bytecode versions before deciding on a fix.
 
-## 10. Các bước nâng cấp hợp đồng plugin an toàn
+## 10. Steps for safely upgrading a plugin contract
 
-Một kế hoạch thực tế nên có thứ tự:
+A practical plan should follow this order:
 
-1. **Ghi rõ v1 contract:** tên đầy đủ interface, public methods, generic signatures, exception semantics, nullability, thread-safety, callback lifecycle và khả năng hỗ trợ. Lưu artifact API v1.
-2. **Kiểm kê provider hiện có:** class nào implements thêm interface khác, có public method trùng tên mới không, dùng JVM/JDK phiên bản nào, class loader nào sở hữu API.
-3. **Đánh giá method mới:** có fallback đúng nghiệp vụ không? Có thể chọn default false/no-op hợp lệ không? Cần extension interface riêng không?
-4. **Thiết kế source-compatibility test:** biên dịch lại mã nguồn những provider đại diện bằng API v2; lỗi override/covariant returns/generic erasure phải được phát hiện sớm.
-5. **Thiết kế binary-compatibility test:** giữ nguyên plugin-old.jar build bằng API v1, chạy dưới host v2. Đây là bước thiết yếu: chỉ rebuild mọi thứ cùng API v2 không đủ kiểm tra upgrade độc lập.
-6. **Thử nhiều superinterface:** đưa các provider implements nhiều interface độc lập vào test, đặc biệt có cùng method name/signature; kiểm tra cả compile-time conflict và invocation-time failures.
-7. **Thử ServiceLoader/runtime:** chỉ cung cấp một bản API ở đúng loader chung; kiểm tra descriptor, public constructor classpath, dependency và nạp provider thực tế.
-8. **Thử hành vi mặc định:** plugin cũ không có capability mới phải được chọn/lọc đúng, tránh đi vào tính năng nó không hỗ trợ. Đánh giá các trường hợp null, input lạ, error handling và side effect.
-9. **Đặt version policy:** phân biệt bản API chủ và capability optional; deprecate method cũ trước khi bỏ hẳn; công khai compatibility matrix và thời gian hỗ trợ.
-10. **Quan sát và rollback:** log plugin ID, API version, loader, lỗi liên kết và capability negotiation; nếu upgrade xuất hiện collision, phải có khả năng quay lại artifact/API tương thích hoặc dùng adapter/version riêng.
+1. **Document the v1 contract:** fully qualified interface names, public methods, generic signatures, exception semantics, nullability, thread-safety, callback lifecycle, and supported capabilities. Archive the API v1 artifact.
+2. **Inventory existing providers:** which classes implement additional interfaces, whether any have public methods matching new names, which JVM/JDK versions are used, and which class loader owns the API.
+3. **Evaluate the new method:** is there a business-valid fallback? Can a conservative `false`/no-op default work safely? Is a separate extension interface needed?
+4. **Design source-compatibility tests:** recompile representative provider sources against API v2; catch override/covariant return/generic erasure errors early.
+5. **Design binary-compatibility tests:** keep `plugin-old.jar` built against API v1 unchanged and run under host v2. This is essential: rebuilding everything together against API v2 does not test independent upgrades.
+6. **Test multiple superinterfaces:** include providers implementing multiple independent interfaces, especially with matching method names/signatures; check both compile-time conflicts and invocation-time failures.
+7. **Test `ServiceLoader`/runtime:** provide only one copy of the API in the proper shared loader; verify descriptors, public constructors on the classpath, dependencies, and real provider loading.
+8. **Test default behavior:** old plugins lacking the new capability must be filtered/selected properly rather than routed into unsupported features. Check nulls, edge inputs, error handling, and side effects.
+9. **Establish a version policy:** distinguish main API versions from optional capabilities; deprecate old methods before removal; publish a compatibility matrix and support window.
+10. **Observe and prepare rollback:** log plugin ID, API version, loader, linkage errors, and capability negotiation; if an upgrade hits a collision, be ready to roll back to a compatible artifact/API or isolate via a separate adapter/version.
 
-Một repository có thể dùng Maven/Gradle để tự động hóa test trên nhiều JDK; nguyên tắc không đổi: **giữ lại binary của provider cũ** làm fixture. Test chỉ có source của provider mới không bắt được mọi lỗi runtime ở môi trường người dùng chưa nâng cấp plugin.
+A repository can use Maven/Gradle to automate tests across multiple JDKs; the rule stays unchanged: **keep old provider binaries** as fixtures. Tests containing only new provider source cannot catch every runtime failure in environments where users have not upgraded plugins.
 
-## 11. Phân biệt lỗi triển khai với lỗi tiến hóa API
+## 11. Distinguishing deployment errors from API evolution errors
 
-Nếu một plugin không được ServiceLoader tìm thấy, đừng vội kết luận default method mới gây lỗi:
+If a plugin is not found by `ServiceLoader`, do not jump to blaming a new default method:
 
-| Dấu hiệu | Nghi ngờ chính | Bước xác minh |
+| Symptom | Primary suspect | Verification step |
 | --- | --- | --- |
-| 0 provider | Không có hoặc sai tên META-INF/services, JAR không trên classpath/loader | jar --list, loader context, descriptor |
-| ServiceConfigurationError khi iterate | Provider class sai, constructor không phù hợp, API identity khác hoặc lỗi khởi tạo | Stack trace/cause và tên provider |
-| NoSuchMethodError khi host gọi method mới | API runtime cũ hoặc method bị xóa/đổi descriptor | javap trên API thực tế được nạp, version JAR |
-| AbstractMethodError | Host gọi method abstract mà provider runtime thiếu implementation thích hợp | Đối chiếu method abstract/default trong API và provider binary |
-| IncompatibleClassChangeError ở method default | Có thể có hai default không liên quan hoặc thay đổi static/instance | Đối chiếu superinterfaces và JLS method resolution |
-| Lỗi javac khi rebuild plugin | Xung đột defaults, return type/generic/visibility hoặc abstract mới | Compile fixture provider với API v2 |
-| Chạy được nhưng capability sai | Default có semantics chưa phù hợp với plugin cũ | Behavioral contract tests và opt-in |
-| ClassCastException hoặc "not a subtype" | Host/plugin nạp bản interface qua ClassLoader khác | So sánh defining loader và nguồn API class |
-| Method đúng nhưng hành vi kỳ lạ | Thay default body, vô tình override, dependency mismatch | Log implementation đang được chọn, test diff semantics |
+| 0 providers | Missing or misnamed `META-INF/services`, JAR not on classpath/loader | `jar --list`, loader context, descriptor |
+| `ServiceConfigurationError` while iterating | Wrong provider class, unsuitable constructor, different API identity, or init error | Stack trace/cause and provider name |
+| `NoSuchMethodError` when host calls new method | Old runtime API, or method removed/changed descriptor | `javap` on actual loaded API, JAR version |
+| `AbstractMethodError` | Host calls abstract method lacking a suitable implementation on runtime provider | Compare abstract/default methods in API vs provider binary |
+| `IncompatibleClassChangeError` on default method | Possible two unrelated defaults or static/instance change | Inspect superinterfaces and JLS method resolution |
+| `javac` error when rebuilding plugin | Default conflict, return type/generic/visibility mismatch, or new abstract method | Compile fixture provider against API v2 |
+| Runs yet capability is wrong | Default semantics unsuitable for old plugin | Behavioral contract tests and opt-in |
+| `ClassCastException` or "not a subtype" | Host/plugin loaded interface copies through different `ClassLoader`s | Compare defining loaders and API class origin |
+| Right method yet strange behavior | Changed default body, accidental override, dependency mismatch | Log selected implementation, diff semantics tests |
 
-Công cụ hữu ích:
+Useful commands:
 
 ~~~bash
 jar --list --file dist/plugin-old.jar
@@ -696,31 +696,31 @@ javap -public -classpath dist/api-v2.jar demo.api.TextService
 javap -public -classpath dist/plugin-old.jar demo.plugin.UpperPlugin
 ~~~
 
-Với lớp phức tạp, thêm javap -c -p để xem bytecode và bridge methods (nếu có). Nhưng phải đọc **JAR runtime thực sự được nạp**, không chỉ tệp ngẫu nhiên trên máy; thứ tự classpath, parent delegation và ModuleLayer có thể khiến Java chọn bản khác với bản người vận hành nghĩ đang dùng.
+For complex classes, add `javap -c -p` to inspect bytecode and bridge methods (if any). Always inspect the **actual runtime JAR being loaded**, not random files on disk; classpath order, parent delegation, and `ModuleLayer` can cause Java to load a different artifact than operators assume.
 
-## 12. Bài tập và tiêu chí kiểm tra kiến thức
+## 12. Exercises and knowledge check criteria
 
-**Bài tập A — nâng cấp bảo thủ:** Trong lab spi-evolution, giữ nguyên plugin-old.jar và đổi default supportsAdvanced() từ false sang true. Host vẫn có thể chạy, nhưng giải thích vì sao kết quả advanced=true **không chứng minh provider cũ hỗ trợ được một thao tác mới**. Từ đó chọn hợp đồng phù hợp hơn.
+**Exercise A — conservative upgrade:** In the `spi-evolution` lab, keep `plugin-old.jar` unchanged and change `supportsAdvanced()`'s default from `false` to `true`. The host still runs, yet explain why `advanced=true` **does not prove the old provider supports a new operation**. Choose a better contract accordingly.
 
-**Bài tập B — override từ provider mới:** Viết plugin v2 override supportsAdvanced() trả true; build riêng nó với api-v2.jar và so sánh với plugin-old.jar. Đảm bảo không đưa hai descriptor trùng không chủ đích vào cùng JAR/classpath.
+**Exercise B — override from a new provider:** Write a v2 plugin overriding `supportsAdvanced()` to return `true`; build it separately against `api-v2.jar` and compare with `plugin-old.jar`. Ensure you do not accidentally place two conflicting descriptors into the same JAR/classpath.
 
-**Bài tập C — conflict source:** Bổ sung một interface độc lập có default supportsAdvanced() vào implements của provider; biên dịch lại với API v2. Sửa collision bằng override rõ ràng và đánh giá cả semantics của hai interface.
+**Exercise C — source conflict:** Add an independent interface with a default `supportsAdvanced()` to the provider's `implements` list; recompile against API v2. Resolve the collision with an explicit override and evaluate the semantics of both interfaces.
 
-**Bài tập D — conflict binary:** Trong binary-clash, giữ nguyên Both.class/Run.class cũ, thay Right.class mới. Ghi nhận lỗi tại runtime, rồi rebuild Both với một override name() hợp lệ; so sánh compile-time và runtime behavior.
+**Exercise D — binary conflict:** In `binary-clash`, keep old `Both.class`/`Run.class` and replace only `Right.class`. Record the runtime error, then rebuild `Both` with a valid `name()` override; compare compile-time and runtime behavior.
 
-**Bài tập E — class wins:** Trong DefaultRulesDemo, thay ParentClass.label() thành một giá trị khác rồi chạy lại. Thấy được method class được dùng mặc dù Tagged có default.
+**Exercise E — class wins:** In `DefaultRulesDemo`, change `ParentClass.label()` to another value and re-run. Observe that the class method wins even though `Tagged` has a default.
 
-**Bài tập F — abstract vs default:** Thêm một abstract method mới vào TextService v2, biên dịch lại plugin cũ và phân tích lỗi. Nếu muốn plugin cũ chạy khi host chưa cần capability mới, cân nhắc default bảo thủ, extension interface hoặc adapter.
+**Exercise F — abstract vs default:** Add a new abstract method to `TextService` v2, recompile the old plugin, and analyze the error. If old plugins must keep running while the host does not yet require the new capability, weigh a conservative default, an extension interface, or an adapter.
 
-**Bài tập G — class loader:** Cố tình đóng cả api-v1.jar trong plugin JAR và cho plugin loader tự định nghĩa interface thay vì chia sẻ API do host cung cấp. Phân tích vì sao hai type có cùng binary name vẫn có thể không gán kiểu được cho nhau. Chỉ làm trong lab cô lập.
+**Exercise G — class loader:** Intentionally package `api-v1.jar` inside the plugin JAR and have the plugin loader define its own interface instead of sharing the host-supplied API. Analyze why two types with the exact same binary name still cannot be assigned to each other. Do this only in an isolated lab.
 
-**Tiêu chí hoàn thành:** bạn cần giải thích chính xác (1) vì sao default có thể giữ binary của provider cũ, (2) khi nào xung đột giữa hai default cần override, (3) cách class wins và most-specific interface hoạt động, (4) khác biệt source/binary/behavior compatibility, (5) ý nghĩa các lỗi NoSuchMethodError, AbstractMethodError, IncompatibleClassChangeError, (6) khi nào nên dùng extension interface thay default, và (7) vì sao test upgrade phải dùng plugin binary cũ thật sự.
+**Completion criteria:** you should accurately explain (1) why defaults can preserve old provider binaries, (2) when conflicts between two defaults require an override, (3) how class-wins and most-specific-interface rules work, (4) differences among source/binary/behavioral compatibility, (5) the meaning of `NoSuchMethodError`, `AbstractMethodError`, and `IncompatibleClassChangeError`, (6) when to prefer an extension interface over a default, and (7) why upgrade tests must use genuine old plugin binaries.
 
-## 13. Tài liệu tham khảo
+## 13. References
 
-- [Java Language Specification SE 17 — Chapter 9: Interfaces](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html), đặc biệt §9.4 và §9.4.1.3 về default, overriding và signature conflicts.
-- [Java Language Specification SE 17 — Chapter 13: Binary Compatibility](https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html), đặc biệt §13.5.4, §13.5.7 về tiến hóa interface và default method.
-- [Java SE 17 — ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html) về discovery/khởi tạo provider.
-- [Java SE 17 — javap](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html) về kiểm tra classfile và method declarations.
+- [Java Language Specification SE 17 — Chapter 9: Interfaces](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html), especially §9.4 and §9.4.1.3 on defaults, overriding, and signature conflicts.
+- [Java Language Specification SE 17 — Chapter 13: Binary Compatibility](https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html), especially §13.5.4 and §13.5.7 on interface evolution and default methods.
+- [Java SE 17 — ServiceLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html) on provider discovery and instantiation.
+- [Java SE 17 — javap](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html) on inspecting classfiles and method declarations.
 
-**Kết luận:** default method là công cụ nâng cấp SPI mạnh khi có **fallback đúng và bảo thủ**, nhưng không xóa được xung đột đa kế thừa hoặc rủi ro semantics. Hãy dùng override tường minh để giải quyết conflict, giữ một bản API chung ở runtime, kiểm tra cả source lẫn binary của plugin cũ, và chọn extension interface/version mới khi capability không có default hợp lệ.
+**Conclusion:** default methods are a powerful SPI upgrade tool when paired with **correct, conservative fallbacks**, yet they do not eliminate multiple-inheritance conflicts or semantic risks. Use explicit overrides to resolve conflicts, keep one shared API copy at runtime, test both source and binaries of old plugins, and choose an extension interface or new version when a capability has no valid default.

@@ -1,78 +1,78 @@
-# 1.1 Chẩn đoán lúc chạy là gì và khác gì với sửa lỗi từ mã nguồn
+# 1.1 What Is Runtime Diagnostics and How Does It Differ from Source-Level Bug Fixing?
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể giải thích **runtime diagnostics (chẩn đoán lúc chạy)** trong ứng dụng Java, phân biệt nó với việc **gỡ lỗi dựa trên mã nguồn**, chọn bằng chứng phù hợp cho một sự cố và đi từ triệu chứng đến giả thuyết có thể kiểm chứng. Hai cách tiếp cận bổ sung cho nhau; chúng không phải hai hoạt động loại trừ nhau.
+After this lesson, you will be able to explain **runtime diagnostics** in Java applications, distinguish it from **source-based debugging**, choose appropriate evidence for an incident, and move from symptoms to testable hypotheses. The two approaches complement each other; they are not mutually exclusive activities.
 
-## 1. Chẩn đoán lúc chạy là gì?
+## 1. What Is Runtime Diagnostics?
 
-**Chẩn đoán lúc chạy** là quá trình thu thập, đối chiếu và phân tích bằng chứng về hành vi của một chương trình **khi chương trình đang thực thi** hoặc từ dữ liệu được ghi nhận trong thời gian thực thi. Với Java, hành vi quan sát được đến từ nhiều lớp cùng lúc:
+**Runtime diagnostics** is the process of collecting, correlating, and analyzing evidence about a program's behavior **while the program is executing** or from data recorded during execution. For Java, observed behavior comes from multiple layers simultaneously:
 
-- **Mã và bản build:** thuật toán, luồng điều khiển, bytecode, phiên bản thư viện và bản triển khai.
-- **JVM:** heap, garbage collection (GC), các luồng, JIT, class loading, tham số khởi động.
-- **Cấu hình và dữ liệu:** system properties, biến môi trường, feature flags, input, tải công việc.
-- **Hệ thống bên ngoài:** CPU, bộ nhớ máy, mạng, cơ sở dữ liệu, dịch vụ phụ thuộc, container và giới hạn tài nguyên.
+- **Code and build:** algorithms, control flow, bytecode, library versions, and deployment artifacts.
+- **JVM:** heap, garbage collection (GC), threads, JIT, class loading, and startup arguments.
+- **Configuration and data:** system properties, environment variables, feature flags, inputs, and workload.
+- **External systems:** CPU, host memory, network, databases, dependent services, containers, and resource limits.
 
-Câu hỏi trọng tâm là: **“Điều gì thực sự xảy ra trong lần chạy này, ở điều kiện này, và bằng chứng nào giải thích được hiện tượng?”**
+The central question is: **"What actually happened in this run, under these conditions, and what evidence explains the phenomenon?"**
 
-Ví dụ: cùng một bản mã nguồn, dịch vụ có thể phản hồi nhanh trên máy phát triển nhưng chậm ở production. Sự khác biệt có thể đến từ lượng request, kích thước heap, GC, kết nối cơ sở dữ liệu, cấu hình timeout, độ trễ mạng hoặc lỗi logic chỉ xuất hiện với dữ liệu thật. Chỉ đọc mã nguồn thường không đủ để kết luận nguyên nhân.
+For example, with the exact same source code, a service may respond quickly on a developer machine but slowly in production. The difference may stem from request volume, heap size, GC, database connections, timeout configuration, network latency, or logic bugs that only surface with real data. Reading source code alone is usually insufficient to conclude the cause.
 
-Kết quả mong muốn của chẩn đoán không đơn thuần là “có log”, mà là **một kết luận hoặc giả thuyết có bằng chứng**, chỉ rõ ảnh hưởng, điều kiện kích hoạt, nguyên nhân đã được xác nhận hay còn nghi vấn và cách kiểm chứng biện pháp khắc phục.
+The desired outcome of diagnostics is not merely "having logs," but **an evidence-backed conclusion or hypothesis** that specifies the impact, triggering conditions, whether the cause is confirmed or still suspected, and how to verify the remediation.
 
-## 2. Khác gì với sửa lỗi từ mã nguồn?
+## 2. How Does It Differ from Source-Level Bug Fixing?
 
-Ở đây, “sửa lỗi từ mã nguồn” là hướng điều tra tập trung vào câu lệnh, thuật toán, trạng thái biến, điều kiện biên và đường đi của chương trình: đọc code, viết test, dùng breakpoint, step into/over, xem call stack và sửa logic.
+Here, "source-level bug fixing" refers to an investigation focused on statements, algorithms, variable states, boundary conditions, and program execution paths: reading code, writing tests, using breakpoints, stepping into/over, inspecting the call stack, and modifying logic.
 
-| Tiêu chí | Chẩn đoán lúc chạy | Gỡ lỗi/sửa lỗi dựa trên mã nguồn |
+| Criterion | Runtime Diagnostics | Source-Based Debugging / Bug Fixing |
 | --- | --- | --- |
-| Câu hỏi đầu tiên | “Trong tiến trình đang chạy, triệu chứng xảy ra khi nào, với tải, cấu hình và tài nguyên nào?” | “Nhánh code, giá trị biến hay thuật toán nào tạo ra kết quả sai?” |
-| Điểm xuất phát | Sự cố quan sát được: lỗi tăng, độ trễ tăng, treo luồng, heap tăng, crash, khác biệt môi trường | Test thất bại, kết quả sai có thể tái hiện, exception gắn với đoạn code, lỗi điều kiện/thuật toán |
-| Bằng chứng thường dùng | Logs, metrics, traces, stack/thread dumps, JFR, heap histogram/dump, cấu hình, bản build | Mã nguồn, unit/integration tests, debugger, giá trị biến, assertion, stack trace |
-| Phạm vi | Chương trình **cùng** JVM, OS, tài nguyên, input, tải và hệ thống phụ thuộc | Chủ yếu logic và trạng thái của chương trình; cũng có thể chạy chương trình trong debugger |
-| Đầu ra | Mô tả điều kiện gây lỗi, nguyên nhân/giả thuyết được kiểm chứng, mức độ ảnh hưởng, hướng xử lý | Bản sửa code và test chứng minh hành vi đúng |
+| First question | "In the running process, when does the symptom occur, and under what load, configuration, and resources?" | "Which code branch, variable value, or algorithm produces the wrong result?" |
+| Starting point | Observed incident: rising errors, increased latency, hung threads, growing heap, crash, environment differences | Failing test, reproducible wrong output, exception tied to a code snippet, conditional/algorithmic bug |
+| Common evidence | Logs, metrics, traces, stack/thread dumps, JFR, heap histogram/dump, configuration, build artifact | Source code, unit/integration tests, debugger, variable values, assertions, stack trace |
+| Scope | The program **together with** the JVM, OS, resources, input, load, and dependent systems | Primarily program logic and state; may also run the program in a debugger |
+| Output | Description of failure conditions, verified cause/hypothesis, impact scope, remediation direction | Code fix and tests proving correct behavior |
 
-**Điểm giao nhau rất quan trọng:** debugger của IDE cũng quan sát một chương trình đang chạy; stack trace vừa là dữ liệu runtime vừa dẫn tới dòng source. Khác biệt nằm ở **câu hỏi và phạm vi bằng chứng**, không phải ở việc có chạy chương trình hay không. Một lỗi runtime cuối cùng vẫn có thể đòi hỏi sửa code; ngược lại, không phải mọi sự cố runtime đều do code sai.
+**A crucial overlap:** an IDE debugger also observes a running program; a stack trace is both runtime data and a pointer to a source line. The difference lies in **the question being asked and the scope of evidence**, not whether the program is executed. A runtime failure may ultimately still require a code fix; conversely, not every runtime incident is caused by wrong code.
 
-Ba ví dụ giúp phân biệt:
+Three examples help distinguish them:
 
-1. Một hàm cộng nhầm phần tử vì điều kiện vòng lặp là `i <= count`: kiểm tra code, viết test và sửa điều kiện là con đường ngắn nhất.
-2. Sau khi triển khai, p99 latency tăng dù commit không đổi, cùng lúc thời gian GC hoặc độ trễ database tăng: cần bằng chứng runtime để xác định nút thắt trước khi chọn sửa code, cấu hình hay hạ tầng.
-3. Một `NullPointerException` xuất hiện ở production: đọc stack trace để khoanh vùng code, nhưng vẫn cần xác định input, dữ liệu hoặc thay đổi cấu hình nào làm nhánh đó xuất hiện.
+1. A function sums the wrong elements because the loop condition is `i <= count`: inspecting code, writing a test, and fixing the condition is the shortest path.
+2. After deployment, p99 latency spikes even though the commit did not change, while GC time or database latency increases concurrently: runtime evidence is needed to locate the bottleneck before choosing to change code, configuration, or infrastructure.
+3. A `NullPointerException` appears in production: read the stack trace to narrow down the code, while still identifying what input, data, or configuration change caused that branch to execute.
 
-## 3. Triệu chứng, tín hiệu, nguyên nhân và cách sửa là bốn thứ khác nhau
+## 3. Symptoms, Signals, Causes, and Fixes Are Four Different Things
 
-Ví dụ người dùng báo “API thỉnh thoảng mất 4 giây”:
+For example, a user reports "the API occasionally takes 4 seconds":
 
-- **Triệu chứng:** request chậm, vượt mục tiêu độ trễ.
-- **Tín hiệu:** biểu đồ p95/p99 tăng, trace ghi nhận một dependency mất 3,5 giây, thread dump có nhiều luồng đang chờ I/O.
-- **Giả thuyết nguyên nhân:** dependency chậm hoặc pool kết nối bão hòa.
-- **Kiểm chứng và xử lý:** đối chiếu timestamp, request ID, metric dependency và pool; điều chỉnh hoặc sửa đúng nguyên nhân; đo lại dưới tải tương đương.
+- **Symptom:** slow requests, exceeding the latency target.
+- **Signal:** p95/p99 charts spike, a trace records a dependency taking 3.5 seconds, and thread dumps show many threads waiting on I/O.
+- **Causal hypothesis:** a slow dependency or a saturated connection pool.
+- **Verification and remediation:** correlate timestamps, request IDs, dependency metrics, and pool metrics; adjust or fix the actual cause; re-measure under comparable load.
 
-Không được đồng nhất “thread đang WAITING” với “deadlock”, hay thấy CPU/GC tăng rồi mặc định đó là nguyên nhân. **Tương quan theo thời gian chỉ giúp tạo giả thuyết**; cần bằng chứng bổ sung hoặc phép thử có kiểm soát để xác nhận.
+Do not equate "a thread in WAITING" with "deadlock," or see rising CPU/GC and assume it is the root cause. **Time correlation only helps generate hypotheses**; additional evidence or controlled experiments are required to confirm.
 
-Một **stack trace** cho biết đường gọi dẫn tới điểm ném exception, nhưng dòng ném exception không nhất thiết là nơi lỗi bắt đầu: input sai hoặc trạng thái không hợp lệ có thể được tạo từ bước trước đó.
+A **stack trace** shows the call path leading to the point where an exception was thrown, but the line that throws the exception is not necessarily where the fault began: invalid input or invalid state may have been created in an earlier step.
 
-## 4. Thu thập bằng chứng gì trong Java?
+## 4. What Evidence Should You Collect in Java?
 
-| Nguồn | Trả lời tốt câu hỏi nào? | Giới hạn cần nhớ |
+| Source | What Question Does It Answer Well? | Limitations to Remember |
 | --- | --- | --- |
-| **Application logs** (timestamp, level, request/correlation ID, stack trace) | Request nào lỗi, luồng nghiệp vụ đi tới đâu, exception gì? | Thiếu ngữ cảnh hoặc log không đồng bộ có thể gây hiểu lầm; tránh log thông tin nhạy cảm |
-| **Metrics** (error rate, throughput, p95/p99, CPU, heap, GC, thread/pool) | Sự cố bắt đầu lúc nào, rộng đến đâu, thay đổi theo tải ra sao? | Metric tổng hợp không tự chỉ ra dòng code gây lỗi |
-| **Distributed tracing** | Thời gian được dùng ở bước và dịch vụ nào trong một request? | Cần propagate trace context; sampling có thể bỏ sót request |
-| **Thread dump / `jcmd Thread.print`** | Luồng đang RUNNABLE, BLOCKED, WAITING ở đâu; có dấu hiệu chờ khóa hay deadlock không? | Chỉ là ảnh chụp thời điểm; thường cần nhiều mẫu để thấy xu hướng |
-| **JDK Flight Recorder (JFR), profiler, GC logs** | CPU được dùng ở đâu, allocation/GC và một số sự kiện JVM diễn ra thế nào? | Cấu hình thời gian ghi, chi phí quan sát và tính đại diện của mẫu đều quan trọng |
-| **Heap histogram / heap dump** | Loại đối tượng nào chiếm chỗ và được giữ tham chiếu bởi đâu? | Heap dump có thể lớn và chứa dữ liệu nhạy cảm; chỉ thu khi có quyền và cần thiết |
-| **Build, JDK, JVM flags, cấu hình, dependency** | Hai môi trường có thật sự chạy cùng artifact/điều kiện không? | “Cùng source” chưa chắc “cùng binary, flags, input và dependency” |
+| **Application logs** (timestamp, level, request/correlation ID, stack trace) | Which request failed, how far did the business flow get, what exception occurred? | Missing context or asynchronous logging can mislead; avoid logging sensitive data |
+| **Metrics** (error rate, throughput, p95/p99, CPU, heap, GC, threads/pools) | When did the incident start, how widespread is it, how does it change with load? | Aggregated metrics alone do not point to the faulty line of code |
+| **Distributed tracing** | In which step and service was time spent for a request? | Requires trace context propagation; sampling can miss requests |
+| **Thread dump / `jcmd Thread.print`** | Where are threads RUNNABLE, BLOCKED, or WAITING; are there signs of lock contention or deadlock? | Only a point-in-time snapshot; multiple samples are usually needed to see trends |
+| **JDK Flight Recorder (JFR), profiler, GC logs** | Where is CPU being spent, how are allocation/GC and certain JVM events behaving? | Recording duration, observation overhead, and sample representativeness all matter |
+| **Heap histogram / heap dump** | Which object types occupy space and what references keep them alive? | Heap dumps can be large and contain sensitive data; collect only when authorized and necessary |
+| **Build, JDK, JVM flags, configuration, dependencies** | Are two environments actually running the same artifact/conditions? | "Same source" does not guarantee "same binary, flags, input, and dependencies" |
 
-Chọn công cụ theo triệu chứng. Ví dụ: điều tra timeout bắt đầu từ error rate, latency, trace và tình trạng dependency; điều tra treo/lock bắt đầu từ thread dumps; điều tra heap tăng kéo dài bắt đầu từ biểu đồ heap sau GC, tốc độ allocation rồi mới quyết định có cần heap dump.
+Choose tools based on the symptom. For instance: investigate timeouts starting with error rate, latency, traces, and dependency health; investigate hangs/locks starting with thread dumps; investigate sustained heap growth starting with post-GC heap charts and allocation rate before deciding whether a heap dump is needed.
 
-Nên ghi **thời điểm có múi giờ**, phạm vi ảnh hưởng, service/instance, phiên bản build và khoảng thời gian xảy ra lỗi. So sánh “trước–sau” phải giữ điều kiện đủ tương đồng về tải và input.
+Record **timestamps with timezone**, impact scope, service/instance, build version, and the failure time window. "Before-and-after" comparisons must keep load and input conditions sufficiently comparable.
 
-## 5. Ví dụ Java 17+: cùng mã nguồn, khác hành vi lúc chạy
+## 5. Java 17+ Example: Same Source Code, Different Runtime Behavior
 
-Ví dụ sau **mô phỏng quyết định timeout** theo cấu hình và thời gian xử lý được cung cấp. Nó không thực hiện network call, không đo đồng hồ thực và không tạo timeout thật; mục đích là chứng minh phải kiểm tra giá trị **thực sự dùng ở runtime** trước khi quy lỗi cho thuật toán.
+The following example **simulates a timeout decision** based on provided configuration and processing time. It does not perform a network call, measure a real clock, or create a real timeout; its purpose is to prove that you must inspect the values **actually used at runtime** before blaming the algorithm.
 
-Tạo tệp `RuntimeDiagnosisDemo.java`:
+Create the file `RuntimeDiagnosisDemo.java`:
 
 ```java
 public class RuntimeDiagnosisDemo {
@@ -94,40 +94,40 @@ public class RuntimeDiagnosisDemo {
 }
 ```
 
-Biên dịch một lần bằng JDK 17 trở lên:
+Compile once with JDK 17 or higher:
 
 ```bash
 javac RuntimeDiagnosisDemo.java
 java -Dapp.timeout.ms=100 -Ddownstream.duration.ms=80 RuntimeDiagnosisDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 timeout=100ms, downstream=80ms
 KET_QUA=OK
 ```
 
-Giữ nguyên tệp `.java` và tệp `.class`, chỉ thay thuộc tính JVM truyền vào:
+Keep the `.java` and `.class` files unchanged, and only change the JVM property passed in:
 
 ```bash
 java -Dapp.timeout.ms=100 -Ddownstream.duration.ms=180 RuntimeDiagnosisDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 timeout=100ms, downstream=180ms
 KET_QUA=TIMEOUT
 ```
 
-**Phân tích:** cùng mã nhưng kết quả khác vì `downstream.duration.ms` khác. Bước chẩn đoán là kiểm tra cấu hình, input và số đo runtime nào đã thay đổi; bước sửa tùy nguyên nhân có thể là chỉnh cấu hình, tối ưu dependency hoặc sửa logic xử lý timeout. Nếu chỉ mở IDE tìm một dòng “sai” trong `if` mà không đối chiếu giá trị thực tế, ta có thể sửa nhầm chỗ.
+**Analysis:** the same code produces different outcomes because `downstream.duration.ms` differs. The diagnostic step is to check which configuration, input, and runtime measurements changed; depending on the cause, the fix may be adjusting configuration, optimizing the dependency, or fixing timeout-handling logic. If you only open an IDE looking for a "wrong" line in the `if` statement without checking actual runtime values, you may fix the wrong place.
 
-Trong dịch vụ thực, không nên dùng giá trị mô phỏng để kết luận timeout. Hãy đo độ trễ thực bằng instrumentation/trace và so với timeout của đúng client, đồng thời cân nhắc queueing, retry và deadline. Ví dụ này dùng system properties để dễ chạy và dễ tái hiện; một ứng dụng thực tế cũng cần kiểm tra tính hợp lệ của giá trị cấu hình.
+In a real service, do not use simulated values to conclude a timeout. Measure real latency with instrumentation/tracing and compare it against the timeout of the right client, while also accounting for queueing, retries, and deadlines. This example uses system properties for easy execution and reproduction; a real application also needs to validate configuration values.
 
-## 6. Ví dụ đối lập: lỗi logic nằm trong mã nguồn
+## 6. Counterexample: Logic Bug in Source Code
 
-Bài toán là tính tổng **`count` phần tử đầu** của mảng. Tạo tệp `SourceLogicBugDemo.java`:
+The problem is to sum the **first `count` elements** of an array. Create the file `SourceLogicBugDemo.java`:
 
 ```java
 public class SourceLogicBugDemo {
@@ -145,7 +145,7 @@ public class SourceLogicBugDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac SourceLogicBugDemo.java
@@ -158,65 +158,65 @@ Stdout:
 10
 ```
 
-Kết quả đúng theo đặc tả phải là `5` (`2 + 3`). Debugger hoặc unit test nhỏ sẽ chỉ ra vòng lặp đã lấy thêm `values[2]`. Sửa điều kiện thành `i < count` (và trong code thực, kiểm tra `0 <= count <= values.length`) rồi biên dịch/chạy lại sẽ in `5`.
+The correct result per specification must be `5` (`2 + 3`). A debugger or a small unit test will reveal that the loop included an extra `values[2]`. Fixing the condition to `i < count` (and in real code, validating `0 <= count <= values.length`) then recompiling/rerunning will print `5`.
 
-Ở đây, bằng chứng rất rõ và có thể tái hiện với input cố định: **sửa logic mã nguồn và thêm test hồi quy** là giải pháp chính. Thêm dashboard CPU, heap hay thread dump sẽ không giúp tìm lỗi `<=` nhanh hơn.
+Here, the evidence is clear and reproducible with fixed input: **fixing the source logic and adding a regression test** is the primary solution. Adding CPU, heap, or thread dump dashboards will not help find the `<=` bug any faster.
 
-## 7. Quy trình chẩn đoán thực tế: từ “bị chậm” đến nguyên nhân
+## 7. Practical Diagnostic Workflow: From "Slow" to Root Cause
 
-1. **Xác định hiện tượng và tác động.** Mô tả cái gì sai, bắt đầu lúc nào, tần suất, request/instance bị ảnh hưởng và mức độ nghiêm trọng. Phân biệt “lỗi 500 tăng” với “người dùng thấy chậm”.
-2. **Đóng băng ngữ cảnh so sánh.** Ghi build/version, JDK/JVM, cấu hình có liên quan, lượng tải, input, dependency, vùng triển khai và thay đổi gần thời điểm phát sinh. Đồng bộ múi giờ/timestamp.
-3. **Chọn tín hiệu theo giả thuyết.** Ví dụ timeout → trace, latency, connection pool và dependency; crash → exception, exit reason, JVM/OS logs; hang → thread dumps và tình trạng lock; memory → heap/GC/allocation.
-4. **Khoanh vùng và kiểm chứng.** Dùng request ID nối logs/traces; so sánh instance lỗi với instance khỏe; lập một giả thuyết có thể bác bỏ. Chạy thử trên môi trường kiểm soát hoặc tái hiện với cùng input/cấu hình nếu phù hợp. Chỉ attach debugger hoặc lấy dump khi cần và có thể thực hiện an toàn.
-5. **Sửa đúng lớp và đo lại.** Sửa code kèm test hồi quy nếu là logic; sửa cấu hình/dependency/tài nguyên nếu bằng chứng chỉ vào đó. So sánh metric/error/latency với baseline dưới điều kiện tương đương, theo dõi tác dụng phụ và ghi nhận kết luận.
+1. **Define the phenomenon and impact.** Describe what is wrong, when it started, frequency, affected requests/instances, and severity. Distinguish "rising 500 errors" from "users experiencing slowness."
+2. **Freeze the comparison context.** Record build/version, JDK/JVM, relevant configuration, load, input, dependencies, deployment region, and recent changes near onset. Synchronize timezones/timestamps.
+3. **Select signals by hypothesis.** For example: timeout → traces, latency, connection pools, and dependencies; crash → exceptions, exit reason, JVM/OS logs; hang → thread dumps and lock state; memory → heap/GC/allocation.
+4. **Isolate and verify.** Use request IDs to link logs/traces; compare failing instances with healthy instances; form a falsifiable hypothesis. Test in a controlled environment or reproduce with the same input/configuration if appropriate. Only attach a debugger or take dumps when needed and safe to do so.
+5. **Fix the right layer and re-measure.** Fix code with a regression test if it is a logic bug; fix configuration/dependency/resources if evidence points there. Compare metrics/errors/latency against baseline under equivalent conditions, monitor side effects, and record the conclusion.
 
-Ví dụ điều tra “request chậm”:
+Example investigation of "slow requests":
 
 ```text
-Triệu chứng: p99 /checkout tăng từ ~250 ms lên ~4 s
+Symptom: p99 /checkout increases from ~250 ms to ~4 s
     ↓
-Metric: lỗi tập trung ở một khoảng thời gian và nhóm instance
+Metrics: errors concentrated in a specific time window and group of instances
     ↓
-Trace: phần lớn thời gian nằm trong lời gọi database
+Trace: most of the time is spent inside a database call
     ↓
-Đối chiếu: pool connection bão hòa cùng lúc với lượng query tăng
+Correlation: connection pool saturates at the same time query volume increases
     ↓
-Giả thuyết: số kết nối khả dụng không đáp ứng tải
+Hypothesis: available connections cannot meet the load
     ↓
-Kiểm chứng: đo wait time của pool + số kết nối đang dùng,
-            so sánh dưới tải tương đương
+Verification: measure pool wait time + active connections in use,
+              compare under equivalent load
     ↓
-Hành động: sửa nguyên nhân phù hợp, rồi theo dõi p99 và error rate
+Action: fix the appropriate cause, then monitor p99 and error rate
 ```
 
-Đây là **kịch bản minh họa**, không phải kết luận mặc định rằng mọi request chậm đều do pool. Một trace cho thấy thời gian nằm ở database cũng chưa chứng minh query, lock, network hay pool là nguyên nhân cuối cùng.
+This is an **illustrative scenario**, not a default conclusion that every slow request is caused by the pool. A trace showing time spent in the database also does not prove whether the query, locks, network, or pool is the ultimate cause.
 
-## 8. Khi nào bắt đầu bằng runtime, khi nào bắt đầu bằng source?
+## 8. When to Start with Runtime vs. When to Start with Source?
 
-- **Có sự cố trên môi trường đang chạy; khó tái hiện; chỉ xảy ra dưới tải hoặc trên một nhóm instance:** bắt đầu từ quan sát runtime và điều kiện môi trường, sau đó đi vào source của đoạn nghi ngờ.
-- **Một unit test đỏ, thuật toán cho kết quả sai ổn định với input nhỏ:** bắt đầu từ đặc tả, test và mã nguồn.
-- **Exception có stack trace:** dùng trace để tìm đường code, đồng thời xác minh input/trạng thái đã dẫn tới exception; đừng kết luận chỉ theo dòng cuối.
-- **Lỗi chỉ xuất hiện sau deploy:** đối chiếu artifact, JDK, flags, cấu hình, dependency, dữ liệu và tải, kể cả khi diff source nhỏ.
-- **Sự cố không có exception:** vẫn kiểm tra metrics, traces, thread state và thời gian chờ; chậm, nghẽn hay rò rỉ có thể xảy ra mà không ném exception.
+- **An incident on a running environment; hard to reproduce; occurs only under load or on a subset of instances:** start from runtime observation and environment conditions, then inspect the source of the suspected code path.
+- **A failing unit test, an algorithm consistently returning wrong results on small inputs:** start from the specification, test, and source code.
+- **An exception with a stack trace:** use the trace to locate the code path while verifying the input/state that led to the exception; do not conclude based solely on the final line.
+- **A bug that appears only after deployment:** compare artifacts, JDK, flags, configuration, dependencies, data, and load, even when the source diff is small.
+- **An incident with no exceptions:** still inspect metrics, traces, thread states, and wait times; slowdowns, contention, or leaks can occur without throwing an exception.
 
-Một quy tắc hữu ích: **Nếu chưa biết “hệ thống đang làm gì”, quan sát runtime trước. Nếu đã có trường hợp tái hiện chắc chắn và chỉ ra logic sai, kiểm tra source/test trước.** Trong sự cố phức tạp, chuyển qua lại giữa hai hướng nhiều lần là bình thường.
+A useful rule: **If you do not yet know "what the system is doing," observe runtime first. If you already have a reliable reproduction pointing to faulty logic, inspect source/tests first.** In complex incidents, moving back and forth between the two approaches multiple times is normal.
 
-## 9. Sai lầm phổ biến và cách tránh
+## 9. Common Mistakes and How to Avoid Them
 
-- **Nhầm triệu chứng với nguyên nhân:** “heap lớn” không tự chứng minh memory leak; “nhiều thread WAITING” không tự chứng minh deadlock. Tìm chuỗi bằng chứng và kiểm chứng.
-- **Chỉ đọc source rồi đoán production:** có thể bỏ sót JVM flags, cấu hình, tải, mạng, dữ liệu và dependency. Xác minh điều kiện thực thi thực tế.
-- **Chỉ nhìn một ảnh chụp:** CPU, thread dump hay heap tại một thời điểm có thể không đại diện. Đối chiếu xu hướng và nhiều mẫu khi cần.
-- **Thêm log tùy tiện:** log dày gây nhiễu, tăng chi phí và có thể lộ token, dữ liệu cá nhân. Ưu tiên request ID, ngữ cảnh có cấu trúc, sampling và che dữ liệu nhạy cảm.
-- **Bật profiler/dump không cân nhắc:** công cụ chẩn đoán cũng tiêu tốn tài nguyên; heap dump có thể lớn và nhạy cảm. Chọn thời gian/phạm vi phù hợp, quản lý quyền truy cập và lưu trữ an toàn.
-- **Sửa trước khi có baseline:** nếu không đo trước–sau, khó biết thay đổi đã xử lý đúng nguyên nhân hay chỉ che triệu chứng.
-- **Không thêm test sau khi tìm ra lỗi code:** lỗi có thể quay lại. Giữ một test hồi quy với đúng input/điều kiện kích hoạt.
+- **Confusing symptoms with causes:** a "large heap" does not by itself prove a memory leak; "many WAITING threads" does not by itself prove a deadlock. Build a chain of evidence and verify.
+- **Reading source alone and guessing production:** you can miss JVM flags, configuration, load, network, data, and dependencies. Verify actual execution conditions.
+- **Looking at a single snapshot:** CPU, a thread dump, or heap at one moment may not be representative. Check trends and multiple samples when needed.
+- **Adding logs indiscriminately:** verbose logging creates noise, adds overhead, and can leak tokens or personal data. Prefer request IDs, structured context, sampling, and redacting sensitive data.
+- **Enabling profilers/dumps without caution:** diagnostic tools also consume resources; heap dumps can be large and sensitive. Choose appropriate timing/scope, manage access permissions, and store safely.
+- **Fixing before establishing a baseline:** without before-and-after measurements, it is hard to know whether a change fixed the true cause or only masked the symptom.
+- **Not adding tests after finding a code bug:** the bug can return. Keep a regression test with the exact triggering input/conditions.
 
-## 10. Tự kiểm tra hiểu bài
+## 10. Self-Check Questions
 
-1. Cùng artifact Java chạy ổn trên staging nhưng timeout trên production. Bạn sẽ ghi lại những điều kiện và tín hiệu nào **trước khi** sửa thuật toán?
-2. Một stack trace trỏ đến `NullPointerException` ở dòng 42. Vì sao dòng 42 có thể chỉ là nơi lỗi biểu hiện, chưa phải nguyên nhân gốc?
-3. Trong ví dụ `RuntimeDiagnosisDemo`, điều gì thực sự thay đổi giữa hai lần chạy? Vì sao đó là minh họa của việc phải đọc cấu hình runtime?
-4. Trong ví dụ `SourceLogicBugDemo`, một test với input `[2, 3, 5]` và `count = 2` giúp chứng minh điều gì mà dashboard JVM không thể chứng minh trực tiếp?
-5. Nếu sau một thay đổi p99 giảm, cần đối chiếu thêm những điều kiện nào để tránh nhầm tương quan với quan hệ nhân quả?
+1. The same Java artifact runs fine on staging but times out in production. Which conditions and signals would you record **before** modifying the algorithm?
+2. A stack trace points to a `NullPointerException` on line 42. Why might line 42 only be where the error manifests, rather than the root cause?
+3. In the `RuntimeDiagnosisDemo` example, what actually changed between the two runs? Why does this illustrate the need to read runtime configuration?
+4. In the `SourceLogicBugDemo` example, what does a test with input `[2, 3, 5]` and `count = 2` prove that a JVM dashboard cannot prove directly?
+5. If p99 drops after a change, what additional conditions must be checked to avoid confusing correlation with causation?
 
-**Điểm cần nhớ:** runtime diagnostics dùng bằng chứng từ chương trình trong điều kiện thực thi để tìm *điều gì đã xảy ra và vì sao*; source debugging đi sâu vào logic và trạng thái code để tìm *dòng/nhánh nào tạo hành vi sai*. Chọn điểm bắt đầu theo triệu chứng và liên tục kiểm chứng giả thuyết bằng bằng chứng phù hợp.
+**Key takeaway:** runtime diagnostics uses evidence from a program under its execution conditions to find *what happened and why*; source debugging digs into code logic and state to find *which line or branch creates wrong behavior*. Choose your starting point based on the symptom and continuously verify hypotheses with appropriate evidence.

@@ -1,47 +1,47 @@
-# 3.6 getInstanceStrong, DRBG và khả năng chặn của nguồn ngẫu nhiên
+# 3.6 getInstanceStrong, DRBG, and Blocking Behavior of Random Sources
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt **entropy source**, **seed**, **CSPRNG/DRBG** và API `SecureRandom`; giải thích vì sao thuật toán sinh chuỗi giả ngẫu nhiên vẫn bảo mật khi được khởi tạo đúng.
-2. Hiểu `SecureRandom.getInstanceStrong()` thực sự lựa chọn gì thông qua `securerandom.strongAlgorithms` và vì sao chữ “strong” không đồng nghĩa “không chặn” hoặc “phù hợp mọi tác vụ”.
-3. Sử dụng `SecureRandom.getInstance("DRBG", DrbgParameters.instantiation(...))`, đọc strength/capability hiệu lực, phân biệt reseed với prediction resistance.
-4. Xác định những lời gọi có thể **block** khi cần entropy, đo thời gian tạo và sinh byte đúng cách, lựa chọn giải pháp phù hợp cho hệ thống có yêu cầu latency.
-5. Tránh các lỗi bảo mật thường gặp: seed dự đoán được, dùng `Random` cho token, cấu hình provider theo giả định, yêu cầu reseed/strong ở mọi request.
+1. Distinguish **entropy source**, **seed**, **CSPRNG/DRBG**, and the `SecureRandom` API; explain why a pseudorandom generation algorithm remains secure when properly initialized.
+2. Understand what `SecureRandom.getInstanceStrong()` actually selects via `securerandom.strongAlgorithms`, and why the word "strong" does not mean "non-blocking" or "suitable for every task."
+3. Use `SecureRandom.getInstance("DRBG", DrbgParameters.instantiation(...))`, inspect effective strength/capability, and distinguish reseeding from prediction resistance.
+4. Identify calls that may **block** when entropy is needed, measure creation and byte-generation latency properly, and choose suitable designs for latency-sensitive systems.
+5. Avoid common security mistakes: predictable seeds, using `Random` for tokens, assuming provider behavior, or forcing reseed/strong on every request.
 
-## 1. Nền tảng tối thiểu: entropy source, seed và DRBG
+## 1. Minimum Foundation: Entropy Source, Seed, and DRBG
 
-`SecureRandom` là engine API của JCA; provider quyết định cách triển khai và lấy entropy. **Entropy source** cung cấp tính bất định từ hệ điều hành/phần cứng; **seed/trạng thái** là bí mật khởi tạo; **CSPRNG/DRBG** mở rộng trạng thái bằng thuật toán mật mã thành byte khó dự đoán. “Deterministic” của DRBG mô tả phép sinh từ trạng thái, **không** đồng nghĩa đối thủ có thể đoán được trạng thái.
+`SecureRandom` is the JCA engine API; the provider determines the implementation and how entropy is obtained. The **entropy source** supplies unpredictability from the OS/hardware; the **seed/state** is the secret initialization; the **CSPRNG/DRBG** expands that state cryptographically into unpredictable bytes. "Deterministic" in DRBG describes generation from state, **not** that an adversary can predict the state.
 
 ```text
 Entropy source -> instantiate/reseed -> DRBG state -> nextBytes(...)
 ```
 
-Sinh 32 byte không đồng nghĩa bảo đảm security strength 256 bit. `nextBytes` phát sinh byte dùng trong ứng dụng; `generateSeed` tạo seed material; `reseed` có thể bổ sung entropy từ provider; `setSeed` nhận dữ liệu caller và **không tạo entropy mới** từ timestamp hay PID. Trong bài này, trọng tâm riêng là **chọn strong/DRBG theo policy, đọc capability hiệu lực và đo được độ trễ do provider/entropy source**.
+Generating 32 bytes does not guarantee 256-bit security strength. `nextBytes` produces bytes for the application; `generateSeed` creates seed material; `reseed` can pull additional entropy from the provider; `setSeed` accepts caller data and **creates no new entropy** from timestamps or PIDs. This lesson focuses specifically on **selecting strong/DRBG by policy, inspecting effective capabilities, and measuring latency caused by providers/entropy sources**.
 
-## 2. Ba cách lấy `SecureRandom` và ý nghĩa thực tế
+## 2. Three Ways to Obtain `SecureRandom` and Practical Implications
 
-| Cách lấy instance | Ai chọn triển khai? | Khi nên dùng | Điểm cần kiểm tra |
+| Way to obtain instance | Who picks the implementation? | When to use | What to verify |
 | --- | --- | --- | --- |
-| `new SecureRandom()` | Provider mặc định theo cấu hình runtime | Hầu hết nhu cầu sinh byte ngẫu nhiên bảo mật trong ứng dụng | Thuật toán/provider thực tế và đặc tính latency trên môi trường đích |
-| `SecureRandom.getInstanceStrong()` | Danh sách `securerandom.strongAlgorithms` trong **security properties** | Yêu cầu chính sách/ứng dụng cần triển khai được nền tảng đánh dấu strong | Thuật toán, provider, entropy source, startup/first-call latency và khả năng chặn |
-| `SecureRandom.getInstance("DRBG", params)` | JCA tìm provider hỗ trợ service `SecureRandom.DRBG` và tham số tối thiểu | Cần khai báo strength, reseed hoặc prediction resistance có chủ đích | Runtime có provider DRBG không, capability thực tế có đáp ứng không |
+| `new SecureRandom()` | Default provider per runtime configuration | Most secure random byte generation needs in applications | Actual algorithm/provider and latency characteristics on target environment |
+| `SecureRandom.getInstanceStrong()` | `securerandom.strongAlgorithms` list in **security properties** | Policy/application requires an implementation marked strong by the platform | Algorithm, provider, entropy source, startup/first-call latency, and blocking behavior |
+| `SecureRandom.getInstance("DRBG", params)` | JCA searches for a provider supporting `SecureRandom.DRBG` and minimum parameters | Need to explicitly declare strength, reseeding, or prediction resistance | Whether runtime has a DRBG provider and effective capability meets needs |
 
-Cả ba đều đưa về **API `SecureRandom`**. Sự khác biệt nằm ở cơ chế chọn implementation và các ràng buộc bổ sung; không nên mặc định rằng `getInstanceStrong()` mạnh hơn mọi DRBG, hoặc một DRBG nhất thiết không bao giờ block.
+All three return the **`SecureRandom` API**. They differ in implementation selection and extra constraints; never assume `getInstanceStrong()` is stronger than every DRBG, or that a DRBG will never block.
 
-### 2.1 `getInstanceStrong()` không phải tên thuật toán
+### 2.1 `getInstanceStrong()` Is Not an Algorithm Name
 
-`getInstanceStrong()` (có từ Java 8) tra cứu property:
+`getInstanceStrong()` (available since Java 8) reads the property:
 
 ```java
 String configured = java.security.Security.getProperty(
         "securerandom.strongAlgorithms");
 ```
 
-Đoạn trên là **biểu thức minh họa** để dùng trong một phương thức Java; `Security.getProperty` đọc **security property**, không phải `System.getProperty` thông thường.
+This is an **illustrative expression** for use inside a Java method; `Security.getProperty` reads a **security property**, not a regular `System.getProperty`.
 
-Property `securerandom.strongAlgorithms` chứa danh sách những thuật toán/provider mà bản phân phối Java xác định là phù hợp để sinh giá trị bảo mật quan trọng, ví dụ khóa tồn tại lâu dài. `getInstanceStrong()` dựa vào danh sách đó để lấy một implementation có sẵn. Đường đi logic:
+The `securerandom.strongAlgorithms` property lists algorithms/providers that the Java distribution deems suitable for generating critical security values, such as long-lived keys. `getInstanceStrong()` consults that list to pick an available implementation. Logical flow:
 
 ```text
 SecureRandom.getInstanceStrong()
@@ -50,24 +50,24 @@ SecureRandom.getInstanceStrong()
 Security.getProperty("securerandom.strongAlgorithms")
        |
        v
-Tra danh sách thuật toán/provider được nền tảng cấu hình
+Look up platform-configured algorithm/provider list
        |
        v
-SecureRandom engine + provider được chọn
+Selected SecureRandom engine + provider
        |
        v
-nextBytes / generateSeed / reseed (hành vi tùy provider)
+nextBytes / generateSeed / reseed (behavior depends on provider)
 ```
 
-Một JDK có thể chọn provider gắn với cơ chế ngẫu nhiên của hệ điều hành; JDK khác có thể chọn thuật toán khác. Tên như `NativePRNGBlocking`, `Windows-PRNG` hay `DRBG` là **đặc thù của runtime**, không phải danh sách bắt buộc chung.
+One JDK may pick a provider tied to OS randomness facilities; another JDK may pick a different algorithm. Names like `NativePRNGBlocking`, `Windows-PRNG`, or `DRBG` are **runtime-specific**, not a universal mandatory list.
 
-**Ranh giới quan trọng:** phương thức factory có thể trả về nhanh nhưng lần `nextBytes` đầu tiên lại phải lấy entropy. Nó cũng có thể tốn thời gian lúc khởi tạo. Không được dùng tên “Strong” để suy ra latency; phải kiểm tra provider và đo thực tế.
+**Important boundary:** the factory method may return quickly while the first `nextBytes` call blocks to gather entropy, or initialization itself may take time. Never infer latency from the word "Strong"; always inspect the provider and measure in practice.
 
-Java SE yêu cầu nền tảng cung cấp ít nhất một triển khai strong, nhưng `getInstanceStrong()` vẫn khai báo `NoSuchAlgorithmException` khi không lấy được thuật toán từ cấu hình/provider hiện có. Trong môi trường cấu hình bất thường, ứng dụng cần xử lý lỗi minh bạch, không âm thầm thay bằng bộ sinh không bảo mật.
+Java SE requires the platform to supply at least one strong implementation, yet `getInstanceStrong()` still declares `NoSuchAlgorithmException` if no configured algorithm can be obtained from active providers. In misconfigured environments, applications must handle errors transparently rather than silently falling back to an insecure generator.
 
-### 2.2 `getInstance("DRBG")` yêu cầu một engine cụ thể
+### 2.2 `getInstance("DRBG")` Requests a Specific Engine
 
-`SecureRandom.getInstance("DRBG")` yêu cầu một provider đăng ký thuật toán `DRBG` cho engine `SecureRandom`. Có thể đi xa hơn bằng overload nhận `SecureRandomParameters` để chỉ rõ yêu cầu:
+`SecureRandom.getInstance("DRBG")` requests a provider registering the `DRBG` algorithm for the `SecureRandom` engine. You can go further with the overload taking `SecureRandomParameters` to specify requirements:
 
 ```java
 SecureRandom drbg = SecureRandom.getInstance(
@@ -78,32 +78,32 @@ SecureRandom drbg = SecureRandom.getInstance(
                 null));
 ```
 
-Đây là **đoạn minh họa nhúng**; trong chương trình đầy đủ phải import `SecureRandom` và `DrbgParameters` (xem thực hành 2).
+This is an **embedded illustrative snippet**; a complete program must import `SecureRandom` and `DrbgParameters` (see Practice 2).
 
-`128` là security strength **tối thiểu yêu cầu**, `RESEED_ONLY` yêu cầu có khả năng reseed, và `null` là không truyền personalization string. Nếu provider không đáp ứng yêu cầu, việc khởi tạo sẽ thất bại; không nên coi “DRBG” là thuật toán luôn có trên mọi Java runtime.
+`128` is the **minimum requested** security strength, `RESEED_ONLY` requests reseed capability, and `null` passes no personalization string. If the provider cannot satisfy the request, instantiation fails; do not assume "DRBG" is always available on every Java runtime.
 
-JDK dùng họ cơ chế theo NIST SP 800-90A như Hash_DRBG, HMAC_DRBG hoặc CTR_DRBG tùy provider/configuration. `DRBG` trong lời gọi `getInstance` là tên **SecureRandom service algorithm**, không trực tiếp chọn một cơ chế Hash/HMAC/CTR cụ thể. Muốn biết implementation thực tế, xem tài liệu provider và cấu hình môi trường.
+The JDK uses NIST SP 800-90A families such as Hash_DRBG, HMAC_DRBG, or CTR_DRBG depending on provider/configuration. `DRBG` in `getInstance` is the **SecureRandom service algorithm** name, not a direct selector for Hash/HMAC/CTR. To inspect the concrete implementation, check provider documentation and environment configuration.
 
-## 3. Vòng đời DRBG: instantiate → generate → reseed
+## 3. DRBG Lifecycle: Instantiate → Generate → Reseed
 
-Một DRBG duy trì trạng thái nội bộ theo các pha:
+A DRBG maintains internal state across phases:
 
-1. **Instantiate:** nhận nguồn entropy và các tham số, thiết lập trạng thái bí mật. Có implementation khởi tạo lười, chỉ lấy entropy khi sinh byte lần đầu.
-2. **Generate:** tạo byte từ trạng thái hiện có bằng `nextBytes`, cập nhật trạng thái; nếu không cần truy cập entropy thì thường nhanh hơn đọc entropy mới cho từng lần gọi.
-3. **Reseed:** bổ sung entropy mới và làm mới trạng thái khi policy/giới hạn thuật toán hoặc yêu cầu ứng dụng cần. Bước này có thể cần chờ nguồn entropy.
-4. **Prediction resistance (PR):** khi được yêu cầu và provider hỗ trợ, thao tác tạo byte có thể cần nguồn entropy mới để bảo vệ tốt hơn trước kịch bản lộ trạng thái trước đó. Không thể có PR thực chất chỉ bằng cách đặt cờ mà không có nguồn entropy đáng tin.
+1. **Instantiate:** takes an entropy source and parameters to establish secret state. Some implementations initialize lazily, pulling entropy only upon first byte generation.
+2. **Generate:** produces bytes from current state via `nextBytes` and updates state; if no fresh entropy access is needed, this is usually faster than reading fresh entropy on every call.
+3. **Reseed:** pulls fresh entropy and refreshes state when policy, algorithm limits, or application requirements demand it. This step may wait on the entropy source.
+4. **Prediction resistance (PR):** when requested and supported by the provider, byte generation can require fresh entropy to better protect against prior state compromise. Real PR cannot exist merely by flipping a flag without a trustworthy entropy source.
 
-### 3.1 Capability: yêu cầu tối thiểu và tính năng hiệu lực
+### 3.1 Capability: Minimum Request vs. Effective Features
 
-`DrbgParameters.Capability` có ba mức:
+`DrbgParameters.Capability` has three levels:
 
-| Capability khi yêu cầu | Bảo đảm tối thiểu | Có thể làm gì? |
+| Requested capability | Minimum guarantee | What you can do |
 | --- | --- | --- |
-| `NONE` | Không buộc hỗ trợ reseed hoặc PR | Triển khai vẫn *có thể* có khả năng tốt hơn yêu cầu |
-| `RESEED_ONLY` | Hỗ trợ reseed | Có thể gọi `reseed(...)`; không đảm bảo hỗ trợ PR |
-| `PR_AND_RESEED` | Hỗ trợ cả reseed và PR | Có thể yêu cầu prediction resistance khi generate/reseed |
+| `NONE` | No guaranteed reseed or PR support | Implementation *may* still have higher capabilities than requested |
+| `RESEED_ONLY` | Supports reseeding | Can call `reseed(...)`; PR support is not guaranteed |
+| `PR_AND_RESEED` | Supports both reseeding and PR | Can request prediction resistance during generate/reseed |
 
-**Đừng đồng nhất “requested” và “effective”.** Một provider có thể trả về capability cao hơn yêu cầu tối thiểu. Sau khi lấy instance, xem:
+**Do not equate "requested" with "effective."** A provider may return a higher capability than the minimum requested. After obtaining the instance, inspect:
 
 ```java
 var params = drbg.getParameters();
@@ -115,45 +115,45 @@ if (params instanceof DrbgParameters.Instantiation actual) {
 }
 ```
 
-Đây là **đoạn mã nhúng** trong phương thức đã có biến `SecureRandom drbg` và import `DrbgParameters`. Thông tin trả về mô tả thiết lập **thực tế** (theo hợp đồng API), không buộc giống hệt tham số lúc yêu cầu.
+This is an **embedded code snippet** inside a method that already has `SecureRandom drbg` and imports `DrbgParameters`. Returned values describe the **effective** configuration (per API contract), which need not be identical to the requested parameters.
 
-### 3.2 Các tham số dùng lúc generate và reseed
+### 3.2 Parameters Used During Generate and Reseed
 
-- `DrbgParameters.instantiation(strength, capability, personalizationString)`: cấu hình khi tạo DRBG; `strength = -1` có nghĩa dùng strength mặc định khi instantiation.
-- `DrbgParameters.nextBytes(strength, predictionResistance, additionalInput)`: tham số cho *một lần* `nextBytes(bytes, params)`; `strength = -1` lấy strength hiệu lực. Cờ `predictionResistance=true` yêu cầu PR cho lần này, chỉ dùng khi implementation hỗ trợ.
-- `DrbgParameters.reseed(predictionResistance, additionalInput)`: tham số cho `reseed(params)`; thao tác này đọc entropy theo cơ chế provider.
-- `personalizationString` và `additionalInput` phục vụ phân biệt ngữ cảnh/đa dạng hóa trạng thái theo giao diện DRBG, **không thay thế nguồn entropy an toàn** và không phải “khóa bí mật” bắt buộc.
+- `DrbgParameters.instantiation(strength, capability, personalizationString)`: configuration when creating the DRBG; `strength = -1` selects the default instantiation strength.
+- `DrbgParameters.nextBytes(strength, predictionResistance, additionalInput)`: parameters for a *single* `nextBytes(bytes, params)` call; `strength = -1` uses effective strength. `predictionResistance=true` requests PR for that call, usable only when supported.
+- `DrbgParameters.reseed(predictionResistance, additionalInput)`: parameters for `reseed(params)`; this operation reads entropy per provider mechanics.
+- `personalizationString` and `additionalInput` provide context separation and state diversification per the DRBG interface; they **do not replace a secure entropy source** and are not mandatory "secret keys."
 
-Nếu chỉ yêu cầu `RESEED_ONLY`, không được tự gọi `nextBytes(..., DrbgParameters.nextBytes(-1, true, ...))` rồi giả định provider sẽ hỗ trợ. Tăng yêu cầu capability/strength có thể khiến `getInstance` thất bại. Các thao tác reseed đặc biệt có thể làm tăng latency vì tiếp xúc nguồn entropy.
+If you only requested `RESEED_ONLY`, do not call `nextBytes(..., DrbgParameters.nextBytes(-1, true, ...))` assuming the provider will support it. Raising requested capability/strength can cause `getInstance` to fail. Explicit reseed operations can raise latency due to entropy source interaction.
 
-## 4. Vì sao và khi nào nguồn ngẫu nhiên có thể block?
+## 4. Why and When Can Random Sources Block?
 
-**Block** nghĩa là thread gọi API phải chờ trước khi phương thức trả về; khác với “sinh byte CPU tốn vài mili giây”. Theo API Java 17, tùy implementation, **`nextBytes`, `generateSeed` và `reseed` đều có thể block trong lúc thu thập entropy**.
+**Blocking** means the calling thread waits before the method returns; this differs from "CPU byte generation taking a few milliseconds." Per the Java 17 API, depending on the implementation, **`nextBytes`, `generateSeed`, and `reseed` can all block while gathering entropy**.
 
-Ba tình huống thường gặp:
+Three common situations:
 
-| Tình huống | Điều có thể diễn ra | Lưu ý |
+| Situation | What can happen | Note |
 | --- | --- | --- |
-| Lần sử dụng PRNG đầu tiên | Tạo seed từ entropy source, có thể đợi | Thời gian `new SecureRandom()` ngắn chưa chứng minh `nextBytes` đầu tiên nhanh |
-| `generateSeed(n)` hoặc explicit `reseed()` | Provider liên hệ nguồn seed/entropy | Không dùng `generateSeed` thay cho `nextBytes` một cách máy móc |
-| Yêu cầu PR hoặc provider cần tự reseed | Nhu cầu entropy mới xuất hiện trong thao tác generate | `DRBG` không đồng nghĩa “không chặn”; policy và môi trường quyết định |
+| First use of PRNG | Seeds from the entropy source, may wait | Fast `new SecureRandom()` does not prove the first `nextBytes` will be fast |
+| `generateSeed(n)` or explicit `reseed()` | Provider contacts the seed/entropy source | Do not mechanically replace `nextBytes` with `generateSeed` |
+| Requesting PR or provider auto-reseeding | New entropy demand occurs during generate | `DRBG` does not mean "non-blocking"; policy and environment decide |
 
-Các cơ chế OS được thảo luận phổ biến gồm `/dev/random` và `/dev/urandom` trên Unix-like, API ngẫu nhiên hệ điều hành trên Windows, thiết bị HSM hoặc provider phần mềm. **Không áp đặt quy tắc “`/dev/random` luôn block” hoặc “`/dev/urandom` luôn là cách sửa”**: hành vi đã thay đổi qua phiên bản kernel và cách provider tích hợp. Đọc cấu hình thực tế của JDK/OS rồi kiểm chứng bằng đo lường.
+Commonly discussed OS mechanisms include `/dev/random` and `/dev/urandom` on Unix-like systems, OS randomness APIs on Windows, HSM devices, or software providers. **Do not apply a blanket rule like "`/dev/random` always blocks" or "`/dev/urandom` is always the fix"**: behavior has evolved across kernel versions and provider integrations. Inspect actual JDK/OS configuration and verify by measurement.
 
-Với ứng dụng web hoặc worker có SLA, cần xét thêm:
+For web apps or workers with SLAs, also consider:
 
-- Khi **startup hoặc first use**, ứng dụng có thể đứng đợi entropy trước request đầu tiên.
-- Nếu mỗi request tự tạo `getInstanceStrong()` hoặc `reseed()`, lượng truy cập entropy và độ trễ có thể tăng đáng kể.
-- Nếu mọi thread dùng một đối tượng `SecureRandom`, Java bảo đảm **an toàn cho truy cập đa luồng**; tuy nhiên provider có thể đồng bộ nội bộ khiến contention, nên throughput/latency vẫn cần đo.
-- Trong môi trường VM/container, sự phụ thuộc host, runtime image, provider và entropy source có thể khác hẳn máy phát triển. Quan sát thread dump và thời gian gọi thay vì kết luận dựa vào tên hệ điều hành.
+- During **startup or first use**, the application may pause waiting for entropy before the first request completes.
+- If every request invokes `getInstanceStrong()` or `reseed()`, entropy access and latency can spike dramatically.
+- When all threads share one `SecureRandom` instance, Java guarantees **thread-safe concurrent access**; however, the provider may synchronize internally causing contention, so throughput/latency must still be measured.
+- In VMs/containers, host dependencies, runtime images, providers, and entropy sources can differ completely from a developer laptop. Inspect thread dumps and call timings rather than guessing from the OS name.
 
-**Không thể đảm bảo một API tạo secret luôn non-blocking trên mọi runtime.** Nếu nghiệp vụ có yêu cầu timeout, isolation và cơ chế backpressure, hãy thiết kế ranh giới xử lý từ đầu; việc hết thời gian chờ ở tầng caller không đảm bảo có thể ngắt ngay một thao tác native đang chờ entropy.
+**No API for generating secrets can be guaranteed non-blocking on every runtime.** If the business requires timeouts, isolation, and backpressure, design processing boundaries up front; a caller-side timeout does not guarantee immediate interruption of a native operation waiting on entropy.
 
-## 5. Thực hành 1: `getInstanceStrong` và token URL-safe
+## 5. Practice 1: `getInstanceStrong` and URL-Safe Tokens
 
-Chương trình tạo một token bằng `new SecureRandom()`, sau đó khám phá provider được chọn bởi `getInstanceStrong()`. **Nó không in giá trị token**, tránh đưa secret vào log.
+This program creates a token with `new SecureRandom()`, then inspects the provider chosen by `getInstanceStrong()`. **It does not print the token value**, avoiding secrets in logs.
 
-Lưu file **`StrongRandomDemo.java`** (Java 17+):
+Save **`StrongRandomDemo.java`** (Java 17+):
 
 ```java
 import java.security.NoSuchAlgorithmException;
@@ -192,14 +192,14 @@ public class StrongRandomDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 StrongRandomDemo.java
 java StrongRandomDemo
 ```
 
-Ví dụ **một lần chạy thực tế** trên Windows/JDK có các provider tương ứng (các dòng provider/algorithm/phần cấu hình **có thể khác**):
+Example of **one actual run** on Windows/JDK with corresponding providers (provider/algorithm/config lines **may vary**):
 
 ```text
 strong config present: true
@@ -211,22 +211,22 @@ strong algorithm: Windows-PRNG
 strong sample bytes: 16
 ```
 
-Điểm có thể kiểm tra ổn định khi chương trình chạy thành công:
+Stable assertions when the program succeeds:
 
-- `32` byte cho token; Base64URL không padding sinh **43 ký tự** từ 32 byte, bất kể giá trị byte thực tế.
-- `strong.sample` dùng 16 byte nhưng không in byte mật mã.
-- `default provider`, `strong provider` và `strong algorithm` **là dữ liệu runtime**, không nên đưa tên mẫu vào assertion portable.
-- `NoSuchAlgorithmException` được xử lý riêng; nếu cấu hình strong thiếu, nhánh báo unavailable chạy thay vì chương trình bí mật chuyển sang `java.util.Random`.
+- `32` bytes for the token; unpadded Base64URL produces **43 characters** from 32 bytes regardless of actual byte values.
+- `strong.sample` uses 16 bytes without printing secret bytes.
+- `default provider`, `strong provider`, and `strong algorithm` **are runtime data**; do not hardcode sample names in portable assertions.
+- `NoSuchAlgorithmException` is handled explicitly; if strong config is absent, the unavailable branch executes instead of silently falling back to `java.util.Random`.
 
-Token 32 byte có **độ rộng 256 bit**, nhưng mức an toàn thực tế còn phụ thuộc chất lượng RNG/entropy và cách quản lý token. Với token phiên, cần thêm thời hạn, cơ chế thu hồi, bảo vệ khi truyền/lưu trữ và không log token.
+A 32-byte token has a **256-bit width**, yet real security still depends on RNG/entropy quality and token lifecycle management. For session tokens, add expiration, revocation, transport/storage protection, and never log tokens.
 
-**Đối chiếu:** `getInstanceStrong()` không bắt buộc để sinh mọi token. Một `SecureRandom` mặc định của môi trường đã được kiểm chứng là lựa chọn thông dụng; nếu chính sách yêu cầu provider cụ thể, hãy quy định rõ và thử nghiệm trên môi trường thật.
+**Comparison:** `getInstanceStrong()` is not mandatory for generating every token. A verified environment-default `SecureRandom` is a common choice; when policy mandates a specific provider, specify it explicitly and test in the target environment.
 
-## 6. Thực hành 2: yêu cầu DRBG strength/reseed, đọc cấu hình hiệu lực
+## 6. Practice 2: Requesting DRBG Strength/Reseed and Reading Effective Config
 
-Chương trình này dùng **DRBG có hỗ trợ reseed**, phát sinh 32 byte, rồi chủ động reseed để thể hiện API. Trong sản phẩm thực tế, **không cần reseed thủ công ở mỗi request**; đây là thao tác dạy vòng đời.
+This program uses a **reseed-capable DRBG**, generates 32 bytes, and explicitly reseeds to demonstrate the API. In real production code, **manual reseeding on every request is unnecessary**; this illustrates the lifecycle.
 
-Lưu file **`DrbgParametersDemo.java`** (Java 17+):
+Save **`DrbgParametersDemo.java`** (Java 17+):
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -264,14 +264,14 @@ public class DrbgParametersDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 DrbgParametersDemo.java
 java DrbgParametersDemo
 ```
 
-Khi runtime có provider `DRBG` đáp ứng strength và capability yêu cầu, ví dụ đầu ra đã kiểm tra:
+When the runtime has a `DRBG` provider satisfying the requested strength and capability, verified sample output:
 
 ```text
 algorithm: DRBG
@@ -281,21 +281,21 @@ generated bytes: 32
 reseed: OK
 ```
 
-**Vì sao các kết quả boolean bằng `true`?** Factory chỉ tạo thành công khi request tối thiểu được đáp ứng; `getParameters()` báo thiết lập hiệu lực. Ví dụ không giả định chính xác strength là 128 hoặc capability là `RESEED_ONLY`: provider có quyền báo mức cao hơn.
+**Why are the boolean results `true`?** The factory succeeds only when minimum requested requirements are met; `getParameters()` reports effective settings. The example does not assume strength is exactly 128 or capability is exactly `RESEED_ONLY`: the provider may report a higher level.
 
-Giải mã từng tham số:
+Parameter breakdown:
 
-1. `128`: strength tối thiểu theo cơ chế DRBG, không phải “phát sinh đúng 128 bit”.
-2. `RESEED_ONLY`: bảo đảm API reseed khả dụng; **không** xin prediction resistance.
-3. `"lesson-3.6-v1"`: personalization string để tách ngữ cảnh, không phải secret seed.
-4. `nextBytes(-1, false, "operation-1"... )`: dùng strength hiệu lực, không xin PR cho lần phát sinh; chuỗi additional input không tạo entropy mới.
-5. `reseed(false, null)`: yêu cầu lấy entropy mới để cập nhật trạng thái; có thể block tùy nguồn entropy/provider.
+1. `128`: minimum DRBG security strength, not "generate exactly 128 bits."
+2. `RESEED_ONLY`: guarantees the reseed API is available; **does not** request prediction resistance.
+3. `"lesson-3.6-v1"`: personalization string for context separation, not a secret seed.
+4. `nextBytes(-1, false, "operation-1"... )`: uses effective strength, does not request PR for this call; additional input adds no fresh entropy.
+5. `reseed(false, null)`: requests fresh entropy to update state; may block depending on entropy source/provider.
 
-Nếu provider thiếu `DRBG` hoặc không đáp ứng capability, `getInstance` có thể ném `NoSuchAlgorithmException`. Khi bài toán có chính sách bảo mật ràng buộc, **không im lặng giảm strength hoặc đổi qua RNG không mật mã** để chạy tiếp.
+If no provider supplies `DRBG` or satisfies the capability, `getInstance` can throw `NoSuchAlgorithmException`. Under binding security policies, **never silently lower strength or fall back to a non-cryptographic RNG** to keep running.
 
-### 6.1 Khi thực sự yêu cầu prediction resistance
+### 6.1 When Prediction Resistance Is Truly Required
 
-Một ứng dụng có thể yêu cầu:
+An application may request:
 
 ```java
 DrbgParameters.Instantiation strongRequest =
@@ -309,13 +309,13 @@ byte[] output = new byte[32];
 prDrbg.nextBytes(output, DrbgParameters.nextBytes(-1, true, null));
 ```
 
-Đây là **đoạn mã minh họa trong phương thức có import `SecureRandom`/`DrbgParameters`**, không phải file chạy độc lập. Nó **có thể thất bại** nếu provider không hỗ trợ strength 256/PR; khi thành công, cờ `true` yêu cầu prediction resistance cho lần generate này. Provider có thể phải lấy entropy mới và chặn thread trong quá trình thực hiện. Đừng tự suy ra PR được bảo đảm chỉ vì dữ liệu có 256 bit.
+This is an **illustrative snippet inside a method with `SecureRandom`/`DrbgParameters` imported**, not a standalone runnable file. It **can fail** if the provider does not support 256-bit strength/PR; when it succeeds, `true` requests prediction resistance for that generation call. The provider may need fresh entropy and block the thread while executing. Never assume PR is guaranteed merely because 256 bits of data were requested.
 
-## 7. Thực hành 3: đo riêng thời gian tạo instance và phát sinh byte
+## 7. Practice 3: Measuring Instance Creation and Byte Generation Separately
 
-Đo **constructor/factory**, **lần `nextBytes` đầu** và **lần kế** riêng biệt vì nhiều triển khai seed theo nhu cầu. Chương trình cho phép chạy mặc định hoặc thêm đối số `strong` để quan sát lựa chọn `getInstanceStrong()`.
+Measure **constructor/factory**, **first `nextBytes`**, and **subsequent calls** separately because many implementations seed lazily. The program runs in default mode or accepts `strong` as an argument to observe `getInstanceStrong()`.
 
-Lưu file **`RandomLatencyProbe.java`**:
+Save **`RandomLatencyProbe.java`**:
 
 ```java
 import java.security.SecureRandom;
@@ -348,7 +348,7 @@ public class RandomLatencyProbe {
 }
 ```
 
-Biên dịch và chạy (chạy `strong` **chỉ trên môi trường đã được phép thử và có thể chịu latency**):
+Compile and run (run `strong` **only in an authorized test environment that can tolerate latency**):
 
 ```bash
 javac --release 17 RandomLatencyProbe.java
@@ -356,7 +356,7 @@ java RandomLatencyProbe
 java RandomLatencyProbe strong
 ```
 
-Một lần chạy chế độ mặc định trên môi trường thử cho kết quả:
+A default-mode run on a test environment produced:
 
 ```text
 algorithm: DRBG
@@ -366,75 +366,75 @@ first nextBytes: 18.310 ms
 second nextBytes: 0.059 ms
 ```
 
-**Tất cả tên provider và giá trị đo thay đổi theo JVM, OS, tải máy, JIT, entropy source và lần khởi động**. Đây là dữ liệu minh họa đã đo, tuyệt đối không phải benchmark hoặc ngưỡng bảo đảm. Lần thứ nhất chậm hơn có thể do seeding, class loading hoặc yếu tố khởi động khác; một phép đo **không chứng minh** nguồn entropy bị thiếu.
+**All provider names and measured timings vary with JVM, OS, machine load, JIT, entropy source, and warmup state.** These are illustrative measured numbers, definitely not a benchmark or guaranteed threshold. A slower first call can stem from seeding, class loading, or startup factors; a single measurement **does not prove** entropy starvation.
 
-Khi chẩn đoán hệ thống thực, ghi lại:
+When diagnosing a real system, record:
 
-- JVM/vendor/version, hệ điều hành và môi trường VM/container;
-- `getAlgorithm()`, `getProvider().getName()` và security property liên quan;
-- thời gian khởi tạo, lần phát sinh đầu tiên, các lần tiếp theo; nếu có reseed, đo riêng;
-- tần suất, phân vị p95/p99, thread dump/điểm call stack lúc treo và tương quan với startup hoặc load.
+- JVM/vendor/version, OS, and VM/container environment;
+- `getAlgorithm()`, `getProvider().getName()`, and relevant security properties;
+- initialization time, first generation, subsequent calls; if reseeding occurs, measure it separately;
+- frequency, p95/p99 percentiles, thread dumps/call stacks during stalls, and correlation with startup or load.
 
-Không dùng việc thay `/dev/random` bằng một đường dẫn khác hoặc thay đổi `java.security.egd` như “thuốc chữa” phổ quát: ý nghĩa cấu hình phụ thuộc implementation và có thể làm lệch chính sách entropy của hệ thống. Kiểm tra tài liệu provider/JDK và đánh giá bảo mật trước khi thay đổi.
+Never treat pointing `/dev/random` elsewhere or changing `java.security.egd` as a universal "cure-all": configuration semantics depend on implementation and can weaken system entropy policy. Check provider/JDK documentation and perform a security review before changing it.
 
-## 8. Lựa chọn thực tế trong ứng dụng
+## 8. Practical Choices in Applications
 
-| Nhu cầu | Điểm khởi đầu hợp lý | Điều phải tránh |
+| Need | Reasonable starting point | What to avoid |
 | --- | --- | --- |
-| Session token, CSRF token, mã bí mật dùng một lần | `SecureRandom` của môi trường đã kiểm chứng; `nextBytes` đủ dài, encode an toàn | `Math.random()`, `java.util.Random`, seed từ thời gian, ghi secret vào log |
-| Khóa có giá trị cao/tồn tại lâu dài | API sinh khóa chuyên dụng và chính sách RNG/provider rõ ràng; cân nhắc `getInstanceStrong()` nếu chính sách cần | Mặc định strong sẽ nhanh hoặc mọi runtime chọn giống nhau |
-| Cần strength/capability DRBG cụ thể | `getInstance("DRBG", DrbgParameters.instantiation(...))`, kiểm tra effective parameters | Xin `PR_AND_RESEED` mà không đánh giá chi phí entropy/độ trễ |
-| API latency thấp hoặc khởi động số lượng lớn | Đo trên runtime đích, khởi tạo có kiểm soát, tránh reseed/factory không cần thiết trong hot path | Hứa “non-blocking” chỉ vì thuật toán tên DRBG |
-| HSM/FIPS/chính sách provider | Chọn provider được thẩm định qua cấu hình/overload, kiểm thử lỗi và lifecycle | Dựa vào tên provider chỉ xuất hiện trên máy phát triển |
+| Session tokens, CSRF tokens, one-time secrets | Verified environment `SecureRandom`; sufficient `nextBytes` length, safe encoding | `Math.random()`, `java.util.Random`, time-based seeds, logging secrets |
+| High-value / long-lived keys | Dedicated key-generation APIs and explicit RNG/provider policy; consider `getInstanceStrong()` if policy requires | Assuming strong is fast or identical across all runtimes |
+| Specific DRBG strength/capability | `getInstance("DRBG", DrbgParameters.instantiation(...))`, inspect effective parameters | Requesting `PR_AND_RESEED` without evaluating entropy/latency cost |
+| Low-latency APIs or high-concurrency startup | Benchmark on target runtime, controlled initialization, avoid unnecessary reseed/factory calls on hot paths | Promising "non-blocking" just because the algorithm is named DRBG |
+| HSM/FIPS/provider policies | Select vetted providers via config/overload, test errors and lifecycle | Relying on provider names seen only on developer laptops |
 
-### 8.1 Quản lý vòng đời và concurrency
+### 8.1 Lifecycle Management and Concurrency
 
-Một đối tượng `SecureRandom` **an toàn khi được nhiều thread gọi** theo hợp đồng Java 17. Tuy nhiên nó có thể được provider đồng bộ bên trong, nên ứng dụng có throughput cao vẫn cần đo tranh chấp. Khởi tạo riêng ở mỗi request không tự tăng tính an toàn và có thể gây tăng chi phí khởi tạo/entropy.
+A `SecureRandom` instance is **safe for concurrent calls across threads** under the Java 17 contract. However, a provider may synchronize internally, so high-throughput apps should still measure contention. Creating a new instance per request does not automatically improve security and can increase initialization/entropy overhead.
 
-Một pattern thông dụng là giữ `SecureRandom` thích hợp trong thành phần chuyên cấp random bytes, tiêm phụ thuộc vào những nơi cần; bảo đảm cấu hình RNG được kiểm thử sớm khi ứng dụng khởi động. Nếu chính sách yêu cầu strong/HSM, xử lý việc không khởi tạo được như một lỗi cấu hình/bảo mật có thể quan sát, thay vì tự fallback sang RNG không thích hợp.
+A common pattern is holding an appropriate `SecureRandom` in a dedicated random-bytes component injected where needed; ensure RNG configuration is verified early at startup. If policy requires strong/HSM, treat initialization failure as an observable configuration/security error rather than silently falling back to an unsuitable RNG.
 
-### 8.2 Test thế nào khi đầu ra ngẫu nhiên?
+### 8.2 How to Test When Output Is Random
 
-- Unit test tập trung vào **định dạng, độ dài, điều kiện hợp lệ và cách xử lý lỗi**, không assert token có giá trị byte cố định.
-- Có thể inject một nguồn byte giả lập trong kiểm thử thuần logic (không đi qua đường sinh secret thật); production luôn sử dụng `SecureRandom` phù hợp.
-- Hai lần sinh byte có xác suất trùng rất nhỏ nhưng không **bảo đảm tuyệt đối khác nhau**; dùng test xác suất đơn lẻ như `assertNotEquals(a, b)` là không cần thiết cho hợp đồng API.
-- Không gửi raw token, seed hoặc trạng thái RNG vào log/trace/test report. Nếu cần quan sát, ghi thông tin cấu hình và độ trễ, không ghi bí mật.
+- Unit tests focus on **format, length, validity constraints, and error handling**, never asserting a fixed token byte value.
+- You may inject a mock byte source in pure logic tests (never wired into real secret paths); production always uses a proper `SecureRandom`.
+- Two byte generations have negligible collision probability yet are not **mathematically guaranteed distinct**; probabilistic one-off assertions like `assertNotEquals(a, b)` are unnecessary for API contracts.
+- Never write raw tokens, seeds, or RNG state to logs/traces/test reports. For observability, log configuration and latency metadata, never secrets.
 
-## 9. Lỗi thường gặp và cách sửa
+## 9. Common Mistakes and Fixes
 
-1. **“`getInstanceStrong` luôn không chặn vì mạnh.”** Sai: nó chọn theo property, còn hành vi chặn phụ thuộc provider/nguồn entropy; hãy đo riêng creation và generate.
-2. **“DRBG deterministic nên không bảo mật.”** Sai: DRBG mật mã cần seed không dự đoán được; “deterministic” mô tả bước sinh từ trạng thái, không đánh giá chất lượng seed.
-3. **“Có 32 byte output tức 256-bit strength.”** Sai: phân biệt độ dài byte với strength đã được provider bảo đảm.
-4. **“`setSeed(System.nanoTime())` giúp hết block và tăng entropy.”** Sai và có nguy cơ giảm an toàn, nhất là nếu seed được đưa vào trước khi provider tự seed. Để provider dùng entropy tin cậy.
-5. **“Cứ yêu cầu PR/reseed mỗi request để an toàn nhất.”** Không đúng chung: nhu cầu entropy/latency có thể rất lớn; cần threat model và chính sách rõ.
-6. **“Gọi `generateSeed(32)` thay cho `nextBytes` trong mọi use case.”** Sai: API seed material có thể có hành vi lấy entropy khác và không phải cách tối ưu phổ quát để cấp token.
-7. **“Cùng Java 17 thì provider/algorithm/time giống nhau.”** Sai: bản phân phối, OS, cấu hình bảo mật và thiết bị quyết định lựa chọn thực tế.
-8. **“Nếu thiếu DRBG/strong cứ fallback về `Random`.”** Không chấp nhận cho secret; cần xử lý lỗi hoặc chọn triển khai bảo mật được chính sách cho phép, có kiểm chứng.
-9. **“Không biết code nào chặn thì đặt timeout là đủ.”** Timeout ở lớp gọi không nhất thiết ngắt được thao tác native/entropy đang chờ. Thiết kế thread budget, isolation, retry/backpressure và observability phù hợp.
+1. **"`getInstanceStrong` never blocks because it's strong."** False: it selects from a property, whereas blocking depends on provider/entropy source; measure creation and generation separately.
+2. **"DRBGs are deterministic, so they're insecure."** False: cryptographic DRBGs require unpredictable seeds; "deterministic" describes generation from state, not seed quality.
+3. **"32 bytes of output means 256-bit strength."** False: distinguish byte length from provider-guaranteed strength.
+4. **"`setSeed(System.nanoTime())` prevents blocking and adds entropy."** False and potentially weakens security, especially if injected before provider self-seeding. Let the provider use trusted entropy.
+5. **"Request PR/reseed on every request for maximum security."** Not generally right: entropy/latency cost can be severe; rely on a clear threat model and policy.
+6. **"Call `generateSeed(32)` instead of `nextBytes` everywhere."** False: the seed-material API may access entropy differently and is not a universal token-issuance primitive.
+7. **"Same Java 17 means identical provider/algorithm/timing."** False: distribution, OS, security config, and hardware determine actual selection.
+8. **"If DRBG/strong is missing, fall back to `Random`."** Unacceptable for secrets; fail explicitly or select a policy-approved, verified secure implementation.
+9. **"Not sure what blocks, so just add a timeout."** Caller-level timeouts do not necessarily interrupt native calls waiting on entropy. Design thread budgets, isolation, retry/backpressure, and observability.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**Câu 1.** `getInstanceStrong()` chọn thuật toán dựa vào đâu?  
-Dựa vào property `securerandom.strongAlgorithms` và provider/algorithm hiện có của runtime, không phải dựa vào một thuật toán “Strong” chung của Java.
+**Q1.** How does `getInstanceStrong()` choose an algorithm?  
+From the `securerandom.strongAlgorithms` property and available runtime providers/algorithms, not from a single universal "Strong" Java algorithm.
 
-**Câu 2.** `nextBytes` của DRBG có nhất thiết truy cập OS entropy mỗi lần không?  
-Không. Nó thường sinh từ trạng thái nội bộ sau instantiate; nhưng có thể truy cập entropy khi instantiate/reseed hoặc khi policy/PR yêu cầu.
+**Q2.** Does a DRBG's `nextBytes` necessarily access OS entropy on every call?  
+No. It usually generates from internal state after instantiation, though it may access entropy at instantiation/reseed or when policy/PR requires it.
 
-**Câu 3.** Yêu cầu `RESEED_ONLY` bảo đảm điều gì?  
-Ít nhất khả năng reseed, **không** bắt buộc prediction resistance; kiểm tra `getParameters()` để biết capability hiệu lực.
+**Q3.** What does requesting `RESEED_ONLY` guarantee?  
+At least reseed capability, **not** prediction resistance; inspect `getParameters()` to see effective capabilities.
 
-**Câu 4.** Muốn tìm nguồn của độ trễ `SecureRandom` ở production thì xem gì?  
-Algorithm, provider, security property, JVM/OS, thời gian init/first/steady-state, lúc reseed và thread stacks; không kết luận chỉ từ một số đo.
+**Q4.** What should you inspect to diagnose `SecureRandom` latency in production?  
+Algorithm, provider, security properties, JVM/OS, init/first/steady-state timings, reseed timing, and thread stacks; never conclude from a single measurement.
 
-**Câu 5.** Vì sao không tự `setSeed` bằng thời gian?  
-Dữ liệu thời gian có entropy thấp/dễ đoán; lời gọi quá sớm còn có thể ngăn cơ chế tự seed của PRNG theo hợp đồng API.
+**Q5.** Why avoid `setSeed` with time values?  
+Time data has low/predictable entropy; calling it too early can also suppress the PRNG's automatic self-seeding per the API contract.
 
-Ghi nhớ mô hình: **entropy source → seed/reseed → trạng thái DRBG → `nextBytes`**, còn **`getInstanceStrong()` là cơ chế chọn triển khai theo chính sách nền tảng**. Một lựa chọn phù hợp cần cả an toàn mật mã, khả năng tương thích provider và độ trễ đã kiểm chứng trên môi trường thực.
+Remember the model: **entropy source → seed/reseed → DRBG state → `nextBytes`**, while **`getInstanceStrong()` is a platform-policy implementation selector**. A sound choice balances cryptographic security, provider compatibility, and measured latency in the real environment.
 
-## Tài liệu chính thức
+## Official References
 
-- [Java 17 — SecureRandom API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): cơ chế chọn instance, seed, thread safety và khả năng block.
-- [Java 17 — DrbgParameters API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/DrbgParameters.html): instantiate, nextBytes, reseed và cấu hình DRBG.
-- [Java 17 — DrbgParameters.Capability](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/DrbgParameters.Capability.html): NONE, RESEED_ONLY và PR_AND_RESEED.
-- [Java 17 — JCA Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): kiến trúc SecureRandom/provider và cấu hình bảo mật.
-- [NIST SP 800-90A Rev. 1](https://csrc.nist.gov/pubs/sp/800/90/a/r1/final): cơ sở khái niệm về deterministic random bit generators.
+- [Java 17 — SecureRandom API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html): instance selection, seeding, thread safety, and blocking behavior.
+- [Java 17 — DrbgParameters API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/DrbgParameters.html): instantiate, nextBytes, reseed, and DRBG configuration.
+- [Java 17 — DrbgParameters.Capability](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/DrbgParameters.Capability.html): NONE, RESEED_ONLY, and PR_AND_RESEED.
+- [Java 17 — JCA Reference Guide](https://docs.oracle.com/en/java/javase/17/security/java-cryptography-architecture-jca-reference-guide.html): SecureRandom/provider architecture and security configuration.
+- [NIST SP 800-90A Rev. 1](https://csrc.nist.gov/pubs/sp/800/90/a/r1/final): foundational concepts of deterministic random bit generators.

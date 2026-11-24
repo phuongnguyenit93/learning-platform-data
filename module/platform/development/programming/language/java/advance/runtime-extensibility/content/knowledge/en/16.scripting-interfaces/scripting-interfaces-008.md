@@ -1,33 +1,33 @@
-# Giới hạn tính khả chuyển của cú pháp, chuyển đổi kiểu và cơ chế dừng engine
+# Limits of Syntax Portability, Type Conversion, and Engine Termination Mechanisms
 
-Java cung cấp API **JSR-223 / Scripting for the Java Platform** trong module `java.scripting`, chủ yếu qua `javax.script.ScriptEngineManager`, `ScriptEngine`, `Bindings`, `ScriptContext` và `ScriptEngineFactory`. API giúp một ứng dụng Java **làm việc với nhiều script engine thông qua giao diện Java chung**; nhưng nó **không chuẩn hóa ngôn ngữ script, hệ kiểu dữ liệu của ngôn ngữ, khả năng ngắt một script đang chạy hoặc mức độ cô lập của engine**.
+Java provides the **JSR-223 / Scripting for the Java Platform** API in the `java.scripting` module, primarily through `javax.script.ScriptEngineManager`, `ScriptEngine`, `Bindings`, `ScriptContext`, and `ScriptEngineFactory`. The API enables a Java application to **work with multiple script engines through a common Java interface**; however, it **does not standardize the scripting language, its type system, the ability to stop a running script, or the engine's isolation level**.
 
-Ba câu hỏi thiết kế cần được trả lời *riêng biệt*:
+Three design questions must be answered *separately*:
 
-1. **Cú pháp script có chuyển sang engine khác được không?** Không có cam kết rằng cùng chuỗi script sẽ được tất cả engine hiểu và thực thi tương đương.
-2. **Giá trị Java và script được chuyển kiểu như thế nào?** `eval` nhận/trả `Object`; Java không có một quy tắc chuyển đổi chung cho mọi ngôn ngữ và mọi engine.
-3. **Khi script quá thời gian, ai dừng nó?** API `ScriptEngine` không có thao tác chuẩn `stop()`, `interrupt()` hoặc `close()`. Timeout, ngắt thread và hủy engine cần tách rõ theo hợp đồng implementation.
+1. **Is script syntax portable to another engine?** There is no guarantee that the same script string will be understood and executed identically by all engines.
+2. **How are Java and script values converted?** `eval` accepts and returns `Object`; Java has no universal conversion rule across all languages and engines.
+3. **When a script exceeds its time limit, who stops it?** The `ScriptEngine` API has no standard `stop()`, `interrupt()`, or `close()` operation. Timeouts, thread interruption, and engine termination must be separated per the implementation's contract.
 
-**Nguyên tắc chính:** có thể chuẩn hóa *lời gọi từ Java*, nhưng muốn khả chuyển thực sự phải có **hợp đồng cú pháp, dữ liệu, vòng đời và giới hạn thực thi** do ứng dụng thiết kế, kiểm thử trên từng engine.
+**Core principle:** you can standardize *the Java invocation wrapper*, yet true portability requires **application-designed contracts for syntax, data, lifecycle, and execution limits**, tested against each engine.
 
-## 1. JSR-223 chuẩn hóa tầng nào?
+## 1. Which Layer Does JSR-223 Standardize?
 
-Các thành phần cơ bản:
+Core components:
 
-| API | Vai trò chuẩn hóa | Không bảo đảm |
+| API | Standardized Role | Not Guaranteed |
 | --- | --- | --- |
-| `ScriptEngineManager` | Khám phá/đăng ký engine factory; tìm engine theo name, extension, MIME type | Môi trường luôn có engine cho JavaScript/Groovy hay ngôn ngữ nào |
-| `ScriptEngine` | `eval(String/Reader, ...)`, `put/get`, `createBindings`, lấy/set context | Cú pháp chung, type mapping chung, sandbox, timeout, stop |
-| `ScriptEngineFactory` | Tên engine, phiên bản, ngôn ngữ, aliases, extension, MIME, metadata `THREADING` | Đặc tính engine/version đồng nhất giữa nhà cung cấp |
-| `Bindings` | Một ánh xạ `String → Object` cho các thuộc tính hiển thị với script | Cách diễn giải tên biến, host object, null hoặc kiểu dữ liệu trong script |
-| `ScriptContext` | `ENGINE_SCOPE`, `GLOBAL_SCOPE` và input/output/error readers/writers | Cô lập hoàn toàn state của engine hoặc request |
-| `Invocable` | Gọi function/method script khi engine hỗ trợ interface này | Tất cả engine đều hỗ trợ; tên hàm, argument conversion hoặc proxy giống nhau |
-| `Compilable` | Biên dịch script trước qua `compile` khi engine hỗ trợ | Caching/mã bytecode/compile artifact dùng chung giữa engine hay version |
-| `ScriptException` | Kiểu lỗi API có thể báo khi evaluation thất bại | Mọi lỗi native/timeout/cancel được biểu diễn thống nhất |
+| `ScriptEngineManager` | Discovers/registers engine factories; finds engines by name, extension, MIME type | That the environment always has an engine for JavaScript/Groovy or any particular language |
+| `ScriptEngine` | `eval(String/Reader, ...)`, `put/get`, `createBindings`, get/set context | Shared syntax, shared type mapping, sandbox, timeout, stop |
+| `ScriptEngineFactory` | Engine name, version, language, aliases, extensions, MIME, `THREADING` metadata | Uniform engine/version behavior across vendors |
+| `Bindings` | A `String → Object` map for attributes visible to scripts | How variable names, host objects, null, or types are interpreted inside scripts |
+| `ScriptContext` | `ENGINE_SCOPE`, `GLOBAL_SCOPE`, and input/output/error readers/writers | Complete isolation of engine or request state |
+| `Invocable` | Calls script functions/methods when the engine supports this interface | Universal support across engines; identical function naming, argument conversion, or proxies |
+| `Compilable` | Precompiles scripts via `compile` when supported by the engine | Portable caching/bytecode/compiled artifacts across engines or versions |
+| `ScriptException` | API error type thrown when evaluation fails | Uniform representation of all native/timeout/cancellation errors |
 
-`ScriptEngineManager` dựa trên cơ chế service provider của Java để khám phá `ScriptEngineFactory` có trên runtime classpath/module path. Có thể dùng `registerEngineName` để đăng ký factory **trong manager đang dùng**, nhưng đây không phải đăng ký một ngôn ngữ mới cho toàn JVM.
+`ScriptEngineManager` relies on Java's service provider mechanism to discover `ScriptEngineFactory` implementations on the runtime classpath/module path. You can use `registerEngineName` to register a factory **within that manager instance**, though this does not register a new language globally across the entire JVM.
 
-**Quan trọng đối với Java 17:** module `java.scripting` vẫn tồn tại, nhưng **JDK không mặc định kèm Nashorn JavaScript engine**. Nashorn đã bị loại khỏi JDK từ Java 15 (JEP 372). Vì vậy:
+**Important for Java 17:** the `java.scripting` module still exists, but **the JDK does not bundle the Nashorn JavaScript engine by default**. Nashorn was removed from the JDK in Java 15 (JEP 372). Therefore:
 
 ```java
 ScriptEngineManager manager = new ScriptEngineManager();
@@ -38,22 +38,22 @@ if (engine == null) {
 }
 ```
 
-Đây là **snippet**, cần import `javax.script.*`. Nó chỉ chạy tiếp khi hệ thống thực sự cài một JSR-223 JavaScript provider. Không được viết bài thực hành Java 17 mặc định với `engine.eval("1 + 2")` mà bỏ qua kiểm tra `null`. Khi sử dụng named module của ứng dụng, khai báo `requires java.scripting;` và cấu hình provider/module path theo hướng dẫn của engine được chọn.
+This is a **snippet** requiring `import javax.script.*;`. It only proceeds when the system actually has a JSR-223 JavaScript provider installed. Do not write Java 17 exercises assuming `engine.eval("1 + 2")` works while skipping the `null` check. When using a named application module, declare `requires java.scripting;` and configure the provider/module path per the chosen engine's documentation.
 
-## 2. Tính khả chuyển của cú pháp: cùng eval không có nghĩa cùng ngôn ngữ
+## 2. Syntax Portability: Same `eval` Does Not Mean Same Language
 
-`ScriptEngine.eval(String script)` yêu cầu một **chuỗi nội dung**, nhưng nội dung đó được parse theo **ngữ pháp và semantics của ngôn ngữ mà engine thực thi**.
+`ScriptEngine.eval(String script)` takes a **content string**, yet that content is parsed according to the **grammar and semantics of the language executed by that engine**.
 
-Ví dụ những sự khác nhau cần cân nhắc:
+Examples of differences to consider:
 
-- Cách khai báo biến, block, function và import/module: `let`/`const` trong JavaScript không phải cú pháp dùng chung với Groovy hoặc Python.
-- Truthiness, toán tử cộng chuỗi, so sánh bằng nhau, thứ tự đánh giá, exception syntax.
-- Số học: chia số nguyên hay số thực; overflow; precision; BigInt, decimal và các API số học.
-- Phạm vi biến, closure, global object, async/promises/coroutines; cơ chế host interop.
-- Các built-in như `Date`, `JSON`, `Math`, `print`, I/O hoặc package import có thể khác nhau.
-- Dù cùng là ngôn ngữ “JavaScript”, engine/version khác nhau có thể hỗ trợ ECMAScript level, host access hoặc extension khác nhau.
+- How variables, blocks, functions, and imports/modules are declared: `let`/`const` in JavaScript is not shared syntax with Groovy or Python.
+- Truthiness, string concatenation operators, equality comparison, evaluation order, exception syntax.
+- Arithmetic: integer vs. floating-point division; overflow; precision; BigInt, decimals, and numeric APIs.
+- Variable scoping, closures, global objects, async/promises/coroutines; host interop mechanisms.
+- Built-ins such as `Date`, `JSON`, `Math`, `print`, I/O, or package imports may differ.
+- Even within the "JavaScript" language, different engines and versions may support different ECMAScript levels, host access rules, or extensions.
 
-Ví dụ sau **chỉ minh họa cú pháp của JavaScript**, không phải “script portable”:
+The example below **only illustrates JavaScript syntax**, not a "portable script":
 
 ```javascript
 const price = 19.5;
@@ -61,11 +61,11 @@ const quantity = 2;
 price * quantity;
 ```
 
-Với một engine khác, phải cung cấp mã nguồn đúng ngôn ngữ của nó. JSR-223 không tự dịch `const`, operator, built-in hay control flow giữa các engine.
+For another engine, you must supply source code written in its language. JSR-223 does not translate `const`, operators, built-ins, or control flow across engines.
 
-### Đọc metadata trước khi chạy
+### Inspecting Metadata Before Execution
 
-Một adapter có thể kiểm tra:
+An adapter can check:
 
 ```java
 ScriptEngineFactory f = engine.getFactory();
@@ -76,41 +76,41 @@ String languageVersion = f.getLanguageVersion();
 Object threading = f.getParameter("THREADING");
 ```
 
-Đây là **snippet**; `engine` phải đã được tạo thành công. `getNames()`, `getExtensions()` và `getMimeTypes()` có thể liệt kê aliases/định danh do provider công bố. **Alias không phải định danh khả chuyển của một ngôn ngữ chuẩn**. “JavaScript” có thể trỏ tới engine khác nhau tùy dependency và class loader; luôn chốt implementation và version được hỗ trợ trong cấu hình sản phẩm.
+This is a **snippet**; `engine` must already have been created successfully. `getNames()`, `getExtensions()`, and `getMimeTypes()` can list aliases/identifiers advertised by the provider. **Aliases are not portable identifiers of a standardized language**. "JavaScript" can resolve to different engines depending on dependencies and class loaders; always pin the supported implementation and version in product configuration.
 
-Một cách chọn thực dụng:
+A pragmatic selection strategy:
 
-1. Xác định **ngôn ngữ + engine/version** mà ứng dụng hỗ trợ (ví dụ một tập con cụ thể).
-2. Chọn provider từ dependency đã kiểm soát, dùng engine name đã xác minh.
-3. Kiểm tra metadata và thử một đoạn smoke test xác nhận tính năng cần thiết khi khởi động.
-4. Nếu không có engine đúng yêu cầu, **fail fast**, không tự fallback sang ngôn ngữ khác.
-5. Nếu phải thay engine, thực hiện migration và regression tests cho từng script, thay vì giả định “chỉ đổi engine name”.
+1. Specify the **language + engine/version** supported by the application (e.g., a concrete subset).
+2. Select the provider from controlled dependencies using a verified engine name.
+3. Inspect metadata and run a startup smoke test confirming required features.
+4. If the required engine is absent, **fail fast**—never silently fall back to another language.
+5. If replacing an engine, run migration and regression tests for every script rather than assuming "just swap the engine name."
 
-### Invocable và Compilable là tùy chọn
+### Invocable and Compilable Are Optional
 
-`Invocable` và `Compilable` không phải capability bắt buộc của mọi `ScriptEngine`:
+`Invocable` and `Compilable` are not mandatory capabilities of every `ScriptEngine`:
 
 ```java
 if (engine instanceof Compilable compilable) {
     CompiledScript program = compilable.compile(scriptText);
-    // Dùng program theo lifetime/version của chính engine.
+    // Use program within the lifetime/version of that same engine.
 } else {
     engine.eval(scriptText);
 }
 
 if (engine instanceof Invocable invocable) {
-    // Chỉ khi script đã khai báo function tương thích.
+    // Only when the script has declared a compatible function.
     Object answer = invocable.invokeFunction("transform", input);
 }
 ```
 
-Đây là **snippet** với `engine`, `scriptText` và `input` đã được cung cấp; cần import `javax.script.*`. Ngay cả khi hỗ trợ `Invocable`, tên hàm, method binding, exception và conversion vẫn phụ thuộc ngôn ngữ/engine. `CompiledScript` cũng không phải định dạng artifact di động sang engine khác.
+This is a **snippet** with `engine`, `scriptText`, and `input` supplied; it requires `import javax.script.*;`. Even when `Invocable` is supported, function naming, method binding, exceptions, and conversions still depend on the language/engine. Nor is `CompiledScript` a portable artifact format across engines.
 
-## 3. Vùng dữ liệu: Bindings, ScriptContext và state có thể rò giữa request
+## 3. Data Areas: Bindings, ScriptContext, and State That Can Leak Between Requests
 
-`Bindings` là một map có key dạng chuỗi, còn `ScriptContext` quản lý ít nhất hai scope: `ENGINE_SCOPE` và `GLOBAL_SCOPE`. Engine được phép có **ngữ cảnh nội bộ, biến toàn cục, runtime cache hoặc host object references**, tùy implementation. Do đó “mỗi lần `eval` truyền Bindings riêng” không tự khẳng định mọi state bên trong engine đều được cô lập.
+`Bindings` is a string-keyed map, and `ScriptContext` manages at least two scopes: `ENGINE_SCOPE` and `GLOBAL_SCOPE`. An engine may maintain **internal contexts, global variables, runtime caches, or host object references**, depending on the implementation. Thus "passing a separate `Bindings` to every `eval`" does not automatically prove all internal engine state is isolated.
 
-Ví dụ Java caller cấp tham số:
+Java caller supplying arguments:
 
 ```java
 Bindings b = engine.createBindings();
@@ -119,43 +119,43 @@ b.put("quantity", 3);
 Object raw = engine.eval(scriptText, b);
 ```
 
-Đây là **snippet**; việc script nhìn thấy `customerId` với cú pháp nào phải theo engine cụ thể. Phía Java nên dựng **Bindings riêng cho từng evaluation**, không sửa map đó đồng thời trong khi engine đang đọc; một object như `List`, `Map` hay service Java đặt trong Bindings vẫn có thể có mutable state dùng chung.
+This is a **snippet**; the syntax the script uses to read `customerId` depends on the specific engine. The Java side should construct **a dedicated `Bindings` per evaluation**, without mutating that map concurrently while the engine reads it; a `List`, `Map`, or Java service placed inside `Bindings` can still carry shared mutable state.
 
-### Quy tắc state ownership
+### State Ownership Rules
 
-- Tách **input values** khỏi **engine global state**; không dùng `engine.put("user", ...)` trên singleton engine cho nhiều người dùng đồng thời mà không có hợp đồng về threading và isolation.
-- Tạo engine/context theo scope phù hợp (evaluation, worker, session hoặc app), xác định khi nào reset, dispose và có thể tái sử dụng.
-- Nếu mỗi request cần độc lập tuyệt đối, một `ScriptContext` mới không nhất thiết đủ; có thể cần engine mới hoặc process mới.
-- Một factory có thể công bố metadata `getParameter("THREADING")`. Ý nghĩa của các giá trị chuẩn theo JDK 17:
+- Separate **input values** from **engine global state**; never call `engine.put("user", ...)` on a singleton engine serving multiple concurrent users without a threading and isolation contract.
+- Create engines/contexts at the proper scope (evaluation, worker, session, or app), defining when to reset, dispose, and whether reuse is permitted.
+- If each request requires strict independence, a fresh `ScriptContext` is not necessarily enough; you may need a fresh engine or a separate process.
+- A factory may advertise `getParameter("THREADING")` metadata. Meaning of the standard values in JDK 17:
 
-| `THREADING` | Hợp đồng về đồng thời do engine công bố |
+| `THREADING` | Concurrency Contract Advertised by the Engine |
 | --- | --- |
-| `null` | Engine không thread-safe; không gọi đồng thời trên cùng instance |
-| `"MULTITHREADED"` | Engine tự đồng bộ để cho phép chạy đồng thời, nhưng tác động giữa scripts có thể nhìn thấy nhau |
-| `"THREAD-ISOLATED"` | Đạt điều kiện MULTITHREADED và giữ các giá trị symbol độc lập giữa threads |
-| `"STATELESS"` | Đạt THREAD-ISOLATED và chạy script không thay đổi map `Bindings` của ENGINE_SCOPE |
+| `null` | Engine is not thread-safe; do not invoke concurrently on the same instance |
+| `"MULTITHREADED"` | Engine synchronizes itself to allow concurrent execution, but effects across scripts may be visible to each other |
+| `"THREAD-ISOLATED"` | Satisfies MULTITHREADED and keeps symbol values independent across threads |
+| `"STATELESS"` | Satisfies THREAD-ISOLATED and script execution does not alter the `ENGINE_SCOPE` `Bindings` map |
 
-Metadata về threading **không phải bảo đảm sandbox/security**; host objects truyền vào vẫn có concurrency contract riêng. `getParameter("THREADING") == null` nên được xử lý theo giả định **không chia sẻ đồng thời**. Nếu muốn chạy song song, dùng pool các engine độc lập **chỉ khi nhà cung cấp cho phép**, hoặc tạo worker/process riêng theo policy.
+Threading metadata **is not a sandbox/security guarantee**; passed-in host objects still have their own concurrency contracts. `getParameter("THREADING") == null` should be treated under the assumption of **no concurrent sharing**. To run in parallel, pool independent engines **only if permitted by the vendor**, or spawn separate workers/processes per policy.
 
-## 4. Chuyển đổi kiểu: không có “Object portable” giữa mọi engine
+## 4. Type Conversion: There Is No "Portable Object" Across All Engines
 
-Ở phía Java, `ScriptEngine.eval` trả `Object`. Ở phía script, hệ kiểu có thể khác Java. Engine sẽ dùng chiến lược riêng để biểu diễn/chuyển giá trị:
+On the Java side, `ScriptEngine.eval` returns `Object`. On the script side, the type system may differ from Java's. Engines apply their own strategies to represent and convert values:
 
-| Giá trị tại ranh giới | Rủi ro thường gặp | Nguyên tắc |
+| Value at the Boundary | Common Risk | Principle |
 | --- | --- | --- |
-| Số nguyên `int`, `long` | Engine chuyển thành double, BigInteger, wrapper khác hoặc proxy | Validate `Number` thực tế; không ép `(Integer) raw` |
-| Số thực `double` | Sai số binary floating-point; NaN, ±Infinity | Hợp đồng precision/range rõ ràng, không dùng trực tiếp cho tiền |
-| `BigDecimal` | Engine có thể giữ host object, đổi sang floating-point, hoặc không hỗ trợ | Encode decimal thành string/typed record rồi parse theo quy tắc |
-| `boolean` | Truthiness và quy tắc chuyển sang Boolean khác nhau | Yêu cầu trả đúng Boolean, không coi 0/`""`/null là false ngầm |
-| `String` | Charset, Unicode normalization, escape và interpolation | Hợp đồng string/encoding/normalization rõ |
-| `null`, giá trị thiếu, “undefined” | Thiếu key khác key có value null; engine có sentinel riêng | Kiểm tra `Bindings.containsKey`, mô hình nullability riêng |
-| Mảng/list | Có thể là `List` Java, script array, proxy, wrapper | Không cast mù; chuyển sang DTO/List được kiểm soát |
-| Object/map | Script object có thể không phải `java.util.Map` | Adapter chuyển key/value và validate schema |
-| Date/time | Các ngôn ngữ/engine khác precision, timezone, format | Dùng ISO-8601 hoặc epoch có đơn vị/time zone xác định |
-| Java host object | Có thể phơi methods/reflection/quyền của host | Chỉ cấp facade được phép; không dựa vào conversion như cơ chế bảo mật |
-| Function/promise/async handle | Có thể là object sống phụ thuộc runtime/engine | Không trả thẳng qua boundary ổn định; resolve thành dữ liệu chuẩn |
+| Integers `int`, `long` | Engine converts to double, BigInteger, another wrapper, or proxy | Validate actual `Number`; never blindly cast `(Integer) raw` |
+| Floating-point `double` | Binary floating-point error; NaN, ±Infinity | Explicit precision/range contract; never use directly for money |
+| `BigDecimal` | Engine may keep a host object, convert to float, or not support it | Encode decimal as a string/typed record and parse by rule |
+| `boolean` | Truthiness and Boolean coercion rules differ | Require an exact `Boolean` return; do not treat `0`/`""`/null as implicit false |
+| `String` | Charset, Unicode normalization, escaping, and interpolation | Explicit string/encoding/normalization contract |
+| `null`, missing, "undefined" | Missing key differs from key with null value; engines have distinct sentinels | Check `Bindings.containsKey`; model nullability explicitly |
+| Arrays/lists | May be a Java `List`, script array, proxy, or wrapper | Do not cast blindly; convert to a validated DTO/`List` |
+| Objects/maps | Script object may not be a `java.util.Map` | Use an adapter converting keys/values and validating schema |
+| Date/time | Languages/engines differ in precision, timezone, and format | Use ISO-8601 or epoch with explicit unit and timezone |
+| Java host objects | May expose host methods, reflection, and privileges | Expose only approved facades; never rely on conversion as security |
+| Function/promise/async handle | May be a live runtime/engine-bound object | Do not return directly across a stable boundary; resolve into standard data |
 
-Ví dụ kiểm tra kiểu rõ ràng:
+Example of explicit type checking:
 
 ```java
 Object raw = engine.eval(scriptText, bindings);
@@ -168,79 +168,79 @@ if (!Double.isFinite(value)) {
 }
 ```
 
-Đây là **snippet**. Nó phù hợp khi API ứng dụng **chấp nhận số thực có sai số double**. Nó **không phù hợp** nếu kết quả là số tiền/ID nguyên lớn cần bảo toàn chính xác; `doubleValue()` có thể mất precision từ `BigDecimal`/`BigInteger`.
+This is a **snippet**. It fits when the application API **accepts floating-point numbers with double precision**. It is **unsuitable** when results are monetary amounts or large integer IDs requiring exact precision; `doubleValue()` can lose precision from `BigDecimal`/`BigInteger`.
 
-### Ví dụ về integer precision
+### Example on Integer Precision
 
-Java `long` có thể biểu diễn số 9.007.199.254.740.993 (2^53 + 1). Với semantics số học kiểu IEEE-754 double như JavaScript `Number`, không phải mọi số nguyên quá 2^53 − 1 đều biểu diễn chính xác. Một JSR-223 provider có thể chuyển `Long` theo cách riêng; **không được giả định script luôn nhận chính xác toàn bộ 64-bit ID**. Với ID, dùng chuỗi decimal hoặc một kiểu BigInt được support và test rõ ràng.
+Java `long` can represent 9,007,199,254,740,993 ($2^{53} + 1$). Under IEEE-754 double numeric semantics such as JavaScript `Number`, not every integer above $2^{53} - 1$ is represented exactly. A JSR-223 provider may convert `Long` in its own way; **never assume scripts always receive all 64-bit IDs accurately**. For IDs, use decimal strings or an explicitly supported and tested BigInt type.
 
-### Decimal cho tiền và độ chính xác
+### Decimals for Money and Exact Precision
 
-Thay vì đẩy `double` rồi hy vọng engine giữ đúng:
+Instead of passing a `double` and hoping the engine preserves it:
 
 ```java
 Bindings b = engine.createBindings();
-b.put("amountText", "0.10");       // decimal theo contract
+b.put("amountText", "0.10");       // decimal per contract
 b.put("currency", "VND");
 Object raw = engine.eval(scriptText, b);
 
-// Giả sử contract yêu cầu script trả decimal dạng String:
+// Suppose the contract requires the script to return a decimal as a String:
 if (!(raw instanceof String decimalText)) {
     throw new IllegalStateException("Expected decimal string result");
 }
 java.math.BigDecimal amount = new java.math.BigDecimal(decimalText);
 ```
 
-Đây là **snippet của một giao thức ứng dụng**, không bảo đảm mọi engine sẽ tự coi `amountText` là số decimal. Adapter script phải parse/format theo ngôn ngữ của engine, nêu rõ quy tắc scale, rounding và invalid input. Dùng `BigDecimal(String)` thay vì `BigDecimal(double)` nếu cần độ chính xác biểu diễn decimal đầu vào.
+This is a **snippet of an application protocol** and does not guarantee every engine treats `amountText` as a decimal number automatically. The script adapter must parse/format according to the engine's language, specifying scale, rounding, and invalid-input rules. Use `BigDecimal(String)` rather than `BigDecimal(double)` when exact input decimal representation is required.
 
-### Đề xuất một output contract có thể kiểm thử
+### Recommending a Testable Output Contract
 
-Thay vì để nghiệp vụ phụ thuộc class implementation của provider, định nghĩa output là:
+Rather than letting business logic depend on provider implementation classes, define output as:
 
-- Một DTO/record rõ schema ở phía Java, với các field cơ bản như `String`, `boolean`, `List`, string decimal và thời gian ISO-8601;
-- Hoặc JSON text có JSON schema/contract version rõ; các script engine phải chủ động serialize thành JSON text theo runtime của chúng; Java parse bằng thư viện đã chọn.
+- A schema-defined DTO/record on the Java side with basic fields like `String`, `boolean`, `List`, decimal strings, and ISO-8601 timestamps;
+- Or JSON text with an explicit JSON schema/contract version; script engines serialize to JSON text within their runtime, and Java parses with its chosen library.
 
-Các kiểu từ script cần đi qua **adapter nhận diện và validate**. Không nên ép `(Map<String,Object>) engine.eval(...)` nếu nhà cung cấp chưa bảo đảm kết quả là `Map` Java. Đặc biệt tránh leak object proxy còn phụ thuộc engine đã dispose.
+Types coming from scripts must pass through a **recognizing and validating adapter**. Never cast `(Map<String,Object>) engine.eval(...)` unless the vendor explicitly guarantees the return value is a Java `Map`. Especially avoid leaking proxy objects tied to a disposed engine.
 
-## 5. Khi nào phân biệt null, missing và exception?
+## 5. When to Distinguish null, Missing, and Exception?
 
-Một giao diện script có thể quy định:
+A script interface can distinguish:
 
-- **Missing input**: không có key `"limit"` trong Bindings; xử lý bằng `containsKey` trước khi `get`.
-- **Explicit null**: có key nhưng value `null`; biểu thị “không có giá trị” nếu schema cho phép.
-- **Undefined / nil / None**: khái niệm ở một số ngôn ngữ script; conversion của engine có thể trả `null`, sentinel object hoặc ném lỗi.
-- **Evaluation failure**: syntax error, runtime error, host interop error; `ScriptException` là đường báo phổ biến nhưng implementation có thể có wrapper/native exception khác.
-- **Timeout/cancellation**: do ứng dụng chủ động quản lý, **không phải một biến thể bắt buộc của null hoặc ScriptException**.
+- **Missing input**: no `"limit"` key in Bindings; check via `containsKey` before `get`.
+- **Explicit null**: key exists with value `null`; represents "no value" if the schema permits.
+- **Undefined / nil / None**: concepts in some scripting languages; engine conversion may return `null`, a sentinel object, or throw an error.
+- **Evaluation failure**: syntax error, runtime error, host interop error; `ScriptException` is the common reporting channel, though implementations may have other wrappers/native exceptions.
+- **Timeout/cancellation**: actively managed by the application, **not a mandatory variant of null or ScriptException**.
 
-Không dùng `raw == null` để kết luận “script chưa tìm thấy biến” hoặc “engine timeout”. Phải có response envelope/app-level status riêng, ví dụ `SUCCESS(value)`, `SCRIPT_ERROR`, `TIMEOUT`, `CANCELLED`, `ENGINE_UNAVAILABLE`. Với security, không đưa stack trace host hoặc bí mật vào thông báo cho caller.
+Never use `raw == null` to conclude "the script did not find the variable" or "the engine timed out." Use a dedicated response envelope or app-level status, such as `SUCCESS(value)`, `SCRIPT_ERROR`, `TIMEOUT`, `CANCELLED`, `ENGINE_UNAVAILABLE`. For security, keep host stack traces and secrets out of caller-facing messages.
 
-## 6. Cơ chế dừng: ScriptEngine không có API stop chuẩn
+## 6. Stopping Mechanisms: ScriptEngine Has No Standard Stop API
 
-`ScriptEngine` định nghĩa `eval`, `put/get`, `getContext`, `setBindings`, `createBindings`, `getFactory`. **Không có method chuẩn**:
+`ScriptEngine` defines `eval`, `put/get`, `getContext`, `setBindings`, `createBindings`, and `getFactory`. **There is no standard method**:
 
 ```text
 engine.stop()
 engine.interrupt()
 engine.terminate()
-engine.close()    // không thuộc javax.script.ScriptEngine interface
+engine.close()    // not part of the javax.script.ScriptEngine interface
 ```
 
-Đây chỉ là **tên giả để minh họa API không tồn tại**; không được gọi trong mã Java thực tế. Một số nhà cung cấp cung cấp API riêng để cancel/close context, đặt instruction limit hoặc timeout; phải đọc contract/version của provider đó.
+These are **fictitious names illustrating nonexistent APIs**; never call them in real Java code. Some vendors offer proprietary APIs to cancel/close contexts, set instruction limits, or enforce timeouts; read the contract for that specific vendor and version.
 
-Cần phân biệt:
+Distinguish clearly:
 
-| Hành động | Thực tế được bảo đảm | Điều không bảo đảm |
+| Action | What Is Actually Guaranteed | What Is Not Guaranteed |
 | --- | --- | --- |
-| `Future.get(timeout, unit)` | Thread caller chỉ đợi đến hạn rồi nhận `TimeoutException` | Script worker tự dừng |
-| `Future.cancel(true)` | Nếu cancel thành công, đánh dấu future đã hủy và yêu cầu interrupt thread đang chạy nếu phù hợp | Engine/script tôn trọng interruption |
-| `Thread.interrupt()` | Đặt interruption flag, có thể khiến các blocking method interruptible ném `InterruptedException` | Interpreter/native call/vòng CPU sẽ thoát |
-| `ExecutorService.shutdownNow()` | Cố ngắt tasks, trả danh sách tasks chưa chạy | Bắt buộc kill được mọi task đang chạy |
-| API cancel/close **riêng của engine** | Hành vi theo tài liệu nhà cung cấp | Phổ quát giữa các engine |
-| Giới hạn bằng **process/container riêng** | Host có thể kết thúc process và thu hồi tài nguyên ở ranh giới OS | Kết quả script còn dở sẽ tự rollback external side effects |
+| `Future.get(timeout, unit)` | Caller thread waits until deadline and receives `TimeoutException` | That the script worker stops on its own |
+| `Future.cancel(true)` | If cancellation succeeds, marks the future cancelled and requests interrupting the running thread if applicable | That the engine/script respects interruption |
+| `Thread.interrupt()` | Sets the interrupt flag, which may cause interruptible blocking methods to throw `InterruptedException` | That an interpreter/native call/CPU loop will exit |
+| `ExecutorService.shutdownNow()` | Attempts to interrupt running tasks and returns unstarted tasks | Guaranteed termination of all running tasks |
+| **Engine-specific** cancel/close API | Behavior per vendor documentation | Portability across engines |
+| Isolation via **separate process/container** | Host can terminate the process and reclaim resources at the OS boundary | That partial script work rolls back external side effects automatically |
 
-**Không dùng `Thread.stop()` để cưỡng bức dừng script.** Nó không an toàn, có thể để locks và object ở trạng thái hỏng, và không giải quyết side effects bên ngoài. Trong JVM dùng chung, không có một phép “kill thread chạy script” bảo đảm an toàn ở mọi engine.
+**Never use `Thread.stop()` to forcefully kill a script.** It is unsafe, can leave locks and objects in corrupted states, and does not undo external side effects. Inside a shared JVM, there is no universal "safely kill script thread" operation across all engines.
 
-### Một mẫu timeout chỉ giới hạn thời gian chờ
+### A Timeout Pattern That Only Limits Caller Wait Time
 
 ```java
 Future<Object> future = executor.submit(
@@ -248,31 +248,31 @@ Future<Object> future = executor.submit(
 try {
     return future.get(250, TimeUnit.MILLISECONDS);
 } catch (TimeoutException timeout) {
-    future.cancel(true);  // yêu cầu interrupt, KHÔNG bảo đảm script dừng
+    future.cancel(true);  // requests interrupt, does NOT guarantee the script stops
     throw new IllegalStateException("Script exceeded deadline", timeout);
 }
 ```
 
-Đây là **snippet bên trong một method trả `Object`**, cần `ExecutorService executor`, `ScriptEngine engine`, `String scriptText` và `Bindings requestBindings` đã được thiết lập. Cần import `java.util.concurrent.*` và xử lý `InterruptedException`/`ExecutionException` ở method bao ngoài. Nếu worker không hợp tác, `Future` có thể đã ở trạng thái canceled trong khi task vẫn chạy. Không được trả engine/thread đó về pool để tái sử dụng như thể đã sạch.
+This is a **snippet inside a method returning `Object`**, requiring configured `ExecutorService executor`, `ScriptEngine engine`, `String scriptText`, and `Bindings requestBindings`. Import `java.util.concurrent.*` and handle `InterruptedException`/`ExecutionException` in the enclosing method. If the worker is uncooperative, the `Future` may be marked cancelled while the task keeps running. Never return that engine or thread to a pool for reuse as if it were clean.
 
-### Dừng mềm và dừng cứng
+### Soft Stop vs. Hard Stop
 
-**Dừng mềm (cooperative cancellation):** script engine hoặc mã script kiểm tra `interrupt`/cancellation token định kỳ; khi cần thoát thì ném hoặc trả về trạng thái kết thúc. Tốt cho DSL tự phát triển hoặc engine có documented cancellation hooks. Cần kiểm tra thực nghiệm với CPU loop, blocking I/O, host callbacks và từng bản engine.
+**Soft stop (cooperative cancellation):** the script engine or script code periodically checks `interrupt` or a cancellation token; when exit is requested, it throws or returns a termination status. Works well for custom DSLs or engines with documented cancellation hooks. Must be empirically tested against CPU loops, blocking I/O, host callbacks, and each engine version.
 
-**Dừng cứng (isolation boundary):** đối với script không đáng tin cậy hoặc có deadline cứng, chạy engine trong **process riêng** có quota CPU/RAM/thời gian và hạn chế quyền truy cập. Khi quá hạn, host dừng process theo chính sách; thao tác này tránh phụ thuộc vào việc một Java thread có tự kết thúc hay không. Vẫn phải thiết kế idempotency/transaction cho filesystem, database, network calls nếu script từng tạo side effects.
+**Hard stop (isolation boundary):** for untrusted scripts or strict deadlines, run the engine in a **separate process** with CPU/RAM/time quotas and restricted access rights. On expiration, the host terminates the process per policy; this avoids depending on whether a Java thread exits voluntarily. You must still design idempotency/transactions for filesystem, database, and network calls if scripts can produce side effects.
 
-Quyết định quan trọng: **timeout của request ≠ engine đã dừng**. Hệ thống cần quan sát task thực sự kết thúc, quản lý worker bị treo, giới hạn số worker đồng thời và cleanup theo vòng đời.
+Key decision: **request timeout ≠ engine stopped**. The system must observe actual task completion, manage hung workers, bound concurrent workers, and clean up across the lifecycle.
 
-## 7. Ví dụ chạy độc lập Java 17: engine tự đăng ký, kiểm soát kiểu, cancel hợp tác
+## 7. Standalone Java 17 Example: Self-Registered Engine, Type Validation, Cooperative Cancellation
 
-Để ví dụ chạy được trên **JDK 17 thuần**, không giả định có JavaScript engine. Chúng ta viết một **DemoDSL nhỏ** (không phải JavaScript, không phải interpreter đầy đủ), dùng đúng `javax.script`:
+To run on **plain JDK 17**, do not assume a JavaScript engine exists. We write a tiny **DemoDSL** (not JavaScript, not a full interpreter) using `javax.script` directly:
 
-- `DemoFactory` công bố metadata ngôn ngữ/engine và đăng ký alias `demo-dsl` trong một `ScriptEngineManager`.
-- `DemoEngine extends AbstractScriptEngine` hiểu đúng hai lệnh `add` và `wait`; `add` nhận hai `BigDecimal` từ Bindings và trả về `BigDecimal` để caller validate kiểu.
-- `wait` chỉ được dùng để minh họa **cooperative interruption**: nó gọi `Thread.sleep` và ném `ScriptException` khi bị interrupt. Điều này **không phải hành vi mặc định của mọi engine**.
-- `THREADING=null` tuyên bố engine demo không thread-safe. Chương trình chỉ gọi `add` trên main trước khi task `wait` bắt đầu; không chạy hai `eval` đồng thời.
+- `DemoFactory` publishes language/engine metadata and registers alias `demo-dsl` in a `ScriptEngineManager`.
+- `DemoEngine extends AbstractScriptEngine` understands exactly two commands: `add` and `wait`; `add` reads two `BigDecimal` values from Bindings and returns `BigDecimal` so the caller validates the type.
+- `wait` exists solely to demonstrate **cooperative interruption**: it calls `Thread.sleep` and throws `ScriptException` when interrupted. This is **not the default behavior of every engine**.
+- `THREADING=null` declares the demo engine is not thread-safe. The program executes `add` on `main` before the `wait` task begins; it never runs two `eval` calls concurrently.
 
-### 7.1. File ScriptBoundaryDemo.java
+### 7.1. ScriptBoundaryDemo.java
 
 ```java
 import java.io.IOException;
@@ -419,16 +419,16 @@ public final class ScriptBoundaryDemo {
 }
 ```
 
-### 7.2. Biên dịch và kết quả
+### 7.2. Compile and Output
 
-Từ thư mục chứa `ScriptBoundaryDemo.java`, dùng JDK 17+:
+From the directory containing `ScriptBoundaryDemo.java`, using JDK 17+:
 
 ```bash
 javac --release 17 ScriptBoundaryDemo.java
 java ScriptBoundaryDemo
 ```
 
-**Stdout đã kiểm chứng bằng `javac --release 17` và `java`:**
+**Stdout verified with `javac --release 17` and `java`:**
 
 ```text
 engine=Controlled Demo DSL
@@ -439,27 +439,27 @@ cancelRequested=true
 workerStopped=true
 ```
 
-### 7.3. Những gì chương trình chứng minh — và không chứng minh
+### 7.3. What the Program Proves — and Does Not Prove
 
-**Đã chứng minh trong engine minh họa:**
+**Proven in the demo engine:**
 
-1. `ScriptEngineManager.registerEngineName("demo-dsl", ...)` cung cấp factory cho alias được đăng ký **trong manager này**; chúng ta không phải cài một JavaScript engine.
-2. `engine.createBindings()` và `engine.eval("add", input)` dùng API chung của JSR-223.
-3. Lệnh `add` của **DemoDSL**, chứ không phải biểu thức JavaScript, trả một `BigDecimal`; Java kiểm tra `instanceof` trước khi dùng.
-4. `getFactory().getParameter("THREADING")` trả `null` theo metadata do chính demo công bố: **không chia sẻ engine này cho eval đồng thời**.
-5. `CountDownLatch` bảo đảm task `wait` đã bắt đầu trước khi `cancel(true)`. `DemoEngine` chủ động phản ứng với interruption ở `Thread.sleep`; sau đó worker thật sự thoát, nên `awaitTermination` trả `true`.
+1. `ScriptEngineManager.registerEngineName("demo-dsl", ...)` supplies a factory for the registered alias **within this manager**; we did not need to install a JavaScript engine.
+2. `engine.createBindings()` and `engine.eval("add", input)` use the standard JSR-223 API.
+3. The `add` command of **DemoDSL**, not a JavaScript expression, returns a `BigDecimal`; Java checks `instanceof` before using it.
+4. `getFactory().getParameter("THREADING")` returns `null` per the metadata published by the demo itself: **do not share this engine for concurrent evals**.
+5. `CountDownLatch` ensures the `wait` task has started before `cancel(true)`. `DemoEngine` actively responds to interruption in `Thread.sleep`; the worker genuinely exits afterward, so `awaitTermination` returns `true`.
 
-**Không được suy rộng:**
+**Must not be generalized:**
 
-- Không phải mọi engine hiểu `add`, `wait`, có `BigDecimal` output, hay hỗ trợ interruption.
-- `cancelRequested=true` **một mình** không phải bằng chứng script đã dừng; chính `workerStopped=true` xác nhận **worker demo** đã kết thúc.
-- Demo có một tác vụ, không chứng minh engine thread-safe hoặc scale tốt khi nhiều concurrent requests.
-- `DemoDSL` chỉ xử lý hai lệnh kiểm thử, không phải một ngôn ngữ production. Những method metadata không dùng trong ví dụ không xác lập grammar/semantics đầy đủ như engine thương mại.
-- Không nên dùng chính ví dụ này làm sandbox cho source untrusted; nó chạy trong cùng JVM của host.
+- Not every engine understands `add` or `wait`, returns `BigDecimal` output, or supports interruption.
+- `cancelRequested=true` **alone** is not proof the script stopped; `workerStopped=true` is what confirms the **demo worker** terminated.
+- The demo executes a single task and does not prove an engine is thread-safe or scales under multiple concurrent requests.
+- `DemoDSL` handles only two test commands and is not a production language. Unused metadata methods in the example do not establish full grammar/semantics like a commercial engine.
+- Never use this example itself as a sandbox for untrusted sources; it runs in the same JVM as the host.
 
-## 8. Kiến trúc adapter khi phải hỗ trợ nhiều script engine
+## 8. Adapter Architecture When Supporting Multiple Script Engines
 
-Đề xuất tách tầng:
+Recommended layered separation:
 
 ```text
 Business API
@@ -467,27 +467,27 @@ Business API
           |
           v
 Script Execution Adapter
-  - chọn engine/version cố định
-  - validate types và permissions
-  - tạo Bindings/context
-  - chuyển request thành cú pháp engine-specific
-  - áp dụng deadline/stop policy
+  - select pinned engine/version
+  - validate types and permissions
+  - create Bindings/context
+  - translate request into engine-specific syntax
+  - apply deadline/stop policy
           |
           v
 ScriptEngine / provider runtime
   language-specific syntax & host interop
           |
           v
-Adapter kiểm tra result + lỗi
-  - normalize dữ liệu
-  - chuẩn hóa status
+Adapter checks result + errors
+  - normalize data
+  - standardize status
   - release/retire resources
           |
           v
 Business response DTO
 ```
 
-Không cho business code rải khắp nơi các lệnh `eval("...")` và cast kết quả trực tiếp sang nhiều kiểu. Thay vào đó, có thể định nghĩa interface Java:
+Do not let business code scatter `eval("...")` calls and direct result casts everywhere. Instead, define a Java interface:
 
 ```java
 public interface ScriptRunner {
@@ -495,108 +495,108 @@ public interface ScriptRunner {
 }
 ```
 
-Đây là **snippet contract**, `ScriptRequest` và `ScriptResult` là DTO/record do ứng dụng định nghĩa, không phải kiểu có sẵn trong JDK. Một adapter ứng với một engine/version có nhiệm vụ biên dịch template/script source, validate inputs/outputs, áp dụng policy runtime và phân biệt lỗi.
+This is a **contract snippet**; `ScriptRequest` and `ScriptResult` are application-defined DTOs/records, not built-in JDK types. One adapter per engine/version is responsible for compiling templates/script sources, validating inputs/outputs, enforcing runtime policies, and categorizing errors.
 
-Ví dụ phân loại lỗi ở ranh giới:
+Example boundary error classification:
 
-| Mã ứng dụng | Điều kiện | Xử lý |
+| Application Code | Condition | Handling |
 | --- | --- | --- |
-| `ENGINE_UNAVAILABLE` | Không có engine mong muốn hoặc version sai | Fail fast tại startup; không chuyển sang engine khác ngầm |
-| `SYNTAX_ERROR` | Parser/compile/eval trả lỗi cú pháp | Ghi nguồn script, line/column đã sanitize |
-| `INPUT_TYPE_ERROR` | Bindings thiếu field hoặc sai kiểu theo schema | Trả lỗi validation trước khi eval |
-| `OUTPUT_TYPE_ERROR` | `eval` trả null/sentinel/proxy/kiểu không mong đợi | Không cast mù; reject hoặc normalize theo contract |
-| `EXECUTION_ERROR` | Script/runtime/host callback thất bại | Wrap error có nguyên nhân; bảo vệ secret |
-| `TIMEOUT` | Caller hết deadline | Gửi cancel nếu hỗ trợ, cô lập/quản lý worker có thể còn chạy |
-| `CANCELLED` | Chính sách host chủ động dừng | Phân biệt cancel request, cancel acknowledged và actual termination |
-| `RESOURCE_LIMIT` | Vượt memory/CPU/IO quota trong môi trường isolation | Kết thúc worker/process theo policy |
+| `ENGINE_UNAVAILABLE` | Desired engine absent or wrong version | Fail fast at startup; never silently switch to another engine |
+| `SYNTAX_ERROR` | Parser/compile/eval reports syntax error | Record script source and sanitized line/column |
+| `INPUT_TYPE_ERROR` | Bindings missing a field or wrong type per schema | Return validation error before eval |
+| `OUTPUT_TYPE_ERROR` | `eval` returns null/sentinel/proxy/unexpected type | Never cast blindly; reject or normalize per contract |
+| `EXECUTION_ERROR` | Script/runtime/host callback failed | Wrap error with cause; protect secrets |
+| `TIMEOUT` | Caller deadline expired | Issue cancel if supported; isolate/manage worker that may still be running |
+| `CANCELLED` | Host policy actively stopped execution | Distinguish cancel request, cancel acknowledged, and actual termination |
+| `RESOURCE_LIMIT` | Memory/CPU/IO quota exceeded in isolated environment | Terminate worker/process per policy |
 
-Các trạng thái là **hợp đồng gợi ý của ứng dụng**, không phải mã enum do JSR-223 định nghĩa.
+These statuses are a **suggested application contract**, not enum constants defined by JSR-223.
 
-### Phân lớp thời gian sống
+### Lifetime Layering
 
-- **Factory/metadata**: có thể giữ ở phạm vi registry sau khi kiểm tra.
-- **Engine instance**: lifetime theo docs của provider, không tự mặc định singleton thread-safe.
-- **Bindings/ScriptContext**: lý tưởng là request-scoped đối với input nhạy cảm; không để host objects hoặc user state tồn tại vô hạn.
-- **CompiledScript**: gắn với engine/compiler version và class loader, cache theo key có version/tenant khi phù hợp.
-- **Execution task**: deadline rõ; khi cancel phải kiểm tra đã kết thúc, tránh dùng lại worker đang chạy script cũ.
-- **Plugin/class loader/engine context**: thu hồi khi không còn active executions; API chuẩn không tự đóng mọi tài nguyên vendor-specific.
+- **Factory/metadata**: can be retained at registry scope after validation.
+- **Engine instance**: lifetime per vendor docs; never assume a thread-safe singleton by default.
+- **Bindings/ScriptContext**: ideally request-scoped for sensitive inputs; never allow host objects or user state to linger indefinitely.
+- **CompiledScript**: bound to the engine/compiler version and class loader; cache with version/tenant-aware keys where appropriate.
+- **Execution task**: explicit deadline; upon cancellation, verify termination and avoid reusing a worker still running an old script.
+- **Plugin/class loader/engine context**: reclaim once no active executions remain; standard APIs do not automatically close all vendor-specific resources.
 
-## 9. Tối thiểu phải kiểm thử những gì khi thay engine?
+## 9. Minimum Tests Required When Replacing an Engine
 
-Để xác nhận một ứng dụng “hỗ trợ nhiều engine”, cần test **behavioral contract**, không chỉ test gọi `getEngineByName` thành công.
+To claim an application "supports multiple engines," test the **behavioral contract**, not just whether `getEngineByName` succeeds.
 
-| Nhóm kiểm thử | Trường hợp quan trọng |
+| Test Group | Critical Cases |
 | --- | --- |
-| Discovery | engine thiếu, alias thay đổi, dependency thiếu, class loader/TCCL khác |
-| Cú pháp | biến, function, import, literal, exception, async, syntax/version không được hỗ trợ |
-| Kiểu số | số âm, 0, integer rất lớn, decimal `0.1 + 0.2`, NaN/Infinity, overflow/rounding |
-| Nullability | missing key, explicit null, undefined/nil/None và engine sentinel |
-| Chuỗi | Unicode, escape, ký tự điều khiển, normalization, empty string |
-| Collection | nested list/map, key order, mutable aliasing, proxy còn sống sau eval |
-| Host interop | Java object exposure, method overload, class access, callback exceptions |
-| Context | engine/global scope, reuse engine, multithreading, cross-request leakage |
-| Stop | timeout khi sleep, CPU-tight loop, blocking I/O, callback host, race giữa completion/cancel |
-| Cleanup | lingering thread, executor queue, memory retention, external side effects, context/loader dispose |
-| Khả chuyển | cùng input DTO → cùng normalized output/error trên các engine được hỗ trợ |
+| Discovery | Missing engine, changed alias, missing dependency, differing class loader/TCCL |
+| Syntax | Variables, functions, imports, literals, exceptions, async, unsupported syntax/version |
+| Numeric types | Negative numbers, zero, very large integers, decimal `0.1 + 0.2`, NaN/Infinity, overflow/rounding |
+| Nullability | Missing key, explicit null, undefined/nil/None, and engine sentinels |
+| Strings | Unicode, escaping, control characters, normalization, empty string |
+| Collections | Nested lists/maps, key order, mutable aliasing, proxies surviving after eval |
+| Host interop | Java object exposure, method overloads, class access, callback exceptions |
+| Context | Engine/global scope, engine reuse, multithreading, cross-request leakage |
+| Stop | Timeout during sleep, tight CPU loop, blocking I/O, host callbacks, completion/cancel races |
+| Cleanup | Lingering threads, executor queues, memory retention, external side effects, context/loader disposal |
+| Portability | Same input DTO → same normalized output/error across supported engines |
 
-**Một test timeout chỉ gọi `future.get(timeout)` rồi nhìn thấy `TimeoutException` là chưa đủ.** Phải kiểm tra worker thực sự ngừng tiêu CPU/giữ tài nguyên sau đó, nhất là với script có vòng lặp vô hạn hoặc plugin native/host callbacks.
+**A timeout test that merely calls `future.get(timeout)` and observes `TimeoutException` is insufficient.** You must verify the worker actually stops consuming CPU and holding resources afterward, especially with infinite-loop scripts or native/host plugin callbacks.
 
-## 10. Những lỗi dễ gây sự cố production
+## 10. Mistakes That Frequently Cause Production Incidents
 
-### Lỗi 1 — Giả định Java 17 tích hợp sẵn JavaScript
+### Mistake 1 — Assuming Java 17 Bundles JavaScript
 
-`new ScriptEngineManager().getEngineByName("javascript")` có thể là `null` nếu runtime không có provider. **Giải pháp:** declare dependency và class loader/module visibility rõ ràng; pin engine + language version; fail fast.
+`new ScriptEngineManager().getEngineByName("javascript")` can be `null` if the runtime lacks a provider. **Solution:** declare dependencies and class loader/module visibility explicitly; pin engine + language version; fail fast.
 
-### Lỗi 2 — Đổi engine mà giữ nguyên chuỗi script
+### Mistake 2 — Swapping Engines While Keeping the Same Script String
 
-JSR-223 chuẩn hóa method `eval`, không chuẩn hóa ngữ pháp. **Giải pháp:** có adapter script theo language/version, test semantics và migration plan.
+JSR-223 standardizes the `eval` method, not grammar. **Solution:** maintain per-language/version script adapters, test semantics, and establish a migration plan.
 
-### Lỗi 3 — Ép kiểu thẳng sau eval
+### Mistake 3 — Casting Directly After eval
 
-`Integer result = (Integer) engine.eval("...")` có thể thất bại nếu provider trả `Double`, `Long`, `BigDecimal` hoặc wrapper khác. **Giải pháp:** validate `Object` và normalize qua DTO. Không chuyển mọi số sang `double` khi cần ID/tiền chính xác.
+`Integer result = (Integer) engine.eval("...")` can fail if the provider returns `Double`, `Long`, `BigDecimal`, or another wrapper. **Solution:** validate `Object` and normalize via DTOs. Never convert all numbers to `double` when exact IDs or monetary values are required.
 
-### Lỗi 4 — Đồng nhất null, missing và undefined
+### Mistake 4 — Conflating null, Missing, and Undefined
 
-Một giá trị `null` trả về không giúp xác định script có chạy thành công hay không. **Giải pháp:** validate input schema, dùng `containsKey` ở Bindings, response envelope rõ status/nullability.
+A `null` return value does not tell you whether the script ran cleanly or failed to find data. **Solution:** validate input schemas, use `containsKey` on Bindings, and use response envelopes with explicit status/nullability.
 
-### Lỗi 5 — Dùng singleton engine cho mọi request
+### Mistake 5 — Using a Singleton Engine for All Requests
 
-Nếu `THREADING=null`, gọi `eval` đồng thời là vi phạm khả năng hỗ trợ của engine. Ngay cả `MULTITHREADED` cũng có thể cho các script nhìn thấy shared state. **Giải pháp:** quản lý engine/context per scope và chỉ chia sẻ theo documented contract.
+If `THREADING=null`, concurrent `eval` violates the engine's supported model. Even `MULTITHREADED` may allow scripts to see shared state. **Solution:** scope engines/contexts properly and share only according to a documented contract.
 
-### Lỗi 6 — Coi cancel(true) là kill
+### Mistake 6 — Treating cancel(true) as a Kill Switch
 
-`Future.cancel(true)` chỉ phát tín hiệu interrupt; script có thể tiếp tục chạy nếu engine không hợp tác. **Giải pháp:** phân biệt “request deadline exceeded”, “cancellation requested” và “execution terminated”; dùng process isolation khi cần giới hạn cứng.
+`Future.cancel(true)` only sends an interrupt signal; scripts can keep running if the engine does not cooperate. **Solution:** distinguish "request deadline exceeded," "cancellation requested," and "execution terminated"; use process isolation when hard limits are needed.
 
-### Lỗi 7 — Xem JSR-223 là sandbox
+### Mistake 7 — Treating JSR-223 as a Sandbox
 
-`ScriptEngine` không đặt biên quyền filesystem, network, class loading hay host object access. **Giải pháp:** giới hạn API/host bindings, dùng nguyên tắc least privilege và chạy script chưa tin cậy ngoài process đặc quyền; kiểm soát CPU/RAM/IO.
+`ScriptEngine` imposes no boundaries on filesystem, network, class loading, or host object access. **Solution:** restrict APIs/host bindings using least privilege and run untrusted scripts outside privileged processes; enforce CPU/RAM/IO limits.
 
-### Lỗi 8 — Bỏ qua lifecycle, cleanup và side effects
+### Mistake 8 — Ignoring Lifecycle, Cleanup, and Side Effects
 
-Engine vendor-specific có thể giữ thread, context, cache, class loader hoặc native resources. **Giải pháp:** tuân theo API close/cancel của provider khi có, đóng stream/reader khi sở hữu, không reuse worker đã treo; thiết kế transaction/idempotency cho side effects script.
+Vendor-specific engines can hold threads, contexts, caches, class loaders, or native resources. **Solution:** follow vendor close/cancel APIs when provided, close owned streams/readers, never reuse hung workers, and design transactions/idempotency for script side effects.
 
-## 11. Checklist thiết kế trước khi triển khai
+## 11. Pre-Deployment Design Checklist
 
-- [ ] Chỉ định một **engine implementation + version + language level** được chấp thuận; không phụ thuộc alias mơ hồ.
-- [ ] Kiểm tra engine có thực sự tồn tại trên Java runtime; Java 17 không mặc định có Nashorn.
-- [ ] Chỉ dùng `eval` như abstraction gọi, không coi syntax/libraries của script là portable.
-- [ ] Kiểm tra `Invocable`/`Compilable` trước khi dùng; không giả định mọi engine hỗ trợ.
-- [ ] Định nghĩa input/output schema: nullability, numbers, BigDecimal, dates, collections, exceptions.
-- [ ] Không cast kết quả `Object` mà không validate; giữ độ chính xác cho ID và tài chính.
-- [ ] Tạo Bindings theo request, kiểm tra `THREADING` và isolation, tránh rò engine state.
-- [ ] Có deadline và cancellation policy rõ; biết `get(timeout)` chỉ giới hạn caller wait.
-- [ ] Nếu cần dừng chắc chắn script thiếu hợp tác, chạy process/container tách biệt với quota.
-- [ ] Dùng API close/cleanup của vendor theo đúng vòng đời; không coi `ScriptEngine` có `close` chuẩn.
-- [ ] Tách quyền host/API khỏi dữ liệu script; không chạy source untrusted ở JVM đặc quyền.
-- [ ] Test syntax/interop/timeout/cleanup với **đúng engine và version sẽ triển khai**.
+- [ ] Specify an approved **engine implementation + version + language level**; do not rely on vague aliases.
+- [ ] Verify the engine actually exists on the Java runtime; Java 17 does not include Nashorn by default.
+- [ ] Use `eval` strictly as an invocation abstraction, never treating script syntax/libraries as portable.
+- [ ] Check `Invocable`/`Compilable` before use; never assume every engine supports them.
+- [ ] Define input/output schemas: nullability, numbers, BigDecimal, dates, collections, exceptions.
+- [ ] Never cast `Object` results without validation; preserve exactness for IDs and financial values.
+- [ ] Create per-request Bindings, check `THREADING` and isolation, and prevent engine state leaks.
+- [ ] Establish clear deadline and cancellation policies; remember `get(timeout)` only bounds caller wait time.
+- [ ] If uncooperative scripts must be stopped reliably, run them in an isolated process/container with quotas.
+- [ ] Call vendor close/cleanup APIs per lifecycle; do not assume `ScriptEngine` has a standard `close`.
+- [ ] Separate host/API privileges from script data; never run untrusted source in a privileged JVM.
+- [ ] Test syntax/interop/timeout/cleanup against the **exact engine and version to be deployed**.
 
-### Tài liệu gốc Java 17
+### Java 17 Primary Documentation
 
 - [`ScriptEngine`](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngine.html)
 - [`ScriptEngineManager`](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngineManager.html)
-- [`ScriptEngineFactory` và metadata `THREADING`](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngineFactory.html)
-- [`Bindings` và `ScriptContext`](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/Bindings.html)
+- [`ScriptEngineFactory` and `THREADING` metadata](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngineFactory.html)
+- [`Bindings` and `ScriptContext`](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/Bindings.html)
 - [JEP 372: Remove the Nashorn JavaScript Engine](https://openjdk.org/jeps/372)
 - [`Future.cancel` / `Future.get(timeout)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html)
 
-**Ghi nhớ:** `javax.script` giúp Java gọi engine qua một API chung, nhưng **script syntax, host-object conversion và stop/cancel semantics thuộc về từng engine**. Muốn hệ thống khả chuyển và an toàn, hãy khóa version, validate dữ liệu thành một giao thức riêng, và chọn chính sách dừng theo mức tin cậy của code — không dựa vào một lời gọi `eval` hay `Future.cancel(true)` để thay thế các bảo đảm đó.
+**Remember:** `javax.script` lets Java call engines through a common API, but **script syntax, host-object conversion, and stop/cancel semantics belong to each individual engine**. To build a portable and safe system, pin versions, validate data into an explicit protocol, and choose termination policies matching code trust—never rely on a bare `eval` call or `Future.cancel(true)` as a substitute for those guarantees.

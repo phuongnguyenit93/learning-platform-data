@@ -1,120 +1,120 @@
-# Quy tắc truy cập đồng thời và phạm vi lưu giữ đối tượng ServiceLoader
+# Concurrency Rules and Retention Scope for ServiceLoader Objects
 
-`java.util.ServiceLoader<S>` là cơ chế Java SPI (Service Provider Interface) để tìm các implementation của một service mà ứng dụng không cần biết tên lớp cụ thể khi biên dịch. Nó hữu ích cho plugin, codec, driver, adapter và các khả năng mở rộng được đưa vào class path hoặc module path. Tuy nhiên, **cách dùng `ServiceLoader` ở nhiều luồng và thời gian giữ các đối tượng mà nó tạo ra ảnh hưởng trực tiếp tới tính đúng đắn, tài nguyên và khả năng nạp lại plugin**.
+`java.util.ServiceLoader<S>` is Java's SPI (Service Provider Interface) mechanism for locating implementations of a service without the application needing concrete class names at compile time. It is useful for plugins, codecs, drivers, adapters, and capabilities supplied on the class path or module path. However, **how `ServiceLoader` is used across multiple threads and how long the objects it creates are retained directly affect correctness, resources, and plugin reloadability**.
 
-Hai câu hỏi của bài này là:
+This lesson addresses two questions:
 
-1. Khi nhiều luồng cùng cần provider, **ai được phép thao tác với đối tượng `ServiceLoader`**, đặc biệt trong discovery, iteration, stream và `reload()`?
-2. **Giữ `ServiceLoader` và provider bao lâu, ở đâu, dưới class loader nào**, và điều gì xảy ra khi refresh, thay phiên bản hoặc gỡ plugin?
+1. When multiple threads need providers simultaneously, **who is allowed to interact with the `ServiceLoader` object**, especially during discovery, iteration, streaming, and `reload()`?
+2. **How long, where, and under which class loader should `ServiceLoader` and providers be retained**, and what happens during refresh, version replacement, or plugin unloading?
 
-Nguyên tắc xuyên suốt: **không dùng chung `ServiceLoader` một cách đồng thời; chỉ chia sẻ provider sau khi có chính sách vòng đời và an toàn luồng riêng cho provider đó**.
+Guiding principle: **never share a `ServiceLoader` concurrently; share providers only after establishing dedicated lifecycle and thread-safety policies for those providers**.
 
-## 1. Phân biệt bốn đối tượng thường bị đánh đồng
+## 1. Distinguishing Four Commonly Conflated Objects
 
-Một hệ thống có thể chứa nhiều thành phần mang ý nghĩa khác nhau:
+A system can contain multiple components with distinct meanings:
 
-| Thành phần | Nó đại diện cho gì? | Điều cần quản lý |
+| Component | What does it represent? | What must be managed? |
 | --- | --- | --- |
-| `ClassLoader` hoặc `ModuleLayer` | Không gian nhìn thấy class/module và provider | Phạm vi ứng dụng/plugin, khả năng cô lập và dỡ nạp |
-| `ServiceLoader<S>` | Đối tượng khám phá service, có **trạng thái và cache nội bộ** | Chủ thể được quyền duyệt, cache, `reload()`; không chia sẻ thao tác đồng thời |
-| `ServiceLoader.Provider<S>` | Mô tả provider thu được từ `stream()`; có `type()`, `get()` | Không đồng nhất descriptor với service instance; xác định policy tạo instance |
-| `S` (provider instance) | Đối tượng thực thi nghiệp vụ do provider cung cấp | Có thread-safe không, state gì, ai sở hữu, có cần đóng tài nguyên không? |
+| `ClassLoader` or `ModuleLayer` | Visibility space for classes/modules and providers | Application/plugin scope, isolation, and unloading capability |
+| `ServiceLoader<S>` | Service discovery object, holding **internal state and caches** | Authorized owner for traversal, caching, and `reload()`; do not share concurrent operations |
+| `ServiceLoader.Provider<S>` | Provider descriptor obtained from `stream()`; exposes `type()`, `get()` | Do not equate descriptor with service instance; define instance creation policy |
+| `S` (provider instance) | Business-executing object supplied by the provider | Is it thread-safe, what state does it hold, who owns it, must resources be closed? |
 
-Một `ServiceLoader` có thể tìm và tạo nhiều provider. Nhưng **service loader an toàn luồng hay không** và **implementation của provider an toàn luồng hay không** là hai vấn đề *độc lập*. Một provider không có mutable state có thể dùng đồng thời sau khi được công bố an toàn; điều đó không làm các phương thức `iterator()`, `stream()`, `reload()` trên cùng `ServiceLoader` trở nên thread-safe.
+A single `ServiceLoader` can locate and instantiate multiple providers. Yet **whether the service loader is thread-safe** and **whether a provider's implementation is thread-safe** are two *independent* questions. A provider with no mutable state can be used concurrently once safely published; that does not make `iterator()`, `stream()`, or `reload()` on the same `ServiceLoader` thread-safe.
 
-## 2. Cơ chế lazy discovery và cache của ServiceLoader
+## 2. Lazy Discovery and Caching in ServiceLoader
 
-`ServiceLoader` khám phá provider **theo nhu cầu**. Không phải cứ gọi `ServiceLoader.load(...)` là tất cả implementation đã được khởi tạo. Một số công việc thực tế xảy ra khi duyệt:
+`ServiceLoader` discovers providers **on demand**. Simply calling `ServiceLoader.load(...)` does not instantiate all implementations immediately. Actual work occurs during traversal:
 
-- `loader.iterator()` trả iterator; `hasNext()` và `next()` có thể tiếp tục tìm, nạp và khởi tạo provider.
-- `loader.findFirst()` có hành vi tương đương lấy phần tử đầu của iterator, có thể khởi tạo provider.
-- `loader.stream()` trả `Stream<ServiceLoader.Provider<S>>`. `Provider.type()` hỗ trợ xem kiểu trước khi khởi tạo; `Provider.get()` lấy instance.
-- Việc dùng terminal operation như `toList()`, `findFirst()` hoặc `forEach()` trên stream có thể kích hoạt discovery; không nên coi tạo stream là đã chụp snapshot bất biến.
+- `loader.iterator()` returns an iterator; `hasNext()` and `next()` can continue locating, loading, and instantiating providers.
+- `loader.findFirst()` behaves equivalently to taking the iterator's first element, potentially instantiating a provider.
+- `loader.stream()` returns `Stream<ServiceLoader.Provider<S>>`. `Provider.type()` lets you inspect types before instantiation; `Provider.get()` obtains an instance.
+- Running a terminal operation such as `toList()`, `findFirst()`, or `forEach()` on the stream can trigger discovery; do not assume creating a stream has already captured an immutable snapshot.
 
-### Cache theo đường iterator và stream
+### Caching Along the Iterator and Stream Paths
 
-- **Iterator:** loader lưu **các service instance đã được duyệt/khởi tạo**. Lượt iterator sau trên cùng loader thường trả các instance đã cache trước, rồi mới khám phá các provider còn lại. Vì vậy, cùng một loader và cache chưa bị xóa, `loader.iterator().next()` có thể trả lại đúng *cùng object*.
-- **Stream:** loader lưu **các provider descriptor được tìm thấy** phục vụ đường `stream()`. Lời gọi `Provider.get()` trả instance theo cách triển khai provider; không nên suy diễn rằng mọi lần gọi `get()` đều cho đúng một singleton hoặc đúng một object mới. Đừng dùng cache của iterator và stream thay thế nhau trong thiết kế vòng đời.
-- **`reload()`:** xóa các cache này để các lượt duyệt sau khám phá lại từ đầu. Nó **không đóng**, **không sửa** và **không tự thu hồi** những provider instance mà mã khác đang giữ.
+- **Iterator:** the loader stores **already traversed/instantiated service instances**. Later iterator passes on the same loader usually return cached instances first, then discover remaining providers. Hence, on the same loader with an uncleared cache, `loader.iterator().next()` can return *the exact same object*.
+- **Stream:** the loader stores **discovered provider descriptors** for the `stream()` path. Calling `Provider.get()` returns an instance according to the provider's implementation; do not assume every `get()` call returns either a singleton or a fresh object. Do not interchange iterator and stream caches in lifecycle design.
+- **`reload()`:** clears these caches so subsequent traversals rediscover from scratch. It **does not close**, **does not mutate**, and **does not automatically reclaim** provider instances already held by other code.
 
-Ví dụ khác biệt cốt lõi:
+Core difference example:
 
 ```java
 ServiceLoader<Codec> loader = ServiceLoader.load(Codec.class);
 
-// Đường iterator: materialize service instance khi duyệt.
+// Iterator path: materializes service instances during traversal.
 List<Codec> instances = new ArrayList<>();
 for (Codec codec : loader) {
     instances.add(codec);
 }
 
-// Đường stream: materialize các provider descriptor; get() mới lấy instance.
+// Stream path: materializes provider descriptors; get() obtains instances.
 List<ServiceLoader.Provider<Codec>> descriptions =
     loader.stream().toList();
 ```
 
-Đoạn trên là *minh họa API*, cần có interface `Codec` và provider được cấu hình sẵn; phần 6 có project chạy độc lập.
+The snippet above is an *API illustration*, requiring an existing `Codec` interface and configured providers; Section 6 provides a standalone runnable project.
 
-### Quy tắc kiểm chứng cache
+### Cache Verification Rules
 
-Cache thuộc **từng object `ServiceLoader`**, không phải một singleton của JVM. Hai lời gọi tạo hai `ServiceLoader` khác nhau không buộc phải dùng cùng instance provider. Cũng không nên lấy thứ tự “provider đầu tiên” làm chính sách lựa chọn mặc định: thứ tự provider từ named modules có thể không được xác định như mong muốn; nếu có nhiều implementation, hãy định nghĩa tiêu chí chọn rõ ràng.
+The cache belongs to **each `ServiceLoader` object**, not a JVM singleton. Two calls creating two separate `ServiceLoader` instances are not forced to share provider instances. Also do not treat "first provider" order as a default selection policy: provider ordering across named modules may not be deterministic as expected; when multiple implementations exist, define explicit selection criteria.
 
-## 3. Quy tắc truy cập đồng thời: ServiceLoader không thread-safe
+## 3. Concurrency Rules: ServiceLoader Is Not Thread-Safe
 
-Java SE 17 quy định rõ: **instance của `ServiceLoader` không an toàn khi nhiều thread cùng sử dụng**. Quy tắc này áp dụng cho việc duyệt và cập nhật trạng thái nội bộ của cùng một loader, dù code phía ứng dụng chỉ đọc kết quả.
+Java SE 17 explicitly specifies: **`ServiceLoader` instances are not safe for concurrent use by multiple threads**. This rule covers traversing and updating internal state on the same loader, even when application code only reads results.
 
-Những đường truy cập không được mặc định chạy đồng thời trên *cùng instance*:
+Access patterns that must not run concurrently on the *same instance*:
 
-- Thread A gọi `iterator().hasNext()/next()` trong khi B cũng duyệt cùng loader;
-- A đang thực thi terminal operation của `loader.stream()`, B gọi `findFirst()` hoặc `iterator()`;
-- A duyệt provider còn B gọi `loader.reload()`;
-- nhiều request cùng dùng một singleton `ServiceLoader` để khám phá động.
+- Thread A calls `iterator().hasNext()/next()` while Thread B traverses the same loader;
+- Thread A executes a terminal operation on `loader.stream()` while Thread B calls `findFirst()` or `iterator()`;
+- Thread A traverses providers while Thread B calls `loader.reload()`;
+- Multiple requests share a singleton `ServiceLoader` for dynamic discovery.
 
-Một tình huống lỗi:
+A failure scenario:
 
 ```text
 Thread A                         Thread B
 -----------------------------    ------------------------------
 Iterator<S> it = loader.iterator()
 it.hasNext()  // discovery
-                                 loader.reload() // xóa cache
-it.next()     // iterator cũ
+                                 loader.reload() // clears cache
+it.next()     // old iterator
                -> ConcurrentModificationException
 ```
 
-Sau `reload()`, các iterator đã tạo trước đó **phải bị bỏ**; `hasNext()` hoặc `next()` của chúng có thể ném `ConcurrentModificationException`. Các stream cũ cũng phải bỏ vì nguồn spliterator fail-fast nếu cache bị xóa. Đó là hành vi cụ thể sau reload, **không phải cơ chế tự động làm mọi race condition thành lỗi dễ dự đoán**: khi truy cập loader đồng thời nói chung, chương trình đang vi phạm hợp đồng thread-safety.
+After `reload()`, previously created iterators **must be discarded**; their `hasNext()` or `next()` calls can throw `ConcurrentModificationException`. Old streams must also be discarded because the backing spliterator fails fast if the cache is cleared. That is specific post-reload behavior, **not an automatic mechanism turning every race condition into a predictable error**: concurrent loader access in general violates the thread-safety contract.
 
-Hai suy luận sai thường gặp:
+Two common false inferences:
 
-1. “Chỉ gọi `iterator()` rồi đọc thì là read-only, nên nhiều thread dùng chung được.” Sai: việc duyệt có thể thay đổi cache bằng lazy discovery.
-2. “Khai báo `volatile ServiceLoader<S> loader` là đủ.” Sai: `volatile` chỉ hỗ trợ visibility của **tham chiếu**; nó không khóa hoặc đồng bộ trạng thái bên trong loader.
+1. "Just calling `iterator()` to read is read-only, so multiple threads can share it." False: traversal can mutate the cache via lazy discovery.
+2. "Declaring `volatile ServiceLoader<S> loader` is enough." False: `volatile` only provides visibility of the **reference**; it neither locks nor synchronizes the loader's internal state.
 
-Tương tự, `loader.stream().parallel()` không phải cách an toàn để parallelize discovery. Nếu muốn xử lý provider song song, hãy khám phá theo một luồng, tạo snapshot các instance thích hợp, rồi mới xử lý snapshot dưới chính sách thread-safety của provider.
+Similarly, `loader.stream().parallel()` is not a safe way to parallelize discovery. To process providers in parallel, discover on a single thread, build a snapshot of appropriate instances, and then process the snapshot under the providers' thread-safety policies.
 
-## 4. Ba chiến lược truy cập đúng
+## 4. Three Correct Access Strategies
 
-### Chiến lược A — Khám phá một lần, công bố snapshot bất biến (thường nên chọn)
+### Strategy A — Discover Once, Publish an Immutable Snapshot (Usually Preferred)
 
-Registry hoặc bootstrap thread sở hữu `ServiceLoader`, duyệt **tuần tự**, xác thực provider, chuyển kết quả sang `List.copyOf(...)` rồi công bố qua `volatile` hoặc `AtomicReference`. Các request threads chỉ đọc **snapshot**, không động vào loader.
+A registry or bootstrap thread owns the `ServiceLoader`, traverses **sequentially**, validates providers, copies results into `List.copyOf(...)`, and publishes via `volatile` or `AtomicReference`. Request threads read only the **snapshot** and never touch the loader.
 
 ```text
-Registry thread (một chủ thể)       Request threads
---------------------------------   --------------------------------
+Registry thread (single owner)       Request threads
+--------------------------------     --------------------------------
 ServiceLoader.load(...)
-duyệt / kiểm tra provider
+traverse / validate providers
 List.copyOf(loaded)
-atomic publish(snapshot) ------->  đọc snapshot đã công bố
-                                   gọi provider theo thread-safety contract
-                                   không gọi ServiceLoader
+atomic publish(snapshot) --------->  read published snapshot
+                                     call providers per thread-safety contract
+                                     never call ServiceLoader
 ```
 
-Cách này tách trạng thái không thread-safe của discovery khỏi đường request; phù hợp khi provider set ít thay đổi. `List.copyOf` chỉ bất biến *cấu trúc danh sách*, **không biến các provider stateful thành thread-safe**. Cần giải quyết provider state ở phần 5.
+This decouples non-thread-safe discovery state from the request path; well suited when the provider set changes infrequently. `List.copyOf` only makes *the list structure* immutable; **it does not make stateful providers thread-safe**. Provider state is addressed in Section 5.
 
-Khi refresh, registry xây snapshot mới hoàn chỉnh rồi **hoán đổi tham chiếu một lần**. Request đang giữ snapshot cũ có thể hoàn thành với provider cũ. Không được đóng provider cũ khi vẫn còn request đang dùng nó.
+When refreshing, the registry builds a complete new snapshot and **swaps the reference atomically once**. Requests holding the old snapshot can finish with the old providers. Do not close old providers while requests are still using them.
 
-### Chiến lược B — Đồng bộ hóa toàn bộ truy cập tới loader
+### Strategy B — Synchronize All Access to the Loader
 
-Nếu nhất thiết nhiều thread cần gọi loader, dùng **cùng một lock** bảo vệ cả discovery, iteration, stream terminal operation và `reload()`. Khóa chỉ có hiệu lực nếu *mọi* đường dùng loader tuân thủ nó. Với stream lazy, không được khóa lúc tạo stream rồi thả khóa trước khi xử lý stream.
+If multiple threads truly must call the loader, use **the exact same lock** guarding discovery, iteration, stream terminal operations, and `reload()`. Locking works only if *every* path touching the loader obeys it. With lazy streams, do not lock while creating the stream and release the lock before consuming it.
 
 ```java
 synchronized (loader) {
@@ -122,48 +122,48 @@ synchronized (loader) {
     for (Codec codec : loader) {
         snapshot.add(codec);
     }
-    // Phần dữ liệu được trả ra nên là bản sao, tránh rò iterator.
+    // Returned data should be a copy to avoid leaking the iterator.
 }
 ```
 
-Đây chỉ là trích đoạn có sẵn biến `loader` và kiểu `Codec`. `synchronized(loader)` là *quy ước khóa của ứng dụng*, không phải cam kết đồng bộ do `ServiceLoader` tự cung cấp. `reload()` cũng phải được thực hiện dưới **cùng lock**. Cách này đúng nếu quản lý nhất quán nhưng dễ tăng contention; thường nên công bố snapshot để request không phải đợi discovery.
+This is merely an excerpt assuming an existing `loader` variable and `Codec` type. `synchronized(loader)` is an *application locking convention*, not synchronization promised by `ServiceLoader` itself. `reload()` must also execute under **the same lock**. This approach is correct when applied consistently, though it increases contention; publishing snapshots is usually better so requests never block on discovery.
 
-### Chiến lược C — Loader riêng theo chủ thể/vòng đời
+### Strategy C — Dedicated Loader per Owner/Lifecycle
 
-Có thể tạo `ServiceLoader` riêng cho từng application context, plugin manager hoặc thread (nếu thật sự cần phân vùng), rồi không dùng instance đó đồng thời. Cần đánh đổi chi phí discovery/cache và đảm bảo chọn đúng class loader. **Loader riêng mỗi request** thường là lãng phí và khiến vòng đời khó quản lý; **loader static dùng chung toàn JVM** lại có nguy cơ giữ tham chiếu của ứng dụng đã bị dỡ.
+You can create separate `ServiceLoader` instances per application context, plugin manager, or thread (when partitioning is genuinely needed), and never use any single instance concurrently. Weigh discovery/cache cost and ensure the right class loader is chosen. **A separate loader per request** is usually wasteful and complicates lifecycle management; **a JVM-wide shared static loader** risks retaining references to unloaded applications.
 
-Không có một lựa chọn toàn cục đúng cho mọi hệ thống; lựa chọn phụ thuộc khả năng thay provider, isolation giữa tenant/app, và ai sở hữu tài nguyên.
+No single option fits every system; the choice depends on provider hot-swap needs, tenant/app isolation, and resource ownership.
 
-## 5. Chính sách chia sẻ provider instance
+## 5. Policy for Sharing Provider Instances
 
-Giải quyết thread-safety của `ServiceLoader` **chưa đủ**. Sau khi công bố `List<S>`, cùng một instance có thể được nhiều request gọi đồng thời. Cần ghi rõ hợp đồng provider:
+Solving `ServiceLoader` thread-safety **is not enough**. After publishing `List<S>`, the same instance may be called concurrently by multiple requests. Clearly document the provider contract:
 
-| Loại provider | Có thể giữ và dùng chung không? | Gợi ý triển khai |
+| Provider Kind | Can it be retained and shared? | Implementation Guidance |
 | --- | --- | --- |
-| Stateless, immutable, không dùng state không thread-safe | Thường có, khi được khởi tạo và công bố an toàn | Singleton ở cấp application/plugin registry; snapshot chung |
-| Stateful nhưng tự đồng bộ hoặc thread-safe theo tài liệu | Có, trong giới hạn contract | Chú ý throughput, shutdown và tài nguyên |
-| Stateful, không thread-safe (bộ đệm mutable, session, transaction state) | Không gọi đồng thời cùng instance | Tạo instance riêng theo request/session, dùng factory hoặc pool có quy tắc |
-| Provider chứa tài nguyên cần đóng | Chỉ giữ trong vòng đời sở hữu rõ ràng | Định nghĩa `close`/`AutoCloseable`, đợi in-flight requests kết thúc |
-| Provider của tenant/plugin version riêng | Không trộn phạm vi dù cùng interface | Registry/snapshot/class loader hoặc module layer theo tenant/version |
+| Stateless, immutable, no non-thread-safe state | Usually yes, once safely initialized and published | Application/plugin-registry singleton; shared snapshot |
+| Stateful yet self-synchronized or documented thread-safe | Yes, within contract bounds | Watch throughput, shutdown, and resources |
+| Stateful, not thread-safe (mutable buffers, session, transaction state) | Do not call same instance concurrently | Create per-request/session instances, use a factory or governed pool |
+| Provider holding resources that must be closed | Retain only within a clear ownership lifecycle | Define `close`/`AutoCloseable`, wait for in-flight requests to finish |
+| Provider scoped to a specific tenant/plugin version | Do not mix scopes even with identical interface | Registry/snapshot/class loader or module layer per tenant/version |
 
-**Không được suy luận phạm vi instance từ `ServiceLoader`.** Việc iterator cache một instance không biến provider thành thread-safe singleton. Ngược lại, gọi `Provider.get()` không phải một bảo đảm API rằng “mỗi request sẽ được một object mới độc lập”; factory method của provider có thể chủ động trả singleton. Khi cần request-scoped object, hãy công bố **factory với hợp đồng tạo instance riêng** và xác minh hành vi của implementation.
+**Do not infer instance scope from `ServiceLoader`.** Having the iterator cache an instance does not turn the provider into a thread-safe singleton. Conversely, calling `Provider.get()` is not an API guarantee that "each request gets an independent new object"; a provider's factory method can intentionally return a singleton. When request-scoped objects are needed, publish **a factory with an explicit new-instance contract** and verify implementation behavior.
 
-Ví dụ provider xử lý `String` thuần, không giữ mutable field, thường phù hợp để chia sẻ. Provider chứa `StringBuilder` dùng làm buffer chung giữa nhiều request có nguy cơ race; cần biến buffer thành biến local hoặc thiết kế isolation phù hợp. Tạo `ConcurrentHashMap` để lưu kết quả không tự làm toàn bộ các field/phương thức của provider an toàn.
+For example, a provider doing pure `String` processing without mutable fields is usually safe to share. A provider holding a `StringBuilder` as a shared buffer across concurrent requests risks races; make the buffer a local variable or design proper isolation. Adding a `ConcurrentHashMap` to cache results does not automatically make all other fields/methods of the provider safe.
 
-### Công bố đúng theo Java Memory Model
+### Proper Publication Under the Java Memory Model
 
-`List.copyOf(...)` trả một list không cho sửa cấu trúc; nếu gán vào một biến shared thông thường mà thiếu quan hệ *happens-before*, reader có thể không nhận bản cập nhật theo cách được bảo đảm. Dùng:
+`List.copyOf(...)` returns a structurally unmodifiable list; assigning it to an ordinary shared field without a *happens-before* relationship gives no guarantee readers will observe the update. Use:
 
-- `private static volatile List<S> active = List.of();` và một writer xây xong list rồi gán;
-- hoặc `AtomicReference<List<S>>` với `set/get`, phù hợp khi cần các thao tác atomic thêm.
+- `private static volatile List<S> active = List.of();` with a single writer building the list completely before assigning;
+- or `AtomicReference<List<S>>` with `set/get`, suitable when additional atomic operations are needed.
 
-Provider phải được khởi tạo đầy đủ trước khi publish; không làm rò `this` trong constructor. Sau khi publish, provider shared vẫn phải bảo đảm các quy tắc thread-safety riêng nếu trạng thái của nó thay đổi.
+Providers must be fully initialized before publication; never leak `this` during construction. Once published, shared providers must still uphold their own thread-safety rules if any internal state changes.
 
-## 6. Ví dụ chạy độc lập trên Java 17: discovery một luồng, snapshot chia sẻ, reload có kiểm soát
+## 6. Standalone Java 17 Example: Single-Thread Discovery, Shared Snapshot, Controlled Reload
 
-Ví dụ có **một** provider stateless đổi chữ sang chữ hoa. Thread main sở hữu `ServiceLoader`; hai worker chỉ dùng snapshot đã công bố. Sau khi cả hai worker hoàn tất, main gọi `reload()` để tái khám phá. Chương trình cho thấy cache iterator trước reload, instance mới sau reload và snapshot cũ vẫn hoạt động.
+The example has **one** stateless provider that converts text to uppercase. The main thread owns `ServiceLoader`; two workers only use the published snapshot. After both workers finish, main calls `reload()` to rediscover. The program demonstrates iterator caching before reload, a new instance after reload, and that the old snapshot still works.
 
-Tạo cấu trúc:
+Create the structure:
 
 ```text
 service-loader-demo/
@@ -206,13 +206,13 @@ public final class UpperProcessor implements Processor {
 }
 ```
 
-**`resources/META-INF/services/demo.api.Processor`** (một dòng tên class provider, không có extension):
+**`resources/META-INF/services/demo.api.Processor`** (one line with provider class name, no file extension):
 
 ```text
 demo.provider.UpperProcessor
 ```
 
-Đây là đăng ký provider ở **class path**. File phải nằm dưới `META-INF/services/` trong classpath runtime; tên file là **fully qualified name của service interface**, dòng nội dung là **fully qualified name của provider implementation**. Với Java module có `module-info.java`, có thể dùng `uses`/`provides ... with ...` thay cho file cấu hình classpath.
+This is **class-path** provider registration. The file must be under `META-INF/services/` on the runtime classpath; the filename is the **fully qualified name of the service interface**, and the content line is the **fully qualified name of the provider implementation**. For Java modules with `module-info.java`, `uses`/`provides ... with ...` can be used instead of the classpath configuration file.
 
 **`src/demo/App.java`**
 
@@ -224,10 +224,10 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public final class App {
-    // Bản tham chiếu được publish atomically sau discovery.
+    // Reference published atomically after discovery.
     private static volatile List<Processor> active = List.of();
 
-    // Chỉ registry/main thread gọi phương thức này.
+    // Only the registry/main thread calls this method.
     private static void publish(ServiceLoader<Processor> loader) {
         List<Processor> found = new ArrayList<>();
         for (Processor p : loader) {
@@ -240,12 +240,12 @@ public final class App {
     }
 
     public static void main(String[] args) throws Exception {
-        // Tránh phụ thuộc TCCL ngẫu nhiên của worker pool.
+        // Avoid depending on arbitrary worker pool TCCL.
         ServiceLoader<Processor> loader =
             ServiceLoader.load(Processor.class, App.class.getClassLoader());
 
         publish(loader);
-        List<Processor> first = active; // chụp snapshot một lần
+        List<Processor> first = active; // capture snapshot once
 
         System.out.println("providers=" + first.size());
         System.out.println(
@@ -253,21 +253,21 @@ public final class App {
 
         ExecutorService pool = Executors.newFixedThreadPool(2);
         try {
-            // Workers chỉ dùng provider stateless trong snapshot,
-            // không đụng đến chính đối tượng ServiceLoader.
+            // Workers use only the stateless provider in the snapshot,
+            // never touching the ServiceLoader object itself.
             Future<String> a =
                 pool.submit(() -> first.get(0).process("hello"));
             Future<String> b =
                 pool.submit(() -> first.get(0).process("world"));
 
-            // Lấy kết quả theo thứ tự a rồi b nên stdout ổn định.
+            // Retrieve results in deterministic order a then b for stable stdout.
             System.out.println("one=" + a.get());
             System.out.println("two=" + b.get());
         } finally {
             pool.shutdown();
         }
 
-        // Đã hoàn tất hai Future; giờ main mới thao tác loader.
+        // Both Futures completed; main now operates on the loader.
         loader.reload();
         publish(loader);
 
@@ -279,7 +279,7 @@ public final class App {
 }
 ```
 
-Tại thư mục `service-loader-demo`, chạy bằng **PowerShell** trên Windows:
+From the `service-loader-demo` directory, run using **PowerShell** on Windows:
 
 ```powershell
 New-Item -ItemType Directory -Force out | Out-Null
@@ -288,9 +288,9 @@ Copy-Item -Recurse -Force resources/META-INF out/
 java -cp out demo.App
 ```
 
-Các lệnh tạo class file ở `out` và chép metadata SPI vào `out/META-INF/services`; vì thế Java tìm thấy provider qua classpath `out`. Trên macOS/Linux có thể thay bước chép bằng `cp -R resources/META-INF out/`.
+The commands compile class files into `out` and copy SPI metadata to `out/META-INF/services`; thus Java locates the provider via classpath `out`. On macOS/Linux, replace the copy step with `cp -R resources/META-INF out/`.
 
-**Stdout đã kiểm tra với `javac --release 17` và `java`:**
+**Stdout verified with `javac --release 17` and `java`:**
 
 ```text
 providers=1
@@ -301,77 +301,77 @@ newAfterReload=true
 oldStillWorks=JAVA
 ```
 
-Phân tích:
+Analysis:
 
-1. `ServiceLoader.load(..., App.class.getClassLoader())` chỉ rõ class loader cần tìm SPI. `publish` duyệt iterator trên main thread, khởi tạo `UpperProcessor` rồi lưu trong `List.copyOf`. Biến `volatile active` công bố tham chiếu với visibility phù hợp.
-2. `loader.iterator().next() == first.get(0)` là `true`: cùng `ServiceLoader` đã cache instance từ lượt duyệt trước; chưa gọi `reload()`.
-3. Hai tác vụ dùng cùng provider stateless; chúng không chạm vào loader. `Future.get()` giúp lấy kết quả theo thứ tự ổn định và bảo đảm task đã hoàn tất trước khi reload.
-4. `reload()` xóa cache. Lượt `publish` kế tiếp tạo lại instance của provider classpath có constructor public không tham số, nên identity khác. Đây là **hành vi trong ví dụ này**, không bảo đảm mọi provider/factory ở mọi cấu hình luôn tạo object mới.
-5. Biến `first` vẫn giữ tham chiếu snapshot cũ, nên `oldStillWorks=JAVA`. Điều này chứng minh `reload()` **không hủy hay đóng đối tượng đã trao cho ứng dụng**.
+1. `ServiceLoader.load(..., App.class.getClassLoader())` specifies the class loader to search for SPI. `publish` traverses the iterator on the main thread, instantiates `UpperProcessor`, and stores it in `List.copyOf`. The `volatile active` field publishes the reference with proper visibility.
+2. `loader.iterator().next() == first.get(0)` is `true`: the same `ServiceLoader` cached the instance from the previous pass; `reload()` has not been called yet.
+3. Both tasks use the same stateless provider; neither touches the loader. `Future.get()` retrieves results in deterministic order and guarantees tasks complete before reload.
+4. `reload()` clears the cache. The next `publish` re-instantiates the classpath provider with its public no-arg constructor, resulting in a different identity. This is **the behavior in this example**, not a guarantee that every provider/factory in all configurations always creates a new object.
+5. The `first` variable still holds the old snapshot reference, so `oldStillWorks=JAVA`. This proves `reload()` **neither destroys nor closes objects already handed to the application**.
 
-**Giới hạn có chủ đích của ví dụ:** chỉ một provider được cấu hình; main thread là chủ duy nhất của loader; `reload` xảy ra sau khi hai tác vụ kết thúc. Nếu triển khai hot reload trong khi request đang chạy, cần quản lý thời gian sống của snapshot và đóng tài nguyên theo phần tiếp theo. Không suy luận từ code rằng mọi provider share được giữa các thread.
+**Intentional limitations of this example:** only one provider is configured; the main thread is the sole owner of the loader; `reload` occurs after both tasks finish. If implementing hot reload while requests are running, manage snapshot lifetimes and resource closing per the next section. Do not infer from this code that every provider is shareable across threads.
 
-## 7. Reload, snapshot version và thu hồi tài nguyên
+## 7. Reload, Snapshot Versions, and Resource Reclamation
 
-`reload()` phục vụ việc khám phá lại provider ở một loader hiện có. Nó **không**:
+`reload()` serves to rediscover providers on an existing loader. It **does not**:
 
-- làm các `ServiceLoader.Provider<S>` hoặc `S` đang được giữ ở nơi khác tự mất hiệu lực;
-- gọi `close()` trên provider hoặc chờ request đang dùng provider kết thúc;
-- hủy class loader, unload class hay tự mở rộng tập class/module mà loader hiện tại nhìn thấy;
-- khóa các thread khác đang sử dụng loader;
-- đảm bảo provider sau reload có identity mới trong mọi kiểu cấu hình.
+- invalidate `ServiceLoader.Provider<S>` or `S` objects held elsewhere;
+- call `close()` on providers or wait for requests using providers to complete;
+- destroy class loaders, unload classes, or expand the set of classes/modules visible to the current loader;
+- lock other threads using the loader;
+- guarantee providers after reload have new identity across all configuration modes.
 
-Một quy trình refresh an toàn trong ứng dụng nhiều luồng:
+A safe refresh workflow in a multi-threaded application:
 
-1. Chỉ một **registry thread** chịu trách nhiệm discovery/reload. Với nhiều lệnh refresh, tuần tự hóa chúng bằng lock/queue phù hợp.
-2. Tạo và validate **snapshot mới**: đúng service type, version, feature/capability, cấu hình và trạng thái khởi tạo; nếu thất bại thì giữ snapshot đang phục vụ, tùy chính sách lỗi.
-3. Công bố snapshot mới bằng một lần gán `volatile` hoặc `AtomicReference.set`. Các request mới đọc snapshot hiện hành; request đã giữ snapshot cũ tiếp tục với dữ liệu nhất quán.
-4. Ngừng cấp request mới cho snapshot cũ. **Chờ in-flight operations hoàn thành** hoặc dùng reference counting/lease/grace period trước khi đóng provider cũ theo hợp đồng.
-5. Bỏ tham chiếu từ registry, static cache, listener, thread-local, executor/task và các cơ chế đăng ký khác tới provider/class loader cũ khi muốn dỡ plugin. Garbage collector chỉ thu hồi khi thực sự không còn strong reference.
+1. Only one **registry thread** performs discovery/reload. With multiple refresh commands, serialize them via an appropriate lock/queue.
+2. Build and validate the **new snapshot**: correct service type, version, features/capabilities, configuration, and initialization state; if validation fails, keep serving the current snapshot depending on error policy.
+3. Publish the new snapshot with a single `volatile` write or `AtomicReference.set`. New requests read the current snapshot; requests already holding the old snapshot continue with consistent data.
+4. Stop issuing new requests against the old snapshot. **Wait for in-flight operations to finish** or use reference counting/leases/grace periods before closing old providers per contract.
+5. Clear references from registries, static caches, listeners, thread-locals, executors/tasks, and other registrations to old providers/class loaders when unloading plugins. The garbage collector reclaims them only when no strong references actually remain.
 
-Có thể hình dung:
+This can be visualized as:
 
 ```text
 T0: active -> Snapshot V1 -> Provider V1
-                    ^ request A đã lấy V1
+                    ^ request A already acquired V1
 
-T1: registry tạo Snapshot V2, chưa công bố
+T1: registry builds Snapshot V2, not yet published
 T2: active -> Snapshot V2 -> Provider V2
-                                 ^ request B mới
-    request A vẫn có V1, hoàn tất an toàn
-T3: hết request giữ V1 -> đóng tài nguyên V1 (nếu ownership cho phép)
-T4: bỏ tham chiếu V1 và loader cũ khi gỡ phiên bản
+                                 ^ new request B
+    request A still has V1, finishes safely
+T3: zero requests holding V1 -> close V1 resources (if ownership permits)
+T4: drop references to V1 and old loader when retiring version
 ```
 
-Trong triển khai thật, điều kiện “hết request giữ V1” phải có cơ chế cụ thể; **`List.copyOf` và `volatile` không giải quyết việc chờ in-flight**. Nếu provider dùng chung giữa V1/V2, đóng theo mỗi snapshot có thể làm hỏng provider vẫn được sử dụng; cần xác định ownership và chỉ đóng một lần.
+In real implementations, the condition "zero requests holding V1" requires an explicit mechanism; **`List.copyOf` and `volatile` do not wait for in-flight work**. If a provider is shared across V1/V2, closing per snapshot can break a provider still in use; define ownership clearly and close only once.
 
-Provider không bắt buộc triển khai `AutoCloseable`. Nếu interface SPI có yêu cầu tài nguyên, có thể định nghĩa một interface kế thừa `AutoCloseable` hoặc adapter quản lý lifecycle một cách tường minh. Không được coi `reload()` là thao tác giải phóng socket, thread, file hoặc kết nối cơ sở dữ liệu.
+Providers are not required to implement `AutoCloseable`. If the SPI contract needs resource management, define an interface extending `AutoCloseable` or a lifecycle adapter explicitly. Never treat `reload()` as releasing sockets, threads, files, or database connections.
 
-## 8. Phạm vi giữ ServiceLoader theo ClassLoader và ModuleLayer
+## 8. Retention Scope for ServiceLoader by ClassLoader and ModuleLayer
 
-### `load(Service.class)` và thread context class loader
+### `load(Service.class)` and the Thread Context Class Loader
 
-`ServiceLoader.load(S.class)` sử dụng **thread context class loader (TCCL)** ở thời điểm gọi. Trong application server, plugin host hoặc thread pool, TCCL có thể khác nhau giữa các luồng/app. Vì vậy hai nơi gọi cùng API có thể khám phá **tập provider khác nhau**.
+`ServiceLoader.load(S.class)` uses the **thread context class loader (TCCL)** at call time. In application servers, plugin hosts, or thread pools, TCCL can vary across threads/apps. Therefore two call sites invoking the exact same API can discover **different provider sets**.
 
-Một lưu ý quan trọng từ JavaDoc: không nên cache một loader tạo qua `load(S.class)` ở phạm vi **toàn JVM** nếu nhiều ứng dụng/context có class loader riêng. Cache dài hạn có thể nhìn thấy provider của ứng dụng khác hoặc giữ class loader làm rò rỉ bộ nhớ.
+An important note from the Javadoc: do not cache a loader created via `load(S.class)` at **JVM-wide** scope when multiple apps/contexts have separate class loaders. Long-lived caches can see providers from another application or retain class loaders, causing memory leaks.
 
-Khi đã biết chủ sở hữu, ưu tiên thiết kế rõ ràng:
+When the owner is known, prefer an explicit design:
 
-- `ServiceLoader.load(S.class, selectedClassLoader)`: chỉ rõ phạm vi class loader phù hợp với SPI và provider.
-- `ServiceLoader.load(moduleLayer, S.class)`: duyệt provider trong module layer được chỉ định và các layer tổ tiên theo API; không dùng cách này để tìm provider ở unnamed modules như classpath.
-- Giữ loader/registry ở **cấp application/plugin manager/tenant** phù hợp; không biến nó thành global cache không phân biệt bối cảnh.
+- `ServiceLoader.load(S.class, selectedClassLoader)`: explicitly specifies the class loader scope matching the SPI and providers.
+- `ServiceLoader.load(moduleLayer, S.class)`: traverses providers in the specified module layer and its ancestor layers per the API; do not use this for unnamed modules such as the classpath.
+- Keep loaders/registries at the appropriate **application/plugin-manager/tenant level**; do not turn them into context-blind global caches.
 
-Class cùng fully qualified name nhưng do hai class loader khác nhau định nghĩa là hai **kiểu khác nhau**. Service API cần được chia sẻ qua class loader/module quan hệ đúng; nếu plugin nạp lại bằng loader mới nhưng provider đang cast sang bản sao interface cũ, có thể phát sinh `ClassCastException` hoặc `ServiceConfigurationError`.
+Classes with the same fully qualified name defined by two different class loaders are two **distinct types**. The service API must be shared via the proper class-loader/module relationship; if a plugin reloads under a new loader yet a provider gets cast to an old copy of the interface, `ClassCastException` or `ServiceConfigurationError` can occur.
 
-### Reload không đồng nghĩa hot deployment
+### Reload Does Not Equal Hot Deployment
 
-`reload()` chỉ buộc loader **tra cứu lại** theo môi trường hiện nó biết. Để bổ sung/đổi code plugin thực sự, hệ thống có thể cần class loader/module layer mới, provider registry mới và chính sách chuyển version. Nếu vẫn dùng class loader cũ và giữ tham chiếu tới class cũ, Java không tự nạp đè class chỉ vì gọi `reload()`. Nếu muốn unload, không được để static cache, TCCL, background thread hay listener vô tình giữ loader cũ.
+`reload()` only forces the loader to **look up again** within the environment it currently knows. To actually add/replace plugin code, the system may need a new class loader/module layer, a new provider registry, and a version-switching policy. If you keep using the old class loader and retaining references to old classes, Java does not overwrite classes just because `reload()` was called. To unload cleanly, ensure static caches, TCCLs, background threads, and listeners do not inadvertently retain the old loader.
 
-## 9. Truy cập bằng stream và Provider.get(): lưu ý về instance scope
+## 9. Access via stream and Provider.get(): Notes on Instance Scope
 
-`ServiceLoader.Provider<S>` giúp xem `type()` trước khi gọi `get()`. Với module có provider factory method, kiểu từ `type()` phản ánh kiểu trả về của provider method, không nhất thiết là class triển khai factory.
+`ServiceLoader.Provider<S>` allows inspecting `type()` before calling `get()`. For modules with provider factory methods, the type from `type()` reflects the provider method's return type, not necessarily the factory's implementation class.
 
-Tránh dạng sau nếu mục tiêu là **một instance duy nhất trên application** mà chưa có chính sách rõ:
+Avoid the following form if the goal is **a single instance per application** without an explicit policy:
 
 ```java
 ServiceLoader.load(Codec.class)
@@ -380,49 +380,49 @@ ServiceLoader.load(Codec.class)
     .forEach(codec -> register(codec));
 ```
 
-Đoạn này là minh họa cần interface `Codec` và hàm `register` trong ứng dụng. Nó có thể phù hợp cho registration tuần tự, nhưng **không đủ** để chứng minh `get()` tạo một singleton, instance mới mỗi lần hoặc thread-safe. Nếu cần chọn provider theo metadata, hãy lọc `Provider.type()` trước, gọi `get()` ở nơi có ownership rõ ràng, và giữ kết quả vào snapshot/registry theo chính sách.
+This snippet illustrates an app needing a `Codec` interface and `register` function. It can work for sequential registration, yet is **insufficient** to prove `get()` returns a singleton, a new instance each time, or a thread-safe object. To select providers by metadata, filter `Provider.type()` first, call `get()` where ownership is clear, and store results in a snapshot/registry per policy.
 
-Khi stream đã được lấy từ loader, **xử lý nó dưới quyền sở hữu của registry thread**; không phát tán stream/iterator để request khác tiếp tục duyệt. `stream().parallel()` cũng không giải quyết thread-safety của loader; nếu muốn parallel execution, hãy hoàn tất discovery rồi mới áp dụng concurrency cho các provider đủ điều kiện.
+Once a stream is obtained from a loader, **process it under the registry thread's ownership**; do not hand streams/iterators out for other requests to keep traversing. `stream().parallel()` does not solve loader thread-safety either; for parallel execution, complete discovery first and then apply concurrency to eligible providers.
 
-## 10. Lỗi dễ gặp khi vận hành
+## 10. Common Operational Failures
 
-| Hiện tượng | Nguyên nhân | Xử lý |
+| Symptom | Cause | Resolution |
 | --- | --- | --- |
-| `ConcurrentModificationException` lúc `next()` hoặc stream traversal | `reload()` đã xóa cache sau khi iterator/stream được tạo | Bỏ iterator/stream cũ; không reload trong lúc đang duyệt; tuần tự hóa registry |
-| Kết quả thiếu/provider khác giữa các thread | Discovery dùng TCCL khác nhau hoặc không cùng module layer | Chỉ rõ class loader/layer theo application/plugin scope |
-| Provider bị gọi đồng thời gây kết quả sai | Provider chứa mutable state không thread-safe | Stateless/immutable, đồng bộ hợp lý hoặc instance per request |
-| Gỡ plugin nhưng RAM/class loader không được thu hồi | Snapshot, static cache, listener, thread-local hoặc thread còn giữ provider/loader | Đóng theo lifecycle rồi loại bỏ mọi strong reference phù hợp |
-| Sau `reload()` đối tượng cũ vẫn chạy | Caller vẫn giữ tham chiếu tới provider cũ | Cần versioned snapshot và quy trình retired/drain |
-| Sau `reload()` vẫn không thấy plugin mới | Class loader/layer hiện tại không nhìn thấy provider mới | Xem lại deployment, SPI metadata và phạm vi loader; có thể cần loader mới |
-| `ServiceConfigurationError` trong lúc duyệt | File `META-INF/services` sai, class không tải được, constructor/provider method lỗi | Kiểm tra packaging, module `uses/provides`, quyền và lỗi nguyên nhân; fail fast khi bootstrap |
-| Cùng provider được khởi tạo nhiều lần ngoài ý định | Tạo nhiều ServiceLoader, gọi `Provider.get()` tùy tiện, reload | Định nghĩa scope và cache ở registry; không dựa vào singleton ngầm |
-| Request chậm khi chọn provider | Lazy discovery/constructor chạy trên đường request | Khám phá và validate trước lúc nhận request; publish snapshot đã sẵn sàng |
+| `ConcurrentModificationException` on `next()` or stream traversal | `reload()` cleared cache after iterator/stream was created | Discard old iterators/streams; do not reload mid-traversal; serialize registry |
+| Missing results/different providers across threads | Discovery used different TCCLs or different module layers | Specify class loader/layer per application/plugin scope |
+| Concurrent calls to provider produce wrong results | Provider holds non-thread-safe mutable state | Make stateless/immutable, synchronize properly, or use per-request instances |
+| Plugin unloaded yet RAM/class loader not reclaimed | Snapshot, static cache, listener, thread-local, or thread still holds provider/loader | Close per lifecycle then remove all relevant strong references |
+| Old objects still execute after `reload()` | Callers still hold references to old providers | Need versioned snapshots and a retire/drain procedure |
+| New plugin still invisible after `reload()` | Current class loader/layer cannot see the new provider | Check deployment, SPI metadata, and loader scope; may need a new loader |
+| `ServiceConfigurationError` during traversal | Bad `META-INF/services`, unloadable class, failing constructor/provider method | Check packaging, module `uses/provides`, permissions, and root error; fail fast at bootstrap |
+| Same provider instantiated multiple times unexpectedly | Creating multiple `ServiceLoader`s, arbitrary `Provider.get()` calls, reloads | Define scope and cache in a registry; do not rely on implicit singletons |
+| Slow requests when picking providers | Lazy discovery/constructors running on the request path | Discover and validate before accepting requests; publish ready snapshots |
 
-**Lưu ý `ServiceConfigurationError`:** đây là subclass của `Error`; lazy discovery có thể làm `hasNext()`, `next()` hoặc stream terminal operation phát sinh lỗi muộn. Bọc xử lý tại ranh giới bootstrap/registry để trả thông tin cấu hình hữu ích. Không nên bắt mọi `Throwable` rồi âm thầm tiếp tục với tập provider thiếu; điều đó có thể tạo hành vi không nhất quán.
+**Note on `ServiceConfigurationError`:** this is a subclass of `Error`; lazy discovery can cause `hasNext()`, `next()`, or stream terminal operations to fail late. Wrap handling at the bootstrap/registry boundary to surface useful configuration details. Do not catch all `Throwable` and silently proceed with a partial provider set; that can create inconsistent behavior.
 
-## 11. Quy tắc chọn phạm vi theo bài toán
+## 11. Rules for Choosing Scope by Use Case
 
-| Bài toán | Phạm vi nên xem xét | Cách truy cập |
+| Use Case | Scope to Consider | Access Pattern |
 | --- | --- | --- |
-| Dịch vụ không đổi trong suốt vòng đời app | Một registry per application, snapshot bất biến | Registry duyệt một lần; request chỉ đọc snapshot |
-| Plugin có hot reload | Registry per plugin context với snapshot version | Discovery/reload tuần tự; atomic publish; drain phiên bản cũ |
-| Nhiều tenant/app chung JVM | Loader/layer/registry cách ly theo tenant/app | Không cache `ServiceLoader.load(S.class)` toàn VM |
-| Provider stateless, thread-safe | Instance dùng chung theo application/plugin lifetime | Công bố an toàn, gọi trực tiếp từ snapshot |
-| Provider stateful không thread-safe | Instance hoặc state gắn request/session | Factory/pool theo hợp đồng, không share instance mù quáng |
-| Cần truy cập loader trực tiếp từ nhiều thread | Loader dùng lock chung hoặc phân vùng owner | Mọi iteration/stream/reload đi cùng một cơ chế tuần tự hóa |
-| Cần dỡ plugin và trả tài nguyên | Owner/lifecycle tường minh, không chỉ GC | Đợi in-flight, close nếu được sở hữu, xóa strong references |
+| Services unchanged throughout app lifetime | One registry per application, immutable snapshot | Registry traverses once; requests read snapshot only |
+| Hot-reloadable plugins | Registry per plugin context with versioned snapshots | Sequential discovery/reload; atomic publish; drain old versions |
+| Multiple tenants/apps sharing a JVM | Isolated loader/layer/registry per tenant/app | Never cache `ServiceLoader.load(S.class)` VM-wide |
+| Stateless, thread-safe provider | Shared instance per application/plugin lifetime | Safely publish, call directly from snapshot |
+| Stateful, non-thread-safe provider | Instance or state bound to request/session | Factory/pool by contract, do not share instance blindly |
+| Multiple threads genuinely need direct loader access | Shared lock on loader or partitioned owner | All iteration/stream/reload goes through one serialization mechanism |
+| Need to unload plugins and reclaim resources | Explicit owner/lifecycle, not just GC | Wait for in-flight, close if owned, clear strong references |
 
-### Checklist trước khi đưa vào production
+### Pre-Production Checklist
 
-- [ ] Xác định ai sở hữu `ServiceLoader`; không có hai thread đồng thời discovery/reload trên cùng instance.
-- [ ] Chọn đúng `ClassLoader`/`ModuleLayer` và không vô tình cache ở phạm vi JVM/tenant quá rộng.
-- [ ] Phân biệt cache provider instance của iterator và descriptor của stream; không dựa vào `Provider.get()` như chính sách singleton/per-request.
-- [ ] Khám phá và validate trước request; công bố snapshot qua `volatile`/`AtomicReference` hoặc cơ chế happens-before tương đương.
-- [ ] Chứng minh hoặc quy định thread-safety, scope, resource ownership của **provider instances** riêng biệt.
-- [ ] Với reload, bỏ iterator/stream cũ, tạo snapshot version mới, quản lý in-flight requests và đóng tài nguyên cũ đúng thời điểm.
-- [ ] Kiểm tra SPI metadata, `ServiceConfigurationError`, thứ tự provider và hành vi khi không có hoặc có nhiều provider.
-- [ ] Khi unload class loader, kiểm tra static cache, listener, thread-local, background threads và các tham chiếu còn sống.
+- [ ] Identify who owns `ServiceLoader`; no two threads concurrently discover/reload on the same instance.
+- [ ] Choose the right `ClassLoader`/`ModuleLayer` and avoid accidental caching at overly broad JVM/tenant scope.
+- [ ] Distinguish iterator's provider-instance cache from stream's descriptor cache; do not rely on `Provider.get()` as a singleton/per-request policy.
+- [ ] Discover and validate before requests; publish snapshots via `volatile`/`AtomicReference` or an equivalent happens-before mechanism.
+- [ ] Prove or specify thread-safety, scope, and resource ownership of **provider instances** separately.
+- [ ] On reload, discard old iterators/streams, build a new versioned snapshot, manage in-flight requests, and close old resources at the right time.
+- [ ] Test SPI metadata, `ServiceConfigurationError`, provider ordering, and behavior with zero or multiple providers.
+- [ ] When unloading a class loader, audit static caches, listeners, thread-locals, background threads, and lingering references.
 
-Tham khảo API chính thức cho Java 17: [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html) và [`ServiceLoader.Provider`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.Provider.html).
+Official API references for Java 17: [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html) and [`ServiceLoader.Provider`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.Provider.html).
 
-**Kết luận:** `ServiceLoader` là đối tượng **discovery có trạng thái, lazy cache và không thread-safe**. Provider là đối tượng **thực thi có chính sách thread-safety và vòng đời riêng**. Thiết kế đáng tin cậy thường cho một registry sở hữu việc discovery/reload, công bố snapshot an toàn cho request và giải phóng instance/class loader cũ chỉ khi không còn người dùng phụ thuộc vào chúng.
+**Conclusion:** `ServiceLoader` is a **stateful, lazily cached, non-thread-safe discovery** object. Providers are **execution objects with their own thread-safety and lifecycle policies**. A reliable design normally gives a single registry ownership of discovery/reload, safely publishes snapshots to requests, and releases old instances/class loaders only once no consumers depend on them.

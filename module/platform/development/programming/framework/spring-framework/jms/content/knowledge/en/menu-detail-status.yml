@@ -1,0 +1,1534 @@
+menu:
+- slug: jms-overview
+  title: Bức tranh JMS
+  childs:
+  - slug: jms-overview-001
+    title: JMS là gì và nhu cầu giao tiếp qua thông điệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-overview-002
+    title: Tách bên gửi và bên nhận theo thời gian xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-overview-003
+    title: Vai trò JMS provider, broker và ứng dụng khách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-overview-004
+    title: Phân biệt chuẩn API JMS với giao thức truyền tin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-overview-005
+    title: Quan hệ giữa JMS, Jakarta Messaging và Spring JMS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-overview-006
+    title: So sánh nhắn tin bất đồng bộ với lời gọi HTTP đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-overview-007
+    title: Phân biệt JMS với Kafka, AMQP và Spring Messaging
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-overview-008
+    title: 'Luồng xuyên suốt: gửi yêu cầu, xử lý và ghi nhận kết quả'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-overview-009
+    title: Trách nhiệm của ứng dụng, Spring và broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-overview-010
+    title: Kiến thức nền và thứ tự học từ message đến độ tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-queues-topics
+  title: Queue và Topic
+  childs:
+  - slug: jms-queues-topics-001
+    title: Point-to-point và mô hình Queue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-queues-topics-002
+    title: Publish-subscribe và mô hình Topic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-queues-topics-003
+    title: Nhiều consumer cùng nhận từ một Queue
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-queues-topics-004
+    title: Mỗi subscription nhận một bản tin của Topic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-queues-topics-005
+    title: Phân biệt consumer, subscription và bản sao message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-queues-topics-006
+    title: Topic khi subscriber trực tuyến hoặc ngoại tuyến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-queues-topics-007
+    title: Durable subscription và thông điệp tồn tại bền vững là hai khái niệm khác nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-queues-topics-008
+    title: Shared subscription và việc chia tải trong một nhóm nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-queues-topics-009
+    title: TemporaryQueue và TemporaryTopic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-queues-topics-010
+    title: Chọn Queue hay Topic theo hợp đồng giao tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-core-api
+  title: API JMS cốt lõi
+  childs:
+  - slug: jms-core-api-001
+    title: ConnectionFactory là điểm vào của JMS provider
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-core-api-002
+    title: Connection và vòng đời kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-core-api-003
+    title: Session và ngữ cảnh gửi nhận đơn luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-core-api-004
+    title: Destination, Queue và Topic trong API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-core-api-005
+    title: MessageProducer và thao tác gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-core-api-006
+    title: MessageConsumer và thao tác nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-core-api-007
+    title: MessageListener và callback nhận bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-core-api-008
+    title: Connection.start, stop và close trong API gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-core-api-009
+    title: JMSException và chuyển đổi sang ngoại lệ không kiểm tra của Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-core-api-010
+    title: Quản lý tài nguyên bằng API gốc so với JmsTemplate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-message-model
+  title: Mô hình Message
+  childs:
+  - slug: jms-message-model-001
+    title: Cấu trúc header, properties và body
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-model-002
+    title: TextMessage và nội dung văn bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-model-003
+    title: BytesMessage và nội dung nhị phân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-model-004
+    title: MapMessage và tập thuộc tính có kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-model-005
+    title: StreamMessage và chuỗi giá trị có kiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-model-006
+    title: ObjectMessage và sự phụ thuộc vào tuần tự hóa Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-model-007
+    title: JMSMessageID, JMSTimestamp và thông tin do provider tạo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-model-008
+    title: JMSDestination, JMSReplyTo và JMSCorrelationID
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-model-009
+    title: JMSDeliveryMode, JMSPriority và JMSExpiration
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-model-010
+    title: JMSDeliveryTime và thời điểm được phép giao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-model-011
+    title: JMSRedelivered, JMSXDeliveryCount và dấu vết phát lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-model-012
+    title: JMSType, property JMSX và property do ứng dụng đặt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-connection-setup
+  title: Thiết lập kết nối
+  childs:
+  - slug: jms-connection-setup-001
+    title: Chọn JMS provider và thư viện khách tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connection-setup-002
+    title: Khởi tạo ConnectionFactory bằng cấu hình Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connection-setup-003
+    title: Tra cứu ConnectionFactory được quản lý qua JNDI
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connection-setup-004
+    title: Địa chỉ broker, thông tin xác thực và tùy chọn kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connection-setup-005
+    title: Phân biệt broker ngoài ứng dụng và broker nhúng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connection-setup-006
+    title: Đăng ký ConnectionFactory, JmsTemplate và listener factory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connection-setup-007
+    title: Cấu hình qua biến môi trường mà không ghi bí mật vào mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connection-setup-008
+    title: Phân biệt Spring Framework thuần và tự cấu hình Spring Boot
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connection-setup-009
+    title: Kiểm tra kết nối và quyền gửi nhận bằng thí nghiệm tối thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-connection-setup-010
+    title: Đóng tài nguyên và dừng ứng dụng có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-destination
+  title: Destination
+  childs:
+  - slug: jms-destination-001
+    title: Destination có sẵn và tên destination trong mã ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-destination-002
+    title: DestinationResolver và quá trình phân giải tên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-destination-003
+    title: DynamicDestinationResolver và giới hạn cấp phát vật lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-destination-004
+    title: JndiDestinationResolver và tra cứu đối tượng quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-destination-005
+    title: pubSubDomain khi phân giải Queue hoặc Topic
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-destination-006
+    title: defaultDestination và defaultDestinationName
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-destination-007
+    title: Quy ước tên destination theo môi trường và miền nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-destination-008
+    title: Destination tạm thời và phạm vi vòng đời kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-destination-009
+    title: Quyền tạo destination khác với quyền gửi nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-destination-010
+    title: Không đồng nhất tạo đối tượng Queue với tạo Queue trên mọi broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-template
+  title: JmsTemplate
+  childs:
+  - slug: jms-template-001
+    title: Vai trò JmsTemplate trong quản lý thao tác và tài nguyên JMS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-template-002
+    title: Cấu hình ConnectionFactory và destination mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-template-003
+    title: JmsOperations như hợp đồng cho thành phần ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-template-004
+    title: send so với convertAndSend
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-template-005
+    title: receive so với receiveAndConvert
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-template-006
+    title: MessageCreator và Session được callback cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-template-007
+    title: MessagePostProcessor cho dữ liệu trước khi gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-template-008
+    title: SessionCallback và ProducerCallback cho thao tác tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-template-009
+    title: Tái sử dụng JmsTemplate sau khi cấu hình xong
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-template-010
+    title: Phân biệt cấu hình dùng chung với tùy chỉnh theo từng thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-message-sending
+  title: Gửi thông điệp
+  childs:
+  - slug: jms-message-sending-001
+    title: Gửi TextMessage bằng MessageCreator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-sending-002
+    title: Gửi tới Destination hoặc tên được phân giải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-sending-003
+    title: Gửi đối tượng nghiệp vụ bằng convertAndSend
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-sending-004
+    title: Đặt property có kiểu trên message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-sending-005
+    title: Đặt correlation ID và địa chỉ trả lời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-sending-006
+    title: Bổ sung metadata bằng MessagePostProcessor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-sending-007
+    title: Gửi nhiều thao tác qua SessionCallback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-sending-008
+    title: Truy cập MessageProducer qua ProducerCallback
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-sending-009
+    title: Ngoại lệ lúc gửi và giới hạn suy luận về kết quả phía broker
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-sending-010
+    title: Xác nhận gửi thành công khác với xử lý nghiệp vụ thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-delivery-quality
+  title: Chất lượng gửi
+  childs:
+  - slug: jms-delivery-quality-001
+    title: PERSISTENT và NON_PERSISTENT delivery mode
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-delivery-quality-002
+    title: Giới hạn bảo đảm khi chỉ bật lưu trữ bền vững
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-delivery-quality-003
+    title: Priority và việc ưu tiên không thay thế hợp đồng thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-delivery-quality-004
+    title: Time-to-live và hết hạn trước khi được giao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-delivery-quality-005
+    title: Delivery delay và thời điểm giao sớm nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-delivery-quality-006
+    title: explicitQosEnabled và giá trị QoS trên JmsTemplate
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-delivery-quality-007
+    title: Phân biệt mặc định của producer, provider và ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-delivery-quality-008
+    title: 'Vô hiệu hóa message ID hoặc timestamp: mục đích và đánh đổi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-delivery-quality-009
+    title: QoS cho phản hồi của listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-delivery-quality-010
+    title: Gửi bất đồng bộ bằng CompletionListener trong API JMS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-delivery-quality-011
+    title: CompletionListener xác nhận thao tác gửi khác với hoàn tất tiêu thụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-data-conversion
+  title: Chuyển đổi dữ liệu
+  childs:
+  - slug: jms-data-conversion-001
+    title: MessageConverter của Spring JMS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-data-conversion-002
+    title: SimpleMessageConverter và các kiểu dữ liệu được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-data-conversion-003
+    title: Chuyển đổi DTO sang JSON và lựa chọn converter theo phiên bản Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-data-conversion-004
+    title: TextMessage so với BytesMessage cho JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-data-conversion-005
+    title: Thông tin kiểu, ánh xạ type ID và danh sách kiểu cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-data-conversion-006
+    title: Thiết kế schema thông điệp độc lập với lớp Java nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-data-conversion-007
+    title: Phiên bản schema và khả năng tương thích hai chiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-data-conversion-008
+    title: Giá trị thiếu, null, kiểu số và thời gian trong hợp đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-data-conversion-009
+    title: Phân biệt lỗi chuyển đổi với lỗi xử lý nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-data-conversion-010
+    title: Giới hạn kích thước body và tránh dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-data-conversion-011
+    title: Phân biệt converter của spring-jms với spring-messaging
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-data-conversion-012
+    title: Kiểm tra hợp đồng giữa bên gửi và bên nhận độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-synchronous-receiving
+  title: Nhận đồng bộ
+  childs:
+  - slug: jms-synchronous-receiving-001
+    title: receive và luồng chờ message
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-synchronous-receiving-002
+    title: 'receiveTimeout: chờ hữu hạn, không chờ và chờ không giới hạn'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-synchronous-receiving-003
+    title: Kết quả null khi hết thời gian chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-synchronous-receiving-004
+    title: receiveSelected với biểu thức lọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-synchronous-receiving-005
+    title: receiveAndConvert và kiểu dữ liệu sau chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-synchronous-receiving-006
+    title: Ảnh hưởng của nhận đồng bộ đến luồng xử lý HTTP hoặc tác vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-synchronous-receiving-007
+    title: Nhận trong Session có giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-synchronous-receiving-008
+    title: 'QueueBrowser: xem message mà không tiêu thụ'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-synchronous-receiving-009
+    title: Tiêu chí chọn polling đồng bộ hay listener bất đồng bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-message-filtering
+  title: Lọc thông điệp
+  childs:
+  - slug: jms-message-filtering-001
+    title: Message selector và các header/property có thể lọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-filtering-002
+    title: Vì sao selector chuẩn không đọc nội dung body
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-filtering-003
+    title: Cú pháp so sánh và toán tử logic theo tập con SQL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-filtering-004
+    title: BETWEEN, IN, LIKE và IS NULL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-filtering-005
+    title: Phân biệt kiểu chuỗi với kiểu số trong property
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-filtering-006
+    title: Giá trị thiếu và logic ba trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-filtering-007
+    title: Kết hợp selector với receive hoặc @JmsListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-filtering-008
+    title: Ảnh hưởng của selector tới phân phối tải và message tồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-message-filtering-009
+    title: Kiểm thử message khớp, không khớp và sai kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-listeners-containers
+  title: Listener và container
+  childs:
+  - slug: jms-listeners-containers-001
+    title: Nhận bất đồng bộ bằng MessageListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-containers-002
+    title: SessionAwareMessageListener và việc truy cập Session
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-containers-003
+    title: MessageListenerAdapter cho đối tượng Java thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-containers-004
+    title: Container quản lý consumer, luồng và tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-containers-005
+    title: Phân biệt vòng đời bean nghiệp vụ với vòng đời listener container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-containers-006
+    title: Từ message nhận được đến gọi phương thức xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-containers-007
+    title: Chuyển đổi dữ liệu trước khi gọi listener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-containers-008
+    title: Trách nhiệm xác nhận và giao dịch của container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listeners-containers-009
+    title: So sánh các cách khai báo listener trong Spring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-listener
+  title: '@JmsListener'
+  childs:
+  - slug: jms-listener-001
+    title: Bật hạ tầng endpoint bằng @EnableJms
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-002
+    title: Đăng ký DefaultJmsListenerContainerFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-003
+    title: Tên mặc định jmsListenerContainerFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-004
+    title: Khai báo destination và containerFactory
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-005
+    title: Đặt id ổn định cho mỗi endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-006
+    title: Cấu hình selector, concurrency và subscription
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-007
+    title: Dùng placeholder và biểu thức cấu hình có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-008
+    title: Nhiều @JmsListener trên một phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-009
+    title: JmsListenerConfigurer và JmsListenerEndpointRegistrar
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-010
+    title: Đăng ký SimpleJmsListenerEndpoint bằng mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-011
+    title: JmsListenerEndpointRegistry để tìm và quản lý container
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-012
+    title: autoStartup, phase và thứ tự bắt đầu hoặc dừng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-listener-data
+  title: Dữ liệu listener
+  childs:
+  - slug: jms-listener-data-001
+    title: Tham số payload và @Payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-data-002
+    title: Nhận jakarta.jms.Message hoặc một kiểu message cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-data-003
+    title: Nhận org.springframework.messaging.Message để đọc payload và header
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-data-004
+    title: Đọc header bằng @Header và @Headers
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-data-005
+    title: JmsHeaders và ánh xạ metadata JMS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-data-006
+    title: Nhận Session để gửi phản hồi tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-data-007
+    title: Kiểm tra payload bằng @Valid và Validator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-data-008
+    title: DefaultMessageHandlerMethodFactory và giải quyết tham số
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-data-009
+    title: Lỗi chuyển đổi hoặc validation trước khi mã nghiệp vụ chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-listener-data-010
+    title: Giữ phương thức listener ngắn và ủy quyền nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jms-default-container
+  title: Default container
+  childs:
+  - slug: jms-default-container-001
+    title: DefaultMessageListenerContainer và cơ chế nhận dựa trên polling
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-default-container-002
+    title: DefaultJmsListenerContainerFactory và container được tạo ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-default-container-003
+    title: concurrentConsumers và maxConcurrentConsumers
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-default-container-004
+    title: Cấu hình concurrency bằng giá trị hoặc khoảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-default-container-005
+    title: TaskExecutor và số luồng thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-default-container-006
+    title: receiveTimeout và độ phản hồi khi nhàn rỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-default-container-007
+    title: maxMessagesPerTask và vòng đời tác vụ nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-default-container-008
+    title: cacheLevel và tương tác với giao dịch ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-default-container-009
+    title: Phục hồi kết nối bằng recoveryInterval hoặc BackOff
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-default-container-010
+    title: ErrorHandler và ExceptionListener
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jms-default-container-011
+    title: Start, stop, shutdown và message đang xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

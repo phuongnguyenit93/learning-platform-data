@@ -1,23 +1,23 @@
-# Kiểm thử gọi đồng thời, khởi tạo thất bại, dừng và thay thế nhiều thế hệ plugin Java
+# Testing Concurrent Invocation, Initialization Failure, Shutdown, and Multi-Generation Replacement of Java Plugins
 
-## 1. Bài toán: plugin chạy đúng khi tuần tự chưa đủ
+## 1. The Problem: Sequential Happy-Path Tests Are Not Enough
 
-Một hệ thống Java mở rộng lúc chạy có thể khám phá plugin bằng `ServiceLoader`, nạp plugin từ class loader riêng hoặc tạo `ModuleLayer` động. Những cơ chế đó giúp **tìm và nạp code**, nhưng không tự chứng minh rằng **plugin manager** an toàn khi nhiều request, startup lỗi giữa chừng, shutdown diễn ra đồng thời, hoặc hot replacement giữa các thế hệ implementation.
+A Java system with runtime extensibility can discover plugins via `ServiceLoader`, load plugins from dedicated class loaders, or build dynamic `ModuleLayer`s. Those mechanisms **find and load code**, yet they do not prove that the **plugin manager** is safe under concurrent requests, mid-startup failures, concurrent shutdown, or hot replacement across implementation generations.
 
-Kiểm thử plugin cần quan tâm đến **hành vi tại ranh giới thời gian**, chứ không chỉ `assertEquals` trên một method nghiệp vụ:
+Plugin testing must focus on **behavior at time boundaries**, not merely `assertEquals` on a business method:
 
-1. **Gọi đồng thời:** Hai hay nhiều request có thể cùng chạy trên một plugin. Manager có đếm đúng request đang chạy (*in-flight*) và bảo vệ shared state không?
-2. **Khởi tạo thất bại:** Plugin có thể mở tài nguyên rồi ném lỗi. Host có đưa nhầm instance chưa sẵn sàng vào registry hoặc bỏ quên tài nguyên không?
-3. **Dừng:** Khi có request đang thực thi, thao tác shutdown có chặn request mới, chờ request cũ và đóng tài nguyên đúng thời điểm không?
-4. **Thay thế nhiều thế hệ:** Trong lúc một plugin phiên bản cũ vẫn xử lý request, host có thể kích hoạt bản mới, chuyển request mới tới bản mới và từ chối callback muộn của bản cũ không?
+1. **Concurrent invocation:** Two or more requests may enter a plugin simultaneously. Does the manager accurately count active (*in-flight*) requests and protect shared state?
+2. **Initialization failure:** A plugin may open resources and then throw. Does the host accidentally publish an unready instance into the registry or leak resources?
+3. **Shutdown:** While requests are executing, does shutdown block new requests, wait for existing requests, and close resources at the right moment?
+4. **Multi-generation replacement:** While an older plugin version is still handling requests, can the host activate a new version, route new requests to it, and reject late callbacks from the old version?
 
-**Kết quả mong muốn:** kiểm thử phải lặp lại được, chủ động điều khiển lịch trình giữa threads, có timeout phát hiện deadlock, có assertions về state và ownership, không dùng `Thread.sleep(...)` để “hy vọng” một race xảy ra.
+**Desired outcome:** tests must be reproducible, actively control thread scheduling, include timeouts to detect deadlocks, and assert state and ownership—never using `Thread.sleep(...)` to "hope" a race occurs.
 
-### 1.1. Ranh giới trách nhiệm
+### 1.1. Responsibility Boundaries
 
 ```text
    SPI / ModuleFinder / class loader
-             │ khám phá implementation
+             │ discover implementation
              ▼
        Plugin Manager
      verify → initialize → READY
@@ -25,56 +25,56 @@ Kiểm thử plugin cần quan tâm đến **hành vi tại ranh giới thời g
              ▼
        Router / Registry
        ┌─────────────────┐
-       │ Generation G1   │ ◄── request cũ, đã cấp lease
+       │ Generation G1   │ ◄── old request, lease granted
        │ QUIESCING       │
        └─────────────────┘
-             │ chuyển traffic nguyên tử
+             │ atomic traffic switch
              ▼
        ┌─────────────────┐
-       │ Generation G2   │ ◄── request mới
+       │ Generation G2   │ ◄── new request
        │ ACTIVE          │
        └─────────────────┘
              │
              ▼
-  Đợi G1 in-flight = 0 → stop G1 → close resources
+  Wait for G1 in-flight = 0 → stop G1 → close resources
 ```
 
-Host chịu trách nhiệm *routing*, vòng đời, timeout, version compatibility và cleanup. Plugin chịu trách nhiệm thread safety của implementation hoặc phải công bố policy chạy tuần tự. **Thread-safe routing không làm một plugin implementation vốn không thread-safe trở nên thread-safe.**
+The host owns *routing*, lifecycle, timeouts, version compatibility, and cleanup. The plugin owns thread safety of its implementation or must publish a sequential-execution policy. **Thread-safe routing does not make a non-thread-safe plugin implementation thread-safe.**
 
-## 2. Mô hình kiểm thử: state, generation, lease và các bất biến
+## 2. Test Model: State, Generation, Lease, and Invariants
 
-Một mô hình đủ để kiểm tra những lỗi quan trọng:
+A model sufficient to catch critical bugs:
 
-| Thành phần | Nhiệm vụ | Assertion quan trọng |
+| Component | Responsibility | Key Assertion |
 | --- | --- | --- |
-| `Plugin` | `initialize`, `handle`, `close` | Không xử lý trước init; cleanup an toàn sau init thất bại |
-| `Generation` | Một instance/plugin version + state + số in-flight | Không cấp lease ngoài ACTIVE; shutdown đợi đúng số request |
-| `Router` | Một tham chiếu tới generation hiện hành | Swap và cấp lease dùng chung cơ chế đồng bộ |
-| `Lease` | Quyền tạm thời cho một request sử dụng generation | Cấp đúng một lần; giải phóng trong `finally` |
-| `Failure record` | Nguyên nhân startup/stop/callback lỗi | Không mất lỗi gốc dù cleanup thành công |
-| `Generation ID` | Phân biệt các lần tạo instance | Callback cũ không sửa state của generation mới |
+| `Plugin` | `initialize`, `handle`, `close` | Never handles before init; safe cleanup after failed init |
+| `Generation` | Instance/plugin version + state + in-flight count | Grants leases only in ACTIVE; shutdown waits for exact request count |
+| `Router` | Reference to the current generation | Swap and lease acquisition share synchronization |
+| `Lease` | Temporary permission for one request to use a generation | Acquired once; released in `finally` |
+| `Failure record` | Root cause of startup/stop/callback failure | Original error is not lost even if cleanup succeeds |
+| `Generation ID` | Distinguishes instantiation cycles | Old callbacks cannot mutate new generation state |
 
-Các trạng thái có thể là `NEW`, `INITIALIZING`, `ACTIVE`, `QUIESCING`, `STOPPING`, `STOPPED` và `FAILED`. Đây là enum do ứng dụng thiết kế, **không phải trạng thái có sẵn của `ServiceLoader`**.
+States can be `NEW`, `INITIALIZING`, `ACTIVE`, `QUIESCING`, `STOPPING`, `STOPPED`, and `FAILED`. This is an application-designed enum, **not built-in states of `ServiceLoader`**.
 
-### 2.1. Bất biến không được phá
+### 2.1. Invariants That Must Never Break
 
-- **Admission:** Chỉ `ACTIVE` được nhận request mới và tăng `inFlight`.
-- **Atomicity:** Kiểm tra `ACTIVE` và tăng `inFlight` phải xảy ra trong **cùng critical section**, tránh race với stop.
-- **Release:** Sau khi đã cấp lease, mọi đường ra (thành công, exception, interrupt) đều giảm `inFlight` đúng một lần.
-- **No premature close:** Không gọi `close` khi `inFlight > 0` nếu contract yêu cầu graceful shutdown và request còn dùng tài nguyên.
-- **Quiesce:** Khi gate đã đóng, **không cấp lease mới cho generation cũ**, nhưng lease đã cấp vẫn được hoàn tất.
-- **No early publish:** Candidate chỉ trở thành current generation **sau** khi initialize và readiness thành công.
-- **Atomic cutover:** Không có khoảng trống hai router paths cùng nhận request mới sau thời điểm switch được công bố.
-- **Fencing:** Kết quả callback thuộc generation cũ không được cập nhật registry hoặc state của generation mới.
-- **Cleanup:** Khởi tạo một phần vẫn phải cleanup; stop lặp không tạo double-close.
-- **Failure history:** Startup lỗi nhưng cleanup về `STOPPED` không làm mất `lastFailure`.
+- **Admission:** Only `ACTIVE` accepts new requests and increments `inFlight`.
+- **Atomicity:** Checking `ACTIVE` and incrementing `inFlight` must occur inside the **same critical section**, avoiding races with stop.
+- **Release:** Once a lease is granted, every exit path (success, exception, interrupt) decrements `inFlight` exactly once.
+- **No premature close:** Never invoke `close` while `inFlight > 0` when the contract requires graceful shutdown and requests still hold resources.
+- **Quiesce:** Once the gate closes, **no new leases are granted for the old generation**, while already-granted leases are allowed to finish.
+- **No early publish:** A candidate becomes the current generation **only after** initialization and readiness succeed.
+- **Atomic cutover:** There is no window where two router paths both accept new requests after the switch is published.
+- **Fencing:** Callbacks originating from an old generation cannot update the registry or state of a newer generation.
+- **Cleanup:** Partial initialization must still be cleaned up; repeated stop calls must not double-close.
+- **Failure history:** A failed startup whose cleanup transitions to `STOPPED` must not erase `lastFailure`.
 
-### 2.2. Lease quan trọng hơn một biến `volatile`
+### 2.2. A Lease Matters More Than a `volatile` Field
 
-Phản ví dụ:
+Counterexample:
 
 ```java
-// PSEUDOCODE nguy hiểm: check và tăng không nguyên tử.
+// Dangerous PSEUDOCODE: non-atomic check and increment.
 if (state == State.ACTIVE) {
     inFlight++;
     plugin.handle(request);
@@ -82,9 +82,9 @@ if (state == State.ACTIVE) {
 }
 ```
 
-Thread A có thể đọc `ACTIVE`, thread B chuyển `STOPPING` và đóng tài nguyên, rồi A mới tăng `inFlight` và gọi plugin. `volatile State` chỉ giúp nhìn thấy giá trị, không biến chuỗi *check → increment → use* thành một thao tác nguyên tử.
+Thread A may read `ACTIVE`, thread B transitions to `STOPPING` and closes resources, and only then does A increment `inFlight` and call the plugin. A `volatile State` only guarantees visibility, not atomicity across *check → increment → use*.
 
-Mẫu thiết kế đúng:
+Correct design pattern:
 
 ```text
 Route request:
@@ -106,24 +106,24 @@ Stop generation:
   plugin.close()
 ```
 
-Đây là **pseudocode**. Trong ứng dụng nhiều router, bước chọn current generation và cấp lease phải được phối hợp với **cùng lock/cơ chế CAS của thao tác swap**. Nếu router chọn generation cũ rồi tạm dừng trước khi cấp lease, swap có thể xuất hiện ở giữa.
+This is **pseudocode**. In applications with a router, picking the current generation and acquiring its lease must be coordinated under **the same lock/CAS mechanism as the swap**. If the router reads the old generation and pauses before acquiring a lease, a swap can slip in between.
 
-## 3. Kiểm thử gọi đồng thời
+## 3. Testing Concurrent Invocation
 
-### 3.1. Cần chứng minh điều gì?
+### 3.1. What Must Be Proven?
 
-Đừng chỉ chạy 100 request rồi thấy kết quả đều đúng. Một test tốt cho concurrent invocation nên chứng minh:
+Do not merely fire 100 requests and observe matching outputs. A solid concurrent invocation test should prove:
 
-1. Có **ít nhất hai handler cùng vào vùng xử lý** trong lúc chưa được phép hoàn tất.
-2. `inFlight` của manager bằng số lease đã cấp; không bị mất increment/decrement.
-3. Request trả đúng kết quả và không chia sẻ dữ liệu mutable không bảo vệ.
-4. Sau khi release các handlers, `inFlight == 0`.
-5. Exception cũng giải phóng lease, không làm shutdown chờ mãi.
-6. Khi policy plugin chỉ cho phép xử lý tuần tự, router/executor phải serialize thật sự thay vì chỉ hy vọng plugin không race.
+1. At least **two handlers are inside the execution region simultaneously** before either is allowed to finish.
+2. The manager's `inFlight` equals the number of granted leases; no lost increments or decrements.
+3. Requests return accurate results without sharing unprotected mutable data.
+4. Once handlers finish and release, `inFlight == 0`.
+5. Exceptions also release leases so shutdown never hangs forever.
+6. When a plugin policy permits only sequential execution, the router/executor genuinely serializes calls instead of hoping the plugin does not race.
 
-### 3.2. Dùng `CountDownLatch` thay vì `Thread.sleep`
+### 3.2. Use `CountDownLatch` Instead of `Thread.sleep`
 
-`CountDownLatch` tạo hai điểm đồng bộ chủ động:
+`CountDownLatch` creates two deterministic synchronization points:
 
 ```text
 Thread A: acquire → handle → entered.countDown ─┐
@@ -137,16 +137,16 @@ Test: await(entered == 0)
       assert outputs and inFlight == 0
 ```
 
-Test biết chắc hai request đã vào handler trước khi mở cổng. `Thread.sleep(100)` không bảo đảm gì: máy CI chậm, GC pause hoặc scheduler khác có thể khiến test vừa pass giả vừa flaky.
+The test knows for certain both requests have entered the handler before opening the gate. `Thread.sleep(100)` proves nothing: a slow CI runner, GC pause, or different scheduler can make tests both false-positive and flaky.
 
-Dùng `CountDownLatch.await(timeout, unit)` ở test để **fail khi bị treo**, không để kiểm soát thứ tự bằng thời gian. Một timeout chỉ là giới hạn an toàn; nó không chứng minh algorithm đúng nếu không có assertions trên trạng thái đã đồng bộ.
+Use `CountDownLatch.await(timeout, unit)` in tests to **fail on hangs**, not to control ordering via wall-clock time. A timeout is only a safety guard; it never proves an algorithm is right without assertions on synchronized state.
 
-### 3.3. Cần xét cả các exception paths
+### 3.3. Cover Exception Paths Too
 
-Mẫu release:
+Release pattern:
 
 ```java
-// Minh họa: acquire()/release() thuộc một Generation đồng bộ đúng.
+// Illustration: acquire()/release() belong to a properly synchronized Generation.
 generation.acquire();
 try {
     return plugin.handle(input);
@@ -155,29 +155,29 @@ try {
 }
 ```
 
-Nếu `plugin.handle` ném `IllegalArgumentException`, `IOException` hoặc `InterruptedException`, `finally` vẫn chạy. Test nên đưa lỗi có kiểm soát vào `handle` rồi xác nhận `inFlight == 0` và stop không bị treo.
+If `plugin.handle` throws `IllegalArgumentException`, `IOException`, or `InterruptedException`, `finally` still runs. Tests should inject controlled failures into `handle` and verify `inFlight == 0` and shutdown does not hang.
 
-Nếu một thread bị interrupt khi đang chờ, đừng xóa interrupt flag hoặc tự động retry khiến request bị xử lý hai lần. Thường để `InterruptedException` đi lên ở test/host boundary hoặc khôi phục cờ interrupt trong code không truyền exception ra ngoài.
+If a thread is interrupted while waiting, do not silently clear the interrupt flag or auto-retry in a way that processes the request twice. Typically propagate `InterruptedException` at test/host boundaries or restore the interrupt flag when signatures do not throw it.
 
-## 4. Kiểm thử khởi tạo thất bại
+## 4. Testing Initialization Failures
 
-### 4.1. Các pha lỗi khác nhau
+### 4.1. Different Failure Phases
 
-| Điểm lỗi | Dấu vết cần kiểm tra | Hành vi host |
+| Failure Point | Trace to Verify | Host Behavior |
 | --- | --- | --- |
-| Provider discovery | Không có provider hoặc SPI descriptor hỏng | Phân biệt absent provider với `ServiceConfigurationError` |
-| Verify | Thiếu dependency/version, ID trùng, policy từ chối | Không initialize/publish |
-| Constructor | Constructor/initializer ném lỗi | Không có instance dùng được; cleanup tài nguyên phụ nếu đã cấp |
-| Initialize trước khi mở tài nguyên | Config/secret không hợp lệ | `FAILED`, không ACTIVE |
-| Initialize **sau khi mở tài nguyên** | File, socket, worker thread đã tạo nhưng bước sau lỗi | Cleanup phần đã mở, không leak |
-| Start/readiness | Không sẵn sàng, timeout, dependency lỗi | Candidate không được publish |
-| Khi thay thế | Generation mới khởi tạo lỗi | **Giữ generation cũ** đang phục vụ nếu chưa cutover |
+| Provider discovery | Missing provider or broken SPI descriptor | Distinguish absent provider from `ServiceConfigurationError` |
+| Verify | Missing dependency/version, duplicate ID, policy denial | Do not initialize/publish |
+| Constructor | Constructor/initializer throws | No usable instance; clean up auxiliary resources if allocated |
+| Initialize before opening resources | Invalid config/secret | `FAILED`, never ACTIVE |
+| Initialize **after opening resources** | File, socket, or worker thread created before later step fails | Clean up opened parts, zero leaks |
+| Start/readiness | Unready, timeout, dependency failure | Candidate is never published |
+| During replacement | New generation fails initialization | **Keep old generation** serving if cutover has not occurred |
 
-Một test chỉ assert exception được ném là **chưa đủ**. Phải kiểm tra cùng lúc: candidate không được publish, không có request tới candidate, tài nguyên partial được giải phóng, nguyên nhân lỗi được giữ, và generation cũ (nếu có) vẫn hoạt động.
+A test asserting only that an exception is thrown is **insufficient**. Simultaneously check: candidate is not published, no requests reach the candidate, partial resources are freed, root cause is preserved, and the old generation (if any) keeps serving.
 
-### 4.2. Tách initialize khỏi publish
+### 4.2. Separate Initialize from Publish
 
-Quy trình:
+Flow:
 
 ```text
 construct candidate
@@ -198,32 +198,32 @@ atomic swap in router
 old generation QUIESCING → drain → STOPPED
 ```
 
-Nếu host publish candidate trước khi `initialize` hoàn tất, request có thể nhìn thấy object chưa được cấu hình hoặc mở chưa đủ resources.
+If the host publishes a candidate before `initialize` finishes, requests can observe an unconfigured object or half-opened resources.
 
-Trong code test, hãy cố tình đặt cờ `resourceOpened=true` **trước khi ném lỗi** rồi assert sau `close` rằng cờ trở về `false`. Nó bắt được bug bỏ quên cleanup mà test ném lỗi ngay đầu `initialize` không phát hiện.
+In test code, intentionally set `resourceOpened=true` **before throwing**, then assert after `close` that the flag returns to `false`. This catches missing cleanup bugs that tests throwing at the very top of `initialize` miss.
 
-### 4.3. Tránh tự động retry instance hỏng
+### 4.3. Avoid Auto-Retrying a Broken Instance
 
-Không mặc định gọi lại `initialize` trên cùng object sau khi lỗi vì các biến instance, thread, connection và subscription có thể đang ở trạng thái không rõ. Chiến lược an toàn thường là:
+Do not blindly re-invoke `initialize` on the same object after a failure, because instance fields, threads, connections, and subscriptions may be left in an undefined state. A safer strategy is usually:
 
 ```text
 FAILED instance → best-effort cleanup → STOPPED
-→ retry với generation/instance MỚI sau backoff
+→ retry with a NEW generation/instance after backoff
 ```
 
-Nếu host hỗ trợ restart cùng instance thì đây phải là capability đã quy định và được kiểm thử ở mọi failure stage. Đừng chỉ thêm vòng lặp retry quanh `start()`.
+If the host explicitly supports restarting the same instance, that must be a documented capability tested across every failure stage—not just a retry loop wrapped around `start()`.
 
-## 5. Kiểm thử dừng: quiescing, drain và close
+## 5. Testing Shutdown: Quiescing, Draining, and Closing
 
-### 5.1. Một shutdown đúng có ba mốc
+### 5.1. A Proper Shutdown Has Three Milestones
 
-1. **Close admission:** Không còn request mới nào nhận lease của generation sẽ dừng.
-2. **Drain in-flight:** Đợi các request đã được chấp nhận hoàn tất (hoặc deadline/cancellation policy).
-3. **Cleanup:** Đóng plugin resources đúng một lần rồi ghi `STOPPED`.
+1. **Close admission:** No further new requests acquire a lease on the stopping generation.
+2. **Drain in-flight:** Wait for already-admitted requests to complete (or hit deadline/cancellation policy).
+3. **Cleanup:** Close plugin resources exactly once and record `STOPPED`.
 
-`QUIESCING` là thời điểm gate đóng nhưng request cũ vẫn chạy. `STOPPING` là pha manager chuẩn bị/đang cleanup; tên trạng thái cụ thể do hệ thống quy định.
+`QUIESCING` is the window where the gate is closed while old requests still run. `STOPPING` is the phase where the manager prepares/executes cleanup; exact state names depend on your system.
 
-### 5.2. Dùng latch để buộc stop cạnh tranh với handler
+### 5.2. Use Latches to Force Shutdown to Race with Handlers
 
 ```text
 Request thread                  Shutdown thread
@@ -242,80 +242,80 @@ release lease
                                 state = STOPPED
 ```
 
-Các assertions bắt buộc:
+Mandatory assertions:
 
-- Handler đang chạy tiếp tục trên generation cũ, không bị đổi instance giữa chừng.
-- Sau close gate, một request **mới** bị từ chối hoặc được router chuyển sang generation khác, không được cấp thêm lease cũ.
-- Trong lúc còn một request blocked, `closeCount == 0` và shutdown chưa hoàn thành.
-- Chỉ sau khi release lease mới thấy `closeCount == 1` và state `STOPPED`.
-- Gọi stop thêm lần nữa không close lần hai.
-- Nếu `close` thất bại, host ghi lại cleanup failure, không báo thành công giả.
+- The running handler finishes on the old generation without swapping instances mid-flight.
+- After the gate closes, a **new** request is rejected or routed to another generation, never granted another old lease.
+- While one request remains blocked, `closeCount == 0` and shutdown has not completed.
+- Only after the lease is released do we see `closeCount == 1` and state `STOPPED`.
+- Calling stop a second time does not close twice.
+- If `close` fails, the host records the cleanup failure instead of reporting false success.
 
-### 5.3. Timeout và cancellation
+### 5.3. Timeouts and Cancellation
 
-Mô hình demo thường chờ drain không giới hạn nhưng test dùng timeout để tránh treo mãi. **Production phải có deadline**. Tuy nhiên `Future.cancel(true)`/`Thread.interrupt()` không bảo đảm một handler đang thực hiện blocking I/O sẽ dừng ngay; càng không bảo đảm tài nguyên có thể đóng an toàn nếu thread vẫn sử dụng nó.
+Demo models often wait indefinitely to drain, while tests use timeouts to avoid hanging forever. **Production must have deadlines.** However, `Future.cancel(true)`/`Thread.interrupt()` does not guarantee a handler blocked on I/O stops immediately, nor does it guarantee resources can be closed safely while a thread still uses them.
 
-Khi hết hạn, host cần chính sách rõ: đánh dấu timeout, ngăn admission, ghi request còn sống, giới hạn tài nguyên, và có thể **cô lập trong process riêng** nếu cần cưỡng chế dừng. Không chỉ gọi `URLClassLoader.close()` rồi cho rằng mọi thread của plugin đã chết; Java class unloading cần không còn reference tới loader.
+When deadlines expire, the host needs a clear policy: mark timeout, block admission, log live requests, cap resources, and potentially **isolate in a separate process** when forced termination is required. Never simply call `URLClassLoader.close()` and assume every plugin thread died; Java class unloading requires zero live references to the loader.
 
-### 5.4. Dependency graph khi shutdown
+### 5.4. Dependency Graph During Shutdown
 
-Nếu plugin Report phụ thuộc Storage:
+If plugin Report depends on Storage:
 
 ```text
 Start: Storage → Report
 Stop:  Report  → Storage
 ```
 
-Test cần xác minh Report được quiesce/flush/close **trước** khi Storage đóng, kể cả khi có request chạy đồng thời. `ServiceLoader` không tự quyết định thứ tự dependency này.
+Tests must verify Report is quiesced/flushed/closed **before** Storage closes, even under concurrent requests. `ServiceLoader` does not manage this dependency ordering automatically.
 
-## 6. Kiểm thử thay thế nhiều thế hệ
+## 6. Testing Multi-Generation Replacement
 
-### 6.1. Generation là gì?
+### 6.1. What Is a Generation?
 
-Một *generation* là **một instance plugin có identity duy nhất trong một lần kích hoạt**, ví dụ `pluginId=pdf, generation=7` và `generation=8`. Generation khác với version chuỗi `1.2.3`: hai lần restart cùng version vẫn là **hai generation khác nhau**.
+A *generation* is **one plugin instance with a unique identity for a single activation**, such as `pluginId=pdf, generation=7` and `generation=8`. Generation differs from a version string `1.2.3`: two restarts of the same version are still **two distinct generations**.
 
-Nên gắn dữ liệu với `pluginId + generationId + instanceId` hoặc token tương đương. Không lưu state chỉ theo plugin name nếu hai instance cùng tên có thể chạy chồng trong thời gian chuyển traffic.
+Tie state to `pluginId + generationId + instanceId` or an equivalent token. Never store state keyed solely by plugin name if two instances of that name can overlap during traffic cutover.
 
-### 6.2. Quy trình thay thế không gián đoạn
+### 6.2. Zero-Downtime Replacement Flow
 
 ```text
 T0:  current = G1 (ACTIVE)
-     request A nhận lease G1, đang chạy
+     request A acquires G1 lease, currently running
 
-T1:  tạo G2, verify/init/readiness
-     G1 vẫn phục vụ request mới
+T1:  create G2, verify/init/readiness
+     G1 continues serving new requests
 
 T2:  swap atomically:
      G1 close gate → QUIESCING
      current = G2 (ACTIVE)
 
-T3:  request B được route tới G2
-     request A vẫn hoàn thành trên G1
+T3:  request B is routed to G2
+     request A still completes on G1
 
 T4:  inFlight(G1) = 0
      stop/close G1 → STOPPED
-     current vẫn G2
+     current remains G2
 
-T5:  tạo G3, swap tương tự:
+T5:  create G3, swap similarly:
      G2 QUIESCING, current=G3
-     callback muộn của G1/G2 bị bỏ qua
+     late callbacks from G1/G2 are ignored
 ```
 
-Ở thời điểm T2, **việc đóng gate G1 và gán current=G2 phải được phối hợp**. Nếu chỉ:
+At T2, **closing G1's gate and assigning `current=G2` must be coordinated**. Writing only:
 
 ```java
-// PSEUDOCODE có race nếu route() lấy reference trước swap.
+// Racy PSEUDOCODE if route() reads reference before swap.
 current = newGeneration;
 oldGeneration.stopAccepting();
 ```
 
-một request có thể đã đọc reference G1 nhưng chưa acquire lease, sau đó vẫn được phép dùng G1 dù swap đã xảy ra. Cách giải quyết trong ví dụ runnable là Router và Generation sử dụng lock nhất quán để **swap và acquire lease có thứ tự tuyến tính**.
+allows a request that already read reference G1 before acquiring a lease to still enter G1 after the swap occurs. The runnable example solves this by having Router and Generation use consistent locking so **swap and lease acquisition are linearly ordered**.
 
-### 6.3. Test callback cũ (stale callback)
+### 6.3. Testing Stale Callbacks
 
-Một tác vụ bất đồng bộ có thể hoàn thành sau khi generation khác đã được publish. Nếu callback chỉ làm `registry.put(pluginId, result)`, nó có thể ghi đè trạng thái bản mới.
+An asynchronous task may complete after a newer generation has been published. If the callback simply executes `registry.put(pluginId, result)`, it can overwrite the newer version's state.
 
-**Fencing token**:
+**Fencing token:**
 
 ```text
 callback(sourceGeneration, result):
@@ -326,11 +326,11 @@ callback(sourceGeneration, result):
         publish result
 ```
 
-Trong một hệ thống phân tán, có thể cần monotonic fencing token được backend kiểm tra, không chỉ object identity in-memory. Test nên có ba generations G1, G2, G3 và cố tình gửi callback G1/G2 **sau** khi G3 trở thành current; chúng phải bị từ chối. Callback G3 được chấp nhận.
+In a distributed system, you may need a monotonic fencing token verified by the backend rather than just in-memory object identity. Tests should create three generations G1, G2, G3 and intentionally send G1/G2 callbacks **after** G3 becomes current; they must be rejected, while G3's callback is accepted.
 
-### 6.4. Candidate thất bại trước swap
+### 6.4. Candidate Fails Before Swap
 
-Nếu G2 không initialize được, router vẫn phải giữ G1:
+If G2 fails to initialize, the router must retain G1:
 
 ```text
 G1 ACTIVE ────────────────► G1 ACTIVE
@@ -343,39 +343,39 @@ G1 ACTIVE ────────────────► G1 ACTIVE
                       G2 STOPPED
 ```
 
-Test này bắt lỗi implementation kiểu “gán `current = candidate` trước, rồi mới gọi `candidate.start()`”, khiến hệ thống không có provider hoạt động sau một deployment thất bại.
+This test catches implementations that "assign `current = candidate` first, then call `candidate.start()`", which leaves the system with no working provider after a failed deployment.
 
-## 7. Công cụ kiểm thử trong Java 17+
+## 7. Testing Tools in Java 17+
 
-| Công cụ | Công dụng | Điều phải chú ý |
+| Tool | Purpose | What to Watch Out For |
 | --- | --- | --- |
-| `CountDownLatch` | Chặn/mở điểm chuyển trong test | One-shot; không reset được |
-| `CyclicBarrier` | Nhiều thread cùng đến một checkpoint | Cần xử lý broken barrier/timeout |
-| `Phaser` | Nhiều pha đồng bộ | Phức tạp hơn, phù hợp test có nhiều bước |
-| `ExecutorService` | Chạy requests/shutdown trên worker threads | Shutdown executor trong `finally` |
-| `Future.get(timeout, unit)` | Đợi kết quả, phát hiện treo | Timeout chỉ là guard, không phải bằng chứng về thứ tự |
-| `CompletableFuture` | Kiểm thử async startup/callback | Unwrap lỗi, xác định executor và cancellation |
-| `AtomicInteger` | Đếm số lần handle/close, đo max concurrency | Không thay thế atomic protocol liên quan nhiều biến |
-| `AtomicReference` | Giữ current generation hoặc snapshot | Một CAS pointer không tự đóng gate của generation cũ |
-| `synchronized`/`ReentrantLock` | Gom check + acquire hoặc swap thành critical section | Không giữ lock khi gọi code plugin có thể block |
-| JUnit 5 `assertTimeoutPreemptively` | Giới hạn thời gian test ở framework | Thread khác, interrupt/cancellation có giới hạn; tránh khiến code vẫn chạy sau test |
-| Awaitility (ngoài JDK) | Chờ eventual condition có deadline | Không dùng polling thay cho coordination khi có thể dùng latch |
+| `CountDownLatch` | Block/release test checkpoints | One-shot; cannot be reset |
+| `CyclicBarrier` | Synchronize multiple threads at a checkpoint | Handle broken barrier/timeout |
+| `Phaser` | Multi-phase synchronization | More complex; fits multi-step tests |
+| `ExecutorService` | Run requests/shutdown on worker threads | Shut down executor in `finally` |
+| `Future.get(timeout, unit)` | Wait for results, detect hangs | Timeout is only a guard, not ordering proof |
+| `CompletableFuture` | Test async startup/callbacks | Unwrap errors, control executor and cancellation |
+| `AtomicInteger` | Count handle/close calls, measure max concurrency | Does not replace multi-variable atomic protocols |
+| `AtomicReference` | Hold current generation or snapshot | A pointer CAS alone does not close old generation's gate |
+| `synchronized`/`ReentrantLock` | Group check + acquire or swap into critical section | Do not hold locks across potentially blocking plugin code |
+| JUnit 5 `assertTimeoutPreemptively` | Framework-level test timeout | Runs in another thread; interrupt/cancel has limits; avoid leaking threads after test |
+| Awaitility (external) | Wait for eventual conditions with deadline | Do not poll when deterministic latches can coordinate |
 
-Đối với example chỉ cần JDK 17+, phần dưới dùng **assert helper tự viết** và `CountDownLatch`. Khi đưa vào CI, có thể chuyển từng case thành JUnit 5 `@Test`. Không cần cài JUnit để chạy chương trình mẫu.
+To keep the example runnable with only JDK 17+, the code below uses **custom assert helpers** and `CountDownLatch`. When integrating into CI, each case can become a JUnit 5 `@Test`. JUnit is not required to run the sample program.
 
-## 8. Ví dụ Java 17+ hoàn chỉnh: kiểm thử bằng nhiều thread và ba thế hệ
+## 8. Complete Java 17+ Example: Multi-Thread and Three-Generation Tests
 
-### 8.1. Mục tiêu và cấu trúc
+### 8.1. Goals and Structure
 
-Để dễ chạy lại, ví dụ là **một file Java** với các static nested types. Nó mô phỏng một Router, mỗi `Generation` có gate và bộ đếm in-flight, và một `FakePlugin` có latches chủ động để test điều khiển lịch chạy.
+For ease of reproduction, the example is **a single Java file** with static nested types. It simulates a Router, each `Generation` with its own gate and in-flight counter, and a `FakePlugin` with explicit latches so tests control scheduling.
 
-Năm ca kiểm thử:
+Five test cases:
 
-1. Hai calls thực sự đồng thời và được release chính xác.
-2. Initialize thất bại **sau** khi tạo resource; không publish và cleanup.
-3. Stop khi một call đang chạy; không đóng sớm hoặc nhận call mới.
-4. Thay G1 → G2 → G3, request đã cấp lease ở G1 hoàn thành, callback cũ bị từ chối.
-5. Candidate G2 khởi tạo lỗi; G1 vẫn phục vụ đến khi có replacement hợp lệ.
+1. Two calls genuinely overlap concurrently and release accurately.
+2. Initialize fails **after** allocating a resource; not published and properly cleaned up.
+3. Stop while a call is running; does not close prematurely or accept new calls.
+4. Replace G1 → G2 → G3, leased request on G1 completes, stale callbacks are rejected.
+5. Candidate G2 fails initialization; G1 keeps serving until a valid replacement arrives.
 
 File:
 
@@ -383,7 +383,7 @@ File:
 LifecycleTests.java
 ```
 
-### 8.2. Toàn bộ mã `LifecycleTests.java`
+### 8.2. Complete `LifecycleTests.java` Source
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -427,7 +427,7 @@ public final class LifecycleTests {
 
         @Override
         public void initialize() {
-            // Cố ý mở resource TRƯỚC khi mô phỏng lỗi.
+            // Intentionally open resource BEFORE simulating failure.
             resourceOpen = true;
             if (failInitialize) {
                 throw new IllegalStateException("init denied");
@@ -535,7 +535,7 @@ public final class LifecycleTests {
         void shutdown() throws Exception {
             synchronized (monitor) {
                 if (shutdownStarted) {
-                    // Đồng thời stop: chờ lần cleanup đầu kết thúc.
+                    // Concurrent stop: wait for first cleanup to finish.
                     while (state == State.STOPPING) {
                         monitor.wait();
                     }
@@ -550,7 +550,7 @@ public final class LifecycleTests {
                 state = State.STOPPING;
                 gateClosed.countDown();
 
-                // wait() giải phóng monitor để request hoàn tất lease.
+                // wait() releases monitor so in-flight requests can finish lease.
                 while (inFlight != 0) {
                     monitor.wait();
                 }
@@ -601,7 +601,7 @@ public final class LifecycleTests {
         private Generation current;
         private String publishedMarker;
 
-        // Initialize candidate trước khi thay thế current.
+        // Initialize candidate before replacing current.
         Generation swap(Generation candidate) throws Exception {
             candidate.start();
             synchronized (lock) {
@@ -620,7 +620,7 @@ public final class LifecycleTests {
                 selected = current;
                 require(selected != null,
                         "no current generation");
-                // Chọn current và acquire là một transaction.
+                // Select current and acquire as one transaction.
                 selected.acquire();
             }
             try {
@@ -891,16 +891,16 @@ public final class LifecycleTests {
 }
 ```
 
-### 8.3. Biên dịch và chạy
+### 8.3. Compiling and Running
 
-Với **JDK 17+**, đặt toàn bộ mã trên trong `LifecycleTests.java` rồi chạy:
+With **JDK 17+**, place all the code above in `LifecycleTests.java` and run:
 
 ```powershell
 javac -encoding UTF-8 LifecycleTests.java
 java LifecycleTests
 ```
 
-**Stdout dự kiến, nếu mọi assertion đều thành công:**
+**Expected stdout when all assertions succeed:**
 
 ```text
 PASS concurrent calls
@@ -911,81 +911,81 @@ PASS failed replacement rollback
 ALL TESTS PASSED
 ```
 
-Các thread phụ có thể chạy theo thứ tự khác nhau, nhưng chương trình **chỉ in các dòng PASS sau khi kiểm tra xong từng ca**, vì thế stdout thành công có thứ tự như trên. Nếu có bug, chương trình ném `AssertionError`/exception hoặc gặp test timeout thay vì in giả toàn bộ PASS.
+Worker threads may run in varying order, yet the program **prints each PASS line only after verifying that case**, so successful stdout stays in the exact order above. On a bug, the program throws `AssertionError`/exception or hits a test timeout instead of printing fake PASS lines.
 
-### 8.4. Cách đọc các thành phần quan trọng
+### 8.4. Reading the Key Components
 
-**`FakePlugin`** là *test double* có trạng thái tối thiểu:
+**`FakePlugin`** is a minimal stateful *test double*:
 
-- `entered` báo chính xác số request đã đi vào handler.
-- `release` giữ các request trong handler đến khi test cho phép hoàn tất.
-- `concurrent` và `maximum` chứng minh có chồng lấn thật, không chỉ submit hai `Future`.
-- `resourceOpen` mô phỏng một tài nguyên được cấp phát trong `initialize`; bật trước khi ném lỗi để kiểm thử cleanup phần khởi tạo.
-- `closeCount` chứng minh không đóng sớm hoặc hai lần.
+- `entered` signals exactly how many requests have entered the handler.
+- `release` holds requests inside the handler until the test allows completion.
+- `concurrent` and `maximum` prove genuine overlap, not merely submitting two `Future`s.
+- `resourceOpen` models a resource allocated during `initialize`; turned on before throwing to test partial-initialization cleanup.
+- `closeCount` proves no premature or duplicate close.
 
-**`Generation`** gói state và admission:
+**`Generation`** encapsulates state and admission:
 
-- `start()` chuyển `NEW → INITIALIZING → ACTIVE` hoặc `FAILED`, lưu `lastFailure`.
-- `acquire()` chỉ tăng `inFlight` khi state `ACTIVE`.
-- `releaseLease()` luôn giảm đúng một lần và `notifyAll()` người đang chờ shutdown.
-- `quiesce()` ngăn lease mới nhưng không can thiệp lease đã được cấp.
-- `shutdown()` chờ `inFlight == 0` trước khi gọi plugin `close()`; `shutdownStarted` chặn double-close.
-- `gateClosed` chỉ là **điểm quan sát dành cho test**, không phải một cơ chế lifecycle mà mọi plugin phải có.
+- `start()` transitions `NEW → INITIALIZING → ACTIVE` or `FAILED`, retaining `lastFailure`.
+- `acquire()` increments `inFlight` only when state is `ACTIVE`.
+- `releaseLease()` always decrements once and calls `notifyAll()` for shutdown waiters.
+- `quiesce()` blocks new leases without interfering with granted leases.
+- `shutdown()` waits for `inFlight == 0` before calling plugin `close()`; `shutdownStarted` prevents double-close.
+- `gateClosed` is purely a **test observation point**, not a lifecycle mechanism every plugin must expose.
 
-**`Router`** bảo vệ *current generation*:
+**`Router`** guards the *current generation*:
 
-- `route()` chọn `current` và gọi `selected.acquire()` dưới **cùng router lock**.
-- `swap()` initialize candidate **trước**, sau đó dưới router lock đóng gate của old generation và gán current mới.
-- `stopCurrent()` đóng gate và gỡ current dưới lock rồi dừng cũ **ngoài lock**.
-- `publishIfCurrent()` từ chối callback của generation cũ, không chỉ so plugin ID.
+- `route()` reads `current` and calls `selected.acquire()` under the **same router lock**.
+- `swap()` initializes the candidate **first**, then under the router lock closes the old generation's gate and assigns the new current.
+- `stopCurrent()` closes the gate and clears current under lock, then stops the old generation **outside the lock**.
+- `publishIfCurrent()` rejects callbacks from older generations, rather than comparing only plugin IDs.
 
-Không giữ router lock trong lúc gọi `plugin.handle` hoặc `plugin.close`. Code plugin có thể block, ném lỗi hoặc gọi ngược host; giữ global lock trong lúc đó dễ gây deadlock và làm mọi request phải chờ nhau.
+Never hold the router lock while calling `plugin.handle` or `plugin.close`. Plugin code may block, throw, or call back into the host; holding a global lock across it risks deadlocks and serializes all requests.
 
-### 8.5. Vì sao không dùng `Thread.sleep`?
+### 8.5. Why Avoid `Thread.sleep`?
 
-Ca concurrent chỉ tiếp tục khi cả hai threads đã tới `fake.entered`. Ca stop chỉ kiểm tra từ chối request sau khi `g1.gateClosed` đã được báo. Ca replace giữ G1 chờ trên `release` đến khi G2 đã được publish. Nhờ các latches này, test **chủ động tạo interleaving có ý nghĩa**.
+The concurrent case proceeds only after both threads reach `fake.entered`. The stop case checks rejection only after `g1.gateClosed` is signaled. The replacement case holds G1 on `release` until G2 is published. With these latches, tests **actively force meaningful interleavings**.
 
-Timeout 10 giây trên `await`/`Future.get` chỉ giúp báo deadlock hoặc CI treo. Nó không được dùng làm giả định rằng thread “chắc hẳn” đã đến một điểm nào đó chỉ vì đã qua 10 ms.
+The 10-second timeout on `await`/`Future.get` only flags deadlocks or hung CI runs. It must never be used to assume a thread "probably" reached a point just because 10 ms elapsed.
 
-### 8.6. Giới hạn quan trọng của demo
+### 8.6. Important Limitations of This Demo
 
-Đây là **test harness minh họa**, không phải plugin manager production sẵn sàng triển khai. Cụ thể:
+This is an **illustrative test harness**, not a production-ready plugin manager. Specifically:
 
-- `Generation.start()` và `shutdown()` được gọi theo workflow điều phối; demo **không** hỗ trợ cancel một `initialize()` đang block từ thread khác.
-- `shutdown()` trong demo đợi in-flight không giới hạn cho đến khi request hoàn tất; `InterruptedException` trong lúc chờ chưa có rollback protocol. Production cần timeout, interrupt policy và state cleanup chính xác nếu thread dừng bị interrupt.
-- `swap()` không serialize **nhiều candidate swaps đồng thời**; một manager production cần serialize deployment operations, giữ generation sequence/fencing token và rollback candidate nếu publish thất bại.
-- `FakePlugin` dùng `volatile boolean resourceOpen` và atomics để đo thử nghiệm; plugin thật có thể chứa mutable state phức tạp và phải tự bảo vệ thread safety.
-- `close()` trong test luôn thành công; trường hợp close lỗi, retry policy và trạng thái FAILED cần test riêng.
-- Việc gọi `ServiceLoader`/nạp JAR/class loader bị tách khỏi demo để tập trung vào **lifecycle và concurrency**. Có thể kết nối manager này với provider được tìm qua SPI hoặc `ModuleLayer` sau khi xác minh identity và dependency.
-- Các assertions về callback ở đây áp dụng cho **registry trong một JVM**. Khi callback ghi ra database hoặc hệ phân tán, cần fencing token được phía lưu trữ xác minh để chống stale write thực sự.
+- `Generation.start()` and `shutdown()` follow a coordinated workflow; the demo **does not** support canceling a blocked `initialize()` from another thread.
+- `shutdown()` in the demo waits indefinitely for in-flight requests to finish; `InterruptedException` while waiting has no rollback protocol. Production needs timeouts, interrupt policies, and accurate state cleanup if the stopping thread is interrupted.
+- `swap()` does not serialize **multiple concurrent candidate swaps**; a production manager must serialize deployment operations, maintain generation sequences/fencing tokens, and roll back candidates on failed publish.
+- `FakePlugin` uses `volatile boolean resourceOpen` and atomics for test instrumentation; real plugins may contain complex mutable state and must protect their own thread safety.
+- `close()` in the test always succeeds; close failures, retry policies, and FAILED transitions require dedicated tests.
+- `ServiceLoader`/JAR loading/class loaders are separated from this demo to focus on **lifecycle and concurrency**. You can connect this manager to providers discovered via SPI or `ModuleLayer` after verifying identity and dependencies.
+- The callback assertions here apply to **an in-JVM registry**. When callbacks write to a database or distributed system, store-validated fencing tokens are required to truly prevent stale writes.
 
-Mục tiêu của ví dụ là biến các điều kiện dễ gặp race thành những **test assertions tái lập được**, rồi mở rộng theo kiến trúc production.
+The goal of the example is turning race-prone conditions into **reproducible test assertions**, then extending them for production architecture.
 
-## 9. Tổ chức kiểm thử với JUnit 5 và CI
+## 9. Organizing Tests with JUnit 5 and CI
 
-### 9.1. Chuyển sang JUnit 5 như thế nào?
+### 9.1. How to Port to JUnit 5
 
-Trong dự án có JUnit 5, mỗi ca tương ứng một method `@Test`, dùng `Assertions.assertEquals`, `assertThrows`, `assertTrue` và timeout phù hợp. Phần runnable ở trên cố ý không phụ thuộc framework để có thể chạy với một JDK bất kỳ.
+In a project using JUnit 5, each case maps to a `@Test` method using `Assertions.assertEquals`, `assertThrows`, `assertTrue`, and appropriate timeouts. The runnable section above intentionally avoids framework dependencies so it runs on any JDK.
 
-Có thể giữ `FakePlugin`, `Generation` và `Router` như test fixtures, rồi tách:
+You can keep `FakePlugin`, `Generation`, and `Router` as test fixtures, then split:
 
 ```java
-// Mã minh họa dùng JUnit Jupiter; cần dependency junit-jupiter
-// và đặt trong một lớp test có @Test import phù hợp.
+// Illustrative snippet using JUnit Jupiter; requires junit-jupiter dependency
+// and placement in a test class with proper @Test imports.
 @Test
 void rejectedAfterStop() throws Exception {
-    // Arrange: request đang blocked ở latch.
-    // Act: stop khép gate, quan sát qua latch.
-    // Assert: route mới bị từ chối; close chưa chạy.
-    // Release: mở latch trong finally rồi đợi stop hoàn tất.
+    // Arrange: request is blocked on latch.
+    // Act: stop closes gate, observed via latch.
+    // Assert: new route rejected; close has not run.
+    // Release: open latch in finally and wait for stop to finish.
 }
 ```
 
-Khi dùng `assertTimeoutPreemptively`, framework chạy code test trong thread khác; thao tác interrupt không bắt buộc dừng được blocking I/O hoặc code plugin. Luôn có **cleanup riêng trong `finally`**, không để test tiếp theo bị ảnh hưởng bởi executor/threads còn chạy.
+When using `assertTimeoutPreemptively`, the framework executes test code in another thread; interruption cannot reliably terminate blocking I/O or arbitrary plugin code. Always put **explicit cleanup in `finally`**, preventing lingering executors/threads from polluting subsequent tests.
 
-### 9.2. Cách thiết kế fake plugin có fault injection
+### 9.2. Designing a Fake Plugin with Fault Injection
 
-Một fake chuyên sâu có thể có:
+An advanced fake can expose:
 
 ```text
 failOnVerify
@@ -1000,86 +1000,86 @@ blockClose
 emitLateCallback
 ```
 
-Mỗi case phải assert:
+Each case must assert:
 
-- Event order (`verify/initialize/start/handle/close`).
-- Số lần gọi method và tài nguyên còn mở.
-- State và failure history sau mỗi transition.
-- Current generation không bị thay sai.
-- Có/không có request mới sau quiescing.
-- Số in-flight về 0 ngay cả khi handler ném exception.
+- Event ordering (`verify/initialize/start/handle/close`).
+- Invocation counts and remaining open resources.
+- State and failure history after every transition.
+- Current generation is not wrongly overwritten.
+- Acceptance/rejection of new requests after quiescing.
+- In-flight count returns to 0 even when handlers throw.
 
-Không cần ép một fake xử lý tất cả faults nếu khiến test khó hiểu; có thể dùng nhiều fake nhỏ, mỗi fake cho một hành vi.
+Do not force a single fake to handle every fault if that hurts readability; multiple small fakes, one per behavior, work fine.
 
-### 9.3. Danh sách test bổ sung
+### 9.3. Additional Test Cases
 
-| Tình huống | Assertion then chốt |
+| Scenario | Key Assertion |
 | --- | --- |
-| Hai calls đồng thời | Cả hai vào handler trước khi release; `maxConcurrent >= 2` |
-| N requests, một request ném lỗi | `inFlight` trở về 0; không deadlock stop |
-| Request đến ngay sau quiesce | Không cấp lease generation cũ |
-| Stop trong lúc handler blocked | Không close tài nguyên trước khi release |
-| Hai lệnh stop đồng thời | Close đúng một lần, cả hai lệnh có kết quả nhất quán |
-| Initialize lỗi trước khi mở resource | Không publish; cleanup an toàn |
-| Initialize lỗi sau khi mở resource | Không leak; giữ root cause |
-| Start/readiness timeout | Không ACTIVE; cleanup candidate; old generation còn chạy |
-| Close ném lỗi | Ghi failure, không báo STOPPED giả, các resources khác được xử lý theo contract |
-| Candidate replacement thất bại | Không đổi current; tiếp tục route old |
-| Swap G1 → G2 khi G1 đang chạy request | Old request trả từ G1, new request đến G2 |
-| Swap G1 → G2 → G3 | Stale callback G1/G2 không mutate G3 |
-| Deployment G2 và G3 đồng thời | Có serialize/CAS và cleanup candidate thua |
-| Restart cùng plugin version | Generation ID vẫn mới |
-| Stop trước callback async hoàn thành | Callback cũ bị fence, không republish |
-| Dependency plugin B bị dừng | Plugin A đang phụ thuộc không tiếp tục dùng B đã close |
-| Hot reload nhiều lần | Không giữ loader cũ qua thread/TCCL/`ThreadLocal`/listeners |
-| Artifact/module/SPI lỗi | Phân biệt không có provider với cấu hình hỏng |
+| Two concurrent calls | Both enter handler before release; `maxConcurrent >= 2` |
+| N requests, one throws | `inFlight` returns to 0; stop does not deadlock |
+| Request arrives right after quiesce | No lease granted on old generation |
+| Stop while handler is blocked | Resources not closed before release |
+| Two concurrent stop calls | Closed exactly once; both callers see consistent result |
+| Initialize fails before resource open | Not published; safe cleanup |
+| Initialize fails after resource open | Zero leaks; root cause preserved |
+| Start/readiness timeout | Never ACTIVE; candidate cleaned up; old generation keeps running |
+| Close throws | Failure logged, no false STOPPED status, other resources handled per contract |
+| Candidate replacement fails | Current unchanged; traffic keeps routing to old |
+| Swap G1 → G2 while G1 runs request | Old request returns from G1, new requests go to G2 |
+| Swap G1 → G2 → G3 | Stale G1/G2 callbacks do not mutate G3 |
+| Concurrent G2 and G3 deployments | Serialization/CAS and cleanup of losing candidate |
+| Restart same plugin version | Generation ID is still incremented/new |
+| Stop before async callback completes | Old callback is fenced, does not republish |
+| Dependency plugin B stopped | Dependent plugin A stops using closed B |
+| Repeated hot reloads | No retained old loader via threads/TCCL/`ThreadLocal`/listeners |
+| Broken artifact/module/SPI | Distinguish missing provider from broken configuration |
 
-### 9.4. Khi chạy trong CI
+### 9.4. Running in CI
 
-- Chạy các test deterministic latches trên mỗi pull request.
-- Chạy lặp lại/concurrency stress tests ở một job riêng để bắt race ít gặp; **stress test không thay thế invariant test**.
-- Thử trên JDK version hỗ trợ và nhiều cấu hình CPU nếu dự án có điều kiện.
-- Đặt deadline cho cả test suite và từng `Future`; thread dump khi timeout, ghi generation ID và phase.
-- Không dùng `sleep` làm primitive điều phối; dùng latch/barrier/phaser hoặc công cụ kiểm thử lịch trình.
-- Test với **JAR/module artifact thật** (SPI descriptor, JPMS `uses/provides`, class loader policy) bên cạnh unit-level lifecycle harness.
-- Nếu triển khai qua rolling upgrade, kiểm thử restart và failed deployment trong môi trường staging có nhiều instance, không chỉ một JVM.
+- Run deterministic latch-based tests on every pull request.
+- Run repeated/concurrency stress tests in a dedicated job to catch rare races; **stress tests do not replace invariant tests**.
+- Test across supported JDK versions and varied CPU counts where available.
+- Set deadlines for both the test suite and each `Future`; capture thread dumps on timeout with generation ID and phase logged.
+- Never use `sleep` as a synchronization primitive; use latches/barriers/phasers or schedule-testing tools.
+- Test with **real JAR/module artifacts** (SPI descriptors, JPMS `uses/provides`, class-loader policy) alongside unit-level lifecycle harnesses.
+- If deploying via rolling upgrades, test restarts and failed deployments in a multi-instance staging environment, not just one JVM.
 
-## 10. Sai lầm phổ biến và cách khắc phục
+## 10. Common Mistakes and Fixes
 
-| Sai lầm | Vì sao nguy hiểm | Cách thử đúng |
+| Mistake | Why Dangerous | Proper Test |
 | --- | --- | --- |
-| Chạy hai `Future` rồi cho rằng đã concurrent | Chưa chứng minh hai handler overlap | Dùng latch đợi cả hai vào handler |
-| `Thread.sleep(100)` để chờ stop | Flaky phụ thuộc scheduler/CI | Latch/event báo gate thực sự đóng |
-| Check state rồi tăng counter rời rạc | Race với close gate | Atomic lease acquire dưới một lock/CAS protocol |
-| Chỉ test stop khi idle | Không phát hiện close sớm | Block handler, start stop, assert closeCount=0 |
-| Chỉ assert initialize throws | Bỏ qua tài nguyên partial và publish | Resource flag + no-current + cleanup assertions |
-| Publish candidate trước readiness | Deployment lỗi làm mất provider khỏe | Start candidate trước swap, test failure rollback |
-| Đổi current và close gate bằng hai thao tác không phối hợp | Request có thể nhận old lease sau cutover | Route acquire/swap cùng lock |
-| Chỉ so plugin ID cho callback | Old/new generation trùng ID | Fencing bằng generation instance/token |
-| Reuse object FAILED sau lỗi partial | State/tài nguyên chưa rõ | New instance/generation sau cleanup |
-| Gọi `URLClassLoader.close()` rồi xem như stop xong | Thread/callback vẫn chạy, class chưa unload | Quiesce, drain, cleanup, gỡ references |
-| Test luôn có success path | Không test exception/interrupt/deadline | Fault injection theo từng phase |
-| Assert số thread thay vì in-flight lease | Không phản ánh request thực sự được cấp | Assert admission và counter trong manager |
-| Dùng race stress làm bằng chứng duy nhất | Có thể pass mà vẫn có race hiếm | Invariants + deterministic interleaving + stress |
+| Firing two `Future`s and assuming concurrency | Does not prove handlers overlapped | Use latches to wait until both enter handler |
+| `Thread.sleep(100)` waiting for stop | Flaky across schedulers/CI | Latch/event confirming gate actually closed |
+| Checking state and incrementing counter separately | Races with closing gate | Atomic lease acquisition under lock/CAS protocol |
+| Testing stop only when idle | Misses premature close bugs | Block handler, start stop, assert `closeCount=0` |
+| Asserting only that initialize throws | Misses leaked partial resources and publication | Resource flag + no-current + cleanup assertions |
+| Publishing candidate before readiness | Broken deployment kills healthy provider | Start candidate before swap; test failure rollback |
+| Swapping current and closing gate uncoordinated | Request can acquire old lease after cutover | Route acquire and swap share lock |
+| Comparing only plugin ID for callbacks | Old/new generations share the same ID | Fence with generation instance/token |
+| Reusing FAILED object after partial error | State/resources left undefined | Fresh instance/generation after cleanup |
+| Calling `URLClassLoader.close()` and treating stop as done | Threads/callbacks still run; classes not unloaded | Quiesce, drain, clean up, clear references |
+| Testing only success paths | Misses exception/interrupt/deadline bugs | Inject faults per phase |
+| Asserting thread count instead of in-flight leases | Does not reflect admitted requests | Assert admission and manager counters |
+| Using race stress as sole evidence | Can pass while rare races remain | Combine invariants + deterministic interleaving + stress |
 
-## 11. Checklist kiểm thử trước khi triển khai
+## 11. Pre-Deployment Testing Checklist
 
-- [ ] Phân biệt `NEW/INITIALIZING/ACTIVE/QUIESCING/STOPPING/STOPPED/FAILED` và trạng thái desired vs observed.
-- [ ] Có guard cho transitions và chỉ `ACTIVE` cấp lease.
-- [ ] Router chọn current và cấp lease nguyên tử với swap.
-- [ ] Release lease trong `finally` cả khi handler lỗi.
-- [ ] Test hai handler overlap bằng latches, không bằng `sleep`.
-- [ ] Test init fail **sau** resource allocation và cleanup một lần.
-- [ ] Không publish candidate thất bại; old generation giữ ACTIVE nếu chưa cutover.
-- [ ] Stop đóng gate trước, đợi in-flight, rồi close tài nguyên.
-- [ ] Stop lặp/đồng thời không double-close; close failure có status và logs.
-- [ ] Hot replace giữ old requests ở old generation, new requests vào new generation.
-- [ ] Stale callback G1/G2 không sửa registry G3; dùng generation token.
-- [ ] Có timeout/cancellation policy cho handlers và shutdown trong production.
-- [ ] Test lỗi SPI/class loader/module/dependency riêng với lifecycle tests.
-- [ ] Test hot reload nhiều vòng và leak check (threads, TCCL, caches, callbacks, loader refs).
-- [ ] Chạy unit tests deterministic + integration artifact tests + concurrency stress ở CI.
+- [ ] Distinguish `NEW/INITIALIZING/ACTIVE/QUIESCING/STOPPING/STOPPED/FAILED` and desired vs. observed states.
+- [ ] Guard transitions so only `ACTIVE` grants leases.
+- [ ] Router selects current and acquires lease atomically with swap.
+- [ ] Release leases in `finally` even when handlers throw.
+- [ ] Test overlapping handlers using latches, never `sleep`.
+- [ ] Test init failure **after** resource allocation and verify single cleanup.
+- [ ] Never publish a failed candidate; keep old generation `ACTIVE` if cutover hasn't occurred.
+- [ ] Stop closes gate first, drains in-flight work, then closes resources.
+- [ ] Repeated/concurrent stops never double-close; close failures record status and logs.
+- [ ] Hot replacement keeps old requests on old generation and routes new requests to new generation.
+- [ ] Stale G1/G2 callbacks cannot mutate G3 registry; enforce generation tokens.
+- [ ] Define timeout/cancellation policies for handlers and shutdown in production.
+- [ ] Test SPI/class-loader/module/dependency errors separately from lifecycle harnesses.
+- [ ] Test repeated hot-reload cycles and leak checks (threads, TCCL, caches, callbacks, loader refs).
+- [ ] Run deterministic unit tests + artifact integration tests + concurrency stress in CI.
 
-**Kết luận:** Kiểm thử vòng đời plugin tốt không hỏi đơn giản “code có chạy không?”, mà hỏi “**khi các sự kiện chạy chồng nhau, bất biến nào vẫn đúng?**”. Hãy chủ động tạo race bằng latch/barrier, theo dõi in-flight leases và trạng thái, buộc initialize thất bại sau cấp phát, chứng minh graceful shutdown không close sớm, và dùng generation fencing khi chuyển G1 → G2 → G3. Khi các assertions này rõ ràng, bạn có cơ sở tin cậy hơn để triển khai và nâng cấp plugin mà không làm gián đoạn request hoặc rò tài nguyên.
+**Conclusion:** good plugin lifecycle testing does not simply ask "does the code run?", it asks "**when events overlap, which invariants still hold?**" Actively force races with latches/barriers, track in-flight leases and states, force initialization failures after allocation, prove graceful shutdown never closes early, and enforce generation fencing across G1 → G2 → G3. With these assertions in place, you have solid evidence for deploying and upgrading plugins without dropping requests or leaking resources.
 
-**Tài liệu Java SE 17:** [`CountDownLatch`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CountDownLatch.html), [`ExecutorService`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html), [`Future`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html), [`AtomicInteger`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicInteger.html), [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), [`URLClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html).
+**Java SE 17 Documentation:** [`CountDownLatch`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CountDownLatch.html), [`ExecutorService`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html), [`Future`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html), [`AtomicInteger`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicInteger.html), [`ServiceLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html), [`URLClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLClassLoader.html).

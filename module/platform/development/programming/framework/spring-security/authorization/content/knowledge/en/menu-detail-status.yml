@@ -1,0 +1,3343 @@
+menu:
+- slug: authorization-overview
+  title: Bức tranh phân quyền
+  childs:
+  - slug: authorization-overview-001
+    title: Phân quyền giải quyết bài toán ai được làm gì trên tài nguyên nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-overview-002
+    title: Phân biệt xác thực danh tính với quyết định cấp quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-overview-003
+    title: Chủ thể, tài nguyên, hành động và ngữ cảnh của một quyết định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-overview-004
+    title: Role, authority, permission, scope và quan hệ giữa các khái niệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-overview-005
+    title: Phân quyền ở mức HTTP, phương thức và từng đối tượng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-overview-006
+    title: Nguyên tắc quyền tối thiểu, mặc định từ chối và kiểm tra mọi lần truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-overview-007
+    title: Phân biệt chức năng authorization với vai trò OAuth2 Authorization Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-overview-008
+    title: Ranh giới giữa cơ chế Spring Security và chính sách nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-overview-009
+    title: Trình tự học từ mô hình quyền đến cấu hình, kiểm thử và vận hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-control-models
+  title: Mô hình kiểm soát truy cập
+  childs:
+  - slug: access-control-models-001
+    title: 'RBAC: tổ chức quyền theo vai trò người dùng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-models-002
+    title: 'ABAC: quyết định theo thuộc tính chủ thể, tài nguyên và môi trường'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-models-003
+    title: 'ReBAC: quyết định theo quan hệ sở hữu, thành viên và chia sẻ'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-models-004
+    title: 'ACL: cấp quyền cho từng chủ thể trên từng đối tượng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-models-005
+    title: Phối hợp role, permission và điều kiện dữ liệu trong cùng chính sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-models-006
+    title: Phân quyền theo chức năng và phân quyền theo đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-models-007
+    title: Leo thang đặc quyền theo chiều dọc và truy cập trái phép theo chiều ngang
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-models-008
+    title: Phân tách nhiệm vụ và kiểm soát hành động nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-models-009
+    title: Ma trận chủ thể, hành động, tài nguyên để mô tả yêu cầu quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-models-010
+    title: Chọn mô hình phù hợp và tránh tạo quá nhiều role
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorities-and-roles
+  title: Authority và role
+  childs:
+  - slug: authorities-and-roles-001
+    title: Authentication, principal và tập GrantedAuthority được dùng khi kiểm tra quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorities-and-roles-002
+    title: SimpleGrantedAuthority và ý nghĩa chuỗi định danh quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorities-and-roles-003
+    title: 'hasAuthority và hasRole: quy tắc tiền tố ROLE_'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorities-and-roles-004
+    title: hasAnyAuthority, hasAnyRole và kiểm tra một trong nhiều quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorities-and-roles-005
+    title: Phân biệt tên vai trò nghiệp vụ với authority trong ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorities-and-roles-006
+    title: Ánh xạ role, nhóm và quyền từ nguồn danh tính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorities-and-roles-007
+    title: GrantedAuthorityDefaults và phạm vi áp dụng tiền tố theo thành phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorities-and-roles-008
+    title: Nhất quán quy ước tên quyền giữa cấu hình HTTP và method security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorities-and-roles-009
+    title: Anonymous, authenticated, remember-me và fully authenticated
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorities-and-roles-010
+    title: Quyền đã lưu trong session hoặc token và thời điểm thay đổi có hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: decision-flow
+  title: Luồng quyết định
+  childs:
+  - slug: decision-flow-001
+    title: Từ HTTP request hoặc lời gọi phương thức đến quyết định cấp quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-flow-002
+    title: SecurityContext và cách lấy Authentication tại thời điểm kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-flow-003
+    title: AuthorizationManager và đối tượng được bảo vệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-flow-004
+    title: Supplier<Authentication> và việc lấy danh tính theo nhu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-flow-005
+    title: AuthorizationDecision, AuthorizationResult và API phù hợp phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-flow-006
+    title: Cho phép, từ chối, không đưa ra quyết định và cách xử lý mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-flow-007
+    title: AuthorizationFilter và RequestMatcherDelegatingAuthorizationManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-flow-008
+    title: Interceptor trước, sau phương thức và điểm thực thi chính sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-flow-009
+    title: AccessDeniedException và đường đi của lỗi phân quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-flow-010
+    title: Phối hợp bảo vệ nhiều lớp mà không bỏ sót hoặc mâu thuẫn chính sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-authorization
+  title: Phân quyền HTTP
+  childs:
+  - slug: http-authorization-001
+    title: Thiết lập SecurityFilterChain và authorizeHttpRequests
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-002
+    title: permitAll, denyAll và authenticated trong quy tắc truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-003
+    title: Áp dụng hasRole, hasAuthority cho nhóm endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-004
+    title: Thứ tự khai báo và quy tắc khớp đầu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-005
+    title: Quy tắc cụ thể trước quy tắc tổng quát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-006
+    title: anyRequest làm chính sách kết thúc và lựa chọn mặc định từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-007
+    title: Phân biệt securityMatcher chọn filter chain với requestMatchers chọn quy tắc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-008
+    title: Nhiều SecurityFilterChain, @Order và rủi ro request không khớp chain nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-009
+    title: permitAll so với bỏ qua filter chain bằng ignoring
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-010
+    title: Tài nguyên tĩnh, trang công khai và endpoint quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-authorization-011
+    title: Kiểm chứng một cấu hình HTTP tối thiểu bằng ma trận quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: request-matchers
+  title: RequestMatcher
+  childs:
+  - slug: request-matchers-001
+    title: RequestMatcher và thông tin request dùng để so khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matchers-002
+    title: So khớp đồng thời đường dẫn và HTTP method
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matchers-003
+    title: PathPatternRequestMatcher, MvcRequestMatcher và AntPathRequestMatcher theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matchers-004
+    title: Biến đường dẫn, wildcard và khác biệt ngữ nghĩa từng kiểu matcher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matchers-005
+    title: RegexRequestMatcher và trường hợp cần biểu thức chính quy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matchers-006
+    title: Context path, servlet path, base path và địa chỉ thực được so khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matchers-007
+    title: Đường dẫn có dấu gạch chéo cuối, chữ hoa và ký tự mã hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matchers-008
+    title: Matcher theo header, tham số hoặc thuộc tính request có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matchers-009
+    title: AndRequestMatcher, OrRequestMatcher và NegatedRequestMatcher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matchers-010
+    title: RequestMatcher tùy chỉnh và tiêu chí không bỏ lọt endpoint
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-matchers-011
+    title: Kiểm thử matcher khi thay đổi route hoặc nâng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: request-context
+  title: Ngữ cảnh request
+  childs:
+  - slug: request-context-001
+    title: Phân quyền theo DispatcherType REQUEST, FORWARD, INCLUDE, ERROR và ASYNC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-context-002
+    title: Endpoint lỗi và tránh vòng lặp từ chối khi chuyển sang /error
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-context-003
+    title: Forward nội bộ và các request được thực thi lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-context-004
+    title: CORS preflight, OPTIONS và quan hệ với quy tắc phân quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-context-005
+    title: Phân biệt lỗi CSRF với lỗi thiếu quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-context-006
+    title: SecurityContext trong request bất đồng bộ và lời gọi sang luồng khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-context-007
+    title: AsyncContext, executor và giới hạn của việc truyền ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-context-008
+    title: Reverse proxy, đường dẫn viết lại và dữ liệu forwarded đáng tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-context-009
+    title: HttpFirewall, chuẩn hóa đường dẫn và giới hạn của matcher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-context-010
+    title: Tách phạm vi API, giao diện và quản trị qua các filter chain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: role-hierarchy
+  title: Role hierarchy
+  childs:
+  - slug: role-hierarchy-001
+    title: Quan hệ kế thừa role và bài toán quyền bao hàm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: role-hierarchy-002
+    title: RoleHierarchy và RoleHierarchyImpl
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: role-hierarchy-003
+    title: Mô tả ADMIN bao hàm MANAGER, USER mà không nhân bản quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: role-hierarchy-004
+    title: Đưa hierarchy vào AuthorizationManager theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: role-hierarchy-005
+    title: Đưa hierarchy vào MethodSecurityExpressionHandler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: role-hierarchy-006
+    title: Kiểm tra hiệu lực riêng ở mức HTTP và mức phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: role-hierarchy-007
+    title: Tránh chu trình, quyền bao hàm quá rộng và vai trò quản trị vượt dự kiến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: role-hierarchy-008
+    title: Phân biệt kế thừa role với điều kiện sở hữu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: role-hierarchy-009
+    title: Kiểm thử quyền trực tiếp, quyền suy ra và thay đổi hierarchy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-security
+  title: Method security
+  childs:
+  - slug: method-security-001
+    title: Vì sao bảo vệ service ngoài quy tắc HTTP ở Controller
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-security-002
+    title: Kích hoạt @EnableMethodSecurity và các nhóm annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-security-003
+    title: '@PreAuthorize, @PostAuthorize, @PreFilter và @PostFilter'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-security-004
+    title: securedEnabled, jsr250Enabled và phạm vi annotation được kích hoạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-security-005
+    title: '@Secured và danh sách authority được chấp nhận'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-security-006
+    title: '@RolesAllowed, @PermitAll, @DenyAll và ngữ nghĩa JSR-250'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-security-007
+    title: Annotation ở lớp, phương thức, interface và quy tắc kế thừa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-security-008
+    title: Phối hợp nhiều annotation và xử lý khai báo xung đột
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-security-009
+    title: Phương thức không có annotation và chính sách bao phủ mặc định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-security-010
+    title: Meta-annotation để đặt tên chính sách dễ đọc, tái sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pre-authorize-checks
+  title: Kiểm tra trước phương thức
+  childs:
+  - slug: pre-authorize-checks-001
+    title: '@PreAuthorize và quyết định trước khi nghiệp vụ được thực thi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pre-authorize-checks-002
+    title: Kiểm tra role, authority và trạng thái xác thực bằng SpEL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pre-authorize-checks-003
+    title: Tham chiếu authentication, principal và tên người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pre-authorize-checks-004
+    title: 'Tham chiếu tham số bằng tên, #p0, #a0 hoặc #root.args'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pre-authorize-checks-005
+    title: 'Phát hiện tên tham số: -parameters, @P và tương thích phiên bản'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pre-authorize-checks-006
+    title: Kiểm tra thuộc tính của đối tượng đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pre-authorize-checks-007
+    title: Gọi bean chính sách từ biểu thức bằng @beanName
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pre-authorize-checks-008
+    title: Kết hợp role với quyền sở hữu tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pre-authorize-checks-009
+    title: Xử lý tham số null và chính sách từ chối rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pre-authorize-checks-010
+    title: Ngăn giả mạo ownerId, tenantId hoặc thuộc tính quyền trong request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pre-authorize-checks-011
+    title: Đặt kiểm tra trước các thao tác ghi dữ liệu và tác động bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: post-authorize-checks
+  title: Kiểm tra sau phương thức
+  childs:
+  - slug: post-authorize-checks-001
+    title: '@PostAuthorize và quyết định dựa trên returnObject'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-authorize-checks-002
+    title: Kiểm tra quyền sở hữu khi đối tượng chỉ có sau truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-authorize-checks-003
+    title: Phân biệt chưa thực thi nghiệp vụ với đã thực thi nhưng bị chặn kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-authorize-checks-004
+    title: Giới hạn của @PostAuthorize với thao tác ghi và tác động không thể hoàn tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-authorize-checks-005
+    title: Kết quả null, Optional và kiểu trả về cần kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-authorize-checks-006
+    title: Phối hợp @PreAuthorize với @PostAuthorize trên cùng nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-authorize-checks-007
+    title: '@AuthorizeReturnObject và bảo vệ thành viên của đối tượng theo phiên bản'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-authorize-checks-008
+    title: Proxy đối tượng trả về, kiểu lồng nhau và giới hạn tương thích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-authorize-checks-009
+    title: DTO, ánh xạ dữ liệu và nguy cơ làm mất lớp kiểm tra quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-authorize-checks-010
+    title: Che dữ liệu khi bị từ chối và giới hạn không tiết lộ thông tin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-data-filtering
+  title: Lọc dữ liệu phương thức
+  childs:
+  - slug: method-data-filtering-001
+    title: '@PreFilter và lọc phần tử đầu vào trước khi xử lý'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-data-filtering-002
+    title: filterObject, filterTarget và lựa chọn tham số cần lọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-data-filtering-003
+    title: '@PostFilter và lọc tập kết quả theo quyền của từng phần tử'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-data-filtering-004
+    title: Collection, array, map, stream và khả năng hỗ trợ theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-data-filtering-005
+    title: Chính sách loại bỏ phần tử so với từ chối toàn bộ thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-data-filtering-006
+    title: Nguy cơ cập nhật một phần khi lọc dữ liệu của yêu cầu hàng loạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-data-filtering-007
+    title: Giới hạn của lọc trong bộ nhớ với dữ liệu lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-data-filtering-008
+    title: Phân trang, tổng số bản ghi và sai lệch khi lọc sau truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-data-filtering-009
+    title: 'Lọc tại truy vấn so với @PostFilter: chọn lớp thực thi phù hợp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-data-filtering-010
+    title: Kiểm thử tập rỗng, phần tử không có quyền và dữ liệu hỗn hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: expressions-and-policies
+  title: Biểu thức và chính sách
+  childs:
+  - slug: expressions-and-policies-001
+    title: SecurityExpressionRoot và ngữ cảnh biểu thức bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-policies-002
+    title: WebSecurityExpressionRoot khác với ngữ cảnh method security
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-policies-003
+    title: Phép toán logic, độ ưu tiên và tính dễ đọc của biểu thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-policies-004
+    title: hasPermission cho đối tượng trực tiếp hoặc định danh đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-policies-005
+    title: DefaultMethodSecurityExpressionHandler và điểm tùy biến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-policies-006
+    title: Bean chính sách nghiệp vụ và tách biểu thức dài khỏi annotation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-policies-007
+    title: Biểu thức cho dữ liệu null, dữ liệu thiếu và điều kiện không xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-policies-008
+    title: Không đưa dữ liệu đầu vào không tin cậy thành mã SpEL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-policies-009
+    title: Tham số hóa meta-annotation theo khả năng của phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-policies-010
+    title: Ranh giới giữa kiểm tra quyền, kiểm tra tính hợp lệ và điều kiện nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxies-and-transactions
+  title: Proxy và giao dịch
+  childs:
+  - slug: proxies-and-transactions-001
+    title: Spring AOP và điều kiện để method security được thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-transactions-002
+    title: Lời gọi qua Spring bean so với đối tượng tự tạo bằng new
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-transactions-003
+    title: Self-invocation và trường hợp gọi nội bộ bỏ qua proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-transactions-004
+    title: JDK proxy, CGLIB và ảnh hưởng của interface, final, private
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-transactions-005
+    title: Thiết kế ranh giới service để mọi điểm vào đều được bảo vệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-transactions-006
+    title: Thứ tự interceptor bảo mật với @Transactional và các advice khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-transactions-007
+    title: '@PostAuthorize, rollback và tác động không nằm trong giao dịch'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-transactions-008
+    title: '@Async, executor và truyền SecurityContext đúng phạm vi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-transactions-009
+    title: Cache kết quả phương thức và nguy cơ chia sẻ dữ liệu giữa người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-and-transactions-010
+    title: AspectJ như lựa chọn có chủ đích khi mô hình proxy không đáp ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-authorization-managers
+  title: AuthorizationManager tùy chỉnh
+  childs:
+  - slug: custom-authorization-managers-001
+    title: Chọn AuthorizationManager khi quy tắc dựng sẵn không đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-authorization-managers-002
+    title: RequestAuthorizationContext và MethodInvocation làm ngữ cảnh quyết định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-authorization-managers-003
+    title: Hiện thực check hoặc authorize đúng hợp đồng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-authorization-managers-004
+    title: AuthorityAuthorizationManager và AuthenticatedAuthorizationManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-authorization-managers-005
+    title: AuthorizationManagers.allOf, anyOf và ngữ nghĩa khi không có quyết định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-authorization-managers-006
+    title: Kết hợp quyền tĩnh với điều kiện động từ nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-authorization-managers-007
+    title: Đăng ký manager qua access ở mức HTTP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-authorization-managers-008
+    title: AuthorizationManagerBeforeMethodInterceptor và AuthorizationManagerAfterMethodInterceptor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-authorization-managers-009
+    title: Pointcut tùy chỉnh và phạm vi phương thức được áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-authorization-managers-010
+    title: AuthorizationManagerFactory và khả năng tùy biến ở dòng phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-authorization-managers-011
+    title: Quản lý exception, dữ liệu thiếu và quyết định mặc định an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: permission-evaluators
+  title: PermissionEvaluator
+  childs:
+  - slug: permission-evaluators-001
+    title: Đặt tên quyền theo hành động trên loại tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permission-evaluators-002
+    title: Hợp đồng PermissionEvaluator và ngữ cảnh Authentication
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permission-evaluators-003
+    title: hasPermission với đối tượng đã được tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permission-evaluators-004
+    title: hasPermission với targetId, targetType và permission
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permission-evaluators-005
+    title: Đăng ký PermissionEvaluator với expression handler
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permission-evaluators-006
+    title: Tách kiểm tra quyền khỏi việc tải và cập nhật tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permission-evaluators-007
+    title: Đối tượng không tồn tại, thiếu quyền và chính sách trả lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permission-evaluators-008
+    title: Phân quyền sở hữu, quyền chia sẻ và quyền quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permission-evaluators-009
+    title: Tránh truy vấn lặp cho mỗi phần tử khi kiểm tra tập dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permission-evaluators-010
+    title: Kiểm thử evaluator độc lập và kiểm thử tích hợp qua proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: acl-foundation
+  title: Nền tảng ACL
+  childs:
+  - slug: acl-foundation-001
+    title: Khi nào cần ACL thay cho role hoặc cờ sở hữu đơn giản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-foundation-002
+    title: Acl, AccessControlEntry, ObjectIdentity, Sid và Permission
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-foundation-003
+    title: PrincipalSid, GrantedAuthoritySid và phạm vi cấp quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-foundation-004
+    title: BasePermission, permission mask và quyền tùy chỉnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-foundation-005
+    title: Grant, deny, thứ tự ACE và chính sách kiểm tra quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-foundation-006
+    title: Kế thừa ACL từ đối tượng cha và giới hạn quyền lan truyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-foundation-007
+    title: 'Chủ sở hữu ACL và quyền trên đối tượng: hai khái niệm cần tách biệt'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-foundation-008
+    title: Các bảng acl_sid, acl_class, acl_object_identity và acl_entry
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-foundation-009
+    title: Kiểu định danh đối tượng và tương thích với hạ tầng ACL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-foundation-010
+    title: Thư viện ACL, DataSource và các thành phần cấu hình cần thiết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: acl-implementation
+  title: Triển khai ACL
+  childs:
+  - slug: acl-implementation-001
+    title: AclService, MutableAclService và JdbcMutableAclService
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-implementation-002
+    title: BasicLookupStrategy và cách tải ACL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-implementation-003
+    title: AclAuthorizationStrategy và PermissionGrantingStrategy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-implementation-004
+    title: Tạo ACL khi tạo mới đối tượng nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-implementation-005
+    title: Thêm, sửa, xóa ACE và kiểm soát người được phép chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-implementation-006
+    title: AclPermissionEvaluator và tích hợp hasPermission
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-implementation-007
+    title: Đổi chủ sở hữu, thay đổi ACL cha và cập nhật kế thừa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-implementation-008
+    title: Xóa đối tượng, xóa ACL và tính nhất quán giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-implementation-009
+    title: AclCache, vô hiệu hóa cache và nhiều instance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-implementation-010
+    title: Audit thay đổi ACL và truy vết quyền được cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: acl-implementation-011
+    title: Kiểm thử quyền trực tiếp, quyền kế thừa và ACE từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-permissions
+  title: Quyền trên dữ liệu
+  childs:
+  - slug: data-permissions-001
+    title: IDOR và yêu cầu kiểm tra quyền với từng định danh tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-permissions-002
+    title: Truy vấn theo ID kết hợp chủ sở hữu hoặc phạm vi được phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-permissions-003
+    title: Phân biệt quyền đọc, tạo, sửa, xóa, duyệt và xuất dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-permissions-004
+    title: Bảo vệ thao tác tạo mới khi tài nguyên chưa có định danh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-permissions-005
+    title: Chặn thay đổi ownerId, tenantId và trường nhạy cảm bằng mass assignment
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-permissions-006
+    title: Cập nhật, xóa hàng loạt và tính nguyên tử khi có phần tử thiếu quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-permissions-007
+    title: Phạm vi quyền cho tìm kiếm, đếm, phân trang và thống kê
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-permissions-008
+    title: Quyền trên tài nguyên cha, tài nguyên con và đường dẫn lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-permissions-009
+    title: Chia sẻ dữ liệu, ủy quyền tạm thời và giới hạn thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-permissions-010
+    title: Tránh khác biệt giữa thời điểm kiểm tra quyền với thời điểm sử dụng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-permissions-011
+    title: Ràng buộc giao dịch, khóa và kiểm tra lại khi dữ liệu quyền thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-permissions-012
+    title: Kết hợp kiểm tra ứng dụng với row-level security ở cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tenant-isolation
+  title: Cách ly tenant
+  childs:
+  - slug: tenant-isolation-001
+    title: Tenant là ranh giới dữ liệu và quyền trong ứng dụng nhiều khách hàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-002
+    title: Xác định tenant từ nguồn đáng tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-003
+    title: Kiểm chứng tenant trong URL, header hoặc dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-004
+    title: Kết hợp tenant, subject, role và tài nguyên khi quyết định quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-005
+    title: Người dùng có nhiều tenant và chuyển ngữ cảnh làm việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-006
+    title: Quản trị từng tenant so với quản trị toàn hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-007
+    title: Áp dụng điều kiện tenant tại repository và truy vấn dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-008
+    title: Khóa cache chứa tenant để tránh lẫn quyền hoặc kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-009
+    title: Truyền ngữ cảnh tenant qua tác vụ nền và dọn ngữ cảnh sau xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-010
+    title: Kiểm thử truy cập chéo tenant với cùng ID và cùng tên người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-policies
+  title: Chính sách động
+  childs:
+  - slug: dynamic-policies-001
+    title: Kho quyền động và nguồn dữ liệu chuẩn của chính sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-policies-002
+    title: Thiết kế kiểm tra theo chủ thể, tài nguyên, hành động và ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-policies-003
+    title: Tách điểm thực thi chính sách khỏi thành phần quyết định chính sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-policies-004
+    title: Tích hợp dịch vụ quyết định quyền bằng AuthorizationManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-policies-005
+    title: 'OPA hoặc hệ thống ReBAC: tiêu chí lựa chọn và phạm vi tích hợp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-policies-006
+    title: Gửi thuộc tính tối thiểu, xác minh dữ liệu và bảo vệ kênh gọi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-policies-007
+    title: Timeout, lỗi mạng, phản hồi không hợp lệ và chính sách từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-policies-008
+    title: Cache quyết định có thời hạn và vô hiệu hóa khi quyền thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-policies-009
+    title: Phiên bản chính sách, triển khai thử và phương án quay lui
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-policies-010
+    title: Lưu lý do quyết định và giải thích quyền mà không lộ dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webflux-http-authorization
+  title: HTTP trên WebFlux
+  childs:
+  - slug: webflux-http-authorization-001
+    title: ServerHttpSecurity, SecurityWebFilterChain và authorizeExchange
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-http-authorization-002
+    title: pathMatchers, HTTP method và thứ tự quy tắc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-http-authorization-003
+    title: anyExchange và phạm vi mặc định từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-http-authorization-004
+    title: SecurityWebExchangeMatcher và lựa chọn filter chain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-http-authorization-005
+    title: ReactiveAuthorizationManager với AuthorizationContext
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-http-authorization-006
+    title: AuthorityReactiveAuthorizationManager và kiểm tra role, authority
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-http-authorization-007
+    title: Kết hợp quyết định bằng toán tử Reactor mà không cấp quyền ngoài dự kiến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-http-authorization-008
+    title: ReactiveSecurityContextHolder và Reactor Context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-http-authorization-009
+    title: Đọc dữ liệu quyền bằng API không chặn luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-http-authorization-010
+    title: ExceptionTranslationWebFilter và phản hồi thiếu quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webflux-http-authorization-011
+    title: CORS, CSRF và phạm vi request trong ứng dụng Reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-method-security
+  title: Method security Reactive
+  childs:
+  - slug: reactive-method-security-001
+    title: Kích hoạt @EnableReactiveMethodSecurity theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-method-security-002
+    title: Mono, Flux và thời điểm kiểm tra quyền khi đăng ký xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-method-security-003
+    title: '@PreAuthorize, @PostAuthorize và giới hạn hỗ trợ từng annotation'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-method-security-004
+    title: ReactiveAuthorizationManager với MethodInvocation
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-method-security-005
+    title: Đưa danh tính vào Reactor Context và tránh phụ thuộc ThreadLocal
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-method-security-006
+    title: Gọi dịch vụ quyền bất đồng bộ trong quyết định Reactive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-method-security-007
+    title: Kết quả rỗng, tín hiệu lỗi và ngữ nghĩa từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-method-security-008
+    title: Proxy, self-invocation và điều kiện để interceptor được áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-method-security-009
+    title: Giới hạn block, subscribe thủ công và tác vụ tách khỏi chuỗi xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-method-security-010
+    title: Kiểm thử method security Reactive bằng StepVerifier
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-method-security-011
+    title: Ranh giới giữa bảo vệ phương thức và bảo vệ dữ liệu phát ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oauth2-authorities
+  title: Quyền từ OAuth2
+  childs:
+  - slug: oauth2-authorities-001
+    title: Ranh giới giữa xác minh token và quyết định cho phép truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-authorities-002
+    title: Scope thành authority SCOPE_ trong Resource Server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-authorities-003
+    title: Ánh xạ role claim và kiểm soát tiền tố ROLE_
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-authorities-004
+    title: hasAuthority cho scope và hasRole cho vai trò đã chuẩn hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-authorities-005
+    title: Phân biệt quyền ứng dụng với quyền của người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-authorities-006
+    title: Audience, issuer và tiền điều kiện trước khi dùng claim cấp quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-authorities-007
+    title: Kết hợp scope với quyền sở hữu và tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-authorities-008
+    title: Khác biệt authority từ OAuth2 Login với authority từ Bearer token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-authorities-009
+    title: Không tin claim do client tự gửi hoặc token chưa được xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth2-authorities-010
+    title: Thay đổi quyền khi session hoặc access token còn hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-authorization
+  title: Phân quyền thông điệp
+  childs:
+  - slug: message-authorization-001
+    title: Phân biệt bảo vệ HTTP handshake với bảo vệ thông điệp STOMP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-authorization-002
+    title: '@EnableWebSocketSecurity và AuthorizationManager<Message<?>>'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-authorization-003
+    title: MessageMatcherDelegatingAuthorizationManager và thứ tự quy tắc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-authorization-004
+    title: simpDestMatchers, simpSubscribeDestMatchers và simpTypeMatchers
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-authorization-005
+    title: Phân biệt quyền gửi MESSAGE với quyền SUBSCRIBE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-authorization-006
+    title: Quyền trên kênh cá nhân, topic dùng chung và dữ liệu theo tenant
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-authorization-007
+    title: Principal của phiên và giới hạn tin cậy header do client gửi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-authorization-008
+    title: clientInboundChannel và ranh giới bảo vệ dữ liệu gửi ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-authorization-009
+    title: Origin, CSRF trong CONNECT và quan hệ với kiểm soát truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-authorization-010
+    title: Kiểm thử giả mạo người gửi, đăng ký sai kênh và thông điệp ngoài quy tắc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-denial-handling
+  title: Xử lý từ chối
+  childs:
+  - slug: access-denial-handling-001
+    title: Phân biệt chưa xác thực, thiếu quyền và tài nguyên không tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-denial-handling-002
+    title: ExceptionTranslationFilter và chuyển lỗi bảo mật thành phản hồi HTTP
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-denial-handling-003
+    title: AuthenticationEntryPoint với người chưa xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-denial-handling-004
+    title: AccessDeniedHandler với người không có quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-denial-handling-005
+    title: Phản hồi JSON cho API và điều hướng phù hợp giao diện web
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-denial-handling-006
+    title: Mã 401, 403, 404 và chính sách tránh tiết lộ sự tồn tại của dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-denial-handling-007
+    title: Phân biệt AccessDeniedException với lỗi CSRF hoặc lỗi nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-denial-handling-008
+    title: Xử lý lỗi từ method security qua lớp web mà vẫn giữ đúng mã trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-denial-handling-009
+    title: MethodAuthorizationDeniedHandler và @HandleAuthorizationDenied theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-denial-handling-010
+    title: Giá trị thay thế, che trường và giới hạn an toàn khi quyền bị từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-denial-handling-011
+    title: Thống nhất mã lỗi, thông điệp và correlation ID giữa các lớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization-events-auditing
+  title: Sự kiện và audit
+  childs:
+  - slug: authorization-events-auditing-001
+    title: AuthorizationEventPublisher và SpringAuthorizationEventPublisher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-events-auditing-002
+    title: AuthorizationDeniedEvent và dữ liệu phục vụ điều tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-events-auditing-003
+    title: AuthorizationGrantedEvent và kiểm soát lượng sự kiện thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-events-auditing-004
+    title: Đăng ký listener và xác minh vị trí sự kiện được phát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-events-auditing-005
+    title: Audit gồm chủ thể, tenant, tài nguyên, hành động, quyết định và lý do
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-events-auditing-006
+    title: Phân biệt audit truy cập với lịch sử thay đổi quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-events-auditing-007
+    title: Che dữ liệu cá nhân, token và thuộc tính nhạy cảm trong log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-events-auditing-008
+    title: Liên kết quyết định HTTP, phương thức và truy vấn trong cùng lượt xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-events-auditing-009
+    title: Phát hiện hành vi dò tài nguyên, bị từ chối lặp lại và vượt phạm vi quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-events-auditing-010
+    title: Chính sách lưu giữ, truy cập và tính toàn vẹn của bản ghi audit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-testing
+  title: Kiểm thử HTTP
+  childs:
+  - slug: http-testing-001
+    title: Chuyển ma trận quyền thành bộ ca cho phép và từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-002
+    title: spring-security-test, MockMvc và tích hợp filter chain thật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-003
+    title: user(), anonymous() và cấu hình role, authority cho request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-004
+    title: Kiểm thử người chưa xác thực, đúng quyền và thiếu quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-005
+    title: Kiểm thử từng HTTP method trên cùng đường dẫn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-006
+    title: Kiểm thử thứ tự matcher, wildcard, servlet path và đường dẫn sát biên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-007
+    title: Kiểm thử nhiều filter chain và endpoint không được khai báo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-008
+    title: csrf() và phân biệt tác động CSRF với quy tắc quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-009
+    title: Kiểm thử FORWARD, ERROR, ASYNC và endpoint xử lý lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-010
+    title: WebTestClient, mockUser và quy tắc authorizeExchange
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-011
+    title: Kiểm chứng status, phản hồi lỗi và việc nghiệp vụ không bị thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-testing-012
+    title: Giới hạn của mock Authentication so với kiểm thử toàn bộ chuỗi xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: method-testing
+  title: Kiểm thử phương thức
+  childs:
+  - slug: method-testing-001
+    title: Gọi Spring bean qua proxy để kiểm chứng annotation có hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-testing-002
+    title: '@WithMockUser và khác biệt giữa roles với authorities'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-testing-003
+    title: '@WithAnonymousUser cho tình huống không có người dùng đăng nhập'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-testing-004
+    title: '@WithUserDetails và dữ liệu người dùng trong ApplicationContext'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-testing-005
+    title: '@WithSecurityContext cho principal hoặc bộ quyền tùy chỉnh'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-testing-006
+    title: Kiểm thử biểu thức theo tham số, chủ sở hữu và thuộc tính đầu vào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-testing-007
+    title: Kiểm thử @PostAuthorize với kết quả đúng quyền, sai quyền và null
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-testing-008
+    title: Kiểm thử @PreFilter, @PostFilter và nội dung tập dữ liệu sau lọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-testing-009
+    title: Kiểm thử meta-annotation, role hierarchy và PermissionEvaluator
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-testing-010
+    title: Kiểm thử self-invocation, giao dịch và tác động phụ của phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-testing-011
+    title: Kiểm thử method security Reactive và Reactor Context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: method-testing-012
+    title: Kiểm thử manager tùy chỉnh với cho phép, từ chối, không có quyết định và lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-policy-testing
+  title: Kiểm thử dữ liệu và chính sách
+  childs:
+  - slug: data-policy-testing-001
+    title: Bộ dữ liệu có nhiều người dùng, role, tenant và quan hệ chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policy-testing-002
+    title: Kiểm thử IDOR bằng cách thay định danh tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policy-testing-003
+    title: Kiểm thử tạo, sửa, xóa, tìm kiếm và xuất dữ liệu chéo phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policy-testing-004
+    title: Kiểm thử quyền sở hữu thay đổi trong quá trình xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policy-testing-005
+    title: Kiểm thử thao tác hàng loạt có cả phần tử được phép và bị từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policy-testing-006
+    title: Kiểm thử phân trang, số lượng tổng và dữ liệu bị che
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policy-testing-007
+    title: Kiểm thử ACL trực tiếp, kế thừa, cache và thu hồi quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policy-testing-008
+    title: Kiểm thử dịch vụ chính sách khi timeout, lỗi hoặc trả dữ liệu không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policy-testing-009
+    title: Kiểm thử cache giữa tenant và hiệu lực sau khi quyền thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policy-testing-010
+    title: Kiểm thử hồi quy theo ma trận quyền khi thêm endpoint hoặc hành động mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vulnerabilities-and-pitfalls
+  title: Sai sót và lỗ hổng
+  childs:
+  - slug: vulnerabilities-and-pitfalls-001
+    title: Đăng nhập thành công nhưng thiếu kiểm tra quyền trên chức năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-002
+    title: Quy tắc permitAll quá rộng hoặc bị che bởi thứ tự matcher
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-003
+    title: Endpoint nằm ngoài mọi filter chain
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-004
+    title: Thiếu @EnableMethodSecurity hoặc gọi phương thức không qua proxy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-005
+    title: Nhầm ROLE_ với SCOPE_ và ánh xạ quyền rộng hơn dữ liệu nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-006
+    title: Tin ownerId, tenantId, role hoặc trạng thái do client truyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-007
+    title: Ẩn nút trên giao diện nhưng thiếu kiểm soát tại server
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-008
+    title: GraphQL dùng chung endpoint và yêu cầu bảo vệ resolver, đối tượng, trường dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-009
+    title: Đường dẫn thay thế, HTTP method khác và lỗi chuẩn hóa request
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-010
+    title: Nhầm lọc kết quả với chặn thực thi hành động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-011
+    title: Quyền cũ còn trong session, token hoặc cache sau khi bị thu hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-012
+    title: Lỗi dịch vụ chính sách dẫn đến vô tình cho phép truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerabilities-and-pitfalls-013
+    title: Chính sách nhiều lớp mâu thuẫn và thiếu kiểm thử tình huống bị từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-operations
+  title: Hiệu năng và vận hành
+  childs:
+  - slug: performance-operations-001
+    title: Đo độ trễ kiểm tra quyền theo HTTP, phương thức và dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-002
+    title: Tránh N+1 khi PermissionEvaluator hoặc ACL kiểm tra nhiều đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-003
+    title: Cache quyền, quan hệ và quyết định theo đúng phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-004
+    title: Thiết kế khóa cache theo người dùng, tenant, tài nguyên và phiên bản chính sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-005
+    title: Thu hồi quyền, vô hiệu hóa cache và hiệu lực trên nhiều instance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-006
+    title: Đồng bộ quyền từ nguồn danh tính mà vẫn giữ quyền nghiệp vụ nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-007
+    title: Kiểm tra quyền trong tác vụ nền với danh tính thực thi rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-008
+    title: Rà soát quyền tích lũy, tài khoản quản trị và chính sách hết hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-009
+    title: Giám sát tỷ lệ từ chối và lỗi quyết định quyền bất thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-010
+    title: Triển khai thay đổi chính sách có phiên bản, kiểm chứng và quay lui
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-011
+    title: AOT, native image và kiểm tra tương thích proxy, biểu thức theo phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versions-migration
+  title: Phiên bản và chuyển đổi
+  childs:
+  - slug: versions-migration-001
+    title: Đối chiếu phiên bản Spring Boot, Spring Security và tính năng phân quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-migration-002
+    title: authorizeRequests so với authorizeHttpRequests và thay đổi cơ chế thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-migration-003
+    title: FilterSecurityInterceptor so với AuthorizationFilter
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-migration-004
+    title: AccessDecisionManager, AccessDecisionVoter và hướng chuyển sang AuthorizationManager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-migration-005
+    title: Chuyển @EnableGlobalMethodSecurity sang @EnableMethodSecurity
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-migration-006
+    title: Chuyển WebSecurityConfigurerAdapter sang cấu hình bean
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-migration-007
+    title: Chuyển antMatchers, mvcMatchers và RequestMatcher theo dòng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-migration-008
+    title: WebExpressionAuthorizationManager khi chuyển cấu hình SpEL cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-migration-009
+    title: Thay đổi check, authorize, AuthorizationResult và cách kết hợp manager
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-migration-010
+    title: Khả năng hỗ trợ @AuthorizeReturnObject, xử lý từ chối và annotation template
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-migration-011
+    title: Kiểm chứng hierarchy, tiền tố role và annotation mặc định sau nâng phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-migration-012
+    title: Chuyển đổi theo giai đoạn với ma trận quyền làm chuẩn hồi quy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-practice
+  title: Thực hành tích hợp
+  childs:
+  - slug: integration-practice-001
+    title: Dựng ma trận quyền cho ứng dụng quản lý tài liệu nhiều người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-002
+    title: Bảo vệ HTTP theo READ, WRITE, ADMIN và kiểm thử từng phương thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-003
+    title: Áp dụng role hierarchy và đối chiếu quyền ở HTTP với service
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-004
+    title: Kiểm tra chủ sở hữu bằng @PreAuthorize kết hợp bean chính sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-005
+    title: So sánh kiểm tra trước, kiểm tra sau và lọc danh sách
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-006
+    title: Triển khai PermissionEvaluator cho quyền đọc, sửa và chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-007
+    title: Triển khai ACL có kế thừa và thu hồi quyền chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-008
+    title: Cách ly dữ liệu hai tenant và kiểm thử thay đổi định danh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-009
+    title: Tích hợp dịch vụ chính sách với timeout và cache có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-010
+    title: Triển khai cùng chính sách trong WebFlux và kiểm chứng Reactor Context
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-011
+    title: Bảo vệ gửi, nhận thông điệp trên kênh STOMP cá nhân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-practice-012
+    title: Thu thập audit, kiểm thử hồi quy và tổng hợp bằng chứng cho từng quyết định quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

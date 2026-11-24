@@ -1,13 +1,13 @@
-# Tạo CompilationTask bằng getTask và đọc kết quả call
+# Creating a CompilationTask with getTask and Reading the call Result
 
-## 1. Tình huống sử dụng: biên dịch Java ngay khi ứng dụng đang chạy
+## 1. Use Case: Compiling Java While the Application Is Running
 
-Một ứng dụng Java đôi khi cần nhận mã nguồn Java lúc runtime và biến nó thành bytecode mà không gọi lệnh **javac** bằng tiến trình hệ điều hành riêng. Ví dụ, một công cụ học lập trình biên dịch bài tập người dùng gửi đến, một nền tảng plugin tạo implementation từ mẫu đã kiểm soát, hoặc một hệ thống xây dựng mã sinh tự động.
+A Java application sometimes needs to accept Java source code at runtime and turn it into bytecode without invoking the **javac** command in a separate OS process. Examples include a programming learning tool compiling user-submitted exercises, a plugin platform generating implementations from controlled templates, or a system building auto-generated code.
 
-Java cung cấp **Java Compiler API** trong package **javax.tools**, thuộc module **java.compiler**. Với một bản JDK có compiler khả dụng, luồng xử lý thường là:
+Java provides the **Java Compiler API** in package **javax.tools**, part of module **java.compiler**. With a JDK that has an available compiler, the typical flow is:
 
 ~~~text
-Mã nguồn Java (tệp .java hoặc JavaFileObject từ chuỗi)
+Java source (.java file or JavaFileObject from String)
                      |
                      v
         ToolProvider.getSystemJavaCompiler()
@@ -18,42 +18,42 @@ Mã nguồn Java (tệp .java hoặc JavaFileObject từ chuỗi)
                      v
     JavaCompiler.getTask(...) -> CompilationTask
                      |
-                     | cấu hình thêm nếu cần
+                     | configure further if needed
                      v
                task.call()
               /           \
            true           false
             |               |
-     không có lỗi       có lỗi biên dịch
-      biên dịch         -> xem diagnostics
+      no compilation    compilation errors
+         errors         -> inspect diagnostics
             |
-     có thể có .class
-     ở output đã chọn
+     .class may exist
+     in chosen output
 ~~~
 
-**Điểm mấu chốt:** **JavaCompiler.getTask(...)** chỉ **tạo một tác vụ biên dịch**, chưa thực hiện biên dịch. **JavaCompiler.CompilationTask.call()** mới **chạy tác vụ** và trả kết quả **Boolean**.
+**Key point:** **JavaCompiler.getTask(...)** only **creates a compilation task**; it does not run compilation yet. **JavaCompiler.CompilationTask.call()** is what **executes the task** and returns a **Boolean** result.
 
-Nếu biên dịch thành công, ứng dụng vẫn chưa tự động **chạy** class mới. Biên dịch, nạp class và gọi phương thức là những trách nhiệm riêng; bài này tập trung vào cách tạo CompilationTask, thực thi và đọc kết quả.
+Even if compilation succeeds, the application does not automatically **execute** the new class. Compiling, loading classes, and invoking methods are separate responsibilities; this lesson focuses on creating a `CompilationTask`, executing it, and reading the result.
 
-## 2. Các kiểu API tham gia
+## 2. Participating API Types
 
-Các lớp/interface thường dùng:
+Commonly used classes/interfaces:
 
-| Kiểu | Vai trò |
+| Type | Role |
 |---|---|
-| **ToolProvider** | Lấy compiler hệ thống qua **getSystemJavaCompiler()** |
-| **JavaCompiler** | Giao diện điều khiển trình biên dịch Java |
-| **JavaCompiler.CompilationTask** | Tác vụ cấu hình sẵn nhưng chưa chạy; có **call()** |
-| **JavaFileObject** | Biểu diễn một đơn vị mã nguồn Java hoặc tệp Java liên quan |
-| **SimpleJavaFileObject** | Lớp nền tiện dụng để tạo nguồn từ chuỗi trong bộ nhớ |
-| **StandardJavaFileManager** | Quản lý nguồn/đầu ra và các đường dẫn chuẩn của compiler |
-| **DiagnosticCollector<JavaFileObject>** | Thu thập lỗi/cảnh báo/note do compiler phát ra |
-| **Diagnostic<? extends JavaFileObject>** | Chi tiết một diagnostic: loại, vị trí, thông điệp |
+| **ToolProvider** | Obtains the system compiler via **getSystemJavaCompiler()** |
+| **JavaCompiler** | Interface controlling the Java compiler |
+| **JavaCompiler.CompilationTask** | Preconfigured task not yet run; exposes **call()** |
+| **JavaFileObject** | Represents a Java source unit or related Java file |
+| **SimpleJavaFileObject** | Convenient base class for building in-memory source from a string |
+| **StandardJavaFileManager** | Manages compiler sources/outputs and standard paths |
+| **DiagnosticCollector<JavaFileObject>** | Collects errors/warnings/notes emitted by the compiler |
+| **Diagnostic<? extends JavaFileObject>** | Details of a diagnostic: kind, location, message |
 
-Bước khởi đầu:
+Initial step:
 
 ~~~java
-// Mảnh mã minh họa trong một phương thức Java.
+// Illustrative snippet inside a Java method.
 JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
 if (compiler == null) {
@@ -61,13 +61,13 @@ if (compiler == null) {
 }
 ~~~
 
-Dùng **JDK 17+** cho các ví dụ ở đây. **getSystemJavaCompiler() có thể trả null** nếu runtime image không chứa compiler, ví dụ môi trường chỉ đóng gói các module runtime cần thiết nhưng thiếu **jdk.compiler**. Việc máy có lệnh **java** không tự bảo đảm compiler được đóng gói. Với named module sử dụng javax.tools, module ứng dụng khai báo **requires java.compiler**; để thực sự biên dịch còn cần triển khai compiler khả dụng lúc chạy.
+Use **JDK 17+** for the examples here. **`getSystemJavaCompiler()` can return null** if the runtime image does not contain a compiler—for example, an environment packaged with only essential runtime modules and missing **jdk.compiler**. Having the **java** command on the machine does not guarantee the compiler is packaged. For a named module using `javax.tools`, the application module declares **requires java.compiler**; actually compiling also requires an available compiler implementation at runtime.
 
-Không sử dụng **com.sun.tools.javac.Main** hoặc API nội bộ chỉ để gọi javac từ Java code; **javax.tools** là giao diện chuẩn cho mục tiêu này.
+Do not use **com.sun.tools.javac.Main** or internal APIs just to invoke `javac` from Java code; **javax.tools** is the standard interface for this purpose.
 
-## 3. Hiểu đầy đủ chữ ký getTask(...)
+## 3. Understanding the Full getTask(...) Signature
 
-Phương thức của **JavaCompiler**:
+Method on **JavaCompiler**:
 
 ~~~java
 JavaCompiler.CompilationTask getTask(
@@ -80,26 +80,26 @@ JavaCompiler.CompilationTask getTask(
 );
 ~~~
 
-Ý nghĩa sáu tham số:
+Meaning of the six parameters:
 
-| Tham số | Ý nghĩa | Cách dùng điển hình |
+| Parameter | Meaning | Typical Usage |
 |---|---|---|
-| **out** | Writer nhận các thông tin đầu ra bổ sung của compiler | null để dùng đích mặc định hoặc StringWriter để thu nội dung |
-| **fileManager** | Điều phối đọc source, classpath/module path và ghi kết quả | Truyền StandardJavaFileManager đã cấu hình; null để compiler tạo mặc định |
-| **diagnosticListener** | Nhận diagnostic theo từng sự kiện | DiagnosticCollector để giữ lại lỗi/cảnh báo có cấu trúc |
-| **options** | Các tùy chọn trình biên dịch dưới dạng chuỗi tách riêng | List.of("--release", "17", "-d", "out") |
-| **classes** | Tên class phục vụ **annotation processing** | Thường **null** khi chỉ biên dịch các source units |
-| **compilationUnits** | Danh sách JavaFileObject là các đơn vị mã nguồn cần biên dịch | File manager chuyển .java thành JavaFileObject, hoặc tự tạo source trong bộ nhớ |
+| **out** | Writer receiving additional compiler output | `null` to use default destination or `StringWriter` to capture output |
+| **fileManager** | Coordinates reading sources, classpath/module path, and writing outputs | Pass configured `StandardJavaFileManager`; `null` for compiler default |
+| **diagnosticListener** | Receives diagnostics per event | `DiagnosticCollector` to retain structured errors/warnings |
+| **options** | Compiler options as separate strings | `List.of("--release", "17", "-d", "out")` |
+| **classes** | Class names for **annotation processing** | Usually **null** when only compiling source units |
+| **compilationUnits** | List of `JavaFileObject`s representing source units to compile | File manager converts `.java` files to `JavaFileObject`, or construct in-memory sources |
 
-**Hai nhầm lẫn cần tránh:**
+**Two mistakes to avoid:**
 
-- **classes** không phải tham số “tên class đầu ra cần tạo” hay tên class chuẩn bị chạy. Nó chủ yếu dành cho tên các class cần xử lý bởi annotation processor. Nếu đã có JavaFileObject của source, phần lớn trường hợp truyền **classes = null**.
-- Mỗi option và giá trị của option nên là **hai phần tử riêng**, ví dụ **"-d", "out"** thay vì ghép **"-d out"** thành một chuỗi; tương tự **"--release", "17"**.
+- **classes** is not a "target output class name" parameter or the name of the class to run. It is primarily for class names to be processed by annotation processors. When you already have source `JavaFileObject`s, pass **classes = null** in most cases.
+- Each option and its value should be **two separate elements**, e.g. **"-d", "out"** rather than combining **"-d out"** into one string; likewise **"--release", "17"**.
 
-Ví dụ cấu hình ngắn:
+Short configuration example:
 
 ~~~java
-// Mảnh minh họa: compiler, manager, diagnostics và units có sẵn.
+// Illustrative snippet: compiler, manager, diagnostics, and units already exist.
 JavaCompiler.CompilationTask task = compiler.getTask(
     null,                          // compiler output Writer
     manager,                       // JavaFileManager
@@ -112,40 +112,40 @@ JavaCompiler.CompilationTask task = compiler.getTask(
 );
 ~~~
 
-Khi câu lệnh này kết thúc, **task tồn tại nhưng chưa biên dịch**. Có thể tùy chỉnh một số khía cạnh của task trước khi chạy, sau đó gọi **task.call()**.
+When this statement finishes, **the task exists but has not compiled anything yet**. You can customize certain aspects of the task before running it, then call **task.call()**.
 
-### Writer và DiagnosticCollector khác nhau thế nào?
+### How Do Writer and DiagnosticCollector Differ?
 
-**out** nhận phần output bổ sung mà compiler gửi qua Writer. **diagnosticListener** nhận các diagnostic có cấu trúc; chúng có thể bao gồm **ERROR**, **WARNING**, **MANDATORY_WARNING**, **NOTE** và **OTHER**, với nguồn, vị trí, mã diagnostic và thông điệp.
+**out** receives additional output that the compiler writes to the `Writer`. **diagnosticListener** receives structured diagnostics; these can include **ERROR**, **WARNING**, **MANDATORY_WARNING**, **NOTE**, and **OTHER**, along with source, position, diagnostic code, and message.
 
-Để tự phân loại lỗi hoặc gắn lỗi với dòng mã nguồn trong giao diện, **DiagnosticCollector** hữu ích hơn việc đọc một chuỗi console. Không nên giả định mọi bản JDK hay mọi locale in đúng cùng một văn bản lỗi. Giá trị **call()** nói tác vụ thành công hay thất bại; danh sách diagnostics giúp giải thích chi tiết tại sao.
+To categorize errors programmatically or attach them to source lines in a UI, **DiagnosticCollector** is more useful than parsing console text. Do not assume every JDK release or locale prints the exact same error wording. The return value of **call()** tells you whether the task succeeded or failed; the diagnostics list helps explain why.
 
-## 4. CompilationTask.call() làm gì?
+## 4. What Does CompilationTask.call() Do?
 
-Interface **JavaCompiler.CompilationTask** mở rộng **Callable<Boolean>**. Khi gọi:
+The **JavaCompiler.CompilationTask** interface extends **Callable<Boolean>**. When called:
 
 ~~~java
-// Mảnh minh họa.
+// Illustrative snippet.
 Boolean result = task.call();
 boolean success = Boolean.TRUE.equals(result);
 ~~~
 
-- **call()** chạy tác vụ biên dịch **đồng bộ trong lời gọi hiện tại** và chỉ trả về khi tác vụ hoàn tất hoặc ném lỗi. Không phải lệnh tự gửi vào background thread.
-- **Boolean.TRUE** tương ứng việc **tất cả các source units được biên dịch không có lỗi**. Có thể vẫn có warning/note.
-- **Boolean.FALSE** tương ứng biên dịch có lỗi. Nó là **kết quả biên dịch bình thường**, không phải mặc định là exception.
-- Tác vụ **chỉ thực thi một lần**. Gọi **call()** lần thứ hai trên cùng task gây **IllegalStateException**; muốn biên dịch lại, phải tạo **CompilationTask mới**.
-- Thông số **setProcessors(...)**, **setLocale(...)** và **addModules(...)** (khi thích hợp) phải cấu hình **trước** khi bắt đầu task; không thay đổi giữa lúc chạy hoặc sau khi chạy.
-- Một số lỗi cấu hình hoặc lỗi nghiêm trọng của thành phần do ứng dụng cung cấp có thể làm **getTask/call ném exception**. Không đánh đồng mọi exception với Boolean.FALSE.
+- **call()** executes the compilation task **synchronously on the current call** and returns only when compilation finishes or throws an error. It does not automatically submit work to a background thread.
+- **Boolean.TRUE** indicates that **all source units compiled without errors**. Warnings/notes may still be present.
+- **Boolean.FALSE** indicates compilation had errors. It is a **normal compilation result**, not an exception by default.
+- A task **executes only once**. Calling **call()** a second time on the same task throws **IllegalStateException**; to recompile, you must create a **new CompilationTask**.
+- Settings such as **setProcessors(...)**, **setLocale(...)**, and **addModules(...)** (where applicable) must be configured **before** starting the task; do not change them mid-run or after completion.
+- Certain configuration errors or severe failures in application-provided components can cause **getTask/call to throw an exception**. Do not equate every exception with `Boolean.FALSE`.
 
-Cách diễn đạt đúng:
+Proper phrasing:
 
 ~~~java
-// Mảnh minh họa.
+// Illustrative snippet.
 JavaCompiler.CompilationTask task = compiler.getTask(
         null, manager, diagnostics, options, null, sourceFiles);
 
-// Đến đây mới tạo task.
-Boolean compiled = task.call(); // Bắt đầu biên dịch.
+// At this point the task is only created.
+Boolean compiled = task.call(); // Starts compilation.
 
 if (Boolean.TRUE.equals(compiled)) {
     System.out.println("Compilation succeeded");
@@ -154,19 +154,19 @@ if (Boolean.TRUE.equals(compiled)) {
 }
 ~~~
 
-**Tránh gọi lặp:** **task.call()** không phải phương thức kiểm tra trạng thái bất biến. Nếu cần biết lần biên dịch đã thành công chưa ở chỗ khác, **lưu kết quả Boolean**, không gọi lại task.
+**Avoid repeated calls:** **task.call()** is not an idempotent status-check method. If you need to know elsewhere whether compilation succeeded, **store the Boolean result** instead of calling the task again.
 
-## 5. Ví dụ đầy đủ Java 17: hai tác vụ, một thành công và một thất bại
+## 5. Complete Java 17 Example: Two Tasks, One Succeeding and One Failing
 
-Chương trình sau tự tạo **JavaFileObject từ chuỗi** nên bạn chỉ cần một file source để chạy ví dụ. Nó sẽ:
+The following program creates **in-memory `JavaFileObject`s from strings** so you only need a single source file to run the example. It will:
 
-1. Lấy JavaCompiler của JDK.
-2. Chuẩn bị thư mục output riêng cho .class.
-3. Tạo một source **demo.Good** hợp lệ và một source **demo.Bad** chứa lỗi kiểu dữ liệu.
-4. Tạo **CompilationTask riêng** cho từng lần biên dịch bằng **getTask(...)**.
-5. Gọi **call()**, in kết quả thành công/thất bại và kiểm tra có diagnostic loại ERROR hay không.
+1. Obtain the JDK's `JavaCompiler`.
+2. Prepare a dedicated output directory for `.class` files.
+3. Create a valid source **demo.Good** and a source **demo.Bad** containing a type error.
+4. Create a **separate CompilationTask** for each compilation using **getTask(...)**.
+5. Invoke **call()**, print success/failure, and check whether any `ERROR` diagnostic is present.
 
-### 5.1. Nội dung tệp CompilationTaskDemo.java
+### 5.1. Contents of CompilationTaskDemo.java
 
 ~~~java
 import java.io.IOException;
@@ -215,7 +215,7 @@ public final class CompilationTaskDemo {
         DiagnosticCollector<JavaFileObject> diagnostics =
                 new DiagnosticCollector<>();
 
-        // Tạo file manager cho lần biên dịch này.
+        // Create a file manager for this compilation run.
         try (StandardJavaFileManager manager =
                 compiler.getStandardFileManager(
                     diagnostics, Locale.ROOT, StandardCharsets.UTF_8)) {
@@ -227,15 +227,15 @@ public final class CompilationTaskDemo {
             );
 
             JavaCompiler.CompilationTask task = compiler.getTask(
-                null,               // Writer nhận output khác
-                manager,            // Quản lý source và class output
-                diagnostics,        // Thu thập diagnostic
-                options,            // Tùy chọn compiler
-                null,               // Không cung cấp class để xử lý annotation
-                List.of(unit)       // Một source unit
+                null,               // Writer for additional output
+                manager,            // Manages source and class output
+                diagnostics,        // Collects diagnostics
+                options,            // Compiler options
+                null,               // No classes supplied for annotation processing
+                List.of(unit)       // Single source unit
             );
 
-            // Chỉ sau lời gọi này compiler mới thực thi tác vụ.
+            // Only upon this call does the compiler execute the task.
             Boolean result = task.call();
 
             boolean hasErrors = diagnostics.getDiagnostics().stream()
@@ -291,14 +291,14 @@ public final class CompilationTaskDemo {
 }
 ~~~
 
-**Biên dịch và chạy** bằng JDK 17 trở lên, từ thư mục chứa file:
+**Compile and run** with JDK 17 or later, from the directory containing the file:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 CompilationTaskDemo.java
 java CompilationTaskDemo
 ~~~
 
-**Stdout dự kiến chính xác với JDK 17 và ví dụ trên:**
+**Exact expected stdout on JDK 17 with the example above:**
 
 ~~~text
 good success=true
@@ -307,48 +307,48 @@ bad success=false
 bad hasErrors=true
 ~~~
 
-Chương trình không cố in nguyên văn compiler error vì thông điệp có thể khác theo phiên bản JDK và locale. **Bad** chứa lỗi không thể chuyển String sang int, nên việc biên dịch thất bại và có ít nhất một diagnostic ERROR. **Good** hợp lệ, nên không có diagnostic ERROR. Ví dụ dùng **-proc:none** để tránh annotation processor ngoài dự kiến ảnh hưởng lần biên dịch.
+The program avoids printing verbatim compiler error text because messages can vary by JDK version and locale. **Bad** contains a type error returning a `String` from an `int` method, so compilation fails with at least one `ERROR` diagnostic. **Good** is valid, so there is no `ERROR` diagnostic. The example uses **-proc:none** to prevent unexpected annotation processors from affecting the compilation.
 
-Sau khi chạy, thư mục **out/demo/** chứa **Good.class** nếu biên dịch thành công. **Bad** không được kỳ vọng tạo ra class hợp lệ. Để thận trọng trong ứng dụng thực tế, không dùng sự hiện diện của một tệp .class từ lần chạy trước làm dấu hiệu thành công của lần biên dịch hiện tại; hãy dựa vào kết quả **call()** và quản lý thư mục output theo từng lần build.
+After running, the **out/demo/** directory contains **Good.class** if compilation succeeded. **Bad** is not expected to produce a valid class. To be cautious in real applications, do not treat the presence of a `.class` file from a previous run as proof that the current compilation succeeded; rely on the return value of **call()** and manage output directories per build.
 
-### 5.2. Tại sao cần StringSource?
+### 5.2. Why Is StringSource Needed?
 
-**SimpleJavaFileObject** đại diện một nguồn trong bộ nhớ. URI:
+**SimpleJavaFileObject** represents an in-memory source. The URI:
 
 ~~~text
 string:///demo/Good.java
 ~~~
 
-cho compiler biết đường dẫn logic tương ứng tên binary **demo.Good** và loại file **Kind.SOURCE**. Method **getCharContent(...)** trả chuỗi mã nguồn. Chương trình không cần tạo **Good.java** và **Bad.java** thật trên đĩa trước khi biên dịch.
+tells the compiler the logical path corresponding to the binary name **demo.Good** and file kind **Kind.SOURCE**. Method **getCharContent(...)** returns the source string. The program does not need to write real **Good.java** and **Bad.java** files on disk prior to compiling.
 
-Nếu chỉ cần biên dịch tệp .java có sẵn, **StandardJavaFileManager** đã cung cấp cách chuyển tệp thành JavaFileObject; không phải viết StringSource. Phần 7 minh họa hướng đó.
+If you only need to compile existing `.java` files, **StandardJavaFileManager** already provides ways to convert files into `JavaFileObject`s; you do not have to write `StringSource`. Section 7 illustrates that approach.
 
-### 5.3. Tại sao dùng hai CompilationTask?
+### 5.3. Why Use Two CompilationTasks?
 
-**Mỗi tác vụ chỉ call() một lần.** Muốn compile mã Good rồi compile mã Bad, chương trình tạo hai task riêng bằng hai lần **compiler.getTask(...)**. Có thể tạo một task chứa nhiều source units để biên dịch cả hai cùng lúc, nhưng khi một source có lỗi, kết quả chung sẽ **false**, khó minh họa riêng nhánh thành công và thất bại.
+**Each task calls `call()` only once.** To compile `Good` and then compile `Bad`, the program creates two separate tasks via two **compiler.getTask(...)** calls. You could create one task containing multiple source units to compile both at once, yet when one source has an error, the overall result becomes **false**, making it harder to demonstrate the success and failure branches separately.
 
-Đầu ra **good success=true** là kết quả **Boolean** của task đầu tiên; **bad success=false** là kết quả của task thứ hai. Hai dòng **hasErrors** đi từ **DiagnosticCollector**, dùng để giải thích kết quả nhưng không thay thế hoàn toàn nó.
+The output **good success=true** comes from the first task's **Boolean** result; **bad success=false** comes from the second task's result. The two **hasErrors** lines come from **DiagnosticCollector**, serving to explain the outcome without completely replacing it.
 
-### 5.4. Vì sao cần file manager?
+### 5.4. Why Is a File Manager Needed?
 
-**StandardJavaFileManager** giúp compiler tìm nguồn, xác định classpath/module path và viết file .class vào output. Ở ví dụ, option **-d out** chỉ định thư mục output; lệnh **Files.createDirectories(out)** tạo trước thư mục để tránh lỗi do đường dẫn chưa tồn tại. **try-with-resources** đóng file manager dù biên dịch thành công hay thất bại.
+**StandardJavaFileManager** helps the compiler locate sources, resolve classpath/module path, and write `.class` files to output. In the example, option **-d out** specifies the output directory; **Files.createDirectories(out)** creates the directory upfront to avoid errors from a nonexistent path. **try-with-resources** closes the file manager whether compilation succeeds or fails.
 
-File manager là tài nguyên liên quan đến compiler; với hệ thống biên dịch nhiều lần liên tiếp, có thể tái sử dụng một StandardJavaFileManager một cách có kiểm soát để tận dụng cache. Tuy nhiên không được đóng nó trước khi **call()** kết thúc, và phải điều phối an toàn nếu có nhiều task.
+The file manager is a compiler-related resource; in a system compiling repeatedly in sequence, you can reuse a `StandardJavaFileManager` in a controlled manner to benefit from caching. However, do not close it before **call()** finishes, and coordinate safely if multiple tasks exist.
 
-## 6. Phân biệt kết quả call() với diagnostics
+## 6. Distinguishing the call() Result from Diagnostics
 
-**Boolean result** và **DiagnosticCollector** trả lời hai câu hỏi khác nhau:
+The **Boolean result** and **DiagnosticCollector** answer two different questions:
 
-| Quan sát | Kết luận đúng |
+| Observation | Correct Conclusion |
 |---|---|
-| **call() == true** | Tất cả đơn vị nguồn trong task được biên dịch không có lỗi |
-| **call() == false** | Có lỗi biên dịch trong task |
-| **diagnostic.Kind.ERROR** | Compiler báo một lỗi cụ thể, có thể lấy source/line/column/message |
-| Chỉ có **WARNING/NOTE** | Task vẫn có thể thành công nếu không có ERROR |
-| **call() ném exception** | Có lỗi không được biểu diễn đơn thuần bằng kết quả biên dịch false; cần xử lý nguyên nhân |
-| **call() == true** nhưng sau đó class không load được | Biên dịch thành công không bảo đảm runtime dependencies, classpath, bytecode loading hoặc hành vi nghiệp vụ |
+| **call() == true** | All source units in the task compiled without errors |
+| **call() == false** | Compilation errors occurred in the task |
+| **diagnostic.Kind.ERROR** | Compiler reported a specific error, with source/line/column/message available |
+| Only **WARNING/NOTE** present | Task can still succeed if no `ERROR` occurred |
+| **call() throws an exception** | An error occurred that is not represented simply as `false`; handle the cause |
+| **call() == true** but class later fails to load | Compilation success does not guarantee runtime dependencies, classpath, bytecode loading, or business behavior |
 
-Ví dụ xử lý kết quả và in thông tin diagnostic (mảnh minh họa, đặt tại nơi đã có **task** và **diagnostics**):
+Example of handling the result and printing diagnostic info (illustrative snippet, placed where **task** and **diagnostics** already exist):
 
 ~~~java
 Boolean result = task.call();
@@ -370,27 +370,27 @@ for (Diagnostic<? extends JavaFileObject> d
 }
 ~~~
 
-**Diagnostic.getLineNumber()** hoặc **getColumnNumber()** có thể trả **Diagnostic.NOPOS** nếu lỗi không gắn với vị trí cụ thể; một số diagnostic cũng không có source. Giao diện hiển thị lỗi nên có fallback cho những trường hợp ấy.
+**Diagnostic.getLineNumber()** or **getColumnNumber()** may return **Diagnostic.NOPOS** when an error is not tied to a specific position; some diagnostics also have no source. Error-display UIs should provide fallbacks for such cases.
 
-Để tạo output ổn định cho kiểm thử, ưu tiên kiểm tra **Kind**, **getCode()**, số lượng lỗi hoặc trạng thái true/false hơn là so khớp toàn bộ câu chữ diagnostic. Ngôn ngữ và chi tiết thông điệp của compiler không phải hợp đồng hiển thị bất biến giữa các phiên bản.
+For stable test assertions, prefer checking **Kind**, **getCode()**, error counts, or true/false status rather than matching full diagnostic text verbatim. Compiler wording and message details are not an immutable display contract across versions.
 
-### Ví dụ điều kiện cảnh báo
+### Example Warning Condition
 
-Một source hợp lệ có thể tạo warning khi dùng API deprecated hoặc generic unchecked conversion. Khi ấy:
+Valid source can produce warnings when using deprecated APIs or unchecked generic conversions. In that case:
 
 ~~~text
 result = true
-diagnostics có WARNING hoặc MANDATORY_WARNING
+diagnostics contains WARNING or MANDATORY_WARNING
 ~~~
 
-Nếu build policy của bạn xem warning là lỗi, có thể dùng compiler option **-Werror** để nâng warning thành nguyên nhân thất bại. Đừng tự suy đoán rằng **diagnostics không rỗng** đồng nghĩa biên dịch lỗi.
+If your build policy treats warnings as errors, you can pass compiler option **-Werror** to promote warnings into failure causes. Do not assume **non-empty diagnostics** automatically means compilation failed.
 
-## 7. Biên dịch một hoặc nhiều tệp .java thực tế
+## 7. Compiling One or More Real .java Files
 
-Nếu nguồn đã nằm trên đĩa, dùng **getJavaFileObjectsFromPaths** thay cho StringSource. Với tệp **src/demo/Greeting.java**, ví dụ:
+If source already resides on disk, use **getJavaFileObjectsFromPaths** instead of `StringSource`. For **src/demo/Greeting.java**, example:
 
 ~~~java
-// Mảnh minh họa, giả định compiler và diagnostics đã tồn tại.
+// Illustrative snippet, assuming compiler and diagnostics already exist.
 try (StandardJavaFileManager manager =
         compiler.getStandardFileManager(
             diagnostics, Locale.ROOT, StandardCharsets.UTF_8)) {
@@ -414,10 +414,10 @@ try (StandardJavaFileManager manager =
 }
 ~~~
 
-Đây là **mảnh code minh họa**, không phải chương trình độc lập: cần các import, compiler, diagnostics và thư mục **out** đã tạo. Đoạn code cho thấy cùng API **getTask/call**, chỉ khác cách tạo **compilationUnits**. Đối với nhiều tệp source, cung cấp nhiều JavaFileObject:
+This is an **illustrative code snippet**, not a standalone program: it requires imports, `compiler`, `diagnostics`, and an existing **out** directory. The snippet shows the same **getTask/call** API, differing only in how **compilationUnits** are created. For multiple source files, provide multiple `JavaFileObject`s:
 
 ~~~java
-// Mảnh minh họa khi có sẵn hai tệp.
+// Illustrative snippet when two files exist.
 Iterable<? extends JavaFileObject> units =
     manager.getJavaFileObjectsFromPaths(List.of(
         Path.of("src/demo/Greeting.java"),
@@ -425,26 +425,26 @@ Iterable<? extends JavaFileObject> units =
     ));
 ~~~
 
-Nếu các source phụ thuộc lẫn nhau, biên dịch chúng cùng trong một task thường giúp compiler giải quyết tên/kiểu nhất quán. Nếu source sử dụng thư viện ngoài, cần bổ sung **-classpath** hoặc **--module-path**, và có thể cần **--add-modules**, tùy mô hình deploy. Không tự động lấy dependencies của cả ứng dụng làm classpath biên dịch nếu đó là mã không tin cậy hoặc cần build lặp lại có kiểm soát.
+When sources depend on each other, compiling them together in one task usually helps the compiler resolve names/types consistently. If sources use external libraries, add **-classpath** or **--module-path**, and possibly **--add-modules**, depending on the deployment model. Do not automatically pass the entire application's dependencies as the compile classpath for untrusted code or when controlled reproducible builds are needed.
 
-## 8. Tùy chọn compiler và classpath cho CompilationTask
+## 8. Compiler Options and Classpath for CompilationTask
 
-Một số tùy chọn thường đặt trong tham số **options** của getTask:
+Common options passed in the **options** parameter of `getTask`:
 
-| Option | Tác dụng |
+| Option | Effect |
 |---|---|
-| **--release 17** | Biên dịch theo ngôn ngữ, bytecode và API công khai của Java 17 |
-| **-d outputDir** | Chỉ định thư mục class output |
-| **-classpath path** hoặc **-cp path** | Đặt classpath chứa các kiểu/phụ thuộc compiler cần |
-| **--module-path path** | Đặt module path để resolve named modules khi cần |
-| **-proc:none** | Tắt annotation processing cho task |
-| **-Xlint:all** | Yêu cầu thông báo lint chi tiết |
-| **-Werror** | Coi warning thành lỗi biên dịch |
+| **--release 17** | Compile against Java 17 language, bytecode, and public APIs |
+| **-d outputDir** | Specify class output directory |
+| **-classpath path** or **-cp path** | Set classpath containing types/dependencies needed by the compiler |
+| **--module-path path** | Set module path to resolve named modules when needed |
+| **-proc:none** | Disable annotation processing for the task |
+| **-Xlint:all** | Request detailed lint diagnostics |
+| **-Werror** | Treat warnings as compilation errors |
 
-Trong API, mỗi chuỗi là một phần tử:
+In the API, each string is a separate element:
 
 ~~~java
-// Mảnh minh họa, sử dụng đúng OS-specific classpath string.
+// Illustrative snippet, using the OS-specific classpath string.
 List<String> options = List.of(
     "--release", "17",
     "-d", "out",
@@ -453,54 +453,54 @@ List<String> options = List.of(
 );
 ~~~
 
-Nếu có nhiều JAR trên classpath, dấu phân cách đường dẫn là **:** trên Linux/macOS và **;** trên Windows. Không ghép option/vị trí đầu ra bằng cách chèn tùy tiện shell quote vào List: **getTask** nhận argument đã tách, không thông qua shell parser.
+If multiple JARs appear on the classpath, the path separator is **:** on Linux/macOS and **;** on Windows. Do not format options/output locations by inserting arbitrary shell quotes into the `List`: **getTask** receives already-split arguments without going through a shell parser.
 
-**Không tự chế danh sách source bằng tên class trong tham số classes.** Nếu có tên class như **demo.Greeting** mà muốn compile file **Greeting.java**, hãy chuyển tệp đó thành **JavaFileObject** và đặt trong **compilationUnits**. Tham số **classes** chủ yếu phục vụ annotation processing trên class names.
+**Do not fabricate a source list by passing class names in the `classes` parameter.** If you have a class name like **demo.Greeting** and want to compile **Greeting.java**, convert that file into a **JavaFileObject** and place it in **compilationUnits**. The **classes** parameter is primarily for annotation processing on class names.
 
-### Đối với nguồn tạo động
+### For Dynamically Generated Sources
 
-Khi mã mới dùng interface host như **plugin.api.Extension**, phải cho compiler thấy bản API phù hợp ở classpath/module path. Biên dịch thành công với một phiên bản API khác không bảo đảm class nạp vào runtime host tương thích; quản lý classpath và classloader là công việc tiếp theo sau **call()**.
+When new code uses a host interface like **plugin.api.Extension**, the compiler must see the matching API version on the classpath/module path. Successful compilation against a different API version does not guarantee the class loaded into the host runtime will be compatible; managing classpath and class loaders is the work that follows **call()**.
 
-## 9. Một tác vụ, một lần chạy: trạng thái và tái sử dụng
+## 9. One Task, One Run: State and Reuse
 
-Một số hiểu nhầm về vòng đời CompilationTask:
+Common misconceptions about `CompilationTask` lifecycle:
 
-**getTask() không phải Future đã được submit.** Javadoc mô tả task đại diện việc biên dịch sẽ thực hiện sau đó. Nó mở rộng **Callable<Boolean>**, nhưng nếu mã gọi **task.call()** trực tiếp thì biên dịch chạy đồng bộ. Muốn chạy trên executor riêng là quyết định của ứng dụng; khi đó cần quản lý concurrency và file manager/output riêng, không được suy luận compiler tự tạo thread.
+**getTask() is not an already-submitted Future.** Javadoc states the task represents a compilation to be performed later. It extends **Callable<Boolean>**, so if code calls **task.call()** directly, compilation runs synchronously. Running it on a separate executor is the application's decision; in that case you must manage concurrency and separate file managers/outputs, and must not assume the compiler spawns threads itself.
 
-**Không gọi call hai lần.**
+**Do not call `call` twice.**
 
 ~~~java
-// Mảnh minh họa:
+// Illustrative snippet:
 JavaCompiler.CompilationTask task = compiler.getTask(
         null, manager, diagnostics, options, null, units);
 Boolean first = task.call();
 
-// Sai: đây không phải cách đọc lại kết quả.
+// Wrong: this is not how to re-read the result.
 Boolean second = task.call(); // IllegalStateException
 ~~~
 
-Để compile lại source, tạo **task mới**. Nếu muốn giữ kết quả, lưu biến **first**. Với hệ thống cần nạp source mới nhiều lần, tạo task mới cho mỗi lần biên dịch, chọn output directory theo lượt và tránh cập nhật chung các artifact đang được dùng bởi runtime.
+To recompile source, create a **new task**. To retain the outcome, store the **first** variable. For systems that load new sources repeatedly, create a new task per compilation, choose a per-run output directory, and avoid mutating artifacts currently in use by the runtime.
 
-**Cấu hình processor/locale phải diễn ra trước call():**
+**Processor/locale configuration must happen before call():**
 
 ~~~java
-// Mảnh minh họa, task được tạo nhưng chưa chạy.
+// Illustrative snippet, task created but not yet started.
 task.setLocale(Locale.ROOT);
 
-// Nếu muốn chỉ định annotation processors:
+// If specifying annotation processors explicitly:
 // task.setProcessors(List.of(myProcessor));
 
-// Tác vụ bắt đầu tại đây.
+// The task begins here.
 Boolean result = task.call();
 ~~~
 
-Gọi **setLocale** hay **setProcessors** sau khi task đã bắt đầu có thể ném **IllegalStateException**. **setProcessors(...)** ghi đè cơ chế tự phát hiện processors bằng danh sách do ứng dụng cung cấp; cần hiểu rõ khi dùng annotation processing. Ví dụ chính dùng **-proc:none**, nên không chạy processors.
+Calling **setLocale** or **setProcessors** after a task has started can throw **IllegalStateException**. **setProcessors(...)** overrides processor autodiscovery with an application-supplied list; understand this clearly when using annotation processing. The main example uses **-proc:none**, so no processors run.
 
-## 10. Xử lý thất bại đúng chỗ
+## 10. Handling Failures in the Right Place
 
-Hãy chia lỗi thành ba giai đoạn:
+Divide failures into three stages:
 
-### 10.1. Không lấy được compiler
+### 10.1. Cannot Obtain Compiler
 
 ~~~java
 JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -511,14 +511,14 @@ if (compiler == null) {
 }
 ~~~
 
-Lỗi này xảy ra **trước khi getTask**. Kiểm tra JDK thực tế của process, cấu hình runtime image và modules. Không nên coi đây là lỗi source của người dùng.
+This error occurs **before `getTask`**. Inspect the process's actual JDK, runtime image configuration, and modules. Do not treat this as a user source error.
 
-### 10.2. Cấu hình task thất bại
+### 10.2. Task Configuration Failure
 
-Ví dụ option không hợp lệ, file manager không hỗ trợ location bắt buộc, input không đúng hoặc vấn đề I/O có thể làm quá trình chuẩn bị task hoặc call không chạy đúng. Cần phân biệt lỗi cấu hình/deployment với lỗi mã nguồn.
+For example, invalid options, a file manager not supporting a required location, bad inputs, or I/O issues can prevent task setup or `call` from running properly. Distinguish configuration/deployment errors from source code errors.
 
 ~~~java
-// Mảnh minh họa: chuẩn bị task trong try phù hợp.
+// Illustrative snippet: prepare the task inside an appropriate try block.
 try {
     JavaCompiler.CompilationTask task = compiler.getTask(
         null, manager, diagnostics, options, null, units);
@@ -529,11 +529,11 @@ try {
 }
 ~~~
 
-Không phải mọi lỗi setup đều là IllegalArgumentException; ví dụ này chỉ nhấn mạnh một loại, không phải danh sách catch đầy đủ. Với thành phần do ứng dụng tự viết như JavaFileManager, DiagnosticListener hoặc JavaFileObject, lỗi runtime do callback gây ra có thể làm task ném RuntimeException, theo hợp đồng API. Cần log cause có ngữ cảnh, không nuốt lỗi rồi giả là lỗi source.
+Not every setup error is an `IllegalArgumentException`; this snippet highlights one type rather than an exhaustive catch list. With application-supplied components like `JavaFileManager`, `DiagnosticListener`, or `JavaFileObject`, runtime errors in callbacks can cause the task to throw `RuntimeException`, per the API contract. Log causes with context rather than swallowing errors and pretending the source is invalid.
 
-### 10.3. Nguồn Java chứa lỗi
+### 10.3. Java Source Contains Errors
 
-Đây là trường hợp thông thường:
+This is the normal case:
 
 ~~~java
 Boolean result = task.call();
@@ -548,112 +548,112 @@ if (!Boolean.TRUE.equals(result)) {
 }
 ~~~
 
-**false** nghĩa compilation không thành công. Đối với code dịch vụ, hãy trả về trạng thái và các lỗi hợp lệ cho caller thay vì chuyển mọi lỗi mã nguồn thành exception không phân loại.
+**false** means compilation did not succeed. In service code, return the status and valid errors to the caller rather than turning every source error into an unclassified exception.
 
-**Thất bại không đồng nghĩa không có output:** Compiler có thể đã tạo một số tệp .class trước khi phát hiện lỗi khác, hoặc output có thể chứa kết quả từ lần biên dịch trước. Đừng đưa output vào sử dụng khi **call() == false**; nên build trong thư mục/staging riêng rồi chỉ xuất bản artifacts sau khi kết quả thành công.
+**Failure does not guarantee no output:** The compiler may have already emitted some `.class` files before encountering another error, or the output directory may contain files from an earlier run. Never consume outputs when **call() == false**; build in an isolated staging directory and publish artifacts only after a successful outcome.
 
-## 11. Thiết kế an toàn khi nhận mã Java lúc runtime
+## 11. Safe Design When Accepting Java Code at Runtime
 
-Runtime compilation có giá trị trong công cụ IDE, bài tập, rule engine hoặc plugin host, nhưng cần ranh giới rõ:
+Runtime compilation is valuable in IDE tooling, coding exercises, rule engines, or plugin hosts, but clear boundaries are necessary:
 
-- **Biên dịch khác với chạy:** JavaCompiler phân tích và tạo bytecode; muốn gọi class mới phải dùng classloader/module layer khác, kiểm tra kiểu hợp đồng, quản lý lifecycle và quyền sử dụng.
-- **Chạy annotation processor cũng là chạy mã:** Không đưa processors ngoài dự kiến vào compiler invocation nếu nguồn không tin cậy. Có thể dùng **-proc:none** khi không cần processing, như ví dụ.
-- **Không dùng classpath quá rộng:** Tránh cho compiler nhìn thấy secret/internal classes không cần; quản lý dependency của source và version API.
-- **Giới hạn tài nguyên:** Biên dịch mã phức tạp có thể dùng nhiều CPU, RAM, I/O. Nếu chạy nguồn không tin cậy, cần isolation mạnh ở process/container, timeout và hạn ngạch phù hợp. Không coi JavaCompiler là sandbox.
-- **Gắn kết quả với từng lượt biên dịch:** Dùng output directory riêng và diagnostic collector riêng, tránh race giữa các lần biên dịch, tránh đọc nhầm kết quả trước đó.
-- **Đóng tài nguyên:** File manager, stream và classloader dùng sau biên dịch có vòng đời riêng. JavaCompiler.CompilationTask không tự đóng mọi tài nguyên do ứng dụng truyền vào.
+- **Compiling differs from running:** `JavaCompiler` analyzes and generates bytecode; executing new classes requires another class loader/module layer, contract type verification, lifecycle management, and usage permissions.
+- **Running annotation processors is also running code:** Do not expose unexpected processors to compiler invocations on untrusted source. Use **-proc:none** when processing is unnecessary, as in the example.
+- **Do not use an overly broad classpath:** Avoid exposing unnecessary secrets/internal classes to the compiler; manage source dependencies and API versions.
+- **Limit resources:** Compiling complex code can consume substantial CPU, RAM, and I/O. If processing untrusted sources, enforce strong process/container isolation, timeouts, and appropriate quotas. Do not treat `JavaCompiler` as a sandbox.
+- **Bind outputs to each compilation run:** Use dedicated output directories and diagnostic collectors to prevent races between compilations and reading stale outputs.
+- **Close resources:** File managers, streams, and post-compile class loaders have their own lifecycles. `JavaCompiler.CompilationTask` does not automatically close all resources passed by the application.
 
-**Chỉ gọi call() thành công không xác thực mã có an toàn để thực thi.** Bytecode có thể chứa logic nguy hiểm hoặc mã gọi thư viện bên ngoài; chạy code của bên thứ ba trong cùng JVM chỉ nên thực hiện với độ tin cậy và chính sách phù hợp.
+**Simply having `call()` succeed does not verify the code is safe to execute.** Bytecode can contain dangerous logic or calls to external libraries; running third-party code inside the same JVM should only be done under appropriate trust and policy.
 
-## 12. So sánh getTask/call với các cách biên dịch khác
+## 12. Comparing getTask/call with Other Compilation Approaches
 
-| Phương án | Khi nào thích hợp | Khác biệt cần nhớ |
+| Approach | When Appropriate | Key Difference to Remember |
 |---|---|---|
-| **JavaCompiler.getTask + call** | Ứng dụng muốn điều khiển source, options, diagnostics/file manager và xử lý trạng thái trong Java | Tách tạo task và thực thi; hỗ trợ JavaFileObject trong bộ nhớ |
-| **JavaCompiler.run(...)** | Cần giao diện đơn giản dạng command-line từ Java | Nhận input/output stream và argument, trả int exit code; ít điều khiển cấu trúc hơn |
-| **ProcessBuilder chạy javac** | Cần process bên ngoài và cách ly tiến trình rõ, hoặc dùng một toolchain riêng | Phải quản lý process, stdout/stderr, exit code và classpath |
-| **javac qua terminal** | Biên dịch dự án/tệp thủ công | Công cụ CLI, không tích hợp trực tiếp cấu trúc diagnostics vào ứng dụng |
-| **JShell API** | Chạy đoạn snippet tương tác, REPL, trạng thái phiên | Mô hình snippet khác với full compilation units và task từ getTask |
+| **JavaCompiler.getTask + call** | Application wants programmatic control over source, options, diagnostics/file manager, and status in Java | Separates task creation and execution; supports in-memory `JavaFileObject` |
+| **JavaCompiler.run(...)** | Need a simple command-line-style interface from Java | Takes input/output streams and arguments, returns `int` exit code; less structural control |
+| **ProcessBuilder running javac** | Need an external process and clear process isolation, or a custom toolchain | Must manage process, stdout/stderr, exit code, and classpath |
+| **javac via terminal** | Manual compilation of projects/files | CLI tool, does not integrate structured diagnostics directly into the application |
+| **JShell API** | Executing interactive snippets, REPL, session state | Snippet model differs from full compilation units and tasks from `getTask` |
 
-Nếu mục tiêu là **đọc kết quả biên dịch và trả diagnostics có cấu trúc**, getTask/call kết hợp DiagnosticCollector phù hợp hơn việc parse text từ terminal. Nếu chỉ cần biên dịch dự án chuẩn, build tool thường là lựa chọn thực tế hơn thay vì tự xây compiler orchestration.
+If the goal is **reading compilation results and returning structured diagnostics**, `getTask/call` paired with `DiagnosticCollector` is more suitable than parsing terminal text. If you only need to compile standard projects, a build tool is usually a more practical choice than building custom compiler orchestration.
 
-## 13. Kiểm thử và quan sát hành vi
+## 13. Testing and Observing Behavior
 
-### Kiểm thử 1: getTask chưa khởi chạy compile
+### Test 1: getTask Does Not Start Compiling Yet
 
-Tạo task nhưng chưa gọi **call()** rồi kiểm tra thư mục output của một lần chạy sạch. Chưa có yêu cầu compiler thực thi compilation unit; chỉ khi call() chạy mới có kết quả. Đừng nhầm với hành vi setup file manager có thể truy cập filesystem.
+Create a task without calling **call()**, then inspect a clean output directory. No request has been made for the compiler to process the compilation unit; results appear only when `call()` runs. Do not confuse this with file manager setup accessing the filesystem.
 
-### Kiểm thử 2: nguồn hợp lệ
+### Test 2: Valid Source
 
-**Good** trong ví dụ trả **true**, không có diagnostic **Kind.ERROR**. Có thể thấy class output tương ứng trong **out/demo/Good.class**.
+**Good** in the example returns **true**, with no **Kind.ERROR** diagnostics. The corresponding class output appears in **out/demo/Good.class**.
 
-### Kiểm thử 3: nguồn sai kiểu
+### Test 3: Source with Type Error
 
-**Bad** trả **false**, **hasErrors=true**. Dùng diagnostic để xác định lỗi tại phép return String từ phương thức trả int. Không kiểm tra bằng cách cố chạy Bad.class.
+**Bad** returns **false**, **hasErrors=true**. Use diagnostics to pinpoint the error returning a `String` from an `int`-returning method. Do not test by trying to run `Bad.class`.
 
-### Kiểm thử 4: gọi call lần thứ hai
+### Test 4: Calling call a Second Time
 
 ~~~java
-// Mảnh minh họa:
+// Illustrative snippet:
 task.call();
 task.call(); // IllegalStateException
 ~~~
 
-Nhấn mạnh điều này không phải cách “lấy lại kết quả”, mà là lỗi vòng đời của task.
+Emphasize this is not a way to "retrieve the result again," but a task lifecycle error.
 
-### Kiểm thử 5: warning không phải failure
+### Test 5: Warnings Are Not Failures
 
-Dùng source tạo warning nhưng không có error; **call()** vẫn có thể **true**. Bật **-Werror** khi chính sách build muốn warning làm thất bại compilation.
+Use source that triggers a warning without errors; **call()** can still return **true**. Enable **-Werror** when build policy requires warnings to fail compilation.
 
-### Kiểm thử 6: compiler không tồn tại
+### Test 6: Compiler Absent
 
-Chạy ứng dụng trên runtime image không chứa trình biên dịch; kiểm tra **ToolProvider.getSystemJavaCompiler() == null** được báo thành lỗi hạ tầng rõ ràng, không bị hiểu nhầm là lỗi source Java.
+Run the application on a runtime image lacking the compiler; verify **ToolProvider.getSystemJavaCompiler() == null** is reported as a clear infrastructure error rather than mistaken for a Java source error.
 
-## 14. Các câu hỏi tự đánh giá
+## 14. Self-Check Questions
 
-**Câu 1.** Dòng **compiler.getTask(...)** có biên dịch ngay source không?
+**Question 1.** Does calling **compiler.getTask(...)** immediately compile the source?
 
-**Trả lời:** Không. Nó tạo một **CompilationTask** chưa thực thi. **task.call()** mới chạy compilation.
+**Answer:** No. It creates an unexecuted **CompilationTask**. Only **task.call()** runs compilation.
 
-**Câu 2.** Giá trị **Boolean.FALSE** từ call() có nghĩa chương trình Java bị lỗi khi chạy không?
+**Question 2.** Does **Boolean.FALSE** from `call()` mean the Java program crashed at runtime?
 
-**Trả lời:** Không. Nó báo **lỗi biên dịch**. Mã chưa nhất thiết được nạp hoặc chạy; runtime error thuộc giai đoạn sau.
+**Answer:** No. It indicates a **compilation error**. Code has not necessarily been loaded or executed; runtime errors belong to a later stage.
 
-**Câu 3.** Nếu compiler tạo warning nhưng không có error, call() trả gì?
+**Question 3.** If the compiler emits warnings without errors, what does `call()` return?
 
-**Trả lời:** Thông thường **true**, vì compilation không có lỗi; riêng chính sách như **-Werror** có thể biến warning thành lỗi khiến task thất bại.
+**Answer:** Normally **true**, since compilation had no errors; a policy flag such as **-Werror** can turn warnings into errors and make the task fail.
 
-**Câu 4.** Vì sao **classes = null** khi biên dịch mã nguồn từ JavaFileObject?
+**Question 4.** Why pass **classes = null** when compiling source from `JavaFileObject`?
 
-**Trả lời:** Tham số này phục vụ **tên class cho annotation processing**, không phải vị trí đặt source file. Các nguồn muốn biên dịch đã được đưa trong **compilationUnits**.
+**Answer:** That parameter supplies **class names for annotation processing**, not source file locations. The sources to compile are already provided in **compilationUnits**.
 
-**Câu 5.** Có nên gọi cùng **task.call()** lần nữa sau khi sửa source Java?
+**Question 5.** Should you invoke the same **task.call()** again after editing Java source?
 
-**Trả lời:** Không. Task chỉ được chạy một lần. Tạo task mới từ JavaFileObject mới và tùy chọn/file manager phù hợp.
+**Answer:** No. A task runs only once. Create a new task with new `JavaFileObject`s and appropriate options/file manager.
 
-**Câu 6.** Tại sao không nên so sánh text lỗi compiler nguyên văn trong unit test?
+**Question 6.** Why shouldn't unit tests compare verbatim compiler error strings?
 
-**Trả lời:** Diagnostic message có thể thay đổi theo JDK, locale và phiên bản; nên dựa trên trạng thái, Kind, code hoặc các thuộc tính có cấu trúc phù hợp.
+**Answer:** Diagnostic messages can change across JDKs, locales, and versions; rely on status, `Kind`, codes, or appropriate structured attributes instead.
 
-**Câu 7.** Biên dịch thành công có bảo đảm class mới hoạt động với API host không?
+**Question 7.** Does successful compilation guarantee the new class works with the host API?
 
-**Trả lời:** Không. Runtime classpath/module path, classloader identity, phiên bản dependencies và logic nghiệp vụ vẫn có thể gây lỗi. Giai đoạn load/execute phải kiểm tra riêng.
+**Answer:** No. Runtime classpath/module path, class loader identity, dependency versions, and business logic can still fail. The load/execute stage must validate separately.
 
-## 15. Checklist khi triển khai vào ứng dụng
+## 15. Application Integration Checklist
 
-1. **Runtime có compiler:** xác minh getSystemJavaCompiler() khác null và JDK/module cần thiết hiện diện.
-2. **Source hợp lệ:** cung cấp JavaFileObject từ tệp hoặc chuỗi với tên URI đúng, mã hóa UTF-8 và dependency source phù hợp.
-3. **Task được cấu hình đúng:** xác định file manager, diagnostics, options, annotation processing policy; hiểu đúng hai tham số classes và compilationUnits.
-4. **Output cách ly:** chỉ định -d vào thư mục rõ ràng, tránh trộn kết quả biên dịch thành công/thất bại hoặc các phiên đồng thời.
-5. **Gọi call() đúng một lần:** lưu Boolean, phân biệt true/false và exception; không coi getTask là lệnh thực thi.
-6. **Đọc diagnostics:** dùng Kind.ERROR, line/column/source/code khi phù hợp; không phụ thuộc hoàn toàn vào câu chữ.
-7. **Đóng tài nguyên:** StandardJavaFileManager bằng try-with-resources; tự quản lý classloader/lifecycle nếu dùng bytecode.
-8. **Kiểm thử cả hai nhánh:** nguồn hợp lệ trả true, nguồn lỗi trả false; xác minh case compiler null, warning, option sai và exception từ callback nếu hệ thống cần.
-9. **Chỉ chạy mã đã được tin cậy/kiểm soát:** compiler không cung cấp sandbox; cần cách ly riêng với source không tin cậy.
+1. **Runtime has compiler:** verify `getSystemJavaCompiler()` is non-null and required JDK/modules are present.
+2. **Valid source:** supply `JavaFileObject` from file or string with matching URI name, UTF-8 encoding, and needed source dependencies.
+3. **Proper task configuration:** set file manager, diagnostics, options, and annotation processing policy; understand `classes` vs. `compilationUnits`.
+4. **Isolated output:** point `-d` to an explicit directory, avoiding mixing successful/failed compilations or concurrent runs.
+5. **Call `call()` exactly once:** store the `Boolean`, distinguish `true`/`false` and exceptions; never treat `getTask` as execution.
+6. **Inspect diagnostics:** use `Kind.ERROR`, line/column/source/code where appropriate; do not depend strictly on exact prose.
+7. **Close resources:** `StandardJavaFileManager` via try-with-resources; manage class loader/lifecycle separately if consuming bytecode.
+8. **Test both branches:** valid source returns `true`, invalid returns `false`; verify null compiler, warnings, bad options, and callback exceptions if needed.
+9. **Execute only trusted/controlled code:** the compiler provides no sandbox; isolate untrusted sources separately.
 
-**Ghi nhớ:** **getTask(...)** giúp chuẩn bị một **CompilationTask** với source, file manager, options và diagnostics. **call()** thực sự thực hiện việc biên dịch và trả **Boolean** thành công/thất bại, chỉ gọi một lần. Kiểm tra kết quả cùng các **Diagnostic** là nền tảng để một ứng dụng phản hồi chính xác cho người dùng về tác vụ biên dịch Java lúc chạy.
+**Remember:** **getTask(...)** prepares a **CompilationTask** with sources, file manager, options, and diagnostics. **call()** actually runs compilation and returns a **Boolean** success/failure, callable only once. Inspecting both that result and the **Diagnostic** entries is foundational for accurately reporting runtime Java compilation outcomes to users.
 
-### Tài liệu Java SE 17
+### Java SE 17 Documentation
 
 - JavaCompiler: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html
 - JavaCompiler.CompilationTask: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.CompilationTask.html

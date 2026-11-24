@@ -1,38 +1,38 @@
-# 8.2 Lấy stack bằng Thread.print, jstack hoặc cơ chế tín hiệu được hệ điều hành hỗ trợ
+# 8.2 Capturing stacks with Thread.print, jstack, or OS-supported signal mechanisms
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Khi ứng dụng Java bị treo, request kéo dài, nghi deadlock hoặc CPU tăng đột ngột, **thread dump** giúp quan sát nhiều luồng đang thực thi, chờ lock hoặc đợi tài nguyên tại thời điểm lấy mẫu. Vấn đề không chỉ là biết câu lệnh: nếu gọi nhầm PID, dùng công cụ khác namespace, gửi nhầm tín hiệu hoặc tìm output ở sai nơi, người điều tra có thể **không thu được bằng chứng** hoặc gây gián đoạn dịch vụ.
+When a Java application hangs, requests stall, a deadlock is suspected, or CPU spikes suddenly, a **thread dump** helps observe multiple threads executing, waiting on locks, or waiting for resources at the sampling moment. The problem is not just knowing the command: if you target the wrong PID, use a tool from a different namespace, send the wrong signal, or look for output in the wrong place, an investigator may **fail to collect evidence** or disrupt the service.
 
-Bài này trình bày ba cơ chế chính:
+This lesson covers three primary mechanisms:
 
-1. **`jcmd <PID> Thread.print`**: gửi diagnostic command tới một JVM đang chạy.
-2. **`jstack <PID>` / `jstack -l <PID>`**: in stack traces và thông tin lock bằng tiện ích JDK.
-3. **Tín hiệu/console do hệ điều hành và JVM hỗ trợ**: `SIGQUIT` và `Ctrl+\` trên Linux; `Ctrl+Break` trên Windows trong trường hợp HotSpot xử lý được.
+1. **`jcmd <PID> Thread.print`**: sends a diagnostic command to a running JVM.
+2. **`jstack <PID>` / `jstack -l <PID>`**: prints stack traces and lock information using the JDK utility.
+3. **Signals/console keys supported by the OS and JVM**: `SIGQUIT` and `Ctrl+\` on Linux; `Ctrl+Break` on Windows in cases where HotSpot handles it.
 
-Đồng thời, bạn sẽ hiểu cách dùng **`Thread.dump_to_file`** cho virtual threads trên Java 21 khi JVM hỗ trợ, vì sao một snapshot không phải CPU profile, cách lấy nhiều dump an toàn, lựa chọn nơi lưu, xử lý lỗi attach và bảo vệ dữ liệu trong thread dump.
+At the same time, you will understand how to use **`Thread.dump_to_file`** for virtual threads on Java 21 when supported by the JVM, why a snapshot is not a CPU profile, how to capture multiple dumps safely, how to choose storage locations, how to troubleshoot attach failures, and how to protect sensitive data in thread dumps.
 
-Sau bài học, bạn có thể tự thu một bản dump hoàn chỉnh từ **đúng JVM đích**, phân biệt nơi ghi kết quả của từng cách, đọc những trường quan trọng và đánh giá giới hạn kết luận. Ví dụ thực hành sử dụng **Java 17+** để tạo các thread có trạng thái dễ quan sát.
+After this lesson, you will be able to capture a complete dump from **the exact target JVM**, distinguish where each method writes its output, read key fields, and evaluate the limits of conclusions. The hands-on example uses **Java 17+** to create threads with easily observable states.
 
-> Phạm vi chính: HotSpot/JDK 21. Công cụ, output, quyền và signal handlers phụ thuộc bản JDK/vendor/VM, hệ điều hành, container và chính sách vận hành. **Không gửi tín hiệu hoặc chẩn đoán vào production khi chưa xác minh đúng PID và quyền thực hiện.**
+> Primary scope: HotSpot/JDK 21. Tools, output, permissions, and signal handlers depend on JDK/vendor/VM build, operating system, container, and operational policies. **Do not send signals or run diagnostics in production without verifying the exact PID and authorization.**
 
-## 1. Thread dump là gì và không phải là gì?
+## 1. What is a thread dump and what is it not?
 
-Một **thread dump** là ảnh chụp thông tin các luồng trong JVM: tên, trạng thái, những Java method trên stack và có thể cả monitors, ownable synchronizers hoặc deadlock report. Tùy phương pháp, VM có thể hiển thị một tập thread và trường dữ liệu khác nhau; một số lệnh lấy snapshot nhất quán hơn hoặc có chi phí khác những lệnh còn lại.
+A **thread dump** is a snapshot of thread information in a JVM: names, states, Java methods on the stack, and potentially monitors, ownable synchronizers, or a deadlock report. Depending on the method, the VM may expose a different set of threads and data fields; some commands capture a more consistent snapshot or carry different costs than others.
 
-| Dữ liệu | Trả lời được | Không tự trả lời |
+| Data | Can answer | Cannot answer on its own |
 | --- | --- | --- |
-| **Exception stack trace** của `Throwable` | Exception được tạo/ghi stack ở đâu và đã đi qua những method nào? | Tất cả thread đang làm gì lúc service bị treo |
-| **Thread dump** | Những thread đang nằm ở frame/state/lock nào trong khoảng thời điểm chụp? | Phần trăm CPU của từng method trong cả 10 phút |
-| **CPU sampling profile** bằng JFR hoặc profiler | Những stack nào chiếm tỷ trọng samples cao qua một cửa sổ thời gian? | Tự chứng minh deadlock nếu không có lock/ownership evidence |
-| **OS thread counters** | OS thread nào tiêu tốn CPU, có ID và scheduling state nào? | Toàn bộ Java call stack của thread |
-| **Distributed trace** | Request đã đi qua những service/span nào và mất bao lâu? | Danh sách đầy đủ thread của một JVM tại cùng thời điểm |
+| **Exception stack trace** of `Throwable` | Where the exception was created/captured and which methods it passed through | What all threads were doing when the service hung |
+| **Thread dump** | Which frame/state/lock threads were in around the capture moment | CPU percentage of each method across an entire 10-minute window |
+| **CPU sampling profile** via JFR or profiler | Which stacks accounted for high sample shares over a time window | Automatically proving deadlock without lock/ownership evidence |
+| **OS thread counters** | Which OS thread is consuming CPU, with what ID and scheduling state | The full Java call stack of the thread |
+| **Distributed trace** | Which services/spans a request traversed and how long it took | The full list of threads in a JVM at the same point in time |
 
-Một thread `RUNNABLE` không mặc nhiên đang dùng 100% CPU. `WAITING` có thể là worker rảnh đợi hàng đợi. `BLOCKED` cho biết chờ **intrinsic monitor** ở thời điểm đo, nhưng không luôn là deadlock: đôi khi một thread giữ lock hợp lệ trong vài mili-giây rồi nhả. Hãy dùng stack + lock owner + nhiều snapshot + metrics để kết luận.
+A `RUNNABLE` thread does not automatically mean it is using 100% CPU. `WAITING` can be an idle worker waiting on a queue. `BLOCKED` indicates waiting for an **intrinsic monitor** at the time of measurement, but is not always a deadlock: sometimes a thread legitimately holds a lock for a few milliseconds and releases it. Use stacks + lock owners + multiple snapshots + metrics before concluding.
 
-### 1.1 Trong một dump thường thấy gì?
+### 1.1 What is typically seen in a dump?
 
-Một đoạn **minh họa định dạng HotSpot**:
+An **illustrative HotSpot format** excerpt:
 
 ```text
 "worker-17" #34 daemon prio=5 tid=0x... nid=0x2a waiting for monitor entry
@@ -47,83 +47,83 @@ Một đoạn **minh họa định dạng HotSpot**:
         ...
 ```
 
-Các địa chỉ và line number đã được rút gọn vì **không có dữ liệu từ một JVM thật**. Cần hiểu:
+Addresses and line numbers are abbreviated because **there is no data from a real JVM here**. You need to understand:
 
-- Tên thread giúp định vị workload, nhưng nhiều luồng có thể **trùng tên**.
-- `nid` trên HotSpot/Linux thường chỉ native thread ID theo **hexadecimal**, khác Java ID và khác `tid` là con trỏ/cấu trúc nội bộ VM.
-- `java.lang.Thread.State` là state Java; nó **không tương đương trực tiếp** mọi trạng thái scheduling của OS.
-- `at ...` cho thấy stack frames được VM lấy khi chụp; frame gần đầu thường là nơi đang thực thi/chờ.
-- Các dòng `waiting to lock`, `locked` và `Locked ownable synchronizers` giúp điều tra lock nếu được command hỗ trợ.
-- Một số dump in thêm `Found one Java-level deadlock` khi phát hiện chu trình theo cơ chế JVM; việc **không có** báo cáo này không loại trừ mọi loại chờ.
+- Thread names help locate workloads, but multiple threads can **share the same name**.
+- `nid` on HotSpot/Linux typically indicates the native thread ID in **hexadecimal**, which differs from the Java ID and from `tid` (an internal VM pointer/structure).
+- `java.lang.Thread.State` is the Java state; it **does not map directly** to every OS scheduling state.
+- `at ...` shows stack frames captured by the VM; frames near the top usually indicate where execution or waiting is happening.
+- Lines such as `waiting to lock`, `locked`, and `Locked ownable synchronizers` help investigate locks when supported by the command.
+- Some dumps also print `Found one Java-level deadlock` when a cycle is detected by the JVM mechanism; the **absence** of this report does not rule out all kinds of waiting.
 
-### 1.2 Chi phí không bằng 0
+### 1.2 The cost is not zero
 
-Theo tài liệu Oracle JDK 21, `Thread.print` có **Impact: Medium — depends on the number of threads**. Một JVM có hàng nghìn thread và stack sâu có thể tạo output rất lớn. Công cụ thu dump cũng cần CPU, bộ nhớ và thời gian để tập hợp/in. Vì vậy không mặc định chạy 100 dumps/giây khi chỉ muốn quan sát một sự cố vài phút.
+According to Oracle JDK 21 documentation, `Thread.print` has **Impact: Medium — depends on the number of threads**. A JVM with thousands of threads and deep stacks can generate huge output. The dump tool also needs CPU, memory, and time to assemble and print it. Therefore, do not blindly run 100 dumps/second when you only need to observe an incident over several minutes.
 
-Mỗi lần lấy cần ghi timestamp UTC, identity của JVM và khoảng sự cố. Nếu process restart giữa hai lần đo, **không ghép thread IDs của hai process như cùng một vòng đời**.
+For each capture, record the UTC timestamp, JVM identity, and incident window. If the process restarts between two measurements, **do not merge thread IDs from the two processes as if they were the same lifecycle**.
 
-## 2. Chọn phương pháp nào?
+## 2. Which method should you choose?
 
-| Phương pháp | Chạy ở đâu? | Output nằm ở đâu? | Điều kiện chính |
+| Method | Where does it run? | Where does the output go? | Key prerequisites |
 | --- | --- | --- | --- |
-| `jcmd PID Thread.print` | Terminal có JDK tool và quyền attach tới JVM | **stdout của lệnh jcmd**, bên người gọi | Đúng PID/namespace, user/group, target VM hỗ trợ |
-| `jcmd PID Thread.print -l -e` | Như trên | stdout của `jcmd` | `help` xác nhận options, thêm lock/extended info |
-| `jstack -l PID` | Terminal có `jstack` tương thích | **stdout của jstack** | Đúng process và attach/permission; công cụ có thể không có |
-| `kill -QUIT PID` (Linux) | Host/container namespace nhìn đúng PID | **stdout/log stream của JVM đích** | HotSpot signal handler hoạt động; không `-Xrs` |
-| `Ctrl+\` (Linux console) | Terminal gắn đúng Java foreground process group | Console/stdout của JVM | Console điều khiển được và JVM xử lý SIGQUIT |
-| `Ctrl+Break` (Windows) | Cửa sổ console sở hữu Java process | Console/stdout của JVM | JVM có console control handler và phím được chuyển tiếp |
-| `jcmd PID Thread.dump_to_file ...` | Công cụ và target hỗ trợ command này | **File mà JVM đích ghi** theo filesystem của nó | `jcmd PID help Thread.dump_to_file` xác nhận lệnh |
-| `jhsdb jstack` | Công cụ chuyên sâu, thường dùng với core dump | Terminal/file phân tích | Bộ binary, quyền và thao tác có thể xâm nhập mạnh hơn |
+| `jcmd PID Thread.print` | Terminal with JDK tools and attach permissions to the JVM | **stdout of the jcmd command**, on the caller side | Correct PID/namespace, user/group, target VM support |
+| `jcmd PID Thread.print -l -e` | Same as above | stdout of `jcmd` | `help` confirms options; adds lock/extended info |
+| `jstack -l PID` | Terminal with compatible `jstack` | **stdout of jstack** | Right process and attach/permissions; tool may be absent |
+| `kill -QUIT PID` (Linux) | Host/container namespace seeing the right PID | **stdout/log stream of the target JVM** | HotSpot signal handler active; no `-Xrs` |
+| `Ctrl+\` (Linux console) | Terminal attached to the Java foreground process group | JVM console/stdout | Controlling terminal active and JVM handles SIGQUIT |
+| `Ctrl+Break` (Windows) | Console window owning the Java process | JVM console/stdout | JVM has console control handler and key event is forwarded |
+| `jcmd PID Thread.dump_to_file ...` | Tool and target support this command | **File written by the target JVM** on its filesystem | `jcmd PID help Thread.dump_to_file` confirms command |
+| `jhsdb jstack` | Advanced tool, commonly used with core dumps | Terminal/analysis file | Matching binary, permissions, and potentially higher-intrusion operation |
 
-**Điểm xuất phát hợp lý cho HotSpot/JDK 21:** ưu tiên `jcmd Thread.print` nếu có công cụ và attach được; chọn `-l` khi cần ownable synchronizers; nếu `jcmd` không có mà `jstack` sử dụng được, thử `jstack -l`. Tín hiệu chỉ nên dùng khi biết rõ JVM hỗ trợ và output destination. Với ứng dụng có rất nhiều **virtual threads**, cân nhắc thêm `Thread.dump_to_file` hoặc JFR chứ không dựa độc nhất vào dump truyền thống.
+**A reasonable starting point for HotSpot/JDK 21:** prefer `jcmd Thread.print` if the tool is available and attachable; choose `-l` when ownable synchronizers are needed; if `jcmd` is unavailable but `jstack` works, try `jstack -l`. Signals should only be used when you clearly know the JVM supports them and where stdout goes. For applications with many **virtual threads**, also consider `Thread.dump_to_file` or JFR rather than relying solely on traditional dumps.
 
-## 3. Xác minh đúng JVM trước mọi thao tác
+## 3. Verify the exact JVM before taking any action
 
-### 3.1 Đừng chỉ nhìn tên “java”
+### 3.1 Do not look only at the name “java”
 
-Một host có thể chạy service chính, build daemon, test runner, agent, ứng dụng phụ hoặc nhiều replica. PID có thể bị **tái sử dụng**. Hãy ghi:
+One host can run the main service, build daemons, test runners, agents, auxiliary apps, or multiple replicas. PIDs can be **reused**. Record:
 
 - Service/application, environment, host/node.
-- Container/pod ID, namespace hoặc deployment revision nếu có.
-- PID và **process start time**.
-- JDK/VM vendor/version khi lấy được.
-- Thời điểm xảy ra vấn đề và timestamp UTC của từng capture.
-- Quyền đang sử dụng và nơi sẽ lưu dump.
+- Container/pod ID, namespace, or deployment revision if applicable.
+- PID and **process start time**.
+- JDK/VM vendor/version when retrievable.
+- Time when the issue occurred and UTC timestamp of each capture.
+- Permissions being used and where the dump will be saved.
 
-Trên Linux, ví dụ kiểm tra một PID đã biết:
+On Linux, an example of inspecting a known PID:
 
 ```bash
 ps -p 12345 -o pid,ppid,lstart,etime,comm,args
 ```
 
-**12345 chỉ là PID giả định.** Trường `args` có thể chứa token, password hoặc đường dẫn nội bộ; không chia sẻ raw output ra nơi công khai. Nếu process manager cho PID khác với PID tìm thấy trong container, cần xác định **namespace** trước khi gắn công cụ.
+**12345 is only a placeholder PID.** The `args` field may contain tokens, passwords, or internal paths; do not share raw output publicly. If a process manager reports a different PID than the one found inside a container, identify the **namespace** before attaching tools.
 
-### 3.2 Tìm PID bằng jcmd -l
+### 3.2 Finding PIDs with jcmd -l
 
 ```bash
 jcmd -l
 ```
 
-Lệnh này liệt kê các JVM mà công cụ nhìn thấy; tài liệu JDK 21 lưu ý một số JVM chạy trong Docker namespace riêng **không có trong danh sách `jcmd -l`**. Vì vậy “không tìm thấy” không phải bằng chứng ứng dụng không chạy Java.
+This command lists JVMs visible to the tool; JDK 21 documentation notes that some JVMs running inside isolated Docker namespaces **do not appear in `jcmd -l`**. Therefore, “not found” is not proof that no Java application is running.
 
-`jcmd` thường yêu cầu chạy **cùng máy** và dưới effective user/group tương ứng với JVM đích. Không cố vượt policy qua `sudo`, container privileged hoặc thay quyền file hệ thống khi chưa được cho phép. Nếu tool không khả dụng trong image tối giản, dùng phương pháp thu đã được triển khai/hợp thức hóa thay vì sửa production container chỉ để thêm GUI/JDK tools.
+`jcmd` typically requires running on the **same machine** and under the effective user/group matching the target JVM. Do not try to bypass policy via `sudo`, privileged containers, or changing filesystem permissions without authorization. If the tool is unavailable in a minimal image, use approved/pre-deployed collection methods rather than modifying a production container just to add GUI/JDK tools.
 
-### 3.3 PID host và PID container
+### 3.3 Host PID and container PID
 
-Một JVM có thể có **PID 1 trong container** nhưng mang PID 21874 ở host. `kill -QUIT 1` từ host có thể nhắm tiến trình init của máy; từ container, PID 1 cũng có thể là **shell/supervisor**, không phải JVM. Phải kiểm tra bằng process metadata ở **cùng namespace gửi lệnh**.
+A JVM may have **PID 1 inside a container** while having PID 21874 on the host. Running `kill -QUIT 1` from the host could target the machine's init process; inside a container, PID 1 could also be a **shell/supervisor**, not the JVM. Always verify using process metadata in the **same namespace where the command is sent**.
 
-Trong Kubernetes, xác minh đúng namespace/pod/container, restart count, image digest và bản deploy; cùng một tên pod logic không bảo đảm JVM vẫn là lần chạy trước đó. Nếu nhiều replicas, lấy dump tại **replica đang xảy ra sự cố**.
+In Kubernetes, verify the exact namespace/pod/container, restart count, image digest, and deployment revision; having the same logical pod name does not guarantee the JVM is still from the previous run. If there are multiple replicas, take dumps from the **replica experiencing the incident**.
 
-## 4. jcmd Thread.print trên JDK 21
+## 4. jcmd Thread.print on JDK 21
 
-### 4.1 Xác minh cú pháp trực tiếp trên target
+### 4.1 Verify syntax directly against the target
 
 ```bash
 jcmd 12345 help
 jcmd 12345 help Thread.print
 ```
 
-Dùng `help` vì diagnostic commands thuộc implementation/phiên bản VM. Với HotSpot/JDK 21, các lệnh phổ biến:
+Use `help` because diagnostic commands belong to the VM implementation/version. On HotSpot/JDK 21, common commands are:
 
 ```bash
 jcmd 12345 Thread.print
@@ -132,22 +132,22 @@ jcmd 12345 Thread.print -e
 jcmd 12345 Thread.print -l -e
 ```
 
-- **Không options:** lấy stack và trạng thái các thread mà command trình bày.
-- **`-l`:** in thêm thông tin về `java.util.concurrent` locks/ownable synchronizers khi được hỗ trợ; hữu ích khi nghi `ReentrantLock`.
-- **`-e`:** in extended thread information phụ thuộc VM.
-- **`-l -e`:** kết hợp hai mức chi tiết khi thật sự cần; output lớn hơn, không nhất thiết tốt hơn cho mọi incident.
+- **No options:** captures stacks and states of the threads presented by the command.
+- **`-l`:** prints additional information about `java.util.concurrent` locks/ownable synchronizers when supported; useful when suspecting `ReentrantLock`.
+- **`-e`:** prints VM-dependent extended thread information.
+- **`-l -e`:** combines both detail levels when truly needed; larger output, not necessarily better for every incident.
 
-Đây là **lệnh thu dữ liệu**, không phải yêu cầu GC hoặc heap dump; nhưng impact vẫn phụ thuộc số lượng threads. Không chạy liên tục quá dày. Nếu lệnh không có trong `help`, không cố đoán syntax của bản khác.
+This is a **data collection command**, not a GC or heap dump request; however, impact still depends on the number of threads. Do not run it continuously at tight intervals. If a command is not listed in `help`, do not guess syntax from another version.
 
-### 4.2 Dùng shell redirect để lưu file
+### 4.2 Using shell redirection to save a file
 
 ```bash
 jcmd 12345 Thread.print -l > threads-12345.txt
 ```
 
-Đầu ra của `jcmd` đi vào **stdout của lệnh trong shell đang chạy**. Toán tử `>` được **shell gọi command** xử lý, vì vậy file `threads-12345.txt` xuất hiện tại working directory của shell đó. Nó **không tự xuất hiện** trong thư mục của service Java khi tool được gọi từ host/container khác.
+The output of `jcmd` goes to **stdout of the command in the running shell**. The `>` operator is handled by **the shell invoking the command**, so `threads-12345.txt` appears in that shell's working directory. It **does not automatically appear** inside the Java service's directory when the tool is invoked from another host/container.
 
-Một ví dụ POSIX shell ghi file có timestamp:
+A POSIX shell example that writes a timestamped file:
 
 ```bash
 pid=12345
@@ -155,174 +155,174 @@ stamp=$(date -u +%Y%m%dT%H%M%SZ)
 jcmd "$pid" Thread.print -l > "threads-$pid-$stamp.txt"
 ```
 
-Không dùng cú pháp shell này nguyên dạng trong PowerShell nếu chưa chuyển sang cú pháp Windows. Sau khi thu, kiểm tra **exit code** và file thực sự có thread entries, không chỉ một thông báo lỗi attach. File tồn tại không tự chứng minh command thành công.
+Do not use this shell syntax verbatim in PowerShell without converting it to Windows syntax. After capturing, verify the **exit code** and confirm the file actually contains thread entries rather than just an attach error message. A file existing does not prove the command succeeded.
 
-### 4.3 Khi nào thêm lock details?
+### 4.3 When should you add lock details?
 
-Nếu nghi một `synchronized` block bị giữ lâu hoặc `ReentrantLock` contention, `-l` có thể giúp lấy ownership/ownable synchronizer details. Nếu đang điều tra một socket read blocked, thông tin lock bổ sung chưa chắc trả lời được vì trạng thái external network/DB không thể suy ra từ monitor ownership.
+If you suspect a `synchronized` block is held for a long time or `ReentrantLock` contention, `-l` can help retrieve ownership/ownable synchronizer details. If you are investigating a blocked socket read, extra lock info may not answer it because external network/DB state cannot be inferred from monitor ownership.
 
-Các thread dumps thu ở hai thời điểm khác nhau không nhất thiết byte-for-byte giống nhau: JVM đang chạy, scheduling/GC/I/O tiếp tục biến động.
+Thread dumps captured at two different times do not have to be byte-for-byte identical: the JVM is running, and scheduling/GC/I/O continue to change.
 
-## 5. jstack: lệnh thay thế và giới hạn
+## 5. jstack: alternative command and limitations
 
-Tài liệu JDK 21 mô tả:
+JDK 21 documentation describes:
 
 ```bash
 jstack 12345
 jstack -l 12345
 ```
 
-`-l` in additional lock information, hữu ích với ownable synchronizers. Có thể dùng redirect:
+`-l` prints additional lock information, useful for ownable synchronizers. You can use redirection:
 
 ```bash
 jstack -l 12345 > jstack-12345.txt
 ```
 
-**JDK 21 đánh dấu `jstack` là experimental and unsupported**, và có thể không có trong future JDK. Vì vậy `jcmd` thường là công cụ được ưu tiên nếu đáp ứng nhu cầu và sẵn trên target.
+**JDK 21 marks `jstack` as experimental and unsupported**, and it may not be present in future JDKs. Thus `jcmd` is usually the preferred tool if it meets your needs and is available on the target.
 
-**Không mặc định dùng các options cũ `jstack -F` hoặc `-m`** theo hướng dẫn dành cho JDK nhiều năm trước. Hãy dùng `jstack -help` và man page ứng với bản JDK đang gọi. Khi `jstack` attach thất bại, không suy ra JVM đã deadlock: có thể do permission, namespace, process restart, attach bị tắt, JDK tool khác phiên bản hoặc VM không hỗ trợ.
+**Do not blindly use legacy options `jstack -F` or `-m`** from guides written for much older JDKs. Check `jstack -help` and the man page for the JDK being invoked. When `jstack` fails to attach, do not infer that the JVM is deadlocked: it may be due to permissions, namespace, process restart, attach disabled, a mismatched JDK tool version, or an unsupported VM.
 
-### 5.1 jhsdb jstack khác jstack ra sao?
+### 5.1 How does jhsdb jstack differ from jstack?
 
-`jhsdb jstack` là công cụ chuyên sâu, có thể đọc core dump và trong một số chế độ làm việc với live process theo những điều kiện quyền đặc biệt. Tài liệu Oracle JDK 21 có ví dụ đọc core file:
+`jhsdb jstack` is an advanced tool that can read core dumps and, in certain modes, attach to live processes under special permission conditions. Oracle JDK 21 documentation provides an example of reading a core file:
 
 ```bash
-# Tham khảo: cần Java binary và core dump thực tế, có quyền phân tích.
+# Reference: requires actual Java binary and core dump, with analysis permissions.
 jhsdb jstack --exe /path/to/java --core /path/to/core-file
 ```
 
-Đây là **phương án điều tra nâng cao**, không phải cách thay thế `jstack -l` mà không có rủi ro. Phân tích live process qua serviceability agent có thể tạm dừng/ảnh hưởng tiến trình, cần kế hoạch riêng. Nếu không có core file hoặc quyền, đừng thực thi bừa trên production.
+This is an **advanced investigation option**, not a risk-free replacement for `jstack -l`. Analyzing a live process via the serviceability agent can pause/affect the process and requires its own plan. Without a core file or authorization, do not run it arbitrarily in production.
 
-### 5.2 Chỉ dùng output jstack khi gắn đúng process
+### 5.2 Only use jstack output when attached to the right process
 
-So với `Thread.print`, công cụ có thể thêm/bớt header và lock data; không đòi hai bản dump giống nhau hoàn toàn. Đặc biệt với short-lived threads, một luồng có thể đã thoát trước khi lệnh thứ hai chạy.
+Compared to `Thread.print`, the tool may add or omit headers and lock data; do not expect two dumps to match identically. Especially with short-lived threads, a thread may have exited before the second command runs.
 
-Nếu PID biến mất trong khoảng giữa hai lần gọi, ghi trạng thái **process ended/restarted**, không tiếp tục dùng PID cũ vì hệ điều hành có thể đã tái sử dụng.
+If the PID disappears between two calls, record the status **process ended/restarted**, and do not keep using the old PID because the OS may have reused it.
 
-## 6. Linux và Unix: SIGQUIT và Ctrl+\
+## 6. Linux and Unix: SIGQUIT and Ctrl+\
 
-### 6.1 Cơ chế HotSpot signal handler
+### 6.1 HotSpot signal handler mechanism
 
-Theo Oracle JDK 21 Troubleshooting Guide, trên Linux khi HotSpot có handler thích hợp, gửi **SIGQUIT** đến process Java có thể làm JVM **in thread dump vào stdout của ứng dụng**, sau đó ứng dụng tiếp tục chạy. Câu lệnh có tên tín hiệu:
+According to the Oracle JDK 21 Troubleshooting Guide, on Linux when HotSpot has the appropriate handler installed, sending **SIGQUIT** to a Java process makes the JVM **print a thread dump to the application's stdout**, after which the application continues running. The command using the signal name:
 
 ```bash
-# CHỈ dùng khi đã xác minh PID và HotSpot handler đang hỗ trợ SIGQUIT.
+# ONLY use after verifying the PID and that the HotSpot handler supports SIGQUIT.
 kill -QUIT 12345
 ```
 
-Trên một số Unix/Linux, `kill -3` cũng gửi SIGQUIT vì signal số 3 là QUIT trong môi trường đó, nhưng nên ưu tiên **tên tín hiệu** để giảm nhầm với các con số có thể khác trên OS khác.
+On some Unix/Linux systems, `kill -3` also sends SIGQUIT because signal number 3 is QUIT in that environment, but **signal names** should be preferred to avoid confusion with numbers that can differ on other OSes.
 
-**Cảnh báo cực kỳ quan trọng:** việc `kill` chỉ gửi tín hiệu không bảo đảm đích sẽ sống tiếp. Nếu target không phải HotSpot phù hợp hoặc handler SIGQUIT bị vô hiệu/không được cài, **hành vi mặc định của OS có thể kết thúc process và tạo core dump**. Vì vậy tuyệt đối không dùng SIGQUIT như một thao tác “chắc chắn read-only” với PID chưa xác minh.
+**Extremely important warning:** calling `kill` only sends a signal and does not guarantee the target will survive. If the target is not an appropriate HotSpot process or the SIGQUIT handler is disabled/not installed, **the default OS behavior may terminate the process and produce a core dump**. Never treat SIGQUIT as a “guaranteed read-only” action on an unverified PID.
 
-### 6.2 Tại sao -Xrs làm signal dump không khả dụng?
+### 6.2 Why does -Xrs make signal dumps unavailable?
 
-`-Xrs` là JVM option giảm mức sử dụng OS signals. Tài liệu `java` của JDK 21 nêu nếu chạy với `-Xrs`, JVM không cung cấp **SIGQUIT thread dumps** trên hệ không phải Windows; trên Windows cũng không cung cấp dump qua Ctrl+Break handler. Ứng dụng hoặc thư viện native cài signal handler riêng cũng có thể làm hành vi thay đổi.
+`-Xrs` is a JVM option that reduces the use of OS signals. The JDK 21 `java` documentation states that when running with `-Xrs`, the JVM does not provide **SIGQUIT thread dumps** on non-Windows systems; on Windows it also does not provide dumps via the Ctrl+Break handler. Applications or native libraries installing custom signal handlers can also alter behavior.
 
-Do đó, khi lệnh signal không in dump:
+Therefore, when a signal command does not print a dump:
 
-- Kiểm tra PID, process start và target đúng JVM.
-- Kiểm tra `-Xrs`/VM implementation/signal handler.
-- Xem output nơi Java process thật sự ghi stdout/stderr.
-- Kiểm tra log collector có truncate, rate-limit hoặc rotate.
-- **Không gửi lại signal liên tục** khi chưa xác minh vì có thể dẫn đến gián đoạn.
+- Check the PID, process start time, and that you targeted the right JVM.
+- Check `-Xrs`, VM implementation, and signal handlers.
+- Look where the Java process actually writes stdout/stderr.
+- Check whether the log collector truncates, rate-limits, or rotates logs.
+- **Do not repeatedly resend the signal** without verifying, as it can cause disruption.
 
-### 6.3 Ctrl+\ và Ctrl+C không giống nhau
+### 6.3 Ctrl+\ and Ctrl+C are not the same
 
-Trong terminal Linux/Unix có controlling terminal thích hợp, **Ctrl+\** thường gửi SIGQUIT tới **foreground process group**. Nếu terminal Java đang ở foreground và HotSpot handler hoạt động, JVM có thể in dump. Nhưng nếu một process khác đang foreground, phím này có thể gửi signal nhầm; vì vậy không dùng một terminal ngẫu nhiên để thử.
+In a Linux/Unix terminal with an appropriate controlling terminal, **Ctrl+\** normally sends SIGQUIT to the **foreground process group**. If the Java terminal is in the foreground and the HotSpot handler is active, the JVM may print a dump. However, if another process is in the foreground, this key combination can signal the wrong process; therefore do not test it from an arbitrary terminal.
 
-Ngược lại:
+By contrast:
 
-- **Ctrl+C** thường gửi SIGINT và có thể làm dừng ứng dụng, không phải tổ hợp lấy dump.
-- **SIGTERM** thường là yêu cầu shutdown.
-- **`kill -9` / SIGKILL** khiến process bị kết thúc không theo Java shutdown bình thường; **không phải phương án tạo Java thread dump**.
+- **Ctrl+C** normally sends SIGINT and can stop the application; it is not the key combination for taking a dump.
+- **SIGTERM** is normally a shutdown request.
+- **`kill -9` / SIGKILL** terminates the process without normal Java shutdown; **it is not a method for generating a Java thread dump**.
 
-Dù mục tiêu của bạn là “lấy stack”, lệnh gửi tín hiệu vẫn có tác dụng OS thật; phải biết chính xác signal type, JVM handler và đối tượng nhận.
+Even though your goal is “capturing stacks”, a signal command still has real OS effects; you must know the exact signal type, JVM handler, and recipient.
 
-### 6.4 Output nằm trong log Java, không nằm ở terminal kill
+### 6.4 Output goes to Java logs, not the kill terminal
 
-Nếu SSH vào máy rồi gọi `kill -QUIT 12345`, **terminal của lệnh `kill` không tự hiển thị thread dump**. Bản dump được HotSpot ghi vào **stdout của JVM đích**. Nó có thể nằm ở:
+If you SSH into a machine and run `kill -QUIT 12345`, **the terminal running `kill` will not display the thread dump**. The dump is written by HotSpot to **the target JVM's stdout**. It may be located in:
 
-- Console ban đầu chạy lệnh `java`.
-- File mà Java service đã redirect stdout vào.
-- `journalctl` nếu systemd đưa stdout của service vào journal.
-- Docker container logs hoặc Kubernetes pod/container logs.
-- Logging stream do process manager/app server wrapper quản lý.
+- The original console running the `java` command.
+- A file to which the Java service redirected stdout.
+- `journalctl` if systemd routes the service's stdout to the journal.
+- Docker container logs or Kubernetes pod/container logs.
+- A logging stream managed by a process manager/app server wrapper.
 
-Ví dụ, với một service systemd **giả định**:
+For example, for a **hypothetical** systemd service:
 
 ```bash
 journalctl -u example-java.service --since "10 minutes ago"
 ```
 
-Đây là lệnh **đọc log** chứ không tạo dump. Trước khi chạy, cần biết đúng tên service, thời gian sự cố và nơi stdout được chuyển đến. Nếu JVM chạy trong container, capture có thể được thu bởi container logging driver; một sự cố log retention/multiline parser có thể cắt giữa thread dump.
+This is a **log reading** command, not a dump generator. Before running it, you need the exact service name, incident time, and where stdout is routed. If the JVM runs in a container, output may be collected by the container logging driver; log retention limits or a multiline parser issue can split or truncate a thread dump.
 
-### 6.5 Vì sao không thấy dump không có nghĩa là JVM không nhận signal?
+### 6.5 Why not seeing a dump does not mean the JVM missed the signal
 
-`kill -QUIT` trả exit code thành công chỉ xác nhận hệ điều hành chấp nhận gửi signal; nó **không chứng minh** JVM in đầy đủ dump hoặc log collector lưu đúng. Ngược lại, không thấy text trong SSH console không có nghĩa thất bại, vì stdout nằm bên process. Cần kiểm tra service logs, handler, PID namespace và timestamp.
+`kill -QUIT` returning a zero exit code only confirms the OS accepted sending the signal; it **does not prove** the JVM printed a complete dump or that the log collector stored it properly. Conversely, seeing no text in your SSH console does not mean failure, because stdout belongs to the process. Check service logs, handlers, PID namespace, and timestamps.
 
 ## 7. Windows: Ctrl+Break
 
-Đối với HotSpot chạy trong một **console Windows** hỗ trợ control events, tổ hợp **Ctrl+Break** có thể yêu cầu JVM in thread dump ra **console/stdout của process Java**. Đây là Ctrl + phím Break/Pause, **không phải Ctrl+C**. Một số laptop/terminal emulator không có phím Break hoặc không chuyển tiếp phím này, nên cách làm có thể không khả dụng.
+For HotSpot running in a **Windows console** that supports control events, **Ctrl+Break** can instruct the JVM to print a thread dump to the **console/stdout of the Java process**. This is Ctrl + the Break/Pause key, **not Ctrl+C**. Some laptops/terminal emulators lack a Break key or do not forward it, so this method may not be available.
 
-Nếu ứng dụng chạy như **Windows Service** hoặc dưới `javaw` mà không có console tương tác, không giả định có thể bấm Ctrl+Break. Trong trường hợp đó, ưu tiên `jcmd PID Thread.print` hoặc `jstack -l PID` bằng JDK tool có quyền thích hợp.
+If the application runs as a **Windows Service** or under `javaw` without an interactive console, do not assume you can press Ctrl+Break. In that case, prefer `jcmd PID Thread.print` or `jstack -l PID` using JDK tools with appropriate permissions.
 
-Để xác minh process bằng PowerShell:
+To verify the process in PowerShell:
 
 ```powershell
 Get-Process -Id 12345 |
     Select-Object Id, ProcessName, StartTime
 ```
 
-Đây là lệnh **xem process**, không sinh dump. Nếu dùng `jcmd` từ PowerShell, output nằm trong terminal đó hoặc file redirect của PowerShell, không liên quan đến console nơi service Java được start.
+This is a **process inspection** command, not a dump generator. If you run `jcmd` from PowerShell, the output goes to that terminal or PowerShell's redirected file, independent of the console where the Java service was started.
 
-**Windows `-Xrs`:** khi JVM bật lựa chọn này, Ctrl+Break thread dump không khả dụng theo tài liệu Java launcher. Không “sửa nhanh” bằng cách gửi những sự kiện console khác có thể dừng service.
+**Windows `-Xrs`:** when the JVM enables this option, Ctrl+Break thread dumps are unavailable according to the Java launcher documentation. Do not “work around it” by sending other console events that could stop the service.
 
-## 8. Virtual threads JDK 21: không suy từ Thread.print truyền thống
+## 8. JDK 21 virtual threads: do not infer from traditional Thread.print
 
-Virtual threads là thành phần chuẩn của Java 21. Một virtual thread có thể **unmount** khỏi carrier platform thread khi đang chờ, vì vậy những traditional HotSpot thread dumps theo platform threads có thể **không hiển thị đầy đủ các virtual threads đang chờ**.
+Virtual threads are a standard feature of Java 21. A virtual thread can **unmount** from its carrier platform thread while waiting, so traditional HotSpot thread dumps focused on platform threads may **not fully show waiting virtual threads**.
 
-Tài liệu Oracle JDK 21 “Virtual Threads” giới thiệu `jcmd Thread.dump_to_file` để tạo file text hoặc JSON gồm thông tin virtual threads:
+The Oracle JDK 21 “Virtual Threads” guide introduces `jcmd Thread.dump_to_file` to create a text or JSON file containing virtual thread information:
 
 ```bash
-# Kiểm tra target JVM hỗ trợ command trước khi thực hiện.
+# Verify the target JVM supports the command before running.
 jcmd 12345 help Thread.dump_to_file
 
-# Chỉ dùng nếu help xác nhận -format và filepath.
+# Only use if help confirms -format and filepath.
 jcmd 12345 Thread.dump_to_file -format=json /path/approved/threads-12345.json
 ```
 
-Tài liệu virtual threads JDK 21 minh họa `-format=text` và `-format=json`, nhưng bảng command của trang man `jcmd` JDK 21 không phải lúc nào liệt kê tên này đồng nhất; **lấy `help` từ chính JVM đích làm nguồn quyết định**. Không dùng syntax từ JDK 22/25/26 mà giả định hợp lệ với tất cả build JDK 21.
+The JDK 21 virtual threads documentation illustrates `-format=text` and `-format=json`, though the command table in the JDK 21 `jcmd` man page does not always list these names identically; **treat `help` from the actual target JVM as authoritative**. Do not take syntax from JDK 22/25/26 and assume it is valid across all JDK 21 builds.
 
-### 8.1 File nằm ở đâu?
+### 8.1 Where is the file located?
 
-So sánh hai lệnh:
+Compare the two commands:
 
 ```bash
 jcmd 12345 Thread.print -l > caller-side.txt
 jcmd 12345 Thread.dump_to_file -format=json /path/approved/target-side.json
 ```
 
-- `caller-side.txt` được shell gọi `jcmd` tạo ở **máy/container đang chạy shell**.
-- `target-side.json` được command yêu cầu **JVM đích tạo** trong filesystem của target JVM. Nếu JVM chạy trong container, file có thể nằm bên trong container và phải được lấy bằng quy trình được cho phép.
-- Hai lệnh **không tương đương** về bộ dữ liệu. File dump cho virtual threads có thể thiếu một số chi tiết truyền thống về object addresses/locks/JNI/heap, tùy JDK và implementation.
+- `caller-side.txt` is created by the shell invoking `jcmd` on **the machine/container running the shell**.
+- `target-side.json` is created by **the target JVM** in the target JVM's filesystem. If the JVM runs inside a container, the file may reside inside the container and must be retrieved through an authorized process.
+- The two commands are **not equivalent** in dataset contents. A virtual-thread dump file may omit some traditional details about object addresses/locks/JNI/heap, depending on the JDK and implementation.
 
-Nếu cần timeline pinning/blocking, kết hợp JFR events như `jdk.VirtualThreadPinned` và dữ liệu monitoring khác. `Thread.dump_to_file` chụp **trạng thái hiện tại**, không tự khôi phục incident đã xảy ra trước lúc capture.
+If you need a timeline of pinning/blocking, combine JFR events such as `jdk.VirtualThreadPinned` and other monitoring data. `Thread.dump_to_file` captures the **current state** and does not reconstruct incidents that happened before capture.
 
-### 8.2 Không dùng ThreadMXBean làm tổng số virtual threads
+### 8.2 Do not use ThreadMXBean as the total virtual thread count
 
-Trên Java 21, `ThreadMXBean` chủ yếu quản lý **platform threads** theo contract của JDK. Vì vậy số thread mà một nguồn platform-oriented công bố **không phải** số tất cả virtual tasks của ứng dụng. Khi sự cố có hàng chục nghìn virtual threads, dùng phương pháp có scope phù hợp và ghi rõ giới hạn.
+On Java 21, `ThreadMXBean` primarily manages **platform threads** per the JDK contract. Therefore, the thread count reported by a platform-oriented source **is not** the count of all virtual tasks in the application. When an incident involves tens of thousands of virtual threads, use an appropriately scoped method and state its limits clearly.
 
-## 9. Thực hành Java 17+: tạo thread BLOCKED và TIMED_WAITING
+## 9. Java 17+ Hands-on: creating BLOCKED and TIMED_WAITING threads
 
-Bài lab tạo ba thread có tên rõ để quan sát:
+This lab creates three clearly named threads for observation:
 
-- `lab-monitor-owner` giữ object monitor và ngủ 90 giây.
-- `lab-monitor-contender` muốn vào cùng monitor nên thường `BLOCKED`.
-- `lab-timed-waiter` chờ `CountDownLatch` có timeout nên thường `TIMED_WAITING`.
+- `lab-monitor-owner` holds an object monitor and sleeps for 90 seconds.
+- `lab-monitor-contender` tries to enter the same monitor so it is normally `BLOCKED`.
+- `lab-timed-waiter` waits on a `CountDownLatch` with a timeout so it is normally `TIMED_WAITING`.
 
-**Giữ monitor trong lúc sleep là anti-pattern cố ý cho lab**, không sao chép sang production. Chương trình không cần Internet, framework hoặc third-party dependency.
+**Holding a monitor while sleeping is an intentional anti-pattern for the lab**—do not copy it to production. The program requires no Internet access, frameworks, or third-party dependencies.
 
-Tạo tệp **`ThreadDumpLab.java`**:
+Create file **`ThreadDumpLab.java`**:
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -351,7 +351,7 @@ public final class ThreadDumpLab {
 
         Thread contender = new Thread(() -> {
             synchronized (MONITOR) {
-                // Vào được sau khi owner nhả monitor.
+                // Entered after owner releases the monitor.
             }
         }, "lab-monitor-contender");
 
@@ -377,24 +377,24 @@ public final class ThreadDumpLab {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ThreadDumpLab.java
 java ThreadDumpLab
 ```
 
-**Dòng stdout đầu tiên chính xác**:
+**Exact first stdout line:**
 
 ```text
 ThreadDumpLab READY
 ```
 
-Dòng thứ hai có dạng `PID=<giá-trị-PID-thực>`, khác nhau trên mỗi lần chạy. Sau khoảng 90 giây nếu không bị ngắt, chương trình in `ThreadDumpLab DONE` rồi thoát. `javac` không in gì khi compile thành công. Không cố dự đoán số PID, `nid`, line number hay thời điểm chính xác scheduler chuyển thread sang BLOCKED.
+The second line has the form `PID=<actual-PID-value>`, varying on each run. After about 90 seconds if uninterrupted, the program prints `ThreadDumpLab DONE` and exits. `javac` prints nothing when compilation succeeds. Do not attempt to predict the PID number, `nid`, line numbers, or the exact moment the scheduler transitions the thread to BLOCKED.
 
-### 9.1 Thử jcmd và jstack
+### 9.1 Trying jcmd and jstack
 
-Mở **terminal thứ hai** cùng máy/user và thay `12345` bằng PID thật của lab:
+Open a **second terminal** on the same machine/user and replace `12345` with the actual lab PID:
 
 ```bash
 jcmd 12345 help Thread.print
@@ -403,40 +403,40 @@ jcmd 12345 Thread.print -l
 jstack -l 12345
 ```
 
-Nếu đúng thời điểm trước khi các thread kết thúc:
+If timed before the threads finish:
 
-| Thread | Kỳ vọng | Cách đọc |
+| Thread | Expected | How to read |
 | --- | --- | --- |
-| `lab-monitor-owner` | `TIMED_WAITING (sleeping)` | Trong `Thread.sleep` và vẫn giữ monitor của demo |
-| `lab-monitor-contender` | `BLOCKED (on object monitor)` | Chờ monitor mà owner đang giữ |
-| `lab-timed-waiter` | `TIMED_WAITING` | Chờ latch với timeout |
-| `main` | Thường chờ trong `Thread.join` | Đợi các worker kết thúc |
+| `lab-monitor-owner` | `TIMED_WAITING (sleeping)` | Inside `Thread.sleep` while still holding the demo monitor |
+| `lab-monitor-contender` | `BLOCKED (on object monitor)` | Waiting on the monitor currently held by owner |
+| `lab-timed-waiter` | `TIMED_WAITING` | Waiting on the latch with a timeout |
+| `main` | Usually waiting in `Thread.join` | Waiting for workers to finish |
 
-Đây là **trạng thái dự kiến trong cửa sổ lab**. Do scheduling và thời điểm capture, output có thể khác; phải đọc **kết quả thật**, không chép số mẫu giả.
+These are **expected states within the lab window**. Due to scheduling and capture timing, output may vary; read the **actual result** rather than copying fake sample numbers.
 
-### 9.2 Thử SIGQUIT trên Linux chỉ với JVM lab
+### 9.2 Trying SIGQUIT on Linux with the lab JVM only
 
-Khi chắc chắn PID thuộc **ThreadDumpLab** và HotSpot có handler:
+Once certain the PID belongs to **ThreadDumpLab** and HotSpot has the handler:
 
 ```bash
 kill -QUIT 12345
 ```
 
-Xem terminal **chạy `java ThreadDumpLab`**, không chỉ terminal gửi `kill`. Dump thường xuất hiện bên stdout của JVM lab. Nếu không xuất hiện, kiểm tra signal handler và phiên chạy, không gửi tiếp vào process khác.
+Watch the terminal **running `java ThreadDumpLab`**, not only the terminal sending `kill`. The dump normally appears in the lab JVM's stdout. If it does not appear, check the signal handler and session; do not resend to another process.
 
-### 9.3 Thử Ctrl+Break trên Windows chỉ với JVM lab
+### 9.3 Trying Ctrl+Break on Windows with the lab JVM only
 
-Nếu có console Windows thực sự chứa Java process, dùng **Ctrl+Break**. Dump, nếu được VM hỗ trợ, in trong console đó. Nếu terminal không có Break, thử `jcmd` hoặc `jstack` thay vì dùng Ctrl+C hoặc tổ hợp có thể terminate JVM.
+If you have a real Windows console hosting the Java process, press **Ctrl+Break**. The dump, if supported by the VM, prints in that console. If the terminal lacks Break, try `jcmd` or `jstack` instead of using Ctrl+C or a key combination that could terminate the JVM.
 
-### 9.4 Đặt câu hỏi đúng khi so hai dump
+### 9.4 Asking the right question when comparing two dumps
 
-Hai dump cách nhau 5 giây không buộc giống hệt nhau; thread states được chụp vào hai thời điểm khác nhau. Nhưng trong lab, `lab-monitor-contender` thường **tiếp tục BLOCKED** cho tới khi owner nhả lock. Khi thấy điều đó, bạn có bằng chứng **thời lượng tranh chấp kéo dài trong nhiều mẫu**, tốt hơn so với chỉ một ảnh.
+Two dumps 5 seconds apart do not have to be identical; thread states were captured at two different points in time. However, in the lab, `lab-monitor-contender` will typically **remain BLOCKED** until owner releases the lock. Seeing that gives you evidence of **contention persisting across multiple samples**, which is stronger than a single snapshot.
 
-## 10. Thu nhiều dump để quan sát xu hướng
+## 10. Capturing multiple dumps to observe trends
 
-Một snapshot tại T0 là một điểm trong thời gian. Với hiện tượng request kẹt trong 30–60 giây, vài snapshots cách 5–10 giây có thể cho thấy cùng một thread/lock xuất hiện lặp lại. Chọn khoảng dựa trên **độ dài sự cố**, không có “3 dumps cách 5 giây” là quy tắc bất biến.
+A snapshot at T0 is a single point in time. For a symptom where requests stall for 30–60 seconds, several snapshots 5–10 seconds apart can show the same thread/lock appearing repeatedly. Choose the interval based on **incident duration**—there is no immutable rule saying “3 dumps 5 seconds apart”.
 
-Mẫu POSIX shell sau chỉ nên chạy ở **JVM lab** hoặc trong production khi có quyền và đã tính overhead:
+The following POSIX shell template should only be run against a **lab JVM** or in production when authorized and overhead has been accounted for:
 
 ```bash
 pid=12345
@@ -454,24 +454,24 @@ for i in 1 2 3; do
 done
 ```
 
-Từng file nằm ở **shell đang gọi jcmd**, có timestamp trong tên. Cần kiểm tra exit code, dump header và số thread entries. Nếu JVM restart, **dừng** chuỗi đo và ghi identity mới. Đừng chạy script trên mọi replica đồng thời nếu chưa có ngân sách tác động.
+Each file is written on **the shell invoking jcmd**, with a timestamp in its filename. Check exit codes, dump headers, and thread entry counts. If the JVM restarts, **stop** the measurement series and record the new identity. Do not run the script across all replicas simultaneously without an impact budget.
 
-### 10.1 Cần chụp thêm gì ngoài thread dumps?
+### 10.1 What else should be captured alongside thread dumps?
 
-- UTC timestamp, host/container/pod, PID và process start.
-- Error rate, p95/p99 request latency, throughput và queue length cùng khoảng.
-- OS per-thread CPU khi nghi hot loop, mapping native TID với HotSpot `nid`.
-- GC pauses, heap pressure và safepoint metrics/JFR khi cần.
-- App build/version và deployment/rollout events.
-- Ghi rõ nguồn của mỗi snapshot: `jcmd`, `jstack`, `SIGQUIT` hoặc `Thread.dump_to_file`.
+- UTC timestamp, host/container/pod, PID, and process start time.
+- Error rate, p95/p99 request latency, throughput, and queue length over the same window.
+- OS per-thread CPU when suspecting a hot loop, mapping native TIDs to HotSpot `nid`.
+- GC pauses, heap pressure, and safepoint metrics/JFR when needed.
+- App build/version and deployment/rollout events.
+- Record the source of each snapshot: `jcmd`, `jstack`, `SIGQUIT`, or `Thread.dump_to_file`.
 
-**Giới hạn:** timestamp hai công cụ khác nhau có thể lệch vì clock skew và latency thu thập. Không gán quan hệ nhân quả chỉ vì hai event “đồng thời” trong dashboard.
+**Limitation:** timestamps from two different tools can drift due to clock skew and collection latency. Do not assert causality merely because two events look “simultaneous” on a dashboard.
 
-## 11. Đọc kết quả sau khi đã thu
+## 11. Reading results after collection
 
-### 11.1 Stack frames, lock owner và trạng thái
+### 11.1 Stack frames, lock owners, and states
 
-Một bản HotSpot dump có thể chứa:
+A HotSpot dump may contain:
 
 ```text
 "worker-A" ... nid=0x...
@@ -485,87 +485,87 @@ Một bản HotSpot dump có thể chứa:
       - locked <0x111> (a java.lang.Object)
 ```
 
-Đoạn này **mô phỏng cấu trúc**, không phải output thực; địa chỉ `<0x111>` và source line được đặt chỉ để minh họa. Nếu owner B giữ monitor dài và A chờ vào cùng monitor trong nhiều dumps, đó là lock contention. Nếu A và B giữ hai monitor khác nhau, đồng thời mỗi thread chờ monitor của người kia, có thể hình thành deadlock cycle; cần xem toàn bộ owner relations.
+This excerpt **simulates the structure** and is not real output; the `<0x111>` address and source lines are illustrative only. If owner B holds the monitor for a long time and A waits on the same monitor across multiple dumps, that is lock contention. If A and B hold two different monitors while each waits for the other's monitor, a deadlock cycle may exist; inspect the complete owner relationships.
 
-Không phải mọi `WAITING` đều bất thường: thread pool workers, scheduled executors và queue consumers thường chờ nhiệm vụ. Với network I/O, stack có thể bắt đầu trong `sun.nio.ch` hoặc driver; cần nhìn caller application và downstream telemetry để biết vì sao chờ.
+Not every `WAITING` is abnormal: thread pool workers, scheduled executors, and queue consumers routinely wait for tasks. For network I/O, the stack may start in `sun.nio.ch` or a driver; look at the application caller and downstream telemetry to understand why it is waiting.
 
-### 11.2 RUNNABLE và CPU cao
+### 11.2 RUNNABLE and high CPU
 
-`RUNNABLE` không tương đương “sử dụng toàn bộ CPU” vì một số thread có thể đang thực hiện hoặc chờ ở native I/O và VM/OS có cách biểu diễn khác nhau. Khi OS metrics báo CPU cao:
+`RUNNABLE` is not equivalent to “consuming all CPU” because some threads may be executing or waiting in native I/O, and VM/OS representations differ. When OS metrics report high CPU:
 
-1. Lấy process/thread CPU cùng thời điểm.
-2. Trên HotSpot/Linux, `nid=0x...` thường là native TID dạng **hexadecimal**; một số OS tools in TID decimal.
-3. Chuyển native TID từ decimal sang hex và ghép với `nid`, **không dùng `tid` internal pointer hoặc Java thread ID**.
-4. So cùng thread qua nhiều snapshots và dùng JFR/CPU profiler nếu cần hotspot chính xác.
+1. Capture process/thread CPU at the same time.
+2. On HotSpot/Linux, `nid=0x...` is typically the native TID in **hexadecimal**; some OS tools print decimal TIDs.
+3. Convert the native TID from decimal to hex and match it against `nid`, **never use the internal pointer `tid` or Java thread ID**.
+4. Compare the same thread across multiple snapshots and use JFR/CPU profiler if you need exact hotspots.
 
-Ví dụ **decimal 42 = hex `0x2a`**; chỉ là minh họa phép chuyển đổi, không phải một TID đo thật.
+For example, **decimal 42 = hex `0x2a`**; this is only an illustration of the conversion, not a real measured TID.
 
-### 11.3 Deadlock không phải mọi kiểu treo
+### 11.3 Deadlock is not every kind of hang
 
-Java-level deadlock detection tìm các chu trình monitor/ownable synchronizers theo phạm vi hỗ trợ. Một database lock, hung RPC, queue starvation hoặc missed signal có thể khiến request treo **mà không tạo deadlock Java-level**. “No deadlocks found” không đồng nghĩa “ứng dụng không treo”.
+Java-level deadlock detection finds monitor/ownable synchronizer cycles within its supported scope. A database lock, hung RPC, queue starvation, or missed signal can cause requests to hang **without creating a Java-level deadlock**. “No deadlocks found” does not mean “the application is not hung”.
 
-Khi thấy nhiều `BLOCKED`, cần hỏi **ai giữ lock**, stack của owner, thời gian giữ, có progress qua các mẫu và vai trò của thread (request worker, GC, housekeeping). Chỉ một snapshot thường chưa đủ để kết luận vấn đề ổn định.
+When seeing many `BLOCKED` threads, ask **who holds the lock**, what the owner's stack is, how long it is held, whether there is progress across samples, and what the thread's role is (request worker, GC, housekeeping). A single snapshot is rarely enough to conclude a persistent issue.
 
-## 12. Chẩn đoán khi công cụ hoặc output có vấn đề
+## 12. Diagnosing tool or output problems
 
-### 12.1 jcmd / jstack không attach được
+### 12.1 jcmd / jstack fails to attach
 
-Một số nguyên nhân phổ biến:
+Some common causes:
 
-- PID sai, process đã thoát/restart.
-- Khác user/group hoặc policy attach.
-- PID namespace/container mount khác.
-- Runtime image không có JDK tools.
-- VM tắt attach, JVM khác implementation hoặc công cụ không tương thích.
-- JVM kẹt sâu hoặc bị OS security policies chặn.
+- Wrong PID, or the process exited/restarted.
+- Different user/group or attach policy.
+- Different PID namespace/container mount.
+- Runtime image lacks JDK tools.
+- VM disabled attach, different JVM implementation, or incompatible tool.
+- JVM deeply stuck or blocked by OS security policies.
 
-Kiểm tra từng yếu tố thay vì lập tức tăng quyền. Nếu không có khả năng thu, ghi rõ **diagnostic unavailable** chứ không bịa stack. `jhsdb` hay core analysis có thể hữu ích cho sự cố nghiêm trọng nhưng cần quyền/tác động riêng.
+Check each factor instead of immediately escalating privileges. If collection is not possible, record **diagnostic unavailable** rather than fabricating stacks. `jhsdb` or core analysis can help for severe incidents but carries its own permission/impact requirements.
 
-### 12.2 SIGQUIT được gửi nhưng không thấy dump
+### 12.2 SIGQUIT sent but no dump appears
 
-Hãy kiểm tra:
+Check the following:
 
-1. JVM đích và PID/start time đã xác thực chưa?
-2. Có dùng `-Xrs` hoặc handler không tồn tại không?
-3. Output của Java đi vào console, systemd journal, stdout redirect, Docker/Kubernetes logs hay nơi khác?
-4. Log collector có truncate, rate limit hoặc multiline parser sai không?
-5. Có đang xem log của đúng container/replica, đúng timestamps không?
-6. Signal gửi ở namespace nào; PID 1 ở host và container có khác không?
+1. Have the target JVM and PID/start time been verified?
+2. Is `-Xrs` enabled or is the handler absent?
+3. Does Java output go to the console, systemd journal, stdout redirect, Docker/Kubernetes logs, or elsewhere?
+4. Is the log collector truncating, rate-limiting, or misparsing multiline logs?
+5. Are you looking at the logs of the right container/replica and timestamps?
+6. In which namespace was the signal sent; do host PID 1 and container PID 1 differ?
 
-Nếu OS đã báo signal gửi thành công, đừng mặc định JVM in dump thành công. Nếu handler không có, **SIGQUIT có thể terminate process**, vì vậy không thử lặp lại bừa bãi.
+Even if the OS reports the signal was sent successfully, do not assume the JVM successfully printed the dump. Without a handler, **SIGQUIT can terminate the process**, so do not retry indiscriminately.
 
-### 12.3 Windows Ctrl+Break không hoạt động
+### 12.3 Windows Ctrl+Break does not work
 
-Có thể JVM chạy như service không gắn console, dùng `javaw`, có `-Xrs` hoặc terminal không chuyển sự kiện Break. Dùng `jcmd`/`jstack` với quyền đúng và không thay Ctrl+Break bằng Ctrl+C.
+The JVM may be running as a service with no attached console, running under `javaw`, started with `-Xrs`, or the terminal may not forward Break events. Use `jcmd`/`jstack` with proper permissions and never substitute Ctrl+C for Ctrl+Break.
 
-### 12.4 File có dữ liệu nhưng bị cắt
+### 12.4 File has data but is truncated
 
-Output thread dump có thể rất lớn, nhất là hàng nghìn threads. Nếu ghi qua stdout logging, parser multi-line, buffer limit, quota hoặc log rotation có thể cắt giữa dump. Khi đó:
+Thread dump output can be very large, especially with thousands of threads. If written via stdout logging, a multiline parser, buffer limit, quota, or log rotation can cut the dump mid-stream. When that happens:
 
-- Ghi **capture incomplete**.
-- Kiểm tra đầu/cuối file và timestamp.
-- Không suy từ thiếu một thread trong phần đã cắt rằng nó không tồn tại.
-- Nếu được phép, thử lưu output trực tiếp bằng shell redirect của `jcmd` thay vì đi qua log pipeline.
-- Nếu dùng `Thread.dump_to_file`, kiểm tra file trên đúng JVM filesystem và quyền ghi.
+- Mark **capture incomplete**.
+- Check the beginning/end of the file and timestamps.
+- Do not infer from a missing thread in the truncated portion that the thread did not exist.
+- If permitted, try saving output directly with `jcmd` shell redirection instead of routing through the log pipeline.
+- If using `Thread.dump_to_file`, verify the file on the right JVM filesystem and write permissions.
 
-### 12.5 Lỗi kết nối trong container
+### 12.5 Connection failures inside containers
 
-Một container có thể không chứa `ps`/`jcmd`; `jcmd -l` từ host cũng có thể không thấy JVM. Nếu cần tool, dùng quy trình incident debugging đã cho phép (ví dụ ephemeral/debug tooling được phê duyệt) thay vì đổi image đang chạy tùy tiện. Giữ identity node/pod/container và đối chiếu namespace PID trước khi gửi bất kỳ signal.
+A container may lack `ps`/`jcmd`; `jcmd -l` from the host may also fail to see the JVM. If tools are needed, follow approved incident debugging procedures (such as approved ephemeral/debug tooling) instead of arbitrarily altering a running image. Preserve node/pod/container identity and check the PID namespace before sending any signal.
 
-## 13. An toàn, quyền truy cập và chi phí
+## 13. Safety, access permissions, and cost
 
-Một thread dump có thể chứa **tên classes/methods nội bộ, thread names nhúng user/request IDs, path, endpoint, thông tin thư viện, địa chỉ object và lock metadata**. Mặc dù không mặc nhiên chứa toàn bộ local variables, nó không phải dữ liệu công khai. Bảo vệ bằng:
+A thread dump can contain **internal class/method names, thread names embedding user/request IDs, paths, endpoints, library details, object addresses, and lock metadata**. Even though it does not by default include all local variables, it is not public data. Protect it by:
 
-- Chỉ thu trên đúng service và với quyền hợp lệ.
-- Lưu trong thư mục chẩn đoán có quyền giới hạn; đặt retention và quy trình xóa.
-- Redact thread names/log labels hoặc metadata nhạy cảm trước khi chia sẻ.
-- Không upload raw dumps lên dịch vụ phân tích bên thứ ba nếu chưa được cho phép.
-- Gắn process identity, timestamp, tool/command và trạng thái complete/truncated vào artifact.
-- Giới hạn tần suất, số lượng replicas, disk và logging overhead.
+- Collecting only from the right service and with authorized permissions.
+- Storing in a restricted diagnostics directory; setting retention and deletion procedures.
+- Redacting sensitive thread names/log labels or metadata before sharing.
+- Not uploading raw dumps to third-party analysis services without authorization.
+- Attaching process identity, timestamp, tool/command, and complete/truncated status to the artifact.
+- Limiting frequency, number of replicas, disk, and logging overhead.
 
-Việc thu dump có thể làm tăng CPU/I/O và làm dịch vụ đang quá tải nặng thêm; nhất là nếu lấy snapshot dày. Không gửi `SIGKILL`/`SIGTERM` chỉ để “lấy thread stack”. Với `SIGQUIT`, phải xác minh handler vì nếu không có, **tác động có thể phá hủy tiến trình**.
+Capturing a dump can increase CPU/I/O and worsen load on an already overloaded service, especially if snapshots are taken frequently. Never send `SIGKILL`/`SIGTERM` just to “get thread stacks”. With `SIGQUIT`, verify the handler first because without it, **the effect can destroy the process**.
 
-Một record metadata **giả định**:
+A **hypothetical** metadata record:
 
 ```yaml
 captureTimeUtc: "2026-10-29T08:45:00Z"
@@ -583,108 +583,108 @@ redactedBeforeSharing: true
 incidentWindow: "2026-10-29T08:44:00Z/2026-10-29T08:46:00Z"
 ```
 
-Các số và tên trên đều là **dữ liệu minh họa**. Không copy thành báo cáo thực tế nếu chưa thu thông tin từ JVM thật. Nếu thu bằng signal, cần ghi `method: SIGQUIT` và nơi stdout của JVM được chuyển đến thay vì ghi `jcmd`.
+All numbers and names above are **illustrative data**. Do not copy them into a real report without collecting data from a real JVM. If captured via signal, record `method: SIGQUIT` and where the JVM's stdout goes instead of recording `jcmd`.
 
-## 14. Quy trình xử lý incident trong sáu bước
+## 14. Six-step incident workflow
 
-**Bước 1 — Định nghĩa triệu chứng.** Request stuck, lock contention, CPU spike, hung I/O, thread leak hay virtual-thread stalls? Xác định khoảng thời gian và hệ đo có sẵn.
+**Step 1 — Define the symptom.** Stuck requests, lock contention, CPU spike, hung I/O, thread leak, or virtual-thread stalls? Define the time window and available telemetry.
 
-**Bước 2 — Chọn đúng JVM.** Xác minh service, host/container, PID, start time, runtime/version, quyền. Không lấy dump của replica khỏe rồi dùng làm bằng chứng cho replica lỗi.
+**Step 2 — Select the exact JVM.** Verify service, host/container, PID, start time, runtime/version, and permissions. Do not capture a dump from a healthy replica and use it as evidence for a failing replica.
 
-**Bước 3 — Chọn công cụ và output location.** Ưu tiên `jcmd Thread.print` khi hỗ trợ; `jstack -l` là lựa chọn bổ sung; tín hiệu chỉ khi handler được xác minh; `Thread.dump_to_file` khi cần virtual-thread visibility và command có trong `help`.
+**Step 3 — Choose tool and output location.** Prefer `jcmd Thread.print` when supported; `jstack -l` as a fallback; signals only when the handler is verified; `Thread.dump_to_file` when virtual-thread visibility is needed and the command appears in `help`.
 
-**Bước 4 — Thu với ngân sách tác động.** Một số dump trong incident window đủ để xác định trạng thái kéo dài. Ghi timestamps, exits và kiểm tra file; nếu process restart, dừng bộ đo cũ.
+**Step 4 — Capture within an impact budget.** Several dumps within the incident window are enough to identify persistent states. Record timestamps, exit codes, and inspect files; if the process restarts, stop the old series.
 
-**Bước 5 — Phân tích so với telemetry.** Đọc state/monitor/lock owner, so multiple snapshots, OS native TID CPU, GC pauses, request p99, downstream metrics. Tách một lần xuất hiện `BLOCKED` khỏi tranh chấp kéo dài hoặc cycle deadlock.
+**Step 5 — Analyze against telemetry.** Read states/monitors/lock owners, compare multiple snapshots, OS native TID CPU, GC pauses, request p99, and downstream metrics. Separate a single occurrence of `BLOCKED` from sustained contention or a deadlock cycle.
 
-**Bước 6 — Ghi quan sát và kết luận đúng mức.** Ví dụ “12 request workers nằm ở cùng `OrderRepository.save` qua ba dumps” là quan sát. “DB connection pool quá nhỏ” vẫn là giả thuyết cho tới khi có pool/DB/queue metrics. Nếu dump thiếu, ghi rõ giới hạn.
+**Step 6 — Record observations and right-sized conclusions.** For example, “12 request workers are at the same `OrderRepository.save` across three dumps” is an observation. “The DB connection pool is too small” remains a hypothesis until corroborated by pool/DB/queue metrics. If dumps are incomplete, state the limitations explicitly.
 
-## 15. Nhầm lẫn phổ biến
+## 15. Common misconceptions
 
-| Sai lầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “`jcmd -l` không thấy process là JVM không chạy.” | PID namespace/permission khiến công cụ không liệt kê mọi JVM. |
-| “PID 1 trong Docker là PID 1 ngoài host.” | Namespace có thể khác; không gửi signal nếu chưa xác định process. |
-| “`Thread.print` luôn không tác động.” | Impact Medium, tăng theo số threads và lượng output. |
-| “`-l` chỉ in thêm method names.” | Bổ sung ownable synchronizers/`java.util.concurrent` locks. |
-| “`jstack -F` luôn có trong JDK 21.” | Options thay đổi; đọc man/`-help` của tool đang dùng. |
-| “`jstack -l` phải giống `jcmd Thread.print -l` từng ký tự.” | Hai lần chụp khác thời điểm và format có thể khác. |
-| “`jcmd ... > file` lưu file bên trong JVM/container.” | Redirect là của shell **gọi jcmd**. |
-| “`kill -QUIT PID` in stack ở terminal lệnh kill.” | Signal dump xuất ra **stdout/log stream của JVM đích**. |
-| “SIGQUIT chắc chắn không làm dừng Java.” | Không có handler/`-Xrs` có thể khiến OS terminate/core dump. |
-| “Ctrl+C là cách Windows lấy thread dump.” | Windows console dùng **Ctrl+Break** khi có hỗ trợ. |
-| “`kill -9` giúp JVM in dump trước khi chết.” | SIGKILL không dùng để tạo Java thread dump. |
-| “Không thấy output ở SSH terminal nghĩa signal không được JVM nhận.” | Kiểm tra app logs/stdout pipeline, PID, handler, `-Xrs`. |
-| “Thread.print chắc chắn liệt kê đủ mọi virtual thread.” | Traditional dump có thể thiếu unmounted virtual threads; dùng công cụ phù hợp Java 21. |
-| “`RUNNABLE` nghĩa thread đang dùng toàn bộ CPU.” | Cần OS CPU counters/JFR, không chỉ Java state. |
-| “`WAITING` luôn là deadlock.” | Idle pool/queue worker thường chờ hợp lệ. |
-| “Không có Java deadlock report nghĩa request không thể treo.” | Network/DB waits, starvation, missed signals có thể nằm ngoài phạm vi deadlock detection. |
-| “Một dump sau restart mô tả được incident trước restart.” | Dữ liệu snapshot thuộc process/run mới, không khôi phục lịch sử. |
-| “Có file đồng nghĩa capture thành công.” | File có thể chỉ chứa error text hoặc bị truncate; phải kiểm tra output. |
-| “Raw thread dump không có dữ liệu nhạy cảm.” | Thread names, paths, packages, hostnames và structure có thể nhạy cảm. |
+| “`jcmd -l` not showing the process means the JVM is not running.” | PID namespaces/permissions can prevent the tool from listing every JVM. |
+| “PID 1 in Docker is PID 1 on the host.” | Namespaces can differ; do not send signals without verifying the process. |
+| “`Thread.print` always has zero impact.” | Impact is Medium, increasing with thread count and output size. |
+| “`-l` only prints extra method names.” | It adds ownable synchronizers/`java.util.concurrent` locks. |
+| “`jstack -F` is always available in JDK 21.” | Options change; read the man page/`-help` of the tool in use. |
+| “`jstack -l` must match `jcmd Thread.print -l` character for character.” | Two captures occur at different moments and formatting can differ. |
+| “`jcmd ... > file` saves the file inside the JVM/container.” | Redirection belongs to the shell **invoking jcmd**. |
+| “`kill -QUIT PID` prints stacks in the kill command's terminal.” | Signal dumps go to the **target JVM's stdout/log stream**. |
+| “SIGQUIT is guaranteed not to stop Java.” | Without a handler or with `-Xrs`, the OS may terminate/core dump. |
+| “Ctrl+C is the Windows way to take a thread dump.” | Windows consoles use **Ctrl+Break** when supported. |
+| “`kill -9` makes the JVM print a dump before dying.” | SIGKILL is never used to generate a Java thread dump. |
+| “Not seeing output in the SSH terminal means the JVM missed the signal.” | Check app logs/stdout pipeline, PID, handler, and `-Xrs`. |
+| “Thread.print is guaranteed to list every virtual thread.” | Traditional dumps can miss unmounted virtual threads; use Java 21-appropriate tools. |
+| “`RUNNABLE` means the thread is using 100% CPU.” | OS CPU counters/JFR are needed, not just Java state. |
+| “`WAITING` is always a deadlock.” | Idle pool/queue workers wait legitimately. |
+| “No Java deadlock report means requests cannot hang.” | Network/DB waits, starvation, and missed signals can fall outside deadlock detection scope. |
+| “A dump after restart describes the pre-restart incident.” | Snapshot data belongs to the new process/run and does not recover history. |
+| “Having a file means capture succeeded.” | The file might only contain error text or be truncated; inspect the output. |
+| “A raw thread dump contains no sensitive data.” | Thread names, paths, packages, hostnames, and structure can be sensitive. |
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-check questions
 
-**Câu 1.** `jcmd 12345 Thread.print -l > a.txt` lưu `a.txt` ở đâu?
+**Q1.** Where does `jcmd 12345 Thread.print -l > a.txt` save `a.txt`?
 
-**Đáp án:** trong working directory của **shell gọi `jcmd`**. Không tự nằm trong filesystem của JVM container nếu lệnh chạy từ host khác.
+**Answer:** in the working directory of **the shell invoking `jcmd`**. It is not automatically placed in the JVM container's filesystem if the command runs from another host.
 
-**Câu 2.** Bạn SSH vào máy, gửi `kill -QUIT` thành công nhưng terminal SSH không hiển thị dump. Có chứng minh thất bại không?
+**Q2.** You SSH into a machine, send `kill -QUIT` successfully, but the SSH terminal shows no dump. Does that prove failure?
 
-**Đáp án:** không. HotSpot handler ghi dump vào **stdout của Java process**; kiểm tra journal, container logs, stdout redirect hoặc console sở hữu JVM.
+**Answer:** no. The HotSpot handler writes the dump to the **Java process's stdout**; check journal, container logs, stdout redirects, or the console owning the JVM.
 
-**Câu 3.** Có thể gửi SIGQUIT vào mọi PID mang tên java mà không cần kiểm tra `-Xrs` không?
+**Q3.** Can you send SIGQUIT to any PID named java without checking `-Xrs`?
 
-**Đáp án:** không. Không có handler SIGQUIT thì OS có thể terminate/core dump; cần xác minh PID, VM handler, quyền và rủi ro.
+**Answer:** no. Without a SIGQUIT handler, the OS can terminate/core dump the process; verify PID, VM handler, permissions, and risk first.
 
-**Câu 4.** Tại sao chọn `Thread.print -l` khi nghi `ReentrantLock`?
+**Q4.** Why choose `Thread.print -l` when suspecting `ReentrantLock`?
 
-**Đáp án:** `-l` thêm thông tin ownable synchronizers/`java.util.concurrent` locks khi VM hỗ trợ. Vẫn cần xác minh owner, call stacks và duration.
+**Answer:** `-l` adds ownable synchronizers/`java.util.concurrent` lock details when supported by the VM. You still need to verify owners, call stacks, and duration.
 
-**Câu 5.** Java 21 dùng rất nhiều virtual threads nhưng `Thread.print` trả ít threads. Có thể khẳng định các virtual threads đã kết thúc?
+**Q5.** Java 21 uses many virtual threads, yet `Thread.print` returns few threads. Can you assert the virtual threads have finished?
 
-**Đáp án:** không. Một số unmounted virtual threads có thể không có trong traditional thread dump. Dùng `Thread.dump_to_file` khi target hỗ trợ, hoặc JFR/monitoring có scope phù hợp.
+**Answer:** no. Some unmounted virtual threads may not appear in a traditional thread dump. Use `Thread.dump_to_file` when supported by the target, or JFR/monitoring with the right scope.
 
-**Câu 6.** Một thread `RUNNABLE` xuất hiện trong dump có phải CPU hotspot không?
+**Q6.** Is a `RUNNABLE` thread appearing in a dump a CPU hotspot?
 
-**Đáp án:** chưa. Cần OS per-thread CPU, native `nid` correlation và CPU sampling qua một khoảng.
+**Answer:** not yet. You need OS per-thread CPU, native `nid` correlation, and CPU sampling over an interval.
 
-**Câu 7.** Cả ba dumps trong 15 giây đều có thread A `BLOCKED`. Có đủ bằng chứng deadlock?
+**Q7.** All three dumps over 15 seconds show thread A as `BLOCKED`. Is that sufficient proof of deadlock?
 
-**Đáp án:** chưa. Có thể lock held lâu nhưng vẫn có progress. Kiểm tra owner, vòng chờ, throughput và context; không đồng nhất contention với deadlock.
+**Answer:** not yet. A lock may be held for a long time while still making progress. Check owners, wait cycles, throughput, and context; do not equate contention with deadlock.
 
-**Câu 8.** Vì sao không dùng `kill -9` để thu dump?
+**Q8.** Why shouldn't `kill -9` be used to collect a dump?
 
-**Đáp án:** SIGKILL dừng tiến trình ngay ở mức OS, không cho JVM xử lý tín hiệu để xuất Java stacks theo cơ chế này.
+**Answer:** SIGKILL stops the process immediately at the OS level, giving the JVM no opportunity to handle a signal and emit Java stacks through this mechanism.
 
-**Câu 9.** `jstack -l` chạy thất bại sau khi lab in `DONE`. Có phải JVM bị deadlock?
+**Q9.** `jstack -l` fails after the lab prints `DONE`. Is the JVM deadlocked?
 
-**Đáp án:** không. JVM lab đã thoát; hãy kiểm tra PID/start time và không gửi tiếp signal vào PID đã có thể bị tái sử dụng.
+**Answer:** no. The lab JVM has exited; check the PID/start time and do not continue sending signals to a PID that may already have been reused.
 
-**Câu 10.** Hai dumps từ cùng JVM cách nhau 5 giây cho kết quả khác nhau. Có lỗi công cụ không?
+**Q10.** Two dumps from the same JVM 5 seconds apart yield different results. Is the tool broken?
 
-**Đáp án:** không nhất thiết. JVM đang chạy và threads thay đổi state liên tục. Quan trọng là ghi thời điểm, so các thread/lock liên quan và xác định xu hướng có ý nghĩa.
+**Answer:** not necessarily. The JVM is running and threads change states continuously. What matters is recording timestamps, comparing relevant threads/locks, and identifying meaningful trends.
 
-## 17. Checklist cuối bài
+## 17. End-of-lesson checklist
 
-- Xác minh **đúng JVM, PID/start time, host/container namespace và quyền**.
-- Chọn **`jcmd Thread.print`** nếu hỗ trợ; xem `help`, thêm `-l`/`-e` khi có mục tiêu.
-- Dùng **`jstack -l`** khi phù hợp, nhớ JDK 21 đánh dấu tool experimental/unsupported.
-- Chỉ dùng **Linux `SIGQUIT`/`Ctrl+\`, Windows `Ctrl+Break`** khi handler đã được xác minh; hiểu `-Xrs` và rủi ro default signal.
-- Phân biệt **caller-side stdout/file** của `jcmd/jstack`, **target JVM stdout** của signal và **target filesystem** của `Thread.dump_to_file`.
-- Không gán traditional platform-thread dump thành danh sách đầy đủ mọi Java 21 virtual threads.
-- Lấy vài snapshots đúng **cửa sổ sự cố**, với timestamp UTC và process identity.
-- Kiểm tra file có **thread dump thật, không bị cắt**, và lưu bảo mật.
-- Đọc state, locks, owners, OS native TID và stack cùng telemetry; không kết luận root cause chỉ từ một snapshot.
-- Không dùng SIGKILL, Ctrl+C hoặc thao tác dừng process khi mục tiêu chỉ là thu stack.
+- Verify the **exact JVM, PID/start time, host/container namespace, and permissions**.
+- Choose **`jcmd Thread.print`** if supported; inspect `help`, add `-l`/`-e` when targeted.
+- Use **`jstack -l`** when appropriate, keeping in mind JDK 21 marks the tool experimental/unsupported.
+- Only use **Linux `SIGQUIT`/`Ctrl+\`, Windows `Ctrl+Break`** when the handler is verified; understand `-Xrs` and default signal risks.
+- Distinguish **caller-side stdout/file** of `jcmd/jstack`, **target JVM stdout** of signals, and **target filesystem** of `Thread.dump_to_file`.
+- Do not treat a traditional platform-thread dump as a complete list of all Java 21 virtual threads.
+- Take several snapshots within the **incident window**, with UTC timestamps and process identity.
+- Verify the file contains a **real, untruncated thread dump**, and store it securely.
+- Read states, locks, owners, OS native TIDs, and stacks alongside telemetry; never conclude root cause from a single snapshot.
+- Never use SIGKILL, Ctrl+C, or process-stopping actions when the goal is only to collect stacks.
 
-**Kết luận:** thu stack đúng là **xác định JVM → chọn công cụ phù hợp → biết output đi đâu → giới hạn rủi ro → đọc snapshot trong bối cảnh thời gian**. Trên HotSpot/JDK 21, `jcmd Thread.print` thường là bước đầu, `jstack` là lựa chọn bổ sung, còn SIGQUIT/Ctrl+Break có ích khi được VM/OS hỗ trợ nhưng phải cực kỳ cẩn thận để không làm hỏng chính ứng dụng đang cần chẩn đoán.
+**Conclusion:** capturing stacks properly means **identifying the JVM → choosing the right tool → knowing where output goes → limiting risk → reading snapshots in temporal context**. On HotSpot/JDK 21, `jcmd Thread.print` is usually the first step, `jstack` is a fallback option, and SIGQUIT/Ctrl+Break are useful when supported by the VM/OS, provided extreme care is taken not to disrupt the very application you are trying to diagnose.
 
-### Tài liệu tham khảo chính thức
+### Official references
 
-- [Oracle JDK 21 — The jcmd Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): cú pháp `Thread.print`, `-l`, `-e`, impact và điều kiện attach.
-- [Oracle JDK 21 — The jstack Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jstack.html): `jstack`/`-l`, công cụ experimental/unsupported.
-- [Oracle JDK 21 — Diagnostic Tools and Control+Break Handler](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): Linux SIGQUIT, Windows Ctrl+Break, stdout, thread states và deadlock report.
-- [Oracle JDK 21 — The java Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html): option `-Xrs` và Java/OS signal handling.
-- [Oracle JDK 21 — Virtual Threads](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html): virtual threads và `Thread.dump_to_file` text/JSON.
-- [Java SE 21 — ThreadMXBean API](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): thread diagnostics, locks và khả năng theo dõi platform threads.
+- [Oracle JDK 21 — The jcmd Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `Thread.print` syntax, `-l`, `-e`, impact, and attach prerequisites.
+- [Oracle JDK 21 — The jstack Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jstack.html): `jstack`/`-l`, experimental/unsupported tool status.
+- [Oracle JDK 21 — Diagnostic Tools and Control+Break Handler](https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html): Linux SIGQUIT, Windows Ctrl+Break, stdout, thread states, and deadlock reports.
+- [Oracle JDK 21 — The java Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html): `-Xrs` option and Java/OS signal handling.
+- [Oracle JDK 21 — Virtual Threads](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html): virtual threads and text/JSON `Thread.dump_to_file`.
+- [Java SE 21 — ThreadMXBean API](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): thread diagnostics, locks, and platform thread monitoring capabilities.

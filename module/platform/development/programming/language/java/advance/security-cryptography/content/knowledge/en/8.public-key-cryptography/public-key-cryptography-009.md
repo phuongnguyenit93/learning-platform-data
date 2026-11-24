@@ -1,73 +1,73 @@
-# 8.9 Giới hạn của việc dùng thuật toán bất đối xứng thay cho mã hóa dữ liệu khối lớn
+# 8.9 Limitations of Using Asymmetric Algorithms Instead of Bulk Data Encryption
 
-**Mã hóa bất đối xứng (public-key encryption)** giải quyết bài toán quan trọng: người gửi có thể sử dụng **khóa công khai** của người nhận để mã hóa một bí mật mà chỉ người giữ **khóa riêng** tương ứng có khả năng giải mã, với điều kiện thuật toán và giao thức được dùng đúng. Nhưng điều đó **không có nghĩa** RSA hoặc các primitive khóa công khai là lựa chọn phù hợp để mã hóa trực tiếp một file vài MB/GB, một luồng video hoặc toàn bộ dữ liệu trong cơ sở dữ liệu.
+**Asymmetric encryption (public-key encryption)** solves an important problem: a sender can use the recipient's **public key** to encrypt a secret that only the holder of the corresponding **private key** can decrypt, provided the algorithm and protocol are used properly. However, that **does not mean** RSA or public-key primitives are suitable for directly encrypting a multi-MB/GB file, a video stream, or an entire database.
 
-Cách làm thực tế thường là **mã hóa lai (hybrid encryption)**: thuật toán bất đối xứng/KEM hoặc giao thức thỏa thuận khóa đảm nhận việc **thiết lập/bảo vệ một khóa phiên nhỏ**; thuật toán đối xứng **AEAD** như AES-GCM mã hóa và xác thực **dữ liệu lớn**. Bài này tập trung vào giới hạn kỹ thuật của bất đối xứng khi thay mã hóa khối lớn, cách tính đúng kích thước RSA-OAEP, vì sao “cắt file thành nhiều đoạn rồi RSA từng đoạn” không phải giải pháp, và cách thiết kế envelope encryption trong Java 17+.
+The practical approach is **hybrid encryption**: an asymmetric algorithm/KEM or key-agreement protocol **establishes/protects a small session key**; a symmetric **AEAD** algorithm such as AES-GCM encrypts and authenticates the **large payload**. This lesson focuses on the technical limits of using asymmetric cryptography for bulk encryption, how to calculate RSA-OAEP limits accurately, why "splitting a file into chunks and RSA-encrypting each chunk" is not a solution, and how to design envelope encryption in Java 17+.
 
-## 1. Bất đối xứng và đối xứng đảm nhận hai công việc khác nhau
+## 1. Asymmetric and Symmetric Cryptography Perform Two Different Jobs
 
-| Khía cạnh | Mã hóa bất đối xứng / cơ chế khóa công khai | Mã hóa đối xứng AEAD |
+| Aspect | Asymmetric encryption / public-key mechanisms | Symmetric AEAD encryption |
 | --- | --- | --- |
-| Vật liệu khóa | Khóa công khai/khóa riêng, hoặc cặp khóa và shared secret trong giao thức thỏa thuận khóa | Một khóa bí mật chia sẻ hoặc data-encryption key (DEK) |
-| Công việc điển hình | Mã hóa/đóng gói khóa phiên nhỏ, trao đổi/thiết lập bí mật, chữ ký số (là primitive khác) | Mã hóa lượng dữ liệu tùy ý **trong giới hạn mỗi thuật toán/giao thức**, đồng thời xác thực ciphertext và AAD |
-| Chi phí tính toán | Thường lớn hơn đáng kể mỗi phép toán; RSA private-key operation đặc biệt đắt | Thường hiệu quả cho lượng byte lớn; có hỗ trợ tăng tốc trên nhiều CPU |
-| Độ dài input trực tiếp | Với RSA-OAEP bị giới hạn bởi modulus và hash/padding, thường vài trăm byte | Dựa vào mode và giới hạn nonce/message; không bị ràng buộc kiểu “190 byte RSA-2048” |
-| Kích thước output | Một phép RSA encryption trả ciphertext dài bằng modulus, bất kể plaintext ngắn thế nào | Thường xấp xỉ độ dài plaintext cộng tag/nonce/metadata nếu giao thức đóng gói |
-| Xác thực nguồn gửi | **RSA encryption chỉ dùng khóa công khai người nhận không xác thực danh tính người gửi** | AEAD xác thực dữ liệu dưới khóa đã biết, không tự gắn danh tính người gửi |
-| Điểm cần quản lý | Tin cậy public key, key ID, chứng chỉ, private key, padding, thuật toán và key rotation | Sinh/quản lý key, nonce/IV duy nhất, AAD, tag, integrity, rotation và policy |
+| Key material | Public/private keys, or key pairs and a shared secret in key agreement | A shared secret key or data-encryption key (DEK) |
+| Typical job | Encrypting/wrapping small session keys, secret establishment/exchange, digital signatures (a separate primitive) | Encrypting arbitrary amounts of data **within each algorithm/protocol's limits**, while authenticating ciphertext and AAD |
+| Computational cost | Usually substantially higher per operation; RSA private-key operations are especially expensive | Usually efficient for large byte volumes; hardware acceleration available on many CPUs |
+| Direct input length | For RSA-OAEP, bounded by modulus and hash/padding, typically a few hundred bytes | Based on mode and nonce/message limits; not bound by a "190-byte RSA-2048" limit |
+| Output size | One RSA encryption returns ciphertext equal to the modulus length, regardless of how short plaintext is | Typically near plaintext length plus tag/nonce/metadata if packaged by a protocol |
+| Origin authentication | **RSA encryption using only the recipient's public key does not authenticate sender identity** | AEAD authenticates data under a known key; does not automatically bind sender identity |
+| Management needs | Public-key trust, key ID, certificates, private key, padding, algorithm, and key rotation | Key generation/management, unique nonce/IV, AAD, tag, integrity, rotation, and policy |
 
-**Định nghĩa quan trọng:** RSA encryption, RSA signature, ECDSA signature, ECDH key agreement và KEM là các primitive **khác nhau**, dù đều nằm trong thế giới khóa công khai. Không thể lấy chữ ký số rồi gọi đó là mã hóa, hoặc gọi ECDH là hàm mã hóa dữ liệu file.
+**Important definition:** RSA encryption, RSA signatures, ECDSA signatures, ECDH key agreement, and KEMs are **different** primitives, even though all belong to the public-key world. You cannot take a digital signature and call it encryption, nor call ECDH a file encryption function.
 
-Một câu tóm tắt dễ nhớ:
+An easy-to-remember summary:
 
-> **Khóa công khai bảo vệ hoặc thiết lập khóa dữ liệu; khóa dữ liệu đối xứng bảo vệ phần lớn byte của tài liệu.**
+> **Public keys protect or establish the data key; the symmetric data key protects the bulk bytes of the document.**
 
-## 2. Giới hạn kích thước plaintext của RSA-OAEP
+## 2. Plaintext Size Limit of RSA-OAEP
 
-RSA làm việc với một modulus `n`, và ciphertext của một phép RSA encryption là một giá trị được mã hóa vào đúng kích thước modulus. Với **RSA-2048**, modulus thông thường dài **2.048 bit = 256 byte**. Nhưng **đầu vào tối đa không phải 256 byte**, vì cơ chế padding RSA-OAEP cần vùng dữ liệu để đảm bảo an toàn.
+RSA operates modulo a modulus `n`, and the ciphertext of a single RSA encryption is a value encoded to the exact modulus size. With **RSA-2048**, the modulus is typically **2,048 bits = 256 bytes**. Yet the **maximum input is not 256 bytes**, because the RSA-OAEP padding mechanism requires space to ensure security.
 
-### 2.1. Công thức RSAES-OAEP
+### 2.1. The RSAES-OAEP Formula
 
-Theo cơ chế RSAES-OAEP trong PKCS #1 (RFC 8017), nếu:
+Under the RSAES-OAEP mechanism in PKCS #1 (RFC 8017), if:
 
-- `k` = số **byte** cần để biểu diễn modulus RSA;
-- `hLen` = số byte đầu ra của hash dùng trong OAEP;
-- `mLen` = số byte plaintext;
+- `k` = number of **bytes** required to represent the RSA modulus;
+- `hLen` = output byte count of the hash used in OAEP;
+- `mLen` = number of plaintext bytes;
 
-thì cần:
+then we need:
 
 ```text
 mLen <= k - 2 * hLen - 2
 ```
 
-Đây là **giới hạn kích thước byte**, không phải giới hạn số ký tự Unicode hoặc Java `String.length()`.
+This is a **byte size limit**, not a limit on Unicode characters or Java `String.length()`.
 
-Với modulus 2.048 bit, `k = 256`. Khi OAEP dùng SHA-256, `hLen = 32`, nên:
+With a 2,048-bit modulus, `k = 256`. When OAEP uses SHA-256, `hLen = 32`, so:
 
 ```text
 maxPlaintext = 256 - 2 * 32 - 2 = 190 bytes
 RSA ciphertext length = 256 bytes
 ```
 
-Nếu file chứa **191 byte**, một phép RSA-2048 + OAEP SHA-256 trực tiếp không thể mã hóa nó. Việc “RSA có khóa 2.048 bit” hoàn toàn không có nghĩa có thể nạp plaintext 2.048 bit hoặc nhiều hơn vào cùng phép toán.
+If a file contains **191 bytes**, a single direct RSA-2048 + OAEP SHA-256 operation cannot encrypt it. Having a "2,048-bit RSA key" does not mean you can feed 2,048 bits or more of plaintext into that operation.
 
-### 2.2. So sánh các cấu hình
+### 2.2. Comparing Configurations
 
-| Modulus RSA | `k` | Hash OAEP / `hLen` | Plaintext tối đa mỗi RSA-OAEP operation | Ciphertext mỗi operation |
+| RSA Modulus | `k` | OAEP Hash / `hLen` | Max plaintext per RSA-OAEP operation | Ciphertext per operation |
 | --- | ---: | --- | ---: | ---: |
-| RSA-2048 | 256 byte | SHA-1 / 20 byte | 214 byte | 256 byte |
-| RSA-2048 | 256 byte | SHA-256 / 32 byte | **190 byte** | **256 byte** |
-| RSA-3072 | 384 byte | SHA-256 / 32 byte | 318 byte | 384 byte |
-| RSA-4096 | 512 byte | SHA-256 / 32 byte | 446 byte | 512 byte |
-| RSA-2048 | 256 byte | SHA-512 / 64 byte | 126 byte | 256 byte |
+| RSA-2048 | 256 bytes | SHA-1 / 20 bytes | 214 bytes | 256 bytes |
+| RSA-2048 | 256 bytes | SHA-256 / 32 bytes | **190 bytes** | **256 bytes** |
+| RSA-3072 | 384 bytes | SHA-256 / 32 bytes | 318 bytes | 384 bytes |
+| RSA-4096 | 512 bytes | SHA-256 / 32 bytes | 446 bytes | 512 bytes |
+| RSA-2048 | 256 bytes | SHA-512 / 64 bytes | 126 bytes | 256 bytes |
 
-Các giá trị là giới hạn **về kích thước**, không phải khuyến nghị bảo mật cho từng tổ hợp. SHA-1 trong bảng chỉ để thấy hiệu ứng của `hLen`; thiết kế mới nên sử dụng thuật toán và profile được chính sách bảo mật hiện hành cho phép, không chọn SHA-1 chỉ để tăng kích thước input. RSA-2048 cũng không có “độ mạnh 2.048 bit”: mức bảo mật cổ điển ước lượng chỉ khoảng **112 bit**, khác hoàn toàn kích thước modulus. Chọn RSA-3072/4096 hay giải pháp khóa công khai khác phải cân nhắc chính sách, thời gian bảo vệ dữ liệu và hiệu năng.
+These values are **size limits**, not security recommendations for every combination. SHA-1 appears in the table only to illustrate the effect of `hLen`; new designs should use algorithms and profiles permitted by current security policy, never picking SHA-1 merely to increase input size. RSA-2048 also does not offer "2,048-bit strength": its estimated classical security level is only around **112 bits**, completely distinct from modulus size. Choosing RSA-3072/4096 or another public-key solution must weigh policy, data protection lifetime, and performance.
 
-### 2.3. Các tham số OAEP phải xác định đầy đủ
+### 2.3. OAEP Parameters Must Be Fully Specified
 
-Trong Java thường thấy chuỗi transformation `"RSA/ECB/OAEPPadding"` hoặc `"RSA/ECB/OAEPWithSHA-256AndMGF1Padding"`. Chữ **ECB** trong tên transformation RSA là quy ước API, **không có nghĩa RSA đang mã hóa khối dữ liệu giống AES-ECB**; RSA không dùng chế độ ECB cho file.
+In Java you often see transformation strings `"RSA/ECB/OAEPPadding"` or `"RSA/ECB/OAEPWithSHA-256AndMGF1Padding"`. The **ECB** token in RSA transformation names is an API convention and **does not mean RSA encrypts data blocks like AES-ECB**; RSA does not use ECB mode for files.
 
-Để tránh mơ hồ giữa **hash của OAEP** và **hash dùng trong MGF1**, nên chỉ định cả hai qua `OAEPParameterSpec`:
+To avoid ambiguity between the **OAEP hash** and the **hash used in MGF1**, specify both explicitly via `OAEPParameterSpec`:
 
 ```java
 OAEPParameterSpec oaep = new OAEPParameterSpec(
@@ -77,15 +77,15 @@ Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPPadding");
 cipher.init(Cipher.ENCRYPT_MODE, recipientPublicKey, oaep);
 ```
 
-Đây là **đoạn minh họa đặt tham số**, chưa phải chương trình độc lập: `recipientPublicKey` phải là `PublicKey` đã được xác minh nguồn tin cậy; các `import` sẽ có trong chương trình hoàn chỉnh phía sau.
+This is an **illustrative parameter-setup snippet**, not a standalone program: `recipientPublicKey` must be a `PublicKey` whose origin has been verified; the `import` statements appear in the complete program later.
 
-Không phụ thuộc mặc định của provider rồi giả định mọi JVM/hệ thống sẽ tự chọn cùng một OAEP hash/MGF1 hash. Sai tham số có thể dẫn đến không giải mã được hoặc sự cố tương thích. RSA-OAEP hỗ trợ tùy chọn label `PSource.PSpecified`; phía mã hóa và giải mã cũng phải dùng đúng label theo giao thức.
+Do not rely on provider defaults and assume every JVM/system picks the exact same OAEP hash/MGF1 hash. Parameter mismatches cause decryption failures or interoperability bugs. RSA-OAEP supports an optional `PSource.PSpecified` label; encryption and decryption must also use the exact same protocol-defined label.
 
-### 2.4. Tăng kích thước khóa RSA có giải quyết được file lớn?
+### 2.4. Does Increasing RSA Key Size Solve Large Files?
 
-**Không.** RSA-4096 với OAEP SHA-256 vẫn chỉ xử lý tối đa **446 byte/plaintext operation**, trong khi file có thể dài hàng triệu hoặc hàng tỷ byte. Tăng modulus vừa làm key/ciphertext lớn hơn vừa thường làm phép toán private-key chậm hơn đáng kể.
+**No.** RSA-4096 with OAEP SHA-256 still handles at most **446 bytes per plaintext operation**, while files can be millions or billions of bytes long. Increasing the modulus both enlarges keys/ciphertexts and typically slows private-key operations substantially.
 
-Với **RSA-2048/OAEP SHA-256**, một file **1 MiB = 1.048.576 byte** nếu cố cắt thành các đoạn tối đa 190 byte sẽ cần:
+With **RSA-2048/OAEP SHA-256**, trying to slice a **1 MiB = 1,048,576-byte** file into chunks of up to 190 bytes would require:
 
 ```text
 numberOfRSAOperations = ceil(1,048,576 / 190) = 5,519
@@ -93,52 +93,52 @@ ciphertextSize = 5,519 * 256 = 1,412,864 bytes
 overhead = 1,412,864 - 1,048,576 = 364,288 bytes
 ```
 
-Đây mới là **chi phí kích thước** của phép chia khối, chưa gồm framing, sequence, thuật toán, khóa, version hay bảo vệ toàn vẹn. Hệ thống còn phải thực hiện **5.519 RSA encrypt operations** và tương ứng hàng nghìn **RSA private-key decrypt operations** thay vì một phép toán RSA bọc khóa nhỏ và một lượt AES trên file.
+That is merely the **size cost** of splitting blocks, before even adding framing, sequence numbers, algorithm IDs, key IDs, versions, or integrity protection. The system would also execute **5,519 RSA encrypt operations** and thousands of **RSA private-key decrypt operations** instead of one RSA operation wrapping a small key and one AES pass over the file.
 
-## 3. Vì sao “chia nhỏ file rồi RSA từng chunk” là thiết kế tệ?
+## 3. Why "Splitting a File and RSA-Encrypting Each Chunk" Is a Bad Design
 
-### 3.1. Hiệu năng không phù hợp với throughput lớn
+### 3.1. Performance Unsuited for High Throughput
 
-RSA dựa trên phép toán số học modulo big integer, có chi phí lớn hơn hẳn các round cipher đối xứng trên lượng dữ liệu dài. Chia file thành 5.519 khối tạo hàng nghìn phép toán khóa công khai, tải CPU và độ trễ tăng theo số lượng chunk; khi dùng HSM/KMS còn gặp overhead RPC, giới hạn throughput và chi phí vận hành.
+RSA relies on big-integer modular arithmetic, costing far more per byte than symmetric block cipher rounds over large volumes. Splitting a file into 5,519 blocks creates thousands of public-key operations, driving up CPU load and latency with chunk count; with an HSM/KMS, you also incur RPC overhead, throughput limits, and operational cost.
 
-Đối xứng như **AES-GCM** được tối ưu cho xử lý lượng byte lớn, có hỗ trợ tăng tốc AES/CLMUL ở nhiều nền tảng. **Không cần gán một tỷ lệ tốc độ cố định** cho mọi CPU/provider: hãy benchmark trong môi trường thực, nhưng cấu trúc công việc khác nhau rất rõ.
+Symmetric algorithms such as **AES-GCM** are optimized for bulk byte processing, with AES/CLMUL hardware acceleration on many platforms. **There is no need to assert a single fixed speed ratio** for all CPUs/providers: benchmark in your real environment, yet the structural difference in workload is stark.
 
-### 3.2. Mỗi block RSA có overhead đáng kể
+### 3.2. Every RSA Block Adds Significant Overhead
 
-Một block plaintext 190 byte trở thành block ciphertext 256 byte. Nếu block cuối chỉ có 1 byte, nó vẫn chiếm **256 byte**. Padding OAEP cần ngẫu nhiên, nên mã hóa cùng plaintext bằng cùng public key thường cho ciphertext khác nhau; không thể tự cắt overhead đi sau khi mã hóa.
+A 190-byte plaintext block becomes a 256-byte ciphertext block. Even if the final block has only 1 byte, it still occupies **256 bytes**. OAEP padding requires randomness, so encrypting the same plaintext with the same public key yields different ciphertexts; you cannot trim overhead after encryption.
 
-Với file lớn, size của hàng nghìn block cộng metadata làm truyền/lưu trữ tốn hơn so với cách mã hóa dữ liệu bằng AES-GCM chỉ thêm tag nhỏ và phần header/nonce.
+For large files, the size of thousands of blocks plus metadata inflates transmission and storage compared to encrypting data with AES-GCM, which adds only a small tag plus header/nonce.
 
-### 3.3. RSA-OAEP không biến các chunk thành một file được xác thực
+### 3.3. RSA-OAEP Does Not Turn Chunks into an Authenticated File
 
-RSA-OAEP cung cấp cơ chế mã hóa an toàn khi dùng đúng và trong mô hình phù hợp, nhưng **không phải một giao thức AEAD cho toàn bộ file**. Nếu tự chia file thành các chunk, bạn phải tự xử lý:
+RSA-OAEP provides secure encryption when used properly in the right model, yet **is not an AEAD protocol for a whole file**. If you split a file into chunks yourself, you must manually solve:
 
-- Thứ tự chunk và số thứ tự; chống đảo thứ tự/ghép chunk từ file khác.
-- Chống thiếu chunk, lặp chunk, cắt cụt phần đuôi và thay thế nội dung.
-- Xác thực metadata như file ID, độ dài dự kiến, content type, version.
-- Phát hiện sửa đổi theo một chính sách thống nhất, không chỉ biết từng RSA operation có giải mã ra byte hay không.
-- Xử lý lỗi và padding oracle/leak qua thông điệp lỗi hoặc timing.
+- Chunk ordering and sequence numbers; preventing reordering or splicing chunks from another file.
+- Preventing missing chunks, duplicate chunks, tail truncation, and content substitution.
+- Authenticating metadata such as file ID, expected length, content type, and version.
+- Detecting tampering under one unified policy, rather than only knowing whether each individual RSA operation decrypted some bytes.
+- Error handling and padding-oracle/side-channel leaks via error messages or timing.
 
-Cài đặt thiếu một trong những lớp trên có thể tạo lỗi nghiêm trọng. Mã hóa từng block RSA và ghép lại không tự biến thành *secure file encryption*. **Đừng tự phát minh “RSA chunk mode”** để né giới hạn `mLen`.
+Missing any one of those layers can introduce severe vulnerabilities. Encrypting individual RSA blocks and concatenating them does not magically create *secure file encryption*. **Never invent an ad-hoc "RSA chunk mode"** to bypass the `mLen` limit.
 
-### 3.4. Nguy cơ thiết kế/API
+### 3.4. Design/API Hazards
 
-- Đừng dùng `RSA/ECB/NoPadding` như một mẹo để nạp được nhiều byte hơn: **raw/textbook RSA không an toàn** và không giải quyết bài toán bulk encryption.
-- Đừng chuyển sang `RSA/ECB/PKCS1Padding` chỉ vì nó cho plaintext dài hơn OAEP một chút: RSAES-PKCS1-v1_5 có rủi ro padding-oracle và không phải lựa chọn mặc định cho thiết kế mới.
-- Đừng dùng RSA **signature** để “mã hóa bằng private key”. Chữ ký phục vụ xác thực/tính toàn vẹn theo chuẩn chữ ký; nó **không tạo bí mật dữ liệu**.
-- Đừng mã hóa một file trực tiếp bằng khóa công khai EC/ECDSA: ECDSA là chữ ký số; ECDH/X25519 là cơ chế **thỏa thuận khóa**, không phải `Cipher.doFinal(file)` để mã hóa trực tiếp.
+- Never use `RSA/ECB/NoPadding` as a trick to fit more bytes: **raw/textbook RSA is insecure** and does not solve bulk encryption.
+- Never switch to `RSA/ECB/PKCS1Padding` just because its maximum plaintext is slightly longer than OAEP: RSAES-PKCS1-v1_5 carries padding-oracle risks and is not a default choice for new designs.
+- Never use RSA **signatures** to "encrypt with a private key". Signatures serve authentication/integrity per signature standards; they **do not provide data confidentiality**.
+- Never encrypt a file directly with an EC/ECDSA public key: ECDSA is a digital signature; ECDH/X25519 is a **key-agreement** mechanism, not `Cipher.doFinal(file)` for direct encryption.
 
-## 4. Giải pháp đúng: Hybrid encryption / envelope encryption
+## 4. The Right Solution: Hybrid Encryption / Envelope Encryption
 
-Trong mô hình RSA-OAEP + AES-GCM, một file có một **data-encryption key (DEK)** ngẫu nhiên ngắn. Phần bất đối xứng **chỉ bọc DEK**; phần đối xứng mã hóa toàn bộ file.
+In the RSA-OAEP + AES-GCM model, each file gets a short random **data-encryption key (DEK)**. The asymmetric part **only wraps the DEK**; the symmetric part encrypts the entire file.
 
-### 4.1. Luồng mã hóa
+### 4.1. Encryption Flow
 
 ```text
-                   Bên gửi
-   [PublicKey người nhận đã xác thực]
+                   Sender
+   [Verified recipient PublicKey]
                      |
-    Tạo AES-256 data key ngẫu nhiên (32 byte)
+    Generate random AES-256 data key (32 bytes)
                      |
              +-------+--------+
              |                |
@@ -151,25 +151,25 @@ Trong mô hình RSA-OAEP + AES-GCM, một file có một **data-encryption key (
        Envelope: header + keyId + wrappedKey
                   + nonce + ciphertext + tag
                      |
-              Lưu / truyền cho người nhận
+              Store / send to recipient
 ```
 
-Các bước:
+Steps:
 
-1. **Xác minh public key của người nhận** bằng certificate/PKI, danh bạ khóa đã pin hoặc kênh cung cấp khóa được xác thực. Nếu đối thủ thay public key bằng của họ, toàn bộ file có thể bị mã hóa để đối thủ mở.
-2. **Sinh một DEK ngẫu nhiên mới** (ví dụ AES-256 = 32 byte) bằng CSPRNG/KeyGenerator; không dùng mật khẩu hoặc `new Random()` làm key.
-3. **Bọc DEK** bằng public key RSA của người nhận và RSA-OAEP có tham số xác định; output là một RSA ciphertext nhỏ, ví dụ 256 byte với RSA-2048.
-4. **Sinh nonce/IV đúng yêu cầu AEAD**; với AES-GCM thường dùng 96 bit = 12 byte. Với cùng một AES key, **nonce không được lặp**. Tạo DEK mới cho mỗi file giúp đơn giản hóa chiến lược nonce, nhưng vẫn phải quản lý sao cho không reuse cặp key/nonce.
-5. **Mã hóa file bằng AES-GCM** với DEK, nonce và AAD đã chuẩn hóa; kết quả gồm ciphertext và authentication tag, ví dụ tag 128 bit = 16 byte.
-6. **Đóng gói envelope** có version, thuật toán, key ID, wrapped key, nonce, ciphertext, tag và AAD/metadata cần thiết; kiểm tra giới hạn độ dài và chính sách parse trước khi giải mã.
+1. **Verify the recipient's public key** via certificate/PKI, pinned key directory, or an authenticated key-delivery channel. If an adversary swaps the public key for theirs, the entire file could be encrypted for the adversary to open.
+2. **Generate a fresh random DEK** (e.g., AES-256 = 32 bytes) using a CSPRNG/`KeyGenerator`; never use passwords or `new Random()` as keys.
+3. **Wrap the DEK** with the recipient's RSA public key using RSA-OAEP with explicit parameters; output is a small RSA ciphertext, e.g., 256 bytes for RSA-2048.
+4. **Generate a nonce/IV meeting AEAD requirements**; AES-GCM typically uses 96 bits = 12 bytes. Under the same AES key, **nonces must never repeat**. Generating a fresh DEK per file simplifies the nonce strategy, though you must still manage against key/nonce pair reuse.
+5. **Encrypt the file with AES-GCM** using the DEK, nonce, and standardized AAD; output includes ciphertext and authentication tag, e.g., 128-bit tag = 16 bytes.
+6. **Package the envelope** with version, algorithms, key ID, wrapped key, nonce, ciphertext, tag, and required AAD/metadata; enforce length bounds and parsing policies prior to decryption.
 
-### 4.2. Luồng giải mã
+### 4.2. Decryption Flow
 
 ```text
-                  Bên nhận
-     Envelope và metadata đã kiểm tra sơ bộ
+                  Recipient
+     Pre-validated envelope and metadata
                      |
-    Xác định keyId + phiên bản + thuật toán hợp lệ
+    Resolve keyId + valid version + algorithm
                      |
       PrivateKey --> RSA-OAEP decrypt(wrappedKey)
                      |           |
@@ -179,34 +179,34 @@ Các bước:
                      |           |
               AES-GCM decrypt + verify tag
                      |
-           Chỉ chấp nhận plaintext khi
-           authentication tag đã hợp lệ
+           Accept plaintext only after
+           authentication tag is valid
 ```
 
-**Thứ tự bảo mật:** không coi plaintext là đáng tin trước khi AEAD tag được kiểm tra; một file có tag sai phải bị từ chối toàn bộ. Nếu giải mã theo stream để ra disk, hãy cân nhắc **ghi vào file tạm cô lập** rồi chỉ công bố/rename sau khi hoàn thành xác thực, không cho các thành phần nghiệp vụ đọc trước.
+**Security ordering:** never treat plaintext as trustworthy before the AEAD tag is verified; a file with an invalid tag must be rejected in full. When streaming decryption to disk, consider **writing to an isolated temporary file** and publishing/renaming only after authentication completes, preventing business components from reading unverified bytes.
 
-### 4.3. Kích thước thật của envelope ví dụ
+### 4.3. Actual Size of the Example Envelope
 
-Với RSA-2048 OAEP SHA-256 bọc một **AES-256 key 32 byte**, và AES-GCM mã hóa đúng **1 MiB plaintext**:
+With RSA-2048 OAEP SHA-256 wrapping a **32-byte AES-256 key**, and AES-GCM encrypting exactly **1 MiB of plaintext**:
 
-| Thành phần | Số byte |
+| Component | Bytes |
 | --- | ---: |
-| AES data key (chỉ tồn tại trong bộ nhớ, **không** gửi plaintext key) | 32 |
-| `wrappedKey` RSA-OAEP của DEK | 256 |
+| AES data key (exists only in memory, **never** sent in plaintext) | 32 |
+| RSA-OAEP `wrappedKey` of the DEK | 256 |
 | GCM nonce | 12 |
-| Dữ liệu ciphertext của 1 MiB plaintext | 1.048.576 |
-| GCM tag 128 bit | 16 |
-| `ciphertext || tag` từ `Cipher.doFinal` | **1.048.592** |
-| `wrappedKey || nonce || ciphertext || tag` | **1.048.860** |
-| Header, key ID, version, lengths, AAD metadata | **Thêm tùy định dạng** |
+| Ciphertext data for 1 MiB plaintext | 1,048,576 |
+| 128-bit GCM tag | 16 |
+| `ciphertext \|\| tag` from `Cipher.doFinal` | **1,048,592** |
+| `wrappedKey \|\| nonce \|\| ciphertext \|\| tag` | **1,048,860** |
+| Header, key ID, version, lengths, AAD metadata | **Extra depending on format** |
 
-Đối chiếu với 1.412.864 byte khi mã hóa trực tiếp 1 MiB theo 5.519 block RSA, hybrid có **overhead binary chỉ 284 byte trong ví dụ chưa tính header**, và chỉ cần **một RSA operation** để bọc DEK; khối dữ liệu lớn đi qua AES-GCM.
+Compared to 1,412,864 bytes when encrypting 1 MiB directly across 5,519 RSA blocks, hybrid encryption has **only 284 bytes of binary overhead in the example before headers**, and needs **only one RSA operation** to wrap the DEK; the bulk data passes through AES-GCM.
 
-Không hiểu số “32 byte AES key” là một thành phần được truyền ở dạng plaintext; nó nằm bên trong `wrappedKey`. Việc nhân bản/ghi raw DEK vào envelope sẽ phá hoàn toàn tính bí mật.
+Do not mistake the "32-byte AES key" for a field transmitted in plaintext; it sits inside `wrappedKey`. Duplicating or writing the raw DEK into the envelope completely destroys confidentiality.
 
-### 4.4. Vấn đề cần đặt trong header và AAD
+### 4.4. What Belongs in the Header and AAD
 
-Một envelope đủ dùng thật không chỉ là nối bốn mảng byte tùy ý. Phải định nghĩa schema không nhập nhằng, ví dụ:
+A production-ready envelope is not just concatenating four arbitrary byte arrays. You must define an unambiguous schema, for example:
 
 ```text
 version
@@ -214,25 +214,25 @@ suiteId / asymmetricKeyId / recipientId
 wrappedKeyLength + wrappedKey
 nonceLength + nonce
 ciphertextLength + ciphertext || tag
-associatedData (metadata được xác thực)
+associatedData (authenticated metadata)
 ```
 
-- **Định dạng ranh giới byte:** length-prefix, TLV, CBOR/protobuf schema được giới hạn và chuẩn hóa. Không đoán độ dài chỉ dựa vào delimiter trong binary.
-- **AAD (additional authenticated data):** đưa các metadata cần bảo vệ tính toàn vẹn (version, algorithm suite, document ID, tenant/recipient context, hoặc key binding) vào AAD theo quy tắc canonical rõ ràng. AAD **được xác thực nhưng không mã hóa**.
-- **Không tin dữ liệu điều khiển từ envelope:** `suiteId`, `keyId`, độ dài và version là input không tin cậy. Server chỉ chấp nhận allowlist thuật toán, scope key và kích thước phù hợp; không để attacker điều khiển đường dẫn đọc private key hay chọn thuật toán yếu.
-- **RSA-OAEP và AES-GCM phải phối hợp thống nhất:** khi receiver unwrap đúng DEK và dùng đúng nonce + AAD, AES-GCM sẽ xác thực ciphertext/tag. Nếu metadata cần được xác thực nhưng nằm ngoài AAD thì có nguy cơ bị thay mà vẫn xác minh GCM thành công.
-- **Ràng buộc người nhận:** nếu nhiều người nhận, policy và metadata liên quan danh tính/khóa cần được bảo vệ phù hợp; khóa bất đối xứng được chọn phải được xác minh trước.
+- **Byte-boundary formatting:** length-prefixed, TLV, or bounded standardized CBOR/protobuf schemas. Never guess lengths based solely on binary delimiters.
+- **AAD (additional authenticated data):** place metadata requiring integrity protection (version, algorithm suite, document ID, tenant/recipient context, or key binding) into AAD under explicit canonical rules. AAD **is authenticated but not encrypted**.
+- **Do not trust control data from the envelope:** `suiteId`, `keyId`, lengths, and version are untrusted inputs. The server must enforce an allowlist of algorithms, key scopes, and reasonable sizes; never let an attacker control private-key lookup paths or choose weak algorithms.
+- **RSA-OAEP and AES-GCM must work in concert:** once the receiver unwraps the right DEK and supplies the right nonce + AAD, AES-GCM authenticates ciphertext/tag. Any metadata requiring authenticity that sits outside AAD risks being tampered with while GCM still succeeds.
+- **Recipient binding:** with multiple recipients, policies and identity/key metadata must be bound appropriately; selected asymmetric keys must be verified beforehand.
 
-## 5. Java 17+: thử giới hạn RSA-OAEP và mã hóa lai file 1 MiB
+## 5. Java 17+: Testing RSA-OAEP Limits and Hybrid Encryption of a 1 MiB File
 
-Đây là một chương trình Java 17+ **độc lập, biên dịch và chạy được**, thực hiện cả hai thử nghiệm:
+This is a **standalone, compilable, runnable** Java 17+ program executing both tests:
 
-- Tạo RSA-2048 và dùng OAEP với **hash SHA-256 + MGF1 SHA-256 được khai báo tường minh**. Mã hóa trực tiếp 190 byte thành công, 191 byte bị từ chối.
-- Tạo AES-256 key ngẫu nhiên, **RSA-OAEP chỉ mã hóa 32 byte DEK**, còn AES-GCM mã hóa **1.048.576 byte dữ liệu**. Giải mã lại, kiểm tra round-trip và phát hiện thay đổi ciphertext.
+- Generate RSA-2048 and use OAEP with **explicitly declared SHA-256 hash + MGF1 SHA-256**. Directly encrypting 190 bytes succeeds; 191 bytes is rejected.
+- Generate a random AES-256 key, **RSA-OAEP encrypts only the 32-byte DEK**, while AES-GCM encrypts **1,048,576 bytes of data**. Decrypts back, verifies round-trip, and detects ciphertext modification.
 
-Chương trình chỉ in các số đo và kết luận boolean, **không in khóa bí mật hoặc ciphertext**. Để minh họa đơn giản nó giữ 1 MiB trong RAM; đây **không phải code xử lý file nhiều GB hoặc định dạng envelope production**.
+The program prints only measurements and boolean conclusions, **without printing secret keys or ciphertexts**. For simplicity, it holds 1 MiB in RAM; this is **not code for multi-GB files or a production envelope format**.
 
-Lưu file **HybridCryptoDemo.java**:
+Save the file **HybridCryptoDemo.java**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -260,7 +260,7 @@ public class HybridCryptoDemo {
             "file-envelope:v1".getBytes(StandardCharsets.UTF_8);
 
     public static void main(String[] args) throws Exception {
-        // Bên nhận: minh họa tạo cặp khóa RSA 2048 bit.
+        // Recipient: illustrative 2048-bit RSA key pair generation.
         KeyPairGenerator rsaGen = KeyPairGenerator.getInstance("RSA");
         rsaGen.initialize(2048);
         KeyPair receiver = rsaGen.generateKeyPair();
@@ -279,11 +279,11 @@ public class HybridCryptoDemo {
         System.out.println("RSA-OAEP 191-byte input rejected: "
                 + tooLargeRejected);
 
-        // Bên gửi: một khóa đối xứng mới, chỉ bọc khóa bằng RSA.
+        // Sender: a fresh symmetric key, wrapping only the key with RSA.
         KeyGenerator aesGen = KeyGenerator.getInstance("AES");
         aesGen.init(256);
         SecretKey dataKey = aesGen.generateKey();
-        // Khởi tạo lại Cipher sau phép thử đầu vào quá dài.
+        // Re-initialize Cipher after the oversized input test.
         rsa.init(Cipher.ENCRYPT_MODE, receiver.getPublic(), OAEP);
         byte[] wrappedKey = rsa.doFinal(dataKey.getEncoded());
 
@@ -309,7 +309,7 @@ public class HybridCryptoDemo {
         System.out.println("envelope binary bytes (without header): "
                 + (wrappedKey.length + nonce.length + sealed.length));
 
-        // Bên nhận: unwrap khóa rồi xác minh/giải mã GCM.
+        // Recipient: unwrap key then verify/decrypt with GCM.
         rsa.init(Cipher.DECRYPT_MODE, receiver.getPrivate(), OAEP);
         byte[] unwrapped = rsa.doFinal(wrappedKey);
         SecretKeySpec recoveredKey = new SecretKeySpec(unwrapped, "AES");
@@ -321,7 +321,7 @@ public class HybridCryptoDemo {
         System.out.println("round-trip OK: "
                 + Arrays.equals(file, restored));
 
-        // Một byte ciphertext bị sửa thì GCM không được chấp nhận.
+        // If a single ciphertext byte is modified, GCM must reject it.
         byte[] changed = sealed.clone();
         changed[0] ^= 1;
         gcm.init(Cipher.DECRYPT_MODE, recoveredKey,
@@ -341,14 +341,14 @@ public class HybridCryptoDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17 trở lên:
+Compile and run with Java 17 or higher:
 
 ```bash
 javac -encoding UTF-8 HybridCryptoDemo.java
 java HybridCryptoDemo
 ```
 
-Stdout kỳ vọng (các giá trị độ dài không phụ thuộc vào byte khóa/nonce được sinh ngẫu nhiên; đã kiểm tra bằng Java):
+Expected stdout (lengths do not depend on randomly generated key/nonce bytes; verified with Java):
 
 ```text
 RSA-OAEP 190-byte input -> 256-byte ciphertext
@@ -363,37 +363,37 @@ round-trip OK: true
 tampered ciphertext rejected: true
 ```
 
-### 5.1. Vì sao kết quả như vậy?
+### 5.1. Why Are the Results Like This?
 
-1. **190 byte:** công thức OAEP SHA-256 trên RSA-2048 có input tối đa 190 byte; `doFinal(new byte[190])` mã hóa thành 256 byte.
-2. **191 byte:** `IllegalBlockSizeException` xuất hiện ở provider JDK thông dụng vì message quá lớn. Demo bắt lỗi như một thử nghiệm, không biến `doFinal` lỗi thành đường xử lý nghiệp vụ.
-3. **AES-256:** `KeyGenerator.init(256)` nhận độ dài **bit**; secret key exportable trong provider phần mềm demo dài 32 byte. HSM/provider không xuất khóa có thể trả `getEncoded() == null`; ở sản phẩm không ép lấy raw key nếu API wrap/unwrap/derive có khả năng xử lý khóa trong HSM.
-4. **Wrapped key:** RSA chỉ xử lý 32 byte input nên luôn dưới giới hạn 190 byte; output là 256 byte.
-5. **AES-GCM:** tag 128 bit = 16 byte. Với 1 MiB plaintext, `doFinal` tạo 1.048.576 + 16 = **1.048.592 byte**. Nonce 12 byte được giữ tách riêng, không có sẵn trong output của `Cipher.doFinal()`.
-6. **Tổng binary:** 256 byte wrapped key + 12 byte nonce + 1.048.592 byte GCM result = **1.048.860 byte**, chưa gồm header/schema/key ID.
-7. **Xác thực:** chỉnh một byte ở ciphertext làm tag không khớp nên `AEADBadTagException` được phát ra khi giải mã. Cả ciphertext **và AAD** phải khớp bản đã dùng khi mã hóa.
+1. **190 bytes:** the OAEP SHA-256 formula on RSA-2048 allows up to 190 bytes input; `doFinal(new byte[190])` encrypts into 256 bytes.
+2. **191 bytes:** `IllegalBlockSizeException` is thrown on standard JDK providers because the message is too large. The demo catches it as a test; never turn `doFinal` overflow into normal business control flow.
+3. **AES-256:** `KeyGenerator.init(256)` takes **bit** length; an exportable secret key in the software demo provider is 32 bytes. Non-exportable HSMs/providers may return `getEncoded() == null`; in production, avoid forcing raw key export when wrap/unwrap/derive APIs can operate inside the HSM.
+4. **Wrapped key:** RSA processes only the 32-byte input, staying well below the 190-byte limit; output is 256 bytes.
+5. **AES-GCM:** 128-bit tag = 16 bytes. For 1 MiB plaintext, `doFinal` produces 1,048,576 + 16 = **1,048,592 bytes**. The 12-byte nonce is stored separately and is not embedded in `Cipher.doFinal()` output.
+6. **Binary total:** 256-byte wrapped key + 12-byte nonce + 1,048,592-byte GCM result = **1,048,860 bytes**, excluding header/schema/key ID.
+7. **Authentication:** flipping one byte in the ciphertext causes a tag mismatch, raising `AEADBadTagException` on decryption. Both ciphertext **and AAD** must match what was used during encryption.
 
-### 5.2. Những giới hạn của chương trình minh họa
+### 5.2. Limitations of the Demonstration Program
 
-- Nó tạo RSA keypair và file ngẫu nhiên mỗi lần chạy; sản phẩm phải **xác thực public key người nhận**, quản lý private key và đặt rõ key ID/rotation.
-- Nó giữ cả 1 MiB file, sealed và restored trong RAM; **không dùng nguyên mẫu để xử lý file khổng lồ**.
-- Nó không serialize/parse envelope, không lưu version/key ID và không tạo AAD theo header động. Khi triển khai cần định dạng chuẩn và policy chặt.
-- Nó chỉ dùng AAD cố định để minh họa API; trong sản phẩm AAD có thể phải chứa metadata của file và recipient, được canonicalize và đồng nhất ở hai phía.
-- Nó tạo DEK mới mỗi lần chạy; không tái sử dụng key + nonce. **Trùng nonce dưới cùng khóa GCM có thể phá tính bí mật và toàn vẹn**.
-- `Arrays.fill(unwrapped, (byte) 0)` chỉ dọn mảng tạm theo khả năng; không chứng minh xóa được mọi bản sao trong `SecretKeySpec`, JVM hoặc provider. Trong môi trường đòi hỏi bảo vệ khóa cao, xem xét HSM/KMS và khóa không xuất được.
-- Mặc dù AES-GCM xác minh dữ liệu dưới DEK, demo **không xác minh danh tính bên gửi** và không chứng minh ai tạo envelope, vì bất kỳ ai có public key người nhận cũng có thể tự tạo một DEK mới rồi mã hóa file khác. Cần lớp xác thực người gửi riêng nếu nghiệp vụ yêu cầu.
+- It generates a fresh RSA keypair and random file on each run; production must **authenticate the recipient's public key**, manage private keys, and enforce key IDs/rotation.
+- It holds the entire 1 MiB file, `sealed`, and `restored` in RAM; **never use this prototype directly for huge files**.
+- It does not serialize/parse an envelope, store version/key IDs, or construct AAD from dynamic headers. Real deployments require a canonical format and strict policy.
+- It uses a static AAD solely to demonstrate the API; production AAD often must include file and recipient metadata, canonicalized identically on both sides.
+- It creates a new DEK on every run; never reuse `(key, nonce)`. **Repeating a nonce under the same GCM key can break confidentiality and integrity**.
+- `Arrays.fill(unwrapped, (byte) 0)` zeroes the temporary array on a best-effort basis; it cannot prove every copy inside `SecretKeySpec`, the JVM, or the provider is erased. For high key-protection requirements, consider HSM/KMS and non-exportable keys.
+- Even though AES-GCM verifies data under the DEK, the demo **does not verify sender identity** or prove who created the envelope, because anyone with the recipient's public key could generate a new DEK and encrypt a different file. A separate sender authentication layer is needed if business rules require it.
 
-## 6. Xử lý file thực sự lớn: streaming, bộ nhớ và kiểm tra tag
+## 6. Handling Truly Large Files: Streaming, Memory, and Tag Verification
 
-Hybrid encryption giải quyết giới hạn kích thước RSA, nhưng **“dùng AES-GCM” không đồng nghĩa hệ thống có thể cấp phát một mảng byte kích thước file vài GB**. Khi file lớn hơn bộ nhớ, thiết kế luồng I/O, giới hạn độ dài mỗi message và cách công bố plaintext là rất quan trọng.
+Hybrid encryption solves RSA's size limit, yet **"using AES-GCM" does not mean a system can allocate a byte array the size of a multi-GB file**. When files exceed memory, I/O streaming design, per-message length limits, and plaintext release discipline are critical.
 
-### 6.1. Streaming encryption
+### 6.1. Streaming Encryption
 
-Về mặt ý tưởng, hệ thống đọc file qua `InputStream` theo các buffer nhỏ, đẩy vào `Cipher.update(...)` / cơ chế stream encryption thích hợp và ghi ciphertext ra file tạm/đích theo một framing có version. Cuối stream gọi `doFinal()` để thu tag cuối và hoàn thiện envelope.
+Conceptually, the system reads the file via an `InputStream` in small buffers, feeds them into `Cipher.update(...)` or an appropriate stream-encryption mechanism, and writes ciphertext to a temporary/destination file in a versioned framing format. At end-of-stream, it calls `doFinal()` to obtain the final tag and finalize the envelope.
 
-**Không sử dụng `new byte[(int)file.length()]`** làm đường đi mặc định cho file nhiều GB: có thể tràn int hoặc gây `OutOfMemoryError`. Cần giới hạn input, dùng file/stream, phân biệt metadata và ciphertext, kiểm soát I/O errors và cleanup.
+**Never use `new byte[(int)file.length()]`** as the default path for multi-GB files: it can overflow `int` or trigger `OutOfMemoryError`. Bound inputs, use files/streams, separate metadata from ciphertext, and handle I/O errors and cleanup cleanly.
 
-Cấu trúc ý tưởng (**pseudocode**, không phải Java có thể chạy trực tiếp):
+Conceptual structure (**pseudocode**, not runnable Java):
 
 ```text
 create fresh DEK and unique nonce
@@ -407,50 +407,50 @@ finalize AEAD encryption and append authentication tag
 finish/commit envelope only after successful completion
 ```
 
-Pseudocode không thay thế thư viện/giao thức được kiểm định. Với AES-GCM một message rất lớn, phải tuân thủ **giới hạn kích thước và giới hạn sử dụng theo khóa/nonce** của tiêu chuẩn và provider; khi vượt ngưỡng, thiết kế giao thức record/chunk AEAD thay vì nối vô hạn vào một GCM invocation.
+Pseudocode does not replace vetted libraries/protocols. For a single very large AES-GCM message, adhere to **message size and key/nonce usage limits** of the standard and provider; beyond those thresholds, design a chunked/record AEAD protocol rather than streaming unboundedly into one GCM invocation.
 
-### 6.2. Streaming decryption: không được dùng plaintext chưa xác thực
+### 6.2. Streaming Decryption: Never Use Unauthenticated Plaintext
 
-Khi giải mã AES-GCM, integrity tag thường chỉ được xác minh hoàn chỉnh **ở cuối message**. Một API stream/provider có thể trả các byte trước khi xác minh cuối cùng, hoặc giữ chúng tùy implementation; tuyệt đối **không dựa vào giả định “có output nghĩa là đã xác thực”**.
+When decrypting AES-GCM, the integrity tag is typically verified completely **only at the end of the message**. A streaming API/provider might emit bytes before final verification or buffer them depending on implementation; **never assume "receiving output bytes means they are authenticated"**.
 
-Đối với file lớn:
+For large files:
 
-- Ghi plaintext tạm vào vùng không cho ứng dụng khác sử dụng, giới hạn truy cập.
-- Chỉ commit, rename hoặc phân phối plaintext khi AEAD tag của **toàn bộ message** hợp lệ.
-- Nếu tag sai, xóa bản tạm và báo lỗi chung; không để một file một phần được hệ thống tiêu thụ.
-- Không bỏ qua exception ở `Cipher.doFinal()`, không tự chỉ kiểm tra 16 byte tag theo so sánh thủ công rồi bỏ qua dữ liệu AAD.
-- Với nhiều message/chunk AEAD, **mỗi chunk phải được xác thực**, và toàn bộ chuỗi cần ràng buộc thứ tự, vị trí, file ID, tổng chunk, độ dài/cuối file để chống reorder, rollback và truncate.
+- Write temporary plaintext to an isolated area inaccessible to other applications, with restricted permissions.
+- Commit, rename, or distribute plaintext only once the AEAD tag for **the entire message** is valid.
+- If the tag fails, delete the temporary output and report a generic error; never allow partial files to be consumed downstream.
+- Never ignore exceptions from `Cipher.doFinal()`, and never manually compare only 16 tag bytes while skipping AAD verification.
+- With multiple AEAD messages/chunks, **each chunk must be authenticated**, and the whole sequence must bind order, position, file ID, total chunks, and length/end-of-file to prevent reordering, rollback, and truncation.
 
-### 6.3. Mã hóa theo chunk đúng cách
+### 6.3. Proper Chunked Encryption
 
-Nếu ứng dụng cần random-access hoặc file quá lớn so với giới hạn một message AEAD, có thể sử dụng một **định dạng mã hóa theo record/chunk** được thiết kế và kiểm định phù hợp:
+If an application needs random access or files exceed a single AEAD message limit, use a properly designed and vetted **record/chunk encryption format**:
 
-- Mỗi chunk có nonce/sequence **không trùng dưới cùng khóa**.
-- AAD ràng buộc **file ID, version, sequence index, total length hoặc final marker** theo thiết kế.
-- Hệ thống xác minh tính toàn vẹn **toàn bộ file** và tính liên tục của chunk; “mọi chunk riêng lẻ có tag đúng” chưa đủ để chống thiếu chunk/đảo thứ tự nếu không ràng buộc dữ liệu.
-- Giới hạn số lượng chunk trên một DEK, tổng dữ liệu mã hóa trên khóa và trạng thái sử dụng nonce; tuân theo giới hạn thuật toán/giao thức.
-- Khi có thư viện/giao thức authenticated streaming encryption thích hợp và được hỗ trợ, ưu tiên nó thay vì tự phát minh cách đặt nonce, index, tag hay metadata.
+- Each chunk has a **unique** nonce/sequence under the same key.
+- AAD binds **file ID, version, sequence index, total length, or final marker** per design.
+- The system verifies **whole-file** integrity and chunk continuity; "each individual chunk has a valid tag" is not enough to prevent dropped or reordered chunks without sequence/finality binding.
+- Bound chunks per DEK, total bytes encrypted under a key, and nonce state; comply with algorithm/protocol limits.
+- Whenever a supported, vetted authenticated streaming encryption library/protocol exists, prefer it over inventing custom nonce, index, tag, or metadata schemes.
 
-## 7. ECC, ECDH, KEM và HPKE: vẫn cần thuật toán đối xứng cho payload lớn
+## 7. ECC, ECDH, KEM, and HPKE: Symmetric Algorithms Are Still Needed for Large Payloads
 
-Không phải mọi public-key primitive đều giống RSA encryption. Với các hệ thống hiện đại, có các cách thiết lập shared secret hoặc encapsulate key material:
+Not every public-key primitive works like RSA encryption. Modern systems also establish shared secrets or encapsulate key material:
 
-| Cơ chế | Tác dụng | Có trực tiếp mã hóa file MB/GB không? |
+| Mechanism | Purpose | Directly encrypts MB/GB files? |
 | --- | --- | --- |
-| **RSA-OAEP** | Mã hóa bí mật nhỏ/DEK cho public key người nhận | **Không phù hợp**; RSA có giới hạn `mLen` và chi phí lớn |
-| **ECDH / X25519** | Hai bên tính shared secret từ khóa riêng và public key của nhau | **Không**; cần KDF và AEAD để mã hóa dữ liệu |
-| **KEM (key encapsulation mechanism)** | Encapsulate bí mật và decapsulate ở người nhận | **Không**; sau KEM thường dùng KDF và AEAD |
-| **HPKE (RFC 9180)** | Kết hợp KEM, KDF và AEAD theo suite và mode của chuẩn | **Có thể dùng để mã hóa ứng dụng qua giao thức**, nhưng payload lớn vẫn do AEAD xử lý; phải tuân theo giới hạn suite/context |
+| **RSA-OAEP** | Encrypt small secrets/DEKs for a recipient's public key | **Unsuitable**; RSA has `mLen` limits and high cost |
+| **ECDH / X25519** | Two parties compute a shared secret from each other's private and public keys | **No**; requires a KDF and AEAD to encrypt data |
+| **KEM (key encapsulation mechanism)** | Encapsulate a secret and decapsulate at recipient | **No**; after KEM, typically uses a KDF and AEAD |
+| **HPKE (RFC 9180)** | Combines KEM, KDF, and AEAD per standardized suites and modes | **Usable for application encryption via protocol**, though large payloads are still handled by AEAD; must follow suite/context limits |
 
-### 7.1. ECDH không phải “AES với khóa EC”
+### 7.1. ECDH Is Not "AES with EC Keys"
 
-ECDH/X25519 cho hai bên tính ra shared secret theo thuật toán thỏa thuận khóa. **Không dùng trực tiếp raw shared secret làm AES key bằng cách cắt byte tùy tiện**; áp dụng KDF được đặc tả (thường HKDF) và context cần thiết để dẫn xuất key/nonce, đồng thời đảm bảo public key, bên nhận và giao thức được xác thực.
+ECDH/X25519 lets two parties compute a shared secret via key agreement. **Never use the raw shared secret directly as an AES key by slicing arbitrary bytes**; apply a specified KDF (typically HKDF) with required context to derive keys/nonces, while ensuring public keys, recipient, and protocol are authenticated.
 
-Nếu một thiết kế ECDH không có xác thực, **kẻ trung gian có thể thay public key** và thiết lập secret riêng với mỗi phía. Việc dùng ECDH không tự bảo đảm bạn đang nói chuyện đúng người nhận.
+If an ECDH design lacks authentication, **a man-in-the-middle can substitute public keys** and establish separate secrets with each side. Using ECDH does not by itself prove you are talking to the intended recipient.
 
-### 7.2. Hybrid không có nghĩa hai thuật toán đều mã hóa toàn bộ file
+### 7.2. Hybrid Does Not Mean Both Algorithms Encrypt the Entire File
 
-Một mô hình KEM + KDF + AEAD cũng là dạng hybrid:
+A KEM + KDF + AEAD model is also hybrid encryption:
 
 ```text
 KEM.encapsulate(recipientPublicKey) -> encapsulation + sharedSecret
@@ -459,35 +459,35 @@ AEAD.encrypt(file, key, nonce, AAD) -> ciphertext + tag
 envelope -> encapsulation + ciphertext + tag + metadata
 ```
 
-Không cần “RSA encrypt(file) rồi AES encrypt(lại file)” để có hai lớp. Điều quan trọng là **kiểm soát nguồn public key, bảo vệ/thiết lập DEK và mã hóa/xác thực payload đúng cách**. Tên gọi “hybrid encryption” có thể dùng cho nhiều bộ thuật toán; thiết kế phải ghi rõ suite và mục tiêu bảo mật.
+You do not need to "RSA-encrypt(file) then AES-encrypt(file again)" to get two layers. What matters is **authenticating public-key origin, protecting/establishing the DEK, and properly encrypting/authenticating the payload**. The term "hybrid encryption" applies to many algorithm suites; designs must state the exact suite and security goals.
 
-## 8. Bảo mật hệ thống: hybrid giải quyết cái gì và không giải quyết cái gì?
+## 8. System Security: What Does Hybrid Solve and What Does It Not Solve?
 
-### 8.1. Bí mật dữ liệu ở nơi lưu trữ
+### 8.1. Data Confidentiality at Rest
 
-Nếu public key người nhận đáng tin và private key được bảo vệ, bọc DEK bằng RSA-OAEP kết hợp AES-GCM có thể cung cấp **bí mật của file** khi chỉ ciphertext/envelope được lưu. Để an toàn thật, không để DEK lọt vào log, cache không kiểm soát, exception, metadata hoặc nơi chứa plaintext.
+If the recipient's public key is trusted and the private key is protected, wrapping the DEK with RSA-OAEP combined with AES-GCM can provide **file confidentiality** when only ciphertexts/envelopes are stored. For real security, never let DEKs leak into logs, unmanaged caches, exceptions, metadata, or plaintext storage.
 
-Nhưng nếu private key RSA bị lộ, các DEK cũ bọc bằng key đó có thể bị unwrap từ envelope được lưu. Do đó đây **không mặc định có forward secrecy** cho dữ liệu đã lưu. Một giao thức có ephemeral secret và key erasure đúng có thể có những tính chất khác, nhưng phải phân tích theo giao thức cụ thể.
+However, if the RSA private key is compromised, old DEKs wrapped under that key can be unwrapped from stored envelopes. Hence this **does not inherently provide forward secrecy** for stored data. Protocols using ephemeral secrets and proper key erasure offer different properties, which must be analyzed per protocol.
 
-### 8.2. Kiểm chứng public key là một phần của mã hóa
+### 8.2. Verifying the Public Key Is Part of Encryption
 
-Dùng public key tải từ đường dẫn do attacker cung cấp không tạo bí mật **cho đúng người nhận**. Phải có cơ chế tin cậy: chứng chỉ hợp lệ, key pinning, authenticated directory, HSM/KMS identity hoặc quy trình provisioning được bảo vệ.
+Using a public key fetched from an attacker-controlled path does not provide confidentiality **for the intended recipient**. You need a trust mechanism: valid certificates, key pinning, authenticated directory, HSM/KMS identity, or protected provisioning.
 
-Không chọn khóa bằng `kid` do file tự khai mà bỏ qua tenant/recipient scope; không tự tải URI trong header để lấy public key rồi coi là key tin cậy.
+Never select a key solely by a self-declared `kid` in a file while ignoring tenant/recipient scope; never fetch a URI from an untrusted header to retrieve a public key and treat it as trusted.
 
-### 8.3. AEAD không tự xác thực danh tính người gửi
+### 8.3. AEAD Does Not Automatically Authenticate Sender Identity
 
-Một file AES-GCM có tag đúng chỉ cho biết file/metadata không bị đổi so với khóa AEAD đã sử dụng (trong giả định thuật toán đúng). Trong mô hình public-key hybrid nơi **bất cứ ai** có public key nhận cũng có thể tạo DEK mới, **một ciphertext hợp lệ không chứng minh ai gửi nó**.
+An AES-GCM file with a valid tag only proves the file/metadata was not modified relative to the AEAD key used (assuming sound cryptography). In a public-key hybrid model where **anyone** with the recipient's public key can generate a fresh DEK, **a valid ciphertext does not prove who sent it**.
 
-Nếu nghiệp vụ đòi hỏi danh tính, cần xác thực nguồn riêng: TLS endpoint đã xác thực, chữ ký số trên nội dung/envelope có ngữ cảnh phù hợp, hoặc giao thức gửi nhận authenticated được chuẩn hóa. Chữ ký số phải có cơ chế phân phối/trust khóa công khai người ký tương ứng.
+When business rules require sender identity, add separate origin authentication: an authenticated TLS endpoint, a digital signature over the payload/envelope with matching context, or a standardized authenticated messaging protocol. Digital signatures require a matching distribution/trust mechanism for the signer's public key.
 
-### 8.4. Mức bảo mật không bằng kích thước AES key một cách máy móc
+### 8.4. Security Level Does Not Mechanically Equal the AES Key Size
 
-Bộ RSA-2048 + AES-256 có thể có **điểm yếu hơn AES-256** do mức bảo mật cổ điển của RSA-2048 và rủi ro quản lý private key. Mức an toàn của toàn hệ thống là bài toán tổng thể: thuật toán yếu nhất, key length, key distribution, AEAD nonce, lifecycle, lỗi phần mềm, authorization và mô hình tấn công. Đừng chọn “AES-256” rồi coi mọi yếu tố khác đạt bảo mật 256 bit.
+An RSA-2048 + AES-256 pairing can be **weaker than 256-bit security** due to RSA-2048's classical security level and private-key management risks. Overall system security depends on the weakest link: algorithm strength, key lengths, key distribution, AEAD nonces, lifecycle, software bugs, authorization, and threat model. Never pick "AES-256" and assume everything achieves 256-bit security.
 
-### 8.5. Khi có nhiều người nhận
+### 8.5. When There Are Multiple Recipients
 
-Để gửi **cùng một file** cho nhiều người nhận, thường có thể mã hóa payload **một lần** bằng một DEK và **bọc DEK riêng** cho public key của từng người nhận:
+To send **the same file** to multiple recipients, you can typically encrypt the payload **once** with a single DEK and **wrap the DEK separately** under each recipient's public key:
 
 ```text
 file --AEAD(DEK)--> ciphertext+tag
@@ -496,100 +496,100 @@ file --AEAD(DEK)--> ciphertext+tag
              DEK --recipient C public key--> wrappedKeyC
 ```
 
-Bằng cách này payload lớn không bị mã hóa lại bằng RSA theo từng người nhận; overhead chủ yếu tăng theo số wrapped keys. Tuy nhiên cần ràng buộc recipients/key IDs và metadata trong thiết kế envelope và xử lý việc thu hồi người nhận. Người đã có DEK hoặc plaintext **không thể bị thu hồi quyền đọc bản sao đã lấy chỉ bằng cách xóa entry**.
+This avoids re-encrypting the large payload with RSA for each recipient; overhead grows mainly with the number of wrapped keys. However, you must bind recipients/key IDs and metadata in the envelope design and account for recipient revocation. Anyone who already obtained the DEK or plaintext **cannot have access to their existing copy revoked merely by removing their entry**.
 
-## 9. Thiết kế hệ thống Java: ranh giới API, lựa chọn công cụ và vận hành
+## 9. Java System Design: API Boundaries, Tool Selection, and Operations
 
-### 9.1. Xác định API theo vai trò
+### 9.1. Assigning APIs by Role
 
-- **RSA:** `Cipher.getInstance("RSA/ECB/OAEPPadding")`, `OAEPParameterSpec` và public/private key từ key store/KMS đã được quản lý. Đối với DEK ngẫu nhiên 16/32 byte, RSA-OAEP phù hợp hơn mã hóa data khối lớn.
-- **AES-GCM:** `Cipher.getInstance("AES/GCM/NoPadding")`, `GCMParameterSpec` và key ngẫu nhiên, nonce phù hợp; xác minh AEAD tag khi decrypt.
-- **Bộ sinh khóa:** `KeyGenerator.getInstance("AES")` với kích thước bit được policy hỗ trợ; `SecureRandom` để sinh nonce và byte ngẫu nhiên khác nếu cần.
-- **Quản lý khóa:** private key nên ở keystore/HSM/KMS/secret manager có kiểm soát access; ứng dụng không cần tự xuất private key nếu provider hỗ trợ phép toán cần thiết.
-- **Key rotation:** envelope cần key ID và version để unwrap DEK bằng private key đúng; các file còn phải đọc được cần chiến lược giữ khóa cũ/rewrap phù hợp.
+- **RSA:** `Cipher.getInstance("RSA/ECB/OAEPPadding")`, `OAEPParameterSpec`, and public/private keys from managed keystores/KMS. For random 16/32-byte DEKs, RSA-OAEP is far better suited than bulk data encryption.
+- **AES-GCM:** `Cipher.getInstance("AES/GCM/NoPadding")`, `GCMParameterSpec`, random keys, and unique nonces; verify the AEAD tag on decryption.
+- **Key generator:** `KeyGenerator.getInstance("AES")` with policy-supported bit lengths; `SecureRandom` for nonces and other random bytes as needed.
+- **Key management:** private keys belong in an access-controlled keystore/HSM/KMS/secret manager; applications do not need to export private keys if the provider executes required operations directly.
+- **Key rotation:** envelopes need key IDs and versions to unwrap DEKs with the right private key; files that must remain readable need an appropriate old-key retention or rewrap strategy.
 
-Không lưu private key RSA cạnh ciphertext trong một thư mục public. Nếu private key và dữ liệu đều bị lộ, lớp bất đối xứng mất tác dụng. Khi cần backup/restore, có chính sách giữ và bảo vệ khóa cũ đủ lâu để phục hồi tài liệu.
+Never store the RSA private key next to ciphertexts in a public directory. If both private keys and data are exposed, asymmetric protection is lost. When backup/restore is needed, maintain policies to retain and protect old keys long enough to recover documents.
 
-### 9.2. Chi phí RSA/KMS vẫn tồn tại nhưng chỉ trên dữ liệu nhỏ
+### 9.2. RSA/KMS Cost Still Exists, But Only on Small Data
 
-Hybrid không loại bỏ hoàn toàn RSA cost; nó giảm số phép toán khóa công khai từ **hàng nghìn mỗi file** về **một hoặc vài phép toán bọc/unwrap DEK** tùy số người nhận. Khi dùng HSM/KMS, vẫn phải xét latency, quota API, failover, audit và cache policy; nhưng không đưa mỗi 190 byte file đi gọi RSA.
+Hybrid encryption does not eliminate RSA cost completely; it reduces public-key operations from **thousands per file** down to **one or a few DEK wrap/unwrap operations** depending on recipient count. When using HSM/KMS, you must still consider latency, API quotas, failover, auditing, and caching policies—just without calling RSA on every 190 bytes of a file.
 
-Với hệ thống có KMS hỗ trợ symmetric data-key/envelope encryption, có thể dùng chức năng tạo DEK và bọc DEK của dịch vụ, thay vì ứng dụng tự thực hiện RSA. Mô hình “envelope” **không bắt buộc phải dùng RSA**; KMS symmetric wrapping hoặc KEM tương ứng cũng có thể phù hợp theo kiến trúc.
+In architectures where a KMS supports symmetric data-key/envelope encryption, you can use the service's generate-DEK and wrap-DEK capabilities instead of running RSA yourself. The "envelope" model **does not mandate RSA**; KMS symmetric wrapping or appropriate KEMs can also fit depending on architecture.
 
-### 9.3. File lớn, API phản hồi và lỗi
+### 9.3. Large Files, API Responses, and Errors
 
-- Áp **giới hạn request/file size**, định dạng hợp lệ và giới hạn độ dài từng trường envelope trước khi cấp phát bộ nhớ.
-- Không để các lỗi khác nhau của RSA/OAEP/GCM tạo oracle tiết lộ chi tiết bí mật qua response, log hoặc timing.
-- Với GCM, lỗi tag phải là **thất bại xác thực file**; đừng dùng plaintext đã phát ra một phần.
-- Tách key-encryption-key/wrapping key và data-encryption-key để dễ **rewrap DEK khi rotation** thay vì luôn giải mã/mã hóa lại cả file, nhưng chỉ thực hiện khi policy và định dạng cho phép.
-- Đặt version thuật toán, key ID, suite và metadata trong một cấu trúc được kiểm tra, không dựa vào chuỗi tên transformation do client tùy ý cung cấp.
-- Khi cần sửa hoặc tải một phần file theo random-access, thiết kế authenticated chunking/format chuyên dụng; **đừng tự cắt tag GCM rồi xác minh từng phần**.
+- Enforce **request/file size limits**, valid formats, and per-field length caps on the envelope before allocating memory.
+- Never let differing RSA/OAEP/GCM errors create an oracle leaking secret details via responses, logs, or timing.
+- With GCM, a tag error must be treated as **file authentication failure**; never use partially emitted plaintext.
+- Separate key-encryption/wrapping keys from data-encryption keys to simplify **DEK rewrapping during rotation** instead of always decrypting/re-encrypting entire files, where policy and format allow.
+- Store algorithm version, key ID, suite, and metadata in a validated structure rather than relying on arbitrary transformation strings supplied by clients.
+- When random-access updates or partial file downloads are needed, design a dedicated authenticated chunking format; **never slice a GCM tag and try to verify parts manually**.
 
-## 10. Các lỗi thường gặp
+## 10. Common Mistakes
 
-| Cách nghĩ hoặc cách làm sai | Vấn đề | Cách làm đúng |
+| Flawed assumption or practice | Problem | Right approach |
 | --- | --- | --- |
-| “RSA-2048 mã hóa được 2.048 bit plaintext.” | Modulus length không phải độ dài payload cho phép | Dùng công thức OAEP `k - 2*hLen - 2` |
-| “Không đủ thì chia file thành nhiều đoạn RSA.” | Tốn CPU/overhead và không xác thực file tổng thể | Bọc DEK nhỏ bằng RSA, mã hóa file bằng AEAD |
-| “Chọn RSA-4096 để mã hóa file 1 GB trực tiếp.” | Vẫn chỉ vài trăm byte/operation | Chọn hybrid/envelope hoặc giao thức mã hóa file phù hợp |
-| “RSA encryption bằng public key chứng minh người gửi.” | Bất cứ ai có public key đều có thể mã hóa | Dùng chữ ký số hoặc authenticated channel cho sender |
-| “RSA signature bằng private key là mã hóa.” | Signature không bảo mật plaintext | Phân biệt ký số và encryption |
-| “EC public key có thể đưa thẳng vào AES Cipher.” | ECDH không tự mã hóa payload | Key agreement/KEM + KDF + AEAD đúng chuẩn |
-| “Dùng RSA/NoPadding để bỏ giới hạn.” | Raw RSA không an toàn | Sử dụng scheme padding chuẩn và hybrid |
-| “Dùng RSA/PKCS1Padding vì plaintext tối đa dài hơn.” | Có rủi ro legacy/padding-oracle | Ưu tiên RSA-OAEP có tham số chính xác cho thiết kế mới |
-| “OAEPWithSHA-256 nghĩa MGF1 tự giống nhau ở mọi provider.” | Có thể sai tham số và interop | `OAEPParameterSpec` explicit cho digest, MGF1 và label |
-| “Nonce GCM chỉ cần đúng 12 byte.” | Nonce lặp lại dưới cùng key nguy hiểm | Thiết kế/kiểm tra **tính duy nhất của nonce** |
-| “GCM trả plaintext là đã xác minh xong.” | Có thể dùng dữ liệu trước khi tag được kiểm tra | Chỉ commit sau toàn bộ AEAD verification |
-| “Header/key ID không cần MAC vì chỉ là metadata.” | Có thể bị sửa ngữ cảnh hoặc key lookup | Bind AAD/metadata và kiểm tra key scope/version |
-| “AES-256 làm RSA-2048 mạnh 256 bit.” | Mức bảo mật là của hệ thống, không chỉ DEK | Đánh giá độ mạnh khóa công khai, policy và lifecycle |
-| “Mã hóa file một lần là xong key rotation.” | Private key cũ vẫn cần để unwrap các DEK cũ | Có key version/rewrap/retention policy |
-| “Chỉ phải kiểm tra tag mỗi chunk riêng lẻ.” | Có thể đảo, cắt, thay thế chunk | Gắn sequence, length, file ID và finalization vào authenticated structure |
+| "RSA-2048 encrypts 2,048 bits of plaintext." | Modulus length is not allowed payload length | Use the OAEP formula `k - 2*hLen - 2` |
+| "If it doesn't fit, split the file into RSA chunks." | CPU/size overhead and lacks whole-file authentication | Wrap a small DEK with RSA; encrypt file with AEAD |
+| "Pick RSA-4096 to encrypt a 1 GB file directly." | Still only a few hundred bytes per operation | Choose hybrid/envelope or a proper file-encryption protocol |
+| "RSA encryption with a public key proves the sender." | Anyone with the public key can encrypt | Use digital signatures or an authenticated channel for sender |
+| "RSA signature with a private key is encryption." | Signatures do not keep plaintext confidential | Distinguish digital signatures from encryption |
+| "An EC public key can go straight into an AES Cipher." | ECDH does not directly encrypt payloads | Standard key agreement/KEM + KDF + AEAD |
+| "Use RSA/NoPadding to remove the size limit." | Raw RSA is insecure | Use standard padding schemes and hybrid encryption |
+| "Use RSA/PKCS1Padding because max plaintext is longer." | Legacy/padding-oracle risks | Prefer properly parameterized RSA-OAEP for new designs |
+| "`OAEPWithSHA-256` means MGF1 matches across all providers." | Parameter mismatch and interop bugs | Explicit `OAEPParameterSpec` for digest, MGF1, and label |
+| "A GCM nonce just needs to be 12 bytes." | Reusing nonces under the same key is catastrophic | Design and enforce **nonce uniqueness** |
+| "GCM returning plaintext means it is verified." | Data may be consumed before tag verification | Commit only after full AEAD verification |
+| "Headers/key IDs don't need MACs because they are metadata." | Context or key lookup can be tampered with | Bind AAD/metadata and validate key scope/version |
+| "AES-256 makes RSA-2048 256-bit strong." | System security depends on the whole chain, not just DEK | Evaluate public-key strength, policy, and lifecycle |
+| "Once a file is encrypted, key rotation is done." | Old private keys are still needed to unwrap old DEKs | Maintain key versioning/rewrap/retention policies |
+| "Just check the tag on each chunk independently." | Chunks can be reordered, truncated, or substituted | Bind sequence, length, file ID, and finalization in authenticated structure |
 
-## 11. Checklist trước khi triển khai bulk encryption
+## 11. Checklist Before Implementing Bulk Encryption
 
-1. **Mục tiêu:** dữ liệu cần giữ bí mật trước đối tượng nào? Người nhận là ai, và cần xác thực danh tính người gửi không?
-2. **Key trust:** public key đến từ nguồn được xác minh chưa? Private key có ở nơi được quản lý an toàn không?
-3. **Thuật toán:** đã chọn một suite rõ ràng cho key encapsulation/wrapping + AEAD chưa? Có tránh raw RSA/legacy padding không?
-4. **RSA capacity:** nếu dùng RSA-OAEP, chỉ đưa vật liệu khóa nhỏ vào RSA và kiểm tra `mLen <= k - 2*hLen - 2` chưa?
-5. **Data key:** mỗi file/envelope có DEK ngẫu nhiên phù hợp? Có đảm bảo không log hoặc truyền DEK dạng plaintext không?
-6. **AEAD nonce/tag:** nonce duy nhất trên mỗi key; tag độ dài chuẩn; AAD/metadata phải đúng byte và được xác minh?
-7. **Envelope:** version/key ID/lengths/algorithm suite có parser giới hạn kích thước, chống ambiguity và đảm bảo integrity không?
-8. **File lớn:** dùng streaming/chunking authenticated phù hợp, tránh tải cả file vào RAM, không công bố plaintext trước tag validation?
-9. **Vận hành:** có rotation, rewrap, backup/recovery, revoke, audit, quota KMS và xử lý lỗi an toàn?
-10. **Kiểm thử:** thử đúng/sai public key, sai OAEP params, byte ciphertext/tag bị sửa, nonce khác, AAD khác, missing/truncated chunk, file lớn và nhiều người nhận?
+1. **Goal:** against whom must data stay confidential? Who are the recipients, and must sender identity be authenticated?
+2. **Key trust:** do public keys come from a verified source? Are private keys stored in a securely managed boundary?
+3. **Algorithms:** have you chosen an explicit suite for key encapsulation/wrapping + AEAD? Have you avoided raw RSA/legacy padding?
+4. **RSA capacity:** if using RSA-OAEP, are only small key materials fed to RSA and is `mLen <= k - 2*hLen - 2` verified?
+5. **Data keys:** does each file/envelope use an appropriate random DEK? Is logging or transmitting plaintext DEKs prevented?
+6. **AEAD nonce/tag:** unique nonce per key; standard tag length; exact-byte AAD/metadata authenticated?
+7. **Envelope:** do version/key ID/lengths/algorithm suite have a size-bounded parser preventing ambiguity and ensuring integrity?
+8. **Large files:** using proper authenticated streaming/chunking, avoiding loading entire files into RAM, never releasing plaintext before tag validation?
+9. **Operations:** are rotation, rewrap, backup/recovery, revocation, auditing, KMS quotas, and safe error handling in place?
+10. **Testing:** tested valid/wrong public keys, wrong OAEP params, modified ciphertext/tag bytes, differing nonces, differing AAD, missing/truncated chunks, large files, and multiple recipients?
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-**Câu 1.** RSA-2048 + OAEP SHA-256 cho phép bao nhiêu byte plaintext trong một RSA operation?  
-**Đáp án:** **190 byte** vì `256 - 2*32 - 2 = 190`; ciphertext dài **256 byte**.
+**Question 1.** How many plaintext bytes does RSA-2048 + OAEP SHA-256 allow in a single RSA operation?  
+**Answer:** **190 bytes** because `256 - 2*32 - 2 = 190`; ciphertext is **256 bytes** long.
 
-**Câu 2.** Muốn RSA-OAEP mã hóa một chuỗi 500 ký tự Unicode trong một lần vì “500 ký tự là ít”, có đúng không?  
-**Đáp án:** **Không**. Phải đếm **số byte sau encoding UTF-8** và áp công thức modulus/padding; RSA-2048 OAEP SHA-256 tối đa 190 **byte**, kể cả nội dung chỉ vài chục ký tự Unicode vẫn có thể dài nhiều byte.
+**Question 2.** Someone wants RSA-OAEP to encrypt a 500-character Unicode string in one shot thinking "500 characters is small." Is this valid?  
+**Answer:** **No.** You must count **bytes after UTF-8 encoding** and apply the modulus/padding formula; RSA-2048 OAEP SHA-256 allows at most 190 **bytes**, and even a few dozen multi-byte Unicode characters can take many bytes.
 
-**Câu 3.** Nếu có file 1 MiB, chia thành block 190 byte rồi RSA-2048 từng block cần bao nhiêu ciphertext byte?  
-**Đáp án:** `ceil(1,048,576/190) = 5,519` block, mỗi block 256 byte, tổng **1.412.864 byte**, chưa metadata.
+**Question 3.** For a 1 MiB file split into 190-byte blocks and RSA-2048-encrypted per block, how many ciphertext bytes result?  
+**Answer:** `ceil(1,048,576/190) = 5,519` blocks × 256 bytes each = **1,412,864 bytes**, excluding metadata.
 
-**Câu 4.** Với RSA-2048 bọc AES-256 key, AES-GCM mã hóa 1 MiB file, tag 16 byte và nonce 12 byte, cần ít nhất bao nhiêu byte cho wrappedKey + nonce + ciphertext + tag?  
-**Đáp án:** **256 + 12 + 1.048.576 + 16 = 1.048.860 byte**, chưa header.
+**Question 4.** With RSA-2048 wrapping an AES-256 key, AES-GCM encrypting a 1 MiB file, a 16-byte tag, and a 12-byte nonce, what is the minimum byte count for `wrappedKey + nonce + ciphertext + tag`?  
+**Answer:** **256 + 12 + 1,048,576 + 16 = 1,048,860 bytes**, excluding headers.
 
-**Câu 5.** Một file được mã hóa AES-GCM thành công dưới DEK bọc bằng public key của Bob. Có chứng minh Alice là người gửi không?  
-**Đáp án:** **Không**. Ai có public key Bob cũng có thể tạo DEK riêng và mã hóa file. Cần xác thực người gửi bằng cơ chế phù hợp.
+**Question 5.** A file is encrypted with AES-GCM under a DEK wrapped with Bob's public key. Does that prove Alice is the sender?  
+**Answer:** **No.** Anyone with Bob's public key can create their own DEK and encrypt a file. Sender authentication requires a dedicated mechanism.
 
-**Câu 6.** Có thể lưu nonce/GCM tag bên cạnh ciphertext không?  
-**Đáp án:** **Có**; nonce và tag không cần giữ bí mật. Nhưng nonce phải duy nhất với cùng key; tag và metadata phải được xử lý/xác thực chính xác.
+**Question 6.** Can the nonce and GCM tag be stored alongside the ciphertext?  
+**Answer:** **Yes**; nonces and tags do not need to be secret. However, the nonce must be unique under the same key, and the tag and metadata must be properly processed/verified.
 
-**Câu 7.** Nếu giải mã stream trả một số plaintext trước khi kiểm tra tag cuối, có thể để chương trình khác sử dụng phần plaintext đó ngay không?  
-**Đáp án:** **Không nên**. Cần giữ cách ly/không công bố cho tới khi tag toàn message hợp lệ, hoặc dùng giao thức authenticated chunk phù hợp.
+**Question 7.** If streaming decryption emits some plaintext before verifying the final tag, can another program use that plaintext immediately?  
+**Answer:** **It should not.** Keep it isolated/unreleased until the entire message tag verifies, or use a proper authenticated chunking protocol.
 
-**Câu 8.** Đổi RSA modulus từ 2.048 lên 4.096 bit là cách tối ưu chính để mã hóa file 5 GB?  
-**Đáp án:** **Không**. Chỉ tăng input RSA-OAEP lên vài trăm byte mỗi operation và tăng chi phí phép toán; nên dùng hybrid encryption.
+**Question 8.** Is increasing the RSA modulus from 2,048 to 4,096 bits the main optimization for encrypting a 5 GB file?  
+**Answer:** **No.** That only adds a couple hundred bytes per RSA-OAEP operation while increasing computational cost; use hybrid encryption.
 
-**Câu 9.** Tại sao hybrid dùng cùng một DEK mã hóa toàn bộ file rồi bọc DEK cho nhiều người nhận lại hiệu quả?  
-**Đáp án:** Payload được mã hóa đối xứng **một lần**; chỉ việc bọc một DEK nhỏ được lặp theo người nhận. Cần bảo vệ metadata và hiểu rằng người đã có DEK có thể giữ bản sao riêng.
+**Question 9.** Why is hybrid encryption efficient when encrypting one file with one DEK and wrapping that DEK for multiple recipients?  
+**Answer:** The payload is symmetrically encrypted **once**; only wrapping the small DEK is repeated per recipient. You must still protect metadata and recognize that anyone who already received the DEK can keep their own copy.
 
-**Câu 10.** Nếu RSA unwrap key thành công nhưng GCM tag sai, có chấp nhận một phần dữ liệu vì “RSA đã xác minh khóa” không?  
-**Đáp án:** **Không**. RSA unwrap thành công không thay thế AEAD integrity. Phải coi file không hợp lệ và không công bố plaintext.
+**Question 10.** If RSA unwraps the key successfully yet the GCM tag is invalid, should you accept partial data because "RSA already verified the key"?  
+**Answer:** **No.** Successful RSA unwrap does not replace AEAD integrity. Treat the file as invalid and never release plaintext.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Mã hóa bất đối xứng không thay thế mã hóa dữ liệu khối lớn.** RSA-OAEP có giới hạn plaintext theo modulus và padding, chi phí phép toán cao, và không cung cấp giao thức xác thực file khi tự chia chunk. Thiết kế phù hợp là **khóa công khai/KEM để bảo vệ hoặc thiết lập DEK nhỏ + AEAD đối xứng để mã hóa payload lớn**, kết hợp kiểm chứng public key, nonce/AAD, định dạng envelope, streaming an toàn và key lifecycle.
+**Asymmetric encryption does not replace bulk data encryption.** RSA-OAEP has modulus- and padding-bounded plaintext limits, high computational cost, and provides no file-level authentication across ad-hoc chunks. The right design is **public-key/KEM to protect or establish a small DEK + symmetric AEAD to encrypt the large payload**, paired with public-key verification, proper nonce/AAD handling, clean envelope formatting, safe streaming, and sound key lifecycle management.

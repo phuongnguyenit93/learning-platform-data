@@ -1,0 +1,3 @@
+menuLevel1: '@KafkaListener'
+menuLevel2: Đọc Message<?> trong listener
+status: WRITTEN

@@ -1,0 +1,103 @@
+menu:
+- title: Nhập môn
+  slug: mail-intro
+  index: 0
+- title: Kiến trúc email
+  slug: mail-architecture
+  index: 1
+- title: SMTP
+  slug: mail-smtp
+  index: 2
+- title: MIME
+  slug: mail-mime
+  index: 3
+- title: Địa chỉ và header
+  slug: mail-address-headers
+  index: 4
+- title: API Java Mail
+  slug: mail-java-mail-api
+  index: 5
+- title: Cấu hình sender
+  slug: mail-sender-configuration
+  index: 6
+- title: Spring Boot
+  slug: mail-spring-boot
+  index: 7
+- title: Simple mail
+  slug: mail-simple-mail
+  index: 8
+- title: MimeMessageHelper
+  slug: mail-mime-message-helper
+  index: 9
+- title: Nội dung HTML
+  slug: mail-html-content
+  index: 10
+- title: Template email
+  slug: mail-email-templates
+  index: 11
+- title: Đính kèm
+  slug: mail-attachments
+  index: 12
+- title: Inline resource
+  slug: mail-inline-resources
+  index: 13
+- title: Gửi nhiều định dạng
+  slug: mail-multi-format-sending
+  index: 14
+- title: Gửi trong ứng dụng
+  slug: mail-application-sending
+  index: 15
+- title: Sự kiện và giao dịch
+  slug: mail-events-and-transactions
+  index: 16
+- title: Bất đồng bộ
+  slug: mail-asynchronous
+  index: 17
+- title: Thử lại và idempotency
+  slug: mail-retry-and-idempotency
+  index: 18
+- title: Lỗi và chẩn đoán
+  slug: mail-errors-and-diagnostics
+  index: 19
+- title: Bảo mật SMTP
+  slug: mail-smtp-security
+  index: 20
+- title: Deliverability
+  slug: mail-deliverability
+  index: 21
+- title: Kiểm thử đơn vị
+  slug: mail-unit-testing
+  index: 22
+- title: Kiểm thử tích hợp
+  slug: mail-integration-testing
+  index: 23
+- title: Quan sát và vận hành
+  slug: mail-observability-operations
+  index: 24
+- title: Hiệu năng và giới hạn
+  slug: mail-performance-limits
+  index: 25
+- title: Nhiều nhà cung cấp
+  slug: mail-multiple-providers
+  index: 26
+- title: Nhận thư và hộp thư
+  slug: mail-incoming-mailboxes
+  index: 27
+- title: Spring Integration Mail
+  slug: mail-spring-integration
+  index: 28
+- title: Lập lịch gửi
+  slug: mail-scheduled-sending
+  index: 29
+- title: Mẫu thiết kế production
+  slug: mail-production-patterns
+  index: 30
+- title: Lỗi thường gặp
+  slug: mail-common-errors
+  index: 31
+- title: Quyết định kiến trúc
+  slug: mail-architecture-decisions
+  index: 32
+- title: Dự án thực hành
+  slug: mail-practice-project
+  index: 33

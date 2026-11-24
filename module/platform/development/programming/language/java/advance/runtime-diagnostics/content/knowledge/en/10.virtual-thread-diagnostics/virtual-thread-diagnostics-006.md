@@ -1,38 +1,38 @@
-# 10.6 Quan sát `VirtualThreadPinned`, `VirtualThreadSubmitFailed` và cấu hình JFR
+# 10.6 Observing `VirtualThreadPinned`, `VirtualThreadSubmitFailed`, and JFR Configuration
 
-> **Phạm vi:** Java 21+ (virtual thread là tính năng chính thức từ JDK 21). Ví dụ thực hành pinning dùng JDK 21–23; JDK 24+ có thay đổi quan trọng nhờ JEP 491. Các tên sự kiện bên dưới là tên đầy đủ trong Java Flight Recorder (JFR).
+> **Scope:** Java 21+ (virtual threads are a permanent feature since JDK 21). Hands-on pinning examples target JDK 21–23; JDK 24+ introduces major changes via JEP 491. Event names below are full Java Flight Recorder (JFR) event names.
 
-## 1. Mục tiêu và mô hình quan sát
+## 1. Objectives and Observation Model
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích vì sao một virtual thread đôi khi giữ chặt **carrier thread** khi chờ đợi, và điều gì khiến việc đó ảnh hưởng đến khả năng mở rộng.
-- Phân biệt `jdk.VirtualThreadPinned` (chờ đợi khi đang pinned) với `jdk.VirtualThreadSubmitFailed` (thất bại khi đưa công việc của virtual thread vào bộ lập lịch).
-- Bật, điều chỉnh và kiểm tra các event JFR qua `.jfc`, `jfr`, `jcmd`; thu thập và đọc bản ghi `.jfr`.
-- Dựa trên thời lượng, stack trace và ngữ cảnh tải thực tế để xác định điểm cần sửa; nhận biết khác biệt JDK 21–23 và JDK 24+.
+- Explain why a virtual thread sometimes holds onto its **carrier thread** while waiting, and what makes that affect scalability.
+- Distinguish `jdk.VirtualThreadPinned` (waiting while pinned) from `jdk.VirtualThreadSubmitFailed` (failure to submit a virtual thread's work to the scheduler).
+- Enable, tune, and inspect JFR events via `.jfc`, `jfr`, and `jcmd`; capture and read `.jfr` recordings.
+- Use duration, stack traces, and real load context to pinpoint what needs fixing; recognize differences between JDK 21–23 and JDK 24+.
 
-**Nhắc lại cơ chế:** virtual thread (VT) chạy Java code bằng cách **mount** lên một platform thread gọi là *carrier*. Khi một thao tác chờ hỗ trợ unmount, VT nhường carrier để carrier chạy VT khác. Khi VT không thể unmount vì bị *pinned*, carrier vẫn bị chiếm trong thời gian VT chờ. Pinning không đồng nghĩa deadlock, lỗi nghiệp vụ hay `OutOfMemoryError`; tác động chính là giảm khả năng dùng lại số carrier có hạn nếu thời gian chờ dài **và** lặp lại nhiều.
+**Mechanism recap:** a virtual thread (VT) runs Java code by **mounting** onto a platform thread called a *carrier*. When a wait operation supports unmounting, the VT yields the carrier so the carrier can run another VT. When the VT cannot unmount because it is *pinned*, the carrier remains occupied while the VT waits. Pinning does not equate to deadlock, business errors, or `OutOfMemoryError`; its main impact is reducing reuse of the finite carrier pool when wait durations are long **and** frequent.
 
-Trong JDK 21–23, blocking khi đang ở trong một `synchronized` block/method hoặc khi đang chạy qua native/foreign frame có thể gây pinning. Một đoạn `synchronized` chỉ thực hiện tính toán ngắn không tự động trở thành vấn đề: điều đáng tìm là **blocking lâu trong trạng thái không unmount được**. Từ JDK 24, JEP 491 cho phép virtual thread chờ trong các cấu trúc `synchronized` mà không cần giữ carrier như trước; pinning do native/VM frames và một số tình huống runtime vẫn cần được quan sát.
+In JDK 21–23, blocking while inside a `synchronized` block/method or executing across a native/foreign frame can cause pinning. A `synchronized` section performing only brief computation does not automatically become a problem: what matters is **long blocking in an unmountable state**. Starting in JDK 24, JEP 491 allows virtual threads waiting inside `synchronized` constructs to release their carriers; pinning due to native/VM frames and certain runtime cases still warrants observation.
 
-## 2. Bốn event JFR cần biết
+## 2. Four Key JFR Events to Know
 
-| Event | Ý nghĩa | Mặc định với `default.jfc` của JDK 21 | Khi dùng |
+| Event | Meaning | JDK 21 `default.jfc` Default | When to Use |
 | --- | --- | --- | --- |
-| `jdk.VirtualThreadPinned` | VT thực hiện thao tác blocking khi còn pinned đủ lâu để vượt ngưỡng. | `enabled=true`, `threshold=20 ms`, `stackTrace=true` | Tìm đoạn giữ carrier trong lúc chờ và đo độ dài của lần blocking đó. |
-| `jdk.VirtualThreadSubmitFailed` | Runtime không submit được continuation/task để VT bắt đầu hoặc chạy lại sau unpark; có thể liên quan tới cạn tài nguyên hay scheduler từ chối. | `enabled=true`, `stackTrace=true` | Điều tra lỗi scheduling; kết hợp exception, log và tình trạng tài nguyên. |
-| `jdk.VirtualThreadStart` | VT bắt đầu chạy. | `enabled=false` | Theo dõi vòng đời ngắn hạn khi cần đối chiếu số lượng VT. |
-| `jdk.VirtualThreadEnd` | VT kết thúc. | `enabled=false` | Đối chiếu thời điểm hoàn tất VT khi điều tra vòng đời. |
+| `jdk.VirtualThreadPinned` | VT performed a blocking operation while pinned long enough to exceed the threshold. | `enabled=true`, `threshold=20 ms`, `stackTrace=true` | Locate code holding the carrier while waiting and measure the duration of that blocking call. |
+| `jdk.VirtualThreadSubmitFailed` | The runtime failed to submit the continuation/task for a VT to start or resume after unpark; may relate to resource exhaustion or scheduler rejection. | `enabled=true`, `stackTrace=true` | Investigate scheduling failures; correlate with exceptions, logs, and resource health. |
+| `jdk.VirtualThreadStart` | VT began executing. | `enabled=false` | Short-term lifecycle tracking when reconciling VT counts. |
+| `jdk.VirtualThreadEnd` | VT terminated. | `enabled=false` | Correlate VT completion times during lifecycle investigations. |
 
-Các giá trị trên là cấu hình **mặc định theo bản JDK**, không có nghĩa JFR luôn ghi liên tục. Phải **khởi động một recording**, và recording đó phải dùng profile có event tương ứng. File `.jfc` tùy chỉnh, phiên bản JDK hoặc nhà phân phối có thể thay đổi cấu hình thực tế.
+The values above are **JDK default configurations**, which does not mean JFR is always recording continuously. You must **start a recording**, and that recording must use a profile containing the relevant events. Custom `.jfc` files, JDK versions, or vendors may alter effective settings.
 
-**Hiểu đúng `threshold`:** `20 ms` là ngưỡng thời lượng cho một lần blocking **trong khi pinned**, không phải thời gian chạy của VT, thời gian giữ monitor, hoặc tổng latency request. Event dưới ngưỡng không xuất hiện trong bản ghi; `VirtualThreadSubmitFailed` là event về lỗi submit, không có ngưỡng thời lượng tương đương. `Thread.sleep`, `SocketRead`, `ThreadPark` hoặc `JavaMonitorEnter` tự chúng **không chứng minh** VT đang pinned; chúng chỉ hữu ích để liên hệ nguyên nhân.
+**Understanding `threshold` properly:** `20 ms` is the duration threshold for a single blocking call **while pinned**, not total VT runtime, total monitor hold time, or total request latency. Events below the threshold do not appear in the recording; `VirtualThreadSubmitFailed` is a submission-failure event and has no equivalent duration threshold. `Thread.sleep`, `SocketRead`, `ThreadPark`, or `JavaMonitorEnter` do **not by themselves prove** a VT is pinned; they are useful only for correlating causes.
 
-## 3. Cấu hình event và khởi động recording
+## 3. Configuring Events and Starting a Recording
 
-### 3.1. Kiểm tra công cụ và định nghĩa event
+### 3.1. Checking Tools and Event Definitions
 
-Dùng JDK có `java`, `javac`, `jfr`, `jcmd` trên `PATH`. Nên lấy công cụ từ **cùng phiên bản JDK với JVM đang chẩn đoán**.
+Use a JDK with `java`, `javac`, `jfr`, and `jcmd` on `PATH`. Prefer tools from the **same JDK version as the JVM under diagnosis**.
 
 ```bash
 java -version
@@ -40,37 +40,37 @@ jfr help configure
 jfr metadata --events jdk.VirtualThreadPinned,jdk.VirtualThreadSubmitFailed
 ```
 
-`jfr metadata` cho biết tên trường thực có trên JDK đang dùng. Ví dụ trên JDK 21, tập trung vào `duration`, `eventThread`, `stackTrace` của pinned event; với submit failure, chú ý `javaThreadId` và `exceptionMessage`. JDK 24+ bổ sung thông tin chẩn đoán pinning như `blockingOperation`, `pinnedReason`, `carrierThread`; **đừng giả định các trường mới này có ở JDK 21**.
+`jfr metadata` reveals the exact field names present on your JDK. On JDK 21, for example, focus on `duration`, `eventThread`, and `stackTrace` for pinned events; for submit failures, check `javaThreadId` and `exceptionMessage`. JDK 24+ adds pinning diagnostics such as `blockingOperation`, `pinnedReason`, and `carrierThread`; **do not assume these newer fields exist on JDK 21**.
 
-### 3.2. Tạo `.jfc` để quan sát ngắn hạn
+### 3.2. Creating a `.jfc` File for Short-Term Observation
 
-Không cần viết XML bằng tay. `jfr configure` lấy `default.jfc` làm nền nếu không chỉ rõ `--input`:
+You do not need to hand-edit XML. `jfr configure` uses `default.jfc` as its base when `--input` is omitted:
 
 ```bash
 jfr configure --output vt-diagnostics.jfc "jdk.VirtualThreadPinned#enabled=true" "jdk.VirtualThreadPinned#threshold=5ms" "jdk.VirtualThreadPinned#stackTrace=true" "jdk.VirtualThreadSubmitFailed#enabled=true" "jdk.VirtualThreadSubmitFailed#stackTrace=true"
 ```
 
-File `vt-diagnostics.jfc` giữ các event cơ bản của `default.jfc` và thay ngưỡng pinned từ 20 ms xuống **5 ms** để điều tra. Dấu `#` nằm **trong tên setting JFR**, không phải chú thích shell; đặt đối số trong dấu ngoặc kép giúp dễ dùng trên các terminal khác nhau.
+`vt-diagnostics.jfc` keeps the baseline events from `default.jfc` and lowers the pinned threshold from 20 ms to **5 ms** for investigation. The `#` character is **part of the JFR setting syntax**, not a shell comment; quoting each argument ensures compatibility across shells.
 
-- `enabled=true`: ghi nhận event khi có recording phù hợp.
-- `threshold=5ms`: bắt thêm các lần blocking pinned ngắn hơn; ngưỡng càng thấp, số lượng event và overhead tiềm năng càng tăng.
-- `stackTrace=true`: giữ chuỗi lời gọi để lần về vị trí blocking; tăng lượng dữ liệu so với chỉ ghi event.
-- Không thêm `threshold` cho `VirtualThreadSubmitFailed`: đây không phải event đo một khoảng chờ.
-- Không bật `VirtualThreadStart`/`End` vô hạn trên hệ thống tạo hàng triệu VT; chúng có thể sinh nhiều event. Nếu thực sự cần trong một cửa sổ ngắn, thêm `"jdk.VirtualThreadStart#enabled=true" "jdk.VirtualThreadEnd#enabled=true"` vào lệnh cấu hình.
+- `enabled=true`: record the event when an appropriate recording is active.
+- `threshold=5ms`: catch shorter pinned blocking calls; lower thresholds increase potential event volume and overhead.
+- `stackTrace=true`: capture the call chain to trace back to the blocking site; increases data size compared to recording events alone.
+- Do not add a `threshold` to `VirtualThreadSubmitFailed`: it does not measure a wait duration.
+- Do not leave `VirtualThreadStart`/`End` enabled indefinitely on systems creating millions of VTs; they can generate massive event volumes. If genuinely needed for a brief window, add `"jdk.VirtualThreadStart#enabled=true" "jdk.VirtualThreadEnd#enabled=true"` to the configuration command.
 
-Với phép đo sản xuất dài hạn, hãy bắt đầu bằng `default.jfc` và ngưỡng 20 ms; chỉ hạ ngưỡng cho đợt chẩn đoán có thời hạn. `profile.jfc` thu thập nhiều dữ liệu hơn, nên thường tốn tài nguyên hơn `default.jfc`.
+For long-term production measurement, start with `default.jfc` and the 20 ms threshold; lower the threshold only for time-bounded diagnostic sessions. `profile.jfc` collects more data and therefore typically incurs higher overhead than `default.jfc`.
 
-### 3.3. Thu thập lúc khởi động chương trình
+### 3.3. Capturing at Program Startup
 
 ```bash
 java -XX:StartFlightRecording=filename=vt-diagnostics.jfr,dumponexit=true,settings=vt-diagnostics.jfc -cp . MyApp
 ```
 
-Thay `MyApp` bằng main class hoặc lựa chọn chạy phù hợp của ứng dụng (ví dụ có thể dùng `-jar app.jar`). Recording dùng file cấu hình bạn vừa tạo; `dumponexit=true` yêu cầu ghi file khi JVM kết thúc. File `.jfr` là **nhị phân**, cần mở bằng JFR/JDK Mission Control, không đọc như log text. Nên dùng đường dẫn tuyệt đối nếu chưa chắc working directory.
+Replace `MyApp` with your application's main class or launch flags (e.g., `-jar app.jar`). The recording uses the settings file you just created; `dumponexit=true` writes the file when the JVM exits. `.jfr` files are **binary** and must be opened with JFR/JDK Mission Control rather than read as plain-text logs. Prefer absolute paths if the working directory is uncertain.
 
-### 3.4. Thu thập trên JVM đã chạy
+### 3.4. Capturing on an Already-Running JVM
 
-Tìm PID của JVM mục tiêu rồi attach:
+Locate the target JVM's PID and attach:
 
 ```bash
 jcmd -l
@@ -78,23 +78,23 @@ jcmd <PID> JFR.start name=vt-diag settings=vt-diagnostics.jfc duration=60s filen
 jcmd <PID> JFR.check name=vt-diag verbose=true
 ```
 
-`JFR.check verbose=true` giúp xác minh recording đang chạy và các event setting thực tế, tránh suy luận từ một file `.jfc` không được sử dụng. Khi cần snapshot trong lúc recording còn chạy:
+`JFR.check verbose=true` verifies that the recording is active and confirms its effective event settings, avoiding false inferences from an unused `.jfc` file. To take a snapshot while the recording is still running:
 
 ```bash
 jcmd <PID> JFR.dump name=vt-diag filename=vt-snapshot.jfr
 ```
 
-Hoặc để **dừng một recording chưa tự kết thúc** và ghi file cuối:
+Or to **stop a non-timed recording** and write the final file:
 
 ```bash
 jcmd <PID> JFR.stop name=vt-diag filename=vt-final.jfr
 ```
 
-Với `duration=60s`, recording sẽ tự hết hạn sau khoảng thời gian đó; không cần gọi `JFR.stop` lần nữa. Lệnh attach cần chạy với quyền truy cập phù hợp đến process. Tùy cách khởi động và cấu hình, `jcmd` có thể không attach được; khi đó hãy dùng tùy chọn `-XX:StartFlightRecording` lúc khởi động.
+With `duration=60s`, the recording expires automatically after that window; you do not need to call `JFR.stop` again. Attach commands require appropriate permissions for the target process. Depending on startup flags and environment, `jcmd` may be unable to attach; in that case, use `-XX:StartFlightRecording` at startup.
 
-**Phân biệt hai lệnh dễ nhầm:** `jfr configure` tạo/sửa **event settings file** `.jfc`. `jcmd <PID> JFR.configure` chủ yếu cấu hình tham số recorder toàn cục (buffer, repository, v.v.); để chọn event cho một recording, dùng `JFR.start settings=...` hoặc API JFR tương ứng.
+**Distinguish two easily confused commands:** `jfr configure` creates/edits a `.jfc` **event settings file**. `jcmd <PID> JFR.configure` mainly configures global recorder parameters (buffers, repository, etc.); to select events for a recording, pass `settings=...` to `JFR.start` or use the corresponding JFR API.
 
-### 3.5. Đọc kết quả và đối chiếu metadata
+### 3.5. Reading Results and Checking Metadata
 
 ```bash
 jfr summary vt-diagnostics.jfr
@@ -103,52 +103,52 @@ jfr print --events jdk.VirtualThreadStart,jdk.VirtualThreadEnd vt-diagnostics.jf
 jfr metadata --events jdk.VirtualThreadPinned,jdk.VirtualThreadSubmitFailed vt-diagnostics.jfr
 ```
 
-- `jfr summary` kiểm tra có event, tổng số và dung lượng; giúp phát hiện nhầm recording hoặc thiếu event.
-- `jfr print --events` lọc đúng loại event, rồi xem thời điểm, duration, thread, stack và thông tin lỗi. Nếu Start/End không được bật, lệnh in hai event này sẽ không có kết quả, và đó là bình thường.
-- `jfr metadata ... <file>` kiểm tra **schema được lưu trong chính recording**; hữu ích khi công cụ phân tích và JVM tạo file khác phiên bản.
-- JDK Mission Control (JMC) thuận tiện hơn khi cần nhóm theo stack trace, lọc thời gian, xem các event liên quan và so sánh với CPU/GC/latency.
+- `jfr summary` checks event presence, total counts, and size; helps catch wrong recordings or missing events.
+- `jfr print --events` filters to specific event types so you can inspect timestamps, durations, threads, stacks, and error details. If Start/End were not enabled, printing those two events yields empty output, which is expected.
+- `jfr metadata ... <file>` inspects the **schema stored inside the recording itself**; useful when the analysis tool and the producing JVM differ in version.
+- JDK Mission Control (JMC) is more convenient when grouping by stack trace, filtering by time, inspecting related events, and correlating with CPU/GC/latency.
 
-## 4. Diễn giải `jdk.VirtualThreadPinned`
+## 4. Interpreting `jdk.VirtualThreadPinned`
 
-Một pinned event cho biết có **lần blocking đủ dài khi VT không thể nhường carrier**. Với JDK 21–23, các trường thường cần quan sát là:
+A pinned event indicates a **blocking operation long enough while the VT could not yield its carrier**. On JDK 21–23, the key fields to examine are:
 
-| Thông tin | Cách đọc |
+| Field | How to Read |
 | --- | --- |
-| `startTime`, `duration` | Lần blocking xảy ra lúc nào, kéo dài bao lâu; dùng để đối chiếu latency hoặc các đợt nghẽn. |
-| `eventThread` | Virtual thread phát sinh sự kiện (nếu metadata/recording cung cấp). |
-| `stackTrace` | Chuỗi lời gọi tại nơi runtime ghi nhận tình huống pinned; lần theo frame thuộc package của ứng dụng. |
-| `blockingOperation`, `pinnedReason`, `carrierThread` | Thông tin chi tiết hơn trên JDK mới (JDK 24+), cho biết thao tác chờ, lý do pinned và carrier liên quan. Không coi đây là trường bắt buộc của JDK 21. |
+| `startTime`, `duration` | When the blocking occurred and how long it lasted; used to correlate with latency spikes or stalls. |
+| `eventThread` | The virtual thread that emitted the event (when provided by metadata/recording). |
+| `stackTrace` | Call chain where the runtime recorded pinning; follow frames back into your application packages. |
+| `blockingOperation`, `pinnedReason`, `carrierThread` | Richer details on newer JDKs (JDK 24+), indicating the waiting operation, pinning reason, and involved carrier. Do not assume these fields exist on JDK 21. |
 
-**Trình tự phân tích thực tế:**
+**Practical analysis sequence:**
 
-1. Chọn khoảng thời gian có request latency tăng, throughput giảm hoặc carrier bị chiếm nhiều.
-2. Lọc `VirtualThreadPinned`, nhóm theo stack trace/vị trí mã nguồn. Đếm tần suất và xem phân phối duration thay vì nhìn một event đơn lẻ.
-3. Tìm frame ứng dụng gần vị trí gọi I/O, `sleep`, park, monitor hoặc native boundary; đối chiếu JDK version và source để xác định vì sao không unmount được.
-4. Đối chiếu event liên quan (`jdk.SocketRead`, `jdk.ThreadPark`, `jdk.JavaMonitorEnter`, `jdk.JavaMonitorWait`) và metric thực tế; chúng cung cấp bối cảnh chứ không tự xác nhận pinning.
-5. Chỉ sửa nơi **blocking pinned dài và thường xuyên**. Sau thay đổi, lặp lại tải tương đương, đo cả số event, thời lượng, throughput và request latency.
+1. Select time windows showing elevated request latency, reduced throughput, or heavy carrier occupancy.
+2. Filter `VirtualThreadPinned` and group by stack trace/source location. Count frequencies and examine duration distributions rather than reacting to a single event.
+3. Locate application frames near I/O calls, `sleep`, park, monitors, or native boundaries; check JDK version and source code to determine why unmounting was blocked.
+4. Correlate related events (`jdk.SocketRead`, `jdk.ThreadPark`, `jdk.JavaMonitorEnter`, `jdk.JavaMonitorWait`) and real metrics; they supply context without proving pinning on their own.
+5. Fix only sites with **long and frequent pinned blocking**. After the change, replay comparable load and measure event counts, durations, throughput, and request latency.
 
-Tránh kết luận "cứ thấy synchronized là phải thay hết": monitor dùng ngắn, chủ yếu CPU hoặc hiếm khi chờ không nhất thiết là nút thắt. Trên JDK 21–23, nếu có I/O hoặc chờ lâu trong monitor, ưu tiên chuyển blocking ra ngoài khối đồng bộ; khi cần khóa loại trừ lẫn nhau trong lúc chờ, cân nhắc `ReentrantLock` với `try/finally`. JDK 24+ thường giải quyết nguyên nhân monitor pinning bằng nâng cấp runtime; vẫn phải xác minh các nguyên nhân khác.
+Avoid jumping to "replace every `synchronized`": short monitors doing mostly CPU work or rarely blocking are not necessarily bottlenecks. On JDK 21–23, when I/O or long waits occur inside a monitor, prefer moving blocking outside the synchronized block; when mutual exclusion must span the wait, consider `ReentrantLock` with `try/finally`. JDK 24+ generally resolves monitor pinning via runtime upgrade; other pinning causes still require verification.
 
-**Không thấy event** có thể vì không xảy ra blocking pinned, thời gian chờ dưới threshold, cửa sổ recording không trùng tải, sai `.jfc`, thiếu stack do setting, hoặc behavior đã thay đổi ở JDK mới. Điều đó **không chứng minh** toàn hệ thống không thể gặp pinning.
+**Seeing zero events** can mean no pinned blocking occurred, wait durations stayed below the threshold, the recording window missed the load, the wrong `.jfc` was used, stack traces were disabled, or behavior changed in a newer JDK. It **does not prove** the system is immune to pinning.
 
-## 5. Diễn giải `jdk.VirtualThreadSubmitFailed`
+## 5. Interpreting `jdk.VirtualThreadSubmitFailed`
 
-Khác với pinned, `VirtualThreadSubmitFailed` báo sự cố trong đường **submit/schedule continuation** của một virtual thread để bắt đầu hoặc chạy tiếp sau unpark. Theo implementation OpenJDK JDK 21, một đường đi là scheduler từ chối tiếp nhận task bằng `RejectedExecutionException`; event chứa thông tin như `javaThreadId` của VT và `exceptionMessage`. Event được bật theo mặc định, nhưng **không có nghĩa tất cả exception trong task, mọi `ExecutorService.submit()` bị reject, hoặc mọi tình huống thiếu bộ nhớ đều tự động biến thành event này**.
+Unlike pinning, `VirtualThreadSubmitFailed` signals a failure in the path that **submits/schedules a virtual thread's continuation** to start or resume after unpark. Per the OpenJDK JDK 21 implementation, one path is the scheduler rejecting task submission with `RejectedExecutionException`; the event contains fields such as the VT's `javaThreadId` and `exceptionMessage`. The event is enabled by default, **which does not mean every exception inside a task, every rejected `ExecutorService.submit()`, or every out-of-memory condition automatically emits this event**.
 
-Khi thấy event:
+When you observe this event:
 
-1. Đọc `startTime`, `javaThreadId`, `exceptionMessage`, `stackTrace` nếu có; `eventThread` là thread ghi event và có thể **khác** VT có ID `javaThreadId`.
-2. Đối chiếu application logs/exception cùng thời điểm, vòng đời của executor/scheduler và các thay đổi triển khai. Tìm bằng chứng scheduler bị shutdown, từ chối task, hoặc đường phục hồi/unpark gặp lỗi.
-3. Kiểm tra áp lực tài nguyên: memory/GC, số platform/carrier threads, tải CPU, file descriptors, giới hạn container, backlog và giới hạn downstream; phân biệt nguyên nhân thực tế với giả thuyết.
-4. Khắc phục nguồn reject/cạn tài nguyên hoặc lifecycle race đã được chứng minh; chạy lại tình huống tương đương và bảo đảm event không tái diễn.
+1. Read `startTime`, `javaThreadId`, `exceptionMessage`, and `stackTrace` if present; `eventThread` is the thread that recorded the event and may **differ** from the VT identified by `javaThreadId`.
+2. Correlate with application logs/exceptions at the same timestamp, executor/scheduler lifecycles, and recent deployment changes. Look for evidence of scheduler shutdown, task rejection, or failures on the resume/unpark path.
+3. Check resource pressure: memory/GC, platform/carrier thread counts, CPU load, file descriptors, container limits, backlogs, and downstream limits; separate proven causes from hypotheses.
+4. Resolve the proven source of rejection, resource exhaustion, or lifecycle race; re-run the equivalent scenario and confirm the event does not recur.
 
-Đừng diễn giải `VirtualThreadSubmitFailed` là "task chạy và trả về lỗi". Đây là sự cố **đưa công việc vào bộ lập lịch**, có thể xảy ra trước khi task chạy hoặc lúc VT cần tiếp tục. Một pinned event cũng không đồng nghĩa sau đó sẽ có submit failure: hai tín hiệu mô tả **hai cơ chế khác nhau**.
+Never interpret `VirtualThreadSubmitFailed` as "the task ran and returned an error." It is a failure **submitting work to the scheduler**, occurring either before the task runs or when a VT needs to resume. Nor does a pinned event mean a submit failure will follow: the two signals describe **two distinct mechanisms**.
 
-## 6. Lab kiểm chứng pinning (JDK 21–23)
+## 6. Pinning Verification Lab (JDK 21–23)
 
-Thí nghiệm sau cố tình cho một VT ngủ 250 ms **trong monitor** ở chế độ `monitor`, rồi dùng `ReentrantLock` ở chế độ `lock`. Mục tiêu là nhìn thấy event, không phải benchmark hiệu năng. Hãy thực hiện trên JDK 21–23 để so sánh nguyên nhân pinning do `synchronized`.
+The following experiment intentionally sleeps a VT for 250 ms **inside a monitor** in `monitor` mode, then uses `ReentrantLock` in `lock` mode. The goal is to observe the event, not to benchmark performance. Run this on JDK 21–23 to compare pinning caused by `synchronized`.
 
-Tạo file `VirtualThreadJfrDemo.java`:
+Create the file `VirtualThreadJfrDemo.java`:
 
 ```java
 import java.util.concurrent.locks.ReentrantLock;
@@ -187,7 +187,7 @@ public class VirtualThreadJfrDemo {
 }
 ```
 
-Biên dịch bằng JDK 21+ và chạy hai lần với `.jfc` ở mục 3:
+Compile with JDK 21+ and run both modes using the `.jfc` from Section 3:
 
 ```bash
 javac VirtualThreadJfrDemo.java
@@ -197,61 +197,61 @@ jfr print --events jdk.VirtualThreadPinned monitor.jfr
 jfr print --events jdk.VirtualThreadPinned lock.jfr
 ```
 
-Dòng output do **chương trình Java** in ra, theo thứ tự hai lần chạy:
+Stdout lines printed by the **Java program**, in order of the two runs:
 
 ```text
 monitor completed
 lock completed
 ```
 
-JVM có thể in thêm thông báo startup/recording của JFR; hai dòng trên không phải toàn bộ stdout của JVM khi bật recording.
+The JVM may print additional JFR startup/recording notices; those two lines are not the entirety of JVM stdout when recording is active.
 
-**Kết quả kỳ vọng:** trên JDK 21–23, lần `monitor` thường tạo một `jdk.VirtualThreadPinned` có duration gần thời gian chờ (tùy thực tế), vì `Thread.sleep` diễn ra khi VT đang giữ monitor. Lần `lock` thường không có event pinned cho đoạn ngủ này vì VT có thể unmount. Quan sát còn phụ thuộc thời điểm recording, threshold, JDK cụ thể và hệ thống. Trên JDK 24+, JEP 491 đã thay đổi cách monitor hoạt động, vì vậy **không dùng việc thiếu pinned event ở lần `monitor` để kết luận lab bị lỗi**.
+**Expected result:** on JDK 21–23, the `monitor` run normally produces a `jdk.VirtualThreadPinned` event with a duration close to the wait time (varying in practice), because `Thread.sleep` executes while the VT holds the monitor. The `lock` run normally produces no pinned event for this sleep because the VT can unmount. Observations depend on recording timing, threshold, exact JDK, and system conditions. On JDK 24+, JEP 491 changed monitor behavior, so **do not treat the absence of pinned events in `monitor` mode as a broken lab**.
 
-Trong chương trình nghiệp vụ, thường còn lựa chọn tốt hơn: giảm phạm vi `synchronized`, chỉ bảo vệ thay đổi trạng thái ngắn và đưa I/O/blocking ra ngoài khóa nếu invariant cho phép. `ReentrantLock` cần cặp `lock()`/`unlock()` chính xác; thay máy móc tất cả monitor có thể tăng độ phức tạp mà không cải thiện hiệu năng.
+In production business code, better options often exist: shrink the `synchronized` scope to protect only brief state mutations and move I/O/blocking outside the lock if invariants permit. `ReentrantLock` requires disciplined `lock()`/`unlock()` pairing; mechanically replacing every monitor can add complexity without improving performance.
 
-## 7. Cách điều tra một sự cố thực tế
+## 7. Investigating a Real-World Incident
 
-Giả sử server dùng virtual threads để gọi HTTP downstream và có các đợt latency cao khi tải tăng.
+Suppose a server uses virtual threads to call downstream HTTP services and suffers latency spikes as load rises.
 
-**Nếu `VirtualThreadPinned` xuất hiện nhiều:** nhóm theo stack, thấy các VT blocking ở client call bên trong monitor trên JDK 21; kiểm tra vì sao monitor bao trùm I/O, cân nhắc thu hẹp critical section hoặc dùng khóa phù hợp. Đo lại với cùng tải, không chỉ nhìn số event giảm. Trên JDK 24+, xem `pinnedReason` và `blockingOperation` khi có, vì monitor pinning thông thường đã được giải quyết.
+**If `VirtualThreadPinned` appears frequently:** group by stack and observe VTs blocking on client calls inside monitors on JDK 21; examine why the monitor wraps I/O, and consider narrowing the critical section or switching to an appropriate lock. Re-measure under identical load rather than looking solely at reduced event counts. On JDK 24+, inspect `pinnedReason` and `blockingOperation` when available, since typical monitor pinning is resolved.
 
-**Nếu `VirtualThreadSubmitFailed` xuất hiện:** đọc message và stack; kiểm tra có scheduler/executor reject task, shutdown race, thiếu tài nguyên hay thay đổi hạ tầng. Đừng chỉ nâng scheduler parallelism hoặc thêm VT: số VT lớn không làm downstream pool, CPU hay bộ nhớ vô hạn. Theo dõi cả error rate và tài nguyên khi khắc phục.
+**If `VirtualThreadSubmitFailed` appears:** read the exception message and stack; check for scheduler/executor task rejection, shutdown races, resource exhaustion, or infrastructure changes. Do not blindly raise scheduler parallelism or spawn more VTs: large VT counts do not make downstream pools, CPU, or memory infinite. Monitor both error rates and resources while remediating.
 
-**Nếu không có hai event nhưng latency vẫn cao:** kiểm tra config/recording, sau đó xét nghẽn connection pool, giới hạn request downstream, DB, GC, CPU, lock contention, timeout và queue ở tầng ứng dụng. Virtual threads giúp giảm chi phí chờ trên platform threads; chúng không tự làm I/O hay downstream nhanh hơn.
+**If neither event appears yet latency remains high:** verify configuration and recording coverage first, then examine connection pool bottlenecks, downstream request limits, DB, GC, CPU, lock contention, timeouts, and application-layer queues. Virtual threads reduce the cost of waiting on platform threads; they do not make I/O or downstream services faster.
 
-Một phép đo có ý nghĩa nên ghi rõ **JDK version, `.jfc` sử dụng, duration của recording, thời điểm tải, ngưỡng pinned, số event, nhóm stack nổi bật và latency/throughput**. So sánh trước/sau dưới điều kiện tương tự.
+Any meaningful measurement should record **JDK version, `.jfc` used, recording duration, load window, pinned threshold, event count, prominent stack groups, and latency/throughput**. Compare before/after under comparable conditions.
 
-## 8. Những khác biệt phiên bản và lỗi thường gặp
+## 8. Version Differences and Common Pitfalls
 
-| Tình huống | Giải thích đúng |
+| Situation | Correct Interpretation |
 | --- | --- |
-| JDK 21–23 có blocking trong `synchronized` | VT có thể giữ carrier khi chờ; `VirtualThreadPinned` là tín hiệu đáng kiểm tra. |
-| JDK 24+ chạy lại cùng code mà hết event | Có thể là tác dụng của **JEP 491**, không phải JFR hỏng; pinning khác vẫn có thể xảy ra. |
-| Có `synchronized` nhưng không có event | Event không đếm mọi monitor; cần lần blocking pinned vượt threshold trong recording. |
-| Bật event trong `.jfc` nhưng file `.jfr` không có event | Kiểm tra recording thực sự dùng đúng `.jfc`, `JFR.check verbose=true`, khoảng tải và threshold. |
-| `VirtualThreadStart`/`End` không hiện ra | Hai event lifecycle bị tắt theo `default.jfc`; chỉ bật ngắn hạn khi cần. |
-| `VirtualThreadSubmitFailed` không xuất hiện khi task ném exception | Event phản ánh lỗi scheduler submit, không phải mọi lỗi trong thân task. |
-| Muốn bỏ hẳn threshold để thấy mọi pin | Có thể làm dữ liệu bùng nổ; chọn ngưỡng nhỏ hơn cho cửa sổ ngắn rồi đưa về cấu hình ổn định. |
-| Phân tích file JFR từ JDK khác phiên bản | Dùng `jfr metadata ... file.jfr`; tên/trường event có thể thay đổi theo phiên bản. |
+| JDK 21–23 blocking inside `synchronized` | VT may hold the carrier while waiting; `VirtualThreadPinned` is a signal worth inspecting. |
+| Re-running the same code on JDK 24+ yields zero events | Likely the effect of **JEP 491**, not broken JFR; other pinning causes can still occur. |
+| `synchronized` exists yet zero events appear | The event does not count every monitor; a pinned blocking call must exceed the threshold during the recording. |
+| Event enabled in `.jfc` yet `.jfr` file has none | Verify the recording actually used that `.jfc` via `JFR.check verbose=true`, load coverage, and threshold. |
+| `VirtualThreadStart`/`End` do not appear | Both lifecycle events are disabled in `default.jfc`; enable only briefly when needed. |
+| `VirtualThreadSubmitFailed` missing when a task throws an exception | The event reflects scheduler submission failures, not general exceptions thrown inside task bodies. |
+| Wanting to remove the threshold to catch every pin | Can cause data explosion; pick a smaller threshold for a short window, then revert to stable settings. |
+| Analyzing JFR files from a different JDK version | Run `jfr metadata ... file.jfr`; event names and fields evolve across releases. |
 
-Trên JDK 21–23, có thêm công cụ debug cục bộ `-Djdk.tracePinnedThreads=full` hoặc `short` để in stack khi xảy ra pinning. Đây là mẹo chẩn đoán của những bản JDK cũ; **không dựa vào thuộc tính này ở JDK 24+** sau thay đổi JEP 491. JFR vẫn là cách phù hợp hơn để thu thập dữ liệu có timestamp, duration và tương quan với event khác.
+On JDK 21–23, the local debugging flag `-Djdk.tracePinnedThreads=full` or `short` also prints stacks when pinning happens. This is a diagnostic aid from older JDK releases; **do not rely on this property in JDK 24+** following JEP 491 changes. JFR remains the better mechanism for capturing timestamped data, durations, and correlations with other events.
 
-## 9. Checklist thao tác và kết luận cần đạt
+## 9. Action Checklist and Key Takeaways
 
-1. Xác định phiên bản JVM đang chạy và tái hiện tải.
-2. Bật `jdk.VirtualThreadPinned`, `jdk.VirtualThreadSubmitFailed` bằng `.jfc` phù hợp; xem lại ngưỡng và `stackTrace`.
-3. Chạy recording bằng `-XX:StartFlightRecording` hoặc attach bằng `jcmd JFR.start`; xác nhận bằng `JFR.check verbose=true`.
-4. Dùng `jfr summary`, `jfr print` và JMC để phân nhóm event theo stack, thời điểm, thời lượng hoặc exception.
-5. Với pinned: tìm **blocking giữ carrier**, xem tần suất và JDK version. Với submit failure: tìm **đường submit bị từ chối** và bằng chứng áp lực tài nguyên/lifecycle.
-6. Sửa đúng nguyên nhân, ghi lại cùng kịch bản và đối chiếu latency, throughput cùng số lượng/thời lượng event. Nếu cần tăng độ nhạy, hạ threshold trong một cửa sổ ngắn rồi khôi phục.
+1. Identify the running JVM version and reproduce the load.
+2. Enable `jdk.VirtualThreadPinned` and `jdk.VirtualThreadSubmitFailed` using an appropriate `.jfc`; review thresholds and `stackTrace`.
+3. Start recording via `-XX:StartFlightRecording` or attach with `jcmd JFR.start`; verify with `JFR.check verbose=true`.
+4. Use `jfr summary`, `jfr print`, and JMC to group events by stack, timestamp, duration, or exception.
+5. For pinning: locate **blocking that holds the carrier**, check frequency and JDK version. For submit failures: locate the **rejected submit path** and evidence of resource/lifecycle pressure.
+6. Fix the verified cause, re-record under the same scenario, and compare latency, throughput, and event counts/durations. If higher sensitivity is needed, lower the threshold for a brief window and restore it afterward.
 
-**Ghi nhớ:** `VirtualThreadPinned` phục vụ điều tra **mất khả năng nhường carrier khi chờ**; `VirtualThreadSubmitFailed` phục vụ điều tra **lỗi scheduling continuation**. Chỉ dựa vào sự tồn tại của một event không đủ để quy lỗi hoặc quyết định tối ưu hóa; phải ghép stack, cấu hình recording, JDK version và dữ liệu ứng dụng.
+**Remember:** `VirtualThreadPinned` is for investigating **inability to yield the carrier while waiting**; `VirtualThreadSubmitFailed` is for investigating **continuation scheduling failures**. The presence of an event alone is not enough to assign blame or choose an optimization; always correlate stacks, recording configuration, JDK version, and application metrics.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle JDK 21 — Virtual Threads, pinning và các JFR events](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html)
+- [Oracle JDK 21 — Virtual Threads, pinning, and JFR events](https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html)
 - [OpenJDK — JEP 491: Synchronize Virtual Threads without Pinning](https://openjdk.org/jeps/491)
 - [Dev.java — Configuring the JDK Flight Recorder](https://dev.java/learn/jvm/jfr/configure/)
-- [Oracle JDK 21 — lệnh `jfr`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
-- [Oracle JDK 21 — lệnh `jcmd`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)
+- [Oracle JDK 21 — `jfr` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
+- [Oracle JDK 21 — `jcmd` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html)

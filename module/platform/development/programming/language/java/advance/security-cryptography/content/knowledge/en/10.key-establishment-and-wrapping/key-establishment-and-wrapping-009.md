@@ -1,66 +1,66 @@
-# 10.9. Quan hệ giữa cơ chế nguyên thủy và một giao thức hoàn chỉnh có xác thực
+# 10.9. The Relationship Between Cryptographic Primitives and a Complete Authenticated Protocol
 
-Một **cơ chế mật mã nguyên thủy** (*cryptographic primitive*) thực hiện một chức năng có phạm vi cụ thể: Diffie–Hellman tạo bí mật chung, KEM đóng gói bí mật cho người nhận, chữ ký số xác minh dữ liệu do bên giữ private key ký, HKDF dẫn xuất các khóa, AEAD mã hóa có xác thực, còn key wrapping bảo vệ khóa khi vận chuyển hoặc lưu trữ. **Một giao thức bảo mật hoàn chỉnh** phải xác định cách các cơ chế đó phối hợp với danh tính, tin cậy public key, trạng thái bắt tay, phiên bản, tham số, bản ghi, vòng đời khóa, chống phát lại và xử lý lỗi.
+A **cryptographic primitive** performs a narrow, well-scoped function: Diffie–Hellman computes a shared secret, KEM encapsulates a secret for a recipient, a digital signature verifies data signed by a private-key holder, HKDF derives keys, AEAD provides authenticated encryption, and key wrapping protects keys in transit or storage. A **complete security protocol** must define how those primitives fit together with identities, public-key trust, handshake state, versioning, parameters, records, key lifecycles, replay protection, and error handling.
 
-Đây là bài 10.9 trong chủ đề **“10. Thỏa thuận và bọc khóa”** của Java Advanced – Security & Cryptography. Hai câu hỏi xuyên suốt là:
+This is lesson 10.9 in the **“10. Key Establishment and Wrapping”** chapter of Java Advanced – Security & Cryptography. Two recurring questions run throughout:
 
-1. *“Hai phía có cùng một byte secret”* có chứng minh họ đang nói chuyện đúng người không?
-2. *“Đã ký, bọc khóa và mã hóa bằng thuật toán an toàn”* có tự tạo nên một giao thức an toàn không?
+1. Does *“both sides have the exact same secret bytes”* prove they are talking to the right party?
+2. Does *“signed, wrapped, and encrypted with safe algorithms”* automatically create a safe protocol?
 
-Câu trả lời cho cả hai câu hỏi đều là **không**, nếu còn thiếu ràng buộc danh tính, bối cảnh, transcript, kiểm tra khóa và trạng thái. Bài này giải thích vì sao, kèm hai chương trình Java 21 chạy được và sơ đồ tư duy để đánh giá giao thức.
+The answer to both questions is **no**, if identity binding, context, transcript binding, key validation, and state management are missing. This lesson explains why, with two runnable Java 21 programs and a mental model for evaluating protocols.
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt chức năng của **X25519/ECDH, KEM, key wrapping, Ed25519/Signature, HKDF, HMAC và AES-GCM**.
-- Trình bày một luồng **man-in-the-middle (MITM)** nơi Diffie–Hellman chạy đúng thuật toán nhưng client trao secret với attacker.
-- Hiểu cách một handshake xác thực cần **trusted identity key**, vai trò client/server, thuật toán đã thương lượng, ephemeral public key, nonce, **transcript binding**, key confirmation và kiểm tra phiên.
-- Giải thích *forward secrecy*, replay protection, unknown-key-share, downgrade, key/algorithm confusion, nonce reuse, và authentication/authorization khác nhau thế nào.
-- Chạy Java 21 với `KeyAgreement("X25519")`, `Signature("Ed25519")`, `Mac("HmacSHA256")` và `Cipher("AES/GCM/NoPadding")`; đọc kết quả và nhận diện chính xác giới hạn của demo.
-- Xác định khi nào nên dùng **TLS 1.3, JSSE, HPKE, một giao thức đã chuẩn hóa** thay vì tự ghép primitives thành protocol mới.
+- Distinguish the functions of **X25519/ECDH, KEM, key wrapping, Ed25519/Signature, HKDF, HMAC, and AES-GCM**.
+- Trace a **man-in-the-middle (MITM)** flow where Diffie–Hellman executes validly yet the client establishes a secret with the attacker.
+- Understand how an authenticated handshake requires a **trusted identity key**, client/server roles, negotiated algorithms, ephemeral public keys, nonces, **transcript binding**, key confirmation, and session checks.
+- Explain *forward secrecy*, replay protection, unknown-key-share, downgrade, key/algorithm confusion, nonce reuse, and how authentication differs from authorization.
+- Run Java 21 with `KeyAgreement("X25519")`, `Signature("Ed25519")`, `Mac("HmacSHA256")`, and `Cipher("AES/GCM/NoPadding")`; interpret outputs and accurately identify the demo's limitations.
+- Determine when to use **TLS 1.3, JSSE, HPKE, or a standardized protocol** instead of stitching primitives into a new protocol.
 
-## 1. Bản đồ: primitive trả lời câu hỏi nào?
+## 1. Map: Which Question Does Each Primitive Answer?
 
-| Thành phần | Ví dụ Java 21 / chuẩn | Nó cung cấp | Nó **không tự cung cấp** |
+| Component | Java 21 / standard example | What it provides | What it **does not provide on its own** |
 | --- | --- | --- | --- |
-| Thỏa thuận khóa (key agreement) | `KeyAgreement.getInstance("X25519")`; ECDH | Hai bên có cặp khóa phù hợp tính ra một **shared secret** | Danh tính của đầu bên kia, transcript đã thương lượng, chống MITM |
-| KEM (key encapsulation) | Khái niệm KEM, `javax.crypto.KEM` (API từ Java 21, phụ thuộc provider/algorithm) | Encapsulate tạo ciphertext + secret; decapsulate khôi phục secret với khóa tương ứng | Mặc định xác thực người gửi, bảo vệ toàn bộ transcript, replay/authorization |
-| Bọc khóa (key wrapping) | `Cipher.WRAP_MODE/UNWRAP_MODE` với scheme được hỗ trợ; AES-KW hoặc RSA-OAEP dùng đúng mục đích | Bảo vệ một khóa được vận chuyển hoặc lưu | Xác nhận ai đề xuất chính sách, key thuộc phiên/recipient nào, toàn bộ tính đúng đắn giao thức |
-| Chữ ký số | `Signature.getInstance("Ed25519")`, `RSASSA-PSS` | Một public key xác minh được một thông điệp đã được ký bằng private key tương ứng | Tin cậy rằng public key thực sự thuộc Alice/Bob; freshness nếu không ký và kiểm tra ngữ cảnh |
-| MAC/HMAC | `Mac.getInstance("HmacSHA256")` | Kiểm tra integrity và nguồn gốc theo bí mật chung | Phân biệt hai người cùng biết khóa, tính mới, bí mật nội dung |
-| KDF/HKDF | HKDF-Extract/Expand, HMAC-SHA256 | Chuyển input secret thành các khóa riêng theo **label/context** | Tự xác thực bên gửi hoặc sửa lỗi một shared secret đã lộ |
-| AEAD | `Cipher.getInstance("AES/GCM/NoPadding")` | Bảo vệ nội dung và AAD theo secret key, IV và tag | Danh tính người gửi nếu key chưa được xác thực, chống phát lại nguyên bản mã |
-| Random nonce/sequence | `SecureRandom`, bộ đếm bản ghi | Dữ liệu duy nhất/đánh số theo chính sách | Chống phát lại nếu không được bảo vệ và không có kiểm tra trạng thái |
+| Key agreement | `KeyAgreement.getInstance("X25519")`; ECDH | Two parties with matching key types compute a **shared secret** | Identity of the other endpoint, negotiated transcript, MITM protection |
+| KEM (key encapsulation) | KEM concept, `javax.crypto.KEM` (Java 21+ API, provider/algorithm dependent) | Encapsulate produces KEM ciphertext + secret; decapsulate recovers secret with matching key | Default sender authentication, full transcript protection, replay/authorization |
+| Key wrapping | `Cipher.WRAP_MODE/UNWRAP_MODE` with supported scheme; AES-KW or RSA-OAEP used properly | Protects a key during transport or storage | Proof of who proposed policy, which session/recipient a key belongs to, overall protocol correctness |
+| Digital signature | `Signature.getInstance("Ed25519")`, `RSASSA-PSS` | A public key verifies a message signed with the matching private key | Trust that the public key truly belongs to Alice/Bob; freshness without signing and checking context |
+| MAC/HMAC | `Mac.getInstance("HmacSHA256")` | Integrity and origin check relative to a shared secret | Distinguishing two holders of the same key, freshness, content confidentiality |
+| KDF/HKDF | HKDF-Extract/Expand, HMAC-SHA256 | Turns input secrets into separate keys by **label/context** | Self-authenticating the sender or fixing an already-leaked shared secret |
+| AEAD | `Cipher.getInstance("AES/GCM/NoPadding")` | Protects payload and AAD under a secret key, IV, and tag | Sender identity if key is unauthenticated, replay protection for identical ciphertexts |
+| Random nonce/sequence | `SecureRandom`, record counter | Unique/numbered values per policy | Replay protection if unprotected and unchecked by state |
 
-**Điều kiện cần khác điều kiện đủ:** mã hóa có xác thực có thể chứng minh message dùng đúng **traffic key**, nhưng nếu attacker đã lừa bạn thiết lập traffic key với mình, tag AEAD hoàn toàn hợp lệ mà **peer sai**.
+**Necessary differs from sufficient:** authenticated encryption can prove a message used the right **traffic key**, yet if an attacker tricked you into establishing the traffic key with them, the AEAD tag is completely valid while the **peer is wrong**.
 
-### 1.1 Ba lớp rất dễ bị gộp nhầm
+### 1.1 Three Layers That Are Easily Conflated
 
-- **Bí mật đã đồng thuận (secret agreement):** `K_A == K_B` chỉ khi hai bên tham gia đúng cuộc trao đổi khóa. Chưa có phép kiểm danh tính.
-- **Xác thực peer (peer/entity authentication):** xác định đúng người sở hữu key đã được tin cậy. Signature có thể chứng minh quyền sử dụng private key **nếu public key đã được gắn với danh tính**; muốn biết peer thực sự hiện diện còn cần các bước về freshness/possession/liveness theo giao thức.
-- **Xác thực message (message authentication):** dữ liệu/ciphertext không bị sửa và được tạo bởi bên nắm khóa MAC/AEAD. Đây không phải quyền thực hiện giao dịch (*authorization*) và không đồng nghĩa request chưa từng xuất hiện.
+- **Secret agreement:** `K_A == K_B` only means two parties ran a valid key exchange. No identity check has occurred yet.
+- **Peer/entity authentication:** identifies the rightful owner of a trusted key. A signature can prove possession of a private key **if the public key is bound to an identity**; knowing the peer is genuinely live also requires protocol freshness/possession/liveness checks.
+- **Message authentication:** data/ciphertext was not tampered with and was created by a holder of the MAC/AEAD key. This is not transaction permission (*authorization*) and does not mean the request was never seen before.
 
-Một giao thức tốt kiểm tra **đúng peer, đúng message, đúng phiên, đúng phiên bản, đúng thời điểm và đúng quyền** trước khi gây ra tác động nghiệp vụ.
+A sound protocol verifies **the right peer, right message, right session, right version, right timing, and right permissions** before causing business side effects.
 
-## 2. Các thành phần của một giao thức trao đổi khóa có xác thực
+## 2. Components of an Authenticated Key-Exchange Protocol
 
-Một handshake thực tế có thể cần các lớp sau; không nhất thiết được triển khai bằng đúng thứ tự code ở một thư viện cụ thể.
+A real handshake may require the following layers; they do not necessarily execute in the exact code order of a particular library.
 
-1. **Vai trò và mục tiêu:** ai là client/server, cần xác thực một chiều hay hai chiều, cần confidentiality, forward secrecy, replay protection đến đâu?
-2. **Chính sách và thương lượng:** version, nhóm key agreement/KEM, signature algorithms, AEAD, KDF, allowed extensions. Thỏa thuận phải được bảo vệ chống sửa/downgrade.
-3. **Định danh và trust anchor:** chứng thư X.509 + truststore, key fingerprint được pin, hoặc public key đáng tin lấy từ registry. Phải ràng buộc danh tính với khóa đang xác minh.
-4. **Ephemeral key share / encapsulation:** tạo một session secret mới theo thuật toán phù hợp. Có thể dùng (EC)DHE/X25519, KEM hoặc kết hợp theo protocol.
-5. **Authentication và transcript integrity:** ký/MAC đúng transcript, bao gồm role, phiên bản, lựa chọn thuật toán, danh tính, key shares và các metadata có ý nghĩa.
-6. **Key derivation + separation:** dùng KDF được thiết kế cho key material để sinh **traffic key, IV/base nonce, finished/key-confirmation key**, với label riêng cho từng hướng/bước.
-7. **Key confirmation:** xác minh hai phía đang sở hữu secret/phát triển đúng key trên **cùng transcript**, thường qua Finished MAC hoặc authenticated record; chỉ cho sử dụng data khi state machine cho phép.
-8. **Record protection:** AEAD với nonce/sequence không trùng dưới cùng key, AAD đầy đủ, giới hạn record, anti-replay theo thiết kế.
-9. **Vòng đời phiên:** timeout, rekey, đóng phiên, khôi phục kết nối, xử lý mất gói, xác định lỗi và kiểm soát tài nguyên.
-10. **Application policy:** principal, authorization, idempotency, chống phát lại lệnh nghiệp vụ; không tự cho phép giao dịch chỉ vì TLS/handshake thành công.
+1. **Roles and goals:** who is client/server, whether one-way or mutual authentication is required, and what level of confidentiality, forward secrecy, and replay protection is needed.
+2. **Policy and negotiation:** version, key-agreement/KEM groups, signature algorithms, AEAD, KDF, and allowed extensions. Negotiation must be protected against tampering/downgrade.
+3. **Identity and trust anchor:** X.509 certificates + truststore, pinned key fingerprints, or trusted public keys from a registry. Identity must be bound to the verified key.
+4. **Ephemeral key share / encapsulation:** generates a fresh session secret with an appropriate algorithm. May use (EC)DHE/X25519, KEM, or a hybrid per protocol.
+5. **Authentication and transcript integrity:** signs/MACs the exact transcript, including roles, version, algorithm selection, identities, key shares, and meaningful metadata.
+6. **Key derivation + separation:** uses a key-material KDF to derive **traffic keys, IV/base nonces, and finished/key-confirmation keys**, with distinct labels per direction/step.
+7. **Key confirmation:** verifies both sides hold the secret and derived the right keys over the **same transcript**, usually via a Finished MAC or authenticated record; only allows data flow when the state machine permits.
+8. **Record protection:** AEAD with non-repeating nonces/sequences per key, full AAD, record limits, and anti-replay per design.
+9. **Session lifecycle:** timeouts, rekeying, session closure, connection recovery, packet-loss handling, error handling, and resource bounds.
+10. **Application policy:** principal, authorization, idempotency, and business-command anti-replay; never authorize a transaction merely because TLS/handshake succeeded.
 
-### 2.1 Vì sao “chạy từng API đều thành công” chưa đủ?
+### 2.1 Why Is “Every API Call Succeeded” Not Enough?
 
-Giả sử một ứng dụng gọi:
+Suppose an application prints:
 
 ```text
 X25519 agreement: success
@@ -68,11 +68,11 @@ HKDF: success
 AES/GCM decryption: success
 ```
 
-Các lệnh này nói rằng *toán học và key có thể tương thích*, **không chứng minh** server đang nói chuyện là server mục tiêu. Nếu key share của peer bị attacker thay từ đầu, client có thể tạo secret với attacker; attacker cũng giải mã và tạo tag AES-GCM hợp lệ. Đây là lỗ hổng **giao thức**, không phải lỗi thuật toán X25519 hay AES-GCM.
+These messages say *the math and keys were compatible*, **not** that the server being talked to is the intended server. If the peer's key share was swapped by an attacker from the start, the client computes a secret with the attacker, and the attacker decrypts and produces valid AES-GCM tags too. This is a **protocol** flaw, not an X25519 or AES-GCM bug.
 
-## 3. Tấn công MITM khi chỉ dùng Diffie–Hellman
+## 3. MITM Attack When Using Diffie–Hellman Alone
 
-Alice muốn trao đổi khóa với Bob; Mallory có thể chặn, thay public key trên đường truyền.
+Alice wants to exchange keys with Bob; Mallory can intercept and replace public keys in transit.
 
 ```text
  Alice                    Mallory                       Bob
@@ -90,11 +90,11 @@ Alice muốn trao đổi khóa với Bob; Mallory có thể chặn, thay public 
  K_A == K_MA                   true           K_MB == K_B
 ```
 
-Alice và Bob đều có thể tin “đã bắt tay bằng X25519”. Thực tế Mallory biết **hai secret độc lập**; nếu các phía dùng chúng để mã hóa, Mallory có thể giải mã và mã hóa lại giữa hai kênh. Không cần phá mật mã, chỉ cần thay public key chưa được xác thực.
+Both Alice and Bob may believe “we completed an X25519 handshake.” In reality, Mallory knows **two independent secrets**; if the endpoints encrypt with them, Mallory can decrypt and re-encrypt between both channels. No cryptography needs to be broken—only unauthenticated public keys swapped.
 
-### 3.1 Demo Java 21: thuật toán đúng nhưng peer sai
+### 3.1 Java 21 Demo: Right Algorithm, Wrong Peer
 
-Tạo file **`UnauthenticatedDhDemo.java`**:
+Create file **`UnauthenticatedDhDemo.java`**:
 
 ```java
 import java.security.KeyPair;
@@ -117,7 +117,7 @@ public class UnauthenticatedDhDemo {
         KeyPair alice = g.generateKeyPair();
         KeyPair bob = g.generateKeyPair();
 
-        // Mallory thay public key riêng khi nói chuyện với mỗi đầu.
+        // Mallory substitutes separate public keys when talking to each endpoint.
         KeyPair malloryToAlice = g.generateKeyPair();
         KeyPair malloryToBob = g.generateKeyPair();
 
@@ -138,7 +138,7 @@ public class UnauthenticatedDhDemo {
 }
 ```
 
-Biên dịch/chạy với JDK 21:
+Compile and run with JDK 21:
 
 ```text
 javac --release 21 -encoding UTF-8 UnauthenticatedDhDemo.java
@@ -152,15 +152,15 @@ Alice shares with Mallory: true
 Bob shares with Mallory: true
 ```
 
-**Giải thích:** X25519 không sai: mỗi phía đã chia sẻ secret với **đúng public key mà nó nhận**. Sai lầm nằm ở chỗ Alice/Bob **không biết public key nhận được thuộc ai**. Code không triển khai TCP hay sửa gói trên mạng; nó mô phỏng việc attacker thay key ngay tại ranh giới nhận. Thử `MessageDigest.isEqual` chỉ kiểm tra hai byte array giống nhau, không kiểm danh tính. Demo không quản lý bộ nhớ secret để giữ ví dụ ngắn; production cần chính sách lifecycle key/secret nghiêm ngặt.
+**Explanation:** X25519 did nothing wrong: each side shared a secret with **the exact public key it received**. The flaw is that Alice and Bob **did not know whom the received public key belonged to**. The code does not run TCP or intercept network packets; it models an attacker swapping keys right at the receive boundary. `MessageDigest.isEqual` only checks whether two byte arrays match, not identity. The demo skips secret-memory clearing to stay concise; production needs strict key/secret lifecycle policies.
 
-## 4. Xác thực exchange: tin đúng khóa trước khi tin vào chữ ký
+## 4. Authenticating the Exchange: Trust the Right Key Before Trusting the Signature
 
-Một cách giáo dục để ngăn thay key là mỗi phía có một **identity signing key** đã được phân phối tin cậy trước đó, và ký dữ liệu bắt tay bao gồm ephemeral public key.
+An instructive way to stop key substitution is for each side to have a **pre-distributed trusted identity signing key** and sign handshake data including the ephemeral public key.
 
 ```text
-Alice có skA_sign, pkA_sign đã được Bob tin cậy
-Bob   có skB_sign, pkB_sign đã được Alice tin cậy
+Alice holds skA_sign, with pkA_sign trusted by Bob
+Bob   holds skB_sign, with pkB_sign trusted by Alice
 
 ClientOffer = version, suite, role=client, id=Alice, nonceA, ephemeralPubA
 sigA = Sign(skA_sign, Encode(ClientOffer))
@@ -168,34 +168,34 @@ sigA = Sign(skA_sign, Encode(ClientOffer))
 ServerOffer = version, suite, role=server, id=Bob, nonceB, ephemeralPubB
 sigB = Sign(skB_sign, Encode(ServerOffer))
 
-Alice xác minh sigB với pkB_sign ĐÁNG TIN và expected id=Bob
-Bob   xác minh sigA với pkA_sign ĐÁNG TIN và expected id=Alice
-Cả hai xác nhận một transcript có thứ tự và bind shared secret vào transcript
+Alice verifies sigB with TRUSTED pkB_sign and expected id=Bob
+Bob   verifies sigA with TRUSTED pkA_sign and expected id=Alice
+Both confirm an ordered transcript and bind the shared secret to the transcript
 ```
 
-**Nếu Mallory thay ephemeral public key mà giữ signature cũ, `verify` thất bại.** Mallory cũng không thể tự ký một offer mới dưới danh tính Bob nếu không có private key của Bob và Bob’s public key tin cậy được Alice kiểm đúng.
+**If Mallory replaces the ephemeral public key while keeping the old signature, `verify` fails.** Nor can Mallory sign a new offer as Bob without Bob's private key while Alice checks Bob's trusted public key properly.
 
-### 4.1 Xác thực khóa khác xác thực danh tính
+### 4.1 Key Verification Differs from Identity Authentication
 
-Một public key được gửi kèm chữ ký tự tạo bởi key đó **chưa đủ**: kẻ tấn công có thể tạo cặp khóa của mình, tự ký và tự nhận là Bob. Client phải có **trust anchor** như certificate chain đúng policy/hostname, certificate pin hợp lệ, hoặc key registry đáng tin. Kiểm tra `Signature.verify() == true` chỉ chứng minh *private key tương ứng với public key đã đưa vào bộ kiểm* tạo ra chữ ký, **không chứng minh khóa thuộc Bob nếu chưa xác thực nguồn**.
+A public key sent alongside a signature created by that same key is **not enough**: an attacker can generate their own key pair, self-sign, and claim to be Bob. The client must have a **trust anchor** such as a policy/hostname-validated certificate chain, a valid certificate pin, or a trusted key registry. Checking `Signature.verify() == true` only proves *the private key matching the supplied public key* produced the signature; it **does not prove the key belongs to Bob without source authentication**.
 
-**Dữ liệu cần được ký/bind:** protocol version, role, identity hoặc subject, key/algorithm identifiers, ephemeral key share, nonce, lựa chọn thuật toán, mục tiêu/audience. Nếu chỉ ký public key mà không ký **vai trò và phiên bản**, attacker có thể gây *role confusion*, *downgrade* hoặc phát lại dữ liệu giữa những giao thức gần giống.
+**Data that must be signed/bound:** protocol version, role, identity or subject, key/algorithm identifiers, ephemeral key share, nonce, algorithm selection, and target/audience. Signing only the public key without signing **role and version** lets attackers cause *role confusion*, *downgrades*, or cross-protocol replays across similar protocols.
 
-### 4.2 Vì sao ràng buộc transcript?
+### 4.2 Why Bind the Transcript?
 
-**Transcript** là toàn bộ chuỗi handshake messages theo thứ tự và encoding đã định, gồm các trường an ninh có ý nghĩa. Một transcript hash như `SHA-256(Encode(clientOffer) || Encode(serverOffer) || ...)` được đưa vào key schedule hoặc chữ ký/MAC giúp hai phía phát hiện nếu chúng không nhất trí:
+A **transcript** is the entire sequence of handshake messages in defined order and encoding, covering all security-relevant fields. Putting a transcript hash like `SHA-256(Encode(clientOffer) || Encode(serverOffer) || ...)` into the key schedule or signature/MAC lets both sides detect disagreements on:
 
-- ai là client/server và danh tính mong đợi;
-- đã thương lượng thuật toán, version, extension nào;
-- đã nhận những ephemeral public keys, nonces và context nào;
-- session này dành cho **dịch vụ, tenant, ứng dụng, tài nguyên** nào (theo protocol);
-- có thông điệp bị thêm, bỏ, sắp xếp lại hoặc tráo ngữ cảnh hay không.
+- who is client/server and the expected identities;
+- which algorithms, versions, and extensions were negotiated;
+- which ephemeral public keys, nonces, and contexts were received;
+- which **service, tenant, application, or resource** this session is for (per protocol);
+- whether any message was injected, dropped, reordered, or transplanted across contexts.
 
-Không nên ghép text tùy ý: `"A" + "BC"` và `"AB" + "C"` cho kết quả trùng. Hãy dùng length-prefix, encoding nhị phân đã công bố, hoặc canonical serialization được kiểm thử. Ở giao thức chuẩn, **transcript construction là một phần đặc tả**, không tự chọn tùy tiện.
+Never concatenate raw text ad hoc: `"A" + "BC"` and `"AB" + "C"` collide. Use length prefixes, a published binary encoding, or tested canonical serialization. In standard protocols, **transcript construction is part of the specification**, not an arbitrary choice.
 
-### 4.3 HKDF dùng shared secret trong đúng bối cảnh
+### 4.3 HKDF Uses the Shared Secret in the Right Context
 
-Với X25519, `generateSecret()` cung cấp byte secret (input key material – IKM). Thường dùng HKDF:
+With X25519, `generateSecret()` gives secret bytes (input key material – IKM). Usually HKDF is applied:
 
 ```text
 PRK = HKDF-Extract(salt, X25519_secret)
@@ -204,23 +204,23 @@ K_s2c = HKDF-Expand(PRK, label(server-to-client) || context, 32)
 K_finished = HKDF-Expand(PRK, label(key-confirmation) || context, 32)
 ```
 
-HKDF chuẩn hóa trong [RFC 5869](https://www.rfc-editor.org/rfc/rfc5869). `salt` và `info/context` được dùng đúng mục đích theo thiết kế; **không dùng bytes shared secret trực tiếp làm khóa AES chỉ vì có đúng độ dài**, cũng không lấy SHA-256 ngẫu nhiên không có phân tách mục đích để tạo mọi loại key. Labels/context của từng hướng giúp tránh dùng cùng key cho các kênh hoặc nhiệm vụ khác nhau.
+HKDF is standardized in [RFC 5869](https://www.rfc-editor.org/rfc/rfc5869). `salt` and `info/context` are used per design; **never use raw shared secret bytes directly as an AES key just because they match the length**, and never run unseparated SHA-256 hashes for every key type. Per-direction labels/contexts prevent reusing the same key across distinct channels or roles.
 
-Dùng transcript hash làm input công khai trong key schedule giúp **key binding** với cuộc bắt tay. Đừng nhầm nó với kiểm tra chữ ký: nếu không có identity authentication, một attacker đang tham gia exchange vẫn có thể tính cùng secret và transcript với endpoint. **HKDF không thay thế chữ ký hoặc một phương thức peer authentication chuẩn.**
+Using the transcript hash as a public input in the key schedule provides **key binding** to the handshake. Do not confuse that with signature verification: without identity authentication, an attacker participating in the exchange can compute the exact same secret and transcript with the endpoint. **HKDF does not replace signatures or a standard peer authentication method.**
 
-## 5. Bài thực hành Java 21: minh họa *các* lớp phối hợp
+## 5. Java 21 Lab: Demonstrating *How* the Layers Coordinate
 
-Chương trình tiếp theo dùng:
+The next program uses:
 
-- **Ed25519 identity key pairs** được tạo trước và giả định public keys đã được trao tin cậy ngoài băng (demo giữ cùng process để dễ kiểm tra).
-- **X25519 ephemeral key pairs** dùng để tạo shared secret tạm thời. Bên nhận xác minh chữ ký trên offer, role/id, suite/nonce trước khi đồng ý sử dụng key share.
-- **Length-prefix encoding** của các trường handshake để tránh nhập nhằng; `SHA-256` transcript trong một thứ tự cố định.
-- **HKDF-HMAC-SHA256** ở mức **một khối Expand 32 byte** cho **một khóa AES-256 duy nhất hướng client→server**, đủ cho một tin nhắn demo.
-- **AES-GCM** với IV/nonce ngẫu nhiên 12 byte mới và transcript hash làm AAD. Thay AAD khiến tag kiểm tra thất bại.
+- **Ed25519 identity key pairs** created beforehand with public keys assumed to be trusted out-of-band (kept in one process in the demo for ease of verification).
+- **X25519 ephemeral key pairs** to establish an ephemeral shared secret. Each receiver verifies the signature over the offer, role/id, and suite/nonce before accepting the key share.
+- **Length-prefix encoding** of handshake fields to avoid ambiguity; `SHA-256` transcript in a fixed order.
+- **HKDF-HMAC-SHA256** as a **single 32-byte Expand block** for a **single client→server AES-256 key**, sufficient for one demo message.
+- **AES-GCM** with a fresh random 12-byte IV/nonce and the transcript hash as AAD. Altering AAD causes tag verification to fail.
 
-Đây là **thí nghiệm minh họa các mối nối giữa primitives**. Chưa phải giao thức để triển khai production: thiếu network framing/parser, certificate-chain verification, finished/key-confirmation **hai chiều**, replay cache, session state, sequence/counter cho nhiều record, quản lý thời gian/rotate/rekey, xử lý đồng thời, secret erasure bảo đảm toàn diện, state machine chống downgrade và nhiều tiêu chí chuẩn khác. Để xây dựng kênh thực tế, dùng TLS 1.3/JSSE hoặc protocol được chuẩn hóa, đánh giá.
+This is an **experiment illustrating the seams between primitives**. It is not a protocol for production deployment: it lacks network framing/parsers, certificate-chain verification, **bidirectional** finished/key confirmation, replay caches, session state, multi-record sequences/counters, timing/rotation/rekey management, concurrency handling, comprehensive secret erasure, downgrade-resistant state machines, and many other standard requirements. To build a real channel, use TLS 1.3/JSSE or a standardized, audited protocol.
 
-Tạo file **`AuthenticatedChannelDemo.java`**:
+Create file **`AuthenticatedChannelDemo.java`**:
 
 ```java
 import java.io.ByteArrayOutputStream;
@@ -429,7 +429,7 @@ public class AuthenticatedChannelDemo {
 }
 ```
 
-Biên dịch và chạy với **JDK 21** (hoặc JDK mới hơn có hỗ trợ `--release 21`):
+Compile and run with **JDK 21** (or a newer JDK supporting `--release 21`):
 
 ```text
 javac -version
@@ -437,7 +437,7 @@ javac --release 21 -encoding UTF-8 AuthenticatedChannelDemo.java
 java AuthenticatedChannelDemo
 ```
 
-Stdout mong đợi (các key và nonce được sinh ngẫu nhiên, không in ra):
+Expected stdout (keys and nonces are randomly generated and not printed):
 
 ```text
 trusted client offer: true
@@ -448,47 +448,47 @@ authenticated message: hello Bob
 changed transcript rejected: true
 ```
 
-### 5.1 Phân tích từng kết quả
+### 5.1 Analyzing Each Result
 
-- **Trusted offers:** hai bên giả định đã có **đúng identity public keys** của nhau từ kênh đáng tin; signatures kiểm tra chính xác các bytes offer có role/id/suite/nonce/key share.
-- **Substituted key rejected:** đổi một byte public key nhưng giữ signature cũ khiến phép xác minh thất bại; attacker không thể tùy tiện thay exchange key mà không có signing private key.
-- **Derived keys match:** `KeyAgreement` tạo shared secret tương thích; HKDF-Extract dùng transcript hash làm public salt, HKDF-Expand một block gồm `info || 0x01` để tạo 32 byte c2s key. Đây là cách dùng **một block của RFC 5869**, không phải implementation HKDF tổng quát cho nhiều block/độ dài.
-- **Authenticated message:** AES-GCM dùng **cùng derived key, IV và AAD (transcript hash)** ở hai phía để kiểm tra tag và mở plaintext. Nếu chỉ đo lường kết quả này mà bỏ trust of identity, MITM vẫn có thể tạo kênh hợp lệ với chính attacker.
-- **Changed transcript rejected:** đổi AAD nhưng giữ ciphertext/tag làm `AEADBadTagException`. Điều đó minh họa dữ liệu bối cảnh đã được xác thực ở tầng record; nó **không thay** việc xác minh signature/peer trust.
+- **Trusted offers:** both sides are assumed to hold each other's **true identity public keys** from a trusted channel; signatures verify the exact offer bytes including role/id/suite/nonce/key share.
+- **Substituted key rejected:** flipping a byte of the public key while keeping the old signature causes verification to fail; an attacker cannot arbitrarily swap exchange keys without the signing private key.
+- **Derived keys match:** `KeyAgreement` produces compatible shared secrets; HKDF-Extract uses the transcript hash as a public salt, and single-block HKDF-Expand feeds `info || 0x01` to produce a 32-byte c2s key. This uses **one block of RFC 5869**, not a general multi-block/arbitrary-length HKDF implementation.
+- **Authenticated message:** AES-GCM uses the **same derived key, IV, and AAD (transcript hash)** on both sides to verify the tag and decrypt plaintext. Measuring only this outcome while omitting identity trust still allows a MITM to build a valid channel with the attacker.
+- **Changed transcript rejected:** altering AAD while keeping ciphertext/tag causes `AEADBadTagException`. That illustrates context data authenticated at the record layer; it **does not replace** verifying signatures/peer trust.
 
-**Giới hạn quan trọng:** demo không chứng minh có một *handshake Finished* qua lại. Kết quả `derived keys match: true` được so trong cùng process, không phải giao thức key confirmation trên mạng. Một hệ thống thật cần mỗi bên gửi và xác minh bằng chứng possession of derived handshake key theo đúng state machine, trước khi tin phiên đã hoàn tất.
+**Important limitation:** the demo does not demonstrate a bidirectional *handshake Finished* exchange. `derived keys match: true` is compared inside one process, not via network key confirmation. A real system requires each side to send and verify proof of possession of the derived handshake key per the state machine before considering the session established.
 
-### 5.2 Chi tiết liên quan Java và encoding
+### 5.2 Details Regarding Java and Encoding
 
-- `KeyPairGenerator.getInstance("X25519")` và `KeyAgreement.getInstance("X25519")` thực hiện key agreement; `Ed25519` thuộc nhóm ký số, dùng `Signature`. Không đổi `Ed25519` thành `X25519` rồi dùng để ký.
-- `ephemeral.getEncoded()` trong ví dụ trả X.509/SubjectPublicKeyInfo encoding của public key; `KeyFactory` phục hồi public key từ `X509EncodedKeySpec`. Đây là **định dạng khóa**, không phải chứng thư X.509 đã được tin cậy.
-- `DataOutputStream.writeInt(length)` giúp phân biệt ranh giới các trường. Production phải đặt giới hạn tối đa độ dài, parser chống dữ liệu lỗi, canonical encoding, kiểm tra thuật toán/key type và xử lý mạng an toàn.
-- `Signature.verify()` kiểm tra signature với **public key đã biết trước**. Nếu thay trusted public key bằng key do request đưa lên chưa kiểm tra, bài học về MITM quay lại.
-- `new SecretKeySpec(context, "HmacSHA256")` dùng transcript hash công khai làm HKDF-Extract salt; secret thật vẫn là `shared`. Với salt không bí mật, HKDF không dựa vào việc che giấu transcript.
-- Demo sinh một IV 12 byte cho **một** bản tin. Hệ thống nhiều record cần nonce/counter duy nhất theo key, key/nonce per direction, giới hạn lượng dữ liệu và rotation. Tuyệt đối tránh dùng lại IV AES-GCM với cùng key.
-- `Arrays.fill` dọn những mảng byte do ứng dụng sở hữu ở cuối demo. Java provider/JVM có thể tạo bản sao trong bộ nhớ; đây không phải cam kết xóa mọi dấu vết của secret.
+- `KeyPairGenerator.getInstance("X25519")` and `KeyAgreement.getInstance("X25519")` perform key agreement; `Ed25519` belongs to digital signatures and uses `Signature`. Never treat `Ed25519` as `X25519` or vice versa.
+- `ephemeral.getEncoded()` in the example returns the X.509/SubjectPublicKeyInfo encoding of the public key; `KeyFactory` reconstructs the public key from `X509EncodedKeySpec`. This is a **key encoding format**, not a CA-trusted X.509 certificate.
+- `DataOutputStream.writeInt(length)` delimits field boundaries. Production must enforce maximum length bounds, fault-tolerant parsers, canonical encoding, algorithm/key-type checks, and safe network handling.
+- `Signature.verify()` verifies the signature against a **pre-known public key**. Replacing the trusted public key with an unverified key carried in the request brings the MITM flaw right back.
+- `new SecretKeySpec(context, "HmacSHA256")` uses the public transcript hash as the HKDF-Extract salt; the real secret remains `shared`. With a non-secret salt, HKDF does not rely on hiding the transcript.
+- The demo generates one 12-byte IV for **one** message. Multi-record systems need unique nonces/counters per key, per-direction keys/nonces, volume limits, and rotation. Strictly avoid reusing an AES-GCM IV under the same key.
+- `Arrays.fill` clears application-owned byte arrays at the end of the demo. Java providers/JVMs may keep copies in memory; this is not a guarantee that every trace of the secret is erased.
 
-## 6. KEM, bọc khóa và thỏa thuận khóa đứng ở đâu trong giao thức?
+## 6. Where Do KEM, Key Wrapping, and Key Agreement Sit in a Protocol?
 
-“Thỏa thuận khóa” và “bọc khóa” đều giúp các bên có key material, nhưng **cấu trúc và giả định khác nhau**.
+“Key agreement” and “key wrapping” both get key material to endpoints, yet their **structures and assumptions differ**.
 
-| Cơ chế | Người gửi thực hiện | Người nhận thực hiện | Thu được |
+| Mechanism | Sender does | Receiver does | Result |
 | --- | --- | --- | --- |
-| X25519/ECDH | Dùng private key của mình và public key peer để tính secret | Làm tương tự theo vai trò đối xứng | Shared secret nếu các public keys đúng cặp |
-| KEM | `Encapsulate(pk_receiver)` sinh ciphertext KEM và secret | `Decapsulate(sk_receiver, kemCiphertext)` lấy lại secret | Cùng shared secret; chưa tự xác thực sender |
-| RSA-OAEP key transport | Mã hóa/wrap một secret hoặc key phiên bằng public key người nhận | Giải mã/unwrap bằng private key người nhận | Key material truyền đến người nhận |
-| AES-KW (symmetric key wrap) | Wrap một key bằng **key-encryption key** đã chia sẻ | Unwrap bằng cùng KEK | Key được bảo vệ khi lưu/chuyển, nhưng chính KEK vẫn phải có nguồn đáng tin |
-| HKDF | Từ shared secret, transcript/context và labels dẫn xuất các traffic keys | Tính tương ứng với input/context giống nhau | Key phân biệt theo chức năng và hướng |
+| X25519/ECDH | Uses own private key and peer's public key to compute secret | Does the symmetric counterpart | Shared secret if public keys match the pairs |
+| KEM | `Encapsulate(pk_receiver)` generates KEM ciphertext and secret | `Decapsulate(sk_receiver, kemCiphertext)` recovers secret | Same shared secret; does not authenticate sender by default |
+| RSA-OAEP key transport | Encrypts/wraps a secret or session key with recipient's public key | Decrypts/unwraps with recipient's private key | Key material transferred to recipient |
+| AES-KW (symmetric key wrap) | Wraps a key with a shared **key-encryption key** | Unwraps with the same KEK | Key protected in storage/transit, though the KEK itself still needs a trusted source |
+| HKDF | Derives traffic keys from shared secret, transcript/context, and labels | Computes identically with matching inputs/context | Keys separated by function and direction |
 
-### 6.1 KEM không tự xác thực danh tính người gửi
+### 6.1 KEM Does Not Authenticate the Sender Identity Automatically
 
-Một KEM public-key base mode hướng vào khóa của Bob có thể giữ bí mật encapsulated secret với Bob; **bất kỳ ai** có public key Bob phù hợp cũng có thể encapsulate để gửi Bob. Nếu ứng dụng cần biết sender là Alice, phải có authentication/mode được thiết kế đúng, xác thực public key Bob, transcript/associated data và quản lý giao thức.
+A base-mode public-key KEM targeting Bob's key keeps the encapsulated secret confidential to Bob; **anyone** holding Bob's public key can encapsulate to send to Bob. If the application needs to know the sender is Alice, it needs a properly designed authentication/mode, authenticated Bob public key, transcript/associated data, and protocol governance.
 
-**Java 21:** có API `javax.crypto.KEM` (được đưa vào từ Java 21), nhưng loại KEM và provider được hỗ trợ phải được xác minh theo JDK/runtime. Không nhầm sự hiện diện của **lớp KEM** với việc một thuật toán KEM cụ thể **được cài đặt và sẵn dùng**. Đọc tài liệu Java 21 và provider trước khi chọn tên thuật toán.
+**Java 21:** provides the `javax.crypto.KEM` API (introduced in Java 21), yet supported KEMs and providers must be verified per JDK/runtime. Do not confuse the presence of the **`KEM` class** with a specific KEM algorithm **being installed and available**. Check Java 21 and provider docs before choosing an algorithm name.
 
-### 6.2 Key wrapping giải quyết bước vận chuyển/lưu khóa
+### 6.2 Key Wrapping Solves Key Transport and Storage
 
-`Cipher.WRAP_MODE`/`UNWRAP_MODE` là một cách dùng API ở Java; thuật toán wrap cụ thể quyết định định dạng ciphertext, tính toàn vẹn và ràng buộc key. Ví dụ:
+`Cipher.WRAP_MODE`/`UNWRAP_MODE` is a Java API pattern; the specific wrapping algorithm determines ciphertext format, integrity, and key binding. For example:
 
 ```text
 Sender: sessionKey = SecureRandom(...)
@@ -499,13 +499,13 @@ Receiver: sessionKey = Unwrap(keyRecipient, wrapped)
           use sessionKey for records under agreed policy
 ```
 
-Đây là **pseudocode**, không phải lời mời tự thiết kế định dạng wrap. “Unwrap trả về một SecretKey” không chứng minh sender được phép gửi, key dành cho phiên/ứng dụng này, thuật toán không bị hạ cấp hoặc key chưa từng được replay. Bảo vệ metadata và identity bằng protocol binding hoặc container chuẩn.
+This is **pseudocode**, not an invitation to invent a wrap format. “Unwrap returns a SecretKey” does not prove the sender was authorized, that the key is meant for this session/application, that the algorithm was not downgraded, or that the key was never replayed. Protect metadata and identity via protocol binding or standard containers.
 
-Phân biệt **RSA-OAEP bọc secret**, **AES Key Wrap bọc key bằng KEK**, và **AES-GCM mã hóa dữ liệu**: mỗi primitive có giới hạn input, requirement nonce/IV và cách kiểm tra riêng. Đừng dùng raw RSA, đừng tự ghép IV/key/ciphertext không có format được định nghĩa, và đừng dùng bytes secret từ key exchange ở nhiều mục đích mà không qua KDF/key separation.
+Distinguish **RSA-OAEP wrapping a secret**, **AES Key Wrap wrapping a key with a KEK**, and **AES-GCM encrypting data**: each primitive has distinct input limits, nonce/IV rules, and verification checks. Never use raw RSA, never concatenate IV/key/ciphertext without a defined format, and never reuse key-exchange secret bytes across multiple purposes without a KDF/key separation.
 
-### 6.3 Vì sao cần hybrid encryption cho dữ liệu lớn?
+### 6.3 Why Is Hybrid Encryption Needed for Large Data?
 
-RSA-OAEP/KEM thường chỉ dùng để truyền hoặc thiết lập **key material**. Một mô hình hybrid:
+RSA-OAEP/KEM are usually used only to transport or establish **key material**. A hybrid model:
 
 ```text
 Shared key or KEM secret → HKDF(context, labels) → traffic key
@@ -515,74 +515,74 @@ Plaintext ---------------------------------------> AEAD encrypt
 send: key encapsulation/wrapped key + nonce + ciphertext + tag
 ```
 
-AEAD có thể mã hóa lượng dữ liệu lớn theo giới hạn scheme/nonce/key và policy. Nhưng **hybrid encryption tự nó chưa chắc có sender authentication, replay protection và context binding**. Ví dụ HPKE (RFC 9180) quy định các mode và KDF/AEAD; base mode không xác thực danh tính sender, authenticated mode có giả định khóa và mức bảo vệ riêng. Đọc profile/giao thức để biết phải kiểm tra danh tính và phép gán quyền như thế nào.
+AEAD can encrypt large data volumes within scheme/nonce/key limits and policy. Yet **hybrid encryption by itself does not guarantee sender authentication, replay protection, and context binding**. For example, HPKE (RFC 9180) defines modes and KDF/AEAD suites; base mode does not authenticate the sender's identity, while authenticated modes carry their own key assumptions and protections. Read the profile/protocol to see how identity and authorization must be checked.
 
-## 7. Key confirmation: cùng secret chưa chứng minh cùng một phiên
+## 7. Key Confirmation: Equal Secrets Do Not Prove the Same Session
 
-Để một bên kết luận đối phương **sở hữu khóa vừa dẫn xuất** và chấp nhận đúng transcript, giao thức thường dùng một bước MAC trên transcript hoặc một authenticated handshake record. Ví dụ khái niệm:
+For one side to conclude the peer **holds the newly derived key** and accepts the exact transcript, protocols typically use a MAC step over the transcript or an authenticated handshake record. Conceptual example:
 
 ```text
 clientFinished = HMAC(K_finished_c, transcriptHash)
 serverFinished = HMAC(K_finished_s, transcriptHash)
 
-client xác minh serverFinished với key phía server
-server xác minh clientFinished với key phía client
-chỉ khi hợp lệ mới chuyển state → ESTABLISHED
+client verifies serverFinished with server-side key
+server verifies clientFinished with client-side key
+only when valid, transition state → ESTABLISHED
 ```
 
-Đây là **sơ đồ**, không phải bản sao chính xác của TLS. Quan trọng là hai hướng phải có labels/keys khác nhau, transcript đúng ranh giới state, và fail-closed khi MAC mismatch. Không dùng “server giải mã được một message bất kỳ” như bằng chứng danh tính nếu traffic key chưa được xác thực từ trước.
+This is a **diagram**, not an exact replica of TLS. Critically, both directions must use different labels/keys, the transcript must align with state boundaries, and MAC mismatches must fail closed. Never treat “the server decrypted some message” as identity proof if the traffic key was never authenticated beforehand.
 
-### 7.1 TLS 1.3 thực hiện những lớp gì?
+### 7.1 What Layers Does TLS 1.3 Implement?
 
-Theo [RFC 8446](https://www.rfc-editor.org/rfc/rfc8446), TLS 1.3 có khung giao thức rõ cho phiên bản, key exchange, certificate-based hoặc PSK authentication, transcript hash, HKDF key schedule và **Finished**. Khi xác thực bằng certificate, `CertificateVerify` ký nội dung ràng buộc với transcript; `Finished` MAC nội dung transcript theo khóa bắt tay. Key/nonce và record AEAD được quản lý theo state và direction; lỗi authentication chấm dứt handshake.
+Per [RFC 8446](https://www.rfc-editor.org/rfc/rfc8446), TLS 1.3 provides an explicit protocol framework for versioning, key exchange, certificate-based or PSK authentication, transcript hashing, HKDF key schedule, and **Finished**. With certificate authentication, `CertificateVerify` signs content bound to the transcript; `Finished` MACs the transcript using handshake keys. Keys/nonces and AEAD records are governed by state and direction; authentication failures terminate the handshake.
 
-**Không đồng nhất demo Java với TLS 1.3.** Một protocol đạt chuẩn còn xử lý certificate path/hostname, algorithms/suites, resumption/PSK, 0-RTT replay caveats, alerts, key update, framing, handshake ordering và nhiều yêu cầu kiểm thử. Nếu chương trình Java cần kết nối TLS, hãy ưu tiên **JSSE** (`SSLContext`, `SSLSocket`/`SSLEngine`, HTTPS client/server) với cấu hình xác thực/tin cậy đúng thay vì xây một TLS giản lược bằng `KeyAgreement` + `Cipher`.
+**Never equate the Java demo with TLS 1.3.** A compliant protocol also handles certificate path/hostname validation, algorithms/suites, resumption/PSK, 0-RTT replay caveats, alerts, key updates, framing, handshake ordering, and extensive test requirements. If a Java program needs TLS connections, prefer **JSSE** (`SSLContext`, `SSLSocket`/`SSLEngine`, HTTPS client/server) with proper trust/authentication settings instead of building a simplified TLS from `KeyAgreement` + `Cipher`.
 
-### 7.2 TLS server authentication và client authentication
+### 7.2 TLS Server Authentication vs. Client Authentication
 
-HTTPS thường xác thực **server** qua certificate/hostname, còn **client** có thể được xác thực ở tầng ứng dụng (OAuth/session/token) hoặc bằng mutual TLS tùy hệ thống. Một handshake “xác thực” không có nghĩa bắt buộc hai đầu đều dùng certificate.
+HTTPS commonly authenticates the **server** via certificate/hostname, while the **client** may be authenticated at the application layer (OAuth/session/token) or via mutual TLS depending on the system. An “authenticated” handshake does not mandate certificates on both ends.
 
-Trong thiết kế, ghi rõ **ai tin ai** và **xác thực chiều nào**. Nếu Bob không cần xác thực Alice bằng certificate, protocol phải quy định cơ chế client identity khác và cách gắn nó với channel/transaction. Đừng tự gán rằng có TLS là mọi request từ Alice đã được phép chuyển tiền.
+In your design, document **who trusts whom** and **which directions are authenticated**. If Bob does not authenticate Alice via certificate, the protocol must specify another client identity mechanism and how it binds to the channel/transaction. Never assume TLS alone authorizes every request from Alice to transfer money.
 
-## 8. Những thuộc tính không thể suy ra từ một primitive
+## 8. Properties That Cannot Be Inferred from One Primitive
 
 ### 8.1 Forward secrecy
 
-Nếu sử dụng ephemeral (EC)DH và xóa bí mật phiên đúng cách, việc private key danh tính bị lộ **về sau** có thể không làm lộ secret của các phiên đã kết thúc (*forward secrecy*, với điều kiện threat model và thiết kế đúng). Trái lại, key transport RSA lưu traffic secret được mã hóa dưới một RSA private key lâu dài có thể khiến các ciphertext cũ bị giải nếu private key đó bị lộ trong tương lai.
+When using ephemeral (EC)DH and erasing session secrets promptly, a **subsequent** compromise of the identity private key may not expose secrets of already-finished sessions (*forward secrecy*, given proper threat model and design). By contrast, RSA key transport that encrypts traffic secrets under a long-term RSA private key can allow past ciphertexts to be decrypted if that private key leaks in the future.
 
-**Không tự tuyên bố forward secrecy** chỉ vì tên thuật toán là X25519. Phải xác minh ephemeral key mới cho phiên, không tái sử dụng trái thiết kế, secret được xóa đúng lúc, KDF và protocol binding, và rằng metadata/log/backup không lưu lại secret phiên.
+**Never claim forward secrecy** just because the algorithm is named X25519. You must verify fresh per-session ephemeral keys, no unintended reuse, timely secret erasure, proper KDF and protocol binding, and that metadata/logs/backups do not retain session secrets.
 
-### 8.2 Chống replay và freshness
+### 8.2 Replay protection and freshness
 
-Signature, MAC và AEAD vẫn hợp lệ với message/ciphertext cũ được gửi lại nguyên vẹn. Nếu server nhận một yêu cầu “thanh toán 100” hai lần, có thể thực thi nghiệp vụ hai lần mặc dù tag hoàn toàn hợp lệ. Giao thức cần nonce/sequence number, timestamp/expiration, **replay state** hoặc chống phát lại thích hợp; tầng nghiệp vụ vẫn cần **idempotency key** cho retry.
+Signatures, MACs, and AEAD tags remain valid when old messages/ciphertexts are replayed intact. If a server receives a “pay 100” request twice, it may execute the business operation twice even though the tag is completely valid. Protocols need nonces/sequence numbers, timestamps/expiration, **replay state**, or appropriate anti-replay; the business layer still needs **idempotency keys** for retries.
 
-Với giao thức stream, sequence number và key epoch thường đi cùng record protection. Với API độc lập, signed nonce + store có TTL hợp lý/atomic insert có thể cần thiết. Đừng tự dùng timestamp mà không kiểm tra trùng request trong cùng cửa sổ.
+In stream protocols, sequence numbers and key epochs usually accompany record protection. In stateless APIs, signed nonces plus a store with reasonable TTL/atomic insertion may be needed. Never rely solely on timestamps without checking for duplicate requests within the window.
 
 ### 8.3 Unknown-key-share / identity misbinding
 
-Trong *unknown-key-share* (UKS), hai bên có thể tính cùng secret nhưng ít nhất một bên **hiểu sai danh tính của người bên kia**. Đây không đơn thuần là byte secret bị lộ; lỗi do message/identity/context không được bind rõ. Bảo đảm rằng key schedule, signatures/MAC và xác minh public key đều ràng buộc với **role, local peer identity, intended recipient, phiên bản và context phù hợp**.
+In an *unknown-key-share* (UKS) attack, two parties may compute the same secret while at least one **misunderstands the identity of the peer**. This is not simply leaked secret bytes; the flaw arises because messages/identities/contexts were not bound explicitly. Ensure the key schedule, signatures/MACs, and public-key checks bind **role, local peer identity, intended recipient, version, and appropriate context**.
 
-### 8.4 Downgrade và algorithm confusion
+### 8.4 Downgrade and algorithm confusion
 
-Nếu attacker có thể sửa trường “supported versions” hoặc “selected suite” mà các trường đó không được transcript-authenticated, hai bên có thể bị hạ xuống một thuật toán yếu hơn hoặc bất đồng thuật toán. Luôn có **allowlist** và chính sách tối thiểu; kiểm tra negotiation transcript, không đọc thuật toán do request tự khai rồi dùng tùy ý.
+If an attacker can edit “supported versions” or “selected suite” fields outside transcript authentication, both sides can be forced onto a weaker algorithm or disagree on algorithms. Always enforce an **allowlist** and minimum policy; check the negotiation transcript rather than blindly using whatever algorithm the request claims.
 
-Không dùng cùng key cho nhiều schemes hoặc roles không có phân tách miền; không đổi hướng client→server thành server→client dưới cùng key/counter. Các hàm `Signature`/`Cipher` có thể nhận tham số hợp lệ riêng lẻ nhưng một **cấu hình giao thức** vẫn sai.
+Never reuse the same key across multiple schemes or roles without domain separation; never reverse client→server into server→client under the same key/counter. `Signature`/`Cipher` calls may each accept valid individual parameters while a **protocol configuration** remains broken.
 
-### 8.5 AEAD nonce và bản ghi
+### 8.5 AEAD nonces and records
 
-AES-GCM cần IV/nonce **không bị tái sử dụng với cùng khóa**. Nếu record direction dùng một key chung cho nhiều thông điệp mà hai node cùng chọn nonce trùng, confidentiality/integrity có thể bị phá. Đặc tả phải nêu cách tính nonce từ sequence/epoch, key update, giới hạn lượng record, cơ chế tránh overlap khi concurrent workers và hành vi khi counter cạn.
+AES-GCM requires an IV/nonce that is **never reused with the same key**. If a record direction shares one key across messages and two nodes pick the same nonce, confidentiality/integrity can break. Specifications must define how nonces derive from sequence/epoch, key updates, record limits, overlap prevention across concurrent workers, and behavior when counters exhaust.
 
-`AAD` dùng để xác thực metadata không cần mã hóa như version, stream ID, sequence, header. Cả encrypt/decrypt phải đưa **chính xác cùng bytes AAD** vào phép kiểm; metadata nào bị thay mà không nằm trong AAD/tag có thể gây routing/context confusion.
+`AAD` authenticates unencrypted metadata such as version, stream ID, sequence, and headers. Both encrypt and decrypt must feed the **exact same AAD bytes** into verification; any metadata altered outside AAD/tag coverage can cause routing/context confusion.
 
-### 8.6 Lỗi, parse và tài nguyên
+### 8.6 Errors, parsing, and resources
 
-Không để attacker ép server cấp phát mảng khổng lồ, thực hiện hàng loạt phép ký/giải mã đắt tiền, hoặc rò rỉ khác biệt lỗi cho oracle. Bắt giới hạn kích thước record/trường/chain, timeouts, số handshake đồng thời và rate limit. Trong code Java, xử lý `GeneralSecurityException` có phân loại nội bộ nhưng không phản hồi chi tiết khóa, padding, tag hay certificate cho người gọi bên ngoài.
+Never let an attacker force the server to allocate huge arrays, run costly batches of signatures/decryptions, or leak error differences to an oracle. Enforce size limits on records/fields/chains, timeouts, concurrent handshake caps, and rate limits. In Java code, catch `GeneralSecurityException` for internal categorization, yet never return key, padding, tag, or certificate internals to external callers.
 
-Nếu bắt tay thất bại ở bất cứ bước authentication, **không khởi tạo session thành công** và không thực hiện side effects. Lỗi phải kết thúc/rollback trạng thái theo quy tắc protocol.
+If a handshake fails at any authentication step, **never establish the session** and never execute side effects. Errors must terminate/roll back state per protocol rules.
 
-## 9. Kiến trúc thực tế: phân tách primitive, handshake và ứng dụng
+## 9. Real-World Architecture: Separating Primitives, Handshake, and Application
 
-Một mô hình các lớp:
+A layered model:
 
 ```text
 Trusted identity / certificate / key registry
@@ -607,89 +607,89 @@ X25519 or KEM secret ----- HKDF(context/role/direction) ----+
       Application identity + authorization + replay/idempotency
 ```
 
-| Lớp | Điều ứng dụng cần kiểm tra | Lỗi nếu bỏ qua |
+| Layer | What the application must verify | Failure mode if omitted |
 | --- | --- | --- |
-| Trust/identity | Public key/certificate thực sự của peer mong đợi | MITM dùng khóa giả rồi vẫn ký hợp lệ |
-| Handshake negotiation | Version, suite, roles và policy trong transcript đã xác thực | Downgrade, role confusion |
-| Key establishment | Shared secret đúng peer, ephemeral và KDF tách mục đích | Key substitution, key reuse, không có forward secrecy kỳ vọng |
-| Key confirmation | Cả hai phía kiểm tra kết quả handshake/secret | Chấp nhận phiên chưa hoàn tất hoặc khác transcript |
-| Record AEAD | Nonce không trùng, đúng key/direction/AAD/sequence | Lộ dữ liệu, sửa record hoặc phát lại |
-| Application | Identity, quyền, request ID, idempotency, audit | Kênh an toàn nhưng cho phép giao dịch sai |
+| Trust/identity | Public key/certificate truly belongs to expected peer | MITM uses a fake key yet signs validly |
+| Handshake negotiation | Version, suite, roles, and policy inside authenticated transcript | Downgrade, role confusion |
+| Key establishment | Shared secret with right peer, ephemeral keys, and purpose-separated KDF | Key substitution, key reuse, missing expected forward secrecy |
+| Key confirmation | Both sides verify handshake outcome/secret | Accepting incomplete or transcript-mismatched sessions |
+| Record AEAD | Unique nonces, right key/direction/AAD/sequence | Data exposure, record tampering, or replay |
+| Application | Identity, permissions, request ID, idempotency, audit | Secure channel allowing unauthorized transactions |
 
-### 9.1 Giao thức bảo mật và nghiệp vụ không cùng phạm vi
+### 9.1 Security Protocol and Business Logic Have Different Scopes
 
-Ví dụ một client dùng TLS 1.3 đến server hợp lệ, kênh đã được mã hóa và certificate đúng. Vẫn cần kiểm tra user có được phép thao tác `POST /transfer` hay không; user ID có thể đến từ access token/session, không tự suy ra từ việc kết nối TLS thành công. Một request hợp lệ được retry qua kết nối TLS **mới** cũng có thể làm trùng nghiệp vụ nếu thiếu idempotency.
+For example, a client uses TLS 1.3 to a legitimate server with encrypted transport and a valid certificate. You still must check whether the user is permitted to call `POST /transfer`; user ID may come from an access token/session, not automatically from TLS success. A valid request retried over a **new** TLS connection can still duplicate business effects without idempotency.
 
-Đó là lý do review kiến trúc cần câu hỏi: “Giao thức nào bảo vệ **bytes trên kênh**, cơ chế nào xác định **principal**, và thành phần nào quyết định **quyền và tính duy nhất của transaction**?”
+That is why architecture reviews ask: “Which protocol protects **bytes on the wire**, which mechanism establishes the **principal**, and which component enforces **transaction permissions and uniqueness**?”
 
-## 10. Lựa chọn giải pháp theo mục đích
+## 10. Choosing a Solution by Goal
 
-| Nhu cầu | Lựa chọn thường phù hợp | Điều vẫn phải xác minh |
+| Need | Usually suitable choice | What still must be verified |
 | --- | --- | --- |
-| HTTPS giữa Java service và server | TLS 1.3 qua JSSE/HTTPS stack được cập nhật | Hostname verification, truststore, ALPN/versions/suite policy, client auth nếu cần |
-| Java service nội bộ mTLS | TLS 1.3 + certificate client/server | Trust anchors, danh tính workload, policy key rotation/revocation, authorization |
-| Mã hóa dữ liệu gửi cho recipient, không duy trì kết nối | Chuẩn hybrid encryption / HPKE profile phù hợp | Recipient public key đáng tin, sender authentication mode, context/AAD, replay |
-| Bọc một data-encryption key trong hệ thống KMS | KMS/HSM wrap/unwrap hoặc AES-KW theo chuẩn | Key ID, quyền unwrap, tenant/context binding, rotation, metadata integrity |
-| Thiết kế một protocol tùy biến | Bắt đầu từ đặc tả đã review/chuẩn hóa và threat model | State machine, crypto review, vectors, fuzzing, interop, rollback/replay/error paths |
-| Chỉ cần học cơ chế | Ví dụ Java 21 trong bài | Chỉ kết luận giới hạn mà demo thật sự kiểm chứng |
+| HTTPS between Java service and server | TLS 1.3 via up-to-date JSSE/HTTPS stack | Hostname verification, truststore, ALPN/versions/suite policy, client auth if needed |
+| Internal Java service mTLS | TLS 1.3 + client/server certificates | Trust anchors, workload identity, key rotation/revocation policy, authorization |
+| Encrypt data for a recipient without a live connection | Standard hybrid encryption / matching HPKE profile | Trusted recipient public key, sender authentication mode, context/AAD, replay |
+| Wrap a data-encryption key in a KMS system | KMS/HSM wrap/unwrap or standard AES-KW | Key ID, unwrap permissions, tenant/context binding, rotation, metadata integrity |
+| Design a custom protocol | Start from a reviewed/standardized spec and threat model | State machine, crypto review, vectors, fuzzing, interop, rollback/replay/error paths |
+| Simply learning the mechanisms | Java 21 examples in this lesson | Only conclude the narrow bounds the demo actually verifies |
 
-**Quy tắc thực dụng:** nếu cần kênh bảo mật thật, sử dụng protocol và thư viện đã được triển khai, kiểm thử, cập nhật. Học các primitives giúp bạn **cấu hình đúng, nhận ra sai kiến trúc và đọc đặc tả**, không có nghĩa bạn nên tự viết handshake thay TLS.
+**Pragmatic rule:** if you need a real secure channel, use deployed, tested, up-to-date protocols and libraries. Learning primitives helps you **configure properly, spot architectural flaws, and read specifications**—it does not mean you should hand-roll a handshake to replace TLS.
 
-## 11. Checklist kiểm tra một protocol có xác thực
+## 11. Checklist for Auditing an Authenticated Protocol
 
-| Thử nghiệm / câu hỏi review | Hành vi phải thấy |
+| Test / review question | Required behavior |
 | --- | --- |
-| Thay ephemeral public key khi giữ signature cũ | Peer authentication thất bại trước khi gửi traffic |
-| Thay public key identity bằng key của attacker | Trust/certificate/pinning từ chối |
-| Thay client/server role hoặc peer ID | Signature/transcript authentication thất bại |
-| Hạ version, thay cipher suite, bỏ extension cần thiết | Transcript mismatch hoặc policy reject |
-| Dùng cùng shared secret dưới hai ngữ cảnh khác | Key derivation có labels/context thích hợp, không trùng key ngoài ý muốn |
-| Một bên nhận transcript khác bên kia | Finished/key confirmation không hợp lệ |
-| Gửi message record với AAD sai | AEAD tag reject; không chuyển plaintext cho ứng dụng |
-| Replay một bản ghi/mệnh lệnh | Sequence/replay/idempotency state chặn hiệu ứng trùng theo chính sách |
-| Reset nonce/counter khi reconnect/rotate | Epoch và key schedule ngăn nonce reuse |
-| Lộ lâu dài signing private key sau phiên đã đóng | Đánh giá forward secrecy của phiên trước; phải có ephemeral secret lifecycle đúng |
-| Gửi input rất lớn / keyShare sai loại / ciphertext lỗi | Parse giới hạn, fail-closed, không tạo oracle hoặc DoS dễ khai thác |
-| Khóa certificate dùng sai mục đích hoặc hết hạn | Trust/policy/usage validation reject |
-| Server đã xác thực nhưng client thiếu quyền | Application authorization từ chối thao tác |
+| Swap ephemeral public key while keeping old signature | Peer authentication fails before sending traffic |
+| Replace identity public key with attacker's key | Trust/certificate/pinning rejects it |
+| Swap client/server role or peer ID | Signature/transcript authentication fails |
+| Downgrade version, swap cipher suite, strip required extension | Transcript mismatch or policy rejection |
+| Reuse same shared secret under two different contexts | Key derivation applies proper labels/contexts; no unintended key collision |
+| One side receives a different transcript than the other | Finished/key confirmation fails |
+| Send a record message with wrong AAD | AEAD tag rejects; no plaintext delivered to application |
+| Replay a record or command | Sequence/replay/idempotency state blocks duplicate effect per policy |
+| Reset nonce/counter on reconnect/rotation | Epoch and key schedule prevent nonce reuse |
+| Long-term signing private key leaks after session closes | Evaluate forward secrecy of prior sessions; requires proper ephemeral secret lifecycle |
+| Send oversized input / wrong keyShare type / bad ciphertext | Bounded parser, fail-closed, no exploitable oracle or DoS |
+| Certificate key used for wrong purpose or expired | Trust/policy/usage validation rejects |
+| Server authenticated but client lacks permission | Application authorization rejects operation |
 
-### 11.1 Các sai lầm phổ biến
+### 11.1 Common Misconceptions
 
-1. **“Hai shared secret bằng nhau = đã xác thực peer.”** Sai: DH chỉ biết key math; MITM có thể tạo hai shared secrets riêng.
-2. **“Đã mã hóa AES-GCM là không bị MITM.”** Sai nếu session key được thiết lập với attacker; AEAD tag chỉ có ý nghĩa theo key đã tin.
-3. **“KEM hoặc RSA-OAEP chứng minh sender.”** Sai với base public-key recipient encryption/encapsulation: ai có recipient public key đều gửi được.
-4. **“Đã ký ephemeral key là đủ.”** Chưa đủ nếu public signing key không đáng tin, không bind đúng role/negotiation/identity, hoặc chưa hoàn tất key confirmation.
-5. **“HKDF tự xác thực danh tính.”** Sai: KDF nhận key material và context, không biết public key thuộc ai.
-6. **“Dùng cùng một traffic key cho mọi hướng vì đã có nonce.”** Dễ sai về separation/nonce collision; giao thức cần phân tách key và counter rõ.
-7. **“Wrapped key đã an toàn là packet hoàn chỉnh.”** Metadata, key ID, quyền unwrap, nonce/record và chống phát lại vẫn cần được bảo vệ.
-8. **“Chữ ký/AEAD hợp lệ nghĩa là gói mới.”** Replay nguyên gói không thay đổi bytes/tag.
-9. **“X.509EncodedKeySpec là certificate được CA ký.”** Sai: đó là định dạng encode public key, không chứng minh danh tính.
-10. **“Một chương trình lab mô phỏng 2 endpoint trong cùng JVM đủ chứng minh protocol production.”** Sai: demo thiếu state, network adversary, trust lifecycle và kiểm thử liên thông.
+1. **“Two equal shared secrets = authenticated peer.”** False: DH only proves key math; MITM can establish two separate shared secrets.
+2. **“AES-GCM encryption means no MITM.”** False if the session key was established with the attacker; AEAD tags only mean something relative to a trusted key.
+3. **“KEM or RSA-OAEP proves the sender.”** False for base public-key recipient encryption/encapsulation: anyone with the recipient's public key can send.
+4. **“Signing the ephemeral key is enough.”** Not enough if the signing public key is untrusted, roles/negotiation/identities are unbound, or key confirmation is incomplete.
+5. **“HKDF authenticates identity on its own.”** False: a KDF takes key material and context; it does not know whom a public key belongs to.
+6. **“Using one traffic key for both directions is fine because we have nonces.”** Prone to separation/nonce-collision bugs; protocols need explicit directional keys and counters.
+7. **“A safe wrapped key is a complete packet.”** Metadata, key ID, unwrap permissions, nonces/records, and replay protection still must be enforced.
+8. **“Valid signature/AEAD means the packet is fresh.”** Replaying an exact packet leaves bytes and tags intact.
+9. **“`X509EncodedKeySpec` is a CA-signed certificate.”** False: it is a public-key encoding format, not identity proof.
+10. **“A lab program simulating 2 endpoints in one JVM proves a production protocol.”** False: demos lack state machines, network adversaries, trust lifecycles, and interop tests.
 
-## 12. Bài tập củng cố
+## 12. Reinforcement Exercises
 
-1. **Phân tích MITM:** vẽ lại đường đi của `pk_A`, `pk_B` và hai public keys Mallory. Giải thích vì sao Alice và Bob đều có thể gọi `KeyAgreement.generateSecret()` thành công dù không chia sẻ secret với nhau.
-2. **Chữ ký:** chạy `UnauthenticatedDhDemo` rồi `AuthenticatedChannelDemo`. Cho biết ở bước nào một key share bị thay bị từ chối, và public key nào phải được tin trước khi kiểm chữ ký.
-3. **Transcript:** nếu client ký `pkA` mà bỏ `suite`, attacker có thể khai thác sự thiếu ràng buộc nào? Nếu đổi AAD thành một byte khác, AES-GCM biểu hiện ra sao?
-4. **HKDF:** giải thích khác biệt giữa `shared`, `PRK` và `traffic key`; vì sao cần hai labels `client-to-server` và `server-to-client`? Vì sao implementation one-block trong demo chưa phải HKDF tổng quát?
-5. **Key wrapping:** mô tả một DEK được bọc bằng RSA-OAEP, AES-KW hoặc KMS key. Nêu chính xác nơi thực hiện authorization, xác minh recipient và bảo vệ metadata.
-6. **Key confirmation:** thiết kế *bằng lời* một finished exchange hai chiều có MAC trên transcript, không viết protocol production. Nếu một bên không kiểm MAC phía còn lại thì thuộc tính nào còn thiếu?
-7. **Replay:** một thanh toán đã xác thực được gửi lại y hệt qua TLS mới. Vì sao TLS đúng certificate không đủ để tránh charge hai lần? Nêu replay cache/idempotency cần thiết.
-8. **Forward secrecy:** so sánh ephemeral X25519 và key transport chỉ dựa private key giải mã dài hạn; điều kiện nào phải đúng để một khóa bị lộ về sau không tiết lộ dữ liệu cũ?
-9. **Threat model:** viết danh sách attacker có thể sửa/cắt/delay/reorder những trường nào trong handshake và record; ánh xạ từng sửa đổi tới bước xác minh phát hiện.
-10. **Quyết định thiết kế:** dịch vụ Java cần TLS client/server và quyền theo tenant. Nêu vai trò `SSLContext`/truststore, certificate identity, application authorization và cách rotate key mà không mất trạng thái giao dịch.
+1. **MITM analysis:** trace the paths of `pk_A`, `pk_B`, and Mallory's two public keys. Explain why Alice and Bob can both call `KeyAgreement.generateSecret()` successfully even though they share no secret with each other.
+2. **Signatures:** run `UnauthenticatedDhDemo` and then `AuthenticatedChannelDemo`. Identify at which step a substituted key share is rejected, and which public key must be trusted before verifying the signature.
+3. **Transcript:** if the client signs `pkA` while omitting `suite`, what binding flaw can an attacker exploit? If AAD is altered by one byte, how does AES-GCM behave?
+4. **HKDF:** explain the differences among `shared`, `PRK`, and `traffic key`; why are two labels `client-to-server` and `server-to-client` needed? Why is the one-block implementation in the demo not a general HKDF?
+5. **Key wrapping:** describe a DEK wrapped with RSA-OAEP, AES-KW, or a KMS key. Pinpoint exactly where authorization, recipient verification, and metadata protection occur.
+6. **Key confirmation:** design *in words* a bidirectional Finished exchange with MACs over the transcript without writing a production protocol. If one side skips verifying the other's MAC, which guarantee is missing?
+7. **Replay:** an authenticated payment is resent identically over a new TLS connection. Why isn't valid-certificate TLS enough to avoid double-charging? Specify the needed replay cache/idempotency.
+8. **Forward secrecy:** compare ephemeral X25519 against key transport relying solely on a long-term decryption private key; what conditions must hold so a later key compromise does not expose old data?
+9. **Threat model:** list which fields in the handshake and records an attacker can modify/truncate/delay/reorder; map each tampering to the verification check that catches it.
+10. **Design decision:** a Java service needs client/server TLS and per-tenant authorization. Describe the roles of `SSLContext`/truststore, certificate identity, application authorization, and how to rotate keys without dropping transaction state.
 
-**Tiêu chí hoàn thành:** từ một sơ đồ giao thức, bạn có thể chỉ ra đâu là primitive tạo secret/bọc khóa, đâu là xác thực danh tính, đâu là ràng buộc transcript và KDF, đâu là record protection/key confirmation, và cơ chế nào chịu trách nhiệm replay/authorization. Nếu một lớp bị bỏ đi, bạn phải mô tả được **điều gì vẫn đúng về toán học nhưng trở nên không an toàn ở cấp giao thức**.
+**Completion criterion:** given a protocol diagram, you can identify which primitive establishes secrets/wraps keys, where identity authentication occurs, where transcript binding and KDF apply, where record protection/key confirmation sit, and which mechanism handles replay/authorization. If any layer is removed, you can describe **what remains mathematically valid yet becomes protocol-unsafe**.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — `KeyAgreement`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KeyAgreement.html): khởi tạo và tạo shared secret.
-- [Java SE 21 — `Signature`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Signature.html): ký và xác minh với Ed25519/RSA-PSS.
-- [Java SE 21 — `Cipher`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html): AEAD, `ENCRYPT_MODE`/`DECRYPT_MODE` và key wrapping `WRAP_MODE`/`UNWRAP_MODE`.
-- [Java SE 21 — `javax.crypto.KEM`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KEM.html): khái niệm encapsulate/decapsulate và phạm vi API.
-- [Java SE 21 — Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html): tên X25519, Ed25519, HmacSHA256 và các transformations.
+- [Java SE 21 — `KeyAgreement`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KeyAgreement.html): initialization and generating shared secrets.
+- [Java SE 21 — `Signature`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Signature.html): signing and verifying with Ed25519/RSA-PSS.
+- [Java SE 21 — `Cipher`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html): AEAD, `ENCRYPT_MODE`/`DECRYPT_MODE`, and key wrapping `WRAP_MODE`/`UNWRAP_MODE`.
+- [Java SE 21 — `javax.crypto.KEM`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/KEM.html): encapsulate/decapsulate concepts and API scope.
+- [Java SE 21 — Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html): names for X25519, Ed25519, HmacSHA256, and transformations.
 - [RFC 7748](https://www.rfc-editor.org/rfc/rfc7748): Elliptic Curves for Security, X25519/X448.
-- [RFC 5869](https://www.rfc-editor.org/rfc/rfc5869): HKDF-Extract/Expand và labels/context.
-- [RFC 8446](https://www.rfc-editor.org/rfc/rfc8446): TLS 1.3 key schedule, CertificateVerify, Finished và transcript binding.
-- [RFC 9180](https://www.rfc-editor.org/rfc/rfc9180): Hybrid Public Key Encryption (HPKE), KEM/KDF/AEAD và các chế độ xác thực.
-- [Java 21 Secure Socket Extension (JSSE) Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-secure-socket-extension-jsse-reference-guide.html): TLS trong Java, cấu hình trust, xác thực peer.
+- [RFC 5869](https://www.rfc-editor.org/rfc/rfc5869): HKDF-Extract/Expand and labels/context.
+- [RFC 8446](https://www.rfc-editor.org/rfc/rfc8446): TLS 1.3 key schedule, CertificateVerify, Finished, and transcript binding.
+- [RFC 9180](https://www.rfc-editor.org/rfc/rfc9180): Hybrid Public Key Encryption (HPKE), KEM/KDF/AEAD, and authentication modes.
+- [Java 21 Secure Socket Extension (JSSE) Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-secure-socket-extension-jsse-reference-guide.html): TLS in Java, trust configuration, and peer authentication.

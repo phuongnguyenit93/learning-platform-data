@@ -1,136 +1,136 @@
-# Vai trò của reflection, proxy và method handle tại ranh giới tích hợp
+# The Role of Reflection, Proxies, and Method Handles at the Integration Boundary
 
-Trong Java, phần lõi của hệ thống có thể phải làm việc với plugin, adapter, thư viện của nhà cung cấp hoặc thành phần được nạp sau khi ứng dụng đã biên dịch. **Ranh giới tích hợp** là nơi hợp đồng ổn định của ứng dụng gặp các thành phần có thể thay đổi ở runtime. Reflection, dynamic proxy và method handle thường xuất hiện tại đây, nhưng mỗi cơ chế trả lời một câu hỏi khác nhau:
+In Java, the system core may have to work with plugins, adapters, vendor libraries, or components loaded after the application was compiled. The **integration boundary** is where the application's stable contract meets components that can vary at runtime. Reflection, dynamic proxies, and method handles frequently appear here, yet each answers a different question:
 
-- **Reflection:** ở runtime có những lớp, phương thức và annotation nào; đâu là extension point hợp lệ?
-- **Dynamic proxy:** khi lời gọi đi qua một interface, cần chặn, kiểm soát hoặc chuyển tiếp nó như thế nào?
-- **MethodHandle:** khi đã biết đích gọi, làm sao liên kết và thực thi lời gọi có chữ ký rõ ràng?
+- **Reflection:** at runtime, which classes, methods, and annotations exist; what is a valid extension point?
+- **Dynamic proxy:** when a call passes through an interface, how should it be intercepted, controlled, or forwarded?
+- **MethodHandle:** once the call target is known, how do we bind and execute a call with a well-defined signature?
 
-Chúng **có thể phối hợp**, nhưng không phải cứ tích hợp Java là phải dùng đủ cả ba. Bài này đi từ vị trí kiến trúc tới API, một chương trình Java 17 chạy được, các điểm dễ sai và cách lựa chọn khi xây dựng adapter.
+They **can work together**, but Java integration does not require using all three. This guide moves from architectural placement to APIs, a runnable Java 17 program, common failure points, and how to choose when building adapters.
 
-## 1. Nhìn tổng thể ranh giới tích hợp
+## 1. Big Picture of the Integration Boundary
 
-Giả sử hệ thống muốn cung cấp phương thức ổn định `GreetingGateway.greet(String)`, còn nhà cung cấp chỉ có `VendorPlugin.say(String)`. Bên gọi không nên phụ thuộc trực tiếp vào tên lớp, tên method và cách nạp plugin của nhà cung cấp. Ta có thể bố trí:
+Suppose the system wants to expose a stable `GreetingGateway.greet(String)` method, while a vendor only provides `VendorPlugin.say(String)`. Callers should not depend directly on the vendor's class name, method name, or plugin-loading mechanics. We can arrange:
 
 ```text
-Mã nghiệp vụ
+Business code
     |
     v
-Interface/port ổn định của ứng dụng (GreetingGateway)
+Stable application interface/port (GreetingGateway)
     |
     v
-Proxy: audit, policy, metrics, tracing (nếu cần)
+Proxy: audit, policy, metrics, tracing (if needed)
     |
     v
-Adapter / registry tích hợp
-    |-- Reflection: khám phá metadata, xác minh extension point
-    |-- MethodHandle: liên kết và thực thi target đã chọn
+Adapter / integration registry
+    |-- Reflection: discover metadata, verify extension point
+    |-- MethodHandle: bind and execute selected target
     |
     v
-Plugin / thư viện bên ngoài
+Plugin / external library
 ```
 
-Đây là sơ đồ trách nhiệm, không phải trình tự bắt buộc của mọi dự án. Nếu plugin đã triển khai trực tiếp một interface chung, lời gọi Java thông thường hoặc `ServiceLoader` có thể là đủ.
+This is a responsibility diagram, not a mandatory sequence for every project. If a plugin already implements a shared interface directly, standard Java calls or `ServiceLoader` may be sufficient.
 
-| Cơ chế | Giá trị cốt lõi | Điểm thường đặt trong tích hợp | Giới hạn |
+| Mechanism | Core Value | Typical Place in Integration | Limitations |
 | --- | --- | --- | --- |
-| `java.lang.reflect` | Khám phá cấu trúc runtime, kiểm tra annotation/chữ ký, gọi động | Discovery và validation khi đăng ký plugin | Không tự tạo hợp đồng nghiệp vụ ổn định; lỗi kiểu có thể lộ ra muộn |
-| `java.lang.reflect.Proxy` | Chặn các lời gọi tới interface bằng `InvocationHandler` | Wrapper/adapter cho kiểm soát truy cập, log, metrics | JDK dynamic proxy chỉ triển khai interface, không tự proxy mọi class |
-| `java.lang.invoke.MethodHandle` | Lưu lời gọi có kiểu và điều chỉnh chữ ký khi cần | Target invocation đã liên kết, thường được cache | Không khám phá ý nghĩa API hoặc vượt quyền truy cập tự động |
-| Interface/`ServiceLoader` | Hợp đồng tĩnh và discovery theo SPI | Lựa chọn đầu tiên khi cả hai phía dùng chung API | Cần thỏa thuận interface và class loader |
+| `java.lang.reflect` | Runtime structure discovery, annotation/signature checks, dynamic invocation | Discovery and validation when registering plugins | Does not create a stable business contract by itself; type errors may surface late |
+| `java.lang.reflect.Proxy` | Intercepts calls to interfaces via `InvocationHandler` | Wrapper/adapter for access control, logging, metrics | JDK dynamic proxy only implements interfaces; cannot proxy arbitrary classes |
+| `java.lang.invoke.MethodHandle` | Holds a typed callable reference and adapts signatures when needed | Bound target invocation, typically cached | Does not discover API semantics or bypass access permissions automatically |
+| Interface/`ServiceLoader` | Static contract and SPI-based discovery | First choice when both sides share an API | Requires agreement on interfaces and class loaders |
 
-## 2. Reflection: từ metadata tới extension point
+## 2. Reflection: From Metadata to Extension Point
 
-Reflection sử dụng `Class<?>`, `Method`, `Constructor`, `Field` và annotation để xem một đối tượng hoặc lớp cung cấp khả năng gì trong lúc chạy.
+Reflection uses `Class<?>`, `Method`, `Constructor`, `Field`, and annotations to inspect what capabilities an object or class offers at runtime.
 
-Ở ranh giới plugin, một quy trình hợp lý gồm:
+At the plugin boundary, a sound workflow includes:
 
-1. Nhận đối tượng provider hoặc nạp lớp từ nguồn và class loader được phép.
-2. Dùng reflection tìm method/constructor hoặc annotation được coi là extension point.
-3. Kiểm tra cả **tên, tính public, kiểu tham số, kiểu trả về, version và số lượng kết quả**.
-4. Tạo adapter hoặc đối tượng gọi đã kiểm tra; chỉ sau đó công bố nó cho phần lõi.
+1. Obtain the provider object or load the class from an authorized source and class loader.
+2. Use reflection to find the method/constructor or annotation designated as the extension point.
+3. Verify **name, public visibility, parameter types, return type, version, and match count**.
+4. Create an adapter or validated invoker; only then publish it to the core.
 
-Sự khác biệt giữa các API thường gây lỗi:
+API distinctions that commonly cause bugs:
 
-- `getMethod("say", String.class)` chỉ tìm phương thức **public**, kể cả public method được kế thừa.
-- `getDeclaredMethod("say", String.class)` tìm khai báo **tại chính lớp đó**, có thể là private, không tự động được phép gọi nó.
-- `getMethods()` trả các public method có thể truy cập theo quy tắc Java; lọc annotation qua `isAnnotationPresent(...)`.
-- `Method.invoke(receiver, args...)` thực hiện lời gọi, trả `Object`. Với method instance cần receiver thích hợp; primitive được boxing/unboxing. Với static method, receiver không cần mang instance.
+- `getMethod("say", String.class)` finds only **public** methods, including inherited public methods.
+- `getDeclaredMethod("say", String.class)` finds a method declared **on that exact class**, which may be private and is not automatically callable.
+- `getMethods()` returns accessible public methods under Java rules; filter annotations via `isAnnotationPresent(...)`.
+- `Method.invoke(receiver, args...)` executes the call and returns `Object`. Instance methods require an appropriate receiver; primitives are boxed/unboxed. Static methods need no receiver instance.
 
-**Xử lý ngoại lệ:** nếu chính method của plugin ném lỗi, `Method.invoke` thường bọc lỗi đích trong `InvocationTargetException`. Muốn giữ đúng lỗi gốc hãy đọc `getCause()`. `IllegalAccessException` phản ánh vấn đề truy cập; `NoSuchMethodException` phản ánh lookup không thấy chữ ký yêu cầu. Không nên gộp mọi lỗi vào một thông báo “reflection failed” vì vận hành sẽ khó phân biệt lỗi cấu hình với lỗi nghiệp vụ.
+**Exception handling:** if the plugin's method itself throws an exception, `Method.invoke` typically wraps the target exception in `InvocationTargetException`. To preserve the true root cause, inspect `getCause()`. `IllegalAccessException` indicates an access problem; `NoSuchMethodException` indicates the lookup could not find the requested signature. Avoid lumping all errors into a generic "reflection failed" message, as operations will struggle to distinguish configuration errors from business errors.
 
-**Thời điểm sử dụng:** discovery và signature validation thường thực hiện **một lần khi đăng ký/khởi tạo provider**, sau đó cache `Method` hoặc tạo adapter. Việc quét `getMethods()` và annotation ở mọi request làm ranh giới khó kiểm soát và tăng chi phí.
+**When to use it:** discovery and signature validation typically run **once during provider registration/initialization**, after which the `Method` is cached or an adapter is created. Scanning `getMethods()` and annotations on every request makes the boundary harder to reason about and increases overhead.
 
-**Không nên:** lấy class/method name tùy ý từ input của người dùng rồi gọi bằng reflection. Cần allowlist, quy tắc extension point, kiểm tra quyền và tham số; reflection trong cùng JVM không tạo sandbox cho mã không tin cậy.
+**Avoid:** taking arbitrary class/method names from user input and invoking them via reflection. Use allowlists, extension-point rules, permission checks, and argument validation; reflection within the same JVM does not sandbox untrusted code.
 
-## 3. Dynamic proxy: kiểm soát những lời gọi đi qua interface
+## 3. Dynamic Proxy: Controlling Calls Going Through an Interface
 
-`Proxy.newProxyInstance(classLoader, interfaces, invocationHandler)` tạo instance runtime triển khai một hoặc nhiều interface. Khi caller gọi method thông qua instance này, handler nhận:
+`Proxy.newProxyInstance(classLoader, interfaces, invocationHandler)` creates a runtime instance implementing one or more interfaces. When a caller invokes a method through this instance, the handler receives:
 
-- `proxy`: chính đối tượng proxy;
-- `method`: metadata `Method` của lời gọi;
-- `args`: đối số, có thể `null` nếu không có tham số.
+- `proxy`: the proxy object itself;
+- `method`: the `Method` metadata for the call;
+- `args`: arguments, which can be `null` if there are no parameters.
 
-Handler có thể kiểm tra quyền, bắt đầu trace, đếm metrics, đo latency, chuyển tiếp tới implementation và ánh xạ lỗi. Phần lõi vẫn chỉ nhìn thấy interface.
+The handler can check permissions, start tracing, increment metrics, measure latency, forward to the implementation, and map errors. The core still sees only the interface.
 
 ```text
 caller.greet("An")
     -> proxy / InvocationHandler
-       -> kiểm tra chính sách
-       -> chuyển tiếp sang adapter/plugin
-       -> ghi audit hoặc metrics, hoàn tất
+       -> policy check
+       -> forward to adapter/plugin
+       -> log audit or metrics, complete
     -> caller
 ```
 
-Những giới hạn cần tính trước:
+Limitations to plan for ahead of time:
 
-1. **Interface-only:** JDK `Proxy` không tự tạo subclass cho một class bất kỳ. Nếu provider không có interface, hãy viết adapter hoặc dùng công cụ sinh bytecode phù hợp khi thật sự cần.
-2. **Đường gọi:** chỉ lời gọi qua *instance proxy* mới bị chặn. Nếu target tự gọi phương thức nội bộ bằng `this`, lời gọi đó không qua proxy.
-3. **Các method của `Object`:** `equals`, `hashCode` và `toString` cũng có thể đến handler. Phải chọn chính sách nhất quán; đừng vô tình gọi lại proxy và gây đệ quy.
-4. **Default methods:** nếu interface có default method, handler cần quyết định dùng triển khai mặc định hay xử lý riêng. Java 17 hỗ trợ `InvocationHandler.invokeDefault(...)` khi muốn gọi default implementation.
-5. **Checked exception:** checked exception mà handler ném nhưng không được interface khai báo có thể bị bọc thành `UndeclaredThrowableException`. Hợp đồng lỗi cần được thiết kế có chủ đích.
-6. **Class loader:** loader dùng để tạo proxy phải nhìn thấy interface chính xác mà caller sử dụng; hai interface trùng tên do hai loader định nghĩa vẫn là hai kiểu khác nhau.
+1. **Interface-only:** JDK `Proxy` does not automatically subclass an arbitrary class. If a provider lacks an interface, write an adapter or use an appropriate bytecode generation tool when truly necessary.
+2. **Call path:** only calls going through the *proxy instance* are intercepted. If the target calls an internal method on itself using `this`, that call bypasses the proxy.
+3. **`Object` methods:** `equals`, `hashCode`, and `toString` can also reach the handler. Choose a consistent policy; do not accidentally call back into the proxy and cause infinite recursion.
+4. **Default methods:** if the interface has default methods, the handler must decide whether to invoke the default implementation or handle them specially. Java 17 supports `InvocationHandler.invokeDefault(...)` when calling the default implementation.
+5. **Checked exceptions:** a checked exception thrown by the handler that is not declared by the interface may be wrapped in `UndeclaredThrowableException`. Error contracts must be designed intentionally.
+6. **Class loader:** the loader used to create the proxy must see the exact interface used by the caller; two same-named interfaces defined by two different loaders are still two distinct types.
 
-Proxy không tự phát hiện plugin nào đúng. Nó là nơi áp dụng **chính sách quanh một interface**; phương thức thật có thể được gọi trực tiếp, bằng reflection hoặc bằng method handle ở bên trong handler/adapter.
+A proxy does not discover which plugin is valid on its own. It is a place to apply **policy around an interface**; the real method can be invoked directly, via reflection, or via a method handle inside the handler/adapter.
 
-## 4. MethodHandle: lời gọi động nhưng có kiểu
+## 4. MethodHandle: Dynamic Yet Typed Invocation
 
-`MethodHandle` từ package `java.lang.invoke` là tham chiếu tới một thao tác có thể gọi. Mỗi handle có `MethodType` chỉ rõ kiểu tham số và giá trị trả về; tạo handle thông qua `MethodHandles.Lookup`, chẳng hạn:
+`MethodHandle` from the `java.lang.invoke` package is a reference to a callable operation. Every handle has a `MethodType` specifying parameter types and return type; handles are obtained via `MethodHandles.Lookup`, such as:
 
-- `findVirtual`: method instance;
-- `findStatic`: method static;
-- `findConstructor`: constructor;
-- `unreflect(Method)`: biến một `Method` tìm bằng reflection thành handle.
+- `findVirtual`: instance methods;
+- `findStatic`: static methods;
+- `findConstructor`: constructors;
+- `unreflect(Method)`: converts a `Method` found via reflection into a handle.
 
-Ví dụ ý tưởng với `public VendorPlugin.say(String)`:
+Conceptual example with `public VendorPlugin.say(String)`:
 
 ```java
 MethodType signature = MethodType.methodType(String.class, String.class);
 MethodHandle unbound = MethodHandles.publicLookup()
     .findVirtual(VendorPlugin.class, "say", signature);
 
-// Cố định receiver để lời gọi sau chỉ cần đối số String.
+// Bind the receiver so subsequent calls only need a String argument.
 MethodHandle bound = unbound.bindTo(plugin);
 String result = (String) bound.invokeExact("An");
 ```
 
-Đây là đoạn minh họa sử dụng các biến/lớp trong ví dụ đầy đủ bên dưới.
+This snippet illustrates usage with the variables/classes in the full example below.
 
-Một handle tạo từ `findVirtual` cho method `String say(String)` có kiểu lời gọi chứa receiver, tương đương `(VendorPlugin, String) -> String`. Sau `bindTo(plugin)`, nó còn `(String) -> String`. Các khái niệm quan trọng:
+A handle created from `findVirtual` for `String say(String)` has an invocation type that includes the receiver, equivalent to `(VendorPlugin, String) -> String`. After `bindTo(plugin)`, it becomes `(String) -> String`. Key concepts:
 
-- `invokeExact` yêu cầu chữ ký **tĩnh tại vị trí gọi** khớp chính xác với `handle.type()`, gồm cả kiểu trả về. Vì vậy phép ép `(String)` trong ví dụ giúp xác định kiểu call site; không khớp có thể gây `WrongMethodTypeException`.
-- `invoke` cho phép một số thích nghi kiểu theo quy tắc của method handle; `asType(...)` tạo handle thích nghi chữ ký một cách tường minh. Không phải mọi cast/conversion đều hợp lệ.
-- `invokeWithArguments(...)` tiện cho lời gọi linh hoạt qua danh sách `Object`, đổi lại ít ràng buộc kiểu tĩnh và có thêm chuyển đổi.
-- `invokeExact` và `invoke` khai báo `throws Throwable`; ngoại lệ của method đích truyền ra qua đường gọi này, không tự tạo `InvocationTargetException` như `Method.invoke`.
-- `MethodHandle` không tự “nhớ” phải cache đúng lifecycle. Nếu liên kết lại target mỗi request, lợi ích tiềm năng của đường gọi đã chuẩn hóa có thể bị triệt tiêu.
+- `invokeExact` requires the **static signature at the call site** to match `handle.type()` exactly, including the return type. Thus the `(String)` cast in the example establishes the call-site type; mismatches can throw `WrongMethodTypeException`.
+- `invoke` allows certain type adaptations according to method handle rules; `asType(...)` explicitly creates a handle with an adapted signature. Not every cast/conversion is valid.
+- `invokeWithArguments(...)` is convenient for flexible calls via an `Object` list, trading off static type constraints and adding conversion overhead.
+- `invokeExact` and `invoke` declare `throws Throwable`; exceptions from the target method propagate directly through this call path without wrapping in `InvocationTargetException` like `Method.invoke`.
+- `MethodHandle` does not automatically "remember" to cache itself with the right lifecycle. Re-linking the target on every request can negate the potential benefits of a normalized call path.
 
-Khả năng truy cập của handle dựa trên `Lookup` và quy tắc Java/JPMS. `publicLookup()` chỉ truy cập thành viên public đủ điều kiện; `privateLookupIn` cũng cần quyền thích hợp, không phải cách tự do vượt mọi đóng gói.
+Handle accessibility depends on `Lookup` and Java/JPMS rules. `publicLookup()` only accesses eligible public members; `privateLookupIn` also requires appropriate permissions, not an unrestricted way to bypass all encapsulation.
 
-## 5. Ví dụ Java 17 chạy độc lập: kết hợp đủ ba
+## 5. Standalone Runnable Java 17 Example: Combining All Three
 
-Bối cảnh: lõi cung cấp `GreetingGateway.greet(String)`, nhưng plugin nhà cung cấp lại công bố method `say(String)` đánh dấu `@EntryPoint`. Reflection tìm đúng method, method handle liên kết target và dynamic proxy thêm audit trước lời gọi. Mọi lớp đặt trong một file để thử trực tiếp; thực tế chúng có thể nằm ở các module khác nhau.
+Context: the core provides `GreetingGateway.greet(String)`, whereas the vendor plugin exposes a `say(String)` method annotated with `@EntryPoint`. Reflection locates the right method, a method handle binds the target, and a dynamic proxy adds auditing before the call. All classes are placed in one file for direct testing; in practice, they can live in separate modules.
 
-Tạo `BoundaryDemo.java`:
+Create `BoundaryDemo.java`:
 
 ```java
 import java.lang.annotation.*;
@@ -157,7 +157,7 @@ public final class BoundaryDemo {
     public static void main(String[] args) throws Throwable {
         VendorPlugin plugin = new VendorPlugin();
 
-        // Reflection: tìm extension point và xác minh chữ ký.
+        // Reflection: locate the extension point and verify its signature.
         Method selected = Arrays.stream(VendorPlugin.class.getMethods())
             .filter(m -> m.isAnnotationPresent(EntryPoint.class))
             .filter(m -> m.getName().equals("say"))
@@ -167,15 +167,15 @@ public final class BoundaryDemo {
             .findFirst()
             .orElseThrow();
 
-        // Một lời gọi trực tiếp qua reflection để so sánh.
+        // A direct call via reflection for comparison.
         String viaReflection = (String) selected.invoke(plugin, "An");
 
-        // Chuyển Method đã tìm thành handle và bind receiver.
+        // Convert the located Method into a handle and bind the receiver.
         MethodHandle bound = MethodHandles.publicLookup()
             .unreflect(selected)
             .bindTo(plugin);
 
-        // Proxy công bố interface ổn định cho phía ứng dụng.
+        // Proxy exposes a stable interface to the application side.
         GreetingGateway gateway = (GreetingGateway) Proxy.newProxyInstance(
             GreetingGateway.class.getClassLoader(),
             new Class<?>[] {GreetingGateway.class},
@@ -194,7 +194,7 @@ public final class BoundaryDemo {
                 }
 
                 System.out.println("audit: " + method.getName());
-                // Handle đã bind có kiểu (String) -> String.
+                // Bound handle has type (String) -> String.
                 return (String) bound.invokeExact((String) arguments[0]);
             }
         );
@@ -206,14 +206,14 @@ public final class BoundaryDemo {
 }
 ```
 
-Biên dịch với JDK 17+ và chạy:
+Compile with JDK 17+ and run:
 
 ```bash
 javac --release 17 BoundaryDemo.java
 java BoundaryDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 reflection: Hello, An!
@@ -222,86 +222,86 @@ proxy: Hello, Binh!
 toString: GreetingGatewayProxy
 ```
 
-**Giải thích đường đi của chương trình:**
+**Explanation of program execution:**
 
-1. `@Retention(RUNTIME)` giữ annotation tại runtime. `getMethods()` trả public methods; các `filter` bảo đảm chọn đúng annotation, tên và chữ ký. Ví dụ có một kết quả duy nhất; registry production phải báo lỗi rõ khi không có hoặc có nhiều entry point hợp lệ, tránh `findFirst()` phụ thuộc thứ tự duyệt.
-2. `selected.invoke(plugin, "An")` minh họa reflection: biết `Method` ở runtime, gọi với receiver và tham số rồi ép kiểu `String`. Vì method không ném lỗi nên ví dụ không có `InvocationTargetException`.
-3. `unreflect(selected).bindTo(plugin)` biến metadata đã chọn thành handle có chữ ký `(String) -> String` và cố định provider instance. Việc tạo handle diễn ra một lần trước các lời gọi từ gateway.
-4. `Proxy.newProxyInstance(...)` cung cấp đối tượng triển khai `GreetingGateway`. Khi `gateway.greet("Binh")` được gọi, handler nhận `method=greet`, ghi audit rồi chuyển `arguments[0]` cho handle. Phép ép `(String)` ở cả argument và return cho `invokeExact` là có chủ ý.
-5. `toString` được xử lý riêng trong handler; `hashCode` và `equals` dùng identity để nhất quán với wrapper minh họa. `main throws Throwable` giúp ví dụ gọn, còn mã production phải chuẩn hóa contract ngoại lệ và cleanup phù hợp.
+1. `@Retention(RUNTIME)` preserves the annotation at runtime. `getMethods()` returns public methods; the `filter` steps ensure the right annotation, name, and signature are chosen. The example has a single match; a production registry must report clear errors when zero or multiple valid entry points exist, avoiding order-dependent `findFirst()`.
+2. `selected.invoke(plugin, "An")` demonstrates reflection: knowing the `Method` at runtime, invoking it with a receiver and argument, then casting to `String`. Because the method throws no exception, the example produces no `InvocationTargetException`.
+3. `unreflect(selected).bindTo(plugin)` turns the selected metadata into a handle with signature `(String) -> String` and binds the provider instance. Handle creation happens once before gateway calls.
+4. `Proxy.newProxyInstance(...)` supplies an object implementing `GreetingGateway`. When `gateway.greet("Binh")` is called, the handler receives `method=greet`, prints the audit log, and forwards `arguments[0]` to the handle. The `(String)` casts on both argument and return for `invokeExact` are intentional.
+5. `toString` is handled explicitly in the handler; `hashCode` and `equals` use identity for consistency with the demo wrapper. `main throws Throwable` keeps the example concise, whereas production code must standardize exception contracts and proper cleanup.
 
-Ví dụ chứng minh cách phối hợp, **không phải khuyến nghị luôn dùng cả ba**. Nếu plugin đã triển khai `GreetingGateway`, mã lõi có thể gọi interface trực tiếp hoặc dùng decorator/proxy khi cần audit, không cần reflection hay method handle.
+The example shows how they can work together, **not a recommendation to always use all three**. If a plugin already implements `GreetingGateway`, core code can invoke the interface directly or use a decorator/proxy when auditing is needed, without reflection or method handles.
 
-## 6. Áp dụng vào các kiểu tích hợp thực tế
+## 6. Applying to Real-World Integration Patterns
 
-### A. Plugin có hợp đồng SPI chung
+### A. Plugins with a Shared SPI Contract
 
-Tạo module API chứa interface, để provider triển khai nó, sau đó đăng ký bằng `ServiceLoader` hoặc một registry rõ ràng. Adapter có thể chỉ cần forward trực tiếp. Cách này dễ compile, test, refactor và kiểm soát version. Dynamic proxy chỉ thêm khi cần chính sách bao quanh interface.
+Create an API module containing the interface, have providers implement it, and register via `ServiceLoader` or an explicit registry. The adapter may only need to forward directly. This approach is easy to compile, test, refactor, and version-control. Add a dynamic proxy only when policies need to wrap the interface.
 
-### B. Plugin được khám phá qua annotation hoặc protocol
+### B. Plugins Discovered via Annotations or Protocol
 
-Khi class/method chỉ xuất hiện ở runtime, registry kiểm tra annotation, loại tham số, kiểu trả về và capability bằng reflection. Sau xác minh, registry tạo adapter về interface chung. Adapter có thể dùng `Method.invoke` đã cache hoặc `MethodHandle` đã bind; proxy bên ngoài áp dụng tracing, metrics và policy cho tất cả provider.
+When classes/methods only appear at runtime, the registry validates annotations, parameter types, return types, and capabilities using reflection. After validation, the registry creates an adapter matching the shared interface. The adapter can use a cached `Method.invoke` or a bound `MethodHandle`; an outer proxy applies tracing, metrics, and policies across all providers.
 
-Điều kiện tiên quyết là **hợp đồng runtime được mô tả rõ**, gồm annotation, signature, version, kiểu lỗi và cách xử lý nhiều ứng viên. Cùng tên method không bảo đảm cùng ngữ nghĩa.
+A prerequisite is a **clearly documented runtime contract**, including annotations, signatures, versions, error types, and handling multiple candidates. Having the same method name does not guarantee the same semantics.
 
-### C. Gọi nhiều lần cùng một target động
+### C. Repeatedly Calling the Same Dynamic Target
 
-Khi target đã được chọn, cache `Method` hoặc method handle. Có thể dùng `asType`, `filterArguments`, `guardWithTest` để xây adapter lời gọi khi cần, nhưng giữ chúng ở lớp tích hợp và test kỹ. Không đưa `invokeExact` rải rác vào nghiệp vụ. Chọn hướng đơn giản nhất đáp ứng hợp đồng; tối ưu động chỉ nên dựa trên kết quả đo.
+Once the target is selected, cache the `Method` or method handle. You can use `asType`, `filterArguments`, and `guardWithTest` to build call adapters when needed, but keep them inside the integration layer and test thoroughly. Do not scatter `invokeExact` across business code. Pick the simplest path that satisfies the contract; dynamic optimization should be driven by measurements.
 
-## 7. Quyền truy cập, JPMS và class loader
+## 7. Access Permissions, JPMS, and Class Loaders
 
-**Reflection không xóa quy tắc truy cập.** `getDeclaredMethod` có thể nhìn thấy metadata của thành viên private, nhưng không đồng nghĩa được gọi nó. `setAccessible(true)` không được bảo đảm thành công, đặc biệt với Java 17 và đóng gói mạnh của JPMS.
+**Reflection does not erase access rules.** `getDeclaredMethod` can inspect metadata of private members, but that does not grant permission to invoke them. `setAccessible(true)` is not guaranteed to succeed, especially with Java 17 and JPMS strong encapsulation.
 
-Trong named modules:
+In named modules:
 
-- `exports` công bố API public theo quy tắc module;
-- `opens` cho phép deep reflection đối với package được mở;
-- `MethodHandles.Lookup` có quyền phù hợp với nơi nó được tạo; `privateLookupIn` vẫn phải thỏa điều kiện quyền truy cập/module;
-- cờ `--add-opens` có thể giúp chuyển đổi hệ thống cũ nhưng không nên trở thành thiết kế tích hợp mặc định.
+- `exports` exposes public API according to module rules;
+- `opens` allows deep reflection for the opened package;
+- `MethodHandles.Lookup` carries permissions matching where it was created; `privateLookupIn` must still satisfy access/module rules;
+- `--add-opens` flags can aid migrating legacy systems, but should not become the default integration design.
 
-**Class identity gồm cả class loader.** Hai bản `com.example.GreetingGateway` do hai loader khác nhau nạp không phải cùng một type. Để proxy và cast hoạt động, core và plugin phải cùng nhìn thấy API chung từ loader/layer thích hợp. Khi reload plugin, cache `Class`/`Method`/`MethodHandle` hoặc instance ở nơi sống quá lâu có thể giữ class loader cũ và làm rò rỉ bộ nhớ.
+**Class identity includes the class loader.** Two copies of `com.example.GreetingGateway` loaded by two different loaders are not the same type. For proxies and casts to work, core and plugin must both see the shared API from the appropriate loader/layer. When reloading plugins, caching `Class`/`Method`/`MethodHandle` or instances in overly long-lived locations can retain the old class loader and cause memory leaks.
 
-**Ranh giới tin cậy:** validate input/output, allowlist provider, kiểm soát capability/version, ghi audit vừa đủ và không để nội dung chưa tin cậy tùy ý chỉ định class/method. Code chạy trong cùng JVM không được sandbox chỉ vì nó đi qua proxy hay reflection. Với plugin không tin cậy, cần cân nhắc tách tiến trình và protocol có kiểm soát.
+**Trust boundary:** validate input/output, allowlist providers, verify capabilities/versions, log appropriate audits, and never let untrusted content arbitrarily specify classes/methods. Code running inside the same JVM is not sandboxed simply because it goes through a proxy or reflection. For untrusted plugins, consider process isolation and controlled protocols.
 
-## 8. Lỗi thường gặp và cách nhận biết
+## 8. Common Errors and How to Diagnose Them
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common Cause | Resolution |
 | --- | --- | --- |
-| `NoSuchMethodException` | Sai tên hoặc parameter types ở lookup | Xác thực contract/version lúc đăng ký |
-| `IllegalAccessException` / `InaccessibleObjectException` | Thành viên/package không đủ quyền hoặc chưa `opens` | Sửa API/module declaration với phạm vi tối thiểu |
-| `InvocationTargetException` | Method của provider được gọi qua reflection ném lỗi | Lấy `getCause()` và giữ thông tin nguyên nhân |
-| `WrongMethodTypeException` | Chữ ký handle hoặc call site `invokeExact` sai | Kiểm tra `handle.type()`, receiver, input và return |
-| `UndeclaredThrowableException` | Handler ném checked exception không được interface khai báo | Định nghĩa hợp đồng lỗi, ánh xạ ngoại lệ có chủ đích |
-| `ClassCastException` khi nhận proxy/provider | Interface bị nạp từ loader khác hoặc kiểu trả về sai | Thống nhất API class loader, validate kiểu |
-| Không thấy audit của proxy | Caller gọi thẳng target hoặc target self-invocation | Bảo đảm caller sử dụng instance proxy |
-| Lookup đúng nhưng hành vi sai | Provider đổi version hoặc ngữ nghĩa dù signature giống | Contract test trên hành vi, không chỉ metadata |
+| `NoSuchMethodException` | Wrong name or parameter types during lookup | Validate contract/version at registration |
+| `IllegalAccessException` / `InaccessibleObjectException` | Member/package lacks access or package is not `opens` | Fix API/module declarations with minimal scope |
+| `InvocationTargetException` | Provider method invoked via reflection threw an exception | Read `getCause()` and preserve root-cause details |
+| `WrongMethodTypeException` | Mismatched handle signature or `invokeExact` call site | Check `handle.type()`, receiver, inputs, and return type |
+| `UndeclaredThrowableException` | Handler threw a checked exception not declared on the interface | Define an error contract and map exceptions intentionally |
+| `ClassCastException` receiving proxy/provider | Interface loaded from a different loader or wrong return type | Unify the API class loader and validate types |
+| Proxy audit missing | Caller invokes target directly or target self-invokes | Ensure callers use the proxy instance |
+| Lookup succeeds but behavior is wrong | Provider changed version or semantics despite matching signature | Write contract tests on behavior, not just metadata |
 
-Hãy phân loại riêng **lỗi thiết lập tích hợp** (không tìm thấy entry point, sai module, sai loader, sai version) và **lỗi thực thi** (provider lỗi dữ liệu, timeout, nghiệp vụ). Lỗi thiết lập thường nên fail fast hoặc vô hiệu hóa provider khi đăng ký; lỗi runtime cần được biểu diễn qua contract và có ngữ cảnh vận hành.
+Separate **integration setup errors** (missing entry point, wrong module, wrong loader, version mismatch) from **execution errors** (bad provider data, timeout, business logic). Setup errors should typically fail fast or disable the provider at registration; runtime errors should be expressed through the contract with operational context.
 
-## 9. Hiệu năng và tính bảo trì
+## 9. Performance and Maintainability
 
-Không có quy tắc “MethodHandle luôn nhanh hơn reflection” hay “dynamic proxy luôn chậm”. Chi phí phụ thuộc kiểu call site, độ ổn định target, JIT, boxing, conversion, phần việc trong handler và workload. Nhiều tích hợp mất thời gian chủ yếu ở I/O, serialization hoặc mạng chứ không phải bản thân lệnh invoke.
+There is no universal rule that "MethodHandle is always faster than reflection" or "dynamic proxies are always slow". Cost depends on call-site shape, target stability, JIT, boxing, conversions, work done inside handlers, and workload. Many integrations spend most of their time in I/O, serialization, or networking rather than the invoke instruction itself.
 
-Các nguyên tắc thực dụng:
+Pragmatic principles:
 
-- **Tách discovery khỏi invocation:** chỉ scan annotation và chọn method khi khởi tạo/đăng ký, không scan mỗi request.
-- **Cache đúng vòng đời:** cache metadata/handle sau validation; loại bỏ khi thay/reload provider để tránh giữ class loader cũ.
-- **Chọn kiểu nhất quán:** với `invokeExact`, truyền nhận theo đúng `MethodType`; `asType` chỉ khi thực sự cần chuyển đổi hợp lệ.
-- **Thiết kế handler tối giản:** xử lý `Object` methods, default methods và exceptions có chủ đích; tránh log dữ liệu nhạy cảm hay side effect bất ngờ.
-- **Đo khi tối ưu:** nếu invocation thực sự nóng, dùng benchmark thích hợp như JMH cùng đo end-to-end latency. Benchmark không thay thế kiểm thử chức năng, quyền truy cập và module.
-- **Kiểm thử trường hợp biên:** sai signature, nhiều entry point, checked/unchecked exception, plugin reload, JPMS, proxy caller và thay đổi version.
+- **Separate discovery from invocation:** scan annotations and select methods only during initialization/registration, never per request.
+- **Cache with the right lifecycle:** cache metadata/handles after validation; evict them when replacing/reloading providers to avoid retaining old class loaders.
+- **Keep types consistent:** with `invokeExact`, pass and receive exact `MethodType` types; use `asType` only when a valid conversion is genuinely needed.
+- **Keep handlers minimal:** handle `Object` methods, default methods, and exceptions intentionally; avoid logging sensitive data or unexpected side effects.
+- **Measure before optimizing:** if invocation is genuinely hot, use proper benchmarks such as JMH alongside end-to-end latency measurements. Benchmarks do not replace functional, access, and module tests.
+- **Test edge cases:** mismatched signatures, multiple entry points, checked/unchecked exceptions, plugin reloads, JPMS, proxy callers, and version changes.
 
-## 10. Quy tắc chọn nhanh
+## 10. Quick Selection Rules
 
-| Nhu cầu | Nên dùng |
+| Need | Recommended Tool |
 | --- | --- |
-| Hai phía chia sẻ interface từ trước | Gọi Java trực tiếp qua interface |
-| Nhà cung cấp có SPI đăng ký chuẩn | `ServiceLoader` với interface |
-| Chưa biết lớp/method/annotation tới runtime | Reflection cho discovery và validation |
-| Cần audit, metrics, policy ở interface | Dynamic proxy hoặc decorator viết tay |
-| Đã chọn target động và gọi lặp nhiều lần | `MethodHandle` hoặc `Method` được cache, tùy trường hợp |
-| Cần chạy mã plugin không tin cậy | Ranh giới tiến trình/protocol; không coi reflection/proxy/handle là sandbox |
+| Both sides share an interface upfront | Direct Java call via the interface |
+| Provider has standard SPI registration | `ServiceLoader` with the interface |
+| Classes/methods/annotations unknown until runtime | Reflection for discovery and validation |
+| Need auditing, metrics, or policy around an interface | Dynamic proxy or handwritten decorator |
+| Dynamic target selected and invoked repeatedly | Cached `MethodHandle` or `Method`, depending on case |
+| Need to run untrusted plugin code | Process/protocol boundary; do not treat reflection/proxy/handle as a sandbox |
 
-Trước khi hoàn thiện adapter, hãy kiểm tra: interface chung có ổn định không; metadata có xác minh đầy đủ signature và version không; module/loader có cho phép truy cập không; proxy có xử lý chính xác đường gọi và lỗi không; method handle có đúng receiver, tham số và return type không; cache có được giải phóng khi reload không; lỗi tích hợp có dễ chẩn đoán không.
+Before finalizing an adapter, check: is the shared interface stable; does metadata validation verify full signatures and versions; do modules/loaders allow access; does the proxy handle call paths and errors accurately; does the method handle match receiver, parameters, and return type; are caches cleared on reload; are integration errors easy to diagnose?
 
-**Điểm cốt lõi:** reflection giúp *khám phá và kiểm tra* thành phần động; dynamic proxy giúp *kiểm soát lời gọi qua hợp đồng interface*; method handle giúp *liên kết và thực thi* đích gọi đã được xác định. Đặt chúng trong registry/adapter tại ranh giới tích hợp giúp phần lõi giữ API rõ ràng dù plugin hay thư viện phía ngoài thay đổi.
+**Core point:** reflection *discovers and checks* dynamic components; dynamic proxies *govern calls through an interface contract*; method handles *bind and execute* a resolved target. Placing them inside a registry/adapter at the integration boundary keeps the core's API clean even when external plugins or libraries change.

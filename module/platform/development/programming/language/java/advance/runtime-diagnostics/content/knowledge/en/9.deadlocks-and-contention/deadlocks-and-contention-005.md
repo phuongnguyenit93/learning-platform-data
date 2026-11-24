@@ -1,29 +1,29 @@
-# 9.5 Phân biệt tranh chấp monitor với việc chờ I/O hoặc chờ kết quả Future
+# 9.5 Distinguishing Monitor Contention from I/O Waits or Waiting on a Future Result
 
-Khi một dịch vụ Java chậm hoặc có vẻ “treo”, hàng chục request threads có thể cùng đứng im trong thread dump. Nhưng **đứng im không phải một nguyên nhân duy nhất**: có luồng đang **chờ lấy Java object monitor**, có luồng đang **đợi socket/disk/database**, và có luồng đang **chờ một kết quả `Future` hoặc `CompletableFuture`**. Ba loại chờ này có cách khắc phục khác nhau. Thay đổi kích thước thread pool để chữa một monitor bị giữ quá lâu có thể chỉ làm số thread bị chặn tăng; tăng timeout để chữa starvation trong executor đôi khi làm vấn đề nặng hơn.
+When a Java service becomes slow or appears “hung,” dozens of request threads can sit idle together in a thread dump. Yet **sitting idle is not a single root cause**: some threads are **waiting to acquire a Java object monitor**, some are **waiting on sockets/disk/databases**, and some are **waiting for a `Future` or `CompletableFuture` result**. These three wait types require different fixes. Resizing a thread pool to cure an overly long monitor hold may only increase the number of blocked threads; increasing timeouts to cure executor starvation sometimes makes the problem worse.
 
-Bài học tập trung vào **đọc bằng chứng từ JVM Java 17+**, đặc biệt `Thread.State`, stack frames, monitor/lock owner, dấu hiệu native I/O, `Future.get()`/`CompletableFuture.join()` và chuỗi phụ thuộc task. Mục tiêu là xây dựng một **quy trình phân loại**, không gán nhãn “deadlock” cho mọi thread `WAITING` và không kết luận “CPU đang nóng” chỉ vì trạng thái `RUNNABLE`.
+This lesson focuses on **reading evidence from a Java 17+ JVM**, specifically `Thread.State`, stack frames, monitor/lock owners, native I/O indicators, `Future.get()`/`CompletableFuture.join()`, and task dependency chains. The goal is to build a **classification procedure**, avoiding labeling every `WAITING` thread as “deadlock” or concluding “CPU is hot” merely from `RUNNABLE`.
 
-**Sau bài này bạn cần làm được:**
+**After this lesson, you should be able to:**
 
-- Xác định `BLOCKED (on object monitor)` có liên quan tới `synchronized`, tìm object monitor và thread đang nắm nó.
-- Phân biệt `Object.wait()`, `LockSupport.park()` và `ReentrantLock` với tranh chấp Java monitor cổ điển.
-- Nhận ra chờ I/O qua stack ở `Socket`, `InputStream.read`, `Selector.select`, `FileChannel` hoặc client thư viện; hiểu Java `RUNNABLE` không đồng nghĩa thread đang chiếm CPU.
-- Nhận ra chờ kết quả bất đồng bộ qua `FutureTask.get`, `CompletableFuture.join/get`, `ForkJoinPool.managedBlock` và các frame `LockSupport.park`.
-- Tìm ra **thread-pool starvation** và vòng phụ thuộc logic mà các deadlock detectors của JVM có thể không báo.
-- Kết hợp nhiều thread dumps với lock ownership, pool metrics, downstream latency, JFR và các mốc UTC của **cùng JVM instance**.
-- Đề xuất biện pháp khắc phục phù hợp cho từng trường hợp mà không tự tạo thêm tải hay lộ dữ liệu nhạy cảm.
+- Identify `BLOCKED (on object monitor)` related to `synchronized`, and find the object monitor and the thread holding it.
+- Distinguish `Object.wait()`, `LockSupport.park()`, and `ReentrantLock` from classic Java monitor contention.
+- Recognize I/O waits via stack frames in `Socket`, `InputStream.read`, `Selector.select`, `FileChannel`, or client libraries; understand that Java `RUNNABLE` does not mean a thread is burning CPU.
+- Recognize async result waits via `FutureTask.get`, `CompletableFuture.join/get`, `ForkJoinPool.managedBlock`, and `LockSupport.park` frames.
+- Identify **thread-pool starvation** and logical dependency cycles that JVM deadlock detectors may not report.
+- Combine multiple thread dumps with lock ownership, pool metrics, downstream latency, JFR, and UTC timestamps from the **same JVM instance**.
+- Propose appropriate remediation for each case without adding extra load or exposing sensitive data.
 
-## 1. Cùng triệu chứng “treo”, ba nhóm nguyên nhân
+## 1. Same “Hang” Symptom, Three Root-Cause Categories
 
-Sơ đồ đặt câu hỏi đầu tiên:
+Initial triage flow:
 
 ```text
-                  Request không tiến triển
+                  Request makes no progress
                            │
-                   Chụp thread dump
+                   Capture thread dump
                            │
-                 Thread đang ở đâu?
+                 Where is the thread?
        ┌───────────────────┼───────────────────┐
        ▼                   ▼                   ▼
   Java monitor         I/O boundary       Future / async wait
@@ -34,52 +34,52 @@ Sơ đồ đặt câu hỏi đầu tiên:
   Holder stack          Pool connection     Dependency graph
        │                   │                   │
   Critical section      Downstream/I/O       Queue starvation,
-  và thời gian giữ      latency/limit        deadlock logic/timeout
+  and hold duration     latency/limit        logical deadlock/timeout
        └───────────────────┼───────────────────┘
                            ▼
-               Đối chiếu nhiều snapshots,
+               Cross-check multiple snapshots,
                 metrics, logs, JFR/traces
 ```
 
-Cả ba có thể xảy ra đồng thời. Ví dụ **thread A giữ monitor, rồi chờ `Future.get()`**, trong khi task hoàn tất Future cần chính monitor đó: trong dump A có thể là `WAITING (parking)` tại `FutureTask.get`, còn B là `BLOCKED` chờ monitor. Nếu chỉ nhìn trạng thái của A hoặc B riêng lẻ, bạn sẽ bỏ qua vòng phụ thuộc.
+All three can happen simultaneously. For example, **thread A holds a monitor, then waits on `Future.get()`**, while the task completing the Future needs that exact monitor: in a dump A may appear `WAITING (parking)` at `FutureTask.get`, while B is `BLOCKED` waiting for the monitor. Looking at A or B’s state in isolation misses the dependency cycle.
 
-Một nguyên tắc quan trọng: **Java `Thread.State` chỉ là trạng thái của JVM tại thời điểm lấy mẫu**, không phải chuẩn đoán cuối cùng về resource gây chậm. Stack frames cho biết thread đang ở đường xử lý nào; lock-owner information, metrics và chuỗi chờ giúp hiểu *vì sao*.
+An essential rule: **Java `Thread.State` is only the JVM’s state at the moment of sampling**, not a final diagnosis of the slow resource. Stack frames tell which execution path the thread is on; lock-owner info, metrics, and wait chains explain *why*.
 
-## 2. Sáu trạng thái Java và câu hỏi chẩn đoán
+## 2. The Six Java States and Diagnostic Questions
 
-Java 17 có sáu `Thread.State`:
+Java 17 has six `Thread.State` values:
 
-| State | Ý nghĩa ở Java VM | Gợi ý điều tra |
+| State | Meaning in the Java VM | Investigation Hint |
 | --- | --- | --- |
-| `NEW` | `Thread` object chưa `start()` | Không phải một live worker đang xử lý request |
-| `RUNNABLE` | Thread đang chạy/khả dụng cho thực thi theo VM | Có thể tính toán CPU hoặc đang chờ OS I/O; phải đọc stack |
-| `BLOCKED` | Chờ lấy lại Java object monitor để vào `synchronized` hoặc tái vào sau `wait` | Tìm `- waiting to lock` và lock owner |
-| `WAITING` | Đợi không có timeout cho hành động của thread khác | `Object.wait()`, `LockSupport.park()`, `Thread.join()`; đọc caller |
-| `TIMED_WAITING` | Đợi có timeout/độ dài hữu hạn | `sleep`, timed `wait/join`, `parkNanos`, nhiều timed waits |
-| `TERMINATED` | Thread đã kết thúc | Thường không nằm trong live thread dump của JVM |
+| `NEW` | `Thread` object has not called `start()` yet | Not a live worker handling requests |
+| `RUNNABLE` | Thread is running/eligible to execute per the VM | May be computing on CPU or waiting on OS I/O; must read stack |
+| `BLOCKED` | Waiting to acquire/reacquire a Java object monitor to enter `synchronized` or reenter after `wait` | Look for `- waiting to lock` and lock owner |
+| `WAITING` | Waiting without timeout for another thread’s action | `Object.wait()`, `LockSupport.park()`, `Thread.join()`; read callers |
+| `TIMED_WAITING` | Waiting with a timeout / bounded duration | `sleep`, timed `wait/join`, `parkNanos`, various timed waits |
+| `TERMINATED` | Thread has exited | Usually absent from a live JVM thread dump |
 
-**Đừng ánh xạ một-một sang Linux states `R/S/D`.** Một Java thread `RUNNABLE` có thể nằm trong native socket read và OS thread đang sleeping. Ngược lại, Java `WAITING` có thể là pool idle hoàn toàn bình thường. <u>State + top frames + caller frames + lock data + thời gian mới là bằng chứng.</u>
+**Do not map one-to-one to Linux states `R/S/D`.** A Java `RUNNABLE` thread can be inside a native socket read while the OS thread is sleeping. Conversely, Java `WAITING` can be a completely normal idle pool. <u>State + top frames + caller frames + lock data + time together form evidence.</u>
 
-### 2.1. Một ma trận nhận diện nhanh
+### 2.1. Quick Identification Matrix
 
-| Dấu hiệu trong dump | Khả năng ban đầu | Bằng chứng còn thiếu |
+| Indicator in Dump | Initial Possibility | Missing Evidence Needed |
 | --- | --- | --- |
-| `BLOCKED (on object monitor)`, `- waiting to lock <id>` | Monitor contention | Thread nào đang `- locked <id>`, giữ bao lâu? |
-| `WAITING (on object monitor)` tại `Object.wait` | Đợi notify/điều kiện | Ai notify? Predicate/condition đã thay đổi chưa? |
-| `WAITING (parking)` tại `AbstractQueuedSynchronizer` | Lock/condition/semaphore/future/pool queue | Caller thực là `lock`, `await` hay `getTask`? |
-| `RUNNABLE` với `SocketDispatcher.read0` / `SocketInputStream.socketRead0` | Chờ network read hoặc native work | Endpoint, deadline, byte count, OS socket state |
-| `RUNNABLE` với `EPoll.wait` / `Selector.select` | Event loop chờ I/O readiness | Event-loop progress, backlog, select timeout |
-| `WAITING` tại `FutureTask.awaitDone` / `CompletableFuture.waitingGet` | Chờ result bất đồng bộ | Producer/task nằm ở executor nào, có chạy không? |
-| `TIMED_WAITING` tại timed `Future.get` | Có chờ tối đa timeout | Timeout còn lại, deadline toàn request, producer progress |
-| Nhiều request threads cùng `join`, pool active=max và queue tăng | Executor starvation/async bottleneck | Dependency graph: task hoàn tất nằm ở chính pool bị chiếm không? |
+| `BLOCKED (on object monitor)`, `- waiting to lock <id>` | Monitor contention | Which thread has `- locked <id>`, and for how long? |
+| `WAITING (on object monitor)` at `Object.wait` | Waiting for notify/condition | Who notifies? Has predicate/condition changed? |
+| `WAITING (parking)` at `AbstractQueuedSynchronizer` | Lock/condition/semaphore/future/pool queue | Is the actual caller `lock`, `await`, or `getTask`? |
+| `RUNNABLE` with `SocketDispatcher.read0` / `SocketInputStream.socketRead0` | Network read wait or native work | Endpoint, deadline, byte count, OS socket state |
+| `RUNNABLE` with `EPoll.wait` / `Selector.select` | Event loop waiting for I/O readiness | Event-loop progress, backlog, select timeout |
+| `WAITING` at `FutureTask.awaitDone` / `CompletableFuture.waitingGet` | Waiting for async result | Which executor runs the producer/task, and is it running? |
+| `TIMED_WAITING` at timed `Future.get` | Bounded wait up to timeout | Remaining timeout, overall request deadline, producer progress |
+| Many request threads in `join`, pool active=max and queue growing | Executor starvation / async bottleneck | Dependency graph: is the completing task in the occupied pool itself? |
 
-Các frame cụ thể có thể đổi theo JDK, thư viện I/O và runtime implementation. Không viết parser khẳng định mọi JDK 17 bắt buộc in đúng tên `SocketDispatcher.read0` hoặc `CompletableFuture.waitingGet`.
+Specific frame names can change across JDKs, I/O libraries, and runtime implementations. Never write a parser asserting every JDK 17 must print exact names like `SocketDispatcher.read0` or `CompletableFuture.waitingGet`.
 
-## 3. Monitor contention: dấu vết của `synchronized`
+## 3. Monitor Contention: Traces of `synchronized`
 
-### 3.1. Object monitor là gì?
+### 3.1. What Is an Object Monitor?
 
-Mỗi Java object có thể được dùng làm monitor cho `synchronized (obj)` hoặc một method `synchronized`. Tại một thời điểm, chỉ một thread sở hữu monitor đó để thực thi critical section; thread khác muốn vào phải chờ. Trong Java thread dump, **thread đang chờ để vào monitor** thường có state:
+Every Java object can serve as a monitor for `synchronized (obj)` or a `synchronized` method. At any instant, only one thread owns that monitor to execute the critical section; other threads wishing to enter must wait. In a Java thread dump, a **thread waiting to enter a monitor** typically has state:
 
 ```text
 java.lang.Thread.State: BLOCKED (on object monitor)
@@ -88,13 +88,13 @@ java.lang.Thread.State: BLOCKED (on object monitor)
     at com.example.OrderService.reserve(OrderService.java:54)
 ```
 
-Đây là **mẫu HotSpot tổng hợp**. Trường `<0x...>` là identity của object monitor trong dump phù hợp, **không phải thread ID**, cũng không phải địa chỉ native `nid`. Tên file/line và cách in có thể khác giữa bản JDK.
+This is a **synthetic HotSpot sample**. The `<0x...>` field is the object monitor identity in the matching dump, **not a thread ID**, and not a native `nid` address. File/line names and formatting vary by JDK version.
 
-Điều có thể kết luận: tại snapshot, thread chưa lấy được một monitor để tiếp tục. Điều **chưa** thể kết luận: monitor sẽ bị giữ mãi mãi, đây là deadlock hay chỉ contention thoáng qua vài micro giây. Cần tìm thread sở hữu monitor đó.
+What can be concluded: at snapshot time, the thread had not acquired a monitor to proceed. What **cannot** yet be concluded: that the monitor will be held forever, that this is a deadlock, or whether it is merely microsecond-level transient contention. You must find the thread owning that monitor.
 
-### 3.2. Tìm chủ sở hữu cùng lock
+### 3.2. Finding the Owner of the Same Lock
 
-Cùng dump có thể có thread khác:
+The same dump may contain another thread:
 
 ```text
 "cache-refresh" #52 ...
@@ -104,33 +104,33 @@ Cùng dump có thể có thread khác:
     - locked <0x0000000700a01000> (a java.lang.Object)
 ```
 
-Nếu identity `<0x0000000700a01000>` trùng, thread `cache-refresh` có thể đang giữ monitor mà `OrderService.reserve` chờ. Điểm rất dễ sai: **`Thread.sleep` không nhả monitor** đang giữ. Vì vậy thread đang ngủ vẫn có thể chặn nhiều request threads.
+If identity `<0x0000000700a01000>` matches, thread `cache-refresh` holds the monitor that `OrderService.reserve` is waiting for. A very easy mistake: **`Thread.sleep` does not release held monitors**. Thus a sleeping thread can still block many request threads.
 
-Đường điều tra hợp lý:
+A sound investigation path:
 
-1. Xác nhận object monitor identity giống nhau **trong cùng dump**.
-2. Đọc owner stack để tìm critical section của `synchronized`.
-3. Đọc source quanh frame owner: có sleep, synchronous network call, database query, giữ lock trong loop hay giữ lock trước khi `Future.get`?
-4. Lấy thêm snapshot khi triệu chứng còn xuất hiện, có giới hạn tác động.
-5. Đối chiếu blocked time/blocked count, request latency và lock contention events.
-6. Sửa **thời gian nắm lock hoặc cấu trúc ownership**, không chỉ tăng số thread đang đợi.
+1. Confirm the exact same object monitor identity **within the same dump**.
+2. Inspect the owner’s stack to locate the `synchronized` critical section.
+3. Read the source around the owner’s frames: is there a sleep, synchronous network call, database query, lock held across a loop, or lock held before `Future.get`?
+4. Capture additional snapshots while symptoms persist, keeping collection impact bounded.
+5. Cross-check blocked time/blocked count, request latency, and lock contention events.
+6. Fix **lock hold duration or ownership structure**, not just increasing waiting thread counts.
 
-Monitor identity có thể khác qua đời process hoặc giữa hai dump; không dùng nó như khóa toàn cục của cluster. Java lock owner/monitor frames còn phụ thuộc mức độ chi tiết của thread dump và tối ưu hóa JVM.
+Monitor identities can differ across process lifetimes or even across two dumps; never treat them as cluster-wide keys. Java lock-owner/monitor frames also depend on thread dump verbosity and JVM optimizations.
 
-### 3.3. `BLOCKED` không phải mọi loại tranh chấp khóa
+### 3.3. `BLOCKED` Is Not Every Kind of Lock Contention
 
-`ReentrantLock.lock()` thường dựa trên `AbstractQueuedSynchronizer` và `LockSupport.park`. Thread chờ `ReentrantLock` có thể là **WAITING (parking)**, không phải `BLOCKED`. `Condition.await`, `Semaphore.acquire`, `CountDownLatch.await`, `FutureTask.get` cũng có thể hiện WAITING hoặc TIMED_WAITING. Vì vậy:
+`ReentrantLock.lock()` typically relies on `AbstractQueuedSynchronizer` and `LockSupport.park`. A thread waiting on a `ReentrantLock` may appear as **WAITING (parking)** rather than `BLOCKED`. `Condition.await`, `Semaphore.acquire`, `CountDownLatch.await`, and `FutureTask.get` can also show `WAITING` or `TIMED_WAITING`. Therefore:
 
-- `BLOCKED` là dấu hiệu khá cụ thể của **Java monitor enter**.
-- **Không có `BLOCKED`** không loại trừ contention ở `java.util.concurrent`.
-- `WAITING (parking)` tự nó **không** khẳng định loại cơ chế chờ; phải đọc frames bên dưới `Unsafe.park`/`LockSupport.park`.
-- Một thread có state WAITING vẫn có thể **đang giữ monitor hoặc lock khác**, gây chặn thread khác.
+- `BLOCKED` is a fairly specific sign of **Java monitor entry**.
+- **Absence of `BLOCKED`** does not rule out `java.util.concurrent` contention.
+- `WAITING (parking)` alone **does not** identify the wait type; read frames below `Unsafe.park`/`LockSupport.park`.
+- A `WAITING` thread can still **hold another monitor or lock**, blocking other threads.
 
-### 3.4. `Object.wait` là trường hợp khác với chờ vào monitor
+### 3.4. `Object.wait` Differs from Waiting to Enter a Monitor
 
-`Object.wait()` chỉ được gọi khi thread sở hữu monitor của object đó. Khi vào wait, thread **nhả monitor trên object được wait**, chờ notify/notifyAll, interrupt hoặc điều kiện được đánh thức; sau đó cần reacquire monitor trước khi trở lại Java code bên trong critical section. Nó **không tự nhả mọi monitor khác** mà thread đang nắm.
+`Object.wait()` can only be called while the thread owns that object’s monitor. Upon entering wait, the thread **releases the monitor on the waited object**, waiting for `notify`/`notifyAll`, interrupt, or wakeup conditions; afterward it must reacquire the monitor before returning to Java code inside the critical section. It **does not automatically release any other monitors** the thread holds.
 
-Một mẫu:
+A sample:
 
 ```text
 "producer" ...
@@ -140,36 +140,36 @@ Một mẫu:
     - waiting on <0x0000000700a02000> (a java.lang.Object)
 ```
 
-Đây không phải bằng chứng thread đang **BLOCKED để vào** monitor. Nó đang chờ **điều kiện/notify**. Nếu được notify nhưng chưa reacquire lock, thread có thể chuyển sang BLOCKED. Phân tích phải tách “chờ được thông báo” và “chờ được vào monitor”.
+This is not evidence that the thread is **`BLOCKED` trying to enter** the monitor. It is waiting for a **condition/notify**. Once notified, if it cannot immediately reacquire the lock, the thread may transition to `BLOCKED`. Analysis must separate “waiting to be notified” from “waiting to enter the monitor.”
 
-**Thực hành an toàn với wait/notify:** kiểm tra predicate trong vòng `while`, không dùng `if`, vì spurious wakeups có thể xảy ra; tránh notify sai object hoặc bỏ lỡ điều kiện khi thiết kế concurrency. Khi thật sự cần concurrency primitives bậc cao, thường ưu tiên `BlockingQueue`/`Condition`/`CompletableFuture` đúng ngữ nghĩa hơn tự xây một protocol `wait/notify` phức tạp.
+**Safe practice with wait/notify:** check predicates in a `while` loop, never `if`, because spurious wakeups can occur; avoid notifying the wrong object or missing condition updates in concurrency designs. When higher-level concurrency primitives fit, prefer `BlockingQueue`/`Condition`/`CompletableFuture` with clear semantics over building complex custom `wait/notify` protocols.
 
-## 4. Monitor contention có thể biến thành starvation thế nào?
+## 4. How Monitor Contention Can Turn into Starvation
 
-Một code path có dạng:
+A code path of the form:
 
 ```java
-// Snippet minh họa trong method, không phải chương trình độc lập.
+// Illustrative snippet inside a method, not a standalone program.
 synchronized (cacheLock) {
-    refreshFromRemoteService(); // I/O có thể mất vài giây.
+    refreshFromRemoteService(); // I/O may take several seconds.
     updateSharedCache();
 }
 ```
 
-Tất cả request threads cần `cacheLock` phải xếp hàng trong khi owner **đang đợi I/O**. Trong dump cùng lúc:
+All request threads needing `cacheLock` must queue up while the owner **waits on I/O**. In the same dump:
 
-- Owner có thể `RUNNABLE` ở socket native read.
-- Nhiều request workers khác là `BLOCKED` chờ một monitor ID.
-- CPU của JVM có thể thấp; p99 vẫn cao.
-- Nguyên nhân **trực tiếp** của waiter là monitor contention; nguyên nhân **kéo dài thời gian nắm monitor** lại là I/O chậm.
+- The owner may be `RUNNABLE` inside a native socket read.
+- Many other request workers are `BLOCKED` waiting on one monitor ID.
+- JVM CPU may be low while p99 remains high.
+- The **immediate** cause for the waiters is monitor contention; the cause **prolonging monitor hold time** is slow I/O.
 
-Không nên phân loại toàn incident là “monitor” *hoặc* “network” khi thực tế là **cả hai tạo thành chuỗi nguyên nhân**. Cách sửa thường gồm chuyển I/O ra ngoài critical section hoặc dùng snapshot/immutable state, cùng timeout/circuit breaker và thiết kế đồng bộ thích hợp.
+Do not classify the entire incident as “monitor” *or* “network” when **both form a causal chain**. Fixes typically involve moving I/O outside the critical section or using snapshots/immutable state, alongside timeouts, circuit breakers, and proper synchronization design.
 
-## 5. I/O wait: state `RUNNABLE` có thể gây hiểu lầm
+## 5. I/O Wait: Why `RUNNABLE` Can Mislead
 
-### 5.1. Blocking socket read
+### 5.1. Blocking Socket Read
 
-Một mẫu HotSpot/JDK 17 phổ biến khi request gọi một dependency:
+A common HotSpot/JDK 17 pattern when a request calls a dependency:
 
 ```text
 "http-worker-17" #70 ...
@@ -182,13 +182,13 @@ Một mẫu HotSpot/JDK 17 phổ biến khi request gọi một dependency:
     at com.example.web.OrderController.submit(OrderController.java:37)
 ```
 
-Đây là **ví dụ theo kiểu stack**: số dòng/frames thay đổi theo JDK, driver HTTP/TLS, thư viện và cơ chế socket. Trên một implementation khác có thể thấy `SocketInputStream.socketRead0` hoặc frame NIO/Netty khác.
+This is a **stack-style example**: line numbers/frames vary by JDK, HTTP/TLS driver, library, and socket implementation. Another implementation might show `SocketInputStream.socketRead0` or different NIO/Netty frames.
 
-**`RUNNABLE` không khẳng định CPU cao.** Java VM có thể phân loại thread đang trong native I/O method là RUNNABLE trong khi OS cho nó ngủ đợi dữ liệu. Cần xem OS thread CPU time/TID, socket state, network timeout, latency phụ thuộc, bytes received và số connections để biết có thật sự bận CPU hay không.
+**`RUNNABLE` does not confirm high CPU.** The Java VM may classify a thread inside a native I/O method as `RUNNABLE` while the OS puts it to sleep awaiting data. Inspect OS thread CPU time/TID, socket states, network timeouts, dependency latency, bytes received, and connection counts to know whether CPU is truly busy.
 
-### 5.2. Selector/event loop chờ I/O
+### 5.2. Selector/Event Loop Waiting for I/O
 
-Một worker reactor/Netty/Java NIO có thể hiển thị:
+A reactor/Netty/Java NIO worker may show:
 
 ```text
 java.lang.Thread.State: RUNNABLE
@@ -197,67 +197,67 @@ java.lang.Thread.State: RUNNABLE
     at java.base/java.nio.channels.Selector.select(Selector.java:...)
 ```
 
-Đây có thể là **event loop idle đúng thiết kế**, không phải “loop vô hạn ngốn CPU”. Cần kiểm tra:
+This may be an **intentionally idle event loop**, not a “CPU-hogging infinite loop.” Check:
 
-- epoll/select có đang thực sự chặn đợi sự kiện không?
-- CPU time của native TID có tăng mạnh hay gần như không tăng?
-- Event loop backlog, queue size, completed tasks và thời gian dispatch?
-- Có busy-spin (select liên tục trả tức thời), callback tốn CPU hoặc handler I/O giữ event loop quá lâu không?
-- Latency được đo từ client có thể do downstream hoặc queue trước event loop?
+- Is epoll/select genuinely blocking awaiting events?
+- Does the native TID’s CPU time climb sharply or barely move?
+- Event-loop backlog, queue size, completed tasks, and dispatch duration?
+- Is there busy-spinning (select returning immediately over and over), CPU-heavy callbacks, or an I/O handler blocking the event loop too long?
+- Could client-observed latency come from downstream or queueing before the event loop?
 
-Một framework bất đồng bộ cũng có thể chuyển I/O wait sang **task/callback hoặc future**: thread event-loop lúc đó đang chờ readiness còn request thread khác chờ result. Không gán một state cố định cho “I/O wait” trên mọi thư viện.
+An async framework can also offload I/O waits onto **tasks/callbacks or futures**: the event-loop thread waits for readiness while another request thread waits for the result. Never assign one fixed state to “I/O wait” across all libraries.
 
-### 5.3. File/disk I/O và native calls
+### 5.3. File/Disk I/O and Native Calls
 
-Các frame như `FileInputStream.readBytes`, `FileChannelImpl.read`, filesystem provider, database driver hoặc JNI native method có thể cho biết thread ở đường I/O. Một Linux thread có thể ở `D` uninterruptible sleep, nhưng Java state vẫn không nhất thiết hiện thành tên `IO_WAITING` — Java `Thread.State` **không có enum này**.
+Frames like `FileInputStream.readBytes`, `FileChannelImpl.read`, filesystem providers, database drivers, or JNI native methods can indicate a thread on an I/O path. A Linux thread may be in `D` uninterruptible sleep, yet Java state still will not display `IO_WAITING` — Java `Thread.State` **has no such enum**.
 
-Để điều tra, đối chiếu:
+To investigate, cross-check:
 
-- I/O latency/IOPS/thông tin disk queue;
-- connection pool wait vs socket read vs TLS handshake;
-- SQL/query latency từ database metrics, tracing, pool active/pending;
-- OS thread state, `/proc` hoặc tools read-only khi có quyền;
+- I/O latency/IOPS/disk queue info;
+- connection pool wait vs. socket read vs. TLS handshake;
+- SQL/query latency from database metrics, tracing, active/pending pool stats;
+- OS thread state, `/proc`, or read-only tools when authorized;
 - network latency/retransmissions, DNS, timeouts/deadlines;
-- JVM heap/GC/safepoint nếu thời gian bất thường trùng pause.
+- JVM heap/GC/safepoints if abnormal durations coincide with pauses.
 
-**Đừng kết luận backend chậm** chỉ vì thấy frame JDBC: nó có thể đang chờ connection pool, transaction lock, network read, driver synchronization hoặc application-level backpressure. Đọc đủ caller frames và dependency metrics.
+**Do not conclude the backend is slow** merely from seeing a JDBC frame: it could be waiting on the connection pool, a transaction lock, a network read, driver synchronization, or application-level backpressure. Read full caller frames and dependency metrics.
 
-### 5.4. Timeout của I/O không giống timeout của Future
+### 5.4. I/O Timeouts Are Not Future Timeouts
 
-`Socket.setSoTimeout(...)` giới hạn blocking read trên socket theo ngữ nghĩa của API, không phải deadline tổng của một business transaction. `HttpClient`, JDBC driver, pool acquisition và RPC framework có nhiều loại timeout riêng: connection, handshake, read, request/call, queue/pool acquisition.
+`Socket.setSoTimeout(...)` bounds a blocking socket read per API semantics, not the total deadline of a business transaction. `HttpClient`, JDBC drivers, pool acquisition, and RPC frameworks have multiple distinct timeouts: connect, handshake, read, request/call, and queue/pool acquisition.
 
-Một request có thể có ba chặng:
+A request can have three stages:
 
 ```text
-Chờ pool connection (500 ms)
+Wait for pool connection (500 ms)
 → connect (300 ms)
 → read response (3 s)
-→ retry (2 lần)
-→ tổng latency vượt SLA
+→ retry (2 times)
+→ total latency exceeds SLA
 ```
 
-Một thread dump chỉ thấy đúng **chặng hiện tại**. Bài toán chẩn đoán cần tính tổng deadline, retry budget và chuỗi dependencies, không chỉ cấu hình socket timeout của một call.
+A thread dump only sees **the current stage**. Diagnostics must account for total deadlines, retry budgets, and dependency chains, not just one call’s socket timeout configuration.
 
-### 5.5. Bằng chứng phân biệt I/O wait với CPU hotspot
+### 5.5. Evidence Distinguishing I/O Wait from CPU Hotspot
 
-| Điều quan sát | Nghi I/O wait | Nghi CPU-heavy |
+| Observation | Suggests I/O Wait | Suggests CPU-Heavy |
 | --- | --- | --- |
-| Java state | Có thể RUNNABLE/native hoặc WAITING tùy framework | Thường RUNNABLE ở application method |
-| Stack | `Socket.read`, `FileChannel.read`, `Selector.select`, driver call | Java loops, transforms, serialization, crypto, matching |
-| CPU time cùng OS TID qua 2 mẫu | Tăng ít khi thực sự đang blocked | Tăng nhanh tương ứng khoảng đo |
-| Dependency latency | Có thể tăng | Có thể bình thường |
-| JFR | SocketRead/FileRead duration hoặc thread park có ý nghĩa | Execution samples tập trung vào code |
-| Biện pháp đầu tiên | Xác minh endpoint, timeout, queue, I/O latency | Profiling CPU và tối ưu đường tính |
+| Java state | May be `RUNNABLE`/native or `WAITING` depending on framework | Typically `RUNNABLE` in application methods |
+| Stack | `Socket.read`, `FileChannel.read`, `Selector.select`, driver calls | Java loops, transforms, serialization, crypto, matching |
+| CPU time of same OS TID across 2 samples | Rises little when genuinely blocked | Rises fast proportional to interval |
+| Dependency latency | May be elevated | May be normal |
+| JFR | Significant `SocketRead`/`FileRead` durations or thread parks | Execution samples concentrated in code |
+| First step | Verify endpoints, timeouts, queues, I/O latency | CPU profiling and optimizing hot paths |
 
-Có thể cùng có CPU work và I/O trong một request. Một lần đọc `Thread.State` không đủ cho định lượng.
+Both CPU work and I/O can occur in a single request. One `Thread.State` reading is insufficient for quantification.
 
-## 6. Future wait: chờ kết quả của một công việc khác
+## 6. Future Wait: Waiting for Another Task’s Result
 
-### 6.1. `Future.get()` chờ điều gì?
+### 6.1. What Does `Future.get()` Wait For?
 
-`Future<V>` đại diện kết quả tính toán bất đồng bộ. Với `Future.get()` không timeout, caller **chờ khi cần cho tới khi task hoàn tất**, sau đó nhận result hoặc exception/cancellation tương ứng. `get(timeout,unit)` chờ tối đa khoảng thời gian chỉ định rồi có thể ném `TimeoutException`.
+`Future<V>` represents the result of an asynchronous computation. With an un-timed `Future.get()`, the caller **waits if necessary for the task to complete**, then receives the result or corresponding exception/cancellation. `get(timeout, unit)` waits at most the specified time and may throw `TimeoutException`.
 
-Một ví dụ API (snippet trong method):
+An API example (snippet inside a method):
 
 ```java
 Future<String> result = executor.submit(() -> remoteLookup());
@@ -266,15 +266,15 @@ try {
     String value = result.get(2, TimeUnit.SECONDS);
     use(value);
 } catch (TimeoutException ex) {
-    // Xử lý deadline/timeout ở tầng ứng dụng.
+    // Handle deadline/timeout at the application layer.
 }
 ```
 
-`executor`, `remoteLookup`, `use` giả định đã tồn tại; đây **không phải chương trình biên dịch độc lập**. `get` còn có thể ném `InterruptedException` và `ExecutionException`; ví dụ lược bớt xử lý chúng để nhấn mạnh timeout. Nếu dùng code thực, phải xử lý ba trường hợp chính xác, khôi phục interrupt status khi phù hợp và giải quyết cancellation theo policy.
+`executor`, `remoteLookup`, and `use` are assumed to exist; this is **not a standalone compilable program**. `get` can also throw `InterruptedException` and `ExecutionException`; the example omits handling them to emphasize timeouts. In real code, handle all three properly, restore interrupt status when appropriate, and address cancellation per policy.
 
-### 6.2. Stack thường gặp khi chờ `FutureTask.get`
+### 6.2. Common Stack When Waiting on `FutureTask.get`
 
-Một mẫu HotSpot:
+A HotSpot sample:
 
 ```text
 "request-worker-8" #87 ...
@@ -286,47 +286,47 @@ Một mẫu HotSpot:
      at com.example.OrderService.create(OrderService.java:109)
 ```
 
-Phân tích từ dưới lên về **nguyên nhân chờ**: business method `OrderService.create` gọi `FutureTask.get`, nội bộ FutureTask dùng `awaitDone`/`park` để đợi task hoàn tất. Thread có thể là WAITING mặc dù **không hề tranh chấp Java object monitor**.
+Reading bottom-up for **why it is waiting**: business method `OrderService.create` called `FutureTask.get`, and internally `FutureTask` uses `awaitDone`/`park` to wait for task completion. The thread can be `WAITING` even though **there is no Java object monitor contention at all**.
 
-Trong log/metrics cần tìm:
+In logs/metrics, check:
 
-- Future được sinh ra ở đâu, ai submit?
-- Executor nào chạy producer?
-- Task đang ở trạng thái pending/running/completed/failed/cancelled?
-- Queue executor, active threads, completed task count, rejected tasks?
-- Task chạy có đang chờ I/O/monitor/another Future?
-- Caller có đang giữ lock trước khi `get` hay không?
+- Where was the Future created, and who submitted it?
+- Which executor runs the producer?
+- Is the task pending, running, completed, failed, or cancelled?
+- Executor queue, active threads, completed task count, rejected tasks?
+- Is the running task itself waiting on I/O, a monitor, or another Future?
+- Is the caller holding a lock before calling `get`?
 
-Không có tên “producerThread” mặc định nằm trong Future object. Thread dump của consumer cho biết **điểm chờ**, không đảm bảo chỉ ra thread producer nếu chưa theo trace/task ID hoặc scheduler metadata.
+There is no default “producerThread” field stored inside a Future object. The consumer’s thread dump reveals the **wait point**, without guaranteeing identification of the producer thread unless correlated via traces/task IDs or scheduler metadata.
 
 ### 6.3. CompletableFuture `join`/`get`
 
-`CompletableFuture<T>` triển khai `Future<T>` và `CompletionStage<T>`. Các frame có thể gồm `CompletableFuture.waitingGet`, `CompletableFuture$Signaller.block`, `ForkJoinPool.managedBlock` và `LockSupport.park`. Tên và chi tiết stack khác theo JVM, vậy phải tìm **chuỗi gọi `join` hoặc `get` ở caller frames**.
+`CompletableFuture<T>` implements `Future<T>` and `CompletionStage<T>`. Frames may include `CompletableFuture.waitingGet`, `CompletableFuture$Signaller.block`, `ForkJoinPool.managedBlock`, and `LockSupport.park`. Exact names and stack details vary by JVM, so look for **`join` or `get` call chains in caller frames**.
 
-Khác nhau đáng nhớ:
+Notable differences:
 
-| API | Timeout | Exception chính | Dấu hiệu chờ |
+| API | Timeout | Primary Exceptions | Wait Signature |
 | --- | --- | --- | --- |
-| `Future.get()` | Không | `InterruptedException`, `ExecutionException`, `CancellationException` | Thường WAITING nếu chưa done |
-| `Future.get(t, unit)` | Có | Thêm `TimeoutException` | Có thể TIMED_WAITING |
-| `CompletableFuture.join()` | Không | `CompletionException` (unchecked) khi exceptional, `CancellationException` | Thường WAITING/parking nếu chưa done |
-| `CompletableFuture.get()` | Không | `InterruptedException`, `ExecutionException` | Có thể WAITING |
-| `CompletableFuture.orTimeout(t,unit)` | Thay đổi trạng thái tương lai khi hết hạn | Future hoàn tất exceptionally với `TimeoutException` | **Không tự đảm bảo** công việc nền được hủy |
-| `CompletableFuture.completeOnTimeout(value,t,unit)` | Cấp fallback value khi timeout | Phụ thuộc completion/cancellation cạnh tranh | Không tự chứng minh work đã dừng |
+| `Future.get()` | No | `InterruptedException`, `ExecutionException`, `CancellationException` | Typically `WAITING` if not done |
+| `Future.get(t, unit)` | Yes | Adds `TimeoutException` | May be `TIMED_WAITING` |
+| `CompletableFuture.join()` | No | `CompletionException` (unchecked) on exceptional completion, `CancellationException` | Typically `WAITING`/parking if not done |
+| `CompletableFuture.get()` | No | `InterruptedException`, `ExecutionException` | May be `WAITING` |
+| `CompletableFuture.orTimeout(t,unit)` | Changes future state on expiry | Future completes exceptionally with `TimeoutException` | **Does not automatically guarantee** background work is canceled |
+| `CompletableFuture.completeOnTimeout(value,t,unit)` | Supplies fallback value on timeout | Subject to completion/cancellation races | Does not prove underlying work stopped |
 
-`Future.isDone() == true` có nghĩa computation đã **hoàn tất theo trạng thái của Future**, có thể thành công, thất bại hoặc cancelled; **không** đồng nghĩa thành công. `join()` không khai báo `InterruptedException`, vì vậy không xử lý interrupt giống hệt `get()`; hiểu chính sách interrupt/cancellation cụ thể của API và executor.
+`Future.isDone() == true` means the computation **completed in Future terms**—which can be success, failure, or cancellation; it does **not** mean success. `join()` does not declare `InterruptedException`, so it does not handle interrupts identically to `get()`; check exact API and executor interrupt/cancellation policies.
 
-### 6.4. `WAITING` không chứng minh Future chưa bao giờ hoàn tất
+### 6.4. `WAITING` Does Not Prove the Future Will Never Complete
 
-Thread dump là ảnh chụp tại một thời điểm. Future có thể hoàn tất ngay sau đó; consumer có thể chưa được scheduler chạy tiếp. Ngay cả khi đã timeout ở tầng HTTP client, một task đã submit vẫn có thể tiếp tục chạy nếu cancellation không được triển khai đúng.
+A thread dump is a snapshot at one instant. The Future may complete immediately afterward, or the consumer may not yet have been resumed by the scheduler. Even after an HTTP-layer timeout, a submitted task can keep running unless cancellation is properly implemented.
 
-Nếu nhiều request threads cùng chờ `get`, trước khi kết luận “Future không chạy”, kiểm tra pool size/queue, submit failures, callback executor, deadlock cycle, native I/O của producer và timing.
+If many request threads are waiting on `get`, before concluding “Futures aren’t running,” inspect pool size/queue, submission failures, callback executors, deadlock cycles, producer native I/O, and timing.
 
-## 7. Thread-pool starvation: không có monitor deadlock vẫn treo
+## 7. Thread-Pool Starvation: Hanging Without a Monitor Deadlock
 
-### 7.1. Một worker tự chờ task chưa được chạy
+### 7.1. A Worker Waiting on an Unstarted Task
 
-Giả sử executor có **một worker**. Task A đang chạy trong worker, submit task B vào **cùng executor**, rồi gọi `B.get()`. B nằm trong queue nhưng không thể chạy vì worker duy nhất đang bị A chiếm và A chờ B. Đây là **thread-pool starvation** hoặc vòng phụ thuộc do scheduling, không cần hai monitor chờ nhau.
+Suppose an executor has **one worker**. Task A runs on the worker, submits task B to **the same executor**, and then calls `B.get()`. B sits in the queue, unable to run because the sole worker is occupied by A while A waits for B. This is **thread-pool starvation** or scheduling dependency cycle, needing no two monitors waiting on each other.
 
 ```text
 SingleThreadExecutor (1 worker)
@@ -342,80 +342,80 @@ SingleThreadExecutor (1 worker)
               WAITING
                 │
                 ▼
-     B queued, không có worker rảnh
+     B queued, no free worker
                 │
-                └── B chưa thể complete
+                └── B cannot complete yet
 ```
 
-Điều quan trọng: `ThreadMXBean.findDeadlockedThreads()` có thể trả `null` vì không có monitor/ownable-synchronizer cycle mà JVM nhận diện. **`null` không loại trừ starvation hoặc deadlock logic** qua Future, message queue, callback, semaphore và remote services.
+Crucially: `ThreadMXBean.findDeadlockedThreads()` may return `null` because there is no JVM-recognizable monitor/ownable-synchronizer cycle. **`null` does not rule out starvation or logical deadlocks** across Futures, message queues, callbacks, semaphores, and remote services.
 
-### 7.2. Dấu hiệu ở thread dump và executor metrics
+### 7.2. Signs in Thread Dumps and Executor Metrics
 
-- Một hoặc nhiều pool workers ở `FutureTask.get`, `CompletableFuture.join`, `LockSupport.park`.
-- `activeCount` gần `maximumPoolSize`; queue size tăng hoặc `completedTaskCount` dừng tăng.
-- Tasks có thể được **submit từ chính các workers** vào cùng pool.
-- Không có `BLOCKED` hoặc Java monitor deadlock report.
-- Request timeout tăng, thread count không nhất thiết tăng.
-- CPU có thể thấp vì workers đang chờ, mặc dù queue đầy.
+- One or more pool workers at `FutureTask.get`, `CompletableFuture.join`, or `LockSupport.park`.
+- `activeCount` near `maximumPoolSize`; queue size grows or `completedTaskCount` stops growing.
+- Tasks are **submitted by the workers themselves** back into the same pool.
+- No `BLOCKED` threads or Java monitor deadlock reports.
+- Request timeouts climb while thread count does not necessarily rise.
+- CPU may be low because workers are waiting, even while the queue is full.
 
-Một queue có nhiều task không đủ chứng minh starvation: có thể workload burst hoặc downstream chậm. Cần thêm dependency edges, worker utilization và queue wait time.
+A large queue alone does not prove starvation: it could be a traffic burst or slow downstream. You need dependency edges, worker utilization, and queue wait times.
 
-### 7.3. Callback chain/CompletableFuture cũng có thể tạo vòng chờ
+### 7.3. Callback / CompletableFuture Chains Can Also Form Wait Cycles
 
-Một flow bất đồng bộ có thể vô tình block:
+An async flow can accidentally block:
 
 ```java
-// Snippet khái niệm, không đầy đủ:
+// Conceptual snippet, incomplete:
 CompletableFuture<String> a = loadAsync();
 CompletableFuture<String> b = a.thenApply(value -> transform(value));
-String result = b.join();  // Block thread hiện tại khi b chưa complete.
+String result = b.join();  // Blocks current thread while b has not completed.
 ```
 
-`loadAsync` và `transform` chưa định nghĩa. Đoạn trên không tự động sai: `join` ở orchestration thread có thể chấp nhận được. Nhưng khi gọi `join` **bên trong thread pool dùng để chạy stages phụ thuộc**, pool nhỏ hoặc bounded queue có thể bị starvation.
+`loadAsync` and `transform` are undefined here. This pattern is not automatically wrong: `join` on an orchestration thread can be acceptable. However, calling `join` **inside the thread pool used to run dependent stages** can starve a small pool or bounded queue.
 
-Một mô hình ít chặn hơn:
+A less blocking pattern:
 
 ```java
-// Snippet trong code đã có async operations:
+// Snippet in code that already has async operations:
 CompletableFuture<Result> result =
         fetchAsync()
             .thenCompose(data -> enrichAsync(data))
             .thenApply(this::toResult);
 ```
 
-`fetchAsync`, `enrichAsync`, `toResult` và type `Result` giả định đã có, không phải file độc lập. `thenCompose` thể hiện phụ thuộc bất đồng bộ mà không buộc một worker phải chờ `get` trong một critical section; nhưng **không** tự đảm bảo không có blocking bên trong các callbacks hoặc executor implementation.
+`fetchAsync`, `enrichAsync`, `toResult`, and type `Result` are assumed to exist; this is not a standalone file. `thenCompose` expresses an async dependency without forcing a worker to wait on `get` inside a critical section; however, it **does not** by itself guarantee no blocking occurs inside callbacks or executor implementations.
 
-### 7.4. Không chữa starvation chỉ bằng tăng pool size
+### 7.4. Do Not Fix Starvation Simply by Increasing Pool Size
 
-Tăng threads từ 1 lên 2 có thể làm ví dụ A→B chạy được, nhưng cũng có thể chỉ trì hoãn lỗi khi traffic cao: N workers đều submit N tasks rồi cùng đợi. Giải pháp cấu trúc thường gồm:
+Increasing threads from 1 to 2 may let a simple A→B example pass, yet only postpone failure under higher traffic: N workers all submit N tasks and wait together. Structural fixes usually include:
 
-- không block `Future.get`/`join` trong cùng bounded pool chạy producer;
-- thiết kế async composition hoặc tách pool đúng theo tính chất blocking/CPU;
-- tránh circular dependency giữa tasks/requests;
-- đặt queue bound, rejection policy, deadline, timeout và cancellation có quan sát;
-- kiểm tra backpressure, workload và thread-pool sizing dựa trên đo lường;
-- giảm thời gian giữ Java monitor khi đợi Future/I/O.
+- never blocking on `Future.get`/`join` inside the same bounded pool that runs the producer;
+- designing async composition or properly isolating pools by blocking vs. CPU characteristics;
+- avoiding circular dependencies across tasks/requests;
+- setting queue bounds, rejection policies, deadlines, timeouts, and observable cancellation;
+- validating backpressure, workload, and thread-pool sizing through measurement;
+- minimizing time holding Java monitors when awaiting Futures/I/O.
 
-## 8. Bảng quyết định: monitor, I/O hay Future?
+## 8. Decision Table: Monitor, I/O, or Future?
 
-| Dấu hiệu | Monitor contention | I/O wait | Future wait |
+| Indicator | Monitor Contention | I/O Wait | Future Wait |
 | --- | --- | --- | --- |
-| Java state thường thấy | `BLOCKED` | Có thể `RUNNABLE` trong native read hoặc WAITING theo thư viện | `WAITING`/`TIMED_WAITING` |
-| Top frames đặc trưng | `- waiting to lock` khi vào `synchronized` | Socket/file/selector/driver/native read | `FutureTask.get`, `CompletableFuture.join/get` |
-| Đối tượng phải tìm | Monitor ID + thread owner | Endpoint/file/connection/timeout | Future producer + executor/dependency |
-| Metrics có ích | Blocked count/time, lock owner chains, JFR monitor enter | SocketRead/FileRead durations, pool waits, downstream latency | Active/queue/completed tasks, dependency traces |
-| CPU của waiter | Thường thấp khi BLOCKED | Thường thấp trong blocking I/O, nhưng state có thể RUNNABLE | Thường thấp khi parked |
-| Deadlock detector có thấy? | Có thể thấy vòng monitors | Thường không | Thường không |
-| Biện pháp cấu trúc | Giảm thời gian giữ lock, bỏ I/O/await ra khỏi critical section | Timeout/deadline, pool, downstream, backpressure | Async composition, executor graph, timeout, bounded queues |
-| Rủi ro diễn giải | Một BLOCKED có thể chỉ thoáng qua | RUNNABLE không bằng CPU-bound | WAITING không bằng monitor deadlock |
+| Typical Java state | `BLOCKED` | May be `RUNNABLE` in native read or `WAITING` per library | `WAITING`/`TIMED_WAITING` |
+| Characteristic top frames | `- waiting to lock` entering `synchronized` | Socket/file/selector/driver/native read | `FutureTask.get`, `CompletableFuture.join/get` |
+| Target to locate | Monitor ID + owning thread | Endpoint/file/connection/timeout | Future producer + executor/dependency |
+| Helpful metrics | Blocked count/time, lock owner chains, JFR monitor enter | `SocketRead`/`FileRead` durations, pool waits, downstream latency | Active/queue/completed tasks, dependency traces |
+| Waiter CPU | Usually low when `BLOCKED` | Usually low during blocking I/O, though state may be `RUNNABLE` | Usually low when parked |
+| Caught by deadlock detector? | Can detect monitor cycles | Usually not | Usually not |
+| Structural fixes | Shrink lock hold time, move I/O/await out of critical sections | Timeouts/deadlines, pools, downstream fixes, backpressure | Async composition, executor graph, timeouts, bounded queues |
+| Interpretation risk | A `BLOCKED` thread may be transient | `RUNNABLE` does not equal CPU-bound | `WAITING` does not equal monitor deadlock |
 
-**Một thread có thể ở nhiều nguyên nhân theo chuỗi:** A giữ monitor nhưng chờ Future; producer B đang chờ database; các request C chờ monitor của A. Gốc latency có thể là database chậm *khuếch đại* bởi thiết kế monitor, không phải chỉ “database” hay chỉ “lock”.
+**A single thread can participate in chained causes:** A holds a monitor while waiting on a Future; producer B waits on a database; requests C wait on A’s monitor. The root latency may be a slow database *amplified* by monitor design, rather than purely “database” or purely “lock.”
 
-## 9. Cách lấy thread dump có kiểm soát trên Java 17
+## 9. Taking Thread Dumps Safely on Java 17
 
 ### 9.1. `jcmd Thread.print -l`
 
-Với HotSpot JDK 17, lệnh minh họa (PID `12345` phải là JVM đích đúng và có quyền):
+On HotSpot JDK 17, illustrative commands (PID `12345` must be the verified target JVM with proper permissions):
 
 ```bash
 jcmd -l
@@ -424,60 +424,60 @@ jcmd 12345 help Thread.print
 jcmd 12345 Thread.print -l
 ```
 
-`-l` yêu cầu thông tin khóa `java.util.concurrent` khi JVM hỗ trợ. Theo tài liệu JDK, `Thread.print` có tác động **Medium**, phụ thuộc số lượng thread: tạo quá nhiều dumps trên JVM đang chịu tải có thể ảnh hưởng latency.
+`-l` requests `java.util.concurrent` lock information when supported by the JVM. Per JDK documentation, `Thread.print` has **Medium** impact depending on thread count: capturing too many dumps on a heavily loaded JVM can affect latency.
 
-Trước khi chụp:
+Before capturing:
 
-1. Chốt service, node/container ID, PID **đúng namespace**, JVM start time, build revision.
-2. Ghi mốc UTC và khoảng thời gian sự cố.
-3. Tìm trong metrics đã có trước; chỉ chụp dump khi có mục tiêu.
-4. Thu 2–3 snapshots cách nhau khoảng vài giây nếu triệu chứng còn xảy ra **và ngân sách tác động cho phép**.
-5. Lưu file chỉ nơi được phép, hạn chế quyền đọc và thời hạn giữ.
-6. Không chụp quá dày chỉ để bắt một spike 10 ms; JFR/profiler sampling thường thích hợp hơn.
+1. Lock down the service, node/container ID, PID **in the right namespace**, JVM start time, and build revision.
+2. Record UTC timestamp and incident window.
+3. Check existing metrics first; capture dumps purposefully.
+4. Take 2–3 snapshots a few seconds apart while symptoms persist **and impact budget permits**.
+5. Save files only in authorized locations with restricted read permissions and retention limits.
+6. Do not dump tightly just to catch a 10 ms spike; JFR/sampling profilers are usually better suited.
 
-Ví dụ lưu dump vào một thư mục đã được bảo vệ:
+Example saving a dump to a protected directory:
 
 ```bash
 jcmd 12345 Thread.print -l > thread-20261029T081000Z.txt
 ```
 
-Lệnh chỉ ghi stdout của công cụ tại nơi chạy terminal; không chắc tạo file trong container target. Tên file minh họa, **không phải dump thực**. Trên container, `jcmd -l` không nhất thiết thấy JVM trong namespace khác.
+This only redirects the tool’s stdout in the terminal running the command; it will not necessarily create a file inside a target container. The filename is illustrative, **not a real dump**. In containers, `jcmd -l` does not necessarily see JVMs in other namespaces.
 
-### 9.2. Đọc nhiều snapshots để phân biệt nguyên nhân
+### 9.2. Reading Multiple Snapshots to Separate Causes
 
-Một mẫu tư duy:
+An analytical pattern:
 
 ```text
 t0: 27 request threads BLOCKED on monitor M
-t0: owner "cache-refresh" ở Socket.read
+t0: owner "cache-refresh" in Socket.read
 
 t0+5s: 43 request threads BLOCKED on M
-t0+5s: owner vẫn Socket.read, không có progress
+t0+5s: owner still in Socket.read, no progress
 
 t0+10s: 52 request threads BLOCKED on M
-t0+10s: owner chuyển sang timeout/retry
+t0+10s: owner transitions to timeout/retry
 
-Đối chiếu: timeout client, backend latency, p99, monitor contention.
+Cross-check: client timeouts, backend latency, p99, monitor contention.
 ```
 
-Đây là **tình huống giả định**. Nó gợi ý I/O chậm kéo dài thời gian giữ monitor, làm số request bị BLOCKED tăng. Để xác nhận cần đúng cùng JVM/monitor, thread identity, event timestamps và code đang giữ monitor trong I/O path.
+This is a **hypothetical scenario**. It suggests slow I/O prolonging monitor ownership, causing `BLOCKED` requests to pile up. Confirming requires matching the exact JVM/monitor, thread identities, event timestamps, and code holding the monitor on the I/O path.
 
-Với Future starvation:
+For Future starvation:
 
 ```text
-t0: 8 pool workers ở FutureTask.get, queue size=300
-t0+5s: 8 workers vẫn FutureTask.get, queue size=600
-t0+10s: active=8, completedTaskCount gần như không tăng
+t0: 8 pool workers at FutureTask.get, queue size=300
+t0+5s: 8 workers still at FutureTask.get, queue size=600
+t0+10s: active=8, completedTaskCount barely increasing
 
-Phân tích dependency: các task sẽ complete Future đang chờ
-nằm trong chính queue đang không có worker rảnh?
+Dependency analysis: are the tasks that will complete the awaited Future
+sitting in the very queue that has no free worker?
 ```
 
-`Thread.State.WAITING` tự nó không trả lời câu cuối. Cần mã submit/callback, task IDs hoặc tracing executor.
+`Thread.State.WAITING` alone does not answer the final question. You need submission/callback code, task IDs, or executor tracing.
 
-### 9.3. Không đọc một stack frame ngoài ngữ cảnh
+### 9.3. Never Read One Stack Frame Out of Context
 
-Mỗi thread entry thường có:
+Each thread entry typically looks like:
 
 ```text
 "request-worker-17" #77 ... tid=0x... nid=0x...
@@ -489,13 +489,13 @@ Mỗi thread entry thường có:
       at com.example.PaymentService.process(PaymentService.java:144)
 ```
 
-`Unsafe.park` ở top **không** có nghĩa “JVM tự treo vì Unsafe”. Điều có ích là chuỗi caller từ `PaymentService.process` tới `FutureTask.get`, vì đó là lý do thread đi vào park. Tìm task producer và đường completion tiếp theo. Tương tự, `Socket.read` cần được nối tới service/client call ở caller frames.
+`Unsafe.park` at the top **does not** mean “the JVM hung inside Unsafe.” What helps is the caller chain from `PaymentService.process` to `FutureTask.get`, as that explains why the thread entered park. Locate the task producer and completion path next. Likewise, `Socket.read` must be traced back to the service/client call in caller frames.
 
-## 10. API `ThreadMXBean`: lock owner, thread info, CPU/blocked time
+## 10. `ThreadMXBean` API: Lock Owner, Thread Info, CPU/Blocked Time
 
-Java 17 cung cấp `ManagementFactory.getThreadMXBean()` để đọc Java threads có quản lý. API chuẩn này trả Java thread ID/state/stack/locks, **không trả một “I/O_WAITING” enum hoặc native thread ID portable**.
+Java 17 provides `ManagementFactory.getThreadMXBean()` to inspect managed Java threads. This standard API returns Java thread ID/state/stack/locks, **not an “I/O_WAITING” enum or a portable native thread ID**.
 
-### 10.1. Thu thông tin của một thread
+### 10.1. Fetching Info for One Thread
 
 ```java
 java.lang.management.ThreadMXBean mx =
@@ -512,9 +512,9 @@ if (info != null) {
 }
 ```
 
-Đây là snippet đặt trong method. `ThreadInfo.getLockOwnerName()` có thể là `null` nếu không biết owner; không dùng `null` để kết luận “không có phụ thuộc”. `getThreadInfo(id, maxDepth)` lấy tối đa số stack frames yêu cầu. Nếu thread kết thúc giữa các lần đọc, `getThreadInfo` có thể trả `null`.
+This is a snippet inside a method. `ThreadInfo.getLockOwnerName()` can be `null` if no owner is known; never use `null` to conclude “no dependency.” `getThreadInfo(id, maxDepth)` fetches up to the requested number of stack frames. If the thread terminates between calls, `getThreadInfo` can return `null`.
 
-### 10.2. Kiểm tra monitor và ownable synchronizer support
+### 10.2. Checking Monitor and Ownable Synchronizer Support
 
 ```java
 boolean monitors = mx.isObjectMonitorUsageSupported();
@@ -524,41 +524,41 @@ java.lang.management.ThreadInfo[] snapshot =
         mx.dumpAllThreads(monitors, synchronizers);
 ```
 
-Đoạn này dùng `mx` được khai báo như trên, không phải chương trình độc lập. `dumpAllThreads` có overhead, đặc biệt khi rất nhiều threads. `getLockedMonitors()` và `getLockedSynchronizers()` giúp hiểu ownership nếu VM và chế độ dump có hỗ trợ, nhưng không biến mọi `Future`/I/O dependency thành graph tự động.
+This uses `mx` declared above, and is not a standalone program. `dumpAllThreads` has overhead, especially with many threads. `getLockedMonitors()` and `getLockedSynchronizers()` help reveal ownership when supported by the VM and dump flags, yet do not automatically turn every `Future`/I/O dependency into a graph.
 
-Nếu chỉ muốn xem một nhóm thread, sử dụng `getThreadInfo(ids, depth)` và metrics trước khi dump toàn bộ JVM. Tránh xuất hết stack frames lên log ở mức INFO trong production.
+If you only need a subset of threads, use `getThreadInfo(ids, depth)` and metrics before dumping the entire JVM. Avoid logging full stack traces at `INFO` level in production.
 
-### 10.3. `getBlockedTime` và `getWaitedTime`
+### 10.3. `getBlockedTime` and `getWaitedTime`
 
-`ThreadInfo.getBlockedCount()` và `getBlockedTime()` liên quan các lần thread chờ monitor; `getWaitedCount()` và `getWaitedTime()` liên quan cơ chế wait theo định nghĩa của API. **Không** diễn giải các trường này như “thời gian chờ network” hoặc “thời gian chờ Future” được tính riêng.
+`ThreadInfo.getBlockedCount()` and `getBlockedTime()` relate to monitor wait events; `getWaitedCount()` and `getWaitedTime()` relate to wait mechanisms as defined by the API. **Do not** interpret these fields as separately measured “network wait time” or “Future wait time.”
 
-Thread contention monitoring phải được hỗ trợ và bật để có elapsed blocked/waited time đáng tin:
+Thread contention monitoring must be supported and enabled to obtain reliable elapsed blocked/waited times:
 
 ```java
 if (mx.isThreadContentionMonitoringSupported()
         && mx.isThreadContentionMonitoringEnabled()) {
-    // Có thể đọc blocked/waited time từ ThreadInfo;
-    // vẫn phải hiểu giới hạn và phạm vi của bộ đếm.
+    // Blocked/waited time can be read from ThreadInfo;
+    // you must still understand the limits and scope of the counters.
 }
 ```
 
-Bật bằng `setThreadContentionMonitoringEnabled(true)` là **thay đổi trạng thái JVM quản lý**, có thể làm tăng overhead. Chỉ làm theo chính sách và cân nhắc tác động; không tự bật trên production chỉ vì thấy `-1`.
+Enabling via `setThreadContentionMonitoringEnabled(true)` is a **managed JVM state change** that can increase overhead. Do so only per policy after weighing impact; never enable it blindly in production just because you saw `-1`.
 
-### 10.4. Deadlock detection có phạm vi hữu hạn
+### 10.4. Deadlock Detection Has Finite Scope
 
-- `findMonitorDeadlockedThreads()`: phát hiện chu trình chờ **Java object monitors**.
-- `findDeadlockedThreads()`: có thể bao gồm ownable synchronizers nếu VM hỗ trợ.
-- `null` nghĩa là không tìm được deadlock theo **mô hình những khóa API nhận diện lúc kiểm tra**.
+- `findMonitorDeadlockedThreads()`: detects wait cycles on **Java object monitors**.
+- `findDeadlockedThreads()`: can include ownable synchronizers if supported by the VM.
+- `null` means no deadlock was found under **the lock model recognized by the API at check time**.
 
-**Nó không phát hiện mọi Future starvation, chờ socket/DB, distributed lock hay vòng phụ thuộc logic qua callbacks.** Một pool có tất cả workers chờ `Future.get()` trong khi producer tasks nằm trong queue có thể treo vô hạn nhưng deadlock API trả `null`.
+**It does not detect Future starvation, socket/DB waits, distributed locks, or logical dependency cycles through callbacks.** A pool whose workers all wait on `Future.get()` while producer tasks sit in its queue can hang indefinitely while the deadlock API returns `null`.
 
-Đừng “chữa deadlock” bằng force-stop thread. `Thread.stop` không an toàn và đã deprecated lâu; thao tác phá monitor/kill task tùy tiện có thể làm hỏng trạng thái. Hãy xử lý dependency graph và rollback an toàn.
+Never “fix a deadlock” by force-stopping threads. `Thread.stop` is unsafe and long deprecated; arbitrarily breaking monitors or killing tasks can corrupt state. Fix the dependency graph and perform safe rollback.
 
-## 11. Chương trình Java 17+ độc lập: monitor BLOCKED và Future WAITING
+## 11. Standalone Java 17+ Program: Monitor BLOCKED and Future WAITING
 
-Chương trình này **cố ý tạo hai kiểu chờ khác nhau**, dùng latch để đồng bộ thời điểm quan sát, sau đó giải phóng tất cả threads. Không cần kết nối mạng hoặc external service. Mục đích là chứng minh: `synchronized` làm contender **BLOCKED**, trong khi chờ một `CompletableFuture.join()` chưa hoàn tất thường làm consumer **WAITING (parking)** trên HotSpot/JDK 17.
+This program **intentionally creates both wait types**, uses latches to synchronize observation timing, and then releases all threads. No network connection or external service is required. The goal is to demonstrate that `synchronized` makes a contender **`BLOCKED`**, whereas waiting on an uncompleted `CompletableFuture.join()` typically puts a consumer in **`WAITING (parking)`** on HotSpot/JDK 17.
 
-Lưu file **`MonitorFutureStatesDemo.java`**:
+Save the file **`MonitorFutureStatesDemo.java`**:
 
 ```java
 import java.lang.management.ManagementFactory;
@@ -601,7 +601,7 @@ public class MonitorFutureStatesDemo {
 
         Thread contender = new Thread(() -> {
             synchronized (monitor) {
-                // Chỉ được chạy sau khi owner nhả monitor.
+                // Only runs after owner releases the monitor.
             }
         }, "monitor-contender");
 
@@ -652,14 +652,14 @@ public class MonitorFutureStatesDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac MonitorFutureStatesDemo.java
 java MonitorFutureStatesDemo
 ```
 
-**Stdout kỳ vọng khi chạy thành công trên HotSpot/OpenJDK 17** (không bị timeout hoặc can thiệp từ debugger):
+**Expected stdout on successful execution on HotSpot/OpenJDK 17** (without timeouts or debugger interference):
 
 ```text
 monitor.state=BLOCKED
@@ -669,23 +669,23 @@ future.done.before=false
 future.value=ok
 ```
 
-**Giải thích chi tiết:**
+**Detailed explanation:**
 
-1. `owner` lấy monitor trước, đợi `releaseOwner` khi **vẫn đang giữ monitor**. `contender` phải BLOCKED ở `synchronized`.
-2. `ThreadMXBean.getThreadInfo` nhìn thấy `BLOCKED` và owner tên `monitor-holder` trong môi trường hỗ trợ monitor ownership.
-3. Khi `releaseOwner.countDown()`, owner nhả monitor và contender kết thúc; ví dụ không để thread treo vô hạn.
-4. `consumer` gọi `CompletableFuture.join()` trên future chưa complete; HotSpot 17 thường đưa nó tới `WAITING (parking)`, **không phải BLOCKED chờ Java monitor**.
-5. `result.complete("ok")` giải phóng consumer; kết quả quan sát là `ok`.
-6. Các vòng kiểm tra trạng thái chỉ dành cho demo; chúng có thể timeout trên VM/platform scheduling quá chậm hoặc khác implementation. Không nên biến cách poll `getState()` thành framework production.
-7. Nếu chạy bằng JVM khác, `getLockOwnerName()` hoặc trạng thái cụ thể của `join` có thể khác; đó là lý do output được ghi **có điều kiện** theo môi trường hỗ trợ, chứ không hứa bất biến trên mọi VM.
+1. `owner` acquires the monitor first and waits on `releaseOwner` while **still holding the monitor**. `contender` becomes `BLOCKED` at `synchronized`.
+2. `ThreadMXBean.getThreadInfo` observes `BLOCKED` and owner named `monitor-holder` in environments supporting monitor ownership.
+3. On `releaseOwner.countDown()`, `owner` releases the monitor and `contender` finishes; the example leaves no threads hung forever.
+4. `consumer` calls `CompletableFuture.join()` on an uncompleted future; HotSpot 17 typically places it in `WAITING (parking)`, **not `BLOCKED` waiting on a Java monitor**.
+5. `result.complete("ok")` releases `consumer`; the observed value is `ok`.
+6. State polling loops are for demo synchronization only; they can time out on very slow VM/platform scheduling or different implementations. Never turn `getState()` polling into a production framework.
+7. On other JVMs, `getLockOwnerName()` or the specific state of `join` may differ; hence output is stated **conditionally** on supporting environments rather than promised invariant across every VM.
 
-Đây là **chương trình runnable hoàn chỉnh**. Nó thay đổi trạng thái local threads do chính nó tạo ra, không attach JVM bên ngoài. Không thực hiện chương trình demo với một object monitor dùng chung của ứng dụng production.
+This is a **complete runnable program**. It mutates state only on local threads it creates and does not attach to any external JVM. Never run demo code against a shared monitor of a production application.
 
-## 12. Chương trình Java 17+ độc lập: Future starvation có timeout an toàn
+## 12. Standalone Java 17+ Program: Future Starvation with Safe Timeout
 
-Ví dụ này chủ động tạo vòng chờ trong `newSingleThreadExecutor`, nhưng **dùng timeout** để chương trình tự thoát thay vì treo vô hạn. Điểm học tập: worker chỉ có một, task A submit task B lên **chính pool đó**, sau đó A chờ B. B không thể chạy cho tới khi A thoát.
+This example deliberately creates a wait cycle inside `newSingleThreadExecutor`, yet **uses a timeout** so the program exits cleanly rather than hanging forever. Key point: there is only one worker; task A submits task B to **the same pool**, then A waits for B. B cannot run until A exits.
 
-Lưu file **`SingleWorkerFutureStarvationDemo.java`**:
+Save the file **`SingleWorkerFutureStarvationDemo.java`**:
 
 ```java
 import java.util.concurrent.ExecutorService;
@@ -720,35 +720,35 @@ public class SingleWorkerFutureStarvationDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac SingleWorkerFutureStarvationDemo.java
 java SingleWorkerFutureStarvationDemo
 ```
 
-**Stdout chính xác khi chương trình chạy thành công, không bị ngắt từ bên ngoài:**
+**Exact stdout when running successfully without external interruption:**
 
 ```text
 outer=timeout-waiting-for-queued-inner
 ```
 
-Tại sao đây không phải “Java monitor deadlock”?
+Why is this not a “Java monitor deadlock”?
 
-- `outer` đang chạy trên worker duy nhất; `inner` **đã submit nhưng còn trong executor queue**.
-- `outer` gọi `inner.get(200, ...)` rồi đợi 200 ms. Nó có thể ở `TIMED_WAITING`/parking tại snapshot.
-- Không có thứ tự nào để `inner` bắt đầu **trước khi outer nhả worker**. Vì vậy timeout là kết quả tất yếu của mô hình một worker, không phải lỗi của `Future.get`.
-- Sau timeout, `outer` trả về, worker rảnh và có thể chạy `inner`; `shutdown`/`awaitTermination` hoàn tất.
-- Nếu thay `get(200,...)` bằng `get()` không timeout, ví dụ có thể treo vô hạn. **Không làm điều này trong môi trường cần an toàn.**
-- `findDeadlockedThreads` có thể không phát hiện vấn đề, vì nguyên nhân nằm ở **executor scheduling/dependency**, không phải cycle của Java monitors.
+- `outer` is running on the sole worker; `inner` **was submitted and sits in the executor queue**.
+- `outer` calls `inner.get(200, ...)` and waits 200 ms. It may appear in `TIMED_WAITING`/parking at snapshot time.
+- There is no schedule order allowing `inner` to start **before `outer` releases the worker**. Thus timeout is an inevitable consequence of the single-worker design, not a bug in `Future.get`.
+- After timeout, `outer` returns, freeing the worker to run `inner`; `shutdown`/`awaitTermination` completes.
+- Replacing `get(200,...)` with an untimed `get()` would hang the example forever. **Never do that in environments requiring safety.**
+- `findDeadlockedThreads` may not detect the problem, because the cause lies in **executor scheduling/dependency**, not a Java monitor cycle.
 
-**Giải pháp:** không block worker chờ task đã enqueue vào chính bounded pool; đưa kết quả theo async composition hoặc dùng kiến trúc executor phụ thuộc phù hợp. Thêm một worker đôi khi giải phóng case nhỏ nhưng không bảo đảm xử lý được workload N tasks cùng chờ N tasks khác.
+**Solution:** do not block a worker waiting on a task enqueued into the same bounded pool; pass results via async composition or use a properly structured dependent executor architecture. Adding a worker may unblock a small case, yet does not guarantee handling workloads where N tasks simultaneously wait on N other tasks.
 
-## 13. Chương trình Java 17+ độc lập: I/O read trên loopback
+## 13. Standalone Java 17+ Program: I/O Read on Loopback
 
-Ví dụ này tạo một server socket trên **loopback** của máy thực hành, cho thread reader chờ nhận byte rồi client gửi dữ liệu. Nó minh họa: thread có thể đang block trong `InputStream.read`, trong khi Java state được chụp tùy OS/implementation, **không có state I/O_WAITING chuẩn**.
+This example starts a server socket on the practice machine’s **loopback** interface, lets a reader thread wait for a byte, and then has a client send data. It illustrates that a thread can be blocked in `InputStream.read` while its captured Java state depends on OS/implementation, with **no standard `I/O_WAITING` state**.
 
-Lưu file **`LoopbackIoWaitDemo.java`**:
+Save the file **`LoopbackIoWaitDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -786,7 +786,7 @@ public class LoopbackIoWaitDemo {
                     throw new IllegalStateException("No connection accepted");
                 }
 
-                // Đọc trạng thái trong lúc peer chưa gửi byte.
+                // Read state while peer has not sent a byte yet.
                 Thread.sleep(50);
                 System.out.println("io.reader.state.sample="
                         + reader.getState());
@@ -807,230 +807,230 @@ public class LoopbackIoWaitDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17+ trên máy cho phép bind loopback:
+Compile/run on JDK 17+ on a machine allowing loopback binding:
 
 ```bash
 javac LoopbackIoWaitDemo.java
 java LoopbackIoWaitDemo
 ```
 
-**Output minh họa** trên một HotSpot/Linux có blocking socket read:
+**Illustrative output** on a HotSpot/Linux setup with blocking socket read:
 
 ```text
 io.reader.state.sample=RUNNABLE
 io.received.byte=65
 ```
 
-Dòng `io.reader.state.sample=...` là **giá trị sống**, có thể khác vì scheduler/JDK/socket implementation; không cố định `RUNNABLE` trong mọi môi trường. Dòng `io.received.byte=65` được xác định bởi byte client gửi **nếu chạy thành công**. Ví dụ không gọi dịch vụ ngoài và có read timeout để tránh treo vô hạn.
+`io.reader.state.sample=...` is a **live value** that can differ due to scheduler/JDK/socket implementations; `RUNNABLE` is not guaranteed in every environment. `io.received.byte=65` is determined by the byte the client sends **if it runs successfully**. The example calls no external services and sets a read timeout to avoid hanging indefinitely.
 
-Điểm quan trọng: kể cả khi reader báo `RUNNABLE`, chúng ta **biết** nó đang ở đường I/O chờ byte, vì reader không thể nhận `65` trước khi client gửi. Nếu muốn đối chiếu JVM stack, hãy lấy `ThreadMXBean.getThreadInfo(reader.getId(),20)` trong khoảng trước khi gửi, nhưng nhớ đó là một snapshot không đồng thời với `getState()`.
+Key point: even when `reader` reports `RUNNABLE`, we **know** it is on the I/O path waiting for a byte because `reader` cannot receive `65` before the client sends it. To cross-check the JVM stack, fetch `ThreadMXBean.getThreadInfo(reader.getId(),20)` right before sending, keeping in mind that snapshot is not atomic with `getState()`.
 
-## 14. JFR và các bằng chứng bổ sung theo nguyên nhân
+## 14. JFR and Additional Cause-Specific Evidence
 
-### 14.1. JFR events cho monitor, parking và I/O
+### 14.1. JFR Events for Monitors, Parking, and I/O
 
-JDK Flight Recorder (JFR) có các event có thể phục vụ điều tra khi recording settings phù hợp, ví dụ:
+JDK Flight Recorder (JFR) provides events useful for investigations when recording settings are appropriate, for example:
 
-- `jdk.JavaMonitorEnter`: thread chờ vào Java monitor; duration/threshold giúp tìm contention đáng kể.
-- `jdk.JavaMonitorWait`: thread đợi `Object.wait` — **khác** monitor enter contention.
-- `jdk.ThreadPark`: thread park; có thể liên quan Future, AQS lock, idle executor hoặc các cơ chế khác.
-- `jdk.SocketRead` / `jdk.SocketWrite`: hoạt động I/O socket theo cấu hình/threshold.
-- `jdk.FileRead` / `jdk.FileWrite`: I/O file khi event được bật và ngưỡng phù hợp.
-- Execution samples, CPU load, GC/safepoints khi ghi phù hợp.
+- `jdk.JavaMonitorEnter`: thread waiting to enter a Java monitor; durations/thresholds help spot significant contention.
+- `jdk.JavaMonitorWait`: thread waiting in `Object.wait` — **distinct from** monitor-enter contention.
+- `jdk.ThreadPark`: thread parked; may involve a Future, AQS lock, idle executor, or other mechanisms.
+- `jdk.SocketRead` / `jdk.SocketWrite`: socket I/O activity per configuration/thresholds.
+- `jdk.FileRead` / `jdk.FileWrite`: file I/O when events are enabled with appropriate thresholds.
+- Execution samples, CPU load, and GC/safepoints when appropriately configured.
 
-**Không giả định mọi event luôn bật và mọi lần đợi đều được ghi**. JFR có threshold, event settings, sampling và giới hạn dữ liệu; khoảng wait ngắn dưới threshold có thể không hiện. Không gọi một event `ThreadPark` là “Future wait” nếu thiếu stack/caller context.
+**Never assume every event is always enabled or every wait is recorded.** JFR has thresholds, event settings, sampling, and data limits; short waits below threshold may not appear. Never label a `ThreadPark` event a “Future wait” without stack/caller context.
 
-### 14.2. Xác minh recording hiện có
+### 14.2. Checking Existing Recordings
 
-Ví dụ với HotSpot JDK 17 có `jcmd`, PID minh họa:
+Example on HotSpot JDK 17 with `jcmd` and an illustrative PID:
 
 ```bash
 jcmd 12345 JFR.check
 jcmd 12345 help JFR.dump
 ```
 
-Nếu có recording đang chạy và được phép thu, `JFR.dump` có thể lưu snapshot theo quy trình. **Không tự bật recording hoặc tăng event thresholds trên production** nếu chưa cân nhắc impact, disk và dữ liệu nhạy cảm. Khi cần bắt micro-spike, sampling/JFR thường hiệu quả hơn chụp thread dump liên tiếp.
+If a recording is running and capture is authorized, `JFR.dump` can save a snapshot per procedure. **Do not turn on recordings or lower event thresholds in production** without evaluating overhead, disk impact, and sensitive data. When catching micro-spikes, sampling/JFR is usually more effective than taking back-to-back thread dumps.
 
-### 14.3. OS/network và executor telemetry
+### 14.3. OS/Network and Executor Telemetry
 
-Với I/O:
+For I/O:
 
-- latency tới endpoint, error/timeout rates, connection pool pending/active;
-- socket states, retransmission, DNS timings, disk latency và queue depth;
-- request trace/span IDs để tìm callback/producer liên quan;
-- CPU thread time để phân biệt native blocking với busy loop.
+- latency to endpoints, error/timeout rates, connection pool pending/active;
+- socket states, retransmissions, DNS timings, disk latency, and queue depth;
+- request trace/span IDs to locate related callbacks/producers;
+- thread CPU time to distinguish native blocking from busy loops.
 
-Với Future:
+For Futures:
 
-- executor core/max threads, activeCount, queue size, completedTaskCount, rejectedCount nếu hệ thống hỗ trợ;
-- thời gian task nằm trong queue vs chạy thực, task/parent IDs;
-- dependency graph và cancellation/timeout propagation;
-- completion metrics của nguồn dữ liệu.
+- executor core/max threads, `activeCount`, queue size, `completedTaskCount`, `rejectedCount` if supported;
+- time tasks spend queued vs. executing, task/parent IDs;
+- dependency graphs and cancellation/timeout propagation;
+- completion metrics of data sources.
 
-Với monitor:
+For monitors:
 
-- lock owner/waiter count, blocked time/count, JFR monitor enter events;
-- critical section duration và code có chờ network/Future dưới monitor không;
-- nhiều snapshots để xem holder thay đổi hay đứng tại cùng call path.
+- lock owner/waiter counts, blocked time/count, JFR monitor enter events;
+- critical section durations and whether code awaits network/Future under the monitor;
+- multiple snapshots to see whether the holder changes or stays at the same call path.
 
-## 15. Năm tình huống đọc dump và chọn biện pháp
+## 15. Five Dump-Reading Scenarios and Action Choices
 
-### Case A — 80 request threads `BLOCKED` cùng một monitor
+### Case A — 80 Request Threads `BLOCKED` on the Same Monitor
 
-**Dữ liệu giả định:** nhiều `http-worker` có `- waiting to lock <0xABC>`; owner `cache-refresh` có `- locked <0xABC>` và stack tại `Socket.read`.
+**Hypothetical data:** many `http-worker` threads show `- waiting to lock <0xABC>`; owner `cache-refresh` has `- locked <0xABC>` with its stack in `Socket.read`.
 
-**Diễn giải:** waiter bị monitor contention; owner giữ monitor trong lúc I/O. Nếu downstream chậm, contention được khuếch đại. Kiểm tra monitor identity trong cùng dump, timeout, JFR lock events và source code để chứng minh quan hệ.
+**Interpretation:** waiters face monitor contention; the owner holds the monitor during I/O. If downstream slows down, contention amplifies. Check matching monitor identity in the same dump, timeouts, JFR lock events, and source code to prove the relationship.
 
-**Hành động:** thu nhỏ critical section, tách remote request khỏi monitor khi thiết kế cho phép, sử dụng immutable/cache snapshot, timeout và backpressure đúng. Không chỉ tăng HTTP worker pool.
+**Action:** shrink the critical section, move remote requests out of the monitor when design allows, use immutable/cached snapshots, and set proper timeouts and backpressure. Do not just enlarge the HTTP worker pool.
 
-### Case B — 150 threads ở `Socket.read`, CPU thấp
+### Case B — 150 Threads in `Socket.read`, Low CPU
 
-**Dữ liệu giả định:** nhiều threads RUNNABLE ở native socket read, pool pending tăng, dependency p99 tăng.
+**Hypothetical data:** many threads are `RUNNABLE` in native socket reads, pool pending rises, dependency p99 climbs.
 
-**Diễn giải:** I/O wait có thể chiếm worker threads dù CPU thấp. Kiểm tra connection pool, server response time, socket read timeouts, DNS/TLS/retries. Dùng spans và các JFR `SocketRead` events để xác minh. Chỉ giảm số threads chưa giải quyết dependency đang chậm.
+**Interpretation:** I/O waits can occupy worker threads even with low CPU. Inspect connection pools, server response times, socket read timeouts, DNS/TLS/retries. Use spans and JFR `SocketRead` events to verify. Simply reducing threads will not fix a slow dependency.
 
-**Hành động:** deadline tổng, per-hop timeout hợp lý, circuit breaker, giới hạn concurrency/retry budget, tăng tài nguyên downstream nếu metrics chứng minh bottleneck.
+**Action:** overall deadlines, sensible per-hop timeouts, circuit breakers, concurrency/retry-budget limits, and scaling downstream resources if metrics prove the bottleneck there.
 
-### Case C — Futures chờ kết quả từ chính bounded executor
+### Case C — Futures Waiting on Results from the Same Bounded Executor
 
-**Dữ liệu giả định:** 8/8 workers ở `FutureTask.get`, queue size tăng, completed task count không nhúc nhích. Nguồn code cho thấy 8 workers đã submit child tasks về cùng pool rồi chờ.
+**Hypothetical data:** 8/8 workers are in `FutureTask.get`, queue size rises, completed task count barely moves. Source code shows the 8 workers submitted child tasks back to the same pool and waited.
 
-**Diễn giải:** dependency starvation. Không cần monitor deadlock; `findDeadlockedThreads()` có thể trả `null`.
+**Interpretation:** dependency starvation. No monitor deadlock is needed; `findDeadlockedThreads()` may return `null`.
 
-**Hành động:** async composition, tách responsibilities/executors theo loại tác vụ và loại bỏ blocking wait trong pool thực thi producers. Đặt timeout/backpressure để tránh treo vô hạn; không chỉ tăng pool size tùy tiện.
+**Action:** async composition, separating responsibilities/executors by task type, and eliminating blocking waits inside pools executing producers. Add timeouts/backpressure to avoid infinite hangs; do not arbitrarily bump pool size.
 
-### Case D — CompletableFuture join nhưng producer thật đang chờ DB
+### Case D — CompletableFuture join Where the Real Producer Waits on DB
 
-**Dữ liệu giả định:** request threads WAITING ở `CompletableFuture.join`; producer tasks có stack JDBC/network; database pool active=max và pending tăng.
+**Hypothetical data:** request threads are `WAITING` at `CompletableFuture.join`; producer tasks show JDBC/network stacks; database pool active=max and pending grows.
 
-**Diễn giải:** việc chờ Future là **triệu chứng tại caller**, nhưng nguyên nhân kéo dài completion nằm ở DB/pool hoặc đường I/O. Phải lần theo producer/callback rồi áp dụng deadline/cancellation, connection pool limit và SQL diagnostics.
+**Interpretation:** Future waiting is the **symptom at the caller**, while the delay keeping completion pending lies in the DB/pool or I/O path. Trace the producer/callback, then apply deadlines/cancellation, connection pool limits, and SQL diagnostics.
 
-**Hành động:** cải thiện dependency/pool hoặc tối ưu query, tránh vô hạn retry và propagate deadline. Không gán nhãn “CompletableFuture lỗi” chỉ vì frame `join` xuất hiện.
+**Action:** improve the dependency/pool or tune queries, avoid infinite retries, and propagate deadlines. Never blame “CompletableFuture is broken” simply because `join` appears in the stack.
 
-### Case E — Hai threads chờ nhau gián tiếp
+### Case E — Two Threads Waiting on Each Other Indirectly
 
-**Dữ liệu giả định:** A giữ monitor M và chờ futureB; B cần lấy M mới complete futureB. A có WAITING ở `FutureTask.get`; B BLOCKED ở `waiting to lock M`.
+**Hypothetical data:** A holds monitor M and waits on `futureB`; B needs to acquire M in order to complete `futureB`. A shows `WAITING` at `FutureTask.get`; B shows `BLOCKED` at `waiting to lock M`.
 
-**Diễn giải:** có **vòng phụ thuộc kết hợp** (monitor + Future) mà monitor-only deadlock detector có thể không nhận diện. Tìm owner A, waiter B, producer của futureB và code path complete.
+**Interpretation:** a **hybrid dependency cycle** (monitor + Future) that a monitor-only deadlock detector may miss. Locate owner A, waiter B, `futureB`’s producer, and the completion code path.
 
-**Hành động:** bỏ blocking future wait khỏi vùng giữ monitor, tách state update, xác định lock ordering và boundary async; kiểm thử để loại trừ race/cancellation side effects.
+**Action:** remove blocking future waits from monitor-holding regions, separate state updates, define lock ordering and async boundaries; test to eliminate race/cancellation side effects.
 
-## 16. Cách viết một kết luận incident có thể kiểm chứng
+## 16. How to Write a Verifiable Incident Conclusion
 
-Tránh câu quá mức chắc chắn: “JVM treo vì WAITING” hoặc “80 BLOCKED chắc chắn deadlock”. Mẫu tốt hơn:
+Avoid overconfident claims like “JVM hung because of WAITING” or “80 BLOCKED definitely means deadlock.” A better template:
 
 ```text
-Quan sát:
+Observation:
   2026-10-29T08:10:00Z, JVM PID=12345, start=...
   37 request threads BLOCKED on monitor M
   owner thread="cache-refresh", frame Socket.read
-  downstream p99 tăng từ 120ms lên 4s
+  downstream p99 rose from 120ms to 4s
 
-Tái quan sát:
-  t+5s, 45 request threads BLOCKED on cùng M
-  owner vẫn chờ network read, pool queue tăng
+Re-observation:
+  t+5s, 45 request threads BLOCKED on the same M
+  owner still waiting on network read, pool queue growing
 
-Giả thuyết:
-  Remote I/O kéo dài khi holder vẫn giữ monitor,
-  dẫn tới contention dây chuyền.
+Hypothesis:
+  Prolonged remote I/O while the holder retains the monitor,
+  causing cascading contention.
 
-Cần xác minh:
+Needs verification:
   source synchronized block, timeout settings,
-  trace cụ thể của downstream call và JFR monitor enter.
+  specific trace of the downstream call and JFR monitor enter.
 
-Khắc phục được đề xuất:
-  loại I/O khỏi critical section khi an toàn,
-  bổ sung deadline/backpressure và đo sau thay đổi.
+Proposed remediation:
+  remove I/O from the critical section when safe,
+  add deadlines/backpressure and measure after the change.
 ```
 
-Đây là **case mô phỏng**, không phải báo cáo một hệ thống thật. Kết luận “đã xác nhận root cause” chỉ nên viết khi có **evidence nối được owner/waiter/dependency và thời gian**.
+This is a **simulated case**, not a real system report. Only write “confirmed root cause” once **evidence connects owner/waiter/dependency and timing**.
 
-### 16.1. Thu thập không làm hỏng bằng chứng
+### 16.1. Collecting Without Destroying Evidence
 
-- Không restart JVM trước khi thu tối thiểu các snapshot được phép nếu restart sẽ xóa mất hiện trạng, trừ khi khôi phục dịch vụ khẩn cấp quan trọng hơn.
-- Không tự tạo hàng trăm thread dumps vì hành động đo có thể làm tăng latency.
-- Không gọi `System.gc()` hoặc full heap dump chỉ để xác nhận một Future chờ.
-- Đừng hủy tất cả Futures hoặc `shutdownNow()` executor trên production nếu chưa hiểu idempotency/transaction/interruptibility.
-- Giữ tất cả dumps/metrics với cùng timezone UTC, JVM identity, mốc t0/t1, phạm vi container và nguồn tool.
-- Thread names, file paths, DB URLs, custom MDC, task labels và stack traces có thể chứa thông tin nhạy cảm: redact trước khi chia sẻ và áp dụng retention/quyền truy cập.
+- Do not restart the JVM before capturing minimum authorized snapshots if restarting wipes current state, unless emergency service restoration takes priority.
+- Do not generate hundreds of thread dumps since measurement itself can add latency.
+- Do not invoke `System.gc()` or a full heap dump just to confirm a Future wait.
+- Never cancel all Futures or call `shutdownNow()` on a production executor without understanding idempotency/transactions/interruptibility.
+- Keep all dumps/metrics in consistent UTC timezone, JVM identity, `t0/t1` timestamps, container scope, and tool sources.
+- Thread names, file paths, DB URLs, custom MDCs, task labels, and stack traces may contain sensitive info: redact before sharing and enforce retention/access controls.
 
-## 17. Các lỗi thường gặp khi phân loại treo và tranh chấp
+## 17. Common Mistakes When Classifying Hangs and Contention
 
-1. **Đồng nhất WAITING với deadlock.** Thread pool idle là WAITING hợp lệ.
-2. **Đồng nhất BLOCKED với mọi loại lock.** ReentrantLock contention có thể là WAITING/parking.
-3. **Cho rằng RUNNABLE luôn dùng CPU.** Native I/O wait có thể xuất RUNNABLE.
-4. **Chỉ đọc top frame `Unsafe.park`.** Caller `Future.get`/`Condition.await`/`ThreadPoolExecutor.getTask` mới giải thích ngữ nghĩa.
-5. **Chỉ đọc một dump và gọi đó là nguyên nhân gốc.** Cần snapshots theo thời gian, metrics và code context.
-6. **Không tìm lock owner.** Waiter BLOCKED không nói ai giữ monitor hoặc vì sao.
-7. **Đọc `Object.wait` như giữ monitor đang chờ vào.** Thread nhả monitor trên object được wait, nhưng có thể vẫn giữ lock khác.
-8. **Cho rằng Thread.sleep nhả monitor.** Nó không nhả monitor.
-9. **Cho rằng mọi `LockSupport.park` là Future.** Cũng có thể là pool idle, AQS lock, semaphore, condition.
-10. **Thấy `Socket.read` và kết luận database bị lỗi.** Cần biết endpoint, driver/pool, timeout, SQL và tracing.
-11. **Thấy `CompletableFuture.join` và kết luận Future implementation lỗi.** Producer/executor thường mới là nơi cần điều tra.
-12. **Tin `findDeadlockedThreads() == null` là hết deadlock.** Không phát hiện logic wait cycles qua Future/I/O.
-13. **Tăng pool size mà không xử lý nested blocking.** Chỉ làm starvation chậm xuất hiện.
-14. **Không tách queue wait và execution time.** Request có thể chờ producer chưa được bắt đầu.
-15. **Đặt timeout chỉ một tầng, không có deadline tổng.** Retries và nhiều hop khiến latency vượt SLA.
-16. **Coi `cancel(true)` chắc chắn dừng task I/O.** Cancellation chỉ là nỗ lực; công việc có thể không hỗ trợ interrupt.
-17. **Cho rằng `orTimeout` tự hủy remote work.** Nó có thể chỉ complete future exceptionally.
-18. **Đọc `ThreadInfo.getBlockedTime()=-1` thành “không bị chặn”.** Có thể vì contention monitoring chưa bật.
-19. **Bật contention monitoring/JFR cực chi tiết không cân nhắc overhead.** Công cụ đo cũng có tác động.
-20. **Không kiểm tra JVM/PID/container namespace.** Có thể phân tích dump khác đời process.
-21. **Bỏ qua I/O nằm trong monitor.** Incident có thể có nhiều lớp nguyên nhân phụ thuộc.
-22. **Chỉ xem CPU process tổng.** CPU thấp không loại trừ network wait, lock contention hoặc starvation.
-23. **Bỏ qua thread giàu CPU trong callback thay vì request thread đang chờ.** Producer có thể bận loop.
-24. **Nhầm Java ID/HotSpot tid/nid.** Không dùng native TID thay Java thread ID trong ThreadMXBean.
-25. **Không bảo vệ dữ liệu chẩn đoán.** Full stack/task names có thể tiết lộ endpoint và thông tin nội bộ.
+1. **Equating `WAITING` with deadlock.** Idle thread pools are legitimately `WAITING`.
+2. **Equating `BLOCKED` with every lock type.** `ReentrantLock` contention can appear as `WAITING`/parking.
+3. **Assuming `RUNNABLE` always burns CPU.** Native I/O waits can report `RUNNABLE`.
+4. **Reading only the top frame `Unsafe.park`.** Callers like `Future.get`/`Condition.await`/`ThreadPoolExecutor.getTask` explain the semantics.
+5. **Reading a single dump and declaring root cause.** Time-series snapshots, metrics, and code context are required.
+6. **Failing to find the lock owner.** A `BLOCKED` waiter does not tell who holds the monitor or why.
+7. **Reading `Object.wait` as holding the awaited monitor.** The thread released that object’s monitor, though it may still hold other locks.
+8. **Assuming `Thread.sleep` releases monitors.** It does not release monitors.
+9. **Assuming every `LockSupport.park` is a Future.** It could be an idle pool, AQS lock, semaphore, or condition.
+10. **Seeing `Socket.read` and blaming the database.** You need endpoint, driver/pool, timeout, SQL, and tracing.
+11. **Seeing `CompletableFuture.join` and blaming `Future` implementation.** The producer/executor is usually where investigation belongs.
+12. **Trusting `findDeadlockedThreads() == null` means no deadlock anywhere.** It does not detect logical wait cycles across Futures/I/O.
+13. **Increasing pool size without fixing nested blocking.** That only delays when starvation strikes.
+14. **Failing to separate queue wait from execution time.** Requests may be waiting on unstarted producers.
+15. **Setting timeouts at only one layer without an overall deadline.** Retries and multiple hops push latency past SLA.
+16. **Assuming `cancel(true)` definitely stops I/O tasks.** Cancellation is best-effort; work may not support interruption.
+17. **Assuming `orTimeout` cancels remote work.** It may only complete the future exceptionally.
+18. **Reading `ThreadInfo.getBlockedTime()=-1` as “unblocked.”** Contention monitoring may simply be off.
+19. **Enabling high-detail contention monitoring/JFR without weighing overhead.** Measurement tools carry cost too.
+20. **Ignoring JVM/PID/container namespaces.** You may analyze a dump from a different process lifetime.
+21. **Overlooking I/O inside a monitor.** Incidents can have layered, dependent causes.
+22. **Looking only at aggregate process CPU.** Low CPU does not rule out network waits, lock contention, or starvation.
+23. **Ignoring high-CPU callback threads in favor of waiting request threads.** The producer may be stuck in a loop.
+24. **Confusing Java ID / HotSpot `tid` / `nid`.** Never pass native TID as Java thread ID to `ThreadMXBean`.
+25. **Failing to protect diagnostic data.** Full stacks/task names can expose internal endpoints and data.
 
-## 18. Checklist thực hành
+## 18. Practice Checklist
 
-- [ ] Đúng JVM process, PID namespace, start time và UTC timestamp?
-- [ ] Triệu chứng là request timeout, CPU cao, queue tăng hay service không phản hồi?
-- [ ] Java state thật là BLOCKED, WAITING, TIMED_WAITING hay RUNNABLE?
-- [ ] Đã đọc đủ stack callers thay vì chỉ top native/park frame?
-- [ ] Nếu BLOCKED: tìm đúng monitor ID và thread giữ monitor trong cùng dump?
-- [ ] Nếu Object.wait: phân biệt chờ notification với chờ reacquire lock?
-- [ ] Nếu ReentrantLock/AQS: đọc `park` caller và ownable synchronizers?
-- [ ] Nếu I/O: xác định socket/file/driver/pool, endpoint, timeout và dependency metrics?
-- [ ] Nếu Future: xác định producer, executor, queue, completion và dependency graph?
-- [ ] Có kiểm tra nested Future.get/join trong cùng bounded executor không?
-- [ ] Có thread nào giữ lock khi gọi remote I/O hoặc Future.get không?
-- [ ] Đã phân biệt `Future.isDone()` với thành công?
-- [ ] Đã kiểm tra timeouts, cancellation, interrupt handling và deadline tổng?
-- [ ] Deadlock detector có phạm vi gì; kết quả null có đủ loại trừ không?
-- [ ] Có CPU-time/JFR/OS I/O/GC data để loại trừ giả thuyết khác?
-- [ ] Có 2–3 snapshots khi sự cố kéo dài và tác động cho phép?
-- [ ] Đã giới hạn số dumps và che dữ liệu nhạy cảm?
-- [ ] Báo cáo có tách quan sát, giả thuyết và bằng chứng xác nhận?
+- [ ] Verified exact JVM process, PID namespace, start time, and UTC timestamp?
+- [ ] Is the symptom request timeouts, high CPU, growing queues, or an unresponsive service?
+- [ ] Is the actual Java state `BLOCKED`, `WAITING`, `TIMED_WAITING`, or `RUNNABLE`?
+- [ ] Read enough caller stack frames instead of only the top native/park frame?
+- [ ] If `BLOCKED`: found matching monitor ID and holding thread in the same dump?
+- [ ] If `Object.wait`: distinguished waiting for notification from waiting to reacquire the lock?
+- [ ] If `ReentrantLock`/AQS: inspected the `park` caller and ownable synchronizers?
+- [ ] If I/O: identified socket/file/driver/pool, endpoint, timeout, and dependency metrics?
+- [ ] If `Future`: identified producer, executor, queue, completion, and dependency graph?
+- [ ] Checked for nested `Future.get`/`join` inside the same bounded executor?
+- [ ] Checked whether any thread holds a lock while calling remote I/O or `Future.get`?
+- [ ] Distinguished `Future.isDone()` from business success?
+- [ ] Audited timeouts, cancellation, interrupt handling, and overall deadlines?
+- [ ] Known the deadlock detector’s scope; checked whether `null` actually rules out the hang?
+- [ ] Collected CPU-time/JFR/OS I/O/GC data to rule out alternative hypotheses?
+- [ ] Captured 2–3 snapshots when the incident persists and impact permits?
+- [ ] Bounded dump counts and redacted sensitive data?
+- [ ] Separated observations, hypotheses, and confirming evidence in the report?
 
-## 19. Bài tập tự kiểm tra
+## 19. Self-Check Exercises
 
-**Bài 1 — Monitor hay Future?** Thread A `BLOCKED`, có `waiting to lock <0xAAA>`; thread B `WAITING (parking)`, stack `FutureTask.get`. Có thể nói cả hai cùng chờ monitor không? **Không.** A chờ Java monitor; B chờ kết quả Future. Cần xem B có giữ monitor <0xAAA> hay producer của Future có cần monitor đó không để phát hiện vòng phụ thuộc hỗn hợp.
+**Exercise 1 — Monitor or Future?** Thread A is `BLOCKED` with `waiting to lock <0xAAA>`; thread B is `WAITING (parking)` with stack `FutureTask.get`. Can we say both are waiting on monitors? **No.** A waits on a Java monitor; B waits on a Future result. Check whether B holds `<0xAAA>` or the Future’s producer needs that monitor to uncover a hybrid dependency cycle.
 
-**Bài 2 — I/O và CPU.** Thread `RUNNABLE` có stack `SocketDispatcher.read0`; CPU time của OS native TID gần như không tăng. Nó đang ngốn CPU? **Chưa có bằng chứng**; có thể native blocking I/O. Cần latency/endpoint/socket counters và nhiều mẫu.
+**Exercise 2 — I/O and CPU.** A `RUNNABLE` thread has stack `SocketDispatcher.read0`; OS native TID CPU time barely rises. Is it burning CPU? **No evidence of that**; it may be native blocking I/O. Latency/endpoint/socket counters and multiple samples are needed.
 
-**Bài 3 — Future starvation.** Pool có 1 worker, task A submit B vào cùng pool rồi `B.get()` không timeout. B không chạy được vì A chiếm worker. Đây có phải deadlock monitor mà `findMonitorDeadlockedThreads` chắc chắn tìm ra? **Không.** Đây là dependency starvation, thường không có Java monitor cycle.
+**Exercise 3 — Future starvation.** A 1-worker pool has task A submit B to the same pool and call `B.get()` without timeout. B cannot run because A holds the worker. Is this a monitor deadlock that `findMonitorDeadlockedThreads` will definitely catch? **No.** This is dependency starvation, usually with no Java monitor cycle.
 
-**Bài 4 — `Object.wait`.** Thread C gọi `wait()` trên monitor M, có nhả monitor M không? **Có**, trong lúc wait, nhưng có thể vẫn giữ những monitors khác. Khi thức dậy cần reacquire M mới tiếp tục bên trong synchronized.
+**Exercise 4 — `Object.wait`.** Thread C calls `wait()` on monitor M; does it release monitor M? **Yes**, while waiting, though it may still hold other monitors. Upon waking it must reacquire M before continuing inside `synchronized`.
 
-**Bài 5 — Một snapshot đủ chưa?** 50 request threads ở `CompletableFuture.join`; có thể kết luận Future implementation bị lỗi? **Không**. Kiểm tra producer tasks, executor queue, downstream I/O và cancellation/timeout; lặp snapshot nếu được phép.
+**Exercise 5 — Is one snapshot enough?** 50 request threads are at `CompletableFuture.join`; can we conclude the `Future` implementation has a bug? **No.** Inspect producer tasks, executor queues, downstream I/O, and cancellation/timeouts; repeat snapshots if permitted.
 
-**Bài 6 — Timed waits.** Một request timeout từ `Future.get(2,SECONDS)`, nhưng downstream vẫn tiếp tục xử lý 10 giây. Có mâu thuẫn không? **Không**: timeout ở caller không luôn hủy remote computation; cần cancellation/deadline propagation theo API thực.
+**Exercise 6 — Timed waits.** A request times out in `Future.get(2,SECONDS)`, yet downstream keeps processing for 10 seconds. Is that a contradiction? **No**: caller timeout does not always cancel remote computation; cancellation/deadline propagation per the actual API is needed.
 
-**Bài 7 — Đường nguyên nhân.** Owner monitor đang chờ JDBC, 100 request threads BLOCKED cùng monitor. Cách sửa phù hợp hơn “tăng request pool” là gì? **Giảm phạm vi giữ monitor**, tránh synchronous I/O trong critical section khi an toàn, kiểm tra database connection pool/timeout và xác minh bằng metrics trước–sau.
+**Exercise 7 — Causal path.** A monitor owner waits on JDBC while 100 request threads are `BLOCKED` on that monitor. What is a better fix than “grow the request pool”? **Shrink monitor hold scope**, avoid synchronous I/O in the critical section when safe, check the database connection pool/timeouts, and verify with before–after metrics.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle Java SE 17, [`Thread.State` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.State.html): semantics BLOCKED, WAITING, TIMED_WAITING, RUNNABLE; Java states khác OS states.
-- Oracle Java SE 17, [`ThreadInfo` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadInfo.html): lock owner, monitor, blocked/waited time và stack.
-- Oracle Java SE 17, [`ThreadMXBean` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html): dump, lock usage, contention monitoring và deadlock detection.
-- Oracle Java SE 17, [`Future` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html): `get`, timeout, cancellation, completion state.
-- Oracle Java SE 17, [`FutureTask` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/FutureTask.html): FutureTask execution và completion.
-- Oracle Java SE 17, [`CompletableFuture` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html): `join/get`, async stages, completion/cancellation và timeouts.
-- Oracle Java SE 17, [`Object.wait` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html): giải phóng monitor đang wait và điều kiện wake-up.
-- Oracle Java SE 17, [`LockSupport` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/locks/LockSupport.html): parking và blocker context.
-- Oracle Java SE 17, [`jcmd` Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `Thread.print -l`, cú pháp và mức tác động.
-- Oracle Java SE 17, [Java Flight Recorder Runtime Guide](https://docs.oracle.com/en/java/javase/17/jfapi/index.html): sự kiện runtime và bản ghi JFR, khi được bật đúng.
-- Oracle Java SE 17, [Prepare Java for Troubleshooting](https://docs.oracle.com/en/java/javase/17/troubleshoot/prepare-java-troubleshooting.html): thu một số thread dumps khi JVM không phản hồi và lưu bằng chứng.
+- Oracle Java SE 17, [`Thread.State` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.State.html): semantics of `BLOCKED`, `WAITING`, `TIMED_WAITING`, `RUNNABLE`; Java states vs. OS states.
+- Oracle Java SE 17, [`ThreadInfo` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadInfo.html): lock owners, monitors, blocked/waited times, and stacks.
+- Oracle Java SE 17, [`ThreadMXBean` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.management/java/lang/management/ThreadMXBean.html): dumps, lock usage, contention monitoring, and deadlock detection.
+- Oracle Java SE 17, [`Future` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html): `get`, timeouts, cancellation, and completion state.
+- Oracle Java SE 17, [`FutureTask` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/FutureTask.html): `FutureTask` execution and completion.
+- Oracle Java SE 17, [`CompletableFuture` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html): `join`/`get`, async stages, completion/cancellation, and timeouts.
+- Oracle Java SE 17, [`Object.wait` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html): releasing the waited monitor and wakeup conditions.
+- Oracle Java SE 17, [`LockSupport` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/locks/LockSupport.html): parking and blocker context.
+- Oracle Java SE 17, [`jcmd` Command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `Thread.print -l`, syntax, and impact level.
+- Oracle Java SE 17, [Java Flight Recorder Runtime Guide](https://docs.oracle.com/en/java/javase/17/jfapi/index.html): runtime events and JFR recordings when properly enabled.
+- Oracle Java SE 17, [Prepare Java for Troubleshooting](https://docs.oracle.com/en/java/javase/17/troubleshoot/prepare-java-troubleshooting.html): collecting multiple thread dumps when a JVM is unresponsive and preserving evidence.
 
-**Kết luận:** trước khi sửa lỗi “treo”, hãy hỏi **thread đang chờ lấy monitor, chờ hoàn tất I/O hay chờ một Future?**. `BLOCKED` kèm `waiting to lock` chỉ vào monitor, `RUNNABLE` ở native read có thể là I/O wait, và `WAITING` ở `FutureTask.get`/`CompletableFuture.join` chỉ vào dependency bất đồng bộ. Lần theo **lock owner hoặc task producer**, kiểm tra liệu chúng có tiếp tục chạy được không, rồi đối chiếu với nhiều snapshots, queue/downstream metrics và JFR để chọn cách sửa đúng tầng.
+**Conclusion:** before fixing a “hang,” ask **is the thread waiting to acquire a monitor, waiting for I/O to finish, or waiting on a Future?**. `BLOCKED` with `waiting to lock` points to a monitor, `RUNNABLE` in native reads can be an I/O wait, and `WAITING` in `FutureTask.get`/`CompletableFuture.join` points to an async dependency. Trace the **lock owner or task producer**, verify whether it can continue executing, and cross-check multiple snapshots, queue/downstream metrics, and JFR to apply the fix at the right layer.

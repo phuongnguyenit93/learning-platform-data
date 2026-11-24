@@ -1,44 +1,44 @@
-# 12.7 KeyStore.Builder, LoadStoreParameter và bảo vệ mật khẩu trong ứng dụng
+# 12.7 KeyStore.Builder, LoadStoreParameter, and Password Protection in Applications
 
-Ứng dụng Java có thể cần mở private key để ký số, secret key để mã hóa dữ liệu, hoặc certificate tin cậy để xác minh đối tác. **KeyStore** là API thống nhất cho việc chứa và truy cập các loại entry này, nhưng bản thân API không tự giải quyết toàn bộ bài toán **lấy mật khẩu từ đâu, thời điểm mở khóa, vòng đời bí mật trong RAM, quyền truy cập file/token và thay đổi khóa khi ứng dụng đang chạy**.
+A Java application may need to unlock a private key for digital signing, a secret key for encrypting data, or a trusted certificate to verify a peer. **`KeyStore`** is the unified API for holding and accessing these entry types, yet the API itself does not solve the full operational problem of **where passwords come from, when unlocking occurs, secret lifetimes in RAM, file/token permissions, and rotating keys while an application is running**.
 
-Bài học tập trung vào ba thành phần:
+This lesson focuses on three components:
 
-1. **KeyStore.Builder**: mô tả cách khởi tạo và cung cấp protection cho entry, có thể trì hoãn tải kho đến lúc cần.
-2. **KeyStore.LoadStoreParameter**: giao diện mô tả tham số cho **KeyStore.load(...)** và **KeyStore.store(...)**; provider/loại kho quyết định cách diễn giải.
-3. **KeyStore.ProtectionParameter**, nhất là **PasswordProtection** và **CallbackHandlerProtection**: cung cấp mật khẩu hoặc cơ chế hỏi mật khẩu.
+1. **`KeyStore.Builder`**: describes how to instantiate and supply entry protection, optionally deferring store loading until needed.
+2. **`KeyStore.LoadStoreParameter`**: an interface describing parameters for **`KeyStore.load(...)`** and **`KeyStore.store(...)`**; the provider/store type decides how to interpret them.
+3. **`KeyStore.ProtectionParameter`**, especially **`PasswordProtection`** and **`CallbackHandlerProtection`**: supplies passwords or a mechanism to request them.
 
-Sau bài, bạn có thể phân biệt password bảo vệ **file/keystore** và **entry**, chọn overload đúng, xây dựng hai ví dụ Java 17+ chạy được, xử lý sai password, dọn char[]/protection đúng vòng đời, và thiết kế service không làm lộ private key hay password qua log/cấu hình.
+After this lesson, you will be able to distinguish passwords protecting **the file/keystore** from **the entry**, choose the right overloads, build two runnable Java 17+ examples, handle wrong passwords, clear `char[]`/protection objects over their proper lifecycle, and design a service that never leaks private keys or passwords through logs or configuration.
 
-## 1. Nền tảng cần nhớ khi dùng Builder
+## 1. Foundations to Remember When Using Builder
 
-`KeyStore` quản lý các entry theo alias; ba loại chính là **PrivateKeyEntry** (private key kèm certificate chain), **SecretKeyEntry** (khóa đối xứng) và **TrustedCertificateEntry** (chứng chỉ công khai được cấu hình làm nguồn tin cậy). Một keystore dùng làm **identity store** khác với một **truststore** ở *vai trò tiêu thụ*; bản thân PKCS12 có thể được dùng cho cả hai.
+`KeyStore` manages entries by alias; the three primary types are **`PrivateKeyEntry`** (private key with certificate chain), **`SecretKeyEntry`** (symmetric key), and **`TrustedCertificateEntry`** (public certificate configured as a trust source). A keystore used as an **identity store** differs from a **truststore** in *consumption role*; PKCS12 itself can serve either.
 
-Bài này tập trung **cách ứng dụng nạp kho và cấp secret theo thời điểm**, chứ không phân loại lại mọi entry: `Builder` quản lý nguồn/lifecycle, `LoadStoreParameter` truyền điều kiện load/store cho provider, còn `PasswordProtection` và `CallbackHandlerProtection` cung cấp thông tin bảo vệ. Với PKCS11/HSM, entry có thể được truy cập qua handle và PIN thay vì key exportable trong file.
+This lesson focuses on **how an application loads a store and supplies secrets at the right time**, rather than re-classifying every entry: `Builder` manages source/lifecycle, `LoadStoreParameter` passes load/store conditions to the provider, and `PasswordProtection` and `CallbackHandlerProtection` supply protection credentials. With PKCS11/HSM, entries may be accessed via handles and PINs rather than exportable keys in a file.
 
-**Giới hạn cần giữ rõ:** alias không phải quyền truy cập; password mở kho có thể khác password mở từng entry; builder không tự biến file PKCS12 thành secret manager, cũng không tự kiểm tra certificate chain hay quyền ký.
+**Boundaries to keep clear:** an alias is not an access permission; the store-opening password may differ from per-entry passwords; a builder does not turn a PKCS12 file into a secret manager, nor does it automatically validate certificate chains or signing authorization.
 
-## 2. Vòng đời cơ bản của KeyStore
+## 2. Basic KeyStore Lifecycle
 
 ~~~text
-KeyStore.getInstance("PKCS12")  -> đối tượng chưa load
+KeyStore.getInstance("PKCS12")  -> unloaded object
         |
         v
-KeyStore.load(...)  -> đọc file hoặc khởi tạo theo provider
+KeyStore.load(...)  -> reads file or initializes per provider
         |
-   lỗi / thành công
+   error / success
         |
         v
 KeyStore.getEntry(alias, protection)
         |
         v
-key/certificate để dùng cho nghiệp vụ
+key/certificate used for business logic
         |
         v
-KeyStore.store(...) nếu có thay đổi cần ghi lại
+KeyStore.store(...) if changes need to be persisted
 ~~~
 
-Cách truyền thống trong một method có đủ import và các biến Path/char[]:
+Traditional pattern inside a method with full imports and `Path`/`char[]` variables:
 
 ~~~java
 KeyStore ks = KeyStore.getInstance("PKCS12");
@@ -49,110 +49,110 @@ KeyStore.Entry entry = ks.getEntry(
         "service-key", new KeyStore.PasswordProtection(password));
 ~~~
 
-**Đây là mảnh code minh họa**, không phải chương trình đầy đủ. Khi tạo mới một kho rỗng, có thể dùng **ks.load(null, password)** với implementation phù hợp; để mở **kho đã tồn tại**, phải thật sự cung cấp file/stream hoặc cấu hình provider. **KeyStore.getInstance("PKCS12") không tự đọc file**. Sau khi đọc entry, phải bảo vệ key và quyền sử dụng, không chỉ bảo vệ password mở file.
+**This is an illustrative snippet**, not a complete program. When creating a fresh empty store, you can call **`ks.load(null, password)`** with a supporting implementation; to open an **existing store**, you must actually supply a file/stream or provider configuration. **`KeyStore.getInstance("PKCS12")` does not read any file on its own**. After reading an entry, protect the key and its usage permissions, not just the file-opening password.
 
-## 3. KeyStore.Builder: cấu hình nguồn kho và trì hoãn load
+## 3. `KeyStore.Builder`: Configuring Store Sources and Deferring Loading
 
-**KeyStore.Builder** là abstract nested class, tạo qua các static factory **newInstance**. Builder giữ thông tin để instantiate/load KeyStore và cung cấp protection cho entry. Nó hữu ích khi chưa muốn mở hết mọi file, chưa muốn hỏi password sớm hoặc framework cần danh sách các nguồn khóa.
+**`KeyStore.Builder`** is an abstract nested class instantiated via **`newInstance`** static factories. A Builder holds the metadata to instantiate/load a KeyStore and supply protection for entries. It is useful when you do not want to open every file upfront, do not want to prompt for passwords prematurely, or when a framework accepts a collection of key sources.
 
-| Factory | Vai trò | Điều cần chú ý |
+| Factory | Role | Points to note |
 | --- | --- | --- |
-| **newInstance(KeyStore, ProtectionParameter)** | Bọc KeyStore đã khởi tạo cùng protection. | Nếu KeyStore chưa được load thì không hợp lệ; getKeyStore trả lại object được bọc. |
-| **newInstance(String type, Provider, File, ProtectionParameter)** | Mô tả KeyStore của **file hiện có**. | Lần getKeyStore đầu mới mở/load; các lần sau trả cùng instance. |
-| **newInstance(File, ProtectionParameter)** | Tự dò loại kho từ file (Java 9+). | File phải hợp lệ; kiểm thử khả năng nhận dạng. |
-| **newInstance(String type, Provider, ProtectionParameter)** | Tạo KeyStore type cụ thể, load bằng LoadStoreParameter chứa protection. | Mỗi getKeyStore tạo object mới theo API; provider phải hỗ trợ kiểu tham số. |
+| **`newInstance(KeyStore, ProtectionParameter)`** | Wraps an already-initialized KeyStore with protection. | Invalid if the KeyStore has not been loaded yet; `getKeyStore` returns the wrapped object. |
+| **`newInstance(String type, Provider, File, ProtectionParameter)`** | Describes a KeyStore for an **existing file**. | The first `getKeyStore` opens/loads it; subsequent calls return the same instance. |
+| **`newInstance(File, ProtectionParameter)`** | Auto-probes store type from the file (Java 9+). | File must be valid; test type detection behavior. |
+| **`newInstance(String type, Provider, ProtectionParameter)`** | Creates a specific KeyStore type and loads using a `LoadStoreParameter` wrapping protection. | Each `getKeyStore` creates a new object per API; the provider must support this parameter style. |
 
-Tham số **Provider provider = null** nghĩa dùng lựa chọn provider của JCA, không có nghĩa là không bảo vệ khóa. Pin provider trong yêu cầu HSM/FIPS hoặc tương thích cụ thể, nhưng phải kiểm tra độ di động khi triển khai.
+Passing **`Provider provider = null`** means using JCA's provider selection, not skipping key protection. Pin a provider for HSM/FIPS or strict compatibility requirements, while testing portability across deployments.
 
-### 3.1. Builder file-based có lazy loading và cache instance
+### 3.1. File-Based Builder Has Lazy Loading and Instance Caching
 
 ~~~text
 Builder.newInstance("PKCS12", null, existingFile, protection)
                   |
-                  | Chưa gọi load
+                  | load not called yet
                   v
            builder.getKeyStore()
                   |
-              load file lần đầu
+              loads file on first call
                   |
                   v
-           KeyStore đã initialized
+           Initialized KeyStore
                   |
        +----------+----------------------+
        |                                 |
 builder.getKeyStore()               builder.getProtectionParameter(alias)
-lần sau: cùng KeyStore               sau getKeyStore mới hợp lệ
+subsequent calls: same KeyStore      valid only after getKeyStore
 ~~~
 
-Theo contract của Java 17:
+Per the Java 17 contract:
 
-- File-based Builder **getKeyStore() lần đầu** tạo/load; **những lần sau trả cùng đối tượng**. Nếu lần đầu thất bại bằng KeyStoreException thì các lần sau cũng báo lỗi, không tự thử lại.
-- **getProtectionParameter(alias)** phải gọi **sau getKeyStore()**; nếu không có thể nhận IllegalStateException.
-- File-based Builder trả **PasswordProtection** chứa mật khẩu dùng khi load file. Nó **không tự biết mật khẩu khác** được dùng để bảo vệ một entry cụ thể.
-- Nếu một entry có password riêng khác password file, việc **getEntry** có thể cần PasswordProtection khác đúng entry hoặc cơ chế chuyên biệt tùy provider.
-- Một Builder đã load **không tự hot reload file** khi file/secret thay đổi. Muốn rotation, tổ chức lại vòng đời đối tượng và tạo builder mới.
-- Builder **không làm KeyStore mutable thread-safe** để đồng thời thêm/xóa entry hoặc store.
+- For a file-based Builder, **the first `getKeyStore()`** instantiates/loads; **subsequent calls return the same object**. If the first attempt fails with `KeyStoreException`, subsequent calls fail as well without retrying automatically.
+- **`getProtectionParameter(alias)`** must be called **after `getKeyStore()`**; otherwise it may throw `IllegalStateException`.
+- A file-based Builder returns a **`PasswordProtection`** holding the password used to load the file. It **does not automatically know a different password** used to protect a specific entry.
+- If an entry has a separate password different from the file password, **`getEntry`** may require a different `PasswordProtection` matching that entry or a provider-specific mechanism.
+- A loaded Builder **does not auto-hot-reload the file** when the file or secret changes. For rotation, manage object lifecycles and construct a new builder.
+- A Builder **does not make a mutable KeyStore thread-safe** for concurrent `setEntry`/`deleteEntry`/`store` operations.
 
-### 3.2. Chọn Builder hay load trực tiếp?
+### 3.2. Choose Builder or Direct `load`?
 
-**Dùng Builder** khi framework nhận một tập nguồn khóa, khi lazy loading giúp giảm nhu cầu password sớm, hoặc khi callback/provider khác nhau. **Dùng KeyStore.getInstance + load(InputStream,char[])** khi ứng dụng chỉ mở một file một lần lúc startup và không cần abstraction Builder. Cả hai đều là API hợp lệ; chọn cách đơn giản đáp ứng ownership, provider và lifecycle.
+**Use Builder** when a framework accepts a set of key sources, when lazy loading avoids requesting passwords early, or when callbacks/providers vary. **Use `KeyStore.getInstance` + `load(InputStream, char[])`** when an application opens a single file once at startup and needs no Builder abstraction. Both are valid APIs; pick the simpler option that satisfies ownership, provider, and lifecycle needs.
 
-## 4. Bảo vệ entry: ProtectionParameter và PasswordProtection
+## 4. Entry Protection: `ProtectionParameter` and `PasswordProtection`
 
-**KeyStore.ProtectionParameter** mô tả cơ chế mở/bảo vệ entry, và một số API dùng nó khi load/store. Loại phổ biến là **KeyStore.PasswordProtection**, nhận **char[]**.
+**`KeyStore.ProtectionParameter`** describes the mechanism to open/protect an entry, and some APIs accept it during load/store. The most common implementation is **`KeyStore.PasswordProtection`**, which accepts a **`char[]`**.
 
-Trong method có nguồn password tin cậy:
+Inside a method with a trusted password source:
 
 ~~~java
 char[] password = readSecretFromTrustedSource();
 KeyStore.PasswordProtection protection =
         new KeyStore.PasswordProtection(password);
 try {
-    // Dùng protection để load keystore hoặc lấy entry.
+    // Use protection to load the keystore or retrieve entries.
 } finally {
     protection.destroy();
     Arrays.fill(password, '\0');
 }
 ~~~
 
-**Mảnh code này không độc lập** vì readSecretFromTrustedSource là trách nhiệm của ứng dụng; hai chương trình bên dưới hoàn toàn runnable và minh họa vòng đời bằng password test.
+**This snippet is not standalone** because `readSecretFromTrustedSource` is the application's responsibility; the two programs below are fully runnable and demonstrate the lifecycle with test passwords.
 
-### 4.1. Constructor clone char[] và vì sao cần destroy()
+### 4.1. The Constructor Clones `char[]` and Why `destroy()` Is Needed
 
-Java 17 **PasswordProtection(char[])** **clone** mảng password đầu vào. Điều này có hai hệ quả:
+In Java 17, **`PasswordProtection(char[])`** **clones** the input password array. This has two consequences:
 
-1. Xóa mảng **password của caller** bằng Arrays.fill không tự xóa **bản sao** bên trong PasswordProtection.
-2. **PasswordProtection.destroy()** xóa password nội bộ; **isDestroyed()** kiểm tra trạng thái và **getPassword() sau destroy** phát sinh IllegalStateException.
+1. Clearing the **caller's password array** with `Arrays.fill` does not erase the **internal copy** inside `PasswordProtection`.
+2. **`PasswordProtection.destroy()`** wipes the internal password; **`isDestroyed()`** checks its state and calling **`getPassword()` after `destroy`** throws `IllegalStateException`.
 
-Ngược lại, **getPassword() trả tham chiếu tới mảng bên trong**, không phải một bản sao an toàn để phát tán. Không thay đổi mảng trả về tùy tiện; không cho thread khác truy cập; hủy object khi chắc chắn builder/getEntry/provider không còn dùng nó.
+Conversely, **`getPassword()` returns a reference to the internal array**, not a safe defensive copy to pass around. Never mutate the returned array carelessly, never share it across threads, and destroy the object once the builder/`getEntry`/provider is guaranteed finished with it.
 
-**new PasswordProtection(password, protectionAlgorithm, protectionParameters)** có thể chỉ định thuật toán/params để bảo vệ entry ở provider hỗ trợ. Không tự cho rằng mọi KeyStore type hỗ trợ mọi thuật toán bảo vệ theo tên; cần kiểm thử.
+**`new PasswordProtection(password, protectionAlgorithm, protectionParameters)`** can specify an algorithm/parameters for protecting an entry on supporting providers. Do not assume every KeyStore type supports every named protection algorithm; always test.
 
-### 4.2. Mật khẩu file và mật khẩu entry không đồng nghĩa
+### 4.2. File Password and Entry Password Are Not Synonymous
 
-Một sơ đồ có thể dùng cùng mật khẩu khi tạo file và setEntry, như ví dụ runnable để đơn giản hóa. Trong production, có thể có:
+A setup may use the same password when creating the file and calling `setEntry`, as our runnable examples do for simplicity. In production, you may encounter:
 
 ~~~text
 Keystore:
-  storePassword ---> bảo vệ/kiểm tra integrity file
+  storePassword ---> protects/verifies file integrity
   alias A -------> entryPasswordA ---> private key A
   alias B -------> entryPasswordB ---> private key B
 ~~~
 
-Tuy nhiên **không phải provider nào cũng cho dùng password riêng từng entry**. Khi chạy Builder file-based, **builder.getProtectionParameter(alias)** trả protection gắn với password đã dùng load file, không tự lấy password riêng A/B. Nếu cần tách, dùng **getEntry(alias, new PasswordProtection(entryPassword))** với provider có hỗ trợ, hoặc triển khai strategy nhập PIN/password theo provider.
+However, **not every provider allows separate per-entry passwords**. When using a file-based Builder, **`builder.getProtectionParameter(alias)`** returns the protection bound to the file-loading password, not separate passwords A/B. If separation is needed, pass **`getEntry(alias, new PasswordProtection(entryPassword))`** on a supporting provider, or implement a provider-aligned PIN/password strategy.
 
-### 4.3. PasswordProtection không phải password hashing
+### 4.3. `PasswordProtection` Is Not Password Hashing
 
-Password của keystore dùng làm **protection secret** cho dữ liệu/entry; nó không phải cùng một thứ với **password verifier cho người dùng đăng nhập**. Không đem PBKDF2 output của password người dùng dùng như secret keystore tùy tiện; không dùng keystore để lưu database password plaintext. Các profile PKCS12 có thể dùng password-based encryption/MAC theo định dạng và provider; muốn biết thuật toán/cost cụ thể phải kiểm tra implementation/cấu hình của môi trường.
+A keystore password serves as a **protection secret** for store data/entries; it is not the same thing as a **user login password verifier**. Never repurpose a user's PBKDF2 password hash as an arbitrary keystore secret, and never use a keystore to store plaintext user database passwords. PKCS12 profiles may use password-based encryption/MACs per format and provider; inspect your environment's implementation/configuration to know exact algorithms and cost parameters.
 
-## 5. CallbackHandlerProtection: yêu cầu mật khẩu khi cần
+## 5. `CallbackHandlerProtection`: Requesting Passwords On Demand
 
-**KeyStore.CallbackHandlerProtection** giữ một **javax.security.auth.callback.CallbackHandler**. File-based Builder có thể gọi handler với **PasswordCallback** khi thực sự cần mật khẩu để mở kho. Đây là cách trì hoãn việc lấy secret cho tới lúc load, hữu ích khi secret nằm trong một nguồn được quản lý hoặc có tương tác với người vận hành.
+**`KeyStore.CallbackHandlerProtection`** holds a **`javax.security.auth.callback.CallbackHandler`**. A file-based Builder can invoke the handler with a **`PasswordCallback`** only when a password is truly needed to open the store. This defers fetching secrets until load time, useful when secrets come from a managed source or operator interaction.
 
 ~~~text
 Builder.newInstance(file, new CallbackHandlerProtection(handler))
                         |
-                getKeyStore lần đầu
+                first getKeyStore
                         |
                  handler.handle(...)
                         |
@@ -161,17 +161,17 @@ Builder.newInstance(file, new CallbackHandlerProtection(handler))
                   KeyStore.load
 ~~~
 
-**Điều quan trọng:**
+**Important points:**
 
-- Callback không biến password thành “không cần giữ trong RAM”; lúc sử dụng, secret vẫn đi qua buffer trong process.
-- Handler cần xử lý đúng loại callback, hủy mảng tạm sau khi truyền cho PasswordCallback (API setPassword sao chép dữ liệu), và xử lý cancellation/timeout.
-- Nếu provider yêu cầu loại callback khác, phải kiểm tra khả năng hỗ trợ thay vì luôn cast sang PasswordCallback.
-- Không dùng System.console() trực tiếp trong request handler của web server chạy không tương tác; cần kiến trúc secret source có quyền, giới hạn truy cập và audit phù hợp.
-- Không lưu password dài hạn trong lambda/field singleton nếu có thể tránh. Handler chỉ nên lấy secret khi cần và xóa bản sao khi hoàn thành.
-- File-based Builder API chấp nhận **PasswordProtection hoặc CallbackHandlerProtection**; các implementation ProtectionParameter khác có thể bị IllegalArgumentException.
-- Việc cấp password hoặc PIN của HSM không đồng nghĩa khóa private có thể được xuất. Key handle và chính sách usage của token vẫn có hiệu lực.
+- Callbacks do not eliminate the password from RAM; at the moment of use, the secret still passes through in-process buffers.
+- The handler must check callback types, wipe temporary arrays after passing them to `PasswordCallback` (`setPassword` copies the data), and handle cancellation/timeouts.
+- If a provider requests another callback type, check support rather than blindly casting to `PasswordCallback`.
+- Never use `System.console()` directly inside request handlers of a non-interactive web server; use a properly authorized, access-controlled, audited secret source architecture.
+- Avoid caching passwords long-term inside lambdas/singleton fields whenever avoidable. The handler should fetch the secret on demand and wipe copies upon completion.
+- File-based Builder APIs accept **`PasswordProtection` or `CallbackHandlerProtection`**; other `ProtectionParameter` implementations may fail with `IllegalArgumentException`.
+- Supplying a password or HSM PIN does not mean the private key is exportable. Key handles and token usage policies still apply.
 
-Một snippet dùng CallbackHandler trong method đã nhận một **Supplier<char[]> secretSupplier** đáng tin; đây là mảnh code minh họa chứ không phải chương trình độc lập:
+Snippet using `CallbackHandler` inside a method receiving a trusted **`Supplier<char[]> secretSupplier`**; this is illustrative code, not a standalone program:
 
 ~~~java
 CallbackHandler handler = callbacks -> {
@@ -191,17 +191,17 @@ KeyStore.ProtectionParameter param =
         new KeyStore.CallbackHandlerProtection(handler);
 ~~~
 
-Các import liên quan thuộc javax.security.auth.callback.*, java.security.KeyStore, java.util.Arrays và java.util.function.Supplier. **Supplier được ứng dụng cài từ nguồn secret phù hợp**. PasswordCallback còn phải được clear đúng thời điểm bởi thành phần quản lý callback/provider; không giả định đoạn minh họa đã xóa hết bản sao mọi nơi.
+Related imports belong to `javax.security.auth.callback.*`, `java.security.KeyStore`, `java.util.Arrays`, and `java.util.function.Supplier`. **The `Supplier` is wired by the application from a proper secret source**. `PasswordCallback` itself must also be cleared at the right time by the callback/provider consumer; never assume this snippet wipes every copy everywhere.
 
-## 6. LoadStoreParameter: trừu tượng hóa thông số load và store
+## 6. `LoadStoreParameter`: Abstracting Load and Store Parameters
 
-**KeyStore.LoadStoreParameter** là interface nested của KeyStore, có một method:
+**`KeyStore.LoadStoreParameter`** is a nested interface on `KeyStore` with a single method:
 
 ~~~java
 KeyStore.ProtectionParameter getProtectionParameter();
 ~~~
 
-Nó có thể được triển khai bằng một anonymous class/lambda cho Java 17:
+It can be implemented via an anonymous class or lambda in Java 17:
 
 ~~~java
 KeyStore.PasswordProtection protection =
@@ -209,49 +209,49 @@ KeyStore.PasswordProtection protection =
 KeyStore.LoadStoreParameter parameters = () -> protection;
 ~~~
 
-**Mảnh code này nằm trong method có char[] password đã khai báo**, không phải main độc lập. **LoadStoreParameter không phải file path, không chứa ciphertext, và không tự cung cấp một chuẩn chung để load bất kỳ định dạng**. Provider đọc tham số và quyết định nó có được hỗ trợ hay không.
+**This snippet sits inside a method where `char[] password` is declared**, not a standalone `main`. **`LoadStoreParameter` is not a file path, contains no ciphertext, and does not provide a universal standard for loading every format**. The provider reads the parameter and decides whether it is supported.
 
-### 6.1. Phân biệt overload của KeyStore
+### 6.1. Distinguishing `KeyStore` Overloads
 
-| API | Nguồn dữ liệu | Dùng khi nào | Bẫy thường gặp |
+| API | Data source | When to use | Common traps |
 | --- | --- | --- | --- |
-| **load(InputStream, char[])** | Dữ liệu lấy từ stream (null để khởi tạo mới) | File-based JKS/PKCS12 phổ biến | Cần đóng stream; password không tự được xóa. |
-| **load(LoadStoreParameter)** | Theo provider + protection parameter | Provider hiểu cách tải dữ liệu, có thể là token hoặc khởi tạo mới | **Không có InputStream trong interface**, không giả định tự mở file. |
-| **store(OutputStream, char[])** | Ghi bytes vào stream | File-based keystore, xuất bản ghi mới | Cần quản lý ghi file an toàn và quyền đọc, không chỉ gọi store. |
-| **store(LoadStoreParameter)** | Theo provider + param | Token/provider có cơ chế lưu riêng | Có thể ném IllegalArgumentException/UnsupportedOperationException nếu provider không hỗ trợ. |
-| **KeyStore.Builder.newInstance(type, provider, protection)** | Tạo KeyStore và gọi load với LoadStoreParameter bọc protection | Khi lifecycle do provider quản lý | Đọc contract: mỗi getKeyStore tạo mới cho overload này, khác file Builder. |
+| **`load(InputStream, char[])`** | Data from stream (`null` to initialize new) | Standard file-based JKS/PKCS12 | Must close stream; password is not auto-cleared. |
+| **`load(LoadStoreParameter)`** | Per provider + protection parameter | Provider knows how to load data, e.g., token or new initialization | **No `InputStream` in interface**; never assume it auto-opens a file. |
+| **`store(OutputStream, char[])`** | Writes bytes to stream | File-based keystore, exporting new archive | Must manage safe file writing and read permissions, not just call `store`. |
+| **`store(LoadStoreParameter)`** | Per provider + param | Tokens/providers with custom store mechanisms | May throw `IllegalArgumentException`/`UnsupportedOperationException` if unsupported by provider. |
+| **`KeyStore.Builder.newInstance(type, provider, protection)`** | Creates KeyStore and calls `load` with a `LoadStoreParameter` wrapping protection | When lifecycle is provider-managed | Read the contract: each `getKeyStore` creates a new instance for this overload, unlike file Builder. |
 
-**Cảnh báo:** gọi **load(parameters)** với một LoadStoreParameter do bạn tự tạo **không có nghĩa PKCS12 tự tìm file**. Nếu chỉ có password protection, thiếu đường dẫn file là bình thường. Tùy provider, điều này có thể dùng để khởi tạo kho rỗng hoặc mở token; muốn đọc file cụ thể, dùng load(InputStream, char[]) hoặc file Builder phù hợp.
+**Warning:** calling **`load(parameters)`** with a custom `LoadStoreParameter` **does not mean PKCS12 will automatically locate a file**. With only password protection, having no file path is normal. Depending on the provider, this may initialize an empty store or open a token; to read a specific file, use `load(InputStream, char[])` or a file-based Builder.
 
-### 6.2. LoadStoreParameter khác ProtectionParameter thế nào?
+### 6.2. How Does `LoadStoreParameter` Differ from `ProtectionParameter`?
 
 ~~~text
-ProtectionParameter = thông tin/phương pháp bảo vệ
+ProtectionParameter = protection credentials/method
                     PasswordProtection / CallbackHandlerProtection / provider-specific
 
-LoadStoreParameter = một container/contract dành cho load/store,
-                     có method getProtectionParameter()
+LoadStoreParameter = a container/contract for load/store,
+                     exposing getProtectionParameter()
 
-KeyStore.load(parameters) -> provider diễn giải container đó
-KeyStore.getEntry(alias, protection) -> protection của entry cụ thể
+KeyStore.load(parameters) -> provider interprets that container
+KeyStore.getEntry(alias, protection) -> protection for a specific entry
 ~~~
 
-Không thay hai interface cho nhau trong method signature. Builder file-based nhận **ProtectionParameter**, trong khi **KeyStore.load(param)** yêu cầu **LoadStoreParameter**. Một số provider có LoadStoreParameter chuyên dụng (ví dụ **DomainLoadStoreParameter** phục vụ cấu hình domain), và không phải mọi implementation đều chấp nhận một lambda chứa PasswordProtection.
+Do not swap the two interfaces in method signatures. File-based Builders take **`ProtectionParameter`**, whereas **`KeyStore.load(param)`** requires **`LoadStoreParameter`**. Some providers define specialized `LoadStoreParameter` implementations (such as **`DomainLoadStoreParameter`** for domain configs), and not every implementation accepts a lambda wrapping `PasswordProtection`.
 
-### 6.3. Nên dùng khi nào?
+### 6.3. When Should It Be Used?
 
-- Provider keystore cần PIN/mật khẩu hoặc cấu hình load/store không thể diễn tả bằng InputStream.
-- Hệ thống dùng token/hardware hoặc nhiều keystore có định nghĩa domain/provider-specific.
-- Framework muốn một abstraction chung cho khởi tạo kho với protection, nhưng vẫn phải kiểm tra support.
-- Trong file PKCS12 đơn giản, **load(InputStream,char[])** và **store(OutputStream,char[])** thường rõ ràng, dễ debug hơn.
+- Keystore providers needing a PIN/password or load/store config that cannot be expressed via an `InputStream`.
+- Systems using tokens/hardware or multiple stores with domain/provider-specific definitions.
+- Frameworks seeking a common abstraction for initializing stores with protection, while still checking support.
+- For simple PKCS12 files, **`load(InputStream, char[])`** and **`store(OutputStream, char[])`** are usually clearer and easier to debug.
 
-**Đừng bắt UnsupportedOperationException rồi tự chuyển sang lưu plain text/key bytes**. Phải chọn đúng provider/method và chính sách bảo vệ.
+**Never catch `UnsupportedOperationException` and fall back to storing plaintext/raw key bytes.** Choose the right provider/method and protection policy instead.
 
-## 7. Java 17+ — Demo 1: KeyStore.Builder mở PKCS12 và đọc SecretKeyEntry
+## 7. Java 17+ — Demo 1: `KeyStore.Builder` Opening PKCS12 and Reading `SecretKeyEntry`
 
-Chương trình sau là ví dụ **độc lập**, tạo một keystore PKCS12 tạm chứa khóa AES 128 bit, lưu vào file, sau đó dùng **Builder.newInstance(type, null, file, PasswordProtection)** để load. Nó kiểm tra alias, nội dung SecretKey, việc file Builder cache instance và sai password.
+The following **standalone** program creates a temporary PKCS12 keystore containing a 128-bit AES key, writes it to a file, and then uses **`Builder.newInstance(type, null, file, PasswordProtection)`** to load it. It checks alias existence, `SecretKey` contents, file Builder instance caching, and wrong-password rejection.
 
-Tạo file **BuilderKeyStoreDemo.java**:
+Create **`BuilderKeyStoreDemo.java`**:
 
 ~~~java
 import java.nio.file.Files;
@@ -296,12 +296,12 @@ public class BuilderKeyStoreDemo {
             KeyStore.SecretKeyEntry restored = (KeyStore.SecretKeyEntry)
                     loaded.getEntry("service-aes", entryProtection);
 
-            System.out.println("Alias tồn tại: " +
+            System.out.println("Alias exists: " +
                     loaded.containsAlias("service-aes"));
-            System.out.println("Khóa khôi phục đúng: " +
+            System.out.println("Key restored accurately: " +
                     MessageDigest.isEqual(aesKey.getEncoded(),
                             restored.getSecretKey().getEncoded()));
-            System.out.println("File Builder cache cùng KeyStore: " +
+            System.out.println("File Builder caches same KeyStore: " +
                     (loaded == builder.getKeyStore()));
 
             KeyStore.PasswordProtection wrongProtection =
@@ -315,7 +315,7 @@ public class BuilderKeyStoreDemo {
                 } catch (KeyStoreException expected) {
                     rejected = true;
                 }
-                System.out.println("Sai mật khẩu bị từ chối: " + rejected);
+                System.out.println("Wrong password rejected: " + rejected);
             } finally {
                 wrongProtection.destroy();
             }
@@ -331,47 +331,47 @@ public class BuilderKeyStoreDemo {
 }
 ~~~
 
-Biên dịch/chạy với JDK 17 trở lên (provider hỗ trợ lưu AES SecretKey trong PKCS12):
+Compile/run with JDK 17 or higher (on a provider supporting AES `SecretKey` storage in PKCS12):
 
 ~~~bash
 javac --release 17 -encoding UTF-8 BuilderKeyStoreDemo.java
 java BuilderKeyStoreDemo
 ~~~
 
-Kết quả trên JDK đã kiểm thử:
+Output on the tested JDK:
 
 ~~~text
-Alias tồn tại: true
-Khóa khôi phục đúng: true
-File Builder cache cùng KeyStore: true
-Sai mật khẩu bị từ chối: true
+Alias exists: true
+Key restored accurately: true
+File Builder caches same KeyStore: true
+Wrong password rejected: true
 ~~~
 
-### 7.1. Giải thích từng bước
+### 7.1. Step-by-Step Explanation
 
-1. **KeyStore.getInstance("PKCS12")** chọn type, **load(null, storePassword)** khởi tạo kho mới.
-2. **KeyGenerator.getInstance("AES")** tạo SecretKey test 128 bit; không hardcode key bytes trong ứng dụng.
-3. **setEntry("service-aes", SecretKeyEntry, PasswordProtection)** đặt entry vào kho; password entry dùng cùng password file **chỉ để đơn giản hóa demo**.
-4. **store(OutputStream, char[])** ghi kho ra file; việc đóng stream được đảm bảo bởi try-with-resources.
-5. **Builder.newInstance(..., file, ...)** nhận file đang tồn tại; **getKeyStore** thực hiện tải và kiểm tra password, **getProtectionParameter** được gọi sau khi load.
-6. **getEntry** khôi phục entry AES; MessageDigest.isEqual dùng để assert bytes trong bài test; không nên in raw secret key.
-7. **getKeyStore hai lần trả cùng object** đúng contract file Builder; code không chứng minh auto reload khi file thay đổi.
-8. **Sai password** khi gọi getKeyStore ở builder mới được bắt bằng KeyStoreException; lỗi cần được vận hành phân loại đúng và không log password.
-9. **destroy** cho ba đối tượng PasswordProtection và **Arrays.fill** cho hai char[] do demo sở hữu. Cuối cùng xóa file tạm.
+1. **`KeyStore.getInstance("PKCS12")`** selects the type; **`load(null, storePassword)`** initializes a new store.
+2. **`KeyGenerator.getInstance("AES")`** generates a 128-bit test `SecretKey`; never hardcode key bytes in applications.
+3. **`setEntry("service-aes", SecretKeyEntry, PasswordProtection)`** puts the entry in the store; using the same password as the file password is **solely to keep the demo simple**.
+4. **`store(OutputStream, char[])`** writes the store to the file; stream closure is ensured by `try-with-resources`.
+5. **`Builder.newInstance(..., file, ...)`** accepts an existing file; **`getKeyStore`** performs loading and password verification, and **`getProtectionParameter`** is called after loading.
+6. **`getEntry`** recovers the AES entry; `MessageDigest.isEqual` asserts byte equality in the test; never print raw secret keys.
+7. **Calling `getKeyStore` twice returns the same object**, matching the file Builder contract; the code demonstrates no auto-reloading when the file changes.
+8. **Wrong password** when calling `getKeyStore` on the new builder is caught via `KeyStoreException`; operations must classify errors properly and never log passwords.
+9. **`destroy`** is called on the three `PasswordProtection` objects and **`Arrays.fill`** on the two demo-owned `char[]` arrays. Finally, the temp file is deleted.
 
-**An toàn production:** password literal trong chương trình chỉ dùng để làm demo chạy độc lập. Không copy cách hardcode password vào dự án thật. Temporary file không được xem là vị trí lưu khóa production: file permissions, backup, monitoring, filesystem race và key lifecycle đều cần được quản trị theo hệ thống.
+**Production safety:** literal passwords in the program exist solely for a self-contained demo. Never copy password hardcoding into real projects. Temporary files are not a production key storage location: file permissions, backups, monitoring, filesystem races, and key lifecycles must all be governed systematically.
 
-### 7.2. Cần nhớ gì khi đổi alias hoặc password entry?
+### 7.2. What to Remember When Changing Aliases or Entry Passwords?
 
-Alias có thể bị provider chuẩn hóa/case-fold và không nên tạo hai alias chỉ khác chữ hoa/thường. Với file Builder, getProtectionParameter(alias) không biết password riêng cho mỗi alias; nếu một entry cần password độc lập và type/provider cho phép, cấp PasswordProtection phù hợp khi gọi getEntry. Các ứng dụng quy mô lớn nên chuẩn hóa alias và key version, kiểm soát quyền của từng alias trong service thay vì cho client gửi tên alias tùy ý.
+Aliases may be normalized/case-folded by providers, so never create two aliases differing only in letter case. With a file Builder, `getProtectionParameter(alias)` does not know per-alias passwords; if an entry needs an independent password and the type/provider permits it, supply the matching `PasswordProtection` when calling `getEntry`. Large-scale applications should standardize aliases and key versions, enforcing per-alias authorization inside the service rather than letting clients pass arbitrary alias names.
 
-## 8. Java 17+ — Demo 2: LoadStoreParameter và PasswordProtection
+## 8. Java 17+ — Demo 2: `LoadStoreParameter` and `PasswordProtection`
 
-Ví dụ thứ hai tạo một **LoadStoreParameter** bằng lambda trả về PasswordProtection, truyền cho **KeyStore.load(parameters)**, tạo SecretKeyEntry rồi làm **round-trip** qua **store(OutputStream,char[])** và **load(InputStream,char[])**.
+The second example creates a **`LoadStoreParameter`** via a lambda returning `PasswordProtection`, passes it to **`KeyStore.load(parameters)`**, creates a `SecretKeyEntry`, and performs a **round-trip** through **`store(OutputStream, char[])`** and **`load(InputStream, char[])`**.
 
-**Phạm vi provider:** trên JDK PKCS12 provider đã kiểm thử, **load(LoadStoreParameter)** với PasswordProtection có thể khởi tạo kho mới rỗng. Đây không phải lời hứa mọi provider/type đều chấp nhận đúng loại parameter; một provider khác có thể từ chối bằng IllegalArgumentException hoặc UnsupportedOperationException. **LoadStoreParameter không mang file path**, nên chương trình dùng ByteArrayOutputStream để chứng minh lưu/đọc bytes theo overload phổ biến.
+**Provider scope:** on the tested JDK PKCS12 provider, **`load(LoadStoreParameter)`** with `PasswordProtection` can initialize a fresh empty store. This is not a promise that every provider/type accepts that exact parameter style; another provider may reject it with `IllegalArgumentException` or `UnsupportedOperationException`. **`LoadStoreParameter` carries no file path**, so the program uses `ByteArrayOutputStream` to demonstrate saving/reading bytes via the standard overload.
 
-Tạo file **LoadStoreParameterDemo.java**:
+Create **`LoadStoreParameterDemo.java`**:
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -391,7 +391,7 @@ public class LoadStoreParameterDemo {
             KeyStore.LoadStoreParameter parameters = () -> protection;
             KeyStore created = KeyStore.getInstance("PKCS12");
             created.load(parameters); // Supported by the tested JDK PKCS12 provider.
-            System.out.println("Kho mới trống: " + (created.size() == 0));
+            System.out.println("New store is empty: " + (created.size() == 0));
 
             KeyGenerator generator = KeyGenerator.getInstance("AES");
             generator.init(128);
@@ -407,17 +407,17 @@ public class LoadStoreParameterDemo {
                     new ByteArrayInputStream(bytes.toByteArray()), password);
             KeyStore.SecretKeyEntry loaded = (KeyStore.SecretKeyEntry)
                     restored.getEntry("app-key", protection);
-            System.out.println("Round-trip đúng: " +
+            System.out.println("Round-trip succeeded: " +
                     MessageDigest.isEqual(original.getEncoded(),
                             loaded.getSecretKey().getEncoded()));
-            System.out.println("Protection có mật khẩu: " +
+            System.out.println("Protection has password: " +
                     (parameters.getProtectionParameter() instanceof
                             KeyStore.PasswordProtection));
         } finally {
             protection.destroy();
             Arrays.fill(password, '\0');
         }
-        System.out.println("PasswordProtection đã hủy: " +
+        System.out.println("PasswordProtection destroyed: " +
                 protection.isDestroyed());
     }
 }
@@ -428,69 +428,69 @@ javac --release 17 -encoding UTF-8 LoadStoreParameterDemo.java
 java LoadStoreParameterDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Kho mới trống: true
-Round-trip đúng: true
-Protection có mật khẩu: true
-PasswordProtection đã hủy: true
+New store is empty: true
+Round-trip succeeded: true
+Protection has password: true
+PasswordProtection destroyed: true
 ~~~
 
-### 8.1. Quan sát API nào trong ví dụ?
+### 8.1. Which API Behaviors Are Observed in the Example?
 
-- **LoadStoreParameter parameters = () -> protection** là cách viết ngắn của một implementation interface có method getProtectionParameter().
-- **created.load(parameters)** yêu cầu provider diễn giải protection; đoạn này chỉ khởi tạo kho rỗng trong môi trường đã chạy, **không đọc file có sẵn**.
-- **store(bytes, password)** dùng overload OutputStream với char[]; **không phải store(LoadStoreParameter)**. Việc provider chấp nhận **load(parameters)** không chứng minh provider đó hỗ trợ **store(parameters)**.
-- **restored.load(ByteArrayInputStream, password)** chứng minh dạng PKCS12 byte có thể được đọc lại trên provider đã kiểm thử.
-- **getEntry("app-key", protection)** truy xuất SecretKeyEntry; test dùng MessageDigest.isEqual để so sánh bytes và chỉ in true/false.
-- **PasswordProtection.destroy()** hủy bản sao password bên trong protection; **Arrays.fill(password, '\0')** hủy mảng caller.
-- **ByteArrayOutputStream** trong demo vẫn giữ bytes keystore đã mã hóa/bảo vệ trong RAM và không tự được xóa; ở production cần quản lý buffer, backup và quyền đọc.
+- **`LoadStoreParameter parameters = () -> protection`** is a concise implementation of an interface exposing `getProtectionParameter()`.
+- **`created.load(parameters)`** asks the provider to interpret protection; this snippet initializes an empty store in the tested environment, **without reading an existing file**.
+- **`store(bytes, password)`** uses the `OutputStream` + `char[]` overload, **not `store(LoadStoreParameter)`**. A provider accepting **`load(parameters)`** does not prove it supports **`store(parameters)`**.
+- **`restored.load(ByteArrayInputStream, password)`** proves the PKCS12 byte format can be read back on the tested provider.
+- **`getEntry("app-key", protection)`** retrieves the `SecretKeyEntry`; the test uses `MessageDigest.isEqual` to compare bytes and prints only `true`/`false`.
+- **`PasswordProtection.destroy()`** clears the password copy inside `protection`; **`Arrays.fill(password, '\0')`** clears the caller's array.
+- **`ByteArrayOutputStream`** in the demo still holds protected/encrypted keystore bytes in RAM and is not auto-wiped; production code must manage buffers, backups, and read permissions.
 
-### 8.2. Tránh suy diễn từ một test thành công
+### 8.2. Avoid Over-Generalizing from One Passing Test
 
-Test trên cùng JVM/provider với AES SecretKey được tạo bằng KeyGenerator chỉ chứng minh tổ hợp cụ thể đó hoạt động. Đừng khẳng định:
+Testing on a single JVM/provider with a `KeyGenerator`-created AES `SecretKey` proves only that specific combination works. Never assert that:
 
-- Mọi PKCS12 provider hỗ trợ SecretKeyEntry hoặc mọi thuật toán secret key.
-- Mọi LoadStoreParameter có thể đọc một file được chỉ định bằng password.
-- Mọi provider đều dùng cùng password cho store và entry.
-- Có thể xuất private key hardware/HSM qua getEncoded().
-- File keystore tự an toàn chỉ vì password dài; còn có OS permissions, filesystem policy, backup và key lifecycle.
+- Every PKCS12 provider supports `SecretKeyEntry` or every secret key algorithm.
+- Every `LoadStoreParameter` can locate and read a file given only a password.
+- Every provider uses the same password for store and entries.
+- Hardware/HSM private keys can be exported via `getEncoded()`.
+- A keystore file is automatically secure merely because its password is long; OS permissions, filesystem policies, backups, and key lifecycles still matter.
 
-## 9. Nguồn password trong ứng dụng Java production
+## 9. Password Sources in Production Java Applications
 
-Một quyết định kiến trúc quan trọng nằm ở **nơi lấy password và ai được phép dùng nó**.
+A critical architectural decision is **where passwords come from and who is permitted to use them**.
 
-| Nguồn password | Ưu điểm | Cần cân nhắc |
+| Password source | Advantages | Considerations |
 | --- | --- | --- |
-| **Secret manager / Vault / KMS** | Policy truy cập, rotation, audit, cấp secret theo identity workload | Sẵn sàng dịch vụ, cache ngắn hạn, quyền IAM, không log response. |
-| **HSM/PKCS11 token** | Private key có thể không rời hardware; PIN/slot/session policy | Đặc thù provider, key handle, PIN, timeout, session pool, khả năng export hạn chế. |
-| **Password nhập lúc startup** | Tránh secret cố định trong file config | Không phù hợp headless/auto-scaling nếu không có nhập bí mật an toàn. |
-| **File secret mount có ACL hạn chế** | Tích hợp deployment đơn giản | Ownership/ACL/volume/backup/rotation và secret tồn tại trên đĩa. |
-| **Environment variable** | Dễ triển khai runtime/container | Có thể lộ qua dump/process introspection, diagnostic, quyền quản trị; không an toàn tuyệt đối. |
-| **Source code, Git, CLI arguments, log** | Không có | **Không dùng để lưu/đưa password production** vì dễ lộ qua repository/history/process listing/log. |
+| **Secret manager / Vault / KMS** | Access policies, rotation, auditing, workload-identity issuance | Service availability, short-lived caching, IAM permissions, never log responses. |
+| **HSM/PKCS11 token** | Private keys need never leave hardware; PIN/slot/session policies | Provider specifics, key handles, PINs, timeouts, session pools, limited exportability. |
+| **Startup prompt** | Keeps fixed secrets out of config files | Unsuitable for headless/auto-scaling without secure secret delivery. |
+| **ACL-restricted mounted secret file** | Simple deployment integration | Ownership/ACLs/volumes/backups/rotation and secrets residing on disk. |
+| **Environment variable** | Easy runtime/container rollout | Can leak via memory dumps/process introspection, diagnostics, admin privileges; not unconditionally secure. |
+| **Source code, Git, CLI arguments, logs** | None | **Never store/pass production passwords here** due to trivial leaks via repo/history/process listings/logs. |
 
-**Ưu tiên workload identity + secret manager** hoặc KMS/HSM khi phù hợp. Nếu dùng env var hoặc file mount, vẫn coi là secret cần phân quyền và rotation; không in giá trị để debug.
+**Prefer workload identity + secret manager** or KMS/HSM when appropriate. If using env vars or mounted files, still treat them as secrets requiring access controls and rotation; never print values for debugging.
 
-### 9.1. Vì sao char[] hữu ích nhưng không phải phép màu?
+### 9.1. Why Is `char[]` Helpful Yet Not Magic?
 
-char[] cho caller tự **Arrays.fill** phần bộ nhớ mình sở hữu, khác String bất biến và không thể xóa tại chỗ. Tuy vậy:
+`char[]` lets the caller **`Arrays.fill`** memory it owns, unlike immutable `String`s that cannot be wiped in place. However:
 
-- HTTP framework, config parser, callback hoặc provider có thể đã tạo **bản sao** khác.
-- PasswordProtection constructor clone char[]; phải **destroy() riêng**.
-- getPassword() của PasswordProtection trả tham chiếu nội bộ, nên thành phần khác có thể truy cập khi password còn sống.
-- JVM GC, native memory, crash dumps và logging có đặc tính riêng; **không thể bảo đảm xóa sạch mọi bản sao** chỉ bằng Arrays.fill một lần.
-- char[] không thay TLS, IAM, entropy password hoặc policy dùng HSM.
+- HTTP frameworks, config parsers, callbacks, or providers may already have created other **copies**.
+- The `PasswordProtection` constructor clones `char[]`; you must **`destroy()` it separately**.
+- `PasswordProtection.getPassword()` returns an internal reference, so other components can access it while live.
+- JVM GC, native memory, crash dumps, and logging have their own behaviors; **you cannot guarantee wiping every copy** with a single `Arrays.fill`.
+- `char[]` does not replace TLS, IAM, password entropy, or HSM usage policies.
 
-Quy tắc: **hạn chế bản sao, thời gian sống và nơi ghi**, dùng finally để clear mảng thuộc sở hữu, destroy protection đúng thời điểm và không lưu password dài hạn trong singleton.
+Rule: **minimize copies, lifetimes, and write locations**, use `finally` to clear owned arrays, destroy protections on time, and never store passwords long-term in singletons.
 
-### 9.2. Lifecycle khi dùng Builder
+### 9.2. Lifecycle When Using Builder
 
 ~~~text
-SecretSource (phân quyền)
+SecretSource (access-controlled)
       |
       v
-char[] password tạm
+temporary char[] password
       |
       v
 PasswordProtection clones char[]
@@ -499,209 +499,209 @@ PasswordProtection clones char[]
 Builder.newInstance(..., protection)
       |
       v
-getKeyStore + getEntry (hoàn tất công việc cần secret)
+getKeyStore + getEntry (completes secret-dependent work)
       |
       v
-destroy các PasswordProtection đang sở hữu
+destroy owned PasswordProtections
       |
       v
-Arrays.fill mảng caller
+Arrays.fill caller array
       |
       v
-Đóng streams, quản lý key handle và file/session
+Close streams, manage key handles and files/sessions
 ~~~
 
-**Không destroy protection khi Builder còn cần password để load sau này.** Vì Builder có thể lazy-load, phải xác định thời điểm cuối cùng truy cập keystore. Nếu giữ Builder dài hạn, chọn chiến lược secret retrieval/lifecycle tương thích, có thể dùng callback/lazy secret source thay vì tạo PasswordProtection rồi destroy ngay sau cấu hình.
+**Do not destroy protection while a Builder still needs the password for a future load.** Because Builders can lazy-load, determine the final point of keystore access. If retaining a Builder long-term, choose a compatible secret-retrieval/lifecycle strategy—such as a callback/lazy secret source—rather than creating a `PasswordProtection` and destroying it immediately after setup.
 
-## 10. Load lúc khởi động hay khi có request?
+## 10. Load at Startup or On Request?
 
-### 10.1. Load lúc startup
+### 10.1. Loading at Startup
 
-Ưu điểm: phát hiện password/file/cert hỏng trước traffic, giảm request latency. Nhược điểm: process cần secret ngay khi khởi động; rotation cần reload đúng.
+Pros: catches broken passwords/files/certs before live traffic and lowers request latency. Cons: the process needs the secret immediately at startup; rotation requires clean reloading.
 
 Workflow:
 
-1. Nhận path, keystore type, alias và key version từ config đáng tin, không từ request trực tiếp.
-2. Lấy password từ secret source được phân quyền.
-3. Load kho một lần, xác minh alias/type/certificate chain và key usage.
-4. Công bố **key handle/service abstraction** sau khi bootstrap thành công.
-5. Không log password; xóa buffers khi không cần.
-6. Khi rotate, tải **instance mới**, kiểm tra rồi chuyển tham chiếu atomically; giải phóng phiên/handle cũ theo policy.
+1. Read path, keystore type, alias, and key version from trusted config, never directly from requests.
+2. Fetch password from an authorized secret source.
+3. Load the store once and verify alias/type/certificate chain and key usage.
+4. Publish a **key handle/service abstraction** after successful bootstrap.
+5. Never log passwords; wipe buffers once unneeded.
+6. During rotation, load a **new instance**, validate it, and swap references atomically; release old sessions/handles per policy.
 
-### 10.2. Lazy load bằng Builder
+### 10.2. Lazy Loading with Builder
 
-Ưu điểm: không tải mọi kho sớm, có thể trì hoãn callback. Nhược điểm: lần đầu có I/O, xác thực password hoặc lỗi vận hành đúng lúc request; phải có timeout, monitoring và retry tại lớp điều phối.
+Pros: avoids loading every store upfront and can defer callbacks. Cons: first request incurs I/O, password validation, or operational failures; requires timeouts, monitoring, and orchestration-layer retries.
 
-Builder **không phải cache secret** và không tự nhận thông báo file thay đổi. Nếu file/password rotate, builder cũ có thể trả **object đã load**; cần xây dựng lại builder/KeyStore hoặc điều phối restart.
+A Builder **is not a secret cache** and receives no automatic notifications when files change. If a file/password rotates, an old builder may keep returning the **already-loaded object**; rebuild the builder/KeyStore or coordinate a restart.
 
-### 10.3. Concurrent access
+### 10.3. Concurrent Access
 
-**KeyStore** là container mutable. Nhiều thread cùng setEntry/deleteEntry/store cần được **phối hợp** để tránh lost updates và file không nhất quán. Với keystore chỉ đọc sau bootstrap, xây façade chỉ cung cấp thao tác cần thiết; vẫn phải tôn trọng contract provider/HSM về concurrency và session.
+**`KeyStore`** is a mutable container. Multiple threads performing `setEntry`/`deleteEntry`/`store` concurrently must be **coordinated** to prevent lost updates and inconsistent files. For keystores read-only after bootstrap, expose a façade offering only needed operations while still honoring provider/HSM concurrency and session contracts.
 
-**SecretKey/PrivateKey object** có thể là wrapper/provider handle; không chia sẻ một thao tác mutable đang chạy như Cipher hoặc Signature giữa các thread. KeyStore.Builder không đồng bộ hóa workflow load/rotate/use. Với HSM, có thể cần session pool, timeout và backpressure; retry PIN sai liên tục có thể khóa token.
+**`SecretKey`/`PrivateKey` objects** may be wrappers/provider handles; never share a mutable in-flight operation such as `Cipher` or `Signature` across threads. `KeyStore.Builder` does not synchronize load/rotate/use workflows. With HSMs, session pools, timeouts, and backpressure may be required; repeated wrong-PIN retries can lock out the token.
 
-## 11. Lưu keystore an toàn và quản lý file
+## 11. Safe Keystore Persistence and File Management
 
-File được bảo vệ bằng password vẫn có thể bị sao chép. Cần:
+Even a password-protected file can be copied. You need:
 
-- **File permissions:** hạn chế owner/ACL cho đúng process, không cấp mọi user trên host.
-- **Backup:** bản sao được bảo vệ tương đương, có kế hoạch restore và truy xuất password đúng.
-- **Atomic update:** ghi file tạm với quyền phù hợp, flush/fsync theo yêu cầu rồi rename atomically nếu filesystem hỗ trợ; nếu crash khi ghi trực tiếp file gốc có thể hỏng kho. Kiểm tra trường hợp rename không atomic và bản sao dự phòng.
-- **Key rotation:** chuẩn hóa alias, key ID và phiên bản; không lẫn entry của hai generation.
-- **Password rotation:** đổi protection/re-encrypt bằng workflow đúng, kiểm tra kho mới trước khi loại bỏ bản cũ; không phá khả năng đọc dữ liệu lịch sử.
-- **Audit:** ghi identity workload, alias, operation và kết quả trong phạm vi an toàn, không log key/password.
-- **Environment isolation:** không tái sử dụng password/keys từ dev/test sang production.
+- **File permissions:** restrict owner/ACLs to the exact service process, never granting access to all host users.
+- **Backups:** equally protected copies with a tested restore plan and proper password retrieval.
+- **Atomic updates:** write to a temp file with proper permissions, flush/fsync as required, and rename atomically if the filesystem supports it; crashing mid-write directly onto the original file can corrupt the store. Test non-atomic rename edge cases and backup copies.
+- **Key rotation:** standardize aliases, key IDs, and versions; never mix entries from two generations carelessly.
+- **Password rotation:** update protection/re-encrypt via proper workflows, verifying the new store before retiring the old copy without breaking historical data decryption.
+- **Auditing:** record workload identity, alias, operation, and outcome safely without logging keys/passwords.
+- **Environment isolation:** never reuse passwords/keys between dev/test and production.
 
-Demo 1 dùng **Files.createTempFile** rồi xóa để không chạm file thật; demo 2 dùng **ByteArrayOutputStream** để không ghi cố định. Hai demo không phải quy trình bảo vệ file production hoàn chỉnh.
+Demo 1 uses **`Files.createTempFile`** and deletes it to avoid touching real files; Demo 2 uses **`ByteArrayOutputStream`** to avoid writing persistently. Neither demo represents a complete production file-protection workflow.
 
-## 12. Xử lý sai password, sai alias và lỗi provider
+## 12. Handling Wrong Passwords, Wrong Aliases, and Provider Errors
 
-Không nên gom mọi lỗi thành một dòng “sai mật khẩu” trong log nội bộ: một vấn đề về file, provider hoặc cấu hình cần cách sửa khác với sai password.
+Never lump every error into a single "wrong password" line in internal logs: a file, provider, or configuration issue requires a different fix than a wrong password.
 
-| Tình huống | Kết quả thường thấy | Hướng xử lý |
+| Scenario | Typical outcome | Remediation |
 | --- | --- | --- |
-| **File không tồn tại khi tạo file Builder** | IllegalArgumentException ngay tại newInstance(file overload) | Kiểm tra path, quyền và deployment; không tạo file trống giả rồi tiếp tục. |
-| **Password file sai** | getKeyStore() của file Builder báo KeyStoreException; load trực tiếp thường IOException, có thể có cause UnrecoverableKeyException | Không retry password sai vô hạn; không log password. |
-| **Password entry sai** | getEntry() có thể báo UnrecoverableEntryException | Phân biệt file đã mở được với entry chưa được giải mã. |
-| **Alias không tồn tại** | getEntry(alias,...) trả null theo contract khi không có entry | Kiểm tra alias theo cấu hình, không cast null; không tự tạo khóa thay thế. |
-| **getProtectionParameter trước getKeyStore** | IllegalStateException | Tuân thủ lifecycle của Builder. |
-| **Builder từ KeyStore chưa load** | IllegalArgumentException | Load KeyStore trước khi bọc Builder. |
-| **Loại ProtectionParameter không hợp lệ với file Builder** | IllegalArgumentException | Dùng PasswordProtection hoặc CallbackHandlerProtection được hỗ trợ. |
-| **Không hỗ trợ load(LoadStoreParameter)** | IllegalArgumentException, UnsupportedOperationException hoặc lỗi provider | Chọn overload đúng theo tài liệu provider, không đổi sang lưu plaintext. |
-| **KeyStore không hỗ trợ loại entry/algorithm** | KeyStoreException hoặc lỗi provider phù hợp | Kiểm tra KeyStore type, provider và key algorithm; không tự làm yếu mật mã. |
-| **PasswordProtection đã destroy** | getPassword() ném IllegalStateException | Không hủy trước khi Builder/operation cần password; tạo protection mới từ nguồn bí mật khi cần. |
-| **File bị hỏng hoặc sai format** | IOException, CertificateException, NoSuchAlgorithmException tùy tình huống | Giữ bản sao dự phòng, kiểm tra integrity và format, không bỏ qua lỗi. |
+| **File missing when creating file Builder** | `IllegalArgumentException` immediately at `newInstance` (file overload) | Check path, permissions, and deployment; never create a dummy empty file and proceed. |
+| **Wrong file password** | File Builder `getKeyStore()` throws `KeyStoreException`; direct `load` typically throws `IOException`, possibly with `UnrecoverableKeyException` cause | Never retry wrong passwords indefinitely; never log passwords. |
+| **Wrong entry password** | `getEntry()` may throw `UnrecoverableEntryException` | Distinguish an opened file from an unrecovered entry. |
+| **Alias does not exist** | `getEntry(alias,...)` returns `null` per contract when missing | Check alias against config, never cast `null`; never auto-generate a substitute key. |
+| **`getProtectionParameter` before `getKeyStore`** | `IllegalStateException` | Follow Builder lifecycle strictly. |
+| **Builder from unloaded KeyStore** | `IllegalArgumentException` | Load KeyStore before wrapping in Builder. |
+| **Invalid `ProtectionParameter` kind for file Builder** | `IllegalArgumentException` | Use supported `PasswordProtection` or `CallbackHandlerProtection`. |
+| **Unsupported `load(LoadStoreParameter)`** | `IllegalArgumentException`, `UnsupportedOperationException`, or provider error | Pick the right overload per provider docs; never fall back to plaintext storage. |
+| **KeyStore lacks support for entry/algorithm type** | `KeyStoreException` or matching provider error | Verify KeyStore type, provider, and key algorithm; never weaken cryptography. |
+| **Destroyed `PasswordProtection`** | `getPassword()` throws `IllegalStateException` | Do not destroy before Builder/operation still needs the password; construct fresh protection from secret source when needed. |
+| **Corrupted or wrong-format file** | `IOException`, `CertificateException`, `NoSuchAlgorithmException` depending on case | Keep backups, verify integrity and format, never ignore errors. |
 
-Nếu Builder file-based gặp lỗi trong lần tải đầu, **đừng chỉ gọi lại getKeyStore trên cùng Builder**: theo API, lỗi được giữ lại. Sửa nguyên nhân, lấy lại secret và tạo Builder mới; các cơ chế retry/health check nên thuộc tầng orchestration có giới hạn và audit.
+If a file-based Builder fails on its first load, **do not simply call `getKeyStore` again on the same Builder**: per the API, the failure is cached. Fix the root cause, re-fetch the secret, and create a new Builder; bounded retry/health-check mechanisms belong in the orchestration layer with auditing.
 
-Một thông báo cho người dùng cuối thường chỉ cần lỗi chung phù hợp ngữ cảnh; log vận hành có thể ghi path logic/alias/key ID/error class **không nhạy cảm**, không ghi password/PIN, private key hoặc stream dump.
+End-user error messages usually only need a generic context-appropriate error; operational logs may record **non-sensitive** logical path/alias/key ID/error class, never passwords/PINs, private keys, or stream dumps.
 
-## 13. Thiết kế ứng dụng thực tế: dịch vụ ký số
+## 13. Practical Application Design: A Digital Signing Service
 
-Giả sử service Java phải ký thông báo giao dịch bằng private key trong KeyStore. Có thể tổ chức:
+Suppose a Java service must sign transaction messages using a private key in a KeyStore. It can be structured as:
 
 ~~~text
 Deployment configuration
-    | type=PKCS12, path, alias, keyVersion (không chứa password)
+    | type=PKCS12, path, alias, keyVersion (contains no password)
     v
 Secret manager / workload identity
-    | cấp password theo quyền
+    | issues password per permissions
     v
 Key loading component
-    | KeyStore.Builder hoặc KeyStore.load
+    | KeyStore.Builder or KeyStore.load
     | getEntry(alias, entryProtection)
     v
 SigningService
-    | kiểm tra key usage/policy, chuẩn hóa message bytes
-    | Signature instance riêng từng request
+    | checks key usage/policy, canonicalizes message bytes
+    | dedicated Signature instance per request
     v
 signature + algorithm/keyVersion metadata
 ~~~
 
-Các bất biến:
+Invariants:
 
-1. **Đường dẫn, type, alias và thuật toán** đến từ cấu hình được phép, không do request tùy ý chỉ định.
-2. **Secret retrieval** qua nguồn được phân quyền, với timeout, audit và cache phù hợp; không lưu password trong code.
-3. **KeyStore được load** thành công và entry type được kiểm tra trước khi dùng. PrivateKeyEntry còn cần certificate chain và trust/usage policy thích hợp.
-4. **Mỗi request** tạo một Signature instance phù hợp, không dùng một Signature mutable chung khi ký đồng thời.
-5. **Key version** được gắn với signature để phía xác minh chọn public key đúng; rotation có chiến lược chuyển tiếp/thu hồi.
-6. **Nếu khóa/phần cứng lỗi**, từ chối ký thay vì tự sinh khóa mới làm thay đổi danh tính hay chuyển sang secret hardcoded.
-7. **Không xuất private key** chỉ để “kiểm tra cho chắc”: với HSM, getEncoded có thể trả null, và test byte[] của demo không áp dụng cho non-exportable key.
+1. **Path, type, alias, and algorithm** come from approved configuration, never chosen arbitrarily by incoming requests.
+2. **Secret retrieval** goes through an access-controlled source with timeouts, auditing, and appropriate caching; never store passwords in code.
+3. **KeyStore is loaded** cleanly and entry types are checked before use. `PrivateKeyEntry` also requires a valid certificate chain and trust/usage policy.
+4. **Each request** uses an appropriate `Signature` instance, never sharing one mutable `Signature` across concurrent signing calls.
+5. **Key version** travels with the signature so verifiers pick the right public key; rotation has a transition/revocation strategy.
+6. **If key/hardware fails**, reject signing rather than silently generating a new key that alters identity or falling back to a hardcoded secret.
+7. **Never export private keys** just to "double check": on an HSM, `getEncoded` may return `null`, and the demo's `byte[]` equality check does not apply to non-exportable keys.
 
-### 13.1. Ví dụ ứng dụng mã hóa bằng secret key
+### 13.1. Example Application Encrypting with a Secret Key
 
-Một dịch vụ dùng SecretKeyEntry cho AES-GCM cần lưu ý thêm: keystore lưu **khóa**, không tự sinh nonce/IV đúng cho từng message, không mã hóa dữ liệu thay bạn. Với AES-GCM phải dùng IV duy nhất theo **cùng khóa** ở mỗi phép mã hóa, kiểm tra tag khi giải mã và thiết kế key rotation theo record version. Builder không tự mang lại bảo đảm đó.
+A service using `SecretKeyEntry` for AES-GCM must also remember: the keystore stores the **key**, does not generate unique nonces/IVs per message, and does not encrypt data for you. With AES-GCM, always use a unique IV under the **same key** for every encryption, verify the tag on decryption, and design key rotation by record version. A Builder does not supply those guarantees automatically.
 
-### 13.2. Khi nào dùng CallbackHandlerProtection?
+### 13.2. When to Use `CallbackHandlerProtection`?
 
-Khi secret không được lấy sớm và các consumer muốn load key lazily, cấu hình CallbackHandler có thể phù hợp. Tuy nhiên lifecycle của callback và rotation phải được đồng bộ với thời điểm file Builder thực sự load, đồng thời tránh prompt GUI/terminal trong web server. Với token/HSM, hãy tuân thủ hướng dẫn provider cụ thể về việc cấp PIN, session và password callback.
+When secrets should not be fetched eagerly and consumers load keys lazily, a `CallbackHandler` setup can fit well. However, callback lifecycles and rotation must stay synchronized with when the file Builder actually loads, while avoiding GUI/terminal prompts in web servers. For tokens/HSMs, follow the specific provider's guidance on PINs, sessions, and password callbacks.
 
-## 14. Kế hoạch kiểm thử cho Builder, LoadStoreParameter và password
+## 14. Test Plan for `Builder`, `LoadStoreParameter`, and Passwords
 
-| Test | Thao tác | Kỳ vọng |
+| Test | Action | Expected outcome |
 | --- | --- | --- |
-| **Tạo kho trống** | KeyStore.getInstance("PKCS12") + load(null,password) | Kho initialized, chưa có entry. |
-| **Ghi SecretKeyEntry** | Sinh AES key, setEntry với password hợp lệ, store | Tạo file/byte PKCS12 dùng được trên provider đã chọn. |
-| **Builder lazy load** | Tạo file Builder rồi gọi getKeyStore | getKeyStore thực sự mở file. |
-| **Builder cache** | Gọi getKeyStore hai lần với file overload | Cùng KeyStore instance. |
-| **getProtectionParameter lifecycle** | Gọi trước và sau getKeyStore | Trước load lỗi; sau load có protection phù hợp. |
-| **Khôi phục entry** | getEntry(alias, protection) | Đúng key/certificate theo entry type. |
-| **Sai file password** | Builder mới với mật khẩu sai rồi getKeyStore | Bị từ chối; không xuất khóa. |
-| **Sai entry password** | Kho load đúng, getEntry với password sai | Từ chối hoặc exception phù hợp provider. |
-| **Alias thiếu** | getEntry alias không có | Xử lý null; không dùng key giả hoặc fallback. |
-| **PasswordProtection lifecycle** | destroy rồi isDestroyed/getPassword | isDestroyed true; getPassword không còn cho truy cập. |
-| **LoadStoreParameter** | Custom lambda -> PasswordProtection; load(params) | Hành vi được xác định theo provider, không suy ra mọi provider hỗ trợ. |
-| **Store/load round-trip** | store(OutputStream,char[]) rồi load(InputStream,char[]) | Khôi phục đúng trên môi trường được kiểm thử. |
-| **Corrupt/truncated file** | File sai format/đứt giữa | Lỗi có kiểm soát; không tự khởi tạo mới để ghi đè bản cũ. |
-| **Provider matrix** | JDK/provider/PKCS11/FIPS khác nhau | Chỉ chọn type/algorithm/params được policy cho phép. |
-| **Rotation** | Cập nhật file/password/key ID khi request đang hoạt động | Không tự hot reload Builder cũ; chuyển sang instance mới có kiểm soát. |
-| **Concurrency** | Nhiều request đọc khóa và ký song song | Không trộn trạng thái, không làm mất entry hoặc hỏng store. |
-| **Logging** | Giả lập mọi nhánh lỗi | Không để password, private/secret key bytes lọt log/telemetry. |
+| **Create empty store** | `KeyStore.getInstance("PKCS12")` + `load(null,password)` | Store initialized, zero entries. |
+| **Write `SecretKeyEntry`** | Generate AES key, `setEntry` with valid password, `store` | Produces usable PKCS12 file/bytes on chosen provider. |
+| **Builder lazy load** | Create file Builder then call `getKeyStore` | `getKeyStore` actually opens the file. |
+| **Builder cache** | Call `getKeyStore` twice with file overload | Same `KeyStore` instance. |
+| **`getProtectionParameter` lifecycle** | Call before and after `getKeyStore` | Fails before load; returns matching protection after load. |
+| **Recover entry** | `getEntry(alias, protection)` | Right key/certificate per entry type. |
+| **Wrong file password** | New Builder with wrong password then `getKeyStore` | Rejected; no key exposed. |
+| **Wrong entry password** | Store loads cleanly, `getEntry` with wrong password | Rejected or provider-appropriate exception. |
+| **Missing alias** | `getEntry` for non-existent alias | Handled as `null`; no fake key or fallback. |
+| **`PasswordProtection` lifecycle** | `destroy` then `isDestroyed`/`getPassword` | `isDestroyed` is `true`; `getPassword` denies access. |
+| **`LoadStoreParameter`** | Custom lambda -> `PasswordProtection`; `load(params)` | Provider-defined behavior; do not assume universal support. |
+| **Store/load round-trip** | `store(OutputStream,char[])` then `load(InputStream,char[])` | Restored accurately in the tested environment. |
+| **Corrupt/truncated file** | Malformed/truncated file | Controlled failure; never auto-initialize empty store over old file. |
+| **Provider matrix** | Different JDKs/providers/PKCS11/FIPS | Select only policy-approved types/algorithms/params. |
+| **Rotation** | Update file/password/key ID under active requests | Old Builder does not hot-reload; controlled switch to new instance. |
+| **Concurrency** | Multiple requests reading keys and signing in parallel | No state corruption, lost entries, or store corruption. |
+| **Logging** | Simulate all error branches | No passwords or private/secret key bytes leak into logs/telemetry. |
 
-Các chương trình chạy minh họa ở phần 7–8 kiểm tra **đúng key, wrong password, file Builder cache, LoadStoreParameter và destroy**. Với production còn phải có integration test cho file permission, HSM timeout/slot, key alias/rotation, certificate chain và policies.
+The runnable programs in sections 7–8 test **correct key, wrong password, file Builder caching, `LoadStoreParameter`, and `destroy`**. Production additionally needs integration tests for file permissions, HSM timeouts/slots, key aliases/rotation, certificate chains, and policies.
 
-## 15. Sai lầm thường gặp
+## 15. Common Pitfalls
 
-1. **Đặt password keystore trực tiếp trong source hoặc commit vào Git.** Mọi người có quyền đọc code/bản build có thể lấy password.
-2. **Đưa password vào CLI args hoặc log** để tiện debug, làm lộ qua process listing/observability.
-3. **Mở một file bằng load(null,password)** rồi nghĩ đã đọc file. Null stream khởi tạo kho rỗng theo provider.
-4. **Dùng getProtectionParameter trước getKeyStore.** Sai lifecycle Builder.
-5. **Giả định file Builder luôn reload khi file thay đổi.** Nó giữ cùng KeyStore sau load đầu.
-6. **Giả định loại Builder không file cũng cache cùng object.** Với overload type/provider/protection, contract nói mỗi getKeyStore tạo KeyStore mới.
-7. **Coi getProtectionParameter(alias) là mật khẩu riêng của mọi entry.** File Builder trả password đã dùng load kho; entry có thể cần secret khác.
-8. **Tự truyền LoadStoreParameter cho mọi provider rồi mong tự tìm file.** Interface không chứa path; semantics do provider.
-9. **Dùng store(LoadStoreParameter) như thay thế phổ quát cho OutputStream.** Provider có thể không hỗ trợ.
-10. **Chỉ Arrays.fill char[] caller mà không destroy PasswordProtection.** Constructor đã clone password.
-11. **Destroy PasswordProtection trước khi lazy Builder load.** Lúc cần mở khóa sẽ không còn password.
-12. **Coi char[] bảo đảm xóa sạch mọi secret khỏi heap/native memory.** Còn bản sao trong framework, callback, dumps.
-13. **Dùng cùng file, password và key cho dev/prod.** Tăng blast radius và khó rotate an toàn.
-14. **Cho user request chọn alias/key ID tùy ý.** Có thể dùng nhầm khóa hoặc vượt quyền nghiệp vụ.
-15. **In raw key bytes để xác nhận round-trip thành công.** Dùng kiểm thử boolean, không tiết lộ key.
-16. **Lưu file mới đè file cũ trực tiếp không có chiến lược atomic/backup.** Crash có thể phá hủy kho.
-17. **Tái sử dụng một Cipher/Signature mutable giữa các thread.** KeyStore không bảo đảm an toàn trạng thái của engine.
-18. **Chờ HSM xuất private key khi cần ký.** HSM có thể cố ý không cho export; thực hiện operation thông qua provider/key handle.
-19. **Chấp nhận cert chỉ vì nằm trong KeyStore.** Cần nguồn tin cậy, chain/usage/identity policy cụ thể.
-20. **Bắt mọi lỗi rồi silently tạo khóa mới.** Có thể mất khả năng giải mã dữ liệu cũ và thay đổi danh tính ký số.
+1. **Putting keystore passwords directly in source or committing to Git.** Anyone with read access to code/builds can extract the password.
+2. **Passing passwords in CLI args or logs** for debugging convenience, exposing them via process listings/observability.
+3. **Opening a file with `load(null, password)`** thinking it reads the file. A `null` stream initializes an empty store per provider.
+4. **Calling `getProtectionParameter` before `getKeyStore`.** Violates Builder lifecycle.
+5. **Assuming a file Builder reloads automatically when the file changes.** It retains the same `KeyStore` from the first load.
+6. **Assuming non-file Builders also cache the same object.** For the `type`/`provider`/`protection` overload, the contract states each `getKeyStore` creates a new `KeyStore`.
+7. **Treating `getProtectionParameter(alias)` as every entry's distinct password.** A file Builder returns the store-loading password; entries may need different secrets.
+8. **Passing `LoadStoreParameter` to any provider expecting it to locate a file automatically.** The interface carries no path; semantics belong to the provider.
+9. **Using `store(LoadStoreParameter)` as a universal replacement for `OutputStream`.** Providers may not support it.
+10. **Calling `Arrays.fill` only on the caller's `char[]` without destroying `PasswordProtection`.** The constructor cloned the password.
+11. **Destroying `PasswordProtection` before a lazy Builder loads.** When unlocking is needed, the password will be gone.
+12. **Assuming `char[]` guarantees wiping all secrets from heap/native memory.** Copies remain in frameworks, callbacks, and dumps.
+13. **Sharing the same files, passwords, and keys across dev/prod.** Increases blast radius and complicates safe rotation.
+14. **Letting user requests pick arbitrary aliases/key IDs.** Risks using the wrong key or bypassing business authorization.
+15. **Printing raw key bytes to verify a round-trip succeeded.** Use boolean equality checks instead of exposing keys.
+16. **Overwriting old files directly without an atomic/backup strategy.** A crash can destroy the store.
+17. **Reusing a mutable `Cipher`/`Signature` across threads.** `KeyStore` does not guarantee thread-safety of crypto engines.
+18. **Expecting an HSM to export a private key for signing.** The HSM may intentionally forbid export; execute operations via provider/key handles.
+19. **Accepting a cert merely because it resides in a KeyStore.** You still need trusted provenance and explicit chain/usage/identity policies.
+20. **Catching any error and silently generating a new key.** Can permanently break decryption of historical data and alter signing identity.
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-Check Questions
 
-**1. KeyStore.Builder giúp tránh mở file ngay lúc newInstance hay không?**  
-Có, với file Builder, việc load được kích hoạt khi gọi **getKeyStore lần đầu**. Các lần sau dùng cùng KeyStore đã load.
+**1. Does `KeyStore.Builder` avoid opening the file immediately at `newInstance`?**  
+Yes, for a file Builder, loading is triggered on the **first `getKeyStore` call**. Subsequent calls return the same already-loaded `KeyStore`.
 
-**2. Có được gọi builder.getProtectionParameter(alias) trước getKeyStore không?**  
-Không. API có thể ném **IllegalStateException**; gọi getKeyStore trước.
+**2. Can `builder.getProtectionParameter(alias)` be called before `getKeyStore`?**  
+No. The API may throw **`IllegalStateException`**; call `getKeyStore` first.
 
-**3. File Builder đã tải keystore rồi, nếu file mới xuất hiện do rotation thì builder cũ tự đọc lại không?**  
-Không. Phải xây dựng chiến lược reload và thường tạo builder/keystore mới.
+**3. Once a file Builder has loaded a keystore, if a new file appears from rotation, does the old builder reload it automatically?**  
+No. You must build an explicit reload strategy, typically creating a new builder/keystore.
 
-**4. PasswordProtection nhận char[] thì sau khi xóa mảng đầu vào có chắc secret trong protection đã bị xóa?**  
-Không. Constructor clone mảng. Phải **destroy()** protection riêng sau khi không còn dùng, đồng thời xóa mảng gốc.
+**4. `PasswordProtection` accepts `char[]`, so after clearing the input array, is the secret inside `protection` guaranteed erased?**  
+No. The constructor clones the array. You must call **`destroy()`** on the protection object separately once finished, in addition to clearing the original array.
 
-**5. PasswordProtection.getPassword có trả bản sao không?**  
-Không. Java 17 API nói nó trả một **tham chiếu tới mảng nội bộ**; cần bảo vệ và không sửa/giữ lâu.
+**5. Does `PasswordProtection.getPassword` return a defensive copy?**  
+No. The Java 17 API specifies it returns a **reference to the internal array**; protect it and never mutate or retain it long-term.
 
-**6. LoadStoreParameter chỉ chứa PasswordProtection có đủ để chỉ ra file PKCS12 phải đọc không?**  
-Không. Interface không mang đường dẫn; provider hoặc overload khác phải xác định nguồn dữ liệu.
+**6. Is a `LoadStoreParameter` holding only `PasswordProtection` enough to identify which PKCS12 file to read?**  
+No. The interface carries no path; the provider or another overload must specify the data source.
 
-**7. store(LoadStoreParameter) có chắc chạy trên mọi KeyStore type không?**  
-Không. Phải kiểm tra provider hỗ trợ. Khi dùng file-based PKCS12, **store(OutputStream,char[])** rõ ràng hơn.
+**7. Is `store(LoadStoreParameter)` guaranteed to work across every `KeyStore` type?**  
+No. Check provider support. For file-based PKCS12, **`store(OutputStream, char[])`** is clearer.
 
-**8. Sai password mở kho và sai entry password có phải cùng một lỗi?**  
-Không. Mở file có thể gặp IOException hoặc Builder KeyStoreException; truy cập entry có thể gặp UnrecoverableEntryException.
+**8. Are a wrong store-opening password and a wrong entry password the exact same error?**  
+No. Opening the file may throw `IOException` or Builder `KeyStoreException`; accessing an entry may throw `UnrecoverableEntryException`.
 
-**9. Có thể lưu private key HSM thành file bằng privateKey.getEncoded không?**  
-Không chắc và thường không được phép. Key handle không xuất được có thể trả null; dùng operation qua provider/HSM.
+**9. Can an HSM private key be saved to a file via `privateKey.getEncoded`?**  
+Not reliably and usually not permitted. Non-exportable key handles may return `null`; execute operations via the provider/HSM.
 
-**10. char[] được xóa trong finally có loại bỏ mọi bản sao từ callback/HTTP framework không?**  
-Không. Xóa chỉ mảng được sở hữu; cần thiết kế giảm bản sao, không log và lifecycle toàn hệ thống.
+**10. Does clearing a `char[]` in `finally` eliminate every copy from callbacks/HTTP frameworks?**  
+No. It clears only the array you own; design the entire system to minimize copies, avoid logging, and bound lifecycles.
 
-## 17. Kết luận và tài liệu chính thức
+## 17. Conclusion and Official Documentation
 
-**KeyStore.Builder** tách cấu hình nguồn khóa khỏi thời điểm load, nhưng không phải hot reload hay quản lý khóa tự động. **LoadStoreParameter** cung cấp một interface cho tham số load/store, còn ý nghĩa thực tế tùy provider. **PasswordProtection** lưu bản sao password và hỗ trợ destroy; **CallbackHandlerProtection** có thể trì hoãn việc yêu cầu password nhưng không xóa rủi ro secret tồn tại trong memory.
+**`KeyStore.Builder`** decouples configuring a key source from when it loads, yet it is neither hot-reloading nor automated key management. **`LoadStoreParameter`** provides an interface for load/store parameters whose actual semantics depend on the provider. **`PasswordProtection`** holds a cloned password and supports `destroy`; **`CallbackHandlerProtection`** can defer password prompts without eliminating in-memory secret risks.
 
-Thiết kế ứng dụng an toàn cần kết hợp **nguồn password tin cậy, giới hạn quyền truy cập, đúng lifecycle, phân biệt store/entry protection, kiểm soát file/HSM, xử lý lỗi và rotation có kiểm thử**. Hai ví dụ Java 17 minh họa cơ chế chạy thực tế, không thay thế các biện pháp vận hành production.
+Secure application design requires combining **trusted password sources, restricted access, sound lifecycles, store/entry protection separation, file/HSM controls, error handling, and tested rotation**. The two Java 17 examples demonstrate working mechanics, not a substitute for production operational controls.
 
-Tài liệu đối chiếu:
+Reference documentation:
 
 - [Java SE 17 — KeyStore](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.html)
 - [Java SE 17 — KeyStore.Builder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/KeyStore.Builder.html)

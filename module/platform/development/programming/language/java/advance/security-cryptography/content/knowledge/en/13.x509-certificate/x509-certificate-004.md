@@ -1,111 +1,111 @@
-# 13.4 Subject, issuer, serial number, thời hạn và X500Principal
+# 13.4 Subject, Issuer, Serial Number, Validity Period, and X500Principal
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-1. Đọc và phân biệt năm thông tin lõi của chứng thư số **X.509**: **subject**, **issuer**, **serial number**, **notBefore**, **notAfter**.
-2. Dùng `javax.security.auth.x500.X500Principal` đúng cách để làm việc với **Distinguished Name (DN)**, nhận biết **RDN/AVA**, các thuộc tính như `CN`, `O`, `OU`, `C` và quy tắc escape.
-3. Hiểu tại sao **subject DN không đồng nghĩa hostname**, **issuer DN không chứng minh CA đáng tin**, và **issuer + serial number** là phạm vi định danh chứng thư theo chuẩn.
-4. Đọc một chứng thư thật từ **PEM/DER** bằng `CertificateFactory` và `X509Certificate` trên **Java 17**, xem subject/issuer/serial/time mà không cần API nội bộ `sun.*`.
-5. Dùng `checkValidity()`/`checkValidity(Date)`, hiểu lỗi **not yet valid/expired**, UTC và giới hạn của kiểm tra thời hạn.
-6. Tránh nhầm lẫn giữa **serial number của chứng thư** và thuộc tính `SERIALNUMBER` **bên trong một DN**; phân biệt **self-issued**, **self-signed** và **trusted**.
+1. Read and distinguish five core pieces of information in an **X.509** digital certificate: **subject**, **issuer**, **serial number**, **notBefore**, and **notAfter**.
+2. Use `javax.security.auth.x500.X500Principal` properly to work with **Distinguished Names (DNs)**, recognize **RDN/AVA**, attributes such as `CN`, `O`, `OU`, `C`, and escaping rules.
+3. Understand why **subject DN does not equal hostname**, **issuer DN does not prove a trusted CA**, and **issuer + serial number** is the standard certificate identification scope.
+4. Read a real certificate from **PEM/DER** using `CertificateFactory` and `X509Certificate` on **Java 17**, inspecting subject/issuer/serial/time without internal `sun.*` APIs.
+5. Use `checkValidity()`/`checkValidity(Date)`, and understand **not yet valid/expired** errors, UTC, and the limits of validity-period checks.
+6. Avoid confusing the **certificate serial number** with the `SERIALNUMBER` attribute **inside a DN**; distinguish **self-issued**, **self-signed**, and **trusted**.
 
-## 1. X.509 certificate có những trường gì?
+## 1. What Fields Does an X.509 Certificate Have?
 
-Chứng thư số X.509 gắn **public key** với thông tin định danh theo mô hình PKI. Một **Certificate Authority (CA)** phát hành chứng thư bằng cách ký trên phần dữ liệu cần chứng nhận; người nhận cần xác thực chữ ký, xây dựng và đánh giá chuỗi chứng thư theo chính sách tin cậy.
+An X.509 digital certificate binds a **public key** with identity information under a PKI model. A **Certificate Authority (CA)** issues a certificate by signing the data to be certified; the recipient must verify the signature and build and evaluate the certificate chain according to trust policy.
 
-Cấu trúc mức khái niệm:
+Conceptual structure:
 
 ```text
 Certificate
 ├── tbsCertificate (To Be Signed Certificate)
 │   ├── version                 (v1/v2/v3)
-│   ├── serialNumber            (số sê-ri do CA phát hành)
-│   ├── signature               (thuật toán ký TBS)
-│   ├── issuer                  (DN của bên phát hành)
+│   ├── serialNumber            (serial number issued by the CA)
+│   ├── signature               (algorithm signing TBS)
+│   ├── issuer                  (DN of the issuing entity)
 │   ├── validity
-│   │   ├── notBefore           (thời điểm bắt đầu hiệu lực)
-│   │   └── notAfter            (thời điểm hết hiệu lực)
-│   ├── subject                 (DN của chủ thể, có thể trống)
-│   ├── subjectPublicKeyInfo    (thuật toán + public key)
+│   │   ├── notBefore           (validity start timestamp)
+│   │   └── notAfter            (validity end timestamp)
+│   ├── subject                 (DN of the subject, may be empty)
+│   ├── subjectPublicKeyInfo    (algorithm + public key)
 │   └── extensions              (SAN, BasicConstraints, KU, EKU, ...)
 ├── signatureAlgorithm
-└── signatureValue              (chữ ký của CA trên TBS)
+└── signatureValue              (CA's signature over TBS)
 ```
 
-Phạm vi chính của bài là **issuer, subject, serial number và validity**. Các extension như **Subject Alternative Name (SAN)** được nhắc đến ở mức cần thiết để tránh diễn giải sai subject DN; kiểm tra đường dẫn tin cậy, thu hồi và chính sách TLS được giới thiệu như **ranh giới**, không thay thế bài học chứng thư/PKIX riêng.
+The main scope of this lesson is **issuer, subject, serial number, and validity**. Extensions such as **Subject Alternative Name (SAN)** are mentioned as needed to avoid misinterpreting the subject DN; trust path checks, revocation, and TLS policies are introduced as **boundaries**, not replacements for dedicated certificate/PKIX lessons.
 
-Ví dụ một chứng thư server giả định (không phải chứng thư hợp lệ để kết nối thật):
+Example of a hypothetical server certificate (not a valid certificate for real connections):
 
 ```text
 Subject:     CN=api.example.test,O=Example Services,C=VN
 Issuer:      CN=Example Issuing CA,O=Example PKI,C=VN
-Serial:      0x34A728...              (một BigInteger)
+Serial:      0x34A728...              (a BigInteger)
 Not Before:  2026-01-01T00:00:00Z
 Not After:   2027-01-01T00:00:00Z
 Public Key:  EC P-256
 SAN:         DNS:api.example.test
 ```
 
-**Điều quan trọng:** mỗi dòng mô tả một khía cạnh khác nhau. Subject là tên **chủ thể**, issuer là tên **bên phát hành**, serial là định danh **trong phạm vi issuer**, thời hạn chỉ là khoảng **thời gian**. Không trường nào, đứng một mình, là bằng chứng chứng thư đáng tin.
+**Important point:** each line describes a different aspect. Subject is the **subject**'s name, issuer is the **issuer**'s name, serial is an identifier **within the issuer's scope**, and validity is only a **time** interval. No single field on its own is proof that the certificate is trusted.
 
-## 2. Subject: tên của chủ thể sở hữu public key
+## 2. Subject: Name of the Entity Holding the Public Key
 
-**Subject** trong `TBSCertificate` xác định thực thể gắn với public key trong `subjectPublicKeyInfo`. Có thể là tổ chức, người dùng, CA hay dịch vụ; cách diễn giải danh tính phụ thuộc loại chứng thư, CA và chính sách kiểm chứng.
+**Subject** in `TBSCertificate` identifies the entity bound to the public key in `subjectPublicKeyInfo`. It may be an organization, user, CA, or service; how identity is interpreted depends on the certificate type, CA, and verification policy.
 
-Một subject DN thường thấy:
+A typical subject DN:
 
 ```text
 CN=api.example.test,OU=Platform,O=Example Corp,L=Hanoi,C=VN
 ```
 
-| Thuộc tính DN | Nghĩa gần đúng | Lưu ý |
+| DN attribute | Approximate meaning | Notes |
 | --- | --- | --- |
-| `CN` — Common Name | Tên thông dụng của chủ thể | Không coi là tên miền TLS đã xác minh chỉ bằng `CN` |
-| `O` — Organization | Tổ chức | Không mặc định CA đã xác minh ở mọi loại profile |
-| `OU` — Organizational Unit | Đơn vị trong tổ chức | Có thể không hiện diện; không dùng làm quyền truy cập |
-| `C` — Country | Mã quốc gia, ví dụ `VN` | Không chứng minh nơi đặt máy chủ |
-| `L` / `ST` | Địa phương / bang-tỉnh | Dữ liệu định danh, không phải nguồn tin cậy tuyệt đối |
-| `DC` / `UID` | Domain component / user ID | Là **attribute type**, không đồng nghĩa SAN DNS hay tên user đã xác thực |
+| `CN` — Common Name | Common name of the subject | Do not treat `CN` alone as a verified TLS domain name |
+| `O` — Organization | Organization | Do not assume the CA verified it across all profile types |
+| `OU` — Organizational Unit | Unit within the organization | May be absent; do not use for access permissions |
+| `C` — Country | Country code, e.g., `VN` | Does not prove where the server is hosted |
+| `L` / `ST` | Locality / state-province | Identifying data, not an absolute source of trust |
+| `DC` / `UID` | Domain component / user ID | **Attribute types**, not equivalent to DNS SAN or an authenticated username |
 
-Tên có nhiều thuộc tính gọi là **Distinguished Name** (DN). Một DN là chuỗi có cấu trúc ASN.1 `Name`, gồm những **Relative Distinguished Name (RDN)** theo thứ tự; một RDN có thể gồm **nhiều Attribute Value Assertion (AVA)**. Dấu phẩy và dấu cộng trong biểu diễn text có ý nghĩa cú pháp, không phải ký tự dữ liệu thuần túy.
+A name with multiple attributes is called a **Distinguished Name** (DN). A DN is an ASN.1 `Name` structure consisting of ordered **Relative Distinguished Names (RDNs)**; an RDN may contain **multiple Attribute Value Assertions (AVAs)**. Commas and plus signs in text representations have syntactic meaning, not just literal character data.
 
-Ví dụ:
+For example:
 
 ```text
 CN=Doe\, Jane,O=Example Lab,C=VN
 ```
 
-Dấu `\,` thể hiện dấu phẩy **nằm trong giá trị CN**, không phải dấu phân cách RDN. Do đó thao tác như `subjectString.split(",")` là **sai** nếu dùng để parse DN từ bên ngoài. Giá trị còn có thể chứa dấu `+`, `=`, `#`, khoảng trắng có ý nghĩa, mã hóa Unicode/OID; cần parser DN chuẩn.
+The `\,` represents a comma **inside the CN value**, not an RDN separator. Therefore, operations like `subjectString.split(",")` are **wrong** when parsing external DNs. Values may also contain `+`, `=`, `#`, significant whitespace, or Unicode/OID encodings; a standard DN parser is required.
 
-### 2.1 Subject DN có thể **rỗng**
+### 2.1 The Subject DN Can Be **Empty**
 
-RFC 5280 cho phép subject được biểu diễn bằng **empty sequence**, nếu thông tin nhận diện nằm trong `subjectAltName`. Khi subject rỗng, extension SAN phải có mặt và được đánh dấu **critical** theo profile. `X509Certificate.getSubjectX500Principal()` vẫn trả về một `X500Principal` hợp lệ; `getName()` có thể trả **chuỗi rỗng**.
+RFC 5280 allows the subject to be represented as an **empty sequence** when identifying information resides in `subjectAltName`. When the subject is empty, the SAN extension must be present and marked **critical** per profile. `X509Certificate.getSubjectX500Principal()` still returns a valid `X500Principal`; `getName()` may return an **empty string**.
 
-Không viết:
+Do not write:
 
 ```java
-// SAI: giả định mọi certificate có CN, và CN luôn là hostname.
+// WRONG: assumes every certificate has a CN, and that CN is always the hostname.
 String host = cert.getSubjectX500Principal()
         .getName().split(",")[0].substring(3);
 ```
 
-Đoạn trên là **phản ví dụ**, không nên đưa vào sản phẩm: subject có thể rỗng, CN có thể không ở vị trí đầu, giá trị có ký tự escape và tên TLS cần xử lý **SAN** theo profile xác minh danh tính dịch vụ.
+The snippet above is an **anti-pattern** and must never go into production: the subject may be empty, CN may not be first, values may contain escaped characters, and TLS names must process **SAN** according to service identity verification profiles.
 
-### 2.2 Subject CN và xác minh hostname TLS
+### 2.2 Subject CN and TLS Hostname Verification
 
-**Subject DN không tự là bằng chứng hostname hợp lệ.** Trong TLS hiện đại, nhận diện dịch vụ được biểu diễn và đối chiếu qua **Subject Alternative Name** theo chính sách (ví dụ `dNSName`, `iPAddress`).
+**Subject DN is not itself proof of a valid hostname.** In modern TLS, service identity is represented and matched via **Subject Alternative Name** per policy (e.g., `dNSName`, `iPAddress`).
 
-RFC 9525 (thay thế RFC 6125) xác định rằng danh tính dịch vụ TLS không còn được lấy từ RDN `commonName` trong subject; thực hành đúng là so tên dịch vụ dự kiến với SAN phù hợp **sau khi** xác thực chứng thư theo PKI.
+RFC 9525 (superseding RFC 6125) specifies that TLS service identity is no longer taken from the `commonName` RDN in the subject; the proper practice is to compare the expected service name against the appropriate SAN **after** PKI certificate validation.
 
-Trong Java, không tự so sánh `CN=...` với hostname rồi tắt hostname verification. Dùng HTTP/TLS client và cơ chế kiểm tra tên máy chủ/trust của nền tảng hoặc thư viện được cấu hình đúng. Việc subject có chữ `CN=example.com` **không đảm bảo** kết nối `example.com` đáng tin.
+In Java, never compare `CN=...` against the hostname yourself and disable hostname verification. Use HTTP/TLS clients and the platform's or library's properly configured hostname/trust verification mechanisms. Having `CN=example.com` in the subject **does not guarantee** connecting to `example.com` is trustworthy.
 
-## 3. Issuer: tên bên đã phát hành/ký chứng thư
+## 3. Issuer: Name of the Issuing/Signing Entity
 
-**Issuer** trong `TBSCertificate` là DN của CA đã phát hành và ký chứng thư. RFC 5280 yêu cầu issuer DN **không trống** đối với chứng thư phù hợp profile.
+**Issuer** in `TBSCertificate` is the DN of the CA that issued and signed the certificate. RFC 5280 requires the issuer DN to be **non-empty** for profile-compliant certificates.
 
-Ví dụ chuỗi:
+Example chain:
 
 ```text
 Leaf certificate:
@@ -121,47 +121,47 @@ Root CA certificate:
     issuer  = CN=Example Root CA,O=Example PKI,C=VN
 ```
 
-Khi xây chứng thư chuỗi, **name chaining** liên hệ `issuer` của chứng thư con với `subject` của chứng thư cấp trên theo quy tắc so sánh DN. Nhưng **trùng tên mới là điều kiện cần, chưa đủ**. Kẻ tấn công có thể tự tạo chứng thư mới với DN giống CA nổi tiếng; tên giống nhau không chứng minh có khóa riêng của CA hay được hệ thống tin cậy.
+When building a certificate chain, **name chaining** links a child certificate's `issuer` to the parent certificate's `subject` under DN comparison rules. However, **matching names is only a necessary condition, not sufficient**. An attacker can generate a new certificate with a DN identical to a well-known CA; matching names proves neither possession of the CA's private key nor system trust.
 
-Một hệ thống xác minh đầy đủ còn cần:
+A complete verification system also requires:
 
-- Xác minh **chữ ký** chứng thư con bằng **public key thật** của CA cấp trên.
-- Kiểm tra **CA BasicConstraints**, `keyCertSign` (KeyUsage), path length, thuật toán/key được phép và các ràng buộc liên quan.
-- Xây và xác minh đường dẫn tới **trust anchor** được cấu hình tin cậy.
-- Kiểm tra **thời hạn**, **thu hồi** (CRL/OCSP theo chính sách), policy/name constraints và định danh dịch vụ.
-- Không tin CA chỉ vì tên issuer giống một chuỗi được hard-code.
+- Verifying the child certificate's **signature** using the **real public key** of the parent CA.
+- Checking **CA BasicConstraints**, `keyCertSign` (KeyUsage), path length, allowed algorithms/keys, and related constraints.
+- Building and validating a path to a configured trusted **trust anchor**.
+- Checking **validity**, **revocation** (CRL/OCSP per policy), policy/name constraints, and service identity.
+- Never trusting a CA merely because the issuer name matches a hardcoded string.
 
-### 3.1 Self-issued, self-signed và trusted không đồng nghĩa
+### 3.1 Self-Issued, Self-Signed, and Trusted Are Not Synonyms
 
-| Tính chất | Định nghĩa | Điều **không** được suy ra |
+| Property | Definition | What must **not** be inferred |
 | --- | --- | --- |
-| **Self-issued** | `subject` và `issuer` DN giống nhau theo quy tắc so sánh tên | Chưa chứng minh chữ ký do public key trong chứng thư tạo ra |
-| **Self-signed** | Chữ ký trên chứng thư được kiểm chứng bằng public key của **chính chứng thư** | Chưa chứng minh chứng thư nằm trong trust store |
-| **Trusted** | Chứng thư/chuỗi được chính sách tin cậy chấp nhận từ một trust anchor được quản lý | Không chỉ dựa vào `subject == issuer` hay `verify(publicKey)` |
+| **Self-issued** | `subject` and `issuer` DNs are identical under name comparison rules | Does not prove the signature was made by the key in the certificate |
+| **Self-signed** | The signature on the certificate verifies with the public key of **the certificate itself** | Does not prove the certificate is in the trust store |
+| **Trusted** | The certificate/chain is accepted by trust policy from a managed trust anchor | Cannot rely solely on `subject == issuer` or `verify(publicKey)` |
 
-Một **self-issued certificate** không nhất thiết là **self-signed** (ví dụ một số trường hợp CA đổi khóa); và một self-signed certificate dù chữ ký hợp lệ cũng **không tự động đáng tin**. Các root certificate chỉ trở thành trust anchor khi được quản trị trong trust store/chính sách chấp nhận của bên xác minh.
+A **self-issued certificate** is not necessarily **self-signed** (e.g., certain CA key rollover cases); and a self-signed certificate, even with a valid signature, is **not automatically trusted**. Root certificates become trust anchors only when managed in the verifier's trust store/acceptance policy.
 
-Trong Java:
+In Java:
 
 ```java
 boolean selfIssued = cert.getSubjectX500Principal()
         .equals(cert.getIssuerX500Principal());
 ```
 
-Đây là **đoạn code nhúng** với biến `X509Certificate cert` đã được nạp; `selfIssued` chỉ nói về **tên**, không nói về chữ ký hay trust.
+This is an **inline snippet** with an already-loaded `X509Certificate cert` variable; `selfIssued` speaks only to **names**, not signatures or trust.
 
-## 4. Serial number: định danh chứng thư **trong phạm vi issuer**
+## 4. Serial Number: Certificate Identifier **Within the Issuer's Scope**
 
-`serialNumber` của X.509 nằm trong `TBSCertificate`. Đây là số nguyên do **CA phát hành** gán cho **mỗi chứng thư**, khác với tên subject và khác với ID người dùng.
+`serialNumber` of X.509 resides in `TBSCertificate`. It is an integer assigned by the **issuing CA** to **each certificate**, distinct from the subject name and distinct from user IDs.
 
-Theo RFC 5280:
+Per RFC 5280:
 
-- Serial phải là **số nguyên dương** do CA cấp cho mỗi chứng thư.
-- Mỗi serial phải **duy nhất trong tập chứng thư do cùng CA/issuer phát hành**. Do đó **issuer DN + serial number** xác định một chứng thư trong phạm vi PKI được mô tả.
-- Các CA tuân thủ không được phát serial dài quá **20 octets** theo profile; các triển khai cần xử lý serial lớn đến giới hạn này.
-- Có chứng thư không tuân thủ với serial `0` hoặc âm trong thực tế; bên đọc phải xử lý phù hợp, không crash do giả định mọi thứ hợp lệ.
+- The serial must be a **positive integer** assigned by the CA to each certificate.
+- Each serial must be **unique among certificates issued by the same CA/issuer**. Hence **issuer DN + serial number** identifies a certificate within the described PKI scope.
+- Compliant CAs must not issue serials longer than **20 octets** per profile; implementations must handle large serials up to this limit.
+- Non-compliant certificates with `0` or negative serials exist in practice; readers must handle them gracefully without crashing on the assumption that everything is compliant.
 
-### 4.1 So sánh đúng đơn vị định danh
+### 4.1 Comparing the Right Identification Unit
 
 ```text
 Issuer A: CN=CA-A,O=Example,C=VN
@@ -170,42 +170,42 @@ Issuer A: CN=CA-A,O=Example,C=VN
 Issuer B: CN=CA-B,O=Example,C=VN
   serial 0x01  -> certificate B-1
 
-Hai serial bằng nhau vẫn có thể là **hai chứng thư khác nhau**.
+Two equal serials can still be **two different certificates**.
 ```
 
-Không dùng `serial` đơn độc làm primary key **toàn cầu** của mọi chứng thư. Một hệ thống PKI nghiêm túc còn phải xác minh chuỗi/issuer thực tế, vì DN có thể được sử dụng lại và dữ liệu chứng thư có thể bị giả mạo trước khi xác thực.
+Never use `serial` alone as a **global** primary key for all certificates. A serious PKI system must also verify the actual chain/issuer, because DNs can be reused and certificate data can be spoofed before verification.
 
-Trong Java, đọc serial qua:
+In Java, read the serial via:
 
 ```java
 BigInteger serial = cert.getSerialNumber();
 String serialHex = serial.toString(16);
 ```
 
-Đây là **đoạn nhúng** (cần `java.math.BigInteger`, biến `cert` kiểu `X509Certificate`). `getSerialNumber()` trả `BigInteger`, **không phải `long`**; không dùng `longValue()` vì có thể mất bit và gây trùng sau khi ép kiểu. `toString(16)` hữu ích cho debug/tra cứu nhưng việc so khớp chứng thư nên làm trên giá trị có kiểu và phạm vi issuer đã xác thực.
+This is an **inline snippet** (requires `java.math.BigInteger`, variable `cert` of type `X509Certificate`). `getSerialNumber()` returns a `BigInteger`, **not a `long`**; do not call `longValue()` because it can lose bits and cause collisions after truncation. `toString(16)` is useful for debugging/lookup, while certificate matching should operate on typed values within a verified issuer scope.
 
-Định dạng hiển thị hex không nhất thiết giữ byte padding `00` ở đầu của ASN.1 DER; cần phân biệt **giá trị số** và **cách trình bày bytes**. Đừng giả định serial là “random token”, “secret” hoặc một ID máy chủ có thể ủy quyền.
+Hex display formatting does not necessarily preserve leading `00` padding bytes from ASN.1 DER; distinguish **numeric value** from **byte representation**. Do not assume a serial is a “random token”, “secret”, or delegatable server ID.
 
-### 4.2 Hai thứ tên “serial number” rất dễ nhầm
+### 4.2 Two Things Named “Serial Number” That Are Easily Confused
 
-Một DN có thể chứa thuộc tính `SERIALNUMBER` với **OID `2.5.4.5`**:
+A DN can contain a `SERIALNUMBER` attribute with **OID `2.5.4.5`**:
 
 ```text
 Subject: CN=Device A,SERIALNUMBER=ASSET-123,O=Factory,C=VN
 ```
 
-Đó là **thuộc tính text của subject DN**, có thể biểu diễn mã thiết bị/công ty theo profile cụ thể. Nó **không phải** trường `TBSCertificate.serialNumber` do CA cấp; hai giá trị có ngữ nghĩa và nơi lưu khác nhau.
+That is a **text attribute of the subject DN**, which may represent a device/company code under a specific profile. It is **not** the `TBSCertificate.serialNumber` field assigned by the CA; the two values have different semantics and storage locations.
 
-| Thuộc tính | Nằm ở đâu? | Java API |
+| Attribute | Where does it live? | Java API |
 | --- | --- | --- |
 | **Certificate serial number** | `TBSCertificate.serialNumber` | `cert.getSerialNumber()` → `BigInteger` |
-| **DN SERIALNUMBER attribute** | Một AVA/RDN trong `subject` hoặc `issuer` | `cert.getSubjectX500Principal()` → parse DN/OID phù hợp |
+| **DN SERIALNUMBER attribute** | An AVA/RDN inside `subject` or `issuer` | `cert.getSubjectX500Principal()` → parse DN/OID appropriately |
 
-Đừng trích `SERIALNUMBER=...` từ subject string để đưa vào API CRL/revocation hoặc để xây issuer+serial ID.
+Do not extract `SERIALNUMBER=...` from a subject string to feed into CRL/revocation APIs or construct an issuer+serial ID.
 
-## 5. Validity: `notBefore` và `notAfter`
+## 5. Validity: `notBefore` and `notAfter`
 
-Chứng thư chứa một trường `Validity` gồm hai thời điểm:
+A certificate contains a `Validity` field with two timestamps:
 
 ```asn1
 Validity ::= SEQUENCE {
@@ -214,112 +214,112 @@ Validity ::= SEQUENCE {
 }
 ```
 
-Theo RFC 5280, khoảng thời gian hiệu lực bao gồm thời điểm bắt đầu và kết thúc; về mặt trực giác:
+Per RFC 5280, the validity interval is inclusive of the start and end instants; intuitively:
 
 ```text
 notBefore <= evaluation_time <= notAfter
 ```
 
-| Trường | Nghĩa | Java API |
+| Field | Meaning | Java API |
 | --- | --- | --- |
-| `notBefore` | Thời điểm sớm nhất chứng thư có hiệu lực | `getNotBefore()` → `java.util.Date` |
-| `notAfter` | Thời điểm cuối cùng chứng thư có hiệu lực | `getNotAfter()` → `java.util.Date` |
-| Check hiện tại | Kiểm tra “lúc này” có nằm trong khoảng không | `checkValidity()` |
-| Check tại thời điểm chỉ định | Kiểm tra khoảng thời gian với thời điểm truyền vào | `checkValidity(Date date)` |
+| `notBefore` | Earliest timestamp the certificate is valid | `getNotBefore()` → `java.util.Date` |
+| `notAfter` | Latest timestamp the certificate is valid | `getNotAfter()` → `java.util.Date` |
+| Current check | Checks whether “right now” falls within the interval | `checkValidity()` |
+| Check at given time | Checks the interval against a passed timestamp | `checkValidity(Date date)` |
 
-Hai ngoại lệ có ý nghĩa riêng:
+Two exceptions have distinct meanings:
 
-- `CertificateNotYetValidException`: ngày kiểm tra **trước `notBefore`**.
-- `CertificateExpiredException`: ngày kiểm tra **sau `notAfter`**.
+- `CertificateNotYetValidException`: evaluation time is **before `notBefore`**.
+- `CertificateExpiredException`: evaluation time is **after `notAfter`**.
 
-`checkValidity()` là kiểm tra khoảng thời gian theo đồng hồ runtime; `checkValidity(Date)` kiểm tra theo thời điểm do caller truyền. Nó **không** tự verify chữ ký, trust chain, hostname, KeyUsage, EKU, CRL hay OCSP.
+`checkValidity()` checks the time interval against the runtime clock; `checkValidity(Date)` checks against a caller-supplied timestamp. It does **not** verify signatures, trust chains, hostnames, KeyUsage, EKU, CRL, or OCSP.
 
-### 5.1 UTC, UTCTime, GeneralizedTime và múi giờ
+### 5.1 UTC, UTCTime, GeneralizedTime, and Timezones
 
-Trong ASN.1 của X.509, `Time` có thể được mã hóa dạng `UTCTime` hoặc `GeneralizedTime`. Với profile RFC 5280:
+In X.509 ASN.1, `Time` can be encoded as `UTCTime` or `GeneralizedTime`. Under the RFC 5280 profile:
 
-- Những năm **1950–2049** dùng `UTCTime`.
-- Năm **2050 trở đi** dùng `GeneralizedTime`.
-- Giá trị được biểu diễn theo **Zulu/UTC** với giây và định dạng chuẩn tương ứng.
+- Years **1950–2049** use `UTCTime`.
+- Years **2050 and later** use `GeneralizedTime`.
+- Values are represented in **Zulu/UTC** with seconds and their respective standard formats.
 
-Java trả `Date` — tức một thời điểm tuyệt đối theo UTC về mặt instant, **không phải chuỗi timezone cụ thể**. Để log/hiển thị không bị hiểu sai do timezone máy, nên đổi:
+Java returns a `Date` — an absolute UTC instant in time, **not a specific timezone string**. To avoid misinterpretation in logs/display due to machine timezone, convert:
 
 ```java
 Instant start = cert.getNotBefore().toInstant();
 Instant end   = cert.getNotAfter().toInstant();
-System.out.println(start); // ISO-8601 UTC, dạng ...Z
+System.out.println(start); // ISO-8601 UTC, ...Z format
 ```
 
-Đây là **mã nhúng** (cần `import java.time.Instant;`). `Date.toString()` phụ thuộc múi giờ hiển thị mặc định, nên hai máy có thể in các chuỗi khác nhưng vẫn chỉ **cùng một instant**.
+This is an **inline snippet** (requires `import java.time.Instant;`). `Date.toString()` depends on the default display timezone, so two machines can print different strings while still referring to **the exact same instant**.
 
-### 5.2 Thời hạn hết không có nghĩa “đã bị thu hồi”
+### 5.2 Unexpired Does Not Mean “Not Revoked”
 
-Tình huống:
+Cases:
 
-- Chứng thư **chưa đến notBefore**: chưa có hiệu lực về thời gian.
-- Chứng thư **sau notAfter**: hết hiệu lực về thời gian.
-- Chứng thư **trong hạn**: **chỉ vượt qua một điều kiện thời gian**, vẫn có thể bị thu hồi, ký bằng CA không tin cậy, có tên dịch vụ sai hoặc key usage không phù hợp.
+- Certificate **before `notBefore`**: not yet time-valid.
+- Certificate **after `notAfter`**: expired in time.
+- Certificate **within validity**: **passes only one time check**; it can still be revoked, signed by an untrusted CA, have the wrong service name, or have an inappropriate key usage.
 
-Đừng viết logic như `if (now < notAfter) allowLogin();`. Nó bỏ qua `notBefore` và mọi điều kiện PKIX còn lại. Đồng hồ hệ thống lệch thời gian cũng có thể làm check sai; cần đồng bộ clock và dùng cơ chế xác minh của nền tảng.
+Never write logic like `if (now < notAfter) allowLogin();`. It ignores `notBefore` and every remaining PKIX requirement. System clock skew can also cause inaccurate checks; synchronize clocks and use the platform's verification mechanisms.
 
-### 5.3 Bản ghi hết hạn và xoay vòng chứng thư
+### 5.3 Expiration Records and Certificate Rotation
 
-Nếu `notAfter` sắp đến, ứng dụng nên **gia hạn/thay certificate** theo chính sách, đồng thời đảm bảo server đã triển khai leaf cùng chain thích hợp. Không “sửa ngày hết hạn” của chứng thư đã ký: `notBefore/notAfter` nằm trong **TBSCertificate được CA ký**. Thay chúng sẽ làm chữ ký không hợp lệ.
+If `notAfter` is approaching, the application should **renew/replace the certificate** per policy while ensuring the server deploys the leaf along with the appropriate chain. Never “edit the expiration date” of a signed certificate: `notBefore/notAfter` are inside the **CA-signed `TBSCertificate`**. Modifying them invalidates the signature.
 
-Một chứng thư gia hạn có thể có **serial mới**, validity mới và đôi khi public key mới; không mặc định rằng subject giống nhau thì hai certificate là một bản ghi. Nếu yêu cầu kiểm kê chứng thư, có thể lưu certificate fingerprint cùng issuer+serial, keyId và thời điểm hiệu lực.
+A renewed certificate may have a **new serial**, new validity, and sometimes a new public key; do not assume identical subjects mean two certificates are the same record. If certificate inventory is needed, store the certificate fingerprint along with issuer+serial, keyId, and validity timestamps.
 
-## 6. `X500Principal`: kiểu Java chuẩn để xử lý Distinguished Name
+## 6. `X500Principal`: Standard Java Type for Distinguished Names
 
-API `javax.security.auth.x500.X500Principal` đại diện cho **X.500 DN**, thay cho cách xử lý chuỗi tùy tiện hoặc giao diện `getSubjectDN()/getIssuerDN()` cũ.
+The `javax.security.auth.x500.X500Principal` API represents an **X.500 DN**, replacing ad-hoc string parsing or the older `getSubjectDN()/getIssuerDN()` interfaces.
 
-Hai phương thức quan trọng trên `X509Certificate`:
+Two key methods on `X509Certificate`:
 
 ```java
 X500Principal subject = cert.getSubjectX500Principal();
 X500Principal issuer  = cert.getIssuerX500Principal();
 ```
 
-Đây là **mã nhúng** trong một phương thức đã có biến `cert` và import `X500Principal`.
+This is an **inline snippet** inside a method that already has `cert` and imports `X500Principal`.
 
-### 6.1 Các định dạng hiển thị
+### 6.1 Display Formats
 
-`X500Principal` có:
+`X500Principal` provides:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `getName()` | Trả chuỗi **RFC2253** |
-| `getName(X500Principal.RFC2253)` | Định dạng RFC2253 cho tích hợp có yêu cầu text DN |
-| `getName(X500Principal.RFC1779)` | Biểu diễn thân thiện/kiểu RFC1779 |
-| `getName(X500Principal.CANONICAL)` | Chuỗi canonical dùng cho so sánh bình đẳng của `X500Principal` |
-| `getEncoded()` | Mã hóa **ASN.1 DER** của **Name**, không phải toàn bộ certificate |
-| `new X500Principal(byte[])` | Parse **DER-encoded DN** |
-| `equals(...)` | So sánh theo **canonical DN** do Java định nghĩa |
+| `getName()` | Returns an **RFC2253** string |
+| `getName(X500Principal.RFC2253)` | RFC2253 format for integrations requiring text DNs |
+| `getName(X500Principal.RFC1779)` | Friendly/RFC1779-style representation |
+| `getName(X500Principal.CANONICAL)` | Canonical string used for `X500Principal` equality comparison |
+| `getEncoded()` | **ASN.1 DER** encoding of the **Name**, not the entire certificate |
+| `new X500Principal(byte[])` | Parses a **DER-encoded DN** |
+| `equals(...)` | Compares using **canonical DN** as defined by Java |
 
-Quan trọng: **RFC2253 là format text của DN, không phải thuật toán tin cậy**. Nếu bạn cần kiểm tra hai DN có bằng nhau, ưu tiên `X500Principal.equals(...)` theo semantics được cung cấp, không tự `String.equalsIgnoreCase(...)` trên hai chuỗi format khác nhau.
+Important: **RFC2253 is a DN text format, not a trust algorithm**. If you need to check whether two DNs are equal, prefer `X500Principal.equals(...)` with its defined semantics rather than `String.equalsIgnoreCase(...)` on differently formatted strings.
 
-Chuỗi canonical hữu ích cho log/tra cứu nhưng **không biến subject/issuer thành xác thực quyền truy cập**. Hai CA có cùng chuỗi DN vẫn không phải một CA đáng tin nếu chữ ký/trust khác.
+Canonical strings are useful for logging/lookup, yet **do not turn subject/issuer into access authentication**. Two CAs with the same DN string are still not the same trusted CA if their signatures/trust differ.
 
-### 6.2 RDN có thứ tự; giá trị có ký tự escape
+### 6.2 RDNs Are Ordered; Values May Have Escaped Characters
 
-Một DN có thể chứa giá trị dấu phẩy, dấu cộng hoặc ký tự quốc tế:
+A DN can contain commas, plus signs, or international characters in values:
 
 ```text
 CN=Service\, QA,O=Example Lab,C=VN
 ```
 
-Nếu bạn tách theo dấu phẩy, bạn sẽ phá vỡ giá trị `CN=Service, QA` thành hai phần không hợp lệ.
+If you split on commas, you break `CN=Service, QA` into two invalid parts.
 
-Lưu ý thêm:
+Additional notes:
 
-- DN có thể có **RDN đa giá trị** được nối bằng `+`.
-- Dấu phẩy trong giá trị phải escape đúng theo biểu diễn RFC2253.
-- Một số attribute type được biểu diễn bằng **OID dạng số**, không nhất thiết có keyword dễ đọc.
-- `getName(CANONICAL)` đưa ra biểu diễn canonical phục vụ so sánh; đừng dựa vào thứ tự text “đẹp” để làm chính sách identity.
-- Nếu phải truy vấn riêng CN/O/OU, sử dụng parser theo chuẩn DN (ví dụ thư viện LDAP/X.500 phù hợp), **không tự split** và không làm auth dựa trên CN string.
+- A DN can have **multi-valued RDNs** joined by `+`.
+- Commas inside values must be properly escaped under RFC2253 representation.
+- Some attribute types are represented by **numeric OIDs**, not necessarily readable keywords.
+- `getName(CANONICAL)` provides a canonical representation for comparison; do not rely on “pretty” text ordering for identity policies.
+- If you must query CN/O/OU individually, use a standards-compliant DN parser (e.g., an appropriate LDAP/X.500 library), **never split manually** and never perform authorization based on the CN string.
 
-### 6.3 Thực hành 1: tạo, biểu diễn và round-trip `X500Principal`
+### 6.3 Practice 1: Creating, Formatting, and Round-Tripping `X500Principal`
 
-File **`X500PrincipalNamesDemo.java`**, chạy trên Java 17+:
+File **`X500PrincipalNamesDemo.java`**, running on Java 17+:
 
 ```java
 import javax.security.auth.x500.X500Principal;
@@ -343,14 +343,14 @@ public class X500PrincipalNamesDemo {
 }
 ```
 
-Lệnh biên dịch/chạy:
+Compile/run commands:
 
 ```bash
 javac --release 17 X500PrincipalNamesDemo.java
 java X500PrincipalNamesDemo
 ```
 
-Đầu ra đã kiểm tra:
+Verified output:
 
 ```text
 RFC2253 escaped comma: true
@@ -359,23 +359,23 @@ canonical stable: true
 different DN unequal: true
 ```
 
-Giải thích:
+Explanation:
 
-1. Java string cần viết `\\,` để mang một dấu `\` trước dấu phẩy cho bộ parser DN; nếu thiếu escape thì dấu phẩy sẽ bị hiểu là phân cách RDN.
-2. `getEncoded()` tạo byte DER của **chính DN**; xây lại `new X500Principal(bytes)` giữ semantics tên.
-3. `equals` trả true cho hai object đại diện cùng DN. Nó không kiểm tra chữ ký certificate hay độ tin cậy của issuer.
-4. DN `CN=Another Service,...` khác về subject → không bằng bản gốc.
-5. Program không “bóc riêng CN” bằng string split vì đó không phải cách xử lý cấu trúc X.500 an toàn.
+1. The Java string literal requires `\\,` to pass a single `\` before the comma to the DN parser; without escaping, the comma would be interpreted as an RDN separator.
+2. `getEncoded()` produces the DER bytes of **just the DN**; reconstructing `new X500Principal(bytes)` preserves name semantics.
+3. `equals` returns true for two objects representing the same DN. It does not check any certificate signature or issuer trustworthiness.
+4. The DN `CN=Another Service,...` differs in subject → not equal to the original.
+5. The program does not “extract just CN” with string split because that is not a safe way to process X.500 structures.
 
-**Đừng nhầm `X500Principal.getEncoded()` với `X509Certificate.getEncoded()`**: một bên là DER của **DN**, bên kia là DER của **toàn bộ chứng thư**.
+**Do not confuse `X500Principal.getEncoded()` with `X509Certificate.getEncoded()`**: one is the DER of the **DN**, the other is the DER of the **entire certificate**.
 
-## 7. Thực hành 2: đọc certificate từ PEM bằng Java 17
+## 7. Practice 2: Reading a Certificate from PEM in Java 17
 
-Một cách thực tế để học các trường này là dùng `keytool` của JDK tạo **một chứng thư lab tự ký** rồi đọc qua `CertificateFactory.getInstance("X.509")`. Ví dụ tạo key RSA 2048 cho mục đích minh họa, subject/issuer đều là `CN=localhost,O=Example Lab,C=VN`, SAN có `DNS:localhost`, thời hạn 30 ngày từ lúc phát hành. **Không dùng chứng thư lab làm certificate production hoặc root trust.**
+A practical way to study these fields is using JDK's `keytool` to generate **a self-signed lab certificate** and reading it via `CertificateFactory.getInstance("X.509")`. For example, create a 2048-bit RSA key for illustration with subject/issuer `CN=localhost,O=Example Lab,C=VN`, SAN `DNS:localhost`, and 30-day validity from issuance. **Never use lab certificates as production certificates or trusted roots.**
 
-### 7.1 Tạo certificate fixture bằng `keytool`
+### 7.1 Generating a Certificate Fixture with `keytool`
 
-Trong **thư mục trống dành cho bài lab**, chạy các lệnh sau với JDK có `keytool`:
+In an **empty directory dedicated to this lab**, run the following commands with a JDK containing `keytool`:
 
 ```bash
 keytool -genkeypair -alias lesson -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname "CN=localhost,O=Example Lab,C=VN" -validity 30 -keystore sample.p12 -storetype PKCS12 -storepass changeit -keypass changeit -ext SAN=dns:localhost -noprompt
@@ -383,22 +383,22 @@ keytool -genkeypair -alias lesson -keyalg RSA -keysize 2048 -sigalg SHA256withRS
 keytool -exportcert -alias lesson -keystore sample.p12 -storetype PKCS12 -storepass changeit -rfc -file sample-cert.pem
 ```
 
-- `sample.p12` chứa **private key lab** và certificate; **không commit, chia sẻ hoặc triển khai** lên hệ thống thật. Password `changeit` chỉ là password thử nghiệm, **không phải mật khẩu production**.
-- `sample-cert.pem` chỉ chứa **public certificate** và có thể được `CertificateFactory` đọc.
-- `-rfc` tạo biểu diễn PEM kiểu `-----BEGIN CERTIFICATE-----` + Base64 của DER; công cụ Java xử lý qua `CertificateFactory("X.509")`.
-- `-validity 30` chỉ để bài lab có certificate đang trong hạn tại lúc tạo; nếu bạn chạy lại chương trình sau 30 ngày, `checkValidity()` sẽ báo hết hạn đúng dự kiến.
+- `sample.p12` contains the **lab private key** and certificate; **never commit, share, or deploy** it to real systems. The password `changeit` is strictly a test password, **not a production password**.
+- `sample-cert.pem` contains only the **public certificate** and can be read by `CertificateFactory`.
+- `-rfc` produces a PEM representation (`-----BEGIN CERTIFICATE-----` + Base64 of DER); Java parses it via `CertificateFactory("X.509")`.
+- `-validity 30` simply gives the lab an unexpired certificate at creation time; if you re-run the program after 30 days, `checkValidity()` will report expiration as expected.
 
-Có thể kiểm tra trực quan bằng:
+You can visually inspect it with:
 
 ```bash
 keytool -printcert -file sample-cert.pem
 ```
 
-Giá trị serial và các mốc thời gian **khác nhau giữa những lần tạo**. Đừng copy serial ngẫu nhiên từ một lần chạy làm assertion ổn định của nhiều máy.
+The serial value and timestamps **differ across runs**. Do not copy a random serial from one run as a stable assertion across machines.
 
-### 7.2 Java code đọc năm trường
+### 7.2 Java Code Reading the Five Fields
 
-Tạo **`X509CertificateFieldsDemo.java`**:
+Create **`X509CertificateFieldsDemo.java`**:
 
 ```java
 import java.io.InputStream;
@@ -443,14 +443,14 @@ public class X509CertificateFieldsDemo {
 }
 ```
 
-Biên dịch/chạy sau khi tạo file `sample-cert.pem` trong cùng thư mục:
+Compile and run after creating `sample-cert.pem` in the same directory:
 
 ```bash
 javac --release 17 X509CertificateFieldsDemo.java
 java X509CertificateFieldsDemo sample-cert.pem
 ```
 
-Đầu ra đã chạy trên JDK có keytool tương thích:
+Output verified on a JDK with a compatible keytool:
 
 ```text
 subject: CN=localhost,O=Example Lab,C=VN
@@ -464,16 +464,16 @@ self-signature verifies: true
 SAN extension present: true
 ```
 
-**Lý giải:**
+**Explanation:**
 
-1. `CertificateFactory.getInstance("X.509").generateCertificate(...)` parse chứng thư ở dạng PEM/DER; cast về `X509Certificate` để dùng API chuyên biệt. **Parse thành công chưa tạo trust**.
-2. `getSubjectX500Principal` và `getIssuerX500Principal` trả các DN đúng kiểu; fixture tự ký nên subject và issuer **trùng nhau**.
-3. `getSerialNumber()` đọc `BigInteger` do `keytool` gán; ví dụ chỉ kiểm số dương và hiển thị hex có dữ liệu để stdout ổn định, không in serial cụ thể.
-4. `getNotBefore().toInstant()` và `getNotAfter().toInstant()` đọc hai thời điểm; chương trình kiểm tra trật tự và `checkValidity()` để xét lúc chạy.
-5. `certificate.verify(certificate.getPublicKey())` **chỉ** xác minh chữ ký bằng key có trong certificate; trong fixture tự ký, kết quả thành công. **Nó không biến certificate thành trusted root**, không kiểm tra đường dẫn PKIX/hostname/revocation.
-6. `getSubjectAlternativeNames()!=null` khẳng định fixture có extension SAN; **không tự xác minh localhost theo tiêu chuẩn TLS**.
+1. `CertificateFactory.getInstance("X.509").generateCertificate(...)` parses the PEM/DER certificate; cast to `X509Certificate` to use specialized APIs. **Parsing success does not create trust**.
+2. `getSubjectX500Principal` and `getIssuerX500Principal` return properly typed DNs; since the fixture is self-signed, subject and issuer **match**.
+3. `getSerialNumber()` reads the `BigInteger` assigned by `keytool`; the example checks positivity and non-empty hex for stable stdout rather than printing a specific serial.
+4. `getNotBefore().toInstant()` and `getNotAfter().toInstant()` read the two timestamps; the program checks ordering and calls `checkValidity()` at runtime.
+5. `certificate.verify(certificate.getPublicKey())` **only** checks the signature using the key inside the certificate; in the self-signed fixture, it succeeds. **It does not turn the certificate into a trusted root**, nor does it check PKIX path/hostname/revocation.
+6. `getSubjectAlternativeNames()!=null` confirms the fixture has a SAN extension; **it does not verify localhost according to TLS standards**.
 
-Ví dụ chủ động in các assertion có giá trị ổn định thay vì in serial và mốc thời gian chính xác, vì hai trường đó thay đổi theo lúc `keytool` tạo chứng thư. Trong ứng dụng kiểm kê, bạn có thể log **serial hex và ISO timestamp** theo chính sách dữ liệu hệ thống:
+The example intentionally prints stable assertions rather than exact serial and timestamps because those two fields change each time `keytool` creates a certificate. In an inventory application, you can log **serial hex and ISO timestamps** per system data policy:
 
 ```java
 String serial = certificate.getSerialNumber().toString(16);
@@ -481,17 +481,17 @@ Instant validFrom = certificate.getNotBefore().toInstant();
 Instant validUntil = certificate.getNotAfter().toInstant();
 ```
 
-Đây là **đoạn code nhúng** trong phương thức đã có biến `certificate` kiểu `X509Certificate`, cần import `Instant`. Không dùng các giá trị này làm quyết định cho phép truy cập nếu chưa xác minh chính sách PKIX.
+This is an **inline snippet** inside a method that already has `certificate` of type `X509Certificate` and imports `Instant`. Never use these values for access-control decisions without PKIX policy verification.
 
-## 8. Thực hành 3: kiểm tra chính xác ranh giới thời hạn
+## 8. Practice 3: Checking Exact Validity Boundaries
 
-Có thể dùng `checkValidity(Date)` để kiểm tra **cùng một certificate** ở nhiều thời điểm, không phụ thuộc ngày hiện tại của máy. Với fixture 30 ngày ở bước trước, ta thử:
+You can use `checkValidity(Date)` to test **the same certificate** at multiple points in time, independent of the machine's current date. With the 30-day fixture from the previous step, we test:
 
-- 1 giây **trước notBefore** → `CertificateNotYetValidException`.
-- **Điểm giữa** khoảng hiệu lực → hợp lệ về thời gian.
-- 1 giây **sau notAfter** → `CertificateExpiredException`.
+- 1 second **before `notBefore`** → `CertificateNotYetValidException`.
+- **Midpoint** of the validity interval → time-valid.
+- 1 second **after `notAfter`** → `CertificateExpiredException`.
 
-Tạo **`X509ValidityBoundsDemo.java`**:
+Create **`X509ValidityBoundsDemo.java`**:
 
 ```java
 import java.io.InputStream;
@@ -542,14 +542,14 @@ public class X509ValidityBoundsDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile and run:
 
 ```bash
 javac --release 17 X509ValidityBoundsDemo.java
 java X509ValidityBoundsDemo sample-cert.pem
 ```
 
-Đầu ra đã kiểm tra:
+Verified output:
 
 ```text
 before notBefore rejected: true
@@ -557,165 +557,165 @@ midpoint accepted: true
 after notAfter rejected: true
 ```
 
-Ý nghĩa:
+Significance:
 
-- Không phụ thuộc timezone hiển thị vì `Instant` và `Date.from` cùng biểu diễn **thời điểm tuyệt đối**.
-- Việc bắt hai exception riêng giúp phân biệt lý do về **thời hạn**.
-- `midpoint` được tạo từ chính thời hạn của certificate và nằm giữa hai biên của fixture.
-- Kiểm tra **tại một thời điểm giả lập** hữu ích cho unit test và test expiry, nhưng **không nên dùng tùy ý một date trong quá khứ để “vượt hạn” certificate trong kết nối TLS hiện tại**.
-- Một lần `checkValidity` thành công vẫn chưa xác minh trust chain/revocation/danh tính dịch vụ.
+- Independent of display timezone because `Instant` and `Date.from` both represent **absolute instants**.
+- Catching the two distinct exceptions separates the **validity boundary** reasons.
+- `midpoint` is computed from the certificate's own validity bounds and falls between the fixture's two boundaries.
+- Checking **at a simulated timestamp** is useful for unit tests and expiry testing, but **never pass an arbitrary past date to “bypass expiration” of a certificate in a live TLS connection**.
+- A passing `checkValidity` call still does not verify trust chain, revocation, or service identity.
 
-## 9. Từ các trường X.509 đến xác minh chứng thư thật
+## 9. From X.509 Fields to Real Certificate Verification
 
-Một sơ đồ tối giản:
+A minimal diagram:
 
 ```text
 certificate bytes (PEM/DER)
            |
            v
-CertificateFactory: parse cấu trúc X.509
+CertificateFactory: parse X.509 structure
            |
            v
-Đọc subject / issuer / serial / validity
+Read subject / issuer / serial / validity
            |
            v
        checkValidity
            |
            v
-  Chỉ biết thông tin và mốc thời gian
+  Only metadata and timestamps are known
            |
-           +--> Chưa chứng minh chữ ký của CA đúng
-           +--> Chưa tìm trust anchor đáng tin
-           +--> Chưa kiểm tra policy/KU/EKU/name constraints
-           +--> Chưa kiểm tra hostname/SAN
-           +--> Chưa đánh giá revocation
+           +--> CA signature not yet proven valid
+           +--> Trusted trust anchor not yet found
+           +--> policy/KU/EKU/name constraints not yet checked
+           +--> hostname/SAN not yet checked
+           +--> revocation not yet evaluated
 ```
 
-Để xác minh toàn bộ đường dẫn trong Java, các API liên quan gồm `CertPathValidator`, `PKIXParameters`, `TrustAnchor` và các thành phần `TrustManager` của TLS, thường do thư viện TLS/HTTPS gọi theo cấu hình. **Đừng tự xây policy xác thực từ chuỗi DN và ngày hết hạn**.
+To verify the full path in Java, the relevant APIs include `CertPathValidator`, `PKIXParameters`, `TrustAnchor`, and TLS `TrustManager` components, usually invoked by configured TLS/HTTPS libraries. **Never build your own verification policy out of DN strings and expiration dates**.
 
-Các ranh giới quan trọng:
+Important boundaries:
 
-1. **`getIssuerX500Principal()` không lấy public key CA.** Tên issuer chỉ là một trường. Public key CA cần lấy từ chain/trust anchor đã kiểm chứng.
-2. **`certificate.verify(publicKey)` không xây chain**. Nó chỉ kiểm chữ ký của chứng thư hiện tại với **key được đưa vào**; nếu bạn tự lấy key từ input không tin cậy thì có thể kiểm chữ ký đúng nhưng vẫn không trust.
-3. **`checkValidity()` không kiểm tra revocation**. Chứng thư trong hạn vẫn có thể bị CA thu hồi.
-4. **Subject DN không thay SAN** trong việc kiểm tên máy chủ TLS hiện đại.
-5. **Issuer + serial** hữu ích cho tham chiếu trong PKI/revocation, nhưng **không thay chứng thực issuer/trust**.
-6. **X500Principal.equals(...) chỉ so sánh danh tính DN** theo canonical string; nó không kiểm public key hoặc chứng thư.
+1. **`getIssuerX500Principal()` does not retrieve the CA public key.** The issuer name is just a field. The CA public key must come from a verified chain/trust anchor.
+2. **`certificate.verify(publicKey)` does not build a chain**. It only checks the current certificate's signature against **the supplied key**; if you take that key from untrusted input, the signature check can pass without any trust.
+3. **`checkValidity()` does not check revocation**. An unexpired certificate may still have been revoked by the CA.
+4. **Subject DN does not replace SAN** in modern TLS hostname verification.
+5. **Issuer + serial** is useful for referencing in PKI/revocation, yet **does not replace issuer/trust verification**.
+6. **`X500Principal.equals(...)` only compares DN identity** via canonical strings; it does not verify public keys or certificates.
 
-### 9.1 Làm thế nào để tra chứng thư theo issuer + serial?
+### 9.1 How to Look Up a Certificate by Issuer + Serial?
 
-Trong hệ thống inventory hoặc CRL, khóa nghiệp vụ có thể gồm:
+In an inventory or CRL system, the business key can consist of:
 
 ```text
 (canonical issuer DN, certificate serial BigInteger)
 ```
 
-Điều này phù hợp với phạm vi uniqueness serial trên từng issuer theo RFC 5280. Tuy nhiên, với cơ sở dữ liệu đa PKI, nên kết hợp với **issuer key identifier hoặc certificate fingerprint** khi cần giảm nhầm lẫn giữa CA có tên giống nhau; việc chấp nhận chứng thư vẫn phải dựa trên chain và policy.
+This matches per-issuer serial uniqueness under RFC 5280. However, in multi-PKI databases, pair it with an **issuer key identifier or certificate fingerprint** when needed to reduce ambiguity between CAs with similar names; certificate acceptance must still rely on chain and policy validation.
 
-Nếu chỉ có chuỗi biểu diễn RFC1779/2253, đừng tự so sánh bằng `String.equalsIgnoreCase`. Dùng `X500Principal` chuẩn và key/chain metadata theo giao thức.
+If you only have RFC1779/2253 text representations, do not compare them with `String.equalsIgnoreCase`. Use standard `X500Principal` and key/chain metadata per protocol.
 
-### 9.2 Phân biệt certificate serial với certificate fingerprint
+### 9.2 Distinguishing Certificate Serial from Certificate Fingerprint
 
-- **Serial number** do CA gán và có uniqueness **trong phạm vi issuer**.
-- **Fingerprint** (ví dụ SHA-256 trên toàn bộ DER certificate) là digest của **chính bytes certificate**. Nó hữu ích cho nhận diện/đối chiếu file hoặc pinning theo chính sách, không phải serial.
-- Một certificate được parse từ PEM hay DER có cùng bytes DER nội bộ (`getEncoded()`), nên fingerprint DER đúng cách không phụ thuộc whitespace của phần bọc PEM.
-- Fingerprint không mặc nhiên là trust anchor: chấp nhận một fingerprint là **quyết định chính sách** và cần quy trình cập nhật/rotation.
+- **Serial number** is assigned by the CA and is unique **within the issuer's scope**.
+- **Fingerprint** (e.g., SHA-256 over the entire DER certificate) is a digest of **the certificate bytes themselves**. It is useful for file identification/comparison or policy-based pinning, not as a serial.
+- A certificate parsed from PEM or DER has the same internal DER bytes (`getEncoded()`), so a proper DER fingerprint does not depend on PEM wrapper whitespace.
+- A fingerprint is not automatically a trust anchor: accepting a fingerprint is a **policy decision** and requires update/rotation procedures.
 
-## 10. Sai lầm thường gặp và cách sửa
+## 10. Common Mistakes and Fixes
 
-| Sai lầm | Vì sao sai? | Cách đúng |
+| Mistake | Why is it wrong? | Correct approach |
 | --- | --- | --- |
-| “Issuer có tên CA nổi tiếng nên trusted.” | Tên có thể bị giả mạo; chưa kiểm chữ ký/chain. | Dùng PKIX/trust store. |
-| “`subject.equals(issuer)` = certificate trusted.” | Đây chỉ là **self-issued** theo tên. | Phân biệt self-issued, self-signed, trust anchor. |
-| “CN chính là DNS hostname.” | TLS hiện đại so danh tính qua SAN, không CN fallback. | Dùng TLS hostname verification theo RFC 9525. |
-| “Serial toàn thế giới là duy nhất.” | Serial duy nhất **theo CA/issuer**. | Kết hợp issuer + serial và trust metadata. |
-| “Serial nằm trong subject `SERIALNUMBER=...`.” | Đây là **DN attribute khác**. | `getSerialNumber()` cho certificate serial. |
-| “Serial nhỏ, cast `longValue()` cho tiện.” | Có thể mất bit/trùng. | Giữ `BigInteger`. |
-| “Mọi subject đều có CN.” | Subject có thể rỗng, SAN có thể mang toàn bộ định danh. | Dùng `getSubjectX500Principal`, xử lý SAN. |
-| “Tách DN bằng dấu phẩy.” | Dấu phẩy có thể được escape trong giá trị. | Dùng parser X.500/DN. |
-| “So sánh DN text theo ký tự.” | Các format, escape/canonical khác nhau. | Dùng `X500Principal.equals` đúng semantics. |
-| “Hết hạn chỉ cần `notAfter`.” | Còn `notBefore` và nhiều yêu cầu PKIX khác. | Dùng `checkValidity` + path validation. |
-| “`checkValidity()` = certificate hợp lệ toàn diện.” | Chỉ xét mốc thời gian. | Kiểm chữ ký/chain/trust/policy/revocation/identity. |
-| “`Date.toString()` in giờ địa phương là ngày chuẩn trên chứng thư.” | Timezone hiển thị thay đổi, instant không đổi. | Dùng `toInstant()` và ISO-8601 UTC. |
-| “Certificate tự ký bằng key đúng là root đáng tin.” | Chứng minh tự ký không đồng nghĩa trust. | Chỉ chấp nhận trust anchor được quản lý. |
-| “Có thể sửa ngày/subject trong chứng thư DER.” | Những trường này được CA ký trong TBS. | Phát hành/renew chứng thư mới. |
+| “Issuer has a famous CA name, so it is trusted.” | Names can be spoofed; signature/chain not verified. | Use PKIX/trust store. |
+| “`subject.equals(issuer)` = trusted certificate.” | That is only **self-issued** by name. | Distinguish self-issued, self-signed, trust anchor. |
+| “CN is the DNS hostname.” | Modern TLS matches identity via SAN, not CN fallback. | Use TLS hostname verification per RFC 9525. |
+| “Serials are globally unique.” | Serials are unique **per CA/issuer**. | Combine issuer + serial and trust metadata. |
+| “The serial is in subject `SERIALNUMBER=...`.” | That is a **different DN attribute**. | `getSerialNumber()` for the certificate serial. |
+| “Serial is small; cast `longValue()` for convenience.” | Can lose bits / collide. | Keep `BigInteger`. |
+| “Every subject has a CN.” | Subject may be empty; SAN may carry all identifiers. | Use `getSubjectX500Principal`, process SAN. |
+| “Split DN by commas.” | Commas can be escaped inside values. | Use an X.500/DN parser. |
+| “Compare DN text character by character.” | Formats and escaping/canonicalization differ. | Use `X500Principal.equals` with proper semantics. |
+| “Expiration only needs `notAfter`.” | There is also `notBefore` and many other PKIX checks. | Use `checkValidity` + path validation. |
+| “`checkValidity()` = completely valid certificate.” | Checks only timestamps. | Check signature/chain/trust/policy/revocation/identity. |
+| “`Date.toString()` in local time is the certificate's canonical date.” | Display timezone varies, instant does not. | Use `toInstant()` and ISO-8601 UTC. |
+| “A certificate self-signed with a valid key is a trusted root.” | Proving self-signing does not mean trust. | Only accept managed trust anchors. |
+| “Dates/subjects in a DER certificate can be edited.” | Those fields are signed by the CA in TBS. | Re-issue/renew a new certificate. |
 
-## 11. Quy trình chẩn đoán trường hợp “certificate rejected”
+## 11. Diagnostic Workflow for “Certificate Rejected”
 
-Một log từ Java ghi “certificate expired”, “PKIX path building failed”, “No subject alternative names matching” có thể xuất phát từ **những lớp kiểm tra khác nhau**. Để phân tích:
+A Java log saying “certificate expired”, “PKIX path building failed”, or “No subject alternative names matching” can originate from **different verification layers**. To analyze:
 
-1. **Parse certificate**: `CertificateFactory` có đọc đúng PEM/DER không? Có nhầm file private key với certificate không?
-2. **Subject/issuer**: in DN bằng `getSubjectX500Principal().getName(RFC2253)` và tương ứng issuer; không xem tên là trust.
-3. **Serial**: lấy `BigInteger`/hex để tra CA/CRL hoặc inventory, không trộn với `SERIALNUMBER` thuộc DN.
-4. **Validity**: kiểm `notBefore`, `notAfter` bằng UTC; xem đồng hồ máy/server, NTP và thời điểm đang kiểm.
-5. **Signature/chain**: chuỗi leaf → intermediate → trust anchor có đủ, issuer DN có nối đúng và chữ ký được verify bằng key CA chính xác không?
-6. **Policy**: BasicConstraints, KeyUsage, ExtendedKeyUsage, name constraints và thuật toán có đáp ứng ứng dụng không?
-7. **Revocation**: CRL/OCSP được cấu hình và có trạng thái phù hợp theo chính sách không?
-8. **TLS service identity**: SAN có DNS/IP đúng tên dịch vụ truy cập không? Có tắt hostname verification không?
-9. **Nếu dùng mã tùy chỉnh**: xác minh rằng nó **không** chỉ so chuỗi subject, thời hạn hay serial rồi bypass trust manager.
+1. **Parse certificate**: Did `CertificateFactory` read PEM/DER properly? Was a private key file mistaken for a certificate?
+2. **Subject/issuer**: Print DNs using `getSubjectX500Principal().getName(RFC2253)` and the corresponding issuer; never treat names as trust.
+3. **Serial**: Retrieve `BigInteger`/hex to look up in CA/CRL or inventory, without mixing it up with the DN's `SERIALNUMBER`.
+4. **Validity**: Check `notBefore` and `notAfter` in UTC; inspect machine/server clock, NTP, and evaluation time.
+5. **Signature/chain**: Is the leaf → intermediate → trust anchor chain complete, do issuer DNs chain properly, and do signatures verify with the exact CA keys?
+6. **Policy**: Do BasicConstraints, KeyUsage, ExtendedKeyUsage, name constraints, and algorithms satisfy the application?
+7. **Revocation**: Is CRL/OCSP configured and is the status acceptable under policy?
+8. **TLS service identity**: Does SAN have a DNS/IP matching the accessed service name? Was hostname verification disabled?
+9. **If custom code is used**: verify it **does not** merely compare subject strings, validity, or serials and bypass the trust manager.
 
-Không ghi private key, token hay nội dung bí mật vào log. Public certificate thường không bí mật, nhưng vẫn có thể chứa thông tin định danh; hãy áp dụng chính sách logging/quyền truy cập của tổ chức.
+Never log private keys, tokens, or secret contents. Public certificates are generally non-secret, yet can still contain identifying information; apply organizational logging and access-control policies.
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-**Câu 1.** Subject và issuer khác nhau thế nào?  
-**Trả lời:** Subject xác định chủ thể gắn với public key; issuer xác định thực thể CA đã phát hành/ký certificate.
+**Question 1.** How do subject and issuer differ?  
+**Answer:** Subject identifies the entity bound to the public key; issuer identifies the CA entity that issued/signed the certificate.
 
-**Câu 2.** `CN=example.com` trong subject có đủ để TLS Java client tin `https://example.com` không?  
-**Trả lời:** Không. Cần kiểm tra trust chain/policy và định danh dịch vụ qua SAN theo cơ chế TLS hiện đại.
+**Question 2.** Is `CN=example.com` in the subject enough for a Java TLS client to trust `https://example.com`?  
+**Answer:** No. Trust chain/policy and service identity via SAN must be verified according to modern TLS mechanisms.
 
-**Câu 3.** Hai CA khác nhau có thể cấp cùng serial number `42` không?  
-**Trả lời:** Có. Serial là duy nhất **trong phạm vi mỗi issuer/CA**, không trên toàn Internet.
+**Question 3.** Can two different CAs issue the same serial number `42`?  
+**Answer:** Yes. Serials are unique **within each issuer/CA**, not across the entire Internet.
 
-**Câu 4.** `SERIALNUMBER=ASSET-123` của subject DN có giống `getSerialNumber()` không?  
-**Trả lời:** Không. Một bên là AVA/OID trong DN, bên kia là số serial của chứng thư do CA gán.
+**Question 4.** Is `SERIALNUMBER=ASSET-123` in the subject DN the same as `getSerialNumber()`?  
+**Answer:** No. One is an AVA/OID in the DN, while the other is the CA-assigned certificate serial number.
 
-**Câu 5.** Khi gặp `CertificateNotYetValidException` và `CertificateExpiredException`, chúng khác gì?  
-**Trả lời:** Thời điểm kiểm trước `notBefore` versus sau `notAfter`.
+**Question 5.** When encountering `CertificateNotYetValidException` vs. `CertificateExpiredException`, how do they differ?  
+**Answer:** Evaluation time is before `notBefore` versus after `notAfter`.
 
-**Câu 6.** `cert.checkValidity()` trả về bình thường có chứng minh certificate trusted không?  
-**Trả lời:** Không; mới kiểm tra khoảng thời gian hiệu lực của certificate tại thời điểm hiện tại.
+**Question 6.** If `cert.checkValidity()` returns normally, does that prove the certificate is trusted?  
+**Answer:** No; it only checked the certificate's validity window at the current time.
 
-**Câu 7.** Vì sao `X500Principal` tốt hơn `String.split(",")`?  
-**Trả lời:** DN có cú pháp ASN.1/RDN, dấu phẩy escape, RDN đa giá trị, OID và canonical form; split chuỗi thô không hiểu cấu trúc.
+**Question 7.** Why is `X500Principal` better than `String.split(",")`?  
+**Answer:** DNs have ASN.1/RDN syntax, escaped commas, multi-valued RDNs, OIDs, and canonical forms; naive string splitting does not understand the structure.
 
-**Câu 8.** Certificate có `subject == issuer` thì là gì?  
-**Trả lời:** **Self-issued** về tên. Cần verify chữ ký riêng để xác định self-signed, và vẫn phải có trust policy.
+**Question 8.** What is a certificate with `subject == issuer`?  
+**Answer:** **Self-issued** by name. Signature verification is still needed to determine self-signed status, and a trust policy is still required.
 
-**Câu 9.** `getNotAfter()` trả `Date` theo múi giờ Việt Nam hay UTC?  
-**Trả lời:** Nó đại diện cho một **instant tuyệt đối**; dạng hiển thị `Date.toString()` phụ thuộc timezone máy. Chuyển `toInstant()` để hiển thị UTC rõ ràng.
+**Question 9.** Does `getNotAfter()` return a `Date` in Vietnam timezone or UTC?  
+**Answer:** It represents an **absolute instant**; `Date.toString()` formatting depends on the machine timezone. Convert via `toInstant()` for clear UTC display.
 
-**Câu 10.** Vì sao subject DN có thể trống?  
-**Trả lời:** RFC 5280 cho phép chủ thể được nhận diện qua SAN; khi subject DN rỗng, SAN phải có mặt và được đánh dấu critical.
+**Question 10.** Why can a subject DN be empty?  
+**Answer:** RFC 5280 allows the subject to be identified via SAN; when the subject DN is empty, SAN must be present and marked critical.
 
-## Tổng kết
+## Summary
 
 ```text
 X509Certificate
   ├─ getSubjectX500Principal() -> subject DN
   ├─ getIssuerX500Principal()  -> issuer DN
-  ├─ getSerialNumber()         -> BigInteger (duy nhất theo issuer)
+  ├─ getSerialNumber()         -> BigInteger (unique per issuer)
   ├─ getNotBefore()            -> Date -> Instant
   ├─ getNotAfter()             -> Date -> Instant
-  └─ checkValidity([Date])     -> chỉ xét khoảng thời gian
+  └─ checkValidity([Date])     -> checks time interval only
 
 X500Principal
-  ├─ getName(RFC2253/CANONICAL) -> biểu diễn DN
-  ├─ getEncoded()               -> DER của Name
-  └─ equals(...)                -> so sánh DN canonical
+  ├─ getName(RFC2253/CANONICAL) -> DN representation
+  ├─ getEncoded()               -> DER of the Name
+  └─ equals(...)                -> canonical DN comparison
 
 Issuer + serial + validity + subject
-  = thông tin cần thiết về chứng thư
-  ≠ xác minh hoàn chỉnh chữ ký/PKIX/hostname/revocation
+  = essential information about the certificate
+  ≠ complete signature/PKIX/hostname/revocation verification
 ```
 
-Ghi nhớ quan trọng nhất: **subject** là tên chủ thể, **issuer** là tên bên phát hành, **serial** có tính duy nhất **theo CA**, **notBefore/notAfter** xác định cửa sổ thời gian; `X500Principal` xử lý DN có cấu trúc. Khi quyết định có **tin** chứng thư hay không, phải dùng **PKIX và chính sách xác thực dịch vụ** chứ không dựa vào các trường mô tả độc lập.
+Key takeaway: **subject** is the entity's name, **issuer** is the issuing party's name, **serial** is unique **per CA**, **notBefore/notAfter** define the time window; `X500Principal` handles structured DNs. When deciding whether to **trust** a certificate, use **PKIX and service authentication policies** rather than descriptive fields in isolation.
 
-## Tài liệu tham khảo chính thức
+## Official References
 
-- [Java 17 — X509Certificate API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html): subject, issuer, serial, validity, SAN và `checkValidity`.
-- [Java 17 — X500Principal API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/x500/X500Principal.html): DN, RFC2253/RFC1779/CANONICAL, DER và `equals`.
-- [Java 17 — CertificateFactory API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateFactory.html): đọc certificate PEM/DER.
-- [RFC 5280 `4.1.2.2–`4.1.2.6](https://www.rfc-editor.org/rfc/rfc5280#section-4.1.2.2): serial number, issuer, validity, subject và quy tắc SAN rỗng/critical.
-- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): định danh dịch vụ TLS dựa trên SAN, thay thế RFC 6125.
-- [Java 17 — CertPathValidator API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): kiểm tra certification path thay vì chỉ nhìn DN/Date.
+- [Java 17 — X509Certificate API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html): subject, issuer, serial, validity, SAN, and `checkValidity`.
+- [Java 17 — X500Principal API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/security/auth/x500/X500Principal.html): DN, RFC2253/RFC1779/CANONICAL, DER, and `equals`.
+- [Java 17 — CertificateFactory API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateFactory.html): reading PEM/DER certificates.
+- [RFC 5280 `4.1.2.2–`4.1.2.6](https://www.rfc-editor.org/rfc/rfc5280#section-4.1.2.2): serial number, issuer, validity, subject, and empty/critical SAN rules.
+- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): TLS service identity based on SAN, superseding RFC 6125.
+- [Java 17 — CertPathValidator API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): validating certification paths instead of merely inspecting DN/Date.

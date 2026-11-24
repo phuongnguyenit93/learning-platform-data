@@ -1,31 +1,31 @@
-# 16.4 Name, Label, Category, Description và annotation mô tả đơn vị dữ liệu trong JFR
+# 16.4 Name, Label, Category, Description, and Data-Unit Annotations in JFR
 
-## 1. Vì sao custom JFR event cần metadata?
+## 1. Why Do Custom JFR Events Need Metadata?
 
-Trong Java Flight Recorder (JFR), một **custom event** là lớp Java kế thừa `jdk.jfr.Event`. Các trường của lớp mô tả dữ liệu nghiệp vụ cần chẩn đoán: mã thao tác, số byte, thời gian chờ, tỷ lệ cache hit, số lần retry… Khi ghi thành file `.jfr`, công cụ như `jfr` CLI hay JDK Mission Control (JMC) cần biết **tên ổn định của event**, **nhãn dễ đọc**, **nhóm hiển thị**, **ý nghĩa các trường** và **đơn vị của giá trị**.
+In Java Flight Recorder (JFR), a **custom event** is a Java class extending `jdk.jfr.Event`. Class fields describe diagnostic business data: operation code, byte count, queue wait time, cache hit ratio, retry count, etc. When written to a `.jfr` file, tools like the `jfr` CLI or JDK Mission Control (JMC) need to know the **stable event name**, **human-readable label**, **display grouping**, **field meanings**, and **value units**.
 
-Các annotation trong package `jdk.jfr` giải quyết việc đó:
+Annotations in the `jdk.jfr` package solve this:
 
-- `@Name`: định danh máy có thể dùng trong event settings, tìm kiếm và bộ đọc recording.
-- `@Label`: tên dễ đọc cho người dùng của event, field hoặc setting.
-- `@Category`: đường dẫn phân nhóm event trong công cụ phân tích.
-- `@Description`: mô tả ngữ nghĩa để người khác hiểu đúng dữ liệu.
-- `@Timespan`, `@Timestamp`, `@DataAmount`, `@Percentage` và các content-type annotation khác: **metadata mô tả đơn vị/cách diễn giải trường**.
+- `@Name`: machine-readable identifier usable in event settings, queries, and recording readers.
+- `@Label`: human-friendly display name for an event, field, or setting.
+- `@Category`: hierarchical grouping path for events in analysis tools.
+- `@Description`: semantic documentation so others interpret the data accurately.
+- `@Timespan`, `@Timestamp`, `@DataAmount`, `@Percentage`, and other content-type annotations: **metadata describing field units/interpretation**.
 
-**Điểm mấu chốt:** metadata **không tự tạo phép đo, không đổi giá trị Java, không bật recording và không tự chuyển đổi đơn vị**. Lập trình viên vẫn phải gán dữ liệu đúng đơn vị, dùng `begin()/end()/commit()` hoặc `Recording` đúng cách, và bảo đảm cấu hình JFR thu event. Metadata làm file ghi được **dễ đọc và có hợp đồng rõ ràng**.
+**Key point:** metadata **does not perform measurements, alter Java values, enable recordings, or convert units automatically**. Developers must still assign values in the right units, use `begin()/end()/commit()` or `Recording` properly, and ensure JFR configuration collects the event. Metadata makes recorded files **readable and gives them a clear contract**.
 
-Bài học dùng API chuẩn **JDK 17+**, thuộc module `jdk.jfr`; ví dụ cũng dùng `java.time`, `java.nio.file` trong JDK thông thường, không cần thư viện ngoài.
+This lesson uses the standard **JDK 17+** API from the `jdk.jfr` module; examples also use standard JDK packages like `java.time` and `java.nio.file`, with no external libraries required.
 
-## 2. Phân biệt bốn annotation mô tả chính
+## 2. Distinguishing the Four Core Descriptive Annotations
 
-| Annotation | Áp dụng điển hình | Trả lời câu hỏi | Ví dụ | Có phải định danh ổn định? |
+| Annotation | Typical targets | Answers the question | Example | Is it a stable identifier? |
 | --- | --- | --- | --- | --- |
-| `@Name` | Event class, field, setting | “Máy/API gọi nó là gì?” | `@Name("com.example.checkout.Attempt")` | **Có**, đặc biệt với event name |
-| `@Label` | Event class, field, setting | “Người phân tích nhìn thấy nhãn nào?” | `@Label("Checkout Attempt")` | **Không**; là nhãn hiển thị |
-| `@Category` | **Event class** | “Event nằm trong nhóm/lane nào?” | `@Category({"Application", "Checkout"})` | **Không**; là đường dẫn trình bày |
-| `@Description` | Event class, field, setting | “Giá trị hoặc sự kiện có ý nghĩa gì?” | `@Description("One checkout attempt")` | **Không**; là tài liệu ngữ nghĩa |
+| `@Name` | Event class, field, setting | "What do machines/APIs call it?" | `@Name("com.example.checkout.Attempt")` | **Yes**, especially for event names |
+| `@Label` | Event class, field, setting | "What label does an analyst see?" | `@Label("Checkout Attempt")` | **No**; it is a display label |
+| `@Category` | **Event class** | "Which group/lane does the event belong to?" | `@Category({"Application", "Checkout"})` | **No**; it is a presentation path |
+| `@Description` | Event class, field, setting | "What does this value or event mean?" | `@Description("One checkout attempt")` | **No**; it is semantic documentation |
 
-Ví dụ chỉ metadata của class, chưa có phần ghi sự kiện:
+Class metadata-only example, without event recording logic yet:
 
 ```java
 import jdk.jfr.Category;
@@ -42,35 +42,35 @@ public class CheckoutAttempt extends Event {
 }
 ```
 
-Đoạn trên là ví dụ class, yêu cầu lưu trong file `CheckoutAttempt.java` nếu dùng nguyên dạng public class. Nó định nghĩa event metadata nhưng **chưa tạo event instance hay recording**. Ví dụ đầy đủ, độc lập và có thể chạy ở mục 6.
+The snippet above is a class example; if used as a `public` class directly, save it in `CheckoutAttempt.java`. It defines event metadata, but **does not create an event instance or a recording yet**. A complete, standalone, runnable example is in section 6.
 
-### Ba tầng thông tin cần tách bạch
+### Three layers of information to keep separate
 
-1. **Schema/identity:** `@Name` quyết định tên event/field trong metadata JFR, cho phép chọn event chính xác bằng tên.
-2. **Presentation/documentation:** `@Label`, `@Category`, `@Description` giúp hiển thị, nhóm và đọc hiểu; đổi label/category không nhất thiết đổi schema.
-3. **Value semantics:** `@Timespan`, `@DataAmount`… nói cách hiểu **giá trị số đã được ghi**; annotation không thực hiện tính toán hoặc chuyển kiểu.
+1. **Schema/identity:** `@Name` determines the event/field name in JFR metadata, allowing exact event selection by name.
+2. **Presentation/documentation:** `@Label`, `@Category`, and `@Description` help with display, grouping, and comprehension; changing labels/categories does not necessarily change the schema.
+3. **Value semantics:** `@Timespan`, `@DataAmount`, etc., state how to interpret **recorded numeric values**; annotations do not perform calculations or type conversions.
 
-## 3. `@Name`: tên định danh phải ổn định
+## 3. `@Name`: The Identifier Must Be Stable
 
-`@Name` có thể đặt cho lớp event và các field/setting hỗ trợ. Với **event class**, tên phải là tên lớp hợp lệ theo cú pháp tên Java, thường dùng namespace reverse-domain:
+`@Name` can be placed on event classes and supported fields/settings. For an **event class**, the name must be a valid name per Java identifier rules, typically using reverse-domain namespacing:
 
 ```java
 @Name("com.example.checkout.Attempt")
 ```
 
-Nếu không gắn `@Name`, JFR dùng **fully qualified Java class name** làm event name. Điều này tiện cho thí nghiệm nhưng dễ vỡ khi refactor package/class: ví dụ đổi `com.example.CheckoutEvent` thành `com.example.events.CheckoutEvent` khiến tên event mặc định khác đi. Trong ứng dụng production, nên đặt event name chủ động và duy trì ổn định.
+If `@Name` is omitted, JFR uses the **fully qualified Java class name** as the event name. That is convenient for experiments, yet fragile during package/class refactoring: for example, moving `com.example.CheckoutEvent` to `com.example.events.CheckoutEvent` changes the default event name. In production applications, assign explicit event names and keep them stable.
 
-Với **field** hoặc setting, giá trị `@Name` phải là một định danh Java hợp lệ, ví dụ `payloadBytes`; không dùng dấu cách như `"Payload Bytes"`. Theo Javadoc, khi tên `@Name` không hợp lệ, annotation bị bỏ qua. **Không nên dựa vào việc bị bỏ qua**; hãy xác nhận metadata thực nhận bằng `EventType.getName()`, `ValueDescriptor.getName()` và `jfr metadata`.
+For a **field** or setting, the `@Name` value must be a valid Java identifier, such as `payloadBytes`; do not use spaces like `"Payload Bytes"`. According to the Javadoc, if a `@Name` value is invalid, the annotation is ignored. **Do not rely on silent ignoring**; verify the actual metadata via `EventType.getName()`, `ValueDescriptor.getName()`, and `jfr metadata`.
 
-Quy tắc thiết kế:
+Design rules:
 
-- Dùng tên ổn định, có namespace của tổ chức, ngắn gọn, đủ phân biệt: `com.example.checkout.Attempt`.
-- Không lấy `@Label("...")` làm key tra cứu event; người biên tập có thể đổi label mà event name giữ nguyên.
-- Không tùy ý đổi event `@Name` khi dashboard, `.jfc`, `jfr print --events`, parser hoặc alert đang tham chiếu tên đó.
-- Tránh đụng namespace built-in `jdk.*` và tránh tên trùng của hai event khác ý nghĩa.
-- Tránh nhét nhãn hiển thị, environment, phiên bản release hay giá trị nghiệp vụ biến động vào event name; lưu chúng dưới dạng field nếu cần.
+- Use a concise, organization-namespaced, sufficiently distinct stable name: `com.example.checkout.Attempt`.
+- Do not use `@Label("...")` as an event lookup key; editors may change labels while the event name remains constant.
+- Do not arbitrarily rename an event's `@Name` when dashboards, `.jfc` files, `jfr print --events`, parsers, or alerts reference it.
+- Avoid colliding with the built-in `jdk.*` namespace and avoid reusing the same name for two semantically different events.
+- Avoid embedding display labels, environments, release versions, or dynamic business values into event names; store those as fields if needed.
 
-Ví dụ **đổi nhãn nhưng không đổi identity**:
+Example of **changing labels without changing identity**:
 
 ```java
 @Name("com.example.checkout.Attempt")
@@ -78,19 +78,19 @@ Ví dụ **đổi nhãn nhưng không đổi identity**:
 @Category({"Application", "Payments"})
 ```
 
-Trong ví dụ này, event name vẫn là `com.example.checkout.Attempt`; công cụ lọc bằng tên đó vẫn có thể tìm event. Nhãn và category thay đổi cách trình bày trong UI.
+In this example, the event name remains `com.example.checkout.Attempt`; tools filtering by that name can still find the event. Labels and categories only change UI presentation.
 
-## 4. `@Label`, `@Description`, `@Category`: tối ưu trải nghiệm phân tích
+## 4. `@Label`, `@Description`, `@Category`: Optimizing the Analysis Experience
 
 ### `@Label`
 
-`@Label` đặt tên người đọc dễ hiểu, ví dụ `@Label("Payload Size")` hoặc `@Label("Queue Wait")`. Nó được JMC và những công cụ hiểu metadata dùng như nhãn; API `EventType.getLabel()` hoặc `ValueDescriptor.getLabel()` đọc được.
+`@Label` provides a human-readable name, such as `@Label("Payload Size")` or `@Label("Queue Wait")`. It is used as a label by JMC and metadata-aware tools, and can be read via `EventType.getLabel()` or `ValueDescriptor.getLabel()`.
 
-Nhãn nên ngắn, cụ thể, nhất quán và không chứa dấu kết thúc câu. **Không dùng label làm định danh ổn định**. Ví dụ field Java `queueWaitMs` có label `Queue Wait`; người dùng thấy tên đẹp trong UI, nhưng code đọc field vẫn dùng key `queueWaitMs`.
+Labels should be concise, specific, consistent, and without trailing punctuation. **Do not use labels as stable identifiers**. For example, the Java field `queueWaitMs` can have the label `Queue Wait`; users see the friendly name in the UI, while code reading fields still uses the key `queueWaitMs`.
 
 ### `@Description`
 
-Dùng một hoặc hai câu để giải thích **thời điểm đo, phạm vi, nguồn và ý nghĩa**. Ví dụ:
+Use one or two sentences to explain **when it is measured, scope, source, and meaning**. Example:
 
 ```java
 @Label("Queue Wait")
@@ -99,45 +99,45 @@ Dùng một hoặc hai câu để giải thích **thời điểm đo, phạm vi,
 public long queueWaitMs;
 ```
 
-`@Description` cho biết thời lượng đo từ khi vào queue đến khi bắt đầu xử lý, không phải toàn bộ thời gian HTTP request. Chú thích có ích nhất là chú thích **ngăn diễn giải sai**; tránh chỉ lặp lại tên trường kiểu “Queue wait duration”. Đặc biệt cần ghi rõ: đo trên server hay client, đã bao gồm network/queue/retry hay chưa, có thể âm/khuyết hay không, và nguồn đồng hồ nào.
+`@Description` clarifies that the duration covers time from entering the queue until processing begins, not the entire HTTP request. The most helpful descriptions **prevent misinterpretation**; avoid merely repeating the field name like "Queue wait duration". In particular, clarify whether measurement is server-side or client-side, whether network/queue/retry time is included, whether values can be negative/missing, and which clock source is used.
 
 ### `@Category`
 
-`@Category({"Application", "Checkout"})` khai báo **đường dẫn phân cấp**: root `Application` → nhánh `Checkout`. Các phần tử mảng **không phải hai tag độc lập**. Các event cùng đường dẫn thường được nhóm trong cây hoặc timeline của JMC; đường dẫn category có thể đổi để phục vụ cách tổ chức mà không bắt buộc đổi event name.
+`@Category({"Application", "Checkout"})` declares a **hierarchical path**: root `Application` → branch `Checkout`. Array elements are **not two independent tags**. Events sharing a path are typically grouped together in JMC's tree or timeline; category paths can be adjusted for organizational clarity without renaming the event itself.
 
-`@Category` áp dụng cho **event type**, không gắn vào field. Với sự kiện có thời gian chồng lên nhau trong timeline, tách category hợp lý có thể giúp công cụ hiển thị thành những lane khác nhau. Không cần tạo category quá sâu; ví dụ `Application / Checkout` đủ rõ hơn `Application / System / Runtime / Services / Payment / Checkout / Attempts` nếu tổ chức không có nhu cầu như vậy.
+`@Category` applies to **event types**, not fields. For events that overlap in time on a timeline, splitting categories sensibly helps tools display them in distinct lanes. Avoid excessively deep categories; `Application / Checkout` is much clearer than `Application / System / Runtime / Services / Payment / Checkout / Attempts` unless your organization truly needs that depth.
 
-## 5. Các annotation mô tả đơn vị và ý nghĩa giá trị
+## 5. Annotations Describing Units and Value Semantics
 
-Các annotation này còn được gọi là **content-type annotations**; chúng cung cấp **gợi ý diễn giải/format** cho JFR reader. Trong Java, field vẫn giữ kiểu gốc `long`, `int`, `double`, `boolean`… tương ứng.
+These annotations are also called **content-type annotations**; they provide **interpretation/formatting hints** to JFR readers. In Java, the field keeps its underlying type (`long`, `int`, `double`, `boolean`, etc.).
 
-| Annotation | Ý nghĩa và đơn vị | Giá trị ví dụ | Cách hiểu đúng |
+| Annotation | Meaning and unit | Example value | Correct interpretation |
 | --- | --- | --- | --- |
-| `@Timespan(Timespan.MILLISECONDS)` | Khoảng **thời gian** theo mili giây | `15L` | 15 ms, không phải timestamp |
-| `@Timespan(Timespan.NANOSECONDS)` | Khoảng thời gian theo nano giây | `1_500_000L` | 1,5 ms nếu chuyển đổi |
-| `@Timestamp(Timestamp.MILLISECONDS_SINCE_EPOCH)` | **Thời điểm** tính theo milliseconds từ Unix epoch | `System.currentTimeMillis()` | Mốc thời gian thực, không phải duration |
-| `@DataAmount(DataAmount.BYTES)` | Lượng dữ liệu theo byte | `2048L` | 2048 bytes |
-| `@DataAmount(DataAmount.BITS)` | Lượng dữ liệu theo bit | `16L` | 16 bits |
-| `@Percentage` | Tỷ lệ dạng **phân số**, thường trong `0.0–1.0` | `0.75` | Hiển thị dạng 75%, không phải 0,75% |
-| `@Frequency` | Tần suất theo Hz | `60L` | 60 lần/giây nếu ngữ nghĩa field đúng |
-| `@MemoryAddress` | Địa chỉ bộ nhớ để tool hiểu/format như địa chỉ | Giá trị `long` | Không phải kích thước buffer |
-| `@Unsigned` | Gợi ý diễn giải số không dấu | Giá trị nguyên | Không thay đổi kiểu Java có dấu |
-| `@BooleanFlag` | Flag true/false cho UI/metadata | `true` | Không biến một số tùy ý thành boolean |
+| `@Timespan(Timespan.MILLISECONDS)` | **Time duration** in milliseconds | `15L` | 15 ms, not a timestamp |
+| `@Timespan(Timespan.NANOSECONDS)` | Time duration in nanoseconds | `1_500_000L` | 1.5 ms if converted |
+| `@Timestamp(Timestamp.MILLISECONDS_SINCE_EPOCH)` | **Point in time** in milliseconds since Unix epoch | `System.currentTimeMillis()` | Wall-clock timestamp, not a duration |
+| `@DataAmount(DataAmount.BYTES)` | Data quantity in bytes | `2048L` | 2048 bytes |
+| `@DataAmount(DataAmount.BITS)` | Data quantity in bits | `16L` | 16 bits |
+| `@Percentage` | Ratio as a **fraction**, typically `0.0–1.0` | `0.75` | Displayed as 75%, not 0.75% |
+| `@Frequency` | Frequency in Hz | `60L` | 60 times/sec if field semantics match |
+| `@MemoryAddress` | Memory address so tools format it as an address | `long` value | Not a buffer size |
+| `@Unsigned` | Hint to interpret integer as unsigned | Integer value | Does not change signed Java integer semantics |
+| `@BooleanFlag` | True/false flag for UI/metadata | `true` | Does not turn an arbitrary number into a boolean |
 
-Các hằng đơn vị chính thức gồm `Timespan.NANOSECONDS`, `MICROSECONDS`, `MILLISECONDS`, `SECONDS`, `TICKS`; `DataAmount.BYTES`/`BITS`; `Timestamp.MILLISECONDS_SINCE_EPOCH` và `TICKS`. Nếu không truyền tham số, `@Timespan` mặc định **nanoseconds**, `@DataAmount` mặc định **bytes**, `@Timestamp` mặc định **milliseconds since epoch**. Viết tường minh trong code nghiệp vụ giúp giảm nhầm lẫn.
+Official unit constants include `Timespan.NANOSECONDS`, `MICROSECONDS`, `MILLISECONDS`, `SECONDS`, `TICKS`; `DataAmount.BYTES`/`BITS`; `Timestamp.MILLISECONDS_SINCE_EPOCH` and `TICKS`. Without arguments, `@Timespan` defaults to **nanoseconds**, `@DataAmount` defaults to **bytes**, and `@Timestamp` defaults to **milliseconds since epoch**. Writing units explicitly in application code reduces confusion.
 
-**Hai bẫy lớn:**
+**Two major traps:**
 
-1. `@Timespan(Timespan.MILLISECONDS)` trên giá trị tạo từ `System.nanoTime()` mà chưa đổi đơn vị → tool hiểu 1.000.000 nano giây thành **1.000.000 mili giây**, sai gấp một triệu lần. Dùng `TimeUnit.NANOSECONDS.toMillis(...)` hoặc đổi annotation sang `NANOSECONDS`.
-2. `@Percentage` trên số `75.0` trong khi contract yêu cầu phân số `0.75` → UI có thể diễn giải là 7.500%. Annotation **không chia tự động cho 100**.
+1. Putting `@Timespan(Timespan.MILLISECONDS)` on a value derived from `System.nanoTime()` without converting units → tools interpret 1,000,000 nanoseconds as **1,000,000 milliseconds**, off by a factor of one million. Use `TimeUnit.NANOSECONDS.toMillis(...)` or change the annotation to `NANOSECONDS`.
+2. Putting `@Percentage` on `75.0` when the contract expects the fraction `0.75` → the UI may interpret it as 7,500%. The annotation **does not divide by 100 automatically**.
 
-Tương tự, `@Timestamp(MILLISECONDS_SINCE_EPOCH)` không được điền trực tiếp `System.nanoTime()`, vì `nanoTime()` là đồng hồ đơn điệu với điểm gốc tùy ý, **không phải** Unix epoch. Muốn timestamp, dùng `System.currentTimeMillis()`; muốn đo khoảng thời gian, lấy hiệu của hai lần `System.nanoTime()` và gắn `@Timespan` đúng đơn vị.
+Similarly, `@Timestamp(MILLISECONDS_SINCE_EPOCH)` must not be populated directly with `System.nanoTime()`, because `nanoTime()` is a monotonic clock with an arbitrary origin, **not** the Unix epoch. For timestamps, use `System.currentTimeMillis()`; for durations, subtract two `System.nanoTime()` readings and apply `@Timespan` with the matching unit.
 
-**Điểm mở rộng:** `@BooleanFlag`, `@Frequency`, `@MemoryAddress`, `@Unsigned` hữu ích khi field thật sự mang ngữ nghĩa đó; đừng gắn bừa chỉ để báo cáo có thêm biểu tượng. `@DataAmount` chỉ biểu thị lượng dữ liệu, không tự biết dữ liệu là request payload, heap memory hay network transfer; `@Description` phải giải thích điều ấy.
+**Additional note:** `@BooleanFlag`, `@Frequency`, `@MemoryAddress`, and `@Unsigned` are helpful when the field genuinely carries that meaning; do not attach them arbitrarily just to decorate reports. `@DataAmount` only indicates a quantity of data—it does not specify whether it is a request payload, heap memory, or network transfer; `@Description` must clarify that.
 
-## 6. Ví dụ hoàn chỉnh chạy được trên Java 17+: event có metadata và file JFR
+## 6. Complete Runnable Java 17+ Example: Event with Metadata and JFR File
 
-Lưu vào **`JfrMetadataDemo.java`**. Đây là **một file Java độc lập**, không phụ thuộc framework hoặc file config bên ngoài. Class event đặt lồng trong class main để có thể biên dịch với một lệnh `javac`.
+Save as **`JfrMetadataDemo.java`**. This is **a single standalone Java file** with no framework or external config dependencies. The event class is nested inside the main class so it compiles with one `javac` command.
 
 ```java
 import java.nio.file.Path;
@@ -230,14 +230,14 @@ public class JfrMetadataDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên, với quyền ghi file tại working directory:
+Compile and run with JDK 17 or later, with file write permissions in the working directory:
 
 ```bash
 javac --release 17 JfrMetadataDemo.java
 java JfrMetadataDemo
 ```
 
-**Các dòng stdout do chính chương trình in ra, theo thứ tự:**
+**Stdout lines printed by the program itself, in order:**
 
 ```text
 name=com.example.checkout.Attempt
@@ -250,22 +250,22 @@ requestedAtMillis=jdk.jfr.Timestamp
 file=checkout-attempt.jfr
 ```
 
-Chú ý: đầu ra công cụ JVM khác (nếu cấu hình ghi log) có thể kèm thông báo riêng; đây là phần do `System.out.println` của ứng dụng tạo ra. Giá trị timestamp thực thay đổi theo lúc chạy **nhưng không được in**, nên stdout bên trên ổn định. File `checkout-attempt.jfr` nằm trong working directory của tiến trình. Nếu môi trường cấm ghi file, hãy chọn thư mục có quyền ghi trước khi chạy.
+Note: other JVM tool output (if logging is configured) may include separate messages; the block above is produced by the application's `System.out.println` calls. The actual timestamp value changes at runtime **but is not printed**, so the stdout above is deterministic. `checkout-attempt.jfr` is written to the process working directory. If the environment restricts file writes, choose a writable directory before running.
 
-### Giải thích cơ chế từng bước
+### Step-by-step explanation of the mechanism
 
-1. `recording.enable(CheckoutAttempt.class)` bật custom event trong **recording được tạo bởi chương trình**. `withThreshold(Duration.ZERO)` cho phép ghi cả event rất ngắn; nếu threshold lớn hơn thời lượng event, recording có thể bỏ qua.
-2. `recording.start()` bắt đầu thu. Tạo instance `CheckoutAttempt`, gán dữ liệu như field Java thông thường. Annotation không tự lấy giá trị từ HTTP request, queue hay cache.
-3. `event.begin()`/`event.end()` ghi thời gian bắt đầu/kết thúc **event** trong metadata chuẩn; `event.commit()` mới gửi event vào recorder nếu được bật và đáp ứng settings. `queueWaitMs=12` là **giá trị ví dụ gán thủ công** cho field queue wait, không phải thời lượng được JFR đo giữa `begin` và `end`.
-4. `recording.stop()` dừng thu; `recording.dump(output)` xuất thành `.jfr`. `try-with-resources` đóng tài nguyên `Recording`.
-5. `EventType.getEventType(...)` đọc metadata của loại event, `getName()`/`getLabel()`/`getCategoryNames()` trả metadata class. `getField("queueWaitMs")` trả `ValueDescriptor`; `getContentType()` phản ánh annotation đơn vị, ví dụ chuỗi `jdk.jfr.Timespan`.
-6. Các giá trị JFR như `payloadBytes=2048` và `cacheHitFraction=0.75` vẫn được lưu theo số gốc; các công cụ JFR có thể hiển thị theo bytes/percent nhờ metadata.
+1. `recording.enable(CheckoutAttempt.class)` enables the custom event in **the recording created by the program**. `withThreshold(Duration.ZERO)` allows recording even very short events; if the threshold exceeds the event duration, the recording may discard it.
+2. `recording.start()` begins collection. Creating a `CheckoutAttempt` instance and assigning fields behaves like regular Java fields. Annotations do not automatically pull values from HTTP requests, queues, or caches.
+3. `event.begin()`/`event.end()` record the **event's** start/end timestamps in standard metadata; `event.commit()` submits the event to the recorder if enabled and matching settings. `queueWaitMs=12` is a **manually assigned example value** for the queue wait field, not the duration measured by JFR between `begin` and `end`.
+4. `recording.stop()` stops collection; `recording.dump(output)` exports to `.jfr`. `try-with-resources` closes the `Recording` resource.
+5. `EventType.getEventType(...)` reads the event type's metadata; `getName()`/`getLabel()`/`getCategoryNames()` return class-level metadata. `getField("queueWaitMs")` returns a `ValueDescriptor`; `getContentType()` reflects the unit annotation, such as the string `jdk.jfr.Timespan`.
+6. Values such as `payloadBytes=2048` and `cacheHitFraction=0.75` are still stored as raw numbers; JFR tools can format them as bytes/percentages using metadata.
 
-Đoạn `event.begin(); event.end();` liên tiếp tạo event rất ngắn nên ta đặt threshold bằng `Duration.ZERO`. Khi code thực tế có thao tác cần đo, đặt `begin()` **trước** và `end()` **sau** phần việc để thời lượng event mang ý nghĩa nghiệp vụ. Nếu dữ liệu bổ sung đắt đỏ, dùng `event.isEnabled()`/`event.shouldCommit()` và lựa chọn cách thu thập phù hợp để hạn chế overhead.
+The consecutive `event.begin(); event.end();` creates a very short event, so we set the threshold to `Duration.ZERO`. When real code has an operation to measure, put `begin()` **before** and `end()` **after** the work so event duration carries business meaning. If extra field data is costly, use `event.isEnabled()`/`event.shouldCommit()` and selective collection to limit overhead.
 
-## 7. Kiểm tra metadata trong file bằng `jfr` CLI
+## 7. Inspecting File Metadata with the `jfr` CLI
 
-Sau khi chạy ví dụ, kiểm tra file `.jfr` thực sự chứa event và schema:
+After running the example, verify that the `.jfr` file actually contains the event and schema:
 
 ```bash
 jfr summary checkout-attempt.jfr
@@ -273,17 +273,17 @@ jfr metadata --events com.example.checkout.Attempt checkout-attempt.jfr
 jfr print --events com.example.checkout.Attempt checkout-attempt.jfr
 ```
 
-- `jfr summary` kiểm tra file đọc được, loại event nào có trong recording và số lượng event.
-- `jfr metadata --events ...` đọc **schema/metadata** của event được chọn: tên, nhãn, description, category, các trường và đơn vị.
-- `jfr print --events ...` đọc **bản ghi thực tế**. Số liệu có thể hiển thị theo định dạng của phiên bản `jfr`, không nhất thiết giống GUI JMC, nhưng phần dữ liệu vẫn dựa trên field gốc.
+- `jfr summary` verifies the file is readable, which event types exist in the recording, and event counts.
+- `jfr metadata --events ...` reads the **schema/metadata** of the selected event: name, label, description, category, fields, and units.
+- `jfr print --events ...` reads **actual recorded instances**. Formatting may vary by `jfr` tool version and differ from the JMC GUI, though values come from the raw fields.
 
-Tên lọc là `com.example.checkout.Attempt` từ `@Name`, **không phải** `Checkout Attempt` từ `@Label`, và **không phải** tên Java class `JfrMetadataDemo.CheckoutAttempt`. `@Category` giúp nhóm trong JMC; nếu muốn chọn event trong CLI nên dùng event name.
+The filter name is `com.example.checkout.Attempt` from `@Name`, **not** `Checkout Attempt` from `@Label`, and **not** the Java class name `JfrMetadataDemo.CheckoutAttempt`. `@Category` aids grouping in JMC; to select events in the CLI, use the event name.
 
-Khi tìm không thấy event, kiểm tra **recording đã bật đúng loại event hay chưa**, threshold/enable settings, thời điểm `commit()`, file vừa ghi có bị đọc nhầm và cách lọc `--events`. Metadata có thể có trong file khi loại event được biết nhưng số record thực tế bằng 0, ví dụ threshold loại bỏ event.
+When an event is not found, check **whether the recording enabled the right event type**, threshold/enable settings, when `commit()` ran, whether you are reading the intended file, and the `--events` filter. Metadata can appear in a file when the event type is known even if the actual instance count is 0 (for example, filtered out by threshold).
 
-## 8. Đọc metadata trực tiếp qua API
+## 8. Reading Metadata Directly via the API
 
-Không cần parse văn bản `jfr print` để biết nghĩa một field. JDK cung cấp lớp metadata:
+You do not need to parse `jfr print` text to discover what a field means. The JDK provides metadata classes:
 
 ```java
 EventType type = EventType.getEventType(CheckoutAttempt.class);
@@ -299,28 +299,28 @@ String fieldDescription = field.getDescription();
 String contentType = field.getContentType(); // jdk.jfr.Timespan
 ```
 
-Đây là **mảnh mã minh họa** đặt trong bối cảnh `JfrMetadataDemo` (cần import `jdk.jfr.*` và `java.util.List`); nếu dán vào một file hoàn toàn riêng sẽ cần thêm class wrapper và định nghĩa `CheckoutAttempt`. Những phương thức trên cho phép kiểm tra chương trình độc lập với cách hiển thị cụ thể của JMC.
+This is an **illustrative snippet** set in the context of `JfrMetadataDemo` (requiring `import jdk.jfr.*;` and `java.util.List`); if pasted into a completely separate file, you will need a wrapper class and `CheckoutAttempt` definition. These methods enable programmatic inspection independent of JMC's specific UI.
 
-Một vài API hữu ích:
+Several useful APIs:
 
-| API | Dùng để |
+| API | Purpose |
 | --- | --- |
-| `EventType.getName()` | Lấy định danh event đã áp dụng `@Name` |
-| `EventType.getLabel()` | Lấy nhãn dễ đọc |
-| `EventType.getDescription()` | Lấy mô tả |
-| `EventType.getCategoryNames()` | Lấy chuỗi cấp category từ root tới nhánh |
-| `EventType.getFields()` / `getField(name)` | Lấy danh sách hoặc một descriptor của field |
-| `ValueDescriptor.getName()` / `getLabel()` / `getDescription()` | Lấy định danh và metadata văn bản của field |
-| `ValueDescriptor.getContentType()` | Lấy tên content-type để công cụ định dạng/diễn giải |
-| `getAnnotationElements()` / `getAnnotation(...)` | Truy xuất các annotation được đưa vào JFR metadata |
+| `EventType.getName()` | Retrieves the event identifier with `@Name` applied |
+| `EventType.getLabel()` | Retrieves the human-readable label |
+| `EventType.getDescription()` | Retrieves the description |
+| `EventType.getCategoryNames()` | Retrieves the category hierarchy from root to leaf |
+| `EventType.getFields()` / `getField(name)` | Retrieves the list or a single field descriptor |
+| `ValueDescriptor.getName()` / `getLabel()` / `getDescription()` | Retrieves field identifier and textual metadata |
+| `ValueDescriptor.getContentType()` | Retrieves the content-type name for tool formatting/interpretation |
+| `getAnnotationElements()` / `getAnnotation(...)` | Retrieves annotations included in JFR metadata |
 
-Ví dụ `ValueDescriptor.getContentType()` trả `"jdk.jfr.Percentage"` với field `@Percentage`. Nếu không có content-type annotation, phương thức có thể trả `null`. Với custom units, hãy đọc thêm `getAnnotationElements()` hoặc các annotation tương ứng thay vì đoán chỉ từ kiểu số.
+For example, `ValueDescriptor.getContentType()` returns `"jdk.jfr.Percentage"` for a `@Percentage` field. If no content-type annotation is present, the method may return `null`. For custom units, inspect `getAnnotationElements()` or the corresponding annotations rather than guessing from the numeric type.
 
-**Quan trọng:** `getContentType()` không trả đơn vị chi tiết như “MILLISECONDS” trực tiếp; để biết chính xác đơn vị của `@Timespan`, xem annotation `@Timespan`/value trong metadata. Hai field cùng content type `jdk.jfr.Timespan` có thể mang đơn vị **khác nhau** nếu một cái dùng `MILLISECONDS` còn cái kia dùng `NANOSECONDS`.
+**Important:** `getContentType()` does not directly return granular units like "MILLISECONDS"; to determine the exact unit of `@Timespan`, inspect the `@Timespan` annotation/value in metadata. Two fields with the same `jdk.jfr.Timespan` content type can have **different** units if one uses `MILLISECONDS` and the other uses `NANOSECONDS`.
 
-## 9. Khi nào dùng `@Name` ở cấp field?
+## 9. When to Use `@Name` at the Field Level?
 
-Bình thường, JFR lấy tên field từ định danh Java:
+Normally, JFR derives the field name from the Java identifier:
 
 ```java
 @Label("Payload Size")
@@ -328,7 +328,7 @@ Bình thường, JFR lấy tên field từ định danh Java:
 public long payloadBytes;
 ```
 
-JFR field name là `payloadBytes`. Nếu cần ổn định schema khi refactor Java code, có thể khai báo riêng:
+The JFR field name is `payloadBytes`. If you need to keep the schema stable while refactoring Java code, you can declare it explicitly:
 
 ```java
 @Name("payloadBytes")
@@ -337,37 +337,37 @@ JFR field name là `payloadBytes`. Nếu cần ổn định schema khi refactor 
 public long requestBodySize;
 ```
 
-Ở ví dụ thứ hai, tên biến Java là `requestBodySize` còn **tên metadata JFR** được yêu cầu là `payloadBytes`. Đây là cách bảo tồn field identity mà không buộc giữ tên biến Java cũ. Không lạm dụng vì làm code và schema khác tên nhau, đòi hỏi chú thích và kiểm thử. Tên field phải là identifier hợp lệ, không phải câu có dấu cách.
+In the second example, the Java variable name is `requestBodySize` while the **JFR metadata name** is explicitly `payloadBytes`. This preserves field identity without forcing you to keep an outdated Java variable name. Do not overuse this, as diverging code and schema names require extra documentation and testing. Field names must be valid identifiers, not phrases with spaces.
 
-Nếu muốn đổi ý nghĩa field từ “request body bytes” sang “response compressed bytes”, **đừng giữ nguyên `@Name` để giả vờ schema không đổi**; đó là thay đổi ngữ nghĩa. Tạo field mới hoặc event name/version mới khi thay đổi contract khiến downstream có thể diễn giải sai.
+If you change a field's meaning from "request body bytes" to "response compressed bytes", **do not keep the same `@Name` pretending the schema did not change**; that is a breaking semantic change. Introduce a new field or a new event name/version when contract changes could mislead downstream consumers.
 
-## 10. Phân biệt timestamp, timespan và thời lượng event tích hợp
+## 10. Distinguishing Timestamp, Timespan, and Built-in Event Duration
 
-Trong JFR có ba loại dữ liệu thời gian thường nhầm lẫn:
+In JFR, three time-related concepts are often confused:
 
-| Dữ liệu | Nguồn | Ý nghĩa |
+| Data | Source | Meaning |
 | --- | --- | --- |
-| Event `startTime` | JFR khi `begin()/commit()` | Mốc bắt đầu sự kiện |
-| Event `duration` | JFR đo giữa `begin()` và `end()` (hoặc thời lượng tức thời nếu không đo) | Khoảng thời gian event đã bao phủ |
-| Custom field `queueWaitMs` | Ứng dụng chủ động tính/gán | Riêng thời gian nằm trong queue, có thể khác duration event |
-| Custom field `requestedAtMillis` | `System.currentTimeMillis()` trong ví dụ | Mốc thời gian thực theo Unix epoch milliseconds |
+| Event `startTime` | JFR on `begin()/commit()` | Start timestamp of the event |
+| Event `duration` | JFR measured between `begin()` and `end()` (or instant duration if unmeasured) | Time span covered by the event |
+| Custom field `queueWaitMs` | Explicitly computed/assigned by the app | Time spent specifically in the queue, which may differ from event duration |
+| Custom field `requestedAtMillis` | `System.currentTimeMillis()` in the example | Wall-clock time in Unix epoch milliseconds |
 
-Ví dụ đo thực tế queue wait:
+Practical example of measuring queue wait:
 
 ```java
 long enqueueNanos = System.nanoTime();
-// ... công việc được đặt vào queue, rồi tới lúc dequeue ...
+// ... work is placed into the queue, then dequeued ...
 long waitNanos = System.nanoTime() - enqueueNanos;
 event.queueWaitMs = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(waitNanos);
 ```
 
-Đây là **mảnh minh họa**, cần được gọi ở đúng hai mốc nghiệp vụ. Vì dùng `toMillis`, annotation ở field phải là `@Timespan(Timespan.MILLISECONDS)`. Nếu muốn giữ độ phân giải cao và tránh làm tròn ở queue wait ngắn, lưu `waitNanos` vào field dùng `@Timespan(Timespan.NANOSECONDS)`.
+This is an **illustrative snippet** that must be invoked at the two corresponding business milestones. Because `toMillis` is used, the field annotation must be `@Timespan(Timespan.MILLISECONDS)`. If you want higher resolution and want to avoid rounding short queue waits, store `waitNanos` in a field annotated with `@Timespan(Timespan.NANOSECONDS)`.
 
-**Không gắn `@Timestamp` vào hiệu thời gian**, cũng không gắn `@Timespan` cho thời điểm “2026-10-29 17:00”. Dù cả hai đều là `long`, cách diễn giải hoàn toàn khác.
+**Never apply `@Timestamp` to a time difference**, and never apply `@Timespan` to a point in time like "2026-10-29 17:00". Even though both are `long`, their interpretations are completely different.
 
-## 11. Các tình huống chọn annotation đơn vị đúng
+## 11. Scenarios for Choosing the Right Unit Annotation
 
-### A. Theo dõi HTTP/request size
+### A. Tracking HTTP/request size
 
 ```java
 @Label("Request Size")
@@ -376,19 +376,19 @@ event.queueWaitMs = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(waitNanos
 public long requestBytes;
 ```
 
-Nếu muốn phân tích kích thước payload trước hay sau giải nén, mô tả rõ. `@DataAmount` không phân biệt byte trên mạng, bytes trong bộ đệm hay memory retained.
+If analyzing payload size before vs. after decompression matters, state it explicitly. `@DataAmount` does not distinguish network bytes, buffer bytes, or retained memory.
 
-### B. Theo dõi tỷ lệ cache hit
+### B. Tracking cache hit ratio
 
 ```java
 @Label("Cache Hit Ratio")
 @Percentage
-public double hitFraction; // Ví dụ: 0.875 nghĩa là 87,5%
+public double hitFraction; // Example: 0.875 means 87.5%
 ```
 
-Nếu nguồn metric trả về `87.5` theo đơn vị “percentage points”, cần chuyển sang `0.875` **trước khi gán**. Annotation không tự điều chỉnh.
+If a metric source returns `87.5` in "percentage points", convert it to `0.875` **before assigning**. The annotation does not rescale values.
 
-### C. Theo dõi thời gian đợi DB pool
+### C. Tracking DB pool wait time
 
 ```java
 @Label("Connection Wait")
@@ -397,9 +397,9 @@ Nếu nguồn metric trả về `87.5` theo đơn vị “percentage points”, 
 public long acquireMillis;
 ```
 
-Khác `Event.duration` của cả request. Nếu DB pool không cấp được connection và request fail, quy ước giá trị sentinel/không có dữ liệu phải được mô tả rõ.
+This differs from the `Event.duration` of the whole request. If the DB pool fails to issue a connection and the request fails, clearly document any sentinel or missing-value convention.
 
-### D. Theo dõi tần suất và thời điểm
+### D. Tracking frequency and timestamps
 
 ```java
 @Label("Retry Rate")
@@ -411,88 +411,88 @@ public long retriesPerSecond;
 public long observedAtMillis;
 ```
 
-`@Frequency` mang ý nghĩa Hz, không phải “đã retry bao nhiêu lần từ đầu service”. `@Timestamp` yêu cầu epoch milliseconds phù hợp, không phải `System.nanoTime()`.
+`@Frequency` means Hz, not "how many retries since service startup". `@Timestamp` requires proper epoch milliseconds, not `System.nanoTime()`.
 
-### E. Theo dõi số bit, địa chỉ hoặc giá trị không dấu
+### E. Tracking bits, addresses, or unsigned values
 
-Dùng `@DataAmount(DataAmount.BITS)` khi số liệu thực sự tính bằng bits. `@MemoryAddress` có ý nghĩa với trường địa chỉ native, không phải kích thước. `@Unsigned` cung cấp metadata diễn giải không dấu cho số nguyên nhưng **không đổi semantics của toán tử số nguyên Java**. Chỉ đưa địa chỉ native hoặc dữ liệu nhạy cảm vào JFR khi phục vụ một nhu cầu chẩn đoán cụ thể.
+Use `@DataAmount(DataAmount.BITS)` when the metric is genuinely in bits. `@MemoryAddress` is meaningful for native address fields, not sizes. `@Unsigned` supplies unsigned interpretation metadata for integer fields, but **does not alter Java's signed integer operator semantics**. Only include native addresses or sensitive data in JFR when serving a concrete diagnostic need.
 
-## 12. Annotation không thay đổi vòng đời event
+## 12. Annotations Do Not Change Event Lifecycle
 
-Metadata đẹp không có nghĩa recording chắc chắn có event. Một custom event muốn xuất hiện trong `.jfr` thường cần:
+Clean metadata does not guarantee events will appear in a recording. For a custom event to show up in `.jfr`, you generally need to:
 
-1. **Định nghĩa** một lớp `extends Event` cùng các field được hỗ trợ.
-2. **Bật** loại event trong cấu hình đang chạy: `Recording.enable(YourEvent.class)`, hoặc cấu hình JFR event name phù hợp qua startup/`jcmd`/file `.jfc`.
-3. **Gán field** và đo thời gian nếu cần.
-4. **Commit** bằng `event.commit()`; JFR có thể loại nếu recording không chạy, event bị tắt hoặc threshold/filter không đạt.
-5. **Dump/stop recording** để tạo file phân tích, ví dụ `recording.dump(Path.of("..."))`.
+1. **Define** a class `extends Event` with supported fields.
+2. **Enable** the event type in the active configuration: `Recording.enable(YourEvent.class)`, or configure the matching JFR event name via startup flags/`jcmd`/`.jfc` file.
+3. **Assign fields** and measure duration if applicable.
+4. **Commit** with `event.commit()`; JFR may still drop it if no recording is active, the event is disabled, or threshold/filters are not met.
+5. **Dump/stop the recording** to produce an analysis file, e.g., `recording.dump(Path.of("..."))`.
 
-`@Label` hoặc `@Category` **không bật event**, `@Description` **không log một dòng nào**, `@Timespan` **không đo thời gian**. `@Enabled`, `@Threshold`, `@StackTrace` mới liên quan đến default settings của event; đó là nhóm annotation cấu hình hành vi khác. Việc một recording bật loại event bằng tên nào phụ thuộc `@Name`/event type, **không phụ thuộc label/category**.
+`@Label` or `@Category` **do not enable events**, `@Description` **does not log anything**, and `@Timespan` **does not measure time**. `@Enabled`, `@Threshold`, and `@StackTrace` relate to default event settings; those belong to a different group of behavior-configuring annotations. Which event type a recording enables by name depends on `@Name`/event type, **not on label or category**.
 
-Nếu payload đắt đỏ (serialize object, lấy stack trace bổ sung, nối chuỗi lớn…), dùng `event.isEnabled()` hoặc `event.shouldCommit()` để tránh công việc không cần thiết. `shouldCommit()` dựa trên settings và trạng thái event; nếu dùng threshold theo duration, gọi ở thời điểm phù hợp để nhận quyết định đáng tin, thay vì gọi trước khi có thời lượng đã đo.
+If payload construction is expensive (serializing objects, capturing extra stacks, concatenating large strings, etc.), use `event.isEnabled()` or `event.shouldCommit()` to avoid unnecessary work. `shouldCommit()` evaluates current settings and event state; when using a duration threshold, call it after duration is measured rather than before timing completes.
 
-## 13. Những lỗi phổ biến khi thiết kế schema JFR
+## 13. Common Mistakes When Designing JFR Schemas
 
-| Lỗi | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Correct practice |
 | --- | --- | --- |
-| Dùng `@Label` làm tên filter trong `jfr print --events` | Không tìm thấy loại event | Dùng `@Name`, ví dụ `com.example.checkout.Attempt`. |
-| Không khai báo `@Name` ở production | Refactor Java class/package làm đổi event name | Đặt tên có namespace ổn định và regression test. |
-| Dùng `@Category({"App", "Checkout"})` như hai tags độc lập | Nhóm event sai kỳ vọng | Hiểu là **đường dẫn phân cấp** root → branch. |
-| Đổi `@Name` chỉ vì đổi tên hiển thị | Phá dashboard/parser/.jfc đang tham chiếu event name cũ | Đổi `@Label`/`@Category` nếu chỉ đổi presentation. |
-| `@Percentage` trên giá trị `75` | GUI có thể hiểu thành 7500% | Lưu `0.75` cho 75%. |
-| `@Timespan(MILLISECONDS)` trên nanoseconds | Thời gian hiển thị sai hàng triệu lần | Chuyển đơn vị khi gán hoặc sửa annotation. |
-| `@Timestamp` trên `System.nanoTime()` | Epoch timestamp vô nghĩa | Dùng epoch millis cho timestamp, nanoTime cho duration. |
-| Đổi đơn vị nhưng giữ nguyên tên field | Dữ liệu nhiều phiên bản bị đọc lẫn | Giữ contract hoặc version/schema field mới. |
-| Chỉ gắn `@Label`/`@Description` mà không `commit` | Không có event được thu | Kiểm tra enable, threshold, recording và commit. |
-| Chỉ xem kiểu `long` và bỏ qua annotation | Không biết số là bytes, ms hay epoch | Đọc `ValueDescriptor.getContentType()` và annotation values. |
-| Field chứa object phức tạp/nhạy cảm tùy ý | Không hợp lệ, không hữu ích, tăng overhead hoặc lộ thông tin | Chọn primitive/String/Thread/Class hợp lệ, giảm payload và áp dụng chính sách dữ liệu. |
-| Xem `jfr print` chỉ có số thô rồi nghĩ annotation hỏng | CLI hiển thị khác GUI hoặc format tool khác JDK | Dùng `jfr metadata` và JMC để kiểm tra metadata gốc. |
+| Using `@Label` as the filter name in `jfr print --events` | Event type not found | Use `@Name`, e.g., `com.example.checkout.Attempt`. |
+| Omitting `@Name` in production | Refactoring Java class/package changes event name | Use a namespaced, stable name and regression tests. |
+| Treating `@Category({"App", "Checkout"})` as two independent tags | Event grouped unexpectedly | Understand it as a **hierarchical path** root → branch. |
+| Changing `@Name` just to update display text | Breaks dashboards/parsers/`.jfc` referencing old event name | Change `@Label`/`@Category` for presentation-only updates. |
+| `@Percentage` on value `75` | GUI may interpret as 7500% | Store `0.75` for 75%. |
+| `@Timespan(MILLISECONDS)` on nanoseconds | Duration displays off by a million times | Convert units when assigning or fix the annotation. |
+| `@Timestamp` on `System.nanoTime()` | Meaningless epoch timestamp | Use epoch millis for timestamps, `nanoTime` for durations. |
+| Changing units while keeping the same field name | Data across versions gets misread together | Preserve contract or introduce a new field/schema version. |
+| Adding `@Label`/`@Description` without `commit` | No events collected | Verify enabling, threshold, recording, and commit. |
+| Looking only at `long` type and ignoring annotations | Unclear whether value is bytes, ms, or epoch | Inspect `ValueDescriptor.getContentType()` and annotation values. |
+| Fields holding arbitrary complex/sensitive objects | Invalid, unhelpful, higher overhead, or data leaks | Pick valid primitive/String/Thread/Class types, shrink payloads, and enforce data policies. |
+| Seeing raw numbers in `jfr print` and assuming annotations are broken | CLI formatting differs from GUI or varies by JDK tool | Use `jfr metadata` and JMC to verify underlying metadata. |
 
-Đặc biệt, **event name và field name là một phần hợp đồng dữ liệu**. Nếu nhiều dịch vụ/phiên bản ghi cùng tên nhưng fields mang ý nghĩa khác nhau, một báo cáo tổng hợp có thể “đúng về mặt cú pháp” nhưng sai về phân tích. Lập bảng schema và kiểm thử tương thích khi đổi ý nghĩa/kiểu/đơn vị.
+Specifically, **event names and field names are part of a data contract**. If multiple services or versions emit the same name with differently defined fields, an aggregated report may be "syntactically valid" yet analytically wrong. Document schemas and test compatibility whenever changing meanings, types, or units.
 
-## 14. Kiểm thử metadata có ý nghĩa, không chỉ kiểm tra file tồn tại
+## 14. Testing Metadata Meaningfully, Not Just Checking File Existence
 
-Một kiểm thử tốt nên kiểm tra cả **metadata** và **sự kiện thực**. Với ví dụ ở mục 6:
+A solid test verifies both **metadata** and **actual recorded events**. For the example in section 6:
 
-- `EventType.getName()` phải là `com.example.checkout.Attempt`.
-- `EventType.getLabel()` là `Checkout Attempt`, category là `Application / Checkout`.
-- `ValueDescriptor.getContentType()` của `payloadBytes` là `jdk.jfr.DataAmount`; `queueWaitMs` là `jdk.jfr.Timespan`; `cacheHitFraction` là `jdk.jfr.Percentage`; `requestedAtMillis` là `jdk.jfr.Timestamp`.
-- Metadata `@Timespan` thật sự có `MILLISECONDS` và `@DataAmount` có `BYTES`; không chỉ kiểm tra chung content-type.
-- `jfr summary` cho thấy event xuất hiện, `jfr print` cho thấy `orderId="sample-001"`, `payloadBytes=2048`, `cacheHitFraction=0.75` theo contract giá trị gốc.
-- Khi đổi Java class/package nhưng giữ `@Name`, event name phải giữ nguyên; khi chỉ đổi `@Label`/`@Category`, parser đọc bằng `@Name` không bị ảnh hưởng.
-- Khi đổi đơn vị dữ liệu, kiểm thử phải phát hiện sự khác biệt giữa **value thực** và **annotation** (ví dụ 1.500.000 ns tương ứng 1,5 ms).
+- `EventType.getName()` must be `com.example.checkout.Attempt`.
+- `EventType.getLabel()` is `Checkout Attempt`, category is `Application / Checkout`.
+- `ValueDescriptor.getContentType()` for `payloadBytes` is `jdk.jfr.DataAmount`; `queueWaitMs` is `jdk.jfr.Timespan`; `cacheHitFraction` is `jdk.jfr.Percentage`; `requestedAtMillis` is `jdk.jfr.Timestamp`.
+- `@Timespan` metadata actually carries `MILLISECONDS` and `@DataAmount` carries `BYTES`; do not check only the generic content-type string.
+- `jfr summary` shows the event present; `jfr print` shows `orderId="sample-001"`, `payloadBytes=2048`, `cacheHitFraction=0.75` per the raw value contract.
+- When refactoring the Java class/package while keeping `@Name`, the event name stays unchanged; when changing only `@Label`/`@Category`, parsers reading by `@Name` remain unaffected.
+- When changing data units, tests must catch mismatches between **actual values** and **annotations** (e.g., 1,500,000 ns corresponding to 1.5 ms).
 
-Nếu viết test tự động, đừng dùng chỉ lệnh Java `assert` rồi quên `-ea`; có thể dùng JUnit assertions hoặc kiểm tra `if (...) throw new AssertionError(...)`. Một test chỉ chứng minh field gắn `@Timespan` nhưng không kiểm tra phép đổi ns → ms sẽ bỏ sót lỗi quan trọng nhất.
+For automated tests, do not rely solely on Java `assert` statements and forget `-ea`; use JUnit assertions or explicit checks like `if (...) throw new AssertionError(...)`. A test that only checks a field has `@Timespan` without verifying ns → ms conversion will miss the most critical bug.
 
-## 15. Checklist khi thêm custom event vào ứng dụng
+## 15. Checklist When Adding Custom Events to an Application
 
-- [ ] `@Name` có namespace của ứng dụng, đúng cú pháp Java, ổn định trong thời gian dài.
-- [ ] `@Label` ngắn gọn, dễ hiểu; `@Description` nói rõ đơn vị, nguồn, phạm vi và thời điểm đo.
-- [ ] `@Category` phản ánh cách nhóm event trong JMC; không dùng category để thay thế định danh.
-- [ ] Tên field, kiểu dữ liệu, ý nghĩa và đơn vị được ghi thành contract, có kiểm thử.
-- [ ] `@Timespan` dùng với **khoảng thời gian**, `@Timestamp` với **mốc thời gian**, `@DataAmount` với bytes/bits, `@Percentage` với tỷ lệ 0–1.
-- [ ] Với data có thể bắt đầu từ `System.nanoTime()`, đã chuyển đơn vị đúng trước khi gán.
-- [ ] Các trường tùy chọn về `Frequency`/`MemoryAddress`/`Unsigned` chỉ gắn khi đúng ngữ nghĩa.
-- [ ] Event được enable trong recording, có `commit()` và threshold phù hợp; có file `.jfr` để xác minh.
-- [ ] Dùng `jfr metadata`, `jfr summary` và `jfr print` hoặc JMC để kiểm tra cả schema lẫn dữ liệu.
-- [ ] Refactor class, đổi nhãn, đổi đơn vị đều được đánh giá tác động đến parser, dashboard, file cấu hình JFR và tài liệu.
-- [ ] Không ghi dữ liệu định danh cá nhân, token, bí mật, payload lớn hoặc object nhạy cảm khi không cần.
-- [ ] Đã đo overhead của custom event ở tần suất thực tế và giới hạn cardinality/size của trường string.
+- [ ] `@Name` uses the application's namespace, follows Java syntax, and is long-term stable.
+- [ ] `@Label` is concise and clear; `@Description` states units, source, scope, and measurement timing.
+- [ ] `@Category` reflects event grouping in JMC; category is never used as a substitute for identity.
+- [ ] Field names, data types, semantics, and units are documented as a contract and tested.
+- [ ] `@Timespan` is used for **durations**, `@Timestamp` for **timestamps**, `@DataAmount` for bytes/bits, `@Percentage` for 0–1 ratios.
+- [ ] Any data originating from `System.nanoTime()` is converted to the right unit before assignment.
+- [ ] Optional annotations like `Frequency`/`MemoryAddress`/`Unsigned` are attached only when semantically accurate.
+- [ ] Event is enabled in the recording, calls `commit()`, uses an appropriate threshold, and has a `.jfr` file verified.
+- [ ] `jfr metadata`, `jfr summary`, and `jfr print` or JMC are used to verify both schema and data.
+- [ ] Class refactoring, label updates, and unit changes are evaluated for impact on parsers, dashboards, JFR config files, and docs.
+- [ ] No personally identifiable information, tokens, secrets, large payloads, or sensitive objects are recorded unnecessarily.
+- [ ] Custom event overhead has been measured at realistic frequencies, and string field cardinality/size are bounded.
 
-## 16. Nguồn API chính thức
+## 16. Official API Sources
 
-Các tài liệu sau là Javadoc của **Java SE 26** (các API nền tảng được dùng trong ví dụ đã có ở JDK 17), giúp kiểm tra trực tiếp các contract và annotation values:
+The following links reference **Java SE 26** Javadoc (the core APIs used in these examples have been present since JDK 17) to directly inspect contracts and annotation values:
 
-1. Package `jdk.jfr` — hướng dẫn định nghĩa custom event và event metadata: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/package-summary.html
-2. `@Name` — quy tắc định danh hợp lệ và ổn định: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Name.html
-3. `@Label` — nhãn người dùng: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Label.html
-4. `@Category` — đường dẫn nhóm event: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Category.html
-5. `@Description` — chú thích ngữ nghĩa: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Description.html
-6. `@Timespan` — hằng đơn vị nanos, micros, millis, seconds và ticks: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Timespan.html
-7. `@Timestamp` — epoch millis hoặc ticks: https://docs.oracle.com/en/java/javase/24/docs/api/jdk.jfr/jdk/jfr/Timestamp.html
-8. `@DataAmount` — bytes và bits: https://docs.oracle.com/en/java/javase/25/docs/api/jdk.jfr/jdk/jfr/DataAmount.html
-9. `@Percentage` — phần trăm dùng giá trị phân số: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Percentage.html
-10. `EventType` và `ValueDescriptor` — đọc metadata bằng API: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/EventType.html và https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/ValueDescriptor.html
-11. `Event` và `Recording` — vòng đời ghi JFR: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Event.html và https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Recording.html
+1. Package `jdk.jfr` — guide to defining custom events and event metadata: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/package-summary.html
+2. `@Name` — valid and stable identifier rules: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Name.html
+3. `@Label` — user-facing label: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Label.html
+4. `@Category` — event grouping path: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Category.html
+5. `@Description` — semantic documentation: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Description.html
+6. `@Timespan` — unit constants for nanos, micros, millis, seconds, and ticks: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Timespan.html
+7. `@Timestamp` — epoch millis or ticks: https://docs.oracle.com/en/java/javase/24/docs/api/jdk.jfr/jdk/jfr/Timestamp.html
+8. `@DataAmount` — bytes and bits: https://docs.oracle.com/en/java/javase/25/docs/api/jdk.jfr/jdk/jfr/DataAmount.html
+9. `@Percentage` — fractional percentage values: https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Percentage.html
+10. `EventType` and `ValueDescriptor` — reading metadata via API: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/EventType.html and https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/ValueDescriptor.html
+11. `Event` and `Recording` — JFR recording lifecycle: https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Event.html and https://docs.oracle.com/en/java/javase/26/docs/api/jdk.jfr/jdk/jfr/Recording.html
 
-**Nguyên tắc cuối:** dùng `@Name` làm **identity**, `@Label`/`@Category`/`@Description` để giúp **con người hiểu**, và content-type annotation để xác định **đơn vị/ý nghĩa của dữ liệu**. Một event hữu ích phải đúng cả ba tầng; nếu metadata và giá trị thực mâu thuẫn, file JFR có thể đọc được nhưng kết luận chẩn đoán sẽ sai.
+**Final principle:** use `@Name` for **identity**, `@Label`/`@Category`/`@Description` for **human understanding**, and content-type annotations to define **data units/semantics**. A useful event must get all three layers right; if metadata and actual values contradict each other, the JFR file may still be readable, yet diagnostic conclusions will be wrong.

@@ -1,64 +1,64 @@
-# 17.3. Nhận diện vòng lặp tốn CPU, thuật toán đắt và công việc lặp ngoài dự kiến
+# 17.3. Identifying CPU-Heavy Loops, Expensive Algorithms, and Unexpected Repeated Work
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **CPU thực sự bận chạy mã** với **wall-clock latency** do I/O, chờ khóa, GC hoặc scheduler; không nhìn một chỉ số CPU rồi kết luận nguyên nhân.
-- Nhận diện ba nhóm vấn đề: **hot loop/busy spin**, **thuật toán có độ phức tạp cao**, và **công việc bị gọi lặp ngoài dự kiến**.
-- Dùng số liệu hệ điều hành, **JFR/JDK Mission Control**, thread dump, counters và phép thử thay đổi kích thước dữ liệu để lần từ triệu chứng đến vị trí mã.
-- Hiểu vai trò của **JIT warm-up/inlining**, GC, native code và môi trường nhiều core trong kết quả đo.
-- Đề xuất cách sửa có kiểm chứng: thay polling bằng blocking đúng cách, giảm độ phức tạp, hoist/cache công việc hợp lệ và dùng JMH hoặc phép đo ổn định để xác nhận lợi ích.
+- Distinguish **CPU actually busy executing code** from **wall-clock latency** caused by I/O, lock contention, GC, or the scheduler; avoid jumping to a root cause from a single CPU metric.
+- Recognize three categories of issues: **hot loops/busy spins**, **high-complexity algorithms**, and **unexpectedly repeated work**.
+- Use OS metrics, **JFR/JDK Mission Control**, thread dumps, counters, and input-size scaling tests to trace from symptom to code location.
+- Understand the role of **JIT warm-up/inlining**, GC, native code, and multi-core environments in measurement results.
+- Propose verified fixes: replace polling with proper blocking, reduce algorithmic complexity, hoist/cache valid invariant work, and use JMH or stable measurements to confirm gains.
 
-Ví dụ dùng **Java 17+**. Công cụ Linux được ghi rõ; tên giao diện JDK Mission Control (JMC) có thể khác giữa các phiên bản.
+Examples use **Java 17+**. Linux tools are noted explicitly; JDK Mission Control (JMC) UI labels may vary across versions.
 
-## 1. Đặt câu hỏi đúng trước khi tìm “dòng code chậm”
+## 1. Ask the Right Questions Before Hunting for a "Slow Line of Code"
 
-**CPU-bound** nghĩa là tốc độ thực thi bị giới hạn chủ yếu bởi lượng công việc CPU: nếu tăng sức tính toán hoặc giảm phép tính thì có thể cải thiện throughput/latency. **I/O-bound** hoặc **contention-bound** có thể có latency lớn nhưng CPU tương đối thấp vì thread đang đợi disk/network/lock.
+**CPU-bound** means execution speed is limited primarily by the amount of CPU work: adding compute capacity or reducing computations can improve throughput/latency. **I/O-bound** or **contention-bound** workloads can exhibit high latency yet relatively low CPU because threads are waiting on disk/network/locks.
 
-Ba triệu chứng của đề bài khác nhau:
+The three symptoms in this lesson differ:
 
-| Dạng vấn đề | Mô tả | Dấu hiệu thường gặp | Ví dụ |
+| Problem Type | Description | Common Signs | Examples |
 |---|---|---|---|
-| **Vòng lặp tốn CPU** | Chạy/quay liên tục, có thể không mang lại tiến triển tương xứng | Một hoặc vài thread thường xuyên ở trạng thái đang thực thi; samples lặp tại loop/predicate | `while (!ready) { }`, poll queue không sleep/block |
-| **Thuật toán đắt** | Mỗi lần gọi thực hiện quá nhiều bước so với kích thước đầu vào | CPU tăng phi tuyến theo `n`; stack nóng ở so sánh, sort, regex, parse | Quét cặp bằng hai vòng lặp `O(n²)` thay vì đếm bằng hash |
-| **Công việc lặp ngoài dự kiến** | Việc đúng nhưng được làm nhiều lần hơn nhu cầu nghiệp vụ | Counter invocation tăng đột biến, cùng stack xuất hiện nhiều request/lượt; có thể gây CPU, I/O hoặc allocation | Đọc config mỗi item, N+1 query, retry loop, scheduler chạy trùng |
+| **CPU-heavy loop** | Runs/spins continuously, possibly without proportional progress | One or a few threads frequently executing; samples repeat inside loop/predicate | `while (!ready) { }`, polling a queue without sleep/block |
+| **Expensive algorithm** | Each call performs too many steps relative to input size | CPU grows non-linearly with `n`; hot stacks in comparisons, sorting, regex, parsing | Checking pairs with nested `O(n²)` loops instead of counting via hash map |
+| **Unexpected repeated work** | Valid work performed far more times than business logic requires | Invocation counters spike, same stack across many requests/iterations; can drive CPU, I/O, or allocation | Loading config per item, N+1 queries, retry loops, duplicate scheduler runs |
 
-Một đường code nằm trong profiler “nóng” chưa chắc là **nguyên nhân gốc**. Nó có thể là công việc hợp lệ đang xử lý tải cao, framework hot path, GC do allocation của đoạn code khác, hoặc một lời gọi bị nhân số lần do caller.
+A code path appearing "hot" in a profiler is not necessarily the **root cause**. It might be legitimate work handling high load, a framework hot path, GC triggered by allocations elsewhere, or a call multiplied in frequency by a caller.
 
-**Quan hệ cơ bản:**
+**Fundamental relationship:**
 
 ```text
-Tổng chi phí ≈ số lần thực hiện × chi phí mỗi lần
-           + chi phí bộ nhớ / GC / đồng bộ / hệ thống
+Total cost ≈ number of executions × cost per execution
+           + memory / GC / synchronization / system overhead
 ```
 
-Cần trả lời đồng thời: **đoạn nào bận?** (where), **mỗi lần tốn bao nhiêu?** (cost), **vì sao chạy bao nhiêu lần?** (frequency), **lúc nào?** (time window), và **kết quả có cần thiết không?** (correctness).
+You need to answer simultaneously: **which part is busy?** (where), **how much does each execution cost?** (cost), **why does it run so many times?** (frequency), **when?** (time window), and **is the output still required?** (correctness).
 
-## 2. CPU usage, CPU time và elapsed time không phải một
+## 2. CPU Usage, CPU Time, and Elapsed Time Are Not the Same
 
-### 2.1. Ba đại lượng hay bị trộn lẫn
+### 2.1. Three Quantities Often Conflated
 
-- **Process CPU usage**: tỷ lệ CPU mà *toàn tiến trình* tiêu thụ trong một khoảng. Tùy công cụ/quy ước, một process chạy đồng thời trên nhiều core có thể được hiển thị vượt **100%**.
-- **Thread CPU time**: thời gian một thread thật sự được CPU chạy trong user mode và/hoặc kernel mode. Trên HotSpot có thể quan sát qua OS hoặc `ThreadMXBean` với **platform thread** nếu hỗ trợ/bật đo.
-- **Wall-clock elapsed time**: thời gian thực từ lúc bắt đầu đến lúc kết thúc công việc; gồm CPU, chờ I/O, lock, sleep, pause, scheduler, GC.
+- **Process CPU usage**: the CPU share consumed by the *entire process* over an interval. Depending on tool/convention, a process running concurrently across multiple cores can display above **100%**.
+- **Thread CPU time**: the time a thread actually spent executing on a CPU in user mode and/or kernel mode. On HotSpot, this can be observed via the OS or `ThreadMXBean` for **platform threads** when supported/enabled.
+- **Wall-clock elapsed time**: real elapsed time from start to finish of work; includes CPU, waiting for I/O, locks, sleep, pauses, scheduler, and GC.
 
-Ví dụ một HTTP request mất **500 ms** do chờ network 480 ms và tính toán 20 ms. Request **chậm về wall time**, nhưng không phải 500 ms CPU. Ngược lại, một polling loop không chờ gì có thể giữ một core bận gần liên tục dù throughput bằng 0.
+For example, an HTTP request takes **500 ms** due to 480 ms waiting on the network and 20 ms of computation. The request is **slow in wall time**, not 500 ms of CPU. Conversely, an unthrottled polling loop can keep a core busy nearly continuously even when throughput is 0.
 
-### 2.2. Quan sát CPU time trong mã Java
+### 2.2. Observing CPU Time in Java Code
 
-Trong **platform thread**, có thể lấy số đo bằng `java.lang.management.ThreadMXBean` khi JVM hỗ trợ:
+In a **platform thread**, you can take measurements with `java.lang.management.ThreadMXBean` when supported by the JVM:
 
 ```java
-// Đoạn minh họa đặt xung quanh phần việc trong platform thread;
- // cần import java.lang.management.* và mã xử lý cụ thể.
+// Illustrative snippet placed around work in a platform thread;
+ // requires importing java.lang.management.* and actual processing logic.
 ThreadMXBean bean = ManagementFactory.getThreadMXBean();
 if (bean.isCurrentThreadCpuTimeSupported()
         && bean.isThreadCpuTimeEnabled()) {
     long cpuBefore = bean.getCurrentThreadCpuTime();
     long wallBefore = System.nanoTime();
 
-    // Chạy đoạn công việc cần quan sát tại đây.
+    // Run the section of work to observe here.
 
     long wallNanos = System.nanoTime() - wallBefore;
     long cpuNanos = bean.getCurrentThreadCpuTime() - cpuBefore;
@@ -66,53 +66,53 @@ if (bean.isCurrentThreadCpuTimeSupported()
 }
 ```
 
-Đây là **snippet minh họa**, không phải file Java độc lập. Không tính `cpuNanos` nếu phương thức không được hỗ trợ hoặc trả `-1`. Độ phân giải nano-giây của API **không bảo đảm độ chính xác nano-giây**. `System.nanoTime()` dùng đo **chênh lệch** elapsed time, không phải thời gian lịch.
+This is an **illustrative snippet**, not a standalone Java file. Do not compute `cpuNanos` if the method is unsupported or returns `-1`. Nanosecond resolution in the API **does not guarantee nanosecond accuracy**. `System.nanoTime()` measures **elapsed-time deltas**, not calendar/wall-clock time.
 
-**Lưu ý Java hiện đại:** `ThreadMXBean` truyền thống báo CPU time cho **platform thread**, không phải virtual thread; `getThreadCpuTime(id)` có thể trả `-1` cho virtual thread, thread đã chết hoặc measurement chưa bật. Nếu workload dùng virtual thread, không suy luận “không có CPU” chỉ vì MXBean không cung cấp CPU time của virtual thread. Dùng JFR/OS/carrier profiling và cơ chế quan sát phù hợp.
+**Modern Java note:** traditional `ThreadMXBean` reports CPU time for **platform threads**, not virtual threads; `getThreadCpuTime(id)` can return `-1` for virtual threads, terminated threads, or when measurement is disabled. If a workload uses virtual threads, do not infer "zero CPU" just because the MXBean does not report virtual-thread CPU time. Use JFR/OS/carrier profiling and appropriate observability mechanisms.
 
-## 3. Workflow điều tra từ bên ngoài vào trong
+## 3. Outside-In Investigation Workflow
 
-### Bước 1 — Xác nhận triệu chứng và phạm vi
+### Step 1 — Confirm the Symptom and Scope
 
-Lấy cùng lúc **CPU theo process**, **CPU toàn host/container**, throughput, request rate, p95/p99 latency, error rate, allocation/GC, và số job đang xử lý.
+Collect **per-process CPU**, **host/container CPU**, throughput, request rate, p95/p99 latency, error rate, allocation/GC, and active job counts together.
 
-- Máy 90% CPU nhưng JVM chỉ 5%: chưa có bằng chứng CPU hotspot trong JVM; kiểm tra process khác.
-- JVM tăng CPU cùng lúc traffic tăng 4 lần: có thể chỉ là tải hợp lệ; cần so **CPU/request** hoặc **work/item**, không chỉ so CPU tuyệt đối.
-- JVM tăng CPU khi traffic không đổi, latency/queue tăng: đáng nghi hot loop, thuật toán phi tuyến, retry amplification, leak task/job hoặc GC.
-- Latency tăng mạnh nhưng JVM CPU thấp: ưu tiên I/O, lock contention, upstream dependency, starvation; không đổ lỗi thuật toán ngay.
+- Host at 90% CPU while JVM is at 5%: no evidence yet of a CPU hotspot inside the JVM; inspect other processes.
+- JVM CPU rises along with a 4x traffic increase: may simply be legitimate load; compare **CPU/request** or **work/item**, not absolute CPU alone.
+- JVM CPU rises while traffic stays flat and latency/queues grow: suspect a hot loop, non-linear algorithm, retry amplification, leaked tasks/jobs, or GC.
+- Latency jumps sharply while JVM CPU stays low: prioritize I/O, lock contention, upstream dependencies, or starvation; do not immediately blame an algorithm.
 
-### Bước 2 — Xem thread nào đang thực sự tiêu CPU
+### Step 2 — Check Which Thread Is Actually Consuming CPU
 
-Trên **Linux**, khi biết PID JVM:
+On **Linux**, once you know the JVM PID:
 
 ```bash
-PID=12345                       # Thay bằng PID thực
-top -H -p "$PID"               # Threads của tiến trình
+PID=12345                       # Replace with actual PID
+top -H -p "$PID"               # Threads of the process
 ps -L -p "$PID" -o pid,tid,pcpu,stat,comm
 ```
 
-`%CPU` có đơn vị/diễn giải phụ thuộc công cụ và khoảng lấy mẫu; không suy đoán core usage từ một ảnh chụp. Khi dùng `top -H`, cột PID của dòng thread thường tương ứng **TID/LWP** Linux.
+`%CPU` units and interpretation depend on the tool and sampling interval; do not infer core usage from a single snapshot. When using `top -H`, the PID column on thread rows typically corresponds to the Linux **TID/LWP**.
 
-Lấy thread dump gần cùng thời điểm:
+Take a thread dump around the same time:
 
 ```bash
 jcmd "$PID" Thread.print -l
 ```
 
-Với **platform thread**, có thể đối chiếu **TID thập phân** trong `top -H` với `nid` **hex** trong thread dump HotSpot:
+For **platform threads**, you can match the **decimal TID** in `top -H` with the **hex** `nid` in a HotSpot thread dump:
 
 ```bash
 TID=12346
-printf '%x\n' "$TID"          # nid thường hiển thị dạng 0x303a...
+printf '%x\n' "$TID"          # nid is usually shown as 0x303a...
 ```
 
-Chỉ đối chiếu khi biết đang quan sát đúng PID/thread và runtime hỗ trợ kiểu định danh đó. Tên thread có thể giống nhau, ID đổi sau restart, và virtual-thread/carrier model làm liên kết OS thread ↔ tác vụ ứng dụng không còn một-một.
+Only correlate when you know you are inspecting the exact PID/thread and the runtime supports that identifier mapping. Thread names can collide, IDs change across restarts, and the virtual-thread/carrier model removes the one-to-one mapping between OS threads and application tasks.
 
-Lấy **nhiều thread dump cách nhau ngắn**, thay vì dựa vào một snapshot. Một stack lặp lại ở cùng vòng lặp, trong thread đang tiêu CPU, là manh mối mạnh hơn chỉ thấy chữ `RUNNABLE` một lần. `RUNNABLE` của Java **không đồng nghĩa** chắc chắn đang chiếm CPU tại thời điểm đó; nó cũng có thể bao gồm trường hợp đang ở native call.
+Take **multiple thread dumps spaced closely apart**, rather than relying on one snapshot. A stack repeating in the same loop on a thread consuming CPU is a much stronger clue than seeing `RUNNABLE` once. Java's `RUNNABLE` **does not mean** the thread is definitely holding a CPU at that instant; it can also include cases inside a native call.
 
-### Bước 3 — Lấy CPU sampling bằng JFR
+### Step 3 — Capture CPU Sampling with JFR
 
-Khi đủ quyền truy cập JVM và có JDK:
+When you have JVM access and a JDK available:
 
 ```bash
 jcmd -l
@@ -120,30 +120,30 @@ jcmd <PID> JFR.start name=CpuCheck settings=profile duration=60s filename=cpu-ch
 jcmd <PID> JFR.check
 ```
 
-**Thay `<PID>` bằng PID thật**, không gõ nguyên văn dấu `< >`. Chọn khoảng thời gian **có tải/sự cố**; cấu hình `profile` thường thu nhiều mẫu profiling hơn `default` và có overhead cao hơn. Lệnh có `duration` sẽ tự kết thúc theo thời lượng, sau đó lưu recording theo filename. Với recording dài đang chạy, dùng `JFR.dump` để lấy ảnh chụp dữ liệu mà không dừng recording.
+**Replace `<PID>` with the actual PID** without typing literal `< >`. Choose a window **under load/incident**; the `profile` configuration typically captures more profiling samples than `default` and carries higher overhead. A command with `duration` stops automatically when the duration elapses and writes the recording to the filename. For long-running recordings, use `JFR.dump` to snapshot data without stopping the recording.
 
-Trên máy có tệp:
+On a host with the file:
 
 ```bash
 jfr summary cpu-check.jfr
 jfr print --events jdk.ExecutionSample cpu-check.jfr
 ```
 
-`jfr print` có thể xuất ra rất nhiều dòng. `jdk.ExecutionSample` phải **được bật và có sự kiện thực sự phát** thì mới có mẫu; file ít mẫu/không có mẫu không chứng minh code không chạy.
+`jfr print` can output very many lines. `jdk.ExecutionSample` must be **enabled and actually emit events** to have samples; a file with few or no samples does not prove code did not run.
 
-Mở `cpu-check.jfr` trong **JDK Mission Control** và xem trang **Code / Method Profiling / Hot Methods / Call Tree** (tên tùy bản). Chọn time range đúng lúc CPU tăng. Đọc:
+Open `cpu-check.jfr` in **JDK Mission Control** and inspect **Code / Method Profiling / Hot Methods / Call Tree** (labels vary by version). Select the time range right when CPU climbed. Read:
 
-- **Hot Methods / execution samples**: phương thức hoặc stack thường xuyên xuất hiện khi CPU đang chạy mã; là **phân bố mẫu**, không phải bảng thời gian tuyệt đối của từng lời gọi.
-- **Call Tree / Stack Trace**: ai gọi hot method; lần từ `for`/`while` hay thao tác đắt tới caller tạo ra tần suất.
-- **`jdk.CPULoad` / `jdk.ThreadCPULoad`** nếu có: xu hướng tải JVM và thread; kiểm tra event có trong file và đủ mẫu.
-- **GC / Compilation / Allocation**: phân biệt CPU chạy code nghiệp vụ với GC, JIT compiler hoặc chi phí cấp phát.
-- **Threads / Locks / I/O**: kiểm tra phần thời gian chờ khi wall latency lớn.
+- **Hot Methods / execution samples**: methods or stacks appearing frequently when CPU is executing code; this is a **sample distribution**, not an absolute timing table per invocation.
+- **Call Tree / Stack Trace**: who calls the hot method; trace from `for`/`while` or expensive operations up to the caller generating the frequency.
+- **`jdk.CPULoad` / `jdk.ThreadCPULoad`** if present: JVM and thread load trends; verify events exist in the file with enough samples.
+- **GC / Compilation / Allocation**: separate CPU executing business code from GC, JIT compiler, or allocation cost.
+- **Threads / Locks / I/O**: inspect wait time when wall latency is high.
 
-Theo tài liệu Oracle, execution sampling tập trung vào thread đang chạy mã, thường không lấy mẫu những thread đang sleep, chờ I/O hoặc lock. **Ít CPU samples có thể là vì thread đang đợi**, chứ không phải vì request nhanh. Đọc stack và time window cùng với OS metrics.
+Per Oracle documentation, execution sampling focuses on threads actively executing code and typically does not sample threads sleeping, waiting on I/O, or blocked on locks. **Few CPU samples may mean threads are waiting**, not that requests are fast. Read stacks and time windows alongside OS metrics.
 
-### Bước 4 — Chuyển stack nóng thành giả thuyết có thể kiểm chứng
+### Step 4 — Turn a Hot Stack into a Testable Hypothesis
 
-Một stack ví dụ:
+An example stack:
 
 ```text
 OrderService.search()
@@ -151,70 +151,70 @@ OrderService.search()
      -> OrderMatcher.comparePairs()
 ```
 
-Nếu `comparePairs()` chiếm nhiều mẫu, không dừng ở tên method. Hỏi:
+If `comparePairs()` dominates samples, do not stop at the method name. Ask:
 
-1. `n` là bao nhiêu? Có hai vòng lặp lồng nhau, regex backtracking, parse hay sort lặp?
-2. Có cache/index/hash map phù hợp hơn thuật toán duyệt toàn bộ không?
-3. Method này được gọi bao nhiêu lần mỗi request/batch?
-4. Có caller retry, scheduled task chạy đôi, cache miss hoặc pipeline lặp khiến cost bị nhân lên không?
-5. Có giá trị đầu ra/side effect nào bắt buộc giữ nguyên nếu tối ưu không?
+1. How large is `n`? Are there nested loops, regex backtracking, or repeated parsing/sorting?
+2. Is there a cache/index/hash map more suitable than an exhaustive scan?
+3. How many times is this method called per request/batch?
+4. Is there caller retry, duplicate scheduled execution, cache misses, or a repeated pipeline multiplying the cost?
+5. Are there outputs or side effects that must be preserved when optimizing?
 
-Bổ sung **counter cho số lời gọi, số item duyệt, số pair so sánh, retry count**, rồi so với số nghiệp vụ kỳ vọng. Dữ liệu này thường giúp phân biệt “một lời gọi quá đắt” với “một lời gọi bình thường nhưng bị gọi quá nhiều”.
+Add **counters for invocation count, items scanned, pairs compared, and retry count**, then compare against business expectations. This data usually distinguishes "one call is too expensive" from "a normal call is invoked too many times."
 
-## 4. Nhận diện vòng lặp tốn CPU
+## 4. Identifying CPU-Heavy Loops
 
-### 4.1. Busy spin: chờ nhưng không thật sự ngủ
+### 4.1. Busy Spin: Waiting Without Truly Sleeping
 
-Ví dụ đối lập:
+Contrasting example:
 
 ```java
-// Minh họa ANTI-PATTERN, không phải chương trình standalone:
+// Illustrates an ANTI-PATTERN, not a standalone program:
 while (!ready.get()) {
-    // Không có blocking/wait; liên tục đọc cùng trạng thái.
+    // No blocking/wait; continuously reads the same state.
 }
 ```
 
-Nếu `ready` không chuyển `true`, vòng lặp chạy hàng triệu lượt và có thể chiếm gần trọn một core dù **không tạo tiến triển**. Dùng `Thread.onSpinWait()` có thể cung cấp gợi ý cho CPU trong một số spin loop có chủ đích, nhưng **không biến busy spin thành blocking**; nó vẫn tiêu tài nguyên CPU.
+If `ready` does not flip to `true`, the loop runs millions of iterations and can occupy nearly an entire core while **making no progress**. Using `Thread.onSpinWait()` can give a hint to the CPU in certain intentional spin loops, but it **does not turn a busy spin into blocking**; it still consumes CPU resources.
 
-Phương án phù hợp hơn khi thời gian đợi không cực ngắn là primitive có khả năng **chờ tín hiệu**:
+A better option when wait times are not ultra-short is a primitive capable of **waiting for a signal**:
 
 ```java
-// Minh họa: cần khai báo latch và bên phát tín hiệu;
- // đây là đoạn xử lý, không phải chương trình độc lập.
+// Illustrative: requires declaring the latch and the signaling side;
+ // this is a snippet, not a standalone program.
 CountDownLatch readySignal = new CountDownLatch(1);
 
-// Thread cần chờ:
+// Thread that needs to wait:
 readySignal.await();
 
-// Thread hoàn tất khởi tạo:
+// Thread completing initialization:
 readySignal.countDown();
 ```
 
-Ở code thực, bạn có thể dùng `BlockingQueue.take()`, `Semaphore.acquire()`, `Lock/Condition.await()`, `CompletableFuture` hoặc I/O bất đồng bộ. Chọn đúng primitive và xử lý **interrupt/timeout/cancellation**; đừng đổi sang `Thread.sleep(1)` như một bản sửa mặc định vì vừa còn poll vừa đổi latency.
+In real code, you can use `BlockingQueue.take()`, `Semaphore.acquire()`, `Lock/Condition.await()`, `CompletableFuture`, or asynchronous I/O. Pick the right primitive and handle **interrupt/timeout/cancellation**; do not swap in `Thread.sleep(1)` as a default fix because it still polls while altering latency.
 
-### 4.2. Vòng lặp có điều kiện thoát sai hoặc đầu vào bất thường
+### 4.2. Loops with Wrong Exit Conditions or Abnormal Inputs
 
-Ví dụ thường thấy:
+Common examples:
 
-- `while` với điều kiện luôn đúng do biến trạng thái không được cập nhật/không bảo đảm visibility giữa thread.
-- Lỗi retry: kết quả lỗi lập tức retry không giới hạn, không backoff/jitter/circuit breaker.
-- Consumer đọc queue rỗng và thử lại liên tục.
-- Poll một trạng thái với thời lượng rất nhỏ và không có budget.
-- Vòng lặp có tiến triển nhưng input tăng vô hạn do bug.
+- `while` with a condition that stays true because state is not updated or lacks cross-thread visibility guarantees.
+- Faulty retries: error results immediately retry without limit, backoff, jitter, or circuit breaking.
+- A consumer reading an empty queue and retrying continuously.
+- Polling a state with a tiny interval and no budget.
+- A loop making progress while input grows unboundedly due to a bug.
 
-Cách phân biệt: xem **loop-iteration counter, retry rate, trạng thái thoát, kết quả mỗi lượt** và **thread CPU**; đặt một lần sampling/timebox. Sửa đúng logic termination và synchronization trước khi tối ưu instruction. Với retry, giới hạn attempt/budget, backoff có kiểm soát và tránh tạo storm khi dependency lỗi.
+How to distinguish: inspect **loop-iteration counters, retry rate, exit condition, per-iteration outcome**, and **thread CPU**; run a short sampling/timeboxed check. Fix termination logic and synchronization before optimizing instructions. For retries, cap attempts/budget, use controlled backoff, and avoid creating a storm when a dependency fails.
 
-### 4.3. Khi spin có thể là chủ ý
+### 4.3. When Spinning May Be Intentional
 
-Một số cơ chế cực thấp latency có thể spin rất ngắn trong vùng đã được thiết kế và benchmark cụ thể. Nhưng cần chứng minh lợi ích latency so với việc chiếm core, xác định **bounded spin** và fallback sang blocking. Không suy rộng tối ưu của runtime/lock-free library sang loop nghiệp vụ thông thường.
+Some ultra-low-latency mechanisms may spin very briefly in a specifically designed and benchmarked region. However, you must prove the latency gain outweighs monopolizing a core, enforce a **bounded spin**, and fall back to blocking. Do not generalize optimizations from runtime/lock-free libraries to ordinary business loops.
 
-## 5. Thuật toán đắt: dùng work units và độ phức tạp để giải thích
+## 5. Expensive Algorithms: Using Work Units and Complexity to Explain
 
-### 5.1. Ví dụ tìm mọi cặp giá trị bằng nhau
+### 5.1. Example: Finding All Equal Value Pairs
 
-Giả sử cần đếm các cặp chỉ số `(i, j)` với `i < j` và `a[i] == a[j]`.
+Suppose you need to count index pairs `(i, j)` with `i < j` and `a[i] == a[j]`.
 
-Cách trực tiếp là hai vòng lặp:
+The direct approach uses two loops:
 
 ```java
 for (int i = 0; i < values.length; i++) {
@@ -226,58 +226,58 @@ for (int i = 0; i < values.length; i++) {
 }
 ```
 
-Đây là **đoạn minh họa**, biến `values` và `pairs` phải tồn tại. Có đúng `n(n - 1)/2` phép so sánh, tức `O(n²)`. Khi `n` gấp đôi, số cặp so sánh **xấp xỉ gấp bốn** (không phải luôn chính xác 4 do hệ số và phần `-1`).
+This is an **illustrative snippet**; `values` and `pairs` must exist. There are exactly `n(n - 1)/2` comparisons, i.e., `O(n²)`. When `n` doubles, the number of pairs compared **roughly quadruples** (not always an exact 4x due to constants and the `-1` term).
 
-Thay vì so mọi cặp, dùng map ghi số lần giá trị đã xuất hiện. Khi đọc một giá trị `v`, nếu đã thấy `k` lần, có thêm đúng `k` cặp mới. Như vậy chỉ cần **một lượt duyệt**, kỳ vọng `O(n)` nếu hash map có thao tác trung bình hiệu quả, đổi lại dùng bộ nhớ bổ sung theo số giá trị khác nhau.
+Instead of comparing all pairs, use a map recording how many times each value has appeared. When reading a value `v`, if it has already been seen `k` times, exactly `k` new pairs are formed. That requires only **a single pass**, expected `O(n)` assuming efficient average hash map operations, trading extra memory proportional to the number of distinct values.
 
-### 5.2. Khi `O(n log n)`/`O(n²)` không đủ để ra quyết định
+### 5.2. When `O(n log n)`/`O(n²)` Is Not Enough to Decide
 
-Không phải cứ thấy hai vòng lặp là bug. Nếu đầu vào luôn rất nhỏ hoặc một thuật toán cần chính xác mọi cặp, chi phí có thể chấp nhận được. Ngược lại, một biểu thức regex hoặc thuật toán backtracking có thể chạy cực đắt ngay cả khi mã chỉ có một lời gọi. Hãy kiểm tra:
+Two nested loops are not automatically a bug. If inputs are always tiny or an algorithm genuinely needs every pair, the cost can be acceptable. Conversely, a single regex or backtracking algorithm can run extremely slowly even from one call site. Check:
 
-- Giới hạn kích thước và hình dạng dữ liệu **thực tế**.
-- Worst case và dữ liệu bất thường; ví dụ regex có thể bị **catastrophic backtracking** trên một số input.
-- Số truy vấn DB hoặc network phát sinh trong loop (N+1): latency có thể tốn chủ yếu ở I/O, dù code nhìn như `O(n)`.
-- Số lần tạo object tạm; allocation/GC cũng tiêu CPU.
-- Trade-off đúng đắn của HashMap: hashCode/equals, collision, memory và độ ổn định key; độ phức tạp trung bình không phải bất biến của mọi input.
+- **Actual** input size bounds and data shapes.
+- Worst-case and pathological inputs; e.g., regexes can suffer **catastrophic backtracking** on certain inputs.
+- DB or network queries triggered inside the loop (N+1): latency may be dominated by I/O even when the code looks `O(n)`.
+- Temporary object creations; allocation/GC also consume CPU.
+- Proper `HashMap` trade-offs: `hashCode`/`equals`, collisions, memory, and key stability; average complexity is not an invariant for every input.
 
-Phép thử tốt là giữ **kết quả nghiệp vụ không đổi**, đo `n` và work units, sau đó so thời gian CPU/wall ở workload đại diện. Tránh tối ưu code nhỏ không nằm trên hot path.
+A good test keeps **business results unchanged**, measures `n` and work units, and compares CPU/wall time on a representative workload. Avoid micro-optimizing code that is not on the hot path.
 
-## 6. Công việc lặp ngoài dự kiến: “đúng một lần” nhưng bị gọi quá nhiều
+## 6. Unexpected Repeated Work: "Right Once" Called Too Many Times
 
-Trong hệ thống thực, lỗi không nhất thiết nằm trong method nóng:
+In real systems, the flaw is not necessarily inside the hot method itself:
 
 ```text
 1 request
   -> 100 items
-     -> loadRules() mỗi item
-     -> normalize() mỗi item dù input giống nhau
-     -> lookupUser() nhiều lần cho cùng key
-     -> retry operation không giới hạn khi lỗi
+     -> loadRules() per item
+     -> normalize() per item even for identical inputs
+     -> lookupUser() repeatedly for the same key
+     -> unbounded retry operation on error
 ```
 
-Đây là **sơ đồ**, không phải Java source. Mỗi `loadRules` có thể nhanh trong microbenchmark, nhưng khi gọi hàng nghìn lần/request và nhân với hàng trăm request/giây, CPU, allocation, lock contention hoặc I/O đều tăng.
+This is a **diagram**, not Java source code. Each `loadRules` call might look fast in a microbenchmark, yet when called thousands of times per request across hundreds of requests/second, CPU, allocations, lock contention, or I/O all climb.
 
-Những dạng cần điều tra:
+Patterns to investigate:
 
-- **Loop-invariant work:** kết quả một phép tính/parse/config trong suốt batch không đổi nhưng bị tạo lại ở mỗi vòng. Có thể tính **trước vòng lặp**.
-- **N+1 access:** nhiều truy vấn dữ liệu cho từng item thay vì batch fetch/cache hợp lệ.
-- **Cache misses** bất thường do key/TTL sai hoặc invalidate quá rộng; cần xem hit/miss và cost.
-- **Duplicate scheduling:** cùng job được chạy ở nhiều instance hoặc bị trigger song song ngoài dự kiến.
-- **Retry amplification:** dependency lỗi làm số lần thực hiện tăng gấp nhiều lần; cần giới hạn budget và idempotency.
-- **Repeated transformation/serialization:** parse cùng JSON, compile cùng regex, map cùng object qua nhiều lớp.
-- **Recursive traversal không memoization:** xử lý lại cùng subproblem trong cây/đồ thị (ví dụ Fibonacci naïve hoặc dynamic programming thiếu memoization).
+- **Loop-invariant work:** the result of a computation/parse/config lookup never changes across a batch yet is recomputed each iteration. It can be computed **before the loop**.
+- **N+1 access:** querying data item-by-item instead of using batch fetches or valid caching.
+- **Abnormal cache misses** from wrong keys/TTLs or overly broad invalidation; inspect hit/miss rates and cost.
+- **Duplicate scheduling:** the same job running on multiple instances or triggered concurrently unexpectedly.
+- **Retry amplification:** a failing dependency multiplies execution attempts; enforce budgets and idempotency.
+- **Repeated transformation/serialization:** parsing the same JSON, compiling the same regex, or mapping the same object across layers.
+- **Unmemoized recursive traversal:** recomputing the same subproblems in a tree/graph (e.g., naive Fibonacci or dynamic programming missing memoization).
 
-**Không cache một cách vô điều kiện:** một dữ liệu có thể thay đổi theo tenant/request, cần đúng isolation, TTL/invalidation, thread-safety, bộ nhớ và yêu cầu freshness. Chuyển `loadRules()` ra khỏi loop chỉ hợp lệ khi rules thật sự **không cần được đọc lại cho mỗi item**. Với side effects, việc bỏ số lần gọi có thể thay đổi behavior.
+**Do not cache unconditionally:** data may vary per tenant/request and requires proper isolation, TTL/invalidation, thread safety, memory bounds, and freshness guarantees. Hoisting `loadRules()` outside a loop is only valid when rules genuinely **do not need to be re-read per item**. With side effects, skipping calls can alter behavior.
 
-### Bằng chứng của duplicated work
+### Evidence of Duplicated Work
 
-Đặt counter/trace tại entry point: `jobsStarted`, `batchSize`, `configLoads`, `queriesPerRequest`, `retriesPerKey`, `cacheHits/cacheMisses`. So sánh tỷ lệ kỳ vọng; ví dụ một config load/batch nhưng quan sát **3.000 loads cho 3.000 items** là tín hiệu mạnh hơn chỉ nhìn stack của `loadRules`.
+Place counters/traces at entry points: `jobsStarted`, `batchSize`, `configLoads`, `queriesPerRequest`, `retriesPerKey`, `cacheHits/cacheMisses`. Compare against expected ratios; e.g., expecting one config load per batch while observing **3,000 loads for 3,000 items** is stronger evidence than just looking at `loadRules` on a stack.
 
-## 7. Java 17+ runnable: cùng kết quả, khác độ phức tạp và số lần gọi
+## 7. Runnable Java 17+: Same Result, Different Complexity and Call Counts
 
-Ví dụ sau chứng minh **hai kiểu bất thường bằng con số đếm xác định**: so cặp `O(n²)` so với đếm bằng hash map, và tải rules cho từng request thay vì một lần/batch. Nó còn có chế độ tạo **CPU hot loop có chủ đích** để bạn dùng JFR profiler.
+The example below demonstrates **both anomaly patterns with deterministic counts**: `O(n²)` pair comparison versus hash-map counting, and loading rules per request instead of once per batch. It also includes a mode that creates an **intentional CPU hot loop** so you can practice with the JFR profiler.
 
-Tạo tệp **`CpuPatternDemo.java`**:
+Create **`CpuPatternDemo.java`**:
 
 ```java
 import java.util.HashMap;
@@ -379,14 +379,14 @@ public class CpuPatternDemo {
 }
 ```
 
-### 7.1. Chạy bài toán so sánh số thao tác
+### 7.1. Run the Operation-Count Comparison
 
 ```bash
 javac CpuPatternDemo.java
 java CpuPatternDemo
 ```
 
-**Stdout chính xác** của đường chạy mặc định:
+**Exact stdout** of the default run:
 
 ```text
 Equal pairs: 87000
@@ -397,19 +397,19 @@ Once-per-batch rule loads: 1
 Same rule result: true
 ```
 
-Giải thích:
+Explanation:
 
-- `n = 6000`, có `200` giá trị khác nhau lặp đều, mỗi giá trị xuất hiện `30` lần. Tổng cặp trùng: `200 × 30 × 29 / 2 = 87.000`.
-- Cách `quadratic` duyệt `6000 × 5999 / 2 = 17.997.000` cặp, dù chỉ có 87.000 cặp bằng nhau.
-- Cách `linear` duyệt đúng 6.000 input, cập nhật `Map` để tính số cặp mới; hai cách trả **cùng kết quả**.
-- `loadRules` ở đây chỉ trả một số cố định, **không phải thao tác cấu hình tốn CPU thực**. Counter minh họa **3.000 calls so với 1 call**; nó không chứng minh tiết kiệm CPU cụ thể bao nhiêu trong production.
-- Chỉ chuyển việc load ra trước vòng lặp khi rules/side effect cho phép; nếu cấu hình thay đổi theo request thì cách cache này có thể **sai nghiệp vụ**.
+- `n = 6000`, with `200` distinct values repeating evenly, each appearing `30` times. Total matching pairs: `200 × 30 × 29 / 2 = 87,000`.
+- `quadratic` checks `6000 × 5999 / 2 = 17,997,000` pairs, even though only 87,000 pairs match.
+- `linear` visits exactly 6,000 inputs, updating the `Map` to count new pairs; both approaches return the **same result**.
+- `loadRules` here simply returns a constant, **not a real CPU-heavy config operation**. The counter illustrates **3,000 calls versus 1 call**; it does not prove a specific production CPU savings.
+- Only hoist the load before the loop when rules and side effects permit; if config varies per request, caching like this would be a **business-logic bug**.
 
-**Không dùng 17.997.000/6.000 như tỷ số tăng tốc CPU.** Số thao tác ở hai giải thuật có *đơn vị khác nhau* (so sánh số nguyên vs truy cập hash map) và JIT, allocation, memory locality khác nhau. Nó chứng minh **hình dạng công việc**, không phải tốc độ chính xác.
+**Do not treat 17,997,000 / 6,000 as a CPU speedup ratio.** The operation counts in the two algorithms have *different units* (integer comparisons vs. hash map lookups) as well as different JIT, allocation, and memory-locality behavior. It demonstrates **work shape**, not exact runtime speed.
 
-### 7.2. Tạo JFR để nhìn thấy CPU hot loop
+### 7.2. Capture JFR to See the CPU Hot Loop
 
-Chạy **chế độ profiling** của cùng chương trình:
+Run **profiling mode** of the same program:
 
 ```bash
 java -XX:StartFlightRecording=filename=cpu-pattern.jfr,settings=profile,dumponexit=true CpuPatternDemo profile 15
@@ -417,136 +417,136 @@ jfr summary cpu-pattern.jfr
 jfr print --events jdk.ExecutionSample cpu-pattern.jfr
 ```
 
-Chương trình chạy loop tính toán khoảng **15 giây**, sau đó in:
+The program runs the compute loop for about **15 seconds**, then prints:
 
 ```text
 Profile run done
 ```
 
-Với `dumponexit=true`, JVM dump recording khi thoát bình thường; file `cpu-pattern.jfr` có thể mở bằng JMC để xem Code/Hot Methods/Call Tree. Mã dùng biến `blackhole` dạng `volatile` để kết quả từ các chunk tính toán là observable, giảm khả năng JIT loại hẳn phép tính như dead code. Nó là **workload nhân tạo dùng để học profiler**, không phải đoạn code nên đưa vào ứng dụng thật.
+With `dumponexit=true`, the JVM writes the recording on normal exit; `cpu-pattern.jfr` can be opened in JMC to inspect Code/Hot Methods/Call Tree. The code uses a `volatile` `blackhole` variable so results from the compute chunks remain observable, reducing the chance that JIT eliminates the computation as dead code. It is a **synthetic workload for learning the profiler**, not code to put into a real application.
 
-Một lần chạy kiểm tra bằng OpenJDK 24 với **`profile 2`** đã tạo file hợp lệ và `jfr summary` ghi nhận **188 `jdk.ExecutionSample`**; số mẫu thay đổi theo JDK, máy, thời gian, CPU load và cấu hình. **Không coi 188 là kết quả cố định** hoặc cam kết phải có mẫu giống hệt. Nếu file không có `jdk.ExecutionSample`, kiểm tra template, thời lượng và công cụ trước khi suy luận về mã.
+A test run on OpenJDK 24 with **`profile 2`** produced a valid file and `jfr summary` recorded **188 `jdk.ExecutionSample`** events; sample counts vary with JDK, hardware, duration, CPU load, and configuration. **Do not treat 188 as a fixed number** or expect identical sample counts. If the file has no `jdk.ExecutionSample` events, check the template, duration, and tooling before drawing conclusions about the code.
 
-Khi mở recording, chọn đoạn có CPU loop, tìm phương thức `profileHotLoop` trong sampled stacks. Nếu profiler cho thấy `Thread.sleep` hoặc hành vi khác chiếm wall time ở bài toán thật, đừng dùng CPU flame graph để suy ra thời gian blocked.
+When opening the recording, select the region with the CPU loop and find `profileHotLoop` in the sampled stacks. If in a real problem the profiler shows `Thread.sleep` or similar taking wall time, do not use a CPU flame graph to infer blocked time.
 
-### 7.3. Vì sao không in “nhanh hơn X ms” làm output chuẩn?
+### 7.3. Why Not Print "Faster by X ms" as Expected Output?
 
-`System.nanoTime()` hoặc thời gian CPU đọc từ MXBean phụ thuộc máy, JIT warm-up, OS scheduling, độ nóng CPU, GC và dữ liệu đầu vào. Một lần chạy nhanh/chậm không phải benchmark có ý nghĩa. Để đo hiệu quả thật:
+`System.nanoTime()` or CPU time from MXBeans depends on hardware, JIT warm-up, OS scheduling, CPU thermals, GC, and input data. A single fast/slow run is not a meaningful benchmark. To measure real gains:
 
-1. Chuẩn bị input đại diện, nhiều kích thước và phân bố (ít/nhiều key trùng).
-2. **Warm up** JVM/JIT; chạy nhiều vòng đo sau warm up.
-3. Giữ kết quả luôn được dùng/kiểm tra để tránh dead-code elimination.
-4. Tách riêng kết quả đúng, operations count, throughput, CPU time, wall time, allocation và p95/p99 khi cần.
-5. Dùng **JMH** cho microbenchmark Java; đánh giá end-to-end trên tải gần thực tế để bảo đảm cải thiện vẫn giữ nguyên.
+1. Prepare representative inputs across multiple sizes and distributions (few vs. many duplicate keys).
+2. **Warm up** the JVM/JIT; run multiple measurement iterations after warm-up.
+3. Keep results consumed/checked to prevent dead-code elimination.
+4. Track correctness, operation counts, throughput, CPU time, wall time, allocations, and p95/p99 separately when needed.
+5. Use **JMH** for Java microbenchmarks; evaluate end-to-end under realistic load to confirm the improvement holds.
 
-## 8. Đọc “CPU nóng” mà không bị JIT, GC và profiler đánh lừa
+## 8. Reading "Hot CPU" Without Being Misled by JIT, GC, or Profilers
 
-### 8.1. JIT warm-up và code shape
+### 8.1. JIT Warm-Up and Code Shape
 
-HotSpot/JIT có thể tối ưu code sau một số lần thực thi: **inlining**, loop optimizations, escape analysis, constant folding, hoặc deoptimization khi giả định không còn đúng. Vì thế:
+HotSpot/JIT can optimize code after a number of executions: **inlining**, loop optimizations, escape analysis, constant folding, or deoptimization when assumptions no longer hold. Therefore:
 
-- Giai đoạn startup/warm up có thể có CPU cho **JIT compilation** và class loading; không quy tất cả CPU đó cho vòng lặp nghiệp vụ.
-- Method xuất hiện trong stack profiler có thể bị **inline**; tên/stack được tái dựng phụ thuộc profiler và JDK. Không mặc định một phương thức biến mất khỏi sample là nó không được gọi.
-- Hai benchmark đơn giản chạy liên tiếp có thể bị bias bởi thứ tự thực thi, JIT nóng dần và cache; đừng khẳng định thuật toán nào nhanh hơn chỉ từ một snapshot.
-- Code hot chưa chắc nên sửa: cần đo **chi phí liên quan đến mục tiêu SLO** và khả năng giữ nguyên semantics.
+- Startup/warm-up phases can show CPU spent on **JIT compilation** and class loading; do not attribute all of that CPU to business loops.
+- Methods appearing in stack profiles may be **inlined**; reconstructed names/stacks depend on the profiler and JDK. Never assume a method missing from samples was never called.
+- Two simple benchmarks run back-to-back can be biased by execution order, progressive JIT warm-up, and caches; do not declare one algorithm faster from a single run.
+- Hot code is not automatically worth changing: measure **cost relative to SLO targets** and ability to preserve semantics.
 
-Dùng JFR event về JVM compilation nếu cần, cùng thay đổi theo thời gian, không cần bật logging JIT quá nhiều trên production chỉ để nhìn một method.
+Use JFR JVM compilation events if needed along a timeline, without turning on verbose JIT logging in production just to inspect one method.
 
-### 8.2. Allocation và garbage collector cũng tiêu CPU
+### 8.2. Allocations and the Garbage Collector Also Consume CPU
 
-Một loop tạo nhiều object ngắn hạn có thể đẩy allocation rate/GC lên cao. Phương pháp:
+A loop creating many short-lived objects can drive allocation rate/GC high. Approach:
 
-1. Kiểm tra GC pause/time, số collection, allocation rate trong JFR/JMC.
-2. Tìm **allocation call site**; xem có parse, boxing hoặc buffer mới ở mỗi vòng hay không.
-3. Phân biệt CPU do GC với thread nghiệp vụ và CPU do JIT/native.
-4. Thay đổi cấu trúc code để giảm **công việc cần thiết**, không vội chỉnh heap/GC flags nếu gốc là allocation vô ích.
+1. Inspect GC pause/time, collection counts, and allocation rate in JFR/JMC.
+2. Find **allocation call sites**; check whether parsing, boxing, or new buffers happen on every iteration.
+3. Distinguish GC CPU from business-thread CPU and JIT/native CPU.
+4. Change code structure to reduce **necessary work**, rather than rushing to tweak heap/GC flags when the root is wasteful allocation.
 
-Nếu một request tốn 200 ms vì chờ network, việc allocation giảm một ít có thể không xử lý được p99 latency. Ngược lại, khi CPU GC cao do tạo hàng triệu object tạm từ loop, sửa code có thể quan trọng hơn nâng tài nguyên.
+If a request takes 200 ms waiting on the network, trimming a small amount of allocation may not fix p99 latency. Conversely, when GC CPU is high from creating millions of temporary objects in a loop, fixing the code can matter more than adding hardware resources.
 
-### 8.3. Native code, synchronization và virtual threads
+### 8.3. Native Code, Synchronization, and Virtual Threads
 
-- JFR `jdk.ExecutionSample` chủ yếu cho biết nơi Java thread được sampling lúc chạy; native hotspot có thể cần `jdk.NativeMethodSample` hoặc profiler OS/native chuyên dụng, tùy platform/recording.
-- Một `RUNNABLE` Java thread trong native I/O không đủ để kết luận CPU đang đốt trong Java.
-- Với **virtual threads**, OS quan sát carrier/platform threads. Đừng đối chiếu 1:1 virtual thread ID với Linux TID; cần công cụ JFR, thread dump tương thích virtual thread và đo ở nơi thích hợp.
-- Lock contention khiến wall time tăng nhưng nhiều thread **không** tiêu CPU; spin lock do ứng dụng tự viết lại có thể tiêu CPU thật. Nhận dạng hai trường hợp trước khi chọn cách sửa.
+- JFR `jdk.ExecutionSample` primarily shows where Java threads were sampled while running; native hotspots may require `jdk.NativeMethodSample` or a dedicated OS/native profiler, depending on platform/recording.
+- A `RUNNABLE` Java thread inside native I/O is not enough to conclude CPU is burning inside Java.
+- With **virtual threads**, the OS observes carrier/platform threads. Do not map virtual thread IDs 1:1 to Linux TIDs; use JFR, virtual-thread-aware thread dumps, and measurements in the right place.
+- Lock contention increases wall time while many threads do **not** burn CPU; custom spin locks written by an application, however, can burn real CPU. Distinguish these two cases before choosing a fix.
 
-## 9. Phân tích tình huống thực tế
+## 9. Real-World Scenario Analysis
 
-| Hiện tượng | Giả thuyết ưu tiên | Cách chứng minh | Hướng xử lý |
+| Symptom | Primary Hypothesis | How to Prove | Remediation Direction |
 |---|---|---|---|
-| Một core gần 100%, queue rỗng, cùng stack `while` lặp trong dump | Busy spin không có progress | CPU thread, JFR samples, loop count, queue-depth | Thay bằng blocking/signal/timeout có điều kiện |
-| CPU tăng rất mạnh khi danh sách từ 1.000 lên 10.000 items | Thuật toán `O(n²)` hoặc worse | Đếm số phép so, profile inner loop, scaling theo `n` | Chọn map/index, batch xử lý, tránh scan trùng |
-| CPU tăng nhưng request rate không đổi sau release | Retry amplification, scheduler trùng, cache miss, hot loop | Request/job/retry counters, thread profile, diff code | Giới hạn retry, idempotency, dedupe, sửa cache |
-| `loadRules` xuất hiện nhiều trong samples | Loop-invariant work bị gọi lặp | `configLoads / requests` hoặc `/ batch` cao bất thường | Hoist/cache có kiểm chứng freshness và side effects |
-| CPU JVM cao cùng GC nhiều và allocation rate tăng | Tạo object trong loop, churn | JFR Allocation/GC + CPU samples | Giảm allocation dư, cân nhắc bộ nhớ/GC sau |
-| JVM CPU thấp nhưng latency cao | Chờ I/O, lock, downstream | JFR Thread/Lock/I/O event, traces, timing | Sửa dependency/contended resource; không tối ưu CPU |
-| CPU host cao, JVM CPU thấp | Process/container khác dùng CPU | Host/process/cgroup metrics | Xử lý đúng owner của CPU |
-| Profile thay đổi mạnh giữa lần đầu và lần sau | JIT warm-up, class loading, GC, cache | Warm-up, JFR compilation, thử lặp JMH | Đo sau warm-up; tránh kết luận từ một lần |
+| One core near 100%, empty queue, same `while` stack repeating in dumps | Busy spin with no progress | Thread CPU, JFR samples, loop count, queue depth | Replace with conditional blocking/signal/timeout |
+| CPU surges sharply when list grows from 1,000 to 10,000 items | `O(n²)` or worse algorithm | Count comparisons, profile inner loop, scaling vs. `n` | Use map/index, batch processing, avoid duplicate scans |
+| CPU rises after release while request rate is flat | Retry amplification, duplicate scheduler, cache misses, hot loop | Request/job/retry counters, thread profiles, code diff | Bound retries, idempotency, dedupe, fix cache |
+| `loadRules` appears heavily in samples | Loop-invariant work called repeatedly | Abnormally high `configLoads / requests` or `/ batch` | Hoist/cache after verifying freshness and side effects |
+| High JVM CPU alongside frequent GC and rising allocation rate | Object creation in loop, churn | JFR Allocation/GC + CPU samples | Reduce excess allocation, tune memory/GC later |
+| Low JVM CPU yet high latency | Waiting on I/O, locks, downstream | JFR Thread/Lock/I/O events, traces, timing | Fix dependency/contended resource; do not optimize CPU |
+| High host CPU, low JVM CPU | Another process/container uses CPU | Host/process/cgroup metrics | Address the actual CPU owner |
+| Profile shifts drastically between first and later runs | JIT warm-up, class loading, GC, caches | Warm-up, JFR compilation, repeated JMH runs | Measure after warm-up; avoid single-run conclusions |
 
-### Case A — Polling loop chiếm core
+### Case A — Core-Hogging Polling Loop
 
-**Trước:** một worker dùng `while(queue.isEmpty()) { }`. Trong giờ rảnh, CPU vẫn cao; OS xác định thread nóng, JFR và thread dumps liên tiếp thấy worker ở cùng vòng lặp. **Sau:** worker chờ `BlockingQueue.take()`, xử lý phần tử khi có, bảo toàn cơ chế shutdown/cancellation. Cần đo lại CPU idle và độ trễ khi có item; không chỉ xác nhận CPU giảm mà bỏ quên responsiveness.
+**Before:** a worker uses `while(queue.isEmpty()) { }`. During idle hours, CPU remains high; OS metrics identify the hot thread, and JFR plus consecutive thread dumps show the worker stuck in the same loop. **After:** the worker waits on `BlockingQueue.take()`, processes items as they arrive, and preserves shutdown/cancellation handling. Re-measure idle CPU and item-arrival latency; do not verify only that CPU dropped while ignoring responsiveness.
 
-### Case B — Thuật toán tăng theo kích thước input
+### Case B — Algorithm Scaling with Input Size
 
-**Trước:** method so sánh mọi cặp sản phẩm để tìm duplicate: với 6.000 items có 17.997.000 comparisons. **Sau:** đếm bằng map với 6.000 lượt duyệt kỳ vọng, trả đúng 87.000 cặp trùng với dữ liệu ví dụ. Cần kiểm tra tính đúng đắn của `equals/hashCode`, phân bố input và memory overhead; kết quả trên data nhỏ có thể không phản ánh workload lớn.
+**Before:** a method compares every pair of products to find duplicates: for 6,000 items there are 17,997,000 comparisons. **After:** counting via a map in 6,000 expected visits returns the exact same 87,000 matching pairs for the example data. Verify `equals/hashCode` correctness, input distribution, and memory overhead; small-data results may not reflect large workloads.
 
-### Case C — Caller lặp thao tác, không phải callee chậm
+### Case C — Caller Repeats Work, Not a Slow Callee
 
-**Trước:** 3.000 request/items đều gọi `loadRules()` dù batch chỉ cần một phiên bản rules. **Sau:** một lần load/batch và chia sẻ kết quả khi invariant đúng. Counter giảm từ 3.000 xuống 1; CPU có thể giảm nếu load thật đắt, nhưng bài học chính là **chẩn đoán tần suất bất thường**. Nếu rules phân biệt tenant hoặc thay đổi tức thời, cache batch bừa bãi là bug nghiêm trọng.
+**Before:** 3,000 requests/items each call `loadRules()` even though the batch only needs one rule version. **After:** one load per batch sharing the result when the invariant holds. The counter drops from 3,000 to 1; CPU may drop if loading is truly expensive, but the key lesson is **diagnosing abnormal call frequency**. If rules differ per tenant or change immediately, blindly batch-caching is a severe bug.
 
-### Case D — Retry storm trong incident
+### Case D — Retry Storm During an Incident
 
-**Trước:** dependency trả lỗi, một lệnh retry ngay lập tức và lặp mã hóa/signature/parse payload nhiều lần, khiến CPU tăng trong lúc success rate bằng 0. **Sau:** retry budget, exponential backoff có jitter, giới hạn concurrency, circuit breaker/idempotency phù hợp. Theo dõi `attempts / original request`, CPU/request, queue và error rate; CPU thấp đi **không đủ** nếu bạn vô tình bỏ luôn yêu cầu xử lý hợp lệ.
+**Before:** a failing dependency triggers immediate retries that repeatedly encrypt/sign/parse payloads, driving CPU up while success rate is 0. **After:** retry budgets, exponential backoff with jitter, concurrency limits, and appropriate circuit breakers/idempotency. Track `attempts / original request`, CPU/request, queue depth, and error rate; lower CPU is **not enough** if you accidentally drop valid requests.
 
-## 10. Cách kết luận root cause bằng bằng chứng
+## 10. Reaching a Root-Cause Conclusion with Evidence
 
-Một báo cáo kỹ thuật nên phân biệt **quan sát**, **giả thuyết**, **thí nghiệm** và **kết quả**:
+A technical report should separate **observation**, **hypothesis**, **experiment**, and **result**:
 
 ```text
-Quan sát: JVM CPU tăng từ mức cơ sở khi số items/batch tăng,
-          nhưng request rate gần như không đổi.
+Observation: JVM CPU rises from baseline as items/batch grows,
+             while request rate stays nearly constant.
 
-Bằng chứng: CPU samples tập trung ở OrderMatcher.comparePairs;
-            log/counter cho thấy n = 6000 và ~18 triệu comparisons.
+Evidence:    CPU samples cluster in OrderMatcher.comparePairs;
+             logs/counters show n = 6000 and ~18 million comparisons.
 
-Giả thuyết: Thuật toán quét cặp O(n²) là phần việc CPU dư.
+Hypothesis:  The O(n²) pair-scanning algorithm is the excess CPU work.
 
-Thử nghiệm: Thay bằng phép đếm dựa trên Map, giữ kết quả nghiệp vụ;
-            chạy correctness tests + workload tương đương sau warm-up.
+Experiment:  Replace with Map-based counting preserving business output;
+             run correctness tests + comparable workload after warm-up.
 
-Kết luận: So CPU/batch, throughput, p95/p99, allocation, GC trước/sau.
-          Chỉ gọi là cải thiện khi số đo và tính đúng đắn đều đạt.
+Conclusion:  Compare CPU/batch, throughput, p95/p99, allocation, GC before/after.
+             Only call it an improvement when both metrics and correctness pass.
 ```
 
-Đừng trộn các bước: việc method ở top Hot Methods mới là **chỉ báo vị trí**, chưa tự chứng minh **vì sao** nó chạy nhiều hoặc liệu sửa nó có giúp người dùng.
+Do not blur the steps: a method at the top of Hot Methods is only a **location indicator**, not proof by itself of **why** it runs so much or whether changing it helps users.
 
-### Checklist thực hiện
+### Execution Checklist
 
-1. Xác định **process và time window** CPU cao; so CPU process với CPU host, throughput và request rate.
-2. Lấy **JFR `profile`** trong lúc có tải; xem Hot Methods/Call Tree, phân biệt execution sample và latency blocked.
-3. Nếu cần, map Linux hot TID với **platform thread** trong `jcmd Thread.print`, lấy nhiều mẫu liên tiếp.
-4. Tại điểm nóng, kiểm tra **loop termination/progress**, số vòng, `n`, số lời gọi, retry, cache hit/miss.
-5. Phân biệt **thuật toán đắt mỗi lần** với **công việc lặp nhiều lần**, GC/JIT/OS contention.
-6. Sửa có điều kiện **giữ kết quả đúng**; tránh cache/hoist làm stale dữ liệu hoặc mất side effect.
-7. Kiểm chứng bằng tests, workload cùng điều kiện, JFR/OS measurements sau warm-up và benchmark JMH nếu đo vi mô.
-8. Báo cáo CPU/request, tổng CPU, throughput, latency và memory/GC; đừng dùng một phần trăm CPU đơn lẻ.
+1. Identify the **process and time window** of high CPU; compare process CPU against host CPU, throughput, and request rate.
+2. Capture **JFR `profile`** under load; inspect Hot Methods/Call Tree, distinguishing execution samples from blocked latency.
+3. If needed, map hot Linux TIDs to **platform threads** in `jcmd Thread.print`, taking multiple consecutive snapshots.
+4. At the hotspot, check **loop termination/progress**, iteration counts, `n`, call counts, retries, and cache hits/misses.
+5. Distinguish an **expensive algorithm per call** from **repeated work across calls**, GC/JIT/OS contention.
+6. Apply conditional fixes that **preserve exact results**; avoid caching/hoisting that serves stale data or drops side effects.
+7. Verify with tests, matching workload conditions, post-warm-up JFR/OS measurements, and JMH benchmarks for micro-level checks.
+8. Report CPU/request, total CPU, throughput, latency, and memory/GC; never rely on a single CPU percentage.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-- Vì sao request chậm 500 ms chưa chắc tiêu 500 ms CPU?
-- Tại sao ba thread dumps liên tiếp cùng chỉ vào một vòng lặp thường hữu ích hơn một snapshot `RUNNABLE`?
-- Với `n = 6000`, tại sao hai vòng lặp so tất cả cặp có 17.997.000 comparisons, nhưng phép đếm bằng Map có thể chỉ duyệt 6.000 items?
-- Vì sao một method xuất hiện rất nhiều trong JFR samples chưa chắc chính nó có thuật toán sai?
-- Tại sao số `loadRules` calls giảm 3.000 → 1 chưa chứng minh “CPU nhanh hơn 3.000 lần”?
-- Khi CPU JVM cao, làm sao phân biệt CPU của application, JIT compiler, GC và native code?
-- Với virtual threads, vì sao `ThreadMXBean` và OS TID không trực tiếp biểu diễn CPU của từng virtual thread?
+- Why does a 500 ms slow request not necessarily consume 500 ms of CPU?
+- Why are three consecutive thread dumps pointing to the same loop usually more useful than a single `RUNNABLE` snapshot?
+- For `n = 6000`, why do two nested loops comparing all pairs perform 17,997,000 comparisons, while Map-based counting can visit only 6,000 items?
+- Why does a method appearing heavily in JFR samples not necessarily have a flawed algorithm itself?
+- Why does reducing `loadRules` calls from 3,000 → 1 not prove "3,000x faster CPU"?
+- When JVM CPU is high, how do you distinguish CPU from application code, JIT compiler, GC, and native code?
+- With virtual threads, why do `ThreadMXBean` and OS TIDs not directly represent per-virtual-thread CPU?
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle Java SE 17 — Troubleshoot Performance Issues Using Flight Recorder](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html): CPU load, execution samples, Method Profiling/Hot Methods và diễn giải stack.
-- [Oracle JDK Mission Control User Guide — Flight Recorder](https://docs.oracle.com/en/java/java-components/jdk-mission-control/9/user-guide/using-jdk-flight-recorder.html): tạo/open recording, xem Code/Memory/Threads và chọn event.
-- [Java SE 21 — ThreadMXBean API](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): thread CPU time, khả năng hỗ trợ, điều kiện enabled và giới hạn với virtual threads.
+- [Oracle Java SE 17 — Troubleshoot Performance Issues Using Flight Recorder](https://docs.oracle.com/en/java/javase/17/troubleshoot/troubleshoot-performance-issues-using-jfr.html): CPU load, execution samples, Method Profiling/Hot Methods, and stack interpretation.
+- [Oracle JDK Mission Control User Guide — Flight Recorder](https://docs.oracle.com/en/java/java-components/jdk-mission-control/9/user-guide/using-jdk-flight-recorder.html): creating/opening recordings, inspecting Code/Memory/Threads, and selecting events.
+- [Java SE 21 — ThreadMXBean API](https://docs.oracle.com/en/java/javase/21/docs/api/java.management/java/lang/management/ThreadMXBean.html): thread CPU time, supportability, enabled state, and virtual-thread limitations.
 - [Java SE 21 — `jcmd`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): `JFR.start`, `JFR.check`, `JFR.dump`, `Thread.print`.
-- [Java SE 21 — `jfr`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): đọc, lọc và tóm tắt các event trong `.jfr`.
-- [OpenJDK JMH](https://openjdk.org/projects/code-tools/jmh/): harness cho microbenchmark Java, giảm các sai lầm về warm-up, JIT và tối ưu hóa compiler.
+- [Java SE 21 — `jfr`](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): reading, filtering, and summarizing events in `.jfr` files.
+- [OpenJDK JMH](https://openjdk.org/projects/code-tools/jmh/): Java microbenchmark harness reducing warm-up, JIT, and compiler-optimization pitfalls.

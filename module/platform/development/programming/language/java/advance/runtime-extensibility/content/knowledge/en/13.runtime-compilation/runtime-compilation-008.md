@@ -1,100 +1,100 @@
-# Quản lý annotation processor và lựa chọn -proc:none khi không cần
+# Managing Annotation Processors and Choosing -proc:none When Unneeded
 
-Khi ứng dụng Java **biên dịch mã nguồn ngay lúc chạy** bằng JavaCompiler API (JSR 199), quá trình biên dịch có thể làm nhiều việc hơn việc biến file .java thành bytecode. Trình biên dịch còn có thể **khởi chạy annotation processor** theo JSR 269 để kiểm tra khai báo, phát sinh thêm mã nguồn hoặc báo lỗi. Điều này hữu ích khi mã thực sự cần MapStruct, Dagger hoặc một processor được ứng dụng chủ kiểm soát; nhưng với mã do người dùng nhập hoặc một đoạn Java nhỏ không yêu cầu sinh mã, việc chạy processor ngoài ý muốn tạo thêm tác dụng phụ, chi phí và rủi ro.
+When a Java application **compiles source code at runtime** using the JavaCompiler API (JSR 199), compilation can do more than turn `.java` files into bytecode. The compiler can also **invoke annotation processors** per JSR 269 to inspect declarations, generate additional source code, or report errors. This is useful when code genuinely needs MapStruct, Dagger, or a host-controlled processor; however, for user-submitted code or a small Java snippet that does not require code generation, running unintended processors adds side effects, cost, and risk.
 
-Vì vậy, mỗi lần biên dịch động phải có chính sách rõ ràng: **khi nào cần xử lý annotation, processor nào được phép chạy, processor được tải từ đâu, và khi nào phải truyền -proc:none**. Đây là một quyết định lúc **biên dịch**, không liên quan trực tiếp đến việc JVM có thể đọc annotation qua reflection sau khi class đã được nạp.
+Therefore, every dynamic compilation run must have an explicit policy: **when annotation processing is needed, which processors are allowed to run, where processors are loaded from, and when `-proc:none` must be passed**. This is a **compile-time** decision and does not directly affect whether the JVM can read annotations via reflection after the class is loaded.
 
-## 1. Annotation processor làm việc gì?
+## 1. What Does an Annotation Processor Do?
 
-Annotation là metadata gắn với package, class, interface, method, field, parameter và những phần tử Java khác. Nhưng bản thân việc viết @SomeAnnotation **không làm cho compiler tự phát sinh mã**. Annotation processor là một chương trình Java triển khai **javax.annotation.processing.Processor**, thường kế thừa AbstractProcessor, mà javac có thể nạp và gọi trong bước xử lý annotation.
+An annotation is metadata attached to packages, classes, interfaces, methods, fields, parameters, and other Java elements. Yet merely writing `@SomeAnnotation` **does not make the compiler generate code automatically**. An annotation processor is a Java program implementing **javax.annotation.processing.Processor**, commonly extending `AbstractProcessor`, which `javac` can load and invoke during the annotation processing step.
 
-Một processor có thể:
+A processor can:
 
-- đọc mô hình khai báo của mã đang biên dịch qua javax.lang.model;
-- xác minh quy tắc và ghi Diagnostic.Kind.ERROR/WARNING/NOTE qua Messager;
-- sinh Java source, class hoặc resource bằng Filer;
-- chạy qua nhiều vòng (round): source mới được sinh có thể lại chứa annotation và được xử lý ở vòng sau.
+- read the declaration model of the code being compiled via `javax.lang.model`;
+- validate rules and emit `Diagnostic.Kind.ERROR`/`WARNING`/`NOTE` via `Messager`;
+- generate Java source, class, or resource files via `Filer`;
+- execute across multiple rounds: newly generated source may itself contain annotations and be processed in the next round.
 
-Ví dụ một processor nhận annotation @GenerateMarker có thể tạo ra class generated.MarkerGenerated. Sau đó javac tiếp tục biên dịch class được sinh nếu đang chạy chế độ biên dịch thông thường.
+For example, a processor handling `@GenerateMarker` can generate the class `generated.MarkerGenerated`. Afterward, `javac` continues compiling the generated class if running in standard compilation mode.
 
-Một annotation mang RetentionPolicy.SOURCE vẫn có thể được processor nhìn thấy khi biên dịch, mặc dù annotation đó không cần tồn tại để reflection ở runtime đọc. Ngược lại, annotation có RetentionPolicy.RUNTIME cũng **không bắt buộc phải có annotation processor**; chương trình có thể chỉ muốn đọc nó bằng reflection khi class chạy.
+An annotation with `RetentionPolicy.SOURCE` is still visible to a processor during compilation, even though it does not need to remain for runtime reflection. Conversely, an annotation with `RetentionPolicy.RUNTIME` **does not require an annotation processor**; the program may simply intend to read it via reflection when the class runs.
 
-**Điểm quan trọng về rủi ro:** processor là mã Java có thể **thực thi trong quá trình biên dịch**. Nó không chỉ là metadata bị động. Processor có thể dùng file system, network, thread hoặc tài nguyên khác theo quyền của tiến trình compiler. Đối với dịch vụ compile-on-demand, danh sách processor là một phần của chính sách cho phép thực thi mã.
+**Key risk point:** a processor is Java code that can **execute during compilation**. It is not merely passive metadata. A processor can access the filesystem, network, threads, or other resources with the privileges of the compiler process. For an on-demand compile service, the processor allowlist is part of the code-execution authorization policy.
 
-## 2. Ba chế độ xử lý annotation của javac
+## 2. Three javac Annotation Processing Modes
 
-| Tùy chọn | Hành vi | Trường hợp áp dụng |
+| Option | Behavior | When Applicable |
 | --- | --- | --- |
-| **-proc:none** | Biên dịch Java thông thường; **không chạy annotation processor** | Mã độc lập, nguồn không đòi hỏi generated code, đầu vào động không có processor đã được duyệt |
-| **-proc:only** | Chạy annotation processing nhưng **không thực hiện bước biên dịch class thông thường** sau đó | Tạo source hoặc kiểm tra processor riêng trong pipeline |
-| **-proc:full** | Chạy annotation processing rồi biên dịch class | Nguồn cần generated code; dùng khi phiên bản javac hỗ trợ tùy chọn này |
+| **-proc:none** | Standard Java compilation; **runs no annotation processors** | Standalone code, sources not requiring generated code, dynamic inputs without approved processors |
+| **-proc:only** | Runs annotation processing **without running the normal class compilation step** afterward | Generating sources or testing processors separately in a pipeline |
+| **-proc:full** | Runs annotation processing and then compiles classes | Sources requiring generated code; use when the `javac` version supports this option |
 
-Có thể bỏ hẳn tùy chọn -proc và lựa chọn processor bằng -processor, -processorpath hoặc --processor-module-path. Khi đó việc xử lý annotation có thể được bật theo quy tắc của phiên bản javac đang chạy. Trong hệ thống cần kết quả có thể tái lập, hãy chọn **tường minh** thay vì dựa vào việc compiler có tự dò được processor hay không.
+You can omit `-proc` altogether and select processors via `-processor`, `-processorpath`, or `--processor-module-path`. In that case, annotation processing may be enabled according to the rules of the running `javac` version. In systems needing reproducible results, choose **explicitly** instead of relying on whether the compiler automatically discovers processors.
 
-**Không nhầm -proc:none với -implicit:none.** -implicit:none điều khiển việc javac có phát sinh .class cho các source được tìm thấy ngầm hay không; nó **không thay thế chính sách tắt annotation processing**. Tương tự, --release 17 quy định ngôn ngữ/API/bytecode mục tiêu, chứ không khiến processor tự động tắt.
+**Do not confuse `-proc:none` with `-implicit:none`.** `-implicit:none` controls whether `javac` emits `.class` files for implicitly found sources; it **does not replace disabling annotation processing**. Likewise, `--release 17` specifies the target language/API/bytecode level and does not automatically disable processors.
 
-### Thay đổi quan trọng từ JDK 23
+### Important Change Since JDK 23
 
-Trong các phiên bản javac **đến JDK 22**, khi không có -proc:none, trình biên dịch có thể tự khám phá processor trên đường tìm kiếm (mặc định classpath nếu không có processor path riêng). Đây từng là hành vi dễ bị kích hoạt ngoài ý muốn khi dependency tình cờ chứa file đăng ký processor.
+In `javac` versions **up through JDK 22**, when `-proc:none` is absent, the compiler can automatically discover processors on the search path (defaulting to the classpath if no separate processor path is given). This used to trigger unintended execution when a dependency happened to bundle a processor registration file.
 
-**Từ JDK 23**, annotation processing **không tự bật chỉ vì một processor có mặt trên classpath**. Cần cấu hình hoặc yêu cầu xử lý annotation tường minh, chẳng hạn -processor, -processorpath, --processor-module-path, -proc:only hoặc -proc:full. Sự thay đổi này là chính sách của **javac đang chạy**, không phải của phiên bản bytecode đích.
+**Starting in JDK 23**, annotation processing **is no longer enabled automatically merely because a processor is present on the classpath**. You must configure or request annotation processing explicitly, such as `-processor`, `-processorpath`, `--processor-module-path`, `-proc:only`, or `-proc:full`. This change is a policy of the **running `javac`**, not of the target bytecode version.
 
-Ví dụ chương trình đang chạy **JDK 24** và truyền --release 17 vẫn dùng quy tắc khám phá processor của javac 24; --release không hoàn nguyên mặc định xử lý annotation về JDK 17.
+For example, a program running **JDK 24** and passing `--release 17` still uses `javac` 24's processor discovery rules; `--release` does not revert annotation-processing defaults to JDK 17.
 
-Tùy chọn -proc:full đã được đưa trở lại một số bản cập nhật JDK 17 (ví dụ 17.0.11 trở lên), nhưng không nên giả định mọi bản 17 cũ đều nhận tùy chọn đó. Khi cần chạy trên nhiều bản JDK 17, lựa chọn processor tường minh bằng -processor và -processorpath, hoặc tắt bằng -proc:none, là cách rõ ràng. Luôn kiểm tra javac -version và javac --help của JDK triển khai thực tế.
+The `-proc:full` option was backported to some JDK 17 updates (e.g., 17.0.11 and later), though you should not assume all older 17 builds accept it. When targeting multiple JDK 17 builds, explicitly selecting processors with `-processor` and `-processorpath`, or disabling with `-proc:none`, is the clearest approach. Always check `javac -version` and `javac --help` on the actual deployment JDK.
 
-Tài liệu về thay đổi: OpenJDK/Inside Java, “JDK 23: Changes Default Annotation Processing Policy” — https://inside.java/2024/06/18/quality-heads-up/
+Reference on the change: OpenJDK/Inside Java, “JDK 23: Changes Default Annotation Processing Policy” — https://inside.java/2024/06/18/quality-heads-up/
 
-## 3. Processor được tìm từ đâu?
+## 3. Where Are Processors Located?
 
-Một lỗi rất thường gặp là trộn lẫn **classpath của mã được biên dịch** với **processor path**:
+A very common mistake is mixing **the compiled code's classpath** with **the processor path**:
 
-| Tùy chọn | Đường dẫn dùng cho | Ghi chú |
+| Option | Path Used For | Notes |
 | --- | --- | --- |
-| -classpath / -cp | Kiểu, annotation API và thư viện mà source Java cần để biên dịch | Không được lẫn với processor path trong môi trường cần cô lập |
-| -processorpath / --processor-path | Class/JAR của processor và các dependency để chạy processor | Đặt rõ khi cần processor; không cho mọi classpath dependency tự được chọn |
-| --processor-module-path | Module path dùng để tìm processor được đóng gói theo module | Dùng khi processor là named module phù hợp |
-| -processor a.b.FooProcessor | Danh sách tên class processor được chọn tường minh, phân cách bằng dấu phẩy | Bỏ qua khám phá processor mặc định |
-| -Akey=value | Option chuyển cho processor | Processor quyết định ý nghĩa; không phải tùy chọn javac chung |
-| -s directory | Thư mục ghi **Java source được sinh** | Hữu ích để kiểm tra generated code |
-| -d directory | Thư mục ghi **class file kết quả** | Nên khác giữa các tác vụ biên dịch |
-| -XprintRounds, -XprintProcessorInfo | In thêm thông tin vòng và processor đã gọi (tùy chọn javac) | Dùng để chẩn đoán khi processor không chạy |
+| `-classpath` / `-cp` | Types, annotation APIs, and libraries needed by Java sources to compile | Must not be mixed with the processor path in environments needing isolation |
+| `-processorpath` / `--processor-path` | Processor classes/JARs and dependencies required to run processors | Set explicitly when processors are needed; do not allow arbitrary classpath dependencies to be picked up |
+| `--processor-module-path` | Module path used to find processors packaged as modules | Use when the processor is an appropriate named module |
+| `-processor a.b.FooProcessor` | Comma-separated list of explicitly chosen processor class names | Bypasses default processor discovery |
+| `-Akey=value` | Option passed to processors | Processors define the meaning; not a general `javac` flag |
+| `-s directory` | Directory where **generated Java sources** are written | Useful for inspecting generated code |
+| `-d directory` | Directory where **resulting class files** are written | Should differ across compilation tasks |
+| `-XprintRounds`, `-XprintProcessorInfo` | Prints extra round and invoked-processor details (`javac` options) | Useful for diagnosing why a processor did not run |
 
-Một processor được đăng ký để javac tự khám phá bằng file:
+A processor is registered for automatic `javac` discovery via the file:
 
 ~~~text
 META-INF/services/javax.annotation.processing.Processor
 ~~~
 
-Nội dung gồm tên lớp processor, mỗi dòng một tên, ví dụ:
+Its contents list processor class names, one per line, for example:
 
 ~~~text
 demo.MarkerProcessor
 ~~~
 
-Nhưng nếu chỉ cho phép **một processor cụ thể**, có thể truyền -processor demo.MarkerProcessor và -processorpath chỉ chứa processor được phê duyệt cùng dependency của nó. Ví dụ runnable phía dưới dùng chính cách này nên **không cần** tạo file META-INF/services. Đây là hai cơ chế chọn processor khác nhau, không phải hai file cần bắt buộc đồng thời.
+However, if you only allow **one specific processor**, you can pass `-processor demo.MarkerProcessor` and `-processorpath` containing only the approved processor and its dependencies. The runnable example below uses this exact approach and therefore **does not need** a `META-INF/services` file. These are two different processor selection mechanisms, not two files that must both exist together.
 
-Trong ứng dụng compile-on-demand, đừng lấy nguyên java.class.path của tiến trình host làm processor path theo mặc định. Host có thể mang thêm dependency và processor vô tình nằm trong đó. Hãy tạo **danh sách processor/JAR được phép** và dùng classpath biên dịch độc lập. Chỉ khi đã kiểm soát môi trường và cần processor, mới cấp đường dẫn để compiler tải và chạy nó.
+In an on-demand compilation application, do not use the host process's `java.class.path` as the processor path by default. The host may carry extra dependencies and processors unintentionally included in it. Build an **allowlist of approved processors/JARs** and use an isolated compilation classpath. Only when the environment is controlled and a processor is required should you grant a path for the compiler to load and execute it.
 
-## 4. Khi nào nên chọn -proc:none?
+## 4. When Should You Choose -proc:none?
 
-**Chọn -proc:none theo mặc định** nếu bài toán chỉ cần kiểm tra cú pháp, biên dịch một class Java cơ bản, hoặc biên dịch đoạn mã được cung cấp bên ngoài mà không có yêu cầu chính thức về generated code. Tùy chọn này ngăn javac kích hoạt annotation processor trong tác vụ đó ngay cả khi một JAR processor có mặt trên đường tìm kiếm.
+**Choose `-proc:none` by default** if the task only needs syntax checking, compiling a basic Java class, or compiling externally supplied code with no formal requirement for generated code. This option prevents `javac` from activating annotation processors in that task even if a processor JAR is present on the search path.
 
-Những trường hợp điển hình:
+Typical scenarios:
 
-- Trình biên dịch code snippet cho người học: người dùng nhập class, method hoặc biểu thức Java thuần.
-- Dịch vụ xác thực mã nguồn Java trước khi lưu: chỉ cần compiler diagnostics và bytecode.
-- Plugin host biên dịch Java từ file tải lên: chưa có danh sách processor đã được thẩm định.
-- Biên dịch các lớp có annotation chỉ dùng ở runtime, không yêu cầu processor tạo type hoặc config.
-- Biên dịch những nguồn độc lập được tạo sẵn bởi một bước khác: không cần chạy lại processor trong lần compile này.
+- Code snippet compiler for learners: users enter plain Java classes, methods, or expressions.
+- Java source validation service before persistence: only compiler diagnostics and bytecode are needed.
+- Plugin host compiling Java from uploaded files: no vetted processor list exists yet.
+- Compiling classes with annotations used only at runtime, requiring no processor to generate types or config.
+- Compiling standalone sources already generated by another step: no need to re-run processors in this compilation.
 
-Tuy nhiên, **đừng tắt processor một cách máy móc** với source vốn phụ thuộc generated type. Ví dụ dự án dùng MapStruct cần class triển khai mapper được sinh; Lombok cần quá trình xử lý để hỗ trợ một số mã nguồn sử dụng cú pháp/phương thức được tạo. Khi dùng -proc:none, compiler có thể báo cannot find symbol, thiếu implementation hoặc build xong nhưng thiếu artifact kỳ vọng. Trong tình huống đó, hoặc phải bật các processor **đúng danh sách đã duyệt**, hoặc biên dịch với generated source/class được chuẩn bị từ pipeline đáng tin.
+However, **do not disable processors mechanically** for sources that inherently depend on generated types. For example, projects using MapStruct need generated mapper implementations; Lombok needs processing to support code using generated syntax/methods. With `-proc:none`, the compiler may report `cannot find symbol`, missing implementations, or succeed yet lack expected artifacts. In such cases, either enable the **exact allowlisted processors**, or compile with generated sources/classes prepared by a trusted pipeline.
 
-Một dấu @ trong source **không đủ** để kết luận cần processor; phải đọc hợp đồng của annotation và các dependency được yêu cầu. Ví dụ @Override không cần annotation processor do người dùng cấu hình.
+Seeing an `@` symbol in source **is not enough** to conclude a processor is needed; read the contract of the annotation and required dependencies. For example, `@Override` does not require a user-configured annotation processor.
 
-## 5. Ví dụ chạy được: JavaCompiler tại runtime, bật rồi tắt processor
+## 5. Runnable Example: JavaCompiler at Runtime, Enabling and Disabling a Processor
 
-Ta xây dựng một chương trình Java 17+ hoàn chỉnh gồm ba file:
+We build a complete Java 17+ program consisting of three files:
 
 ~~~text
 src/
@@ -104,14 +104,14 @@ src/
     RuntimeCompileDemo.java
 ~~~
 
-RuntimeCompileDemo sẽ tự tạo source generated.Task có annotation @GenerateMarker, rồi biên dịch nó **hai lần** vào hai thư mục output khác nhau:
+`RuntimeCompileDemo` generates the `generated.Task` source annotated with `@GenerateMarker`, then compiles it **twice** into two separate output directories:
 
-1. **enabled:** chọn processor demo.MarkerProcessor bằng -processor, đặt -processorpath tường minh; processor tạo thêm class generated.MarkerGenerated.
-2. **disabled:** truyền -proc:none và không chọn processor; generated.Task vẫn biên dịch vì annotation API có trong classpath, nhưng **không có** generated.MarkerGenerated.
+1. **enabled:** selects processor `demo.MarkerProcessor` via `-processor` and sets `-processorpath` explicitly; the processor additionally generates `generated.MarkerGenerated`.
+2. **disabled:** passes `-proc:none` and selects no processor; `generated.Task` still compiles because the annotation API is on the classpath, yet `generated.MarkerGenerated` **does not exist**.
 
-Kết quả được kiểm tra bằng sự tồn tại của **class file** thực tế, không chỉ bằng message của processor.
+Results are verified by checking the actual **class file** existence, not merely processor log messages.
 
-### 5.1. Định nghĩa annotation
+### 5.1. Annotation Definition
 
 **src/demo/GenerateMarker.java**
 
@@ -128,9 +128,9 @@ import java.lang.annotation.Target;
 public @interface GenerateMarker {}
 ~~~
 
-Đây chỉ là annotation marker, không có logic thực thi. RetentionPolicy.SOURCE cho phép processor nhận ra annotation trong compilation unit, nhưng compiler không bắt buộc mang annotation này vào runtime class file.
+This is simply a marker annotation with no execution logic. `RetentionPolicy.SOURCE` lets the processor observe the annotation in the compilation unit, while the compiler is not required to retain it in the runtime class file.
 
-### 5.2. Annotation processor sinh một class
+### 5.2. Annotation Processor Generating a Class
 
 **src/demo/MarkerProcessor.java**
 
@@ -173,17 +173,17 @@ public final class MarkerProcessor extends AbstractProcessor {
 }
 ~~~
 
-Các thành phần quan trọng:
+Key components:
 
-- @SupportedAnnotationTypes chỉ rõ annotation mà processor hỗ trợ; khác với việc annotation được import trong chính processor.
-- @SupportedSourceVersion xác định mức ngôn ngữ được processor khai báo hỗ trợ. Ví dụ dùng RELEASE_17 và biên dịch target với --release 17.
-- RoundEnvironment chứa các phần tử có annotation trong vòng hiện tại. processingOver() giúp nhận biết vòng xử lý cuối.
-- Filer.createSourceFile tạo source mới cho compiler, sau đó source được biên dịch trong chế độ xử lý và biên dịch thông thường.
-- Biến generated tránh cố sinh **cùng một tên file nhiều lần** giữa các vòng, vốn có thể gây FilerException.
+- `@SupportedAnnotationTypes` specifies which annotations the processor supports; distinct from importing the annotation inside the processor itself.
+- `@SupportedSourceVersion` declares the language level supported by the processor. The example uses `RELEASE_17` and compiles the target with `--release 17`.
+- `RoundEnvironment` holds elements carrying annotations in the current round. `processingOver()` identifies the final round.
+- `Filer.createSourceFile` creates a new source for the compiler, which is then compiled in standard processing-and-compilation mode.
+- The `generated` flag avoids trying to create **the same filename multiple times** across rounds, which would throw `FilerException`.
 
-Trong ví dụ đơn giản này, processor tạo một class dùng để minh họa. Processor thực tế cần quyết định quy tắc tên class, nhiều annotated element, dependency và cách báo lỗi nhất quán; đừng tự sinh một class cố định cho mỗi annotation nếu chúng có thể trùng tên.
+In this simple example, the processor generates one illustrative class. Real processors must define class naming rules, handling of multiple annotated elements, dependencies, and consistent error reporting; never generate a fixed class name per annotation if collisions are possible.
 
-### 5.3. Host gọi JavaCompiler với chính sách xử lý riêng
+### 5.3. Host Invoking JavaCompiler with Its Own Processing Policy
 
 **src/demo/RuntimeCompileDemo.java**
 
@@ -267,15 +267,15 @@ public final class RuntimeCompileDemo {
 }
 ~~~
 
-Trong chương trình này, javac chạy **ngay trong JVM của ứng dụng** qua javax.tools.JavaCompiler; không phải chạy ProcessBuilder để gọi một tiến trình javac bên ngoài. getSystemJavaCompiler() thường có sẵn khi chạy JDK đầy đủ hoặc runtime image chứa compiler phù hợp; nếu trả null, ứng dụng phải báo lỗi khả năng compiler không có. Nó không tự tải JDK về.
+In this program, `javac` runs **inside the application's own JVM** via `javax.tools.JavaCompiler`; it does not use `ProcessBuilder` to spawn an external `javac` process. `getSystemJavaCompiler()` is normally available when running on a full JDK or a runtime image containing the right compiler; if it returns `null`, the application must report that compiler capability is missing. It does not download a JDK automatically.
 
-**JavaCompiler.getTask** nhận options gần giống javac CLI. Biến enableProcessor là quyết định của host, không nên lấy trực tiếp một chuỗi tùy chọn bất kỳ từ input không tin cậy. Khi bật, -processorpath và -processor được thêm vào, còn khi tắt, -proc:none được thêm vào. Đầu vào Java ở cả hai chế độ có cùng annotation, do đó khác biệt class được sinh là do **chính sách xử lý**, không do thay source.
+**JavaCompiler.getTask** accepts options similar to the `javac` CLI. The `enableProcessor` variable is a host decision and must never be taken as an arbitrary option string from untrusted input. When enabled, `-processorpath` and `-processor` are added; when disabled, `-proc:none` is added. The Java input in both modes has the exact same annotation, so the difference in generated classes comes from **the processing policy**, not from changing the source.
 
-Để ví dụ dễ chạy, biến cp lấy chính classpath của chương trình demo, trong đó có cả annotation API và processor. **Đây là cách viết tối giản cho ví dụ, không phải cách phân quyền processor trong sản phẩm.** Với runtime compiler phục vụ nhiều người dùng, tách processor path khỏi compiler classpath, giới hạn JAR đã duyệt và giữ đường dẫn output riêng cho từng yêu cầu.
+To keep the example easy to run, `cp` uses the demo program's own classpath, which contains both the annotation API and the processor. **This is a minimal shortcut for the demo, not how processor privileges should be separated in production.** For a multi-user runtime compiler, separate the processor path from the compiler classpath, restrict approved JARs, and keep output paths isolated per request.
 
-### 5.4. Biên dịch và chạy chương trình demo
+### 5.4. Compiling and Running the Demo Program
 
-Chạy ở thư mục chứa src, với **JDK 17 hoặc mới hơn**. Với Windows PowerShell:
+Run from the directory containing `src`, with **JDK 17 or later**. On Windows PowerShell:
 
 ~~~powershell
 New-Item -ItemType Directory -Force -Path out/classes | Out-Null
@@ -285,39 +285,39 @@ javac --release 17 -proc:none -encoding UTF-8 -d out/classes src/demo/GenerateMa
 java -cp out/classes demo.RuntimeCompileDemo
 ~~~
 
-Lệnh javac đầu dùng -proc:none khi **biên dịch chính các lớp công cụ demo**, để không phát hiện và chạy processor nào trong bootstrap compile. Khi chương trình bắt đầu, nó sẽ tự gọi compiler lần lượt với policy enabled rồi disabled.
+The first `javac` command passes `-proc:none` when **compiling the demo tool classes themselves**, so no processors are discovered and run during the bootstrap compile. Once the program starts, it invokes the compiler sequentially with the `enabled` and then `disabled` policies.
 
-Trên Linux/macOS, thay lệnh tạo thư mục bằng:
+On Linux/macOS, replace the directory creation command with:
 
 ~~~bash
 mkdir -p out/classes
 ~~~
 
-Hai lệnh javac/java còn lại giữ nguyên. Code dùng System.getProperty("java.class.path") nên dấu phân cách classpath thích hợp với nền tảng do Java cung cấp.
+The remaining two `javac`/`java` commands stay identical. The code uses `System.getProperty("java.class.path")`, so Java provides the platform-appropriate classpath separator.
 
-**Stdout chính xác của chương trình:**
+**Exact stdout of the program:**
 
 ~~~text
 enabled: compiled=true, generated=true
 disabled: compiled=true, generated=false
 ~~~
 
-Đây là kết quả đã được kiểm chứng thực tế với javac --release 17, chạy chương trình trên JDK mới hơn. JavaCompiler tạo được generated.Task.class ở **cả hai** thư mục. Chỉ chế độ enabled mới có **generated.MarkerGenerated.class** và file source tương ứng trong generated-sources.
+This result was verified with `javac --release 17`, running the program on a newer JDK. `JavaCompiler` generated `generated.Task.class` in **both** directories. Only `enabled` mode produced **generated.MarkerGenerated.class** and its corresponding source file in `generated-sources`.
 
-Cách đọc kết quả:
+How to interpret the output:
 
-- compiled=true ở cả hai lượt chứng minh annotation @GenerateMarker không tự yêu cầu có processor để source cơ bản biên dịch.
-- generated=true ở lượt đầu chứng minh processor đã được chọn, được nạp và tạo source rồi compiler biên dịch source đó.
-- generated=false ở lượt sau chứng minh -proc:none loại bỏ xử lý annotation trong tác vụ biên dịch này.
-- Hai thư mục output riêng giúp tránh việc class còn sót lại từ lượt trước làm sai kết quả. Khi kiểm tra hệ thống thật, cũng cần xóa/đổi namespace output phù hợp thay vì dùng một thư mục sinh mã chung cho nhiều người dùng.
+- `compiled=true` in both runs proves the `@GenerateMarker` annotation does not inherently require a processor for the base source to compile.
+- `generated=true` in the first run proves the processor was selected, loaded, and generated source, and the compiler compiled that source.
+- `generated=false` in the second run proves `-proc:none` eliminates annotation processing in that compilation task.
+- Two separate output directories prevent leftover classes from the previous run from skewing results. When testing real systems, also delete/rotate output namespaces appropriately instead of sharing one code-generation directory across users.
 
-Nếu thiếu annotation API khỏi -classpath, target sẽ không biết @GenerateMarker và compile lỗi **dù đã tắt processor**. -proc:none không làm biến mất những annotation class mà source cần trong bước kiểm tra kiểu.
+If the annotation API is missing from `-classpath`, the target will not recognize `@GenerateMarker` and compilation will fail **even with processors disabled**. `-proc:none` does not erase annotation classes that the source needs during type checking.
 
-## 6. Lựa chọn processor bằng API JavaCompiler thay cho dò tự động
+## 6. Selecting Processors via the JavaCompiler API Instead of Auto-Discovery
 
-Lựa chọn trong ví dụ dựa trên **-processor tên-lớp**. Ngoài ra, JavaCompiler.CompilationTask còn có phương thức setProcessors(Iterable<? extends Processor>) để host cung cấp các **instance processor** được lựa chọn trực tiếp.
+Selection in the example relies on **`-processor class-name`**. In addition, `JavaCompiler.CompilationTask` provides `setProcessors(Iterable<? extends Processor>)` so the host can supply **processor instances** selected directly.
 
-Ý tưởng của nhánh sử dụng instance là:
+The idea behind the instance-based branch is:
 
 ~~~java
 JavaCompiler.CompilationTask task =
@@ -326,96 +326,96 @@ task.setProcessors(List.of(new MarkerProcessor()));
 boolean ok = Boolean.TRUE.equals(task.call());
 ~~~
 
-Đây là **đoạn minh họa thay thế** đặt trong method có các biến compiler, files, diagnostics, options, units được tạo như ví dụ hoàn chỉnh, không phải chương trình độc lập. Khi dùng setProcessors, không đồng thời yêu cầu -processor chọn một tập khác; xác định một cơ chế lựa chọn có kiểm soát. Nếu muốn vô hiệu hóa hoàn toàn xử lý annotation, chọn -proc:none và không cung cấp processor.
+This is an **alternative illustrative snippet** placed in a method where `compiler`, `files`, `diagnostics`, `options`, and `units` are constructed as in the complete example; it is not a standalone program. When using `setProcessors`, do not simultaneously pass `-processor` selecting a different set; pick one controlled selection mechanism. To completely disable annotation processing, pass `-proc:none` and supply no processors.
 
-Cách cung cấp instance giúp host quản lý rõ processor object, nhưng **không phải sandbox**: mã constructor/process của processor vẫn thực thi trong JVM host. Với processor từ JAR, code nạp class và tạo instance phải được quản lý độc lập, tránh để dependency/JAR chưa được duyệt đi vào class loader của compiler.
+Supplying instances lets the host manage processor objects explicitly, yet **it is not a sandbox**: processor constructor/`process` code still executes inside the host JVM. For processors loaded from JARs, class loading and instantiation must be managed independently so unapproved dependencies/JARs do not enter the compiler's class loader.
 
-Trong tác vụ compile-on-demand thực tế, nên định nghĩa chính sách đầu vào, chẳng hạn:
+In a real on-demand compilation task, define an input policy such as:
 
 ~~~text
 CompilationPolicy {
     languageRelease = 17
     annotationProcessing = DISABLED | EXPLICIT
-    allowedProcessors = [định danh đã duyệt]
-    compilerClasspath = [annotation API và dependency biên dịch]
-    processorPath = [chỉ processor JAR và dependency cần thiết]
-    sourceOutput = thư mục riêng
-    classOutput = thư mục riêng
+    allowedProcessors = [approved identifiers]
+    compilerClasspath = [annotation API and compile dependencies]
+    processorPath = [only processor JARs and required dependencies]
+    sourceOutput = isolated directory
+    classOutput = isolated directory
 }
 ~~~
 
-Khối trên là **mô tả chính sách** chứ không phải một class Java runnable. Việc xuất phát từ chính sách cố định giúp ngăn một request tự ý thêm -processorpath, -proc:full, -Xplugin hoặc những flag làm thay đổi quá trình biên dịch.
+The block above is a **policy description**, not a runnable Java class. Starting from a fixed policy prevents a request from arbitrarily injecting `-processorpath`, `-proc:full`, `-Xplugin`, or flags that alter the compilation pipeline.
 
-## 7. Độ tin cậy và vòng đời của processor trong runtime compiler
+## 7. Trust and Processor Lifecycle in a Runtime Compiler
 
-Annotation processor có quyền thực thi mã ngay trong lúc compilation task chạy. Dùng -processorpath **giúp chọn và tổ chức dependency**, nhưng không giới hạn các quyền hệ điều hành của processor. Đặt processor trong class loader riêng cũng chỉ tách namespace, không tự tạo ranh giới an toàn.
+An annotation processor has the authority to execute code during the compilation task itself. Using `-processorpath` **helps select and organize dependencies**, yet it does not restrict the processor's OS privileges. Placing processors in a separate class loader also only separates namespaces; it does not create a security boundary.
 
-Khi mã hoặc processor không đáng tin, cần quyết định riêng những vấn đề sau:
+When code or processors are untrusted, decide the following separately:
 
-1. **Không có yêu cầu generated code:** truyền -proc:none; không để processor được dò tự động qua JAR đi kèm.
-2. **Có yêu cầu generated code được hỗ trợ:** chỉ cho phép những processor đã được duyệt bằng -processor hoặc setProcessors, cùng bộ artifact và version đã kiểm thử.
-3. **Có khả năng thực thi mã không đáng tin:** xem xét chạy tác vụ biên dịch trong **tiến trình/OS container hạn chế quyền**, có giới hạn CPU, bộ nhớ, thời gian, file system và network. -proc:none chỉ tắt annotation processing; nó **không biến việc biên dịch hoặc chạy bytecode thành sandbox tuyệt đối**.
-4. **Giới hạn đầu ra:** dùng thư mục làm việc tách biệt, không để processor ghi tràn vào workspace của ứng dụng hoặc thay đổi artifact của người khác.
-5. **Giám sát và lỗi:** thu thập Compiler Diagnostics, exception gốc, processor version, source release, thời gian và file được sinh. Tránh đưa nội dung nhạy cảm vào log/error trả cho người gửi mã.
-6. **Khả năng lặp lại:** cố định phiên bản javac, -processor, processor path, annotation API và options -A; đóng băng input nếu cần build reproducibility.
+1. **No generated code required:** pass `-proc:none`; prevent processors from being auto-discovered via bundled JARs.
+2. **Supported generated code required:** permit only approved processors via `-processor` or `setProcessors`, with tested artifact sets and versions.
+3. **Potential untrusted code execution:** consider running compilation tasks in a **restricted-privilege process/OS container** with CPU, memory, time, filesystem, and network limits. `-proc:none` only disables annotation processing; it **does not turn compilation or bytecode execution into an absolute sandbox**.
+4. **Output isolation:** use isolated working directories so processors cannot write into the application's workspace or overwrite another user's artifacts.
+5. **Monitoring and errors:** collect Compiler Diagnostics, root exceptions, processor version, source release, duration, and generated files. Avoid leaking sensitive details in logs/errors returned to code submitters.
+6. **Reproducibility:** pin `javac` version, `-processor`, processor path, annotation API, and `-A` options; freeze inputs if build reproducibility is required.
 
-Nên nhớ rằng source Java được compile **không mặc nhiên được chạy** bởi chương trình host khi JavaCompiler trả kết quả. Tuy nhiên processor **đã chạy** nếu annotation processing được bật; và nếu host sau đó class-load/khởi tạo/gọi generated bytecode thì đó là một bước thực thi mới cần chính sách riêng.
+Remember that compiled Java source **is not implicitly executed** by the host program when `JavaCompiler` returns. However, processors **already executed** if annotation processing was enabled; and if the host subsequently class-loads/instantiates/invokes generated bytecode, that is a new execution step requiring its own policy.
 
-## 8. Quản lý các vòng sinh mã và lỗi Filer
+## 8. Managing Code-Generation Rounds and Filer Errors
 
-Một processor có thể sinh source ở một vòng, rồi compiler lại gọi processor ở vòng tiếp theo để xử lý source mới. Khi nhiều vòng phát sinh, một processor phải tránh viết lại **cùng đường dẫn/file** trong cùng compilation.
+A processor can generate source in one round, after which the compiler invokes the processor again in the next round to process the newly generated source. When multiple rounds occur, a processor must avoid rewriting **the same path/file** within the same compilation.
 
-Ví dụ MarkerProcessor dùng biến generated để đảm bảo chỉ gọi createSourceFile("generated.MarkerGenerated") một lần. Khi Filer gặp nỗ lực tạo trùng file trong một lần compile, nó có thể báo FilerException. Nếu một processor khác cũng tạo cùng tên class, build có thể thất bại do xung đột; không được xử lý bằng cách âm thầm bỏ lỗi và chọn ngẫu nhiên đầu ra.
+In the example, `MarkerProcessor` uses the `generated` flag to ensure `createSourceFile("generated.MarkerGenerated")` is called only once. When `Filer` encounters an attempt to create a duplicate file in a single compilation, it can throw `FilerException`. If another processor also generates the same class name, the build can fail due to collision; never handle this by silently ignoring the error and picking an arbitrary output.
 
-Các biện pháp hữu ích:
+Helpful practices:
 
-- Sinh tên class từ tên/type của phần tử được xử lý, có chiến lược tránh trùng thay vì sinh một tên cố định cho mọi annotation.
-- Đánh dấu phần tử đã xử lý hoặc kiểm tra vòng khi cần; dùng round.processingOver() để biết giai đoạn kết thúc.
-- Đưa lỗi vào Messager với thông tin phần tử (Element) giúp javac định vị lỗi biên dịch.
-- Không đặt logic có tác dụng phụ tùy ý trong mọi vòng, vì số vòng thay đổi khi generated source chứa annotation mới.
-- Với tác vụ độc lập, dùng output folder tách biệt và không giữ cache processor/source cũ nếu chưa thiết kế incremental compilation.
-- Khi debug, thử -XprintRounds và -XprintProcessorInfo trên javac tương thích để biết processor thực sự được gọi ở vòng nào.
+- Derive generated class names from the name/type of the processed element with a collision-avoidance strategy rather than generating one fixed name for every annotation.
+- Track processed elements or check rounds as needed; use `round.processingOver()` to detect the final round.
+- Report errors through `Messager` with `Element` context so `javac` pinpoints the compilation error.
+- Avoid placing arbitrary side-effecting logic in every round, as the number of rounds varies when generated sources introduce new annotations.
+- For independent tasks, use isolated output directories and do not retain stale processor/source caches without designing incremental compilation.
+- When debugging, try `-XprintRounds` and `-XprintProcessorInfo` on compatible `javac` versions to see which rounds actually invoke the processor.
 
-Trong ví dụ runnable, kiểm tra file generated.MarkerGenerated.class còn có lợi hơn việc chỉ nhìn dòng log processor, bởi nó xác minh pipeline **generate source → compile generated source** đã hoàn tất.
+In the runnable example, verifying the `generated.MarkerGenerated.class` file is even better than reading a processor log line, because it proves the **generate source → compile generated source** pipeline completed end to end.
 
-## 9. Khi -proc:none làm biên dịch lỗi, cần xử lý ra sao?
+## 9. When -proc:none Breaks Compilation, How Should You Handle It?
 
-Đầu tiên hãy hỏi: **bài toán có thật sự cần generated output không?** Nếu source chỉ có annotation marker dùng để đánh dấu hoặc đọc ở runtime, -proc:none vẫn hợp lệ. Nếu source tham chiếu một class hoặc method vốn do processor tạo, việc tắt processor sẽ làm thiếu symbol.
+First ask: **does the problem truly require generated output?** If the source only has marker annotations used for tagging or runtime inspection, `-proc:none` remains valid. If the source references a class or method meant to be generated by a processor, disabling processors will cause missing symbols.
 
-| Triệu chứng | Nguyên nhân có thể | Cách kiểm tra |
+| Symptom | Possible Cause | How to Check |
 | --- | --- | --- |
-| Cùng source, enabled sinh class nhưng disabled không sinh | Processor đúng là nguồn tạo class đó | Xem -s, -d và output JAR |
-| -proc:none báo cannot find symbol | Source phụ thuộc generated type hoặc classpath thiếu annotation API | Xác định symbol, phân biệt source được tạo với annotation type |
-| Đã bật nhưng processor không chạy | Thiếu -processor/-processorpath, sai tên class, JDK 23+ mặc định không tự khám phá | Log compiler options, kiểm tra processor artifact |
-| ServiceLoader-style discovery không tìm processor | Thiếu META-INF/services/javax.annotation.processing.Processor | Kiểm tra JAR bằng jar tf, nội dung descriptor UTF-8 |
-| Processor được gọi nhưng không sinh code | Annotation không khớp @SupportedAnnotationTypes, code xử lý không có phần tử phù hợp | Dùng -XprintRounds, diagnostics và test annotation |
-| Source generated nhưng không có .class | -proc:only, compile thất bại hoặc output path khác | Kiểm tra -proc, lỗi javac, -s và -d |
-| FilerException do file được tạo lại | Hai processor/round cố tạo cùng tên source hoặc class | Sửa chiến lược sinh file, kiểm tra nhiều vòng |
-| Khi nâng JDK lên 23+ generated code biến mất | Build dựa vào quét processor ngầm trên classpath | Chuyển sang chọn processor tường minh |
-| Compiler mất nhiều thời gian hoặc tác vụ không dừng | Processor thực hiện tính toán/I/O dài hoặc chờ tài nguyên | Giới hạn tài nguyên của tiến trình, đo thời gian và log |
+| Same source: enabled generates class, disabled does not | Processor genuinely generates that class | Check `-s`, `-d`, and output JAR |
+| `-proc:none` reports `cannot find symbol` | Source depends on generated types or classpath lacks annotation API | Identify symbol; distinguish generated source from annotation type |
+| Enabled yet processor does not run | Missing `-processor`/`-processorpath`, wrong class name, JDK 23+ disables auto-discovery by default | Log compiler options; inspect processor artifact |
+| ServiceLoader-style discovery misses processor | Missing `META-INF/services/javax.annotation.processing.Processor` | Inspect JAR via `jar tf`, verify UTF-8 descriptor contents |
+| Processor runs yet generates no code | Annotation mismatches `@SupportedAnnotationTypes`, or no matching elements exist | Use `-XprintRounds`, diagnostics, and annotation tests |
+| Source generated yet no `.class` exists | `-proc:only`, compilation failed, or different output path | Check `-proc`, `javac` errors, `-s`, and `-d` |
+| `FilerException` from recreated file | Two processors/rounds attempt to create the same source or class name | Fix file-naming strategy; check multi-round handling |
+| Generated code disappears after upgrading to JDK 23+ | Build relied on implicit classpath processor scanning | Switch to explicit processor selection |
+| Compiler takes too long or task hangs | Processor performs long computation/I/O or blocks on resources | Enforce process resource limits, measure time, and log |
 
-Cũng cần kiểm tra **processor có chạy bằng JDK nào**. --release 17 kiểm soát mức ngôn ngữ của source đích; processor là chương trình chạy trong môi trường compiler hiện hành, nên phải tương thích với JDK đang thực thi JavaCompiler. Không nên suy diễn rằng processor cũng bị chạy bên trong một JVM Java 17 khác chỉ vì target là 17.
+Also check **which JDK runs the processor**. `--release 17` controls the language level of the target source; the processor runs inside the current compiler environment and must be compatible with the JDK executing `JavaCompiler`. Do not assume the processor also runs inside a separate Java 17 JVM merely because the target is 17.
 
-## 10. Checklist triển khai compile-on-demand
+## 10. Checklist for Implementing On-Demand Compilation
 
-Trước khi cho phép người dùng hoặc hệ thống bên ngoài gửi Java source để biên dịch:
+Before allowing users or external systems to submit Java source for compilation:
 
-- **Xác định policy rõ ràng:** DISABLED thì luôn truyền -proc:none; EXPLICIT thì cho phép đúng bộ processor đã xét duyệt.
-- **Kiểm tra input/dependency:** Annotation API, source và thư viện dùng để kiểm tra kiểu nằm trên compiler classpath đúng dự kiến.
-- **Tách processor path:** Không để các JAR bất kỳ từ request trở thành processor được thực thi. Đóng băng version và danh sách processor cho từng loại tác vụ.
-- **Xác nhận JDK:** Ghi lại javac version và sự khác biệt mặc định JDK 17–22 so với 23+; không dựa vào một quy tắc khám phá ngầm.
-- **Đặt output riêng:** -d cho class, -s cho source được sinh, mỗi task có workspace; kiểm tra source/class được tạo thực sự và tránh stale output.
-- **Thu diagnostics:** Không chỉ đọc Boolean của getTask.call(); giữ lỗi có ý nghĩa về missing symbol, unsupported source, unsupported processor và file generation.
-- **Kiểm soát resource:** Processor chạy Java code trong compiler; nếu cần cô lập thực thi thì dùng boundary thích hợp, không chỉ -processorpath.
-- **Kiểm thử cả hai nhánh:** Test compile có processor và không processor, cả output lẫn hành vi khi source phụ thuộc generated code.
-- **Không tùy tiện bật toàn bộ processor:** Một annotation processor được nhúng trong dependency ngoài ý muốn không phải lý do cho phép nó chạy.
+- **Define an explicit policy:** when `DISABLED`, always pass `-proc:none`; when `EXPLICIT`, allow only the exact vetted set of processors.
+- **Verify inputs/dependencies:** annotation APIs, sources, and libraries for type checking sit on the expected compiler classpath.
+- **Separate the processor path:** never let arbitrary JARs from requests become executed processors. Pin versions and processor allowlists per task type.
+- **Verify the JDK:** record the `javac` version and the default behavior difference between JDK 17–22 and 23+; never rely on implicit discovery rules.
+- **Separate outputs:** `-d` for classes, `-s` for generated sources, per-task workspaces; verify generated sources/classes actually exist and avoid stale outputs.
+- **Collect diagnostics:** do not read only `getTask.call()`'s Boolean; preserve meaningful errors for missing symbols, unsupported sources, unsupported processors, and file generation.
+- **Control resources:** processors run Java code inside the compiler; if execution isolation is needed, use proper boundaries, not `-processorpath` alone.
+- **Test both branches:** test compilation with and without processors, verifying both outputs and behavior when sources depend on generated code.
+- **Never enable all processors indiscriminately:** an annotation processor accidentally bundled in a dependency is no reason to let it run.
 
-## 11. Tài liệu chuẩn
+## 11. Official References
 
-- Oracle Java SE 17, **The javac Command**, các mục -proc, -processor, -processorpath và Annotation Processing: https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html
+- Oracle Java SE 17, **The javac Command**, sections on `-proc`, `-processor`, `-processorpath`, and Annotation Processing: https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html
 - Oracle Java SE 17, **JavaCompiler**: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.html
 - Oracle Java SE 17, **Processor**: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/annotation/processing/Processor.html
 - Oracle Java SE 17, **CompilationTask**: https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/tools/JavaCompiler.CompilationTask.html
 - Inside Java/OpenJDK, **JDK 23: Changes Default Annotation Processing Policy**: https://inside.java/2024/06/18/quality-heads-up/
 
-**Nguyên tắc triển khai:** Khi runtime compiler không có yêu cầu rõ ràng phải chạy annotation processor, hãy dùng **-proc:none**. Khi generated code thật sự cần thiết, hãy bật **đúng processor được phép**, cấp đúng processor path, kiểm thử đầu ra và kiểm soát tác vụ biên dịch như một hoạt động có khả năng thực thi mã.
+**Implementation rule:** when a runtime compiler has no explicit requirement to run annotation processors, pass **`-proc:none`**. When generated code is genuinely required, enable **only approved processors**, supply an isolated processor path, test outputs, and treat the compilation task as a code-execution-capable operation.

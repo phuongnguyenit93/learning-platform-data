@@ -1,81 +1,81 @@
-# 16.8. RecordingStream với đăng ký callback, start hoặc startAsync và close
+# 16.8. RecordingStream: Callback Registration, start vs. startAsync, and close
 
-## 1. Đặt vấn đề: nhận sự kiện JFR ngay trong mã Java
+## 1. Problem Statement: Receiving JFR Events Directly in Java Code
 
-`RecordingStream` thuộc module `jdk.jfr`, package `jdk.jfr.consumer`. API này tạo một recording của **JVM hiện tại** và chuyển các sự kiện JFR đã được ghi thành các đối tượng `RecordedEvent` cho callback do ứng dụng đăng ký. Chúng ta có thể phát hiện một lần GC, xem CPU load, hoặc nhận sự kiện custom khi chương trình đang chạy, thay vì đợi xuất toàn bộ file `.jfr` để phân tích về sau.
+`RecordingStream` belongs to the `jdk.jfr` module, package `jdk.jfr.consumer`. This API creates a recording in the **current JVM** and delivers recorded JFR events as `RecordedEvent` objects to application-registered callbacks. We can detect a GC cycle, inspect CPU load, or receive custom events while the program is running, rather than waiting to export an entire `.jfr` file for later analysis.
 
-Ví dụ thực tế: dịch vụ cần thống kê số lần một hoạt động nội bộ xảy ra để hỗ trợ chẩn đoán. Dịch vụ có thể định nghĩa `Event` riêng, bật loại sự kiện đó trong `RecordingStream`, đăng ký `onEvent(...)` và xử lý số đo trong callback. Muốn dùng lâu dài phải kiểm soát vòng đời stream, thread, tốc độ callback và chi phí thu thập.
+Practical example: a service needs to count how often an internal operation occurs for diagnostics. The service can define its own `Event`, enable that event type in `RecordingStream`, register `onEvent(...)`, and process metrics inside the callback. Long-lived usage requires controlling stream lifecycle, threads, callback speed, and collection overhead.
 
-**Sau bài này, bạn sẽ:**
+**After this lesson, you will:**
 
-- Hiểu rõ `RecordingStream` tạo và nhận sự kiện như thế nào, phân biệt nó với `Recording` và `EventStream.openFile(...)`.
-- Đăng ký đúng callback `onEvent`, `onError`, `onFlush`, `onClose`; sử dụng `enable` và đọc `RecordedEvent` đúng trường.
-- Quyết định dùng `start()` khi muốn xử lý trên thread hiện tại hoặc `startAsync()` khi muốn thread gọi tiếp tục công việc.
-- Đóng stream chắc chắn bằng `close()` hoặc `try-with-resources`; hiểu vì sao close không cam kết mọi event đã được xử lý.
-- Viết ví dụ Java 17+ chạy được, bao gồm **hai chế độ start và startAsync**, kiểm tra callback và đảm bảo tài nguyên được giải phóng.
-- Tránh các lỗi về thứ tự đăng ký, sự kiện chưa flush, race condition, block callback và shutdown thiếu kiểm soát.
+- Understand clearly how `RecordingStream` creates and receives events, and distinguish it from `Recording` and `EventStream.openFile(...)`.
+- Properly register callbacks `onEvent`, `onError`, `onFlush`, and `onClose`; use `enable` and read `RecordedEvent` fields accurately.
+- Decide when to use `start()` to process on the current thread vs. `startAsync()` to let the calling thread continue its work.
+- Close the stream reliably with `close()` or `try-with-resources`; understand why `close` does not guarantee every event was processed.
+- Write a runnable Java 17+ example covering **both `start` and `startAsync` modes**, verify callbacks, and guarantee resource cleanup.
+- Avoid errors involving registration order, unflushed events, race conditions, blocking callbacks, and uncontrolled shutdowns.
 
-Bài tập trung vào **lifecycle của stream và callback trong JVM**, không đi sâu vào thiết kế custom event, phân tích file dump hoặc thiết lập kết nối JFR từ xa.
+This lesson focuses on **stream and callback lifecycles inside the JVM**, rather than custom event design, offline dump analysis, or remote JFR connections.
 
-## 2. Cơ chế hoạt động và nơi callback thực thi
+## 2. How It Works and Where Callbacks Execute
 
-Dòng dữ liệu khái quát:
-
-~~~text
-Code ứng dụng hoặc HotSpot tạo JFR event
-            │
-            ▼
-    JFR recording trong cùng JVM
-            │
-            ▼
-     JFR buffer / flush thành batch
-            │
-            ▼
-     RecordingStream đọc batch
-            │
-            ├─ onEvent("tên loại", Consumer<RecordedEvent>)
-            ├─ onEvent(Consumer<RecordedEvent>)  [mọi event được stream giao]
-            ├─ onFlush(Runnable)                 [sau batch flush]
-            ├─ onError(Consumer<Throwable>)      [khi có lỗi]
-            └─ onClose(Runnable)                 [khi stream đóng]
-~~~
-
-Giao diện `EventStream` định nghĩa các callback và hành vi đọc sự kiện. `RecordingStream` vừa sở hữu recording cục bộ vừa triển khai `EventStream`, nên có thể `enable`/`disable` loại event và gọi `start` hoặc `startAsync`. Các sự kiện đến theo **batch sau khi dữ liệu được flush**; đó không phải lời hứa callback chạy tức thời đúng tại lệnh `event.commit()`.
-
-**Dòng thời gian điển hình:**
+High-level data flow:
 
 ~~~text
-Thread khởi tạo      | tạo RecordingStream -> enable -> onEvent/onError/onClose
-                     | startAsync() -> trả về; thread này tiếp tục
-Producer thread      | tạo Event -> commit()
-JFR/stream thread    | đọc batch sau flush -> onEvent(RecordedEvent)
-Thread điều phối      | đến hạn/đóng dịch vụ -> close() -> cleanup
+Application code or HotSpot emits JFR event
+            │
+            ▼
+    JFR recording in the same JVM
+            │
+            ▼
+     JFR buffer / flushed into batches
+            │
+            ▼
+     RecordingStream reads batch
+            │
+            ├─ onEvent("type name", Consumer<RecordedEvent>)
+            ├─ onEvent(Consumer<RecordedEvent>)  [all events delivered by stream]
+            ├─ onFlush(Runnable)                 [after batch flush]
+            ├─ onError(Consumer<Throwable>)      [on error]
+            └─ onClose(Runnable)                 [when stream closes]
 ~~~
 
-Với `start()`, **thread gọi `start()` chính là thread xử lý callback**, và lời gọi đó chặn cho đến khi stream kết thúc. Với `startAsync()`, các callback được thực hiện trên **một thread riêng**, còn method gọi trả về sau khi khởi động cơ chế xử lý bất đồng bộ. Callback của một stream được dispatch tuần tự trên thread xử lý stream theo tài liệu API, nhưng các producer có thể chạy trên nhiều thread; dữ liệu chia sẻ với ứng dụng vẫn cần cơ chế đồng bộ/atomic phù hợp.
+The `EventStream` interface defines the callbacks and event-reading behavior. `RecordingStream` both owns a local recording and implements `EventStream`, so it can `enable`/`disable` event types and invoke `start` or `startAsync`. Events arrive in **batches after data is flushed**; there is no guarantee a callback runs instantaneously at the exact `event.commit()` line.
 
-Không suy ra mọi event đã `commit` chắc chắn được nhận: còn phụ thuộc event type có bật hay không, threshold, việc ghi/flush, retention, thời gian bắt đầu và thời điểm stream được đóng.
+**Typical timeline:**
 
-## 3. Phân biệt RecordingStream và các API JFR khác
+~~~text
+Initializing thread  | create RecordingStream -> enable -> onEvent/onError/onClose
+                     | startAsync() -> returns; this thread continues
+Producer thread      | create Event -> commit()
+JFR/stream thread    | reads batch after flush -> onEvent(RecordedEvent)
+Coordinator thread   | deadline/service shutdown -> close() -> cleanup
+~~~
 
-| API | Trách nhiệm | Cách dùng đặc trưng |
+With `start()`, **the thread calling `start()` is the thread executing callbacks**, and that call blocks until the stream ends. With `startAsync()`, callbacks run on **a dedicated thread**, and the method returns after starting the asynchronous processing mechanism. Callbacks for a single stream are dispatched sequentially on the stream-processing thread per the API docs, whereas producers can run across many threads; shared application data still needs proper synchronization or atomics.
+
+Do not assume every `commit()`ted event is guaranteed to be received: delivery still depends on whether the event type is enabled, thresholds, recording/flushing, retention, start timing, and when the stream closes.
+
+## 3. Distinguishing RecordingStream from Other JFR APIs
+
+| API | Responsibility | Typical usage |
 | --- | --- | --- |
-| `jdk.jfr.Event` | Tạo **custom event** bằng subclass, gắn fields và gọi `commit()` | Nguồn sự kiện nghiệp vụ |
-| `jdk.jfr.Recording` | Điều khiển recording, thời gian, settings, dump file | Thu dữ liệu cho phân tích ngoại tuyến |
-| `RecordingStream` | Ghi và stream sự kiện **trong JVM hiện tại**, cho phép bật event và nhận callback | Phản ứng trực tiếp, thống kê chẩn đoán cục bộ |
-| `EventStream.openFile(path)` | Đọc sự kiện có trong một file `.jfr` | Đọc offline; không tạo recording mới |
-| `EventStream.openRepository(...)` | Theo dõi dữ liệu từ JFR repository | Đọc các chunk của repository; cần quyền và repository phù hợp |
-| `RemoteRecordingStream` | Dùng JFR qua `jdk.management.jfr` cho JVM remote thông qua quản lý JVM | Kịch bản giám sát từ xa; cấu hình và quyền khác |
+| `jdk.jfr.Event` | Defines **custom events** by subclassing, adding fields, and calling `commit()` | Source of business events |
+| `jdk.jfr.Recording` | Controls a recording, duration, settings, and file dumps | Capturing data for offline analysis |
+| `RecordingStream` | Records and streams events **within the current JVM**, enabling events and delivering callbacks | Live reaction, local diagnostic counters |
+| `EventStream.openFile(path)` | Reads events from an existing `.jfr` file | Offline reading; creates no new recording |
+| `EventStream.openRepository(...)` | Tails data from a JFR repository | Reads repository chunks; requires appropriate permissions and repository |
+| `RemoteRecordingStream` | Uses JFR via `jdk.management.jfr` for a remote JVM via management APIs | Remote monitoring scenarios; different configuration and permissions |
 
-**Không nhầm** `RecordingStream.start()` với `Recording.start()`. Cùng tên method nhưng `Recording.start()` bắt đầu trạng thái recording và trả về; `RecordingStream.start()` bắt đầu quá trình **tiêu thụ event và gọi callback**, nên nó chặn caller. Nếu bạn muốn caller tiếp tục chạy ngay, dùng `RecordingStream.startAsync()`.
+**Do not confuse** `RecordingStream.start()` with `Recording.start()`. Despite sharing a method name, `Recording.start()` transitions the recording state and returns; `RecordingStream.start()` begins **consuming events and invoking callbacks**, so it blocks the caller. If you want the caller to proceed immediately, use `RecordingStream.startAsync()`.
 
-`RecordingStream` có từ Java 14; các ví dụ ở đây hướng đến **Java 17+**. Một số method mới hơn như `RecordingStream.stop()` được thêm từ Java 20, nên ví dụ dùng `close()` để giữ khả năng tương thích Java 17.
+`RecordingStream` has existed since Java 14; examples here target **Java 17+**. Newer methods such as `RecordingStream.stop()` were added in Java 20, so the examples use `close()` to preserve Java 17 compatibility.
 
-## 4. Đăng ký callback trước khi bắt đầu
+## 4. Registering Callbacks Before Starting
 
-### 4.1. Bật đúng event và chọn callback có lọc
+### 4.1. Enabling the right events and choosing filtered callbacks
 
-Đoạn minh họa (nằm trong method có biến `RecordingStream stream`, không phải chương trình độc lập):
+Illustrative snippet (inside a method with an existing `RecordingStream stream`, not a standalone program):
 
 ~~~java
 stream.enable("jdk.CPULoad").withPeriod(java.time.Duration.ofSeconds(1));
@@ -85,78 +85,78 @@ stream.onEvent("jdk.CPULoad", event -> {
 });
 ~~~
 
-Ở đây `enable("jdk.CPULoad")` yêu cầu thu loại event này, `withPeriod(...)` quy định chu kỳ lấy mẫu cho sự kiện định kỳ, còn `onEvent("jdk.CPULoad", ...)` chỉ nhận event trùng **tên JFR event type**. Giá trị `machineTotal` là tỷ lệ CPU, không phải mặc định phần trăm; nếu cần hiển thị %, nhân 100 và đối chiếu tài liệu field của JDK đang chạy. Tên/field của JFR event phải kiểm tra đúng schema, không suy diễn từ tên class Java.
+Here `enable("jdk.CPULoad")` requests collecting this event type, `withPeriod(...)` sets the sampling interval for the periodic event, and `onEvent("jdk.CPULoad", ...)` receives only events matching the **JFR event type name**. `machineTotal` is a CPU ratio, not a percentage by default; to display `%`, multiply by 100 and check the field documentation for your JDK. Verify JFR event names and fields against the actual schema rather than guessing from Java class names.
 
-Có hai cách đăng ký:
+There are two registration overloads:
 
 ~~~java
-// Đoạn minh họa, stream đã được tạo:
+// Illustrative snippet, stream already created:
 stream.onEvent("jdk.GarbageCollection", event -> handleGc(event));
 stream.onEvent(event -> handleAnyEvent(event));
 ~~~
 
-- `onEvent(String, Consumer<RecordedEvent>)` lọc theo loại, thường hiệu quả hơn tự if/else mọi event trong callback chung.
-- `onEvent(Consumer<RecordedEvent>)` nhận mọi event mà stream giao, phù hợp khảo sát ban đầu nhưng có thể rất tốn khi nhiều event.
-- Việc **đăng ký callback không tự động đảm bảo event type được bật**; phải hiểu cấu hình recording. Thực hành nên gọi `enable(EventClass.class)` hoặc `enable("event.name")` có chủ đích.
-- Với custom event, `@Name("lesson.DemoEvent")` xác định tên JFR event type, còn tên Java class chỉ là chi tiết khai báo. Lấy field bằng API typed như `getInt("marker")`, `getString("message")` và xác minh field có tồn tại.
-- `onMetadata(...)` (Java 16+) có thể nhận metadata loại sự kiện rồi đăng ký callbacks theo tên khi schema xuất hiện; hữu ích với luồng thay đổi schema. Với phần lớn bài tập, đăng ký theo tên biết trước là rõ nhất.
+- `onEvent(String, Consumer<RecordedEvent>)` filters by type, usually more efficient than branching with `if/else` on every event inside a catch-all callback.
+- `onEvent(Consumer<RecordedEvent>)` receives every event delivered by the stream, useful for initial exploration but potentially costly under high event rates.
+- **Registering a callback does not automatically enable the event type**; you must understand the recording configuration. In practice, explicitly call `enable(EventClass.class)` or `enable("event.name")`.
+- For custom events, `@Name("lesson.DemoEvent")` defines the JFR event type name, whereas the Java class name is merely a declaration detail. Read fields with typed APIs like `getInt("marker")` or `getString("message")` and verify field existence.
+- `onMetadata(...)` (Java 16+) receives event type metadata and lets you register name-based callbacks dynamically as schemas appear; useful for evolving schemas. For most scenarios, registering known names upfront is clearest.
 
-### 4.2. Các callback còn lại
+### 4.2. Remaining callbacks
 
-| Callback | Khi nào gọi | Lưu ý khi áp dụng |
+| Callback | When invoked | Application notes |
 | --- | --- | --- |
-| `onEvent(String, Consumer)` | Có event đúng tên được dispatch | Đọc nhanh field; tránh I/O chặn lâu |
-| `onEvent(Consumer)` | Có event bất kỳ trong stream | Event số lượng lớn làm tăng tải handler |
-| `onFlush(Runnable)` | Sau khi một batch sự kiện được flush | Có thể chuyển số liệu đã cộng dồn sang metric/queue; không giả định mỗi flush đúng một giây |
-| `onError(Consumer<Throwable>)` | Có exception khi xử lý stream/callback | Nếu không đăng ký, mặc định stack trace được in stderr; handler tự lỗi có hậu quả không xác định |
-| `onClose(Runnable)` | Stream đóng, gồm đóng thủ công hay tự kết thúc | Hỗ trợ notification/cleanup; không đồng nghĩa đã xử lý hết event |
-| `remove(Object action)` | Bỏ đăng ký callback đã thêm trước đó | Truyền **chính instance Consumer/Runnable** đã đăng ký; lambda tạo mới sẽ không khớp |
+| `onEvent(String, Consumer)` | A matching named event is dispatched | Read fields quickly; avoid long blocking I/O |
+| `onEvent(Consumer)` | Any event in the stream arrives | High-volume events increase handler load |
+| `onFlush(Runnable)` | After an event batch has been flushed | Useful to push aggregated counters to metrics/queues; do not assume flush occurs every exact second |
+| `onError(Consumer<Throwable>)` | An exception occurs while processing the stream/callback | If unregistered, stack trace prints to `stderr` by default; an error inside `onError` has unspecified behavior |
+| `onClose(Runnable)` | Stream closes, whether manually or automatically | Helps with notification/cleanup; does not mean all events were processed |
+| `remove(Object action)` | Unregisters a previously added callback | Pass the **exact `Consumer`/`Runnable` instance** originally registered; a new lambda will not match |
 
-Ví dụ bỏ đăng ký callback (đoạn method minh họa; cần `stream` và import đúng):
+Example of unregistering a callback (illustrative method snippet; requires `stream` and imports):
 
 ~~~java
 java.util.function.Consumer<jdk.jfr.consumer.RecordedEvent> consumer =
         event -> System.out.println(event.getEventType().getName());
 stream.onEvent("jdk.GarbageCollection", consumer);
-// Khi cần thay đổi đăng ký:
+// When you need to update registrations:
 boolean removed = stream.remove(consumer);
 ~~~
 
-Nếu một action được đăng ký nhiều lần, `remove(action)` gỡ các lần đăng ký trùng của action đó. Đăng ký các callback thiết yếu, đặc biệt `onError` và `onClose`, **trước khi start** để không đánh mất giai đoạn khởi tạo hoặc đóng sớm.
+If an action was registered multiple times, `remove(action)` removes matching registrations of that action. Register essential callbacks—especially `onError` and `onClose`—**before starting** so you do not miss startup or early close notifications.
 
-**Callback có thể làm stream lỗi:** nếu handler ném exception, nó đi vào cơ chế báo lỗi của stream. Không nên “nuốt” mọi lỗi trong `onError` rồi tiếp tục báo trạng thái healthy. Ghi log/nguyên nhân và chuyển trạng thái để hệ thống chủ động xử lý.
+**Callbacks can fail the stream:** if a handler throws an exception, it enters the stream's error-reporting path. Never swallow every error silently inside `onError` and continue reporting healthy status. Log the cause and transition state so the system responds actively.
 
-## 5. Bảng quyết định: start(), startAsync(), close() và stop()
+## 5. Decision Table: start(), startAsync(), close(), and stop()
 
-| Method | Thread và blocking | Thực tế nên dùng |
+| Method | Threading and blocking | Practical usage |
 | --- | --- | --- |
-| `start()` | Chạy callback trên **thread gọi** và **chặn** cho tới khi stream kết thúc | Một chương trình chỉ làm nhiệm vụ theo dõi; vòng đời kết thúc từ thread khác, thời hạn hoặc signal |
-| `startAsync()` | Dispatch callback trên **một thread riêng**, trả về để thread gọi tiếp tục | Dịch vụ/ứng dụng còn phải thực hiện công việc khác |
-| `close()` | Giải phóng tài nguyên; yêu cầu kết thúc stream ngay hoặc tại flush kế | Trong `finally`, `try-with-resources`, shutdown hook hoặc lifecycle stop |
-| `awaitTermination()` / `awaitTermination(Duration)` | Đợi trạng thái kết thúc/hoàn tất action trong giới hạn API | Điều phối khi dùng async; overload có timeout là `void`, không trả boolean “đã hoàn tất” |
-| `stop()` (**Java 20+**) | Dừng và chờ event của recording được tiêu thụ | Khi cần drain trước khi phân tích; tránh gọi **ngay trong callback** vì có thể deadlock |
+| `start()` | Runs callbacks on the **calling thread** and **blocks** until the stream ends | A dedicated monitoring program; lifecycle ended by another thread, deadline, or signal |
+| `startAsync()` | Dispatches callbacks on **a separate thread**, returning so the caller continues | Services/applications that have other work to do |
+| `close()` | Releases resources; requests terminating the stream immediately or at next flush | Inside `finally`, `try-with-resources`, shutdown hooks, or lifecycle stop |
+| `awaitTermination()` / `awaitTermination(Duration)` | Waits for termination/action completion within API limits | Coordinating async shutdown; the timeout overload returns `void`, not a boolean indicating completion |
+| `stop()` (**Java 20+**) | Stops and waits for recorded events to be consumed | When draining is needed before analysis; avoid calling **inside a callback** due to deadlock risk |
 
-**Hai khác biệt quan trọng:**
+**Two critical distinctions:**
 
-1. `close()` **không đảm bảo** tất cả callback đã chạy xong **trước khi method trả về**. Đừng dùng “đã gọi close” làm bằng chứng mọi event cuối cùng đã vào database/metric. Nếu cần một tín hiệu cụ thể, thiết kế `CountDownLatch` hoặc cơ chế completion riêng; với Java 20+, cân nhắc `stop()` từ thread điều phối sau khi đã cân nhắc latency/timeout.
-2. `startAsync()` **không bảo đảm** một event `commit()` ngay dòng kế đã được callback nhận: việc khởi động/flush là bất đồng bộ. Nếu cần chứng minh callback hoạt động, phát event và **đợi có giới hạn** theo tín hiệu từ handler, thay vì `Thread.sleep(10)` rồi tự kết luận.
+1. `close()` **does not guarantee** all callbacks have finished running **before the method returns**. Never treat "called `close()`" as proof that all final events reached your database or metrics. If you need an explicit signal, design a `CountDownLatch` or dedicated completion mechanism; on Java 20+, consider `stop()` from a coordinator thread after accounting for latency/timeouts.
+2. `startAsync()` **does not guarantee** an event `commit()`ted on the very next line is already received by a callback: startup and flushing are asynchronous. To verify callback behavior, emit events and **wait with a bounded timeout** on a handler signal instead of `Thread.sleep(10)` and guessing.
 
-Ví dụ sai dễ gặp:
+Common incorrect pattern:
 
 ~~~java
 try (var stream = new jdk.jfr.consumer.RecordingStream()) {
     stream.onEvent(System.out::println);
     stream.startAsync();
-} // Stream bị close gần như ngay lập tức!
+} // Stream is closed almost immediately!
 ~~~
 
-`try-with-resources` trong đoạn này đóng stream ngay sau `startAsync()`, nên thường không có thời gian nhận event. Đúng hơn là để lifetime của resource bao trùm lifetime của ứng dụng/công việc cần theo dõi, hoặc dùng scope hữu hạn có điều kiện dừng rõ ràng.
+`try-with-resources` here closes the stream right after `startAsync()`, leaving virtually no time to receive events. Instead, tie the resource lifetime to the lifetime of the application/work being observed, or use a bounded scope with an explicit stop condition.
 
-## 6. Ví dụ chạy được trên Java 17+: cả sync lẫn async
+## 6. Runnable Java 17+ Example: Both Sync and Async
 
-Ví dụ sau cố ý dùng **custom event nhỏ**, để kết quả không phụ thuộc việc JDK có đang tạo sự kiện GC/CPU cụ thể hay không. Nó sử dụng `CountDownLatch` làm tín hiệu đã nhận, `AtomicReference` để chuyển lỗi từ callback sang thread kiểm tra, và `try-with-resources` để dọn tài nguyên. Khi chạy thành công, stdout được xác định.
+The following example intentionally uses a **small custom event** so results do not depend on whether the JDK happens to emit GC/CPU events. It uses `CountDownLatch` as a receipt signal, `AtomicReference` to pass errors from callbacks back to the checking thread, and `try-with-resources` for cleanup. On success, stdout is deterministic.
 
-Lưu thành **`RecordingStreamLifecycleDemo.java`**:
+Save as **`RecordingStreamLifecycleDemo.java`**:
 
 ~~~java
 import java.time.Duration;
@@ -261,14 +261,14 @@ public class RecordingStreamLifecycleDemo {
 }
 ~~~
 
-Chạy trong thư mục chứa tệp, với **JDK 17+ có hỗ trợ JFR**:
+Run in the directory containing the file, using **JDK 17+ with JFR support**:
 
 ~~~bash
 javac RecordingStreamLifecycleDemo.java
 java RecordingStreamLifecycleDemo
 ~~~
 
-Stdout khi bài lab chạy thành công (đã kiểm tra trực tiếp trên JDK 24):
+Stdout on a successful lab run (verified directly on JDK 24):
 
 ~~~text
 asyncReceived=true
@@ -277,156 +277,156 @@ syncReceived=true
 syncStartReturned=true
 ~~~
 
-### 6.1. Tại sao ví dụ không chỉ sleep cố định?
+### 6.1. Why doesn't the example just use a fixed sleep?
 
-- `emitUntilSeen` phát một event rồi chờ tối đa 250 ms, lặp tới 30 lần để bù cho startup và batch flush trễ. Nó **không giả định** callback xảy ra ngay khi `commit()`; chỉ in thành công nếu đã quan sát đúng event.
-- `onEvent("lesson.DemoEvent", ...)` đọc `marker` và chỉ đếm khi giá trị phù hợp, nên hai thử nghiệm không xác nhận nhầm event.
-- `asyncDemo` gọi `startAsync()`, caller vẫn có thể tiếp tục phát sự kiện. Khi thoát `try-with-resources`, `close()` được gọi và chương trình đợi `onClose` để kiểm tra.
-- `syncDemo` khởi động một thread producer riêng, sau đó gọi `start()` từ thread main. Producer phát event tới khi thấy callback, **gọi `close()` từ thread riêng**, giúp `start()` trả về. Đây là lý do `start()` không làm main chạy tiếp được nếu không có cơ chế đóng độc lập.
-- `AtomicReference<Throwable>` cho phép nhận diện lỗi callback/producer mà không dựa vào exception có thể xảy ra trên thread khác.
-- Nếu stream không nhận event trong thời gian đã đặt, demo **ném exception** để người học thấy điều kiện không thỏa; không in PASS giả. Máy quá tải hoặc JFR flush chậm có thể cần thời gian lớn hơn.
+- `emitUntilSeen` emits an event and waits up to 250 ms, repeating up to 30 times to account for startup and delayed batch flushing. It **does not assume** the callback fires immediately upon `commit()`; it prints success only after observing the matching event.
+- `onEvent("lesson.DemoEvent", ...)` reads `marker` and counts down only when the value matches, so the two tests cannot cross-confirm each other's events.
+- `asyncDemo` calls `startAsync()`, allowing the caller to continue emitting events. On exiting `try-with-resources`, `close()` runs and the program awaits `onClose` to verify cleanup.
+- `syncDemo` starts a separate producer thread, then calls `start()` on the main thread. The producer emits events until the callback observes one, then **calls `close()` from the separate thread**, letting `start()` return. This illustrates why `start()` keeps `main` blocked without an independent close trigger.
+- `AtomicReference<Throwable>` surfaces callback/producer failures without relying on exceptions thrown on background threads.
+- If the stream does not receive an event within the allotted time, the demo **throws an exception** so the learner sees the unmet condition rather than printing a false PASS. Heavily loaded hosts or slower JFR flushes may require a longer window.
 
-Không dùng benchmark CPU/latency từ vòng lặp nhỏ này; đây là minh chứng lifecycle. Số lần phát thực tế có thể nhiều hơn số callback được đếm, và chương trình không cố nhận tất cả các event trước khi đóng.
+Do not benchmark CPU/latency using this tight loop; it is a lifecycle demonstration. Actual emissions may exceed the number of counted callbacks, and the program does not attempt to drain every event before closing.
 
-## 7. Từng bước áp dụng lifecycle đúng trong ứng dụng
+## 7. Step-by-Step: Applying the Lifecycle Correctly in Applications
 
-**Cách dùng sync — thread giám sát riêng:**
+**Sync usage — dedicated monitoring thread:**
 
 ~~~text
-Tạo stream
-    -> Cấu hình event/retention
-    -> Đăng ký onEvent, onError, onClose
-    -> Có một cách đóng độc lập (signal/shutdown/thread khác)
-    -> start() [chặn thread hiện tại]
-    -> đóng / kết thúc -> start() trả về
-    -> tài nguyên được giải phóng
+Create stream
+    -> Configure events/retention
+    -> Register onEvent, onError, onClose
+    -> Provide an independent close mechanism (signal/shutdown/another thread)
+    -> start() [blocks current thread]
+    -> closed / terminated -> start() returns
+    -> resources released
 ~~~
 
-Ví dụ công cụ terminal chuyên nghe JFR có thể dùng `start()` trong main thread, rồi nhận tín hiệu dừng qua shutdown hook. Nếu không có thời hạn hoặc tín hiệu đóng, nó sẽ tiếp tục chặn; đó là hành vi đúng thiết kế, không phải lỗi treo API.
+For example, a CLI tool dedicated to listening to JFR can call `start()` on the main thread and receive a stop signal via a shutdown hook. Without a deadline or close trigger, it remains blocked; that is intentional design, not an API hang.
 
-**Cách dùng async — service theo dõi song song:**
+**Async usage — background monitoring inside a service:**
 
 ~~~text
 Application.start()
     -> new RecordingStream()
-    -> enable + đăng ký callback
+    -> enable + register callbacks
     -> startAsync()
-    -> ứng dụng phục vụ yêu cầu
+    -> application serves requests
 Application.stop()
-    -> ngừng phát công việc nếu cần
-    -> close stream đúng một lần (idempotent theo tài liệu)
-    -> đợi completion theo nhu cầu, với giới hạn
-    -> giải phóng queue/worker của ứng dụng
+    -> stop producing work if needed
+    -> close stream once (idempotent per docs)
+    -> wait for completion as needed, with bounds
+    -> release application queues/workers
 ~~~
 
-Một service thực cần chủ sở hữu rõ ràng cho stream, ví dụ `AutoCloseable` bean/resource của ứng dụng. Đừng tạo một stream mới mỗi request rồi quên đóng: bạn sẽ thêm ghi dữ liệu, callback thread, buffer và các tài nguyên JFR không cần thiết.
+A real service needs a clear owner for the stream, such as an application `AutoCloseable` bean/resource. Never create a new stream per request and forget to close it: you will add unnecessary recording work, callback threads, buffers, and JFR resources.
 
-### 7.1. Ai nên gọi close?
+### 7.1. Who should call close?
 
-- **`try-with-resources`:** tốt cho chương trình/bài test có phạm vi lexical rõ, bảo đảm đóng kể cả khi exception.
-- **Hook đóng service:** khi ứng dụng quản lý stream suốt vòng đời, gọi `close()` trong lifecycle stop/shutdown và xử lý lỗi; bảo đảm hook thực sự chạy trong quá trình dừng bình thường.
-- **Thread điều phối:** dùng khi gọi `start()` ở một thread khác để tránh chặn không thời hạn.
-- **Callback:** có thể đóng để ngừng ngay, nhưng không nên dùng `stop()` ngay trong callback vì thao tác chờ drain có thể làm luồng tự chờ chính nó (deadlock). Đơn giản hơn là báo tín hiệu cho thread điều phối thực hiện shutdown.
+- **`try-with-resources`:** great for programs/tests with a clear lexical scope, ensuring cleanup even on exceptions.
+- **Service shutdown hook:** when the application manages a stream across its lifetime, call `close()` in lifecycle stop/shutdown with error handling; ensure the hook actually runs during normal shutdown.
+- **Coordinator thread:** used when `start()` is invoked on another thread to avoid blocking indefinitely.
+- **Callback:** can call `close()` to stop immediately, though you should not call `stop()` directly inside a callback because waiting to drain can deadlock the stream thread against itself. It is simpler to signal a coordinator thread to perform shutdown.
 
-Đối với Java 17, **`close()` là API di động trong phạm vi bài**; với JDK 20+, `stop()` có thể đợi các event của recording được tiêu thụ trước khi xử lý tiếp, nhưng cách chờ phải được thiết kế riêng và không nên thực hiện từ callback.
+For Java 17, **`close()` is the portable API within this lesson's scope**; on JDK 20+, `stop()` can wait for recorded events to be consumed before proceeding, though the wait must be designed carefully and never triggered from within a callback.
 
-### 7.2. Chờ async hoàn tất và đọc lỗi đúng cách
+### 7.2. Waiting for async completion and reading errors properly
 
-`awaitTermination(Duration)` của `EventStream` không trả một boolean cho biết timed out hay đã xong. Vì thế với một sự kiện nghiệp vụ cần xác nhận, dùng tín hiệu độc lập, ví dụ `CountDownLatch.await(timeout, unit)` (trả boolean), `CompletableFuture`, hoặc một trạng thái kết quả đồng bộ. Gọi `awaitTermination` có thể hữu ích khi điều phối shutdown, nhưng **không** biến nó thành kiểm chứng việc một loại event cụ thể đã xuất hiện.
+`EventStream.awaitTermination(Duration)` does not return a boolean telling you whether it timed out or finished. Therefore, for a business event requiring confirmation, use an independent signal such as `CountDownLatch.await(timeout, unit)` (which returns a boolean), `CompletableFuture`, or a synchronized result state. Calling `awaitTermination` can help coordinate shutdown, yet **never** treat it as verification that a specific event arrived.
 
-Nếu thread bị interrupt khi chờ, không im lặng nuốt `InterruptedException`. Khôi phục interrupt status hoặc cho exception đi lên, đồng thời đóng stream trong `finally`. Hãy đặt timeout hữu hạn để shutdown không chặn vô hạn do nguồn sự kiện hoặc handler bị lỗi.
+If a waiting thread is interrupted, do not silently swallow `InterruptedException`. Restore the interrupt flag or propagate the exception while closing the stream in `finally`. Always use bounded timeouts so shutdown never hangs indefinitely due to a stalled source or handler.
 
-## 8. Quy tắc về thứ tự, đồng bộ và hiệu năng callback
+## 8. Rules on Ordering, Synchronization, and Callback Performance
 
-### 8.1. Thứ tự event không phải là tổng thứ tự tuyệt đối trên toàn thời gian
+### 8.1. Event ordering is not a strict global total order across all time
 
-JFR chuyển event theo **các batch**. Trong một batch được giao, event được sắp theo end time khi chế độ ordering hoạt động. Một event trong batch sau có thể có timestamp sớm hơn event đã đến từ batch trước vì phụ thuộc lúc flush; đừng xây logic nghiệp vụ “event đến sau = xảy ra sau” mà không kiểm tra timestamp/ID.
+JFR delivers events in **batches**. Within a delivered batch, events are sorted by end time when ordering is active. An event in a later batch can still carry an earlier timestamp than an event from an earlier batch depending on flush timing; never build business logic assuming "arrived later = happened later" without inspecting timestamps or IDs.
 
-Nếu thứ tự không quan trọng, `setOrdered(false)` có thể giảm chi phí sắp xếp. Nhưng sau đó handler phải chấp nhận thứ tự arrival. Đối với thống kê số lần hoặc histogram, thứ tự thường không quan trọng; đối với dựng timeline, cần xử lý event timestamp và khả năng out-of-order.
+If ordering does not matter, `setOrdered(false)` can reduce sorting overhead. However, handlers must then tolerate arbitrary arrival order. For counters or histograms, order rarely matters; for timeline reconstruction, inspect event timestamps and handle out-of-order arrivals.
 
-### 8.2. Không giữ RecordedEvent tùy tiện sau callback
+### 8.2. Do not retain RecordedEvent objects arbitrarily after the callback
 
-Theo tài liệu `EventStream`, object `RecordedEvent` có thể được **tái sử dụng** cho các event khác. Đừng đưa trực tiếp `RecordedEvent` vào queue và sử dụng nó rất lâu sau callback khi chưa kiểm soát reuse. Cách an toàn thường là **đọc ngay field cần thiết thành immutable DTO**:
+Per `EventStream` documentation, `RecordedEvent` instances may be **reused** for subsequent events. Never push `RecordedEvent` directly onto a queue and read it long after the callback returns without controlling reuse. The safe pattern is **extracting needed fields immediately into an immutable DTO**:
 
 ~~~java
-// Minh họa bên trong callback:
+// Illustrative snippet inside a callback:
 int marker = event.getInt("marker");
 long at = event.getStartTime().toEpochMilli();
-queue.offer(new EventSummary(marker, at)); // EventSummary/queue là kiểu do ứng dụng định nghĩa.
+queue.offer(new EventSummary(marker, at)); // EventSummary/queue are application-defined types.
 ~~~
 
-Đây là đoạn minh họa, **không phải source độc lập**; bạn phải định nghĩa `EventSummary` và queue. API `setReuse(false)` thay đổi cách tái sử dụng event object nhưng có thể tăng cấp phát; vẫn nên chuyển thành DTO nhỏ và kiểm soát lifecycle dữ liệu. Nếu không cần giữ, hãy cập nhật counter hoặc trạng thái atomic ngay trong callback.
+This is an illustrative snippet, **not standalone source**; you must define `EventSummary` and the queue. `setReuse(false)` alters event object reuse at the cost of extra allocations; copying into a small DTO and controlling data lifecycle is still preferable. If retention is unneeded, update counters or atomic state directly inside the callback.
 
-### 8.3. Callback nên ngắn và không block lâu
+### 8.3. Keep callbacks short and non-blocking
 
-Một callback chậm tạo tình trạng consumer xử lý không kịp nguồn event. Các vấn đề thường gặp:
+A slow callback causes the consumer to fall behind the event source. Common pitfalls:
 
-- Gọi HTTP/database, ghi log quá nhiều hoặc serialize payload lớn trong mọi `onEvent`.
-- Giữ object lớn từ event hoặc callback closure trong một registry suốt đời ứng dụng.
-- Dùng queue không giới hạn làm tăng bộ nhớ khi event rate vượt throughput downstream.
-- Gọi `stop()` (Java 20+) ngay trong callback, dẫn đến nguy cơ deadlock vì `stop()` phải chờ drain.
-- Đọc/ghi state chia sẻ không thread-safe giữa callback thread, request threads và shutdown thread.
+- Making HTTP/database calls, logging excessively, or serializing huge payloads in every `onEvent`.
+- Retaining large objects from events or callback closures in an application-wide registry.
+- Using unbounded queues that grow memory when event rate exceeds downstream throughput.
+- Calling `stop()` (Java 20+) directly inside a callback, risking deadlock because `stop()` waits to drain.
+- Reading/writing shared state without thread safety across the callback thread, request threads, and shutdown thread.
 
-Thiết kế thực tế: **callback chỉ trích các trường cần thiết**, cập nhật `LongAdder`/counter hoặc đưa DTO nhỏ vào bounded queue, để worker khác xử lý I/O. Định nghĩa rõ chính sách khi queue đầy: drop có đếm, sampling, hoặc giảm loại/chu kỳ event. Không tự chặn vô hạn callback để chờ downstream. Theo dõi event rate, callback latency, queue depth, dropped events, số lỗi và trạng thái stream.
+Practical design: **callbacks only extract essential fields**, increment a `LongAdder`/counter, or enqueue a compact DTO into a bounded queue for a separate worker to handle I/O. Define clear backpressure policies when the queue is full: counted drops, sampling, or reducing event types/periods. Never block callbacks indefinitely waiting on downstream systems. Monitor event rate, callback latency, queue depth, dropped events, error counts, and stream state.
 
-### 8.4. Nhiều stream và cấu hình event
+### 8.4. Multiple streams and event configurations
 
-Nhiều `RecordingStream` trong cùng JVM có thể chia sẻ công việc JFR ở mức nền tảng, nhưng có mỗi callback/retention riêng. Đừng mặc định cost bằng 0 khi thêm stream; cũng không tự cộng tuyến tính overhead của từng stream. Cần đo thực tế với loại event và tải thực. Event settings có thể thay đổi hiệu quả thu ở JVM; hãy giữ các stream có chủ sở hữu rõ và tránh tạo tùy tiện theo từng request.
+Multiple `RecordingStream` instances in the same JVM may share underlying JFR work while maintaining separate callbacks and retention. Never assume adding another stream costs zero, nor assume overhead scales strictly linearly. Measure realistically with your target event types and load. Event settings can alter JVM collection overhead; assign clear stream owners and avoid spawning streams per request.
 
-Một `RecordingStream` có thể `dump(Path)` thành `.jfr` khi đã start và chưa close; API khuyên đặt `setMaxAge` hoặc `setMaxSize` trước khi start để bảo đảm có dữ liệu giữ. **Streaming callback không tự sinh file dump cuối cùng**: muốn phân tích offline phải chủ động dump theo policy, quản lý quyền truy cập, dung lượng và cleanup.
+A `RecordingStream` can call `dump(Path)` to write a `.jfr` file once started and before closing; the API recommends configuring `setMaxAge` or `setMaxSize` before starting to ensure data is retained. **Streaming callbacks do not automatically create a final dump file**: if offline analysis is needed, trigger `dump` explicitly per policy and manage access permissions, disk space, and cleanup.
 
-## 9. Những lỗi dễ gặp và cách xác định nguyên nhân
+## 9. Common Errors and Root-Cause Identification
 
-| Hiện tượng | Nguyên nhân khả dĩ | Hướng xử lý |
+| Symptom | Possible cause | How to resolve |
 | --- | --- | --- |
-| `onEvent` không bao giờ chạy | Quên `start/startAsync`, event type chưa enable, sai tên, threshold lọc hết | Kiểm tra `@Name`/event metadata, `enable`, thời điểm bắt đầu, có phát event thật |
-| Gọi `start()` xong chương trình “treo” | `start()` cố ý blocking; không có thread/điều kiện đóng | Dùng `startAsync()` hoặc thiết kế close từ thread khác |
-| `startAsync()` rồi thoát method không nhận event | Scope `try-with-resources` đóng quá sớm | Giữ resource sống đủ lâu và đợi tín hiệu callback có hạn |
-| Sau `commit()` vẫn chưa thấy callback | JFR flush theo batch, event chưa được đọc hoặc stream chưa ready | Chờ có timeout, xác minh onError/flush, không giả định realtime tức thời |
-| `close()` được gọi nhưng vài event cuối thiếu | `close` có thể dừng trước khi xử lý hết event | Dùng completion protocol, khi cần drain trên JDK20+ xem `stop()` từ bên ngoài callback |
-| `startAsync()` sau khi stream đã đóng | Stream đã CLOSED hoặc đã start | Không restart cùng object; tạo stream mới theo lifecycle |
-| App rất chậm dù JFR nhẹ | Callback làm blocking I/O, log mỗi event, queue không giới hạn | Tối giản callback, bounded queue, giảm event volume và đo overhead |
-| Đã có `onError` nhưng không thấy stack trace | Handler `onError` thay thế hành vi stderr mặc định | Tự log, đếm lỗi và quyết định fail/restart thay vì im lặng |
-| Dashboard dữ liệu lệch thứ tự | JFR event batch không bảo đảm thứ tự toàn cục | Dùng timestamp/sequence, chấp nhận event trễ hoặc sort lại |
-| Lưu `RecordedEvent` rồi field thay đổi bất ngờ | Object có thể được reuse sau callback | Copy field thành DTO hoặc `setReuse(false)` nếu thật sự phù hợp |
-| Shutdown vẫn chờ mãi | Không gọi close, callback block hoặc chờ latch vô hạn | Close đúng owner, timeout hữu hạn, tránh I/O đồng bộ trong callback |
-| Callback bị đăng ký nhiều lần | Setup lifecycle chạy trùng | Quản lý một stream instance/owner, `remove` đúng action khi cần |
+| `onEvent` never runs | Forgot `start/startAsync`, event type disabled, wrong name, threshold filtered everything | Check `@Name`/metadata, `enable`, start timing, and actual event emission |
+| Calling `start()` makes the program "hang" | `start()` is intentionally blocking; no close thread/condition | Use `startAsync()` or close from another thread |
+| `startAsync()` exits method and receives no events | `try-with-resources` scope closes too early | Keep resource alive long enough and await a bounded callback signal |
+| Callback not seen right after `commit()` | JFR flushes in batches, event unread or stream not ready | Wait with timeout, verify `onError`/flush, do not assume instant real-time |
+| `close()` called but final few events missing | `close` can stop before all events finish processing | Use a completion protocol; if draining on JDK 20+, consider `stop()` outside callbacks |
+| `startAsync()` after stream closed | Stream is already CLOSED or started | Do not restart the same object; create a new stream per lifecycle |
+| App slows down despite light JFR settings | Callback does blocking I/O, logs every event, or uses unbounded queue | Minimize callback work, bound queues, cut event volume, measure overhead |
+| `onError` set, yet no stack trace appears | `onError` handler overrides default `stderr` printing | Log and count errors explicitly, decide fail/restart rather than staying silent |
+| Dashboard shows out-of-order data | JFR event batches do not guarantee global order | Use timestamps/sequences, tolerate late events, or re-sort |
+| Stored `RecordedEvent` fields mutate unexpectedly | Object may be reused after callback returns | Copy fields into a DTO or use `setReuse(false)` if genuinely warranted |
+| Shutdown waits forever | `close` never called, callback blocked, or infinite latch wait | Close from proper owner, use bounded timeouts, avoid sync I/O in callbacks |
+| Callback runs multiple times per event | Lifecycle setup ran twice | Manage a single stream instance/owner; `remove` exact action when needed |
 
-**Đừng gọi stream là “healthy” chỉ vì `startAsync()` không ném exception.** Điều kiện vận hành tốt cần ít nhất: stream chưa đóng bất ngờ, không có lỗi, có các event loại cần thiết trong cửa sổ đo và downstream không bị nghẽn. Nếu event loại đó hiếm, health check có thể dựa vào một custom heartbeat event hoặc thống kê flush phù hợp; không bắt mọi JVM phải có GC mỗi giây.
+**Do not call a stream "healthy" just because `startAsync()` did not throw.** Healthy operation requires at minimum: the stream has not closed unexpectedly, no errors occurred, expected event types appear within the window, and downstream processing is not backed up. If target events are rare, health checks can rely on a custom heartbeat event or flush metrics rather than expecting every JVM to run GC every second.
 
-## 10. Bài tập áp dụng
+## 10. Practice Exercises
 
-**Bài 1 — phân biệt blocking.** Một main method có dòng `stream.start(); System.out.println("READY");`. Khi nào “READY” xuất hiện? **Chỉ sau khi stream kết thúc/đóng**. Nếu muốn main tiếp tục ngay, dùng `startAsync()` và giữ resource sống đủ lâu.
+**Exercise 1 — understanding blocking.** A `main` method has `stream.start(); System.out.println("READY");`. When does `"READY"` print? **Only after the stream ends/closes**. To let `main` continue immediately, use `startAsync()` and keep the resource alive long enough.
 
-**Bài 2 — callback không chạy.** Đã đăng ký `onEvent("lesson.Payment", handler)`, nhưng code phát class có `@Name("lesson.PaymentCreated")`. Vì sao không thấy event? **Tên không khớp**; cũng cần bật đúng event class và xét threshold/flush.
+**Exercise 2 — callback never fires.** You registered `onEvent("lesson.Payment", handler)`, while code emits a class with `@Name("lesson.PaymentCreated")`. Why are no events seen? **Name mismatch**; you also need to enable the right event class and account for thresholds/flushing.
 
-**Bài 3 — đóng quá sớm.** Một hàm tạo stream, gọi `startAsync()` rồi thoát khối `try`. Làm sao sửa? Đưa resource vào service có vòng đời rõ, đóng ở stop hook; test bằng `CountDownLatch` thay vì sleep ngắn.
+**Exercise 3 — closing too early.** A function creates a stream, calls `startAsync()`, and immediately exits the `try` block. How do you fix it? Move the resource into a service with a clear lifecycle, close it in the stop hook, and test with `CountDownLatch` rather than short sleeps.
 
-**Bài 4 — thread đang làm gì?** Với `start()`, callback chạy trên thread nào? **Thread gọi `start()`**. Với `startAsync()`? **Thread riêng do stream dùng để dispatch callback**. Khi dùng object chia sẻ với request thread phải đồng bộ phù hợp.
+**Exercise 4 — which thread is running?** With `start()`, which thread runs callbacks? **The thread calling `start()`**. With `startAsync()`? **A dedicated thread used by the stream to dispatch callbacks**. Accessing shared objects with request threads requires proper synchronization.
 
-**Bài 5 — muốn đủ event trước khi chốt số liệu.** Gọi `close()` rồi đếm snapshot có đủ mọi event không? **Không được đảm bảo**. Với JDK 20+, xem `stop()` từ điều phối (không ở callback), hoặc giao thức completion với producer và tín hiệu đã xử lý.
+**Exercise 5 — ensuring all events before finalizing counts.** If you call `close()` and immediately read a counter, are all events guaranteed? **Not guaranteed**. On JDK 20+, consider `stop()` from a coordinator (not inside a callback), or a completion protocol with producers and a processed signal.
 
-**Bài 6 — queue tăng không giới hạn.** Mỗi callback đẩy một DTO vào queue vô hạn, downstream chỉ xử lý 100 item/s, trong khi JFR phát 10.000 item/s. Hệ quả? Queue tăng khoảng **9.900 item/s** nếu tốc độ ổn định; nguy cơ OOM. Dùng bounded queue, đo dropped events và điều chỉnh thu thập.
+**Exercise 6 — unbounded queue growth.** Each callback pushes a DTO onto an unbounded queue; downstream consumes 100 items/s while JFR emits 10,000 items/s. Result? Queue grows at roughly **9,900 items/s** at steady state, risking OOM. Use a bounded queue, count dropped events, and adjust collection rates.
 
-**Bài 7 — lỗi onError.** Khi thêm `onError(t -> {})` trống, ứng dụng không còn in stack trace mặc định. Đây có phải xử lý lỗi tốt? **Không**. Callback lỗi cần telemetry và trạng thái xử lý, tránh im lặng làm mất tín hiệu.
+**Exercise 7 — empty `onError`.** Adding an empty `onError(t -> {})` suppresses the default stack trace. Is this good error handling? **No**. Error callbacks need telemetry and state handling to avoid silently losing failure signals.
 
-**Bài 8 — event nhận trễ.** Event A có timestamp 10:00:00.200 đến callback sau event B timestamp 10:00:00.500. API có sai không? **Không nhất thiết**: ordering theo batch không là tổng thứ tự giữa các batch. Xây lại timeline bằng timestamp nếu thực sự cần.
+**Exercise 8 — late-arriving event.** Event A with timestamp `10:00:00.200` reaches the callback after event B with timestamp `10:00:00.500`. Is the API broken? **Not necessarily**: batch-level ordering is not a strict global total order across batches. Reconstruct timelines using timestamps if truly required.
 
-## 11. Checklist áp dụng nhanh
+## 11. Quick Application Checklist
 
-1. Khởi tạo `RecordingStream` đúng JVM, chọn settings và chỉ bật loại event cần thiết.
-2. Đăng ký `onEvent`, `onError`, `onClose` **trước start**; chọn filter theo tên để tránh xử lý thừa.
-3. Chọn `start()` nếu caller chịu trách nhiệm chạy vòng stream; chọn `startAsync()` nếu caller còn phải làm việc khác.
-4. Xác định owner và thời điểm `close()`; đừng để resource chết ngay sau `startAsync` hoặc không bao giờ được đóng.
-5. Với async, dùng tín hiệu/timeout để kiểm chứng event quan trọng và trạng thái kết thúc; đừng coi `close` đồng nghĩa drain hoàn tất.
-6. Đọc/copy field cần thiết trong callback, xử lý nhanh, giữ queue bounded và theo dõi lỗi/độ trễ.
-7. Kiểm tra event schema, batch/ordering, `RecordedEvent` reuse và khả năng không nhận đủ event khi shutdown.
-8. Thử với Java/JDK thực tế, tự đo overhead, và chỉ dump file khi có nhu cầu phân tích offline.
+1. Initialize `RecordingStream` on the target JVM, choose settings, and enable only needed event types.
+2. Register `onEvent`, `onError`, and `onClose` **before starting**; filter by name to avoid unnecessary work.
+3. Choose `start()` if the caller owns running the stream loop; choose `startAsync()` if the caller has other work.
+4. Define the owner and `close()` timing; never let the resource die right after `startAsync` or stay unclosed forever.
+5. With async usage, use signals/timeouts to verify critical events and termination; never equate `close` with complete draining.
+6. Read/copy required fields inside callbacks, keep processing fast, bound queues, and monitor errors/latency.
+7. Account for event schemas, batching/ordering, `RecordedEvent` reuse, and possible missed tail events on shutdown.
+8. Test on your actual Java/JDK target, measure overhead directly, and dump files only when offline analysis is required.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle Java SE 21, [RecordingStream API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingStream.html) — constructors, enable, callback, start/startAsync, close, awaitTermination, stop, dump, maxAge/maxSize.
-- Oracle Java SE 21, [EventStream API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/EventStream.html) — dispatch theo batch, event ordering/reuse, onError/onClose/onFlush, chờ kết thúc.
-- Oracle Java SE 21, [RecordedEvent API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedEvent.html) — đọc các trường của sự kiện, timestamp và duration.
-- Oracle Java SE 21, [JFR Event API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Event.html) và [EventSettings API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html) — custom event, enable, threshold, stack trace và period.
-- Oracle Java SE 21, [Java Flight Recorder API Programmer’s Guide](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder-api-programmers-guide.html) — làm việc với JFR qua Java code.
+- Oracle Java SE 21, [RecordingStream API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordingStream.html) — constructors, `enable`, callbacks, `start`/`startAsync`, `close`, `awaitTermination`, `stop`, `dump`, `maxAge`/`maxSize`.
+- Oracle Java SE 21, [EventStream API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/EventStream.html) — batch dispatch, event ordering/reuse, `onError`/`onClose`/`onFlush`, awaiting termination.
+- Oracle Java SE 21, [RecordedEvent API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/consumer/RecordedEvent.html) — reading event fields, timestamps, and durations.
+- Oracle Java SE 21, [JFR Event API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/Event.html) and [EventSettings API](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jfr/jdk/jfr/EventSettings.html) — custom events, `enable`, `threshold`, `stackTrace`, and `period`.
+- Oracle Java SE 21, [Java Flight Recorder API Programmer's Guide](https://docs.oracle.com/en/java/javase/21/jfapi/flight-recorder-api-programmers-guide.html) — working with JFR via Java code.

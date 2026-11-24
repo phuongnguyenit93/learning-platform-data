@@ -1,24 +1,24 @@
-# Vai trò của thread context class loader trong SPI và thư viện tích hợp
+# The Role of the Thread Context Class Loader in SPI and Integration Libraries
 
-## 1. TCCL giải quyết vấn đề gì?
+## 1. What Problem Does the TCCL Solve?
 
-Trong ứng dụng mở rộng bằng plugin, giao diện dịch vụ (SPI) thường được nạp bởi classloader của host, trong khi lớp triển khai dịch vụ được đặt trong JAR do một classloader khác nạp sau. Một thư viện chung không biết trước danh sách plugin và classloader của chính thư viện có thể không nhìn thấy các JAR mới.
+In a plugin-extensible application, the service interface (SPI) is typically loaded by the host's classloader, while the service implementation class resides in a JAR loaded later by a different classloader. A shared library does not know the list of plugins in advance, and the library's own classloader may not be able to see the new JARs.
 
-**Thread context class loader (TCCL)** là tham chiếu `ClassLoader` được gắn với thread hiện hành. Java cung cấp hai phương thức:
+The **Thread Context Class Loader (TCCL)** is a `ClassLoader` reference attached to the current thread. Java provides two methods:
 
 ```java
 ClassLoader context = Thread.currentThread().getContextClassLoader();
 Thread.currentThread().setContextClassLoader(context);
 ```
 
-Đây là đoạn minh họa, không phải chương trình độc lập. Host có thể đặt TCCL thành classloader nhìn thấy plugin khi gọi một thư viện cần tìm provider. Nếu thư viện sử dụng TCCL, thao tác tìm kiếm sẽ dựa trên **ngữ cảnh của bên gọi** thay vì chỉ dựa vào classloader vốn đã nạp thư viện.
+This is an illustrative snippet, not a standalone program. The host can set the TCCL to a classloader that sees the plugin when calling a library that needs to discover providers. If the library uses the TCCL, discovery operates based on the **caller's context** instead of relying solely on the classloader that originally loaded the library.
 
-Điều cần nhớ: TCCL **không tự nạp mọi plugin**, không thay đổi bộ nạp đã định nghĩa một lớp và không tự gọi phương thức kích hoạt plugin. Nó chỉ định nguồn tìm kiếm khi API tương ứng chọn sử dụng tham chiếu đó.
+Keep in mind: the TCCL **does not automatically load all plugins**, does not change which loader defined a class, and does not automatically invoke plugin activation methods. It merely specifies a lookup source when the corresponding API chooses to use that reference.
 
-## 2. Mối quan hệ host, SPI, plugin và bộ nạp lớp
+## 2. Relationship Between Host, SPI, Plugin, and Classloaders
 
 ```text
-Thread gọi thư viện
+Thread calling the library
     |
     +---- TCCL ----------------------+
                                       |
@@ -34,66 +34,66 @@ Thread gọi thư viện
                     host/application loader
                     - service interface (SPI)
                     - host
-                    - thư viện dùng SPI
+                    - library using SPI
 ```
 
-Với cấu trúc ủy quyền parent-first, loader con có thể nhờ loader cha tìm kiểu SPI, còn loader cha thường không nhìn thấy lớp provider nằm riêng trong JAR của con. Nếu thư viện ở phía cha chỉ tra cứu qua chính classloader của nó, provider sẽ bị bỏ sót. TCCL là cơ chế để host trao cho thư viện một loader khác có thể nhìn thấy provider.
+With a parent-first delegation structure, a child loader can ask the parent loader to locate the SPI type, whereas the parent loader generally cannot see provider classes sitting inside the child's JAR. If a library on the parent side looks up only through its own classloader, providers will be missed. The TCCL is the mechanism for the host to hand the library a different loader that can see the providers.
 
-Tách ba khái niệm:
+Separate three concepts:
 
-- **Classloader định nghĩa kiểu:** JVM nhận diện lớp bằng tên nhị phân và loader đã định nghĩa nó. Hai lớp cùng tên do hai loader khác nhau định nghĩa có thể là hai kiểu khác nhau.
-- **Classloader tìm kiếm:** khi `loadClass` hoặc `getResources` được gọi, đường ủy quyền quyết định tìm thấy gì.
-- **TCCL:** một tham chiếu trên thread; thư viện có thể chọn lấy nó làm loader tìm kiếm.
+- **Defining classloader of a type:** the JVM identifies a class by its binary name and the loader that defined it. Two classes with the same name defined by two different loaders can be two distinct types.
+- **Lookup classloader:** when `loadClass` or `getResources` is called, the delegation chain determines what is found.
+- **TCCL:** a reference stored on a thread; a library may choose to retrieve it as its lookup loader.
 
-Đổi TCCL không đổi kết quả của `Greeter.class.getClassLoader()`. Hợp đồng SPI phải được dùng chung đúng cách để provider có thể được ép sang kiểu mà host mong đợi.
+Changing the TCCL does not change the result of `Greeter.class.getClassLoader()`. The SPI contract must be properly shared so the provider can be cast to the type expected by the host.
 
-## 3. API SPI dùng TCCL như thế nào?
+## 3. How Do SPI APIs Use the TCCL?
 
-Trong Java SE 17, lời gọi:
+In Java SE 17, the call:
 
 ```java
 ServiceLoader<Greeter> services = ServiceLoader.load(Greeter.class);
 ```
 
-sử dụng **context class loader của thread gọi**. Với SPI trên classpath, loader tương ứng cần thấy tài nguyên đăng ký mang tên:
+uses the **calling thread's context class loader**. For classpath SPI, the corresponding loader must see the registration resource named:
 
 ```text
 META-INF/services/demo.spi.Greeter
 ```
 
-và nội dung tệp UTF-8 liệt kê tên nhị phân đầy đủ của provider:
+and the UTF-8 file content listing the fully qualified binary name of the provider:
 
 ```text
 demo.plugin.WelcomeGreeter
 ```
 
-Tên tệp theo **service type**, không theo provider. Classloader phải thấy cả tài nguyên đăng ký và các lớp phụ thuộc cần thiết.
+The filename follows the **service type**, not the provider. The classloader must see both the registration resource and all required dependency classes.
 
-Nếu host đã biết loader muốn dùng, nó có thể gọi overload tường minh:
+If the host already knows which loader it wants to use, it can call the explicit overload:
 
 ```java
 ServiceLoader<Greeter> services =
         ServiceLoader.load(Greeter.class, pluginLoader);
 ```
 
-Hai đoạn là ví dụ rời, giả định `Greeter` và `pluginLoader` đã tồn tại.
+Both snippets are isolated examples assuming `Greeter` and `pluginLoader` already exist.
 
-| Cách gọi | Loader dùng để khám phá | Điểm cần lưu ý |
+| Call Form | Loader Used for Discovery | Points to Note |
 |---|---|---|
-| `ServiceLoader.load(Greeter.class)` | TCCL tại thời điểm tạo ServiceLoader | Phụ thuộc ngữ cảnh của thread hiện tại |
-| `ServiceLoader.load(Greeter.class, pluginLoader)` | Loader được truyền trực tiếp | Rõ ràng, dễ kiểm soát khi host sở hữu loader |
-| `Greeter.class.getClassLoader()` | Loader đã định nghĩa kiểu SPI | Có thể là loader cha, không thấy provider ở loader con |
-| `ClassLoader.getSystemClassLoader()` | System classloader | Không mặc nhiên biết mọi JAR được nạp động |
+| `ServiceLoader.load(Greeter.class)` | TCCL at the time the ServiceLoader is created | Depends on the current thread's context |
+| `ServiceLoader.load(Greeter.class, pluginLoader)` | Directly passed loader | Explicit, easy to control when the host owns the loader |
+| `Greeter.class.getClassLoader()` | Loader that defined the SPI type | May be a parent loader, unable to see providers in child loaders |
+| `ClassLoader.getSystemClassLoader()` | System classloader | Does not automatically know about dynamically loaded JARs |
 
-`ServiceLoader.load(...)` tạo đối tượng khám phá; provider thường được tìm và tạo **lười** khi duyệt, gọi `findFirst()` hoặc dùng `stream()`. Một `ServiceLoader` lưu các provider đã gặp và loader của chính nó. Đổi TCCL sau khi tạo đối tượng ServiceLoader không có nghĩa đối tượng đó tự chuyển sang loader mới. `reload()` xóa cache provider trong ServiceLoader, nhưng không tự thêm JAR vào classloader.
+`ServiceLoader.load(...)` creates a discovery object; providers are usually located and instantiated **lazily** when iterating, calling `findFirst()`, or using `stream()`. A `ServiceLoader` caches discovered providers and holds onto its own loader. Changing the TCCL after creating the `ServiceLoader` object does not cause that object to switch to the new loader. `reload()` clears the provider cache inside `ServiceLoader`, but does not automatically add JARs to a classloader.
 
-Với các **named module** trong JPMS, cơ chế `uses`/`provides ... with ...` và module layer cũng tham gia khám phá. Phần thực hành dưới đây dùng classpath để làm rõ tác dụng của TCCL.
+With **named modules** in JPMS, `uses`/`provides ... with ...` and module layers also participate in discovery. The hands-on section below uses the classpath to isolate and clarify the effect of the TCCL.
 
-## 4. Ví dụ Java 17 chạy được: cùng một SPI, hai ngữ cảnh
+## 4. Runnable Java 17 Example: One SPI, Two Contexts
 
-Ta đặt `Greeter` và host trên application classpath; JAR của provider **không nằm** trên application classpath. Host tự mở JAR bằng `URLClassLoader`, rồi so sánh ba phép tìm: TCCL mặc định, TCCL được đổi sang pluginLoader và loader truyền rõ ràng.
+We place `Greeter` and the host on the application classpath; the provider's JAR is **not** on the application classpath. The host opens the JAR itself using `URLClassLoader`, then compares three lookups: default TCCL, TCCL switched to `pluginLoader`, and an explicitly passed loader.
 
-### Cấu trúc dự án
+### Project Structure
 
 ```text
 tccl-demo/
@@ -104,7 +104,7 @@ tccl-demo/
     └── resources/META-INF/services/demo.spi.Greeter
 ```
 
-**Hợp đồng** tại `api/src/demo/spi/Greeter.java`:
+**Contract** at `api/src/demo/spi/Greeter.java`:
 
 ```java
 package demo.spi;
@@ -114,7 +114,7 @@ public interface Greeter {
 }
 ```
 
-**Provider** tại `plugin/src/demo/plugin/WelcomeGreeter.java`:
+**Provider** at `plugin/src/demo/plugin/WelcomeGreeter.java`:
 
 ```java
 package demo.plugin;
@@ -132,15 +132,15 @@ public final class WelcomeGreeter implements Greeter {
 }
 ```
 
-**Tệp đăng ký** `plugin/resources/META-INF/services/demo.spi.Greeter` có đúng nội dung:
+**Registration file** `plugin/resources/META-INF/services/demo.spi.Greeter` with exact content:
 
 ```text
 demo.plugin.WelcomeGreeter
 ```
 
-Lớp provider là `public`, có constructor không tham số `public` và triển khai service interface để phù hợp với SPI trên classpath.
+The provider class is `public`, has a `public` no-arg constructor, and implements the service interface to conform to classpath SPI rules.
 
-**Host** tại `host/src/demo/host/Main.java`:
+**Host** at `host/src/demo/host/Main.java`:
 
 ```java
 package demo.host;
@@ -190,11 +190,11 @@ public final class Main {
 }
 ```
 
-Host dùng `Greeter.class.getClassLoader()` làm **loader cha** của `pluginLoader` để hai phía chia sẻ cùng lớp `Greeter`. Vì vậy việc trả về provider kiểu `Greeter` có thể hoạt động. `getResource` kiểm tra descriptor có nhìn thấy được trước khi tạo provider. Khối `finally` phục hồi TCCL ngay cả khi việc tìm/tạo plugin thất bại. `try-with-resources` đóng URLClassLoader khi rời phạm vi sử dụng.
+The host uses `Greeter.class.getClassLoader()` as the **parent loader** of `pluginLoader` so both sides share the same `Greeter` class. Thus returning a provider of type `Greeter` works. `getResource` verifies the descriptor is visible before instantiating the provider. The `finally` block restores the TCCL even if plugin discovery/instantiation fails. `try-with-resources` closes the `URLClassLoader` upon leaving scope.
 
-### Lệnh biên dịch và chạy trên Windows PowerShell với JDK 17+
+### Compile and Run Commands on Windows PowerShell with JDK 17+
 
-Chạy từ thư mục `tccl-demo`:
+Run from the `tccl-demo` directory:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path out\api,out\host,out\plugin,plugins | Out-Null
@@ -209,7 +209,7 @@ jar --create --file plugins\greeter-plugin.jar -C out\plugin .
 java -cp "out\api;out\host" demo.host.Main
 ```
 
-**Kết quả stdout** với đúng cấu trúc ví dụ:
+**Stdout output** with the exact example structure:
 
 ```text
 before=none
@@ -219,53 +219,53 @@ explicit=Hello, Java
 restored=none
 ```
 
-- `before=none`: TCCL mặc định của application thread chưa thấy plugin JAR nằm ngoài `-cp`.
-- `descriptor=true`: pluginLoader mới thấy `META-INF/services/demo.spi.Greeter` trong JAR.
-- `context=Hello, Java`: sau khi đặt TCCL là pluginLoader, overload mặc định của ServiceLoader phát hiện provider.
-- `explicit=Hello, Java`: overload truyền trực tiếp pluginLoader vẫn hoạt động dù đã phục hồi TCCL.
-- `restored=none`: host trở về ngữ cảnh cũ, lần tìm mới theo TCCL cũ không thấy provider.
+- `before=none`: the application thread's default TCCL does not yet see the plugin JAR outside `-cp`.
+- `descriptor=true`: the new `pluginLoader` sees `META-INF/services/demo.spi.Greeter` inside the JAR.
+- `context=Hello, Java`: after setting TCCL to `pluginLoader`, the default `ServiceLoader` overload discovers the provider.
+- `explicit=Hello, Java`: the overload taking `pluginLoader` directly still works even after TCCL has been restored.
+- `restored=none`: the host returns to its old context, and a new lookup using the old TCCL does not see the provider.
 
-Trên macOS/Linux, thay dấu phân cách classpath `;` bằng `:` và dùng cú pháp shell tạo thư mục/sao chép tương đương. Không thêm `plugins/greeter-plugin.jar` vào `-cp` trong thí nghiệm này: nếu thêm, loader mặc định cũng có thể nhìn thấy provider nên không còn phân biệt rõ hai ngữ cảnh.
+On macOS/Linux, replace the classpath separator `;` with `:` and use equivalent shell syntax for creating directories and copying. Do not add `plugins/greeter-plugin.jar` to `-cp` in this experiment: adding it would let the default loader see the provider too, obscuring the distinction between the two contexts.
 
-### Ba thay đổi để tự quan sát
+### Three Modifications to Observe Yourself
 
-1. **Bỏ `setContextClassLoader(pluginLoader)`:** `ServiceLoader.load(Greeter.class).findFirst().orElseThrow()` không tìm được provider trong ví dụ và ném `NoSuchElementException`. Overload truyền `pluginLoader` vẫn hoạt động.
-2. **Đổi loader cha thành một loader không thấy `Greeter`:** dù tìm được lớp provider, có thể phát sinh lỗi phụ thuộc hoặc không khớp kiểu SPI. Chia sẻ classloader hợp đồng là yêu cầu khác với đặt TCCL.
-3. **Bỏ tệp `META-INF/services` khỏi JAR:** `descriptor=false`, và không có provider nào được khai báo cho ServiceLoader classpath mặc dù `WelcomeGreeter.class` tồn tại.
+1. **Remove `setContextClassLoader(pluginLoader)`:** `ServiceLoader.load(Greeter.class).findFirst().orElseThrow()` cannot find the provider in the example and throws `NoSuchElementException`. The overload taking `pluginLoader` still works.
+2. **Change the parent loader to one that cannot see `Greeter`:** even if the provider class is found, dependency errors or SPI type mismatches can arise. Sharing the contract classloader is a separate requirement from setting the TCCL.
+3. **Remove `META-INF/services` from the JAR:** `descriptor=false`, and no provider is declared to classpath `ServiceLoader` even though `WelcomeGreeter.class` exists.
 
-Những thay đổi này chỉ nhằm kiểm chứng cách **khám phá provider**, không thể hiện toàn bộ cơ chế vòng đời plugin hay cập nhật nóng JAR.
+These modifications only verify how **provider discovery** works; they do not represent the full plugin lifecycle or hot JAR updates.
 
-## 5. Những thư viện tích hợp nào dùng TCCL?
+## 5. Which Integration Libraries Use the TCCL?
 
-TCCL được thiết kế hữu ích cho cơ chế khám phá do **thư viện chung** điều phối nhưng **ứng dụng** cung cấp triển khai. Ngoài `ServiceLoader`, ví dụ tiêu biểu là `javax.script.ScriptEngineManager`:
+TCCL was designed to be useful for discovery mechanisms orchestrated by a **shared library** where the **application** supplies implementations. Besides `ServiceLoader`, a classic example is `javax.script.ScriptEngineManager`:
 
 ```java
-// Đoạn minh họa; giả định pluginLoader đã được khai báo.
+// Illustrative snippet; assumes pluginLoader is already declared.
 var managerA = new javax.script.ScriptEngineManager();
 var managerB = new javax.script.ScriptEngineManager(pluginLoader);
 ```
 
-Constructor không tham số của `ScriptEngineManager` dùng context class loader để khám phá script engine factories; constructor còn lại dùng loader được cung cấp. JDK 17 không bảo đảm sẵn JavaScript engine nên ví dụ trên **không khẳng định** sẽ tìm thấy engine cụ thể. Tính sẵn có phụ thuộc provider thực sự trên môi trường chạy.
+The no-arg constructor of `ScriptEngineManager` uses the context class loader to discover script engine factories; the other constructor uses the provided loader. JDK 17 does not guarantee a built-in JavaScript engine, so the example above **does not claim** a specific engine will be found. Availability depends on actual providers in the runtime environment.
 
-Trong các nền tảng tích hợp và application server, framework có thể tạm thiết lập TCCL trước khi gọi thư viện hoặc phần mở rộng rồi khôi phục sau. Tuy nhiên:
+In integration platforms and application servers, frameworks may temporarily set the TCCL before invoking a library or extension and restore it afterward. However:
 
-- Không phải **mọi** thư viện, API tra cứu tài nguyên hoặc thư viện logging đều đọc TCCL.
-- Một thư viện có thể ưu tiên property, file cấu hình, module, classloader của chính nó, hoặc overload nhận loader tường minh.
-- `Class.getResource(...)`, `ClassLoader.getResources(...)` và `ServiceLoader` không phải ba cách tra cứu tương đương.
-- Phải đọc hợp đồng **của thư viện cụ thể** để xác định lúc nào TCCL được lấy và liệu nó có lưu cache kết quả không.
+- Not **every** library, resource lookup API, or logging library reads the TCCL.
+- A library may prioritize system properties, config files, modules, its own classloader, or an overload taking an explicit loader.
+- `Class.getResource(...)`, `ClassLoader.getResources(...)`, and `ServiceLoader` are not three equivalent lookup mechanisms.
+- You must read the **specific library's** contract to determine when the TCCL is sampled and whether it caches results.
 
-TCCL không phải API truyền dữ liệu nghiệp vụ giữa host và plugin. Nó chỉ điều chỉnh **ngữ cảnh nạp lớp/tài nguyên** cho những thành phần tự chọn sử dụng nó.
+TCCL is not an API for passing business data between host and plugin. It only adjusts the **class/resource loading context** for components that choose to use it.
 
-## 6. Kế thừa và tái sử dụng thread: vì sao phải phục hồi TCCL?
+## 6. Thread Inheritance and Reuse: Why Must You Restore the TCCL?
 
-TCCL thuộc về **thread thực thi**, không tự gắn với một request, một task hoặc một phiên làm việc riêng. Thread mới thường kế thừa context class loader từ thread tạo nó; thread pool có thể tái sử dụng một thread cho nhiều công việc.
+The TCCL belongs to the **execution thread**, not automatically to a specific request, task, or session. Newly created threads typically inherit the context class loader from their creator thread; thread pools reuse a single thread across many tasks.
 
-Nếu task A đổi TCCL sang loader của plugin A nhưng quên khôi phục, task B trên cùng worker thread có thể nhìn nhầm provider của plugin A. TCCL còn giữ tham chiếu tới classloader cũ, khiến việc thu hồi plugin khó khăn hơn.
+If task A switches the TCCL to plugin A's loader and forgets to restore it, task B running on the same worker thread may mistakenly see plugin A's providers. The TCCL also retains a reference to the old classloader, making plugin reclamation harder.
 
-Một mẫu nhỏ dùng `try/finally`:
+A small pattern using `try/finally`:
 
 ```java
-// Helper minh họa; đặt trong một lớp và import java.util.function.Supplier.
+// Illustrative helper; place inside a class and import java.util.function.Supplier.
 static <T> T withContextLoader(
         ClassLoader wanted,
         java.util.function.Supplier<T> action) {
@@ -280,23 +280,23 @@ static <T> T withContextLoader(
 }
 ```
 
-Dùng mẫu này **trong chính task chạy trên thread cần tra cứu**. Đặt TCCL trên thread gửi việc không đồng nghĩa tự lan sang các thread executor đã được tạo từ trước. `CompletableFuture` và các callback bất đồng bộ cũng không mặc nhiên bảo đảm truyền ngữ cảnh loader qua mọi ranh giới.
+Use this pattern **inside the task itself running on the thread that performs the lookup**. Setting the TCCL on a submitting thread does not automatically propagate to executor threads that were already created. `CompletableFuture` and asynchronous callbacks do not automatically guarantee loader context propagation across every boundary either.
 
-Nếu thư viện cho phép truyền classloader như `ServiceLoader.load(service, loader)`, cách truyền tường minh thường dễ hiểu, dễ kiểm thử hơn việc điều chỉnh TCCL của thread. Khi buộc phải dùng TCCL, nên giữ phạm vi rất ngắn và luôn khôi phục ngữ cảnh ban đầu.
+If a library allows passing a classloader such as `ServiceLoader.load(service, loader)`, passing it explicitly is usually easier to understand and test than mutating the thread's TCCL. When forced to use the TCCL, keep its scope very short and always restore the original context.
 
-## 7. Chẩn đoán lỗi khi plugin không được phát hiện
+## 7. Diagnosing Failures When a Plugin Is Not Discovered
 
-| Hiện tượng | Cần kiểm tra |
+| Symptom | What to Check |
 |---|---|
-| `ServiceLoader.load(service)` trả về rỗng | TCCL hiện tại; tên/đường dẫn `META-INF/services`; JAR có được loader thấy không |
-| Overload truyền pluginLoader thấy provider, overload mặc định không thấy | TCCL đang khác pluginLoader; thiết lập tại đúng thời điểm gọi |
-| Có descriptor nhưng báo `ServiceConfigurationError` | Tên class provider, constructor/factory, bytecode, phụ thuộc, khả năng tương thích SPI |
-| Lỗi `ClassCastException` hoặc “not a subtype” | Provider và host có thể dùng hai bản interface cùng tên do loader khác nhau định nghĩa |
-| `NoClassDefFoundError` hoặc `NoSuchMethodError` | Lớp/thư viện phụ thuộc thiếu hoặc phiên bản runtime không tương thích |
-| Task sau thấy sai provider | TCCL trên thread pool không được khôi phục; cache provider không được quản lý |
-| Plugin JAR cũ khó thu hồi | URLClassLoader, thread, ThreadLocal, cache, callback hoặc instance vẫn còn tham chiếu |
+| `ServiceLoader.load(service)` returns empty | Current TCCL; `META-INF/services` name/path; whether the JAR is visible to the loader |
+| Overload passing `pluginLoader` finds provider, default overload does not | TCCL differs from `pluginLoader`; set it at the right call site |
+| Descriptor exists but throws `ServiceConfigurationError` | Provider class name, constructor/factory, bytecode, dependencies, SPI compatibility |
+| `ClassCastException` or "not a subtype" error | Provider and host may be using two copies of the same-named interface defined by different loaders |
+| `NoClassDefFoundError` or `NoSuchMethodError` | Missing dependency classes/libraries or incompatible runtime versions |
+| Subsequent task sees the wrong provider | TCCL on thread pool was not restored; unmanaged provider cache |
+| Old plugin JAR is hard to reclaim | `URLClassLoader`, threads, `ThreadLocal`, caches, callbacks, or instances still hold references |
 
-Một đoạn kiểm tra bên trong một phương thức có xử lý `IOException`:
+A diagnostic snippet inside a method handling `IOException`:
 
 ```java
 ClassLoader tccl = Thread.currentThread().getContextClassLoader();
@@ -311,32 +311,32 @@ if (tccl != null) {
 }
 ```
 
-Đoạn này giả định `Greeter` đã có trong phạm vi; không phải một chương trình độc lập. Nội dung URL và chuỗi `toString()` của classloader khác nhau theo môi trường. `getResources` có thể tìm nhiều descriptor cùng tên từ các JAR khác nhau.
+This snippet assumes `Greeter` is in scope; it is not a standalone program. URL contents and classloader `toString()` representations vary by environment. `getResources` may find multiple descriptors with the same name from different JARs.
 
-Chỉ kiểm tra `getResource(...) != null` **chưa chứng minh** provider hợp lệ: tệp có thể khai báo lớp không tồn tại hoặc không tạo được instance. Ngược lại, không thấy descriptor với **một** loader không chứng minh mọi loader đều không thể thấy nó.
+Merely checking `getResource(...) != null` **does not prove** the provider is valid: the file may declare a non-existent class or one that cannot be instantiated. Conversely, not seeing the descriptor with **one** loader does not prove every loader fails to see it.
 
-## 8. Giới hạn và nguyên tắc thiết kế
+## 8. Limitations and Design Principles
 
-- **Phân tách khám phá với kích hoạt:** thấy provider không đồng nghĩa host đã gọi `start()` hay chấp nhận nó cho nghiệp vụ. Mã khởi tạo tĩnh và constructor provider có thể chạy khi thực sự tạo instance.
-- **Tương thích kiểu:** đảm bảo host và plugin chia sẻ cùng định danh service type; không đóng gói một bản API riêng rồi yêu cầu host ép về bản khác.
-- **Quản lý lifecycle:** `URLClassLoader.close()` không lập tức dỡ mọi class đã nạp. Nếu còn tham chiếu đến loader, provider, `ThreadLocal`, cache hoặc thread thì chúng có thể tiếp tục tồn tại.
-- **Giữ ngữ cảnh đúng thread:** đặt TCCL tại nơi gọi thư viện và khôi phục bằng `finally`, kể cả khi xảy ra lỗi.
-- **Không dùng TCCL như cơ chế cách ly:** TCCL không cấp quyền, kiểm tra tin cậy hay tự xử lý xung đột phiên bản thư viện. Những việc đó cần thiết kế cơ chế quản lý plugin riêng.
-- **Ưu tiên tham số rõ ràng:** khi kiểm soát code gọi `ServiceLoader`, dùng overload nhận loader để tránh phụ thuộc vào trạng thái ngầm của thread.
+- **Separate discovery from activation:** finding a provider does not mean the host has called `start()` or accepted it for business use. Static initializers and the provider's constructor may run when actually instantiating it.
+- **Type compatibility:** ensure host and plugin share the same service type identity; do not package a private copy of the API and expect the host to cast to another copy.
+- **Lifecycle management:** `URLClassLoader.close()` does not immediately unload all loaded classes. If references to the loader, providers, `ThreadLocal`, caches, or threads remain, they can continue to stay alive.
+- **Keep context scoped to the thread:** set the TCCL where calling the library and restore it via `finally`, even if errors occur.
+- **Do not use TCCL as an isolation mechanism:** TCCL does not grant permissions, check trust, or automatically resolve library version conflicts. Those require dedicated plugin management mechanisms.
+- **Prefer explicit parameters:** when you control the code calling `ServiceLoader`, use the overload accepting a loader to avoid relying on implicit thread state.
 
-## 9. Câu hỏi và thực hành
+## 9. Questions and Practice
 
-1. **Vì sao loader cha thường không thấy provider ở loader con?** Vì ủy quyền parent-first giúp con tìm lên cha, không tự tạo khả năng tìm ngược từ cha xuống con. TCCL cho thư viện biết loader nhìn thấy plugin khi nó chọn đọc TCCL.
-2. **Đổi TCCL có đổi `Greeter.class.getClassLoader()` không?** Không; bộ nạp định nghĩa kiểu là thuộc tính của lớp đã được định nghĩa.
-3. **Overload nào của ServiceLoader ít phụ thuộc ngữ cảnh ẩn hơn?** `load(service, loader)` vì loader được truyền trực tiếp.
-4. **Vì sao trong ví dụ `descriptor=true` mà `before=none`?** Vì hai phép kiểm tra dùng hai loader khác nhau: pluginLoader thấy tài nguyên, còn TCCL mặc định chưa thấy plugin JAR.
-5. **Điều gì xảy ra nếu task trong thread pool không khôi phục TCCL?** Task sau có thể sử dụng nhầm pluginLoader cũ và giữ loader đó sống lâu.
-6. **`reload()` có tự thêm JAR mới vào URLClassLoader không?** Không. Nó làm mới cache nội bộ của ServiceLoader, còn classpath/classloader cần được quản lý riêng.
-7. **Có nên xem TCCL là cách giải quyết lỗi `ClassCastException` giữa hai bản service interface?** Không. Phải sửa ranh giới API và định danh lớp.
+1. **Why can't a parent loader usually see providers in a child loader?** Because parent-first delegation lets the child look up to the parent, without automatically creating reverse lookup from parent to child. The TCCL tells a library which loader sees the plugin when the library chooses to read the TCCL.
+2. **Does changing the TCCL change `Greeter.class.getClassLoader()`?** No; the defining loader is an immutable property of an already-defined class.
+3. **Which `ServiceLoader` overload depends less on hidden context?** `load(service, loader)` because the loader is passed directly.
+4. **Why does the example print `descriptor=true` while `before=none`?** Because the two checks use two different loaders: `pluginLoader` sees the resource, while the default TCCL does not yet see the plugin JAR.
+5. **What happens if a task in a thread pool fails to restore the TCCL?** Subsequent tasks may mistakenly use the old `pluginLoader` and keep that loader alive longer.
+6. **Does `reload()` automatically add new JARs to `URLClassLoader`?** No. It refreshes `ServiceLoader`'s internal cache, while the classpath/classloader must be managed separately.
+7. **Should TCCL be considered a fix for `ClassCastException` between two copies of a service interface?** No. You must fix the API boundary and class identity.
 
-**Thực hành:** chạy ví dụ, thử bỏ lệnh thiết lập TCCL, thử gọi overload nhận loader ở các vị trí khác nhau, rồi chuyển bước khám phá vào một task trên `ExecutorService`. In TCCL **trong task** để quan sát rõ ngữ cảnh thực tế của worker thread.
+**Practice:** run the example, try removing the `setContextClassLoader` call, try calling the loader-accepting overload in different places, and then move the discovery step into a task on an `ExecutorService`. Print the TCCL **inside the task** to clearly observe the worker thread's actual context.
 
-## Tài liệu tham khảo
+## References
 
 - Java SE 17 — `Thread.getContextClassLoader`, `Thread.setContextClassLoader`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Thread.html
 - Java SE 17 — `ServiceLoader`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html

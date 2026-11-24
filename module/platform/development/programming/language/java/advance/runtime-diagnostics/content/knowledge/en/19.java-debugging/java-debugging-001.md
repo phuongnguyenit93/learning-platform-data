@@ -1,148 +1,148 @@
-# 19.1. Khi nào cần debugger để kiểm tra trạng thái mà log hoặc profiler chưa giải thích được
+# 19.1. When You Need a Debugger to Inspect State That Logs or Profilers Cannot Explain
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Quyết định **khi nào nên dùng debugger** thay vì tiếp tục thêm log, chạy profiler hoặc lấy thread dump.
-- Phân biệt **bằng chứng về trạng thái và luồng điều khiển** (debugger), **diễn biến sự kiện** (log/trace), **thống kê chi phí** (profiler/JFR) và **ảnh chụp thread** (thread dump).
-- Sử dụng breakpoint, conditional breakpoint, exception breakpoint, call stack, variables, watches và **Step Into / Over / Out** để tìm nguyên nhân một invariant bị phá vỡ.
-- Tái hiện và phân tích một lỗi Java 17+ mà đầu ra cuối cùng cho thấy sai nhưng không chỉ ra **biến trung gian nào** đã được dùng không đúng.
-- Biết giới hạn khi debug hệ nhiều thread, virtual threads và ứng dụng production: **pause có thể thay đổi timing**, gây timeout/deadlock giả, làm gián đoạn dịch vụ hoặc tạo rủi ro bảo mật nếu mở JDWP.
+- Decide **when to use a debugger** instead of adding more logs, running a profiler, or taking a thread dump.
+- Distinguish **evidence about state and control flow** (debugger), **event progression** (logs/traces), **cost statistics** (profiler/JFR), and **thread snapshots** (thread dump).
+- Use breakpoints, conditional breakpoints, exception breakpoints, call stack, variables, watches, and **Step Into / Over / Out** to find the root cause of a broken invariant.
+- Reproduce and analyze a Java 17+ bug where the final output shows an incorrect result without indicating **which intermediate variable** was used incorrectly.
+- Understand the limitations when debugging multithreaded systems, virtual threads, and production applications: **pausing can alter timing**, cause artificial timeouts/deadlocks, disrupt service, or create security risks if JDWP is exposed.
 
-Trọng tâm không phải “cách bấm mọi nút của một IDE”, mà là **chọn debugger đúng lúc và dùng nó để đặt câu hỏi về trạng thái chương trình**. Các tên menu trong IntelliJ IDEA, Eclipse và VS Code Java Debugger có thể khác nhau, nhưng nguyên tắc tương đương.
+The focus is not "how to click every button in a specific IDE," but rather **choosing the debugger at the right time and using it to ask questions about program state**. Menu names in IntelliJ IDEA, Eclipse, and VS Code Java Debugger may differ, but the principles are equivalent.
 
-## 1. Một vấn đề, bốn cách quan sát khác nhau
+## 1. One Problem, Four Different Ways to Observe It
 
-Khi ứng dụng chạy sai, các công cụ chẩn đoán không cùng trả lời một câu hỏi.
+When an application behaves incorrectly, diagnostic tools do not all answer the same question.
 
-| Công cụ | Thường trả lời tốt | Thường không thể chứng minh trực tiếp |
+| Tool | Typically answers well | Typically cannot prove directly |
 |---|---|---|
-| **Log có cấu trúc** | Hệ thống đã ghi sự kiện gì, vào lúc nào, với request/correlation ID nào; đã đi qua nhánh ghi log nào | Giá trị chính xác của một local variable **tại dòng chưa được log**, biến vừa bị ghi đè ở đâu |
-| **Metrics, tracing** | Mức lỗi, latency, throughput; request đi qua những service/span nào | Toàn bộ object graph/branch trong một stack frame Java |
-| **Profiler, JFR, CPU/allocation profiles** | CPU tập trung ở stack nào, allocation/GC/lock/I/O có tăng không; xu hướng theo khoảng thời gian | Vì sao **một field mang giá trị sai** nếu thao tác đó rất nhanh, hiếm và không có event phù hợp |
-| **Thread dump** | Những thread nào đang chạy/chờ, stack và dấu hiệu lock/deadlock tại thời điểm lấy mẫu | Hầu hết local values và diễn biến thay đổi state từng bước |
-| **Debugger** | Tại một điểm dừng, biến local, field, giá trị tham số, object identity, thứ tự gọi, nhánh điều kiện và call stack **cụ thể** | Toàn cảnh hiệu năng khi breakpoint làm thay đổi timing; dữ liệu đã biến mất trước khi dừng |
+| **Structured logs** | What events the system recorded, when, and with which request/correlation ID; which logged branch was taken | The exact value of a local variable **at an unlogged line**, or where a variable was just overwritten |
+| **Metrics, tracing** | Error rates, latency, throughput; which services/spans a request traversed | The full object graph/branches inside a Java stack frame |
+| **Profiler, JFR, CPU/allocation profiles** | Which stacks consume CPU, whether allocation/GC/lock/I/O increased; trends over a time window | Why **a field holds a wrong value** if that operation is very fast, rare, and has no matching event |
+| **Thread dump** | Which threads are running/waiting, stacks, and lock/deadlock indicators at sample time | Most local values and step-by-step state transitions |
+| **Debugger** | At a pause point: local variables, fields, parameter values, object identity, call order, conditional branches, and the **specific** call stack | The overall performance picture when breakpoints alter timing; data that disappeared before pausing |
 
-**Quy tắc chọn:** Khi câu hỏi còn là **“phần nào tốn CPU / chờ I/O / cấp phát nhiều?”**, ưu tiên profiler, JFR và số liệu. Khi câu hỏi chuyển thành **“tại sao request này lại đi vào nhánh này, và object này mang giá trị này ở thời điểm này?”**, debugger thường có giá trị hơn.
+**Selection rule:** When the question is still **"which part consumes CPU / waits on I/O / allocates heavily?"**, prefer a profiler, JFR, and metrics. When the question shifts to **"why did this request take this branch, and why does this object hold this value at this moment?"**, a debugger is usually more valuable.
 
-Debugger làm việc bằng việc **tạm dừng hoặc quan sát có điều kiện** một JVM. Giá trị trong IDE là **trạng thái tại điểm quan sát**; nó không tự cung cấp lịch sử đầy đủ trước đó nếu bạn không đặt breakpoint/watchpoint hay ghi dữ liệu từ trước.
+A debugger works by **pausing or conditionally observing** a JVM. Values shown in the IDE represent **state at the observation point**; it does not automatically provide full prior history unless you placed breakpoints/watchpoints or recorded data beforehand.
 
-### Ví dụ một tín hiệu chưa đủ để kết luận
+### Example of a Signal That Is Not Enough to Conclude
 
-Giả sử log cho thấy:
+Suppose logs show:
 
 ```text
 checkout request=EDGE finished payable=-500
 ```
 
-Log đã xác nhận **đầu ra sai**. Một CPU profiler có thể báo không có hotspot vì phép tính chỉ mất vài micro-giây. Nhưng câu hỏi còn lại là: **Giá trị `payable` âm được tính từ tham số nào? Một field đã được chuẩn hóa hay chưa? Ai đã gọi phương thức?**
+The log confirms **the output is wrong**. A CPU profiler may report no hotspot because the calculation only takes a few microseconds. Yet the remaining questions are: **From which parameter was the negative `payable` value computed? Was a field normalized or not? Who called the method?**
 
-Đó là một tình huống debugger phù hợp: dừng **trước phép gán**, kiểm tra các giá trị **cùng thời điểm**, rồi step để xem lệnh nào phá invariant.
+This is a scenario suited for a debugger: pause **before the assignment**, inspect values **at the exact same moment**, then step to see which statement breaks the invariant.
 
-## 2. Dấu hiệu nên chuyển sang debugger
+## 2. Signs You Should Switch to a Debugger
 
-### 2.1. Invariant bị vi phạm nhưng log không thấy trạng thái trung gian
+### 2.1. An Invariant Is Violated, but Logs Do Not Show Intermediate State
 
-Một **invariant** là điều kiện phải luôn đúng trong phạm vi nghiệp vụ/mô hình, ví dụ:
+An **invariant** is a condition that must always hold within a business/model scope, for example:
 
 - `payableCents >= 0`.
 - `payableCents + appliedDiscountCents == subtotalCents`.
-- Đơn hàng ở `PAID` phải có transaction đã xác nhận.
-- Đối tượng được xử lý theo một tenant/session nhất quán.
+- An order in `PAID` status must have a confirmed transaction.
+- An object is processed under a consistent tenant/session.
 
-Khi chỉ log kết quả cuối, bạn biết **invariant hỏng**, nhưng không biết nó hỏng **ở dòng gán nào**. Đặt breakpoint trước và sau các thay đổi state là cách trực tiếp thấy chuyển trạng thái.
+When only the final result is logged, you know **the invariant is broken**, but not **at which assignment line** it broke. Placing breakpoints before and after state changes is a direct way to observe the state transition.
 
-### 2.2. Một nhánh điều kiện chạy khác với kỳ vọng
+### 2.2. A Conditional Branch Executes Differently Than Expected
 
-Ví dụ `if (user.hasPermission())` đi vào nhánh cho phép trong khi người dùng bị từ chối ở nơi khác. Có thể xảy ra vì:
+For example, `if (user.hasPermission())` enters the allow branch while the user is denied elsewhere. This can happen because:
 
-- Đối tượng `user` khác với đối tượng bạn nghĩ.
-- Role/feature flag/config đã được nạp từ nguồn hoặc thời điểm khác.
-- Biểu thức boolean có short-circuit `&&`/`||` hoặc giá trị `null` được xử lý theo quy ước khác.
-- Điều kiện được kiểm tra **trước** khi state được cập nhật.
+- The `user` object is different from the object you think it is.
+- Roles/feature flags/configs were loaded from another source or at another time.
+- A boolean expression has `&&`/`||` short-circuiting or `null` values handled under a different convention.
+- The condition is checked **before** state is updated.
 
-Debugger cho phép thấy **tham số đầu vào, giá trị các toán hạng, instance thực, caller và line đang chạy**. Log chỉ chứa `allowed=true` không thể chứng minh hết các giả thuyết đó.
+A debugger lets you see **input arguments, operand values, the actual instance, the caller, and the executing line**. A log containing only `allowed=true` cannot prove all of those hypotheses.
 
-### 2.3. Giá trị bị thay đổi ở đâu đó trong chuỗi gọi
+### 2.3. A Value Is Modified Somewhere Along a Call Chain
 
-Một field trong object đang đúng ở đầu request, nhưng sai ở cuối. Có nhiều setter, callback, mapper hoặc consumer liên quan, và grep log không tìm được lần thay đổi.
+An object field is correct at the start of a request, but wrong at the end. Many setters, callbacks, mappers, or consumers are involved, and grepping logs fails to pinpoint the modification.
 
-Đây là lúc dùng **field modification watchpoint** (nếu debugger/JVM hỗ trợ) hoặc breakpoint tại các điểm ghi. Watchpoint giúp dừng khi field được gán, xác định **stack/caller thực sự gây thay đổi**; không nhầm nó với local-variable watch trong UI chỉ hiển thị giá trị. Watchpoint có thể rất đắt trên field được cập nhật thường xuyên.
+This is when to use a **field modification watchpoint** (if supported by the debugger/JVM) or breakpoints at write sites. A watchpoint pauses when the field is assigned, identifying **the actual stack/caller causing the change**; do not confuse it with a local-variable watch in the UI that only displays values. Watchpoints can be very expensive on frequently updated fields.
 
-### 2.4. Exception hoặc lỗi chỉ xuất hiện qua một đường hiếm
+### 2.4. An Exception or Error Only Appears Through a Rare Path
 
-Khi exception bị bắt rồi bọc lại, chỉ log ở tầng cao, call stack cuối cùng có thể thiếu trạng thái nơi lỗi **được ném lần đầu**. **Exception breakpoint** (caught/uncaught tùy trường hợp) dừng gần điểm throw để kiểm tra biến, điều kiện và stack liên quan.
+When an exception is caught, wrapped, and logged only at a high layer, the final call stack may lack the state where the error was **first thrown**. An **exception breakpoint** (caught/uncaught depending on the case) pauses near the throw site to inspect related variables, conditions, and stacks.
 
-Cần đặt bộ lọc theo exception class hoặc ngữ cảnh; dừng ở **mọi exception** có thể gây nhiễu rất nhiều vì một số framework sử dụng exception trong đường xử lý thông thường.
+Filter by exception class or context; pausing on **every exception** can create massive noise because some frameworks use exceptions in normal execution paths.
 
-### 2.5. Lỗi tái hiện được với đúng dữ liệu nhưng profiler không chỉ ra gì
+### 2.5. A Bug Reproduces with Specific Data, but the Profiler Shows Nothing
 
-Các bug logic rất nhanh (làm tròn sai, dùng biến cũ, so nhầm ID, tính nhầm tiền, sai thứ tự update) thường **không tốn CPU**. Không có “hot method” không có nghĩa ứng dụng đúng. Một test có đầu vào ổn định và breakpoint gần invariant có thể tiết kiệm thời gian hơn việc đo thêm nhiều profile.
+Very fast logic bugs (wrong rounding, using a stale variable, comparing the wrong ID, miscalculating money, wrong update order) usually **do not consume CPU**. Having no "hot method" does not mean the application is correct. A test with stable input and a breakpoint near the invariant can save time compared to capturing more profiles.
 
-**Điều kiện ưu tiên:** có thể tái hiện trong môi trường development/test với input đã biết, state đủ gần production và không cần đụng vào dữ liệu nhạy cảm. Nếu bug chỉ xảy ra rất hiếm khi có tải, hãy thu thập bằng chứng trước rồi quyết định debugger có làm lỗi biến mất hay không.
+**Priority condition:** it can be reproduced in a development/test environment with known input, state close enough to production, and without touching sensitive data. If the bug only happens rarely under load, collect evidence first and then decide whether a debugger would make the bug disappear.
 
-## 3. Khi nào chưa nên dùng debugger?
+## 3. When Should You Not Use a Debugger Yet?
 
-Debugger không phải bước đầu tiên cho mọi sự cố.
+A debugger is not the first step for every incident.
 
-| Tình huống | Công cụ nên ưu tiên trước | Lý do |
+| Situation | Tool to prioritize first | Reason |
 |---|---|---|
-| CPU 100%, ứng dụng chậm, chưa biết method nào | JFR/CPU profiler, CPU theo process/thread | Breakpoint phá thời gian chạy và khó tìm điểm đặt nếu chưa có giả thuyết |
-| Memory footprint tăng qua nhiều giờ | Heap histogram/dump, JFR allocation, NMT/OS metrics | Xem một object tại một breakpoint chưa phản ánh retained memory hay native usage |
-| Service treo, hàng nghìn thread đang chờ | Thread dump/JFR Locks/I/O | Dừng thêm JVM có thể làm triệu chứng nặng hơn |
-| Lỗi xuất hiện trên hàng triệu request, mỗi lần khác nhau | Structured logs, correlation IDs, metrics, sampling traces | Debug từng request không mở rộng được và có thể làm thay đổi tải |
-| Race condition chỉ xảy ra dưới contention | Stress/reproduction tests, JFR/thread dumps, đồng bộ hóa có kiểm chứng | Breakpoint có thể làm lệch thứ tự thread, khiến bug biến mất hoặc phát sinh tình huống mới |
-| Production đang phục vụ khách hàng, chưa được phép pause | Bằng chứng không xâm nhập trước | “Suspend all threads” có thể gây timeout, làm kẹt lock và vi phạm SLO |
-| Vấn đề ở native code/JNI | Native debugger, native profiler, JVM crash logs | Debugger Java không nhất thiết thấy trạng thái C/C++ bên dưới |
-| Đã có log với stack+đủ state chứng minh nguyên nhân | Test hồi quy và sửa bug | Debugger có thể không thêm bằng chứng cần thiết |
+| 100% CPU, slow application, unknown method | JFR/CPU profiler, per-process/thread CPU | Breakpoints distort execution time and are hard to place without a hypothesis |
+| Memory footprint growing over many hours | Heap histogram/dump, JFR allocation, NMT/OS metrics | Inspecting one object at one breakpoint does not reflect retained memory or native usage |
+| Service hung, thousands of threads waiting | Thread dump/JFR Locks/I/O | Pausing the JVM further can worsen the symptoms |
+| Errors occurring across millions of requests, different each time | Structured logs, correlation IDs, metrics, sampling traces | Debugging individual requests does not scale and may alter load |
+| Race condition occurring only under contention | Stress/reproduction tests, JFR/thread dumps, verified synchronization | Breakpoints can skew thread ordering, making the bug vanish or creating a new scenario |
+| Production serving customers, pausing not permitted | Non-intrusive evidence first | "Suspend all threads" can cause timeouts, lock stalls, and SLO violations |
+| Issue in native code/JNI | Native debugger, native profiler, JVM crash logs | A Java debugger does not necessarily see underlying C/C++ state |
+| Logs with stack + sufficient state already prove the cause | Regression test and bug fix | A debugger may not add any necessary evidence |
 
-**Mẫu quyết định hiệu quả:** Quan sát bên ngoài → đặt một giả thuyết cụ thể → thử xác nhận bằng log/test/JFR ít xâm nhập → dùng debugger nếu vẫn thiếu **state ở một điểm thực thi** → sửa và xác nhận lại bằng test, không chỉ bằng phiên debug.
+**Effective decision pattern:** Observe externally → form a specific hypothesis → attempt to verify with low-intrusion logs/tests/JFR → use a debugger if **state at a specific execution point** is still missing → fix and re-verify with tests, not just a debug session.
 
-## 4. Debugger quan sát những gì khi JVM bị dừng?
+## 4. What Does a Debugger Observe When the JVM Is Paused?
 
-Một breakpoint tại một dòng có thể cho bạn:
+A breakpoint at a line can show you:
 
-1. **Line và source location:** chính xác vị trí JVM có thể dừng, cùng class/method đã nạp; cần source phù hợp với bytecode đang chạy.
-2. **Local variables:** tham số, biến tạm và giá trị trong frame được chọn, nếu thông tin debug có sẵn và debugger/JVM cung cấp.
-3. **Object fields:** `this`, fields trong object, các object được tham chiếu, giá trị `null`, collection/maps (với nguy cơ phép hiển thị có thể gọi code).
-4. **Call stack:** method nào gọi method hiện tại, giá trị và context của từng frame còn sống.
-5. **Threads:** thread nào đang bị dừng, thread nào còn chạy; thread state và lock có thể giúp kiểm tra tình trạng đồng thời.
-6. **Control flow:** bước tiếp theo sẽ đi theo nhánh nào khi bạn Step Over hoặc Step Into.
+1. **Line and source location:** the exact position where the JVM can pause, along with the loaded class/method; requires source matching the running bytecode.
+2. **Local variables:** parameters, temporary variables, and values in the selected frame, if debug information is available and provided by the debugger/JVM.
+3. **Object fields:** `this`, fields within the object, referenced objects, `null` values, collections/maps (with the risk that rendering may invoke code).
+4. **Call stack:** which method called the current method, along with values and context of each live frame.
+5. **Threads:** which threads are suspended, which are still running; thread state and locks can help inspect concurrency status.
+6. **Control flow:** which branch execution will follow next when you Step Over or Step Into.
 
-### Phân biệt Step Over, Into và Out
+### Distinguishing Step Over, Into, and Out
 
-- **Step Over:** thực thi dòng hiện tại (bao gồm việc gọi method nếu có) rồi dừng ở dòng phù hợp tiếp theo trong frame đang xét. Dùng khi đã biết method con không phải nghi vấn.
-- **Step Into:** đi vào method được gọi, nếu debugger có source và cài đặt stepping cho phép. Dùng để theo dõi nơi điều kiện hoặc dữ liệu bị tính sai.
-- **Step Out:** tiếp tục đến khi thoát method hiện tại và quay lại caller. Dùng để so kết quả method con với trạng thái caller.
-- **Resume/Continue:** chạy tới breakpoint/exception tiếp theo; không có nghĩa là chạy thêm đúng một dòng.
+- **Step Over:** executes the current line (including method calls if any) and pauses at the next appropriate line in the current frame. Use when you already know child methods are not suspect.
+- **Step Into:** enters the called method, if the debugger has source and stepping settings allow it. Use to trace where a condition or data is computed incorrectly.
+- **Step Out:** continues until exiting the current method and returning to the caller. Use to compare the child method's result with the caller's state.
+- **Resume/Continue:** runs until the next breakpoint/exception; it does not mean running just one more line.
 
-**Không dùng Step Into vào mọi method**; code framework, lambda, JDK internals và hàng chục lời gọi phụ khiến bạn mất điểm tựa. Bắt đầu từ invariant và các biến có liên quan, đi sâu khi có bằng chứng.
+**Do not Step Into every method**; framework code, lambdas, JDK internals, and dozens of auxiliary calls will make you lose your bearings. Start from the invariant and relevant variables, and dig deeper when you have evidence.
 
-### Biểu thức Evaluate và side effects
+### Evaluate Expression and Side Effects
 
-Nhiều IDE có **Evaluate Expression** để tính biểu thức trên object/locals. Cẩn thận: đánh giá `object.toString()`, gọi getter lazy, truy vấn DB, đọc iterator hoặc method có side effect có thể **thực thi code thật trong JVM**, thay đổi state hoặc làm deadlock khi các thread đang bị suspend.
+Many IDEs have **Evaluate Expression** to compute expressions on objects/locals. Be careful: evaluating `object.toString()`, calling lazy getters, querying a DB, reading an iterator, or calling methods with side effects can **execute real code inside the JVM**, mutate state, or cause deadlocks when threads are suspended.
 
-Ưu tiên **xem primitive fields/locals trực tiếp**, chỉ evaluate biểu thức thuần khi hiểu tác dụng phụ. Không sửa biến trong phiên debug để “chứng minh đã fix” rồi bỏ qua test hồi quy; đó là một phép thí nghiệm tạm thời, không phải bản vá.
+Prefer **inspecting primitive fields/locals directly**, and only evaluate pure expressions when you understand side effects. Do not modify variables in a debug session to "prove it's fixed" and skip regression tests; that is a temporary experiment, not a patch.
 
-## 5. Các loại breakpoint nên dùng đúng trường hợp
+## 5. Breakpoint Types to Use for the Right Situation
 
-| Loại | Phù hợp | Điều cần cẩn trọng |
+| Type | Suitable for | What to watch out for |
 |---|---|---|
-| **Line breakpoint** | Dừng trước một dòng gán, điều kiện hoặc gọi method cụ thể | Dòng có thể chạy rất thường xuyên; JVM tạm dừng |
-| **Conditional breakpoint** | Chỉ dừng cho một request ID, một giá trị bất thường, một instance | Biểu thức điều kiện được đánh giá nhiều lần; có overhead và không nên có side effect |
-| **Exception breakpoint** | Dừng lúc lỗi được ném, kể cả khi framework bắt rồi log chung chung | Dừng ở exception “bình thường” gây nhiễu; lọc loại/đường xử lý |
-| **Field access/modification watchpoint** | Tìm call site đọc/ghi một field thay đổi ngoài dự kiến | Có thể có overhead lớn; local variable không phải field watchpoint |
-| **Method breakpoint** | Chưa biết dòng nào nhưng muốn thấy lần vào/ra method | Method gọi nhiều có thể cực đắt; đôi khi line breakpoint tốt hơn |
-| **Logpoint/tracepoint không suspend** | Muốn thu một giá trị có điều kiện mà không tạm dừng | Vẫn có overhead; công thức logpoint có thể chạy code và làm lộ dữ liệu |
+| **Line breakpoint** | Pausing before a specific assignment, condition, or method call | The line may run very frequently; pauses the JVM |
+| **Conditional breakpoint** | Pausing only for a specific request ID, abnormal value, or instance | The condition expression is evaluated many times; adds overhead and must have no side effects |
+| **Exception breakpoint** | Pausing when an error is thrown, even if a framework catches and logs generically | Pausing on "normal" exceptions causes noise; filter by class/path |
+| **Field access/modification watchpoint** | Finding the call site reading/writing a field that changes unexpectedly | Can incur heavy overhead; a local variable is not a field watchpoint |
+| **Method breakpoint** | Unknown line, but wanting to observe method entry/exit | Frequently called methods can be extremely expensive; a line breakpoint is sometimes better |
+| **Non-suspending logpoint/tracepoint** | Collecting a value conditionally without pausing | Still has overhead; logpoint expressions can execute code and leak data |
 
-Một **conditional breakpoint** hữu ích khi một method được gọi 100.000 lần nhưng chỉ một case sai: dừng khi `invoice.id.equals("EDGE")` hoặc `requestedDiscountCents > subtotalCents` thay vì dừng mọi lần. Điều kiện phải **không thay đổi state** và rẻ để đánh giá.
+A **conditional breakpoint** is useful when a method is called 100,000 times but only one case fails: pause when `invoice.id.equals("EDGE")` or `requestedDiscountCents > subtotalCents` instead of pausing every time. The condition must **not mutate state** and must be cheap to evaluate.
 
-Debugger có thể chọn **Suspend: All threads** hoặc **Suspend: Thread** tùy IDE/JVM. “All” cho một snapshot đồng bộ hơn nhưng dừng toàn process; “Thread” giảm tác động tới thread khác nhưng những thread kia **vẫn tiếp tục sửa shared state** trong lúc bạn kiểm tra. Lựa chọn này có thể quyết định liệu kết quả quan sát còn có ý nghĩa hay không.
+A debugger can choose **Suspend: All threads** or **Suspend: Thread** depending on the IDE/JVM. "All" gives a more synchronized snapshot but stops the whole process; "Thread" reduces impact on other threads, but those other threads **continue mutating shared state** while you inspect. This choice can determine whether the observed result remains meaningful.
 
-## 6. Thực hành Java 17+: log cho thấy sai, debugger tìm dòng làm sai
+## 6. Java 17+ Hands-On: Logs Show Wrong Output, Debugger Finds the Faulty Line
 
-Tình huống: hóa đơn có `subtotalCents`, coupon yêu cầu giảm một số tiền, hệ thống phải **giới hạn discount không vượt subtotal**. Invariant là:
+Scenario: an invoice has `subtotalCents`, a coupon requests a discount amount, and the system must **cap the discount so it does not exceed subtotal**. The invariants are:
 
 ```text
 0 <= appliedDiscountCents <= subtotalCents
@@ -150,11 +150,11 @@ payableCents >= 0
 payableCents + appliedDiscountCents == subtotalCents
 ```
 
-Chương trình có một lỗi rất nhỏ: field `appliedDiscountCents` được giới hạn đúng, nhưng phép tính `payableCents` lại dùng **giá trị requested trước khi giới hạn**. Profiler có thể hoàn toàn không thấy điều gì lạ vì phép tính gần như không tốn CPU.
+The program has a tiny bug: the `appliedDiscountCents` field is capped properly, but the `payableCents` calculation uses **the requested value before capping**. A profiler may see nothing unusual because the calculation takes almost zero CPU.
 
-### 6.1. Mã nguồn hoàn chỉnh
+### 6.1. Complete Source Code
 
-Tạo file **`DebuggerStateDemo.java`**:
+Create the file **`DebuggerStateDemo.java`**:
 
 ```java
 public class DebuggerStateDemo {
@@ -199,92 +199,92 @@ public class DebuggerStateDemo {
 }
 ```
 
-### 6.2. Biên dịch và chạy bình thường
+### 6.2. Compile and Run Normally
 
-Dùng JDK 17 trở lên; tùy chọn `-g` đưa thông tin biến local/source vào `.class` để debugger có khả năng hiển thị tốt hơn:
+Use JDK 17 or later; the `-g` option embeds local-variable/source info into `.class` files so the debugger can display them better:
 
 ```bash
 javac --release 17 -g DebuggerStateDemo.java
 java DebuggerStateDemo
 ```
 
-**Stdout chính xác** của bản còn lỗi:
+**Exact stdout** of the buggy version:
 
 ```text
 NORMAL subtotal=1000 discount=250 payable=750 valid=true
 EDGE subtotal=1000 discount=1000 payable=-500 valid=false
 ```
 
-Bản ghi kết quả đã cho biết `EDGE` sai, nhưng chưa chỉ ra **tại sao discount được lưu là 1.000 mà payable lại trừ 1.500**. Đây chính là khoảng trống mà debugger sẽ lấp bằng giá trị local và field tại phép gán.
+The output shows `EDGE` is wrong, yet does not reveal **why discount is stored as 1,000 while payable subtracted 1,500**. This is the gap the debugger fills with local and field values at the assignment.
 
-### 6.3. Đặt breakpoint đúng điểm
+### 6.3. Set the Breakpoint at the Right Spot
 
-Mở `DebuggerStateDemo.java` trong IDE có Java Debugger và chạy bằng **Debug**, không phải Run. Trong method `Invoice.applyCoupon`:
+Open `DebuggerStateDemo.java` in an IDE with a Java Debugger and run via **Debug**, not Run. Inside `Invoice.applyCoupon`:
 
-1. Đặt **line breakpoint** tại dòng `payableCents = subtotalCents - requestedDiscountCents;`.
-2. Thêm **điều kiện** `requestedDiscountCents > subtotalCents` để chỉ dừng case bất thường; IDE cũng có thể lọc theo `id.equals("EDGE")`.
-3. Khi dừng, chọn stack frame của `applyCoupon`, mở **Variables** hoặc **Evaluate** chỉ với các biểu thức đọc giá trị.
-4. Quan sát trước khi thực thi dòng lỗi:
+1. Set a **line breakpoint** on `payableCents = subtotalCents - requestedDiscountCents;`.
+2. Add a **condition** `requestedDiscountCents > subtotalCents` to pause only on the abnormal case; the IDE can also filter by `id.equals("EDGE")`.
+3. When paused, select the `applyCoupon` stack frame, and open **Variables** or **Evaluate** using only read-only expressions.
+4. Observe before executing the buggy line:
    - `id = "EDGE"`.
    - `subtotalCents = 1000`.
    - `requestedDiscountCents = 1500`.
    - `capped = 1000`.
    - `appliedDiscountCents = 1000`.
-   - `payableCents = 1000` **trước phép gán** (giá trị từ constructor).
-5. Chọn **Step Over** một dòng: `payableCents` trở thành **-500**.
-6. Xem **Call Stack**: `main() → checkout(...) → Invoice.applyCoupon(...)`. Caller đã chuyển `1500`; lỗi không ở việc mất dữ liệu trong logger mà ở việc method dùng **sai biến**.
+   - `payableCents = 1000` **before the assignment** (value from the constructor).
+5. Choose **Step Over** one line: `payableCents` becomes **-500**.
+6. Check the **Call Stack**: `main() → checkout(...) → Invoice.applyCoupon(...)`. The caller passed `1500`; the bug is not data loss in the logger, but that the method used **the wrong variable**.
 
-**Ghi nhớ:** line breakpoint thường dừng **trước** khi dòng hiện tại được thực thi. Nếu bạn thấy một field chưa thay đổi, hãy nhìn line highlight và step đúng một lần; đừng quy kết câu lệnh đã chạy khi nó còn đang chờ.
+**Remember:** a line breakpoint normally pauses **before** the current line executes. If you see a field has not changed yet, check the highlighted line and step once; do not assume a statement already ran while it is still pending.
 
-### 6.4. Sửa lỗi và kiểm chứng invariant
+### 6.4. Fix the Bug and Verify the Invariant
 
-Thay **duy nhất** dòng đang dùng biến sai:
+Change **only** the line using the wrong variable:
 
 ```java
 payableCents = subtotalCents - capped;
 ```
 
-Đây là **một dòng sửa trong `Invoice.applyCoupon`**, không phải chương trình standalone. Sau sửa, cùng hai input sẽ cho:
+This is a **one-line fix in `Invoice.applyCoupon`**, not a standalone program. After fixing, the same two inputs produce:
 
 ```text
 NORMAL subtotal=1000 discount=250 payable=750 valid=true
 EDGE subtotal=1000 discount=1000 payable=0 valid=true
 ```
 
-Bài học quan trọng hơn việc sửa một phép trừ: debugger chứng minh **chính xác trạng thái trước/sau phép gán**, tại đúng input, đúng instance và đúng call path. Tiếp theo hãy thêm **unit test** cho coupon nhỏ hơn, bằng, lớn hơn subtotal và coupon âm (nếu nghiệp vụ cho phép). Khi yêu cầu xử lý tiền trong ứng dụng thực, nên quy định đơn vị nguyên cents/decimal hợp lệ, overflow, tiền tệ và các quy tắc hoàn tiền riêng thay vì suy rộng ví dụ đơn giản.
+The lesson more important than fixing a subtraction: the debugger proves **exact state before/after an assignment**, on the exact input, exact instance, and exact call path. Next, add **unit tests** for coupons smaller than, equal to, and greater than subtotal, as well as negative coupons (if business rules permit). When handling money in real applications, specify integer cents/valid decimal units, overflow, currency, and dedicated refund rules rather than over-generalizing a simple example.
 
-## 7. Debug bằng IDE và jdb/JDWP: hai cách quan sát cùng JVM
+## 7. Debugging with an IDE and jdb/JDWP: Two Ways to Observe the Same JVM
 
-### 7.1. Dùng IDE khi có mã nguồn và input tái hiện
+### 7.1. Using an IDE When You Have Source Code and a Reproducible Input
 
-Workflow thực tế:
+Practical workflow:
 
-1. Mở đúng project/commit và bảo đảm bytecode đang chạy tương ứng source trong IDE.
-2. Chạy test hoặc ứng dụng ở **Debug mode** với input tái hiện; chọn breakpoint tại điểm invariant có thể hỏng.
-3. Chọn **conditional breakpoint** để bỏ qua các request bình thường.
-4. Khi dừng, quan sát **Parameters → Locals → Fields → Call Stack** trước, rồi mới Step Over/Into.
-5. Ghi lại trạng thái cụ thể: “trước gán, capped=1000 nhưng phép tính dùng requested=1500”.
-6. Sửa code, chạy regression test không cần debugger và xác nhận log/metrics trở lại bình thường.
+1. Open the right project/commit and ensure the running bytecode matches the source in the IDE.
+2. Run the test or application in **Debug mode** with the reproducible input; place breakpoints where an invariant could break.
+3. Choose **conditional breakpoints** to skip normal requests.
+4. When paused, inspect **Parameters → Locals → Fields → Call Stack** first, before doing Step Over/Into.
+5. Record the concrete state: "before assignment, capped=1000 but calculation used requested=1500."
+6. Fix the code, run regression tests without the debugger, and confirm logs/metrics return to normal.
 
-Nếu source lệch bản build, breakpoint có thể không hit, nhảy sang dòng khác hoặc locals không hiện đủ. Kiểm tra jar/classpath, source map/symbols, compiler options và các optimization; `javac -g` hữu ích cho ví dụ Java trong bài.
+If source mismatches the build, breakpoints may not hit, jump to other lines, or locals may not display fully. Check jars/classpath, source maps/symbols, compiler options, and optimizations; `javac -g` is helpful for the Java examples in this lesson.
 
-### 7.2. JDWP và công cụ dòng lệnh jdb
+### 7.2. JDWP and the Command-Line Tool jdb
 
-Java Platform Debugger Architecture (**JPDA**) gồm những thành phần cho phép debugger điều khiển/quan sát JVM; giao thức **JDWP** nối debugger với debuggee. JDK có `jdb`, một debugger CLI. Với ví dụ đã biên dịch, trong terminal **đầu tiên** chạy local JVM ở chế độ chờ debugger:
+The Java Platform Debugger Architecture (**JPDA**) comprises components that allow a debugger to control/observe a JVM; the **JDWP** protocol connects the debugger with the debuggee. The JDK includes `jdb`, a CLI debugger. With the compiled example, in the **first** terminal run the local JVM waiting for a debugger:
 
 ```bash
 java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=127.0.0.1:5005 DebuggerStateDemo
 ```
 
-Ở terminal **thứ hai** trên **cùng máy**:
+In a **second** terminal on the **same machine**:
 
 ```bash
 jdb -attach 127.0.0.1:5005
 ```
 
-`suspend=y` nghĩa là JVM tạm dừng lúc khởi động cho tới khi debugger kết nối; hữu ích cho bug startup nhưng không phù hợp nếu bạn muốn process phục vụ request ngay. `suspend=n` cho phép ứng dụng chạy không đợi debugger, tuy nhiên bạn có thể bỏ lỡ một bug xuất hiện quá sớm.
+`suspend=y` means the JVM pauses at startup until a debugger connects; useful for startup bugs, but unsuitable if you want the process to serve requests immediately. `suspend=n` lets the application run without waiting for a debugger, though you may miss a bug that occurs too early.
 
-Ví dụ các thao tác JDB trong **phiên tương tác** sau khi đã kết nối và dừng tại breakpoint:
+Example JDB operations in an **interactive session** after attaching and pausing at a breakpoint:
 
 ```text
 help
@@ -296,148 +296,148 @@ next
 cont
 ```
 
-Đây là **các lệnh tương tác minh họa**, không phải stdout chương trình; `where`/`locals` cần có **thread đang dừng và frame được chọn**. Để tạo breakpoint theo method, JDB có lệnh `stop in FullyQualifiedClass.method`; với class lồng nhau, tên bytecode chứa dấu `$` (ví dụ `DebuggerStateDemo$Invoice.applyCoupon`). Có thể dùng `stop at Class:line` nếu biết line number của file hiện tại. Với điều kiện complex/correlation ID, debugger IDE thường tiện hơn JDB.
+These are **illustrative interactive commands**, not program stdout; `where`/`locals` require **a suspended thread and selected frame**. To create a method breakpoint, JDB has `stop in FullyQualifiedClass.method`; for nested classes, the bytecode name contains `$` (for example `DebuggerStateDemo$Invoice.applyCoupon`). You can use `stop at Class:line` if you know the line number in the current file. For complex conditions/correlation IDs, an IDE debugger is usually more convenient than JDB.
 
-**Tuyệt đối không mở JDWP ra Internet hoặc mạng công cộng.** Debugger có khả năng kiểm soát thực thi/chỉnh trạng thái của JVM; JDWP không nên được xem là API ứng dụng có xác thực và mã hóa an toàn. Ví dụ chỉ bind vào **127.0.0.1** cho thực hành local. Khi phải debug từ xa, dùng môi trường riêng được phân quyền, tunneling an toàn/kiểm soát truy cập và chỉ cho phép người đã được phê duyệt; đóng cổng ngay khi xong. Không sao chép tùy chọn `address=*:5005` vào production.
+**Never expose JDWP to the Internet or public networks.** A debugger can control execution and modify JVM state; JDWP must not be treated as an application API with secure authentication and encryption. The example binds only to **127.0.0.1** for local practice. When remote debugging is necessary, use a dedicated permission-controlled environment, secure tunneling/access control, and allow only approved personnel; close the port immediately when done. Do not copy `address=*:5005` into production.
 
-## 8. Những giới hạn lớn của debugger trong hệ đa luồng
+## 8. Major Limitations of Debuggers in Multithreaded Systems
 
-### 8.1. “Pause” thay đổi tiến trình đang quan sát
+### 8.1. "Pausing" Alters the Process Being Observed
 
-Khi dừng một thread:
+When pausing a thread:
 
-- Những thread khác có thể tiếp tục cập nhật shared field, khiến trạng thái thay đổi trong lúc bạn xem.
-- Nếu thread bị dừng đang giữ `synchronized` monitor/lock, thread khác có thể chờ nó, tạo ra **hang/timeout nhân tạo**.
-- Khi chọn **Suspend All**, cả JVM đứng lại; client/network bên ngoài không dừng theo, nên timeout/retry có thể bùng lên.
-- Thời gian thread bị dừng không được tính như một lần chạy bình thường; benchmark latency/throughput trong phiên breakpoint thường **không đáng tin**.
+- Other threads can keep updating shared fields, causing state to change while you inspect.
+- If the paused thread holds a `synchronized` monitor/lock, other threads may wait on it, creating **artificial hangs/timeouts**.
+- When choosing **Suspend All**, the whole JVM stops; external clients/networks do not pause with it, so timeouts/retries can spike.
+- Time spent paused is not counted like a normal run; latency/throughput benchmarks during a breakpoint session are usually **unreliable**.
 
-Một lỗi race có thể **biến mất** vì breakpoint làm thay đổi interleaving, hoặc xuất hiện một bug mới vì môi trường bị giữ tại điểm không tự nhiên (hiện tượng *Heisenbug*).
+A race bug can **disappear** because a breakpoint alters interleaving, or a new bug can appear because the environment is held at an unnatural point (the *Heisenbug* phenomenon).
 
-### 8.2. Dùng công cụ ít xâm nhập cho concurrency trước
+### 8.2. Use Less Intrusive Tools for Concurrency First
 
-Với lỗi tranh chấp hoặc thứ tự thread, nên bắt đầu bằng:
+For contention or thread-ordering bugs, start with:
 
-- Thread dumps, JFR thread/lock events và timeline.
-- Counters/structured logs có correlation và timestamp phù hợp.
-- Stress test tái hiện với đúng kích thước pool, dữ liệu, thời gian và contention.
-- Test cho invariant/linearizability hoặc synchronization/visibility khi cần.
+- Thread dumps, JFR thread/lock events, and timelines.
+- Counters/structured logs with appropriate correlation and timestamps.
+- Stress tests reproducing the right pool size, data, timing, and contention.
+- Tests for invariants/linearizability or synchronization/visibility when needed.
 
-Sau khi thu hẹp phạm vi, có thể debug một thread/case xác định. Đừng suy đoán **“đã thấy giá trị đúng khi tạm dừng”** thì không còn data race; debugger có thể vô tình cung cấp thêm điểm đồng bộ hoặc thay đổi lịch chạy.
+After narrowing the scope, you can debug a specific thread/case. Do not infer **"I saw the right value while paused"** means there is no data race; the debugger may accidentally provide an extra synchronization point or alter scheduling.
 
-### 8.3. Virtual threads và async callback
+### 8.3. Virtual Threads and Async Callbacks
 
-Trong ứng dụng Java dùng virtual threads hoặc chuỗi `CompletableFuture`, một request không nhất thiết tương ứng một OS thread cố định. Debugger/JDI hiện đại có hỗ trợ virtual threads nhưng cách liệt kê/đặt breakpoint tùy bản JDK và debugger; theo tài liệu JDB Java 21, debugger có thể **không liệt kê toàn bộ virtual threads mặc định** để tránh quá tải. Đừng dùng danh sách thread thiếu một virtual thread để kết luận task không tồn tại.
+In Java applications using virtual threads or `CompletableFuture` chains, one request does not necessarily correspond to a fixed OS thread. Modern debuggers/JDI support virtual threads, though how threads are listed/breakpointed depends on JDK and debugger versions; per Java 21 JDB documentation, the debugger may **not list all virtual threads by default** to avoid overload. Do not treat a thread list missing a virtual thread as proof that the task does not exist.
 
-Với async flow, call stack hiện tại có thể **không chứa toàn bộ lịch sử** trước lúc callback được lên lịch. Dùng correlation ID, async stack support của IDE (nếu có), structured trace và event log để bổ sung bối cảnh.
+For async flows, the current call stack may **not contain the full history** before the callback was scheduled. Use correlation IDs, IDE async stack support (if available), structured traces, and event logs to supplement context.
 
-## 9. Quy trình chẩn đoán “log/profiler chưa giải thích được”
+## 9. Diagnostic Workflow When "Logs/Profilers Have Not Explained It"
 
-Để không sa vào việc step ngẫu nhiên hàng giờ, dùng quy trình có thể lặp:
+To avoid wandering into hours of random stepping, use a repeatable workflow:
 
-### Bước 1 — Mô tả sự kiện sai dưới dạng kiểm chứng được
+### Step 1 — Describe the Failure in a Verifiable Form
 
-Thay vì “checkout thỉnh thoảng bị lỗi”, viết: “với subtotal=1000, coupon=1500, `payable` phải bằng 0 nhưng thực tế bằng -500”. Ghi input, expected, actual, phiên bản code và môi trường.
+Instead of "checkout fails occasionally," write: "with subtotal=1000, coupon=1500, `payable` must be 0, but actual is -500." Record input, expected, actual, code version, and environment.
 
-### Bước 2 — Dùng dữ liệu sẵn có để thu hẹp nơi đặt breakpoint
+### Step 2 — Use Existing Data to Narrow Where to Set Breakpoints
 
-Đọc log, trace và exception stack; dùng profiler/JFR nếu triệu chứng là **cost**. Đừng thêm 20 breakpoint ở nơi chưa có giả thuyết. Tìm **invariant đầu tiên** bị sai: state được tạo, chuyển đổi hay ghi ra ở đâu?
+Read logs, traces, and exception stacks; use a profiler/JFR if the symptom is **cost**. Do not add 20 breakpoints where you have no hypothesis. Find **the first broken invariant**: where is state created, transformed, or written?
 
-### Bước 3 — Dựng test tái hiện không phá dữ liệu thật
+### Step 3 — Build a Reproducible Test Without Harming Real Data
 
-Tạo unit/integration test hoặc local fixture an toàn. Thay các service ngoài bằng stub hợp lý nếu bug không phụ thuộc network; giữ nguyên dữ liệu biên, feature flags và thứ tự tác vụ cần thiết. Tránh dùng token/PII thật trong màn hình debug hoặc screenshot.
+Create a unit/integration test or safe local fixture. Replace external services with reasonable stubs if the bug does not depend on networking; keep edge data, feature flags, and necessary task ordering intact. Avoid real tokens/PII on debug screens or screenshots.
 
-### Bước 4 — Chọn breakpoint có lọc
+### Step 4 — Choose Filtered Breakpoints
 
-Ví dụ dừng tại method áp coupon chỉ khi `requestedDiscountCents > subtotalCents`; với request nhiều người, dùng request ID (nếu được truyền trong phạm vi đó). Tránh dừng cả triệu lần qua một hot loop.
+For example, pause in the coupon-applying method only when `requestedDiscountCents > subtotalCents`; for multi-user requests, use a request ID (if passed within that scope). Avoid pausing a million times through a hot loop.
 
-### Bước 5 — Chụp trạng thái có cấu trúc
+### Step 5 — Capture State in a Structured Way
 
-Tại điểm dừng, ghi:
+At the pause point, record:
 
-- Đang ở **method/line nào**, commit/build nào, frame nào?
-- Input/parameters thực tế là gì? `this` có đúng instance/tenant không?
-- Những field/local nào là **nguồn sự thật**, biến nào là giá trị đã transform?
-- Nhánh tiếp theo dựa trên điều kiện gì; kết quả boolean có đúng không?
-- Ai gọi phương thức này? Có thể cùng method được gọi thêm một lần từ caller khác không?
+- Which **method/line**, commit/build, and frame are active?
+- What are the actual inputs/parameters? Is `this` the right instance/tenant?
+- Which fields/locals are the **source of truth**, and which variables are transformed values?
+- Which condition drives the next branch; is the boolean result right?
+- Who called this method? Could the same method be called again from another caller?
 
-### Bước 6 — Step đúng một thay đổi rồi so invariant
+### Step 6 — Step Across One Change and Compare the Invariant
 
-So **trước** và **sau** một phép gán, một method call hoặc một branch. Nếu invariant đúng trước dòng và sai sau dòng, bạn đã có một bằng chứng rất mạnh. Nếu nó đã sai **trước khi vào method**, Step Out/call stack chưa đủ: cần đặt breakpoint **sớm hơn ở caller hoặc điểm ghi**.
+Compare **before** and **after** an assignment, method call, or branch. If the invariant holds before the line and breaks after it, you have strong evidence. If it was already broken **before entering the method**, Step Out/call stack is not enough: place breakpoints **earlier in the caller or at write sites**.
 
-### Bước 7 — Xác nhận sửa chữa ngoài debugger
+### Step 7 — Verify the Fix Outside the Debugger
 
-Sửa code và chạy test không tạm dừng; tái chạy input biên, nhiều lần dưới tải phù hợp. Nếu có ảnh hưởng hiệu năng, đo bằng profiler/JFR **không bật breakpoint**. Ghi kết luận dựa trên invariant và tests, không dựa trên việc dùng Evaluate gán giá trị đúng tạm thời.
+Fix the code and run tests without pausing; rerun edge inputs multiple times under appropriate load. If performance is affected, measure with a profiler/JFR **without breakpoints enabled**. Base conclusions on invariants and tests, not on temporarily assigning the right value with Evaluate.
 
-## 10. Các tình huống chọn debugger trong Java thực tế
+## 10. Real-World Java Scenarios for Choosing a Debugger
 
-| Tình huống | Log/profiler đang cho thấy gì? | Dùng debugger để biết điều gì? | Phép xác minh bổ sung |
+| Situation | What logs/profiler are showing | What to use the debugger to learn | Additional verification |
 |---|---|---|---|
-| **Sai giá trị sau một phép tính rất nhanh** | Log ghi kết quả, profiler không có hotspot | Biến được chuẩn hóa ở đâu, phép tính dùng biến nào | Unit test cases biên |
-| **Vào nhánh “không thể xảy ra”** | Log chỉ ghi tên nhánh | Các toán hạng boolean và config/identity thực tế | Test các tổ hợp điều kiện |
-| **Một field bị ghi đè** | Log trước đúng, log sau sai | Watchpoint tìm đúng call site và thread sửa field | Test side effects, ownership và bất biến |
-| **Một exception bị wrapper nuốt/bọc** | Stack cuối chỉ trỏ controller/framework | Exception breakpoint tại throw đầu tiên, locals và frame | Test failure path |
-| **Cache stale trong một request** | Metrics cache hit bình thường nhưng data sai | Key, entry version, tenant context, state trong cache và caller | Test invalidation/freshness |
-| **Lỗi chỉ xảy ra khi nhiều thread** | JFR lock/time, logs khó dựng thứ tự | State từng thread quanh điểm nghi vấn, *nếu pause không che bug* | Stress test/JFR/thread dump là bằng chứng chính |
-| **Hot method dùng CPU lớn** | CPU profiler đã tìm đúng call stack | Debugger giúp xem input cụ thể gây nhánh thuật toán đắt | JMH/load test xác minh hiệu năng, không dùng timing khi breakpoint |
-| **Lỗi trên production nhưng chưa thể tái hiện** | Traces/logs có correlation, không có full state | Chưa nên attach; cần thêm bằng chứng an toàn/fixture | Instrumentation có điều kiện, sanitized reproducible test |
+| **Wrong value after a very fast calculation** | Logs record result, profiler shows no hotspot | Where a variable was normalized, which variable the calculation used | Boundary-case unit tests |
+| **Entered an "impossible" branch** | Logs only record branch name | Boolean operands and actual config/identity | Tests for condition combinations |
+| **A field gets overwritten** | Earlier log is right, later log is wrong | Watchpoint finds exact call site and thread modifying field | Test side effects, ownership, and invariants |
+| **An exception is swallowed/wrapped** | Final stack only points to controller/framework | Exception breakpoint at first throw, locals and frame | Failure-path tests |
+| **Stale cache within a request** | Cache hit metrics look normal, but data is wrong | Key, entry version, tenant context, state in cache and caller | Invalidation/freshness tests |
+| **Bug only happens with multiple threads** | JFR lock/time, logs hard to reconstruct order | Per-thread state around suspect point, *if pausing does not mask bug* | Stress test/JFR/thread dump as primary evidence |
+| **Hot method using high CPU** | CPU profiler already found the call stack | Debugger helps inspect concrete input triggering expensive algorithm branch | JMH/load test verifies performance, never breakpoint timing |
+| **Bug in production not yet reproducible** | Traces/logs have correlation, lack full state | Do not attach yet; gather safe evidence/fixture first | Conditional instrumentation, sanitized reproducible test |
 
-### Ba ví dụ “thêm log không phải lúc nào cũng tốt hơn”
+### Three Examples Where "Adding More Logs Is Not Always Better"
 
-**Case A — Trạng thái đến từ một object khác.** Log `userId=42`, nhưng method gọi với một đối tượng session cũ cũng có `userId=42`. Debugger kiểm tra `this`, field version, instance identity và frame cho thấy input đang giữ **state stale**. Kết luận dựa trên identity/state, không dựa riêng vào cùng ID string.
+**Case A — State comes from a different object.** Logs say `userId=42`, yet the method is called with an old session object that also has `userId=42`. The debugger inspects `this`, version fields, instance identity, and frames, showing the input holds **stale state**. Conclusions rely on identity/state, not just the same ID string.
 
-**Case B — Feature flag đổi trước lúc kiểm tra.** Log chỉ ghi “flag enabled”. Conditional breakpoint dừng tại nhánh và phát hiện cấu hình effective tại thời điểm request khác với cấu hình đã log ở startup. Cần so timestamp, tenant/environment/config revision; debugger cho trạng thái hiện tại, logs giúp giải thích lịch sử.
+**Case B — Feature flag changed before the check.** Logs only record "flag enabled." A conditional breakpoint pauses at the branch and discovers the effective configuration at request time differs from the configuration logged at startup. Timestamps and tenant/environment/config revisions must be compared; the debugger gives current state, while logs help explain history.
 
-**Case C — Field được cập nhật hai lần.** Mã tính amount đúng, nhưng một callback sau đó ghi đè. Watchpoint/breakpoint ở setter chỉ ra lần ghi thứ hai cùng call stack; log cuối cùng không tự nói được lần ghi nào gây lỗi. Sửa bằng quy tắc ownership/state transition hoặc loại bỏ side effect, rồi thêm regression test.
+**Case C — A field is updated twice.** Code computes the right amount, yet a later callback overwrites it. A watchpoint/breakpoint on the setter reveals the second write along with its call stack; the final log alone cannot tell which write caused the bug. Fix with ownership/state-transition rules or remove the side effect, then add a regression test.
 
-## 11. Sai lầm phổ biến và giới hạn an toàn
+## 11. Common Mistakes and Safety Limits
 
-1. **“Profiler không thấy hotspot nghĩa là không có bug.”** Sai: bug logic có thể thực thi rất nhanh.
-2. **“Log đủ mọi dòng sẽ giải quyết.”** Không nhất thiết: logging dày làm tăng I/O/CPU, lộ dữ liệu nhạy cảm và có thể thay đổi timing. Log có mục tiêu và correlation thường tốt hơn.
-3. **“Breakpoint cho biết lịch sử đầy đủ.”** Sai: một breakpoint chỉ cho snapshot; muốn biết ai đã sửa field cần dừng sớm/watchpoint hoặc ghi bằng chứng theo thời gian.
-4. **“Dừng thread không làm thay đổi lỗi concurrency.”** Sai: pause thay đổi lịch chạy, timeout và lock ownership.
-5. **“`RUNNABLE` trong thread dump nghĩa là chắc chắn ăn CPU.”** Sai: cần đối chiếu OS/JFR CPU sampling; trạng thái Java không phản ánh trực tiếp CPU tiêu thụ.
-6. **“Evaluate Expression luôn read-only.”** Sai: getter, `toString()` hoặc method có thể làm mutation, I/O hoặc deadlock.
-7. **“Đổi biến trong debugger là đã fix bug.”** Sai: sửa tạm thời trong runtime không thay code, không thay test và có thể làm dữ liệu giả.
-8. **“Conditional breakpoint miễn phí vì ít hit.”** Sai: điều kiện vẫn có thể phải được đánh giá ở nhiều lần đi qua, ảnh hưởng hot path.
-9. **“Debug production qua JDWP mở port cho tiện.”** Rất nguy hiểm: debugger có quyền thao tác JVM; không phơi cổng ra mạng không tin cậy.
-10. **“Source đang mở chắc chắn là source đang chạy.”** Sai: container/jar, class loader, module, shaded artifact hoặc deployment version khác có thể khiến breakpoint/locals lệch.
-11. **“Một request chậm = thread tiêu CPU.”** Sai: wall time có thể chờ I/O/lock/scheduler; dùng profiler/JFR để phân biệt.
-12. **“Không thấy thread trong debugger nghĩa là chưa có task.”** Sai trong môi trường async/virtual thread; công cụ và policy liệt kê thread khác nhau.
+1. **"Profiler shows no hotspot means there is no bug."** False: logic bugs can execute very quickly.
+2. **"Logging every line will solve it."** Not necessarily: heavy logging increases I/O/CPU, leaks sensitive data, and can alter timing. Targeted logs with correlation are usually better.
+3. **"A breakpoint gives full history."** False: a breakpoint gives a snapshot; knowing who modified a field requires stopping earlier/watchpoints or recording evidence over time.
+4. **"Pausing a thread does not change concurrency bugs."** False: pausing alters scheduling, timeouts, and lock ownership.
+5. **"`RUNNABLE` in a thread dump definitely means consuming CPU."** False: cross-check with OS/JFR CPU sampling; Java thread state does not directly reflect CPU consumption.
+6. **"Evaluate Expression is always read-only."** False: getters, `toString()`, or methods can mutate state, do I/O, or deadlock.
+7. **"Changing a variable in the debugger fixed the bug."** False: temporary runtime edits do not change code, do not replace tests, and can create fake data.
+8. **"Conditional breakpoints are free because they rarely hit."** False: the condition may still be evaluated on every pass, impacting hot paths.
+9. **"Expose JDWP port in production for convenience."** Very dangerous: a debugger has privileges to manipulate the JVM; never expose the port to untrusted networks.
+10. **"The open source file is definitely the running code."** False: different containers/jars, class loaders, modules, shaded artifacts, or deployment versions can misalign breakpoints/locals.
+11. **"A slow request = thread consuming CPU."** False: wall time may be spent waiting on I/O/locks/schedulers; use a profiler/JFR to distinguish.
+12. **"Not seeing a thread in the debugger means the task does not exist."** False in async/virtual-thread environments; tools and thread-listing policies vary.
 
-## 12. Checklist trước và sau khi debug
+## 12. Pre- and Post-Debugging Checklist
 
-**Trước khi attach:**
+**Before attaching:**
 
-- [ ] Có **expected vs actual** và case tái hiện/sanitized input.
-- [ ] Biết câu hỏi cần trả lời là **trạng thái/luồng điều khiển**, không chỉ tổng chi phí CPU/memory.
-- [ ] Có đúng source/class/JDK và debug symbols cần thiết.
-- [ ] Biết breakpoint sẽ dừng ở method nào, condition gì, ảnh hưởng thread nào.
-- [ ] Môi trường được phép tạm dừng; không mở JDWP công khai; có kế hoạch đóng debug listener.
-- [ ] Nếu nghi race/latency production, đã cân nhắc log/JFR/thread dump ít xâm nhập hơn.
+- [ ] Have **expected vs actual** and a reproducible case/sanitized input.
+- [ ] Know that the question to answer is **state/control flow**, not just aggregate CPU/memory cost.
+- [ ] Have matching source/classes/JDK and required debug symbols.
+- [ ] Know which method the breakpoint will pause in, with what condition, and which threads are affected.
+- [ ] The environment permits pausing; JDWP is not publicly exposed; there is a plan to close the debug listener.
+- [ ] If suspecting production race/latency, considered less intrusive logs/JFR/thread dumps.
 
-**Sau khi debug:**
+**After debugging:**
 
-- [ ] Ghi đúng **state trước/sau** phép gán, selected stack frame và caller.
-- [ ] Chứng minh một invariant hoặc giả thuyết cụ thể bị vi phạm; tránh suy diễn từ snapshot.
-- [ ] Tạo regression test cho case biên, exception path hay concurrency scenario tương ứng.
-- [ ] Chạy lại **không có breakpoint**; khi vấn đề hiệu năng, đo bằng profiler/JFR/load test.
-- [ ] Ngắt debugger/đóng cổng, không lưu secret vào screenshot, log hoặc artifact.
+- [ ] Recorded exact **before/after state** of the assignment, selected stack frame, and caller.
+- [ ] Proved a specific invariant or hypothesis was violated; avoided extrapolating from a snapshot.
+- [ ] Created a regression test for the corresponding edge case, exception path, or concurrency scenario.
+- [ ] Re-ran **without breakpoints**; for performance issues, measured with profiler/JFR/load tests.
+- [ ] Disconnected debugger/closed ports, and avoided saving secrets in screenshots, logs, or artifacts.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-1. Khi nào thêm log đủ, khi nào debugger đáng dùng hơn profiler/JFR?
-2. Trong ví dụ coupon, trước khi thực thi dòng gán `payableCents`, các giá trị `requestedDiscountCents`, `capped` và `subtotalCents` là bao nhiêu? Tại sao điều này chứng minh bug?
-3. Vì sao cần conditional breakpoint trên một method được gọi rất nhiều lần?
-4. Sự khác biệt giữa field modification watchpoint và mục Watches hiển thị expression trong IDE?
-5. Vì sao Step Over trong request nhiều thread có thể làm timeout nhân tạo hoặc làm biến mất race?
-6. Vì sao một `jdb where` không hoạt động nếu JVM chưa dừng ở frame/thread thích hợp?
-7. Sau khi sửa code, tại sao chạy pass một phiên debugger chưa đủ kết luận sự cố đã được khắc phục?
+1. When is adding logs enough, and when is a debugger more worthwhile than a profiler/JFR?
+2. In the coupon example, before executing the `payableCents` assignment line, what are the values of `requestedDiscountCents`, `capped`, and `subtotalCents`? Why does this prove the bug?
+3. Why do you need a conditional breakpoint on a frequently called method?
+4. What is the difference between a field modification watchpoint and the Watches pane displaying expressions in an IDE?
+5. Why can stepping over in a multithreaded request cause artificial timeouts or make a race disappear?
+6. Why does `jdb where` not work if the JVM has not paused at an appropriate frame/thread?
+7. After fixing the code, why is passing one debugger session not enough to conclude the issue is resolved?
 
-## Tài liệu tham khảo chính thức
+## Official References
 
-- [Oracle Java SE 21 — jdb Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jdb.html): breakpoints, stepping, `where`/`locals`, attach và hướng dẫn virtual threads.
-- [Oracle Java SE 21 — JPDA Connection and Invocation](https://docs.oracle.com/en/java/javase/21/docs/specs/jpda/conninv.html): `-agentlib:jdwp`, `suspend`, `address`, transport, giới hạn kết nối.
-- [Oracle Java SE 21 — Troubleshooting Guide](https://docs.oracle.com/en/java/javase/21/troubleshoot/introduction-client-issues.html): JDWP và công cụ chẩn đoán phù hợp theo loại vấn đề.
-- [Oracle Java SE 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): thread dump và JFR commands khi nên thu bằng chứng thay vì pause.
-- [Oracle Java SE 21 — jfr](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): xem và lọc JFR events phục vụ profiling trước khi bước vào debugger.
-- [Oracle JDK Mission Control](https://www.oracle.com/java/technologies/jdk-mission-control.html): công cụ xem JFR về CPU, allocation, lock và I/O.
+- [Oracle Java SE 21 — jdb Command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jdb.html): breakpoints, stepping, `where`/`locals`, attach, and virtual threads guidance.
+- [Oracle Java SE 21 — JPDA Connection and Invocation](https://docs.oracle.com/en/java/javase/21/docs/specs/jpda/conninv.html): `-agentlib:jdwp`, `suspend`, `address`, transport, connection limits.
+- [Oracle Java SE 21 — Troubleshooting Guide](https://docs.oracle.com/en/java/javase/21/troubleshoot/introduction-client-issues.html): JDWP and diagnostic tools suited to each problem type.
+- [Oracle Java SE 21 — jcmd](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html): thread dumps and JFR commands when evidence should be collected instead of pausing.
+- [Oracle Java SE 21 — jfr](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html): viewing and filtering JFR events for profiling before stepping into a debugger.
+- [Oracle JDK Mission Control](https://www.oracle.com/java/technologies/jdk-mission-control.html): tool for viewing JFR on CPU, allocation, lock, and I/O.

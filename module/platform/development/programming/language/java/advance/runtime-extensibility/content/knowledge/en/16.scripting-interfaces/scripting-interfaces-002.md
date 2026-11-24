@@ -1,27 +1,27 @@
-# Kiểm tra Invocable trước khi gọi hàm hoặc phương thức
+# Checking Invocable Before Invoking Functions or Methods
 
-## 1. Vì sao phải kiểm tra Invocable?
+## 1. Why Must You Check Invocable?
 
-Một chương trình Java có thể sử dụng Java Scripting API (JSR 223) để giao tiếp với một ngôn ngữ kịch bản được cung cấp qua **ScriptEngine**. Chẳng hạn host nạp một script định nghĩa hàm tính giá, quy tắc xử lý văn bản hoặc các method trên một đối tượng script, rồi muốn gọi các hành vi ấy từ Java.
+A Java program can use the Java Scripting API (JSR 223) to interact with a scripting language provided via a **ScriptEngine**. For example, the host loads a script that defines pricing functions, text-processing rules, or methods on a script object, and then wants to invoke those behaviors from Java.
 
-Tuy nhiên, **không phải mọi ScriptEngine đều hỗ trợ việc gọi hàm và phương thức trực tiếp theo tên**. Interface **javax.script.Invocable** là **khả năng tùy chọn** của một script engine. Vì vậy trước khi gọi **invokeFunction(...)** hay **invokeMethod(...)**, phải xác nhận engine hiện có và **implements Invocable**.
+However, **not every ScriptEngine supports calling functions and methods directly by name**. The **javax.script.Invocable** interface is an **optional capability** of a script engine. Therefore, before calling **invokeFunction(...)** or **invokeMethod(...)**, you must verify that the engine is present and **implements Invocable**.
 
-Luồng xử lý nên là:
+The processing flow should be:
 
 ~~~text
 ScriptEngineManager
         |
         v
-getEngineByName("tên-engine")
+getEngineByName("engine-name")
         |
-        +-- null --------> không tìm thấy engine, thông báo rõ
+        +-- null --------> engine not found, report clearly
         |
         v
 ScriptEngine engine
         |
         +-- !(engine instanceof Invocable)
         |        |
-        |        +-----> engine có thể eval nhưng không hỗ trợ Invocable
+        |        +-----> engine can eval but does not support Invocable
         |
         v
    Invocable invocable
@@ -29,44 +29,44 @@ ScriptEngine engine
         v
   engine.eval(script)
         |
-        +-- ScriptException -> lỗi đọc/chạy script
+        +-- ScriptException -> error reading/running script
         |
         v
   invokeFunction("name", args...)
-  hoặc invokeMethod(scriptObject, "name", args...)
+  or invokeMethod(scriptObject, "name", args...)
         |
-        +-- NoSuchMethodException -> không tìm thấy hàm/method phù hợp
-        +-- ScriptException       -> lỗi khi gọi script
+        +-- NoSuchMethodException -> no matching function/method found
+        +-- ScriptException       -> error invoking script
         |
         v
-      Object kết quả
+      Object result
 ~~~
 
-**Thứ tự quan trọng:**
+**Important order:**
 
-1. Tìm engine bằng **ScriptEngineManager** (hoặc nhận một ScriptEngine đã được dependency injection cung cấp).
-2. Kiểm tra **engine != null**.
-3. Kiểm tra **engine instanceof Invocable** trước khi ép kiểu/gọi.
-4. Thực thi script bằng **eval(...)** để các hàm/đối tượng được định nghĩa trong state của engine.
-5. Gọi **invokeFunction(...)** hoặc **invokeMethod(...)** với đúng tên và đối số.
-6. Xử lý kết quả **Object**, ngoại lệ, tài nguyên và vòng đời state.
+1. Look up the engine using **ScriptEngineManager** (or receive a ScriptEngine supplied by dependency injection).
+2. Check **engine != null**.
+3. Check **engine instanceof Invocable** before casting/invoking.
+4. Execute the script via **eval(...)** so that functions and objects are defined in the engine's state.
+5. Call **invokeFunction(...)** or **invokeMethod(...)** with the right name and arguments.
+6. Handle the **Object** result, exceptions, resources, and state lifecycle.
 
-Không được coi **ScriptEngine.eval(...) chạy được** là bằng chứng **Invocable chắc chắn được hỗ trợ**: đây là hai giao diện với trách nhiệm khác nhau.
+Do not treat **ScriptEngine.eval(...) working** as proof that **Invocable is definitely supported**: these are two separate interfaces with different responsibilities.
 
-## 2. Phân biệt ScriptEngine và Invocable
+## 2. Distinguishing ScriptEngine and Invocable
 
-| Thành phần | Vai trò | Điều kiện sử dụng |
+| Component | Role | Usage Condition |
 |---|---|---|
-| **ScriptEngineManager** | Phát hiện/tạo ScriptEngine qua các ScriptEngineFactory hiện có | Phải có engine provider khả kiến |
-| **ScriptEngine** | Đánh giá script, quản lý context/bindings, lấy và đặt dữ liệu | Interface nền tảng của engine |
-| **Invocable** | Gọi hàm/method đã được định nghĩa bởi script và ánh xạ vào Java interface | Chỉ dùng khi engine **implements Invocable** |
-| **ScriptEngineFactory** | Công bố tên engine, ngôn ngữ, khả năng và cách tạo engine | Dùng khi chọn/cấu hình engine |
-| **ScriptContext / Bindings** | Lưu các biến và ngữ cảnh xử lý script | Cần hiểu scope khi tìm đối tượng/hàm |
+| **ScriptEngineManager** | Discovers/creates ScriptEngines via available ScriptEngineFactory providers | An engine provider must be visible |
+| **ScriptEngine** | Evaluates scripts, manages context/bindings, gets and puts data | Core foundational interface of an engine |
+| **Invocable** | Invokes script-defined functions/methods and adapts them to Java interfaces | Only usable when the engine **implements Invocable** |
+| **ScriptEngineFactory** | Advertises engine name, language, capabilities, and factory creation | Used when selecting/configuring an engine |
+| **ScriptContext / Bindings** | Stores variables and script execution context | Requires understanding scopes when looking up objects/functions |
 
-**Invocable** gồm bốn nhóm thao tác:
+**Invocable** consists of four groups of operations:
 
 ~~~java
-// Chữ ký API, mảnh minh họa.
+// API signatures, illustrative snippet.
 Object invokeFunction(String name, Object... args)
         throws ScriptException, NoSuchMethodException;
 
@@ -78,19 +78,19 @@ Object invokeMethod(Object thiz, String name, Object... args)
 <T> T getInterface(Object thiz, Class<T> clasz);
 ~~~
 
-- **invokeFunction** gọi một hàm/thủ tục **top-level** mà script đã định nghĩa.
-- **invokeMethod** gọi một **member method** trên một đối tượng script mà engine nhận biết; đối tượng đó được truyền qua **thiz**.
-- **getInterface(Class<T>)** xin một adapter Java interface được triển khai bằng các hàm script trong engine.
-- **getInterface(thiz, Class<T>)** xin adapter Java interface được triển khai bằng các member method của một script object.
+- **invokeFunction** calls a **top-level** function/procedure defined by the script.
+- **invokeMethod** calls a **member method** on a script object recognized by the engine; that object is passed via **thiz**.
+- **getInterface(Class<T>)** requests a Java interface adapter implemented by script functions in the engine.
+- **getInterface(thiz, Class<T>)** requests a Java interface adapter implemented by member methods of a script object.
 
-**getInterface(...)** có thể trả **null** nếu engine không thể tạo adapter tương ứng; engine implements Invocable **không bảo đảm mọi interface đều ánh xạ được**. Hai phương thức getInterface cũng không chứng minh hàm cụ thể tồn tại trước khi thử ánh xạ.
+**getInterface(...)** may return **null** if the engine cannot create the corresponding adapter; an engine implementing Invocable **does not guarantee that every interface can be mapped**. Nor do the two getInterface methods prove that specific functions exist before attempting the mapping.
 
-## 3. Kiểm tra null và khả năng Invocable đúng cách
+## 3. Checking null and Invocable Capability Properly
 
-### 3.1. Pattern dùng Java 17+
+### 3.1. Pattern Using Java 17+
 
 ~~~java
-// Mảnh code: dùng trong phương thức có xử lý ScriptException, ...
+// Code snippet: used inside a method handling ScriptException, ...
 ScriptEngineManager manager = new ScriptEngineManager();
 ScriptEngine engine = manager.getEngineByName("javascript");
 
@@ -103,62 +103,62 @@ if (!(engine instanceof Invocable invocable)) {
         "This ScriptEngine does not implement Invocable");
 }
 
-// Sau khi đã kiểm tra và đã eval script...
+// After checking and evaluating the script...
 Object value = invocable.invokeFunction("hello", "Java");
 ~~~
 
-Cú pháp **instanceof Invocable invocable** là *pattern matching for instanceof*, được hỗ trợ trong Java 17. Nó đồng thời kiểm tra runtime type và ràng buộc biến **invocable** có kiểu Invocable cho nhánh tiếp theo.
+The **instanceof Invocable invocable** syntax is *pattern matching for instanceof*, supported in Java 17. It simultaneously checks the runtime type and binds the **invocable** variable with type Invocable for the subsequent branch.
 
-Có thể dùng cách tương thích Java 8:
+You can use the Java 8-compatible form:
 
 ~~~java
-// Mảnh minh họa, engine được lấy từ trước và khác null.
+// Illustrative snippet, engine was obtained beforehand and is non-null.
 if (!(engine instanceof Invocable)) {
     throw new UnsupportedOperationException("Not invocable");
 }
 Invocable invocable = (Invocable) engine;
 ~~~
 
-Hai cách có ý nghĩa tương đương khi guard đúng. Với **engine == null**, toán tử **instanceof** luôn cho **false**, nhưng vẫn nên kiểm tra null riêng vì “không tìm thấy engine” khác với “đã tìm được engine nhưng thiếu tính năng”.
+Both approaches are semantically equivalent when properly guarded. When **engine == null**, the **instanceof** operator always evaluates to **false**, but you should still check for null separately because "no engine found" differs from "engine found but lacks the capability."
 
-### 3.2. Tránh ClassCastException
+### 3.2. Avoiding ClassCastException
 
 ~~~java
-// SAI: không được tự suy đoán mọi ScriptEngine đều là Invocable.
+// WRONG: never assume every ScriptEngine is Invocable.
 ScriptEngine engine = new ScriptEngineManager()
         .getEngineByName("some-language");
 Invocable inv = (Invocable) engine;
 ~~~
 
-Cast trực tiếp có thể ném **ClassCastException** nếu engine không implements Invocable. Nếu không tìm thấy engine, biến **inv** còn có thể nhận null (cast null không tự ném), rồi lời gọi inv.invokeFunction(...) dẫn tới **NullPointerException**.
+A direct cast can throw **ClassCastException** if the engine does not implement Invocable. If no engine is found, **inv** can also receive null (casting null does not throw by itself), and calling inv.invokeFunction(...) subsequently leads to a **NullPointerException**.
 
-Cách đúng là tách ba trạng thái:
+The right way is to separate three states:
 
 ~~~text
-engine == null                 -> MISSING_ENGINE
-engine != null nhưng !Invocable -> UNSUPPORTED_CAPABILITY
-engine instanceof Invocable    -> READY_TO_EVAL_AND_INVOKE
+engine == null                -> MISSING_ENGINE
+engine != null but !Invocable -> UNSUPPORTED_CAPABILITY
+engine instanceof Invocable   -> READY_TO_EVAL_AND_INVOKE
 ~~~
 
-Trong ứng dụng lớn, ba trạng thái này nên có thông điệp chẩn đoán khác nhau và được log kèm tên engine/version provider.
+In large applications, these three states should have distinct diagnostic messages and be logged along with the engine name and provider version.
 
-## 4. Lưu ý đặc biệt về Java 17: JDK không bảo đảm có JavaScript engine
+## 4. Special Note on Java 17: The JDK Does Not Guarantee a JavaScript Engine
 
-**javax.script** thuộc module chuẩn **java.scripting**, nhưng **có API không đồng nghĩa có sẵn một triển khai cho mọi ngôn ngữ**.
+**javax.script** belongs to the standard **java.scripting** module, but **having the API does not mean an implementation is bundled for every language**.
 
-Nashorn JavaScript engine đi kèm các JDK cũ đã **bị loại khỏi JDK từ Java 15**. Vì thế trong nhiều cài đặt JDK 17, đoạn:
+The Nashorn JavaScript engine shipped with older JDKs was **removed from the JDK starting in Java 15**. Therefore, on many JDK 17 installations, the snippet:
 
 ~~~java
 ScriptEngine engine = new ScriptEngineManager()
         .getEngineByName("javascript");
 ~~~
 
-sẽ trả **null** nếu bạn chưa cài/đăng ký JavaScript engine bên ngoài. **Không viết bài Java 17 rồi giả định engine JavaScript mặc định luôn tồn tại.**
+will return **null** if you have not installed/registered an external JavaScript engine. **Do not write a Java 17 lesson or application assuming a default JavaScript engine always exists.**
 
-Để chẩn đoán những engine đang được tìm thấy:
+To diagnose which engines are currently discovered:
 
 ~~~java
-// Mảnh minh họa chạy được khi có java.scripting.
+// Illustrative snippet that runs when java.scripting is present.
 ScriptEngineManager manager = new ScriptEngineManager();
 for (ScriptEngineFactory factory : manager.getEngineFactories()) {
     System.out.println(
@@ -166,17 +166,17 @@ for (ScriptEngineFactory factory : manager.getEngineFactories()) {
 }
 ~~~
 
-Danh sách có thể rỗng hoặc chứa nhiều factory tùy runtime và thư viện cung cấp. **ScriptEngineManager.getEngineByName(name)** trả **null** nếu không có factory cho tên đó. Tên alias như "javascript", "js" hay một tên khác là tùy **ScriptEngineFactory.getNames()** của provider, không phải tất cả engine đều nhận cùng alias.
+The list may be empty or contain multiple factories depending on the runtime and installed libraries. **ScriptEngineManager.getEngineByName(name)** returns **null** if there is no factory for that name. Aliases such as "javascript", "js", or another name depend on the provider's **ScriptEngineFactory.getNames()**; not all engines accept the same aliases.
 
-**Cách cung cấp engine:** thêm một triển khai JSR 223 có **ScriptEngineFactory** hợp lệ vào classpath/module path và giải quyết dependency theo tài liệu chính thức của thư viện ấy. Đừng giả định mọi trình thông dịch hoặc mọi bản GraalVM đều tự đăng ký JSR 223 engine và implements Invocable; phải xác minh trên phiên bản thực tế. Với explicit named module, cần chú ý module graph, module cung cấp ScriptEngineFactory và cấu hình class loader.
+**How to supply an engine:** add a JSR 223 implementation with a valid **ScriptEngineFactory** to the classpath/module path and resolve dependencies according to that library's official documentation. Do not assume every interpreter or every GraalVM distribution automatically registers a JSR 223 engine and implements Invocable; verify on the actual version. With explicit named modules, pay attention to the module graph, the module providing ScriptEngineFactory, and class loader configuration.
 
-Trong ví dụ độc lập ở phần 7, ta cố ý tạo một **engine mô phỏng nhỏ bằng Java thuần** để chạy được trên JDK 17 mà không cần JavaScript provider; ví dụ đó minh họa chính xác cách **guard → eval → invoke** nhưng **không phải trình thông dịch JavaScript**.
+In the standalone example in section 7, we intentionally build a **minimal simulated engine in pure Java** so it runs on JDK 17 without requiring a JavaScript provider; that example accurately demonstrates the **guard → eval → invoke** flow, but **is not a JavaScript interpreter**.
 
-## 5. invokeFunction và invokeMethod khác nhau ở đâu?
+## 5. How Do invokeFunction and invokeMethod Differ?
 
-### 5.1. invokeFunction: gọi hàm top-level
+### 5.1. invokeFunction: Calling a Top-Level Function
 
-Ví dụ JavaScript giả định engine đang hỗ trợ JSR 223 và Invocable:
+Illustrative JavaScript assuming an engine supporting JSR 223 and Invocable:
 
 ~~~javascript
 function greet(name) {
@@ -184,25 +184,25 @@ function greet(name) {
 }
 ~~~
 
-Sau khi chạy đoạn script trên bằng **engine.eval(...)**:
+After running the script above with **engine.eval(...)**:
 
 ~~~java
-// Mảnh code: engine đã implements Invocable và đã eval script.
+// Code snippet: engine implements Invocable and has evaluated the script.
 Object answer = invocable.invokeFunction("greet", "Java");
 System.out.println(answer);
 ~~~
 
-Kết quả **trong engine JavaScript tương thích** có thể là:
+The output **in a compatible JavaScript engine** can be:
 
 ~~~text
 Hello, Java
 ~~~
 
-**invokeFunction** không nhận đối tượng đích; tên **greet** phải trỏ đến hàm mà engine có thể gọi trong state đã thực thi.
+**invokeFunction** takes no target object; the name **greet** must point to a function the engine can invoke in the evaluated state.
 
-### 5.2. invokeMethod: gọi member trên script object
+### 5.2. invokeMethod: Calling a Member on a Script Object
 
-Script JavaScript minh họa:
+Illustrative JavaScript script:
 
 ~~~javascript
 var formatter = {
@@ -216,75 +216,75 @@ var formatter = {
 Java:
 
 ~~~java
-// Mảnh code: engine đã eval đoạn JavaScript trên.
+// Code snippet: engine has evaluated the JavaScript snippet above.
 Object scriptObject = engine.get("formatter");
 Object answer = invocable.invokeMethod(
         scriptObject, "greet", "Java");
 System.out.println(answer);
 ~~~
 
-Kết quả khi engine hỗ trợ thao tác này:
+Output when the engine supports this operation:
 
 ~~~text
 Hi, Java
 ~~~
 
-Đối số **thiz** (tên tham số của API) là **đối tượng script được engine công nhận**, không phải tùy tiện một Object Java thông thường. Nó thường đến từ **engine.eval(...)**, **engine.get(...)** hoặc kết quả lần gọi script trước, tùy engine. Khi **thiz == null** hoặc không biểu diễn script object hợp lệ, **invokeMethod** có thể ném **IllegalArgumentException** theo hợp đồng API.
+The **thiz** argument (the API parameter name) is a **script object recognized by the engine**, not an arbitrary ordinary Java Object. It typically comes from **engine.eval(...)**, **engine.get(...)**, or the return value of a previous script call, depending on the engine. When **thiz == null** or does not represent a valid script object, **invokeMethod** may throw **IllegalArgumentException** per the API contract.
 
-### 5.3. Bảng so sánh
+### 5.3. Comparison Table
 
-| Tiêu chí | invokeFunction | invokeMethod |
+| Criterion | invokeFunction | invokeMethod |
 |---|---|---|
-| Mục tiêu | Hàm/procedure top-level | Method thuộc một script object |
-| Tham số đặc thù | **name** | **thiz**, **name** |
-| Cần script đã chạy? | Có, để hàm được định nghĩa trong engine | Có, để object/method đã tồn tại |
-| Tên sai/chữ ký không khớp | **NoSuchMethodException** | **NoSuchMethodException** |
-| Lỗi khi thực thi script | **ScriptException** | **ScriptException** |
-| Kiểu kết quả | **Object** | **Object** |
-| Quy tắc chuyển đổi số, chuỗi, đối tượng | Phụ thuộc triển khai engine | Phụ thuộc triển khai engine |
+| Target | Top-level function/procedure | Method belonging to a script object |
+| Specific parameters | **name** | **thiz**, **name** |
+| Must script be evaluated first? | Yes, so the function is defined in the engine | Yes, so the object/method exists |
+| Wrong name/signature mismatch | **NoSuchMethodException** | **NoSuchMethodException** |
+| Error during script execution | **ScriptException** | **ScriptException** |
+| Return type | **Object** | **Object** |
+| Number, string, object conversion rules | Engine implementation-dependent | Engine implementation-dependent |
 
-**Chọn API theo bản chất dữ liệu:** Hàm top-level thì invokeFunction; method của object script thì invokeMethod. Không gọi invokeMethod với object do Java tự tạo chỉ vì nó có một method trùng tên.
+**Choose the API by the nature of the target:** top-level functions use invokeFunction; methods of a script object use invokeMethod. Do not call invokeMethod with a Java-constructed object merely because it happens to have a method with the same name.
 
-## 6. Phải eval trước khi gọi, nhưng kiểm tra Invocable không đủ để bảo đảm tên hàm tồn tại
+## 6. You Must eval Before Invoking, and Checking Invocable Does Not Guarantee a Function Exists
 
-**Invocable là một capability**, không phải danh sách bảo đảm các hàm cụ thể. Ví dụ:
+**Invocable is a capability**, not a guarantee that specific functions exist. For example:
 
 ~~~java
-// Mảnh minh họa:
+// Illustrative snippet:
 if (engine instanceof Invocable invocable) {
     engine.eval("function add(a, b) { return a + b; }");
     Object sum = invocable.invokeFunction("add", 2, 3);
-    // Kết quả có thể được bridge về kiểu Number/Double/Integer tùy engine.
+    // The result may be bridged to Number/Double/Integer depending on the engine.
 }
 ~~~
 
-Nếu chưa eval mã định nghĩa hàm **add**, hoặc script chạy trong một state khác, **invokeFunction("add", ...)** có thể ném **NoSuchMethodException**. Nếu gọi hàm có lỗi ở runtime, nó có thể ném **ScriptException**.
+If the code defining the **add** function has not been evaluated yet, or the script ran in a different state, **invokeFunction("add", ...)** may throw **NoSuchMethodException**. If invoking the function hits a runtime error, it may throw **ScriptException**.
 
-**Thứ tự đúng:**
+**Proper order:**
 
-1. Kiểm tra engine tồn tại.
-2. Kiểm tra engine có Invocable.
-3. Eval script chính xác vào state bạn định gọi.
-4. Kiểm tra hoặc nhận đối tượng script (nếu gọi method).
-5. Invoke và xử lý kết quả/ngoại lệ.
+1. Verify the engine exists.
+2. Verify the engine supports Invocable.
+3. Evaluate the exact script into the state you intend to invoke.
+4. Retrieve or verify the script object (if calling a method).
+5. Invoke and handle the result/exceptions.
 
-**Lưu ý về ScriptContext:** Khi eval dùng một ScriptContext/Bindings tùy biến, các hàm và object được định nghĩa trong context đó không chắc hiện diện trong state mặc định mà một lệnh invoke tiếp theo sử dụng. Bảo đảm engine/context được giữ nhất quán. Cách engine giữ hàm giữa các lần eval và cách tìm biến còn phụ thuộc ngôn ngữ/implementation.
+**Note on ScriptContext:** When eval uses a custom ScriptContext/Bindings, functions and objects defined inside that context are not guaranteed to be present in the default state used by a subsequent invoke call. Keep the engine/context consistent. How an engine retains functions across eval calls and resolves variables also depends on the language and implementation.
 
-## 7. Ví dụ đầy đủ Java 17: kiểm tra Invocable và gọi hàm/method không cần engine bên ngoài
+## 7. Complete Java 17 Example: Checking Invocable and Invoking Functions/Methods Without an External Engine
 
-Để ví dụ thật sự biên dịch và chạy được trên **JDK 17 thuần**, đoạn dưới tạo một **mini engine minh họa giao thức JSR 223**, không phải trình thông dịch ngôn ngữ thật. Lệnh script duy nhất mà nó nhận là chuỗi **"install"**, có tác dụng đăng ký một hàm top-level **hello** và một script object mô phỏng có method **say**.
+For this example to genuinely compile and run on **plain JDK 17**, the code below creates a **mini engine demonstrating the JSR 223 protocol**, not a real language interpreter. The only script command it accepts is the string **"install"**, which registers a top-level **hello** function and a simulated script object with a **say** method.
 
-Mini engine vẫn tuân thủ những bước API đang học:
+The mini engine still follows every API step we are studying:
 
-- **ScriptEngineManager** trả một ScriptEngine từ ScriptEngineFactory.
-- Host kiểm tra **instanceof Invocable** trước khi gọi.
-- **eval("install")** chuẩn bị state.
-- **invokeFunction("hello", "Java")** gọi hàm.
-- **invokeMethod(receiver, "say", "Java")** gọi method trên object nhận từ engine.
-- Lệnh gọi tên không có ném **NoSuchMethodException**.
-- **getInterface(...)** được demo trả **null** một cách cố ý: khả năng tạo Java proxy là tùy chọn, ngay cả khi Invocable được hỗ trợ.
+- **ScriptEngineManager** returns a ScriptEngine from a ScriptEngineFactory.
+- The host checks **instanceof Invocable** before invoking.
+- **eval("install")** prepares the state.
+- **invokeFunction("hello", "Java")** calls the function.
+- **invokeMethod(receiver, "say", "Java")** calls the method on the object obtained from the engine.
+- Calling a non-existent name throws **NoSuchMethodException**.
+- **getInterface(...)** intentionally returns **null** in the demo: Java proxy creation is optional even when Invocable is supported.
 
-### 7.1. Tệp InvocableGuardDemo.java
+### 7.1. InvocableGuardDemo.java
 
 ~~~java
 import java.io.IOException;
@@ -310,7 +310,7 @@ public final class InvocableGuardDemo {
         }
     }
 
-    // Engine nhỏ phục vụ việc minh họa contract; KHÔNG phải JavaScript.
+    // Minimal engine for demonstrating the contract; NOT JavaScript.
     private static final class TinyEngine
             extends AbstractScriptEngine implements Invocable {
 
@@ -387,7 +387,7 @@ public final class InvocableGuardDemo {
             if (type == null || !type.isInterface()) {
                 throw new IllegalArgumentException("Not an interface");
             }
-            return null; // Demo này không cung cấp Java interface adapter.
+            return null; // This demo does not provide a Java interface adapter.
         }
 
         @Override
@@ -401,7 +401,7 @@ public final class InvocableGuardDemo {
         }
     }
 
-    // Đăng ký bằng tay; không cần META-INF/services.
+    // Registered manually; no META-INF/services required.
     private static final class TinyFactory implements ScriptEngineFactory {
 
         @Override
@@ -485,7 +485,7 @@ public final class InvocableGuardDemo {
     public static void main(String[] args) throws Exception {
         ScriptEngineManager manager = new ScriptEngineManager();
 
-        // Tự đăng ký provider để ví dụ chạy được trên JDK 17 thuần.
+        // Register provider manually so the example runs on plain JDK 17.
         manager.registerEngineName("tiny", new TinyFactory());
         ScriptEngine engine = manager.getEngineByName("tiny");
 
@@ -500,7 +500,7 @@ public final class InvocableGuardDemo {
 
         System.out.println("invocable=true");
 
-        // Khai báo hàm và object vào state của TinyEngine.
+        // Declare the function and object into TinyEngine's state.
         engine.eval("install");
 
         System.out.println(
@@ -523,16 +523,16 @@ public final class InvocableGuardDemo {
 }
 ~~~
 
-### 7.2. Biên dịch và chạy
+### 7.2. Compile and Run
 
-Lưu file đúng tên **InvocableGuardDemo.java**. Trên JDK 17 trở lên:
+Save the file as **InvocableGuardDemo.java**. On JDK 17 or later:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 InvocableGuardDemo.java
 java InvocableGuardDemo
 ~~~
 
-**Stdout được thiết kế cố định:**
+**Fixed deterministic stdout:**
 
 ~~~text
 invocable=true
@@ -542,23 +542,23 @@ missing=NoSuchMethodException
 adapter=false
 ~~~
 
-### 7.3. Giải thích kết quả
+### 7.3. Explaining the Output
 
-1. **TinyFactory** được đăng ký trực tiếp qua **registerEngineName("tiny", ...)**. Vì thế ví dụ không cần tìm một JavaScript engine ngoài và không phụ thuộc sự có mặt của Nashorn.
-2. **getEngineByName("tiny")** trả **TinyEngine**; class này implements **Invocable**, nên guard chạy qua và in **invocable=true**.
-3. **eval("install")** mô phỏng việc script đã định nghĩa hàm và object, lưu state vào ENGINE_SCOPE.
-4. **invokeFunction("hello", "Java")** trả chuỗi **Hello, Java**; nó không phải cách thực thi JavaScript thật, mà là kết quả dispatcher mô phỏng.
-5. **invokeMethod(receiver, "say", "Java")** cần object nhận được từ cùng engine, trả **Hi, Java**.
-6. Hàm **missing** không có, nên mini engine ném **NoSuchMethodException**; chương trình xử lý tại ranh giới gọi script.
-7. Mặc dù mini engine implements Invocable, **getInterface(Runnable.class)** trả null vì demo không cài Java adapter, minh họa một capability riêng không được bảo đảm.
+1. **TinyFactory** is registered directly via **registerEngineName("tiny", ...)**. Therefore the example does not need to locate an external JavaScript engine and does not depend on Nashorn being present.
+2. **getEngineByName("tiny")** returns **TinyEngine**; this class implements **Invocable**, so the guard passes and prints **invocable=true**.
+3. **eval("install")** simulates the script defining a function and object, storing state in ENGINE_SCOPE.
+4. **invokeFunction("hello", "Java")** returns the string **Hello, Java**; this is not real JavaScript execution, but the result of the simulated dispatcher.
+5. **invokeMethod(receiver, "say", "Java")** requires the object retrieved from the same engine, returning **Hi, Java**.
+6. The **missing** function does not exist, so the mini engine throws **NoSuchMethodException**; the program handles it at the script invocation boundary.
+7. Even though the mini engine implements Invocable, **getInterface(Runnable.class)** returns null because the demo does not implement a Java adapter, illustrating that proxy creation is a separate unguaranteed capability.
 
-**Giới hạn có chủ đích của ví dụ:** TinyEngine chỉ nhận lệnh **install** và dùng dispatcher Java; không parser JavaScript, không hỗ trợ ngôn ngữ script thực tế, không có kiểm soát an ninh và không nên được triển khai production. Mục đích của nó là tạo **một chương trình Java 17 hoàn chỉnh chạy độc lập** để nhìn thấy đúng kiểu dữ liệu, thứ tự API, guard, lỗi và kết quả của Invocable.
+**Intentional limitations of the example:** TinyEngine only accepts the **install** command and uses a Java dispatcher; it has no JavaScript parser, supports no real scripting language, has no security controls, and must not be deployed to production. Its purpose is to provide **a complete standalone Java 17 program** so you can observe the exact data types, API ordering, guards, exceptions, and Invocable results.
 
-## 8. Mẫu tích hợp với JavaScript engine thật (cần cài engine JSR 223)
+## 8. Integration Pattern with a Real JavaScript Engine (Requires a JSR 223 Engine)
 
-Khi đã cung cấp một **ScriptEngineFactory** cho ngôn ngữ JavaScript và engine hỗ trợ Invocable, có thể áp dụng pattern sau. Đây là **chương trình Java hợp lệ**, nhưng nhánh invoke chỉ chạy nếu môi trường có engine tương ứng.
+Once a **ScriptEngineFactory** for JavaScript is provided and the engine supports Invocable, the following pattern can be applied. This is a **valid Java program**, though the invoke branch only executes if the environment has a compatible engine.
 
-**Tệp RealScriptDemo.java:**
+**File RealScriptDemo.java:**
 
 ~~~java
 import javax.script.Invocable;
@@ -605,44 +605,44 @@ public final class RealScriptDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 RealScriptDemo.java
 java RealScriptDemo
 ~~~
 
-**Các nhánh kết quả cần phân biệt:**
+**Result branches to distinguish:**
 
-- Nếu **không có JavaScript ScriptEngineFactory** khả kiến (điển hình trên JDK 17 thuần), stdout là **NO_ENGINE**.
-- Nếu có engine được chọn nhưng **không implements Invocable**, stdout là **NOT_INVOCABLE**.
-- Nếu engine hỗ trợ JavaScript tương thích, cho phép định nghĩa function/object theo cú pháp trên, giữ state và hỗ trợ cả hai lời gọi, kết quả hai dòng có thể là:
+- If **no JavaScript ScriptEngineFactory** is visible (typical on plain JDK 17), stdout is **NO_ENGINE**.
+- If an engine is selected but **does not implement Invocable**, stdout is **NOT_INVOCABLE**.
+- If the engine supports compatible JavaScript, allows defining functions/objects using the syntax above, preserves state, and supports both invocations, the two-line output can be:
 
 ~~~text
 Hello, Java
 Hi, Java
 ~~~
 
-Không gắn cứng dòng output thứ ba như một cam kết cho mọi engine. Một engine có thể khác về alias, cách chuyển dữ liệu, xử lý object, phạm vi hàm, hoặc không thực thi toàn bộ cú pháp này. Chính vì vậy chương trình kiểm tra engine và capability trước; ngoài ra phải kiểm thử thực tế engine/version được lựa chọn.
+Do not hardcode the third output scenario as a promise across every engine. Engines can differ in aliases, data conversion, object handling, function scoping, or may not execute all of this syntax. That is precisely why the program checks the engine and capability first; additionally, you must test against the actual chosen engine and version.
 
-**Điều không nên làm:** lấy biến **ScriptEngine engine**, đánh giá script xong rồi ép thẳng **(Invocable) engine**; dù script hợp lệ, engine có thể không hỗ trợ interface tùy chọn ấy.
+**What not to do:** grab a **ScriptEngine engine** variable, evaluate the script, and immediately cast **(Invocable) engine**; even when the script is valid, the engine may not support that optional interface.
 
-## 9. Ngoại lệ và lỗi cần xử lý theo từng tầng
+## 9. Exceptions and Errors to Handle at Each Layer
 
-| Vị trí | Tình huống | Cách nhận biết/xử lý |
+| Location | Scenario | Detection / Handling |
 |---|---|---|
-| **ScriptEngineManager.getEngineByName** | Không tìm thấy engine với tên/alias chỉ định | **engine == null**, xem danh sách factories |
-| **Kiểm tra capability** | Engine có thể eval nhưng không hỗ trợ gọi hàm/method | **!(engine instanceof Invocable)**, chọn cơ chế khác |
-| **engine.eval(...)** | Script lỗi cú pháp, runtime hoặc engine không thể thực thi | **ScriptException**, log source/line nếu có |
-| **invokeFunction(name, ...)** | Không tìm thấy hàm hoặc chữ ký/đối số phù hợp | **NoSuchMethodException** |
-| **invokeMethod(thiz, name, ...)** | Không tìm thấy method phù hợp trên script object | **NoSuchMethodException** |
-| **invokeMethod(thiz, ...)** | thiz null hoặc không phải script object được engine công nhận | **IllegalArgumentException** |
-| **invokeFunction/invokeMethod** | Lỗi xảy ra khi gọi logic script | **ScriptException** |
-| **Kết quả từ script** | Kiểu Object không gán được cho kiểu Java mong đợi | Kiểm tra kiểu trước khi cast/chuyển đổi |
-| **getInterface(...)** | Không tạo được adapter có các hàm tương ứng | Có thể trả **null** |
-| **getInterface(...)** | Class tham số null/không phải interface; thiz không hợp lệ | Có thể ném **IllegalArgumentException** theo hợp đồng |
+| **ScriptEngineManager.getEngineByName** | No engine found for the given name/alias | **engine == null**, inspect the factories list |
+| **Capability check** | Engine can eval but does not support calling functions/methods | **!(engine instanceof Invocable)**, choose an alternative mechanism |
+| **engine.eval(...)** | Syntax error, runtime error, or engine cannot execute script | **ScriptException**, log source/line if available |
+| **invokeFunction(name, ...)** | Function or matching signature/arguments not found | **NoSuchMethodException** |
+| **invokeMethod(thiz, name, ...)** | Matching method not found on the script object | **NoSuchMethodException** |
+| **invokeMethod(thiz, ...)** | thiz is null or not a script object recognized by the engine | **IllegalArgumentException** |
+| **invokeFunction/invokeMethod** | Error raised while executing script logic | **ScriptException** |
+| **Result from script** | Returned Object cannot be assigned to the expected Java type | Check type before casting/converting |
+| **getInterface(...)** | Cannot build an adapter with the matching functions | May return **null** |
+| **getInterface(...)** | Class argument is null/not an interface; thiz is invalid | May throw **IllegalArgumentException** per contract |
 
-Ví dụ một adapter xử lý lỗi (mảnh Java minh họa, nằm trong class có import javax.script.*):
+Example of an error-handling adapter (illustrative Java snippet inside a class importing javax.script.*):
 
 ~~~java
 static Object invokeSafe(
@@ -658,17 +658,17 @@ static Object invokeSafe(
                 "Engine cannot invoke functions");
     }
 
-    // Hàm phải đã được định nghĩa bởi script trước lời gọi này.
+    // The function must have been defined by the script before this call.
     return invocable.invokeFunction(functionName, arguments);
 }
 ~~~
 
-**Đây là mảnh phương thức, không phải ứng dụng độc lập.** Tên hàm không tồn tại là một loại lỗi khác với engine không có khả năng Invocable. Nếu code nghiệp vụ muốn trả một kết quả phân loại (success/missing function/script error), nên chuyển từng lỗi sang kiểu kết quả phù hợp, đừng gom tất cả vào catch(Exception) rồi trả null.
+**This is a method snippet, not a standalone application.** A missing function name is a different error category from an engine lacking Invocable capability. If business code needs to return a categorized result (success/missing function/script error), map each exception to the appropriate result type rather than lumping everything into catch(Exception) and returning null.
 
-Phân biệt **ScriptException** với **NoSuchMethodException** giúp log và phản hồi chính xác:
+Separating **ScriptException** from **NoSuchMethodException** enables accurate logging and feedback:
 
 ~~~java
-// Mảnh minh họa trong code gọi script.
+// Illustrative snippet in script-calling code.
 try {
     Object value = invocable.invokeFunction("calculate", 10);
     System.out.println(value);
@@ -679,23 +679,23 @@ try {
 }
 ~~~
 
-**Lưu ý:** Ràng buộc tên và chuyển đổi argument được định nghĩa bởi từng engine. Một số lỗi Java thông thường (NullPointerException, IllegalArgumentException, ClassCastException...) vẫn có thể xuất hiện do logic tích hợp sai; guard không biến script thành hệ thống miễn lỗi.
+**Note:** Name binding and argument conversion are defined by each engine. Standard Java errors (NullPointerException, IllegalArgumentException, ClassCastException, etc.) can still occur due to flawed integration logic; guards do not make scripting error-free.
 
-## 10. Kiểu dữ liệu: đầu vào Object... và đầu ra Object
+## 10. Data Types: Object... Inputs and Object Outputs
 
-**invokeFunction** và **invokeMethod** nhận danh sách đối số kiểu **Object...**. Chúng dựa vào engine để chuyển Java object sang giá trị script và ngược lại. Ví dụ một biểu thức số trong JavaScript có thể được bridge thành **Double**, **Integer**, **Long**, **BigDecimal** hoặc wrapper đặc thù của engine; không suy luận kiểu cụ thể từ cú pháp script.
+**invokeFunction** and **invokeMethod** accept an **Object...** argument list. They rely on the engine to convert Java objects to script values and vice versa. For example, a numeric expression in JavaScript might be bridged to **Double**, **Integer**, **Long**, **BigDecimal**, or an engine-specific wrapper; never infer a concrete Java type from script syntax.
 
-Thay vì ép kiểu mù:
+Instead of blind casting:
 
 ~~~java
-// Sai nếu engine không trả đúng Integer.
+// Wrong if the engine does not return an exact Integer.
 Integer count = (Integer) invocable.invokeFunction("count");
 ~~~
 
-hãy kiểm tra hợp đồng mong muốn:
+validate the expected contract:
 
 ~~~java
-// Mảnh minh họa; hàm count được bảo đảm trả kết quả số.
+// Illustrative snippet; count function is expected to return a numeric result.
 Object raw = invocable.invokeFunction("count");
 
 if (!(raw instanceof Number number)) {
@@ -705,26 +705,26 @@ if (!(raw instanceof Number number)) {
 int count = number.intValue();
 ~~~
 
-Nếu cần bảo toàn độ chính xác hoặc giới hạn số nguyên, **intValue()** có thể làm mất phần thập phân hoặc tràn; quy ước chuyển đổi số nên là một phần của hợp đồng tích hợp.
+If precision or integer bounds matter, **intValue()** can silently truncate decimals or overflow; numeric conversion conventions should be part of the integration contract.
 
-**Varargs có thể gây nhầm khi truyền null.** Trong Java, **invokeFunction("f", (Object) null)** là lời gọi với một đối số null, trong khi **invokeFunction("f", (Object[]) null)** truyền một mảng varargs null. Không dùng hai hình thức này thay thế nhau nếu engine phân biệt số lượng đối số.
+**Varargs can be confusing when passing null.** In Java, **invokeFunction("f", (Object) null)** is a call with one null argument, whereas **invokeFunction("f", (Object[]) null)** passes a null varargs array. Do not treat these two forms as interchangeable if the engine distinguishes argument counts.
 
-Khi trả về script object, đôi khi cần tiếp tục sử dụng chính giá trị đó làm **thiz** cho invokeMethod; đừng ép nó thành một Java type cụ thể nếu engine không công bố kiểu wrapper ấy.
+When a script object is returned, you sometimes need to pass that exact value back as **thiz** to invokeMethod; do not cast it to a specific Java type unless the engine publishes that wrapper type.
 
-## 11. getInterface là lựa chọn khác, không thay thế việc kiểm tra Invocable
+## 11. getInterface Is Another Option, Not a Replacement for Checking Invocable
 
-Nếu script có những hàm tương ứng với một Java interface, **Invocable.getInterface** có thể trả về một adapter để gọi qua method Java thay vì tên chuỗi:
+If a script defines functions matching a Java interface, **Invocable.getInterface** can return an adapter so you can invoke via Java methods instead of string names:
 
 ~~~java
-// Interface Java, mảnh minh họa.
+// Java interface, illustrative snippet.
 public interface Formatter {
     String format(String name);
 }
 ~~~
 
 ~~~java
-// Mảnh minh họa: trước đó engine đã eval script
-// định nghĩa function format(name).
+// Illustrative snippet: previously the engine evaluated a script
+// defining function format(name).
 if (engine instanceof Invocable invocable) {
     Formatter formatter = invocable.getInterface(Formatter.class);
 
@@ -737,24 +737,24 @@ if (engine instanceof Invocable invocable) {
 }
 ~~~
 
-Biến **Formatter** có các method được code Java biết trước; adapter có thể giúp tránh lặp tên hàm chuỗi ở những lời gọi nghiệp vụ. Tuy nhiên **getInterface** vẫn thuộc interface **Invocable**, và **kết quả có thể null**. Không phải mọi engine đều cài đặt cơ chế proxy giống nhau; các method cụ thể phải được script định nghĩa tương ứng.
+The **Formatter** variable exposes methods known statically to Java code; the adapter can help avoid repeating string function names in business calls. However, **getInterface** still belongs to the **Invocable** interface, and **the return value may be null**. Not every engine implements proxying the same way; the specific methods must be defined appropriately by the script.
 
-Với script object có method, dùng **getInterface(scriptObject, Formatter.class)** nếu engine hỗ trợ. Đối tượng **scriptObject** phải thuộc đúng engine/state. Khi interface class không phải interface hoặc object không hợp lệ, **IllegalArgumentException** có thể xảy ra.
+For a script object with methods, use **getInterface(scriptObject, Formatter.class)** if supported by the engine. The **scriptObject** must belong to the same engine and state. When the class argument is not an interface or the object is invalid, **IllegalArgumentException** may be thrown.
 
-**Không nhầm:** **instanceof Invocable** kiểm tra engine có năng lực *gọi script*. **getInterface(...) != null** kiểm tra riêng liệu engine có thể cung cấp *adapter sang một Java interface cụ thể* trong trạng thái hiện tại.
+**Do not confuse them:** **instanceof Invocable** checks whether the engine has the capability to *invoke script functions/methods*. **getInterface(...) != null** specifically checks whether the engine can supply *an adapter to a particular Java interface* in its current state.
 
-## 12. Lỗi thiết kế và cách sửa
+## 12. Design Mistakes and How to Fix Them
 
-### 12.1. Cast thẳng mà không kiểm tra
+### 12.1. Casting Directly Without Checking
 
 ~~~java
 // Anti-pattern:
 Invocable inv = (Invocable) manager.getEngineByName("javascript");
 ~~~
 
-**Sửa:** nhận ScriptEngine, kiểm tra null, dùng **instanceof Invocable inv** rồi mới gọi.
+**Fix:** obtain ScriptEngine, check for null, use **instanceof Invocable inv**, and only then invoke.
 
-### 12.2. Kiểm tra engine tồn tại nhưng bỏ qua capability
+### 12.2. Checking Engine Presence While Skipping Capability Check
 
 ~~~java
 // Anti-pattern:
@@ -763,157 +763,157 @@ if (engine != null) {
 }
 ~~~
 
-**Sửa:** kiểm tra interface Invocable riêng. Một engine có thể eval thành công mà vẫn thiếu API invocation.
+**Fix:** check the Invocable interface separately. An engine can evaluate scripts successfully yet still lack the invocation API.
 
-### 12.3. Gọi trước khi eval script
+### 12.3. Invoking Before Evaluating the Script
 
 ~~~java
-// Anti-pattern: chưa đăng ký hàm trong state engine.
+// Anti-pattern: function not yet registered in engine state.
 invocable.invokeFunction("greet", "Java");
 engine.eval("function greet(name) { return name; }");
 ~~~
 
-**Sửa:** eval trước, invoke sau. Nếu source được biên dịch/preload qua cơ chế khác, vẫn cần bảo đảm hàm đã có mặt trong context engine đang dùng.
+**Fix:** eval first, invoke after. Even if source is compiled or preloaded via another mechanism, ensure the function is present in the active engine context.
 
-### 12.4. Nhầm hàm top-level với method trên object
+### 12.4. Confusing Top-Level Functions with Object Methods
 
 ~~~java
-// Không tương đương:
+// Not equivalent:
 invocable.invokeFunction("greet", "Java");
 invocable.invokeMethod(scriptObject, "greet", "Java");
 ~~~
 
-Hai lời gọi tìm hàm ở hai vị trí khác nhau. Nếu script định nghĩa **formatter.greet**, cần một **formatter object** hợp lệ để invokeMethod; nếu định nghĩa **function greet**, invokeFunction phù hợp hơn.
+These two calls search for functions in different places. If the script defines **formatter.greet**, you need a valid **formatter object** for invokeMethod; if it defines **function greet**, invokeFunction is appropriate.
 
-### 12.5. Tin rằng getInterface không bao giờ null
+### 12.5. Assuming getInterface Is Never null
 
 ~~~java
-// Anti-pattern: có thể null.
+// Anti-pattern: may be null.
 Formatter formatter = invocable.getInterface(Formatter.class);
 formatter.format("Java");
 ~~~
 
-**Sửa:** kiểm tra **formatter != null** và có fallback/error rõ ràng khi adapter không khả dụng.
+**Fix:** check **formatter != null** and provide a clear fallback or error when the adapter is unavailable.
 
-### 12.6. Coi Java 17 luôn có engine "javascript"
+### 12.6. Assuming Java 17 Always Has a "javascript" Engine
 
-Từ Java 15, Nashorn không còn đi kèm JDK. Trên JDK 17, nếu không có JavaScript provider ngoài, **getEngineByName("javascript")** trả null. **Sửa:** khai báo dependency của engine trong runtime, dùng tên từ **getEngineFactories()**, kiểm tra trước khi sử dụng và có đường lỗi rõ.
+Since Java 15, Nashorn is no longer bundled with the JDK. On JDK 17, without an external JavaScript provider, **getEngineByName("javascript")** returns null. **Fix:** declare the engine dependency in the runtime, use names from **getEngineFactories()**, validate before use, and provide a clear error path.
 
-### 12.7. Trộn object từ nhiều ScriptEngine
+### 12.7. Mixing Objects Across Multiple ScriptEngines
 
-Một script object từ engine A không mặc nhiên có thể dùng làm **thiz** cho Invocable của engine B. Ngay cả khi hai engine cùng hỗ trợ một ngôn ngữ, wrapper/identity/state có thể khác. **Sửa:** giữ engine, ScriptContext và script object theo cùng một phiên sử dụng.
+A script object from engine A cannot automatically be used as **thiz** for engine B's Invocable. Even if both engines support the same language, wrappers, object identity, and state may differ. **Fix:** keep the engine, ScriptContext, and script objects within the same usage session.
 
-### 12.8. Dùng một engine stateful đồng thời không kiểm soát
+### 12.8. Using a Stateful Engine Concurrently Without Control
 
-Đối tượng engine có thể chứa biến, scope, bindings và trạng thái ngôn ngữ. Không giả định mọi ScriptEngine thread-safe. Tham số **THREADING** trong ScriptEngineFactory.getParameter(...) cung cấp thông tin theo hợp đồng provider; cần đọc tài liệu engine và dùng pooling/serialization/context isolation tương ứng. Kiểm tra **Invocable** không phải một phép kiểm tra thread safety.
+An engine instance can hold variables, scopes, bindings, and language state. Do not assume every ScriptEngine is thread-safe. The **THREADING** parameter in ScriptEngineFactory.getParameter(...) supplies information per the provider's contract; read the engine documentation and apply pooling, serialization, or context isolation accordingly. Checking **Invocable** is not a thread-safety check.
 
-## 13. Tại sao engine và hàm có thể “biến mất”?
+## 13. Why Can an Engine or Function "Disappear"?
 
-Trong ứng dụng plugin/runtime-extensibility, lỗi Invocable thường gắn với khâu tìm provider hoặc trạng thái của engine, không chỉ cú pháp Java.
+In plugin/runtime-extensibility applications, Invocable failures are often tied to provider discovery or engine state rather than Java syntax alone.
 
-**Không tìm thấy engine:** ScriptEngineManager phát hiện factories bằng cơ chế provider (ServiceLoader). Classpath, module path, Thread Context ClassLoader và registration có thể ảnh hưởng danh sách factory. In **manager.getEngineFactories()** để biết engine nào thực sự khả kiến.
+**Engine not found:** ScriptEngineManager discovers factories via the provider mechanism (ServiceLoader). Classpath, module path, Thread Context ClassLoader, and registration can all affect the factory list. Print **manager.getEngineFactories()** to see which engines are actually visible.
 
-**Engine không hỗ trợ Invocable:** Một interpreter có thể thực hiện script qua **eval(...)** nhưng không cho host gọi trực tiếp hàm theo tên hoặc không có object model phù hợp để gọi member. Đây là thiết kế hợp lệ; host cần fallback như **engine.eval("...")** với bindings phù hợp (nếu engine cho phép) hoặc đổi engine.
+**Engine does not support Invocable:** An interpreter may execute scripts via **eval(...)** without letting the host call functions directly by name or without an object model suitable for member invocation. That is a valid design; the host needs a fallback such as **engine.eval("...")** with appropriate bindings (if allowed by the engine) or a different engine.
 
-**Đã eval nhưng không thấy hàm:** Script có thể định nghĩa hàm cục bộ, không xuất ra global scope; script chạy với context khác; hàm bị ghi đè; hoặc tên/arity/type conversion không tương thích. Kiểm tra script language semantics và đúng state, không tự cho rằng mỗi function declaration luôn top-level.
+**Evaluated but function not visible:** The script may have defined a local function rather than exporting it to global scope; the script ran under a different context; the function was overwritten; or name/arity/type conversion is incompatible. Inspect the script language semantics and exact state instead of assuming every function declaration is top-level.
 
-**invokeMethod không chấp nhận receiver:** Object không thuộc interpreter, là null, hoặc không còn được engine giữ/nhận diện. Tái sử dụng object trả về từ cùng engine/session thay vì tạo một POJO tùy tiện.
+**invokeMethod rejects the receiver:** The object does not belong to the interpreter, is null, or is no longer retained/recognized by the engine. Reuse the object returned from the same engine/session instead of creating an arbitrary POJO.
 
-**Phụ thuộc engine thay đổi:** Nâng cấp JDK, di chuyển JAR hoặc thay engine provider có thể thay đổi alias, hỗ trợ Invocable và kiểu dữ liệu bridge. Cần kiểm thử lại tích hợp thay vì giả định JSR 223 bảo đảm cú pháp/semantics của từng ngôn ngữ.
+**Engine dependencies changed:** Upgrading the JDK, relocating JARs, or changing engine providers can alter aliases, Invocable support, and bridged data types. Re-test integrations instead of assuming JSR 223 guarantees language-specific syntax or semantics.
 
-## 14. Bảo mật, tài nguyên và giới hạn thực tế
+## 14. Security, Resources, and Practical Limits
 
-**Invocable không phải sandbox.** Khi gọi **eval**, **invokeFunction** hoặc **invokeMethod**, host có thể cho chạy code script ngay trong process, tùy quyền và cơ chế của engine. Nếu script do người dùng hoặc nguồn không tin cậy cung cấp, cần thiết kế ranh giới bảo mật, cấp quyền và cô lập từ đầu. Đặc biệt:
+**Invocable is not a sandbox.** When calling **eval**, **invokeFunction**, or **invokeMethod**, the host may execute script code directly in-process depending on the engine's permissions and mechanisms. If scripts come from users or untrusted sources, design security boundaries, permissions, and isolation from the start. Specifically:
 
-- Không cung cấp các Java object chứa secret, database connection hoặc API nội bộ cho script qua bindings nếu không cần thiết.
-- Không cho script tự do truy cập class/runtime host trong engine có Java interop mà không kiểm soát.
-- Xác định thời gian tối đa, bộ nhớ và cancellation policy; API Invocable **không tự cung cấp timeout**.
-- Quản lý state và resource của ScriptEngine: nhiều engine có cache, thread hoặc context riêng; vòng đời phải theo tài liệu implementation.
-- Khi cần chạy mã không tin cậy, cách ly bằng process/container hoặc môi trường chuyên dụng; không mặc định classloader hay kiểm tra Invocable mang lại bảo mật.
-- Không ghi log nguyên nội dung script chứa dữ liệu riêng tư; log tên engine, capability, lỗi và một định danh truy vết khi thích hợp.
+- Do not expose Java objects containing secrets, database connections, or internal APIs to scripts via bindings unless necessary.
+- Do not let scripts freely access host classes or runtime APIs in engines with Java interop without strict controls.
+- Define maximum execution time, memory limits, and cancellation policies; the Invocable API **does not provide built-in timeouts**.
+- Manage ScriptEngine state and resources: many engines maintain internal caches, threads, or contexts; lifecycle management must follow the implementation's documentation.
+- When untrusted code must run, isolate it in a separate process/container or dedicated environment; never assume a class loader or Invocable check provides security.
+- Do not log raw script contents containing private data; log the engine name, capability, error, and a trace identifier where appropriate.
 
-Về mặt thiết kế API host, có thể bọc ScriptEngine/Invocable sau một interface nghiệp vụ **ScriptRunner** để caller không cần biết từng engine. Trong adapter, làm null guard, instanceof guard, eval và xử lý exception tại một điểm thống nhất.
+In host API design, you can wrap ScriptEngine/Invocable behind a domain interface like **ScriptRunner** so callers do not need to know about individual engines. Inside the adapter, perform the null guard, instanceof guard, eval, and exception mapping in one unified place.
 
-## 15. Kiểm thử cần thiết
+## 15. Essential Tests
 
-### Test 1. Không có ScriptEngine
+### Test 1. Missing ScriptEngine
 
-Giả lập **getEngineByName(...)** trả null hoặc chạy trên môi trường không có provider: host phải trả trạng thái **MISSING_ENGINE**, không được ném NullPointerException do invoke trên null. Đây là trường hợp rất thực tế với JavaScript trên JDK 17 thuần.
+Simulate **getEngineByName(...)** returning null or run in an environment without a provider: the host must return a **MISSING_ENGINE** status and must not throw NullPointerException from invoking on null. This is a very real scenario with JavaScript on plain JDK 17.
 
-### Test 2. Engine hỗ trợ eval nhưng không implements Invocable
+### Test 2. Engine Supports eval but Does Not Implement Invocable
 
-Cung cấp một fake ScriptEngine chỉ implement phần eval (không implement Invocable). Guard phải trả **UNSUPPORTED_CAPABILITY** hoặc đi vào fallback thích hợp, không ném ClassCastException.
+Supply a fake ScriptEngine that only implements eval (not Invocable). The guard must return **UNSUPPORTED_CAPABILITY** or take the appropriate fallback without throwing ClassCastException.
 
-### Test 3. Engine implements Invocable và script đã định nghĩa hàm
+### Test 3. Engine Implements Invocable and Script Defines a Function
 
-Eval một script hợp lệ rồi gọi **invokeFunction**. Kiểm tra đối số được chuyển đúng, kết quả được xử lý theo hợp đồng và không có lỗi.
+Evaluate a valid script and call **invokeFunction**. Verify arguments are passed properly, the result is handled per contract, and no errors occur.
 
-### Test 4. Gọi member method trên đúng đối tượng script
+### Test 4. Calling a Member Method on the Correct Script Object
 
-Lấy script object từ cùng engine/session; gọi **invokeMethod(scriptObject, ...)**. Kiểm tra tên method đúng và phân biệt nó với hàm top-level.
+Retrieve the script object from the same engine/session; call **invokeMethod(scriptObject, ...)**. Verify the method name is correct and distinguish it from a top-level function.
 
-### Test 5. Hàm/method không tồn tại
+### Test 5. Non-Existent Function or Method
 
-Gọi một tên sai hoặc một dạng đối số không phù hợp; xác minh **NoSuchMethodException** được phân loại và báo rõ.
+Invoke an invalid name or incompatible argument form; verify **NoSuchMethodException** is categorized and reported clearly.
 
-### Test 6. Lỗi bên trong script
+### Test 6. Error Inside the Script
 
-Dùng script cố ý ném lỗi; xác minh **ScriptException** được xử lý, không bị nhầm với “engine missing” hay “function missing”.
+Use a script that intentionally throws an error; verify **ScriptException** is handled and not confused with "engine missing" or "function missing."
 
-### Test 7. getInterface không có adapter
+### Test 7. getInterface Has No Adapter
 
-Ngay cả khi Invocable tồn tại, **getInterface** có thể trả null. Kiểm thử nhánh này để không có NullPointerException khi caller dùng proxy.
+Even when Invocable is present, **getInterface** can return null. Test this branch so callers using proxies do not hit NullPointerException.
 
-### Test 8. Engine version và trạng thái
+### Test 8. Engine Versions and State
 
-Chạy cùng bộ test trên từng engine/version mà ứng dụng thực tế hỗ trợ. Kiểm tra cách bridge Object, state khi eval nhiều lần, đóng tài nguyên và an toàn luồng.
+Run the same test suite across each engine/version the application actually supports. Verify Object bridging, state across repeated evals, resource closing, and thread safety.
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-Check Questions
 
-**Câu 1.** ScriptEngine eval được script có chắc implements Invocable không?
+**Question 1.** Is a ScriptEngine that can eval scripts guaranteed to implement Invocable?
 
-**Đáp án:** Không. Invocable là interface **tùy chọn**. Phải kiểm tra **engine instanceof Invocable** trước khi cast/gọi.
+**Answer:** No. Invocable is an **optional** interface. You must check **engine instanceof Invocable** before casting/invoking.
 
-**Câu 2.** Vì sao cần kiểm tra engine null riêng, dù instanceof null trả false?
+**Question 2.** Why check engine for null separately, even though instanceof on null returns false?
 
-**Đáp án:** Null thể hiện **không có ScriptEngine**, khác với **engine tồn tại nhưng không hỗ trợ Invocable**. Phân biệt giúp chẩn đoán và chọn phương án thay thế đúng.
+**Answer:** Null indicates **no ScriptEngine was found**, which is different from **an engine exists but does not support Invocable**. Separating them aids diagnostics and choosing the right fallback.
 
-**Câu 3.** Khi nào dùng invokeFunction thay vì invokeMethod?
+**Question 3.** When do you use invokeFunction instead of invokeMethod?
 
-**Đáp án:** Dùng invokeFunction với hàm top-level; invokeMethod cần một script object (thiz) và tên member method trên object ấy.
+**Answer:** Use invokeFunction for top-level functions; invokeMethod requires a script object (thiz) and the name of a member method on that object.
 
-**Câu 4.** instanceof Invocable có chứng minh hàm "calculate" đã tồn tại không?
+**Question 4.** Does instanceof Invocable prove the "calculate" function already exists?
 
-**Đáp án:** Không. Nó chỉ chứng minh engine hỗ trợ API gọi script. Hàm phải được định nghĩa trong state và có tên/đối số thích hợp; nếu không có, NoSuchMethodException có thể xảy ra.
+**Answer:** No. It only proves the engine supports the invocation API. The function must be defined in state with a matching name and arguments; otherwise NoSuchMethodException may occur.
 
-**Câu 5.** Engine implements Invocable thì getInterface(Formatter.class) chắc chắn trả Formatter chứ?
+**Question 5.** If an engine implements Invocable, is getInterface(Formatter.class) guaranteed to return a Formatter?
 
-**Đáp án:** Không. Nó có thể trả null nếu các hàm/method cần thiết không có hoặc engine không cung cấp adapter cho interface đó.
+**Answer:** No. It can return null if the required functions/methods are absent or the engine does not supply an adapter for that interface.
 
-**Câu 6.** Trên JDK 17, getEngineByName("javascript") luôn khác null không?
+**Question 6.** On JDK 17, is getEngineByName("javascript") always non-null?
 
-**Đáp án:** Không. Nashorn đã bị loại khỏi JDK từ Java 15; cần kiểm tra JavaScript engine provider có được cài và phát hiện hay chưa.
+**Answer:** No. Nashorn was removed from the JDK starting in Java 15; you must check whether a JavaScript engine provider is installed and discovered.
 
-**Câu 7.** Có thể dùng script object từ engine A làm thiz cho engine B không?
+**Question 7.** Can a script object from engine A be used as thiz for engine B?
 
-**Đáp án:** Không có bảo đảm. Object phải do Invocable của engine được gọi nhận biết; nên sử dụng cùng engine và state.
+**Answer:** There is no guarantee. The object must be recognized by the Invocable of the engine being called; keep to the same engine and state.
 
-## 17. Checklist triển khai
+## 17. Implementation Checklist
 
-1. **Phát hiện engine:** kiểm tra getEngineByName(...) có kết quả, ghi nhận engine name/version/alias từ ScriptEngineFactory.
-2. **Guard capability:** chỉ cast/gọi khi **engine instanceof Invocable**.
-3. **Chuẩn bị state:** eval đúng script trong đúng engine/context trước khi invoke.
-4. **Chọn đúng API:** invokeFunction cho top-level, invokeMethod cho member và receiver là script object thực.
-5. **Xử lý kiểu:** kết quả **Object** cần validation/conversion theo hợp đồng, không cast mù.
-6. **Phân loại lỗi:** thiếu engine, thiếu Invocable, ScriptException, NoSuchMethodException, receiver không hợp lệ và proxy getInterface null là các nhánh khác nhau.
-7. **Kiểm soát provider:** Java 17 không mặc định đi kèm Nashorn; dependency và tên engine phải được quản lý tường minh.
-8. **Quản lý state/threading:** không tái dùng engine hay script object qua nhiều context/thread mà không có hợp đồng rõ.
-9. **An ninh:** không cho script không tin cậy chạy trong JVM host nếu không có cách ly phù hợp.
-10. **Kiểm thử:** bao phủ nhánh engine null, engine không Invocable, gọi đúng hàm/method, tên sai, lỗi script và khác biệt giữa các engine/version.
+1. **Discover the engine:** verify getEngineByName(...) returns a result; record engine name/version/aliases from ScriptEngineFactory.
+2. **Guard capability:** cast/invoke only when **engine instanceof Invocable**.
+3. **Prepare state:** evaluate the right script in the right engine/context before invoking.
+4. **Pick the right API:** invokeFunction for top-level functions, invokeMethod for members with a genuine script object receiver.
+5. **Handle types:** returned **Object** values need contract-based validation/conversion, never blind casts.
+6. **Categorize errors:** missing engine, missing Invocable, ScriptException, NoSuchMethodException, invalid receiver, and null getInterface proxy are separate branches.
+7. **Control providers:** Java 17 does not bundle Nashorn by default; engine dependencies and names must be managed explicitly.
+8. **Manage state/threading:** do not reuse an engine or script object across contexts/threads without an explicit contract.
+9. **Security:** do not let untrusted scripts run inside the host JVM without proper isolation.
+10. **Testing:** cover null engine, non-Invocable engine, valid function/method calls, missing names, script errors, and differences across engines/versions.
 
-**Điểm nhớ cuối:** **ScriptEngine** là cơ chế đánh giá script; **Invocable** là khả năng tùy chọn để Java gọi các hàm hoặc phương thức đã được script định nghĩa. Trước khi invoke, luôn xác nhận **engine tồn tại**, **implements Invocable**, **script/state đã sẵn sàng** và **đúng mục tiêu top-level hay member**. Kiểm tra capability giúp tránh lỗi ép kiểu, nhưng không thay thế việc kiểm tra tên hàm, receiver, kết quả và xử lý ngoại lệ.
+**Final takeaway:** **ScriptEngine** is the script evaluation mechanism; **Invocable** is an optional capability allowing Java to invoke script-defined functions or methods. Before invoking, always confirm **the engine exists**, **implements Invocable**, **the script/state is ready**, and **whether the target is top-level or a member**. Checking capabilities prevents cast errors, but does not replace validating function names, receivers, return values, and exceptions.
 
-### Tài liệu chính thức
+### Official Documentation
 
 - Oracle Java SE 17 API — Invocable: https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/Invocable.html
 - Oracle Java SE 17 API — ScriptEngine: https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngine.html

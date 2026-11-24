@@ -1,53 +1,53 @@
-# 4.6 Phân biệt lệnh quan sát với lệnh có thể gây GC, dump hoặc thay đổi trạng thái
+# 4.6 Distinguishing Observation Commands from Commands That Trigger GC, Dumps, or State Changes
 
-## Mục tiêu học tập
+## Learning objectives
 
-`jcmd` là công cụ trong JDK dùng để gửi **diagnostic command** tới một JVM đang chạy. Không phải lệnh `jcmd` nào cũng chỉ “đọc thông tin”: một số lệnh có thể yêu cầu garbage collection (GC), thu thập dữ liệu trên toàn heap, tạo file lớn, bật/tắt ghi JFR, thay đổi cấu hình logging hoặc sửa một flag có thể điều chỉnh lúc chạy.
+`jcmd` is a JDK tool used to send **diagnostic commands** to a running JVM. Not every `jcmd` command merely "reads information": some commands can request garbage collection (GC), scan the entire heap, create large files, start/stop JFR recordings, alter logging configuration, or modify a runtime-manageable flag.
 
-Bài học này giúp bạn:
+This lesson helps you:
 
-- Phân biệt **ý định quan sát**, **chi phí thu thập bằng chứng** và **tác dụng làm thay đổi trạng thái** của một lệnh.
-- Nhận diện các nhóm lệnh phổ biến trên **HotSpot/JDK 17+**: `VM.*`, `Thread.print`, `GC.*` và `JFR.*`.
-- Biết vì sao nhãn **Impact: Low/Medium/High** trong phần trợ giúp không đồng nghĩa “read-only” hoặc “luôn an toàn khi production có tải”.
-- Chọn chuỗi thao tác từ ít xâm lấn đến xâm lấn hơn, giữ bằng chứng ban đầu trước khi dùng lệnh có thể làm lệch hiện tượng.
-- Ước lượng rủi ro pause, CPU, memory, I/O, ổ đĩa, lộ dữ liệu và thay đổi runtime, rồi ghi lại mọi can thiệp để diễn giải kết quả chẩn đoán.
-- Thực hành với một JVM Java 17 do chính mình khởi chạy, tách rõ ví dụ quan sát với ví dụ chỉ nên thử trong môi trường lab.
+- Distinguish **observation intent**, **evidence-collection cost**, and **state-changing effects** of a command.
+- Recognize common command groups on **HotSpot/JDK 17+**: `VM.*`, `Thread.print`, `GC.*`, and `JFR.*`.
+- Understand why **Impact: Low/Medium/High** in help output does not mean "read-only" or "always safe under production load".
+- Choose an action sequence moving from least intrusive to more intrusive, preserving baseline evidence before running commands that can skew the phenomenon.
+- Estimate risks across pauses, CPU, memory, I/O, disk, data exposure, and runtime changes, and document every intervention to interpret diagnostic results accurately.
+- Practice on a Java 17 JVM launched by yourself, clearly separating observation examples from examples meant only for lab environments.
 
-## 1. Ba câu hỏi phải đặt ra trước mỗi lệnh
+## 1. Three questions to ask before every command
 
-Một thao tác chẩn đoán có thể thuộc nhiều nhóm cùng lúc. Để đánh giá đúng, tách ba câu hỏi độc lập:
+A diagnostic operation can fall into multiple categories at once. To evaluate it accurately, separate three independent questions:
 
-1. **Lệnh nhằm mục đích gì?** Đọc cấu hình, xem trạng thái, thu snapshot, tạo recording, hay chủ động làm JVM thực hiện một hành động?
-2. **Lệnh tốn tài nguyên đến mức nào?** Công việc đó có buộc JVM đi qua nhiều thread/đối tượng, tạm dừng hoặc đồng bộ tại một điểm nhất quán, cấp phát bộ đệm, ghi file lớn hay tăng CPU/I/O không?
-3. **Lệnh thay đổi điều gì?** Có gọi GC, làm thay đổi tập object sống, tạo/sửa file, bật sampling, xoay log, bật remote management agent hoặc thay một flag đang có hiệu lực không?
+1. **What is the command's purpose?** Reading configuration, checking status, capturing a snapshot, creating a recording, or actively making the JVM perform an action?
+2. **How expensive is the command?** Does the work force the JVM to walk many threads/objects, pause or synchronize at a safepoint, allocate buffers, write large files, or spike CPU/I/O?
+3. **What does the command change?** Does it invoke GC, alter live object sets, create/modify files, enable sampling, rotate logs, start a remote management agent, or change an active flag?
 
-Ví dụ `VM.version` chủ yếu đọc thông tin phiên bản và có chi phí thấp. Ngược lại, `GC.heap_dump` tạo file HPROF dung lượng có thể rất lớn; trên JDK 17, mặc định lệnh này **yêu cầu full GC**, trừ khi chỉ định `-all`. Như vậy cùng được gọi là “diagnostic command” nhưng hai lệnh có tác động rất khác nhau.
+For example, `VM.version` primarily reads version info at low cost. Conversely, `GC.heap_dump` writes a potentially huge HPROF file; on JDK 17, by default it **requests a full GC** unless `-all` is specified. Thus, both are called "diagnostic commands", yet their impacts differ drastically.
 
-Đặc biệt: lệnh được tài liệu gắn **Impact: Low** vẫn có thể **thay đổi trạng thái có chủ đích**. `VM.set_flag` được mô tả là lệnh đặt lại một VM flag, `VM.log` có thể đổi log output, `JFR.start` có thể bắt đầu một recording và `ManagementAgent.start` có thể mở remote management. “Low” là đánh giá **chi phí/ảnh hưởng vận hành dự kiến của việc thực hiện lệnh**, không phải cam kết “không ghi, không thay trạng thái”.
+Specifically: a command documented with **Impact: Low** can still **intentionally change state**. `VM.set_flag` is described as setting a VM flag, `VM.log` can change log output, `JFR.start` can start a recording, and `ManagementAgent.start` can open remote management. "Low" assesses the **expected operational cost/impact of executing the command itself**, not a promise of "no writes, no state changes".
 
-## 2. Bốn nhóm hành vi để phân loại lệnh
+## 2. Four behavioral categories for classifying commands
 
-| Nhóm theo hành vi | Ví dụ JDK 17 | Bạn đang làm gì? | Điều vẫn phải cân nhắc |
+| Behavioral category | JDK 17 examples | What are you doing? | What still needs attention? |
 | --- | --- | --- | --- |
-| **A. Chủ yếu quan sát** | `VM.version`, `VM.uptime`, `VM.flags`, `VM.command_line`, `JFR.check` | Đọc metadata, flag, tình trạng recording | Attach có chi phí; output có thể chứa thông tin nhạy cảm |
-| **B. Thu snapshot có chi phí** | `Thread.print`, `GC.heap_info`, `VM.native_memory summary`, `GC.class_histogram` | Đi qua thread/heap/native metadata để xuất thông tin | Có thể tạo pause, tải CPU, output lớn; histogram được tài liệu đánh giá Impact: High |
-| **C. Tạo artifact hoặc hoạt động ghi dữ liệu** | `JFR.dump`, `GC.heap_dump`, `JFR.start` | Ghi JFR/HPROF hoặc bắt đầu thu thập liên tục | Đĩa, dữ liệu nhạy cảm, sampling overhead, GC và vòng đời recording |
-| **D. Can thiệp trạng thái JVM** | `GC.run`, `VM.set_flag`, `VM.log` khi cấu hình, `JFR.stop`, `ManagementAgent.start` | Yêu cầu GC, đổi flag/log, kết thúc recording hoặc khởi động agent | Làm thay đổi điều kiện đo và hành vi tiến trình, cần phân biệt tác động mong muốn với side effect |
+| **A. Primarily observational** | `VM.version`, `VM.uptime`, `VM.flags`, `VM.command_line`, `JFR.check` | Reading metadata, flags, recording state | Attach has cost; output may contain sensitive info |
+| **B. Costly snapshot collection** | `Thread.print`, `GC.heap_info`, `VM.native_memory summary`, `GC.class_histogram` | Traversing threads/heap/native metadata to emit info | Can cause pauses, CPU load, large output; histogram is documented as Impact: High |
+| **C. Artifact creation or data capture** | `JFR.dump`, `GC.heap_dump`, `JFR.start` | Writing JFR/HPROF or starting continuous capture | Disk, sensitive data, sampling overhead, GC, and recording lifecycle |
+| **D. JVM state intervention** | `GC.run`, `VM.set_flag`, `VM.log` when configuring, `JFR.stop`, `ManagementAgent.start` | Requesting GC, changing flags/logs, ending recordings, or starting agents | Alters measurement conditions and process behavior; separate intended effect from side effects |
 
-Đây là **phân loại theo mục đích vận hành**, không phải bốn nhóm loại trừ nhau. `GC.heap_dump` vừa là snapshot nặng vừa có thể kích hoạt GC; `JFR.dump` ghi file nhưng không mặc định dừng recording; `VM.log` có thể chỉ liệt kê cấu hình nếu dùng `list`, nhưng cũng có các tùy chọn thật sự thay đổi logging.
+This is a **classification by operational intent**, not four mutually exclusive buckets. `GC.heap_dump` is both a heavy snapshot and can trigger GC; `JFR.dump` writes a file yet does not stop the recording by default; `VM.log` can merely list config when using `list`, yet also has options that genuinely alter logging.
 
-Để tránh nhầm, đặt hai nhãn riêng khi lập kế hoạch:
+To avoid confusion, apply two separate labels when planning:
 
-- **Impact do JVM mô tả:** Low/Medium/High theo output `jcmd <PID> help <COMMAND>` hoặc tài liệu của bản JDK.
-- **Operational effect:** đọc thông tin / thu thập chi phí đáng kể / ghi artifact / thay đổi runtime state, cùng dự kiến CPU, pause, I/O và dữ liệu phát sinh.
+- **JVM-documented Impact:** Low/Medium/High per `jcmd <PID> help <COMMAND>` or that JDK's docs.
+- **Operational effect:** reading info / costly collection / writing artifacts / mutating runtime state, along with expected CPU, pauses, I/O, and generated data.
 
-Với cùng một lệnh, mức ảnh hưởng thực tế còn phụ thuộc **bản JDK/vendor, kích thước heap, số lượng threads/classes, workload, loại GC, tốc độ ổ đĩa và cấu hình đang bật**. Không biến một nhãn tài liệu thành một con số “pause tối đa” khi chưa có phép đo.
+For the exact same command, real impact also depends on **JDK/vendor build, heap size, thread/class counts, workload, GC algorithm, disk speed, and active flags**. Never turn a documentation label into a fixed "max pause" number without measuring.
 
-## 3. Nhận diện đúng JVM và xem trợ giúp trước khi thực thi
+## 3. Identify the right JVM and check help before executing
 
-Ví dụ dưới đây giả định bạn có **JDK 17+ và JVM mục tiêu thuộc quyền quản lý hợp lệ**. Trên máy có nhiều JVM, luôn xác nhận đúng PID, lệnh khởi động và môi trường.
+Examples below assume you have **JDK 17+ and a target JVM under valid administrative control**. On hosts with multiple JVMs, always verify the exact PID, launch command, and environment.
 
-Trên hệ điều hành có hỗ trợ, bắt đầu bằng:
+On supported operating systems, begin with:
 
 ```bash
 jcmd -l
@@ -57,31 +57,31 @@ jcmd <PID> help GC.heap_dump
 jcmd <PID> help GC.run
 ```
 
-Trong các ví dụ shell, `<PID>` là **ký hiệu cần thay bằng PID số thực**, không phải chuỗi gõ nguyên văn. Cú pháp chính xác và mức Impact cần xem trên **JVM mục tiêu**; các lệnh có thể không khả dụng hoặc khác option giữa các JDK.
+In shell examples, `<PID>` is a **placeholder to replace with a real numeric PID**, not a literal string. Exact syntax and Impact level must be checked on the **target JVM**; commands may be unavailable or have different options across JDKs.
 
-Những điều cần biết trước khi attach:
+Things to know before attaching:
 
-- `jcmd` gửi yêu cầu tới JVM đang chạy trên cùng máy/không gian attach phù hợp; thông thường cần effective user/group phù hợp với tiến trình mục tiêu.
-- `jcmd -l` có thể không liệt kê JVM nằm trong container/namespace khác. Khi đó phải xác định PID bằng công cụ quản lý container/process thích hợp; không suy ra JVM không tồn tại.
-- `jcmd 0 <COMMAND>` có khả năng gửi yêu cầu tới **nhiều Java process**, nên không dùng cho thao tác có side effect; chỉ làm việc với **PID đã xác minh**.
-- JDK tools có thể không có trong runtime image tối giản; cơ chế attach có thể bị vô hiệu hóa và quyền truy cập có thể hạn chế. Không tự suy từ một lỗi attach thành “JVM đang treo”.
-- Ghi **PID, container/pod, start time, JVM vendor/version, thời gian và mục đích**; PID có thể được tái sử dụng sau restart nên cần gắn với identity của tiến trình.
+- `jcmd` sends requests to a running JVM on the same machine/attach scope; normally requires matching effective user/group with the target process.
+- `jcmd -l` may not list JVMs in another container/namespace. When that happens, find the PID with appropriate container/process tools; do not conclude the JVM does not exist.
+- `jcmd 0 <COMMAND>` can broadcast the request to **multiple Java processes**, so never use it for actions with side effects; work only with a **verified PID**.
+- JDK tools may be missing in minimal runtime images; the attach mechanism may be disabled and permissions restricted. Do not jump from an attach error to "the JVM is hung".
+- Record **PID, container/pod, start time, JVM vendor/version, timestamp, and purpose**; PIDs can be reused after a restart, so tie them to process identity.
 
-`jcmd <PID> help <COMMAND>` hiển thị mô tả, quyền yêu cầu, option và nhãn Impact đối với JVM hỗ trợ command đó. Luôn xem **option cụ thể** vì cùng tên lệnh nhưng hai chế độ có thể khác hành vi đáng kể.
+`jcmd <PID> help <COMMAND>` shows the description, required permission, options, and Impact label for a JVM supporting that command. Always check **specific options**, because two modes of the same command can behave very differently.
 
-## 4. Các lệnh chủ yếu quan sát: bắt đầu bằng gì?
+## 4. Primarily observational commands: what to start with?
 
-| Lệnh | Thông tin thu được | Mức Impact trong tài liệu JDK 17 | Chú ý |
+| Command | Information gathered | Impact in JDK 17 docs | Notes |
 | --- | --- | --- | --- |
-| `VM.version` | Phiên bản JVM/VM | Low | Phù hợp bước xác nhận target |
-| `VM.uptime` | Thời gian JVM chạy | Low | Giúp nhận ra process vừa restart |
-| `VM.command_line` | Command line dùng để khởi chạy JVM | Low | Có thể hiện argument/đường dẫn nhạy cảm |
-| `VM.flags` | Giá trị flags đang sử dụng | Low | Đọc flags, không thay flags |
-| `VM.system_properties` | Java system properties | Low | Có thể chứa token, URL kết nối, dữ liệu cấu hình riêng |
-| `JFR.check` | Danh sách/thông tin recording đang chạy | Low | Không tự bắt đầu recording |
-| `VM.log list` | Cấu hình logging hiện có | Lệnh `VM.log` được ghi Low | `list` là thao tác xem; các option khác có thể sửa logging |
+| `VM.version` | JVM/VM version | Low | Suitable for target confirmation |
+| `VM.uptime` | JVM uptime | Low | Helps spot recent process restarts |
+| `VM.command_line` | Command line used to launch the JVM | Low | May expose sensitive arguments/paths |
+| `VM.flags` | Active flag values | Low | Reads flags, does not alter flags |
+| `VM.system_properties` | Java system properties | Low | May contain tokens, connection URLs, private config |
+| `JFR.check` | List/details of running recordings | Low | Does not start a recording |
+| `VM.log list` | Current logging configuration | `VM.log` is listed as Low | `list` is an inspection action; other options can modify logging |
 
-Ví dụ **chỉ quan sát** một JVM đã xác nhận:
+**Observation-only** example for a confirmed JVM:
 
 ```bash
 jcmd <PID> VM.version
@@ -92,286 +92,286 @@ jcmd <PID> JFR.check
 jcmd <PID> VM.log list
 ```
 
-Không cần chạy tất cả mỗi khi điều tra. Chọn đủ dữ liệu cho giả thuyết. Nếu vấn đề là độ trễ tăng sau restart, `VM.uptime`, `VM.flags` và thông tin recording thường hữu ích hơn việc lập tức tạo heap dump.
+You do not need to run all of them in every investigation. Gather just enough data for your hypothesis. If the issue is elevated latency after a restart, `VM.uptime`, `VM.flags`, and recording status are typically far more useful than immediately taking a heap dump.
 
-**“Quan sát” không có nghĩa “miễn phí tuyệt đối”.** Attach cần trao đổi với tiến trình, tạo output và có thể cạnh tranh tài nguyên. Hãy tránh polling dày và thu output quá nhiều khi ứng dụng đã quá tải. Đồng thời bảo vệ kết quả `VM.system_properties` và `VM.command_line` trước khi chuyển cho người khác.
+**"Observational" does not mean "completely free".** Attaching interacts with the process, produces output, and can contend for resources. Avoid tight polling loops or excessive output capture when the application is already overloaded. Also protect `VM.system_properties` and `VM.command_line` results before sharing them.
 
-## 5. Snapshot quan sát nhưng vẫn có chi phí
+## 5. Observational snapshots that still carry cost
 
-### 5.1 `Thread.print`: không sửa cấu hình, nhưng có thể ảnh hưởng thời gian
+### 5.1 `Thread.print`: modifies no config, yet can affect timing
 
 ```bash
 jcmd <PID> Thread.print
 jcmd <PID> Thread.print -l
 ```
 
-`Thread.print` xuất stack trace của các luồng Java. `-l` bổ sung thông tin lock của `java.util.concurrent` khi được hỗ trợ. Trên JDK 17, tài liệu gắn **Impact: Medium**, tùy số lượng luồng.
+`Thread.print` prints stack traces of Java threads. `-l` adds `java.util.concurrent` lock details when supported. On JDK 17, docs label it **Impact: Medium**, depending on thread count.
 
-Tại sao phải cân nhắc?
+Why evaluate carefully?
 
-- Hệ thống có nhiều thread và stack sâu có thể tạo output rất lớn, tốn thời gian duyệt/thu dữ liệu.
-- Việc chụp thông tin nhất quán có thể cần đồng bộ và tạo độ trễ; không hứa “không có safepoint/pause”.
-- Một thread dump chỉ là ảnh chụp tại một thời điểm. `WAITING` không tự chứng minh deadlock; phải xét lock owner, call path, tình trạng tiến trình và nhiều mẫu khi cần.
-- Nếu cần nhiều mẫu cách nhau theo thời gian, đặt nhịp lấy mẫu có chủ đích và ghi khoảng cách; không dùng loop dày không giới hạn trên production.
+- Systems with many threads and deep stacks can produce huge output, spending time walking and collecting data.
+- Capturing a consistent view may require synchronization and introduce latency; there is no promise of "zero safepoint/pause".
+- A single thread dump is only a point-in-time snapshot. `WAITING` does not by itself prove a deadlock; check lock owners, call paths, process state, and multiple samples when needed.
+- If multiple samples over time are needed, space them deliberately and record the interval; never run an unbounded tight loop in production.
 
-Ví dụ nếu nhiều request bị treo, thử `Thread.print` với thời gian lấy mẫu đã định có thể phù hợp hơn heap dump. Tuy nhiên chính thao tác lấy dump có thể làm latency nhích lên, cần đánh dấu timestamp trong biểu đồ.
+For instance, if many requests are hung, trying `Thread.print` at deliberate intervals can be far better than a heap dump. Still, taking the dump itself can bump latency, so mark its timestamp on charts.
 
-### 5.2 `GC.heap_info`: đọc thông tin heap, không phải kích hoạt GC bằng chủ đích
+### 5.2 `GC.heap_info`: reads heap info, not an intentional GC trigger
 
 ```bash
 jcmd <PID> GC.heap_info
 ```
 
-Lệnh cung cấp thông tin tổng quát về heap; tài liệu JDK 17 xếp **Impact: Medium**. Nó không được thiết kế như lệnh “bắt GC chạy ngay”, nhưng vẫn có chi phí chẩn đoán.
+This command provides general heap info; JDK 17 docs rate it **Impact: Medium**. It is not designed to "force GC right now", yet still carries diagnostic cost.
 
-Không nhầm `GC.heap_info` với `GC.class_histogram`:
+Do not confuse `GC.heap_info` with `GC.class_histogram`:
 
-- `GC.heap_info` trả thông tin cấu trúc/tình trạng heap tổng quát.
-- `GC.class_histogram` duyệt object để thống kê số lượng/bytes theo class; tài liệu đánh giá **Impact: High**, tùy kích thước và nội dung heap. Trên một số đường thực thi, việc thống kê có thể đi cùng yêu cầu GC hoặc một pha xử lý tốn kém, cần xem tùy chọn và thực nghiệm trên JDK mục tiêu.
+- `GC.heap_info` returns general heap layout/status info.
+- `GC.class_histogram` traverses objects to count instances/bytes per class; docs rate it **Impact: High**, depending on heap size and contents. In some execution paths, gathering statistics may involve a GC request or expensive phase, so check options and test on the target JDK.
 
-Nếu chỉ cần biết heap đang cấu hình/commit bao nhiêu, không nên bắt đầu bằng histogram toàn heap.
+If you only need to check configured/committed heap capacity, do not start with a full-heap histogram.
 
-### 5.3 `VM.native_memory summary`: chỉ có giá trị nếu NMT sẵn sàng
+### 5.3 `VM.native_memory summary`: only useful if NMT is ready
 
 ```bash
 jcmd <PID> VM.native_memory summary
 ```
 
-Tài liệu JDK 17 xếp `VM.native_memory` **Impact: Medium**. Việc dùng báo cáo NMT đòi hỏi JVM đã bật Native Memory Tracking ở thời điểm khởi động phù hợp; nếu chưa bật, lệnh có thể báo không có số liệu NMT.
+JDK 17 docs rate `VM.native_memory` **Impact: Medium**. Using NMT reports requires the JVM to have Native Memory Tracking enabled at startup; otherwise, the command reports that NMT data is unavailable.
 
-Phân biệt các option:
+Distinguish the options:
 
-- `summary` / `detail`: đọc báo cáo từ hệ thống tracking.
-- `baseline`: đặt **mốc so sánh nội bộ** cho NMT, do đó đây là một thay đổi trạng thái chẩn đoán.
-- `summary.diff` / `detail.diff`: so sánh với baseline đã thiết lập.
-- `shutdown`: thay đổi trạng thái theo dõi NMT; không phải cách đọc số liệu.
+- `summary` / `detail`: reads reports from the tracking system.
+- `baseline`: sets an **internal comparison mark** for NMT, making it a diagnostic state change.
+- `summary.diff` / `detail.diff`: compares against the established baseline.
+- `shutdown`: changes NMT tracking state; not a metric-reading step.
 
-NMT theo dõi phần bộ nhớ nội bộ JVM mà nó hỗ trợ, không bao quát mọi allocation do thư viện native bên ngoài. Một báo cáo “NMT thấp” không chứng minh RSS hoặc memory cgroup thấp.
+NMT tracks supported JVM-internal memory, not every allocation made by external native libraries. A "low NMT" report does not prove low RSS or cgroup memory usage.
 
-## 6. Nhóm cần cảnh giác: có thể yêu cầu GC
+## 6. Group requiring caution: commands that can request GC
 
-### 6.1 `GC.run` thực sự yêu cầu điều gì?
+### 6.1 What does `GC.run` actually request?
 
 ```bash
 jcmd <PID> GC.run
 ```
 
-Theo tài liệu `jcmd` JDK 17, lệnh này gọi `java.lang.System.gc()` và được xếp **Impact: Medium** tùy heap/nội dung. Đây là yêu cầu rõ ràng để JVM thực hiện cơ chế GC theo ngữ nghĩa `System.gc()`.
+Per JDK 17 `jcmd` docs, this command calls `java.lang.System.gc()` and is rated **Impact: Medium** depending on heap/contents. It is an explicit request for the JVM to execute GC semantics per `System.gc()`.
 
-Điều đó **không đồng nghĩa** lúc nào cũng có một full stop-the-world GC giống nhau:
+That **does not mean** an identical full stop-the-world GC always happens:
 
-- Với JVM flags như `-XX:+DisableExplicitGC`, yêu cầu explicit GC có thể bị bỏ qua.
-- Các collector có thể xử lý `System.gc()` theo cơ chế khác nhau tùy JDK/flags; pause, concurrency và lượng object thu hồi không phải hằng số.
-- Ngay cả khi không thu hồi nhiều object, quá trình GC có thể dùng CPU, làm thay đổi heap occupancy, allocation/pause metrics và tình trạng cache hoặc hiệu ứng gián tiếp.
-- Nếu đang điều tra “heap tăng trước GC”, một lần `GC.run` có thể **xóa dấu vết cần quan sát** và làm khó so sánh trạng thái tự nhiên trước/sau.
+- With JVM flags like `-XX:+DisableExplicitGC`, explicit GC requests may be ignored.
+- Different collectors handle `System.gc()` differently depending on JDK/flags; pause duration, concurrency, and reclaimed objects are not constant.
+- Even when few objects are reclaimed, GC work consumes CPU and alters heap occupancy, allocation/pause metrics, cache state, or indirect behaviors.
+- If you are investigating "heap rising before GC", running `GC.run` can **wipe out the evidence you needed to observe** and make before/after natural comparisons harder.
 
-Do đó không xem `GC.run` là “lệnh lấy báo cáo GC”. Khi cần nghiên cứu retention sau explicit GC trong lab, ghi rõ đây là **phép can thiệp có chủ đích**, không phải snapshot trung tính của trạng thái trước điều tra.
+Therefore, do not view `GC.run` as a "GC reporting command". When studying post-explicit-GC retention in a lab, mark it clearly as an **intentional intervention**, not a neutral pre-investigation baseline snapshot.
 
-### 6.2 `GC.class_histogram`: nhìn như báo cáo nhưng rất nặng
+### 6.2 `GC.class_histogram`: looks like a report, yet is heavy
 
 ```bash
 jcmd <PID> GC.class_histogram
 jcmd <PID> GC.class_histogram -all
 ```
 
-- Histogram cho số lượng object và bytes theo class, hữu ích để nhận diện loại object chiếm nhiều heap.
-- Theo tài liệu JDK 17, **Impact: High**; nó có thể gây chi phí đáng kể khi quét heap.
-- `-all` yêu cầu xét **cả object unreachable**, làm thay đổi *tập object được đưa vào thống kê*. Dùng option đó không biến histogram thành một phép đo nhẹ hoặc hoàn toàn không xâm lấn.
-- Đối với HotSpot, quá trình thu histogram mặc định có thể liên quan xử lý/GC để phản ánh object còn sống; điều cần xác minh là hành vi trên **JDK/collector/option cụ thể**, không tự giả định mỗi lần đều có một “full GC 100%”.
-- Histogram là thống kê theo class, chưa chỉ ra **đường giữ tham chiếu (retaining path)** hay nguồn allocation, cũng không đủ một mình để khẳng định memory leak.
+- Histograms report object counts and bytes by class, useful for spotting types occupying substantial heap.
+- Per JDK 17 docs, **Impact: High**; scanning the heap can incur significant cost.
+- `-all` asks to include **unreachable objects as well**, changing *the set of objects counted*. Using that option does not turn a histogram into a lightweight or non-intrusive measurement.
+- On HotSpot, default histogram collection can involve GC/processing to reflect live objects; verify behavior on your **specific JDK/collector/options** rather than assuming every call triggers a "100% full GC".
+- A histogram aggregates by class without showing **retaining reference paths** or allocation sources, nor is it sufficient alone to confirm a memory leak.
 
-Nếu nghi ngờ leak, trước tiên xem chuỗi heap/GC sau GC theo thời gian, số liệu allocation và các dấu hiệu restart/OOM. Chỉ nâng lên histogram hoặc dump khi một phép đo nhẹ hơn chưa giải đáp câu hỏi.
+If you suspect a leak, examine post-GC heap trends over time, allocation metrics, and restart/OOM signals first. Escalate to a histogram or dump only when lighter measurements cannot answer the question.
 
-### 6.3 Vì sao snapshot sau GC có thể làm sai câu chuyện sự cố?
+### 6.3 Why post-GC snapshots can distort the incident story
 
-Giả sử heap trước chẩn đoán đang 85% mức `-Xmx` và độ trễ tăng. Bạn gọi `GC.run`, sau đó heap used giảm và latency trở lại bình thường. Điều đó **không chứng minh** nguyên nhân gốc là “Java cần GC thường xuyên hơn”: bạn vừa làm thay đổi trạng thái, timing, tập object còn sống và có thể cả tải hệ thống.
+Suppose pre-diagnosis heap was at 85% of `-Xmx` and latency rose. You invoke `GC.run`, after which heap used drops and latency returns to normal. That **does not prove** the root cause was "Java needs more frequent GC": you just altered state, timing, live objects, and possibly system load.
 
-Ghi rõ trong timeline:
+Document clearly in the timeline:
 
 ```text
-14:00:00  p99 tăng, heap used cao, không có explicit GC
-14:01:00  thu GC metrics / flags / log hiện trạng
-14:02:00  người vận hành gọi jcmd <PID> GC.run
-14:02:02  heap used giảm sau hoạt động GC (nếu có)
-14:03:00  p99 được đo lại
+14:00:00  p99 rises, heap used high, no explicit GC
+14:01:00  gather baseline GC metrics / flags / logs
+14:02:00  operator invokes jcmd <PID> GC.run
+14:02:02  heap used drops after GC activity (if any)
+14:03:00  p99 measured again
 ```
 
-Đây là tình huống **minh họa**, không phải bằng chứng của một JVM thực. Mọi số đo **sau 14:02** phải được gắn nhãn “sau can thiệp”, không gộp với baseline tự nhiên như thể môi trường chưa thay đổi.
+This is an **illustrative scenario**, not evidence from a real JVM. Any metrics **after 14:02** must be tagged "post-intervention", never merged into the natural baseline as though the environment remained untouched.
 
-## 7. `GC.heap_dump`: vừa có thể GC, vừa tạo file lớn
+## 7. `GC.heap_dump`: can trigger GC and writes a large file
 
-Cú pháp phổ biến với JDK 17:
+Common syntax on JDK 17:
 
 ```bash
 jcmd <PID> GC.heap_dump /path/to/diagnostics/app-heap.hprof
 ```
 
-Lệnh ghi heap dump định dạng HPROF. Tài liệu JDK 17 nêu rõ **Impact: High** và **mặc định yêu cầu full GC**, trừ khi chỉ định `-all`. Option `-all` dùng để dump cả object unreachable; thay đổi tập dữ liệu và không đảm bảo dump sẽ nhẹ, không pause hoặc không ảnh hưởng tiến trình.
+This command writes an HPROF-formatted heap dump. JDK 17 docs explicitly state **Impact: High** and **requests a full GC by default** unless `-all` is specified. The `-all` option dumps unreachable objects too; it changes the dataset and does not guarantee the dump will be lightweight, pause-free, or harmless to the process.
 
-Đánh giá bốn nhóm rủi ro:
+Evaluate four risk groups:
 
-1. **Tác động đến JVM:** yêu cầu GC, quá trình chụp heap và ghi dữ liệu có thể gây pause/CPU overhead, nhất là với heap lớn và ứng dụng nhạy latency.
-2. **Dung lượng/I/O:** HPROF có thể rất lớn, làm nghẽn disk bandwidth hoặc đầy ổ/container ephemeral storage; áp lực I/O có thể ảnh hưởng các request bình thường.
-3. **Dữ liệu nhạy cảm:** dump có thể chứa string, session, token, thông tin khách hàng, buffer và nội dung object thực tế. Cần quyền đọc phù hợp, nơi lưu bảo vệ và quy trình dọn file.
-4. **Diễn giải số liệu:** nếu dump mặc định yêu cầu full GC, heap sau dump **không còn phản ánh nguyên vẹn trạng thái trước hành động**. Nếu sử dụng `-all`, cũng không so trực tiếp tập object với một dump chỉ tính reachable object.
+1. **JVM impact:** GC requests, heap walking, and writing data can cause pauses and CPU overhead, especially with large heaps and latency-sensitive apps.
+2. **Capacity/I/O:** HPROF files can be huge, saturating disk bandwidth or filling disks/container ephemeral storage; I/O pressure can degrade normal requests.
+3. **Sensitive data:** dumps can hold strings, sessions, tokens, customer info, buffers, and live object contents. Enforce proper read permissions, secure storage, and cleanup procedures.
+4. **Data interpretation:** if a default dump requested a full GC, the post-dump heap **no longer reflects the untouched pre-action state**. If `-all` was used, do not compare object totals directly with a reachable-only dump.
 
-Một dump tạo thành công không xác nhận nguyên nhân memory leak. Phải phân tích object dominators, retaining paths, số lượng đối tượng, đặc điểm giữ tham chiếu và so với workload/lifecycle.
+A successful dump does not itself confirm a memory leak's root cause. You must analyze dominators, retaining paths, instance counts, and retention characteristics against workload/lifecycle.
 
-**Dữ liệu cần ghi trước khi dump:** lý do cần dump, PID/build, heap size, memory/container headroom, dung lượng đĩa khả dụng, đường dẫn file tuyệt đối, thời gian chạy dự kiến, metric baseline, nơi lưu và ai có quyền xem.
+**Details to record before dumping:** why the dump is needed, PID/build, heap size, memory/container headroom, available disk space, absolute file path, expected duration, baseline metrics, storage destination, and who has access.
 
-**Lệnh chỉ minh họa cho máy lab** với tiến trình thử nghiệm do bạn quản lý:
+**Lab-only illustrative command** targeting a test process you manage:
 
 ```bash
-# Ví dụ: thay <PID> bằng PID lab thật, chọn đường dẫn tuyệt đối có dung lượng.
+# Example: replace <PID> with a real lab PID, choose an absolute path with sufficient space.
 jcmd <PID> GC.heap_dump /tmp/jcmd-lab-heap.hprof
 ```
 
-Trên Windows, dùng đường dẫn phù hợp với JVM đích. File được tạo theo ngữ cảnh hệ thống tệp của tiến trình đích; với container, đường dẫn nhìn từ máy host và trong container có thể khác nhau. Không dựa vào đường dẫn tương đối khi cần truy xuất artifact chắc chắn.
+On Windows, use a path valid for the target JVM. Files are created in the target process's filesystem context; with containers, host paths and container paths can differ. Do not rely on relative paths when reliable artifact retrieval is needed.
 
-## 8. JFR: vừa quan sát vừa thay đổi quá trình thu thập
+## 8. JFR: both observes and modifies collection behavior
 
-Java Flight Recorder (JFR) hữu ích để ghi CPU, allocation, GC, threads, locks và nhiều sự kiện runtime với overhead phụ thuộc cấu hình. Các lệnh `JFR.*` cần phân biệt chính xác:
+Java Flight Recorder (JFR) is useful for capturing CPU, allocation, GC, thread, lock, and runtime events with configuration-dependent overhead. Distinguish `JFR.*` commands precisely:
 
-| Lệnh | Ý nghĩa | Tác dụng phụ cần ghi |
+| Command | Meaning | Side effects to record |
 | --- | --- | --- |
-| `JFR.check` | Xem recording hiện có | Chủ yếu đọc trạng thái; Impact Low |
-| `JFR.start` | Bắt đầu recording mới | Đổi trạng thái JVM; tạo sự kiện/buffer, có thể ghi disk; profile/setting ảnh hưởng overhead |
-| `JFR.dump` | Ghi dữ liệu recording ra file | I/O và artifact; theo JDK 17, recording **tiếp tục chạy** sau dump |
-| `JFR.stop` | Kết thúc recording | Đổi trạng thái; tùy `filename`, dữ liệu có thể được ghi hoặc bỏ |
-| `JFR.configure` | Xem hoặc sửa cấu hình JFR | Không mặc định “read-only”: không có option có thể hiển thị settings, có option có thể sửa |
+| `JFR.check` | Inspect existing recordings | Primarily reads status; Impact Low |
+| `JFR.start` | Start a new recording | Mutates JVM state; allocates events/buffers, may write to disk; profile/settings affect overhead |
+| `JFR.dump` | Write recording data to file | I/O and artifact; on JDK 17, recording **keeps running** after dump |
+| `JFR.stop` | End a recording | Mutates state; depending on `filename`, data may be written or discarded |
+| `JFR.configure` | View or modify JFR config | Not "read-only" by default: without options may show settings, with options can mutate them |
 
-Ví dụ chỉ xem:
+Read-only check example:
 
 ```bash
 jcmd <PID> JFR.check
 ```
 
-Ví dụ **thao tác có chủ đích trong môi trường lab**:
+**Intentional lab-environment** action example:
 
 ```bash
 jcmd <PID> JFR.start name=lab-profile settings=profile duration=30s filename=/tmp/lab-profile.jfr
 jcmd <PID> JFR.check
 ```
 
-Việc `JFR.start` được tài liệu đánh giá Impact Low **không** chứng minh mọi recording ít overhead. Trong JDK có các cấu hình `default` và `profile`; `profile` thu nhiều dữ liệu hơn và có overhead cao hơn, phù hợp cửa sổ ngắn khi cần. Các event như đường tới GC roots (`path-to-gc-root`) có thể tốn thời gian đáng kể; cần kiểm tra option, workload, file size và resource budget trước khi bật.
+`JFR.start` being documented as Impact Low **does not** prove every recording has negligible overhead. JDK presets include `default` and `profile`; `profile` collects more data with higher overhead, suitable for short windows when needed. Events such as paths to GC roots (`path-to-gc-root`) can take considerable time; check options, workload, file size, and resource budget before enabling.
 
-`JFR.dump name=lab-profile filename=...` tạo file nhưng **không tự dừng recording** trên JDK 17. `JFR.stop name=lab-profile` mới kết thúc recording; nếu không chỉ định đường ghi, dữ liệu có thể bị bỏ theo ngữ nghĩa lệnh. Không dùng `JFR.stop` chỉ để “xem JFR có chạy không”.
+`JFR.dump name=lab-profile filename=...` writes a file yet **does not stop the recording** on JDK 17. `JFR.stop name=lab-profile` is what ends the recording; if no output path is given, data may be discarded per command semantics. Never use `JFR.stop` just to "check if JFR is running".
 
-Với recording đã được bật từ trước bởi đội vận hành, tránh tự khởi động/stop một recording trùng tên hoặc điều chỉnh config. Đầu tiên xác minh recording ID/name, owner, phạm vi và mục tiêu thu thập.
+If an ops team already started a recording earlier, avoid launching/stopping one with a colliding name or altering its config. First confirm recording ID/name, owner, scope, and collection goal.
 
-## 9. `VM.log`, `VM.set_flag` và công cụ đổi trạng thái khác
+## 9. `VM.log`, `VM.set_flag`, and other state-changing tools
 
-### 9.1 `VM.log`: đọc hoặc sửa logging tùy option
+### 9.1 `VM.log`: reads or modifies logging depending on options
 
-Trên JDK 17, `VM.log` có thể liệt kê, bật/tắt, cấu hình output hoặc rotate logs.
+On JDK 17, `VM.log` can list, enable/disable, configure outputs, or rotate logs.
 
 ```bash
 jcmd <PID> VM.log list
 ```
 
-Lệnh trên dùng `list` để **xem** cấu hình hiện tại. Ngược lại, những lệnh có các tham số cấu hình `output`, `what`, `decorators`, `disable` hay `rotate` có thể **thay đổi logging hoặc file log**.
+The command above uses `list` to **inspect** current configuration. Conversely, invocations with configuration arguments such as `output`, `what`, `decorators`, `disable`, or `rotate` can **alter logging or log files**.
 
-Chẳng hạn việc tăng mức GC logging từ `info` sang `debug` làm tăng số sự kiện và I/O; nếu log lên stdout của container, nó có thể ảnh hưởng collector và đường thu log của hệ thống. Tắt hoặc xoay log cũng có thể phá hỏng dữ liệu đang cần trong lúc điều tra. Vì vậy ghi trước **cấu hình gốc**, tác động ước lượng, thời điểm bắt đầu, thời điểm khôi phục và ai sẽ kiểm chứng.
+For example, raising GC logging from `info` to `debug` increases event volume and I/O; if logged to container stdout, it can impact both the collector and the log shipping pipeline. Disabling or rotating logs can also disrupt data needed mid-investigation. Always record the **original configuration**, estimated impact, start time, revert time, and who will verify.
 
-Tài liệu gắn Impact Low cho lệnh `VM.log`, nhưng điều đó không loại bỏ tác dụng phụ do **lượng log sinh ra sau khi thay đổi**.
+Docs assign Impact Low to `VM.log`, which does not eliminate side effects caused by **the volume of logs generated after the change**.
 
-### 9.2 `VM.set_flag`: mức Impact Low, nhưng không phải thao tác đọc
+### 9.2 `VM.set_flag`: Impact Low, yet not a read operation
 
-`VM.flags` **đọc** giá trị flags. `VM.set_flag` **đặt** giá trị một flag có thể thay đổi động và được JVM cho phép. Cú pháp theo trợ giúp mục tiêu có dạng:
+`VM.flags` **reads** flag values. `VM.set_flag` **sets** a flag value that is dynamically manageable and permitted by the JVM. Syntax per target help looks like:
 
 ```bash
 jcmd <PID> help VM.set_flag
 ```
 
-Không dùng `VM.set_flag` làm bước kiểm tra “cho biết giá trị flag”: chọn `VM.flags` hoặc `VM.command_line`. Không phải mọi flag đều chỉnh sửa được tại runtime; một số flag cần JVM restart mới có hiệu lực hoặc bị chặn bởi VM. Nếu thay flag, phải xác nhận giá trị ban đầu, cơ chế ảnh hưởng, giá trị mới có hiệu lực thực hay không và cách khôi phục.
+Do not use `VM.set_flag` as a check to "show flag values": pick `VM.flags` or `VM.command_line`. Not all flags can be modified at runtime; some require a JVM restart or are blocked by the VM. If you change a flag, confirm its initial value, effect mechanism, whether the new value took effect, and how to revert it.
 
-Lệnh `Compiler.directives_add/remove/clear` là một ví dụ tương tự: nhãn Impact Low trong documentation nhưng **thay đổi directives**. Không đánh đồng các lệnh trong một nhóm chỉ vì tên có chứa “print” hoặc document ghi “Low”.
+`Compiler.directives_add/remove/clear` are similar: labeled Impact Low in docs, yet they **modify directives**. Never treat commands in a group identically just because one contains "print" or docs say "Low".
 
-### 9.3 Management agent và native agent: tác động ngoài hiệu năng
+### 9.3 Management agent and native agents: impact beyond performance
 
-- `ManagementAgent.status` là cách đọc trạng thái agent.
-- `ManagementAgent.start` có thể bắt đầu **remote management agent**, làm thay đổi bề mặt kết nối, cấu hình quản trị, port và kiểm soát truy cập. Nhãn Impact Low không có nghĩa bỏ qua chính sách bảo mật.
-- `JVMTI.agent_load` tải native agent vào JVM. Đây là hành động thay đổi code/instrumentation đang có hiệu lực, không phải lệnh đọc trạng thái.
+- `ManagementAgent.status` reads agent status.
+- `ManagementAgent.start` can launch the **remote management agent**, altering network exposure, management config, ports, and access control. Impact Low never means bypassing security policy.
+- `JVMTI.agent_load` loads a native agent into the JVM. This alters active code/instrumentation, not a status read.
 
-Đừng tùy tiện kích hoạt agent chỉ vì `help` hiển thị Impact Low. Các thao tác này có thể thay đổi hành vi hệ thống lâu dài hơn bản thân thời gian chạy lệnh.
+Never activate an agent casually just because `help` lists Impact Low. These actions can alter system behavior far longer than the command's execution time.
 
-## 10. Bảng tra quyết định cho những lệnh `jcmd` thường gặp
+## 10. Decision reference table for common `jcmd` commands
 
-Bảng sau phân biệt **Impact theo tài liệu Oracle JDK 17** với **tác dụng thực tế cần quản lý**. Tùy vendor/JDK khác, hãy ưu tiên trợ giúp của JVM mục tiêu.
+The table separates **Impact in Oracle JDK 17 docs** from **practical operational effects to manage**. Across other vendors/JDKs, prioritize the target JVM's own help.
 
-| Command | Impact tài liệu JDK 17 | Thuộc tính vận hành | Lưu ý khi dùng |
+| Command | JDK 17 doc Impact | Operational nature | Usage notes |
 | --- | --- | --- | --- |
-| `VM.version`, `VM.uptime` | Low | Chủ yếu đọc | Xác nhận đúng JVM/PID |
-| `VM.command_line`, `VM.flags` | Low | Chủ yếu đọc | Có thể lộ tham số nhạy cảm |
-| `VM.system_properties` | Low | Chủ yếu đọc | Không chia sẻ nguyên trạng nếu có secrets |
-| `JFR.check` | Low | Đọc trạng thái recording | Không thay thế `JFR.start` |
-| `VM.log list` | Low (nhóm `VM.log`) | Đọc logging config | Phân biệt với option sửa config |
-| `GC.heap_info` | Medium | Đọc thông tin heap | Vẫn có chi phí, không yêu cầu GC chủ động |
-| `Thread.print` | Medium | Thu thread snapshot | Chi phí phụ thuộc số thread; có thể tạo độ trễ |
-| `VM.native_memory summary` | Medium | Đọc NMT | NMT phải bật; `baseline` khác `summary` |
-| `GC.class_histogram` | High | Thu thống kê trên heap | Có thể rất nặng; `-all` không làm “an toàn tuyệt đối” |
-| `GC.run` | Medium | Yêu cầu `System.gc()` | Có thể làm thay đổi heap/latency, phụ thuộc GC/flags |
-| `GC.heap_dump` | High | Dump + yêu cầu full GC mặc định | File lớn, dữ liệu nhạy cảm, I/O/pause |
-| `JFR.start` | Low | **Bắt đầu recording** | Overhead phụ thuộc settings/duration |
-| `JFR.dump` | Low | **Ghi file**, recording vẫn chạy | File output, I/O, có thể có tùy chọn tốn kém |
-| `JFR.stop` | Low | **Kết thúc recording** | Không phải lệnh đọc |
-| `VM.log` cấu hình | Low | **Đổi log output/level** | Thay đổi lượng log và I/O |
-| `VM.set_flag` | Low | **Sửa flag động** | Chỉ những flag được phép; lưu trạng thái ban đầu |
-| `ManagementAgent.start` | Low | **Bật agent quản trị** | Có thể thay đổi bề mặt mạng/bảo mật |
-| `JVMTI.agent_load` | Low | **Tải native agent** | Thay đổi instrumentation/cơ chế chạy |
+| `VM.version`, `VM.uptime` | Low | Primarily read | Confirm right JVM/PID |
+| `VM.command_line`, `VM.flags` | Low | Primarily read | May expose sensitive arguments |
+| `VM.system_properties` | Low | Primarily read | Do not share raw output if it contains secrets |
+| `JFR.check` | Low | Read recording state | Does not replace `JFR.start` |
+| `VM.log list` | Low (`VM.log` group) | Read logging config | Distinguish from config-modifying options |
+| `GC.heap_info` | Medium | Read heap info | Still has cost; does not intentionally request GC |
+| `Thread.print` | Medium | Capture thread snapshot | Cost scales with thread count; may introduce latency |
+| `VM.native_memory summary` | Medium | Read NMT | NMT must be enabled; `baseline` differs from `summary` |
+| `GC.class_histogram` | High | Gather heap statistics | Can be very heavy; `-all` does not make it "completely safe" |
+| `GC.run` | Medium | Requests `System.gc()` | Can alter heap/latency depending on GC/flags |
+| `GC.heap_dump` | High | Dump + requests full GC by default | Large file, sensitive data, I/O/pauses |
+| `JFR.start` | Low | **Starts recording** | Overhead depends on settings/duration |
+| `JFR.dump` | Low | **Writes file**, recording keeps running | Output file, I/O, may have costly options |
+| `JFR.stop` | Low | **Ends recording** | Not a read command |
+| `VM.log` config | Low | **Changes log output/level** | Alters log volume and I/O |
+| `VM.set_flag` | Low | **Modifies dynamic flag** | Eligible flags only; save original state |
+| `ManagementAgent.start` | Low | **Starts management agent** | Can alter network/security surface |
+| `JVMTI.agent_load` | Low | **Loads native agent** | Alters instrumentation/runtime mechanics |
 
-Không tự động gán `GC.heap_dump` vào nhóm “read-only” chỉ vì nó tạo ra bằng chứng. Đồng thời, không mặc định một lệnh chủ yếu đọc luôn an toàn ở mọi tần suất; cách **tự động hóa lặp lại** một lệnh có thể gây tác động lớn hơn một lần chạy.
+Do not automatically place `GC.heap_dump` in a "read-only" bucket just because it produces diagnostic evidence. Equally, do not assume a primarily read command is safe at any frequency; **repeated automation** of a command can have far greater impact than a single run.
 
-## 11. Quy trình lựa chọn từ ít xâm lấn tới xâm lấn hơn
+## 11. Workflow choosing from least intrusive to most intrusive
 
-### Bước 1 — Xác định triệu chứng và bằng chứng cần có
+### Step 1 — Define symptom and required evidence
 
-Ví dụ: “p99 latency tăng sau deploy”, “heap sau GC liên tục tăng”, “request treo dù CPU thấp”. Đặt câu hỏi cụ thể: muốn biết version/flags, thread state, heap footprint, allocation path hay object retaining path?
+For example: "p99 latency rose after deploy", "post-GC heap keeps rising", "requests hang despite low CPU". Ask a specific question: do you need version/flags, thread states, heap footprint, allocation paths, or object retaining paths?
 
-### Bước 2 — Thu bằng chứng thụ động trước
+### Step 2 — Collect passive evidence first
 
-Ghi timestamp, build/JDK/flags, request traces, GC logs đã có, CPU/memory/queue, trước khi attach. Với `jcmd`, khởi đầu từ `VM.version`, `VM.uptime`, `VM.command_line`, `VM.flags`, `JFR.check` nếu thích hợp.
+Record timestamps, build/JDK/flags, request traces, existing GC logs, and CPU/memory/queue metrics before attaching. With `jcmd`, start with `VM.version`, `VM.uptime`, `VM.command_line`, `VM.flags`, and `JFR.check` where appropriate.
 
-### Bước 3 — Xem `help`, ước lượng chi phí theo JVM và workload
+### Step 3 — Check `help`, estimate cost for the JVM and workload
 
-Không chỉ đọc tên command: hỏi nó duyệt bao nhiêu object/thread, có yêu cầu GC, có ghi file/đổi flag/agent/recording không; capacity đĩa, quyền truy cập, môi trường container, hệ quả với request latency. Ghi bản JDK và option cụ thể.
+Do not just read the command name: ask how many objects/threads it walks, whether it requests GC, whether it writes files or alters flags/agents/recordings; check disk capacity, permissions, container setup, and request-latency impact. Note exact JDK version and options.
 
-### Bước 4 — Thu snapshot mức vừa nếu đủ
+### Step 4 — Take moderate snapshots if sufficient
 
-Với hang/lock: cân nhắc `Thread.print` tại vài mốc; với heap sizing: `GC.heap_info`; với native memory: `VM.native_memory summary` nếu NMT bật; với performance đa chiều: JFR cấu hình phù hợp và thời lượng giới hạn.
+For hangs/locks: consider `Thread.print` at a few timestamps; for heap sizing: `GC.heap_info`; for native memory: `VM.native_memory summary` if NMT is enabled; for multi-dimensional performance: bounded JFR with suitable settings.
 
-Theo dõi sự khác biệt trước/sau thao tác: nếu chính lệnh làm CPU/GC/latency tăng, phải đánh dấu artifact/snapshot đó trong timeline.
+Monitor before/after changes: if the command itself spikes CPU/GC/latency, mark that artifact/snapshot on the timeline.
 
-### Bước 5 — Chỉ escalates khi câu hỏi đòi hỏi
+### Step 5 — Escalate only when the question demands it
 
-Dùng `GC.class_histogram` hoặc `GC.heap_dump` khi cần thống kê object/retaining paths mà công cụ nhẹ hơn chưa trả lời được. Dùng `GC.run` chỉ khi phép điều tra có chủ đích cần explicit GC. Dùng `VM.set_flag`/`VM.log` config hoặc JFR recording khi mục tiêu thật sự đòi thay đổi runtime.
+Use `GC.class_histogram` or `GC.heap_dump` when you need object totals or retaining paths that lighter tools cannot answer. Use `GC.run` only when a deliberate investigation requires explicit GC. Use `VM.set_flag`/`VM.log` config or JFR recordings when the goal genuinely warrants runtime changes.
 
-Chọn thời điểm, chủ sở hữu, ngân sách CPU/disk và cách phục hồi theo tình trạng hệ thống. Không đổi cấu hình và chạy histogram/dump cùng lúc rồi gán mọi thay đổi metric cho một nguyên nhân.
+Coordinate timing, owner, CPU/disk budget, and revert plan based on system health. Never change config and run histograms/dumps simultaneously and blame all metric shifts on one cause.
 
-### Bước 6 — Gắn nhãn “trước can thiệp / sau can thiệp”
+### Step 6 — Label "pre-intervention / post-intervention"
 
-Một báo cáo tốt không gộp các cửa sổ:
+A sound report never merges windows:
 
 ```text
-T0: p99 tăng, trước mọi thao tác jcmd
-T1: VM.flags + GC.heap_info (quan sát)
-T2: Thread.print -l (snapshot có chi phí)
-T3: GC.run (can thiệp explicit GC)
-T4: đo heap/GC/latency sau can thiệp
-T5: GC.heap_dump (dump + có thể full GC theo option)
+T0: p99 rises, before any jcmd actions
+T1: VM.flags + GC.heap_info (observation)
+T2: Thread.print -l (costly snapshot)
+T3: GC.run (explicit GC intervention)
+T4: measure heap/GC/latency post-intervention
+T5: GC.heap_dump (dump + possible full GC depending on options)
 ```
 
-Các mốc chỉ minh họa. Chỉ số sau T3 phải được diễn giải là **đo sau can thiệp**, và snapshot sau T5 không phải “bằng chứng nguyên vẹn của T0”.
+Timestamps are illustrative only. Metrics after T3 must be interpreted as **post-intervention measurements**, and a snapshot after T5 is not "untouched T0 evidence".
 
-### Bước 7 — Đối chiếu outcome và dọn artifact
+### Step 7 — Cross-check outcomes and clean up artifacts
 
-Đánh giá lời giải thích từ logs/JFR/thread/GC theo timestamp và workload. Kiểm tra nơi lưu HPROF/JFR, quyền truy cập, vòng đời file, recording còn chạy hay không, cấu hình logging/flags có cần khôi phục không. Với dump hoặc recording có dữ liệu ứng dụng, cần kiểm soát truy cập và thời hạn lưu.
+Evaluate explanations from logs/JFR/threads/GC against timestamps and workload. Check HPROF/JFR storage locations, permissions, file lifecycle, whether recordings are still active, and whether logging/flag configs need reverting. For dumps or recordings containing application data, enforce access controls and retention limits.
 
-## 12. Lab Java 17+ không đụng vào JVM production
+## 12. Java 17+ Lab without touching a production JVM
 
-Ví dụ này tạo **một tiến trình Java thử nghiệm** để bạn quan sát bằng `jcmd`, không yêu cầu tạo heap dump hay kích hoạt explicit GC. Nó cũng có chế độ `fixture` trả stdout cố định giúp người học kiểm tra phân biệt hành vi.
+This example creates **a test Java process** for observing with `jcmd`, requiring neither heap dumps nor explicit GC triggers. It also includes a `fixture` mode with deterministic stdout so learners can verify behavior distinctions.
 
-Tạo tệp `JcmdCommandKindsDemo.java`:
+Create file `JcmdCommandKindsDemo.java`:
 
 ```java
 public class JcmdCommandKindsDemo {
@@ -398,14 +398,14 @@ public class JcmdCommandKindsDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac JcmdCommandKindsDemo.java
 java JcmdCommandKindsDemo fixture
 ```
 
-Stdout **chính xác** của chế độ `fixture`:
+**Exact** stdout in `fixture` mode:
 
 ```text
 VM.version: inspect version
@@ -415,13 +415,13 @@ GC.heap_dump: write HPROF, request full GC by default
 VM.set_flag: change manageable VM flag
 ```
 
-Chế độ trên **không gửi bất kỳ command `jcmd` nào**; nó chỉ in một bảng nhắc nhớ, vì thế stdout ổn định. Để quan sát JVM đang chạy:
+That mode **sends no `jcmd` commands**; it simply prints a reminder table, so stdout is stable. To observe a live JVM:
 
-1. Mở terminal A, chạy `java JcmdCommandKindsDemo target`. Chương trình in PID thực và `READY`, rồi ngủ khoảng 120 giây.
-2. Trong thời gian target còn chạy, mở terminal B, thay `<PID>` bằng số PID đã in, dùng `jcmd <PID> help`, `VM.version`, `VM.flags`, `Thread.print` hoặc `GC.heap_info`.
-3. Ghi timestamp, thời gian phản hồi, kích thước output và tình trạng tiến trình. Nếu quá 120 giây, target kết thúc với `DONE`; muốn thử lại thì khởi động lần nữa và dùng **PID mới**.
+1. Open terminal A and run `java JcmdCommandKindsDemo target`. The program prints its actual PID and `READY`, then sleeps for about 120 seconds.
+2. While the target is running, open terminal B, replace `<PID>` with the printed PID, and run `jcmd <PID> help`, `VM.version`, `VM.flags`, `Thread.print`, or `GC.heap_info`.
+3. Record timestamps, response times, output sizes, and process state. After 120 seconds, the target exits with `DONE`; to retry, launch it again and use the **new PID**.
 
-Các lệnh ở terminal B:
+Commands in terminal B:
 
 ```bash
 jcmd <PID> help
@@ -431,84 +431,84 @@ jcmd <PID> GC.heap_info
 jcmd <PID> Thread.print
 ```
 
-**Không có stdout cố định** cho chế độ `target` hoặc `jcmd`: PID, version, các flags, heap và stack trace phụ thuộc máy/JDK/trạng thái. Một dòng `READY` chỉ cho biết target đã bắt đầu ngủ; không chứng minh `jcmd` có thể attach từ mọi namespace/quyền.
+**There is no fixed stdout** for `target` mode or `jcmd`: PID, version, flags, heap, and stack traces vary by machine/JDK/state. A `READY` line only indicates the target began sleeping; it does not prove `jcmd` can attach across every namespace/permission boundary.
 
-**Bài mở rộng trong lab riêng, không phải bước bắt buộc:** thử tạo JFR ngắn rồi xem file; hoặc thử dump trên **tiến trình dùng heap nhỏ** với ổ đĩa đủ chỗ. Hãy đo latency/GC behavior và phân biệt file output với thay đổi runtime. Không làm các thao tác này trên JVM khác chỉ để học lệnh.
+**Optional extension in an isolated lab, not a required step:** try creating a short JFR capture and inspecting the file; or try a dump on a **small-heap test process** with ample disk space. Measure latency/GC behavior and distinguish output files from runtime state changes. Never practice these operations on other JVMs just to learn commands.
 
-## 13. Ba tình huống ứng dụng
+## 13. Three practical scenarios
 
-### Tình huống A — Dịch vụ latency cao, nghi do thread contention
+### Scenario A — High service latency, suspected thread contention
 
-**Câu hỏi:** luồng đang đợi lock hay chờ downstream? Một cách tiếp cận có giá trị là đọc metric/error/trace, sau đó lấy `Thread.print` có thời điểm rõ, có thể thêm `-l` nếu cần lock details.
+**Question:** are threads waiting on locks or waiting on downstream calls? A valuable approach is inspecting metrics/errors/traces, then taking timestamped `Thread.print` snapshots, adding `-l` if lock details are needed.
 
-**Không cần ngay:** `GC.heap_dump`, `GC.run` hoặc `VM.set_flag`. Chúng không trực tiếp cho biết queueing/lock cause và còn có thể làm lệch latency.
+**Not needed right away:** `GC.heap_dump`, `GC.run`, or `VM.set_flag`. They do not directly reveal queueing/lock causes and can distort latency.
 
-**Giới hạn:** một thread dump không thể chứng minh deadlock hoặc nơi nghẽn duy nhất. Cần nhiều mẫu/timestamp, cơ chế chờ và sự tương ứng với request.
+**Limitation:** a single thread dump cannot prove a deadlock or sole bottleneck. You need multiple timestamped samples, wait mechanisms, and correlation with requests.
 
-### Tình huống B — Heap sau GC tăng dần, nghi memory leak
+### Scenario B — Post-GC heap rising steadily, suspected memory leak
 
-**Câu hỏi:** object nào được giữ lại, thuộc class nào, retaining path là gì? Bắt đầu với heap/GC logs, JFR/allocation metrics sẵn có, `GC.heap_info` và NMT nếu nghi native memory. Khi chưa đủ, cân nhắc histogram hoặc dump có kiểm soát.
+**Question:** which objects are retained, of which classes, and via what retaining paths? Start with heap/GC logs, existing JFR/allocation metrics, `GC.heap_info`, and NMT if native memory is suspected. When insufficient, consider a controlled histogram or dump.
 
-**Rủi ro:** histogram có Impact High; heap dump có thể yêu cầu full GC, tạo HPROF lớn và chứa thông tin nhạy cảm. Nếu lấy dump sau explicit GC, phải ghi rõ baseline đã bị thay đổi.
+**Risks:** histograms carry High Impact; heap dumps may request a full GC, produce huge HPROF files, and contain sensitive info. If dumped after an explicit GC, note clearly that the baseline was altered.
 
-**Giới hạn:** nhiều object cùng class chưa chứng minh leak; cần growth theo thời gian, retained references và vòng đời nghiệp vụ.
+**Limitation:** many instances of one class do not prove a leak; you need growth over time, retained references, and business lifecycle context.
 
-### Tình huống C — Chẩn đoán bằng JFR trong production
+### Scenario C — Diagnosing with JFR in production
 
-**Câu hỏi:** có recording nào đang chạy và đủ sự kiện cần phân tích chưa? Trước tiên `JFR.check`; nếu chưa có, chọn settings và duration phù hợp rồi mới cân nhắc `JFR.start`. Một recording `profile` trong 1 phút có thể có overhead cao hơn `default` chạy dài.
+**Question:** is a recording already active with sufficient events for analysis? First run `JFR.check`; if none exists, pick appropriate settings and duration before considering `JFR.start`. A 1-minute `profile` recording can incur higher overhead than a long-running `default` recording.
 
-**Rủi ro:** JFR buffer, event sampling, file output và `path-to-gc-root` có chi phí; `JFR.dump` ghi file, `JFR.stop` dừng recording. Bật/tắt không đồng nghĩa chỉ quan sát.
+**Risks:** JFR buffers, event sampling, file output, and `path-to-gc-root` have cost; `JFR.dump` writes a file, `JFR.stop` ends the recording. Starting/stopping is not pure observation.
 
-**Giới hạn:** JFR sampling có thể bỏ sót event, thời gian ghi không trùng cửa sổ lỗi, hoặc cấu hình event không đủ để xác nhận nguyên nhân. Không nói “JFR không thấy gì nên lỗi không tồn tại”.
+**Limitation:** JFR sampling can miss events, recording windows may miss the fault, or event settings may be insufficient to confirm root cause. Never say "JFR showed nothing, so no bug exists".
 
-## 14. Checklist trước khi chạy lệnh chẩn đoán có side effect
+## 14. Checklist before running a diagnostic command with side effects
 
-Trả lời các câu hỏi sau **trước khi thao tác thật**:
+Answer these questions **before acting on a real system**:
 
-- Có đúng **PID, container, JVM version/vendor và workload** mà mình được phép kiểm tra?
-- Đã ghi symptom và baseline **trước can thiệp** chưa?
-- Mục tiêu thông tin có cần đến `GC.run`, histogram, heap dump, recording mới hay thay flag không?
-- Đã xem `jcmd <PID> help <COMMAND>` và hiểu từng option `-all`, `name`, `filename`, `settings`, `list` hoặc `disable` chưa?
-- Dự kiến pause/CPU/I/O và lượng dữ liệu output ở quy mô heap/thread thực tế thế nào?
-- Nếu tạo HPROF/JFR/log, đường dẫn có hợp lệ với tiến trình, còn đủ đĩa và quyền truy cập, đồng thời có quy trình lưu/dọn dữ liệu nhạy cảm không?
-- Lệnh có thay đổi trạng thái GC, flags, logging, JFR, NMT baseline hoặc management/agent không? Cần ai theo dõi và khôi phục?
-- Đã đặt timestamp, request/load correlation, ngưỡng dừng và cách phát hiện tác động phụ?
-- Báo cáo sau cùng có ghi đủ command/flags/option/thời điểm, output, tác động quan sát và giới hạn kết luận không?
+- Do I have the right **PID, container, JVM version/vendor, and workload** that I am authorized to inspect?
+- Have I recorded **pre-intervention** symptoms and baseline?
+- Does the information goal truly require `GC.run`, a histogram, a heap dump, a new recording, or changing a flag?
+- Have I read `jcmd <PID> help <COMMAND>` and understood options like `-all`, `name`, `filename`, `settings`, `list`, or `disable`?
+- What are the expected pauses/CPU/I/O and output size at actual heap/thread scale?
+- If producing HPROF/JFR/logs, is the path valid for the target process, is there enough disk and permission, and is there a process to store/clean up sensitive data?
+- Does the command change GC, flags, logging, JFR, NMT baseline, or management/agent state? Who will monitor and revert it?
+- Have I set timestamps, request/load correlation, abort thresholds, and side-effect detection?
+- Does the final report capture exact commands/flags/options/timestamps, outputs, observed impacts, and conclusion limits?
 
-## 15. Những sai lầm thường gặp
+## 15. Common mistakes
 
-1. **Thấy “Impact: Low” rồi coi command là read-only.** `VM.set_flag`, `JFR.start` và `VM.log` có thể sửa trạng thái dù nhãn Impact thấp.
-2. **Thấy “snapshot” rồi coi không ảnh hưởng JVM.** `Thread.print` và histogram có chi phí phụ thuộc quy mô thực.
-3. **Dùng `GC.run` làm công cụ xem GC.** Nó yêu cầu `System.gc()`; behavior tùy collector/flags, có thể phá baseline.
-4. **Lấy dump trước khi đo heap/GC hiện trạng.** Dump mặc định có thể yêu cầu full GC, làm thay đổi tập object trước khi phân tích.
-5. **Dùng `-all` rồi nói không còn rủi ro.** `-all` thay tập object được xét, không bảo đảm chi phí thấp.
-6. **Đọc histogram sau full GC và so trực tiếp với histogram `-all`.** Hai tập object có thể khác ngữ nghĩa; không thể kết luận “mất object” do leak đã hết.
-7. **Giả định `JFR.dump` sẽ stop recording.** Trên JDK 17, recording tiếp tục sau khi dump; `JFR.stop` mới dừng.
-8. **Bật JFR `profile` dài hạn mà không đo overhead.** Settings nhiều events hơn có thể tác động CPU, disk và latency.
-9. **Gọi `VM.log` không có kế hoạch rollback.** Tăng logging có thể gây I/O và thay đổi chính metric đang đo.
-10. **Dùng tên main class hoặc PID 0 để gửi lệnh rộng.** Có thể tác động nhiều JVM; xác minh đúng PID duy nhất.
-11. **Không kiểm tra container namespace và quyền attach.** `jcmd -l` không luôn thấy JVM trong container khác, và attach failure không chứng minh JVM treo.
-12. **Lưu HPROF như log vô hại.** File có thể chứa dữ liệu nhạy cảm; cần kiểm soát access/storage.
-13. **Không ghi lúc nào đã chạy lệnh.** Khi đồ thị CPU/GC/latency đổi ngay sau chẩn đoán, dễ kết luận sai quan hệ nhân quả.
-14. **Chạy liên tiếp nhiều lệnh nặng trên JVM quá tải.** Các tác động chồng lên nhau, làm mất khả năng so sánh và có thể kéo dài sự cố.
-15. **Tin tài liệu của một JDK khác hơn trợ giúp thực tế.** Các command/option/Impact có thể khác theo version/vendor; phải kiểm tra mục tiêu.
+1. **Seeing "Impact: Low" and assuming the command is read-only.** `VM.set_flag`, `JFR.start`, and `VM.log` can alter state despite a Low impact rating.
+2. **Seeing "snapshot" and assuming zero JVM impact.** `Thread.print` and histograms incur cost proportional to actual scale.
+3. **Using `GC.run` as a GC inspection tool.** It requests `System.gc()`; behavior depends on collector/flags and can ruin baselines.
+4. **Taking a dump before measuring current heap/GC status.** A default dump can request a full GC, altering the object set before analysis.
+5. **Using `-all` and claiming zero risk remains.** `-all` changes the inspected object set and does not guarantee low cost.
+6. **Reading a post-full-GC histogram and comparing it directly against `-all`.** The two object sets differ semantically; you cannot conclude objects "disappeared" because a leak vanished.
+7. **Assuming `JFR.dump` stops the recording.** On JDK 17, the recording keeps running after dump; `JFR.stop` stops it.
+8. **Running JFR `profile` long-term without measuring overhead.** Higher-detail event settings can impact CPU, disk, and latency.
+9. **Calling `VM.log` without a rollback plan.** Increasing logging can drive I/O and alter the very metrics under observation.
+10. **Using a main class name or PID 0 to broadcast commands.** It can hit multiple JVMs; verify a single unique PID.
+11. **Skipping container namespace and attach-permission checks.** `jcmd -l` does not always see JVMs in other containers, and attach failure does not prove a hung JVM.
+12. **Treating HPROF files like harmless logs.** They can contain sensitive data; enforce access and storage controls.
+13. **Failing to timestamp when commands were run.** When CPU/GC/latency charts shift right after diagnostics, cause and effect are easily misattributed.
+14. **Chaining multiple heavy commands on an overloaded JVM.** Impacts compound, ruin comparability, and can prolong the incident.
+15. **Trusting docs for a different JDK over target help.** Commands, options, and Impact can vary by version/vendor; check the target itself.
 
-## 16. Tự kiểm tra kiến thức
+## 16. Self-check questions
 
-1. `VM.flags` và `VM.set_flag` khác nhau ở ý định và side effect thế nào, dù cả hai có nhãn Impact Low trên JDK 17?
-2. Vì sao `GC.heap_info` không tương đương `GC.class_histogram`? Lệnh nào phù hợp hơn khi chỉ cần xem cấu hình/tổng quan heap?
-3. `GC.run` gọi API nào? Tại sao không thể cam kết luôn có một full stop-the-world GC giống nhau?
-4. `GC.heap_dump` trên JDK 17 mặc định làm gì trước/đồng thời với việc ghi HPROF? `-all` thay đổi điều gì và không bảo đảm điều gì?
-5. Một kỹ sư thấy heap used giảm ngay sau khi gọi `GC.run` rồi tuyên bố tìm ra nguyên nhân leak. Kết luận đó thiếu gì?
-6. `JFR.check`, `JFR.start`, `JFR.dump`, `JFR.stop` thay đổi trạng thái recording/file như thế nào?
-7. Một heap dump 4 GiB được tạo trong container gần đầy đĩa. Những rủi ro nào xuất hiện ngoài bản thân pause của JVM?
-8. Vì sao `jcmd -l` không thấy Java PID trong một container khác chưa đủ chứng minh process không tồn tại?
-9. Đâu là khác biệt giữa “lệnh có chi phí thấp” và “lệnh không thay đổi hành vi application”?
-10. Khi ghi báo cáo sau một đợt chẩn đoán có histogram và JFR, bạn cần giữ những mốc thời gian và thông tin option nào để người khác phân biệt trước/sau can thiệp?
+1. How do `VM.flags` and `VM.set_flag` differ in intent and side effects, even though both carry Impact Low on JDK 17?
+2. Why is `GC.heap_info` not equivalent to `GC.class_histogram`? Which command fits better when you only need heap configuration/overview?
+3. Which API does `GC.run` invoke? Why can you not guarantee an identical full stop-the-world GC every time?
+4. What does `GC.heap_dump` do by default on JDK 17 before/while writing HPROF? What does `-all` change, and what does it not guarantee?
+5. An engineer sees heap used drop right after running `GC.run` and announces the leak cause is found. What is missing from that conclusion?
+6. How do `JFR.check`, `JFR.start`, `JFR.dump`, and `JFR.stop` affect recording state and files?
+7. A 4 GiB heap dump is created inside a nearly full container. What risks arise beyond the JVM pause itself?
+8. Why is `jcmd -l` missing a Java PID in another container insufficient to prove the process does not exist?
+9. What is the difference between a "low-cost command" and a "command that does not alter application behavior"?
+10. When writing a report after a diagnostic session involving a histogram and JFR, which timestamps and option details must be preserved so others can distinguish pre- and post-intervention state?
 
-## Tài liệu đối chiếu
+## Reference documentation
 
 - Oracle, **The jcmd Command — Java SE 17**: https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html
-- Tự kiểm tra trên JVM đích: `jcmd <PID> help` và `jcmd <PID> help <COMMAND>`. Danh sách command, option và mức Impact **có thể thay đổi** theo JDK implementation/version.
+- Self-verify on the target JVM: `jcmd <PID> help` and `jcmd <PID> help <COMMAND>`. Command lists, options, and Impact levels **can vary** by JDK implementation/version.
 
-**Ghi nhớ:** phân loại `jcmd` theo **tác dụng thực tế và chi phí** chứ không theo tên hoặc nhãn Impact đơn lẻ. Hãy thu bằng chứng ít xâm lấn trước, chỉ thực hiện GC/dump/recording/configuration có chủ đích khi thật sự cần, và luôn đánh dấu trong timeline những gì chính công cụ chẩn đoán đã thay đổi.
+**Key takeaway:** classify `jcmd` by **actual effect and cost**, not by command name or a bare Impact label. Gather the least intrusive evidence first, run intentional GC/dumps/recordings/configuration changes only when truly needed, and always mark on the timeline what the diagnostic tool itself changed.

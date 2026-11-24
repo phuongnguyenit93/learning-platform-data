@@ -1,67 +1,67 @@
-# Điều khiển đầu vào, đầu ra và lỗi qua ScriptContext
+# Controlling Input, Output, and Errors via ScriptContext
 
-Khi nhúng một ngôn ngữ script vào ứng dụng Java, host thường không muốn mọi script đọc trực tiếp bàn phím, in ra terminal chung hoặc đẩy mọi lỗi vào log của JVM. Mỗi lượt chạy script có thể đến từ một request khác nhau, cần nhận input riêng, ghi output vào vùng nhớ hoặc file riêng và trả lỗi theo một định dạng được kiểm soát.
+When embedding a scripting language in a Java application, the host usually does not want every script reading directly from the keyboard, printing to the shared terminal, or dumping every error into the JVM log. Each script run may come from a different request, needing its own input, writing output to a separate memory buffer or file, and returning errors in a controlled format.
 
-**Java Scripting API (JSR 223), trong module java.scripting**, cung cấp **javax.script.ScriptContext** để mô tả ngữ cảnh thực thi. Đối với một ScriptEngine hỗ trợ giao diện này, host có thể cung cấp ba kênh I/O dạng ký tự:
+**The Java Scripting API (JSR 223), in the java.scripting module**, provides **javax.script.ScriptContext** to describe the execution context. For a ScriptEngine supporting this interface, the host can supply three character-based I/O channels:
 
-- **Reader** từ context.getReader(): dữ liệu script có thể đọc như input.
-- **Writer** từ context.getWriter(): output thông thường do engine/script gửi vào.
-- **Writer** từ context.getErrorWriter(): output lỗi hoặc cảnh báo mà engine/script chủ động gửi vào.
+- **Reader** from context.getReader(): data the script can read as input.
+- **Writer** from context.getWriter(): normal output sent by the engine/script.
+- **Writer** from context.getErrorWriter(): error or warning output explicitly sent by the engine/script.
 
-ScriptContext còn giữ **Bindings** theo scope để script trao đổi biến với host. Tuy nhiên, **ScriptContext không tự chuyển hướng System.in/System.out/System.err của cả JVM**, không tự bắt exception thành error text và không phải sandbox bảo mật. Engine phải thực sự sử dụng các kênh đã cung cấp.
+ScriptContext also holds scoped **Bindings** so scripts can exchange variables with the host. However, **ScriptContext does not redirect System.in/System.out/System.err for the entire JVM**, does not automatically convert exceptions into error text, and is not a security sandbox. The engine itself must actually use the supplied channels.
 
-Bài này trình bày cơ chế, cách quản lý mỗi kênh, scope, lỗi, tài nguyên và một ví dụ Java 17+ **độc lập với engine JavaScript bên ngoài**.
+This article covers the mechanism, how to manage each channel, scopes, errors, resources, and a Java 17+ example **independent of external JavaScript engines**.
 
-## 1. Mô hình host → script engine → ScriptContext
+## 1. Host → Script Engine → ScriptContext Model
 
-Một lần thực thi có thể được hình dung như sau:
+A single execution can be visualized as follows:
 
 ~~~text
-Host Java
+Java Host
   |
-  | chuẩn bị input, output, error, bindings
+  | prepares input, output, error, bindings
   v
 SimpleScriptContext
-  ├── Reader            ← dữ liệu script đọc (input)
-  ├── Writer            → output bình thường
-  ├── ErrorWriter       → cảnh báo/lỗi do script/engine viết
-  ├── ENGINE_SCOPE      → biến ưu tiên cho lượt chạy
-  └── GLOBAL_SCOPE      → biến chia sẻ/fallback tùy cấu hình
+  ├── Reader            ← data read by script (input)
+  ├── Writer            → normal output
+  ├── ErrorWriter       → warnings/errors written by script/engine
+  ├── ENGINE_SCOPE      → prioritized variables for this run
+  └── GLOBAL_SCOPE      → shared/fallback variables depending on config
   |
   | engine.eval(scriptSource, context)
   v
 ScriptEngine
-  ├── có thể đọc context.getReader()
-  ├── có thể ghi context.getWriter()/getErrorWriter()
-  ├── có thể truy cập context.getAttribute(...) / getBindings(...)
-  ├── trả về Object khi eval kết thúc
-  └── có thể ném ScriptException
+  ├── may read context.getReader()
+  ├── may write context.getWriter()/getErrorWriter()
+  ├── may access context.getAttribute(...) / getBindings(...)
+  ├── returns Object when eval finishes
+  └── may throw ScriptException
 ~~~
 
-**ScriptEngine** là bộ thực thi cú pháp của một ngôn ngữ hay DSL. **ScriptContext** là đối tượng chứa các biến và kênh I/O dùng trong lần thực thi. **ScriptEngineManager** là cơ chế tìm những engine đã được đăng ký, nhưng không phải bản thân engine hoặc context.
+**ScriptEngine** executes the syntax of a language or DSL. **ScriptContext** holds the variables and I/O channels used during that execution. **ScriptEngineManager** is the mechanism for discovering registered engines, not the engine or context itself.
 
-Java 17+ cung cấp API **javax.script**, nhưng **không bảo đảm có sẵn một JavaScript engine**. Nashorn đã bị loại khỏi JDK kể từ JDK 15; để eval JavaScript thực sự, ứng dụng cần cài engine tương thích riêng. Vì thế, ví dụ trong bài dùng một MiniEngine thực hiện ba lệnh đơn giản để minh họa **cơ chế API**; nó không giả vờ là JavaScript interpreter.
+Java 17+ provides the **javax.script** API, but **does not guarantee an available JavaScript engine**. Nashorn was removed from the JDK starting in JDK 15; to actually evaluate JavaScript, an application must install a compatible engine separately. Therefore, the example in this article uses a MiniEngine implementing three simple commands to demonstrate **the Java API mechanism**; it does not pretend to be a JavaScript interpreter.
 
-### Ba kênh I/O là ba vai trò khác nhau
+### Three I/O Channels Serve Three Distinct Roles
 
-| Phương thức | Kiểu Java | Vai trò | Ví dụ host cung cấp |
+| Method | Java Type | Role | Host-Supplied Examples |
 | --- | --- | --- | --- |
-| context.setReader(reader) | java.io.Reader | Input mà script/engine có thể đọc | StringReader, BufferedReader từ file |
-| context.setWriter(writer) | java.io.Writer | Output thông thường của script | StringWriter, file writer |
-| context.setErrorWriter(writer) | java.io.Writer | Kênh thông báo lỗi/cảnh báo do script/engine ghi | StringWriter tách riêng hoặc log writer |
+| context.setReader(reader) | java.io.Reader | Input readable by script/engine | StringReader, BufferedReader from a file |
+| context.setWriter(writer) | java.io.Writer | Normal script output | StringWriter, file writer |
+| context.setErrorWriter(writer) | java.io.Writer | Warning/error channel written by script/engine | Separate StringWriter or log writer |
 
-Những API này làm việc với **ký tự**, không phải InputStream/OutputStream byte. Nếu input đến từ network hoặc file nhị phân, host phải giải mã byte bằng charset rõ ràng (thường UTF-8) để tạo Reader. Nếu output cần lưu vào file hoặc HTTP response, Writer tương ứng chịu trách nhiệm mã hóa ký tự thành byte.
+These APIs operate on **characters**, not byte-based InputStream/OutputStream. If input comes from a network socket or binary file, the host must decode bytes with an explicit charset (typically UTF-8) to construct a Reader. If output must be saved to a file or HTTP response, the corresponding Writer handles encoding characters to bytes.
 
-**Phân biệt hai cách cấp Reader:**
+**Distinguish two ways of supplying a Reader:**
 
-- engine.eval(new StringReader("...script source..."), context) truyền **mã nguồn script** để engine đọc và thực thi.
-- context.setReader(new StringReader("...input data...")) truyền **dữ liệu đầu vào mà script có thể tiêu thụ trong lúc chạy**.
+- engine.eval(new StringReader("...script source..."), context) passes **script source code** for the engine to read and execute.
+- context.setReader(new StringReader("...input data...")) passes **input data the script can consume while running**.
 
-Hai Reader này hoàn toàn khác mục đích. Ví dụ phía dưới sử dụng cả hai để chứng minh.
+These two Readers serve completely different purposes. The example below uses both to demonstrate the difference.
 
-## 2. Cách điều khiển đầu vào với setReader/getReader
+## 2. Controlling Input with setReader/getReader
 
-Host có thể thay nguồn input cho từng lượt eval:
+The host can swap the input source per eval invocation:
 
 ~~~java
 ScriptContext context = new SimpleScriptContext();
@@ -70,23 +70,23 @@ context.setReader(new StringReader("An\n"));
 Object result = engine.eval("greet", context);
 ~~~
 
-Đây là **đoạn minh họa đặt trong một method** sau khi có đối tượng engine phù hợp và import javax.script.*, java.io.StringReader; đoạn trên không phải chương trình chạy độc lập. Engine phải có logic **đọc context.getReader()** thì dữ liệu "An" mới thực sự được sử dụng.
+This is an **illustrative snippet placed inside a method** after obtaining a suitable engine object and importing javax.script.* and java.io.StringReader; it is not a standalone runnable program. The engine must have logic to **read context.getReader()** for the data "An" to actually be consumed.
 
-Một engine có thể hỗ trợ script statement như readLine hoặc input; tên hàm do từng ngôn ngữ/engine quy định, không phải JSR 223 tự thêm lệnh input cho mọi script.
+An engine may support script statements like readLine or input; function names are defined by each language/engine—JSR 223 does not inject an input command into every language automatically.
 
-Các vấn đề thực tiễn:
+Practical considerations:
 
-1. **Đầu vào hữu hạn:** StringReader đọc đến cuối và trả EOF. Nếu một script cần input lần thứ hai, hãy cung cấp reader mới hoặc thiết kế luồng đầu vào được tái sử dụng có chủ đích.
-2. **Không dùng chung reader cho request độc lập:** một lần đọc có thể tiêu thụ dữ liệu của request khác, hoặc có thể làm cạn dữ liệu cho lượt sau.
-3. **Giới hạn kích thước và thời gian:** input do bên ngoài cung cấp có thể lớn, vô hạn hoặc chặn đọc. Thiết lập giới hạn trước khi truyền Reader vào engine.
-4. **Charset:** nên dùng Files.newBufferedReader(path, StandardCharsets.UTF_8) khi đọc file để tránh phụ thuộc charset hệ thống.
-5. **Quyền sở hữu:** host cần biết ai sẽ close Reader. Chỉ gọi context.setReader không có nghĩa ScriptContext sẽ tự đóng Reader sau eval.
+1. **Finite input:** StringReader reads until the end and returns EOF. If a script needs input a second time, provide a new reader or design a purposefully reusable input stream.
+2. **Do not share a reader across independent requests:** one read can consume another request's data or exhaust input for the next run.
+3. **Size and time limits:** externally supplied input can be huge, unbounded, or block on reads. Enforce limits before passing a Reader to the engine.
+4. **Charset:** prefer Files.newBufferedReader(path, StandardCharsets.UTF_8) when reading files to avoid depending on the OS default charset.
+5. **Ownership:** the host must know who closes the Reader. Calling context.setReader does not mean ScriptContext will close the Reader automatically after eval.
 
-Không nên chỉnh System.setIn(...) toàn JVM chỉ để xử lý một script, vì nó ảnh hưởng đến luồng khác đang chạy trong cùng tiến trình.
+Never mutate JVM-wide System.setIn(...) just to handle a single script, as it affects other threads running in the same process.
 
-## 3. Điều khiển output bình thường với setWriter/getWriter
+## 3. Controlling Normal Output with setWriter/getWriter
 
-Để giữ output trong bộ nhớ thay vì để nó đi ra console:
+To capture output in memory instead of letting it go to the console:
 
 ~~~java
 StringWriter captured = new StringWriter();
@@ -95,21 +95,21 @@ Object result = engine.eval("greet", context);
 String text = captured.toString();
 ~~~
 
-Đây cũng là **mảnh code minh họa** với context/engine đã tồn tại và import java.io.StringWriter. Khi engine/script gọi context.getWriter().write(...), text đó được lưu vào StringWriter. Đối với BufferedWriter hoặc network writer, host/engine có thể cần flush() để dữ liệu xuất hiện bên nhận trước khi kết thúc.
+This is also an **illustrative snippet** with an existing context/engine and import java.io.StringWriter. When the engine/script calls context.getWriter().write(...), that text is stored in the StringWriter. With a BufferedWriter or network writer, the host/engine may need flush() so data reaches the receiver before completion.
 
-**Object trả về từ eval không đồng nhất với output của Writer.** Script có thể vừa in nhiều dòng, vừa trả về một giá trị. Ví dụ một hàm trong script trả về tên người dùng nhưng cũng in câu chào; host cần giữ riêng hai kết quả.
+**The Object returned by eval is not the same as Writer output.** A script can both print multiple lines and return a value. For example, a script function returns a username while also printing a greeting; the host should keep both results separate.
 
-Việc cấu hình Writer này **không tự bắt**:
+Configuring this Writer **does not automatically capture**:
 
-- Java code trong engine gọi System.out.println(...) trực tiếp, không thông qua context.
-- Một thư viện native, logger, subprocess hoặc API khác ghi ngoài kênh Writer.
-- Những console API đặc thù của ngôn ngữ mà implementation engine không chuyển về ScriptContext.
+- Java code inside the engine calling System.out.println(...) directly without going through context.
+- A native library, logger, subprocess, or other API writing outside the Writer channel.
+- Language-specific console APIs that the engine implementation does not route to ScriptContext.
 
-Do đó, trước khi hứa rằng mọi output script đã được capture, phải **kiểm tra engine thực tế**. Nếu plugin/script sử dụng Java interop hoặc thư viện ngoài, cần chính sách logging và cách cô lập phù hợp ngoài ScriptContext.
+Therefore, before promising that all script output is captured, **verify against the actual engine**. If plugins/scripts use Java interop or external libraries, establish appropriate logging policies and isolation outside ScriptContext.
 
-## 4. Điều khiển kênh lỗi với setErrorWriter/getErrorWriter
+## 4. Controlling the Error Channel with setErrorWriter/getErrorWriter
 
-Host nên dùng một Writer riêng cho lỗi:
+The host should use a separate Writer for errors:
 
 ~~~java
 StringWriter normal = new StringWriter();
@@ -118,41 +118,41 @@ context.setWriter(normal);
 context.setErrorWriter(errors);
 ~~~
 
-Khi engine cố ý viết cảnh báo bằng context.getErrorWriter().write(...), nội dung được đưa vào errors, không lẫn với normal.
+When the engine intentionally writes warnings via context.getErrorWriter().write(...), the content goes into errors without mixing with normal.
 
-Nhưng có **hai hình thức lỗi khác nhau**:
+However, there are **two distinct forms of error**:
 
-1. **Văn bản lỗi/cảnh báo được viết ra errorWriter:** ví dụ một interpreter báo một warning. Đây là dữ liệu do engine gửi ra, có thể xảy ra cả khi eval thành công.
-2. **ScriptException được ném bởi engine.eval:** ví dụ lỗi cú pháp hoặc runtime mà engine báo qua Java exception. Việc ném ScriptException **không bảo đảm** tự xuất hiện trong context.getErrorWriter(). Host phải bắt exception và tự ghi lỗi theo chính sách.
+1. **Error/warning text written to errorWriter:** for example, an interpreter emitting a warning. This is data sent by the engine and can happen even when eval succeeds.
+2. **ScriptException thrown by engine.eval:** for example, syntax or runtime errors reported via a Java exception. Throwing ScriptException **does not guarantee** anything is written to context.getErrorWriter(). The host must catch the exception and record the error per policy.
 
-ScriptException có những thông tin chẩn đoán như **getMessage()**, **getFileName()**, **getLineNumber()**, **getColumnNumber()** (nếu engine cung cấp). Không phải engine nào cũng điền đầy đủ vị trí file/line/column; nên xử lý trường hợp giá trị không có.
+ScriptException exposes diagnostic fields such as **getMessage()**, **getFileName()**, **getLineNumber()**, and **getColumnNumber()** (if supplied by the engine). Not every engine populates file/line/column completely; handle missing values gracefully.
 
-Ví dụ host có thể xử lý:
+Example of how the host can handle it:
 
 ~~~java
 try {
     engine.eval(scriptSource, context);
 } catch (ScriptException ex) {
-    // Chính sách của host: ghi thông điệp đã lọc ra kênh lỗi.
+    // Host policy: write a filtered message to the error channel.
     context.getErrorWriter().write("Script failed\n");
     context.getErrorWriter().flush();
 }
 ~~~
 
-Đây là **mảnh code minh họa** nằm trong method có khai báo/đảm bảo xử lý IOException và có các biến engine, scriptSource, context. Trong production nên log nguyên nhân kỹ thuật ở phía server nhưng trả thông báo được kiểm soát, tránh tiết lộ path, bí mật hay stack trace nội bộ của host. Không được coi việc catch toàn bộ Throwable rồi bỏ qua là xử lý lỗi an toàn.
+This is an **illustrative snippet** inside a method that handles IOException and declares engine, scriptSource, and context. In production, log the technical root cause server-side while returning a controlled message that avoids leaking host paths, secrets, or internal stack traces. Catching every Throwable and ignoring it is never safe error handling.
 
-## 5. Engine scope và global scope ảnh hưởng đến dữ liệu script
+## 5. How Engine Scope and Global Scope Affect Script Data
 
-ScriptContext có hai scope chuẩn:
+ScriptContext has two standard scopes:
 
 ~~~text
 ScriptContext.ENGINE_SCOPE = 100
 ScriptContext.GLOBAL_SCOPE = 200
 ~~~
 
-Mỗi scope chứa một **Bindings**, về bản chất là tập tên → Object. Phương thức context.getAttribute("name") tìm trong các scope theo thứ tự tăng dần số thứ tự: **ENGINE_SCOPE trước, GLOBAL_SCOPE sau**. Nếu một biến trùng tên ở hai nơi, giá trị ở ENGINE_SCOPE có ưu tiên.
+Each scope holds a **Bindings**, essentially a name → Object map. Calling context.getAttribute("name") searches scopes in ascending numeric order: **ENGINE_SCOPE first, GLOBAL_SCOPE second**. If the same variable name exists in both places, the ENGINE_SCOPE value takes precedence.
 
-Ví dụ:
+Example:
 
 ~~~java
 SimpleScriptContext context = new SimpleScriptContext();
@@ -165,39 +165,39 @@ context.removeAttribute("prefix", ScriptContext.ENGINE_SCOPE);
 System.out.println(context.getAttribute("prefix")); // GLOBAL:
 ~~~
 
-Đoạn trên là một minh họa độc lập **đặt trong method có import javax.script.***. Có thể truy cập tường minh bằng context.getAttribute("prefix", ScriptContext.GLOBAL_SCOPE) nếu muốn bỏ qua luật ưu tiên.
+The snippet above is a self-contained illustration **placed inside a method with `import javax.script.*`**. You can query explicitly with context.getAttribute("prefix", ScriptContext.GLOBAL_SCOPE) to bypass the precedence rule.
 
-**Lưu ý thường bị bỏ sót:** SimpleScriptContext mặc định đã có một Bindings cho ENGINE_SCOPE, nhưng **GLOBAL_SCOPE mặc định là null**. Nếu muốn đặt biến global, hãy gọi setBindings(new SimpleBindings(), ScriptContext.GLOBAL_SCOPE) trước. Với SimpleScriptContext, setAttribute trên GLOBAL_SCOPE khi chưa có bindings global là thao tác không có tác dụng; đừng tưởng biến đã được lưu.
+**Frequently overlooked detail:** SimpleScriptContext comes with a Bindings for ENGINE_SCOPE by default, while **GLOBAL_SCOPE defaults to null**. If you want to set global variables, call setBindings(new SimpleBindings(), ScriptContext.GLOBAL_SCOPE) first. On SimpleScriptContext, calling setAttribute on GLOBAL_SCOPE when no global bindings exists is a no-op; do not assume the variable was stored.
 
-Những phương thức khác:
+Other methods:
 
-| API | Kết quả/công dụng |
+| API | Result / Purpose |
 | --- | --- |
-| getBindings(scope) | Lấy Map-like Bindings của scope được chỉ định |
-| setBindings(bindings, scope) | Thay toàn bộ tập biến của scope |
-| setAttribute(name, value, scope) | Ghi một biến vào scope cụ thể |
-| getAttribute(name) | Tìm biến theo thứ tự scope |
-| getAttribute(name, scope) | Chỉ đọc biến ở đúng scope |
-| getAttributesScope(name) | Trả scope đầu tiên chứa tên; -1 nếu không có |
-| removeAttribute(name, scope) | Xóa biến khỏi một scope cụ thể |
-| getScopes() | Liệt kê các scope hợp lệ, có thứ tự tăng dần |
+| getBindings(scope) | Gets the Map-like Bindings for the specified scope |
+| setBindings(bindings, scope) | Replaces the entire variable map of that scope |
+| setAttribute(name, value, scope) | Writes a variable into a specific scope |
+| getAttribute(name) | Looks up a variable following scope order |
+| getAttribute(name, scope) | Reads a variable from that exact scope only |
+| getAttributesScope(name) | Returns the first scope containing the name; -1 if absent |
+| removeAttribute(name, scope) | Removes a variable from a specific scope |
+| getScopes() | Lists valid scopes in ascending order |
 
-Đối với một request script độc lập, host có thể tạo **SimpleScriptContext mới** để giữ ENGINE_SCOPE, Reader, Writer và ErrorWriter riêng. Nếu GLOBAL_SCOPE chứa dữ liệu dùng chung, cần cân nhắc khả năng biến được chia sẻ giữa request và nguy cơ vô tình để lộ thông tin. Shared Bindings không phải cơ chế phân quyền.
+For an independent script request, the host can create a **new SimpleScriptContext** to keep ENGINE_SCOPE, Reader, Writer, and ErrorWriter isolated. If GLOBAL_SCOPE holds shared data, assess cross-request visibility and the risk of inadvertent information disclosure. Shared Bindings is not an access-control mechanism.
 
-## 6. Ví dụ Java 17 chạy được: input, output, error và scope trong một lần điều phối
+## 6. Runnable Java 17 Example: Input, Output, Errors, and Scope Together
 
-JDK 17 không có JavaScript engine mặc định đáng tin cậy, nên ví dụ tạo một **MiniEngine** tối giản, triển khai ScriptEngine bằng cách kế thừa AbstractScriptEngine. Nó chỉ hiểu ba lệnh **greet**, **warn**, **fail**; không phải parser JavaScript hay runtime đa ngôn ngữ. Mục tiêu là kiểm chứng chính xác API Java **ScriptContext**.
+JDK 17 has no reliable default JavaScript engine, so this example builds a minimal **MiniEngine** implementing ScriptEngine by extending AbstractScriptEngine. It understands only three commands—**greet**, **warn**, and **fail**—and is not a JavaScript parser or polyglot runtime. Its purpose is verifying the exact Java **ScriptContext** API.
 
 MiniEngine:
 
-- greet đọc một dòng từ context.getReader(), tìm prefix trong Bindings, ghi một dòng vào context.getWriter(), trả về String đã đọc.
-- warn ghi một dòng vào context.getErrorWriter(), trả về null.
-- fail ném ScriptException có số dòng 3; nó **không tự ghi** thông điệp lỗi ra errorWriter.
-- eval(Reader, context) đọc **mã lệnh** từ Reader được truyền trực tiếp, không trộn lẫn với input data trong context.
+- greet reads one line from context.getReader(), looks up prefix in Bindings, writes one line to context.getWriter(), and returns the String read.
+- warn writes one line to context.getErrorWriter() and returns null.
+- fail throws ScriptException with line number 3; it **does not automatically write** the error message to errorWriter.
+- eval(Reader, context) reads **command source** from the Reader passed directly, without mixing it with input data in context.
 
-### 6.1. Mã nguồn đầy đủ
+### 6.1. Complete Source Code
 
-Tạo duy nhất một file **ScriptContextDemo.java**:
+Create a single file **ScriptContextDemo.java**:
 
 ~~~java
 import java.io.BufferedReader;
@@ -335,20 +335,20 @@ public final class ScriptContextDemo {
 }
 ~~~
 
-MiniFactory chỉ là implementation tối thiểu của giao diện factory cần thiết cho ví dụ. Các phương thức trả chuỗi trống/không có tham số ngôn ngữ **không phải mô hình factory cho một engine sản xuất**. Chương trình tạo new MiniEngine() trực tiếp; nó **không đăng ký** MiniEngine với ScriptEngineManager. Trong dự án thực, factory của engine phải khai báo chính xác tên, syntax và tính năng mà runtime đó thực sự hỗ trợ.
+MiniFactory is only the minimal factory interface implementation needed for the example. Methods returning empty strings or null language parameters are **not a factory template for a production engine**. The program instantiates new MiniEngine() directly; it **does not register** MiniEngine with ScriptEngineManager. In a real project, an engine's factory must accurately advertise the names, syntax, and features actually supported by that runtime.
 
-### 6.2. Biên dịch và chạy
+### 6.2. Compile and Run
 
-Ở thư mục chứa **ScriptContextDemo.java**, chạy bằng JDK 17 hoặc mới hơn:
+In the directory containing **ScriptContextDemo.java**, run with JDK 17 or newer:
 
 ~~~powershell
 javac --release 17 -encoding UTF-8 ScriptContextDemo.java
 java ScriptContextDemo
 ~~~
 
-Trên Linux/macOS hai lệnh giống như vậy; cần cài JDK để có javac. Tên file phải khớp public class ScriptContextDemo.
+On Linux/macOS the two commands are identical; a JDK must be installed for javac. The filename must match the public class ScriptContextDemo.
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 caughtLine=3
@@ -359,22 +359,22 @@ capturedOut=ENGINE: An|GLOBAL: Binh|
 capturedErr=WARN: demo|
 ~~~
 
-Ví dụ trên đã được **biên dịch bằng javac --release 17 và chạy thực tế**. Trong stdout, dấu | là ký hiệu mà code chính trong main dùng để **thay dấu xuống dòng** của output đã capture, không phải ký tự mà MiniEngine gửi vào Writer lúc đầu.
+The example above was **actually compiled with javac --release 17 and executed**. In stdout, the | symbol is inserted by main's formatting code to **replace newlines** in the captured output, not written by MiniEngine itself.
 
-### 6.3. Giải thích chính xác từng dòng
+### 6.3. Line-by-Line Explanation
 
-- **caughtLine=3:** lệnh fail ném ScriptException có line number là 3 và host bắt được. Exception này **không tự đi vào errorWriter**.
-- **return1=An:** đây là giá trị **Object** trả từ engine.eval("greet", context), không phải dòng output.
-- **return2=Binh:** ở lượt thứ hai, source của script được cấp qua eval(new StringReader("greet\n"), context), trong khi dữ liệu người dùng được đọc qua context.getReader() riêng.
-- **prefixScope=200:** sau khi xóa prefix khỏi ENGINE_SCOPE, getAttributesScope trả về GLOBAL_SCOPE. Trước khi xóa, biến trùng tên trong ENGINE_SCOPE (100) được ưu tiên.
-- **capturedOut=ENGINE: An|GLOBAL: Binh|:** cả hai lời chào đi vào **StringWriter output**, lần đầu dùng biến engine, lần sau fallback sang biến global.
-- **capturedErr=WARN: demo|:** lệnh warn ghi vào **StringWriter errors**. Lệnh fail không tự làm tăng nội dung của errorWriter.
+- **caughtLine=3:** the fail command throws ScriptException with line number 3, which the host catches. This exception **does not go into errorWriter automatically**.
+- **return1=An:** this is the **Object** value returned by engine.eval("greet", context), not the output line.
+- **return2=Binh:** on the second call, script source is supplied via eval(new StringReader("greet\n"), context), while user input data is read separately through context.getReader().
+- **prefixScope=200:** after removing prefix from ENGINE_SCOPE, getAttributesScope returns GLOBAL_SCOPE. Before removal, the matching variable in ENGINE_SCOPE (100) took precedence.
+- **capturedOut=ENGINE: An|GLOBAL: Binh|:** both greetings go into **StringWriter output**, first using the engine variable, then falling back to the global variable.
+- **capturedErr=WARN: demo|:** the warn command writes to **StringWriter errors**. The fail command does not add anything to errorWriter.
 
-Ví dụ có hai lần thực thi liên tiếp dùng cùng SimpleScriptContext để dễ nhìn thấy sự thay đổi scope. Trong dịch vụ nhiều người dùng, **không nên sử dụng lại context chứa input/output/error của user này cho user khác**. Thay vì mô phỏng các request đồng thời bằng một context dùng chung, hãy tạo context riêng cho mỗi request.
+The example runs two consecutive calls on the same SimpleScriptContext to make scope changes easy to observe. In a multi-user service, **do not reuse a context containing one user's input/output/error for another user**. Rather than simulating concurrent requests with a shared context, create a dedicated context per request.
 
-## 7. Cách dùng ScriptContext với engine thật
+## 7. Using ScriptContext with a Real Engine
 
-Nếu ứng dụng đã cài một ScriptEngine tương thích JSR 223, cách dùng API cơ bản sẽ giống ví dụ này:
+If your application has a JSR 223–compatible ScriptEngine installed, basic API usage looks like this example:
 
 ~~~java
 ScriptEngine engine = new ScriptEngineManager()
@@ -392,24 +392,24 @@ ctx.setErrorWriter(new StringWriter());
 Object value = engine.eval(scriptSource, ctx);
 ~~~
 
-Đây là **đoạn minh họa tích hợp, không tự chạy độc lập**: cần import javax.script.*, java.io.*, có biến scriptSource, và phải thay language-name bằng tên engine được triển khai thực sự. Tên/lệnh đọc input trong script **phụ thuộc vào ngôn ngữ**. Đừng giả định getEngineByName("JavaScript") luôn trả engine khác null trên Java 17+.
+This is an **illustrative integration snippet, not standalone runnable**: it requires importing javax.script.*, java.io.*, a scriptSource variable, and replacing language-name with the name of a real deployed engine. Input-reading functions inside scripts **depend on the language**. Never assume getEngineByName("JavaScript") always returns a non-null engine on Java 17+.
 
-So với chỉ dùng engine.eval(scriptSource), overload **eval(scriptSource, ctx)** buộc engine nhận **ngữ cảnh do host cung cấp** thay vì phụ thuộc vào default context của engine. Cách này hữu ích khi một engine instance cần được điều phối cho nhiều lượt eval tuần tự với reader/writer và scope khác nhau, nhưng vẫn phải xem tài liệu thread safety của engine.
+Compared to calling engine.eval(scriptSource) alone, the **eval(scriptSource, ctx)** overload forces the engine to use the **host-supplied context** rather than relying on the engine's default context. This is useful when one engine instance orchestrates sequential eval calls with different readers/writers and scopes, though you must still check the engine's thread-safety documentation.
 
-### ScriptContext truyền tường minh khác engine.getContext()
+### Explicit ScriptContext vs. engine.getContext()
 
-Có hai cách cấu hình phổ biến:
+There are two common configuration patterns:
 
-1. **engine.setContext(ctx); engine.eval(script);** thay context mặc định gắn với đối tượng engine.
-2. **engine.eval(script, ctx);** đưa một context tường minh cho một lời gọi eval cụ thể.
+1. **engine.setContext(ctx); engine.eval(script);** replaces the default context attached to the engine object.
+2. **engine.eval(script, ctx);** passes an explicit context for a single eval call.
 
-Cách (2) thường dễ quản lý hơn trong host có nhiều request vì không cần thay trạng thái default context được giữ bên trong engine. Tuy nhiên **nó không bảo đảm engine instance an toàn để gọi đồng thời**; engine vẫn có thể giữ trạng thái bên trong ngoài ScriptContext.
+Approach (2) is usually easier to manage in multi-request hosts because it avoids mutating the engine's internal default context state. However, **it does not make an engine instance safe for concurrent calls**; the engine may still hold internal state outside ScriptContext.
 
-Các phương thức engine.put("key", value) và engine.get("key") thường thao tác **ENGINE_SCOPE của default context gắn với engine**. Chúng không nhất thiết tác động đến **SimpleScriptContext riêng** mà ta truyền vào eval(script, ctx). Vì vậy, để điều khiển biến theo request, hãy thao tác trực tiếp với ctx.setAttribute hoặc ctx.getBindings.
+Calling engine.put("key", value) and engine.get("key") typically operates on **ENGINE_SCOPE of the engine's default context**. They do not necessarily affect a **separate SimpleScriptContext** passed to eval(script, ctx). Therefore, to control per-request variables, operate directly on ctx.setAttribute or ctx.getBindings.
 
-## 8. Đưa input/output/error ra file thay vì StringWriter
+## 8. Routing Input/Output/Errors to Files Instead of StringWriter
 
-Với một tác vụ được kiểm soát và có thư mục riêng, host có thể mở Reader/Writer qua Files:
+For controlled tasks with dedicated directories, the host can open Reader/Writer streams via Files:
 
 ~~~java
 try (Reader input = Files.newBufferedReader(
@@ -430,90 +430,90 @@ try (Reader input = Files.newBufferedReader(
 }
 ~~~
 
-Đây là **đoạn minh họa đặt trong một method có xử lý IOException và ScriptException**, có các biến inputPath, outputPath, errorPath, engine, scriptSource và import java.nio.file.Files, java.nio.charset.StandardCharsets, java.io.Reader/Writer, javax.script.SimpleScriptContext. Nó không phải file tự biên dịch độc lập. File writer mặc định có thể tạo mới/truncate file đích tùy OpenOption; cần kiểm tra chính sách ghi đè trước khi chạy với dữ liệu thật.
+This is an **illustrative snippet placed inside a method handling IOException and ScriptException**, with variables inputPath, outputPath, errorPath, engine, scriptSource and imports java.nio.file.Files, java.nio.charset.StandardCharsets, java.io.Reader/Writer, and javax.script.SimpleScriptContext. It is not a standalone compilable file. Default file writers may create/truncate target files depending on OpenOption; check overwrite policies before running on real data.
 
-**try-with-resources** là nơi host chịu trách nhiệm close những stream mà host đã mở. Bản thân ScriptContext không cam kết close tài nguyên sau eval. Nếu Writer được chia sẻ cho nhiều request hoặc do môi trường khác quản lý, chính sách close phải khác; không được đóng Writer tùy tiện khi engine đang còn sử dụng.
+**try-with-resources** is where the host takes responsibility for closing streams it opened. ScriptContext itself does not promise to close resources after eval. If a Writer is shared across requests or managed elsewhere, the closing policy must differ; never close a Writer prematurely while the engine is still using it.
 
-Nếu eval ném ScriptException, khối try-with-resources vẫn đóng stream, nhưng host nên bắt exception bên ngoài hoặc bên trong để ghi trạng thái lỗi. Nếu muốn bảo đảm flush và lưu lỗi ngay trong file trước khi đóng, phải thiết kế thứ tự catch/finally phù hợp. Khi ghi qua mạng, writer còn có thể bị chặn, đầy buffer hoặc lỗi I/O; cần timeout và giới hạn đầu ra phù hợp.
+If eval throws ScriptException, try-with-resources still closes the streams, though the host should catch the exception outside or inside to record the failure state. To guarantee flushing and saving errors to a file before closing, structure catch/finally ordering carefully. When writing over a network, writers can also block, fill buffers, or hit I/O errors; apply appropriate timeouts and output limits.
 
-## 9. ErrorWriter, exception và logging phải được tách đúng
+## 9. ErrorWriter, Exceptions, and Logging Must Be Properly Separated
 
-Trong một hệ thống thực, nên phân biệt ít nhất bốn loại thông tin:
+In a real system, distinguish at least four kinds of information:
 
-| Kênh | Ví dụ | Cách thu thập |
+| Channel | Examples | How to Collect |
 | --- | --- | --- |
-| Script output | Dữ liệu người dùng muốn tạo | context.getWriter() do engine hỗ trợ |
-| Script diagnostic text | Cảnh báo của interpreter, lỗi không ném exception | context.getErrorWriter() do engine hỗ trợ |
-| Java exception | ScriptException và nguyên nhân gốc | Host catch và xử lý trực tiếp |
-| Host/framework/JVM logs | Logger, System.err, thông báo tiến trình | Hệ thống logging/observability riêng |
+| Script output | Data the user wants produced | context.getWriter() if supported by engine |
+| Script diagnostic text | Interpreter warnings, non-throwing errors | context.getErrorWriter() if supported by engine |
+| Java exceptions | ScriptException and root cause | Caught and handled directly by host |
+| Host/framework/JVM logs | Loggers, System.err, process messages | Dedicated logging/observability system |
 
-Không dùng context.setErrorWriter để giả định đã thu toàn bộ System.err. Không lấy output errorWriter có nội dung làm dấu hiệu biên dịch/thực thi chắc chắn thất bại; một script có thể phát warning rồi trả kết quả thành công. Ngược lại, errorWriter rỗng cũng không chứng minh eval thành công, vì exception có thể được ném trực tiếp.
+Do not call context.setErrorWriter and assume you captured all of System.err. Do not treat non-empty errorWriter content as proof that compilation/execution failed; a script can emit a warning and still return a valid result. Conversely, an empty errorWriter does not prove eval succeeded, because an exception may have been thrown directly.
 
-Khi cần trả lỗi về client, có thể xây dựng response dạng dữ liệu có cấu trúc:
+When returning errors to a client, build a structured response shape:
 
 ~~~text
 ExecutionResult
   status: SUCCESS | SCRIPT_ERROR | ENGINE_ERROR | TIMEOUT
-  returnValue: giá trị đã qua kiểm tra/chuyển đổi
-  outputText: những ký tự mà Writer thường đã nhận
-  diagnosticText: những ký tự mà ErrorWriter đã nhận
-  errorMessage: thông điệp an toàn từ exception nếu có
-  line: vị trí lỗi nếu engine cung cấp
+  returnValue: validated/converted value
+  outputText: characters received by normal Writer
+  diagnosticText: characters received by ErrorWriter
+  errorMessage: safe message from exception if any
+  line: error location if provided by engine
 ~~~
 
-Khối trên chỉ là **sơ đồ dữ liệu**, không phải class Java runnable. Nên tách dữ liệu raw của engine khỏi thông tin hiển thị cho người dùng; sanitize dữ liệu trước khi đưa lên UI, đặc biệt nếu output có HTML hay thông tin riêng tư.
+The block above is only a **data schema**, not a runnable Java class. Separate raw engine diagnostics from user-facing messages; sanitize data before rendering in a UI, especially if output contains HTML or private information.
 
-Trong các runtime có console API riêng, nếu cần capture console.log, print hoặc stack trace, phải đọc tài liệu của **đúng ScriptEngine** để biết chúng có được chuyển về context Writer hay không. ScriptContext không ép buộc mọi đường output của ngôn ngữ đều dùng ba kênh của nó.
+In runtimes with their own console APIs, if you need to capture console.log, print, or stack traces, consult the **exact ScriptEngine's documentation** to see whether they route to the context Writer. ScriptContext does not force every language output mechanism to use its three channels.
 
-## 10. Mỗi request một context: tránh rò dữ liệu và lỗi cạnh tranh
+## 10. One Context per Request: Avoiding Data Leaks and Race Conditions
 
-Với một dịch vụ chạy script cho nhiều người dùng, một cấu hình thường hợp lý là:
+For a service executing scripts for multiple users, a sensible architecture is:
 
 ~~~text
 Request A → ScriptContext A → Reader A / Writer A / ErrorWriter A / Bindings A
 Request B → ScriptContext B → Reader B / Writer B / ErrorWriter B / Bindings B
                                   |
                        ScriptEngine/engine pool
-                       theo chính sách concurrency
+                       per concurrency policy
 ~~~
 
-Các nguyên tắc cần quyết định rõ:
+Principles to decide explicitly:
 
-- **Tạo context riêng cho mỗi tác vụ** để không trộn input/output của các request.
-- **Không chia sẻ mutable Bindings chứa dữ liệu riêng tư** giữa user; GLOBAL_SCOPE không phải biên bảo mật.
-- **Không thay System.out/System.err/System.in toàn JVM** để chuyển hướng một script; làm vậy sẽ gây nhiễu giữa các thread và cả host.
-- **Không cho Writer phát triển vô hạn** nếu script có thể in số lượng lớn dữ liệu; dùng giới hạn số ký tự hoặc stream được kiểm soát.
-- **Không dùng chung ScriptEngine một cách mặc định trong nhiều thread.** Kiểm tra hợp đồng của engine và thông tin threading nếu có, thường qua ScriptEngineFactory.getParameter("THREADING"). Những giá trị/giới hạn mà engine công bố cần được hiểu theo tài liệu của chính implementation đó.
-- **Không dùng ScriptContext làm sandbox.** Một script engine có thể cho script gọi vào class Java hoặc thao tác ngoài context tùy ngôn ngữ và cấu hình.
-- **Giới hạn thời gian/chạy vô hạn** không phải trách nhiệm của ScriptContext; khi chạy script không đáng tin, cần tiến trình/OS container và giới hạn CPU, RAM, I/O, network phù hợp.
+- **Create a separate context per task** so inputs/outputs of different requests never mix.
+- **Never share mutable Bindings containing private data** across users; GLOBAL_SCOPE is not a security boundary.
+- **Never swap JVM-wide System.out/System.err/System.in** to redirect one script; doing so interferes with other threads and the host itself.
+- **Never let a Writer grow unbounded** if a script can print huge amounts of data; enforce character limits or bounded streams.
+- **Never share a ScriptEngine across threads by default.** Check the engine's contract and threading info if available, typically via ScriptEngineFactory.getParameter("THREADING"). Advertised values/limits must be interpreted using that exact implementation's documentation.
+- **Never treat ScriptContext as a sandbox.** A script engine may let scripts call Java classes or act outside the context depending on language and configuration.
+- **Timeouts/infinite loops** are not ScriptContext's responsibility; when running untrusted scripts, use OS processes/containers and enforce CPU, RAM, I/O, and network limits.
 
-Lưu ý trường hợp host muốn "đồng thời" nhiều script: việc mỗi request có context riêng **không làm engine tự nhiên thread-safe**. Một số engine giữ biến toàn cục hoặc internal runtime state; cần tạo engine mới cho mỗi request, đồng bộ hoặc quản lý engine pool theo tài liệu cụ thể.
+Note on running multiple scripts "concurrently": giving each request its own context **does not automatically make the engine thread-safe**. Some engines keep global variables or internal runtime state; create a new engine per request, synchronize, or manage an engine pool according to the engine's documentation.
 
-## 11. Những lỗi thường gặp và cách chẩn đoán
+## 11. Common Issues and How to Diagnose Them
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách kiểm tra |
+| Symptom | Common Cause | How to Check |
 | --- | --- | --- |
-| setWriter đã gọi nhưng console vẫn in ra System.out | Engine/library ghi trực tiếp vào System.out hoặc logger | Kiểm tra implementation engine và đường output cụ thể |
-| ErrorWriter trống dù eval ném lỗi | Exception không tự chuyển thành text lỗi | Catch ScriptException và tạo diagnostic có cấu trúc |
-| Input luôn EOF | Reader đã bị đọc hết ở lần eval trước | Cấp Reader mới theo tác vụ/lượt đọc |
-| Eval không thấy biến prefix vừa đặt | Đặt vào default context khác context truyền vào eval | Kiểm tra đúng instance và scope |
-| Biến global không tồn tại | Chưa setBindings cho GLOBAL_SCOPE của SimpleScriptContext | Khởi tạo Global Bindings rồi setAttribute |
-| ENGINE_SCOPE ghi đè GLOBAL_SCOPE | Lookup tìm scope nhỏ hơn trước | Dùng getAttribute(name, scope) hoặc xóa biến engine |
-| Có hai Reader nên dữ liệu bị "đọc sai" | Nhầm Reader chứa script source với context Reader chứa input | Tách hai luồng theo chức năng |
-| getEngineByName trả null | Chưa cài/đăng ký engine ngôn ngữ | Kiểm tra runtime JDK, engine JAR và ScriptEngineFactory |
-| Writer bị đóng quá sớm | Host đóng trước khi engine ghi hoặc flush | Quản lý ownership, wait/cancel task rồi close |
-| Output/error bị trộn giữa user | Dùng chung context, writer hoặc mutable bindings | Tạo riêng từng tác vụ, theo dõi request ID |
-| Script không kết thúc | Đầu vào chặn, vòng lặp vô hạn, I/O chờ | Timeout và giới hạn tiến trình/tài nguyên |
-| Một ScriptException có file/line không như mong đợi | Engine không cung cấp metadata hoặc tự đặt tên file | Kiểm tra getFileName/getLineNumber và contract của engine |
+| setWriter called yet console still prints to System.out | Engine/library writes directly to System.out or a logger | Check engine implementation and exact output paths |
+| ErrorWriter is empty even though eval threw an error | Exceptions do not automatically become error text | Catch ScriptException and build structured diagnostics |
+| Input is always EOF | Reader was already exhausted in a prior eval | Supply a fresh Reader per task/read pass |
+| Eval cannot see the prefix variable just set | Set on default context instead of the context passed to eval | Verify exact context instance and scope |
+| Global variable does not exist | Forgot to call setBindings for GLOBAL_SCOPE on SimpleScriptContext | Initialize Global Bindings before calling setAttribute |
+| ENGINE_SCOPE overrides GLOBAL_SCOPE | Lookup checks lower scope number first | Use getAttribute(name, scope) or remove the engine variable |
+| Two Readers caused data to be "misread" | Confused script source Reader with context input Reader | Separate the two streams by role |
+| getEngineByName returns null | Language engine not installed/registered | Check JDK runtime, engine JAR, and ScriptEngineFactory |
+| Writer closed too early | Host closed it before engine wrote or flushed | Manage ownership, wait/cancel task before closing |
+| Output/errors mixed between users | Shared context, writer, or mutable bindings | Create per-task instances, track request IDs |
+| Script never terminates | Blocking input, infinite loop, pending I/O | Enforce timeouts and process/resource limits |
+| ScriptException file/line unexpected | Engine lacks metadata or sets its own filename | Check getFileName/getLineNumber and engine contract |
 
-Một đoạn mã thường gây lỗi là:
+A frequent bug pattern:
 
 ~~~java
 engine.put("user", "An");
 engine.eval(scriptSource, mySeparateContext);
 ~~~
 
-Hai câu trên là **minh họa một tình huống có thể sai**, vì engine.put thao tác default ENGINE_SCOPE của engine, không nhất thiết là ENGINE_SCOPE của mySeparateContext. Muốn biến user hiện diện trong lần eval này, viết:
+Those two statements **illustrate a potential bug**, because engine.put modifies the engine's default ENGINE_SCOPE, not necessarily the ENGINE_SCOPE of mySeparateContext. To ensure `user` is visible during this eval call, write:
 
 ~~~java
 mySeparateContext.setAttribute(
@@ -521,38 +521,38 @@ mySeparateContext.setAttribute(
 engine.eval(scriptSource, mySeparateContext);
 ~~~
 
-Các mảnh code dùng biến engine, scriptSource, mySeparateContext đã tồn tại; không phải class Java độc lập.
+These snippets assume existing engine, scriptSource, and mySeparateContext variables; they are not standalone Java classes.
 
-## 12. Quy trình QA cho một script host
+## 12. QA Checklist for a Script Host
 
-Trước khi tích hợp ScriptContext vào runtime extensibility:
+Before integrating ScriptContext into runtime extensibility:
 
-1. **Xác định engine:** ngôn ngữ, phiên bản, JSR 223 support, cơ chế cài/đăng ký ScriptEngineFactory.
-2. **Chuẩn bị context mỗi request:** tạo ENGINE_SCOPE riêng; GLOBAL_SCOPE chỉ dùng với dữ liệu chung đã quyết định.
-3. **Kiểm soát input:** setReader với Reader đã biết nguồn, charset, giới hạn kích thước và chính sách EOF.
-4. **Tách output và lỗi:** setWriter/setErrorWriter sang hai đích có thể kiểm tra; flush/close đúng ownership.
-5. **Truyền context tường minh:** ưu tiên engine.eval(script, ctx) khi muốn cô lập lần chạy so với default context.
-6. **Kiểm tra return value:** tách giá trị Object trả từ eval khỏi những ký tự script in ra.
-7. **Bắt ScriptException:** lấy thông tin file/line nếu có, không dựa hoàn toàn vào ErrorWriter.
-8. **Thử tình huống xấu:** script không ghi gì, ghi rất dài, Reader rỗng, Writer lỗi, nội dung lỗi có ký tự Unicode hoặc dữ liệu nhạy cảm.
-9. **Kiểm tra luồng thật của engine:** đảm bảo lệnh input/output/error của ngôn ngữ thực sự tôn trọng ScriptContext.
-10. **Cô lập execution nếu cần:** ScriptContext chỉ kiểm soát API I/O được engine dùng; không thay ranh giới tiến trình hay security policy.
+1. **Identify the engine:** language, version, JSR 223 support, and ScriptEngineFactory installation/registration mechanism.
+2. **Prepare per-request context:** create separate ENGINE_SCOPE; use GLOBAL_SCOPE only for intentionally shared data.
+3. **Control input:** call setReader with a Reader of known origin, charset, size limit, and EOF policy.
+4. **Separate output and errors:** call setWriter/setErrorWriter targeting two inspectable destinations; flush/close according to ownership.
+5. **Pass context explicitly:** prefer engine.eval(script, ctx) when isolating runs from the default context.
+6. **Check return values:** keep the Object returned by eval separate from characters printed by the script.
+7. **Catch ScriptException:** extract file/line metadata if available; do not rely solely on ErrorWriter.
+8. **Test failure modes:** scripts printing nothing, printing huge output, empty Reader, failing Writer, and errors containing Unicode or sensitive data.
+9. **Test real engine streams:** confirm the language's input/output/error primitives actually honor ScriptContext.
+10. **Isolate execution if needed:** ScriptContext only controls JSR 223 I/O APIs used by the engine; it does not replace process boundaries or security policies.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-**Đã setWriter rồi, có chắc mọi System.out.println bên trong plugin bị bắt không?** Không. Việc ghi trực tiếp vào System.out là cơ chế khác; chỉ được capture nếu engine/plugin chủ động dùng Writer của context hoặc host thiết lập biện pháp riêng có kiểm soát.
+**Once setWriter is called, are all System.out.println calls inside a plugin guaranteed to be captured?** No. Writing directly to System.out uses a different mechanism; output is captured only if the engine/plugin actively uses the context Writer or the host establishes controlled redirection separately.
 
-**eval ném ScriptException thì ErrorWriter luôn có văn bản lỗi không?** Không. Hai cơ chế độc lập; host cần catch exception.
+**If eval throws ScriptException, does ErrorWriter always contain error text?** No. They are two independent mechanisms; the host must catch the exception.
 
-**Tại sao getAttribute("prefix") dùng giá trị ENGINE_SCOPE dù GLOBAL_SCOPE cũng có cùng tên?** Vì scope 100 đứng trước 200 theo thứ tự lookup.
+**Why does getAttribute("prefix") return the ENGINE_SCOPE value even when GLOBAL_SCOPE has the same name?** Because scope 100 precedes 200 in lookup order.
 
-**ScriptEngine.eval(Reader, context) đọc gì?** Reader truyền trực tiếp vào eval chứa **source của script**; context.getReader chứa **input do script tiêu thụ** nếu engine hỗ trợ.
+**What does ScriptEngine.eval(Reader, context) read?** The Reader passed directly to eval holds **script source**; context.getReader holds **input consumed by the script** if supported by the engine.
 
-**Dùng eval(script, context) có đảm bảo đồng thời nhiều luồng không?** Không. Context riêng chỉ là một phần của thiết kế; thread safety của engine và các shared resources phải được kiểm chứng riêng.
+**Does calling eval(script, context) guarantee multithreaded safety?** No. Per-call context is only one part of the design; engine thread safety and shared resources must be verified separately.
 
-**ScriptContext có ngăn script truy cập file/network không?** Không. Nó chỉ là đối tượng ngữ cảnh I/O/Bindings trong JSR 223, không phải cơ chế sandbox.
+**Does ScriptContext prevent scripts from accessing files or the network?** No. It is only an I/O and Bindings context object in JSR 223, not a sandboxing mechanism.
 
-### Tài liệu chuẩn
+### Standard References
 
 - Oracle Java SE 17 **javax.script.ScriptContext**: https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptContext.html
 - Oracle Java SE 17 **javax.script.SimpleScriptContext**: https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/SimpleScriptContext.html
@@ -561,4 +561,4 @@ Trước khi tích hợp ScriptContext vào runtime extensibility:
 - Oracle Java SE 17 **javax.script.ScriptException**: https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptException.html
 - OpenJDK **JEP 372: Remove the Nashorn JavaScript Engine**: https://openjdk.org/jeps/372
 
-**Kết luận:** ScriptContext giúp host truyền **Reader**, **Writer**, **ErrorWriter** và **Bindings** cho từng lần thực thi script mà không cần đổi luồng hệ thống toàn JVM. Để một tính năng nhúng script chạy đúng, phải phân biệt script source với input data, output text với return value, diagnostic writer với ScriptException, và ngữ cảnh API với cơ chế cô lập thực thi thực sự.
+**Conclusion:** ScriptContext lets a host pass **Reader**, **Writer**, **ErrorWriter**, and **Bindings** for each script execution without altering JVM-wide system streams. For embedded scripting to work reliably, separate script source from input data, output text from return values, diagnostic writers from ScriptException, and API context objects from true execution isolation mechanisms.

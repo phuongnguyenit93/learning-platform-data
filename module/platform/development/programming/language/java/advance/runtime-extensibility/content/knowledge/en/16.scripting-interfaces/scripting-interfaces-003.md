@@ -1,21 +1,21 @@
-# Ánh xạ hàm kịch bản sang interface Java và xử lý kết quả không hỗ trợ
+# Mapping Script Functions to a Java Interface and Handling Unsupported Results
 
-Trong một ứng dụng Java có thể mở rộng lúc chạy, host thường biết trước **hợp đồng Java** (ví dụ hàm định dạng văn bản, tính giá, kiểm tra quy tắc), còn người phát triển plugin muốn viết phần triển khai bằng một **ngôn ngữ kịch bản**. Nếu host gọi tên hàm qua chuỗi ở mọi nơi, mã ứng dụng dễ sai tên, sai đối số và khó thay đổi. Java Scripting API (JSR 223, module java.scripting) cung cấp interface tùy chọn **javax.script.Invocable**, cho phép một số script engine **ánh xạ các hàm của script sang một Java interface**.
+In a runtime-extensible Java application, the host typically knows the **Java contract** in advance (such as text formatting, pricing calculation, or rule validation), while plugin authors want to write the implementation in a **scripting language**. If the host invokes function names as strings everywhere, application code becomes prone to typos, mismatched arguments, and brittle changes. The Java Scripting API (JSR 223, `java.scripting` module) provides the optional **javax.script.Invocable** interface, allowing certain script engines to **map script functions onto a Java interface**.
 
-Phương thức chính là:
+The primary methods are:
 
 ~~~java
 <T> T Invocable.getInterface(Class<T> clasz)
 <T> T Invocable.getInterface(Object thiz, Class<T> clasz)
 ~~~
 
-Cả hai đều có thể trả về **null** khi không tạo được implementation phù hợp. Điều đó cần được xử lý như một **kết quả không hỗ trợ/không khả dụng của phép ánh xạ**, không phải tự động là lỗi cú pháp, không đồng nghĩa toàn bộ script engine đã hỏng, và tuyệt đối không được gọi phương thức qua tham chiếu null.
+Both can return **null** when a suitable implementation cannot be created. That must be handled as an **unsupported/unavailable mapping result**, not automatically treated as a syntax error, not equated with the entire script engine being broken, and never followed by calling a method on a null reference.
 
-Bài học làm rõ hợp đồng này, sự khác biệt giữa hai overload, đường kiểm tra capability, lỗi khi gọi hàm, ví dụ Java 17 độc lập không cần thư viện bên ngoài và cách tích hợp an toàn vào một host plugin thực tế.
+This lesson clarifies this contract, the difference between the two overloads, the capability check path, invocation errors, a standalone Java 17 example without external libraries, and how to integrate it safely into a real plugin host.
 
-## 1. Vấn đề: từ hàm script động sang hợp đồng Java có kiểu
+## 1. Problem: From Dynamic Script Functions to a Typed Java Contract
 
-Giả sử host có interface Java:
+Suppose the host defines a Java interface:
 
 ~~~java
 public interface Greeter {
@@ -23,7 +23,7 @@ public interface Greeter {
 }
 ~~~
 
-Một script theo cú pháp JavaScript có thể định nghĩa hàm top-level cùng tên:
+A script using JavaScript syntax may define a top-level function with the same name:
 
 ~~~javascript
 function greet(name) {
@@ -31,95 +31,95 @@ function greet(name) {
 }
 ~~~
 
-Host muốn viết mã Java như sau:
+The host wants to write Java code like this:
 
 ~~~java
-Greeter greeter = /* lấy adapter do engine cung cấp */;
+Greeter greeter = /* obtain adapter provided by the engine */;
 System.out.println(greeter.greet("Lan"));
 ~~~
 
-Thay vì mỗi nơi dùng:
+Instead of using this everywhere:
 
 ~~~java
 Object value = invocable.invokeFunction("greet", "Lan");
 ~~~
 
-**Điểm lợi** của adapter interface là host giao tiếp qua một hợp đồng Java đã công bố; chữ ký phương thức được kiểm tra trong mã host và client không phải tự quản lý tên hàm dạng chuỗi ở mỗi lời gọi. Tuy vậy, việc một interface Java biên dịch được **không bảo đảm script thực thi đúng**: tên hàm trong engine, số lượng đối số, khả năng chuyển đổi giá trị, lỗi script và vòng đời engine vẫn phải được kiểm tra ở runtime.
+**The advantage** of an interface adapter is that the host communicates through a published Java contract; method signatures are checked in host code and callers do not have to manage string function names at every call site. However, the fact that a Java interface compiles **does not guarantee the script executes properly**: function names inside the engine, argument counts, value conversion capabilities, script errors, and engine lifecycle must still be checked at runtime.
 
-Quy trình khái quát:
+High-level flow:
 
 ~~~text
-Host có interface Greeter
+Host has interface Greeter
             |
             v
-Tìm ScriptEngine bằng tên/ngôn ngữ
+Look up ScriptEngine by name/language
             |
-         null? ----------------------> Không có engine
-            |
-            v
-Kiểm tra engine instanceof Invocable
-            |
-         false? ---------------------> Engine không hỗ trợ Invocable
+         null? ----------------------> Engine unavailable
             |
             v
-Đánh giá/nạp script để định nghĩa hàm
+Check engine instanceof Invocable
             |
-      ScriptException? --------------> Script chưa thiết lập được trạng thái
+         false? ---------------------> Engine does not support Invocable
+            |
+            v
+Evaluate/load script to define functions
+            |
+      ScriptException? --------------> Script failed to establish state
             |
             v
 Invocable.getInterface(Greeter.class)
             |
-         null? ----------------------> Không ánh xạ được Greeter
+         null? ----------------------> Cannot map Greeter
             |
             v
-Gọi Greeter.greet(...)
+Call Greeter.greet(...)
             |
-      lỗi lúc gọi? ------------------> Lỗi thực thi/conversion, không phải null mapping
+      error on call? ------------------> Execution/conversion error, not null mapping
             |
             v
-Nhận kết quả theo hợp đồng Java
+Receive result per Java contract
 ~~~
 
-**Chỉ gọi adapter khi đã xác nhận nó khác null.** Không gộp tất cả nhánh vào một catch Exception rồi kết luận “engine không hỗ trợ interface”, bởi rất nhiều lỗi nằm ở giai đoạn khác.
+**Only invoke the adapter after confirming it is non-null.** Do not lump all branches into a single `catch (Exception)` and conclude "engine does not support the interface", because many failures happen at other stages.
 
-## 2. Những kiểu null và không hỗ trợ hoàn toàn khác nhau
+## 2. Completely Different Kinds of null and Unsupported Results
 
-| Thao tác | Kết quả/cơ chế | Ý nghĩa đúng |
+| Operation | Result / Mechanism | Accurate Meaning |
 | --- | --- | --- |
-| ScriptEngineManager.getEngineByName("JavaScript") | Có thể **null** | Không tìm được engine đã đăng ký dưới tên ấy trong môi trường và class loader đang dùng |
-| engine instanceof Invocable | Có thể **false** | Engine tồn tại, nhưng không cung cấp khả năng gọi/ánh xạ thông qua Invocable |
-| invocable.getInterface(Greeter.class) | Có thể **null** | Không tạo được adapter interface từ các hàm top-level mà engine hiện có |
-| invocable.getInterface(scriptObject, Greeter.class) | Có thể **null** | Không tạo được adapter từ các phương thức của script object đã chọn |
-| engine.eval(script) | Có thể trả về một giá trị **null** | Script đã được đánh giá; null này có thể là **giá trị của biểu thức**, không tự nói rằng interface mapping không hỗ trợ |
-| greeter.greet("Lan") | Có thể trả về **null** | Hàm có thể hợp lệ nhưng giá trị trả về là null; phải xử lý theo hợp đồng nghiệp vụ |
-| invocable.invokeFunction("unknown") | Có thể ném **NoSuchMethodException** | Không tìm được function phù hợp với tên/đối số khi gọi trực tiếp |
-| engine.eval(script) hoặc invokeFunction(...) | Có thể ném **ScriptException** | Có lỗi khi đánh giá/chạy script; không nên biến thành kết quả “không hỗ trợ” mặc định |
+| ScriptEngineManager.getEngineByName("JavaScript") | May be **null** | No engine registered under that name was found in the active environment and class loader |
+| engine instanceof Invocable | May be **false** | The engine exists, but does not provide invocation/mapping capabilities via Invocable |
+| invocable.getInterface(Greeter.class) | May be **null** | An interface adapter could not be created from the engine's current top-level functions |
+| invocable.getInterface(scriptObject, Greeter.class) | May be **null** | An adapter could not be created from the methods of the selected script object |
+| engine.eval(script) | May return a **null** value | The script was evaluated; this null may simply be the **expression's value**, not an indication that interface mapping is unsupported |
+| greeter.greet("Lan") | May return **null** | The function may be valid and simply returned null; handle per business contract |
+| invocable.invokeFunction("unknown") | May throw **NoSuchMethodException** | No function matching the name/arguments was found during direct invocation |
+| engine.eval(script) or invokeFunction(...) | May throw **ScriptException** | An error occurred evaluating/running the script; do not convert into a default "unsupported" result |
 
-Từng lớp có một phản ứng phù hợp: **thiếu engine**, **thiếu capability**, **không ánh xạ được interface**, **script lỗi**, **lỗi gọi method**, **giá trị business trả về null**. Đây là cơ sở để thiết kế status/telemetry chính xác.
+Each category calls for an appropriate response: **missing engine**, **missing capability**, **interface mapping unavailable**, **script error**, **method invocation error**, **business method returning null**. This is the foundation for designing accurate status reporting and telemetry.
 
-Trong Java 17, module **java.scripting** vẫn cung cấp các interface javax.script. Tuy nhiên **Nashorn JavaScript engine đã bị loại khỏi JDK từ Java 15**. Vì vậy:
+In Java 17, the **java.scripting** module still provides the javax.script interfaces. However, **the Nashorn JavaScript engine was removed from the JDK starting in Java 15**. Therefore:
 
 ~~~java
 ScriptEngine engine =
         new ScriptEngineManager().getEngineByName("JavaScript");
 ~~~
 
-có thể trả null trên JDK 17 không cài thêm JavaScript engine. Không giả định “Java 17 có JavaScript engine mặc định”, không dùng tiếp engine.eval khi nó là null. Nếu muốn hỗ trợ JavaScript, phải cung cấp một implementation phù hợp (chẳng hạn ScriptEngine adapter của một thư viện JavaScript hiện đại) và kiểm tra phiên bản/khả năng thực tế của nó.
+may return null on JDK 17 if no external JavaScript engine is installed. Do not assume "Java 17 has a built-in JavaScript engine," and do not proceed to call engine.eval when it is null. If you want to support JavaScript, you must supply a suitable implementation (such as a ScriptEngine adapter for a modern JavaScript library) and verify its actual version and capabilities.
 
-## 3. getInterface(Class<T>): ánh xạ hàm top-level
+## 3. getInterface(Class<T>): Mapping Top-Level Functions
 
-Hợp đồng của **Invocable.getInterface(Class<T> clasz)**:
+Contract of **Invocable.getInterface(Class<T> clasz)**:
 
-- Đối số clasz là một đối tượng **Class đại diện cho Java interface**.
-- Engine tìm các **hàm của script đã được đánh giá/biên dịch trong interpreter**, phù hợp với các method của interface.
-- Nếu tạo được adapter, kết quả có kiểu Java **T**; host gọi các method của T như với implementation Java thông thường.
-- Nếu không thể tạo được interface được yêu cầu, API cho phép trả về **null**.
-- Nếu đối số **null** hoặc **không phải interface**, phương thức có hợp đồng ném **IllegalArgumentException**.
+- The `clasz` argument is a **Class object representing a Java interface**.
+- The engine looks up **script functions already evaluated/compiled in the interpreter** that match the interface's methods.
+- If an adapter can be created, the result has Java type **T**; the host invokes T's methods just like a normal Java implementation.
+- If the requested interface cannot be created, the API permits returning **null**.
+- If the argument is **null** or **not an interface**, the method is contracted to throw **IllegalArgumentException**.
 
-Ví dụ sử dụng thực tế, giả định đã có đối tượng engine hợp lệ hỗ trợ Invocable:
+Practical usage example, assuming a valid engine object supporting Invocable:
 
 ~~~java
-// Snippet đặt trong method đang có ScriptEngine engine và Greeter.
+// Snippet placed inside a method that has ScriptEngine engine and Greeter.
 engine.eval("function greet(name) { return 'Hello, ' + name; }");
 
 Invocable invocable = (Invocable) engine;
@@ -132,40 +132,40 @@ if (greeter == null) {
 }
 ~~~
 
-**Đây là đoạn tích hợp, không phải chương trình Java đứng riêng.** Phép cast chỉ hợp lệ sau khi kiểm tra engine instanceof Invocable; đoạn đầy đủ bên dưới thực hiện kiểm tra đó. Khả năng hỗ trợ JavaScript và quy tắc chuyển đổi Java/String do implementation của engine quyết định.
+**This is an integration snippet, not a standalone Java program.** The cast is only valid after checking `engine instanceof Invocable`; the full program below performs that check. JavaScript support and Java/String conversion rules are determined by the engine implementation.
 
-### Khi nào trả về null?
+### When Does It Return null?
 
-Các tình huống cần điều tra:
+Scenarios to investigate:
 
-1. Script **chưa được eval/execute** nên engine chưa có hàm greet.
-2. Hàm trong script có tên khác, được khai báo trong object hoặc scope khác thay vì top-level.
-3. Interface có thêm method mà script không có hàm tương ứng.
-4. Engine không hỗ trợ tạo interface với kiểu/đặc điểm phương thức được yêu cầu, hoặc implementation giới hạn chức năng này.
-5. State của engine/script đã thay đổi, hoặc adapter được tìm từ engine/context không chứa các hàm mong đợi.
+1. The script **has not been evaluated/executed yet**, so the engine does not yet have the `greet` function.
+2. The function in the script has a different name, or was declared inside an object or another scope instead of top-level.
+3. The interface declares additional methods for which the script has no matching functions.
+4. The engine does not support creating interfaces with the requested method types/signatures, or the implementation restricts this feature.
+5. The engine/script state has changed, or the adapter was requested from an engine/context that does not contain the expected functions.
 
-**Không dựa vào một suy luận duy nhất** như “không có đúng số hàm thì chắc chắn null”. API định nghĩa kết quả null cho trường hợp interface không khả dụng, còn chi tiết matching, overload, conversion và tạo proxy có thể phụ thuộc engine. Với một implementation cụ thể, phải test hợp đồng cần dùng.
+**Do not rely on a single rule of thumb** such as "if the function count does not match, it is definitely null." The API defines a null return for when the interface is unavailable, while details of matching, overloading, conversion, and proxy creation may depend on the engine. For any specific implementation, test the required contract.
 
-### Interface Java nên thiết kế thế nào?
+### How Should the Java Interface Be Designed?
 
-Dùng tên method rõ ràng, chữ ký đơn giản, số method vừa đủ, dữ liệu có thể truyền qua ranh giới Java/script và kết quả được kiểm tra ở host. Không xem Java annotation, overload, generic type parameter hoặc default method tự động tạo ra logic tương đương trong script. Với những trường hợp này, cần kiểm tra hỗ trợ engine cụ thể.
+Use clear method names, simple signatures, a minimal number of methods, data types that can cross the Java/script boundary, and host-side result validation. Do not assume Java annotations, overloads, generic type parameters, or default methods automatically translate into equivalent logic in scripts. For those cases, verify support in the specific engine.
 
-Một **functional interface** có duy nhất một abstract method thường là điểm bắt đầu dễ kiểm chứng, nhưng API **không giới hạn** getInterface chỉ nhận functional interface: một interface nhiều method vẫn có thể được hỗ trợ nếu script engine cung cấp mapping phù hợp.
+A **functional interface** with a single abstract method is often the easiest starting point to verify, but the API **does not restrict** getInterface to functional interfaces: a multi-method interface can still be supported if the script engine provides a suitable mapping.
 
-## 4. getInterface(Object thiz, Class<T>): ánh xạ method trên script object
+## 4. getInterface(Object thiz, Class<T>): Mapping Methods on a Script Object
 
-Một số script engine cho phép script tạo object chứa method. Khi đó phương thức:
+Some script engines allow scripts to create objects containing methods. In that case, the method:
 
 ~~~java
 <T> T getInterface(Object thiz, Class<T> clasz)
 ~~~
 
-yêu cầu **thiz** là một **đối tượng script có ý nghĩa đối với engine**, không phải bất kỳ Object Java ngẫu nhiên nào. Java API mô tả việc ánh xạ method trên script object; implementation có thể gọi tương đương **invokeMethod(thiz, methodName, args)**.
+requires **thiz** to be a **script object meaningful to the engine**, not an arbitrary random Java Object. The Java API describes mapping methods on a script object; the implementation may invoke them equivalently to **invokeMethod(thiz, methodName, args)**.
 
-Ví dụ theo cú pháp JavaScript, chỉ dùng khi engine hỗ trợ tạo và trả về object từ biểu thức:
+Example in JavaScript syntax, usable only when the engine supports creating and returning an object from an expression:
 
 ~~~java
-// Snippet, giả định engine instanceof Invocable và Greeter đã khai báo.
+// Snippet, assuming engine instanceof Invocable and Greeter is declared.
 Object scriptObject = engine.eval(
         "({ greet: function(name) { return 'Hi, ' + name; } })");
 
@@ -179,24 +179,24 @@ if (greeter == null) {
 }
 ~~~
 
-Nếu engine có hỗ trợ đầy đủ cho kiểu object này, kết quả dự kiến là **Hi, Lan**. Đây là **ví dụ phụ thuộc implementation**; không khẳng định mọi JSR 223 engine hiểu cú pháp JavaScript hay hỗ trợ object-to-interface.
+If the engine fully supports this object model, the expected output is **Hi, Lan**. This is an **implementation-dependent example**; do not claim every JSR 223 engine understands JavaScript syntax or supports object-to-interface mapping.
 
-**Khi nào nên dùng overload nào?**
+**Which overload should you use?**
 
-| Nhu cầu | Overload ưu tiên |
+| Need | Preferred Overload |
 | --- | --- |
-| Script định nghĩa các hàm ở top-level trong engine đã eval | getInterface(Greeter.class) |
-| Script tạo một instance/object có các method | getInterface(scriptObject, Greeter.class) |
-| Muốn gọi một hàm cụ thể, không nhất thiết có interface | invokeFunction("name", args...) |
-| Muốn gọi một method cụ thể trên script object | invokeMethod(scriptObject, "name", args...) |
+| Script defines functions at top-level in the evaluated engine | getInterface(Greeter.class) |
+| Script creates an instance/object with methods | getInterface(scriptObject, Greeter.class) |
+| Need to call one specific function, not necessarily via an interface | invokeFunction("name", args...) |
+| Need to call one specific method on a script object | invokeMethod(scriptObject, "name", args...) |
 
-Hợp đồng **IllegalArgumentException** của overload hai tham số áp dụng khi **clasz null/không phải interface**, hoặc **thiz null/không đại diện cho script object hợp lệ**. Không truyền null để biểu diễn “hàm top-level”: hãy dùng overload một tham số.
+The **IllegalArgumentException** contract of the two-parameter overload applies when **clasz is null/not an interface**, or **thiz is null/does not represent a valid script object**. Do not pass null to represent "top-level functions": use the single-parameter overload instead.
 
-Nếu engine tạo object cho mỗi lần eval, đừng dùng nhầm object của engine hoặc context khác. Script object thường gắn với vòng đời, state và runtime của engine đã tạo ra nó; việc lưu vào cache xuyên phiên reload có thể làm hỏng adapter hoặc giữ tham chiếu bộ nhớ lâu hơn dự tính.
+If the engine creates an object per eval call, do not accidentally use an object from another engine or context. Script objects are typically tied to the lifecycle, state, and runtime of the engine that created them; caching them across reload cycles can break the adapter or retain memory references longer than intended.
 
-## 5. Mẫu tích hợp thực tế: kiểm tra capability theo đúng thứ tự
+## 5. Practical Integration Pattern: Checking Capabilities in Order
 
-Một host có thể viết một phương thức dùng lại cho interface Java cần triển khai bởi script:
+A host can write a reusable helper method for a Java interface to be implemented by a script:
 
 ~~~java
 import javax.script.Invocable;
@@ -224,40 +224,40 @@ public final class ScriptAdapters {
 }
 ~~~
 
-**Đây là một Java class có thể biên dịch độc lập**, nhưng chưa có main và cần được gọi từ host với engine/source/API đúng. Mẫu chỉ cho thấy cách kiểm tra và ánh xạ, chưa phân biệt ba nguyên nhân unavailable trong kiểu kết quả: ở production nên dùng kết quả giàu thông tin hơn. **Optional.empty() không phải lỗi compile script**; ScriptException được giữ riêng. Và nếu api sai loại, IllegalArgumentException vẫn phải được xử lý như lỗi của caller, không đổi thành unsupported.
+**This is a standalone-compilable Java class**, though it has no main method and must be called from the host with a valid engine, source, and API interface. The pattern only demonstrates how to check and map; it does not distinguish the three unavailability causes in its return type—in production, use a richer result type. **Optional.empty() is not a script compile error**; ScriptException is kept separate. And if `api` is the wrong kind of class, IllegalArgumentException must still be handled as a caller bug rather than converted into unsupported.
 
-Nếu việc thiếu mapping là **tính năng tùy chọn**, host có thể từ chối đăng ký plugin đó với trạng thái UNSUPPORTED. Nếu interface là hợp đồng **bắt buộc**, host có thể báo lỗi cấu hình plugin và fail activation. Quyết định này thuộc về chính sách ứng dụng, không do getInterface tự đặt ra.
+If the missing mapping is an **optional feature**, the host can decline to register that plugin capability with status UNSUPPORTED. If the interface is a **mandatory** contract, the host can report a plugin configuration error and fail activation. This decision belongs to application policy, not to getInterface itself.
 
-### Không ép cast trước khi kiểm tra
+### Never Cast Before Checking
 
 ~~~java
-// SAI: engine có thể null hoặc không implement Invocable.
+// WRONG: engine may be null or not implement Invocable.
 Invocable invocable = (Invocable) engine;
 Greeter greeter = invocable.getInterface(Greeter.class);
 greeter.greet("Lan");
 ~~~
 
-Đoạn sai có thể gặp NullPointerException, ClassCastException hoặc dùng adapter null. Trình tự an toàn là: **engine non-null → instanceof Invocable → eval script → getInterface non-null → invoke**.
+The wrong snippet can suffer NullPointerException, ClassCastException, or invoke on a null adapter. The safe sequence is: **non-null engine → instanceof Invocable → eval script → non-null getInterface → invoke**.
 
-### Phân biệt lỗi của phương thức getInterface và lời gọi adapter
+### Distinguishing Errors of getInterface vs. Adapter Calls
 
-- **getInterface trả null:** không có adapter phù hợp. Host chưa chạy business method.
-- **getInterface nhận tham số sai:** IllegalArgumentException là lỗi gọi API.
-- **Gọi method trên adapter:** có thể thực thi code script và xảy ra lỗi tại thời điểm invocation, kể cả khi adapter được tạo thành công.
-- **Giá trị trả về không chuyển được về kiểu Java** hoặc có sự kiện script runtime: engine có thể bọc/đẩy exception theo quy tắc riêng; không giả định mọi lỗi đều xuất hiện dưới dạng checked ScriptException trực tiếp ở một Java interface vốn không khai báo throws.
+- **getInterface returns null:** no matching adapter exists. The host has not executed any business method.
+- **getInterface receives invalid arguments:** IllegalArgumentException is an API caller error.
+- **Calling a method on the adapter:** executes script code and may fail at invocation time, even when the adapter was created successfully.
+- **Return value cannot be converted to the Java type** or a script runtime event occurs: the engine may wrap/throw exceptions per its own rules; do not assume every error surfaces directly as a checked ScriptException on a Java interface that does not declare throws.
 
-Vì vậy, biên giới chạy plugin nên log **giai đoạn**, **engine/provider**, **interface name**, **script version**, nhưng không lộ source hoặc dữ liệu nhạy cảm trong error message gửi công khai.
+Therefore, the plugin execution boundary should log the **stage**, **engine/provider**, **interface name**, and **script version**, without exposing raw source or sensitive inputs in public error messages.
 
-## 6. Ví dụ Java 17 độc lập: kiểm thử mapping null và một engine thật nếu có
+## 6. Standalone Java 17 Example: Testing null Mapping and a Real Engine If Present
 
-Trên JDK 17 không có JavaScript engine mặc định, một ví dụ chỉ dựa vào new ScriptEngineManager().getEngineByName("JavaScript") sẽ không chắc chắn chạy được phần mapping. Để **chạy được trên JDK 17 thuần**, chương trình dưới đây có hai nhánh:
+On JDK 17 without a default JavaScript engine, an example relying solely on `new ScriptEngineManager().getEngineByName("JavaScript")` cannot reliably run the mapping section. To **run on plain JDK 17**, the program below has two branches:
 
-- **contract**: một test double chỉ implement **Invocable**, không phải ScriptEngine thật, mô phỏng việc hàm chưa có, vừa được công bố, interface thiếu method và gọi tên hàm không tồn tại. Nhánh này luôn có output xác định, phù hợp kiểm thử xử lý null của host.
-- **engine**: tìm ScriptEngine có tên JavaScript thực sự trong runtime, kiểm tra capability, eval một hàm và thử lấy Java interface. Nhánh này phụ thuộc engine được cài/khai báo, không giả định JDK 17 có sẵn.
+- **contract**: a test double implementing only **Invocable**, not a real ScriptEngine, simulating missing functions, newly published functions, interfaces with missing methods, and calling a non-existent function name. This branch always produces deterministic output, ideal for testing host null handling.
+- **engine**: looks up an actual ScriptEngine named JavaScript in the runtime, checks capabilities, evaluates a function, and attempts to obtain a Java interface. This branch depends on an installed/declared engine and does not assume JDK 17 bundles one.
 
-Test double giúp kiểm chứng **quyết định của mã Java**; nó **không chạy JavaScript**, không chứng minh đặc tính của một engine bên thứ ba. Phần engine thật là bước integration test riêng.
+The test double verifies **Java code decisions**; it **does not run JavaScript** and does not prove the behavior of a third-party engine. The real engine part is a separate integration test step.
 
-### Tệp ScriptBridgeDemo.java
+### ScriptBridgeDemo.java
 
 ~~~java
 import java.lang.reflect.Proxy;
@@ -292,18 +292,18 @@ public final class ScriptBridgeDemo {
     private static void contract() throws Exception {
         ToyInvocable invocable = new ToyInvocable();
 
-        // Chưa có hàm trong test double.
+        // No function in the test double yet.
         System.out.println(
                 "before=" + state(invocable.getInterface(Greeter.class)));
 
-        // Mô phỏng việc script đã định nghĩa hàm greet.
+        // Simulate that the script has defined the greet function.
         invocable.defineGreet();
         Greeter greeter = invocable.getInterface(Greeter.class);
 
         System.out.println("after=" + (
                 greeter == null ? "unsupported" : greeter.greet("Lan")));
 
-        // Interface này yêu cầu hàm absent, test double không có.
+        // This interface requires function absent, which the test double lacks.
         System.out.println(
                 "missing=" + state(invocable.getInterface(Missing.class)));
 
@@ -351,7 +351,7 @@ public final class ScriptBridgeDemo {
         }
     }
 
-    // Test double của Invocable, KHÔNG phải JavaScript engine.
+    // Test double for Invocable, NOT a JavaScript engine.
     private static final class ToyInvocable implements Invocable {
         private boolean ready;
 
@@ -399,7 +399,7 @@ public final class ScriptBridgeDemo {
                         "Invalid script object or interface");
             }
 
-            // Test double không hỗ trợ script-object mapping.
+            // Test double does not support script-object mapping.
             return null;
         }
 
@@ -432,16 +432,16 @@ public final class ScriptBridgeDemo {
 }
 ~~~
 
-### Biên dịch và chạy
+### Compile and Run
 
-Từ thư mục chứa file trên, dùng JDK 17 hoặc mới hơn:
+From the directory containing the file above, using JDK 17 or newer:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 ScriptBridgeDemo.java
 java ScriptBridgeDemo contract
 ~~~
 
-**Stdout chính xác của chế độ contract:**
+**Exact stdout of contract mode:**
 
 ~~~text
 before=unsupported
@@ -450,42 +450,42 @@ missing=unsupported
 direct=NoSuchMethodException
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Trước defineGreet, getInterface(Greeter.class) trả null.
-2. Sau defineGreet, test double dùng Java dynamic proxy để trả implementation Greeter; lời gọi greet được chuyển thành invokeFunction trong test double.
-3. Interface Missing yêu cầu method absent không được mô phỏng; getInterface(Missing.class) trả null.
-4. Khi gọi trực tiếp invokeFunction("absent", "Lan"), test double ném NoSuchMethodException thay vì trả null. Đây là một quy tắc khác với getInterface.
+1. Before `defineGreet`, `getInterface(Greeter.class)` returns null.
+2. After `defineGreet`, the test double uses a Java dynamic proxy to return a `Greeter` implementation; the `greet` call is forwarded to `invokeFunction` inside the test double.
+3. Interface `Missing` requires method `absent`, which is not simulated; `getInterface(Missing.class)` returns null.
+4. When calling `invokeFunction("absent", "Lan")` directly, the test double throws `NoSuchMethodException` instead of returning null. This differs from `getInterface`'s contract.
 
-Tiếp tục:
+Continue:
 
 ~~~bash
 java ScriptBridgeDemo engine
 ~~~
 
-**Trên JDK 17 thông thường không cài thêm JavaScript ScriptEngine**, stdout dự kiến:
+**On a standard JDK 17 without an additional JavaScript ScriptEngine installed**, expected stdout:
 
 ~~~text
 engine=unavailable
 ~~~
 
-Nếu hệ thống đã cài engine JavaScript, output **phụ thuộc capability**: có thể là engine=not-invocable, interface=unsupported, script=failed, invocation=failed, hoặc (nếu engine chấp nhận script và mapping) là:
+If the system has a JavaScript engine installed, output **depends on capabilities**: it may be `engine=not-invocable`, `interface=unsupported`, `script=failed`, `invocation=failed`, or (if the engine accepts the script and mapping):
 
 ~~~text
 value=Hello, Lan
 ~~~
 
-Không gộp các output trên thành kết quả một lần chạy. Đừng sửa JDK hoặc bí mật thêm dependency chỉ để ép nhánh engine thành công; trong dự án thật, dependency engine phải được quản lý và kiểm thử theo cùng phiên bản ở development, CI và production.
+Do not combine the outputs above into the result of a single run. Do not modify the JDK or secretly add dependencies just to force the engine branch to succeed; in real projects, engine dependencies must be managed and tested at the same version across development, CI, and production.
 
-### Vì sao ví dụ dùng dynamic proxy?
+### Why Does the Example Use a Dynamic Proxy?
 
-ToyInvocable là **mock** để mô phỏng hợp đồng của Invocable, không phải một hệ biên dịch script. Nó kiểm soát được trạng thái hỗ trợ/null và giúp chạy kiểm thử mà không phụ thuộc engine của máy. Dùng Proxy trong test double cho thấy một adapter Java có thể thực thi lời gọi giao diện bằng cách chuyển sang hàm động; **đây không phải cam kết engine thật sử dụng đúng java.lang.reflect.Proxy trong triển khai nội bộ**.
+ToyInvocable is a **mock** simulating the Invocable contract, not a script compiler. It controls supported/null states and allows tests to run without depending on an engine installed on the machine. Using `Proxy` in the test double shows how a Java adapter can forward interface calls to dynamic functions; **this is not a promise that real engines use `java.lang.reflect.Proxy` internally**.
 
-Phần realEngine là code tích hợp thực tế có kiểm tra engine hiện hữu, hỗ trợ Invocable và adapter non-null. Nó có thể biên dịch trên JDK 17 vì toàn bộ javax.script API nằm trong java.scripting, dù môi trường chạy không có JavaScript engine.
+The `realEngine` section is real integration code that checks engine availability, Invocable support, and a non-null adapter. It compiles on JDK 17 because the entire `javax.script` API resides in `java.scripting`, even when the runtime has no JavaScript engine.
 
-## 7. Xử lý kết quả không hỗ trợ trong thiết kế host/plugin
+## 7. Handling Unsupported Results in Host/Plugin Design
 
-Một host lớn nên định nghĩa kết quả có kiểu thay cho một null không rõ nguyên nhân. Ví dụ:
+A large host should define a typed result instead of an ambiguous null. For example:
 
 ~~~java
 enum ScriptBindingStatus {
@@ -498,64 +498,64 @@ enum ScriptBindingStatus {
 }
 ~~~
 
-Đây là enum minh họa để tích hợp vào một application service; không phải chương trình chạy riêng. Tách trạng thái READY (adapter được tạo) khỏi các lỗi trong lần gọi method tương lai.
+This is an illustrative enum for integrating into an application service; it is not a standalone runnable program. It separates the READY state (adapter created) from errors during future method calls.
 
-Bảng chính sách ví dụ:
+Example policy table:
 
-| Trạng thái | Cách xử lý plugin |
+| Status | Plugin Handling |
 | --- | --- |
-| ENGINE_UNAVAILABLE | Nếu tính năng script tùy chọn: disable plugin và báo rõ thiếu engine; nếu bắt buộc: fail startup/activation |
-| ENGINE_NOT_INVOCABLE | Không dùng getInterface; từ chối plugin dựa trên interface hoặc chọn một adapter được hỗ trợ khác theo cấu hình |
-| SCRIPT_EVALUATION_FAILED | Thất bại thực sự khi nạp script; cung cấp diagnostics có kiểm soát, không đổi thành “không hỗ trợ” |
-| INTERFACE_UNSUPPORTED | Không kích hoạt adapter, giữ an toàn cho host, báo tên method/interface còn thiếu nếu engine cho phép xác định |
-| READY | Lưu adapter cùng engine/context đang sống, sử dụng qua contract đã kiểm tra |
-| INVOCATION_FAILED | Ghi lỗi tại lần gọi, áp dụng timeout/circuit breaker/rollback phù hợp, không coi lần đăng ký adapter trước đó là sai mặc định |
+| ENGINE_UNAVAILABLE | If the script feature is optional: disable the plugin and report the missing engine clearly; if mandatory: fail startup/activation |
+| ENGINE_NOT_INVOCABLE | Do not use getInterface; reject interface-based plugins or pick another supported adapter per configuration |
+| SCRIPT_EVALUATION_FAILED | Actual failure while loading the script; provide controlled diagnostics without turning it into "unsupported" |
+| INTERFACE_UNSUPPORTED | Do not activate the adapter, keep the host safe, report missing method/interface names if the engine allows identifying them |
+| READY | Store the adapter together with the live engine/context; use via the validated contract |
+| INVOCATION_FAILED | Record the per-call failure, apply appropriate timeout/circuit breaker/rollback; do not automatically assume the earlier adapter registration was wrong |
 
-**Không cố định một hành vi cho tất cả plugin:** Với interface tùy chọn như HealthCheck, thiếu interface có thể chỉ làm tắt tính năng kiểm tra sức khỏe riêng. Với interface bắt buộc như PaymentRule, thiếu interface phải từ chối toàn bộ plugin. Quyết định nghiệp vụ được xác định từ metadata/hợp đồng của host, không được suy ra chỉ từ null.
+**Do not hardcode one behavior for every plugin:** For an optional interface like HealthCheck, a missing interface might only disable that health-check feature. For a mandatory interface like PaymentRule, a missing interface must reject the entire plugin. The business decision is driven by host metadata/contracts, not inferred from null alone.
 
-### Phân biệt null hợp đồng và null dữ liệu
+### Distinguishing Contract null from Data null
 
-Giả sử adapter Greeter được tạo thành công, nhưng một hàm script trả null theo điều kiện nghiệp vụ. Lúc này:
+Suppose the Greeter adapter is created successfully, yet a script function returns null according to business logic. Then:
 
 ~~~java
 Greeter greeter = invocable.getInterface(Greeter.class);
 
 if (greeter == null) {
-    // Không có adapter phù hợp: chưa thực hiện greet.
+    // No matching adapter: greet was not executed.
 } else {
     String result = greeter.greet("Lan");
     if (result == null) {
-        // Adapter tồn tại, nhưng business method trả null.
+        // Adapter exists, but the business method returned null.
     }
 }
 ~~~
 
-Đây là snippet chẩn đoán trong một method đã có invocable và Greeter; không phải chương trình độc lập. Hai lần kiểm tra null thể hiện **hai tầng ý nghĩa khác nhau**. Không nên dùng một kết quả null chung cho cả hai trường hợp khi API cần phân biệt.
+This is a diagnostic snippet inside a method that already has `invocable` and `Greeter`; it is not a standalone program. The two null checks represent **two different semantic layers**. Do not collapse both cases into a single null result when the API needs to distinguish them.
 
-### Bẫy Optional và exception
+### Optional and Exception Pitfalls
 
-Optional.ofNullable(invocable.getInterface(...)) hữu ích khi host chỉ quan tâm có adapter hay không. Nhưng nếu ứng dụng cần phân tích nguyên nhân, hãy trả một kết quả riêng có status, diagnostic và payload adapter tùy chọn. Optional không mang được nguyên nhân thiếu engine hay script lỗi.
+`Optional.ofNullable(invocable.getInterface(...))` is useful when the host only cares whether an adapter exists. However, if the application needs root-cause diagnostics, return a dedicated result carrying status, diagnostics, and an optional adapter payload. `Optional` cannot convey whether the engine was missing or the script failed.
 
-Cũng không nên bắt mọi RuntimeException rồi quy là INTERFACE_UNSUPPORTED. Ví dụ lỗi chuyển đổi kiểu trả về hoặc runtime exception do script đang chạy là **INVOCATION_FAILED**, còn IllegalArgumentException do truyền Class không phải interface là **lỗi lập trình của host**.
+Nor should you catch every `RuntimeException` and classify it as `INTERFACE_UNSUPPORTED`. For example, a return-type conversion failure or a runtime exception thrown by executing script code is **INVOCATION_FAILED**, while an `IllegalArgumentException` from passing a non-interface `Class` is a **host programming bug**.
 
-## 8. Về tên method, tham số và kiểu trả về
+## 8. Method Names, Parameters, and Return Types
 
-Việc ánh xạ dựa trên API mang kiểu **không biến một scripting language động thành Java compiler cho script**. Một số khác biệt cần kiểm tra khi tích hợp:
+Mapping onto a typed API **does not turn a dynamic scripting language into a Java compiler for scripts**. Several differences must be verified during integration:
 
-- **Tên**: method của interface và tên hàm/thuộc tính script phải được engine nhận diện là tương ứng. Viết sai chữ hoa/chữ thường có thể dẫn tới không ánh xạ được.
-- **Số lượng tham số**: Java method khai báo chữ ký; engine có thể dùng quy tắc riêng cho thiếu/thừa đối số hoặc variadic arguments. Không suy đoán từ một ngôn ngữ khác.
-- **Overload**: Java cho phép nhiều method cùng tên khác parameter types, trong khi nhiều ngôn ngữ script coi tên hàm như một key. Tránh overload phức tạp trừ khi engine chứng minh có chính sách matching rõ ràng.
-- **Kiểu tham số**: Integer, String, List, Map, object host hoặc giá trị null có thể được chuyển đổi thành đối tượng script theo quy tắc implementation. Dùng DTO đơn giản và hợp đồng phiên bản hóa thay vì truyền object nội bộ không kiểm soát.
-- **Kiểu trả về**: giá trị script có thể không chuyển được về kiểu Java đã khai báo. Một proxy/adapter có thể báo lỗi lúc invocation dù getInterface đã trả khác null.
-- **Giá trị nguyên thủy**: một method Java trả int/boolean không thể nhận null để unbox an toàn; cần kiểm thử kiểu/giới hạn số và xử lý lỗi của engine.
-- **Checked exceptions**: method Java của interface không khai báo ScriptException mặc định. Engine có thể bọc lỗi script thành unchecked exception khi chuyển qua adapter; kiểm tra hợp đồng thực tế thay vì bắt ScriptException ở nơi compiler không cho phép.
-- **Default, static và Object methods**: không giả định adapter script hỗ trợ mọi đặc tính interface như một Java class viết tay. Kiểm tra ít nhất những method thực sự dùng trong runtime.
+- **Names**: the interface method and script function/property name must be recognized by the engine as matching. Case mismatches can prevent mapping.
+- **Parameter counts**: the Java method declares a signature; the engine may apply its own rules for missing/extra arguments or variadic arguments. Do not extrapolate from a different language.
+- **Overloads**: Java allows multiple methods with the same name and different parameter types, whereas many scripting languages treat a function name as a single key. Avoid complex overloads unless the engine proves a clear matching policy.
+- **Parameter types**: `Integer`, `String`, `List`, `Map`, host objects, or `null` may be converted to script values per implementation rules. Use simple DTOs and versioned contracts rather than passing uncontrolled internal objects.
+- **Return types**: a script value may fail to convert to the declared Java type. A proxy/adapter can still fail at invocation time even when `getInterface` returned non-null.
+- **Primitives**: a Java method returning `int`/`boolean` cannot safely unbox `null`; test type/numeric bounds and engine error handling.
+- **Checked exceptions**: Java interface methods do not declare `ScriptException` by default. Engines may wrap script errors into unchecked exceptions when crossing the adapter; verify the actual contract instead of trying to catch `ScriptException` where the compiler forbids it.
+- **Default, static, and Object methods**: do not assume a script adapter supports every interface feature identically to a hand-written Java class. Test at least the methods actually used at runtime.
 
-Lợi ích chính của interface là **contract tĩnh cho host**, còn khả năng thực thi script đúng phải được bảo đảm bằng integration tests cho engine cụ thể.
+The main benefit of the interface is a **static contract for the host**, while proper script execution must be ensured through integration tests against the specific engine.
 
-## 9. Module java.scripting, class loader và lifecycle của engine
+## 9. The java.scripting Module, Class Loaders, and Engine Lifecycle
 
-Nếu host là **explicit JPMS module** và trực tiếp dùng javax.script, descriptor tối thiểu thường gồm:
+If the host is an **explicit JPMS module** using `javax.script` directly, the minimal module descriptor typically includes:
 
 ~~~java
 module demo.host.scripting {
@@ -563,57 +563,57 @@ module demo.host.scripting {
 }
 ~~~
 
-Đây là ví dụ descriptor; các module khác còn phụ thuộc mã host thực tế. requires java.scripting cấp quyền truy cập API javax.script, **không tự cài một script engine**. Engine thật phải có trong ứng dụng/module path/classpath và được đăng ký theo cơ chế tương ứng để ScriptEngineManager khám phá được.
+This is an example descriptor; other `requires` clauses depend on the actual host code. `requires java.scripting` grants access to the `javax.script` API, **it does not install a script engine by itself**. A real engine must be present in the application/module path/classpath and registered via the appropriate mechanism so `ScriptEngineManager` can discover it.
 
-### Khám phá engine phụ thuộc môi trường chạy
+### Environment-Dependent Engine Discovery
 
-ScriptEngineManager dùng cơ chế service discovery đối với ScriptEngineFactory, có liên hệ với **thread context class loader** ở các constructor phù hợp. Plugin JAR có engine nhưng không nhìn thấy được từ loader/module layer mà manager sử dụng vẫn có thể dẫn đến getEngineByName trả null. Trong hệ plugin động, cần xác định loader/layer của **factory** và **engine**, không chỉ nhìn vào JAR trong thư mục plugins.
+`ScriptEngineManager` uses service discovery for `ScriptEngineFactory`, which interacts with the **thread context class loader** in the corresponding constructors. A plugin JAR containing an engine that is not visible from the loader/module layer used by the manager can still cause `getEngineByName` to return null. In dynamic plugin systems, identify the loader/layer of both the **factory** and the **engine**, rather than merely checking that the JAR is in the plugins directory.
 
-Nếu script engine tồn tại trong ModuleLayer riêng, host cần thiết kế cách khám phá/khởi tạo qua ranh giới module thích hợp; không chắc manager mặc định quét được tất cả module layer tự tạo. Vì vậy log cả tên engine được yêu cầu, danh tính loader và nguồn provider khi chẩn đoán, thay vì khẳng định tên engine sai ngay lập tức.
+If a script engine resides in a separate `ModuleLayer`, the host must design discovery/instantiation across the appropriate module boundary; the default manager may not scan all custom module layers. Therefore, log the requested engine name, loader identity, and provider source when diagnosing issues, rather than immediately assuming the engine name is wrong.
 
-### Vòng đời và thread safety
+### Lifecycle and Thread Safety
 
-1. Tạo engine theo scope phù hợp (plugin instance, tenant, session hoặc request), không tự gộp toàn hệ thống vào một ScriptEngine chung.
-2. Eval script trước khi lấy adapter; lưu adapter cùng **engine và script object/context cần thiết** cho suốt thời gian sử dụng.
-3. Khi cập nhật script, xác định rõ reload làm thay đổi trạng thái trong engine hay tạo engine/context mới; adapter cũ có thể còn ràng buộc với state cũ.
-4. **Không mặc định ScriptEngine an toàn để nhiều thread gọi cùng lúc.** Xem ScriptEngineFactory.getParameter("THREADING") và tài liệu engine; tham số này chỉ là metadata và cần được xác minh bằng kiểm thử/contract của implementation cụ thể.
-5. Đặt giới hạn số lượng engine, thời gian chạy, dung lượng dữ liệu và kích thước state; dọn tài nguyên theo API/lifecycle engine (nếu implementation có close hoặc context API riêng).
-6. Khi dừng plugin, ngắt việc nhận invocation mới và chờ tác vụ đang chạy theo chính sách; không giữ khóa registry trong lúc chờ script có thể callback vào host.
+1. Create engines at the appropriate scope (plugin instance, tenant, session, or request); do not lump the entire system into a single shared `ScriptEngine`.
+2. Evaluate scripts before obtaining adapters; keep the adapter together with **the necessary engine and script object/context** for its entire lifetime.
+3. When updating scripts, clarify whether reload mutates state inside an existing engine or creates a new engine/context; old adapters may remain bound to old state.
+4. **Do not assume a ScriptEngine is safe for concurrent calls across multiple threads.** Check `ScriptEngineFactory.getParameter("THREADING")` and engine documentation; this parameter is only metadata and must be verified with tests and the specific implementation's contract.
+5. Enforce limits on engine count, execution duration, data volume, and state size; clean up resources per engine API/lifecycle (if the implementation has its own `close` or context API).
+6. When stopping a plugin, stop accepting new invocations and drain running tasks per policy; do not hold registry locks while waiting on scripts that might call back into the host.
 
-**Không giữ adapter đã map như một Java object vĩnh viễn** nếu engine/module layer mà nó phụ thuộc đã được đóng/unload. Điều đó có thể làm lỗi lời gọi sau hoặc giữ class loader/plugin class không được thu gom.
+**Do not retain mapped adapters as permanent Java objects** if the engine/module layer they depend on has been closed or unloaded. Doing so can break subsequent calls or pin class loaders/plugin classes from garbage collection.
 
-## 10. Bảo mật khi script trở thành một implementation của interface
+## 10. Security When a Script Becomes an Interface Implementation
 
-Ánh xạ sang interface giúp thu hẹp **bề mặt giao tiếp của host**, nhưng **không làm script tự động an toàn**. Script có thể chạy code trong quá trình engine.eval và khi gọi method qua adapter. Tùy engine, nó có thể truy cập API Java, reflection, file, network, CPU/RAM và callback host.
+Mapping to an interface narrows the **host's communication surface**, but **does not automatically make the script safe**. Scripts can execute code during `engine.eval` and when interface methods are invoked via the adapter. Depending on the engine, they may access Java APIs, reflection, files, network, CPU/RAM, and host callbacks.
 
-Các biện pháp cần cân nhắc:
+Measures to consider:
 
-- Chỉ chạy script tin cậy trong cùng JVM nếu môi trường và quyền của engine cho phép. Với script không tin cậy, cân nhắc **process/container riêng**, chính sách hệ điều hành, giới hạn tài nguyên và kênh RPC có kiểm soát; adapter trong JVM không phải sandbox.
-- Không truyền tùy ý toàn bộ đối tượng host, database handle, registry hoặc secret vào script bindings. Chỉ cấp các dịch vụ/hợp đồng tối thiểu.
-- Giới hạn timeout, số invocation, kích thước tham số/giá trị trả về, số plugin đang hoạt động và mức độ logging. **Invocable.getInterface không có API timeout chung**; timeout thường phải đặt ở tầng worker/engine cụ thể.
-- Cô lập state giữa các tenant và plugin; tránh dùng nhầm bindings hoặc adapter từ một engine của tenant khác.
-- Kiểm tra script provenance, version và chính sách cập nhật; việc cùng tên interface không bảo đảm script mới có hành vi tương thích.
-- Khi script lỗi, log thông tin giúp chẩn đoán mà không tiết lộ source nhạy cảm hoặc dữ liệu đầu vào cho người không có quyền xem.
+- Only run trusted scripts inside the same JVM if the environment and engine permissions allow it. For untrusted scripts, consider a **separate process/container**, OS policies, resource limits, and controlled RPC channels; an in-JVM adapter is not a sandbox.
+- Do not arbitrarily expose full host objects, database handles, registries, or secrets to script bindings. Provide only minimal services and contracts.
+- Enforce timeouts, invocation limits, parameter/return payload sizes, active plugin limits, and logging levels. **Invocable.getInterface has no universal timeout API**; timeouts usually must be enforced at the worker or engine-specific layer.
+- Isolate state between tenants and plugins; avoid accidentally reusing bindings or adapters from another tenant's engine.
+- Verify script provenance, versions, and update policies; having the same interface name does not guarantee compatible behavior in a new script.
+- When a script fails, log diagnostic details without leaking sensitive source code or input data to unauthorized viewers.
 
-Không chọn “trả null khi lỗi” để che giấu một exception từ script đã thực thi: thao tác đó khiến lỗi bảo mật/vận hành trông giống thiếu capability bình thường.
+Never choose "return null on error" to hide an exception from an executed script: doing so makes security or operational failures look like a normal missing capability.
 
-## 11. Chẩn đoán lỗi theo thứ tự
+## 11. Step-by-Step Error Diagnostics
 
-Khi host không tạo được adapter Greeter, hãy đi từ **discovery → capability → eval → mapping → invoke**.
+When the host cannot create a Greeter adapter, trace from **discovery → capability → eval → mapping → invoke**.
 
-| Triệu chứng | Khả năng đáng kiểm tra trước | Bước xác nhận |
+| Symptom | Likely First Check | Verification Step |
 | --- | --- | --- |
-| engine == null | Thiếu ScriptEngineFactory/engine dependency hoặc manager không thấy provider | Liệt kê getEngineFactories; kiểm tra engine name, class loader và module layer |
-| Engine có nhưng không instanceof Invocable | Engine implementation không có optional capability | Kiểm tra tài liệu/kiểu runtime, chọn adapter khác hoặc báo unsupported |
-| getInterface trả null | Thiếu function/method phù hợp, sai scope hoặc engine không hỗ trợ mapping này | Kiểm tra script đã eval, interface methods, tên/scope, engine docs |
-| getInterface(thiz, interface) ném IllegalArgumentException | thiz null/không phải script object hợp lệ hoặc clasz không phải interface | Xác định object được trả từ engine tương ứng và class hợp lệ |
-| Lỗi lúc eval | Script source lỗi hoặc thiếu context/dependency | Giữ ScriptException/diagnostics, không đổi thành null mapping |
-| getInterface khác null nhưng gọi method lỗi | Runtime exception trong script, conversion mismatch, engine state đã mất | Log invocation và cause theo engine, test đối số/return type |
-| invokeFunction ném NoSuchMethodException | Tên hoặc chữ ký hàm gọi trực tiếp không tồn tại/không tương thích | Kiểm tra function name, args, scope đã eval |
-| Chạy thử được, production không có engine | Runtime packaging/module/class loader khác development | Kiểm tra artifact và engine provider tại production |
-| Lâu lâu lỗi khi nhiều request dùng chung adapter | Engine/context không thread-safe, state race hoặc lifecycle reload | Đối chiếu THREADING contract và test concurrent usage |
+| engine == null | Missing ScriptEngineFactory/engine dependency or manager cannot see provider | List getEngineFactories; check engine name, class loader, and module layer |
+| Engine present but not instanceof Invocable | Engine implementation lacks the optional capability | Check docs/runtime type; choose another adapter or report unsupported |
+| getInterface returns null | Missing matching function/method, wrong scope, or engine does not support this mapping | Verify evaluated script, interface methods, names/scopes, engine docs |
+| getInterface(thiz, interface) throws IllegalArgumentException | thiz is null/not a valid script object or clasz is not an interface | Verify object returned from the corresponding engine and valid interface Class |
+| Error during eval | Invalid script source or missing context/dependency | Preserve ScriptException/diagnostics; do not turn into null mapping |
+| getInterface non-null but calling method fails | Runtime exception in script, conversion mismatch, lost engine state | Log invocation and engine-specific cause; test arguments/return types |
+| invokeFunction throws NoSuchMethodException | Direct-called function name or signature does not exist/is incompatible | Check function name, args, evaluated scope |
+| Works in dev, missing engine in production | Runtime packaging/module/class loader differs from development | Check artifacts and engine providers in production |
+| Intermittent errors when multiple requests share an adapter | Non-thread-safe engine/context, state race, or reload lifecycle | Check THREADING contract and test concurrent usage |
 
-Ví dụ chẩn đoán engine list (snippet có thể đặt trong Java main hoặc method):
+Example engine-list diagnostic (snippet for a Java `main` or helper method):
 
 ~~~java
 ScriptEngineManager manager = new ScriptEngineManager();
@@ -624,62 +624,62 @@ for (var factory : manager.getEngineFactories()) {
 }
 ~~~
 
-Nếu danh sách không chứa JavaScript engine thì getEngineByName("JavaScript") có thể null trên Java 17. Không dùng stdout cụ thể của đoạn trên làm điều kiện test; danh sách phụ thuộc những nhà cung cấp được cài trong runtime.
+If the list contains no JavaScript engine, `getEngineByName("JavaScript")` can be null on Java 17. Do not use a specific stdout of the snippet above as a test assertion; the list depends on whichever providers are installed in the runtime.
 
-### Các lỗi dễ mắc
+### Common Mistakes
 
-1. **Quên kiểm tra engine null** và gọi eval ngay trên null.
-2. **Cast ScriptEngine sang Invocable mà không kiểm tra**, dẫn đến ClassCastException với engine không hỗ trợ.
-3. **getInterface trả null nhưng vẫn gọi method**, dẫn đến NullPointerException.
-4. **Nhầm kết quả null từ script function với null mapping**, khiến host báo sai lý do.
-5. **Nhầm invokeFunction/NoSuchMethodException với getInterface/null**, dù đây là hai API và hai kiểu kết quả khác nhau.
-6. **Dùng getInterface(thiz, type) với thiz null hoặc Java object sai loại**, dẫn đến IllegalArgumentException theo hợp đồng.
-7. **Lấy adapter trước eval** hoặc lấy từ engine không có state hàm tương ứng.
-8. **Nhầm function top-level với method trên script object**, chọn sai overload.
-9. **Trông chờ Nashorn có sẵn trong Java 17**, dù đã bị loại khỏi JDK.
-10. **Coi mọi engine có javax.script đều hỗ trợ mapping**, trong khi Invocable là optional.
-11. **Tin rằng có adapter nghĩa là mọi lần gọi sẽ thành công**, bỏ qua conversion/lifecycle.
-12. **Chia sẻ ScriptEngine/adapter giữa các thread hoặc tenant khi chưa kiểm chứng** tính an toàn và phạm vi state.
+1. **Forgetting to check engine for null** and calling `eval` directly on null.
+2. **Casting ScriptEngine to Invocable without checking**, causing `ClassCastException` on engines without support.
+3. **getInterface returns null yet calling a method anyway**, causing `NullPointerException`.
+4. **Confusing a null return value from a script function with a null mapping**, causing the host to report the wrong reason.
+5. **Confusing invokeFunction/NoSuchMethodException with getInterface/null**, even though they are two distinct APIs with different return contracts.
+6. **Calling getInterface(thiz, type) with null thiz or the wrong kind of Java object**, causing `IllegalArgumentException` per contract.
+7. **Requesting the adapter before eval**, or from an engine lacking the corresponding function state.
+8. **Confusing top-level functions with script-object methods**, picking the wrong overload.
+9. **Expecting Nashorn to be bundled in Java 17**, even though it was removed from the JDK.
+10. **Assuming every javax.script engine supports mapping**, when Invocable is optional.
+11. **Believing having an adapter means every call will succeed**, ignoring conversion and lifecycle issues.
+12. **Sharing a ScriptEngine/adapter across threads or tenants without verifying** thread safety and state isolation.
 
-## 12. Ma trận kiểm thử cho host runtime extensibility
+## 12. Test Matrix for a Runtime-Extensibility Host
 
-Nên có cả **unit test chính sách** (dùng test double Invocable) lẫn **integration test engine thật** (engine và version giống production).
+Include both **policy unit tests** (using an Invocable test double) and **real engine integration tests** (matching production engine and version).
 
-1. **Không có engine:** manager trả null; host ghi ENGINE_UNAVAILABLE, không eval/cast.
-2. **Engine không implement Invocable:** host ghi ENGINE_NOT_INVOCABLE, không ép cast.
-3. **Invocable nhưng script chưa có function:** getInterface trả null; host ghi INTERFACE_UNSUPPORTED theo contract engine đang test.
-4. **Function đã được eval và mapping hợp lệ:** adapter non-null, gọi method trả dữ liệu đúng kiểu.
-5. **Interface thêm một method chưa được script hỗ trợ:** host phát hiện không mapping hoặc xử lý policy engine tương ứng.
-6. **Object-based mapping:** kiểm tra getInterface(scriptObject, Interface.class) và trường hợp thiz không hợp lệ.
-7. **Interface API sai:** truyền Class không phải interface/null, xác nhận lỗi input rõ ràng.
-8. **Lỗi eval:** source sai, kiểm tra ScriptException và không ghi thành unsupported.
-9. **Lỗi lúc invoke:** hàm script ném lỗi, mismatch kiểu trả về, state engine không còn; host gắn INVOCATION_FAILED.
-10. **Một method hợp lệ trả null:** kiểm tra đây là null nghiệp vụ, khác adapter null.
-11. **Concurrency và reload:** kiểm tra phạm vi engine, cập nhật script, cleanup và việc không giữ adapter của plugin đã dừng.
-12. **Packaging Java 17:** kiểm tra với JDK thuần không có JS engine và với môi trường có engine đã cấu hình.
+1. **No engine:** manager returns null; host records `ENGINE_UNAVAILABLE` without eval/cast.
+2. **Engine does not implement Invocable:** host records `ENGINE_NOT_INVOCABLE` without forced cast.
+3. **Invocable but script lacks the function:** `getInterface` returns null; host records `INTERFACE_UNSUPPORTED` per the engine contract under test.
+4. **Function evaluated and valid mapping:** non-null adapter, method call returns properly typed data.
+5. **Interface adds a method not yet supported by the script:** host detects mapping failure or applies the corresponding engine policy.
+6. **Object-based mapping:** test `getInterface(scriptObject, Interface.class)` and invalid `thiz` cases.
+7. **Invalid API interface:** pass non-interface/null `Class`, verify explicit input error.
+8. **Eval error:** invalid source, verify `ScriptException` and ensure it is not logged as unsupported.
+9. **Invocation error:** script function throws an error, return type mismatch, lost engine state; host records `INVOCATION_FAILED`.
+10. **A valid method returns null:** verify this is a business null, distinct from a null adapter.
+11. **Concurrency and reload:** verify engine scope, script updates, cleanup, and not retaining adapters of stopped plugins.
+12. **Java 17 packaging:** test both plain JDK without a JS engine and the environment with the configured engine.
 
-**Đừng cố ép integration test thành công trên JDK 17 thuần bằng cách giả định có JavaScript engine.** Test nhánh engine unavailable là kết quả hợp lệ. Test capability thực cần mang theo dependency cụ thể và thiết lập engine trong CI đúng như production.
+**Do not force integration tests to pass on plain JDK 17 by assuming a JavaScript engine exists.** Testing the engine-unavailable branch is a valid outcome. Real capability tests must include the specific dependency and configure the engine in CI identically to production.
 
-## 13. Checklist thiết kế adapter script sang Java interface
+## 13. Checklist for Designing a Script-to-Java-Interface Adapter
 
-- Có **Java interface** công khai, tên và kiểu method tối giản, ổn định phiên bản.
-- Có **engine provider** đã cài đặt/được class loader phù hợp khám phá; xử lý khi manager trả null.
-- Engine **thực sự implement Invocable**; kiểm tra trước khi gọi.
-- Script **đã eval** trong đúng engine/context trước khi tạo adapter.
-- Chọn đúng **getInterface(Class<T>)** cho function top-level hoặc **getInterface(thiz, Class<T>)** cho script-object methods.
-- Đối tượng thiz đúng dạng **script object** do engine cung cấp; clasz là **interface Class**, không null.
-- Kiểm tra **getInterface result non-null**, không suy ra một cách mù quáng từ việc eval thành công.
-- Phân biệt **ENGINE_UNAVAILABLE, NOT_INVOCABLE, INTERFACE_UNSUPPORTED, SCRIPT_EVALUATION_FAILED, INVOCATION_FAILED**.
-- Kiểm thử chuyển đổi Java/script cho **đối số, giá trị null, primitives, return type và exceptions**.
-- Có quy tắc **engine/context/adapter lifecycle**, tránh cross-tenant/cross-thread state không kiểm soát.
-- Xác định **mức độ tin cậy của script**, quyền cấp cho plugin và cơ chế cô lập nếu cần.
-- Test cả trường hợp **thiếu JavaScript engine trên JDK 17** lẫn engine thực tế đã cài trong bản phân phối.
+- A public **Java interface** with minimal, version-stable method names and types.
+- An **engine provider** installed and discoverable by the right class loader; handle when the manager returns null.
+- Engine **actually implements Invocable**; check before invoking.
+- Script **already evaluated** in the right engine/context before creating the adapter.
+- Choose **getInterface(Class<T>)** for top-level functions or **getInterface(thiz, Class<T>)** for script-object methods.
+- The `thiz` object is a valid **script object** supplied by the engine; `clasz` is a non-null **interface Class**.
+- Check **getInterface result is non-null**; do not blindly infer it from a successful `eval`.
+- Distinguish **ENGINE_UNAVAILABLE, NOT_INVOCABLE, INTERFACE_UNSUPPORTED, SCRIPT_EVALUATION_FAILED, INVOCATION_FAILED**.
+- Test Java/script conversion for **arguments, null values, primitives, return types, and exceptions**.
+- Define **engine/context/adapter lifecycle rules**, avoiding uncontrolled cross-tenant/cross-thread state.
+- Determine **script trust level**, permissions granted to plugins, and isolation mechanisms if needed.
+- Test both **missing JavaScript engine on JDK 17** and the actual engine installed in the distribution.
 
-**Kết luận:** Interface Java là **ranh giới hợp đồng** cho host, còn ánh xạ từ script là một **capability tùy chọn** của engine. Luôn đi theo thứ tự: **tìm engine → kiểm tra Invocable → eval script → yêu cầu getInterface → kiểm tra null → gọi method và xử lý lỗi runtime**. Sự khác biệt giữa **không có engine**, **không hỗ trợ ánh xạ**, **lỗi script** và **method trả null** là cốt lõi để một hệ runtime extensibility có hành vi rõ ràng và dễ vận hành.
+**Conclusion:** A Java interface is the **contract boundary** for the host, whereas script mapping is an **optional capability** of an engine. Always follow the order: **find engine → check Invocable → eval script → request getInterface → check non-null → invoke methods and handle runtime errors**. Separating **missing engine**, **unsupported mapping**, **script error**, and **method returning null** is essential for a runtime-extensibility system to behave predictably and remain operable.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — javax.script.Invocable](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/Invocable.html): hai overload getInterface, giá trị null, IllegalArgumentException, invokeFunction và invokeMethod.
-- [Java SE 17 — ScriptEngineManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngineManager.html): tìm engine bằng tên, service discovery và factories.
-- [Java SE 17 — ScriptEngine](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngine.html): hợp đồng eval và context.
-- [JEP 372 — Remove the Nashorn JavaScript Engine](https://openjdk.org/jeps/372): lý do không mặc định có Nashorn từ JDK 15.
+- [Java SE 17 — javax.script.Invocable](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/Invocable.html): the two `getInterface` overloads, `null` return values, `IllegalArgumentException`, `invokeFunction`, and `invokeMethod`.
+- [Java SE 17 — ScriptEngineManager](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngineManager.html): discovering engines by name, service discovery, and factories.
+- [Java SE 17 — ScriptEngine](https://docs.oracle.com/en/java/javase/17/docs/api/java.scripting/javax/script/ScriptEngine.html): `eval` and context contracts.
+- [JEP 372 — Remove the Nashorn JavaScript Engine](https://openjdk.org/jeps/372): why Nashorn is not bundled by default since JDK 15.

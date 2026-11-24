@@ -1,0 +1,3 @@
+menuLevel1: PermissionEvaluator
+menuLevel2: Tránh truy vấn lặp cho mỗi phần tử khi kiểm tra tập dữ liệu
+status: WRITTEN

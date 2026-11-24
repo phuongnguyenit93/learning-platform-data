@@ -1,32 +1,32 @@
-# 12.1 Mô hình KeyStore và phân biệt với truststore hoặc CertStore
+# 12.1 The KeyStore Model and Distinguishing It from Truststore or CertStore
 
-Trong Java Cryptography Architecture (JCA), **`KeyStore`** là một API quản lý **khóa mật mã và chứng chỉ** dưới những tên gọi (*alias*) có thể tra cứu. Trong hệ thống TLS/PKI, người ta còn nói **keystore**, **truststore** và **`CertStore`**. Ba thuật ngữ nghe gần giống, nhưng khác nhau về **loại dữ liệu**, **mục đích**, **cách sử dụng trong cơ chế xác thực** và **khái niệm tin cậy**:
+In the Java Cryptography Architecture (JCA), **`KeyStore`** is an API that manages **cryptographic keys and certificates** under lookup names (*aliases*). In TLS/PKI systems, people also refer to **keystore**, **truststore**, and **`CertStore`**. These three terms sound similar, yet differ in **data type**, **purpose**, **usage in authentication mechanisms**, and **the concept of trust**:
 
-- **KeyStore** (viết hoa) là **class/API JCA** `java.security.KeyStore` có các entry như private key kèm certificate chain, secret key, hoặc certificate được đánh dấu tin cậy.
-- **keystore dùng làm kho danh tính** (*identity keystore*, thường viết thường) là **vai trò triển khai** của một `KeyStore`: nơi ứng dụng tìm private key và certificate chain của **chính mình** để ký/chứng minh danh tính.
-- **truststore** là **vai trò triển khai** của một `KeyStore`: nơi lưu chứng chỉ/điểm tin cậy mà ứng dụng sử dụng để **đánh giá bên đối tác**. Java không có một JCA class tiêu chuẩn độc lập tên `TrustStore`.
-- **`CertStore`** là **API khác** thuộc `java.security.cert`, chuyên **tìm/thu thập certificates và CRLs** làm dữ liệu *ứng viên* để xây dựng hoặc kiểm tra đường dẫn chứng chỉ. Có certificate trong `CertStore` **không khiến nó trở thành trusted**.
+- **KeyStore** (capitalized) is the **JCA class/API** `java.security.KeyStore` containing entries such as a private key with a certificate chain, a secret key, or a certificate marked as trusted.
+- **keystore used as an identity store** (*identity keystore*, usually lowercase) is a **deployment role** of a `KeyStore`: where an application looks up **its own** private key and certificate chain to sign/prove its identity.
+- **truststore** is a **deployment role** of a `KeyStore`: where certificates/trust anchors are stored for an application to **evaluate a peer**. Java does not have a standalone standard JCA class named `TrustStore`.
+- **`CertStore`** is a **different API** in `java.security.cert`, dedicated to **finding/retrieving certificates and CRLs** as *candidate* data for building or validating certificate paths. Having a certificate in a `CertStore` **does not make it trusted**.
 
-Bài thuộc nhóm **12. KeyStore** và hướng tới Java 17+. Ta sẽ xây dựng mental model, đối chiếu cấu trúc và luồng TLS, thực hành lưu/đọc PKCS#12, tạo identity keystore + truststore bằng `keytool`, dùng `KeyManagerFactory`, `TrustManagerFactory`, `CertStore` và `PKIXParameters`, rồi phân tích những sai lầm thường gặp trong production.
+This lesson belongs to **12. KeyStore** and targets Java 17+. We will build a mental model, compare structures and TLS flows, practice saving/loading PKCS#12, create an identity keystore + truststore using `keytool`, use `KeyManagerFactory`, `TrustManagerFactory`, `CertStore`, and `PKIXParameters`, and analyze common mistakes in production.
 
-## 1. Hình dung bốn thành phần trong một kết nối TLS
+## 1. Visualizing Four Components in a TLS Connection
 
-Một JVM có thể đồng thời cần **chứng minh danh tính của mình** và **kiểm chứng danh tính của bên kia**. Hai trách nhiệm này đi qua những đối tượng khác nhau:
+A single JVM may simultaneously need to **prove its own identity** and **verify the identity of the peer**. These two responsibilities flow through different objects:
 
 ```text
-                       ỨNG DỤNG JAVA / TLS
+                       JAVA / TLS APPLICATION
                                |
               +----------------+----------------+
               |                                 |
-       "Tôi là ai?"                       "Tôi tin ai?"
+       "Who am I?"                       "Whom do I trust?"
               |                                 |
     Identity KeyStore                      Truststore
     +--------------------+                 +----------------------+
-    | alias: server      |                 | alias: trusted-ca     |
-    | PrivateKeyEntry    |                 | TrustedCertificate-   |
-    | - PRIVATE KEY      |                 | Entry (CA/cert được   |
-    | - leaf cert        |                 | chấp thuận)          |
-    | - chain (nếu có)   |                 +----------------------+
+    | alias: server      |                 | alias: trusted-ca    |
+    | PrivateKeyEntry    |                 | TrustedCertificate-  |
+    | - PRIVATE KEY      |                 | Entry (approved      |
+    | - leaf cert        |                 | CA/cert)             |
+    | - chain (if any)   |                 +----------------------+
     +--------------------+                           |
               |                                      |
     KeyManagerFactory                       TrustManagerFactory
@@ -36,241 +36,241 @@ Một JVM có thể đồng thời cần **chứng minh danh tính của mình**
               |                                      |
               +------------- SSLContext -------------+
                                      |
-                      Handshake TLS xác thực
+                      Authenticated TLS handshake
                                      |
                       +--------------+--------------+
                       |                             |
-              certificate chain               trust anchor
-                bên đối tác                    từ truststore
+               peer certificate               trust anchor
+                    chain                    from truststore
                       |                             |
                       v                             v
               CertPathBuilder/             CertPathValidator/
               CertPathValidator             PKIX trust policy
                       ^                             ^
                       |                             |
-              CertStore (certificates/CRLs ứng viên,
-              tra cứu để tìm intermediate/revocation)
+              CertStore (candidate certificates/CRLs,
+              queried to find intermediates/revocation)
 ```
 
-Sơ đồ biểu diễn **vai trò logic**, không phải mọi provider hay mọi phiên TLS đều thực hiện đúng một chuỗi gọi method bên trong. Nhiều môi trường dùng KMS/HSM hoặc cấu hình JSSE mặc định thay vì các file trên đĩa.
+The diagram illustrates **logical roles**, not that every provider or every TLS session executes the exact same internal method call chain. Many environments use KMS/HSM or default JSSE configurations instead of files on disk.
 
-**Câu hỏi phải đặt đúng:** *“Khóa riêng của **tôi** nằm ở đâu?”* khác với *“Tôi chấp nhận certificate **của ai**?”*; và cả hai khác với *“Tôi tìm thêm intermediate certificate/CRL **ở đâu** để đánh giá một chuỗi?”*
+**The right questions to ask:** *"Where is **my** private key located?"* is different from *"Whose certificate **do I accept**?"*; and both are different from *"Where do I look up additional intermediate certificates/CRLs **to evaluate** a chain?"*
 
-## 2. So sánh KeyStore, truststore và CertStore
+## 2. Comparing KeyStore, Truststore, and CertStore
 
-| Tiêu chí | KeyStore (API / kho danh tính) | Truststore (vai trò của KeyStore) | CertStore (API Java) |
+| Criterion | KeyStore (API / identity store) | Truststore (role of KeyStore) | CertStore (Java API) |
 | --- | --- | --- | --- |
-| Class | `java.security.KeyStore` | Vẫn thường là **`java.security.KeyStore`** | **`java.security.cert.CertStore`** |
-| Mục đích chính | Quản lý khóa và chứng chỉ theo alias; với identity store là chứng chỉ + private key của ứng dụng | Xác định cert/trust anchor được cấu hình tin cậy khi kiểm tra đối tác | Cung cấp **certificates và CRLs ứng viên** cho tra cứu/PKIX |
-| Dữ liệu | `PrivateKeyEntry`, `SecretKeyEntry`, `TrustedCertificateEntry` tùy type/provider | Chủ yếu `TrustedCertificateEntry` theo chính sách trust | `Certificate` và `CRL`, **không chứa private key** |
-| Nhận diện item | Alias như `server`, `root-ca`, `jwt-signing` | Alias như `company-ca` | `CertSelector`, `CRLSelector` để lọc |
-| Java gọi | `getInstance`, `load`, `getEntry`, `getKey`, `store` | `KeyStore.load` + `TrustManagerFactory.init(store)` hoặc PKIX trust anchors | `CertStore.getInstance("Collection", params)`, `getCertificates`, `getCRLs` |
-| File định dạng | Thường PKCS#12 (`.p12`, `.pfx`), JKS; có backend không phải file | Có thể cũng dùng PKCS#12/JKS hoặc provider khác | Không phải một file-key-store tiêu chuẩn; có thể là Collection, LDAP hay nguồn khác |
-| Trust decision? | **Không tự động**: phụ thuộc entry và API tiêu thụ | Định nghĩa/chứa **trust anchors** theo chính sách bên nhận | **Không**: tìm được certificate chưa có nghĩa nó đáng tin |
-| Khi dùng TLS | `KeyManagerFactory` tạo `KeyManager` dùng private key + certificate chain | `TrustManagerFactory` tạo `TrustManager` kiểm tra peer | Có thể hỗ trợ PKIX tìm intermediate/CRL, **không thay thế TrustManager** |
-| Ai cần truy cập? | Bên giữ khóa riêng/secret key; quyền rất chặt | Thành phần kiểm chứng bên đối tác; thay đổi anchor phải được kiểm soát | Thành phần PKI cần truy vấn certificate/CRL và có cơ chế kiểm tra tính xác thực |
-| Lỗi tư duy hay gặp | “KeyStore chỉ là file chứa password” | “Truststore là một lớp Java hoặc thuật toán đặc biệt” | “Nhét cert vào CertStore là nó thành trusted CA” |
+| Class | `java.security.KeyStore` | Still usually **`java.security.KeyStore`** | **`java.security.cert.CertStore`** |
+| Primary purpose | Manage keys and certificates by alias; for an identity store, the application's certificates + private keys | Specify configured trusted certs/trust anchors when verifying peers | Provide **candidate certificates and CRLs** for lookup/PKIX |
+| Data | `PrivateKeyEntry`, `SecretKeyEntry`, `TrustedCertificateEntry` depending on type/provider | Primarily `TrustedCertificateEntry` per trust policy | `Certificate` and `CRL`, **contains no private keys** |
+| Item identification | Aliases like `server`, `root-ca`, `jwt-signing` | Aliases like `company-ca` | `CertSelector`, `CRLSelector` for filtering |
+| Java calls | `getInstance`, `load`, `getEntry`, `getKey`, `store` | `KeyStore.load` + `TrustManagerFactory.init(store)` or PKIX trust anchors | `CertStore.getInstance("Collection", params)`, `getCertificates`, `getCRLs` |
+| File format | Usually PKCS#12 (`.p12`, `.pfx`), JKS; non-file backends also exist | Can also use PKCS#12/JKS or another provider | Not a standard file-based key store; can be Collection, LDAP, or another source |
+| Trust decision? | **Not automatic**: depends on entry and consuming API | Defines/holds **trust anchors** per the verifier's policy | **No**: finding a certificate does not mean it is trustworthy |
+| When used in TLS | `KeyManagerFactory` creates `KeyManager` using private key + certificate chain | `TrustManagerFactory` creates `TrustManager` to verify peer | Can assist PKIX in finding intermediates/CRLs, **does not replace TrustManager** |
+| Who needs access? | Party holding private/secret keys; very strict permissions | Party verifying the peer; anchor changes must be controlled | PKI component needing to query certificates/CRLs with authenticity verification mechanisms |
+| Common misconception | "KeyStore is just a file containing a password" | "Truststore is a special Java class or algorithm" | "Putting a cert into CertStore makes it a trusted CA" |
 
-**Điểm quyết định:** *truststore không phải một API lưu trữ mới*. Nó dùng cùng cấu trúc `KeyStore` nhưng **được giao một nhiệm vụ bảo mật khác**. Một file PKCS#12 có thể chứa nhiều loại entry, song **không nên trộn quyền sở hữu private key và trust anchors tùy tiện**, vì việc gộp làm tăng phạm vi ảnh hưởng của sự cố và khó quản lý chính sách.
+**Key takeaway:** *a truststore is not a new storage API*. It uses the same `KeyStore` structure but **is assigned a different security responsibility**. A PKCS#12 file can contain multiple entry types, yet **you should not arbitrarily mix private key ownership and trust anchors**, because combining them increases the blast radius of an incident and complicates policy management.
 
-## 3. Kiến trúc KeyStore: engine, type, provider, alias và entry
+## 3. KeyStore Architecture: Engine, Type, Provider, Alias, and Entry
 
-`KeyStore` là một **engine class** của JCA: hành vi lưu trữ phụ thuộc **type** và **provider**. Class biểu diễn **kho logic**, không ràng buộc tất cả kho phải là file trên filesystem.
+`KeyStore` is a JCA **engine class**: storage behavior depends on **type** and **provider**. The class represents a **logical store**, without requiring all stores to be files on the filesystem.
 
 ```text
 KeyStore.getInstance("PKCS12")
           |
           v
- JCA tìm provider hỗ trợ PKCS12
+ JCA finds a provider supporting PKCS12
           |
           v
-  KeyStore instance (chưa load)
+  KeyStore instance (unloaded)
           |
-      load(inputStream, password)  hoặc load(null, password) để tạo kho mới
+      load(inputStream, password)  or load(null, password) to create a new store
           |
           v
       aliases -> Entries
           |
       getEntry / getKey / getCertificate / ...
           |
-      store(outputStream, password)  (với backend hỗ trợ ghi stream)
+      store(outputStream, password)  (for backends supporting stream writing)
 ```
 
-### 3.1 Ba Entry quan trọng
+### 3.1 Three Important Entries
 
-JDK định nghĩa các loại entry chính:
+The JDK defines the primary entry types:
 
-| Entry | Có gì bên trong? | Ví dụ | API nhận diện |
+| Entry | What is inside? | Examples | Identification API |
 | --- | --- | --- | --- |
-| **`KeyStore.PrivateKeyEntry`** | Một `PrivateKey` và **certificate chain** tương ứng với public key của private key | Khóa TLS server, client mTLS, signing key có certificate | `entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class)`, `isKeyEntry(alias)` |
-| **`KeyStore.SecretKeyEntry`** | Một `SecretKey` đối xứng; không có X.509 certificate chain | AES key dùng mã hóa dữ liệu khi type/provider cho phép | `entryInstanceOf(alias, KeyStore.SecretKeyEntry.class)`, `isKeyEntry(alias)` |
-| **`KeyStore.TrustedCertificateEntry`** | **Một certificate** được chủ kho cấu hình tin cậy | CA root hoặc peer cert được chính sách cho phép | `entryInstanceOf(alias, KeyStore.TrustedCertificateEntry.class)`, `isCertificateEntry(alias)` |
+| **`KeyStore.PrivateKeyEntry`** | A `PrivateKey` and **certificate chain** corresponding to the private key's public key | TLS server key, mTLS client, signing key with certificate | `entryInstanceOf(alias, KeyStore.PrivateKeyEntry.class)`, `isKeyEntry(alias)` |
+| **`KeyStore.SecretKeyEntry`** | A symmetric `SecretKey`; no X.509 certificate chain | AES key used to encrypt data when supported by type/provider | `entryInstanceOf(alias, KeyStore.SecretKeyEntry.class)`, `isKeyEntry(alias)` |
+| **`KeyStore.TrustedCertificateEntry`** | **A certificate** configured as trusted by the store owner | Root CA or peer cert permitted by policy | `entryInstanceOf(alias, KeyStore.TrustedCertificateEntry.class)`, `isCertificateEntry(alias)` |
 
-`KeyStore.Entry` là interface cha; ba lớp trên không phải cùng một định dạng bằng bytes. Provider/type có thể giới hạn loại entry được hỗ trợ hoặc cách bảo vệ chúng.
+`KeyStore.Entry` is the parent interface; the three classes above do not share the same byte representation. The provider/type may restrict which entry types are supported or how they are protected.
 
-**Một số lời gọi dễ nhầm:**
+**Some commonly confused calls:**
 
-- `store.containsAlias(alias)`: kiểm tra alias có tồn tại.
-- `store.aliases()`: liệt kê tên alias (không được giả định thứ tự).
-- `store.isKeyEntry(alias)`: đúng cho cả `PrivateKeyEntry` và `SecretKeyEntry` trong type/provider phù hợp.
-- `store.isCertificateEntry(alias)`: đúng cho **certificate-only entry**, không phải lời khẳng định mọi alias có chứa certificate.
-- `store.getKey(alias, password)`: trả key cho key entry; **certificate-only entry không trả private key**.
-- `store.getCertificate(alias)`: có thể trả certificate của `TrustedCertificateEntry` hoặc certificate đầu tiên trong chain của `PrivateKeyEntry`. Vì vậy **`getCertificate(alias) != null` không có nghĩa alias là trusted certificate entry**.
-- `store.getCertificateChain(alias)`: dùng cho private-key entry có chain; không mặc định có cho trusted-cert entry.
-- `store.getEntry(alias, protection)`: trả kiểu `KeyStore.Entry`; dùng `instanceof`/ `entryInstanceOf` để kiểm tra loại và tránh cast sai.
-- `store.setEntry`, `setKeyEntry`, `setCertificateEntry`, `deleteEntry`: thao tác quản trị, có ràng buộc provider/type và quyền thay đổi.
+- `store.containsAlias(alias)`: checks if the alias exists.
+- `store.aliases()`: lists alias names (do not assume any order).
+- `store.isKeyEntry(alias)`: true for both `PrivateKeyEntry` and `SecretKeyEntry` in a supporting type/provider.
+- `store.isCertificateEntry(alias)`: true for a **certificate-only entry**, not an assertion that every alias containing a certificate is one.
+- `store.getKey(alias, password)`: returns the key for a key entry; **a certificate-only entry does not return a private key**.
+- `store.getCertificate(alias)`: may return the certificate of a `TrustedCertificateEntry` or the first certificate in a `PrivateKeyEntry` chain. Therefore, **`getCertificate(alias) != null` does not mean the alias is a trusted certificate entry**.
+- `store.getCertificateChain(alias)`: used for a private-key entry with a chain; not present by default for a trusted-cert entry.
+- `store.getEntry(alias, protection)`: returns `KeyStore.Entry`; use `instanceof`/`entryInstanceOf` to check the type and avoid invalid casts.
+- `store.setEntry`, `setKeyEntry`, `setCertificateEntry`, `deleteEntry`: administrative operations, constrained by provider/type and modification permissions.
 
-**Alias là định danh tra cứu**, không phải hostname hoặc identity được chứng nhận bởi PKI. Một alias tên `production-root` không làm certificate trở thành CA hợp lệ; chính sách trust phải kiểm tra nguồn certificate, key usage và mục đích sử dụng. **Phân biệt chữ hoa/chữ thường trong alias tùy implementation**; không chọn hai alias chỉ khác nhau về case.
+**An alias is a lookup identifier**, not a hostname or an identity certified by PKI. An alias named `production-root` does not make a certificate a valid CA; trust policy must verify the certificate's source, key usage, and intended purpose. **Case sensitivity in aliases depends on the implementation**; never choose two aliases that differ only in case.
 
-### 3.2 Keystore password và key password
+### 3.2 Keystore Password and Key Password
 
-Một keystore file có thể cần **store password** khi `load`/`store` để bảo vệ tính toàn vẹn hoặc cơ chế lưu trữ; từng **key entry** có thể yêu cầu password để giải mã/truy cập. Mối quan hệ này **phụ thuộc type/provider**:
+A keystore file may require a **store password** during `load`/`store` to protect integrity or the storage mechanism; individual **key entries** may require a password to decrypt/access. This relationship **depends on type/provider**:
 
 ```text
 PKCS12 file
   |
-  +-- store password      (theo định dạng/provider)
+  +-- store password      (per format/provider)
   |
   +-- alias server
-        +-- PrivateKeyEntry (key password/protection khi đọc khóa)
+        +-- PrivateKeyEntry (key password/protection when reading key)
         +-- leaf certificate
         +-- certificate chain
 ```
 
-Trong nhiều cấu hình PKCS#12 thực tế, store password và key password được sử dụng giống nhau để tương thích, nhưng không được coi đây là quy tắc áp dụng cho mọi provider. `KeyManagerFactory.init(identity, keyPassword)` nhận password dùng truy cập **key entries**, trong khi `KeyStore.load(stream, storePassword)` dành cho **load kho**.
+In many practical PKCS#12 setups, the store password and key password are set to the same value for compatibility, but this must not be assumed as a rule for every provider. `KeyManagerFactory.init(identity, keyPassword)` takes the password used to access **key entries**, whereas `KeyStore.load(stream, storePassword)` is for **loading the store**.
 
-Không dùng mật khẩu demo `changeit` trong production. Với triển khai thật, lấy credential từ secret manager/cơ chế triển khai được phê duyệt, phân quyền filesystem chặt chẽ, áp dụng rotation và tránh lưu password trên command line (có thể lộ qua process listing, shell history hay pipeline logs). Password bảo vệ PKCS#12 **không thay thế** quản lý khóa trong HSM/KMS khi cần key non-exportable.
+Do not use the demo password `changeit` in production. For real deployments, retrieve credentials from a secret manager/approved deployment mechanism, enforce strict filesystem permissions, apply rotation, and avoid passing passwords on the command line (which can leak via process listings, shell history, or pipeline logs). Password protection on PKCS#12 **does not replace** key management in an HSM/KMS when non-exportable keys are required.
 
-### 3.3 File store và hardware/token store
+### 3.3 File Stores and Hardware/Token Stores
 
-- **PKCS#12:** định dạng mang tính tương tác tốt để chứa khóa và chứng chỉ, thông dụng ở JDK hiện đại; `KeyStore.getInstance("PKCS12")`. **Đây là default type từ JDK 9** trong triển khai JDK điển hình nhưng có thể bị đổi bởi security property `keystore.type`.
-- **JKS:** định dạng Java legacy; vẫn gặp trong hệ thống cũ; không nên mặc định chọn chỉ vì thói quen nếu hệ thống mới có khả năng dùng PKCS#12.
-- **JCEKS:** một keystore type lịch sử của provider Java cho một số secret/private key; không nhầm với `JKS` hay PKCS#12; đánh giá lại policy và migration.
-- **PKCS#11:** API/provider có thể liên kết smart card/HSM, nơi key tồn tại dưới dạng **handle**. Không có nghĩa có file `.p12` và không nhất thiết cho phép `getEncoded()` private key. `load(null, ...)` có thể là phương thức phù hợp để kết nối token trong cấu hình provider, **không** phải “tạo file keystore mới”.
-- **Windows-MY/macOS keystore provider** (tùy môi trường): tích hợp kho của hệ điều hành; không phải type được bảo đảm có trên mọi JDK/Linux container.
+- **PKCS#12:** an interoperable format for holding keys and certificates, standard in modern JDKs; `KeyStore.getInstance("PKCS12")`. **This is the default type since JDK 9** in typical JDK implementations, though it can be changed via the `keystore.type` security property.
+- **JKS:** a legacy Java format; still encountered in older systems; should not be chosen by default out of habit if new systems can use PKCS#12.
+- **JCEKS:** a historical Java provider keystore type for certain secret/private keys; do not confuse it with `JKS` or PKCS#12; re-evaluate policy and migration.
+- **PKCS#11:** an API/provider that can interface with smart cards/HSMs, where keys exist as **handles**. It does not imply a `.p12` file exists and does not necessarily allow `getEncoded()` on a private key. `load(null, ...)` can be the appropriate method to connect to a token in a provider configuration, **not** "creating a new keystore file".
+- **Windows-MY/macOS keystore provider** (environment-dependent): integrates with the OS store; not a type guaranteed to exist on every JDK/Linux container.
 
-**Điều cần nhớ:** `KeyStore.getDefaultType()` trả type theo cấu hình runtime, **không bảo đảm luôn là `"PKCS12"`** trên mọi hệ thống. Trong ví dụ và các luồng import/export, ghi type tường minh để tránh bất ngờ do cấu hình thay đổi.
+**Important to remember:** `KeyStore.getDefaultType()` returns the type according to runtime configuration, **not guaranteed to always be `"PKCS12"`** on every system. In examples and import/export flows, specify the type explicitly to avoid surprises from configuration changes.
 
-## 4. Identity keystore và truststore trong TLS/mTLS
+## 4. Identity Keystore and Truststore in TLS/mTLS
 
-Với **TLS server authentication**, server thường trình bày certificate chain để client kiểm tra. **Server identity keystore** giữ private key và certificate chain. **Client truststore** chứa trust anchors/certificates mà client chấp nhận theo chính sách.
+For **TLS server authentication**, the server typically presents a certificate chain for the client to verify. The **server identity keystore** holds the private key and certificate chain. The **client truststore** holds the trust anchors/certificates that the client accepts per policy.
 
 ```text
 SERVER                                      CLIENT
 +---------------------------+               +----------------------------+
 | identity KeyStore         |               | truststore (KeyStore)      |
-| alias "server"            |               | trusted CA/cert           |
-| PrivateKeyEntry           |               | TrustedCertificateEntry   |
+| alias "server"            |               | trusted CA/cert            |
+| PrivateKeyEntry           |               | TrustedCertificateEntry    |
 | private key + cert chain  |               +----------------------------+
 +---------------------------+                         |
-             |                                         v
-       KeyManagerFactory                       TrustManagerFactory
-             |                                         |
-       Server KeyManager                        Client TrustManager
-             |                                         |
+             |                                        v
+       KeyManagerFactory                      TrustManagerFactory
+             |                                        |
+       Server KeyManager                       Client TrustManager
+             |                                        |
              +----------- TLS handshake --------------+
-              server gửi certificate chain, chứng minh nắm private key
-                    client xác minh certificate/path/hostname/policy
+              server sends certificate chain, proves possession of private key
+                    client verifies certificate/path/hostname/policy
 ```
 
-Với **mTLS**, client **cũng có identity keystore** để trình bày private key + certificate chain của client, và server **cũng có truststore**/trust policy để kiểm tra certificate client. Cả hai đầu có thể có cả **KeyManager** và **TrustManager**, nhưng **vai trò không đổi**.
+With **mTLS**, the client **also has an identity keystore** to present the client's private key + certificate chain, and the server **also has a truststore**/trust policy to verify the client certificate. Both sides can have both a **KeyManager** and a **TrustManager**, yet **their roles remain unchanged**.
 
-### 4.1 KeyManagerFactory và TrustManagerFactory
+### 4.1 KeyManagerFactory and TrustManagerFactory
 
-| API | Nguồn chính | Chức năng |
+| API | Primary source | Function |
 | --- | --- | --- |
-| `KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())` | `KeyStore` chứa private key và certificate chain; `init(identityStore, keyPassword)` | Cấp `KeyManager[]` để chọn danh tính/local credentials |
-| `TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())` | `KeyStore` chứa cert/trust anchors; `init(trustStore)` | Cấp `TrustManager[]` để đánh giá chứng chỉ bên đối tác |
-| `SSLContext.getInstance("TLS")` và `init(keyManagers, trustManagers, random)` | Cả hai nhóm manager | Tạo cấu hình bảo mật cho TLS sockets/engines |
+| `KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())` | `KeyStore` containing private key and certificate chain; `init(identityStore, keyPassword)` | Supplies `KeyManager[]` to select local identity/credentials |
+| `TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())` | `KeyStore` containing certs/trust anchors; `init(trustStore)` | Supplies `TrustManager[]` to evaluate peer certificates |
+| `SSLContext.getInstance("TLS")` and `init(keyManagers, trustManagers, random)` | Both manager groups | Creates security configuration for TLS sockets/engines |
 
-**Không đảo hai factory:** thêm private key vào nơi dùng `TrustManagerFactory` không có nghĩa private key sẽ được gửi cho peer. Tương tự, chỉ thêm CA certificate vào identity store không cung cấp private key cho server để hoàn tất authenticated TLS handshake.
+**Do not swap the two factories:** putting a private key into the store passed to `TrustManagerFactory` does not mean the private key will be sent to the peer. Likewise, adding only a CA certificate to the identity store does not provide a private key for the server to complete an authenticated TLS handshake.
 
-Trong production, tránh tự viết `X509TrustManager` bỏ qua xác thực:
+In production, avoid writing a custom `X509TrustManager` that skips validation:
 
 ```java
-// ANTI-PATTERN: chấp nhận mọi server certificate để "sửa SSLHandshakeException".
-// Không sử dụng trong ứng dụng thật. Đây chỉ là đoạn nhận diện lỗi.
+// ANTI-PATTERN: accepting every server certificate to "fix SSLHandshakeException".
+// Do not use in real applications. This snippet is only for recognizing the flaw.
 public void checkServerTrusted(
         java.security.cert.X509Certificate[] chain, String authType) {
-    // Không kiểm tra gì cả => vô hiệu hóa xác thực peer.
+    // Performs no checks => disables peer authentication.
 }
 ```
 
-Đoạn trên là **method minh họa, không phải một class đầy đủ**; mục đích là nhận diện hành vi nguy hiểm. Giải pháp đúng là phân tích certificate chain, trust anchors, hostname/SAN, thời hạn, EKU, policy, revocation phù hợp, chứ không phải vô hiệu hóa `TrustManager`.
+The snippet above is an **illustrative method, not a complete class**; the goal is to recognize dangerous behavior. The proper solution is to analyze the certificate chain, trust anchors, hostname/SAN, validity period, EKU, policy, and appropriate revocation, rather than disabling `TrustManager`.
 
-### 4.2 Truststore không tự xác thực hostname
+### 4.2 A Truststore Does Not Automatically Verify Hostname
 
-Một certificate chain có thể bắt nguồn từ CA được tin cậy nhưng certificate cuối cùng **không dành cho hostname** mà client đang truy cập. Việc kiểm tra **danh tính điểm cuối** (ví dụ `api.example.com` so với DNS Subject Alternative Name) là một yêu cầu **riêng** phải được thực thi bởi TLS client/giao thức phù hợp.
+A certificate chain may originate from a trusted CA yet the leaf certificate **is not issued for the hostname** the client is connecting to. Checking **endpoint identification** (e.g., `api.example.com` against the DNS Subject Alternative Name) is a **separate** requirement that must be enforced by the TLS client/appropriate protocol.
 
-Đặc biệt, khi tự tạo `SSLSocket` hay `SSLEngine`, kiểm tra endpoint identification đã được bật theo contract API; đừng suy ra mọi low-level TLS socket tự bật hostname verification giống `HttpsURLConnection` hoặc các HTTP client cấp cao. **Trust anchor hợp lệ không đồng nghĩa chứng chỉ khớp hostname.**
+In particular, when creating an `SSLSocket` or `SSLEngine` directly, verify that endpoint identification is enabled per the API contract; do not assume every low-level TLS socket enables hostname verification automatically like `HttpsURLConnection` or high-level HTTP clients. **A valid trust anchor does not imply the certificate matches the hostname.**
 
-### 4.3 Truststore có thể tin root CA hoặc leaf cert
+### 4.3 A Truststore Can Trust a Root CA or a Leaf Cert
 
-Truststore thường chứa CA root/CA chuyên dụng làm **trust anchor**. Với kiểm thử hoặc một số thiết kế pinning, người ta có thể chấp thuận trực tiếp certificate của endpoint. Hai cách có hệ quả khác nhau:
+A truststore typically contains root CAs/dedicated CAs as **trust anchors**. For testing or certain pinning designs, one might directly approve an endpoint's certificate. The two approaches have different consequences:
 
-- **Tin CA root:** CA có thể cấp nhiều certificate hợp lệ theo policy/constraints; cần đánh giá chain, tên máy, thời gian, EKU, usages, revocation nếu được cấu hình.
-- **Tin trực tiếp leaf:** giới hạn danh tính theo certificate cụ thể, nhưng rotation/renewal sẽ phức tạp; cách diễn giải trust anchor phụ thuộc API/policy.
-- **Tin intermediate CA:** cần suy nghĩ kỹ phạm vi ủy quyền và constraints; không thêm tùy tiện chỉ vì handshake đang lỗi.
+- **Trusting a root CA:** the CA can issue many valid certificates under policies/constraints; requires validating chain, hostname, validity time, EKU, usages, and revocation if configured.
+- **Directly trusting a leaf:** restricts identity to a specific certificate, but rotation/renewal becomes complex; how the trust anchor is interpreted depends on the API/policy.
+- **Trusting an intermediate CA:** requires carefully considering delegation scope and constraints; do not add arbitrarily just because a handshake is failing.
 
-**Không nhập một certificate không rõ nguồn rồi mặc nhiên tin nó.** `keytool -importcert` thiết lập một trust decision của người quản trị, không thể thay thế bước xác minh fingerprint/CA/nguồn certificate.
+**Never import a certificate from an unknown source and trust it by default.** `keytool -importcert` establishes an administrative trust decision and cannot replace verifying the certificate's fingerprint/CA/origin.
 
-## 5. CertStore là gì, và vì sao nó không phải truststore?
+## 5. What Is CertStore, and Why Is It Not a Truststore?
 
-`java.security.cert.CertStore` cung cấp một **repository để truy xuất certificates và Certificate Revocation Lists (CRLs)**. JCA dùng nó trong các công việc liên quan **certificate path**:
+`java.security.cert.CertStore` provides a **repository for retrieving certificates and Certificate Revocation Lists (CRLs)**. JCA uses it in tasks related to **certificate paths**:
 
 ```text
 Peer sends leaf certificate
           |
           v
-CertPathBuilder cần tìm intermediate chứng chỉ còn thiếu
+CertPathBuilder needs to find missing intermediate certificates
           |
-          +------> CertStore (Collection/LDAP/nguồn hỗ trợ)
-          |             | certificates & CRLs ứng viên
+          +------> CertStore (Collection/LDAP/supported source)
+          |             | candidate certificates & CRLs
           |             v
-          |       lọc bằng CertSelector/CRLSelector
+          |       filtered by CertSelector/CRLSelector
           v
 Construct candidate certification path
           |
           v
 CertPathValidator + PKIXParameters
-  - trusted anchors (từ truststore / TrustAnchor)
+  - trusted anchors (from truststore / TrustAnchor)
   - algorithm and certificate constraints
   - validity, policies, optional revocation sources
           |
           v
-Accept/reject path theo chính sách
+Accept/reject path according to policy
 ```
 
-Một certificate nằm trong **CertStore** chỉ có nghĩa nó được **cung cấp để xem xét**, không phải nó là một trust anchor. Ngược lại, việc một certificate là **trust anchor** là quyết định thuộc **PKIX parameters / truststore / policy**. Hai tập dữ liệu này có thể chứa cùng một certificate nhưng **ý nghĩa được gán bởi API sử dụng** khác nhau.
+A certificate residing in a **CertStore** only means it is **provided for consideration**, not that it is a trust anchor. Conversely, whether a certificate is a **trust anchor** is a decision belonging to **PKIX parameters / truststore / policy**. These two datasets may contain the same certificate, but **the meaning assigned by the consuming API** is different.
 
-| Loại | Kết quả API | Vai trò |
+| Type | API Result | Role |
 | --- | --- | --- |
-| `CertStore.getCertificates(CertSelector)` | Danh sách certificate phù hợp tiêu chí | Ứng viên để xây dựng/kiểm tra chain |
-| `CertStore.getCRLs(CRLSelector)` | Danh sách CRL phù hợp | Dữ liệu có thể dùng trong kiểm tra thu hồi |
-| `PKIXParameters(trustStore)` | Các `TrustAnchor` từ `TrustedCertificateEntry` | Cơ sở tin cậy cho PKIX |
-| `PKIXParameters.addCertStore(certStore)` | Thêm nguồn tìm certificate/CRL | **Không** thêm chứng chỉ trong CertStore thành trust anchors |
-| `CertPathBuilder` | Xây đường dẫn ứng viên đến trust anchor | Không tự biết trust policy nếu không có parameters |
-| `CertPathValidator` | Kiểm tra đường dẫn với trust anchors và policy | Không phải công cụ lưu private key |
+| `CertStore.getCertificates(CertSelector)` | List of certificates matching criteria | Candidates for building/validating chain |
+| `CertStore.getCRLs(CRLSelector)` | List of matching CRLs | Data usable in revocation checks |
+| `PKIXParameters(trustStore)` | `TrustAnchor`s from `TrustedCertificateEntry` | Basis of trust for PKIX |
+| `PKIXParameters.addCertStore(certStore)` | Adds a source to find certificates/CRLs | **Does not** promote certificates in CertStore to trust anchors |
+| `CertPathBuilder` | Builds a candidate path to a trust anchor | Does not know trust policy on its own without parameters |
+| `CertPathValidator` | Validates a path against trust anchors and policy | Not a tool for storing private keys |
 
-### 5.1 Những loại CertStore
+### 5.1 Types of CertStore
 
-- **`"Collection"`**: dùng `CollectionCertStoreParameters` để cung cấp một collection chứa certificates và CRLs; loại tiêu chuẩn mà Java phải hỗ trợ. Hữu ích cho ví dụ chạy tại chỗ và khi ứng dụng có sẵn tập dữ liệu.
-- **LDAP/nguồn ngoài**: có thể được hỗ trợ tùy provider; cho phép tìm certificates/CRLs trong directory hay repository. Không giả định mọi JVM có provider cho tất cả type.
-- **Ứng dụng có thể kết hợp nhiều CertStore** trong `PKIXParameters` để cung cấp intermediate/CRL. Bên kiểm tra vẫn cần trust anchors và các chính sách xác minh.
+- **`"Collection"`**: uses `CollectionCertStoreParameters` to supply a collection containing certificates and CRLs; the standard type Java must support. Useful for self-contained examples and when the application already has a dataset in memory.
+- **LDAP/external sources**: may be supported depending on the provider; allows looking up certificates/CRLs in a directory or repository. Do not assume every JVM has providers for all types.
+- **Applications can combine multiple CertStores** in `PKIXParameters` to supply intermediates/CRLs. The verifier still requires trust anchors and verification policies.
 
-`CertStore` là API **đọc/truy xuất**, không có một cặp `load(file,password)` / `store(file,password)` tương đương `KeyStore`; nó không quản lý private key. Nguồn dữ liệu bên dưới có thể thay đổi hoặc không đáng tin; **người xây/kiểm tra đường dẫn phải xác thực certificate chain và CRL** theo chính sách trước khi tin kết quả.
+`CertStore` is a **read/retrieval** API; it has no `load(file,password)` / `store(file,password)` pair equivalent to `KeyStore`, and it does not manage private keys. The underlying data source can change or be untrusted; **the path builder/validator must verify the certificate chain and CRLs** according to policy before trusting the outcome.
 
-### 5.2 CRL, OCSP và certificate revocation
+### 5.2 CRL, OCSP, and Certificate Revocation
 
-Một certificate có thể còn trong hạn nhưng đã bị thu hồi. **CRL** là danh sách certificate bị thu hồi do issuer ký; **OCSP** cung cấp một cơ chế khác để hỏi trạng thái. CertStore có thể **cung cấp CRL** cho quá trình PKIX nhưng không tự gọi mọi OCSP server hoặc tự bảo đảm việc xác minh thu hồi đã được bật.
+A certificate may still be within its validity period yet have been revoked. A **CRL** is a list of revoked certificates signed by the issuer; **OCSP** provides another mechanism to query status. CertStore can **supply CRLs** to the PKIX process, but does not automatically query every OCSP server or guarantee that revocation checking is enabled.
 
-Cần cấu hình/kiểm tra **PKIX revocation policy**, nguồn dữ liệu, thời hạn/cache, xử lý lỗi mạng và quy tắc fail-open/fail-closed theo yêu cầu. **Đừng nói “có CertStore là đã kiểm tra revocation”**. Với TLS, chính sách và hành vi mặc định có thể khác nhau theo provider/JDK/client; phải đo bằng môi trường thật.
+You must configure/verify the **PKIX revocation policy**, data sources, freshness/caching, network error handling, and fail-open/fail-closed rules per requirements. **Never claim "having a CertStore means revocation is checked"**. For TLS, default policies and behaviors may vary by provider/JDK/client; measure in the actual target environment.
 
-## 6. Java 17+: tạo PKCS#12 KeyStore trong bộ nhớ và nạp lại
+## 6. Java 17+: Creating a PKCS#12 KeyStore in Memory and Reloading It
 
-Chương trình sau chứng minh **`KeyStore` là API quản lý entry**, không nhất thiết phải bắt đầu từ một certificate hay file. Ta sinh **AES-256 SecretKey**, lưu thành `SecretKeyEntry` trong một PKCS#12 mới, serialize vào `ByteArrayOutputStream`, nạp lại và kiểm tra key có giống ban đầu không.
+The following program demonstrates that **`KeyStore` is an entry-management API**, which does not necessarily start from a certificate or a file. We generate an **AES-256 SecretKey**, store it as a `SecretKeyEntry` in a new PKCS#12 store, serialize it into a `ByteArrayOutputStream`, reload it, and verify whether the key matches the original.
 
-Lưu tệp **`KeyStoreBasicsDemo.java`**:
+Save as **`KeyStoreBasicsDemo.java`**:
 
 ```java
 import java.io.*;
@@ -280,11 +280,11 @@ import javax.crypto.*;
 
 public final class KeyStoreBasicsDemo {
     public static void main(String[] args) throws Exception {
-        // Mật khẩu cố định chỉ để minh họa, KHÔNG dùng trong production.
+        // Hardcoded password for demonstration only, DO NOT use in production.
         char[] password = "demo-changeit".toCharArray();
         try {
             KeyStore store = KeyStore.getInstance("PKCS12");
-            store.load(null, password); // Kho mới rỗng, file-backed type.
+            store.load(null, password); // New empty store, file-backed type.
 
             KeyGenerator generator = KeyGenerator.getInstance("AES");
             generator.init(256);
@@ -323,14 +323,14 @@ public final class KeyStoreBasicsDemo {
 }
 ```
 
-Biên dịch và chạy với Java 17+ và provider hỗ trợ PKCS#12 SecretKeyEntry/AES:
+Compile and run with Java 17+ and a provider supporting PKCS#12 SecretKeyEntry/AES:
 
 ```bash
 javac -encoding UTF-8 KeyStoreBasicsDemo.java
 java KeyStoreBasicsDemo
 ```
 
-Stdout ổn định:
+Deterministic stdout:
 
 ```text
 Entry count: 1
@@ -341,28 +341,28 @@ AES key same: true
 Encoded PKCS12 nonempty: true
 ```
 
-**Phân tích:**
+**Analysis:**
 
-1. `KeyStore.getInstance("PKCS12")` chọn **format/provider**, chưa load. `load(null, password)` tạo kho rỗng cho file-backed store trong demo; với PKCS#11/token không được tự suy ra ý nghĩa tương tự.
-2. `SecretKeyEntry` chứa AES key. `setEntry` có `PasswordProtection`; điều đó khác `setCertificateEntry` chỉ thêm certificate.
-3. `store(out,password)` serialize kho thành PKCS#12 bytes. `load(in,password)` phục hồi kho; `getKey` dùng password để truy cập key.
-4. `isKeyEntry` là `true`; `isCertificateEntry` là `false`, vì AES secret key **không phải X.509 trusted certificate**.
-5. `MessageDigest.isEqual` kiểm tra byte key khớp khi demo cho phép export. Với HSM/non-extractable key, `getEncoded()` có thể trả null và phải test bằng **operation được cấp phép**, không ép xuất key.
+1. `KeyStore.getInstance("PKCS12")` selects the **format/provider**, without loading yet. `load(null, password)` creates an empty store for the file-backed store in the demo; do not assume the same meaning for PKCS#11/tokens.
+2. `SecretKeyEntry` holds the AES key. `setEntry` takes a `PasswordProtection`; that differs from `setCertificateEntry`, which adds only a certificate.
+3. `store(out,password)` serializes the store into PKCS#12 bytes. `load(in,password)` restores the store; `getKey` uses the password to access the key.
+4. `isKeyEntry` is `true`; `isCertificateEntry` is `false`, because an AES secret key **is not an X.509 trusted certificate**.
+5. `MessageDigest.isEqual` verifies the key bytes match when the demo allows export. With HSM/non-extractable keys, `getEncoded()` may return null and must be tested via an **authorized operation**, without forcing key export.
 
-**Bảo mật:** `"demo-changeit"` là mật khẩu minh họa, không dùng cho kho khóa thật. Chương trình giữ password dưới dạng `char[]` và xóa buffer cuối chương trình, nhưng key bytes/PKCS#12 bytes vẫn có bản sao trong heap; `Arrays.fill` không bảo đảm xóa mọi bản sao trong JVM/provider. Trong production, tránh lưu raw key/PKCS#12 bytes trong log, response, repository hoặc artifact không được bảo vệ.
+**Security:** `"demo-changeit"` is a demonstration password, not for real key stores. The program holds the password as a `char[]` and wipes the buffer at the end of the program, but key bytes/PKCS#12 bytes still have copies on the heap; `Arrays.fill` does not guarantee clearing every copy in the JVM/provider. In production, avoid storing raw key/PKCS#12 bytes in logs, responses, repositories, or unprotected artifacts.
 
-## 7. Thực hành đầy đủ: identity keystore, truststore và CertStore
+## 7. Full Hands-On Lab: Identity Keystore, Truststore, and CertStore
 
-Phần này tạo **hai file PKCS#12 khác nhau** bằng công cụ `keytool` đi kèm JDK, sau đó chạy Java code kiểm tra đúng vai trò của chúng:
+This section creates **two separate PKCS#12 files** using the `keytool` utility bundled with the JDK, then runs Java code to verify their exact roles:
 
-- `demo-identity.p12`: chứa **private key** và self-signed certificate chain dưới alias `server`.
-- `demo-trust.p12`: chứa **certificate-only** dưới alias `lab-server`.
-- `demo-server.crt`: bản PEM certificate được export để **chuyển certificate**, **không chứa private key**.
-- Trong Java, dùng certificate từ truststore tạo **`CertStore("Collection")`** — chỉ là **nguồn candidate cert**, không phải trust anchor mới.
+- `demo-identity.p12`: contains a **private key** and self-signed certificate chain under alias `server`.
+- `demo-trust.p12`: contains **certificate-only** under alias `lab-server`.
+- `demo-server.crt`: exported PEM certificate for **transferring the certificate**, **containing no private key**.
+- In Java, use the certificate from the truststore to create a **`CertStore("Collection")`** — purely a **source of candidate certs**, not a new trust anchor.
 
-### 7.1 Sinh dữ liệu test với keytool
+### 7.1 Generating Test Data with keytool
 
-Chạy tuần tự các lệnh dưới đây trong **một thư mục test riêng** trên JDK có `keytool`. Mỗi lệnh cố ý để trên một dòng nên dùng được trong shell phổ biến; lệnh không cần network và không yêu cầu chứng chỉ CA thật.
+Run the commands below sequentially in **a dedicated test directory** on a JDK with `keytool`. Each command is intentionally on a single line so it works in common shells; the commands require no network and no real CA certificate.
 
 ```bash
 keytool -genkeypair -alias server -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -validity 365 -dname "CN=localhost, OU=Training, O=Demo, C=VN" -ext "SAN=dns:localhost" -keystore demo-identity.p12 -storetype PKCS12 -storepass changeit -keypass changeit -noprompt
@@ -372,20 +372,20 @@ keytool -exportcert -alias server -rfc -keystore demo-identity.p12 -storetype PK
 keytool -importcert -alias lab-server -file demo-server.crt -keystore demo-trust.p12 -storetype PKCS12 -storepass changeit -noprompt
 ```
 
-**Các lệnh chỉ dùng trong lab**: password `changeit` nằm ngay trong command line và certificate là **self-signed**. Trong production, không chấp thuận certificate bằng `-noprompt` khi chưa xác minh nguồn/fingerprint và chính sách trust; dùng secret management và quá trình cấp/luân chuyển chứng chỉ được phê duyệt. Certificate test `localhost` **không chứng minh** một CA hoặc endpoint sản xuất có danh tính hợp lệ.
+**These commands are for lab use only**: the password `changeit` is right on the command line and the certificate is **self-signed**. In production, never approve a certificate with `-noprompt` without verifying its source/fingerprint and trust policy; use secret management and approved certificate issuance/rotation processes. A `localhost` test certificate **does not prove** that a production CA or endpoint has a valid identity.
 
-Có thể kiểm tra metadata tại chỗ:
+You can inspect metadata locally:
 
 ```bash
 keytool -list -keystore demo-identity.p12 -storetype PKCS12 -storepass changeit
 keytool -list -keystore demo-trust.p12 -storetype PKCS12 -storepass changeit
 ```
 
-Kết quả `keytool -list` có thể khác phiên bản JDK, locale và thời gian cấp certificate; vì vậy không lấy một stdout cứng để làm contract. Điều quan trọng là identity store có alias **PrivateKeyEntry**, còn truststore có alias **trustedCertEntry**.
+`keytool -list` output may vary across JDK versions, locales, and certificate issuance timestamps; therefore, do not treat a fixed stdout as a contract. What matters is that the identity store has a **PrivateKeyEntry** alias, while the truststore has a **trustedCertEntry** alias.
 
-### 7.2 Java 17+: kiểm tra ba kiểu kho và cấu hình TLS
+### 7.2 Java 17+: Inspecting the Three Store Types and TLS Configuration
 
-Lưu đoạn sau thành **`KeyStoreTrustCertStoreDemo.java`** trong **cùng thư mục** có hai file `.p12` vừa tạo:
+Save the following as **`KeyStoreTrustCertStoreDemo.java`** in **the same directory** as the two `.p12` files just created:
 
 ```java
 import java.io.*;
@@ -407,7 +407,7 @@ public final class KeyStoreTrustCertStoreDemo {
     }
 
     public static void main(String[] args) throws Exception {
-        // Chỉ dành cho lab: password không được hardcode trong production.
+        // Lab only: passwords must never be hardcoded in production.
         char[] pass = "changeit".toCharArray();
         try {
             KeyStore identity = load("demo-identity.p12", pass);
@@ -468,14 +468,14 @@ public final class KeyStoreTrustCertStoreDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 KeyStoreTrustCertStoreDemo.java
 java KeyStoreTrustCertStoreDemo
 ```
 
-Với các file test sinh đúng theo bước 7.1 trên provider JDK phổ biến, stdout:
+With the test files generated strictly per step 7.1 on common JDK providers, stdout:
 
 ```text
 Identity private-key entry: true
@@ -488,49 +488,49 @@ PKIX candidate stores: 1
 TLS context initialized: true
 ```
 
-**Giải thích tám kết quả:**
+**Explanation of the eight results:**
 
-1. `identity` có `PrivateKeyEntry` bởi `keytool -genkeypair` tạo private key + self-signed certificate chain.
-2. Certificate chain có **1** certificate trong lab vì certificate tự ký, chưa có CA trung gian; trong production, chain có thể dài hơn.
-3. `trust` chứa `TrustedCertificateEntry` vì ta nhập riêng **public certificate**, không nhập private key.
-4. `trust.isKeyEntry("lab-server")` là `false`: truststore không có private key của server, và **không cần** private key để kiểm tra certificate peer.
-5. `CertStore("Collection")` trả **một certificate ứng viên** phù hợp `X509CertSelector`. Nó không đưa ra kết luận về trust/CA/hostname.
-6. `new PKIXParameters(trust)` lấy **một trust anchor** từ trusted certificate entry trong truststore. **Đây mới là bước đưa certificate vào tập trust anchor**, hoàn toàn khác `CertStore.getCertificates`.
-7. `pkix.addCertStore(candidates)` thêm một nguồn candidate certificate/CRL vào tham số kiểm tra đường dẫn, **không** tự động bổ sung trust anchor khác.
-8. `SSLContext.init(keyManagers,trustManagers,null)` thiết lập một TLS context. Dòng `true` chỉ chứng minh **khởi tạo thành công**, **không thực hiện network handshake** và **không chứng minh** một endpoint thực tế sẽ qua được certificate path, hostname/SAN, EKU, revocation hoặc policy.
+1. `identity` has a `PrivateKeyEntry` because `keytool -genkeypair` generates a private key + self-signed certificate chain.
+2. The certificate chain has **1** certificate in the lab because the certificate is self-signed, with no intermediate CA; in production, the chain can be longer.
+3. `trust` contains a `TrustedCertificateEntry` because we imported only the **public certificate**, without importing a private key.
+4. `trust.isKeyEntry("lab-server")` is `false`: the truststore does not hold the server's private key, and **does not need** a private key to verify the peer's certificate.
+5. `CertStore("Collection")` returns **one candidate certificate** matching `X509CertSelector`. It makes no conclusion about trust/CA/hostname.
+6. `new PKIXParameters(trust)` extracts **one trust anchor** from the trusted certificate entry in the truststore. **This is the step that places the certificate into the trust anchor set**, completely distinct from `CertStore.getCertificates`.
+7. `pkix.addCertStore(candidates)` adds a source of candidate certificates/CRLs to the path validation parameters, **without** automatically adding any other trust anchors.
+8. `SSLContext.init(keyManagers,trustManagers,null)` sets up a TLS context. The `true` line only proves **successful initialization**, **does not perform a network handshake**, and **does not prove** that a real endpoint will pass certificate path, hostname/SAN, EKU, revocation, or policy checks.
 
-**Trust trong lab là quyết định có chủ ý:** ta đã nhập chính certificate tự ký vào truststore, rồi lấy nó làm anchor qua `PKIXParameters`. Một certificate self-signed do attacker tự phát hành **không được tin** chỉ vì tự ký hoặc có CN `localhost`; nó chỉ là trust anchor nếu administrator/client **cho phép** thông qua quy trình xác minh nguồn, pinning hoặc trust chính sách phù hợp.
+**Trust in the lab is a deliberate decision:** we imported the self-signed certificate itself into the truststore, then loaded it as an anchor via `PKIXParameters`. A self-signed certificate issued by an attacker **is not trusted** merely because it is self-signed or has CN `localhost`; it only becomes a trust anchor if the administrator/client **permits it** through proper origin verification, pinning, or policy trust procedures.
 
-### 7.3 Khi nào nên tách KeyStore identity và truststore?
+### 7.3 When Should Identity KeyStore and Truststore Be Separated?
 
-Nên tách **vật lý hoặc tối thiểu tách quyền truy cập và cấu hình** khi có thể:
+You should separate them **physically, or at minimum separate access permissions and configuration** whenever possible:
 
-- Identity store chứa **private key** và certificate chain, nên chỉ các process/role cần dùng private key được đọc.
-- Truststore chứa trust anchors/certificates, có thể được phân phối rộng hơn nhưng **quyền sửa** vẫn cực kỳ nhạy cảm: thêm CA không được phép có thể phá vỡ xác thực đối tác.
-- Rotate certificate/private key không nhất thiết là rotate trust anchors; kế hoạch lifecycle và chủ sở hữu khác nhau.
-- Tách các tập anchor cho **prod/staging/dev**, các tenant/partner khác nhau hoặc các trust domain khác nhau để giảm blast radius.
-- Với mTLS, một app có thể cần **cả hai store**: một để trình bày danh tính của chính nó, một để xác minh client/server bên kia.
+- The identity store holds **private keys** and certificate chains, so only processes/roles that need to use the private key should have read access.
+- The truststore holds trust anchors/certificates, which can be distributed more broadly, yet **write permissions** remain extremely sensitive: adding an unauthorized CA can break peer authentication.
+- Rotating a certificate/private key does not necessarily mean rotating trust anchors; lifecycle schedules and owners differ.
+- Separate anchor sets for **prod/staging/dev**, different tenants/partners, or different trust domains to reduce blast radius.
+- With mTLS, a single app may need **both stores**: one to present its own identity, and one to verify the peer client/server.
 
-## 8. JSSE mặc định: cacerts, jssecacerts và các system properties
+## 8. JSSE Defaults: cacerts, jssecacerts, and System Properties
 
-Trong nhiều runtime JDK, JSSE có thể tạo default `SSLContext`/`TrustManagerFactory` dựa trên cấu hình hệ thống. Đối với **SunJSSE reference implementation** (và cấu hình phù hợp), cần hiểu những tên thường gặp:
+In many JDK runtimes, JSSE can create a default `SSLContext`/`TrustManagerFactory` based on system configuration. For the **SunJSSE reference implementation** (and matching configurations), you should know these common names:
 
-| Thuộc tính/file | Vai trò |
+| Property/file | Role |
 | --- | --- |
-| `javax.net.ssl.keyStore` | Đường dẫn identity keystore cho default KeyManager theo cấu hình JSSE |
-| `javax.net.ssl.keyStoreType` | Type của identity keystore (ví dụ `PKCS12`) |
-| `javax.net.ssl.keyStorePassword` | Mật khẩu được default JSSE dùng theo contract |
-| `javax.net.ssl.trustStore` | Đường dẫn truststore khi cấu hình tường minh |
-| `javax.net.ssl.trustStoreType` | Type truststore |
-| `javax.net.ssl.trustStorePassword` | Password dùng khi load/kiểm tra tính toàn vẹn store theo implementation |
-| `java-home/lib/security/jssecacerts` | File truststore JSSE-specific được tìm trước `cacerts` trong logic default của SunJSSE khi không chỉ định `trustStore` |
-| `java-home/lib/security/cacerts` | Tập root CA đi kèm JDK được tìm sau `jssecacerts` nếu có; nội dung có thể khác theo nhà phát hành/bản phân phối JDK |
+| `javax.net.ssl.keyStore` | Path to identity keystore for default KeyManager per JSSE configuration |
+| `javax.net.ssl.keyStoreType` | Type of identity keystore (e.g., `PKCS12`) |
+| `javax.net.ssl.keyStorePassword` | Password used by default JSSE per contract |
+| `javax.net.ssl.trustStore` | Path to truststore when explicitly configured |
+| `javax.net.ssl.trustStoreType` | Truststore type |
+| `javax.net.ssl.trustStorePassword` | Password used when loading/verifying store integrity per implementation |
+| `java-home/lib/security/jssecacerts` | JSSE-specific truststore file checked before `cacerts` in SunJSSE's default logic when `trustStore` is unspecified |
+| `java-home/lib/security/cacerts` | Bundled root CA set shipped with the JDK checked after `jssecacerts` if present; contents may vary by JDK vendor/distribution |
 
-**Không mặc định có “một truststore toàn cục áp dụng cho mọi library”.** HTTP client, framework, custom `SSLContext`, provider hoặc container có thể dùng trust source khác, ignore/override properties. Khi dùng `SSLContext.init` với `TrustManager[]` riêng, logic trust của context đó đi theo manager do ứng dụng truyền vào.
+**Do not assume there is "one global truststore applied to every library".** HTTP clients, frameworks, custom `SSLContext`s, providers, or containers may use different trust sources, or ignore/override properties. When using `SSLContext.init` with custom `TrustManager[]`, that context's trust logic follows the managers passed by the application.
 
-Trong SunJSSE, việc **cấu hình trustStore trỏ đến file không tồn tại** có thể dẫn đến truststore hiệu dụng **rỗng** thay vì âm thầm fallback sang `cacerts`; không sửa bằng cách tắt trust checks. Khi TLS fail, cần kiểm tra đúng path, type, password, runtime, trust anchors và certificate chain.
+In SunJSSE, **configuring `trustStore` to point to a non-existent file** can result in an **empty** effective truststore rather than silently falling back to `cacerts`; never fix this by disabling trust checks. When TLS fails, check the exact path, type, password, runtime, trust anchors, and certificate chain.
 
-Một ví dụ **minh họa cấu hình** (mật khẩu phải lấy qua cơ chế secret management an toàn, không đặt hardcode như dưới đây):
+An **illustrative configuration example** (passwords must be retrieved via secure secret management, not hardcoded as below):
 
 ```text
 -Djavax.net.ssl.trustStore=/path/to/approved-trust.p12
@@ -540,177 +540,177 @@ Một ví dụ **minh họa cấu hình** (mật khẩu phải lấy qua cơ ch�
 -Djavax.net.ssl.keyStoreType=PKCS12
 ```
 
-Đây chỉ là danh sách **system properties** tùy ngữ cảnh khởi động, không phải các dòng lệnh tự chạy được. Cần password và key selection theo contract ứng dụng; đừng đưa password vào command-line production nếu có giải pháp secret injection tốt hơn.
+This is merely a list of **system properties** depending on startup context, not runnable command lines. Password and key selection are required per the application's contract; avoid putting passwords on production command lines if a better secret injection solution exists.
 
-### 8.1 Không sửa cacerts của cả JDK chỉ để chữa một ứng dụng
+### 8.1 Do Not Modify the Entire JDK's cacerts Just to Fix One Application
 
-Thêm một CA vào `cacerts` có thể làm **nhiều ứng dụng** cùng tin nó, vượt khỏi phạm vi dịch vụ ban đầu. Một nâng cấp JDK/container image cũng có thể ghi đè thay đổi. Khi một hệ thống chỉ cần trust CA nội bộ của đối tác, thường nên cấu hình **truststore riêng cho app**, có versioning, owner, nguồn certificate kiểm chứng và kế hoạch rotation.
+Adding a CA to `cacerts` can cause **multiple applications** to trust it simultaneously, exceeding the original service's scope. A JDK/container image upgrade can also overwrite changes. When a system only needs to trust a partner's internal CA, it is usually better to configure a **dedicated app truststore**, with versioning, an owner, verified certificate provenance, and a rotation plan.
 
-Không dùng các thủ thuật nguy hiểm như `trustAllCerts`, `HostnameVerifier` trả `true` vô điều kiện, tắt validation hoặc bỏ qua `SSLHandshakeException`.
+Never use dangerous workarounds such as `trustAllCerts`, a `HostnameVerifier` unconditionally returning `true`, disabling validation, or ignoring `SSLHandshakeException`.
 
-## 9. Chuỗi chứng chỉ, trust anchor và certificate path
+## 9. Certificate Chains, Trust Anchors, and Certificate Paths
 
-**Certificate chain** trong identity keystore và **trust anchors** của truststore là hai tập dữ liệu có quan hệ nhưng không giống nhau.
+The **certificate chain** in an identity keystore and the **trust anchors** of a truststore are two related but non-identical datasets.
 
-Một chain thường là:
+A typical chain looks like:
 
 ```text
-Leaf / end-entity certificate  (CN/SAN của dịch vụ)
+Leaf / end-entity certificate  (service CN/SAN)
         |
   issued by Intermediate CA
         |
   issued by Root CA
         |
-Trusted anchor từ truststore / PKIX trust policy
+Trusted anchor from truststore / PKIX trust policy
 ```
 
-- **PrivateKeyEntry** liên kết private key của leaf với certificate chain cần trình bày cho peer. Khi triển khai TLS, server thường gửi leaf và intermediate phù hợp; không nhất thiết gửi root CA.
-- **Truststore** xác định nơi kết thúc chuỗi được chấp thuận, ví dụ root CA được operator tin.
-- **CertStore** có thể chứa intermediate certificates và CRLs để builder/validator tìm thêm dữ liệu khi peer không cung cấp đủ chain. **CertStore không tự chọn root CA đáng tin**.
-- **CertPathBuilder/Validator** dùng trusted anchors, các constraint, validity, chữ ký, policy và dữ liệu revocation theo cấu hình để quyết định có hợp lệ hay không.
-- **Hostname/SAN verification** cho TLS vẫn phải đúng: một chain hợp lệ đến CA tin cậy chưa đủ nếu certificate dành cho tên host khác.
-- Một certificate đã hết hạn, không hợp lệ theo EKU/key usage hoặc dùng thuật toán bị policy cấm không trở thành tốt chỉ vì có mặt trong một store.
+- **`PrivateKeyEntry`** binds the leaf's private key to the certificate chain to be presented to the peer. In TLS deployments, the server typically sends the leaf and appropriate intermediates; it does not necessarily send the root CA.
+- **Truststore** defines where an accepted chain terminates, such as a root CA trusted by the operator.
+- **CertStore** can hold intermediate certificates and CRLs for the builder/validator to look up additional data when the peer does not supply the full chain. **CertStore does not select trusted root CAs on its own.**
+- **CertPathBuilder/Validator** uses trusted anchors, constraints, validity, signatures, policies, and configured revocation data to decide validity.
+- **Hostname/SAN verification** for TLS must still succeed: a valid chain to a trusted CA is insufficient if the certificate is issued for a different host name.
+- A certificate that is expired, invalid under EKU/key usage, or uses a policy-prohibited algorithm does not become valid simply by residing in a store.
 
-### 9.1 PKIXParameters và TrustAnchor
+### 9.1 PKIXParameters and TrustAnchor
 
-`PKIXParameters(KeyStore)` đọc **trusted certificate entries** và chuyển thành trust anchors theo contract API. Nếu kho không có certificate nào thích hợp làm anchor, constructor có thể thất bại vì trust-anchor set rỗng. Điều này khác với `CertStore` chứa vô số certificate ứng viên nhưng không chỉ định được điểm bắt đầu tin cậy.
+`PKIXParameters(KeyStore)` reads **trusted certificate entries** and converts them into trust anchors per the API contract. If the store has no certificate suitable as an anchor, the constructor can fail due to an empty trust-anchor set. This differs from a `CertStore` containing countless candidate certificates without designating a starting point of trust.
 
 ```java
-// Đoạn minh họa trong phương thức đã có trustStore/candidates phù hợp.
-// Không phải chương trình độc lập.
+// Illustrative snippet inside a method that already has suitable trustStore/candidates.
+// Not a standalone program.
 PKIXParameters parameters = new PKIXParameters(trustStore);
 parameters.addCertStore(candidates);
 Set<TrustAnchor> anchors = parameters.getTrustAnchors();
 ```
 
-`parameters.getTrustAnchors()` và `parameters.getCertStores()` là **hai danh sách khác nhau**; thêm một `CertStore` không làm số anchors tăng.
+`parameters.getTrustAnchors()` and `parameters.getCertStores()` are **two separate lists**; adding a `CertStore` does not increase the number of anchors.
 
-Nếu xây certificate path phức tạp, `PKIXBuilderParameters` có mục tiêu certificate selector và trust anchors, còn `CertPathBuilder` sử dụng parameters để tìm path; `CertPathValidator` dùng path đã có để đánh giá. Không coi `PKIXParameters` khởi tạo thành công là certificate path đã được xác minh — bước xác minh thực sự phải chạy.
+For building complex certificate paths, `PKIXBuilderParameters` takes a target certificate selector and trust anchors, while `CertPathBuilder` uses the parameters to find a path; `CertPathValidator` takes an existing path to evaluate it. Do not treat successful `PKIXParameters` instantiation as an already-verified certificate path — the actual validation step must run.
 
-## 10. Chọn công cụ đúng theo tình huống
+## 10. Choosing the Right Tool for Each Scenario
 
-| Tình huống | Nên dùng | Không nên nhầm với |
+| Scenario | What to use | What not to confuse it with |
 | --- | --- | --- |
-| Web server cần giữ private key để trình bày TLS certificate | Identity `KeyStore` + `KeyManagerFactory` hoặc key handle của HSM | Chỉ import public certificate vào truststore |
-| Client REST cần tin CA nội bộ phục vụ `api.company` | Truststore riêng + `TrustManagerFactory` + endpoint/hostname verification | Sửa `cacerts` toàn JDK hoặc bỏ hostname check |
-| mTLS: client cũng cần certificate riêng | **Client identity KeyStore** và **server truststore**; server cũng có identity và trust | Nghĩ chỉ server mới cần keystore |
-| PKIX thiếu intermediate certificate khi build chain | `CertStore`/AIA/nguồn tra cứu phù hợp theo policy | Thêm intermediate thành root trust anchor tùy tiện |
-| PKIX kiểm tra thu hồi | CRL/OCSP, revocation policy, optional `CertStore` chứa CRLs | Tin rằng `CertStore` tự kiểm tra thu hồi |
-| Lưu AES secret key cho dữ liệu cục bộ | `KeyStore.SecretKeyEntry` nếu type/provider hỗ trợ, hoặc KMS/HSM | `TrustedCertificateEntry` |
-| Xác minh chữ ký số từ certificate đối tác | Public key/cert chain + trust policy/Pkix validation khi cần | Chỉ lấy public key từ certificate không rõ nguồn rồi kết luận trusted |
-| Luân chuyển private key server | Rotate identity keypair/certificate và cập nhật deployment | Tự động thay toàn bộ trusted CA của client |
-| Xóa một CA không còn tin | Quản trị **trust anchors** trong truststore/policy | Xóa certificate ứng viên khỏi CertStore rồi nghĩ CA đã bị loại khỏi trust anchors |
+| Web server needs to hold a private key to present a TLS certificate | Identity `KeyStore` + `KeyManagerFactory` or HSM key handle | Importing only the public certificate into a truststore |
+| REST client needs to trust an internal CA serving `api.company` | Dedicated truststore + `TrustManagerFactory` + endpoint/hostname verification | Modifying JDK-wide `cacerts` or skipping hostname checks |
+| mTLS: client also needs its own certificate | **Client identity KeyStore** and **server truststore**; server also has identity and trust | Thinking only the server needs a keystore |
+| PKIX is missing an intermediate certificate when building a chain | `CertStore`/AIA/appropriate lookup source per policy | Arbitrarily adding the intermediate as a root trust anchor |
+| PKIX revocation checking | CRL/OCSP, revocation policy, optional `CertStore` holding CRLs | Believing `CertStore` automatically checks revocation |
+| Storing an AES secret key for local data | `KeyStore.SecretKeyEntry` if type/provider supports it, or KMS/HSM | `TrustedCertificateEntry` |
+| Verifying a digital signature from a partner's certificate | Public key/cert chain + trust policy/PKIX validation when needed | Extracting a public key from an unverified certificate and assuming it is trusted |
+| Rotating server private key | Rotate identity keypair/certificate and update deployment | Automatically replacing all client trusted CAs |
+| Removing a CA that is no longer trusted | Administer **trust anchors** in truststore/policy | Removing candidate certificates from CertStore and thinking the CA is removed from trust anchors |
 
-**Mô hình tối thiểu:** private key của **bên mình** → identity keystore. Certificate của **bên được phép tin** → truststore. Certificate/CRL **chỉ để tra cứu** → CertStore. Kết quả có chấp thuận kết nối hay không còn phụ thuộc **trust manager/PKIX/endpoint policy**, không phụ thuộc một file có tên `truststore.p12` hay `certs.p12`.
+**Minimal model:** **your own** private key → identity keystore. Certificates of **trusted parties** → truststore. Certificates/CRLs **for lookup only** → CertStore. Whether a connection is accepted also depends on the **trust manager/PKIX/endpoint policy**, not on whether a file happens to be named `truststore.p12` or `certs.p12`.
 
-## 11. Các lỗi thường gặp và cách chẩn đoán
+## 11. Common Errors and How to Diagnose Them
 
-| Dấu hiệu | Nguyên nhân có thể | Hướng kiểm tra |
+| Symptom | Possible cause | How to check |
 | --- | --- | --- |
-| `java.io.IOException` khi `KeyStore.load` | Path không tồn tại, bytes hỏng, password/type/provider không phù hợp | Kiểm tra file, type, quyền đọc, nguồn file, password; giữ cause trong log an toàn |
-| `UnrecoverableKeyException` | Không thể khôi phục key entry bằng password/protection đang dùng | Phân biệt **key password** với store password; kiểm tra alias/provider |
-| `KeyStoreException` | Store chưa load, alias/entry/type không hợp lệ hoặc thao tác không hỗ trợ | Gọi load trước, kiểm tra `entryInstanceOf`, provider capability |
-| `NoSuchAlgorithmException` | Provider không hỗ trợ thuật toán integrity/keystore/key protection được yêu cầu | Kiểm tra JDK/provider/security policies |
-| `CertificateException` | Lỗi parse/kiểm tra certificate khi load | Kiểm tra format, certificate chain và provider |
-| `NoSuchProviderException` | Chỉ định provider không tồn tại qua overload/provider name | Kiểm tra registration và runtime |
-| `SSLHandshakeException: PKIX path building failed` | Không có path hợp lệ tới anchor, thiếu intermediate, CA chưa trusted, constraint khác | Kiểm tra **đúng truststore hiệu dụng**, chain, issuer, ngày, usages, policy; không trust-all |
-| TLS báo hostname mismatch | Certificate có chain tin cậy nhưng SAN không khớp endpoint | Kiểm tra tên host, SAN và endpoint identification |
-| Server `no suitable certificate` hoặc handshake không tìm thấy key | Identity keystore thiếu PrivateKeyEntry/chain, alias sai, algorithm không phù hợp, key password không đúng | Kiểm tra identity store, `KeyManagerFactory`, certificate/key usage |
-| `CertStoreException` | Truy vấn CertStore/LDAP/backend thất bại | Kiểm tra selector, kết nối, cache, quyền và xử lý timeout |
-| `InvalidAlgorithmParameterException` khi tạo PKIX params | Không có trust anchors hợp lệ hoặc tham số PKIX sai | Đọc trusted entries, set TrustAnchor; không chuyển mọi candidate thành trusted |
-| Private key `getEncoded() == null` | Key non-extractable hoặc provider không hỗ trợ export | Dùng operation của HSM/KMS, không bypass boundary an toàn |
+| `java.io.IOException` during `KeyStore.load` | Non-existent path, corrupted bytes, mismatched password/type/provider | Check file, type, read permissions, file source, password; retain cause safely in logs |
+| `UnrecoverableKeyException` | Cannot recover key entry with current password/protection | Distinguish **key password** from store password; check alias/provider |
+| `KeyStoreException` | Store not loaded, invalid alias/entry/type, or unsupported operation | Call load first, check `entryInstanceOf`, provider capability |
+| `NoSuchAlgorithmException` | Provider does not support requested integrity/keystore/key protection algorithm | Check JDK/provider/security policies |
+| `CertificateException` | Error parsing/validating certificate on load | Check format, certificate chain, and provider |
+| `NoSuchProviderException` | Non-existent provider specified via overload/provider name | Check registration and runtime |
+| `SSLHandshakeException: PKIX path building failed` | No valid path to anchor, missing intermediate, untrusted CA, other constraint | Check **the actual effective truststore**, chain, issuer, dates, usages, policy; never trust-all |
+| TLS reports hostname mismatch | Certificate has a trusted chain but SAN does not match endpoint | Check hostname, SAN, and endpoint identification |
+| Server `no suitable certificate` or handshake finds no key | Identity keystore missing PrivateKeyEntry/chain, wrong alias, incompatible algorithm, wrong key password | Check identity store, `KeyManagerFactory`, certificate/key usage |
+| `CertStoreException` | CertStore/LDAP/backend query failed | Check selector, connectivity, cache, permissions, and timeout handling |
+| `InvalidAlgorithmParameterException` when creating PKIX params | No valid trust anchors or invalid PKIX parameters | Read trusted entries, set TrustAnchor; do not convert all candidates to trusted |
+| Private key `getEncoded() == null` | Non-extractable key or provider does not support export | Use HSM/KMS operations, do not bypass security boundaries |
 
-Có thể dùng **debug flags của JDK** khi điều tra trong môi trường kiểm soát, ví dụ `-Djavax.net.debug=ssl,handshake` hoặc `-Djava.security.debug=certpath`. Log TLS/certpath có thể rất lớn và có thông tin cấu hình nhạy cảm; không bật vô thời hạn trong production, không paste nguyên log chứa secret nội bộ lên nơi công khai.
+You can use **JDK debug flags** during investigation in controlled environments, such as `-Djavax.net.debug=ssl,handshake` or `-Djava.security.debug=certpath`. TLS/certpath logs can be very verbose and contain sensitive configuration details; never leave them enabled indefinitely in production, and never paste raw logs containing internal secrets onto public sites.
 
-**Đọc đúng lỗi:** “`PKIX path building failed`” không nhất thiết là “thiếu private key”. Nếu client không tìm được CA của server, đó thường là luồng **truststore/trust manager**; nếu server không chọn được certificate của chính mình, đó thường là luồng **identity keystore/key manager**.
+**Reading errors accurately:** "`PKIX path building failed`" does not necessarily mean "missing private key". If the client cannot find the server's CA, that is usually the **truststore/trust manager** flow; if the server cannot select its own certificate, that is usually the **identity keystore/key manager** flow.
 
-## 12. Sai lầm thiết kế cần tránh
+## 12. Design Pitfalls to Avoid
 
-1. **“Truststore là class `TrustStore`.”** Không: với Java/JSSE thường là một `KeyStore` được dùng cho chức năng trust.
-2. **“Có certificate trong một file keystore nghĩa là đã trusted.”** Không: `PrivateKeyEntry` cũng có chain, nhưng `isCertificateEntry(alias)` không đúng cho key entry; trust decision phụ thuộc vai trò và policy.
-3. **“CertStore chứa CA thì tự thành trust anchor.”** Không: CertStore chứa **candidate certificates/CRLs**; trust anchor được cấu hình riêng.
-4. **“Khi SSLHandshakeException, thêm mọi certificate tải về vào cacerts.”** Rất nguy hiểm: chấp thuận nguồn không xác thực và làm tăng phạm vi tin cậy.
-5. **“KeyStore luôn là một file `.jks`.”** Không: `PKCS12`, JKS, PKCS#11, OS-specific providers và backend hardware đều có thể xuất hiện.
-6. **“Đổi alias từ `server` thành `trusted-ca` sẽ biến cert thành root CA.”** Không: alias chỉ là nhãn; ý nghĩa từ loại entry và trust policy.
-7. **“CertStore kiểm tra certificate revocation tự động.”** Không: cần PKIX revocation configuration/OCSP/CRL handling đúng.
-8. **“Đã tin CA thì không cần kiểm tra hostname.”** Sai: endpoint identity và chain trust là hai kiểm tra liên quan nhưng độc lập.
-9. **“Password PKCS#12 là bí mật duy nhất cần quản lý.”** Sai: private key, quyền filesystem, backup, deployment, KMS/HSM, rotation và integrity đều cần bảo vệ.
-10. **“Chỉ cần gọi `SSLContext.init` thành công thì TLS đã bảo mật.”** Sai: context initialized ≠ handshake/trust/hostname validation verified.
-11. **“Trong mTLS, client không cần private key.”** Sai: khi server yêu cầu client certificate authentication, client cần identity credential riêng.
-12. **“Có thể xuất mọi private key khỏi HSM qua `getEncoded()`.”** Không: non-exportability là tính năng bảo mật và phải được tôn trọng.
+1. **"Truststore is the `TrustStore` class."** No: in Java/JSSE it is usually a `KeyStore` used for the trust function.
+2. **"Having a certificate in a keystore file means it is trusted."** No: a `PrivateKeyEntry` also contains a chain, yet `isCertificateEntry(alias)` is false for key entries; trust decisions depend on role and policy.
+3. **"A CertStore containing a CA automatically makes it a trust anchor."** No: CertStore holds **candidate certificates/CRLs**; trust anchors are configured separately.
+4. **"On `SSLHandshakeException`, import every downloaded certificate into cacerts."** Very dangerous: accepts unverified sources and expands the trust scope.
+5. **"A KeyStore is always a `.jks` file."** No: `PKCS12`, JKS, PKCS#11, OS-specific providers, and hardware backends can all appear.
+6. **"Renaming an alias from `server` to `trusted-ca` turns the cert into a root CA."** No: an alias is just a label; meaning comes from entry type and trust policy.
+7. **"CertStore checks certificate revocation automatically."** No: proper PKIX revocation configuration/OCSP/CRL handling is required.
+8. **"Once the CA is trusted, hostname verification is unnecessary."** Wrong: endpoint identity and chain trust are two related but independent checks.
+9. **"The PKCS#12 password is the only secret to manage."** Wrong: private keys, filesystem permissions, backups, deployment, KMS/HSM, rotation, and integrity all require protection.
+10. **"If `SSLContext.init` succeeds, TLS is already secure."** Wrong: context initialized ≠ handshake/trust/hostname validation verified.
+11. **"In mTLS, the client does not need a private key."** Wrong: when the server requires client certificate authentication, the client needs its own identity credential.
+12. **"You can export every private key from an HSM via `getEncoded()`."** No: non-exportability is a security feature and must be respected.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-**Câu 1.** Một API server có `server.p12` chứa private key và leaf+intermediate chain, còn client có `ca-trust.p12` chứa root CA. Bên nào là identity keystore, bên nào là truststore?  
-**Trả lời:** `server.p12` là **identity keystore** của server; `ca-trust.p12` là **truststore** của client. Cả hai đều có thể được đọc bằng class `KeyStore`.
+**Question 1.** An API server has `server.p12` containing a private key and leaf+intermediate chain, while the client has `ca-trust.p12` containing the root CA. Which is the identity keystore, and which is the truststore?  
+**Answer:** `server.p12` is the server's **identity keystore**; `ca-trust.p12` is the client's **truststore**. Both can be read using the `KeyStore` class.
 
-**Câu 2.** Vì sao `identity.getCertificate("server") != null` không có nghĩa `server` là trusted certificate entry?  
-**Trả lời:** PrivateKeyEntry cũng chứa certificate chain và `getCertificate` có thể trả leaf certificate của nó. Kiểm tra bằng `isCertificateEntry` hoặc `entryInstanceOf(TrustedCertificateEntry.class)`.
+**Question 2.** Why does `identity.getCertificate("server") != null` not mean `server` is a trusted certificate entry?  
+**Answer:** A PrivateKeyEntry also contains a certificate chain, and `getCertificate` can return its leaf certificate. Check using `isCertificateEntry` or `entryInstanceOf(TrustedCertificateEntry.class)`.
 
-**Câu 3.** Có 100 intermediate certificates trong CertStore; có nghĩa JVM tin 100 CA đó không?  
-**Trả lời:** **Không.** Chúng là ứng viên để build/validate path. Điểm tin cậy phải nằm trong **TrustAnchor/truststore/PKIX policy** được xác thực.
+**Question 3.** There are 100 intermediate certificates in a CertStore; does that mean the JVM trusts those 100 CAs?  
+**Answer:** **No.** They are candidates for path building/validation. Trust anchors must reside in the validated **TrustAnchor/truststore/PKIX policy**.
 
-**Câu 4.** Nếu mTLS client cần trình bày certificate, nó chỉ cần truststore không?  
-**Trả lời:** Không. Nó cần **identity credential** chứa private key + chain và key manager; còn truststore giúp nó xác minh certificate server.
+**Question 4.** If an mTLS client needs to present a certificate, does it only need a truststore?  
+**Answer:** No. It needs an **identity credential** containing a private key + chain and a key manager; the truststore helps it verify the server's certificate.
 
-**Câu 5.** `KeyStore.getInstance("PKCS12")` đã tự đọc `identity.p12` trên đĩa chưa?  
-**Trả lời:** Chưa. Thông thường phải `load(inputStream,password)`; một số overload mới hỗ trợ chọn file/probe type và load ngay, nhưng `getInstance(String type)` chỉ lấy instance chưa load.
+**Question 5.** Has `KeyStore.getInstance("PKCS12")` already read `identity.p12` from disk?  
+**Answer:** Not yet. Normally you must call `load(inputStream,password)`; some newer overloads support selecting a file/probing type and loading immediately, but `getInstance(String type)` only returns an unloaded instance.
 
-**Câu 6.** Nhập một self-signed certificate vào truststore thử nghiệm có an toàn để xác thực mọi server production không?  
-**Trả lời:** Không. Đó là một quyết định tin cậy cần nguồn, fingerprint và phạm vi xác nhận; certificate demo không đại diện CA thật và không có quy trình cấp phát/thu hồi production.
+**Question 6.** Is importing a self-signed certificate into a test truststore safe for authenticating all production servers?  
+**Answer:** No. That is a trust decision requiring verified origin, fingerprint, and scope; a demo certificate does not represent a real CA and lacks production issuance/revocation processes.
 
-**Câu 7.** Muốn tìm CRL để phục vụ PKIX revocation, dùng class nào?  
-**Trả lời:** `CertStore` có thể cung cấp CRLs qua `getCRLs`, nhưng vẫn cần cấu hình PKIX revocation checker/policy và xác minh CRL đúng nguồn.
+**Question 7.** Which class is used to look up CRLs for PKIX revocation?  
+**Answer:** `CertStore` can supply CRLs via `getCRLs`, though you still need to configure the PKIX revocation checker/policy and verify the CRL comes from the right source.
 
-**Câu 8.** Thay đổi `javax.net.ssl.trustStore` có ảnh hưởng mọi `SSLContext` trong app không?  
-**Trả lời:** Không nhất thiết. Framework hoặc context được cấu hình với trust managers riêng có thể không dùng default system properties.
+**Question 8.** Does changing `javax.net.ssl.trustStore` affect every `SSLContext` in an app?  
+**Answer:** Not necessarily. Frameworks or contexts configured with custom trust managers may not use the default system properties.
 
-**Câu 9.** Nếu một certificate đã qua chain validation nhưng SAN không khớp URL, kết nối HTTPS có nên được chấp nhận?  
-**Trả lời:** **Không.** HTTPS cần kiểm tra danh tính host/endpoint phù hợp với certificate; không bỏ qua hostname verification.
+**Question 9.** If a certificate passes chain validation but its SAN does not match the URL, should the HTTPS connection be accepted?  
+**Answer:** **No.** HTTPS requires verifying that the host/endpoint identity matches the certificate; never skip hostname verification.
 
-**Câu 10.** Nếu private key trong HSM không xuất được, phải lưu vào PKCS#12 trước khi dùng với TLS?  
-**Trả lời:** Không. Dùng KeyStore/provider/key-manager tích hợp HSM theo khả năng được cấp phép; không cố export private key.
+**Question 10.** If a private key in an HSM is non-exportable, must it be saved into PKCS#12 before using it with TLS?  
+**Answer:** No. Use the HSM-integrated KeyStore/provider/key-manager according to authorized capabilities; never attempt to export the private key.
 
-## 14. Checklist vận hành
+## 14. Operational Checklist
 
-**Quản trị identity keys:**
+**Managing identity keys:**
 
-- Đặt private key ở đúng boundary (keystore có kiểm soát, KMS/HSM khi phù hợp).
-- Xác định alias, key type, certificate chain đầy đủ, key usage, EKU, SAN và ngày hết hạn.
-- Bảo vệ key access password/role/permissions; có quy trình renew, key rotation, backup/restore và thu hồi.
-- Chỉ load private key ở những process thực sự cần; không log/export/commit material.
+- Place private keys inside the proper boundary (controlled keystore, KMS/HSM where appropriate).
+- Verify alias, key type, complete certificate chain, key usage, EKU, SAN, and expiration date.
+- Protect key access passwords/roles/permissions; maintain renewal, key rotation, backup/restore, and revocation procedures.
+- Load private keys only in processes that genuinely require them; never log/export/commit key material.
 
-**Quản trị trust anchors:**
+**Managing trust anchors:**
 
-- Chỉ nhập CA/peer certificate khi đã xác thực nguồn và mục đích tin cậy.
-- Tách trust domain theo app/tenant/environment; tránh sửa `cacerts` toàn JVM không kiểm soát.
-- Theo dõi expiry, root/intermediate rotation, algorithm deprecation, revocation policy.
-- Bật endpoint identification/hostname validation cho TLS client đúng API.
-- Không tắt trust checks để “giải quyết nhanh” lỗi PKIX.
+- Import CA/peer certificates only after verifying their origin and intended trust scope.
+- Isolate trust domains per app/tenant/environment; avoid uncontrolled edits to JVM-wide `cacerts`.
+- Track expiration, root/intermediate rotation, algorithm deprecation, and revocation policy.
+- Enable endpoint identification/hostname validation for TLS clients using the proper API.
+- Never disable trust checks as a "quick fix" for PKIX errors.
 
-**Quản trị CertStore và certificate path:**
+**Managing CertStore and certificate paths:**
 
-- Phân biệt **nguồn ứng viên** với **trust anchors**.
-- Giới hạn nguồn tra cứu, timeout, cache, kích thước dữ liệu, xử lý backend lỗi.
-- Cấu hình đúng certpath builder/validator, EKU/policy, revocation check và trust anchor.
-- Test tình huống missing intermediate, wrong CA, expired, hostname mismatch, revoked và untrusted cert.
+- Distinguish **candidate sources** from **trust anchors**.
+- Bound lookup sources, timeouts, caches, data sizes, and backend failure handling.
+- Properly configure certpath builder/validator, EKU/policy, revocation checks, and trust anchors.
+- Test scenarios with missing intermediates, wrong CA, expired certs, hostname mismatches, revoked certs, and untrusted certs.
 
-**Triển khai Java:**
+**Java implementation:**
 
-- Ghi rõ `PKCS12` hay type phù hợp thay vì phụ thuộc default không cần thiết.
-- Dùng `KeyManagerFactory` với identity keystore, `TrustManagerFactory` với truststore, `CertStore` khi cần nguồn certificate/CRL ứng viên.
-- Kiểm thử bằng đúng JDK/provider/container image và hệ thống TLS client/server thực.
-- Kết quả `SSLContext.init` thành công chưa phải là test handshake/hostname/trust decision.
+- Explicitly specify `PKCS12` or the appropriate type rather than relying unnecessarily on defaults.
+- Use `KeyManagerFactory` with the identity keystore, `TrustManagerFactory` with the truststore, and `CertStore` when a source of candidate certificates/CRLs is needed.
+- Test with the exact target JDK/provider/container image and real TLS client/server systems.
+- A successful `SSLContext.init` call is not a test of handshake/hostname/trust decisions.
 
-## Tài liệu chính thức
+## Official Documentation
 
-- [Java SE 21 — `KeyStore`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.html): các loại Entry, alias, load/store, provider, các phương thức quản lý khóa/chứng chỉ.
-- [Java SE 21 — `CertStore`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/CertStore.html): nguồn certificate/CRL để tra cứu, phân biệt với KeyStore.
-- [Java SE 21 — `PKIXParameters`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors từ KeyStore và các CertStore ứng viên.
-- [Java SE 21 — `TrustAnchor`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/TrustAnchor.html): điểm tin cậy trong PKIX.
-- [Java SE 21 — `KeyManagerFactory`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/net/ssl/KeyManagerFactory.html) và [`TrustManagerFactory`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/net/ssl/TrustManagerFactory.html): identity và trust managers của TLS.
-- [Java SE 21 — JSSE Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-secure-socket-extension-jsse-reference-guide.html): SSLContext, key/truststore defaults, cacerts/jssecacerts, cấu hình và mô hình TLS.
-- [Java SE 21 — Java PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/21/security/java-pki-programmers-guide.html): xây/kiểm tra certification path, CertStore, CRL/revocation.
-- [Java `keytool` documentation](https://docs.oracle.com/en/java/javase/21/docs/specs/man/keytool.html): tạo identity keypair, export/import certificate, quản trị PKCS#12/JKS.
+- [Java SE 21 — `KeyStore`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyStore.html): Entry types, aliases, load/store, providers, key/certificate management methods.
+- [Java SE 21 — `CertStore`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/CertStore.html): certificate/CRL lookup source, distinction from KeyStore.
+- [Java SE 21 — `PKIXParameters`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/PKIXParameters.html): trust anchors from KeyStore and candidate CertStores.
+- [Java SE 21 — `TrustAnchor`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/cert/TrustAnchor.html): trust anchors in PKIX.
+- [Java SE 21 — `KeyManagerFactory`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/net/ssl/KeyManagerFactory.html) and [`TrustManagerFactory`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/net/ssl/TrustManagerFactory.html): TLS identity and trust managers.
+- [Java SE 21 — JSSE Reference Guide](https://docs.oracle.com/en/java/javase/21/security/java-secure-socket-extension-jsse-reference-guide.html): SSLContext, key/truststore defaults, cacerts/jssecacerts, configuration, and TLS model.
+- [Java SE 21 — Java PKI Programmer's Guide](https://docs.oracle.com/en/java/javase/21/security/java-pki-programmers-guide.html): building/validating certification paths, CertStore, CRL/revocation.
+- [Java `keytool` documentation](https://docs.oracle.com/en/java/javase/21/docs/specs/man/keytool.html): generating identity keypairs, exporting/importing certificates, managing PKCS#12/JKS.
 
-**Kết luận:** `KeyStore` là **API/kho quản lý khóa và chứng chỉ**; *identity keystore* dùng private key + certificate chain **của chính ứng dụng**; *truststore* cũng thường là `KeyStore` nhưng đại diện **các điểm tin cậy để kiểm tra đối tác**; `CertStore` lại là **nguồn tra cứu certificates/CRLs ứng viên**, không tự định nghĩa trust. Phân biệt đúng ba vai trò giúp thiết kế TLS, PKIX, mTLS và quản lý khóa an toàn, dễ kiểm thử và dễ vận hành.
+**Conclusion:** `KeyStore` is the **API/repository for managing keys and certificates**; an *identity keystore* holds **the application's own** private key + certificate chain; a *truststore* is also typically a `KeyStore` but represents **the trust anchors used to verify peers**; and `CertStore` is a **lookup source for candidate certificates/CRLs**, without defining trust on its own. Properly distinguishing these three roles enables designing TLS, PKIX, mTLS, and key management that are secure, testable, and maintainable.

@@ -1,167 +1,167 @@
-# 18.6. Kerberos, KDC, service principal, ticket, keytab và quan hệ với Krb5LoginModule
+# 18.6. Kerberos, KDC, Service Principal, Ticket, Keytab, and Relationship to Krb5LoginModule
 
-## 1. Mục tiêu và bối cảnh
+## 1. Objectives and Context
 
-Sau bài này, bạn cần giải thích được:
+After this lesson, you should be able to explain:
 
-- Kerberos V5 xác thực **ai đang yêu cầu dịch vụ nào** bằng vé (ticket) và khóa đối xứng, thay vì gửi mật khẩu của người dùng tới từng dịch vụ.
-- KDC, realm, client principal, service principal, TGT, service ticket, session key và keytab có trách nhiệm khác nhau.
-- Luồng AS → TGS → application service, bao gồm bước chứng minh client sở hữu session key.
-- Khi nào ứng dụng Java dùng ticket cache, khi nào service cần keytab, và cách JAAS Krb5LoginModule đưa thông tin vào Subject.
-- Vì sao đăng nhập JAAS thành công chưa đồng nghĩa HTTP/SASL/GSS-API đã xác thực với dịch vụ đích.
+- How Kerberos V5 proves **who is requesting which service** using tickets and symmetric keys, rather than sending the user's password to every service.
+- How KDC, realm, client principal, service principal, TGT, service ticket, session key, and keytab each have distinct responsibilities.
+- The AS → TGS → application service flow, including the step proving the client possesses the session key.
+- When a Java application uses a ticket cache, when a service needs a keytab, and how JAAS Krb5LoginModule populates a Subject.
+- Why a successful JAAS login does not automatically mean HTTP/SASL/GSS-API authentication with the target service has succeeded.
 
-Phạm vi là **Kerberos trong Java**, tập trung vào quan hệ giữa hạ tầng Kerberos và Krb5LoginModule. Ví dụ hostname, realm và đường dẫn dưới đây chỉ minh họa; chúng không đại diện cho một KDC thực sự.
+The scope is **Kerberos in Java**, focusing on the relationship between Kerberos infrastructure and Krb5LoginModule. Sample hostnames, realms, and file paths below are illustrative only; they do not represent a live KDC.
 
-## 2. Bức tranh tổng thể: danh tính, realm và KDC
+## 2. The big picture: identity, realm, and KDC
 
-**Principal** là tên danh tính trong hệ Kerberos. Các dạng điển hình:
+A **Principal** is an identity name in a Kerberos system. Typical forms:
 
 ~~~text
-alice@EXAMPLE.COM                         # người dùng (client principal)
-HTTP/api.example.com@EXAMPLE.COM          # dịch vụ HTTP (service principal)
-host/server.example.com@EXAMPLE.COM       # dịch vụ host
-krbtgt/EXAMPLE.COM@EXAMPLE.COM            # dịch vụ cấp vé của realm
+alice@EXAMPLE.COM                         # user (client principal)
+HTTP/api.example.com@EXAMPLE.COM          # HTTP service (service principal)
+host/server.example.com@EXAMPLE.COM       # host service
+krbtgt/EXAMPLE.COM@EXAMPLE.COM            # realm ticket-granting service
 ~~~
 
-- **Realm**: miền quản lý danh tính và khóa Kerberos; thường viết hoa theo quy ước, ví dụ EXAMPLE.COM. Realm không tự động đồng nghĩa DNS domain, dù nhiều hệ thống cố tình đặt tên giống nhau.
-- **Client principal**: danh tính muốn sử dụng dịch vụ, ví dụ alice@EXAMPLE.COM.
-- **Service principal**: danh tính server được client yêu cầu xác thực, thường có dạng service/hostname@REALM. Với HTTP Negotiate thường gặp HTTP/hostname@REALM.
-- **KDC (Key Distribution Center)**: dịch vụ tin cậy phát hành vé, gồm logic Authentication Service (AS) và Ticket-Granting Service (TGS). KDC biết các principal và khóa thích hợp; với Active Directory, domain controller thường đảm nhiệm vai trò KDC.
-- **Application server/acceptor**: dịch vụ nhận vé do client gửi, kiểm tra vé bằng khóa riêng của service principal.
+- **Realm**: administrative domain for Kerberos identities and keys; conventionally uppercase, e.g., EXAMPLE.COM. A realm is not automatically synonymous with a DNS domain, though many deployments intentionally match them.
+- **Client principal**: identity wishing to use a service, e.g., alice@EXAMPLE.COM.
+- **Service principal**: server identity the client asks to authenticate to, typically of the form service/hostname@REALM. HTTP Negotiate commonly uses HTTP/hostname@REALM.
+- **KDC (Key Distribution Center)**: trusted ticket-issuing service comprising the Authentication Service (AS) and Ticket-Granting Service (TGS). The KDC knows principals and their keys; in Active Directory, domain controllers usually serve as the KDC.
+- **Application server/acceptor**: service receiving the ticket sent by the client and validating it with the service principal's own key.
 
-Không phải mỗi bước đều gửi yêu cầu tới KDC. Khi client đã có TGT và service ticket còn hiệu lực, có thể tái sử dụng vé; server không cần liên hệ KDC cho từng request xác thực thông thường.
+Not every step contacts the KDC. Once a client holds a valid TGT and service ticket, it can reuse tickets; the server does not need to contact the KDC for each routine authentication request.
 
-## 3. Luồng Kerberos V5 từ đăng nhập tới gọi dịch vụ
+## 3. Kerberos V5 flow from login to calling a service
 
-Giả sử Alice muốn gọi HTTP/api.example.com@EXAMPLE.COM:
+Suppose Alice wants to call HTTP/api.example.com@EXAMPLE.COM:
 
 ~~~text
 Alice / Java client                    KDC (AS + TGS)              HTTP service
        |                                      |                          |
-       |--- AS-REQ (xin TGT) ---------------->|                          |
-       |<-- AS-REP (TGT + khóa phiên) --------|                          |
+       |--- AS-REQ (request TGT) ------------>|                          |
+       |<-- AS-REP (TGT + session key) -------|                          |
        |                                      |                          |
-       |--- TGS-REQ (TGT, xin vé cho HTTP) -->|                          |
+       |--- TGS-REQ (TGT, ask HTTP ticket) -->|                          |
        |<-- TGS-REP (service ticket + key) ---|                          |
        |                                      |                          |
-       |--- AP-REQ (service ticket + authenticator) ------------------->|
-       |<-- AP-REP (nếu yêu cầu xác thực hai chiều) --------------------|
-       |<================= giao thức ứng dụng được bảo vệ =============>|
+       |--- AP-REQ (service ticket + authenticator) -------------------->|
+       |<-- AP-REP (if mutual authentication requested) -----------------|
+       |<================= protected application protocol ==============>|
 ~~~
 
-**Bước 1 — AS exchange:** client chứng minh danh tính với AS, thường bằng cơ chế pre-authentication liên quan tới khóa của principal hoặc một phương thức được KDC hỗ trợ. KDC trả về **TGT** (Ticket-Granting Ticket) cùng thông tin khóa phiên dành cho client. TGT chứa phần được mã hóa cho TGS, nên client không thể tự ý sửa nó.
+**Step 1 — AS exchange:** the client proves its identity to the AS, typically via pre-authentication involving the principal's key or another KDC-supported method. The KDC returns a **TGT** (Ticket-Granting Ticket) along with session key material for the client. The TGT contains a portion encrypted for the TGS, so the client cannot tamper with it.
 
-**Bước 2 — TGS exchange:** client dùng TGT để xin một **service ticket** đúng cho HTTP/api.example.com@EXAMPLE.COM. TGS cấp service ticket có phần được mã hóa bằng khóa dài hạn của service principal và cung cấp session key tương ứng cho client theo cách được bảo vệ.
+**Step 2 — TGS exchange:** the client presents the TGT to request a **service ticket** specifically for HTTP/api.example.com@EXAMPLE.COM. The TGS issues a service ticket containing a portion encrypted with the service principal's long-term key and delivers the corresponding session key securely to the client.
 
-**Bước 3 — AP exchange:** client gửi service ticket **cùng authenticator mới** tới HTTP server. Server dùng khóa của chính service principal (thường lấy từ keytab) để giải mã phần ticket liên quan; sau đó dùng session key để kiểm tra authenticator, thời gian và các điều kiện khác. Một ticket đứng riêng chưa chứng minh người gửi sở hữu session key.
+**Step 3 — AP exchange:** the client sends the service ticket **together with a fresh authenticator** to the HTTP server. The server uses the service principal's own key (typically from a keytab) to decrypt the server portion of the ticket, then uses the session key to verify the authenticator, timestamps, and other checks. A ticket alone does not prove the sender possesses the session key.
 
-**Bước 4 — xác thực hai chiều (tùy chọn):** service có thể phản hồi AP-REP để client xác thực phía server. Sau khi cơ chế xác thực thiết lập xong, giao thức ứng dụng quyết định cách bảo vệ tính toàn vẹn/bảo mật của thông điệp: GSS-API có khả năng wrap/unwrap, còn HTTP có thể sử dụng TLS. Kerberos không mặc nhiên mã hóa mọi byte của HTTP payload.
+**Step 4 — mutual authentication (optional):** the service can reply with AP-REP so the client verifies the server. Once authentication is established, the application protocol determines how message integrity/confidentiality is protected: GSS-API offers wrap/unwrap, while HTTP may rely on TLS. Kerberos does not automatically encrypt every byte of an HTTP payload.
 
-**Lưu ý:** tên thông điệp trên mô tả giao thức. Ứng dụng dùng GSS-API/SASL thường không tự đóng gói thủ công AS-REQ, TGS-REQ hay AP-REQ.
+**Note:** the message names above describe the protocol. Applications using GSS-API/SASL normally do not construct AS-REQ, TGS-REQ, or AP-REQ manually.
 
-## 4. Phân biệt TGT, service ticket, session key và keytab
+## 4. Distinguishing TGT, service ticket, session key, and keytab
 
-| Thành phần | Nơi sử dụng chính | Ý nghĩa | Điều không nên nhầm |
+| Component | Primary usage | Meaning | What not to confuse it with |
 | --- | --- | --- | --- |
-| TGT | Client ↔ TGS | Cho phép xin vé tới những dịch vụ khác trong thời hạn chính sách | Không phải vé để trình trực tiếp cho HTTP service thông thường |
-| Service ticket | Client → đúng service | Bằng chứng do KDC cấp cho service principal cụ thể | Không phải mật khẩu và không dùng tùy ý cho service khác |
-| Session key | Client và bên kiểm tra ticket | Dùng chứng minh sở hữu vé, xác thực thông điệp và có thể bảo vệ phiên | Không phải khóa dài hạn trong keytab |
-| Keytab | Thường tại server, đôi khi client không tương tác | Tệp chứa khóa dài hạn và metadata principal/KVNO/enctype để Kerberos dùng | Không chứa TGT hoặc danh sách service ticket |
-| Ticket cache | Môi trường client/tiến trình | Lưu credential như TGT, service ticket để tái sử dụng | Không phải keytab; xóa cache không xoay khóa service |
+| TGT | Client ↔ TGS | Allows requesting tickets for other services within policy lifetimes | Not a ticket presented directly to ordinary HTTP services |
+| Service ticket | Client → specific service | Proof issued by the KDC for a specific service principal | Not a password and cannot be reused arbitrarily for other services |
+| Session key | Client and ticket verifier | Proves possession of the ticket, authenticates messages, and can protect the session | Not the long-term key stored in a keytab |
+| Keytab | Usually on server, sometimes non-interactive client | File holding long-term keys and principal/KVNO/enctype metadata for Kerberos | Does not contain TGTs or a list of service tickets |
+| Ticket cache | Client/process environment | Stores credentials such as TGTs and service tickets for reuse | Not a keytab; clearing the cache does not rotate service keys |
 
-Một **ticket** có thời hạn và thuộc tính như client, service, thời điểm hiệu lực và các cờ theo chính sách KDC. Đối với service ticket, phần ticket dành cho server được mã hóa để **service** kiểm tra. Client nhận được session key phù hợp nhưng không nhận khóa dài hạn của service.
+A **ticket** has a lifetime and attributes such as client, service, validity window, and KDC policy flags. For a service ticket, the server-bound portion is encrypted so **the service** can verify it. The client receives the matching session key, not the service's long-term key.
 
-**KVNO (Key Version Number)** giúp chọn phiên bản khóa đúng khi khóa của principal được đổi; **enctype** chỉ thuật toán mã hóa/kiểu khóa. Khi KDC cấp ticket theo một phiên bản khóa nhưng server chỉ có keytab cũ hoặc không hỗ trợ enctype tương thích, xác thực có thể thất bại. Không nên kết luận “có principal trong keytab là đủ” mà bỏ qua KVNO và enctype.
+**KVNO (Key Version Number)** identifies the right key version when a principal's key is rotated; **enctype** specifies the encryption algorithm/key type. When the KDC issues a ticket using one key version while the server only holds an older keytab or lacks a compatible enctype, authentication fails. Never conclude "the principal is in the keytab so it must work" while ignoring KVNO and enctype.
 
-## 5. Service principal, hostname và ánh xạ tới keytab
+## 5. Service principal, hostname, and keytab mapping
 
-Với dịch vụ ví dụ, ba phía phải thống nhất danh tính:
+For the sample service, all three parties must agree on the identity:
 
 ~~~text
-Tên client yêu cầu:  HTTP/api.example.com@EXAMPLE.COM
-Principal KDC biết:  HTTP/api.example.com@EXAMPLE.COM
-Khóa server có:      keytab chứa khóa của HTTP/api.example.com@EXAMPLE.COM
+Name client requests:  HTTP/api.example.com@EXAMPLE.COM
+Principal KDC knows:   HTTP/api.example.com@EXAMPLE.COM
+Key server holds:      keytab containing keys for HTTP/api.example.com@EXAMPLE.COM
 ~~~
 
-Nếu client yêu cầu HTTP/alias.example.com nhưng KDC không có SPN đó, có thể không cấp được service ticket. Nếu KDC có principal nhưng server đọc keytab của principal hoặc phiên bản khóa khác, server không giải mã được ticket. DNS alias, reverse DNS, hostname canonicalization, load balancer và ánh xạ SPN của Active Directory cần được thiết kế nhất quán.
+If the client requests HTTP/alias.example.com while the KDC lacks that SPN, a service ticket may not be issued. If the KDC has the principal but the server reads a keytab for a different principal or key version, the server cannot decrypt the ticket. DNS aliases, reverse DNS, hostname canonicalization, load balancers, and Active Directory SPN mappings must all be designed consistently.
 
-Một service principal có thể được đăng ký với tài khoản dịch vụ hoặc service account trong KDC/AD. Nó là **định danh Kerberos**; tên service principal không phải chính nó là user/password, URL đầy đủ hay chứng chỉ TLS.
+A service principal can be registered on a service account in the KDC/AD. It is a **Kerberos identifier**; a service principal name is not itself a username/password, a full URL, or a TLS certificate.
 
-**Nhiều instance:** các instance thực sự cùng phục vụ một SPN có thể cần quyền truy cập cùng tập khóa thích hợp, nhưng việc sao chép keytab phải được quản lý như phân phối bí mật. Đừng cho nhiều dịch vụ độc lập dùng chung principal chỉ vì tiện cấu hình.
+**Multiple instances:** instances genuinely serving the same SPN may need access to the same appropriate key set, but copying keytabs must be managed as secret distribution. Never share one principal across unrelated services just for configuration convenience.
 
-## 6. Keytab hoạt động như thế nào?
+## 6. How does a keytab work?
 
-Keytab chứa khóa bí mật của một hoặc nhiều principal, thường kèm KVNO và enctype. Server không cần nhúng mật khẩu vào mã Java; khi nhận AP-REQ, GSS/Kerberos có thể dùng khóa từ keytab để chấp nhận ticket.
+A keytab stores secret keys for one or more principals, usually with KVNO and enctype. The server does not embed a password in Java source code; upon receiving AP-REQ, GSS/Kerberos uses the key from the keytab to accept the ticket.
 
-Ví dụ quy trình quản trị ở môi trường có MIT Kerberos hoặc công cụ tương đương:
+Example administrative workflow in an environment with MIT Kerberos or equivalent tools:
 
 ~~~bash
-# Chạy trên host đã cấu hình Kerberos; tên file chỉ minh họa.
+# Run on a host configured for Kerberos; filenames are illustrative.
 klist -k -e /etc/security/keytabs/http-api.keytab
 
-# Kiểm tra vé hiện có của tài khoản client:
+# Check current tickets for the client account:
 klist
 
-# Client có quyền và TGT hợp lệ có thể xin service ticket:
+# A client with rights and a valid TGT can request a service ticket:
 kvno HTTP/api.example.com@EXAMPLE.COM
 ~~~
 
-- Lệnh klist -k -e hiển thị danh tính, KVNO, enctype trong keytab; nó **không** kiểm tra rằng KDC hiện tại đã có đúng khóa.
-- Lệnh kvno cần môi trường Kerberos thực, phân giải realm/KDC đúng và quyền lấy vé.
-- Công cụ/tùy chọn cụ thể phụ thuộc MIT Kerberos, Heimdal, Windows hoặc hệ quản trị KDC.
+- `klist -k -e` displays identities, KVNOs, and enctypes inside the keytab; it does **not** verify that the live KDC currently holds the same key.
+- `kvno` requires a real Kerberos environment, working realm/KDC resolution, and ticket permissions.
+- Exact tools and flags depend on MIT Kerberos, Heimdal, Windows, or the KDC administration system.
 
-Trong triển khai, chỉ tài khoản hệ điều hành chạy service cần đọc keytab; áp dụng permission tối thiểu (ví dụ 0600 trên Unix khi phù hợp), lưu bằng secret management và không commit vào Git, log hoặc gửi qua chat. Khi rotate key, đồng bộ KDC, KVNO và các instance; lập kế hoạch chồng lấp khóa trong thời gian ticket cũ còn hiệu lực theo khả năng KDC/keytab. Nếu keytab lộ, kẻ tấn công có thể giả danh service trong phạm vi khóa bị lộ.
+In deployment, only the OS account running the service should be able to read the keytab; apply minimal permissions (e.g., 0600 on Unix where appropriate), distribute via secret management, and never commit it to Git, logs, or chat. When rotating keys, coordinate KDC, KVNO, and all instances; plan key overlap while older tickets remain valid if supported by the KDC/keytab. If a keytab leaks, an attacker can impersonate the service for the scope of the exposed keys.
 
-## 7. Krb5LoginModule nằm ở đâu trong kiến trúc Java?
+## 7. Where does Krb5LoginModule sit in Java architecture?
 
-Trong Java, có ba lớp trách nhiệm cần tách bạch:
+In Java, three layers of responsibility must stay distinct:
 
-1. **JAAS LoginContext** kích hoạt các LoginModule theo tên cấu hình; javax.security.auth.login.LoginContext thực hiện login/commit/logout.
-2. **com.sun.security.auth.module.Krb5LoginModule** làm việc với Kerberos (ticket cache, keytab, KDC hoặc callback tùy cấu hình), rồi đưa principal/credential vào javax.security.auth.Subject.
-3. **GSS-API (org.ietf.jgss) hoặc SASL** dùng credential phù hợp để thiết lập phiên xác thực với dịch vụ thực tế. Ví dụ HTTP Negotiate/SPNEGO dùng GSS ở lớp giao thức HTTP; SASL GSSAPI dùng trong những giao thức có hỗ trợ SASL.
+1. **JAAS LoginContext** invokes configured LoginModules by entry name; javax.security.auth.login.LoginContext drives login/commit/logout.
+2. **com.sun.security.auth.module.Krb5LoginModule** interacts with Kerberos (ticket cache, keytab, KDC, or callbacks depending on config) and populates principals/credentials into javax.security.auth.Subject.
+3. **GSS-API (org.ietf.jgss) or SASL** uses the appropriate credentials to establish an authenticated session with the actual service. For example, HTTP Negotiate/SPNEGO uses GSS at the HTTP layer; SASL GSSAPI is used in protocols supporting SASL.
 
-Krb5LoginModule **không phải KDC, không phát hành vé và không tự cài đặt HTTP Negotiate**. Nó là cầu nối giữa cơ chế Kerberos và môi trường JAAS của Java.
+Krb5LoginModule **is not a KDC, does not issue tickets, and does not implement HTTP Negotiate itself**. It is the bridge between Kerberos mechanisms and Java's JAAS framework.
 
-Khi login/commit thành công, Subject có thể có:
+When login/commit succeeds, the Subject may contain:
 
-- **KerberosPrincipal** trong tập principals.
-- **KerberosTicket** trong private credentials khi đăng nhập với vai trò initiator và có TGT.
-- **KeyTab hoặc KerberosKey** trong private credentials nếu tùy chọn storeKey và nguồn khóa thích hợp được dùng.
-- Những credential khác tùy cấu hình login và provider.
+- **KerberosPrincipal** in the principals set.
+- **KerberosTicket** in private credentials when logging in as an initiator with a TGT.
+- **KeyTab or KerberosKey** in private credentials when storeKey and an appropriate key source are configured.
+- Other credentials depending on login configuration and provider.
 
-Chú ý private credentials là dữ liệu nhạy cảm. Không in ra nội dung Subject một cách tùy tiện, không serialize credential vào log hoặc API response.
+Remember that private credentials are sensitive data. Never dump Subject contents casually, and never serialize credentials into logs or API responses.
 
-## 8. Client (initiator) và server (acceptor) cần gì?
+## 8. What do client (initiator) and server (acceptor) need?
 
-| Vai trò | Nguồn thông dụng | isInitiator | Mục tiêu |
+| Role | Common source | isInitiator | Goal |
 | --- | --- | --- | --- |
-| Người dùng/client đã kinit | Ticket cache có TGT | true (mặc định) | Có credential để xin service ticket và khởi tạo GSS context |
-| Client daemon xác thực không tương tác | Keytab riêng và principal của daemon | true | Dùng khóa để lấy TGT từ KDC rồi gọi service |
-| Server chỉ nhận Kerberos | Keytab của service principal, storeKey=true | false | Nạp khóa cho GSS acceptor; không cần lấy TGT chỉ để chấp nhận AP-REQ |
+| User/client after kinit | Ticket cache holding TGT | true (default) | Hold credentials to request service tickets and initiate a GSS context |
+| Non-interactive daemon client | Dedicated keytab and daemon principal | true | Use the key to obtain a TGT from the KDC, then call services |
+| Server accepting Kerberos only | Service principal keytab, storeKey=true | false | Load keys for the GSS acceptor; no need to fetch a TGT merely to accept AP-REQ |
 
-**TGT không thay thế keytab** trên server. Một HTTP acceptor thường cần service key để mở service ticket; việc server cũng chạy kinit không tự giải quyết được thiếu keytab hoặc SPN sai.
+**A TGT does not replace a keytab** on a server. An HTTP acceptor generally needs the service key to unwrap service tickets; running kinit on the server does not fix a missing keytab or wrong SPN.
 
-## 9. Tùy chọn quan trọng của Krb5LoginModule
+## 9. Key Krb5LoginModule options
 
-| Tùy chọn | Ý nghĩa và điều kiện |
+| Option | Meaning and conditions |
 | --- | --- |
-| principal | Danh tính muốn dùng; với acceptor nên chọn SPN cụ thể. Dấu * chỉ hợp lệ cho isInitiator=false và mở phạm vi chấp nhận theo các khóa trong keytab, cần cân nhắc kỹ |
-| isInitiator | true để lấy credential khởi tạo giao tiếp; false cho acceptor-only, không thực hiện AS exchange để lấy TGT |
-| useTicketCache | true để thử lấy TGT từ ticket cache (phù hợp client đã kinit) |
-| ticketCache | Đường dẫn cache tùy chọn; chỉ dùng khi useTicketCache=true |
-| useKeyTab | true để dùng khóa trong keytab; nếu chỉ khai báo keyTab mà thiếu useKeyTab=true là cấu hình không hợp lệ |
-| keyTab | Đường dẫn keytab; nên nêu rõ và quản lý quyền file |
-| storeKey | true để lưu keytab/khóa vào Subject private credentials, quan trọng cho acceptor |
-| doNotPrompt | true để không hỏi mật khẩu tương tác; thất bại rõ ràng nếu không lấy được credential |
-| renewTGT | Chính sách thử gia hạn TGT; chỉ hợp lệ cùng useTicketCache=true, không thay thế quy trình quản lý hạn vé |
-| refreshKrb5Config | Cho phép nạp lại cấu hình Kerberos khi login (tùy yêu cầu vận hành) |
-| debug | Thông tin chẩn đoán LoginModule; chỉ bật có kiểm soát và tắt sau khi xử lý |
+| principal | Identity to use; acceptors should specify an exact SPN. Wildcard * is valid only with isInitiator=false and accepts across keys in the keytab, requiring careful review |
+| isInitiator | true to acquire outbound initiation credentials; false for acceptor-only, skipping the AS exchange for a TGT |
+| useTicketCache | true to try reading a TGT from the ticket cache (suits kinit-authenticated clients) |
+| ticketCache | Optional cache path; used only when useTicketCache=true |
+| useKeyTab | true to use keys from a keytab; specifying keyTab without useKeyTab=true is invalid configuration |
+| keyTab | Path to keytab; specify explicitly and lock down file permissions |
+| storeKey | true to store the keytab/keys in Subject private credentials, essential for acceptors |
+| doNotPrompt | true to suppress interactive password prompts; fails cleanly if credentials cannot be obtained |
+| renewTGT | Policy to attempt TGT renewal; valid only with useTicketCache=true, and does not replace ticket-expiry management |
+| refreshKrb5Config | Reloads Kerberos configuration upon login (per operational requirements) |
+| debug | LoginModule diagnostic output; enable only under control and turn off afterward |
 
-Các ràng buộc dễ sai: **doNotPrompt=true** nhưng không có cache/keytab/nguồn credential hợp lệ; **storeKey=true** với chỉ ticket cache và không có nguồn khóa; **keyTab** nhưng thiếu **useKeyTab=true**; **renewTGT=true** nhưng thiếu **useTicketCache=true**. Cơ chế có thể thử cache rồi keytab rồi các nguồn khác tùy cấu hình; không nên cho phép nhắc password trong daemon production.
+Common configuration pitfalls: **doNotPrompt=true** with no valid cache/keytab/credential source; **storeKey=true** with only a ticket cache and no key source; **keyTab** specified without **useKeyTab=true**; **renewTGT=true** without **useTicketCache=true**. The module may attempt cache, then keytab, then other sources depending on flags; never allow interactive password prompts in production daemons.
 
-## 10. Cấu hình Kerberos và JAAS mẫu
+## 10. Sample Kerberos and JAAS configurations
 
-Ví dụ krb5.conf: host KDC và realm phải được thay bằng thông tin do quản trị viên cung cấp.
+Sample krb5.conf: KDC host and realm must be replaced with values supplied by your administrator.
 
 ~~~ini
 [libdefaults]
@@ -174,7 +174,7 @@ Ví dụ krb5.conf: host KDC và realm phải được thay bằng thông tin do
     }
 ~~~
 
-Ví dụ jaas.conf gồm **hai entry riêng**, dùng tùy theo process:
+Sample jaas.conf with **two separate entries**, chosen according to process role:
 
 ~~~text
 KrbClient {
@@ -197,17 +197,17 @@ KrbAcceptor {
 };
 ~~~
 
-**KrbClient**: kỳ vọng trước đó đã có TGT hợp lệ trong cache mà JVM đọc được. Login thất bại nếu không có credential phù hợp; sample cố ý không hỏi password.
+**KrbClient**: expects a valid TGT already present in a cache readable by the JVM. Login fails if no suitable credential exists; the sample deliberately avoids password prompting.
 
-**KrbAcceptor**: nạp khóa của HTTP/api.example.com để ứng dụng có thể chấp nhận GSS token tới principal đó. Nó không tự tạo HTTP endpoint hoặc tự xử lý header Authorization; vẫn cần framework/handler hỗ trợ Negotiate hay giao thức tích hợp GSS.
+**KrbAcceptor**: loads keys for HTTP/api.example.com so the application can accept GSS tokens addressed to that principal. It does not create an HTTP endpoint or parse Authorization headers; a framework/handler supporting Negotiate or a GSS-integrated protocol is still required.
 
-Tùy runtime, đường dẫn ticket cache từ công cụ hệ điều hành và đường dẫn Java sử dụng có thể khác nhau. Trên Windows/AD, việc lấy credential có thể theo cơ chế hệ điều hành và JDK; hãy kiểm tra thực tế thay vì mặc định KRB5CCNAME hoạt động như mọi hệ Unix.
+Depending on the runtime, the ticket cache location used by OS tools and the path read by Java can differ. On Windows/AD, credential acquisition may follow OS and JDK mechanisms; verify empirically rather than assuming KRB5CCNAME behaves identically across all Unix systems.
 
-**Không đặt mật khẩu vào jaas.conf**, không lưu keytab trong source tree, không dùng account domain administrator để chạy service.
+**Never put passwords in jaas.conf**, never store keytabs in the source tree, and never run services under a domain administrator account.
 
-## 11. Ví dụ Java 17+: phân tích service principal mà không cần KDC
+## 11. Java 17+ example: inspecting a service principal without a KDC
 
-Tệp độc lập **PrincipalDemo.java**:
+Standalone file **PrincipalDemo.java**:
 
 ~~~java
 import javax.security.auth.kerberos.KerberosPrincipal;
@@ -224,7 +224,7 @@ public class PrincipalDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac PrincipalDemo.java
@@ -238,11 +238,11 @@ HTTP/api.example.com@EXAMPLE.COM
 EXAMPLE.COM
 ~~~
 
-Constructor trên biểu diễn **tên danh tính và name type**, chưa xác thực với KDC, chưa mở keytab và chưa tạo ticket. Khởi tạo KerberosPrincipal thành công **không chứng minh** SPN đã được đăng ký trong KDC.
+The constructor above only represents **an identity name and name type**; it does not authenticate with a KDC, open a keytab, or obtain a ticket. Constructing `KerberosPrincipal` successfully **does not prove** the SPN is registered in the KDC.
 
-## 12. Ví dụ Java 17+: đăng nhập bằng JAAS và kiểm tra Subject
+## 12. Java 17+ example: logging in with JAAS and inspecting Subject
 
-Tệp **JaasLoginDemo.java** (cần krb5.conf, jaas.conf và ticket cache thực mới login thành công):
+File **JaasLoginDemo.java** (requires real krb5.conf, jaas.conf, and ticket cache to log in successfully):
 
 ~~~java
 import javax.security.auth.Subject;
@@ -271,57 +271,57 @@ public class JaasLoginDemo {
 }
 ~~~
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac JaasLoginDemo.java
 ~~~
 
-Cách chạy tham khảo (trong máy đã cấu hình Kerberos):
+Reference run command (on a machine configured for Kerberos):
 
 ~~~bash
 java -Djava.security.auth.login.config=jaas.conf -Djava.security.krb5.conf=krb5.conf JaasLoginDemo
 ~~~
 
-Nếu LoginContext.login() thất bại sẽ phát sinh LoginException (được khai báo qua throws Exception trong ví dụ); thường do thiếu TGT, cache không đọc được, lệch realm hoặc lỗi cấu hình. **Không có một stdout cố định cho ví dụ này**: principal phụ thuộc credential của môi trường, và thiếu KDC/cache hợp lệ sẽ không đi tới các lệnh in.
+If LoginContext.login() fails, it throws LoginException (covered by throws Exception in the example); common causes are missing TGTs, unreadable caches, realm mismatches, or misconfiguration. **There is no single fixed stdout for this example**: the principal depends on environment credentials, and without a valid KDC/cache execution will not reach the print statements.
 
-Subject.doAs chạy đoạn code dưới danh tính Subject; API tích hợp GSS có thể tra cứu credential liên quan. Mẫu chỉ in tên principal để minh họa, **chưa giao tiếp hoặc chứng thực với service HTTP**. Với môi trường Java đời mới hơn, cần kiểm tra hướng dẫn tương thích của phiên bản JDK cho API Subject và cơ chế gắn Subject vào ngữ cảnh thực thi.
+Subject.doAs executes the block under the Subject's identity; GSS integration APIs can then look up the associated credentials. This sample merely prints the principal name for illustration and **does not yet communicate or authenticate with an HTTP service**. On newer Java versions, check JDK compatibility guidance for Subject APIs and how a Subject is bound to the execution context.
 
-## 13. Từ Subject tới GSS-API, HTTP Negotiate và SASL GSSAPI
+## 13. From Subject to GSS-API, HTTP Negotiate, and SASL GSSAPI
 
-Để thực sự dùng service ticket, ứng dụng cần cơ chế trao đổi token với server:
+To actually use a service ticket, the application needs a token-exchange mechanism with the server:
 
 ~~~text
-LoginContext("KrbClient") → Subject có credential
+LoginContext("KrbClient") → Subject with credentials
         ↓
 GSSManager / GSSContext (initiator)
-        ↓ tạo GSS token cho service "HTTP@api.example.com"
-HTTP client gửi Authorization: Negotiate <base64-token>
+        ↓ creates GSS token for service "HTTP@api.example.com"
+HTTP client sends Authorization: Negotiate <base64-token>
         ↓
-HTTP server / GSSContext (acceptor) dùng keytab service
+HTTP server / GSSContext (acceptor) uses service keytab
         ↓
-Server xác thực principal; framework ánh xạ sang user/quyền ứng dụng
+Server authenticates principal; framework maps to application user/permissions
 ~~~
 
-Tên host-based dạng **HTTP@api.example.com** trong GSS-API là một biểu diễn khác với service principal Kerberos **HTTP/api.example.com@EXAMPLE.COM**. GSS/Kerberos provider giải quyết ánh xạ thích hợp theo realm và cấu hình; không nên tự ghép chuỗi tùy tiện, nhất là khi có alias.
+A host-based name like **HTTP@api.example.com** in GSS-API is a different representation from Kerberos service principal **HTTP/api.example.com@EXAMPLE.COM**. The GSS/Kerberos provider resolves the mapping using realm and config rules; avoid ad-hoc string concatenation, especially when aliases exist.
 
-Một GSS security context có thể cần **nhiều vòng token** giữa client và server; đừng giả định đúng một AP-REQ/token cho mọi cơ chế (đặc biệt khi dùng SPNEGO). Sau context establishment, GSS có API bảo vệ thông điệp, còn việc ứng dụng có dùng chúng hay chỉ dựa trên TLS là quyết định của giao thức/triển khai.
+A GSS security context may require **multiple token rounds** between client and server; never assume every mechanism uses exactly one AP-REQ/token (especially with SPNEGO). After context establishment, GSS provides message-protection APIs, while whether the application uses them or relies solely on TLS is a protocol/deployment choice.
 
-Với **SASL GSSAPI**, một giao thức như LDAP hoặc messaging có thể đưa việc xác thực vào quá trình SASL negotiation. Thư viện/protocol driver điều khiển token; Krb5LoginModule vẫn phục vụ chuẩn bị credential. Không suy từ việc cấu hình JAAS thành công rằng LDAP/HTTP server đã cho phép thao tác: **authentication** và **authorization** là hai giai đoạn riêng.
+With **SASL GSSAPI**, protocols like LDAP or messaging integrate authentication into SASL negotiation. The library or protocol driver drives token exchange while Krb5LoginModule prepares credentials. Never infer from a successful JAAS setup that the LDAP/HTTP server has granted operation rights: **authentication** and **authorization** are two separate stages.
 
-## 14. Quy trình triển khai và kiểm tra theo thứ tự
+## 14. Step-by-step deployment and verification workflow
 
-1. **Xác định principal và realm**: chính xác client principal, service principal, hostname/SPN mà client yêu cầu, realm và đường đi tới KDC.
-2. **Chuẩn bị KDC**: tài khoản/principal phải tồn tại; cấp khóa hoặc keytab bằng quy trình quản trị, theo chính sách enctype và KVNO.
-3. **Chuẩn bị máy service**: đặt keytab dưới đường dẫn riêng, hạn chế quyền; xác minh nó có đúng SPN và các khóa hiện hành.
-4. **Chuẩn bị máy client**: lấy TGT qua cơ chế tổ chức cho phép (ví dụ kinit) và kiểm tra bằng klist; không cần copy keytab của server sang client.
-5. **Nạp cấu hình vào JVM**: realm, KDC, JAAS login entry đúng vai trò; xử lý môi trường ticket cache đúng với user chạy JVM.
-6. **Login bằng JAAS**: kiểm tra principal trong Subject, không log private credentials.
-7. **Thực hiện GSS/SASL/HTTP exchange**: client xin service ticket rồi gửi token; server dùng service key để nhận token.
-8. **Xác thực quyền**: từ principal đã xác thực, ứng dụng ánh xạ sang role/ACL theo chính sách riêng.
-9. **Kiểm tra gia hạn/rotation**: ticket hết hạn cần cơ chế tái lấy credential; keytab và KVNO phải phối hợp khi xoay khóa.
+1. **Define principals and realm**: exact client principal, service principal, hostname/SPN requested by client, realm, and network path to the KDC.
+2. **Prepare the KDC**: accounts/principals must exist; provision keys or keytabs through administrative workflows obeying enctype and KVNO policy.
+3. **Prepare the service host**: place the keytab in a restricted path with minimal permissions; verify it holds the right SPN and current keys.
+4. **Prepare the client host**: acquire a TGT via organization-approved means (e.g., kinit) and verify with klist; never copy the server's keytab onto the client.
+5. **Load config into the JVM**: realm, KDC, role-appropriate JAAS login entry; make sure the ticket cache matches the OS user running the JVM.
+6. **Log in with JAAS**: verify principals on Subject without logging private credentials.
+7. **Run the GSS/SASL/HTTP exchange**: client fetches a service ticket and sends the token; server uses its service key to accept the token.
+8. **Authorize access**: from the authenticated principal, map to application roles/ACLs per policy.
+9. **Test renewal/rotation**: expired tickets require credential re-acquisition; keytabs and KVNOs must stay coordinated during key rotation.
 
-Các lệnh chẩn đoán tham khảo, chỉ chạy trong môi trường Kerberos được cấp quyền:
+Reference diagnostic commands, run only in an authorized Kerberos environment:
 
 ~~~bash
 kinit alice@EXAMPLE.COM
@@ -330,57 +330,57 @@ kvno HTTP/api.example.com@EXAMPLE.COM
 klist -k -e /etc/security/keytabs/http-api.keytab
 ~~~
 
-Trước khi debug Java, hãy xác định bước lỗi: **AS không cấp TGT**, **TGS không cấp service ticket**, hay **acceptor không giải mã/xác nhận AP-REQ**. Ba lỗi này cần ba hướng sửa khác nhau.
+Before debugging Java code, pinpoint where it failed: **AS failed to issue a TGT**, **TGS failed to issue a service ticket**, or **the acceptor failed to decrypt/verify AP-REQ**. Those three failures require three distinct fixes.
 
-## 15. Các lỗi thường gặp và cách suy luận
+## 15. Common errors and how to reason about them
 
-| Triệu chứng | Nguyên nhân khả dĩ | Kiểm tra trước |
+| Symptom | Possible cause | Check first |
 | --- | --- | --- |
-| Không tìm thấy KDC / realm | krb5.conf hoặc DNS/KDC routing sai | Realm, host, cổng, khả năng kết nối |
-| Client không có credential hợp lệ | Cache trống/hết hạn hoặc JVM đọc sai cache | klist dưới đúng user chạy ứng dụng; useTicketCache |
-| Server not found in Kerberos database | SPN/realm client yêu cầu không được KDC nhận diện | Exact service principal, alias, realm, đăng ký SPN |
-| KRB_AP_ERR_MODIFIED hoặc lỗi integrity khi accept | Server không có đúng service key, KVNO/enctype lệch, SPN trỏ sai instance | Ticket service principal, keytab, KVNO/enctype, hostname |
-| Clock skew too great / ticket expired | Lệch giờ hoặc hạn vé | Đồng bộ NTP, thời gian KDC/client/server, ticket lifetime |
-| Cannot find key of appropriate type | Thiếu khóa/enctype tương thích | Enctype keytab và chính sách KDC/JDK |
-| JAAS LoginException doNotPrompt | Không có nguồn credential cho login mode đã chọn | Cấu hình useTicketCache/useKeyTab, principal, quyền file |
-| JAAS login OK nhưng HTTP 401 / SASL fail | GSS negotiation, SPN, server key, proxy hoặc authorization chưa đúng | Token exchange, service principal, acceptor, user mapping |
+| Cannot locate KDC / realm | Misconfigured krb5.conf or DNS/KDC routing | Realm, host, port, network reachability |
+| Client has no valid credentials | Empty/expired cache or JVM reading wrong cache | klist under the exact user running the app; useTicketCache |
+| Server not found in Kerberos database | SPN/realm requested by client is unknown to KDC | Exact service principal, aliases, realm, SPN registration |
+| KRB_AP_ERR_MODIFIED or integrity error on accept | Server lacks the right service key, KVNO/enctype mismatch, SPN points to wrong instance | Ticket service principal, keytab, KVNO/enctype, hostname |
+| Clock skew too great / ticket expired | Clock drift or expired ticket | NTP sync, KDC/client/server clocks, ticket lifetime |
+| Cannot find key of appropriate type | Missing key or incompatible enctype | Keytab enctypes and KDC/JDK crypto policy |
+| JAAS LoginException doNotPrompt | No credential source for chosen login mode | useTicketCache/useKeyTab settings, principal, file permissions |
+| JAAS login OK yet HTTP 401 / SASL fail | GSS negotiation, SPN, server key, proxy, or authorization issue | Token exchange, service principal, acceptor, user mapping |
 
-Thông báo lỗi là dấu hiệu để khoanh vùng, không phải kết luận nguyên nhân duy nhất. Ví dụ KRB_AP_ERR_MODIFIED có thể xuất hiện khi keytab cũ **hoặc** client lấy ticket cho SPN của instance khác.
+Error messages are clues to narrow down the layer, not proof of a single root cause. For instance, KRB_AP_ERR_MODIFIED can happen with an outdated keytab **or** when the client obtained a ticket for another instance's SPN.
 
-Để bật chẩn đoán JVM khi thật sự cần:
+To enable JVM diagnostics only when genuinely needed:
 
 ~~~bash
 java -Dsun.security.krb5.debug=true -Djava.security.auth.login.config=jaas.conf -Djava.security.krb5.conf=krb5.conf JaasLoginDemo
 ~~~
 
-Có thể bật debug=true cho Krb5LoginModule ở môi trường kiểm thử. **Không để debug Kerberos thường trực ở production**; bảo vệ log vì có thể lộ tên principal, hostname, cấu hình và thông tin nhạy cảm vận hành.
+You may enable debug=true on Krb5LoginModule in test environments. **Never leave Kerberos debugging enabled continuously in production**; protect logs because they can expose principal names, hostnames, configuration, and sensitive operational details.
 
-## 16. Những hiểu lầm nguy hiểm
+## 16. Dangerous misconceptions
 
-- **“TGT và service ticket giống nhau.”** Sai. TGT dùng xin ticket ở TGS; service ticket dành cho một service cụ thể.
-- **“Có keytab là chắc chắn Kerberos login sẽ thành công.”** Sai. Principal, KVNO, enctype, realm, quyền file và mode của LoginModule phải phù hợp. Client initiator cần một quá trình lấy credential, có thể liên quan KDC.
-- **“Krb5LoginModule tự xác thực mọi HTTP request.”** Sai. Cần GSS/SPNEGO/HTTP integration cùng trao đổi token và kiểm tra server.
-- **“Service có TGT thì không cần keytab.”** Sai với mô hình acceptor dựa trên khóa service để mở ticket được KDC cấp.
-- **“Kerberos thành công nghĩa là user có mọi quyền.”** Sai. Kerberos xác thực identity, còn tài nguyên/quyền do ứng dụng hay hệ thống ủy quyền quyết định.
-- **“Đã có Kerberos thì không cần TLS.”** Sai. HTTPS/TLS và Kerberos xử lý các khía cạnh an ninh khác nhau; cần xét bảo vệ transport, channel binding và threat model của giao thức cụ thể.
-- **“Ticket cache và keytab đều là nơi lưu mật khẩu.”** Sai. Cache chứa ticket/credential phiên; keytab chứa khóa dài hạn, cả hai đều phải được bảo vệ.
+- **"TGT and service ticket are the same."** False. A TGT requests tickets from the TGS; a service ticket targets one specific service.
+- **"Having a keytab guarantees Kerberos login will succeed."** False. Principal, KVNO, enctype, realm, file permissions, and LoginModule flags must all align. Client initiators need a credential-acquisition step, potentially involving the KDC.
+- **"Krb5LoginModule automatically authenticates every HTTP request."** False. GSS/SPNEGO/HTTP integration with token exchange and server verification is still required.
+- **"If a service has a TGT, it does not need a keytab."** False for an acceptor model relying on service keys to decrypt KDC-issued tickets.
+- **"Kerberos success means the user has all permissions."** False. Kerberos proves identity; resources and permissions are decided by the application or authorization system.
+- **"With Kerberos, TLS is unnecessary."** False. HTTPS/TLS and Kerberos address different security concerns; evaluate transport protection, channel binding, and the protocol's threat model.
+- **"Ticket caches and keytabs both store passwords."** False. Caches hold session tickets/credentials; keytabs hold long-term keys, and both must be protected.
 
-## 17. Bài tập tự kiểm tra
+## 17. Self-check scenarios
 
-**Tình huống A:** client có TGT hợp lệ nhưng khi gọi API nhận “Server not found in Kerberos database”. Bạn kiểm tra service principal client yêu cầu và bản ghi SPN/realm tại KDC trước; thay keytab ở server chưa giải quyết việc TGS không cấp được ticket.
+**Scenario A:** the client holds a valid TGT, yet calling the API returns "Server not found in Kerberos database". Inspect the service principal requested by the client and the SPN/realm record in the KDC first; swapping the server's keytab will not fix a TGS failure to issue the ticket.
 
-**Tình huống B:** client lấy service ticket thành công, server trả KRB_AP_ERR_MODIFIED sau lần rotate key. Kiểm tra KVNO/enctype và liệu mọi instance đã nhận keytab mới, đồng thời xác minh client gửi ticket cho đúng SPN.
+**Scenario B:** the client obtains a service ticket successfully, and the server returns KRB_AP_ERR_MODIFIED after a key rotation. Check KVNO/enctype and whether all instances received the updated keytab, and confirm the client sent a ticket for the right SPN.
 
-**Tình huống C:** một Java service chỉ cần nhận HTTP Negotiate token. Entry JAAS nên là acceptor-only (isInitiator=false), useKeyTab=true, storeKey=true, principal chính xác; không cấu hình kinit/TGT như điều kiện bắt buộc chỉ để nhận vé.
+**Scenario C:** a Java service only needs to accept HTTP Negotiate tokens. Its JAAS entry should be acceptor-only (isInitiator=false), useKeyTab=true, storeKey=true, with the exact principal; do not require kinit/TGT merely to receive tickets.
 
-**Tình huống D:** LoginContext.login() trả thành công nhưng endpoint vẫn 403. Phân biệt hai câu hỏi: token GSS đã được xác thực và ánh xạ ra principal chưa? Principal đó có quyền gọi endpoint theo authorization policy không?
+**Scenario D:** LoginContext.login() succeeds, yet the endpoint still returns 403. Separate two questions: was the GSS token authenticated and mapped to a principal? Does that principal have permission to call the endpoint under authorization policy?
 
-Bạn hoàn thành bài khi tự vẽ lại đường đi **AS → TGS → AP**, chỉ ra khóa nào dùng ở mỗi bước, giải thích credential nào được lưu trong **Subject** cho initiator/acceptor và xác định được nơi cần kiểm tra khi client có TGT nhưng vẫn không gọi được service.
+You have mastered this lesson when you can sketch **AS → TGS → AP** from memory, point out which key is used at each step, explain which credentials live in **Subject** for initiators vs. acceptors, and diagnose why a client with a valid TGT might still fail to call a service.
 
-## 18. Tài liệu kỹ thuật để đối chiếu
+## 18. Technical references
 
 - Kerberos V5, RFC 4120: https://www.rfc-editor.org/rfc/rfc4120
-- Java SE 21 Krb5LoginModule API (tùy chọn, ràng buộc và ví dụ): https://docs.oracle.com/en/java/javase/21/docs/api/jdk.security.auth/com/sun/security/auth/module/Krb5LoginModule.html
-- Oracle Java SE 17 JAAS Login và Java GSS-API: https://docs.oracle.com/en/java/javase/17/security/use-jaas-login-utility-and-java-gss-api-secure-message-exchanges.html
+- Java SE 21 Krb5LoginModule API (options, constraints, and examples): https://docs.oracle.com/en/java/javase/21/docs/api/jdk.security.auth/com/sun/security/auth/module/Krb5LoginModule.html
+- Oracle Java SE 17 JAAS Login and Java GSS-API: https://docs.oracle.com/en/java/javase/17/security/use-jaas-login-utility-and-java-gss-api-secure-message-exchanges.html
 
-Các đường dẫn trên mô tả chuẩn và JDK; ví dụ EXAMPLE.COM cần được thay bằng môi trường Kerberos hợp lệ để kiểm thử tương tác thật.
+The links above describe the standards and JDK behavior; example values like EXAMPLE.COM must be replaced with a valid Kerberos environment for live interoperability testing.

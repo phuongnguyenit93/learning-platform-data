@@ -1,0 +1,3 @@
+menuLevel1: Chọn bộ thực thi
+menuLevel2: SimpleAsyncTaskExecutor tạo luồng cho từng tác vụ và không tái sử dụng luồng
+status: WRITTEN

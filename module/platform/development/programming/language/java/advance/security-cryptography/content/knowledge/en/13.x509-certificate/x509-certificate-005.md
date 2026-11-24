@@ -1,30 +1,30 @@
-# 13.5. Subject Alternative Name và danh tính DNS hoặc địa chỉ IP
+# 13.5. Subject Alternative Name and DNS or IP Address Identities
 
-## 1. SAN giải quyết vấn đề gì trong chứng thư X.509?
+## 1. What Problem Does SAN Solve in an X.509 Certificate?
 
-Khi một HTTPS client kết nối tới `https://api.example.test`, việc máy chủ trình ra **một chứng thư X.509 có chữ ký hợp lệ** chưa đủ. Client cần biết chứng thư đó có được cấp cho **đúng máy chủ mà client định truy cập** hay không. Nếu chỉ xác thực đường dẫn chứng thư (*certificate path*) đến một CA tin cậy nhưng bỏ qua **danh tính endpoint**, kẻ tấn công có thể dùng một chứng thư hợp lệ cấp cho tên **khác** để đánh lừa client.
+When an HTTPS client connects to `https://api.example.test`, having the server present **an X.509 certificate with a valid signature** is not enough. The client needs to know whether that certificate was issued for **the exact server the client intends to reach**. If you only validate the *certificate path* to a trusted CA and skip **endpoint identity**, an attacker can use a valid certificate issued for a **different** name to deceive the client.
 
-**Subject Alternative Name (SAN)** là extension của chứng thư X.509, có OID `2.5.29.17`, dùng để chứa một hoặc nhiều định danh có kiểu rõ ràng: tên DNS, địa chỉ IP, địa chỉ email, URI và một số dạng khác. Đối với danh tính máy chủ TLS/HTTPS, hai kiểu rất quan trọng là:
+**Subject Alternative Name (SAN)** is an X.509 certificate extension with OID `2.5.29.17`, used to carry one or more explicitly typed identifiers: DNS names, IP addresses, email addresses, URIs, and several other forms. For TLS/HTTPS server identity, two types are critical:
 
-- **dNSName (GeneralName type 2):** tên DNS, ví dụ `api.example.test` hoặc `*.svc.example.test`.
-- **iPAddress (GeneralName type 7):** địa chỉ IPv4/IPv6 dạng **octet nhị phân** trong extension, ví dụ IPv4 `192.0.2.10` hoặc IPv6 `2001:db8::10`.
+- **dNSName (GeneralName type 2):** DNS name, e.g., `api.example.test` or `*.svc.example.test`.
+- **iPAddress (GeneralName type 7):** IPv4/IPv6 address stored as **binary octets** in the extension, e.g., IPv4 `192.0.2.10` or IPv6 `2001:db8::10`.
 
-Trong Java, `java.security.cert.X509Certificate.getSubjectAlternativeNames()` cho phép **đọc** các SAN của chứng thư, nhưng **không tự thực hiện xác minh danh tính máy chủ**. Để bảo vệ kết nối thực tế, phải có đồng thời:
+In Java, `java.security.cert.X509Certificate.getSubjectAlternativeNames()` lets you **read** a certificate's SANs, but **does not itself perform server identity verification**. To protect real connections, all of the following must hold simultaneously:
 
-1. **Tin cậy chứng thư:** xác minh certificate path, CA/trust anchor, hiệu lực, key usage/EKU và các chính sách cần thiết.
-2. **Khớp endpoint identity:** so hostname/IP **mà client muốn truy cập** với SAN đúng kiểu, theo quy tắc giao thức.
-3. **Handshake và chính sách TLS:** kết nối thật sự dùng private key tương ứng với chứng thư được chấp nhận, các tham số TLS an toàn và không vô hiệu hóa các bước kiểm tra trên.
+1. **Certificate trust:** verify the certificate path, CA/trust anchor, validity period, key usage/EKU, and required policies.
+2. **Endpoint identity match:** compare the hostname/IP **the client intends to reach** against the appropriately typed SAN per protocol rules.
+3. **TLS handshake and policy:** the connection genuinely uses the private key corresponding to the accepted certificate, secure TLS parameters are active, and none of the checks above are disabled.
 
-Bài này làm rõ vì sao **DNS SAN không thay thế IP SAN**, vì sao không nên dựa vào `Common Name (CN)`, cách đọc SAN bằng Java 17+, và cách yêu cầu JSSE/HTTP client kiểm tra danh tính đúng thay vì tự viết bộ so khớp tên đơn giản.
+This lesson explains why **a DNS SAN does not replace an IP SAN**, why you must not rely on `Common Name (CN)`, how to read SANs in Java 17+, and how to make JSSE/HTTP clients verify identity properly rather than writing naive name matchers.
 
-## 2. Cấu trúc SubjectAltName trong X.509
+## 2. SubjectAltName Structure in X.509
 
-Theo RFC 5280, extension gồm chuỗi `GeneralName`; mỗi phần tử có **type** và **value** riêng:
+Per RFC 5280, the extension consists of a sequence of `GeneralName` entries; each element has its own **type** and **value**:
 
 ```text
 X.509 Certificate
 ├─ Subject Distinguished Name (DN)
-│  └─ CN=legacy.example.test                 <-- thuộc subject, KHÔNG phải SAN
+│  └─ CN=legacy.example.test                 <-- part of subject, NOT SAN
 ├─ Subject Public Key Info (SPKI)
 ├─ Issuer, serial, validity, signature...
 └─ Extensions
@@ -35,27 +35,27 @@ X.509 Certificate
       └─ [7] iPAddress: 2001:db8::10
 ```
 
-Đây là dữ liệu của **một chứng thư thử nghiệm**, không phải chứng thư của máy chủ công khai thật. Miền `.test`, IPv4 `192.0.2.0/24` và IPv6 `2001:db8::/32` được dùng cho ví dụ/tài liệu.
+This is data from **a test certificate**, not a real public server certificate. The `.test` domain, IPv4 `192.0.2.0/24`, and IPv6 `2001:db8::/32` are reserved for examples/documentation.
 
-Một chứng thư có thể chứa **nhiều SAN cùng loại** và nhiều loại khác nhau. Việc có hai dNSName không có nghĩa một tên “ghi đè” tên kia: tùy chính sách, bất kỳ dNSName hợp lệ nào khớp với tên được mong đợi đều có thể được chấp nhận. Các chứng thư dùng chung cho nhiều hostname phải được cấp phát, kiểm soát và xoay vòng cẩn thận vì sự cố private key có thể ảnh hưởng đến tất cả các tên trên chứng thư.
+A certificate can contain **multiple SANs of the same type** and multiple different types. Having two dNSNames does not mean one “overrides” the other: depending on policy, any valid dNSName matching the expected name may be accepted. Certificates shared across multiple hostnames must be provisioned, controlled, and rotated carefully because a private key compromise affects every name on the certificate.
 
-### Bảng các GeneralName thường gặp
+### Table of Common GeneralName Types
 
-| Type trong `getSubjectAlternativeNames()` | Tên ASN.1 | Mục đích và cách hiểu |
+| Type in `getSubjectAlternativeNames()` | ASN.1 name | Purpose and interpretation |
 | --- | --- | --- |
-| `1` | `rfc822Name` | Địa chỉ email. Không phải DNS-ID thay thế cho HTTPS. |
-| `2` | `dNSName` | Danh tính dựa trên DNS, dùng khi client truy cập theo tên miền. |
-| `6` | `uniformResourceIdentifier` | URI identity ở giao thức quy định; không mặc nhiên thay thế dNSName của HTTPS. |
-| `7` | `iPAddress` | Địa chỉ IPv4/IPv6, dùng khi reference identity là IP literal theo quy tắc ứng dụng. |
-| `0`, `3`, `4`, `5`, `8` | OtherName, X.400, directoryName, EDI, registeredID | Các định danh có cấu trúc khác, chỉ có ý nghĩa theo giao thức và chính sách tương ứng. |
+| `1` | `rfc822Name` | Email address. Not a DNS-ID substitute for HTTPS. |
+| `2` | `dNSName` | DNS-based identity, used when the client connects by domain name. |
+| `6` | `uniformResourceIdentifier` | URI identity where specified by protocol; does not automatically replace HTTPS dNSName. |
+| `7` | `iPAddress` | IPv4/IPv6 address, used when the reference identity is an IP literal per application rules. |
+| `0`, `3`, `4`, `5`, `8` | OtherName, X.400, directoryName, EDI, registeredID | Other structured identifiers, meaningful only under their corresponding protocol and policy. |
 
-**SubjectAltName khác IssuerAlternativeName.** SAN mô tả danh tính liên quan đến **subject** của chứng thư; extension `IssuerAlternativeName` mô tả các định danh bổ sung của **issuer**. Khi đối chiếu server hostname, không tìm DNS SAN trong IssuerAlternativeName.
+**SubjectAltName differs from IssuerAlternativeName.** SAN describes identities related to the certificate's **subject**; the `IssuerAlternativeName` extension describes additional identifiers of the **issuer**. When matching a server hostname, never look for DNS SANs in `IssuerAlternativeName`.
 
-## 3. DNS-ID: khi client truy cập bằng hostname
+## 3. DNS-ID: When the Client Connects by Hostname
 
-Nếu ứng dụng gọi `https://api.example.test/orders`, reference identity thường là **hostname `api.example.test` từ đích kết nối đã được ứng dụng lựa chọn**, không phải chuỗi do certificate tự gợi ý, do reverse DNS ngẫu nhiên tạo ra hoặc do một HTTP header kẻ tấn công điều khiển.
+If an application calls `https://api.example.test/orders`, the reference identity is typically **the hostname `api.example.test` from the connection target chosen by the application**, not a string suggested by the certificate itself, produced by arbitrary reverse DNS, or controlled by an attacker's HTTP header.
 
-Ví dụ chứng thư có:
+Suppose a certificate has:
 
 ```text
 subjectAltName:
@@ -64,125 +64,125 @@ subjectAltName:
   IP Address:192.0.2.10
 ```
 
-Theo quy tắc DNS-ID hiện đại, chứng thư có thể dùng cho `api.example.test`; wildcard `*.svc.example.test` có thể khớp với **một nhãn** như `a.svc.example.test` nhưng không được hiểu là khớp mọi cấp sâu tùy ý.
+Under modern DNS-ID rules, this certificate can be used for `api.example.test`; the wildcard `*.svc.example.test` can match **one label** such as `a.svc.example.test`, but must not be interpreted as matching arbitrarily deep subdomains.
 
-### 3.1. Tên DNS được so khớp theo tên, không theo IP DNS trả về
+### 3.1. DNS Names Match by Name, Not by the IP Returned by DNS
 
-Ví dụ DNS trả về:
+Suppose DNS resolves to:
 
 ```text
 api.example.test  --DNS A-->  192.0.2.10
 ```
 
-Client truy cập bằng URL `https://api.example.test` sẽ kiểm tra **DNS-ID cho `api.example.test`**, dù kết nối TCP tới một địa chỉ IP sau khi phân giải. Điều này là cách bình thường khi nhiều virtual host được phục vụ trên cùng IP.
+A client accessing the URL `https://api.example.test` checks **the DNS-ID for `api.example.test`**, even though the TCP connection goes to an IP address after resolution. This is normal when multiple virtual hosts are served on the same IP.
 
-Không được lấy kết quả DNS A/AAAA, rồi tự đổi yêu cầu sang IP-ID nếu người dùng thực ra đã chỉ định tên DNS. Danh tính mong đợi phải xuất phát từ thông tin đích được tin cậy trong ứng dụng/giao thức.
+Never take a DNS A/AAAA resolution result and switch the check to IP-ID when the user actually specified a DNS name. The expected identity must come from the trusted target information in the application/protocol.
 
-### 3.2. So khớp wildcard không phải String.endsWith()
+### 3.2. Wildcard Matching Is Not `String.endsWith()`
 
-Theo RFC 9525, wildcard trong DNS-ID chỉ được chấp nhận dưới dạng **nguyên nhãn nằm ngoài cùng bên trái**. Với mẫu `*.svc.example.test`:
+Per RFC 9525, wildcards in DNS-ID are accepted only as **an entire leftmost label**. For the pattern `*.svc.example.test`:
 
-| Reference hostname | Khớp wildcard đó? | Vì sao |
+| Reference hostname | Matches that wildcard? | Why |
 | --- | --- | --- |
-| `a.svc.example.test` | Có, theo quy tắc wildcard một nhãn | `*` thay cho nhãn `a` |
-| `b.svc.example.test` | Có | Một nhãn hợp lệ |
-| `svc.example.test` | Không | Thiếu nhãn bên trái |
-| `a.b.svc.example.test` | Không | Có **hai** nhãn bên trái |
-| `not-svc.example.test` | Không | Không cùng cấu trúc nhãn |
-| `192.0.2.10` | Không | IP-ID và DNS-ID là hai kiểu khác nhau |
+| `a.svc.example.test` | Yes, per single-label wildcard rule | `*` stands for label `a` |
+| `b.svc.example.test` | Yes | One valid label |
+| `svc.example.test` | No | Missing leftmost label |
+| `a.b.svc.example.test` | No | Has **two** leftmost labels |
+| `not-svc.example.test` | No | Different label structure |
+| `192.0.2.10` | No | IP-ID and DNS-ID are different types |
 
-Các chuỗi như `a*.example.test`, `*.*.example.test` hoặc dùng `*` như phép so khớp tùy ý không đáp ứng quy tắc chuẩn này. Kiểm tra còn phụ thuộc yêu cầu giao thức/ứng dụng và chính sách xử lý wildcard; **đừng tự triển khai** dựa vào `replace("*", ".*")`, regex tự chế hay kiểm tra suffix mà không hiểu chuẩn.
+Patterns like `a*.example.test`, `*.*.example.test`, or using `*` as arbitrary globbing do not conform to this standard rule. Checks also depend on protocol/application requirements and wildcard policies; **never hand-roll implementations** based on `replace("*", ".*")`, custom regexes, or suffix checks without understanding the standard.
 
-### 3.3. Chữ hoa, IDN và định dạng tên miền
+### 3.3. Case, IDN, and Domain Formatting
 
-Tên DNS được so khớp theo quy tắc DNS/IDNA thích hợp, không phải đơn giản so byte UTF-8 của text hiển thị. Các domain quốc tế hóa thường phải được biểu diễn bằng **ASCII A-label/Punycode theo IDNA** trong dNSName, thay vì bỏ trực tiếp Unicode U-label vào extension IA5String.
+DNS names are matched according to proper DNS/IDNA rules, not by naively comparing UTF-8 bytes of display text. Internationalized domains must generally be represented as **ASCII A-labels/Punycode per IDNA** inside `dNSName`, rather than placing raw Unicode U-labels into an `IA5String` extension.
 
-Ứng dụng cần dùng thư viện TLS/hostname verification và quy tắc hostname normalization được profile của giao thức quy định. Không tự gọi `toLowerCase()` theo locale rồi so suffix, không bỏ qua ký tự đặc biệt hoặc dấu chấm một cách tùy tiện, và không cho phép client chuyển danh tính mong đợi qua input không tin cậy.
+Applications should use standard TLS/hostname verification libraries and the hostname normalization rules specified by the protocol profile. Never call locale-dependent `toLowerCase()` and check suffixes, never strip special characters or dots arbitrarily, and never let clients override the expected identity from untrusted input.
 
-## 4. IP-ID: khi client truy cập bằng địa chỉ IP
+## 4. IP-ID: When the Client Connects by IP Address
 
-Nếu URL/endpoint được chỉ định trực tiếp là `https://192.0.2.10` hoặc `https://[2001:db8::10]`, reference identity là **IP address**, không phải DNS hostname. Theo RFC 9525, IP-ID so khớp **chính xác các octet của địa chỉ IP** với trường `iPAddress` nằm trong SAN.
+If the URL/endpoint is specified directly as `https://192.0.2.10` or `https://[2001:db8::10]`, the reference identity is an **IP address**, not a DNS hostname. Under RFC 9525, IP-ID matches **the exact octets of the IP address** against the `iPAddress` field in SAN.
 
-Trong ASN.1 X.509:
+In X.509 ASN.1:
 
-- `iPAddress` IPv4 được mã hóa thành **4 octet**.
-- `iPAddress` IPv6 được mã hóa thành **16 octet**.
-- Không phải văn bản `"192.0.2.10"` được nhét vào `dNSName` rồi coi là IP-ID.
-- Các cách biểu diễn text IPv6 khác nhau có thể trỏ tới **cùng 16 octet**; parser Java có thể trả lại chuỗi IP ở dạng mở rộng thay vì dạng nén ban đầu.
+- An IPv4 `iPAddress` is encoded as **4 octets**.
+- An IPv6 `iPAddress` is encoded as **16 octets**.
+- It is not the text `"192.0.2.10"` stuffed into `dNSName` and treated as an IP-ID.
+- Different IPv6 text representations can map to **the exact same 16 octets**; Java's parser may return IP strings in expanded form rather than the original compressed form.
 
-Ví dụ:
+For example:
 
 ```text
 DNS SAN: api.example.test
 IP SAN: 192.0.2.10
 
-Client A: https://api.example.test  -> cần DNS-ID api.example.test
-Client B: https://192.0.2.10        -> cần IP-ID 192.0.2.10
-Client C: https://192.0.2.11        -> IP không khớp, phải từ chối
+Client A: https://api.example.test  -> requires DNS-ID api.example.test
+Client B: https://192.0.2.10        -> requires IP-ID 192.0.2.10
+Client C: https://192.0.2.11        -> IP mismatch, must reject
 ```
 
-**Sai lầm phổ biến:** chứng thư có `DNS:192.0.2.10` nhưng không có `IP Address:192.0.2.10`. Đó là một dNSName chứa các ký tự trông giống địa chỉ IP, **không phải** SAN iPAddress đúng kiểu. Không cố “cứu” bằng cách so text giữa hai type.
+**Common mistake:** a certificate has `DNS:192.0.2.10` without `IP Address:192.0.2.10`. That is a `dNSName` containing characters that look like an IP address, **not** a properly typed `iPAddress` SAN. Do not try to “work around” it by comparing text across the two types.
 
-**Cũng sai:** khi kết nối tới `192.0.2.10`, thực hiện reverse DNS rồi cho phép bất kỳ hostname nhận được khớp với DNS SAN. Việc so IP-ID cần dựa vào IP reference được chọn, không bị thay bằng tên từ reverse DNS không đáng tin.
+**Also wrong:** when connecting to `192.0.2.10`, performing reverse DNS and letting any returned hostname match a DNS SAN. IP-ID matching must rely on the chosen IP reference, not be replaced by a name from untrusted reverse DNS.
 
-Nếu ứng dụng cần truy cập backend theo IP nhưng chứng thư được cấp cho DNS hostname, hãy cấu hình **hostname chuẩn được tin cậy** và kết nối theo mô hình/giao thức đúng (ví dụ kết nối TCP tới IP được chỉ định nhưng TLS endpoint identity và SNI được cấu hình cho DNS tên đã biết). Không tắt hostname verification để chữa lỗi chứng thư.
+If an application must reach a backend by IP while the certificate is issued for a DNS hostname, configure **a trusted canonical hostname** and connect using the proper model/protocol (e.g., opening a TCP connection to the designated IP while configuring TLS endpoint identity and SNI for the known DNS name). Never disable hostname verification to fix certificate errors.
 
-## 5. Common Name (CN) có còn được dùng làm danh tính server không?
+## 5. Is Common Name (CN) Still Used as Server Identity?
 
-Trước đây nhiều triển khai kiểm tra CN trong `Subject DN` khi chứng thư không chứa dNSName SAN. Thực hành này có thể gây nhầm lẫn vì CN không có kiểu ràng buộc đủ rõ như SAN, và chính sách fallback từng khác nhau giữa client/provider.
+Previously, many implementations checked `CN` in `Subject DN` when a certificate lacked a `dNSName` SAN. This practice caused confusion because `CN` lacks explicit typing like SAN, and fallback policies varied across clients and providers.
 
-**RFC 9525 (2023), thay thế RFC 6125**, quy định **không sử dụng Common Name RDN để nhận diện dịch vụ**; server identity được biểu diễn trong các subjectAltName phù hợp. Vì thế với thiết kế mới:
+**RFC 9525 (2023), superseding RFC 6125**, specifies that **the Common Name RDN must not be used to identify services**; server identity is represented in appropriate `subjectAltName` entries. Therefore, for new designs:
 
-- Cấp chứng thư HTTPS có **SAN dNSName và/hoặc iPAddress đúng kiểu** cho mọi endpoint được cho phép.
-- **Không dựa** vào `CN` để hợp thức hóa hostname/IP khi SAN không phù hợp.
-- Không dựa vào việc một client cũ có thể fallback sang CN như bằng chứng sản phẩm sẽ hoạt động an toàn trên các JDK/client khác.
-- `Subject DN` vẫn có vai trò metadata của chứng thư theo PKI; câu này chỉ nói đến cách xác minh **service endpoint identity**, không nói bỏ mọi thông tin Subject.
+- Issue HTTPS certificates with **properly typed `dNSName` and/or `iPAddress` SANs** for every permitted endpoint.
+- **Do not rely** on `CN` to validate a hostname/IP when SAN does not match.
+- Do not rely on an older client falling back to `CN` as proof that the product will operate securely across other JDKs/clients.
+- `Subject DN` still serves as PKI certificate metadata; this rule specifically governs **service endpoint identity** verification, not removing all Subject information.
 
-Bộ fixture trong phần Java cố ý tạo `CN=legacy.example.test` nhưng **không** đưa tên đó vào DNS SAN. Chương trình sẽ chứng minh việc đọc SAN **không tự thêm CN**; khi dùng TLS client theo policy hiện đại, không được xem CN là một danh tính thay thế nếu không có DNS-ID đúng.
+The fixture in the Java section intentionally sets `CN=legacy.example.test` while **omitting** that name from the DNS SAN. The program will demonstrate that reading SANs **does not automatically include CN**; when using a TLS client under modern policy, CN must never be treated as a fallback identity when a proper DNS-ID is absent.
 
-## 6. SAN matching khác với xác minh chứng thư đáng tin
+## 6. SAN Matching Differs from Trusted Certificate Verification
 
-Những thao tác sau có vai trò khác nhau:
+These operations have distinct roles:
 
-| Thao tác | Nó kiểm tra gì? | Điều **chưa** được chứng minh |
+| Operation | What does it check? | What is **not** yet proven |
 | --- | --- | --- |
-| `CertificateFactory.generateCertificate(...)` | Parse DER/PEM thành `Certificate` | Không chứng minh CA, trust path, hiệu lực hoặc hostname đã được chấp nhận |
-| `X509Certificate.getSubjectAlternativeNames()` | Liệt kê subject SAN được mã hóa trong chứng thư | Không thực hiện hostname verification |
-| `X509Certificate.getSubjectX500Principal()` | Trả Subject DN như X.500 principal | CN không phải DNS-ID/IP-ID hợp lệ theo RFC 9525 |
-| `X509Certificate.checkValidity()` | Kiểm tra `notBefore`/`notAfter` theo thời gian | Không xác thực chuỗi chứng thư hoặc hostname |
-| `X509Certificate.verify(issuerPublicKey)` | Kiểm tra chữ ký chứng thư với public key đã đưa vào | Không tự xây trust path hoặc xác minh tên máy chủ |
-| `CertPathValidator` với PKIX policy | Xác minh đường dẫn chứng thư theo tham số/trust anchor được cung cấp | Không mặc nhiên so hostname URL với SAN |
-| JSSE/HTTP TLS client cấu hình đúng | Handshake, trust manager và endpoint identification | Không thay thế business authorization/identity mapping cấp ứng dụng |
+| `CertificateFactory.generateCertificate(...)` | Parses DER/PEM into a `Certificate` | Does not prove CA, trust path, validity, or hostname acceptance |
+| `X509Certificate.getSubjectAlternativeNames()` | Lists subject SANs encoded in the certificate | Does not perform hostname verification |
+| `X509Certificate.getSubjectX500Principal()` | Returns Subject DN as an X.500 principal | CN is not a valid DNS-ID/IP-ID per RFC 9525 |
+| `X509Certificate.checkValidity()` | Checks `notBefore`/`notAfter` against time | Does not validate the certificate chain or hostname |
+| `X509Certificate.verify(issuerPublicKey)` | Checks certificate signature with the supplied public key | Does not build a trust path or verify server name |
+| `CertPathValidator` with PKIX policy | Validates certification path per supplied parameters/trust anchors | Does not automatically match URL hostname against SAN |
+| Properly configured JSSE/HTTP TLS client | Handshake, trust manager, and endpoint identification | Does not replace application-level business authorization/identity mapping |
 
-**Phải có đủ cả hai điều kiện**: certificate chain hợp lệ theo trust policy **và** SAN khớp danh tính endpoint. Nếu chứng thư tự ký chứa `DNS:api.example.test` nhưng không được một trust anchor được cấu hình tin cậy, vẫn phải bị từ chối. Ngược lại, nếu chứng thư của CA tin cậy có SAN cho `other.example.test` nhưng client đang kết nối `api.example.test`, cũng phải bị từ chối.
+**Both conditions are required**: a certificate chain valid under trust policy **and** a SAN matching the endpoint identity. If a self-signed certificate contains `DNS:api.example.test` but is not trusted by a configured trust anchor, it must still be rejected. Conversely, if a certificate from a trusted CA has a SAN for `other.example.test` while the client connects to `api.example.test`, it must also be rejected.
 
-SAN extension **không phải chữ ký riêng**: nó nằm trong nội dung chứng thư được issuer ký. Tuy nhiên một extension SAN chứa text đúng **không tự tạo ra trust**; client phải xác minh toàn bộ chứng thư theo PKI và biết mình đang yêu cầu tên nào.
+The SAN extension is **not a separate signature**: it is inside the certificate content signed by the issuer. However, a SAN extension containing matching text **does not create trust on its own**; the client must validate the entire certificate under PKI and know which name it expects.
 
-### 6.1. Chain, thời hạn, KeyUsage, EKU và Name Constraints
+### 6.1. Chain, Validity, KeyUsage, EKU, and Name Constraints
 
-Ngoài SAN, hệ thống production thường cần kiểm tra:
+Beyond SAN, production systems typically need to verify:
 
-- Chữ ký/certificate path dẫn về trust anchor được chấp nhận; CA có thẩm quyền cấp phát chứng thư tương ứng.
-- `notBefore`/`notAfter` và chính sách về thời gian, certificate revocation khi profile yêu cầu.
-- `BasicConstraints`, `KeyUsage` và `ExtendedKeyUsage` phù hợp với vai trò server TLS (ví dụ EKU `serverAuth` khi được quy định).
-- `NameConstraints` trên CA/intermediate certificate nếu có, có thể giới hạn các subtree DNS/IP được phép.
-- Algorithm policy, độ mạnh khóa, signature algorithm, key rotation và pinning nếu áp dụng.
-- Kết nối mạng đến đúng endpoint và ứng dụng không bị chuyển hướng sang một origin khác mà bỏ kiểm tra.
+- Signatures/certification path leading to an accepted trust anchor; the CA is authorized to issue the corresponding certificate.
+- `notBefore`/`notAfter` and time policies, plus certificate revocation when required by profile.
+- `BasicConstraints`, `KeyUsage`, and `ExtendedKeyUsage` appropriate for the TLS server role (e.g., EKU `serverAuth` when specified).
+- `NameConstraints` on CA/intermediate certificates if present, which may restrict permitted DNS/IP subtrees.
+- Algorithm policy, key strength, signature algorithms, key rotation, and pinning if applicable.
+- Network connection reaches the intended endpoint and the application is not redirected to another origin while skipping checks.
 
-Không cố tái hiện tất cả các kiểm tra PKIX/TLS ở lớp ứng dụng chỉ với `X509Certificate` getter. Hãy tận dụng JSSE/HTTP client và truststore hợp lệ, hoặc một TLS implementation đã được kiểm toán.
+Do not try to re-implement all PKIX/TLS checks at the application layer using only `X509Certificate` getters. Leverage JSSE/HTTP clients and valid truststores, or an audited TLS implementation.
 
-## 7. Java 17+: đọc SAN thật từ một chứng thư X.509
+## 7. Java 17+: Reading Real SANs from an X.509 Certificate
 
-Trong JCA, `X509Certificate.getSubjectAlternativeNames()` trả `Collection<List<?>>` hoặc `null` nếu chứng thư không có extension SAN. Mỗi phần tử là một list hai phần:
+In JCA, `X509Certificate.getSubjectAlternativeNames()` returns `Collection<List<?>>` or `null` if the certificate has no SAN extension. Each element is a two-item list:
 
-1. `Integer` biểu diễn GeneralName type (0–8).
-2. Giá trị thường là `String` cho các type như DNS `2`, IPv4/IPv6 `7`, URI `6` hoặc byte[] DER với một số type khác.
+1. An `Integer` representing the GeneralName type (0–8).
+2. A value, typically a `String` for types such as DNS `2`, IPv4/IPv6 `7`, URI `6`, or a DER `byte[]` for certain other types.
 
-Đặc biệt, với type `7` Java trả chuỗi IP ở định dạng có thể hiển thị, **không nhất thiết giữ nguyên text IPv6 nén**. Ví dụ dùng `InetAddress` để so octet của hai **IP literal đã biết**, chỉ phục vụ khám phá dữ liệu SAN; đây **không phải** thuật toán hostname verification cho HTTPS.
+In particular, for type `7`, Java returns a displayable IP string, **not necessarily preserving compressed IPv6 text**. The example uses `InetAddress` to compare octets of two **known IP literals** purely to inspect SAN data; this is **not** an HTTPS hostname verification algorithm.
 
-### 7.1. Chứng thư thử nghiệm nhúng trong mã
+### 7.1. Embedded Test Certificate in Code
 
-Để ví dụ chạy độc lập mà không phụ thuộc máy chủ mạng, chương trình nhúng **một chứng thư self-signed công khai dành riêng cho demo** dưới dạng PEM. Fixture có:
+So the example runs standalone without depending on a network server, the program embeds **a public, self-signed demo-only certificate** in PEM form. The fixture has:
 
 ```text
 Subject DN: CN=legacy.example.test, OU=Testing, O=Demo, C=US
@@ -193,9 +193,9 @@ SAN:
   IP Address:2001:db8::10
 ```
 
-**Không có private key trong source**. Đây không phải chứng thư server hợp lệ trên Internet: self-signed và sử dụng tên/địa chỉ tài liệu. Chương trình **chỉ parse** chứng thư và in các SAN. Nó **không** kiểm tra path đến CA tin cậy, không tạo kết nối TLS và không chứng minh tên máy chủ được chấp nhận.
+**There is no private key in the source**. This is not a valid server certificate on the Internet: it is self-signed and uses documentation names/addresses. The program **only parses** the certificate and prints its SANs. It **does not** check a path to a trusted CA, does not open a TLS connection, and does not prove any server name is accepted.
 
-Tạo tệp `SanCertificateDemo.java`:
+Create the file `SanCertificateDemo.java`:
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -266,14 +266,14 @@ public final class SanCertificateDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac SanCertificateDemo.java
 java SanCertificateDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 Certificate type: X.509
@@ -285,27 +285,27 @@ DNS SAN count: 2
 IP SAN count: 2
 ```
 
-### 7.2. Đọc đúng kết quả
+### 7.2. Reading the Output Correctly
 
-- `CertificateFactory` đã parse một chứng thư dạng X.509 — **chưa có trust decision**.
-- Hai giá trị type `2` của SAN đúng thứ tự trong fixture là `api.example.test` và `*.svc.example.test`.
-- Hai giá trị type `7` chứa IPv4 và IPv6. Hàm `hasIp` chuyển **IP literal** sang octet để kiểm tra sự hiện diện, do text IPv6 có thể được định dạng khác nhau dù giá trị nhị phân giống nhau.
-- Tên `legacy.example.test` nằm trong **CN**, không nằm trong DNS SAN, nên kiểm tra `dnsSans.contains(...)` trả `false`.
-- `getSubjectAlternativeNames()` có thể là `null` nếu không có SAN; code xử lý tình huống đó bằng danh sách rỗng. Một ứng dụng hostname verification hiện đại nên từ chối server identity không có SAN phù hợp thay vì tự lấy CN thay thế.
-- Việc dữ liệu SAN được liệt kê **không nghĩa là** chương trình đã xác minh wildcard, chain, hạn dùng, key usage hoặc quyền điều khiển domain.
+- `CertificateFactory` parsed an X.509 certificate — **no trust decision has been made**.
+- The two type `2` SAN values in fixture order are `api.example.test` and `*.svc.example.test`.
+- The two type `7` values hold IPv4 and IPv6. The `hasIp` helper converts **IP literals** to octets to test presence, because IPv6 text can be formatted differently even when the binary values are identical.
+- The name `legacy.example.test` is in **CN**, not in the DNS SANs, so `dnsSans.contains(...)` returns `false`.
+- `getSubjectAlternativeNames()` can be `null` if no SAN is present; the code handles that with empty lists. A modern hostname verification application should reject a server identity lacking an appropriate SAN rather than falling back to CN.
+- Listing SAN data **does not mean** the program verified wildcards, chain, expiration, key usage, or domain control.
 
-**Đây là demo đọc metadata, không phải hàm kiểm tra hostname.** Đặc biệt không copy `hasIp` hoặc `dnsSans.contains` làm bộ xác minh TLS tự viết: các phép kiểm này bỏ qua trust path, chính sách reference identity, wildcard, IDNA, certificate constraints và nhiều yếu tố bảo mật khác.
+**This is a metadata inspection demo, not a hostname verifier.** In particular, never copy `hasIp` or `dnsSans.contains` into a custom TLS verifier: those checks omit trust path, reference identity policy, wildcards, IDNA, certificate constraints, and many other security controls.
 
-## 8. Để Java thực sự xác minh hostname/IP khi kết nối TLS
+## 8. Making Java Actually Verify Hostname/IP on TLS Connections
 
-### 8.1. Ưu tiên HTTP client cấu hình an toàn mặc định
+### 8.1. Prefer Securely Configured Default HTTP Clients
 
-Với HTTPS, các API như `java.net.http.HttpClient` hoặc `HttpsURLConnection` có cơ chế TLS và xác minh server identity theo cấu hình mặc định thích hợp. Khi xây ứng dụng, hãy để hostname từ **URI/endpoint mong đợi** tham gia xác minh chứng thư, dùng truststore tin cậy và không vô hiệu hóa việc kiểm tra tên.
+For HTTPS, APIs like `java.net.http.HttpClient` or `HttpsURLConnection` provide TLS and server identity verification with appropriate defaults. When building applications, let the hostname from the **expected URI/endpoint** participate in certificate verification, use a trusted truststore, and do not disable name checking.
 
-Ví dụ **đoạn mã minh họa**, không phải chương trình độc lập với fixture tự ký:
+**Illustrative snippet**, not a standalone program with the self-signed fixture:
 
 ```java
-// Chỉ gửi tới endpoint thật với chứng thư hợp lệ theo trust policy.
+// Only send to a real endpoint with a certificate valid per trust policy.
 HttpClient client = HttpClient.newHttpClient();
 HttpRequest request = HttpRequest.newBuilder(
         URI.create("https://api.example.test/orders"))
@@ -315,13 +315,13 @@ HttpResponse<String> response = client.send(
         request, HttpResponse.BodyHandlers.ofString());
 ```
 
-Trong code thực cần import `java.net.URI` và `java.net.http.HttpClient`, `HttpRequest`, `HttpResponse`. Host `api.example.test` ở đây **chỉ là ví dụ**, không phải tên một server công khai có sẵn. Đừng thực thi snippet này rồi diễn giải lỗi DNS hoặc lỗi trust là lỗi của SAN parser phía trên.
+Real code needs imports for `java.net.URI` and `java.net.http.HttpClient`, `HttpRequest`, `HttpResponse`. The host `api.example.test` here is **only an example**, not a live public server. Do not run this snippet and mistake DNS or trust errors for errors in the SAN parser above.
 
-**Không** đặt trust manager “accept all”, không cài `HostnameVerifier` luôn trả true và không cố tắt endpoint identification để “sửa lỗi SAN”.
+**Never** install an “accept all” trust manager, never set a `HostnameVerifier` that always returns true, and never disable endpoint identification to “fix SAN errors”.
 
-### 8.2. Với SSLSocket/SSLEngine, bật endpoint identification rõ ràng
+### 8.2. With `SSLSocket`/`SSLEngine`, Enable Endpoint Identification Explicitly
 
-Khi sử dụng socket TLS mức thấp, lập trình viên có thể cần cấu hình `SSLParameters` để kích hoạt kiểm tra danh tính endpoint. Ví dụ **đoạn mã minh họa cho một server thật**, không dùng fixture self-signed ở demo:
+When using low-level TLS sockets, developers may need to configure `SSLParameters` to enable endpoint identity checks. **Illustrative snippet for a real server**, not using the demo self-signed fixture:
 
 ```java
 SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
@@ -330,146 +330,146 @@ try (SSLSocket socket =
     SSLParameters parameters = socket.getSSLParameters();
     parameters.setEndpointIdentificationAlgorithm("HTTPS");
     socket.setSSLParameters(parameters);
-    socket.startHandshake(); // Trust chain + endpoint identity theo JSSE.
+    socket.startHandshake(); // Trust chain + endpoint identity via JSSE.
 }
 ```
 
-Cần import `javax.net.ssl.SSLSocketFactory`, `SSLSocket` và `SSLParameters`. Một `SSLContext`/truststore thích hợp và chính sách chứng thư đúng vẫn là điều kiện bắt buộc. Ví dụ được viết để giải thích cách sử dụng API; tên miền `.test` không phục vụ kết nối thật.
+Requires importing `javax.net.ssl.SSLSocketFactory`, `SSLSocket`, and `SSLParameters`. An appropriate `SSLContext`/truststore and proper certificate policy remain mandatory. The example explains API usage; `.test` domains are not for live connections.
 
-`setEndpointIdentificationAlgorithm("HTTPS")` là **không phải** lời gọi `X509Certificate.getSubjectAlternativeNames()`. Nó chỉ dẫn JSSE thực hiện xác minh endpoint trong handshake theo cấu hình và implementation hỗ trợ. Không đặt thuật toán thành `null` hoặc chuỗi rỗng để bỏ qua bước kiểm tra vì các tùy chọn đó có thể khiến danh tính không được xác minh.
+`setEndpointIdentificationAlgorithm("HTTPS")` is **not** a call to `X509Certificate.getSubjectAlternativeNames()`. It instructs JSSE to perform endpoint verification during the handshake per configuration and provider implementation. Never set the algorithm to `null` or an empty string to skip the check, as doing so can leave identity unverified.
 
-**SNI và endpoint identification khác nhau:** SNI giúp client *nói với server* mình muốn virtual host nào để server chọn certificate; endpoint identification là việc *client kiểm tra* chứng thư nhận được có khớp với đích mong đợi không. Gửi SNI đúng **không thay thế** kiểm tra hostname.
+**SNI and endpoint identification differ:** SNI lets the client *tell the server* which virtual host it wants so the server selects the right certificate; endpoint identification is *the client checking* that the received certificate matches the expected target. Sending the right SNI **does not replace** hostname checking.
 
-### 8.3. Nếu client kết nối theo địa chỉ IP
+### 8.3. If the Client Connects by IP Address
 
-Ví dụ với `https://192.0.2.10`, chứng thư cần chứa SAN type `7` tương ứng với IPv4 đó, theo policy ứng dụng. Không thay bằng `DNS:192.0.2.10` hoặc `CN=192.0.2.10`.
+For example, with `https://192.0.2.10`, the certificate must contain a type `7` SAN matching that IPv4 address, per application policy. Never substitute `DNS:192.0.2.10` or `CN=192.0.2.10`.
 
-Với IPv6 URL, địa chỉ phải được viết trong dấu ngoặc vuông ở phần authority của URI, ví dụ `https://[2001:db8::10]/`; SAN iPAddress chứa **16 octet IP**, không chứa ký tự ngoặc vuông. Nếu thực tế kết nối bằng DNS hostname nhưng socket đi tới IP đã biết, phải giữ **hostname tin cậy** làm reference identity cho TLS và cấu hình socket/peer host phù hợp, không đơn giản dùng IP rồi tắt kiểm tra.
+For IPv6 URLs, the address must be enclosed in square brackets in the URI authority, e.g., `https://[2001:db8::10]/`; the `iPAddress` SAN contains **16 IP octets**, without brackets. If connecting by DNS hostname while the socket connects to a known IP, keep the **trusted hostname** as the TLS reference identity and configure socket/peer host appropriately rather than switching to IP and disabling checks.
 
-## 9. SAN matching, truststore, certificate pinning: quan hệ thế nào?
+## 9. How Do SAN Matching, Truststores, and Certificate Pinning Relate?
 
-### Truststore và CA
+### Truststore and CA
 
-Truststore chứa các trust anchors/certificates mà client được phép tin theo policy. Một CA tin cậy có thể cấp nhiều chứng thư cho các máy chủ khác nhau; vì vậy **đường tin cậy hợp lệ chưa đủ**, vẫn phải đối chiếu SAN hostname/IP của **đích client đang truy cập**.
+The truststore holds trust anchors/certificates that the client is permitted to trust per policy. A trusted CA can issue many certificates for different servers; therefore, **a valid trust path is not enough**—you must still match the SAN hostname/IP of **the target the client is accessing**.
 
-### Certificate/public-key pinning
+### Certificate/Public-Key Pinning
 
-Pinning có thể ràng buộc kết nối với một certificate hoặc SPKI/public key đã biết từ một kênh tin cậy. Nó có thể giảm một số rủi ro thay chứng thư nhưng phát sinh bài toán **rotation**, thu hồi, pin dự phòng và cấu hình outage. Không lấy “pin” bằng cách chấp nhận nguyên certificate vừa nhận từ kênh chưa được xác thực rồi coi mọi lần kết nối đầu tiên đều an toàn. Pinning **không phải** lý do mặc định để bỏ qua hostname verification hoặc chain validation, trừ khi ứng dụng có profile tin cậy được thiết kế/kiểm toán rõ ràng.
+Pinning binds connections to a known certificate or SPKI/public key obtained from a trusted channel. It can reduce certain certificate-substitution risks, yet introduces challenges around **rotation**, revocation, backup pins, and outage configuration. Never “pin” by accepting whatever certificate arrives over an unauthenticated channel and treating trust-on-first-use as universally safe. Pinning is **not** a default excuse to skip hostname verification or chain validation unless the application has an explicitly designed and audited trust profile.
 
-### mTLS (mutual TLS)
+### mTLS (Mutual TLS)
 
-Trong mTLS, **client** cũng trình chứng thư cho server. Kiểm tra danh tính của **client** thường dựa vào profile ứng dụng (ví dụ URI SAN, DNS SAN, danh tính service mesh hoặc đặc tả nội bộ) và policy authorization. Không mặc định lấy bất kỳ DNS SAN của client certificate để cho phép mọi tenant. Xác thực client và xác thực hostname server là **hai hướng khác nhau** cần quản trị identity riêng.
+In mTLS, the **client** also presents a certificate to the server. Verifying the **client**'s identity typically follows an application profile (e.g., URI SAN, DNS SAN, service mesh identity, or internal specification) and authorization policy. Never take any arbitrary DNS SAN from a client certificate to grant access across tenants. Client authentication and server hostname authentication are **two distinct directions** requiring separate identity governance.
 
-## 10. Các tình huống thực tế và kết quả mong đợi
+## 10. Real-World Scenarios and Expected Outcomes
 
-| Client mong đợi | SAN của server | Kết luận ở bước khớp danh tính | Nhắc lại |
+| Client expects | Server SAN | Outcome at identity-matching step | Reminder |
 | --- | --- | --- | --- |
-| `api.example.test` | `DNS:api.example.test` | Khớp DNS-ID | Vẫn cần trust chain, hiệu lực và policy |
-| `API.EXAMPLE.TEST` | `DNS:api.example.test` | Phù hợp khi so sánh DNS đúng chuẩn không phân biệt hoa/thường | Không dùng locale tùy ý |
-| `a.svc.example.test` | `DNS:*.svc.example.test` | Khớp wildcard một nhãn theo RFC 9525 | Không cho phép wildcard vượt một label |
-| `a.b.svc.example.test` | `DNS:*.svc.example.test` | Không khớp | Không dùng suffix-only |
-| `svc.example.test` | `DNS:*.svc.example.test` | Không khớp | Wildcard không có nghĩa zero label |
-| `192.0.2.10` | `IP:192.0.2.10` | Khớp IP-ID | Kiểm tra octet, đúng type |
-| `192.0.2.11` | `IP:192.0.2.10` | Không khớp | Không có subnet/range matching |
-| `192.0.2.10` | `DNS:192.0.2.10` | Không phải IP-ID theo quy tắc chuẩn | Text giống nhau không đủ |
-| `2001:db8::10` | `IP:2001:0db8:0:0:0:0:0:10` | Khớp nếu 16 octet bằng nhau | Text nén/mở rộng không đổi IP |
-| `legacy.example.test` | Chỉ `CN=legacy.example.test` | Không đủ theo RFC 9525 | Không fallback CN |
+| `api.example.test` | `DNS:api.example.test` | DNS-ID matches | Still requires trust chain, validity, and policy |
+| `API.EXAMPLE.TEST` | `DNS:api.example.test` | Matches under standard case-insensitive DNS comparison | Do not use arbitrary locales |
+| `a.svc.example.test` | `DNS:*.svc.example.test` | Matches single-label wildcard per RFC 9525 | Do not allow wildcard beyond one label |
+| `a.b.svc.example.test` | `DNS:*.svc.example.test` | Does not match | Do not use suffix-only matching |
+| `svc.example.test` | `DNS:*.svc.example.test` | Does not match | Wildcard does not mean zero labels |
+| `192.0.2.10` | `IP:192.0.2.10` | IP-ID matches | Check octets, right type |
+| `192.0.2.11` | `IP:192.0.2.10` | Does not match | No subnet/range matching |
+| `192.0.2.10` | `DNS:192.0.2.10` | Not an IP-ID per standard rules | Matching text is insufficient |
+| `2001:db8::10` | `IP:2001:0db8:0:0:0:0:0:10` | Matches if all 16 octets match | Compressed/expanded text does not change the IP |
+| `legacy.example.test` | Only `CN=legacy.example.test` | Insufficient per RFC 9525 | No CN fallback |
 
-Bảng này nói về **bước so danh tính theo tiêu chuẩn**, không là lời cam kết rằng mọi Java provider/version/lớp ứng dụng sẽ xử lý từng trường hợp hệt nhau. Đối với hệ thống được kiểm soát, hãy test chính xác JDK/provider/TLS stack đang deploy và tuân thủ security policy đã chọn; không vì một client legacy chấp nhận CN mà làm yếu policy.
+This table describes **the standard identity-matching step**; it is not a guarantee that every Java provider/version/application layer handles every edge case identically. For controlled systems, test the exact deployed JDK/provider/TLS stack and follow your chosen security policy; never weaken policy just because a legacy client accepted CN.
 
-### 10.1. Reverse proxy, load balancer và service mesh
+### 10.1. Reverse Proxies, Load Balancers, and Service Meshes
 
-Ứng dụng có thể kết nối tới load balancer hoặc sidecar, trong khi hostname logic của dịch vụ khác với IP node. Một bộ chứng thư có SAN DNS cho tên **dịch vụ chuẩn** vẫn là cách phù hợp nếu client xác minh đúng tên đó. Đừng tự thay “hostname dùng để xác minh” bằng nội dung header `Host`/`X-Forwarded-Host` được nhận từ nguồn không tin cậy; các header này có thể bị giả mạo ở ranh giới proxy cấu hình sai.
+An application may connect to a load balancer or sidecar while the service's logical hostname differs from the node IP. A certificate with a DNS SAN for the **canonical service name** remains appropriate if the client verifies that exact name. Never replace the “hostname to verify” with `Host`/`X-Forwarded-Host` headers received from untrusted sources; those headers can be spoofed across misconfigured proxy boundaries.
 
-### 10.2. Chứng thư có nhiều SAN
+### 10.2. Certificates with Multiple SANs
 
-Một chứng thư cho `api.example.test` và `admin.example.test` có thể được client cho hai hostname dùng chung (nếu tất cả điều kiện khác hợp lệ), nhưng gây tăng phạm vi khi private key lộ. Cần phân nhóm dịch vụ/tenant theo rủi ro, certificate rotation, cơ chế quản lý khóa và giới hạn quyền cấp phát SAN.
+One certificate for `api.example.test` and `admin.example.test` lets clients use it for both hostnames (when all other checks pass), yet expands the blast radius if the private key leaks. Group services/tenants by risk, plan certificate rotation and key management, and restrict SAN issuance permissions.
 
-### 10.3. Khi không có SAN
+### 10.3. When SAN Is Absent
 
-Java API có thể trả `null`. Hãy xem việc thiếu SAN phù hợp là vấn đề phát hành chứng thư cần sửa theo tiêu chuẩn mới. Không tự chuyển sang chấp nhận mọi hostname, không so CN như cứu cánh, không trust-all để bỏ qua lỗi.
+The Java API can return `null`. Treat the absence of an appropriate SAN as a certificate issuance defect to fix per modern standards. Never switch to accepting all hostnames, never fall back to CN as a crutch, and never trust-all to bypass the error.
 
-## 11. Lỗi Java/TLS thường gặp và cách khắc phục
+## 11. Common Java/TLS Errors and Fixes
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common cause | Resolution |
 | --- | --- | --- |
-| `getSubjectAlternativeNames() == null` | Certificate không có SAN extension | Phát hành lại certificate có đúng DNS/IP SAN và trust profile |
-| DNS hostname không khớp | Chứng thư chứa SAN của service khác hoặc wildcard không đúng số nhãn | Định nghĩa hostname tham chiếu đúng; sửa certificate/SAN |
-| HTTPS truy cập theo IP bị lỗi dù DNS SAN hợp lệ | Thiếu `iPAddress` type 7, client kiểm IP-ID | Cấp IP SAN đúng hoặc dùng hostname tin cậy đúng cách |
-| IPv6 string nhìn khác nhau | Text có thể ở dạng nén/mở rộng nhưng cùng octet | Để TLS verifier so IP theo chuẩn; không so chuỗi tùy tiện |
-| `CertificateException`/PKIX path building failure | Không tin CA/chain, thiếu intermediate hoặc truststore sai | Cấu hình trust anchor/chain đúng; không tắt trust validation |
-| Chứng thư parse được nhưng TLS từ chối | Parse không kiểm trust, hostname hoặc EKU | Xác định loại lỗi: chain, validity, SAN/identity, policy |
-| `SSLHandshakeException` có thông tin tên không phù hợp | Endpoint identification từ chối chứng thư | Kiểm tra hostname mong đợi và SAN đúng type |
-| Wildcard `*.example.test` không hợp `a.b.example.test` | Wildcard chỉ bao một nhãn | Cấp SAN cụ thể cho hostname cần phục vụ |
-| CN trùng hostname nhưng client vẫn từ chối | CN fallback không được dùng theo profile hiện đại | Đưa hostname vào SAN DNS/IP đúng type |
-| `X509Certificate.verify(issuerKey)` chạy được nhưng URL sai host | Kiểm signature không so hostname hoặc xác minh trust path đầy đủ | Sử dụng JSSE client endpoint verification + PKIX |
-| Tự implement `HostnameVerifier` trả `true` để chữa lỗi | Vô hiệu hóa bảo vệ MITM ở lớp tên | Xóa bypass, sửa cert hoặc client reference identity |
-| TLS client raw `SSLSocket` chạy nhưng không kiểm hostname | Endpoint identification chưa được bật/cấu hình | `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` theo ngữ cảnh |
-| Kết nối bằng IP trong khi chứng thư cho DNS | SNI, peer host và reference identity không khớp | Cấu hình tên logic đã xác thực và cách connect đúng; không tắt check |
-| Dùng self-signed fixture trong môi trường thật | Không có chain đến trust anchor theo policy | Dùng PKI/truststore thật; fixture chỉ để đọc SAN |
+| `getSubjectAlternativeNames() == null` | Certificate lacks a SAN extension | Re-issue certificate with proper DNS/IP SANs and trust profile |
+| DNS hostname mismatch | Certificate has another service's SAN or wildcard label count mismatch | Set the right reference hostname; fix certificate/SAN |
+| HTTPS by IP fails despite valid DNS SAN | Missing type 7 `iPAddress`, client checks IP-ID | Issue proper IP SAN or connect properly via trusted hostname |
+| IPv6 strings look different | Text may be compressed/expanded yet represent identical octets | Let the TLS verifier compare IPs per standard; never compare raw strings |
+| `CertificateException`/PKIX path building failure | Untrusted CA/chain, missing intermediate, or wrong truststore | Fix trust anchors/chain; never disable trust validation |
+| Certificate parses yet TLS rejects | Parsing does not check trust, hostname, or EKU | Identify failure category: chain, validity, SAN/identity, policy |
+| `SSLHandshakeException` citing name mismatch | Endpoint identification rejected certificate | Check expected hostname and properly typed SAN |
+| Wildcard `*.example.test` rejected for `a.b.example.test` | Wildcard covers only a single label | Issue a specific SAN for the served hostname |
+| CN matches hostname yet client rejects | CN fallback is disabled under modern profiles | Put hostname into a properly typed DNS/IP SAN |
+| `X509Certificate.verify(issuerKey)` passes yet wrong host URL | Signature check neither compares hostnames nor validates full trust path | Use JSSE client endpoint verification + PKIX |
+| Custom `HostnameVerifier` returning `true` to silence error | Disables MITM protection at the name layer | Remove bypass; fix cert or client reference identity |
+| Raw `SSLSocket` TLS client runs without checking hostname | Endpoint identification not enabled/configured | Set `SSLParameters.setEndpointIdentificationAlgorithm("HTTPS")` appropriately |
+| Connecting by IP while cert is for DNS | SNI, peer host, and reference identity do not align | Configure verified logical name and connection properly; never disable checks |
+| Using self-signed fixture in real environments | No chain to a policy-approved trust anchor | Use real PKI/truststore; fixtures are only for inspecting SANs |
 
-**Cách debug an toàn:** ghi hostname mong đợi, loại SAN và giá trị công khai, issuer/subject phù hợp, chain path và loại exception; không log private key, credential, session secret hoặc bypass xác thực để vượt lỗi. Phân biệt lỗi **name mismatch** với **untrusted issuer** vì hai lỗi cần sửa ở hai nơi khác nhau.
+**Safe debugging:** log the expected hostname, SAN types and public values, appropriate issuer/subject, chain path, and exception type; never log private keys, credentials, or session secrets, and never bypass verification to get past errors. Distinguish **name mismatch** from **untrusted issuer**, as each requires a fix in a different place.
 
-## 12. Kiểm thử đúng hành vi, không chỉ kiểm thử parser
+## 12. Test Actual Behavior, Not Just the Parser
 
-Một bộ test tốt cho client HTTPS cần bao gồm:
+A thorough test suite for an HTTPS client should cover:
 
-1. Chứng thư được tin cậy theo truststore nhưng có **DNS SAN khớp** → handshake được chấp nhận nếu mọi policy khác hợp lệ.
-2. Chain hợp lệ nhưng **DNS SAN khác đích** → từ chối.
-3. Chain hợp lệ, chỉ có **CN khớp** nhưng thiếu SAN → từ chối theo policy mới.
-4. DNS wildcard `*.svc.example.test` với một nhãn, với zero nhãn và với hai nhãn → các kết quả phù hợp với RFC 9525.
-5. Kết nối bằng IP, chứng thư có IP SAN chính xác → chấp nhận theo các điều kiện khác; chỉ có DNS SAN ghi IP text → từ chối.
-6. IPv6 nén/mở rộng tương đương → so theo octet, không so text thuần.
-7. Chứng thư self-signed không được trust → từ chối dù DNS/IP SAN khớp.
-8. Chứng thư hết hạn, revocation/policy failure hoặc KeyUsage/EKU không phù hợp → từ chối.
-9. Trường hợp SNI không đúng nhưng certificate được chọn vẫn chứa SAN mong đợi → đánh giá kết quả bằng kiểm tra thực tế chứng thư nhận được; không coi SNI đã thay thế identity check.
-10. Đảm bảo raw socket TLS được bật endpoint identification và các HTTP client không có cấu hình "trust-all"/"hostname verifier always true".
+1. Certificate trusted by truststore with a **matching DNS SAN** → handshake accepted if all other policies pass.
+2. Valid chain but **DNS SAN differs from target** → rejected.
+3. Valid chain, only **CN matches** without SAN → rejected under modern policy.
+4. Wildcard DNS `*.svc.example.test` with one label, zero labels, and two labels → outcomes compliant with RFC 9525.
+5. Connecting by IP with an exact IP SAN → accepted if other checks pass; only a DNS SAN holding IP text → rejected.
+6. Equivalent compressed/expanded IPv6 → matched by octets, not raw text.
+7. Untrusted self-signed certificate → rejected even when DNS/IP SAN matches.
+8. Expired certificate, revocation/policy failure, or inappropriate KeyUsage/EKU → rejected.
+9. Wrong SNI yet selected certificate still holds expected SAN → evaluate using actual received certificate checks; do not treat SNI as replacing identity checks.
+10. Verify raw TLS sockets enable endpoint identification and HTTP clients have no "trust-all"/"hostname verifier always true" configurations.
 
-**Gợi ý tạo test fixture:** trong môi trường phát triển, có thể dùng `keytool` với `-ext SAN=dns:...,ip:...` để tạo một certificate tự ký cho **unit/integration test** rồi cấp truststore **test-only**. Không đem test CA/root key vào production. Khi cần xác minh failure của PKIX/SAN, test phải chạy trong mạng/test runner cô lập hoặc local server kiểm soát được, không dựa vào hostname tài liệu `.test` có tồn tại trên Internet.
+**Tip for test fixtures:** in development, you can use `keytool` with `-ext SAN=dns:...,ip:...` to create a self-signed certificate for **unit/integration tests** and provide a **test-only** truststore. Never bring test CAs/root keys into production. When verifying PKIX/SAN failures, run tests against an isolated network/test runner or controlled local server rather than assuming documentation `.test` hostnames exist on the Internet.
 
-### Checklist trước khi triển khai
+### Pre-Deployment Checklist
 
-- [ ] Mỗi hostname của dịch vụ được liệt kê bằng **dNSName SAN type 2** đúng tên.
-- [ ] Nếu khách hàng kết nối bằng IP literal, chứng thư có **iPAddress SAN type 7** chính xác.
-- [ ] Không phụ thuộc CN fallback; không bỏ qua hostname verification.
-- [ ] Client có reference identity lấy từ endpoint được tin cậy, không từ nguồn bị attacker điều khiển.
-- [ ] Có truststore/PKIX chain validation và policy issuer, validity, EKU, key usage, revocation phù hợp.
-- [ ] Wildcard giới hạn đúng chuẩn, được kiểm thử ở một và nhiều mức nhãn.
-- [ ] IDN/ASCII A-label và xử lý Unicode theo quy tắc giao thức/provider.
-- [ ] Có kế hoạch cập nhật SAN khi đổi DNS/service host/IP, triển khai certificate rotation không tạo downtime.
-- [ ] Không dùng test certificate/self-signed demo hoặc private key test trong production.
-- [ ] Logs phân biệt lỗi trust chain và lỗi tên endpoint mà không để lộ bí mật.
+- [ ] Every service hostname is listed with an exact **type 2 `dNSName` SAN**.
+- [ ] If clients connect by IP literal, the certificate has the exact **type 7 `iPAddress` SAN**.
+- [ ] No reliance on CN fallback; no skipping hostname verification.
+- [ ] Client derives reference identity from a trusted endpoint, not attacker-controlled input.
+- [ ] Truststore/PKIX chain validation and policies for issuer, validity, EKU, key usage, and revocation are in place.
+- [ ] Wildcards conform to standard scope and are tested at single and multiple label depths.
+- [ ] IDN/ASCII A-labels and Unicode handling follow protocol/provider rules.
+- [ ] Plans exist to update SANs when DNS/service hosts/IPs change, with zero-downtime certificate rotation.
+- [ ] No test certificates, self-signed demos, or test private keys in production.
+- [ ] Logs distinguish trust chain failures from endpoint name failures without leaking secrets.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-1. SAN extension có OID nào, khác Subject CN ở điểm gì?
-2. `dNSName` và `iPAddress` thuộc GeneralName type bao nhiêu? Chúng có thể hoán đổi khi giá trị text nhìn giống địa chỉ IP không?
-3. Client truy cập `https://api.example.test` nhưng DNS ánh xạ tới `192.0.2.10`: nên so DNS-ID hay IP-ID? Vì sao?
-4. Client truy cập `https://192.0.2.10` nhưng chỉ có `DNS:api.example.test`: vì sao chứng thư không tự được chấp nhận theo IP-ID?
-5. Nếu chứng thư có `CN=legacy.example.test` và `DNS:api.example.test`, client yêu cầu `legacy.example.test` theo RFC 9525 có được dùng CN làm fallback không?
-6. Vì sao `*.svc.example.test` không khớp `a.b.svc.example.test`?
-7. `X509Certificate.getSubjectAlternativeNames()` trả kiểu dữ liệu gì và trường hợp nào trả `null`?
-8. Vì sao `CertificateFactory` parse thành công chưa có nghĩa chứng thư đáng tin hoặc hostname đã match?
-9. `X509Certificate.verify(...)` khác gì với `CertPathValidator` và endpoint identification?
-10. Nếu tắt hostname verification nhưng vẫn kiểm CA chain, còn nguy cơ nào?
-11. SNI giúp server làm gì? Nó có tự kiểm tra server identity cho client không?
-12. Vì sao một chứng thư chứa DNS SAN và IP SAN có thể được dùng cho nhiều cách truy cập nhưng vẫn cần quản lý rủi ro private key?
+1. What is the OID of the SAN extension, and how does it differ from Subject CN?
+2. Which GeneralName types are `dNSName` and `iPAddress`? Are they interchangeable when a text value looks like an IP address?
+3. A client accesses `https://api.example.test` and DNS resolves to `192.0.2.10`: should it check DNS-ID or IP-ID? Why?
+4. A client accesses `https://192.0.2.10` and the cert only has `DNS:api.example.test`: why is the certificate not automatically accepted under IP-ID?
+5. If a certificate has `CN=legacy.example.test` and `DNS:api.example.test`, may a client requesting `legacy.example.test` fall back to CN under RFC 9525?
+6. Why does `*.svc.example.test` not match `a.b.svc.example.test`?
+7. What type does `X509Certificate.getSubjectAlternativeNames()` return, and when does it return `null`?
+8. Why does successful parsing by `CertificateFactory` not mean the certificate is trusted or the hostname matched?
+9. How does `X509Certificate.verify(...)` differ from `CertPathValidator` and endpoint identification?
+10. If you disable hostname verification while still checking the CA chain, what risk remains?
+11. What does SNI help the server do? Does it verify server identity for the client?
+12. Why can a certificate containing both a DNS SAN and an IP SAN serve multiple access paths while still requiring private-key risk management?
 
-**Bài tập A:** thay tệp PEM trong demo bằng một certificate thử nghiệm khác có nhiều dNSName và IP SAN. Đọc các type 2/7 và kiểm tra các giá trị theo đúng API. Không tự suy ra trust decision từ kết quả in.
+**Exercise A:** Replace the PEM in the demo with another test certificate containing multiple `dNSName` and IP SANs. Read types 2/7 and inspect the values using the proper APIs. Do not infer a trust decision from the printed output.
 
-**Bài tập B:** tạo certificate chỉ có CN nhưng không có DNS SAN, và certificate khác có SAN DNS khớp. Viết integration test dùng HTTPS client với truststore test để chứng minh policy endpoint identity được áp dụng.
+**Exercise B:** Create one certificate with only CN and no DNS SAN, and another with a matching DNS SAN. Write an integration test using an HTTPS client with a test truststore to verify endpoint identity policy is enforced.
 
-**Bài tập C:** kiểm tra `https://hostname` và `https://IP` trên local TLS server do bạn kiểm soát với certificate có cả DNS SAN và IP SAN. Quan sát khác biệt giữa name mismatch và untrusted CA.
+**Exercise C:** Test `https://hostname` and `https://IP` against a local TLS server you control using a certificate with both a DNS SAN and an IP SAN. Observe the difference between name mismatch and untrusted CA.
 
-**Bài tập D:** viết unit test cho wildcard một nhãn/zero nhãn/nhiều nhãn dựa trên TLS hostname verifier thật của provider, không thay bằng `String.endsWith`.
+**Exercise D:** Write unit tests for single-label, zero-label, and multi-label wildcards against your provider's real TLS hostname verifier, without substituting `String.endsWith`.
 
-## 14. Tài liệu chính thức
+## 14. Official Documentation
 
-- [Java SE 17 — X509Certificate.getSubjectAlternativeNames](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html#getSubjectAlternativeNames()): cấu trúc `Collection<List<?>>`, SAN type 2/7, biểu diễn giá trị và trường hợp `null`.
-- [RFC 5280 — Internet X.509 Public Key Infrastructure Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): `GeneralName` và extension `subjectAltName` (OID 2.5.29.17), certificate chain và name constraints.
-- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): DNS-ID, IP-ID, wildcard một nhãn, IDNA và không fallback CN; cập nhật/obsoletes RFC 6125.
-- [Java SE 17 — SSLParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): `setEndpointIdentificationAlgorithm`, cấu hình kiểm tra endpoint.
-- [Java SE 17 — SSLSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html): `getSSLParameters`/`setSSLParameters` và handshake.
-- [Java SE 17 — CertificateFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateFactory.html): parse chứng thư X.509 từ DER/PEM.
-- [Java SE 17 — CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): kiểm tra certificate path theo tham số PKIX, phân biệt với hostname matching.
-- [Java SE 17 — HttpClient](https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpClient.html): client HTTP/HTTPS và cấu hình TLS.
+- [Java SE 17 — X509Certificate.getSubjectAlternativeNames](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/X509Certificate.html#getSubjectAlternativeNames()): `Collection<List<?>>` structure, SAN types 2/7, value representation, and `null` case.
+- [RFC 5280 — Internet X.509 Public Key Infrastructure Certificate and CRL Profile](https://www.rfc-editor.org/rfc/rfc5280): `GeneralName` and `subjectAltName` extension (OID 2.5.29.17), certificate chains, and name constraints.
+- [RFC 9525 — Service Identity in TLS](https://www.rfc-editor.org/rfc/rfc9525): DNS-ID, IP-ID, single-label wildcards, IDNA, and no CN fallback; obsoletes RFC 6125.
+- [Java SE 17 — SSLParameters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLParameters.html): `setEndpointIdentificationAlgorithm`, configuring endpoint verification.
+- [Java SE 17 — SSLSocket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/javax/net/ssl/SSLSocket.html): `getSSLParameters`/`setSSLParameters` and handshake.
+- [Java SE 17 — CertificateFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertificateFactory.html): parsing X.509 certificates from DER/PEM.
+- [Java SE 17 — CertPathValidator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/cert/CertPathValidator.html): validating certificate paths per PKIX parameters, distinct from hostname matching.
+- [Java SE 17 — HttpClient](https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpClient.html): HTTP/HTTPS client and TLS configuration.

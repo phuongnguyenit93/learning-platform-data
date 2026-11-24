@@ -1,83 +1,83 @@
-# 1.4 — Bản đồ log, chỉ số, stack trace, thread dump, heap dump và bản ghi JFR
+# 1.4 — Map of Logs, Metrics, Stack Traces, Thread Dumps, Heap Dumps, and JFR Recordings
 
-## 1. Mục tiêu: chọn đúng bằng chứng cho đúng câu hỏi
+## 1. Objective: Choose the Right Evidence for the Right Question
 
-Khi một ứng dụng Java chậm, báo lỗi, dùng nhiều CPU hoặc tăng bộ nhớ, sáu loại bằng chứng thường gặp là **log**, **metrics (chỉ số)**, **stack trace**, **thread dump**, **heap dump** và **Java Flight Recorder (JFR)**. Chúng quan sát cùng một tiến trình JVM nhưng ở độ phân giải và chiều thời gian khác nhau. Không có loại nào thay thế hoàn toàn loại khác.
+When a Java application is slow, failing, using high CPU, or growing in memory, six common types of evidence are **logs**, **metrics**, **stack traces**, **thread dumps**, **heap dumps**, and **Java Flight Recorder (JFR)**. They observe the same JVM process at different resolutions and across different time dimensions. None of them completely replaces the others.
 
-Sau bài này, người học cần trả lời được: (1) mỗi loại bằng chứng đo hoặc ghi lại điều gì; (2) nên lấy loại nào trước cho từng triệu chứng; (3) cách đọc, kết hợp và kiểm chứng giả thuyết; (4) chi phí vận hành, giới hạn và rủi ro khi thu thập trên môi trường thật.
+After this lesson, you should be able to answer: (1) what each type of evidence measures or records; (2) which one to collect first for each symptom; (3) how to read, combine, and verify hypotheses; (4) the operational costs, limitations, and risks of collecting them in real environments.
 
-> Quy tắc điều tra: **triệu chứng → câu hỏi có thể kiểm chứng → bằng chứng phù hợp → giả thuyết → đối chiếu thêm bằng chứng**. Một ảnh chụp hoặc một biểu đồ đơn lẻ thường chưa đủ để kết luận nguyên nhân.
+> Investigation rule: **symptom → testable question → appropriate evidence → hypothesis → cross-check with additional evidence**. A single snapshot or a single chart is usually insufficient to conclude the cause.
 
-## 2. Bản đồ sáu loại bằng chứng
+## 2. Map of the Six Evidence Types
 
-| Bằng chứng | Đơn vị quan sát | Chiều thời gian | Trả lời tốt nhất câu hỏi | Giới hạn cốt lõi |
+| Evidence | Unit of Observation | Time Dimension | Question It Answers Best | Core Limitations |
 | --- | --- | --- | --- | --- |
-| **Log** | Một sự kiện nghiệp vụ hoặc kỹ thuật có ngữ cảnh | Các thời điểm ghi sự kiện | *Yêu cầu nào thất bại, đầu vào/nhánh xử lý nào liên quan?* | Chỉ thấy những gì đã được ghi; có thể thiếu hoặc nhiễu |
-| **Metrics** | Giá trị tổng hợp: counter, gauge, histogram… | Chuỗi thời gian theo cửa sổ | *Lỗi/chậm/tải tăng từ khi nào, rộng đến đâu?* | Thường không chỉ ra yêu cầu hay dòng code cụ thể |
-| **Stack trace** | Chuỗi lời gọi của một luồng tại thời điểm lỗi/quan sát | Một thời điểm | *Đường gọi nào dẫn đến lỗi hoặc vị trí thực thi hiện tại?* | Một stack không đại diện cho mọi thread hoặc lịch sử |
-| **Thread dump** | Trạng thái và stack của nhiều Java thread trong JVM | Ảnh chụp tức thời; có thể lấy nhiều lần | *Thread nào BLOCKED/WAITING/RUNNABLE, đang đợi lock hay tài nguyên gì?* | Snapshot không chứng minh thread đã ở đó bao lâu |
-| **Heap dump** | Đồ thị đối tượng trên Java heap và các quan hệ tham chiếu | Ảnh chụp bộ nhớ | *Đối tượng nào đang được giữ lại, ai giữ và vì sao GC chưa thu hồi?* | Nặng, nhạy cảm; không mô tả trực tiếp CPU hay toàn bộ native memory |
-| **JFR recording** | Các event JVM/ứng dụng, khoảng thời gian, stack được lấy mẫu | Khoảng thời gian có timestamp | *Trong vài phút xảy ra điều gì về CPU, allocation, GC, lock, I/O?* | Có lấy mẫu/ngưỡng và cấu hình sự kiện; không ghi lại mọi lời gọi |
+| **Log** | A business or technical event with context | Points in time when events are recorded | *Which request failed, and which input/processing branch was involved?* | Only shows what was logged; can be incomplete or noisy |
+| **Metrics** | Aggregated values: counters, gauges, histograms… | Time series by window | *When did errors/slowness/load rise, and how widespread is it?* | Usually does not pinpoint the specific request or line of code |
+| **Stack trace** | Call chain of a single thread at the moment of error/observation | A single instant | *Which call path led to the error or current execution point?* | One stack does not represent all threads or history |
+| **Thread dump** | States and stacks of multiple Java threads in the JVM | Instantaneous snapshot; can be taken repeatedly | *Which threads are BLOCKED/WAITING/RUNNABLE, waiting on what lock or resource?* | A snapshot does not prove how long a thread has been there |
+| **Heap dump** | Object graph on the Java heap and reference relationships | Memory snapshot | *Which objects are retained, who holds them, and why hasn't GC reclaimed them?* | Heavy, sensitive; does not directly describe CPU or all native memory |
+| **JFR recording** | JVM/application events, durations, sampled stacks | Time range with timestamps | *Over a few minutes, what happened with CPU, allocation, GC, locks, and I/O?* | Uses sampling/thresholds and event configs; does not record every call |
 
-**Hai trục cần ghi nhớ:**
+**Two axes to remember:**
 
-- **Snapshot so với timeline:** stack trace, thread dump, heap dump cho thấy trạng thái tại điểm lấy mẫu; metrics, log và JFR giúp xem diễn biến qua thời gian. Nhiều thread dump cách nhau vài giây tạo một chuỗi snapshot, vẫn không phải lịch sử hoàn chỉnh.
-- **Độ rộng so với độ sâu:** metrics bao quát hệ thống; log giúp định vị request; stack trace đi vào đường gọi; thread dump đi vào phối hợp luồng; heap dump đi vào đồ thị đối tượng; JFR nối nhiều góc nhìn bằng sự kiện và thời gian.
+- **Snapshot vs. timeline:** stack traces, thread dumps, and heap dumps show state at sampling time; metrics, logs, and JFR reveal evolution over time. Multiple thread dumps spaced a few seconds apart form a sequence of snapshots, yet still not a complete history.
+- **Breadth vs. depth:** metrics cover the system; logs locate specific requests; stack traces inspect call paths; thread dumps inspect thread coordination; heap dumps inspect the object graph; JFR connects multiple views with events and timestamps.
 
-Ví dụ, “heap đạt 90%” là **triệu chứng** từ metrics. Nó chưa chứng minh memory leak: ứng dụng có thể đang giữ cache hợp lệ, GC chưa chạy, hoặc heap tăng rồi ổn định. Cần xem heap **sau GC**, xu hướng nhiều cửa sổ và, khi hợp lý, retained objects trong heap dump.
+For example, "heap reached 90%" is a **symptom** from metrics. It does not prove a memory leak: the application might be holding a valid cache, GC might not have run yet, or the heap might rise and then stabilize. You need to inspect **post-GC** heap, multi-window trends, and, when justified, retained objects in a heap dump.
 
-## 3. Chuẩn bị ngữ cảnh trước khi thu thập
+## 3. Preparing Context Before Collection
 
-Ghi lại **service**, môi trường, phiên bản build/JDK, thời điểm bắt đầu và kết thúc bất thường, timezone, instance/pod, PID, tải (RPS), tỷ lệ lỗi và thay đổi gần nhất (deploy, cấu hình, lưu lượng). Đồng bộ thời gian giữa host, log và hệ thống giám sát để ghép sự kiện đúng.
+Record the **service**, environment, build/JDK version, start and end times of the anomaly, timezone, instance/pod, PID, load (RPS), error rate, and most recent changes (deploys, flags, traffic). Synchronize clocks across hosts, logs, and monitoring systems to correlate events accurately.
 
-- Phân biệt **PID của JVM trên host** với PID trong container; lệnh `jcmd` phải chạy nơi có thể attach đến JVM, thông thường cùng host và cùng effective user/group.
-- Xác định **cửa sổ sự cố** và **mốc bình thường** để so sánh. Nếu biểu đồ là trung bình trên 5 phút còn log chính xác đến mili giây, phải quy về cùng cửa sổ khi kết luận.
-- Chụp bằng chứng dễ thu và ít xâm lấn trước. Cần cân nhắc thời lượng, kích thước file, đĩa trống và ảnh hưởng lên latency khi lấy dump hay bật cấu hình ghi sâu.
-- Gắn nhãn mỗi hiện vật bằng thời gian, instance, PID và phiên bản. Một `threads.txt` không có mốc thời gian rất dễ bị đem đối chiếu sai với `incident.jfr`.
+- Distinguish the **JVM PID on the host** from the PID inside a container; `jcmd` must run where it can attach to the JVM, typically the same host and same effective user/group.
+- Define the **incident window** and a **normal baseline** for comparison. If charts use 5-minute averages while logs have millisecond precision, align them to the same window before concluding.
+- Capture easy-to-collect, low-intrusion evidence first. Consider duration, file size, free disk space, and latency impact before taking dumps or enabling deep recording settings.
+- Label every artifact with timestamp, instance, PID, and version. An unlabeled `threads.txt` is easily miscorrelated with `incident.jfr`.
 
-## 4. Log: điều gì đã được ứng dụng ghi nhận?
+## 4. Logs: What Did the Application Record?
 
-Log là những bản ghi sự kiện có chủ đích: request bắt đầu/kết thúc, lỗi xử lý, retry, timeout, thay đổi trạng thái, tương tác hệ thống ngoài. Log lý tưởng có timestamp, level, service/instance, tên thao tác, `traceId`/`requestId`, mã lỗi, thời lượng và thông tin nghiệp vụ được phép lưu.
+Logs are intentional event records: request start/end, processing errors, retries, timeouts, state transitions, and external system interactions. Ideal logs include timestamp, level, service/instance, operation name, `traceId`/`requestId`, error code, duration, and permitted business fields.
 
 ```text
 2026-01-15T10:15:01.240Z WARN service=checkout traceId=7f21 operation=reserveStock durationMs=1800 result=timeout
 2026-01-15T10:15:01.245Z ERROR service=checkout traceId=7f21 operation=placeOrder error=InventoryTimeout
 ```
 
-Hai dòng **minh họa** này cho phép nối hai bước bằng `traceId=7f21` và nhận ra timeout upstream. Chúng **không** tự chứng minh nghẽn mạng, lock hay CPU; phải kiểm tra bằng số đo và bằng chứng ở service liên quan.
+These two **illustrative** lines let you link two steps via `traceId=7f21` and spot an upstream timeout. They do **not** by themselves prove network congestion, locks, or CPU exhaustion; you must verify with metrics and evidence on the relevant service.
 
-**Cách đọc và đặt log hữu ích:**
+**How to read and emit useful logs:**
 
-1. Tìm spike của lỗi hoặc request chậm, rồi lọc theo cùng service, thời điểm và trace ID.
-2. Đọc chuỗi sự kiện theo thứ tự, phân biệt thông báo lỗi ban đầu với lỗi “hậu quả” xuất hiện ở lớp trên.
-3. Giữ nguyên exception cùng `Caused by`; thông báo tổng quát như “request failed” thường chưa đủ.
-4. Dùng structured logging và các trường tên ổn định; tránh ghép tự do khiến khó tìm/lọc.
-5. Chọn mức `INFO`/`WARN`/`ERROR` theo ý nghĩa; `DEBUG` có thể giúp điều tra ngắn hạn nhưng tăng dung lượng và độ trễ.
+1. Find an error spike or slow request, then filter by the same service, timestamp, and trace ID.
+2. Read the event sequence in order, distinguishing the initial error message from "consequential" errors thrown at higher layers.
+3. Preserve full exceptions including `Caused by`; generic messages like "request failed" are rarely enough.
+4. Use structured logging with stable field names; avoid free-form concatenation that makes searching/filtering hard.
+5. Choose `INFO`/`WARN`/`ERROR` levels meaningfully; `DEBUG` can help short-term investigation but increases volume and latency.
 
-**Không ghi** mật khẩu, token, số thẻ, payload nhạy cảm hoặc dữ liệu cá nhân không cần thiết. Sampling hoặc rate limit log có thể khiến không phải request nào cũng có đầy đủ log. Thiếu một dòng log **không** chứng minh sự kiện không xảy ra.
+**Do not log** passwords, tokens, card numbers, sensitive payloads, or unnecessary personal data. Log sampling or rate limiting can mean not every request has complete logs. The absence of a log line does **not** prove an event did not happen.
 
-## 5. Metrics: quy mô, xu hướng và điểm bắt đầu bất thường
+## 5. Metrics: Scale, Trends, and Anomaly Onset
 
-Metrics biểu diễn số đo theo thời gian:
+Metrics represent measurements over time:
 
-- **Counter** chỉ tăng (ví dụ `requests_total`, `errors_total`); tính **tốc độ tăng trên một cửa sổ**, tránh so sánh trực tiếp giá trị tích lũy từ hai tiến trình khởi động khác nhau.
-- **Gauge** có thể tăng giảm (ví dụ số thread hoạt động, hàng đợi, heap đang dùng, số connection).
-- **Histogram** ghi phân bố quan sát (ví dụ request latency); hỗ trợ xem p50/p95/p99. **p99** nghĩa là khoảng 99% quan sát ở mức không vượt quá ngưỡng đó trong tập dữ liệu được xét, không phải thời gian của “request tệ nhất”.
+- **Counter** only increases (e.g., `requests_total`, `errors_total`); compute the **rate of increase over a window**, and avoid directly comparing cumulative values from two different process restarts.
+- **Gauge** can rise and fall (e.g., active threads, queue depth, heap used, connection count).
+- **Histogram** records distributions of observations (e.g., request latency); supports viewing p50/p95/p99. **p99** means roughly 99% of observations in the examined dataset do not exceed that threshold, not the duration of "the worst request."
 
-Nhóm **RED** cho dịch vụ: **Rate** (lưu lượng), **Errors** (lỗi), **Duration** (độ trễ). Ghép thêm CPU tiến trình/host, GC pause, heap used/committed/max, thread count, connection pool và queue depth tùy triệu chứng.
+The **RED** group for services: **Rate** (traffic), **Errors** (failures), **Duration** (latency). Pair with process/host CPU, GC pauses, heap used/committed/max, thread count, connection pools, and queue depth depending on symptoms.
 
-Ví dụ phân tích có căn cứ:
+Examples of grounded analysis:
 
-1. RPS gần như không đổi, p99 tăng mạnh và thread pool bị chiếm kín: nghi ngờ **tranh chấp hoặc đợi downstream**, chưa thể chỉ từ metrics quyết định loại nào.
-2. CPU process tăng gần ngưỡng trong khi p99 tăng: thu JFR CPU sampling, đối chiếu GC và thread dump; không tự khẳng định ứng dụng đang chạy vòng lặp vô hạn.
-3. Heap used tăng theo tải rồi giảm sau GC: có thể là phân bổ bình thường. Nếu **đáy sau GC** liên tục tăng sau nhiều chu kỳ, nghi ngờ giữ đối tượng lâu và cân nhắc heap dump.
-4. Tỷ lệ lỗi = số lỗi / số request trong cùng cửa sổ; chú ý mẫu số nhỏ và label cardinality. Không gắn raw user ID hoặc request ID làm label metrics vì số chuỗi tăng không giới hạn.
+1. RPS is nearly flat, p99 spikes sharply, and the thread pool is saturated: suspect **contention or downstream waits**, though metrics alone cannot decide which one.
+2. Process CPU nears its limit while p99 increases: collect JFR CPU sampling, compare GC and thread dumps; do not automatically assume the application is in an infinite loop.
+3. Heap used rises with load and drops after GC: could be normal allocation. If the **post-GC floor** rises steadily across many cycles, suspect long-lived object retention and consider a heap dump.
+4. Error rate = errors / requests in the same window; watch for small denominators and label cardinality. Never attach raw user IDs or request IDs as metric labels because unbounded string cardinality explodes series count.
 
-Một biểu đồ có độ phân giải 1 phút có thể che khuất đột biến 2 giây. Chú ý cách tổng hợp (`sum`, `avg`, `max`), mẫu số, phân phối latency và khoảng lấy mẫu. Metrics là **chỉ dẫn để chọn nơi đào sâu**, không phải bằng chứng duy nhất về nguyên nhân.
+A chart with 1-minute resolution can hide a 2-second spike. Pay attention to aggregation (`sum`, `avg`, `max`), denominators, latency distributions, and scrape/sampling intervals. Metrics are **pointers to where to dig deeper**, not standalone proof of cause.
 
-## 6. Stack trace: đường gọi tại một thời điểm
+## 6. Stack Traces: Call Path at a Point in Time
 
-Stack trace có các frame với tên class, method, file và dòng, thường xuất hiện khi exception được ghi. Đọc từ thông báo exception và các `Caused by` để lần theo nguồn gốc, đồng thời xem các frame ứng dụng liên quan (nhiều frame framework chỉ là đường chuyển tiếp).
+A stack trace lists frames with class name, method, file, and line number, typically appearing when an exception is logged. Read from the exception message and `Caused by` clauses to trace the origin, while checking relevant application frames (many framework frames are just forwarding layers).
 
 ```text
 java.lang.IllegalStateException: Could not create order
@@ -87,91 +87,91 @@ Caused by: java.lang.NumberFormatException: For input string: "abc"
     at example.OrderService.readQuantity(OrderService.java:19)
 ```
 
-Đây là **minh họa cấu trúc**, không phải stdout từ một chương trình trong bài. Dòng `OrderService.java:19` gợi nơi parse đầu vào; cần xem dữ liệu và cách xử lý lỗi ở đó, không quy lỗi cho `Integer.parseInt` chỉ vì frame thư viện xuất hiện. Với exception lồng nhau, phần `Caused by` thường giải thích nguyên nhân sâu hơn; `Suppressed` (ví dụ khi đóng resource) cũng có thể chứa manh mối.
+This is a **structural illustration**, not stdout from a program in this lesson. Line `OrderService.java:19` points to where input is parsed; inspect the data and error handling there rather than blaming `Integer.parseInt` just because a library frame appears. For nested exceptions, `Caused by` often explains the deeper cause; `Suppressed` (e.g., when closing resources) can also hold clues.
 
-**Phân biệt:** exception stack trace là đường gọi dẫn đến lỗi của **một thread**. Thread dump chứa stack và trạng thái **nhiều thread**, kể cả khi không có exception. Với async/`CompletableFuture`, ranh giới task/queue có thể làm mất sự liên tục của call stack; correlation ID và tracing giúp nối các bước.
+**Distinction:** an exception stack trace is the call path leading to an error on **one thread**. A thread dump contains stacks and states for **many threads**, even when no exception occurred. With async/`CompletableFuture`, task/queue boundaries can break call-stack continuity; correlation IDs and tracing connect the steps.
 
-Không kết luận “method X tiêu tốn 90% CPU” chỉ vì nó xuất hiện trong một stack trace. Cần CPU profiling/JFR qua nhiều mẫu.
+Do not conclude "method X consumes 90% CPU" simply because it appears in one stack trace. You need CPU profiling/JFR across many samples.
 
-## 7. Thread dump: nhiều luồng đang làm gì, chờ điều gì?
+## 7. Thread Dumps: What Are Many Threads Doing or Waiting On?
 
-Dùng khi request bị treo, thread pool cạn, nghi deadlock, nhiều request chờ lock hoặc CPU cao nhưng chưa biết thread nào. Có thể xem thread name, trạng thái, stack, monitor và một số khóa liên quan.
+Use when requests hang, thread pools are exhausted, deadlocks are suspected, many requests wait on locks, or CPU is high without knowing which threads are involved. Thread dumps show thread names, states, stacks, monitors, and certain lock information.
 
-Trạng thái Java cần hiểu đúng:
+Java states to interpret carefully:
 
-| `Thread.State` | Cách diễn giải thận trọng |
+| `Thread.State` | Cautious Interpretation |
 | --- | --- |
-| `RUNNABLE` | Đủ điều kiện chạy từ góc nhìn JVM; có thể đang thực thi hoặc ở một số tác vụ native/I/O. Không mặc định là đang sử dụng CPU. |
-| `BLOCKED` | Đang đợi vào monitor của `synchronized`; tìm thread đang giữ monitor và đường gọi liên quan. |
-| `WAITING` | Đợi không thời hạn rõ ràng qua các cơ chế như `Object.wait`, `Thread.join`, `LockSupport.park`; thường bình thường với worker rỗi. |
-| `TIMED_WAITING` | Đợi có thời hạn như `sleep` hoặc timed wait/park/join; cần xem frame để biết có bất thường hay không. |
-| `NEW` / `TERMINATED` | Chưa start / đã hoàn tất, ít khi là tâm điểm của thread dump tiến trình đang chạy. |
+| `RUNNABLE` | Eligible to run from the JVM's perspective; may be executing or in certain native/I/O operations. Does not automatically mean it is consuming CPU. |
+| `BLOCKED` | Waiting to enter a `synchronized` monitor; find the thread holding the monitor and the associated call path. |
+| `WAITING` | Waiting indefinitely via mechanisms like `Object.wait`, `Thread.join`, `LockSupport.park`; often normal for idle workers. |
+| `TIMED_WAITING` | Waiting with a timeout such as `sleep` or timed wait/park/join; inspect frames to see if it is abnormal. |
+| `NEW` / `TERMINATED` | Not yet started / completed; rarely the focus in a running process thread dump. |
 
-Thu thập với JDK 17+ (thay `<pid>` bằng PID thực tế):
+Collect with JDK 17+ (replace `<pid>` with the actual PID):
 
 ```bash
 jcmd -l
 jcmd <pid> Thread.print -l > threads-t1.txt
 ```
 
-Để phát hiện **tình trạng kéo dài**, nên có 2–3 dump cách nhau khoảng 5–10 giây trong lúc sự cố đang diễn ra; lưu thời gian của từng bản. So sánh xem thread và stack có liên tục ở cùng điểm chờ hay chỉ đi ngang qua đó. `-l` bổ sung thông tin khóa thuộc `java.util.concurrent` nếu JVM hỗ trợ. Nếu không attach được, kiểm tra PID, quyền chạy, container/namespace và danh sách lệnh của JVM bằng `jcmd <pid> help`.
+To detect **persistent conditions**, take 2–3 dumps spaced roughly 5–10 seconds apart during the incident; record each dump's timestamp. Compare whether threads and stacks remain stuck at the same wait point or are merely passing through. `-l` adds `java.util.concurrent` lock information if supported by the JVM. If attach fails, check PID, permissions, container/namespace, and the JVM's command list with `jcmd <pid> help`.
 
-**Cách phân tích:** nhóm thread theo tên và stack, nhận diện pool đang active/rỗi, dò chuỗi “waiting to lock” ↔ “locked” và thread nắm monitor; tìm vòng chờ nếu nghi deadlock. Một thread `WAITING` trong `ThreadPoolExecutor.getTask` có thể là worker **đang rỗi**, không phải deadlock. Nhiều thread `BLOCKED` trên cùng monitor hoặc cùng điểm chờ lặp lại mới là tín hiệu mạnh hơn.
+**How to analyze:** group threads by name and stack, identify active vs. idle pools, trace "waiting to lock" ↔ "locked" chains and monitor owners; look for wait cycles if deadlock is suspected. A thread `WAITING` in `ThreadPoolExecutor.getTask` is likely an **idle worker**, not a deadlock. Multiple threads `BLOCKED` on the same monitor or repeatedly at the same wait point is a much stronger signal.
 
-Thread dump chỉ chụp các thời điểm nhất định. Không dùng một ảnh chụp để chứng minh độ dài của chờ lock hoặc nguyên nhân CPU; kết hợp JFR events, throughput và thời điểm các request chậm.
+Thread dumps only capture specific instants. Do not use a single snapshot to prove lock-wait duration or CPU cause; combine with JFR events, throughput, and timings of slow requests.
 
-## 8. Heap dump: ai đang giữ bộ nhớ Java heap?
+## 8. Heap Dumps: Who Is Retaining Java Heap Memory?
 
-Heap dump (thường là HPROF) ghi đồ thị object, class, kích thước và đường tham chiếu tại một thời điểm. Nó đặc biệt hữu ích khi heap **sau GC** tiếp tục tăng, gặp `OutOfMemoryError: Java heap space` hoặc nghi cache/session/listener giữ object không còn cần thiết.
+A heap dump (usually HPROF) records the object graph, classes, sizes, and reference paths at a point in time. It is especially useful when **post-GC** heap continues rising, on `OutOfMemoryError: Java heap space`, or when suspecting caches/sessions/listeners retaining unneeded objects.
 
-Từ một heap dump, trình phân tích như Eclipse Memory Analyzer (MAT) hỗ trợ:
+From a heap dump, tools like Eclipse Memory Analyzer (MAT) provide:
 
-1. **Class histogram:** class nào có nhiều instance hoặc dùng nhiều bộ nhớ.
-2. **Shallow size:** kích thước của chính object; **retained size:** bộ nhớ có thể được giải phóng nếu object đó và các object chỉ còn reachable qua nó trở nên unreachable.
-3. **Dominator tree:** object/nhánh nào giữ phần lớn heap; không đồng nhất “to nhất” với “lỗi” nếu dữ liệu đó là cache được thiết kế.
-4. **Path to GC roots:** chuỗi tham chiếu từ GC root (static field, thread, JNI handle…) dẫn tới object nghi vấn; đây là manh mối về **vì sao object còn sống**.
+1. **Class histogram:** which classes have many instances or consume the most memory.
+2. **Shallow size:** size of the object itself; **retained size:** memory that can be freed if that object and objects reachable only through it become unreachable.
+3. **Dominator tree:** which objects/subtrees retain most of the heap; do not equate "largest" with "bug" if that data is an intentionally designed cache.
+4. **Path to GC roots:** reference chain from a GC root (static field, thread, JNI handle…) to the suspected object; this explains **why the object is still alive**.
 
-Lệnh ví dụ cho HotSpot JDK 17+:
+Example command for HotSpot JDK 17+:
 
 ```bash
 jcmd <pid> GC.heap_dump /var/tmp/incident-heap.hprof
 ```
 
-Đường dẫn phải ghi được bởi **tiến trình JVM đích** và đủ dung lượng. Đây là thao tác có **impact cao**: có thể gây pause và sử dụng CPU, RAM, I/O, dung lượng lớn; mặc định `GC.heap_dump` yêu cầu full GC trừ khi dùng tùy chọn `-all`. Hãy cân nhắc thời điểm/ủy quyền vận hành trước khi dùng trên production. Tùy chọn tự tạo dump khi JVM gặp Java heap OOM:
+The path must be writable by the **target JVM process** and have sufficient disk space. This is a **high-impact** operation: it can cause pauses and consume significant CPU, RAM, I/O, and disk space; by default `GC.heap_dump` triggers a full GC unless `-all` is used. Weigh timing and operational authorization before running in production. Startup option to dump automatically on Java heap OOM:
 
 ```bash
 java -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/tmp/app-oom.hprof -jar app.jar
 ```
 
-Cần cấu hình từ khi khởi động và bảo đảm nơi lưu trữ. Heap dump không giải thích trực tiếp **native/off-heap memory**, file descriptor hoặc CPU cao; không tự kết luận mọi OOM đều là heap leak. Một ảnh chụp đơn lẻ cũng không chứng minh **tốc độ tăng**: đối chiếu metrics hoặc so sánh hai dump hợp lý nếu chi phí cho phép.
+Must be configured at startup with guaranteed storage space. A heap dump does not directly explain **native/off-heap memory**, file descriptors, or high CPU; do not automatically assume every OOM is a heap leak. A single snapshot also does not prove **growth rate**: compare metrics or two dumps when cost permits.
 
-**Bảo mật:** heap dump có thể chứa token, session, mật khẩu và dữ liệu người dùng trong object. Chỉ truyền/lưu ở nơi có kiểm soát truy cập, có quy định xóa và hạn chế chia sẻ.
+**Security:** heap dumps can contain tokens, sessions, passwords, and user data inside objects. Transfer and store only in access-controlled locations with retention/deletion policies and restricted sharing.
 
-## 9. JFR: dòng thời gian sự kiện và mẫu quan sát của JVM
+## 9. JFR: JVM Event Timeline and Observation Samples
 
-**Java Flight Recorder** tạo file `.jfr` chứa các sự kiện theo thời gian, như CPU execution samples, allocation, GC, monitor contention, thread park, I/O và một số thông tin môi trường; **sự kiện thực tế phụ thuộc cấu hình và ngưỡng**. JFR mạnh khi cần trả lời câu hỏi “trước, trong và sau spike đã xảy ra điều gì?”, hoặc xem tương quan giữa CPU, GC, lock và code path.
+**Java Flight Recorder** produces a `.jfr` file containing time-stamped events, such as CPU execution samples, allocations, GC, monitor contention, thread parks, I/O, and some environment metadata; **actual events depend on configuration and thresholds**. JFR excels at answering "what happened before, during, and after the spike?" or correlating CPU, GC, locks, and code paths.
 
-- `default.jfc` thường thích hợp ghi liên tục với overhead thấp; `profile.jfc` thu thập sâu hơn cho khoảng điều tra ngắn và có thể tốn tài nguyên hơn.
-- “Sampled” không phải mọi lời gọi method đều được ghi; event dưới ngưỡng hoặc chưa bật có thể không xuất hiện. **Vắng event không chứng minh không có hoạt động.**
-- Dùng JDK Mission Control (JMC) để xem timeline, flame graph, allocation và khóa theo thời gian; có thể sàng lọc bằng lệnh `jfr` mà không cần giao diện.
+- `default.jfc` is generally suitable for continuous low-overhead recording; `profile.jfc` collects deeper detail for short investigation windows and can consume more resources.
+- "Sampled" means not every method invocation is recorded; events below thresholds or disabled may not appear. **Absence of events does not prove absence of activity.**
+- Use JDK Mission Control (JMC) to view timelines, flame graphs, allocations, and locks over time; or filter with the `jfr` command without a GUI.
 
-Ví dụ ghi vòng 1 phút vào file khi JVM đang chạy:
+Example recording 1 minute to a file on a running JVM:
 
 ```bash
 jcmd <pid> JFR.start name=incident settings=profile.jfc duration=60s filename=incident.jfr
 jcmd <pid> JFR.check
 ```
 
-Khi ghi xong và file đã xuất hiện, phân tích:
+Once finished and the file exists, analyze it:
 
 ```bash
 jfr summary incident.jfr
 jfr print --events jdk.ExecutionSample,jdk.JavaMonitorEnter incident.jfr
 ```
 
-`jfr summary` cho biết loại event, số lượng, kích thước; `jfr print` xuất các event được lọc. Việc có bản ghi `jdk.JavaMonitorEnter` hay không phụ thuộc profile/ngưỡng và việc tranh chấp thực sự xảy ra trong khoảng ghi.
+`jfr summary` reports event types, counts, and sizes; `jfr print` outputs filtered events. Whether `jdk.JavaMonitorEnter` records appear depends on the profile/threshold and whether contention actually occurred during the recording window.
 
-Nếu cần **ghi vòng đệm liên tục và lấy một lát cắt khi có sự cố**, dùng quy trình khác:
+If you need a **continuous ring buffer and want to extract a slice when an incident occurs**, use a different workflow:
 
 ```bash
 jcmd <pid> JFR.start name=rolling settings=default.jfc maxage=10m maxsize=200m
@@ -179,15 +179,15 @@ jcmd <pid> JFR.dump name=rolling filename=incident-window.jfr maxage=5m
 jcmd <pid> JFR.stop name=rolling
 ```
 
-`JFR.dump` ghi snapshot của recording ra file **mà không tự dừng recording**; `JFR.stop` dừng recording đã đặt tên. Giới hạn `maxage`/`maxsize` chỉ lưu phần gần đây, tránh tạo tệp không kiểm soát. File được tạo theo đường dẫn được JVM đích sử dụng; nên dùng đường dẫn tuyệt đối khi làm việc với service.
+`JFR.dump` writes a snapshot of the recording to a file **without automatically stopping the recording**; `JFR.stop` stops the named recording. `maxage`/`maxsize` limits retain only recent history, preventing unbounded file growth. Files are created relative to the target JVM's path view; use absolute paths when working with services.
 
-JFR hỗ trợ tìm **đường gọi nóng, allocation rate, GC pauses, lock contention kéo dài**. Heap dump bổ sung khả năng xác định **đối tượng còn được giữ lại**; JFR allocation event và heap dump trả lời hai câu hỏi khác nhau: “được tạo ở đâu?” so với “vì sao vẫn còn sống?”.
+JFR helps identify **hot call paths, allocation rates, GC pauses, and prolonged lock contention**. Heap dumps complement this by identifying **retained objects**; JFR allocation events and heap dumps answer two different questions: "where was it allocated?" vs. "why is it still alive?".
 
-## 10. Tình huống thực hành Java 17+: request bị đợi monitor
+## 10. Java 17+ Hands-On Scenario: Request Waiting on a Monitor
 
-Ví dụ tạo hai thread: `lock-holder` giữ một monitor trong 60 giây; `lock-waiter` chờ vào cùng monitor. Mục đích là **nhìn thấy sự khác biệt giữa triệu chứng, thread state và event JFR**, không mô phỏng toàn bộ server HTTP.
+This example creates two threads: `lock-holder` holds a monitor for 60 seconds; `lock-waiter` waits to enter the same monitor. The goal is to **see the difference between symptoms, thread states, and JFR events**, not to simulate a full HTTP server.
 
-Tạo file **`LockContentionDemo.java`**:
+Create the file **`LockContentionDemo.java`**:
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -211,7 +211,7 @@ public class LockContentionDemo {
 
         Thread waiter = new Thread(() -> {
             synchronized (MONITOR) {
-                // Chạy tiếp sau khi holder nhả monitor.
+                // Continues running after holder releases the monitor.
             }
         }, "lock-waiter");
 
@@ -227,30 +227,30 @@ public class LockContentionDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17+ trong terminal thứ nhất:
+Compile and run with JDK 17+ in the first terminal:
 
 ```bash
 javac LockContentionDemo.java
 java LockContentionDemo
 ```
 
-**Stdout của chương trình** (hai dòng, cách nhau khoảng một phút; không tính thông báo của shell/JDK bên ngoài):
+**Program stdout** (two lines, roughly one minute apart; excluding external shell/JDK messages):
 
 ```text
 Ready: inspect threads for 60 seconds.
 Finished.
 ```
 
-Trong 60 giây chờ, mở terminal thứ hai và chạy:
+During the 60-second wait, open a second terminal and run:
 
 ```bash
 jcmd -l
 jcmd <pid> Thread.print -l > threads-during-wait.txt
 ```
 
-Tìm đúng PID có main class `LockContentionDemo`. Trong thread dump lấy khi cả hai thread còn sống, kỳ vọng `lock-holder` ở `TIMED_WAITING` do `Thread.sleep`, còn `lock-waiter` ở `BLOCKED` khi xin vào cùng monitor. Địa chỉ object, tên frame native và thứ tự xuất hiện tùy JVM, vì vậy **không coi dump là stdout cố định**. Nếu lấy quá sớm hoặc sau 60 giây, có thể chưa thấy hoặc không còn thấy `BLOCKED`.
+Find the exact PID with main class `LockContentionDemo`. In a thread dump taken while both threads are alive, expect `lock-holder` in `TIMED_WAITING` due to `Thread.sleep`, and `lock-waiter` in `BLOCKED` waiting to enter the same monitor. Object addresses, native frame names, and ordering vary by JVM, so **do not treat the dump as fixed stdout**. If taken too early or after 60 seconds, `BLOCKED` may not appear yet or may already be gone.
 
-Muốn quan sát cùng tình huống bằng JFR **từ lúc JVM khởi động**, chạy phiên khác:
+To observe the same scenario with JFR **from JVM startup**, run another session:
 
 ```bash
 java -XX:StartFlightRecording=filename=locks.jfr,settings=profile.jfc,dumponexit=true LockContentionDemo
@@ -258,69 +258,69 @@ jfr summary locks.jfr
 jfr print --events jdk.JavaMonitorEnter locks.jfr
 ```
 
-Đợi chương trình kết thúc rồi mới đọc `locks.jfr`. Việc thu được monitor event phụ thuộc cấu hình, ngưỡng và phiên bản JVM; nếu không có event, xem `jfr summary` và profile thay vì kết luận không có chờ lock. Bài demo dùng `sleep` **trong** vùng `synchronized` để chủ động giữ monitor; trong code sản xuất nên giữ critical section ngắn, hạn chế I/O/blocking trong lock.
+Wait for the program to exit before reading `locks.jfr`. Whether monitor events are captured depends on configuration, thresholds, and JVM version; if no events appear, check `jfr summary` and the profile instead of concluding there was no lock wait. This demo uses `sleep` **inside** a `synchronized` block to intentionally hold the monitor; in production code, keep critical sections short and avoid I/O/blocking inside locks.
 
-**Giải thích bằng chứng của demo:**
+**Explaining the demo's evidence:**
 
-- **Log/stdout:** xác nhận demo bắt đầu và kết thúc; không định lượng được riêng thời gian chờ lock.
-- **Metrics (nếu instrument):** thấy thời gian hoàn thành tác vụ tăng; vẫn chưa chỉ rõ monitor.
-- **Thread dump:** cho thấy mối quan hệ `BLOCKED` và `TIMED_WAITING` ở thời điểm chụp.
-- **JFR:** có thể thấy monitor contention và mốc sự kiện qua thời gian nếu event được ghi.
-- **Heap dump:** không phải lựa chọn ưu tiên vì bài toán không phải giữ object quá lâu.
-- **Exception stack trace:** không xuất hiện vì không có exception; điều này không có nghĩa chương trình không bị chậm.
+- **Logs/stdout:** confirms the demo started and finished; does not quantify lock wait time on its own.
+- **Metrics (if instrumented):** shows task completion time increased; still does not pinpoint the monitor.
+- **Thread dump:** reveals the `BLOCKED` and `TIMED_WAITING` relationship at capture time.
+- **JFR:** can show monitor contention and event timestamps over time if the event was recorded.
+- **Heap dump:** not a priority choice since the issue is not long-lived object retention.
+- **Exception stack trace:** absent because no exception was thrown; this does not mean the program was not slowed down.
 
-## 11. Chọn bằng chứng theo triệu chứng: ba kịch bản điều tra
+## 11. Choosing Evidence by Symptom: Three Investigation Scenarios
 
-### A. p99 latency tăng, CPU và heap không tăng đáng kể
+### A. p99 Latency Rises While CPU and Heap Do Not Increase Significantly
 
-1. **Metrics:** khoanh thời điểm spike, service/instance, RPS, p99, queue depth, số connection và timeout rate. So với baseline.
-2. **Log và traceId:** tìm những request chậm, xác định bước nào mất thời gian; phân biệt chậm ở chính JVM và chậm do downstream.
-3. **Thread dump 2–3 lần:** nếu nhiều thread `BLOCKED` cùng monitor, `WAITING` trên semaphore/connection pool hoặc cùng stack I/O, lập giả thuyết cụ thể.
-4. **JFR trong cửa sổ trùng khớp:** tìm monitor enter, thread park, socket/file I/O và tương quan với spike.
-5. **Kết luận có điều kiện:** chỉ gọi là “lock contention gây latency” khi dữ liệu thời gian, thread chờ và nơi giữ lock nhất quán. Nếu trace chỉ ra downstream chậm, mở rộng điều tra ở downstream.
+1. **Metrics:** isolate spike window, service/instance, RPS, p99, queue depth, connection count, and timeout rate. Compare with baseline.
+2. **Logs and traceId:** locate slow requests, identify which step takes time; distinguish delays inside the JVM from downstream delays.
+3. **2–3 thread dumps:** if multiple threads are `BLOCKED` on the same monitor, `WAITING` on a semaphore/connection pool, or on the same I/O stack, form a specific hypothesis.
+4. **JFR in the matching window:** inspect monitor enter, thread park, socket/file I/O, and correlate with the spike.
+5. **Conditional conclusion:** only state "lock contention causes latency" when timestamps, waiting threads, and lock holder align. If traces point to a slow downstream service, expand the investigation downstream.
 
-### B. Heap used sau GC tăng qua nhiều giờ
+### B. Post-GC Heap Used Rises Over Many Hours
 
-1. **Metrics:** vẽ heap used trước/sau GC, old generation, GC frequency/pause, tải và cache size. Kiểm tra có thay đổi cấu hình hoặc batch job.
-2. **Log/JFR:** xác định giai đoạn tăng, hoạt động cấp phát, chỗ tạo object; phân biệt **allocation rate cao** với **retention cao**.
-3. **Heap dump có kiểm soát:** đọc dominator tree và path to GC roots của object lớn/tăng bất thường; kiểm tra map/cache/static field/listener/session.
-4. **Xác nhận:** so với hành vi kỳ vọng và thời hạn sống dữ liệu; sau sửa, xem đáy heap sau GC có ổn định không. Không kết luận leak chỉ dựa vào class có nhiều instance.
+1. **Metrics:** chart pre/post-GC heap used, old generation, GC frequency/pauses, load, and cache sizes. Check for configuration changes or batch jobs.
+2. **Logs/JFR:** identify growth phases, allocation activity, and allocation sites; distinguish **high allocation rate** from **high retention**.
+3. **Controlled heap dump:** examine dominator tree and paths to GC roots for large/abnormally growing objects; inspect maps/caches/static fields/listeners/sessions.
+4. **Confirm:** compare against expected behavior and data lifetimes; after fixing, verify whether the post-GC heap floor stabilizes. Do not conclude a leak solely from a class having many instances.
 
-### C. CPU tăng mạnh nhưng không có nhiều exception
+### C. CPU Spikes Sharply Without Many Exceptions
 
-1. **Metrics:** xác nhận CPU của JVM hay của cả host, và GC CPU có tăng không; đối chiếu số request/tải.
-2. **JFR CPU samples:** xem phương thức và stack có tỷ trọng mẫu cao trong đúng khoảng xảy ra spike; chú ý sample bias.
-3. **Thread dump:** dùng bổ trợ nhận diện thread lặp lại ở cùng vùng code, nhưng `RUNNABLE` không tự chứng minh thread tiêu thụ CPU.
-4. **Log:** tìm retry loop, xử lý batch bất thường hoặc thay đổi hành vi; kiểm chứng bằng thử nghiệm tải/profiling và kết quả sau thay đổi.
+1. **Metrics:** confirm whether CPU belongs to the JVM or the whole host, and whether GC CPU rose; correlate with request count/load.
+2. **JFR CPU samples:** inspect methods and stacks with high sample share during the exact spike window; account for sample bias.
+3. **Thread dump:** use as a supplement to spot threads repeatedly in the same code region, remembering `RUNNABLE` does not by itself prove CPU consumption.
+4. **Logs:** look for retry loops, unusual batch processing, or behavior shifts; verify via load testing/profiling and post-change results.
 
-## 12. Những sai lầm phổ biến và cách tránh
+## 12. Common Mistakes and How to Avoid Them
 
-| Kết luận vội | Vì sao sai | Kiểm chứng phù hợp |
+| Premature Conclusion | Why It Is Wrong | Appropriate Verification |
 | --- | --- | --- |
-| “Có `ERROR` trong log nên chính dòng đó làm chậm hệ thống.” | Lỗi có thể là **hậu quả** của timeout hoặc nghẽn phía khác. | So timestamp, trace, metrics và JFR/thread dump. |
-| “Latency trung bình bình thường nên không chậm.” | Tail latency có thể tăng trong khi average ổn định. | Xem p95/p99, timeout và phân bố theo route. |
-| “Một thread `RUNNABLE` tức là đang ăn CPU.” | Trạng thái Java không phản ánh đầy đủ lịch CPU/native I/O. | CPU process/thread và JFR execution samples. |
-| “Nhiều `WAITING` nghĩa là deadlock.” | Worker pool rỗi thường ở `WAITING`. | Đọc frame, lock ownership, dump lặp lại và tiến độ công việc. |
-| “Heap lớn chứng minh memory leak.” | Cache/tải và chu kỳ GC có thể khiến heap lớn hợp lệ. | Xu hướng sau GC, retention và GC roots. |
-| “Heap dump chỉ ra nơi object được tạo.” | Nó tập trung vào **object còn sống và tham chiếu hiện tại**. | JFR allocation stack + heap retained graph. |
-| “Không thấy event JFR nghĩa là không xảy ra.” | Event có thể disabled, bị ngưỡng lọc hoặc ngoài cửa sổ ghi. | Kiểm tra cấu hình, `jfr summary` và thời điểm. |
-| “Cần thu mọi dump ngay khi sự cố.” | Heap dump có thể gây pause và lộ dữ liệu nhạy cảm. | Bắt đầu bằng metrics/log; chọn bằng chứng ít tác động nhất đủ trả lời câu hỏi. |
+| "There is an `ERROR` in the log, so that line slowed down the system." | The error may be a **consequence** of a timeout or bottleneck elsewhere. | Compare timestamps, traces, metrics, and JFR/thread dumps. |
+| "Average latency is normal, so nothing is slow." | Tail latency can rise while the average stays flat. | Check p95/p99, timeouts, and per-route distributions. |
+| "A `RUNNABLE` thread means it is burning CPU." | Java state does not fully reflect OS CPU scheduling or native I/O. | Process/thread CPU and JFR execution samples. |
+| "Many `WAITING` threads mean a deadlock." | Idle worker pools normally sit in `WAITING`. | Read frames, lock ownership, repeated dumps, and work progress. |
+| "A large heap proves a memory leak." | Caches/load and GC cycles can legitimately keep heap large. | Post-GC trends, retention, and GC roots. |
+| "A heap dump shows where objects were created." | It focuses on **live objects and current references**. | JFR allocation stacks + heap retained graph. |
+| "No JFR events means it did not happen." | Events may be disabled, filtered by threshold, or outside the recording window. | Check settings, `jfr summary`, and timestamps. |
+| "Collect every dump immediately on incident." | Heap dumps can cause pauses and expose sensitive data. | Start with metrics/logs; choose the lowest-impact evidence sufficient to answer the question. |
 
-## 13. Checklist mang vào một sự cố thực tế
+## 13. Checklist for a Real Incident
 
-- [ ] Nêu rõ triệu chứng đo được, mức ảnh hưởng, thời điểm, baseline và giả thuyết đang kiểm tra.
-- [ ] Xác nhận đúng service, instance, PID, JDK, timezone và phiên bản triển khai.
-- [ ] Đọc metrics trước để định vị quy mô, xu hướng và cửa sổ bất thường.
-- [ ] Dùng log/trace để nối các request hoặc công việc liên quan; tránh ghi lộ dữ liệu.
-- [ ] Chọn stack trace cho lỗi đường gọi, thread dump cho chờ/tranh chấp, heap dump cho giữ object, JFR cho diễn biến CPU/GC/lock/allocation.
-- [ ] Ghi tên file, khoảng thời gian, PID, quyền truy cập, impact và kích thước hiện vật.
-- [ ] Đối chiếu **ít nhất hai tín hiệu độc lập** trước khi tuyên bố nguyên nhân.
-- [ ] Sau thay đổi, xác minh cùng metrics và cùng điều kiện tải đã cải thiện; lưu lại điều chưa chắc chắn.
+- [ ] Clearly state measured symptom, impact scope, timestamps, baseline, and current hypothesis under test.
+- [ ] Confirm exact service, instance, PID, JDK, timezone, and deployed version.
+- [ ] Read metrics first to determine scale, trend, and anomaly window.
+- [ ] Use logs/traces to link related requests or jobs; avoid logging sensitive data.
+- [ ] Pick stack traces for call-path errors, thread dumps for waits/contention, heap dumps for object retention, and JFR for CPU/GC/lock/allocation timelines.
+- [ ] Record file names, time ranges, PIDs, access permissions, impact, and artifact sizes.
+- [ ] Cross-check **at least two independent signals** before declaring a cause.
+- [ ] After a change, verify improvement using the same metrics and comparable load conditions; note remaining uncertainties.
 
-**Tài liệu đối chiếu chính thức cho JDK 17:**
+**Official reference documentation for JDK 17:**
 
 - [Oracle — `jcmd` command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jcmd.html): `Thread.print`, `GC.heap_dump`, `JFR.start`, `JFR.dump`.
 - [Oracle — `jfr` command](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jfr.html): `summary`, `print`, `metadata`.
-- [Oracle — Java SE 17 Troubleshooting Guide](https://docs.oracle.com/en/java/javase/17/troubleshoot/): tình huống chẩn đoán và thu thập bằng chứng.
+- [Oracle — Java SE 17 Troubleshooting Guide](https://docs.oracle.com/en/java/javase/17/troubleshoot/): diagnostic scenarios and evidence collection.
 
-**Điểm cần nhớ:** metrics cho biết *có vấn đề ở đâu và khi nào*; logs/trace cho biết *request hoặc thao tác nào liên quan*; stack trace cho biết *đường gọi*; thread dump cho biết *thread đang làm/chờ gì*; heap dump cho biết *object nào còn được giữ*; JFR cho biết *những sự kiện JVM nào diễn ra trong khoảng thời gian điều tra*. Chúng phát huy tác dụng mạnh nhất khi ghép đúng thời gian và kiểm chứng chéo.
+**Key takeaway:** metrics tell you *where and when there is a problem*; logs/traces tell you *which request or operation was involved*; stack traces show *the call path*; thread dumps show *what threads are doing/waiting on*; heap dumps show *which objects remain retained*; JFR shows *which JVM events occurred across the investigation window*. They are most effective when properly time-aligned and cross-verified.

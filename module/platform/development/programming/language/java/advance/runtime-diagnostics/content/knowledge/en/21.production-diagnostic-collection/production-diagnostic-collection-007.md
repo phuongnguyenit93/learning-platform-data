@@ -1,200 +1,200 @@
-# 21.7 Xử lý giới hạn quyền attach, filesystem chỉ đọc hoặc môi trường thiếu công cụ JDK
+# 21.7 Handling Attach Permission Limits, Read-Only Filesystems, or Environments Missing JDK Tools
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Khi vận hành Java trong container, Kubernetes, môi trường distroless hoặc production có hardening, cách thu thập quen thuộc như `jcmd <pid> Thread.print`, `jcmd <pid> JFR.dump` hay tạo heap dump có thể thất bại vì **không đủ quyền attach**, **không có nơi ghi file**, hoặc **runtime image không có công cụ JDK**. Một số trường hợp còn gặp cả ba rào cản cùng lúc.
+When running Java in containers, Kubernetes, distroless images, or hardened production environments, familiar collection steps such as `jcmd <pid> Thread.print`, `jcmd <pid> JFR.dump`, or taking a heap dump can fail due to **insufficient attach permissions**, **no writable path**, or **a runtime image lacking JDK tools**. Some environments hit all three barriers at once.
 
-Bài học hướng dẫn **chẩn đoán theo từng giới hạn và chọn phương án thu thập an toàn**, thay vì mở quyền root, tắt hardening hay khởi động lại ứng dụng một cách mù quáng.
+This lesson guides you to **diagnose each restriction separately and choose a safe collection method**, rather than blindly opening root privileges, disabling hardening, or restarting the application.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt lỗi **PID/namespace**, **quyền hệ điều hành**, **attach bị tắt**, **socket/thư mục tạm**, **tool không có trong image** và **filesystem chỉ đọc**.
-- Biết `jcmd` cần gì để hoạt động và tại sao `jcmd -l` không thấy JVM **chưa đủ** để kết luận JVM không chạy.
-- Xác định nơi một file JFR, heap dump, GC log, fatal-error log thực sự được **JVM đích** ghi; chọn volume writable và retention hợp lý.
-- Thay `jcmd` bằng số đo **MXBeans/JMX**, thread snapshot trong process, GC logs ra stdout, JFR khởi tạo bằng JVM flags/API hoặc tín hiệu thread dump được JVM hỗ trợ khi phù hợp.
-- Hiểu vai trò, khả năng và giới hạn của **debug/ephemeral container** trong Kubernetes mà không tự động tăng đặc quyền hoặc thay đổi bảo mật.
-- Thiết kế runbook thu thập bằng chứng có timestamp, PID, JDK version, quyền, đường dẫn và tác động vận hành.
-- Chạy một ví dụ **Java 17+ tự quan sát JVM bằng MXBeans** không cần attach và không tạo file.
+- Distinguish errors across **PID/namespace**, **OS permissions**, **disabled attach**, **sockets/temp directories**, **tools missing from the image**, and **read-only filesystems**.
+- Know what `jcmd` requires to work and why `jcmd -l` not seeing a JVM is **insufficient** to conclude the JVM is not running.
+- Determine where a JFR file, heap dump, GC log, or fatal-error log is actually written by the **target JVM**; choose appropriate writable volumes and retention.
+- Replace `jcmd` with **MXBeans/JMX** measurements, in-process thread snapshots, GC logs to stdout, startup-flag/API-initialized JFR, or JVM-supported thread-dump signals when appropriate.
+- Understand the role, capabilities, and limits of **debug/ephemeral containers** in Kubernetes without automatically escalating privileges or weakening security.
+- Design an evidence-collection runbook capturing timestamps, PID, JDK version, permissions, paths, and operational impact.
+- Run a **Java 17+ self-observing JVM example using MXBeans** requiring no attach and writing no files.
 
-**Phạm vi:** các lựa chọn VM flags và `jcmd` minh họa cho HotSpot/OpenJDK Java 17+. Linux/container/Kubernetes là bối cảnh vận hành chính; chương trình Java dùng API tiêu chuẩn, chạy được cả trên Windows. Công cụ, câu chữ lỗi và cơ chế attach có thể khác theo JDK vendor, OS, security policy và container runtime. Đừng suy rộng HotSpot diagnostics thành cam kết cho mọi JVM.
+**Scope:** VM flags and `jcmd` options illustrate HotSpot/OpenJDK Java 17+. Linux/container/Kubernetes is the primary operational context; the Java sample uses standard APIs and also runs on Windows. Tools, exact error wording, and attach mechanics vary by JDK vendor, OS, security policy, and container runtime. Do not generalize HotSpot diagnostics into guarantees for every JVM.
 
-## 1. Ba rào cản khác nhau, ba câu hỏi cần tách biệt
+## 1. Three Distinct Barriers, Three Separate Questions
 
-Một sự cố “không thu được diagnostics” phải được phân loại trước khi sửa:
+A "cannot collect diagnostics" failure must be classified before attempting fixes:
 
-| Rào cản | Triệu chứng điển hình | Câu hỏi xác minh | Hướng đi ban đầu |
+| Barrier | Typical Symptoms | Verification Questions | Initial Direction |
 | --- | --- | --- | --- |
-| **Attach** | `AttachNotSupportedException`, không thấy PID, `Permission denied`, timeout chờ attach listener | Đúng process chưa? Cùng host/PID namespace, effective UID/GID và temp path chưa? JVM có tắt attach không? | Sửa context/quyền **đúng mức**, hoặc dùng capture không cần attach |
-| **Filesystem** | `Read-only file system`, `AccessDeniedException`, `No space left on device` khi ghi `.jfr`/`.hprof`/log | Thư mục nào readonly? Có volume writable cho user JVM không? Dung lượng/inode/quota đủ không? | Chọn stdout hoặc writable volume, giới hạn file, phân biệt output path và scratch |
-| **Thiếu công cụ JDK** | `jcmd: not found`, `jfr: not found`, không có `jstack`, `jmap` | Image dùng JRE/jlink/distroless? Binary bị bỏ khỏi PATH hay không được đóng gói? | Dùng MXBeans/JFR startup/logging; debug image tương thích khi chính sách cho phép |
+| **Attach** | `AttachNotSupportedException`, PID not visible, `Permission denied`, timeout waiting for attach listener | Is it the right process? Same host/PID namespace, effective UID/GID, and temp path? Did the JVM disable attach? | Fix context/permissions **proportionately**, or use attach-free capture |
+| **Filesystem** | `Read-only file system`, `AccessDeniedException`, `No space left on device` when writing `.jfr`/`.hprof`/logs | Which directory is read-only? Is there a writable volume for the JVM user? Are space/inodes/quotas sufficient? | Use stdout or a writable volume, cap files, separate output paths from scratch space |
+| **Missing JDK tools** | `jcmd: not found`, `jfr: not found`, missing `jstack` or `jmap` | Is the image JRE/jlink/distroless? Are binaries off PATH or omitted entirely? | Use MXBeans/JFR startup/logging; use a compatible debug image if policy permits |
 
-Ba rào cản **không tương đương**. Ví dụ:
+These three barriers are **not equivalent**. For example:
 
-- Có `jcmd` nhưng user sai → attach không được.
-- Có quyền attach nhưng JVM khởi động `-XX:+DisableAttachMechanism` → attach vẫn không hoạt động.
-- Có `jcmd` và attach thành công nhưng `JFR.dump` vào `/app` readonly → lỗi ở **đường dẫn ghi file**, không phải attach.
-- Có filesystem writable và đủ quyền nhưng image không có `jcmd` → không thể chạy câu lệnh chưa được đóng gói.
-- Root filesystem readonly **không có nghĩa toàn bộ mount đều readonly**: `/tmp` hoặc `/diagnostics` có thể là writable volume riêng.
+- `jcmd` exists, wrong user → attach fails.
+- Attach permissions exist, JVM launched with `-XX:+DisableAttachMechanism` → attach still fails.
+- `jcmd` attaches cleanly, `JFR.dump` targets read-only `/app` → failure is at **the file output path**, not attach.
+- Writable filesystem and permissions exist, image lacks `jcmd` → you cannot run an unpackaged binary.
+- A read-only root filesystem **does not mean every mount is read-only**: `/tmp` or `/diagnostics` may be separate writable volumes.
 
-**Nguyên tắc:** ghi nhận **đúng thông báo lỗi, process, UID/GID, mount và thời gian**. Không dùng lỗi ở tầng filesystem để suy luận ngay rằng bảo mật attach cần bị tắt.
+**Rule:** record **the exact error message, process, UID/GID, mount, and timestamp**. Never jump from a filesystem error to assuming attach security must be disabled.
 
-## 2. Cây quyết định khi cần thu thập ngay
+## 2. Decision Tree When Immediate Collection Is Needed
 
 ~~~text
-Cần lấy bằng chứng lúc JVM đang gặp vấn đề
+Need evidence while the JVM is experiencing an issue
                     |
                     v
-      Có công cụ thích hợp trong môi trường?
+      Are suitable tools in the environment?
              /                    \
-            Có                    Không
+           Yes                    No
             |                       |
             v                       v
-     Xác định đúng PID       MXBeans / app metrics,
-     & context tool          GC stdout / JFR startup,
-            |                 tín hiệu thread dump
-            v                 (nếu được phép)
-      Attach thành công?
+    Verify exact PID        MXBeans / app metrics,
+    & tool context          GC stdout / JFR startup,
+            |               thread-dump signal
+            v               (if permitted)
+     Attach succeeded?
        /           \
-      Có           Không
+     Yes           No
       |              |
       v              v
-   Chọn lệnh      Phân loại:
-   ít tác động    PID/UID/GID/namespace,
+  Choose low-     Classify:
+  impact cmd      PID/UID/GID/namespace,
       |           attach disabled,
       v           temp path, container
-  Nếu lệnh ghi         |
-  file: có mount        v
-  writable không?     Khắc phục đúng
-    /      \           quyền/cấu hình
-   Có      Không       hoặc fallback
+  If cmd writes        |
+  a file: writable     v
+  mount exists?     Fix exact permission/
+    /      \        config or fall back
+  Yes      No
    |         |
    v         v
- Dump vào  stdout/logs
- volume    /MXBeans/
- hợp lệ    JFR có kế hoạch
+ Dump to   stdout/logs/
+ valid     MXBeans/
+ volume    planned JFR
    |
    v
- Xác minh file và tính toàn vẹn -> lưu evidence + thời gian
+ Verify file & integrity -> save evidence + timestamps
 ~~~
 
-Ở một sự cố cần phản ứng nhanh, ưu tiên **dữ liệu đã có**: application logs, metrics, tracing, GC logging, JFR đang ghi, container events và lịch sử restart. Chỉ tiến hành attach/heap dump sau khi biết lợi ích, tác động và quyền vận hành.
+During a fast-moving incident, prioritize **already-available data**: application logs, metrics, tracing, GC logging, active JFR, container events, and restart history. Proceed to attach or heap dumps only after weighing benefit, impact, and operational authority.
 
-## 3. `jcmd` cần những điều kiện nào?
+## 3. What Does `jcmd` Require?
 
-`jcmd` là công cụ diagnostic của JDK gửi lệnh đến JVM đang chạy. Theo tài liệu Oracle Java 21, lệnh cần chạy trên **cùng máy** với tiến trình đích và có **effective user/group identity** phù hợp. Trong container, còn có vấn đề namespace, nhìn thấy PID và khả năng dùng thư mục/socket attach của JVM.
+`jcmd` is a JDK diagnostic tool that sends commands to a running JVM. Per Oracle Java 21 documentation, it must run on the **same machine** as the target process with a matching **effective user/group identity**. Inside containers, namespaces, PID visibility, and access to the JVM's attach directory/socket also come into play.
 
-### 3.1 Bước xác minh không làm thay đổi JVM
+### 3.1 Non-Intrusive Verification Steps
 
-Trong container/host có shell và công cụ hệ điều hành thích hợp:
+In a container/host with a shell and appropriate OS utilities:
 
 ~~~sh
-# Xác định user hiện tại của shell:
+# Identify the shell's current user:
 id
 id -u
 id -g
 
-# Xem process (nếu image có ps):
+# Inspect processes (if ps is present in the image):
 ps -eo pid,uid,gid,args
 
-# Xem tool có trên PATH không (nếu có shell):
+# Check if tools are on PATH (if a shell exists):
 command -v java
 command -v jcmd
 
-# Nếu JVM là process PID 1 trong cùng namespace:
+# If the JVM is PID 1 in the same namespace:
 cat /proc/1/status
 ~~~
 
-`/proc/1` chỉ là ví dụ kiểm PID 1, **không mặc định mọi ứng dụng Java đều có PID 1**. Nếu container không có `sh`, `ps` hay `cat`, đừng diễn giải lệnh “not found” là không có process. Dùng process metadata/metrics từ orchestrator, hoặc cơ chế debug đã được tổ chức cho phép.
+`/proc/1` is only an example for checking PID 1; **never assume every Java application runs as PID 1**. If the container lacks `sh`, `ps`, or `cat`, do not interpret "not found" as "no process running." Use orchestrator process metadata/metrics or an organization-approved debugging workflow.
 
-Trong môi trường có JDK:
+In an environment with a JDK:
 
 ~~~sh
-# Liệt kê JVM mà công cụ có thể nhìn thấy:
+# List JVMs visible to the tool:
 jcmd -l
 
-# Dùng PID thực đã xác minh; lệnh dưới tác động rất nhỏ:
+# Use the verified real PID; the command below is very low impact:
 jcmd 1234 VM.version
 
-# Liệt kê lệnh được JVM hiện tại hỗ trợ:
+# List commands supported by this JVM:
 jcmd 1234 help
 ~~~
 
-`1234` chỉ là PID minh họa. **Không dùng `jcmd 0 ...` trong lúc điều tra một service riêng**, vì theo cú pháp `jcmd`, PID 0 có thể gửi lệnh đến **tất cả JVM tìm thấy**. Tương tự, chọn main-class thay vì PID có thể match nhiều process; PID thực tế được kiểm tra sẽ an toàn hơn.
+`1234` is an illustrative PID only. **Never run `jcmd 0 ...` while investigating a single service**, because per `jcmd` syntax, PID 0 can dispatch the command to **all visible JVMs**. Similarly, matching by main-class instead of PID can hit multiple processes; a verified real PID is safer.
 
-Đặc biệt, tài liệu `jcmd -l` nêu ngoại lệ với các JVM chạy trong Docker process riêng. Nếu danh sách trống, hãy tìm PID bằng metadata/process view phù hợp, không tự kết luận JVM đã chết.
+Specifically, `jcmd -l` documentation notes exceptions for JVMs running in separate Docker processes. If the list is empty, look up the PID via appropriate metadata/process views instead of assuming the JVM is dead.
 
-### 3.2 Những lý do attach thất bại
+### 3.2 Why Attach Fails
 
-**Sai user:** app chạy dưới UID 10001 nhưng shell debug/host là UID khác. Chỉ vì user debug là “root trong container” không có nghĩa tương tác với một JVM non-root ở namespace/security context khác sẽ tự động thành công. Yêu cầu effective UID/GID và các policy OS cần được xác minh theo JVM thật.
+**Wrong user:** the app runs under UID 10001 while the debug/host shell runs under another UID. Being "root inside a debug container" does not automatically mean interacting with a non-root JVM in another namespace/security context will succeed. Verify effective UID/GID and OS policies against the real JVM.
 
-**Sai PID namespace / host context:** PID 1 trong container có thể mang PID khác trên node. Một helper không nhìn thấy đúng process có thể không thể attach, ngay cả khi có binary `jcmd`.
+**Wrong PID namespace / host context:** PID 1 inside a container may map to a different PID on the node. A helper that cannot see the target process namespace cannot attach, even with `jcmd` installed.
 
-**Cơ chế attach bị tắt:** HotSpot hỗ trợ khởi động với:
+**Attach mechanism disabled:** HotSpot supports launching with:
 
 ~~~sh
 java -XX:+DisableAttachMechanism -jar app.jar
 ~~~
 
-Đây là **JVM flag**, phải nằm trước `-jar`. Trong thử nghiệm trên HotSpot JDK 24, `jcmd <pid> VM.version` đến JVM đã bật flag này trả `AttachNotSupportedException: The VM does not support the attach mechanism`. Thay `jcmd` bằng `jstack`/`jmap` thông thường không tự giải quyết khi các công cụ cũng cần Attach API. Không giả định có thể “bật lại” attach trong một JVM đang chạy chỉ bằng một lần `jcmd`.
+This is a **JVM flag** and must precede `-jar`. In testing on HotSpot JDK 24, running `jcmd <pid> VM.version` against a JVM with this flag returned `AttachNotSupportedException: The VM does not support the attach mechanism`. Swapping `jcmd` for `jstack`/`jmap` normally fails too, since those tools also rely on the Attach API. Never assume you can "re-enable" attach in a running JVM via `jcmd`.
 
-**Temp/socket không sẵn sàng:** trên HotSpot/Linux, cơ chế attach có thể sử dụng các special files/socket liên quan PID và thư mục tạm (ví dụ `/tmp/.java_pid<PID>`), đồng thời bị ảnh hưởng mount namespace/UID/quyền. `/tmp` chỉ đọc hoặc không có không gian có thể làm attach không hoàn tất. **Không tự tạo, sửa quyền rộng hoặc xóa socket trong `/tmp` của JVM đang sống** để thử vận may: có thể gây gián đoạn/đụng vào dữ liệu của tiến trình khác.
+**Temp/socket unavailable:** on HotSpot/Linux, attach can use special files/sockets tied to the PID and temporary directory (such as `/tmp/.java_pid<PID>`), subject to mount namespaces, UIDs, and permissions. A read-only or full `/tmp` can prevent attach from completing. **Never manually create, `chmod` broadly, or delete sockets inside `/tmp` belonging to a live JVM** to try your luck: you risk disrupting or interfering with another process's state.
 
-**Attach listener chưa phản hồi:** JVM đang quá tải hoặc trong trạng thái không phản hồi có thể khiến lệnh timeout. Phân biệt với JVM đã chết, PID tái sử dụng, namespace sai hoặc security policy chặn tín hiệu/socket.
+**Unresponsive attach listener:** an overloaded or hung JVM can cause commands to time out. Distinguish this from a dead JVM, reused PID, wrong namespace, or security policies blocking signals/sockets.
 
-**Quyền hệ điều hành bổ sung:** container security policy, user namespaces, `/proc` visibility, seccomp, AppArmor/SELinux và mount layout có thể ảnh hưởng các công cụ. Không giả định thêm `CAP_SYS_PTRACE`, chạy privileged hay root là điều kiện chung để `jcmd` hoạt động; chỉ cấp quyền thực sự cần thiết sau khi xác định cơ chế và được phê duyệt.
+**Additional OS privileges:** container security policies, user namespaces, `/proc` visibility, seccomp, AppArmor/SELinux, and mount layouts can affect tools. Never assume adding `CAP_SYS_PTRACE`, running privileged, or running as root is a standard requirement for `jcmd`; grant only truly necessary permissions after confirming the mechanism and obtaining approval.
 
-### 3.3 Không dùng các “mẹo” chưa kiểm chứng
+### 3.3 Avoid Unverified "Tricks"
 
-- `-Djava.io.tmpdir=/somewhere` **không được coi là bảo đảm** sửa được attach. Hành vi socket/attach là implementation-specific và có thể không theo mọi đường dẫn tạm mà ứng dụng Java dùng.
-- `-Djdk.attach.allowAttachSelf=true` liên quan self-attach của cùng JVM trong tình huống nhất định; **không thay thế** yêu cầu user/PID/namespace của một công cụ từ process khác.
-- `-XX:+StartAttachListener` có thể cấu hình listener sớm trên HotSpot hỗ trợ, nhưng không vượt qua `-XX:+DisableAttachMechanism`, file permission hay security context. Cần kiểm option và thử trong staging.
-- Chạy tool từ JDK mới hơn/khác vendor **không phải luôn tương thích** với JVM đích; ưu tiên version/vendor phù hợp và kiểm chứng lệnh `help`.
-- Không đưa `/tmp` hay các mount nhạy cảm về mode `777`, không tắt seccomp/AppArmor và không triển khai container privileged chỉ để làm lệnh chạy.
+- `-Djava.io.tmpdir=/somewhere` is **not guaranteed** to fix attach. Socket/attach behavior is implementation-specific and may not follow every Java application temp property.
+- `-Djdk.attach.allowAttachSelf=true` applies to a JVM attaching to itself in specific scenarios; it **does not replace** user/PID/namespace requirements for an external tool process.
+- `-XX:+StartAttachListener` may initialize the listener early on supporting HotSpot builds, yet cannot override `-XX:+DisableAttachMechanism`, file permissions, or security contexts. Check option support and test in staging.
+- Running tools from a newer or different-vendor JDK is **not always compatible** with the target JVM; match version/vendor where possible and verify with `help`.
+- Never set `/tmp` or sensitive mounts to mode `777`, disable seccomp/AppArmor, or deploy privileged containers merely to make a command run.
 
-Nếu chính sách cố ý không cho attach, hãy chọn phương thức **không cần attach** thay vì tìm cách vượt qua chính sách.
+If policy intentionally disables attach, choose an **attach-free** collection path instead of trying to bypass policy.
 
-## 4. Filesystem chỉ đọc: xác định chính xác nơi nào không ghi được
+## 4. Read-Only Filesystems: Pinpoint Exactly Where Writes Are Blocked
 
-Trong container đã bật `readOnlyRootFilesystem: true`, những phần thuộc root filesystem của image được bảo vệ khỏi ghi, nhưng **writable volume mounts** vẫn có thể được cung cấp. Vấn đề không phải “JVM không có quyền ghi vào mọi chỗ”, mà là nơi nào đã được mount, user nào sở hữu và phần nào có đủ dung lượng.
+In containers with `readOnlyRootFilesystem: true`, the image's root filesystem is protected from writes, while **writable volume mounts** can still be provided. The question is not "can the JVM write anywhere," but which paths are mounted, which user owns them, and which ones have free space.
 
-### 4.1 Điều tra vị trí và dung lượng
+### 4.1 Inspecting Locations and Capacity
 
-Trên Linux có shell/utilities:
+On Linux with a shell and utilities:
 
 ~~~sh
-# Các mount liên quan, quyền thư mục và dung lượng:
+# Relevant mounts, directory permissions, and capacity:
 ls -ld /tmp /diagnostics
 df -h /tmp /diagnostics
 df -i /tmp /diagnostics
 cat /proc/mounts
 ~~~
 
-Các lệnh có thể không có trong distroless image. Đọc `/proc/mounts` để phân biệt mount readonly (`ro`) với writable (`rw`) khi có quyền xem. `df -h` đo dung lượng, `df -i` đo inode; thiếu một trong hai vẫn có thể khiến không tạo được file.
+These commands may be absent in distroless images. Inspect `/proc/mounts` to distinguish read-only (`ro`) from writable (`rw`) mounts when readable. `df -h` checks bytes and `df -i` checks inodes; running out of either prevents file creation.
 
-**Kiểm tra ghi** chỉ ở thư mục đã được chỉ định để chẩn đoán, không đụng vào source/config hay thư mục nhạy cảm:
+**Test writes** only in a designated diagnostics directory, never touching source, config, or sensitive folders:
 
 ~~~sh
-# Chỉ chạy khi /diagnostics là vùng được phép và mktemp có sẵn:
+# Run only when /diagnostics is an authorized area and mktemp exists:
 tmpfile=$(mktemp /diagnostics/probe.XXXXXX) || exit 1
 rm -- "$tmpfile"
 ~~~
 
-Lệnh `mktemp` có thể khác giữa GNU/BusyBox; trên image không có shell hoặc tool thì dùng cơ chế kiểm mount khác. `test -w` hoặc `Files.isWritable(...)` đôi khi chỉ là kiểm quyền dự đoán; **thử tạo file thực sự ở đúng mount** là bằng chứng rõ hơn khi được phép.
+`mktemp` syntax varies between GNU and BusyBox; on images without a shell or tools, verify mounts through other approved mechanisms. `test -w` or `Files.isWritable(...)` can be predictive only; **creating an actual test file on the exact mount** provides stronger proof when permitted.
 
-### 4.2 Phân biệt bốn loại đường dẫn
+### 4.2 Distinguishing Four Path Categories
 
-| Loại đường dẫn | Ai sử dụng | Rủi ro khi readonly/quota |
+| Path Category | Who Uses It | Risk When Read-Only / Over Quota |
 | --- | --- | --- |
-| **Ứng dụng / user.dir** | Relative file path, config/cache/log của app | Relative `filename=...` có thể ghi nhầm vào `/app` readonly |
-| **JVM temporary area** | Một phần temp files, cơ chế VM/attach tùy OS/JDK | `/tmp` readonly/quyền sai có thể làm diagnostics thất bại |
-| **JFR repository** | Các chunks lưu tạm khi JFR recording vào disk | Repo không writable có thể khiến JFR không thu/dump như kỳ vọng |
-| **Final output** | `.jfr`, `.hprof`, `hs_err_pid...log` và file logs | Cần writable path, đủ dung lượng và quyền bảo vệ dữ liệu |
+| **Application / `user.dir`** | Relative file paths, app config/cache/logs | A relative `filename=...` may try writing into read-only `/app` |
+| **JVM temporary area** | Certain temp files, VM/attach mechanics per OS/JDK | Read-only or mispermissioned `/tmp` can break diagnostics |
+| **JFR repository** | Temporary chunks while JFR records to disk | Non-writable repo prevents JFR from recording/dumping as expected |
+| **Final output** | `.jfr`, `.hprof`, `hs_err_pid...log`, and log files | Requires writable path, enough space, and data-protection permissions |
 
-Một `filename=/diagnostics/capture.jfr` hợp lệ **chưa tự chứng minh repository tạm của JFR đã writable**. Với HotSpot Java 17+, có thể cấu hình nơi lưu JFR repository bằng `-XX:FlightRecorderOptions=repository=...` và đặt final output tương ứng.
+A valid `filename=/diagnostics/capture.jfr` **does not prove JFR's temporary repository is writable**. On HotSpot Java 17+, configure the JFR repository location via `-XX:FlightRecorderOptions=repository=...` alongside the final output path.
 
-### 4.3 Khi cần heap dump
+### 4.3 When a Heap Dump Is Needed
 
-Nếu JVM có heap OOM và bạn cần file để phân tích hậu sự cố, chuẩn bị trước:
+If the JVM encounters heap OOM and you need a post-incident dump, prepare ahead of time:
 
 ~~~sh
 java -XX:+HeapDumpOnOutOfMemoryError \
@@ -203,65 +203,65 @@ java -XX:+HeapDumpOnOutOfMemoryError \
      -jar app.jar
 ~~~
 
-Đây là ví dụ command cho **lần khởi động mới**, yêu cầu `/diagnostics` tồn tại/writable. Heap dump có thể **rất lớn**, tác động thời gian và chứa dữ liệu nhạy cảm; đặt ngân sách disk, chính sách bảo vệ/truy xuất/xóa. JVM OOM do **container cgroup OOMKill** hoặc `SIGKILL` không phải lúc nào cũng cho JVM cơ hội ghi heap dump hoặc fatal-error log; không dùng sự vắng mặt của file làm bằng chứng không có sự cố bộ nhớ.
+This is an example command for a **fresh launch**, requiring `/diagnostics` to exist and be writable. Heap dumps can be **huge**, impact timing, and contain sensitive data; enforce disk budgets and access/retention/deletion policies. A JVM killed by **container cgroup OOMKill** or `SIGKILL` does not always get a chance to write a heap dump or fatal-error log; never cite the absence of a file as proof against memory issues.
 
-`-XX:ErrorFile` dùng cho các **fatal JVM errors** khi HotSpot có thể tạo báo cáo, không phải một file dành cho mọi Java exception. Không lẫn fatal-error log với heap dump/GC log.
+`-XX:ErrorFile` is for **fatal JVM errors** when HotSpot can emit a report, not a catch-all log for ordinary Java exceptions. Never confuse fatal-error logs with heap dumps or GC logs.
 
-## 5. Không có nơi ghi file: ưu tiên stdout/stderr và dữ liệu có sẵn
+## 5. Nowhere to Write Files: Prefer `stdout`/`stderr` and Existing Telemetry
 
-Container thường thu stdout/stderr bằng logging driver/orchestrator. Khi filesystem readonly nhưng luồng console vẫn hoạt động, **Unified Logging** giúp thu GC/safepoint/JVM startup data mà không tạo file trong image:
+Containers commonly collect `stdout`/`stderr` via logging drivers or orchestrators. When the filesystem is read-only while console streams work, **Unified Logging** captures GC, safepoint, and JVM startup data without creating files inside the image:
 
 ~~~sh
-# Chạy từ lúc JVM khởi động; không cần jcmd:
+# Run from JVM startup; requires no jcmd:
 java '-Xlog:gc*:stdout:time,uptime,level,tags' -jar app.jar
 ~~~
 
-Cú pháp đã được thử trên HotSpot JDK 24 (thành công với `-XX:+DisableAttachMechanism`). Chọn tags/levels tối thiểu theo câu hỏi. `gc*` thu khá nhiều thông tin, nhất là tại startup; với hệ thống nhạy chi phí hoặc log volume lớn, bắt đầu `-Xlog:gc=info:stdout:uptime,level,tags` rồi mở chi tiết khi cần.
+This syntax was verified on HotSpot JDK 24 (succeeding alongside `-XX:+DisableAttachMechanism`). Choose the minimal tags/levels needed for your question. `gc*` emits considerable detail, especially at startup; for cost-sensitive or high-volume systems, start with `-Xlog:gc=info:stdout:uptime,level,tags` and increase detail only as needed.
 
-Một ví dụ stdout hẹp hơn:
+A narrower stdout example:
 
 ~~~sh
 java '-Xlog:gc=info:stdout:uptime,level,tags' -jar app.jar
 ~~~
 
-**Ưu điểm:** không cần quyền ghi file do app sở hữu, log có timestamp và được collector đưa ra ngoài container (nếu pipeline cấu hình đúng). **Giới hạn:** log không thay thế heap dump/JFR, có thể bị mất nếu collector không thu/retention quá ngắn, và chi phí logging vẫn cần được tính. Khi app chỉ chạy sẵn mà không có logging, bạn không thể “bổ sung JVM startup flags” vào process hiện tại nếu không có lần restart/deploy mới.
+**Pros:** requires no app-owned file write permissions, logs carry timestamps, and collectors ship them off-container (if the pipeline is configured properly). **Limits:** logs do not replace heap dumps or JFR, can be dropped if collectors lag or retention is short, and logging cost still applies. If an already-running app lacks logging, you cannot "inject JVM startup flags" into that live process without a new restart/deploy.
 
-### 5.1 Lấy thread dump không cần Attach API (có điều kiện)
+### 5.1 Taking a Thread Dump Without the Attach API (Conditionally)
 
-Trên HotSpot/Linux, khi có **quyền gửi tín hiệu** đúng process:
+On HotSpot/Linux, when holding **permission to send signals** to the target process:
 
 ~~~sh
-# PID phải được xác minh; đây là tín hiệu QUIT, không phải TERM/KILL.
+# Verify the PID first; this is QUIT, not TERM or KILL.
 kill -QUIT 1234
 ~~~
 
-Thông thường HotSpot xử lý `SIGQUIT` bằng cách **in thread dump** tới output của **JVM đích** rồi tiếp tục chạy. Đây là một cơ chế khác attach: không cần `jcmd` nhưng vẫn chịu OS signal permissions và policy. **Không nhầm `kill -QUIT` với `kill -9`, `SIGTERM` hoặc `SIGABRT`**. Kiểm tra `stdout/stderr` của JVM (ví dụ orchestrator logs), không chờ dump xuất hiện trong terminal gọi lệnh.
+Normally HotSpot handles `SIGQUIT` by **printing a thread dump** to the **target JVM's output** and continuing execution. This is distinct from attach: no `jcmd` is needed, though OS signal permissions and policies still apply. **Never confuse `kill -QUIT` with `kill -9`, `SIGTERM`, or `SIGABRT`**. Check the JVM's `stdout`/`stderr` (such as orchestrator logs)—do not expect the dump to appear in the terminal that sent the signal.
 
-Các giới hạn:
+Limitations:
 
-- `-Xrs` có thể vô hiệu hóa handler thread dump dựa trên `SIGQUIT`; signal handling cũng có thể khác theo JVM/platform.
-- Cần cùng PID namespace hoặc cách định danh process đúng; user gửi tín hiệu phải có quyền.
-- Thread dump có thể chứa tên thread, method và dữ liệu nhạy cảm trong stack; giới hạn chia sẻ.
-- Lệnh không cung cấp heap histogram, NMT hoặc JFR đầy đủ; tránh gửi liên tục gây nhiễu.
-- Với Windows, cơ chế **Ctrl+Break** là một lựa chọn khi app có console/handler tương ứng; không dùng `kill -QUIT` từ ví dụ Linux lên Windows.
+- `-Xrs` can disable the `SIGQUIT`-based thread dump handler; signal handling can also differ across JVMs and platforms.
+- Requires the right PID namespace or process targeting and signal permissions for the sending user.
+- Thread dumps can reveal thread names, methods, and sensitive stack context; restrict sharing.
+- Signals do not provide heap histograms, NMT, or full JFR; avoid spamming signals and creating noise.
+- On Windows, **Ctrl+Break** is an option when the app has an attached console/handler; never apply Linux `kill -QUIT` examples directly on Windows.
 
-### 5.2 Tận dụng logs/metrics ngay cả khi process không phản hồi
+### 5.2 Leverage Logs and Metrics Even When the Process Is Unresponsive
 
-Ngay cả khi không attach, bạn có thể còn những nguồn đã được bật trước:
+Even without attach, previously enabled sources may still exist:
 
-- **Application metrics/health endpoints:** latency, request rate, errors, heap/GC/thread/classloading qua metrics bridge.
-- **Orchestrator logs/events:** container restarts, exit code, OOMKilled, probe failures, cgroup limits, pod/node pressure, timestamp.
-- **OpenTelemetry/APM/tracing** đã tích hợp: spans, error attributes, deployment version.
-- **Host/container OS metrics:** RSS, CPU, file descriptors, cgroup memory usage, I/O; cần phân biệt OS metrics với JMX heap used.
-- **JFR ghi từ startup** và được xuất có kế hoạch; có thể phân tích offline bằng máy khác.
+- **Application metrics / health endpoints:** latency, request rate, errors, and heap/GC/thread/classloading via metrics bridges.
+- **Orchestrator logs/events:** container restarts, exit codes, `OOMKilled`, probe failures, cgroup limits, pod/node pressure, and timestamps.
+- **Integrated OpenTelemetry/APM/tracing:** spans, error attributes, deployment versions.
+- **Host/container OS metrics:** RSS, CPU, file descriptors, cgroup memory usage, I/O; distinguish OS metrics from JMX heap used.
+- **Startup-enabled JFR** exported per schedule; analyzable offline on another machine.
 
-Chọn nguồn bằng chứng theo câu hỏi thay vì cố lấy mọi thứ. Không có heap dump không ngăn bạn phân tích ban đầu một vụ timeout; có GC logs, thread metrics và request timeline đôi khi đã đủ khoanh vùng.
+Select evidence sources by question rather than grabbing everything. Lacking a heap dump does not prevent initial timeout triage; GC logs, thread metrics, and request timelines are often enough to narrow the cause.
 
-## 6. Không có `jcmd` trong image: hiểu runtime thực sự đang có gì
+## 6. No `jcmd` in the Image: Understand What the Runtime Actually Contains
 
-Trong JDK build đầy đủ, `java`, `javac`, `jcmd`, `jfr` là các công cụ khác nhau; một **runtime image** được rút gọn bằng jlink có thể chỉ chứa `java` và các modules cần chạy ứng dụng. Một image distroless có thể không có cả shell, package manager, `ps` và `jcmd`. **“Có lệnh `java`” không chứng minh “có toàn bộ JDK tools”**.
+In a full JDK build, `java`, `javac`, `jcmd`, and `jfr` are separate binaries; a **runtime image** slimmed down with `jlink` might contain only `java` and the modules needed to run the app. A distroless image may lack a shell, package manager, `ps`, and `jcmd` altogether. **Having `java` does not prove all JDK tools are present.**
 
-Nếu có khả năng chạy lệnh:
+If you can run commands:
 
 ~~~sh
 java -version
@@ -271,29 +271,29 @@ command -v jfr
 command -v jstack
 ~~~
 
-`java --list-modules` giúp kiểm các module như `java.management`, `jdk.jfr` và `jdk.management.jfr` (nếu có). **Thiếu `jcmd` binary không đồng nghĩa `jdk.jfr` vắng mặt**, và có `jdk.jfr` không đồng nghĩa đã có file `jfr` tool hoặc đủ quyền ghi recording. Kiểm từng capability riêng.
+`java --list-modules` checks for modules such as `java.management`, `jdk.jfr`, and `jdk.management.jfr` (if present). **Missing the `jcmd` binary does not mean `jdk.jfr` is absent**, and having `jdk.jfr` does not mean the `jfr` CLI tool is installed or write permissions exist. Verify each capability individually.
 
-### 6.1 Các lựa chọn hợp lệ khi thiếu tool
+### 6.1 Valid Options When Tools Are Missing
 
-1. **Không thay đổi image**: dùng logs, JMX/MXBeans đã tích hợp, in-process diagnostics, JFR tại JVM startup nếu module hỗ trợ; lưu file trên writable mount.
-2. **Dùng image/tooling cho môi trường staging**: chạy lại workload dưới image JDK đầy đủ để tái hiện, giữ cùng JDK vendor/version, GC, flags và constraints quan trọng. Đây là phép thử mới, không phải dữ liệu trực tiếp của process production.
-3. **Tạo bản debug/deployment có kiểm soát**: theo quy trình vận hành, thêm công cụ cần thiết vào image hoặc môi trường có quyền tương ứng; không cài trực tiếp package vào production image bất biến.
-4. **Ephemeral debug container** (Kubernetes): cung cấp shell/JDK tools cho quá trình điều tra **khi chính sách cho phép**, nhưng phải xác minh PID, effective user/group, mount/attach socket và version. Có tool trong sidecar **không bảo đảm** attach đến app image khác.
-5. **API quản lý từ xa đã được bảo vệ**: JMX/`FlightRecorderMXBean` nếu JVM/module cho phép và có xác thực/TLS; không bật cổng mở toàn mạng để đổi lấy vài metric.
+1. **Leave the image unchanged:** use logs, built-in JMX/MXBeans, in-process diagnostics, and startup JFR if supported by modules; write files to a writable mount.
+2. **Use a full-JDK image in staging:** replay the workload under a full JDK image with matching vendor/version, GC, flags, and key constraints. Remember this is a new test run, not live data from the production process.
+3. **Build a controlled debug deployment:** via operational release workflows, include needed tools in an authorized image/environment; never `apt-get`/`apk add` packages directly into immutable production containers.
+4. **Ephemeral debug containers** (Kubernetes): provide a shell and JDK tools for investigation **when policy permits**, while verifying PID, effective user/group, mounts/attach sockets, and version. Having tools in a sidecar **does not guarantee** attach to another app container.
+5. **Secured remote management APIs:** JMX/`FlightRecorderMXBean` when supported by modules and protected with authentication and TLS; never open unauthenticated ports across the network for a few metrics.
 
-**Không xem `jhsdb` là “jcmd thay thế luôn thành công”.** Serviceability Agent/ptrace có yêu cầu OS privileges, có thể tạm dừng process hoặc tăng tác động và có điều kiện tương thích khắt khe. Chỉ chọn khi phương án nhẹ hơn thất bại, có người vận hành phê duyệt và hiểu rủi ro.
+**Do not treat `jhsdb` as a "guaranteed fallback for `jcmd`."** Serviceability Agent/`ptrace` requires OS privileges, can pause or impact the process, and imposes strict compatibility requirements. Use it only when lighter methods fail, with operator approval and clear awareness of risk.
 
-## 7. Thực hành Java 17+: thu thập MXBeans ngay trong process, không attach và không file
+## 7. Java 17+ Practice: In-Process MXBean Collection Without Attach or Files
 
-Nếu bạn có khả năng thêm code vào ứng dụng hoặc chạy một chương trình diagnostic riêng **trong đúng JVM cần quan sát**, `java.lang.management` cung cấp nhiều metric mà không cần `jcmd`, JNI hay file system. Ví dụ dưới đây dùng:
+If you can add code to the application or run diagnostic logic **inside the exact JVM under observation**, `java.lang.management` provides rich metrics without `jcmd`, JNI, or filesystem access. The example below uses:
 
-- `MemoryMXBean` để đọc `getHeapMemoryUsage().getUsed()`.
-- `ThreadMXBean` để lấy thread count và một thread snapshot `dumpAllThreads(false, false)`.
-- `ClassLoadingMXBean` để xem số lớp đang loaded.
+- `MemoryMXBean` to read `getHeapMemoryUsage().getUsed()`.
+- `ThreadMXBean` to read thread count and a thread snapshot via `dumpAllThreads(false, false)`.
+- `ClassLoadingMXBean` to inspect loaded class counts.
 
-Mã chỉ in những **điều kiện xác nhận** có giá trị ổn định thay vì hard-code số thread, heap bytes hoặc class count vốn khác giữa JVMs. Trong ứng dụng thật, bạn sẽ gửi số đo cụ thể ra **metrics endpoint/stdout** theo chính sách quan sát.
+The code prints stable **assertion checks** instead of hard-coding thread counts, heap bytes, or class counts that vary across JVMs. In real applications, emit concrete measurements to a **secured metrics endpoint or `stdout`** per observability policy.
 
-Lưu đúng tên **NoAttachSnapshot.java**:
+Save under the exact name **NoAttachSnapshot.java**:
 
 ~~~java
 import java.lang.management.ClassLoadingMXBean;
@@ -322,14 +322,14 @@ public final class NoAttachSnapshot {
 }
 ~~~
 
-Biên dịch và chạy (trong môi trường build có JDK 17+):
+Compile and run (in a build environment with JDK 17+):
 
 ~~~sh
 javac --release 17 NoAttachSnapshot.java
 java NoAttachSnapshot
 ~~~
 
-**Stdout chính xác** trong lần chạy kiểm thử HotSpot JDK 24:
+**Exact stdout** from a verification run on HotSpot JDK 24:
 
 ~~~text
 HEAP_USED_NONNEGATIVE=true
@@ -339,19 +339,19 @@ THREAD_SNAPSHOT_NONEMPTY=true
 NO_JCMD_REQUIRED
 ~~~
 
-Có thể thử **cấm attach từ startup** nhưng chương trình vẫn chạy bình thường:
+You can even **disable attach at startup** and the program still runs normally:
 
 ~~~sh
 java -XX:+DisableAttachMechanism NoAttachSnapshot
 ~~~
 
-Mã trên **không gọi** `jcmd`, không dùng Attach API và không tạo file. Nó chỉ kiểm tra các giá trị quan sát được, **không phải profiler đủ để xác định memory leak**. Trong production, nên đọc và xuất số thật (heap used/committed, thread states, loaded classes) tại một endpoint đã xác thực hoặc metrics pipeline; `dumpAllThreads(false,false)` có thể tốn tài nguyên khi có rất nhiều thread, nên không chạy liên tục với tần suất cao.
+This code **does not invoke** `jcmd`, does not use the Attach API, and creates no files. It simply verifies observable values—**not a profiler sufficient to diagnose a memory leak**. In production, read and export real values (heap used/committed, thread states, loaded classes) via an authenticated endpoint or metrics pipeline; `dumpAllThreads(false, false)` can be costly with very high thread counts, so never poll it continuously at high frequency.
 
-**Lưu ý về môi trường:** ứng dụng cần module `java.management`; trong runtime image jlink cực nhỏ không chứa module này, chương trình sẽ không chạy cho đến khi build image có module tương ứng. Không thể lấy dữ liệu **của process production khác** bằng cách chạy `NoAttachSnapshot` như một process mới: mỗi JVM chỉ tự đọc số liệu **của chính nó**. Phải tích hợp vào JVM cần quan sát từ trước hoặc có cơ chế agent/management được triển khai hợp lệ.
+**Environment note:** the app requires the `java.management` module; in a minimal `jlink` runtime image lacking that module, it will not run until rebuilt with it. You cannot read **another production process's data** by launching `NoAttachSnapshot` as a separate process: each JVM reads **only its own** metrics. It must be built into the target JVM upfront or exposed via an authorized agent/management mechanism.
 
-### 7.1 Ví dụ sử dụng đúng mục đích trong service
+### 7.1 Purpose-Built Usage Example Inside a Service
 
-Nếu service đã expose metrics, có thể thêm phép đo:
+If the service already exposes metrics, you can add measurements like:
 
 ~~~java
 long heapUsed = ManagementFactory.getMemoryMXBean()
@@ -359,16 +359,16 @@ long heapUsed = ManagementFactory.getMemoryMXBean()
 int threads = ManagementFactory.getThreadMXBean().getThreadCount();
 ~~~
 
-Đây là **Java snippet**, không phải program độc lập. Dùng hệ thống metrics để gửi những giá trị này với labels về JVM start time, instance ID, pod và deployment version. Không lưu thread dump hay full stack trace vào một metrics label: vừa nhạy cảm, vừa có thể gây cardinality rất lớn.
+This is a **Java snippet**, not a standalone program. Ship these values via your metrics system tagged with JVM start time, instance ID, pod, and deployment version. Never stuff thread dumps or full stack traces into metric labels: doing so is both sensitive and causes extreme cardinality explosion.
 
-## 8. Thu JFR từ startup khi attach bị cấm
+## 8. Capturing JFR From Startup When Attach Is Prohibited
 
-JFR có thể chạy **không cần `jcmd`** nếu được bật bằng JVM flags ngay từ lúc khởi động và runtime có module/hỗ trợ tương ứng. Lúc này cần hai lớp đường dẫn có khả năng ghi:
+JFR can run **without `jcmd`** when enabled via JVM flags at launch and supported by the runtime modules. Two writable path layers are then required:
 
-1. **Repository tạm** chứa JFR chunks nếu recording ghi xuống disk.
-2. **Final filename** được xuất khi recording dừng/dump.
+1. **Temporary repository** holding JFR chunks when recording to disk.
+2. **Final filename** exported when the recording stops or dumps.
 
-Ví dụ HotSpot JDK 17+ khi có `/diagnostics/jfr-repo` và `/diagnostics` writable:
+HotSpot JDK 17+ example when `/diagnostics/jfr-repo` and `/diagnostics` are writable:
 
 ~~~sh
 java \
@@ -377,35 +377,35 @@ java \
   -jar app.jar
 ~~~
 
-- `settings=default` chọn profile theo dõi phù hợp tương đối dài; không cần bật mọi event.
-- `maxsize=32m` giới hạn **dữ liệu giữ lại trong recording**; file và repository vẫn cần dung lượng thực và quota cho overhead, nên không xem 32 MiB là quota tuyệt đối của tất cả tệp.
-- `dumponexit=true` yêu cầu export khi JVM **shutdown có cơ hội xử lý**; process bị `SIGKILL` hoặc cgroup OOM kill có thể không kịp dump.
-- Nếu cần lấy bản ghi **khi process vẫn chạy**, phải có đường điều khiển được thiết kế trước (như `jdk.jfr.Recording` trong app, management API có bảo vệ hoặc attach được phép). Không kỳ vọng flag `dumponexit` tự tạo file mới mỗi khi thấy latency tăng.
-- File `incident.jfr` nằm trong filesystem mà **JVM nhìn thấy**, không tự động có trên terminal gọi `kubectl` hay máy operator.
-- Cần cân nhắc permission, mount durability và thời điểm thu; container bị xóa có thể làm mất file trên `emptyDir`.
+- `settings=default` selects a profile suited for relatively long observation; no need to enable every event.
+- `maxsize=32m` caps **data retained in the recording**; files and repositories still need real disk capacity and overhead headroom, so do not treat 32 MiB as a hard cap on all files.
+- `dumponexit=true` requests export when the JVM **shuts down gracefully enough to handle it**; processes hit by `SIGKILL` or cgroup OOM kills may not dump in time.
+- To retrieve recordings **while the process is still running**, design a pre-approved control path (such as `jdk.jfr.Recording` inside the app, a secured management API, or permitted attach). Do not expect `dumponexit` to write a new file whenever latency spikes.
+- `incident.jfr` lives on the filesystem **seen by the JVM**, not automatically on the `kubectl` terminal or operator workstation.
+- Account for permissions, mount durability, and capture timing; deleting a container can wipe files on `emptyDir`.
 
-Một thí nghiệm local với HotSpot JDK 24 đã chạy JVM có cả `-XX:FlightRecorderOptions=repository=...` và `-XX:StartFlightRecording=...`, tạo được file `.jfr` rồi đọc bằng `jfr summary`. Đây là xác minh cú pháp/chế độ trong môi trường có JDK; **không chứng minh mọi image readonly sẽ thành công** nếu mount hoặc module khác.
+A local experiment on HotSpot JDK 24 launched a JVM with both `-XX:FlightRecorderOptions=repository=...` and `-XX:StartFlightRecording=...`, produced a `.jfr` file, and read it with `jfr summary`. That confirms syntax/mode in a JDK environment; it **does not prove every read-only image will succeed** if mounts or modules differ.
 
-### 8.1 Không có `jfr` trong image vẫn đọc được file bằng máy khác
+### 8.1 Missing `jfr` in the Image Still Allows Reading Elsewhere
 
-Sau khi copy bản ghi ra một môi trường phân tích có JDK tương thích và quyền truy cập phù hợp, chạy:
+After copying the recording to an analysis environment with a compatible JDK and proper access controls, run:
 
 ~~~sh
 jfr summary incident.jfr
 jfr print --events jdk.GarbageCollection incident.jfr
 ~~~
 
-Hoặc mở trong JDK Mission Control. Trên môi trường phân tích, cần xem metadata/event types thực tế; nếu ứng dụng không có `jfr` tool tại runtime thì **đây không phải lý do để bỏ thu** nếu VM đã ghi được file. Đừng thay `.jfr` bằng `.jfc`: file `.jfc` chỉ là cấu hình.
+Or open it in JDK Mission Control. Inspect actual metadata and event types in the analysis environment; lacking the `jfr` CLI inside the runtime image is **no reason to skip capture** if the VM can write the file. Never confuse `.jfr` with `.jfc`: `.jfc` files are only configuration templates.
 
-### 8.2 Cân nhắc JFR và disk bất biến
+### 8.2 JFR and Immutable Disks
 
-Một root filesystem readonly nhưng repository được mount writable riêng vẫn có thể chạy JFR. Ngược lại, nếu toàn bộ nơi JVM có thể ghi đều bị khóa, **không nên mặc định JFR disk recording hoặc dump vào file sẽ hoạt động**. Một số trường hợp có thể thu dữ liệu dạng streaming/memory trong process, nhưng tính khả dụng và cơ chế truy xuất phụ thuộc phiên bản/JVM và cách bạn đã tích hợp; không dùng `disk=false` như “cách chắc chắn tạo được .jfr mà không có filesystem”.
+A read-only root filesystem with a separate writable mount for the repository can still run JFR. Conversely, if every writable location available to the JVM is locked down, **never assume disk-based JFR recording or file dumps will work**. Some setups can stream or buffer events in memory inside the process, yet availability and retrieval depend on JDK version and integration; never treat `disk=false` as a "guaranteed way to produce `.jfr` files without a filesystem."
 
-Nếu không thể tạo vùng writable, ưu tiên **metrics/JMX đã có, stdout/stderr logging, in-process thread snapshots** và công cụ bên ngoài dựa trên quyền hợp lệ. Khả năng thu JFR hậu kiểm nên được thiết kế trong deployment ngay từ đầu.
+If no writable mount can be provided, prioritize **existing metrics/JMX, `stdout`/`stderr` logging, in-process thread snapshots**, and authorized external tooling. Postmortem JFR capability should be designed into the deployment from the start.
 
-## 9. Mẫu Kubernetes: root readonly nhưng vẫn có chỗ ghi diagnostics
+## 9. Kubernetes Pattern: Read-Only Root With Dedicated Writable Diagnostics
 
-Dưới đây là **mảnh YAML minh họa** trong một Pod template, không phải Deployment hoàn chỉnh:
+Below is an **illustrative YAML snippet** inside a Pod template, not a complete Deployment:
 
 ~~~yaml
 spec:
@@ -432,209 +432,209 @@ spec:
         sizeLimit: 1Gi
 ~~~
 
-Đây là thiết kế **giữ root filesystem readonly** nhưng mount `/tmp` và `/diagnostics` riêng. Cần điều chỉnh theo PodSecurity policy, storage class/permissions, UID/GID, tài nguyên node và nhu cầu lưu dữ liệu. `fsGroup` **không bảo đảm tất cả volume driver/permission case sẽ hoạt động**; vẫn phải kiểm quyền ghi bằng effective user của tiến trình JVM.
+This design **keeps the root filesystem read-only** while mounting `/tmp` and `/diagnostics` separately. Adapt it for PodSecurity policies, storage classes/permissions, UID/GID, node resources, and retention needs. `fsGroup` **does not guarantee every volume driver/permission scenario works**; verify write access under the JVM process's effective user.
 
-**Quan trọng với `emptyDir`:**
+**Important notes on `emptyDir`:**
 
-- Dữ liệu thuộc vòng đời Pod, không phải nơi lưu bền vững khi Pod bị xóa; phải chuyển file sang storage được phê duyệt trước khi mất Pod.
-- `emptyDir.sizeLimit` là một giới hạn lưu trữ, không phải bảo đảm node luôn có đủ không gian hay IOPS.
-- Nếu dùng `emptyDir.medium: Memory` thì dữ liệu dùng tài nguyên bộ nhớ của node/container theo quy tắc Kubernetes; với heap dump lớn, tránh dùng tmpfs tùy tiện.
-- Volume mount có thể bị giới hạn bởi chính sách; ghi nhận cách cấu hình thực tế thay vì suy luận từ YAML dự kiến.
+- Data is tied to the Pod lifecycle, not durable once the Pod is deleted; extract files to approved storage before losing the Pod.
+- `emptyDir.sizeLimit` is a storage cap, not a guarantee that the node has free space or IOPS.
+- Using `emptyDir.medium: Memory` charges data against node/container memory per Kubernetes rules; avoid arbitrary tmpfs for large heap dumps.
+- Volume mounts may be restricted by policy; verify the actual deployed configuration rather than assuming from intended YAML.
 
-Các file `.hprof`, `.jfr` và `hs_err_pid...log` có thể chứa dữ liệu nhạy cảm. Chỉ copy ra nơi có ACL/retention phù hợp, ghi audit, xóa theo chính sách sau khi điều tra.
+`.hprof`, `.jfr`, and `hs_err_pid...log` files can hold sensitive data. Copy them only to locations with appropriate ACLs and retention, log an audit trail, and delete per policy once the investigation concludes.
 
-### 9.1 Thu JFR rồi lấy file ra ngoài
+### 9.1 Extracting JFR Files After Capture
 
-Khi service đã ghi vào `/diagnostics` và tổ chức cho phép:
+Once the service writes to `/diagnostics` and organizational policy permits:
 
 ~~~sh
-# Ví dụ khái niệm, thay namespace/pod/container/path theo môi trường thật:
+# Conceptual example; substitute actual namespace/pod/container/path:
 kubectl cp -n team payments-0:/diagnostics/incident.jfr ./incident.jfr -c app
 ~~~
 
-`kubectl cp` có thể yêu cầu `tar` trong container; distroless/minimal image có thể **không có tar**, nên lệnh thất bại dù file tồn tại. Không tự kết luận file không có. Có thể dùng cách copy được vận hành cho phép (volume extraction, storage upload từ app/sidecar, hoặc luồng `kubectl exec -- cat` khi container thực sự có binary và chính sách cho phép). Chọn phương pháp có thể kiểm checksum/kích thước file và không làm lộ dữ liệu nhạy cảm ra log công khai.
+`kubectl cp` may require `tar` inside the container; distroless/minimal images often **lack `tar`**, causing the command to fail even when the file exists. Never assume the file is missing. Use an operationally approved extraction path (volume extraction, app/sidecar storage upload, or `kubectl exec -- cat` if the container actually has binaries and policy allows). Choose a method that verifies checksums/file sizes and never leaks sensitive data to public logs.
 
-## 10. Debug/ephemeral container có JDK tools: hữu ích nhưng không phải phép màu
+## 10. Debug/Ephemeral Containers With JDK Tools: Useful, Not Magic
 
-Nếu application image không có shell/`jcmd`, Kubernetes hỗ trợ debug container tạm:
+When the application image lacks a shell or `jcmd`, Kubernetes supports temporary debug containers:
 
 ~~~sh
-# Lệnh minh họa; image JDK phải được tổ chức cho phép:
+# Illustrative command; the JDK image must be organization-approved:
 kubectl debug -n team -it pod/payments-0 \
   --image=example/approved-jdk-tools:21 \
   --target=app -- sh
 ~~~
 
-Lệnh tạo ephemeral container nhắm tới `app`, nhưng khả năng nhìn thấy process của container đích phụ thuộc hỗ trợ của container runtime và policy. Kubernetes ghi rõ nếu không thấy process, có thể do runtime không hỗ trợ targeting tương ứng.
+This creates an ephemeral container targeting `app`, though visibility into the target container's processes depends on container runtime support and policy. Kubernetes documents that if processes are not visible, the runtime may not support process namespace targeting.
 
-Ngay cả khi đã nhìn thấy PID:
+Even once a PID is visible:
 
-- **PID namespace**: tool có thể thấy process nhưng PID trong context không khớp kỳ vọng của JVM; xác minh `ps`/`/proc`.
-- **Effective user/group**: debug container có thể chạy UID khác app; không tự tăng đặc quyền để ép attach.
-- **Filesystem/mount namespace**: debug container có image và mounts riêng. Thư mục `/tmp` và attach socket của app có thể **không** hiện ở cùng đường dẫn; muốn attach thực sự phải thỏa cơ chế của JVM đó.
-- **JDK version/vendor**: lựa chọn binary phù hợp với target JVM khi có thể.
-- **Security policy**: PodSecurity/OPA/RBAC/Admission có thể cấm hoặc giới hạn ephemeral container. Quyền cluster để tạo debug container là quyền nhạy cảm.
-- **Output paths**: chạy `jcmd ... JFR.dump filename=...` yêu cầu **JVM đích** có thể ghi path; file không nhất thiết được ghi vào filesystem của ephemeral container.
+- **PID namespace:** the tool may see the process, yet its PID in that context may differ from JVM expectations; verify via `ps`/`/proc`.
+- **Effective user/group:** the debug container may run a different UID from the app; never escalate privileges blindly to force attach.
+- **Filesystem/mount namespace:** the debug container has its own image and mounts. The app's `/tmp` and attach socket may **not** appear at the same path; real attach must satisfy that JVM's attach mechanism.
+- **JDK version/vendor:** choose matching binaries for the target JVM whenever possible.
+- **Security policy:** PodSecurity/OPA/RBAC/Admission may forbid or constrain ephemeral containers. Cluster permission to launch debug containers is a privileged capability.
+- **Output paths:** running `jcmd ... JFR.dump filename=...` requires the **target JVM** to be able to write that path; the file is not automatically written into the ephemeral container's filesystem.
 
-**Không biến mọi incident thành Pod privileged hoặc `--profile=sysadmin`.** Những tùy chọn này có tác động bảo mật lớn và không tự chữa lỗi sai namespace/temp/socket. Chỉ dùng profile/permission cao theo quy trình phê duyệt với phạm vi hẹp, có audit và thời hạn.
+**Never turn every incident into a privileged Pod or `--profile=sysadmin`.** Those options carry heavy security impact and do not automatically fix namespace/temp/socket mismatches. Use elevated profiles/permissions only via formal approval with narrow scope, audit logging, and strict time limits.
 
-## 11. Bảng lỗi → chẩn đoán → hướng khắc phục
+## 11. Error → Diagnosis → Remediation Table
 
-| Dấu hiệu | Lớp vấn đề thường gặp | Cách xác minh an toàn | Giải pháp ít xâm lấn |
+| Symptom | Common Problem Class | Safe Verification | Least-Invasive Remedy |
 | --- | --- | --- | --- |
-| `jcmd: command not found` | Tool không đóng gói/PATH | Xem image/JDK runtime và `command -v` nếu có shell | MXBeans/logging/JFR startup; debug tooling được phê duyệt |
-| `jcmd -l` không thấy JVM | PID namespace/container visibility hoặc JVM chưa sống | Xem process metadata, `/proc`, orchestrator | Dùng PID đúng context; không gửi lệnh bừa bằng PID 0 |
-| `AttachNotSupportedException` | Attach disabled hoặc không thể kết nối | Kiểm startup flags, quyền, PID và trạng thái JVM | Không bypass; dùng in-process metrics hoặc startup capture |
-| `Permission denied` khi attach | Sai UID/GID, security policy hoặc mount | So effective identities, process owner, policy | Chạy dưới identity được phép; không mặc định root/privileged |
-| Attach timeout | JVM không phản hồi, temp/socket lỗi, process mismatch | Kiểm timestamps, JVM còn sống, `/tmp`, load | Thu stdout/OS metrics/SIGQUIT nếu hợp lệ, tránh attach lặp liên tục |
-| `Read-only file system` khi dump | Output path hoặc JFR repository readonly | Kiểm mount thực tế và user JVM, thử file scoped | Đổi sang writable volume/stdout, chuẩn bị paths từ deploy |
-| `No space left on device` | Disk/inode/quota đầy | `df -h`, `df -i`, volume usage | Dừng dump lớn, giảm retention/di chuyển dữ liệu theo chính sách |
-| `JFR.dump` báo file không ghi được dù attach OK | JVM đích không có quyền path | Kiểm filesystem của **target JVM** | Chọn output writable mà target nhìn thấy |
-| Không tạo được `.hprof` sau OOMKill | Process bị kill trước khi Java xử lý | Xem Pod/container termination reason và logs | Dùng JFR/metrics trước OOM, tăng observability ở lần deploy sau |
-| `jfr: not found` nhưng đã có `.jfr` | Thiếu **tool phân tích**, không phải lỗi dữ liệu | Kiểm file size và magic/đọc bằng JDK tương thích bên ngoài | Copy qua môi trường phân tích an toàn, dùng `jfr summary`/JMC |
-| Không có file sau `dumponexit=true` | Chưa shutdown có kiểm soát, wrong path, readonly/quota | Kiểm VM exit mode, output/repository, flags | Thu snapshot qua API/management trước khi process mất |
-| `kill -QUIT` không cho dump | Sai PID/quyền, `-Xrs` hoặc signal handling khác | Kiểm cờ JVM và logs của process đích | MXBean/in-process debug hoặc phương pháp đã cho phép khác |
+| `jcmd: command not found` | Tool not packaged / missing from PATH | Check image/JDK runtime and `command -v` if shell exists | MXBeans/logging/startup JFR; approved debug tooling |
+| `jcmd -l` shows no JVM | PID namespace/container visibility or JVM not running | Check process metadata, `/proc`, orchestrator | Use context-accurate PID; never broadcast via PID 0 |
+| `AttachNotSupportedException` | Attach disabled or unreachable | Check startup flags, permissions, PID, and JVM state | Do not bypass; use in-process metrics or startup capture |
+| `Permission denied` on attach | Wrong UID/GID, security policy, or mount | Compare effective identities, process owner, policy | Run under authorized identity; never default to root/privileged |
+| Attach timeout | Unresponsive JVM, temp/socket error, process mismatch | Check timestamps, JVM liveness, `/tmp`, load | Collect stdout/OS metrics/SIGQUIT if permitted; avoid tight attach retries |
+| `Read-only file system` on dump | Output path or JFR repository is read-only | Inspect real mounts and JVM user, test scoped file | Switch to writable volume/stdout; configure paths at deploy |
+| `No space left on device` | Disk/inodes/quota exhausted | `df -h`, `df -i`, volume usage | Halt large dumps, reduce retention/move data per policy |
+| `JFR.dump` fails to write despite OK attach | Target JVM lacks path permissions | Check the **target JVM's** filesystem | Choose a writable output visible to the target |
+| No `.hprof` after OOMKill | Process killed before Java could handle it | Inspect Pod/container termination reason and logs | Rely on pre-OOM JFR/metrics; improve observability next deploy |
+| `jfr: not found` yet `.jfr` exists | Missing **analysis tool**, not a data failure | Check file size and magic/read with compatible external JDK | Copy to secure analysis host; run `jfr summary`/JMC |
+| No file after `dumponexit=true` | Unclean shutdown, wrong path, read-only/quota | Check VM exit mode, output/repository, flags | Export snapshots via API/management before process loss |
+| `kill -QUIT` yields no dump | Wrong PID/permissions, `-Xrs`, or custom signal handling | Check JVM flags and target process logs | Use MXBeans/in-process debug or other approved method |
 
-Tất cả các hàng trên là **các khả năng**, không phải mệnh đề “một lỗi luôn có một nguyên nhân”. Đặc biệt, error message của `jcmd` phụ thuộc JDK/OS: lưu nguyên văn và kèm phiên bản.
+All rows above represent **possibilities**, not rigid "one error always has one cause" rules. In particular, `jcmd` error messages depend on JDK/OS: record verbatim messages with version info.
 
-## 12. Ba kịch bản vận hành: chọn chiến lược thu thập
+## 12. Three Operational Scenarios: Choosing a Collection Strategy
 
-### Kịch bản A — distroless, JVM chạy ổn nhưng có latency spikes
+### Scenario A — Distroless, JVM Healthy Except for Latency Spikes
 
-**Bối cảnh:** app container thiếu `sh`, `jcmd` và `jfr`, root filesystem readonly; metric request latency, GC logs và metrics từ ứng dụng đang sẵn.
+**Context:** app container lacks `sh`, `jcmd`, and `jfr`, root filesystem is read-only; request latency metrics, GC logs, and app metrics are already available.
 
-**Cách làm:**
+**Approach:**
 
-1. Thu timeline request p99, CPU, GC pauses, container throttling, heap/thread metrics đã có.
-2. Không cố `kubectl exec -- sh` rồi lặp lại khi shell thật sự không có; kiểm deployment image.
-3. Nếu cần thread state, tích hợp endpoint diagnostic có xác thực dùng `ThreadMXBean.dumpAllThreads(...)` với rate limit; hoặc triển khai lại khi có cửa sổ bảo trì với startup JFR + writable volume.
-4. Khi tái hiện, lấy nhiều snapshot có timestamp; so stack của thread ở cùng request, không dựa vào một điểm.
-5. Giữ hardening và audit, không mở JDWP/JMX không bảo vệ.
+1. Collect timelines of request p99, CPU, GC pauses, container throttling, and existing heap/thread metrics.
+2. Do not repeatedly retry `kubectl exec -- sh` when no shell exists; inspect the deployment image.
+3. If thread states are needed, integrate an authenticated diagnostic endpoint using `ThreadMXBean.dumpAllThreads(...)` with rate limiting; or redeploy in a maintenance window with startup JFR + a writable volume.
+4. When reproducing, take multiple timestamped snapshots; compare thread stacks across the same request window rather than relying on one instant.
+5. Preserve hardening and auditing; never open unprotected JDWP/JMX.
 
-**Kết luận:** thiếu JDK tools trong image không ngăn quan sát bằng ứng dụng/OS metrics; việc phải deploy lại để bật thêm bằng chứng nên là quyết định có kiểm soát.
+**Conclusion:** lacking JDK tools inside the image does not block observation via app/OS metrics; redeploying to enable deeper evidence should be a controlled decision.
 
-### Kịch bản B — `jcmd` có mặt nhưng attach bị khóa theo policy
+### Scenario B — `jcmd` Present, Attach Locked Down by Policy
 
-**Bối cảnh:** image có `jcmd`, PID đúng, cùng UID, nhưng JVM khởi động với `-XX:+DisableAttachMechanism`.
+**Context:** image includes `jcmd`, PID is right, UID matches, yet the JVM started with `-XX:+DisableAttachMechanism`.
 
-**Cách làm:**
+**Approach:**
 
-1. Lưu error text, startup args và policy: đây có thể là hardening có chủ đích, **không phải lỗi ngẫu nhiên**.
-2. Dùng console logs, JFR startup đã có, metrics/JMX được quản lý hợp lệ.
-3. Nếu cần thay đổi policy, yêu cầu phê duyệt và triển khai thay JVM startup flags trong lần release sau; không dựa vào runtime attach để “bật lại”.
-4. Sau khi được phép, thử `jcmd <pid> VM.version` trên staging trước rồi mới những command tác động cao hơn.
+1. Record the error text, launch arguments, and policy: this may be intentional hardening, **not a random bug**.
+2. Rely on console logs, existing startup JFR, and properly managed metrics/JMX.
+3. If policy must change, request approval and update JVM startup flags in the next release; never rely on runtime attach to "turn it back on."
+4. Once authorized, test `jcmd <pid> VM.version` in staging before attempting higher-impact commands.
 
-**Kết luận:** mục tiêu là bảo toàn bằng chứng và không phá security boundary, không phải bằng mọi giá làm `jcmd` hoạt động.
+**Conclusion:** the goal is preserving evidence without breaking security boundaries—not forcing `jcmd` to work at any cost.
 
-### Kịch bản C — attach thành công nhưng không ghi được heap dump/JFR
+### Scenario C — Attach Succeeds, Cannot Write Heap Dump / JFR
 
-**Bối cảnh:** `jcmd <pid> Thread.print` thành công, nhưng `jcmd <pid> GC.heap_dump ...`/`JFR.dump` báo readonly hoặc thiếu disk.
+**Context:** `jcmd <pid> Thread.print` succeeds, while `jcmd <pid> GC.heap_dump ...`/`JFR.dump` fails with read-only or out-of-disk errors.
 
-**Cách làm:**
+**Approach:**
 
-1. Phân loại đây là **I/O output path**, không phải lỗi attach.
-2. Kiểm mount/UID/GID/quota trong **filesystem của target JVM**; tìm volume writable đã được cấp.
-3. Nếu không có chỗ ghi, ưu tiên thread print ra command response, metrics và stdout GC logs; không đẩy heap dump vào `/tmp` chỉ vì có một chút dung lượng.
-4. Lập kế hoạch volume có dung lượng/retention bảo mật, giới hạn hoặc tạm dừng những lệnh tạo file lớn.
-5. Với lần triển khai sau, cấu hình `HeapDumpPath`, `ErrorFile` và JFR repository/output chính xác từ startup.
+1. Classify this as an **I/O output path** issue, not an attach failure.
+2. Check mounts, UID/GID, and quotas inside the **target JVM's filesystem**; locate an approved writable volume.
+3. If no writable space exists, prioritize `Thread.print` stdout responses, metrics, and stdout GC logs; never cram a heap dump into `/tmp` just because a tiny bit of space is free.
+4. Plan a volume with secure capacity/retention, and throttle or pause large-file commands.
+5. On the next deploy, configure `HeapDumpPath`, `ErrorFile`, and JFR repository/output properly from startup.
 
-**Kết luận:** một command không phải lúc nào cũng cần file (ví dụ `Thread.print` trả text), nhưng những artefact lớn cần cả quyền, disk và kế hoạch lưu trữ.
+**Conclusion:** not every command needs a file (`Thread.print` returns text), whereas large artifacts require permissions, disk space, and a storage plan.
 
-## 13. Runbook thu thập chứng cứ có khả năng kiểm toán
+## 13. Auditable Evidence-Collection Runbook
 
-Một phiếu đơn giản để các điều tra viên khác tái hiện và kiểm tra chéo:
+A simple sheet so other investigators can reproduce and cross-check:
 
 ~~~text
-Incident ID / thời điểm UTC / timezone:
-Namespace, Pod, container, node (nếu có):
-JVM PID trong namespace nào / JVM start time:
-Java vendor/version, GC, flags liên quan:
+Incident ID / UTC timestamp / timezone:
+Namespace, Pod, container, node (if applicable):
+JVM PID in which namespace / JVM start time:
+Java vendor/version, GC, relevant flags:
 Image/runtime (full JDK, jlink, distroless):
 Target JVM effective UID/GID:
-Tool được gọi ở host/container nào, UID/GID nào:
-Lệnh và output/error nguyên văn:
-Attach: enabled/disabled/unknown; kết quả VM.version nếu thử:
-Mount /tmp, JFR repository, output folder: rw/ro và owner:
-Dung lượng/inode/quota:
-Nguồn dữ liệu thu được: logs, JMX, JFR, thread, OS metrics:
-Nơi lưu artifact, checksum, quyền truy cập, retention:
-Ảnh hưởng lên latency/CPU/disk và thời gian thu:
-Hạn chế và những dữ liệu vẫn còn thiếu:
-Giả thuyết tiếp theo / tiêu chí bác bỏ:
+Host/container and UID/GID where tool was invoked:
+Verbatim command and output/error:
+Attach: enabled/disabled/unknown; VM.version result if attempted:
+Mounts (/tmp, JFR repository, output folder): rw/ro and owner:
+Disk space / inodes / quota:
+Collected data sources: logs, JMX, JFR, threads, OS metrics:
+Artifact storage path, checksum, access controls, retention:
+Impact on latency/CPU/disk and capture duration:
+Limitations and data still missing:
+Next hypothesis / falsification criteria:
 ~~~
 
-**Ưu tiên thu thập theo mức tác động tăng dần:**
+**Prioritize collection in ascending order of impact:**
 
-1. Logs, metrics, events đã có; bảo tồn timestamp/version.
-2. MXBeans/app endpoints và `jcmd VM.version`/`Thread.print` (nếu attach được).
-3. JFR profile có giới hạn duration/size, GC/safepoint logs theo target; quan sát overhead.
-4. Heap dump hoặc diagnostic sâu hơn chỉ khi cần bằng chứng object/retention và đã duyệt impact, dung lượng, dữ liệu nhạy cảm.
-5. Post-mortem core/SA debugging là lựa chọn đặc biệt, không phải bước mặc định.
+1. Existing logs, metrics, and events; preserve timestamps and versions.
+2. MXBeans/app endpoints and `jcmd VM.version`/`Thread.print` (if attach works).
+3. Duration- and size-bounded JFR `profile`, targeted GC/safepoint logs; watch overhead.
+4. Heap dumps or deeper diagnostics only when object/retention proof is needed and impact, capacity, and sensitive data are approved.
+5. Post-mortem core/SA debugging is a special-case choice, never a default step.
 
-Không thay đổi nhiều yếu tố cùng lúc (root permission, JVM flags, image, pod placement, collector): nếu vấn đề biến mất sẽ khó biết điều gì thật sự cải thiện. Với điều tra sau sự cố, **đừng khởi động lại sớm** làm mất evidence chưa được thu, trừ khi khôi phục dịch vụ là ưu tiên an toàn/vận hành rõ ràng.
+Avoid changing multiple factors at once (root privileges, JVM flags, image, pod placement, collector): if the issue disappears, you will not know what actually fixed it. For post-incident investigation, **do not restart prematurely** and wipe uncollected evidence unless restoring service is a clear operational/safety priority.
 
-## 14. Những sai lầm thường gặp
+## 14. Common Mistakes
 
-1. **“`jcmd -l` trống nghĩa là không có JVM.”** Có thể do container/PID visibility hoặc quyền.
-2. **“Có `java` là chắc chắn có `jcmd`.”** Runtime image tối giản có thể bỏ công cụ.
-3. **“Chạy root hoặc privileged chắc chắn giải quyết attach.”** Namespace/socket/policy/compatibility vẫn có thể khiến thất bại; tăng quyền còn gây rủi ro.
-4. **“Tắt `DisableAttachMechanism` bằng `jcmd` ngay lúc JVM đang chạy.”** Chính cơ chế attach có thể đã bị vô hiệu hóa từ startup.
-5. **“`-Djava.io.tmpdir` chắc chắn sửa attach.”** Attach implementation có quy tắc socket/temp riêng; phải xác minh đúng JVM/JDK.
-6. **“Root filesystem readonly đồng nghĩa mọi mount readonly.”** Writable volumes có thể tồn tại nếu được cấu hình.
-7. **“`JFR.dump filename=...` ghi file vào máy của người gọi.”** File được JVM đích ghi theo filesystem mà JVM thấy.
-8. **“Có `filename` writable là JFR repository chắc chắn writable.”** Output cuối và scratch/repository là hai nơi khác nhau.
-9. **“`dumponexit=true` bảo đảm có dump sau `SIGKILL`/OOMKill.”** Kill cưỡng bức có thể không cho JVM thực hiện dump.
-10. **“Khi không có JDK tools, phải mở remote JMX/JDWP công khai.”** Có thể dùng metrics/JFR startup; debug ports phải được bảo vệ.
-11. **“Dùng debug container có `jcmd` thì attach thành công 100%.”** Cần PID/mount/user/security và JVM compatibility.
-12. **“`emptyDir` là nơi lưu trữ dài hạn.”** Dữ liệu có thể mất khi Pod bị xóa; cần export hợp lệ.
-13. **“`kill -QUIT` giống `kill -9`.”** Là các tín hiệu khác nhau; với HotSpot/Linux, SIGQUIT thường dùng in thread dump, không mặc định kết thúc ứng dụng.
-14. **“Không thu được heap dump nghĩa là không có heap leak.”** Thiếu artifact không chứng minh điều gì về nguyên nhân.
-15. **“Thu được snapshot là chắc chắn đủ phân tích.”** Cần đối chiếu workload, timestamps, retained data và tính đại diện.
-16. **“Không cần bảo vệ JFR/heap dump vì chỉ là diagnostics.”** Dữ liệu có thể chứa thông tin nội bộ/nhạy cảm.
+1. **"`jcmd -l` is empty, so no JVM is running."** May be due to container/PID visibility or permissions.
+2. **"Having `java` guarantees having `jcmd`."** Minimal runtime images often strip tools.
+3. **"Running as root or privileged always fixes attach."** Namespace, socket, policy, or compatibility mismatches can still fail, and escalating privileges adds risk.
+4. **"Disable `DisableAttachMechanism` at runtime with `jcmd`."** The attach mechanism itself was disabled at startup.
+5. **"`-Djava.io.tmpdir` always fixes attach."** Attach implementations have their own socket/temp rules; verify against the exact JVM/JDK.
+6. **"Read-only root filesystem means every mount is read-only."** Writable volumes can exist when configured.
+7. **"`JFR.dump filename=...` writes to the caller's machine."** The file is written by the target JVM on the filesystem it sees.
+8. **"Writable `filename` guarantees a writable JFR repository."** Final output and scratch/repository are two separate paths.
+9. **"`dumponexit=true` guarantees a dump after `SIGKILL`/OOMKill."** Forced kills can prevent the JVM from writing dumps.
+10. **"Without JDK tools, expose remote JMX/JDWP publicly."** Use metrics/startup JFR; debug ports must always be protected.
+11. **"A debug container with `jcmd` has a 100% attach success rate."** Still requires matching PID/mount/user/security and JVM compatibility.
+12. **"`emptyDir` is durable long-term storage."** Data disappears when the Pod is deleted; export properly.
+13. **"`kill -QUIT` is the same as `kill -9`."** They are different signals; on HotSpot/Linux, `SIGQUIT` normally prints a thread dump without killing the app.
+14. **"No heap dump captured means no heap leak."** A missing artifact proves nothing about root cause.
+15. **"Capturing a snapshot guarantees enough data to diagnose."** Must correlate workload, timestamps, retained data, and representativeness.
+16. **"No need to protect JFR/heap dumps since they are just diagnostics."** They can contain internal and sensitive data.
 
-## 15. Bài tập vận dụng có lời giải
+## 15. Practice Exercises With Solutions
 
-**Bài A.** Bạn dùng image distroless, `kubectl exec ... -- jcmd` báo executable không tồn tại. Service vẫn xuất metrics GC/thread. Điều gì cần làm trước?
+**Exercise A.** You use a distroless image; `kubectl exec ... -- jcmd` reports the executable does not exist. The service still exports GC/thread metrics. What should you do first?
 
-**Giải:** Dựa vào metrics/logs đã có, phân loại thiếu tool trong image; không tăng quyền hoặc thay container chỉ để tìm một binary không tồn tại. Nếu thiếu bằng chứng, lên kế hoạch dùng debug image phù hợp hoặc startup JFR + writable volume theo chính sách.
+**Solution:** Rely on existing metrics/logs and classify the issue as missing tools in the image; do not escalate privileges or swap containers just hunting for a nonexistent binary. If evidence is lacking, plan an approved debug image or startup JFR + writable volume.
 
-**Bài B.** JVM PID 1 chạy với UID 10001. `jcmd` trong debug sidecar chạy UID 0 và nhìn thấy PID 1 nhưng attach thất bại. Có thể kết luận JVM hỏng?
+**Exercise B.** JVM PID 1 runs as UID 10001. `jcmd` in a debug sidecar runs as UID 0, sees PID 1, yet attach fails. Can you conclude the JVM is broken?
 
-**Giải:** Chưa. Kiểm effective UID/GID, namespace và cách mount `/tmp`/socket, security policy, compat JDK và startup attach flag. PID visibility chỉ là một điều kiện. Chạy privileged không phải biện pháp mặc định.
+**Solution:** Not yet. Check effective UID/GID, namespaces, `/tmp`/socket mounts, security policies, JDK compatibility, and startup attach flags. PID visibility is only one condition. Running privileged is not the default remedy.
 
-**Bài C.** `jcmd 1234 Thread.print` trả stack, nhưng `JFR.dump filename=/app/problem.jfr` báo `Read-only file system`. Cần sửa lỗi attach?
+**Exercise C.** `jcmd 1234 Thread.print` returns stacks, while `JFR.dump filename=/app/problem.jfr` fails with `Read-only file system`. Do you need to fix attach?
 
-**Giải:** Không. Attach đã thành công. Đổi đường dẫn đầu ra sang mount được **JVM đích** phép ghi, bảo đảm repo/output và dung lượng theo nhu cầu; hoặc dùng phương án stdout/metrics nếu không có volume phù hợp.
+**Solution:** No. Attach already succeeded. Point the output path to a mount writable by the **target JVM**, ensuring repository/output paths and space suffice; or fall back to stdout/metrics if no suitable volume exists.
 
-**Bài D.** Có `-XX:+HeapDumpOnOutOfMemoryError`, nhưng Pod kết thúc với reason OOMKilled và không có `.hprof`. Có thể khẳng định không xảy ra vấn đề bộ nhớ Java?
+**Exercise D.** `-XX:+HeapDumpOnOutOfMemoryError` is set, yet the Pod terminates with `OOMKilled` and no `.hprof` exists. Can you state no Java memory issue occurred?
 
-**Giải:** Không. Cgroup OOM kill có thể kết thúc tiến trình trước khi JVM tự phát hiện Java `OutOfMemoryError` và dump. Cần đối chiếu cgroup memory, OS RSS, heap metrics/GC logs và startup recording nếu có.
+**Solution:** No. A cgroup OOM kill can terminate the process before the JVM detects a Java `OutOfMemoryError` and writes a dump. Correlate cgroup memory, OS RSS, heap metrics/GC logs, and startup recordings if present.
 
-**Bài E.** Một JVM khởi động với `-XX:+DisableAttachMechanism`, trong khi `NoAttachSnapshot` vẫn in `NO_JCMD_REQUIRED`. Có mâu thuẫn?
+**Exercise E.** A JVM launches with `-XX:+DisableAttachMechanism`, while `NoAttachSnapshot` still prints `NO_JCMD_REQUIRED`. Is that a contradiction?
 
-**Giải:** Không. MXBeans hoạt động **bên trong** JVM và không cần Attach API từ process ngoài. Chỉ số của nó không tự đại diện cho mọi JVM khác.
+**Solution:** No. MXBeans run **inside** the JVM and do not need the external Attach API. Its metrics do not automatically represent other JVMs.
 
-**Bài F.** Một debug container có `jfr` command nhưng ứng dụng không có JFR module và không có file `.jfr`. Có thể dùng lệnh `jfr` bên ngoài để “bắt đầu ghi” trong app không?
+**Exercise F.** A debug container has the `jfr` command, whereas the app lacks the JFR module and has no `.jfr` file. Can the external `jfr` command "start recording" inside the app?
 
-**Giải:** Không. `jfr` là công cụ quản lý/đọc file recording, không thay thế năng lực JFR của **target runtime** và không tự tạo các sự kiện mà JVM không hỗ trợ. Muốn thu cần JVM có JFR và cơ chế khởi động/điều khiển hợp lệ.
+**Solution:** No. `jfr` is a tool for managing/reading recording files; it cannot substitute for JFR support in the **target runtime** or generate events the JVM does not support. Recording requires a JVM with JFR and a valid startup/control mechanism.
 
-**Bài G.** Mọi đường dẫn ghi trong image bị khóa, nhưng hệ thống đã cấu hình `-Xlog:gc=info:stdout:...`. Có thể thu GC logs không?
+**Exercise G.** Every writable path in the image is locked down, yet the system has `-Xlog:gc=info:stdout:...` configured. Can you still collect GC logs?
 
-**Giải:** Có, nếu HotSpot hỗ trợ flag và logging pipeline đang thu stdout. Dữ liệu đi qua stream, không yêu cầu app ghi GC log vào file trong root filesystem. Nhưng pipeline phải đủ retention/quota và không mất log.
+**Solution:** Yes, provided HotSpot supports the flag and the logging pipeline captures `stdout`. Data flows over the stream without needing the app to write GC log files onto the root filesystem—though the pipeline must have sufficient retention/quota and drop no logs.
 
-**Bài H.** SRE gửi `kill -QUIT` trên Linux khi JVM có `-Xrs` và không thấy thread dump. Có thể tiếp tục spam signal để “ép” chưa?
+**Exercise H.** An SRE sends `kill -QUIT` on Linux to a JVM running with `-Xrs` and sees no thread dump. Should they keep spamming the signal to "force" it?
 
-**Giải:** Không. `-Xrs` có thể tắt handler SIGQUIT; cần xem cấu hình JVM và chính sách hệ điều hành, rồi chuyển sang MXBeans/metrics/JFR có kế hoạch. Gửi tín hiệu lặp không tạo thêm quyền hay khả năng.
+**Solution:** No. `-Xrs` can disable the `SIGQUIT` handler; inspect JVM flags and OS policy, then switch to planned MXBeans/metrics/JFR. Repeated signals do not grant new permissions or capabilities.
 
-## 16. Ghi nhớ bằng ba câu hỏi
+## 16. Remember Through Three Questions
 
-1. **Không attach được vì sao?** Kiểm PID, namespace, effective UID/GID, attach flag, temp/socket, JVM responsiveness và policy; đừng tự động dùng root.
-2. **Không ghi file được ở đâu?** Phân biệt root readonly, mount, JFR repository, output file, disk/inode và user JVM; ưu tiên stdout hoặc volume bảo mật.
-3. **Không có JDK tools thì còn gì?** Sử dụng in-process MXBeans, application/JMX metrics đã được bảo vệ, JFR startup/API nếu có, GC stdout, OS/orchestrator evidence và debug container được phê duyệt.
+1. **Why did attach fail?** Check PID, namespace, effective UID/GID, attach flags, temp/socket, JVM responsiveness, and policy; never default to root.
+2. **Where are writes blocked?** Separate read-only root, mounts, JFR repository, output files, disk/inodes, and JVM user; prefer `stdout` or secured volumes.
+3. **What remains without JDK tools?** Use in-process MXBeans, secured app/JMX metrics, startup/API JFR if present, GC stdout, OS/orchestrator evidence, and approved debug containers.
 
-**Mục tiêu vận hành không phải “làm cho mọi lệnh chạy được”, mà là “thu đúng bằng chứng với đặc quyền thấp nhất, tác động chấp nhận được và khả năng xác minh rõ ràng”.**
+**The operational goal is not "make every command work," but "capture the right evidence with minimal privilege, acceptable impact, and clear verifiability."**
 
-### Tài liệu tham khảo chính thức
+### Official References
 
 - Oracle Java 21, `The jcmd Command`: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jcmd.html
 - Oracle Java 21, `The java Command` (`-Xlog`, `-XX:StartFlightRecording`, `-XX:FlightRecorderOptions`, heap/fatal logs): https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html

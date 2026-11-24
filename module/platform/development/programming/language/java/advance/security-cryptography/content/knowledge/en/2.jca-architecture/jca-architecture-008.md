@@ -1,80 +1,80 @@
-# 2.8 Xử lý `NoSuchAlgorithmException`, `NoSuchProviderException` và lỗi tham số trong JCA
+# 2.8 Handling `NoSuchAlgorithmException`, `NoSuchProviderException`, and Parameter Errors in JCA
 
-Trong Java Cryptography Architecture (JCA), một phép toán mật mã thường đi qua ba giai đoạn: **chọn loại dịch vụ/thuật toán và provider**, **khởi tạo bằng khóa/tham số**, rồi **thực hiện phép toán**. Lỗi xuất hiện ở giai đoạn nào cho biết cách sửa đúng: sửa cấu hình, sửa dữ liệu/khóa đầu vào, hay xử lý kết quả xác thực. Không nên gom tất cả thành “lỗi mã hóa” và thử một thuật toán yếu hơn.
+In the Java Cryptography Architecture (JCA), a cryptographic operation typically proceeds through three stages: **selecting the service type/algorithm and provider**, **initializing with keys/parameters**, and **executing the operation**. Which stage throws an error tells you the right fix: fix configuration, fix input data/keys, or handle verification results. Never lump everything into “encryption error” and try a weaker algorithm.
 
-Bài này tập trung vào các ngoại lệ của JCA/JCE khi dùng các engine như `MessageDigest`, `Signature`, `KeyGenerator`, `KeyPairGenerator`, `Mac` và `Cipher`. Ví dụ chạy với **Java 17+**; thuật toán, provider và quy tắc vận hành cụ thể vẫn chịu ảnh hưởng của JDK, security policy và provider được cài đặt.
+This lesson focuses on JCA/JCE exceptions when using engines such as `MessageDigest`, `Signature`, `KeyGenerator`, `KeyPairGenerator`, `Mac`, and `Cipher`. Examples run on **Java 17+**; exact algorithms, providers, and runtime rules remain subject to the installed JDK, security policy, and providers.
 
-## 1. Ngoại lệ nằm ở đâu trong luồng thực thi?
+## 1. Where Do Exceptions Occur in the Execution Flow?
 
 ```text
-Cấu hình ứng dụng: engine + tên thuật toán/transformation + provider (tùy chọn)
+Application config: engine + algorithm/transformation name + provider (optional)
         |
         v
-getInstance(...)  --> Không có thuật toán?     NoSuchAlgorithmException
-        |           --> Provider tên chỉ định? NoSuchProviderException
-        |           --> Padding không hỗ trợ?  NoSuchPaddingException (Cipher)
+getInstance(...)  --> Missing algorithm?       NoSuchAlgorithmException
+        |           --> Named provider missing?  NoSuchProviderException
+        |           --> Unsupported padding?     NoSuchPaddingException (Cipher)
         v
-init(...)         --> Khóa không phù hợp?      InvalidKeyException
-        |           --> Tham số không phù hợp? InvalidAlgorithmParameterException
-        |           --> Kích thước/giá trị sai? InvalidParameterException (tùy API)
+init(...)         --> Incompatible key?        InvalidKeyException
+        |           --> Invalid parameters?      InvalidAlgorithmParameterException
+        |           --> Bad size/value?          InvalidParameterException (API-dependent)
         v
-update/doFinal    --> Giải mã AEAD không xác thực? AEADBadTagException
-        |           --> Lỗi vận hành khác?      Các ngoại lệ API cụ thể
+update/doFinal    --> Unauthenticated AEAD?    AEADBadTagException
+        |           --> Other runtime error?     Specific API exceptions
         v
-Kết quả đã được kiểm tra
+Verified result
 ```
 
-Ở `getInstance(...)`, JCA tìm **implementation của đúng loại engine** từ security provider. Cùng một chuỗi tên có thể hợp lệ với engine này nhưng vô nghĩa với engine khác: `SHA-256` là tên `MessageDigest`, `HmacSHA256` là tên `Mac`, `AES` là tên thuật toán cho `KeyGenerator`, còn `AES/GCM/NoPadding` là transformation của `Cipher`.
+At `getInstance(...)`, JCA looks up an **implementation of the exact engine type** from security providers. The same string can be valid for one engine and meaningless for another: `SHA-256` is a `MessageDigest` name, `HmacSHA256` is a `Mac` name, `AES` is a key/algorithm name for `KeyGenerator`, and `AES/GCM/NoPadding` is a `Cipher` transformation.
 
-| Ngoại lệ | Checked? | Thường phát sinh tại | Ý nghĩa và cách xử lý |
+| Exception | Checked? | Typically thrown at | Meaning and handling |
 | --- | --- | --- | --- |
-| `NoSuchAlgorithmException` | Có | `getInstance(...)` | Không có implementation cho **engine + algorithm/transformation + provider** đang yêu cầu; kiểm tra tên, loại engine, phiên bản JDK và khả năng provider. |
-| `NoSuchProviderException` | Có | `getInstance(algorithm, String providerName)` | Tên provider chỉ định **không được đăng ký** trong JVM; kiểm tra cấu hình/đăng ký provider trước khi chọn thuật toán khác. |
-| `NoSuchPaddingException` | Có | `Cipher.getInstance(...)` | Padding của transformation không được hỗ trợ; rà lại toàn bộ `algorithm/mode/padding`, không tự đổi padding. |
-| `InvalidKeyException` | Có | `Cipher.init(...)`, `Mac.init(...)`, `Signature.initSign/initVerify(...)` | Khóa sai loại, kích thước, encoding hoặc không được provider chấp nhận. |
-| `InvalidAlgorithmParameterException` | Có | `Cipher.init(..., AlgorithmParameterSpec)`, `KeyPairGenerator.initialize(AlgorithmParameterSpec)` | Cấu trúc/tham số thuật toán không phù hợp (ví dụ thông số GCM hoặc nhóm/curve không được hỗ trợ). |
-| `InvalidParameterException` | Không | Một số overload `initialize(int)`, `Cipher.init` với `opmode` sai | Giá trị tham số dạng số/chế độ không hợp lệ theo contract API; là `RuntimeException`. |
-| `IllegalArgumentException` / `NullPointerException` | Không | Kiểm tra đầu vào và một số factory/constructor | Thường do đầu vào chương trình null, rỗng hoặc sai dạng; chi tiết phụ thuộc **overload**, không được suy luận rằng mọi API ném cùng loại. |
-| `InvalidKeySpecException` | Có | `KeyFactory.generatePrivate/generatePublic`, `SecretKeyFactory.generateSecret` | Biểu diễn khóa (`KeySpec`) không phù hợp hoặc không thể chuyển thành khóa theo thuật toán. |
-| `AEADBadTagException` | Có | `Cipher.doFinal(...)` khi giải mã AEAD | Xác thực bản tin thất bại: có thể do bản mã, khóa, IV/nonce, tag hoặc AAD không khớp. Không trả về plaintext, không bỏ xác thực để “cứu” dữ liệu. |
-| `ProviderException` | Không | Bên trong provider | Lỗi runtime của provider/thiết bị; cần chẩn đoán môi trường, không coi là input validation thông thường. |
+| `NoSuchAlgorithmException` | Yes | `getInstance(...)` | No implementation for the requested **engine + algorithm/transformation + provider**; check name, engine type, JDK version, and provider capabilities. |
+| `NoSuchProviderException` | Yes | `getInstance(algorithm, String providerName)` | The specified provider name **is not registered** in the JVM; check provider configuration/registration before switching algorithms. |
+| `NoSuchPaddingException` | Yes | `Cipher.getInstance(...)` | The transformation's padding is unsupported; verify the full `algorithm/mode/padding`, do not swap padding arbitrarily. |
+| `InvalidKeyException` | Yes | `Cipher.init(...)`, `Mac.init(...)`, `Signature.initSign/initVerify(...)` | Key has wrong type, size, encoding, or is rejected by the provider. |
+| `InvalidAlgorithmParameterException` | Yes | `Cipher.init(..., AlgorithmParameterSpec)`, `KeyPairGenerator.initialize(AlgorithmParameterSpec)` | Incompatible algorithm parameter structure/values (e.g., GCM parameters or unsupported group/curve). |
+| `InvalidParameterException` | No | Some `initialize(int)` overloads, `Cipher.init` with wrong `opmode` | Invalid numeric parameter/mode per API contract; it is a `RuntimeException`. |
+| `IllegalArgumentException` / `NullPointerException` | No | Input checks and some factories/constructors | Usually caused by null, empty, or malformed program inputs; exact type depends on the **overload**, do not assume every API throws the same one. |
+| `InvalidKeySpecException` | Yes | `KeyFactory.generatePrivate/generatePublic`, `SecretKeyFactory.generateSecret` | Unsuitable key representation (`KeySpec`) or cannot be converted to a key for that algorithm. |
+| `AEADBadTagException` | Yes | `Cipher.doFinal(...)` during AEAD decryption | Message authentication failed: possibly mismatched ciphertext, key, IV/nonce, tag, or AAD. Never return plaintext or bypass authentication to “salvage” data. |
+| `ProviderException` | No | Inside provider | Runtime error in the provider/device; diagnose the environment rather than treating it as normal input validation. |
 
-**Ghi nhớ:** `GeneralSecurityException` là lớp cha của nhiều checked exceptions ở trên, nhưng **không bao trùm** `InvalidParameterException`, `IllegalArgumentException` hoặc `ProviderException`. Bắt `GeneralSecurityException` quá sớm sẽ làm mất nhánh xử lý cụ thể; bắt `Exception` rồi im lặng sẽ che nguyên nhân.
+**Remember:** `GeneralSecurityException` is the superclass of many checked exceptions above, yet it **does not cover** `InvalidParameterException`, `IllegalArgumentException`, or `ProviderException`. Catching `GeneralSecurityException` too early loses specific handling branches; catching `Exception` and swallowing it hides the root cause.
 
-## 2. Phân biệt chính xác “thiếu thuật toán” và “thiếu provider”
+## 2. Accurately Distinguishing “Missing Algorithm” from “Missing Provider”
 
-Lấy `MessageDigest` làm ví dụ:
+Using `MessageDigest` as an example:
 
 ```java
 MessageDigest.getInstance("SHA-256");
-// Tự tìm provider hỗ trợ MessageDigest/SHA-256 trong cấu hình JVM.
+// Automatically locates a provider supporting MessageDigest/SHA-256 in JVM configuration.
 
 MessageDigest.getInstance("SHA-256", providerName);
-// Yêu cầu đúng provider đã đăng ký có tên providerName.
+// Requires the exact registered provider named providerName.
 
 MessageDigest.getInstance("SHA-256", providerObject);
-// Dùng đối tượng Provider cụ thể; đối tượng này không nhất thiết đã đăng ký.
+// Uses a specific Provider object; this object need not already be registered.
 ```
 
-Ba overload trên có contract khác nhau:
+The three overloads have different contracts:
 
-1. **Không chỉ định provider:** `NoSuchAlgorithmException` khi không provider nào được phép/sẵn có cung cấp implementation tương ứng. Không có `NoSuchProviderException` vì không yêu cầu tên provider.
-2. **Chỉ định tên `String`:** `NoSuchProviderException` khi tên không được đăng ký; `NoSuchAlgorithmException` khi provider có tồn tại nhưng không cung cấp `MessageDigest/SHA-256`. Với `MessageDigest.getInstance(String, String)`, tên provider null/rỗng gây `IllegalArgumentException`, thuật toán null gây `NullPointerException`.
-3. **Chỉ định đối tượng `Provider`:** không có `NoSuchProviderException` trong chữ ký; một provider có thể được truyền trực tiếp dù chưa đăng ký. Nếu implementation thiếu, vẫn là `NoSuchAlgorithmException`; đối tượng provider null gây `IllegalArgumentException`.
+1. **No provider specified:** `NoSuchAlgorithmException` when no allowed/available provider supplies a matching implementation. There is no `NoSuchProviderException` because no provider name was requested.
+2. **Specifying a `String` name:** `NoSuchProviderException` when the name is not registered; `NoSuchAlgorithmException` when the provider exists but does not supply `MessageDigest/SHA-256`. With `MessageDigest.getInstance(String, String)`, a null/empty provider name causes `IllegalArgumentException`, while a null algorithm causes `NullPointerException`.
+3. **Specifying a `Provider` object:** no `NoSuchProviderException` in the signature; a provider can be passed directly even if unregistered. If the implementation is missing, it still throws `NoSuchAlgorithmException`; a null provider object causes `IllegalArgumentException`.
 
-Không nên kiểm tra provider bằng tên rồi kết luận rằng nó hỗ trợ mọi thuật toán. `Security.getProvider(name) != null` **chỉ chứng minh tên provider đã được đăng ký**; lời gọi `getInstance` của đúng engine mới là kiểm chứng khả năng thực tế. Với `Cipher`, còn cần kiểm chứng transformation và `init` vì việc lựa chọn implementation/provider có thể tiếp tục trong quá trình khởi tạo.
+Do not check a provider by name and conclude it supports every algorithm. `Security.getProvider(name) != null` **only proves that provider name is registered**; calling `getInstance` on the exact engine is the real capability check. For `Cipher`, you also need to verify the transformation and `init` because implementation/provider selection may continue during initialization.
 
-### 2.1 Lỗi thường bị nhầm
+### 2.1 Common Confusions
 
-- `MessageDigest.getInstance("AES")` không đúng engine: `AES` là cipher/key algorithm, không phải digest.
-- `Cipher.getInstance("SHA-256")` không đúng engine: `SHA-256` dùng để băm, không phải transformation mã hóa.
-- `Cipher.getInstance("AES")` không mô tả mode và padding, nên có thể dùng mặc định phụ thuộc provider và không đạt yêu cầu an toàn. Hãy cấu hình transformation đầy đủ như `AES/GCM/NoPadding` khi phù hợp thiết kế.
-- Tên provider như `SunJCE`, `SUN` hoặc provider HSM/PKCS#11 không được giả định luôn có trên mọi JVM. **Tên provider khác với tên thuật toán**.
-- “Không có provider tên X” và “provider X có nhưng không hỗ trợ thuật toán Y” cần hai hướng sửa khác nhau.
+- `MessageDigest.getInstance("AES")` uses the wrong engine: `AES` is a cipher/key algorithm, not a digest.
+- `Cipher.getInstance("SHA-256")` uses the wrong engine: `SHA-256` is for hashing, not an encryption transformation.
+- `Cipher.getInstance("AES")` omits mode and padding, so it can use provider-dependent defaults that fail security requirements. Configure a full transformation like `AES/GCM/NoPadding` when appropriate to the design.
+- Provider names such as `SunJCE`, `SUN`, or HSM/PKCS#11 providers must not be assumed present on every JVM. **Provider names are distinct from algorithm names**.
+- “No provider named X” and “provider X exists but does not support algorithm Y” require two different fixes.
 
-## 3. Ví dụ chạy được: chẩn đoán lỗi lookup
+## 3. Runnable Example: Diagnosing Lookup Errors
 
-Lưu đúng tên tệp **`JcaLookupDemo.java`**:
+Save with the exact filename **`JcaLookupDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -89,7 +89,7 @@ public final class JcaLookupDemo {
         try {
             MessageDigest.getInstance("NO_SUCH_DIGEST_FOR_DEMO_2026");
         } catch (NoSuchAlgorithmException ex) {
-            System.out.println("1. Khong co thuat toan MessageDigest");
+            System.out.println("1. MessageDigest algorithm not found");
         }
 
         String missingProvider = "TRAINING_PROVIDER_NOT_INSTALLED";
@@ -100,7 +100,7 @@ public final class JcaLookupDemo {
         try {
             MessageDigest.getInstance("SHA-256", missingProvider);
         } catch (NoSuchProviderException ex) {
-            System.out.println("2. Provider chua duoc dang ky");
+            System.out.println("2. Provider is not registered");
         }
 
         MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
@@ -110,68 +110,68 @@ public final class JcaLookupDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 JcaLookupDemo.java
 java JcaLookupDemo
 ```
 
-Kết quả trên JDK Java 17+ thông thường (không có custom provider cố tình đăng ký tên thuật toán demo):
+Output on a standard Java 17+ JDK (with no custom provider intentionally registering the demo algorithm name):
 
 ```text
-1. Khong co thuat toan MessageDigest
-2. Provider chua duoc dang ky
+1. MessageDigest algorithm not found
+2. Provider is not registered
 3. SHA-256(abc): ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- Lần gọi thứ nhất yêu cầu một thuật toán digest không được cài đặt. Ngoại lệ xuất hiện **trước** khi băm dữ liệu.
-- Lần gọi thứ hai dùng thuật toán có sẵn `SHA-256` nhưng yêu cầu tên provider không được đăng ký; vòng `while` tránh trùng tên ngẫu nhiên với một provider hiện có.
-- Lần cuối để JCA tự chọn provider hỗ trợ `SHA-256` và băm `abc`. `HexFormat` có từ Java 17 nên không cần thư viện ngoài.
+- The first call requests an uninstalled digest algorithm. The exception is thrown **before** hashing any data.
+- The second call uses the available algorithm `SHA-256` but requests an unregistered provider name; the `while` loop avoids an accidental collision with an existing provider.
+- The final call lets JCA automatically select a provider supporting `SHA-256` and hashes `abc`. `HexFormat` has existed since Java 17, so no external library is needed.
 
-Đây là minh họa để **phân biệt hai ngoại lệ**, không phải cơ chế thử tuần tự tên provider trong production. Ứng dụng nên cấu hình thuật toán đã kiểm duyệt và chỉ pin provider khi có yêu cầu kỹ thuật hoặc tuân thủ cụ thể.
+This is a demonstration to **distinguish the two exceptions**, not a mechanism for sequentially probing provider names in production. Applications should configure vetted algorithms and only pin providers when specific technical or compliance requirements demand it.
 
-## 4. “Lỗi tham số” phát sinh ở giai đoạn nào?
+## 4. At Which Stage Do “Parameter Errors” Arise?
 
-**(a) Tham số đầu vào của Java/API:** `null`, tên rỗng, chế độ hoạt động sai, kích thước âm. Nên kiểm tra sớm bằng `Objects.requireNonNull`, kiểm tra tập giá trị cho phép và độ dài, sau đó dùng lỗi lập trình/cấu hình phù hợp. Không dựa vào một loại ngoại lệ giống nhau cho mọi engine.
+**(a) Java/API input arguments:** `null`, empty names, wrong operation modes, negative sizes. Validate early using `Objects.requireNonNull`, check allowed value sets and lengths, then raise appropriate programming/configuration errors. Do not rely on the same exception type across all engines.
 
-**(b) Tham số thuật toán:** `GCMParameterSpec`, `PBEParameterSpec`, `ECGenParameterSpec`, `AlgorithmParameterSpec` khác. Một object có thể tạo được nhưng vẫn bị provider từ chối tại `init`, thường bằng `InvalidAlgorithmParameterException`. Việc hỗ trợ cỡ tag, key, curve hoặc parameter set có thể phụ thuộc provider và security policy.
+**(b) Algorithm parameters:** `GCMParameterSpec`, `PBEParameterSpec`, `ECGenParameterSpec`, and other `AlgorithmParameterSpec`s. An object may be constructible yet still rejected by the provider at `init`, typically with `InvalidAlgorithmParameterException`. Support for tag sizes, key sizes, curves, or parameter sets can depend on the provider and security policy.
 
-**(c) Khóa:** `SecretKey`, `PrivateKey`, `PublicKey` có thể sai thuật toán, độ dài hoặc không tương thích với thao tác. `InvalidKeyException` xuất hiện khi khởi tạo `Cipher`, `Mac`, `Signature`; không nên biến nó thành `NoSuchAlgorithmException` hoặc thử khóa khác một cách âm thầm. Nếu lỗi xảy ra lúc chuyển đổi `KeySpec`, hãy xem `InvalidKeySpecException`.
+**(c) Keys:** `SecretKey`, `PrivateKey`, and `PublicKey` may have the wrong algorithm, length, or be incompatible with the operation. `InvalidKeyException` occurs when initializing `Cipher`, `Mac`, or `Signature`; do not convert it into `NoSuchAlgorithmException` or silently try another key. If the error occurs while converting a `KeySpec`, check `InvalidKeySpecException`.
 
-**(d) Bản tin đầu vào sau khởi tạo:** với authenticated encryption (AEAD) như AES-GCM, `AEADBadTagException` là **thất bại xác thực**, không đồng nghĩa provider bị thiếu và cũng không nhất thiết là “tham số đầu vào sai”. Tất cả khóa, nonce/IV, tag và AAD phải khớp giữa hai đầu.
+**(d) Input message after initialization:** for authenticated encryption (AEAD) such as AES-GCM, `AEADBadTagException` is an **authentication failure**, which does not mean a provider is missing nor necessarily “invalid input parameter”. All of key, nonce/IV, tag, and AAD must match across both ends.
 
-Ví dụ ký hiệu:
+Symbolic example:
 
 ```java
-// Chọn transformation: lỗi lookup có thể là NoSuchAlgorithmException
-// hoặc NoSuchPaddingException.
+// Transformation selection: lookup errors may be NoSuchAlgorithmException
+// or NoSuchPaddingException.
 Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
 
-// Khởi tạo: key sai có thể là InvalidKeyException;
-// thông số GCM không phù hợp có thể là InvalidAlgorithmParameterException.
+// Initialization: wrong key may throw InvalidKeyException;
+// unsuitable GCM parameters may throw InvalidAlgorithmParameterException.
 cipher.init(Cipher.ENCRYPT_MODE, aesKey, new GCMParameterSpec(128, iv));
 
-// Khi giải mã GCM: doFinal(...) có thể ném AEADBadTagException
-// nếu dữ liệu không xác thực. Đừng bỏ qua kiểm tra này.
+// During GCM decryption: doFinal(...) may throw AEADBadTagException
+// if data fails authentication. Never bypass this check.
 ```
 
-Đoạn trên là **mã minh họa từng API**, chưa phải chương trình độc lập: cần định nghĩa `aesKey`, `iv` và ngữ cảnh gọi. Ví dụ chạy đầy đủ ở mục kế tiếp.
+The snippet above is **API-by-API illustrative code**, not a standalone program: `aesKey`, `iv`, and calling context must be defined. A full runnable example appears in the next section.
 
-### 4.1 Checklist tham số an toàn cho AES-GCM
+### 4.1 Safe Parameter Checklist for AES-GCM
 
-- Chỉ sử dụng khóa AES hợp lệ, thông thường **128/192/256 bit** theo chính sách. Không lấy mật khẩu thô hoặc chuỗi UTF-8 tùy ý làm khóa AES; dùng KDF thích hợp nếu xuất phát từ mật khẩu.
-- Trong ví dụ, dùng IV dài **12 byte (96 bit)** và tag **128 bit**. Đó là cấu hình khuyến nghị phổ biến, không phải khẳng định mọi provider chấp nhận mọi tổ hợp kích thước.
-- **Không bao giờ dùng lại cùng cặp (key, IV/nonce) khi mã hóa GCM.** Với lưu lượng lớn, cần thiết kế quản lý nonce để kiểm soát va chạm; chỉ tạo IV ngẫu nhiên trong ví dụ đơn giản không thay thế thiết kế đó.
-- Có thể công khai IV cùng bản mã; IV không phải khóa bí mật. Tag thường nằm ở cuối byte array trả về từ `Cipher.doFinal` của GCM.
-- AAD, nếu sử dụng, phải giống hệt lúc mã hóa/giải mã và được đưa qua `updateAAD(...)` **trước** phần dữ liệu.
-- Không phát tán plaintext chưa được xác thực và không tự bỏ tag, đổi mode hay đổi thuật toán để qua lỗi `AEADBadTagException`.
+- Use only valid AES keys, typically **128/192/256 bits** per policy. Never use a raw password or arbitrary UTF-8 string as an AES key; use an appropriate KDF if deriving from a password.
+- In the example, use a **12-byte (96-bit)** IV and a **128-bit** tag. That is the widely recommended configuration, though not an assertion that every provider accepts every size combination.
+- **Never reuse the same `(key, IV/nonce)` pair when encrypting with GCM.** At high volume, design nonce management to bound collisions; simply generating a random IV in a small demo does not replace that design.
+- The IV can be public alongside the ciphertext; the IV is not a secret key. The tag is typically appended at the end of the byte array returned by GCM `Cipher.doFinal`.
+- AAD, if used, must match identically between encryption and decryption and be passed via `updateAAD(...)` **before** the data payload.
+- Never release unauthenticated plaintext, and never drop the tag, switch modes, or change algorithms to work around `AEADBadTagException`.
 
-## 5. Ví dụ chạy được: tách lỗi khởi tạo và lỗi xác thực AES-GCM
+## 5. Runnable Example: Separating Initialization Errors from AES-GCM Authentication Errors
 
-Ví dụ này dùng provider mặc định có hỗ trợ `AES/GCM/NoPadding`, đóng gói `IV(12 byte) || ciphertext+tag`, mã hóa/giải mã thành công và cố ý sửa tag để thấy nhánh lỗi. Lưu đúng tên **`GcmFailureDemo.java`**:
+This example uses a default provider supporting `AES/GCM/NoPadding`, packs `IV(12 bytes) || ciphertext+tag`, encrypts/decrypts successfully, and intentionally flips a tag bit to observe the failure branch. Save with the exact name **`GcmFailureDemo.java`**:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -201,23 +201,23 @@ public final class GcmFailureDemo {
 
             byte[] payload = encrypt("Hello JCA".getBytes(StandardCharsets.UTF_8), key);
             byte[] recovered = decrypt(payload, key);
-            System.out.println("Giai ma: " + new String(recovered, StandardCharsets.UTF_8));
+            System.out.println("Decrypted: " + new String(recovered, StandardCharsets.UTF_8));
 
             byte[] tampered = payload.clone();
-            tampered[tampered.length - 1] ^= 1; // Sua mot bit cua tag.
+            tampered[tampered.length - 1] ^= 1; // Flip one bit of the tag.
             try {
                 decrypt(tampered, key);
-                throw new AssertionError("Tag da sua ma van duoc chap nhan");
+                throw new AssertionError("Modified tag was still accepted");
             } catch (AEADBadTagException ex) {
-                System.out.println("Tag bi sua: xac thuc that bai");
+                System.out.println("Modified tag: authentication failed");
             }
 
         } catch (NoSuchAlgorithmException | NoSuchPaddingException ex) {
-            throw new IllegalStateException("Algorithm/transformation khong kha dung", ex);
+            throw new IllegalStateException("Algorithm/transformation unavailable", ex);
         } catch (InvalidKeyException | InvalidAlgorithmParameterException ex) {
-            throw new IllegalArgumentException("Key hoac tham so khong hop le", ex);
+            throw new IllegalArgumentException("Invalid key or parameters", ex);
         } catch (GeneralSecurityException ex) {
-            throw new IllegalStateException("Loi xu ly mat ma", ex);
+            throw new IllegalStateException("Cryptographic processing error", ex);
         }
     }
 
@@ -240,7 +240,7 @@ public final class GcmFailureDemo {
     private static byte[] decrypt(byte[] payload, SecretKey key)
             throws GeneralSecurityException {
         if (payload == null || payload.length < IV_BYTES + TAG_BYTES) {
-            throw new IllegalArgumentException("Payload thieu IV hoac tag");
+            throw new IllegalArgumentException("Payload missing IV or tag");
         }
 
         byte[] iv = Arrays.copyOfRange(payload, 0, IV_BYTES);
@@ -259,37 +259,37 @@ javac -encoding UTF-8 GcmFailureDemo.java
 java GcmFailureDemo
 ```
 
-Kết quả với provider JDK thông thường hỗ trợ AES-GCM:
+Output with a typical JDK provider supporting AES-GCM:
 
 ```text
-Giai ma: Hello JCA
-Tag bi sua: xac thuc that bai
+Decrypted: Hello JCA
+Modified tag: authentication failed
 ```
 
-Ý nghĩa các nhánh:
+Meaning of each branch:
 
-- `NoSuchAlgorithmException` / `NoSuchPaddingException`: engine hoặc transformation không khả dụng ở môi trường này. Đây thường là lỗi **khả năng/cấu hình**, nên phát hiện khi khởi động.
-- `InvalidKeyException` / `InvalidAlgorithmParameterException`: kiểm tra nguồn khóa, loại khóa, size, transformation, IV/tag/AAD và provider. **Không** chuyển sang cipher/mode yếu hơn.
-- `AEADBadTagException`: xử lý như **bản tin không xác thực**, trả thông báo thích hợp cho bên gọi nhưng không tiết lộ khóa, plaintext hoặc chi tiết mật mã nhạy cảm.
-- `IllegalArgumentException` do payload thiếu cấu trúc hợp lệ là lỗi **kiểm tra đầu vào của chương trình**; nó khác với ngoại lệ checked do provider ném.
-- `GeneralSecurityException` cuối cùng chỉ dành cho các trường hợp chưa được phân loại; vẫn phải giữ `cause` để điều tra trong hệ thống tin cậy.
+- `NoSuchAlgorithmException` / `NoSuchPaddingException`: the engine or transformation is unavailable in this environment. This is usually a **capability/configuration** error that should be detected at startup.
+- `InvalidKeyException` / `InvalidAlgorithmParameterException`: check key source, key type, size, transformation, IV/tag/AAD, and provider. **Do not** fall back to a weaker cipher/mode.
+- `AEADBadTagException`: handle as an **unauthenticated message**, returning an appropriate response to the caller without exposing keys, plaintext, or sensitive cryptographic details.
+- `IllegalArgumentException` from a payload lacking valid structure is a **program input-validation** error; it differs from checked exceptions thrown by the provider.
+- The final `GeneralSecurityException` catch is only for unclassified cases; still preserve `cause` for investigation in trusted systems.
 
-Việc sửa một bit trong tag tạo lỗi xác thực trên provider GCM bình thường; nguyên tắc an toàn là **từ chối** dữ liệu khi kiểm tra tag thất bại. Ví dụ không hướng dẫn lưu khóa lâu dài, xoay khóa hoặc format dữ liệu liên phiên bản; các phần đó cần thiết kế riêng trong hệ thống thực tế.
+Flipping a bit in the tag triggers an authentication failure on a normal GCM provider; the security principle is to **reject** data when tag verification fails. The example does not cover long-term key storage, key rotation, or cross-version data formats; those require dedicated design in real systems.
 
-## 6. Chiến lược xử lý lỗi đúng trong ứng dụng
+## 6. Proper Error-Handling Strategy in Applications
 
-### 6.1 Phân loại theo nguyên nhân và thời điểm
+### 6.1 Categorizing by Cause and Timing
 
-| Nhóm | Ví dụ | Hành động khuyến nghị |
+| Category | Examples | Recommended action |
 | --- | --- | --- |
-| **Cấu hình/khả năng không hợp lệ** | Sai algorithm, sai transformation, provider chưa cài, thiếu HSM provider | Kiểm tra ngay lúc startup; ghi log đã lọc thông tin về engine, tên thuật toán, tên provider và môi trường; **fail fast** thay vì vận hành âm thầm với thuật toán khác. |
-| **Dữ liệu/khóa/tham số không hợp lệ** | Key sai độ dài, `AlgorithmParameterSpec` không được chấp nhận, payload thiếu IV/tag | Kiểm tra nguồn dữ liệu; phân biệt lỗi client với lỗi cấu hình nội bộ; xử lý theo contract của API. |
-| **Xác thực thất bại** | `AEADBadTagException` | Từ chối bản tin; không trả plaintext; không thử chế độ không xác thực để khôi phục. |
-| **Provider/runtime lỗi** | `ProviderException`, lỗi thiết bị mật mã, khả năng provider thay đổi | Thu thập telemetry có kiểm soát, cảnh báo và điều tra môi trường; chỉ retry khi operation thực sự an toàn/idempotent và chính sách cho phép. |
+| **Invalid configuration / capability** | Wrong algorithm, wrong transformation, uninstalled provider, missing HSM provider | Check immediately at startup; log sanitized metadata about engine, algorithm name, provider name, and environment; **fail fast** instead of silently operating with another algorithm. |
+| **Invalid data / key / parameters** | Wrong key length, rejected `AlgorithmParameterSpec`, payload missing IV/tag | Verify data source; separate client input errors from internal configuration bugs; handle per API contract. |
+| **Authentication failure** | `AEADBadTagException` | Reject message; do not return plaintext; do not retry unauthenticated modes to recover. |
+| **Provider / runtime error** | `ProviderException`, cryptographic device error, changed provider capabilities | Collect controlled telemetry, alert, and investigate the environment; retry only when the operation is genuinely safe/idempotent and policy permits. |
 
-Hãy xác định rõ **ai sở hữu cấu hình** trước khi quyết định phản hồi. Nếu ứng dụng cấu hình `AES/GCM/NoPadding` cố định mà JVM không hỗ trợ, lỗi đó thường phải được sửa ở triển khai, không được quy thành lỗi nhập liệu của người dùng. Nếu API nhận payload từ client và thiếu IV, ứng dụng có thể từ chối đầu vào theo contract. Với payload mã hóa sai tag, không tiết lộ chi tiết đủ để tạo oracle phân biệt nhiều dạng thất bại.
+Clearly determine **who owns the configuration** before deciding the response. If the application hardcodes `AES/GCM/NoPadding` and the JVM lacks support, that error must usually be fixed at deployment, not blamed on user input. If an API receives a client payload missing an IV, the application can reject the input per contract. For encrypted payloads with a bad tag, never leak enough detail to create an oracle distinguishing failure types.
 
-### 6.2 Mẫu kiểm tra cấu hình lúc khởi động
+### 6.2 Startup Configuration Validation Pattern
 
 ```java
 import java.security.MessageDigest;
@@ -304,16 +304,16 @@ public final class DigestFactory {
     public static MessageDigest create(String algorithm, String providerName)
             throws NoSuchAlgorithmException, NoSuchProviderException {
         if (algorithm == null || !ALLOWED.contains(algorithm)) {
-            throw new IllegalArgumentException("Digest algorithm ngoai allowlist");
+            throw new IllegalArgumentException("Digest algorithm outside allowlist");
         }
 
-        // null/rong mang nghia la de JCA tu chon provider.
+        // null/blank means let JCA select the provider automatically.
         if (providerName == null || providerName.isBlank()) {
             return MessageDigest.getInstance(algorithm);
         }
 
         if (Security.getProvider(providerName) == null) {
-            throw new NoSuchProviderException("Provider khong duoc dang ky: "
+            throw new NoSuchProviderException("Provider is not registered: "
                     + providerName);
         }
         return MessageDigest.getInstance(algorithm, providerName);
@@ -321,21 +321,21 @@ public final class DigestFactory {
 }
 ```
 
-Đây là **lớp hỗ trợ biên dịch độc lập nhưng không có `main`**: gọi `DigestFactory.create(...)` ở bước khởi tạo cấu hình ứng dụng. Tên thuật toán được giới hạn bằng allowlist; `providerName` chỉ là tùy chọn khi chính sách cho phép chạy độc lập provider. Nếu chính sách **bắt buộc HSM/provider cụ thể**, không được đổi sang provider mặc định khi gặp `NoSuchProviderException`.
+This is a **helper class that compiles standalone but has no `main`**: call `DigestFactory.create(...)` during application configuration initialization. Algorithm names are restricted by an allowlist; `providerName` is optional when policy permits provider-independent execution. If policy **mandates an HSM/specific provider**, never fall back to the default provider upon catching `NoSuchProviderException`.
 
-Không nên dùng dữ liệu request không đáng tin cậy để quyết định thuật toán/provider. Nếu cần hỗ trợ migration, hãy thiết kế **phiên bản định dạng + allowlist thuật toán đã phê duyệt**; chỉ chuyển giữa các cấu hình tương đương đáp ứng chính sách, không fallback từ thuật toán hiện đại sang MD5, SHA-1 cho chức năng bảo mật, DES, ECB hoặc mode không xác thực.
+Never use untrusted request data to decide algorithms/providers. If migration support is needed, design a **format version + approved algorithm allowlist**; only switch among equivalent policy-compliant configurations, never falling back from modern algorithms to MD5, SHA-1 for security functions, DES, ECB, or unauthenticated modes.
 
-### 6.3 Chẩn đoán có thứ tự
+### 6.3 Ordered Diagnostics
 
-1. **Xác định API vừa ném lỗi:** `MessageDigest`, `Cipher`, `KeyPairGenerator` hay `Signature`? Ghi nhận đúng `getInstance`, `init`, `doFinal` thay vì đoán chỉ từ thông điệp ngoại lệ.
-2. **Kiểm tra tên chính xác và loại engine:** `SHA-256` khác `HmacSHA256`; `AES/GCM/NoPadding` là transformation của `Cipher`; không chỉ sửa chữ hoa/thường theo cảm tính.
-3. **Nếu chỉ định provider theo tên:** `Security.getProvider(providerName)` có `null` không? Nếu có provider, gọi đúng `getInstance` để xác minh dịch vụ/thuật toán. Có thể liệt kê `Security.getProviders()` và `Security.getAlgorithms("MessageDigest")` để khám phá môi trường, nhưng danh sách không thay thế việc khởi tạo thực tế.
-4. **Xác nhận runtime:** version/vendor JDK, security properties, provider priority, module/dependency của provider ngoài JDK, HSM/PKCS#11 và khác biệt dev/test/prod. Một implementation có trên laptop không bảo đảm có trong container production.
-5. **Nếu lỗi tại `init`:** so sánh thuật toán của `Key`, kích thước khóa, mode, `AlgorithmParameterSpec`, tag/IV/nonce, policy và API overload đã dùng.
-6. **Nếu lỗi tại `doFinal`:** kiểm tra định dạng payload, tính toàn vẹn và AAD. Với AEAD, phân loại thất bại xác thực; không ghi khóa, plaintext hay vật liệu mật mã nhạy cảm vào log.
-7. **Ghi nguyên nhân có kiểm soát:** ở log nội bộ lưu loại ngoại lệ, vị trí giai đoạn, thuật toán/provider không nhạy cảm, mã tương quan và `cause`; phản hồi công khai dùng thông báo an toàn, không đưa stack trace/provider internals ra client.
+1. **Identify the exact API that threw the error:** `MessageDigest`, `Cipher`, `KeyPairGenerator`, or `Signature`? Record whether it was `getInstance`, `init`, or `doFinal` instead of guessing from the exception message alone.
+2. **Verify exact names and engine types:** `SHA-256` differs from `HmacSHA256`; `AES/GCM/NoPadding` is a `Cipher` transformation; do not adjust casing by guesswork alone.
+3. **If a provider was specified by name:** is `Security.getProvider(providerName)` `null`? If the provider exists, call the exact `getInstance` to verify the service/algorithm. You can list `Security.getProviders()` and `Security.getAlgorithms("MessageDigest")` to inspect the environment, though lists do not replace actual initialization.
+4. **Confirm runtime details:** JDK version/vendor, security properties, provider priority, external provider modules/dependencies, HSM/PKCS#11, and dev/test/prod differences. An implementation present on a laptop is not guaranteed to exist in a production container.
+5. **If failing at `init`:** compare the `Key`'s algorithm, key size, mode, `AlgorithmParameterSpec`, tag/IV/nonce, policy, and the API overload used.
+6. **If failing at `doFinal`:** check payload format, integrity, and AAD. With AEAD, classify authentication failures; never log keys, plaintext, or sensitive cryptographic material.
+7. **Log root cause under control:** in internal logs record exception class, stage, non-sensitive algorithm/provider names, correlation ID, and `cause`; for public responses return safe messages without exposing stack traces or provider internals to clients.
 
-Chẩn đoán dưới đây chỉ liệt kê **tên** provider/thuật toán, không xuất vật liệu mật mã. Chạy trong môi trường tin cậy khi cần:
+The diagnostic snippet below lists only provider/algorithm **names**, outputting no cryptographic material. Run in a trusted environment when needed:
 
 ```java
 import java.security.Provider;
@@ -352,45 +352,45 @@ public class JcaEnvironmentInfo {
 }
 ```
 
-Kết quả **phụ thuộc JVM** nên không có một stdout cố định. Không dùng danh sách này để chọn ngẫu nhiên “thuật toán đầu tiên chạy được”.
+Output **depends on the JVM**, so there is no fixed stdout. Never use this list to pick a random “first algorithm that works”.
 
-## 7. Anti-pattern và cách sửa
+## 7. Anti-Patterns and Fixes
 
-| Cách làm sai | Vì sao nguy hiểm/khó debug | Cách thay thế |
+| Wrong approach | Why it is dangerous / hard to debug | Replacement |
 | --- | --- | --- |
-| `catch (Exception e) { return null; }` | Nuốt nguyên nhân, tạo `NullPointerException` ở xa nguồn. | Phân loại ngoại lệ, giữ cause, trả/throw lỗi mang ngữ cảnh. |
-| Gặp `NoSuchAlgorithmException` thì thử `MD5`, `SHA-1`, `DES` hoặc `AES/ECB/...`. | Hạ tiêu chuẩn bảo mật âm thầm; có thể thay đổi tính chất dữ liệu. | Kiểm tra cấu hình, dependency và provider; fail fast hoặc migration theo chính sách đã phê duyệt. |
-| Bắt `NoSuchProviderException` rồi bỏ tên provider và retry mặc định. | Có thể chuyển thao tác ra ngoài HSM/provider bắt buộc. | Chỉ được fallback provider khi chính sách cho phép một cách rõ ràng; nếu không, dừng và báo lỗi triển khai. |
-| Gộp `InvalidKeyException`, `AEADBadTagException`, `NoSuchAlgorithmException` thành “sai mật khẩu”. | Che lỗi hệ thống, rò rỉ logic và làm sai vận hành. | Tách nhóm cấu hình, tham số/khóa và xác thực thất bại. |
-| Truyền nguyên chuỗi tự do từ request vào `Cipher.getInstance`. | Người gọi có thể quyết định thuật toán/mode ngoài chính sách. | Cố định cấu hình hoặc ánh xạ mã phiên bản sang allowlist. |
-| Dùng lại IV với cùng key GCM hoặc bỏ qua `AEADBadTagException`. | Gây tổn hại tính bảo mật/toàn vẹn dữ liệu. | Bảo đảm nonce duy nhất; từ chối bản tin không xác thực. |
-| Ghi key, plaintext, raw secret, stack trace đầy đủ ra log công khai. | Rò rỉ dữ liệu nhạy cảm. | Ghi mã lỗi/correlation ID và thông tin cấu hình phi bí mật ở log được bảo vệ. |
+| `catch (Exception e) { return null; }` | Swallows root cause, creating `NullPointerException`s far from the source. | Classify exceptions, preserve `cause`, return/throw contextual errors. |
+| On `NoSuchAlgorithmException`, fall back to `MD5`, `SHA-1`, `DES`, or `AES/ECB/...`. | Silently lowers security standards; may alter data semantics. | Check configuration, dependencies, and providers; fail fast or migrate under approved policy. |
+| Catch `NoSuchProviderException`, drop the provider name, and retry default. | May route operations outside a mandatory HSM/provider. | Only fall back when policy explicitly allows it; otherwise stop and report deployment error. |
+| Lump `InvalidKeyException`, `AEADBadTagException`, and `NoSuchAlgorithmException` into “wrong password”. | Hides system bugs, leaks logic, and misleads operations. | Separate configuration, parameter/key, and authentication failure categories. |
+| Pass free-form strings from requests directly into `Cipher.getInstance`. | Callers can dictate algorithms/modes outside policy. | Fix configuration or map version codes onto an allowlist. |
+| Reuse an IV with the same GCM key or ignore `AEADBadTagException`. | Compromises confidentiality/integrity of data. | Guarantee unique nonces; reject unauthenticated messages. |
+| Write keys, plaintext, raw secrets, or full stack traces to public logs. | Leaks sensitive data. | Log error codes/correlation IDs and non-secret config info in protected logs. |
 
-## 8. Tự kiểm tra hiểu bài
+## 8. Knowledge Self-Check
 
-**Tình huống A.** `MessageDigest.getInstance("AES")` ném `NoSuchAlgorithmException`. Có nên cài thêm provider ngay?  
-**Giải:** Trước hết xem lại **engine**; `AES` không phải digest. Dùng `MessageDigest` cho `SHA-256` hoặc engine phù hợp với mục tiêu thực tế. Không mặc định là thiếu provider.
+**Scenario A.** `MessageDigest.getInstance("AES")` throws `NoSuchAlgorithmException`. Should you install another provider right away?  
+**Answer:** First check the **engine**; `AES` is not a digest. Use `MessageDigest` for `SHA-256` or choose the engine matching your real goal. Do not assume a missing provider by default.
 
-**Tình huống B.** `MessageDigest.getInstance("SHA-256", "MyHsm")` ném `NoSuchProviderException`.  
-**Giải:** Tên `MyHsm` chưa được đăng ký trong JVM. Kiểm tra cài đặt/khởi tạo provider, tên và cấu hình runtime. Nếu quy định dùng HSM, dừng thay vì tự đổi provider.
+**Scenario B.** `MessageDigest.getInstance("SHA-256", "MyHsm")` throws `NoSuchProviderException`.  
+**Answer:** The name `MyHsm` is not registered in the JVM. Check provider installation/initialization, name, and runtime config. If policy mandates an HSM, stop rather than switching providers automatically.
 
-**Tình huống C.** Provider có tên `MyHsm`, nhưng cùng câu lệnh ném `NoSuchAlgorithmException`.  
-**Giải:** Provider đã tồn tại nhưng không cung cấp implementation `MessageDigest/SHA-256` theo yêu cầu. Kiểm tra đúng engine, thuật toán, provider capabilities và policy.
+**Scenario C.** A provider named `MyHsm` exists, yet the same call throws `NoSuchAlgorithmException`.  
+**Answer:** The provider exists but does not supply the requested `MessageDigest/SHA-256` implementation. Check exact engine, algorithm, provider capabilities, and policy.
 
-**Tình huống D.** `Cipher.getInstance("AES/GCM/NoPadding")` thành công, nhưng `init` thất bại.  
-**Giải:** Đây là lúc xét `InvalidKeyException` hoặc `InvalidAlgorithmParameterException`, chứ không mặc nhiên kết luận thiếu thuật toán. Kiểm tra key, tag/nonce và contract provider.
+**Scenario D.** `Cipher.getInstance("AES/GCM/NoPadding")` succeeds, but `init` fails.  
+**Answer:** Investigate `InvalidKeyException` or `InvalidAlgorithmParameterException`, rather than assuming an algorithm is missing. Check the key, tag/nonce, and provider contract.
 
-**Tình huống E.** `Cipher.doFinal` lúc giải mã GCM ném `AEADBadTagException`.  
-**Giải:** Thất bại xác thực; không trả plaintext và không dùng mode bỏ xác thực. Điều tra nguồn bản mã, key, IV/nonce, tag, AAD và định dạng dữ liệu.
+**Scenario E.** `Cipher.doFinal` during GCM decryption throws `AEADBadTagException`.  
+**Answer:** Authentication failed; never return plaintext and never switch to an unauthenticated mode. Investigate payload origin, key, IV/nonce, tag, AAD, and data format.
 
-### Tiêu chí hoàn thành
+### Completion Criteria
 
-Người học có thể: (1) chỉ ra đúng giai đoạn ném lỗi; (2) phân biệt ba overload `getInstance` với provider; (3) tách `InvalidKeyException`, `InvalidAlgorithmParameterException`, `InvalidParameterException` và lỗi xác thực; (4) khởi tạo JCA/JCE với cấu hình rõ ràng và **không fallback hạ cấp bảo mật**; (5) tái hiện, chẩn đoán, báo lỗi có giữ nguyên nhân mà không lộ secret.
+Learners can: (1) pinpoint the exact stage throwing an error; (2) distinguish the three `getInstance` provider overloads; (3) separate `InvalidKeyException`, `InvalidAlgorithmParameterException`, `InvalidParameterException`, and authentication errors; (4) initialize JCA/JCE with explicit configuration and **without security-downgrading fallbacks**; (5) reproduce, diagnose, and report errors preserving root cause without leaking secrets.
 
-## Tài liệu chính thức
+## Official Documentation
 
-- [Java SE 21 — MessageDigest](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/MessageDigest.html): ba overload `getInstance` và các ngoại lệ.
-- [Java SE 21 — NoSuchProviderException](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/NoSuchProviderException.html): định nghĩa provider được yêu cầu nhưng không khả dụng.
-- [Java SE 21 — Cipher](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html): transformation, `getInstance`, `init`, GCM/AEAD và `doFinal`.
-- [Java SE 21 — KeyPairGenerator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyPairGenerator.html): `InvalidParameterException` với keysize và `InvalidAlgorithmParameterException` với `AlgorithmParameterSpec`.
-- [Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html): tên thuật toán/engine tiêu chuẩn và các transformation.
+- [Java SE 21 — MessageDigest](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/MessageDigest.html): the three `getInstance` overloads and exceptions.
+- [Java SE 21 — NoSuchProviderException](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/NoSuchProviderException.html): definition when a requested provider is unavailable.
+- [Java SE 21 — Cipher](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Cipher.html): transformations, `getInstance`, `init`, GCM/AEAD, and `doFinal`.
+- [Java SE 21 — KeyPairGenerator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/KeyPairGenerator.html): `InvalidParameterException` for keysize and `InvalidAlgorithmParameterException` for `AlgorithmParameterSpec`.
+- [Java Security Standard Algorithm Names](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html): standard algorithm/engine names and transformations.
